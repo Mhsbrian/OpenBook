@@ -106,6 +106,8 @@ Each milestone is small, has a verification artifact, and is checked into `evide
 
 ## 7. Next steps (in order)
 
+Execution is tracked as Multica epics ANAL-160 to ANAL-166, with sub-issues ANAL-167 to ANAL-185. The map is in `docs/STATUS.md`.
+
 1. Owner confirms: the target AMD laptop (exact model or SKU) and the Track B licensing decision. The repo is settled: `Mhsbrian/AnyBook`.
 2. M1a: port GBRUNCH's software security HALs into a local vendor overlay, then boot Googlebook OS in QEMU to `boot_completed`.
 3. M1b: in parallel, sync `android17-release` to a local mirror (about 400 GB) and build `aosp_cf_x86_64_pc` with ccache.
