@@ -1,0 +1,9 @@
+# Never commit proprietary or large images
+*.img
+*.bin
+*.zip
+*.iso
+*.tar.gz
+*.tgz
+/dl/
+/work/
