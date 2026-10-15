@@ -25,7 +25,8 @@
 
 **Blocked / needs a decision**
 - Target hardware: which AMD laptop (exact SKU)? The dev host is a Ryzen 9 7950X desktop with a Radeon 610M iGPU and an RTX 4090.
-- Which repo receives this work. No AnyBook repo exists yet.
+- ~~Which repo receives this work.~~ Resolved: https://github.com/Mhsbrian/AnyBook (public, created 2026-10-15).
+- License for the scripts and docs. Apache-2.0 is suggested, to match AOSP. Not chosen yet.
 - Track B licensing: whether to proceed past research with Google's proprietary image (`docs/PLAN.md` §6).
 
 **Next**

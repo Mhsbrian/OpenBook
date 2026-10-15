@@ -106,7 +106,7 @@ Each milestone is small, has a verification artifact, and is checked into `evide
 
 ## 7. Next steps (in order)
 
-1. Owner confirms: the target AMD laptop (exact model or SKU), the repo that receives this work, and the Track B licensing decision.
+1. Owner confirms: the target AMD laptop (exact model or SKU) and the Track B licensing decision. The repo is settled: `Mhsbrian/AnyBook`.
 2. M1a: port GBRUNCH's software security HALs into a local vendor overlay, then boot Googlebook OS in QEMU to `boot_completed`.
 3. M1b: in parallel, sync `android17-release` to a local mirror (about 400 GB) and build `aosp_cf_x86_64_pc` with ccache.
 4. Write the AMD kernel fragment (Zen 4 and Zen 5 laptops) and build android17-6.18 with Kleaf.
