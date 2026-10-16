@@ -102,3 +102,18 @@
 
 **Next:** ANAL-168 full build of `aosp_cf_x86_64_pc-cp2a-userdebug`, measuring ccache hits, then boot it in Cuttlefish.
 | ANAL-186 NVIDIA dGPU, RTX 5070 Laptop (parked until the AMD iGPU bring-up works) | ANAL-187 research nouveau/NVK on Android and PRIME offload | — |
+
+## 2026-10-16: M1b, our AOSP 17 build boots in Cuttlefish (ANAL-168, Track A)
+
+**Done**
+- Built `aosp_cf_x86_64_pc-cp2a-userdebug` with `scripts/aosp-build.sh`: 2 h 10 min cold at `-j32` on the shared host. Peak container RAM was 41 GiB, plus 18.5 GiB of swap. `out/` is 137 GB (165 GB after `m dist`), and ccache got 25% hits even though the cache started empty.
+- Booted it with `scripts/cf-boot.sh` in Google's Cuttlefish container (no sudo, no `--privileged`). `sys.boot_completed=1` came 17–29 s after `cvd create`. The display is up at 1920×1080 showing Launcher3, and `adb` captures work. The boot also works with our build's own host tools (`CF_HOST_TOOLS=build`).
+- Device: Android 17, SDK 37, `CP2A.260605.016`. `feature:android.hardware.type.pc` and freeform window management are present. The kernel is Google's prebuilt android16-6.12 GKI.
+
+**Evidence:** `evidence/2026-10-16-aosp/`. Details are in `docs/aosp-build.md` (M1b).
+
+**Findings**
+- Cuttlefish in Docker needs three things the recipe left out: `seccomp=unconfined` (Docker's default profile blocks `AF_VSOCK`), a writable host path, and a writable product path. cvd 1.57 also swaps in all of its packaged host tools, because AOSP's host package ships `debian_substitution_marker`.
+- The build advertises `arm64-v8a` in its abilist but ships no native bridge. An arm64-only APK installs, then fails `dlopen` with `EM_AARCH64`.
+
+**Next:** ANAL-169, graphics and desktop windowing on this image. In ANAL-181, a translator for the advertised `arm64-v8a`.
