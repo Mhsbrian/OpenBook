@@ -1,0 +1,62 @@
+# Android-Generic external_mesa 26.0/main b14bf42d23ef1f9625eddb005cd568ab3873f11d vs upstream mesa-26.0.8
+# merge-base: 60e95b787857afbc9a00b693b91c0d9c8923a430
+578aa665897 2021-06-16 Roman Stratiienko: AOSP: Add hwvulkan_headers dependency only if required (v3)
+11ec072845c 2022-06-18 Mauro Rossi: AOSP: Add vulkan_headers dependency for Android P and older
+7a1ec40b315 2021-06-11 Roman Stratiienko: AOSP: Add support for Android v10 and v9 (v2)
+5aa20b52106 2023-05-21 Mauro Rossi: AOSP: Add nouveau vulkan library suffix
+97d1b3619e3 2023-12-09 Mauro Rossi: crocus: Extend resource creation helpers to allow for explicit strides
+dec4ab58e7d 2023-12-09 Mauro Rossi: crocus: Hack around gbm_gralloc stride restrictions
+4a9bf906315 2024-03-01 Mauro Rossi: Android.mk: update list of vulkan drivers
+4c0085c041d 2024-03-02 Mauro Rossi: Android.mk: Rename nouveau-experimental to nouveau
+c06afe82501 2023-11-13 Michael Goffioul: egl/dri2: silence misleading error in EGL logs
+2ed7c369941 2024-10-19 Mauro Rossi: android: add support for rust targets
+73664e85194 2025-01-03 Mauro Rossi: HACK: nouveau/nil: remove idep_mesautil dependency to avoid c++/rust build error
+0c4575e9d3a 2025-01-25 Mauro Rossi: crocus: toggle on PIPE_CAP_MIXED_COLOR_DEPTH_BITS (v2)
+81025d788ab 2025-01-30 Mauro Rossi: android: install libGLES_mesa as a copy of libEGL_mesa
+aeaef3cd94c 2025-03-14 Mauro Rossi: loader/nouveau: load zink as the GL driver for ampere and above.
+32bf5906124 2025-04-12 Mauro Rossi: AOSP: add ~/.cargo/bin to PATH for bindgen specific version
+5fe91837512 2025-04-18 Mauro Rossi: AOSP: Add libzstd static dependency for Android 15 and later
+16bfa001573 2025-04-17 Pierre-Eric Pelloux-Prayer: radeonsi: init use_aco properly when llvm is disabled
+07eff6cf69c 2025-06-22 Mauro Rossi: AOSP: build: Rust: allow bindgen version 0.69.1
+460a945aee4 2025-06-22 Mauro Rossi: AOSP: build: Rust: allow meson version 1.5.0
+93a0a51aa59 2025-08-23 Mauro Rossi: HACK: AOSP: allow missing unsafe on extern
+ecda2455598 2025-02-27 Faith Ekstrand: nvk/image: Split nvk_image_layout() from nvk_image_init()
+b63f62a055d 2025-02-19 Mauro Rossi: nvk/android: return result in nvk_image_layout()
+be71d22c43f 2025-02-27 Faith Ekstrand: nvk/image: Split allocating VAs into a separate helper
+671b329101c 2025-02-19 Mauro Rossi: nvk/android: Add support for AHardwareBuffer
+1aa6970a8ac 2025-08-08 Mauro Rossi: nvk/android: use NVK_MAX_IMAGE_PLANES instead of value
+23c2571c2ba 2024-05-20 Michael Goffioul: Allow to build gallium va frontend on Android (v2)
+5a598f90732 2023-04-08 Roman Stratiienko: Add LLVM stub for building using AOSPEXT project (v2)
+e43ac3a93f9 2025-10-12 hmtheboy154: driconf: Add an option to override Vulkan's deviceName
+1f3a49b7213 2026-01-26 hmtheboy154: lvp: add support for driconf
+2b2740189cb 2026-01-26 hmtheboy154: lvp: driconf: Add an option to override Vulkan's deviceName
+51192652c76 2026-01-27 hmtheboy154: tu: driconf: Add an option to override Vulkan's deviceName
+44a6c6b971f 2026-01-27 hmtheboy154: panvk: driconf: Add an option to override Vulkan's deviceName
+e186d9104f9 2026-01-27 hmtheboy154: pvr: add support for driconf for the Vulkan driver
+a4a06c08c4f 2026-01-27 hmtheboy154: pvr: driconf: Add an option to override Vulkan's deviceName
+b1855616aa0 2026-01-27 hmtheboy154: dzn: driconf: Add an option to override Vulkan's deviceName
+6a4039e5195 2026-01-27 hmtheboy154: hk: driconf: Add an option to override Vulkan's deviceName
+f68bde0d4be 2026-01-27 hmtheboy154: gfxstream: add support for driconf for the Vulkan driver
+7844a9415b7 2026-01-27 hmtheboy154: gfxstream: driconf: Add an option to override Vulkan's deviceName
+98dc4726475 2026-01-27 hmtheboy154: kk: Add an option to override Vulkan's deviceName
+97afe6eb089 2023-06-28 hmtheboy154: Enable xmlconfig on Android
+395f6156b0a 2024-11-23 hmtheboy154: vmwgfx: Import patches from OpenFyde (FydeOS)
+8003e7c4840 2024-10-22 hmtheboy154: Don't put dri_gbm.so in gbm dir for AOSPExt builds
+9edb37bb563 2025-04-01 hmtheboy154: Adding libva_headers to build Gallium VA
+460ed725a54 2025-06-23 hmtheboy154: HACK: prefer prebuilts/mesa-build-deps path for mesa deps
+3b1ff19d5e4 2026-03-02 hmtheboy154: Revert "nak: do not hide drm header on Android"
+6ee554bef50 2026-02-16 Pierre-Eric Pelloux-Prayer: frontends/va: fix undefined ref error
+8cac5e67507 2026-03-22 hmtheboy154: Bump LLVM stub to 22.1.1
+566b5a2de1d 2026-03-29 Uzair Mughal: vulkan/android: guard against unsupported AHB formats crashing
+20a37ff3959 2026-04-12 hmtheboy154: Revert "radv: use AHARDWAREBUFFER_USAGE_CAMERA_MASK"
+352585b03a3 2026-04-12 hmtheboy154: Revert "hasvk: use AHARDWAREBUFFER_USAGE_CAMERA_MASK"
+dd22869be45 2026-05-27 Eric Engestrom: docs: add sha sum for 26.0.8
+60ec7eb6f73 2026-06-12 hmtheboy154: Revert "vulkan/android: guard against unsupported AHB formats crashing"
+4e1cd411fc3 2026-04-26 Alessandro Astone: radv: Support explicit DRM format modifier from android gralloc
+73ba0f085e4 2026-04-28 Alessandro Astone: anv: Support VK_ANDROID_native_buffer older than version 11
+ff593430de5 2026-07-19 hmtheboy154: vulkan/anti-lag: Fix crash during discovery and export symbols on Android
+dc1ef933eb8 2026-07-19 hmtheboy154: vulkan/overlay: Export symbols and route VK_CHECK errors to logcat on Android
+de9a667bed6 2026-07-20 hmtheboy154: vulkan/overlay: Implement CPU load gathering and task CPU tracking
+b14bf42d23e 2026-09-30 hmtheboy154: util: Support split Android properties in os_get_option()
+
+ 73 files changed, 1203 insertions(+), 137 deletions(-)

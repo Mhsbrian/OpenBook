@@ -13,3 +13,9 @@ Not started. This begins at M6, testing libhoudini, libndk_translation and Digit
 
 | App | ABI | houdini | ndk_translation | Digitalis | Notes |
 |---|---|---|---|---|---|
+
+## Graphics drivers
+
+| Date | Driver build | Host / VM | Result | Evidence |
+|---|---|---|---|---|
+| 2026-10-15 | Mesa 26.2.5 and AG 26.0.8 radeonsi + RADV, NDK r30, API 37 | AOSP Desktop emulator 37 (`CLE1.260506.004`), KVM, no GPU | **Loads:** Vulkan HAL `open(vk0)` and `vkCreateInstance(1.3)` OK, 0 devices; EGL loads, `eglInitialize` fails (no DRM device). Not tested on AMD hardware | `evidence/2026-10-15-mesa/smoke/` |

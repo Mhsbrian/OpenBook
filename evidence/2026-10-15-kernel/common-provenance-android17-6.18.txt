@@ -1,0 +1,6 @@
+target=android17-6.18 branch=common-android17-6.18 date=2026-10-16T00:36:17+00:00
+common HEAD=70a231d0d37bc782fef784fc8a367822ed2098a1 (2026-10-15T17:28:35-07:00 ANDROID: wrapfd: Validate "fd" argument passed to wrap ioctl.)
+Makefile version=6.18.32
+shipped 3938c8d97142 reachable from android17-6.18 (70a231d0d37b): no
+shipped 3938c8d97142 reachable from android17-6.18-2026-06 (977f0bd7673d): yes
+shipped 3938c8d97142 reachable from android17-6.18-2026-09 (b9d0b4b33406): no

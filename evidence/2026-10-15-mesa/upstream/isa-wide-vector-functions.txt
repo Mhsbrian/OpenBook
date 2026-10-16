@@ -1,0 +1,61 @@
+# Functions that touch ymm/zmm registers (AVX/AVX2/AVX-512), per unstripped build output:
+# <instructions> <function>. The baseline is the NDK default above; anything wider must sit
+# behind a runtime CPU check (util_cpu_caps / blake3 dispatch).
+== src/amd/vulkan/libvulkan_radeon.so
+   2020 <blake3_hash_many_avx512>:
+   1984 <blake3_xof_many_avx512>:
+   1475 <blake3_hash_many_avx2>:
+     48 <_ZN4Addr16CopyMemImgHybridINS_20MicroSw_3D_4BPE_AVX2EEEvPvS2_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     41 <_ZN4Addr16CopyMemImgHybridINS_20MicroSw_3D_2BPE_AVX2EEEvPvS2_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     41 <_ZN4Addr16CopyMemImgHybridINS_20MicroSw_3D_1BPE_AVX2EEEvPvS2_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     32 <_ZN4Addr16CopyMemImgHybridINS_20MicroSw_2D_2BPE_AVX2EEEvPvS2_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     32 <_ZN4Addr16CopyMemImgHybridINS_19MicroSw_Z_1BPE_AVX2EEEvPvS2_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     24 <_ZN4Addr16CopyMemImgHybridINS_20MicroSw_3D_8BPE_AVX2EEEvPvS2_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     24 <_ZN4Addr16CopyMemImgHybridINS_20MicroSw_2D_8BPE_AVX2EEEvPvS2_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     24 <_ZN4Addr16CopyMemImgHybridINS_20MicroSw_2D_4BPE_AVX2EEEvPvS2_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     24 <_ZN4Addr16CopyMemImgHybridINS_20MicroSw_2D_1BPE_AVX2EEEvPvS2_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     24 <_ZN4Addr16CopyMemImgHybridINS_19MicroSw_R_4BPE_AVX2EEEvPvS2_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     24 <_ZN4Addr16CopyMemImgHybridINS_19MicroSw_R_2BPE_AVX2EEEvPvS2_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     24 <_ZN4Addr16CopyMemImgHybridINS_19MicroSw_D_1BPE_AVX2EEEvPvS2_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     16 <_ZN4Addr21CopyMemImgMicroblocksILb1ELb1EEEvPvS1_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     16 <_ZN4Addr21CopyMemImgMicroblocksILb1ELb0EEEvPvS1_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     16 <_ZN4Addr21CopyMemImgMicroblocksILb0ELb1EEEvPvS1_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     16 <_ZN4Addr21CopyMemImgMicroblocksILb0ELb0EEEvPvS1_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     16 <_ZN4Addr16CopyMemImgHybridINS_21MicroSw_3D_16BPE_AVX2EEEvPvS2_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     16 <_ZN4Addr16CopyMemImgHybridINS_21MicroSw_2D_16BPE_AVX2EEEvPvS2_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     16 <_ZN4Addr16CopyMemImgBlocksILb1ELb1EEEvPvS1_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     16 <_ZN4Addr16CopyMemImgBlocksILb0ELb1EEEvPvS1_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+== src/egl/libEGL_mesa.so
+   2020 <blake3_hash_many_avx512>:
+   1984 <blake3_xof_many_avx512>:
+   1475 <blake3_hash_many_avx2>:
+== src/gallium/targets/dri/libgallium_dri.so
+   2020 <blake3_hash_many_avx512>:
+   1984 <blake3_xof_many_avx512>:
+   1475 <blake3_hash_many_avx2>:
+     48 <_ZN4Addr16CopyMemImgHybridINS_20MicroSw_3D_4BPE_AVX2EEEvPvS2_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     41 <_ZN4Addr16CopyMemImgHybridINS_20MicroSw_3D_2BPE_AVX2EEEvPvS2_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     41 <_ZN4Addr16CopyMemImgHybridINS_20MicroSw_3D_1BPE_AVX2EEEvPvS2_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     32 <_ZN4Addr16CopyMemImgHybridINS_20MicroSw_2D_2BPE_AVX2EEEvPvS2_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     32 <_ZN4Addr16CopyMemImgHybridINS_19MicroSw_Z_1BPE_AVX2EEEvPvS2_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     24 <_ZN4Addr16CopyMemImgHybridINS_20MicroSw_3D_8BPE_AVX2EEEvPvS2_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     24 <_ZN4Addr16CopyMemImgHybridINS_20MicroSw_2D_8BPE_AVX2EEEvPvS2_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     24 <_ZN4Addr16CopyMemImgHybridINS_20MicroSw_2D_4BPE_AVX2EEEvPvS2_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     24 <_ZN4Addr16CopyMemImgHybridINS_20MicroSw_2D_1BPE_AVX2EEEvPvS2_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     24 <_ZN4Addr16CopyMemImgHybridINS_19MicroSw_R_4BPE_AVX2EEEvPvS2_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     24 <_ZN4Addr16CopyMemImgHybridINS_19MicroSw_R_2BPE_AVX2EEEvPvS2_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     24 <_ZN4Addr16CopyMemImgHybridINS_19MicroSw_D_1BPE_AVX2EEEvPvS2_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     16 <_ZN4Addr21CopyMemImgMicroblocksILb1ELb1EEEvPvS1_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     16 <_ZN4Addr21CopyMemImgMicroblocksILb1ELb0EEEvPvS1_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     16 <_ZN4Addr21CopyMemImgMicroblocksILb0ELb1EEEvPvS1_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     16 <_ZN4Addr21CopyMemImgMicroblocksILb0ELb0EEEvPvS1_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     16 <_ZN4Addr16CopyMemImgHybridINS_21MicroSw_3D_16BPE_AVX2EEEvPvS2_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     16 <_ZN4Addr16CopyMemImgHybridINS_21MicroSw_2D_16BPE_AVX2EEEvPvS2_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     16 <_ZN4Addr16CopyMemImgBlocksILb1ELb1EEEvPvS1_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+     16 <_ZN4Addr16CopyMemImgBlocksILb0ELb1EEEvPvS1_mmjj13_ADDR_COORD3D14_ADDR_EXTENT3DjiRKNS_12LutAddresserE>:
+== src/mesa/glapi/es1api/libGLESv1_CM_mesa.so
+== src/mesa/glapi/es2api/libGLESv2_mesa.so
+== subprojects/libdrm-2.4.133/amdgpu/libdrm_amdgpu.so
+== subprojects/libdrm-2.4.133/libdrm.so
+== subprojects/libdrm-2.4.133/nouveau/libdrm_nouveau.so
+== subprojects/libdrm-2.4.133/radeon/libdrm_radeon.so

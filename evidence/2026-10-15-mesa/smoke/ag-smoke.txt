@@ -1,0 +1,14 @@
+vulkan: HMI id=vulkan name="Mesa 3D Vulkan HAL" author="Mesa 3D" module_api=0x1 hal_api=0x100
+vulkan: open(vk0) = 0
+vulkan: 8 instance extensions: VK_KHR_device_group_creation VK_KHR_external_fence_capabilities VK_KHR_external_memory_capabilities VK_KHR_external_semaphore_capabilities VK_KHR_get_physical_device_properties2 VK_EXT_debug_report VK_EXT_debug_utils VK_EXT_headless_surface
+vulkan: vkCreateInstance(1.3) = 0
+vulkan: vkEnumeratePhysicalDevices = 0, 0 device(s)
+vulkan: OK
+vulkan: exit 0
+egl: client extensions: EGL_EXT_client_extensions EGL_EXT_device_base EGL_EXT_device_enumeration EGL_EXT_device_query EGL_EXT_platform_base EGL_KHR_client_get_all_proc_addresses EGL_KHR_debug EGL_EXT_platform_device EGL_EXT_explicit_device EGL_MESA_platform_surfaceless
+egl: eglGetProcAddress(glGetString) = 0x7de91e7f98d0
+egl: eglInitialize(EGL_DEFAULT_DISPLAY) = 0 (EGL 0.0), eglGetError = 0x3001
+gles2: dlopen ok, glGetString=0x7de91d072d00
+egl: done
+egl: exit 0
+exit=0
