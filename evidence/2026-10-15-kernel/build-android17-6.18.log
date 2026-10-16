@@ -1,0 +1,85 @@
+### kernel-build target=android17-6.18 label=android17-6.18 kleaf=//common:kernel_x86_64_dist BUILD_NUMBER=unset 2026-10-16T00:37:14+00:00
+### host: 32 CPUs, 61 GB RAM; common HEAD 70a231d0d37bc782fef784fc8a367822ed2098a1
+Starting local Bazel server (8.7.0) and connecting to it...
+Computing main repo mapping: 
+Loading: 
+Loading: 2 packages loaded
+Loading: 2 packages loaded
+    currently loading: common
+Analyzing: target //common:kernel_x86_64_dist (3 packages loaded)
+Analyzing: target //common:kernel_x86_64_dist (3 packages loaded, 0 targets configured)
+Analyzing: target //common:kernel_x86_64_dist (3 packages loaded, 0 targets configured)
+
+INFO: From BazelWorkspaceStatusAction stable-status.txt:
+
+... A new version of repo (2.69) is available.
+... New version is available at: /home/hive/anybook/kernel/src/.repo/repo/repo
+... The launcher is run from: /usr/bin/repo
+!!! The launcher is not writable.  Please talk to your sysadmin or distro
+!!! to get an update installed.
+
+Analyzing: target //common:kernel_x86_64_dist (83 packages loaded, 115378 targets configured)
+
+INFO: Analyzed target //common:kernel_x86_64_dist (83 packages loaded, 115595 targets configured).
+[593 / 1,414] [Prepa] Generating BUILD.bazel for all_headers_x86_64 //common:kernel_x86_64_ddk_headers_archive
+[1,384 / 1,414] Compiling common/tools/testing/selftests/drivers/wrapfd/wrapfd.c; 0s processwrapper-sandbox ... (7 actions running)
+[1,399 / 1,414] [Prepa] Creating kernel config (trim) //common:kernel_x86_64_config
+[1,399 / 1,414] Creating kernel config (trim) //common:kernel_x86_64_config; 1s processwrapper-sandbox
+[1,400 / 1,414] [Prepa] Copying .config //common:kernel_x86_64
+[1,401 / 1,414] Building UAPI kernel headers //common:kernel_x86_64_uapi_headers; 1s processwrapper-sandbox ... (3 actions running)
+[1,402 / 1,414] Preparing for module build (trim) //common:kernel_x86_64_modules_prepare; 5s processwrapper-sandbox ... (2 actions running)
+[1,402 / 1,414] Preparing for module build (trim) //common:kernel_x86_64_modules_prepare; 15s processwrapper-sandbox ... (2 actions running)
+INFO: From Preparing for module build (trim) //common:kernel_x86_64_modules_prepare:
+diff: Unknown option 'I' (see "diff --help")
+Warning: Kernel ABI header at 'tools/arch/x86/include/asm/inat.h' differs from latest version at 'arch/x86/include/asm/inat.h'
+diff: Unknown option 'I' (see "diff --help")
+Warning: Kernel ABI header at 'tools/arch/x86/include/asm/insn.h' differs from latest version at 'arch/x86/include/asm/insn.h'
+diff: Unknown option 'I' (see "diff --help")
+Warning: Kernel ABI header at 'tools/arch/x86/lib/inat.c' differs from latest version at 'arch/x86/lib/inat.c'
+diff: Unknown option 'I' (see "diff --help")
+Warning: Kernel ABI header at 'tools/arch/x86/lib/insn.c' differs from latest version at 'arch/x86/lib/insn.c'
+diff -u tools/arch/x86/include/asm/inat.h arch/x86/include/asm/inat.h
+diff -u tools/arch/x86/include/asm/insn.h arch/x86/include/asm/insn.h
+diff -u tools/arch/x86/lib/inat.c arch/x86/lib/inat.c
+diff -u tools/arch/x86/lib/insn.c arch/x86/lib/insn.c
+[1,403 / 1,414] Building kernel (trim) //common:kernel_x86_64; 30s processwrapper-sandbox
+[1,403 / 1,414] Building kernel (trim) //common:kernel_x86_64; 41s processwrapper-sandbox
+[1,403 / 1,414] Building kernel (trim) //common:kernel_x86_64; 71s processwrapper-sandbox
+[1,403 / 1,414] Building kernel (trim) //common:kernel_x86_64; 131s processwrapper-sandbox
+[1,403 / 1,414] Building kernel (trim) //common:kernel_x86_64; 191s processwrapper-sandbox
+[1,403 / 1,414] Building kernel (trim) //common:kernel_x86_64; 251s processwrapper-sandbox
+INFO: From Building kernel (trim) //common:kernel_x86_64:
+diff: Unknown option 'I' (see "diff --help")
+Warning: Kernel ABI header at 'tools/arch/x86/include/asm/inat.h' differs from latest version at 'arch/x86/include/asm/inat.h'
+diff: Unknown option 'I' (see "diff --help")
+Warning: Kernel ABI header at 'tools/arch/x86/include/asm/insn.h' differs from latest version at 'arch/x86/include/asm/insn.h'
+diff: Unknown option 'I' (see "diff --help")
+Warning: Kernel ABI header at 'tools/arch/x86/lib/inat.c' differs from latest version at 'arch/x86/lib/inat.c'
+diff: Unknown option 'I' (see "diff --help")
+Warning: Kernel ABI header at 'tools/arch/x86/lib/insn.c' differs from latest version at 'arch/x86/lib/insn.c'
+vmlinux.o: warning: objtool: ipi_sync_core.cold+0x12: unsupported instruction in callable function
+diff -u tools/arch/x86/include/asm/inat.h arch/x86/include/asm/inat.h
+diff -u tools/arch/x86/include/asm/insn.h arch/x86/include/asm/insn.h
+diff -u tools/arch/x86/lib/inat.c arch/x86/lib/inat.c
+diff -u tools/arch/x86/lib/insn.c arch/x86/lib/insn.c
+[1,404 / 1,414] [Prepa] PackageZip common/x86_64/tests.zip
+[1,410 / 1,414] Running depmod //common:kernel_x86_64_modules_install; 1s processwrapper-sandbox ... (2 actions running)
+[1,411 / 1,414] Building kernel headers //common:kernel_x86_64_headers; 2s processwrapper-sandbox ... (2 actions, 1 running)
+[1,412 / 1,414] Building system_dlkm //common:kernel_x86_64_system_dlkm_image; 1s processwrapper-sandbox
+[1,413 / 1,414] [Prepa] Generating Kernel SBOM //common:kernel_x86_64_sbom
+INFO: Found 1 target...
+Target //common:kernel_x86_64_dist up-to-date:
+  bazel-bin/common/kernel_x86_64_dist
+  bazel-bin/common/kernel_x86_64_dist_install_script.py
+INFO: Elapsed time: 305.335s, Critical Path: 299.02s
+INFO: 35 processes: 1398 action cache hit, 3 internal, 32 processwrapper-sandbox.
+INFO: Build completed successfully, 35 total actions
+INFO: Running command line: bazel-bin/common/kernel_x86_64_dist <args omitted>
+INFO: Installing to /home/hive/anybook/kernel/dist/android17-6.18
+### build done in 307s
+Linux version 6.18.32-android17-5-g70a231d0d37b (kleaf@build-host) (Android (15323222, +pgo, +bolt, +lto, +mlgo, based on r584948c) clang version 22.0.1 (https://android.googlesource.com/toolchain/llvm-project 2d65e4108033380e6fe8e08b1f1826cd2bfb0c99), LLD 22.0.1 (/mnt/disks/build-disk/src/googleplex-android/llvm-r584948-release/out/llvm-project/llvm 2d65e4108033380e6fe8e08b1f1826cd2bfb0c99)) #1 SMP PREEMPT Fri Oct 16 00:28:35 UTC 2026
+wrote /home/hive/anybook/kernel/dist/android17-6.18/ikconfig/config (232567 bytes)
+e2ca825ac84d5237634ac4b1e29a47dd0ac0817e87153202f6c0e395547a0e0d  /home/hive/anybook/kernel/dist/android17-6.18/bzImage
+64656293997fd032b200e3e1ccfa18ed75344a6645c22addca3185c6f59a023e  /home/hive/anybook/kernel/dist/android17-6.18/dot_config
+9342e7fccc4537bda411e520d85051406001b60056341972c2a3782a7ecf10e0  /home/hive/anybook/kernel/dist/android17-6.18/vmlinux
+### dist: /home/hive/anybook/kernel/dist/android17-6.18 (616M, 100 modules); log: /home/hive/anybook/logs/kernel/build-android17-6.18-20261016-003714.log

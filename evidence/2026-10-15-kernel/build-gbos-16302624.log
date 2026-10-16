@@ -1,0 +1,92 @@
+### kernel-build target=gbos-16302624 label=gbos-16302624 kleaf=//common:kernel_x86_64_dist BUILD_NUMBER=unset 2026-10-16T00:15:11+00:00
+### host: 32 CPUs, 61 GB RAM; common HEAD 3938c8d97142d5cf31543aa96f864a2cf832dda0
+Extracting Bazel installation...
+Starting local Bazel server (8.7.0) and connecting to it...
+Computing main repo mapping: 
+Loading: 
+Loading: 2 packages loaded
+Loading: 3 packages loaded
+Analyzing: target //common:kernel_x86_64_dist (3 packages loaded, 0 targets configured)
+Analyzing: target //common:kernel_x86_64_dist (3 packages loaded, 0 targets configured)
+
+Analyzing: target //common:kernel_x86_64_dist (83 packages loaded, 95980 targets configured)
+
+INFO: Analyzed target //common:kernel_x86_64_dist (83 packages loaded, 115536 targets configured).
+[68 / 790] [Prepa] BazelWorkspaceStatusAction stable-status.txt ... (16 actions, 5 running)
+[631 / 1,412] [Prepa] BazelWorkspaceStatusAction stable-status.txt ... (3 actions, 1 running)
+[637 / 1,412] [Prepa] BazelWorkspaceStatusAction stable-status.txt; 4s
+INFO: From BazelWorkspaceStatusAction stable-status.txt:
+
+... A new version of repo (2.69) is available.
+... New version is available at: /home/hive/anybook/kernel/src/.repo/repo/repo
+... The launcher is run from: /usr/bin/repo
+!!! The launcher is not writable.  Please talk to your sysadmin or distro
+!!! to get an update installed.
+
+[653 / 1,412] Compiling build/kernel/_dispatched/flex_source.cpp [for tool]; 0s processwrapper-sandbox ... (32 actions running)
+[658 / 1,412] Compiling common/tools/testing/selftests/x86/ldt_gdt.c; 1s processwrapper-sandbox ... (31 actions running)
+[718 / 1,412] Compiling common/tools/testing/selftests/timers/set-tz.c; 1s processwrapper-sandbox ... (32 actions running)
+[798 / 1,412] Compiling common/tools/lib/bpf/libbpf_utils.c [for tool]; 0s processwrapper-sandbox ... (32 actions, 31 running)
+[898 / 1,412] Compiling common/tools/lib/bpf/btf_dump.c [for tool]; 0s processwrapper-sandbox ... (32 actions, 31 running)
+[1,015 / 1,412] Compiling build/kernel/_dispatched/bison_source.cpp [for tool]; 0s processwrapper-sandbox ... (32 actions, 31 running)
+[1,306 / 1,412] Compiling build/kernel/_dispatched/rsync_source.cpp [for tool]; 0s processwrapper-sandbox ... (5 actions, 4 running)
+[1,327 / 1,412] Archiving scripts/kconfig for ext module (trim) //common:kernel_x86_64; 0s processwrapper-sandbox ... (32 actions, 31 running)
+[1,392 / 1,412] Archiving scripts/kconfig for ext module (trim) //common:kernel_x86_64; 1s processwrapper-sandbox ... (4 actions, 3 running)
+[1,397 / 1,412] Creating kernel config (trim) //common:kernel_x86_64_config; 1s processwrapper-sandbox
+[1,398 / 1,412] [Prepa] Copying .config //common:kernel_x86_64
+[1,399 / 1,412] Building UAPI kernel headers //common:kernel_x86_64_uapi_headers; 1s processwrapper-sandbox ... (3 actions running)
+[1,400 / 1,412] Preparing for module build (trim) //common:kernel_x86_64_modules_prepare; 3s processwrapper-sandbox ... (2 actions running)
+[1,400 / 1,412] Preparing for module build (trim) //common:kernel_x86_64_modules_prepare; 14s processwrapper-sandbox ... (2 actions running)
+INFO: From Preparing for module build (trim) //common:kernel_x86_64_modules_prepare:
+diff: Unknown option 'I' (see "diff --help")
+Warning: Kernel ABI header at 'tools/arch/x86/include/asm/inat.h' differs from latest version at 'arch/x86/include/asm/inat.h'
+diff: Unknown option 'I' (see "diff --help")
+Warning: Kernel ABI header at 'tools/arch/x86/include/asm/insn.h' differs from latest version at 'arch/x86/include/asm/insn.h'
+diff: Unknown option 'I' (see "diff --help")
+Warning: Kernel ABI header at 'tools/arch/x86/lib/inat.c' differs from latest version at 'arch/x86/lib/inat.c'
+diff: Unknown option 'I' (see "diff --help")
+Warning: Kernel ABI header at 'tools/arch/x86/lib/insn.c' differs from latest version at 'arch/x86/lib/insn.c'
+diff -u tools/arch/x86/include/asm/inat.h arch/x86/include/asm/inat.h
+diff -u tools/arch/x86/include/asm/insn.h arch/x86/include/asm/insn.h
+diff -u tools/arch/x86/lib/inat.c arch/x86/lib/inat.c
+diff -u tools/arch/x86/lib/insn.c arch/x86/lib/insn.c
+[1,401 / 1,412] Building kernel (trim) //common:kernel_x86_64; 27s processwrapper-sandbox
+[1,401 / 1,412] Building kernel (trim) //common:kernel_x86_64; 38s processwrapper-sandbox
+[1,401 / 1,412] Building kernel (trim) //common:kernel_x86_64; 68s processwrapper-sandbox
+[1,401 / 1,412] Building kernel (trim) //common:kernel_x86_64; 128s processwrapper-sandbox
+[1,401 / 1,412] Building kernel (trim) //common:kernel_x86_64; 188s processwrapper-sandbox
+[1,401 / 1,412] Building kernel (trim) //common:kernel_x86_64; 248s processwrapper-sandbox
+INFO: From Building kernel (trim) //common:kernel_x86_64:
+diff: Unknown option 'I' (see "diff --help")
+Warning: Kernel ABI header at 'tools/arch/x86/include/asm/inat.h' differs from latest version at 'arch/x86/include/asm/inat.h'
+diff: Unknown option 'I' (see "diff --help")
+Warning: Kernel ABI header at 'tools/arch/x86/include/asm/insn.h' differs from latest version at 'arch/x86/include/asm/insn.h'
+diff: Unknown option 'I' (see "diff --help")
+Warning: Kernel ABI header at 'tools/arch/x86/lib/inat.c' differs from latest version at 'arch/x86/lib/inat.c'
+diff: Unknown option 'I' (see "diff --help")
+Warning: Kernel ABI header at 'tools/arch/x86/lib/insn.c' differs from latest version at 'arch/x86/lib/insn.c'
+diff -u tools/arch/x86/include/asm/inat.h arch/x86/include/asm/inat.h
+diff -u tools/arch/x86/include/asm/insn.h arch/x86/include/asm/insn.h
+diff -u tools/arch/x86/lib/inat.c arch/x86/lib/inat.c
+diff -u tools/arch/x86/lib/insn.c arch/x86/lib/insn.c
+[1,402 / 1,412] [Prepa] PackageZip common/x86_64/tests.zip
+[1,408 / 1,412] Running depmod //common:kernel_x86_64_modules_install; 1s processwrapper-sandbox ... (2 actions running)
+[1,409 / 1,412] Building kernel headers //common:kernel_x86_64_headers; 2s processwrapper-sandbox ... (2 actions running)
+[1,410 / 1,412] Building system_dlkm //common:kernel_x86_64_system_dlkm_image; 2s processwrapper-sandbox
+[1,411 / 1,412] [Prepa] Generating Kernel SBOM //common:kernel_x86_64_sbom
+INFO: Found 1 target...
+Target //common:kernel_x86_64_dist up-to-date:
+  bazel-bin/common/kernel_x86_64_dist
+  bazel-bin/common/kernel_x86_64_dist_install_script.py
+INFO: Elapsed time: 334.841s, Critical Path: 324.44s
+INFO: 1412 processes: 804 internal, 608 processwrapper-sandbox.
+INFO: Build completed successfully, 1412 total actions
+INFO: Running command line: bazel-bin/common/kernel_x86_64_dist <args omitted>
+INFO: Installing to /home/hive/anybook/kernel/dist/gbos-16302624
+### build done in 337s
+Linux version 6.18.21-android17-5-g3938c8d97142 (kleaf@build-host) (Android (15323222, +pgo, +bolt, +lto, +mlgo, based on r584948c) clang version 22.0.1 (https://android.googlesource.com/toolchain/llvm-project 2d65e4108033380e6fe8e08b1f1826cd2bfb0c99), LLD 22.0.1 (/mnt/disks/build-disk/src/googleplex-android/llvm-r584948-release/out/llvm-project/llvm 2d65e4108033380e6fe8e08b1f1826cd2bfb0c99)) #1 SMP PREEMPT Wed Sep  9 14:58:55 UTC 2026
+wrote /home/hive/anybook/kernel/dist/gbos-16302624/ikconfig/config (232323 bytes)
+f929d93de7dc702d08f0ca8598853da223f4a782813d5d653c9ffa03fff846ef  /home/hive/anybook/kernel/dist/gbos-16302624/bzImage
+046971f3fb011e5ec31b4ddad2610ee4a459d2000aba4520b10faafe6a27be40  /home/hive/anybook/kernel/dist/gbos-16302624/dot_config
+52f96ad26172898ea91ccb9912d071557b631dec913184f5dad686bd1dc1a82a  /home/hive/anybook/kernel/dist/gbos-16302624/vmlinux
+### dist: /home/hive/anybook/kernel/dist/gbos-16302624 (613M, 100 modules); log: /home/hive/anybook/logs/kernel/build-gbos-16302624-20261016-001511.log
