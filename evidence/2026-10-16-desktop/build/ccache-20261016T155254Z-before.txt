@@ -1,0 +1,11 @@
+Cache directory:    /ccache
+Config file:        /ccache/ccache.conf
+System config file: /etc/ccache.conf
+Stats updated:      Fri Oct 16 15:52:54 2026
+Local storage:
+  Cache size (GB):    10.0 / 100.0 ( 9.98%)
+  Files:            140021
+  Hits:                  0
+  Misses:                0
+  Reads:                 0
+  Writes:                0

@@ -1,0 +1,7 @@
+# Declared in frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+flag_value {
+  package: "com.android.systemui"
+  name: "opaque_status_bar"
+  state: ENABLED
+  permission: READ_ONLY
+}

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2026 The AnyBook Authors. SPDX-License-Identifier: Apache-2.0 -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="dev.anybook.overlay.desktop.systemui">
+    <application android:hasCode="false" />
+    <overlay android:targetPackage="com.android.systemui" android:isStatic="true" android:priority="10" />
+</manifest>

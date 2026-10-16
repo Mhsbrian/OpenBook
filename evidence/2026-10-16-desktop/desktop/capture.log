@@ -1,0 +1,20 @@
+=== 2026-10-16T16:18:36Z wait for 127.0.0.1:16520
+AnyBook/anybook_cf_x86_64_pc/vsoc_x86_64_only:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+=== 2026-10-16T16:19:02Z am start -n com.android.settings/.Settings
+Starting: Intent { cmp=com.android.settings/.Settings }
+Status: ok
+LaunchState: WARM
+Activity: com.android.settings/.Settings$NetworkDashboardActivity
+TotalTime: 285
+WaitTime: 287
+Complete
+=== 2026-10-16T16:19:08Z am start -n com.android.documentsui/.files.FilesActivity
+Starting: Intent { cmp=com.android.documentsui/.files.FilesActivity }
+Status: ok
+LaunchState: WARM
+Activity: com.android.documentsui/.files.FilesActivity
+TotalTime: 126
+WaitTime: 127
+Complete
+=== 2026-10-16T16:19:13Z dumps
+=== 2026-10-16T16:19:14Z freeform activity records: 8

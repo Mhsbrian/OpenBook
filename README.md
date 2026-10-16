@@ -7,6 +7,7 @@ AnyBook brings the Googlebook experience (Googlebook OS, Android 17 desktop) to 
 - `docs/STATUS.md`: Done / Evidence / Blocked / Next.
 - `docs/BUILD.md`: reproducible steps. No host sudo needed; Docker and KVM required.
 - `docs/HARDWARE.md`, `docs/COMPAT-MATRIX.md`
+- `device/anybook/`: the AnyBook AOSP device tree: the reusable desktop configuration and the `anybook_cf_x86_64_pc` Cuttlefish product (`docs/aosp-desktop.md`).
 - `scripts/`: fetch, verify, unpack, ISA scan and QEMU boot tools. `tools/` holds the toolbox Dockerfiles.
 - `evidence/`: logs and screenshots for each milestone.
 

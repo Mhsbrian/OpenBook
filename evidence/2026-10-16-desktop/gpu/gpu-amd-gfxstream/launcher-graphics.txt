@@ -1,0 +1,112 @@
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:872] 
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:900] Host Graphics Availability:
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903] egl {
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]   vendor: "Mesa Project"
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]   version: "1.5"
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]   gles2_availability {
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     vendor: "AMD"
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     version: "OpenGL ES 3.2 Mesa 25.0.7-2+deb13u1"
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     renderer: "AMD Radeon Graphics (radeonsi, raphael_mendocino, LLVM 19.1.7, DRM 3.64, 7.2.8-5-omarchy-bore)"
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]   }
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]   gles3_availability {
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     vendor: "AMD"
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     version: "OpenGL ES 3.2 Mesa 25.0.7-2+deb13u1"
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     renderer: "AMD Radeon Graphics (radeonsi, raphael_mendocino, LLVM 19.1.7, DRM 3.64, 7.2.8-5-omarchy-bore)"
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]   }
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]   gles2_direct_availability {
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     vendor: "AMD"
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     version: "OpenGL ES 3.2 Mesa 25.0.7-2+deb13u1"
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     renderer: "AMD Radeon Graphics (radeonsi, raphael_mendocino, LLVM 19.1.7, DRM 3.64, 7.2.8-5-omarchy-bore)"
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]   }
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]   gles3_direct_availability {
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     vendor: "AMD"
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     version: "OpenGL ES 3.2 Mesa 25.0.7-2+deb13u1"
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     renderer: "AMD Radeon Graphics (radeonsi, raphael_mendocino, LLVM 19.1.7, DRM 3.64, 7.2.8-5-omarchy-bore)"
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]   }
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903] }
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903] vulkan {
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]   physical_devices {
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     name: "AMD Radeon Graphics (RADV RAPHAEL_MENDOCINO)"
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     type: TYPE_OTHER
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     quirks {
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]       has_issue_with_precision_qualifiers_on_yuv_samplers: false
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]       external_memory_host_quirks {
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]         errors: "can_import_shm error: Failed to device->allocateMemoryUnique(memoryAllocateInfo): ErrorUnknown"
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]         can_import_shm: false
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]       }
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     }
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     queue_families {
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]       supports_compute: true
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]       supports_graphics: true
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]       supports_transfer: true
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]       queue_count: 1
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     }
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     queue_families {
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]       supports_compute: true
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]       supports_graphics: false
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]       supports_transfer: true
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]       queue_count: 4
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     }
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     queue_families {
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]       supports_compute: false
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]       supports_graphics: false
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]       supports_transfer: false
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]       queue_count: 1
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     }
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     queue_families {
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]       supports_compute: false
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]       supports_graphics: false
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]       supports_transfer: false
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]       queue_count: 1
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     }
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     queue_families {
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]       supports_compute: false
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]       supports_graphics: false
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]       supports_transfer: false
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]       queue_count: 1
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     }
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]   }
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]   physical_devices {
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     name: "llvmpipe (LLVM 19.1.7, 256 bits)"
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     type: TYPE_OTHER
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     quirks {
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]       external_memory_host_quirks {
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]         can_import_shm: true
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]       }
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     }
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     queue_families {
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]       supports_compute: true
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]       supports_graphics: true
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]       supports_transfer: true
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]       queue_count: 1
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]     }
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903]   }
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903] }
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903] vulkan_loader_available: true
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:903] 
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:546] Checking requirements for --gpu_mode=gfxstream
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:551]   1. FAILED: The guest does not support Gfxstream. This is configured in the `android-info.txt` file associated with the guest target build.
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:551]   2. PASSED: The host has GLES support.
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:551]   3. PASSED: The host GLES driver is not a software implementation.
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:551]   4. PASSED: The host is not ARM64.
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:551]   5. PASSED: The host has the Vulkan loader installed and available.
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:551]   6. PASSED: The host has a Vulkan driver available.
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:551]   7. FAILED: The host does not have a non-software implementation Vulkan driver. Consider enabling --gpu_mode=gfxstream_guest_angle_host_swiftshader for host software rendering which has a vetted software renderer.
+assemble_cvd(454)  E 10-16 15:18:07   454   454 graphics_flags.cc:590] --gpu_mode=gfxstream was requested but the prerequisites were not detected so the device may not function correctly. Please consider switching to --gpu_mode=auto or --gpu_mode=guest_swiftshader.
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:656] GPU vhost user auto mode: not needed. Not enabling vhost user gpu.
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:415] ANGLE features: 
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:415]  - prefer_linear_filtering_for_yuv: false
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:415]  - map_unspecified_color_space_to_pass_through: true
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:415]  - ignore_precision_qualifiers: false
+assemble_cvd(454)  D 10-16 15:18:07   454   454 graphics_flags.cc:415] 
+run_cvd(773)  D 10-16 15:18:10   777   777 command.cc:325] --gpu=displays=[[mode=windowed[1920,1080],dpi=[160,160],refresh-rate=60]],context-types=gfxstream-gles:gfxstream-vulkan:gfxstream-composer,pci-address=00:02.0,egl=true,surfaceless=true,glx=false,gles=true
+process_restarter(936)  D 10-16 15:18:10   936   936 command.cc:325] --gpu=displays=[[mode=windowed[1920,1080],dpi=[160,160],refresh-rate=60]],context-types=gfxstream-gles:gfxstream-vulkan:gfxstream-composer,pci-address=00:02.0,egl=true,surfaceless=true,glx=false,gles=true
+log_tee(926)  D 10-16 15:18:10   926   926 log_tee.cpp:185] [virtio_gpu_gfxstream_renderer.cpp(780)]     GuestVulkanOnly: disabled ((rendererFlags & STREAM_RENDERER_FLAGS_USE_VK_BIT) && !(rendererFlags & STREAM_RENDERER_FLAGS_USE_GLES_BIT))
+log_tee(926)  D 10-16 15:18:15   926   926 log_tee.cpp:185] [vk_common_operations.cpp(1341)] Selecting Vulkan device: AMD Radeon Graphics (RADV RAPHAEL_MENDOCINO), Version: 1.4.305
+kernel_log_monitor(810)  I 10-16 15:18:15   810   810 kernel_log_server.cc:155] VIRTUAL_DEVICE_DISPLAY_POWER_MODE_CHANGED
+kernel_log_monitor(810)  D 10-16 15:18:15   810   810 kernel_log_server.cc:171] [    3.778295] VIRTUAL_DEVICE_DISPLAY_POWER_MODE_CHANGED display=0 mode=ON
+kernel_log_monitor(810)  I 10-16 15:18:15   810   810 kernel_log_server.cc:155] VIRTUAL_DEVICE_DISPLAY_POWER_MODE_CHANGED
+kernel_log_monitor(810)  D 10-16 15:18:15   810   810 kernel_log_server.cc:171] [    3.813064] VIRTUAL_DEVICE_DISPLAY_POWER_MODE_CHANGED display=0 mode=ON
+kernel_log_monitor(810)  I 10-16 15:18:21   810   810 kernel_log_server.cc:155] VIRTUAL_DEVICE_BOOT_STARTED
+kernel_log_monitor(810)  I 10-16 15:18:22   810   810 kernel_log_server.cc:155] VIRTUAL_DEVICE_BOOT_COMPLETED
+run_cvd(770)  D 10-16 15:18:22   770   770 boot_state_machine.cc:209] VIRTUAL_DEVICE_BOOT_COMPLETED

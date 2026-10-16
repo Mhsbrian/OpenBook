@@ -1,0 +1,28 @@
+# google/sdk_gdesktop_x86_64/emu64xa:17/CLE1.260506.004/15373846:userdebug/test-keys
+## Tasks (dumpsys activity activities)
+  * Task{e997194 #7 name=Desk type=standard U=0 visible=true visibleRequested=true mode=freeform translucent=true sz=2}
+    * Task{87a11b5 #11 type=standard I=com.android.documentsui/.files.FilesActivity U=0 rootTaskId=7 visible=true visibleRequested=true mode=freeform translucent=false sz=1}
+    * Task{f303622 #10 type=standard A=1000:com.android.settings.root U=0 rootTaskId=7 visible=true visibleRequested=true mode=freeform translucent=false sz=2}
+  * Task{e2a2ab0 #1 type=home U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+    * Task{de9e7e1 #9 type=home I=com.android.launcher3/.uioverrides.QuickstepLauncher U=0 rootTaskId=1 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+  * Task{47239fd #4 name=SplitRoot type=undefined U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=2}
+    * Task{9b21143 #6 name=side type=undefined U=0 rootTaskId=4 visible=false visibleRequested=false mode=multi-window translucent=true sz=0}
+    * Task{8fbf6f2 #5 name=main type=undefined U=0 rootTaskId=4 visible=false visibleRequested=false mode=multi-window translucent=true sz=0}
+  * Task{468a43d #8 name=MinimizedDesk_7 type=undefined U=0 visible=false visibleRequested=false mode=freeform translucent=true sz=0}
+      * Task{e997194 #7 name=Desk type=standard U=0 visible=true visibleRequested=true mode=freeform translucent=true sz=2}
+        * Task{87a11b5 #11 type=standard I=com.android.documentsui/.files.FilesActivity U=0 rootTaskId=7 visible=true visibleRequested=true mode=freeform translucent=false sz=1}
+        * Task{f303622 #10 type=standard A=1000:com.android.settings.root U=0 rootTaskId=7 visible=true visibleRequested=true mode=freeform translucent=false sz=2}
+      * Task{e2a2ab0 #1 type=home U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+        * Task{de9e7e1 #9 type=home I=com.android.launcher3/.uioverrides.QuickstepLauncher U=0 rootTaskId=1 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+      * Task{47239fd #4 name=SplitRoot type=undefined U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=2}
+        * Task{9b21143 #6 name=side type=undefined U=0 rootTaskId=4 visible=false visibleRequested=false mode=multi-window translucent=true sz=0}
+        * Task{8fbf6f2 #5 name=main type=undefined U=0 rootTaskId=4 visible=false visibleRequested=false mode=multi-window translucent=true sz=0}
+      * Task{468a43d #8 name=MinimizedDesk_7 type=undefined U=0 visible=false visibleRequested=false mode=freeform translucent=true sz=0}
+## windowing modes of activities (count)
+      8 mWindowingMode=freeform
+      6 mWindowingMode=fullscreen
+      3 mWindowingMode=undefined
+## display windowing mode (dumpsys window displays)
+  overrideConfig={1.0 ?mcc0mnc [en_US] ldltr sw1080dp w1920dp h1080dp 160dpi xlrg long compactNeeded land -touch qwerty/v/v -nav/h winConfig={ mBounds=Rect(0, 0 - 1920, 1080) mAppBounds=Rect(0, 0 - 1920, 1080) mMaxBounds=Rect(0, 0 - 1920, 1080) mDisplayRotation=ROTATION_0 mWindowingMode=fullscreen mActivityType=undefined mAlwaysOnTop=undefined mRotation=ROTATION_0} as.3 s.9 fontWeightAdjustment=0}
+      overrideConfig={0.0 ?mcc0mnc ?localeList ?layoutDir ?swdp ?wdp ?hdp ?density ?lsize ?long ?round ?ldr ?wideColorGamut ?orien ?uimode ?night ?touch ?keyb/?/? ?nav/? winConfig={ mBounds=Rect(0, 0 - 0, 0) mAppBounds=null mMaxBounds=Rect(0, 0 - 0, 0) mDisplayRotation=undefined mWindowingMode=freeform mActivityType=undefined mAlwaysOnTop=undefined mRotation=undefined} ?fontWeightAdjustment}
+    SettingsEntry{mWindowingMode=5, mUserRotationMode=null, mUserRotation=null, mForcedWidth=0, mForcedHeight=0, mForcedDensity=0, mForcedDensityRatio=0.0, mForcedScalingMode=null, mRemoveContentMode=0, mShouldShowWithInsecureKeyguard=null, mShouldShowSystemDecors=null, mIsHomeSupported=null, mShouldShowIme=null, mFixedToUserRotation=null, mIgnoreOrientationRequest=true, mIgnoreDisplayCutout=null, mDontMoveToTop=null, mForceAppsUniversalResizable=null, mCanStealTopFocus=null}

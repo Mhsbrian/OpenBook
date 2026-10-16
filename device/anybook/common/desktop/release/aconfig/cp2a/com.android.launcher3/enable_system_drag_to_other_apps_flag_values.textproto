@@ -1,0 +1,7 @@
+# Declared in packages/apps/Launcher3/aconfig/launcher.aconfig
+flag_value {
+  package: "com.android.launcher3"
+  name: "enable_system_drag_to_other_apps"
+  state: ENABLED
+  permission: READ_ONLY
+}

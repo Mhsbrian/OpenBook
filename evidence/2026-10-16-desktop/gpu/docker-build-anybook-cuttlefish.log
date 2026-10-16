@@ -1,0 +1,174 @@
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile.cuttlefish
+#1 transferring dockerfile: 900B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for us-docker.pkg.dev/android-cuttlefish-artifacts/cuttlefish-orchestration/cuttlefish-orchestration:1.56.0@sha256:ecdb337615c719ed62e12593f7931a313d7c15a99a919e69fd87510e14a249e6
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [1/2] FROM us-docker.pkg.dev/android-cuttlefish-artifacts/cuttlefish-orchestration/cuttlefish-orchestration:1.56.0@sha256:ecdb337615c719ed62e12593f7931a313d7c15a99a919e69fd87510e14a249e6
+#4 resolve us-docker.pkg.dev/android-cuttlefish-artifacts/cuttlefish-orchestration/cuttlefish-orchestration:1.56.0@sha256:ecdb337615c719ed62e12593f7931a313d7c15a99a919e69fd87510e14a249e6 0.0s done
+#4 DONE 0.5s
+
+#4 [1/2] FROM us-docker.pkg.dev/android-cuttlefish-artifacts/cuttlefish-orchestration/cuttlefish-orchestration:1.56.0@sha256:ecdb337615c719ed62e12593f7931a313d7c15a99a919e69fd87510e14a249e6
+#4 extracting sha256:27ee9a8250487842a26b1ffa1215982ba9ae27010bce1997d52f9f8628578d17
+#4 extracting sha256:27ee9a8250487842a26b1ffa1215982ba9ae27010bce1997d52f9f8628578d17 1.3s done
+#4 DONE 1.8s
+
+#4 [1/2] FROM us-docker.pkg.dev/android-cuttlefish-artifacts/cuttlefish-orchestration/cuttlefish-orchestration:1.56.0@sha256:ecdb337615c719ed62e12593f7931a313d7c15a99a919e69fd87510e14a249e6
+#4 extracting sha256:986c91b27268b9ede04049839e7506ff8946f1eec794fb7e56a5d8e96eb667a3 0.0s done
+#4 extracting sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1 0.0s done
+#4 extracting sha256:b80c21cdf30a0ed8169ea2a7e1fa9b9a69a69aee4e6abf8d7adf11473e40bd5e
+#4 extracting sha256:b80c21cdf30a0ed8169ea2a7e1fa9b9a69a69aee4e6abf8d7adf11473e40bd5e 0.2s done
+#4 DONE 2.1s
+
+#4 [1/2] FROM us-docker.pkg.dev/android-cuttlefish-artifacts/cuttlefish-orchestration/cuttlefish-orchestration:1.56.0@sha256:ecdb337615c719ed62e12593f7931a313d7c15a99a919e69fd87510e14a249e6
+#4 extracting sha256:aaff7ae73627d805ccb02aaa9d2a6f757eb68271dc2a62ed078b91008ff5949d
+#4 extracting sha256:aaff7ae73627d805ccb02aaa9d2a6f757eb68271dc2a62ed078b91008ff5949d 1.8s done
+#4 DONE 3.8s
+
+#4 [1/2] FROM us-docker.pkg.dev/android-cuttlefish-artifacts/cuttlefish-orchestration/cuttlefish-orchestration:1.56.0@sha256:ecdb337615c719ed62e12593f7931a313d7c15a99a919e69fd87510e14a249e6
+#4 extracting sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1 0.0s done
+#4 extracting sha256:17ccee6896587f097b52a22d7d3356fa4acc28278025bc39985b00ac73cbbccc 0.0s done
+#4 extracting sha256:5207c78bd8e7b728922b9c3805765c7e4635c51164a1157cdd429d855b728e5d 0.0s done
+#4 extracting sha256:ee5f6d87de2726c6086adbb3b56627b024beeabf2c9a772a8d01decbddda57b7 0.0s done
+#4 extracting sha256:359afaf63cf2e3a90024376b80ac8032610d3212e60a3989fc3fe9eb798a7d88 0.0s done
+#4 DONE 3.9s
+
+#4 [1/2] FROM us-docker.pkg.dev/android-cuttlefish-artifacts/cuttlefish-orchestration/cuttlefish-orchestration:1.56.0@sha256:ecdb337615c719ed62e12593f7931a313d7c15a99a919e69fd87510e14a249e6
+#4 extracting sha256:91b6790d8debcbac34fb682af2b0c16ae917cf3933e9c2840f1866cde5c8216b 0.0s done
+#4 extracting sha256:04d96e69819c79cf5f68c5bcbd7ecaaa4f96795d92e838cf4a801c4c48bb7d5e 0.0s done
+#4 extracting sha256:1531ba085079c46db9609449f331914f002edb46ae3cfb38a535a7480fa4b6d9
+#4 extracting sha256:1531ba085079c46db9609449f331914f002edb46ae3cfb38a535a7480fa4b6d9 5.1s done
+#4 DONE 9.1s
+
+#4 [1/2] FROM us-docker.pkg.dev/android-cuttlefish-artifacts/cuttlefish-orchestration/cuttlefish-orchestration:1.56.0@sha256:ecdb337615c719ed62e12593f7931a313d7c15a99a919e69fd87510e14a249e6
+#4 extracting sha256:39f7eaa517cd25aab755833a97c9a77f39f7833a8f966a56e16b6f43ee68df92 0.0s done
+#4 extracting sha256:725eb8e3101f18570e12815f8e668bbfd089b7f3fc77df92c8ff7c7e6e72e624 0.0s done
+#4 extracting sha256:6c503bec59ee81f7b8b4b65296e2a9b4b2441c4b4212930930348e901c8296ce 0.0s done
+#4 DONE 9.2s
+
+#5 [2/2] RUN apt-get update  && apt-get install -y --no-install-recommends mesa-vulkan-drivers vulkan-tools libegl-dev libgles-dev  && rm -rf /var/lib/apt/lists/*
+#5 0.301 Get:1 http://deb.debian.org/debian trixie InRelease [140 kB]
+#5 0.319 Get:2 http://deb.debian.org/debian trixie-updates InRelease [47.3 kB]
+#5 0.321 Get:3 http://deb.debian.org/debian-security trixie-security InRelease [43.4 kB]
+#5 0.346 Get:4 http://deb.debian.org/debian trixie/main amd64 Packages [9678 kB]
+#5 0.543 Get:5 http://deb.debian.org/debian-security trixie-security/main amd64 Packages [269 kB]
+#5 1.337 Hit:6 https://us-apt.pkg.dev/projects/android-cuttlefish-artifacts android-cuttlefish InRelease
+#5 1.353 Fetched 10.2 MB in 1s (9322 kB/s)
+#5 1.353 Reading package lists...
+#5 1.957 Reading package lists...
+#5 2.584 Building dependency tree...
+#5 2.776 Reading state information...
+#5 3.081 The following additional packages will be installed:
+#5 3.083   libgl-dev libgles1 libglx-dev libx11-dev libxau-dev libxcb1-dev libxdmcp-dev
+#5 3.083   x11proto-dev xorg-sgml-doctools xtrans-dev
+#5 3.085 Suggested packages:
+#5 3.085   libx11-doc libxcb-doc
+#5 3.193 The following NEW packages will be installed:
+#5 3.194   libegl-dev libgl-dev libgles-dev libgles1 libglx-dev libx11-dev libxau-dev
+#5 3.194   libxcb1-dev libxdmcp-dev mesa-vulkan-drivers vulkan-tools x11proto-dev
+#5 3.194   xorg-sgml-doctools xtrans-dev
+#5 3.245 0 upgraded, 14 newly installed, 0 to remove and 39 not upgraded.
+#5 3.245 Need to get 16.6 MB of archives.
+#5 3.245 After this operation, 93.0 MB of additional disk space will be used.
+#5 3.245 Get:1 http://deb.debian.org/debian trixie/main amd64 xorg-sgml-doctools all 1:1.11-1.1 [22.1 kB]
+#5 3.291 Get:2 http://deb.debian.org/debian trixie/main amd64 x11proto-dev all 2024.1-1 [603 kB]
+#5 3.319 Get:3 http://deb.debian.org/debian trixie/main amd64 libxau-dev amd64 1:1.0.11-1 [23.6 kB]
+#5 3.319 Get:4 http://deb.debian.org/debian trixie/main amd64 libxdmcp-dev amd64 1:1.1.5-1 [44.3 kB]
+#5 3.321 Get:5 http://deb.debian.org/debian trixie/main amd64 xtrans-dev all 1.4.0-1 [98.7 kB]
+#5 3.323 Get:6 http://deb.debian.org/debian trixie/main amd64 libxcb1-dev amd64 1.17.0-2+b1 [181 kB]
+#5 3.332 Get:7 http://deb.debian.org/debian trixie/main amd64 libx11-dev amd64 2:1.8.12-1 [894 kB]
+#5 3.348 Get:8 http://deb.debian.org/debian trixie/main amd64 libglx-dev amd64 1.7.0-1+b2 [15.8 kB]
+#5 3.358 Get:9 http://deb.debian.org/debian trixie/main amd64 libgl-dev amd64 1.7.0-1+b2 [101 kB]
+#5 3.361 Get:10 http://deb.debian.org/debian trixie/main amd64 libegl-dev amd64 1.7.0-1+b2 [19.5 kB]
+#5 3.363 Get:11 http://deb.debian.org/debian trixie/main amd64 libgles1 amd64 1.7.0-1+b2 [12.1 kB]
+#5 3.369 Get:12 http://deb.debian.org/debian trixie/main amd64 libgles-dev amd64 1.7.0-1+b2 [50.8 kB]
+#5 3.379 Get:13 http://deb.debian.org/debian trixie/main amd64 mesa-vulkan-drivers amd64 25.0.7-2+deb13u1 [14.2 MB]
+#5 3.693 Get:14 http://deb.debian.org/debian trixie/main amd64 vulkan-tools amd64 1.4.304.0+dfsg1-1 [304 kB]
+#5 3.850 debconf: unable to initialize frontend: Dialog
+#5 3.850 debconf: (TERM is not set, so the dialog frontend is not usable.)
+#5 3.850 debconf: falling back to frontend: Readline
+#5 3.861 debconf: unable to initialize frontend: Readline
+#5 3.861 debconf: (This frontend requires a controlling tty.)
+#5 3.861 debconf: falling back to frontend: Teletype
+#5 3.869 debconf: unable to initialize frontend: Teletype
+#5 3.869 debconf: (This frontend requires a controlling tty.)
+#5 3.869 debconf: falling back to frontend: Noninteractive
+#5 4.520 Fetched 16.6 MB in 0s (34.3 MB/s)
+#5 4.541 Selecting previously unselected package xorg-sgml-doctools.
+#5 4.541 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 16484 files and directories currently installed.)
+#5 4.554 Preparing to unpack .../00-xorg-sgml-doctools_1%3a1.11-1.1_all.deb ...
+#5 4.858 Unpacking xorg-sgml-doctools (1:1.11-1.1) ...
+#5 4.922 Selecting previously unselected package x11proto-dev.
+#5 4.926 Preparing to unpack .../01-x11proto-dev_2024.1-1_all.deb ...
+#5 4.927 Unpacking x11proto-dev (2024.1-1) ...
+#5 4.959 Selecting previously unselected package libxau-dev:amd64.
+#5 4.963 Preparing to unpack .../02-libxau-dev_1%3a1.0.11-1_amd64.deb ...
+#5 4.964 Unpacking libxau-dev:amd64 (1:1.0.11-1) ...
+#5 4.980 Selecting previously unselected package libxdmcp-dev:amd64.
+#5 4.983 Preparing to unpack .../03-libxdmcp-dev_1%3a1.1.5-1_amd64.deb ...
+#5 4.985 Unpacking libxdmcp-dev:amd64 (1:1.1.5-1) ...
+#5 4.999 Selecting previously unselected package xtrans-dev.
+#5 5.002 Preparing to unpack .../04-xtrans-dev_1.4.0-1_all.deb ...
+#5 5.003 Unpacking xtrans-dev (1.4.0-1) ...
+#5 5.021 Selecting previously unselected package libxcb1-dev:amd64.
+#5 5.024 Preparing to unpack .../05-libxcb1-dev_1.17.0-2+b1_amd64.deb ...
+#5 5.026 Unpacking libxcb1-dev:amd64 (1.17.0-2+b1) ...
+#5 5.043 Selecting previously unselected package libx11-dev:amd64.
+#5 5.046 Preparing to unpack .../06-libx11-dev_2%3a1.8.12-1_amd64.deb ...
+#5 5.048 Unpacking libx11-dev:amd64 (2:1.8.12-1) ...
+#5 5.080 Selecting previously unselected package libglx-dev:amd64.
+#5 5.083 Preparing to unpack .../07-libglx-dev_1.7.0-1+b2_amd64.deb ...
+#5 5.085 Unpacking libglx-dev:amd64 (1.7.0-1+b2) ...
+#5 5.098 Selecting previously unselected package libgl-dev:amd64.
+#5 5.102 Preparing to unpack .../08-libgl-dev_1.7.0-1+b2_amd64.deb ...
+#5 5.103 Unpacking libgl-dev:amd64 (1.7.0-1+b2) ...
+#5 5.121 Selecting previously unselected package libegl-dev:amd64.
+#5 5.124 Preparing to unpack .../09-libegl-dev_1.7.0-1+b2_amd64.deb ...
+#5 5.125 Unpacking libegl-dev:amd64 (1.7.0-1+b2) ...
+#5 5.143 Selecting previously unselected package libgles1:amd64.
+#5 5.146 Preparing to unpack .../10-libgles1_1.7.0-1+b2_amd64.deb ...
+#5 5.149 Unpacking libgles1:amd64 (1.7.0-1+b2) ...
+#5 5.163 Selecting previously unselected package libgles-dev:amd64.
+#5 5.167 Preparing to unpack .../11-libgles-dev_1.7.0-1+b2_amd64.deb ...
+#5 5.168 Unpacking libgles-dev:amd64 (1.7.0-1+b2) ...
+#5 5.185 Selecting previously unselected package mesa-vulkan-drivers:amd64.
+#5 5.189 Preparing to unpack .../12-mesa-vulkan-drivers_25.0.7-2+deb13u1_amd64.deb ...
+#5 5.190 Unpacking mesa-vulkan-drivers:amd64 (25.0.7-2+deb13u1) ...
+#5 5.410 Selecting previously unselected package vulkan-tools.
+#5 5.413 Preparing to unpack .../13-vulkan-tools_1.4.304.0+dfsg1-1_amd64.deb ...
+#5 5.415 Unpacking vulkan-tools (1.4.304.0+dfsg1-1) ...
+#5 5.445 Setting up mesa-vulkan-drivers:amd64 (25.0.7-2+deb13u1) ...
+#5 5.449 Setting up vulkan-tools (1.4.304.0+dfsg1-1) ...
+#5 5.453 Setting up xtrans-dev (1.4.0-1) ...
+#5 5.457 Setting up libgles1:amd64 (1.7.0-1+b2) ...
+#5 5.460 Setting up xorg-sgml-doctools (1:1.11-1.1) ...
+#5 5.464 Setting up x11proto-dev (2024.1-1) ...
+#5 5.468 Setting up libxau-dev:amd64 (1:1.0.11-1) ...
+#5 5.471 Setting up libxdmcp-dev:amd64 (1:1.1.5-1) ...
+#5 5.475 Setting up libxcb1-dev:amd64 (1.17.0-2+b1) ...
+#5 5.479 Setting up libx11-dev:amd64 (2:1.8.12-1) ...
+#5 5.482 Setting up libglx-dev:amd64 (1.7.0-1+b2) ...
+#5 5.486 Setting up libgl-dev:amd64 (1.7.0-1+b2) ...
+#5 5.490 Setting up libegl-dev:amd64 (1.7.0-1+b2) ...
+#5 5.494 Setting up libgles-dev:amd64 (1.7.0-1+b2) ...
+#5 5.498 Processing triggers for libc-bin (2.41-12+deb13u3) ...
+#5 DONE 5.9s
+
+#6 exporting to image
+#6 exporting layers
+#6 exporting layers 0.8s done
+#6 exporting manifest sha256:75d7c596d7fbae7feb4dc32e5330a098c07cc913df41317708f4ddcfea0f1e52 done
+#6 exporting config sha256:57c521b38f33fc9c43e078c457d8a518f88d73344e461714c0ee8b1122c732d2 done
+#6 exporting attestation manifest sha256:6342ad0e788d55d7fd1a42ff7c88b6098ee52ab4a3964318f25f1e3ee20405d7 done
+#6 exporting manifest list sha256:8404358c225ad770e1eaa296c219a04850d197c8607675858ee67617ac9b28d3 done
+#6 naming to docker.io/library/anybook-cf:latest done
+#6 unpacking to docker.io/library/anybook-cf:latest
+#6 unpacking to docker.io/library/anybook-cf:latest 0.3s done
+#6 DONE 1.2s

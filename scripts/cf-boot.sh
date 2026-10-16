@@ -12,12 +12,18 @@
 #   CF_IMAGE=cuttlefish-orchestration:1.56.0 (pinned)  CF_ADB_PORT=16520  CF_WEBRTC_PORT=11443 (127.0.0.1 only)
 #   CF_HOST_TOOLS=packaged (cvd's Debian host tools, Google's default) | build (our out/host tools)
 #   CF_LOGS=~/anybook/logs/aosp/cf-<ts> (cf-latest links to it)  CF_ARGS (extra launch_cvd flags, appended)  CF_KEEP=1 skips `down` in `all`
+#   CF_GPU_MODE=guest_swiftshader (-> --gpu_mode: drm_virgl, gfxstream, gfxstream_guest_angle, ...)
+#   CF_GPU=none (no host GPU) | amd (pass the AMD render node, Mesa radeonsi/RADV in the container) |
+#          nvidia (pass /dev/nvidia* and bind-mount the host's NVIDIA userspace from CF_NVIDIA_LIBDIR, default
+#          /usr/lib). amd/nvidia default CF_IMAGE to
+#          anybook-cuttlefish (tools/Dockerfile.cuttlefish: the pinned image plus Mesa's Vulkan drivers).
 # While it runs: WebRTC at https://localhost:$CF_WEBRTC_PORT; adb via
 #   docker exec anybook-cf /root/cvd-host/bin/adb -s 127.0.0.1:6520 shell
 set -euo pipefail
 A=${ANYBOOK_HOME:-$HOME/anybook}
 OUT=${CF_OUT:-$A/aosp/src/out}; DEV=${CF_DEVICE:-vsoc_x86_64_only}; NAME=${CF_NAME:-anybook-cf}
 IMG=${CF_IMAGE:-us-docker.pkg.dev/android-cuttlefish-artifacts/cuttlefish-orchestration/cuttlefish-orchestration:1.56.0@sha256:ecdb337615c719ed62e12593f7931a313d7c15a99a919e69fd87510e14a249e6}
+GPU=${CF_GPU:-none}; [ "$GPU" = none ] || IMG=${CF_IMAGE:-anybook-cuttlefish}
 # `up`/`all` start a new log dir and point cf-latest at it; the other steps reuse cf-latest.
 LA=$A/logs/aosp
 case ${1:-all} in
@@ -38,18 +44,45 @@ stamp(){ echo "=== $(date -u +%FT%TZ) $*" | tee -a "$L/cf-boot.log"; }
 cx(){ docker exec "$NAME" "$@"; }
 adb_(){ docker exec -e PATH="$C_HOST/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" "$NAME" adb -s "$SERIAL" "$@"; }
 
+# docker run flags that hand one host GPU to crosvm's virgl/gfxstream renderer.
+render_node(){
+  local d; for d in /sys/class/drm/renderD*; do [ "$(cat "$d/device/vendor")" = "$1" ] && echo "/dev/dri/${d##*/}" && return; done
+  echo "CF_GPU=$GPU: no render node with PCI vendor $1" >&2; return 1
+}
+gpu_flags(){
+  local n v f L=${CF_NVIDIA_LIBDIR:-/usr/lib}   # Arch layout; Debian/Ubuntu hosts: /usr/lib/x86_64-linux-gnu
+  case $GPU in
+    none) ;;
+    # Mesa's default EGL platform needs X11/Wayland; the container has neither, so use surfaceless.
+    amd) n=$(render_node 0x1002) || return 1; echo "--device $n -e EGL_PLATFORM=surfaceless" ;;
+    # No nvidia-container-toolkit (no sudo): pass the device nodes and bind-mount the userspace by hand.
+    nvidia) n=$(render_node 0x10de) || return 1; v=$(cat /sys/module/nvidia/version) || return 1
+      echo "--device $n"
+      for f in /dev/nvidia0 /dev/nvidiactl /dev/nvidia-modeset /dev/nvidia-uvm; do echo "--device $f"; done
+      for f in "$L"/libnvidia-*.so."$v" "$L"/libEGL_nvidia.so.0 "$L"/libGLX_nvidia.so.0 \
+               "$L"/libGLESv2_nvidia.so.2 "$L"/libGLESv1_CM_nvidia.so.1; do
+        [ -e "$f" ] || { echo "CF_GPU=nvidia: missing $f (set CF_NVIDIA_LIBDIR)" >&2; return 1; }
+        echo "-v $f:/usr/lib/x86_64-linux-gnu/${f##*/}:ro"; done
+      echo "-v /usr/share/glvnd/egl_vendor.d/10_nvidia.json:/usr/share/glvnd/egl_vendor.d/10_nvidia.json:ro"
+      echo "-v /usr/share/vulkan/icd.d/nvidia_icd.json:/usr/share/vulkan/icd.d/nvidia_icd.json:ro" ;;
+    *) echo "unknown CF_GPU=$GPU" >&2; return 1 ;;
+  esac
+}
+
 up(){
   [ -f "$OUT/target/product/$DEV/boot.img" ] || { echo "no build at $OUT/target/product/$DEV" >&2; exit 1; }
   stamp "stage $OUT/target/product/$DEV -> $STAGE (top-level files, reflink)"
   rm -rf "$STAGE"; mkdir -p "$STAGE"
   find "$OUT/target/product/$DEV" -maxdepth 1 -type f -exec cp --reflink=auto -t "$STAGE" {} +
-  stamp "up: $IMG"
+  local gf; gf=$(gpu_flags)
+  stamp "up: $IMG, host GPU: $GPU $(echo "$gf" | grep -oE '/dev/dri/renderD[0-9]+' || true)"
   # seccomp=unconfined: Docker's default profile rejects socket(AF_VSOCK), and run_cvd's host-side vsock servers
   # (tombstones, adb, ...) need it ("Can't tombstone server socket"). No --privileged; only NET_ADMIN is added.
+  # shellcheck disable=SC2086  # $gf is a flag list, split on purpose
   docker run -d --name "$NAME" --hostname "$NAME" --security-opt seccomp=unconfined \
     --cap-add NET_ADMIN --device /dev/kvm --device /dev/net/tun --device /dev/vhost-net --device /dev/vhost-vsock \
     -p "127.0.0.1:${CF_ADB_PORT:-16520}:6520" -p "127.0.0.1:${CF_WEBRTC_PORT:-11443}:1443" \
-    -v "$OUT:$C_OUT:ro" -v "$STAGE:$C_PROD" "$IMG" >/dev/null
+    -v "$OUT:$C_OUT:ro" -v "$STAGE:$C_PROD" $gf "$IMG" >/dev/null
   # run_services.sh starts host resources (bridges/taps) and the operator; wait for the operator.
   for _ in $(seq 60); do docker logs "$NAME" 2>&1 | grep -q 'Operator is listening' && break; sleep 1; done
   cx cvd version 2>&1 | tee -a "$L/cf-boot.log"
@@ -57,10 +90,9 @@ up(){
   cx sh -c "mkdir -p $C_HOST && tar -xzf $C_PKG -C $C_HOST"
   if [ "${CF_HOST_TOOLS:-packaged}" = build ]; then cx rm -f "$C_HOST/etc/debian_substitution_marker"; fi
   stamp "host tools: ${CF_HOST_TOOLS:-packaged}"
-  # Defaults for the PC product: a laptop-sized display, software GPU (the container has no /dev/dri;
-  # graphics are the next stage), 4 vCPUs, 8 GiB.
+  # Defaults for the PC product: a laptop-sized display, 4 vCPUs, 8 GiB. The GPU mode is CF_GPU_MODE.
   # shellcheck disable=SC2206  # CF_ARGS is a flag list, split on purpose
-  local args=(--x_res=1920 --y_res=1080 --dpi=160 --gpu_mode=guest_swiftshader --cpus=4 --memory_mb=8192
+  local args=(--x_res=1920 --y_res=1080 --dpi=160 --gpu_mode="${CF_GPU_MODE:-guest_swiftshader}" --cpus=4 --memory_mb=8192
               --report_anonymous_usage_stats=n ${CF_ARGS:-})
   stamp "cvd create --host_path=$C_HOST --product_path=$C_PROD ${args[*]}"
   local t0; t0=$(date +%s)
@@ -107,7 +139,9 @@ capture(){
              ro.build.type ro.build.characteristics ro.product.model ro.product.device ro.hardware \
              ro.product.cpu.abi ro.product.cpu.abilist ro.product.cpu.abilist64 ro.product.cpu.abilist32 \
              ro.dalvik.vm.native.bridge ro.enable.native.bridge.exec ro.dalvik.vm.isa.arm64 ro.dalvik.vm.isa.arm \
-             ro.boot.hardware.gltransport ro.hardware.egl ro.hardware.vulkan ro.boot.verifiedbootstate \
+             ro.boot.hardware.gltransport ro.hardware.egl ro.hardware.vulkan ro.hardware.gralloc ro.hardware.hwcomposer \
+             ro.boot.hardware.gralloc ro.boot.hardware.hwcomposer ro.boot.hardware.egl ro.boot.hardware.vulkan \
+             ro.boot.hardware.angle ro.cpuvulkan.version ro.boot.verifiedbootstate \
              ro.kernel.version persist.sys.device_provisioned; do
       echo "[$p]: [$(adb_ shell getprop "$p" | tr -d '\r')]"
     done > "$L/props-summary.txt"
@@ -115,6 +149,7 @@ capture(){
     adb_ shell pm list features | sort > "$L/features.txt"
     adb_ shell 'wm size; wm density; dumpsys window displays | grep -iE "mDisplayId|init=|freeform|windowing" | head -20' \
       > "$L/display.txt" 2>&1 || true
+    adb_ shell dumpsys SurfaceFlinger > "$L/surfaceflinger.txt" 2>&1 || true
     adb_ shell dmesg > "$L/dmesg.txt" 2>&1 || true
     adb_ logcat -d -b all > "$L/logcat.txt" 2>&1 || true
     adb_ logcat -d -b events -s boot_progress_start boot_progress_enable_screen sf_stop_bootanim wm_boot_animation_done \

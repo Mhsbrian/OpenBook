@@ -1,0 +1,14 @@
+=== 2026-10-16T16:34:26Z stage /home/hive/anybook/aosp/src/out/target/product/vsoc_x86_64_only -> /home/hive/anybook/aosp/cf/product (top-level files, reflink)
+=== 2026-10-16T16:34:26Z up: anybook-cuttlefish, host GPU: amd /dev/dri/renderD129
+cvd(411)  I 10-16 16:34:28   411   411 main.cc:137] version: 1.57.0 | VCS: 9bb9c72329cedcb436bb75afc05c24d73fbcdf5d
+version: 1.57.0
+VCS: 9bb9c72329cedcb436bb75afc05c24d73fbcdf5d
+=== 2026-10-16T16:34:28Z unpack cvd-host_package.tar.gz -> /root/cvd-host
+=== 2026-10-16T16:34:34Z host tools: build
+=== 2026-10-16T16:34:34Z cvd create --host_path=/root/cvd-host --product_path=/cf/product --x_res=1920 --y_res=1080 --dpi=160 --gpu_mode=drm_virgl --cpus=4 --memory_mb=8192 --report_anonymous_usage_stats=n
+=== 2026-10-16T16:44:58Z down
+=== 2026-10-16T16:44:58Z cvd create exit 255 after 624 s
+=== 2026-10-16T16:44:58Z capture -> /home/hive/anybook/logs/desktop/gpu-amd-drm_virgl-buildtools
+=== 2026-10-16T16:45:02Z adb not reachable; host-side logs only
+=== 2026-10-16T16:45:02Z down
+=== 2026-10-16T16:45:02Z all: exit 255, logs in /home/hive/anybook/logs/desktop/gpu-amd-drm_virgl-buildtools

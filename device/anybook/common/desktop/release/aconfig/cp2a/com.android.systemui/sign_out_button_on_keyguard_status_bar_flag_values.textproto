@@ -1,0 +1,7 @@
+# Declared in frameworks/base/packages/SystemUI/aconfig/desktop_users_and_accounts.aconfig
+flag_value {
+  package: "com.android.systemui"
+  name: "sign_out_button_on_keyguard_status_bar"
+  state: ENABLED
+  permission: READ_ONLY
+}

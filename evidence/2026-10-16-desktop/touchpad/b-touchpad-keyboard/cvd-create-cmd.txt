@@ -1,0 +1,3 @@
+=== 2026-10-16T15:44:05Z cvd create --host_path=/root/cvd-host --product_path=/cf/product --x_res=1920 --y_res=1080 --dpi=160 --gpu_mode=gfxstream_guest_angle --cpus=4 --memory_mb=8192 --report_anonymous_usage_stats=n --touchpad=width=1280,height=800
+=== 2026-10-16T15:44:19Z cvd create exit 0 after 14 s
+=== 2026-10-16T15:44:22Z sys.boot_completed=1 at +17 s from cvd create

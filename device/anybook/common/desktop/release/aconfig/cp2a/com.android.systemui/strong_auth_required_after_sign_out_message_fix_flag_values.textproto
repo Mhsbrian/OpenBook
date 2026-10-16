@@ -1,0 +1,7 @@
+# Declared in frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+flag_value {
+  package: "com.android.systemui"
+  name: "strong_auth_required_after_sign_out_message_fix"
+  state: ENABLED
+  permission: READ_ONLY
+}

@@ -1,0 +1,10 @@
+total 0
+drwxr-xr-x 2 root root       60 Oct 16 15:12 .
+drwxr-xr-x 6 root root      360 Oct 16 15:12 ..
+crw-rw-rw- 1 root  987 226, 129 Oct 16 15:12 renderD129
+errors: "Graphics check failure for PopulateEglAndGlesAvailability: Failed to initialize display."
+errors: "Graphics check failure for PopulateVulkanAvailability: ErrorIncompatibleDriver"
+errors: "Graphics check failure for PopulateVulkanExternalMemoryHostQuirk: ErrorIncompatibleDriver"
+errors: "Graphics check failure for PopulateVulkanPrecisionQualifiersOnYuvSamplersQuirk: ErrorIncompatibleDriver"
+vulkan_loader_available: true
+

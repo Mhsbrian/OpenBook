@@ -1,0 +1,33 @@
+cvd(426)  I 10-16 15:16:57   426   426 main.cc:137] version: 1.57.0 | VCS: 9bb9c72329cedcb436bb75afc05c24d73fbcdf5d
+By using this Android Virtual Device, you agree to Google Terms of Service (https://policies.google.com/terms). The Google Privacy Policy (https://policies.google.com/privacy) describes how Google handles information generated as you use Google services.
+SetFlagDefaultsFromConfig: No flag defaults to override.
+--gpu_mode=gfxstream_guest_angle was requested but the prerequisites were not detected so the device may not function correctly. Please consider switching to --gpu_mode=auto or --gpu_mode=guest_swiftshader.
+  Run `cvd logs` to report paths to device logs.
+  Point your browser to https://localhost:8443 to interact with the device.
+  Serial console is disabled; use -console=true to enable it.
+  Launcher Build ID: 9bb9c72329cedcb436bb75afc05c24d73fbcdf5d
+Virtual device booted successfully
+Requesting status for instance cvd-1
+run_cvd is active for instance cvd-1
+{
+	"group_name" : "cvd_1",
+	"instances" : 
+	[
+		{
+			"adb_port" : 6520,
+			"adb_serial" : "127.0.0.1:6520",
+			"assembly_dir" : "/var/tmp/cvd/0/1792163817231796/home/cuttlefish/assembly",
+			"displays" : 
+			[
+				"1920 x 1080 ( 160 )"
+			],
+			"instance_dir" : "/var/tmp/cvd/0/1792163817231796/home/cuttlefish/instances/cvd-1",
+			"instance_name" : "1",
+			"status" : "Running",
+			"web_access" : "https://localhost:1443/devices/cvd_1-1-1/files/client.html",
+			"webrtc_device_id" : "cvd_1-1-1"
+		}
+	],
+	"metrics_dir" : "/var/tmp/cvd/0/1792163817231796/home/metrics",
+	"start_time" : "2026-10-16 15:16:57"
+}

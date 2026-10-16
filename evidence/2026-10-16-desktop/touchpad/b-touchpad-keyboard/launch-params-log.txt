@@ -1,0 +1,2 @@
+10-16 15:44:54.416 task#9 com.android.settings/.Settings display-id=0 task-display-area-windowing-mode=5 suggested-display-area=DefaultTaskDisplayArea@164314291 inDesktopMode=true desktop-first-but-fullscreen-visible
+10-16 15:45:22.231 task#10 com.android.documentsui/.files.FilesActivity display-id=0 task-display-area-windowing-mode=5 suggested-display-area=DefaultTaskDisplayArea@164314291 inDesktopMode=true desktop-first-but-fullscreen-visible

@@ -1,0 +1,24 @@
+assemble_cvd(455)  D 10-16 15:19:27   455   455 graphics_flags.cc:872] 
+assemble_cvd(455)  D 10-16 15:19:27   455   455 graphics_flags.cc:900] Host Graphics Availability:
+assemble_cvd(455)  D 10-16 15:19:27   455   455 graphics_flags.cc:903] errors: "Graphics check failure for PopulateEglAndGlesAvailability: Failed to initialize display."
+assemble_cvd(455)  D 10-16 15:19:27   455   455 graphics_flags.cc:903] errors: "Graphics check failure for PopulateVulkanAvailability: ErrorIncompatibleDriver"
+assemble_cvd(455)  D 10-16 15:19:27   455   455 graphics_flags.cc:903] errors: "Graphics check failure for PopulateVulkanExternalMemoryHostQuirk: ErrorIncompatibleDriver"
+assemble_cvd(455)  D 10-16 15:19:27   455   455 graphics_flags.cc:903] errors: "Graphics check failure for PopulateVulkanPrecisionQualifiersOnYuvSamplersQuirk: ErrorIncompatibleDriver"
+assemble_cvd(455)  D 10-16 15:19:27   455   455 graphics_flags.cc:903] vulkan_loader_available: true
+assemble_cvd(455)  D 10-16 15:19:27   455   455 graphics_flags.cc:903] 
+assemble_cvd(455)  D 10-16 15:19:27   455   455 graphics_flags.cc:546] Checking requirements for --gpu_mode=guest_swiftshader
+assemble_cvd(455)  D 10-16 15:19:27   455   455 graphics_flags.cc:635] GPU vhost user auto mode: not needed for --gpu_mode=guest_swiftshader. Not enabling vhost user gpu.
+assemble_cvd(455)  D 10-16 15:19:27   455   455 graphics_flags.cc:415] ANGLE features: 
+assemble_cvd(455)  D 10-16 15:19:27   455   455 graphics_flags.cc:415]  - prefer_linear_filtering_for_yuv: false
+assemble_cvd(455)  D 10-16 15:19:27   455   455 graphics_flags.cc:415]  - map_unspecified_color_space_to_pass_through: true
+assemble_cvd(455)  D 10-16 15:19:27   455   455 graphics_flags.cc:415]  - ignore_precision_qualifiers: false
+assemble_cvd(455)  D 10-16 15:19:27   455   455 graphics_flags.cc:415] 
+run_cvd(572)  D 10-16 15:19:28   576   576 command.cc:325] --gpu=displays=[[mode=windowed[1920,1080],dpi=[160,160],refresh-rate=60]],backend=2D,pci-address=00:02.0
+process_restarter(771)  D 10-16 15:19:28   771   771 command.cc:325] --gpu=displays=[[mode=windowed[1920,1080],dpi=[160,160],refresh-rate=60]],backend=2D,pci-address=00:02.0
+kernel_log_monitor(627)  I 10-16 15:19:33   627   627 kernel_log_server.cc:155] VIRTUAL_DEVICE_DISPLAY_POWER_MODE_CHANGED
+kernel_log_monitor(627)  D 10-16 15:19:33   627   627 kernel_log_server.cc:171] [    3.624637] VIRTUAL_DEVICE_DISPLAY_POWER_MODE_CHANGED display=0 mode=ON
+kernel_log_monitor(627)  I 10-16 15:19:33   627   627 kernel_log_server.cc:155] VIRTUAL_DEVICE_DISPLAY_POWER_MODE_CHANGED
+kernel_log_monitor(627)  D 10-16 15:19:33   627   627 kernel_log_server.cc:171] [    3.648571] VIRTUAL_DEVICE_DISPLAY_POWER_MODE_CHANGED display=0 mode=ON
+kernel_log_monitor(627)  I 10-16 15:19:40   627   627 kernel_log_server.cc:155] VIRTUAL_DEVICE_BOOT_STARTED
+kernel_log_monitor(627)  I 10-16 15:19:41   627   627 kernel_log_server.cc:155] VIRTUAL_DEVICE_BOOT_COMPLETED
+run_cvd(569)  D 10-16 15:19:41   569   569 boot_state_machine.cc:209] VIRTUAL_DEVICE_BOOT_COMPLETED

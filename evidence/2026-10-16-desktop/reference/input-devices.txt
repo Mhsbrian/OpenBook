@@ -1,0 +1,19 @@
+      Classes: KEYBOARD | ALPHAKEY
+      Classes: KEYBOARD | CURSOR | EXTERNAL_STYLUS
+      Classes: KEYBOARD | ALPHAKEY
+      Classes: KEYBOARD
+      Classes: KEYBOARD | ALPHAKEY | DPAD | VIRTUAL
+  Device 4: QEMU Virtio Mouse
+    Sources: KEYBOARD | MOUSE | STYLUS
+    KeyboardType: 1
+  Device 0: qwerty2
+    Sources: KEYBOARD
+    KeyboardType: 2
+  Device 3: AT Translated Set 2 keyboard
+    Sources: KEYBOARD
+    KeyboardType: 2
+  Device 2: Power Button
+    Sources: KEYBOARD
+    KeyboardType: 1
+    Sources: KEYBOARD | DPAD
+    KeyboardType: 2

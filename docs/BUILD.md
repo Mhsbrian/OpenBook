@@ -148,3 +148,17 @@ COMPAT_AVD=anybook-digitalis COMPAT_EMU_ARGS=-writable-system scripts/compat/run
 - The tree borrows source objects from the shared AOSP mirror, which is mounted read-only. It has its own ccache in `~/anybook/digitalis/ccache`.
 - `install.sh` wipes and reinstalls every time, because a data wipe drops the overlay. The libndk_translation AVD `anybook-desktop` is never modified.
 - Details and results are in `docs/digitalis.md`.
+
+## M2: AnyBook desktop product and host-GPU Cuttlefish (ANAL-169)
+
+```bash
+docker build -t anybook-cuttlefish -f tools/Dockerfile.cuttlefish tools/     # pinned Cuttlefish image + Mesa Vulkan
+AOSP_JOBS=32 scripts/aosp-docker.sh -d anybook-aosp-build /repo/scripts/aosp-build.sh anybook_cf_x86_64_pc-cp2a-userdebug
+docker wait anybook-aosp-build          # copies device/anybook into the tree; 13–25 min incremental on top of M1b
+CF_GPU=amd CF_GPU_MODE=gfxstream_guest_angle scripts/cf-boot.sh   # boots on the Radeon iGPU; CF_GPU=nvidia also works
+```
+
+- `scripts/desktop-capture.sh` captures the screenshots and windowing/SurfaceFlinger dumps.
+- `scripts/desktop-ref-emulator.sh` runs the same capture on Google's desktop emulator image.
+- `scripts/desktop-compare.py` diffs the two captures, and `scripts/cf-gfx-bench.sh` compares GPU modes.
+- See `docs/aosp-desktop.md`.

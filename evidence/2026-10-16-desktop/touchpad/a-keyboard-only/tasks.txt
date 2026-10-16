@@ -1,0 +1,12 @@
+  * Task{89f105f #13 type=standard A=1000:com.android.settings.root U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=2}
+  * Task{2ad0c20 #1 type=home U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=1}
+    * Task{f63969f #8 type=home I=com.android.launcher3/.uioverrides.QuickstepLauncher U=0 rootTaskId=1 visible=false visibleRequested=false mode=fullscreen translucent=true sz=1}
+  * Task{b7e0ed2 #3 name=SplitRoot type=undefined U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=2}
+    * Task{45e7ea0 #5 name=side type=undefined U=0 rootTaskId=3 visible=false visibleRequested=false mode=multi-window translucent=true sz=0}
+    * Task{59c7ba3 #4 name=main type=undefined U=0 rootTaskId=3 visible=false visibleRequested=false mode=multi-window translucent=true sz=0}
+  * Task{fdadf9a #6 name=Desk type=undefined U=0 visible=false visibleRequested=false mode=freeform translucent=true sz=0}
+  * Task{b6e50cb #7 name=MinimizedDesk_6 type=undefined U=0 visible=false visibleRequested=false mode=freeform translucent=true sz=0}
+      * Task{89f105f #13 type=standard A=1000:com.android.settings.root U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=2}
+      * Task{2ad0c20 #1 type=home U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=1}
+        * Task{f63969f #8 type=home I=com.android.launcher3/.uioverrides.QuickstepLauncher U=0 rootTaskId=1 visible=false visibleRequested=false mode=fullscreen translucent=true sz=1}
+      * Task{b7e0ed2 #3 name=SplitRoot type=undefined U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=2}

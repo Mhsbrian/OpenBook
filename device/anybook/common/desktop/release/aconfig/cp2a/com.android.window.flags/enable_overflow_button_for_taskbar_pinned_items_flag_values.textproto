@@ -1,0 +1,7 @@
+# Declared in frameworks/base/core/java/android/window/flags/lse_desktop_experience.aconfig
+flag_value {
+  package: "com.android.window.flags"
+  name: "enable_overflow_button_for_taskbar_pinned_items"
+  state: ENABLED
+  permission: READ_ONLY
+}

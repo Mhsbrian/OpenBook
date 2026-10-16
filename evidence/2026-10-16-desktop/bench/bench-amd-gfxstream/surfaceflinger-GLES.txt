@@ -1,0 +1,1 @@
+GLES: Google (AMD), Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, raphael_mendocino, LLVM 19.1.7, DRM 3.64, 7.2.8-5-omarchy-bore)), OpenGL ES 3.1 (OpenGL ES 3.2 Mesa 25.0.7-2+deb13u1)

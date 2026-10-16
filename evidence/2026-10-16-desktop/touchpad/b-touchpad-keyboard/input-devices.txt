@@ -1,0 +1,8 @@
+  Device 7: Cuttlefish Vhost User Rotary 0	    Sources: ROTARY_ENCODER	    KeyboardType: 0
+  Device 6: Cuttlefish Vhost User Multitouch Touchscreen 0	    Sources: TOUCHSCREEN	    KeyboardType: 0
+  Device 8: Cuttlefish Vhost User Switches 0	    Sources: 0x80000000	    KeyboardType: 0
+  Device 5: Cuttlefish Vhost User Keyboard 0	    Sources: KEYBOARD	    KeyboardType: 2
+    Sources: KEYBOARD | DPAD	    KeyboardType: 2	  Device 4: Cuttlefish Vhost User Multitouch_Touchpad 0
+    Sources: MOUSE | TOUCHPAD	    KeyboardType: 0	  Device 3: Power Button
+    Sources: KEYBOARD	    KeyboardType: 1	  Device 2: Sleep Button
+    Sources: KEYBOARD	    KeyboardType: 1	

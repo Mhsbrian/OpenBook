@@ -1,0 +1,7 @@
+# Declared in packages/apps/Launcher3/aconfig/launcher.aconfig
+flag_value {
+  package: "com.android.launcher3"
+  name: "enable_mouse_interaction_changes"
+  state: ENABLED
+  permission: READ_ONLY
+}

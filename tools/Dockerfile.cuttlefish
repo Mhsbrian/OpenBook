@@ -1,0 +1,10 @@
+# Cuttlefish host container plus host GPU userspace, so crosvm's virgl and gfxstream backends can render
+# on a host GPU passed in with --device /dev/dri/renderD*. The base image already ships Mesa's GL drivers
+# (radeonsi, ...); it has no Vulkan ICD and no unversioned libEGL.so/libGLESv2.so, which gfxstream and
+# graphics_detector dlopen. NVIDIA's userspace is bind-mounted from the host at run time (scripts/cf-boot.sh).
+#   docker build -t anybook-cuttlefish -f tools/Dockerfile.cuttlefish tools/
+ARG BASE=us-docker.pkg.dev/android-cuttlefish-artifacts/cuttlefish-orchestration/cuttlefish-orchestration:1.56.0@sha256:ecdb337615c719ed62e12593f7931a313d7c15a99a919e69fd87510e14a249e6
+FROM ${BASE}
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends mesa-vulkan-drivers vulkan-tools libegl-dev libgles-dev \
+ && rm -rf /var/lib/apt/lists/*

@@ -1,0 +1,7 @@
+# Declared in frameworks/base/services/usb/java/com/android/server/usb/flags/usb_flags.aconfig
+flag_value {
+  package: "com.android.server.usb.flags"
+  name: "enable_usb4"
+  state: ENABLED
+  permission: READ_ONLY
+}

@@ -190,3 +190,24 @@ The repo was renamed to **https://github.com/Mhsbrian/OpenBook**; the old AnyBoo
 - The owner's OK to report the findings upstream to DigitalisX64. That is an outward-facing action.
 
 **Next:** port Digitalis to `android17-release` and build it in the Track A tree (after ANAL-168), boot it in Cuttlefish, and re-run the matrix.
+
+### 2026-10-16: M2 (Track A), desktop windowing and VM graphics on our AOSP 17 build (ANAL-169)
+
+**Done**
+- New product `anybook_cf_x86_64_pc-cp2a-userdebug` = `aosp_cf_x86_64_pc` plus a reusable desktop configuration (`device/anybook/common/desktop`). It contains:
+  - framework and SystemUI RROs with the desktop values from Google's AOSP Desktop emulator image
+  - `PRODUCT_CHARACTERISTICS := desktop` and `large_screen_common.mk`
+  - an aconfig value set with the 79 flags that image enables and cp2a leaves off
+- It boots in Cuttlefish straight to the Android desktop: apps open as freeform windows in a `Desk`, the desktop taskbar is pinned, and the status bar is the desktop one.
+- The reference image and our build were captured with the same script and diffed. 0 desktop flags and 0 `persist.wm.*` or characteristics props differ.
+- GPU: `gfxstream_guest_angle` on the host's **Radeon 610M** (Mesa RADV, no root) renders SurfaceFlinger and HWUI with 0% janky frames, against 10–31% for the old `guest_swiftshader` default. `gfxstream` on the 610M and both modes on the RTX 4090 also work. `drm_virgl` crashes crosvm in both the Debian and AOSP builds.
+- With the VM-only force property off, a touchpad plus a keyboard still put the display in desktop-first mode. That is the path real laptops take.
+
+**Evidence:** `evidence/2026-10-16-desktop/`. Details are in `docs/aosp-desktop.md`.
+
+**Blocked:** nothing.
+
+**Next:**
+- ANAL-174 (AMD graphics in the device tree) can build on `anybook_cf_x86_64_pc`, inheriting `device/anybook/common/desktop/desktop.mk`.
+- ANAL-181: the native bridge.
+- Cuttlefish Wi-Fi is off (`wifi_on=0`).

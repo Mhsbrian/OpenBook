@@ -206,7 +206,7 @@ QEMU wasn't needed.
 
 `CF_HOST_TOOLS=build` deletes the marker. Then only `cvdalloc` is swapped (`boot3/host-substitutions.txt`), the launcher reports `Launcher Build ID: eng.builde`, and the device boots just as well. Both modes are tested below. The default stays `packaged` because that is the combination Google ships and tests.
 
-**Launch flags.** `--x_res=1920 --y_res=1080 --dpi=160 --gpu_mode=guest_swiftshader --cpus=4 --memory_mb=8192`. The `pc` product has no `--config` preset; `android-info.txt` selects `phone`, which means 720×1280. So the script sets a laptop-sized display. The container has no `/dev/dri`, so rendering is in software. Graphics are the next stage (ANAL-169).
+**Launch flags.** `--x_res=1920 --y_res=1080 --dpi=160 --gpu_mode=guest_swiftshader --cpus=4 --memory_mb=8192`. The `pc` product has no `--config` preset; `android-info.txt` selects `phone`, which means 720×1280. So the script sets a laptop-sized display. The container has no `/dev/dri`, so rendering is in software. Host-GPU modes (`CF_GPU=amd|nvidia`) came in ANAL-169: see `docs/aosp-desktop.md`.
 
 ### Boot results
 

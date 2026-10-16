@@ -1,0 +1,7 @@
+# Declared in packages/apps/DocumentsUI/flags.aconfig
+flag_value {
+  package: "com.android.documentsui.flags"
+  name: "include_remote_roots_in_recents"
+  state: ENABLED
+  permission: READ_ONLY
+}

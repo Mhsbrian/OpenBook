@@ -1,0 +1,20 @@
+=== 2026-10-16T15:46:41Z wait for emulator-5600
+google/sdk_gdesktop_x86_64/emu64xa:17/CLE1.260506.004/15373846:userdebug/test-keys
+=== 2026-10-16T15:47:25Z am start -n com.android.settings/.Settings
+Starting: Intent { cmp=com.android.settings/.Settings }
+Status: ok
+LaunchState: WARM
+Activity: com.android.settings/.Settings$NetworkDashboardActivity
+TotalTime: 779
+WaitTime: 781
+Complete
+=== 2026-10-16T15:47:30Z am start -n com.android.documentsui/.files.FilesActivity
+Starting: Intent { cmp=com.android.documentsui/.files.FilesActivity }
+Status: ok
+LaunchState: WARM
+Activity: com.android.documentsui/.files.FilesActivity
+TotalTime: 416
+WaitTime: 417
+Complete
+=== 2026-10-16T15:47:36Z dumps
+=== 2026-10-16T15:47:36Z freeform activity records: 8

@@ -1,0 +1,32 @@
+# Minimal crosvm runs: only a --gpu device and the Cuttlefish x86_64 bootloader, 8 s timeout (KILL).
+# rc 0/137 = GPU device created (VM ran or was killed at the timeout); 139 = SIGSEGV. 2026-10-16T16:46:28Z
+host-gpu=none crosvm=/usr/lib/cuttlefish-common/bin/crosvm gpu=backend=virglrenderer,context-types=virgl2,egl=true,surfaceless=true,gles=true rc=139 Segmentation fault
+host-gpu=none crosvm=/usr/lib/cuttlefish-common/bin/crosvm gpu=backend=virglrenderer,context-types=virgl2,egl=true,surfaceless=true,gles=false rc=139 Segmentation fault
+host-gpu=none crosvm=/usr/lib/cuttlefish-common/bin/crosvm gpu=context-types=gfxstream-vulkan:gfxstream-composer,egl=true,surfaceless=true,gles=false rc=0 
+host-gpu=none crosvm=/h/bin/x86_64-linux-gnu/crosvm gpu=backend=virglrenderer,context-types=virgl2,egl=true,surfaceless=true,gles=true rc=134 
+host-gpu=none crosvm=/h/bin/x86_64-linux-gnu/crosvm gpu=backend=virglrenderer,context-types=virgl2,egl=true,surfaceless=true,gles=false rc=134 
+host-gpu=none crosvm=/h/bin/x86_64-linux-gnu/crosvm gpu=context-types=gfxstream-vulkan:gfxstream-composer,egl=true,surfaceless=true,gles=false rc=0 
+host-gpu=amd crosvm=/usr/lib/cuttlefish-common/bin/crosvm gpu=backend=virglrenderer,context-types=virgl2,egl=true,surfaceless=true,gles=true rc=139 Segmentation fault
+host-gpu=amd crosvm=/usr/lib/cuttlefish-common/bin/crosvm gpu=backend=virglrenderer,context-types=virgl2,egl=true,surfaceless=true,gles=false rc=139 Segmentation fault
+host-gpu=amd crosvm=/usr/lib/cuttlefish-common/bin/crosvm gpu=context-types=gfxstream-vulkan:gfxstream-composer,egl=true,surfaceless=true,gles=false rc=0 
+host-gpu=amd crosvm=/h/bin/x86_64-linux-gnu/crosvm gpu=backend=virglrenderer,context-types=virgl2,egl=true,surfaceless=true,gles=true rc=134 
+host-gpu=amd crosvm=/h/bin/x86_64-linux-gnu/crosvm gpu=backend=virglrenderer,context-types=virgl2,egl=true,surfaceless=true,gles=false rc=134 
+host-gpu=amd crosvm=/h/bin/x86_64-linux-gnu/crosvm gpu=context-types=gfxstream-vulkan:gfxstream-composer,egl=true,surfaceless=true,gles=false rc=0 
+Aborted
+[2026-10-16T16:46:40.045908232+00:00 ERROR crosvm::sys::linux::panic_hook] 
+[2026-10-16T16:46:40.045915462+00:00 ERROR crosvm::sys::linux::panic_hook] thread 'v_gpu' (11) panicked at external/crosvm/devices/src/virtio/gpu/mod.rs:1709:14:
+[2026-10-16T16:46:40.045917442+00:00 ERROR crosvm::sys::linux::panic_hook] Failed to create virtio gpu worker thread: invalid rutabaga build parameters
+[2026-10-16T16:46:40.045918892+00:00 ERROR crosvm::sys::linux::panic_hook] 
+[2026-10-16T16:46:40.045920082+00:00 ERROR crosvm::sys::linux::panic_hook] Stack backtrace:
+[2026-10-16T16:46:40.045921232+00:00 ERROR crosvm::sys::linux::panic_hook]    0: <anyhow::Error as core::convert::From<rutabaga_gfx::rutabaga_utils::RutabagaError>>::from
+[2026-10-16T16:46:40.045922312+00:00 ERROR crosvm::sys::linux::panic_hook]    1: std::sys::backtrace::__rust_begin_short_backtrace::<<base::worker_thread::WorkerThread<()>>::start<<devices::virtio::gpu::Gpu>::start_worker_thread::{closure#1}, &str>::{closure#0}, ()>
+[2026-10-16T16:46:40.045923522+00:00 ERROR crosvm::sys::linux::panic_hook]    2: <std::thread::lifecycle::spawn_unchecked<<base::worker_thread::WorkerThread<()>>::start<<devices::virtio::gpu::Gpu>::start_worker_thread::{closure#1}, &str>::{closure#0}, ()>::{closure#1} as core::ops::function::FnOnce<()>>::call_once::{shim:vtable#0}
+[2026-10-16T16:46:40.045924832+00:00 ERROR crosvm::sys::linux::panic_hook]    3: <std::sys::thread::unix::Thread>::new::thread_start
+[2026-10-16T16:46:40.045925922+00:00 ERROR crosvm::sys::linux::panic_hook]    4: <unknown>
+[2026-10-16T16:46:40.045927082+00:00 ERROR crosvm::sys::linux::panic_hook]    5: <unknown>
+[2026-10-16T16:46:40.045928132+00:00 ERROR crosvm::sys::linux::panic_hook] stack backtrace:
+[2026-10-16T16:46:40.045929202+00:00 ERROR crosvm::sys::linux::panic_hook]    0: __rustc::rust_begin_unwind
+[2026-10-16T16:46:40.045930272+00:00 ERROR crosvm::sys::linux::panic_hook]    1: core::panicking::panic_fmt
+[2026-10-16T16:46:40.045931402+00:00 ERROR crosvm::sys::linux::panic_hook]    2: core::result::unwrap_failed
+[2026-10-16T16:46:40.045932522+00:00 ERROR crosvm::sys::linux::panic_hook] note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+timeout: the monitored command dumped core
