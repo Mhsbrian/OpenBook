@@ -109,3 +109,9 @@ These are `hwcheck-004.{txt,json,-dmesg.txt}`, redacted by the probe. sha256 of 
 **Next.**
 1. **v4 stick:** the same entry with `pm_debug_messages` and dynamic debug for amd_pmc, pinctrl_amd and the ACPI LPS0 code. It also dumps amd_pmc's idle mask before and after, lists wakeup sources, and waits for the bridge's final power state, recording `d3cold_allowed`.
 2. **Linux baseline on the same laptop:** AMD's `amd-s2idle test` (package amd-debug-tools 0.2.22 in Arch extra, MIT) shows whether this BIOS reaches S0i3 at all, and names the blockers.
+
+## Stick updated to v4 (2026-10-16, owner's confirmation on ANAL-189)
+- Same guarded update as for v2 and v3 (`stick-update-v4.log`): only `openbook/check/hwcheck.img`, the three check entries and the README on the OPENBOOK partition.
+- A read-only remount verified all five files against `../2026-10-16-installer/hwcheck-stick/v4/esp-update-MANIFEST.sha256`.
+- Menu order is unchanged: hardware check (default) → + sleep test → **sleep test, NVIDIA GPU powered down** (now with kernel sleep debugging) → preview.
+- Reports `hwcheck-001`…`004` are still on the stick. The next run writes `hwcheck-005`.
