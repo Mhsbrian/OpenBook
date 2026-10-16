@@ -1,0 +1,2 @@
+libdrm_amdgpu.so -> libdrm_amdgpu_mesa.so
+libvulkan_radeon.so -> vulkan.radv.so

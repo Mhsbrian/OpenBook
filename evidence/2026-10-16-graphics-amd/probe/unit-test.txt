@@ -1,0 +1,15 @@
+Running main() from external/googletest/googletest/src/gtest_main.cc
+[==========] Running 3 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 3 tests from GpuProbe
+[ RUN      ] GpuProbe.Fixtures
+[       OK ] GpuProbe.Fixtures (0 ms)
+[ RUN      ] GpuProbe.ParseRejectsGarbage
+[       OK ] GpuProbe.ParseRejectsGarbage (0 ms)
+[ RUN      ] GpuProbe.CollectFromSysfs
+[       OK ] GpuProbe.CollectFromSysfs (0 ms)
+[----------] 3 tests from GpuProbe (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 3 tests from 1 test suite ran. (1 ms total)
+[  PASSED  ] 3 tests.

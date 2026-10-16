@@ -1,0 +1,64 @@
+# bytes (stripped)  file
+    330584  ./lib64/egl/libEGL_mesa.so
+     26496  ./lib64/egl/libGLESv1_CM_mesa.so
+     64992  ./lib64/egl/libGLESv2_mesa.so
+    149280  ./lib64/gbm/dri_gbm.so
+  18647265  ./lib64/hw/vulkan.radv.so
+     88800  ./lib64/libdrm.so
+     48401  ./lib64/libdrm_amdgpu_mesa.so
+    112688  ./lib64/libelf_mesa.so
+  24798945  ./lib64/libgallium_dri.so
+     13552  ./lib64/libgbm_mesa.so
+
+# total: 44281003 bytes
+
+== ./lib64/egl/libEGL_mesa.so
+.rodata                  51202    14912
+.text                   177732    99456
+.data.rel.ro             63248   296000
+.data                      428   377472
+.bss                      4288   377904
+== ./lib64/egl/libGLESv1_CM_mesa.so
+.text                   9877   30880
+.data.rel.ro               8   57200
+== ./lib64/egl/libGLESv2_mesa.so
+.text                   26386   52864
+.data.rel.ro                8   95696
+== ./lib64/gbm/dri_gbm.so
+.rodata                 15984     6272
+.text                   96840    42304
+.data.rel.ro            22320   156704
+.data                      84   196512
+.bss                       40   196600
+== ./lib64/hw/vulkan.radv.so
+.rodata                 11180276      25152
+.text                    6655814   11556544
+.data.rel.ro              388728   18233600
+.data                      35952   18641808
+.bss                      101472   18677760
+== ./lib64/libdrm.so
+.rodata                  4280    15936
+.text                   51692    47952
+.data.rel.ro             1336   117408
+.bss                     2488   136256
+== ./lib64/libdrm_amdgpu_mesa.so
+.rodata                   952   10592
+.text                   21256   32688
+.data.rel.ro                8   71504
+.bss                       48   88952
+== ./lib64/libelf_mesa.so
+.rodata                  7104    13888
+.text                   74852    47760
+.data.rel.ro              464   141088
+.bss                       12   159480
+== ./lib64/libgallium_dri.so
+.rodata                 10383404      33984
+.text                   12780006   11402048
+.data.rel.ro              542200   24203808
+.data                      73336   24765840
+.bss                      339280   24839184
+== ./lib64/libgbm_mesa.so
+.rodata                  221    4824
+.text                   3760   23200
+.data.rel.ro               8   43776
+.data                     40   60896

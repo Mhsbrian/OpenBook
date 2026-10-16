@@ -1,0 +1,12 @@
+# AVC denials in dmesg after boot, by (source, target, class)
+## ANAL-169 build (evidence/2026-10-16-desktop/desktop/dmesg.txt.gz)
+      1 u:r:bootanim u:object_r:gpu_service service_manager
+      1 u:r:gceservice u:object_r:zygote_config_prop file
+      1 u:r:init u:object_r:debugfs_bootreceiver_tracing dir
+## ANAL-174 first boot: vendor.mesa.* labelled vendor_mesa_prop (label dropped afterwards)
+     17 u:r:bootanim u:object_r:vendor_mesa_prop file   (plus the 3 above)
+## ANAL-174 final build (vm/hal/avc-dmesg.txt)
+      1 u:r:bootanim u:object_r:gpu_service service_manager
+      1 u:r:gceservice u:object_r:zygote_config_prop file
+      1 u:r:init u:object_r:debugfs_bootreceiver_tracing dir
+## anybook_gpu_probe: the first boot denied its stdio_to_kmsg writes (/dev/kmsg_debug); fixed, see vm/probe-kernel-log.txt

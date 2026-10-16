@@ -1,0 +1,26 @@
+191G	out
+-rw-r--r-- 1 builder builder   67108864 Oct 16 18:04 out/target/product/anybook_vsoc_x86_64/boot.img
+-rw-r--r-- 1 builder builder    1048576 Oct 16 18:04 out/target/product/anybook_vsoc_x86_64/cuttlefish_example_custom.img
+-rw-r--r-- 1 builder builder         72 Oct 16 18:04 out/target/product/anybook_vsoc_x86_64/dtb.img
+-rw-r--r-- 1 builder builder    8388608 Oct 16 18:14 out/target/product/anybook_vsoc_x86_64/init_boot.img
+-rw-r--r-- 1 builder builder     520192 Oct 16 18:14 out/target/product/anybook_vsoc_x86_64/odm.img
+-rw-r--r-- 1 builder builder     348160 Oct 16 18:14 out/target/product/anybook_vsoc_x86_64/odm_dlkm.img
+-rw-r--r-- 1 builder builder  292925440 Oct 16 18:14 out/target/product/anybook_vsoc_x86_64/product.img
+-rw-r--r-- 1 builder builder    3005946 Oct 16 18:14 out/target/product/anybook_vsoc_x86_64/ramdisk.img
+-rw-r--r-- 1 builder builder 1620722240 Oct 16 18:14 out/target/product/anybook_vsoc_x86_64/super.img
+-rw------- 1 builder builder       5488 Oct 16 18:04 out/target/product/anybook_vsoc_x86_64/super_empty.img
+-rw-r--r-- 1 builder builder  889012224 Oct 16 18:14 out/target/product/anybook_vsoc_x86_64/system.img
+-rw-r--r-- 1 builder builder    8368128 Oct 16 18:14 out/target/product/anybook_vsoc_x86_64/system_dlkm.img
+-rw-r--r-- 1 builder builder  141791232 Oct 16 18:14 out/target/product/anybook_vsoc_x86_64/system_ext.img
+-rw-r--r-- 1 builder builder    4694016 Oct 16 18:14 out/target/product/anybook_vsoc_x86_64/system_other.img
+-rw-r--r-- 1 builder builder    2249012 Oct 16 18:14 out/target/product/anybook_vsoc_x86_64/userdata.img
+-rw-r--r-- 1 builder builder      65536 Oct 16 18:14 out/target/product/anybook_vsoc_x86_64/vbmeta.img
+-rw-r--r-- 1 builder builder      65536 Oct 16 18:14 out/target/product/anybook_vsoc_x86_64/vbmeta_system.img
+-rw-r--r-- 1 builder builder      65536 Oct 16 18:14 out/target/product/anybook_vsoc_x86_64/vbmeta_system_dlkm.img
+-rw-r--r-- 1 builder builder      65536 Oct 16 18:14 out/target/product/anybook_vsoc_x86_64/vbmeta_vendor_dlkm.img
+-rw-r--r-- 1 builder builder        117 Oct 16 18:04 out/target/product/anybook_vsoc_x86_64/vendor-bootconfig.img
+-rw-r--r-- 1 builder builder  290971648 Oct 16 18:14 out/target/product/anybook_vsoc_x86_64/vendor.img
+-rw-r--r-- 1 builder builder   67108864 Oct 16 18:14 out/target/product/anybook_vsoc_x86_64/vendor_boot-debug.img
+-rw-r--r-- 1 builder builder   67108864 Oct 16 18:14 out/target/product/anybook_vsoc_x86_64/vendor_boot.img
+-rw-r--r-- 1 builder builder    1449984 Oct 16 18:14 out/target/product/anybook_vsoc_x86_64/vendor_dlkm.img
+-rw-r--r-- 1 builder builder   19034748 Oct 16 18:14 out/target/product/anybook_vsoc_x86_64/vendor_ramdisk.img

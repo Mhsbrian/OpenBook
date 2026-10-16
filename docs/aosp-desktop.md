@@ -199,6 +199,8 @@ Google's desktop build turns on more flags than cp2a does. These are UI flags, n
 
 ## Commands
 
+Since ANAL-174 the product builds for device `anybook_vsoc_x86_64` (`docs/graphics-amd.md`), so `scripts/cf-boot.sh` needs `CF_DEVICE=anybook_vsoc_x86_64` for it.
+
 ```bash
 docker build -t anybook-cuttlefish -f tools/Dockerfile.cuttlefish tools/          # 17 s
 # Build the desktop product: it copies device/anybook into the tree. Incremental on top of ANAL-168's out/.

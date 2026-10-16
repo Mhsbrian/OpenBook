@@ -1,0 +1,3 @@
+[    3.293366] type=1400 audit(1792174539.196:188): avc:  denied  { write } for  comm="init" name="error_report_end" dev="tracefs" ino=9767 scontext=u:r:init:s0 tcontext=u:object_r:debugfs_bootreceiver_tracing:s0 tclass=dir permissive=0 bug=b/340399580
+[    3.650658] SELinux: avc:  denied  { find } for pid=759 uid=1003 name=gpu scontext=u:r:bootanim:s0 tcontext=u:object_r:gpu_service:s0 tclass=service_manager permissive=0
+[    9.983338] type=1400 audit(1792174545.884:192): avc:  denied  { read } for  comm=".gce.gceservice" name="u:object_r:zygote_config_prop:s0" dev="tmpfs" ino=497 scontext=u:r:gceservice:s0:c65,c256,c512,c768 tcontext=u:object_r:zygote_config_prop:s0 tclass=file permissive=0 app=com.android.google.gce.gceservice

@@ -7,7 +7,7 @@ The repo was renamed to **https://github.com/Mhsbrian/OpenBook**; the old AnyBoo
 **Decisions needed from the owner**
 - **Repo license** for the scripts and docs. Apache-2.0 is suggested, to match AOSP.
 - **Track B** (ANAL-165): whether to go past research with Google's proprietary image (`docs/PLAN.md` §6).
-- **Mesa libelf licensing** (ANAL-173): libelf is LGPL-3.0+ and is statically linked into the MIT Mesa libraries. The recommendation is to ship it as a shared library (`docs/mesa.md`).
+- **Mesa libelf licensing** (ANAL-173): libelf is LGPL-3.0+. Since ANAL-174, the image build ships it as a shared `libelf_mesa.so` (the recommended option), and `LIBELF=static` restores the static link (`docs/mesa.md`).
 - **amd-pmf** (ANAL-171): it needs `ccp.ko` with SEV, which calls `kernel_read`/`kernel_write` from GKI's deny list. Options are in `docs/kernel.md`.
 - **Digitalis upstream report** (ANAL-181): OK to report the Fennec, `MRS` and `FRECPE` findings to DigitalisX64? That is an outward-facing action.
 - **Device-in-the-loop** (ANAL-194): install the Multica daemon on the G14's current Linux when ready. The test agent and the root inventory follow from there (`docs/PLAN.md` §4a).
@@ -18,7 +18,7 @@ The repo was renamed to **https://github.com/Mhsbrian/OpenBook**; the old AnyBoo
 |---|---|---|---|
 | ANAL-160 Track A: AOSP 17 desktop boots in a VM | ✓ ANAL-167 build env (PR #5) | ✓ ANAL-168 `aosp_cf_x86_64_pc-cp2a` boots in Cuttlefish (PR #9) | ▶ ANAL-169 VM graphics and desktop windowing |
 | ANAL-161 AMD GKI kernel (android17-6.18) | ✓ ANAL-170 stock GKI reproduced (PR #4) | ✓ ANAL-171 AMD config, 138 vendor modules (PR #8) | ✓ ANAL-172 our kernel boots our userspace (PR #12) |
-| ANAL-162 AMD graphics userspace | ✓ ANAL-173 Mesa radeonsi/RADV for Android (PR #3) | ⏳ ANAL-174 `device/anybook` product with AMD graphics (after ANAL-169) | ANAL-177 dEQP/CTS on the G14 |
+| ANAL-162 AMD graphics userspace | ✓ ANAL-173 Mesa radeonsi/RADV for Android (PR #3) | ▶ ANAL-174 AMD graphics in the device tree (delivered, PR in review) | ANAL-177 dEQP/CTS on the G14 |
 | ANAL-164 ARM compat and native bridge | ✓ ANAL-180 harness and baseline (PR #6) | ✓ ANAL-181 Digitalis: GO with conditions (PR #11) | — |
 | ANAL-163 Bare metal on the G14 (GA403WR) | ✓ ANAL-175 inventory (PR #8; root extras pending) | ⏳ ANAL-176 USB boot (after ANAL-174) | ANAL-178 input and power, ANAL-179 audio and Wi-Fi |
 | ANAL-188 USB installer (M8) | ⏸ ANAL-189 design | ⏸ ANAL-190 live USB image | ⏸ ANAL-191 wizard → ANAL-192 end-to-end tests |
@@ -211,3 +211,32 @@ The repo was renamed to **https://github.com/Mhsbrian/OpenBook**; the old AnyBoo
 - ANAL-174 (AMD graphics in the device tree) can build on `anybook_cf_x86_64_pc`, inheriting `device/anybook/common/desktop/desktop.mk`.
 - ANAL-181: the native bridge.
 - Cuttlefish Wi-Fi is off (`wifi_on=0`).
+
+### 2026-10-16: Graphics, AMD stack in the AnyBook device tree (ANAL-174)
+
+**Done**
+- `device/anybook/common/graphics-amd/` adds Mesa 26.2.5 radeonsi/RADV (ACO, no LLVM, GBM, shared libelf), minigbm with an amdgpu backend, drm_hwcomposer, ANGLE, props, SELinux and an init `.rc`. `anybook_cf_x86_64_pc` inherits it, and the G14 product will too.
+- **HAL selection happens at boot.** `anybook_gpu_probe` reads the DRM drivers and PCI IDs at early-init, and on AMD switches to `ro.hardware.vulkan=radv`, `egl=angle`, `gralloc=minigbm`, `hwcomposer=drm`. minigbm picks its backend by DRM driver name, `amdgpu` or `virtio_gpu`.
+- **minigbm patch** (`aosp/patches/external/minigbm`): ChromeOS's `amdgpu.c` needs a DRI entry point that Mesa ≥ 24.3 no longer exports. A new `dri_gbm.c` uses Mesa's GBM instead, and buffers are linear-only without it.
+- **Mesa** is staged as vendor prebuilts from the pinned NDK build (`scripts/graphics-amd-stage-mesa.sh`). AOSP's `external/mesa3d` only builds gfxstream and lavapipe.
+
+**Evidence:** `evidence/2026-10-16-graphics-amd/`
+- The image builds in 3 min incrementally, with sepolicy and VINTF checks passing.
+- **No VM regression** on `gfxstream_guest_angle`:
+  - boot in +16–18 s (ANAL-169: +17 s)
+  - the same desktop and the same SurfaceFlinger renderer (ANGLE → gfxstream → RADV on the 610M)
+  - 0 % janky frames at 5 ms
+  - no new AVC denials
+  - the probe reports `hal=virtio`
+- **The image's AMD drivers on real AMD silicon** (the build host's Radeon 610M, in a container with the image's bionic and no framework):
+  - a RADV device runs a GPU fill with 0 errors
+  - radeonsi GLES 3.2 renders
+  - minigbm chooses `amdgpu`, and tiled and linear buffers round-trip
+- In the VM, RADV's `vkCreateInstance` succeeds with 0 devices.
+- The probe passes its unit tests and picks `amdgpu` on the G14 inventory and on the host's real sysfs.
+
+**Findings**
+- With Mesa's default `android-strict`, RADV reports **Vulkan 1.1** on Android. `ANDROID_STRICT=false` gives 1.4; decide with CTS in ANAL-177.
+- `PRODUCT_DEVICE` is now `anybook_vsoc_x86_64`, because vendor sepolicy needs a board. Boot with `CF_DEVICE=anybook_vsoc_x86_64`.
+
+**Next:** ANAL-199, the G14 product with the platform HALs on. Then ANAL-176 and ANAL-177 on the Radeon 890M. Details are in `docs/graphics-amd.md`.
