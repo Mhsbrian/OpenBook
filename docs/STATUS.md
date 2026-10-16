@@ -24,7 +24,8 @@
 - `gbos-kernel-config.txt`: the stock Googlebook GKI config
 
 **Blocked / needs a decision**
-- Target hardware: which AMD laptop (exact SKU)? The dev host is a Ryzen 9 7950X desktop with a Radeon 610M iGPU and an RTX 4090.
+- Target hardware: **ASUS ROG Zephyrus G14 (2025)**, expected to be the GA403WP (Ryzen AI 9 HX 370 + RTX 5070). The exact SKU still needs `scripts/hw-inventory.sh` output from the laptop (ANAL-175). See `docs/HARDWARE.md`.
+- ~~Merge PR #1.~~ Merged 2026-10-16.
 - ~~Which repo receives this work.~~ Resolved: https://github.com/Mhsbrian/AnyBook (public, created 2026-10-15).
 - License for the scripts and docs. Apache-2.0 is suggested, to match AOSP. Not chosen yet.
 - Track B licensing: whether to proceed past research with Google's proprietary image (`docs/PLAN.md` §6).
@@ -37,6 +38,6 @@
 | ANAL-161 AMD GKI kernel (android17-6.18) | ▶ ANAL-170 reproduce the stock GKI build and diff the config | ANAL-171 AMD config and modules → ANAL-172 QEMU boot test |
 | ANAL-162 AMD graphics userspace | ▶ ANAL-173 Mesa radeonsi/RADV Android build | ANAL-174 device-tree integration → ANAL-177 dEQP/CTS on the target |
 | ANAL-164 ARM compat and native bridge | ▶ ANAL-180 harness and libndk_translation baseline | ANAL-181 Digitalis evaluation |
-| ANAL-163 Bare-metal bring-up (parked: needs a target device) | ANAL-175 inventory | ANAL-176 USB boot → ANAL-178 input and power, ANAL-179 audio and Wi-Fi |
+| ANAL-163 Bare-metal bring-up on the G14 2025 (waiting for inventory output from the laptop) | ANAL-175 inventory | ANAL-176 USB boot → ANAL-178 input and power, ANAL-179 audio and Wi-Fi |
 | ANAL-165 Track B: Googlebook OS on AMD (parked: licensing decision) | ANAL-182 VM boot to `boot_completed`, ANAL-183 Zen 4 ISA spike | ANAL-184 kernel swap → ANAL-185 graphics overlay |
 | ANAL-166 Performance and parity (parked) | — | — |
