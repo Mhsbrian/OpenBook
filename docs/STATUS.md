@@ -369,3 +369,10 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 **Next**
 - A v2 check (power and display facts, JSON verdicts, `regulatory.db`, an opt-in s2idle sleep test) is ready as an in-place stick update (`scripts/installer/update-hwcheck-stick.sh`).
 - The owner reruns it. The results feed ANAL-176/178/179.
+
+### 2026-10-16: G14 hardware check runs 2 and 3: power and sleep (ANAL-189)
+- amd-pstate-epp is active.
+- **An s2idle suspend/resume cycle works, but S0ix residency is 0.** The driverless dGPU stays D0/active (the `docs/nvidia.md` §1 prediction, now measured).
+- Battery health is 88.7 %, and `regulatory.db` now loads.
+- **Next:** v3 check stick, with a sleep test after powering the dGPU down for one boot (unbind, remove, root-port runtime PM), which tests `docs/nvidia.md` option 2 on hardware.
+- **Evidence:** `evidence/2026-10-16-g14-hwcheck/`.

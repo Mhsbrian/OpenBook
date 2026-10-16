@@ -49,6 +49,11 @@ Nothing in this document was run on the G14. It is research plus Linux-side reas
 
 So with `dgpu_disable=0`, OpenBook would run with the dGPU in D0 and no driver managing its clocks.
 
+**Measured on the G14 (ANAL-189 hardware check, 2026-10-16, `evidence/2026-10-16-g14-hwcheck/`):**
+- With `dgpu_disable=0` and our kernel, `10de:2f58` is D0/runtime active with no driver, and `10de:2f80` is D0/active bound by snd_hda_intel. This is the prediction above.
+- An s2idle cycle then completes, but with **0 µs of S0ix residency**.
+- The v3 check stick repeats the cycle after unbinding and removing both functions and letting the root port runtime-suspend (option 2 below).
+
 ### Options compared
 
 | | `dgpu_disable=1` (asus-wmi, firmware) | Runtime PM to D3cold with no driver | GPP bridge power resources directly |

@@ -17,6 +17,11 @@
 //                          androidboot.boot_part_uuid, and only if that partition sits on a USB device.
 //   openbook.probe.sleep=1 with report mode: also one suspend-to-idle cycle woken by the RTC after 20 s, with the
 //                          stick unmounted while asleep; records time asleep and the AMD PMC s0ix counters.
+//   openbook.probe.dgpu=detach  with report mode, before the sleep test: power the NVIDIA dGPU down for this boot
+//                          the way an OpenBook image would without a driver (docs/nvidia.md section 1, option 2):
+//                          unbind its HDMI-audio function, remove both functions from the PCI bus, and let the
+//                          root port above them runtime-suspend (ACPI _PR3 turns the slot off). Nothing persists
+//                          and no firmware setting changes. (openbook.probe.detach_vendor=0xNNNN: VM tests only.)
 // Build: gcc -static -O2 -o openbook-probe probe-init.c
 #define _GNU_SOURCE
 #include <dirent.h>
@@ -485,6 +490,11 @@ static void display_facts(void) {
         if (strncmp(e->d_name, "card", 4) || !strchr(e->d_name, '-')) continue;
         char p[256], st[32] = "", en[32] = "", mode[64] = "";
         snprintf(p, sizeof p, "/sys/class/drm/%s/status", e->d_name); read_line(p, st, sizeof st);
+        if (!strcmp(st, "unknown")) {  // nothing has probed the connector yet (no DRM client): ask for a probe
+            int fd = open(p, O_WRONLY);
+            if (fd >= 0) { if (write(fd, "detect", 6) < 0) { /* keep "unknown" */ } close(fd); }
+            read_line(p, st, sizeof st);
+        }
         if (strcmp(st, "connected")) continue;
         snprintf(p, sizeof p, "/sys/class/drm/%s/enabled", e->d_name); read_line(p, en, sizeof en);
         snprintf(p, sizeof p, "/sys/class/drm/%s/modes", e->d_name); read_line(p, mode, sizeof mode);
@@ -582,6 +592,7 @@ static int count_prefix(const char *dir, const char *prefix) {
 }
 
 static char sleep_json[512] = "null";
+static char detach_json[512] = "null";
 
 static void write_json(const char *path) {
     char board[128] = "", bios[128] = "", cpu[160] = "", drv[64] = "", ms[128] = "", line[512];
@@ -595,13 +606,13 @@ static void write_json(const char *path) {
     if (f) fclose(f);
     char j[4096];
     int n = snprintf(j, sizeof j,
-        "{\n \"schema\": \"openbook-hwcheck/2\",\n \"board\": \"%s\",\n \"bios\": \"%s\",\n \"cpu\": \"%s\",\n"
+        "{\n \"schema\": \"openbook-hwcheck/3\",\n \"board\": \"%s\",\n \"bios\": \"%s\",\n \"cpu\": \"%s\",\n"
         " \"modules\": {\"loaded\": %d, \"failed\": %d, \"skipped\": %d},\n"
         " \"checks\": {\n  \"gpu_amdgpu\": %s,\n  \"edp_connected\": %s,\n  \"wifi_wlan0\": %s,\n"
         "  \"bluetooth_hci0\": %s,\n  \"touchpad\": %s,\n  \"keyboard\": %s,\n  \"lid_switch\": %s,\n"
         "  \"battery\": %s,\n  \"npu_accel\": %s,\n  \"usb4_thunderbolt\": %s,\n  \"typec_ports\": %d,\n"
         "  \"sound_cards\": %d,\n  \"cpufreq_driver\": \"%s\",\n  \"mem_sleep\": \"%s\",\n"
-        "  \"dgpu_power\": \"%s\"\n },\n \"sleep_test\": %s\n}\n",
+        "  \"dgpu_power\": \"%s\"\n },\n \"dgpu_detach\": %s,\n \"sleep_test\": %s\n}\n",
         board, bios, cpu, loaded_ok, load_failed, skipped,
         pci_driver_bound("amdgpu") ? "true" : "false", edp_connected ? "true" : "false",
         exists("/sys/class/net/wlan0") ? "true" : "false", exists("/sys/class/bluetooth/hci0") ? "true" : "false",
@@ -609,7 +620,7 @@ static void write_json(const char *path) {
         input_has("Lid Switch") ? "true" : "false", exists("/sys/class/power_supply/BAT1") ? "true" : "false",
         exists("/sys/class/accel/accel0") ? "true" : "false", pci_driver_bound("thunderbolt") ? "true" : "false",
         count_prefix("/sys/class/typec", "port"), count_prefix("/sys/class/sound", "card"), drv, ms, dgpu_state,
-        sleep_json);
+        detach_json, sleep_json);
     if (n > 0) write_all(path, j, n < (int)sizeof j ? n : (int)sizeof j - 1);
 }
 
@@ -618,11 +629,107 @@ static long read_long(const char *path) {
     return read_line(path, v, sizeof v) ? -1 : atol(v);
 }
 
+static long s0ix_residency(void) {
+    FILE *f = fopen("/sys/kernel/debug/amd_pmc/s0ix_stats", "r");
+    char line[256];
+    long v = -1;
+    while (f && fgets(line, sizeof line, f))
+        if (!strncmp(line, "Residency Time:", 15)) v = atol(line + 15);
+    if (f) fclose(f);
+    return v;
+}
+
+// PCI devices that are not in D3 right before suspend, with their drivers: the candidates that block s0ix.
+static void awake_devices(const char *when) {
+    DIR *d = opendir("/sys/bus/pci/devices");
+    if (!d) return;
+    struct dirent *e;
+    int n = 0;
+    while ((e = readdir(d))) {
+        if (e->d_name[0] == '.') continue;
+        char p[256], ps[32] = "", rt[32] = "", drv[128] = "-", link[256];
+        snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/power_state", e->d_name);
+        if (read_line(p, ps, sizeof ps) || !strncmp(ps, "D3", 2)) continue;
+        snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/power/runtime_status", e->d_name); read_line(p, rt, sizeof rt);
+        snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/driver", e->d_name);
+        ssize_t l = readlink(p, link, sizeof link - 1);
+        if (l > 0) { link[l] = 0; snprintf(drv, sizeof drv, "%s", strrchr(link, '/') + 1); }
+        say("awake[%s]: %s %s runtime %s driver %s", when, e->d_name, ps, rt, drv);
+        n++;
+    }
+    closedir(d);
+    say("awake[%s]: %d PCI functions not in D3", when, n);
+}
+
+static int write_str(const char *path, const char *v) {
+    int fd = open(path, O_WRONLY);
+    if (fd < 0) return -1;
+    int r = write(fd, v, strlen(v)) < 0 ? -1 : 0;
+    close(fd);
+    return r;
+}
+
+// Power the dGPU down for this boot only (see the header). Functions are removed highest first.
+static void detach_dgpu(const char *vendor) {
+    DIR *d = opendir("/sys/bus/pci/devices");
+    if (!d) return;
+    char fns[8][64];
+    int n = 0;
+    struct dirent *e;
+    while ((e = readdir(d)) && n < 8) {
+        char p[256], ven[16] = "";
+        snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/vendor", e->d_name);
+        if (!read_line(p, ven, sizeof ven) && !strcmp(ven, vendor)) snprintf(fns[n++], sizeof fns[0], "%s", e->d_name);
+    }
+    closedir(d);
+    if (!n) { say("dgpu-detach: no %s functions found", vendor); snprintf(detach_json, sizeof detach_json, "{\"ran\": false}"); return; }
+    for (int i = 0; i < n; i++)  // sort descending so function .1 goes before .0
+        for (int j = i + 1; j < n; j++)
+            if (strcmp(fns[i], fns[j]) < 0) { char t[64]; memcpy(t, fns[i], 64); memcpy(fns[i], fns[j], 64); memcpy(fns[j], t, 64); }
+    char p[256], link[512] = "", bridge[64] = "", before[32] = "?", after[32] = "?";
+    snprintf(p, sizeof p, "/sys/bus/pci/devices/%s", fns[0]);
+    ssize_t l = readlink(p, link, sizeof link - 1);
+    if (l > 0) {
+        link[l] = 0;
+        char *slash = strrchr(link, '/');
+        if (slash) { *slash = 0; snprintf(bridge, sizeof bridge, "%s", strrchr(link, '/') ? strrchr(link, '/') + 1 : link); }
+    }
+    snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/power_state", bridge); read_line(p, before, sizeof before);
+    say("dgpu-detach: %d function(s) behind bridge %s (bridge %s)", n, bridge, before);
+    for (int i = 0; i < n; i++) {
+        char link2[256];
+        snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/driver", fns[i]);
+        ssize_t k = readlink(p, link2, sizeof link2 - 1);
+        if (k > 0) {
+            snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/driver/unbind", fns[i]);
+            say("dgpu-detach: unbind %s: %s", fns[i], write_str(p, fns[i]) ? strerror(errno) : "ok");
+        }
+        snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/power/control", fns[i]); write_str(p, "auto");
+        snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/remove", fns[i]);
+        say("dgpu-detach: remove %s: %s", fns[i], write_str(p, "1") ? strerror(errno) : "ok");
+    }
+    if (bridge[0]) {
+        snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/power/control", bridge);
+        say("dgpu-detach: bridge %s runtime PM auto: %s", bridge, write_str(p, "auto") ? strerror(errno) : "ok");
+        snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/power_state", bridge);
+        for (int i = 0; i < 50; i++) { read_line(p, after, sizeof after); if (!strncmp(after, "D3", 2)) break; usleep(100000); }
+        char rt[32] = "";
+        snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/power/runtime_status", bridge); read_line(p, rt, sizeof rt);
+        say("dgpu-detach: bridge %s now %s (runtime %s)", bridge, after, rt);
+    }
+    snprintf(detach_json, sizeof detach_json,
+             "{\"ran\": true, \"functions\": %d, \"bridge\": \"%s\", \"bridge_before\": \"%s\", \"bridge_after\": \"%s\"}",
+             n, bridge, before, after);
+}
+
 // One s2idle cycle, woken by the RTC. The stick is unmounted while the machine sleeps.
 static void sleep_test(void) {
     mkdir("/sys/kernel/debug", 0700);
     mount("debugfs", "/sys/kernel/debug", "debugfs", 0, NULL);
     dump_file("pmc-before", "/sys/kernel/debug/amd_pmc/s0ix_stats");
+    dump_file("pmc-fw", "/sys/kernel/debug/amd_pmc/smu_fw_info");
+    long res0 = s0ix_residency();
+    awake_devices("before-suspend");
     long ok0 = read_long("/sys/power/suspend_stats/success"), fail0 = read_long("/sys/power/suspend_stats/fail");
     int fd = open("/sys/class/rtc/rtc0/wakealarm", O_WRONLY);
     if (fd < 0 || write(fd, "0", 1) < 0 || (close(fd), fd = open("/sys/class/rtc/rtc0/wakealarm", O_WRONLY)) < 0 ||
@@ -654,13 +761,18 @@ static void sleep_test(void) {
     sys_say("sleep: last failed dev", "/sys/power/suspend_stats/last_failed_dev");
     sys_say("sleep: last failed errno", "/sys/power/suspend_stats/last_failed_errno");
     dump_file("pmc-after", "/sys/kernel/debug/amd_pmc/s0ix_stats");
+    dump_file("pmc-fw-after", "/sys/kernel/debug/amd_pmc/smu_fw_info");
+    long res1 = s0ix_residency();
+    say("sleep: s0ix residency %ld us (%s)", res1 >= 0 && res0 >= 0 ? res1 - res0 : -1,
+        res0 < 0 || res1 < 0 ? "unknown: no AMD PMC counters"
+                             : res1 > res0 ? "reached the deepest state" : "did NOT reach the deepest state");
     char st[32] = "";
     read_line("/sys/class/drm/card0-eDP-1/status", st, sizeof st);
     say("sleep: after resume eDP-1 %s, wlan0 %s", st[0] ? st : "?", exists("/sys/class/net/wlan0") ? "present" : "missing");
     snprintf(sleep_json, sizeof sleep_json,
              "{\"ran\": true, \"write_rc\": %d, \"asleep_s\": %.1f, \"suspend_success_delta\": %ld, "
-             "\"suspend_fail_delta\": %ld, \"edp_after\": \"%s\"}",
-             rc, asleep, ok1 - ok0, fail1 - fail0, st);
+             "\"suspend_fail_delta\": %ld, \"s0ix_residency_us\": %ld, \"edp_after\": \"%s\"}",
+             rc, asleep, ok1 - ok0, fail1 - fail0, res1 >= 0 && res0 >= 0 ? res1 - res0 : -1, st);
     umount("/sys/kernel/debug");
 }
 
@@ -668,8 +780,12 @@ static void hardware_check(const char *uuid) {
     char report[256] = "", dmesg[256] = "", json[256] = "", cmdline[4096] = "";
     read_line("/proc/cmdline", cmdline, sizeof cmdline);
     int want_sleep = strstr(cmdline, "openbook.probe.sleep=1") != NULL;
-    say("hwcheck: OpenBook hardware check v2%s. Writes only to the boot stick, then powers off.",
-        want_sleep ? " with a sleep test" : "");
+    int want_detach = strstr(cmdline, "openbook.probe.dgpu=detach") != NULL;
+    char vendor[16] = "0x10de";
+    char *dv = strstr(cmdline, "openbook.probe.detach_vendor=");
+    if (dv) sscanf(dv + 29, "%15[0-9a-fx]", vendor);
+    say("hwcheck: OpenBook hardware check v3%s%s. Writes only to the boot stick, then powers off.",
+        want_sleep ? " with a sleep test" : "", want_detach ? " (dGPU powered down first)" : "");
     dmi_facts();
     cpu_facts();
     pci_facts("before");
@@ -695,6 +811,11 @@ static void hardware_check(const char *uuid) {
     dgpu_facts();
     thermal_facts();
     if (have_esp) { save_report(report); write_json(json); save_dmesg(dmesg); }
+    if (want_detach) {
+        detach_dgpu(vendor);
+        dgpu_facts();
+        if (have_esp) { save_report(report); write_json(json); }
+    }
     if (want_sleep) {
         if (have_esp) { sync(); umount("/ob-esp"); }
         sleep_test();

@@ -62,6 +62,8 @@ def main():
     ap.add_argument("--vars", help="OVMF vars file to use (kept, so NVRAM persists across runs)")
     ap.add_argument("--pause-on-reset", action="store_true")
     ap.add_argument("--vga", default="std", help="QEMU -vga model; 'none' leaves the serial port as the only console")
+    ap.add_argument("--detach-test-device", action="store_true",
+                    help="add a virtio-rng (1af4) behind a PCIe root port, a stand-in for the dGPU detach test")
     ap.add_argument("--trace", action="store_true", help="log CPU resets and guest errors to DIR/qemu-debug.log")
     args = ap.parse_args()
 
@@ -97,6 +99,8 @@ def main():
     if args.nvme:
         cmd += ["-drive", f"if=none,id=internal,format=raw,cache=unsafe,file={args.nvme}",
                 "-device", "nvme,drive=internal,serial=internal0,bootindex=2"]
+    if args.detach_test_device:
+        cmd += ["-device", "pcie-root-port,id=rpx,chassis=9,slot=9", "-device", "virtio-rng-pci,bus=rpx"]
     if args.pause_on_reset:  # freeze instead of rebooting, so a screenshot can show the last screen
         cmd = [c for c in cmd if c != "-no-reboot"] + ["-action", "reboot=shutdown", "-action", "shutdown=pause"]
     if args.trace:

@@ -184,6 +184,19 @@ Full serial logs are `matrix/*/serial.log.gz`.
   - shared reports are redacted: USB serial numbers are blanked in the kernel log, and partition UUIDs are shown only for the stick;
   - the fresh v2 image passes the check too.
 
+**G14 runs 2 and 3 (v2, C, `evidence/2026-10-16-g14-hwcheck/`).**
+- amd-pstate-epp is active.
+- s2idle is the only sleep state, and a suspend/resume cycle works (18.2 s, no errors after resume).
+- **S0ix residency stayed 0** ("Last suspend didn't reach deepest state").
+- The dGPU and its HDMI-audio function stay D0/active.
+- Battery health is 88.7 %, and `regulatory.db` now loads.
+
+**v3 (`openbook-hwcheck-20261016c`)** adds a fourth entry, "OpenBook sleep test, NVIDIA GPU powered down". For this boot only, it unbinds the dGPU's HDMI-audio function, removes both NVIDIA functions, and sets the root port to runtime PM (`docs/nvidia.md` §1, option 2). It then repeats the sleep test.
+- The JSON (`openbook-hwcheck/3`) adds `dgpu_detach` (bridge power state before and after) and `s0ix_residency_us`.
+- The report adds the AMD PMC firmware info and every PCI function still awake right before suspend.
+- Connectors that read "unknown" are probed before they're reported.
+- **Tested in QEMU:** the detach path was run against a virtio device behind a PCIe root port (unbind, remove and runtime PM all succeed; QEMU's port has no `_PR3`, so it stays D0), and the sleep test ran after it.
+
 ## 3. Install flow
 
 ### 3.1 Live USB layout (ANAL-190)

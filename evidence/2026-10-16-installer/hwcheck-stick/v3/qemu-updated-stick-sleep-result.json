@@ -1,0 +1,36 @@
+{
+ "reason": "QEMU exited (0)",
+ "seconds": 44.7,
+ "steps_done": 7,
+ "steps": 7,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "OpenBook hardware check",
+   "t": 4.3
+  },
+  {
+   "step": 2,
+   "wait": "sleep test",
+   "t": 4.3
+  },
+  {
+   "step": 4,
+   "wait": "sleep: RTC alarm in 20 s",
+   "t": 21.1
+  },
+  {
+   "step": 5,
+   "wait": "sleep: write returned",
+   "t": 41.5
+  },
+  {
+   "step": 6,
+   "wait": "hwcheck: report saved; powering off",
+   "t": 44.6
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/hwcheck/upd3-sleep.img",
+ "nvme": "/home/hive/anybook/installer/matrix-20261016-openbook/decoy-nvme.img"
+}

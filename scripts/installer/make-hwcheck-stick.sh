@@ -3,6 +3,7 @@
 #   "OpenBook hardware check" (default): boots our kernel on the laptop, loads the OpenBook modules and firmware,
 #       writes openbook/logs/hwcheck-NNN.txt, .json and -dmesg.txt to the stick's ESP and powers off;
 #   "OpenBook hardware check + sleep test": the same plus one RTC-woken s2idle cycle;
+#   "OpenBook sleep test, NVIDIA GPU powered down": the dGPU is detached for this boot first (docs/nvidia.md §1);
 #   "OpenBook preview (virtual machines only)": the Android 17 boot proven in QEMU (serial console, no display).
 # Image files only: this script never writes to a disk or USB stick. Flashing (or update-hwcheck-stick.sh) is a
 # separate, manual step that needs the owner's confirmation of the exact /dev/disk/by-id device.
@@ -32,8 +33,7 @@ rm -rf "$W/android"   # the probe also lives in vendor_boot: rebuild it
 # Update bundle: only files under openbook/check/, the two check entries and the README.
 U=$O/$NAME-esp-update; rm -rf "$U"; mkdir -p "$U/openbook/check" "$U/loader/entries"
 cp "$W/esp-sdboot/openbook/check/hwcheck.img" "$U/openbook/check/"
-cp "$W/esp-sdboot/loader/entries/openbook-1-hwcheck.conf" "$W/esp-sdboot/loader/entries/openbook-1s-sleep.conf" \
-  "$U/loader/entries/"
+cp "$W/esp-sdboot/loader/entries/"openbook-1*.conf "$U/loader/entries/"
 cp "$W/esp-sdboot/openbook/README.txt" "$U/openbook/"
 python3 -c "import json,sys;print([p['uuid'] for p in json.load(open(sys.argv[1]))['partitions'] if p['name']=='EFI'][0])" \
   "$O/$NAME.img.json" > "$U/ESP_PARTUUID"
