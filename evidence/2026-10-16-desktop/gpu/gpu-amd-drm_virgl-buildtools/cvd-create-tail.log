@@ -1,0 +1,40 @@
+acs: dtb
+acs: vendor-ramdisk-by-name
+acs: concatenated_vendor_ramdisk
+The following lines contain useful debugging information:
+  Point your browser to https://localhost:8443 to interact with the device.
+  Serial console is disabled; use -console=true to enable it.
+  Logcat output: /var/tmp/cvd/0/1792168474587412/home/cuttlefish/instances/cvd-1/logs/logcat
+  Kernel log: /var/tmp/cvd/0/1792168474587412/home/cuttlefish/instances/cvd-1/kernel.log
+  Launcher log: /var/tmp/cvd/0/1792168474587412/home/cuttlefish/instances/cvd-1/logs/launcher.log
+  Instance configuration: /var/tmp/cvd/0/1792168474587412/home/cuttlefish/instances/cvd-1/cuttlefish_config.json
+  Launcher Build ID: eng.builde
+Failed to read a complete exit code, read 0 bytes only instead of the expected 4
+VIRTUAL_DEVICE_BOOT_FAILED
+10-16 16:44:58.718   440   440 E cvd_internal_start: main.cc:297 run_cvd returned 10
+===================================================================
+NOTICE:
+
+By using this Android Virtual Device, you agree to
+Google Terms of Service (https://policies.google.com/terms).
+The Google Privacy Policy (https://policies.google.com/privacy)
+describes how Google handles information generated as you use
+Google Services.
+===================================================================
+
+cvd(432)  I 10-16 16:44:58   432   432 start.cpp:568] Device launch failed, cleaning up
+8. main.cc:161 | CvdMain | 
+7. cvd.cpp:93 | HandleCvdCommand | 
+6. cvd.cpp:78 | HandleCommand | 
+5. create.cpp:377 | Handle | 
+4. create.cpp:138 | StartGroup | 
+3. start.cpp:598 | LaunchDeviceInterruptible | 
+2. instance_manager.cpp:214 | UpdateInstanceGroup | 
+1. instance_database.cpp:185 | UpdateInstanceGroup | 
+ | cuttlefish/host/commands/cvd/instances/instance_database.cpp:183
+ v auto cuttlefish::InstanceDatabase::UpdateInstanceGroup(const LocalInstanceGroup &)::(anonymous class)::operator()(cvd::PersistentData &) const
+Group not found (name = cvd_1)
+
+    If the error above is unclear, please copy the text and `cvd version` output into an issue at:
+        http://go/cuttlefish-bug
+

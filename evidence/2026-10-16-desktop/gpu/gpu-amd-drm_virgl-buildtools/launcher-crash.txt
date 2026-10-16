@@ -1,0 +1,3 @@
+run_cvd D 10-16 16:34:36   789   789 subprocess.cpp:201] Subprocess 793 exited with error code: 2
+process_restarter E 10-16 16:34:36   935   935 main.cc:108] Process exited with unexpected si_code: 3
+run_cvd I 10-16 16:34:36   798   798 process_monitor.cc:83] Subprocess /var/tmp/cvd/0/1792168474587412/artifacts/host_tools/bin/process_restarter (935) has exited with exit code 1

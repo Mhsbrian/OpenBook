@@ -1,0 +1,15 @@
+    DesktopDisplayModeController
+      targetWindowingModeForDefaultDisplay=5
+      canDesktopFirstModeBeEnabledOnDefaultDisplay=true
+      isDefaultDisplayDesktopEligible=true
+      isExtendedDisplayEnabled=false
+      hasExternalDisplay=false
+      FORCE_DESKTOP_FIRST_ON_DEFAULT_DISPLAY=false
+      hasAnyTouchpadDevice=true
+      hasAnyPhysicalKeyboardDevice=true
+      isDesktopFirstDeviceState=false
+      Current Desktop Display Modes:
+        Display#0 isDesktopFirst=true
+
+    DesktopImmersiveController
+      pendingImmersiveTransitions=[]

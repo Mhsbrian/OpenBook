@@ -1,0 +1,119 @@
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:872] 
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:900] Host Graphics Availability:
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903] egl {
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]   vendor: "NVIDIA"
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]   version: "1.5"
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]   gles2_availability {
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     vendor: "NVIDIA Corporation"
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     version: "OpenGL ES 3.2 NVIDIA 615.78.08"
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     renderer: "NVIDIA GeForce RTX 4090/PCIe/SSE2"
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]   }
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]   gles3_availability {
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     vendor: "NVIDIA Corporation"
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     version: "OpenGL ES 3.2 NVIDIA 615.78.08"
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     renderer: "NVIDIA GeForce RTX 4090/PCIe/SSE2"
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]   }
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]   gles2_direct_availability {
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     vendor: "NVIDIA Corporation"
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     version: "OpenGL ES 3.2 NVIDIA 615.78.08"
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     renderer: "NVIDIA GeForce RTX 4090/PCIe/SSE2"
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]   }
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]   gles3_direct_availability {
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     vendor: "NVIDIA Corporation"
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     version: "OpenGL ES 3.2 NVIDIA 615.78.08"
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     renderer: "NVIDIA GeForce RTX 4090/PCIe/SSE2"
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]   }
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903] }
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903] vulkan {
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]   physical_devices {
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     name: "NVIDIA GeForce RTX 4090"
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     type: TYPE_DISCRETE_GPU
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     quirks {
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       has_issue_with_precision_qualifiers_on_yuv_samplers: false
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       external_memory_host_quirks {
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]         can_import_shm: true
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       }
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     }
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     queue_families {
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       supports_compute: true
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       supports_graphics: true
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       supports_transfer: true
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       queue_count: 16
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     }
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     queue_families {
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       supports_compute: false
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       supports_graphics: false
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       supports_transfer: true
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       queue_count: 2
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     }
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     queue_families {
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       supports_compute: true
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       supports_graphics: false
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       supports_transfer: true
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       queue_count: 8
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     }
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     queue_families {
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       supports_compute: false
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       supports_graphics: false
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       supports_transfer: true
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       queue_count: 1
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     }
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     queue_families {
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       supports_compute: false
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       supports_graphics: false
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       supports_transfer: true
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       queue_count: 2
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     }
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     queue_families {
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       supports_compute: false
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       supports_graphics: false
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       supports_transfer: true
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       queue_count: 1
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     }
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]   }
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]   physical_devices {
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     name: "llvmpipe (LLVM 19.1.7, 256 bits)"
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     type: TYPE_OTHER
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     quirks {
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       external_memory_host_quirks {
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]         can_import_shm: true
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       }
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     }
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     queue_families {
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       supports_compute: true
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       supports_graphics: true
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       supports_transfer: true
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]       queue_count: 1
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]     }
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903]   }
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903] }
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903] vulkan_loader_available: true
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:903] 
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:546] Checking requirements for --gpu_mode=gfxstream_guest_angle
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:551]   1. FAILED: The guest does not support Gfxstream. This is configured in the `android-info.txt` file associated with the guest target build.
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:551]   2. PASSED: The host is not ARM64.
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:551]   3. PASSED: The host has the Vulkan loader installed and available.
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:551]   4. PASSED: The host has a Vulkan driver available.
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:551]   5. PASSED: The host Vulkan driver is not a software implementation.
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:551]   6. PASSED: The host's KVM should be able to map GPU memory into the guest.
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:551]   7. PASSED: The instance is not using the system QEMU.
+assemble_cvd(454)  E 10-16 15:20:07   454   454 graphics_flags.cc:590] --gpu_mode=gfxstream_guest_angle was requested but the prerequisites were not detected so the device may not function correctly. Please consider switching to --gpu_mode=auto or --gpu_mode=guest_swiftshader.
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:656] GPU vhost user auto mode: not needed. Not enabling vhost user gpu.
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:415] ANGLE features: 
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:415]  - prefer_linear_filtering_for_yuv: false
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:415]  - map_unspecified_color_space_to_pass_through: true
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:415]  - ignore_precision_qualifiers: false
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:415] 
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:684] Selecting SkiaVk as the HWUI renderer for gfxstream_guest_angle GPU mode which is GfxstreamGuestAngle* based.
+assemble_cvd(454)  D 10-16 15:20:07   454   454 graphics_flags.cc:708] Disabling guest renderer preload for Gfxstream based mode when running with SkiaVk.
+run_cvd(771)  D 10-16 15:20:11   775   775 command.cc:325] --gpu=displays=[[mode=windowed[1920,1080],dpi=[160,160],refresh-rate=60]],context-types=gfxstream-vulkan:gfxstream-composer,pci-address=00:02.0,egl=true,surfaceless=true,glx=false,gles=false
+process_restarter(972)  D 10-16 15:20:11   972   972 command.cc:325] --gpu=displays=[[mode=windowed[1920,1080],dpi=[160,160],refresh-rate=60]],context-types=gfxstream-vulkan:gfxstream-composer,pci-address=00:02.0,egl=true,surfaceless=true,glx=false,gles=false
+log_tee(965)  D 10-16 15:20:11   965   965 log_tee.cpp:185] [virtio_gpu_gfxstream_renderer.cpp(780)]     GuestVulkanOnly: enabled ((rendererFlags & STREAM_RENDERER_FLAGS_USE_VK_BIT) && !(rendererFlags & STREAM_RENDERER_FLAGS_USE_GLES_BIT))
+log_tee(965)  D 10-16 15:20:16   965   965 log_tee.cpp:185] [vk_common_operations.cpp(1341)] Selecting Vulkan device: NVIDIA GeForce RTX 4090, Version: 1.4.351
+kernel_log_monitor(825)  I 10-16 15:20:17   825   825 kernel_log_server.cc:155] VIRTUAL_DEVICE_DISPLAY_POWER_MODE_CHANGED
+kernel_log_monitor(825)  D 10-16 15:20:17   825   825 kernel_log_server.cc:171] [    4.851513] VIRTUAL_DEVICE_DISPLAY_POWER_MODE_CHANGED display=0 mode=ON
+kernel_log_monitor(825)  I 10-16 15:20:17   825   825 kernel_log_server.cc:155] VIRTUAL_DEVICE_DISPLAY_POWER_MODE_CHANGED
+kernel_log_monitor(825)  D 10-16 15:20:17   825   825 kernel_log_server.cc:171] [    4.866280] VIRTUAL_DEVICE_DISPLAY_POWER_MODE_CHANGED display=0 mode=ON
+kernel_log_monitor(825)  I 10-16 15:20:24   825   825 kernel_log_server.cc:155] VIRTUAL_DEVICE_BOOT_STARTED
+kernel_log_monitor(825)  I 10-16 15:20:25   825   825 kernel_log_server.cc:155] VIRTUAL_DEVICE_BOOT_COMPLETED
+run_cvd(768)  D 10-16 15:20:25   768   768 boot_state_machine.cc:209] VIRTUAL_DEVICE_BOOT_COMPLETED

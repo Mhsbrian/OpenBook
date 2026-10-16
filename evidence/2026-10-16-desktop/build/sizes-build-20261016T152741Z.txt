@@ -1,0 +1,26 @@
+180G	out
+-rw-r--r-- 1 builder builder   67108864 Oct 16 15:38 out/target/product/vsoc_x86_64_only/boot.img
+-rw-r--r-- 1 builder builder    1048576 Oct 16 13:10 out/target/product/vsoc_x86_64_only/cuttlefish_example_custom.img
+-rw-r--r-- 1 builder builder         72 Oct 16 13:11 out/target/product/vsoc_x86_64_only/dtb.img
+-rw-r--r-- 1 builder builder    8388608 Oct 16 15:38 out/target/product/vsoc_x86_64_only/init_boot.img
+-rw-r--r-- 1 builder builder     520192 Oct 16 15:38 out/target/product/vsoc_x86_64_only/odm.img
+-rw-r--r-- 1 builder builder     348160 Oct 16 15:38 out/target/product/vsoc_x86_64_only/odm_dlkm.img
+-rw-r--r-- 1 builder builder  292925440 Oct 16 15:38 out/target/product/vsoc_x86_64_only/product.img
+-rw-r--r-- 1 builder builder    3005948 Oct 16 15:38 out/target/product/vsoc_x86_64_only/ramdisk.img
+-rw-r--r-- 1 builder builder 1603715648 Oct 16 15:40 out/target/product/vsoc_x86_64_only/super.img
+-rw------- 1 builder builder       5488 Oct 16 15:38 out/target/product/vsoc_x86_64_only/super_empty.img
+-rw-r--r-- 1 builder builder  889008128 Oct 16 15:39 out/target/product/vsoc_x86_64_only/system.img
+-rw-r--r-- 1 builder builder    8368128 Oct 16 15:38 out/target/product/vsoc_x86_64_only/system_dlkm.img
+-rw-r--r-- 1 builder builder  141475840 Oct 16 15:39 out/target/product/vsoc_x86_64_only/system_ext.img
+-rw-r--r-- 1 builder builder    4665344 Oct 16 15:40 out/target/product/vsoc_x86_64_only/system_other.img
+-rw-r--r-- 1 builder builder    2249012 Oct 16 15:38 out/target/product/vsoc_x86_64_only/userdata.img
+-rw-r--r-- 1 builder builder      65536 Oct 16 15:38 out/target/product/vsoc_x86_64_only/vbmeta.img
+-rw-r--r-- 1 builder builder      65536 Oct 16 15:39 out/target/product/vsoc_x86_64_only/vbmeta_system.img
+-rw-r--r-- 1 builder builder      65536 Oct 16 15:38 out/target/product/vsoc_x86_64_only/vbmeta_system_dlkm.img
+-rw-r--r-- 1 builder builder      65536 Oct 16 15:38 out/target/product/vsoc_x86_64_only/vbmeta_vendor_dlkm.img
+-rw-r--r-- 1 builder builder        117 Oct 16 15:38 out/target/product/vsoc_x86_64_only/vendor-bootconfig.img
+-rw-r--r-- 1 builder builder  274272256 Oct 16 15:38 out/target/product/vsoc_x86_64_only/vendor.img
+-rw-r--r-- 1 builder builder   67108864 Oct 16 15:38 out/target/product/vsoc_x86_64_only/vendor_boot-debug.img
+-rw-r--r-- 1 builder builder   67108864 Oct 16 15:38 out/target/product/vsoc_x86_64_only/vendor_boot.img
+-rw-r--r-- 1 builder builder    1449984 Oct 16 15:38 out/target/product/vsoc_x86_64_only/vendor_dlkm.img
+-rw-r--r-- 1 builder builder   19034254 Oct 16 15:38 out/target/product/vsoc_x86_64_only/vendor_ramdisk.img

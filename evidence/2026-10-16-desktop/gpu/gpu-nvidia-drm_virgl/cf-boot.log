@@ -1,0 +1,13 @@
+=== 2026-10-16T15:21:22Z stage /home/hive/anybook/aosp/src/out/target/product/vsoc_x86_64_only -> /home/hive/anybook/aosp/cf/product (top-level files, reflink)
+=== 2026-10-16T15:21:22Z up: anybook-cuttlefish, host GPU: nvidia /dev/dri/renderD128
+cvd(385)  I 10-16 15:21:23   385   385 main.cc:137] version: 1.57.0 | VCS: 9bb9c72329cedcb436bb75afc05c24d73fbcdf5d
+version: 1.57.0
+VCS: 9bb9c72329cedcb436bb75afc05c24d73fbcdf5d
+=== 2026-10-16T15:21:23Z unpack cvd-host_package.tar.gz -> /root/cvd-host
+=== 2026-10-16T15:21:30Z host tools: packaged
+=== 2026-10-16T15:21:30Z cvd create --host_path=/root/cvd-host --product_path=/cf/product --x_res=1920 --y_res=1080 --dpi=160 --gpu_mode=drm_virgl --cpus=4 --memory_mb=8192 --report_anonymous_usage_stats=n
+=== 2026-10-16T15:21:34Z cvd create exit 255 after 4 s
+=== 2026-10-16T15:21:34Z capture -> /home/hive/anybook/logs/desktop/gpu-nvidia-drm_virgl
+=== 2026-10-16T15:22:40Z adb not reachable; host-side logs only
+=== 2026-10-16T15:22:40Z down
+=== 2026-10-16T15:22:41Z all: exit 255, logs in /home/hive/anybook/logs/desktop/gpu-nvidia-drm_virgl

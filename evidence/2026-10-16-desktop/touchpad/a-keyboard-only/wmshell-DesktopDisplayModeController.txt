@@ -1,0 +1,13 @@
+    DesktopDisplayModeController
+      targetWindowingModeForDefaultDisplay=1
+      canDesktopFirstModeBeEnabledOnDefaultDisplay=false
+      isDefaultDisplayDesktopEligible=true
+      isExtendedDisplayEnabled=false
+      hasExternalDisplay=false
+      FORCE_DESKTOP_FIRST_ON_DEFAULT_DISPLAY=false
+      hasAnyTouchpadDevice=false
+      hasAnyPhysicalKeyboardDevice=true
+      isDesktopFirstDeviceState=false
+      Current Desktop Display Modes:
+        Display#0 isDesktopFirst=false
+

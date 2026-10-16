@@ -1,0 +1,19 @@
+# dumpsys SurfaceFlinger summary
+Build configuration: [sf PRESENT_TIME_OFFSET=0 FORCE_HWC_FOR_RBG_TO_YUV=0 MAX_VIRT_DISPLAY_DIM=0 RUNNING_WITHOUT_SYNC_FRAMEWORK=0 NUM_FRAMEBUFFER_SURFACE_BUFFERS=2]
+Display 4619827259835644672 (HWC display 0): port=0 pnpId=GGL screenPartStatus=UNSUPPORTED displayName="EMU_display_0"
+   isEnabled=true isSecure=true usesDeviceComposition=false 
+   usesClientComposition=true flipClientTarget=false reusedClientComposition=false 
+GLES: Google (Google Inc.), Android Emulator OpenGL ES Translator (Google SwiftShader), OpenGL ES 3.0 (OpenGL ES 3.0 SwiftShader 4.0.0.1)
+RenderEngine chosen blur algorithm: KawaseDualFilterV2
+## HWC layers (top to bottom): composition type, layer
+CLIENT	 VRI-Taskbar#95
+CLIENT	 VRI-StatusBar#76
+CLIENT	 Caption of Task=11#138
+CLIENT	 VRI-com.android.documentsui/com.android.documentsui.files.FilesActivity#142
+CLIENT	 Task=11#127
+CLIENT	 Caption of Task=10#113
+CLIENT	 VRI-com.android.settings/com.android[...]ettings$NetworkDashboardActivity#124
+CLIENT	 VRI-com.android.settings/com.android.settings.Settings#123
+CLIENT	 Task=10#102
+CLIENT	 VRI-com.android.launcher3/com.androi[...]er3.uioverrides.QuickstepLauncher#85
+CLIENT	 Wallpaper BBQ wrapper#54

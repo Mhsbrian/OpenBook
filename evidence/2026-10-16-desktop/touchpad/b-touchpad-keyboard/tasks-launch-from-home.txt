@@ -1,0 +1,10 @@
+  * Task{147b628 #6 name=Desk type=undefined U=0 visible=true visibleRequested=true mode=freeform translucent=true sz=2}
+    * Task{c796cb1 #13 type=standard I=com.android.documentsui/.files.FilesActivity U=0 rootTaskId=6 visible=true visibleRequested=true mode=freeform translucent=false sz=1}
+    * Task{f61f6ad #11 type=standard A=1000:com.android.settings.root U=0 rootTaskId=6 visible=true visibleRequested=true mode=freeform translucent=false sz=2}
+  * Task{4c976dd #12 type=standard A=10090:com.android.wm.shell.desktop_wallpaper U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+  * Task{b77a7f8 #1 type=home U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=1}
+    * Task{a774474 #8 type=home I=com.android.launcher3/.uioverrides.QuickstepLauncher U=0 rootTaskId=1 visible=false visibleRequested=false mode=fullscreen translucent=true sz=1}
+  * Task{84271a6 #3 name=SplitRoot type=undefined U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=2}
+    * Task{6868f94 #5 name=side type=undefined U=0 rootTaskId=3 visible=false visibleRequested=false mode=multi-window translucent=true sz=0}
+    * Task{f4f27e7 #4 name=main type=undefined U=0 rootTaskId=3 visible=false visibleRequested=false mode=multi-window translucent=true sz=0}
+  * Task{ff8ef41 #7 name=MinimizedDesk_6 type=undefined U=0 visible=false visibleRequested=false mode=freeform translucent=true sz=0}

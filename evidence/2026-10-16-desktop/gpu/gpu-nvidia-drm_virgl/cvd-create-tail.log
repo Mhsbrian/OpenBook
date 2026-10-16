@@ -1,0 +1,25 @@
+cvd(426)  I 10-16 15:21:30   426   426 main.cc:137] version: 1.57.0 | VCS: 9bb9c72329cedcb436bb75afc05c24d73fbcdf5d
+By using this Android Virtual Device, you agree to Google Terms of Service (https://policies.google.com/terms). The Google Privacy Policy (https://policies.google.com/privacy) describes how Google handles information generated as you use Google services.
+SetFlagDefaultsFromConfig: No flag defaults to override.
+  Run `cvd logs` to report paths to device logs.
+  Point your browser to https://localhost:8443 to interact with the device.
+  Serial console is disabled; use -console=true to enable it.
+  Launcher Build ID: 9bb9c72329cedcb436bb75afc05c24d73fbcdf5d
+Failed to read a complete exit code, read 0 bytes only instead of the expected 4
+VIRTUAL_DEVICE_BOOT_FAILED
+run_cvd returned 10
+cvd(426)  I 10-16 15:21:34   426   426 start.cpp:568] Device launch failed, cleaning up
+cvd(426)  I 10-16 15:21:34   426   426 stop.cpp:118] Sending SIGKILL to process 771
+6. main.cc:161 | CvdMain | 
+5. cvd.cpp:93 | HandleCvdCommand | 
+4. cvd.cpp:78 | HandleCommand | 
+3. create.cpp:377 | Handle | 
+2. create.cpp:138 | StartGroup | 
+1. start.cpp:574 | LaunchDevice | 
+ | cuttlefish/host/commands/cvd/cli/utils.cpp:71
+ v Result<void> cuttlefish::CheckProcessExitedNormally(siginfo_t, int)
+Exited with code '255'
+
+    If the error above is unclear, please copy the text and `cvd version` output into an issue at:
+        http://go/cuttlefish-bug
+

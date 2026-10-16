@@ -1,0 +1,43 @@
+Binary APK
+Package name=com.android.systemui.auto_generated_rro_vendor__ id=7f
+  type array id=01 entryCount=1
+    resource 0x7f010000 array/hsu_allow_list_qs_tiles
+      () (array) size=8
+        ["airplane", "battery", "bt", "dark", 
+         "internet", "night", "reduce_brightness", "rotation"]
+  type bool id=02 entryCount=16
+    resource 0x7f020000 bool/config_disableSplitShade
+      () true
+    resource 0x7f020001 bool/config_enableDesktopAudioTileDetailsView
+      () true
+    resource 0x7f020002 bool/config_enableHideNotificationsShadeOnAllAppsKey
+      () true
+    resource 0x7f020003 bool/config_enableInputRouting
+      () true
+    resource 0x7f020004 bool/config_enableSignOutButtonOnKeyguardStatusBar
+      () true
+    resource 0x7f020005 bool/config_improveLargeScreenInteractionOnLockscreen
+      () true
+    resource 0x7f020006 bool/config_isDesktopForFalsingPurposes
+      () true
+    resource 0x7f020007 bool/config_largeScreenPrivacyIndicator
+      () true
+    resource 0x7f020008 bool/config_letterboxIsReachabilityEducationEnabled
+      () true
+    resource 0x7f020009 bool/config_letterboxIsRestartDialogEnabled
+      () true
+    resource 0x7f02000a bool/config_notificationShadeOnTopEnd
+      () true
+    resource 0x7f02000b bool/config_removeStatusBarInputLayer
+      () false
+    resource 0x7f02000c bool/config_statusBarTapToExpandShade
+      () true
+    resource 0x7f02000d bool/config_testDesktopScreenSize
+      () true
+    resource 0x7f02000e bool/config_useBrightnessMirrorInOverlay
+      () false
+    resource 0x7f02000f bool/config_useDesktopStatusBar
+      () true
+  type dimen id=03 entryCount=1
+    resource 0x7f030000 dimen/lock_icon_padding
+      () 24.000000px

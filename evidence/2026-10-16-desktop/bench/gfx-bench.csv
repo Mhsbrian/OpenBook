@@ -1,0 +1,13 @@
+label,round,frames,janky,janky_pct,p50_ms,p90_ms,p95_ms,p99_ms,gpu_p50_ms,gpu_p90_ms,host_load1,renderer
+amd-gfxstream_guest_angle,1,705,0,0.00,5,5,5,5,1,1,2.25,Google Inc. (AMD); ANGLE (AMD; Vulkan 1.4.305 (Virtio-GPU GFXStream (AMD Radeon Graphics (RADV RAPHAEL_MENDOCINO)) (0x0000164E)); AMD-26.0.99)
+amd-gfxstream_guest_angle,2,699,0,0.00,5,5,5,5,1,1,2.44,Google Inc. (AMD); ANGLE (AMD; Vulkan 1.4.305 (Virtio-GPU GFXStream (AMD Radeon Graphics (RADV RAPHAEL_MENDOCINO)) (0x0000164E)); AMD-26.0.99)
+none-guest_swiftshader,1,378,38,10.05,5,32,53,89,1,1,2.55,Google Inc. (Google); ANGLE (Google; Vulkan 1.3.0 (SwiftShader Device (LLVM 16.0.0) (0x0000C0DE)); SwiftShader driver-5.0.0)
+none-guest_swiftshader,2,454,143,31.50,7,61,61,65,1,1,2.85,Google Inc. (Google); ANGLE (Google; Vulkan 1.3.0 (SwiftShader Device (LLVM 16.0.0) (0x0000C0DE)); SwiftShader driver-5.0.0)
+none-gfxstream_guest_angle_host_swiftshader,1,685,5,0.73,8,13,13,23,1,1,5.23,Google Inc. (Google); ANGLE (Google; Vulkan 1.3.0 (Virtio-GPU GFXStream (SwiftShader Device (LLVM 16.0.0)) (0x0000C0DE)); Google-26.0.99)
+none-gfxstream_guest_angle_host_swiftshader,2,724,2,0.28,8,13,13,14,1,1,7.14,Google Inc. (Google); ANGLE (Google; Vulkan 1.3.0 (Virtio-GPU GFXStream (SwiftShader Device (LLVM 16.0.0)) (0x0000C0DE)); Google-26.0.99)
+amd-gfxstream,1,688,0,0.00,5,5,6,7,1,1,2.74,Google (AMD); Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi; raphael_mendocino; LLVM 19.1.7; DRM 3.64; 7.2.8-5-omarchy-bore))
+amd-gfxstream,2,693,0,0.00,5,5,6,7,1,1,2.27,Google (AMD); Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi; raphael_mendocino; LLVM 19.1.7; DRM 3.64; 7.2.8-5-omarchy-bore))
+nvidia-gfxstream_guest_angle,1,686,1,0.15,5,5,5,6,1,1,1.96,Google Inc. (NVIDIA); ANGLE (NVIDIA; Vulkan 1.4.309 (NVIDIA Virtio-GPU GFXStream (NVIDIA GeForce RTX 4090) (0x00002684)); NVIDIA-26.0.1.35)
+nvidia-gfxstream_guest_angle,2,691,1,0.14,5,5,5,5,1,1,2.11,Google Inc. (NVIDIA); ANGLE (NVIDIA; Vulkan 1.4.309 (NVIDIA Virtio-GPU GFXStream (NVIDIA GeForce RTX 4090) (0x00002684)); NVIDIA-26.0.1.35)
+nvidia-gfxstream,1,693,1,0.14,5,5,5,5,1,1,1.98,Google (NVIDIA Corporation); Android Emulator OpenGL ES Translator (NVIDIA GeForce RTX 4090/PCIe/SSE2)
+nvidia-gfxstream,2,680,0,0.00,5,5,5,5,1,1,2.04,Google (NVIDIA Corporation); Android Emulator OpenGL ES Translator (NVIDIA GeForce RTX 4090/PCIe/SSE2)
