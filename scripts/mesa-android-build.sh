@@ -11,7 +11,12 @@
 # (tools/Dockerfile.mesa-android); the `isa` step uses anybook-inspect (elfx86exts).
 # Sources, builds and artifacts live in ~/anybook/mesa, logs in ~/anybook/logs/mesa.
 # Env: STEP_TIMEOUT (s, per step, default 3000), JOBS (default nproc), API (default 37),
-#      CCACHE_DISABLE=1 for a clean compile.
+#      CCACHE_DISABLE=1 for a clean compile,
+#      LIBELF=shared|static (default shared): how radeonsi gets libelf (LGPL-3.0+, docs/mesa.md).
+#        shared ships it as lib64/libelf_mesa.so (the recommended option until the owner decides);
+#        static links it into libgallium_dri.so as ANAL-173 did. Changing it re-runs setup.
+#      ANDROID_STRICT=true|false (default true, Mesa's default): RADV reports Vulkan 1.1 on Android
+#        when true (CTS-safe), 1.4 when false. Changing it re-runs setup.
 set -euo pipefail
 
 # ---- pins -------------------------------------------------------------------------------
@@ -22,20 +27,24 @@ declare -A SHA=([upstream]=ddaf85e353442d9d7f192fdcf1823e652e3f2ee3   # tag mesa
                 [ag]=b14bf42d23ef1f9625eddb005cd568ab3873f11d)        # 26.0/main, 2026-09-30
 AG_BASE=mesa-26.0.8   # upstream tag AG's 26.0/main is based on (merge-base 60e95b78)
 # radeonsi needs libelf, which the NDK lacks: build AOSP's own elfutils (0.193) the way its
-# Android.bp builds `libelf` (+ `libeu`), minus zstd. Static; LGPL-3.0-or-later (docs/mesa.md).
+# Android.bp builds `libelf` (+ `libeu`), minus zstd. LGPL-3.0-or-later (docs/mesa.md): built both
+# as libelf.a and as libelf_mesa.so (its own SONAME, so it can't clash with an AOSP libelf.so).
 ELFUTILS_URL=https://android.googlesource.com/platform/external/elfutils
 ELFUTILS_REF=android-17.0.0_r1; ELFUTILS_SHA=219c3a368b121307f2e05593cee89b8591cc40b9
-API=${API:-37}; STEP_TIMEOUT=${STEP_TIMEOUT:-3000}
+API=${API:-37}; STEP_TIMEOUT=${STEP_TIMEOUT:-3000}; LIBELF=${LIBELF:-shared}; ANDROID_STRICT=${ANDROID_STRICT:-true}
 IMAGE=anybook-mesa-android
 
+# --datadir=etc: libdrm_amdgpu's compiled-in marketing-name table becomes /vendor/etc/libdrm/amdgpu.ids
+# (AOSP keeps vendor data under /vendor/etc; Soong has no module type that installs to /vendor/share).
 MESON_OPTS=(
-  --buildtype=release -Db_ndebug=true --prefix=/vendor --libdir=lib64
+  --buildtype=release -Db_ndebug=true --prefix=/vendor --libdir=lib64 --datadir=etc
   -Dplatforms=android -Dplatform-sdk-version="$API" -Dandroid-stub=true
-  -Dandroid-libbacktrace=disabled -Dandroid-strict=true
+  -Dandroid-libbacktrace=disabled -Dandroid-strict="$ANDROID_STRICT"
   -Dgallium-drivers=radeonsi -Dvulkan-drivers=amd
   -Dllvm=disabled -Damd-use-llvm=false          # ACO for both radeonsi and RADV; no Android LLVM
   -Degl=enabled -Dgles1=enabled -Dgles2=enabled -Degl-lib-suffix=_mesa -Dgles-lib-suffix=_mesa
-  -Dgbm=disabled -Dglx=disabled -Dgallium-va=disabled -Dvideo-codecs=
+  -Dgbm=enabled                                  # libgbm_mesa.so + gbm/dri_gbm.so: minigbm's amdgpu backend allocates through it
+  -Dglx=disabled -Dgallium-va=disabled -Dvideo-codecs=
   -Dallow-fallback-for=libdrm
   -Dxmlconfig=disabled -Dexpat=disabled -Dzstd=disabled -Dvalgrind=disabled -Dlibunwind=disabled -Dlmsensors=disabled
   -Dbuild-tests=false -Dtools=
@@ -54,7 +63,7 @@ if [[ ! -d /opt/android-ndk ]]; then
   for s in "${steps[@]}"; do [[ $s == isa ]] && want_isa=1 || cstep+=("$s"); done
   if ((${#cstep[@]})); then
     docker run --rm -u "$(id -u):$(id -g)" -e HOME=/a/mesa/home -e CCACHE_DIR=/a/mesa/ccache \
-      -e STEP_TIMEOUT -e JOBS -e API -e CCACHE_DISABLE -v "$A/mesa:/a/mesa" -v "$A/logs/mesa:/a/logs" -v "$repo:/repo:ro" \
+      -e STEP_TIMEOUT -e JOBS -e API -e CCACHE_DISABLE -e LIBELF -e ANDROID_STRICT -v "$A/mesa:/a/mesa" -v "$A/logs/mesa:/a/logs" -v "$repo:/repo:ro" \
       "$IMAGE" /repo/scripts/mesa-android-build.sh "${cstep[@]}" -- "${trees[@]}"
   fi
   if ((want_isa)); then
@@ -100,7 +109,7 @@ fetch(){ local t=$1 d=$M/src/$1
 }
 
 deps(){ local d=$M/src/deps/elfutils o=$M/build/deps/elfutils
-  [[ -f $DEPS/lib/libelf.a ]] && { log "deps: libelf already built ($DEPS)"; return; }
+  [[ -f $DEPS/lib/libelf.a && -f $DEPS/lib/libelf_mesa.so ]] && { log "deps: libelf already built ($DEPS)"; return; }
   [[ -d $d/.git ]] || { git init -q "$d"; git -C "$d" remote add origin "$ELFUTILS_URL"; }
   git -C "$d" cat-file -e "$ELFUTILS_SHA^{commit}" 2>/dev/null ||
     run deps-fetch git -C "$d" fetch --depth 1 origin tag "$ELFUTILS_REF"
@@ -115,12 +124,20 @@ deps(){ local d=$M/src/deps/elfutils o=$M/build/deps/elfutils
     echo "${cc[*]} -c $f -o $o/obj/$(basename "$f" .c).o"
   done > "$o/commands.sh"
   run deps-build xargs -P "$JOBS" -d '\n' -I{} sh -c '{}' < "$o/commands.sh"
-  "$TC/bin/llvm-ar" rcs "$DEPS/lib/libelf.a" "$o"/obj/*.o
+  rm -f "$DEPS/lib/libelf.a"; "$TC/bin/llvm-ar" rcs "$DEPS/lib/libelf.a" "$o"/obj/*.o
+  "$TC/bin/x86_64-linux-android$API-clang" -shared -fuse-ld=lld -Wl,-soname,libelf_mesa.so -Wl,--no-undefined \
+    -o "$DEPS/lib/libelf_mesa.so" "$o"/obj/*.o -lz
   cp "$d"/libelf/{libelf.h,gelf.h,nlist.h,elf.h} "$DEPS/include/"
-  local ver; ver=$(sed -n 's/^#define VERSION "\(.*\)"/\1/p' "$d/config.h")
-  printf '%s\n' "prefix=$DEPS" "Name: libelf" "Description: elfutils libelf ($ELFUTILS_REF), static" \
-    "Version: $ver" 'Libs: -L${prefix}/lib -lelf -lz' 'Cflags: -I${prefix}/include' > "$DEPS/lib/pkgconfig/libelf.pc"
-  log "deps: libelf $ver, $(ls "$o"/obj | wc -l) objects -> $DEPS/lib/libelf.a"
+  sed -n 's/^#define VERSION "\(.*\)"/\1/p' "$d/config.h" > "$DEPS/libelf.version"
+  log "deps: libelf $(cat "$DEPS/libelf.version"), $(ls "$o"/obj | wc -l) objects -> $DEPS/lib/libelf.a, libelf_mesa.so"
+}
+
+# libelf.pc for the selected LIBELF mode (static: libelf.a + zlib; shared: libelf_mesa.so).
+libelf_pc(){ local lib; case $LIBELF in static) lib='-lelf -lz' ;; shared) lib='-lelf_mesa' ;;
+    *) echo "LIBELF must be shared or static, not '$LIBELF'" >&2; exit 2 ;; esac
+  printf '%s\n' "prefix=$DEPS" "Name: libelf" "Description: elfutils libelf ($ELFUTILS_REF), $LIBELF" \
+    "Version: $(cat "$DEPS/libelf.version")" "Libs: -L\${prefix}/lib $lib" 'Cflags: -I${prefix}/include' \
+    > "$DEPS/lib/pkgconfig/libelf.pc"
 }
 
 cross_file(){ local f=$M/build/android-x86_64-api$API.ini
@@ -143,10 +160,13 @@ endian = 'little'
 EOF
   echo "$f"; }
 
-setup(){ local t=$1 b=$M/build/$1
-  [[ -f $b/build.ninja ]] && { log "setup: $t already configured ($b)"; return; }
-  rm -rf "$b"; : > "$L/$t-setup.log"; local cf; cf=$(cross_file)
+# The build directory is kept only while its configuration (options + LIBELF) is unchanged.
+setup(){ local t=$1 b=$M/build/$1 cfg="LIBELF=$LIBELF ${MESON_OPTS[*]}"
+  [[ -f $b/build.ninja && $(cat "$b/anybook-config.txt" 2>/dev/null) == "$cfg" ]] &&
+    { log "setup: $t already configured ($b, LIBELF=$LIBELF)"; return; }
+  rm -rf "$b"; : > "$L/$t-setup.log"; local cf; cf=$(cross_file); libelf_pc
   run "$t-setup" meson setup "$b" "$M/src/$t" --cross-file "$cf" "${MESON_OPTS[@]}"
+  echo "$cfg" > "$b/anybook-config.txt"
 }
 
 build(){ local t=$1; run "$t-build" ninja -C "$M/build/$t" -j "$JOBS"; }
@@ -155,15 +175,20 @@ install_(){ local t=$1 b=$M/build/$1 o=$M/out/$1
   rm -rf "$o"; mkdir -p "$o"
   run "$t-install" meson install -C "$b" --no-rebuild --strip --destdir "$o/staging"
   # Android vendor layout: EGL/GLES under lib64/egl (ro.hardware.egl=mesa), the gallium
-  # megadriver and libdrm in lib64, Vulkan HAL as lib64/hw/vulkan.radv.so (ro.hardware.vulkan=radv).
+  # megadriver, GBM and libdrm in lib64, GBM's DRI backend in lib64/gbm (libgbm_mesa's compiled-in
+  # backends path), Vulkan HAL as lib64/hw/vulkan.radv.so (ro.hardware.vulkan=radv).
   local s=$o/staging/vendor/lib64 v=$o/vendor/lib64 f old
-  mkdir -p "$v/egl" "$v/hw"
+  mkdir -p "$v/egl" "$v/hw" "$v/gbm"
   for f in libEGL_mesa libGLESv1_CM_mesa libGLESv2_mesa; do cp -L "$s/$f.so" "$v/egl/"; done
   for f in "$s"/libgallium*.so; do [[ -e $f ]] && cp -L "$f" "$v/"; done
-  cp -L "$s/libdrm.so" "$s/libdrm_amdgpu.so" "$v/"
+  # libdrm_amdgpu becomes libdrm_amdgpu_mesa.so: AOSP's external/libdrm (2.4.124, too old for Mesa
+  # 26.2) owns the libdrm_amdgpu.so name and install path. The SONAME loop below follows the rename.
+  cp -L "$s/libdrm.so" "$s/libgbm_mesa.so" "$v/"; cp -L "$s/libdrm_amdgpu.so" "$v/libdrm_amdgpu_mesa.so"
+  cp -L "$s/gbm/dri_gbm.so" "$v/gbm/"
   cp -L "$s/libvulkan_radeon.so" "$v/hw/vulkan.radv.so"
-  # libdrm_amdgpu reads marketing names from its compiled-in ${datadir}: /vendor/share/libdrm/amdgpu.ids
-  mkdir -p "$o/vendor/share/libdrm"; cp "$o/staging/vendor/share/libdrm/amdgpu.ids" "$o/vendor/share/libdrm/"
+  if [[ $LIBELF == shared ]]; then cp -L "$DEPS/lib/libelf_mesa.so" "$v/"; "$TC/bin/llvm-strip" --strip-unneeded "$v/libelf_mesa.so"; fi
+  # libdrm_amdgpu reads marketing names from its compiled-in ${datadir}: /vendor/etc/libdrm/amdgpu.ids
+  mkdir -p "$o/vendor/etc/libdrm"; cp "$o/staging/vendor/etc/libdrm/amdgpu.ids" "$o/vendor/etc/libdrm/"
   # Android names libraries without version suffixes (AOSP's libdrm is "libdrm.so"): make every
   # SONAME equal its file name and rewrite NEEDED entries that pointed at the old names.
   local -A ren=()
@@ -196,7 +221,7 @@ verify(){ local t=$1 b=$M/build/$1 o=$M/out/$1 e=$M/evidence/$1
   { for f in ./lib64/hw/vulkan.radv.so; do echo "== $f (Vulkan HAL: HMI + loader ICD entry points)"
       "$TC/bin/llvm-nm" -D --defined-only "$f" | grep -E ' (HMI|vk_icd[A-Za-z]*|vkGetInstanceProcAddr|vkGetDeviceProcAddr)$'
       echo "exported symbols: $("$TC/bin/llvm-nm" -D --defined-only "$f" | wc -l)"; done
-    for f in ./lib64/egl/*.so ./lib64/libgallium*.so ./lib64/libdrm*.so; do [[ -f $f ]] || continue
+    for f in ./lib64/egl/*.so ./lib64/libgallium*.so ./lib64/libdrm*.so ./lib64/libgbm_mesa.so ./lib64/gbm/*.so ./lib64/libelf_mesa.so; do [[ -f $f ]] || continue
       echo "== $f"; echo "exported symbols: $("$TC/bin/llvm-nm" -D --defined-only "$f" | wc -l)"
       "$TC/bin/llvm-nm" -D --defined-only "$f" | grep -E ' (eglGetProcAddress|eglGetDisplay|eglInitialize|glDrawArrays|glGetString|__driDriverGetExtensions_radeonsi|ddebug_screen_create)$' || true
     done
@@ -225,6 +250,7 @@ verify(){ local t=$1 b=$M/build/$1 o=$M/out/$1 e=$M/evidence/$1
     echo "clang: $("$TC/bin/clang" --version | head -1)"
     echo "meson: $(meson --version)  ninja: $(ninja --version)  glslang: $(glslangValidator --version | head -1)"
     echo "libdrm: $(sed -n 's/^directory = //p' "$M/src/$t/subprojects/libdrm.wrap") (meson wrap, shared)"
+    echo "libelf: elfutils $(cat "$DEPS/libelf.version") ($ELFUTILS_REF), LIBELF=$LIBELF"
     echo "options: ${MESON_OPTS[*]}"
   } > "$e/versions.txt"
   gzip -c "$L/$t-setup.log" > "$e/setup.log.gz"; gzip -c "$L/$t-build.log" > "$e/build.log.gz"

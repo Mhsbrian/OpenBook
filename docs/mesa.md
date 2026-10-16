@@ -2,7 +2,14 @@
 
 ANAL-173, 2026-10-15. This covers Android x86_64 builds of Mesa's radeonsi (EGL / GLES 1–3.2) and RADV (Vulkan), made out-of-tree with the NDK. They are standalone vendor-partition drop-ins and the basis for later AOSP integration. Evidence is in `evidence/2026-10-15-mesa/`.
 
-**State:** both trees build, link cleanly against the API 37 NDK sysroot, and **load and run their GPU-independent entry points on Android 17 x86_64** (the AOSP Desktop emulator under KVM). **Nothing has run on an AMD GPU yet.** The VM has no `/dev/dri`, so we have no rendering or `vkEnumeratePhysicalDevices > 0` result. That needs M3/M4 hardware.
+**State:** both trees build, link cleanly against the API 37 NDK sysroot, and **load and run their GPU-independent entry points on Android 17 x86_64** (the AOSP Desktop emulator under KVM).
+
+**Update 2026-10-16 (ANAL-174, `docs/graphics-amd.md`):**
+- The upstream tree is now built with GBM and a shared libelf. It is staged into the AnyBook image as vendor prebuilts (`device/anybook/common/graphics-amd`).
+- The image's own copies ran on a real AMD GPU: the build host's Radeon 610M (RDNA2), in a container with the image's bionic and no Android framework (`evidence/2026-10-16-graphics-amd/hwtest/`).
+  - RADV enumerates the GPU, creates a device, and a GPU `vkCmdFillBuffer` verifies.
+  - radeonsi GLES 3.2 renders and reads back.
+- Nothing has run on the G14's Radeon 890M yet.
 
 ## Rebuild
 
@@ -25,6 +32,10 @@ scripts/mesa-android-smoke.sh                    # load test on the AOSP Desktop
   - Full build without ccache: 22–32 s of ninja per tree (upstream 22 s clean rebuild, AG 32 s first build).
   - Disk: about 2 GB, plus the 3.9 GB image.
 - **Env:** `STEP_TIMEOUT` (default 3000 s), `JOBS`, `API` (default 37), `CCACHE_DISABLE=1`.
+  - `LIBELF=shared|static` (default `shared` since ANAL-174; see libelf below).
+  - `ANDROID_STRICT=true|false` (default `true`). RADV reports Vulkan 1.1 on Android when true and 1.4 when false.
+  - Changing either one re-runs `setup`: the build directory records its configuration in `anybook-config.txt`.
+- **Into the AOSP tree:** `scripts/graphics-amd-stage-mesa.sh` copies `out/upstream/vendor` (without `libdrm.so`; the image uses AOSP's) to `vendor/anybook/mesa/` with a generated `Android.bp` and `PROVENANCE.txt` (ANAL-174).
 
 ## Pins
 
@@ -45,13 +56,15 @@ The Ubuntu apt packages (glslang, ninja, gcc) follow the 24.04 archive and are n
 Following https://docs.mesa3d.org/android.html. The cross file is generated at `~/anybook/mesa/build/android-x86_64-api37.ini`, with ccache and the NDK clang. The C++ flags come from Mesa's doc: `-fno-exceptions -fno-unwind-tables -fno-asynchronous-unwind-tables -static-libstdc++`.
 
 ```
--Dplatforms=android -Dplatform-sdk-version=37 -Dandroid-stub=true -Dandroid-libbacktrace=disabled -Dandroid-strict=true
+-Dplatforms=android -Dplatform-sdk-version=37 -Dandroid-stub=true -Dandroid-libbacktrace=disabled -Dandroid-strict=$ANDROID_STRICT
 -Dgallium-drivers=radeonsi -Dvulkan-drivers=amd -Dllvm=disabled -Damd-use-llvm=false
 -Degl=enabled -Dgles1=enabled -Dgles2=enabled -Degl-lib-suffix=_mesa -Dgles-lib-suffix=_mesa
--Dgbm=disabled -Dglx=disabled -Dgallium-va=disabled -Dvideo-codecs= -Dallow-fallback-for=libdrm
+-Dgbm=enabled -Dglx=disabled -Dgallium-va=disabled -Dvideo-codecs= -Dallow-fallback-for=libdrm
 -Dxmlconfig=disabled -Dexpat=disabled -Dzstd=disabled -Dvalgrind=disabled -Dlibunwind=disabled -Dlmsensors=disabled
---buildtype=release -Db_ndebug=true --prefix=/vendor --libdir=lib64
+--buildtype=release -Db_ndebug=true --prefix=/vendor --libdir=lib64 --datadir=etc
 ```
+
+ANAL-174 changed three things here: `-Dgbm=enabled` (for minigbm's amdgpu backend), `--datadir=etc` (so `amdgpu.ids` lands where Soong can install it), and the `ANDROID_STRICT` variable. ANAL-173's evidence was built with `-Dgbm=disabled`, the default datadir and `LIBELF=static`.
 
 - **LLVM: not needed.**
   - Mesa 26.x has `-Damd-use-llvm=false`, so radeonsi compiles every shader with ACO, as RADV already does (`meson.build:57,251`).
@@ -67,10 +80,14 @@ Following https://docs.mesa3d.org/android.html. The cross file is generated at `
       - Ship libelf as a shared `libelf.so`.
       - Use elftoolchain's BSD-2-Clause libelf. It covers Mesa's API (`elf_memory`, `elf_getscn`, `elf64_getshdr` and similar), but this is a **hypothesis**, untested.
     - Owner call: see Blocked in STATUS.
+  - **Switch (ANAL-174):** `LIBELF=shared` (now the default) builds the same objects into `libelf_mesa.so`. It has its own SONAME so it can't clash with an AOSP `libelf.so`, and `libgallium_dri.so` and `vulkan.radv.so` load it dynamically. This is the recommended redistribution option. `LIBELF=static` restores the static link.
 - **libdrm: shared, not static.**
   - With `-Dlibdrm:default_library=static`, the radeonsi link fails: `duplicate symbol: handle_table_remove` between libdrm_amdgpu's private `handle_table.c` and Gallium's `u_handle_table.c` (first attempt in `upstream/build.log.gz`).
   - So `libdrm.so` and `libdrm_amdgpu.so` ship next to the drivers. Mesa on Android already names them without version suffixes, as AOSP's `external/libdrm` does. Googlebook's own vendor `libdrm.so` uses the same SONAME.
   - Mesa 26.2 needs libdrm_amdgpu ≥ 2.4.133. Either ship ours or verify the vendor copy.
+  - **In the image (ANAL-174):**
+    - Our libdrm_amdgpu ships as **`libdrm_amdgpu_mesa.so`**. AOSP's `external/libdrm` 2.4.124 owns the `libdrm_amdgpu.so` name and install path, and two rules for one path break the build.
+    - The libdrm core is AOSP's vendor `libdrm.so` 2.4.124. Every libdrm symbol Mesa 26.2.5 and libdrm_amdgpu 2.4.133 import is in it (checked with `nm`).
 - **Android libraries.** `-Dandroid-stub=true` links against Mesa's build-time stubs for `libhardware`, `liblog`, `libnativewindow` and `libsync` (plus `libcutils` in AG). These exist on the device, not in the NDK. `verify` checks every symbol against the real NDK API-37 stubs; see below.
 - **No driconf XML** (`xmlconfig` disabled, so the defaults are compiled in), no zstd (the disk cache uses zlib), no perfetto, no libbacktrace. AG enables xmlconfig on Android in-tree; that needs an expat build and is left for integration.
 
@@ -85,6 +102,12 @@ vendor/lib64/hw/vulkan.radv.so         ro.hardware.vulkan=radv (libvulkan_radeon
 vendor/lib64/libdrm.so, libdrm_amdgpu.so
 vendor/share/libdrm/amdgpu.ids         marketing names; libdrm_amdgpu's compiled-in path
 ```
+
+Since ANAL-174 the layout differs:
+- `libdrm_amdgpu.so` is renamed `libdrm_amdgpu_mesa.so`.
+- `amdgpu.ids` moved to `vendor/etc/libdrm/`.
+- New files: `vendor/lib64/libgbm_mesa.so` (Mesa renames libgbm on Android ≥ 30), `vendor/lib64/gbm/dri_gbm.so` (GBM's DRI backend, at libgbm_mesa's compiled-in backends path) and `vendor/lib64/libelf_mesa.so`.
+- Checksums are in `evidence/2026-10-16-graphics-amd/mesa/`.
 
 Sizes (stripped) and checksums are in `<tree>/sizes.txt` and `<tree>/sha256sums.txt`.
 
@@ -146,6 +169,14 @@ AG's `26.0/main` is upstream `mesa-26.0.8` (merge-base `60e95b78`) plus 63 commi
 The rest is AOSP `Android.mk`/Rust/LLVM-stub glue, plus Intel (crocus), NVIDIA (nouveau/NVK) and VMware work that doesn't affect these drivers. **Recommendation:** use upstream 26.2.x as the base, and cherry-pick only the `os_get_option` split-property patch and the xmlconfig patch at AOSP integration. Upstream already has the modifier fix.
 
 ## Known gaps (ranked)
+
+Status after ANAL-174 (`docs/graphics-amd.md`):
+- **Gap 1 (gralloc)** is closed by option (a): minigbm's amdgpu backend allocates through GBM.
+- **Gap 2 (SELinux)** has its labels in `device/anybook/common/graphics-amd/sepolicy`.
+- **Gap 3 (libdrm)** is resolved: AOSP's libdrm core plus our `libdrm_amdgpu_mesa.so`.
+- **Gap 4 (ANGLE)** is settled: ANGLE on RADV is the default EGL on AMD, and radeonsi is the fallback.
+- **Gap 5 (hardware)** is partly done: the image's drivers ran on the build host's 610M, but not yet on the G14.
+- **New gap:** under `android-strict`, RADV reports Vulkan 1.1.
 
 1. **Gralloc interface (blocks rendering on the device).**
    - An NDK build gets Mesa's `u_gralloc` backends `cros`, `libdrm`, `qcom` and `fallback` only. The IMapper4/IMapper5 backends need `android.hardware.graphics.mapper` / libui, which exist only inside an AOSP tree (`meson.build:1062-1066`).

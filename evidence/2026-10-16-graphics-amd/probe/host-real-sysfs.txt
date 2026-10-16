@@ -1,0 +1,12 @@
+# host build of anybook_gpu_probe on the build host (7950X: Radeon 610M + RTX 4090), real /sys
+$ anybook_gpu_probe --list
+drm card0 driver=amdgpu pci=0000:12:00.0 vendor=0x1002 device=0x164e class=0x030000
+drm card1 driver=nvidia pci=0000:01:00.0 vendor=0x10de device=0x2684 class=0x030000
+pci 0000:01:00.0 driver=nvidia vendor=0x10de device=0x2684 class=0x030000
+pci 0000:12:00.0 driver=amdgpu vendor=0x1002 device=0x164e class=0x030000
+$ anybook_gpu_probe --dry-run
+vendor.anybook.gpu.pci_id=1002:164e
+vendor.anybook.gpu.driver=amdgpu
+vendor.anybook.gpu.source=drm
+vendor.anybook.gpu.others=nvidia
+vendor.anybook.gpu.hal=amdgpu

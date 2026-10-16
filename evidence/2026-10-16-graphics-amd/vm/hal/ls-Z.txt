@@ -1,0 +1,13 @@
+-rwxr-xr-x 1 root shell u:object_r:anybook_gpu_probe_exec:s0    152552 2026-10-16 18:14 /vendor/bin/anybook_gpu_probe
+-rw-r--r-- 1 root root  u:object_r:vendor_configs_file:s0         1704 2026-10-16 17:53 /vendor/etc/init/init.anybook.graphics-amd.rc
+-rw-r--r-- 1 root root  u:object_r:same_process_hal_file:s0      25377 2026-10-16 18:04 /vendor/etc/libdrm/amdgpu.ids
+-rw-r--r-- 1 root root  u:object_r:same_process_hal_file:s0     330584 2026-10-16 18:04 /vendor/lib64/egl/libEGL_mesa.so
+-rw-r--r-- 1 root root  u:object_r:same_process_hal_file:s0      26496 2026-10-16 18:04 /vendor/lib64/egl/libGLESv1_CM_mesa.so
+-rw-r--r-- 1 root root  u:object_r:same_process_hal_file:s0      64992 2026-10-16 18:04 /vendor/lib64/egl/libGLESv2_mesa.so
+-rw-r--r-- 1 root root  u:object_r:same_process_hal_file:s0     149280 2026-10-16 18:04 /vendor/lib64/gbm/dri_gbm.so
+-rw-r--r-- 1 root root  u:object_r:same_process_hal_file:s0      52432 2026-10-16 18:04 /vendor/lib64/hw/gralloc.minigbm.so
+-rw-r--r-- 1 root root  u:object_r:same_process_hal_file:s0   18647265 2026-10-16 18:04 /vendor/lib64/hw/vulkan.radv.so
+-rw-r--r-- 1 root root  u:object_r:same_process_hal_file:s0      48401 2026-10-16 18:04 /vendor/lib64/libdrm_amdgpu_mesa.so
+-rw-r--r-- 1 root root  u:object_r:same_process_hal_file:s0     112688 2026-10-16 18:04 /vendor/lib64/libelf_mesa.so
+-rw-r--r-- 1 root root  u:object_r:same_process_hal_file:s0   24798945 2026-10-16 18:04 /vendor/lib64/libgallium_dri.so
+-rw-r--r-- 1 root root  u:object_r:same_process_hal_file:s0      13552 2026-10-16 18:04 /vendor/lib64/libgbm_mesa.so

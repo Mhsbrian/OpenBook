@@ -156,7 +156,8 @@ COMPAT_AVD=anybook-digitalis COMPAT_EMU_ARGS=-writable-system scripts/compat/run
 docker build -t anybook-cuttlefish -f tools/Dockerfile.cuttlefish tools/     # pinned Cuttlefish image + Mesa Vulkan
 AOSP_JOBS=32 scripts/aosp-docker.sh -d anybook-aosp-build /repo/scripts/aosp-build.sh anybook_cf_x86_64_pc-cp2a-userdebug
 docker wait anybook-aosp-build          # copies device/anybook into the tree; 13–25 min incremental on top of M1b
-CF_GPU=amd CF_GPU_MODE=gfxstream_guest_angle scripts/cf-boot.sh   # boots on the Radeon iGPU; CF_GPU=nvidia also works
+CF_GPU=amd CF_GPU_MODE=gfxstream_guest_angle CF_DEVICE=anybook_vsoc_x86_64 scripts/cf-boot.sh   # Radeon iGPU; CF_GPU=nvidia also works
+# (CF_DEVICE since ANAL-174: the product's images are in out/target/product/anybook_vsoc_x86_64)
 ```
 
 - `scripts/desktop-capture.sh` captures the screenshots and windowing/SurfaceFlinger dumps.
@@ -174,3 +175,18 @@ scripts/installer/proto-matrix.sh cf-pc-20261016 matrix-20261016   # GRUB, syste
 - Builds GPT "USB stick" images from image files (no root, no real disk) and boots them in QEMU/KVM + OVMF.
 - The GBL variants need `gbl_x86_64_dev.efi` from ci.android.com (see `docs/installer.md` §9).
 - Logs are in `~/anybook/logs/installer/<run>/`. The design and results are in `docs/installer.md`.
+
+## AMD graphics in the device tree (ANAL-174)
+
+```bash
+scripts/mesa-android-build.sh fetch deps setup build install verify -- upstream   # LIBELF=shared, ANDROID_STRICT=true by default
+scripts/graphics-amd-stage-mesa.sh              # Mesa prebuilts -> ~/anybook/aosp/src/vendor/anybook/mesa (never committed)
+AOSP_JOBS=24 scripts/aosp-docker.sh -d anybook-aosp-build /repo/scripts/aosp-build.sh anybook_cf_x86_64_pc-cp2a-userdebug
+docker wait anybook-aosp-build                  # also applies aosp/patches/* (scripts/aosp-patches.sh)
+scripts/amd-android-hwtest.sh                   # the image's RADV/radeonsi/minigbm on this host's AMD GPU
+scripts/minigbm-amdgpu-host-test.sh             # minigbm amdgpu backend, Linux build, same GPU
+```
+
+- Without the staged Mesa, `graphics-amd.mk` stops the build with a message that names the two scripts above.
+- `scripts/aosp-patches.sh` applies AnyBook's AOSP patches on top of each project's pinned revision (`evidence/2026-10-15-aosp/manifest-pinned.xml.gz`). It is idempotent, and `--export PROJECT` writes edited commits back.
+- See `docs/graphics-amd.md`.

@@ -1,0 +1,12 @@
+[   20.497869] init: processing action (vendor.anybook.gpu.hal=amdgpu) from (/vendor/etc/init/init.anybook.graphics-amd.rc:28)
+[   20.498330] init: Unable to set property 'ro.hardware.vulkan' from uid:0 gid:0 pid:127: Read-only property was already set
+[   20.498563] init: Unable to set property 'ro.hardware.egl' from uid:0 gid:0 pid:127: Read-only property was already set
+[   20.498687] init: Unable to set property 'ro.hardware.gralloc' from uid:0 gid:0 pid:127: Read-only property was already set
+[   20.498828] init: Unable to set property 'ro.hardware.hwcomposer' from uid:0 gid:0 pid:127: Read-only property was already set
+[   20.499039] init: Unable to set property 'ro.opengles.version' from uid:0 gid:0 pid:127: Read-only property was already set
+[ro.hardware.egl]: [angle]
+[ro.hardware.gralloc]: [minigbm]
+[ro.hardware.hwcomposer]: [ranchu]
+[ro.hardware.vulkan]: [ranchu]
+[ro.opengles.version]: [196609]
+[vendor.anybook.gpu.hal]: [amdgpu]

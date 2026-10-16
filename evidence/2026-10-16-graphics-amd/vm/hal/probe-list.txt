@@ -1,0 +1,2 @@
+drm card0 driver=virtio-pci pci=0000:00:02.0 vendor=0x1af4 device=0x1050 class=0x038000
+pci 0000:00:02.0 driver=virtio-pci vendor=0x1af4 device=0x1050 class=0x038000

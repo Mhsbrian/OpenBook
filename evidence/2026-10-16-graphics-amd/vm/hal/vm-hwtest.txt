@@ -1,0 +1,15 @@
+vulkan: HAL "Mesa 3D Vulkan HAL" opened
+vulkan: vkCreateInstance(1.3) = 0
+vulkan: vkEnumeratePhysicalDevices = 0, 0 device(s)
+vulkan: FAIL
+virtio_gpu: driver missing
+virtio_gpu: driver missing
+gles: eglInitialize(surfaceless) failed: 0x3001
+gles: FAIL
+gralloc: minigbm backend "virtgpu_virgl"
+gralloc: GPU-only (tiled via GBM): 1000x600 modifier 0x0000000000000000 planes 1 stride 4000 size 2400000 swizzle mode 0
+gralloc: GPU-only (tiled via GBM): wrote a pattern through one mapping, 600000 pixels wrong through a second
+gralloc: CPU (linear): 1000x600 modifier 0x0000000000000000 planes 1 stride 4000 size 2400000 swizzle mode 0
+gralloc: CPU (linear): wrote a pattern through one mapping, 0 pixels wrong through a second
+gralloc: FAIL
+result: FAIL

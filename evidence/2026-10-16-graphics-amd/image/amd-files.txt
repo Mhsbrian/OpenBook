@@ -1,0 +1,27 @@
+# AMD graphics files in out/target/product/anybook_vsoc_x86_64 (ANAL-174 build): bytes, sha256 prefix
+    152552  0a5724dd2b9693fa  vendor/bin/anybook_gpu_probe
+      1704  62b498ddae6e03c1  vendor/etc/init/init.anybook.graphics-amd.rc
+     25377  ffd2a8f1bfa755f4  vendor/etc/libdrm/amdgpu.ids
+    330584  bedba7a813b25856  vendor/lib64/egl/libEGL_mesa.so
+     26496  233c0c0721d649e9  vendor/lib64/egl/libGLESv1_CM_mesa.so
+     64992  5bdf683ee7761708  vendor/lib64/egl/libGLESv2_mesa.so
+    149280  9f85a7c1fe925005  vendor/lib64/gbm/dri_gbm.so
+  18647265  4b7ab5a2ba93c363  vendor/lib64/hw/vulkan.radv.so
+     52432  1d92a1a9171b5e09  vendor/lib64/hw/gralloc.minigbm.so
+    170112  64e390e2b7ed25a6  vendor/lib64/hw/mapper.minigbm.so
+    117360  ce489f5792a52869  vendor/lib64/libdrm.so
+     48401  1deb4f6bfca61d9c  vendor/lib64/libdrm_amdgpu_mesa.so
+    112688  5f491b5d06eb9bc4  vendor/lib64/libelf_mesa.so
+  24798945  2c225901361b579b  vendor/lib64/libgallium_dri.so
+     13552  d0b492772d39595f  vendor/lib64/libgbm_mesa.so
+    135312  a6ec9619da6c2aa9  vendor/lib64/libminigbm_gralloc.so
+    729848  20c3d6b6e65ebf6a  system/lib64/libEGL_angle.so
+   6386664  e8271f38af37e1df  system/lib64/libGLESv2_angle.so
+
+# libminigbm_gralloc.so carries the amdgpu backend (strings):
+amdgpu: no DRI allocator, linear buffers only
+debug.minigbm.amdgpu.linear_only
+libgbm_mesa.so
+
+# The VM's allocator APEX, built from the same patched minigbm:
+com.google.cf.gralloc.apex

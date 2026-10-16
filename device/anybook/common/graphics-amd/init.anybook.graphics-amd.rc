@@ -1,0 +1,33 @@
+# Copyright (C) 2026 The AnyBook Authors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Graphics HAL selection for the GPU this boot runs on (docs/graphics-amd.md).
+# anybook_gpu_probe reads /sys/class/drm and /sys/bus/pci at early-init and publishes
+# vendor.anybook.gpu.{pci_id,driver,source,others,hal}.
+#   hal=amdgpu  AMD GPU (bound to amdgpu, or a display controller amdgpu has not bound yet):
+#               the properties below.
+#   hal=virtio  virtio-gpu: nothing here. VM products configure their virtual GPU themselves
+#               (Cuttlefish: androidboot.hardware.* from the launcher, init_graphics.vendor.rc).
+#   hal=none    no supported GPU: nothing here.
+# Gralloc needs no switch: minigbm picks its backend from the DRM driver name (amdgpu, virtio_gpu).
+
+service vendor.anybook-gpu-probe /vendor/bin/anybook_gpu_probe
+    user system
+    group system
+    oneshot
+    disabled
+    stdio_to_kmsg
+
+on early-init
+    exec_start vendor.anybook-gpu-probe
+
+# Vulkan: Mesa RADV. GLES: ANGLE on RADV (as on Google's own desktop builds); radeonsi stays
+# installed as the fallback, e.g. `setprop persist.graphics.egl mesa` or androidboot.hardware.egl=mesa.
+# Gralloc0 (gralloc.minigbm) serves Mesa's "cros" buffer-info queries. Composer: drm_hwcomposer.
+# A value the bootloader passes as androidboot.hardware.* still wins.
+on property:vendor.anybook.gpu.hal=amdgpu
+    setprop ro.hardware.vulkan ${ro.boot.hardware.vulkan:-radv}
+    setprop ro.hardware.egl ${ro.boot.hardware.egl:-angle}
+    setprop ro.hardware.gralloc ${ro.boot.hardware.gralloc:-minigbm}
+    setprop ro.hardware.hwcomposer ${ro.boot.hardware.hwcomposer:-drm}
+    setprop ro.opengles.version ${ro.boot.opengles.version:-196610}

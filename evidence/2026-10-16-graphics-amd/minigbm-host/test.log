@@ -1,0 +1,48 @@
+Failed to create //.cache for shader cache (Permission denied)---disabling.
+EGL 1.5, GL_RENDERER: AMD Ryzen 9 7950X 16-Core Processor (radeonsi, raphael_mendocino, ACO, DRM 3.64, 7.2.8-5-omarchy-bore)
+allocations (backend amdgpu):
+Failed to create //.cache for shader cache (Permission denied)---disabling.
+  app window (GPU+scanout)   1920x1080 AB24 mod=0x00ffffffffffffff planes=1 [stride=7680 off=0] size=8847360 swizzle=27 tiling=0
+  client target 2880x1800    2880x1800 XB24 mod=0x00ffffffffffffff planes=1 [stride=11776 off=0] size=22609920 swizzle=27 tiling=0
+  texture RGB565              512x512  RG16 mod=0x00ffffffffffffff planes=1 [stride=1024 off=0] size=528384 swizzle=27 tiling=0
+  HDR ABGR2101010            1920x1080 AB30 mod=0x00ffffffffffffff planes=1 [stride=7680 off=0] size=8847360 swizzle=27 tiling=0
+  FP16 ABGR16161616F         1920x1080 AB4H mod=0x00ffffffffffffff planes=1 [stride=15360 off=0] size=16793600 swizzle=27 tiling=0
+  CPU-drawn ABGR8888         1280x720  AB24 mod=0x0000000000000000 planes=1 [stride=5120 off=0] size=3686400 swizzle=0 tiling=0
+  camera NV12                1920x1080 NV12 mod=0x0000000000000000 planes=2 [stride=2048 off=0] [stride=2048 off=2211840] size=3317760 swizzle=0 tiling=0
+  video decode P010          3840x2160 P010 mod=0x0000000000000000 planes=2 [stride=7680 off=0] [stride=7680 off=16588800] size=24883200 swizzle=0 tiling=0
+[minigbm:amdgpu_create_bo_linear(572)] allocating 640x480 YV12 bo (usage 0xa20) with bad strides  YV12 (CPU)                  640x480  9997 mod=0x0000000000000000 planes=3 [stride=768 off=0] [stride=512 off=368640] [stride=512 off=491520] size=614400 swizzle=0 tiling=0
+  BLOB R8 64 KiB             65536x1    R8   mod=0x0000000000000000 planes=1 [stride=65536 off=0] size=65536 swizzle=0 tiling=0
+tiled round trip 1000x600:
+  GPU buffer                 1000x600  AB24 mod=0x00ffffffffffffff planes=1 [stride=4096 off=0] size=2621440 swizzle=27 tiling=0
+Failed to create //.cache for shader cache (Permission denied)---disabling.
+  B mapped it: map stride 4096 (buffer stride 4096)
+linear round trip 777x333:
+  CPU buffer                  777x333  AB24 mod=0x0000000000000000 planes=1 [stride=3328 off=0] size=1108224 swizzle=0 tiling=0
+lifetimes:
+  ok: double import, destroy with a live mapping
+
+== debug.minigbm.amdgpu.linear_only=1
+[minigbm:dri_init(220)] amdgpu: debug.minigbm.amdgpu.linear_only is set
+[minigbm:amdgpu_init(393)] amdgpu: no DRI allocator, linear buffers only
+[minigbm:dri_init(220)] amdgpu: debug.minigbm.amdgpu.linear_only is set
+[minigbm:amdgpu_init(393)] amdgpu: no DRI allocator, linear buffers only
+allocations (backend amdgpu, linear-only):
+  app window (GPU+scanout)   1920x1080 AB24 mod=0x0000000000000000 planes=1 [stride=7680 off=0] size=8294400 swizzle=0 tiling=0
+  client target 2880x1800    2880x1800 XB24 mod=0x0000000000000000 planes=1 [stride=11520 off=0] size=20736000 swizzle=0 tiling=0
+  texture RGB565              512x512  RG16 mod=0x0000000000000000 planes=1 [stride=1024 off=0] size=524288 swizzle=0 tiling=0
+  HDR ABGR2101010            1920x1080 AB30 mod=0x0000000000000000 planes=1 [stride=7680 off=0] size=8294400 swizzle=0 tiling=0
+  FP16 ABGR16161616F         1920x1080 AB4H mod=0x0000000000000000 planes=1 [stride=15360 off=0] size=16588800 swizzle=0 tiling=0
+  CPU-drawn ABGR8888         1280x720  AB24 mod=0x0000000000000000 planes=1 [stride=5120 off=0] size=3686400 swizzle=0 tiling=0
+  camera NV12                1920x1080 NV12 mod=0x0000000000000000 planes=2 [stride=2048 off=0] [stride=2048 off=2211840] size=3317760 swizzle=0 tiling=0
+  video decode P010          3840x2160 P010 mod=0x0000000000000000 planes=2 [stride=7680 off=0] [stride=7680 off=16588800] size=24883200 swizzle=0 tiling=0
+[minigbm:amdgpu_create_bo_linear(572)] allocating 640x480 YV12 bo (usage 0xa20) with bad strides  YV12 (CPU)                  640x480  9997 mod=0x0000000000000000 planes=3 [stride=768 off=0] [stride=512 off=368640] [stride=512 off=491520] size=614400 swizzle=0 tiling=0
+  BLOB R8 64 KiB             65536x1    R8   mod=0x0000000000000000 planes=1 [stride=65536 off=0] size=65536 swizzle=0 tiling=0
+tiled round trip 1000x600:
+  GPU buffer                 1000x600  AB24 mod=0x0000000000000000 planes=1 [stride=4096 off=0] size=2457600 swizzle=0 tiling=0
+  B mapped it: map stride 4096 (buffer stride 4096)
+linear round trip 777x333:
+  CPU buffer                  777x333  AB24 mod=0x0000000000000000 planes=1 [stride=3328 off=0] size=1108224 swizzle=0 tiling=0
+lifetimes:
+  ok: double import, destroy with a live mapping
+
+result: PASS (0 failures)

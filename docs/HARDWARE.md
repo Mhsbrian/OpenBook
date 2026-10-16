@@ -72,7 +72,7 @@ It writes `anybook-hw-<board>-<date>.tar.gz`, with serials, UUIDs and MAC addres
 
 | Area | Kernel / driver | Userspace | Status |
 |---|---|---|---|
-| GPU | amdgpu, linux-firmware `amdgpu/*` | Mesa radeonsi/RADV, minigbm, drm_hwcomposer, ANGLE | Kernel module and firmware list built, loads in a VM (ANAL-171); untested on hardware |
+| GPU | amdgpu, linux-firmware `amdgpu/*` | Mesa radeonsi/RADV, minigbm, drm_hwcomposer, ANGLE | Kernel module and firmware list built, loads in a VM (ANAL-171). Userspace is in the image and picked at boot; its drivers ran on the build host's 610M (ANAL-174, `docs/graphics-amd.md`). Untested on the 890M |
 | CPU power | amd-pstate (EPP) | power HAL | Built into the stock kernel (`X86_AMD_PSTATE=y`) |
 | Suspend | amd_pmc (s2idle) | system_suspend | Module built (ANAL-171); untested |
 | Touchpad / touch | i2c-hid-acpi, pinctrl-amd, hid-multitouch | — | `PINCTRL_AMD=y` and `X86_AMD_PLATFORM_DEVICE=y` in AnyBook GKI, i2c-designware/i2c-hid-acpi modules (ANAL-171); untested |

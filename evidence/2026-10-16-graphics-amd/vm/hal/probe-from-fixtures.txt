@@ -1,0 +1,48 @@
+== cuttlefish-virtio.txt
+vendor.anybook.gpu.pci_id=1af4:1050
+vendor.anybook.gpu.driver=virtio-pci
+vendor.anybook.gpu.source=drm
+vendor.anybook.gpu.others=
+vendor.anybook.gpu.hal=virtio
+== g14-ga403wr-early.txt
+vendor.anybook.gpu.pci_id=1002:150e
+vendor.anybook.gpu.driver=unbound
+vendor.anybook.gpu.source=pci
+vendor.anybook.gpu.others=
+vendor.anybook.gpu.hal=amdgpu
+== g14-ga403wr.txt
+vendor.anybook.gpu.pci_id=1002:150e
+vendor.anybook.gpu.driver=amdgpu
+vendor.anybook.gpu.source=drm
+vendor.anybook.gpu.others=
+vendor.anybook.gpu.hal=amdgpu
+== host-7950x-rtx4090.txt
+vendor.anybook.gpu.pci_id=1002:164e
+vendor.anybook.gpu.driver=amdgpu
+vendor.anybook.gpu.source=drm
+vendor.anybook.gpu.others=nvidia
+vendor.anybook.gpu.hal=amdgpu
+== no-gpu.txt
+vendor.anybook.gpu.pci_id=
+vendor.anybook.gpu.driver=
+vendor.anybook.gpu.source=
+vendor.anybook.gpu.others=
+vendor.anybook.gpu.hal=none
+== nvidia-only.txt
+vendor.anybook.gpu.pci_id=
+vendor.anybook.gpu.driver=
+vendor.anybook.gpu.source=
+vendor.anybook.gpu.others=nvidia
+vendor.anybook.gpu.hal=none
+== radeon-legacy.txt
+vendor.anybook.gpu.pci_id=
+vendor.anybook.gpu.driver=
+vendor.anybook.gpu.source=
+vendor.anybook.gpu.others=amd
+vendor.anybook.gpu.hal=none
+== vm-amd-vfio-virtio.txt
+vendor.anybook.gpu.pci_id=1af4:1050
+vendor.anybook.gpu.driver=virtio_gpu
+vendor.anybook.gpu.source=drm
+vendor.anybook.gpu.others=amd
+vendor.anybook.gpu.hal=virtio

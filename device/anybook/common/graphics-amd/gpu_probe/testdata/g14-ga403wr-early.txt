@@ -1,0 +1,2 @@
+# The G14 at early-init if amdgpu.ko has not bound yet: only the PCI display controller is visible.
+pci 0000:65:00.0 driver=- vendor=0x1002 device=0x150e class=0x038000

@@ -1,0 +1,5 @@
+vendor.anybook.gpu.pci_id=1af4:1050
+vendor.anybook.gpu.driver=virtio-pci
+vendor.anybook.gpu.source=drm
+vendor.anybook.gpu.others=
+vendor.anybook.gpu.hal=virtio
