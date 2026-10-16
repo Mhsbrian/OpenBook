@@ -5,10 +5,12 @@ playing the laptop's internal drive. Logs the serial console, can type into it, 
 timeout. Runs inside the openbook-installer container. Image files only; never a host block device.
 
 usage: qemu-run.py --usb IMG [--nvme IMG] --out DIR [--timeout S] [--expect STEPS.json] [--shot SECONDS ...]
-                   [--mem MiB] [--smp N] [--vars FILE] [--pause-on-reset] [--vga MODEL] [--trace]
+                   [--mem MiB] [--smp N] [--vars FILE] [--pause-on-reset] [--vga MODEL] [--gpu DEVICE]
+                   [--usb-input] [--tpm] [--trace]
 
-STEPS.json: [{"wait": "regex", "timeout": 120}, {"send": "text\\n"}, ...]; steps run in order on the serial
-stream. The run ends when the steps are done (plus --linger seconds), the guest powers off, or --timeout hits.
+STEPS.json: [{"wait": "regex", "timeout": 120}, {"send": "text\\n"}, {"shot": "name"}, ...]; steps run in order
+on the serial stream; "shot" saves the screen as DIR/shot-<name>.png at that point. The run ends when the steps
+are done (plus --linger seconds), the guest powers off, or --timeout hits.
 Writes DIR/serial.log, DIR/qemu.log, DIR/result.json and DIR/shot-<t>.png.
 """
 import argparse
@@ -62,6 +64,10 @@ def main():
     ap.add_argument("--vars", help="OVMF vars file to use (kept, so NVRAM persists across runs)")
     ap.add_argument("--pause-on-reset", action="store_true")
     ap.add_argument("--vga", default="std", help="QEMU -vga model; 'none' leaves the serial port as the only console")
+    ap.add_argument("--gpu", help="display device instead of -vga, e.g. virtio-vga,xres=1920,yres=1200")
+    ap.add_argument("--usb-input", action="store_true", help="add a USB keyboard and tablet on the xHCI bus")
+    ap.add_argument("--tpm", action="store_true",
+                    help="TPM 2.0 on CRB (ACPI MSFT0101, like a Pluton/fTPM laptop), backed by swtpm in DIR/tpm")
     ap.add_argument("--trace", action="store_true", help="log CPU resets and guest errors to DIR/qemu-debug.log")
     args = ap.parse_args()
 
@@ -91,9 +97,19 @@ def main():
            "-device", "qemu-xhci,id=xhci",
            "-drive", f"if=none,id=stick,format=raw,cache=unsafe,file={args.usb}",
            "-device", "usb-storage,bus=xhci.0,drive=stick,removable=on,bootindex=1",
-           "-vga", args.vga, "-display", "none",
+           "-display", "none",
            "-chardev", f"pipe,id=ser0,path={ser_base}", "-serial", "chardev:ser0",
            "-monitor", f"unix:{mon_path},server=on,wait=off"]
+    cmd += ["-vga", "none", "-device", args.gpu] if args.gpu else ["-vga", args.vga]
+    if args.usb_input:
+        cmd += ["-device", "usb-kbd,bus=xhci.0", "-device", "usb-tablet,bus=xhci.0"]
+    if args.tpm:  # swtpm exits by itself when QEMU closes the control socket (--terminate)
+        tpm_dir, tpm_sock = f"{args.out}/tpm", f"{args.out}/swtpm.sock"
+        os.makedirs(tpm_dir, exist_ok=True)
+        subprocess.run(["swtpm", "socket", "--tpm2", "--tpmstate", f"dir={tpm_dir}", "--ctrl",
+                        f"type=unixio,path={tpm_sock}", "--terminate", "--daemon"], check=True)
+        cmd += ["-chardev", f"socket,id=chrtpm,path={tpm_sock}", "-tpmdev", "emulator,id=tpm0,chardev=chrtpm",
+                "-device", "tpm-crb,tpmdev=tpm0"]
     if args.nvme:
         cmd += ["-drive", f"if=none,id=internal,format=raw,cache=unsafe,file={args.nvme}",
                 "-device", "nvme,drive=internal,serial=internal0,bootindex=2"]
@@ -143,6 +159,10 @@ def main():
             monitor(f"screendump {args.out}/shot-{int(t)}.ppm")
         while step_i < len(steps):
             st = steps[step_i]
+            if "shot" in st:
+                monitor(f"screendump {args.out}/shot-{st['shot']}.ppm")
+                step_i, step_t0 = step_i + 1, now
+                continue
             if "send" in st:
                 for ch in st["send"]:  # slow typing: the guest console has no flow control
                     os.write(ser_wr, ch.encode())

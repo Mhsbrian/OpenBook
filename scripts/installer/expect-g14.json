@@ -1,0 +1,206 @@
+[
+ {
+  "wait": "init: init first stage started",
+  "timeout": 120
+ },
+ {
+  "wait": "init: init second stage started",
+  "timeout": 120
+ },
+ {
+  "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+  "timeout": 300
+ },
+ {
+  "send": "\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 120
+ },
+ {
+  "send": "su 0 dmesg -n 1\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "i=0; while [ \"$(getprop sys.boot_completed)\" != 1 ] && [ $i -lt 900 ]; do sleep 3; i=$((i+3)); done; echo BOOTDONE=$(getprop sys.boot_completed) uptime=$(cut -d' ' -f1 /proc/uptime)\n"
+ },
+ {
+  "wait": "BOOTDONE=\\S* uptime=[0-9.]+",
+  "timeout": 960
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "sleep 20\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "shot": "boot-completed"
+ },
+ {
+  "send": "echo ===PROPS-BEGIN===; getprop | grep -E '^.(ro.build.(fingerprint|version.release)|ro.product.(device|model|name|cpu.abilist)|ro.boot.(slot_suffix|verifiedbootstate|boot_part_uuid|hardware|boot_devices|vbmeta|veritymode|openbook|lcd_density|serialno)|ro.hardware|vendor.anybook|vendor.openbook|ro.sf.lcd_density|ro.opengles|sys.boot_completed|ro.boottime|init.svc.vendor|init.svc.(console|surfaceflinger)|dev.bootcomplete|ro.crypto)'; echo ===PROPS-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "echo ===BOOTCONFIG-BEGIN===; su 0 cat /proc/bootconfig; echo ===BOOTCONFIG-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "echo ===CMDLINE-BEGIN===; cat /proc/cmdline; echo ===CMDLINE-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "echo ===BYNAME-BEGIN===; su 0 ls -l /dev/block/by-name; echo ===BYNAME-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "echo ===MOUNTS-BEGIN===; su 0 grep -E ' /(system|vendor|vendor_dlkm|system_dlkm|data|metadata|product|system_ext) ' /proc/mounts; su 0 df -h /data /metadata; echo ===MOUNTS-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "echo ===MODULES-BEGIN===; su 0 cat /proc/modules | wc -l; su 0 cat /proc/modules | cut -d' ' -f1 | sort | tr '\\n' ' '; echo; cat /proc/sys/kernel/tainted; echo ===MODULES-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "echo ===PROBE-BEGIN===; su 0 dmesg | grep -E 'anybook_gpu_probe|openbook-pc-setup|modprobe|virtio_gpu|virtio-pci|\\[drm\\]|Boot device|vbmeta digest' | head -80; echo ===PROBE-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "echo ===AVC-BEGIN===; su 0 dmesg | grep -c 'avc:  denied'; su 0 dmesg | grep 'avc:  denied' | sed -E 's/.*avc:  denied  (\\{[^}]*\\}).*scontext=u:r:([a-z0-9_]+):s0.*tcontext=u:object_r:([a-z0-9_]+):s0.*tclass=([a-z_]+).*/\\1 \\2 \\3 \\4/' | sort | uniq -c | sort -rn | head -40; echo ===AVC-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 90
+ },
+ {
+  "send": "echo ===SERVICES-BEGIN===; service list | grep -E 'light|power|thermal|usb|weaver|keymint|gatekeeper|health|boot|composer|allocator|memtrack|authsecret|audio|sharedsecret|secureclock'; echo ===SERVICES-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "echo ===VINTF-BEGIN===; su 0 lshal -i --types=aidl 2>/dev/null | grep -E 'light|power|thermal|usb|weaver|keymint|gatekeeper|health|boot|composer|allocator' | head -30; echo ===VINTF-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "echo ===SF-BEGIN===; dumpsys SurfaceFlinger | grep -E 'GLES:|Display [0-9]+|HWC display|composer|present' | head -20; dumpsys SurfaceFlinger --display-id; echo ===SF-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "echo ===WINDOW-BEGIN===; dumpsys window displays | grep -E 'mDisplayInfo|mWindowingMode|cur=|app=' | head -12; dumpsys input | grep -E 'Device [0-9]+:|Classes:|IsExternal' | head -24; echo ===WINDOW-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "echo ===FEATURES-BEGIN===; pm list features | grep -E 'type.pc|vulkan|opengles|freeform|verified_boot|usb.host|hardware_keystore'; echo ===FEATURES-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "echo ===HALS-BEGIN===; dumpsys thermalservice | head -40; dumpsys lights | head -12; dumpsys battery | head -14; echo ===HALS-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "echo ===KEYSTORE-BEGIN===; su 0 dmesg | grep -iE 'keymint|keystore2|gatekeeper|weaver' | head -20; getprop | grep -E 'keystore|keymint' | head; echo ===KEYSTORE-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "echo ===DGPU-BEGIN===; su 0 sh /vendor/bin/dgpu-power-check; echo exit=$?; su 0 /vendor/bin/openbook-pc-setup dgpu-pm; echo exit=$?; echo ===DGPU-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 90
+ },
+ {
+  "send": "echo ===DGPU-FIXTURES-BEGIN===; su 0 sh -c 'TMPDIR=/data/local/tmp sh /vendor/bin/openbook-pc-setup-test sh /vendor/bin/openbook-pc-setup'; echo exit=$?; echo ===DGPU-FIXTURES-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 120
+ },
+ {
+  "send": "echo ===LOCKSCREEN-BEGIN===; locksettings set-pin 1234; locksettings verify --old 1234; su 0 ls -l /data/vendor/weaver; echo ===LOCKSCREEN-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 120
+ },
+ {
+  "send": "su 0 sync\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "echo ===DISPLAY-BEGIN===; getprop init.svc.bootanim; getprop service.bootanim.exit; dumpsys activity activities | grep -E 'ResumedActivity|mFocusedApp' | head -4; dumpsys window | grep -E 'mCurrentFocus|mFocusedApp' | head -3; echo ===DISPLAY-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "echo ===LOGCAT-BEGIN===; su 0 logcat -d -b all | gzip | base64; echo ===LOGCAT-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 300
+ },
+ {
+  "send": "echo ===DMESG-BEGIN===; su 0 dmesg | gzip | base64; echo ===DMESG-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 120
+ },
+ {
+  "send": "su 0 sync; su 0 reboot -p\n"
+ }
+]
