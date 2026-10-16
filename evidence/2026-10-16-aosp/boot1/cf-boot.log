@@ -1,0 +1,37 @@
+=== 2026-10-16T13:17:28Z stage /home/hive/anybook/aosp/src/out/target/product/vsoc_x86_64_only -> /home/hive/anybook/aosp/cf/product (top-level files, reflink)
+=== 2026-10-16T13:17:28Z up: us-docker.pkg.dev/android-cuttlefish-artifacts/cuttlefish-orchestration/cuttlefish-orchestration:1.56.0@sha256:ecdb337615c719ed62e12593f7931a313d7c15a99a919e69fd87510e14a249e6
+cvd(349)  I 10-16 13:17:31   349   349 main.cc:137] version: 1.57.0 | VCS: 9bb9c72329cedcb436bb75afc05c24d73fbcdf5d
+version: 1.57.0
+VCS: 9bb9c72329cedcb436bb75afc05c24d73fbcdf5d
+=== 2026-10-16T13:17:31Z unpack cvd-host_package.tar.gz -> /root/cvd-host
+=== 2026-10-16T13:17:45Z cvd create --host_path=/root/cvd-host --product_path=/cf/product --x_res=1920 --y_res=1080 --dpi=160 --gpu_mode=guest_swiftshader --cpus=4 --memory_mb=8192 --report_anonymous_usage_stats=n
+=== 2026-10-16T13:18:14Z cvd create exit 0 after 29 s
+=== 2026-10-16T13:18:19Z wait for sys.boot_completed
+=== 2026-10-16T13:18:22Z sys.boot_completed=1 at +37 s from cvd create
+=== 2026-10-16T13:18:22Z capture -> /home/hive/anybook/logs/aosp/cf-20261016T131728Z
+/home/hive/anybook/logs/aosp/cf-20261016T131728Z/screen.png: PNG image data, 1920 x 1080, 8-bit/color RGBA, non-interlaced
+[sys.boot_completed]: [1]
+[ro.build.fingerprint]: [generic/aosp_cf_x86_64_pc/vsoc_x86_64_only:17/CP2A.260605.016/eng.builde:userdebug/test-keys]
+[ro.build.id]: [CP2A.260605.016]
+[ro.build.version.release]: [17]
+[ro.build.version.sdk]: [37]
+[ro.build.type]: [userdebug]
+[ro.build.characteristics]: [default]
+[ro.product.model]: [Cuttlefish x86_64 pc]
+[ro.product.device]: [vsoc_x86_64_only]
+[ro.hardware]: [cutf_cvm]
+[ro.product.cpu.abi]: [x86_64]
+[ro.product.cpu.abilist]: [x86_64,arm64-v8a]
+[ro.product.cpu.abilist64]: [x86_64,arm64-v8a]
+[ro.product.cpu.abilist32]: []
+[ro.dalvik.vm.native.bridge]: [0]
+[ro.enable.native.bridge.exec]: []
+[ro.dalvik.vm.isa.arm64]: []
+[ro.dalvik.vm.isa.arm]: []
+[ro.boot.hardware.gltransport]: []
+[ro.hardware.egl]: [angle]
+[ro.hardware.vulkan]: [pastel]
+[ro.boot.verifiedbootstate]: [orange]
+[ro.kernel.version]: [6.12]
+[persist.sys.device_provisioned]: [1]
+=== 2026-10-16T13:19:48Z down

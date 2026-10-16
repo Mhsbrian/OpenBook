@@ -1,0 +1,18 @@
+== probe-x86_64
+install: Success
+pkg: dev.anybook.probe.x86_64
+    primaryCpuAbi=x86_64
+    secondaryCpuAbi=null
+Status: ok
+LaunchState: COLD
+PROBE_DONE pass=17 fail=0 skip=2
+== probe-arm64
+install: Success
+pkg: dev.anybook.probe.arm64
+    primaryCpuAbi=arm64-v8a
+    secondaryCpuAbi=null
+Status: ok
+LaunchState: COLD
+PROBE_DONE pass=0 fail=1 skip=0
+10-16 13:19:33.813  4156  4179 D nativeloader: Load /data/app/~~QcRMeRlm4OnjWQpbiW5DpQ==/dev.anybook.probe.arm64-QpZdJJ3ykX-kkb6UKug3nw==/lib/arm64/libprobe.so using class loader ns clns-9 (caller=/data/app/~~QcRMeRlm4OnjWQpbiW5DpQ==/dev.anybook.probe.arm64-QpZdJJ3ykX-kkb6UKug3nw==/base.apk): dlopen failed: "/data/app/~~QcRMeRlm4OnjWQpbiW5DpQ==/dev.anybook.probe.arm64-QpZdJJ3ykX-kkb6UKug3nw==/lib/arm64/libprobe.so" is for EM_AARCH64 (183) instead of EM_X86_64 (62)
+10-16 13:19:33.813  4156  4179 I AnyBookProbe: PROBE_RESULT load FAIL java.lang.UnsatisfiedLinkError: dlopen failed: "/data/app/~~QcRMeRlm4OnjWQpbiW5DpQ==/dev.anybook.probe.arm64-QpZdJJ3ykX-kkb6UKug3nw==/lib/arm64/libprobe.so" is for EM_AARCH64 (183) instead of EM_X86_64 (62)
