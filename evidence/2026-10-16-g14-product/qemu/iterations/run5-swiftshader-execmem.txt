@@ -1,0 +1,4 @@
+10-16 21:45:29.756   666   666 I auditd  : type=1400 audit(0.0:9): avc:  denied  { execmem } for  comm="surfaceflinger" scontext=u:r:surfaceflinger:s0 tcontext=u:r:surfaceflinger:s0 tclass=process permissive=0
+10-16 21:45:29.772   666   666 I auditd  : type=1400 audit(0.0:10): avc:  denied  { execmem } for  comm="surfaceflinger" scontext=u:r:surfaceflinger:s0 tcontext=u:r:surfaceflinger:s0 tclass=process permissive=0
+10-16 21:45:29.784   666   666 I auditd  : type=1400 audit(0.0:11): avc:  denied  { execmem } for  comm="surfaceflinger" scontext=u:r:surfaceflinger:s0 tcontext=u:r:surfaceflinger:s0 tclass=process permissive=0
+10-16 21:45:29.786   666   732 F libc    : Fatal signal 11 (SIGSEGV), code 2 (SEGV_ACCERR), fault addr 0x73a255a77000 in tid 732 (Thread<00>), pid 666 (surfaceflinger)

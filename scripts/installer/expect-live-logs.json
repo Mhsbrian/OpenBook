@@ -1,0 +1,18 @@
+[
+{
+"wait": "openbook-live: live boot: boot_part_uuid=",
+"timeout": 120
+},
+{
+"wait": "openbook-live: logs: saving to openbook/logs/live-\\d+",
+"timeout": 60
+},
+{
+"wait": "openbook-live: logs: (no second stage|Android second stage seen)",
+"timeout": 300
+},
+{
+"wait": "openbook-live: logs: done: ",
+"timeout": 1200
+}
+]

@@ -1,0 +1,2 @@
+vendor.openbook.               u:object_r:vendor_openbook_prop:s0
+ro.vendor.openbook.            u:object_r:vendor_openbook_config_prop:s0

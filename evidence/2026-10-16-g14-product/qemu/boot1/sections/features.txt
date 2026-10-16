@@ -1,0 +1,9 @@
+feature:android.hardware.hardware_keystore=500
+feature:android.hardware.opengles.aep
+feature:android.hardware.type.pc
+feature:android.hardware.usb.host
+feature:android.hardware.vulkan.compute
+feature:android.hardware.vulkan.level=1
+feature:android.hardware.vulkan.version=4198400
+feature:android.software.freeform_window_management
+feature:android.software.verified_boot

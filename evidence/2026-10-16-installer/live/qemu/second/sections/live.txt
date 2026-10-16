@@ -1,0 +1,10 @@
+[    0.000000] Command line: initrd=\openbook\a\vendor_ramdisk.img initrd=\openbook\a\ramdisk.img initrd=\openbook\a\live.img initrd=\openbook\a\bootconfig-vm.img firmware_class.path=/vendor/firmware log_buf_len=1M bootconfig rdinit=/openbook-live-init console=ttyS0,115200 8250.nr_uarts=1 printk.devkmsg=on
+[    0.014021] Kernel command line: console=ttynull stack_depot_disable=on cgroup_disable=pressure bootconfig initrd=\openbook\a\vendor_ramdisk.img initrd=\openbook\a\ramdisk.img initrd=\openbook\a\live.img initrd=\openbook\a\bootconfig-vm.img firmware_class.path=/vendor/firmware log_buf_len=1M bootconfig rdinit=/openbook-live-init console=ttyS0,115200 8250.nr_uarts=1 printk.devkmsg=on
+[    0.687556] Run /openbook-live-init as init process
+[    0.688103] /openbook-live-init
+[    0.688602] openbook-live: live boot: boot_part_uuid=de089b03-1dc1-552a-9b91-1570cdb1f66f reset=0 logs=0
+[    2.198720] openbook-live: boot ESP sda1 on disk sda (1.5 s): ../../devices/pci0000:00/0000:00:01.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda1
+[    2.201394] openbook-live: grow: disk 33554432 sectors, GPT backup at LBA 33554431, userdata 30021632 sectors (in use)
+[    2.202470] openbook-live: grow: nothing to do
+[    2.203599] openbook-live: exec /init (none)
+[    4.350787] vold: Failed to set encryption policy of /data/data to 60b149ad4434d8f5e47386d10b556c4a v2 modes 1/10 flags 0xa: The directory already has a different encryption policy.

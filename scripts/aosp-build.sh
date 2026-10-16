@@ -19,7 +19,9 @@ stamp "target $TGT goals ${GOALS[*]} -j$J on $(nproc) CPUs"; free -g
 # AnyBook's own device tree (device/anybook in this repo, e.g. anybook_cf_x86_64_pc) is copied into the tree,
 # not symlinked: Soong's nsjail sandbox only sees /aosp/src. --delete keeps it an exact mirror of the repo.
 if [ -d /repo/device/anybook ]; then
-  rsync -a --delete /repo/device/anybook/ "$T/device/anybook/"
+  # --copy-unsafe-links: files the device tree links from elsewhere in this repo (scripts/dgpu-power-check.sh)
+  # arrive as copies.
+  rsync -a --copy-unsafe-links --delete /repo/device/anybook/ "$T/device/anybook/"
   stamp "synced device/anybook from /repo (AnyBook ${ANYBOOK_REV:-unknown})"
 fi
 # AnyBook's patches to AOSP projects (aosp/patches/<project>), on top of each project's pin.

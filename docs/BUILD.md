@@ -178,6 +178,14 @@ CF_GPU=amd CF_GPU_MODE=gfxstream_guest_angle CF_DEVICE=anybook_vsoc_x86_64 scrip
 - `scripts/desktop-compare.py` diffs the two captures, and `scripts/cf-gfx-bench.sh` compares GPU modes.
 - See `docs/aosp-desktop.md`.
 
+## M8: live USB image (ANAL-190)
+
+```bash
+scripts/installer-image.sh --menu-timeout 10      # live image from out/target/product/anybook_g14 -> ~/anybook/installer/out/
+scripts/installer/live-qemu.sh ~/anybook/installer/out/<label>.img <run>   # QEMU/OVMF: grow, persist, reset, logs, decoy NVMe
+```
+Writing a stick: `scripts/installer/write-stick.sh` with `OPENBOOK_WRITE_CONFIRM=/dev/disk/by-id/usb-…` (owner confirmation). Details: `docs/installer.md` §11.
+
 ## M8: installer boot-chain prototype (ANAL-189)
 
 ```bash
@@ -204,3 +212,13 @@ scripts/minigbm-amdgpu-host-test.sh             # minigbm amdgpu backend, Linux 
 - Without the staged Mesa, `graphics-amd.mk` stops the build with a message that names the two scripts above.
 - `scripts/aosp-patches.sh` applies OpenBook's AOSP patches on top of each project's pinned revision (`evidence/2026-10-15-aosp/manifest-pinned.xml.gz`). It is idempotent, and `--export PROJECT` writes edited commits back.
 - See `docs/graphics-amd.md`.
+
+## Bare metal: the OpenBook G14 product (ANAL-199)
+
+```bash
+scripts/g14-stage-kernel.sh                                   # ANAL-198's dist -> <AOSP>/vendor/anybook/g14-kernel
+scripts/aosp-docker.sh -d anybook-aosp-build /repo/scripts/aosp-build.sh anybook_g14_x86_64-cp2a-userdebug && docker wait anybook-aosp-build
+scripts/g14-image.sh --xz                                     # USB GPT image in <data dir>/installer/out/
+scripts/g14-qemu.sh <img> <run> && scripts/g14-qemu.sh --again <run>   # two boots in QEMU/OVMF from USB
+```
+Details: `docs/g14-product.md`.

@@ -1,0 +1,12 @@
+[    0.000000] Command line: initrd=\openbook\a\vendor_ramdisk.img initrd=\openbook\a\ramdisk.img initrd=\openbook\a\live.img initrd=\openbook\a\bootconfig-vm.img firmware_class.path=/vendor/firmware log_buf_len=1M bootconfig rdinit=/openbook-live-init console=ttyS0,115200 8250.nr_uarts=1 printk.devkmsg=on
+[    0.013774] Kernel command line: console=ttynull stack_depot_disable=on cgroup_disable=pressure bootconfig initrd=\openbook\a\vendor_ramdisk.img initrd=\openbook\a\ramdisk.img initrd=\openbook\a\live.img initrd=\openbook\a\bootconfig-vm.img firmware_class.path=/vendor/firmware log_buf_len=1M bootconfig rdinit=/openbook-live-init console=ttyS0,115200 8250.nr_uarts=1 printk.devkmsg=on
+[    0.669496] Run /openbook-live-init as init process
+[    0.670094] /openbook-live-init
+[    0.670371] openbook-live: live boot: boot_part_uuid=de089b03-1dc1-552a-9b91-1570cdb1f66f reset=0 logs=0
+[    2.277388] openbook-live: boot ESP sda1 on disk sda (1.6 s): ../../devices/pci0000:00/0000:00:01.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda1
+[    2.281589] openbook-live: grow: disk 5629952 sectors, GPT backup at LBA 5629951, userdata 2097152 sectors (blank)
+[    2.282824] openbook-live: grow: nothing to do
+[    2.283869] openbook-live: exec /init (none)
+[    3.848175] init: [libfs_mgr] fs_mgr_mount_all(): /dev/block/sda7 is wiped and /metadata ext4 is formattable. Format it.
+[    3.849555] init: [libfs_mgr] fs_mgr_do_format: Format /dev/block/by-name/metadata as 'ext4'
+[    4.036300] init: [libfs_mgr] fs_mgr_mount_all(): /dev/block/sda9 is wiped and /data f2fs is formattable. Format it.

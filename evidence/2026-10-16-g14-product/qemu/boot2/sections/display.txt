@@ -1,0 +1,6 @@
+stopped
+
+  ResumedActivity: ActivityRecord{143697518 u0 com.android.settings/.FallbackHome t2}
+  mFocusedApp=ActivityRecord{143697518 u0 com.android.settings/.FallbackHome t2}
+  mCurrentFocus=Window{16efabb u0 NotificationShade}
+  mFocusedApp=ActivityRecord{143697518 u0 com.android.settings/.FallbackHome t2}

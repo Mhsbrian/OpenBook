@@ -1,0 +1,27 @@
+# The OpenBook HAL services (device/anybook/common/pc/hals) run in AOSP's *_default HAL domains. Their sysfs.
+
+# Lights: /sys/class/backlight/<dev>/{type,max_brightness,brightness}, through the class directory's symlinks.
+allow hal_light_default sysfs:dir r_dir_perms;
+allow hal_light_default sysfs:lnk_file read;
+
+# Power: amd-pstate EPP per cpufreq policy (openbook-pc-setup perms makes the files writable by system).
+r_dir_file(hal_power_default, sysfs_devices_system_cpu)
+allow hal_power_default sysfs_devices_system_cpu:file w_file_perms;
+
+# Power stats: s2idle hardware-sleep residency in /sys/power/suspend_stats.
+r_dir_file(hal_power_stats_default, sysfs_suspend_stats)
+
+# Thermal: thermal zones and cooling devices, hwmon sensors (amdgpu, NVMe), battery temperature.
+allow hal_thermal_default sysfs:dir r_dir_perms;
+allow hal_thermal_default sysfs:lnk_file read;
+r_dir_file(hal_thermal_default, sysfs_thermal)
+r_dir_file(hal_thermal_default, sysfs_openbook_hwmon)
+r_dir_file(hal_thermal_default, sysfs_batteryinfo)
+
+# USB: Type-C role swaps (ueventd.rc makes data_role/power_role writable by system).
+allow hal_usb_default sysfs_typec:file w_file_perms;
+r_dir_file(hal_usb_default, sysfs_usb_pd)
+
+# Weaver: slots in /data/vendor/weaver (init.openbook.rc creates the directory).
+allow hal_weaver_default openbook_weaver_data_file:dir create_dir_perms;
+allow hal_weaver_default openbook_weaver_data_file:file create_file_perms;

@@ -1,0 +1,34 @@
+# OpenBook on a PC. Block devices by name on the boot disk (fstab.openbook, scripts/g14-image.sh). First-stage init
+# creates the by-name links before SELinux is up; second-stage init may relabel those links only to the misc,
+# metadata, userdata and super types, so the boot partitions' entries apply to the block nodes alone (-b) and
+# their links keep block_device.
+/dev/block/by-name/misc                       u:object_r:misc_block_device:s0
+/dev/block/by-name/(boot|init_boot|vendor_boot|vbmeta)_[ab]  -b  u:object_r:boot_block_device:s0
+/dev/block/by-name/super                      u:object_r:super_block_device:s0
+/dev/block/by-name/metadata                   u:object_r:metadata_block_device:s0
+/dev/block/by-name/userdata                   u:object_r:userdata_block_device:s0
+
+# Firmware the kernel reads straight from firmware_class.path=/vendor/firmware (amdgpu, MT7925, CS35L56, NPU).
+/vendor/firmware(/.*)?                        u:object_r:openbook_vendor_fw_file:s0
+
+# Vendor executables.
+/vendor/bin/openbook-pc-setup                 u:object_r:openbook_pc_setup_exec:s0
+/vendor/bin/hw/android\.hardware\.lights-service\.openbook       u:object_r:hal_light_default_exec:s0
+/vendor/bin/hw/android\.hardware\.power-service\.openbook        u:object_r:hal_power_default_exec:s0
+/vendor/bin/hw/android\.hardware\.power\.stats-service\.openbook u:object_r:hal_power_stats_default_exec:s0
+/vendor/bin/hw/android\.hardware\.thermal-service\.openbook      u:object_r:hal_thermal_default_exec:s0
+/vendor/bin/hw/android\.hardware\.weaver-service\.openbook       u:object_r:hal_weaver_default_exec:s0
+
+/data/vendor/weaver(/.*)?                     u:object_r:openbook_weaver_data_file:s0
+
+# sysfs nodes the HALs read or write. Their ACPI and PCI paths differ from laptop to laptop, so they are matched by
+# class directory name; ueventd restorecons a device's sysfs directory when the device is added.
+/sys/devices/.*/power_supply(/.*)?            u:object_r:sysfs_batteryinfo:s0
+/sys/devices/.*/power_supply/[^/]+/wakeup[0-9]+(/.*)?  u:object_r:sysfs_wakeup:s0
+# Wakeup sources (system_suspend reads their statistics), wherever their device sits.
+/sys/devices/.*/wakeup[0-9]+(/.*)?            u:object_r:sysfs_wakeup:s0
+/sys/devices/.*/backlight(/.*)?               u:object_r:sysfs_leds:s0
+/sys/devices/.*/leds(/.*)?                    u:object_r:sysfs_leds:s0
+/sys/devices/.*/hwmon/hwmon[0-9]+(/.*)?       u:object_r:sysfs_openbook_hwmon:s0
+/sys/devices/.*/typec(/.*)?                   u:object_r:sysfs_typec:s0
+/sys/devices/.*/usb_power_delivery(/.*)?      u:object_r:sysfs_usb_pd:s0

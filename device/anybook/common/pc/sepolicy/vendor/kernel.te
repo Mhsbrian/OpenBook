@@ -1,0 +1,6 @@
+# firmware_class.path=/vendor/firmware: the kernel reads firmware itself, with its own credentials, during driver
+# probe (amdgpu, mt7925e, cs35l56, amdxdna). ueventd's sysfs fallback reads the same files.
+allow kernel openbook_vendor_fw_file:dir r_dir_perms;
+allow kernel openbook_vendor_fw_file:file r_file_perms;
+allow ueventd openbook_vendor_fw_file:dir r_dir_perms;
+allow ueventd openbook_vendor_fw_file:file r_file_perms;

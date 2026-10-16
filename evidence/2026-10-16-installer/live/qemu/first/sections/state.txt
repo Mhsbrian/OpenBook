@@ -1,0 +1,60 @@
+[init.svc.bootanim]: [running]
+[init.svc.surfaceflinger]: [running]
+[init.svc.zygote]: [running]
+[ro.hardware.egl]: [angle]
+[ro.hardware.gralloc]: [minigbm]
+[ro.hardware.hwcomposer]: [drm]
+[ro.hardware.vulkan]: [pastel]
+[sys.system_server.start_count]: [8]
+[sys.system_server.start_elapsed]: [620900]
+[sys.system_server.start_uptime]: [620900]
+Build configuration: [sf PRESENT_TIME_OFFSET=0 FORCE_HWC_FOR_RBG_TO_YUV=0 MAX_VIRT_DISPLAY_DIM=0 RUNNING_WITHOUT_SYNC_FRAMEWORK=0 NUM_FRAMEBUFFER_SURFACE_BUFFERS=2]
+
+Display identification data:
+Display 4632256312697818880 (HWC display 0): port=0 pnpId=RHT screenPartStatus=UNSUPPORTED displayName="QEMU Monitor"
+
+Wide-Color information:
+Device supports wide color: 0
+DisplayColorSetting: Enhanced
+Display 4632256312697818880 color modes:
+    ColorMode::NATIVE (0)
+    Current color mode: ColorMode::NATIVE (0)
+
+Sync configuration: [using: EGL_KHR_fence_sync EGL_KHR_wait_sync]
+
+Scheduler:
+Features
+    PresentFences=true
+    KernelIdleTimer=false
+    ContentDetection=true
+
+Policy
+    pacesetterDisplayId=4632256312697818880
+    forcedPacesetterDisplayId=nullopt
+    layerHistory={size=35, active=1}
+	displayArea=2304000
+	GameFrameRateOverrides=
+		(uid, gameModeOverride, gameDefaultOverride)=
+    touchTimer=200.000 ms
+
+FrameRateOverrides=none
+WINDOW MANAGER DISPLAY CONTENTS (dumpsys window displays)
+  Display: mDisplayId=0
+    init=1920x1200 160dpi mMinSizeOfResizeableTaskDp=220 cur=1920x1200 app=1920x1200 rng=1200x1200-1920x1920
+    deferred=false mLayoutNeeded=false
+  overrideConfig={1.0 ?mcc0mnc [en_US] ldltr sw1200dp w1920dp h1200dp 160dpi xlrg compactNeeded land ?uimode ?night -touch qwerty/v/v -nav/h winConfig={ mBounds=Rect(0, 0 - 1920, 1200) mAppBounds=Rect(0, 0 - 1920, 1200) mMaxBounds=Rect(0, 0 - 1920, 1200) mDisplayRotation=ROTATION_0 mWindowingMode=fullscreen mActivityType=undefined mAlwaysOnTop=undefined mRotation=ROTATION_0} s.2 ?fontWeightAdjustment}
+  mHasSetIgnoreOrientationRequest=false ignoreOrientationRequest=true
+  mSleeping=false mAllSleepTokens=[]
+  mLayoutSeq=1
+  mImeWindow=null
+  mImeLayeringTarget=null
+  mImeInputTarget=null
+  mImeControlTarget=null
+  ImeContainer
+    mNeedsLayer=false
+    mImeWindowToken=null
+  mImeParent=ImePlaceholder:13:14@124061389
+  mRemoteInsetsControlTarget=null
+  mCurrentFocus=null
+  mFocusedApp=null
+  mFixedRotationLaunchingApp=null
