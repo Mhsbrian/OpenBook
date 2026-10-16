@@ -54,3 +54,9 @@ The probe skipped the cs35l56 speaker-amp drivers (they download DSP firmware an
 - No screen output was tested: the check runs before any graphics userspace.
 - Wi-Fi was not scanned and audio was not played. The speaker amps were deliberately left alone.
 - A display-capable OpenBook on the G14 needs the G14 product (ANAL-199) and the AMD graphics userspace (ANAL-174).
+
+## Stick updated to v2 (2026-10-16 15:40, owner's confirmation on ANAL-189)
+- The owner confirmed `/dev/disk/by-id/usb-SanDisk_Ultra_4C530001041228122034-0:0`.
+- `scripts/installer/update-hwcheck-stick.sh` checked the stick before writing: ESP PARTUUID `3a26490e-…`, label OPENBOOK, existing OpenBook entry. It then replaced `openbook/check/hwcheck.img`, the two check entries and the README on that partition only (`stick-update-v2.log`).
+- A read-only remount verified all four files against the bundle manifest (`../2026-10-16-installer/hwcheck-stick/v2/esp-update-MANIFEST.sha256`).
+- The menu now offers "OpenBook hardware check" (default), "OpenBook hardware check + sleep test" and "OpenBook preview (virtual machines only)". `hwcheck-001` is still on the stick.
