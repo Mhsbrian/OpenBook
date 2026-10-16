@@ -57,6 +57,15 @@ The script works like this:
 - The recovery image is attached as an NVMe disk at PCI `00:04.0` with `snapshot=on`, so the image is never modified.
 - Use `tcg` instead of `kvm` to run on QEMU's emulated `max` CPU.
 
+## Mesa radeonsi + RADV for Android x86_64
+
+```bash
+docker build -t anybook-mesa-android -f tools/Dockerfile.mesa-android tools/   # NDK r30 LTS, meson 1.12.1
+scripts/mesa-android-build.sh            # fetch deps setup build install verify isa, trees: upstream ag; resumable
+scripts/mesa-android-smoke.sh            # load test on the AOSP Desktop emulator (own AVD, port 5590)
+```
+
+Artifacts go to `~/anybook/mesa/out/<tree>/vendor/` and logs to `~/anybook/logs/mesa/`. See `docs/mesa.md`.
 ## Kernel: android17-6.18 GKI with Kleaf
 
 ```bash

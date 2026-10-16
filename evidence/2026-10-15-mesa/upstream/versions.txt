@@ -1,0 +1,6 @@
+tree: upstream mesa-26.2.5 ddaf85e353442d9d7f192fdcf1823e652e3f2ee3 (26.2.5)
+ndk: 30.0.16248370 (r30), api 37
+clang: Android (16134705, +pgo, +bolt, +lto, +mlgo, based on r574158c) clang version 21.0.0 (https://android.googlesource.com/toolchain/llvm-project 9f872551d3c681d06fd303b36f16ed5c274735eb)
+meson: 1.12.1  ninja: 1.11.1  glslang: Glslang Version: 11:15.1.0
+libdrm: libdrm-2.4.133 (meson wrap, shared)
+options: --buildtype=release -Db_ndebug=true --prefix=/vendor --libdir=lib64 -Dplatforms=android -Dplatform-sdk-version=37 -Dandroid-stub=true -Dandroid-libbacktrace=disabled -Dandroid-strict=true -Dgallium-drivers=radeonsi -Dvulkan-drivers=amd -Dllvm=disabled -Damd-use-llvm=false -Degl=enabled -Dgles1=enabled -Dgles2=enabled -Degl-lib-suffix=_mesa -Dgles-lib-suffix=_mesa -Dgbm=disabled -Dglx=disabled -Dgallium-va=disabled -Dvideo-codecs= -Dallow-fallback-for=libdrm -Dxmlconfig=disabled -Dexpat=disabled -Dzstd=disabled -Dvalgrind=disabled -Dlibunwind=disabled -Dlmsensors=disabled -Dbuild-tests=false -Dtools=

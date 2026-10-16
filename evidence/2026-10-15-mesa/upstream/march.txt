@@ -1,0 +1,16 @@
+# explicit -march/-mcpu/-mtune/-m<isa> flags in compile_commands.json (count flag)
+      2 -msse4.1
+
+# clang driver defaults for x86_64-linux-android37
+-target-cpu	x86-64
+-target-feature	+sse4.2
+-target-feature	+popcnt
+-target-feature	+cx16
+
+# predefined ISA macros
+#define __POPCNT__ 1
+#define __SSE2__ 1
+#define __SSE3__ 1
+#define __SSE4_1__ 1
+#define __SSE4_2__ 1
+#define __SSE__ 1

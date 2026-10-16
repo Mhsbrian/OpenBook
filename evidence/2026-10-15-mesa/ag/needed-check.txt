@@ -1,0 +1,95 @@
+# NDK sysroot: /opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/x86_64-linux-android/37
+
+== ./lib64/egl/libEGL_mesa.so
+SONAME: libEGL_mesa.so
+NEEDED libgallium_dri.so            artifact
+NEEDED libdrm.so                    artifact
+NEEDED libcutils.so                 stub-only (platform/LLNDK, not in NDK)
+NEEDED libhardware.so               stub-only (platform/LLNDK, not in NDK)
+NEEDED liblog.so                    ndk
+NEEDED libnativewindow.so           ndk
+NEEDED libsync.so                   ndk
+NEEDED libm.so                      ndk
+NEEDED libdl.so                     ndk
+NEEDED libc.so                      ndk
+undefined (non-weak) symbols: 158; via ndk/artifact: 143; stub-only: 15; unresolved: 0
+  stub-only ANativeWindowBuffer_getHardwareBuffer (libnativewindow.so)
+  stub-only ANativeWindow_cancelBuffer (libnativewindow.so)
+  stub-only ANativeWindow_dequeueBuffer (libnativewindow.so)
+  stub-only ANativeWindow_query (libnativewindow.so)
+  stub-only ANativeWindow_queueBuffer (libnativewindow.so)
+  stub-only ANativeWindow_setSharedBufferMode (libnativewindow.so)
+  stub-only ANativeWindow_setSwapInterval (libnativewindow.so)
+  stub-only ANativeWindow_setUsage (libnativewindow.so)
+  stub-only atrace_begin_body (libcutils.so)
+  stub-only atrace_end_body (libcutils.so)
+  stub-only atrace_get_enabled_tags (libcutils.so)
+  stub-only atrace_init (libcutils.so)
+  stub-only hw_get_module (libhardware.so)
+  stub-only property_get (libcutils.so)
+  stub-only sync_wait (libsync.so)
+
+== ./lib64/egl/libGLESv1_CM_mesa.so
+SONAME: libGLESv1_CM_mesa.so
+NEEDED libgallium_dri.so            artifact
+NEEDED libc.so                      ndk
+undefined (non-weak) symbols: 3; via ndk/artifact: 3; stub-only: 0; unresolved: 0
+
+== ./lib64/egl/libGLESv2_mesa.so
+SONAME: libGLESv2_mesa.so
+NEEDED libgallium_dri.so            artifact
+NEEDED libc.so                      ndk
+undefined (non-weak) symbols: 3; via ndk/artifact: 3; stub-only: 0; unresolved: 0
+
+== ./lib64/hw/vulkan.radv.so
+SONAME: vulkan.radv.so
+NEEDED libdrm.so                    artifact
+NEEDED libdrm_amdgpu.so             artifact
+NEEDED libcutils.so                 stub-only (platform/LLNDK, not in NDK)
+NEEDED libhardware.so               stub-only (platform/LLNDK, not in NDK)
+NEEDED liblog.so                    ndk
+NEEDED libnativewindow.so           ndk
+NEEDED libsync.so                   ndk
+NEEDED libz.so                      ndk
+NEEDED libm.so                      ndk
+NEEDED libdl.so                     ndk
+NEEDED libc.so                      ndk
+undefined (non-weak) symbols: 277; via ndk/artifact: 270; stub-only: 7; unresolved: 0
+  stub-only AHardwareBuffer_getNativeHandle (libnativewindow.so)
+  stub-only atrace_begin_body (libcutils.so)
+  stub-only atrace_end_body (libcutils.so)
+  stub-only atrace_get_enabled_tags (libcutils.so)
+  stub-only atrace_init (libcutils.so)
+  stub-only hw_get_module (libhardware.so)
+  stub-only property_get (libcutils.so)
+
+== ./lib64/libdrm.so
+SONAME: libdrm.so
+NEEDED libc.so                      ndk
+undefined (non-weak) symbols: 65; via ndk/artifact: 65; stub-only: 0; unresolved: 0
+
+== ./lib64/libdrm_amdgpu.so
+SONAME: libdrm_amdgpu.so
+NEEDED libdrm.so                    artifact
+NEEDED libc.so                      ndk
+undefined (non-weak) symbols: 60; via ndk/artifact: 60; stub-only: 0; unresolved: 0
+
+== ./lib64/libgallium_dri.so
+SONAME: libgallium_dri.so
+NEEDED libdrm.so                    artifact
+NEEDED libcutils.so                 stub-only (platform/LLNDK, not in NDK)
+NEEDED liblog.so                    ndk
+NEEDED libsync.so                   ndk
+NEEDED libdrm_amdgpu.so             artifact
+NEEDED libz.so                      ndk
+NEEDED libm.so                      ndk
+NEEDED libdl.so                     ndk
+NEEDED libc.so                      ndk
+undefined (non-weak) symbols: 304; via ndk/artifact: 299; stub-only: 5; unresolved: 0
+  stub-only atrace_begin_body (libcutils.so)
+  stub-only atrace_end_body (libcutils.so)
+  stub-only atrace_get_enabled_tags (libcutils.so)
+  stub-only atrace_init (libcutils.so)
+  stub-only property_get (libcutils.so)
+
+# result: OK
