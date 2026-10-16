@@ -1,0 +1,10 @@
+{
+ "reason": "QEMU exited (0)",
+ "seconds": 23.3,
+ "steps_done": 0,
+ "steps": 0,
+ "hits": [],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/hwcheck/run-check.img",
+ "nvme": "/home/hive/anybook/installer/matrix-20261016-openbook/decoy-nvme.img"
+}

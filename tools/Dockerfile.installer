@@ -1,10 +1,10 @@
-# Installer / boot-chain workbench (ANAL-189): build GPT and ISO images from files without root, and boot them
+# OpenBook installer / boot-chain workbench (ANAL-189): build GPT and ISO images from files without root, and boot them
 # under QEMU + OVMF. Host has no sudo; pass /dev/kvm in. Nothing here touches a real disk.
 FROM archlinux:latest
 RUN pacman -Syu --noconfirm --needed \
       qemu-base qemu-system-x86 edk2-ovmf \
       grub efibootmgr systemd systemd-ukify \
       mtools dosfstools gptfdisk util-linux xorriso e2fsprogs f2fs-tools \
-      python python-cryptography openssl cpio lz4 zstd xz binutils \
+      python python-cryptography openssl cpio lz4 zstd xz binutils gcc \
     && pacman -Scc --noconfirm
 WORKDIR /w

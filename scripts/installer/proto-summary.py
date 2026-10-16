@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-"""Summarise a proto-matrix.sh run: for each variant, what the EFI loader handed the kernel (from the anybook-probe
+"""Summarise a proto-matrix.sh run: for each variant, what the EFI loader handed the kernel (from the openbook-probe
 lines and the console dump) and how far Android got. Writes <LOGDIR>/results.json and prints a Markdown table.
 
 usage: proto-summary.py LOGDIR
@@ -29,18 +29,18 @@ def summarise(d):
         "reason": res.get("reason"),
         "seconds": res.get("seconds"),
         "steps": f"{res.get('steps_done', 0)}/{res.get('steps', 0)}",
-        "loader": ("GRUB" if "AnyBook GRUB:" in t else "GBL " + (grab(r"VCS info: (\S+)", t) or "")
+        "loader": ("GRUB" if "OpenBook GRUB:" in t else "GBL " + (grab(r"VCS info: (\S+)", t) or "")
                    if "Generic Bootloader (GBL)" in t else
                    "systemd-boot" if "loader/entries" in cmdline or "systemd-boot" in t else None),
         "kernel": grab(r"Linux version (\S+)", t),
-        "probe_ran": "anybook-probe start" in t,
+        "probe_ran": "openbook-probe start" in t,
         "bootconfig_lines": len(re.findall(r"PROBE bootconfig\|", t)),
         "bootconfig_missing": bool(re.search(r"PROBE bootconfig: /proc/bootconfig missing", t)),
         "slot_suffix": bc.get("androidboot.slot_suffix"),
         "verifiedbootstate": bc.get("androidboot.verifiedbootstate"),
         "vbmeta_digest": bc.get("androidboot.vbmeta.digest"),
         "boot_part_uuid": bc.get("androidboot.boot_part_uuid") or grab(r"androidboot\.boot_part_uuid=(\S+)", cmdline),
-        "loader_marker": bc.get("androidboot.anybook.loader") or ("gbl" if bc.get("androidboot.gbl.vcs") else None),
+        "loader_marker": bc.get("androidboot.openbook.loader") or ("gbl" if bc.get("androidboot.gbl.vcs") else None),
         "kernel_image": grab(r"BOOT_IMAGE=(\S+)", cmdline),
         "boot_device": grab(r"init: Boot device (\S+) found via partition UUID", t),
         "first_stage": "init first stage started" in t,
@@ -48,7 +48,7 @@ def summarise(d):
         "digest_error": "Failed to verify vbmeta digest" in t or "vbmeta digest mismatch" in t,
         "metadata_formatted": "/metadata ext4 is formattable. Format it" in t,
         "userdata_formatted": "/data f2fs is formattable. Format it" in t,
-        "console_dump": "===ANYBOOK-END===\n" in t and "===ANYBOOK-BEGIN===" in t,
+        "console_dump": "===OPENBOOK-END===\n" in t and "===OPENBOOK-BEGIN===" in t,
         "by_name": sorted(set(re.findall(r"(\w+) -> (/dev/block/\w+)", t))),
         "kernel_no_bootconfig": "'bootconfig' found on command line, but no bootconfig found" in t,
         "failure": None,
@@ -65,7 +65,7 @@ def summarise(d):
             out["failure"] = f
             break
     if os.path.exists(f"{d}/esp-entries-after.txt"):
-        out["esp_entries_after"] = re.findall(r"anybook-\S+\s+conf", open(f"{d}/esp-entries-after.txt").read())
+        out["esp_entries_after"] = re.findall(r"openbook-\S+\s+conf", open(f"{d}/esp-entries-after.txt").read())
     return out
 
 

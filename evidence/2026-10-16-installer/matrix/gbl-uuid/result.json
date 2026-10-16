@@ -1,76 +1,76 @@
 {
  "reason": "all steps done",
- "seconds": 23.1,
+ "seconds": 22.7,
  "steps_done": 23,
  "steps": 23,
  "hits": [
   {
    "step": 0,
    "wait": "init: init first stage started",
-   "t": 7.2
+   "t": 7.1
   },
   {
    "step": 1,
    "wait": "init: init second stage started",
-   "t": 7.4
+   "t": 7.3
   },
   {
    "step": 2,
    "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
-   "t": 14.1
+   "t": 13.7
   },
   {
    "step": 4,
    "wait": "console:/ \\$ ",
-   "t": 14.1
+   "t": 13.7
   },
   {
    "step": 6,
    "wait": "console:/ \\$ ",
-   "t": 14.3
+   "t": 13.9
   },
   {
    "step": 8,
    "wait": "console:/ \\$ ",
-   "t": 14.5
+   "t": 14.1
   },
   {
    "step": 10,
    "wait": "console:/ \\$ ",
-   "t": 15.9
+   "t": 15.5
   },
   {
    "step": 12,
    "wait": "console:/ \\$ ",
-   "t": 16.3
+   "t": 16.0
   },
   {
    "step": 14,
    "wait": "console:/ \\$ ",
-   "t": 17.3
+   "t": 16.9
   },
   {
    "step": 16,
    "wait": "console:/ \\$ ",
-   "t": 17.9
+   "t": 17.6
   },
   {
    "step": 18,
    "wait": "console:/ \\$ ",
-   "t": 18.2
+   "t": 17.8
   },
   {
    "step": 20,
    "wait": "console:/ \\$ ",
-   "t": 19.0
+   "t": 18.6
   },
   {
    "step": 22,
-   "wait": "===ANYBOOK-END===\\s",
-   "t": 19.6
+   "wait": "===OPENBOOK-END===\\s",
+   "t": 19.2
   }
  ],
  "qemu_rc": 0,
- "usb": "/home/hive/anybook/installer/matrix-20261016/run-gbl-uuid.img",
+ "usb": "/home/hive/anybook/installer/matrix-20261016-openbook/run-gbl-uuid.img",
  "nvme": null
 }

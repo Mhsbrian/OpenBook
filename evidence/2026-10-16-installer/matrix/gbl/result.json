@@ -11,6 +11,6 @@
   }
  ],
  "qemu_rc": 0,
- "usb": "/home/hive/anybook/installer/matrix-20261016/run-gbl.img",
+ "usb": "/home/hive/anybook/installer/matrix-20261016-openbook/run-gbl.img",
  "nvme": null
 }

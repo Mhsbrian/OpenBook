@@ -5,21 +5,20 @@
 # Image files only. Nothing touches a host disk, USB stick or firmware.
 #
 # usage: proto-matrix.sh [INPUT_LABEL] [RUN_LABEL]
-#   INPUT_LABEL  snapshot under ~/anybook/installer/inputs (default cf-pc-20261016; make one with snapshot-inputs.sh)
-#   RUN_LABEL    default matrix-<UTC timestamp>; logs in ~/anybook/logs/installer/<RUN_LABEL>/<variant>/
+#   INPUT_LABEL  snapshot under <data dir>/installer/inputs (default cf-pc-20261016; make one with snapshot-inputs.sh)
+#   RUN_LABEL    default matrix-<UTC timestamp>; logs in <data dir>/logs/installer/<RUN_LABEL>/<variant>/
 # env: MATRIX_ONLY="grub sdboot"   run a subset of variants
 #      MATRIX_EVIDENCE=DIR         also copy summaries and trimmed logs there
 set -euo pipefail
 R=$(cd "$(dirname "$0")/../.." && pwd)
-A=${ANYBOOK_HOME:-$HOME/anybook}; I=$A/installer
+A=${OPENBOOK_HOME:-${ANYBOOK_HOME:-$HOME/anybook}}; I=$A/installer   # data dir: ~/anybook until the repo-wide rename
 IN=$I/inputs/${1:-cf-pc-20261016}
 RUN=${2:-matrix-$(date -u +%Y%m%dT%H%M%SZ)}
 L=$A/logs/installer/$RUN; W=$I/$RUN
 mkdir -p "$L" "$W"
 D=$R/scripts/installer/inst-docker.sh; S=$R/scripts/installer
 [ -d "$IN/product" ] || { echo "no input snapshot $IN (run snapshot-inputs.sh)" >&2; exit 2; }
-[ -x "$I/build/anybook-probe" ] || docker run --rm -u "$(id -u):$(id -g)" -v "$S:/s:ro" -v "$I/build:/o" \
-  anybook-inspect gcc -static -O2 -Wall -o /o/anybook-probe /s/probe-init.c
+[ -x "$I/build/openbook-probe" ] || "$D" gcc -static -O2 -Wall -o "$I/build/openbook-probe" "$S/probe-init.c"
 GBL=${GBL_EFI:-$I/dl/gbl-16633196/gbl_x86_64_dev.efi}
 stamp(){ echo "=== $(date -u +%FT%TZ) $*" | tee -a "$L/matrix.log"; }
 want(){ [ -z "${MATRIX_ONLY:-}" ] || [[ " $MATRIX_ONLY " == *" $1 "* ]]; }
@@ -55,10 +54,16 @@ if want grub-slot-b; then
 fi
 if want sdboot; then
   mk sdboot "$W/w-main" --loader sdboot
-  boot sdboot "$(fresh sdboot sdboot)" --nvme "$W/decoy-nvme.img" --timeout 420 --expect "$EXP" --shot 2 3.5
-  # Boot counting: systemd-boot renames loader/entries/anybook-a+3.conf on every try.
+  # Menu hidden (product default): screenshots show what the user sees from power-on to Android's init.
+  boot sdboot "$(fresh sdboot sdboot)" --nvme "$W/decoy-nvme.img" --timeout 420 --expect "$EXP" --shot 1.5 3 5 8 12
+  # Boot counting: systemd-boot renames loader/entries/openbook-a+3.conf on every try.
   off=$(( $(python3 -c "import json;print([p for p in json.load(open('$W/sdboot.img.json'))['partitions'] if p['name']=='EFI'][0]['start'])") * 512 ))
   "$D" mdir -i "$W/run-sdboot.img@@$off" ::/loader/entries > "$L/sdboot/esp-entries-after.txt" 2>&1 || true
+fi
+if want sdboot-menu; then
+  # The same loader with the menu shown (what a key held at power-on brings up), probe only.
+  mk sdboot-menu "$W/w-main" --loader sdboot --menu --halt
+  boot sdboot-menu "$(fresh sdboot-menu sdboot-menu)" --timeout 60 --shot 3
 fi
 if want uki; then
   mk uki "$W/w-main" --loader uki --halt

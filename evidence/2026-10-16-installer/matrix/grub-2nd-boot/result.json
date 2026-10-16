@@ -7,27 +7,27 @@
   {
    "step": 0,
    "wait": "init: init first stage started",
-   "t": 8.3
+   "t": 8.4
   },
   {
    "step": 1,
    "wait": "init: init second stage started",
-   "t": 8.5
+   "t": 8.6
   },
   {
    "step": 2,
    "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
-   "t": 14.8
+   "t": 14.9
   },
   {
    "step": 4,
    "wait": "console:/ \\$ ",
-   "t": 14.8
+   "t": 14.9
   },
   {
    "step": 6,
    "wait": "console:/ \\$ ",
-   "t": 15.0
+   "t": 15.1
   },
   {
    "step": 8,
@@ -52,7 +52,7 @@
   {
    "step": 16,
    "wait": "console:/ \\$ ",
-   "t": 18.7
+   "t": 18.8
   },
   {
    "step": 18,
@@ -62,15 +62,15 @@
   {
    "step": 20,
    "wait": "console:/ \\$ ",
-   "t": 19.7
+   "t": 19.8
   },
   {
    "step": 22,
-   "wait": "===ANYBOOK-END===\\s",
-   "t": 20.3
+   "wait": "===OPENBOOK-END===\\s",
+   "t": 20.4
   }
  ],
  "qemu_rc": 0,
- "usb": "/home/hive/anybook/installer/matrix-20261016/run-grub.img",
- "nvme": "/home/hive/anybook/installer/matrix-20261016/decoy-nvme.img"
+ "usb": "/home/hive/anybook/installer/matrix-20261016-openbook/run-grub.img",
+ "nvme": "/home/hive/anybook/installer/matrix-20261016-openbook/decoy-nvme.img"
 }

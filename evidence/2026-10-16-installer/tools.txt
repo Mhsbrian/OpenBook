@@ -1,4 +1,4 @@
-# Tool versions (anybook-installer image, tools/Dockerfile.installer), 2026-10-16T18:05:52Z
+# Tool versions (openbook-installer image, tools/Dockerfile.installer), 2026-10-16T18:39:31Z
 qemu-system-x86 11.1.2-1
 edk2-ovmf 202608-1
 grub 2:2.16-1
@@ -8,6 +8,7 @@ mtools 1:4.0.49-1
 gptfdisk 1.0.10-2
 dosfstools 4.2-5
 libisoburn 1.5.8.2-1
+gcc 16.2.1+r23+gd564253eb6c8-1
 python 3.14.8-1
 
 # AOSP host tools (read-only from ~/anybook/aosp/src/out/host/linux-x86/bin)
@@ -19,5 +20,12 @@ avbtool 1.4.0
 9b54a8066fdc0ca911abcfa51c871658b72ca3e2ffb7927eb33f6edd14df2930  gbl_x86_64.efi
 f9b1ae64e8169cbe683a408e77227d287ebcae72913213912fc4738f79a2e334  LICENSE
 
-# Probe (scripts/installer/probe-init.c, gcc -static in anybook-inspect)
-0007a2f60518e47bf5224c2112a3ffcd332f38b2be7d042e2be93b8493a3f9ab  ~/anybook/installer/build/anybook-probe
+# Probe (scripts/installer/probe-init.c, gcc -static in openbook-installer)
+4bd9bbe74686a7d767466e8d6b07bc79fafd5423520939f79a4ea85c9af35e05  ~/anybook/installer/build/openbook-probe
+
+# Design render fonts (not committed): Roboto Flex OFL-1.1, Material Symbols Rounded Apache-2.0
+9b523f7d82593df0107173849ebb8c817471a1df4b4fb2c3cbf40cfd810c8281  RobotoFlex.ttf
+32e4011709e055596eb8d2dd0f7cb547b47c1d40ac9ecb8fad54f7f7eac202e7  MaterialSymbolsRounded.ttf
+Chromium 154.0.8037.97 Arch Linux
+# Probe used for the hwcheck stick (report mode added; same behaviour in the default and halt modes the matrix used)
+1e5b055b7cc4a0f121d441c3f907e245f986cf6beefc9db0503c637ac447d637  ~/anybook/installer/build/openbook-probe
