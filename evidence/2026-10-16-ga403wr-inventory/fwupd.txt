@@ -1,0 +1,264 @@
+$ fwupdmgr get-devices --no-unreported-check
+ASUSTeK COMPUTER INC. ROG Zephyrus G14 GA403WR_GA403WR
+│
+├─HFS001TEM9X174N:
+│     Device ID:          <id>
+│     Summary:            NVM Express solid state drive
+│     Current version:    61000A60
+│     Vendor:             SK hynix (PCI:0x1C5C)
+│     Serial Number:      <redacted>
+│     Problems:           • Device requires AC power to be connected
+│     GUIDs:              <uuid> ← NVME\VEN_1C5C&DEV_1F69
+│                         <uuid> ← NVME\VEN_1C5C&DEV_1F69&SUBSYS_1C5C1F69
+│                         <uuid> ← HFS001TEM9X174N
+│     Device Flags:       • Internal device
+│                         • System requires external power source
+│                         • Needs a reboot after installation
+│                         • Device is usable for the duration of the update
+│                         • Updatable
+│                         • Signed Payload
+│                         • Can tag for emulation
+│   
+├─Ryzen AI 9 HX 370 w/ Radeon 890M:
+│ │   Device ID:          <id>
+│ │   Current version:    0x0b20401b
+│ │   Vendor:             AMD
+│ │   GUIDs:              <uuid> ← CPUID\PRO_0&FAM_1A&MOD_24
+│ │                       <uuid> ← CPUID\PRO_0&FAM_1A&MOD_24&STP_0
+│ │   Device Flags:       • Internal device
+│ │ 
+│ ├─Radeon 890M Graphics:
+│ │ │   Device ID:        <id>
+│ │ │   Summary:          AMD STRIX_B0_GENERIC
+│ │ │   Current version:  1
+│ │ │   Vendor:           AMD (PCI:0x1002)
+│ │ │   GUID:             <uuid> ← AMD\113-STRIXE
+│ │ │   Device Flags:     • Internal device
+│ │ │                     • Can tag for emulation
+│ │ │ 
+│ │ └─SDC:
+│ │       Device ID:      <id>
+│ │       Vendor:         PNP:SDC
+│ │       GUID:           <uuid> ← DRM\VEN_SDC&DEV_419C
+│ │     
+│ ├─Secure Processor:
+│ │     Device ID:        <id>
+│ │     Summary:          AGESA StrixKrackanPI-FP8 1.1.0.0a
+│ │     Current version:  00.3e.04.74
+│ │     Bootloader Version: 74.04.3e.00
+│ │     Vendor:           AMD (PCI:0x1022)
+│ │     GUID:             <uuid> ← PCI\VEN_1022&DEV_17E0
+│ │     Device Flags:     • Internal device
+│ │                       • Can tag for emulation
+│ │   
+│ ├─System Management Unit (SMU):
+│ │     Device ID:        <id>
+│ │     Summary:          Microcontroller used within CPU/APU program 11
+│ │     Current version:  93.4.0
+│ │     Vendor:           AMD
+│ │     GUID:             <uuid> ← /sys/devices/platform/AMDI000A:00
+│ │     Device Flags:     • Internal device
+│ │                       • Can tag for emulation
+│ │   
+│ └─TPM:
+│       Device ID:        <id>
+│       Current version:  10.6.0.4
+│       Vendor:           Microsoft (TPM:MSFT)
+│       GUIDs:            <uuid> ← TPM\VEN_MSFT&DEV_0001
+│                         <uuid> ← TPM\VEN_MSFT&MOD_Pluton.TPM.A
+│                         <uuid> ← TPM\VEN_MSFT&DEV_0001&VER_2.0
+│                         <uuid> ← TPM\VEN_MSFT&MOD_Pluton.TPM.A&VER_2.0
+│       Device Flags:     • Internal device
+│                         • System requires external power source
+│                         • Needs a reboot after installation
+│                         • Device can recover flash failures
+│                         • Signed Payload
+│                         • Can tag for emulation
+│     
+├─System Firmware:
+│ │   Device ID:          <id>
+│ │   Summary:            UEFI System Resource Table device (Updated via capsule-on-disk)
+│ │   Current version:    777
+│ │   Minimum Version:    777
+│ │   Vendor:             ASUSTeK COMPUTER INC. (DMI:American Megatrends International, LLC.)
+│ │   Update State:       Success
+│ │   Problems:           • Device requires AC power to be connected
+│ │   GUID:               <uuid>
+│ │   Device Flags:       • Internal device
+│ │                       • System requires external power source
+│ │                       • Needs a reboot after installation
+│ │                       • Cryptographic hash verification is available
+│ │                       • Device is usable for the duration of the update
+│ │                       • Updatable
+│ │   Device Requests:    • Message
+│ │ 
+│ ├─ASUSTeK PK Certificate:
+│ │     Device ID:        <id>
+│ │     Summary:          UEFI Platform Key
+│ │     Current version:  2023
+│ │     Vendor:           Unknown
+│ │     GUID:             <uuid> ← UEFI\CRT_99F71B7E32427F01CBE901C8824755F509827A7E
+│ │     Device Flags:     • Internal device
+│ │   
+│ ├─UEFI Key Exchange Key:
+│ │ │   Device ID:        <id>
+│ │ │   Device Flags:     • Internal device
+│ │ │ 
+│ │ ├─ASUSTeK KEK Certificate:
+│ │ │     Device ID:      <id>
+│ │ │     Current version: 2023
+│ │ │     Update Error:   No vendor ID set
+│ │ │     GUID:           <uuid> ← UEFI\CRT_1A60AC4688A775BBB68858D99BDA460013891694
+│ │ │     Device Flags:   • Internal device
+│ │ │                     • Needs a reboot after installation
+│ │ │                     • Device is usable for the duration of the update
+│ │ │                     • Updatable
+│ │ │                     • Signed Payload
+│ │ │                     • Can tag for emulation
+│ │ │   
+│ │ └─KEK CA:
+│ │       Device ID:      <id>
+│ │       Current version: 2023
+│ │       Vendor:         Microsoft (UEFI:Microsoft)
+│ │       URL:            https://fwupd.github.io/libfwupdplugin/uefi-db.html
+│ │       GUIDs:          <uuid> ← UEFI\VENDOR_Microsoft&NAME_Microsoft-KEK-CA
+│ │                       <uuid> ← UEFI\CRT_DEC64D7746D983DB3774829A00BF829D9F19E9CF
+│ │       Device Flags:   • Internal device
+│ │                       • Updatable
+│ │                       • Needs a reboot after installation
+│ │                       • Device is usable for the duration of the update
+│ │                       • Signed Payload
+│ │                       • Can tag for emulation
+│ │     
+│ ├─UEFI Signature Database:
+│ │ │   Device ID:        <id>
+│ │ │   Device Flags:     • Internal device
+│ │ │ 
+│ │ ├─ASUSTeK db Certificate:
+│ │ │     Device ID:      <id>
+│ │ │     Current version: 2023
+│ │ │     Update Error:   No vendor ID set
+│ │ │     GUID:           <uuid> ← UEFI\CRT_8345650C315FA543D4C4A4424E8B8CFA349624C5
+│ │ │     Device Flags:   • Internal device
+│ │ │                     • Needs a reboot after installation
+│ │ │                     • Updatable
+│ │ │                     • Signed Payload
+│ │ │                     • Can tag for emulation
+│ │ │   
+│ │ ├─UEFI CA:
+│ │ │     Device ID:      <id>
+│ │ │     Current version: 2023
+│ │ │     Vendor:         Microsoft (UEFI:Microsoft)
+│ │ │     URL:            https://fwupd.github.io/libfwupdplugin/uefi-db.html
+│ │ │     GUIDs:          <uuid> ← UEFI\VENDOR_Microsoft&NAME_Microsoft-UEFI-CA
+│ │ │                     <uuid> ← UEFI\CRT_7CD7437C555F89E7C2B50E21937E420C4E583E80
+│ │ │     Device Flags:   • Internal device
+│ │ │                     • Updatable
+│ │ │                     • Supported on remote server
+│ │ │                     • Needs a reboot after installation
+│ │ │                     • Signed Payload
+│ │ │                     • Can tag for emulation
+│ │ │   
+│ │ └─Windows UEFI CA:
+│ │       Device ID:      <id>
+│ │       Current version: 2023
+│ │       Vendor:         Microsoft (UEFI:Microsoft)
+│ │       URL:            https://fwupd.github.io/libfwupdplugin/uefi-db.html
+│ │       GUIDs:          <uuid> ← UEFI\VENDOR_Microsoft&NAME_Windows-UEFI-CA
+│ │                       <uuid> ← UEFI\CRT_A794240D25F0CCB2EC8142DC2F7411890717DEAD
+│ │       Device Flags:   • Internal device
+│ │                       • Updatable
+│ │                       • Supported on remote server
+│ │                       • Needs a reboot after installation
+│ │                       • Signed Payload
+│ │                       • Can tag for emulation
+│ │     
+│ └─UEFI dbx:
+│       Device ID:        <id>
+│       Summary:          UEFI revocation database
+│       Current version:  20260402
+│       Minimum Version:  20260402
+│       Vendor:           Microsoft (UEFI:Microsoft)
+│       URL:              https://uefi.org/revocationlistfile
+│       Install Duration: 1 second
+│       GUIDs:            <uuid> ← UEFI\CRT_B2358F489A6F9454BC69F0AE54BDAE82071C6EA08141B82895F92CC3286E3BA9&ARCH_X64
+│                         <uuid> ← UEFI\CRT_3CD3F0309EDAE228767A976DD40D9F4AFFC4FBD5218F2E8CC3C9DD97E8AC6F9D&ARCH_X64
+│                         <uuid> ← UEFI\CRT_A1117F516A32CEFCBA3F2D1ACE10A87972FD6BBE8FE0D0B996E09E65D802A503&ARCH_X64
+│       Device Flags:     • Internal device
+│                         • Updatable
+│                         • Supported on remote server
+│                         • Needs a reboot after installation
+│                         • Device is usable for the duration of the update
+│                         • Only version upgrades are allowed
+│                         • Signed Payload
+│                         • Can tag for emulation
+│     
+├─UEFI Device Firmware:
+│     Device ID:          <id>
+│     Summary:            UEFI System Resource Table device (Updated via capsule-on-disk)
+│     Current version:    257
+│     Vendor:             DMI:American Megatrends International, LLC.
+│     Update State:       Success
+│     Problems:           • Device requires AC power to be connected
+│     GUID:               <uuid>
+│     Device Flags:       • Internal device
+│                         • System requires external power source
+│                         • Needs a reboot after installation
+│                         • Device is usable for the duration of the update
+│                         • Updatable
+│     Device Requests:    • Message
+│   
+├─UEFI Device Firmware:
+│     Device ID:          <id>
+│     Summary:            UEFI System Resource Table device (Updated via capsule-on-disk)
+│     Current version:    3
+│     Vendor:             DMI:American Megatrends International, LLC.
+│     Update State:       Success
+│     Problems:           • Device requires AC power to be connected
+│     GUID:               <uuid>
+│     Device Flags:       • Internal device
+│                         • System requires external power source
+│                         • Needs a reboot after installation
+│                         • Device is usable for the duration of the update
+│                         • Updatable
+│     Device Requests:    • Message
+│   
+├─UEFI Device Firmware:
+│     Device ID:          <id>
+│     Summary:            UEFI System Resource Table device (Updated via capsule-on-disk)
+│     Current version:    53
+│     Vendor:             DMI:American Megatrends International, LLC.
+│     Update State:       Success
+│     Problems:           • Device requires AC power to be connected
+│     GUID:               <uuid>
+│     Device Flags:       • Internal device
+│                         • System requires external power source
+│                         • Needs a reboot after installation
+│                         • Device is usable for the duration of the update
+│                         • Updatable
+│     Device Requests:    • Message
+│   
+├─UEFI Device Firmware:
+│     Device ID:          <id>
+│     Summary:            UEFI System Resource Table device (Updated via capsule-on-disk)
+│     Current version:    1
+│     Vendor:             DMI:American Megatrends International, LLC.
+│     Update State:       Success
+│     Problems:           • Device requires AC power to be connected
+│     GUID:               <uuid>
+│     Device Flags:       • Internal device
+│                         • System requires external power source
+│                         • Needs a reboot after installation
+│                         • Device is usable for the duration of the update
+│                         • Updatable
+│     Device Requests:    • Message
+│   
+└─USB2.0 FHD UVC WebCam:
+      Device ID:          <id>
+      Current version:    1.1
+      Vendor:             Shinetech (USB:0x3277)
+      Serial Number:      <redacted>
+      GUID:               <uuid> ← USB\VID_3277&PID_0060
+      Device Flags:       • Updatable
+                          • Can tag for emulation
+    
