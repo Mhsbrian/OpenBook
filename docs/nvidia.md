@@ -42,9 +42,9 @@ Nothing in this document was run on the G14. It is research plus Linux-side reas
 
 **Most likely not (HYPOTHESIS, with each step CONFIRMED in our 6.18 source).** With `dgpu_disable=0`, the firmware powers and enumerates the dGPU before OpenBook starts, and nothing in OpenBook turns it off:
 
-1. **No driver binds the GPU function.** The AnyBook kernel has `DRM_NOUVEAU`, `NOVA_CORE`, `DRM_NOVA` and `VFIO` all unset (`kernel-6.18-nouveau.txt`).
+1. **No driver binds the GPU function.** The OpenBook kernel has `DRM_NOUVEAU`, `NOVA_CORE`, `DRM_NOVA` and `VFIO` all unset (`kernel-6.18-nouveau.txt`).
 2. **The PCI core keeps an unbound device in D0.** Runtime PM is forbidden by default (`pm_runtime_forbid` in `pci_pm_init`). Even when userspace allows it, `pci_pm_runtime_suspend()` leaves an unbound device in D0; only the bridge above it can take it to D3cold (`kernel-6.18-pci-runtime-pm.txt`). Nothing in AOSP writes `power/control`; on Linux that is a udev or TLP job.
-3. **The dGPU's HDMI-audio function keeps the link up.** `quirk_nvidia_hda` exposes function `.1`, and `snd_hda_intel` binds it (it is built as a module for the ALC285). NVIDIA HDA controllers only get runtime PM through vga_switcheroo (`init_vga_switcheroo()` sets `AZX_DCAPS_PM_RUNTIME`). The AnyBook kernel has `CONFIG_VGA_SWITCHEROO` unset and `CONFIG_SND_HDA_POWER_SAVE_DEFAULT=0`, so the controller never calls `pm_runtime_allow()`, and its codec never suspends. The bridge cannot suspend while one of its children is active. For comparison, the dev host's Arch kernel has `VGA_SWITCHEROO=y` and power_save=10, and there the RTX 4090's HDA function shows `power/control=auto`.
+3. **The dGPU's HDMI-audio function keeps the link up.** `quirk_nvidia_hda` exposes function `.1`, and `snd_hda_intel` binds it (it is built as a module for the ALC285). NVIDIA HDA controllers only get runtime PM through vga_switcheroo (`init_vga_switcheroo()` sets `AZX_DCAPS_PM_RUNTIME`). The OpenBook kernel has `CONFIG_VGA_SWITCHEROO` unset and `CONFIG_SND_HDA_POWER_SAVE_DEFAULT=0`, so the controller never calls `pm_runtime_allow()`, and its codec never suspends. The bridge cannot suspend while one of its children is active. For comparison, the dev host's Arch kernel has `VGA_SWITCHEROO=y` and power_save=10, and there the RTX 4090's HDA function shows `power/control=auto`.
 4. A side effect is an extra HDMI sound card from the dGPU that OpenBook's audio HAL could pick up.
 
 So with `dgpu_disable=0`, OpenBook would run with the dGPU in D0 and no driver managing its clocks.
@@ -155,7 +155,7 @@ So with the dGPU off, OpenBook drives external displays through USB-C only, and 
 
 - **nouveau is not in GKI.** The x86_64 `gki_defconfig` (android17-6.18 and android-mainline) has no `DRM_NOUVEAU`, so it has to be a vendor module, built the way ANAL-171 built amdgpu.
 - The GKI ABI lacks `drm_exec`, `drm_gpuvm`, `drm_sched`, the DP/display helpers, `drm_buddy`, `i2c_bit_add_bus`, `acpi_video_register`, WMI/MXM and `vga_switcheroo`.
-- **CONFIRMED:** amdgpu already brought most of these in as AnyBook vendor modules: `drm_exec`, `gpu-sched`, `drm_buddy`, `drm_display_helper`, `drm_ttm_helper`, `drm_suballoc_helper`, `i2c-algo-bit`, `video` and `wmi`. nouveau's Kconfig adds only `DRM_GPUVM` and `MXM_WMI`, plus nouveau itself. vga_switcheroo is optional for nouveau.
+- **CONFIRMED:** amdgpu already brought most of these in as OpenBook vendor modules: `drm_exec`, `gpu-sched`, `drm_buddy`, `drm_display_helper`, `drm_ttm_helper`, `drm_suballoc_helper`, `i2c-algo-bit`, `video` and `wmi`. nouveau's Kconfig adds only `DRM_GPUVM` and `MXM_WMI`, plus nouveau itself. vga_switcheroo is optional for nouveau.
 - **HYPOTHESIS:** the extra KMI work is small next to amdgpu's 129 symbols.
 
 ## 3. GSP firmware licence (task 2)
@@ -171,7 +171,7 @@ What it allows and requires:
   - ship `LICENCE.nvidia` next to them;
   - list them in the firmware subset with their WHENCE licence, as `docs/kernel.md` already does for amdgpu, MediaTek and Cirrus.
 
-  Re-compressing them (.zst or .xz) or stripping them changes the files the user receives. **HYPOTHESIS:** shipping them uncompressed is the safest reading. That costs 61 MB in `vendor`, because the AnyBook kernel has `FW_LOADER_COMPRESS` off anyway.
+  Re-compressing them (.zst or .xz) or stripping them changes the files the user receives. **HYPOTHESIS:** shipping them uncompressed is the safest reading. That costs 61 MB in `vendor`, because the OpenBook kernel has `FW_LOADER_COMPRESS` off anyway.
 - **Track B (Google's proprietary image).** It is not an OSI-licensed OS, so §2.1.2 does not obviously cover redistribution inside it. Track B ships scripts only, so users would install linux-firmware's files on their own machine. Treat this as part of the open Track B licensing decision.
 - **Other clauses.**
   - No reverse engineering.
@@ -283,7 +283,7 @@ Mesa's desktop "prime blit" path (`wsi_common_drm.c`) does exactly this on Linux
 |---|---|---|---|
 | N0 | dGPU off by default (this issue → ANAL-176) | `dgpu-power-check.sh` reports PASS on Linux and on the first OpenBook boot (`absent-off`) | Owner confirms `dgpu_disable=1` |
 | N1 | OpenBook power-down hook for an enumerated dGPU | Init hook in the `device/anybook` product; on the G14 with `dgpu_disable=0`, the check reports `d3cold` and `--sample` shows the saving | Needs `_PR3` in the DSDT, which the N0 run tells us |
-| N2 | nouveau as a vendor module on the AnyBook kernel | 1. `nouveau.ko` plus `drm_gpuvm`, `mxm-wmi` etc. build against the AnyBook KMI. 2. On the G14 (`dgpu_disable=0`, Optimus) dmesg shows GSP-RM 570.144 booting on GB205/GB206. 3. 20 runtime D3cold↔D0 cycles and 20 s2idle cycles with the dGPU suspended, all logged. **First on the G14's Linux (stock 7.3+ nouveau)**, then on OpenBook | Owner: temporarily stop supergfxd removing the dGPU and blacklist nvidia on Linux for the test. **Go/no-go: if runtime D3cold is not reliable, stop here.** Without it the dGPU costs battery whenever nouveau is loaded |
+| N2 | nouveau as a vendor module on the OpenBook kernel | 1. `nouveau.ko` plus `drm_gpuvm`, `mxm-wmi` etc. build against the OpenBook KMI. 2. On the G14 (`dgpu_disable=0`, Optimus) dmesg shows GSP-RM 570.144 booting on GB205/GB206. 3. 20 runtime D3cold↔D0 cycles and 20 s2idle cycles with the dGPU suspended, all logged. **First on the G14's Linux (stock 7.3+ nouveau)**, then on OpenBook | Owner: temporarily stop supergfxd removing the dGPU and blacklist nvidia on Linux for the test. **Go/no-go: if runtime D3cold is not reliable, stop here.** Without it the dGPU costs battery whenever nouveau is loaded |
 | N3 | NVK headless on OpenBook, then AHB | 1. Mesa built with `-Dvulkan-drivers=amd,nouveau` plus a Rust Android toolchain. 2. `vulkaninfo` and a dEQP-VK subset on the NVK render node; no display involved. 3. AHB support in NVK, written to go upstream, passing `dEQP-VK.api.external.memory.android_hardware_buffer.*` | The Mesa libelf licensing decision (already open) covers NVK as well |
 | N4 | Per-app offload prototype (topology A, §5) | `vkcube`, then one Vulkan game, rendered on NVK and presented on amdgpu. fps compared with RADV on the 890M; dGPU runtime-suspends after the app exits | minigbm and drm_hwcomposer pinned to amdgpu first |
 | N5 | GLES apps on the dGPU via ANGLE on NVK | dEQP-GLES 3.2 subset on ANGLE-on-NVK; ANGLE's NVIDIA-vendor workarounds checked against NVK | ANGLE patch or upstream fix for NVK detection |
@@ -305,7 +305,7 @@ Mesa's desktop "prime blit" path (`wsi_common_drm.c`) does exactly this on Linux
 ## Sources (all read 2026-10-16 unless dated otherwise)
 
 **Local, CONFIRMED** (excerpts in `evidence/2026-10-16-nvidia/`):
-- **AnyBook kernel:** `~/anybook/kernel/src/common` (android17-6.18, 6.18.21, `44a90255c95f`) and its config `~/anybook/kernel/amd/cfg/device.config`.
+- **OpenBook kernel:** `~/anybook/kernel/src/common` (android17-6.18, 6.18.21, `44a90255c95f`) and its config `~/anybook/kernel/amd/cfg/device.config`.
 - **Mesa:** 26.2.5 (`~/anybook/mesa/src/upstream`), including `docs/drivers/nvk.rst` and `docs/relnotes/25.2.0.rst`.
 - **AOSP 17 cp2a tree:** `frameworks/native/vulkan/libvulkan/driver.cpp`, `frameworks/native/opengl/libs/EGL/Loader.cpp`, `frameworks/base/core/java/android/os/GraphicsEnvironment.java`, `packages/apps/Settings/.../graphicsdriver/`, `external/minigbm`, `external/drm_hwcomposer`, and `external/angle` (`1f4500d390`, 2026-05-07).
 - **linux-firmware:** `38c1a709` (2026-10-16) WHENCE and `LICENSES/LICENCE.nvidia`, and the Arch `linux-firmware-nvidia 20260916`.

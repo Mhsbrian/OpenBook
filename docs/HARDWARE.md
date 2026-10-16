@@ -31,7 +31,7 @@ Labels: C = confirmed (inventory from the laptop, kernel source, or linux-firmwa
 | Backlight | `amdgpu_bl1` (raw, max 400000) on `card1-eDP-1` in Optimus/Integrated mode. `nvidia_wmi_ec_backlight` loads but registers no device | amdgpu | — | C. A dGPU-only MUX mode would likely switch to nvidia-wmi-ec-backlight (hypothesis) |
 | NPU | XDNA 2, `1022:17f0` rev 10 | amdxdna | `amdnpu/17f0_10/*` | C |
 | Wi-Fi / BT | MediaTek MT7925 `14c3:7925`; BT `0489:e11e` on USB | mt7925e, btusb + btmtk | `mediatek/mt7925/*` | C |
-| Audio | Realtek ALC285, codec SSID **1043:1024**, plus 2× Cirrus CS35L56 on I2C (`CSC3556`) | snd-hda-intel with quirk `ALC285_FIXUP_ASUS_GA403U_HEADSET_MIC` (mainline cbd46cbc5470, backported to AnyBook's 6.18), cs35l56-hda-i2c, serial-multi-instantiate | `cirrus/cs35l56-b0-dsp1-misc-10431024-spkid1{.wmfw,-amp1.bin,-amp2.bin}`: WHENCE links to the 10431044 tuning and `CS35L56_Rev3.11.16.wmfw` | C. The laptop loads the spkid1 set (`dmesg`); an earlier note here that linux-firmware lacked it was wrong. Headset mic broken upstream (R) |
+| Audio | Realtek ALC285, codec SSID **1043:1024**, plus 2× Cirrus CS35L56 on I2C (`CSC3556`) | snd-hda-intel with quirk `ALC285_FIXUP_ASUS_GA403U_HEADSET_MIC` (mainline cbd46cbc5470, backported to OpenBook's 6.18), cs35l56-hda-i2c, serial-multi-instantiate | `cirrus/cs35l56-b0-dsp1-misc-10431024-spkid1{.wmfw,-amp1.bin,-amp2.bin}`: WHENCE links to the 10431044 tuning and `CS35L56_Rev3.11.16.wmfw` | C. The laptop loads the spkid1 set (`dmesg`); an earlier note here that linux-firmware lacked it was wrong. Headset mic broken upstream (R) |
 | Internal mic | On the HDA codec: `ALC285 Analog` is the only capture device. ACP 7.0 (`1022:15e2` rev 70) binds `snd_acp_pci` but registers no capture PCM | snd-hda-intel | — | C (inventory) |
 | Touchpad | ELAN `ASCE1206:00 04F3:3315`, I2C HID on AMDI0010 | i2c-hid-acpi, i2c-designware, pinctrl-amd, hid-multitouch | — | C |
 | Keyboard | ASUS N-KEY `0b05:19b6` | hid-asus, asus-wmi | — | C |
@@ -55,7 +55,7 @@ By default it installs read-only diagnostic tools with pacman, apt-get or dnf: p
 It writes `anybook-hw-<board>-<date>.tar.gz`, with serials, UUIDs and MAC addresses redacted, and the panel EDID with its serial number and date replaced. Attach that file to ANAL-175.
 
 ### Bring-up notes and risks
-1. **Run Android on the Radeon 890M.** Keep the MUX in hybrid (iGPU) mode and power the dGPU down with `dgpu_disable=1` from Linux before booting AnyBook. In dGPU-only MUX mode the internal panel is wired to the NVIDIA GPU, which Android cannot drive yet.
+1. **Run Android on the Radeon 890M.** Keep the MUX in hybrid (iGPU) mode and power the dGPU down with `dgpu_disable=1` from Linux before booting OpenBook. In dGPU-only MUX mode the internal panel is wired to the NVIDIA GPU, which Android cannot drive yet.
    - With `dgpu_disable=0`, the dGPU will most likely stay in D0 for the whole OpenBook session: no driver binds it, and `snd_hda_intel` holds its HDMI-audio function awake.
    - `scripts/dgpu-power-check.sh` verifies the state on Linux and on OpenBook (`docs/nvidia.md` §1).
 2. **AVX-VNNI.** The CPU is the HX 370 (Zen 5), so Google's Panther Lake-tuned binaries meet their ISA baseline (PLAN §3.4). The Zen 4 risk applies only to the dev host.
@@ -75,11 +75,11 @@ It writes `anybook-hw-<board>-<date>.tar.gz`, with serials, UUIDs and MAC addres
 | GPU | amdgpu, linux-firmware `amdgpu/*` | Mesa radeonsi/RADV, minigbm, drm_hwcomposer, ANGLE | Kernel module and firmware list built, loads in a VM (ANAL-171). Userspace is in the image and picked at boot; its drivers ran on the build host's 610M (ANAL-174, `docs/graphics-amd.md`). Untested on the 890M |
 | CPU power | amd-pstate (EPP) | power HAL | Built into the stock kernel (`X86_AMD_PSTATE=y`) |
 | Suspend | amd_pmc (s2idle) | system_suspend | Module built (ANAL-171); untested |
-| Touchpad / touch | i2c-hid-acpi, pinctrl-amd, hid-multitouch | — | `PINCTRL_AMD=y` and `X86_AMD_PLATFORM_DEVICE=y` in AnyBook GKI, i2c-designware/i2c-hid-acpi modules (ANAL-171); untested |
+| Touchpad / touch | i2c-hid-acpi, pinctrl-amd, hid-multitouch | — | `PINCTRL_AMD=y` and `X86_AMD_PLATFORM_DEVICE=y` in OpenBook GKI, i2c-designware/i2c-hid-acpi modules (ANAL-171); untested |
 | Audio | snd-hda-intel (ALC285, SSID 1043:1024 quirk backported), cs35l56-hda-i2c; internal mic on HDA | audio HAL | Modules built (ANAL-171); CS35L56 tuning for 10431024 added to the firmware list (ANAL-175) |
 | Wi-Fi / BT | mt7925e, btmtk | wifi HAL | Modules and firmware list built (ANAL-171); untested |
 | NPU | amdxdna (XDNA 2) | — | Module built (ANAL-171); userspace later |
 | dGPU | nouveau / NVK (RTX 50 Laptop, GB20x) | — | Later: research track N1–N6 in `docs/nvidia.md`. Kept off with `dgpu_disable=1` (ANAL-176 default) |
 | Platform | asus-wmi, asus-armoury, hid-asus | — | asus-wmi/hid-asus built (ANAL-171). 6.18 asus-wmi has `dgpu_disable` and `gpu_mux_mode`; asus-armoury (6.19) not needed for bring-up |
-| IOMMU | amd_iommu | — | `AMD_IOMMU=y` in AnyBook GKI; starts with interrupt remapping on QEMU's emulated AMD-Vi (ANAL-171) |
+| IOMMU | amd_iommu | — | `AMD_IOMMU=y` in OpenBook GKI; starts with interrupt remapping on QEMU's emulated AMD-Vi (ANAL-171) |
 | Boot | UEFI, GPT; EFI loader with bootconfig | AVB orange | systemd-boot, GRUB and GBL boot our kernel and userspace from a USB GPT image in QEMU/OVMF (ANAL-189, `docs/installer.md`); untested on the G14 |

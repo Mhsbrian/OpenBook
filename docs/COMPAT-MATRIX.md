@@ -15,9 +15,9 @@ The first baseline is libndk_translation in the AOSP Desktop (Preview) 37.0 emul
 
 | App | ABI | houdini | ndk_translation | Digitalis | Notes |
 |---|---|---|---|---|---|
-| AnyBook probe (`scripts/compat/probe`) | arm64-v8a | — | Runs; 15/19 test groups pass | Runs; 16/19 pass | ndk fails: seq_cst store→load ordering, x86 NaN rules, `CNTVCT_EL0` rate, `MRS` ID registers, `uname`, SIGILL `si_code`. Digitalis fixes ordering, `CNTVCT`, `uname` and FMAX NaN; it still fails sNaN/default NaN, `MRS ID_AA64ISAR0_EL1` and `si_code`, and newly fails the `FRECPE` estimate |
-| AnyBook probe | armeabi-v7a | — | **Install fails** | **Install fails** | `INSTALL_FAILED_NO_MATCHING_ABIS`: the image is 64-bit only |
-| AnyBook probe, on our AOSP build without a bridge (ANAL-168) | arm64-v8a | — | — | — | **Installs, then fails:** `dlopen ... is for EM_AARCH64`. The abilist advertises `arm64-v8a`, but no translator ships (`evidence/2026-10-16-aosp/boot1/arm64-probe-check.txt`) |
+| OpenBook probe (`scripts/compat/probe`) | arm64-v8a | — | Runs; 15/19 test groups pass | Runs; 16/19 pass | ndk fails: seq_cst store→load ordering, x86 NaN rules, `CNTVCT_EL0` rate, `MRS` ID registers, `uname`, SIGILL `si_code`. Digitalis fixes ordering, `CNTVCT`, `uname` and FMAX NaN; it still fails sNaN/default NaN, `MRS ID_AA64ISAR0_EL1` and `si_code`, and newly fails the `FRECPE` estimate |
+| OpenBook probe | armeabi-v7a | — | **Install fails** | **Install fails** | `INSTALL_FAILED_NO_MATCHING_ABIS`: the image is 64-bit only |
+| OpenBook probe, on our AOSP build without a bridge (ANAL-168) | arm64-v8a | — | — | — | **Installs, then fails:** `dlopen ... is for EM_AARCH64`. The abilist advertises `arm64-v8a`, but no translator ships (`evidence/2026-10-16-aosp/boot1/arm64-probe-check.txt`) |
 | VLC 3.7.1 | arm64-v8a | — | Runs | Runs | x86_64 control runs |
 | Fennec F-Droid 158.0.0 | arm64-v8a | — | Runs | **Crash** | x86_64 control runs; launch 690 ms vs 190 ms. Under Digitalis, a Gecko thread hits a NULL+8 SIGSEGV that Berberis's handler catches (no tombstone, so the harness reports EXITED) |
 | KOReader v2026.07.1 | arm64-v8a | — | Runs | Runs | LuaJIT |

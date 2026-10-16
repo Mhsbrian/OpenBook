@@ -23,7 +23,7 @@ Status as of 2026-10-15. **CONFIRMED** means we observed it in our own logs or t
 
 | | |
 |---|---|
-| Host | Ryzen 9 7950X (Zen 4), Arch Linux, KVM, no sudo; other AnyBook jobs share the host |
+| Host | Ryzen 9 7950X (Zen 4), Arch Linux, KVM, no sudo; other OpenBook jobs share the host |
 | Emulator | 37.2.12.0 (build 16428233), AVD `anybook-desktop`, console port 5580, 6 vCPU, 8 GB RAM |
 | Image | `google/sdk_gdesktop_x86_64/emu64xa:17/CLE1.260506.004/15373846:userdebug` |
 | Native bridge | `ro.dalvik.vm.native.bridge=libndk_translation.so`, `ro.enable.native.bridge.exec=1` |
@@ -170,8 +170,8 @@ Evidence is in `evidence/2026-10-15-compat/`:
 
 | App | arm64-v8a via libndk_translation | x86_64 control | What the screenshot shows / notes |
 |---|---|---|---|
-| AnyBook probe | RUNS, probe 15 pass / 4 fail | RUNS, 17 pass / 0 fail / 2 skip | Test log on screen |
-| AnyBook probe armeabi-v7a | **INSTALL_FAIL** `INSTALL_FAILED_NO_MATCHING_ABIS` | — | 64-bit-only image |
+| OpenBook probe | RUNS, probe 15 pass / 4 fail | RUNS, 17 pass / 0 fail / 2 skip | Test log on screen |
+| OpenBook probe armeabi-v7a | **INSTALL_FAIL** `INSTALL_FAILED_NO_MATCHING_ABIS` | — | 64-bit-only image |
 | VLC | RUNS | RUNS | Welcome screen |
 | Fennec F-Droid | RUNS | RUNS | "Welcome to Fennec" |
 | KOReader | RUNS | — | Asks for all-files access (expected first-run prompt) |

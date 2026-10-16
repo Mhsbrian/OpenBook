@@ -148,8 +148,8 @@ The `harness=` field in the Digitalis runs' `env.txt` shows pre-squash commit ID
 
 | App | arm64 via libndk_translation | arm64 via Digitalis | Notes |
 |---|---|---|---|
-| AnyBook probe | RUNS, 15 pass / 4 fail | RUNS, 16 pass / 3 fail | See the probe table |
-| AnyBook probe armeabi-v7a | INSTALL_FAIL | INSTALL_FAIL | The image is 64-bit only, and Digitalis has no arm32 guest either |
+| OpenBook probe | RUNS, 15 pass / 4 fail | RUNS, 16 pass / 3 fail | See the probe table |
+| OpenBook probe armeabi-v7a | INSTALL_FAIL | INSTALL_FAIL | The image is 64-bit only, and Digitalis has no arm32 guest either |
 | VLC 3.7.1 | RUNS | RUNS | |
 | **Fennec F-Droid 158.0.0** | RUNS | **EXITED (SIGSEGV)** | Digitalis regression, see finding 6 |
 | KOReader | RUNS | RUNS | |
@@ -261,6 +261,6 @@ What we found in the audit (**CONFIRMED**):
 
 ## Next
 
-1. Port the fork to `android17-release` on an AnyBook branch of Digitalis. Build it inside the Track A tree (`aosp_cf_x86_64_pc`, after ANAL-168), boot it in Cuttlefish, and re-run this matrix. Check that the API gap (finding 7) is gone.
+1. Port the fork to `android17-release` on an OpenBook branch of Digitalis. Build it inside the Track A tree (`aosp_cf_x86_64_pc`, after ANAL-168), boot it in Cuttlefish, and re-run this matrix. Check that the API gap (finding 7) is gone.
 2. Report findings 5 and 6, `FRECPE`, and the NaN and `si_code` differences upstream, with the probe and `analysis/fennec-sigsegv.txt` as reproducers. This is outward-facing, so it needs the owner's OK first.
 3. Re-run cold-launch timings on a quiet host, and add a SIMD/JIT micro-benchmark. CoreMark alone may understate the heavy optimizer's NEON work.
