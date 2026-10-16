@@ -7,12 +7,7 @@
 
 <br>
 
-[![Status: pre-alpha](https://img.shields.io/badge/status-pre--alpha-8A5CF0?style=flat-square)](docs/STATUS.md)
-[![Android 17 desktop](https://img.shields.io/badge/Android_17-desktop-3DDC84?style=flat-square&logo=android&logoColor=white)](docs/aosp-desktop.md)
-[![Kernel: GKI 6.18](https://img.shields.io/badge/kernel-GKI_6.18-4355B9?style=flat-square&logo=linux&logoColor=white)](docs/kernel.md)
-[![Graphics: Mesa 26 radeonsi + RADV](https://img.shields.io/badge/graphics-Mesa_26_·_RADV-ED1C24?style=flat-square&logo=amd&logoColor=white)](docs/graphics-amd.md)
-[![First target: ASUS ROG Zephyrus G14](https://img.shields.io/badge/first_target-ROG_Zephyrus_G14_(2025)-1B1B21?style=flat-square&logo=asus&logoColor=white)](docs/HARDWARE.md)
-[![License: pending](https://img.shields.io/badge/license-pending-lightgrey?style=flat-square)](#license-and-legal)
+[![Status: pre-alpha](https://img.shields.io/badge/status-pre--alpha-8A5CF0?style=flat-square)](docs/STATUS.md) [![Android 17 desktop](https://img.shields.io/badge/Android_17-desktop-3DDC84?style=flat-square&logo=android&logoColor=white)](docs/aosp-desktop.md) [![Kernel: GKI 6.18](https://img.shields.io/badge/kernel-GKI_6.18-4355B9?style=flat-square&logo=linux&logoColor=white)](docs/kernel.md) [![Graphics: Mesa 26 radeonsi + RADV](https://img.shields.io/badge/graphics-Mesa_26_·_RADV-ED1C24?style=flat-square&logo=amd&logoColor=white)](docs/graphics-amd.md) [![First target: ASUS ROG Zephyrus G14](https://img.shields.io/badge/first_target-ROG_Zephyrus_G14_(2025)-1B1B21?style=flat-square&logo=asus&logoColor=white)](docs/HARDWARE.md) [![License: pending](https://img.shields.io/badge/license-pending-lightgrey?style=flat-square)](#license-and-legal)
 
 **[Status](#status)** · **[Screenshots](#screenshots)** · **[Hardware](#hardware)** · **[How it works](#how-it-works)** · **[Build it](#build-it)** · **[Docs](#documentation)**
 
@@ -84,7 +79,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/readme/showcase-dark.jpg">
-  <img src="assets/readme/showcase-light.jpg" alt="OpenBook installer design: hardware check, disk choice and progress screens" width="100%">
+  <img src="assets/readme/showcase-light.jpg" alt="OpenBook installer design: welcome, disk choice and progress screens" width="100%">
 </picture>
 
 <sub>High-fidelity design renders (Material 3 Expressive) of the recommended installer, an Android app in the live session. Hardware values are sample data. Full set and rationale: <a href="docs/installer-design/png/gallery.png">gallery</a> · <a href="docs/installer.md"><code>docs/installer.md</code></a>.</sub>
@@ -172,8 +167,10 @@ flowchart LR
 git clone https://github.com/Mhsbrian/OpenBook && cd OpenBook
 
 # 1 · Android 17 sources (pinned android-latest-release) and the build container
-docker build -t anybook-aosp -f tools/Dockerfile.aosp --build-arg UID=$(id -u) --build-arg GID=$(id -g) tools/
-scripts/aosp-docker.sh -d anybook-aosp-sync /repo/scripts/aosp-sync.sh all && docker wait anybook-aosp-sync
+docker build -t anybook-aosp -f tools/Dockerfile.aosp \
+  --build-arg UID=$(id -u) --build-arg GID=$(id -g) tools/
+scripts/aosp-docker.sh -d anybook-aosp-sync /repo/scripts/aosp-sync.sh all
+docker wait anybook-aosp-sync
 
 # 2 · Mesa for Android (radeonsi + RADV), staged into the tree
 docker build -t anybook-mesa-android -f tools/Dockerfile.mesa-android tools/
@@ -181,9 +178,11 @@ scripts/mesa-android-build.sh fetch deps setup build install verify -- upstream
 scripts/graphics-amd-stage-mesa.sh
 
 # 3 · Build the OpenBook desktop product and boot it in a VM on your GPU
-AOSP_JOBS=32 scripts/aosp-docker.sh -d anybook-aosp-build /repo/scripts/aosp-build.sh anybook_cf_x86_64_pc-cp2a-userdebug
+AOSP_JOBS=32 scripts/aosp-docker.sh -d anybook-aosp-build \
+  /repo/scripts/aosp-build.sh anybook_cf_x86_64_pc-cp2a-userdebug
 docker wait anybook-aosp-build
-CF_GPU=amd CF_GPU_MODE=gfxstream_guest_angle CF_DEVICE=anybook_vsoc_x86_64 scripts/cf-boot.sh
+CF_GPU=amd CF_GPU_MODE=gfxstream_guest_angle CF_DEVICE=anybook_vsoc_x86_64 \
+  scripts/cf-boot.sh
 ```
 
 The full, tested steps, including the kernel, the hardware-check stick and the installer prototype, are in [`docs/BUILD.md`](docs/BUILD.md).
