@@ -83,3 +83,9 @@ These are `hwcheck-002` (the check) and `hwcheck-003` (the sleep test), with JSO
 **Reading (HYPOTHESIS).** The dGPU sitting in D0 is the prime suspect for the missing S0ix residency. That matches `docs/nvidia.md` §1: with no driver and with VGA_SWITCHEROO off, the HDMI-audio function keeps the link up and the slot can't power down.
 
 **v3 tests this directly.** A new menu entry, "OpenBook sleep test, NVIDIA GPU powered down", unbinds the HDMI-audio function, removes both NVIDIA functions and lets the root port runtime-suspend (option 2 in `docs/nvidia.md` §1, for this boot only). It then repeats the sleep test, records the bridge's power state, and lists every PCI function still awake right before suspend.
+
+## Stick updated to v3 (2026-10-16, owner's confirmation on ANAL-189)
+- Same guarded update as for v2 (`stick-update-v3.log`): only `openbook/check/hwcheck.img`, the three check entries and the README on the OPENBOOK partition.
+- A read-only remount verified all five files against `../2026-10-16-installer/hwcheck-stick/v3/esp-update-MANIFEST.sha256`.
+- Menu order: hardware check (default) → + sleep test → **sleep test, NVIDIA GPU powered down** → preview.
+- Reports `hwcheck-001`…`003` are still on the stick.

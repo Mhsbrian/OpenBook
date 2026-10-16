@@ -1,0 +1,7 @@
+stick: /dev/disk/by-id/usb-SanDisk_Ultra_4C530001041228122034-0:0 -> /dev/sda (SanDisk Ultra 57.8G); ESP /dev/sda1 (PARTUUID 3a26490e-49fb-50d4-afb0-82299526ec44)
+loader/entries/openbook-1-hwcheck.conf: OK
+loader/entries/openbook-1s-sleep.conf: OK
+loader/entries/openbook-1t-sleep-dgpu-off.conf: OK
+openbook/check/hwcheck.img: OK
+openbook/README.txt: OK
+updated /dev/sda1 and unmounted it; the stick can be removed
