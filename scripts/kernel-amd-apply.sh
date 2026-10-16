@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Put the AnyBook AMD kernel changes on top of the tree kernel-sync.sh prepared:
 #   1. kernel/patches/common/*.patch -> commits on a detached HEAD at the pinned kernel/common revision
-#      (git am with committer = author, so the resulting SHA and the -g<sha> release string are reproducible)
+#      (git am with a fixed committer and date, so the resulting SHA and the -g<sha> release string are
+#      reproducible; authors, including upstream authors of backports, are kept)
 #   2. kernel/devices/anybook/       -> ~/anybook/kernel/src/devices/anybook (Kleaf package //devices/anybook)
 # Idempotent: rerun after every kernel-sync.sh (repo sync resets common to the pin).
 #
@@ -33,9 +34,8 @@ if [ -n "$have" ] && [ "$want" = "$have" ] && git diff --quiet HEAD; then
 else
   git checkout -q --detach "$BASE"
   for f in "$P"/*.patch; do
-    a=$(sed -n 's/^From: //p' "$f" | head -1); d=$(sed -n 's/^Date: //p' "$f" | head -1)
-    GIT_COMMITTER_NAME=${a% <*} GIT_COMMITTER_EMAIL=$(echo "$a" | sed 's/.*<\(.*\)>/\1/') GIT_COMMITTER_DATE=$d \
-      git am -q "$f"
+    GIT_COMMITTER_NAME="AnyBook kernel-amd-apply.sh" GIT_COMMITTER_EMAIL=noreply@anybook.invalid \
+      GIT_COMMITTER_DATE=2026-10-16T12:00:00+00:00 git am -q "$f"
   done
 fi
 echo "### common: $T base ${BASE:0:12} + $(git rev-list --count "$BASE..HEAD") patches -> HEAD $(git rev-parse --short=12 HEAD)"

@@ -17,8 +17,8 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 Change-Id: Iee05da30818a9fd4f942053e1f76272002c97f96
 ---
  BUILD.bazel                    |    1 +
- gki/x86_64/symbols/anybook_amd | 2016 ++++++++++++++++++++++++++++++++
- 2 files changed, 2017 insertions(+)
+ gki/x86_64/symbols/anybook_amd | 2047 ++++++++++++++++++++++++++++++++
+ 2 files changed, 2048 insertions(+)
  create mode 100644 gki/x86_64/symbols/anybook_amd
 
 diff --git a/BUILD.bazel b/BUILD.bazel
@@ -35,16 +35,17 @@ index 6ceea79295f4..679f1652429e 100644
          "gki/x86_64/symbols/virtual_device",
 diff --git a/gki/x86_64/symbols/anybook_amd b/gki/x86_64/symbols/anybook_amd
 new file mode 100644
-index 000000000000..c84070ae1931
+index 000000000000..a08a21bd988f
 --- /dev/null
 +++ b/gki/x86_64/symbols/anybook_amd
-@@ -0,0 +1,2016 @@
+@@ -0,0 +1,2047 @@
 +[abi_symbol_list]
 +# commonly used symbols
 +  acpi_bus_generate_netlink_event
 +  __acpi_bus_register_driver
 +  acpi_bus_unregister_driver
 +  acpi_check_dsm
++  acpi_dev_for_each_child
 +  acpi_dev_found
 +  acpi_dev_get_first_match_dev
 +  acpi_dev_get_property
@@ -166,6 +167,7 @@ index 000000000000..c84070ae1931
 +  device_create_file
 +  device_del
 +  device_for_each_child
++  device_for_each_child_reverse
 +  device_get_match_data
 +  device_initialize
 +  device_property_present
@@ -174,6 +176,8 @@ index 000000000000..c84070ae1931
 +  device_property_read_u32_array
 +  device_register
 +  device_remove_file
++  device_remove_software_node
++  device_set_node
 +  device_set_wakeup_capable
 +  device_set_wakeup_enable
 +  device_unregister
@@ -182,6 +186,7 @@ index 000000000000..c84070ae1931
 +  _dev_info
 +  dev_kfree_skb_any_reason
 +  __devm_add_action
++  devm_backlight_device_register
 +  devm_clk_get_optional
 +  devm_clk_hw_register
 +  devm_clk_hw_register_clkdev
@@ -466,6 +471,7 @@ index 000000000000..c84070ae1931
 +  iounmap
 +  iowrite32
 +  iowrite8
++  irq_create_mapping_affinity
 +  irq_set_irq_wake
 +  is_acpi_device_node
 +  is_vmalloc_addr
@@ -564,8 +570,10 @@ index 000000000000..c84070ae1931
 +  net_ratelimit
 +  noop_llseek
 +  of_clk_hw_simple_get
++  of_device_is_available
 +  of_find_property
 +  of_get_child_by_name
++  of_get_next_child
 +  of_get_property
 +  of_property_read_bool
 +  of_property_read_variable_u32_array
@@ -582,6 +590,7 @@ index 000000000000..c84070ae1931
 +  pci_clear_master
 +  pci_dev_put
 +  pci_disable_device
++  pcie_capability_clear_and_set_word_locked
 +  pcie_capability_clear_and_set_word_unlocked
 +  pcie_capability_read_word
 +  pci_enable_device
@@ -623,6 +632,7 @@ index 000000000000..c84070ae1931
 +  pm_runtime_force_suspend
 +  pm_runtime_get_if_active
 +  __pm_runtime_idle
++  pm_runtime_no_callbacks
 +  __pm_runtime_resume
 +  pm_runtime_set_autosuspend_delay
 +  __pm_runtime_set_status
@@ -901,6 +911,7 @@ index 000000000000..c84070ae1931
 +  vmemmap_base
 +  vzalloc_noprof
 +  wait_for_completion
++  wait_for_completion_interruptible_timeout
 +  wait_for_completion_timeout
 +  __wake_up
 +  wake_up_bit
@@ -1158,7 +1169,6 @@ index 000000000000..c84070ae1931
 +  iommu_iova_to_phys
 +  ioremap_cache
 +  ioremap_wc
-+  irq_create_mapping_affinity
 +  irq_domain_instantiate
 +  irq_domain_remove
 +  irq_set_chip_and_handler_name
@@ -1292,7 +1302,6 @@ index 000000000000..c84070ae1931
 +  vga_client_register
 +  vscnprintf
 +  vsnprintf
-+  wait_for_completion_interruptible_timeout
 +  ww_mutex_trylock
 +  __xa_store
 +
@@ -1467,7 +1476,6 @@ index 000000000000..c84070ae1931
 +  rb_prev
 +
 +# required by drm_display_helper.ko
-+  devm_backlight_device_register
 +  drm_atomic_get_new_private_obj_state
 +  drm_atomic_get_old_private_obj_state
 +  drm_connector_dynamic_register
@@ -1533,7 +1541,6 @@ index 000000000000..c84070ae1931
 +  yield
 +
 +# required by i2c-designware-core.ko
-+  device_set_node
 +  devm_pinctrl_get
 +  i2c_acpi_find_bus_speed
 +  i2c_generic_scl_recovery
@@ -1656,6 +1663,19 @@ index 000000000000..c84070ae1931
 +  unregister_inet6addr_notifier
 +  unregister_inetaddr_notifier
 +
++# required by mfd-core.ko
++  acpi_check_resource_conflict
++  device_add_software_node
++  of_device_is_compatible
++  of_property_read_reg
++  platform_device_add
++  platform_device_add_data
++  platform_device_add_resources
++  platform_device_alloc
++  platform_device_put
++  regulator_bulk_register_supply_alias
++  regulator_bulk_unregister_supply_alias
++
 +# required by mt76.ko
 +  debugfs_create_u8
 +  dev_set_threaded
@@ -1665,9 +1685,7 @@ index 000000000000..c84070ae1931
 +  napi_build_skb
 +  nvmem_cell_put
 +  nvmem_cell_read
-+  of_device_is_available
 +  of_get_mac_address
-+  of_get_next_child
 +  of_nvmem_cell_get
 +  of_prop_next_string
 +  page_pool_alloc_frag
@@ -1675,7 +1693,6 @@ index 000000000000..c84070ae1931
 +  page_pool_destroy
 +  page_pool_put_unrefed_netmem
 +  pci_disable_link_state
-+  pcie_capability_clear_and_set_word_locked
 +  sched_set_fifo_low
 +
 +# required by mt7921-common.ko
@@ -1689,6 +1706,23 @@ index 000000000000..c84070ae1931
 +  class_find_device
 +  class_for_each_device
 +  __sysfs_match_string
++
++# required by rtsx_pci.ko
++  dma_map_sg_attrs
++  idr_preload
++  pci_disable_msi
++  pci_enable_msi
++  pci_intx
++  pm_schedule_suspend
++
++# required by rtsx_pci_sdmmc.ko
++  devm_mmc_alloc_host
++  mmc_add_host
++  mmc_detect_change
++  mmc_remove_host
++  mmc_request_done
++  sg_copy_from_buffer
++  sg_copy_to_buffer
 +
 +# required by rtw89_core.ko
 +  completion_done
@@ -1713,7 +1747,6 @@ index 000000000000..c84070ae1931
 +
 +# required by snd-acp-legacy-mach.ko
 +  acpi_get_first_physical_node
-+  device_remove_software_node
 +  devm_acpi_dev_add_driver_gpios
 +
 +# required by snd-acp-mach.ko
@@ -1983,7 +2016,6 @@ index 000000000000..c84070ae1931
 +  ucsi_unregister
 +
 +# required by video.ko
-+  acpi_dev_for_each_child
 +  acpi_device_fix_up_power_children
 +  acpi_dev_present
 +  acpi_get_parent
@@ -2052,6 +2084,5 @@ index 000000000000..c84070ae1931
 +  acpi_get_object_info
 +  bus_for_each_dev
 +  device_create
-+  device_for_each_child_reverse
 +  device_link_add
 +  driver_set_override

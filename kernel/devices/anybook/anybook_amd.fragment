@@ -1,5 +1,5 @@
 # AnyBook AMD laptop vendor modules (ANAL-171). Mixed build on top of //common:kernel_x86_64.
-# Target: ASUS ROG Zephyrus G14 2025 (GA403WP, Ryzen AI 9 HX 370 "Strix Point"); generic for Zen 4/5 laptops.
+# Target: ASUS ROG Zephyrus G14 2025 (GA403WR, Ryzen AI 9 HX 370 "Strix Point"); generic for Zen 4/5 laptops.
 #
 # Rule: this fragment may only add modules (n -> m) and options that only module code reads.
 # It must not change anything vmlinux or a GKI module is built from; built-in options go in
@@ -55,10 +55,17 @@ CONFIG_HID_ASUS=m
 ## Platform: ASUS WMI hotkeys, fan/profile, backlight
 CONFIG_ACPI_WMI=m
 CONFIG_ACPI_VIDEO=m
+# MUX laptops: when the EC owns the panel brightness, acpi/video_detect.c (built in) picks nvidia_wmi_ec
+# over the GPU's native backlight. Without this module there would be no backlight device at all.
+CONFIG_NVIDIA_WMI_EC_BACKLIGHT=m
 CONFIG_ASUS_WMI=m
 CONFIG_ASUS_NB_WMI=m
 CONFIG_INPUT_SPARSEKMAP=m
 CONFIG_SERIAL_MULTI_INSTANTIATE=m
+
+## Storage: Realtek RTS525A SD card reader (GA403WR inventory)
+CONFIG_MISC_RTSX_PCI=m
+CONFIG_MMC_REALTEK_PCI=m
 
 ## Ports and security: USB-C UCSI, firmware TPM (Pluton/fTPM via CRB)
 CONFIG_UCSI_ACPI=m
