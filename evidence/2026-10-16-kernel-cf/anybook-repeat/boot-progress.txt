@@ -1,0 +1,5 @@
+--------- beginning of events
+10-16 15:45:13.355   585   585 I boot_progress_start: 3485
+10-16 15:45:17.993   819   862 I boot_progress_enable_screen: 8123
+10-16 15:45:18.394   669   812 I sf_stop_bootanim: 8525
+10-16 15:45:18.394   819   862 I wm_boot_animation_done: 8525

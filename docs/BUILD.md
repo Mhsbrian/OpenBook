@@ -100,6 +100,7 @@ scripts/kernel-build.sh           # tools/bazel run --config=stamp //common:kern
 ```
 
 The scripts run in `tools/Dockerfile.kernel` (Ubuntu 24.04) through `scripts/kernel-docker.sh`. Plan for 53 GB of sources, 9 GB of Bazel cache and about 6 min per build on 32 threads. Comparison, config-diff and boot-test tools are covered in `docs/kernel.md`.
+
 AMD vendor modules (ANAL-171), on top of the same tree:
 
 ```bash
@@ -121,3 +122,16 @@ scripts/cf-boot.sh                      # Cuttlefish container: launch, wait for
 - Cuttlefish runs in `cuttlefish-orchestration:1.56.0` (pinned by digest) with `--cap-add NET_ADMIN`, `seccomp=unconfined`, and `/dev/kvm`, `/dev/net/tun`, `/dev/vhost-net` and `/dev/vhost-vsock`.
 - Images are staged as reflink copies in `~/anybook/aosp/cf/product`; `out/` is never modified.
 - See `docs/aosp-build.md` (M1b).
+
+## Kernel in Cuttlefish: AnyBook kernel + our AOSP 17 userspace (ANAL-172)
+
+Needs the ANAL-171 dist and the ANAL-168 build (`~/anybook/aosp/src/out`, read only).
+
+```bash
+KERNEL_TARGET=//common-modules/virtual-device:virtual_device_x86_64_dist scripts/kernel-build.sh anybook-vdev-gbos-16302624   # 6 min, once
+scripts/kernel-cf-boot.sh          # AnyBook module set; `board` for the control. About 1.5 min per boot
+```
+
+- Uses its own container (`anybook-cf-kernel`), ports (adb 16572, WebRTC 11472) and vsock CID 172, so it can run next to `scripts/cf-boot.sh`.
+- Disk: 4.1 GB of reflinks for the snapshot, plus 3.3 GB per staged boot, in `~/anybook/kernel/cf/`.
+- See `docs/kernel.md` (ANAL-172).

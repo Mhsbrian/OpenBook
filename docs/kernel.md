@@ -105,7 +105,7 @@ scripts/kernel-boot-test.sh ~/anybook/kernel/dist/gbos-16302624/bzImage   # need
 
 ## Open issues
 
-- **Signing key.** Our GKI cannot load Google-signed GKI modules, so the next stage must install our `system_dlkm` too. For M1a/M3, that means rebuilding `super`'s `system_dlkm_a` or overlaying it, and that is not done yet. **HYPOTHESIS:** once `system_dlkm` matches the kernel, boot behaves exactly like the stock kernel.
+- **Signing key.** Our GKI cannot load Google-signed GKI modules, so the next stage must install our `system_dlkm` too. For M1a/M3, that means rebuilding `super`'s `system_dlkm_a` or overlaying it, and that is not done yet. **HYPOTHESIS:** once `system_dlkm` matches the kernel, boot behaves exactly like the stock kernel. ANAL-172 tested this in Cuttlefish with the AnyBook build: with its own `system_dlkm`, Android 17 boots to `boot_completed` with timings close to the stock 6.12 kernel's (see [Booting in Cuttlefish](#booting-in-cuttlefish-with-our-aosp-17-userspace-anal-172)).
 - **Release-branch choice.** Track B KMI compatibility favours staying on `android17-6.18-2026-06` at the shipped SHA, or on a later monthly release branch. For new AMD features, the tip (6.18.32) or `android-mainline-desktop` is better. The AMD fragment should be checked against both.
 - **Unconfirmed upstream version.** `28d11e4548b7` is upstream (no `ANDROID:` prefix) and in mainline before the `android-mainline-6.18` tag. We did not confirm which Linux release first shipped it.
 
@@ -285,4 +285,89 @@ scripts/kernel-firmware-subset.py --fw ~/anybook/kernel/firmware/linux-firmware 
 - **Not built yet:** the `android17-6.18` tip (6.18.32) with this fragment, and an ABI definition update (`//common:kernel_x86_64_abi_update`). Kleaf's strict-mode and symbol-violation checks passed. `abi.stg` was not regenerated.
 - **Left out on purpose:** KFD (`HSA_AMD`); `AMD_WBRF` (bool, Wi-Fi/GPU RF-band mitigation, would be a fourth built-in deviation); `X86_MCE_AMD` (the GKI has no `X86_MCE`); the camera ISP (the G14 webcam is UVC).
 - **Packaging is ANAL-172's job:** `vendor_dlkm`/`vendor_boot` images, module load order and blocklists, firmware placement.
-- **Unsigned vendor modules leave the taint flag at 0 on this kernel.** Upstream would set `E`. **HYPOTHESIS:** Android's `MODULE_SIG_PROTECT` change skips that taint.
+- **Unsigned vendor modules leave the taint flag at 0 on this kernel.** Upstream would set `E`. **HYPOTHESIS:** Android's `MODULE_SIG_PROTECT` change skips that taint. The same holds inside Android: in ANAL-172's Cuttlefish boot, no AnyBook module sets a taint flag.
+
+## Booting in Cuttlefish with our AOSP 17 userspace (ANAL-172)
+
+Status as of 2026-10-16. Evidence is in `evidence/2026-10-16-kernel-cf/`, starting with `SUMMARY.md`. Guesses are labelled **HYPOTHESIS**. This is a VM: no AMD driver probed real hardware.
+
+### Results
+
+- **The AnyBook kernel boots Android 17.** The ANAL-171 `bzImage` (`6.18.21-android17-5-g44a90255c95f`, sha256 `6d964789…`) and its own signed GKI modules run under ANAL-168's `aosp_cf_x86_64_pc-cp2a-userdebug` userspace.
+  - `sys.boot_completed=1` comes 30–33 s after `cvd create`.
+  - From kernel start, the screen is up at 7.8–8.1 s. ANAL-168's warm boots of the stock 6.12 kernel took 9.1–9.3 s, so the two are close. Host load differed between those runs, so treat that as indicative.
+  - Repeated twice with the same reproducible initramfs, then once as a control with only the Cuttlefish board modules.
+- **All 169 modules that the AnyBook image asks init to load are live.** Init loads 18 in first stage; `dlkm_loader` loads 154 more, including 3 GKI dependencies. That covers 137 of the 138 AnyBook vendor modules (5 in first stage, 132 from `vendor_dlkm`).
+  - 0 `Unknown symbol`, 0 CRC (`disagrees about version`) and 0 signature errors; no Oops or WARNING.
+  - `vendor.dlkm.modules.ready=true`. No AnyBook module taints the kernel.
+- **The 138th, `asus-nb-wmi`, returns -ENODEV.** crosvm has no ASUS WMI GUID. Left in `dlkm_loader`'s list, that one failure makes the loader's final `CHECK` fail before it sets `vendor.dlkm.modules.ready`. Cuttlefish's virtual Bluetooth (`bt_vhci_forwarder`) waits for that property. So the VM image blocklists the module, and the boot script loads it by hand after boot to record the error.
+- **Display: virtio-gpu.** AnyBook's `virtio-gpu.ko` loads in first stage and binds `0000:00:02.0` as `card0`/`renderD128`. SurfaceFlinger shows the lock screen at 1920×1080.
+- **amd-pstate does not register in the VM:** `amd_pstate: the _CPC object is not present in SBIOS or ACPI disabled`. The guest CPU has the CPPC flag, but crosvm's ACPI tables have no `_CPC` object. Testing it needs bare metal.
+- **amdgpu loads for symbol resolution only.** It is `live` and its PCI driver is registered with no device bound. amdxdna, amd_pmc, amd_sfh, the MT7921/MT7925 and rtw89 Wi-Fi drivers, ACP/SOF and HDA load the same way.
+- **The VM has no virtual Wi-Fi with the AnyBook module set.** The board's `mac80211_hwsim`, `virt_wifi` and 7 mt76 USB modules are left out, because they disagree on CRCs with AnyBook's cfg80211, mac80211 and mt76. The cause is in [Module set](#module-set). The board-only control boot keeps virtual Wi-Fi.
+
+### How the kernel is swapped
+
+Android is not rebuilt, and nothing under `~/anybook/aosp` is written. Cuttlefish's own kernel-developer path does the work:
+
+- `cvd create --kernel_path=<bzImage> --initramfs_path=<initramfs>`. `assemble_cvd` (`device/google/cuttlefish/host/commands/assemble_cvd/vendor_dlkm_utils.cc`) unpacks the initramfs, which must hold `lib/modules/<release>/` with `modules.load` and `modules.dep`, and sorts the modules:
+  - Its fixed list of first-stage virtio, vsock and Wi-Fi modules, plus their dependencies, stays in the vendor ramdisk.
+  - Signed modules go to `system_dlkm`; unsigned ones go to `vendor_dlkm`.
+- It then rebuilds both DLKM images as ext4. The fstab has ext4 and erofs entries for both partitions. It also rebuilds their vbmeta images, repacks `super.img` and repacks `boot`/`vendor_boot`.
+- The device is unlocked (`orange`), as in ANAL-168.
+
+`scripts/kernel-cf-boot.sh` wraps that around ANAL-168's `scripts/cf-boot.sh`:
+1. On the first run, it snapshots the product images and `cvd-host_package.tar.gz` into `~/anybook/kernel/cf/snapshot/` as reflink copies and writes their sha256 to `provenance.txt`. It refuses while an `anybook-aosp-build` container is running.
+2. It builds the module set with `scripts/kernel-cf-modset.py`, in the `anybook-kernel` image.
+3. It boots in its own container with its own ports and vsock CID: `anybook-cf-kernel`, adb `127.0.0.1:16572`, WebRTC `127.0.0.1:11472`, guest CID 172. vhost-vsock CIDs are global to the host, and other Cuttlefish runs use CID 3.
+4. After `boot_completed`, it captures `/proc/modules`, driver bindings, cpufreq, DRM, the PCI list and the hand-loaded blocklisted modules, on top of `cf-boot.sh`'s captures. Then it tears the VM down.
+5. `scripts/kernel-cf-modstatus.py` turns the logs into `modload-status.md`: every expected module, whether it is live, and the log lines for any that are not.
+
+### Module set
+
+`kernel-cf-modset.py` merges three sources:
+
+| Source | From | Count |
+|---|---|---|
+| GKI | the ANAL-171 dist's `system_dlkm_staging_archive.tar.gz`, signed by that build | 100 |
+| AnyBook vendor modules | the same dist (`vendor-modules.txt`) | 138 |
+| Cuttlefish board modules | `//common-modules/virtual-device:virtual_device_x86_64_dist`, built on the same patched tree | 45 |
+
+- **Board modules come from source.** `KERNEL_TARGET=//common-modules/virtual-device:virtual_device_x86_64_dist scripts/kernel-build.sh anybook-vdev-gbos-16302624` took 367 s.
+- **Only their unsigned modules are used.** That build compiled the GKI again with a new random module-signing key (`4A:60…` for ANAL-171, `76:EE…` here). Its `bzImage` therefore differs, but `vmlinux.symvers`, `Module.symvers`, `System.map` and `abi_symbollist` are byte-identical (`board-build.txt`).
+  - **Rule: a `bzImage` and its `system_dlkm` must come from the same dist.** `MODULE_SIG_PROTECT` rejects GKI modules signed by any other build.
+- **Name clashes keep the AnyBook module.** It is the product.
+- **Every import is checked against the provider actually chosen,** repeating until nothing more drops out:
+  - Each `__versions` CRC must match the provider's `__kcrctab` or `vmlinux.symvers`.
+  - Each undefined symbol must resolve.
+  - Unsigned modules may import only KMI-listed symbols from vmlinux and GKI modules.
+- **That check drops 9 board modules.** Cuttlefish's `virtual_device.fragment` sets `CONFIG_NL80211_TESTMODE=y`, and the AnyBook fragment does not. The option adds `testmode_*` members to `struct cfg80211_ops`, `struct ieee80211_ops` and the mt76 structs, so the CRCs differ:
+  - cfg80211: `wiphy_new_nm`;
+  - mac80211: `ieee80211_alloc_hw_nm`;
+  - mt76: 83 of 128 exports.
+
+  Without the check, `mac80211_hwsim` would fail in first stage, where any module failure is fatal.
+- **Blocklist:** the image ships Cuttlefish's `shared/modules.blocklist` (vkms, vivid, snd-aloop, ptp_kvm), not Kleaf's copy, which lacks snd-aloop. `--block` appends VM-only entries; the default is `asus-nb-wmi.ko`.
+- **Output:** a reproducible `initramfs.img` (fixed mtimes and owners, sorted cpio, lz4 legacy format), plus `modset.md`/`modset.tsv` listing each module's source, where `assemble_cvd` will put it, and the reason for each exclusion.
+
+### Commands
+
+```bash
+# Once: the Cuttlefish board modules on our GKI (6 min). The ANAL-171 dist must already exist.
+KERNEL_TARGET=//common-modules/virtual-device:virtual_device_x86_64_dist scripts/kernel-build.sh anybook-vdev-gbos-16302624
+# Boot, capture, tear down: about 1.5 min on a quiet host. Logs: ~/anybook/logs/kernel/cf-<mode>-<ts>/
+scripts/kernel-cf-boot.sh               # anybook: GKI + AnyBook 138 + compatible board modules
+scripts/kernel-cf-boot.sh board         # control: GKI + Cuttlefish board modules only
+KCF_RESNAP=1 scripts/kernel-cf-boot.sh  # take a new snapshot of ~/anybook/aosp/src/out first
+```
+
+- **The snapshot is not refreshed automatically.** ANAL-169 builds `anybook_cf_x86_64_pc` into the same `PRODUCT_OUT` (`vsoc_x86_64_only`). A `KCF_RESNAP=1` run after that build therefore picks up ANAL-169's images. `provenance.txt` names every fingerprint file it finds and warns when there is more than one. The device's `ro.*.build.fingerprint` values in `getprop.txt` settle which build booted.
+- **Disk:** the snapshot is 4.1 GB of reflinks, so it shares blocks with `out/`. Each boot stages a 3.3 GB product copy in `~/anybook/kernel/cf/product`; it has 12 GB apparent size, because `assemble_cvd` de-sparses `super.img`.
+- **Guest:** 4 vCPUs and 8 GiB of RAM.
+
+### Open items
+
+- **Virtual Wi-Fi with the AnyBook set.** Build `mac80211_hwsim` and `virt_wifi` against the AnyBook config, for example as a VM-only Kleaf target on `anybook_amd.fragment` without `NL80211_TESTMODE`. `kernel-cf-modset.py` would then check their CRCs against AnyBook's cfg80211/mac80211. **HYPOTHESIS:** they link cleanly, because both use testmode only when the option is set.
+- **Hardware probing** (amdgpu, amdxdna, amd-pstate, amd-pmc s2idle, Wi-Fi, audio) needs the bare-metal epic, or VFIO passthrough of the Radeon 610M. VFIO needs host root and the owner's approval.
+- **Module-signing key.** Each GKI rebuild generates a new key, so a dist's `bzImage` and `system_dlkm` cannot be mixed with another build's. For releases, a fixed key kept outside the repo would make rebuilds interchangeable. That is not done.
+- **`adb shell dmesg` loses the first ~3 s of boot,** because audit messages wrap the ring buffer. Use `kernel.log`, the host-side console capture.
