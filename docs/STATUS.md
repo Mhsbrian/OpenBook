@@ -1,31 +1,46 @@
 # Status
 
-## Now (2026-10-16, late)
+## Now (2026-10-16, night)
 
-The repo was renamed to **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL redirects. All open PRs (#8–#12) were reviewed and merged on 2026-10-16. They were checked for script syntax, Python compile, binaries, secrets and size, and doc conflicts were resolved by hand.
+The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL redirects. PRs #1–#14 are merged. Every PR was checked before merging (script syntax, Python compile, no binaries or secrets, sizes, evidence backs the claim), and doc conflicts were resolved by hand.
 
-**Decisions needed from the owner**
-- **Repo license** for the scripts and docs. Apache-2.0 is suggested, to match AOSP.
+**Decisions needed from the owner** (no running work is blocked by these)
+- **Repo license** for the scripts and docs. Apache-2.0 is suggested; the `device/anybook` files already carry SPDX Apache-2.0 headers.
 - **Track B** (ANAL-165): whether to go past research with Google's proprietary image (`docs/PLAN.md` §6).
-- **Mesa libelf licensing** (ANAL-173): libelf is LGPL-3.0+ and is statically linked into the MIT Mesa libraries. The recommendation is to ship it as a shared library (`docs/mesa.md`).
+- **Mesa libelf licensing** (ANAL-173): libelf is LGPL-3.0+ and is statically linked into the MIT Mesa libraries. The recommendation is to ship it as a shared library (`docs/mesa.md`); ANAL-174 keeps that switch ready.
 - **amd-pmf** (ANAL-171): it needs `ccp.ko` with SEV, which calls `kernel_read`/`kernel_write` from GKI's deny list. Options are in `docs/kernel.md`.
-- **Digitalis upstream report** (ANAL-181): OK to report the Fennec, `MRS` and `FRECPE` findings to DigitalisX64? That is an outward-facing action.
-- **Device-in-the-loop** (ANAL-194): install the Multica daemon on the G14's current Linux when ready. The test agent and the root inventory follow from there (`docs/PLAN.md` §4a).
+- **Digitalis upstream report** (ANAL-181/200): OK to report the Fennec, `MRS` and `FRECPE` findings to DigitalisX64? That is an outward-facing action.
+- **Device-in-the-loop** (ANAL-194): install the Multica daemon on the G14's current Linux when ready (`docs/PLAN.md` §4a).
+- **Installer sign-off** (ANAL-189): approve the recommendation in `docs/installer.md` once it lands. ANAL-190 waits for it.
+
+**Lanes on the dev host** (the 7950X has 61 GB RAM; an AOSP build peaks at about 41 GiB):
+- **AOSP lane**, one builder at a time in `~/anybook/aosp/src`: ▶ ANAL-174, then ANAL-199, then ANAL-176 and ANAL-200.
+- **Kernel lane:** ▶ ANAL-198. It caps bazel while an AOSP build is running.
+- **Light lanes:** ▶ ANAL-189 (design plus a QEMU boot-chain prototype; it only reads the AOSP tree) and ✓ ANAL-187 (research delivered; its dGPU-off default feeds ANAL-199 and ANAL-176).
+- **Hand-offs:** condition wakeups on ANAL-159 promote each next step as soon as its dependencies reach review with a merged PR.
 
 **Tracking** (Multica, children of ANAL-159). ✓ = delivered and PR merged, ▶ = running, ⏳ = starts automatically when its dependency delivers, ⏸ = parked.
 
-| Epic | Stage 1 | Stage 2 | Stage 3+ |
-|---|---|---|---|
-| ANAL-160 Track A: AOSP 17 desktop boots in a VM | ✓ ANAL-167 build env (PR #5) | ✓ ANAL-168 `aosp_cf_x86_64_pc-cp2a` boots in Cuttlefish (PR #9) | ▶ ANAL-169 VM graphics and desktop windowing |
-| ANAL-161 AMD GKI kernel (android17-6.18) | ✓ ANAL-170 stock GKI reproduced (PR #4) | ✓ ANAL-171 AMD config, 138 vendor modules (PR #8) | ✓ ANAL-172 our kernel boots our userspace (PR #12) |
-| ANAL-162 AMD graphics userspace | ✓ ANAL-173 Mesa radeonsi/RADV for Android (PR #3) | ⏳ ANAL-174 `device/anybook` product with AMD graphics (after ANAL-169) | ANAL-177 dEQP/CTS on the G14 |
-| ANAL-164 ARM compat and native bridge | ✓ ANAL-180 harness and baseline (PR #6) | ✓ ANAL-181 Digitalis: GO with conditions (PR #11) | — |
-| ANAL-163 Bare metal on the G14 (GA403WR) | ✓ ANAL-175 inventory (PR #8; root extras pending) | ⏳ ANAL-176 USB boot (after ANAL-174) | ANAL-178 input and power, ANAL-179 audio and Wi-Fi |
-| ANAL-188 USB installer (M8) | ⏸ ANAL-189 design | ⏸ ANAL-190 live USB image | ⏸ ANAL-191 wizard → ANAL-192 end-to-end tests |
-| **ANAL-193 Device-in-the-loop on the G14 (§4a)** | ⏸ ANAL-194 runtime and agent on G14 Linux (owner installs daemon) | ⏸ ANAL-195 Zen 5 validation in KVM | ⏸ ANAL-196 dual-boot test cycle → ANAL-197 runtime on installed OpenBook |
-| ANAL-165 Track B: Googlebook OS on AMD | ⏸ ANAL-182, ANAL-183 | ⏸ ANAL-184 | ⏸ ANAL-185 |
-| ANAL-186 NVIDIA dGPU | ✓ ANAL-187 research (`docs/nvidia.md`; dGPU off for M3–M8, N1–N6 after M4) | — | — |
-| ANAL-166 Performance and parity | ⏸ | — | — |
+| Epic | Stage 1 | Stage 2 | Stage 3 | Stage 4 |
+|---|---|---|---|---|
+| ANAL-160 Track A: AOSP 17 desktop boots in a VM | ✓ ANAL-167 build env (PR #5) | ✓ ANAL-168 `aosp_cf_x86_64_pc-cp2a` boots in Cuttlefish (PR #9) | ✓ ANAL-169 desktop windowing on the host GPU (PR #14) | — |
+| ANAL-161 AMD GKI kernel (android17-6.18) | ✓ ANAL-170 stock GKI reproduced (PR #4) | ✓ ANAL-171 AMD config, 138 vendor modules (PR #8) | ✓ ANAL-172 our kernel boots our userspace (PR #12) | ▶ ANAL-198 bare-metal packaging: first-stage NVMe and USB boot, vendor_boot, dlkm images, firmware |
+| ANAL-162 AMD graphics userspace | ✓ ANAL-173 Mesa radeonsi/RADV for Android (PR #3) | ▶ ANAL-174 AMD graphics in the tree (Mesa, minigbm, HWC, ANGLE) | ⏸ ANAL-177 dEQP/CTS on the G14 | — |
+| ANAL-164 ARM compat and native bridge | ✓ ANAL-180 harness and baseline (PR #6) | ✓ ANAL-181 Digitalis: GO with conditions (PR #11) | ⏳ ANAL-200 Digitalis on Android 17 as our bridge (after ANAL-199) | — |
+| ANAL-163 Bare metal on the G14 (GA403WR) | ✓ ANAL-175 inventory (PR #8; root extras pending) | ⏳ ANAL-199 G14 product, booting in QEMU/OVMF (after ANAL-174 and ANAL-198) | ⏳ ANAL-176 USB boot on the G14 (after ANAL-199) | ⏸ ANAL-178 input and power, ANAL-179 audio and Wi-Fi |
+| ANAL-188 USB installer (M8) | ▶ ANAL-189 design and boot-chain prototype | ⏸ ANAL-190 live USB image (needs sign-off) | ⏸ ANAL-191 wizard | ⏸ ANAL-192 end-to-end tests |
+| **ANAL-193 Device-in-the-loop on the G14 (§4a)** | ⏸ ANAL-194 runtime and agent on G14 Linux (owner installs the daemon) | ⏸ ANAL-195 Zen 5 validation in KVM | ⏸ ANAL-196 dual-boot test cycle | ⏸ ANAL-197 runtime on installed OpenBook |
+| ANAL-186 NVIDIA dGPU | ✓ ANAL-187 research and dGPU-off default (`docs/nvidia.md`: off for M3–M8, N1–N6 after M4) | — | — | — |
+| ANAL-165 Track B: Googlebook OS on AMD | ⏸ ANAL-182, ANAL-183 | ⏸ ANAL-184 | ⏸ ANAL-185 | — |
+| ANAL-166 Performance and parity | ⏸ | — | — | — |
+
+**Critical path to "OpenBook on the G14":**
+1. ANAL-174 and ANAL-198, in parallel.
+2. ANAL-199: the G14 product, booting in QEMU.
+3. ANAL-176: USB boot on the laptop.
+4. ANAL-178 and ANAL-179.
+5. The installer (ANAL-190 to ANAL-192).
+6. ANAL-197: the runtime on the device.
 
 ## History
 
