@@ -86,7 +86,8 @@ def main():
     verdict("gpu_hal", hal == ("amdgpu" if a.expect == "g14" else "virtio"), hal=hal, egl=props.get("ro.hardware.egl"),
             vulkan=props.get("ro.hardware.vulkan"), gralloc=props.get("ro.hardware.gralloc"),
             hwcomposer=props.get("ro.hardware.hwcomposer"))
-    m = re.search(r"^\S+\s+(\d+)\s+(\d+)\s+(\d+)\s+\d+% /data$", sec.get("DF", ""), re.M)
+    # toybox df names /data by the last mount of its device, which can be /data_mirror/...
+    m = re.search(r"^\S+\s+(\d+)\s+(\d+)\s+(\d+)\s+\d+% /data(?:_mirror/\S+)?$", sec.get("DF", ""), re.M)
     verdict("data_on_stick", bool(m) and "f2fs" in sec.get("MOUNTS", ""),
             data_kib=int(m.group(1)) if m else None, used_kib=int(m.group(2)) if m else None,
             byname_targets=sorted({os.path.basename(t).rstrip("0123456789")

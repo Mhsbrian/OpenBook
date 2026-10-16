@@ -1,6 +1,6 @@
 # Installer: USB image, boot chain, install flow and wizard (ANAL-189)
 
-Status as of 2026-10-16. This is the design for milestone M8 (epic ANAL-188). **The owner must sign it off before stage 2 (ANAL-190) starts.**
+Status as of 2026-10-16. This is the design for milestone M8 (epic ANAL-188). The owner gave the go-ahead to move on to live USB booting on 2026-10-16 (ANAL-189), and stage 2 (ANAL-190, the live USB image) is built: see §11.
 
 Labels: **C** = confirmed (a primary source, or we ran it), **R** = reported by others, **H** = hypothesis (not tested yet). Evidence is in `evidence/2026-10-16-installer/`, starting with `SUMMARY.md`.
 
@@ -39,7 +39,7 @@ Labels: **C** = confirmed (a primary source, or we ran it), **R** = reported by 
 | Writable live session | `userdata` and `metadata` are blank in the image; fs_mgr formats them on first boot (`formattable`) and they persist (**C**: f2fs `/data` 3.4 GiB and ext4 `/metadata`, formatted on boot 1 and kept on boot 2) | Read-only medium: `/data` would need tmpfs or zram. Android's file-based encryption needs a real filesystem with fscrypt, so this means extra init work (H) |
 | VM testing | Attach as a USB or NVMe disk | CD-ROM, then the same problems |
 
-**Recommendation: raw GPT only.** Ship `openbook-<ver>-x86_64.img.xz` with a `.sha256` and a signature. Keep the expanded image small (about 4–5 GiB): `super` shrunk to its content plus headroom, and a 1 GiB `userdata` that is grown to fill the stick on first boot. Growing it needs a small `exec` service on `late-fs`, before `mount_all --late`, that runs only when the boot disk is removable and `userdata` is blank and last (H, ANAL-190). The minimum stick is 16 GB; 32 GB USB 3 is recommended.
+**Recommendation: raw GPT only.** Ship `openbook-<ver>-x86_64.img.xz` with a `.sha256` and a signature. Keep the expanded image small (about 4–5 GiB): `super` shrunk to its content plus headroom, and a 1 GiB `userdata` that is grown to fill the stick on first boot. Growing it needs a small `exec` service on `late-fs`, before `mount_all --late`, that runs only when the boot disk is removable and `userdata` is blank and last (H, ANAL-190). **Built differently:** `openbook-live-init` grows it before Android starts (§11.2). The minimum stick is 16 GB; 32 GB USB 3 is recommended.
 
 **"Try without keeping anything"** is a boot-menu entry, not a separate image. It sets `androidboot.openbook.live_reset=1`, and an early service then discards the superblocks of `userdata` and `metadata` so fs_mgr formats them again (H).
 
@@ -136,7 +136,7 @@ Full serial logs are `matrix/*/serial.log.gz`.
   - **On `markBootSuccessful`:** rename the entry to `openbook-b.conf` ("good").
   - **On a failed boot:** systemd-boot itself lowers the count and, at `+0`, sorts the entry last, so slot A boots again.
 - **Boot control HAL:** `android.hardware.boot-service.openbook` = AOSP `libboot_control` (`misc`, already working: "Invalid boot control found… Re-initializing" on first boot, C) plus calls into bootsync.
-- **Live USB:** slot A only, and no OTA; you re-flash instead. Whether Android 17 is happy with no `_b` partitions at all is checked in ANAL-190; the fallback is tiny `_b` partitions (H).
+- **Live USB:** slot A only, and no OTA; you re-flash instead. Whether Android 17 is happy with no `_b` partitions at all is checked in ANAL-190; the fallback is tiny `_b` partitions (H). **Checked:** a slot-A-only stick boots as far as the A/B image does (§11.4, C).
 
 ### 2.6 Firmware entry, cmdline and Secure Boot
 - **On the USB stick:** systemd-boot at `EFI/BOOT/BOOTX64.EFI`, the removable-media path, so no NVRAM change is needed.
@@ -210,7 +210,9 @@ Full serial logs are `matrix/*/serial.log.gz`.
 | `super` | content + about 10% (about 3 GiB, H; the prototype's dynamic partitions hold 1.6 GB) | dynamic partitions, slot A |
 | `userdata` | 1 GiB in the image, grown at first boot | blank, becomes f2fs on first boot |
 
-Bootconfig on the stick adds `androidboot.openbook.live=1`. With it, the launcher shows "Install OpenBook" and the installer app is enabled.
+Bootconfig on the stick adds `androidboot.openbook.live=1`. With it, the launcher shows "Install OpenBook" and the installer app is enabled (ANAL-191).
+
+The built layout differs in two places: `misc` is 4 MiB, and `super` is the product's dynamic partitions re-packed to their content plus 64 MiB (1.26 GiB for today's G14 product). See §11.1.
 
 ### 3.2 Whole-disk layout (installed)
 
@@ -380,7 +382,7 @@ flowchart LR
 
 ## 8. Next steps (once signed off)
 - **ANAL-199 / ANAL-176.** Boot the G14 product with systemd-boot entries generated the way `mkproto.py --loader sdboot` does, first in QEMU (`qemu-run.py`), then from a stick on the G14. Use the dGPU-off default from ANAL-187 (`docs/nvidia.md`).
-- **ANAL-190 (live USB image).** Build from the real G14 product (ANAL-174/199), not the Cuttlefish one. Includes:
+- **ANAL-190 (live USB image).** Built: §11. Build from the real G14 product (ANAL-174/199), not the Cuttlefish one. Includes:
   - systemd-boot entries generated from the product's `vendor_boot`;
   - a slot-A-only layout;
   - the `userdata` grow service and `openbook.live`;
@@ -437,3 +439,150 @@ MATRIX_EVIDENCE=$PWD/evidence/2026-10-16-installer/matrix scripts/installer/prot
   - The `EFI-SYSTEM` and `KERN-A` partitions in the recovery image are all zeros.
   - `ota_recovery_a` holds a nested GPT whose `boot_a` (an Android boot image) carries the ChromeOS kernel type GUID.
   - So Googlebooks boot from a loader in firmware, not from the disk. There is nothing on the disk for us to reuse (C).
+
+## 11. Live USB image (ANAL-190)
+
+Status as of 2026-10-16. Evidence is in `evidence/2026-10-16-installer/live/`, starting with `SUMMARY.md`. **Nothing here has run on the G14 yet**: that needs the owner to confirm the stick (§11.6).
+
+### 11.1 What `scripts/installer-image.sh` builds
+
+```bash
+scripts/installer-image.sh                       # from <data dir>/aosp/src/out/target/product/anybook_g14
+scripts/installer-image.sh --menu-timeout 10     # the same, with the boot menu shown for 10 s (test sticks; `openbook-live-20261016a` is built this way)
+scripts/installer-image.sh --inputs <snapshot>   # rebuild from an earlier snapshot (byte-identical output)
+```
+
+It snapshots the product's `boot`, `init_boot`, `vendor_boot`, `vbmeta` and `super` images from `PRODUCT_OUT` (reflinks; it refuses while an AOSP build runs), builds and tests `openbook-live-init`, and assembles the image with `scripts/installer/mklive.py` in the `openbook-installer` container. Nothing in the Android images is rebuilt or re-signed. The kernel, the 138 vendor modules and the firmware come from those images (ANAL-198 via ANAL-199).
+
+| Output in `<data dir>/installer/out/` | |
+|---|---|
+| `<label>.img` | the raw GPT image to write to a stick |
+| `<label>.img.xz`, `<label>.sha256` | compressed copy and the sha256 of both |
+| `<label>.img.json` | layout, PARTUUIDs, every entry's bootconfig, vbmeta digest, `super` re-pack check, firmware licence check, ESP file list |
+| `<label>.build.json` | `openbook-live-build/1`: size, sha256, build time per step, input hashes, tool versions, repo commit |
+| `<label>.vm/` | two extra entries the QEMU tests copy into their test copy (not on the stick) |
+
+**Layout** (slot A only; PARTUUIDs derived from the label):
+
+| Partition | Size | Content |
+|---|---|---|
+| `EFI` (FAT32 `OPENBOOK`) | 256 MiB | systemd-boot at `EFI/BOOT/BOOTX64.EFI`, `loader/`, `openbook/a/` (kernel, vendor ramdisk, generic ramdisk, `live.img`, one bootconfig per entry), `openbook/logs/`, `openbook/README.txt`, `openbook/MANIFEST.json`, `LICENSES/` |
+| `misc` | 4 MiB | zeros |
+| `boot_a`, `init_boot_a`, `vendor_boot_a`, `vbmeta_a` | 64, 8, 64, 1 MiB | the product's images, unchanged |
+| `metadata` | 64 MiB | blank: Android formats it (ext4) on the first boot |
+| `super` | content + 64 MiB | the product's dynamic partitions, re-packed with `lpmake` |
+| `userdata` | 1 GiB | blank: grown to fill the stick, then formatted (f2fs, metadata encryption) on the first boot |
+
+- **`super` is re-packed, not shrunk in place.** The product's `super` is 8 GiB, sized for OTAs, which a live stick never takes. `mklive.py` copies each logical partition out and re-packs them with `lpmake`, keeping the names, groups, attributes, the virtual A/B flag and 3 metadata slots. It then checks every partition's sha256 against the original. AVB is unaffected: the hashtrees live inside the partitions.
+- **Licences on the stick** (`LICENSES/`): the firmware licence files are taken from the vendor image that ships, not from a staging folder. `firmware/FILES.tsv` maps every file in `/vendor/firmware` to its licence. The build fails the check if a file has none (today: 137 files, 0 without a licence). Also: systemd-boot's LGPL-2.1-or-later and the kernel's GPL-2.0 texts, and a `README.txt` naming each component, its licence and where its source is.
+- **Reproducible.** File times come from `--epoch`, which defaults to the repo's HEAD commit time. The FAT uses `mkfs.fat --invariant` with a volume ID derived from the label. PARTUUIDs and the disk GUID are derived from the label too. The same inputs and label give the same image, byte for byte (C, §11.4).
+
+### 11.2 `openbook-live-init` (`scripts/installer/live-init.c`)
+
+A 1 MB static `rdinit=` in `live.img`. It runs as PID 1 before Android's first-stage init, and it only acts with `androidboot.openbook.live=1`, which only the stick's entries set. Then it `exec`s `/init`.
+
+- **Grow.** On a stick larger than the image, it moves the backup GPT to the end and grows `userdata` (the last partition) to the last whole MiB. It only grows while `userdata` is still blank. Android then formats `/data` at the full size, because fs_mgr formats a `formattable` partition whose first 4 KiB are zero (`libcutils` `partition_wiped()`, C). If `userdata` is already in use, it only moves the backup GPT, which fixes the "backup GPT is not at the end" finding from the hardware-check stick. The kernel then re-reads the table (`BLKRRPART`, with `BLKPG` as a fallback); nothing has opened a partition yet.
+  - **Why not the `late-fs` service from §1.2.** Before Android starts nothing holds the disk, so the kernel can re-read the table. It needs no AOSP change, no SELinux domain and no AOSP build, and the AOSP lane was busy with ANAL-199. It is also the same code for every product.
+- **Start fresh** (`androidboot.openbook.live_reset=1`). It zeroes the first MiB of `metadata` and `userdata`, so Android formats both again, exactly as on the first boot. The metadata-encryption key lives in `/metadata`, so the old `/data` contents cannot be read back.
+- **Save logs** (`androidboot.openbook.logs=1`). A helper process copies the kernel log to the stick while Android boots. 90 s into second stage, and again when `sys.boot_completed=1` (+45 s) or after 600 s, it saves logcat, system facts and a screenshot. It runs `logcat`, `dumpsys`, `getprop` and `screencap` inside Android's root via `/proc/1/root`. Everything goes to `openbook/logs/live-NNN/` with a `summary.json` (`openbook-live-logs/1`). Then it shuts Android down (`androidboot.openbook.logs_after`: `poweroff`, `reboot` or `stay`). It mounts the ESP with the new mount API (`fsopen`/`fsmount`), so the mount is attached to no directory and Android never sees it.
+  - **This entry boots SELinux permissive** (`androidboot.selinux=permissive`, userdebug only). The helper reads logcat and talks to SurfaceFlinger from outside Android's own domains. Results from this entry say so (`ro.boot.selinux`), and its AVC counts are reported, not enforced.
+- **Safety.** It acts only on the disk holding the ESP whose PARTUUID is `androidboot.boot_part_uuid`, only if that disk is on USB, and only if its primary GPT is valid (header and entry CRCs) and has the live layout (`EFI` with that PARTUUID, `metadata`, `super`, `userdata` last). It refuses a stick smaller than the GPT says. Writes go backup GPT first, then primary, so a cut leaves one valid table. Anything unexpected is logged and the disk is left as it is. Every change is recorded in `openbook/logs/live-init-NNN.json` and in the kernel log (`openbook-live:`).
+- **Host test:** `scripts/installer/live-init-test.sh` runs 9 cases on GPT image files: grow, a second run, repair only, exact size, wrong ESP, userdata not last, a short stick, a bad CRC, and reset. `installer-image.sh` runs it on every build.
+
+### 11.3 Boot entries
+
+| Entry (`loader/entries/`) | Title | Adds to the bootconfig |
+|---|---|---|
+| `openbook-live.conf` (default) | OpenBook | `androidboot.openbook.live=1` |
+| `openbook-logs.conf` | OpenBook - save logs to this USB stick | `+ openbook.logs=1`, `selinux=permissive` |
+| `openbook-reset.conf` | OpenBook - start fresh (erase this stick's saved data) | `+ openbook.live_reset=1` |
+| `openbook-vm.conf` | OpenBook - serial console (virtual machines) | `+ lcd_density=160`; `console=ttyS0` on the cmdline |
+| `<label>.vm/`: `openbook-vm-reset.conf`, `openbook-vm-logs.conf` | QEMU tests only | console + start fresh, console + save logs |
+
+Every entry loads the same kernel and ramdisks, plus `live.img`, with the bootconfig last (§2.1). The bootconfig is the product's static values plus the loader's runtime values: slot `_a`, `orange`, the vbmeta digest and size, `boot_part_uuid` (this stick's ESP) and `serialno`. The menu is hidden (`timeout menu-hidden`; hold a key to see it), except in test builds made with `--menu-timeout N`.
+
+### 11.4 Results in QEMU/OVMF (C)
+
+Image `openbook-live-20261016a` (`evidence/2026-10-16-installer/live/`), built from ANAL-199's G14 product as of 2026-10-16 22:13 UTC (its iter6 inputs; `ro.build.fingerprint` `OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys`, kernel `6.18.21-android17-5-g44a90255c95f`).
+
+| | |
+|---|---|
+| Image | 2,882,535,424 bytes (2.68 GiB; 1.32 GB allocated), sha256 `b50b6dfc60fc29dfd30b7e8c301822e848a518f671a233816176f5106f2db07c` |
+| `.img.xz` | 904,520,596 bytes, sha256 `7f18d9b2298fc46cdbb3722aba1a7958697099ca011a772aca4ca6a0e0c0f213` |
+| `super` | 8 GiB → 1.23 GiB (1,323,302,912 bytes); 7 logical partitions byte-identical |
+| Build time | 41 s on the 7950X: 10 s for `openbook-live-init` and its test, 8 s for the image, 23 s for sha256 and xz |
+| Reproducible | three builds from the same snapshot and label gave the same image and `.xz`, byte for byte |
+
+**QEMU/OVMF matrix** (`scripts/installer/live-qemu.sh`; q35/KVM, the image as a USB stick on xHCI, virtio-vga 1920×1200, TPM 2.0). **38 of 39 checks pass.** The one failure is the desktop, which is a product issue (§11.5).
+
+| Case | What it showed |
+|---|---|
+| first: 16 GiB stick + decoy NVMe with the same partition names | `openbook-live-init` moved the backup GPT (LBA 5,629,951 → 33,554,431) and grew `userdata` from 1 GiB to 14.3 GiB. `sgdisk -v` is clean. Android formatted `/metadata` and `/data` on the stick ("is wiped … formattable. Format it"); `df /data` = 15,008,768 KiB. All 10 by-name links point at `sda` (the stick). The marker file was written. **`sys.boot_completed` was not set after 600 s.** |
+| second: same stick | "grow: nothing to do"; the marker from the first boot is still there |
+| reset: same stick, start fresh | the first MiB of `metadata` and `userdata` zeroed; Android formatted both again; the marker is gone; `live-init-002.json` on the ESP records it |
+| decoy NVMe | sha256 unchanged after all three boots, with every partition still zero: Android never touched the internal disk |
+| exact: stick the size of the image | "grow: nothing to do"; `/data` 1,046,528 KiB (the image's 1 GiB) |
+| logs: 16 GiB stick, save logs | `openbook/logs/live-001/` on the stick: `dmesg.txt` (1.0 MB), `logcat-early.txt` and `logcat-final.txt` (2.7 and 6.0 MB), `collect-*.txt`, `screen-*.png` (the boot animation), valid `summary.json`. Then Android shut down by itself, and QEMU exited 0 after 311 s |
+| default: the image's own default entry, nothing changed | the menu (`shot-4.png`: four entries, "Boot in 9s"), then the boot without a console; the GPT and `userdata` grew, and the ESP report was written |
+
+Slot A only works: Android 17 boots with no `_b` partitions as far as the product goes on ANAL-199's A/B image.
+
+### 11.5 What the QEMU runs do not show
+
+- **No desktop yet.** It is a product issue (ANAL-199), not one of the image. The same boot on ANAL-199's own A/B test image stops at the same point. Two causes are visible in the logs that the save-logs entry wrote:
+  1. **`system_server` is killed by its watchdog in a loop** (5 kills in 600 s). `AudioService` blocks in `AudioSystem.setLowRamDevice`, because `audioserver` waits for `android.hardware.audio.core.IModule/default`. The AOSP example audio HAL never registers that module: it logs `AHAL_Config: getEngineConfig: No audio configuration files found`, and the product's `/vendor/etc` has no `audio_policy_configuration.xml` (only the r_submix, USB and volume files). Passed to ANAL-199 with a likely fix (copy AOSP's `audio_policy_configuration_generic.xml` and `primary_audio_policy_configuration.xml`). This is hardware-independent, so it very likely stops the G14 too (H).
+  2. **Nothing reaches QEMU's display.** With SELinux enforcing, ANAL-199's runs show SurfaceFlinger crashing on `execmem` denials for SwiftShader, the VM's software renderer. With it permissive (the save-logs entry), SurfaceFlinger composes the boot animation (`screencap` shows it) and the DRM connector reads `connected enabled 1920x1200`. But QEMU's virtio-vga still reports "Display output is not active". Both are VM-only: the G14 renders on the Radeon 890M.
+- **No Radeon 890M, Wi-Fi, touchpad, battery or dGPU** in a VM. The product has no Wi-Fi HAL or `wpa_supplicant` yet (`cmd wifi status`: "Can't find service: wifi"), and no `regulatory.db` in `/vendor/firmware`. Both are ANAL-199/179 items.
+- **The live format adds no regression:** ANAL-199's own A/B test images stop at the same point (iter3–5: no `sys.boot_completed` after 900 s).
+- **The save-logs entry's `display` verdict** means SurfaceFlinger runs and a connector is connected. Whether the panel lights up is for the photos to show.
+
+### 11.6 On the G14: owner checklist (until the device agent exists)
+
+Nothing below has run yet. The first G14 boot of this image needs the owner to confirm the stick.
+
+1. **Write the stick** (erases it; the hardware-check reports on it are copied to `<data dir>/installer/stick-backup/` first). Either reply on the issue with `Write /dev/disk/by-id/usb-<stick>` and the agent runs this, or run it yourself on the dev host:
+   ```bash
+   OPENBOOK_WRITE_CONFIRM=/dev/disk/by-id/usb-<stick> \
+     scripts/installer/write-stick.sh ~/anybook/installer/out/openbook-live-20261016a.img /dev/disk/by-id/usb-<stick>
+   ```
+   It checks the image's sha256, writes, reads the stick back and compares, then powers the stick off. `--dry-run` shows the stick and writes nothing. Any flasher works too, with the `.img.xz` and its sha256.
+2. **On the G14** (Secure Boot off, as today): power on with **Esc**, pick the USB stick. The OpenBook menu shows for 10 s. Press **↓ once, then Enter** for "OpenBook - save logs to this USB stick".
+3. **Photograph the screen** at about 30 s, 2 min and 5 min. Expected (H): the ASUS logo, then the boot animation or a dark screen. The desktop is not expected yet (§11.5).
+4. **Leave it alone.** It saves logs and powers off by itself within about 12 minutes. If it is still on after 15 minutes, hold the power button: that is a result too.
+5. **Plug the stick into the dev host and reply.** The agent runs (read-only):
+   ```bash
+   scripts/installer/read-stick-logs.sh /dev/disk/by-id/usb-<stick>
+   ```
+   This writes `<data dir>/installer/g14/stick-<UTC>/live-001/` with `report.md` and `report.json` (`live-report.py --expect g14`: display, GPU HAL, `/data` on the stick, Wi-Fi, touchpad, keyboard, backlight, battery, CPU power, dGPU in D3cold), `dmesg.txt`, `logcat-*.txt`, `collect-*.txt` and `screen-*.png`.
+   - **Attach to the issue:** the photos. The agent adds the redacted logs (`live-report.py --redact`: MAC addresses, USB serials and Wi-Fi names masked) to `evidence/`.
+6. Optional: boot the default "OpenBook" entry and try the keyboard and touchpad. "Start fresh" erases what the live session saved on the stick.
+
+The internal NVMe is never touched. Android only uses the partitions on the disk whose ESP has `boot_part_uuid` (QEMU: 10 of 10 by-name links on the stick, decoy NVMe unchanged), and `openbook-live-init` only writes to a USB disk.
+
+### 11.7 Unattended runs for the device agent (ANAL-193)
+
+Every step is scripted and writes JSON: `installer-image.sh` writes `<label>.build.json`, `live-qemu.sh` writes `results.json`, the stick writes `summary.json`, and `live-report.py` writes `report.json`. A device agent on the G14's Linux (ANAL-194/196) can run the hardware test without a person (H: designed, not run yet):
+1. Build, or copy the image, and write it with `write-stick.sh`. The owner names the stick once, by `/dev/disk/by-id`.
+2. Add an entry for unattended runs to the stick's ESP. It is a copy of `openbook-logs.conf` whose bootconfig adds `androidboot.openbook.logs_after=reboot`:
+   ```bash
+   python3 scripts/installer/bootconfig.py make bootconfig-agent.img --base <esp>/openbook/a/bootconfig-logs.img androidboot.openbook.logs_after=reboot
+   ```
+3. `bootctl set-oneshot openbook-agent.conf` and `efibootmgr --bootnext <USB entry>`, then reboot. The stick boots once into the save-logs entry and reboots when done. The firmware then starts Linux again.
+4. Run `read-stick-logs.sh` and read `report.json`.
+
+### 11.8 Open items
+
+- **Product (ANAL-199, ANAL-179):** the audio HAL registration, the display path in QEMU, a Wi-Fi HAL, and `regulatory.db`. Once ANAL-199 boots to the desktop, re-run `installer-image.sh` and `live-qemu.sh`. Nothing in the image builder needs to change.
+- **Public images** still need the decisions in §6: repo licence, Mesa libelf, AVB release key (this image uses the AOSP test keys, `userdebug`), and a trademark check. Until then, images stay on the build host and the owner's stick.
+- **Menu:** release builds keep `timeout menu-hidden`. Test sticks use `--menu-timeout 10`.
+- **"Install OpenBook"** (`androidboot.openbook.live=1` → launcher entry and installer app) is ANAL-191.
+
+### 11.9 Reproduce
+
+```bash
+docker build -t openbook-installer -f tools/Dockerfile.installer tools
+scripts/installer-image.sh --label openbook-live-20261016a --menu-timeout 10      # or --inputs <snapshot>
+scripts/installer/live-qemu.sh ~/anybook/installer/out/openbook-live-20261016a.img live-20261016a   # 6 cases, ~18 min
+scripts/installer/live-init-test.sh                                                # 9 host cases, seconds
+```
+Logs: `~/anybook/logs/installer/live-<label>-<UTC>.log` (build), `~/anybook/logs/installer/<run>/` (QEMU), `~/anybook/logs/installer/write-stick-<UTC>.log`.

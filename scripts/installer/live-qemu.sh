@@ -67,7 +67,6 @@ chain_a() {
       rm -f "$Q/decoy.img"; "$D" python3 "$S/mkproto.py" --decoy "$Q/decoy.img" >/dev/null
       sha256sum < "$Q/decoy.img" | cut -d' ' -f1 > "$Q/decoy.sha256.before"
       boot s16 first 1500 --nvme "$Q/decoy.img"
-      sha256sum < "$Q/decoy.img" | cut -d' ' -f1 > "$Q/decoy.sha256.after"
     fi
     if has second; then boot s16 second 600 --nvme "$Q/decoy.img"; fi
     if has reset; then

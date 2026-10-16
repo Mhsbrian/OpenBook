@@ -95,7 +95,7 @@ Each milestone is small, has a verification artifact, and is checked into `evide
 | M5 | Desktop UI, input and power | A+B | Touchpad and keyboard, s2idle suspend/resume cycles, battery, backlight, audio (ACP/SOF) | |
 | M6 | Apps and ARM translation | A+B | ARM-only APK compatibility matrix (top 50 plus a stress list) under houdini, ndk_translation and Digitalis | |
 | M7 | Performance and parity | A+B | Benchmarks against an Intel Googlebook baseline (needs device access); Chrome; Linux terminal fallback | |
-| M8 | USB installer | A | A bootable OpenBook USB image that runs live and installs through a graphical wizard, only to a disk the user confirms by name (epic ANAL-188, owner goal 2026-10-16) | Design and QEMU boot-chain prototype delivered (ANAL-189, `docs/installer.md`); owner sign-off needed before ANAL-190 |
+| M8 | USB installer | A | A bootable OpenBook USB image that runs live and installs through a graphical wizard, only to a disk the user confirms by name (epic ANAL-188, owner goal 2026-10-16) | Design and QEMU boot-chain prototype delivered (ANAL-189, `docs/installer.md`); live USB image built and tested in QEMU (ANAL-190, §11), G14 boot pending |
 
 ## 4a. Device-in-the-loop: Multica on the G14 (owner directive, 2026-10-16)
 

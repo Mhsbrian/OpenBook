@@ -18,7 +18,7 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 - **Digitalis upstream report** (ANAL-181/200): OK to report the Fennec, `MRS` and `FRECPE` findings to DigitalisX64? That is an outward-facing action.
 - **Device-in-the-loop** (ANAL-194): install the Multica daemon on the G14's current Linux when ready (`docs/PLAN.md` §4a).
 - **G14 hardware-check stick** (optional, owner): `scripts/installer/make-hwcheck-stick.sh` builds a USB image. It boots our kernel, drivers and firmware on the laptop, writes a report and the kernel log to the stick, and powers off without touching internal disks (`docs/installer.md` §2.7). Writing the stick needs you to name the exact USB device.
-- **Installer sign-off** (ANAL-189): approve the recommendation in `docs/installer.md` once it lands. ANAL-190 waits for it.
+- **Live USB on the G14** (ANAL-190): the live image is built and tested in QEMU. Its first G14 boot needs you to confirm the stick by `/dev/disk/by-id` (checklist: `docs/installer.md` §11.6).
 
 **Lanes on the dev host** (the 7950X has 61 GB RAM; an AOSP build peaks at about 41 GiB):
 - **AOSP lane**, one builder at a time in `~/anybook/aosp/src`: ✓ ANAL-174 (PR #23), then ▶ **ANAL-199**, the G14 product (promoted 2026-10-16 after #23 and #26). Next are ANAL-176 and ANAL-200. The VM product's device is now `anybook_vsoc_x86_64`, so boot it with `CF_DEVICE=anybook_vsoc_x86_64`.
@@ -35,7 +35,7 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 | ANAL-162 AMD graphics userspace | ✓ ANAL-173 Mesa radeonsi/RADV for Android (PR #3) | ✓ ANAL-174 AMD graphics in the tree, boot-time HAL selection (PR #23) | ⏸ ANAL-177 dEQP/CTS on the G14 | — |
 | ANAL-164 ARM compat and native bridge | ✓ ANAL-180 harness and baseline (PR #6) | ✓ ANAL-181 Digitalis: GO with conditions (PR #11) | ⏳ ANAL-200 Digitalis on Android 17 as our bridge (after ANAL-199) | — |
 | ANAL-163 Bare metal on the G14 (GA403WR) | ✓ ANAL-175 inventory and full driver map (PRs #8, #16; the owner's root run is processed too: dGPU `10de:2f58`, panel ATNA40CU05-0, speaker tuning found) | ▶ ANAL-199 G14 product, booting in QEMU/OVMF (after ANAL-174 and ANAL-198) | ⏳ ANAL-176 USB boot on the G14 (after ANAL-199) | ⏸ ANAL-178 input and power, ANAL-179 audio and Wi-Fi |
-| ANAL-188 USB installer (M8) | ✓ ANAL-189 design and boot-chain prototype (PR #22): systemd-boot recommended, GRUB fallback; **awaiting owner sign-off** | ⏸ ANAL-190 live USB image (needs sign-off) | ⏸ ANAL-191 wizard | ⏸ ANAL-192 end-to-end tests |
+| ANAL-188 USB installer (M8) | ✓ ANAL-189 design and boot-chain prototype (PR #22): systemd-boot recommended, GRUB fallback; **awaiting owner sign-off** | ▶ ANAL-190 live USB image: built and tested in QEMU (`scripts/installer-image.sh`); G14 boot waits for the owner's stick confirmation | ⏸ ANAL-191 wizard | ⏸ ANAL-192 end-to-end tests |
 | **ANAL-193 Device-in-the-loop on the G14 (§4a)** | ⏸ ANAL-194 runtime and agent on G14 Linux (owner installs the daemon) | ⏸ ANAL-195 Zen 5 validation in KVM | ⏸ ANAL-196 dual-boot test cycle | ⏸ ANAL-197 runtime on installed OpenBook |
 | ANAL-186 NVIDIA dGPU | ✓ ANAL-187 research and dGPU-off default (`docs/nvidia.md`: off for M3–M8, N1–N6 after M4) | — | — | — |
 | ANAL-165 Track B: Googlebook OS on AMD | ⏸ ANAL-182, ANAL-183 | ⏸ ANAL-184 | ⏸ ANAL-185 | — |
@@ -50,6 +50,12 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 6. ANAL-197: the runtime on the device.
 
 ## History
+
+### 2026-10-16: M8, live USB image (ANAL-190)
+- `scripts/installer-image.sh` builds the approved raw GPT live image from ANAL-199's G14 product: systemd-boot, slot A only, `super` re-packed from 8 GiB to 1.23 GiB, firmware licences from the vendor image. Output: 2.68 GiB image, 0.9 GB `.xz`, built in 41 s, byte-identical across rebuilds.
+- `openbook-live-init` (rdinit) grows `userdata` to fill the stick and moves the backup GPT on first boot, erases the live data on "start fresh", and on "save logs" writes dmesg, logcat, system facts, a screenshot and `summary.json` to the stick.
+- QEMU/OVMF matrix and owner checklist: `docs/installer.md` §11. Evidence: `evidence/2026-10-16-installer/live/`.
+- **Desktop not reached in QEMU** (product, ANAL-199): `system_server` is killed by its watchdog while it waits for the audio HAL. Not yet run on the G14.
 
 ### 2026-10-16: Kernel, bare-metal packaging for the G14 (ANAL-198)
 

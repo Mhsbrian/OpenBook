@@ -25,7 +25,9 @@ for d in "$L"/*/; do
   [ -f "$d/serial.log" ] && python3 "$R/scripts/installer/live-report.py" --redact-file "$d/serial.log" | gzip -9n > "$DEST/qemu/$c/serial.log.gz"
   cp "$d"/shot-*.png "$DEST/qemu/$c/" 2>/dev/null || true
   [ -d "$d/sections" ] && cp -r "$d/sections" "$DEST/qemu/$c/"
-  [ -d "$d/esp" ] && cp -r "$d/esp" "$DEST/qemu/$c/"
+  for j in "$d"/esp/live-init-*.json; do  # openbook-live-init's own reports; the saved logs are handled below
+    [ -f "$j" ] && mkdir -p "$DEST/qemu/$c/esp" && cp "$j" "$DEST/qemu/$c/esp/"
+  done
 done
 for d in "$L"/logs/esp/live-*/; do
   [ -d "$d" ] || continue

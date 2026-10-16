@@ -122,8 +122,9 @@ def main():
               f"BOOTDONE={b.group(1) if b else '?'} at uptime {b.group(2) if b else '?'} s")
         check(c, "screenshot after the boot wait", os.path.exists(f"{R}/first/shot-after-boot.png"))
         before = open(f"{Q}/decoy.sha256.before").read().strip() if os.path.exists(f"{Q}/decoy.sha256.before") else "?"
-        after = open(f"{Q}/decoy.sha256.after").read().strip() if os.path.exists(f"{Q}/decoy.sha256.after") else "!"
-        check(c, "decoy NVMe disk unchanged (sha256)", before == after, before[:16])
+        # Hash the decoy now: it has been attached to every boot of this stick (first, second, reset).
+        after = sh("sha256sum", f"{Q}/decoy.img").split()[0] if os.path.exists(f"{Q}/decoy.img") else "!"
+        check(c, "decoy NVMe disk unchanged after all its boots (sha256)", before == after, f"{before[:16]} / {after[:16]}")
         rep = esp_ls(f"{Q}/s16.img", off, "/openbook/logs")
         check(c, "live-init report on the ESP", "live-init-001.json" in rep, rep)
         if "live-init-001.json" in rep and esp_get(f"{Q}/s16.img", off, "/openbook/logs/live-init-001.json",
