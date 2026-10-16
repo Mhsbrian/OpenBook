@@ -1,0 +1,5 @@
+service vendor.thermal-openbook /vendor/bin/hw/android.hardware.thermal-service.openbook
+    class hal
+    user system
+    group system
+    priority -20

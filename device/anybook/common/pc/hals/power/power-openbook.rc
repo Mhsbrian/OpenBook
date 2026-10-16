@@ -1,0 +1,5 @@
+service vendor.power-openbook /vendor/bin/hw/android.hardware.power-service.openbook
+    class hal
+    user system
+    group system
+    priority -20

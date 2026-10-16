@@ -1,0 +1,128 @@
+// Copyright (C) 2026 The OpenBook Authors
+// SPDX-License-Identifier: Apache-2.0
+//
+// OpenBook HAL services for PCs: the AOSP interfaces on real sysfs where AOSP's examples report fixed values
+// (docs/g14-product.md). Each service's logic sits in a plain C++ part that the host test runs on fixture trees.
+
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+cc_defaults {
+    name: "openbook_hal_defaults",
+    vendor: true,
+    relative_install_path: "hw",
+    local_include_dirs: ["common"],
+    srcs: ["common/sysfs.cpp"],
+    shared_libs: [
+        "libbase",
+        "libbinder_ndk",
+        "liblog",
+    ],
+    cflags: [
+        "-Wall",
+        "-Werror",
+    ],
+}
+
+cc_binary {
+    name: "android.hardware.lights-service.openbook",
+    defaults: ["openbook_hal_defaults"],
+    srcs: [
+        "lights/backlight.cpp",
+        "lights/Lights.cpp",
+        "lights/main.cpp",
+    ],
+    shared_libs: ["android.hardware.light-V3-ndk"],
+    init_rc: ["lights/lights-openbook.rc"],
+    vintf_fragments: ["lights/lights-openbook.xml"],
+}
+
+cc_binary {
+    name: "android.hardware.power-service.openbook",
+    defaults: [
+        "openbook_hal_defaults",
+        "android.hardware.power-ndk_shared",
+    ],
+    srcs: [
+        "power/epp.cpp",
+        "power/Power.cpp",
+        "power/main.cpp",
+    ],
+    shared_libs: [
+        "android.hardware.common-V2-ndk",
+        "android.hardware.common.fmq-V1-ndk",
+    ],
+    init_rc: ["power/power-openbook.rc"],
+    vintf_fragments: ["power/power-openbook.xml"],
+}
+
+cc_binary {
+    name: "android.hardware.power.stats-service.openbook",
+    defaults: ["openbook_hal_defaults"],
+    srcs: [
+        "powerstats/sleep_stats.cpp",
+        "powerstats/PowerStats.cpp",
+        "powerstats/main.cpp",
+    ],
+    shared_libs: ["android.hardware.power.stats-V2-ndk"],
+    init_rc: ["powerstats/power.stats-openbook.rc"],
+    vintf_fragments: ["powerstats/power.stats-openbook.xml"],
+}
+
+cc_binary {
+    name: "android.hardware.thermal-service.openbook",
+    defaults: ["openbook_hal_defaults"],
+    srcs: [
+        "thermal/sensors.cpp",
+        "thermal/Thermal.cpp",
+        "thermal/main.cpp",
+    ],
+    shared_libs: ["android.hardware.thermal-V3-ndk"],
+    init_rc: ["thermal/thermal-openbook.rc"],
+    vintf_fragments: ["thermal/thermal-openbook.xml"],
+}
+
+cc_binary {
+    name: "android.hardware.weaver-service.openbook",
+    defaults: ["openbook_hal_defaults"],
+    srcs: [
+        "weaver/store.cpp",
+        "weaver/Weaver.cpp",
+        "weaver/main.cpp",
+    ],
+    shared_libs: ["android.hardware.weaver-V3-ndk"],
+    init_rc: ["weaver/weaver-openbook.rc"],
+    vintf_fragments: ["weaver/weaver-openbook.xml"],
+}
+
+// atest openbook_hals_test, or run out/host/linux-x86/nativetest64/openbook_hals_test/openbook_hals_test
+cc_test_host {
+    name: "openbook_hals_test",
+    local_include_dirs: [
+        "common",
+        "lights",
+        "power",
+        "powerstats",
+        "thermal",
+        "weaver",
+    ],
+    srcs: [
+        "common/sysfs.cpp",
+        "lights/backlight.cpp",
+        "power/epp.cpp",
+        "powerstats/sleep_stats.cpp",
+        "thermal/sensors.cpp",
+        "weaver/store.cpp",
+        "tests/hals_test.cpp",
+    ],
+    static_libs: ["libbase"],
+    shared_libs: ["liblog"],
+    cflags: [
+        "-Wall",
+        "-Werror",
+    ],
+    test_options: {
+        unit_test: true,
+    },
+}
