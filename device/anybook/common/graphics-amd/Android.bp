@@ -1,0 +1,47 @@
+// Copyright (C) 2026 The AnyBook Authors
+// SPDX-License-Identifier: Apache-2.0
+//
+// AMD graphics for AnyBook products (VM or bare metal), pulled in by graphics-amd.mk.
+// The Mesa drivers themselves are prebuilts staged into vendor/anybook/mesa by
+// scripts/graphics-amd-stage-mesa.sh (docs/graphics-amd.md).
+
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+cc_defaults {
+    name: "anybook_gpu_probe_defaults",
+    srcs: ["gpu_probe/gpu_probe.cpp"],
+    static_libs: ["libbase"],
+    shared_libs: ["liblog"],
+    cflags: [
+        "-Wall",
+        "-Werror",
+    ],
+}
+
+// Picks the HAL family (amdgpu / virtio / none) at early-init; see init.anybook.graphics-amd.rc.
+cc_binary {
+    name: "anybook_gpu_probe",
+    defaults: ["anybook_gpu_probe_defaults"],
+    srcs: ["gpu_probe/main.cpp"],
+    vendor: true,
+    host_supported: true,
+    init_rc: ["init.anybook.graphics-amd.rc"],
+    target: {
+        host: {
+            // The host build is for --list / --dry-run / --from only.
+            compile_multilib: "64",
+        },
+    },
+}
+
+cc_test_host {
+    name: "anybook_gpu_probe_test",
+    defaults: ["anybook_gpu_probe_defaults"],
+    srcs: ["gpu_probe/gpu_probe_test.cpp"],
+    data: ["gpu_probe/testdata/*.txt"],
+    test_options: {
+        unit_test: true,
+    },
+}

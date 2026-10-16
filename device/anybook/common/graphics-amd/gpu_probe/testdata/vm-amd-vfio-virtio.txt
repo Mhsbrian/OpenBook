@@ -1,0 +1,4 @@
+# Synthetic: a VM with virtio-gpu bound and an AMD GPU passed through to vfio-pci.
+drm card0 driver=virtio_gpu pci=0000:00:02.0 vendor=0x1af4 device=0x1050 class=0x038000
+pci 0000:00:02.0 driver=virtio-pci vendor=0x1af4 device=0x1050 class=0x038000
+pci 0000:06:00.0 driver=vfio-pci vendor=0x1002 device=0x744c class=0x030000

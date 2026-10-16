@@ -1,0 +1,4 @@
+# ASUS ROG Zephyrus G14 GA403WR, Radeon 890M (Strix Point), on its Arch Linux install, 2026-10-16.
+# From evidence/2026-10-16-ga403wr-inventory (gpus.txt, lspci-nnk.txt, drm-connectors.txt). The dGPU is off.
+drm card1 driver=amdgpu pci=0000:65:00.0 vendor=0x1002 device=0x150e class=0x038000
+pci 0000:65:00.0 driver=amdgpu vendor=0x1002 device=0x150e class=0x038000

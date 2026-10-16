@@ -1,0 +1,15 @@
+# anybook_gpu_probe: reads the GPUs from sysfs at early-init and publishes vendor.anybook.gpu.*.
+type anybook_gpu_probe, domain;
+type anybook_gpu_probe_exec, exec_type, vendor_file_type, file_type;
+init_daemon_domain(anybook_gpu_probe)
+
+# /sys/class/drm, /sys/bus/pci/devices and the device directories behind them. Boards label
+# some GPU attributes sysfs_gpu (Cuttlefish: its virtio-gpu's vendor/device files).
+r_dir_file(anybook_gpu_probe, sysfs)
+r_dir_file(anybook_gpu_probe, sysfs_gpu)
+
+set_prop(anybook_gpu_probe, vendor_anybook_gpu_prop)
+
+# stdio_to_kmsg: what it found goes to the kernel log (/dev/kmsg_debug on debuggable builds).
+allow anybook_gpu_probe kmsg_device:chr_file w_file_perms;
+allow anybook_gpu_probe kmsg_debug_device:chr_file { w_file_perms getattr ioctl };

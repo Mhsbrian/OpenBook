@@ -1,0 +1,4 @@
+# Our anybook_cf_x86_64_pc in Cuttlefish (crosvm virtio-gpu, gfxstream), 2026-10-16: anybook_gpu_probe --list.
+# The kernel parents card0 on the virtio-gpu PCI function, so its driver reads virtio-pci.
+drm card0 driver=virtio-pci pci=0000:00:02.0 vendor=0x1af4 device=0x1050 class=0x038000
+pci 0000:00:02.0 driver=virtio-pci vendor=0x1af4 device=0x1050 class=0x038000
