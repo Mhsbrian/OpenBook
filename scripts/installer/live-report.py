@@ -12,6 +12,7 @@ use the same file (docs/installer.md section 11).
                  masked, for committing as evidence
 
 usage: live-report.py DIR [--expect g14|vm] [--redact OUT_DIR]
+       live-report.py --redact-file FILE      print FILE with the same masking (serial logs for evidence)
 """
 import argparse
 import json
@@ -36,21 +37,27 @@ def sections(path):
 
 MAC = re.compile(r"\b(?!00:00:00:00:00:00|ff:ff:ff:ff:ff:ff)([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}\b")
 SERIAL = re.compile(r"(SerialNumber: |iSerial\s+\d+\s+|usb-[A-Za-z0-9_]+_)([A-Za-z0-9]{6,})")
-SSID = re.compile(r'((?:SSID|ssid)["\s:=]+)"?([^",\s}]+)"?')
+SSID = re.compile(r'(\b(?:SSID|ssid)\b[\s:=]*)("[^"]*"|[^\s,}"]+)')
 
 
 def redact(text):
     text = MAC.sub("xx:xx:xx:xx:xx:xx", text)
     text = SERIAL.sub(lambda m: m.group(1) + "[redacted]", text)
-    return SSID.sub(lambda m: m.group(1) + "[redacted]", text)
+    return SSID.sub(lambda m: m.group(1) + ('"[redacted]"' if m.group(2).startswith('"') else "[redacted]"), text)
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("dir")
+    ap.add_argument("dir", nargs="?")
+    ap.add_argument("--redact-file")
     ap.add_argument("--expect", choices=("g14", "vm"), default="g14")
     ap.add_argument("--redact")
     a = ap.parse_args()
+    if a.redact_file:
+        print(redact(open(a.redact_file, "rb").read().decode("utf-8", "replace")), end="")
+        return
+    if not a.dir:
+        ap.error("DIR is required")
     d = a.dir
     try:
         s = json.load(open(f"{d}/summary.json"))
