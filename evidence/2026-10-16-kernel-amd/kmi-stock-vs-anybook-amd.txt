@@ -1,5 +1,5 @@
-exports: old 4501, new 4696, common 4501
-CRC changed: 0, removed: 0, added: 195
+exports: old 4501, new 4700, common 4501
+CRC changed: 0, removed: 0, added: 199
 KMI list (4038 symbols): CRC changed 0, removed 0
 added	-	__drm_atomic_helper_connector_destroy_state
 added	-	__drm_atomic_helper_plane_reset
@@ -38,6 +38,7 @@ added	-	debugfs_initialized
 added	-	device_show_string
 added	-	devm_gpiod_get_index_optional
 added	-	devm_i2c_add_adapter
+added	-	devm_mmc_alloc_host
 added	-	devm_thermal_of_zone_register
 added	-	dma_addressing_limited
 added	-	dma_alloc_pages
@@ -131,6 +132,8 @@ added	-	kobject_set_name
 added	-	kset_register
 added	-	ksys_sync_helper
 added	-	mem_section
+added	-	mmc_add_host
+added	-	mmc_remove_host
 added	-	mmu_interval_notifier_insert_locked
 added	-	mmu_notifier_synchronize
 added	-	orderly_poweroff
@@ -144,6 +147,7 @@ added	-	pci_enable_atomic_ops_to_root
 added	-	pci_find_bus
 added	-	pci_get_base_class
 added	-	pci_hp_deregister
+added	-	pci_intx
 added	-	pci_load_saved_state
 added	-	pci_restore_msi_state
 added	-	pci_scan_single_device

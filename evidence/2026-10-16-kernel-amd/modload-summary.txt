@@ -2,7 +2,7 @@ AMD-Vi: Using global IVHD EFR:0x29d3, EFR2:0x0
 AMD-Vi: Using strict mode due to virtualization
 AMD-Vi: Extended features (0x29d3, 0x0): PreF PPR GT IA GA HE
 AMD-Vi: Interrupt remapping enabled
-### modload start 6.18.21-android17-5-g04a5a95cd7be console=ttynull stack_depot_disable=on cgroup_disable=pressure bootconfig console=ttyS0,115200 earlycon=uart8250,io,0x3f8,115200 printk.devkmsg=on panic=-1 loglevel=7
+### modload start 6.18.21-android17-5-g44a90255c95f console=ttynull stack_depot_disable=on cgroup_disable=pressure bootconfig console=ttyS0,115200 earlycon=uart8250,io,0x3f8,115200 printk.devkmsg=on panic=-1 loglevel=7
 GKI-OK virtio_pci
 LOAD-OK amdxdna
 LOAD-OK ac
@@ -41,6 +41,9 @@ LOAD-OK i2c-designware-platform
 LOAD-OK i2c-piix4
 LOAD-OK i2c-smbus
 LOAD-OK sparse-keymap
+LOAD-OK mfd-core
+LOAD-OK rtsx_pci
+LOAD-OK rtsx_pci_sdmmc
 LOAD-OK mt76-connac-lib
 LOAD-OK mt76
 LOAD-OK mt7921-common
@@ -64,6 +67,7 @@ LOAD-OK rtw89_pci
 LOAD-OK amd-pmc
 LOAD-NODEV asus-nb-wmi: modprobe: can't load module asus-nb-wmi (kernel/asus-nb-wmi.ko): No such device
 LOAD-OK asus-wmi
+LOAD-OK nvidia-wmi-ec-backlight
 LOAD-OK serial-multi-instantiate
 LOAD-OK wmi-bmof
 LOAD-OK wmi
@@ -141,11 +145,11 @@ LOAD-OK snd-sof-probes
 LOAD-OK snd-sof-utils
 LOAD-OK snd-sof
 LOAD-OK snd-sof-xtensa-dsp
-### lsmod: 140 modules
+### lsmod: 144 modules
 drm: /sys/class/drm:
 drm: card0
 drm: card0-Virtual-1
 drm: renderD128
 drm: version
 ### tainted=0
-### modload done: ok=133 nodev=1 fail=0
+### modload done: ok=137 nodev=1 fail=0

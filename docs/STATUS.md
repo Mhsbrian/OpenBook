@@ -6,7 +6,7 @@
 - **Repo license** for the scripts and docs. Apache-2.0 is suggested, to match AOSP.
 - **Track B** (ANAL-165): whether to go past research with Google's proprietary image (`docs/PLAN.md` §6).
 - **Mesa libelf licensing** (ANAL-173): libelf is LGPL-3.0+ and is statically linked into the MIT Mesa libraries. Pick an approach before redistributing any image; the recommendation is to ship libelf as a shared library (`docs/mesa.md`).
-- **Hardware inventory**: run `scripts/hw-inventory.sh` on the G14 and attach the output to ANAL-175. The target is the ASUS ROG Zephyrus G14 (2025) GA403WP with a Ryzen AI 9 HX 370 (Zen 5, confirmed by the owner 2026-10-16) and an RTX 5070; see `docs/HARDWARE.md`.
+- **Hardware inventory**: received 2026-10-16 (non-root run). The laptop is a **GA403WR** (Ryzen AI 9 HX 370), not a GA403WP; see `docs/HARDWARE.md` and `evidence/2026-10-16-ga403wr-inventory/`. A `--with-root` run would add `dmesg`.
 
 **Tracking** (Multica, children of ANAL-159). ✓ = delivered and PR merged, ▶ = running, ⏳ = starts automatically when its dependency delivers.
 
@@ -108,18 +108,20 @@
 ### 2026-10-16: Kernel, AMD config and vendor modules (ANAL-171)
 
 **Done**
-- AnyBook GKI: the shipped `android17-6.18` tree plus 2 patches (`kernel/patches/common/`). Release `6.18.21-android17-5-g04a5a95cd7be`.
+- AnyBook GKI: the shipped `android17-6.18` tree plus 3 patches (`kernel/patches/common/`). Release `6.18.21-android17-5-g44a90255c95f`.
   - Three bool built-ins: `AMD_IOMMU`, `PINCTRL_AMD`, `X86_AMD_PLATFORM_DEVICE`.
-  - An `anybook_amd` KMI list with 1,862 symbols, 209 of them new. amdgpu alone needs 129 symbols the stock GKI does not export.
-- Kleaf mixed build `//devices/anybook` (`kernel/devices/anybook/`) produces 134 vendor modules: amdgpu with DC, amdxdna, amd-pmc, pinctrl-amd (built in), i2c-designware/i2c-hid-acpi, HDA ALC269/CS35L56, ACP/SOF-AMD, mt7921e/mt7925e, rtw89, btusb-MTK, asus-wmi, hid-asus, virtio-gpu and more.
+  - An `anybook_amd` KMI list with 1,887 symbols, 214 of them new. amdgpu alone needs 129 symbols the stock GKI does not export.
+- Kleaf mixed build `//devices/anybook` (`kernel/devices/anybook/`) produces 138 vendor modules: amdgpu with DC, amdxdna, amd-pmc, pinctrl-amd (built in), i2c-designware/i2c-hid-acpi, HDA ALC269/CS35L56, ACP/SOF-AMD, mt7921e/mt7925e, rtw89, btusb-MTK, asus-wmi, hid-asus, virtio-gpu and more.
 - linux-firmware subset list: 131 files, 52.5 MB, all redistributable, with each file's licence taken from WHENCE.
 
 **Evidence:** `evidence/2026-10-16-kernel-amd/`
-- All 134 modules have vermagic, CRCs and imports matching the kernel.
-- In a QEMU/KVM load test, 133 modules load and 1 returns -ENODEV (no ASUS WMI in the VM), with 0 symbol errors. AMD-Vi interrupt remapping is on, and virtio-gpu creates `card0`.
+- All 138 modules have vermagic, CRCs and imports matching the kernel.
+- In a QEMU/KVM load test, 137 modules load and 1 returns -ENODEV (no ASUS WMI in the VM), with 0 symbol errors. AMD-Vi interrupt remapping is on, and virtio-gpu creates `card0`.
 - Every stock KMI CRC is unchanged.
 - The equivalence build shows 5 harmless vmlinux differences.
 
 **Blocked:** amd-pmf. `ccp.ko` links SEV code that calls `kernel_read`/`kernel_write`, both on GKI's deny list. Owner decision needed; see `docs/kernel.md`.
 
-**Next:** ANAL-172 packages `vendor_dlkm`/`vendor_boot` and does a boot test. The GA403WP audio SSID comes from ANAL-175, then the `android17-6.18` tip build.
+**Next:** ANAL-172 packages `vendor_dlkm`/`vendor_boot` and does a boot test; then the `android17-6.18` tip build.
+
+**Update (same day):** the inventory showed a GA403WR with codec SSID 1043:1024. The mainline quirk for it is backported, and the card reader and NVIDIA-WMI-EC backlight modules are added (see `docs/kernel.md`).

@@ -34,6 +34,9 @@ i2c-designware-platform.ko
 i2c-piix4.ko
 i2c-smbus.ko
 sparse-keymap.ko
+mfd-core.ko
+rtsx_pci.ko
+rtsx_pci_sdmmc.ko
 mt76-connac-lib.ko
 mt76.ko
 mt7921-common.ko
@@ -57,6 +60,7 @@ rtw89_pci.ko
 amd-pmc.ko
 asus-nb-wmi.ko
 asus-wmi.ko
+nvidia-wmi-ec-backlight.ko
 serial-multi-instantiate.ko
 wmi-bmof.ko
 wmi.ko

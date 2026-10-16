@@ -40,6 +40,7 @@ device_find_child
 device_show_string
 devm_gpiod_get_index_optional
 devm_i2c_add_adapter
+devm_mmc_alloc_host
 devm_thermal_of_zone_register
 dma_addressing_limited
 dma_alloc_pages
@@ -120,6 +121,7 @@ i2c_acpi_new_device_by_fwnode
 i8042_install_filter
 i8042_remove_filter
 idr_alloc_cyclic
+idr_preload
 init_srcu_struct
 iommu_iova_to_phys
 iommu_sva_bind_device
@@ -135,6 +137,8 @@ kset_register
 ksys_sync_helper
 list_sort
 mem_section
+mmc_add_host
+mmc_remove_host
 mmput_async
 mmu_interval_notifier_insert_locked
 mmu_notifier_synchronize
@@ -149,6 +153,7 @@ pci_enable_atomic_ops_to_root
 pci_find_bus
 pci_get_base_class
 pci_hp_deregister
+pci_intx
 pci_load_saved_state
 pci_restore_msi_state
 pci_scan_single_device

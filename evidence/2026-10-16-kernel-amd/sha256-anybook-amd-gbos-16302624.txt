@@ -1,3 +1,3 @@
-b7de7d5c4efb954be9f073ea9b7cf5729fb32148c54cc42ce9a50ba047f0932a  /home/hive/anybook/kernel/dist/anybook-amd-gbos-16302624/bzImage
+6d964789134e6fc44bf910199218fe54dd752fd35cebdac3d348fe19362e948c  /home/hive/anybook/kernel/dist/anybook-amd-gbos-16302624/bzImage
 f0dff3f04086d34f0571ee47c0fad92d3028fa4299f703549bb150f9d6a23cb1  /home/hive/anybook/kernel/dist/anybook-amd-gbos-16302624/dot_config
-88b77a803e02a0dd16076d22b7330e19378dbad42ed9018e90d2daa2a6265a7a  /home/hive/anybook/kernel/dist/anybook-amd-gbos-16302624/vmlinux
+cab7788be01ba471168d151300099b1e18293f0a5885c88326a2e4a043b14baa  /home/hive/anybook/kernel/dist/anybook-amd-gbos-16302624/vmlinux

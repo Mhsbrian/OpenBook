@@ -6,9 +6,9 @@ license:        GPL and additional rights
 import_ns:      DMA_BUF
 name:           amdgpu
 intree:         Y
-scmversion:     g04a5a95cd7be
+scmversion:     g44a90255c95f
 depends:        amdxcp,gpu-sched,drm_display_helper,i2c-algo-bit,drm_exec,drm_ttm_helper,video,drm_suballoc_helper,drm_buddy,hwmon,drm_panel_backlight_quirks
-vermagic:       6.18.21-android17-5-g04a5a95cd7be SMP preempt mod_unload modversions 
+vermagic:       6.18.21-android17-5-g44a90255c95f SMP preempt mod_unload modversions 
 retpoline:      Y
 firmware entries: 583
 == amdxdna.ko
@@ -19,9 +19,9 @@ author:         XRT Team <runtimeca39d@amd.com>
 description:    amdxdna driver
 name:           amdxdna
 intree:         Y
-scmversion:     g04a5a95cd7be
+scmversion:     g44a90255c95f
 depends:        gpu-sched
-vermagic:       6.18.21-android17-5-g04a5a95cd7be SMP preempt mod_unload modversions 
+vermagic:       6.18.21-android17-5-g44a90255c95f SMP preempt mod_unload modversions 
 retpoline:      Y
 firmware entries: 4
 == mt7925e.ko
@@ -32,9 +32,9 @@ description:    MediaTek MT7925E (PCIe) wireless driver
 license:        Dual BSD/GPL
 name:           mt7925e
 intree:         Y
-scmversion:     g04a5a95cd7be
+scmversion:     g44a90255c95f
 depends:        mt76,mt7925-common,mt792x-lib,rfkill,mt76-connac-lib
-vermagic:       6.18.21-android17-5-g04a5a95cd7be SMP preempt mod_unload modversions 
+vermagic:       6.18.21-android17-5-g44a90255c95f SMP preempt mod_unload modversions 
 retpoline:      Y
 firmware entries: 2
 == btusb.ko
@@ -45,9 +45,9 @@ version:        0.8
 license:        GPL
 name:           btusb
 intree:         Y
-scmversion:     g04a5a95cd7be
+scmversion:     g44a90255c95f
 depends:        bluetooth,btintel,btbcm,btmtk,btrtl
-vermagic:       6.18.21-android17-5-g04a5a95cd7be SMP preempt mod_unload modversions 
+vermagic:       6.18.21-android17-5-g44a90255c95f SMP preempt mod_unload modversions 
 retpoline:      Y
 firmware entries: 0
 == snd-hda-intel.ko
@@ -56,9 +56,22 @@ license:        GPL
 description:    Intel HDA driver
 name:           snd_hda_intel
 intree:         Y
-scmversion:     g04a5a95cd7be
+scmversion:     g44a90255c95f
 depends:        snd-hda-codec,snd-hda-core
-vermagic:       6.18.21-android17-5-g04a5a95cd7be SMP preempt mod_unload modversions 
+vermagic:       6.18.21-android17-5-g44a90255c95f SMP preempt mod_unload modversions 
+retpoline:      Y
+firmware entries: 0
+== snd-hda-codec-alc269.ko
+filename:       /home/hive/anybook/kernel/dist/anybook-amd-gbos-16302624/snd-hda-codec-alc269.ko
+license:        GPL
+description:    Realtek ALC269 and compatible HD-audio codecs
+import_ns:      SND_HDA_CODEC_REALTEK
+import_ns:      SND_HDA_SCODEC_COMPONENT
+name:           snd_hda_codec_alc269
+intree:         Y
+scmversion:     g44a90255c95f
+depends:        snd-hda-codec,snd-hda-codec-realtek-lib,snd-hda-core,snd-hda-scodec-component,snd-hda-codec-generic
+vermagic:       6.18.21-android17-5-g44a90255c95f SMP preempt mod_unload modversions 
 retpoline:      Y
 firmware entries: 0
 == snd-hda-scodec-cs35l56-i2c.ko
@@ -71,9 +84,9 @@ author:         Simon Trimmer <simont@opensource.cirrus.com>
 license:        GPL
 name:           snd_hda_scodec_cs35l56_i2c
 intree:         Y
-scmversion:     g04a5a95cd7be
+scmversion:     g44a90255c95f
 depends:        snd-soc-cs35l56-shared,snd-hda-scodec-cs35l56
-vermagic:       6.18.21-android17-5-g04a5a95cd7be SMP preempt mod_unload modversions 
+vermagic:       6.18.21-android17-5-g44a90255c95f SMP preempt mod_unload modversions 
 retpoline:      Y
 firmware entries: 0
 == snd-pci-ps.ko
@@ -86,9 +99,9 @@ import_ns:      SND_AMD_SOUNDWIRE_ACPI
 license:        GPL v2
 name:           snd_pci_ps
 intree:         Y
-scmversion:     g04a5a95cd7be
+scmversion:     g44a90255c95f
 depends:        snd-acp-config,snd-soc-acpi-amd-match
-vermagic:       6.18.21-android17-5-g04a5a95cd7be SMP preempt mod_unload modversions 
+vermagic:       6.18.21-android17-5-g44a90255c95f SMP preempt mod_unload modversions 
 retpoline:      Y
 firmware entries: 0
 == i2c-hid-acpi.ko
@@ -98,9 +111,9 @@ author:         Benjamin Tissoires <benjamin.tissoires@gmail.com>
 license:        GPL
 name:           i2c_hid_acpi
 intree:         Y
-scmversion:     g04a5a95cd7be
+scmversion:     g44a90255c95f
 depends:        i2c-hid
-vermagic:       6.18.21-android17-5-g04a5a95cd7be SMP preempt mod_unload modversions 
+vermagic:       6.18.21-android17-5-g44a90255c95f SMP preempt mod_unload modversions 
 retpoline:      Y
 firmware entries: 0
 == amd-pmc.ko
@@ -109,9 +122,9 @@ license:        GPL v2
 description:    AMD PMC Driver
 name:           amd_pmc
 intree:         Y
-scmversion:     g04a5a95cd7be
+scmversion:     g44a90255c95f
 depends:        
-vermagic:       6.18.21-android17-5-g04a5a95cd7be SMP preempt mod_unload modversions 
+vermagic:       6.18.21-android17-5-g44a90255c95f SMP preempt mod_unload modversions 
 retpoline:      Y
 firmware entries: 0
 == virtio-gpu.ko
@@ -124,8 +137,32 @@ author:         Alon Levy
 import_ns:      DMA_BUF
 name:           virtio_gpu
 intree:         Y
-scmversion:     g04a5a95cd7be
+scmversion:     g44a90255c95f
 depends:        virtio_dma_buf
-vermagic:       6.18.21-android17-5-g04a5a95cd7be SMP preempt mod_unload modversions 
+vermagic:       6.18.21-android17-5-g44a90255c95f SMP preempt mod_unload modversions 
+retpoline:      Y
+firmware entries: 0
+== rtsx_pci.ko
+filename:       /home/hive/anybook/kernel/dist/anybook-amd-gbos-16302624/rtsx_pci.ko
+license:        GPL
+author:         Wei WANG <wei_wang@realsil.com.cn>
+description:    Realtek PCI-E Card Reader Driver
+name:           rtsx_pci
+intree:         Y
+scmversion:     g44a90255c95f
+depends:        mfd-core
+vermagic:       6.18.21-android17-5-g44a90255c95f SMP preempt mod_unload modversions 
+retpoline:      Y
+firmware entries: 0
+== nvidia-wmi-ec-backlight.ko
+filename:       /home/hive/anybook/kernel/dist/anybook-amd-gbos-16302624/nvidia-wmi-ec-backlight.ko
+author:         Daniel Dadap <ddadap@nvidia.com>
+description:    NVIDIA WMI EC Backlight driver
+license:        GPL
+name:           nvidia_wmi_ec_backlight
+intree:         Y
+scmversion:     g44a90255c95f
+depends:        wmi,video
+vermagic:       6.18.21-android17-5-g44a90255c95f SMP preempt mod_unload modversions 
 retpoline:      Y
 firmware entries: 0

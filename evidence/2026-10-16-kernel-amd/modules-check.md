@@ -1,10 +1,10 @@
 # Vendor module check: anybook-amd-gbos-16302624
 
-Kernel release `6.18.21-android17-5-g04a5a95cd7be`; 134 vendor modules, 100 GKI modules in the dist; 4696 vmlinux exports; 4204 KMI-listed symbols.
+Kernel release `6.18.21-android17-5-g44a90255c95f`; 138 vendor modules, 100 GKI modules in the dist; 4700 vmlinux exports; 4209 KMI-listed symbols.
 
-vermagic expected: `6.18.21-android17-5-g04a5a95cd7be SMP preempt mod_unload modversions`
+vermagic expected: `6.18.21-android17-5-g44a90255c95f SMP preempt mod_unload modversions`
 
-Result: 134 ok, 0 failing.
+Result: 138 ok, 0 failing.
 
 
 | module | license | intree | imports vmlinux / GKI mod / vendor mod | MODULE_FIRMWARE | status |
@@ -45,6 +45,9 @@ Result: 134 ok, 0 failing.
 | i2c-piix4.ko | GPL | Y | 46 / 0 / 1 | 0 | ok |
 | i2c-smbus.ko | GPL | Y | 35 / 0 / 0 | 0 | ok |
 | sparse-keymap.ko | GPL v2 | Y | 13 / 0 / 0 | 0 | ok |
+| mfd-core.ko | GPL | Y | 50 / 0 / 0 | 0 | ok |
+| rtsx_pci.ko | GPL | Y | 81 / 0 / 2 | 0 | ok |
+| rtsx_pci_sdmmc.ko | GPL | Y | 44 / 0 / 20 | 0 | ok |
 | mt76-connac-lib.ko | Dual BSD/GPL | Y | 43 / 0 / 28 | 0 | ok |
 | mt76.ko | Dual BSD/GPL | Y | 166 / 0 / 36 | 0 | ok |
 | mt7921-common.ko | Dual BSD/GPL | Y | 86 / 0 / 140 | 0 | ok |
@@ -68,6 +71,7 @@ Result: 134 ok, 0 failing.
 | amd-pmc.ko | GPL v2 | Y | 88 / 0 / 0 | 0 | ok |
 | asus-nb-wmi.ko | GPL | Y | 10 / 0 / 3 | 0 | ok |
 | asus-wmi.ko | GPL | Y | 93 / 7 / 14 | 0 | ok |
+| nvidia-wmi-ec-backlight.ko | GPL | Y | 13 / 0 / 4 | 0 | ok |
 | serial-multi-instantiate.ko | GPL | Y | 31 / 0 / 0 | 0 | ok |
 | wmi-bmof.ko | GPL | Y | 12 / 0 / 3 | 0 | ok |
 | wmi.ko | GPL | Y | 64 / 0 / 0 | 0 | ok |

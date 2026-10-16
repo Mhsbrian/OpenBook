@@ -1,8 +1,8 @@
 # KMI symbol list diff: anybook_amd vs the stock GKI exports
 
-- `anybook_amd` lists 1862 symbols; 1653 are already exported by the stock GKI, **209 are new exports**.
-- Stock GKI KMI list: 3995 symbols; with `anybook_amd`: 4204.
-- Vendor modules with at least one import the stock GKI lacks: 20 of 134.
+- `anybook_amd` lists 1887 symbols; 1673 are already exported by the stock GKI, **214 are new exports**.
+- Stock GKI KMI list: 3995 symbols; with `anybook_amd`: 4209.
+- Vendor modules with at least one import the stock GKI lacks: 22 of 138.
 
 | module | imports from vmlinux / GKI modules | not exported by stock GKI |
 |---|---|---|
@@ -13,7 +13,9 @@
 | amd-pmc.ko | 88 | 10 |
 | serial-multi-instantiate.ko | 31 | 4 |
 | k10temp.ko | 24 | 3 |
+| rtsx_pci_sdmmc.ko | 44 | 3 |
 | hwmon.ko | 83 | 2 |
+| rtsx_pci.ko | 81 | 2 |
 | snd-hda-cirrus-scodec.ko | 11 | 2 |
 | snd-hda-scodec-cs35l56.ko | 65 | 2 |
 | spi-amd.ko | 21 | 2 |
@@ -51,6 +53,7 @@
 | i2c-piix4.ko | 46 | 0 |
 | i2c-smbus.ko | 35 | 0 |
 | mac80211.ko | 225 | 0 |
+| mfd-core.ko | 50 | 0 |
 | mt76-connac-lib.ko | 43 | 0 |
 | mt76.ko | 166 | 0 |
 | mt7921-common.ko | 86 | 0 |
@@ -58,6 +61,7 @@
 | mt7925-common.ko | 89 | 0 |
 | mt7925e.ko | 58 | 0 |
 | mt792x-lib.ko | 75 | 0 |
+| nvidia-wmi-ec-backlight.ko | 13 | 0 |
 | platform_profile.ko | 44 | 0 |
 | rtw89_8851b.ko | 18 | 0 |
 | rtw89_8851be.ko | 8 | 0 |

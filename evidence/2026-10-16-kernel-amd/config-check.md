@@ -2,7 +2,7 @@
 
 | class | count |
 |---|---|
-| module | 142 |
+| module | 147 |
 | option | 35 |
 | build-only | 6 |
 | CHANGED | 0 |
@@ -50,6 +50,10 @@
 | `CONFIG_I2C_SMBUS` | n | m |  |
 | `CONFIG_INPUT_SPARSEKMAP` | n | m |  |
 | `CONFIG_MAC80211` | n | m |  |
+| `CONFIG_MFD_CORE` | n | m |  |
+| `CONFIG_MISC_RTSX` | n | m |  |
+| `CONFIG_MISC_RTSX_PCI` | n | m |  |
+| `CONFIG_MMC_REALTEK_PCI` | n | m |  |
 | `CONFIG_MT76_CONNAC_LIB` | n | m |  |
 | `CONFIG_MT76_CORE` | n | m |  |
 | `CONFIG_MT7921E` | n | m |  |
@@ -57,6 +61,7 @@
 | `CONFIG_MT7925E` | n | m |  |
 | `CONFIG_MT7925_COMMON` | n | m |  |
 | `CONFIG_MT792x_LIB` | n | m |  |
+| `CONFIG_NVIDIA_WMI_EC_BACKLIGHT` | n | m |  |
 | `CONFIG_RTL_CARDS` | n | m |  |
 | `CONFIG_RTW89` | n | m |  |
 | `CONFIG_RTW89_8851B` | n | m |  |

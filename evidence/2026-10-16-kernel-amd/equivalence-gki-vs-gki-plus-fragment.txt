@@ -1,3 +1,5 @@
+# vendor-fragment equivalence: anybook-amd-gbos-16302624 vs the same GKI built with anybook_amd.fragment
+# 2026-10-16T14:58:05+00:00
 A: /home/hive/anybook/kernel/dist/anybook-amd-gbos-16302624
 B: /home/hive/anybook/kernel/dist/anybook-amd-gbos-16302624-integrity
 
@@ -17,4 +19,4 @@ same name, different size: 4
 
 ## GKI modules (80 in system_dlkm.modules.load; signature, build ID and .BTF dropped)
 identical: 79, different: 1, missing: 0 []
-  kheaders.ko: .rodata
+  kheaders.ko: .rodata, .codetag.alloc_tags
