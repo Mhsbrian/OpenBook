@@ -1,0 +1,22 @@
+snapshot: 2026-10-16T17:29:11Z
+product_out: /home/hive/anybook/aosp/src/out/target/product/vsoc_x86_64_only
+fingerprint file build_fingerprint-anybook_cf_x86_64_pc.txt (2026-10-16T15:26:26Z): AnyBook/anybook_cf_x86_64_pc/vsoc_x86_64_only:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+fingerprint file build_fingerprint-aosp_cf_x86_64_pc.txt (2026-10-16T11:04:25Z): generic/aosp_cf_x86_64_pc/vsoc_x86_64_only:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+kernel_dist: /home/hive/anybook/kernel/dist/anybook-amd-gbos-16302624
+Linux version 6.18.21-android17-5-g44a90255c95f (kleaf@build-host) (Android (15323222, +pgo, +bolt, +lto, +mlgo, based on r584948c) clang version 22.0.1 (https://android.googlesource.com/toolchain/llvm-project 2d65e4108033380e6fe8e08b1f1826cd2bfb0c99), LLD 22.0.1 (/mnt/disks/build-disk/src/googleplex-android/llvm-r584948-release/out/llvm-project/llvm 2d65e4108033380e6fe8e08b1f1826cd2bfb0c99)) #1 SMP PREEMPT Fri Oct 16 12:00:00 UTC 2026
+3f05213cb609843321e1f34c6a0a27fc9ad95cba23dc52e1db1ea2f9bfa96543  product/android-info.txt
+85e2b4c5bf5b7a7ff1b29720579a7c54782f2d293e5e117b22f77db4e0fa289e  product/boot.img
+d370ed726d97e7fd15e52fd5eb1c051762037b7e24b5535f00372ad5549410a4  product/init_boot.img
+5e6e65e27b91e208afe1d4b64f2ea9c75d7e385303e2cf38e51a30cd1d5383da  product/odm_dlkm.img
+05590978edd03bb5ae8509fd48be2e502e48eb6ecb6eee2c8dc57a9bf493abb6  product/odm.img
+812c0e50176ad8376b973162ed5c7f080796e2f787a2910a9b12953769e87f15  product/super.img
+bc1d609eb1996f2c31ded1b7629080649b1bf44e26c4d9118fc559252a45f923  product/userdata.img
+b4502c659e57b8753d78aef5f6c0e3b1ecabaf0297ab56060bf8fcc92387b4ab  product/vbmeta.img
+fd31e5250c5781c372378f0db7f2a658e81aa7466edb7b53250e433a34794f4b  product/vbmeta_system_dlkm.img
+8a17ace47bc256e4e3f7fed7cfff4ecbfffb57fc4175f4a1c36eb57f94c8904e  product/vbmeta_system.img
+4d07a66b6d745120bf2981d4b71e8199c3d63938d50218342337beaa814ee682  product/vbmeta_vendor_dlkm.img
+8a6852f900422d0dc9405d56f6088e2c6c4b46613cc375479d041c5022f41ed4  product/vendor-bootconfig.img
+1e92a0c0b53db1a31f74dc3d343cd154cdb7e7b0975a7e58601a736f8ae5252a  product/vendor_boot.img
+748860ca041b2798459eed5a1691c644047ed46e7bf49cd206980ead99b12078  product/vendor.img
+6d964789134e6fc44bf910199218fe54dd752fd35cebdac3d348fe19362e948c  kernel/bzImage
+86384f2b2ad7ff9fc6ec29ea3d75e8b081f4ba5fece55658a1274a8d97e4dedf  kernel/linux_banner.txt

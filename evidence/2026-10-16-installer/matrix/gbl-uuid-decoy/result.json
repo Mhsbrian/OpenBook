@@ -1,0 +1,10 @@
+{
+ "reason": "timeout 30s",
+ "seconds": 30.5,
+ "steps_done": 0,
+ "steps": 0,
+ "hits": [],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/matrix-20261016/run-gbl-uuid-decoy.img",
+ "nvme": "/home/hive/anybook/installer/matrix-20261016/decoy-nvme.img"
+}

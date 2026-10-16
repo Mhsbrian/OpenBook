@@ -1,0 +1,189 @@
+{
+ "loader": "gbl",
+ "slot": "a",
+ "bad_digest": false,
+ "halt": false,
+ "image": "/home/hive/anybook/installer/matrix-20261016/gbl-uuid.img",
+ "size": 12884901888,
+ "partitions": [
+  {
+   "name": "EFI",
+   "start": 2048,
+   "sectors": 524288,
+   "type": "ef00",
+   "uuid": "5c2e760d-5405-5eb5-abb0-99652eefd85d"
+  },
+  {
+   "name": "misc",
+   "start": 526336,
+   "sectors": 2048,
+   "type": "8300",
+   "uuid": "02e07892-0f4c-5973-a17d-149b39100886"
+  },
+  {
+   "name": "boot_a",
+   "start": 528384,
+   "sectors": 131072,
+   "type": "8300",
+   "uuid": "cacec78f-b141-530d-bc89-ed5cd061312d"
+  },
+  {
+   "name": "boot_b",
+   "start": 659456,
+   "sectors": 131072,
+   "type": "8300",
+   "uuid": "b31c16c2-2159-5316-b13d-34a729ef51f9"
+  },
+  {
+   "name": "init_boot_a",
+   "start": 790528,
+   "sectors": 16384,
+   "type": "8300",
+   "uuid": "84bf01bf-5744-50a9-8f50-184f6a87a9e6"
+  },
+  {
+   "name": "init_boot_b",
+   "start": 806912,
+   "sectors": 16384,
+   "type": "8300",
+   "uuid": "7ea48f5c-7d6f-55c1-8300-ce1955bf12ec"
+  },
+  {
+   "name": "vendor_boot_a",
+   "start": 823296,
+   "sectors": 131072,
+   "type": "8300",
+   "uuid": "9c87bc25-2a33-5368-9817-d6599906c4d2"
+  },
+  {
+   "name": "vendor_boot_b",
+   "start": 954368,
+   "sectors": 131072,
+   "type": "8300",
+   "uuid": "31733de1-d51b-56ed-9e21-d0ea7dfdff2e"
+  },
+  {
+   "name": "vbmeta_a",
+   "start": 1085440,
+   "sectors": 2048,
+   "type": "8300",
+   "uuid": "9c1aec65-be05-5818-a338-709449a4486e"
+  },
+  {
+   "name": "vbmeta_b",
+   "start": 1087488,
+   "sectors": 2048,
+   "type": "8300",
+   "uuid": "c000ce4c-36f8-5d50-92ef-96a496688e51"
+  },
+  {
+   "name": "vbmeta_system_a",
+   "start": 1089536,
+   "sectors": 2048,
+   "type": "8300",
+   "uuid": "569ca3e1-5737-5c01-b7c8-7c532ffa6f6f"
+  },
+  {
+   "name": "vbmeta_system_b",
+   "start": 1091584,
+   "sectors": 2048,
+   "type": "8300",
+   "uuid": "4788ef7a-ef14-58d3-b310-e460693653de"
+  },
+  {
+   "name": "vbmeta_system_dlkm_a",
+   "start": 1093632,
+   "sectors": 2048,
+   "type": "8300",
+   "uuid": "62c4bde1-e22f-54fa-affe-29788d7eb260"
+  },
+  {
+   "name": "vbmeta_system_dlkm_b",
+   "start": 1095680,
+   "sectors": 2048,
+   "type": "8300",
+   "uuid": "02eb950b-82be-53b6-9c5f-09786d695ade"
+  },
+  {
+   "name": "vbmeta_vendor_dlkm_a",
+   "start": 1097728,
+   "sectors": 2048,
+   "type": "8300",
+   "uuid": "9f11467a-a43d-59ce-818e-c60d7d783e3a"
+  },
+  {
+   "name": "vbmeta_vendor_dlkm_b",
+   "start": 1099776,
+   "sectors": 2048,
+   "type": "8300",
+   "uuid": "a770de12-6a99-5ca6-bda9-409c17d9d96b"
+  },
+  {
+   "name": "metadata",
+   "start": 1101824,
+   "sectors": 131072,
+   "type": "8300",
+   "uuid": "36aceebe-63fb-5a37-822d-86ab42eb6573"
+  },
+  {
+   "name": "super",
+   "start": 1232896,
+   "sectors": 16777216,
+   "type": "8300",
+   "uuid": "8dae795a-2239-5f31-88e0-95ccb1274fa9"
+  },
+  {
+   "name": "userdata",
+   "start": 18010112,
+   "sectors": 7151616,
+   "type": "8300",
+   "uuid": "d6f15c21-87a4-5fd8-bbbb-09da30d3ea9e"
+  }
+ ],
+ "android": {
+  "kernel_release": "6.18.21-android17-5-g44a90255c95f",
+  "vendor_cmdline": "printk.devkmsg=on audit=1 panic=-1 8250.nr_uarts=1 binder.impl=rust cma=0 firmware_class.path=/vendor/etc/ loop.max_part=7 init=/init bootconfig console=ttyS0,115200 loglevel=7 rdinit=/anybook-probe",
+  "vendor_bootconfig": "androidboot.hardware = cutf_cvm\nkernel.vmw_vsock_virtio_transport_common.virtio_transport_max_vsock_pkt_buf_size = 16384\nandroidboot.vendor.apex.com.android.hardware.keymint = com.android.hardware.keymint.rust_nonsecure\nandroidboot.vendor.apex.com.android.hardware.gatekeeper = com.android.hardware.gatekeeper.nonsecure\nandroidboot.vendor.apex.com.android.hardware.secure_element = com.android.hardware.secure_element\nandroidboot.vendor.apex.com.android.hardware.strongbox = none\nandroidboot.vendor.apex.com.android.hardware.graphics.composer = com.android.hardware.graphics.composer.ranchu\nandroidboot.vendor.apex.com.google.emulated.camera.provider.hal = com.google.emulated.camera.provider.hal\nandroidboot.wifi_impl = virt_wifi\nandroidboot.hypervisor.vm.supported = 0\nandroidboot.hypervisor.protected_vm.supported = 0\nandroidboot.fstab_suffix = cf.f2fs.hctr2\nandroidboot.console = ttyS0\nandroidboot.serialconsole = 1\nandroidboot.boot_part_uuid = 5c2e760d-5405-5eb5-abb0-99652eefd85d\n",
+  "vbmeta_digest": "0ddfe86f4409f622f94689f08642f20d31c6cc9ac11a94d467ea4f994075c629",
+  "vbmeta_size": 23552,
+  "vbmeta_order": [
+   "vbmeta",
+   "boot",
+   "init_boot",
+   "vbmeta_system",
+   "vbmeta_system_dlkm",
+   "vbmeta_vendor_dlkm"
+  ],
+  "files": {
+   "boot": "e0be47cbb79cacc0d7f1b44db9b16a89cec5d75e455d462b14b523c8a9e529a8",
+   "init_boot": "d370ed726d97e7fd15e52fd5eb1c051762037b7e24b5535f00372ad5549410a4",
+   "vendor_boot": "e4880e2e53e20c569a4a8dc547ba1d9d7c461c81fc15b77773b71ad13ffd83b4",
+   "vbmeta": "b61f6a2a2740d76b9f68ae579e71abccdaeadcbcb0ef81fb8e64eeec0e8f5e01",
+   "vbmeta_system": "8a17ace47bc256e4e3f7fed7cfff4ecbfffb57fc4175f4a1c36eb57f94c8904e",
+   "vbmeta_system_dlkm": "fd31e5250c5781c372378f0db7f2a658e81aa7466edb7b53250e433a34794f4b",
+   "vbmeta_vendor_dlkm": "4d07a66b6d745120bf2981d4b71e8199c3d63938d50218342337beaa814ee682"
+  }
+ },
+ "verified_sha256": {
+  "EFI": "8a92933ce055d1b924110742e4e218183ab2149796aad09c6bf7453d7b6f5e06",
+  "super": "222d5c9ce07e37d27f26a0627b2ecbc81fbf03c5450654145343d64609d139ea",
+  "boot_a": "e0be47cbb79cacc0d7f1b44db9b16a89cec5d75e455d462b14b523c8a9e529a8",
+  "init_boot_a": "d370ed726d97e7fd15e52fd5eb1c051762037b7e24b5535f00372ad5549410a4",
+  "vendor_boot_a": "e4880e2e53e20c569a4a8dc547ba1d9d7c461c81fc15b77773b71ad13ffd83b4",
+  "vbmeta_a": "b61f6a2a2740d76b9f68ae579e71abccdaeadcbcb0ef81fb8e64eeec0e8f5e01",
+  "vbmeta_system_a": "8a17ace47bc256e4e3f7fed7cfff4ecbfffb57fc4175f4a1c36eb57f94c8904e",
+  "vbmeta_system_dlkm_a": "fd31e5250c5781c372378f0db7f2a658e81aa7466edb7b53250e433a34794f4b",
+  "vbmeta_vendor_dlkm_a": "4d07a66b6d745120bf2981d4b71e8199c3d63938d50218342337beaa814ee682",
+  "boot_b": "e0be47cbb79cacc0d7f1b44db9b16a89cec5d75e455d462b14b523c8a9e529a8",
+  "init_boot_b": "d370ed726d97e7fd15e52fd5eb1c051762037b7e24b5535f00372ad5549410a4",
+  "vendor_boot_b": "e4880e2e53e20c569a4a8dc547ba1d9d7c461c81fc15b77773b71ad13ffd83b4",
+  "vbmeta_b": "b61f6a2a2740d76b9f68ae579e71abccdaeadcbcb0ef81fb8e64eeec0e8f5e01",
+  "vbmeta_system_b": "8a17ace47bc256e4e3f7fed7cfff4ecbfffb57fc4175f4a1c36eb57f94c8904e",
+  "vbmeta_system_dlkm_b": "fd31e5250c5781c372378f0db7f2a658e81aa7466edb7b53250e433a34794f4b",
+  "vbmeta_vendor_dlkm_b": "4d07a66b6d745120bf2981d4b71e8199c3d63938d50218342337beaa814ee682"
+ },
+ "esp_files": [
+  "EFI/BOOT/BOOTX64.EFI"
+ ],
+ "gbl_efi_sha256": "9b54a8066fdc0ca911abcfa51c871658b72ca3e2ffb7927eb33f6edd14df2930"
+}

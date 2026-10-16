@@ -82,4 +82,4 @@ It writes `anybook-hw-<board>-<date>.tar.gz`, with serials, UUIDs and MAC addres
 | dGPU | nouveau / NVK (RTX 50 Laptop, GB20x) | — | Later: research track N1–N6 in `docs/nvidia.md`. Kept off with `dgpu_disable=1` (ANAL-176 default) |
 | Platform | asus-wmi, asus-armoury, hid-asus | — | asus-wmi/hid-asus built (ANAL-171). 6.18 asus-wmi has `dgpu_disable` and `gpu_mux_mode`; asus-armoury (6.19) not needed for bring-up |
 | IOMMU | amd_iommu | — | `AMD_IOMMU=y` in AnyBook GKI; starts with interrupt remapping on QEMU's emulated AMD-Vi (ANAL-171) |
-| Boot | UEFI, GPT; EFI loader with bootconfig | AVB orange | QEMU direct-kernel boot works |
+| Boot | UEFI, GPT; EFI loader with bootconfig | AVB orange | systemd-boot, GRUB and GBL boot our kernel and userspace from a USB GPT image in QEMU/OVMF (ANAL-189, `docs/installer.md`); untested on the G14 |

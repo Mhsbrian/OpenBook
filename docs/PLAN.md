@@ -68,6 +68,7 @@ Status as of 2026-10-15. Facts are labelled **CONFIRMED** (we checked a primary 
    - The image uses a hybrid GPT layout: ChromeOS KERN/ROOT partitions, Android A/B, virtual A/B `super`, and AVB.
    - We need an EFI loader that hands the kernel a bootconfig, `androidboot.*` parameters and the vbmeta digest, using the orange (unlocked) state on the user's own machine. Candidates: GRUB as in GBRUNCH, or Google's GBL EFI app.
    - QEMU direct-kernel boot already gets through first-stage mount.
+   - **Prototyped (ANAL-189, 2026-10-16):** GRUB, systemd-boot and GBL all boot our kernel and AOSP 17 userspace from a GPT image attached as a USB stick in QEMU/OVMF, in the orange state with `boot_part_uuid`. A UKI cannot carry Android bootconfig. GBL fails when a second disk has the same partition names. Recommendation: systemd-boot now, GBL later (`docs/installer.md`).
 6. **ARM translation (Track A).** Neither libhoudini nor libndk_translation is redistributable. Berberis upstream only translates riscv64. Digitalis is Apache-2.0 and Berberis-based, but young and unmeasured. Add it to the compat matrix early.
 7. **Linux terminal and AVF.** The Googlebook terminal runs in a pKVM-protected VM, which doesn't exist on AMD. The fallback is non-protected AVF VMs over plain KVM.
 8. **NVIDIA (long term).** NVK/nouveau in Mesa for Android with GSP firmware. This comes after AMD. Research is done (ANAL-187, `docs/nvidia.md`):
@@ -94,7 +95,7 @@ Each milestone is small, has a verification artifact, and is checked into `evide
 | M5 | Desktop UI, input and power | A+B | Touchpad and keyboard, s2idle suspend/resume cycles, battery, backlight, audio (ACP/SOF) | |
 | M6 | Apps and ARM translation | A+B | ARM-only APK compatibility matrix (top 50 plus a stress list) under houdini, ndk_translation and Digitalis | |
 | M7 | Performance and parity | A+B | Benchmarks against an Intel Googlebook baseline (needs device access); Chrome; Linux terminal fallback | |
-| M8 | USB installer | A | A bootable AnyBook USB image that runs live and installs through a graphical wizard, only to a disk the user confirms by name (epic ANAL-188, owner goal 2026-10-16) | Parked until M3–M5 work on the target |
+| M8 | USB installer | A | A bootable AnyBook USB image that runs live and installs through a graphical wizard, only to a disk the user confirms by name (epic ANAL-188, owner goal 2026-10-16) | Design and QEMU boot-chain prototype delivered (ANAL-189, `docs/installer.md`); owner sign-off needed before ANAL-190 |
 
 ## 4a. Device-in-the-loop: Multica on the G14 (owner directive, 2026-10-16)
 

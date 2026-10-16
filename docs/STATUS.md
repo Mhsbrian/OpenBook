@@ -2,7 +2,7 @@
 
 ## Now (2026-10-16, night)
 
-The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL redirects. PRs #1–#17 are merged (#16: ANAL-175 driver map and the EDID capture fix; #17: ANAL-187 NVIDIA research). Every PR was checked before merging (script syntax, Python compile, no binaries or secrets, sizes, evidence backs the claim), and doc conflicts were resolved by hand.
+The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL redirects. PRs #1–#22 are merged. Every PR was checked before merging (script syntax, Python compile, no binaries or secrets, sizes, evidence backs the claim), and doc conflicts were resolved by hand.
 
 **Decided by the owner**
 - **Keep the dGPU disabled for now** (2026-10-16, on ANAL-187):
@@ -22,7 +22,7 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL redire
 **Lanes on the dev host** (the 7950X has 61 GB RAM; an AOSP build peaks at about 41 GiB):
 - **AOSP lane**, one builder at a time in `~/anybook/aosp/src`: ▶ ANAL-174, then ANAL-199, then ANAL-176 and ANAL-200.
 - **Kernel lane:** ▶ ANAL-198. It caps bazel while an AOSP build is running.
-- **Light lanes:** ▶ ANAL-189 (design plus a QEMU boot-chain prototype; it only reads the AOSP tree) and ✓ ANAL-187 (research delivered; its dGPU-off default feeds ANAL-199 and ANAL-176).
+- **Light lanes:** ANAL-189 delivered (design plus a QEMU boot-chain prototype, awaiting sign-off) and ✓ ANAL-187 (research delivered; its dGPU-off default feeds ANAL-199 and ANAL-176).
 - **Hand-offs:** condition wakeups on ANAL-159 promote each next step as soon as its dependencies reach review with a merged PR.
 
 **Tracking** (Multica, children of ANAL-159). ✓ = delivered and PR merged, ▶ = running, ⏳ = starts automatically when its dependency delivers, ⏸ = parked.
@@ -34,7 +34,7 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL redire
 | ANAL-162 AMD graphics userspace | ✓ ANAL-173 Mesa radeonsi/RADV for Android (PR #3) | ▶ ANAL-174 AMD graphics in the tree (Mesa, minigbm, HWC, ANGLE) | ⏸ ANAL-177 dEQP/CTS on the G14 | — |
 | ANAL-164 ARM compat and native bridge | ✓ ANAL-180 harness and baseline (PR #6) | ✓ ANAL-181 Digitalis: GO with conditions (PR #11) | ⏳ ANAL-200 Digitalis on Android 17 as our bridge (after ANAL-199) | — |
 | ANAL-163 Bare metal on the G14 (GA403WR) | ✓ ANAL-175 inventory and full driver map (PRs #8, #16; the owner's root run is processed too: dGPU `10de:2f58`, panel ATNA40CU05-0, speaker tuning found) | ⏳ ANAL-199 G14 product, booting in QEMU/OVMF (after ANAL-174 and ANAL-198) | ⏳ ANAL-176 USB boot on the G14 (after ANAL-199) | ⏸ ANAL-178 input and power, ANAL-179 audio and Wi-Fi |
-| ANAL-188 USB installer (M8) | ▶ ANAL-189 design and boot-chain prototype | ⏸ ANAL-190 live USB image (needs sign-off) | ⏸ ANAL-191 wizard | ⏸ ANAL-192 end-to-end tests |
+| ANAL-188 USB installer (M8) | ✓ ANAL-189 design and boot-chain prototype (PR #22): systemd-boot recommended, GRUB fallback; **awaiting owner sign-off** | ⏸ ANAL-190 live USB image (needs sign-off) | ⏸ ANAL-191 wizard | ⏸ ANAL-192 end-to-end tests |
 | **ANAL-193 Device-in-the-loop on the G14 (§4a)** | ⏸ ANAL-194 runtime and agent on G14 Linux (owner installs the daemon) | ⏸ ANAL-195 Zen 5 validation in KVM | ⏸ ANAL-196 dual-boot test cycle | ⏸ ANAL-197 runtime on installed OpenBook |
 | ANAL-186 NVIDIA dGPU | ✓ ANAL-187 research and dGPU-off default (`docs/nvidia.md`: off for M3–M8, N1–N6 after M4) | — | — | — |
 | ANAL-165 Track B: Googlebook OS on AMD | ⏸ ANAL-182, ANAL-183 | ⏸ ANAL-184 | ⏸ ANAL-185 | — |
@@ -269,3 +269,33 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL redire
 - The owner decides on `dgpu_disable=1`.
 - ANAL-176 runs the same check in the first OpenBook boot.
 
+### 2026-10-16: M8 design, USB image, boot chain, install flow and wizard (ANAL-189)
+
+**Done**
+- `docs/installer.md`: the recommendation for owner sign-off.
+  - A raw GPT `.img`, with no ISO.
+  - systemd-boot type #1 entries, with GRUB as the tested fallback and GBL later.
+  - Whole-disk and alongside layouts.
+  - An Android (Compose) wizard on a scriptable install engine.
+  - Safety rules S1–S13 and a licensing checklist.
+  - Wireframes in `docs/installer-wireframes.html`.
+- `scripts/installer/` with `tools/Dockerfile.installer`:
+  - Builds GPT "USB stick" images from our AOSP 17 images and the AnyBook GKI.
+  - Boots them in QEMU/OVMF as USB storage, next to a decoy NVMe disk that has the same partition names.
+  - A probe `rdinit` records the cmdline and bootconfig the loader passed, then continues into Android.
+
+**Evidence:** `evidence/2026-10-16-installer/`
+- GRUB 2.16 and systemd-boot 262 reach the Android console from USB with `boot_part_uuid`.
+  - by-name links point at the stick, not the NVMe disk.
+  - `/metadata` and `/data` are formatted on first boot and kept on the second.
+  - A wrong vbmeta digest is detected and tolerated in orange.
+  - systemd-boot boot counting works.
+- A UKI loses Android's bootconfig: systemd-stub appends its own cpio archives after `.initrd`.
+- GBL dev (`gbl-mainline:6296919847ee`):
+  - It boots to the console only when `boot_part_uuid` is baked into `vendor_boot`.
+  - It always uses slot `a`.
+  - It panics with `NotUnique` when a second disk has the same partition names (upstream CLs 4051936 and 4286120 are open).
+
+**Blocked / needs a decision:** owner sign-off before ANAL-190. Also adding `CONFIG_EFIVAR_FS` to our GKI, AVB release-key custody, and naming.
+
+**Next:** ANAL-190, a live USB image from ANAL-174's product with systemd-boot.

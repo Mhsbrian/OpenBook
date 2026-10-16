@@ -20,6 +20,7 @@ Disk use for M0 is about 60 GB: 27 GB of downloads, 27 GB unpacked, 6 GB SDK. A 
 ```bash
 docker build -t anybook-inspect -f tools/Dockerfile.inspect tools/   # android-tools, erofs-utils, binutils, elfx86exts
 docker build -t anybook-qemu    -f tools/Dockerfile.qemu    tools/   # qemu 11.x + OVMF
+docker build -t anybook-installer -f tools/Dockerfile.installer tools/  # qemu + OVMF, GRUB, systemd-boot/ukify, mtools, gptfdisk
 ```
 
 ## M0-A: AOSP Desktop emulator baseline
@@ -162,3 +163,14 @@ CF_GPU=amd CF_GPU_MODE=gfxstream_guest_angle scripts/cf-boot.sh   # boots on the
 - `scripts/desktop-ref-emulator.sh` runs the same capture on Google's desktop emulator image.
 - `scripts/desktop-compare.py` diffs the two captures, and `scripts/cf-gfx-bench.sh` compares GPU modes.
 - See `docs/aosp-desktop.md`.
+
+## M8: installer boot-chain prototype (ANAL-189)
+
+```bash
+scripts/installer/snapshot-inputs.sh cf-pc-20261016        # reflink snapshot of PRODUCT_OUT + kernel dist (read-only use)
+scripts/installer/proto-matrix.sh cf-pc-20261016 matrix-20261016   # GRUB, systemd-boot, UKI, GBL; USB stick + decoy NVMe
+```
+
+- Builds GPT "USB stick" images from image files (no root, no real disk) and boots them in QEMU/KVM + OVMF.
+- The GBL variants need `gbl_x86_64_dev.efi` from ci.android.com (see `docs/installer.md` §9).
+- Logs are in `~/anybook/logs/installer/<run>/`. The design and results are in `docs/installer.md`.
