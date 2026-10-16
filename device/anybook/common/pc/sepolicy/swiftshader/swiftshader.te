@@ -1,0 +1,8 @@
+# SwiftShader compiles shaders to x86 code at run time, so the processes that render through it in the software
+# fallback need W+X memory, as on Cuttlefish (device/google/cuttlefish/shared/swiftshader/sepolicy). Apps already
+# have execmem for ART's JIT. This weakens these four domains on every boot, including on the G14 where amdgpu and
+# RADV need none of it; BoardConfig.mk's OPENBOOK_SOFTWARE_GPU_FALLBACK := false drops it with the renderer.
+allow bootanim self:process execmem;
+allow surfaceflinger self:process execmem;
+allow system_server self:process execmem;
+allow zygote self:process execmem;

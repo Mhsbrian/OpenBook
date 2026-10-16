@@ -1,0 +1,1 @@
+../../../../../scripts/openbook-pc-setup-test.sh
