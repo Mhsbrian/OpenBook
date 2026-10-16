@@ -24,7 +24,7 @@ if [ "${1:-}" = --reselect ]; then
   python3 -I "$REPO/scripts/compat/corpus/select-fdroid.py" "$FD/index-v2.json" "$TSV"
 fi
 
-grep -v '^#' "$TSV" | tail -n +2 | while IFS=$'\t' read -r pkg name role abi vn vc apk sha size lic src why; do
+grep -v '^#' "$TSV" | tail -n +2 | while IFS=$'\t' read -r _ _ role _ _ _ apk sha size _; do
   f=$D/$apk
   if [ -f "$f" ] && echo "$sha  $f" | sha256sum -c --quiet - 2>/dev/null; then continue; fi
   echo "fetching $apk ($role, $((size / 1000000)) MB)"

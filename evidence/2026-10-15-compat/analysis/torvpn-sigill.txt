@@ -1,0 +1,23 @@
+# Tor VPN 1.9.1Beta (org.torproject.vpn_242.apk, arm64-v8a): SIGILL under libndk_translation
+# Tombstone (run1/logs/org.torproject.vpn@arm64-v8a.logcat.gz): host frame berberis::UndefinedInsnThunk,
+# guest pc 0x474050 in base.apk mapping at offset 0x16bb000 = lib/arm64-v8a/libgojni.so file offset 0xf33050, vaddr 0xf37050.
+# Reproduce: unzip the APK's lib/arm64-v8a/libgojni.so, then
+#   llvm-objdump -d --start-address=0xf37040 --stop-address=0xf37064 libgojni.so
+  f37040: aa1e03e3     	mov	x3, x30
+  f37044: 97f057bb     	bl	0xb4cf30 <.text+0x898c0>
+  f37048: 17ffffea     	b	0xf36ff0 <crosscall2+0x3d0110>
+  f3704c: 00000000     	udf	#0x0
+  f37050: d5380600     	mrs	x0, ID_AA64ISAR0_EL1
+  f37054: f90007e0     	str	x0, [sp, #0x8]
+  f37058: d65f03c0     	ret
+  f3705c: 00000000     	udf	#0x0
+  f37060: d5380620     	mrs	x0, ID_AA64ISAR1_EL1
+
+F libc    : Fatal signal 4 (SIGILL), code -1 (SI_QUEUE) in tid 6434 (.torproject.vpn), pid 6412 (.torproject.vpn)
+F DEBUG   : Guest architecture: 'arm64'
+F DEBUG   : pid: 6412, ppid: 465, tid: 6434, name: .torproject.vpn  >>> org.torproject.vpn <<<
+F DEBUG   : signal 4 (SIGILL), code -1 (SI_QUEUE), fault addr --------
+F DEBUG   :       #00 pc 00000000000cb185  /apex/com.android.runtime/lib64/bionic/libc.so (raise+165) (BuildId: aa76614279c09bc4bbbbbec6ba4a811e)
+F DEBUG   :       #01 pc 000000000079694d  /system/lib64/libndk_translation.so (berberis::(anonymous namespace)::UndefinedInsnThunk(unsigned long)+13) (BuildId: c2e4f30b0f7a506616544be0f122
+F DEBUG   :       #02 pc 00000000000d4cef  /memfd:exec (deleted)
+F DEBUG   :       #00 pc 0000000000474050  /data/app/~~hWYSj8YnOw8EQ6hIv1EzCg==/org.torproject.vpn-j1CXxBiWlPJ1k0NKNJQ85w==/base.apk (offset 0x16bb000)
