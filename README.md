@@ -102,11 +102,11 @@
 | ✅ | **M0** Research, baselines, image analysis | Done. See [`docs/RESEARCH.md`](docs/RESEARCH.md) |
 | ✅ | **M1** Our Android 17 build boots in a VM | `boot_completed` in 17–29 s ([evidence](evidence/2026-10-16-aosp/)) |
 | ✅ | **M2** Desktop windowing and GPU graphics in a VM | Matches Google's desktop image; RADV on an AMD iGPU |
-| 🚧 | **M3** OpenBook kernel on real hardware | **First boot on the G14:** 235 modules loaded, 0 failed |
+| 🚧 | **M3** OpenBook kernel on real hardware | **First boots on the G14:** 235 modules, 0 failed. Our Android 17 live image reaches SurfaceFlinger on the panel |
 | 🚧 | **M4** AMD graphics stack | Built and passing on a Radeon 610M; the G14 run is next |
 | 🚧 | **M6** ARM app compatibility | 13 of 16 ARM-only apps run; open bridge being ported to Android 17 |
-| 🚧 | **M8** USB installer | Design and boot-chain prototype done ([`docs/installer.md`](docs/installer.md)) |
-| ⏳ | **M5** Desktop, input and power on the laptop | Next, with the G14 product build |
+| 🚧 | **M8** USB installer | Design done; the live USB image builds and boots on the G14 ([`docs/installer.md`](docs/installer.md)) |
+| 🚧 | **M5** Desktop, input and power on the laptop | Touchpad pointer and keyboard work in Android on the G14; desktop in progress |
 | ⏳ | **M7** Performance and parity | Later |
 
 > [!TIP]
@@ -128,14 +128,14 @@ The live tracker, decisions and next steps are in [`docs/STATUS.md`](docs/STATUS
 
 | Component | On the G14 today | Notes |
 |---|---|---|
-| Radeon 890M (gfx1150) | ✅ Driver up: SMU, DCN 3.5, eDP with PSR | The Android display stack arrives with the G14 product build |
+| Radeon 890M (gfx1150) | ✅ amdgpu drives the 2880×1800 panel; SurfaceFlinger runs on ANGLE/RADV | 🚧 The boot animation crashes in RADV's Android swapchain; fix in progress |
 | Wi-Fi 7 / Bluetooth (MT7925) | ✅ `wlan0` and `hci0` up | `regulatory.db` added in check v2 |
 | Touchpad, keyboard, lid | ✅ Detected | ELAN I2C HID over pinctrl-amd |
 | XDNA 2 NPU | ✅ `accel0` | Userspace later |
 | Battery, USB-C, USB4 | ✅ Detected | Battery health read: 88.7 % |
 | CPU power and sleep | ✅ amd-pstate-epp active; suspend and resume work | 🚧 Deepest idle (S0ix) not reached while the NVIDIA GPU is awake. Fix under test (check v3) |
 | Audio (ALC285 + CS35L56) | 🚧 Codec found | Speaker amps not yet exercised |
-| NVIDIA RTX 50 dGPU | ⏸ Kept off by design | Research track in [`docs/nvidia.md`](docs/nvidia.md) |
+| NVIDIA RTX 50 dGPU | ⏸ Off by design (D3cold with no driver) | Research track in [`docs/nvidia.md`](docs/nvidia.md) |
 
 The full driver and firmware map is in [`docs/HARDWARE.md`](docs/HARDWARE.md). **Other laptops:** run [`scripts/hw-inventory.sh`](scripts/hw-inventory.sh). It is read-only and redacts serial numbers, and its output is how we plan support for a new machine.
 
