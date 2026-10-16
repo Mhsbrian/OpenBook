@@ -22,6 +22,12 @@ if [ -d /repo/device/anybook ]; then
   rsync -a --delete /repo/device/anybook/ "$T/device/anybook/"
   stamp "synced device/anybook from /repo (AnyBook ${ANYBOOK_REV:-unknown})"
 fi
+# AnyBook's patches to AOSP projects (aosp/patches/<project>), on top of each project's pin.
+if [ -d /repo/aosp/patches ]; then
+  AOSP_SRC=$T /repo/scripts/aosp-patches.sh
+fi
+# The Mesa prebuilts graphics-amd.mk needs are staged on the host by scripts/graphics-amd-stage-mesa.sh.
+[ -f "$T/vendor/anybook/mesa/PROVENANCE.txt" ] && stamp "vendor/anybook/mesa: $(sed -n 's/^tree: //p' "$T/vendor/anybook/mesa/PROVENANCE.txt")"
 ccache -p | grep -E 'max_size|cache_dir|compiler_check'
 ccache -z >/dev/null; ccache -s -v > "$L/ccache-$TS-before.txt"
 # Memory sampler: container cgroup (this build only), plus host-wide MemAvailable for context.
