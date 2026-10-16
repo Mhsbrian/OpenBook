@@ -465,8 +465,11 @@ menuentry "OpenBook (slot $slot)" {{
         os.makedirs(f"{e}/loader/entries")
         os.makedirs(f"{e}/openbook/check")
         os.makedirs(f"{e}/openbook/logs")
+        # The check entries run their own copy of the probe (rdinit=/openbook-check/probe), so a stick can be
+        # updated by replacing openbook/check/ and the check entries only (update-hwcheck-stick.sh).
         cpio = newc(tree_entries(args.check_modules, f"openbook-check/modules/{params['kernel_release']}") +
-                    tree_entries(args.check_firmware, "lib/firmware"))
+                    tree_entries(args.check_firmware, "lib/firmware") +
+                    [("openbook-check/probe", 0o100755, open(args.check_probe, "rb").read())])
         lz = subprocess.run(["lz4", "-l", "-9", "-c"], input=cpio, capture_output=True, check=True).stdout
         open(f"{w}/hwcheck.img", "wb").write(lz)
         copy_padded(f"{w}/hwcheck.img", f"{e}/openbook/check/hwcheck.img")
@@ -474,18 +477,21 @@ menuentry "OpenBook (slot $slot)" {{
             "timeout 8\ndefault openbook-1-hwcheck.conf\nconsole-mode keep\neditor no\n")
         common = (f"linux /openbook/a/kernel\ninitrd /openbook/a/vendor_ramdisk.img\n"
                   f"initrd /openbook/a/ramdisk.img\n")
+        check = (f"{common}initrd /openbook/check/hwcheck.img\ninitrd /openbook/a/bootconfig.img\n"
+                 f"options {cmd} rdinit=/openbook-check/probe openbook.probe=report")
         open(f"{e}/loader/entries/openbook-1-hwcheck.conf", "w").write(
-            f"title OpenBook hardware check\nsort-key openbook-1\n{common}"
-            f"initrd /openbook/check/hwcheck.img\ninitrd /openbook/a/bootconfig.img\n"
-            f"options {cmd} openbook.probe=report\n")
+            f"title OpenBook hardware check\nsort-key openbook-1\n{check}\n")
+        open(f"{e}/loader/entries/openbook-1s-sleep.conf", "w").write(
+            f"title OpenBook hardware check + sleep test\nsort-key openbook-1s\n{check} openbook.probe.sleep=1\n")
         open(f"{e}/loader/entries/openbook-2-vm.conf", "w").write(
             f"title OpenBook preview (virtual machines only)\nsort-key openbook-2\n{common}"
             f"initrd /openbook/a/bootconfig.img\noptions {cmd}\n")
         open(f"{e}/openbook/README.txt", "w").write(
             "OpenBook test stick (ANAL-189). Boot it with Secure Boot off.\n"
             "- 'OpenBook hardware check' (default): records what the laptop's hardware looks like to the OpenBook\n"
-            "  kernel, loads its drivers, writes openbook/logs/hwcheck-NNN.txt (+ -dmesg.txt) on THIS stick and\n"
-            "  powers off. It never writes to the laptop's own disks.\n"
+            "  kernel, loads its drivers, writes openbook/logs/hwcheck-NNN.txt, .json and -dmesg.txt on THIS stick\n"
+            "  and powers off. It never writes to the laptop's own disks.\n"
+            "- 'OpenBook hardware check + sleep test': the same, plus one sleep (s2idle) of 20 s woken by the clock.\n"
             "- 'OpenBook preview (virtual machines only)': Android 17 with the console on the serial port.\n"
             "  On a laptop it shows nothing (no graphics in this preview).\n")
     elif loader == "sdboot":
@@ -541,6 +547,8 @@ def main():
     ap.add_argument("--check-modules", default=f"{A}/kernel/cf/modset-anybook/root/lib/modules/"
                     "6.18.21-android17-5-g44a90255c95f",
                     help="module tree (modules.dep, modules.load) for the hardware check; ANAL-172's module set")
+    ap.add_argument("--check-probe", default=f"{A}/installer/build/openbook-probe",
+                    help="probe binary run by the hardware-check entries")
     ap.add_argument("--check-firmware", default=f"{A}/kernel/firmware/anybook-amd",
                     help="linux-firmware subset (ANAL-171) for the hardware check, uncompressed")
     ap.add_argument("--vendor-boot-part-uuid", action="store_true",
