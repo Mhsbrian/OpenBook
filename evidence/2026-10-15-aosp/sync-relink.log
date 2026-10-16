@@ -1,0 +1,6 @@
+Filesystem        Size  Used Avail Use% Mounted on
+/dev/mapper/root  3.7T  2.3T  1.4T  63% /aosp
+relink: 976 alternates made relative
+=== 2026-10-16T01:07:30Z aosp-sync relink finished
+Filesystem        Size  Used Avail Use% Mounted on
+/dev/mapper/root  3.7T  2.3T  1.4T  63% /aosp

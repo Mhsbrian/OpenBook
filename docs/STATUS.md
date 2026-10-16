@@ -40,3 +40,22 @@
 | ANAL-163 Bare-metal bring-up (parked: needs a target device) | ANAL-175 inventory | ANAL-176 USB boot → ANAL-178 input and power, ANAL-179 audio and Wi-Fi |
 | ANAL-165 Track B: Googlebook OS on AMD (parked: licensing decision) | ANAL-182 VM boot to `boot_completed`, ANAL-183 Zen 4 ISA spike | ANAL-184 kernel swap → ANAL-185 graphics overlay |
 | ANAL-166 Performance and parity (parked) | — | — |
+
+## 2026-10-16: M1b prep, AOSP 17 build environment (ANAL-167, Track A)
+
+**Done**
+- `tools/Dockerfile.aosp`: Ubuntu 24.04, running as the host uid/gid.
+- Synced `android-latest-release` (manifest `ad156f32`, `android17-release`) to `~/anybook/aosp`:
+  - A full-history mirror of the 975 source projects: 102 GB, 32 min.
+  - A build tree with shallow prebuilts: 128 GB, 15 min.
+  - A full mirror of this manifest would be 748 GB, 87% of it prebuilt history (measured).
+- ccache is set to 100 GB through `CC_WRAPPER`.
+- `lunch aosp_cf_x86_64_pc-trunk_staging-userdebug` and `m nothing` succeed with the Soong nsjail sandbox enabled: 1:20 wall clock, 39 GiB peak RSS.
+
+**Evidence:** `evidence/2026-10-15-aosp/` (sync logs, pinned manifest, `repo info`, lunch, `m nothing` logs and timings, sizes).
+
+**Findings**
+- `trunk_staging` on `android17-release` builds as `PLATFORM_VERSION=Baklava`. `cp2a` gives `PLATFORM_VERSION=17` (`REL`), so M1b should build `aosp_cf_x86_64_pc-cp2a-userdebug`.
+- Upstream `external/curl` has its `android17-security-release` branch pointing at a tag object, which breaks all-heads mirrors.
+
+**Next:** ANAL-168 full build of `aosp_cf_x86_64_pc-cp2a-userdebug`, measuring ccache hits, then boot it in Cuttlefish.
