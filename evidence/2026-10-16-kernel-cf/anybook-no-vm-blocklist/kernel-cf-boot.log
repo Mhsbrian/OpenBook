@@ -1,0 +1,4 @@
+=== 2026-10-16T15:30:06Z module set (anybook)
+=== 2026-10-16T15:30:34Z cf-boot.sh all (anybook-cf-kernel, adb 127.0.0.1:16572, WebRTC 127.0.0.1:11472)
+=== 2026-10-16T15:38:13Z cf-boot.sh exit 0
+=== 2026-10-16T15:38:27Z done: exit 0, logs in /home/hive/anybook/logs/kernel/cf-anybook-20261016T153006Z

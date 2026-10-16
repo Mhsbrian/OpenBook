@@ -140,3 +140,21 @@
 - The build advertises `arm64-v8a` in its abilist but ships no native bridge. An arm64-only APK installs, then fails `dlopen` with `EM_AARCH64`.
 
 **Next:** ANAL-169, graphics and desktop windowing on this image. In ANAL-181, a translator for the advertised `arm64-v8a`.
+
+### 2026-10-16: Kernel, AnyBook kernel boots our AOSP 17 userspace in Cuttlefish (ANAL-172)
+
+**Done**
+- `scripts/kernel-cf-boot.sh` boots the ANAL-171 kernel and its own signed `system_dlkm` under ANAL-168's `aosp_cf_x86_64_pc` images, through cvd's `--kernel_path`/`--initramfs_path`. Android is not rebuilt.
+- `scripts/kernel-cf-modset.py` merges the GKI, the 138 AnyBook modules and the Cuttlefish board modules (built from `common-modules/virtual-device` on our GKI), and checks every cross-module CRC.
+
+**Evidence:** `evidence/2026-10-16-kernel-cf/`
+- `sys.boot_completed=1` 30–33 s after `cvd create` (twice), `uname -r` = `6.18.21-android17-5-g44a90255c95f`.
+- 169/169 expected modules are live, including 137 of the 138 AnyBook modules, amdgpu among them. There are 0 symbol, CRC or signature errors.
+- virtio-gpu drives a 1920×1080 display. dmesg and logcat are included.
+
+**Not loaded**
+- `asus-nb-wmi`: -ENODEV, because the VM has no ASUS WMI. It is blocklisted in the VM image.
+- 9 Cuttlefish virtual Wi-Fi and mt76 USB modules: CRC-incompatible with AnyBook's cfg80211/mac80211/mt76, because Cuttlefish sets `NL80211_TESTMODE`. The VM therefore has no virtual Wi-Fi.
+- amd-pstate does not register: crosvm's ACPI has no `_CPC`.
+
+**Next:** VM Wi-Fi modules built against the AnyBook config; real probing on the G14 (bare-metal epic).

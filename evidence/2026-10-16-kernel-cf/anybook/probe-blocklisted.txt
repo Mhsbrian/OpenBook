@@ -1,0 +1,13 @@
+$ modprobe -d /vendor/lib/modules asus-nb-wmi.ko
+Loading module /vendor/lib/modules/extra/anybook/hwmon.ko with args ''
+Loading module /vendor/lib/modules/extra/anybook/battery.ko with args ''
+Loading module /vendor/lib/modules/extra/anybook/wmi.ko with args ''
+Loading module /vendor/lib/modules/extra/anybook/video.ko with args ''
+Loading module /vendor/lib/modules/extra/anybook/platform_profile.ko with args ''
+Loading module /vendor/lib/modules/extra/anybook/sparse-keymap.ko with args ''
+Loading module /vendor/lib/modules/extra/anybook/asus-wmi.ko with args ''
+Loading module /vendor/lib/modules/extra/anybook/asus-nb-wmi.ko with args ''
+modprobe: Failed to insmod '/vendor/lib/modules/extra/anybook/asus-nb-wmi.ko' with args '': No such device
+modprobe: LoadWithAliases was unable to load asus-nb-wmi.ko, tried: asus_nb_wmi
+modprobe: Failed to load module asus-nb-wmi.ko: No such device
+exit=1

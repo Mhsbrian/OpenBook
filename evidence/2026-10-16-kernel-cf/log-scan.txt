@@ -1,0 +1,10 @@
+# Loader and kernel error scan, full guest console (kernel.log), per run
+
+run                       | Unknown symbol | disagrees about version | module verification failed | Loading of unsigned module | Failed to insmod | Oops | BUG: | Call Trace | WARNING: CPU 
+anybook                   | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 
+anybook-repeat            | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 
+board                     | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 
+anybook-no-vm-blocklist   | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 
+
+Failed to insmod lines:
+  anybook-no-vm-blocklist: [    6.373089][  T391] dlkm_loader: Failed to insmod '/vendor/lib/modules/extra/anybook/asus-nb-wmi.ko' with args '': No such device
