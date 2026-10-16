@@ -2,7 +2,13 @@
 
 ## Now (2026-10-16, night)
 
-The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL redirects. PRs #1–#17 are merged (#16: ANAL-175 driver map and the EDID capture fix; #17: ANAL-187 NVIDIA research). Every PR was checked before merging (script syntax, Python compile, no binaries or secrets, sizes, evidence backs the claim), and doc conflicts were resolved by hand.
+The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL redirects. PRs #1–#22 are merged. Every PR was checked before merging (script syntax, Python compile, no binaries or secrets, sizes, evidence backs the claim), and doc conflicts were resolved by hand.
+
+**Decided by the owner**
+- **Keep the dGPU disabled for now** (2026-10-16, on ANAL-187):
+  - `dgpu_disable=1` is the bring-up default. ANAL-176 runs `scripts/dgpu-power-check.sh` read-only first, then sets the flag on the G14 from Linux before the first OpenBook boot. Commands and rollback are in `docs/nvidia.md` §1.
+  - HDMI stays dark while the flag is set.
+  - NVIDIA work beyond the research is parked; the N1–N6 track waits until after M4.
 
 **Decisions needed from the owner** (no running work is blocked by these)
 - **Repo license** for the scripts and docs. Apache-2.0 is suggested; the `device/anybook` files already carry SPDX Apache-2.0 headers.
@@ -11,7 +17,6 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL redire
 - **amd-pmf** (ANAL-171): it needs `ccp.ko` with SEV, which calls `kernel_read`/`kernel_write` from GKI's deny list. Options are in `docs/kernel.md`.
 - **Digitalis upstream report** (ANAL-181/200): OK to report the Fennec, `MRS` and `FRECPE` findings to DigitalisX64? That is an outward-facing action.
 - **Device-in-the-loop** (ANAL-194): install the Multica daemon on the G14's current Linux when ready (`docs/PLAN.md` §4a).
-- **`dgpu_disable=1` on the G14** (ANAL-176, from ANAL-187): OK to set this persistent ASUS firmware flag from Linux before the first OpenBook boot? While it is set, the HDMI port goes dark. Commands and rollback are in `docs/nvidia.md` §1.
 - **Installer sign-off** (ANAL-189): approve the recommendation in `docs/installer.md` once it lands. ANAL-190 waits for it.
 
 **Lanes on the dev host** (the 7950X has 61 GB RAM; an AOSP build peaks at about 41 GiB):
@@ -28,8 +33,8 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL redire
 | ANAL-161 AMD GKI kernel (android17-6.18) | ✓ ANAL-170 stock GKI reproduced (PR #4) | ✓ ANAL-171 AMD config, 138 vendor modules (PR #8) | ✓ ANAL-172 our kernel boots our userspace (PR #12) | ▶ ANAL-198 bare-metal packaging: first-stage NVMe and USB boot, vendor_boot, dlkm images, firmware |
 | ANAL-162 AMD graphics userspace | ✓ ANAL-173 Mesa radeonsi/RADV for Android (PR #3) | ▶ ANAL-174 AMD graphics in the tree (Mesa, minigbm, HWC, ANGLE) | ⏸ ANAL-177 dEQP/CTS on the G14 | — |
 | ANAL-164 ARM compat and native bridge | ✓ ANAL-180 harness and baseline (PR #6) | ✓ ANAL-181 Digitalis: GO with conditions (PR #11) | ⏳ ANAL-200 Digitalis on Android 17 as our bridge (after ANAL-199) | — |
-| ANAL-163 Bare metal on the G14 (GA403WR) | ✓ ANAL-175 inventory and full driver map (PRs #8, #16; the owner's `--with-root` run is still pending) | ⏳ ANAL-199 G14 product, booting in QEMU/OVMF (after ANAL-174 and ANAL-198) | ⏳ ANAL-176 USB boot on the G14 (after ANAL-199) | ⏸ ANAL-178 input and power, ANAL-179 audio and Wi-Fi |
-| ANAL-188 USB installer (M8) | ANAL-189 design and boot-chain prototype (delivered; awaiting owner sign-off) | ⏸ ANAL-190 live USB image (needs sign-off) | ⏸ ANAL-191 wizard | ⏸ ANAL-192 end-to-end tests |
+| ANAL-163 Bare metal on the G14 (GA403WR) | ✓ ANAL-175 inventory and full driver map (PRs #8, #16; the owner's root run is processed too: dGPU `10de:2f58`, panel ATNA40CU05-0, speaker tuning found) | ⏳ ANAL-199 G14 product, booting in QEMU/OVMF (after ANAL-174 and ANAL-198) | ⏳ ANAL-176 USB boot on the G14 (after ANAL-199) | ⏸ ANAL-178 input and power, ANAL-179 audio and Wi-Fi |
+| ANAL-188 USB installer (M8) | ✓ ANAL-189 design and boot-chain prototype (PR #22): systemd-boot recommended, GRUB fallback; **awaiting owner sign-off** | ⏸ ANAL-190 live USB image (needs sign-off) | ⏸ ANAL-191 wizard | ⏸ ANAL-192 end-to-end tests |
 | **ANAL-193 Device-in-the-loop on the G14 (§4a)** | ⏸ ANAL-194 runtime and agent on G14 Linux (owner installs the daemon) | ⏸ ANAL-195 Zen 5 validation in KVM | ⏸ ANAL-196 dual-boot test cycle | ⏸ ANAL-197 runtime on installed OpenBook |
 | ANAL-186 NVIDIA dGPU | ✓ ANAL-187 research and dGPU-off default (`docs/nvidia.md`: off for M3–M8, N1–N6 after M4) | — | — | — |
 | ANAL-165 Track B: Googlebook OS on AMD | ⏸ ANAL-182, ANAL-183 | ⏸ ANAL-184 | ⏸ ANAL-185 | — |

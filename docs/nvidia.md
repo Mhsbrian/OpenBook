@@ -84,7 +84,7 @@ What this means for OpenBook (HYPOTHESIS):
    - the supergfxd mode;
    - whether the slot's ACPI power resources exist and whether they are off;
    - the battery draw.
-2. **Owner decision:** set `dgpu_disable=1`, which is the recommended default, with `gpu_mux_mode` left at 1:
+2. **Owner decision (made 2026-10-16 on ANAL-187: keep the dGPU disabled for now):** set `dgpu_disable=1`, with `gpu_mux_mode` left at 1:
    ```bash
    cat /sys/devices/platform/asus-nb-wmi/gpu_mux_mode       # must print 1 (Optimus); never disable the dGPU in dGPU-only MUX mode
    echo 1 | sudo tee /sys/devices/platform/asus-nb-wmi/dgpu_disable

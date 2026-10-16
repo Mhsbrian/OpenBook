@@ -23,15 +23,15 @@ Labels: C = confirmed (inventory from the laptop, kernel source, or linux-firmwa
 | Component | Part | Linux driver | Firmware | Label |
 |---|---|---|---|---|
 | CPU | Ryzen AI 9 HX 370: 4× Zen 5 + 8× Zen 5c, 24 threads; AVX-VNNI and AVX-512 (incl. VNNI, BF16) present | amd-pstate | — | C (inventory) |
-| RAM | 32 GB | — | — | C |
+| RAM | 32 GB LPDDR5(X) at 8000 MT/s, 4× 8 GiB Samsung `K3KL9L90DM-MGCU` (dmidecode) | — | — | C |
 | iGPU | Radeon 890M, RDNA 3.5, gfx1150, `1002:150e` rev c1 | amdgpu, Mesa radeonsi/RADV | `amdgpu/gc_11_5_0*`, `dcn_3_5*`, `psp_14_0_0*`, `sdma_6_1_0`, `vcn_4_0_5` | C |
-| dGPU | RTX 5070 Ti Laptop (GA403WR SKU) | nouveau (GB20x since 6.16, in our 6.18 tree) / NVK later | `nvidia/gb202/gsp/*-570.144` (`gb205`/`gb206` link to it) | R. Not on the PCI bus during the inventory (most likely removed by supergfxd, not by the firmware). **Kept off in the first bring-up** (`docs/nvidia.md`) |
-| Display | 14" 2880×1800 eDP, 120 Hz OLED; fwupd names the panel vendor `PNP:SDC` (Samsung Display) | amdgpu DC (PSR/Panel Replay quirks are possible) | — | C resolution and vendor; U panel model until an EDID is captured |
+| dGPU | RTX 5070 Ti Laptop: GB205M `10de:2f58`, HDMI audio `10de:2f80`, at `64:00.0` behind `00:03.1`, PCIe 4.0 x8 | nouveau (GB20x since 6.16, in our 6.18 tree) / NVK later | `nvidia/gb202/gsp/*-570.144` (`gb205`/`gb206` link to it) | C (`dmesg` of the root run). Present at boot; at collection time supergfxctl reported `Integrated` with the dGPU `off`, which is why `lspci` never showed it. **Kept off in the first bring-up** (`docs/nvidia.md`) |
+| Display | 14" 2880×1800 OLED, Samsung `ATNA40CU05-0` (EDID `SDC` product 16796): 48–120 Hz adaptive sync, HDR static metadata, max 617 cd/m² | amdgpu DC. On 7.2 amdgpu leaves PSR off for this panel (`PSR support 0`; sink PSR version 1) | — | C (EDID) |
 | Graphics switching | MUX + NVIDIA Advanced Optimus; inventory: `gpu_mux_mode=1` (Optimus), `dgpu_disable=0` | asus-wmi `dgpu_disable`/`gpu_mux_mode` (6.18), asus-armoury (6.19+) | — | C |
-| Backlight | `nvidia_wmi_ec_backlight` loads on the laptop | nvidia-wmi-ec-backlight or amdgpu, chosen by `acpi/video_detect.c` | — | U which one is active (needs `ls /sys/class/backlight`) |
+| Backlight | `amdgpu_bl1` (raw, max 400000) on `card1-eDP-1` in Optimus/Integrated mode. `nvidia_wmi_ec_backlight` loads but registers no device | amdgpu | — | C. A dGPU-only MUX mode would likely switch to nvidia-wmi-ec-backlight (hypothesis) |
 | NPU | XDNA 2, `1022:17f0` rev 10 | amdxdna | `amdnpu/17f0_10/*` | C |
 | Wi-Fi / BT | MediaTek MT7925 `14c3:7925`; BT `0489:e11e` on USB | mt7925e, btusb + btmtk | `mediatek/mt7925/*` | C |
-| Audio | Realtek ALC285, codec SSID **1043:1024**, plus 2× Cirrus CS35L56 on I2C (`CSC3556`) | snd-hda-intel with quirk `ALC285_FIXUP_ASUS_GA403U_HEADSET_MIC` (mainline cbd46cbc5470, backported to AnyBook's 6.18), cs35l56-hda-i2c, serial-multi-instantiate | `cirrus/cs35l56-b0-dsp1-misc-10431024-*` | C hardware and quirk. **No tuning file for 10431024 in linux-firmware** (2026-10-16). Headset mic broken upstream (R) |
+| Audio | Realtek ALC285, codec SSID **1043:1024**, plus 2× Cirrus CS35L56 on I2C (`CSC3556`) | snd-hda-intel with quirk `ALC285_FIXUP_ASUS_GA403U_HEADSET_MIC` (mainline cbd46cbc5470, backported to AnyBook's 6.18), cs35l56-hda-i2c, serial-multi-instantiate | `cirrus/cs35l56-b0-dsp1-misc-10431024-spkid1{.wmfw,-amp1.bin,-amp2.bin}`: WHENCE links to the 10431044 tuning and `CS35L56_Rev3.11.16.wmfw` | C. The laptop loads the spkid1 set (`dmesg`); an earlier note here that linux-firmware lacked it was wrong. Headset mic broken upstream (R) |
 | Internal mic | On the HDA codec: `ALC285 Analog` is the only capture device. ACP 7.0 (`1022:15e2` rev 70) binds `snd_acp_pci` but registers no capture PCM | snd-hda-intel | — | C (inventory) |
 | Touchpad | ELAN `ASCE1206:00 04F3:3315`, I2C HID on AMDI0010 | i2c-hid-acpi, i2c-designware, pinctrl-amd, hid-multitouch | — | C |
 | Keyboard | ASUS N-KEY `0b05:19b6` | hid-asus, asus-wmi | — | C |
@@ -42,23 +42,26 @@ Labels: C = confirmed (inventory from the laptop, kernel source, or linux-firmwa
 | Power | `AMDI000A` amd_pmc, `AMDI0103` amd-pmf, `AMDI0104` amd_hfi; s2idle only; battery A32-K55 | amd_pmc, amd-pmf, amd_hfi, battery, ac | — | C |
 | Security | TPM2 `MSFT0101` (Pluton, firmware 10.6.0.4), Secure Boot disabled, UEFI 2.90. db/KEK hold the Microsoft 2023 CAs (UEFI CA, Windows UEFI CA, KEK CA) and ASUS 2023 keys; dbx 20260402 | tpm_crb | — | C. Whether the 2011 Microsoft CAs are also in db is U |
 
-### Collecting the inventory (read-only)
-Run this on the laptop from its installed Linux or a live USB. It changes nothing on the machine:
+### Collecting the inventory
+Run this on the laptop, as your normal user, from its installed Linux or a live USB:
 ```bash
 git clone https://github.com/Mhsbrian/OpenBook && cd OpenBook
-scripts/hw-inventory.sh               # no root needed
-scripts/hw-inventory.sh --with-root   # optional: adds dmesg, dmidecode, ACPI tables minus MSDM/SLIC (sudo)
+scripts/hw-inventory.sh               # installs the tools, then collects everything (asks for your sudo password)
+scripts/hw-inventory.sh --no-install  # same, with the tools already installed
+scripts/hw-inventory.sh --no-root     # no sudo: no dmesg, dmidecode or ACPI tables, no install
 ```
-It writes `anybook-hw-<board>-<date>.tar.gz`, with serials, UUIDs and MAC addresses redacted. Attach that file to ANAL-175. Install `v4l-utils` first for `edid-decode`: the panel EDID is captured without root, with its serial number and date replaced.
+By default it installs read-only diagnostic tools with pacman, apt-get or dnf: pciutils, usbutils, alsa-utils, iw, dmidecode, vulkan-tools, mesa-utils, edid-decode (`v4l-utils` on Arch), acpica (`iasl`) and fwupd. A package that fails to install is skipped. Apart from those packages it changes nothing on the machine. Through sudo it reads `dmesg`, `dmidecode` and the ACPI tables, minus MSDM/SLIC, which hold the Windows product key. It also decodes the tables to `.dsl` with `iasl`.
+
+It writes `anybook-hw-<board>-<date>.tar.gz`, with serials, UUIDs and MAC addresses redacted, and the panel EDID with its serial number and date replaced. Attach that file to ANAL-175.
 
 ### Bring-up notes and risks
 1. **Run Android on the Radeon 890M.** Keep the MUX in hybrid (iGPU) mode and power the dGPU down with `dgpu_disable=1` from Linux before booting AnyBook. In dGPU-only MUX mode the internal panel is wired to the NVIDIA GPU, which Android cannot drive yet.
    - With `dgpu_disable=0`, the dGPU will most likely stay in D0 for the whole OpenBook session: no driver binds it, and `snd_hda_intel` holds its HDMI-audio function awake.
    - `scripts/dgpu-power-check.sh` verifies the state on Linux and on OpenBook (`docs/nvidia.md` §1).
 2. **AVX-VNNI.** The CPU is the HX 370 (Zen 5), so Google's Panther Lake-tuned binaries meet their ISA baseline (PLAN §3.4). The Zen 4 risk applies only to the dev host.
-3. **Audio needs several pieces:** the HDA Realtek codec with the 1043:1024 quirk, and the cs35l56 amplifiers. The internal mic is on the HDA codec. The amps' Cirrus tuning file for 10431024 is not in linux-firmware, so the speakers may run uncalibrated (quiet) until Cirrus/ASUS publish it.
+3. **Audio needs several pieces:** the HDA Realtek codec with the 1043:1024 quirk, and the cs35l56 amplifiers. The internal mic is on the HDA codec. linux-firmware has the amps' tuning for 10431024 as links to the 10431044 files; the speaker-ID GPIO selects the spkid1 set on this unit.
 4. **Fan and power tuning:** mainline `asus-armoury` has a power-limit table for the GA403WR (6.19+). The 6.18 kernel has the older `asus-wmi` `ppt_*` attributes.
-5. **Suspend and panel power saving:** Strix Point s2idle and OLED PSR/Replay are untested on this model.
+5. **Suspend and panel power saving:** on the laptop's own Linux 7.2, 4 s2idle cycles completed with no amd_pmc errors, and amdgpu kept PSR off for the panel. One `WARNING` in `dc_dmub_srv_apply_idle_power_optimizations` (`dc_dmub_srv.c:1710`) appeared after about 23 hours. All of this is untested on our 6.18; if the display hangs on idle there, turning off DCN idle power states is the first thing to try (hypothesis).
 6. **Safety:** first bring-up boots from USB only. Nothing on the internal NVMe or the firmware gets flashed, repartitioned or wiped without explicit confirmation that names the device.
 
 ## Other candidate devices
@@ -73,7 +76,7 @@ It writes `anybook-hw-<board>-<date>.tar.gz`, with serials, UUIDs and MAC addres
 | CPU power | amd-pstate (EPP) | power HAL | Built into the stock kernel (`X86_AMD_PSTATE=y`) |
 | Suspend | amd_pmc (s2idle) | system_suspend | Module built (ANAL-171); untested |
 | Touchpad / touch | i2c-hid-acpi, pinctrl-amd, hid-multitouch | — | `PINCTRL_AMD=y` and `X86_AMD_PLATFORM_DEVICE=y` in AnyBook GKI, i2c-designware/i2c-hid-acpi modules (ANAL-171); untested |
-| Audio | snd-hda-intel (ALC285, SSID 1043:1024 quirk backported), cs35l56-hda-i2c; internal mic on HDA | audio HAL | Modules built (ANAL-171); CS35L56 tuning file for 10431024 not in linux-firmware |
+| Audio | snd-hda-intel (ALC285, SSID 1043:1024 quirk backported), cs35l56-hda-i2c; internal mic on HDA | audio HAL | Modules built (ANAL-171); CS35L56 tuning for 10431024 added to the firmware list (ANAL-175) |
 | Wi-Fi / BT | mt7925e, btmtk | wifi HAL | Modules and firmware list built (ANAL-171); untested |
 | NPU | amdxdna (XDNA 2) | — | Module built (ANAL-171); userspace later |
 | dGPU | nouveau / NVK (RTX 50 Laptop, GB20x) | — | Later: research track N1–N6 in `docs/nvidia.md`. Kept off with `dgpu_disable=1` (ANAL-176 default) |
