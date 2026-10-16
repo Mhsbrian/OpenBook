@@ -30,6 +30,22 @@
 - License for the scripts and docs. Apache-2.0 is suggested, to match AOSP. Not chosen yet.
 - Track B licensing: whether to proceed past research with Google's proprietary image (`docs/PLAN.md` §6).
 
+**Next**
+- M1a: software KeyMint/Gatekeeper/Weaver vendor overlay (GBRUNCH method), then boot Googlebook OS in QEMU/KVM to `boot_completed`.
+- M1b: mirror and sync `android17-release`, then build `aosp_cf_x86_64_pc` and boot it in the Cuttlefish container.
+
+## 2026-10-15: Kernel, stock android17-6.18 GKI reproduced with Kleaf (ANAL-170)
+
+**Done**
+- Googlebook OS ships the unmodified public GKI: the ruby `boot_a` kernel is byte-identical to ci.android.com build 16302624 (`kernel_x86_64`, branch `common-android17-6.18-2026-06`, `common` 3938c8d97142).
+- Built it locally from that build's pinned manifest (`manifests/kernel/gbos-16302624.xml`) in 5 min 37 s. The `.config` and KMI CRCs are identical. Built with the same build number, `vmlinux` differs only in the per-build module-signing certificate and build ID (1,098 bytes).
+- Config diff: 0 symbols. Google adds nothing beyond `gki_defconfig`. `PKVM_INTEL` is explicit in `gki_defconfig`; `X86_FRED` is selected by `KVM_INTEL` through an upstream Kconfig `select`.
+- Our kernel boots on Zen 4 under KVM to the same `keystore2` stall as the stock kernel. Google's signed GKI modules (`rust_binder`, `zsmalloc`) are rejected, so `system_dlkm` must come from our build.
+- The `android17-6.18` tip (6.18.32) also builds. The shipped KMI list is unchanged there.
+
+**Evidence:** `evidence/2026-10-15-kernel/`. Details are in `docs/kernel.md`.
+
+**Next:** an AMD defconfig fragment and an `anybook_amd` KMI symbol list on this tree, then boot with our `system_dlkm`.
 **Next** (tracked in Multica as children of ANAL-159; ▶ marks issues running now)
 
 | Epic | Stage 1 | Later stages |

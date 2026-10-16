@@ -1,0 +1,32 @@
+ours: /home/hive/anybook/kernel/dist/gbos-16302624
+ref:  /home/hive/anybook/kernel/ci/16302624
+
+IDENTICAL  kernel_x86_64_dot_config
+IDENTICAL  vmlinux.symvers
+DIFFERENT  System.map
+IDENTICAL  modules.builtin
+IDENTICAL  abi_symbollist
+IDENTICAL  system_dlkm.modules.load
+
+System.map: 208469 vs 208469 symbols, same name set: True, entries at a different address: 662 (first: kern_do_mounts_initrd_table)
+
+bzImage sha256 ours f929d93de7dc702d08f0ca8598853da223f4a782813d5d653c9ffa03fff846ef
+bzImage sha256 ref  7816c5d5b3500093e597b7362ecab103d5a32141b100d3eb7a8b33221fce7f41
+vmlinux (decompressed from bzImage): 62561848 vs 62561848 bytes
+differing bytes: 5691402 (9.09724%)
+   3104686 bytes in .rodata near symbol kallsyms_names
+    777362 bytes in .rodata near symbol kallsyms_seqs_of_names
+    416434 bytes in .rodata near symbol trunc_msg
+    368207 bytes in .rodata near symbol f_midi_longname
+    309000 bytes in .rodata near symbol kallsyms_offsets
+    168255 bytes in .rodata near symbol max_tt_usecs
+    151735 bytes in .rodata near symbol task_index_to_char.state_char
+    103438 bytes in .rodata near symbol f_midi_shortname
+     49800 bytes in .rodata near symbol kernel_config_data
+     30404 bytes in .BTF near symbol __start_BTF
+     17125 bytes in __bug_table near symbol rodata_end__pkvm
+      9444 bytes in .rodata near symbol readme_msg
+      7840 bytes in .rodata near symbol _RNvNtNtNtCs3o2tGsuHyou_4core7unicode12unicode_data10alphabetic17SHORT_OFFSET_RUNS
+      7586 bytes in .rodata near symbol _RNvNtNtNtCs3o2tGsuHyou_4core7unicode12unicode_data9uppercase17BITSET_CHUNKS_MAP
+      4702 bytes in .rodata near symbol _RNvNtNtNtCs3o2tGsuHyou_4core7unicode12unicode_data9uppercase19BITSET_INDEX_CHUNKS
+  ... 165384 more bytes near 29385 other symbols

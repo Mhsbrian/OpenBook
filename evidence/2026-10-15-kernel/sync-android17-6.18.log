@@ -1,0 +1,51 @@
+### kernel-sync target=android17-6.18 branch=common-android17-6.18 manifest=default.xml 2026-10-16T00:34:52+00:00
+
+... A new version of repo (2.69) is available.
+... New version is available at: /home/hive/anybook/kernel/src/.repo/repo/repo
+... The launcher is run from: /usr/bin/repo
+!!! The launcher is not writable.  Please talk to your sysadmin or distro
+!!! to get an update installed.
+
+repo: reusing existing repo client checkout in /home/hive/anybook/kernel/src
+
+repo has been initialized in /home/hive/anybook/kernel/src
+### repo sync attempt 1
+
+... A new version of repo (2.69) is available.
+... New version is available at: /home/hive/anybook/kernel/src/.repo/repo/repo
+... The launcher is run from: /usr/bin/repo
+!!! The launcher is not writable.  Please talk to your sysadmin or distro
+!!! to get an update installed.
+
+================================================================================
+Repo command failed due to the following `SyncFailFastError` errors:
+GitCommandError: 'fetch --quiet aosp --prune --recurse-submodules=no --no-tags +refs/heads/main-kernel-2026:refs/remotes/aosp/main-kernel-2026' on platform/external/bazelbuild-rules_rust failed
+stdout: fatal: unable to access 'https://android.googlesource.com/platform/external/bazelbuild-rules_rust/': The requested URL returned error: 503
+### repo sync attempt 2
+
+... A new version of repo (2.69) is available.
+... New version is available at: /home/hive/anybook/kernel/src/.repo/repo/repo
+... The launcher is run from: /usr/bin/repo
+!!! The launcher is not writable.  Please talk to your sysadmin or distro
+!!! to get an update installed.
+
+Finalizing sync state...
+repo sync has finished successfully.
+### repo sync done1 in 83s
+
+... A new version of repo (2.69) is available.
+... New version is available at: /home/hive/anybook/kernel/src/.repo/repo/repo
+... The launcher is run from: /usr/bin/repo
+!!! The launcher is not writable.  Please talk to your sysadmin or distro
+!!! to get an update installed.
+
+Saved manifest to /home/hive/anybook/kernel/pins/android17-6.18.xml
+target=android17-6.18 branch=common-android17-6.18 date=2026-10-16T00:36:17+00:00
+common HEAD=70a231d0d37bc782fef784fc8a367822ed2098a1 (2026-10-15T17:28:35-07:00 ANDROID: wrapfd: Validate "fd" argument passed to wrap ioctl.)
+Makefile version=6.18.32
+shipped 3938c8d97142 reachable from android17-6.18 (70a231d0d37b): no
+fatal: unable to access 'https://android.googlesource.com/kernel/common/': The requested URL returned error: 503
+shipped 3938c8d97142 reachable from android17-6.18-2026-06 (977f0bd7673d): yes
+fatal: unable to access 'https://android.googlesource.com/kernel/common/': The requested URL returned error: 503
+shipped 3938c8d97142 reachable from android17-6.18-2026-09 (b9d0b4b33406): no
+### tree size: 52G	/home/hive/anybook/kernel/src
