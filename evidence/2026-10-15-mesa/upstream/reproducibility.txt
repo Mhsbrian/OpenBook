@@ -1,0 +1,23 @@
+# Clean rebuild check, 2026-10-16T00:19Z: rm -rf ~/anybook/mesa/build/upstream, then
+#   CCACHE_DISABLE=1 scripts/mesa-android-build.sh setup build install verify -- upstream
+# ninja ran 00:19:16 -> 00:19:38 (22 s, 32 jobs, no ccache). sha256 of the first build vs the clean rebuild:
+
+## build 1
+93495f02f8aafd53b954855e77ce4f97c625ccbe69bb162cdbf1680176cf2705  ./lib64/egl/libEGL_mesa.so
+0cfbd5812ff1e55aa68a202a12f787c181485020422e2e10eecf2318802d3610  ./lib64/egl/libGLESv1_CM_mesa.so
+8b9859485675ad0cbec0a2424bc0fd1f132034cb8e595ff7c2fcc75523fb362e  ./lib64/egl/libGLESv2_mesa.so
+d6dbe86577872cd88930fb425a038c039f9711ac408886c64dc993d6ad906a5d  ./lib64/hw/vulkan.radv.so
+ccf9766c7904edf4b1d82649a96af5bc5bc0df4c027d6dffbca656f49574ef71  ./lib64/libdrm.so
+a560956bbfde464df3a4eb4eaf583f49fc7b6e7dda6493c878866435209a8dbc  ./lib64/libdrm_amdgpu.so
+3ed661a9385d4ee180a32bea9b37f9ad3503529829d44380006f8bf858bb4f51  ./lib64/libgallium_dri.so
+
+## clean rebuild
+93495f02f8aafd53b954855e77ce4f97c625ccbe69bb162cdbf1680176cf2705  ./lib64/egl/libEGL_mesa.so
+0cfbd5812ff1e55aa68a202a12f787c181485020422e2e10eecf2318802d3610  ./lib64/egl/libGLESv1_CM_mesa.so
+8b9859485675ad0cbec0a2424bc0fd1f132034cb8e595ff7c2fcc75523fb362e  ./lib64/egl/libGLESv2_mesa.so
+d6dbe86577872cd88930fb425a038c039f9711ac408886c64dc993d6ad906a5d  ./lib64/hw/vulkan.radv.so
+ccf9766c7904edf4b1d82649a96af5bc5bc0df4c027d6dffbca656f49574ef71  ./lib64/libdrm.so
+a560956bbfde464df3a4eb4eaf583f49fc7b6e7dda6493c878866435209a8dbc  ./lib64/libdrm_amdgpu.so
+3ed661a9385d4ee180a32bea9b37f9ad3503529829d44380006f8bf858bb4f51  ./lib64/libgallium_dri.so
+
+# result: IDENTICAL (bit-for-bit)

@@ -1,0 +1,26 @@
+== ./lib64/hw/vulkan.radv.so (Vulkan HAL: HMI + loader ICD entry points)
+0000000001077218 D HMI
+exported symbols: 1
+== ./lib64/egl/libEGL_mesa.so
+exported symbols: 47
+0000000000019890 T eglGetDisplay
+000000000001f280 T eglGetProcAddress
+00000000000199e0 T eglInitialize
+== ./lib64/egl/libGLESv1_CM_mesa.so
+exported symbols: 145
+00000000000081f0 T glDrawArrays
+0000000000008910 T glGetString
+== ./lib64/egl/libGLESv2_mesa.so
+exported symbols: 358
+000000000000e450 T glDrawArrays
+000000000000fd00 T glGetString
+== ./lib64/libgallium_dri.so
+exported symbols: 85
+000000000110c660 T ddebug_screen_create
+== ./lib64/libdrm.so
+exported symbols: 212
+== ./lib64/libdrm_amdgpu.so
+exported symbols: 84
+
+== emutls imports (must be none: ELF TLS is forced for API >= 29)
+0

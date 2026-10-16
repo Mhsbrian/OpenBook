@@ -1,0 +1,10 @@
+image: anybook-mesa-android sha256:46532b8ecefae3e2baf6fb0ee196cb00d9cbe58a91d3dab355cfbe9c52441683 built 2026-10-15T20:02:32.09069404-04:00
+base: ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
+Pkg.Revision = 30.0.16248370
+Android (16134705, +pgo, +bolt, +lto, +mlgo, based on r574158c) clang version 21.0.0 (https://android.googlesource.com/toolchain/llvm-project 9f872551d3c681d06fd303b36f16ed5c274735eb)
+meson 1.12.1, ninja 1.11.1, Glslang Version: 11:15.1.0, Python 3.12.3, ccache 4.9.1
+Mako       1.4.3
+meson      1.12.1
+packaging  26.3
+PyYAML     6.0.3
+{"min":21,"max":37,"aliases":{

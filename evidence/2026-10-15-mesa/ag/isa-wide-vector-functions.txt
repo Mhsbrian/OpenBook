@@ -1,0 +1,21 @@
+# Functions that touch ymm/zmm registers (AVX/AVX2/AVX-512), per unstripped build output:
+# <instructions> <function>. The baseline is the NDK default above; anything wider must sit
+# behind a runtime CPU check (util_cpu_caps / blake3 dispatch).
+== src/amd/vulkan/libvulkan_radeon.so
+   2020 <blake3_hash_many_avx512>:
+   1984 <blake3_xof_many_avx512>:
+   1475 <blake3_hash_many_avx2>:
+== src/egl/libEGL_mesa.so
+   2020 <blake3_hash_many_avx512>:
+   1984 <blake3_xof_many_avx512>:
+   1475 <blake3_hash_many_avx2>:
+== src/gallium/targets/dri/libgallium_dri.so
+   2020 <blake3_hash_many_avx512>:
+   1984 <blake3_xof_many_avx512>:
+   1475 <blake3_hash_many_avx2>:
+== src/mesa/glapi/es1api/libGLESv1_CM_mesa.so
+== src/mesa/glapi/es2api/libGLESv2_mesa.so
+== subprojects/libdrm-2.4.123/amdgpu/libdrm_amdgpu.so
+== subprojects/libdrm-2.4.123/libdrm.so
+== subprojects/libdrm-2.4.123/nouveau/libdrm_nouveau.so
+== subprojects/libdrm-2.4.123/radeon/libdrm_radeon.so

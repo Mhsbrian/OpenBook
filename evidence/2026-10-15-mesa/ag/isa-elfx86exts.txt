@@ -1,0 +1,21 @@
+== ./lib64/egl/libEGL_mesa.so
+Instruction set extensions used: AVX, AVX2, AVX512, CMOV, MODE64, NOVLX, SSE1, SSE2, SSE41, SSSE3, VLX
+CPU Generation: Unknown
+== ./lib64/egl/libGLESv1_CM_mesa.so
+Instruction set extensions used: MODE64, SSE1
+CPU Generation: Intel Core
+== ./lib64/egl/libGLESv2_mesa.so
+Instruction set extensions used: MODE64, SSE1
+CPU Generation: Intel Core
+== ./lib64/hw/vulkan.radv.so
+Instruction set extensions used: AVX, AVX2, AVX512, BMI, CMOV, F16C, MODE64, NOVLX, SSE1, SSE2, SSE3, SSE41, SSE42, SSSE3, VLX
+CPU Generation: Unknown
+== ./lib64/libdrm.so
+Instruction set extensions used: CMOV, MODE64, SSE1, SSE2, SSE3, SSE41, SSSE3
+CPU Generation: Penryn
+== ./lib64/libdrm_amdgpu.so
+Instruction set extensions used: CMOV, MODE64, SSE1, SSE2, SSE41
+CPU Generation: Penryn
+== ./lib64/libgallium_dri.so
+Instruction set extensions used: AVX, AVX2, AVX512, BMI, CMOV, F16C, MODE64, NOVLX, SSE1, SSE2, SSE3, SSE41, SSE42, SSSE3, VLX
+CPU Generation: Unknown
