@@ -58,9 +58,9 @@ Every PCI function in `lspci-nnk.txt` with a bound driver, every USB device in `
 
 The only hardware with no driver in the AnyBook kernel is the security processor (`ccp`), the TCO watchdog and the RAPL counters. None of them is needed for bring-up. The dGPU wasn't on the bus, so it isn't checked.
 
-Still to collect from the owner (`scripts/hw-inventory.sh --with-root`; the fixed script also captures the EDID without root):
+Still to collect from the owner. Running `scripts/hw-inventory.sh` with no options now covers all but the last item:
 - `dmesg`: CS35L56 firmware messages, amdgpu, s2idle and the backlight choice.
-- `dmidecode`, and the ACPI tables minus MSDM/SLIC, for a decoded DSDT/SSDT.
-- The panel EDID, for the product code. Install `v4l-utils` for `edid-decode`.
-- `ls /sys/class/backlight`.
+- `dmidecode`, and the ACPI tables minus MSDM/SLIC, decoded to DSDT/SSDT `.dsl`.
+- The panel EDID, for the product code.
+- The backlight devices (`backlight.txt`).
 - `lspci -nn` with the dGPU powered, for the NVIDIA device ID.
