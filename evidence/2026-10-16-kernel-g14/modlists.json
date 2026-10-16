@@ -1,0 +1,37 @@
+{
+ "ok": true,
+ "problems": [],
+ "summary": {
+  "bm": {
+   "first_stage": 0,
+   "load": 135,
+   "block": 3
+  },
+  "vm": {
+   "first_stage": 7,
+   "load": 134,
+   "block": 1
+  }
+ },
+ "gki_needed": {
+  "bluetooth": [
+   "btintel.ko",
+   "btmtk.ko",
+   "btrtl.ko",
+   "btusb.ko"
+  ],
+  "btbcm": [
+   "btusb.ko"
+  ],
+  "libarc4": [
+   "mac80211.ko"
+  ],
+  "rfkill": [
+   "asus-wmi.ko",
+   "cfg80211.ko",
+   "mt7921e.ko",
+   "mt7925e.ko",
+   "rtw89_core.ko"
+  ]
+ }
+}

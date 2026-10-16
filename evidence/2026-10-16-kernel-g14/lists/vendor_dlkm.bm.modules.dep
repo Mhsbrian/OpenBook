@@ -1,0 +1,142 @@
+/vendor/lib/modules/ac.ko:
+/vendor/lib/modules/fan.ko: /vendor/lib/modules/hwmon.ko
+/vendor/lib/modules/video.ko: /vendor/lib/modules/wmi.ko
+/vendor/lib/modules/thermal.ko:
+/vendor/lib/modules/platform_profile.ko:
+/vendor/lib/modules/battery.ko:
+/vendor/lib/modules/virtio_input.ko:
+/vendor/lib/modules/virtio_dma_buf.ko:
+/vendor/lib/modules/tpm.ko:
+/vendor/lib/modules/tpm_crb.ko: /vendor/lib/modules/tpm.ko
+/vendor/lib/modules/drm_display_helper.ko:
+/vendor/lib/modules/drm_panel_backlight_quirks.ko:
+/vendor/lib/modules/drm_exec.ko:
+/vendor/lib/modules/drm_buddy.ko:
+/vendor/lib/modules/drm_suballoc_helper.ko:
+/vendor/lib/modules/drm_ttm_helper.ko:
+/vendor/lib/modules/gpu-sched.ko:
+/vendor/lib/modules/amdgpu.ko: /vendor/lib/modules/drm_panel_backlight_quirks.ko /vendor/lib/modules/drm_buddy.ko /vendor/lib/modules/drm_suballoc_helper.ko /vendor/lib/modules/video.ko /vendor/lib/modules/wmi.ko /vendor/lib/modules/drm_ttm_helper.ko /vendor/lib/modules/drm_exec.ko /vendor/lib/modules/i2c-algo-bit.ko /vendor/lib/modules/drm_display_helper.ko /vendor/lib/modules/gpu-sched.ko /vendor/lib/modules/amdxcp.ko /vendor/lib/modules/hwmon.ko
+/vendor/lib/modules/amdxcp.ko:
+/vendor/lib/modules/virtio-gpu.ko: /vendor/lib/modules/virtio_dma_buf.ko
+/vendor/lib/modules/rtsx_pci.ko: /vendor/lib/modules/mfd-core.ko
+/vendor/lib/modules/mfd-core.ko:
+/vendor/lib/modules/spi-amd.ko:
+/vendor/lib/modules/spi-amd-pci.ko: /vendor/lib/modules/spi-amd.ko
+/vendor/lib/modules/mt76.ko: /vendor/lib/modules/mac80211.ko /system/lib/modules/libarc4.ko /vendor/lib/modules/cfg80211.ko /system/lib/modules/rfkill.ko
+/vendor/lib/modules/mt76-connac-lib.ko: /vendor/lib/modules/mt76.ko /vendor/lib/modules/mac80211.ko /system/lib/modules/libarc4.ko /vendor/lib/modules/cfg80211.ko /system/lib/modules/rfkill.ko
+/vendor/lib/modules/mt792x-lib.ko: /vendor/lib/modules/mt76-connac-lib.ko /vendor/lib/modules/mt76.ko /vendor/lib/modules/mac80211.ko /system/lib/modules/libarc4.ko /vendor/lib/modules/cfg80211.ko /system/lib/modules/rfkill.ko
+/vendor/lib/modules/mt7921-common.ko: /vendor/lib/modules/mt792x-lib.ko /vendor/lib/modules/mt76-connac-lib.ko /vendor/lib/modules/mt76.ko /vendor/lib/modules/mac80211.ko /system/lib/modules/libarc4.ko /vendor/lib/modules/cfg80211.ko /system/lib/modules/rfkill.ko /vendor/lib/modules/hwmon.ko
+/vendor/lib/modules/mt7921e.ko: /vendor/lib/modules/mt7921-common.ko /vendor/lib/modules/mt792x-lib.ko /vendor/lib/modules/mt76-connac-lib.ko /vendor/lib/modules/mt76.ko /vendor/lib/modules/mac80211.ko /system/lib/modules/libarc4.ko /vendor/lib/modules/cfg80211.ko /system/lib/modules/rfkill.ko /vendor/lib/modules/hwmon.ko
+/vendor/lib/modules/mt7925-common.ko: /vendor/lib/modules/mt792x-lib.ko /vendor/lib/modules/mt76-connac-lib.ko /vendor/lib/modules/mt76.ko /vendor/lib/modules/mac80211.ko /system/lib/modules/libarc4.ko /vendor/lib/modules/cfg80211.ko /system/lib/modules/rfkill.ko /vendor/lib/modules/hwmon.ko
+/vendor/lib/modules/mt7925e.ko: /vendor/lib/modules/mt7925-common.ko /vendor/lib/modules/mt792x-lib.ko /vendor/lib/modules/mt76-connac-lib.ko /vendor/lib/modules/mt76.ko /vendor/lib/modules/mac80211.ko /system/lib/modules/libarc4.ko /vendor/lib/modules/cfg80211.ko /system/lib/modules/rfkill.ko /vendor/lib/modules/hwmon.ko
+/vendor/lib/modules/rtw89_core.ko: /vendor/lib/modules/mac80211.ko /system/lib/modules/libarc4.ko /vendor/lib/modules/cfg80211.ko /system/lib/modules/rfkill.ko
+/vendor/lib/modules/rtw89_8851b.ko: /vendor/lib/modules/rtw89_core.ko /vendor/lib/modules/mac80211.ko /system/lib/modules/libarc4.ko /vendor/lib/modules/cfg80211.ko /system/lib/modules/rfkill.ko
+/vendor/lib/modules/rtw89_8851be.ko: /vendor/lib/modules/rtw89_pci.ko /vendor/lib/modules/rtw89_8851b.ko /vendor/lib/modules/rtw89_core.ko /vendor/lib/modules/mac80211.ko /system/lib/modules/libarc4.ko /vendor/lib/modules/cfg80211.ko /system/lib/modules/rfkill.ko
+/vendor/lib/modules/rtw89_8852a.ko: /vendor/lib/modules/rtw89_core.ko /vendor/lib/modules/mac80211.ko /system/lib/modules/libarc4.ko /vendor/lib/modules/cfg80211.ko /system/lib/modules/rfkill.ko
+/vendor/lib/modules/rtw89_8852ae.ko: /vendor/lib/modules/rtw89_8852a.ko /vendor/lib/modules/rtw89_pci.ko /vendor/lib/modules/rtw89_core.ko /vendor/lib/modules/mac80211.ko /system/lib/modules/libarc4.ko /vendor/lib/modules/cfg80211.ko /system/lib/modules/rfkill.ko
+/vendor/lib/modules/rtw89_8852b_common.ko: /vendor/lib/modules/rtw89_core.ko /vendor/lib/modules/mac80211.ko /system/lib/modules/libarc4.ko /vendor/lib/modules/cfg80211.ko /system/lib/modules/rfkill.ko
+/vendor/lib/modules/rtw89_8852b.ko: /vendor/lib/modules/rtw89_8852b_common.ko /vendor/lib/modules/rtw89_core.ko /vendor/lib/modules/mac80211.ko /system/lib/modules/libarc4.ko /vendor/lib/modules/cfg80211.ko /system/lib/modules/rfkill.ko
+/vendor/lib/modules/rtw89_8852be.ko: /vendor/lib/modules/rtw89_8852b.ko /vendor/lib/modules/rtw89_8852b_common.ko /vendor/lib/modules/rtw89_pci.ko /vendor/lib/modules/rtw89_core.ko /vendor/lib/modules/mac80211.ko /system/lib/modules/libarc4.ko /vendor/lib/modules/cfg80211.ko /system/lib/modules/rfkill.ko
+/vendor/lib/modules/rtw89_8852c.ko: /vendor/lib/modules/rtw89_core.ko /vendor/lib/modules/mac80211.ko /system/lib/modules/libarc4.ko /vendor/lib/modules/cfg80211.ko /system/lib/modules/rfkill.ko
+/vendor/lib/modules/rtw89_8852ce.ko: /vendor/lib/modules/rtw89_8852c.ko /vendor/lib/modules/rtw89_pci.ko /vendor/lib/modules/rtw89_core.ko /vendor/lib/modules/mac80211.ko /system/lib/modules/libarc4.ko /vendor/lib/modules/cfg80211.ko /system/lib/modules/rfkill.ko
+/vendor/lib/modules/rtw89_8922a.ko: /vendor/lib/modules/rtw89_core.ko /vendor/lib/modules/mac80211.ko /system/lib/modules/libarc4.ko /vendor/lib/modules/cfg80211.ko /system/lib/modules/rfkill.ko
+/vendor/lib/modules/rtw89_8922ae.ko: /vendor/lib/modules/rtw89_8922a.ko /vendor/lib/modules/rtw89_pci.ko /vendor/lib/modules/rtw89_core.ko /vendor/lib/modules/mac80211.ko /system/lib/modules/libarc4.ko /vendor/lib/modules/cfg80211.ko /system/lib/modules/rfkill.ko
+/vendor/lib/modules/rtw89_pci.ko: /vendor/lib/modules/rtw89_core.ko /vendor/lib/modules/mac80211.ko /system/lib/modules/libarc4.ko /vendor/lib/modules/cfg80211.ko /system/lib/modules/rfkill.ko
+/vendor/lib/modules/ucsi_acpi.ko:
+/vendor/lib/modules/sparse-keymap.ko:
+/vendor/lib/modules/i2c-algo-bit.ko:
+/vendor/lib/modules/i2c-piix4.ko: /vendor/lib/modules/i2c-smbus.ko
+/vendor/lib/modules/i2c-designware-core.ko:
+/vendor/lib/modules/i2c-designware-platform.ko: /vendor/lib/modules/i2c-designware-core.ko
+/vendor/lib/modules/i2c-smbus.ko:
+/vendor/lib/modules/rtsx_pci_sdmmc.ko: /vendor/lib/modules/rtsx_pci.ko /vendor/lib/modules/mfd-core.ko
+/vendor/lib/modules/cs_dsp.ko:
+/vendor/lib/modules/hid-asus.ko: /vendor/lib/modules/asus-wmi.ko /vendor/lib/modules/sparse-keymap.ko /vendor/lib/modules/platform_profile.ko /vendor/lib/modules/battery.ko /system/lib/modules/rfkill.ko /vendor/lib/modules/video.ko /vendor/lib/modules/wmi.ko /vendor/lib/modules/hwmon.ko
+/vendor/lib/modules/i2c-hid.ko:
+/vendor/lib/modules/i2c-hid-acpi.ko: /vendor/lib/modules/i2c-hid.ko
+/vendor/lib/modules/amd_sfh.ko:
+/vendor/lib/modules/amd-pmc.ko:
+/vendor/lib/modules/wmi.ko:
+/vendor/lib/modules/wmi-bmof.ko: /vendor/lib/modules/wmi.ko
+/vendor/lib/modules/nvidia-wmi-ec-backlight.ko: /vendor/lib/modules/video.ko /vendor/lib/modules/wmi.ko
+/vendor/lib/modules/asus-wmi.ko: /vendor/lib/modules/sparse-keymap.ko /vendor/lib/modules/platform_profile.ko /vendor/lib/modules/battery.ko /system/lib/modules/rfkill.ko /vendor/lib/modules/video.ko /vendor/lib/modules/wmi.ko /vendor/lib/modules/hwmon.ko
+/vendor/lib/modules/asus-nb-wmi.ko: /vendor/lib/modules/asus-wmi.ko /vendor/lib/modules/sparse-keymap.ko /vendor/lib/modules/platform_profile.ko /vendor/lib/modules/battery.ko /system/lib/modules/rfkill.ko /vendor/lib/modules/video.ko /vendor/lib/modules/wmi.ko /vendor/lib/modules/hwmon.ko
+/vendor/lib/modules/serial-multi-instantiate.ko:
+/vendor/lib/modules/amdxdna.ko: /vendor/lib/modules/gpu-sched.ko
+/vendor/lib/modules/hwmon.ko:
+/vendor/lib/modules/k10temp.ko: /vendor/lib/modules/hwmon.ko
+/vendor/lib/modules/btusb.ko: /vendor/lib/modules/btrtl.ko /vendor/lib/modules/btmtk.ko /system/lib/modules/btbcm.ko /vendor/lib/modules/btintel.ko /system/lib/modules/bluetooth.ko /system/lib/modules/rfkill.ko
+/vendor/lib/modules/btintel.ko: /system/lib/modules/bluetooth.ko /system/lib/modules/rfkill.ko
+/vendor/lib/modules/btrtl.ko: /system/lib/modules/bluetooth.ko /system/lib/modules/rfkill.ko
+/vendor/lib/modules/btmtk.ko: /system/lib/modules/bluetooth.ko /system/lib/modules/rfkill.ko
+/vendor/lib/modules/snd-ctl-led.ko:
+/vendor/lib/modules/snd-soc-cs-amp-lib.ko: /vendor/lib/modules/cs_dsp.ko
+/vendor/lib/modules/snd-soc-cs35l56-shared.ko: /vendor/lib/modules/snd-soc-cs-amp-lib.ko /vendor/lib/modules/cs_dsp.ko
+/vendor/lib/modules/snd-soc-dmic.ko:
+/vendor/lib/modules/snd-soc-max98357a.ko:
+/vendor/lib/modules/snd-soc-max98388.ko:
+/vendor/lib/modules/snd-soc-nau8821.ko:
+/vendor/lib/modules/snd-soc-nau8825.ko:
+/vendor/lib/modules/snd-soc-rl6231.ko:
+/vendor/lib/modules/snd-soc-rt1019.ko: /vendor/lib/modules/snd-soc-rl6231.ko
+/vendor/lib/modules/snd-soc-rt5682.ko: /vendor/lib/modules/snd-soc-rl6231.ko
+/vendor/lib/modules/snd-soc-rt5682-i2c.ko: /vendor/lib/modules/snd-soc-rt5682.ko /vendor/lib/modules/snd-soc-rl6231.ko
+/vendor/lib/modules/snd-soc-rt5682s.ko:
+/vendor/lib/modules/snd-acp-pcm.ko:
+/vendor/lib/modules/snd-acp-i2s.ko:
+/vendor/lib/modules/snd-acp-pdm.ko:
+/vendor/lib/modules/snd-acp-legacy-common.ko:
+/vendor/lib/modules/snd-acp-pci.ko: /vendor/lib/modules/snd-acp-legacy-common.ko /vendor/lib/modules/snd-amd-acpi-mach.ko /vendor/lib/modules/snd-acp-config.ko
+/vendor/lib/modules/snd-amd-acpi-mach.ko:
+/vendor/lib/modules/snd-acp70.ko: /vendor/lib/modules/snd-acp-pdm.ko /vendor/lib/modules/snd-acp-i2s.ko /vendor/lib/modules/snd-acp-pcm.ko /vendor/lib/modules/snd-acp-legacy-common.ko
+/vendor/lib/modules/snd-amd-sdw-acpi.ko:
+/vendor/lib/modules/snd-acp-mach.ko: /vendor/lib/modules/snd-soc-nau8821.ko
+/vendor/lib/modules/snd-acp-legacy-mach.ko: /vendor/lib/modules/snd-acp-mach.ko /vendor/lib/modules/snd-soc-nau8821.ko
+/vendor/lib/modules/snd-acp-sof-mach.ko: /vendor/lib/modules/snd-acp-mach.ko /vendor/lib/modules/snd-soc-nau8821.ko
+/vendor/lib/modules/snd-soc-acpi-amd-match.ko:
+/vendor/lib/modules/snd-acp-config.ko:
+/vendor/lib/modules/snd-pci-ps.ko: /vendor/lib/modules/snd-soc-acpi-amd-match.ko /vendor/lib/modules/snd-acp-config.ko
+/vendor/lib/modules/snd-ps-pdm-dma.ko:
+/vendor/lib/modules/snd-ps-sdw-dma.ko:
+/vendor/lib/modules/snd-soc-ps-mach.ko:
+/vendor/lib/modules/snd-sof.ko: /vendor/lib/modules/snd-sof-utils.ko
+/vendor/lib/modules/snd-sof-utils.ko:
+/vendor/lib/modules/snd-sof-pci.ko: /vendor/lib/modules/snd-sof.ko /vendor/lib/modules/snd-sof-utils.ko
+/vendor/lib/modules/snd-sof-probes.ko: /vendor/lib/modules/snd-sof.ko /vendor/lib/modules/snd-sof-utils.ko
+/vendor/lib/modules/snd-sof-amd-acp.ko: /vendor/lib/modules/snd-sof-xtensa-dsp.ko /vendor/lib/modules/snd-sof.ko /vendor/lib/modules/snd-sof-utils.ko
+/vendor/lib/modules/snd-sof-amd-rembrandt.ko: /vendor/lib/modules/snd-sof-amd-acp.ko /vendor/lib/modules/snd-sof-xtensa-dsp.ko /vendor/lib/modules/snd-sof-pci.ko /vendor/lib/modules/snd-sof.ko /vendor/lib/modules/snd-sof-utils.ko /vendor/lib/modules/snd-acp-config.ko
+/vendor/lib/modules/snd-sof-amd-acp63.ko: /vendor/lib/modules/snd-sof-amd-acp.ko /vendor/lib/modules/snd-sof-xtensa-dsp.ko /vendor/lib/modules/snd-sof-pci.ko /vendor/lib/modules/snd-sof.ko /vendor/lib/modules/snd-sof-utils.ko /vendor/lib/modules/snd-soc-acpi-amd-match.ko /vendor/lib/modules/snd-acp-config.ko
+/vendor/lib/modules/snd-sof-amd-acp70.ko: /vendor/lib/modules/snd-sof-amd-acp.ko /vendor/lib/modules/snd-sof-xtensa-dsp.ko /vendor/lib/modules/snd-sof-pci.ko /vendor/lib/modules/snd-sof.ko /vendor/lib/modules/snd-sof-utils.ko /vendor/lib/modules/snd-soc-acpi-amd-match.ko /vendor/lib/modules/snd-acp-config.ko
+/vendor/lib/modules/snd-sof-xtensa-dsp.ko:
+/vendor/lib/modules/snd-hda-core.ko:
+/vendor/lib/modules/snd-hda-codec.ko: /vendor/lib/modules/snd-hda-core.ko
+/vendor/lib/modules/snd-hda-codec-hdmi.ko: /vendor/lib/modules/snd-hda-codec.ko /vendor/lib/modules/snd-hda-core.ko
+/vendor/lib/modules/snd-hda-codec-simplehdmi.ko: /vendor/lib/modules/snd-hda-codec.ko /vendor/lib/modules/snd-hda-core.ko
+/vendor/lib/modules/snd-hda-codec-intelhdmi.ko: /vendor/lib/modules/snd-hda-codec-hdmi.ko /vendor/lib/modules/snd-hda-codec.ko /vendor/lib/modules/snd-hda-core.ko
+/vendor/lib/modules/snd-hda-codec-atihdmi.ko: /vendor/lib/modules/snd-hda-codec-hdmi.ko /vendor/lib/modules/snd-hda-codec.ko /vendor/lib/modules/snd-hda-core.ko
+/vendor/lib/modules/snd-hda-codec-nvhdmi.ko: /vendor/lib/modules/snd-hda-codec-hdmi.ko /vendor/lib/modules/snd-hda-codec.ko /vendor/lib/modules/snd-hda-core.ko
+/vendor/lib/modules/snd-hda-codec-nvhdmi-mcp.ko: /vendor/lib/modules/snd-hda-codec-simplehdmi.ko /vendor/lib/modules/snd-hda-codec.ko /vendor/lib/modules/snd-hda-core.ko
+/vendor/lib/modules/snd-hda-codec-tegrahdmi.ko: /vendor/lib/modules/snd-hda-codec-hdmi.ko /vendor/lib/modules/snd-hda-codec.ko /vendor/lib/modules/snd-hda-core.ko
+/vendor/lib/modules/snd-hda-codec-realtek-lib.ko: /vendor/lib/modules/snd-hda-codec-generic.ko /vendor/lib/modules/snd-hda-codec.ko /vendor/lib/modules/snd-hda-core.ko
+/vendor/lib/modules/snd-hda-codec-alc260.ko: /vendor/lib/modules/snd-hda-codec-realtek-lib.ko /vendor/lib/modules/snd-hda-codec-generic.ko /vendor/lib/modules/snd-hda-codec.ko /vendor/lib/modules/snd-hda-core.ko
+/vendor/lib/modules/snd-hda-codec-alc262.ko: /vendor/lib/modules/snd-hda-codec-realtek-lib.ko /vendor/lib/modules/snd-hda-codec-generic.ko /vendor/lib/modules/snd-hda-codec.ko /vendor/lib/modules/snd-hda-core.ko
+/vendor/lib/modules/snd-hda-codec-alc268.ko: /vendor/lib/modules/snd-hda-codec-realtek-lib.ko /vendor/lib/modules/snd-hda-codec-generic.ko /vendor/lib/modules/snd-hda-codec.ko /vendor/lib/modules/snd-hda-core.ko
+/vendor/lib/modules/snd-hda-codec-alc269.ko: /vendor/lib/modules/snd-hda-scodec-component.ko /vendor/lib/modules/snd-hda-codec-realtek-lib.ko /vendor/lib/modules/snd-hda-codec-generic.ko /vendor/lib/modules/snd-hda-codec.ko /vendor/lib/modules/snd-hda-core.ko
+/vendor/lib/modules/snd-hda-codec-alc662.ko: /vendor/lib/modules/snd-hda-codec-realtek-lib.ko /vendor/lib/modules/snd-hda-codec-generic.ko /vendor/lib/modules/snd-hda-codec.ko /vendor/lib/modules/snd-hda-core.ko
+/vendor/lib/modules/snd-hda-codec-alc680.ko: /vendor/lib/modules/snd-hda-codec-realtek-lib.ko /vendor/lib/modules/snd-hda-codec-generic.ko /vendor/lib/modules/snd-hda-codec.ko /vendor/lib/modules/snd-hda-core.ko
+/vendor/lib/modules/snd-hda-codec-alc861.ko: /vendor/lib/modules/snd-hda-codec-realtek-lib.ko /vendor/lib/modules/snd-hda-codec-generic.ko /vendor/lib/modules/snd-hda-codec.ko /vendor/lib/modules/snd-hda-core.ko
+/vendor/lib/modules/snd-hda-codec-alc861vd.ko: /vendor/lib/modules/snd-hda-codec-realtek-lib.ko /vendor/lib/modules/snd-hda-codec-generic.ko /vendor/lib/modules/snd-hda-codec.ko /vendor/lib/modules/snd-hda-core.ko
+/vendor/lib/modules/snd-hda-codec-alc880.ko: /vendor/lib/modules/snd-hda-codec-realtek-lib.ko /vendor/lib/modules/snd-hda-codec-generic.ko /vendor/lib/modules/snd-hda-codec.ko /vendor/lib/modules/snd-hda-core.ko
+/vendor/lib/modules/snd-hda-codec-alc882.ko: /vendor/lib/modules/snd-hda-codec-realtek-lib.ko /vendor/lib/modules/snd-hda-codec-generic.ko /vendor/lib/modules/snd-hda-codec.ko /vendor/lib/modules/snd-hda-core.ko
+/vendor/lib/modules/snd-hda-cirrus-scodec.ko:
+/vendor/lib/modules/snd-hda-scodec-cs35l56.ko: /vendor/lib/modules/snd-soc-cs35l56-shared.ko /vendor/lib/modules/snd-soc-cs-amp-lib.ko /vendor/lib/modules/cs_dsp.ko /vendor/lib/modules/snd-hda-cirrus-scodec.ko
+/vendor/lib/modules/snd-hda-scodec-cs35l56-i2c.ko: /vendor/lib/modules/snd-hda-scodec-cs35l56.ko /vendor/lib/modules/snd-soc-cs35l56-shared.ko /vendor/lib/modules/snd-soc-cs-amp-lib.ko /vendor/lib/modules/cs_dsp.ko /vendor/lib/modules/snd-hda-cirrus-scodec.ko
+/vendor/lib/modules/snd-hda-scodec-component.ko:
+/vendor/lib/modules/snd-hda-codec-generic.ko: /vendor/lib/modules/snd-hda-codec.ko /vendor/lib/modules/snd-hda-core.ko
+/vendor/lib/modules/snd-hda-intel.ko: /vendor/lib/modules/snd-hda-codec.ko /vendor/lib/modules/snd-hda-core.ko
+/vendor/lib/modules/cfg80211.ko: /system/lib/modules/rfkill.ko
+/vendor/lib/modules/mac80211.ko: /system/lib/modules/libarc4.ko /vendor/lib/modules/cfg80211.ko /system/lib/modules/rfkill.ko
+/system/lib/modules/bluetooth.ko: /system/lib/modules/rfkill.ko
+/system/lib/modules/btbcm.ko: /system/lib/modules/bluetooth.ko /system/lib/modules/rfkill.ko
+/system/lib/modules/libarc4.ko:
+/system/lib/modules/rfkill.ko:

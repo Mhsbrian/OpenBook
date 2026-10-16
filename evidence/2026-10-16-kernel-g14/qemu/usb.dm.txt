@@ -1,0 +1,18 @@
+Available Device Mapper Devices:
+odm-verity           : 254:12
+odm_a                : 254:4
+odm_dlkm-verity      : 254:14
+odm_dlkm_a           : 254:5
+product-verity       : 254:10
+product_a            : 254:2
+system-verity        : 254:8
+system_a             : 254:0
+system_dlkm-verity   : 254:15
+system_dlkm_a        : 254:7
+system_ext-verity    : 254:9
+system_ext_a         : 254:1
+userdata             : 254:16
+vendor-verity        : 254:11
+vendor_a             : 254:3
+vendor_dlkm-verity   : 254:13
+vendor_dlkm_a        : 254:6

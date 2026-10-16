@@ -5,14 +5,19 @@
 #
 #   tools/bazel run --config=stamp //devices/anybook:anybook_amd_x86_64_dist -- --destdir=DIR
 #   tools/bazel run //devices/anybook:anybook_amd_x86_64_abi_update_symbol_list   # -> common/gki/x86_64/symbols/anybook_amd
+#   tools/bazel run --config=stamp //devices/anybook:anybook_g14_dist -- --destdir=DIR   # G14 images (ANAL-198)
 
 load("@rules_pkg//pkg:install.bzl", "pkg_install")
+load("//build/kernel/kleaf:hermetic_tools.bzl", "hermetic_genrule")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_files", "strip_prefix")
 load(
     "//build/kernel/kleaf:kernel.bzl",
+    "initramfs",
     "kernel_abi",
     "kernel_build",
     "kernel_modules_install",
+    "vendor_boot_image",
+    "vendor_dlkm_image",
 )
 
 # For scripts/kernel-amd-integrity.sh, which builds the GKI with the vendor fragment on top:
@@ -211,4 +216,114 @@ pkg_install(
     name = "anybook_amd_x86_64_dist",
     srcs = [":anybook_amd_x86_64_dist_files"],
     destdir = "out/anybook_amd_x86_64/dist",
+)
+
+# ANAL-198: images for the ASUS ROG Zephyrus G14 2025 (GA403WR), in two variants:
+#   bm  bare metal, the laptop itself
+#   vm  QEMU/Cuttlefish guests, which boot from virtio-blk and lack the ASUS WMI GUID
+# Both variants ship the same vendor_dlkm files; the load lists and blocklists differ. The lists under g14/ are
+# generated from g14/modules.tsv by scripts/kernel-g14-modlists.py, which also checks them against a dist.
+# system_dlkm is the GKI's own image from //common, so its modules carry the signature of the bzImage in the
+# same dist. scripts/kernel-g14-package.sh builds all of this and records sizes, checksums and checks.
+
+_G14_VARIANTS = ("bm", "vm")
+
+# Appended to the GKI's built-in command line (console=ttynull stack_depot_disable=on cgroup_disable=pressure
+# bootconfig). Googlebook's vendor_boot sets the same firmware path; the kernel loads firmware from there
+# directly, without ueventd. log_buf_len keeps the whole boot in dmesg/pstore on the laptop, where there is no
+# serial console. The single quotes are deliberate: boot_images.bzl writes KERNEL_VENDOR_CMDLINE={value}
+# unquoted into a shell script, which silently drops everything after the first space.
+_G14_VENDOR_CMDLINE = "'firmware_class.path=/vendor/firmware log_buf_len=1M'"
+
+[initramfs(
+    name = "anybook_g14_{}_initramfs".format(v),
+    kernel_modules_install = ":anybook_amd_x86_64_modules_install",
+    modules_list = "g14/vendor_boot.{}.modules.list".format(v),
+    modules_load = "g14/vendor_boot.{}.modules.load".format(v),
+    ramdisk_compression = "lz4",
+    trim_unused_modules = True,
+) for v in _G14_VARIANTS]
+
+# The modules go into a DLKM ramdisk fragment named "dlkm", as on Googlebook (vendor_boot_a ramdisk_dlkm).
+# The product build can add its own fragments (fstab, first-stage tools) next to it.
+[vendor_boot_image(
+    name = "anybook_g14_{}_vendor_boot".format(v),
+    outs = ["vendor_boot.img"],
+    header_version = 4,
+    initramfs = ":anybook_g14_{}_initramfs".format(v),
+    initramfs_vendor_ramdisk_fragment_name = "dlkm",
+    kernel_build = ":anybook_amd_x86_64",
+    kernel_vendor_cmdline = _G14_VENDOR_CMDLINE,
+    ramdisk_compression = "lz4",
+    unpack_ramdisk = True,
+) for v in _G14_VARIANTS]
+
+# Kleaf's vendor_dlkm: the staging (modules.load with the vendor_boot and system_dlkm modules taken out,
+# modules.blocklist, depmod output) is what we want, but its flattened image copies all 238 modules of the
+# mixed build, the 100 GKI ones included, and drops modules.blocklist. So only its staging archive is used;
+# the image the device mounts comes from the genrule below.
+[vendor_dlkm_image(
+    name = "anybook_g14_{}_vendor_dlkm".format(v),
+    archive = True,
+    base_system_dlkm_image = "//common:kernel_x86_64_system_dlkm_image",
+    dedup_dlkm_modules = True,
+    fs_type = "erofs",
+    kernel_modules_install = ":anybook_amd_x86_64_modules_install",
+    modules_blocklist = "g14/modules.{}.blocklist".format(v),
+    modules_list = "g14/vendor_dlkm.modules.list",
+    modules_load = "g14/vendor_dlkm.{}.modules.load".format(v),
+    vendor_boot_modules_load = ":anybook_g14_{}_initramfs".format(v),
+) for v in _G14_VARIANTS]
+
+# vendor_dlkm.img as Android mounts it, laid out like Googlebook's: /vendor_dlkm/lib/modules/*.ko holds the
+# vendor modules only, and modules.dep names GKI dependencies as /system/lib/modules/<m>.ko, which system_dlkm
+# provides. erofs with an unsigned hashtree footer, as Kleaf's build_vendor_dlkm. The file contexts are the
+# platform's (system/sepolicy/private/file_contexts: vendor_file), not Kleaf's vendor_kernel_modules: AOSP grants
+# module_load on vendor_file to vendor_modprobe and ueventd, and on vendor_kernel_modules to nobody, so with
+# Kleaf's labels every vendor module fails with EACCES under enforcing SELinux.
+[hermetic_genrule(
+    name = "anybook_g14_{}_vendor_dlkm_android".format(v),
+    srcs = [
+        ":anybook_g14_{}_vendor_dlkm".format(v),
+        "//common:kernel_x86_64_system_dlkm_image",
+        "g14/pack_vendor_dlkm.py",
+        "g14/vendor_dlkm.file_contexts",
+        "g14/vendor_dlkm.modules.list",
+    ],
+    outs = ["g14_{}/vendor_dlkm.{}".format(v, f) for f in ("img", "modules.load", "modules.blocklist", "modules.dep")],
+    cmd = ("python3 $(location g14/pack_vendor_dlkm.py) --out $(RULEDIR)/g14_{v} " +
+           "--file-contexts $(location g14/vendor_dlkm.file_contexts) " +
+           "--modules-list $(location g14/vendor_dlkm.modules.list) " +
+           "$(locations :anybook_g14_{v}_vendor_dlkm) $(locations //common:kernel_x86_64_system_dlkm_image)").format(v = v),
+) for v in _G14_VARIANTS]
+
+[pkg_files(
+    name = "anybook_g14_{}_dist_files".format(v),
+    srcs = [
+        ":anybook_g14_{}_initramfs".format(v),
+        ":anybook_g14_{}_vendor_boot".format(v),
+        ":anybook_g14_{}_vendor_dlkm_android".format(v),
+    ],
+    prefix = v,
+    strip_prefix = strip_prefix.files_only(),
+    visibility = ["//visibility:private"],
+) for v in _G14_VARIANTS]
+
+pkg_files(
+    name = "anybook_g14_dist_files",
+    srcs = [
+        ":anybook_amd_x86_64",
+        "//common:kernel_x86_64",
+        "//common:kernel_x86_64_additional_artifacts",
+        "//common:kernel_x86_64_modules",
+        "//common:kernel_x86_64_system_dlkm_image",
+    ],
+    strip_prefix = strip_prefix.files_only(),
+    visibility = ["//visibility:private"],
+)
+
+pkg_install(
+    name = "anybook_g14_dist",
+    srcs = [":anybook_g14_dist_files"] + [":anybook_g14_{}_dist_files".format(v) for v in _G14_VARIANTS],
+    destdir = "out/anybook_g14/dist",
 )
