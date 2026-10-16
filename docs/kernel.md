@@ -145,7 +145,7 @@ Status as of 2026-10-16. Evidence is in `evidence/2026-10-16-kernel-amd/`. Guess
   - `vmlinux.symvers`, `abi_symbollist` and `modules.builtin` are identical, so no exported interface or CRC changes.
   - 79 of 80 `system_dlkm` modules are identical once the signature, build ID and `.BTF` are dropped. `.BTF` is split BTF whose type IDs follow vmlinux. The 80th, `kheaders.ko`, embeds the config, so its `.rodata` and allocation-tag section differ.
   - The 5 vmlinux differences are listed in [Equivalence differences](#equivalence-differences). Adding the card reader and backlight modules after the inventory added no new ones. Each is the same pattern Google's own Intel vendor build has, since that build ships `i2c-smbus.ko`, `snd-ctl-led.ko`, `snd-hda-intel.ko` and HID vendor modules too.
-- **Firmware subset: 131 files, 52.5 MB, all redistributable** (`firmware-subset.md`, `firmware-subset.tsv`). Source: linux-firmware `38c1a709` (2026-10-16). Each file's licence is recorded from WHENCE. Details are in [Firmware](#firmware-subset).
+- **Firmware subset: 131 files, 52.5 MB, all redistributable** (`firmware-subset.md`, `firmware-subset.tsv`); 137 files and 52.6 MB since ANAL-175 added the GA403WR speaker tuning. Source: linux-firmware `38c1a709` (2026-10-16). Each file's licence is recorded from WHENCE. Details are in [Firmware](#firmware-subset).
 
 ### Checked against the GA403WR inventory
 
@@ -238,11 +238,11 @@ Built-in code that tests a vendor option. The real GKI is built without these op
 
 | Licence (WHENCE) | Files | MB | For |
 |---|---|---|---|
-| `LICENSE.amdgpu` (redistributable) | 78 | 17.4 | Phoenix/Hawk Point (GC 11.0.1/11.0.4), Strix Point (GC 11.5.0), Strix Halo and Krackan (GC 11.5.1–11.5.3) |
+| `LICENSE.amdgpu` (redistributable) | 72 | 15.3 | Phoenix/Hawk Point (GC 11.0.1/11.0.4), Strix Point (GC 11.5.0), Strix Halo and Krackan (GC 11.5.1–11.5.3) |
 | `LICENCE.rtlwifi_firmware.txt` (redistributable) | 30 | 26.7 | rtw89 Wi-Fi and the matching `rtl_bt` Bluetooth files |
 | `LICENSE.amdnpu` (redistributable) | 12 | 4.2 | XDNA NPU (1502_00, 17f0_10, 17f0_11) |
 | `LICENCE.mediatek` (redistributable) | 11 | 6.2 | MT7925, MT7921, MT7922 Wi-Fi and BT |
-| `LICENSE.cirrus` (redistributable) | 6 | 0.1 | CS35L56 tuning for SSID 1043:1b13 (GA403U, see Blocked) |
+| `LICENSE.cirrus` (redistributable) | 12 | 0.2 | CS35L56 tuning for SSIDs 1043:1b13 (GA403U) and 1043:1024 (GA403WR, WHENCE links to the 10431044 files) |
 
 - **GA403WR set (Strix Point), all present:** `gc_11_5_0_{imu,pfp,me,mec,rlc,mes_2,mes1}`, `psp_14_0_0_{toc,ta}`, `dcn_3_5_dmcub`, `sdma_6_1_0`, `vcn_4_0_5`, `vpe_6_1_0`, `umsch_mm_4_0_0`, `mediatek/mt7925/*`, `amdnpu/17f0_1x/*`.
 - **amdxdna declares `amdnpu/17f0_20/npu.sbin`, which linux-firmware does not have.** It is not needed here: the GA403WR's NPU is `1022:17f0` rev 10, so it uses `17f0_10`.
@@ -284,7 +284,7 @@ scripts/kernel-firmware-subset.py --fw ~/anybook/kernel/firmware/linux-firmware 
 - **GA403WR speaker tuning (corrected 2026-10-16, ANAL-175).** The codec SSID is 1043:1024 and the kernel quirk is backported (patch 0002). An earlier version of this note said linux-firmware had no `cirrus/cs35l56-b0-dsp1-misc-10431024-*` tuning: wrong. WHENCE has them as `Link:` entries to the 10431044 files and `CS35L56_Rev3.11.16.wmfw`, and the laptop loads the `spkid1` set. `anybook-amd.rules` now includes 10431024 (137 files). Upstream also notes that the headset-jack mic does not work on this model yet.
 - **Not built yet:** the `android17-6.18` tip (6.18.32) with this fragment, and an ABI definition update (`//common:kernel_x86_64_abi_update`). Kleaf's strict-mode and symbol-violation checks passed. `abi.stg` was not regenerated.
 - **Left out on purpose:** KFD (`HSA_AMD`); `AMD_WBRF` (bool, Wi-Fi/GPU RF-band mitigation, would be a fourth built-in deviation); `X86_MCE_AMD` (the GKI has no `X86_MCE`); the camera ISP (the G14 webcam is UVC).
-- **Packaging is ANAL-172's job:** `vendor_dlkm`/`vendor_boot` images, module load order and blocklists, firmware placement.
+- **Packaging** (`vendor_dlkm`/`vendor_boot` images, module load order and blocklists, firmware placement) is done: see [Bare-metal packaging for the G14](#bare-metal-packaging-for-the-g14-anal-198).
 - **Unsigned vendor modules leave the taint flag at 0 on this kernel.** Upstream would set `E`. **HYPOTHESIS:** Android's `MODULE_SIG_PROTECT` change skips that taint. The same holds inside Android: in ANAL-172's Cuttlefish boot, no OpenBook module sets a taint flag.
 
 ## Booting in Cuttlefish with our AOSP 17 userspace (ANAL-172)
@@ -369,5 +369,154 @@ KCF_RESNAP=1 scripts/kernel-cf-boot.sh  # take a new snapshot of ~/anybook/aosp/
 
 - **Virtual Wi-Fi with the OpenBook set.** Build `mac80211_hwsim` and `virt_wifi` against the OpenBook config, for example as a VM-only Kleaf target on `anybook_amd.fragment` without `NL80211_TESTMODE`. `kernel-cf-modset.py` would then check their CRCs against OpenBook's cfg80211/mac80211. **HYPOTHESIS:** they link cleanly, because both use testmode only when the option is set.
 - **Hardware probing** (amdgpu, amdxdna, amd-pstate, amd-pmc s2idle, Wi-Fi, audio) needs the bare-metal epic, or VFIO passthrough of the Radeon 610M. VFIO needs host root and the owner's approval.
-- **Module-signing key.** Each GKI rebuild generates a new key, so a dist's `bzImage` and `system_dlkm` cannot be mixed with another build's. For releases, a fixed key kept outside the repo would make rebuilds interchangeable. That is not done.
+- **Module-signing key.** Each GKI rebuild generates a new key, so a dist's `bzImage` and `system_dlkm` cannot be mixed with another build's. For releases, a fixed key kept outside the repo would make rebuilds interchangeable. That is not done; ANAL-198 found what it takes (see its open items).
 - **`adb shell dmesg` loses the first ~3 s of boot,** because audit messages wrap the ring buffer. Use `kernel.log`, the host-side console capture.
+
+## Bare-metal packaging for the G14 (ANAL-198)
+
+Status as of 2026-10-16. Evidence is in `evidence/2026-10-16-kernel-g14/`; `results.json` has every check in machine-readable form and `qemu/summary.md` the boot runs. Guesses are labelled **HYPOTHESIS**. **Nothing here ran on the laptop:** the boot checks are QEMU/KVM on the Ryzen 9 7950X host.
+
+### Results
+
+- **One script builds and checks everything:** `scripts/kernel-g14-package.sh`. It is resumable: each step leaves a stamp holding a hash of its inputs, so a rerun skips finished steps. All images come from one Kleaf invocation, `//devices/anybook:anybook_g14_dist`, on the ANAL-171 tree (`44a90255c95f`, release `6.18.21-android17-5-g44a90255c95f`).
+- **Images** (`images.md`; bare metal unless marked):
+
+  | Image | MiB | sha256 | Contents |
+  |---|---|---|---|
+  | `vendor_boot.img` | 0.1 | `16780a93…` | boot image v4: one DLKM ramdisk fragment, `dlkm`, with `lib/modules/<release>/` and an empty `modules.load`; vendor cmdline `firmware_class.path=/vendor/firmware log_buf_len=1M` |
+  | `vendor_boot-ramdisk.lz4` | 0.1 | `3c80536c…` | that fragment alone, for a product-built `vendor_boot` |
+  | `vendor_dlkm.img` | 50.9 | `f6f57b04…` | erofs, hashtree footer; the 138 vendor modules in Googlebook's layout |
+  | `system_dlkm.img` | 17.3 | `01b64d44…` | erofs (Kleaf's `system_dlkm.flatten.erofs.img`); the 100 GKI modules, signed by this build's key |
+  | `bzImage`, `boot.img` | 25.6 | `d92572c9…` | the kernel these modules belong to |
+  | `vm/vendor_boot.img`, `vm/vendor_dlkm.img` | 0.3, 50.9 | `c8ef109a…`, `6e082622…` | VM variants |
+
+- **First-stage mount works over USB storage and over NVMe** with Android 17's own first-stage init and the bare-metal `vendor_boot` (`qemu/*.first-stage.txt`, full serial logs `qemu/*.serial.log.gz`):
+
+  | Run | Disk | Boot device from | First stage: switch root → `/system` mounted | by-name links |
+  |---|---|---|---|---|
+  | `usb` | usb-storage (bulk-only) on qemu-xhci behind a PCIe root port | `boot_devices = "pci0000:00/0000:00:08.0"` | 0.69 s → 2.04 s | all on `sda` |
+  | `uas` | the same disk on usb-uas | the same | 1.12 s → 1.45 s | all on `sda` |
+  | `nvme` | NVMe behind a PCIe root port | `boot_devices = "pci0000:00/0000:00:02.0"` | 1.26 s → 1.32 s | all on `nvme0n1` |
+  | `both-uuid` | NVMe and USB attached together, same partition names | `boot_part_uuid` of `boot_a` on the USB disk | 0.70 s → 2.06 s; "Boot device …/usb2/2-1/… found via partition UUID" | all on `sda`, none on the NVMe |
+  | `vm` | VM images on NVMe | `boot_devices` | 0.65 s → 0.68 s | all on `nvme0n1` |
+
+  In every run, the 8 logical partitions in `super` (system, system_ext, product, vendor, odm, vendor_dlkm, odm_dlkm, system_dlkm) are created, verified with dm-verity from one signed vbmeta (`avb_handle` status `Success`), and mounted. Second stage formats `/data` (f2fs, metadata encryption) and the console comes up 7–9 s after power-on. SELinux stays enforcing.
+- **The vendor_dlkm modules load with no symbol, CRC, signature or format error** (`qemu/*.dlkm.txt`, `*.modules.txt`).
+  - Bare metal: 134 of the 135 listed modules are live. The 135th is `asus-nb-wmi`, which returns -ENODEV because QEMU has no ASUS WMI GUID. That is expected, and it is why the VM variant blocklists it.
+  - The 4 GKI modules the vendor set links against (`bluetooth`, `btbcm`, `libarc4`, `rfkill`) are loaded from `/system/lib/modules`, i.e. from our `system_dlkm`, through `vendor_dlkm`'s `modules.dep`.
+  - VM: Cuttlefish's `dlkm_loader` loads all 138 listed modules and sets `vendor.dlkm.modules.ready=true`. Taint is 0 in every run.
+- **`system_dlkm` is signed with our own key** (`sigcheck.md`). All 100 modules carry a PKCS#7 signature with key serial `76EEF3B7…F5A4`, "Build time autogenerated kernel key". That certificate's DER bytes are in `vmlinux`, and the kernel logs it at boot (`Loaded X.509 cert '…: 0588d325ff6f…'`). The 138 vendor modules are unsigned, as they must be under `MODULE_SIG_PROTECT` (they may use only KMI-listed symbols).
+  - This dist's GKI is the Bazel cache entry from ANAL-172's virtual-device build (key `76:EE…`), not ANAL-171's dist (`4A:60…`). Sources and config are the same; only the per-build key differs, and the `bzImage` and `system_dlkm` here come from the same action.
+- **Firmware: 137 files in the `/vendor/firmware` layout, plus the 5 licence files WHENCE cites** (`firmware/firmware-manifest.md`). See [Firmware staging](#firmware-staging).
+
+### Module set
+
+The source of truth is `kernel/devices/anybook/g14/modules.tsv`: one row per module, with its stage in each variant, the GA403WR device it drives and why. `scripts/kernel-g14-modlists.py gen` writes the list files next to it; `check` regenerates them, fails if they are stale, and checks against a dist that each module's dependencies load before it (`modlists.md`, 0 problems).
+
+**First stage (vendor_boot), bare metal: no modules.** Everything first-stage init needs to reach `super` is built into the GKI:
+
+| Needed for | Provided by (all `=y` in our `.config`) |
+|---|---|
+| NVMe | `BLK_DEV_NVME`, `NVME_CORE` |
+| USB boot | `USB_XHCI_PCI` (and EHCI), `USB_STORAGE`, `USB_UAS`, `SCSI`, `BLK_DEV_SD` |
+| `super`, verity, metadata encryption | `BLK_DEV_DM` (linear), `DM_VERITY`, `DM_DEFAULT_KEY`, `DM_USER`, `EROFS_FS`, `EXT4_FS`, `F2FS_FS` |
+| Keyboard for a first-stage console | `USB_HID`, `HID_GENERIC` (the N-KEY keyboard is USB), `SERIO_I8042` |
+| What Googlebook's Intel first stage loads as modules (pinctrl-intel, intel-lpss, 8250_dw, intel_iommu_vendor_hooks) | the AMD counterparts are already built in: `PINCTRL_AMD`, `X86_AMD_PLATFORM_DEVICE` (I2C/UART clocks), `AMD_IOMMU` |
+
+- **No I2C or HID module early.** The ELAN touchpad needs `i2c-designware` and `i2c-hid-acpi`, but nothing reads it before Android's input stack, which starts after `vendor_dlkm` has loaded. `hid-asus` only adds hotkeys and the keyboard backlight.
+- **amdgpu loads in second stage, from `vendor_dlkm`.**
+  - There is nothing to show earlier: the GKI has no `efifb`, `simpledrm` or `efidrm` (and no VT or fbcon). Adding one would be a fourth built-in deviation, because `SYSFB` is bool. So the firmware or bootloader splash simply stays on the GOP framebuffer until amdgpu takes over, and bootanimation needs SurfaceFlinger, which starts after the `vendor_dlkm` load anyway.
+  - In first stage it would cost about 27 MB of module plus 14 firmware files (3.2 MB) inside `vendor_boot`, because `/vendor/firmware` is not mounted yet. Also, any first-stage module failure is fatal.
+  - Googlebook does the same: ruby's vendor ramdisk carries `xe.ko`, but lists it only in `modules.load.recovery`, never in the first-stage `modules.load`.
+- **Recovery is not covered.** A recovery or fastbootd UI would need amdgpu and its firmware in the vendor ramdisk under `modules.load.recovery`, as Googlebook does with xe. Decide with ANAL-199 and the installer.
+- **`vendor_dlkm` load order:** ACPI and platform (wmi, video, battery, thermal, SMBus, SPI, amd-pmc, TPM, UCSI) → input → ASUS → GPU → NPU → card reader → HDA → ACP/SOF → Wi-Fi and Bluetooth.
+  - Within HDA, codec drivers come before `snd-hda-intel`. Android disables `request_module`, so a codec whose driver isn't loaded when the controller probes falls back to the generic parser.
+  - The non-G14 drivers (rtw89, MT7921, other Realtek codecs, Chromebook ASoC codecs) stay in the list: they only bind on a match, and the image is meant for other AMD laptops too.
+
+| | Bare metal (`bm`) | VM (`vm`) |
+|---|---|---|
+| First stage | none | `virtio_pci_legacy_dev`, `virtio_pci_modern_dev`, `virtio_pci`, `virtio_blk` (GKI) and `virtio_dma_buf`, `virtio-gpu`, `virtio_input` |
+| `vendor_dlkm` `modules.load` | 135 modules | 134 (the 3 virtio ones are in first stage; `asus-nb-wmi` is blocked) |
+| `modules.blocklist` | `virtio-gpu`, `virtio_dma_buf`, `virtio_input` | `asus-nb-wmi` (-ENODEV without the ASUS WMI GUID) |
+
+### How the images are built
+
+`kernel/devices/anybook/BUILD.bazel` adds, per variant: `initramfs` (`trim_unused_modules`), `vendor_boot_image` (header v4, DLKM fragment `dlkm`) and `vendor_dlkm_image` (`dedup_dlkm_modules` against `//common:kernel_x86_64_system_dlkm_image`, staging archive only). Then a `hermetic_genrule` runs `g14/pack_vendor_dlkm.py` on that staging. `system_dlkm` is the GKI's own image target. Three Kleaf problems turned up on the way:
+
+1. **Kleaf's flattened `vendor_dlkm` is not what Android mounts.** It copies all 238 modules of the mixed build, the 100 GKI ones included, and drops `modules.blocklist`. The genrule writes what Googlebook's `vendor_dlkm` holds instead:
+   - only the vendor `.ko` files, flat in `lib/modules/`;
+   - a `modules.dep` with absolute paths, `/vendor/lib/modules/x.ko` for vendor modules and `/system/lib/modules/x.ko` for the GKI modules they need;
+   - `modules.load`, `modules.blocklist` and `modules.alias`.
+
+   The image shrinks from 68.2 to 50.9 MiB.
+2. **Kleaf's default labels make every vendor module fail under enforcing SELinux.** Kleaf labels `.ko` files `vendor_kernel_modules`. AOSP's policy grants `module_load` on `vendor_file` (to `vendor_modprobe` and `ueventd`) and on `vendor_kernel_modules` to nobody. The first enforcing QEMU run showed "Permission denied" for every vendor module. `g14/vendor_dlkm.file_contexts` now uses the platform's own labels (`system/sepolicy/private/file_contexts`: `vendor_file`, and `vendor_configs_file` for `etc/`).
+3. **`kernel_vendor_cmdline` loses everything after its first space.** `boot_images.bzl` writes `KERNEL_VENDOR_CMDLINE={value}` unquoted into a shell script. The value in `BUILD.bazel` therefore carries its own single quotes.
+
+`vendor_boot` carries no bootconfig. The product build adds its static `androidboot.*` values, and the loader adds the per-boot ones (slot, AVB state, `boot_part_uuid`), as in `docs/installer.md` §2.
+
+### Firmware staging
+
+`scripts/kernel-g14-firmware.py` copies the subset into `vendor/firmware/<linux-firmware path>`. WHENCE links become regular files, because `PRODUCT_COPY_FILES` copies files. It checks every file's sha256 against the subset list and its git blob against linux-firmware `38c1a709`, copies the 5 licence files the WHENCE entries cite to `vendor/firmware/LICENSES/`, and writes `firmware.mk` and the manifest (`firmware-manifest.{md,tsv,json}`: path, size, sha256, source path and URL, WHENCE driver, licence, requesting module, used by the GA403WR or not).
+
+- **137 files, 52.6 MB.** The GA403WR uses 24 of them (6.9 MB): GC 11.5.0, PSP 14.0.0, DCN 3.5, SDMA 6.1.0, VCN 4.0.5, VPE 6.1.0, UMSCH 4.0.0, NPU `17f0_10`, MT7925 Wi-Fi and Bluetooth, and the CS35L56 `10431024-spkid1` set.
+- **The CS35L56 `10431024` tuning is not missing.** This issue asked to flag it as missing, as ANAL-171's notes said. ANAL-175 corrected that: linux-firmware's git tree has no files by that name, but WHENCE (lines 9731–9736) creates them as links to the `10431044` tuning and `CS35L56_Rev3.11.16.wmfw`, and the laptop loads the `spkid1` set. They are staged. A fresh fetch of linux-firmware on 2026-10-16 still ended at `38c1a709`.
+- **Still absent:** `amdnpu/17f0_20/npu.sbin`, which amdxdna declares. The GA403WR's NPU is rev 10, so it is not needed.
+- **First stage needs no firmware,** because it loads no modules.
+
+### The QEMU check
+
+`scripts/kernel-g14-qemu.sh` runs `scripts/kernel-g14-qemu.py` in the `anybook-qemu` image. It reads the dist and an existing Cuttlefish product (ANAL-172's snapshot of ANAL-168's `aosp_cf_x86_64_pc` images); nothing in the AOSP tree is built or written.
+
+- **The loader is emulated the way a boot image v4 loader works.**
+  - QEMU starts our `bzImage` directly. The initrd is assembled from our `vendor_boot.img` fragments, then a test fragment with the fstab, then the generic ramdisk from `init_boot.img`, then a bootconfig trailer.
+  - The trailer carries the per-boot values a loader adds: slot `_a`, `orange`/`unlocked`, the vbmeta digest and size, and `boot_devices` or `boot_part_uuid`.
+  - The command line is the GKI's built-in one, plus `vendor_boot`'s, plus a serial console.
+- **The disk is GPT, laid out like Googlebook's:** `misc`, `boot_a` (our `boot.img`), `init_boot_a`, `vendor_boot_a` (ours), `vbmeta_a`, `metadata` (ext4), `super` and `userdata`.
+  - `super` holds the product's partitions plus our `vendor_dlkm` and `system_dlkm`.
+  - One vbmeta, signed with AOSP's AVB test key, carries all 8 hashtree descriptors.
+  - A second copy of the disk gets new GUIDs. Every run boots from a throwaway overlay.
+- **Test glue, not product:** `kernel/devices/anybook/g14/test/fstab.qemu`, modeled on Googlebook's `fstab.android-desktop`. It is installed under Cuttlefish's fstab suffix, so the reused Cuttlefish userspace finds its own second-stage fstab.
+- **Evidence:** the kernel log from the serial console. Then a root shell (the userdebug console service, then `su`) lists `/dev/block/by-name`, `/sys/class/block`, mounts, dm devices, props and `/proc/modules`. Each run's verdict is in `qemu/<run>.json`.
+- **Found on the way:**
+  - QEMU's `amd-iommu` stops xHCI and NVMe controllers behind a PCIe root port from completing any command, so the check runs without it (`--iommu` turns it back on).
+  - The GKI's 8250 driver has no runtime UARTs, so a serial console needs `8250.nr_uarts=1`, as Cuttlefish passes.
+
+**On the laptop, use `androidboot.boot_part_uuid`.** With `boot_devices`, init matches only the first PCI level of a block device's path: the root port. On the GA403WR the NVMe (bus `61`) sits behind a `00:02.x` GPP bridge, and the xHCI controllers (`65:00.4`, `67:00.0/.3/.4`) behind `00:08.1` and `00:08.3`. The exact bridges are a **HYPOTHESIS** from the bus numbers in `lspci-nnk.txt`. A USB stick and the internal disk would then match different strings, but two Android disks on the same controller cannot be told apart. `boot_part_uuid` uses the full NVMe or SCSI path and strict mode, and the `both-uuid` run shows it picks the right disk. `docs/installer.md` already makes it the loader's job.
+
+### Hand-off to ANAL-199 (G14 product)
+
+```make
+# Paths are to the packaging output (~/anybook/kernel/g14/<label>/images), which is never committed.
+BOARD_PREBUILT_VENDOR_DLKMIMAGE := $(G14_KERNEL_IMAGES)/vendor_dlkm.img
+BOARD_PREBUILT_SYSTEM_DLKMIMAGE := $(G14_KERNEL_IMAGES)/system_dlkm.img
+BOARD_VENDOR_RAMDISK_FRAGMENTS += dlkm
+BOARD_VENDOR_RAMDISK_FRAGMENT.dlkm.PREBUILT := $(G14_KERNEL_IMAGES)/vendor_boot-ramdisk.lz4
+BOARD_VENDOR_RAMDISK_FRAGMENT.dlkm.MKBOOTIMG_ARGS := --ramdisk_type DLKM
+BOARD_KERNEL_CMDLINE += firmware_class.path=/vendor/firmware log_buf_len=1M
+# kernel: $(G14_KERNEL_IMAGES)/bzImage (or boot.img); firmware: firmware/firmware.mk with ANYBOOK_G14_FIRMWARE_DIR
+```
+
+- **Use one dist for everything.** The `bzImage` and `system_dlkm` must come from the same packaging run (`MODULE_SIG_PROTECT`).
+- **No other vendor ramdisk fragment may carry a flat `/lib/modules/modules.load`.** When the release directory loads zero modules, first-stage init falls back to that flat list, and a vermagic error there is fatal (`first_stage_init.cpp`; ANAL-189 hit this).
+- **Something must load the modules.** The product's init has to load `/vendor/lib/modules/modules.load` early, as Googlebook's `init.insmod.sh` and Cuttlefish's `dlkm_loader` do. That loader's domain needs `module_load` on `vendor_file` and `system_dlkm_file`. GKI dependencies are resolved through `modules.dep`.
+- **The fstab and the static bootconfig are the product's.** `test/fstab.qemu` shows a working Googlebook-style layout.
+
+### Commands
+
+```bash
+scripts/kernel-g14-package.sh --evidence evidence/<date>-kernel-g14   # all steps; about 3 min with a warm Bazel cache
+scripts/kernel-g14-package.sh --from qemu                            # rerun the boot check and what follows
+scripts/kernel-g14-qemu.sh "" --runs usb,nvme --force                # single runs; logs in ~/anybook/kernel/g14/qemu/<dist>
+python3 scripts/kernel-g14-modlists.py gen                           # after editing g14/modules.tsv
+```
+
+- **Build cost.** A warm build takes about 10 s. A cold one is the ANAL-171 build, 6–16 min. While an `anybook-aosp-build` container runs, the script caps Bazel at 16 jobs and 16 GiB and records the setting in `build-settings.txt`.
+- **QEMU cost.** The 5 runs take about 2.5 min. The first one per variant spends about 30 s writing 3.8 GiB sparse disk images to `~/anybook/kernel/g14/qemu-work`.
+
+### Open items
+
+- **Nothing has run on the GA403WR.** ANAL-176 boots these images from USB on the laptop.
+- **Debugging the laptop without a serial port.** **HYPOTHESIS:** `earlycon=efifb keep_bootcon` would show the kernel log on the GOP framebuffer until amdgpu takes over (`EFI_EARLYCON=y`), and efi-pstore (`EFI_VARS_PSTORE=y`) would keep a panic log across a reboot. Neither has been tried.
+- **A recovery module list** (amdgpu and input), if the product ships a recovery or fastbootd UI.
+- **A fixed module-signing key.** `kernel_build` has `module_signing_key`, but `common_kernel()` in `build/kernel/kleaf/common_kernels.bzl` does not pass it through. It needs a small `build/kernel` patch plus a key kept outside the repo. Until then, every cold GKI rebuild gets a new key, and the whole dist has to ship together.
+- **The QEMU check reuses the Cuttlefish userspace.** Rerun it against ANAL-199's G14 product when that exists, by pointing `G14_PRODUCT` at its `PRODUCT_OUT`. It will need the product's fstab in place of `test/fstab.qemu`.

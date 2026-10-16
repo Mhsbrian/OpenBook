@@ -1,0 +1,3 @@
+d92572c9a232138d40070415f551e63d68c79720fbfa2a30caafc63e94fcaa94  /home/hive/anybook/kernel/dist/anybook-g14-gbos-16302624/bzImage
+f0dff3f04086d34f0571ee47c0fad92d3028fa4299f703549bb150f9d6a23cb1  /home/hive/anybook/kernel/dist/anybook-g14-gbos-16302624/dot_config
+2e4ace4792e185e78a28102309487bc3480a367bef968fccb638c7f854786a70  /home/hive/anybook/kernel/dist/anybook-g14-gbos-16302624/vmlinux

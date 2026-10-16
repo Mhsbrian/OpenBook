@@ -1,0 +1,117 @@
+{
+ "pass": true,
+ "runs": {
+  "usb": {
+   "pass": true,
+   "checks": {
+    "switch_root": true,
+    "all_logical_mounted": true,
+    "avb_ok": true,
+    "dm_verity_for_all": true,
+    "by_name_complete": true,
+    "by_name_on_expected_disk": true,
+    "vendor_dlkm_all_live": true,
+    "expected_failures_only": true,
+    "no_symbol_crc_signature_errors": true,
+    "gki_deps_from_system_dlkm_live": true
+   },
+   "timeline": {
+    "first_stage_switch_root_s": 1.1,
+    "console_s": 8.5,
+    "dlkm_loader_done_s": 9.9,
+    "dlkm_loader_state": "stopped",
+    "total_s": 20.8
+   }
+  },
+  "uas": {
+   "pass": true,
+   "checks": {
+    "switch_root": true,
+    "all_logical_mounted": true,
+    "avb_ok": true,
+    "dm_verity_for_all": true,
+    "by_name_complete": true,
+    "by_name_on_expected_disk": true,
+    "vendor_dlkm_all_live": true,
+    "expected_failures_only": true,
+    "no_symbol_crc_signature_errors": true,
+    "gki_deps_from_system_dlkm_live": true
+   },
+   "timeline": {
+    "first_stage_switch_root_s": 1.1,
+    "console_s": 7.3,
+    "dlkm_loader_done_s": 8.7,
+    "dlkm_loader_state": "stopped",
+    "total_s": 19.6
+   }
+  },
+  "nvme": {
+   "pass": true,
+   "checks": {
+    "switch_root": true,
+    "all_logical_mounted": true,
+    "avb_ok": true,
+    "dm_verity_for_all": true,
+    "by_name_complete": true,
+    "by_name_on_expected_disk": true,
+    "vendor_dlkm_all_live": true,
+    "expected_failures_only": true,
+    "no_symbol_crc_signature_errors": true,
+    "gki_deps_from_system_dlkm_live": true
+   },
+   "timeline": {
+    "first_stage_switch_root_s": 1.1,
+    "console_s": 6.9,
+    "dlkm_loader_done_s": 8.3,
+    "dlkm_loader_state": "stopped",
+    "total_s": 19.2
+   }
+  },
+  "both-uuid": {
+   "pass": true,
+   "checks": {
+    "switch_root": true,
+    "all_logical_mounted": true,
+    "avb_ok": true,
+    "dm_verity_for_all": true,
+    "by_name_complete": true,
+    "by_name_on_expected_disk": true,
+    "vendor_dlkm_all_live": true,
+    "expected_failures_only": true,
+    "no_symbol_crc_signature_errors": true,
+    "gki_deps_from_system_dlkm_live": true,
+    "boot_device_found_by_uuid": true
+   },
+   "timeline": {
+    "first_stage_switch_root_s": 1.1,
+    "console_s": 8.5,
+    "dlkm_loader_done_s": 9.9,
+    "dlkm_loader_state": "stopped",
+    "total_s": 20.8
+   }
+  },
+  "vm": {
+   "pass": true,
+   "checks": {
+    "switch_root": true,
+    "all_logical_mounted": true,
+    "avb_ok": true,
+    "dm_verity_for_all": true,
+    "by_name_complete": true,
+    "by_name_on_expected_disk": true,
+    "vendor_dlkm_all_live": true,
+    "expected_failures_only": true,
+    "no_symbol_crc_signature_errors": true,
+    "gki_deps_from_system_dlkm_live": true,
+    "dlkm_ready": true
+   },
+   "timeline": {
+    "first_stage_switch_root_s": 1.1,
+    "console_s": 6.9,
+    "dlkm_loader_done_s": 8.3,
+    "dlkm_loader_state": "stopped",
+    "total_s": 19.2
+   }
+  }
+ }
+}
