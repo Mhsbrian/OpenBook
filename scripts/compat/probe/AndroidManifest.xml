@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- @PKG@ and @ABI@ are filled in by build.sh; one APK per ABI. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="@PKG@">
+    <application android:label="AnyBook probe @ABI@" android:extractNativeLibs="true" android:hasCode="true">
+        <activity android:name="dev.anybook.probe.MainActivity" android:exported="true"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|density">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
