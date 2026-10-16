@@ -140,3 +140,9 @@ These are `hwcheck-005.{txt,json,-dmesg.txt}`, redacted by the probe. sha256 of 
 - The sleep entries list every power-manageable ACPI device (state, real state, PCI device) and every ACPI power resource (on/off). The lists are taken before the detach, before suspend and after resume.
 - Tested in QEMU on a copy of the v4 image updated with the v5 bundle. Both sleep entries ran to completion; QEMU's firmware has no power-manageable ACPI devices, so those lists are empty there. The sysfs attributes were checked read-only on the dev host.
 - The menu entries and README are byte-identical to v4; only `hwcheck.img` changes.
+
+## Stick updated to v5 (2026-10-16, owner's confirmation on ANAL-189)
+- Same guarded update as for v2–v4 (`stick-update-v5.log`): only `openbook/check/hwcheck.img`, the three check entries and the README on the OPENBOOK partition.
+- A read-only remount verified all five files against `../2026-10-16-installer/hwcheck-stick/v5/esp-update-MANIFEST.sha256`.
+- Menu order unchanged; the "sleep test, NVIDIA GPU powered down" entry now also maps ACPI paths and power resources.
+- Reports `hwcheck-001`…`005` are still on the stick. The next run writes `hwcheck-006`.
