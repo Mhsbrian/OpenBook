@@ -24,7 +24,7 @@ The repo was renamed to **https://github.com/Mhsbrian/OpenBook**; the old AnyBoo
 | ANAL-188 USB installer (M8) | ⏸ ANAL-189 design | ⏸ ANAL-190 live USB image | ⏸ ANAL-191 wizard → ANAL-192 end-to-end tests |
 | **ANAL-193 Device-in-the-loop on the G14 (§4a)** | ⏸ ANAL-194 runtime and agent on G14 Linux (owner installs daemon) | ⏸ ANAL-195 Zen 5 validation in KVM | ⏸ ANAL-196 dual-boot test cycle → ANAL-197 runtime on installed OpenBook |
 | ANAL-165 Track B: Googlebook OS on AMD | ⏸ ANAL-182, ANAL-183 | ⏸ ANAL-184 | ⏸ ANAL-185 |
-| ANAL-186 NVIDIA dGPU | ⏸ ANAL-187 research | — | — |
+| ANAL-186 NVIDIA dGPU | ✓ ANAL-187 research (`docs/nvidia.md`; dGPU off for M3–M8, N1–N6 after M4) | — | — |
 | ANAL-166 Performance and parity | ⏸ | — | — |
 
 ## History
@@ -211,3 +211,40 @@ The repo was renamed to **https://github.com/Mhsbrian/OpenBook**; the old AnyBoo
 - ANAL-174 (AMD graphics in the device tree) can build on `anybook_cf_x86_64_pc`, inheriting `device/anybook/common/desktop/desktop.mk`.
 - ANAL-181: the native bridge.
 - Cuttlefish Wi-Fi is off (`wifi_on=0`).
+
+### 2026-10-16: NVIDIA dGPU research and dGPU-off default for first boot (ANAL-187)
+
+**Done**
+- **Recommendation** (`docs/nvidia.md`):
+  - No-go for using the dGPU in M3–M8.
+  - Conditional go for research milestones N1–N6 after M4. The target is per-app offload through Android's updatable-driver switch, with NVK on the dGPU and amdgpu scanout.
+- **The laptop is a GA403WR, so the GPU is an RTX 5070 Ti Laptop (GB205)**, not the GB206 in the issue title. nouveau treats both the same.
+- **Kernel:**
+  - nouveau has supported GB20x (GSP-RM 570.144) since 6.16, and that support is in our 6.18 tree.
+  - Runtime PM on r570 is still being fixed upstream (7.3-rc4 to rc7). Our 6.18 tree carries a backport that upstream reverted.
+  - The only RTX 5070 Laptop report shows about 5–10% of proprietary performance.
+  - Nova has no display or render support yet.
+- **Userspace:**
+  - NVK is Vulkan 1.4 conformant on desktop Blackwell, but **it has no AHardwareBuffer support**, which CDD 7.1.4.2 [C-3-1] requires. ANGLE therefore cannot offer the required EGL extension on it.
+  - Android loads one Vulkan driver per process; minigbm and EGL each use one GPU.
+- **GSP firmware licence:** redistributable in OpenBook images under `LICENCE.nvidia` §2.1.2: unmodified, with the licence text shipped next to it.
+- **First boot:** with `dgpu_disable=0` the dGPU will most likely sit in D0 under OpenBook:
+  - nothing binds it;
+  - the PCI core keeps unbound devices in D0;
+  - `snd_hda_intel` holds its HDMI-audio function awake, because `VGA_SWITCHEROO` is off and power_save is 0.
+
+  The inventory's missing dGPU is consistent with supergfxd removing it through sysfs, which Omarchy's setup does. That removal does not survive a reboot. **Default for ANAL-176:** `dgpu_disable=1`, set from Linux with the owner's confirmation; HDMI, which is on the dGPU, is lost while it is set. An OpenBook runtime-PM hook comes later as a fallback.
+- **Test:** `scripts/dgpu-power-check.sh` is read-only by default and emits JSON. It runs under bash and Android's mksh. Fixture tests pass 9/9 in both shells, and shellcheck is clean.
+
+**Evidence:** `evidence/2026-10-16-nvidia/`:
+- source excerpts from our kernel, Mesa 26.2.5, AOSP 17 (ANGLE, libvulkan, EGL, minigbm, drm_hwcomposer), linux-firmware and Omarchy;
+- fixture results;
+- a dev-host run.
+
+**Blocked:** nothing. The owner's go-ahead is needed before anyone sets `dgpu_disable=1` on the G14.
+
+**Next:**
+- The device agent (ANAL-195/196) runs `dgpu-power-check.sh --sample 120` on the G14's Linux.
+- The owner decides on `dgpu_disable=1`.
+- ANAL-176 runs the same check in the first OpenBook boot.
+

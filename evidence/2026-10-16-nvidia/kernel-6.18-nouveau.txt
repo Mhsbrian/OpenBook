@@ -181,3 +181,64 @@ enum nvkm_suspend_state {
 };
 
 #endif
+
+## nouveau history in this tree (git log, not shallow): GB20x support and the r570 suspend backports
+ef763b480a3d 2026-02-03 nouveau/gsp: fix suspend/resume regression on r570 firmware
+9cc8caba82c2 2026-02-03 nouveau: add a third state to the fini handler.
+0ce45b2426f9 2026-01-02 nouveau: don't attempt fwsec on sb on newer platforms.
+7e56e90b988c 2025-12-02 drm/nouveau/gsp: Allocate fwsec-sb at boot
+664ce10246ba 2025-10-30 drm/nouveau: Advertise correct modifiers on GB20x
+e79d0ba605d5 2025-07-03 nouveau/gsp: add a 50ms delay between fbsr and driver unload rpcs
+6cc6e08d4542 2025-02-04 drm/nouveau/kms: add support for GB20x
+284ad706ad2f 2025-02-04 drm/nouveau: add support for GB20x
+56c36f590a55 2025-02-26 drm/nouveau/gsp: add hal for fifo.chan.doorbell_handle
+53dac0623853 2024-11-14 drm/nouveau/gsp: add support for 570.144
+befe75ae0db9 2025-02-15 drm/nouveau/gsp: add gpu hal stubs
+7904bcdcf6b5 2025-02-05 drm/nouveau/gsp: fix rm shutdown wait condition
+
+## ef763b480a3d is the 6.18.y backport of upstream 8302d0afeaec (reported reverted upstream in v7.3-rc4; see docs/nvidia.md §2)
+nouveau/gsp: fix suspend/resume regression on r570 firmware
+
+commit 8302d0afeaec0bc57d951dd085e0cffe997d4d18 upstream.
+
+The r570 firmware with certain GPUs (at least RTX6000) needs this
+
+## nouveau Kconfig selects (drivers/gpu/drm/nouveau/Kconfig)
+# SPDX-License-Identifier: GPL-2.0-only
+config DRM_NOUVEAU
+	tristate "Nouveau (NVIDIA) cards"
+	depends on DRM && PCI
+	select IOMMU_API
+	select FW_LOADER
+	select FW_CACHE if PM_SLEEP
+	select DRM_CLIENT_SELECTION
+	select DRM_DISPLAY_DP_HELPER
+	select DRM_DISPLAY_HDMI_HELPER
+	select DRM_DISPLAY_HELPER
+	select DRM_KMS_HELPER
+	select DRM_TTM
+	select DRM_TTM_HELPER
+	select DRM_EXEC
+	select DRM_GPUVM
+	select DRM_SCHED
+	select I2C
+	select I2C_ALGOBIT
+	select BACKLIGHT_CLASS_DEVICE if DRM_NOUVEAU_BACKLIGHT
+	select X86_PLATFORM_DEVICES if ACPI && X86
+	select ACPI_WMI if ACPI && X86
+	select MXM_WMI if ACPI && X86
+	select POWER_SUPPLY
+	# Similar to i915, we need to select ACPI_VIDEO and it's dependencies
+	select BACKLIGHT_CLASS_DEVICE if ACPI && X86
+	select INPUT if ACPI && X86
+	select THERMAL if ACPI && X86
+	select ACPI_VIDEO if ACPI && X86
+	select SND_HDA_COMPONENT if SND_HDA_CORE
+	help
+
+## Shared DRM helpers already built as AnyBook vendor modules for amdgpu (~/anybook/kernel/amd/vendor-modules.txt)
+drm_buddy.ko drm_display_helper.ko drm_exec.ko drm_suballoc_helper.ko drm_ttm_helper.ko gpu-sched.ko i2c-algo-bit.ko video.ko wmi.ko 
+(drm_gpuvm.ko and mxm-wmi.ko are not in the list)
+
+## NVPCF / NVDA0820 driver in this tree
+$ grep -rIl 'NVDA0820|nvpcf|NVPCF' drivers include -> 0 files

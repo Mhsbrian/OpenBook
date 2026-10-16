@@ -56,7 +56,9 @@ parent_bdf() {
 
 child_count() {
   p=$(readlink -f "$SYS/bus/pci/devices/$1" 2>/dev/null) || { echo 0; return; }
-  ls "$p" 2>/dev/null | grep -cE '^[0-9a-f]{4}:[0-9a-f]{2}:[0-9a-f]{2}\.[0-7]$'
+  n=0
+  for c in "$p"/????:??:??.?; do [ -e "$c" ] && n=$((n + 1)); done
+  echo $n
 }
 
 # Power resources of an ACPI node: JSON array of {stage, name, in_use}.
@@ -217,9 +219,10 @@ BOARD=$(rd "$SYS/class/dmi/id/board_name"); BIOS=$(rd "$SYS/class/dmi/id/bios_ve
 KREL=; [ -z "$R" ] && KREL=$(uname -r)
 
 ASUS_SRC=; ASUS_DGPU_DISABLE=; ASUS_MUX=; ASUS_EGPU=
-for p in "$SYS"/devices/platform/asus-nb-wmi; do
-  [ -e "$p/dgpu_disable" ] && { ASUS_SRC=asus-nb-wmi; ASUS_DGPU_DISABLE=$(rd "$p/dgpu_disable"); ASUS_MUX=$(rd "$p/gpu_mux_mode"); ASUS_EGPU=$(rd "$p/egpu_enable"); }
-done
+p=$SYS/devices/platform/asus-nb-wmi
+if [ -e "$p/dgpu_disable" ]; then
+  ASUS_SRC=asus-nb-wmi; ASUS_DGPU_DISABLE=$(rd "$p/dgpu_disable"); ASUS_MUX=$(rd "$p/gpu_mux_mode"); ASUS_EGPU=$(rd "$p/egpu_enable")
+fi
 A=$SYS/class/firmware-attributes/asus-armoury/attributes
 if [ -z "$ASUS_SRC" ] && [ -e "$A/dgpu_disable/current_value" ]; then
   ASUS_SRC=asus-armoury; ASUS_DGPU_DISABLE=$(rd "$A/dgpu_disable/current_value"); ASUS_MUX=$(rd "$A/gpu_mux_mode/current_value"); ASUS_EGPU=$(rd "$A/egpu_enable/current_value")

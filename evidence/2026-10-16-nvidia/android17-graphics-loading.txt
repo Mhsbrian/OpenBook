@@ -108,3 +108,14 @@ GraphicsDriverTopIntroPreferenceController.java
 11:        std::string lib_name = android::base::GetProperty(key, "");
 12:        if (lib_name.empty())
 15:        lib_name = "vulkan." + lib_name + ".so";
+
+## ANGLE exposes EGL_ANDROID_image_native_buffer only when the Vulkan driver has AHB + queue_family_foreign (CDD 7.1.4.1 requires the EGL extension)
+#if defined(ANGLE_PLATFORM_ANDROID)
+    ANGLE_FEATURE_CONDITION(
+        &mFeatures, supportsAndroidHardwareBuffer,
+        IsAndroid() &&
+            ExtensionFound(VK_ANDROID_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER_EXTENSION_NAME,
+                           deviceExtensionNames) &&
+            ExtensionFound(VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME, deviceExtensionNames));
+#endif
+    outExtensions->imageNativeBuffer     = getFeatures().supportsAndroidHardwareBuffer.enabled;

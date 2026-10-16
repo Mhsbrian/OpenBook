@@ -49,10 +49,10 @@ func() {
   d=$1/sys/devices/pci0000:00/0000:00:03.1/0000:01:00.$2
   w "$d/vendor" 0x10de; w "$d/class" "$3"; w "$d/device" "$4"; w "$d/power_state" "$5"
   w "$d/power/runtime_status" active; w "$d/power/control" on; w "$d/d3cold_allowed" 1
-  ln -s ../../../devices/pci0000:00/0000:00:03.1/0000:01:00.$2 "$1/sys/bus/pci/devices/0000:01:00.$2"
+  ln -s "../../../devices/pci0000:00/0000:00:03.1/0000:01:00.$2" "$1/sys/bus/pci/devices/0000:01:00.$2"
   if [ -n "${6:-}" ]; then
     mkdir -p "$1/sys/bus/pci/drivers/$6"
-    ln -s ../../../../bus/pci/drivers/$6 "$d/driver"
+    ln -s "../../../../bus/pci/drivers/$6" "$d/driver"
   fi
 }
 

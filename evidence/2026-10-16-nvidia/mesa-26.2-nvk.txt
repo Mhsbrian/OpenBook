@@ -141,3 +141,95 @@ if with_gallium_rusticl or with_nouveau_vk or with_tools.contains('etnaviv') or 
     error('Mesa requires Rust 1.85.0 or newer')
   endif
 
+
+## docs/drivers/nvk.rst (Mesa 26.2.5 source tree)
+NVK
+===
+NVK is a Vulkan driver for NVIDIA GPUs.
+Hardware support
+----------------
+NVK currently supports Kepler (GeForce 600 and 700 series) and later GPUs up to
+and including Ada (RTX 4000 series), as well as consumer Blackwell GPUs
+(RTX 5000 series).
+Conformance status:
+-------------------
+NVK is a conformant Vulkan 1.4 implementation for all officially supported
+GPUs.
+OpenGL support through Zink:
+----------------------------
+Starting with Mesa 25.1, all Turing (RTX 2000 series and GTX 16xx) and
+later GPUs will get NVK+Zink as their OpenGL implementation by default
+instead of the old Nouveau GL driver.  NVK+Zink is a conformant OpenGL 4.6
+implementation. The Nouveau GL driver is no longer supported on these cards.
+Kernel requirements
+-------------------
+NVK requires at least a Linux 6.6 kernel
+
+## Release notes mentioning Blackwell
+docs/relnotes/25.2.0.rst:117:- nvk Blackwell support
+docs/relnotes/25.2.0.rst:1129:- nouveau/headers: Add stub blackwell class headers
+docs/relnotes/25.2.0.rst:1131:- nvk: Don't emit MME FIFO config on Blackwell+
+docs/relnotes/25.2.0.rst:1134:- nvk/headers: sync up the latest blackwell compute class headers
+docs/relnotes/25.2.0.rst:1137:- nvk: bindless cbufs on hopper/blackwell are different.
+docs/relnotes/25.2.0.rst:1149:- nvk/nil: add texture header v2 support for hopper/blackwell
+docs/relnotes/25.2.0.rst:1150:- nvk/nil: Use PTE_KIND_GENERIC_MEMORY for everything on Blackwell+
+docs/relnotes/25.2.0.rst:1157:- nak/sm70: fix imnmx on blackwell.
+
+## NVK has no AHardwareBuffer support (VK_ANDROID_external_memory_android_hardware_buffer)
+$ grep -rl 'android_hardware_buffer|AHardwareBuffer|ANDROID_external_memory' src/nouveau/vulkan/ -> 0 files
+$ grep -rl ANDROID_external_memory_android_hardware_buffer src/amd/vulkan/ -> 2 files (RADV has it)
+
+## NVK renders straight into linear colour attachments when address and row stride are 128-byte aligned; otherwise it uses a tiled shadow plus a copy (src/nouveau/vulkan/nvk_cmd_draw.c)
+bool
+nvk_image_plane_aligned_for_linear_attachment(const struct nvk_image_plane *plane,
+                                              const struct nil_image_level *level)
+{
+   assert(level->tiling.gob_type == NIL_GOB_TYPE_LINEAR);
+   uint64_t addr = nvk_image_plane_base_address(plane) + level->offset_B;
+   return addr % 128 == 0 && level->row_stride_B % 128 == 0;
+}
+
+static bool
+nvk_rendering_linear(const struct nvk_rendering_state *render)
+{
+   /* Depth and stencil are never linear */
+   if (render->depth_att.iview || render->stencil_att.iview)
+      return false;
+
+   for (uint32_t i = 0; i < render->color_att_count; i++) {
+      const struct nvk_image_view *iview = render->color_att[i].iview;
+      if (iview == NULL)
+         continue;
+
+      const struct nvk_image *image = (struct nvk_image *)iview->vk.image;
+      const uint8_t ip = iview->planes[0].image_plane;
+      const struct nvk_image_plane *plane = &image->planes[ip];
+      const struct nil_image_level *level =
+         &plane->nil.levels[iview->vk.base_mip_level];
+
+      if (level->tiling.gob_type != NIL_GOB_TYPE_LINEAR)
+         return false;
+
+      /* We can't render to a linear image unless the address and row stride
+       * are multiples of 128B.  Fall back to tiled shadows in this case.
+       */
+      if (!nvk_image_plane_aligned_for_linear_attachment(plane, level))
+         return false;
+   }
+
+   return true;
+
+## Mesa EGL on Android picks one GPU (src/egl/drivers/dri2/platform_android.c)
+#ifdef EGL_FORCE_RENDERNODE
+   const unsigned node_type = DRM_NODE_RENDER;
+#else
+   const unsigned node_type = swrast ? DRM_NODE_PRIMARY : DRM_NODE_RENDER;
+#endif
+
+   if (__system_property_get("drm.gpu.vendor_name", vendor_buf) > 0)
+      vendor_name = vendor_buf;
+
+   while (dev_list) {
+      if (!_eglDeviceSupports(dev_list, _EGL_DEVICE_DRM))
+         goto next;
+

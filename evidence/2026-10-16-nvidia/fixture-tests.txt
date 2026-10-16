@@ -9,7 +9,7 @@ ok   Android, battery power from current x voltage: absent-off rc=0
 ok   bad argument:  rc=3
 all passed (bash)
 
-$ PATH=<toybox applets> ~/anybook/aosp/src/prebuilts/build-tools/linux-x86/bin/sh scripts/dgpu-power-check-test.sh <AOSP mksh> (@(#)MIRBSD KSH R59 2020/10/31 Android)
+$ PATH=<toybox applets> <AOSP prebuilts/build-tools/linux-x86/bin/sh> scripts/dgpu-power-check-test.sh (@(#)MIRBSD KSH R59 2020/10/31 Android)
 ok   firmware dgpu_disable=1, not enumerated: absent-off rc=0
 ok   removed by the OS, port in D3cold, power resource off: absent-off rc=0
 ok   removed by the OS, port awake, power resource on: absent-powered rc=1

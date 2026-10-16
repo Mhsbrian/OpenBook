@@ -70,7 +70,14 @@ Status as of 2026-10-15. Facts are labelled **CONFIRMED** (we checked a primary 
    - QEMU direct-kernel boot already gets through first-stage mount.
 6. **ARM translation (Track A).** Neither libhoudini nor libndk_translation is redistributable. Berberis upstream only translates riscv64. Digitalis is Apache-2.0 and Berberis-based, but young and unmeasured. Add it to the compat matrix early.
 7. **Linux terminal and AVF.** The Googlebook terminal runs in a pKVM-protected VM, which doesn't exist on AMD. The fallback is non-protected AVF VMs over plain KVM.
-8. **NVIDIA (long term).** NVK/nouveau in Mesa for Android with GSP firmware. This comes after AMD.
+8. **NVIDIA (long term).** NVK/nouveau in Mesa for Android with GSP firmware. This comes after AMD. Research is done (ANAL-187, `docs/nvidia.md`):
+   - The open pieces exist. nouveau has supported GB20x through GSP-RM 570.144 since 6.16, and NVK is Vulkan 1.4 conformant on Blackwell.
+   - The open problems:
+     - Runtime PM on r570 firmware is still being fixed upstream.
+     - The only RTX 5070 Laptop report shows about 5–10% of proprietary-driver performance.
+     - Android has no hybrid-GPU plumbing.
+   - **No-go for M3–M8**: the dGPU stays off, with `dgpu_disable=1` as ANAL-176's default.
+   - After M4: research milestones N1–N6, aiming at per-app offload through Android's updatable-driver switch.
 
 ## 4. Milestones
 
