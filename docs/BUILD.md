@@ -100,3 +100,15 @@ scripts/kernel-build.sh           # tools/bazel run --config=stamp //common:kern
 ```
 
 The scripts run in `tools/Dockerfile.kernel` (Ubuntu 24.04) through `scripts/kernel-docker.sh`. Plan for 53 GB of sources, 9 GB of Bazel cache and about 6 min per build on 32 threads. Comparison, config-diff and boot-test tools are covered in `docs/kernel.md`.
+## M1b: build aosp_cf_x86_64_pc and boot it in Cuttlefish (ANAL-168)
+
+```bash
+AOSP_JOBS=32 scripts/aosp-docker.sh -d anybook-aosp-build /repo/scripts/aosp-build.sh aosp_cf_x86_64_pc-cp2a-userdebug
+docker wait anybook-aosp-build          # ~2 h 10 min cold on the shared host; re-running resumes
+scripts/cf-boot.sh                      # Cuttlefish container: launch, wait for boot_completed, capture, tear down (~45 s)
+```
+
+- Plan for about 41 GiB of RAM plus swap, 137 GB for `out/` (165 GB with `dist`), and 10 GB of ccache.
+- Cuttlefish runs in `cuttlefish-orchestration:1.56.0` (pinned by digest) with `--cap-add NET_ADMIN`, `seccomp=unconfined`, and `/dev/kvm`, `/dev/net/tun`, `/dev/vhost-net` and `/dev/vhost-vsock`.
+- Images are staged as reflink copies in `~/anybook/aosp/cf/product`; `out/` is never modified.
+- See `docs/aosp-build.md` (M1b).
