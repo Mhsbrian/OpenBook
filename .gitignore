@@ -12,3 +12,4 @@
 __pycache__/
 *.pyc
 docs/installer-design/fonts
+assets/src/fonts

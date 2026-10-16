@@ -6,7 +6,7 @@ timeout. Runs inside the openbook-installer container. Image files only; never a
 
 usage: qemu-run.py --usb IMG [--nvme IMG] --out DIR [--timeout S] [--expect STEPS.json] [--shot SECONDS ...]
                    [--mem MiB] [--smp N] [--vars FILE] [--pause-on-reset] [--vga MODEL] [--gpu DEVICE]
-                   [--usb-input] [--tpm] [--trace]
+                   [--usb-input] [--tpm] [--detach-test-device] [--trace]
 
 STEPS.json: [{"wait": "regex", "timeout": 120}, {"send": "text\\n"}, {"shot": "name"}, ...]; steps run in order
 on the serial stream; "shot" saves the screen as DIR/shot-<name>.png at that point. The run ends when the steps
@@ -68,6 +68,8 @@ def main():
     ap.add_argument("--usb-input", action="store_true", help="add a USB keyboard and tablet on the xHCI bus")
     ap.add_argument("--tpm", action="store_true",
                     help="TPM 2.0 on CRB (ACPI MSFT0101, like a Pluton/fTPM laptop), backed by swtpm in DIR/tpm")
+    ap.add_argument("--detach-test-device", action="store_true",
+                    help="add a virtio-rng (1af4) behind a PCIe root port, a stand-in for the dGPU detach test")
     ap.add_argument("--trace", action="store_true", help="log CPU resets and guest errors to DIR/qemu-debug.log")
     args = ap.parse_args()
 
@@ -113,6 +115,8 @@ def main():
     if args.nvme:
         cmd += ["-drive", f"if=none,id=internal,format=raw,cache=unsafe,file={args.nvme}",
                 "-device", "nvme,drive=internal,serial=internal0,bootindex=2"]
+    if args.detach_test_device:
+        cmd += ["-device", "pcie-root-port,id=rpx,chassis=9,slot=9", "-device", "virtio-rng-pci,bus=rpx"]
     if args.pause_on_reset:  # freeze instead of rebooting, so a screenshot can show the last screen
         cmd = [c for c in cmd if c != "-no-reboot"] + ["-action", "reboot=shutdown", "-action", "shutdown=pause"]
     if args.trace:

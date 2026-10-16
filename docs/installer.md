@@ -151,14 +151,51 @@ Full serial logs are `matrix/*/serial.log.gz`.
 - **"OpenBook hardware check"** (default after 8 s) is for the laptop. The probe (`probe-init.c`, `openbook.probe=report`):
   1. Records the firmware identity (DMI, without serials), CPU (incl. AVX-VNNI), memory, PCI devices and the bootconfig the loader passed.
   2. Writes a first copy of the report to the stick, so a hang still leaves results.
-  3. Loads our module set (ANAL-172's dependency-resolved set for this exact kernel: GKI + the 138 OpenBook modules) with the firmware subset (ANAL-171). It loads dependencies first and skips a safety list: the cs35l56 speaker-amp drivers (no tuning file exists for this laptop), asus-wmi/asus-nb-wmi/hid-asus (they can change firmware settings), and test modules.
+  3. Loads our module set (ANAL-172's dependency-resolved set for this exact kernel: GKI + the 138 OpenBook modules) with the firmware subset (ANAL-171). It loads dependencies first and skips a safety list: the cs35l56 speaker-amp drivers (they download DSP firmware and tuning to the amps; the check plays no audio, and ANAL-179 validates the speakers), asus-wmi/asus-nb-wmi/hid-asus (they can change firmware settings), and test modules.
   4. Waits 10 s, then records which drivers bound and the `drm`, `net`, `bluetooth`, `sound`, `backlight`, `power_supply`, `typec` and input devices.
   5. Writes `openbook/logs/hwcheck-NNN.txt` and `-dmesg.txt` to the stick and powers off.
 
   It only mounts the ESP whose PARTUUID is `boot_part_uuid`, and only if that partition is on USB. It never writes to the laptop's disks. GKI has no devtmpfs, so the probe makes that one device node itself from sysfs.
 - **"OpenBook preview (virtual machines only)"** is the Android 17 boot from §2.3, with the console on the serial port. It shows nothing on a laptop: this preview has no graphics stack for real hardware yet. That arrives with ANAL-174/198/199.
 
-**Tested in QEMU on the final image (C, `evidence/2026-10-16-installer/hwcheck-stick/`):** the check loaded 236 modules (0 failed, 29 skipped), wrote the report and kernel log to the stick, and powered off after 23 s, with the decoy NVMe untouched. The preview entry reached the Android console. Nothing has run on the G14 yet: the stick is the owner's first test.
+**Tested in QEMU on the final image (C, `evidence/2026-10-16-installer/hwcheck-stick/`):** the check loaded 236 modules (0 failed, 29 skipped), wrote the report and kernel log to the stick, and powered off after 23 s, with the decoy NVMe untouched. The preview entry reached the Android console.
+
+**Run on the G14 (C, `evidence/2026-10-16-g14-hwcheck/SUMMARY.md`).** The owner's first run:
+- UEFI → systemd-boot → our kernel; 235 modules loaded, 0 failed.
+- These came up:
+  - amdgpu: SMU, DCN 3.5 and DMUB, the eDP panel with PSR, and backlight;
+  - mt7925e with `wlan0`, Bluetooth `hci0`, and the ELAN touchpad;
+  - the keyboard, lid switch, NPU `accel0`, battery, UCSI and USB4.
+- The stick also booted the preview entry: Android's first and second stage ran from USB on the laptop.
+- Findings:
+  - `regulatory.db` was missing;
+  - the dGPU's HDMI-audio function is bound;
+  - the backup GPT isn't at the end of a larger stick;
+  - power and display facts weren't recorded.
+
+**v2 (`make-hwcheck-stick.sh`, `openbook-hwcheck-20261016b`).**
+- **Probe:** runs from the check initrd (`rdinit=/openbook-check/probe`). It adds the CPU frequency driver and EPP, sleep states, connected displays and modes, backlight, battery health, the dGPU's PCI power state and runtime status, and temperatures. It writes `hwcheck-NNN.json` (schema `openbook-hwcheck/2`) next to the text report.
+- **Firmware:** `regulatory.db` with its licence is added.
+- **"OpenBook hardware check + sleep test":** one RTC-woken suspend of 20 s. The stick is unmounted while asleep. It records time asleep, `suspend_stats` and the AMD PMC s0ix counters.
+- **Updating a stick flashed from v1:** v2 changes only `openbook/check/`, the check entries and the README. `update-hwcheck-stick.sh /dev/disk/by-id/usb-… <bundle>` copies them onto the stick's OPENBOOK partition with udisks. It checks the by-id path, the ESP PARTUUID, the label and an existing OpenBook entry first, then verifies the copy with sha256.
+- **Tested in QEMU (C, `hwcheck-stick/v2/`):** the update bundle applied to the exact image the owner flashed:
+  - the check loads 236 modules and writes the JSON;
+  - the sleep entry slept 19.8 s, woke on the RTC alarm and wrote its result (QEMU uses S3; the G14 offers s2idle only);
+  - shared reports are redacted: USB serial numbers are blanked in the kernel log, and partition UUIDs are shown only for the stick;
+  - the fresh v2 image passes the check too.
+
+**G14 runs 2 and 3 (v2, C, `evidence/2026-10-16-g14-hwcheck/`).**
+- amd-pstate-epp is active.
+- s2idle is the only sleep state, and a suspend/resume cycle works (18.2 s, no errors after resume).
+- **S0ix residency stayed 0** ("Last suspend didn't reach deepest state").
+- The dGPU and its HDMI-audio function stay D0/active.
+- Battery health is 88.7 %, and `regulatory.db` now loads.
+
+**v3 (`openbook-hwcheck-20261016c`)** adds a fourth entry, "OpenBook sleep test, NVIDIA GPU powered down". For this boot only, it unbinds the dGPU's HDMI-audio function, removes both NVIDIA functions, and sets the root port to runtime PM (`docs/nvidia.md` §1, option 2). It then repeats the sleep test.
+- The JSON (`openbook-hwcheck/3`) adds `dgpu_detach` (bridge power state before and after) and `s0ix_residency_us`.
+- The report adds the AMD PMC firmware info and every PCI function still awake right before suspend.
+- Connectors that read "unknown" are probed before they're reported.
+- **Tested in QEMU:** the detach path was run against a virtio device behind a PCIe root port (unbind, remove and runtime PM all succeed; QEMU's port has no `_PR3`, so it stays D0), and the sleep test ran after it.
 
 ## 3. Install flow
 

@@ -72,14 +72,14 @@ It writes `anybook-hw-<board>-<date>.tar.gz`, with serials, UUIDs and MAC addres
 
 | Area | Kernel / driver | Userspace | Status |
 |---|---|---|---|
-| GPU | amdgpu, linux-firmware `amdgpu/*` | Mesa radeonsi/RADV, minigbm, drm_hwcomposer, ANGLE | Kernel module and firmware list built, loads in a VM (ANAL-171). Userspace is in the image and picked at boot; its drivers ran on the build host's 610M (ANAL-174, `docs/graphics-amd.md`). Untested on the 890M |
-| CPU power | amd-pstate (EPP) | power HAL | Built into the stock kernel (`X86_AMD_PSTATE=y`) |
-| Suspend | amd_pmc (s2idle) | system_suspend | Module built (ANAL-171); untested |
-| Touchpad / touch | i2c-hid-acpi, pinctrl-amd, hid-multitouch | — | `PINCTRL_AMD=y` and `X86_AMD_PLATFORM_DEVICE=y` in OpenBook GKI, i2c-designware/i2c-hid-acpi modules (ANAL-171); untested |
+| GPU | amdgpu, linux-firmware `amdgpu/*` | Mesa radeonsi/RADV, minigbm, drm_hwcomposer, ANGLE | Kernel module and firmware list built, loads in a VM (ANAL-171). Userspace is in the image and picked at boot; its drivers ran on the build host's 610M (ANAL-174, `docs/graphics-amd.md`). **On the G14 (kernel side):** amdgpu binds the 890M; SMU, DCN 3.5 and DMUB firmware load; the eDP panel is detected with PSR; backlight `amdgpu_bl0` (ANAL-189 hardware check). The graphics userspace is still untested on the 890M |
+| CPU power | amd-pstate (EPP) | power HAL | Built into the stock kernel (`X86_AMD_PSTATE=y`). **On the G14:** `amd-pstate-epp`, status active, EPP `balance_performance`, max 5.16 GHz (ANAL-189 hardware check) |
+| Suspend | amd_pmc (s2idle) | system_suspend | Module built (ANAL-171). **On the G14:** an RTC-woken s2idle cycle suspends and resumes cleanly, but **S0ix residency is 0** ("Last suspend didn't reach deepest state") while the driverless dGPU stays D0 (HYPOTHESIS: it is the blocker). The v3 check repeats the cycle with the dGPU powered down (ANAL-189, `evidence/2026-10-16-g14-hwcheck/`) |
+| Touchpad / touch | i2c-hid-acpi, pinctrl-amd, hid-multitouch | — | `PINCTRL_AMD=y` and `X86_AMD_PLATFORM_DEVICE=y` in OpenBook GKI, i2c-designware/i2c-hid-acpi modules (ANAL-171). **On the G14:** the ELAN touchpad registers as Touchpad + Mouse input devices (ANAL-189 hardware check, `evidence/2026-10-16-g14-hwcheck/`) |
 | Audio | snd-hda-intel (ALC285, SSID 1043:1024 quirk backported), cs35l56-hda-i2c; internal mic on HDA | audio HAL | Modules built (ANAL-171); CS35L56 tuning for 10431024 added to the firmware list (ANAL-175) |
-| Wi-Fi / BT | mt7925e, btmtk | wifi HAL | Modules and firmware list built (ANAL-171); untested |
-| NPU | amdxdna (XDNA 2) | — | Module built (ANAL-171); userspace later |
+| Wi-Fi / BT | mt7925e, btmtk | wifi HAL | Modules and firmware list built (ANAL-171). **On the G14:** mt7925e binds, firmware loads, `wlan0` and Bluetooth `hci0` appear. `regulatory.db` is missing from the firmware list (ANAL-189 hardware check). Scanning and connecting are untested |
+| NPU | amdxdna (XDNA 2) | — | Module built (ANAL-171); binds on the G14 (`accel0`, ANAL-189 hardware check); userspace later |
 | dGPU | nouveau / NVK (RTX 50 Laptop, GB20x) | — | Later: research track N1–N6 in `docs/nvidia.md`. Kept off with `dgpu_disable=1` (ANAL-176 default) |
 | Platform | asus-wmi, asus-armoury, hid-asus | — | asus-wmi/hid-asus built (ANAL-171). 6.18 asus-wmi has `dgpu_disable` and `gpu_mux_mode`; asus-armoury (6.19) not needed for bring-up |
 | IOMMU | amd_iommu | — | `AMD_IOMMU=y` in OpenBook GKI; starts with interrupt remapping on QEMU's emulated AMD-Vi (ANAL-171) |
-| Boot | UEFI, GPT; EFI loader with bootconfig | AVB orange | systemd-boot, GRUB and GBL boot our kernel and userspace from a USB GPT image in QEMU/OVMF (ANAL-189, `docs/installer.md`); untested on the G14 |
+| Boot | UEFI, GPT; EFI loader with bootconfig | AVB orange | systemd-boot, GRUB and GBL boot our kernel and userspace from a USB GPT image in QEMU/OVMF. **On the G14:** systemd-boot boots our kernel from USB with Secure Boot off, and Android's first and second stage ran from the stick (ANAL-189 hardware check) |

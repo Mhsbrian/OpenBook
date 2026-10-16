@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="OpenBook">
+  <title>OpenBook</title>
+  <defs>
+    <linearGradient id="pgL" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7E8CFF"/><stop offset="1" stop-color="#4355B9"/></linearGradient>
+    <linearGradient id="pgR" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D08BFF"/><stop offset="1" stop-color="#7A4CE0"/></linearGradient>
+    <linearGradient id="spk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFB38A"/><stop offset="1" stop-color="#FF7A9C"/></linearGradient>
+  </defs>
+  <!-- Two pages opening from a spine, and a spark. -->
+  <path d="M23 40 C17 36 10 35 5 36 C4 36 3.4 35.3 3.5 34.4 L5.6 12.6 C5.7 11.7 6.4 11 7.3 11 C12.6 10.9 18.4 12.7 23 16.6 Z" fill="url(#pgL)"/>
+  <path d="M25 40 C31 36 38 35 43 36 C44 36 44.6 35.3 44.5 34.4 L42.4 12.6 C42.3 11.7 41.6 11 40.7 11 C35.4 10.9 29.6 12.7 25 16.6 Z" fill="url(#pgR)"/>
+  <path d="M24 2.5 C24.7 6.3 26.2 7.8 30 8.5 C26.2 9.2 24.7 10.7 24 14.5 C23.3 10.7 21.8 9.2 18 8.5 C21.8 7.8 23.3 6.3 24 2.5 Z" fill="url(#spk)"/>
+</svg>

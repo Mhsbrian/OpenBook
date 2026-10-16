@@ -2,7 +2,7 @@
 
 ## Now (2026-10-16, night)
 
-The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`github.com/Mhsbrian/AnyBook`) redirects. PRs #1–#23 are merged. Every PR was checked before merging (script syntax, Python compile, no binaries or secrets, sizes, evidence backs the claim), and doc conflicts were resolved by hand.
+The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`github.com/Mhsbrian/AnyBook`) redirects. PRs #1–#26 are merged (#24: OpenBook naming in docs; #25: the high-fidelity installer design and G14 hardware-check stick; #26: ANAL-198 kernel packaging). Every PR was checked before merging (script syntax, Python compile, no binaries or secrets, sizes, evidence backs the claim), and doc conflicts were resolved by hand.
 
 **Decided by the owner**
 - **Keep the dGPU disabled for now** (2026-10-16, on ANAL-187):
@@ -17,12 +17,13 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 - **amd-pmf** (ANAL-171): it needs `ccp.ko` with SEV, which calls `kernel_read`/`kernel_write` from GKI's deny list. Options are in `docs/kernel.md`.
 - **Digitalis upstream report** (ANAL-181/200): OK to report the Fennec, `MRS` and `FRECPE` findings to DigitalisX64? That is an outward-facing action.
 - **Device-in-the-loop** (ANAL-194): install the Multica daemon on the G14's current Linux when ready (`docs/PLAN.md` §4a).
+- **G14 hardware-check stick** (optional, owner): `scripts/installer/make-hwcheck-stick.sh` builds a USB image. It boots our kernel, drivers and firmware on the laptop, writes a report and the kernel log to the stick, and powers off without touching internal disks (`docs/installer.md` §2.7). Writing the stick needs you to name the exact USB device.
 - **Installer sign-off** (ANAL-189): approve the recommendation in `docs/installer.md` once it lands. ANAL-190 waits for it.
 
 **Lanes on the dev host** (the 7950X has 61 GB RAM; an AOSP build peaks at about 41 GiB):
-- **AOSP lane**, one builder at a time in `~/anybook/aosp/src`: ✓ ANAL-174 (PR #23). Next is ANAL-199, which waits for ANAL-198; then ANAL-176 and ANAL-200. The lane is free right now. The VM product's device is now `anybook_vsoc_x86_64`, so boot it with `CF_DEVICE=anybook_vsoc_x86_64`.
-- **Kernel lane:** ANAL-198 delivered (PR #26, in review). The G14 images and firmware are ready for ANAL-199; the lane is free.
-- **Light lanes:** ANAL-189 delivered (design plus a QEMU boot-chain prototype, awaiting sign-off) and ✓ ANAL-187 (research delivered; its dGPU-off default feeds ANAL-199 and ANAL-176).
+- **AOSP lane**, one builder at a time in `~/anybook/aosp/src`: ✓ ANAL-174 (PR #23), then ▶ **ANAL-199**, the G14 product (promoted 2026-10-16 after #23 and #26). Next are ANAL-176 and ANAL-200. The VM product's device is now `anybook_vsoc_x86_64`, so boot it with `CF_DEVICE=anybook_vsoc_x86_64`.
+- **Kernel lane:** ✓ ANAL-198 (PR #26). The G14 images and firmware are ready for ANAL-199, and the lane is free.
+- **Light lanes:** ✓ ANAL-189 (design and QEMU boot-chain prototype in PRs #22 and #25: high-fidelity wizard design, OpenBook naming, quiet boot, G14 hardware-check stick; awaiting sign-off) and ✓ ANAL-187 (research delivered; its dGPU-off default feeds ANAL-199 and ANAL-176).
 - **Hand-offs:** condition wakeups on ANAL-159 promote each next step as soon as its dependencies reach review with a merged PR.
 
 **Tracking** (Multica, children of ANAL-159). ✓ = delivered and PR merged, ▶ = running, ⏳ = starts automatically when its dependency delivers, ⏸ = parked.
@@ -42,7 +43,7 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 
 **Critical path to "OpenBook on the G14":**
 1. ✓ ANAL-174 (PR #23) and ANAL-198 (PR #26).
-2. ANAL-199: the G14 product, booting in QEMU.
+2. ▶ ANAL-199: the G14 product, booting in QEMU.
 3. ANAL-176: USB boot on the laptop.
 4. ANAL-178 and ANAL-179.
 5. The installer (ANAL-190 to ANAL-192).
@@ -363,3 +364,29 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 - `PRODUCT_DEVICE` is now `anybook_vsoc_x86_64`, because vendor sepolicy needs a board. Boot with `CF_DEVICE=anybook_vsoc_x86_64`.
 
 **Next:** ANAL-199, the G14 product with the platform HALs on. Then ANAL-176 and ANAL-177 on the Radeon 890M. Details are in `docs/graphics-amd.md`.
+
+### 2026-10-16: First OpenBook boot on the G14, hardware check (ANAL-189)
+
+**Done**
+- The owner booted the hardware-check stick on the GA403WR.
+- UEFI → systemd-boot → our GKI from USB. 235 modules loaded, 0 failed.
+- These came up: amdgpu (SMU, DCN 3.5, DMUB, eDP with PSR, backlight), mt7925e + `wlan0`, Bluetooth `hci0`, the ELAN touchpad, the keyboard, the lid switch, the NPU (`accel0`), the battery, UCSI and USB4.
+- The stick also booted the Android preview: first and second stage ran from USB on the laptop.
+
+**Evidence:** `evidence/2026-10-16-g14-hwcheck/` (report, full kernel log, analysis).
+
+**Findings**
+- `regulatory.db` is missing from the firmware list.
+- The dGPU is on the bus with its HDMI-audio function bound (`dgpu_disable=1` was not set yet).
+- The backup GPT is not at the end of a stick larger than the image.
+
+**Next**
+- A v2 check (power and display facts, JSON verdicts, `regulatory.db`, an opt-in s2idle sleep test) is ready as an in-place stick update (`scripts/installer/update-hwcheck-stick.sh`).
+- The owner reruns it. The results feed ANAL-176/178/179.
+
+### 2026-10-16: G14 hardware check runs 2 and 3: power and sleep (ANAL-189)
+- amd-pstate-epp is active.
+- **An s2idle suspend/resume cycle works, but S0ix residency is 0.** The driverless dGPU stays D0/active (the `docs/nvidia.md` §1 prediction, now measured).
+- Battery health is 88.7 %, and `regulatory.db` now loads.
+- **Next:** v3 check stick, with a sleep test after powering the dGPU down for one boot (unbind, remove, root-port runtime PM), which tests `docs/nvidia.md` option 2 on hardware.
+- **Evidence:** `evidence/2026-10-16-g14-hwcheck/`.

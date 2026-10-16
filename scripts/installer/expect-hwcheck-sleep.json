@@ -1,0 +1,28 @@
+[
+ {
+"wait": "OpenBook hardware check",
+"timeout": 40
+},
+ {
+"send": "\u001b[B"
+},
+ {
+"wait": "sleep test",
+"timeout": 10
+},
+ {
+"send": "\r"
+},
+ {
+"wait": "sleep: RTC alarm in 20 s",
+"timeout": 120
+},
+ {
+"wait": "sleep: write returned",
+"timeout": 90
+},
+ {
+"wait": "hwcheck: report saved; powering off",
+"timeout": 60
+}
+]

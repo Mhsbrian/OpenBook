@@ -6,6 +6,6 @@ RUN pacman -Syu --noconfirm --needed \
       qemu-hw-display-virtio-gpu qemu-hw-display-virtio-gpu-pci qemu-hw-display-virtio-vga swtpm \
       grub efibootmgr systemd systemd-ukify \
       mtools dosfstools gptfdisk util-linux xorriso e2fsprogs f2fs-tools \
-      python python-cryptography openssl cpio lz4 zstd xz binutils gcc \
+      python python-cryptography openssl cpio lz4 zstd xz binutils gcc wireless-regdb \
     && pacman -Scc --noconfirm
 WORKDIR /w
