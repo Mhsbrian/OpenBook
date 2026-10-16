@@ -1,0 +1,33 @@
+# AOSP build environment (Track A): Ubuntu 24.04 LTS + AOSP host deps + repo + ccache.
+# Runs as the host uid/gid so files under ~/anybook/aosp stay owned by the host user (no host sudo).
+#   docker build -t anybook-aosp -f tools/Dockerfile.aosp --build-arg UID=$(id -u) --build-arg GID=$(id -g) tools/
+# Use scripts/aosp-docker.sh to run it with the right mounts.
+FROM ubuntu:24.04
+ARG UID=1000
+ARG GID=1000
+ENV DEBIAN_FRONTEND=noninteractive LANG=C.UTF-8 LC_ALL=C.UTF-8
+# Package list: source.android.com/docs/setup/start/requirements (Ubuntu 18.04+), plus python3 for repo,
+# ccache, rsync/procps/time for logging, and libssl/bc/cpio/lz4 for kernel and image tools later.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      git gnupg flex bison build-essential zip unzip curl ca-certificates zlib1g-dev \
+      gcc-multilib g++-multilib libc6-dev-i386 lib32z1-dev x11proto-core-dev libx11-dev \
+      libgl1-mesa-dev libxml2-utils xsltproc fontconfig python3 python-is-python3 \
+      ccache rsync procps time file bc cpio lz4 xz-utils zstd libssl-dev openssl less \
+    && rm -rf /var/lib/apt/lists/*
+# repo launcher, pinned by sha256 (v2.69, fetched 2026-10-15). The launcher pulls git-repo itself at
+# `repo init`. To bump: download, review, update the hash.
+ARG REPO_SHA256=6ed2f6325705b6ea0af99466d6ebd04adec387a5b6a906cd77bc8c6da65123e5
+RUN curl -fsSL -o /usr/local/bin/repo https://storage.googleapis.com/git-repo-downloads/repo \
+    && echo "$REPO_SHA256  /usr/local/bin/repo" | sha256sum -c - && chmod 0755 /usr/local/bin/repo
+# Ubuntu 24.04 ships a uid 1000 "ubuntu" user; replace it with one that matches the host.
+RUN userdel -r ubuntu 2>/dev/null || true; \
+    (getent group "$GID" || groupadd -g "$GID" builder) && \
+    useradd -m -u "$UID" -g "$GID" -s /bin/bash builder && \
+    git config --system user.name "AnyBook Builder" && \
+    git config --system user.email "builder@anybook.invalid" && \
+    git config --system color.ui false
+# Android 17 Soong prefixes C/C++ compiles with $CC_WRAPPER (build/soong/cc/config/global.go); CCACHE_EXEC is
+# an older Make convention it ignores. USE_CCACHE=1 only adds -Wno-unused-command-line-argument.
+ENV USE_CCACHE=1 CC_WRAPPER=/usr/bin/ccache CCACHE_DIR=/ccache
+USER builder
+WORKDIR /aosp

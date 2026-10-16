@@ -1,0 +1,15 @@
+image sha256:55ad3aad6ee6483af853161d05ebd669cef5c2eaa54ac9f6c733c1e225822e08 created 2026-10-15T20:04:21.389272601-04:00
+size 1.16GB
+Ubuntu 24.04.5 LTS
+7.2.8-5-omarchy-bore
+uid=1000(builder) gid=1000(builder) groups=1000(builder)
+git version 2.43.0
+Python 3.12.3
+ccache version 4.9.1
+repo launcher 2.69 (sha256-pinned); git-repo v2.69 in the trees (repo --version inside /aosp/src)
+dpkg packages: 314
+CC_WRAPPER=/usr/bin/ccache
+USE_CCACHE=1
+CCACHE_DIR=/ccache
+(/ccache/ccache.conf) compiler_check = content
+(/ccache/ccache.conf) max_size = 100.0 GB

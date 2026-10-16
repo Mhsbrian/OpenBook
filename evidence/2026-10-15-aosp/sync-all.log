@@ -1,0 +1,23 @@
+Filesystem        Size  Used Avail Use% Mounted on
+/dev/mapper/root  3.7T  2.2T  1.5T  61% /aosp
+=== 2026-10-16T00:41:34Z mirror: init https://android.googlesource.com/platform/manifest -b android-latest-release
+mirror: 112 binary projects -> .repo/local_manifests/anybook-split.xml
+=== 2026-10-16T00:41:34Z repo sync attempt 1: -c -j8 --optimized-fetch --retry-fetches=5
+Finalizing sync state...
+repo sync has finished successfully.
+=== 2026-10-16T00:42:15Z mirror: done
+102G	/aosp/mirror
+=== 2026-10-16T00:42:17Z tree: init https://android.googlesource.com/platform/manifest -b android-latest-release --reference=/aosp/mirror
+
+repo has been initialized in /aosp/src
+tree: 112 binary projects -> .repo/local_manifests/anybook-split.xml
+=== 2026-10-16T00:42:19Z repo sync attempt 1: -c -j8 --no-tags --optimized-fetch --retry-fetches=5
+Finalizing sync state...
+repo sync has finished successfully.
+=== 2026-10-16T00:57:36Z tree: done
+Saved manifest to /logs/manifest-pinned.xml
+manifest ad156f32caaa06dae91c02d443f6a8fe210eaa54 Tue Jun 16 16:16:28 2026 -0700 Update android-latest-release to android17-release
+128G	/aosp/src
+=== 2026-10-16T00:57:43Z aosp-sync all finished
+Filesystem        Size  Used Avail Use% Mounted on
+/dev/mapper/root  3.7T  2.3T  1.4T  63% /aosp

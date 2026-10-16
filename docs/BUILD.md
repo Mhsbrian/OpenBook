@@ -57,6 +57,21 @@ The script works like this:
 - The recovery image is attached as an NVMe disk at PCI `00:04.0` with `snapshot=on`, so the image is never modified.
 - Use `tcg` instead of `kvm` to run on QEMU's emulated `max` CPU.
 
+## M1b prep: AOSP 17 build container and source tree (Track A)
+
+Details, the mirror decision and measurements are in `docs/aosp-build.md`; evidence is in `evidence/2026-10-15-aosp/`.
+
+```bash
+docker build -t anybook-aosp -f tools/Dockerfile.aosp --build-arg UID=$(id -u) --build-arg GID=$(id -g) tools/
+scripts/aosp-docker.sh bash -c 'ccache -M 100G && ccache --set-config=compiler_check=content'   # ~/anybook/ccache
+scripts/aosp-docker.sh -d anybook-aosp-sync /repo/scripts/aosp-sync.sh all && docker wait anybook-aosp-sync
+scripts/aosp-docker.sh /repo/scripts/aosp-verify.sh aosp_cf_x86_64_pc-cp2a-userdebug   # lunch + m nothing
+```
+
+- `~/anybook/aosp/mirror` is a full-history mirror of the 975 source projects (102 GB).
+- `~/anybook/aosp/src` is the `android-latest-release` tree (128 GB, plus `out/`). It borrows source objects from the mirror; the 112 prebuilt projects are shallow.
+- The first sync took about 47 minutes on this host. Re-running resumes, or is a no-op.
+- Use `cp2a`, not `trunk_staging`, for an Android 17 (`REL`) build. `trunk_staging` on this branch reports `PLATFORM_VERSION=Baklava`.
 ## Mesa radeonsi + RADV for Android x86_64
 
 ```bash

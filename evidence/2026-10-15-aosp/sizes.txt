@@ -1,0 +1,18 @@
+# du on btrfs (zstd:3), 2026-10-16T01:06:18Z. Separate du calls (du dedups nested dirs).
+102G	~/anybook/aosp/mirror
+157G	~/anybook/aosp/src
+23G	~/anybook/aosp/src/.repo
+30G	~/anybook/aosp/src/out
+4.0K	~/anybook/ccache
+# src working files only (excl .repo, out)
+105G	~/anybook/aosp/src
+# apparent size
+95G	~/anybook/aosp/mirror
+23G	~/anybook/aosp/src/.repo
+# df /home at sync start (00:06Z) and now. Shared host: other runs also write here, and btrfs compression makes df < du.
+2026-10-16T00:06:05Z
+/dev/mapper/root 3998619795456 2268554436608 1726618427392  57% /home
+/dev/mapper/root 3998619795456 2495633956864 1499293114368  63% /home
+# projects
+mirror: 979 *.git dirs (975 source projects plus manifest and git-repo metadata)
+tree: 1084 projects in pinned manifest (1087 minus 3 platform-darwin)
