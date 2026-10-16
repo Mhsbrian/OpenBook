@@ -102,3 +102,21 @@
 
 **Next:** ANAL-168 full build of `aosp_cf_x86_64_pc-cp2a-userdebug`, measuring ccache hits, then boot it in Cuttlefish.
 | ANAL-186 NVIDIA dGPU, RTX 5070 Laptop (parked until the AMD iGPU bring-up works) | ANAL-187 research nouveau/NVK on Android and PRIME offload | — |
+## 2026-10-16: Kernel, AMD config and vendor modules (ANAL-171)
+
+**Done**
+- AnyBook GKI: the shipped `android17-6.18` tree plus 2 patches (`kernel/patches/common/`). Release `6.18.21-android17-5-g04a5a95cd7be`.
+  - Three bool built-ins: `AMD_IOMMU`, `PINCTRL_AMD`, `X86_AMD_PLATFORM_DEVICE`.
+  - An `anybook_amd` KMI list with 1,862 symbols, 209 of them new. amdgpu alone needs 129 symbols the stock GKI does not export.
+- Kleaf mixed build `//devices/anybook` (`kernel/devices/anybook/`) produces 134 vendor modules: amdgpu with DC, amdxdna, amd-pmc, pinctrl-amd (built in), i2c-designware/i2c-hid-acpi, HDA ALC269/CS35L56, ACP/SOF-AMD, mt7921e/mt7925e, rtw89, btusb-MTK, asus-wmi, hid-asus, virtio-gpu and more.
+- linux-firmware subset list: 131 files, 52.5 MB, all redistributable, with each file's licence taken from WHENCE.
+
+**Evidence:** `evidence/2026-10-16-kernel-amd/`
+- All 134 modules have vermagic, CRCs and imports matching the kernel.
+- In a QEMU/KVM load test, 133 modules load and 1 returns -ENODEV (no ASUS WMI in the VM), with 0 symbol errors. AMD-Vi interrupt remapping is on, and virtio-gpu creates `card0`.
+- Every stock KMI CRC is unchanged.
+- The equivalence build shows 5 harmless vmlinux differences.
+
+**Blocked:** amd-pmf. `ccp.ko` links SEV code that calls `kernel_read`/`kernel_write`, both on GKI's deny list. Owner decision needed; see `docs/kernel.md`.
+
+**Next:** ANAL-172 packages `vendor_dlkm`/`vendor_boot` and does a boot test. The GA403WP audio SSID comes from ANAL-175, then the `android17-6.18` tip build.

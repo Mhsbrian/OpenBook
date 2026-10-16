@@ -31,7 +31,7 @@ Labels: C = confirmed (ASUS spec page, kernel source, or linux-firmware contents
 | Graphics switching | MUX + NVIDIA Advanced Optimus | asus-armoury `gpu_mux_mode`, `dgpu_disable` (6.19+) | — | C spec |
 | NPU | XDNA 2 | amdxdna (6.14+) | `amdnpu/17f0_*` | C driver, R ID |
 | Wi-Fi / BT | MediaTek MT7925 (Wi-Fi 7, BT 5.4) | mt7925e, btmtk | `mediatek/mt7925*` | R (confirmed on GA403WW only) |
-| Audio | Realtek ALC285 plus 2× Cirrus CS35L56 (I2C), SSID 1043:1024 | snd-hda-intel with Realtek quirk `ALC285_FIXUP_ASUS_GA403U_HEADSET_MIC`, cs35l56-hda-i2c, serial-multi-instantiate | `cirrus/cs35l56-b0-dsp1-misc-10431024-*` | C quirk and firmware. Headset mic broken upstream (R) |
+| Audio | Realtek ALC285 plus 2× Cirrus CS35L56 (I2C), SSID U | snd-hda-intel with Realtek quirk `ALC285_FIXUP_ASUS_GA403U_HEADSET_MIC`, cs35l56-hda-i2c, serial-multi-instantiate | `cirrus/cs35l56-b0-dsp1-misc-<ssid>-*` | U. The 6.18 tree and linux-firmware (2026-10-16) only have the GA403U entries (SSID 1043:1b13); there is no 1043:1024 entry (ANAL-171, `docs/kernel.md`). Headset mic broken upstream (R) |
 | Internal mic | AMD ACP 7.x (DMIC) | snd_pci_ps / acp70 | — | R (hypothesis: ACP drives the DMIC) |
 | Touchpad | i2c-hid, vendor U | i2c-hid-acpi, pinctrl-amd, hid-multitouch | — | R |
 | Keyboard | ASUS N-KEY USB HID | hid-asus, asus-wmi | — | R |
@@ -64,14 +64,14 @@ It writes `anybook-hw-<board>-<date>.tar.gz`, with serials, UUIDs and MAC addres
 
 | Area | Kernel / driver | Userspace | Status |
 |---|---|---|---|
-| GPU | amdgpu, linux-firmware `amdgpu/*` | Mesa radeonsi/RADV, minigbm, drm_hwcomposer, ANGLE | Not started |
+| GPU | amdgpu, linux-firmware `amdgpu/*` | Mesa radeonsi/RADV, minigbm, drm_hwcomposer, ANGLE | Kernel module and firmware list built, loads in a VM (ANAL-171); untested on hardware |
 | CPU power | amd-pstate (EPP) | power HAL | Built into the stock kernel (`X86_AMD_PSTATE=y`) |
-| Suspend | amd_pmc (s2idle) | system_suspend | Not in the stock kernel |
-| Touchpad / touch | i2c-hid-acpi, pinctrl-amd, hid-multitouch | — | `PINCTRL_AMD` not in the stock kernel |
-| Audio | snd-hda-intel (ALC285), cs35l56-hda-i2c, snd_pci_ps/acp70 (DMIC) | audio HAL | Not in the stock kernel |
-| Wi-Fi / BT | mt7925e, btmtk | wifi HAL | Stock kernel has Intel only |
-| NPU | amdxdna (XDNA 2) | — | Later |
+| Suspend | amd_pmc (s2idle) | system_suspend | Module built (ANAL-171); untested |
+| Touchpad / touch | i2c-hid-acpi, pinctrl-amd, hid-multitouch | — | `PINCTRL_AMD=y` and `X86_AMD_PLATFORM_DEVICE=y` in AnyBook GKI, i2c-designware/i2c-hid-acpi modules (ANAL-171); untested |
+| Audio | snd-hda-intel (ALC285), cs35l56-hda-i2c, snd_pci_ps/acp70 (DMIC) | audio HAL | Modules built (ANAL-171); GA403WP SSID and CS35L56 tuning unknown |
+| Wi-Fi / BT | mt7925e, btmtk | wifi HAL | Modules and firmware list built (ANAL-171); untested |
+| NPU | amdxdna (XDNA 2) | — | Module built (ANAL-171); userspace later |
 | dGPU | nouveau / NVK (RTX 5070 Laptop) | — | Later; kept off with `dgpu_disable` |
-| Platform | asus-wmi, asus-armoury, hid-asus | — | Not started |
-| IOMMU | amd_iommu | — | Not in the stock kernel |
+| Platform | asus-wmi, asus-armoury, hid-asus | — | asus-wmi/hid-asus built (ANAL-171). 6.18 asus-wmi has `dgpu_disable` and `gpu_mux_mode`; asus-armoury (6.19) not needed for bring-up |
+| IOMMU | amd_iommu | — | `AMD_IOMMU=y` in AnyBook GKI; starts with interrupt remapping on QEMU's emulated AMD-Vi (ANAL-171) |
 | Boot | UEFI, GPT; EFI loader with bootconfig | AVB orange | QEMU direct-kernel boot works |

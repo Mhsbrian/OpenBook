@@ -1,0 +1,131 @@
+== amdgpu.ko
+filename:       /home/hive/anybook/kernel/dist/anybook-amd-gbos-16302624/amdgpu.ko
+author:         AMD linux driver team
+description:    AMD GPU
+license:        GPL and additional rights
+import_ns:      DMA_BUF
+name:           amdgpu
+intree:         Y
+scmversion:     g04a5a95cd7be
+depends:        amdxcp,gpu-sched,drm_display_helper,i2c-algo-bit,drm_exec,drm_ttm_helper,video,drm_suballoc_helper,drm_buddy,hwmon,drm_panel_backlight_quirks
+vermagic:       6.18.21-android17-5-g04a5a95cd7be SMP preempt mod_unload modversions 
+retpoline:      Y
+firmware entries: 583
+== amdxdna.ko
+filename:       /home/hive/anybook/kernel/dist/anybook-amd-gbos-16302624/amdxdna.ko
+import_ns:      DMA_BUF
+license:        GPL
+author:         XRT Team <runtimeca39d@amd.com>
+description:    amdxdna driver
+name:           amdxdna
+intree:         Y
+scmversion:     g04a5a95cd7be
+depends:        gpu-sched
+vermagic:       6.18.21-android17-5-g04a5a95cd7be SMP preempt mod_unload modversions 
+retpoline:      Y
+firmware entries: 4
+== mt7925e.ko
+filename:       /home/hive/anybook/kernel/dist/anybook-amd-gbos-16302624/mt7925e.ko
+author:         Deren Wu <deren.wu@mediatek.com>
+author:         Lorenzo Bianconi <lorenzo@kernel.org>
+description:    MediaTek MT7925E (PCIe) wireless driver
+license:        Dual BSD/GPL
+name:           mt7925e
+intree:         Y
+scmversion:     g04a5a95cd7be
+depends:        mt76,mt7925-common,mt792x-lib,rfkill,mt76-connac-lib
+vermagic:       6.18.21-android17-5-g04a5a95cd7be SMP preempt mod_unload modversions 
+retpoline:      Y
+firmware entries: 2
+== btusb.ko
+filename:       /home/hive/anybook/kernel/dist/anybook-amd-gbos-16302624/btusb.ko
+author:         Marcel Holtmann <marcel@holtmann.org>
+description:    Generic Bluetooth USB driver ver 0.8
+version:        0.8
+license:        GPL
+name:           btusb
+intree:         Y
+scmversion:     g04a5a95cd7be
+depends:        bluetooth,btintel,btbcm,btmtk,btrtl
+vermagic:       6.18.21-android17-5-g04a5a95cd7be SMP preempt mod_unload modversions 
+retpoline:      Y
+firmware entries: 0
+== snd-hda-intel.ko
+filename:       /home/hive/anybook/kernel/dist/anybook-amd-gbos-16302624/snd-hda-intel.ko
+license:        GPL
+description:    Intel HDA driver
+name:           snd_hda_intel
+intree:         Y
+scmversion:     g04a5a95cd7be
+depends:        snd-hda-codec,snd-hda-core
+vermagic:       6.18.21-android17-5-g04a5a95cd7be SMP preempt mod_unload modversions 
+retpoline:      Y
+firmware entries: 0
+== snd-hda-scodec-cs35l56-i2c.ko
+filename:       /home/hive/anybook/kernel/dist/anybook-amd-gbos-16302624/snd-hda-scodec-cs35l56-i2c.ko
+description:    HDA CS35L56 I2C driver
+import_ns:      SND_HDA_SCODEC_CS35L56
+import_ns:      SND_SOC_CS35L56_SHARED
+author:         Richard Fitzgerald <rf@opensource.cirrus.com>
+author:         Simon Trimmer <simont@opensource.cirrus.com>
+license:        GPL
+name:           snd_hda_scodec_cs35l56_i2c
+intree:         Y
+scmversion:     g04a5a95cd7be
+depends:        snd-soc-cs35l56-shared,snd-hda-scodec-cs35l56
+vermagic:       6.18.21-android17-5-g04a5a95cd7be SMP preempt mod_unload modversions 
+retpoline:      Y
+firmware entries: 0
+== snd-pci-ps.ko
+filename:       /home/hive/anybook/kernel/dist/anybook-amd-gbos-16302624/snd-pci-ps.ko
+author:         Vijendar.Mukunda@amd.com
+author:         Syed.SabaKareem@amd.com
+description:    AMD common ACP PCI driver for ACP6.3, ACP7.0 & ACP7.1 platforms
+import_ns:      SOUNDWIRE_AMD_INIT
+import_ns:      SND_AMD_SOUNDWIRE_ACPI
+license:        GPL v2
+name:           snd_pci_ps
+intree:         Y
+scmversion:     g04a5a95cd7be
+depends:        snd-acp-config,snd-soc-acpi-amd-match
+vermagic:       6.18.21-android17-5-g04a5a95cd7be SMP preempt mod_unload modversions 
+retpoline:      Y
+firmware entries: 0
+== i2c-hid-acpi.ko
+filename:       /home/hive/anybook/kernel/dist/anybook-amd-gbos-16302624/i2c-hid-acpi.ko
+description:    HID over I2C ACPI driver
+author:         Benjamin Tissoires <benjamin.tissoires@gmail.com>
+license:        GPL
+name:           i2c_hid_acpi
+intree:         Y
+scmversion:     g04a5a95cd7be
+depends:        i2c-hid
+vermagic:       6.18.21-android17-5-g04a5a95cd7be SMP preempt mod_unload modversions 
+retpoline:      Y
+firmware entries: 0
+== amd-pmc.ko
+filename:       /home/hive/anybook/kernel/dist/anybook-amd-gbos-16302624/amd-pmc.ko
+license:        GPL v2
+description:    AMD PMC Driver
+name:           amd_pmc
+intree:         Y
+scmversion:     g04a5a95cd7be
+depends:        
+vermagic:       6.18.21-android17-5-g04a5a95cd7be SMP preempt mod_unload modversions 
+retpoline:      Y
+firmware entries: 0
+== virtio-gpu.ko
+filename:       /home/hive/anybook/kernel/dist/anybook-amd-gbos-16302624/virtio-gpu.ko
+description:    Virtio GPU driver
+license:        GPL and additional rights
+author:         Dave Airlie <airlied@redhat.com>
+author:         Gerd Hoffmann <kraxel@redhat.com>
+author:         Alon Levy
+import_ns:      DMA_BUF
+name:           virtio_gpu
+intree:         Y
+scmversion:     g04a5a95cd7be
+depends:        virtio_dma_buf
+vermagic:       6.18.21-android17-5-g04a5a95cd7be SMP preempt mod_unload modversions 
+retpoline:      Y
+firmware entries: 0
