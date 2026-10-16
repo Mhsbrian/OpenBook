@@ -1,0 +1,23 @@
+# Tool versions (anybook-installer image, tools/Dockerfile.installer), 2026-10-16T18:05:52Z
+qemu-system-x86 11.1.2-1
+edk2-ovmf 202608-1
+grub 2:2.16-1
+systemd 262-1
+systemd-ukify 262-1
+mtools 1:4.0.49-1
+gptfdisk 1.0.10-2
+dosfstools 4.2-5
+libisoburn 1.5.8.2-1
+python 3.14.8-1
+
+# AOSP host tools (read-only from ~/anybook/aosp/src/out/host/linux-x86/bin)
+avbtool 1.4.0
+
+# GBL EFI app: ci.android.com branch aosp_uefi-gbl-mainline, build 16633196, target gbl_efi_dist_and_test (downloaded 2026-10-16, not redistributed here)
+7208e1654889eb7f606d0b8da7810a4a3fc3e2562ff5dcd8290e8d4a644bbfc8  gbl_x86_64_dev_bootstub.efi
+9b54a8066fdc0ca911abcfa51c871658b72ca3e2ffb7927eb33f6edd14df2930  gbl_x86_64_dev.efi
+9b54a8066fdc0ca911abcfa51c871658b72ca3e2ffb7927eb33f6edd14df2930  gbl_x86_64.efi
+f9b1ae64e8169cbe683a408e77227d287ebcae72913213912fc4738f79a2e334  LICENSE
+
+# Probe (scripts/installer/probe-init.c, gcc -static in anybook-inspect)
+0007a2f60518e47bf5224c2112a3ffcd332f38b2be7d042e2be93b8493a3f9ab  ~/anybook/installer/build/anybook-probe

@@ -1,0 +1,76 @@
+{
+ "reason": "all steps done",
+ "seconds": 28.9,
+ "steps_done": 23,
+ "steps": 23,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "init: init first stage started",
+   "t": 11.0
+  },
+  {
+   "step": 1,
+   "wait": "init: init second stage started",
+   "t": 11.4
+  },
+  {
+   "step": 2,
+   "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+   "t": 19.8
+  },
+  {
+   "step": 4,
+   "wait": "console:/ \\$ ",
+   "t": 19.8
+  },
+  {
+   "step": 6,
+   "wait": "console:/ \\$ ",
+   "t": 20.1
+  },
+  {
+   "step": 8,
+   "wait": "console:/ \\$ ",
+   "t": 20.3
+  },
+  {
+   "step": 10,
+   "wait": "console:/ \\$ ",
+   "t": 21.7
+  },
+  {
+   "step": 12,
+   "wait": "console:/ \\$ ",
+   "t": 22.1
+  },
+  {
+   "step": 14,
+   "wait": "console:/ \\$ ",
+   "t": 23.1
+  },
+  {
+   "step": 16,
+   "wait": "console:/ \\$ ",
+   "t": 23.7
+  },
+  {
+   "step": 18,
+   "wait": "console:/ \\$ ",
+   "t": 24.0
+  },
+  {
+   "step": 20,
+   "wait": "console:/ \\$ ",
+   "t": 24.7
+  },
+  {
+   "step": 22,
+   "wait": "===ANYBOOK-END===\\s",
+   "t": 25.4
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/matrix-20261016/run-sdboot.img",
+ "nvme": "/home/hive/anybook/installer/matrix-20261016/decoy-nvme.img"
+}
