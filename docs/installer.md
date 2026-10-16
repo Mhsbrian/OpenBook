@@ -10,10 +10,10 @@ Labels: **C** = confirmed (a primary source, or we ran it), **R** = reported by 
 |---|---|---|---|
 | 1 | Image format | **One raw GPT disk image** (`anybook-<ver>-x86_64.img`, shipped as `.img.xz` with a `.sha256`). No hybrid ISO. | Android needs real GPT partitions, found by name and by PARTUUID. The prototype's userdata and metadata were created on first boot and survived a reboot (C). |
 | 2 | Loader | **systemd-boot** with Boot Loader Spec type #1 entries: GKI `bzImage`, then the vendor ramdisk, the generic ramdisk, and a bootconfig blob as the last initrd. One entry per slot; A/B tries use systemd-boot's boot counting. A small Android-side `anybook-bootsync` keeps the ESP copy in step with the active slot. **GRUB 2.16** is the tested fallback. **GBL** is the long-term target, once upstream lands USB and multi-disk support. | All four loaders were booted from a USB GPT image in QEMU/OVMF (§2.3, C). |
-| 3 | Install layouts | Whole disk (A/B, virtual A/B `super`), or alongside an existing OS **in space the user has already freed**. Our files go under `EFI/AnyBook/` plus an XBOOTLDR partition, and we add a firmware boot entry. Nothing is resized in v1. | §3 |
-| 4 | Wizard | **An Android app in the live AnyBook session** (Compose), backed by a privileged install engine with a CLI (`anybook-install`: dry run, JSON plan, logs). There is no separate Linux live system. | Scores in §4 |
+| 3 | Install layouts | Whole disk (A/B, virtual A/B `super`), or alongside an existing OS **in space the user has already freed**. Our files go under `EFI/OpenBook/` plus an XBOOTLDR partition, and we add a firmware boot entry. Nothing is resized in v1. | §3 |
+| 4 | Wizard | **An Android app in the live OpenBook session** (Compose), backed by a privileged install engine with a CLI (`anybook-install`: dry run, JSON plan, logs). There is no separate Linux live system. | Scores in §4 |
 | 5 | Safety | Rules S1–S13 in §5. They are enforced in the engine, not just the UI: the boot stick is never a target, the user types the disk name, identity is re-checked before the first write, and there is a dry run and a log. | §5 |
-| 6 | Kernel delta | Add `CONFIG_EFIVAR_FS` to the AnyBook GKI (built-in, or a module if the KMI allows), so the installer can create the firmware boot entry. Optionally add `SYSFB_SIMPLEFB`/`DRM_SIMPLEDRM` for a "safe graphics" mode. | Our GKI has neither (C, `dot_config`) |
+| 6 | Kernel delta | Add `CONFIG_EFIVAR_FS` to the OpenBook GKI (built-in, or a module if the KMI allows), so the installer can create the firmware boot entry. Optionally add `SYSFB_SIMPLEFB`/`DRM_SIMPLEDRM` for a "safe graphics" mode. | Our GKI has neither (C, `dot_config`) |
 
 **This reverses an earlier plan.** The loader and layout here are meant for the whole chain:
 - ANAL-198 (kernel packaging: first-stage modules, `vendor_boot`, dlkm images, firmware) fills the boot images that §2.1 and §3.4 describe.
@@ -55,11 +55,11 @@ Labels: **C** = confirmed (a primary source, or we ran it), **R** = reported by 
 
 **AVB in the orange state (C).** On hardware the user owns, with Secure Boot off, the loader reports `orange`/`unlocked`. In Android 17, first-stage init treats `orange` as unlocked: verification errors are allowed, but dm-verity still runs on every `super` partition. The digest and size the loader passes are re-checked by libfs_avb. A wrong digest is logged (`vbmeta digest mismatch`) and boot continues; that is the `grub-bad-digest` run. The digest is computed the way libavb does it: the top-level vbmeta, then every chained vbmeta struct (`boot`, `init_boot`, `vbmeta_system`, `vbmeta_system_dlkm`, `vbmeta_vendor_dlkm`). `avbtool calculate_vbmeta_digest` and our own computation agree.
 
-**The orange notice.** Certified devices show a 10-second orange screen (source.android.com Boot flow, updated 2026-09-30). AnyBook is not a certified device. We put "unlocked" in the boot entry title and show a persistent note in Settings › About. The boot menu stays hidden unless a key is held.
+**The orange notice.** Certified devices show a 10-second orange screen (source.android.com Boot flow, updated 2026-09-30). OpenBook is not a certified device. We put "unlocked" in the boot entry title and show a persistent note in Settings › About. The boot menu stays hidden unless a key is held.
 
 ### 2.2 Prototype (C)
 The scripts are in `scripts/installer/`, and the image is `tools/Dockerfile.installer`: QEMU 11.1.2, edk2-ovmf 202608, GRUB 2.16, systemd 262, mtools, gptfdisk. No root is needed and nothing touches a real disk.
-- **Inputs, read-only:** a reflink snapshot of the `anybook_cf_x86_64_pc-cp2a-userdebug` images (ANAL-169) and the AnyBook GKI `6.18.21-android17-5-g44a90255c95f` (ANAL-171/172). The AOSP tree was not built or modified.
+- **Inputs, read-only:** a reflink snapshot of the `anybook_cf_x86_64_pc-cp2a-userdebug` images (ANAL-169) and the OpenBook GKI `6.18.21-android17-5-g44a90255c95f` (ANAL-171/172). The AOSP tree was not built or modified.
 - **`mkproto.py`** does the following:
   - Makes `boot.img` from our `bzImage`, signed as a chained partition with the AOSP test key.
   - Makes `vendor_boot` from the product's vendor ramdisk without its 6.12 modules, adding an empty module dir for our release and a probe. Console, `rdinit=/anybook-probe` and the product's static `androidboot.*` go into `vendor_boot`.
@@ -110,7 +110,7 @@ Screenshots: `matrix/grub/shot-2.png` (GRUB menu), `matrix/sdboot/shot-3.png` (s
 
 **Choice: systemd-boot now.** It is small and declarative, its boot counting maps onto Android's A/B tries, and everything goes into bootconfig. GRUB passed the same tests and stays the fallback, for example if we need richer menus, theming, or GRUB's run-time `boot_part_uuid`.
 
-**GBL later.** It reads the boot images, runs libavb, and is Google's direction. Switch when three things are true: CL 4051936 (pick the disk GBL was loaded from) has landed, CL 4286120 (`boot_part_uuid`) has landed, and we have a BootControl provider, either upstream or a small AnyBook EFI driver backed by `misc`. systemd-boot would then chainload GBL (`efi /EFI/AnyBook/gbl_x86_64.efi`), or the firmware entry points straight at it.
+**GBL later.** It reads the boot images, runs libavb, and is Google's direction. Switch when three things are true: CL 4051936 (pick the disk GBL was loaded from) has landed, CL 4286120 (`boot_part_uuid`) has landed, and we have a BootControl provider, either upstream or a small OpenBook EFI driver backed by `misc`. systemd-boot would then chainload GBL (`efi /EFI/OpenBook/gbl_x86_64.efi`), or the firmware entry points straight at it.
 
 ### 2.5 A/B and updates with systemd-boot (design, H)
 - **Source of truth:** the Android partitions (`boot_x`, `init_boot_x`, `vendor_boot_x`, `vbmeta_x`). `super` uses virtual A/B with compression, so there is one copy, and the OTA's copy-on-write data lives in `/data`.
@@ -125,9 +125,9 @@ Screenshots: `matrix/grub/shot-2.png` (GRUB menu), `matrix/sdboot/shot-3.png` (s
 ### 2.6 Firmware entry, cmdline and Secure Boot
 - **On the USB stick:** systemd-boot at `EFI/BOOT/BOOTX64.EFI`, the removable-media path, so no NVRAM change is needed.
 - **Installed:**
-  - systemd-boot goes to `EFI/AnyBook/systemd-bootx64.efi`, and we add an NVRAM `Boot####` entry named "AnyBook". The fallback `EFI/BOOT/BOOTX64.EFI` is written only on a whole-disk install.
-  - Creating the NVRAM entry from Android needs efivarfs, which our GKI lacks (decision 6). Without it, the user picks "AnyBook" from the firmware boot menu (Esc on the G14 (R)) once, and we print exact instructions.
-- **Secure Boot must be off** for now. Later: sign systemd-boot and the kernel with an AnyBook key and enroll it via shim/MOK (H).
+  - systemd-boot goes to `EFI/OpenBook/systemd-bootx64.efi`, and we add an NVRAM `Boot####` entry named "OpenBook". The fallback `EFI/BOOT/BOOTX64.EFI` is written only on a whole-disk install.
+  - Creating the NVRAM entry from Android needs efivarfs, which our GKI lacks (decision 6). Without it, the user picks "OpenBook" from the firmware boot menu (Esc on the G14 (R)) once, and we print exact instructions.
+- **Secure Boot must be off** for now. Later: sign systemd-boot and the kernel with an OpenBook key and enroll it via shim/MOK (H).
 
 ## 3. Install flow
 
@@ -142,7 +142,7 @@ Screenshots: `matrix/grub/shot-2.png` (GRUB menu), `matrix/sdboot/shot-3.png` (s
 | `super` | content + about 10% (about 3 GiB, H; the prototype's dynamic partitions hold 1.6 GB) | dynamic partitions, slot A |
 | `userdata` | 1 GiB in the image, grown at first boot | blank, becomes f2fs on first boot |
 
-Bootconfig on the stick adds `androidboot.anybook.live=1`. With it, the launcher shows "Install AnyBook" and the installer app is enabled.
+Bootconfig on the stick adds `androidboot.anybook.live=1`. With it, the launcher shows "Install OpenBook" and the installer app is enabled.
 
 ### 3.2 Whole-disk layout (installed)
 
@@ -161,20 +161,20 @@ Bootconfig on the stick adds `androidboot.anybook.live=1`. With it, the launcher
 About 13 GiB is fixed. The minimum disk is 64 GB (H; set it once ANAL-174's image size is known). New random disk GUID and PARTUUIDs; partition type `0FC63DAF` (Linux data) except the ESP, so other OSes don't mount them.
 
 ### 3.3 Alongside an existing OS
-- **v1 never moves or shrinks anything.** The user frees space first, with Windows Disk Management or GParted, and the wizard shows how much is needed (64 GB). AnyBook partitions go into the largest unallocated extent.
+- **v1 never moves or shrinks anything.** The user frees space first, with Windows Disk Management or GParted, and the wizard shows how much is needed (64 GB). OpenBook partitions go into the largest unallocated extent.
 - **ESP:**
-  - Reuse the existing ESP for `EFI/AnyBook/systemd-bootx64.efi` only (157 KB).
+  - Reuse the existing ESP for `EFI/OpenBook/systemd-bootx64.efi` only (157 KB).
   - Kernels and entries go to a new **XBOOTLDR** partition (512 MiB, FAT32, type `bc13c2ff-59e6-4262-a352-b275fd6f7172`) on the same disk. Windows ESPs are often only 100–260 MB (R).
   - If the disk has no ESP, create a 512 MiB one.
 - **Menu:**
   - systemd-boot lists Windows Boot Manager automatically when it's on that ESP.
   - For other loaders (GRUB, Limine) we add an `efi` chainload entry.
-  - **BootOrder** changes only if the user ticks "Start AnyBook by default". It is off by default when alongside.
-- **The AnyBook disk and the Android partitions must be the same disk,** because `boot_part_uuid` points at it. If the only ESP is on another disk, create one on the AnyBook disk.
+  - **BootOrder** changes only if the user ticks "Start OpenBook by default". It is off by default when alongside.
+- **The OpenBook disk and the Android partitions must be the same disk,** because `boot_part_uuid` points at it. If the only ESP is on another disk, create one on the OpenBook disk.
 
 ### 3.4 Firmware subset and vendor modules
 - **First-stage modules** (`vendor_boot` ramdisk, `lib/modules/<release>/`): only what's needed to reach `super`. On the G14 that is nothing: NVMe, xHCI, usb-storage and uas are built into GKI (C). Keep the directory non-empty with at least one module, or empty it in the product. First-stage init falls back to the flat `/lib/modules/modules.load` when the release directory loads nothing, and a vermagic error there is fatal (C, `first_stage_init.cpp`; we hit it).
-- **Second stage:** the 138 AnyBook modules (amdgpu, mt7925e, i2c-hid, sound…) go in `vendor_dlkm`, and the GKI modules from the same build in `system_dlkm`. The rule from ANAL-172 holds: the `bzImage` and `system_dlkm` must come from one dist.
+- **Second stage:** the 138 OpenBook modules (amdgpu, mt7925e, i2c-hid, sound…) go in `vendor_dlkm`, and the GKI modules from the same build in `system_dlkm`. The rule from ANAL-172 holds: the `bzImage` and `system_dlkm` must come from one dist.
 - **linux-firmware subset** (131 files, 52.5 MB, ANAL-171):
   - Lives in `/vendor/firmware`, uncompressed (`FW_LOADER_COMPRESS` is off), with `firmware_class.path=/vendor/firmware`.
   - The licence files and WHENCE go under `/vendor/firmware/` and into NOTICE.
@@ -200,7 +200,7 @@ About 13 GiB is fixed. The minimum disk is 64 GB (H; set it once ANAL-174's imag
 ### 3.6 First boot and setup
 - `/metadata` and `/data` are created on first boot, as in the prototype. Android then starts its setup flow.
 - **Google's SetupWizard is not in AOSP:** AOSP 17 only has the `setupcompat`/`setupdesign`/`setupwizard` libraries and `Provision`, which only sets the provisioned bit (C).
-- AnyBook therefore needs its own small setup app, built on those libraries: language (pre-selected from `ro.boot.anybook.locale`), Wi-Fi, user and screen lock, privacy. No Google account step. This is a work item for ANAL-191.
+- OpenBook therefore needs its own small setup app, built on those libraries: language (pre-selected from `ro.boot.anybook.locale`), Wi-Fi, user and screen lock, privacy. No Google account step. This is a work item for ANAL-191.
 
 ## 4. Wizard technology
 
@@ -211,11 +211,11 @@ About 13 GiB is fixed. The minimum disk is 64 GB (H; set it once ANAL-174's imag
 | Licence | **5**: Apache-2.0, AOSP Compose prebuilts (C) | 4: GPL-3.0-or-later; fine, but the source must ship | 4: Qt LGPL-3; avoid GPL-only modules such as Virtual Keyboard (C) |
 | Effort | 2: privileged engine daemon, SELinux, efivarfs, setup app | 3: existing modules, but Android partitions need a custom module; `rawfs` picks targets by mount point (C) | 2 |
 | Accessibility | 3: Compose semantics, but no screen reader in AOSP; TalkBack is Apache-2.0 on GitHub and would need building (C) | 2: Orca support open since 2019 (#1294), Tab navigation bug #2531 open (C) | 3: Qt `Accessible` + AT-SPI/Orca |
-| Hardware support | 2: needs AnyBook's own graphics and input. GKI has no `simpledrm`/`efifb`, so nothing shows until amdgpu loads (C) | **5**: generic kernel, simpledrm, any GOP display | **5** |
+| Hardware support | 2: needs OpenBook's own graphics and input. GKI has no `simpledrm`/`efifb`, so nothing shows until amdgpu loads (C) | **5**: generic kernel, simpledrm, any GOP display | **5** |
 | **Total** | **22** | 19 | 20 |
 
 **Choice: (a).**
-- If the wizard can run, AnyBook can run on that machine. The hardware check also tests the drivers that matter after install (Wi-Fi, touchpad, audio, suspend), not a different kernel's.
+- If the wizard can run, OpenBook can run on that machine. The hardware check also tests the drivers that matter after install (Wi-Fi, touchpad, audio, suspend), not a different kernel's.
 - For machines where the display doesn't come up, the boot menu has **"Hardware report (text)"**. It boots with `androidboot.anybook.diag=1`, writes a report to the stick's `anybook/logs/`, and powers off (H, ANAL-191).
 - The same `anybook-install` engine runs unattended for the device agent (PLAN §4a), with JSON output.
 - Revisit (b2) if "tell users on unsupported hardware why" becomes a goal (NVIDIA-only laptops), or if decision 6's simpledrm is rejected.
@@ -226,7 +226,7 @@ About 13 GiB is fixed. The minimum disk is 64 GB (H; set it once ANAL-174's imag
 flowchart LR
   A[1 Welcome and language] --> B[2 Hardware check]
   B --> C{3 Try or install}
-  C -- Try --> T[Live desktop<br/>with an Install AnyBook shortcut]
+  C -- Try --> T[Live desktop<br/>with an Install OpenBook shortcut]
   T --> D
   C -- Install --> D[4 Disk choice<br/>boot stick locked]
   D -- Show plan --> P[Dry-run plan]
@@ -234,7 +234,7 @@ flowchart LR
   D --> E[5 Confirmation<br/>type the disk name]
   E --> F[6 Progress<br/>log on the stick]
   F --> G[7 Done<br/>remove stick, restart]
-  G --> S[First boot:<br/>AnyBook setup]
+  G --> S[First boot:<br/>OpenBook setup]
 ```
 
 Wireframes: `docs/installer-wireframes.html` (open in a browser). The rendered copy is `evidence/2026-10-16-installer/wireframes.png`. Each screen in short:
@@ -265,7 +265,7 @@ Wireframes: `docs/installer-wireframes.html` (open in a browser). The rendered c
 - **S6. Logs.** An append-only text log plus a JSON report on the stick, copied to the new system. Every command and result is logged. No passwords, Wi-Fi keys or account data.
 - **S7. Alongside never destroys.**
   - Never delete, format, move or resize existing partitions.
-  - Write only `EFI/AnyBook/` and `loader/entries/anybook-*.conf` on a shared ESP.
+  - Write only `EFI/OpenBook/` and `loader/entries/anybook-*.conf` on a shared ESP.
   - Never overwrite `EFI/BOOT/BOOTX64.EFI` there.
   - Change BootOrder only with consent.
 - **S8. Power.** Require AC power, or battery ≥ 50%.
@@ -282,7 +282,7 @@ Wireframes: `docs/installer-wireframes.html` (open in a browser). The rendered c
 | Item | Licence | Ship? | Obligation |
 |---|---|---|---|
 | AOSP 17 platform built from source | Apache-2.0 and others (per-module NOTICE) | yes | NOTICE in Settings › Legal; GPL/LGPL parts (e2fsprogs `mke2fs`, f2fs-tools, …) need a source offer |
-| AnyBook GKI + 138 vendor modules | GPL-2.0 | yes | **Corresponding source** (kernel tree, our 3 patches, config, `kernel/devices/anybook`) per release, plus a written offer or a tarball next to the image for 3 years |
+| OpenBook GKI + 138 vendor modules | GPL-2.0 | yes | **Corresponding source** (kernel tree, our 3 patches, config, `kernel/devices/anybook`) per release, plus a written offer or a tarball next to the image for 3 years |
 | linux-firmware subset (131 files) | per WHENCE: LICENSE.amdgpu, LICENCE.mediatek, LICENSE.amdnpu, LICENCE.rtlwifi_firmware.txt, LICENSE.cirrus | yes | Ship the licence files and WHENCE with the files; no modification |
 | Mesa radeonsi/RADV | MIT; **libelf LGPL-3.0+** | after decision | **Open decision:** link libelf as a shared library (recommended, `docs/mesa.md`) |
 | Digitalis (if Track A ships it) | Apache-2.0 | yes, built from source | Never the DigitalisX64 sample-app SDK binary |
@@ -291,7 +291,7 @@ Wireframes: `docs/installer-wireframes.html` (open in a browser). The rendered c
 | GBL (later) | Apache-2.0 (+ third-party LICENSE from its build) | later | Build from source; ship its LICENSE |
 | Installer app, engine, bootsync | ours | yes | Repo licence decision (Apache-2.0 suggested; files already carry SPDX Apache-2.0) |
 | **Never ship** | — | no | GMS, Google apps, SetupWizard, Play services, libhoudini, libndk_translation, Googlebook recovery images or parts of them, vendor blobs without a redistribution licence, the CS35L56 tuning blob (not public anyway) |
-| AVB keys | — | — | Release images must not be signed with the AOSP test key. **Open:** who holds the AnyBook release key |
+| AVB keys | — | — | Release images must not be signed with the AOSP test key. **Open:** who holds the OpenBook release key |
 | Names and marks | — | — | **Open:** check use of "Android" and avoid "Googlebook" in product naming, so no endorsement is implied (question for the owner) |
 
 **Blocking decisions before any public image** (from `docs/STATUS.md`): the repo licence and Mesa libelf linkage. Added here: AVB key custody and naming.
@@ -300,7 +300,7 @@ Wireframes: `docs/installer-wireframes.html` (open in a browser). The rendered c
 1. Approve decisions 1–5 above (format, loader, layouts, wizard, safety rules).
 2. Decision 6 (kernel lane): add `CONFIG_EFIVAR_FS`. Also add `SYSFB_SIMPLEFB`+`DRM_SIMPLEDRM` for a safe-graphics boot entry?
 3. Alongside installs v1: no resizing (the user frees space first). OK?
-4. Who holds the AnyBook AVB release key, and do test-key images stay userdebug-only?
+4. Who holds the OpenBook AVB release key, and do test-key images stay userdebug-only?
 5. Product naming and trademark check.
 
 ## 8. Next steps (once signed off)

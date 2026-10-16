@@ -1,4 +1,4 @@
-# AMD graphics in the AnyBook device tree
+# AMD graphics in the OpenBook device tree
 
 This covers ANAL-174, as of 2026-10-16. It builds on ANAL-173 (Mesa built with the NDK, `docs/mesa.md`) and ANAL-169 (the `anybook_cf_x86_64_pc` desktop product, `docs/aosp-desktop.md`). Evidence is in `evidence/2026-10-16-graphics-amd/`.
 

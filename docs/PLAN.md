@@ -1,4 +1,4 @@
-# AnyBook track plan
+# OpenBook track plan
 
 Goal: the Googlebook experience on x86_64 hardware Google does not ship. AMD Ryzen comes first, then other Intel parts, and NVIDIA later.
 
@@ -17,7 +17,7 @@ Status as of 2026-10-15. Facts are labelled **CONFIRMED** (we checked a primary 
 
 ## 2. Two tracks
 
-| | **Track A: Open AnyBook** | **Track B: Googlebook OS on AMD** |
+| | **Track A: OpenBook (open source)** | **Track B: Googlebook OS on AMD** |
 |---|---|---|
 | Base | Public AOSP `android-latest-release` (Android 17), with desktop windowing as in the AOSP Desktop image | Google's official recovery image, which **each user downloads themselves** (the Brunch model) |
 | What we ship | A full, redistributable image | Only scripts and open-source replacement parts, applied locally to the user's own download |
@@ -95,7 +95,7 @@ Each milestone is small, has a verification artifact, and is checked into `evide
 | M5 | Desktop UI, input and power | A+B | Touchpad and keyboard, s2idle suspend/resume cycles, battery, backlight, audio (ACP/SOF) | |
 | M6 | Apps and ARM translation | A+B | ARM-only APK compatibility matrix (top 50 plus a stress list) under houdini, ndk_translation and Digitalis | |
 | M7 | Performance and parity | A+B | Benchmarks against an Intel Googlebook baseline (needs device access); Chrome; Linux terminal fallback | |
-| M8 | USB installer | A | A bootable AnyBook USB image that runs live and installs through a graphical wizard, only to a disk the user confirms by name (epic ANAL-188, owner goal 2026-10-16) | Design and QEMU boot-chain prototype delivered (ANAL-189, `docs/installer.md`); owner sign-off needed before ANAL-190 |
+| M8 | USB installer | A | A bootable OpenBook USB image that runs live and installs through a graphical wizard, only to a disk the user confirms by name (epic ANAL-188, owner goal 2026-10-16) | Design and QEMU boot-chain prototype delivered (ANAL-189, `docs/installer.md`); owner sign-off needed before ANAL-190 |
 
 ## 4a. Device-in-the-loop: Multica on the G14 (owner directive, 2026-10-16)
 
@@ -139,7 +139,7 @@ Execution is tracked as Multica epics under ANAL-159. The live map, lanes and cr
 
 **Delivered and merged** (PRs #1–#14):
 - Track A in a VM: our AOSP 17 PC build gives the Android desktop experience on the host GPU (ANAL-169).
-- The AnyBook GKI with 138 AMD vendor modules boots our userspace (ANAL-172).
+- The OpenBook GKI with 138 AMD vendor modules boots our userspace (ANAL-172).
 - Mesa for Android (ANAL-173).
 - The ARM compat baseline and the Digitalis evaluation (ANAL-180/181).
 

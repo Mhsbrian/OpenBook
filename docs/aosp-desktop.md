@@ -55,14 +55,14 @@ We captured both images with the same script and diffed them (`scripts/desktop-c
    - Launcher3's `TaskbarFeatureEvaluator.kt` pins the taskbar when the display is in desktop mode, or when it is a desktop-first freeform display (`SystemWindowManagerProxy.showDesktopTaskbarForFreeformDisplay`).
    - Navigation buttons follow `config_navBarInteractionMode`. Gestural (2) removes them, as on the reference image.
 
-## The AnyBook desktop configuration
+## The OpenBook desktop configuration
 
 Everything is in a device tree inside this repo. `scripts/aosp-build.sh` copies it into the AOSP tree on every build: `rsync --delete` to `device/anybook`, because Soong's nsjail sandbox only sees `/aosp/src`.
 
 ```
 device/anybook/
   AndroidProducts.mk                       lunch anybook_cf_x86_64_pc-cp2a-userdebug
-  common/desktop/                          reusable by any AnyBook product (VM or bare metal)
+  common/desktop/                          reusable by any OpenBook product (VM or bare metal)
     desktop.mk                             characteristics, large_screen_common, the two RROs, release config map
     Android.bp                             AnyBookDesktopFrameworkOverlay, AnyBookDesktopSystemUIOverlay (/product)
     overlays/framework/res/values/config.xml
@@ -265,7 +265,7 @@ Both images were captured with the same script at 1920×1080, 160 dpi. Windowing
 | Wi-Fi | `wifi_on=1`; Wi-Fi icon in the status bar | `wifi_on=0` | Cuttlefish Wi-Fi not turned on; not investigated |
 | Kernel | 6.12.58 android16-6.12 (emulator `kernel-ranchu`) | 6.12.74 android16-6.12 (Cuttlefish prebuilt GKI) | ANAL-171/172 bring android17-6.18 |
 | Display identity | `display_settings.xml` keyed by unique id `local:4619827259835644672` | keyed by `port:0` | same effect: freeform, ignoring orientation requests |
-| Name | "Android Desktop" | "AnyBook Cuttlefish x86_64 desktop" | ours |
+| Name | "Android Desktop" | "AnyBook Cuttlefish x86_64 desktop" (`PRODUCT_MODEL`; still the old name, see the README) | ours |
 
 ## Open items
 

@@ -5,7 +5,7 @@ ANAL-173, 2026-10-15. This covers Android x86_64 builds of Mesa's radeonsi (EGL 
 **State:** both trees build, link cleanly against the API 37 NDK sysroot, and **load and run their GPU-independent entry points on Android 17 x86_64** (the AOSP Desktop emulator under KVM).
 
 **Update 2026-10-16 (ANAL-174, `docs/graphics-amd.md`):**
-- The upstream tree is now built with GBM and a shared libelf. It is staged into the AnyBook image as vendor prebuilts (`device/anybook/common/graphics-amd`).
+- The upstream tree is now built with GBM and a shared libelf. It is staged into the OpenBook image as vendor prebuilts (`device/anybook/common/graphics-amd`).
 - The image's own copies ran on a real AMD GPU: the build host's Radeon 610M (RDNA2), in a container with the image's bionic and no Android framework (`evidence/2026-10-16-graphics-amd/hwtest/`).
   - RADV enumerates the GPU, creates a device, and a GPU `vkCmdFillBuffer` verifies.
   - radeonsi GLES 3.2 renders and reads back.

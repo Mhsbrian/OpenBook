@@ -124,13 +124,13 @@ scripts/cf-boot.sh                      # Cuttlefish container: launch, wait for
 - Images are staged as reflink copies in `~/anybook/aosp/cf/product`; `out/` is never modified.
 - See `docs/aosp-build.md` (M1b).
 
-## Kernel in Cuttlefish: AnyBook kernel + our AOSP 17 userspace (ANAL-172)
+## Kernel in Cuttlefish: OpenBook kernel + our AOSP 17 userspace (ANAL-172)
 
 Needs the ANAL-171 dist and the ANAL-168 build (`~/anybook/aosp/src/out`, read only).
 
 ```bash
 KERNEL_TARGET=//common-modules/virtual-device:virtual_device_x86_64_dist scripts/kernel-build.sh anybook-vdev-gbos-16302624   # 6 min, once
-scripts/kernel-cf-boot.sh          # AnyBook module set; `board` for the control. About 1.5 min per boot
+scripts/kernel-cf-boot.sh          # OpenBook module set; `board` for the control. About 1.5 min per boot
 ```
 
 - Uses its own container (`anybook-cf-kernel`), ports (adb 16572, WebRTC 11472) and vsock CID 172, so it can run next to `scripts/cf-boot.sh`.
@@ -150,7 +150,7 @@ COMPAT_AVD=anybook-digitalis COMPAT_EMU_ARGS=-writable-system scripts/compat/run
 - `install.sh` wipes and reinstalls every time, because a data wipe drops the overlay. The libndk_translation AVD `anybook-desktop` is never modified.
 - Details and results are in `docs/digitalis.md`.
 
-## M2: AnyBook desktop product and host-GPU Cuttlefish (ANAL-169)
+## M2: OpenBook desktop product and host-GPU Cuttlefish (ANAL-169)
 
 ```bash
 docker build -t anybook-cuttlefish -f tools/Dockerfile.cuttlefish tools/     # pinned Cuttlefish image + Mesa Vulkan
@@ -188,5 +188,5 @@ scripts/minigbm-amdgpu-host-test.sh             # minigbm amdgpu backend, Linux 
 ```
 
 - Without the staged Mesa, `graphics-amd.mk` stops the build with a message that names the two scripts above.
-- `scripts/aosp-patches.sh` applies AnyBook's AOSP patches on top of each project's pinned revision (`evidence/2026-10-15-aosp/manifest-pinned.xml.gz`). It is idempotent, and `--export PROJECT` writes edited commits back.
+- `scripts/aosp-patches.sh` applies OpenBook's AOSP patches on top of each project's pinned revision (`evidence/2026-10-15-aosp/manifest-pinned.xml.gz`). It is idempotent, and `--export PROJECT` writes edited commits back.
 - See `docs/graphics-amd.md`.

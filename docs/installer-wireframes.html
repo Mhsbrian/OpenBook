@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- AnyBook installer wireframes (ANAL-189). Low-fidelity: layout, content and safety affordances only.
-     Open in a browser. Recommended technology: an Android app in the live AnyBook session (docs/installer.md §4). -->
+<!-- OpenBook installer wireframes (ANAL-189). Low-fidelity: layout, content and safety affordances only.
+     Open in a browser. Recommended technology: an Android app in the live OpenBook session (docs/installer.md §4). -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>AnyBook installer wireframes</title>
+<title>OpenBook installer wireframes</title>
 <style>
   :root { --ink:#1d1d1f; --mute:#6b6b70; --line:#c9c9cf; --bg:#f4f4f6; --card:#fff; --accent:#2f5bd3; --warn:#b3261e; --ok:#1e7a3c; }
   body { font: 14px/1.4 system-ui, sans-serif; color: var(--ink); background: var(--bg); margin: 24px; }
@@ -37,13 +37,13 @@
 </style>
 </head>
 <body>
-<h1>AnyBook installer: wireframes</h1>
+<h1>OpenBook installer: wireframes</h1>
 <p class="sub">One flow, seven screens. Every screen has Back, keyboard focus order top to bottom, and a screen-reader label on each control. Destructive actions are never the default focus.</p>
 <div class="grid">
 
-<div class="screen"><div class="bar"><span><span class="num">1</span>Welcome and language</span><span>AnyBook live · 10:42</span></div>
+<div class="screen"><div class="bar"><span><span class="num">1</span>Welcome and language</span><span>OpenBook live · 10:42</span></div>
 <div class="body">
-  <div class="title">Welcome to AnyBook</div>
+  <div class="title">Welcome to OpenBook</div>
   <div class="muted">Running from the USB stick. Nothing on this computer has been changed.</div>
   <div class="row"><span>Language</span><span class="field" style="flex:1">English (United States) ▾</span></div>
   <div class="row"><span>Keyboard</span><span class="field" style="flex:1">US ▾</span><span class="btn">Test</span></div>
@@ -52,7 +52,7 @@
   <div class="row"><span class="spacer"></span><span class="btn primary">Next</span></div>
 </div></div>
 
-<div class="screen"><div class="bar"><span><span class="num">2</span>Hardware check</span><span>AnyBook live</span></div>
+<div class="screen"><div class="bar"><span><span class="num">2</span>Hardware check</span><span>OpenBook live</span></div>
 <div class="body">
   <div class="title">Hardware check</div>
   <div class="muted">ASUS ROG Zephyrus G14 (GA403WR) · BIOS GA403WR.309</div>
@@ -68,26 +68,26 @@
   <div class="row"><span class="btn">Save report to USB</span><span class="spacer"></span><span class="btn">Back</span><span class="btn primary">Next</span></div>
 </div></div>
 
-<div class="screen"><div class="bar"><span><span class="num">3</span>Try or install</span><span>AnyBook live</span></div>
+<div class="screen"><div class="bar"><span><span class="num">3</span>Try or install</span><span>OpenBook live</span></div>
 <div class="body">
-  <div class="title">How do you want to use AnyBook?</div>
-  <div class="disk sel"><b>Try AnyBook</b><br><span class="muted">Keep running from the USB stick. Your apps and files stay on the stick. Install any time from the desktop.</span></div>
-  <div class="disk"><b>Install AnyBook</b><br><span class="muted">Copy AnyBook to a disk in this computer. You choose the disk on the next screen.</span></div>
+  <div class="title">How do you want to use OpenBook?</div>
+  <div class="disk sel"><b>Try OpenBook</b><br><span class="muted">Keep running from the USB stick. Your apps and files stay on the stick. Install any time from the desktop.</span></div>
+  <div class="disk"><b>Install OpenBook</b><br><span class="muted">Copy OpenBook to a disk in this computer. You choose the disk on the next screen.</span></div>
   <div class="spacer"></div>
   <div class="row"><span class="spacer"></span><span class="btn">Back</span><span class="btn primary">Continue</span></div>
 </div></div>
 
-<div class="screen"><div class="bar"><span><span class="num">4</span>Disk choice</span><span>AnyBook live</span></div>
+<div class="screen"><div class="bar"><span><span class="num">4</span>Disk choice</span><span>OpenBook live</span></div>
 <div class="body">
-  <div class="title">Where should AnyBook go?</div>
+  <div class="title">Where should OpenBook go?</div>
   <div class="disk sel"><b>SK hynix PVC10 · 1.02 TB (954 GiB) · NVMe</b><br>
     <span class="muted">nvme-SK_hynix_PVC10_…4F2A · GPT: EFI 260 MB, Windows 412 GB, Linux 541 GB</span></div>
-  <div class="disk locked"><b>SanDisk Ultra · 32 GB · USB</b> 🔒<br><span class="muted">AnyBook is running from this stick. It cannot be the target.</span></div>
+  <div class="disk locked"><b>SanDisk Ultra · 32 GB · USB</b> 🔒<br><span class="muted">OpenBook is running from this stick. It cannot be the target.</span></div>
   <div class="row"><span>Layout</span><span class="btn primary">Erase whole disk</span><span class="btn off">Alongside (needs 64 GB unallocated)</span></div>
   <div class="row"><span class="btn">Show plan (dry run)</span><span class="spacer"></span><span class="btn">Back</span><span class="btn primary">Next</span></div>
 </div></div>
 
-<div class="screen"><div class="bar"><span><span class="num">5</span>Confirmation</span><span>AnyBook live</span></div>
+<div class="screen"><div class="bar"><span><span class="num">5</span>Confirmation</span><span>OpenBook live</span></div>
 <div class="body">
   <div class="title bad">Erase SK hynix PVC10 (1.02 TB)?</div>
   <div class="bars"><span style="width:1%;background:#888"></span><span style="width:43%;background:#7aa0e6"></span><span style="width:56%;background:#e6a07a"></span></div>
@@ -98,20 +98,20 @@
   <div class="row"><span class="btn">Show plan</span><span class="spacer"></span><span class="btn">Back</span><span class="btn danger off">Erase and install</span></div>
 </div></div>
 
-<div class="screen"><div class="bar"><span><span class="num">6</span>Progress</span><span>AnyBook live</span></div>
+<div class="screen"><div class="bar"><span><span class="num">6</span>Progress</span><span>OpenBook live</span></div>
 <div class="body">
-  <div class="title">Installing AnyBook</div>
+  <div class="title">Installing OpenBook</div>
   <div class="prog"><span></span></div>
   <div class="step">✓ Checked the USB image (sha256)<br>✓ Wrote the partition table<br>✓ boot, init_boot, vendor_boot, vbmeta<br>● super 4.1 of 6.6 GB…<br>○ Boot loader and boot menu entry<br>○ Read-back check</div>
   <div class="muted">Keep the charger connected. Log: USB stick › anybook/logs/install-20261016T1842Z.log</div>
   <div class="row"><span class="spacer"></span><span class="btn">Show log</span></div>
 </div></div>
 
-<div class="screen"><div class="bar"><span><span class="num">7</span>Done</span><span>AnyBook live</span></div>
+<div class="screen"><div class="bar"><span><span class="num">7</span>Done</span><span>OpenBook live</span></div>
 <div class="body">
-  <div class="title ok">AnyBook is installed</div>
+  <div class="title ok">OpenBook is installed</div>
   <div class="muted">Remove the USB stick, then restart. Setup continues on first start (Wi-Fi, account, screen lock).</div>
-  <div class="list"><div><span>Boot entry</span><span>“AnyBook” added to the firmware boot menu</span></div>
+  <div class="list"><div><span>Boot entry</span><span>“OpenBook” added to the firmware boot menu</span></div>
   <div><span>Read-back check</span><span class="ok">All partitions match</span></div>
   <div><span>Report</span><span>Saved to the USB stick and to the new system</span></div></div>
   <div class="spacer"></div>
