@@ -57,6 +57,17 @@ The script works like this:
 - The recovery image is attached as an NVMe disk at PCI `00:04.0` with `snapshot=on`, so the image is never modified.
 - Use `tcg` instead of `kvm` to run on QEMU's emulated `max` CPU.
 
+## ARM-compat harness and libndk_translation baseline (ANAL-180)
+
+```bash
+scripts/compat/build-probes.sh         # NDK r30 toolchain (sha1-verified) + probe APKs + CoreMark, in the anybook-ndk container
+scripts/compat/fetch-corpus.sh         # F-Droid corpus, sha256-pinned in scripts/compat/corpus/fdroid.tsv
+scripts/compat/run-matrix.sh --fresh   # emulator on port 5580: install, launch, wait 15 s, check, screenshot, CSV
+scripts/compat/run-bench.sh            # CoreMark arm64 (translated) vs x86_64 (native)
+```
+
+`scripts/compat/emulator.sh` boots the M0 AVD with guest Vulkan: it passes `-feature Vulkan` and sets `hw.gltransport=virtio-gpu`. Details are in `docs/compat-harness.md`.
+
 ## M1b prep: AOSP 17 build container and source tree (Track A)
 
 Details, the mirror decision and measurements are in `docs/aosp-build.md`; evidence is in `evidence/2026-10-15-aosp/`.

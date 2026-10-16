@@ -71,6 +71,18 @@
 | ANAL-165 Track B: Googlebook OS on AMD (parked: licensing decision) | ANAL-182 VM boot to `boot_completed`, ANAL-183 Zen 4 ISA spike | ANAL-184 kernel swap → ANAL-185 graphics overlay |
 | ANAL-166 Performance and parity (parked) | — | — |
 
+## 2026-10-15: ARM compat harness and libndk_translation baseline (ANAL-180)
+
+**Done**
+- `scripts/compat/`: probe APKs (arm64-only, armv7-only, x86_64 control) with 19 test groups, a pinned F-Droid corpus (16 arm64-only apps plus 7 x86_64 controls), a resumable matrix runner and a CoreMark benchmark.
+- **Apps:** 13 of 16 arm64-only F-Droid apps run under libndk_translation. Tor VPN (SIGILL on `mrs ID_AA64ISAR0_EL1`) and Element X fail only under translation; AAAAXY also fails natively.
+- **No arm32:** armeabi-v7a does not install (the image is 64-bit only).
+- **Speed:** translated arm64 runs at 0.457× native x86_64 (CoreMark, same emulator).
+- **Probe findings:** seq_cst store→load ordering is broken (about 1% of store-buffering trials), NaN rules follow x86, `CNTVCT_EL0` runs about 429× fast, and `MRS` of ID registers is not emulated.
+
+**Evidence:** `evidence/2026-10-15-compat/` (2 runs with identical outcomes, screenshots, logs, `bench/`, `analysis/`).
+
+**Next:** the same corpus under houdini (after M1a) and Digitalis/Berberis (after M1b); root-cause Element X.
 ## 2026-10-16: M1b prep, AOSP 17 build environment (ANAL-167, Track A)
 
 **Done**

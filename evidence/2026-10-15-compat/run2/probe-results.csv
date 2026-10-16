@@ -1,0 +1,39 @@
+run_id,id,test,status,detail
+20261015-213126,probe-arm64,load,PASS,abi=arm64-v8a compiler=[clang 21.0.0 (https://android.googlesource.com/toolchain/llvm-project 9f872551d3c681d06fd303b36f16ed5c274735eb)]
+20261015-213126,probe-arm64,java_jni_args,PASS,checks=1 ms=0
+20261015-213126,probe-arm64,java_jni_exception,PASS,checks=1 ms=0
+20261015-213126,probe-arm64,java_jni_register_natives,PASS,checks=1 ms=0
+20261015-213126,probe-arm64,java_jni_callbacks,PASS,checks=12 ms=2
+20261015-213126,probe-arm64,abi,FAIL,checks=3 failed=uname_aarch64 abi=arm64-v8a uname.machine=x86_64 at_platform=? exe=/system/bin/arm64/app_process64 pagesz=4096 hwcap=fp+asimd+aes+pmull+crc32+atomics(hwcap2=0x0) cpuinfo=[CPU implementer : 0x41 / Features : fp asimd aes pmul
+20261015-213126,probe-arm64,neon,PASS,checks=16 cvt=[2147483647 -2147483648 0 2] frecpe(1.0)=0x3f7f8000 ms=0
+20261015-213126,probe-arm64,crypto,PASS,checks=5 present=[aes pmull crc32 ] ms=1
+20261015-213126,probe-arm64,isa,FAIL,checks=32 failed=nan_snan_priority;default_nan_positive;fmax_propagates_nan;cntvct_rate;mrs_cpuid_registers nan=[7fc0000a 7fc0000a ffc00000 7fc0000b] fmax(qNaN;1)=7fc00000 fmaxnm(qNaN;1)=3f800000 fmin(+0;-0)=80000000 fmin(-0;+0)=80000000 cn
+20261015-213126,probe-arm64,atomics,FAIL,checks=7 failed=store_buffering_seq_cst wide_cas_bits=128 sb_seqcst_violations=2138/200000 sb_relaxed_reorders=1578/200000 ms=225
+20261015-213126,probe-arm64,tls,PASS,checks=3 ms=12
+20261015-213126,probe-arm64,threads,PASS,checks=6 affinity=6 online=6 hwconc=6 ms=78
+20261015-213126,probe-arm64,syscalls,PASS,checks=7 uname=Linux/x86_64 personality=0x0 ms=11
+20261015-213126,probe-arm64,dlopen,PASS,checks=13 rtld_default_JNI_GetCreatedJavaVMs=absent dlopen(libart.so)=fail loaded_objects=21 dlopen(/system/lib64/libc.so)=ok ms=66
+20261015-213126,probe-arm64,cxx_exceptions,PASS,checks=10 backtrace_frames=12 ms=28
+20261015-213126,probe-arm64,jit,PASS,checks=4 dual_map_no_flush_sees=22 ms=2
+20261015-213126,probe-arm64,signals,FAIL,checks=13 failed=sigill_si_code_kernel sigill_signo=4 sigill_code=-1 alarm_on_this_thread=0 ms=236
+20261015-213126,probe-arm64,gles,PASS,checks=7 egl=1.4 renderer=[Android Emulator OpenGL ES Translator (Google SwiftShader)] version=[OpenGL ES 3.0 (OpenGL ES 3.0 SwiftShader 4.0.0.1)] pixel=255;128;0;255 ms=41
+20261015-213126,probe-arm64,vulkan,PASS,checks=6 loader=1.4 device=[Virtio-GPU GFXStream (SwiftShader Device (Subzero))] api=1.3.0 ms=10
+20261015-213126,probe-x86_64,load,PASS,abi=x86_64 compiler=[clang 21.0.0 (https://android.googlesource.com/toolchain/llvm-project 9f872551d3c681d06fd303b36f16ed5c274735eb)]
+20261015-213126,probe-x86_64,java_jni_args,PASS,checks=1 ms=1
+20261015-213126,probe-x86_64,java_jni_exception,PASS,checks=1 ms=0
+20261015-213126,probe-x86_64,java_jni_register_natives,PASS,checks=1 ms=0
+20261015-213126,probe-x86_64,java_jni_callbacks,PASS,checks=12 ms=1
+20261015-213126,probe-x86_64,abi,PASS,checks=1 abi=x86_64 uname.machine=x86_64 at_platform=x86_64 exe=/system/bin/app_process64 pagesz=4096 hwcap=0x178bfbfd/0x0 cpuinfo=[model name : Android virtual processor / flags  : fpu de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov 
+20261015-213126,probe-x86_64,neon,SKIP,not an ARM build ms=0
+20261015-213126,probe-x86_64,crypto,PASS,checks=5 ms=0
+20261015-213126,probe-x86_64,isa,SKIP,AArch64-only semantics (x86_64 is the native control) ms=0
+20261015-213126,probe-x86_64,atomics,PASS,checks=5 wide_cas_bits=128 sb_seqcst_violations=0/200000 sb_relaxed_reorders=5729/200000 ms=129
+20261015-213126,probe-x86_64,tls,PASS,checks=3 ms=5
+20261015-213126,probe-x86_64,threads,PASS,checks=6 affinity=6 online=6 hwconc=6 ms=51
+20261015-213126,probe-x86_64,syscalls,PASS,checks=7 uname=Linux/x86_64 personality=0x0 ms=11
+20261015-213126,probe-x86_64,dlopen,PASS,checks=13 rtld_default_JNI_GetCreatedJavaVMs=absent dlopen(libart.so)=fail loaded_objects=382 dlopen(/system/lib64/libc.so)=ok ms=3
+20261015-213126,probe-x86_64,cxx_exceptions,PASS,checks=10 backtrace_frames=11 ms=2
+20261015-213126,probe-x86_64,jit,PASS,checks=4 dual_map_no_flush_sees=23 ms=1
+20261015-213126,probe-x86_64,signals,PASS,checks=13 sigill_signo=4 sigill_code=2 alarm_on_this_thread=0 ms=231
+20261015-213126,probe-x86_64,gles,PASS,checks=7 egl=1.4 renderer=[Android Emulator OpenGL ES Translator (Google SwiftShader)] version=[OpenGL ES 3.0 (OpenGL ES 3.0 SwiftShader 4.0.0.1)] pixel=255;128;0;255 ms=36
+20261015-213126,probe-x86_64,vulkan,PASS,checks=6 loader=1.4 device=[Virtio-GPU GFXStream (SwiftShader Device (Subzero))] api=1.3.0 ms=6
