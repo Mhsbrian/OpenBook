@@ -172,3 +172,9 @@ This confirms the run 5 sibling-model reading on this laptop: the dGPU is `GPP9.
   - **Entry 3 with a fixture SSDT** (`scripts/installer/acpi-d3cold-test.asl`, loaded through the kernel's ACPI table upgrade) that recreates the G14's situation below QEMU's root port `00:04.0`: before the module, `TSWU` is D0 with no device and its `PWRS` is ON, as on the G14. The module logs "`\_SB.PCI0.S20_: companion of 0000:00:04.0, left alone`" and "`\_SB.PCI0.S20_.TSWU: D0 -> D3cold (0), parent held on: 0000:00:04.0`". Before suspend and after resume, `TSWU` is D3cold and `PWRS` is off (`qemu-fixture-report-excerpt.txt`).
   - **Entry 2:** unchanged, passes.
   - **Not covered in the VM:** a parent that starts in D3cold. QEMU's port isn't power-manageable, so on the G14, holding `00:01.1` awake from D3cold is exercised for the first time.
+
+## Stick updated to v6 (2026-10-16, owner's confirmation on ANAL-189)
+- Same guarded update as for v2–v5 (`stick-update-v6.log`): only `openbook/check/hwcheck.img`, the three check entries and the README on the OPENBOOK partition.
+- A read-only remount verified all five files against `../2026-10-16-installer/hwcheck-stick/v6/esp-update-MANIFEST.sha256`.
+- Entry 3 is now "OpenBook sleep test, NVIDIA GPU + unused port powered down" (`openbook.probe.dgpu=detach openbook.probe.acpi_d3cold=_SB.PCI0.GPP0.SWUS`).
+- Reports `hwcheck-001`…`006` are still on the stick. The next run writes `hwcheck-007`.
