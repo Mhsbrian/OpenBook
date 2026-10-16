@@ -1,0 +1,29 @@
+// Copyright (C) 2026 The OpenBook Authors
+// SPDX-License-Identifier: Apache-2.0
+
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+// Boot-time sysfs setup run by init.openbook.rc: the dGPU runtime-PM fallback and the power HAL's EPP files.
+sh_binary {
+    name: "openbook-pc-setup",
+    src: "bin/openbook-pc-setup.sh",
+    vendor: true,
+}
+
+// ANAL-187's dGPU state check (scripts/dgpu-power-check.sh; bin/ links to it and scripts/aosp-build.sh copies
+// the file into the tree). userdebug only: `sh /vendor/bin/dgpu-power-check`.
+sh_binary {
+    name: "dgpu-power-check",
+    src: "bin/dgpu-power-check.sh",
+    vendor: true,
+}
+
+// Fixture test for openbook-pc-setup (scripts/openbook-pc-setup-test.sh), so the QEMU validation runs it on the
+// device's own shell and toybox. userdebug only.
+sh_binary {
+    name: "openbook-pc-setup-test",
+    src: "bin/openbook-pc-setup-test.sh",
+    vendor: true,
+}

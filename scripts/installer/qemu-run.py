@@ -6,7 +6,7 @@ timeout. Runs inside the openbook-installer container. Image files only; never a
 
 usage: qemu-run.py --usb IMG [--nvme IMG] --out DIR [--timeout S] [--expect STEPS.json] [--shot SECONDS ...]
                    [--mem MiB] [--smp N] [--vars FILE] [--pause-on-reset] [--vga MODEL] [--gpu DEVICE]
-                   [--usb-input] [--tpm] [--trace]
+                   [--usb-input] [--tpm] [--detach-test-device] [--trace]
 
 STEPS.json: [{"wait": "regex", "timeout": 120}, {"send": "text\\n"}, {"shot": "name"}, ...]; steps run in order
 on the serial stream; "shot" saves the screen as DIR/shot-<name>.png at that point. The run ends when the steps

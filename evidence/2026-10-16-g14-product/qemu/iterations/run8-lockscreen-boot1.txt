@@ -1,0 +1,5 @@
+Pin set to '1234'
+Lock credential verified successfully
+total 8
+-rw------- 1 system system 42 2026-10-16 23:22 slot0
+-rw------- 1 system system 42 2026-10-16 23:22 slot1

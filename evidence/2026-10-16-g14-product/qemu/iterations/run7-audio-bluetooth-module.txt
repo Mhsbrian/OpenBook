@@ -1,0 +1,3 @@
+10-16 22:42:04.833   332   332 I servicemanager: Caller(pid=668,uid=1041,sid=u:r:audioserver:s0) Since 'android.hardware.audio.core.IModule/bluetooth' could not be found trying to start it as a lazy AIDL service. (if it's not configured to 
+10-16 22:42:05.836   332   332 I servicemanager: Caller(pid=668,uid=1041,sid=u:r:audioserver:s0) Since 'android.hardware.audio.core.IModule/bluetooth' could not be found trying to start it as a lazy AIDL service. (if it's not configured to 
+10-16 22:42:06.839   332   332 I servicemanager: Caller(pid=668,uid=1041,sid=u:r:audioserver:s0) Since 'android.hardware.audio.core.IModule/bluetooth' could not be found trying to start it as a lazy AIDL service. (if it's not configured to 

@@ -1,0 +1,3 @@
+# The software Gatekeeper (com.android.hardware.gatekeeper.nonsecure) also serves the shared-secret negotiation
+# with KeyMint, under its own instance name.
+android.hardware.security.sharedsecret.ISharedSecret/gatekeeper u:object_r:hal_gatekeeper_service:s0

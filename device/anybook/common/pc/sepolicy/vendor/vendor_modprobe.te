@@ -1,0 +1,10 @@
+# init.openbook.rc loads vendor_dlkm's modules.load with /vendor/bin/modprobe in this domain. The GKI modules
+# that vendor modules link against (bluetooth, btbcm, libarc4, rfkill) come from system_dlkm through modules.dep.
+allow vendor_modprobe system_dlkm_file:dir r_dir_perms;
+allow vendor_modprobe system_dlkm_file:file r_file_perms;
+allow vendor_modprobe system_dlkm_file:system module_load;
+# libmodprobe reads module options from the kernel command line and bootconfig.
+allow vendor_modprobe proc_bootconfig:file r_file_perms;
+# Loading modules can create keyrings (as Cuttlefish's dlkm_loader sees); stdio_to_kmsg on userdebug.
+allow vendor_modprobe self:key write;
+userdebug_or_eng(`allow vendor_modprobe kmsg_debug_device:chr_file { getattr ioctl w_file_perms };')

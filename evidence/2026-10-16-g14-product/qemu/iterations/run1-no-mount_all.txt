@@ -1,0 +1,10 @@
+[    2.195801][    T1] init: [libfs_mgr] Invalid ext4 superblock on '/dev/block/by-name/metadata'
+[    2.360041][   T68] audit: type=1400 audit(1792182192.232:5): avc:  denied  { relabelto } for  pid=1 comm="init" name="boot_a" dev="tmpfs" ino=42 scontext=u:r:init:s0 tcontext=u:object_r:boot_block_device:s0 tclass=lnk_file permissive=0
+[    2.362443][   T68] audit: type=1400 audit(1792182192.232:6): avc:  denied  { relabelto } for  pid=1 comm="init" name="init_boot_a" dev="tmpfs" ino=38 scontext=u:r:init:s0 tcontext=u:object_r:boot_block_device:s0 tclass=lnk_file permissive=0
+[    2.364971][   T68] audit: type=1400 audit(1792182192.232:7): avc:  denied  { relabelto } for  pid=1 comm="init" name="vendor_boot_a" dev="tmpfs" ino=34 scontext=u:r:init:s0 tcontext=u:object_r:boot_block_device:s0 tclass=lnk_file permissive=0
+[    2.367251][   T68] audit: type=1400 audit(1792182192.232:8): avc:  denied  { relabelto } for  pid=1 comm="init" name="vbmeta_a" dev="tmpfs" ino=30 scontext=u:r:init:s0 tcontext=u:object_r:boot_block_device:s0 tclass=lnk_file permissive=0
+[    8.162217][  T322] SELinux: avc:  denied  { add } for pid=502 uid=1000 name=android.hardware.security.sharedsecret.ISharedSecret/gatekeeper scontext=u:r:hal_gatekeeper_default:s0 tcontext=u:object_r:default_android_service:s0 tclass=service_manager permiss
+[    8.165758][  T322] SELinux: avc:  denied  { find } for pid=501 uid=1017 name=android.hardware.security.sharedsecret.ISharedSecret/gatekeeper scontext=u:r:keystore:s0 tcontext=u:object_r:default_android_service:s0 tclass=service_manager permissive=0
+[    8.204410][  T335] cutils: Failed to mkdir(/data/data): Read-only file system
+[    8.207071][  T335] vold: Failed to prepare /data/data: Read-only file system
+[    8.260807][    T1] reboot: Restarting system with command 'netbpfload-missing'

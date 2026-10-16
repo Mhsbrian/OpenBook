@@ -1,0 +1,26 @@
+# OpenBook on a PC: first-stage (vendor ramdisk) and second-stage (/vendor/etc) fstab. One top-level vbmeta
+# verifies every logical partition, as on Googlebook's fstab.android-desktop. Partitions are found by name on the
+# boot disk only: the loader passes androidboot.boot_part_uuid (the PARTUUID of the disk's ESP), so a USB stick
+# and an internal NVMe disk with the same partition names never mix (docs/installer.md §1.1). Without it, init
+# falls back to androidboot.boot_devices (the device's BoardConfig.mk lists its NVMe and USB root ports).
+system       /system       erofs ro wait,logical,first_stage_mount,slotselect,avb=vbmeta
+system_ext   /system_ext   erofs ro wait,logical,first_stage_mount,slotselect,avb=vbmeta
+product      /product      erofs ro wait,logical,first_stage_mount,slotselect,avb=vbmeta
+vendor       /vendor       erofs ro wait,logical,first_stage_mount,slotselect,avb=vbmeta
+vendor_dlkm  /vendor_dlkm  erofs ro wait,logical,first_stage_mount,slotselect,avb=vbmeta
+system_dlkm  /system_dlkm  erofs ro wait,logical,first_stage_mount,slotselect,avb=vbmeta
+
+/dev/block/by-name/boot        /boot        emmc defaults slotselect,first_stage_mount
+/dev/block/by-name/init_boot   /init_boot   emmc defaults slotselect,first_stage_mount
+/dev/block/by-name/vendor_boot /vendor_boot emmc defaults slotselect,first_stage_mount
+/dev/block/by-name/vbmeta      /vbmeta      emmc defaults slotselect,first_stage_mount
+/dev/block/by-name/misc        /misc        emmc defaults defaults
+/dev/block/by-name/metadata    /metadata    ext4 noatime,nosuid,nodev,discard wait,check,formattable,first_stage_mount
+# f2fs with file-based and metadata encryption. There is no inline-crypto hardware on these PCs: the kernel's
+# blk-crypto fallback does the work (BLK_INLINE_ENCRYPTION_FALLBACK=y), as in ANAL-198's QEMU runs.
+/dev/block/by-name/userdata    /data        f2fs nodev,noatime,nosuid,inlinecrypt,reserve_root=32768 latemount,wait,check,quota,formattable,keydirectory=/metadata/vold/metadata_encryption,fileencryption=aes-256-xts:aes-256-hctr2:inlinecrypt_optimized,fscompress,checkpoint=fs
+
+# Removable storage. vold turns only "basic data" GPT partitions (and MBR FAT/exFAT/NTFS ones) into volumes, so
+# the boot stick's own Android partitions never show up as a USB drive.
+/devices/*/usb*                       auto auto defaults voldmanaged=usb:auto
+/devices/*/rtsx_pci_sdmmc.*/mmc_host* auto auto defaults voldmanaged=sdcard1:auto

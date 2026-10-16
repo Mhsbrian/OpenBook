@@ -1,0 +1,44 @@
+IsStatusOverride: false
+ThermalEventListeners:
+	callbacks: 4
+	killed: false
+	broadcasts count: -1
+ThermalStatusListeners:
+	callbacks: 2
+	killed: false
+	broadcasts count: -1
+Thermal Status: 0
+Cached temperatures:
+HAL Ready: true
+HAL connection:
+	ThermalHAL AIDL 3  connected: yes
+Current temperatures from HAL:
+Current cooling devices from HAL:
+	CoolingDevice{mValue=0, mType=2, mName=Processor-0}
+	CoolingDevice{mValue=0, mType=2, mName=Processor-1}
+	CoolingDevice{mValue=0, mType=2, mName=Processor-2}
+	CoolingDevice{mValue=0, mType=2, mName=Processor-3}
+	CoolingDevice{mValue=0, mType=2, mName=Processor-4}
+	CoolingDevice{mValue=0, mType=2, mName=Processor-5}
+	CoolingDevice{mValue=0, mType=2, mName=Processor-6}
+	CoolingDevice{mValue=0, mType=2, mName=Processor-7}
+Temperature static thresholds from HAL:
+Temperature headroom thresholds:
+[NaN, NaN, NaN, NaN, NaN, NaN, NaN]
+android.hardware.light.ILights$Stub$Proxy@5f9f909
+Lights:
+Session clients:
+Current Battery Service state:
+  AC powered: false
+  USB powered: false
+  Wireless powered: false
+  Dock powered: false
+  Max charging current: 0
+ Time when the latest updated value of the Max charging current was sent via battery changed broadcast: +22s940ms
+  Max charging voltage: 0
+  Charge counter: 0
+  status: 1
+  health: 1
+  present: false
+  level: 0
+  scale: 100
