@@ -9,30 +9,32 @@
 
 ## ARM-only APKs
 
-The first baseline is libndk_translation in the AOSP Desktop (Preview) 37.0 emulator, from 2026-10-15 (ANAL-180). Each verdict means the app is alive 15 s after launch, with crash, ANR and tombstone counts and a screenshot. Two wiped-emulator runs gave identical results. Method, probe details and findings are in `docs/compat-harness.md`; evidence is in `evidence/2026-10-15-compat/`. The houdini and Digitalis columns come next. "—" means not tested yet.
+The first baseline is libndk_translation in the AOSP Desktop (Preview) 37.0 emulator, from 2026-10-15 (ANAL-180). Each verdict means the app is alive 15 s after launch, with crash, ANR and tombstone counts and a screenshot. Two wiped-emulator runs gave identical results. Method, probe details and findings are in `docs/compat-harness.md`; evidence is in `evidence/2026-10-15-compat/`. The Digitalis column (2026-10-16, ANAL-181) uses the same image, corpus and harness, with Digitalis built from source and installed as the native bridge on a separate AVD. It also had two identical wiped-emulator runs; details are in `docs/digitalis.md` and evidence in `evidence/2026-10-16-digitalis/`. The houdini column comes next. "—" means not tested yet.
 
 | App | ABI | houdini | ndk_translation | Digitalis | Notes |
 |---|---|---|---|---|---|
-| AnyBook probe (`scripts/compat/probe`) | arm64-v8a | — | Runs; 15/19 test groups pass | — | Fails: seq_cst store→load ordering, x86 NaN rules, `CNTVCT_EL0` rate, `MRS` ID registers, `uname`, SIGILL `si_code` |
-| AnyBook probe | armeabi-v7a | — | **Install fails** | — | `INSTALL_FAILED_NO_MATCHING_ABIS`: the image is 64-bit only |
-| VLC 3.7.1 | arm64-v8a | — | Runs | — | x86_64 control runs |
-| Fennec F-Droid 158.0.0 | arm64-v8a | — | Runs | — | x86_64 control runs; launch 690 ms vs 190 ms |
-| KOReader v2026.07.1 | arm64-v8a | — | Runs | — | LuaJIT |
-| Lichess 0.29.1 | arm64-v8a | — | Runs | — | Flutter; x86_64 control runs |
-| LocalSend 1.18.2 | arm64-v8a | — | Runs | — | Flutter + Rust; x86_64 control runs |
-| Godot Engine 4.7.2 | arm64-v8a | — | Runs | — | Opens the all-files-access page; x86_64 control the same |
-| Ogre Sample Browser 14.3.0 | arm64-v8a | — | Runs | — | GLES3 rendering visible |
-| Battle for Wesnoth 1.19.28 | arm64-v8a | — | Runs | — | |
-| OsmAnd~ 5.4.10 | arm64-v8a | — | Runs | — | |
-| GCompris 26.2 | arm64-v8a | — | Runs | — | Qt 6 |
-| TIC-80 1.01.00 | arm64-v8a | — | Runs | — | |
-| Tux Paint 0.9.35 | arm64-v8a | — | Runs | — | |
-| SimpleX Chat 7.0.4 | arm64-v8a | — | Runs (caveat) | — | Window still black at 15 s |
-| AAAAXY 1.7.239 | arm64-v8a | — | Crash | — | The x86_64 control crashes the same way, so not translation |
-| Tor VPN Beta 1.9.1 | arm64-v8a | — | **Crash** | — | SIGILL: Go runtime `mrs ID_AA64ISAR0_EL1` is not emulated |
-| Element X 26.09.1 | arm64-v8a | — | **Crash** | — | `Failed to find JNI_GetCreatedJavaVMs`; the x86_64 control runs |
+| AnyBook probe (`scripts/compat/probe`) | arm64-v8a | — | Runs; 15/19 test groups pass | Runs; 16/19 pass | ndk fails: seq_cst store→load ordering, x86 NaN rules, `CNTVCT_EL0` rate, `MRS` ID registers, `uname`, SIGILL `si_code`. Digitalis fixes ordering, `CNTVCT`, `uname` and FMAX NaN; it still fails sNaN/default NaN, `MRS ID_AA64ISAR0_EL1` and `si_code`, and newly fails the `FRECPE` estimate |
+| AnyBook probe | armeabi-v7a | — | **Install fails** | **Install fails** | `INSTALL_FAILED_NO_MATCHING_ABIS`: the image is 64-bit only |
+| VLC 3.7.1 | arm64-v8a | — | Runs | Runs | x86_64 control runs |
+| Fennec F-Droid 158.0.0 | arm64-v8a | — | Runs | **Crash** | x86_64 control runs; launch 690 ms vs 190 ms. Under Digitalis, a Gecko thread hits a NULL+8 SIGSEGV that Berberis's handler catches (no tombstone, so the harness reports EXITED) |
+| KOReader v2026.07.1 | arm64-v8a | — | Runs | Runs | LuaJIT |
+| Lichess 0.29.1 | arm64-v8a | — | Runs | Runs | Flutter; x86_64 control runs |
+| LocalSend 1.18.2 | arm64-v8a | — | Runs | Runs | Flutter + Rust; x86_64 control runs |
+| Godot Engine 4.7.2 | arm64-v8a | — | Runs | Runs | Opens the all-files-access page; x86_64 control the same |
+| Ogre Sample Browser 14.3.0 | arm64-v8a | — | Runs | Runs | GLES3 rendering visible |
+| Battle for Wesnoth 1.19.28 | arm64-v8a | — | Runs | Runs | |
+| OsmAnd~ 5.4.10 | arm64-v8a | — | Runs | Runs | |
+| GCompris 26.2 | arm64-v8a | — | Runs | Runs | Qt 6 |
+| TIC-80 1.01.00 | arm64-v8a | — | Runs | Runs | |
+| Tux Paint 0.9.35 | arm64-v8a | — | Runs | Runs | |
+| SimpleX Chat 7.0.4 | arm64-v8a | — | Runs (caveat) | Runs (caveat) | Window still black at 15 s under both bridges |
+| AAAAXY 1.7.239 | arm64-v8a | — | Crash | Crash | The x86_64 control crashes the same way, so not translation |
+| Tor VPN Beta 1.9.1 | arm64-v8a | — | **Crash** | **Crash** | SIGILL: Go runtime `mrs ID_AA64ISAR0_EL1` is not emulated by either bridge |
+| Element X 26.09.1 | arm64-v8a | — | **Crash** | **Crash** | `Failed to find JNI_GetCreatedJavaVMs` under both bridges; the x86_64 control runs |
 
 Benchmark: CoreMark translated arm64 / native x86_64 = 0.457 for executables and 0.453 inside an app, in the same emulator (`evidence/2026-10-15-compat/bench/`).
+
+Same-day re-run on a quiet host (2026-10-16): libndk_translation 0.452 / 0.456 and **Digitalis 0.298 / 0.304** (`evidence/2026-10-16-digitalis/bench-ndk/`, `bench/`). Digitalis runs at about two thirds of libndk_translation's speed. arm64-only apps alive at 15 s: libndk_translation 13/16, Digitalis 12/16 (Digitalis loses Fennec).
 
 ## Graphics drivers
 

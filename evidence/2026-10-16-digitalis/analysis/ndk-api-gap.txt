@@ -1,0 +1,49 @@
+# Dynamic exports (NDK plus platform-private): Android 17 host libs vs the arm64 guest libs each bridge ships (ANAL-181)
+# A17 host and ndk_translation guest: extracted from the AOSP Desktop 37.0 system.img (CLE1.260506.004) with debugfs.
+# Digitalis guest: our build, AOSP android16-qpr2-release (bundle SHA256SUMS in this directory).
+# Columns: library, exports in A17 host missing from the Digitalis guest, missing from the ndk_translation guest
+libandroid       digitalis_missing=43  ndk_missing=0
+libbinder_ndk    digitalis_missing=15  ndk_missing=0
+libmediandk      digitalis_missing=10  ndk_missing=1
+libaaudio        digitalis_missing=7   ndk_missing=1
+libEGL           digitalis_missing=7   ndk_missing=7
+libnativewindow  digitalis_missing=2   ndk_missing=0
+libvulkan        digitalis_missing=2   ndk_missing=0
+libcamera2ndk    digitalis_missing=1   ndk_missing=1
+libjnigraphics   digitalis_missing=0   ndk_missing=0
+liblog           digitalis_missing=0   ndk_missing=0
+
+## libandroid: missing from the Digitalis guest
+AActivityManager_createProcessObserver AActivityManager_destroyProcessObserver AActivityManager_getRunningAppProcesses 
+AActivityManager_ProcessObserver_setOnForegroundActivitiesChanged AActivityManager_ProcessObserver_setOnForegroundServicesChanged 
+AActivityManager_ProcessObserver_setOnProcessDied AActivityManager_ProcessObserver_setOnProcessStarted AActivityManager_registerProcessObserver 
+AActivityManager_RunningAppProcessInfoList_destroy AActivityManager_RunningAppProcessInfoList_get AActivityManager_RunningAppProcessInfoList_getSize 
+AActivityManager_unregisterProcessObserver ANativeService_setOnBindCallback ANativeService_setOnDestroyCallback ANativeService_setOnRebindCallback 
+ANativeService_setOnTrimMemoryCallback ANativeService_setOnUnbindCallback android_getnetworkblockedreason ANpuBuffer_free ANpuBuffer_getFd 
+ANpuBuffer_loadAsync ANpuBuffer_map ANpuBuffer_setPriority ANpuBuffer_unmap ANpuManager_allocAsync ANpuManager_AllocRequest_create 
+ANpuManager_AllocRequest_free ANpuManager_AllocRequest_setBufferPriority ANpuManager_AllocRequest_setBufferType ANpuManager_AllocRequest_setCookie 
+ANpuManager_AllocRequest_setDeviceNumber ANpuManager_AllocRequest_setFileSegmentToLoad ANpuManager_AllocRequest_setOnAlloc 
+ANpuManager_AllocRequest_setOnPreempt ANpuManager_AllocRequest_setProtectionFlags ANpuManager_AllocRequest_setSize ANpuManager_isSupported 
+APerformanceHint_setReportBatchSizeCapForTesting ARunningAppProcessInfo_getImportance ARunningAppProcessInfo_getPackageList 
+ARunningAppProcessInfo_getPid ARunningAppProcessInfo_getProcessName ARunningAppProcessInfo_getUid 
+## libbinder_ndk: missing from the Digitalis guest
+AIBinder_addFrozenStateChangeCallback AIBinder_FrozenStateChangeCallback_delete AIBinder_FrozenStateChangeCallback_new AIBinder_isSystemStable 
+AIBinder_isVendorStable AIBinder_removeFrozenStateChangeCallback AIBinder_requiresVintfDeclaration AIBinder_setMinRpcThreads AParcel_getDataCapacity 
+AParcel_setDataCapacity APersistableBundle_getByteVector APersistableBundle_getByteVectorKeys APersistableBundle_putByteVector 
+AServiceManager_checkServiceAccess AServiceManager_registerLazyServiceWithFlags 
+## libmediandk: missing from the Digitalis guest
+ACodecEncoderCapabilities_getSupportedLayeringSchemas AImage_getTransform AImageReader_setDefaultAHardwareBufferFormat 
+AImageReader_setDefaultBufferDataSpace AImageReader_setDefaultBufferSize AImageReader_setMaxImages AMEDIAFORMAT_KEY_CSD_VVC 
+AMEDIAFORMAT_KEY_HDR_ST2094_50_INFO AMEDIAFORMAT_KEY_HORIZONTAL_FLIP __cfi_check 
+## libaaudio: missing from the Digitalis guest
+AAudio_getFlushFromFrameSupport AAudioStreamBuilder_setPartialDataCallback AAudioStreamBuilder_setRoutingChangedCallback AAudioStream_flushFromFrame 
+AAudioStream_getPlaybackParameters AAudioStream_setPlaybackParameters __cfi_check 
+## libEGL: missing from the Digitalis guest
+_ZN7android11egl_cache_t6sCacheE _ZN7android11egl_cache_tC1Ev _ZN7android11egl_cache_tD1Ev _ZN7android13egl_display_t10displayMapE 
+_ZN7android13egl_display_t14displayMapLockE _ZN7android13egl_display_tC1Ev _ZN7android13egl_display_tD1Ev 
+## libnativewindow: missing from the Digitalis guest
+ANativeWindow_isProducerThrottlingEnabled ANativeWindow_setProducerThrottlingEnabled 
+## libvulkan: missing from the Digitalis guest
+_ZN7android7sysprop16VulkanProperties10oem_layersEv _ZN7android7sysprop16VulkanProperties15platform_layersEv 
+## libcamera2ndk: missing from the Digitalis guest
+__cfi_check 

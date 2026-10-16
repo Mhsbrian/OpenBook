@@ -104,3 +104,29 @@
 **Evidence:** `evidence/2026-10-15-compat/` (2 runs with identical outcomes, screenshots, logs, `bench/`, `analysis/`).
 
 **Next:** the same corpus under houdini (after M1a) and Digitalis/Berberis (after M1b); root-cause Element X.
+
+### 2026-10-16: ARM compat, Digitalis evaluation (ANAL-181)
+
+**Done**
+- Built Digitalis from source:
+  - Translator `b6b7fc30` on AOSP `android16-qpr2-release`, manifest `3969040d`.
+  - The 70 bridge modules in 44 min; the full reference image in 82 min.
+- Installed it as the native bridge of the AOSP Desktop 37.0 emulator, on its own AVD, and ran the ANAL-180 corpus, probes and CoreMark. Two wiped runs gave identical outcomes.
+- Ran Digitalis's own AOSP 16 image as a control. It gave the same results.
+- **Apps:** 12 of 16 arm64-only apps alive, against 13 for libndk_translation. Digitalis loses Fennec to a deterministic translation SIGSEGV at `libxul.so+0x2b32da0`. Tor VPN (`MRS ID_AA64ISAR0_EL1`) and Element X fail under both bridges.
+- **Probes:** Digitalis fixes seq_cst ordering, `CNTVCT` rate, `uname` and FMAX NaN. It adds an `FRECPE` failure.
+- **Speed:** CoreMark 0.30× native, against 0.45× for libndk_translation the same day, so about 34% slower.
+- **License audit:** Apache-2.0, built from source, no Digitalis prebuilts in the image. The sample-app repo carries a proprietary SDK binary and must stay out of Track A.
+- **Recommendation: GO for Track A**, with conditions:
+  - port it to Android 17 (its guest NDK is A16: 43 `libandroid` exports missing);
+  - fix the Fennec crash, `MRS ID_AA64ISAR0_EL1` and `FRECPE`;
+  - accept or close the speed gap.
+
+  Details are in `docs/digitalis.md`.
+
+**Evidence:** `evidence/2026-10-16-digitalis/` (run1, run2, a16-control, bench, bench-ndk, analysis, bundle checksums, pinned manifest).
+
+**Blocked / needs a decision**
+- The owner's OK to report the findings upstream to DigitalisX64. That is an outward-facing action.
+
+**Next:** port Digitalis to `android17-release` and build it in the Track A tree (after ANAL-168), boot it in Cuttlefish, and re-run the matrix.

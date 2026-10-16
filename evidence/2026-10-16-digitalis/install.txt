@@ -1,0 +1,27 @@
+bundle: /home/hive/anybook/digitalis/bundle
+Digitalis overlay bundle built by AnyBook scripts/compat/digitalis/build.sh (modules) on 2026-10-16T12:48:24Z
+product: sdk_phone64_x86_64_digitalis-trunk_staging-userdebug
+frameworks/libs/binary_translation b6b7fc30f5e1cb2d2b9b465e3fdaa905616c31dc
+frameworks/libs/native_bridge_support ffd3f17ebbb244c01c274b6f527d016efc393813
+device/generic/goldfish bbc2f1e4237016e744be8de59b7b6b310f2cc242
+digitalis 11062cb09097c47a7d2b9ee292aa05626a821f10
+bionic f22516cbc67e81c13cf943ce02f01b8929a98726
+build/soong f389fa2a2a768a93bc99957e2288f3fbee032bff
+manifest 3969040d9ea562e8c874a57f545beeaf88975bc9
+artifacts: 74 present, 0 missing
+
+fingerprint: google/sdk_gdesktop_x86_64/emu64xa:17/CLE1.260506.004/15373846:userdebug/test-keys
+native_bridge: libberberis_arm64.so isa.arm64=x86_64 exec=1 flags=disable-ir-check
+abilist: x86_64,arm64-v8a
+binfmt arm64_dyn: enabled interpreter /system/bin/berberis_program_runner_binfmt_misc_arm64 flags: P offset 0 magic 7f454c460201010000000000000000000300b7 
+-rwxr-xr-x 1 root root u:object_r:system_file:s0       931816 2026-10-16 08:47 /system/bin/arm64/linker64
+-rwxr-xr-x 1 root root u:object_r:system_file:s0        51376 2026-10-16 08:47 /system/bin/berberis_program_runner_binfmt_misc_arm64
+-rwxr-xr-x 1 root root u:object_r:system_lib_file:s0  3027952 2026-10-16 08:47 /system/lib64/libberberis_arm64.so
+guest libs: 43
+native bridge in zygote log:
+10-16 08:54:20.177   437   437 I odrefresh: System property ro.dalvik.vm.native.bridge value changed (before: "libndk_translation.so", now: "libberberis_arm64.so").
+10-16 08:54:20.285   438   438 I odrefresh: System property ro.dalvik.vm.native.bridge value changed (before: "libndk_translation.so", now: "libberberis_arm64.so").
+10-16 08:54:21.216   454   454 I zygote64: option[47]=-XX:NativeBridge=libberberis_arm64.so
+10-16 08:54:51.572  1453  1453 I adbd    :   echo "native_bridge: $(getprop ro.dalvik.vm.native.bridge) isa.arm64=$(getprop ro.dalvik.vm.isa.arm64) exec=$(getprop ro.enable.native.bridge.exec) flags=$(getprop ro.berberis.flags)"
+10-16 08:54:51.572  1453  1453 I adbd    :   ls -lZ /system/lib64/libberberis_arm64.so /system/bin/berberis_program_runner_binfmt_misc_arm64 /system/bin/arm64/linker64
+10-16 08:54:51.572  1453  1453 I adbd    :   echo "native bridge in zygote log:"; logcat -d -b main,system | grep -iE "nativebridge|native_bridge|berberis" | head -20'
