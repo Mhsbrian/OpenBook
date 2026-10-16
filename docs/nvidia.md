@@ -54,7 +54,9 @@ So with `dgpu_disable=0`, OpenBook would run with the dGPU in D0 and no driver m
 - An s2idle cycle then completes, but with **0 µs of S0ix residency**.
 - The v3 check stick repeated the cycle after unbinding and removing both functions and letting the root port runtime-suspend (option 2 below). Result:
   - The bridge `00:03.1` reached D3hot, but **S0i3 was still not reached**, so the dGPU is not the only blocker.
-  - **On resume the firmware re-powered the slot.** pciehp logged "Card present, Link Up" and re-enumerated the dGPU. Option 2 would therefore have to be repeated after every resume; `dgpu_disable=1` would not.
+  - **On resume the slot was powered again.** pciehp logged "Card present, Link Up" and re-enumerated the dGPU. Option 2 would therefore have to be repeated after every resume; `dgpu_disable=1` would not.
+  - Run 5 (v4, with `pm_debug_messages`) waited for the bridge: it reached **D3cold** (`d3cold_allowed 1`), and S0i3 still failed. The re-enumeration came with "PM: parent 0000:00:03.1 should not be sleeping", so the slot was probably powered by the kernel resuming the root port (its `_PR0` holds `PG00` per the GA403WM dump), not by the firmware (HYPOTHESIS).
+  - The only unmet LPI constraint was `\_SB_.PCI0.GPP0.SWUS`, which is not the dGPU's ACPI node (`GPP9.PEGP`).
 
 ### Options compared
 

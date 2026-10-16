@@ -205,6 +205,12 @@ Full serial logs are `matrix/*/serial.log.gz`.
 
 **v4 (`openbook-hwcheck-20261016d`).** The sleep entries turn on `pm_debug_messages` and dynamic debug for amd_pmc, pinctrl_amd and the ACPI LPS0 code, and dump amd_pmc's idle mask and the wakeup sources. The detach step waits for the bridge's final power state (`openbook-hwcheck/4`). Tested in QEMU like v3.
 
+**G14 run 5 (v4).**
+- The dGPU's bridge reaches **D3cold**, and S0i3 is **still not reached**.
+- The kernel's LPI check names one unmet constraint: `\_SB_.PCI0.GPP0.SWUS` stays D0 (HYPOTHESIS: the child of the empty hotplug port `00:01.1`, not the dGPU).
+
+**v5 (`openbook-hwcheck-20261016e`).** Each PCI line carries its ACPI path. The sleep entries list ACPI device power states and power resources before the detach, before suspend and after resume. Tested in QEMU on a v4 image updated with the v5 bundle.
+
 ## 3. Install flow
 
 ### 3.1 Live USB layout (ANAL-190)

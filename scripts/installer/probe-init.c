@@ -16,7 +16,8 @@
 //                          then power off. It only ever mounts and writes the ESP whose PARTUUID is
 //                          androidboot.boot_part_uuid, and only if that partition sits on a USB device.
 //   openbook.probe.sleep=1 with report mode: also one suspend-to-idle cycle woken by the RTC after 20 s, with the
-//                          stick unmounted while asleep; records time asleep and the AMD PMC s0ix counters.
+//                          stick unmounted while asleep; records time asleep, the AMD PMC s0ix counters, and the
+//                          ACPI power states and power resources before and after (to map LPI constraint names).
 //   openbook.probe.dgpu=detach  with report mode, before the sleep test: power the NVIDIA dGPU down for this boot
 //                          the way an OpenBook image would without a driver (docs/nvidia.md section 1, option 2):
 //                          unbind its HDMI-audio function, remove both functions from the PCI bus, and let the
@@ -245,7 +246,10 @@ static void pci_facts(const char *when) {
         char link[256];
         ssize_t l = readlink(p, link, sizeof link - 1);
         if (l > 0) { link[l] = 0; snprintf(drv, sizeof drv, "%s", strrchr(link, '/') ? strrchr(link, '/') + 1 : link); bound++; }
-        say("pci[%s]: %s %s:%s class %s driver %s", when, e->d_name, ven + 2, dev + 2, cls + 2, drv);
+        char acpi[160] = "";  // the ACPI node this function belongs to, as named in the kernel's LPI messages
+        snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/firmware_node/path", e->d_name); read_line(p, acpi, sizeof acpi);
+        say("pci[%s]: %s %s:%s class %s driver %s%s%s", when, e->d_name, ven + 2, dev + 2, cls + 2, drv,
+            acpi[0] ? " acpi " : "", acpi);
         n++;
     }
     closedir(d);
@@ -661,6 +665,37 @@ static void awake_devices(const char *when) {
     say("awake[%s]: %d PCI functions not in D3", when, n);
 }
 
+// The ACPI side of the same question: every power-manageable ACPI device (state, and the device it belongs to) and
+// every ACPI power resource the kernel holds on. Unmet LPI constraints in the kernel log name these ACPI paths.
+static void acpi_power(const char *when) {
+    DIR *d = opendir("/sys/bus/acpi/devices");
+    if (!d) return;
+    struct dirent *e;
+    int n = 0, on = 0;
+    while ((e = readdir(d))) {
+        if (e->d_name[0] == '.') continue;
+        char p[320], path[160] = "", ps[32] = "", rps[32] = "", use[8] = "", phys[64] = "-", link[256];
+        snprintf(p, sizeof p, "/sys/bus/acpi/devices/%s/path", e->d_name);
+        if (read_line(p, path, sizeof path)) continue;
+        if (!strncmp(e->d_name, "LNXPOWER", 8)) {
+            snprintf(p, sizeof p, "/sys/bus/acpi/devices/%s/resource_in_use", e->d_name); read_line(p, use, sizeof use);
+            say("acpi-power[%s]: resource %s %s", when, path, strcmp(use, "1") ? "off" : "ON");
+            on += !strcmp(use, "1");
+            continue;
+        }
+        snprintf(p, sizeof p, "/sys/bus/acpi/devices/%s/power_state", e->d_name);
+        if (read_line(p, ps, sizeof ps)) continue;  // not power-manageable
+        snprintf(p, sizeof p, "/sys/bus/acpi/devices/%s/real_power_state", e->d_name); read_line(p, rps, sizeof rps);
+        snprintf(p, sizeof p, "/sys/bus/acpi/devices/%s/physical_node", e->d_name);
+        ssize_t l = readlink(p, link, sizeof link - 1);
+        if (l > 0) { link[l] = 0; snprintf(phys, sizeof phys, "%s", strrchr(link, '/') ? strrchr(link, '/') + 1 : link); }
+        say("acpi-power[%s]: %s %s real %s device %s", when, path, ps, rps[0] ? rps : "-", phys);
+        n++;
+    }
+    closedir(d);
+    say("acpi-power[%s]: %d power-manageable devices, %d power resources on", when, n, on);
+}
+
 static int write_str(const char *path, const char *v) {
     int fd = open(path, O_WRONLY);
     if (fd < 0) return -1;
@@ -738,6 +773,7 @@ static void sleep_test(void) {
         if (!write_str("/sys/kernel/debug/dynamic_debug/control", dyn[i])) say("sleep: dynamic debug '%s' on", dyn[i]);
     long res0 = s0ix_residency();
     awake_devices("before-suspend");
+    acpi_power("before-suspend");
     long ok0 = read_long("/sys/power/suspend_stats/success"), fail0 = read_long("/sys/power/suspend_stats/fail");
     int fd = open("/sys/class/rtc/rtc0/wakealarm", O_WRONLY);
     if (fd < 0 || write(fd, "0", 1) < 0 || (close(fd), fd = open("/sys/class/rtc/rtc0/wakealarm", O_WRONLY)) < 0 ||
@@ -772,6 +808,7 @@ static void sleep_test(void) {
     dump_file("pmc-fw-after", "/sys/kernel/debug/amd_pmc/smu_fw_info");
     dump_file("pmc-idlemask-after", "/sys/kernel/debug/amd_pmc/amd_pmc_idlemask");
     dump_file("wakeup-sources", "/sys/kernel/debug/wakeup_sources");
+    acpi_power("after-resume");
     write_str("/sys/power/pm_debug_messages", "0");
     long res1 = s0ix_residency();
     say("sleep: s0ix residency %ld us (%s)", res1 >= 0 && res0 >= 0 ? res1 - res0 : -1,
@@ -795,7 +832,7 @@ static void hardware_check(const char *uuid) {
     char vendor[16] = "0x10de";
     char *dv = strstr(cmdline, "openbook.probe.detach_vendor=");
     if (dv) sscanf(dv + 29, "%15[0-9a-fx]", vendor);
-    say("hwcheck: OpenBook hardware check v4%s%s. Writes only to the boot stick, then powers off.",
+    say("hwcheck: OpenBook hardware check v5%s%s. Writes only to the boot stick, then powers off.",
         want_sleep ? " with a sleep test" : "", want_detach ? " (dGPU powered down first)" : "");
     dmi_facts();
     cpu_facts();
@@ -823,6 +860,7 @@ static void hardware_check(const char *uuid) {
     thermal_facts();
     if (have_esp) { save_report(report); write_json(json); save_dmesg(dmesg); }
     if (want_detach) {
+        if (want_sleep) acpi_power("before-detach");
         detach_dgpu(vendor);
         dgpu_facts();
         if (have_esp) { save_report(report); write_json(json); }

@@ -115,3 +115,28 @@ These are `hwcheck-004.{txt,json,-dmesg.txt}`, redacted by the probe. sha256 of 
 - A read-only remount verified all five files against `../2026-10-16-installer/hwcheck-stick/v4/esp-update-MANIFEST.sha256`.
 - Menu order is unchanged: hardware check (default) → + sleep test → **sleep test, NVIDIA GPU powered down** (now with kernel sleep debugging) → preview.
 - Reports `hwcheck-001`…`004` are still on the stick. The next run writes `hwcheck-005`.
+
+## Run 5 (v4, "sleep test, NVIDIA GPU powered down", 2026-10-16 16:30)
+These are `hwcheck-005.{txt,json,-dmesg.txt}`, redacted by the probe. sha256 of the originals: txt `883ac83d…`, json `338acb48…`, dmesg `5a638828…`.
+
+| Area | Result (C) |
+|---|---|
+| dGPU detach | Both functions removed; bridge `00:03.1` went to **D3cold** (runtime suspended, `d3cold_allowed 1`). Run 4 read D3hot only because it didn't wait |
+| Sleep | s2idle cycle OK (18.8 s, success +1, fail 0). The LPS0 calls all succeed: "screen off", "lps0 ms entry", "lps0 entry", then the matching exits. Woken by the RTC (IRQ 9, ACPI fixed event) |
+| **Deep sleep** | **Still not reached.** s0ix residency 0; the SMU got the hint (Hint Count 0→1) but reports "Last S0i3 Status: Unknown/Fail", time to S0i3 0. During the cycle it logged USB4_0 active 78 416 µs and MPM 2 170 µs. amd_pmc idle mask at S0i3 entry `0xffef9afd` (before `0xf5ce9afd`, after `0xfd4c90fd`; the bits aren't publicly documented) |
+| **LPI constraints** (`pm_debug_messages`) | **One constraint is not met: `\_SB_.PCI0.GPP0.SWUS`, "min power state:D3hot current power state:D0".** About 40 others are "Device not power manageable" (skipped). GPP0 and GPP0.SWUS each have their own power resource (`PWRS`) |
+| Wakeup sources | Nothing held the system awake: `prevent_suspend_time` is 0 everywhere. The RTC (`00:00`, the wake alarm) has 2 events; single events from ucsi, ACAD, the power button and mmc0 (card reader) |
+| dGPU on resume | Back again: IRQ 38 "PCIe PME", then pciehp on `00:03.1` "Card not present"/"Card present, Link Up", re-enumeration, and "PM: parent 0000:00:03.1 should not be sleeping" for both functions |
+| Other | No slot power control on any hotplug port (`PwrCtrl-` on `00:01.1`, `00:02.2`, `00:03.1`), so ACPI power resources are the only switch. `00:01.1` bridges to `[bus 01-60]` with nothing behind it. The ACP audio and the NPU are suspended; `65:00.2` (PSP) and `66:00.0` still have no driver |
+
+**Reading (HYPOTHESES).**
+- The dGPU is ruled out as the only blocker: S0i3 still fails with its bridge in D3cold.
+- **GPP0.SWUS is now the prime suspect.** Per the GA403WM ACPI dump cited in `docs/nvidia.md` (a sibling model, REPORTED), the dGPU is `GPP9.PEGP` on `00:03.1`, so GPP0 is a different port: most likely `00:01.1`, the hotplug bridge with nothing behind it. Its switch-upstream child then has no PCI device to put into D3, so Linux keeps it at its boot state, D0. That may keep its power resource on.
+- The dGPU coming back on resume is better explained by the kernel than by the firmware: the root port is powered back up during resume, and that turns the slot on again. (This corrects the run 4 reading.)
+- This needs two checks. First, which PCI device each ACPI path belongs to, and which power resources stay on: the v5 check records both. Second, whether Linux on the same laptop meets this constraint and reaches S0i3: `amd-s2idle`, still pending.
+
+**v5 (`openbook-hwcheck-20261016e`, `../2026-10-16-installer/hwcheck-stick/v5/`).**
+- Each PCI line now carries its ACPI path (`firmware_node`).
+- The sleep entries list every power-manageable ACPI device (state, real state, PCI device) and every ACPI power resource (on/off). The lists are taken before the detach, before suspend and after resume.
+- Tested in QEMU on a copy of the v4 image updated with the v5 bundle. Both sleep entries ran to completion; QEMU's firmware has no power-manageable ACPI devices, so those lists are empty there. The sysfs attributes were checked read-only on the dev host.
+- The menu entries and README are byte-identical to v4; only `hwcheck.img` changes.

@@ -385,3 +385,12 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
   - v4 stick with the kernel's sleep debugging;
   - a Linux baseline with AMD's `amd-s2idle test` on the same laptop.
 - **Evidence:** `evidence/2026-10-16-g14-hwcheck/`.
+
+### 2026-10-16: G14 run 5: dGPU bridge in D3cold, still no S0i3; one LPI constraint unmet (ANAL-189)
+- With the kernel's sleep debugging on, the dGPU's bridge reaches D3cold, and the LPS0 entry/exit calls all succeed. The SMU still reports "Last S0i3 Status: Unknown/Fail".
+- **Only one LPI constraint is unmet: `\_SB_.PCI0.GPP0.SWUS`** (min D3hot, current D0). HYPOTHESIS: this is the child of the empty hotplug port `00:01.1`, which nothing powers down; it is not the dGPU (`GPP9`, per a sibling model's ACPI dump).
+- The dGPU returning on resume looks like the kernel powering the root port back up, not the firmware (corrects run 4).
+- **Next:**
+  - v5 stick (ACPI path per PCI device, ACPI power states and power resources around the sleep);
+  - the `amd-s2idle` Linux baseline, still the decisive comparison.
+- **Evidence:** `evidence/2026-10-16-g14-hwcheck/`.
