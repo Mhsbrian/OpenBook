@@ -1,0 +1,84 @@
+### kernel-build target=gbos-16302624 label=gbos-16302624-ab16302624 kleaf=//common:kernel_x86_64_dist BUILD_NUMBER=16302624 2026-10-16T00:21:24+00:00
+### host: 32 CPUs, 61 GB RAM; common HEAD 3938c8d97142d5cf31543aa96f864a2cf832dda0
+Starting local Bazel server (8.7.0) and connecting to it...
+Computing main repo mapping: 
+Loading: 
+Loading: 2 packages loaded
+Loading: 3 packages loaded
+Analyzing: target //common:kernel_x86_64_dist (3 packages loaded)
+Analyzing: target //common:kernel_x86_64_dist (3 packages loaded, 0 targets configured)
+Analyzing: target //common:kernel_x86_64_dist (3 packages loaded, 0 targets configured)
+
+Analyzing: target //common:kernel_x86_64_dist (83 packages loaded, 115316 targets configured)
+
+INFO: Analyzed target //common:kernel_x86_64_dist (83 packages loaded, 115536 targets configured).
+INFO: From BazelWorkspaceStatusAction stable-status.txt:
+
+... A new version of repo (2.69) is available.
+... New version is available at: /home/hive/anybook/kernel/src/.repo/repo/repo
+... The launcher is run from: /usr/bin/repo
+!!! The launcher is not writable.  Please talk to your sysadmin or distro
+!!! to get an update installed.
+
+[652 / 1,412] checking cached actions
+[1,397 / 1,412] Creating kernel config (trim) //common:kernel_x86_64_config; 0s processwrapper-sandbox
+[1,398 / 1,412] [Prepa] Copying .config //common:kernel_x86_64
+[1,399 / 1,412] Building UAPI kernel headers //common:kernel_x86_64_uapi_headers; 1s processwrapper-sandbox ... (3 actions running)
+[1,400 / 1,412] Preparing for module build (trim) //common:kernel_x86_64_modules_prepare; 4s processwrapper-sandbox ... (2 actions running)
+[1,400 / 1,412] Preparing for module build (trim) //common:kernel_x86_64_modules_prepare; 16s processwrapper-sandbox ... (2 actions running)
+INFO: From Preparing for module build (trim) //common:kernel_x86_64_modules_prepare:
+diff: Unknown option 'I' (see "diff --help")
+Warning: Kernel ABI header at 'tools/arch/x86/include/asm/inat.h' differs from latest version at 'arch/x86/include/asm/inat.h'
+diff: Unknown option 'I' (see "diff --help")
+Warning: Kernel ABI header at 'tools/arch/x86/include/asm/insn.h' differs from latest version at 'arch/x86/include/asm/insn.h'
+diff: Unknown option 'I' (see "diff --help")
+Warning: Kernel ABI header at 'tools/arch/x86/lib/inat.c' differs from latest version at 'arch/x86/lib/inat.c'
+diff: Unknown option 'I' (see "diff --help")
+Warning: Kernel ABI header at 'tools/arch/x86/lib/insn.c' differs from latest version at 'arch/x86/lib/insn.c'
+diff -u tools/arch/x86/include/asm/inat.h arch/x86/include/asm/inat.h
+diff -u tools/arch/x86/include/asm/insn.h arch/x86/include/asm/insn.h
+diff -u tools/arch/x86/lib/inat.c arch/x86/lib/inat.c
+diff -u tools/arch/x86/lib/insn.c arch/x86/lib/insn.c
+[1,401 / 1,412] Building kernel (trim) //common:kernel_x86_64; 30s processwrapper-sandbox
+[1,401 / 1,412] Building kernel (trim) //common:kernel_x86_64; 41s processwrapper-sandbox
+[1,401 / 1,412] Building kernel (trim) //common:kernel_x86_64; 71s processwrapper-sandbox
+[1,401 / 1,412] Building kernel (trim) //common:kernel_x86_64; 131s processwrapper-sandbox
+[1,401 / 1,412] Building kernel (trim) //common:kernel_x86_64; 192s processwrapper-sandbox
+[1,401 / 1,412] Building kernel (trim) //common:kernel_x86_64; 252s processwrapper-sandbox
+[1,401 / 1,412] Building kernel (trim) //common:kernel_x86_64; 312s processwrapper-sandbox
+[1,401 / 1,412] Building kernel (trim) //common:kernel_x86_64; 372s processwrapper-sandbox
+INFO: From Building kernel (trim) //common:kernel_x86_64:
+diff: Unknown option 'I' (see "diff --help")
+Warning: Kernel ABI header at 'tools/arch/x86/include/asm/inat.h' differs from latest version at 'arch/x86/include/asm/inat.h'
+diff: Unknown option 'I' (see "diff --help")
+Warning: Kernel ABI header at 'tools/arch/x86/include/asm/insn.h' differs from latest version at 'arch/x86/include/asm/insn.h'
+diff: Unknown option 'I' (see "diff --help")
+Warning: Kernel ABI header at 'tools/arch/x86/lib/inat.c' differs from latest version at 'arch/x86/lib/inat.c'
+diff: Unknown option 'I' (see "diff --help")
+Warning: Kernel ABI header at 'tools/arch/x86/lib/insn.c' differs from latest version at 'arch/x86/lib/insn.c'
+diff -u tools/arch/x86/include/asm/inat.h arch/x86/include/asm/inat.h
+diff -u tools/arch/x86/include/asm/insn.h arch/x86/include/asm/insn.h
+diff -u tools/arch/x86/lib/inat.c arch/x86/lib/inat.c
+diff -u tools/arch/x86/lib/insn.c arch/x86/lib/insn.c
+[1,402 / 1,412] checking cached actions
+[1,403 / 1,412] Checking for kmi_symbol_list_strict_mode (trim) //common:kernel_x86_64; 0s processwrapper-sandbox ... (7 actions running)
+[1,408 / 1,412] Running depmod //common:kernel_x86_64_modules_install; 2s processwrapper-sandbox ... (2 actions running)
+[1,409 / 1,412] Building kernel headers //common:kernel_x86_64_headers; 4s processwrapper-sandbox ... (2 actions, 1 running)
+[1,410 / 1,412] Building system_dlkm //common:kernel_x86_64_system_dlkm_image; 1s processwrapper-sandbox
+[1,411 / 1,412] [Prepa] Generating Kernel SBOM //common:kernel_x86_64_sbom
+INFO: Found 1 target...
+Target //common:kernel_x86_64_dist up-to-date:
+  bazel-bin/common/kernel_x86_64_dist
+  bazel-bin/common/kernel_x86_64_dist_install_script.py
+INFO: Elapsed time: 427.608s, Critical Path: 422.45s
+INFO: 18 processes: 1413 action cache hit, 1 internal, 17 processwrapper-sandbox.
+INFO: Build completed successfully, 18 total actions
+INFO: Running command line: bazel-bin/common/kernel_x86_64_dist <args omitted>
+INFO: Installing to /home/hive/anybook/kernel/dist/gbos-16302624-ab16302624
+### build done in 431s
+Linux version 6.18.21-android17-5-g3938c8d97142-ab16302624 (kleaf@build-host) (Android (15323222, +pgo, +bolt, +lto, +mlgo, based on r584948c) clang version 22.0.1 (https://android.googlesource.com/toolchain/llvm-project 2d65e4108033380e6fe8e08b1f1826cd2bfb0c99), LLD 22.0.1 (/mnt/disks/build-disk/src/googleplex-android/llvm-r584948-release/out/llvm-project/llvm 2d65e4108033380e6fe8e08b1f1826cd2bfb0c99)) #1 SMP PREEMPT Wed Sep  9 14:58:55 UTC 2026
+wrote /home/hive/anybook/kernel/dist/gbos-16302624-ab16302624/ikconfig/config (232323 bytes)
+e70b1595f61fdc8993b0106b988b42ec1674cd3ed09a3b8fe0a3ce26a5ba9568  /home/hive/anybook/kernel/dist/gbos-16302624-ab16302624/bzImage
+046971f3fb011e5ec31b4ddad2610ee4a459d2000aba4520b10faafe6a27be40  /home/hive/anybook/kernel/dist/gbos-16302624-ab16302624/dot_config
+701ce89f0e22ca66fa676d62010eefdb206c052a239e9ece194b885a1aa46cc1  /home/hive/anybook/kernel/dist/gbos-16302624-ab16302624/vmlinux
+### dist: /home/hive/anybook/kernel/dist/gbos-16302624-ab16302624 (613M, 100 modules); log: /home/hive/anybook/logs/kernel/build-gbos-16302624-ab16302624-20261016-002124.log

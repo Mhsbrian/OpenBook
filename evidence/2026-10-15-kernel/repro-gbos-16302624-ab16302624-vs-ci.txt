@@ -1,0 +1,19 @@
+ours: /home/hive/anybook/kernel/dist/gbos-16302624-ab16302624
+ref:  /home/hive/anybook/kernel/ci/16302624
+
+IDENTICAL  kernel_x86_64_dot_config
+IDENTICAL  vmlinux.symvers
+IDENTICAL  System.map
+IDENTICAL  modules.builtin
+IDENTICAL  abi_symbollist
+IDENTICAL  system_dlkm.modules.load
+
+System.map: 208469 vs 208469 symbols, same name set: True, entries at a different address: 0
+
+bzImage sha256 ours e70b1595f61fdc8993b0106b988b42ec1674cd3ed09a3b8fe0a3ce26a5ba9568
+bzImage sha256 ref  7816c5d5b3500093e597b7362ecab103d5a32141b100d3eb7a8b33221fce7f41
+bzImage sha256 shipped 7816c5d5b3500093e597b7362ecab103d5a32141b100d3eb7a8b33221fce7f41 -> IDENTICAL to ref
+vmlinux (decompressed from bzImage): 62561848 vs 62561848 bytes
+differing bytes: 1098 (0.00176%)
+      1078 bytes in .init.data near symbol system_certificate_list
+        20 bytes in .notes near symbol _note_41

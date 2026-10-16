@@ -63,6 +63,7 @@ Status as of 2026-10-15. Facts are labelled **CONFIRMED** (we checked a primary 
      - Prefer Zen 5 (Ryzen AI 300/Max, Ryzen 9000) as the first laptop target.
      - For Zen 4, test a kernel #UD handler that emulates VEX AVX-VNNI using the AVX-512 VNNI unit Zen 4 does have. **HYPOTHESIS.**
    - The ART variant is a property, so we can set it per device.
+   - **Target (2026-10-15):** the owner's laptop is an ASUS G14 2025 with a Ryzen AI 9 HX 370, which is Zen 5 and has AVX-VNNI. If its `/proc/cpuinfo` confirms `avx_vnni`, this risk only affects the Zen 4 dev host.
 5. **Boot path on generic UEFI PCs.**
    - The image uses a hybrid GPT layout: ChromeOS KERN/ROOT partitions, Android A/B, virtual A/B `super`, and AVB.
    - We need an EFI loader that hands the kernel a bootconfig, `androidboot.*` parameters and the vbmeta digest, using the orange (unlocked) state on the user's own machine. Candidates: GRUB as in GBRUNCH, or Google's GBL EFI app.
@@ -105,6 +106,8 @@ Each milestone is small, has a verification artifact, and is checked into `evide
 - libhoudini and libndk_translation are proprietary. Track A will not bundle them.
 
 ## 7. Next steps (in order)
+
+Execution is tracked as Multica epics ANAL-160 to ANAL-166, with sub-issues ANAL-167 to ANAL-185. The map is in `docs/STATUS.md`.
 
 1. Owner confirms: the target AMD laptop (exact model or SKU) and the Track B licensing decision. The repo is settled: `Mhsbrian/AnyBook`.
 2. M1a: port GBRUNCH's software security HALs into a local vendor overlay, then boot Googlebook OS in QEMU to `boot_completed`.

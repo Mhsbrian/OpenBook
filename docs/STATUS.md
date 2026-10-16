@@ -24,7 +24,8 @@
 - `gbos-kernel-config.txt`: the stock Googlebook GKI config
 
 **Blocked / needs a decision**
-- Target hardware: which AMD laptop (exact SKU)? The dev host is a Ryzen 9 7950X desktop with a Radeon 610M iGPU and an RTX 4090.
+- Target hardware: **ASUS ROG Zephyrus G14 (2025) GA403WP**, Ryzen AI 9 HX 370 (Zen 5, confirmed by the owner 2026-10-16) + RTX 5070. Component IDs still need `scripts/hw-inventory.sh` output from the laptop (ANAL-175). See `docs/HARDWARE.md`.
+- ~~Merge PR #1.~~ Merged 2026-10-16.
 - ~~Which repo receives this work.~~ Resolved: https://github.com/Mhsbrian/AnyBook (public, created 2026-10-15).
 - License for the scripts and docs. Apache-2.0 is suggested, to match AOSP. Not chosen yet.
 - Track B licensing: whether to proceed past research with Google's proprietary image (`docs/PLAN.md` §6).
@@ -46,3 +47,27 @@
 **Blocked / needs a decision:** the static libelf is LGPL-3.0-or-later inside the MIT Mesa libraries. That's fine for local builds; binary redistribution needs a decision (`docs/mesa.md`).
 
 **Next:** minigbm with an amdgpu/gbm_mesa backend so Mesa's `cros` gralloc path works, then SP-HAL SELinux labels, then a hardware run (M4).
+## 2026-10-15: Kernel, stock android17-6.18 GKI reproduced with Kleaf (ANAL-170)
+
+**Done**
+- Googlebook OS ships the unmodified public GKI: the ruby `boot_a` kernel is byte-identical to ci.android.com build 16302624 (`kernel_x86_64`, branch `common-android17-6.18-2026-06`, `common` 3938c8d97142).
+- Built it locally from that build's pinned manifest (`manifests/kernel/gbos-16302624.xml`) in 5 min 37 s. The `.config` and KMI CRCs are identical. Built with the same build number, `vmlinux` differs only in the per-build module-signing certificate and build ID (1,098 bytes).
+- Config diff: 0 symbols. Google adds nothing beyond `gki_defconfig`. `PKVM_INTEL` is explicit in `gki_defconfig`; `X86_FRED` is selected by `KVM_INTEL` through an upstream Kconfig `select`.
+- Our kernel boots on Zen 4 under KVM to the same `keystore2` stall as the stock kernel. Google's signed GKI modules (`rust_binder`, `zsmalloc`) are rejected, so `system_dlkm` must come from our build.
+- The `android17-6.18` tip (6.18.32) also builds. The shipped KMI list is unchanged there.
+
+**Evidence:** `evidence/2026-10-15-kernel/`. Details are in `docs/kernel.md`.
+
+**Next:** an AMD defconfig fragment and an `anybook_amd` KMI symbol list on this tree, then boot with our `system_dlkm`.
+**Next** (tracked in Multica as children of ANAL-159; ▶ marks issues running now)
+
+| Epic | Stage 1 | Later stages |
+|---|---|---|
+| ANAL-160 Track A: AOSP 17 desktop boots in a VM | ▶ ANAL-167 build container and source mirror | ANAL-168 build `aosp_cf_x86_64_pc` and boot to adb → ANAL-169 VM graphics and desktop windowing |
+| ANAL-161 AMD GKI kernel (android17-6.18) | ▶ ANAL-170 reproduce the stock GKI build and diff the config | ANAL-171 AMD config and modules → ANAL-172 QEMU boot test |
+| ANAL-162 AMD graphics userspace | ▶ ANAL-173 Mesa radeonsi/RADV Android build | ANAL-174 device-tree integration → ANAL-177 dEQP/CTS on the target |
+| ANAL-164 ARM compat and native bridge | ▶ ANAL-180 harness and libndk_translation baseline | ANAL-181 Digitalis evaluation |
+| ANAL-163 Bare-metal bring-up on the G14 2025 (waiting for inventory output from the laptop) | ANAL-175 inventory | ANAL-176 USB boot → ANAL-178 input and power, ANAL-179 audio and Wi-Fi |
+| ANAL-165 Track B: Googlebook OS on AMD (parked: licensing decision) | ANAL-182 VM boot to `boot_completed`, ANAL-183 Zen 4 ISA spike | ANAL-184 kernel swap → ANAL-185 graphics overlay |
+| ANAL-166 Performance and parity (parked) | — | — |
+| ANAL-186 NVIDIA dGPU, RTX 5070 Laptop (parked until the AMD iGPU bring-up works) | ANAL-187 research nouveau/NVK on Android and PRIME offload | — |

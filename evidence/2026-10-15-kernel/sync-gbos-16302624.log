@@ -1,0 +1,46 @@
+### kernel-sync target=gbos-16302624 branch=common-android17-6.18-2026-06 manifest=/home/hive/multica_workspaces/analtechnic-b248a69dce69/anal-170-676b752da54a/workdir/AnyBook/manifests/kernel/gbos-16302624.xml 2026-10-16T00:03:07+00:00
+
+... A new version of repo (2.69) is available.
+... New version is available at: /home/hive/anybook/kernel/src/.repo/repo/repo
+... The launcher is run from: /usr/bin/repo
+!!! The launcher is not writable.  Please talk to your sysadmin or distro
+!!! to get an update installed.
+
+
+repo has been initialized in /home/hive/anybook/kernel/src
+
+... A new version of repo (2.69) is available.
+... New version is available at: /home/hive/anybook/kernel/src/.repo/repo/repo
+... The launcher is run from: /usr/bin/repo
+!!! The launcher is not writable.  Please talk to your sysadmin or distro
+!!! to get an update installed.
+
+repo: reusing existing repo client checkout in /home/hive/anybook/kernel/src
+
+repo has been initialized in /home/hive/anybook/kernel/src
+### repo sync attempt 1
+
+... A new version of repo (2.69) is available.
+... New version is available at: /home/hive/anybook/kernel/src/.repo/repo/repo
+... The launcher is run from: /usr/bin/repo
+!!! The launcher is not writable.  Please talk to your sysadmin or distro
+!!! to get an update installed.
+
+Finalizing sync state...
+repo sync has finished successfully.
+### repo sync done1 in 597s
+
+... A new version of repo (2.69) is available.
+... New version is available at: /home/hive/anybook/kernel/src/.repo/repo/repo
+... The launcher is run from: /usr/bin/repo
+!!! The launcher is not writable.  Please talk to your sysadmin or distro
+!!! to get an update installed.
+
+Saved manifest to /home/hive/anybook/kernel/pins/gbos-16302624.xml
+target=gbos-16302624 branch=common-android17-6.18-2026-06 date=2026-10-16T00:13:07+00:00
+common HEAD=3938c8d97142d5cf31543aa96f864a2cf832dda0 (2026-09-09T07:58:55-07:00 ANDROID: pKVM: x86: Mediate host's GSMI commands to coreboot's SMM)
+Makefile version=6.18.21
+shipped 3938c8d97142 reachable from android17-6.18 (f37cd3bf0056): no
+shipped 3938c8d97142 reachable from android17-6.18-2026-06 (977f0bd7673d): yes
+shipped 3938c8d97142 reachable from android17-6.18-2026-09 (b9d0b4b33406): no
+### tree size: 44G	/home/hive/anybook/kernel/src
