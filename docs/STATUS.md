@@ -278,7 +278,7 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
   - Whole-disk and alongside layouts.
   - An Android (Compose) wizard on a scriptable install engine.
   - Safety rules S1–S13 and a licensing checklist.
-  - Wireframes in `docs/installer-wireframes.html`.
+  - A high-fidelity design (Material 3 Expressive, light and dark) in `docs/installer-design/`.
 - `scripts/installer/` with `tools/Dockerfile.installer`:
   - Builds GPT "USB stick" images from our AOSP 17 images and the OpenBook GKI.
   - Boots them in QEMU/OVMF as USB storage, next to a decoy NVMe disk that has the same partition names.

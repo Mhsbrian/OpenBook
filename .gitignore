@@ -11,3 +11,4 @@
 # Python bytecode
 __pycache__/
 *.pyc
+docs/installer-design/fonts

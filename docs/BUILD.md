@@ -20,7 +20,7 @@ Disk use for M0 is about 60 GB: 27 GB of downloads, 27 GB unpacked, 6 GB SDK. A 
 ```bash
 docker build -t anybook-inspect -f tools/Dockerfile.inspect tools/   # android-tools, erofs-utils, binutils, elfx86exts
 docker build -t anybook-qemu    -f tools/Dockerfile.qemu    tools/   # qemu 11.x + OVMF
-docker build -t anybook-installer -f tools/Dockerfile.installer tools/  # qemu + OVMF, GRUB, systemd-boot/ukify, mtools, gptfdisk
+docker build -t openbook-installer -f tools/Dockerfile.installer tools/  # qemu + OVMF, GRUB, systemd-boot/ukify, mtools, gptfdisk
 ```
 
 ## M0-A: AOSP Desktop emulator baseline
@@ -169,7 +169,8 @@ CF_GPU=amd CF_GPU_MODE=gfxstream_guest_angle CF_DEVICE=anybook_vsoc_x86_64 scrip
 
 ```bash
 scripts/installer/snapshot-inputs.sh cf-pc-20261016        # reflink snapshot of PRODUCT_OUT + kernel dist (read-only use)
-scripts/installer/proto-matrix.sh cf-pc-20261016 matrix-20261016   # GRUB, systemd-boot, UKI, GBL; USB stick + decoy NVMe
+scripts/installer/proto-matrix.sh cf-pc-20261016 matrix-20261016-openbook   # GRUB, systemd-boot, UKI, GBL; USB stick + decoy NVMe
+scripts/installer/render-design.sh                         # installer design PNGs from docs/installer-design/index.html
 ```
 
 - Builds GPT "USB stick" images from image files (no root, no real disk) and boots them in QEMU/KVM + OVMF.
