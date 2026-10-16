@@ -87,6 +87,7 @@ Each milestone is small, has a verification artifact, and is checked into `evide
 | M5 | Desktop UI, input and power | A+B | Touchpad and keyboard, s2idle suspend/resume cycles, battery, backlight, audio (ACP/SOF) | |
 | M6 | Apps and ARM translation | A+B | ARM-only APK compatibility matrix (top 50 plus a stress list) under houdini, ndk_translation and Digitalis | |
 | M7 | Performance and parity | A+B | Benchmarks against an Intel Googlebook baseline (needs device access); Chrome; Linux terminal fallback | |
+| M8 | USB installer | A | A bootable AnyBook USB image that runs live and installs through a graphical wizard, only to a disk the user confirms by name (epic ANAL-188, owner goal 2026-10-16) | Parked until M3–M5 work on the target |
 
 ## 5. Reuse instead of rebuild
 
@@ -105,11 +106,25 @@ Each milestone is small, has a verification artifact, and is checked into `evide
 - Emulator system images fall under the Android SDK (Preview) License: local use only, no redistribution.
 - libhoudini and libndk_translation are proprietary. Track A will not bundle them.
 
-## 7. Next steps (in order)
+## 7. Next steps (in order, updated 2026-10-16, evening)
 
-Execution is tracked as Multica epics ANAL-160 to ANAL-166, with sub-issues ANAL-167 to ANAL-185. The map is in `docs/STATUS.md`.
+Execution is tracked as Multica epics ANAL-160 to ANAL-166, ANAL-186 and ANAL-188, with sub-issues ANAL-167 to ANAL-192. The live map is in `docs/STATUS.md`.
 
-1. Owner confirms: the target AMD laptop (exact model or SKU) and the Track B licensing decision. The repo is settled: `Mhsbrian/AnyBook`.
-2. M1a: port GBRUNCH's software security HALs into a local vendor overlay, then boot Googlebook OS in QEMU to `boot_completed`.
-3. M1b: in parallel, sync `android17-release` to a local mirror (about 400 GB) and build `aosp_cf_x86_64_pc` with ccache.
-4. Write the AMD kernel fragment (Zen 4 and Zen 5 laptops) and build android17-6.18 with Kleaf.
+**End deliverable (owner, 2026-10-16):** a bootable USB image of AnyBook with an interactive, polished installer wizard (M8, epic ANAL-188). Every stage below should leave pieces that image can reuse: the boot chain, a reusable desktop/AMD product and the firmware subset. The installer work itself starts only once the target boots from USB.
+
+Stage 2 is delivered, with PRs open:
+- **ANAL-168 (PR #9):** our `aosp_cf_x86_64_pc-cp2a-userdebug` boots to `boot_completed` in Cuttlefish. It still runs Google's android16-6.12 kernel.
+- **ANAL-171 (PR #8):** AMD kernel with 138 vendor modules, checked against the G14 inventory. The laptop is a **GA403WR**.
+
+Now running:
+1. **ANAL-172:** our 6.18 kernel with our AOSP userspace in a VM, plus module loading. It swaps images rather than rebuilding Android.
+2. **ANAL-169:** VM graphics and desktop windowing. It owns the AOSP tree while it runs.
+3. **ANAL-181:** Digitalis compared with the libndk_translation baseline.
+
+Then, in order:
+- **ANAL-174:** AMD graphics in the device tree. It waits for ANAL-169, because both rebuild the same tree.
+- **ANAL-176:** USB boot on the G14. Its inventory dependency (ANAL-175) is met.
+- **ANAL-178/179:** input, power, audio and Wi-Fi on the laptop.
+- **ANAL-189 to ANAL-192:** installer design, live USB image, wizard, end-to-end tests.
+
+Track B (M1a, ANAL-182) waits on the owner's licensing decision.
