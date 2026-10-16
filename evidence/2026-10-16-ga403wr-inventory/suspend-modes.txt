@@ -1,0 +1,2 @@
+$ cat /sys/power/mem_sleep
+[s2idle]

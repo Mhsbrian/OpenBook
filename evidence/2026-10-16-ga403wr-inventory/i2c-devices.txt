@@ -1,0 +1,29 @@
+i2c-0 name=Synopsys DesignWare I2C adapter modalias= driver=
+i2c-1 name=Synopsys DesignWare I2C adapter modalias= driver=
+i2c-10 name=AMDGPU DM i2c hw bus 6 modalias= driver=
+i2c-11 name=AMDGPU DM i2c hw bus 7 modalias= driver=
+i2c-12 name=AMDGPU DM i2c hw bus 8 modalias= driver=
+i2c-13 name=AMDGPU DM aux hw bus 0 modalias= driver=
+i2c-14 name=AMDGPU DM aux hw bus 1 modalias= driver=
+i2c-15 name=AMDGPU DM aux hw bus 2 modalias= driver=
+i2c-16 name=AMDGPU DM aux hw bus 3 modalias= driver=
+i2c-17 name=AMDGPU DM aux hw bus 4 modalias= driver=
+i2c-18 name=AMDGPU DM aux hw bus 5 modalias= driver=
+i2c-19 name=AMDGPU DM aux hw bus 6 modalias= driver=
+i2c-2 name=Synopsys DesignWare I2C adapter modalias= driver=
+i2c-20 name=AMDGPU DM aux hw bus 7 modalias= driver=
+i2c-21 name=AMDGPU DM aux hw bus 8 modalias= driver=
+i2c-22 name=SMBus PIIX4 adapter port 0 at 0b00 modalias= driver=
+i2c-23 name=SMBus PIIX4 adapter port 2 at 0b00 modalias= driver=
+i2c-24 name=SMBus PIIX4 adapter port 1 at 0b20 modalias= driver=
+i2c-3 name=Synopsys DesignWare I2C adapter modalias= driver=
+i2c-4 name=AMDGPU DM i2c hw bus 0 modalias= driver=
+i2c-5 name=AMDGPU DM i2c hw bus 1 modalias= driver=
+i2c-6 name=AMDGPU DM i2c hw bus 2 modalias= driver=
+i2c-7 name=AMDGPU DM i2c hw bus 3 modalias= driver=
+i2c-8 name=AMDGPU DM i2c hw bus 4 modalias= driver=
+i2c-9 name=AMDGPU DM i2c hw bus 5 modalias= driver=
+i2c-ASCE1206:00 name=ASCE1206:00 modalias=acpi:ASCE1206:PNP0C50: driver=i2c_hid_acpi
+i2c-CSC3556:00-cs35l56-hda.0 name=cs35l56-hda modalias=i2c:cs35l56-hda driver=cs35l56-hda
+i2c-CSC3556:00-cs35l56-hda.1 name=cs35l56-hda modalias=i2c:cs35l56-hda driver=cs35l56-hda
+i2c-CSC3556:00-cs35l56-hda.2 name=cs35l56-hda modalias=i2c:cs35l56-hda driver=

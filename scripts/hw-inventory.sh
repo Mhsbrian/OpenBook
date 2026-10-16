@@ -3,7 +3,8 @@
 # Changes nothing on the machine. Serial numbers, UUIDs and MAC addresses are redacted.
 #
 # usage: hw-inventory.sh [--with-root]
-#   --with-root  also collect dmesg, acpidump and dmidecode through sudo (prompts for your password)
+#   --with-root  also collect dmesg, dmidecode and the ACPI tables through sudo (prompts for your password);
+#                the MSDM/SLIC tables, which hold the Windows product key, are skipped
 # Output: ./anybook-hw-<board>-<date>.tar.gz   (attach it to the Multica issue)
 set -uo pipefail
 ROOT=0; [ "${1:-}" = "--with-root" ] && ROOT=1
@@ -66,7 +67,13 @@ run tpm ls -l /dev/tpm0 /dev/tpmrm0
 if [ $ROOT = 1 ]; then
   sudo dmesg 2>&1 | redact > "$OUT/dmesg.txt"
   have dmidecode && sudo dmidecode 2>&1 | grep -viE 'serial|uuid|asset tag' > "$OUT/dmidecode.txt"
-  have acpidump && { sudo acpidump -o "$OUT/acpidump.dat" >/dev/null 2>&1; sudo chown "$(id -u):$(id -g)" "$OUT/acpidump.dat"; }
+  # Raw ACPI tables, minus MSDM and SLIC: those carry the OEM Windows product key / licence.
+  mkdir -p "$OUT/acpi"
+  for t in /sys/firmware/acpi/tables/* /sys/firmware/acpi/tables/dynamic/*; do
+    [ -f "$t" ] || continue
+    case "$(basename "$t")" in MSDM*|SLIC*) continue ;; esac
+    sudo cat "$t" > "$OUT/acpi/$(basename "$t").dat" 2>/dev/null
+  done
 else
   dmesg 2>/dev/null | redact > "$OUT/dmesg.txt" || echo "dmesg needs root; rerun with --with-root" > "$OUT/dmesg.txt"
 fi

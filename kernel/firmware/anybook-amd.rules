@@ -1,0 +1,46 @@
+# linux-firmware subset for the AnyBook AMD vendor modules (scripts/kernel-firmware-subset.py).
+# First target: ASUS ROG Zephyrus G14 2025 (GA403WP). Also covers other Zen 4 / Zen 5 laptops.
+#
+# module <module> <regex>   keep that module's MODULE_FIRMWARE names matching <regex>
+# extra  <driver> <regex>   linux-firmware files (or WHENCE links) loaded by a runtime-built name
+
+# amdgpu, APUs only. Discrete GPUs and older APUs are left out.
+#   Phoenix / Hawk Point (780M, 760M, 740M): GC 11.0.1/11.0.4, PSP 13.0.4/13.0.11, SDMA 6.0.1, VCN 4.0.2, DCN 3.1.4
+#   Strix Point (890M, 880M; GA403WP):       GC 11.5.0, PSP 14.0.0, SDMA 6.1.0, VCN 4.0.5, DCN 3.5, VPE 6.1.0
+#   Strix Halo (8060S) and Krackan Point:    GC 11.5.1-11.5.3, PSP 14.0.1-14.0.5, SDMA 6.1.1-6.1.3, VCN 4.0.6, DCN 3.5.1, VPE 6.1.1/6.1.3
+module amdgpu amdgpu/(gc_11_0_[14]|gc_11_5_[0-3]|psp_13_0_(4|11)|psp_14_0_[0145]|sdma_6_0_1|sdma_6_1_[0-3]|vcn_4_0_[256]|dcn_3_1_4|dcn_3_5|dcn_3_5_1|vpe_6_1_[0-3]|umsch_mm_4_0_0)[_.].*
+
+# XDNA / XDNA 2 NPU: everything the driver declares (Phoenix 1502_00, Strix 17f0_10/17f0_11, ...)
+module amdxdna .*
+extra amdxdna amdnpu/.*
+
+# AMD PMF policy TA (amdtee/amd_pmf_v3*.bin) is left out with amd-pmf itself; see docs/kernel.md, "Blocked".
+
+# MediaTek Wi-Fi 6/6E/7 and their Bluetooth halves (btmtk serves btusb)
+module mt7925_common .*
+module mt7925e .*
+module mt7921_common .*
+module mt7921e .*
+module btmtk mediatek/.*(MT7922|MT7961|MT7925|mt7925|mt7922|mt7961).*
+
+# Realtek Wi-Fi 6/6E/7 (rtw89) and the matching Bluetooth firmware (btrtl serves btusb)
+module rtw89_8851be .*
+module rtw89_8852ae .*
+module rtw89_8852be .*
+module rtw89_8852ce .*
+module rtw89_8922ae .*
+module rtw89_8851b .*
+module rtw89_8852a .*
+module rtw89_8852b .*
+module rtw89_8852c .*
+module rtw89_8922a .*
+module btrtl rtl_bt/rtl(8851b|8852a|8852b|8852bt|8852c|8922a)u?_(fw|config).*
+# rtw89 picks the newest firmware format it supports (rtw8852c_fw-2.bin, -1, then the plain name), and
+# btrtl builds the USB-side names (rtl8852cu_fw.bin) at runtime; neither is fully declared.
+extra rtw89 rtw89/rtw(8851b|8852a|8852b|8852bt|8852c|8922a)_fw(-[0-9])?\.bin
+extra btrtl rtl_bt/rtl(8851bu|8852au|8852bu|8852btu|8852cu|8922au)_(fw|config)(_v2)?\.bin
+
+# Cirrus CS35L56 amplifiers: the HDA driver builds the name from the codec SSID at runtime.
+# 10431b13 is the GA403U (2024). The GA403WP's SSID is not known until the ANAL-175 inventory, and
+# linux-firmware at the pinned commit has no other GA403 entry; add it here once known.
+extra cs35l56 cirrus/cs35l56-b0-dsp1-misc-10431b13.*

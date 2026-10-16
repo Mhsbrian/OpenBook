@@ -100,6 +100,15 @@ scripts/kernel-build.sh           # tools/bazel run --config=stamp //common:kern
 ```
 
 The scripts run in `tools/Dockerfile.kernel` (Ubuntu 24.04) through `scripts/kernel-docker.sh`. Plan for 53 GB of sources, 9 GB of Bazel cache and about 6 min per build on 32 threads. Comparison, config-diff and boot-test tools are covered in `docs/kernel.md`.
+AMD vendor modules (ANAL-171), on top of the same tree:
+
+```bash
+scripts/kernel-amd-apply.sh       # kernel/patches/common -> common commits, kernel/devices/anybook -> //devices/anybook
+KERNEL_TARGET=//devices/anybook:anybook_amd_x86_64_dist scripts/kernel-build.sh anybook-amd-gbos-16302624
+```
+
+The checks (config, modules, symbol list, QEMU load test, equivalence build, firmware subset) are in `docs/kernel.md`.
+
 ## M1b: build aosp_cf_x86_64_pc and boot it in Cuttlefish (ANAL-168)
 
 ```bash
