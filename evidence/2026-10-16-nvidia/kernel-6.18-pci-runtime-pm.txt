@@ -1,0 +1,202 @@
+# PCI runtime PM and the dGPU, AnyBook 6.18 tree
+
+## Unbound PCI devices stay in D0; only the bridge above can take them to D3cold (drivers/pci/pci-driver.c)
+static int pci_pm_runtime_suspend(struct device *dev)
+{
+	struct pci_dev *pci_dev = to_pci_dev(dev);
+	const struct dev_pm_ops *pm = dev->driver ? dev->driver->pm : NULL;
+	pci_power_t prev = pci_dev->current_state;
+	int error;
+
+	pci_suspend_ptm(pci_dev);
+
+	/*
+	 * If pci_dev->driver is not set (unbound), we leave the device in D0,
+	 * but it may go to D3cold when the bridge above it runtime suspends.
+	 * Save its config space in case that happens.
+	 */
+	if (!pci_dev->driver) {
+		pci_save_state(pci_dev);
+		return 0;
+	}
+static int pci_pm_runtime_idle(struct device *dev)
+{
+	struct pci_dev *pci_dev = to_pci_dev(dev);
+	const struct dev_pm_ops *pm = dev->driver ? dev->driver->pm : NULL;
+
+	/*
+	 * If pci_dev->driver is not set (unbound), the device should
+	 * always remain in D0 regardless of the runtime PM status
+	 */
+	if (!pci_dev->driver)
+		return 0;
+
+
+## Runtime PM is forbidden by default for every PCI device (drivers/pci/pci.c)
+3254-	}
+3255-
+3256-poweron:
+3257-	pci_pm_power_up_and_verify_state(dev);
+3258:	pm_runtime_forbid(&dev->dev);
+
+## Root ports allow runtime PM when D3 is possible (drivers/pci/pcie/portdrv.c)
+	if (pci_bridge_d3_possible(dev)) {
+		/*
+		 * Keep the port resumed 100ms to make sure things like
+		 * config space accesses from userspace (lspci) will not
+		 * cause the port to repeatedly suspend and resume.
+		 */
+		pm_runtime_set_autosuspend_delay(&dev->dev, 100);
+		pm_runtime_use_autosuspend(&dev->dev);
+		pm_runtime_mark_last_busy(&dev->dev);
+		pm_runtime_put_autosuspend(&dev->dev);
+		pm_runtime_allow(&dev->dev);
+	}
+
+
+## When a bridge may enter D3 (drivers/pci/pci.c)
+bool pci_bridge_d3_possible(struct pci_dev *bridge)
+{
+	if (!pci_is_pcie(bridge))
+		return false;
+
+	switch (pci_pcie_type(bridge)) {
+	case PCI_EXP_TYPE_ROOT_PORT:
+	case PCI_EXP_TYPE_UPSTREAM:
+	case PCI_EXP_TYPE_DOWNSTREAM:
+		if (pci_bridge_d3_disable)
+			return false;
+
+		/*
+		 * Hotplug ports handled by platform firmware may not be put
+		 * into D3 by the OS, e.g. ACPI slots ...
+		 */
+		if (bridge->is_hotplug_bridge && !bridge->is_pciehp)
+			return false;
+
+		/* ... or PCIe hotplug ports not handled natively by the OS. */
+		if (bridge->is_pciehp && !pciehp_is_native(bridge))
+			return false;
+
+		if (pci_bridge_d3_force)
+			return true;
+
+		/* Even the oldest 2010 Thunderbolt controller supports D3. */
+		if (bridge->is_thunderbolt)
+			return true;
+
+		/* Platform might know better if the bridge supports D3 */
+		if (platform_pci_bridge_d3(bridge))
+			return true;
+
+		/*
+		 * Hotplug ports handled natively by the OS were not validated
+		 * by vendors for runtime D3 at least until 2018 because there
+		 * was no OS support.
+		 */
+		if (bridge->is_pciehp)
+			return false;
+
+		if (dmi_check_system(bridge_d3_blacklist))
+			return false;
+
+		/*
+		 * Out of caution, we only allow PCIe ports from 2015 or newer
+		 * into D3 on x86.
+		 */
+		if (!IS_ENABLED(CONFIG_X86) || dmi_get_bios_year() >= 2015)
+			return true;
+		break;
+	}
+
+	return false;
+}
+
+## Children that block bridge D3cold
+static int pci_dev_check_d3cold(struct pci_dev *dev, void *data)
+{
+	bool *d3cold_ok = data;
+
+	if (/* The device needs to be allowed to go D3cold ... */
+	    dev->no_d3cold || !dev->d3cold_allowed ||
+
+	    /* ... and if it is wakeup capable to do so from D3cold. */
+	    (device_may_wakeup(&dev->dev) &&
+	     !pci_pme_capable(dev, PCI_D3cold)) ||
+
+	    /* If it is a bridge it must be allowed to go to D3. */
+	    !pci_power_manageable(dev))
+
+		*d3cold_ok = false;
+
+	return !*d3cold_ok;
+}
+
+## snd_hda_intel: NVIDIA HDA gets runtime PM only through vga_switcheroo (sound/hda/controllers/intel.c)
+#define AZX_DCAPS_PRESET_NVIDIA \
+	(AZX_DCAPS_NO_MSI | AZX_DCAPS_CORBRP_SELF_CLEAR |\
+	 AZX_DCAPS_SNOOP_TYPE(NVIDIA))
+/*
+ * The discrete GPU cannot power down unless the HDA controller runtime
+ * suspends, so activate runtime PM on codecs even if power_save == 0.
+ */
+static void setup_vga_switcheroo_runtime_pm(struct azx *chip)
+{
+	struct hda_intel *hda = container_of(chip, struct hda_intel, chip);
+	struct hda_codec *codec;
+
+	if (hda->use_vga_switcheroo && !needs_eld_notify_link(chip)) {
+		list_for_each_codec(codec, &chip->bus)
+			codec->auto_runtime_pm = 1;
+		/* reset the power save setup */
+		if (chip->running)
+			set_default_power_save(chip);
+	}
+}
+
+static void azx_vs_gpu_bound(struct pci_dev *pci,
+			     enum vga_switcheroo_client_id client_id)
+{
+	struct snd_card *card = pci_get_drvdata(pci);
+	struct azx *chip = card->private_data;
+
+	if (client_id == VGA_SWITCHEROO_DIS)
+		chip->bus.keep_power = 0;
+	setup_vga_switcheroo_runtime_pm(chip);
+}
+
+static void init_vga_switcheroo(struct azx *chip)
+{
+	struct hda_intel *hda = container_of(chip, struct hda_intel, chip);
+	struct pci_dev *p = get_bound_vga(chip->pci);
+	struct pci_dev *parent;
+	if (p) {
+		dev_info(chip->card->dev,
+			 "Handle vga_switcheroo audio client\n");
+		hda->use_vga_switcheroo = 1;
+
+		/* cleared in either gpu_bound op or codec probe, or when its
+		 * upstream port has _PR3 (i.e. dGPU).
+		 */
+		parent = pci_upstream_bridge(p);
+		chip->bus.keep_power = parent ? !pci_pr3_present(parent) : 1;
+		chip->driver_caps |= AZX_DCAPS_PM_RUNTIME;
+		pci_dev_put(p);
+	}
+}
+	if (azx_has_pm_runtime(chip)) {
+		pm_runtime_use_autosuspend(&pci->dev);
+		pm_runtime_allow(&pci->dev);
+		pm_runtime_put_autosuspend(&pci->dev);
+	}
+180:#define azx_has_pm_runtime(chip) \
+181-	((chip)->driver_caps & AZX_DCAPS_PM_RUNTIME)
+182-
+
+## PCI quirk exposes the dGPU's hidden HDA function (drivers/pci/quirks.c)
+5787:static void quirk_nvidia_hda(struct pci_dev *gpu)
+5788-{
+5789-	u8 hdr_type;
+5790-	u32 val;
+5809:			       PCI_BASE_CLASS_DISPLAY, 16, quirk_nvidia_hda);
+5811:			       PCI_BASE_CLASS_DISPLAY, 16, quirk_nvidia_hda);

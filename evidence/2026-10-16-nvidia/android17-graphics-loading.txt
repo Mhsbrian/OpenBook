@@ -1,0 +1,110 @@
+# ANGLE in the AOSP 17 tree (external/angle 1f4500d390 2026-05-07), Vulkan backend
+
+## NVK is classified by PCI vendor ID only: isNvidia = vendorID 0x10de, so NVK gets the proprietary-driver feature set and version parser
+    const bool isNvidia   = IsNvidia(mPhysicalDeviceProperties.vendorID);
+    const bool isRADV = IsRADV(mPhysicalDeviceProperties.vendorID, mDriverProperties.driverID,
+                               mPhysicalDeviceProperties.deviceName);
+    else if (isNvidia)
+    {
+        driverVersion =
+            angle::ParseNvidiaVulkanDriverVersion(mPhysicalDeviceProperties.driverVersion);
+    }
+    else if (IsLinux() && (isIntel || isRADV))
+    {
+        driverVersion =
+            angle::ParseMesaVulkanDriverVersion(mPhysicalDeviceProperties.driverVersion);
+    }
+
+## No NVK driver-ID check anywhere in the Vulkan backend
+$ grep -rn VK_DRIVER_ID_MESA_NVK src/libANGLE/renderer/  -> 0 matches
+$ grep -c 'isNvidia' vk_renderer.cpp -> 17
+
+# Android 17 driver loading (frameworks/native, cp2a tree)
+
+## libvulkan loads exactly one HAL: the per-app updatable driver if set, else the built-in vulkan.<ro.hardware.vulkan>.so
+
+const std::array<const char*, 2> HAL_SUBNAME_KEY_PROPERTIES = {{
+    "ro.hardware.vulkan",
+    "ro.board.platform",
+}};
+
+    // Use a stub device unless we successfully open a real HAL device.
+    hal_.dev_ = &stubhal::kDevice;
+
+    int result;
+    const hwvulkan_module_t* module = nullptr;
+
+    result = LoadUpdatedDriver(&module);
+    if (result == -ENOENT) {
+        result = LoadBuiltinDriver(&module);
+    }
+
+## Per-app selection settings (frameworks/base/core/java/android/os/GraphicsEnvironment.java)
+79:    private static final String PROPERTY_GFX_DRIVER_PRODUCTION = "ro.gfx.driver.0";
+442:                contentResolver, bundle, Settings.Global.ANGLE_GL_DRIVER_SELECTION_PKGS);
+971:        switch (coreSettings.getInt(Settings.Global.UPDATABLE_DRIVER_ALL_APPS, 0)) {
+1009:                                        Settings.Global.UPDATABLE_DRIVER_PRODUCTION_OPT_IN_APPS)
+
+## EGL loader also uses the updatable-driver namespace (frameworks/native/opengl/libs/EGL/Loader.cpp)
+    // Return true if updated driver namespace is set.
+    ns = android::GraphicsEnv::getInstance().getDriverNamespace();
+    if (ns) {
+        return true;
+    }
+
+# minigbm (external/minigbm): one device, the first render node with a backend; nouveau is a dumb-buffer backend only
+	// Try render nodes...
+	for (uint32_t i = min_render_node; i < max_render_node; i++) {
+		drv = init_try_node(i, render_nodes_fmt);
+		if (drv)
+			return drv;
+	}
+
+72:INIT_DUMB_DRIVER(nouveau)
+
+# drm_hwcomposer (external/drm_hwcomposer): opens every /dev/dri/card% unless vendor.hwc.drm.device pins one
+  // which means that it will try open all devices until an error is met.
+  std::string path_pattern = Properties::GetDevicePath();
+  if (path_pattern.empty()) {
+    path_pattern = "/dev/dri/card%";
+
+## EGL order: per-app ANGLE first, then the updatable-driver APK (fatal if it has no GLES), then ro.hardware.egl (Loader.cpp)
+    driver_t* hnd = nullptr;
+    // Firstly, try to load ANGLE driver, if ANGLE should be loaded and fail, abort.
+    if (android::GraphicsEnv::getInstance().shouldUseAngle()) {
+        hnd = attempt_to_load_angle(cnx);
+        LOG_ALWAYS_FATAL_IF(!hnd, "Failed to load ANGLE.");
+        if (android::GraphicsEnv::getInstance().getAngleNamespace() != nullptr) {
+            cnx->driverInUpdatableApkLoaded = true;
+        }
+    }
+
+    if (!hnd) {
+        // Secondly, try to load from driver apk.
+        hnd = attempt_to_load_updated_driver(cnx);
+
+        // If updated driver apk is set but fail to load, abort here.
+        LOG_ALWAYS_FATAL_IF(android::GraphicsEnv::getInstance().getDriverNamespace() && !hnd,
+                            "couldn't find an OpenGL ES implementation from %s",
+                            android::GraphicsEnv::getInstance().getDriverPath().c_str());
+        if (android::GraphicsEnv::getInstance().getDriverNamespace() != nullptr) {
+            cnx->driverInUpdatableApkLoaded = true;
+        }
+    }
+
+    // Attempt to load native GLES drivers specified by ro.hardware.egl if native is selected.
+
+## The per-app driver picker exists in Settings > Developer options (packages/apps/Settings)
+GraphicsDriverAppPreferenceController.java
+GraphicsDriverContentObserver.java
+GraphicsDriverDashboard.java
+GraphicsDriverEnableAngleAsSystemDriverController.java
+GraphicsDriverEnableForAllAppsPreferenceController.java
+GraphicsDriverGlobalSwitchBarController.java
+GraphicsDriverSystemPropertiesWrapper.java
+GraphicsDriverTopIntroPreferenceController.java
+
+## Updated-driver library name is vulkan.<ro.hardware.vulkan|ro.board.platform>.so inside the APK namespace
+11:        std::string lib_name = android::base::GetProperty(key, "");
+12:        if (lib_name.empty())
+15:        lib_name = "vulkan." + lib_name + ".so";

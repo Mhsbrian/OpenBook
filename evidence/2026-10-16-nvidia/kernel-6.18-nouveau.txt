@@ -1,0 +1,183 @@
+# Kernel: AnyBook android17-6.18 tree (44a90255c95f ANYBOOK: GKI: x86: Add anybook_amd KMI symbol list), Makefile 6.18.21
+
+## nouveau GB206 device entry (drivers/gpu/drm/nouveau/nvkm/engine/device/base.c)
+2884:nv1b6_chipset = {
+2885-	.name = "GB206",
+2886-	.bar      = { 0x00000001, tu102_bar_new },
+2887-	.fb       = { 0x00000001, gb202_fb_new },
+2888-	.fsp      = { 0x00000001, gb202_fsp_new },
+2889-	.gsp      = { 0x00000001, gb202_gsp_new },
+2890-	.imem     = { 0x00000001, gh100_instmem_new },
+2891-	.mmu      = { 0x00000001, gh100_mmu_new },
+2892-	.pci      = { 0x00000001, gh100_pci_new },
+2893-	.timer    = { 0x00000001, gk20a_timer_new },
+2894-	.vfn      = { 0x00000001, ga100_vfn_new },
+2895-	.disp     = { 0x00000001, ga102_disp_new },
+2896-	.fifo     = { 0x00000001, ga102_fifo_new },
+2897-};
+2898-
+
+## GSP-RM firmware nouveau requests for GB20x (nvkm/subdev/gsp/gb202.c)
+34:NVKM_GSP_FIRMWARE_FMC(gb202, 570.144);
+35:NVKM_GSP_FIRMWARE_FMC(gb203, 570.144);
+36:NVKM_GSP_FIRMWARE_FMC(gb205, 570.144);
+37:NVKM_GSP_FIRMWARE_FMC(gb206, 570.144);
+38:NVKM_GSP_FIRMWARE_FMC(gb207, 570.144);
+
+## GSP-RM display classes for GB20x (nvkm/subdev/gsp/rm/gb20x.c)
+/* SPDX-License-Identifier: MIT
+ *
+ * Copyright (c) 2025, NVIDIA CORPORATION. All rights reserved.
+ */
+#include "gpu.h"
+
+#include <engine/ce/priv.h>
+#include <engine/fifo/priv.h>
+
+#include <nvif/class.h>
+
+const struct nvkm_rm_gpu
+gb20x_gpu = {
+	.disp.class = {
+		.root = GB202_DISP,
+		.caps = GB202_DISP_CAPS,
+		.core = GB202_DISP_CORE_CHANNEL_DMA,
+		.wndw = GB202_DISP_WINDOW_CHANNEL_DMA,
+		.wimm = GB202_DISP_WINDOW_IMM_CHANNEL_DMA,
+		.curs = GB202_DISP_CURSOR,
+	},
+
+	.usermode.class = BLACKWELL_USERMODE_A,
+
+	.fifo.chan = {
+		.class = BLACKWELL_CHANNEL_GPFIFO_B,
+		.doorbell_handle = gb202_chan_doorbell_handle,
+	},
+
+	.ce = {
+		.class = BLACKWELL_DMA_COPY_B,
+		.grce_mask = gb202_ce_grce_mask,
+	},
+	.gr.class = {
+		.i2m = BLACKWELL_INLINE_TO_MEMORY_A,
+		.twod = FERMI_TWOD_A,
+		.threed = BLACKWELL_B,
+		.compute = BLACKWELL_COMPUTE_B,
+	},
+	.nvdec.class = NVCFB0_VIDEO_DECODER,
+
+## nouveau runtime PM parameter (nouveau_drm.c)
+110:MODULE_PARM_DESC(runpm, "disable (0), force enable (1), optimus only default (-1)");
+112:module_param_named(runpm, nouveau_runtime_pm, int, 0400);
+839:static void quirk_broken_nv_runpm(struct pci_dev *pdev)
+
+## nouveau uAPI needed by NVK (include/uapi/drm/nouveau_drm.h)
+72: * NOUVEAU_GETPARAM_HAS_VMA_TILEMODE
+76:#define NOUVEAU_GETPARAM_HAS_VMA_TILEMODE 20
+446:#define DRM_NOUVEAU_VM_BIND            0x11
+447:#define DRM_NOUVEAU_EXEC               0x12
+
+## Nova in this tree
+~/anybook/kernel/src/common/drivers/gpu/drm/nova:
+driver.rs
+file.rs
+gem.rs
+Kconfig
+Makefile
+nova.rs
+
+~/anybook/kernel/src/common/drivers/gpu/nova-core:
+dma.rs
+driver.rs
+falcon
+falcon.rs
+fb
+fb.rs
+firmware
+firmware.rs
+gfw.rs
+gpu.rs
+gsp
+gsp.rs
+Kconfig
+Makefile
+nova_core.rs
+regs
+regs.rs
+util.rs
+vbios.rs
+
+## AnyBook kernel config (~/anybook/kernel/amd/cfg/device.config)
+1938:CONFIG_PCIEPORTBUS=y
+1939:CONFIG_HOTPLUG_PCI_PCIE=y
+2062:# CONFIG_FW_LOADER_COMPRESS is not set
+4836:# CONFIG_VGA_SWITCHEROO is not set
+4837:# CONFIG_NOVA_CORE is not set
+4918:# CONFIG_DRM_NOUVEAU is not set
+4919:# CONFIG_DRM_NOVA is not set
+5265:CONFIG_SND_HDA_POWER_SAVE_DEFAULT=0
+5268:CONFIG_SND_HDA_INTEL=m
+5301:CONFIG_SND_HDA_CODEC_HDMI_NVIDIA=m
+6665:# CONFIG_VFIO is not set
+6788:CONFIG_ASUS_WMI=m
+
+## For comparison, dev host Arch kernel 7.2.8-5-omarchy-bore
+CONFIG_VGA_SWITCHEROO=y
+CONFIG_SND_HDA_POWER_SAVE_DEFAULT=10
+
+## GSP shutdown on suspend for Hopper/Blackwell: gb202 uses gh100_gsp_fini -> r535_gsp_fini, which saves GSP state (system and runtime suspend)
+	.dtor = r535_gsp_dtor,
+	.oneinit = gh100_gsp_oneinit,
+	.init = gh100_gsp_init,
+	.fini = gh100_gsp_fini,
+
+int
+gh100_gsp_fini(struct nvkm_gsp *gsp, enum nvkm_suspend_state suspend)
+{
+	struct nvkm_falcon *falcon = &gsp->falcon;
+	int ret, time = 4000;
+
+	/* Shutdown RM. */
+	ret = r535_gsp_fini(gsp, suspend);
+	if (ret && suspend)
+		return ret;
+r535_gsp_fini(struct nvkm_gsp *gsp, enum nvkm_suspend_state suspend)
+{
+	struct nvkm_rm *rm = gsp->rm;
+	int ret;
+
+	if (suspend) {
+		u32 len = rm->api->gsp->sr_data_size(gsp);
+		GspFwSRMeta *sr;
+
+		ret = nvkm_gsp_sg(gsp->subdev.device, len, &gsp->sr.sgt);
+		if (ret)
+			return ret;
+
+		ret = nvkm_gsp_radix3_sg(gsp, &gsp->sr.sgt, len, &gsp->sr.radix3);
+		if (ret)
+			return ret;
+
+		ret = nvkm_gsp_mem_ctor(gsp, sizeof(*sr), &gsp->sr.meta);
+		if (ret)
+			return ret;
+
+		sr = gsp->sr.meta.data;
+		sr->magic = GSP_FW_SR_META_MAGIC;
+		sr->revision = GSP_FW_SR_META_REVISION;
+		sr->sysmemAddrOfSuspendResumeData = gsp->sr.radix3.lvl0.addr;
+		sr->sizeOfSuspendResumeData = len;
+
+		ret = rm->api->fbsr->suspend(gsp, suspend == NVKM_RUNTIME_SUSPEND);
+		if (ret) {
+/* SPDX-License-Identifier: MIT */
+#ifndef __NVKM_SUSPEND_STATE_H__
+#define __NVKM_SUSPEND_STATE_H__
+
+enum nvkm_suspend_state {
+	NVKM_POWEROFF,
+	NVKM_SUSPEND,
+	NVKM_RUNTIME_SUSPEND,
+};
+
+#endif
