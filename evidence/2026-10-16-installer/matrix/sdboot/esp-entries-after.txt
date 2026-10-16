@@ -1,11 +1,11 @@
- Volume in drive : is ANYBOOK    
- Volume Serial Number is 7441-BF95
+ Volume in drive : is OPENBOOK   
+ Volume Serial Number is D18E-7CF7
 Directory for ::/loader/entries
 
-.            <DIR>     2026-10-16  18:04 
-..           <DIR>     2026-10-16  18:04 
-ANYBOO~2 CON       384 2026-10-16  18:04  anybook-b+3.conf
-ANYBOO~1 CON       384 2026-10-16  18:04  anybook-a+2-1.conf
-        4 files                 768 bytes
+.            <DIR>     2026-10-16  18:29 
+..           <DIR>     2026-10-16  18:29 
+OPENBO~2 CON       390 2026-10-16  18:29  openbook-b+3.conf
+OPENBO~1 CON       390 2026-10-16  18:29  openbook-a+2-1.conf
+        4 files                 780 bytes
                         169 174 528 bytes free
 

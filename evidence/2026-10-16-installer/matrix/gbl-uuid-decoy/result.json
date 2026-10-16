@@ -5,6 +5,6 @@
  "steps": 0,
  "hits": [],
  "qemu_rc": 0,
- "usb": "/home/hive/anybook/installer/matrix-20261016/run-gbl-uuid-decoy.img",
- "nvme": "/home/hive/anybook/installer/matrix-20261016/decoy-nvme.img"
+ "usb": "/home/hive/anybook/installer/matrix-20261016-openbook/run-gbl-uuid-decoy.img",
+ "nvme": "/home/hive/anybook/installer/matrix-20261016-openbook/decoy-nvme.img"
 }

@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
-// anybook-probe: a tiny rdinit= for boot-chain tests (ANAL-189). It runs as PID 1 before Android's first-stage
+// openbook-probe: a tiny rdinit= for boot-chain tests (ANAL-189). It runs as PID 1 before Android's first-stage
 // init, records what the EFI loader handed the kernel, then execs /init so the same boot carries on into Android.
 // Every line goes to /dev/kmsg with a "PROBE" tag, so it lands in the serial log and in Android's dmesg.
 //   - /proc/cmdline and /proc/bootconfig (the bootconfig trailer the loader appended to the initrd)
 //   - which ramdisk fragments arrived (vendor ramdisk, generic ramdisk, module fragment)
 //   - every block device: kernel name, sysfs path (USB vs NVMe), PARTNAME, PARTUUID from its uevent
 //   - systemd-boot's LoaderDevicePartUUID EFI variable, when present
-// With "anybook.probe=halt" on the cmdline it powers off instead of continuing.
-// Build: gcc -static -O2 -o anybook-probe probe-init.c
+// With "openbook.probe=halt" on the cmdline it powers off instead of continuing.
+// Build: gcc -static -O2 -o openbook-probe probe-init.c
 #define _GNU_SOURCE
 #include <dirent.h>
 #include <errno.h>
@@ -151,7 +151,7 @@ int main(int argc, char **argv) {
     mount("sysfs", "/sys", "sysfs", 0, NULL);
     kmsg = open("/dev/kmsg", O_WRONLY | O_CLOEXEC);
 
-    say("anybook-probe start (pid %d)", getpid());
+    say("openbook-probe start (pid %d)", getpid());
     dump_file("cmdline", "/proc/cmdline");
     dump_file("bootconfig", "/proc/bootconfig");
 
@@ -196,14 +196,14 @@ int main(int argc, char **argv) {
     char cmdline[4096] = "";
     FILE *c = fopen("/proc/cmdline", "r");
     if (c) { if (!fgets(cmdline, sizeof cmdline, c)) cmdline[0] = 0; fclose(c); }
-    if (strstr(cmdline, "anybook.probe=halt")) {
-        say("anybook-probe done: halt requested, powering off");
+    if (strstr(cmdline, "openbook.probe=halt")) {
+        say("openbook-probe done: halt requested, powering off");
         sync();
         reboot(RB_POWER_OFF);
         return 0;
     }
 
-    say("anybook-probe done: exec /init");
+    say("openbook-probe done: exec /init");
     if (kmsg >= 0) close(kmsg);
     umount("/sys");
     umount("/proc");

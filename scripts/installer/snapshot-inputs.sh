@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Snapshot the read-only inputs of the boot-chain prototype into ~/anybook/installer/inputs/<label>:
+# Snapshot the read-only inputs of the boot-chain prototype into <data dir>/installer/inputs/<label>:
 # Android images from an AOSP PRODUCT_OUT (never built here; the AOSP lane owns that tree) and a kernel dist.
 # Copies are reflinks (no data copied on btrfs). Writes provenance.txt with fingerprints and sha256s.
 #
@@ -7,7 +7,7 @@
 # env: SNAP_PRODUCT  PRODUCT_OUT (default ~/anybook/aosp/src/out/target/product/vsoc_x86_64_only)
 #      SNAP_KDIST    kernel dist (default ~/anybook/kernel/dist/anybook-amd-gbos-16302624)
 set -euo pipefail
-A=${ANYBOOK_HOME:-$HOME/anybook}
+A=${OPENBOOK_HOME:-${ANYBOOK_HOME:-$HOME/anybook}}   # ~/anybook until the repo-wide rename
 P=${SNAP_PRODUCT:-$A/aosp/src/out/target/product/vsoc_x86_64_only}
 K=${SNAP_KDIST:-$A/kernel/dist/anybook-amd-gbos-16302624}
 LABEL=${1:-$(date -u +%Y%m%dT%H%M%SZ)}

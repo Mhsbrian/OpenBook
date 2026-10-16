@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Boot a disk image in QEMU/KVM + OVMF as a USB stick (xHCI + usb-storage), optionally with a second disk on NVMe
 playing the laptop's internal drive. Logs the serial console, can type into it, takes screenshots, and stops on a
-timeout. Runs inside the anybook-installer container. Image files only; never a host block device.
+timeout. Runs inside the openbook-installer container. Image files only; never a host block device.
 
 usage: qemu-run.py --usb IMG [--nvme IMG] --out DIR [--timeout S] [--expect STEPS.json] [--shot SECONDS ...]
                    [--mem MiB] [--smp N] [--vars FILE] [--pause-on-reset] [--vga MODEL] [--trace]

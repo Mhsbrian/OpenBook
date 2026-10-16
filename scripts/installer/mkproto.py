@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-"""Build an AnyBook boot-chain prototype disk image (ANAL-189): a GPT image with an ESP holding one EFI loader,
+"""Build an OpenBook boot-chain prototype disk image (ANAL-189): a GPT image with an ESP holding one EFI loader,
 A/B Android boot partitions, super, misc, metadata and an empty userdata, as a USB stick would carry it.
 
-Runs inside the anybook-installer container (scripts/installer/inst-docker.sh). Inputs are read-only: a snapshot of
+Runs inside the openbook-installer container (scripts/installer/inst-docker.sh). Inputs are read-only: a snapshot of
 an AOSP PRODUCT_OUT plus a kernel bzImage (scripts/installer/snapshot-inputs.sh), the AOSP host tools (avbtool,
 mkbootimg, unpack_bootimg, simg2img) and the AOSP AVB test key. Nothing is written outside --work.
 
 Steps
   android  boot.img = our bzImage (mkbootimg v4), AVB hash footer signed with the AOSP test key (boot is a chained
            partition). vendor_boot = the product's vendor ramdisk without its 6.12 modules, plus an empty module
-           dir for our kernel release and the probe; console and rdinit=/anybook-probe on the vendor cmdline; the
+           dir for our kernel release and the probe; console and rdinit=/openbook-probe on the vendor cmdline; the
            product's static androidboot.* in the vendor bootconfig. vbmeta re-made with the product's chain layout;
            its digest and size are computed the way libavb reports them.
   esp      per loader: grub (standalone GRUB, grubenv slot, PARTUUID probed at run time), sdboot (systemd-boot with
@@ -36,7 +36,8 @@ import subprocess
 import sys
 import uuid
 
-A = os.environ.get("ANYBOOK_HOME", os.path.expanduser("~/anybook"))
+# Host data dir, shared with the AOSP and kernel lanes (still ~/anybook until the repo-wide rename).
+A = os.environ.get("OPENBOOK_HOME", os.environ.get("ANYBOOK_HOME", os.path.expanduser("~/anybook")))
 HOST = f"{A}/aosp/src/out/host/linux-x86/bin"
 TESTKEY = f"{A}/aosp/src/external/avb/test/data/testkey_rsa4096.pem"
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -59,7 +60,7 @@ LAYOUT = [  # name, MiB (None = rest of disk), GPT type code (sgdisk)
 ]
 # The prototype boots the Cuttlefish pc product in plain QEMU, without crosvm's host-side services. cvd normally
 # picks one of each duplicate vendor APEX through bootconfig (assemble_cvd/bootconfig_args.cpp); pick the in-guest
-# software ones. A real AnyBook product has one APEX per HAL and needs none of this.
+# software ones. A real OpenBook product has one APEX per HAL and needs none of this.
 CF_PRODUCT_PARAMS = {
     "androidboot.vendor.apex.com.android.hardware.keymint": "com.android.hardware.keymint.rust_nonsecure",
     "androidboot.vendor.apex.com.android.hardware.gatekeeper": "com.android.hardware.gatekeeper.nonsecure",
@@ -74,7 +75,7 @@ CF_PRODUCT_PARAMS = {
     "androidboot.console": "ttyS0",
     "androidboot.serialconsole": "1",
 }
-NS = uuid.UUID("5b0f9a52-2d1e-4b7e-9a3c-616e79626f6f")  # namespace for deterministic PARTUUIDs
+NS = uuid.UUID("5b0f9a52-2d1e-4b7e-9a3c-6f70656e626b")  # namespace for deterministic PARTUUIDs
 
 
 def run(cmd, **kw):
@@ -185,7 +186,7 @@ def build_android(inp, w, args):
     extra = [(md, 0o40755, None)] + [(f"{md}/{f}", 0o100644, b"") for f in
                                       ("modules.load", "modules.dep", "modules.alias", "modules.softdep",
                                        "modules.options")] + \
-            [("anybook-probe", 0o100755, open(args.probe, "rb").read())]
+            [("openbook-probe", 0o100755, open(args.probe, "rb").read())]
     cpio = b"".join(e for _, e in kept) + newc(extra)
     open(f"{d}/vendor_ramdisk.dropped.txt", "w").write("".join(n + "\n" for n, _ in dropped))
     # lz4 legacy like the product's ramdisks. Between two lz4 streams the kernel's unlz4 expects the next magic
@@ -200,7 +201,7 @@ def build_android(inp, w, args):
     from importlib.machinery import SourceFileLoader
     bc = SourceFileLoader("bootconfig", f"{HERE}/bootconfig.py").load_module()
     i = vargs.index("--vendor_cmdline")
-    vendor_cmdline = vargs[i + 1] + " console=ttyS0,115200 loglevel=7 rdinit=/anybook-probe"
+    vendor_cmdline = vargs[i + 1] + " console=ttyS0,115200 loglevel=7 rdinit=/openbook-probe"
     vargs[i + 1] = vendor_cmdline
     vbc = bc.parse_text(open(f"{d}/unpack/vendor_boot/bootconfig").read())
     vbc.update(CF_PRODUCT_PARAMS)
@@ -366,8 +367,8 @@ def bootconfig_params(params, loader, slot, parts, bad_digest, static_part_uuid)
         "androidboot.vbmeta.digest": digest,
         "androidboot.vbmeta.invalidate_on_error": "yes",
         "androidboot.veritymode": "enforcing",
-        "androidboot.serialno": "ANYBOOKPROTO0001",
-        "androidboot.anybook.loader": loader,
+        "androidboot.serialno": "OPENBOOKPROTO01",
+        "androidboot.openbook.loader": loader,
     })
     if static_part_uuid:
         p["androidboot.boot_part_uuid"] = next(x["uuid"] for x in parts if x["name"] == "EFI")
@@ -384,7 +385,7 @@ def copy_padded(src, dst):
 
 
 def kernel_cmdline(params, halt):
-    return params["vendor_cmdline"] + (" anybook.probe=halt" if halt else "")
+    return params["vendor_cmdline"] + (" openbook.probe=halt" if halt else "")
 
 
 def esp_files(w, params, loader, parts, args):
@@ -396,7 +397,7 @@ def esp_files(w, params, loader, parts, args):
     cmd = kernel_cmdline(params, args.halt)
     if loader in ("grub", "sdboot", "uki"):
         for slot in "ab":
-            sd = f"{e}/anybook/{slot}"
+            sd = f"{e}/openbook/{slot}"
             os.makedirs(sd)
             shutil.copy(f"{d}/kernel", f"{sd}/kernel")
             copy_padded(f"{d}/vendor_ramdisk.img", f"{sd}/vendor_ramdisk.img")
@@ -409,27 +410,27 @@ def esp_files(w, params, loader, parts, args):
         emb = f"{w}/grub-embedded.cfg"
         open(emb, "w").write(
             "# Find the partition GRUB was loaded from, then read its config from there (never \"search\":\n"
-            "# a second disk with AnyBook on it would match too).\n"
+            "# a second disk with OpenBook on it would match too).\n"
             "regexp --set=1:espdev '^(\\([^)]*\\))' \"$cmdpath\"\n"
             "set root=$espdev\n"
-            "configfile ($root)/anybook/grub.cfg\n")
-        open(f"{e}/anybook/grub.cfg", "w").write(f"""\
-# AnyBook prototype GRUB config (ANAL-189). Slot comes from grubenv; androidboot.boot_part_uuid is the PARTUUID of
+            "configfile ($root)/openbook/grub.cfg\n")
+        open(f"{e}/openbook/grub.cfg", "w").write(f"""\
+# OpenBook prototype GRUB config (ANAL-189). Slot comes from grubenv; androidboot.boot_part_uuid is the PARTUUID of
 # this ESP, probed at boot. Static androidboot.* params are in the per-slot bootconfig file (last initrd).
 set timeout=3
 set default=0
 set slot=a
-load_env --file ($root)/anybook/grubenv slot
+load_env --file ($root)/openbook/grubenv slot
 probe --set=esp_partuuid --part-uuid ($root)
-echo "AnyBook GRUB: root=$root slot=$slot esp_partuuid=$esp_partuuid"
-menuentry "AnyBook (slot $slot)" {{
-    echo "loading kernel, vendor ramdisk, generic ramdisk, bootconfig from ($root)/anybook/$slot"
-    linux ($root)/anybook/$slot/kernel {cmd} androidboot.boot_part_uuid=$esp_partuuid
-    initrd ($root)/anybook/$slot/vendor_ramdisk.img ($root)/anybook/$slot/ramdisk.img ($root)/anybook/$slot/bootconfig.img
+echo "OpenBook GRUB: root=$root slot=$slot esp_partuuid=$esp_partuuid"
+menuentry "OpenBook (slot $slot)" {{
+    echo "loading kernel, vendor ramdisk, generic ramdisk, bootconfig from ($root)/openbook/$slot"
+    linux ($root)/openbook/$slot/kernel {cmd} androidboot.boot_part_uuid=$esp_partuuid
+    initrd ($root)/openbook/$slot/vendor_ramdisk.img ($root)/openbook/$slot/ramdisk.img ($root)/openbook/$slot/bootconfig.img
 }}
 """)
-        run(["grub-editenv", f"{e}/anybook/grubenv", "create"])
-        run(["grub-editenv", f"{e}/anybook/grubenv", "set", f"slot={args.slot}"])
+        run(["grub-editenv", f"{e}/openbook/grubenv", "create"])
+        run(["grub-editenv", f"{e}/openbook/grubenv", "set", f"slot={args.slot}"])
         run(["grub-mkstandalone", "-O", "x86_64-efi", "-o", f"{e}/EFI/BOOT/BOOTX64.EFI",
              "--modules=part_gpt fat", "--locales=", "--fonts=", "--themes=",
              "--install-modules=linux normal part_gpt fat probe regexp loadenv configfile echo test efi_gop "
@@ -438,25 +439,28 @@ menuentry "AnyBook (slot $slot)" {{
     elif loader == "sdboot":
         shutil.copy("/usr/lib/systemd/boot/efi/systemd-bootx64.efi", f"{e}/EFI/BOOT/BOOTX64.EFI")
         os.makedirs(f"{e}/loader/entries")
+        # Product UX: no menu unless a key is held at power-on ("menu-hidden"), so the firmware logo stays on
+        # screen until Android's boot animation; "--menu" shows it for 3 s (used for the menu screenshot).
+        timeout = "3" if args.menu else "menu-hidden"
         open(f"{e}/loader/loader.conf", "w").write(
-            f"timeout 3\ndefault anybook-{args.slot}*\nconsole-mode keep\neditor no\n")
+            f"timeout {timeout}\ndefault openbook-{args.slot}*\nconsole-mode keep\neditor no\n")
         for slot in "ab":
             # "+3" = boot counting: systemd-boot renames the file on every try (A/B "tries remaining").
-            open(f"{e}/loader/entries/anybook-{slot}+3.conf", "w").write(
-                f"title AnyBook (slot {slot.upper()})\nsort-key anybook\nversion 17-{slot}\n"
-                f"linux /anybook/{slot}/kernel\ninitrd /anybook/{slot}/vendor_ramdisk.img\n"
-                f"initrd /anybook/{slot}/ramdisk.img\ninitrd /anybook/{slot}/bootconfig.img\noptions {cmd}\n")
+            open(f"{e}/loader/entries/openbook-{slot}+3.conf", "w").write(
+                f"title OpenBook\nsort-key openbook\nversion 17 \u00b7 slot {slot.upper()}\n"
+                f"linux /openbook/{slot}/kernel\ninitrd /openbook/{slot}/vendor_ramdisk.img\n"
+                f"initrd /openbook/{slot}/ramdisk.img\ninitrd /openbook/{slot}/bootconfig.img\noptions {cmd}\n")
     elif loader == "uki":
         slot = args.slot
-        sd = f"{e}/anybook/{slot}"
+        sd = f"{e}/openbook/{slot}"
         combined = f"{w}/uki-initrd-{slot}.img"
         with open(combined, "wb") as o:
             for n in ("vendor_ramdisk.img", "ramdisk.img", "bootconfig.img"):
                 o.write(open(f"{sd}/{n}", "rb").read())
         run(["ukify", "build", "--linux", f"{d}/kernel", "--initrd", combined, "--cmdline", cmd,
-             "--uname", params["kernel_release"], "--os-release", "NAME=AnyBook\nID=anybook\n",
+             "--uname", params["kernel_release"], "--os-release", "NAME=OpenBook\nID=openbook\n",
              "--output", f"{e}/EFI/BOOT/BOOTX64.EFI"])
-        shutil.rmtree(f"{e}/anybook")
+        shutil.rmtree(f"{e}/openbook")
     elif loader == "gbl":
         shutil.copy(args.gbl_efi, f"{e}/EFI/BOOT/BOOTX64.EFI")
     return e
@@ -465,7 +469,7 @@ menuentry "AnyBook (slot $slot)" {{
 def make_fat(src, img, mib):
     if os.path.exists(img):
         os.remove(img)
-    run(["mkfs.vfat", "-F", "32", "-n", "ANYBOOK", "-C", img, str(mib * 1024)], stdout=subprocess.DEVNULL)
+    run(["mkfs.vfat", "-F", "32", "-n", "OPENBOOK", "-C", img, str(mib * 1024)], stdout=subprocess.DEVNULL)
     items = [os.path.join(src, x) for x in os.listdir(src)]
     run(["mcopy", "-s", "-i", img] + items + ["::/"])
 
@@ -479,12 +483,13 @@ def main():
     ap.add_argument("--slot", default="a", choices=["a", "b"])
     ap.add_argument("--bad-digest", action="store_true")
     ap.add_argument("--halt", action="store_true", help="probe only: power off before Android's init")
+    ap.add_argument("--menu", action="store_true", help="sdboot: show the boot menu for 3 s instead of hiding it")
     ap.add_argument("--vendor-boot-part-uuid", action="store_true",
                     help="bake androidboot.boot_part_uuid (this image's ESP) into vendor_boot's bootconfig")
     ap.add_argument("--gbl-efi", default=f"{A}/installer/dl/gbl-16633196/gbl_x86_64_dev.efi")
-    ap.add_argument("--probe", default=f"{A}/installer/build/anybook-probe")
+    ap.add_argument("--probe", default=f"{A}/installer/build/openbook-probe")
     ap.add_argument("--size-gib", type=int, default=12)
-    ap.add_argument("--label", default="anybook-proto")
+    ap.add_argument("--label", default="openbook-proto")
     ap.add_argument("--out")
     ap.add_argument("--decoy")
     args = ap.parse_args()

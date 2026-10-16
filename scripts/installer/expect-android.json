@@ -26,14 +26,14 @@
 "timeout": 20
 },
  {
-"send": "echo ===ANYBOOK-BEGIN===\n"
+"send": "echo ===OPENBOOK-BEGIN===\n"
 },
  {
 "wait": "console:/ \\$ ",
 "timeout": 20
 },
  {
-"send": "getprop | grep -E '^.ro.boot.(slot_suffix|verifiedbootstate|vbmeta|avb|veritymode|boot_part_uuid|anybook|serialno|force_normal_boot)'\n"
+"send": "getprop | grep -E '^.ro.boot.(slot_suffix|verifiedbootstate|vbmeta|avb|veritymode|boot_part_uuid|openbook|serialno|force_normal_boot)'\n"
 },
  {
 "wait": "console:/ \\$ ",
@@ -75,10 +75,10 @@
 "timeout": 20
 },
  {
-"send": "uname -r; getprop ro.build.fingerprint; echo ===ANYBOOK-END===\n"
+"send": "uname -r; getprop ro.build.fingerprint; echo ===OPENBOOK-END===\n"
 },
  {
-"wait": "===ANYBOOK-END===\\s",
+"wait": "===OPENBOOK-END===\\s",
 "timeout": 30
 }
 ]
