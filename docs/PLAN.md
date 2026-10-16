@@ -123,25 +123,32 @@ Everything built for bare metal must therefore be scripted, unattended-safe, and
 - Emulator system images fall under the Android SDK (Preview) License: local use only, no redistribution.
 - libhoudini and libndk_translation are proprietary. Track A will not bundle them.
 
-## 7. Next steps (in order, updated 2026-10-16, late)
+## 7. Next steps (in order, updated 2026-10-16, night)
 
-Execution is tracked as Multica epics ANAL-160 to ANAL-166, ANAL-186, ANAL-188 and ANAL-193 (all children of ANAL-159). The live map is in `docs/STATUS.md`.
+Execution is tracked as Multica epics under ANAL-159. The live map, lanes and critical path are in `docs/STATUS.md`.
 
 **End deliverable (owner, 2026-10-16):** a bootable USB image with an interactive installer wizard (M8, ANAL-188), verified on the G14 by an on-device agent (§4a).
 
-**Delivered and merged:** PRs #1–#12.
-- AOSP 17 PC build boots in Cuttlefish (ANAL-168).
-- AMD kernel with 138 vendor modules for the GA403WR (ANAL-171).
-- That kernel boots our userspace in Cuttlefish (ANAL-172).
-- Digitalis evaluated: GO for Track A, with conditions (ANAL-181).
+**Delivered and merged** (PRs #1–#14):
+- Track A in a VM: our AOSP 17 PC build gives the Android desktop experience on the host GPU (ANAL-169).
+- The AnyBook GKI with 138 AMD vendor modules boots our userspace (ANAL-172).
+- Mesa for Android (ANAL-173).
+- The ARM compat baseline and the Digitalis evaluation (ANAL-180/181).
 
-**Running:** ANAL-169, VM graphics and desktop windowing. It owns the AOSP tree.
+**Now running, by lane:**
+- **AOSP lane:** ANAL-174, the AMD graphics stack in the tree as a reusable makefile with VM/bare-metal HAL selection.
+- **Kernel lane:** ANAL-198, bare-metal packaging: first-stage NVMe and USB boot, vendor_boot, vendor_dlkm, system_dlkm and the firmware subset, validated in QEMU.
+- **Light lanes:**
+  - ANAL-189: installer and boot-chain design, with a QEMU/OVMF prototype. It was promoted ahead of ANAL-176 so the loader is proven before it reaches hardware.
+  - ANAL-187: NVIDIA research, including how to keep the dGPU off at first boot.
 
-**Then, in order (condition wakeups handle the hand-offs):**
-1. **ANAL-174:** create the real `device/anybook` x86_64 product with AMD graphics (Mesa, minigbm, HWC, ANGLE). Starts when ANAL-169 delivers.
-2. **ANAL-176:** USB boot on the G14. It needs ANAL-174's bare-metal product; the Cuttlefish product cannot boot on real hardware.
-3. **ANAL-178/179:** input, power, audio and Wi-Fi.
-4. **ANAL-189 to ANAL-192:** installer.
-5. **In parallel, once the owner installs the daemon on the G14:** ANAL-194 → ANAL-195 → ANAL-196.
+**Then, handed off automatically:**
+1. ANAL-199: the real G14 product (GPT, fstab, kernel packaging, base HALs). It must boot in QEMU/OVMF as a PC first.
+2. ANAL-176: USB boot on the G14, with the owner at the laptop or the device loop.
+3. ANAL-200: Digitalis on Android 17 as our redistributable arm64 bridge.
+4. ANAL-178/179: input, power, audio and Wi-Fi.
+5. The installer: ANAL-190 to ANAL-192.
+
+**In parallel, when the owner is ready:** the device-loop runtime on the G14 (ANAL-194 → ANAL-197).
 
 Track B (ANAL-182) waits on the owner's licensing decision.
