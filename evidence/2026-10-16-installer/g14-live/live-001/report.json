@@ -1,0 +1,131 @@
+{
+ "schema": "openbook-live-report/1",
+ "dir": "live-001",
+ "expect": "g14",
+ "phase": "final",
+ "fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
+ "model": "OpenBook on ROG Zephyrus G14 (GA403WR)",
+ "selinux": "permissive",
+ "verdicts": {
+  "boot_completed": {
+   "ok": false,
+   "seconds": -1.0,
+   "second_stage_s": 3.5
+  },
+  "display": {
+   "ok": true,
+   "connectors": [
+    "card0-DP-1 disconnected disabled",
+    "card0-DP-2 disconnected disabled",
+    "card0-DP-3 disconnected disabled",
+    "card0-DP-4 disconnected disabled",
+    "card0-DP-5 disconnected disabled",
+    "card0-DP-6 disconnected disabled",
+    "card0-DP-7 disconnected disabled",
+    "card0-DP-8 disconnected disabled",
+    "card0-Writeback-1 connected disabled 2560x1600",
+    "card0-eDP-1 connected enabled 2880x1800"
+   ],
+   "surfaceflinger": "running",
+   "screenshot": true
+  },
+  "gpu_hal": {
+   "ok": true,
+   "hal": "amdgpu",
+   "egl": "angle",
+   "vulkan": "radv",
+   "gralloc": "minigbm",
+   "hwcomposer": "drm"
+  },
+  "data_on_stick": {
+   "ok": true,
+   "data_kib": 58885120,
+   "used_kib": 1130656,
+   "byname_targets": [
+    "sda"
+   ]
+  },
+  "wifi": {
+   "ok": true,
+   "interface": true,
+   "status": [
+    "cmd: Can't find service: wifi"
+   ],
+   "supplicant": null
+  },
+  "touchpad": {
+   "ok": true,
+   "devices": [
+    "ASCE1206:00 04F3:3315 Touchpad"
+   ]
+  },
+  "keyboard": {
+   "ok": true,
+   "devices": [
+    "Asus Keyboard"
+   ]
+  },
+  "dgpu_off": {
+   "ok": true,
+   "functions": [
+    "0000:64:00.0 0x10de 0x2f58 0x030000 D3cold suspended",
+    "0000:64:00.1 0x10de 0x2f80 0x040300 D3cold suspended"
+   ]
+  },
+  "backlight": {
+   "ok": true,
+   "devices": [
+    "amdgpu_bl0 199500/399000"
+   ]
+  },
+  "battery": {
+   "ok": true,
+   "supplies": [
+    "ACAD: Mains  ",
+    "BAT1: Battery Discharging 54",
+    "ucsi-source-psy-USBC000:001: USB  ",
+    "ucsi-source-psy-USBC000:002: USB"
+   ]
+  },
+  "cpu_power": {
+   "ok": true,
+   "facts": [
+    "freeze mem disk",
+    "[s2idle]",
+    "active",
+    "amd-pstate-epp",
+    "balance_performance"
+   ]
+  }
+ },
+ "modules_loaded": 139,
+ "amdgpu_loaded": true,
+ "avc_denials": {
+  "dmesg": "394",
+  "logcat": "7215"
+ },
+ "live_init": {
+  "action": "none",
+  "detail": "",
+  "disk": "sda",
+  "disk_sectors": 121307136,
+  "gpt_backup_lba_before": 121307135,
+  "gpt_backup_lba_after": 0,
+  "userdata_sectors_before": 117774336,
+  "userdata_sectors_after": 117774336,
+  "userdata_blank": false,
+  "reset": false
+ },
+ "files": [
+  "collect-early.txt",
+  "collect-final.txt",
+  "dmesg.txt",
+  "logcat-early.txt",
+  "logcat-final.txt",
+  "report.json",
+  "report.md",
+  "screen-early.png",
+  "screen-final.png",
+  "summary.json"
+ ]
+}

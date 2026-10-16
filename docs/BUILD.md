@@ -178,6 +178,14 @@ CF_GPU=amd CF_GPU_MODE=gfxstream_guest_angle CF_DEVICE=anybook_vsoc_x86_64 scrip
 - `scripts/desktop-compare.py` diffs the two captures, and `scripts/cf-gfx-bench.sh` compares GPU modes.
 - See `docs/aosp-desktop.md`.
 
+## M8: live USB image (ANAL-190)
+
+```bash
+scripts/installer-image.sh --menu-timeout 10      # live image from out/target/product/anybook_g14 -> ~/anybook/installer/out/
+scripts/installer/live-qemu.sh ~/anybook/installer/out/<label>.img <run>   # QEMU/OVMF: grow, persist, reset, logs, decoy NVMe
+```
+Writing a stick: `scripts/installer/write-stick.sh` with `OPENBOOK_WRITE_CONFIRM=/dev/disk/by-id/usb-…` (owner confirmation). Details: `docs/installer.md` §11.
+
 ## M8: installer boot-chain prototype (ANAL-189)
 
 ```bash

@@ -1,0 +1,10 @@
+PASS grow: {"action": "grow", "detail": "", "disk": "", "disk_sectors": 524288, "gpt_backup_lba_before": 131071, "gpt_backup_lba_after": 524287, "userdata_sectors_before": 69599, "userdata_sectors_after": 460800, "userdata_blank": true, "reset": false}
+PASS again: none
+PASS repair: {"action": "repair", "detail": "", "disk": "", "disk_sectors": 262144, "gpt_backup_lba_before": 131071, "gpt_backup_lba_after": 262143, "userdata_sectors_before": 69599, "userdata_sectors_after": 69599, "userdata_blank": false, "reset": false}
+PASS exact: none
+PASS wrong ESP: refused
+PASS userdata not last: refused
+PASS short stick: refused
+PASS bad CRC: refused
+PASS reset: {"action": "reset", "detail": "", "disk": "", "disk_sectors": 0, "gpt_backup_lba_before": 0, "gpt_backup_lba_after": 0, "userdata_sectors_before": 0, "userdata_sectors_after": 0, "userdata_blank": false, "reset": true}
+9/9 passed
