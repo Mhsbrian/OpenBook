@@ -1,0 +1,10 @@
+total 0
+lrwxrwxrwx 1 root root 20 2026-10-16 19:00 boot_a -> /dev/block/nvme0n1p2
+lrwxrwxrwx 1 root root 20 2026-10-16 19:00 init_boot_a -> /dev/block/nvme0n1p3
+lrwxrwxrwx 1 root root 20 2026-10-16 19:00 metadata -> /dev/block/nvme0n1p6
+lrwxrwxrwx 1 root root 20 2026-10-16 19:00 misc -> /dev/block/nvme0n1p1
+lrwxrwxrwx 1 root root 18 2026-10-16 19:00 nvme0n1 -> /dev/block/nvme0n1
+lrwxrwxrwx 1 root root 20 2026-10-16 19:00 super -> /dev/block/nvme0n1p7
+lrwxrwxrwx 1 root root 20 2026-10-16 19:00 userdata -> /dev/block/nvme0n1p8
+lrwxrwxrwx 1 root root 20 2026-10-16 19:00 vbmeta_a -> /dev/block/nvme0n1p5
+lrwxrwxrwx 1 root root 20 2026-10-16 19:00 vendor_boot_a -> /dev/block/nvme0n1p4

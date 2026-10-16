@@ -137,6 +137,19 @@ scripts/kernel-cf-boot.sh          # OpenBook module set; `board` for the contro
 - Disk: 4.1 GB of reflinks for the snapshot, plus 3.3 GB per staged boot, in `~/anybook/kernel/cf/`.
 - See `docs/kernel.md` (ANAL-172).
 
+## Kernel: G14 bare-metal packaging (ANAL-198)
+
+Needs the synced kernel tree (above) and, for the boot check, a Cuttlefish `PRODUCT_OUT` to borrow the userspace from (default: ANAL-172's snapshot, read only).
+
+```bash
+scripts/kernel-g14-package.sh --evidence evidence/<date>-kernel-g14   # apply, Kleaf images, list/signing checks, firmware, QEMU, collect
+```
+
+- Resumable: finished steps are skipped while their inputs are unchanged; `--from STEP` reruns from STEP.
+- Outputs in `~/anybook/kernel/g14/<label>/`: `images/` (`vendor_boot.img`, `vendor_dlkm.img`, `system_dlkm.img`, `bzImage`, `vm/`), `firmware/` (`/vendor/firmware` tree and `firmware.mk`), `qemu/` and `results.json`.
+- Disk: about 0.6 GB per dist, 50 MB of staged firmware and 9 GB of sparse QEMU disks. The QEMU runs use 6 GiB of RAM each, one at a time.
+- See `docs/kernel.md` (ANAL-198).
+
 ## ARM compat: Digitalis native bridge (ANAL-181)
 
 ```bash

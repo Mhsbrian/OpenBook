@@ -1,0 +1,5 @@
+ls: /dev/block/nvme: No such file or directory
+ls: /dev/block/scsi: No such file or directory
+ls: /dev/block/platform: No such file or directory
+total 0
+drwxr-xr-x 3 root root 60 2026-10-16 18:59 pci0000:00
