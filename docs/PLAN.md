@@ -105,11 +105,24 @@ Each milestone is small, has a verification artifact, and is checked into `evide
 - Emulator system images fall under the Android SDK (Preview) License: local use only, no redistribution.
 - libhoudini and libndk_translation are proprietary. Track A will not bundle them.
 
-## 7. Next steps (in order)
+## 7. Next steps (in order, updated 2026-10-16)
 
-Execution is tracked as Multica epics ANAL-160 to ANAL-166, with sub-issues ANAL-167 to ANAL-185. The map is in `docs/STATUS.md`.
+Execution is tracked as Multica epics ANAL-160 to ANAL-166 and ANAL-186, with sub-issues ANAL-167 to ANAL-187. The live map is in `docs/STATUS.md`.
 
-1. Owner confirms: the target AMD laptop (exact model or SKU) and the Track B licensing decision. The repo is settled: `Mhsbrian/AnyBook`.
-2. M1a: port GBRUNCH's software security HALs into a local vendor overlay, then boot Googlebook OS in QEMU to `boot_completed`.
-3. M1b: in parallel, sync `android17-release` to a local mirror (about 400 GB) and build `aosp_cf_x86_64_pc` with ccache.
-4. Write the AMD kernel fragment (Zen 4 and Zen 5 laptops) and build android17-6.18 with Kleaf.
+Stage 1 (M0 follow-ups) is done and merged:
+- The AOSP 17 build environment.
+- The stock GKI build, reproduced bit-for-bit.
+- Mesa radeonsi and RADV for Android.
+- The ARM compat baseline.
+
+Now running:
+1. **M1b (ANAL-168):** build `aosp_cf_x86_64_pc-cp2a-userdebug` and boot it in Cuttlefish to adb.
+2. **M3 prep (ANAL-171):** AMD defconfig fragment, `anybook_amd` KMI list and the vendor module set for the G14 2025 (GA403WP).
+3. **M6 (ANAL-181):** Digitalis compared with the libndk_translation baseline.
+
+Then, starting automatically as dependencies deliver:
+- VM graphics and desktop windowing (ANAL-169).
+- Graphics integration with minigbm, HWC and ANGLE (ANAL-174).
+- QEMU boot of the AMD kernel (ANAL-172).
+
+Bare metal (ANAL-176 onward) waits on the G14 inventory (ANAL-175). Track B (M1a, ANAL-182) waits on the owner's licensing decision.
