@@ -1,0 +1,402 @@
+PROBE openbook-probe start (pid 1)
+PROBE cmdline| vmw_vsock_virtio_transport_common.virtio_transport_max_vsock_pkt_buf_size=16384 console=ttynull stack_depot_disable=on cgroup_disable=pressure bootconfig initrd=\openbook\a\vendor_ramdisk.img initrd=\openbook\a\ramdisk.img initrd=\openbook\check\hwcheck.img initrd=\openbook\a\bootconfig.img printk.devkmsg=on audit=1 panic=-1 8250.nr_uarts=1 binder.impl=rust cma=0 firmware_class.path=/vendor/etc/ loop.max_part=7 init=/init bootconfig console=ttyS0,115200 loglevel=7 rdinit=/openbook-probe rdinit=/openbook-check/probe openbook.probe=report openbook.probe.sleep=1
+PROBE cmdline: 1 line(s) from /proc/cmdline
+PROBE bootconfig| androidboot.hardware = "cutf_cvm"
+PROBE bootconfig| androidboot.vendor.apex.com.android.hardware.keymint = "com.android.hardware.keymint.rust_nonsecure"
+PROBE bootconfig| androidboot.vendor.apex.com.android.hardware.gatekeeper = "com.android.hardware.gatekeeper.nonsecure"
+PROBE bootconfig| androidboot.vendor.apex.com.android.hardware.secure_element = "com.android.hardware.secure_element"
+PROBE bootconfig| androidboot.vendor.apex.com.android.hardware.strongbox = "none"
+PROBE bootconfig| androidboot.vendor.apex.com.android.hardware.graphics.composer = "com.android.hardware.graphics.composer.ranchu"
+PROBE bootconfig| androidboot.vendor.apex.com.google.emulated.camera.provider.hal = "com.google.emulated.camera.provider.hal"
+PROBE bootconfig| androidboot.wifi_impl = "virt_wifi"
+PROBE bootconfig| androidboot.hypervisor.vm.supported = "0"
+PROBE bootconfig| androidboot.hypervisor.protected_vm.supported = "0"
+PROBE bootconfig| androidboot.fstab_suffix = "cf.f2fs.hctr2"
+PROBE bootconfig| androidboot.console = "ttyS0"
+PROBE bootconfig| androidboot.serialconsole = "1"
+PROBE bootconfig| androidboot.slot_suffix = "_a"
+PROBE bootconfig| androidboot.force_normal_boot = "1"
+PROBE bootconfig| androidboot.verifiedbootstate = "orange"
+PROBE bootconfig| androidboot.vbmeta.device_state = "unlocked"
+PROBE bootconfig| androidboot.vbmeta.avb_version = "1.3"
+PROBE bootconfig| androidboot.vbmeta.hash_alg = "sha256"
+PROBE bootconfig| androidboot.vbmeta.size = "23552"
+PROBE bootconfig| androidboot.vbmeta.digest = "09f36fab8a9eb3afce09cf5f70e2cf1b790fd27e52985169ff64ee629a2eef92"
+PROBE bootconfig| androidboot.vbmeta.invalidate_on_error = "yes"
+PROBE bootconfig| androidboot.veritymode = "enforcing"
+PROBE bootconfig| androidboot.serialno = "OPENBOOKPROTO01"
+PROBE bootconfig| androidboot.openbook.loader = "sdboot"
+PROBE bootconfig| androidboot.boot_part_uuid = "3a26490e-49fb-50d4-afb0-82299526ec44"
+PROBE bootconfig| kernel.vmw_vsock_virtio_transport_common.virtio_transport_max_vsock_pkt_buf_size = "16384"
+PROBE bootconfig| # Parameters from bootloader:
+PROBE bootconfig| # console=ttynull stack_depot_disable=on cgroup_disable=pressure bootconfig initrd=\openbook\a\vendor_ramdisk.img initrd=\openbook\a\ramdisk.img initrd=\openbook\check\hwcheck.img initrd=\openbook\a\bootconfig.img printk.devkmsg=on audit=1 panic=-1 8250.nr_uarts=1 binder.impl=rust cma=0 firmware_class.path=/vendor/etc/ loop.max_part=7 init=/init bootconfig console=ttyS0,115200 loglevel=7 rdinit=/openbook-probe rdinit=/openbook-check/probe openbook.probe=report openbook.probe.sleep=1
+PROBE bootconfig: 29 line(s) from /proc/bootconfig
+PROBE ramdisk: vendor ramdisk fstab present
+PROBE ramdisk: generic ramdisk /init present, /system/bin/snapuserd present
+PROBE ramdisk: kernel 6.18.21-android17-5-g44a90255c95f, release module dir present
+PROBE block: 1 partition(s) with PARTUUID=3a26490e-49fb-50d4-afb0-82299526ec44 after 1.3 s
+PROBE block: sda4       partname=boot_b                 partuuid=484121d4-1706-5d5d-9f8d-d56a1883ca0e pci0000:00/0000:00:02.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda4
+PROBE block: nvme0n1    partname=-                      partuuid=-                                    pci0000:00/0000:00:03.0/nvme/nvme0/nvme0n1
+PROBE block: nvme0n1p9  partname=vbmeta_a               partuuid=[redacted]                           pci0000:00/0000:00:03.0/nvme/nvme0/nvme0n1/nvme0n1p9
+PROBE block: sda16      partname=vbmeta_vendor_dlkm_b   partuuid=025e1178-9cc7-51ca-90ab-f36d873330fd pci0000:00/0000:00:02.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda16
+PROBE block: nvme0n1p11 partname=vbmeta_system_a        partuuid=[redacted]                           pci0000:00/0000:00:03.0/nvme/nvme0/nvme0n1/nvme0n1p11
+PROBE block: sda2       partname=misc                   partuuid=6d52e07d-4868-5b46-aba3-f13fa6833b57 pci0000:00/0000:00:02.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda2
+PROBE block: nvme0n1p7  partname=vendor_boot_a          partuuid=[redacted]                           pci0000:00/0000:00:03.0/nvme/nvme0/nvme0n1/nvme0n1p7
+PROBE block: sda14      partname=vbmeta_system_dlkm_b   partuuid=96a116f4-4d2e-598a-a508-05ce79924d42 pci0000:00/0000:00:02.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda14
+PROBE block: nvme0n1p5  partname=init_boot_a            partuuid=[redacted]                           pci0000:00/0000:00:03.0/nvme/nvme0/nvme0n1/nvme0n1p5
+PROBE block: nvme0n1p18 partname=super                  partuuid=[redacted]                           pci0000:00/0000:00:03.0/nvme/nvme0/nvme0n1/nvme0n1p18
+PROBE block: sda12      partname=vbmeta_system_b        partuuid=49c1140d-5ce2-5d82-9e48-e8fb8e7cb5f0 pci0000:00/0000:00:02.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda12
+PROBE block: sda9       partname=vbmeta_a               partuuid=0aa73b33-6237-5a93-a551-11da58a77375 pci0000:00/0000:00:02.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda9
+PROBE block: nvme0n1p3  partname=boot_a                 partuuid=[redacted]                           pci0000:00/0000:00:03.0/nvme/nvme0/nvme0n1/nvme0n1p3
+PROBE block: nvme0n1p16 partname=vbmeta_vendor_dlkm_b   partuuid=[redacted]                           pci0000:00/0000:00:03.0/nvme/nvme0/nvme0n1/nvme0n1p16
+PROBE block: sda10      partname=vbmeta_b               partuuid=8cab5d44-0fd9-5cde-9c72-0370ea03de8d pci0000:00/0000:00:02.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda10
+PROBE block: sda7       partname=vendor_boot_a          partuuid=f0b05ca1-a7c7-54a0-8148-1c2182f162a2 pci0000:00/0000:00:02.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda7
+PROBE block: nvme0n1p1  partname=EFI                    partuuid=[redacted]                           pci0000:00/0000:00:03.0/nvme/nvme0/nvme0n1/nvme0n1p1
+PROBE block: sda19      partname=userdata               partuuid=110599c3-f5c0-5164-b095-5ad4d49b6b16 pci0000:00/0000:00:02.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda19
+PROBE block: nvme0n1p14 partname=vbmeta_system_dlkm_b   partuuid=[redacted]                           pci0000:00/0000:00:03.0/nvme/nvme0/nvme0n1/nvme0n1p14
+PROBE block: sda5       partname=init_boot_a            partuuid=a3d532e7-c66b-52d0-a08c-5a8dda4b66db pci0000:00/0000:00:02.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda5
+PROBE block: sda17      partname=metadata               partuuid=75472001-62dd-5096-8592-4b85f6a675f3 pci0000:00/0000:00:02.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda17
+PROBE block: nvme0n1p12 partname=vbmeta_system_b        partuuid=[redacted]                           pci0000:00/0000:00:03.0/nvme/nvme0/nvme0n1/nvme0n1p12
+PROBE block: sda3       partname=boot_a                 partuuid=19b938c2-2261-5468-a734-9f22a4043953 pci0000:00/0000:00:02.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda3
+PROBE block: nvme0n1p8  partname=vendor_boot_b          partuuid=[redacted]                           pci0000:00/0000:00:03.0/nvme/nvme0/nvme0n1/nvme0n1p8
+PROBE block: sda15      partname=vbmeta_vendor_dlkm_a   partuuid=00a084af-cfd6-5ec2-8e92-65873f96e252 pci0000:00/0000:00:02.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda15
+PROBE block: nvme0n1p10 partname=vbmeta_b               partuuid=[redacted]                           pci0000:00/0000:00:03.0/nvme/nvme0/nvme0n1/nvme0n1p10
+PROBE block: sda1       partname=EFI                    partuuid=3a26490e-49fb-50d4-afb0-82299526ec44 pci0000:00/0000:00:02.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda1
+PROBE block: nvme0n1p6  partname=init_boot_b            partuuid=[redacted]                           pci0000:00/0000:00:03.0/nvme/nvme0/nvme0n1/nvme0n1p6
+PROBE block: nvme0n1p19 partname=userdata               partuuid=[redacted]                           pci0000:00/0000:00:03.0/nvme/nvme0/nvme0n1/nvme0n1p19
+PROBE block: sda13      partname=vbmeta_system_dlkm_a   partuuid=e07cbd50-95a3-5d40-8446-ec9ec6e94d54 pci0000:00/0000:00:02.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda13
+PROBE block: sda        partname=-                      partuuid=-                                    pci0000:00/0000:00:02.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0/block/sda
+PROBE block: nvme0n1p4  partname=boot_b                 partuuid=[redacted]                           pci0000:00/0000:00:03.0/nvme/nvme0/nvme0n1/nvme0n1p4
+PROBE block: nvme0n1p17 partname=metadata               partuuid=[redacted]                           pci0000:00/0000:00:03.0/nvme/nvme0/nvme0n1/nvme0n1p17
+PROBE block: sda11      partname=vbmeta_system_a        partuuid=fc096d8f-a9be-5ec2-846b-6e4ec4c1a6bf pci0000:00/0000:00:02.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda11
+PROBE block: sda8       partname=vendor_boot_b          partuuid=863ff1ce-c9f8-549c-8142-5c3860e2b3b6 pci0000:00/0000:00:02.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda8
+PROBE block: nvme0n1p2  partname=misc                   partuuid=[redacted]                           pci0000:00/0000:00:03.0/nvme/nvme0/nvme0n1/nvme0n1p2
+PROBE block: nvme0n1p15 partname=vbmeta_vendor_dlkm_a   partuuid=[redacted]                           pci0000:00/0000:00:03.0/nvme/nvme0/nvme0n1/nvme0n1p15
+PROBE block: sda6       partname=init_boot_b            partuuid=b0716930-38b4-52d4-aac2-ad72de4aa2db pci0000:00/0000:00:02.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda6
+PROBE block: sda18      partname=super                  partuuid=c4307e2d-bf6b-57b9-a750-02e0bc34d12e pci0000:00/0000:00:02.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda18
+PROBE block: nvme0n1p13 partname=vbmeta_system_dlkm_a   partuuid=[redacted]                           pci0000:00/0000:00:03.0/nvme/nvme0/nvme0n1/nvme0n1p13
+PROBE efi: booted via UEFI
+PROBE hwcheck: OpenBook hardware check v2 with a sleep test. Writes only to the boot stick, then powers off.
+PROBE dmi: sys_vendor = QEMU
+PROBE dmi: product_name = Standard PC (Q35 + ICH9, 2009)
+PROBE dmi: product_family = 
+PROBE dmi: product_version = pc-q35-11.1
+PROBE dmi: bios_vendor = EDK II
+PROBE dmi: bios_version = unknown
+PROBE dmi: bios_date = 02/02/2022
+PROBE cpu: model name	: AMD Ryzen 9 7950X 16-Core Processor
+PROBE cpu: avx_vnni=no avx512_vnni=yes sev=no
+PROBE cpu: 4 logical CPUs
+PROBE mem: MemTotal:        3995620 kB
+PROBE pci[before]: 0000:00:1f.2 8086:2922 class 010601 driver -
+PROBE pci[before]: 0000:00:1f.0 8086:2918 class 060100 driver -
+PROBE pci[before]: 0000:00:01.0 1234:1111 class 030000 driver -
+PROBE pci[before]: 0000:00:1f.3 8086:2930 class 0c0500 driver -
+PROBE pci[before]: 0000:00:00.0 8086:29c0 class 060000 driver -
+PROBE pci[before]: 0000:00:03.0 1b36:0010 class 010802 driver nvme
+PROBE pci[before]: 0000:00:02.0 1b36:000d class 0c0330 driver xhci_hcd
+PROBE pci[before]: 7 devices, 2 with a driver
+PROBE report: writing /openbook/logs/hwcheck-001.txt on sda1 (USB)
+PROBE modules: 265 known, loading in modules.load order
+PROBE module rust_binder.ko: loaded
+PROBE module binder_alloc_kunit.ko: skipped (safety list)
+PROBE module regmap-kunit.ko: skipped (safety list)
+PROBE module regmap-ram.ko: loaded
+PROBE module regmap-raw-ram.ko: loaded
+PROBE module virtio_blk.ko: loaded
+PROBE module zsmalloc.ko: loaded
+PROBE module zram.ko: loaded
+PROBE module rfkill.ko: loaded
+PROBE module bluetooth.ko: loaded
+PROBE module btbcm.ko: loaded
+PROBE module btqca.ko: loaded
+PROBE module btsdio.ko: loaded
+PROBE module pwrseq-core.ko: loaded
+PROBE module hci_uart.ko: loaded
+PROBE module virtio_console.ko: loaded
+PROBE module clk_kunit_helpers.ko: skipped (safety list)
+PROBE module gnss.ko: loaded
+PROBE module hid-uclogic-test.ko: skipped (safety list)
+PROBE module iio-test-format.ko: skipped (safety list)
+PROBE module input_test.ko: skipped (safety list)
+PROBE module open-dice.ko: loaded
+PROBE module vcpu_stall_detector.ko: loaded
+PROBE module can-dev.ko: loaded
+PROBE module slcan.ko: loaded
+PROBE module vcan.ko: loaded
+PROBE module macsec.ko: loaded
+PROBE module mii.ko: loaded
+PROBE module slhc.ko: loaded
+PROBE module ppp_generic.ko: loaded
+PROBE module bsd_comp.ko: loaded
+PROBE module ppp_deflate.ko: loaded
+PROBE module libarc4.ko: loaded
+PROBE module ppp_mppe.ko: loaded
+PROBE module pppox.ko: loaded
+PROBE module pptp.ko: loaded
+PROBE module usbnet.ko: loaded
+PROBE module aqc111.ko: loaded
+PROBE module asix.ko: loaded
+PROBE module ax88179_178a.ko: loaded
+PROBE module cdc_eem.ko: loaded
+PROBE module cdc_ether.ko: loaded
+PROBE module cdc_ncm.ko: loaded
+PROBE module r8152.ko: loaded
+PROBE module r8153_ecm.ko: loaded
+PROBE module rtl8150.ko: loaded
+PROBE module wwan.ko: loaded
+PROBE module of_kunit_helpers.ko: skipped (safety list)
+PROBE module pps_core.ko: loaded
+PROBE module ptp.ko: loaded
+PROBE module test_rtc_lib.ko: skipped (safety list)
+PROBE module thunderbolt.ko: loaded
+PROBE module cdc-acm.ko: loaded
+PROBE module usbmon.ko: loaded
+PROBE module usbserial.ko: loaded
+PROBE module ftdi_sio.ko: loaded
+PROBE module virtio_balloon.ko: loaded
+PROBE module virtio_pci_legacy_dev.ko: loaded
+PROBE module virtio_pci_modern_dev.ko: loaded
+PROBE module virtio_pci.ko: loaded
+PROBE module ext4-inode-test.ko: skipped (safety list)
+PROBE module fat_test.ko: skipped (safety list)
+PROBE module netfs.ko: loaded
+PROBE module kheaders.ko: loaded
+PROBE module time_test.ko: skipped (safety list)
+PROBE module crc-ccitt.ko: loaded
+PROBE module kunit-example-test.ko: skipped (safety list)
+PROBE module kunit-test.ko: skipped (safety list)
+PROBE module kunit.ko: skipped (safety list)
+PROBE module platform-test.ko: skipped (safety list)
+PROBE module 6lowpan.ko: loaded
+PROBE module nhc_dest.ko: loaded
+PROBE module nhc_fragment.ko: loaded
+PROBE module nhc_hop.ko: loaded
+PROBE module nhc_ipv6.ko: loaded
+PROBE module nhc_mobility.ko: loaded
+PROBE module nhc_routing.ko: loaded
+PROBE module nhc_udp.ko: loaded
+PROBE module 8021q.ko: loaded
+PROBE module 9pnet.ko: loaded
+PROBE module 9pnet_fd.ko: loaded
+PROBE module hidp.ko: loaded
+PROBE module rfcomm.ko: loaded
+PROBE module can.ko: loaded
+PROBE module can-bcm.ko: loaded
+PROBE module can-gw.ko: loaded
+PROBE module can-raw.ko: loaded
+PROBE module dev_addr_lists_test.ko: skipped (safety list)
+PROBE module ieee802154.ko: loaded
+PROBE module ieee802154_6lowpan.ko: loaded
+PROBE module ieee802154_socket.ko: loaded
+PROBE module l2tp_core.ko: loaded
+PROBE module l2tp_ppp.ko: loaded
+PROBE module mac802154.ko: loaded
+PROBE module nfc.ko: loaded
+PROBE module tipc.ko: loaded
+PROBE module tipc_diag.ko: loaded
+PROBE module vmw_vsock_virtio_transport.ko: loaded
+PROBE module soc-topology-test.ko: skipped (safety list)
+PROBE module soc-utils-test.ko: skipped (safety list)
+PROBE module test_meminit.ko: skipped (safety list)
+PROBE module virtio-rng.ko: loaded
+PROBE module vkms.ko: skipped (blocklist)
+PROBE module nd_virtio.ko: loaded
+PROBE module virtio_pmem.ko: loaded
+PROBE module system_heap.ko: loaded
+PROBE module failover.ko: loaded
+PROBE module net_failover.ko: loaded
+PROBE module virtio_net.ko: loaded
+PROBE module gs_usb.ko: loaded
+PROBE module dummy_hcd.ko: loaded
+PROBE module usbip-core.ko: loaded
+PROBE module vhci-hcd.ko: loaded
+PROBE module rtc-test.ko: skipped (safety list)
+PROBE module pulse8-cec.ko: loaded
+PROBE module v4l2-tpg.ko: loaded
+PROBE module vivid.ko: skipped (blocklist)
+PROBE module goldfish_battery.ko: loaded
+PROBE module dummy-cpufreq.ko: loaded
+PROBE module hci_vhci.ko: loaded
+PROBE module snd-aloop.ko: skipped (blocklist)
+PROBE module virtio_snd.ko: loaded
+PROBE module goldfish_address_space.ko: loaded
+PROBE module goldfish_pipe.ko: loaded
+PROBE module goldfish_sync.ko: loaded
+PROBE module v4l2loopback.ko: loaded
+PROBE module virtio-media.ko: loaded
+PROBE module gpu-sched.ko: loaded
+PROBE module amdxdna.ko: loaded
+PROBE module ac.ko: loaded
+PROBE module battery.ko: loaded
+PROBE module hwmon.ko: loaded
+PROBE module fan.ko: loaded
+PROBE module platform_profile.ko: loaded
+PROBE module thermal.ko: loaded
+PROBE module wmi.ko: loaded
+PROBE module video.ko: loaded
+PROBE module btintel.ko: loaded
+PROBE module btmtk.ko: loaded
+PROBE module btrtl.ko: loaded
+PROBE module btusb.ko: loaded
+PROBE module tpm.ko: loaded
+PROBE module tpm_crb.ko: loaded
+PROBE module cs_dsp.ko: loaded
+PROBE module drm_panel_backlight_quirks.ko: loaded
+PROBE module drm_buddy.ko: loaded
+PROBE module drm_suballoc_helper.ko: loaded
+PROBE module drm_ttm_helper.ko: loaded
+PROBE module drm_exec.ko: loaded
+PROBE module i2c-algo-bit.ko: loaded
+PROBE module drm_display_helper.ko: loaded
+PROBE module amdxcp.ko: loaded
+PROBE module amdgpu.ko: loaded
+PROBE module virtio_dma_buf.ko: loaded
+PROBE module virtio-gpu.ko: loaded
+PROBE module amd_sfh.ko: loaded
+PROBE module hid-asus.ko: skipped (safety list)
+PROBE module i2c-hid.ko: loaded
+PROBE module i2c-hid-acpi.ko: loaded
+PROBE module k10temp.ko: loaded
+PROBE module i2c-designware-core.ko: loaded
+PROBE module i2c-designware-platform.ko: loaded
+PROBE module i2c-smbus.ko: loaded
+PROBE module i2c-piix4.ko: loaded
+PROBE module sparse-keymap.ko: loaded
+PROBE module mfd-core.ko: loaded
+PROBE module rtsx_pci.ko: loaded
+PROBE module rtsx_pci_sdmmc.ko: loaded
+PROBE module cfg80211.ko: loaded
+PROBE module mac80211.ko: loaded
+PROBE module mt76.ko: loaded
+PROBE module mt76-connac-lib.ko: loaded
+PROBE module mt792x-lib.ko: loaded
+PROBE module mt7921-common.ko: loaded
+PROBE module mt7921e.ko: loaded
+PROBE module mt7925-common.ko: loaded
+PROBE module mt7925e.ko: loaded
+PROBE module rtw89_core.ko: loaded
+PROBE module rtw89_8851b.ko: loaded
+PROBE module rtw89_pci.ko: loaded
+PROBE module rtw89_8851be.ko: loaded
+PROBE module rtw89_8852a.ko: loaded
+PROBE module rtw89_8852ae.ko: loaded
+PROBE module rtw89_8852b_common.ko: loaded
+PROBE module rtw89_8852b.ko: loaded
+PROBE module rtw89_8852be.ko: loaded
+PROBE module rtw89_8852c.ko: loaded
+PROBE module rtw89_8852ce.ko: loaded
+PROBE module rtw89_8922a.ko: loaded
+PROBE module rtw89_8922ae.ko: loaded
+PROBE module amd-pmc.ko: loaded
+PROBE module asus-nb-wmi.ko: skipped (safety list)
+PROBE module asus-wmi.ko: skipped (safety list)
+PROBE module nvidia-wmi-ec-backlight.ko: loaded
+PROBE module serial-multi-instantiate.ko: loaded
+PROBE module wmi-bmof.ko: loaded
+PROBE module spi-amd.ko: loaded
+PROBE module spi-amd-pci.ko: loaded
+PROBE module ucsi_acpi.ko: loaded
+PROBE module virtio_input.ko: loaded
+PROBE module snd-ctl-led.ko: loaded
+PROBE module snd-hda-core.ko: loaded
+PROBE module snd-hda-codec.ko: loaded
+PROBE module snd-hda-codec-hdmi.ko: loaded
+PROBE module snd-hda-codec-atihdmi.ko: loaded
+PROBE module snd-hda-codec-intelhdmi.ko: loaded
+PROBE module snd-hda-codec-simplehdmi.ko: loaded
+PROBE module snd-hda-codec-nvhdmi-mcp.ko: loaded
+PROBE module snd-hda-codec-nvhdmi.ko: loaded
+PROBE module snd-hda-codec-tegrahdmi.ko: loaded
+PROBE module snd-hda-codec-generic.ko: loaded
+PROBE module snd-hda-codec-realtek-lib.ko: loaded
+PROBE module snd-hda-codec-alc260.ko: loaded
+PROBE module snd-hda-codec-alc262.ko: loaded
+PROBE module snd-hda-codec-alc268.ko: loaded
+PROBE module snd-hda-scodec-component.ko: loaded
+PROBE module snd-hda-codec-alc269.ko: loaded
+PROBE module snd-hda-codec-alc662.ko: loaded
+PROBE module snd-hda-codec-alc680.ko: loaded
+PROBE module snd-hda-codec-alc861.ko: loaded
+PROBE module snd-hda-codec-alc861vd.ko: loaded
+PROBE module snd-hda-codec-alc880.ko: loaded
+PROBE module snd-hda-codec-alc882.ko: loaded
+PROBE module snd-hda-cirrus-scodec.ko: loaded
+PROBE module snd-hda-scodec-cs35l56-i2c.ko: skipped (safety list)
+PROBE module snd-hda-scodec-cs35l56.ko: skipped (safety list)
+PROBE module snd-hda-intel.ko: loaded
+PROBE module snd-acp-i2s.ko: loaded
+PROBE module snd-acp-legacy-common.ko: loaded
+PROBE module snd-soc-nau8821.ko: loaded
+PROBE module snd-acp-mach.ko: loaded
+PROBE module snd-acp-legacy-mach.ko: loaded
+PROBE module snd-amd-acpi-mach.ko: loaded
+PROBE module snd-acp-config.ko: loaded
+PROBE module snd-acp-pci.ko: loaded
+PROBE module snd-acp-pcm.ko: loaded
+PROBE module snd-acp-pdm.ko: loaded
+PROBE module snd-acp-sof-mach.ko: loaded
+PROBE module snd-acp70.ko: loaded
+PROBE module snd-amd-sdw-acpi.ko: loaded
+PROBE module snd-soc-acpi-amd-match.ko: loaded
+PROBE module snd-pci-ps.ko: loaded
+PROBE module snd-ps-pdm-dma.ko: loaded
+PROBE module snd-ps-sdw-dma.ko: loaded
+PROBE module snd-soc-ps-mach.ko: loaded
+PROBE module snd-soc-cs-amp-lib.ko: loaded
+PROBE module snd-soc-cs35l56-shared.ko: skipped (safety list)
+PROBE module snd-soc-dmic.ko: loaded
+PROBE module snd-soc-max98357a.ko: loaded
+PROBE module snd-soc-max98388.ko: loaded
+PROBE module snd-soc-nau8825.ko: loaded
+PROBE module snd-soc-rl6231.ko: loaded
+PROBE module snd-soc-rt1019.ko: loaded
+PROBE module snd-soc-rt5682.ko: loaded
+PROBE module snd-soc-rt5682-i2c.ko: loaded
+PROBE module snd-soc-rt5682s.ko: loaded
+PROBE module snd-sof-xtensa-dsp.ko: loaded
+PROBE module snd-sof-utils.ko: loaded
+PROBE module snd-sof.ko: loaded
+PROBE module snd-sof-amd-acp.ko: loaded
+PROBE module snd-sof-pci.ko: loaded
+PROBE module snd-sof-amd-acp63.ko: loaded
+PROBE module snd-sof-amd-acp70.ko: loaded
+PROBE module snd-sof-amd-rembrandt.ko: loaded
+PROBE module snd-sof-probes.ko: loaded
+PROBE modules: 236 loaded, 0 failed, 29 skipped
+PROBE hwcheck: waiting 10 s for drivers to finish probing (firmware loads are asynchronous)
+PROBE pci[after]: 0000:00:1f.2 8086:2922 class 010601 driver -
+PROBE pci[after]: 0000:00:1f.0 8086:2918 class 060100 driver -
+PROBE pci[after]: 0000:00:01.0 1234:1111 class 030000 driver -
+PROBE pci[after]: 0000:00:1f.3 8086:2930 class 0c0500 driver -
+PROBE pci[after]: 0000:00:00.0 8086:29c0 class 060000 driver -
+PROBE pci[after]: 0000:00:03.0 1b36:0010 class 010802 driver nvme
+PROBE pci[after]: 0000:00:02.0 1b36:000d class 0c0330 driver xhci_hcd
+PROBE pci[after]: 7 devices, 2 with a driver
+PROBE class drm: 1: version
+PROBE class net: 13: sit0 ifb1 ip6tnl0 ip_vti0 ip6_vti0 gre0 dummy0 ip6gre0 ifb0 tunl0 lo gretap0 erspan0
+PROBE class bluetooth: 0:
+PROBE class sound: 2: timer ctl-led
+PROBE class backlight: 0:
+PROBE class power_supply: 0:
+PROBE class hwmon: 0:
+PROBE class thermal: 4: cooling_device1 cooling_device2 cooling_device0 cooling_device3
+PROBE class i2c-dev: none
+PROBE class accel: 0:
+PROBE class typec: 0:
+PROBE class rtc: 1: rtc0
+PROBE input: input1 AT Translated Set 2 keyboard
+PROBE input: input0 Power Button
+PROBE cpufreq: driver: dummy
+PROBE cpufreq: governor: schedutil
+PROBE cpufreq: max kHz: 2
+PROBE power: state: freeze mem disk
+PROBE power: mem_sleep: s2idle [deep]
+PROBE pmc-before: /sys/kernel/debug/amd_pmc/s0ix_stats missing (No such file or directory)
+PROBE sleep: RTC alarm in 20 s; suspending (mem_sleep: s2idle [deep])
+PROBE sleep: write returned 3 (ok); asleep 19.8 s; suspend_stats success 0->1 fail 0->0
+PROBE sleep: last failed dev: 
+PROBE sleep: last failed errno: 0
+PROBE pmc-after: /sys/kernel/debug/amd_pmc/s0ix_stats missing (No such file or directory)
+PROBE sleep: after resume eDP-1 ?, wlan0 missing
+PROBE hwcheck: done

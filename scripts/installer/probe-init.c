@@ -11,9 +11,12 @@
 //   openbook.probe=halt    power off instead
 //   openbook.probe=report  hardware check for a real laptop: also record DMI, CPU and PCI facts, load the kernel
 //                          modules shipped in /openbook-check/modules (skipping a safety list), record what bound,
-//                          write report + kernel log to openbook/logs/ on the boot stick's ESP, then power off.
-//                          It only ever mounts and writes the ESP whose PARTUUID is androidboot.boot_part_uuid,
-//                          and only if that partition sits on a USB device. Nothing else is written.
+//                          CPU frequency driver, sleep states, displays, battery, dGPU power state and temperatures,
+//                          write report, verdicts (JSON) and kernel log to openbook/logs/ on the boot stick's ESP,
+//                          then power off. It only ever mounts and writes the ESP whose PARTUUID is
+//                          androidboot.boot_part_uuid, and only if that partition sits on a USB device.
+//   openbook.probe.sleep=1 with report mode: also one suspend-to-idle cycle woken by the RTC after 20 s, with the
+//                          stick unmounted while asleep; records time asleep and the AMD PMC s0ix counters.
 // Build: gcc -static -O2 -o openbook-probe probe-init.c
 #define _GNU_SOURCE
 #include <dirent.h>
@@ -31,6 +34,8 @@
 #include <sys/syscall.h>
 #include <time.h>
 #include <unistd.h>
+
+static void say(const char *fmt, ...);
 
 static int kmsg = -1;
 static char *logbuf;  // everything said, kept for the report file
@@ -161,6 +166,8 @@ static void list_block(void) {
         }
         // Trim "../../devices/" so the line shows the bus path (pci.../usb... vs pci.../nvme...).
         const char *path = strstr(link, "devices/") ? strstr(link, "devices/") + 8 : link;
+        // Reports get shared: show partition UUIDs only for the USB stick, not the laptop's own disks.
+        if (!strstr(link, "/usb") && strcmp(partuuid, "-")) snprintf(partuuid, sizeof partuuid, "[redacted]");
         say("block: %-10s partname=%-22s partuuid=%-36s %s", e->d_name, partname, partuuid, path);
     }
     closedir(d);
@@ -281,8 +288,8 @@ static int loaded_ok, load_failed, skipped;
 static const char *base(const char *p) { const char *s = strrchr(p, '/'); return s ? s + 1 : p; }
 
 // Not loaded in the hardware check:
-//   - cs35l56 speaker-amp drivers: they download DSP firmware to the amps and there is no tuning file for this
-//     laptop (10431024) in linux-firmware;
+//   - cs35l56 speaker-amp drivers: they download DSP firmware and tuning to the amps; the check plays no audio,
+//     and the speakers are validated separately (ANAL-179);
 //   - asus-wmi and friends (hid-asus, asus-nb-wmi): they can change firmware-backed settings;
 //   - KUnit and other test modules, which run self-tests on load.
 static int unsafe(const char *name) {
@@ -383,8 +390,14 @@ static int write_all(const char *path, const char *data, size_t len) {
     return off == len ? 0 : -1;
 }
 
+static char esp_node[96];  // block node of the boot stick's ESP, made by mount_esp()
+
+static int esp_mount(void) {
+    return mount(esp_node, "/ob-esp", "vfat", MS_NOATIME | MS_NODEV | MS_NOEXEC | MS_NOSUID, "");
+}
+
 // Mount the boot stick's ESP (PARTUUID = boot_part_uuid, and only on USB). Returns 0 and fills the report paths.
-static int mount_esp(const char *uuid, char *report, char *dmesg, size_t len) {
+static int mount_esp(const char *uuid, char *report, char *dmesg, char *json, size_t len) {
     char name[64] = "", p[512], link[512] = "";
     if (!uuid[0] || !find_uevent("PARTUUID", uuid, name, sizeof name)) { say("report: boot ESP not found"); return -1; }
     snprintf(p, sizeof p, "/sys/class/block/%s", name);
@@ -400,10 +413,11 @@ static int mount_esp(const char *uuid, char *report, char *dmesg, size_t len) {
         return -1;
     }
     snprintf(p, sizeof p, "/dev/ob-esp-%s", name);
+    snprintf(esp_node, sizeof esp_node, "%s", p);
     unlink(p);
     if (mknod(p, S_IFBLK | 0600, makedev(maj, min))) { say("report: mknod %s failed (%s)", p, strerror(errno)); return -1; }
     mkdir("/ob-esp", 0700);
-    if (mount(p, "/ob-esp", "vfat", MS_NOATIME | MS_NODEV | MS_NOEXEC | MS_NOSUID, "")) {
+    if (esp_mount()) {
         int err = errno;
         say("report: mount %s failed (%s); node %s, mountpoint %s", p, strerror(err), exists(p) ? "present" : "missing",
             exists("/ob-esp") ? "present" : "missing");
@@ -415,6 +429,7 @@ static int mount_esp(const char *uuid, char *report, char *dmesg, size_t len) {
         snprintf(report, len, "/ob-esp/openbook/logs/hwcheck-%03d.txt", i);
         if (!exists(report)) {
             snprintf(dmesg, len, "/ob-esp/openbook/logs/hwcheck-%03d-dmesg.txt", i);
+            snprintf(json, len, "/ob-esp/openbook/logs/hwcheck-%03d.json", i);
             say("report: writing %s on %s (USB)", report + 7, name);
             return 0;
         }
@@ -433,17 +448,232 @@ static void save_dmesg(const char *path) {
     char *buf = malloc(size);
     if (!buf) return;
     int n = klogctl(3 /* SYSLOG_ACTION_READ_ALL */, buf, size);
+    // Reports get shared: blank USB device serial numbers (root hubs show a PCI address; keep those).
+    for (char *q = buf; n > 0 && (q = memmem(q, buf + n - q, "SerialNumber: ", 14)); q += 14) {
+        char *v = q + 14;
+        if (!strncmp(v, "0000:", 5)) continue;
+        for (; v < buf + n && *v != '\n'; v++) *v = 'x';
+    }
     if (n > 0) write_all(path, buf, n);
     free(buf);
 }
 
+// ------------------------------------------------------------------ v2 facts
+
+static void sys_say(const char *tag, const char *path) {
+    char v[512];
+    if (!read_line(path, v, sizeof v)) say("%s: %s", tag, v);
+}
+
+static void cpufreq_facts(void) {
+    sys_say("cpufreq: driver", "/sys/devices/system/cpu/cpu0/cpufreq/scaling_driver");
+    sys_say("cpufreq: governor", "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor");
+    sys_say("cpufreq: epp", "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference");
+    sys_say("cpufreq: epp choices", "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_available_preferences");
+    sys_say("cpufreq: max kHz", "/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq");
+    sys_say("cpufreq: amd_pstate status", "/sys/devices/system/cpu/amd_pstate/status");
+    sys_say("power: state", "/sys/power/state");
+    sys_say("power: mem_sleep", "/sys/power/mem_sleep");
+}
+
+static int edp_connected;
+static void display_facts(void) {
+    DIR *d = opendir("/sys/class/drm");
+    if (!d) return;
+    struct dirent *e;
+    while ((e = readdir(d))) {
+        if (strncmp(e->d_name, "card", 4) || !strchr(e->d_name, '-')) continue;
+        char p[256], st[32] = "", en[32] = "", mode[64] = "";
+        snprintf(p, sizeof p, "/sys/class/drm/%s/status", e->d_name); read_line(p, st, sizeof st);
+        if (strcmp(st, "connected")) continue;
+        snprintf(p, sizeof p, "/sys/class/drm/%s/enabled", e->d_name); read_line(p, en, sizeof en);
+        snprintf(p, sizeof p, "/sys/class/drm/%s/modes", e->d_name); read_line(p, mode, sizeof mode);
+        say("display: %s connected, %s, preferred mode %s", e->d_name, en, mode[0] ? mode : "-");
+        if (strstr(e->d_name, "eDP")) edp_connected = 1;
+    }
+    closedir(d);
+    sys_say("backlight: max", "/sys/class/backlight/amdgpu_bl0/max_brightness");
+    sys_say("backlight: actual", "/sys/class/backlight/amdgpu_bl0/actual_brightness");
+}
+
+// No serial number.
+static void battery_facts(void) {
+    static const char *keys[] = {"status", "capacity", "energy_full_design", "energy_full", "energy_now",
+                                 "charge_full_design", "charge_full", "cycle_count", "technology", "manufacturer",
+                                 "model_name", "power_now", NULL};
+    for (int i = 0; keys[i]; i++) {
+        char p[128], tag[64];
+        snprintf(p, sizeof p, "/sys/class/power_supply/BAT1/%s", keys[i]);
+        snprintf(tag, sizeof tag, "battery: %s", keys[i]);
+        sys_say(tag, p);
+    }
+    sys_say("ac: online", "/sys/class/power_supply/ACAD/online");
+}
+
+static char dgpu_state[64] = "absent";
+static void dgpu_facts(void) {
+    DIR *d = opendir("/sys/bus/pci/devices");
+    if (!d) return;
+    struct dirent *e;
+    while ((e = readdir(d))) {
+        char p[256], ven[16] = "", cls[16] = "", ps[32] = "-", rt[32] = "-", drv[128] = "-", link[256];
+        snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/vendor", e->d_name);
+        if (read_line(p, ven, sizeof ven) || strcmp(ven, "0x10de")) continue;
+        snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/class", e->d_name); read_line(p, cls, sizeof cls);
+        snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/power_state", e->d_name); read_line(p, ps, sizeof ps);
+        snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/power/runtime_status", e->d_name); read_line(p, rt, sizeof rt);
+        snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/driver", e->d_name);
+        ssize_t l = readlink(p, link, sizeof link - 1);
+        if (l > 0) { link[l] = 0; snprintf(drv, sizeof drv, "%s", strrchr(link, '/') + 1); }
+        say("dgpu: %s class %s power_state %s runtime %s driver %s", e->d_name, cls + 2, ps, rt, drv);
+        if (!strncmp(cls, "0x03", 4)) snprintf(dgpu_state, sizeof dgpu_state, "%s/%s", ps, rt);
+    }
+    closedir(d);
+}
+
+static void thermal_facts(void) {
+    DIR *d = opendir("/sys/class/thermal");
+    if (!d) return;
+    struct dirent *e;
+    while ((e = readdir(d))) {
+        if (strncmp(e->d_name, "thermal_zone", 12)) continue;
+        char p[256], ty[64] = "", t[32] = "";
+        snprintf(p, sizeof p, "/sys/class/thermal/%s/type", e->d_name); read_line(p, ty, sizeof ty);
+        snprintf(p, sizeof p, "/sys/class/thermal/%s/temp", e->d_name); read_line(p, t, sizeof t);
+        say("thermal: %s %s %.1f C", e->d_name, ty, atoi(t) / 1000.0);
+    }
+    closedir(d);
+}
+
+static int input_has(const char *word) {
+    DIR *d = opendir("/sys/class/input");
+    if (!d) return 0;
+    struct dirent *e;
+    int hit = 0;
+    while (!hit && (e = readdir(d))) {
+        char p[256], v[256];
+        snprintf(p, sizeof p, "/sys/class/input/%s/name", e->d_name);
+        if (!read_line(p, v, sizeof v) && strcasestr(v, word)) hit = 1;
+    }
+    closedir(d);
+    return hit;
+}
+
+static int pci_driver_bound(const char *driver) {
+    char p[256];
+    snprintf(p, sizeof p, "/sys/bus/pci/drivers/%s", driver);
+    DIR *d = opendir(p);
+    if (!d) return 0;
+    struct dirent *e;
+    int n = 0;
+    while ((e = readdir(d))) if (strchr(e->d_name, ':')) n++;
+    closedir(d);
+    return n;
+}
+
+static int count_prefix(const char *dir, const char *prefix) {
+    DIR *d = opendir(dir);
+    if (!d) return 0;
+    struct dirent *e;
+    int n = 0;
+    while ((e = readdir(d))) if (!strncmp(e->d_name, prefix, strlen(prefix))) n++;
+    closedir(d);
+    return n;
+}
+
+static char sleep_json[512] = "null";
+
+static void write_json(const char *path) {
+    char board[128] = "", bios[128] = "", cpu[160] = "", drv[64] = "", ms[128] = "", line[512];
+    read_line("/sys/class/dmi/id/board_name", board, sizeof board);
+    read_line("/sys/class/dmi/id/bios_version", bios, sizeof bios);
+    read_line("/sys/devices/system/cpu/cpu0/cpufreq/scaling_driver", drv, sizeof drv);
+    read_line("/sys/power/mem_sleep", ms, sizeof ms);
+    FILE *f = fopen("/proc/cpuinfo", "r");
+    while (f && fgets(line, sizeof line, f))
+        if (!strncmp(line, "model name", 10)) { snprintf(cpu, sizeof cpu, "%s", strchr(line, ':') + 2); cpu[strcspn(cpu, "\n")] = 0; break; }
+    if (f) fclose(f);
+    char j[4096];
+    int n = snprintf(j, sizeof j,
+        "{\n \"schema\": \"openbook-hwcheck/2\",\n \"board\": \"%s\",\n \"bios\": \"%s\",\n \"cpu\": \"%s\",\n"
+        " \"modules\": {\"loaded\": %d, \"failed\": %d, \"skipped\": %d},\n"
+        " \"checks\": {\n  \"gpu_amdgpu\": %s,\n  \"edp_connected\": %s,\n  \"wifi_wlan0\": %s,\n"
+        "  \"bluetooth_hci0\": %s,\n  \"touchpad\": %s,\n  \"keyboard\": %s,\n  \"lid_switch\": %s,\n"
+        "  \"battery\": %s,\n  \"npu_accel\": %s,\n  \"usb4_thunderbolt\": %s,\n  \"typec_ports\": %d,\n"
+        "  \"sound_cards\": %d,\n  \"cpufreq_driver\": \"%s\",\n  \"mem_sleep\": \"%s\",\n"
+        "  \"dgpu_power\": \"%s\"\n },\n \"sleep_test\": %s\n}\n",
+        board, bios, cpu, loaded_ok, load_failed, skipped,
+        pci_driver_bound("amdgpu") ? "true" : "false", edp_connected ? "true" : "false",
+        exists("/sys/class/net/wlan0") ? "true" : "false", exists("/sys/class/bluetooth/hci0") ? "true" : "false",
+        input_has("Touchpad") ? "true" : "false", input_has("Keyboard") ? "true" : "false",
+        input_has("Lid Switch") ? "true" : "false", exists("/sys/class/power_supply/BAT1") ? "true" : "false",
+        exists("/sys/class/accel/accel0") ? "true" : "false", pci_driver_bound("thunderbolt") ? "true" : "false",
+        count_prefix("/sys/class/typec", "port"), count_prefix("/sys/class/sound", "card"), drv, ms, dgpu_state,
+        sleep_json);
+    if (n > 0) write_all(path, j, n < (int)sizeof j ? n : (int)sizeof j - 1);
+}
+
+static long read_long(const char *path) {
+    char v[64];
+    return read_line(path, v, sizeof v) ? -1 : atol(v);
+}
+
+// One s2idle cycle, woken by the RTC. The stick is unmounted while the machine sleeps.
+static void sleep_test(void) {
+    mkdir("/sys/kernel/debug", 0700);
+    mount("debugfs", "/sys/kernel/debug", "debugfs", 0, NULL);
+    dump_file("pmc-before", "/sys/kernel/debug/amd_pmc/s0ix_stats");
+    long ok0 = read_long("/sys/power/suspend_stats/success"), fail0 = read_long("/sys/power/suspend_stats/fail");
+    int fd = open("/sys/class/rtc/rtc0/wakealarm", O_WRONLY);
+    if (fd < 0 || write(fd, "0", 1) < 0 || (close(fd), fd = open("/sys/class/rtc/rtc0/wakealarm", O_WRONLY)) < 0 ||
+        write(fd, "+20", 3) < 0) {
+        say("sleep: cannot set the RTC wake alarm (%s); skipping the sleep test", strerror(errno));
+        if (fd >= 0) close(fd);
+        snprintf(sleep_json, sizeof sleep_json, "{\"ran\": false, \"reason\": \"no rtc wakealarm\"}");
+        return;
+    }
+    close(fd);
+    char ms[128] = "";
+    read_line("/sys/power/mem_sleep", ms, sizeof ms);
+    say("sleep: RTC alarm in 20 s; suspending (mem_sleep: %s)", ms);
+    sync();
+    struct timespec m0, b0, m1, b1;
+    clock_gettime(CLOCK_MONOTONIC, &m0);
+    clock_gettime(CLOCK_BOOTTIME, &b0);
+    fd = open("/sys/power/state", O_WRONLY);
+    int rc = fd < 0 ? -1 : (int)write(fd, "mem", 3);
+    int err = errno;
+    if (fd >= 0) close(fd);
+    clock_gettime(CLOCK_MONOTONIC, &m1);
+    clock_gettime(CLOCK_BOOTTIME, &b1);
+    double asleep = ((b1.tv_sec - b0.tv_sec) + (b1.tv_nsec - b0.tv_nsec) / 1e9) -
+                    ((m1.tv_sec - m0.tv_sec) + (m1.tv_nsec - m0.tv_nsec) / 1e9);
+    long ok1 = read_long("/sys/power/suspend_stats/success"), fail1 = read_long("/sys/power/suspend_stats/fail");
+    say("sleep: write returned %d (%s); asleep %.1f s; suspend_stats success %ld->%ld fail %ld->%ld", rc,
+        rc < 0 ? strerror(err) : "ok", asleep, ok0, ok1, fail0, fail1);
+    sys_say("sleep: last failed dev", "/sys/power/suspend_stats/last_failed_dev");
+    sys_say("sleep: last failed errno", "/sys/power/suspend_stats/last_failed_errno");
+    dump_file("pmc-after", "/sys/kernel/debug/amd_pmc/s0ix_stats");
+    char st[32] = "";
+    read_line("/sys/class/drm/card0-eDP-1/status", st, sizeof st);
+    say("sleep: after resume eDP-1 %s, wlan0 %s", st[0] ? st : "?", exists("/sys/class/net/wlan0") ? "present" : "missing");
+    snprintf(sleep_json, sizeof sleep_json,
+             "{\"ran\": true, \"write_rc\": %d, \"asleep_s\": %.1f, \"suspend_success_delta\": %ld, "
+             "\"suspend_fail_delta\": %ld, \"edp_after\": \"%s\"}",
+             rc, asleep, ok1 - ok0, fail1 - fail0, st);
+    umount("/sys/kernel/debug");
+}
+
 static void hardware_check(const char *uuid) {
-    char report[256] = "", dmesg[256] = "";
-    say("hwcheck: OpenBook hardware check. Writes only to the boot stick, then powers off.");
+    char report[256] = "", dmesg[256] = "", json[256] = "", cmdline[4096] = "";
+    read_line("/proc/cmdline", cmdline, sizeof cmdline);
+    int want_sleep = strstr(cmdline, "openbook.probe.sleep=1") != NULL;
+    say("hwcheck: OpenBook hardware check v2%s. Writes only to the boot stick, then powers off.",
+        want_sleep ? " with a sleep test" : "");
     dmi_facts();
     cpu_facts();
     pci_facts("before");
-    int have_esp = mount_esp(uuid, report, dmesg, sizeof report) == 0;
+    int have_esp = mount_esp(uuid, report, dmesg, json, sizeof report) == 0;
     if (have_esp) save_report(report);  // early copy, in case a driver hangs the machine
 
     char rel[128] = "", dir[256];
@@ -459,9 +689,27 @@ static void hardware_check(const char *uuid) {
                                     "thermal", "i2c-dev", "accel", "typec", "rtc", NULL};
     for (int i = 0; classes[i]; i++) class_list(classes[i]);
     input_names();
+    cpufreq_facts();
+    display_facts();
+    battery_facts();
+    dgpu_facts();
+    thermal_facts();
+    if (have_esp) { save_report(report); write_json(json); save_dmesg(dmesg); }
+    if (want_sleep) {
+        if (have_esp) { sync(); umount("/ob-esp"); }
+        sleep_test();
+        sleep(3);  // let USB storage come back
+        if (have_esp) {
+            int ok = 0;
+            for (int i = 0; i < 50 && !(ok = !esp_mount()); i++) usleep(200000);
+            if (!ok) { have_esp = 0; say("sleep: could not remount the stick after resume (%s)", strerror(errno)); }
+        }
+        thermal_facts();
+    }
     say("hwcheck: done");
     if (have_esp) {
         save_report(report);
+        write_json(json);
         save_dmesg(dmesg);
         umount("/ob-esp");
         say("hwcheck: report saved; powering off");

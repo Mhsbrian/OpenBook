@@ -350,3 +350,22 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 - `PRODUCT_DEVICE` is now `anybook_vsoc_x86_64`, because vendor sepolicy needs a board. Boot with `CF_DEVICE=anybook_vsoc_x86_64`.
 
 **Next:** ANAL-199, the G14 product with the platform HALs on. Then ANAL-176 and ANAL-177 on the Radeon 890M. Details are in `docs/graphics-amd.md`.
+
+### 2026-10-16: First OpenBook boot on the G14, hardware check (ANAL-189)
+
+**Done**
+- The owner booted the hardware-check stick on the GA403WR.
+- UEFI → systemd-boot → our GKI from USB. 235 modules loaded, 0 failed.
+- These came up: amdgpu (SMU, DCN 3.5, DMUB, eDP with PSR, backlight), mt7925e + `wlan0`, Bluetooth `hci0`, the ELAN touchpad, the keyboard, the lid switch, the NPU (`accel0`), the battery, UCSI and USB4.
+- The stick also booted the Android preview: first and second stage ran from USB on the laptop.
+
+**Evidence:** `evidence/2026-10-16-g14-hwcheck/` (report, full kernel log, analysis).
+
+**Findings**
+- `regulatory.db` is missing from the firmware list.
+- The dGPU is on the bus with its HDMI-audio function bound (`dgpu_disable=1` was not set yet).
+- The backup GPT is not at the end of a stick larger than the image.
+
+**Next**
+- A v2 check (power and display facts, JSON verdicts, `regulatory.db`, an opt-in s2idle sleep test) is ready as an in-place stick update (`scripts/installer/update-hwcheck-stick.sh`).
+- The owner reruns it. The results feed ANAL-176/178/179.
