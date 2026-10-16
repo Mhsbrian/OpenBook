@@ -1,0 +1,152 @@
+# AnyBook G14 (GA403WR) module plan, ANAL-198. Source of truth for the g14/*.modules.* lists;
+# scripts/kernel-g14-modlists.py regenerates them and checks them against a dist.
+# Row order is the vendor_dlkm load order. Columns:
+#   module      file name in the dist (GKI modules are marked gki in `source`)
+#   source      anybook = vendor module from //devices/anybook, gki = //common system_dlkm module
+#   bare_metal  first_stage (vendor_boot ramdisk) | load (vendor_dlkm modules.load) | block (in the image, blocklisted)
+#   vm          same, for QEMU/Cuttlefish guests
+#   ga403wr     the GA403WR device it drives (evidence/2026-10-16-ga403wr-inventory), or - if none
+#   why
+module	source	bare_metal	vm	ga403wr	why
+virtio_pci_legacy_dev.ko	gki	-	first_stage	-	VM: virtio PCI transport, so a guest can boot from virtio-blk
+virtio_pci_modern_dev.ko	gki	-	first_stage	-	VM: virtio PCI transport
+virtio_pci.ko	gki	-	first_stage	-	VM: virtio PCI transport
+virtio_blk.ko	gki	-	first_stage	-	VM: root disk on virtio-blk (Cuttlefish/crosvm)
+virtio_dma_buf.ko	anybook	block	first_stage	-	VM: dep of virtio-gpu. Never present on the laptop
+virtio-gpu.ko	anybook	block	first_stage	-	VM: display, so SurfaceFlinger has card0 early as in ANAL-172. Never present on the laptop
+virtio_input.ko	anybook	block	first_stage	-	VM: keyboard/tablet. Never present on the laptop
+wmi.ko	anybook	load	load	ASUS WMI GUIDs	ACPI WMI bus; asus-wmi, video and nvidia-wmi-ec-backlight sit on it
+wmi-bmof.ko	anybook	load	load	WMI binary MOF	exposes the firmware's WMI MOF to userspace; harmless
+video.ko	anybook	load	load	ACPI video/backlight	acpi_video: backlight type selection and brightness hotkeys; amdgpu links it
+platform_profile.ko	anybook	load	load	fan/power profiles	ACPI platform_profile class used by asus-wmi
+sparse-keymap.ko	anybook	load	load	ASUS hotkeys	dep of asus-wmi
+hwmon.ko	anybook	load	load	sensors	hwmon class; amdgpu, k10temp, asus-wmi and mt792x register into it
+ac.ko	anybook	load	load	AC adapter (ACPI0003)	power-supply state for BatteryService
+battery.ko	anybook	load	load	battery (PNP0C0A)	battery state for BatteryService
+fan.ko	anybook	load	load	ACPI fan	fan device if the DSDT exposes PNP0C0B; harmless otherwise
+thermal.ko	anybook	load	load	ACPI thermal zones	thermal zones for the thermal HAL
+k10temp.ko	anybook	load	load	Zen 5 CPU temperature	Tctl/Tccd sensors
+i2c-smbus.ko	anybook	load	load	FCH SMBus (00:14.0)	dep of i2c-piix4
+i2c-piix4.ko	anybook	load	load	FCH SMBus (00:14.0)	SMBus host; SPD and EC side channels
+spi-amd.ko	anybook	load	load	FCH SPI	AMD SPI controller core
+spi-amd-pci.ko	anybook	load	load	FCH SPI	AMD SPI controller, PCI glue
+mfd-core.ko	anybook	load	load	-	dep of rtsx_pci
+serial-multi-instantiate.ko	anybook	load	load	CSC3556 (2x CS35L56)	creates the two CS35L56 I2C clients from one ACPI node
+amd-pmc.ko	anybook	load	load	PMC (s2idle)	s2idle entry/exit and the S0i3 counters; needed before the first suspend, not for boot
+tpm.ko	anybook	load	load	fTPM (MSFT0101)	TPM core
+tpm_crb.ko	anybook	load	load	fTPM (MSFT0101)	firmware TPM over CRB
+ucsi_acpi.ko	anybook	load	load	UCSI (USB-C PD)	USB-C role and alt-mode reporting
+i2c-designware-core.ko	anybook	load	load	AMDI0010 I2C	I2C controller core
+i2c-designware-platform.ko	anybook	load	load	AMDI0010 I2C	I2C controllers that carry the touchpad and the amps; second stage is early enough for input
+i2c-hid.ko	anybook	load	load	ELAN touchpad	I2C HID core
+i2c-hid-acpi.ko	anybook	load	load	ELAN touchpad	I2C HID ACPI glue. Not first stage: nothing before Android's input stack reads the touchpad
+amd_sfh.ko	anybook	load	load	-	AMD sensor fusion hub; no SFH PCI function on the GA403WR, other Ryzen laptops have one
+asus-wmi.ko	anybook	load	load	ASUS platform	hotkeys, fan profiles, dgpu_disable, gpu_mux_mode, ppt_* limits
+asus-nb-wmi.ko	anybook	load	block	ASUS platform	ASUS notebook quirks and keymap. VM: blocked, init returns -ENODEV without the ASUS WMI GUID
+hid-asus.ko	anybook	load	load	N-KEY keyboard 0b05:19b6	hotkeys and keyboard backlight. The keys already work through built-in usbhid/hid-generic, so not first stage
+nvidia-wmi-ec-backlight.ko	anybook	load	load	EC backlight	the GA403WR loads it under Linux; acpi_video picks it on MUX laptops when the EC owns brightness
+drm_buddy.ko	anybook	load	load	Radeon 890M	dep of amdgpu
+drm_exec.ko	anybook	load	load	Radeon 890M	dep of amdgpu
+drm_suballoc_helper.ko	anybook	load	load	Radeon 890M	dep of amdgpu
+drm_ttm_helper.ko	anybook	load	load	Radeon 890M	dep of amdgpu
+drm_display_helper.ko	anybook	load	load	Radeon 890M	dep of amdgpu
+drm_panel_backlight_quirks.ko	anybook	load	load	Radeon 890M	dep of amdgpu
+gpu-sched.ko	anybook	load	load	Radeon 890M	dep of amdgpu and amdxdna
+i2c-algo-bit.ko	anybook	load	load	Radeon 890M	dep of amdgpu (DDC)
+amdxcp.ko	anybook	load	load	Radeon 890M	dep of amdgpu
+amdgpu.ko	anybook	load	load	Radeon 890M (gfx1150)	display and GPU. Second stage, see docs/kernel.md: SurfaceFlinger starts after vendor_dlkm loads anyway, the firmware lives in /vendor/firmware, and Googlebook keeps its GPU driver out of first stage too
+amdxdna.ko	anybook	load	load	NPU 17f0 rev 10	XDNA 2 NPU
+rtsx_pci.ko	anybook	load	load	RTS525A card reader	card reader core
+rtsx_pci_sdmmc.ko	anybook	load	load	RTS525A card reader	SD host
+snd-hda-core.ko	anybook	load	load	HDA	HDA core
+snd-hda-codec.ko	anybook	load	load	HDA	HDA codec core
+snd-ctl-led.ko	anybook	load	load	mute LEDs	mute/mic-mute LED triggers
+snd-hda-codec-generic.ko	anybook	load	load	HDA	generic codec parser
+snd-hda-codec-realtek-lib.ko	anybook	load	load	ALC285	Realtek codec library
+snd-hda-scodec-component.ko	anybook	load	load	ALC285 + CS35L56	side-codec binding for alc269
+snd-hda-codec-alc269.ko	anybook	load	load	ALC285 (SSID 1043:1024)	the GA403WR codec; carries the backported quirk (patch 0002)
+snd-hda-codec-alc260.ko	anybook	load	load	-	other Realtek codecs; same menu as Google's Intel build
+snd-hda-codec-alc262.ko	anybook	load	load	-	other Realtek codecs
+snd-hda-codec-alc268.ko	anybook	load	load	-	other Realtek codecs
+snd-hda-codec-alc662.ko	anybook	load	load	-	other Realtek codecs
+snd-hda-codec-alc680.ko	anybook	load	load	-	other Realtek codecs
+snd-hda-codec-alc861.ko	anybook	load	load	-	other Realtek codecs
+snd-hda-codec-alc861vd.ko	anybook	load	load	-	other Realtek codecs
+snd-hda-codec-alc880.ko	anybook	load	load	-	other Realtek codecs
+snd-hda-codec-alc882.ko	anybook	load	load	-	other Realtek codecs
+cs_dsp.ko	anybook	load	load	2x CS35L56	Cirrus DSP firmware loader
+snd-soc-cs-amp-lib.ko	anybook	load	load	2x CS35L56	Cirrus amp calibration library
+snd-soc-cs35l56-shared.ko	anybook	load	load	2x CS35L56	CS35L56 shared code
+snd-hda-cirrus-scodec.ko	anybook	load	load	2x CS35L56	Cirrus side-codec helpers
+snd-hda-scodec-cs35l56.ko	anybook	load	load	2x CS35L56	CS35L56 HDA side codec
+snd-hda-scodec-cs35l56-i2c.ko	anybook	load	load	2x CS35L56	CS35L56 on I2C
+snd-hda-codec-hdmi.ko	anybook	load	load	Radeon HDMI/DP audio	HDMI/DP codec core
+snd-hda-codec-atihdmi.ko	anybook	load	load	Radeon HDMI/DP audio (65:00.1)	AMD HDMI/DP codec
+snd-hda-codec-simplehdmi.ko	anybook	load	load	-	other HDMI codecs; dep of nvhdmi-mcp
+snd-hda-codec-intelhdmi.ko	anybook	load	load	-	other HDMI codecs
+snd-hda-codec-nvhdmi.ko	anybook	load	load	-	other HDMI codecs
+snd-hda-codec-nvhdmi-mcp.ko	anybook	load	load	-	other HDMI codecs
+snd-hda-codec-tegrahdmi.ko	anybook	load	load	-	other HDMI codecs
+snd-hda-intel.ko	anybook	load	load	HDA controllers 65:00.1, 65:00.6	HDA controller driver. Loaded after the codec drivers: Android disables request_module, so a codec without its driver at probe time falls back to the generic parser
+snd-acp-config.ko	anybook	load	load	ACP 7.0 (65:00.5)	picks ps, SOF or legacy ACP per machine
+snd-soc-acpi-amd-match.ko	anybook	load	load	ACP 7.0	ACPI machine tables
+snd-amd-sdw-acpi.ko	anybook	load	load	ACP 7.0	SoundWire ACPI scan
+snd-soc-dmic.ko	anybook	load	load	internal DMIC	generic DMIC codec
+snd-ps-pdm-dma.ko	anybook	load	load	internal DMIC	ACP 6.3/7.x PDM DMA
+snd-ps-sdw-dma.ko	anybook	load	load	ACP 7.0	ACP SoundWire DMA
+snd-soc-ps-mach.ko	anybook	load	load	internal DMIC	DMIC machine driver
+snd-pci-ps.ko	anybook	load	load	ACP 7.0 (65:00.5)	expected ACP driver on the G14 (no acp-config quirk)
+snd-acp-pcm.ko	anybook	load	load	-	generic ACP; for machines acp-config routes away from snd_pci_ps
+snd-acp-i2s.ko	anybook	load	load	-	generic ACP
+snd-acp-pdm.ko	anybook	load	load	-	generic ACP
+snd-acp-legacy-common.ko	anybook	load	load	-	generic ACP
+snd-acp70.ko	anybook	load	load	-	generic ACP 7.0 platform driver
+snd-amd-acpi-mach.ko	anybook	load	load	-	generic ACP ACPI machine match
+snd-acp-pci.ko	anybook	load	load	-	generic ACP PCI driver
+snd-soc-rl6231.ko	anybook	load	load	-	Chromebook codec pulled in by the ACP machine drivers; binds only on ACPI/DT match
+snd-soc-rt1019.ko	anybook	load	load	-	Chromebook codec
+snd-soc-rt5682.ko	anybook	load	load	-	Chromebook codec
+snd-soc-rt5682-i2c.ko	anybook	load	load	-	Chromebook codec
+snd-soc-rt5682s.ko	anybook	load	load	-	Chromebook codec
+snd-soc-nau8821.ko	anybook	load	load	-	Chromebook codec
+snd-soc-nau8825.ko	anybook	load	load	-	Chromebook codec
+snd-soc-max98357a.ko	anybook	load	load	-	Chromebook codec
+snd-soc-max98388.ko	anybook	load	load	-	Chromebook codec
+snd-acp-mach.ko	anybook	load	load	-	ACP machine driver core
+snd-acp-legacy-mach.ko	anybook	load	load	-	ACP legacy machine driver
+snd-sof-utils.ko	anybook	load	load	-	SOF; for machines acp-config routes to SOF. Needs sof-bin firmware, not shipped
+snd-sof.ko	anybook	load	load	-	SOF core
+snd-sof-xtensa-dsp.ko	anybook	load	load	-	SOF Xtensa DSP ops
+snd-sof-pci.ko	anybook	load	load	-	SOF PCI
+snd-sof-amd-acp.ko	anybook	load	load	-	SOF AMD ACP common
+snd-sof-amd-rembrandt.ko	anybook	load	load	-	SOF on Rembrandt
+snd-sof-amd-acp63.ko	anybook	load	load	-	SOF on ACP 6.3
+snd-sof-amd-acp70.ko	anybook	load	load	-	SOF on ACP 7.0
+snd-sof-probes.ko	anybook	load	load	-	SOF probes (debug)
+snd-acp-sof-mach.ko	anybook	load	load	-	ACP SOF machine driver
+cfg80211.ko	anybook	load	load	MT7925	wireless config; vendor module as in Google's Intel build
+mac80211.ko	anybook	load	load	MT7925	softMAC stack
+mt76.ko	anybook	load	load	MT7925	mt76 core
+mt76-connac-lib.ko	anybook	load	load	MT7925	mt76 connac library
+mt792x-lib.ko	anybook	load	load	MT7925	mt792x library
+mt7925-common.ko	anybook	load	load	MT7925	MT7925 common
+mt7925e.ko	anybook	load	load	MT7925 Wi-Fi (63:00.0)	the GA403WR Wi-Fi
+mt7921-common.ko	anybook	load	load	-	MT7921/MT7922 in other AMD laptops
+mt7921e.ko	anybook	load	load	-	MT7921/MT7922 PCIe
+rtw89_core.ko	anybook	load	load	-	Realtek Wi-Fi 6/6E/7 in other AMD laptops
+rtw89_pci.ko	anybook	load	load	-	rtw89 PCI
+rtw89_8851b.ko	anybook	load	load	-	rtw89 chip
+rtw89_8851be.ko	anybook	load	load	-	rtw89 chip
+rtw89_8852a.ko	anybook	load	load	-	rtw89 chip
+rtw89_8852ae.ko	anybook	load	load	-	rtw89 chip
+rtw89_8852b_common.ko	anybook	load	load	-	rtw89 chip
+rtw89_8852b.ko	anybook	load	load	-	rtw89 chip
+rtw89_8852be.ko	anybook	load	load	-	rtw89 chip
+rtw89_8852c.ko	anybook	load	load	-	rtw89 chip
+rtw89_8852ce.ko	anybook	load	load	-	rtw89 chip
+rtw89_8922a.ko	anybook	load	load	-	rtw89 chip
+rtw89_8922ae.ko	anybook	load	load	-	rtw89 chip
+btintel.ko	anybook	load	load	-	btusb links it
+btrtl.ko	anybook	load	load	-	btusb links it; Realtek BT in other laptops
+btmtk.ko	anybook	load	load	MT7925 BT	MediaTek BT
+btusb.ko	anybook	load	load	MT7925 BT 0489:e11e	USB Bluetooth
