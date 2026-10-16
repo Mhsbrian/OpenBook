@@ -1,0 +1,10 @@
+Digitalis overlay bundle built by AnyBook scripts/compat/digitalis/build.sh (modules) on 2026-10-16T12:48:24Z
+product: sdk_phone64_x86_64_digitalis-trunk_staging-userdebug
+frameworks/libs/binary_translation b6b7fc30f5e1cb2d2b9b465e3fdaa905616c31dc
+frameworks/libs/native_bridge_support ffd3f17ebbb244c01c274b6f527d016efc393813
+device/generic/goldfish bbc2f1e4237016e744be8de59b7b6b310f2cc242
+digitalis 11062cb09097c47a7d2b9ee292aa05626a821f10
+bionic f22516cbc67e81c13cf943ce02f01b8929a98726
+build/soong f389fa2a2a768a93bc99957e2288f3fbee032bff
+manifest 3969040d9ea562e8c874a57f545beeaf88975bc9
+artifacts: 74 present, 0 missing

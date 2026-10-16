@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # ARM-only APK compatibility matrix on the AOSP Desktop (Preview) 37.0 x86_64 emulator, whose native
-# bridge is libndk_translation (ANAL-180). For each APK: install, launch, wait, check the process is
-# alive, count Java/native crashes, ANRs and tombstones, take a screenshot, write a CSV row.
+# bridge is libndk_translation (ANAL-180), or Digitalis after scripts/compat/digitalis/install.sh (ANAL-181).
+# For each APK: install, launch, wait, check the process is alive, count Java/native crashes, ANRs and
+# tombstones, take a screenshot, write a CSV row.
 #
 #   run-matrix.sh [-o OUTDIR] [-w WAIT_S] [-f REGEX] [--fresh] [--keep-emulator] [--keep-apps]
 #     -o   output dir (default <repo>/evidence/<date>-compat/run-<time>); if it already holds a
@@ -68,6 +69,8 @@ grep -E "^[^|]*($FILTER)" "$LIST" > "$LIST.sel" || { echo "no APK matches $FILTE
     echo "kernel: $(uname -r) cpus=$(nproc)"' | tr -d '\r'
 } > "$OUT/env.txt"
 cat "$OUT/env.txt"
+NB_LIB=$($ADB shell getprop ro.dalvik.vm.native.bridge | tr -d '\r')  # "native_bridge" column: is it mapped?
+NB_LIB=${NB_LIB:-no-native-bridge}
 
 san(){ printf '%s' "$*" | tr -d '\r"' | tr ',\n\t' ';  ' | cut -c1-240; }
 COLS=run_id,id,kind,role,package,version,apk_abis,apk_sha256,install,install_ms,primary_abi,launch,launch_ms,alive,procs,native_bridge,foreground,java_crashes,native_crashes,anrs,tombstones,probe_pass,probe_fail,probe_skip,verdict,crash_signature,screenshot
@@ -112,7 +115,7 @@ test_apk(){  # id kind role apk
     alive=$([ -n "$pid" ] && echo yes || echo no)
     procs=$($ADB shell ps -A -o NAME 2>/dev/null | tr -d '\r' | grep -c "^$pkg\(:\|$\)" || true)
     if [ -n "$pid" ]; then
-      nb=$($ADB shell "grep -c libndk_translation /proc/$pid/maps" 2>/dev/null | tr -d '\r')
+      nb=$($ADB shell "grep -c ${NB_LIB%.so} /proc/$pid/maps" 2>/dev/null | tr -d '\r')
       nb=$([ "${nb:-0}" -gt 0 ] && echo yes || echo no)
     fi
     fg=$($ADB shell dumpsys activity activities 2>/dev/null | grep -E 'topResumedActivity|mResumedActivity|ResumedActivity:' | grep -q "$pkg" && echo yes || echo no)

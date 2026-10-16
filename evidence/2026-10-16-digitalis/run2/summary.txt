@@ -1,0 +1,7 @@
+run 20261016-091920: 26 APKs, wait 15s
+  3 arm64-only,CRASH
+  1 arm64-only,EXITED
+  13 arm64-only,RUNS
+  1 armv7-only,INSTALL_FAIL
+  1 x86_64-control,CRASH
+  7 x86_64-control,RUNS

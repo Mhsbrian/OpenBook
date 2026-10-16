@@ -1,0 +1,51 @@
+# Fennec F-Droid 158.0.0 arm64 under Digitalis (b6b7fc30): deterministic SIGSEGV (ANAL-181)
+# Same guest PC in every launch: 2 processes x run1, run2 (A17 Desktop image + Digitalis overlay) and the A16 control image.
+## run1
+10-16 08:57:24.976  3475  3514 E berberis: LowAddr fault: sig=11 si_addr=0x8 si_code=1 guest_pc=0x781b4d2add9c x30(lr)=0x781b4d2add9c x0=0x0 x1=0x0 tls=0x781eb2fb3040
+10-16 08:57:24.976  3475  3514 E berberis: HandleFatalSignal: sig=11 si_addr=0x8 si_code=1 host_rip=0x0 host_rsp=0x0 host_rbp=0x0
+10-16 08:57:24.997   658  2488 I ActivityManager: Process org.mozilla.fennec_fdroid (pid 3475) has died: fg  TOP 
+10-16 08:57:30.426  3581  3604 E berberis: LowAddr fault: sig=11 si_addr=0x8 si_code=1 guest_pc=0x781b50857d9c x30(lr)=0x781b50857d9c x0=0x0 x1=0x0 tls=0x781eb2eb4040
+10-16 08:57:30.426  3581  3604 E berberis: HandleFatalSignal: sig=11 si_addr=0x8 si_code=1 host_rip=0x0 host_rsp=0x0 host_rbp=0x0
+10-16 08:57:30.444   658  1555 I ActivityManager: Process org.mozilla.fennec_fdroid (pid 3581) has died: cch CEM 
+## run2
+10-16 09:20:40.136  3097  3125 E berberis: LowAddr fault: sig=11 si_addr=0x8 si_code=1 guest_pc=0x78b132028d9c x30(lr)=0x78b132028d9c x0=0x0 x1=0x0 tls=0x78b5177a9040
+10-16 09:20:40.136  3097  3125 E berberis: HandleFatalSignal: sig=11 si_addr=0x8 si_code=1 host_rip=0x0 host_rsp=0x0 host_rbp=0x0
+10-16 09:20:40.144   641  3040 I ActivityManager: Process org.mozilla.fennec_fdroid (pid 3097) has died: fg  TOP 
+10-16 09:20:42.034  3212  3235 E berberis: LowAddr fault: sig=11 si_addr=0x8 si_code=1 guest_pc=0x78b135dd4d9c x30(lr)=0x78b135dd4d9c x0=0x0 x1=0x0 tls=0x78b5177a5040
+10-16 09:20:42.034  3212  3235 E berberis: HandleFatalSignal: sig=11 si_addr=0x8 si_code=1 host_rip=0x0 host_rsp=0x0 host_rbp=0x0
+10-16 09:20:42.041   641  1517 I ActivityManager: Process org.mozilla.fennec_fdroid (pid 3212) has died: cch CEM 
+## a16-control/run1
+10-16 11:09:31.843  3512  3539 E berberis: LowAddr fault: sig=11 si_addr=0x8 si_code=1 guest_pc=0x7cad82d56d9c x30(lr)=0x7cad82d56d9c x0=0x0 x1=0x0 tls=0x7cb0d0a44040
+10-16 11:09:31.843  3512  3539 E berberis: HandleFatalSignal: sig=11 si_addr=0x8 si_code=1 host_rip=0x0 host_rsp=0x0 host_rbp=0x0
+10-16 11:09:31.866   703   772 I ActivityManager: Process org.mozilla.fennec_fdroid (pid 3512) has died: fg  TOP 
+10-16 11:09:33.873  3624  3648 E berberis: LowAddr fault: sig=11 si_addr=0x8 si_code=1 guest_pc=0x7cacf6bd8d9c x30(lr)=0x7cacf6bd8d9c x0=0x0 x1=0x0 tls=0x7cb0d0a64040
+10-16 11:09:33.873  3624  3648 E berberis: HandleFatalSignal: sig=11 si_addr=0x8 si_code=1 host_rip=0x0 host_rsp=0x0 host_rbp=0x0
+10-16 11:09:33.881   703   772 I ActivityManager: Process org.mozilla.fennec_fdroid (pid 3624) has died: cch CEM 
+
+## PC -> library (maps captured 0.1 s before death on the A16 control, 2026-10-16 11:24)
+7cacf5aee000-7cacfec3c000 r--p 00000000 fe:36 688139                     /data/app/~~N8RLuHtErymVCBg88zLt1w==/org.mozilla.fennec_fdroid-Rxqx7cDuYQ87psJNSBoAWw==/lib/arm64/libxul.so
+guest_pc 0x7cacf8620d9c - 0x7cacf5aee000 = libxul.so file offset 0x2b32d9c (vaddr = offset in the first LOAD segment); pid 7899 gives the same offset
+
+## llvm-objdump of the arm64 libxul.so (APK sha256 d3b3ba26..., F-Droid org.mozilla.fennec_fdroid_1580020)
+ 2b32d78:      	str	x30, [sp, #-0x20]!
+ 2b32d7c:      	stp	x20, x19, [sp, #0x10]
+ 2b32d80:      	adrp	x20, 0x97a9000
+ 2b32d84:      	ldr	x0, [x20, #0x5c0]
+ 2b32d88:      	bl	0x2b32dd0 <.text+0x2b96a0>
+ 2b32d8c:      	ldr	x0, [x20, #0x5c0]
+ 2b32d90:      	bl	0x2b33108 <.text+0x2b99d8>
+ 2b32d94:      	mov	x19, x0
+ 2b32d98:      	bl	0x2b33244 <.text+0x2b9b14>
+ 2b32d9c:      	ldr	x8, [x20, #0x5c0]
+ 2b32da0:      	ldr	x0, [x8, #0x8]
+ 2b32da4:      	strb	wzr, [x8, #0x20]
+ 2b32da8:      	str	x19, [x8, #0x8]
+ 2b32dac:      	cbz	x0, 0x2b32dc4 <.text+0x2b9694>
+ 2b32db0:      	ldr	x8, [x0]
+ 2b32db4:      	ldp	x20, x19, [sp, #0x10]
+ 2b32db8:      	ldr	x1, [x8, #0x10]
+ 2b32dbc:      	ldr	x30, [sp], #0x20
+ 2b32dc0:      	br	x1
+
+Faulting access: 0x2b32da0 ldr x0,[x8,#0x8] with x8 = *(0x97a95c0) = NULL (si_addr 0x8). The global at vaddr 0x97a95c0 (.bss) is NULL after bl 0x2b33244 returns.
+Native x86_64 Fennec (same release) and arm64 Fennec under libndk_translation run on the A17 image. On the A16 control image, x86_64 Fennec crashes differently: java.lang.NoSuchMethodError MessageQueue.next() (Android 16 framework), then MOZ_CRASH at libxul.so(x86_64)+0x67b2516.

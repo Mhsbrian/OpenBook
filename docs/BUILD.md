@@ -135,3 +135,16 @@ scripts/kernel-cf-boot.sh          # AnyBook module set; `board` for the control
 - Uses its own container (`anybook-cf-kernel`), ports (adb 16572, WebRTC 11472) and vsock CID 172, so it can run next to `scripts/cf-boot.sh`.
 - Disk: 4.1 GB of reflinks for the snapshot, plus 3.3 GB per staged boot, in `~/anybook/kernel/cf/`.
 - See `docs/kernel.md` (ANAL-172).
+
+## ARM compat: Digitalis native bridge (ANAL-181)
+
+```bash
+scripts/compat/digitalis/docker.sh /repo/scripts/compat/digitalis/sync.sh       # AOSP 16 + Digitalis -> ~/anybook/digitalis/aosp16 (115 GB, ~53 min)
+DIGITALIS_JOBS=16 scripts/compat/digitalis/docker.sh /repo/scripts/compat/digitalis/build.sh modules   # 70 bridge modules (44 min) -> ~/anybook/digitalis/bundle
+scripts/compat/digitalis/install.sh -o evidence/<date>-digitalis               # overlay onto AVD anybook-digitalis (port 5580)
+COMPAT_AVD=anybook-digitalis COMPAT_EMU_ARGS=-writable-system scripts/compat/run-matrix.sh -o <dir> --keep-emulator
+```
+
+- The tree borrows source objects from the shared AOSP mirror, which is mounted read-only. It has its own ccache in `~/anybook/digitalis/ccache`.
+- `install.sh` wipes and reinstalls every time, because a data wipe drops the overlay. The libndk_translation AVD `anybook-desktop` is never modified.
+- Details and results are in `docs/digitalis.md`.
