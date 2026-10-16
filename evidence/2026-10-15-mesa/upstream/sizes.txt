@@ -1,0 +1,45 @@
+# bytes (stripped)  file
+    330520  ./lib64/egl/libEGL_mesa.so
+     26464  ./lib64/egl/libGLESv1_CM_mesa.so
+     64960  ./lib64/egl/libGLESv2_mesa.so
+  18681465  ./lib64/hw/vulkan.radv.so
+     88800  ./lib64/libdrm.so
+     41496  ./lib64/libdrm_amdgpu.so
+  24835136  ./lib64/libgallium_dri.so
+
+# total: 44068841 bytes
+
+== ./lib64/egl/libEGL_mesa.so
+.rodata                  51202    14848
+.text                   177732    99392
+.data.rel.ro             63248   295936
+.data                      428   377408
+.bss                      4288   377840
+== ./lib64/egl/libGLESv1_CM_mesa.so
+.text                   9877   30848
+.data.rel.ro               8   57168
+== ./lib64/egl/libGLESv2_mesa.so
+.text                   26386   52832
+.data.rel.ro                8   95664
+== ./lib64/hw/vulkan.radv.so
+.rodata                 11183620      24832
+.text                    6690982   11563968
+.data.rel.ro              389176   18276128
+.data                      35952   18684736
+.bss                      101472   18720688
+== ./lib64/libdrm.so
+.rodata                  4280    15936
+.text                   51692    47952
+.data.rel.ro             1336   117408
+.bss                     2488   136256
+== ./lib64/libdrm_amdgpu.so
+.rodata                   952   10592
+.text                   21256   32688
+.data.rel.ro                8   71504
+.bss                       48   88952
+== ./lib64/libgallium_dri.so
+.rodata                 10386748      33664
+.text                   12815174   11409408
+.data.rel.ro              542656   24246272
+.data                      73336   24808720
+.bss                      339280   24882064

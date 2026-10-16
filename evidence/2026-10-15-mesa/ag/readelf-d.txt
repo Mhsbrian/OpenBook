@@ -1,0 +1,230 @@
+== ./lib64/egl/libEGL_mesa.so
+Dynamic section at offset 0x551d8 contains 34 entries:
+  Tag                Type              Name/Value
+  0x0000000000000001 (NEEDED)          Shared library: [libgallium_dri.so]
+  0x0000000000000001 (NEEDED)          Shared library: [libdrm.so]
+  0x0000000000000001 (NEEDED)          Shared library: [libcutils.so]
+  0x0000000000000001 (NEEDED)          Shared library: [libhardware.so]
+  0x0000000000000001 (NEEDED)          Shared library: [liblog.so]
+  0x0000000000000001 (NEEDED)          Shared library: [libnativewindow.so]
+  0x0000000000000001 (NEEDED)          Shared library: [libsync.so]
+  0x0000000000000001 (NEEDED)          Shared library: [libm.so]
+  0x0000000000000001 (NEEDED)          Shared library: [libdl.so]
+  0x0000000000000001 (NEEDED)          Shared library: [libc.so]
+  0x000000000000000e (SONAME)          Library soname: [libEGL_mesa.so]
+  0x000000000000001e (FLAGS)           SYMBOLIC BIND_NOW 
+  0x000000006ffffffb (FLAGS_1)         NOW 
+  0x0000000000000007 (RELA)            0x2820
+  0x0000000000000008 (RELASZ)          144 (bytes)
+  0x0000000000000009 (RELAENT)         24 (bytes)
+  0x000000006fffe000 (ANDROID_RELR)    0x28b0
+  0x000000006fffe001 (ANDROID_RELRSZ)  0x4c0
+  0x000000006fffe003 (ANDROID_RELRENT) 0x8
+  0x0000000000000017 (JMPREL)          0x2d70
+  0x0000000000000002 (PLTRELSZ)        3720 (bytes)
+  0x0000000000000003 (PLTGOT)          0x5d440
+  0x0000000000000014 (PLTREL)          RELA
+  0x0000000000000006 (SYMTAB)          0x340
+  0x000000000000000b (SYMENT)          24 (bytes)
+  0x0000000000000005 (STRTAB)          0x1a28
+  0x000000000000000a (STRSZ)           3571 (bytes)
+  0x000000006ffffef5 (GNU_HASH)        0x18b0
+  0x000000000000001a (FINI_ARRAY)      0x5d1c8
+  0x000000000000001c (FINI_ARRAYSZ)    16 (bytes)
+  0x000000006ffffff0 (VERSYM)          0x1690
+  0x000000006ffffffe (VERNEED)         0x182c
+  0x000000006fffffff (VERNEEDNUM)      3
+  0x0000000000000000 (NULL)            0x0
+== ./lib64/egl/libGLESv1_CM_mesa.so
+Dynamic section at offset 0x5f68 contains 26 entries:
+  Tag                Type              Name/Value
+  0x0000000000000001 (NEEDED)          Shared library: [libgallium_dri.so]
+  0x0000000000000001 (NEEDED)          Shared library: [libc.so]
+  0x000000000000000e (SONAME)          Library soname: [libGLESv1_CM_mesa.so]
+  0x000000000000001e (FLAGS)           BIND_NOW 
+  0x000000006ffffffb (FLAGS_1)         NOW 
+  0x0000000000000007 (RELA)            0x1ee8
+  0x0000000000000008 (RELASZ)          48 (bytes)
+  0x0000000000000009 (RELAENT)         24 (bytes)
+  0x000000006fffe000 (ANDROID_RELR)    0x1f18
+  0x000000006fffe001 (ANDROID_RELRSZ)  0x10
+  0x000000006fffe003 (ANDROID_RELRENT) 0x8
+  0x0000000000000017 (JMPREL)          0x1f28
+  0x0000000000000002 (PLTRELSZ)        48 (bytes)
+  0x0000000000000003 (PLTGOT)          0xe128
+  0x0000000000000014 (PLTREL)          RELA
+  0x0000000000000006 (SYMTAB)          0x2d0
+  0x000000000000000b (SYMENT)          24 (bytes)
+  0x0000000000000005 (STRTAB)          0x160c
+  0x000000000000000a (STRSZ)           2261 (bytes)
+  0x000000006ffffef5 (GNU_HASH)        0x1228
+  0x000000000000001a (FINI_ARRAY)      0xdf58
+  0x000000000000001c (FINI_ARRAYSZ)    16 (bytes)
+  0x000000006ffffff0 (VERSYM)          0x10c8
+  0x000000006ffffffe (VERNEED)         0x11f4
+  0x000000006fffffff (VERNEEDNUM)      1
+  0x0000000000000000 (NULL)            0x0
+== ./lib64/egl/libGLESv2_mesa.so
+Dynamic section at offset 0xf5c8 contains 26 entries:
+  Tag                Type              Name/Value
+  0x0000000000000001 (NEEDED)          Shared library: [libgallium_dri.so]
+  0x0000000000000001 (NEEDED)          Shared library: [libc.so]
+  0x000000000000000e (SONAME)          Library soname: [libGLESv2_mesa.so]
+  0x000000000000001e (FLAGS)           BIND_NOW 
+  0x000000006ffffffb (FLAGS_1)         NOW 
+  0x0000000000000007 (RELA)            0x4de0
+  0x0000000000000008 (RELASZ)          48 (bytes)
+  0x0000000000000009 (RELAENT)         24 (bytes)
+  0x000000006fffe000 (ANDROID_RELR)    0x4e10
+  0x000000006fffe001 (ANDROID_RELRSZ)  0x10
+  0x000000006fffe003 (ANDROID_RELRENT) 0x8
+  0x0000000000000017 (JMPREL)          0x4e20
+  0x0000000000000002 (PLTRELSZ)        48 (bytes)
+  0x0000000000000003 (PLTGOT)          0x17788
+  0x0000000000000014 (PLTREL)          RELA
+  0x0000000000000006 (SYMTAB)          0x2d0
+  0x000000000000000b (SYMENT)          24 (bytes)
+  0x0000000000000005 (STRTAB)          0x32d4
+  0x000000000000000a (STRSZ)           6920 (bytes)
+  0x000000006ffffef5 (GNU_HASH)        0x27c8
+  0x000000000000001a (FINI_ARRAY)      0x175b8
+  0x000000000000001c (FINI_ARRAYSZ)    16 (bytes)
+  0x000000006ffffff0 (VERSYM)          0x24c0
+  0x000000006ffffffe (VERNEED)         0x2794
+  0x000000006fffffff (VERNEEDNUM)      1
+  0x0000000000000000 (NULL)            0x0
+== ./lib64/hw/vulkan.radv.so
+Dynamic section at offset 0x1069280 contains 37 entries:
+  Tag                Type              Name/Value
+  0x0000000000000001 (NEEDED)          Shared library: [libdrm.so]
+  0x0000000000000001 (NEEDED)          Shared library: [libdrm_amdgpu.so]
+  0x0000000000000001 (NEEDED)          Shared library: [libcutils.so]
+  0x0000000000000001 (NEEDED)          Shared library: [libhardware.so]
+  0x0000000000000001 (NEEDED)          Shared library: [liblog.so]
+  0x0000000000000001 (NEEDED)          Shared library: [libnativewindow.so]
+  0x0000000000000001 (NEEDED)          Shared library: [libsync.so]
+  0x0000000000000001 (NEEDED)          Shared library: [libz.so]
+  0x0000000000000001 (NEEDED)          Shared library: [libm.so]
+  0x0000000000000001 (NEEDED)          Shared library: [libdl.so]
+  0x0000000000000001 (NEEDED)          Shared library: [libc.so]
+  0x000000000000000e (SONAME)          Library soname: [vulkan.radv.so]
+  0x000000000000001e (FLAGS)           SYMBOLIC BIND_NOW 
+  0x000000006ffffffb (FLAGS_1)         NOW 
+  0x0000000000000007 (RELA)            0x2e68
+  0x0000000000000008 (RELASZ)          96 (bytes)
+  0x0000000000000009 (RELAENT)         24 (bytes)
+  0x000000006fffe000 (ANDROID_RELR)    0x2ec8
+  0x000000006fffe001 (ANDROID_RELRSZ)  0x1620
+  0x000000006fffe003 (ANDROID_RELRENT) 0x8
+  0x0000000000000017 (JMPREL)          0x44e8
+  0x0000000000000002 (PLTRELSZ)        6576 (bytes)
+  0x0000000000000003 (PLTGOT)          0x1071580
+  0x0000000000000014 (PLTREL)          RELA
+  0x0000000000000006 (SYMTAB)          0x368
+  0x000000000000000b (SYMENT)          24 (bytes)
+  0x0000000000000005 (STRTAB)          0x10980c0
+  0x000000000000000a (STRSZ)           3552 (bytes)
+  0x000000006ffffef5 (GNU_HASH)        0x2070
+  0x0000000000000019 (INIT_ARRAY)      0x1071278
+  0x000000000000001b (INIT_ARRAYSZ)    8 (bytes)
+  0x000000000000001a (FINI_ARRAY)      0x1071268
+  0x000000000000001c (FINI_ARRAYSZ)    16 (bytes)
+  0x000000006ffffff0 (VERSYM)          0x1d90
+  0x000000006ffffffe (VERNEED)         0x1fc0
+  0x000000006fffffff (VERNEEDNUM)      3
+  0x0000000000000000 (NULL)            0x0
+== ./lib64/libdrm.so
+Dynamic section at offset 0x14a18 contains 25 entries:
+  Tag                Type              Name/Value
+  0x0000000000000001 (NEEDED)          Shared library: [libc.so]
+  0x000000000000000e (SONAME)          Library soname: [libdrm.so]
+  0x000000000000001e (FLAGS)           BIND_NOW 
+  0x000000006ffffffb (FLAGS_1)         NOW 
+  0x0000000000000007 (RELA)            0x3600
+  0x0000000000000008 (RELASZ)          24 (bytes)
+  0x0000000000000009 (RELAENT)         24 (bytes)
+  0x000000006fffe000 (ANDROID_RELR)    0x3618
+  0x000000006fffe001 (ANDROID_RELRSZ)  0x18
+  0x000000006fffe003 (ANDROID_RELRENT) 0x8
+  0x0000000000000017 (JMPREL)          0x3630
+  0x0000000000000002 (PLTRELSZ)        2040 (bytes)
+  0x0000000000000003 (PLTGOT)          0x1cbb0
+  0x0000000000000014 (PLTREL)          RELA
+  0x0000000000000006 (SYMTAB)          0x308
+  0x000000000000000b (SYMENT)          24 (bytes)
+  0x0000000000000005 (STRTAB)          0x259c
+  0x000000000000000a (STRSZ)           4194 (bytes)
+  0x000000006ffffef5 (GNU_HASH)        0x1f68
+  0x000000000000001a (FINI_ARRAY)      0x1ca08
+  0x000000000000001c (FINI_ARRAYSZ)    16 (bytes)
+  0x000000006ffffff0 (VERSYM)          0x1d18
+  0x000000006ffffffe (VERNEED)         0x1f44
+  0x000000006fffffff (VERNEEDNUM)      1
+  0x0000000000000000 (NULL)            0x0
+== ./lib64/libdrm_amdgpu.so
+Dynamic section at offset 0x8c68 contains 26 entries:
+  Tag                Type              Name/Value
+  0x0000000000000001 (NEEDED)          Shared library: [libdrm.so]
+  0x0000000000000001 (NEEDED)          Shared library: [libc.so]
+  0x000000000000000e (SONAME)          Library soname: [libdrm_amdgpu.so]
+  0x000000000000001e (FLAGS)           BIND_NOW 
+  0x000000006ffffffb (FLAGS_1)         NOW 
+  0x0000000000000007 (RELA)            0x1fa0
+  0x0000000000000008 (RELASZ)          24 (bytes)
+  0x0000000000000009 (RELAENT)         24 (bytes)
+  0x000000006fffe000 (ANDROID_RELR)    0x1fb8
+  0x000000006fffe001 (ANDROID_RELRSZ)  0x10
+  0x000000006fffe003 (ANDROID_RELRENT) 0x8
+  0x0000000000000017 (JMPREL)          0x1fc8
+  0x0000000000000002 (PLTRELSZ)        1560 (bytes)
+  0x0000000000000003 (PLTGOT)          0x10e20
+  0x0000000000000014 (PLTREL)          RELA
+  0x0000000000000006 (SYMTAB)          0x308
+  0x000000000000000b (SYMENT)          24 (bytes)
+  0x0000000000000005 (STRTAB)          0x141c
+  0x000000000000000a (STRSZ)           2943 (bytes)
+  0x000000006ffffef5 (GNU_HASH)        0x11e8
+  0x000000000000001a (FINI_ARRAY)      0x10c58
+  0x000000000000001c (FINI_ARRAYSZ)    16 (bytes)
+  0x000000006ffffff0 (VERSYM)          0x10a0
+  0x000000006ffffffe (VERNEED)         0x11c4
+  0x000000006fffffff (VERNEEDNUM)      1
+  0x0000000000000000 (NULL)            0x0
+== ./lib64/libgallium_dri.so
+Dynamic section at offset 0x16ad9b0 contains 35 entries:
+  Tag                Type              Name/Value
+  0x0000000000000001 (NEEDED)          Shared library: [libdrm.so]
+  0x0000000000000001 (NEEDED)          Shared library: [libcutils.so]
+  0x0000000000000001 (NEEDED)          Shared library: [liblog.so]
+  0x0000000000000001 (NEEDED)          Shared library: [libsync.so]
+  0x0000000000000001 (NEEDED)          Shared library: [libdrm_amdgpu.so]
+  0x0000000000000001 (NEEDED)          Shared library: [libz.so]
+  0x0000000000000001 (NEEDED)          Shared library: [libm.so]
+  0x0000000000000001 (NEEDED)          Shared library: [libdl.so]
+  0x0000000000000001 (NEEDED)          Shared library: [libc.so]
+  0x000000000000000e (SONAME)          Library soname: [libgallium_dri.so]
+  0x000000000000001e (FLAGS)           BIND_NOW 
+  0x000000006ffffffb (FLAGS_1)         NOW 
+  0x0000000000000007 (RELA)            0x43a8
+  0x0000000000000008 (RELASZ)          216 (bytes)
+  0x0000000000000009 (RELAENT)         24 (bytes)
+  0x000000006fffe000 (ANDROID_RELR)    0x4480
+  0x000000006fffe001 (ANDROID_RELRSZ)  0x1f68
+  0x000000006fffe003 (ANDROID_RELRENT) 0x8
+  0x0000000000000017 (JMPREL)          0x63e8
+  0x0000000000000002 (PLTRELSZ)        7272 (bytes)
+  0x0000000000000003 (PLTGOT)          0x16b5d18
+  0x0000000000000014 (PLTREL)          RELA
+  0x0000000000000006 (SYMTAB)          0x368
+  0x000000000000000b (SYMENT)          24 (bytes)
+  0x0000000000000005 (STRTAB)          0x2e18
+  0x000000000000000a (STRSZ)           5514 (bytes)
+  0x000000006ffffef5 (GNU_HASH)        0x2be0
+  0x0000000000000019 (INIT_ARRAY)      0x16b59a0
+  0x000000000000001b (INIT_ARRAYSZ)    16 (bytes)
+  0x000000000000001a (FINI_ARRAY)      0x16b5990
+  0x000000000000001c (FINI_ARRAYSZ)    16 (bytes)
+  0x000000006ffffff0 (VERSYM)          0x2810
+  0x000000006ffffffe (VERNEED)         0x2b20
+  0x000000006fffffff (VERNEEDNUM)      3
+  0x0000000000000000 (NULL)            0x0

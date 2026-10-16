@@ -33,3 +33,9 @@ The first baseline is libndk_translation in the AOSP Desktop (Preview) 37.0 emul
 | Element X 26.09.1 | arm64-v8a | — | **Crash** | — | `Failed to find JNI_GetCreatedJavaVMs`; the x86_64 control runs |
 
 Benchmark: CoreMark translated arm64 / native x86_64 = 0.457 for executables and 0.453 inside an app, in the same emulator (`evidence/2026-10-15-compat/bench/`).
+
+## Graphics drivers
+
+| Date | Driver build | Host / VM | Result | Evidence |
+|---|---|---|---|---|
+| 2026-10-15 | Mesa 26.2.5 and AG 26.0.8 radeonsi + RADV, NDK r30, API 37 | AOSP Desktop emulator 37 (`CLE1.260506.004`), KVM, no GPU | **Loads:** Vulkan HAL `open(vk0)` and `vkCreateInstance(1.3)` OK, 0 devices; EGL loads, `eglInitialize` fails (no DRM device). Not tested on AMD hardware | `evidence/2026-10-15-mesa/smoke/` |

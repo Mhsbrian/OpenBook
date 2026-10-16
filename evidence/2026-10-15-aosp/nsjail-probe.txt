@@ -1,0 +1,23 @@
+# Soong's nsjail probe (build/soong/ui/build/sandbox_linux.go), run in anybook-aosp as uid 1000, 2026-10-16T01:06:51Z
+## docker defaults
+[W][2026-10-16T01:06:51+0000][7] runChild():490 clone(flags=CLONE_NEWNS|CLONE_NEWUTS|CLONE_NEWIPC|CLONE_NEWUSER|CLONE_NEWPID|CLONE_NEWNET) failed: Operation not permitted
+[E][2026-10-16T01:06:51+0000][7] standaloneMode():275 Couldn't launch the child process
+## --security-opt seccomp=unconfined
+[F][2026-10-16T01:06:51+0000][1] runChild():485 Launching child process failed
+[W][2026-10-16T01:06:51+0000][7] runChild():505 Received error message from the child process before it has been executed
+[E][2026-10-16T01:06:51+0000][7] standaloneMode():275 Couldn't launch the child process
+## --security-opt systempaths=unconfined
+[W][2026-10-16T01:06:52+0000][7] runChild():490 clone(flags=CLONE_NEWNS|CLONE_NEWUTS|CLONE_NEWIPC|CLONE_NEWUSER|CLONE_NEWPID|CLONE_NEWNET) failed: Operation not permitted
+[E][2026-10-16T01:06:52+0000][7] standaloneMode():275 Couldn't launch the child process
+## both (what scripts/aosp-docker.sh uses)
+Android Success
+## seccomp=unconfined only, full nsjail output
+[I][2026-10-16T01:07:08+0000] Jail parameters: hostname:'android-build', chroot:'', process:'/bin/true', bind:[::]:0, max_conns:0, max_conns_per_ip:0, time_limit:0, personality:0, daemonize:false, clone_newnet:true, clone_newuser:true, clone_newns:true, clone_newpid:true, clone_newipc:true, clone_newuts:true, clone_newcgroup:false, clone_newtime:false, keep_caps:false, disable_no_new_privs:false, max_cpus:0
+[I][2026-10-16T01:07:08+0000] Mount: '/proc' flags:MS_RDONLY type:'proc' options:'' dir:true
+[W][2026-10-16T01:07:08+0000][1] mountRWIfPossible():137 mount('/proc' flags:MS_RDONLY type:'proc' options:'' dir:true) src:'none' dstpath:'/tmp/nsjail.1000.root//proc' could not mount read-write, falling back to mounting read-only directly
+[W][2026-10-16T01:07:08+0000][1] mountPt():222 mount(''/proc' flags:MS_RDONLY type:'proc' options:'' dir:true') src:'none' dstpath:'/tmp/nsjail.1000.root//proc' failed: Operation not permitted
+[W][2026-10-16T01:07:08+0000][1] mountPt():226 procfs can only be mounted if the original /proc doesn't have any other file-systems mounted on top of it (e.g. /dev/null on top of /proc/kcore): Operation not permitted
+[E][2026-10-16T01:07:08+0000][1] initCloneNs():411 Couldn't mount '/proc'
+[F][2026-10-16T01:07:08+0000][1] runChild():485 Launching child process failed
+[W][2026-10-16T01:07:08+0000][7] runChild():505 Received error message from the child process before it has been executed
+[E][2026-10-16T01:07:08+0000][7] standaloneMode():275 Couldn't launch the child process

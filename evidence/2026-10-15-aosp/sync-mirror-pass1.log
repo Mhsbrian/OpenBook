@@ -1,0 +1,16 @@
+Filesystem        Size  Used Avail Use% Mounted on
+/dev/mapper/root  3.7T  2.1T  1.6T  58% /aosp
+=== 2026-10-16T00:10:04Z mirror: init https://android.googlesource.com/platform/manifest -b android-latest-release
+mirror: 112 binary projects -> .repo/local_manifests/anybook-split.xml
+=== 2026-10-16T00:10:04Z repo sync attempt 1: -j8 --optimized-fetch --retry-fetches=5
+error: cannot update ref 'refs/heads/android17-security-release': trying to write non-commit object e2ed3616c5985715d6d507c983d294217efa2dbe to branch 'refs/heads/android17-security-release'
+error: Unable to fully sync the tree
+error: Downloading network changes failed.
+Failing repos (network):
+test/vts
+Try re-running with "-j1 --fail-fast" to exit at the first error.
+================================================================================
+Repo command failed due to the following `SyncError` errors:
+GitCommandError: 'fetch --quiet --update-head-ok aosp --prune --recurse-submodules=no --tags +refs/heads/*:refs/heads/* +refs/tags/*:refs/tags/*' on platform/test/vts failed
+stdout: fatal: unable to access 'https://android.googlesource.com/platform/test/vts/': The requested URL returned error: 503
+=== 2026-10-16T00:41:19Z repo sync attempt 2: -j8 --optimized-fetch --retry-fetches=5
