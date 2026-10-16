@@ -1,0 +1,1 @@
+obj-m += openbook_acpi_d3cold.o

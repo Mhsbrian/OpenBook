@@ -23,6 +23,9 @@
 //                          unbind its HDMI-audio function, remove both functions from the PCI bus, and let the
 //                          root port above them runtime-suspend (ACPI _PR3 turns the slot off). Nothing persists
 //                          and no firmware setting changes. (openbook.probe.detach_vendor=0xNNNN: VM tests only.)
+//   openbook.probe.acpi_d3cold=PATH[,PATH]  with report mode, before the sleep test: load the test-only module
+//                          kmod/openbook_acpi_d3cold.c, which puts these ACPI device objects into D3cold if no device
+//                          uses them (an ACPI object left on below an empty PCI port). For this boot only.
 // Build: gcc -static -O2 -o openbook-probe probe-init.c
 #define _GNU_SOURCE
 #include <dirent.h>
@@ -597,6 +600,7 @@ static int count_prefix(const char *dir, const char *prefix) {
 
 static char sleep_json[512] = "null";
 static char detach_json[512] = "null";
+static char acpi_json[256] = "null";
 
 static void write_json(const char *path) {
     char board[128] = "", bios[128] = "", cpu[160] = "", drv[64] = "", ms[128] = "", line[512];
@@ -610,13 +614,13 @@ static void write_json(const char *path) {
     if (f) fclose(f);
     char j[4096];
     int n = snprintf(j, sizeof j,
-        "{\n \"schema\": \"openbook-hwcheck/4\",\n \"board\": \"%s\",\n \"bios\": \"%s\",\n \"cpu\": \"%s\",\n"
+        "{\n \"schema\": \"openbook-hwcheck/5\",\n \"board\": \"%s\",\n \"bios\": \"%s\",\n \"cpu\": \"%s\",\n"
         " \"modules\": {\"loaded\": %d, \"failed\": %d, \"skipped\": %d},\n"
         " \"checks\": {\n  \"gpu_amdgpu\": %s,\n  \"edp_connected\": %s,\n  \"wifi_wlan0\": %s,\n"
         "  \"bluetooth_hci0\": %s,\n  \"touchpad\": %s,\n  \"keyboard\": %s,\n  \"lid_switch\": %s,\n"
         "  \"battery\": %s,\n  \"npu_accel\": %s,\n  \"usb4_thunderbolt\": %s,\n  \"typec_ports\": %d,\n"
         "  \"sound_cards\": %d,\n  \"cpufreq_driver\": \"%s\",\n  \"mem_sleep\": \"%s\",\n"
-        "  \"dgpu_power\": \"%s\"\n },\n \"dgpu_detach\": %s,\n \"sleep_test\": %s\n}\n",
+        "  \"dgpu_power\": \"%s\"\n },\n \"dgpu_detach\": %s,\n \"acpi_d3cold\": %s,\n \"sleep_test\": %s\n}\n",
         board, bios, cpu, loaded_ok, load_failed, skipped,
         pci_driver_bound("amdgpu") ? "true" : "false", edp_connected ? "true" : "false",
         exists("/sys/class/net/wlan0") ? "true" : "false", exists("/sys/class/bluetooth/hci0") ? "true" : "false",
@@ -624,7 +628,7 @@ static void write_json(const char *path) {
         input_has("Lid Switch") ? "true" : "false", exists("/sys/class/power_supply/BAT1") ? "true" : "false",
         exists("/sys/class/accel/accel0") ? "true" : "false", pci_driver_bound("thunderbolt") ? "true" : "false",
         count_prefix("/sys/class/typec", "port"), count_prefix("/sys/class/sound", "card"), drv, ms, dgpu_state,
-        detach_json, sleep_json);
+        detach_json, acpi_json, sleep_json);
     if (n > 0) write_all(path, j, n < (int)sizeof j ? n : (int)sizeof j - 1);
 }
 
@@ -694,6 +698,20 @@ static void acpi_power(const char *when) {
     }
     closedir(d);
     say("acpi-power[%s]: %d power-manageable devices, %d power resources on", when, n, on);
+}
+
+// Put unused ACPI device objects into D3cold for this boot (see the header), then let the parent bridge that the
+// module held awake runtime-suspend again. The module logs each path's outcome to the kernel log.
+static void acpi_d3cold(const char *paths) {
+    char params[192];
+    snprintf(params, sizeof params, "paths=%s", paths);
+    int fd = open("/openbook-check/kmod/openbook_acpi_d3cold.ko", O_RDONLY | O_CLOEXEC);
+    long r = fd < 0 ? -1 : syscall(SYS_finit_module, fd, params, 0);
+    int err = errno;
+    if (fd >= 0) close(fd);
+    say("acpi-d3cold: load openbook_acpi_d3cold.ko %s: %s", params, r ? strerror(err) : "ok");
+    sleep(2);
+    snprintf(acpi_json, sizeof acpi_json, "{\"ran\": true, \"paths\": \"%s\", \"load_rc\": %d}", paths, r ? -err : 0);
 }
 
 static int write_str(const char *path, const char *v) {
@@ -832,7 +850,7 @@ static void hardware_check(const char *uuid) {
     char vendor[16] = "0x10de";
     char *dv = strstr(cmdline, "openbook.probe.detach_vendor=");
     if (dv) sscanf(dv + 29, "%15[0-9a-fx]", vendor);
-    say("hwcheck: OpenBook hardware check v5%s%s. Writes only to the boot stick, then powers off.",
+    say("hwcheck: OpenBook hardware check v6%s%s. Writes only to the boot stick, then powers off.",
         want_sleep ? " with a sleep test" : "", want_detach ? " (dGPU powered down first)" : "");
     dmi_facts();
     cpu_facts();
@@ -863,6 +881,11 @@ static void hardware_check(const char *uuid) {
         if (want_sleep) acpi_power("before-detach");
         detach_dgpu(vendor);
         dgpu_facts();
+        if (have_esp) { save_report(report); write_json(json); }
+    }
+    char *ad = strstr(cmdline, "openbook.probe.acpi_d3cold="), paths[160] = "";
+    if (ad && sscanf(ad + 27, "%159[A-Za-z0-9_.,]", paths) == 1) {
+        acpi_d3cold(paths);
         if (have_esp) { save_report(report); write_json(json); }
     }
     if (want_sleep) {

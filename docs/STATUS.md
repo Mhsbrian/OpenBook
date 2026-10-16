@@ -394,3 +394,11 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
   - v5 stick (ACPI path per PCI device, ACPI power states and power resources around the sleep);
   - the `amd-s2idle` Linux baseline, still the decisive comparison.
 - **Evidence:** `evidence/2026-10-16-g14-hwcheck/`.
+
+### 2026-10-16: G14 run 6: the unmet constraint is an ACPI object the kernel powered up and never powered down (ANAL-189)
+- `GPP0` = `00:01.1`, the empty hotplug port; the dGPU is `GPP9.PEGP` (`00:03.1`).
+- `GPP0.SWUS` has no device, but stays D0 with `GPP0.SWUS.PWRS` on from boot to after resume. PCI setup powers a bridge's `_ADR` children up for the scan (`acpi_dev_power_up_children_with_adr()`), and nothing powers an unused one down again (6.18 source).
+- **Next:** the v6 stick powers that object down before the sleep test, using a test-only module (QEMU-tested with a fixture that recreates the case).
+  - If S0i3 is reached, the real fix belongs in the kernel lane: power down `_ADR` children that no device claimed after the bus scan, or a G14 quirk.
+  - If not, the remaining suspects are the PSP without a driver (`65:00.2`) and the USB4 router.
+- **Evidence:** `evidence/2026-10-16-g14-hwcheck/`.

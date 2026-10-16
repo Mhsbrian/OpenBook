@@ -10,7 +10,7 @@
 "send": "\u001b[B"
 },
  {
-"wait": "GPU powered down",
+"wait": "unused port powered down",
 "timeout": 10
 },
  {

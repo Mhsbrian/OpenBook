@@ -23,13 +23,14 @@ FW=${HWCHECK_FIRMWARE:-$A/kernel/firmware/anybook-amd}   # ANAL-171 linux-firmwa
 O=$I/out; W=$I/hwcheck/$NAME
 mkdir -p "$O" "$W" "$I/build"
 "$D" gcc -static -O2 -Wall -Wno-format-truncation -o "$I/build/openbook-probe" "$S/probe-init.c"
+"$S/build-check-kmod.sh"   # test-only modules in kmod/, built against the check's kernel
 # Firmware for the check: the subset plus wireless-regdb (cfg80211 asks for regulatory.db), with its licence.
 "$D" bash -c "rm -rf '$W/firmware' && cp -r '$FW' '$W/firmware' && cp /usr/lib/firmware/regulatory.db \
   /usr/lib/firmware/regulatory.db.p7s '$W/firmware/' && mkdir -p '$W/firmware/LICENSES' && \
   cp /usr/share/licenses/wireless-regdb/LICENSE '$W/firmware/LICENSES/LICENSE.wireless-regdb'"
 rm -rf "$W/android"   # the probe also lives in vendor_boot: rebuild it
 "$D" python3 "$S/mkproto.py" --inputs "$IN" --work "$W" --loader sdboot --hwcheck --label openbook-hwcheck \
-  --check-firmware "$W/firmware" --size-gib 11 --out "$O/$NAME.img" > "$W/mkproto.log" 2>&1
+  --check-firmware "$W/firmware" --check-kmod "$I/build/kmod" --size-gib 11 --out "$O/$NAME.img" > "$W/mkproto.log" 2>&1
 # Update bundle: only files under openbook/check/, the two check entries and the README.
 U=$O/$NAME-esp-update; rm -rf "$U"; mkdir -p "$U/openbook/check" "$U/loader/entries"
 cp "$W/esp-sdboot/openbook/check/hwcheck.img" "$U/openbook/check/"

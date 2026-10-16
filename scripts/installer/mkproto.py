@@ -469,6 +469,7 @@ menuentry "OpenBook (slot $slot)" {{
         # updated by replacing openbook/check/ and the check entries only (update-hwcheck-stick.sh).
         cpio = newc(tree_entries(args.check_modules, f"openbook-check/modules/{params['kernel_release']}") +
                     tree_entries(args.check_firmware, "lib/firmware") +
+                    (tree_entries(args.check_kmod, "openbook-check/kmod") if args.check_kmod else []) +
                     [("openbook-check/probe", 0o100755, open(args.check_probe, "rb").read())])
         lz = subprocess.run(["lz4", "-l", "-9", "-c"], input=cpio, capture_output=True, check=True).stdout
         open(f"{w}/hwcheck.img", "wb").write(lz)
@@ -484,8 +485,8 @@ menuentry "OpenBook (slot $slot)" {{
         open(f"{e}/loader/entries/openbook-1s-sleep.conf", "w").write(
             f"title OpenBook hardware check + sleep test\nsort-key openbook-1s\n{check} openbook.probe.sleep=1\n")
         open(f"{e}/loader/entries/openbook-1t-sleep-dgpu-off.conf", "w").write(
-            f"title OpenBook sleep test, NVIDIA GPU powered down\nsort-key openbook-1t\n{check} openbook.probe.sleep=1 "
-            f"openbook.probe.dgpu=detach\n")
+            f"title OpenBook sleep test, NVIDIA GPU + unused port powered down\nsort-key openbook-1t\n{check} "
+            f"openbook.probe.sleep=1 openbook.probe.dgpu=detach openbook.probe.acpi_d3cold=_SB.PCI0.GPP0.SWUS\n")
         open(f"{e}/loader/entries/openbook-2-vm.conf", "w").write(
             f"title OpenBook preview (virtual machines only)\nsort-key openbook-2\n{common}"
             f"initrd /openbook/a/bootconfig.img\noptions {cmd}\n")
@@ -495,8 +496,9 @@ menuentry "OpenBook (slot $slot)" {{
             "  kernel, loads its drivers, writes openbook/logs/hwcheck-NNN.txt, .json and -dmesg.txt on THIS stick\n"
             "  and powers off. It never writes to the laptop's own disks.\n"
             "- 'OpenBook hardware check + sleep test': the same, plus one sleep (s2idle) of 20 s woken by the clock.\n"
-            "- 'OpenBook sleep test, NVIDIA GPU powered down': first powers the NVIDIA GPU down for this boot only\n"
-            "  (driver unbound, removed from the PCI bus, its slot runtime-suspended), then the same sleep test.\n"
+            "- 'OpenBook sleep test, NVIDIA GPU + unused port powered down': first powers the NVIDIA GPU down for\n"
+            "  this boot only (driver unbound, removed from the PCI bus, its slot runtime-suspended) and the ACPI\n"
+            "  object left on below the empty PCI port 00:01.1 (\\_SB.PCI0.GPP0.SWUS), then the same sleep test.\n"
             "- 'OpenBook preview (virtual machines only)': Android 17 with the console on the serial port.\n"
             "  On a laptop it shows nothing (no graphics in this preview).\n")
     elif loader == "sdboot":
@@ -552,6 +554,7 @@ def main():
     ap.add_argument("--check-modules", default=f"{A}/kernel/cf/modset-anybook/root/lib/modules/"
                     "6.18.21-android17-5-g44a90255c95f",
                     help="module tree (modules.dep, modules.load) for the hardware check; ANAL-172's module set")
+    ap.add_argument("--check-kmod", help="directory of test-only kernel modules for the check (openbook-check/kmod/)")
     ap.add_argument("--check-probe", default=f"{A}/installer/build/openbook-probe",
                     help="probe binary run by the hardware-check entries")
     ap.add_argument("--check-firmware", default=f"{A}/kernel/firmware/anybook-amd",

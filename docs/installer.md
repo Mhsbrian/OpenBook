@@ -211,6 +211,15 @@ Full serial logs are `matrix/*/serial.log.gz`.
 
 **v5 (`openbook-hwcheck-20261016e`).** Each PCI line carries its ACPI path. The sleep entries list ACPI device power states and power resources before the detach, before suspend and after resume. Tested in QEMU on a v4 image updated with the v5 bundle.
 
+**G14 run 6 (v5).**
+- `GPP0` is `00:01.1`, the empty hotplug port; the dGPU is `GPP9.PEGP` on `00:03.1`.
+- `GPP0.SWUS` has no device, yet stays D0 with its power resource on through the whole cycle. The kernel powered it up to scan behind the bridge (`acpi_dev_power_up_children_with_adr()`), and nothing powers it down again.
+
+**v6 (`openbook-hwcheck-20261016f`).**
+- Entry 3 ("NVIDIA GPU + unused port powered down") also loads a test-only module (`scripts/installer/kmod/`, built by `build-check-kmod.sh` against the check kernel). The module puts `GPP0.SWUS` into D3cold before the sleep test.
+- Tested in QEMU: once with the real entry, and once with a fixture SSDT (`acpi-d3cold-test.asl`) that recreates the unused, powered `_ADR` child; the module turns it off.
+- Building it needs `make`, `flex`, `bison`, `bc`, `pahole` and `acpica` in the installer image (`tools/Dockerfile.installer`). Until the shared image is rebuilt from that file, use `OPENBOOK_INSTALLER_IMAGE=openbook-installer:anal189`.
+
 ## 3. Install flow
 
 ### 3.1 Live USB layout (ANAL-190)

@@ -57,6 +57,9 @@ So with `dgpu_disable=0`, OpenBook would run with the dGPU in D0 and no driver m
   - **On resume the slot was powered again.** pciehp logged "Card present, Link Up" and re-enumerated the dGPU. Option 2 would therefore have to be repeated after every resume; `dgpu_disable=1` would not.
   - Run 5 (v4, with `pm_debug_messages`) waited for the bridge: it reached **D3cold** (`d3cold_allowed 1`), and S0i3 still failed. The re-enumeration came with "PM: parent 0000:00:03.1 should not be sleeping", so the slot was probably powered by the kernel resuming the root port (its `_PR0` holds `PG00` per the GA403WM dump), not by the firmware (HYPOTHESIS).
   - The only unmet LPI constraint was `\_SB_.PCI0.GPP0.SWUS`, which is not the dGPU's ACPI node (`GPP9.PEGP`).
+  - Run 6 (v5) measured the mapping on the GA403WR itself, confirming the GA403WM dump:
+    - `GPP9` = `00:03.1`, `GPP9.PEGP` = `64:00.0`, `GPP9.NHDA` = `64:00.1`.
+    - `PG00` goes off when the bridge reaches D3cold, and is on again after resume.
 
 ### Options compared
 

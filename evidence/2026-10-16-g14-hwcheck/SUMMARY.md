@@ -146,3 +146,29 @@ These are `hwcheck-005.{txt,json,-dmesg.txt}`, redacted by the probe. sha256 of 
 - A read-only remount verified all five files against `../2026-10-16-installer/hwcheck-stick/v5/esp-update-MANIFEST.sha256`.
 - Menu order unchanged; the "sleep test, NVIDIA GPU powered down" entry now also maps ACPI paths and power resources.
 - Reports `hwcheck-001`…`005` are still on the stick. The next run writes `hwcheck-006`.
+
+## Run 6 (v5, "sleep test, NVIDIA GPU powered down", 2026-10-16 17:00)
+These are `hwcheck-006.{txt,json,-dmesg.txt}`, redacted by the probe. sha256 of the originals: txt `18ba91de…`, json `0c3f8da7…`, dmesg `de33b436…`.
+
+Same outcome as run 5: the dGPU bridge reaches D3cold, the cycle completes (18.6 s), s0ix residency is 0, "Last S0i3 Status: Unknown/Fail", and the only unmet LPI constraint is `\_SB_.PCI0.GPP0.SWUS`. New in v5 is the mapping:
+
+| ACPI | PCI | State around the sleep (C) |
+|---|---|---|
+| `\_SB_.PCI0.GPP0` | `00:01.1`, the hotplug port to `[bus 01-60]` with nothing behind it | D3cold, its `PWRS` off, from before the detach to after resume |
+| **`\_SB_.PCI0.GPP0.SWUS`** | **none** | **D0 (real D0), its `GPP0.SWUS.PWRS` ON**, before the detach, before suspend and after resume |
+| `\_SB_.PCI0.GPP9` | `00:03.1`, the dGPU's root port | D0 with `PG00` ON → after the detach D3cold, `PG00` off → after resume D0, `PG00` ON |
+| `\_SB_.PCI0.GPP9.PEGP` / `.NHDA` | `64:00.0` / `64:00.1`, the NVIDIA GPU / HDMI audio | removed by the detach; back after resume |
+| `GPP3.NVME`, `GPP4.SDCR`, `GPP5.WLAN`, `GPPA.*` (iGPU, audio, xHCI 1), `GPPB.IPU_` (NPU), `GPPC.*` (xHCI 0/3/4, USB4 NHI0) | `61:00.0`, `62:00.0`, `63:00.0`, `65:00.x`, `66:00.1`, `67:00.x` | the devices' own drivers suspend them during the system suspend |
+
+This confirms the run 5 sibling-model reading on this laptop: the dGPU is `GPP9.PEGP`, and GPP0 is the empty port.
+
+**Why GPP0.SWUS stays on (C, from the 6.18 source).** When the PCI core sets up a bridge, `pci_acpi_setup()` calls `acpi_dev_power_up_children_with_adr()`, which puts the bridge's `_ADR` children into D0 so the bus behind it can be scanned (`drivers/pci/pci-acpi.c`, `drivers/acpi/device_pm.c`). Nothing is found behind `00:01.1`, so no PCI device becomes SWUS's companion, and nothing in the kernel ever powers it down again. Its power resource stays referenced and on, and the LPI constraint stays unmet. Whether this is what blocks S0i3 is still a HYPOTHESIS: a power resource left on for an empty port is a plausible blocker, but not a proven one.
+
+**v6 (`openbook-hwcheck-20261016f`, `../2026-10-16-installer/hwcheck-stick/v6/`).** Tests the hypothesis directly with one change from run 6:
+- `scripts/installer/kmod/openbook_acpi_d3cold.c`, a test-only module built against this exact kernel by `build-check-kmod.sh`. It puts named ACPI objects that no device uses into D3cold through the normal ACPI PM path (`_PS3`, then the power resource's `_OFF` once unreferenced). It refuses objects that are missing, not power-manageable, or the companion of a device. It holds the parent bridge runtime-resumed during the change, because ACPI PM refuses to change a child while its parent is in a deeper state. It never ships in an image.
+- Entry 3 is renamed "OpenBook sleep test, NVIDIA GPU + unused port powered down" and adds `openbook.probe.acpi_d3cold=_SB.PCI0.GPP0.SWUS`. JSON `openbook-hwcheck/5` adds `acpi_d3cold`.
+- **Tested in QEMU**, on copies of the v5 image updated with the v6 bundle:
+  - **The unchanged entry 3:** the module loads on the check kernel (vermagic, CRCs and CFI all accepted), reports `\_SB.PCI0.GPP0.SWUS: not in the namespace` (QEMU has no such object), and the sleep test runs.
+  - **Entry 3 with a fixture SSDT** (`scripts/installer/acpi-d3cold-test.asl`, loaded through the kernel's ACPI table upgrade) that recreates the G14's situation below QEMU's root port `00:04.0`: before the module, `TSWU` is D0 with no device and its `PWRS` is ON, as on the G14. The module logs "`\_SB.PCI0.S20_: companion of 0000:00:04.0, left alone`" and "`\_SB.PCI0.S20_.TSWU: D0 -> D3cold (0), parent held on: 0000:00:04.0`". Before suspend and after resume, `TSWU` is D3cold and `PWRS` is off (`qemu-fixture-report-excerpt.txt`).
+  - **Entry 2:** unchanged, passes.
+  - **Not covered in the VM:** a parent that starts in D3cold. QEMU's port isn't power-manageable, so on the G14, holding `00:01.1` awake from D3cold is exercised for the first time.

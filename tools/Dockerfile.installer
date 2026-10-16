@@ -1,10 +1,13 @@
 # OpenBook installer / boot-chain workbench (ANAL-189): build GPT and ISO images from files without root, and boot them
 # under QEMU + OVMF. Host has no sudo; pass /dev/kvm in. Nothing here touches a real disk.
+# make/flex/bison/bc/pahole/elfutils: build test-only kernel modules for the hardware check against the OpenBook kernel
+# (with its own prebuilt clang); acpica (iasl): compile test ACPI tables for the VM.
 FROM archlinux:latest
 RUN pacman -Syu --noconfirm --needed \
       qemu-base qemu-system-x86 edk2-ovmf \
       grub efibootmgr systemd systemd-ukify \
       mtools dosfstools gptfdisk util-linux xorriso e2fsprogs f2fs-tools \
       python python-cryptography openssl cpio lz4 zstd xz binutils gcc wireless-regdb \
+      make flex bison bc pahole elfutils acpica \
     && pacman -Scc --noconfirm
 WORKDIR /w
