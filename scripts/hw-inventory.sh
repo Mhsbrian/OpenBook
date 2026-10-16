@@ -119,8 +119,9 @@ if [ $ROOT = 1 ]; then
     case "$(basename "$t")" in MSDM*|SLIC*) continue ;; esac
     $SUDO cat "$t" > "$OUT/acpi/$(basename "$t").dat" 2>/dev/null
   done
-  # Decoded tables (.dsl). The DSDT is decoded again with the SSDTs loaded so cross-table references resolve.
-  have iasl && ( cd "$OUT/acpi" && { iasl -d ./*.dat; [ -f DSDT.dat ] && iasl -e SSDT*.dat -d DSDT.dat; } > ../iasl.log 2>&1 )
+  # Decoded tables (.dsl). DSDT-ext.dsl is the DSDT decoded again with the SSDTs loaded, so cross-table
+  # references resolve. iasl aborts that pass on duplicate names (a common firmware bug) and leaves an empty file.
+  have iasl && ( cd "$OUT/acpi" && { iasl -d ./*.dat; [ -f DSDT.dat ] && { iasl -p DSDT-ext -e SSDT*.dat -d DSDT.dat || rm -f DSDT-ext.dsl; }; } > ../iasl.log 2>&1 )
 else
   dmesg 2>/dev/null | redact > "$OUT/dmesg.txt" || echo "dmesg needs root: skipped (no sudo, or --no-root)" > "$OUT/dmesg.txt"
 fi
