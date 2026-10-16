@@ -22,4 +22,5 @@ docker image inspect anybook-aosp >/dev/null 2>&1 || docker build -t anybook-aos
 exec docker run "${RUN[@]}" --init -u "$(id -u):$(id -g)" \
   --security-opt seccomp=unconfined --security-opt systempaths=unconfined \
   -v "$A/aosp:/aosp" -v "$A/ccache:/ccache" -v "$A/logs/aosp:/logs" -v "$R:/repo:ro" \
-  -e AOSP_JOBS -e AOSP_BRANCH -e AOSP_TARGET anybook-aosp "$@"
+  -e AOSP_JOBS -e AOSP_BRANCH -e AOSP_TARGET \
+  -e ANYBOOK_REV="$(git -C "$R" describe --always --dirty 2>/dev/null || echo unknown)" anybook-aosp "$@"

@@ -14,7 +14,8 @@
 #   CF_LOGS=~/anybook/logs/aosp/cf-<ts> (cf-latest links to it)  CF_ARGS (extra launch_cvd flags, appended)  CF_KEEP=1 skips `down` in `all`
 #   CF_GPU_MODE=guest_swiftshader (-> --gpu_mode: drm_virgl, gfxstream, gfxstream_guest_angle, ...)
 #   CF_GPU=none (no host GPU) | amd (pass the AMD render node, Mesa radeonsi/RADV in the container) |
-#          nvidia (pass /dev/nvidia* and bind-mount the host's NVIDIA userspace). amd/nvidia default CF_IMAGE to
+#          nvidia (pass /dev/nvidia* and bind-mount the host's NVIDIA userspace from CF_NVIDIA_LIBDIR, default
+#          /usr/lib). amd/nvidia default CF_IMAGE to
 #          anybook-cuttlefish (tools/Dockerfile.cuttlefish: the pinned image plus Mesa's Vulkan drivers).
 # While it runs: WebRTC at https://localhost:$CF_WEBRTC_PORT; adb via
 #   docker exec anybook-cf /root/cvd-host/bin/adb -s 127.0.0.1:6520 shell
@@ -44,18 +45,23 @@ cx(){ docker exec "$NAME" "$@"; }
 adb_(){ docker exec -e PATH="$C_HOST/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" "$NAME" adb -s "$SERIAL" "$@"; }
 
 # docker run flags that hand one host GPU to crosvm's virgl/gfxstream renderer.
-render_node(){ for d in /sys/class/drm/renderD*; do [ "$(cat "$d/device/vendor")" = "$1" ] && echo "/dev/dri/${d##*/}" && return; done; return 1; }
+render_node(){
+  local d; for d in /sys/class/drm/renderD*; do [ "$(cat "$d/device/vendor")" = "$1" ] && echo "/dev/dri/${d##*/}" && return; done
+  echo "CF_GPU=$GPU: no render node with PCI vendor $1" >&2; return 1
+}
 gpu_flags(){
+  local n v f L=${CF_NVIDIA_LIBDIR:-/usr/lib}   # Arch layout; Debian/Ubuntu hosts: /usr/lib/x86_64-linux-gnu
   case $GPU in
     none) ;;
     # Mesa's default EGL platform needs X11/Wayland; the container has neither, so use surfaceless.
-    amd) echo "--device $(render_node 0x1002) -e EGL_PLATFORM=surfaceless" ;;
+    amd) n=$(render_node 0x1002) || return 1; echo "--device $n -e EGL_PLATFORM=surfaceless" ;;
     # No nvidia-container-toolkit (no sudo): pass the device nodes and bind-mount the userspace by hand.
-    nvidia) local v f; v=$(cat /sys/module/nvidia/version)
-      echo "--device $(render_node 0x10de)"
+    nvidia) n=$(render_node 0x10de) || return 1; v=$(cat /sys/module/nvidia/version) || return 1
+      echo "--device $n"
       for f in /dev/nvidia0 /dev/nvidiactl /dev/nvidia-modeset /dev/nvidia-uvm; do echo "--device $f"; done
-      for f in /usr/lib/libnvidia-*.so."$v" /usr/lib/libEGL_nvidia.so.0 /usr/lib/libGLX_nvidia.so.0 \
-               /usr/lib/libGLESv2_nvidia.so.2 /usr/lib/libGLESv1_CM_nvidia.so.1; do
+      for f in "$L"/libnvidia-*.so."$v" "$L"/libEGL_nvidia.so.0 "$L"/libGLX_nvidia.so.0 \
+               "$L"/libGLESv2_nvidia.so.2 "$L"/libGLESv1_CM_nvidia.so.1; do
+        [ -e "$f" ] || { echo "CF_GPU=nvidia: missing $f (set CF_NVIDIA_LIBDIR)" >&2; return 1; }
         echo "-v $f:/usr/lib/x86_64-linux-gnu/${f##*/}:ro"; done
       echo "-v /usr/share/glvnd/egl_vendor.d/10_nvidia.json:/usr/share/glvnd/egl_vendor.d/10_nvidia.json:ro"
       echo "-v /usr/share/vulkan/icd.d/nvidia_icd.json:/usr/share/vulkan/icd.d/nvidia_icd.json:ro" ;;

@@ -20,7 +20,7 @@ stamp "target $TGT goals ${GOALS[*]} -j$J on $(nproc) CPUs"; free -g
 # not symlinked: Soong's nsjail sandbox only sees /aosp/src. --delete keeps it an exact mirror of the repo.
 if [ -d /repo/device/anybook ]; then
   rsync -a --delete /repo/device/anybook/ "$T/device/anybook/"
-  stamp "synced device/anybook from /repo ($(cd /repo && git rev-parse --short HEAD 2>/dev/null || echo no-git))"
+  stamp "synced device/anybook from /repo (AnyBook ${ANYBOOK_REV:-unknown})"
 fi
 ccache -p | grep -E 'max_size|cache_dir|compiler_check'
 ccache -z >/dev/null; ccache -s -v > "$L/ccache-$TS-before.txt"
