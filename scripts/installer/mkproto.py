@@ -112,6 +112,27 @@ def newc_entries(blob):
     return out
 
 
+def tree_entries(root, prefix):
+    """newc entries for a directory tree, placed under prefix (no leading slash). Parents of prefix included."""
+    out, parts = [], prefix.split("/")
+    for i in range(1, len(parts) + 1):
+        out.append(("/".join(parts[:i]), 0o40755, None))
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames.sort()
+        rel = os.path.relpath(dirpath, root)
+        base = prefix if rel == "." else f"{prefix}/{rel}"
+        if rel != ".":
+            out.append((base, 0o40755, None))
+        for f in sorted(filenames):
+            full = os.path.join(dirpath, f)
+            if os.path.islink(full):
+                out.append((f"{base}/{f}", 0o120777, os.readlink(full).encode()))
+            else:
+                mode = 0o100755 if os.access(full, os.X_OK) else 0o100644
+                out.append((f"{base}/{f}", mode, open(full, "rb").read()))
+    return out
+
+
 def newc(entries, ino=0x7F000000, trailer=True):
     """entries: list of (path, mode, data or None). Directories have data None."""
     buf = bytearray()
@@ -436,6 +457,37 @@ menuentry "OpenBook (slot $slot)" {{
              "--install-modules=linux normal part_gpt fat probe regexp loadenv configfile echo test efi_gop "
              "all_video sleep reboot halt",
              f"boot/grub/grub.cfg={emb}"])
+    elif loader == "sdboot" and args.hwcheck:
+        # USB test stick for a real laptop: "OpenBook hardware check" (default) loads our modules and firmware from
+        # an extra initrd, writes a report to this stick's ESP and powers off (probe-init.c, report mode);
+        # "OpenBook preview" is the Android boot the VM tests use (console on the serial port, no display).
+        shutil.copy("/usr/lib/systemd/boot/efi/systemd-bootx64.efi", f"{e}/EFI/BOOT/BOOTX64.EFI")
+        os.makedirs(f"{e}/loader/entries")
+        os.makedirs(f"{e}/openbook/check")
+        os.makedirs(f"{e}/openbook/logs")
+        cpio = newc(tree_entries(args.check_modules, f"openbook-check/modules/{params['kernel_release']}") +
+                    tree_entries(args.check_firmware, "lib/firmware"))
+        lz = subprocess.run(["lz4", "-l", "-9", "-c"], input=cpio, capture_output=True, check=True).stdout
+        open(f"{w}/hwcheck.img", "wb").write(lz)
+        copy_padded(f"{w}/hwcheck.img", f"{e}/openbook/check/hwcheck.img")
+        open(f"{e}/loader/loader.conf", "w").write(
+            "timeout 8\ndefault openbook-1-hwcheck.conf\nconsole-mode keep\neditor no\n")
+        common = (f"linux /openbook/a/kernel\ninitrd /openbook/a/vendor_ramdisk.img\n"
+                  f"initrd /openbook/a/ramdisk.img\n")
+        open(f"{e}/loader/entries/openbook-1-hwcheck.conf", "w").write(
+            f"title OpenBook hardware check\nsort-key openbook-1\n{common}"
+            f"initrd /openbook/check/hwcheck.img\ninitrd /openbook/a/bootconfig.img\n"
+            f"options {cmd} openbook.probe=report\n")
+        open(f"{e}/loader/entries/openbook-2-vm.conf", "w").write(
+            f"title OpenBook preview (virtual machines only)\nsort-key openbook-2\n{common}"
+            f"initrd /openbook/a/bootconfig.img\noptions {cmd}\n")
+        open(f"{e}/openbook/README.txt", "w").write(
+            "OpenBook test stick (ANAL-189). Boot it with Secure Boot off.\n"
+            "- 'OpenBook hardware check' (default): records what the laptop's hardware looks like to the OpenBook\n"
+            "  kernel, loads its drivers, writes openbook/logs/hwcheck-NNN.txt (+ -dmesg.txt) on THIS stick and\n"
+            "  powers off. It never writes to the laptop's own disks.\n"
+            "- 'OpenBook preview (virtual machines only)': Android 17 with the console on the serial port.\n"
+            "  On a laptop it shows nothing (no graphics in this preview).\n")
     elif loader == "sdboot":
         shutil.copy("/usr/lib/systemd/boot/efi/systemd-bootx64.efi", f"{e}/EFI/BOOT/BOOTX64.EFI")
         os.makedirs(f"{e}/loader/entries")
@@ -484,6 +536,13 @@ def main():
     ap.add_argument("--bad-digest", action="store_true")
     ap.add_argument("--halt", action="store_true", help="probe only: power off before Android's init")
     ap.add_argument("--menu", action="store_true", help="sdboot: show the boot menu for 3 s instead of hiding it")
+    ap.add_argument("--hwcheck", action="store_true",
+                    help="sdboot: test stick for a real laptop (hardware-check entry + VM preview entry)")
+    ap.add_argument("--check-modules", default=f"{A}/kernel/cf/modset-anybook/root/lib/modules/"
+                    "6.18.21-android17-5-g44a90255c95f",
+                    help="module tree (modules.dep, modules.load) for the hardware check; ANAL-172's module set")
+    ap.add_argument("--check-firmware", default=f"{A}/kernel/firmware/anybook-amd",
+                    help="linux-firmware subset (ANAL-171) for the hardware check, uncompressed")
     ap.add_argument("--vendor-boot-part-uuid", action="store_true",
                     help="bake androidboot.boot_part_uuid (this image's ESP) into vendor_boot's bootconfig")
     ap.add_argument("--gbl-efi", default=f"{A}/installer/dl/gbl-16633196/gbl_x86_64_dev.efi")
@@ -493,6 +552,8 @@ def main():
     ap.add_argument("--out")
     ap.add_argument("--decoy")
     args = ap.parse_args()
+    if args.hwcheck and args.loader != "sdboot":
+        sys.exit("--hwcheck needs --loader sdboot")
     for target in (args.out, args.decoy):  # image files only: never a block device
         if target and os.path.exists(target) and not os.path.isfile(target):
             sys.exit(f"refusing {target}: not a regular file")

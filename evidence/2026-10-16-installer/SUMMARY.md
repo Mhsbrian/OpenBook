@@ -35,6 +35,12 @@ The design and recommendation are in `docs/installer.md`. The results below come
 - `matrix/sdboot-menu/shot-3.png`: the systemd-boot menu.
 - The installer design renders are in `docs/installer-design/png/`.
 
+## Test stick for the G14 (`hwcheck-stick/`)
+`openbook-hwcheck-20261016.img` (sha256 in `openbook-hwcheck-20261016.sha256`, layout in `.img.json`), built by `scripts/installer/make-hwcheck-stick.sh`, and tested in QEMU on that exact file:
+- **"OpenBook hardware check":** 236 modules loaded, 0 failed, 29 skipped (safety list, blocklist, tests). The report and kernel log were written to the stick's ESP and the VM powered off after 23 s. The decoy NVMe was untouched. Files: `qemu-hwcheck-001.txt`, `qemu-hwcheck-001-dmesg.txt.gz`, `qemu-check-serial.log.gz`.
+- **"OpenBook preview":** selected through the menu over the serial console; Android console reached, orange state, `/data` created on first boot (`qemu-vm-serial.log.gz`).
+- `menu.png` is the boot menu.
+
 ## Not shown here
 - This is plain QEMU booting the Cuttlefish `pc` product. There's no GPU, so we stop at the userdebug serial console, and `sys.boot_completed` was not checked.
 - Cuttlefish's 6.12 `system_dlkm`/`vendor_dlkm` modules don't load on our kernel. That's expected and unrelated to the loader.

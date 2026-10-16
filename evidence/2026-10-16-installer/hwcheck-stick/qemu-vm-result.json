@@ -1,0 +1,86 @@
+{
+ "reason": "all steps done",
+ "seconds": 20.3,
+ "steps_done": 27,
+ "steps": 27,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "OpenBook hardware check",
+   "t": 1.7
+  },
+  {
+   "step": 2,
+   "wait": "OpenBook preview",
+   "t": 1.7
+  },
+  {
+   "step": 4,
+   "wait": "init: init first stage started",
+   "t": 4.6
+  },
+  {
+   "step": 5,
+   "wait": "init: init second stage started",
+   "t": 4.8
+  },
+  {
+   "step": 6,
+   "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+   "t": 11.2
+  },
+  {
+   "step": 8,
+   "wait": "console:/ \\$ ",
+   "t": 11.2
+  },
+  {
+   "step": 10,
+   "wait": "console:/ \\$ ",
+   "t": 11.4
+  },
+  {
+   "step": 12,
+   "wait": "console:/ \\$ ",
+   "t": 11.7
+  },
+  {
+   "step": 14,
+   "wait": "console:/ \\$ ",
+   "t": 13.0
+  },
+  {
+   "step": 16,
+   "wait": "console:/ \\$ ",
+   "t": 13.5
+  },
+  {
+   "step": 18,
+   "wait": "console:/ \\$ ",
+   "t": 14.4
+  },
+  {
+   "step": 20,
+   "wait": "console:/ \\$ ",
+   "t": 15.1
+  },
+  {
+   "step": 22,
+   "wait": "console:/ \\$ ",
+   "t": 15.3
+  },
+  {
+   "step": 24,
+   "wait": "console:/ \\$ ",
+   "t": 16.1
+  },
+  {
+   "step": 26,
+   "wait": "===OPENBOOK-END===\\s",
+   "t": 16.7
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/hwcheck/run-vm.img",
+ "nvme": "/home/hive/anybook/installer/matrix-20261016-openbook/decoy-nvme.img"
+}
