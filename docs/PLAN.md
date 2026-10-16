@@ -70,7 +70,14 @@ Status as of 2026-10-15. Facts are labelled **CONFIRMED** (we checked a primary 
    - QEMU direct-kernel boot already gets through first-stage mount.
 6. **ARM translation (Track A).** Neither libhoudini nor libndk_translation is redistributable. Berberis upstream only translates riscv64. Digitalis is Apache-2.0 and Berberis-based, but young and unmeasured. Add it to the compat matrix early.
 7. **Linux terminal and AVF.** The Googlebook terminal runs in a pKVM-protected VM, which doesn't exist on AMD. The fallback is non-protected AVF VMs over plain KVM.
-8. **NVIDIA (long term).** NVK/nouveau in Mesa for Android with GSP firmware. This comes after AMD.
+8. **NVIDIA (long term).** NVK/nouveau in Mesa for Android with GSP firmware. This comes after AMD. Research is done (ANAL-187, `docs/nvidia.md`):
+   - The open pieces exist. nouveau has supported GB20x through GSP-RM 570.144 since 6.16, and NVK is Vulkan 1.4 conformant on Blackwell.
+   - The open problems:
+     - Runtime PM on r570 firmware is still being fixed upstream.
+     - The only RTX 5070 Laptop report shows about 5–10% of proprietary-driver performance.
+     - Android has no hybrid-GPU plumbing.
+   - **No-go for M3–M8**: the dGPU stays off, with `dgpu_disable=1` as ANAL-176's default.
+   - After M4: research milestones N1–N6, aiming at per-app offload through Android's updatable-driver switch.
 
 ## 4. Milestones
 
@@ -140,7 +147,7 @@ Execution is tracked as Multica epics under ANAL-159. The live map, lanes and cr
 - **Kernel lane:** ANAL-198, bare-metal packaging: first-stage NVMe and USB boot, vendor_boot, vendor_dlkm, system_dlkm and the firmware subset, validated in QEMU.
 - **Light lanes:**
   - ANAL-189: installer and boot-chain design, with a QEMU/OVMF prototype. It was promoted ahead of ANAL-176 so the loader is proven before it reaches hardware.
-  - ANAL-187: NVIDIA research, including how to keep the dGPU off at first boot.
+  - ANAL-187: NVIDIA research, including how to keep the dGPU off at first boot. Delivered: `docs/nvidia.md` and `scripts/dgpu-power-check.sh`.
 
 **Then, handed off automatically:**
 1. ANAL-199: the real G14 product (GPT, fstab, kernel packaging, base HALs). It must boot in QEMU/OVMF as a PC first.

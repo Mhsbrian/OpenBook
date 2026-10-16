@@ -1,0 +1,52 @@
+# Omarchy's hybrid-GPU handling, read from the dev host's omarchy-dev package (4.0.0.r7026.g51bfd1d-1). The G14 runs Omarchy too (version not recorded).
+
+## /usr/bin/omarchy-toggle-hybrid-gpu: supergfxd config it writes
+  sudo tee /etc/supergfxd.conf >/dev/null <<'CONF'
+{
+  "mode": "Hybrid",
+  "vfio_enable": true,
+  "vfio_save": false,
+  "always_reboot": false,
+  "no_logind": false,
+  "logout_timeout_s": 180,
+  "hotplug_type": "None"
+}
+CONF
+
+## Integrated-mode switch
+42:  "vfio_enable": true,
+70:"Integrated")
+76:    sudo rm -rf /usr/lib/systemd/system-sleep/force-igpu
+79:    sudo rm -rf /etc/systemd/system/supergfxd.service.d/delay-start.conf
+85:  if gum confirm --affirmative "$(omarchy-i18n common.yes)" --negative "$(omarchy-i18n common.no)" "$(omarchy-i18n gpu.useIntegrated)"; then
+87:    # that can cause system freeze when booting in Integrated mode
+89:    if ! install_root_file "$OMARCHY_PATH/default/systemd/system/supergfxd.service.d/delay-start.conf" \
+90:      /etc/systemd/system/supergfxd.service.d/delay-start.conf 0644; then
+95:    # Publish the self-guarding sleep hook before enabling Integrated mode. It
+99:    if ! install_root_file "$OMARCHY_PATH/default/systemd/system-sleep/force-igpu" \
+100:      /usr/lib/systemd/system-sleep/force-igpu 0755; then
+101:      echo "Could not install the force-igpu system-sleep hook" >&2
+108:      -e 's/"mode": ".*"/"mode": "Integrated"/' \
+109:      -e 's/"vfio_enable": false/"vfio_enable": true/' \
+
+## /usr/share/omarchy/default/systemd/system-sleep/force-igpu (header)
+#!/bin/bash
+
+set -e
+
+# Use the Vfio to Integrated trick to turn off NVIDIA dgpu when in integrated mode
+# without needing to restart the computer. This is needed because computers like the Asus G14
+# will wake after suspend in Hybrid mode, even if the system was in Integrated mode before
+# suspending.
+
+restore_marker=/run/omarchy-force-igpu-integrated
+sleep_action=${SYSTEMD_SLEEP_ACTION:-$2}
+[[ -x /usr/bin/supergfxctl ]] || exit 0
+
+## supergfxd startup delay override
+[Service]
+# Delay startup to avoid race condition with display manager initialization
+# when booting in Integrated mode. Without this delay, the system can freeze
+# on boot because supergfxd tries to disable the dGPU while the display
+# subsystem is still initializing.
+ExecStartPre=/bin/sleep 5
