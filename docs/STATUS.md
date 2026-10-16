@@ -4,6 +4,12 @@
 
 The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL redirects. PRs #1–#17 are merged (#16: ANAL-175 driver map and the EDID capture fix; #17: ANAL-187 NVIDIA research). Every PR was checked before merging (script syntax, Python compile, no binaries or secrets, sizes, evidence backs the claim), and doc conflicts were resolved by hand.
 
+**Decided by the owner**
+- **Keep the dGPU disabled for now** (2026-10-16, on ANAL-187):
+  - `dgpu_disable=1` is the bring-up default. ANAL-176 runs `scripts/dgpu-power-check.sh` read-only first, then sets the flag on the G14 from Linux before the first OpenBook boot. Commands and rollback are in `docs/nvidia.md` §1.
+  - HDMI stays dark while the flag is set.
+  - NVIDIA work beyond the research is parked; the N1–N6 track waits until after M4.
+
 **Decisions needed from the owner** (no running work is blocked by these)
 - **Repo license** for the scripts and docs. Apache-2.0 is suggested; the `device/anybook` files already carry SPDX Apache-2.0 headers.
 - **Track B** (ANAL-165): whether to go past research with Google's proprietary image (`docs/PLAN.md` §6).
@@ -11,7 +17,6 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL redire
 - **amd-pmf** (ANAL-171): it needs `ccp.ko` with SEV, which calls `kernel_read`/`kernel_write` from GKI's deny list. Options are in `docs/kernel.md`.
 - **Digitalis upstream report** (ANAL-181/200): OK to report the Fennec, `MRS` and `FRECPE` findings to DigitalisX64? That is an outward-facing action.
 - **Device-in-the-loop** (ANAL-194): install the Multica daemon on the G14's current Linux when ready (`docs/PLAN.md` §4a).
-- **`dgpu_disable=1` on the G14** (ANAL-176, from ANAL-187): OK to set this persistent ASUS firmware flag from Linux before the first OpenBook boot? While it is set, the HDMI port goes dark. Commands and rollback are in `docs/nvidia.md` §1.
 - **Installer sign-off** (ANAL-189): approve the recommendation in `docs/installer.md` once it lands. ANAL-190 waits for it.
 
 **Lanes on the dev host** (the 7950X has 61 GB RAM; an AOSP build peaks at about 41 GiB):
