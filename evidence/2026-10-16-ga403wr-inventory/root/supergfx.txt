@@ -1,0 +1,4 @@
+$ supergfxctl -g
+Integrated
+$ supergfxctl -S
+off
