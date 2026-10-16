@@ -1,0 +1,11 @@
+# OpenBook on a PC: /vendor/etc/ueventd.rc. Device nodes and sysfs attributes the vendor HALs open as user system.
+# /sys/class/<subsystem>/* patterns match every device of that subsystem, whatever its ACPI or PCI path.
+
+# Backlight (amdgpu_bl*, nvidia_wmi_ec_backlight, acpi_video*) and LEDs (keyboard backlight): lights HAL and
+# InputManager.
+/sys/class/backlight/*  brightness  0664  system  system
+/sys/class/leds/*       brightness  0664  system  system
+
+# USB Type-C (UCSI): role swaps from the USB HAL.
+/sys/class/typec/*  data_role   0664  system  system
+/sys/class/typec/*  power_role  0664  system  system

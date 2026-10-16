@@ -1,0 +1,94 @@
+[
+ {
+  "wait": "init: init first stage started",
+  "timeout": 120
+ },
+ {
+  "wait": "init: init second stage started",
+  "timeout": 120
+ },
+ {
+  "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+  "timeout": 300
+ },
+ {
+  "send": "\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 120
+ },
+ {
+  "send": "su 0 dmesg -n 1\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "i=0; while [ \"$(getprop sys.boot_completed)\" != 1 ] && [ $i -lt 900 ]; do sleep 3; i=$((i+3)); done; echo BOOTDONE=$(getprop sys.boot_completed) uptime=$(cut -d' ' -f1 /proc/uptime)\n"
+ },
+ {
+  "wait": "BOOTDONE=\\S* uptime=[0-9.]+",
+  "timeout": 960
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "sleep 20\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "shot": "second-boot"
+ },
+ {
+  "send": "echo ===PROPS-BEGIN===; getprop | grep -E '^.(sys.boot_completed|ro.boot.slot_suffix|ro.boot.boot_part_uuid|ro.boottime.init)'; echo ===PROPS-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "echo ===REFORMAT-BEGIN===; su 0 dmesg | grep -cE 'Format /dev|wiped and'; echo ===REFORMAT-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "echo ===DISPLAY-BEGIN===; getprop init.svc.bootanim; getprop service.bootanim.exit; dumpsys activity activities | grep -E 'ResumedActivity|mFocusedApp' | head -4; dumpsys window | grep -E 'mCurrentFocus|mFocusedApp' | head -3; echo ===DISPLAY-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "echo ===LOCKSCREEN-BEGIN===; locksettings verify --old 1234; su 0 ls -l /data/vendor/weaver; locksettings clear --old 1234; echo ===LOCKSCREEN-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 120
+ },
+ {
+  "send": "echo ===DMESG-BEGIN===; su 0 dmesg | gzip | base64; echo ===DMESG-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 120
+ },
+ {
+  "send": "echo ===LOGCAT-BEGIN===; su 0 logcat -d -b all | gzip | base64; echo ===LOGCAT-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 300
+ },
+ {
+  "send": "su 0 sync; su 0 reboot -p\n"
+ }
+]

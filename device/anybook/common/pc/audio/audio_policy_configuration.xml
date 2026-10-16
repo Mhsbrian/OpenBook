@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Copyright (C) 2026 The OpenBook Authors. SPDX-License-Identifier: Apache-2.0
+
+     Audio policy for AOSP's AIDL example audio HAL (com.android.hardware.audio) on OpenBook PCs, until ANAL-179
+     brings the laptops' own codecs. The HAL creates one IModule per module listed here, and the APEX declares
+     IModule/default, r_submix and bluetooth in VINTF: audioserver waits for each declared module, so all three
+     must be listed (the same set as Cuttlefish's configuration). Without them system_server's watchdog kills the
+     framework in a loop (ANAL-199 QEMU runs 6 and 7). The included files are AOSP's (frameworks/av). -->
+<audioPolicyConfiguration version="7.0" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <globalConfiguration speaker_drc_enabled="false"/>
+    <modules>
+        <xi:include href="primary_audio_policy_configuration.xml"/>
+        <xi:include href="r_submix_audio_policy_configuration.xml"/>
+        <xi:include href="bluetooth_with_le_audio_policy_configuration_7_0.xml"/>
+    </modules>
+    <xi:include href="audio_policy_volumes.xml"/>
+    <xi:include href="default_volume_tables.xml"/>
+</audioPolicyConfiguration>

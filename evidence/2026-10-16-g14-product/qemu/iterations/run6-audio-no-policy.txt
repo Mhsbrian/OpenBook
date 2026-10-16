@@ -1,0 +1,4 @@
+10-16 22:14:30.131   327   327 I servicemanager: Caller(pid=666,uid=1041,sid=u:r:audioserver:s0) Since 'android.hardware.audio.core.IModule/default' could not be found trying to start it as a lazy AIDL service. (if it's not configured to be
+10-16 22:14:31.133   327   327 I servicemanager: Caller(pid=666,uid=1041,sid=u:r:audioserver:s0) Since 'android.hardware.audio.core.IModule/default' could not be found trying to start it as a lazy AIDL service. (if it's not configured to be
+10-16 22:14:32.134   327   327 I servicemanager: Caller(pid=666,uid=1041,sid=u:r:audioserver:s0) Since 'android.hardware.audio.core.IModule/default' could not be found trying to start it as a lazy AIDL service. (if it's not configured to be
+10-16 22:14:33.135   327   327 I servicemanager: Caller(pid=666,uid=1041,sid=u:r:audioserver:s0) Since 'android.hardware.audio.core.IModule/default' could not be found trying to start it as a lazy AIDL service. (if it's not configured to be

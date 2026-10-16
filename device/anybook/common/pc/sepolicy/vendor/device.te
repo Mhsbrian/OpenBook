@@ -1,0 +1,4 @@
+# OpenBook PC vendor types (file_contexts, genfs_contexts).
+type openbook_vendor_fw_file, vendor_file_type, file_type;
+type openbook_weaver_data_file, file_type, data_file_type;
+type sysfs_openbook_hwmon, sysfs_type, fs_type;

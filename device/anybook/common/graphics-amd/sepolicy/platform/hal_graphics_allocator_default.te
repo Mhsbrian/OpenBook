@@ -1,0 +1,11 @@
+# Every gralloc buffer from minigbm carries a "reserved region" memfd (its metadata: dataspace, blend mode, name),
+# created by the allocator. On the android17-6.18 kernel that memfd carries the allocator's tmpfs type, and the
+# stable-C mapper in each process that imports the buffer maps it read-write. Without this, SurfaceFlinger's first
+# buffer import fails ("output buffer not gpu writeable", ANAL-199 QEMU run 4).
+# (logd and the recovery helpers never map buffers, and AOSP forbids them other domains' files.)
+allow { domain -logd -logpersist -recovery_persist -recovery_refresh } hal_graphics_allocator_default_tmpfs:file {
+    getattr map read write
+};
+# Apps run with MLS categories (s0:cX,cY) and may only write s0 objects whose type is an mlstrustedobject; without
+# it every app's buffer import fails its metadata write (priv_app/platform_app denials in ANAL-199 QEMU run 8).
+typeattribute hal_graphics_allocator_default_tmpfs mlstrustedobject;

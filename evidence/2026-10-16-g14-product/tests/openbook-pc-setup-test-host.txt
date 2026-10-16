@@ -1,0 +1,15 @@
+ok   g14-d0: exit 0
+ok   g14-d0: HDMI audio unbound from snd_hda_intel
+ok   g14-d0: dGPU runtime PM auto
+ok   g14-d0: HDMI audio runtime PM auto
+ok   g14-d0: snd_hda_intel power_save
+ok   g14-off: exit 0
+ok   g14-off: AMD audio left alone
+ok   g14-off: power_save untouched
+ok   g14-off: nothing unbound
+ok   nouveau: exit 0
+ok   nouveau: dGPU untouched
+ok   nouveau: audio still bound
+ok   perms: exit 0
+ok   perms: reports (not root: chown skipped)
+openbook-pc-setup-test: 0 failure(s)
