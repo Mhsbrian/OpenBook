@@ -16,6 +16,12 @@ exec > >(tee -a "$L/build-$TS.log") 2>&1
 stamp(){ echo "=== $(date -u +%FT%TZ) $*"; }
 cd "$T"
 stamp "target $TGT goals ${GOALS[*]} -j$J on $(nproc) CPUs"; free -g
+# AnyBook's own device tree (device/anybook in this repo, e.g. anybook_cf_x86_64_pc) is copied into the tree,
+# not symlinked: Soong's nsjail sandbox only sees /aosp/src. --delete keeps it an exact mirror of the repo.
+if [ -d /repo/device/anybook ]; then
+  rsync -a --delete /repo/device/anybook/ "$T/device/anybook/"
+  stamp "synced device/anybook from /repo ($(cd /repo && git rev-parse --short HEAD 2>/dev/null || echo no-git))"
+fi
 ccache -p | grep -E 'max_size|cache_dir|compiler_check'
 ccache -z >/dev/null; ccache -s -v > "$L/ccache-$TS-before.txt"
 # Memory sampler: container cgroup (this build only), plus host-wide MemAvailable for context.

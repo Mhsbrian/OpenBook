@@ -1,0 +1,25 @@
+// Copyright (C) 2026 The AnyBook Authors
+// SPDX-License-Identifier: Apache-2.0
+//
+// Desktop (laptop) configuration shared by AnyBook products: the Cuttlefish VM product and, later, the
+// bare-metal ones. Pulled in by desktop.mk.
+
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+runtime_resource_overlay {
+    name: "AnyBookDesktopFrameworkOverlay",
+    manifest: "overlays/framework/AndroidManifest.xml",
+    resource_dirs: ["overlays/framework/res"],
+    product_specific: true,
+    sdk_version: "current",
+}
+
+runtime_resource_overlay {
+    name: "AnyBookDesktopSystemUIOverlay",
+    manifest: "overlays/systemui/AndroidManifest.xml",
+    resource_dirs: ["overlays/systemui/res"],
+    product_specific: true,
+    sdk_version: "current",
+}

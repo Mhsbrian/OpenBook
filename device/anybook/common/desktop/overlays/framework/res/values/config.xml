@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The AnyBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  Framework config for an Android desktop (laptop) device. The values are the ones Google's
+  AOSP Desktop (Preview) emulator image (sdk_gdesktop_x86_64, Android 17, CLE1.260506.004) sets in its
+  vendor framework-res RRO; docs/aosp-desktop.md lists them all, plus the ones left out here.
+  Defaults: frameworks/base/core/res/res/values/config.xml.
+-->
+<resources>
+    <!-- Desktop windowing. WM Shell's DesktopStateImpl needs both of the first two for the
+         internal display to host desks; without them apps stay fullscreen. -->
+    <bool name="config_isDesktopModeSupported">true</bool>
+    <bool name="config_canInternalDisplayHostDesktops">true</bool>
+    <bool name="config_enterDesktopByDefaultOnFreeformDisplay">true</bool>
+    <!-- Only read when the show_home_behind_desktop flag is on (it is off in cp2a). -->
+    <bool name="config_showHomeBehindDesktop">true</bool>
+
+    <!-- Navigation: gestural (2), so the taskbar shows no back/home/recents buttons. -->
+    <bool name="config_showNavigationBar">true</bool>
+    <integer name="config_navBarInteractionMode">2</integer>
+    <bool name="config_showGesturalNavigationHints">true</bool>
+
+    <!-- Laptop/desktop behaviour from the same image. -->
+    <bool name="config_allowPresentationOnInternalDisplay">true</bool>
+    <string-array name="config_globalActionsList" translatable="false">
+        <item>emergency</item>
+        <item>lock</item>
+        <item>power</item>
+        <item>restart</item>
+        <item>logout</item>
+        <item>screenshot</item>
+        <item>bugreport</item>
+    </string-array>
+    <bool name="config_supportsCamToggle">true</bool>
+    <bool name="config_supportsMicToggle">true</bool>
+    <bool name="config_lockPatternVisibleDefault">false</bool>
+    <bool name="config_lockPinEnhancedPrivacyDefault">true</bool>
+    <bool name="config_magnification_keep_zoom_level_when_context_changed">true</bool>
+    <bool name="config_magnification_magnify_keyboard_default">true</bool>
+</resources>
