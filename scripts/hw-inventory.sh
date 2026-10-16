@@ -1,14 +1,20 @@
 #!/usr/bin/env bash
-# Read-only hardware inventory for an AnyBook target laptop (run it ON the laptop, under any Linux).
-# Changes nothing on the machine. Serial numbers, UUIDs and MAC addresses are redacted.
+# Hardware inventory for an AnyBook target laptop (run it ON the laptop, under any Linux, as your normal user).
+# By default it installs the read-only tools it uses, then collects everything, including dmesg, dmidecode
+# and the ACPI tables through sudo (it asks for your password). Apart from installing those packages it
+# changes nothing on the machine. Serial numbers, UUIDs and MAC addresses are redacted, and the MSDM/SLIC
+# ACPI tables, which hold the Windows product key, are skipped.
 #
-# usage: hw-inventory.sh [--with-root]
-#   --with-root  also collect dmesg, dmidecode and the ACPI tables through sudo (prompts for your password);
-#                the MSDM/SLIC tables, which hold the Windows product key, are skipped
+# usage: hw-inventory.sh [--no-install] [--no-root]
+#   --no-install  don't install packages; use the tools that are already there
+#   --no-root     no sudo at all: skip dmesg, dmidecode, the ACPI tables and the package install
 # Output: ./anybook-hw-<board>-<date>.tar.gz   (attach it to the Multica issue)
-# Optional tools on Arch: pciutils usbutils alsa-utils iw dmidecode vulkan-tools mesa-utils v4l-utils (edid-decode)
 set -uo pipefail
-ROOT=0; [ "${1:-}" = "--with-root" ] && ROOT=1
+ROOT=1; INSTALL=1
+for a in "$@"; do case $a in
+  --no-root) ROOT=0; INSTALL=0 ;; --no-install) INSTALL=0 ;; --with-root) ;;
+  *) echo "usage: $0 [--no-install] [--no-root]" >&2; exit 2 ;; esac; done
+SUDO=sudo; [ "$(id -u)" = 0 ] && SUDO=
 dmi(){ cat "/sys/class/dmi/id/$1" 2>/dev/null || echo unknown; }
 BOARD=$(dmi board_name | tr -c 'A-Za-z0-9._\n-' '_' | head -c 40)
 OUT=anybook-hw-${BOARD}-$(date +%Y%m%d-%H%M%S); mkdir -p "$OUT"
@@ -17,6 +23,28 @@ redact(){ sed -E -e 's/([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}/XX:XX:XX:XX:XX:XX/g' \
   -e 's/((Serial|serial|SERIAL)[ _-]?([Nn]umber|NUMBER|No)?[[:space:]]*[:=][[:space:]]*).*/\1<redacted>/'; }
 run(){ local f=$1; shift; { echo "\$ $*"; "$@" 2>&1; } | redact > "$OUT/$f.txt" || true; }
 have(){ command -v "$1" >/dev/null 2>&1; }
+
+if [ -n "$SUDO" ] && [ $((ROOT + INSTALL)) -gt 0 ]; then
+  echo "sudo is used to install the inventory tools and to read dmesg, dmidecode and the ACPI tables."
+  sudo -v || { echo "no sudo: continuing without installing tools or the root-only parts"; ROOT=0; INSTALL=0; }
+fi
+
+# Tools: pacman (Arch), apt-get (Debian/Ubuntu live USBs) or dnf (Fedora). A package that fails to
+# install is skipped; the inventory still runs with whatever tools are there.
+pkg_install(){ "$@" $PKGS && return; for p in $PKGS; do "$@" "$p" >/dev/null 2>&1 || echo "  could not install $p; skipping it"; done; return 1; }
+if [ $INSTALL = 1 ]; then
+  if have pacman; then
+    PKGS="pciutils usbutils alsa-utils iw dmidecode vulkan-tools mesa-utils v4l-utils acpica fwupd"
+    pkg_install $SUDO pacman -S --needed --noconfirm \
+      || echo "  (if pacman could not find or download packages, its package lists are out of date: run 'sudo pacman -Syu', then rerun this script)"
+  elif have apt-get; then
+    PKGS="pciutils usbutils alsa-utils iw dmidecode vulkan-tools mesa-utils edid-decode acpica-tools fwupd"
+    $SUDO apt-get update -qq; pkg_install $SUDO apt-get install -y -qq
+  elif have dnf; then
+    PKGS="pciutils usbutils alsa-utils iw dmidecode vulkan-tools glx-utils edid-decode acpica-tools fwupd"
+    pkg_install $SUDO dnf install -y -q
+  else echo "no pacman, apt-get or dnf: continuing with the tools already installed"; fi
+fi
 
 # Identity (serials, UUIDs and asset tags are skipped on purpose)
 for k in sys_vendor product_name product_family product_version board_vendor board_name board_version bios_vendor bios_version bios_date; do
@@ -57,6 +85,8 @@ for c in /sys/class/drm/card*-eDP-*; do
 done
 have vulkaninfo && run vulkaninfo vulkaninfo --summary
 have glxinfo && run glxinfo glxinfo -B
+{ for b in /sys/class/backlight/*; do [ -e "$b" ] && echo "$(basename "$b") type=$(cat "$b/type" 2>/dev/null) max=$(cat "$b/max_brightness" 2>/dev/null) actual=$(cat "$b/actual_brightness" 2>/dev/null) device=$(readlink -f "$b/device" 2>/dev/null)"; done; } > "$OUT/backlight.txt" 2>&1
+have supergfxctl && { run supergfx-mode supergfxctl -g; run supergfx-power supergfxctl -S; }
 have nvidia-smi && run nvidia-smi nvidia-smi --query-gpu=name,driver_version,pci.bus_id,pstate,power.draw,vbios_version --format=csv
 { for g in /sys/bus/pci/devices/*; do [ "$(cat "$g/class" 2>/dev/null | cut -c1-4)" = "0x03" ] && echo "$(basename "$g") vendor=$(cat "$g/vendor") device=$(cat "$g/device") power=$(cat "$g/power_state" 2>/dev/null) runtime=$(cat "$g/power/runtime_status" 2>/dev/null)"; done; } > "$OUT/gpus.txt" 2>&1
 
@@ -78,19 +108,26 @@ have bootctl && run bootctl bootctl status --no-pager
 have mokutil && run secureboot mokutil --sb-state
 run tpm ls -l /dev/tpm0 /dev/tpmrm0
 
+[ $ROOT = 1 ] && [ -n "$SUDO" ] && { sudo -v || ROOT=0; }
 if [ $ROOT = 1 ]; then
-  sudo dmesg 2>&1 | redact > "$OUT/dmesg.txt"
-  have dmidecode && sudo dmidecode 2>&1 | grep -viE 'serial|uuid|asset tag' > "$OUT/dmidecode.txt"
+  $SUDO dmesg 2>&1 | redact > "$OUT/dmesg.txt"
+  have dmidecode && $SUDO dmidecode 2>&1 | grep -viE 'serial|uuid|asset tag' > "$OUT/dmidecode.txt"
   # Raw ACPI tables, minus MSDM and SLIC: those carry the OEM Windows product key / licence.
   mkdir -p "$OUT/acpi"
   for t in /sys/firmware/acpi/tables/* /sys/firmware/acpi/tables/dynamic/*; do
     [ -f "$t" ] || continue
     case "$(basename "$t")" in MSDM*|SLIC*) continue ;; esac
-    sudo cat "$t" > "$OUT/acpi/$(basename "$t").dat" 2>/dev/null
+    $SUDO cat "$t" > "$OUT/acpi/$(basename "$t").dat" 2>/dev/null
   done
+  # Decoded tables (.dsl). DSDT-ext.dsl is the DSDT decoded again with the SSDTs loaded, so cross-table
+  # references resolve. iasl aborts that pass on duplicate names (a common firmware bug) and leaves an empty file.
+  have iasl && ( cd "$OUT/acpi" && { iasl -d ./*.dat; [ -f DSDT.dat ] && { iasl -p DSDT-ext -e SSDT*.dat -d DSDT.dat || rm -f DSDT-ext.dsl; }; } > ../iasl.log 2>&1 )
 else
-  dmesg 2>/dev/null | redact > "$OUT/dmesg.txt" || echo "dmesg needs root; rerun with --with-root" > "$OUT/dmesg.txt"
+  dmesg 2>/dev/null | redact > "$OUT/dmesg.txt" || echo "dmesg needs root: skipped (no sudo, or --no-root)" > "$OUT/dmesg.txt"
 fi
 
 tar -czf "$OUT.tar.gz" "$OUT" && rm -rf "$OUT"
-echo "wrote $OUT.tar.gz  (board: $BOARD; check cpu-isa-summary.txt for avx_vnni)"
+[ -z "$SUDO" ] && [ -n "${SUDO_USER:-}" ] && chown "$SUDO_USER": "$OUT.tar.gz"
+echo
+echo "wrote $OUT.tar.gz  (board: $BOARD)"
+echo "Attach that file to the Multica issue (ANAL-175)."

@@ -42,14 +42,17 @@ Labels: C = confirmed (inventory from the laptop, kernel source, or linux-firmwa
 | Power | `AMDI000A` amd_pmc, `AMDI0103` amd-pmf, `AMDI0104` amd_hfi; s2idle only; battery A32-K55 | amd_pmc, amd-pmf, amd_hfi, battery, ac | — | C |
 | Security | TPM2 `MSFT0101` (Pluton, firmware 10.6.0.4), Secure Boot disabled, UEFI 2.90. db/KEK hold the Microsoft 2023 CAs (UEFI CA, Windows UEFI CA, KEK CA) and ASUS 2023 keys; dbx 20260402 | tpm_crb | — | C. Whether the 2011 Microsoft CAs are also in db is U |
 
-### Collecting the inventory (read-only)
-Run this on the laptop from its installed Linux or a live USB. It changes nothing on the machine:
+### Collecting the inventory
+Run this on the laptop, as your normal user, from its installed Linux or a live USB:
 ```bash
 git clone https://github.com/Mhsbrian/OpenBook && cd OpenBook
-scripts/hw-inventory.sh               # no root needed
-scripts/hw-inventory.sh --with-root   # optional: adds dmesg, dmidecode, ACPI tables minus MSDM/SLIC (sudo)
+scripts/hw-inventory.sh               # installs the tools, then collects everything (asks for your sudo password)
+scripts/hw-inventory.sh --no-install  # same, with the tools already installed
+scripts/hw-inventory.sh --no-root     # no sudo: no dmesg, dmidecode or ACPI tables, no install
 ```
-It writes `anybook-hw-<board>-<date>.tar.gz`, with serials, UUIDs and MAC addresses redacted. Attach that file to ANAL-175. Install `v4l-utils` first for `edid-decode`: the panel EDID is captured without root, with its serial number and date replaced.
+By default it installs read-only diagnostic tools with pacman, apt-get or dnf: pciutils, usbutils, alsa-utils, iw, dmidecode, vulkan-tools, mesa-utils, edid-decode (`v4l-utils` on Arch), acpica (`iasl`) and fwupd. A package that fails to install is skipped. Apart from those packages it changes nothing on the machine. Through sudo it reads `dmesg`, `dmidecode` and the ACPI tables, minus MSDM/SLIC, which hold the Windows product key. It also decodes the tables to `.dsl` with `iasl`.
+
+It writes `anybook-hw-<board>-<date>.tar.gz`, with serials, UUIDs and MAC addresses redacted, and the panel EDID with its serial number and date replaced. Attach that file to ANAL-175.
 
 ### Bring-up notes and risks
 1. **Run Android on the Radeon 890M.** Keep the MUX in hybrid (iGPU) mode and power the dGPU down with `dgpu_disable=1` from Linux before booting AnyBook. In dGPU-only MUX mode the internal panel is wired to the NVIDIA GPU, which Android cannot drive yet.
