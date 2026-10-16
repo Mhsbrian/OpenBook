@@ -1,0 +1,63 @@
+cvd(432)  I 10-16 13:27:29   432   432 main.cc:137] version: 1.57.0 | VCS: 9bb9c72329cedcb436bb75afc05c24d73fbcdf5d
+By using this Android Virtual Device, you agree to Google Terms of Service (https://policies.google.com/terms). The Google Privacy Policy (https://policies.google.com/privacy) describes how Google handles information generated as you use Google services.
+10-16 13:27:29.887   440   440 I cvd_internal_start: main.cc:179 Using system_image_dir of: 
+Could not read config file /var/tmp/cvd/0/1792157249879928/artifacts/0/fetcher_config.json: * Line 1, Column 1
+  Syntax error: value, object or array expected.
+
+Reading --config option from: /var/tmp/cvd/0/1792157249879928/artifacts/0/android-info.txt
+Launching CVD using --config='phone'.
+Defaulting to `android-info.txt` because guest protobuf config is missing.
+GPU vhost user auto mode: not needed for --gpu_mode=guest_swiftshader. Not enabling vhost user gpu.
+Requested resuming a previous session (the default behavior) but the base images have changed under the overlay, making the overlay incompatible. Wiping the overlay files.
+Path for instance UDS: /tmp/cf_avd_0
+acs: vendor_boot_params
+acs: vendor_ramdisk00
+acs: bootconfig
+acs: dtb
+acs: vendor-ramdisk-by-name
+acs: concatenated_vendor_ramdisk
+The following lines contain useful debugging information:
+  Point your browser to https://localhost:8443 to interact with the device.
+  Serial console is disabled; use -console=true to enable it.
+  Logcat output: /var/tmp/cvd/0/1792157249879928/home/cuttlefish/instances/cvd-1/logs/logcat
+  Kernel log: /var/tmp/cvd/0/1792157249879928/home/cuttlefish/instances/cvd-1/kernel.log
+  Launcher log: /var/tmp/cvd/0/1792157249879928/home/cuttlefish/instances/cvd-1/logs/launcher.log
+  Instance configuration: /var/tmp/cvd/0/1792157249879928/home/cuttlefish/instances/cvd-1/cuttlefish_config.json
+  Launcher Build ID: eng.builde
+Virtual device booted successfully
+VIRTUAL_DEVICE_BOOT_COMPLETED
+===================================================================
+NOTICE:
+
+By using this Android Virtual Device, you agree to
+Google Terms of Service (https://policies.google.com/terms).
+The Google Privacy Policy (https://policies.google.com/privacy)
+describes how Google handles information generated as you use
+Google Services.
+===================================================================
+
+10-16 13:27:46.009  1144  1144 I cvd_internal_status: main.cc:130 Requesting status for instance cvd-1
+10-16 13:27:46.010  1144  1144 I cvd_internal_status: main.cc:137 run_cvd is active for instance cvd-1
+{
+	"group_name" : "cvd_1",
+	"instances" : 
+	[
+		{
+			"adb_port" : 6520,
+			"adb_serial" : "0.0.0.0:6520",
+			"assembly_dir" : "/var/tmp/cvd/0/1792157249879928/home/cuttlefish/assembly",
+			"displays" : 
+			[
+				"1920 x 1080 ( 160 )"
+			],
+			"instance_dir" : "/var/tmp/cvd/0/1792157249879928/home/cuttlefish/instances/cvd-1",
+			"instance_name" : "1",
+			"status" : "Running",
+			"web_access" : "https://localhost:1443/devices/cvd_1-1-1/files/client.html",
+			"webrtc_device_id" : "cvd_1-1-1",
+			"webrtc_port" : "8443"
+		}
+	],
+	"metrics_dir" : "/var/tmp/cvd/0/1792157249879928/home/metrics",
+	"start_time" : "2026-10-16 13:27:29"
+}

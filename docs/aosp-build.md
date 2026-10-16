@@ -1,6 +1,6 @@
-# AOSP 17 build environment and source tree (Track A, M1b prep)
+# AOSP 17 build environment, source tree, image build and Cuttlefish boot (Track A, M1b)
 
-Issue ANAL-167. Status as of 2026-10-15/16. This stage covers the build container, the source mirror and tree, ccache, and a Soong analysis pass. It does not build the image; that is the next stage.
+Issue ANAL-167, status as of 2026-10-15/16, covers the build container, the source mirror and tree, ccache, and a Soong analysis pass. The image build and the Cuttlefish boot are ANAL-168, in [M1b: build and boot](#m1b-build-aosp_cf_x86_64_pc-and-boot-it-in-cuttlefish-anal-168) below.
 
 ## What upstream looks like (checked 2026-10-15)
 
@@ -121,6 +121,132 @@ Evidence is in `evidence/2026-10-15-aosp/`:
 
 ## Open items
 
-- ccache use is configured but unproven until the first compile, which is the next stage.
+- ~~ccache use is configured but unproven until the first compile.~~ Proven in ANAL-168 (below).
 - The `cp2a` = `android-17.0.0_r1` mapping (above).
 - Report the `external/curl` `android17-security-release` tag-as-branch anomaly upstream (AOSP issue tracker). It breaks any all-heads mirror of this manifest.
+
+## M1b: build aosp_cf_x86_64_pc and boot it in Cuttlefish (ANAL-168)
+
+Status as of 2026-10-16. The target is `aosp_cf_x86_64_pc-cp2a-userdebug`, built from the tree above (manifest `ad156f32`). **Result: our own build boots in Cuttlefish to `sys.boot_completed=1` in 17–29 s, with the display up at 1920×1080.**
+
+### Commands
+
+```bash
+# Build. Resumable: re-running continues where siso stopped. About 2 h 10 min here, cold, on a shared host.
+AOSP_JOBS=32 scripts/aosp-docker.sh -d anybook-aosp-build /repo/scripts/aosp-build.sh aosp_cf_x86_64_pc-cp2a-userdebug
+docker wait anybook-aosp-build          # cancel: docker stop anybook-aosp-build
+# Optional: out/dist (img zip, target-files, OTA, cvd-host_package.tar.gz). About 4 min after the build above.
+scripts/aosp-docker.sh -d anybook-aosp-build /repo/scripts/aosp-build.sh aosp_cf_x86_64_pc-cp2a-userdebug dist
+
+# Boot, wait for boot_completed, capture evidence, tear down. About 45 s here.
+scripts/cf-boot.sh                      # = all
+CF_HOST_TOOLS=build scripts/cf-boot.sh  # same, but with our build's host tools instead of cvd's packaged ones
+# Or step by step, keeping the device up for WebRTC (https://localhost:11443) or adb:
+scripts/cf-boot.sh up && scripts/cf-boot.sh wait && scripts/cf-boot.sh capture
+docker exec anybook-cf /root/cvd-host/bin/adb -s 127.0.0.1:6520 shell
+scripts/cf-boot.sh down
+```
+
+Build logs are in `~/anybook/logs/aosp/`:
+- `build-<ts>.log`: the console log.
+- `time-build-<ts>.txt`: GNU `time -v` output.
+- `mem-build-<ts>.csv`: the container cgroup's RAM and swap, plus host `MemAvailable`, sampled every 15 s.
+- `ccache-<ts>-{before,after}.txt` and `sizes-build-<ts>.txt`.
+
+Each boot writes to `~/anybook/logs/aosp/cf-<ts>/`, and `cf-latest` links to the newest.
+
+### Build measurements (2026-10-16, 11:04–13:15 UTC)
+
+| | `m` (goal `droid`), cold | `m dist`, after that |
+|---|---|---|
+| Jobs | `-j32` | `-j32` |
+| Actions | 187,648 planned, 183,525 run (siso drops some after restat) | 3,867 |
+| Wall clock | **2 h 10 min 32 s** | 4 min 12 s |
+| CPU | 142,633 s user + 17,155 s sys, 2,040% (about 20 of 32 threads) | 4,439 s + 542 s, 1,979% |
+| Peak RAM (container cgroup) | **41.0 GiB RAM + 18.5 GiB swap** (15 s samples); 56.1 GiB RAM+swap combined; `memory.peak` 43.1 GiB including page cache | 38.3 GiB + 6.7 GiB swap |
+| Largest single process | 17.4 GiB RSS | 15.5 GiB RSS |
+| ccache | Empty at the start: 82,268 cacheable C/C++ calls, **20,881 hits (25.4%)**, 9.9 GB stored; 5,802 calls uncacheable ("unsupported compiler option") | 149 / 1,162 hits (12.8%) |
+
+Output size (`du` on btrfs zstd:3, so these are compressed sizes; `evidence/2026-10-16-aosp/sizes.txt`):
+- `out/` is **137 GB after `m`** and 165 GB after `m dist`. After `dist` that breaks down as `out/soong` 135 GB, `out/host` 6.6 GB, `out/dist` 12 GB and `out/target/product/vsoc_x86_64_only` 8.7 GB.
+- ccache adds 9.4 GB.
+- The top-level images are 3.6 GB; `super.img` is 1.6 GB sparse.
+- `cvd-host_package.tar.gz` is 898 MB and is built by plain `m`.
+- In `out/dist`: `-img-builder.zip` 1.05 GB, `-target_files-builder.zip` 2.1 GB, `-symbols-builder.zip` 2.6 GB.
+
+The fingerprint is `generic/aosp_cf_x86_64_pc/vsoc_x86_64_only:17/CP2A.260605.016/eng.builde:userdebug/test-keys`.
+
+Notes:
+- **The host was shared.** ANAL-171 kernel builds (`anybook-amd-b*`) and a Digitalis build ran at the same time. The load average stayed at 75–133 on 32 threads, one `docker stats` sample showed the other two containers using about 20 cores, and host `MemAvailable` dropped as low as 4.0 GiB (12:28 UTC). There were no OOM kills. That an idle host would build faster than 2:10 is a **HYPOTHESIS**; it wasn't measured.
+- Soong analysis did not run again, because the `cp2a` analysis from ANAL-167's `m nothing` was still valid. These numbers therefore leave out the analysis peak (about 1.5 min at ~43 GiB). A cold tree needs that first.
+- The cache started empty, yet 25% of compiles hit it. The likely reason is that the same sources are compiled more than once with identical command lines (host and APEX variants). The benefit for a rebuild from scratch is not measured; measuring it means deleting `out/`.
+- `-j32` with swap worked. Swap peaked at 18.5 GiB while the other runs were active, so `-j24` wasn't needed.
+
+### Booting in Cuttlefish
+
+**Container.** `us-docker.pkg.dev/android-cuttlefish-artifacts/cuttlefish-orchestration/cuttlefish-orchestration:1.56.0`, pinned by digest `sha256:ecdb3376…`. That digest is what the `stable` tag pointed to on 2026-10-16; `1.57.0` is the newest tag. Despite the 1.56.0 tag, the image contains the Debian packages `cuttlefish-base`, `cuttlefish-user` and `cuttlefish-orchestration` at **1.57.0** (`cvd` VCS `9bb9c723`), because the image apt-installs whatever is current when it's built.
+
+**Docker flags.**
+- `--cap-add NET_ADMIN`
+- `--device` for `/dev/kvm`, `/dev/net/tun`, `/dev/vhost-net` and `/dev/vhost-vsock`
+- `--security-opt seccomp=unconfined`
+
+There is no `--privileged` and no sudo. Ports are published on 127.0.0.1 only: adb 6520 → 16520, and the WebRTC operator 1443 → 11443.
+
+**Three things the issue's recipe doesn't cover.** We hit all three:
+1. **`--host_path` must be writable.** `cvd create` always symlinks its packaged `cvdalloc` into the host tools, so the read-only `out/` mount failed with `symlink(... cvdalloc ...) failed: Read-only file system`. The script unpacks our `cvd-host_package.tar.gz` inside the container instead (7–13 s), and `out/` is never modified.
+2. **`--product_path` must be writable.** `assemble_cvd` de-sparses `super.img` in place, and failed with `open('.../super.img.lock') failed: Read-only file system`. The script stages the product's top-level files in `~/anybook/aosp/cf/product` as reflink copies, which copy no data on btrfs, and mounts that. Each boot then costs about 1.5 GB, because `super.img` is rewritten there as an 8 GiB raw sparse file.
+3. **Docker's default seccomp profile blocks `socket(AF_VSOCK)`.** `run_cvd` failed with `Can't tombstone server socket`. A Python `AF_VSOCK` bind gets `EPERM` under the default profile and succeeds with `seccomp=unconfined` (checked 2026-10-16). Cuttlefish's host-side vsock servers need it, so this container runs unconfined, the same as the build container does for nsjail.
+
+QEMU wasn't needed.
+
+**Host tools: whose binaries run.** In `cvd` 1.57.0 (`fetch/substitute.cc` at `9bb9c723`), if the host package contains `etc/debian_substitution_marker`, `cvd` symlinks **every** host tool it packages over the host package's copy. AOSP's `cvd-host_package` ships that marker (`device/google/cuttlefish/Android.bp`). By default, then:
+- 147 files are swapped, including `run_cvd`, `assemble_cvd`, `crosvm`, `webRTC`, `secure_env` and `adb` (`boot2/host-substitutions.txt`).
+- The **guest images** are entirely ours; the **VMM and launcher** are Google's 1.57.0 Debian builds.
+
+`CF_HOST_TOOLS=build` deletes the marker. Then only `cvdalloc` is swapped (`boot3/host-substitutions.txt`), the launcher reports `Launcher Build ID: eng.builde`, and the device boots just as well. Both modes are tested below. The default stays `packaged` because that is the combination Google ships and tests.
+
+**Launch flags.** `--x_res=1920 --y_res=1080 --dpi=160 --gpu_mode=guest_swiftshader --cpus=4 --memory_mb=8192`. The `pc` product has no `--config` preset; `android-info.txt` selects `phone`, which means 720×1280. So the script sets a laptop-sized display. The container has no `/dev/dri`, so rendering is in software. Graphics are the next stage (ANAL-169).
+
+### Boot results
+
+| | Boot 1 (`up`, `wait`, `capture`) | Boot 2 (`cf-boot.sh`, final committed script) | Boot 3 (`CF_HOST_TOOLS=build cf-boot.sh`) |
+|---|---|---|---|
+| Time (UTC) | 13:17 | 13:30 | 13:27 |
+| Host tools | packaged 1.57.0 | packaged 1.57.0 | **ours** (`eng.builde`) |
+| `cvd create` → "Virtual device booted successfully" | 29 s | 18 s | 17 s |
+| `sys.boot_completed=1` | yes, at +37 s (first poll) | yes, at +21 s | yes, at +17 s |
+| `boot_progress_start` / `boot_progress_enable_screen` / boot animation done, from kernel start | 8.4 s / 18.4 s / 19.7 s | 4.2 s / 9.3 s / 9.7 s | 3.7 s / 9.1 s / 9.7 s |
+| Whole cycle: stage, unpack, boot, capture, teardown | n/a | 46 s, exit 0 | 36 s, exit 0 |
+
+Boot 1 was the first boot of these images, 2 minutes after the build finished. Boots 2 and 3 are about twice as fast; a warm page cache is the likely reason (**HYPOTHESIS**).
+
+What the device reports (`boot1/props-summary.txt`, `getprop.txt`, `features.txt`; `features.txt` is identical across all three boots):
+- **Build:** `ro.build.version.release=17`, SDK 37, `ro.build.id=CP2A.260605.016`, userdebug, `ro.boot.verifiedbootstate=orange` (test keys, unlocked).
+- **Kernel:** `6.12.74-android16-6-g3ec022196c4e-ab15076761`. The Cuttlefish product boots Google's **prebuilt android16-6.12 GKI**, not the android17-6.18 kernel that Googlebook ships (ANAL-170). Swapping in our kernel belongs to ANAL-171/172.
+- **Features:** `feature:android.hardware.type.pc` and `android.software.freeform_window_management` are present. `ro.build.characteristics=default` (neither `tablet` nor `pc`).
+- **Display:** 1920×1080 at 160 dpi. Launcher3 (`QuickstepLauncher`) is the resumed activity, in fullscreen windowing mode. Screenshots: `boot1/screen.png` (lock screen) and `boot1/screen-home.png` (home screen after `wm dismiss-keyguard`).
+- **Graphics stack in this mode:** `ro.hardware.egl=angle`, `ro.hardware.vulkan=pastel`, gralloc `minigbm`, HWC `ranchu`, `feature:android.hardware.vulkan.level=1`. Vulkan version 4206592 = 1.4.0.
+- **ARM: advertised but not present.** `ro.product.cpu.abilist=x86_64,arm64-v8a`, because `vsoc_x86_64_only/BoardConfig.mk` sets `TARGET_NATIVE_BRIDGE_ARCH := arm64`. But `ro.dalvik.vm.native.bridge=0`, and there is no translator library in `/system`. We checked with the ANAL-180 probe APKs (`boot1/arm64-probe-check.txt`):
+  - The x86_64 probe runs: 17 pass / 0 fail / 2 skip.
+  - The arm64-only probe **installs** (`primaryCpuAbi=arm64-v8a`), then fails at `dlopen` with `libprobe.so is for EM_AARCH64 (183) instead of EM_X86_64 (62)`.
+
+  So a plain AOSP build accepts arm64-only apps it can't run. Either a translator (ANAL-181) or dropping `arm64-v8a` from the abilist is needed.
+
+Evidence is in `evidence/2026-10-16-aosp/`:
+- `build/`: the console log (`build-*.log.gz`), GNU time output, memory samples (`mem-build-*.csv.gz`), and ccache stats before and after.
+- `build-dist/`: the same for `m dist`, plus `dist-listing.txt`.
+- `sizes.txt`
+- `boot1/`:
+  - Launch: `cf-boot.log`, `cvd-create.log`, `cvd-fleet.json`
+  - Device state: `props-summary.txt`, `getprop.txt`, `features.txt`, `display.txt`, `boot-progress.txt`, `uname.txt`
+  - Logs: `dmesg.txt.gz`, `logcat.txt.gz`, `kernel.log.gz` (guest console), `launcher.log.gz` (host)
+  - The two screenshots and `arm64-probe-check.txt`
+- `boot2/` (packaged host tools) and `boot3/` (our host tools): the scripted end-to-end runs, each with `host-substitutions.txt` and the host launcher log.
+
+### Open items (M1b)
+
+- **Native-bridge mismatch.** The abilist advertises `arm64-v8a`, but no bridge is present. Decide in ANAL-181 whether to ship a translator or drop the ABI.
+- **Kernel.** The product boots the prebuilt android16-6.12 GKI. Booting our android17-6.18 build in Cuttlefish is for ANAL-171/172.
+- **seccomp.** A narrower profile (Docker's default plus `AF_VSOCK`) would be tighter than `seccomp=unconfined`. Not done yet.
+- **Unmeasured:** build time on an idle host, and the ccache benefit on a rebuild from scratch.
