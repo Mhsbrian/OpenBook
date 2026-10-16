@@ -1,0 +1,7 @@
+openbook_acpi_d3cold.ko sha256 06f58621c9cfd4b07ebda8e8839befdef47a74843b809f1fd86cc12fddfd6c34
+vermagic: 6.18.21-android17-5-g44a90255c95f SMP preempt mod_unload modversions 
+kernel:   6.18.21-android17-5-g44a90255c95f SMP preempt mod_unload modversions  (anybook-amd-gbos-16302624, bzImage 6d964789)
+built by scripts/installer/build-check-kmod.sh: kernel source 44a90255c95f ANYBOOK: GKI: x86: Add anybook_amd KMI symbol l, clang-r584948c, container openbook-installer:anal189
+QEMU emulator version 11.1.2
+ASL+ Optimizing Compiler/Disassembler version 20251212
+edk2-ovmf 202608-1

@@ -1,0 +1,41 @@
+{
+ "reason": "QEMU exited (0)",
+ "seconds": 49.2,
+ "steps_done": 9,
+ "steps": 9,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "OpenBook hardware check",
+   "t": 1.7
+  },
+  {
+   "step": 3,
+   "wait": "GPU powered down",
+   "t": 1.7
+  },
+  {
+   "step": 5,
+   "wait": "dgpu-detach: .* function",
+   "t": 15.5
+  },
+  {
+   "step": 6,
+   "wait": "sleep: RTC alarm in 20 s",
+   "t": 25.6
+  },
+  {
+   "step": 7,
+   "wait": "sleep: write returned",
+   "t": 45.9
+  },
+  {
+   "step": 8,
+   "wait": "hwcheck: report saved; powering off",
+   "t": 49.1
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/hwcheck/upd4-dgpuoff.img",
+ "nvme": "/home/hive/anybook/installer/matrix-20261016-openbook/decoy-nvme.img"
+}

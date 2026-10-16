@@ -1,0 +1,26 @@
+{
+ "schema": "openbook-hwcheck/4",
+ "board": "",
+ "bios": "unknown",
+ "cpu": "AMD Ryzen 9 7950X 16-Core Processor",
+ "modules": {"loaded": 236, "failed": 0, "skipped": 29},
+ "checks": {
+  "gpu_amdgpu": false,
+  "edp_connected": false,
+  "wifi_wlan0": false,
+  "bluetooth_hci0": false,
+  "touchpad": false,
+  "keyboard": true,
+  "lid_switch": false,
+  "battery": false,
+  "npu_accel": false,
+  "usb4_thunderbolt": false,
+  "typec_ports": 0,
+  "sound_cards": 0,
+  "cpufreq_driver": "dummy",
+  "mem_sleep": "s2idle [deep]",
+  "dgpu_power": "absent"
+ },
+ "dgpu_detach": {"ran": true, "functions": 1, "bridge": "0000:00:04.0", "bridge_before": "D0", "bridge_after": "D0"},
+ "sleep_test": {"ran": true, "write_rc": 3, "asleep_s": 19.8, "suspend_success_delta": 1, "suspend_fail_delta": 0, "s0ix_residency_us": -1, "edp_after": ""}
+}

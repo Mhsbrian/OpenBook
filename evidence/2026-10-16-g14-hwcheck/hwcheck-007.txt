@@ -1,0 +1,822 @@
+PROBE openbook-probe start (pid 1)
+PROBE cmdline| vmw_vsock_virtio_transport_common.virtio_transport_max_vsock_pkt_buf_size=16384 console=ttynull stack_depot_disable=on cgroup_disable=pressure bootconfig initrd=\openbook\a\vendor_ramdisk.img initrd=\openbook\a\ramdisk.img initrd=\openbook\check\hwcheck.img initrd=\openbook\a\bootconfig.img printk.devkmsg=on audit=1 panic=-1 8250.nr_uarts=1 binder.impl=rust cma=0 firmware_class.path=/vendor/etc/ loop.max_part=7 init=/init bootconfig console=ttyS0,115200 loglevel=7 rdinit=/openbook-probe rdinit=/openbook-check/probe openbook.probe=report openbook.probe.sleep=1 openbook.probe.dgpu=detach openbook.probe.acpi_d3cold=_SB.PCI0.GPP0.SWUS
+PROBE cmdline: 1 line(s) from /proc/cmdline
+PROBE bootconfig| androidboot.hardware = "cutf_cvm"
+PROBE bootconfig| androidboot.vendor.apex.com.android.hardware.keymint = "com.android.hardware.keymint.rust_nonsecure"
+PROBE bootconfig| androidboot.vendor.apex.com.android.hardware.gatekeeper = "com.android.hardware.gatekeeper.nonsecure"
+PROBE bootconfig| androidboot.vendor.apex.com.android.hardware.secure_element = "com.android.hardware.secure_element"
+PROBE bootconfig| androidboot.vendor.apex.com.android.hardware.strongbox = "none"
+PROBE bootconfig| androidboot.vendor.apex.com.android.hardware.graphics.composer = "com.android.hardware.graphics.composer.ranchu"
+PROBE bootconfig| androidboot.vendor.apex.com.google.emulated.camera.provider.hal = "com.google.emulated.camera.provider.hal"
+PROBE bootconfig| androidboot.wifi_impl = "virt_wifi"
+PROBE bootconfig| androidboot.hypervisor.vm.supported = "0"
+PROBE bootconfig| androidboot.hypervisor.protected_vm.supported = "0"
+PROBE bootconfig| androidboot.fstab_suffix = "cf.f2fs.hctr2"
+PROBE bootconfig| androidboot.console = "ttyS0"
+PROBE bootconfig| androidboot.serialconsole = "1"
+PROBE bootconfig| androidboot.slot_suffix = "_a"
+PROBE bootconfig| androidboot.force_normal_boot = "1"
+PROBE bootconfig| androidboot.verifiedbootstate = "orange"
+PROBE bootconfig| androidboot.vbmeta.device_state = "unlocked"
+PROBE bootconfig| androidboot.vbmeta.avb_version = "1.3"
+PROBE bootconfig| androidboot.vbmeta.hash_alg = "sha256"
+PROBE bootconfig| androidboot.vbmeta.size = "23552"
+PROBE bootconfig| androidboot.vbmeta.digest = "09f36fab8a9eb3afce09cf5f70e2cf1b790fd27e52985169ff64ee629a2eef92"
+PROBE bootconfig| androidboot.vbmeta.invalidate_on_error = "yes"
+PROBE bootconfig| androidboot.veritymode = "enforcing"
+PROBE bootconfig| androidboot.serialno = "OPENBOOKPROTO01"
+PROBE bootconfig| androidboot.openbook.loader = "sdboot"
+PROBE bootconfig| androidboot.boot_part_uuid = "3a26490e-49fb-50d4-afb0-82299526ec44"
+PROBE bootconfig| kernel.vmw_vsock_virtio_transport_common.virtio_transport_max_vsock_pkt_buf_size = "16384"
+PROBE bootconfig| # Parameters from bootloader:
+PROBE bootconfig| # console=ttynull stack_depot_disable=on cgroup_disable=pressure bootconfig initrd=\openbook\a\vendor_ramdisk.img initrd=\openbook\a\ramdisk.img initrd=\openbook\check\hwcheck.img initrd=\openbook\a\bootconfig.img printk.devkmsg=on audit=1 panic=-1 8250.nr_uarts=1 binder.impl=rust cma=0 firmware_class.path=/vendor/etc/ loop.max_part=7 init=/init bootconfig console=ttyS0,115200 loglevel=7 rdinit=/openbook-probe rdinit=/openbook-check/probe openbook.probe=report openbook.probe.sleep=1 openbook.probe.dgpu=detach openbook.probe.acpi_d3cold=_SB.PCI0.GPP0.SWUS
+PROBE bootconfig: 29 line(s) from /proc/bootconfig
+PROBE ramdisk: vendor ramdisk fstab present
+PROBE ramdisk: generic ramdisk /init present, /system/bin/snapuserd present
+PROBE ramdisk: kernel 6.18.21-android17-5-g44a90255c95f, release module dir present
+PROBE block: 1 partition(s) with PARTUUID=3a26490e-49fb-50d4-afb0-82299526ec44 after 1.4 s
+PROBE block: sda4       partname=boot_b                 partuuid=484121d4-1706-5d5d-9f8d-d56a1883ca0e pci0000:00/0000:00:08.3/0000:67:00.0/usb4/4-1/4-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda4
+PROBE block: nvme0n1    partname=-                      partuuid=-                                    pci0000:00/0000:00:02.1/0000:61:00.0/nvme/nvme0/nvme0n1
+PROBE block: sda16      partname=vbmeta_vendor_dlkm_b   partuuid=025e1178-9cc7-51ca-90ab-f36d873330fd pci0000:00/0000:00:08.3/0000:67:00.0/usb4/4-1/4-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda16
+PROBE block: sda2       partname=misc                   partuuid=6d52e07d-4868-5b46-aba3-f13fa6833b57 pci0000:00/0000:00:08.3/0000:67:00.0/usb4/4-1/4-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda2
+PROBE block: sda14      partname=vbmeta_system_dlkm_b   partuuid=96a116f4-4d2e-598a-a508-05ce79924d42 pci0000:00/0000:00:08.3/0000:67:00.0/usb4/4-1/4-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda14
+PROBE block: sda12      partname=vbmeta_system_b        partuuid=49c1140d-5ce2-5d82-9e48-e8fb8e7cb5f0 pci0000:00/0000:00:08.3/0000:67:00.0/usb4/4-1/4-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda12
+PROBE block: sda9       partname=vbmeta_a               partuuid=0aa73b33-6237-5a93-a551-11da58a77375 pci0000:00/0000:00:08.3/0000:67:00.0/usb4/4-1/4-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda9
+PROBE block: sda10      partname=vbmeta_b               partuuid=8cab5d44-0fd9-5cde-9c72-0370ea03de8d pci0000:00/0000:00:08.3/0000:67:00.0/usb4/4-1/4-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda10
+PROBE block: sda7       partname=vendor_boot_a          partuuid=f0b05ca1-a7c7-54a0-8148-1c2182f162a2 pci0000:00/0000:00:08.3/0000:67:00.0/usb4/4-1/4-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda7
+PROBE block: nvme0n1p1  partname=-                      partuuid=[redacted]                           pci0000:00/0000:00:02.1/0000:61:00.0/nvme/nvme0/nvme0n1/nvme0n1p1
+PROBE block: sda19      partname=userdata               partuuid=110599c3-f5c0-5164-b095-5ad4d49b6b16 pci0000:00/0000:00:08.3/0000:67:00.0/usb4/4-1/4-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda19
+PROBE block: sda5       partname=init_boot_a            partuuid=a3d532e7-c66b-52d0-a08c-5a8dda4b66db pci0000:00/0000:00:08.3/0000:67:00.0/usb4/4-1/4-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda5
+PROBE block: sda17      partname=metadata               partuuid=75472001-62dd-5096-8592-4b85f6a675f3 pci0000:00/0000:00:08.3/0000:67:00.0/usb4/4-1/4-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda17
+PROBE block: sda3       partname=boot_a                 partuuid=19b938c2-2261-5468-a734-9f22a4043953 pci0000:00/0000:00:08.3/0000:67:00.0/usb4/4-1/4-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda3
+PROBE block: sda15      partname=vbmeta_vendor_dlkm_a   partuuid=00a084af-cfd6-5ec2-8e92-65873f96e252 pci0000:00/0000:00:08.3/0000:67:00.0/usb4/4-1/4-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda15
+PROBE block: sda1       partname=EFI                    partuuid=3a26490e-49fb-50d4-afb0-82299526ec44 pci0000:00/0000:00:08.3/0000:67:00.0/usb4/4-1/4-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda1
+PROBE block: sda13      partname=vbmeta_system_dlkm_a   partuuid=e07cbd50-95a3-5d40-8446-ec9ec6e94d54 pci0000:00/0000:00:08.3/0000:67:00.0/usb4/4-1/4-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda13
+PROBE block: sda        partname=-                      partuuid=-                                    pci0000:00/0000:00:08.3/0000:67:00.0/usb4/4-1/4-1:1.0/host0/target0:0:0/0:0:0:0/block/sda
+PROBE block: sda11      partname=vbmeta_system_a        partuuid=fc096d8f-a9be-5ec2-846b-6e4ec4c1a6bf pci0000:00/0000:00:08.3/0000:67:00.0/usb4/4-1/4-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda11
+PROBE block: sda8       partname=vendor_boot_b          partuuid=863ff1ce-c9f8-549c-8142-5c3860e2b3b6 pci0000:00/0000:00:08.3/0000:67:00.0/usb4/4-1/4-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda8
+PROBE block: nvme0n1p2  partname=-                      partuuid=[redacted]                           pci0000:00/0000:00:02.1/0000:61:00.0/nvme/nvme0/nvme0n1/nvme0n1p2
+PROBE block: sda6       partname=init_boot_b            partuuid=b0716930-38b4-52d4-aac2-ad72de4aa2db pci0000:00/0000:00:08.3/0000:67:00.0/usb4/4-1/4-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda6
+PROBE block: sda18      partname=super                  partuuid=c4307e2d-bf6b-57b9-a750-02e0bc34d12e pci0000:00/0000:00:08.3/0000:67:00.0/usb4/4-1/4-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda18
+PROBE efi: booted via UEFI
+PROBE hwcheck: OpenBook hardware check v6 with a sleep test (dGPU powered down first). Writes only to the boot stick, then powers off.
+PROBE dmi: sys_vendor = ASUSTeK COMPUTER INC.
+PROBE dmi: product_name = ROG Zephyrus G14 GA403WR_GA403WR
+PROBE dmi: product_family = ROG Zephyrus G14
+PROBE dmi: product_version = 1.0
+PROBE dmi: board_vendor = ASUSTeK COMPUTER INC.
+PROBE dmi: board_name = GA403WR
+PROBE dmi: board_version = 1.0
+PROBE dmi: bios_vendor = American Megatrends International, LLC.
+PROBE dmi: bios_version = GA403WR.309
+PROBE dmi: bios_date = 09/17/2025
+PROBE cpu: model name	: AMD Ryzen AI 9 HX 370 w/ Radeon 890M
+PROBE cpu: avx_vnni=yes avx512_vnni=yes sev=no
+PROBE cpu: 24 logical CPUs
+PROBE mem: MemTotal:       31938132 kB
+PROBE pci[before]: 0000:00:03.1 1022:150b class 060400 driver pcieport acpi \_SB_.PCI0.GPP9
+PROBE pci[before]: 0000:67:00.0 1022:151f class 0c0330 driver xhci_hcd acpi \_SB_.PCI0.GPPC.XHC0
+PROBE pci[before]: 0000:00:08.0 1022:1509 class 060000 driver -
+PROBE pci[before]: 0000:00:18.3 1022:16fb class 060000 driver -
+PROBE pci[before]: 0000:65:00.6 1022:15e3 class 040300 driver - acpi \_SB_.PCI0.GPPA.AZAL
+PROBE pci[before]: 0000:00:18.1 1022:16f9 class 060000 driver -
+PROBE pci[before]: 0000:65:00.4 1022:151e class 0c0330 driver xhci_hcd acpi \_SB_.PCI0.GPPA.XHC1
+PROBE pci[before]: 0000:00:01.0 1022:1509 class 060000 driver -
+PROBE pci[before]: 0000:66:00.0 1022:150d class 130000 driver -
+PROBE pci[before]: 0000:00:02.3 1022:150b class 060400 driver pcieport acpi \_SB_.PCI0.GPP5
+PROBE pci[before]: 0000:65:00.2 1022:17e0 class 108000 driver - acpi \_SB_.PCI0.GPPA.PSP_
+PROBE pci[before]: 0000:00:14.3 1022:790e class 060100 driver - acpi \_SB_.PCI0.SBRG
+PROBE pci[before]: 0000:67:00.5 1022:151c class 0c0340 driver - acpi \_SB_.PCI0.GPPC.NHI0
+PROBE pci[before]: 0000:00:02.1 1022:150b class 060400 driver pcieport acpi \_SB_.PCI0.GPP3
+PROBE pci[before]: 0000:65:00.0 1002:150e class 038000 driver - acpi \_SB_.PCI0.GPPA.VGA_
+PROBE pci[before]: 0000:00:00.2 1022:1508 class 080600 driver - acpi \_SB_.PCI0.IOMA
+PROBE pci[before]: 0000:67:00.3 1022:151a class 0c0330 driver xhci_hcd acpi \_SB_.PCI0.GPPC.XHC3
+PROBE pci[before]: 0000:00:08.3 1022:150c class 060400 driver pcieport acpi \_SB_.PCI0.GPPC
+PROBE pci[before]: 0000:00:18.6 1022:16fe class 060000 driver -
+PROBE pci[before]: 0000:00:00.0 1022:1507 class 060000 driver -
+PROBE pci[before]: 0000:00:08.1 1022:150c class 060400 driver pcieport acpi \_SB_.PCI0.GPPA
+PROBE pci[before]: 0000:64:00.0 10de:2f58 class 030000 driver - acpi \_SB_.PCI0.GPP9.PEGP
+PROBE pci[before]: 0000:00:18.4 1022:16fc class 060000 driver -
+PROBE pci[before]: 0000:00:03.0 1022:1509 class 060000 driver -
+PROBE pci[before]: 0000:00:18.2 1022:16fa class 060000 driver -
+PROBE pci[before]: 0000:65:00.5 1022:15e2 class 048000 driver - acpi \_SB_.PCI0.GPPA.ACP_
+PROBE pci[before]: 0000:00:01.1 1022:150a class 060400 driver pcieport acpi \_SB_.PCI0.GPP0
+PROBE pci[before]: 0000:66:00.1 1022:17f0 class 118000 driver - acpi \_SB_.PCI0.GPPB.IPU_
+PROBE pci[before]: 0000:63:00.0 14c3:7925 class 028000 driver - acpi \_SB_.PCI0.GPP5.WLAN
+PROBE pci[before]: 0000:00:18.0 1022:16f8 class 060000 driver -
+PROBE pci[before]: 0000:00:02.2 1022:150b class 060400 driver pcieport acpi \_SB_.PCI0.GPP4
+PROBE pci[before]: 0000:65:00.1 1002:1640 class 040300 driver - acpi \_SB_.PCI0.GPPA.HDAU
+PROBE pci[before]: 0000:62:00.0 10ec:525a class ff0000 driver - acpi \_SB_.PCI0.GPP4.SDCR
+PROBE pci[before]: 0000:67:00.4 1022:151b class 0c0330 driver xhci_hcd acpi \_SB_.PCI0.GPPC.XHC4
+PROBE pci[before]: 0000:00:02.0 1022:1509 class 060000 driver -
+PROBE pci[before]: 0000:00:18.7 1022:16ff class 060000 driver -
+PROBE pci[before]: 0000:00:14.0 1022:790b class 0c0500 driver - acpi \_SB_.PCI0.SMBS
+PROBE pci[before]: 0000:00:08.2 1022:150c class 060400 driver pcieport acpi \_SB_.PCI0.GPPB
+PROBE pci[before]: 0000:64:00.1 10de:2f80 class 040300 driver - acpi \_SB_.PCI0.GPP9.NHDA
+PROBE pci[before]: 0000:00:18.5 1022:16fd class 060000 driver -
+PROBE pci[before]: 0000:61:00.0 1c5c:1f69 class 010802 driver nvme acpi \_SB_.PCI0.GPP3.NVME
+PROBE pci[before]: 41 devices, 13 with a driver
+PROBE report: writing /openbook/logs/hwcheck-007.txt on sda1 (USB)
+PROBE modules: 265 known, loading in modules.load order
+PROBE module rust_binder.ko: loaded
+PROBE module binder_alloc_kunit.ko: skipped (safety list)
+PROBE module regmap-kunit.ko: skipped (safety list)
+PROBE module regmap-ram.ko: loaded
+PROBE module regmap-raw-ram.ko: loaded
+PROBE module virtio_blk.ko: loaded
+PROBE module zsmalloc.ko: loaded
+PROBE module zram.ko: loaded
+PROBE module rfkill.ko: loaded
+PROBE module bluetooth.ko: loaded
+PROBE module btbcm.ko: loaded
+PROBE module btqca.ko: loaded
+PROBE module btsdio.ko: loaded
+PROBE module pwrseq-core.ko: loaded
+PROBE module hci_uart.ko: loaded
+PROBE module virtio_console.ko: loaded
+PROBE module clk_kunit_helpers.ko: skipped (safety list)
+PROBE module gnss.ko: loaded
+PROBE module hid-uclogic-test.ko: skipped (safety list)
+PROBE module iio-test-format.ko: skipped (safety list)
+PROBE module input_test.ko: skipped (safety list)
+PROBE module open-dice.ko: loaded
+PROBE module vcpu_stall_detector.ko: loaded
+PROBE module can-dev.ko: loaded
+PROBE module slcan.ko: loaded
+PROBE module vcan.ko: loaded
+PROBE module macsec.ko: loaded
+PROBE module mii.ko: loaded
+PROBE module slhc.ko: loaded
+PROBE module ppp_generic.ko: loaded
+PROBE module bsd_comp.ko: loaded
+PROBE module ppp_deflate.ko: loaded
+PROBE module libarc4.ko: loaded
+PROBE module ppp_mppe.ko: loaded
+PROBE module pppox.ko: loaded
+PROBE module pptp.ko: loaded
+PROBE module usbnet.ko: loaded
+PROBE module aqc111.ko: loaded
+PROBE module asix.ko: loaded
+PROBE module ax88179_178a.ko: loaded
+PROBE module cdc_eem.ko: loaded
+PROBE module cdc_ether.ko: loaded
+PROBE module cdc_ncm.ko: loaded
+PROBE module r8152.ko: loaded
+PROBE module r8153_ecm.ko: loaded
+PROBE module rtl8150.ko: loaded
+PROBE module wwan.ko: loaded
+PROBE module of_kunit_helpers.ko: skipped (safety list)
+PROBE module pps_core.ko: loaded
+PROBE module ptp.ko: loaded
+PROBE module test_rtc_lib.ko: skipped (safety list)
+PROBE module thunderbolt.ko: loaded
+PROBE module cdc-acm.ko: loaded
+PROBE module usbmon.ko: loaded
+PROBE module usbserial.ko: loaded
+PROBE module ftdi_sio.ko: loaded
+PROBE module virtio_balloon.ko: loaded
+PROBE module virtio_pci_legacy_dev.ko: loaded
+PROBE module virtio_pci_modern_dev.ko: loaded
+PROBE module virtio_pci.ko: loaded
+PROBE module ext4-inode-test.ko: skipped (safety list)
+PROBE module fat_test.ko: skipped (safety list)
+PROBE module netfs.ko: loaded
+PROBE module kheaders.ko: loaded
+PROBE module time_test.ko: skipped (safety list)
+PROBE module crc-ccitt.ko: loaded
+PROBE module kunit-example-test.ko: skipped (safety list)
+PROBE module kunit-test.ko: skipped (safety list)
+PROBE module kunit.ko: skipped (safety list)
+PROBE module platform-test.ko: skipped (safety list)
+PROBE module 6lowpan.ko: loaded
+PROBE module nhc_dest.ko: loaded
+PROBE module nhc_fragment.ko: loaded
+PROBE module nhc_hop.ko: loaded
+PROBE module nhc_ipv6.ko: loaded
+PROBE module nhc_mobility.ko: loaded
+PROBE module nhc_routing.ko: loaded
+PROBE module nhc_udp.ko: loaded
+PROBE module 8021q.ko: loaded
+PROBE module 9pnet.ko: loaded
+PROBE module 9pnet_fd.ko: loaded
+PROBE module hidp.ko: loaded
+PROBE module rfcomm.ko: loaded
+PROBE module can.ko: loaded
+PROBE module can-bcm.ko: loaded
+PROBE module can-gw.ko: loaded
+PROBE module can-raw.ko: loaded
+PROBE module dev_addr_lists_test.ko: skipped (safety list)
+PROBE module ieee802154.ko: loaded
+PROBE module ieee802154_6lowpan.ko: loaded
+PROBE module ieee802154_socket.ko: loaded
+PROBE module l2tp_core.ko: loaded
+PROBE module l2tp_ppp.ko: loaded
+PROBE module mac802154.ko: loaded
+PROBE module nfc.ko: loaded
+PROBE module tipc.ko: loaded
+PROBE module tipc_diag.ko: loaded
+PROBE module vmw_vsock_virtio_transport.ko: loaded
+PROBE module soc-topology-test.ko: skipped (safety list)
+PROBE module soc-utils-test.ko: skipped (safety list)
+PROBE module test_meminit.ko: skipped (safety list)
+PROBE module virtio-rng.ko: loaded
+PROBE module vkms.ko: skipped (blocklist)
+PROBE module nd_virtio.ko: loaded
+PROBE module virtio_pmem.ko: loaded
+PROBE module system_heap.ko: loaded
+PROBE module failover.ko: loaded
+PROBE module net_failover.ko: loaded
+PROBE module virtio_net.ko: loaded
+PROBE module gs_usb.ko: loaded
+PROBE module dummy_hcd.ko: loaded
+PROBE module usbip-core.ko: loaded
+PROBE module vhci-hcd.ko: loaded
+PROBE module rtc-test.ko: skipped (safety list)
+PROBE module pulse8-cec.ko: loaded
+PROBE module v4l2-tpg.ko: loaded
+PROBE module vivid.ko: skipped (blocklist)
+PROBE module goldfish_battery.ko: loaded
+PROBE module dummy-cpufreq.ko: already loaded
+PROBE module hci_vhci.ko: loaded
+PROBE module snd-aloop.ko: skipped (blocklist)
+PROBE module virtio_snd.ko: loaded
+PROBE module goldfish_address_space.ko: loaded
+PROBE module goldfish_pipe.ko: loaded
+PROBE module goldfish_sync.ko: loaded
+PROBE module v4l2loopback.ko: loaded
+PROBE module virtio-media.ko: loaded
+PROBE module gpu-sched.ko: loaded
+PROBE module amdxdna.ko: loaded
+PROBE module ac.ko: loaded
+PROBE module battery.ko: loaded
+PROBE module hwmon.ko: loaded
+PROBE module fan.ko: loaded
+PROBE module platform_profile.ko: loaded
+PROBE module thermal.ko: loaded
+PROBE module wmi.ko: loaded
+PROBE module video.ko: loaded
+PROBE module btintel.ko: loaded
+PROBE module btmtk.ko: loaded
+PROBE module btrtl.ko: loaded
+PROBE module btusb.ko: loaded
+PROBE module tpm.ko: loaded
+PROBE module tpm_crb.ko: loaded
+PROBE module cs_dsp.ko: loaded
+PROBE module drm_panel_backlight_quirks.ko: loaded
+PROBE module drm_buddy.ko: loaded
+PROBE module drm_suballoc_helper.ko: loaded
+PROBE module drm_ttm_helper.ko: loaded
+PROBE module drm_exec.ko: loaded
+PROBE module i2c-algo-bit.ko: loaded
+PROBE module drm_display_helper.ko: loaded
+PROBE module amdxcp.ko: loaded
+PROBE module amdgpu.ko: loaded
+PROBE module virtio_dma_buf.ko: loaded
+PROBE module virtio-gpu.ko: loaded
+PROBE module amd_sfh.ko: loaded
+PROBE module hid-asus.ko: skipped (safety list)
+PROBE module i2c-hid.ko: loaded
+PROBE module i2c-hid-acpi.ko: loaded
+PROBE module k10temp.ko: loaded
+PROBE module i2c-designware-core.ko: loaded
+PROBE module i2c-designware-platform.ko: loaded
+PROBE module i2c-smbus.ko: loaded
+PROBE module i2c-piix4.ko: loaded
+PROBE module sparse-keymap.ko: loaded
+PROBE module mfd-core.ko: loaded
+PROBE module rtsx_pci.ko: loaded
+PROBE module rtsx_pci_sdmmc.ko: loaded
+PROBE module cfg80211.ko: loaded
+PROBE module mac80211.ko: loaded
+PROBE module mt76.ko: loaded
+PROBE module mt76-connac-lib.ko: loaded
+PROBE module mt792x-lib.ko: loaded
+PROBE module mt7921-common.ko: loaded
+PROBE module mt7921e.ko: loaded
+PROBE module mt7925-common.ko: loaded
+PROBE module mt7925e.ko: loaded
+PROBE module rtw89_core.ko: loaded
+PROBE module rtw89_8851b.ko: loaded
+PROBE module rtw89_pci.ko: loaded
+PROBE module rtw89_8851be.ko: loaded
+PROBE module rtw89_8852a.ko: loaded
+PROBE module rtw89_8852ae.ko: loaded
+PROBE module rtw89_8852b_common.ko: loaded
+PROBE module rtw89_8852b.ko: loaded
+PROBE module rtw89_8852be.ko: loaded
+PROBE module rtw89_8852c.ko: loaded
+PROBE module rtw89_8852ce.ko: loaded
+PROBE module rtw89_8922a.ko: loaded
+PROBE module rtw89_8922ae.ko: loaded
+PROBE module amd-pmc.ko: loaded
+PROBE module asus-nb-wmi.ko: skipped (safety list)
+PROBE module asus-wmi.ko: skipped (safety list)
+PROBE module nvidia-wmi-ec-backlight.ko: loaded
+PROBE module serial-multi-instantiate.ko: loaded
+PROBE module wmi-bmof.ko: loaded
+PROBE module spi-amd.ko: loaded
+PROBE module spi-amd-pci.ko: loaded
+PROBE module ucsi_acpi.ko: loaded
+PROBE module virtio_input.ko: loaded
+PROBE module snd-ctl-led.ko: loaded
+PROBE module snd-hda-core.ko: loaded
+PROBE module snd-hda-codec.ko: loaded
+PROBE module snd-hda-codec-hdmi.ko: loaded
+PROBE module snd-hda-codec-atihdmi.ko: loaded
+PROBE module snd-hda-codec-intelhdmi.ko: loaded
+PROBE module snd-hda-codec-simplehdmi.ko: loaded
+PROBE module snd-hda-codec-nvhdmi-mcp.ko: loaded
+PROBE module snd-hda-codec-nvhdmi.ko: loaded
+PROBE module snd-hda-codec-tegrahdmi.ko: loaded
+PROBE module snd-hda-codec-generic.ko: loaded
+PROBE module snd-hda-codec-realtek-lib.ko: loaded
+PROBE module snd-hda-codec-alc260.ko: loaded
+PROBE module snd-hda-codec-alc262.ko: loaded
+PROBE module snd-hda-codec-alc268.ko: loaded
+PROBE module snd-hda-scodec-component.ko: loaded
+PROBE module snd-hda-codec-alc269.ko: loaded
+PROBE module snd-hda-codec-alc662.ko: loaded
+PROBE module snd-hda-codec-alc680.ko: loaded
+PROBE module snd-hda-codec-alc861.ko: loaded
+PROBE module snd-hda-codec-alc861vd.ko: loaded
+PROBE module snd-hda-codec-alc880.ko: loaded
+PROBE module snd-hda-codec-alc882.ko: loaded
+PROBE module snd-hda-cirrus-scodec.ko: loaded
+PROBE module snd-hda-scodec-cs35l56-i2c.ko: skipped (safety list)
+PROBE module snd-hda-scodec-cs35l56.ko: skipped (safety list)
+PROBE module snd-hda-intel.ko: loaded
+PROBE module snd-acp-i2s.ko: loaded
+PROBE module snd-acp-legacy-common.ko: loaded
+PROBE module snd-soc-nau8821.ko: loaded
+PROBE module snd-acp-mach.ko: loaded
+PROBE module snd-acp-legacy-mach.ko: loaded
+PROBE module snd-amd-acpi-mach.ko: loaded
+PROBE module snd-acp-config.ko: loaded
+PROBE module snd-acp-pci.ko: loaded
+PROBE module snd-acp-pcm.ko: loaded
+PROBE module snd-acp-pdm.ko: loaded
+PROBE module snd-acp-sof-mach.ko: loaded
+PROBE module snd-acp70.ko: loaded
+PROBE module snd-amd-sdw-acpi.ko: loaded
+PROBE module snd-soc-acpi-amd-match.ko: loaded
+PROBE module snd-pci-ps.ko: loaded
+PROBE module snd-ps-pdm-dma.ko: loaded
+PROBE module snd-ps-sdw-dma.ko: loaded
+PROBE module snd-soc-ps-mach.ko: loaded
+PROBE module snd-soc-cs-amp-lib.ko: loaded
+PROBE module snd-soc-cs35l56-shared.ko: skipped (safety list)
+PROBE module snd-soc-dmic.ko: loaded
+PROBE module snd-soc-max98357a.ko: loaded
+PROBE module snd-soc-max98388.ko: loaded
+PROBE module snd-soc-nau8825.ko: loaded
+PROBE module snd-soc-rl6231.ko: loaded
+PROBE module snd-soc-rt1019.ko: loaded
+PROBE module snd-soc-rt5682.ko: loaded
+PROBE module snd-soc-rt5682-i2c.ko: loaded
+PROBE module snd-soc-rt5682s.ko: loaded
+PROBE module snd-sof-xtensa-dsp.ko: loaded
+PROBE module snd-sof-utils.ko: loaded
+PROBE module snd-sof.ko: loaded
+PROBE module snd-sof-amd-acp.ko: loaded
+PROBE module snd-sof-pci.ko: loaded
+PROBE module snd-sof-amd-acp63.ko: loaded
+PROBE module snd-sof-amd-acp70.ko: loaded
+PROBE module snd-sof-amd-rembrandt.ko: loaded
+PROBE module snd-sof-probes.ko: loaded
+PROBE modules: 235 loaded, 0 failed, 29 skipped
+PROBE hwcheck: waiting 10 s for drivers to finish probing (firmware loads are asynchronous)
+PROBE pci[after]: 0000:00:03.1 1022:150b class 060400 driver pcieport acpi \_SB_.PCI0.GPP9
+PROBE pci[after]: 0000:67:00.0 1022:151f class 0c0330 driver xhci_hcd acpi \_SB_.PCI0.GPPC.XHC0
+PROBE pci[after]: 0000:00:08.0 1022:1509 class 060000 driver -
+PROBE pci[after]: 0000:00:18.3 1022:16fb class 060000 driver k10temp
+PROBE pci[after]: 0000:65:00.6 1022:15e3 class 040300 driver snd_hda_intel acpi \_SB_.PCI0.GPPA.AZAL
+PROBE pci[after]: 0000:00:18.1 1022:16f9 class 060000 driver -
+PROBE pci[after]: 0000:65:00.4 1022:151e class 0c0330 driver xhci_hcd acpi \_SB_.PCI0.GPPA.XHC1
+PROBE pci[after]: 0000:00:01.0 1022:1509 class 060000 driver -
+PROBE pci[after]: 0000:66:00.0 1022:150d class 130000 driver -
+PROBE pci[after]: 0000:00:02.3 1022:150b class 060400 driver pcieport acpi \_SB_.PCI0.GPP5
+PROBE pci[after]: 0000:65:00.2 1022:17e0 class 108000 driver - acpi \_SB_.PCI0.GPPA.PSP_
+PROBE pci[after]: 0000:00:14.3 1022:790e class 060100 driver - acpi \_SB_.PCI0.SBRG
+PROBE pci[after]: 0000:67:00.5 1022:151c class 0c0340 driver thunderbolt acpi \_SB_.PCI0.GPPC.NHI0
+PROBE pci[after]: 0000:00:02.1 1022:150b class 060400 driver pcieport acpi \_SB_.PCI0.GPP3
+PROBE pci[after]: 0000:65:00.0 1002:150e class 038000 driver amdgpu acpi \_SB_.PCI0.GPPA.VGA_
+PROBE pci[after]: 0000:00:00.2 1022:1508 class 080600 driver - acpi \_SB_.PCI0.IOMA
+PROBE pci[after]: 0000:67:00.3 1022:151a class 0c0330 driver xhci_hcd acpi \_SB_.PCI0.GPPC.XHC3
+PROBE pci[after]: 0000:00:08.3 1022:150c class 060400 driver pcieport acpi \_SB_.PCI0.GPPC
+PROBE pci[after]: 0000:00:18.6 1022:16fe class 060000 driver -
+PROBE pci[after]: 0000:00:00.0 1022:1507 class 060000 driver -
+PROBE pci[after]: 0000:00:08.1 1022:150c class 060400 driver pcieport acpi \_SB_.PCI0.GPPA
+PROBE pci[after]: 0000:64:00.0 10de:2f58 class 030000 driver - acpi \_SB_.PCI0.GPP9.PEGP
+PROBE pci[after]: 0000:00:18.4 1022:16fc class 060000 driver -
+PROBE pci[after]: 0000:00:03.0 1022:1509 class 060000 driver -
+PROBE pci[after]: 0000:00:18.2 1022:16fa class 060000 driver -
+PROBE pci[after]: 0000:65:00.5 1022:15e2 class 048000 driver snd_acp_pci acpi \_SB_.PCI0.GPPA.ACP_
+PROBE pci[after]: 0000:00:01.1 1022:150a class 060400 driver pcieport acpi \_SB_.PCI0.GPP0
+PROBE pci[after]: 0000:66:00.1 1022:17f0 class 118000 driver amdxdna acpi \_SB_.PCI0.GPPB.IPU_
+PROBE pci[after]: 0000:63:00.0 14c3:7925 class 028000 driver mt7925e acpi \_SB_.PCI0.GPP5.WLAN
+PROBE pci[after]: 0000:00:18.0 1022:16f8 class 060000 driver -
+PROBE pci[after]: 0000:00:02.2 1022:150b class 060400 driver pcieport acpi \_SB_.PCI0.GPP4
+PROBE pci[after]: 0000:65:00.1 1002:1640 class 040300 driver snd_hda_intel acpi \_SB_.PCI0.GPPA.HDAU
+PROBE pci[after]: 0000:62:00.0 10ec:525a class ff0000 driver rtsx_pci acpi \_SB_.PCI0.GPP4.SDCR
+PROBE pci[after]: 0000:67:00.4 1022:151b class 0c0330 driver xhci_hcd acpi \_SB_.PCI0.GPPC.XHC4
+PROBE pci[after]: 0000:00:02.0 1022:1509 class 060000 driver -
+PROBE pci[after]: 0000:00:18.7 1022:16ff class 060000 driver -
+PROBE pci[after]: 0000:00:14.0 1022:790b class 0c0500 driver piix4_smbus acpi \_SB_.PCI0.SMBS
+PROBE pci[after]: 0000:00:08.2 1022:150c class 060400 driver pcieport acpi \_SB_.PCI0.GPPB
+PROBE pci[after]: 0000:64:00.1 10de:2f80 class 040300 driver snd_hda_intel acpi \_SB_.PCI0.GPP9.NHDA
+PROBE pci[after]: 0000:00:18.5 1022:16fd class 060000 driver -
+PROBE pci[after]: 0000:61:00.0 1c5c:1f69 class 010802 driver nvme acpi \_SB_.PCI0.GPP3.NVME
+PROBE pci[after]: 41 devices, 24 with a driver
+PROBE class drm: 13: renderD128 card0-DP-8 card0-DP-6 card0-eDP-1 card0-DP-4 card0-DP-2 card0-DP-7 card0 card0-DP-5 version card0-DP-3 card0-Writeback-1 card0-DP-1
+PROBE class net: 14: dummy0 gretap0 erspan0 ip6_vti0 tunl0 wlan0 sit0 ifb1 lo ip6tnl0 ip_vti0 gre0 ip6gre0 ifb0
+PROBE class bluetooth: 1: hci0
+PROBE class sound: 15: controlC2 controlC0 card1 pcmC1D3p pcmC0D9p pcmC0D8p pcmC0D7p pcmC0D3p timer controlC1 card2 pcmC2D0c card0 ctl-led pcmC2D0p
+PROBE class backlight: 1: amdgpu_bl0
+PROBE class power_supply: 4: ucsi-source-psy-USBC000:002 BAT1 ucsi-source-psy-USBC000:001 ACAD
+PROBE class hwmon: 4: hwmon2 hwmon0 hwmon3 hwmon1
+PROBE class thermal: 27: cooling_device13 cooling_device1 cooling_device21 cooling_device11 thermal_zone0 cooling_device8 cooling_device18 cooling_device6 cooling_device16 cooling_device4 cooling_device24 cooling_device14 cooling_device2 cooling_device22 cooling_device12 thermal_zone1 cooling_device0 cooling_device20 cooling_device10 cooling_device9 cooling_device19 cooling_device7 cooling_device17 cooling_device5 cooling_device15 cooling_device3 cooling_device23
+PROBE class i2c-dev: none
+PROBE class accel: 1: accel0
+PROBE class typec: 2: port0 port1
+PROBE class rtc: 1: rtc0
+PROBE input: input9 ITE Tech. Inc. ITE Device(8910) Mouse
+PROBE input: input14 HD-Audio Generic HDMI/DP,pcm=3
+PROBE input: input7 ITE Tech. Inc. ITE Device(8910)
+PROBE input: input12 ASCE1206:00 04F3:3315 Mouse
+PROBE input: input5 ITE Tech. Inc. ITE Device(8910) Keyboard
+PROBE input: input20 HD-Audio Generic Mic
+PROBE input: input10 Video Bus
+PROBE input: input3 ITE Tech. Inc. ITE Device(8910)
+PROBE input: input19 HD-Audio Generic Mic
+PROBE input: input1 Sleep Button
+PROBE input: input17 HDA NVidia HDMI/DP,pcm=8
+PROBE input: input15 HDA NVidia HDMI/DP,pcm=3
+PROBE input: input8 ITE Tech. Inc. ITE Device(8910) Wireless Radio Control
+PROBE input: input13 ASCE1206:00 04F3:3315 Touchpad
+PROBE input: input6 ITE Tech. Inc. ITE Device(8910)
+PROBE input: input21 HD-Audio Generic Headphone
+PROBE input: input11 Video Bus
+PROBE input: input4 ITE Tech. Inc. ITE Device(8910)
+PROBE input: input2 Lid Switch
+PROBE input: input18 HDA NVidia HDMI/DP,pcm=9
+PROBE input: input0 Power Button
+PROBE input: input16 HDA NVidia HDMI/DP,pcm=7
+PROBE cpufreq: driver: amd-pstate-epp
+PROBE cpufreq: governor: powersave
+PROBE cpufreq: epp: balance_performance
+PROBE cpufreq: epp choices: default performance balance_performance balance_power power 
+PROBE cpufreq: max kHz: 5157895
+PROBE cpufreq: amd_pstate status: active
+PROBE power: state: freeze mem disk
+PROBE power: mem_sleep: [s2idle]
+PROBE display: card0-eDP-1 connected, disabled, preferred mode 2880x1800
+PROBE display: card0-Writeback-1 connected, disabled, preferred mode 2560x1600
+PROBE backlight: max: 399000
+PROBE backlight: actual: 199500
+PROBE battery: status: Discharging
+PROBE battery: capacity: 60
+PROBE battery: charge_full_design: 4580000
+PROBE battery: charge_full: 4063000
+PROBE battery: cycle_count: 0
+PROBE battery: technology: Li-ion
+PROBE battery: manufacturer: ASUS 
+PROBE battery: model_name: A32-K55
+PROBE ac: online: 0
+PROBE dgpu: 0000:64:00.0 class 030000 power_state D0 runtime active driver -
+PROBE dgpu: 0000:64:00.1 class 040300 power_state D0 runtime active driver snd_hda_intel
+PROBE thermal: thermal_zone0 acpitz 39.0 C
+PROBE thermal: thermal_zone1 acpitz 20.0 C
+PROBE acpi-power[before-detach]: \_SB_.PCI0.GPPA.XHC1 D3cold real D3cold device 0000:65:00.4
+PROBE acpi-power[before-detach]: \_SB_.PCI0.GPPA.ACP_ D3cold real D3cold device 0000:65:00.5
+PROBE acpi-power[before-detach]: \_SB_.PCI0.SBRG.EC0_ D0 real - device PNP0C09:00
+PROBE acpi-power[before-detach]: \_SB_.PCI0.GPPC.XHC0.RHUB.PRT3 D0 real D0 device usb3-port3
+PROBE acpi-power[before-detach]: resource \_SB_.PCI0.GPPA.PWRS ON
+PROBE acpi-power[before-detach]: \_SB_.PCI0.GPPA.AZAL D0 real D0 device 0000:65:00.6
+PROBE acpi-power[before-detach]: resource \_SB_.DBTP ON
+PROBE acpi-power[before-detach]: \_SB_.PCI0.GPPA D0 real D0 device 0000:00:08.1
+PROBE acpi-power[before-detach]: \_SB_.PCI0.GPP0.SWUS D0 real D0 device -
+PROBE acpi-power[before-detach]: \_SB_.PCI0.GPP5 D0 real D0 device 0000:00:02.3
+PROBE acpi-power[before-detach]: \_SB_.I2CC D3hot real - device AMDI0010:02
+PROBE acpi-power[before-detach]: resource \_SB_.PCI0.GPP5.WLAN.WRST off
+PROBE acpi-power[before-detach]: resource \_SB_.PCI0.GPPA.XHC1.PWRS off
+PROBE acpi-power[before-detach]: \_SB_.PCI0.GPP9.PEGP D0 real - device 0000:64:00.0
+PROBE acpi-power[before-detach]: resource \_SB_.PCI0.GPPC.NHI1.PWRS off
+PROBE acpi-power[before-detach]: \_SB_.PCI0.GPPC.XHC0 D0 real D0 device 0000:67:00.0
+PROBE acpi-power[before-detach]: \_SB_.I2CA D3hot real - device AMDI0010:00
+PROBE acpi-power[before-detach]: resource \_SB_.PCI0.GPP3.P0NV ON
+PROBE acpi-power[before-detach]: resource \_SB_.PCI0.GPPA.AZAL.PWRS ON
+PROBE acpi-power[before-detach]: \_SB_.PCI0.GPPC.XHC3 D3cold real D3cold device 0000:67:00.3
+PROBE acpi-power[before-detach]: resource \_SB_.PCI0.GPPC.XHC4.PWRS off
+PROBE acpi-power[before-detach]: \_SB_.I2CA.TPD1 D0 real - device i2c-ASCE1206:00
+PROBE acpi-power[before-detach]: resource \_SB_.PCI0.GPP1.PWRS off
+PROBE acpi-power[before-detach]: resource \_SB_.PCI0.GPPC.XHC0.RHUB.PRT3.BTRT off
+PROBE acpi-power[before-detach]: resource \_SB_.PCI0.GPP0.PWRS off
+PROBE acpi-power[before-detach]: \_SB_.PCI0.GPP3 D0 real - device 0000:00:02.1
+PROBE acpi-power[before-detach]: resource \_SB_.PCI0.GPPA.VGA_.PWRS ON
+PROBE acpi-power[before-detach]: \_SB_.PCI0.GPPA.HDAU D0 real D0 device 0000:65:00.1
+PROBE acpi-power[before-detach]: \_SB_.PCI0.GPP5.WLAN D0 real - device 0000:63:00.0
+PROBE acpi-power[before-detach]: \_SB_.I2CD D3hot real - device AMDI0010:03
+PROBE acpi-power[before-detach]: resource \_SB_.PCI0.GPP9.PG00 ON
+PROBE acpi-power[before-detach]: resource \_SB_.PCI0.GPPC.XHC0.PWRS ON
+PROBE acpi-power[before-detach]: \_SB_.PCI0.GPPA.VGA_ D0 real D0 device 0000:65:00.0
+PROBE acpi-power[before-detach]: \_SB_.PCI0.GPP9 D0 real D0 device 0000:00:03.1
+PROBE acpi-power[before-detach]: \_SB_.PCI0.GPPC.NHI0 D0 real D0 device 0000:67:00.5
+PROBE acpi-power[before-detach]: \_SB_.PCI0.GPP0 D3cold real D3cold device 0000:00:01.1
+PROBE acpi-power[before-detach]: \_SB_.PCI0.GPP4.SDCR D3hot real - device 0000:62:00.0
+PROBE acpi-power[before-detach]: resource \_TZ_.QFAN off
+PROBE acpi-power[before-detach]: \_SB_.I2CB D3hot real - device AMDI0010:01
+PROBE acpi-power[before-detach]: \_TZ_.FAN_ D3hot real D3hot device PNP0C0B:00
+PROBE acpi-power[before-detach]: resource \_SB_.PCI0.GPP5.PWSR ON
+PROBE acpi-power[before-detach]: resource \_SB_.PCI0.GPPA.HDAU.PWRS ON
+PROBE acpi-power[before-detach]: resource \_SB_.PCI0.GPPC.NHI0.PWRS ON
+PROBE acpi-power[before-detach]: resource \_SB_.PCI0.GPP1.SWUS.PWRS off
+PROBE acpi-power[before-detach]: resource \_SB_.PCI0.GPPA.ACP_.PWRS off
+PROBE acpi-power[before-detach]: resource \_SB_.PCI0.GPPC.XHC3.PWRS off
+PROBE acpi-power[before-detach]: resource \_SB_.PCI0.GPP0.SWUS.PWRS ON
+PROBE acpi-power[before-detach]: \_SB_.PCI0.GPP3.NVME D0 real D0 device 0000:61:00.0
+PROBE acpi-power[before-detach]: \_SB_.PCI0.GPPC.XHC4 D3cold real D3cold device 0000:67:00.4
+PROBE acpi-power[before-detach]: 27 power-manageable devices, 11 power resources on
+PROBE dgpu-detach: 2 function(s) behind bridge 0000:00:03.1 (bridge D0)
+PROBE dgpu-detach: unbind 0000:64:00.1: ok
+PROBE dgpu-detach: remove 0000:64:00.1: ok
+PROBE dgpu-detach: remove 0000:64:00.0: ok
+PROBE dgpu-detach: bridge 0000:00:03.1 runtime PM auto: ok
+PROBE dgpu-detach: bridge 0000:00:03.1 now D3cold (runtime suspended, d3cold_allowed 1)
+PROBE acpi-d3cold: load openbook_acpi_d3cold.ko paths=_SB.PCI0.GPP0.SWUS: ok
+PROBE pmc-before| === S0ix statistics ===
+PROBE pmc-before| S0ix Entry Time: 0
+PROBE pmc-before| S0ix Exit Time: 0
+PROBE pmc-before| Residency Time: 0
+PROBE pmc-before: 4 line(s) from /sys/kernel/debug/amd_pmc/s0ix_stats
+PROBE pmc-fw| 
+PROBE pmc-fw| === SMU Statistics ===
+PROBE pmc-fw| Table Version: 0
+PROBE pmc-fw| Hint Count: 0
+PROBE pmc-fw| Last S0i3 Status: Unknown/Fail
+PROBE pmc-fw| Time (in us) to S0i3: 0
+PROBE pmc-fw| Time (in us) in S0i3: 0
+PROBE pmc-fw| Time (in us) to resume from S0i3: 0
+PROBE pmc-fw| 
+PROBE pmc-fw| === Active time (in us) ===
+PROBE pmc-fw| DISPLAY  : 0
+PROBE pmc-fw| VDD      : 0
+PROBE pmc-fw| VCN      : 0
+PROBE pmc-fw| ISP      : 0
+PROBE pmc-fw| USB3_0   : 0
+PROBE pmc-fw| USB3_1   : 0
+PROBE pmc-fw| USB3_3   : 0
+PROBE pmc-fw| USB3_4   : 0
+PROBE pmc-fw| USB4_0   : 0
+PROBE pmc-fw| USB4_1   : 0
+PROBE pmc-fw| MPM      : 0
+PROBE pmc-fw| JPEG     : 0
+PROBE pmc-fw| IPU      : 0
+PROBE pmc-fw| UMSCH    : 0
+PROBE pmc-fw| VPE      : 0
+PROBE pmc-fw: 25 line(s) from /sys/kernel/debug/amd_pmc/smu_fw_info
+PROBE pmc-idlemask| SMU idlemask : 0xf5ce9afd
+PROBE pmc-idlemask: 1 line(s) from /sys/kernel/debug/amd_pmc/amd_pmc_idlemask
+PROBE sleep: pm_debug_messages on: ok
+PROBE sleep: dynamic debug 'module amd_pmc +p' on
+PROBE sleep: dynamic debug 'module pinctrl_amd +p' on
+PROBE sleep: dynamic debug 'file drivers/acpi/x86/s2idle.c +p' on
+PROBE awake[before-suspend]: 0000:67:00.0 D0 runtime active driver xhci_hcd
+PROBE awake[before-suspend]: 0000:00:08.0 D0 runtime active driver -
+PROBE awake[before-suspend]: 0000:00:18.3 D0 runtime active driver k10temp
+PROBE awake[before-suspend]: 0000:65:00.6 D0 runtime active driver snd_hda_intel
+PROBE awake[before-suspend]: 0000:00:18.1 D0 runtime active driver -
+PROBE awake[before-suspend]: 0000:00:01.0 D0 runtime active driver -
+PROBE awake[before-suspend]: 0000:66:00.0 D0 runtime active driver -
+PROBE awake[before-suspend]: 0000:00:02.3 D0 runtime active driver pcieport
+PROBE awake[before-suspend]: 0000:65:00.2 D0 runtime active driver -
+PROBE awake[before-suspend]: 0000:00:14.3 D0 runtime active driver -
+PROBE awake[before-suspend]: 0000:67:00.5 D0 runtime active driver thunderbolt
+PROBE awake[before-suspend]: 0000:00:02.1 D0 runtime active driver pcieport
+PROBE awake[before-suspend]: 0000:65:00.0 D0 runtime active driver amdgpu
+PROBE awake[before-suspend]: 0000:00:00.2 D0 runtime active driver -
+PROBE awake[before-suspend]: 0000:00:08.3 D0 runtime active driver pcieport
+PROBE awake[before-suspend]: 0000:00:18.6 D0 runtime active driver -
+PROBE awake[before-suspend]: 0000:00:00.0 D0 runtime active driver -
+PROBE awake[before-suspend]: 0000:00:08.1 D0 runtime active driver pcieport
+PROBE awake[before-suspend]: 0000:00:18.4 D0 runtime active driver -
+PROBE awake[before-suspend]: 0000:00:03.0 D0 runtime active driver -
+PROBE awake[before-suspend]: 0000:00:18.2 D0 runtime active driver -
+PROBE awake[before-suspend]: 0000:63:00.0 D0 runtime active driver mt7925e
+PROBE awake[before-suspend]: 0000:00:18.0 D0 runtime active driver -
+PROBE awake[before-suspend]: 0000:65:00.1 D0 runtime active driver snd_hda_intel
+PROBE awake[before-suspend]: 0000:00:02.0 D0 runtime active driver -
+PROBE awake[before-suspend]: 0000:00:18.7 D0 runtime active driver -
+PROBE awake[before-suspend]: 0000:00:14.0 D0 runtime active driver piix4_smbus
+PROBE awake[before-suspend]: 0000:00:08.2 D0 runtime active driver pcieport
+PROBE awake[before-suspend]: 0000:00:18.5 D0 runtime active driver -
+PROBE awake[before-suspend]: 0000:61:00.0 D0 runtime active driver nvme
+PROBE awake[before-suspend]: 30 PCI functions not in D3
+PROBE acpi-power[before-suspend]: \_SB_.PCI0.GPPA.XHC1 D3cold real D3cold device 0000:65:00.4
+PROBE acpi-power[before-suspend]: \_SB_.PCI0.GPPA.ACP_ D3cold real D3cold device 0000:65:00.5
+PROBE acpi-power[before-suspend]: \_SB_.PCI0.SBRG.EC0_ D0 real - device PNP0C09:00
+PROBE acpi-power[before-suspend]: \_SB_.PCI0.GPPC.XHC0.RHUB.PRT3 D0 real D0 device usb3-port3
+PROBE acpi-power[before-suspend]: resource \_SB_.PCI0.GPPA.PWRS ON
+PROBE acpi-power[before-suspend]: \_SB_.PCI0.GPPA.AZAL D0 real D0 device 0000:65:00.6
+PROBE acpi-power[before-suspend]: resource \_SB_.DBTP ON
+PROBE acpi-power[before-suspend]: \_SB_.PCI0.GPPA D0 real D0 device 0000:00:08.1
+PROBE acpi-power[before-suspend]: \_SB_.PCI0.GPP0.SWUS D3cold real D3cold device -
+PROBE acpi-power[before-suspend]: \_SB_.PCI0.GPP5 D0 real D0 device 0000:00:02.3
+PROBE acpi-power[before-suspend]: \_SB_.I2CC D3hot real - device AMDI0010:02
+PROBE acpi-power[before-suspend]: resource \_SB_.PCI0.GPP5.WLAN.WRST off
+PROBE acpi-power[before-suspend]: resource \_SB_.PCI0.GPPA.XHC1.PWRS off
+PROBE acpi-power[before-suspend]: \_SB_.PCI0.GPP9.PEGP D0 real - device -
+PROBE acpi-power[before-suspend]: resource \_SB_.PCI0.GPPC.NHI1.PWRS off
+PROBE acpi-power[before-suspend]: \_SB_.PCI0.GPPC.XHC0 D0 real D0 device 0000:67:00.0
+PROBE acpi-power[before-suspend]: \_SB_.I2CA D3hot real - device AMDI0010:00
+PROBE acpi-power[before-suspend]: resource \_SB_.PCI0.GPP3.P0NV ON
+PROBE acpi-power[before-suspend]: resource \_SB_.PCI0.GPPA.AZAL.PWRS ON
+PROBE acpi-power[before-suspend]: \_SB_.PCI0.GPPC.XHC3 D3cold real D3cold device 0000:67:00.3
+PROBE acpi-power[before-suspend]: resource \_SB_.PCI0.GPPC.XHC4.PWRS off
+PROBE acpi-power[before-suspend]: \_SB_.I2CA.TPD1 D0 real - device i2c-ASCE1206:00
+PROBE acpi-power[before-suspend]: resource \_SB_.PCI0.GPP1.PWRS off
+PROBE acpi-power[before-suspend]: resource \_SB_.PCI0.GPPC.XHC0.RHUB.PRT3.BTRT off
+PROBE acpi-power[before-suspend]: resource \_SB_.PCI0.GPP0.PWRS off
+PROBE acpi-power[before-suspend]: \_SB_.PCI0.GPP3 D0 real - device 0000:00:02.1
+PROBE acpi-power[before-suspend]: resource \_SB_.PCI0.GPPA.VGA_.PWRS ON
+PROBE acpi-power[before-suspend]: \_SB_.PCI0.GPPA.HDAU D0 real D0 device 0000:65:00.1
+PROBE acpi-power[before-suspend]: \_SB_.PCI0.GPP5.WLAN D0 real - device 0000:63:00.0
+PROBE acpi-power[before-suspend]: \_SB_.I2CD D3hot real - device AMDI0010:03
+PROBE acpi-power[before-suspend]: resource \_SB_.PCI0.GPP9.PG00 off
+PROBE acpi-power[before-suspend]: resource \_SB_.PCI0.GPPC.XHC0.PWRS ON
+PROBE acpi-power[before-suspend]: \_SB_.PCI0.GPPA.VGA_ D0 real D0 device 0000:65:00.0
+PROBE acpi-power[before-suspend]: \_SB_.PCI0.GPP9 D3cold real D3cold device 0000:00:03.1
+PROBE acpi-power[before-suspend]: \_SB_.PCI0.GPPC.NHI0 D0 real D0 device 0000:67:00.5
+PROBE acpi-power[before-suspend]: \_SB_.PCI0.GPP0 D3cold real D3cold device 0000:00:01.1
+PROBE acpi-power[before-suspend]: \_SB_.PCI0.GPP4.SDCR D3hot real - device 0000:62:00.0
+PROBE acpi-power[before-suspend]: resource \_TZ_.QFAN off
+PROBE acpi-power[before-suspend]: \_SB_.I2CB D3hot real - device AMDI0010:01
+PROBE acpi-power[before-suspend]: \_TZ_.FAN_ D3hot real D3hot device PNP0C0B:00
+PROBE acpi-power[before-suspend]: resource \_SB_.PCI0.GPP5.PWSR ON
+PROBE acpi-power[before-suspend]: resource \_SB_.PCI0.GPPA.HDAU.PWRS ON
+PROBE acpi-power[before-suspend]: resource \_SB_.PCI0.GPPC.NHI0.PWRS ON
+PROBE acpi-power[before-suspend]: resource \_SB_.PCI0.GPP1.SWUS.PWRS off
+PROBE acpi-power[before-suspend]: resource \_SB_.PCI0.GPPA.ACP_.PWRS off
+PROBE acpi-power[before-suspend]: resource \_SB_.PCI0.GPPC.XHC3.PWRS off
+PROBE acpi-power[before-suspend]: resource \_SB_.PCI0.GPP0.SWUS.PWRS off
+PROBE acpi-power[before-suspend]: \_SB_.PCI0.GPP3.NVME D0 real D0 device 0000:61:00.0
+PROBE acpi-power[before-suspend]: \_SB_.PCI0.GPPC.XHC4 D3cold real D3cold device 0000:67:00.4
+PROBE acpi-power[before-suspend]: 27 power-manageable devices, 9 power resources on
+PROBE sleep: RTC alarm in 20 s; suspending (mem_sleep: [s2idle])
+PROBE sleep: write returned 3 (ok); asleep 18.6 s; suspend_stats success 0->1 fail 0->0
+PROBE sleep: last failed dev: 
+PROBE sleep: last failed errno: 0
+PROBE pmc-after| === S0ix statistics ===
+PROBE pmc-after| S0ix Entry Time: 0
+PROBE pmc-after| S0ix Exit Time: 0
+PROBE pmc-after| Residency Time: 0
+PROBE pmc-after: 4 line(s) from /sys/kernel/debug/amd_pmc/s0ix_stats
+PROBE pmc-fw-after| 
+PROBE pmc-fw-after| === SMU Statistics ===
+PROBE pmc-fw-after| Table Version: 3
+PROBE pmc-fw-after| Hint Count: 1
+PROBE pmc-fw-after| Last S0i3 Status: Unknown/Fail
+PROBE pmc-fw-after| Time (in us) to S0i3: 0
+PROBE pmc-fw-after| Time (in us) in S0i3: 0
+PROBE pmc-fw-after| Time (in us) to resume from S0i3: 0
+PROBE pmc-fw-after| 
+PROBE pmc-fw-after| === Active time (in us) ===
+PROBE pmc-fw-after| DISPLAY  : 0
+PROBE pmc-fw-after| VDD      : 0
+PROBE pmc-fw-after| VCN      : 0
+PROBE pmc-fw-after| ISP      : 0
+PROBE pmc-fw-after| USB3_0   : 0
+PROBE pmc-fw-after| USB3_1   : 0
+PROBE pmc-fw-after| USB3_3   : 0
+PROBE pmc-fw-after| USB3_4   : 0
+PROBE pmc-fw-after| USB4_0   : 78416
+PROBE pmc-fw-after| USB4_1   : 0
+PROBE pmc-fw-after| MPM      : 2263
+PROBE pmc-fw-after| JPEG     : 0
+PROBE pmc-fw-after| IPU      : 0
+PROBE pmc-fw-after| UMSCH    : 0
+PROBE pmc-fw-after| VPE      : 0
+PROBE pmc-fw-after: 25 line(s) from /sys/kernel/debug/amd_pmc/smu_fw_info
+PROBE pmc-idlemask-after| SMU idlemask : 0xfd4c90bd
+PROBE pmc-idlemask-after: 1 line(s) from /sys/kernel/debug/amd_pmc/amd_pmc_idlemask
+PROBE wakeup-sources| name		active_count	event_count	wakeup_count	expire_count	active_since	total_time	max_time	last_change	prevent_suspend_time
+PROBE wakeup-sources| device:15   	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| LNXVIDEO:00 	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| ucsi-source-psy-USBC000:002	1		1		0		0		0		0		0		7240		0
+PROBE wakeup-sources| ucsi-source-psy-USBC000:001	1		1		0		0		0		0		0		6856		0
+PROBE wakeup-sources| USBC000:00  	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| CSC3556:00  	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| AMDI000A:00 	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| mmc0        	1		1		0		0		3112		3112		3112		19883		0
+PROBE wakeup-sources| AMDI0010:03 	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| AMDI0010:02 	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| AMDI0010:01 	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| ASCE1206:00 	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| i2c-ASCE1206:00	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| AMDI0010:00 	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| PNP0C14:02  	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| PNP0C14:01  	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| PNP0C14:00  	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| PNP0C0A:00  	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| ACAD        	1		1		0		0		0		0		0		4408		0
+PROBE wakeup-sources| ACPI0003:00 	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| 0000:67:00.5	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| domain0     	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| 0-0         	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| 3-4         	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| alarmtimer.0.auto	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| 00:00       	1		2		0		0		0		0		0		22140		0
+PROBE wakeup-sources| 0000:67:00.4	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| 0000:67:00.3	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| 0000:67:00.0	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| 0000:65:00.4	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| PNP0C0D:00  	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| PNP0C0E:00  	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| PNP0C0C:00  	1		1		0		0		0		0		0		1616		0
+PROBE wakeup-sources| AMDI0030:00 	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| PNP0A08:00  	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| device:41   	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| device:3d   	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| device:39   	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| device:30   	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| device:2e   	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| device:24   	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| device:1d   	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| device:26   	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| PNP0C02:01  	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| device:25   	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| LNXVIDEO:01 	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| device:0c   	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| device:0a   	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| device:08   	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| device:01   	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| device:43   	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| device:2f   	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| device:2d   	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| device:1b   	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| 0000:00:03.1	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| device:13   	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| device:0b   	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| 0000:00:02.2	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| device:09   	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| 0000:00:02.1	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| device:07   	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| 0000:00:01.1	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| device:03   	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| device:00   	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources| deleted     	0		0		0		0		0		0		0		0		0
+PROBE wakeup-sources: 66 line(s) from /sys/kernel/debug/wakeup_sources
+PROBE acpi-power[after-resume]: \_SB_.PCI0.GPPA.XHC1 D0 real D0 device 0000:65:00.4
+PROBE acpi-power[after-resume]: \_SB_.PCI0.GPPA.ACP_ D3cold real D3cold device 0000:65:00.5
+PROBE acpi-power[after-resume]: \_SB_.PCI0.SBRG.EC0_ D0 real - device PNP0C09:00
+PROBE acpi-power[after-resume]: \_SB_.PCI0.GPPC.XHC0.RHUB.PRT3 D0 real D0 device usb3-port3
+PROBE acpi-power[after-resume]: resource \_SB_.PCI0.GPPA.PWRS ON
+PROBE acpi-power[after-resume]: \_SB_.PCI0.GPPA.AZAL D0 real D0 device 0000:65:00.6
+PROBE acpi-power[after-resume]: resource \_SB_.DBTP ON
+PROBE acpi-power[after-resume]: \_SB_.PCI0.GPPA D0 real D0 device 0000:00:08.1
+PROBE acpi-power[after-resume]: \_SB_.PCI0.GPP0.SWUS D3cold real D3cold device -
+PROBE acpi-power[after-resume]: \_SB_.PCI0.GPP5 D0 real D0 device 0000:00:02.3
+PROBE acpi-power[after-resume]: \_SB_.I2CC D3hot real - device AMDI0010:02
+PROBE acpi-power[after-resume]: resource \_SB_.PCI0.GPP5.WLAN.WRST off
+PROBE acpi-power[after-resume]: resource \_SB_.PCI0.GPPA.XHC1.PWRS ON
+PROBE acpi-power[after-resume]: \_SB_.PCI0.GPP9.PEGP D0 real - device 0000:64:00.0
+PROBE acpi-power[after-resume]: resource \_SB_.PCI0.GPPC.NHI1.PWRS off
+PROBE acpi-power[after-resume]: \_SB_.PCI0.GPPC.XHC0 D0 real D0 device 0000:67:00.0
+PROBE acpi-power[after-resume]: \_SB_.I2CA D0 real - device AMDI0010:00
+PROBE acpi-power[after-resume]: resource \_SB_.PCI0.GPP3.P0NV ON
+PROBE acpi-power[after-resume]: resource \_SB_.PCI0.GPPA.AZAL.PWRS ON
+PROBE acpi-power[after-resume]: \_SB_.PCI0.GPPC.XHC3 D3cold real D3cold device 0000:67:00.3
+PROBE acpi-power[after-resume]: resource \_SB_.PCI0.GPPC.XHC4.PWRS off
+PROBE acpi-power[after-resume]: \_SB_.I2CA.TPD1 D0 real - device i2c-ASCE1206:00
+PROBE acpi-power[after-resume]: resource \_SB_.PCI0.GPP1.PWRS off
+PROBE acpi-power[after-resume]: resource \_SB_.PCI0.GPPC.XHC0.RHUB.PRT3.BTRT off
+PROBE acpi-power[after-resume]: resource \_SB_.PCI0.GPP0.PWRS off
+PROBE acpi-power[after-resume]: \_SB_.PCI0.GPP3 D0 real - device 0000:00:02.1
+PROBE acpi-power[after-resume]: resource \_SB_.PCI0.GPPA.VGA_.PWRS ON
+PROBE acpi-power[after-resume]: \_SB_.PCI0.GPPA.HDAU D0 real D0 device 0000:65:00.1
+PROBE acpi-power[after-resume]: \_SB_.PCI0.GPP5.WLAN D0 real - device 0000:63:00.0
+PROBE acpi-power[after-resume]: \_SB_.I2CD D3hot real - device AMDI0010:03
+PROBE acpi-power[after-resume]: resource \_SB_.PCI0.GPP9.PG00 ON
+PROBE acpi-power[after-resume]: resource \_SB_.PCI0.GPPC.XHC0.PWRS ON
+PROBE acpi-power[after-resume]: \_SB_.PCI0.GPPA.VGA_ D0 real D0 device 0000:65:00.0
+PROBE acpi-power[after-resume]: \_SB_.PCI0.GPP9 D0 real D0 device 0000:00:03.1
+PROBE acpi-power[after-resume]: \_SB_.PCI0.GPPC.NHI0 D0 real D0 device 0000:67:00.5
+PROBE acpi-power[after-resume]: \_SB_.PCI0.GPP0 D3cold real D3cold device 0000:00:01.1
+PROBE acpi-power[after-resume]: \_SB_.PCI0.GPP4.SDCR D0 real - device 0000:62:00.0
+PROBE acpi-power[after-resume]: resource \_TZ_.QFAN off
+PROBE acpi-power[after-resume]: \_SB_.I2CB D3hot real - device AMDI0010:01
+PROBE acpi-power[after-resume]: \_TZ_.FAN_ D3hot real D3hot device PNP0C0B:00
+PROBE acpi-power[after-resume]: resource \_SB_.PCI0.GPP5.PWSR ON
+PROBE acpi-power[after-resume]: resource \_SB_.PCI0.GPPA.HDAU.PWRS ON
+PROBE acpi-power[after-resume]: resource \_SB_.PCI0.GPPC.NHI0.PWRS ON
+PROBE acpi-power[after-resume]: resource \_SB_.PCI0.GPP1.SWUS.PWRS off
+PROBE acpi-power[after-resume]: resource \_SB_.PCI0.GPPA.ACP_.PWRS off
+PROBE acpi-power[after-resume]: resource \_SB_.PCI0.GPPC.XHC3.PWRS off
+PROBE acpi-power[after-resume]: resource \_SB_.PCI0.GPP0.SWUS.PWRS off
+PROBE acpi-power[after-resume]: \_SB_.PCI0.GPP3.NVME D0 real D0 device 0000:61:00.0
+PROBE acpi-power[after-resume]: \_SB_.PCI0.GPPC.XHC4 D3cold real D3cold device 0000:67:00.4
+PROBE acpi-power[after-resume]: 27 power-manageable devices, 11 power resources on
+PROBE sleep: s0ix residency 0 us (did NOT reach the deepest state)
+PROBE sleep: after resume eDP-1 connected, wlan0 present
+PROBE thermal: thermal_zone0 acpitz 40.0 C
+PROBE thermal: thermal_zone1 acpitz 20.0 C
+PROBE hwcheck: done

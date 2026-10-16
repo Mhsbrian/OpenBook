@@ -1,0 +1,19 @@
+PROBE cmdline| vmw_vsock_virtio_transport_common.virtio_transport_max_vsock_pkt_buf_size=16384 console=ttynull stack_depot_disable=on cgroup_disable=pressure bootconfig initrd=\openbook\check\acpi-test.cpio initrd=\openbook\a\vendor_ramdisk.img initrd=\openbook\a\ramdisk.img initrd=\openbook\check\hwcheck.img initrd=\openbook\a\bootconfig.img printk.devkmsg=on audit=1 panic=-1 8250.nr_uarts=1 binder.impl=rust cma=0 firmware_class.path=/vendor/etc/ loop.max_part=7 init=/init bootconfig console=ttyS0,115200 loglevel=7 rdinit=/openbook-probe rdinit=/openbook-check/probe openbook.probe=report openbook.probe.sleep=1 openbook.probe.dgpu=detach openbook.probe.detach_vendor=0x1af4 openbook.probe.acpi_d3cold=_SB.PCI0.GPP0.SWUS,_SB.PCI0.S20_,_SB.PCI0.S20_.TSWU
+PROBE bootconfig| # console=ttynull stack_depot_disable=on cgroup_disable=pressure bootconfig initrd=\openbook\check\acpi-test.cpio initrd=\openbook\a\vendor_ramdisk.img initrd=\openbook\a\ramdisk.img initrd=\openbook\check\hwcheck.img initrd=\openbook\a\bootconfig.img printk.devkmsg=on audit=1 panic=-1 8250.nr_uarts=1 binder.impl=rust cma=0 firmware_class.path=/vendor/etc/ loop.max_part=7 init=/init bootconfig console=ttyS0,115200 loglevel=7 rdinit=/openbook-probe rdinit=/openbook-check/probe openbook.probe=report openbook.probe.sleep=1 openbook.probe.dgpu=detach openbook.probe.detach_vendor=0x1af4 openbook.probe.acpi_d3cold=_SB.PCI0.GPP0.SWUS,_SB.PCI0.S20_,_SB.PCI0.S20_.TSWU
+PROBE acpi-power[before-detach]: \_SB_.PCI0.S20_.TSWU D0 real D0 device -
+PROBE acpi-power[before-detach]: resource \_SB_.PCI0.S20_.TSWU.PWRS ON
+PROBE dgpu-detach: 1 function(s) behind bridge 0000:00:04.0 (bridge D0)
+PROBE dgpu-detach: unbind 0000:01:00.0: ok
+PROBE dgpu-detach: remove 0000:01:00.0: ok
+PROBE dgpu-detach: bridge 0000:00:04.0 runtime PM auto: ok
+PROBE dgpu-detach: bridge 0000:00:04.0 now D0 (runtime active, d3cold_allowed 0)
+PROBE acpi-d3cold: load openbook_acpi_d3cold.ko paths=_SB.PCI0.GPP0.SWUS,_SB.PCI0.S20_,_SB.PCI0.S20_.TSWU: ok
+PROBE acpi-power[before-suspend]: \_SB_.PCI0.S20_.TSWU D3cold real D3cold device -
+PROBE acpi-power[before-suspend]: resource \_SB_.PCI0.S20_.TSWU.PWRS off
+PROBE acpi-power[after-resume]: \_SB_.PCI0.S20_.TSWU D3cold real D3cold device -
+PROBE acpi-power[after-resume]: resource \_SB_.PCI0.S20_.TSWU.PWRS off
+<6>[    0.002760][    T0] ACPI: Table Upgrade: install [SSDT-OPENBK-  D3TEST]
+<6>[   23.245123][    T1] openbook_acpi_d3cold: \_SB.PCI0.GPP0.SWUS: not in the namespace
+<6>[   23.245864][    T1] openbook_acpi_d3cold: \_SB.PCI0.S20_: companion of 0000:00:04.0, left alone
+<6>[   23.246727][    T1] openbook_acpi_d3cold: \_SB.PCI0.S20_.TSWU: D0 -> D3cold (0), parent held on: 0000:00:04.0
+<13>[   23.247686][    T1] PROBE acpi-d3cold: load openbook_acpi_d3cold.ko paths=_SB.PCI0.GPP0.SWUS,_SB.PCI0.S20_,_SB.PCI0.S20_.TSWU: ok

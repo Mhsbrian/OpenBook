@@ -400,3 +400,36 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 - Battery health is 88.7 %, and `regulatory.db` now loads.
 - **Next:** v3 check stick, with a sleep test after powering the dGPU down for one boot (unbind, remove, root-port runtime PM), which tests `docs/nvidia.md` option 2 on hardware.
 - **Evidence:** `evidence/2026-10-16-g14-hwcheck/`.
+
+### 2026-10-16: G14 run 4: dGPU detached, still no S0i3 (ANAL-189)
+- Detaching the dGPU works (bridge to D3hot), but the SMU reports "Last S0i3 Status: Unknown/Fail", and the firmware re-enumerates the dGPU on resume.
+- So the dGPU is not the only blocker.
+- The eDP panel check is fixed (2880×1800).
+- **Next:**
+  - v4 stick with the kernel's sleep debugging;
+  - a Linux baseline with AMD's `amd-s2idle test` on the same laptop.
+- **Evidence:** `evidence/2026-10-16-g14-hwcheck/`.
+
+### 2026-10-16: G14 run 5: dGPU bridge in D3cold, still no S0i3; one LPI constraint unmet (ANAL-189)
+- With the kernel's sleep debugging on, the dGPU's bridge reaches D3cold, and the LPS0 entry/exit calls all succeed. The SMU still reports "Last S0i3 Status: Unknown/Fail".
+- **Only one LPI constraint is unmet: `\_SB_.PCI0.GPP0.SWUS`** (min D3hot, current D0). HYPOTHESIS: this is the child of the empty hotplug port `00:01.1`, which nothing powers down; it is not the dGPU (`GPP9`, per a sibling model's ACPI dump).
+- The dGPU returning on resume looks like the kernel powering the root port back up, not the firmware (corrects run 4).
+- **Next:**
+  - v5 stick (ACPI path per PCI device, ACPI power states and power resources around the sleep);
+  - the `amd-s2idle` Linux baseline, still the decisive comparison.
+- **Evidence:** `evidence/2026-10-16-g14-hwcheck/`.
+
+### 2026-10-16: G14 run 6: the unmet constraint is an ACPI object the kernel powered up and never powered down (ANAL-189)
+- `GPP0` = `00:01.1`, the empty hotplug port; the dGPU is `GPP9.PEGP` (`00:03.1`).
+- `GPP0.SWUS` has no device, but stays D0 with `GPP0.SWUS.PWRS` on from boot to after resume. PCI setup powers a bridge's `_ADR` children up for the scan (`acpi_dev_power_up_children_with_adr()`), and nothing powers an unused one down again (6.18 source).
+- **Next:** the v6 stick powers that object down before the sleep test, using a test-only module (QEMU-tested with a fixture that recreates the case).
+  - If S0i3 is reached, the real fix belongs in the kernel lane: power down `_ADR` children that no device claimed after the bus scan, or a G14 quirk.
+  - If not, the remaining suspects are the PSP without a driver (`65:00.2`) and the USB4 router.
+- **Evidence:** `evidence/2026-10-16-g14-hwcheck/`.
+
+### 2026-10-16: G14 run 7: GPP0.SWUS ruled out; S0i3 moves to ANAL-178 (ANAL-189)
+- The v6 module powered `GPP0.SWUS` down on the laptop, and every LPI constraint was met. The dGPU was off too. S0i3 still failed, with the same SMU idle mask as runs 5 and 6.
+- The OS-visible causes are exhausted: every managed PCI function is suspended, all LPI constraints are met, the LPS0 calls succeed, and the SMU gets the hint. What's left is below the OS (SMU/BIOS GA403WR.309), or a driver ACPI doesn't report: the PSP with no `ccp`/amd-pmf, or the USB4 router.
+- **Deciding test (owner):** `amd-s2idle test` on the laptop's own Linux. If it reaches S0i3, diff its drivers against ours; if not, it's the BIOS.
+- **Scope:** S0i3 affects standby battery drain only. It does not block live USB booting or installation. It continues in ANAL-178 with the hardware-check stick, the probe and the `acpi_d3cold` module.
+- **Evidence:** `evidence/2026-10-16-g14-hwcheck/`.

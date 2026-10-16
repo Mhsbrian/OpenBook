@@ -1,0 +1,5 @@
+fe10568ec3f7520c371395c578053867521e959644f61699d1ab9e49c9bc2a89  loader/entries/openbook-1-hwcheck.conf
+4ab3ab306cc7b8083b7aae647527732873f6b8638d38e89b60d62d8f6064ad0d  loader/entries/openbook-1s-sleep.conf
+0afabdcab05740729fc9907d808784f1d6cdb67e90e978c27bf3c7262bb0adf0  loader/entries/openbook-1t-sleep-dgpu-off.conf
+bd13f22c832d89a68c21596c56698699b835325980622f114b155fcf6c2c3068  openbook/check/hwcheck.img
+957ca5116bb39f2684443df6c2aeddc3a1f0a38c0e96d124efd53c57f348bc63  openbook/README.txt

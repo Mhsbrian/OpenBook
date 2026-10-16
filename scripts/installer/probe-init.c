@@ -16,12 +16,16 @@
 //                          then power off. It only ever mounts and writes the ESP whose PARTUUID is
 //                          androidboot.boot_part_uuid, and only if that partition sits on a USB device.
 //   openbook.probe.sleep=1 with report mode: also one suspend-to-idle cycle woken by the RTC after 20 s, with the
-//                          stick unmounted while asleep; records time asleep and the AMD PMC s0ix counters.
+//                          stick unmounted while asleep; records time asleep, the AMD PMC s0ix counters, and the
+//                          ACPI power states and power resources before and after (to map LPI constraint names).
 //   openbook.probe.dgpu=detach  with report mode, before the sleep test: power the NVIDIA dGPU down for this boot
 //                          the way an OpenBook image would without a driver (docs/nvidia.md section 1, option 2):
 //                          unbind its HDMI-audio function, remove both functions from the PCI bus, and let the
 //                          root port above them runtime-suspend (ACPI _PR3 turns the slot off). Nothing persists
 //                          and no firmware setting changes. (openbook.probe.detach_vendor=0xNNNN: VM tests only.)
+//   openbook.probe.acpi_d3cold=PATH[,PATH]  with report mode, before the sleep test: load the test-only module
+//                          kmod/openbook_acpi_d3cold.c, which puts these ACPI device objects into D3cold if no device
+//                          uses them (an ACPI object left on below an empty PCI port). For this boot only.
 // Build: gcc -static -O2 -o openbook-probe probe-init.c
 #define _GNU_SOURCE
 #include <dirent.h>
@@ -245,7 +249,10 @@ static void pci_facts(const char *when) {
         char link[256];
         ssize_t l = readlink(p, link, sizeof link - 1);
         if (l > 0) { link[l] = 0; snprintf(drv, sizeof drv, "%s", strrchr(link, '/') ? strrchr(link, '/') + 1 : link); bound++; }
-        say("pci[%s]: %s %s:%s class %s driver %s", when, e->d_name, ven + 2, dev + 2, cls + 2, drv);
+        char acpi[160] = "";  // the ACPI node this function belongs to, as named in the kernel's LPI messages
+        snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/firmware_node/path", e->d_name); read_line(p, acpi, sizeof acpi);
+        say("pci[%s]: %s %s:%s class %s driver %s%s%s", when, e->d_name, ven + 2, dev + 2, cls + 2, drv,
+            acpi[0] ? " acpi " : "", acpi);
         n++;
     }
     closedir(d);
@@ -593,6 +600,7 @@ static int count_prefix(const char *dir, const char *prefix) {
 
 static char sleep_json[512] = "null";
 static char detach_json[512] = "null";
+static char acpi_json[256] = "null";
 
 static void write_json(const char *path) {
     char board[128] = "", bios[128] = "", cpu[160] = "", drv[64] = "", ms[128] = "", line[512];
@@ -606,13 +614,13 @@ static void write_json(const char *path) {
     if (f) fclose(f);
     char j[4096];
     int n = snprintf(j, sizeof j,
-        "{\n \"schema\": \"openbook-hwcheck/3\",\n \"board\": \"%s\",\n \"bios\": \"%s\",\n \"cpu\": \"%s\",\n"
+        "{\n \"schema\": \"openbook-hwcheck/5\",\n \"board\": \"%s\",\n \"bios\": \"%s\",\n \"cpu\": \"%s\",\n"
         " \"modules\": {\"loaded\": %d, \"failed\": %d, \"skipped\": %d},\n"
         " \"checks\": {\n  \"gpu_amdgpu\": %s,\n  \"edp_connected\": %s,\n  \"wifi_wlan0\": %s,\n"
         "  \"bluetooth_hci0\": %s,\n  \"touchpad\": %s,\n  \"keyboard\": %s,\n  \"lid_switch\": %s,\n"
         "  \"battery\": %s,\n  \"npu_accel\": %s,\n  \"usb4_thunderbolt\": %s,\n  \"typec_ports\": %d,\n"
         "  \"sound_cards\": %d,\n  \"cpufreq_driver\": \"%s\",\n  \"mem_sleep\": \"%s\",\n"
-        "  \"dgpu_power\": \"%s\"\n },\n \"dgpu_detach\": %s,\n \"sleep_test\": %s\n}\n",
+        "  \"dgpu_power\": \"%s\"\n },\n \"dgpu_detach\": %s,\n \"acpi_d3cold\": %s,\n \"sleep_test\": %s\n}\n",
         board, bios, cpu, loaded_ok, load_failed, skipped,
         pci_driver_bound("amdgpu") ? "true" : "false", edp_connected ? "true" : "false",
         exists("/sys/class/net/wlan0") ? "true" : "false", exists("/sys/class/bluetooth/hci0") ? "true" : "false",
@@ -620,7 +628,7 @@ static void write_json(const char *path) {
         input_has("Lid Switch") ? "true" : "false", exists("/sys/class/power_supply/BAT1") ? "true" : "false",
         exists("/sys/class/accel/accel0") ? "true" : "false", pci_driver_bound("thunderbolt") ? "true" : "false",
         count_prefix("/sys/class/typec", "port"), count_prefix("/sys/class/sound", "card"), drv, ms, dgpu_state,
-        detach_json, sleep_json);
+        detach_json, acpi_json, sleep_json);
     if (n > 0) write_all(path, j, n < (int)sizeof j ? n : (int)sizeof j - 1);
 }
 
@@ -659,6 +667,51 @@ static void awake_devices(const char *when) {
     }
     closedir(d);
     say("awake[%s]: %d PCI functions not in D3", when, n);
+}
+
+// The ACPI side of the same question: every power-manageable ACPI device (state, and the device it belongs to) and
+// every ACPI power resource the kernel holds on. Unmet LPI constraints in the kernel log name these ACPI paths.
+static void acpi_power(const char *when) {
+    DIR *d = opendir("/sys/bus/acpi/devices");
+    if (!d) return;
+    struct dirent *e;
+    int n = 0, on = 0;
+    while ((e = readdir(d))) {
+        if (e->d_name[0] == '.') continue;
+        char p[320], path[160] = "", ps[32] = "", rps[32] = "", use[8] = "", phys[64] = "-", link[256];
+        snprintf(p, sizeof p, "/sys/bus/acpi/devices/%s/path", e->d_name);
+        if (read_line(p, path, sizeof path)) continue;
+        if (!strncmp(e->d_name, "LNXPOWER", 8)) {
+            snprintf(p, sizeof p, "/sys/bus/acpi/devices/%s/resource_in_use", e->d_name); read_line(p, use, sizeof use);
+            say("acpi-power[%s]: resource %s %s", when, path, strcmp(use, "1") ? "off" : "ON");
+            on += !strcmp(use, "1");
+            continue;
+        }
+        snprintf(p, sizeof p, "/sys/bus/acpi/devices/%s/power_state", e->d_name);
+        if (read_line(p, ps, sizeof ps)) continue;  // not power-manageable
+        snprintf(p, sizeof p, "/sys/bus/acpi/devices/%s/real_power_state", e->d_name); read_line(p, rps, sizeof rps);
+        snprintf(p, sizeof p, "/sys/bus/acpi/devices/%s/physical_node", e->d_name);
+        ssize_t l = readlink(p, link, sizeof link - 1);
+        if (l > 0) { link[l] = 0; snprintf(phys, sizeof phys, "%s", strrchr(link, '/') ? strrchr(link, '/') + 1 : link); }
+        say("acpi-power[%s]: %s %s real %s device %s", when, path, ps, rps[0] ? rps : "-", phys);
+        n++;
+    }
+    closedir(d);
+    say("acpi-power[%s]: %d power-manageable devices, %d power resources on", when, n, on);
+}
+
+// Put unused ACPI device objects into D3cold for this boot (see the header), then let the parent bridge that the
+// module held awake runtime-suspend again. The module logs each path's outcome to the kernel log.
+static void acpi_d3cold(const char *paths) {
+    char params[192];
+    snprintf(params, sizeof params, "paths=%s", paths);
+    int fd = open("/openbook-check/kmod/openbook_acpi_d3cold.ko", O_RDONLY | O_CLOEXEC);
+    long r = fd < 0 ? -1 : syscall(SYS_finit_module, fd, params, 0);
+    int err = errno;
+    if (fd >= 0) close(fd);
+    say("acpi-d3cold: load openbook_acpi_d3cold.ko %s: %s", params, r ? strerror(err) : "ok");
+    sleep(2);
+    snprintf(acpi_json, sizeof acpi_json, "{\"ran\": true, \"paths\": \"%s\", \"load_rc\": %d}", paths, r ? -err : 0);
 }
 
 static int write_str(const char *path, const char *v) {
@@ -711,11 +764,13 @@ static void detach_dgpu(const char *vendor) {
     if (bridge[0]) {
         snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/power/control", bridge);
         say("dgpu-detach: bridge %s runtime PM auto: %s", bridge, write_str(p, "auto") ? strerror(errno) : "ok");
-        snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/power_state", bridge);
-        for (int i = 0; i < 50; i++) { read_line(p, after, sizeof after); if (!strncmp(after, "D3", 2)) break; usleep(100000); }
-        char rt[32] = "";
-        snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/power/runtime_status", bridge); read_line(p, rt, sizeof rt);
-        say("dgpu-detach: bridge %s now %s (runtime %s)", bridge, after, rt);
+        // Wait (max 10 s) until the bridge has finished runtime-suspending, then record where it ended up.
+        char rt[32] = "", q[256], d3c[16] = "?";
+        snprintf(q, sizeof q, "/sys/bus/pci/devices/%s/power/runtime_status", bridge);
+        for (int i = 0; i < 100; i++) { read_line(q, rt, sizeof rt); if (!strcmp(rt, "suspended")) break; usleep(100000); }
+        snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/power_state", bridge); read_line(p, after, sizeof after);
+        snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/d3cold_allowed", bridge); read_line(p, d3c, sizeof d3c);
+        say("dgpu-detach: bridge %s now %s (runtime %s, d3cold_allowed %s)", bridge, after, rt, d3c);
     }
     snprintf(detach_json, sizeof detach_json,
              "{\"ran\": true, \"functions\": %d, \"bridge\": \"%s\", \"bridge_before\": \"%s\", \"bridge_after\": \"%s\"}",
@@ -728,8 +783,15 @@ static void sleep_test(void) {
     mount("debugfs", "/sys/kernel/debug", "debugfs", 0, NULL);
     dump_file("pmc-before", "/sys/kernel/debug/amd_pmc/s0ix_stats");
     dump_file("pmc-fw", "/sys/kernel/debug/amd_pmc/smu_fw_info");
+    dump_file("pmc-idlemask", "/sys/kernel/debug/amd_pmc/amd_pmc_idlemask");
+    // Let the kernel explain the sleep in its log: LPS0 _DSM calls, active GPIOs, device timings (PM_SLEEP_DEBUG).
+    say("sleep: pm_debug_messages on: %s", write_str("/sys/power/pm_debug_messages", "1") ? strerror(errno) : "ok");
+    static const char *dyn[] = {"module amd_pmc +p", "module pinctrl_amd +p", "file drivers/acpi/x86/s2idle.c +p", NULL};
+    for (int i = 0; dyn[i]; i++)
+        if (!write_str("/sys/kernel/debug/dynamic_debug/control", dyn[i])) say("sleep: dynamic debug '%s' on", dyn[i]);
     long res0 = s0ix_residency();
     awake_devices("before-suspend");
+    acpi_power("before-suspend");
     long ok0 = read_long("/sys/power/suspend_stats/success"), fail0 = read_long("/sys/power/suspend_stats/fail");
     int fd = open("/sys/class/rtc/rtc0/wakealarm", O_WRONLY);
     if (fd < 0 || write(fd, "0", 1) < 0 || (close(fd), fd = open("/sys/class/rtc/rtc0/wakealarm", O_WRONLY)) < 0 ||
@@ -762,6 +824,10 @@ static void sleep_test(void) {
     sys_say("sleep: last failed errno", "/sys/power/suspend_stats/last_failed_errno");
     dump_file("pmc-after", "/sys/kernel/debug/amd_pmc/s0ix_stats");
     dump_file("pmc-fw-after", "/sys/kernel/debug/amd_pmc/smu_fw_info");
+    dump_file("pmc-idlemask-after", "/sys/kernel/debug/amd_pmc/amd_pmc_idlemask");
+    dump_file("wakeup-sources", "/sys/kernel/debug/wakeup_sources");
+    acpi_power("after-resume");
+    write_str("/sys/power/pm_debug_messages", "0");
     long res1 = s0ix_residency();
     say("sleep: s0ix residency %ld us (%s)", res1 >= 0 && res0 >= 0 ? res1 - res0 : -1,
         res0 < 0 || res1 < 0 ? "unknown: no AMD PMC counters"
@@ -784,7 +850,7 @@ static void hardware_check(const char *uuid) {
     char vendor[16] = "0x10de";
     char *dv = strstr(cmdline, "openbook.probe.detach_vendor=");
     if (dv) sscanf(dv + 29, "%15[0-9a-fx]", vendor);
-    say("hwcheck: OpenBook hardware check v3%s%s. Writes only to the boot stick, then powers off.",
+    say("hwcheck: OpenBook hardware check v6%s%s. Writes only to the boot stick, then powers off.",
         want_sleep ? " with a sleep test" : "", want_detach ? " (dGPU powered down first)" : "");
     dmi_facts();
     cpu_facts();
@@ -812,8 +878,14 @@ static void hardware_check(const char *uuid) {
     thermal_facts();
     if (have_esp) { save_report(report); write_json(json); save_dmesg(dmesg); }
     if (want_detach) {
+        if (want_sleep) acpi_power("before-detach");
         detach_dgpu(vendor);
         dgpu_facts();
+        if (have_esp) { save_report(report); write_json(json); }
+    }
+    char *ad = strstr(cmdline, "openbook.probe.acpi_d3cold="), paths[160] = "";
+    if (ad && sscanf(ad + 27, "%159[A-Za-z0-9_.,]", paths) == 1) {
+        acpi_d3cold(paths);
         if (have_esp) { save_report(report); write_json(json); }
     }
     if (want_sleep) {

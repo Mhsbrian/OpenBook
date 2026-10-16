@@ -1,0 +1,26 @@
+{
+ "schema": "openbook-hwcheck/3",
+ "board": "GA403WR",
+ "bios": "GA403WR.309",
+ "cpu": "AMD Ryzen AI 9 HX 370 w/ Radeon 890M",
+ "modules": {"loaded": 235, "failed": 0, "skipped": 29},
+ "checks": {
+  "gpu_amdgpu": true,
+  "edp_connected": true,
+  "wifi_wlan0": true,
+  "bluetooth_hci0": true,
+  "touchpad": true,
+  "keyboard": true,
+  "lid_switch": true,
+  "battery": true,
+  "npu_accel": true,
+  "usb4_thunderbolt": true,
+  "typec_ports": 2,
+  "sound_cards": 3,
+  "cpufreq_driver": "amd-pstate-epp",
+  "mem_sleep": "[s2idle]",
+  "dgpu_power": "D0/active"
+ },
+ "dgpu_detach": {"ran": true, "functions": 2, "bridge": "0000:00:03.1", "bridge_before": "D0", "bridge_after": "D3hot"},
+ "sleep_test": {"ran": true, "write_rc": 3, "asleep_s": 18.9, "suspend_success_delta": 1, "suspend_fail_delta": 0, "s0ix_residency_us": 0, "edp_after": "connected"}
+}

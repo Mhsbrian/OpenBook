@@ -197,6 +197,35 @@ Full serial logs are `matrix/*/serial.log.gz`.
 - Connectors that read "unknown" are probed before they're reported.
 - **Tested in QEMU:** the detach path was run against a virtio device behind a PCIe root port (unbind, remove and runtime PM all succeed; QEMU's port has no `_PR3`, so it stays D0), and the sleep test ran after it.
 
+**G14 run 4 (v3).**
+- The eDP panel is detected (2880×1800).
+- The dGPU detach works, but its bridge only reaches D3hot.
+- **S0i3 is still not reached** (the SMU reports "Last S0i3 Status: Unknown/Fail").
+- The firmware re-enumerates the dGPU on resume.
+
+**v4 (`openbook-hwcheck-20261016d`).** The sleep entries turn on `pm_debug_messages` and dynamic debug for amd_pmc, pinctrl_amd and the ACPI LPS0 code, and dump amd_pmc's idle mask and the wakeup sources. The detach step waits for the bridge's final power state (`openbook-hwcheck/4`). Tested in QEMU like v3.
+
+**G14 run 5 (v4).**
+- The dGPU's bridge reaches **D3cold**, and S0i3 is **still not reached**.
+- The kernel's LPI check names one unmet constraint: `\_SB_.PCI0.GPP0.SWUS` stays D0 (HYPOTHESIS: the child of the empty hotplug port `00:01.1`, not the dGPU).
+
+**v5 (`openbook-hwcheck-20261016e`).** Each PCI line carries its ACPI path. The sleep entries list ACPI device power states and power resources before the detach, before suspend and after resume. Tested in QEMU on a v4 image updated with the v5 bundle.
+
+**G14 run 6 (v5).**
+- `GPP0` is `00:01.1`, the empty hotplug port; the dGPU is `GPP9.PEGP` on `00:03.1`.
+- `GPP0.SWUS` has no device, yet stays D0 with its power resource on through the whole cycle. The kernel powered it up to scan behind the bridge (`acpi_dev_power_up_children_with_adr()`), and nothing powers it down again.
+
+**v6 (`openbook-hwcheck-20261016f`).**
+- Entry 3 ("NVIDIA GPU + unused port powered down") also loads a test-only module (`scripts/installer/kmod/`, built by `build-check-kmod.sh` against the check kernel). The module puts `GPP0.SWUS` into D3cold before the sleep test.
+- Tested in QEMU: once with the real entry, and once with a fixture SSDT (`acpi-d3cold-test.asl`) that recreates the unused, powered `_ADR` child; the module turns it off.
+- Building it needs `make`, `flex`, `bison`, `bc`, `pahole` and `acpica` in the installer image (`tools/Dockerfile.installer`). Until the shared image is rebuilt from that file, use `OPENBOOK_INSTALLER_IMAGE=openbook-installer:anal189`.
+
+**G14 run 7 (v6).**
+- The module powered `GPP0.SWUS` down on the laptop, and every LPI constraint was met.
+- S0i3 was still not reached, with the same SMU idle mask as runs 5 and 6. `GPP0.SWUS` is ruled out.
+- The S0i3 investigation moves to ANAL-178. The deciding next test is `amd-s2idle` on the owner's Linux on the same laptop.
+- S0i3 does not block live USB booting or installation (ANAL-190, ANAL-176).
+
 ## 3. Install flow
 
 ### 3.1 Live USB layout (ANAL-190)
