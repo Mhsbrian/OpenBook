@@ -24,7 +24,7 @@
 - `gbos-kernel-config.txt`: the stock Googlebook GKI config
 
 **Blocked / needs a decision**
-- Target hardware: **ASUS ROG Zephyrus G14 (2025)**, expected to be the GA403WP (Ryzen AI 9 HX 370 + RTX 5070). The exact SKU still needs `scripts/hw-inventory.sh` output from the laptop (ANAL-175). See `docs/HARDWARE.md`.
+- Target hardware: **ASUS ROG Zephyrus G14 (2025) GA403WP**, Ryzen AI 9 HX 370 (Zen 5, confirmed by the owner 2026-10-16) + RTX 5070. Component IDs still need `scripts/hw-inventory.sh` output from the laptop (ANAL-175). See `docs/HARDWARE.md`.
 - ~~Merge PR #1.~~ Merged 2026-10-16.
 - ~~Which repo receives this work.~~ Resolved: https://github.com/Mhsbrian/AnyBook (public, created 2026-10-15).
 - License for the scripts and docs. Apache-2.0 is suggested, to match AOSP. Not chosen yet.

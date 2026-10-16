@@ -16,7 +16,7 @@
 
 The owner named this laptop on 2026-10-15. The owner described it as a "2025 G14 with the AMD 370 and an RTX 5070", which matches the **GA403WP** SKU (Ryzen AI 9 HX 370 + RTX 5070 Laptop).
 
-**Not yet confirmed.** ASUS also sells a 2025 G14 with an RTX 5070 and a **Ryzen 9 270** (GA403UP). That chip is Zen 4 with a Radeon 780M, so it changes the plan. To confirm, run `scripts/hw-inventory.sh` on the laptop, or check `/sys/class/dmi/id/board_name`.
+**CPU confirmed by the owner on 2026-10-16:** Ryzen AI 9 HX 370 (Zen 5). That rules out the Zen 4 Ryzen 9 270 variant (GA403UP), so the SKU is the **GA403WP**. Component IDs (Wi-Fi chip, touchpad, ACP version, panel) still need `scripts/hw-inventory.sh` output from the laptop.
 
 Sources: rog.asus.com 2025 G14 spec pages, kernel and linux-firmware sources, and NotebookCheck. All checked 2026-10-15.
 
@@ -24,7 +24,7 @@ Labels: C = confirmed (ASUS spec page, kernel source, or linux-firmware contents
 
 | Component | Part (expected) | Linux driver | Firmware | Label |
 |---|---|---|---|---|
-| CPU | Ryzen AI 9 HX 370: 4× Zen 5 + 8× Zen 5c | — | — | C spec. AVX-VNNI and AVX-512 are R; check `/proc/cpuinfo` |
+| CPU | Ryzen AI 9 HX 370: 4× Zen 5 + 8× Zen 5c | — | — | C (owner). AVX-VNNI and AVX-512 are expected for Zen 5; `/proc/cpuinfo` will show them |
 | iGPU | Radeon 890M, RDNA 3.5, gfx1150 | amdgpu, Mesa radeonsi/RADV (Linux 6.10+ and Mesa 24.2+) | `amdgpu/gc_11_5_0*`, `dcn_3_5*`, `psp_14_0_0*`, `vcn_4_0_5*` | C firmware, R minimum versions |
 | dGPU | RTX 5070 Laptop, GB206 (Blackwell), 8 GB | nouveau (Blackwell since 6.16, GSP 570.144), NVK (Mesa 25.2+) | `nvidia/gb206` → gb202 | R. **Kept off in the first bring-up** |
 | Display | 14" 2880×1800 120 Hz OLED, 16:10, Samsung ATNA40CU05-0 | amdgpu DC (PSR/Panel Replay quirks are possible) | — | C panel spec, R panel ID |
@@ -50,7 +50,7 @@ It writes `anybook-hw-<board>-<date>.tar.gz`, with serials, UUIDs and MAC addres
 
 ### Bring-up notes and risks
 1. **Run Android on the Radeon 890M.** Keep the MUX in hybrid (iGPU) mode and power the dGPU down with `dgpu_disable` from Linux before booting AnyBook. In dGPU-only MUX mode the internal panel is wired to the NVIDIA GPU, which Android cannot drive yet.
-2. **AVX-VNNI.** If the CPU is the HX 370 (Zen 5), Google's Panther Lake-tuned binaries meet their ISA baseline (PLAN §3.4). The Zen 4 risk then applies only to the dev host.
+2. **AVX-VNNI.** The CPU is the HX 370 (Zen 5), so Google's Panther Lake-tuned binaries meet their ISA baseline (PLAN §3.4). The Zen 4 risk applies only to the dev host.
 3. **Audio needs several pieces:** the HDA Realtek codec, the cs35l56 amplifiers with their Cirrus firmware, and ACP for the internal mic.
 4. **Fan and power tuning:** `asus-armoury` has power-limit tables for GA403WM, GA403WR and GA403WW but **not GA403WP**. That needs an upstream entry later.
 5. **Suspend and panel power saving:** Strix Point s2idle and OLED PSR/Replay are untested on this model.
