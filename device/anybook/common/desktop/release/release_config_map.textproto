@@ -1,0 +1,8 @@
+# AnyBook desktop flag values, layered on top of the core release configs.
+# Pulled in only by products that inherit device/anybook/common/desktop/desktop.mk (PRODUCT_RELEASE_CONFIG_MAPS).
+# It sits at device/anybook/common/desktop/release on purpose: release_config.mk auto-loads maps from
+# device/*/release and device/*/*/release for every product, and other products share this tree.
+default_containers: "product"
+default_containers: "system"
+default_containers: "system_ext"
+default_containers: "vendor"

@@ -1,0 +1,13 @@
+// Copyright (C) 2026 The AnyBook Authors
+// SPDX-License-Identifier: Apache-2.0
+
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+release_config_contributions {
+    name: "release_config_contributions-anybook_desktop",
+    srcs: [
+        "release_configs/*.textproto",
+    ],
+}

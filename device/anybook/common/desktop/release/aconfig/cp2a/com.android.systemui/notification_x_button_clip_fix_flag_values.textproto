@@ -1,0 +1,7 @@
+# Declared in frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+flag_value {
+  package: "com.android.systemui"
+  name: "notification_x_button_clip_fix"
+  state: ENABLED
+  permission: READ_ONLY
+}

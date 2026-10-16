@@ -1,0 +1,7 @@
+# Declared in packages/apps/DocumentsUI/flags.aconfig
+flag_value {
+  package: "com.android.documentsui.flags"
+  name: "use_file_summary"
+  state: ENABLED
+  permission: READ_ONLY
+}

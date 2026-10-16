@@ -1,0 +1,7 @@
+# Declared in frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+flag_value {
+  package: "com.android.systemui"
+  name: "standalone_fingerprint_lock_screen_ux_fix"
+  state: ENABLED
+  permission: READ_ONLY
+}

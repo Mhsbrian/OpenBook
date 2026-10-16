@@ -1,0 +1,7 @@
+# Declared in frameworks/base/services/core/java/com/android/server/policy/window_policy_flags.aconfig
+flag_value {
+  package: "com.android.server.policy"
+  name: "brightness_dialog_override_toast"
+  state: ENABLED
+  permission: READ_ONLY
+}

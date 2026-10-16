@@ -1,0 +1,7 @@
+# Declared in frameworks/base/packages/SystemUI/aconfig/desktop_coreui.aconfig
+flag_value {
+  package: "com.android.systemui"
+  name: "desktop_sizing"
+  state: ENABLED
+  permission: READ_ONLY
+}

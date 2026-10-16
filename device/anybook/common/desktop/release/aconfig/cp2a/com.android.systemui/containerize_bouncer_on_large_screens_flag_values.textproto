@@ -1,0 +1,7 @@
+# Declared in frameworks/base/packages/SystemUI/aconfig/desktop_users_and_accounts.aconfig
+flag_value {
+  package: "com.android.systemui"
+  name: "containerize_bouncer_on_large_screens"
+  state: ENABLED
+  permission: READ_ONLY
+}

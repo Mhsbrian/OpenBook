@@ -1,0 +1,7 @@
+# Declared in packages/apps/Launcher3/aconfig/launcher.aconfig
+flag_value {
+  package: "com.android.launcher3"
+  name: "orientation_friendly_desktop_grid_spec"
+  state: ENABLED
+  permission: READ_ONLY
+}

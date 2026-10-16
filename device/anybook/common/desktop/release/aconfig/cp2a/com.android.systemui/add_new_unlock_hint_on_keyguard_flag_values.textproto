@@ -1,0 +1,7 @@
+# Declared in frameworks/base/packages/SystemUI/aconfig/desktop_users_and_accounts.aconfig
+flag_value {
+  package: "com.android.systemui"
+  name: "add_new_unlock_hint_on_keyguard"
+  state: ENABLED
+  permission: READ_ONLY
+}

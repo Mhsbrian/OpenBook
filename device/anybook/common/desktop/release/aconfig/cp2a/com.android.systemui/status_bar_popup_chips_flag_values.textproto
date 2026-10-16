@@ -1,0 +1,7 @@
+# Declared in frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+flag_value {
+  package: "com.android.systemui"
+  name: "status_bar_popup_chips"
+  state: ENABLED
+  permission: READ_ONLY
+}

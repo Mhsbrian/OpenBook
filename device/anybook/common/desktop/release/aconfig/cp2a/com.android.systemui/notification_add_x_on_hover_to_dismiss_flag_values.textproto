@@ -1,0 +1,7 @@
+# Declared in frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+flag_value {
+  package: "com.android.systemui"
+  name: "notification_add_x_on_hover_to_dismiss"
+  state: ENABLED
+  permission: READ_ONLY
+}
