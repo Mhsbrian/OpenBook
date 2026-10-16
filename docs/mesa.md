@@ -118,7 +118,7 @@ Sizes (stripped) and checksums are in `<tree>/sizes.txt` and `<tree>/sha256sums.
   - Two files get `-msse4.1` (`libmesa_sse41`, used only after a runtime check).
   - elfx86exts does list AVX/AVX2/AVX-512. The per-function scan shows these are only in:
     - BLAKE3's cpuid-dispatched `blake3_*_avx2/avx512`
-    - addrlib's `[[gnu::target("avx2")]]` swizzle copies, guarded by `__builtin_cpu_supports("avx2")` (`addrswizzlersimd.h`)
+    - addrlib's `[[gnu::target("avx2")]]` swizzle copies, guarded by `__builtin_cpu_supports("avx2")` (`addrswizzlersimd.h`; upstream 26.2 only, AG 26.0 has just BLAKE3)
   - So no AVX-VNNI or other Zen 5-only instructions are needed. This differs from Google's pantherlake-tuned blobs (PLAN §3.4).
 - **Load test on Android 17 x86_64** (`smoke/`, `scripts/mesa-android-smoke.sh`).
   - Setup: AOSP Desktop emulator `CLE1.260506.004`, API 37, kernel 6.12.58, KVM, its own AVD on port 5590. Both trees give the same result:
