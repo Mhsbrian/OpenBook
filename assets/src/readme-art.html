@@ -1,0 +1,185 @@
+<!doctype html>
+<!--
+  OpenBook README and marketing art. Rendered to PNG/JPEG by scripts/brand/render-readme-assets.sh
+  with headless Chromium. One page, many "arts", selected with ?art=<name>&theme=light|dark.
+  Brand mark, palette and type follow docs/installer-design/index.html (Material 3 Expressive, Roboto Flex).
+  Fonts are linked in at render time (assets/src/fonts, gitignored) and never committed.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OpenBook art</title>
+<style>
+@font-face { font-family: "Roboto Flex"; src: url("fonts/RobotoFlex.ttf"); font-weight: 100 1000; font-stretch: 25% 151%; }
+@font-face { font-family: "Material Symbols Rounded"; src: url("fonts/MaterialSymbolsRounded.ttf"); }
+:root {
+  --ink: #1B1B21; --ink-2: #46464F; --primary: #4355B9; --chip: rgba(255,255,255,.72); --chip-ink: #2B2F66;
+  --chip-line: rgba(67,85,185,.18);
+  --wall: radial-gradient(900px 640px at 8% 12%, #C3CBFF 0%, transparent 62%),
+          radial-gradient(800px 600px at 96% 8%, #FFD3E6 0%, transparent 60%),
+          radial-gradient(900px 700px at 70% 110%, #CFF3EC 0%, transparent 60%),
+          linear-gradient(135deg, #EEF0FF 0%, #F7F1FF 55%, #FDF3F7 100%);
+  --frame: #15161F; --frame-edge: #2A2C3A; --base: linear-gradient(180deg, #D9DBE8, #B9BCCD);
+  --shadow: 0 40px 90px rgba(37,42,98,.30), 0 10px 26px rgba(37,42,98,.14);
+}
+[data-theme="dark"] {
+  --ink: #ECEAF6; --ink-2: #C6C5D0; --primary: #BAC3FF; --chip: rgba(255,255,255,.08); --chip-ink: #DEE0FF;
+  --chip-line: rgba(186,195,255,.22);
+  --wall: radial-gradient(900px 640px at 10% 14%, rgba(83,101,230,.55) 0%, transparent 62%),
+          radial-gradient(800px 600px at 96% 6%, rgba(176,92,214,.40) 0%, transparent 60%),
+          radial-gradient(900px 700px at 72% 112%, rgba(229,139,181,.22) 0%, transparent 60%),
+          linear-gradient(135deg, #0C0D16 0%, #121324 55%, #17121F 100%);
+  --frame: #0A0B10; --frame-edge: #30324A; --base: linear-gradient(180deg, #3A3C4E, #24253A);
+  --shadow: 0 40px 100px rgba(0,0,0,.65), 0 10px 26px rgba(0,0,0,.40);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: transparent; }
+body { font-family: "Roboto Flex", system-ui, sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+.art { display: none; position: relative; overflow: hidden; }
+.art.on { display: block; }
+.wall { background: var(--wall); }
+.ms { font-family: "Material Symbols Rounded"; font-weight: normal; font-style: normal; line-height: 1;
+      font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 48; display: inline-block; }
+
+/* Brand lockup */
+.lockup { display: flex; align-items: center; gap: 20px; }
+.word { font-weight: 680; letter-spacing: -0.035em; font-variation-settings: "opsz" 144, "wdth" 100; line-height: .95; }
+.tag { color: var(--ink-2); font-weight: 420; letter-spacing: -0.005em; line-height: 1.32; }
+.tag b { color: var(--ink); font-weight: 620; }
+.chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.chip { display: inline-flex; align-items: center; gap: 7px; padding: 7px 13px 7px 10px; border-radius: 999px;
+        background: var(--chip); border: 1px solid var(--chip-line); color: var(--chip-ink);
+        font-size: 14.5px; font-weight: 560; backdrop-filter: blur(8px); white-space: nowrap; }
+.chip .ms { font-size: 19px; color: var(--primary); }
+
+/* Laptop mockup (screen holds a design render) */
+.laptop { position: absolute; }
+.laptop .lid { position: relative; background: var(--frame); border-radius: 22px; padding: 14px 14px 16px;
+               box-shadow: var(--shadow), inset 0 0 0 1.5px var(--frame-edge); }
+.laptop .lid::before { content: ""; position: absolute; top: 6px; left: 50%; width: 6px; height: 6px; margin-left: -3px;
+                       border-radius: 50%; background: #2E3142; }
+.laptop .screen { display: block; width: 100%; border-radius: 9px; }
+.laptop .base { height: 18px; margin: 0 -46px; background: var(--base); border-radius: 0 0 26px 26px;
+                box-shadow: 0 18px 30px rgba(37,42,98,.20); position: relative; }
+.laptop .base::after { content: ""; position: absolute; top: 0; left: 50%; width: 120px; margin-left: -60px; height: 7px;
+                       border-radius: 0 0 9px 9px; background: rgba(0,0,0,.14); }
+
+/* Hero (README banner) 1200x520 */
+#hero { width: 1200px; height: 520px; }
+#hero .left { position: absolute; left: 64px; top: 96px; width: 540px; }
+#hero .word { font-size: 76px; }
+#hero .tag { font-size: 23px; margin-top: 26px; max-width: 470px; }
+#hero .chips { margin-top: 34px; }
+#hero .laptop { left: 640px; top: 84px; width: 500px; transform: perspective(1600px) rotateY(-12deg) rotateX(2deg); transform-origin: center center; }
+
+/* Social preview 1280x640 (GitHub repository card) */
+#social { width: 1280px; height: 640px; }
+#social .left { position: absolute; left: 76px; top: 150px; width: 580px; }
+#social .word { font-size: 88px; }
+#social .tag { font-size: 26px; margin-top: 28px; max-width: 520px; }
+#social .chips { margin-top: 36px; }
+#social .chip { font-size: 17px; }
+#social .laptop { left: 700px; top: 150px; width: 520px; transform: perspective(1600px) rotateY(-12deg) rotateX(2deg); transform-origin: center center; }
+#social .url { position: absolute; left: 80px; bottom: 48px; font-size: 18px; font-weight: 520; color: var(--ink-2); letter-spacing: .01em; }
+
+/* Showcase: three installer screens, fanned. 1200x560 */
+#showcase { width: 1200px; height: 560px; }
+#showcase .card { position: absolute; border-radius: 16px; overflow: hidden; box-shadow: var(--shadow); }
+#showcase .card img { display: block; width: 100%; }
+#showcase .c1 { width: 560px; left: 60px; top: 120px; transform: rotate(-4deg); opacity: .96; }
+#showcase .c3 { width: 560px; right: 60px; top: 120px; transform: rotate(4deg); opacity: .96; }
+#showcase .c2 { width: 700px; left: 250px; top: 60px; z-index: 2; }
+
+/* Real desktop screenshot, presented with rounded corners. 1200x720 */
+#desktop { width: 1200px; height: 720px; }
+#desktop .shot { position: absolute; left: 60px; top: 50px; width: 1080px; border-radius: 18px; overflow: hidden;
+                 box-shadow: var(--shadow); outline: 1.5px solid rgba(255,255,255,.18); outline-offset: -1.5px; }
+#desktop .shot img { display: block; width: 100%; }
+
+/* App icon 512x512 and feature icons 96x96 (transparent) */
+#appicon { width: 512px; height: 512px; }
+#appicon .tile { position: absolute; inset: 24px; border-radius: 120px;
+                 background: radial-gradient(420px 360px at 20% 10%, #DEE0FF 0%, transparent 70%),
+                             radial-gradient(380px 320px at 100% 100%, #FFD9E3 0%, transparent 70%), #F7F4FF;
+                 box-shadow: 0 18px 40px rgba(37,42,98,.22), inset 0 0 0 2px rgba(255,255,255,.7); }
+#appicon svg { position: absolute; left: 96px; top: 96px; }
+#icon { width: 96px; height: 96px; }
+#icon .ms { position: absolute; left: 0; top: 0; width: 96px; height: 96px; font-size: 76px; text-align: center; line-height: 96px;
+            background: linear-gradient(135deg, #7E8CFF 0%, #8A5CF0 55%, #E58BB5 100%);
+            -webkit-background-clip: text; background-clip: text; color: transparent; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="pgL" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7E8CFF"/><stop offset="1" stop-color="#4355B9"/></linearGradient>
+    <linearGradient id="pgR" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D08BFF"/><stop offset="1" stop-color="#7A4CE0"/></linearGradient>
+    <linearGradient id="spk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFB38A"/><stop offset="1" stop-color="#FF7A9C"/></linearGradient>
+    <symbol id="logo" viewBox="0 0 48 48">
+      <path d="M23 40 C17 36 10 35 5 36 C4 36 3.4 35.3 3.5 34.4 L5.6 12.6 C5.7 11.7 6.4 11 7.3 11 C12.6 10.9 18.4 12.7 23 16.6 Z" fill="url(#pgL)"/>
+      <path d="M25 40 C31 36 38 35 43 36 C44 36 44.6 35.3 44.5 34.4 L42.4 12.6 C42.3 11.7 41.6 11 40.7 11 C35.4 10.9 29.6 12.7 25 16.6 Z" fill="url(#pgR)"/>
+      <path d="M24 2.5 C24.7 6.3 26.2 7.8 30 8.5 C26.2 9.2 24.7 10.7 24 14.5 C23.3 10.7 21.8 9.2 18 8.5 C21.8 7.8 23.3 6.3 24 2.5 Z" fill="url(#spk)"/>
+    </symbol>
+  </defs>
+</svg>
+
+<section id="hero" class="art wall">
+  <div class="left">
+    <div class="lockup"><svg width="84" height="84"><use href="#logo"/></svg><div class="word">OpenBook</div></div>
+    <p class="tag">The Googlebook experience, <b>open</b> and on the laptop you <b>already own</b>.</p>
+    <div class="chips">
+      <span class="chip"><i class="ms">desktop_windows</i>Android 17 desktop</span>
+      <span class="chip"><i class="ms">memory</i>AMD Ryzen first</span>
+      <span class="chip"><i class="ms">code</i>Open source</span>
+    </div>
+  </div>
+  <div class="laptop"><div class="lid"><img class="screen" data-src="welcome"></div><div class="base"></div></div>
+</section>
+
+<section id="social" class="art wall">
+  <div class="left">
+    <div class="lockup"><svg width="96" height="96"><use href="#logo"/></svg><div class="word">OpenBook</div></div>
+    <p class="tag">The Googlebook experience, <b>open</b> and on the laptop you <b>already own</b>.</p>
+    <div class="chips">
+      <span class="chip"><i class="ms">desktop_windows</i>Android 17 desktop</span>
+      <span class="chip"><i class="ms">memory</i>AMD Ryzen first</span>
+      <span class="chip"><i class="ms">code</i>Open source</span>
+    </div>
+  </div>
+  <div class="laptop"><div class="lid"><img class="screen" data-src="welcome"></div><div class="base"></div></div>
+  <div class="url">github.com/Mhsbrian/OpenBook</div>
+</section>
+
+<section id="showcase" class="art wall">
+  <div class="card c1"><img data-src="hardware"></div>
+  <div class="card c3"><img data-src="progress"></div>
+  <div class="card c2"><img data-src="disk"></div>
+</section>
+
+<section id="desktop" class="art wall">
+  <div class="shot"><img src="../../evidence/2026-10-16-desktop/desktop/screen-windows.png" alt=""></div>
+</section>
+
+<section id="appicon" class="art">
+  <div class="tile"></div>
+  <svg width="320" height="320"><use href="#logo"/></svg>
+</section>
+
+<section id="icon" class="art"><i class="ms" id="glyph">star</i></section>
+
+<script>
+  const q = new URLSearchParams(location.search);
+  const theme = q.get("theme") === "dark" ? "dark" : "light";
+  document.documentElement.dataset.theme = theme;
+  const art = document.getElementById(q.get("art") || "hero");
+  art.classList.add("on");
+  // Installer screens come from the committed design renders; dark variants exist for welcome, disk and progress.
+  const darkOk = new Set(["welcome", "disk", "progress"]);
+  art.querySelectorAll("img[data-src]").forEach(img => {
+    const n = img.dataset.src;
+    img.src = "../../docs/installer-design/png/" + n + (theme === "dark" && darkOk.has(n) ? "-dark" : "") + ".png";
+  });
+  if (q.get("glyph")) document.getElementById("glyph").textContent = q.get("glyph");
+</script>
+</body>
+</html>
