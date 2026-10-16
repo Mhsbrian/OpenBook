@@ -55,7 +55,11 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 - `scripts/installer-image.sh` builds the approved raw GPT live image from ANAL-199's G14 product: systemd-boot, slot A only, `super` re-packed from 8 GiB to 1.23 GiB, firmware licences from the vendor image. Output: 2.68 GiB image, 0.9 GB `.xz`, built in 41 s, byte-identical across rebuilds.
 - `openbook-live-init` (rdinit) grows `userdata` to fill the stick and moves the backup GPT on first boot, erases the live data on "start fresh", and on "save logs" writes dmesg, logcat, system facts, a screenshot and `summary.json` to the stick.
 - QEMU/OVMF matrix and owner checklist: `docs/installer.md` §11. Evidence: `evidence/2026-10-16-installer/live/`.
-- **Desktop not reached in QEMU** (product, ANAL-199): `system_server` is killed by its watchdog while it waits for the audio HAL. Not yet run on the G14.
+- **Desktop not reached in QEMU** (product, ANAL-199): `system_server` is killed by its watchdog while it waits for the audio HAL.
+- **First live boot on the G14:**
+  - Working: USB boot, the 56 GiB live `/data` on the stick, amdgpu on the panel, SurfaceFlinger with a touchpad-driven pointer, keyboard, and the dGPU in D3cold.
+  - Black screen because the boot animation crashes in RADV (`AcquireNextImageKHR`), and the framework loops on audio.
+  - Evidence: `evidence/2026-10-16-installer/g14-live/`.
 
 ### 2026-10-16: Kernel, bare-metal packaging for the G14 (ANAL-198)
 

@@ -442,7 +442,7 @@ MATRIX_EVIDENCE=$PWD/evidence/2026-10-16-installer/matrix scripts/installer/prot
 
 ## 11. Live USB image (ANAL-190)
 
-Status as of 2026-10-16. Evidence is in `evidence/2026-10-16-installer/live/`, starting with `SUMMARY.md`. **Nothing here has run on the G14 yet**: that needs the owner to confirm the stick (§11.6).
+Status as of 2026-10-16. Evidence is in `evidence/2026-10-16-installer/live/` (build and QEMU) and `evidence/2026-10-16-installer/g14-live/` (the first G14 live boot, §11.10), each starting with `SUMMARY.md`.
 
 ### 11.1 What `scripts/installer-image.sh` builds
 
@@ -586,3 +586,20 @@ scripts/installer/live-qemu.sh ~/anybook/installer/out/openbook-live-20261016a.i
 scripts/installer/live-init-test.sh                                                # 9 host cases, seconds
 ```
 Logs: `~/anybook/logs/installer/live-<label>-<UTC>.log` (build), `~/anybook/logs/installer/<run>/` (QEMU), `~/anybook/logs/installer/write-stick-<UTC>.log`.
+
+### 11.10 First live boot on the G14 (C, `evidence/2026-10-16-installer/g14-live/`)
+
+The owner wrote `openbook-live-20261016a.img` with `write-stick.sh` (read back and verified). They booted the default entry (black screen) and then "save logs" (black screen with a pointer the touchpad moves). The stick powered itself off, and its logs were read back read-only.
+- **Works on the laptop:**
+  - the USB boot chain;
+  - `userdata` grown to 56.2 GiB on the 62 GB stick, with `/data` on the stick;
+  - amdgpu on `eDP-1` 2880×1800 with backlight, and the `amdgpu` HAL (ANGLE/RADV, minigbm, drm_hwcomposer);
+  - SurfaceFlinger, and the pointer driven by the ELAN touchpad and the ASUS keyboard;
+  - the dGPU in `D3cold` without a driver;
+  - battery, AC, UCSI, `amd-pstate-epp`, and `mt7925e` with `wlan0`.
+- **Stops it:**
+  1. The boot animation crashes in `vulkan.radv.so` (`AcquireNextImageKHR` via ANGLE, null pointer), so the screen stays black.
+  2. `system_server` loops on the missing `audio_policy_configuration.xml` (fixed in ANAL-199's newer build).
+  3. 66 SELinux denials by Android services (this entry was permissive).
+  4. No Wi-Fi service.
+- **Next:** ANAL-199 takes the RADV swapchain crash and the denials. When its fixed build lands, `installer-image.sh` rebuilds the stick and the owner reruns "save logs".
