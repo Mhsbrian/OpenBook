@@ -60,3 +60,32 @@ The probe skipped the cs35l56 speaker-amp drivers (they download DSP firmware an
 - `scripts/installer/update-hwcheck-stick.sh` checked the stick before writing: ESP PARTUUID `3a26490e-…`, label OPENBOOK, existing OpenBook entry. It then replaced `openbook/check/hwcheck.img`, the two check entries and the README on that partition only (`stick-update-v2.log`).
 - A read-only remount verified all four files against the bundle manifest (`../2026-10-16-installer/hwcheck-stick/v2/esp-update-MANIFEST.sha256`).
 - The menu now offers "OpenBook hardware check" (default), "OpenBook hardware check + sleep test" and "OpenBook preview (virtual machines only)". `hwcheck-001` is still on the stick.
+
+## Runs 2 and 3 (v2 check, 2026-10-16 15:47 and 15:48)
+These are `hwcheck-002` (the check) and `hwcheck-003` (the sleep test), with JSON verdicts, reports and kernel logs. The v2 probe redacted the files itself (USB serials, internal-disk UUIDs). sha256 of the originals:
+- `002.txt` `5873e37b…`, `002.json` `df3b3be9…`, `002-dmesg` `e0c3bedf…`
+- `003.txt` `7e84333a…`, `003.json` `8ce15227…`, `003-dmesg` `15732d5f…`
+
+| Area | Result (C) |
+|---|---|
+| Drivers | 235 loaded, 0 failed (both runs) |
+| CPU power | **amd-pstate-epp, status active**. Governor powersave, EPP `balance_performance` (choices: default, performance, balance_performance, balance_power, power). Max 5.16 GHz |
+| Sleep states | `mem_sleep: [s2idle]` only; `state: freeze mem disk` |
+| Sleep test (run 3) | **The suspend/resume cycle works.** RTC alarm, s2idle entry, woke after 18.2 s ("Resume caused by IRQ 9, acpi"), `suspend_stats` success 0→1, fail 0, amdgpu SMU resumed, no errors after resume, Wi-Fi present |
+| **Deep sleep** | **Not reached.** AMD PMC s0ix residency 0 µs before and after; the kernel log says "amd_pmc AMDI000A:00: Last suspend didn't reach deepest state". The machine idled in a shallow state, so it would drain the battery while asleep |
+| dGPU | **D0, runtime active**, no driver on the GPU function. Its HDMI-audio function is bound by snd_hda_intel, also D0/active. On resume the kernel logs "pci 0000:64:00.0: Enabling HDA controller" (the NVIDIA HDA quirk) |
+| Wi-Fi regulatory | `regulatory.db` now loads (the v1 "failed to load regulatory.db" is gone) |
+| Battery | A32-K55 Li-ion, 63 %, discharging, **charge_full 4.063 Ah of 4.580 Ah design = 88.7 % health**, cycle count not reported (0) |
+| Backlight | amdgpu_bl0 at 199500 / 399000 (50 %) |
+| Temperatures | acpitz 47 °C and 20 °C before sleep, 45 °C after |
+| eDP status | `edp_connected: false`. The connector's sysfs status reads "unknown" because no DRM client has probed it in the check (run 1 showed DC detecting eDP-1 with PSR). v3 asks for a probe first |
+
+**Reading (HYPOTHESIS).** The dGPU sitting in D0 is the prime suspect for the missing S0ix residency. That matches `docs/nvidia.md` §1: with no driver and with VGA_SWITCHEROO off, the HDMI-audio function keeps the link up and the slot can't power down.
+
+**v3 tests this directly.** A new menu entry, "OpenBook sleep test, NVIDIA GPU powered down", unbinds the HDMI-audio function, removes both NVIDIA functions and lets the root port runtime-suspend (option 2 in `docs/nvidia.md` §1, for this boot only). It then repeats the sleep test, records the bridge's power state, and lists every PCI function still awake right before suspend.
+
+## Stick updated to v3 (2026-10-16, owner's confirmation on ANAL-189)
+- Same guarded update as for v2 (`stick-update-v3.log`): only `openbook/check/hwcheck.img`, the three check entries and the README on the OPENBOOK partition.
+- A read-only remount verified all five files against `../2026-10-16-installer/hwcheck-stick/v3/esp-update-MANIFEST.sha256`.
+- Menu order: hardware check (default) → + sleep test → **sleep test, NVIDIA GPU powered down** → preview.
+- Reports `hwcheck-001`…`003` are still on the stick.

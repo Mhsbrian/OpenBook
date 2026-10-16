@@ -483,6 +483,9 @@ menuentry "OpenBook (slot $slot)" {{
             f"title OpenBook hardware check\nsort-key openbook-1\n{check}\n")
         open(f"{e}/loader/entries/openbook-1s-sleep.conf", "w").write(
             f"title OpenBook hardware check + sleep test\nsort-key openbook-1s\n{check} openbook.probe.sleep=1\n")
+        open(f"{e}/loader/entries/openbook-1t-sleep-dgpu-off.conf", "w").write(
+            f"title OpenBook sleep test, NVIDIA GPU powered down\nsort-key openbook-1t\n{check} openbook.probe.sleep=1 "
+            f"openbook.probe.dgpu=detach\n")
         open(f"{e}/loader/entries/openbook-2-vm.conf", "w").write(
             f"title OpenBook preview (virtual machines only)\nsort-key openbook-2\n{common}"
             f"initrd /openbook/a/bootconfig.img\noptions {cmd}\n")
@@ -492,6 +495,8 @@ menuentry "OpenBook (slot $slot)" {{
             "  kernel, loads its drivers, writes openbook/logs/hwcheck-NNN.txt, .json and -dmesg.txt on THIS stick\n"
             "  and powers off. It never writes to the laptop's own disks.\n"
             "- 'OpenBook hardware check + sleep test': the same, plus one sleep (s2idle) of 20 s woken by the clock.\n"
+            "- 'OpenBook sleep test, NVIDIA GPU powered down': first powers the NVIDIA GPU down for this boot only\n"
+            "  (driver unbound, removed from the PCI bus, its slot runtime-suspended), then the same sleep test.\n"
             "- 'OpenBook preview (virtual machines only)': Android 17 with the console on the serial port.\n"
             "  On a laptop it shows nothing (no graphics in this preview).\n")
     elif loader == "sdboot":
