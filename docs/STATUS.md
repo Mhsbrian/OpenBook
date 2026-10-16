@@ -41,3 +41,4 @@
 | ANAL-163 Bare-metal bring-up on the G14 2025 (waiting for inventory output from the laptop) | ANAL-175 inventory | ANAL-176 USB boot → ANAL-178 input and power, ANAL-179 audio and Wi-Fi |
 | ANAL-165 Track B: Googlebook OS on AMD (parked: licensing decision) | ANAL-182 VM boot to `boot_completed`, ANAL-183 Zen 4 ISA spike | ANAL-184 kernel swap → ANAL-185 graphics overlay |
 | ANAL-166 Performance and parity (parked) | — | — |
+| ANAL-186 NVIDIA dGPU, RTX 5070 Laptop (parked until the AMD iGPU bring-up works) | ANAL-187 research nouveau/NVK on Android and PRIME offload | — |
