@@ -89,6 +89,23 @@ Each milestone is small, has a verification artifact, and is checked into `evide
 | M7 | Performance and parity | A+B | Benchmarks against an Intel Googlebook baseline (needs device access); Chrome; Linux terminal fallback | |
 | M8 | USB installer | A | A bootable AnyBook USB image that runs live and installs through a graphical wizard, only to a disk the user confirms by name (epic ANAL-188, owner goal 2026-10-16) | Parked until M3–M5 work on the target |
 
+## 4a. Device-in-the-loop: Multica on the G14 (owner directive, 2026-10-16)
+
+**Do not drop this as we iterate.** Building, testing and verification move onto the real laptop in phases, run by a Multica runtime and a dedicated test agent on the ASUS G14 (epic ANAL-193):
+
+| Phase | Runtime host | Purpose | Issue |
+|---|---|---|---|
+| 1 | G14's current Linux (Arch/Omarchy) | Runtime and "OpenBook G14 Tester" agent online; root inventory (dmesg, ACPI, EDID) | ANAL-194 (needs the owner to install the daemon) |
+| 2 | G14 Linux, KVM | Our AOSP 17 image and OpenBook kernel in Cuttlefish on the real Zen 5 CPU | ANAL-195 |
+| 3 | G14 Linux ⇄ OpenBook bare metal | Unattended dual-boot cycle: boot OpenBook once, run test hooks, reboot to Linux, harvest and report | ANAL-196 (after ANAL-176) |
+| 4 | Installed OpenBook | Runtime on the device itself: CTS/VTS subsets, ARM compat on hardware, suspend/battery, benchmarks | ANAL-197 (after M8 / ANAL-188) |
+
+**Quality gate.** From M3 on, a bare-metal milestone (M3, M4, M5, M8) is delivered only when it is reproduced on the G14:
+- by the device agent once it exists;
+- until then, by an owner-run checklist with the exact commands and logs.
+
+Everything built for bare metal must therefore be scripted, unattended-safe, and emit durable logs and machine-readable results. Heavy builds (AOSP, kernel, Mesa) stay on the 7950X dev host; the laptop runs and verifies. The device agent follows the same safety rules: never flash, repartition, wipe or change the boot configuration without explicit owner confirmation that names the device or entry.
+
 ## 5. Reuse instead of rebuild
 
 - **GBRUNCH** (MIT): builds Googlebook from a recovery image locally, with a vendor compat layer and software KeyMint. Its `AMD.md` blocker list matches what we found. This is Track B's starting point.
@@ -106,25 +123,25 @@ Each milestone is small, has a verification artifact, and is checked into `evide
 - Emulator system images fall under the Android SDK (Preview) License: local use only, no redistribution.
 - libhoudini and libndk_translation are proprietary. Track A will not bundle them.
 
-## 7. Next steps (in order, updated 2026-10-16, evening)
+## 7. Next steps (in order, updated 2026-10-16, late)
 
-Execution is tracked as Multica epics ANAL-160 to ANAL-166, ANAL-186 and ANAL-188, with sub-issues ANAL-167 to ANAL-192. The live map is in `docs/STATUS.md`.
+Execution is tracked as Multica epics ANAL-160 to ANAL-166, ANAL-186, ANAL-188 and ANAL-193 (all children of ANAL-159). The live map is in `docs/STATUS.md`.
 
-**End deliverable (owner, 2026-10-16):** a bootable USB image of AnyBook with an interactive, polished installer wizard (M8, epic ANAL-188). Every stage below should leave pieces that image can reuse: the boot chain, a reusable desktop/AMD product and the firmware subset. The installer work itself starts only once the target boots from USB.
+**End deliverable (owner, 2026-10-16):** a bootable USB image with an interactive installer wizard (M8, ANAL-188), verified on the G14 by an on-device agent (§4a).
 
-Stage 2 is delivered, with PRs open:
-- **ANAL-168 (PR #9):** our `aosp_cf_x86_64_pc-cp2a-userdebug` boots to `boot_completed` in Cuttlefish. It still runs Google's android16-6.12 kernel.
-- **ANAL-171 (PR #8):** AMD kernel with 138 vendor modules, checked against the G14 inventory. The laptop is a **GA403WR**.
+**Delivered and merged:** PRs #1–#12.
+- AOSP 17 PC build boots in Cuttlefish (ANAL-168).
+- AMD kernel with 138 vendor modules for the GA403WR (ANAL-171).
+- That kernel boots our userspace in Cuttlefish (ANAL-172).
+- Digitalis evaluated: GO for Track A, with conditions (ANAL-181).
 
-Now running:
-1. **ANAL-172:** our 6.18 kernel with our AOSP userspace in a VM, plus module loading. It swaps images rather than rebuilding Android.
-2. **ANAL-169:** VM graphics and desktop windowing. It owns the AOSP tree while it runs.
-3. **ANAL-181:** Digitalis compared with the libndk_translation baseline.
+**Running:** ANAL-169, VM graphics and desktop windowing. It owns the AOSP tree.
 
-Then, in order:
-- **ANAL-174:** AMD graphics in the device tree. It waits for ANAL-169, because both rebuild the same tree.
-- **ANAL-176:** USB boot on the G14. Its inventory dependency (ANAL-175) is met.
-- **ANAL-178/179:** input, power, audio and Wi-Fi on the laptop.
-- **ANAL-189 to ANAL-192:** installer design, live USB image, wizard, end-to-end tests.
+**Then, in order (condition wakeups handle the hand-offs):**
+1. **ANAL-174:** create the real `device/anybook` x86_64 product with AMD graphics (Mesa, minigbm, HWC, ANGLE). Starts when ANAL-169 delivers.
+2. **ANAL-176:** USB boot on the G14. It needs ANAL-174's bare-metal product; the Cuttlefish product cannot boot on real hardware.
+3. **ANAL-178/179:** input, power, audio and Wi-Fi.
+4. **ANAL-189 to ANAL-192:** installer.
+5. **In parallel, once the owner installs the daemon on the G14:** ANAL-194 → ANAL-195 → ANAL-196.
 
-Track B (M1a, ANAL-182) waits on the owner's licensing decision.
+Track B (ANAL-182) waits on the owner's licensing decision.

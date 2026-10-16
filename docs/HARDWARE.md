@@ -45,7 +45,7 @@ Labels: C = confirmed (inventory from the laptop, kernel source, or linux-firmwa
 ### Collecting the inventory (read-only)
 Run this on the laptop from its installed Linux or a live USB. It changes nothing on the machine:
 ```bash
-git clone https://github.com/Mhsbrian/AnyBook && cd AnyBook
+git clone https://github.com/Mhsbrian/OpenBook && cd OpenBook
 scripts/hw-inventory.sh               # no root needed
 scripts/hw-inventory.sh --with-root   # optional: adds dmesg, dmidecode, ACPI tables minus MSDM/SLIC (sudo)
 ```
