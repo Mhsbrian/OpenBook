@@ -1,0 +1,56 @@
+# linux-firmware 38c1a70 2026-10-16 (~/anybook/kernel/firmware/linux-firmware, shallow) and Arch linux-firmware-nvidia 20260916-1
+
+## WHENCE: nouveau section, GB20x entries and licence line
+Driver: nouveau - NVIDIA GPU driver
+File: nvidia/gb202/gsp/bootloader-570.144.bin
+File: nvidia/gb202/gsp/fmc-570.144.bin
+Link: nvidia/gb202/gsp/gsp-570.144.bin -> ../../ga102/gsp/gsp-570.144.bin
+Link: nvidia/gb203 -> gb202
+Link: nvidia/gb205 -> gb202
+Link: nvidia/gb206 -> gb202
+Link: nvidia/gb207 -> gb202
+Licence: Redistributable. See LICENCE.nvidia for details
+SPDX-License-Identifier: LicenseRef-LICENCE.nvidia
+
+## Licence file
+LICENSES/LICENCE.nvidia sha256 bc5225a57f49c5249dcf238e4ae6437811677a2a8a7f579c3d839e058653ee44; identical to /usr/share/licenses/linux-firmware-nvidia/LICENCE.nvidia: yes
+2.1.2  Open Source Exception.  Notwithstanding the foregoing terms
+of Section 2.1.1, SOFTWARE may be copied and redistributed solely for
+use on operating systems distributed under the terms of an OSI-approved
+open source license as listed by the Open Source Initiative at
+http://opensource.org, provided that the binary files thereof are not
+modified, and Customer provides a copy of this license with the SOFTWARE.
+
+2.1.3  Limitations.
+
+No Reverse Engineering.  Customer may not reverse engineer,
+decompile, or disassemble the SOFTWARE, nor attempt in any other
+manner to obtain the source code.
+
+Usage. SOFTWARE is licensed only for use with microprocessor(s) which have
+been (i) designed by NVIDIA and (ii) either (a) sold by or (b) licensed by
+NVIDIA. Customer shall not use SOFTWARE in conjunction with, nor cause
+SOFTWARE to be executed by, any other microprocessor.
+
+No Translation. Customer shall not translate SOFTWARE, nor cause or permit
+SOFTWARE to be translated, from the architecture or language in which it is
+originally provided by NVIDIA, into any other architecture or language.
+
+No Rental.  Customer may not rent or lease the SOFTWARE to someone
+
+## Installed GB20x files (Arch package) and sizes
+lrwxrwxrwx 1 root root   5 Sep 16 23:21 /usr/lib/firmware/nvidia/gb206 -> gb202
+
+/usr/lib/firmware/nvidia/gb202/gsp/:
+total 396
+drwxr-xr-x 1 root root    128 Sep 21 07:20 .
+drwxr-xr-x 1 root root      6 Aug 22 14:26 ..
+-rw-r--r-- 1 root root 199358 Sep 16 23:21 bootloader-570.144.bin.zst
+-rw-r--r-- 1 root root 199839 Sep 16 23:21 fmc-570.144.bin.zst
+lrwxrwxrwx 1 root root     35 Sep 16 23:21 gsp-570.144.bin.zst -> ../../ga102/gsp/gsp-570.144.bin.zst
+Frames  Skips  Compressed  Uncompressed  Ratio  Check  Filename
+     1      0    49.4 MiB      60.6 MiB  1.228  XXH64  /usr/lib/firmware/nvidia/ga102/gsp/gsp-570.144.bin.zst
+     1      0     195 KiB       195 KiB  1.000  XXH64  /usr/lib/firmware/nvidia/gb202/gsp/fmc-570.144.bin.zst
+     1      0     195 KiB       196 KiB  1.007  XXH64  /usr/lib/firmware/nvidia/gb202/gsp/bootloader-570.144.bin.zst
+----------------------------------------------------------------- 
+     3      0    49.7 MiB      61.0 MiB  1.226  XXH64  3 files
