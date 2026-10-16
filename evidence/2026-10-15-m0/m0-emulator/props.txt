@@ -1,0 +1,12 @@
+google/sdk_gdesktop_x86_64/emu64xa:17/CLE1.260506.004/15373846:userdebug/test-keys
+x86_64,arm64-v8a
+libndk_translation.so
+1
+desktop
+emulation
+Linux localhost 6.12.58-android16-6-gccafb60de224-ab14828483 #1 SMP PREEMPT Tue Feb  3 03:46:47 UTC 2026 x86_64 Toybox
+model name	: Android virtual processor
+null
+0
+feature:android.hardware.type.pc
+feature:android.software.freeform_window_management

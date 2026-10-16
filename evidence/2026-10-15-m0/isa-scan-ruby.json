@@ -1,0 +1,280 @@
+{
+ "scanned_elf_files": 2675,
+ "summary": {
+  "AVX-VNNI": {
+   "files": 65,
+   "insns": 3516,
+   "on_zen5": true
+  },
+  "AVX-IFMA": {
+   "files": 11,
+   "insns": 11,
+   "on_zen5": false
+  },
+  "APX": {
+   "files": 4,
+   "insns": 1008,
+   "on_zen5": false
+  },
+  "AVX-VNNI-INT8": {
+   "files": 2,
+   "insns": 144,
+   "on_zen5": false
+  },
+  "AMX": {
+   "files": 2,
+   "insns": 850,
+   "on_zen5": false
+  },
+  "WAITPKG": {
+   "files": 1,
+   "insns": 2,
+   "on_zen5": false
+  }
+ },
+ "files": {
+  "fs/system_a/system/bin/aisealhostservice": {
+   "AVX-VNNI": 2,
+   "AVX-IFMA": 1
+  },
+  "fs/system_a/system/bin/apexd": {
+   "AVX-VNNI": 16
+  },
+  "fs/system_a/system/bin/bpftool": {
+   "AVX-VNNI": 10
+  },
+  "fs/system_a/system/bin/ectool": {
+   "AVX-IFMA": 1
+  },
+  "fs/system_a/system/bin/init": {
+   "AVX-VNNI": 14
+  },
+  "fs/system_a/system/bin/pbtombstone": {
+   "AVX-VNNI": 6
+  },
+  "fs/system_a/system/bin/prefetch": {
+   "AVX-IFMA": 1
+  },
+  "fs/system_a/system/bin/simpleperf": {
+   "AVX-VNNI": 6
+  },
+  "fs/system_a/system/bin/snapuserd": {
+   "AVX-VNNI": 10
+  },
+  "fs/system_a/system/bin/surfaceflinger": {
+   "AVX-VNNI": 28
+  },
+  "fs/system_a/system/bin/update_engine": {
+   "AVX-VNNI": 12
+  },
+  "fs/system_a/system/bin/bootstrap/linker64": {
+   "AVX-VNNI": 16
+  },
+  "fs/system_a/system/bin/cups/filter/gs": {
+   "AVX-VNNI": 39
+  },
+  "fs/system_a/system/lib64/libFFTEm.so": {
+   "AVX-VNNI": 5
+  },
+  "fs/system_a/system/lib64/libRSCpuRef.so": {
+   "AVX-VNNI": 25
+  },
+  "fs/system_a/system/lib64/libaudioprocessing.so": {
+   "AVX-VNNI": 80
+  },
+  "fs/system_a/system/lib64/libcrypto.so": {
+   "AVX-VNNI": 28
+  },
+  "fs/system_a/system/lib64/libfdtrack.so": {
+   "AVX-VNNI": 10
+  },
+  "fs/system_a/system/lib64/libhoudini.so": {
+   "APX": 26
+  },
+  "fs/system_a/system/lib64/libhwui.so": {
+   "AVX-VNNI": 46
+  },
+  "fs/system_a/system/lib64/libinput.so": {
+   "AVX-IFMA": 1,
+   "AVX-VNNI": 33
+  },
+  "fs/system_a/system/lib64/libinputflinger.so": {
+   "AVX-IFMA": 1
+  },
+  "fs/system_a/system/lib64/libkll.so": {
+   "AVX-VNNI": 2
+  },
+  "fs/system_a/system/lib64/libndk_translation.so": {
+   "AVX-VNNI": 4
+  },
+  "fs/system_a/system/lib64/libpdfium.so": {
+   "AVX-VNNI": 19
+  },
+  "fs/system_a/system/lib64/libprotobuf-cpp-full-6.33.5-absl20260526.so": {
+   "AVX-VNNI": 38
+  },
+  "fs/system_a/system/lib64/libprotobuf-cpp-lite-6.33.5-absl20260526.so": {
+   "AVX-VNNI": 24
+  },
+  "fs/system_a/system/lib64/librtp_jni.so": {
+   "AVX-VNNI": 7
+  },
+  "fs/system_a/system/lib64/libsfplugin_ccodec_utils.so": {
+   "AVX-VNNI": 32
+  },
+  "fs/system_a/system/lib64/libsnapshot.so": {
+   "AVX-VNNI": 12
+  },
+  "fs/system_a/system/lib64/libstagefright.so": {
+   "AVX-VNNI": 9
+  },
+  "fs/system_a/system/lib64/libtcb.so": {
+   "APX": 4
+  },
+  "fs/system_a/system/lib64/libyuv.so": {
+   "AVX-VNNI": 32
+  },
+  "fs/system_a/system/lib64/libz.so": {
+   "AVX-VNNI": 9
+  },
+  "fs/system_a/system/lib64/libzlib_rs.dylib.so": {
+   "AVX-VNNI": 2
+  },
+  "fs/system_a/system/lib64/libzmij.dylib.so": {
+   "AVX-IFMA": 1
+  },
+  "fs/system_a/system/lib64/service.incremental.so": {
+   "AVX-VNNI": 24
+  },
+  "fs/vendor_a/bin/ectool": {
+   "AVX-IFMA": 1
+  },
+  "fs/vendor_a/bin/hw/android.hardware.media.c2-cros-codecs-service": {
+   "AVX-VNNI": 6
+  },
+  "fs/vendor_a/bin/hw/android.hardware.usb-service.desktop": {
+   "AVX-IFMA": 1
+  },
+  "fs/vendor_a/lib64/libbluetooth_audio_session_aidl.so": {
+   "AVX-VNNI": 13
+  },
+  "fs/vendor_a/lib64/libcamera_internal.so": {
+   "AVX-VNNI": 419,
+   "AVX-VNNI-INT8": 72,
+   "AMX": 419
+  },
+  "fs/vendor_a/lib64/libcodec2_soft_common.so": {
+   "AVX-VNNI": 33
+  },
+  "fs/vendor_a/lib64/libcros_ml_core_internal.so": {
+   "AVX-VNNI": 1767,
+   "AVX-VNNI-INT8": 72,
+   "AMX": 431
+  },
+  "fs/vendor_a/lib64/libcrypto.so": {
+   "AVX-VNNI": 28
+  },
+  "fs/vendor_a/lib64/libflashrom.so": {
+   "AVX-VNNI": 10
+  },
+  "fs/vendor_a/lib64/libopenvino_intel_cpu_plugin.so": {
+   "AVX-VNNI": 160
+  },
+  "fs/vendor_a/lib64/libprotobuf-cpp-full-6.33.5-absl20260526.so": {
+   "AVX-VNNI": 38
+  },
+  "fs/vendor_a/lib64/libprotobuf-cpp-lite-6.33.5-absl20260526.so": {
+   "AVX-VNNI": 24
+  },
+  "fs/vendor_a/lib64/libsfplugin_ccodec_utils.so": {
+   "AVX-VNNI": 32
+  },
+  "fs/vendor_a/lib64/libtflite.so": {
+   "AVX-VNNI": 49
+  },
+  "fs/vendor_a/lib64/libyuv.so": {
+   "AVX-VNNI": 32
+  },
+  "fs/vendor_a/lib64/libz.so": {
+   "AVX-VNNI": 9
+  },
+  "fs/vendor_a/lib64/libze_intel_npu.so": {
+   "WAITPKG": 2
+  },
+  "fs/vendor_a/lib64/libzlib_rs.dylib.so": {
+   "AVX-VNNI": 2
+  },
+  "fs/vendor_a/lib64/libzmij.dylib.so": {
+   "AVX-IFMA": 1
+  },
+  "fs/vendor_a/lib64/pixelatoms-cpp.so": {
+   "AVX-VNNI": 10
+  },
+  "fs/vendor_a/lib64/hw/camera.libcamera_hal_base.so": {
+   "AVX-VNNI": 32
+  },
+  "fs/vendor_a/lib64/hw/vulkan.intel.so": {
+   "AVX-VNNI": 2
+  },
+  "fs/vendor_a/lib64/libcamera/pipeline/camera.libipu7_hal_fatcat.so": {
+   "AVX-VNNI": 32
+  },
+  "fs/vendor_a/lib64/soundfx/libaudiopreprocessing.so": {
+   "AVX-VNNI": 2
+  },
+  "fs/vendor_a/lib64/soundfx/libpreprocessingaidl.so": {
+   "AVX-VNNI": 2
+  },
+  "fs/system_ext_a/bin/trusty_security_vm_launcher": {
+   "AVX-IFMA": 1
+  },
+  "fs/system_ext_a/etc/vm/trusty_vm/desktop_trusty_ext_boot_signed.elf": {
+   "APX": 486
+  },
+  "fs/system_ext_a/etc/vm/trusty_vm/desktop_trusty_signed.elf": {
+   "APX": 492
+  },
+  "ramdisks/init_boot_a_ramdisk/init": {
+   "AVX-VNNI": 12
+  },
+  "ramdisks/init_boot_a_ramdisk/system/bin/snapuserd_ramdisk": {
+   "AVX-VNNI": 10
+  },
+  "ramdisks/vendor_boot_a_vendor_ramdisk00/first_stage_ramdisk/system/bin/linker64": {
+   "AVX-VNNI": 16
+  },
+  "ramdisks/vendor_boot_a_vendor_ramdisk00/first_stage_ramdisk/system/lib64/libz.so": {
+   "AVX-VNNI": 9
+  },
+  "ramdisks/vendor_boot_a_vendor_ramdisk01/system/bin/fastbootd": {
+   "AVX-VNNI": 12
+  },
+  "ramdisks/vendor_boot_a_vendor_ramdisk01/system/bin/init": {
+   "AVX-VNNI": 14
+  },
+  "ramdisks/vendor_boot_a_vendor_ramdisk01/system/bin/linker64": {
+   "AVX-VNNI": 16
+  },
+  "ramdisks/vendor_boot_a_vendor_ramdisk01/system/bin/provision_ui": {
+   "AVX-VNNI": 10
+  },
+  "ramdisks/vendor_boot_a_vendor_ramdisk01/system/bin/recovery": {
+   "AVX-VNNI": 44
+  },
+  "ramdisks/vendor_boot_a_vendor_ramdisk01/system/lib64/libcrypto.so": {
+   "AVX-VNNI": 28
+  },
+  "ramdisks/vendor_boot_a_vendor_ramdisk01/system/lib64/libflashrom.so": {
+   "AVX-VNNI": 10
+  },
+  "ramdisks/vendor_boot_a_vendor_ramdisk01/system/lib64/libprotobuf-cpp-lite-6.33.5-absl20260526.so": {
+   "AVX-VNNI": 24
+  },
+  "ramdisks/vendor_boot_a_vendor_ramdisk01/system/lib64/libz.so": {
+   "AVX-VNNI": 9
+  },
+  "ramdisks/vendor_boot_a_vendor_ramdisk01/system/lib64/libzmij.dylib.so": {
+   "AVX-IFMA": 1
+  }
+ }
+}
