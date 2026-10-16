@@ -26,7 +26,7 @@ Labels: C = confirmed (inventory from the laptop, kernel source, or linux-firmwa
 | RAM | 32 GB | — | — | C |
 | iGPU | Radeon 890M, RDNA 3.5, gfx1150, `1002:150e` rev c1 | amdgpu, Mesa radeonsi/RADV | `amdgpu/gc_11_5_0*`, `dcn_3_5*`, `psp_14_0_0*`, `sdma_6_1_0`, `vcn_4_0_5` | C |
 | dGPU | RTX 5070 Ti Laptop (GA403WR SKU) | nouveau / NVK later | `nvidia/gb20x` | R. Not on the PCI bus during the inventory. **Kept off in the first bring-up** |
-| Display | 14" 2880×1800 eDP, 120 Hz OLED | amdgpu DC (PSR/Panel Replay quirks are possible) | — | C resolution, R panel model |
+| Display | 14" 2880×1800 eDP, 120 Hz OLED; fwupd names the panel vendor `PNP:SDC` (Samsung Display) | amdgpu DC (PSR/Panel Replay quirks are possible) | — | C resolution and vendor; U panel model until an EDID is captured |
 | Graphics switching | MUX + NVIDIA Advanced Optimus; inventory: `gpu_mux_mode=1` (Optimus), `dgpu_disable=0` | asus-wmi `dgpu_disable`/`gpu_mux_mode` (6.18), asus-armoury (6.19+) | — | C |
 | Backlight | `nvidia_wmi_ec_backlight` loads on the laptop | nvidia-wmi-ec-backlight or amdgpu, chosen by `acpi/video_detect.c` | — | U which one is active (needs `ls /sys/class/backlight`) |
 | NPU | XDNA 2, `1022:17f0` rev 10 | amdxdna | `amdnpu/17f0_10/*` | C |
@@ -40,7 +40,7 @@ Labels: C = confirmed (inventory from the laptop, kernel source, or linux-firmwa
 | Storage | SK hynix PVC10 NVMe | nvme | — | C |
 | Ports | USB4 router `1022:151c`, UCSI (`USBC000`), USB-C 3.2, 2× USB-A, HDMI 2.1 | thunderbolt, ucsi_acpi | — | C USB4/UCSI, C spec rest |
 | Power | `AMDI000A` amd_pmc, `AMDI0103` amd-pmf, `AMDI0104` amd_hfi; s2idle only; battery A32-K55 | amd_pmc, amd-pmf, amd_hfi, battery, ac | — | C |
-| Security | TPM2 `MSFT0101` (fTPM/Pluton), Secure Boot disabled, UEFI 2.90 | tpm_crb | — | C |
+| Security | TPM2 `MSFT0101` (Pluton, firmware 10.6.0.4), Secure Boot disabled, UEFI 2.90. db/KEK hold the Microsoft 2023 CAs (UEFI CA, Windows UEFI CA, KEK CA) and ASUS 2023 keys; dbx 20260402 | tpm_crb | — | C. Whether the 2011 Microsoft CAs are also in db is U |
 
 ### Collecting the inventory (read-only)
 Run this on the laptop from its installed Linux or a live USB. It changes nothing on the machine:
@@ -49,7 +49,7 @@ git clone https://github.com/Mhsbrian/OpenBook && cd OpenBook
 scripts/hw-inventory.sh               # no root needed
 scripts/hw-inventory.sh --with-root   # optional: adds dmesg, dmidecode, ACPI tables minus MSDM/SLIC (sudo)
 ```
-It writes `anybook-hw-<board>-<date>.tar.gz`, with serials, UUIDs and MAC addresses redacted. Attach that file to ANAL-175.
+It writes `anybook-hw-<board>-<date>.tar.gz`, with serials, UUIDs and MAC addresses redacted. Attach that file to ANAL-175. Install `v4l-utils` first for `edid-decode`: the panel EDID is captured without root, with its serial number and date replaced.
 
 ### Bring-up notes and risks
 1. **Run Android on the Radeon 890M.** Keep the MUX in hybrid (iGPU) mode and power the dGPU down with `dgpu_disable` from Linux before booting AnyBook. In dGPU-only MUX mode the internal panel is wired to the NVIDIA GPU, which Android cannot drive yet.

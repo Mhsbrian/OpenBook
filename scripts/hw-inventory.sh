@@ -6,6 +6,7 @@
 #   --with-root  also collect dmesg, dmidecode and the ACPI tables through sudo (prompts for your password);
 #                the MSDM/SLIC tables, which hold the Windows product key, are skipped
 # Output: ./anybook-hw-<board>-<date>.tar.gz   (attach it to the Multica issue)
+# Optional tools on Arch: pciutils usbutils alsa-utils iw dmidecode vulkan-tools mesa-utils v4l-utils (edid-decode)
 set -uo pipefail
 ROOT=0; [ "${1:-}" = "--with-root" ] && ROOT=1
 dmi(){ cat "/sys/class/dmi/id/$1" 2>/dev/null || echo unknown; }
@@ -40,7 +41,20 @@ ls /sys/firmware/acpi/tables/ > "$OUT/acpi-table-names.txt" 2>&1
 
 # Display and GPUs
 { for c in /sys/class/drm/card*-*; do echo "== $(basename "$c") status=$(cat "$c/status" 2>/dev/null) enabled=$(cat "$c/enabled" 2>/dev/null)"; cat "$c/modes" 2>/dev/null | head -5; done; } > "$OUT/drm-connectors.txt" 2>&1
-for c in /sys/class/drm/card*-eDP-*; do [ -s "$c/edid" ] && { cp "$c/edid" "$OUT/edid-$(basename "$c").bin"; have edid-decode && edid-decode "$c/edid" > "$OUT/edid-$(basename "$c").txt" 2>&1; }; done
+# Panel EDID. sysfs reports its size as 0, so copy it out before testing it. Only a redacted decode is kept:
+# --replace-unique-ids swaps serial numbers and dates for fixed values, in the hex dump as well.
+edid_id(){ local a b c d v; read -r a b c d < <(od -An -tu1 -j8 -N4 "$1"); v=$((a << 8 | b))
+  printf 'manufacturer=%b%b%b product_code=0x%04x (install edid-decode, part of v4l-utils on Arch, for the full EDID)\n' \
+    "\\0$(printf %o $(((v >> 10 & 31) + 64)))" "\\0$(printf %o $(((v >> 5 & 31) + 64)))" "\\0$(printf %o $(((v & 31) + 64)))" $((d << 8 | c)); }
+for c in /sys/class/drm/card*-eDP-*; do
+  e="$OUT/edid-$(basename "$c")"; cat "$c/edid" > "$e.raw" 2>/dev/null
+  if [ -s "$e.raw" ]; then
+    if have edid-decode && [[ $(edid-decode --help 2>&1) == *--replace-unique-ids* ]]; then
+      edid-decode --replace-unique-ids "$e.raw" > "$e.txt" 2>&1
+    else edid_id "$e.raw" > "$e.txt"; fi
+  fi
+  rm -f "$e.raw"
+done
 have vulkaninfo && run vulkaninfo vulkaninfo --summary
 have glxinfo && run glxinfo glxinfo -B
 have nvidia-smi && run nvidia-smi nvidia-smi --query-gpu=name,driver_version,pci.bus_id,pstate,power.draw,vbios_version --format=csv
