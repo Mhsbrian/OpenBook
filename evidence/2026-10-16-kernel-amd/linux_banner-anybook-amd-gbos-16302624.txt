@@ -1,0 +1,2 @@
+Linux version 6.18.21-android17-5-g44a90255c95f (kleaf@build-host) (Android (15323222, +pgo, +bolt, +lto, +mlgo, based on r584948c) clang version 22.0.1 (https://android.googlesource.com/toolchain/llvm-project 2d65e4108033380e6fe8e08b1f1826cd2bfb0c99), LLD 22.0.1 (/mnt/disks/build-disk/src/googleplex-android/llvm-r584948-release/out/llvm-project/llvm 2d65e4108033380e6fe8e08b1f1826cd2bfb0c99)) #1 SMP PREEMPT Fri Oct 16 12:00:00 UTC 2026
+wrote /home/hive/anybook/kernel/dist/anybook-amd-gbos-16302624/ikconfig/config (232354 bytes)

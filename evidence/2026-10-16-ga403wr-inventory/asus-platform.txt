@@ -1,0 +1,17 @@
+boot_sound=0
+charge_mode=0
+dgpu_disable=0
+gpu_mux_mode=1
+nv_base_tgp=80
+nv_dynamic_boost=0
+nv_temp_target=87
+nv_tgp=0
+panel_overdrive=1
+pending_reboot=
+ppt_pl1_spl=35
+ppt_pl2_sppt=35
+ppt_pl3_fppt=65
+dgpu_disable=0
+gpu_mux_mode=1
+panel_od=1
+throttle_thermal_policy=2

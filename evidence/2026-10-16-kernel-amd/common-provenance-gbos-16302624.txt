@@ -1,0 +1,6 @@
+target=gbos-16302624 branch=common-android17-6.18-2026-06 date=2026-10-16T00:44:18+00:00
+common HEAD=3938c8d97142d5cf31543aa96f864a2cf832dda0 (2026-09-09T07:58:55-07:00 ANDROID: pKVM: x86: Mediate host's GSMI commands to coreboot's SMM)
+Makefile version=6.18.21
+shipped 3938c8d97142 reachable from android17-6.18 (70a231d0d37b): no
+shipped 3938c8d97142 reachable from android17-6.18-2026-06 (977f0bd7673d): yes
+shipped 3938c8d97142 reachable from android17-6.18-2026-09 (b9d0b4b33406): no

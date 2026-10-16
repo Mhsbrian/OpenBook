@@ -1,0 +1,550 @@
+AndroidBuilds {
+  keys_: {
+    AndroidBuildKey {
+      system_image_dir: "/var/tmp/cvd/0/1792157452020256/artifacts/0",
+      fetcher_config: "(present)",
+      source: default_build
+    }
+  },
+  builds_: {
+    AndroidBuildKey {
+      system_image_dir: "/var/tmp/cvd/0/1792157452020256/artifacts/0",
+      fetcher_config: "(present)",
+      source: default_build
+    } => CombinedAndroidBuild (WithPhys, 2 members) {
+      Images: {
+        "boot",
+        "cuttlefish_example_custom",
+        "dtb",
+        "init_boot",
+        "odm",
+        "odm_dlkm",
+        "product",
+        "ramdisk",
+        "super",
+        "super_empty",
+        "system",
+        "system_dlkm",
+        "system_ext",
+        "system_other",
+        "userdata",
+        "vbmeta",
+        "vbmeta_system",
+        "vbmeta_system_dlkm",
+        "vbmeta_vendor_dlkm",
+        "vendor",
+        "vendor-bootconfig",
+        "vendor_boot",
+        "vendor_boot-debug",
+        "vendor_dlkm",
+        "vendor_ramdisk"
+      },
+      AbPartitions(): {
+        "odm",
+        "odm_dlkm",
+        "product",
+        "system",
+        "system_dlkm",
+        "system_ext",
+        "vendor",
+        "vendor_dlkm"
+      },
+      SystemPartitions(): {
+        "product",
+        "system",
+        "system_dlkm",
+        "system_ext"
+      },
+      VendorPartitions(): {
+        "odm",
+        "odm_dlkm",
+        "vendor",
+        "vendor_dlkm"
+      },
+      LogicalPartitions(): {
+        "odm",
+        "odm_dlkm",
+        "product",
+        "system",
+        "system_dlkm",
+        "system_ext",
+        "vendor",
+        "vendor_dlkm"
+      },
+      PhysicalPartitions(): {
+        "boot",
+        "cuttlefish_example_custom",
+        "dtb",
+        "init_boot",
+        "ramdisk",
+        "super",
+        "system_other",
+        "userdata",
+        "vbmeta",
+        "vbmeta_system",
+        "vbmeta_system_dlkm",
+        "vbmeta_vendor_dlkm",
+        "vendor-bootconfig",
+        "vendor_boot",
+        "vendor_boot-debug",
+        "vendor_ramdisk"
+      },
+      builds_: {
+        CombinedAndroidBuild (WithSuper, 2 members) {
+          Images: {
+            "boot",
+            "cuttlefish_example_custom",
+            "dtb",
+            "init_boot",
+            "odm",
+            "odm_dlkm",
+            "product",
+            "ramdisk",
+            "super",
+            "super_empty",
+            "system",
+            "system_dlkm",
+            "system_ext",
+            "system_other",
+            "userdata",
+            "vbmeta",
+            "vbmeta_system",
+            "vbmeta_system_dlkm",
+            "vbmeta_vendor_dlkm",
+            "vendor",
+            "vendor-bootconfig",
+            "vendor_boot",
+            "vendor_boot-debug",
+            "vendor_dlkm",
+            "vendor_ramdisk"
+          },
+          AbPartitions(): {
+            "odm",
+            "odm_dlkm",
+            "product",
+            "system",
+            "system_dlkm",
+            "system_ext",
+            "vendor",
+            "vendor_dlkm"
+          },
+          SystemPartitions(): {
+            "product",
+            "system",
+            "system_dlkm",
+            "system_ext"
+          },
+          VendorPartitions(): {
+            "odm",
+            "odm_dlkm",
+            "vendor",
+            "vendor_dlkm"
+          },
+          LogicalPartitions(): {
+            "odm",
+            "odm_dlkm",
+            "product",
+            "system",
+            "system_dlkm",
+            "system_ext",
+            "vendor",
+            "vendor_dlkm"
+          },
+          PhysicalPartitions(): 1. combined_android_build.cc:117 | PhysicalPartitions | 
+           | cuttlefish/host/commands/assemble_cvd/android_build/android_build.cc:63
+           v virtual Result<std::set<std::string, std::less<void>>> cuttlefish::AndroidBuild::PhysicalPartitions()
+          Unimplemented for 'SuperImageAsBuild',
+          builds_: {
+            AndroidProductDir {
+              Images(): {
+                "boot",
+                "cuttlefish_example_custom",
+                "dtb",
+                "init_boot",
+                "odm",
+                "odm_dlkm",
+                "product",
+                "ramdisk",
+                "super",
+                "super_empty",
+                "system",
+                "system_dlkm",
+                "system_ext",
+                "system_other",
+                "userdata",
+                "vbmeta",
+                "vbmeta_system",
+                "vbmeta_system_dlkm",
+                "vbmeta_vendor_dlkm",
+                "vendor",
+                "vendor-bootconfig",
+                "vendor_boot",
+                "vendor_boot-debug",
+                "vendor_dlkm",
+                "vendor_ramdisk"
+              },
+              path_: "/var/tmp/cvd/0/1792157452020256/artifacts/0"
+            },
+            SuperImageAsBuild {
+              Images(): {
+                "odm",
+                "odm_dlkm",
+                "product",
+                "system",
+                "system_dlkm",
+                "system_ext",
+                "vendor",
+                "vendor_dlkm"
+              },
+              LogicalPartitions(): {
+                "odm",
+                "odm_dlkm",
+                "product",
+                "system",
+                "system_dlkm",
+                "system_ext",
+                "vendor",
+                "vendor_dlkm"
+              },
+              AbPartitions(): {
+                "odm",
+                "odm_dlkm",
+                "product",
+                "system",
+                "system_dlkm",
+                "system_ext",
+                "vendor",
+                "vendor_dlkm"
+              },
+              SystemPartitions(): {
+                "product",
+                "system",
+                "system_dlkm",
+                "system_ext"
+              },
+              VendorPartitions(): {
+                "odm",
+                "odm_dlkm",
+                "vendor",
+                "vendor_dlkm"
+              },
+              super_metadata_: LpMetadata {
+                geometry: LpMetadataGeometry {
+                  magic: 1634485351,
+                  struct_size: 52,
+                  checksum: {
+                    18,
+                    255,
+                    85,
+                    240,
+                    171,
+                    167,
+                    181,
+                    6,
+                    242,
+                    92,
+                    181,
+                    218,
+                    93,
+                    202,
+                    9,
+                    52,
+                    66,
+                    52,
+                    232,
+                    223,
+                    29,
+                    156,
+                    147,
+                    174,
+                    130,
+                    164,
+                    153,
+                    217,
+                    128,
+                    25,
+                    70,
+                    126
+                  },
+                  metadata_max_size: 65536,
+                  metadata_slot_count: 3,
+                  logical_block_size: 4096
+                },
+                header: LpMetadataHeader {
+                  magic: 1095520304,
+                  major_version: 10,
+                  minor_version: 2,
+                  header_size: 256,
+                  header_checksum: {
+                    77,
+                    115,
+                    35,
+                    143,
+                    31,
+                    251,
+                    27,
+                    68,
+                    129,
+                    82,
+                    107,
+                    217,
+                    80,
+                    226,
+                    152,
+                    162,
+                    180,
+                    122,
+                    193,
+                    215,
+                    110,
+                    170,
+                    59,
+                    109,
+                    149,
+                    218,
+                    129,
+                    9,
+                    213,
+                    64,
+                    225,
+                    227
+                  },
+                  tables_size: 1136,
+                  tables_checksum: {
+                    212,
+                    234,
+                    12,
+                    99,
+                    246,
+                    77,
+                    39,
+                    213,
+                    104,
+                    108,
+                    145,
+                    175,
+                    64,
+                    42,
+                    84,
+                    73,
+                    131,
+                    127,
+                    98,
+                    190,
+                    140,
+                    113,
+                    185,
+                    18,
+                    25,
+                    235,
+                    35,
+                    195,
+                    151,
+                    108,
+                    100,
+                    134
+                  },
+                  partitions: LpMetadataTableDescriptor {
+                    offset: 0,
+                    num_entries: 16,
+                    entry_size: 52
+                  },
+                  extents: LpMetadataTableDescriptor {
+                    offset: 832,
+                    num_entries: 0,
+                    entry_size: 24
+                  },
+                  groups: LpMetadataTableDescriptor {
+                    offset: 832,
+                    num_entries: 5,
+                    entry_size: 48
+                  },
+                  block_devices: LpMetadataTableDescriptor {
+                    offset: 1072,
+                    num_entries: 1,
+                    entry_size: 64
+                  },
+                  flags: 1
+                },
+                partitions: {
+                  LpMetadataPartition {
+                    name: "product_a",
+                    attributes: 1,
+                    first_extent_index: 0,
+                    num_extents: 0,
+                    group_index: 1
+                  },
+                  LpMetadataPartition {
+                    name: "product_b",
+                    attributes: 1,
+                    first_extent_index: 0,
+                    num_extents: 0,
+                    group_index: 2
+                  },
+                  LpMetadataPartition {
+                    name: "system_a",
+                    attributes: 1,
+                    first_extent_index: 0,
+                    num_extents: 0,
+                    group_index: 1
+                  },
+                  LpMetadataPartition {
+                    name: "system_b",
+                    attributes: 1,
+                    first_extent_index: 0,
+                    num_extents: 0,
+                    group_index: 2
+                  },
+                  LpMetadataPartition {
+                    name: "system_ext_a",
+                    attributes: 1,
+                    first_extent_index: 0,
+                    num_extents: 0,
+                    group_index: 1
+                  },
+                  LpMetadataPartition {
+                    name: "system_ext_b",
+                    attributes: 1,
+                    first_extent_index: 0,
+                    num_extents: 0,
+                    group_index: 2
+                  },
+                  LpMetadataPartition {
+                    name: "system_dlkm_a",
+                    attributes: 1,
+                    first_extent_index: 0,
+                    num_extents: 0,
+                    group_index: 1
+                  },
+                  LpMetadataPartition {
+                    name: "system_dlkm_b",
+                    attributes: 1,
+                    first_extent_index: 0,
+                    num_extents: 0,
+                    group_index: 2
+                  },
+                  LpMetadataPartition {
+                    name: "odm_a",
+                    attributes: 1,
+                    first_extent_index: 0,
+                    num_extents: 0,
+                    group_index: 3
+                  },
+                  LpMetadataPartition {
+                    name: "odm_b",
+                    attributes: 1,
+                    first_extent_index: 0,
+                    num_extents: 0,
+                    group_index: 4
+                  },
+                  LpMetadataPartition {
+                    name: "vendor_a",
+                    attributes: 1,
+                    first_extent_index: 0,
+                    num_extents: 0,
+                    group_index: 3
+                  },
+                  LpMetadataPartition {
+                    name: "vendor_b",
+                    attributes: 1,
+                    first_extent_index: 0,
+                    num_extents: 0,
+                    group_index: 4
+                  },
+                  LpMetadataPartition {
+                    name: "vendor_dlkm_a",
+                    attributes: 1,
+                    first_extent_index: 0,
+                    num_extents: 0,
+                    group_index: 3
+                  },
+                  LpMetadataPartition {
+                    name: "vendor_dlkm_b",
+                    attributes: 1,
+                    first_extent_index: 0,
+                    num_extents: 0,
+                    group_index: 4
+                  },
+                  LpMetadataPartition {
+                    name: "odm_dlkm_a",
+                    attributes: 1,
+                    first_extent_index: 0,
+                    num_extents: 0,
+                    group_index: 3
+                  },
+                  LpMetadataPartition {
+                    name: "odm_dlkm_b",
+                    attributes: 1,
+                    first_extent_index: 0,
+                    num_extents: 0,
+                    group_index: 4
+                  }
+                },
+                extents: {},
+                groups: {
+                  LpMetadataPartitionGroup {
+                    name: "default",
+                    flags: 0,
+                    maximum_size: 0
+                  },
+                  LpMetadataPartitionGroup {
+                    name: "google_system_dynamic_partitions_a",
+                    flags: 0,
+                    maximum_size: 6845104128
+                  },
+                  LpMetadataPartitionGroup {
+                    name: "google_system_dynamic_partitions_b",
+                    flags: 0,
+                    maximum_size: 6845104128
+                  },
+                  LpMetadataPartitionGroup {
+                    name: "google_vendor_dynamic_partitions_a",
+                    flags: 0,
+                    maximum_size: 1472200704
+                  },
+                  LpMetadataPartitionGroup {
+                    name: "google_vendor_dynamic_partitions_b",
+                    flags: 0,
+                    maximum_size: 1472200704
+                  }
+                },
+                block_devices: {
+                  LpMetadataBlockDevice {
+                    first_logical_sector: 2048,
+                    alignment: 1048576,
+                    alignment_offset: 0,
+                    size: 8589934592,
+                    partition_name: "super                               ",
+                    flags: 0
+                  }
+                }
+              },
+              extracted_: {},
+              extract_dir: "/var/tmp/cvd/0/1792157452020256/home/cuttlefish/instances/cvd-1"
+            }
+          }
+        },
+        PhysicalPartitions {
+          PhysicalPartitions(): {
+            "boot",
+            "cuttlefish_example_custom",
+            "dtb",
+            "init_boot",
+            "ramdisk",
+            "super",
+            "system_other",
+            "userdata",
+            "vbmeta",
+            "vbmeta_system",
+            "vbmeta_system_dlkm",
+            "vbmeta_vendor_dlkm",
+            "vendor-bootconfig",
+            "vendor_boot",
+            "vendor_boot-debug",
+            "vendor_ramdisk"
+          }
+        }
+      }
+    }
+  }
+}

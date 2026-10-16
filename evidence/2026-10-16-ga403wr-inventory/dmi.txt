@@ -1,0 +1,10 @@
+sys_vendor=ASUSTeK COMPUTER INC.
+product_name=ROG Zephyrus G14 GA403WR_GA403WR
+product_family=ROG Zephyrus G14
+product_version=1.0
+board_vendor=ASUSTeK COMPUTER INC.
+board_name=GA403WR
+board_version=1.0
+bios_vendor=American Megatrends International, LLC.
+bios_version=GA403WR.309
+bios_date=09/17/2025

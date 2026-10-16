@@ -1,0 +1,22 @@
+# vendor-fragment equivalence: anybook-amd-gbos-16302624 vs the same GKI built with anybook_amd.fragment
+# 2026-10-16T14:58:05+00:00
+A: /home/hive/anybook/kernel/dist/anybook-amd-gbos-16302624
+B: /home/hive/anybook/kernel/dist/anybook-amd-gbos-16302624-integrity
+
+IDENTICAL  vmlinux.symvers
+IDENTICAL  abi_symbollist
+IDENTICAL  modules.builtin
+IDENTICAL  system_dlkm.modules.load
+
+## vmlinux symbols (nm -S): A 192190, B 192192
+only in A: 1 ['i2c_smbus_xfer_emulated.__already_done.83']
+only in B: 3 ['__cfi_i2c_setup_smbus_alert', 'i2c_setup_smbus_alert', 'i2c_smbus_xfer_emulated.__already_done.86']
+same name, different size: 4
+  hid_have_special_driver: [4800] -> [4992]
+  i2c_register_adapter: [1774] -> [1784]
+  input_leds_connect: [1032] -> [1069]
+  snd_intel_dsp_driver_probe: [520] -> [523]
+
+## GKI modules (80 in system_dlkm.modules.load; signature, build ID and .BTF dropped)
+identical: 79, different: 1, missing: 0 []
+  kheaders.ko: .rodata, .codetag.alloc_tags

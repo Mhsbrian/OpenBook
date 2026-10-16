@@ -1,0 +1,25 @@
+Cache directory:                      /ccache
+Config file:                          /ccache/ccache.conf
+System config file:                   /etc/ccache.conf
+Stats updated:                        Fri Oct 16 13:10:53 2026
+Cacheable calls:                       82268 / 88118 (93.36%)
+  Hits:                                20881 / 82268 (25.38%)
+    Direct:                             5391 / 20881 (25.82%)
+    Preprocessed:                      15490 / 20881 (74.18%)
+  Misses:                              61387 / 82268 (74.62%)
+Uncacheable calls:                      5818 / 88118 ( 6.60%)
+  Called for preprocessing:               12 /  5818 ( 0.21%)
+  Unsupported code directive:              4 /  5818 ( 0.07%)
+  Unsupported compiler option:          5802 /  5818 (99.72%)
+Errors:                                   32 / 88118 ( 0.04%)
+  Could not read or parse input file:     32 /    32 (100.0%)
+Successful lookups:
+  Direct:                               5391 / 82304 ( 6.55%)
+  Preprocessed:                        15490 / 76877 (20.15%)
+Local storage:
+  Cache size (GB):                       9.9 / 100.0 ( 9.86%)
+  Files:                              137850
+  Hits:                                20881 / 82268 (25.38%)
+  Misses:                              61387 / 82268 (74.62%)
+  Reads:                              164535
+  Writes:                             138221

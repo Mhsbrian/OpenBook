@@ -1,0 +1,80 @@
+# Cuttlefish board modules built on the AnyBook GKI (2026-10-16)
+
+Command (repo root):
+  KERNEL_TARGET=//common-modules/virtual-device:virtual_device_x86_64_dist scripts/kernel-build.sh anybook-vdev-gbos-16302624
+Tree: ~/anybook/kernel/src, common HEAD 44a90255c95f05721504c474d0dd1af1232d6be0 (gbos-16302624 + kernel/patches/common, as in ANAL-171)
+virtual-device HEAD: 6c4ec5627a4fe7f8ffe53e5fb53c4fcf4793e86e
+
+Build log (build-anybook-vdev-gbos-16302624-20261016-151049.log):
+  ### kernel-build target=gbos-16302624 label=anybook-vdev-gbos-16302624 kleaf=//common-modules/virtual-device:virtual_device_x86_64_dist BUILD_NUMBER=unset 2026-10-16T15:10:49+00:00
+  ### host: 32 CPUs, 61 GB RAM; common HEAD 44a90255c95f05721504c474d0dd1af1232d6be0
+  INFO: Elapsed time: 365.285s, Critical Path: 357.87s
+  INFO: 256 processes: 1358 action cache hit, 208 internal, 48 processwrapper-sandbox.
+  INFO: Build completed successfully, 256 total actions
+  ### build done in 367s
+  ### dist: /home/hive/anybook/kernel/dist/anybook-vdev-gbos-16302624 (444M, 45 modules); log: /home/hive/anybook/logs/kernel/build-anybook-vdev-gbos-16302624-20261016-151049.log
+
+Outputs: 45 vendor modules in the dist; initramfs.img holds them plus the GKI modules.
+
+## Same GKI ABI, different module-signing key
+
+This build compiled //common:kernel_x86_64 again (an action-cache miss; the cause was not investigated), and Kleaf
+generates a new random module-signing key each time it does. So its bzImage differs, but every ABI file is
+byte-identical to the ANAL-171 dist:
+  identical  vmlinux.symvers
+  identical  kernel_x86_64_Module.symvers
+  identical  System.map
+  identical  abi_symbollist
+  identical  dot_config
+  identical  modules.builtin
+
+  bzImage sha256: anybook-amd 6d964789134e6fc4…  anybook-vdev d92572c9a232138d…
+  GKI module sig_key (virtio_blk.ko): anybook-amd 4A:60:D6:F6:14:73:08:B7:2D:82:E5:59:BE:17:2C:49:F6:4A:30:4F
+                                      anybook-vdev 76:EE:F3:B7:3B:45:EF:AF:51:B6:C8:92:47:F1:6C:40:84:46:F5:A4
+
+Consequence: boot the ANAL-171 bzImage with the ANAL-171 GKI modules only (kernel-cf-modset.py takes them from that
+dist's system_dlkm staging archive). The board build contributes only its unsigned vendor modules. Their vermagic is
+the same (`6.18.21-android17-5-g44a90255c95f SMP preempt mod_unload modversions`) and their CRCs match vmlinux.symvers.
+
+## Wireless Kconfig: AnyBook device build vs virtual_device build
+
+diff <(anybook_amd_x86_64_config/.config) <(virtual_device_x86_64_config/.config), CFG80211|NL80211|MAC80211|MT76|WLAN:
+  1c1
+  < # CONFIG_CFG80211_CERTIFICATION_ONUS is not set
+  ---
+  > CONFIG_CFG80211_CERTIFICATION_ONUS=y
+  5a6
+  > CONFIG_CFG80211_EXTRA_REGDB_KEYDIR=""
+  7a9,10
+  > CONFIG_CFG80211_REG_CELLULAR_HINTS=y
+  > # CONFIG_CFG80211_REG_RELAX_NO_IR is not set
+  13c16
+  < # CONFIG_MAC80211_HWSIM is not set
+  ---
+  > CONFIG_MAC80211_HWSIM=m
+  28d30
+  < CONFIG_MT76_CONNAC_LIB=m
+  30a33,36
+  > CONFIG_MT76_USB=m
+  > CONFIG_MT76x02_LIB=m
+  > CONFIG_MT76x02_USB=m
+  > CONFIG_MT76x0_COMMON=m
+  32c38,39
+  < # CONFIG_MT76x0U is not set
+  ---
+  > CONFIG_MT76x0U=m
+  > CONFIG_MT76x2_COMMON=m
+  34,35c41,42
+  < # CONFIG_MT76x2U is not set
+  < # CONFIG_NL80211_TESTMODE is not set
+  ---
+  > CONFIG_MT76x2U=m
+  > CONFIG_NL80211_TESTMODE=y
+  51c58
+  < CONFIG_WLAN_VENDOR_REALTEK=y
+  ---
+  > # CONFIG_WLAN_VENDOR_REALTEK is not set
+
+CONFIG_NL80211_TESTMODE adds testmode_* members to struct cfg80211_ops (include/net/cfg80211.h:5388),
+struct ieee80211_ops (include/net/mac80211.h:4710) and the mt76 structs (mt76.h), so the CRCs of wiphy_new_nm,
+ieee80211_alloc_hw_nm and 83 mt76 exports differ between the two builds (anybook/modset.md).

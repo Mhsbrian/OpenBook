@@ -1,0 +1,194 @@
+$ lsmod
+Module                  Size  Used by
+iommufd               159744  0
+snd_seq_dummy          16384  0
+snd_hrtimer            16384  1
+rfcomm                114688  4
+snd_seq               143360  7 snd_seq_dummy
+snd_seq_device         16384  1 snd_seq
+ccm                    28672  2
+uhid                   24576  2
+algif_hash             16384  1
+algif_skcipher         12288  1
+af_alg                 36864  6 algif_hash,algif_skcipher
+bnep                   36864  2
+vfat                   28672  1
+fat                   118784  1 vfat
+snd_acp70              12288  0
+snd_acp_i2s            20480  1 snd_acp70
+snd_acp_pdm            12288  1 snd_acp70
+snd_acp_pcm            16384  1 snd_acp70
+snd_sof_amd_acp7x      16384  0
+snd_sof_amd_acp70      16384  0
+snd_sof_amd_acp63      16384  0
+snd_sof_amd_vangogh    16384  0
+snd_sof_amd_rembrandt    16384  0
+snd_sof_amd_renoir     16384  0
+snd_sof_amd_acp        81920  6 snd_sof_amd_acp70,snd_sof_amd_rembrandt,snd_sof_amd_acp7x,snd_sof_amd_vangogh,snd_sof_amd_acp63,snd_sof_amd_renoir
+snd_sof_pci            24576  6 snd_sof_amd_acp70,snd_sof_amd_rembrandt,snd_sof_amd_acp7x,snd_sof_amd_vangogh,snd_sof_amd_acp63,snd_sof_amd_renoir
+snd_sof_xtensa_dsp     16384  1 snd_sof_amd_acp
+snd_sof               536576  2 snd_sof_amd_acp,snd_sof_pci
+intel_rapl_msr         24576  0
+intel_rapl_common      57344  1 intel_rapl_msr
+snd_sof_utils          16384  1 snd_sof
+snd_pci_acp7x          20480  0
+snd_pci_ps             36864  0
+snd_soc_acpi_amd_match    28672  3 snd_sof_amd_acp70,snd_sof_amd_acp63,snd_pci_ps
+snd_amd_sdw_acpi       16384  2 snd_sof_amd_acp,snd_pci_ps
+soundwire_amd          49152  2 snd_sof_amd_acp,snd_pci_ps
+snd_hda_codec_alc269   172032  1
+soundwire_generic_allocation    20480  1 soundwire_amd
+snd_hda_codec_realtek_lib    69632  1 snd_hda_codec_alc269
+soundwire_bus        1220608  2 soundwire_generic_allocation,soundwire_amd
+snd_hda_scodec_cs35l56_spi    12288  0
+snd_hda_scodec_component    20480  1 snd_hda_codec_alc269
+snd_soc_sdca          155648  2 snd_soc_acpi_amd_match,soundwire_bus
+snd_hda_codec_generic   131072  2 snd_hda_codec_realtek_lib,snd_hda_codec_alc269
+snd_hda_codec_atihdmi    24576  1
+snd_hda_codec_nvhdmi    16384  0
+snd_soc_core          475136  4 snd_sof,snd_soc_sdca,snd_acp_pcm,soundwire_amd
+snd_hda_codec_hdmi     65536  2 snd_hda_codec_nvhdmi,snd_hda_codec_atihdmi
+snd_compress           36864  1 snd_soc_core
+snd_hda_intel          73728  4
+ac97_bus               12288  1 snd_soc_core
+mt7925e                32768  0
+snd_hda_codec         237568  7 snd_hda_codec_generic,snd_hda_codec_hdmi,snd_hda_intel,snd_hda_codec_nvhdmi,snd_hda_codec_realtek_lib,snd_hda_codec_alc269,snd_hda_codec_atihdmi
+snd_pcm_dmaengine      20480  1 snd_soc_core
+mt7925_common         163840  1 mt7925e
+uvcvideo              196608  0
+snd_hda_core          159744  7 snd_hda_codec_generic,snd_hda_codec_hdmi,snd_hda_intel,snd_hda_codec,snd_hda_codec_realtek_lib,snd_hda_codec_alc269,snd_hda_codec_atihdmi
+mt792x_lib             77824  2 mt7925e,mt7925_common
+snd_acp_pci            12288  0
+snd_amd_acpi_mach      12288  1 snd_acp_pci
+mt76_connac_lib       110592  3 mt792x_lib,mt7925e,mt7925_common
+snd_intel_dspcfg       49152  2 snd_hda_intel,snd_sof
+videobuf2_vmalloc      20480  1 uvcvideo
+btusb                  86016  0
+uvc                    12288  1 uvcvideo
+snd_acp_legacy_common    24576  2 snd_acp70,snd_acp_pci
+videobuf2_memops       16384  1 videobuf2_vmalloc
+snd_intel_sdw_acpi     16384  1 snd_intel_dspcfg
+mt76                  180224  4 mt792x_lib,mt7925e,mt76_connac_lib,mt7925_common
+snd_hda_scodec_cs35l56_i2c    12288  0
+kvm_amd               278528  0
+btmtk                  40960  1 btusb
+videobuf2_v4l2         49152  1 uvcvideo
+snd_hwdep              24576  1 snd_hda_codec
+asus_nb_wmi            32768  0
+snd_pci_acp6x          20480  0
+snd_hda_scodec_cs35l56    36864  2 snd_hda_scodec_cs35l56_i2c,snd_hda_scodec_cs35l56_spi
+amdxdna               294912  0
+hid_multitouch         40960  0
+snd_hda_cirrus_scodec    16384  1 snd_hda_scodec_cs35l56
+btrtl                  36864  1 btusb
+videobuf2_common      102400  4 videobuf2_vmalloc,videobuf2_v4l2,uvcvideo,videobuf2_memops
+ucsi_acpi              16384  0
+snd_pci_acp5x          20480  0
+snd_pcm               258048  17 snd_sof_amd_acp,snd_hda_codec_hdmi,snd_pci_acp6x,snd_acp_legacy_common,snd_hda_intel,snd_hda_codec,snd_sof,snd_soc_sdca,snd_compress,snd_soc_core,snd_acp_pcm,snd_sof_utils,soundwire_amd,snd_hda_core,snd_pci_ps,snd_pcm_dmaengine
+kvm                  1613824  1 kvm_amd
+btbcm                  24576  1 btusb
+mac80211             1916928  4 mt792x_lib,mt76,mt76_connac_lib,mt7925_common
+snd_soc_cs35l56_shared    61440  3 snd_hda_scodec_cs35l56_i2c,snd_hda_scodec_cs35l56,snd_hda_scodec_cs35l56_spi
+asus_armoury          135168  0
+snd_rn_pci_acp3x       24576  0
+typec_ucsi             90112  1 ucsi_acpi
+snd_timer              65536  3 snd_seq,snd_hrtimer,snd_pcm
+videodev              442368  2 videobuf2_v4l2,uvcvideo
+btintel                77824  1 btusb
+snd_soc_cs_amp_lib     24576  2 snd_soc_cs35l56_shared,snd_hda_scodec_cs35l56
+snd_acp_config         32768  12 snd_rn_pci_acp3x,snd_sof_amd_acp70,snd_pci_acp7x,snd_pci_acp6x,snd_pci_acp5x,snd_sof_amd_rembrandt,snd_sof_amd_acp7x,snd_sof_amd_vangogh,snd_sof_amd_acp63,snd_acp_pci,snd_pci_ps,snd_sof_amd_renoir
+joydev                 24576  0
+sp5100_tco             20480  0
+irqbypass              16384  1 kvm
+bluetooth            1277952  34 btrtl,btmtk,btintel,btbcm,bnep,btusb,rfcomm
+wmi_bmof               12288  0
+mousedev               28672  0
+firmware_attributes_class    12288  1 asus_armoury
+pcspkr                 12288  0
+rapl                   20480  0
+roles                  16384  1 typec_ucsi
+cs_dsp                106496  3 snd_soc_cs35l56_shared,snd_hda_scodec_cs35l56,snd_soc_cs_amp_lib
+mc                    110592  4 videodev,videobuf2_v4l2,uvcvideo,videobuf2_common
+nvidia_wmi_ec_backlight    12288  0
+amd_pmf                98304  1 amdxdna
+cfg80211             1634304  4 mt76,mac80211,mt76_connac_lib,mt7925_common
+amdtee                 32768  0
+snd_soc_acpi           16384  5 snd_sof_amd_acp,snd_acp_legacy_common,snd_acp_config,snd_amd_acpi_mach,snd_pci_ps
+snd                   172032  25 snd_hda_codec_generic,snd_seq,snd_seq_device,snd_hda_codec_hdmi,snd_hwdep,snd_hda_intel,snd_hda_codec,snd_sof,snd_soc_sdca,snd_timer,snd_hda_codec_realtek_lib,snd_compress,snd_hda_codec_alc269,snd_soc_core,snd_hda_scodec_cs35l56,snd_pcm
+i2c_piix4              40960  0
+i2c_hid_acpi           12288  0
+typec                 135168  1 typec_ucsi
+amd_pmc                65536  0
+i2c_smbus              20480  1 i2c_piix4
+amd_sfh                65536  1 amd_pmf
+soundcore              16384  1 snd
+libarc4                12288  1 mac80211
+i2c_hid                45056  1 i2c_hid_acpi
+k10temp                12288  0
+snd_pci_acp3x          20480  0
+serial_multi_instantiate    20480  0
+mac_hid                12288  0
+ip6t_REJECT            12288  1
+nf_reject_ipv6         20480  1 ip6t_REJECT
+xt_hl                  12288  22
+ip6t_rt                16384  3
+ipt_REJECT             12288  1
+nf_reject_ipv4         16384  1 ipt_REJECT
+xt_LOG                 16384  12
+nf_log_syslog          20480  12
+nft_limit              20480  15
+xt_limit               12288  0
+xt_addrtype            12288  4
+xt_tcpudp              20480  60
+xt_conntrack           12288  24
+nf_conntrack          221184  1 xt_conntrack
+nf_defrag_ipv6         24576  1 nf_conntrack
+nf_defrag_ipv4         12288  1 nf_conntrack
+nft_compat             24576  127
+x_tables               77824  10 xt_conntrack,nft_compat,xt_LOG,xt_tcpudp,xt_addrtype,ip6t_rt,ipt_REJECT,xt_limit,xt_hl,ip6t_REJECT
+nf_tables             434176  707 nft_compat,nft_limit
+tcp_bbr                20480  16
+sch_fq                 28672  1
+i2c_dev                28672  0
+sg                     53248  0
+crypto_user            16384  0
+zram                   77824  1
+842_decompress         20480  1 zram
+842_compress           24576  1 zram
+lz4hc_compress         20480  1 zram
+dm_crypt               69632  1
+encrypted_keys         32768  1 dm_crypt
+trusted                49152  2 encrypted_keys,dm_crypt
+asn1_encoder           16384  1 trusted
+tee                    69632  3 trusted,amd_pmf,amdtee
+dm_mod                258048  3 dm_crypt
+hid_asus               49152  0
+asus_wmi              155648  3 asus_armoury,asus_nb_wmi,hid_asus
+rfkill                 45056  8 mt7925e,asus_wmi,bluetooth,cfg80211
+sparse_keymap          12288  1 asus_wmi
+amdgpu              19263488  47
+drm_buddy              12288  1 amdgpu
+amdxcp                 12288  1 amdgpu
+i2c_algo_bit           24576  1 amdgpu
+drm_ttm_helper         20480  1 amdgpu
+ttm                   163840  2 amdgpu,drm_ttm_helper
+rtsx_pci_sdmmc         40960  0
+mmc_core              331776  1 rtsx_pci_sdmmc
+drm_exec               12288  1 amdgpu
+nvme                   81920  2
+drm_panel_backlight_quirks    12288  1 amdgpu
+aesni_intel           106496  4
+gpu_sched              77824  2 amdxdna,amdgpu
+gf128mul               12288  1 aesni_intel
+drm_suballoc_helper    24576  1 amdgpu
+nvme_core             307200  3 nvme
+aead                   16384  4 dm_crypt,ccm,mac80211,aesni_intel
+drm_display_helper    327680  1 amdgpu
+ccp                   241664  2 kvm_amd,amdtee
+nvme_keyring           20480  1 nvme_core
+cec                   118784  2 drm_display_helper,amdgpu
+video                  81920  4 nvidia_wmi_ec_backlight,asus_wmi,amdgpu,asus_nb_wmi
+rtsx_pci              151552  1 rtsx_pci_sdmmc
+nvme_auth              32768  1 nvme_core
+wmi                    40960  5 video,nvidia_wmi_ec_backlight,asus_armoury,asus_wmi,wmi_bmof
+thunderbolt           655360  1 typec

@@ -1,0 +1,46 @@
+cvd(427)  I 10-16 15:31:03   427   427 main.cc:137] version: 1.57.0 | VCS: 9bb9c72329cedcb436bb75afc05c24d73fbcdf5d
+By using this Android Virtual Device, you agree to Google Terms of Service (https://policies.google.com/terms). The Google Privacy Policy (https://policies.google.com/privacy) describes how Google handles information generated as you use Google services.
+SetFlagDefaultsFromConfig: No flag defaults to override.
+143441 blocks
+modules.load location /var/tmp/cvd/0/1792164663639478/home/cuttlefish/instances/cvd-1/ramdisk_staged/lib/modules/6.18.21-android17-5-g44a90255c95f/modules.load
+There are 18 ramdisk modules, 155 vendor_dlkm modules, 92 system_dlkm modules.
+/vendor_dlkm src dir /var/tmp/cvd/0/1792164663639478/home/cuttlefish/instances/cvd-1/superimg/vendor_dlkm has size 62828 KB
+15:31:07 mkuserimg_mke2fs.py INFO: Env: {'MKE2FS_CONFIG': '/tmp/tmpwvafofr0', 'E2FSPROGS_FAKE_TIME': '900979200000'}
+15:31:07 mkuserimg_mke2fs.py INFO: Running: /usr/lib/cuttlefish-common/bin/mke2fs -M /vendor_dlkm -U cb09b942-ed4e-46a1-81dd-7d535bf6c4b1 -E hash_seed=765d8aba-d93f-465a-9fcf-14bb794eb7f4 -t ext4 -b 4096 /var/tmp/cvd/0/1792164663639478/home/cuttlefish/instances/cvd-1/superimg/vendor_dlkm_repacked.img.tmp 15707
+15:31:07 mkuserimg_mke2fs.py INFO: Env: {'E2FSPROGS_FAKE_TIME': '900979200000'}
+15:31:07 mkuserimg_mke2fs.py INFO: Running: /usr/lib/cuttlefish-common/bin/e2fsdroid -e -T 900979200000 -C /var/tmp/cvd/0/1792164663639478/home/cuttlefish/instances/cvd-1/superimg/vendor_dlkm_repacked.img.tmp.fs_config -S /var/tmp/cvd/0/1792164663639478/home/cuttlefish/instances/cvd-1/superimg/vendor_dlkm_repacked.img.tmp.file_contexts -f /var/tmp/cvd/0/1792164663639478/home/cuttlefish/instances/cvd-1/superimg/vendor_dlkm -a /vendor_dlkm /var/tmp/cvd/0/1792164663639478/home/cuttlefish/instances/cvd-1/superimg/vendor_dlkm_repacked.img.tmp
+/system_dlkm src dir /var/tmp/cvd/0/1792164663639478/home/cuttlefish/instances/cvd-1/superimg/system_dlkm has size 33184 KB
+15:31:08 mkuserimg_mke2fs.py INFO: Env: {'MKE2FS_CONFIG': '/tmp/tmpjipo9bx1', 'E2FSPROGS_FAKE_TIME': '900979200000'}
+15:31:08 mkuserimg_mke2fs.py INFO: Running: /usr/lib/cuttlefish-common/bin/mke2fs -M /system_dlkm -U cb09b942-ed4e-46a1-81dd-7d535bf6c4b1 -E hash_seed=765d8aba-d93f-465a-9fcf-14bb794eb7f4 -t ext4 -b 4096 /var/tmp/cvd/0/1792164663639478/home/cuttlefish/instances/cvd-1/superimg/system_dlkm_repacked.img.tmp 8296
+15:31:08 mkuserimg_mke2fs.py INFO: Env: {'E2FSPROGS_FAKE_TIME': '900979200000'}
+15:31:08 mkuserimg_mke2fs.py INFO: Running: /usr/lib/cuttlefish-common/bin/e2fsdroid -e -T 900979200000 -C /var/tmp/cvd/0/1792164663639478/home/cuttlefish/instances/cvd-1/superimg/system_dlkm_repacked.img.tmp.fs_config -S /var/tmp/cvd/0/1792164663639478/home/cuttlefish/instances/cvd-1/superimg/system_dlkm_repacked.img.tmp.file_contexts -f /var/tmp/cvd/0/1792164663639478/home/cuttlefish/instances/cvd-1/superimg/system_dlkm -a /system_dlkm /var/tmp/cvd/0/1792164663639478/home/cuttlefish/instances/cvd-1/superimg/system_dlkm_repacked.img.tmp
+84022 blocks
+  Run `cvd logs` to report paths to device logs.
+  Point your browser to https://localhost:8443 to interact with the device.
+  Serial console is disabled; use -console=true to enable it.
+  Launcher Build ID: 9bb9c72329cedcb436bb75afc05c24d73fbcdf5d
+Virtual device booted successfully
+Requesting status for instance cvd-1
+run_cvd is active for instance cvd-1
+{
+	"group_name" : "cvd_1",
+	"instances" : 
+	[
+		{
+			"adb_port" : 6520,
+			"adb_serial" : "127.0.0.1:6520",
+			"assembly_dir" : "/var/tmp/cvd/0/1792164663639478/home/cuttlefish/assembly",
+			"displays" : 
+			[
+				"1920 x 1080 ( 160 )"
+			],
+			"instance_dir" : "/var/tmp/cvd/0/1792164663639478/home/cuttlefish/instances/cvd-1",
+			"instance_name" : "1",
+			"status" : "Running",
+			"web_access" : "https://localhost:1443/devices/cvd_1-1-1/files/client.html",
+			"webrtc_device_id" : "cvd_1-1-1"
+		}
+	],
+	"metrics_dir" : "/var/tmp/cvd/0/1792164663639478/home/metrics",
+	"start_time" : "2026-10-16 15:31:03"
+}

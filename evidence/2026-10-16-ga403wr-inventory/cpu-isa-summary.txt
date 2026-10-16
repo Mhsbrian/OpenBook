@@ -1,0 +1,7 @@
+avx_vnni yes
+avx512f yes
+avx512_vnni yes
+avx512_bf16 yes
+gfni yes
+vaes yes
+sha_ni yes

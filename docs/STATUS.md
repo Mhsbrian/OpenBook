@@ -6,7 +6,7 @@
 - **Repo license** for the scripts and docs. Apache-2.0 is suggested, to match AOSP.
 - **Track B** (ANAL-165): whether to go past research with Google's proprietary image (`docs/PLAN.md` §6).
 - **Mesa libelf licensing** (ANAL-173): libelf is LGPL-3.0+ and is statically linked into the MIT Mesa libraries. Pick an approach before redistributing any image; the recommendation is to ship libelf as a shared library (`docs/mesa.md`).
-- **Hardware inventory**: run `scripts/hw-inventory.sh` on the G14 and attach the output to ANAL-175. The target is the ASUS ROG Zephyrus G14 (2025) GA403WP with a Ryzen AI 9 HX 370 (Zen 5, confirmed by the owner 2026-10-16) and an RTX 5070; see `docs/HARDWARE.md`.
+- **Hardware inventory**: received 2026-10-16 (non-root run). The laptop is a **GA403WR** (Ryzen AI 9 HX 370), not a GA403WP; see `docs/HARDWARE.md` and `evidence/2026-10-16-ga403wr-inventory/`. A `--with-root` run would add `dmesg`.
 
 **Tracking** (Multica, children of ANAL-159). ✓ = delivered and PR merged, ▶ = running, ⏳ = starts automatically when its dependency delivers.
 
@@ -104,6 +104,60 @@
 **Evidence:** `evidence/2026-10-15-compat/` (2 runs with identical outcomes, screenshots, logs, `bench/`, `analysis/`).
 
 **Next:** the same corpus under houdini (after M1a) and Digitalis/Berberis (after M1b); root-cause Element X.
+
+### 2026-10-16: M1b, our AOSP 17 build boots in Cuttlefish (ANAL-168, Track A)
+
+**Done**
+- Built `aosp_cf_x86_64_pc-cp2a-userdebug` with `scripts/aosp-build.sh`: 2 h 10 min cold at `-j32` on the shared host. Peak container RAM was 41 GiB, plus 18.5 GiB of swap. `out/` is 137 GB (165 GB after `m dist`), and ccache got 25% hits even though the cache started empty.
+- Booted it with `scripts/cf-boot.sh` in Google's Cuttlefish container (no sudo, no `--privileged`). `sys.boot_completed=1` came 17–29 s after `cvd create`. The display is up at 1920×1080 showing Launcher3, and `adb` captures work. The boot also works with our build's own host tools (`CF_HOST_TOOLS=build`).
+- Device: Android 17, SDK 37, `CP2A.260605.016`. `feature:android.hardware.type.pc` and freeform window management are present. The kernel is Google's prebuilt android16-6.12 GKI.
+
+**Evidence:** `evidence/2026-10-16-aosp/`. Details are in `docs/aosp-build.md` (M1b).
+
+**Findings**
+- Cuttlefish in Docker needs three things the recipe left out: `seccomp=unconfined` (Docker's default profile blocks `AF_VSOCK`), a writable host path, and a writable product path. cvd 1.57 also swaps in all of its packaged host tools, because AOSP's host package ships `debian_substitution_marker`.
+- The build advertises `arm64-v8a` in its abilist but ships no native bridge. An arm64-only APK installs, then fails `dlopen` with `EM_AARCH64`.
+
+**Next:** ANAL-169, graphics and desktop windowing on this image. In ANAL-181, a translator for the advertised `arm64-v8a`.
+
+### 2026-10-16: Kernel, AMD config and vendor modules (ANAL-171)
+
+**Done**
+- AnyBook GKI: the shipped `android17-6.18` tree plus 3 patches (`kernel/patches/common/`). Release `6.18.21-android17-5-g44a90255c95f`.
+  - Three bool built-ins: `AMD_IOMMU`, `PINCTRL_AMD`, `X86_AMD_PLATFORM_DEVICE`.
+  - An `anybook_amd` KMI list with 1,887 symbols, 214 of them new. amdgpu alone needs 129 symbols the stock GKI does not export.
+- Kleaf mixed build `//devices/anybook` (`kernel/devices/anybook/`) produces 138 vendor modules: amdgpu with DC, amdxdna, amd-pmc, pinctrl-amd (built in), i2c-designware/i2c-hid-acpi, HDA ALC269/CS35L56, ACP/SOF-AMD, mt7921e/mt7925e, rtw89, btusb-MTK, asus-wmi, hid-asus, virtio-gpu and more.
+- linux-firmware subset list: 131 files, 52.5 MB, all redistributable, with each file's licence taken from WHENCE.
+
+**Evidence:** `evidence/2026-10-16-kernel-amd/`
+- All 138 modules have vermagic, CRCs and imports matching the kernel.
+- In a QEMU/KVM load test, 137 modules load and 1 returns -ENODEV (no ASUS WMI in the VM), with 0 symbol errors. AMD-Vi interrupt remapping is on, and virtio-gpu creates `card0`.
+- Every stock KMI CRC is unchanged.
+- The equivalence build shows 5 harmless vmlinux differences.
+
+**Blocked:** amd-pmf. `ccp.ko` links SEV code that calls `kernel_read`/`kernel_write`, both on GKI's deny list. Owner decision needed; see `docs/kernel.md`.
+
+**Next:** ANAL-172 packages `vendor_dlkm`/`vendor_boot` and does a boot test; then the `android17-6.18` tip build.
+
+**Update (same day):** the inventory showed a GA403WR with codec SSID 1043:1024. The mainline quirk for it is backported, and the card reader and NVIDIA-WMI-EC backlight modules are added (see `docs/kernel.md`).
+
+### 2026-10-16: Kernel, AnyBook kernel boots our AOSP 17 userspace in Cuttlefish (ANAL-172)
+
+**Done**
+- `scripts/kernel-cf-boot.sh` boots the ANAL-171 kernel and its own signed `system_dlkm` under ANAL-168's `aosp_cf_x86_64_pc` images, through cvd's `--kernel_path`/`--initramfs_path`. Android is not rebuilt.
+- `scripts/kernel-cf-modset.py` merges the GKI, the 138 AnyBook modules and the Cuttlefish board modules (built from `common-modules/virtual-device` on our GKI), and checks every cross-module CRC.
+
+**Evidence:** `evidence/2026-10-16-kernel-cf/`
+- `sys.boot_completed=1` 30–33 s after `cvd create` (twice), `uname -r` = `6.18.21-android17-5-g44a90255c95f`.
+- 169/169 expected modules are live, including 137 of the 138 AnyBook modules, amdgpu among them. There are 0 symbol, CRC or signature errors.
+- virtio-gpu drives a 1920×1080 display. dmesg and logcat are included.
+
+**Not loaded**
+- `asus-nb-wmi`: -ENODEV, because the VM has no ASUS WMI. It is blocklisted in the VM image.
+- 9 Cuttlefish virtual Wi-Fi and mt76 USB modules: CRC-incompatible with AnyBook's cfg80211/mac80211/mt76, because Cuttlefish sets `NL80211_TESTMODE`. The VM therefore has no virtual Wi-Fi.
+- amd-pstate does not register: crosvm's ACPI has no `_CPC`.
+
+**Next:** VM Wi-Fi modules built against the AnyBook config; real probing on the G14 (bare-metal epic).
 
 ### 2026-10-16: ARM compat, Digitalis evaluation (ANAL-181)
 

@@ -1,0 +1,1 @@
+Linux localhost 6.18.21-android17-5-g44a90255c95f #1 SMP PREEMPT Fri Oct 16 12:00:00 UTC 2026 x86_64 Toybox

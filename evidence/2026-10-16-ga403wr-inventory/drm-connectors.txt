@@ -1,0 +1,15 @@
+== card1-DP-1 status=disconnected enabled=disabled
+== card1-DP-2 status=disconnected enabled=disabled
+== card1-DP-3 status=disconnected enabled=disabled
+== card1-DP-4 status=disconnected enabled=disabled
+== card1-DP-5 status=disconnected enabled=disabled
+== card1-DP-6 status=disconnected enabled=disabled
+== card1-DP-7 status=disconnected enabled=disabled
+== card1-DP-8 status=disconnected enabled=disabled
+== card1-eDP-1 status=connected enabled=enabled
+2880x1800
+2880x1800
+1920x1200
+1920x1080
+1600x1200
+== card1-Writeback-1 status=unknown enabled=disabled
