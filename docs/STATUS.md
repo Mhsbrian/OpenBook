@@ -376,3 +376,12 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 - Battery health is 88.7 %, and `regulatory.db` now loads.
 - **Next:** v3 check stick, with a sleep test after powering the dGPU down for one boot (unbind, remove, root-port runtime PM), which tests `docs/nvidia.md` option 2 on hardware.
 - **Evidence:** `evidence/2026-10-16-g14-hwcheck/`.
+
+### 2026-10-16: G14 run 4: dGPU detached, still no S0i3 (ANAL-189)
+- Detaching the dGPU works (bridge to D3hot), but the SMU reports "Last S0i3 Status: Unknown/Fail", and the firmware re-enumerates the dGPU on resume.
+- So the dGPU is not the only blocker.
+- The eDP panel check is fixed (2880×1800).
+- **Next:**
+  - v4 stick with the kernel's sleep debugging;
+  - a Linux baseline with AMD's `amd-s2idle test` on the same laptop.
+- **Evidence:** `evidence/2026-10-16-g14-hwcheck/`.

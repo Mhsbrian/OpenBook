@@ -89,3 +89,23 @@ These are `hwcheck-002` (the check) and `hwcheck-003` (the sleep test), with JSO
 - A read-only remount verified all five files against `../2026-10-16-installer/hwcheck-stick/v3/esp-update-MANIFEST.sha256`.
 - Menu order: hardware check (default) → + sleep test → **sleep test, NVIDIA GPU powered down** → preview.
 - Reports `hwcheck-001`…`003` are still on the stick.
+
+## Run 4 (v3, "sleep test, NVIDIA GPU powered down", 2026-10-16 16:06)
+These are `hwcheck-004.{txt,json,-dmesg.txt}`, redacted by the probe. sha256 of the originals: txt `7f2c5dfc…`, json `d859c177…`, dmesg `75ed536b…`.
+
+| Area | Result (C) |
+|---|---|
+| eDP | **Fixed check:** `card0-eDP-1 connected`, preferred mode **2880x1800** (the panel) |
+| dGPU detach | Both NVIDIA functions handled: `64:00.1` unbound from snd_hda_intel, both removed. Bridge `00:03.1` runtime PM on, and it went from D0 to **D3hot** (read while still "runtime suspending"; v4 waits for the final state) |
+| Sleep | s2idle cycle OK (18.9 s, success +1, fail 0). After resume eDP-1 is connected and Wi-Fi present |
+| **Deep sleep** | **Still not reached.** s0ix residency 0. The SMU reports "Last S0i3 Status: Unknown/Fail" with Hint Count 0→1, so the OS hint was sent but the SoC did not enter S0i3. SMU active-time counters after the cycle show USB4_0 (implausibly large, 3 655 017 247 312 µs) and MPM (1 356 µs) |
+| Awake before suspend | 30 PCI functions in D0 with runtime PM off. This is normal before a system suspend: drivers suspend their devices during it. Functions with no driver include `65:00.2` (PSP/ccp, not loaded, the open amd-pmf decision) and `66:00.0` (non-essential instrumentation) |
+| **dGPU on resume** | **The firmware brings it back.** pciehp on `00:03.1` reports "Card not present", then "Card present, Link Up", and re-enumerates `10de:2f58`/`2f80` ("Enabling HDA controller"). A driver-side detach therefore has to be redone after every resume, while `dgpu_disable=1` would keep the GPU off (consistent with `docs/nvidia.md` §1 on Omarchy) |
+
+**Reading.**
+- The driverless dGPU is not the only S0i3 blocker. Either detaching it doesn't remove its power (the bridge only reached D3hot), or something else blocks: USB4, MPM, a missing driver (ccp/PSP), or the platform. That remains a HYPOTHESIS.
+- The kernel log alone can't tell which: `pm_debug_messages` was off.
+
+**Next.**
+1. **v4 stick:** the same entry with `pm_debug_messages` and dynamic debug for amd_pmc, pinctrl_amd and the ACPI LPS0 code. It also dumps amd_pmc's idle mask before and after, lists wakeup sources, and waits for the bridge's final power state, recording `d3cold_allowed`.
+2. **Linux baseline on the same laptop:** AMD's `amd-s2idle test` (package amd-debug-tools 0.2.22 in Arch extra, MIT) shows whether this BIOS reaches S0i3 at all, and names the blockers.

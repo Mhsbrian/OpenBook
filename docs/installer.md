@@ -197,6 +197,14 @@ Full serial logs are `matrix/*/serial.log.gz`.
 - Connectors that read "unknown" are probed before they're reported.
 - **Tested in QEMU:** the detach path was run against a virtio device behind a PCIe root port (unbind, remove and runtime PM all succeed; QEMU's port has no `_PR3`, so it stays D0), and the sleep test ran after it.
 
+**G14 run 4 (v3).**
+- The eDP panel is detected (2880×1800).
+- The dGPU detach works, but its bridge only reaches D3hot.
+- **S0i3 is still not reached** (the SMU reports "Last S0i3 Status: Unknown/Fail").
+- The firmware re-enumerates the dGPU on resume.
+
+**v4 (`openbook-hwcheck-20261016d`).** The sleep entries turn on `pm_debug_messages` and dynamic debug for amd_pmc, pinctrl_amd and the ACPI LPS0 code, and dump amd_pmc's idle mask and the wakeup sources. The detach step waits for the bridge's final power state (`openbook-hwcheck/4`). Tested in QEMU like v3.
+
 ## 3. Install flow
 
 ### 3.1 Live USB layout (ANAL-190)

@@ -606,7 +606,7 @@ static void write_json(const char *path) {
     if (f) fclose(f);
     char j[4096];
     int n = snprintf(j, sizeof j,
-        "{\n \"schema\": \"openbook-hwcheck/3\",\n \"board\": \"%s\",\n \"bios\": \"%s\",\n \"cpu\": \"%s\",\n"
+        "{\n \"schema\": \"openbook-hwcheck/4\",\n \"board\": \"%s\",\n \"bios\": \"%s\",\n \"cpu\": \"%s\",\n"
         " \"modules\": {\"loaded\": %d, \"failed\": %d, \"skipped\": %d},\n"
         " \"checks\": {\n  \"gpu_amdgpu\": %s,\n  \"edp_connected\": %s,\n  \"wifi_wlan0\": %s,\n"
         "  \"bluetooth_hci0\": %s,\n  \"touchpad\": %s,\n  \"keyboard\": %s,\n  \"lid_switch\": %s,\n"
@@ -711,11 +711,13 @@ static void detach_dgpu(const char *vendor) {
     if (bridge[0]) {
         snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/power/control", bridge);
         say("dgpu-detach: bridge %s runtime PM auto: %s", bridge, write_str(p, "auto") ? strerror(errno) : "ok");
-        snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/power_state", bridge);
-        for (int i = 0; i < 50; i++) { read_line(p, after, sizeof after); if (!strncmp(after, "D3", 2)) break; usleep(100000); }
-        char rt[32] = "";
-        snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/power/runtime_status", bridge); read_line(p, rt, sizeof rt);
-        say("dgpu-detach: bridge %s now %s (runtime %s)", bridge, after, rt);
+        // Wait (max 10 s) until the bridge has finished runtime-suspending, then record where it ended up.
+        char rt[32] = "", q[256], d3c[16] = "?";
+        snprintf(q, sizeof q, "/sys/bus/pci/devices/%s/power/runtime_status", bridge);
+        for (int i = 0; i < 100; i++) { read_line(q, rt, sizeof rt); if (!strcmp(rt, "suspended")) break; usleep(100000); }
+        snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/power_state", bridge); read_line(p, after, sizeof after);
+        snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/d3cold_allowed", bridge); read_line(p, d3c, sizeof d3c);
+        say("dgpu-detach: bridge %s now %s (runtime %s, d3cold_allowed %s)", bridge, after, rt, d3c);
     }
     snprintf(detach_json, sizeof detach_json,
              "{\"ran\": true, \"functions\": %d, \"bridge\": \"%s\", \"bridge_before\": \"%s\", \"bridge_after\": \"%s\"}",
@@ -728,6 +730,12 @@ static void sleep_test(void) {
     mount("debugfs", "/sys/kernel/debug", "debugfs", 0, NULL);
     dump_file("pmc-before", "/sys/kernel/debug/amd_pmc/s0ix_stats");
     dump_file("pmc-fw", "/sys/kernel/debug/amd_pmc/smu_fw_info");
+    dump_file("pmc-idlemask", "/sys/kernel/debug/amd_pmc/amd_pmc_idlemask");
+    // Let the kernel explain the sleep in its log: LPS0 _DSM calls, active GPIOs, device timings (PM_SLEEP_DEBUG).
+    say("sleep: pm_debug_messages on: %s", write_str("/sys/power/pm_debug_messages", "1") ? strerror(errno) : "ok");
+    static const char *dyn[] = {"module amd_pmc +p", "module pinctrl_amd +p", "file drivers/acpi/x86/s2idle.c +p", NULL};
+    for (int i = 0; dyn[i]; i++)
+        if (!write_str("/sys/kernel/debug/dynamic_debug/control", dyn[i])) say("sleep: dynamic debug '%s' on", dyn[i]);
     long res0 = s0ix_residency();
     awake_devices("before-suspend");
     long ok0 = read_long("/sys/power/suspend_stats/success"), fail0 = read_long("/sys/power/suspend_stats/fail");
@@ -762,6 +770,9 @@ static void sleep_test(void) {
     sys_say("sleep: last failed errno", "/sys/power/suspend_stats/last_failed_errno");
     dump_file("pmc-after", "/sys/kernel/debug/amd_pmc/s0ix_stats");
     dump_file("pmc-fw-after", "/sys/kernel/debug/amd_pmc/smu_fw_info");
+    dump_file("pmc-idlemask-after", "/sys/kernel/debug/amd_pmc/amd_pmc_idlemask");
+    dump_file("wakeup-sources", "/sys/kernel/debug/wakeup_sources");
+    write_str("/sys/power/pm_debug_messages", "0");
     long res1 = s0ix_residency();
     say("sleep: s0ix residency %ld us (%s)", res1 >= 0 && res0 >= 0 ? res1 - res0 : -1,
         res0 < 0 || res1 < 0 ? "unknown: no AMD PMC counters"
@@ -784,7 +795,7 @@ static void hardware_check(const char *uuid) {
     char vendor[16] = "0x10de";
     char *dv = strstr(cmdline, "openbook.probe.detach_vendor=");
     if (dv) sscanf(dv + 29, "%15[0-9a-fx]", vendor);
-    say("hwcheck: OpenBook hardware check v3%s%s. Writes only to the boot stick, then powers off.",
+    say("hwcheck: OpenBook hardware check v4%s%s. Writes only to the boot stick, then powers off.",
         want_sleep ? " with a sleep test" : "", want_detach ? " (dGPU powered down first)" : "");
     dmi_facts();
     cpu_facts();
