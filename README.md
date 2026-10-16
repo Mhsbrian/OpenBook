@@ -116,6 +116,7 @@
 > - the ELAN touchpad and the keyboard
 > - the XDNA 2 NPU
 > - battery, USB-C and USB4
+> - CPU power management, and suspend/resume (later runs)
 >
 > Nothing was written to the laptop's disk. [Read the report →](evidence/2026-10-16-g14-hwcheck/SUMMARY.md)
 
@@ -131,7 +132,8 @@ The live tracker, decisions and next steps are in [`docs/STATUS.md`](docs/STATUS
 | Wi-Fi 7 / Bluetooth (MT7925) | ✅ `wlan0` and `hci0` up | `regulatory.db` added in check v2 |
 | Touchpad, keyboard, lid | ✅ Detected | ELAN I2C HID over pinctrl-amd |
 | XDNA 2 NPU | ✅ `accel0` | Userspace later |
-| Battery, USB-C, USB4 | ✅ Detected | s2idle test ready (check v2) |
+| Battery, USB-C, USB4 | ✅ Detected | Battery health read: 88.7 % |
+| CPU power and sleep | ✅ amd-pstate-epp active; suspend and resume work | 🚧 Deepest idle (S0ix) not reached while the NVIDIA GPU is awake. Fix under test (check v3) |
 | Audio (ALC285 + CS35L56) | 🚧 Codec found | Speaker amps not yet exercised |
 | NVIDIA RTX 50 dGPU | ⏸ Kept off by design | Research track in [`docs/nvidia.md`](docs/nvidia.md) |
 
