@@ -1,0 +1,5 @@
+$ arecord -l
+**** List of CAPTURE Hardware Devices ****
+card 2: Generic_1 [HD-Audio Generic], device 0: ALC285 Analog [ALC285 Analog]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0

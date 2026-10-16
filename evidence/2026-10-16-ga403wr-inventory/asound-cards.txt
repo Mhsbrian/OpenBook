@@ -1,0 +1,5 @@
+$ cat /proc/asound/cards
+ 1 [Generic        ]: HDA-Intel - HD-Audio Generic
+                      HD-Audio Generic at 0xdc6c8000 irq 136
+ 2 [Generic_1      ]: HDA-Intel - HD-Audio Generic
+                      HD-Audio Generic at 0xdc6c0000 irq 137
