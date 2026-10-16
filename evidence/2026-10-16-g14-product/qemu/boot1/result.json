@@ -1,0 +1,161 @@
+{
+ "reason": "all steps done",
+ "seconds": 172.5,
+ "steps_done": 58,
+ "steps": 58,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "init: init first stage started",
+   "t": 3.6
+  },
+  {
+   "step": 1,
+   "wait": "init: init second stage started",
+   "t": 5.2
+  },
+  {
+   "step": 2,
+   "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+   "t": 6.8
+  },
+  {
+   "step": 4,
+   "wait": "console:/ \\$ ",
+   "t": 6.8
+  },
+  {
+   "step": 6,
+   "wait": "console:/ \\$ ",
+   "t": 7.0
+  },
+  {
+   "step": 8,
+   "wait": "BOOTDONE=\\S* uptime=[0-9.]+",
+   "t": 32.9
+  },
+  {
+   "step": 9,
+   "wait": "console:/ \\$ ",
+   "t": 32.9
+  },
+  {
+   "step": 11,
+   "wait": "console:/ \\$ ",
+   "t": 58.0
+  },
+  {
+   "step": 14,
+   "wait": "console:/ \\$ ",
+   "t": 63.2
+  },
+  {
+   "step": 16,
+   "wait": "console:/ \\$ ",
+   "t": 64.0
+  },
+  {
+   "step": 18,
+   "wait": "console:/ \\$ ",
+   "t": 64.7
+  },
+  {
+   "step": 20,
+   "wait": "console:/ \\$ ",
+   "t": 65.5
+  },
+  {
+   "step": 22,
+   "wait": "console:/ \\$ ",
+   "t": 67.3
+  },
+  {
+   "step": 24,
+   "wait": "console:/ \\$ ",
+   "t": 69.2
+  },
+  {
+   "step": 26,
+   "wait": "console:/ \\$ ",
+   "t": 71.1
+  },
+  {
+   "step": 28,
+   "wait": "console:/ \\$ ",
+   "t": 74.1
+  },
+  {
+   "step": 30,
+   "wait": "console:/ \\$ ",
+   "t": 76.2
+  },
+  {
+   "step": 32,
+   "wait": "console:/ \\$ ",
+   "t": 78.1
+  },
+  {
+   "step": 34,
+   "wait": "console:/ \\$ ",
+   "t": 89.9
+  },
+  {
+   "step": 36,
+   "wait": "console:/ \\$ ",
+   "t": 92.0
+  },
+  {
+   "step": 38,
+   "wait": "console:/ \\$ ",
+   "t": 93.6
+  },
+  {
+   "step": 40,
+   "wait": "console:/ \\$ ",
+   "t": 94.9
+  },
+  {
+   "step": 42,
+   "wait": "console:/ \\$ ",
+   "t": 96.7
+  },
+  {
+   "step": 44,
+   "wait": "console:/ \\$ ",
+   "t": 98.5
+  },
+  {
+   "step": 46,
+   "wait": "console:/ \\$ ",
+   "t": 100.9
+  },
+  {
+   "step": 48,
+   "wait": "console:/ \\$ ",
+   "t": 102.4
+  },
+  {
+   "step": 50,
+   "wait": "console:/ \\$ ",
+   "t": 102.6
+  },
+  {
+   "step": 52,
+   "wait": "console:/ \\$ ",
+   "t": 105.1
+  },
+  {
+   "step": 54,
+   "wait": "console:/ \\$ ",
+   "t": 110.5
+  },
+  {
+   "step": 56,
+   "wait": "console:/ \\$ ",
+   "t": 112.0
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/qemu/g14-release/disk.img",
+ "nvme": null
+}

@@ -1,0 +1,23 @@
+Disk /home/hive/anybook/installer/out/openbook-g14-CP2A.260605.016-20261016.img: 25165824 sectors, 12.0 GiB
+Sector size (logical): 512 bytes
+Disk identifier (GUID): E263845C-DA97-5951-9462-9834C6AB19B9
+Partition table holds up to 128 entries
+Main partition table begins at sector 2 and ends at sector 33
+First usable sector is 34, last usable sector is 25165790
+Partitions will be aligned on 2048-sector boundaries
+Total free space is 6077 sectors (3.0 MiB)
+
+Number  Start (sector)    End (sector)  Size       Code  Name
+   1            2048          526335   256.0 MiB   EF00  EFI
+   2          526336          534527   4.0 MiB     8300  misc
+   3          534528          665599   64.0 MiB    8300  boot_a
+   4          665600          796671   64.0 MiB    8300  boot_b
+   5          796672          813055   8.0 MiB     8300  init_boot_a
+   6          813056          829439   8.0 MiB     8300  init_boot_b
+   7          829440          960511   64.0 MiB    8300  vendor_boot_a
+   8          960512         1091583   64.0 MiB    8300  vendor_boot_b
+   9         1091584         1093631   1024.0 KiB  8300  vbmeta_a
+  10         1093632         1095679   1024.0 KiB  8300  vbmeta_b
+  11         1095680         1226751   64.0 MiB    8300  metadata
+  12         1226752        18003967   8.0 GiB     8300  super
+  13        18003968        25161727   3.4 GiB     8300  userdata

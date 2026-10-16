@@ -1,0 +1,18 @@
+    init=1920x1200 160dpi mMinSizeOfResizeableTaskDp=220 cur=1920x1200 app=1920x1200 rng=1200x1200-1920x1920
+  overrideConfig={1.0 ?mcc0mnc [en_US] ldltr sw1200dp w1920dp h1200dp 160dpi xlrg compactNeeded land -touch qwerty/v/v -nav/h winConfig={ mBounds=Rect(0, 0 - 1920, 1200) mAppBounds=Rect(0, 0 - 1920, 1200) mMaxBounds=Rect(0, 0 - 1920, 1200) mDisplayRotation=ROTATION_0 mWindowingMode=fullscreen mActivityType=undefined mAlwaysOnTop=undefined mRotation=ROTATION_0} as.4 s.20 fontWeightAdjustment=0}
+      overrideConfig={0.0 ?mcc0mnc ?localeList ?layoutDir ?swdp ?wdp ?hdp ?density ?lsize ?long ?round ?ldr ?wideColorGamut ?orien ?uimode ?night ?touch ?keyb/?/? ?nav/? winConfig={ mBounds=Rect(0, 0 - 0, 0) mAppBounds=null mMaxBounds=Rect(0, 0 - 0, 0) mDisplayRotation=undefined mWindowingMode=fullscreen mActivityType=undefined mAlwaysOnTop=undefined mRotation=undefined} ?fontWeightAdjustment}
+    SettingsEntry{mWindowingMode=0, mUserRotationMode=null, mUserRotation=null, mForcedWidth=0, mForcedHeight=0, mForcedDensity=0, mForcedDensityRatio=0.0, mForcedScalingMode=null, mRemoveContentMode=0, mShouldShowWithInsecureKeyguard=null, mShouldShowSystemDecors=null, mIsHomeSupported=null, mShouldShowIme=null, mFixedToUserRotation=null, mIgnoreOrientationRequest=null, mIgnoreDisplayCutout=null, mDontMoveToTop=null, mForceAppsUniversalResizable=null, mCanStealTopFocus=null}
+      Classes: ROTARY_ENCODER | EXTERNAL
+      Classes: KEYBOARD | ALPHAKEY | EXTERNAL
+      Classes: KEYBOARD
+      Classes: KEYBOARD | ALPHAKEY
+      Classes: KEYBOARD | ALPHAKEY | DPAD | VIRTUAL
+  Device 4: QEMU QEMU USB Keyboard
+    IsExternal: true
+  Device 3: Power Button
+    IsExternal: false
+  Device 5: QEMU QEMU USB Tablet
+    IsExternal: true
+  Device 2: AT Translated Set 2 keyboard
+    IsExternal: false
+    IsExternal: false

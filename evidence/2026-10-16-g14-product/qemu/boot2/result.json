@@ -1,0 +1,81 @@
+{
+ "reason": "all steps done",
+ "seconds": 113.5,
+ "steps_done": 26,
+ "steps": 26,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "init: init first stage started",
+   "t": 3.2
+  },
+  {
+   "step": 1,
+   "wait": "init: init second stage started",
+   "t": 4.9
+  },
+  {
+   "step": 2,
+   "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+   "t": 6.4
+  },
+  {
+   "step": 4,
+   "wait": "console:/ \\$ ",
+   "t": 6.4
+  },
+  {
+   "step": 6,
+   "wait": "console:/ \\$ ",
+   "t": 6.6
+  },
+  {
+   "step": 8,
+   "wait": "BOOTDONE=\\S* uptime=[0-9.]+",
+   "t": 14.5
+  },
+  {
+   "step": 9,
+   "wait": "console:/ \\$ ",
+   "t": 14.5
+  },
+  {
+   "step": 11,
+   "wait": "console:/ \\$ ",
+   "t": 38.7
+  },
+  {
+   "step": 14,
+   "wait": "console:/ \\$ ",
+   "t": 40.8
+  },
+  {
+   "step": 16,
+   "wait": "console:/ \\$ ",
+   "t": 41.8
+  },
+  {
+   "step": 18,
+   "wait": "console:/ \\$ ",
+   "t": 44.3
+  },
+  {
+   "step": 20,
+   "wait": "console:/ \\$ ",
+   "t": 46.1
+  },
+  {
+   "step": 22,
+   "wait": "console:/ \\$ ",
+   "t": 47.5
+  },
+  {
+   "step": 24,
+   "wait": "console:/ \\$ ",
+   "t": 52.9
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/qemu/g14-release/disk.img",
+ "nvme": null
+}
