@@ -178,3 +178,28 @@ This confirms the run 5 sibling-model reading on this laptop: the dGPU is `GPP9.
 - A read-only remount verified all five files against `../2026-10-16-installer/hwcheck-stick/v6/esp-update-MANIFEST.sha256`.
 - Entry 3 is now "OpenBook sleep test, NVIDIA GPU + unused port powered down" (`openbook.probe.dgpu=detach openbook.probe.acpi_d3cold=_SB.PCI0.GPP0.SWUS`).
 - Reports `hwcheck-001`…`006` are still on the stick. The next run writes `hwcheck-007`.
+
+## Run 7 (v6, "sleep test, NVIDIA GPU + unused port powered down", 2026-10-16 17:20)
+These are `hwcheck-007.{txt,json,-dmesg.txt}`, redacted by the probe. sha256 of the originals: txt `268bdc20…`, json `3c171425…`, dmesg `da66a779…`.
+
+| Area | Result (C) |
+|---|---|
+| Module on hardware | "`\_SB.PCI0.GPP0.SWUS: D0 -> D3cold (0), parent held on: 0000:00:01.1`". It worked as designed, including holding a parent that starts in D3cold (not covered in the VM) |
+| ACPI | Before suspend and after resume: `GPP0.SWUS` D3cold (real D3cold), `GPP0.SWUS.PWRS` off. **No "Constraint not met" line any more: every LPI constraint is met** (runs 5 and 6 had one) |
+| dGPU | Bridge D3cold, `PG00` off, as in runs 5 and 6 |
+| Sleep | Cycle OK (18.6 s, success +1, fail 0), eDP and Wi-Fi fine after resume |
+| **Deep sleep** | **Still not reached.** s0ix residency 0, "Last S0i3 Status: Unknown/Fail", Hint Count 0→1. amd_pmc's idle mask at S0i3 entry is `0xffef9afd` in runs 5, 6 and 7 alike, so the SoC's view did not change when the dGPU and GPP0.SWUS went off |
+
+**Conclusion (C for what was measured, HYPOTHESIS for the rest).** `GPP0.SWUS` is ruled out. The dGPU was ruled out in runs 4–5. With our kernel:
+- every PCI function the OS manages is suspended;
+- every LPI constraint is met;
+- the LPS0 calls succeed;
+- the SMU receives the S0i3 hint.
+
+The SMU still declines. Everything the OS can see is now in order, so the remaining cause sits below it (SMU and firmware) or in a driver whose absence ACPI does not report. The candidates are the PSP (`65:00.2`, no driver because `CRYPTO_DEV_CCP_DD` is off in our kernel, and so no amd-pmf) and the USB4 router. Two things checked and ruled out: the vendor modules are built with `CONFIG_AMD_PMC=m`, and the CPU idle driver is built in.
+
+**Deciding test:** the owner's Linux on the same laptop, with AMD's `amd-s2idle test`.
+- If Linux reaches S0i3, diffing its drivers and state against ours names the blocker.
+- If Linux doesn't either, it's this BIOS (GA403WR.309), and only a firmware update or ASUS/AMD can change it.
+
+**Scope.** S0i3 affects battery drain while the lid is closed. It does not block live USB booting or installation; it moves to ANAL-178 (input and power). The probe, the `acpi_d3cold` module and the stick tooling stay available for it.

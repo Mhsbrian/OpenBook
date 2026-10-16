@@ -220,6 +220,12 @@ Full serial logs are `matrix/*/serial.log.gz`.
 - Tested in QEMU: once with the real entry, and once with a fixture SSDT (`acpi-d3cold-test.asl`) that recreates the unused, powered `_ADR` child; the module turns it off.
 - Building it needs `make`, `flex`, `bison`, `bc`, `pahole` and `acpica` in the installer image (`tools/Dockerfile.installer`). Until the shared image is rebuilt from that file, use `OPENBOOK_INSTALLER_IMAGE=openbook-installer:anal189`.
 
+**G14 run 7 (v6).**
+- The module powered `GPP0.SWUS` down on the laptop, and every LPI constraint was met.
+- S0i3 was still not reached, with the same SMU idle mask as runs 5 and 6. `GPP0.SWUS` is ruled out.
+- The S0i3 investigation moves to ANAL-178. The deciding next test is `amd-s2idle` on the owner's Linux on the same laptop.
+- S0i3 does not block live USB booting or installation (ANAL-190, ANAL-176).
+
 ## 3. Install flow
 
 ### 3.1 Live USB layout (ANAL-190)
