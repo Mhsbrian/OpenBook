@@ -68,9 +68,17 @@ Status as of 2026-10-15. Facts are labelled **CONFIRMED** (we checked a primary 
    - The image uses a hybrid GPT layout: ChromeOS KERN/ROOT partitions, Android A/B, virtual A/B `super`, and AVB.
    - We need an EFI loader that hands the kernel a bootconfig, `androidboot.*` parameters and the vbmeta digest, using the orange (unlocked) state on the user's own machine. Candidates: GRUB as in GBRUNCH, or Google's GBL EFI app.
    - QEMU direct-kernel boot already gets through first-stage mount.
+   - **Prototyped (ANAL-189, 2026-10-16):** GRUB, systemd-boot and GBL all boot our kernel and AOSP 17 userspace from a GPT image attached as a USB stick in QEMU/OVMF, in the orange state with `boot_part_uuid`. A UKI cannot carry Android bootconfig. GBL fails when a second disk has the same partition names. Recommendation: systemd-boot now, GBL later (`docs/installer.md`).
 6. **ARM translation (Track A).** Neither libhoudini nor libndk_translation is redistributable. Berberis upstream only translates riscv64. Digitalis is Apache-2.0 and Berberis-based, but young and unmeasured. Add it to the compat matrix early.
 7. **Linux terminal and AVF.** The Googlebook terminal runs in a pKVM-protected VM, which doesn't exist on AMD. The fallback is non-protected AVF VMs over plain KVM.
-8. **NVIDIA (long term).** NVK/nouveau in Mesa for Android with GSP firmware. This comes after AMD.
+8. **NVIDIA (long term).** NVK/nouveau in Mesa for Android with GSP firmware. This comes after AMD. Research is done (ANAL-187, `docs/nvidia.md`):
+   - The open pieces exist. nouveau has supported GB20x through GSP-RM 570.144 since 6.16, and NVK is Vulkan 1.4 conformant on Blackwell.
+   - The open problems:
+     - Runtime PM on r570 firmware is still being fixed upstream.
+     - The only RTX 5070 Laptop report shows about 5–10% of proprietary-driver performance.
+     - Android has no hybrid-GPU plumbing.
+   - **No-go for M3–M8**: the dGPU stays off, with `dgpu_disable=1` as ANAL-176's default.
+   - After M4: research milestones N1–N6, aiming at per-app offload through Android's updatable-driver switch.
 
 ## 4. Milestones
 
@@ -87,7 +95,7 @@ Each milestone is small, has a verification artifact, and is checked into `evide
 | M5 | Desktop UI, input and power | A+B | Touchpad and keyboard, s2idle suspend/resume cycles, battery, backlight, audio (ACP/SOF) | |
 | M6 | Apps and ARM translation | A+B | ARM-only APK compatibility matrix (top 50 plus a stress list) under houdini, ndk_translation and Digitalis | |
 | M7 | Performance and parity | A+B | Benchmarks against an Intel Googlebook baseline (needs device access); Chrome; Linux terminal fallback | |
-| M8 | USB installer | A | A bootable AnyBook USB image that runs live and installs through a graphical wizard, only to a disk the user confirms by name (epic ANAL-188, owner goal 2026-10-16) | Parked until M3–M5 work on the target |
+| M8 | USB installer | A | A bootable AnyBook USB image that runs live and installs through a graphical wizard, only to a disk the user confirms by name (epic ANAL-188, owner goal 2026-10-16) | Design and QEMU boot-chain prototype delivered (ANAL-189, `docs/installer.md`); owner sign-off needed before ANAL-190 |
 
 ## 4a. Device-in-the-loop: Multica on the G14 (owner directive, 2026-10-16)
 
@@ -123,25 +131,32 @@ Everything built for bare metal must therefore be scripted, unattended-safe, and
 - Emulator system images fall under the Android SDK (Preview) License: local use only, no redistribution.
 - libhoudini and libndk_translation are proprietary. Track A will not bundle them.
 
-## 7. Next steps (in order, updated 2026-10-16, late)
+## 7. Next steps (in order, updated 2026-10-16, night)
 
-Execution is tracked as Multica epics ANAL-160 to ANAL-166, ANAL-186, ANAL-188 and ANAL-193 (all children of ANAL-159). The live map is in `docs/STATUS.md`.
+Execution is tracked as Multica epics under ANAL-159. The live map, lanes and critical path are in `docs/STATUS.md`.
 
 **End deliverable (owner, 2026-10-16):** a bootable USB image with an interactive installer wizard (M8, ANAL-188), verified on the G14 by an on-device agent (§4a).
 
-**Delivered and merged:** PRs #1–#12.
-- AOSP 17 PC build boots in Cuttlefish (ANAL-168).
-- AMD kernel with 138 vendor modules for the GA403WR (ANAL-171).
-- That kernel boots our userspace in Cuttlefish (ANAL-172).
-- Digitalis evaluated: GO for Track A, with conditions (ANAL-181).
+**Delivered and merged** (PRs #1–#14):
+- Track A in a VM: our AOSP 17 PC build gives the Android desktop experience on the host GPU (ANAL-169).
+- The AnyBook GKI with 138 AMD vendor modules boots our userspace (ANAL-172).
+- Mesa for Android (ANAL-173).
+- The ARM compat baseline and the Digitalis evaluation (ANAL-180/181).
 
-**Running:** ANAL-169, VM graphics and desktop windowing. It owns the AOSP tree.
+**Now running, by lane:**
+- **AOSP lane:** ANAL-174, the AMD graphics stack in the tree as a reusable makefile with VM/bare-metal HAL selection.
+- **Kernel lane:** ANAL-198, bare-metal packaging: first-stage NVMe and USB boot, vendor_boot, vendor_dlkm, system_dlkm and the firmware subset, validated in QEMU.
+- **Light lanes:**
+  - ANAL-189: installer and boot-chain design, with a QEMU/OVMF prototype. It was promoted ahead of ANAL-176 so the loader is proven before it reaches hardware.
+  - ANAL-187: NVIDIA research, including how to keep the dGPU off at first boot. Delivered: `docs/nvidia.md` and `scripts/dgpu-power-check.sh`.
 
-**Then, in order (condition wakeups handle the hand-offs):**
-1. **ANAL-174:** create the real `device/anybook` x86_64 product with AMD graphics (Mesa, minigbm, HWC, ANGLE). Starts when ANAL-169 delivers.
-2. **ANAL-176:** USB boot on the G14. It needs ANAL-174's bare-metal product; the Cuttlefish product cannot boot on real hardware.
-3. **ANAL-178/179:** input, power, audio and Wi-Fi.
-4. **ANAL-189 to ANAL-192:** installer.
-5. **In parallel, once the owner installs the daemon on the G14:** ANAL-194 → ANAL-195 → ANAL-196.
+**Then, handed off automatically:**
+1. ANAL-199: the real G14 product (GPT, fstab, kernel packaging, base HALs). It must boot in QEMU/OVMF as a PC first.
+2. ANAL-176: USB boot on the G14, with the owner at the laptop or the device loop.
+3. ANAL-200: Digitalis on Android 17 as our redistributable arm64 bridge.
+4. ANAL-178/179: input, power, audio and Wi-Fi.
+5. The installer: ANAL-190 to ANAL-192.
+
+**In parallel, when the owner is ready:** the device-loop runtime on the G14 (ANAL-194 → ANAL-197).
 
 Track B (ANAL-182) waits on the owner's licensing decision.

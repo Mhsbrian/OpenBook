@@ -7,3 +7,7 @@
 *.tgz
 /dl/
 /work/
+
+# Python bytecode
+__pycache__/
+*.pyc

@@ -1,0 +1,16 @@
+{
+ "reason": "QEMU exited (0)",
+ "seconds": 7.5,
+ "steps_done": 1,
+ "steps": 23,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "init: init first stage started",
+   "t": 6.9
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/matrix-20261016/run-gbl.img",
+ "nvme": null
+}

@@ -1,0 +1,235 @@
+# Mesa 26.2.5 (~/anybook/mesa/src/upstream, the ANAL-173 tree)
+
+## NVK conformance gate (src/nouveau/vulkan/nvk_physical_device.c)
+static bool
+nvk_is_conformant(const struct nv_device_info *info)
+{
+   /* Tegra is not currently supported */
+   if (info->type != NV_DEVICE_TYPE_DIS)
+      return false;
+
+   /* Everything Kepler through Ada is conformant */
+   if (info->cls_eng3d >= KEPLER_A && info->cls_eng3d <= ADA_A)
+      return true;
+
+   /* And also Blackwell B */
+   if (info->cls_eng3d == BLACKWELL_B)
+      return true;
+
+   return false;
+      .driverID = VK_DRIVER_ID_MESA_NVK,
+      .conformanceVersion =
+         nvk_is_conformant(info) ? (VkConformanceVersion) { 1, 4, 3, 0 }
+                                 : (VkConformanceVersion) { 0, 0, 0, 0 },
+      .denormBehaviorIndependence = VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_ALL,
+~/anybook/mesa/src/upstream/src/nouveau/headers/nvidia/classes/clce97.h:32:#define BLACKWELL_B    0xCE97
+~/anybook/mesa/src/upstream/src/nouveau/headers/nvidia/classes/clcd97.h:32:#define BLACKWELL_A    0xCD97
+
+## NVK Android WSI (src/nouveau/vulkan/nvk_android.c)
+
+#include "nvk_entrypoints.h"
+#include "vk_android.h"
+
+#include "vk_device.h"
+#include "vk_queue.h"
+
+VKAPI_ATTR VkResult VKAPI_CALL
+nvk_QueueSignalReleaseImageANDROID(VkQueue _queue,
+                                   uint32_t waitSemaphoreCount,
+                                   const VkSemaphore *pWaitSemaphores,
+                                   VkImage image,
+                                   int *pNativeFenceFd)
+{
+   VK_FROM_HANDLE(vk_queue, queue, _queue);
+   struct vk_device *device = queue->base.device;
+
+   /* This is to workaround nouveau not supporting native_fence_fd cap. On
+    * Android, the platform SurfaceFlinger RenderEngine has required
+    * EGL_ANDROID_native_fence_sync to import the sync file presented along
+    * with the wsi image when the sync fd is not -1.
+    *
+    * Can drop this if EGL is provided by layering (ANGLE or Zink) on top of
+    * Vulkan SYNC_FD and AHB support, or SurfaceFlinger RenderEngine backend
+    * is configured to use skiavk so that NVK is used for client composition.
+    */
+   device->dispatch_table.QueueWaitIdle(_queue);
+
+   *pNativeFenceFd = -1;
+
+   return VK_SUCCESS;
+}
+311:      .ANDROID_native_buffer = vk_android_get_ugralloc() != NULL,
+
+## GL on nouveau: Zink preferred from Turing, required from Blackwell (src/loader/loader.c)
+/* choose zink or nouveau GL */
+bool
+nouveau_zink_predicate(int fd, const char *driver)
+{
+#ifndef HAVE_LIBDRM
+   return true;
+#else
+   /* Never load on nv proprietary driver */
+   if (!drm_fd_is_nouveau(fd))
+      return false;
+
+   bool prefer_zink = false;
+   bool require_zink = false;
+
+   /* Enable Zink by default on Turing and later GPUs
+    *
+    * We only use Zink if if the kernel supports VMA_TILEMODE, which is needed
+    * for DRM format modifiers.  This also doubles as a check for a new enough
+    * kernel to run NVK in general.
+    */
+   struct drm_nouveau_getparam r = { .param = NOUVEAU_GETPARAM_HAS_VMA_TILEMODE };
+   int ret = drmCommandWriteRead(fd, DRM_NOUVEAU_GETPARAM, &r, sizeof(r));
+   if (ret == 0 && r.value == 1) {
+      r.param = NOUVEAU_GETPARAM_CHIPSET_ID;
+      r.value = 0;
+      ret = drmCommandWriteRead(fd, DRM_NOUVEAU_GETPARAM, &r, sizeof(r));
+      if (ret == 0 && r.value >= 0x160) {
+         prefer_zink = true;
+      }
+      /* Nouveau GL isn't enabled on anything after Ada */
+      if (ret == 0 && r.value >= 0x1a0) {
+         require_zink = true;
+      }
+   }
+   assert(!require_zink || prefer_zink);
+
+   prefer_zink = debug_get_bool_option("NOUVEAU_USE_ZINK", prefer_zink);
+
+   bool use_zink = prefer_zink;
+   if (require_zink) {
+      /* nouveau_zink_predicate() typically gets called twice but we only want
+       * to warn once.
+       */
+      static bool warned = false;
+      if (!prefer_zink && !warned) {
+         log_(_LOADER_WARNING,
+              "NOUVEAU_USE_ZINK is ignored for Blackwell and later GPUs.\n");
+         warned = true;
+      }
+
+      use_zink = true;
+   }
+
+   if (use_zink && !strcmp(driver, "zink"))
+      return true;
+
+   if (!use_zink && !strcmp(driver, "nouveau"))
+      return true;
+   return false;
+#endif
+}
+
+
+## Rust is required to build NVK (meson.build)
+with_virtgpu_kumquat = get_option('virtgpu_kumquat') and with_gfxstream_vk
+if with_gallium_rusticl or with_nouveau_vk or with_tools.contains('etnaviv') or with_virtgpu_kumquat or with_panfrost_rust
+  # rust.bindgen() does not pass `--rust-target` to bindgen until 1.7.0.
+  if meson.version().version_compare('< 1.7.0')
+    error('Mesa Rust support requires Meson 1.7.0 or newer')
+  endif
+
+  add_languages('rust', required: true)
+  rustc = meson.get_compiler('rust')
+  rust = import('rust')
+
+  # Keep this in sync with the `msrv` in clippy.toml
+  if rustc.version().version_compare('< 1.85')
+    error('Mesa requires Rust 1.85.0 or newer')
+  endif
+
+
+## docs/drivers/nvk.rst (Mesa 26.2.5 source tree)
+NVK
+===
+NVK is a Vulkan driver for NVIDIA GPUs.
+Hardware support
+----------------
+NVK currently supports Kepler (GeForce 600 and 700 series) and later GPUs up to
+and including Ada (RTX 4000 series), as well as consumer Blackwell GPUs
+(RTX 5000 series).
+Conformance status:
+-------------------
+NVK is a conformant Vulkan 1.4 implementation for all officially supported
+GPUs.
+OpenGL support through Zink:
+----------------------------
+Starting with Mesa 25.1, all Turing (RTX 2000 series and GTX 16xx) and
+later GPUs will get NVK+Zink as their OpenGL implementation by default
+instead of the old Nouveau GL driver.  NVK+Zink is a conformant OpenGL 4.6
+implementation. The Nouveau GL driver is no longer supported on these cards.
+Kernel requirements
+-------------------
+NVK requires at least a Linux 6.6 kernel
+
+## Release notes mentioning Blackwell
+docs/relnotes/25.2.0.rst:117:- nvk Blackwell support
+docs/relnotes/25.2.0.rst:1129:- nouveau/headers: Add stub blackwell class headers
+docs/relnotes/25.2.0.rst:1131:- nvk: Don't emit MME FIFO config on Blackwell+
+docs/relnotes/25.2.0.rst:1134:- nvk/headers: sync up the latest blackwell compute class headers
+docs/relnotes/25.2.0.rst:1137:- nvk: bindless cbufs on hopper/blackwell are different.
+docs/relnotes/25.2.0.rst:1149:- nvk/nil: add texture header v2 support for hopper/blackwell
+docs/relnotes/25.2.0.rst:1150:- nvk/nil: Use PTE_KIND_GENERIC_MEMORY for everything on Blackwell+
+docs/relnotes/25.2.0.rst:1157:- nak/sm70: fix imnmx on blackwell.
+
+## NVK has no AHardwareBuffer support (VK_ANDROID_external_memory_android_hardware_buffer)
+$ grep -rl 'android_hardware_buffer|AHardwareBuffer|ANDROID_external_memory' src/nouveau/vulkan/ -> 0 files
+$ grep -rl ANDROID_external_memory_android_hardware_buffer src/amd/vulkan/ -> 2 files (RADV has it)
+
+## NVK renders straight into linear colour attachments when address and row stride are 128-byte aligned; otherwise it uses a tiled shadow plus a copy (src/nouveau/vulkan/nvk_cmd_draw.c)
+bool
+nvk_image_plane_aligned_for_linear_attachment(const struct nvk_image_plane *plane,
+                                              const struct nil_image_level *level)
+{
+   assert(level->tiling.gob_type == NIL_GOB_TYPE_LINEAR);
+   uint64_t addr = nvk_image_plane_base_address(plane) + level->offset_B;
+   return addr % 128 == 0 && level->row_stride_B % 128 == 0;
+}
+
+static bool
+nvk_rendering_linear(const struct nvk_rendering_state *render)
+{
+   /* Depth and stencil are never linear */
+   if (render->depth_att.iview || render->stencil_att.iview)
+      return false;
+
+   for (uint32_t i = 0; i < render->color_att_count; i++) {
+      const struct nvk_image_view *iview = render->color_att[i].iview;
+      if (iview == NULL)
+         continue;
+
+      const struct nvk_image *image = (struct nvk_image *)iview->vk.image;
+      const uint8_t ip = iview->planes[0].image_plane;
+      const struct nvk_image_plane *plane = &image->planes[ip];
+      const struct nil_image_level *level =
+         &plane->nil.levels[iview->vk.base_mip_level];
+
+      if (level->tiling.gob_type != NIL_GOB_TYPE_LINEAR)
+         return false;
+
+      /* We can't render to a linear image unless the address and row stride
+       * are multiples of 128B.  Fall back to tiled shadows in this case.
+       */
+      if (!nvk_image_plane_aligned_for_linear_attachment(plane, level))
+         return false;
+   }
+
+   return true;
+
+## Mesa EGL on Android picks one GPU (src/egl/drivers/dri2/platform_android.c)
+#ifdef EGL_FORCE_RENDERNODE
+   const unsigned node_type = DRM_NODE_RENDER;
+#else
+   const unsigned node_type = swrast ? DRM_NODE_PRIMARY : DRM_NODE_RENDER;
+#endif
+
+   if (__system_property_get("drm.gpu.vendor_name", vendor_buf) > 0)
+      vendor_name = vendor_buf;
+
+   while (dev_list) {
+      if (!_eglDeviceSupports(dev_list, _EGL_DEVICE_DRM))
+         goto next;
+

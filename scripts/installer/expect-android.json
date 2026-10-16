@@ -1,0 +1,84 @@
+[
+ {
+"wait": "init: init first stage started",
+"timeout": 90
+},
+ {
+"wait": "init: init second stage started",
+"timeout": 120
+},
+ {
+"wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+"timeout": 240
+},
+ {
+"send": "\n"
+},
+ {
+"wait": "console:/ \\$ ",
+"timeout": 60
+},
+ {
+"send": "su 0 dmesg -n 1\n"
+},
+ {
+"wait": "console:/ \\$ ",
+"timeout": 20
+},
+ {
+"send": "echo ===ANYBOOK-BEGIN===\n"
+},
+ {
+"wait": "console:/ \\$ ",
+"timeout": 20
+},
+ {
+"send": "getprop | grep -E '^.ro.boot.(slot_suffix|verifiedbootstate|vbmeta|avb|veritymode|boot_part_uuid|anybook|serialno|force_normal_boot)'\n"
+},
+ {
+"wait": "console:/ \\$ ",
+"timeout": 20
+},
+ {
+"send": "su 0 cat /proc/bootconfig | grep -v '^#'\n"
+},
+ {
+"wait": "console:/ \\$ ",
+"timeout": 20
+},
+ {
+"send": "su 0 ls -l /dev/block/by-name | grep -E ' (EFI|misc|boot_a|vbmeta_a|super|metadata|userdata) '\n"
+},
+ {
+"wait": "console:/ \\$ ",
+"timeout": 20
+},
+ {
+"send": "su 0 grep -E ' /(data|metadata|system|vendor) ' /proc/mounts\n"
+},
+ {
+"wait": "console:/ \\$ ",
+"timeout": 20
+},
+ {
+"send": "su 0 df -h /data /metadata\n"
+},
+ {
+"wait": "console:/ \\$ ",
+"timeout": 20
+},
+ {
+"send": "su 0 dmesg | grep -E 'Boot device|vbmeta digest|Format /dev|wiped and'\n"
+},
+ {
+"wait": "console:/ \\$ ",
+"timeout": 20
+},
+ {
+"send": "uname -r; getprop ro.build.fingerprint; echo ===ANYBOOK-END===\n"
+},
+ {
+"wait": "===ANYBOOK-END===\\s",
+"timeout": 30
+}
+]

@@ -1,0 +1,391 @@
+[
+ {
+  "variant": "gbl",
+  "reason": "QEMU exited (0)",
+  "seconds": 7.5,
+  "steps": "1/23",
+  "loader": "GBL gbl-mainline:6296919847ee",
+  "kernel": "6.18.21-android17-5-g44a90255c95f",
+  "probe_ran": true,
+  "bootconfig_lines": 40,
+  "bootconfig_missing": false,
+  "slot_suffix": "_a",
+  "verifiedbootstate": "orange",
+  "vbmeta_digest": "4488aecb8c6e3edfed2fdb9b5cc45b9af6381855e7fd6b629fe31350813ea8bf",
+  "boot_part_uuid": null,
+  "loader_marker": "gbl",
+  "kernel_image": null,
+  "boot_device": null,
+  "first_stage": true,
+  "second_stage": false,
+  "digest_error": false,
+  "metadata_formatted": false,
+  "userdata_formatted": false,
+  "console_dump": false,
+  "by_name": [],
+  "kernel_no_bootconfig": false,
+  "failure": "Failed to create devices required for first stage mount"
+ },
+ {
+  "variant": "gbl-uuid",
+  "reason": "all steps done",
+  "seconds": 23.1,
+  "steps": "23/23",
+  "loader": "GBL gbl-mainline:6296919847ee",
+  "kernel": "6.18.21-android17-5-g44a90255c95f",
+  "probe_ran": true,
+  "bootconfig_lines": 41,
+  "bootconfig_missing": false,
+  "slot_suffix": "_a",
+  "verifiedbootstate": "orange",
+  "vbmeta_digest": "0ddfe86f4409f622f94689f08642f20d31c6cc9ac11a94d467ea4f994075c629",
+  "boot_part_uuid": "5c2e760d-5405-5eb5-abb0-99652eefd85d",
+  "loader_marker": "gbl",
+  "kernel_image": null,
+  "boot_device": "pci0000:00/0000:00:02.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0",
+  "first_stage": true,
+  "second_stage": true,
+  "digest_error": false,
+  "metadata_formatted": true,
+  "userdata_formatted": true,
+  "console_dump": true,
+  "by_name": [
+   [
+    "EFI",
+    "/dev/block/sda1"
+   ],
+   [
+    "boot_a",
+    "/dev/block/sda3"
+   ],
+   [
+    "metadata",
+    "/dev/block/sda17"
+   ],
+   [
+    "misc",
+    "/dev/block/sda2"
+   ],
+   [
+    "super",
+    "/dev/block/sda18"
+   ],
+   [
+    "userdata",
+    "/dev/block/sda19"
+   ],
+   [
+    "vbmeta_a",
+    "/dev/block/sda9"
+   ]
+  ],
+  "kernel_no_bootconfig": false,
+  "failure": null
+ },
+ {
+  "variant": "gbl-uuid-decoy",
+  "reason": "timeout 30s",
+  "seconds": 30.5,
+  "steps": "0/0",
+  "loader": "GBL gbl-mainline:6296919847ee",
+  "kernel": null,
+  "probe_ran": false,
+  "bootconfig_lines": 0,
+  "bootconfig_missing": false,
+  "slot_suffix": null,
+  "verifiedbootstate": null,
+  "vbmeta_digest": null,
+  "boot_part_uuid": null,
+  "loader_marker": null,
+  "kernel_image": null,
+  "boot_device": null,
+  "first_stage": false,
+  "second_stage": false,
+  "digest_error": false,
+  "metadata_formatted": false,
+  "userdata_formatted": false,
+  "console_dump": false,
+  "by_name": [],
+  "kernel_no_bootconfig": false,
+  "failure": "Failed to read bootloader message from misc partition: NotUnique"
+ },
+ {
+  "variant": "grub",
+  "reason": "all steps done",
+  "seconds": 24.0,
+  "steps": "23/23",
+  "loader": "GRUB",
+  "kernel": "6.18.21-android17-5-g44a90255c95f",
+  "probe_ran": true,
+  "bootconfig_lines": 28,
+  "bootconfig_missing": false,
+  "slot_suffix": "_a",
+  "verifiedbootstate": "orange",
+  "vbmeta_digest": "4488aecb8c6e3edfed2fdb9b5cc45b9af6381855e7fd6b629fe31350813ea8bf",
+  "boot_part_uuid": "5c2e760d-5405-5eb5-abb0-99652eefd85d",
+  "loader_marker": "grub",
+  "kernel_image": "(hd0,gpt1)/anybook/a/kernel",
+  "boot_device": "pci0000:00/0000:00:02.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0",
+  "first_stage": true,
+  "second_stage": true,
+  "digest_error": false,
+  "metadata_formatted": true,
+  "userdata_formatted": true,
+  "console_dump": true,
+  "by_name": [
+   [
+    "EFI",
+    "/dev/block/sda1"
+   ],
+   [
+    "boot_a",
+    "/dev/block/sda3"
+   ],
+   [
+    "metadata",
+    "/dev/block/sda17"
+   ],
+   [
+    "misc",
+    "/dev/block/sda2"
+   ],
+   [
+    "super",
+    "/dev/block/sda18"
+   ],
+   [
+    "userdata",
+    "/dev/block/sda19"
+   ],
+   [
+    "vbmeta_a",
+    "/dev/block/sda9"
+   ]
+  ],
+  "kernel_no_bootconfig": false,
+  "failure": null
+ },
+ {
+  "variant": "grub-2nd-boot",
+  "reason": "all steps done",
+  "seconds": 23.9,
+  "steps": "23/23",
+  "loader": "GRUB",
+  "kernel": "6.18.21-android17-5-g44a90255c95f",
+  "probe_ran": true,
+  "bootconfig_lines": 28,
+  "bootconfig_missing": false,
+  "slot_suffix": "_a",
+  "verifiedbootstate": "orange",
+  "vbmeta_digest": "4488aecb8c6e3edfed2fdb9b5cc45b9af6381855e7fd6b629fe31350813ea8bf",
+  "boot_part_uuid": "5c2e760d-5405-5eb5-abb0-99652eefd85d",
+  "loader_marker": "grub",
+  "kernel_image": "(hd0,gpt1)/anybook/a/kernel",
+  "boot_device": "pci0000:00/0000:00:02.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0",
+  "first_stage": true,
+  "second_stage": true,
+  "digest_error": false,
+  "metadata_formatted": false,
+  "userdata_formatted": false,
+  "console_dump": true,
+  "by_name": [
+   [
+    "EFI",
+    "/dev/block/sda1"
+   ],
+   [
+    "boot_a",
+    "/dev/block/sda3"
+   ],
+   [
+    "metadata",
+    "/dev/block/sda17"
+   ],
+   [
+    "misc",
+    "/dev/block/sda2"
+   ],
+   [
+    "super",
+    "/dev/block/sda18"
+   ],
+   [
+    "userdata",
+    "/dev/block/sda19"
+   ],
+   [
+    "vbmeta_a",
+    "/dev/block/sda9"
+   ]
+  ],
+  "kernel_no_bootconfig": false,
+  "failure": null
+ },
+ {
+  "variant": "grub-bad-digest",
+  "reason": "all steps done",
+  "seconds": 23.9,
+  "steps": "23/23",
+  "loader": "GRUB",
+  "kernel": "6.18.21-android17-5-g44a90255c95f",
+  "probe_ran": true,
+  "bootconfig_lines": 28,
+  "bootconfig_missing": false,
+  "slot_suffix": "_a",
+  "verifiedbootstate": "orange",
+  "vbmeta_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+  "boot_part_uuid": "5c2e760d-5405-5eb5-abb0-99652eefd85d",
+  "loader_marker": "grub",
+  "kernel_image": "(hd0,gpt1)/anybook/a/kernel",
+  "boot_device": "pci0000:00/0000:00:02.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0",
+  "first_stage": true,
+  "second_stage": true,
+  "digest_error": true,
+  "metadata_formatted": true,
+  "userdata_formatted": true,
+  "console_dump": true,
+  "by_name": [
+   [
+    "EFI",
+    "/dev/block/sda1"
+   ],
+   [
+    "boot_a",
+    "/dev/block/sda3"
+   ],
+   [
+    "metadata",
+    "/dev/block/sda17"
+   ],
+   [
+    "misc",
+    "/dev/block/sda2"
+   ],
+   [
+    "super",
+    "/dev/block/sda18"
+   ],
+   [
+    "userdata",
+    "/dev/block/sda19"
+   ],
+   [
+    "vbmeta_a",
+    "/dev/block/sda9"
+   ]
+  ],
+  "kernel_no_bootconfig": false,
+  "failure": null
+ },
+ {
+  "variant": "grub-slot-b",
+  "reason": "QEMU exited (0)",
+  "seconds": 8.6,
+  "steps": "0/0",
+  "loader": "GRUB",
+  "kernel": "6.18.21-android17-5-g44a90255c95f",
+  "probe_ran": true,
+  "bootconfig_lines": 28,
+  "bootconfig_missing": false,
+  "slot_suffix": "_b",
+  "verifiedbootstate": "orange",
+  "vbmeta_digest": "4488aecb8c6e3edfed2fdb9b5cc45b9af6381855e7fd6b629fe31350813ea8bf",
+  "boot_part_uuid": "5c2e760d-5405-5eb5-abb0-99652eefd85d",
+  "loader_marker": "grub",
+  "kernel_image": "(hd0,gpt1)/anybook/b/kernel",
+  "boot_device": null,
+  "first_stage": false,
+  "second_stage": false,
+  "digest_error": false,
+  "metadata_formatted": false,
+  "userdata_formatted": false,
+  "console_dump": false,
+  "by_name": [],
+  "kernel_no_bootconfig": false,
+  "failure": null
+ },
+ {
+  "variant": "sdboot",
+  "reason": "all steps done",
+  "seconds": 28.9,
+  "steps": "23/23",
+  "loader": "systemd-boot",
+  "kernel": "6.18.21-android17-5-g44a90255c95f",
+  "probe_ran": true,
+  "bootconfig_lines": 29,
+  "bootconfig_missing": false,
+  "slot_suffix": "_a",
+  "verifiedbootstate": "orange",
+  "vbmeta_digest": "4488aecb8c6e3edfed2fdb9b5cc45b9af6381855e7fd6b629fe31350813ea8bf",
+  "boot_part_uuid": "5c2e760d-5405-5eb5-abb0-99652eefd85d",
+  "loader_marker": "sdboot",
+  "kernel_image": null,
+  "boot_device": "pci0000:00/0000:00:02.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0",
+  "first_stage": true,
+  "second_stage": true,
+  "digest_error": false,
+  "metadata_formatted": true,
+  "userdata_formatted": true,
+  "console_dump": true,
+  "by_name": [
+   [
+    "EFI",
+    "/dev/block/sda1"
+   ],
+   [
+    "boot_a",
+    "/dev/block/sda3"
+   ],
+   [
+    "metadata",
+    "/dev/block/sda17"
+   ],
+   [
+    "misc",
+    "/dev/block/sda2"
+   ],
+   [
+    "super",
+    "/dev/block/sda18"
+   ],
+   [
+    "userdata",
+    "/dev/block/sda19"
+   ],
+   [
+    "vbmeta_a",
+    "/dev/block/sda9"
+   ]
+  ],
+  "kernel_no_bootconfig": false,
+  "failure": null,
+  "esp_entries_after": []
+ },
+ {
+  "variant": "uki",
+  "reason": "QEMU exited (0)",
+  "seconds": 6.8,
+  "steps": "0/0",
+  "loader": null,
+  "kernel": "6.18.21-android17-5-g44a90255c95f",
+  "probe_ran": true,
+  "bootconfig_lines": 0,
+  "bootconfig_missing": false,
+  "slot_suffix": null,
+  "verifiedbootstate": null,
+  "vbmeta_digest": null,
+  "boot_part_uuid": null,
+  "loader_marker": null,
+  "kernel_image": null,
+  "boot_device": null,
+  "first_stage": false,
+  "second_stage": false,
+  "digest_error": false,
+  "metadata_formatted": false,
+  "userdata_formatted": false,
+  "console_dump": false,
+  "by_name": [],
+  "kernel_no_bootconfig": true,
+  "failure": null
+ }
+]

@@ -1,0 +1,48 @@
+# Evidence: installer boot-chain prototype (ANAL-189), 2026-10-16
+
+The design and recommendation are in `docs/installer.md`.
+
+**What ran.** One GPT "USB stick" image per EFI loader, all built from the same inputs, each booted in QEMU 11.1.2 / KVM with edk2-ovmf 202608:
+- The image is attached as `usb-storage` on xHCI.
+- Some runs add a decoy NVMe disk that carries the same Android partition names with random PARTUUIDs, standing in for an installed internal disk.
+- Image files only. No host disk, USB stick or firmware was touched.
+
+**Inputs.**
+- The `anybook_cf_x86_64_pc-cp2a-userdebug` images (ANAL-169), reflink-snapshotted read-only. Fingerprints are in `matrix/input-provenance.txt`.
+- The AnyBook GKI `6.18.21-android17-5-g44a90255c95f` (ANAL-171), `bzImage` sha256 `6d964789…`.
+- The AOSP test key.
+- GBL dev EFI from ci.android.com build 16633196. Hashes are in `tools.txt`; the binary is not redistributed here.
+
+**Scripts:** `scripts/installer/` (`mkproto.py`, `qemu-run.py`, `probe-init.c`, `proto-matrix.sh`, `proto-summary.py`).
+
+## Results (`matrix/SUMMARY.md`, `matrix/results.json`)
+
+| Variant | Outcome |
+|---|---|
+| `grub` + decoy NVMe | GRUB 2.16 passes the vendor ramdisk, generic ramdisk and bootconfig. `boot_part_uuid` is probed at run time. Android finds the boot device on USB (`pci0000:00/0000:00:02.0/usb2/…`), mounts `super` with dm-verity, and formats `/metadata` (ext4) and `/data` (f2fs, 3.4 GiB). The console dump shows `ro.boot.*` from the loader. |
+| `grub-2nd-boot` | The same stick boots again; no reformat, so the live data persists. |
+| `grub-bad-digest` | `libfs_avb: vbmeta digest mismatch` / `Failed to verify vbmeta digest`; boot continues in orange. |
+| `grub-slot-b` | The loader passes `androidboot.slot_suffix=_b` and `BOOT_IMAGE=(hd0,gpt1)/anybook/b/kernel` (probe only). |
+| `sdboot` + decoy NVMe | systemd-boot 262 type #1 entry, bootconfig last: same Android result as GRUB. Boot counting renamed `anybook-a+3.conf` to `anybook-a+2-1.conf` (`matrix/sdboot/esp-entries-after.txt`). |
+| `uki` | `'bootconfig' found on command line, but no bootconfig found`. systemd-stub appends its own cpio archives after `.initrd`, so a UKI cannot carry Android bootconfig. |
+| `gbl` | GBL does libavb in orange and writes its own bootconfig, but passes no `boot_part_uuid` or `boot_devices`: `Failed to create devices required for first stage mount`. |
+| `gbl-uuid` | With `boot_part_uuid` baked into `vendor_boot`, GBL boots to the Android console from USB. Always slot `a` (no BootControl protocol). |
+| `gbl-uuid-decoy` | `Failed to read bootloader message from misc partition: NotUnique`, then a panic and reset (`matrix/gbl-uuid-decoy/shot-20.png`). |
+
+**Screenshots.**
+- `matrix/grub/shot-2.png`: GRUB menu.
+- `matrix/sdboot/shot-3.png`: systemd-boot menu with an entry per slot and "Reboot Into Firmware Interface".
+- `wireframes.png`: the installer wireframes rendered from `docs/installer-wireframes.html`.
+
+## Not shown here
+- This is plain QEMU booting the Cuttlefish `pc` product. There's no GPU, so we stop at the userdebug serial console, and `sys.boot_completed` was not checked.
+- Cuttlefish's 6.12 `system_dlkm`/`vendor_dlkm` modules don't load on our kernel. That's expected and unrelated to the loader.
+- Nothing ran on the G14.
+- GBL's console output failed through a QEMU socket serial backend, and GBL then panicked inside its own error printer. With a FIFO or file backend it works, so the runner uses FIFOs.
+
+## Files
+- `matrix/<variant>/serial.log.gz`: the full serial console (ANSI codes stripped).
+- `matrix/<variant>/result.json`: runner outcome and step timings.
+- `matrix/<variant>/image.json`: GPT layout, PARTUUIDs, vbmeta digest and size, sha256 of every partition written.
+- `matrix/matrix.log`: run order.
+- `tools.txt`: tool versions and GBL hashes.
