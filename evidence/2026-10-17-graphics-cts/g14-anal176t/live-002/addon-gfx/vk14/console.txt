@@ -1,0 +1,139 @@
+dEQP version: unknown (0xcafebabe)
+deviceName: AMD Radeon 890M Graphics (RADV STRIX1)
+Running dEQP on 12 threads in 500-test groups
+Pass: 0, Duration: 0
+Pass: 0, Duration: 2
+Pass: 0, Duration: 4
+Pass: 0, Duration: 6
+Pass: 0, Duration: 8
+Pass: 0, Duration: 10
+Pass: 0, Duration: 12
+Pass: 681, Skip: 319, Duration: 14, Remaining: 15:13
+Pass: 1674, Skip: 826, Duration: 16, Remaining: 6:47
+Pass: 3706, Skip: 1794, Duration: 18, Remaining: 3:18
+Pass: 4045, Skip: 1955, Duration: 20, Remaining: 3:20
+Pass: 4045, Skip: 1955, Duration: 22, Remaining: 3:40
+Pass: 4045, Skip: 1955, Duration: 24, Remaining: 4:00
+Pass: 4045, Skip: 1955, Duration: 26, Remaining: 4:20
+Pass: 4393, Skip: 2107, Duration: 28, Remaining: 4:17
+Pass: 4731, Skip: 2269, Duration: 30, Remaining: 4:13
+Pass: 6430, Skip: 3070, Duration: 32, Remaining: 3:11
+Pass: 7821, Skip: 3679, Duration: 34, Remaining: 2:41
+Pass: 8161, Skip: 3839, Duration: 36, Remaining: 2:42
+Pass: 8161, Skip: 3839, Duration: 38, Remaining: 2:51
+Pass: 8521, Skip: 3979, Duration: 40, Remaining: 2:51
+Pass: 8521, Skip: 3979, Duration: 42, Remaining: 3:00
+Pass: 8521, Skip: 3979, Duration: 44, Remaining: 3:09
+Pass: 10904, Skip: 5096, Duration: 46, Remaining: 2:24
+Pass: 11240, Skip: 5260, Duration: 48, Remaining: 2:24
+Pass: 11917, Skip: 5583, Duration: 50, Remaining: 2:19
+Pass: 12620, Skip: 5880, Duration: 52, Remaining: 2:14
+Pass: 12620, Skip: 5880, Duration: 54, Remaining: 2:19
+Pass: 12955, Skip: 6045, Duration: 56, Remaining: 2:19
+Pass: 12955, Skip: 6045, Duration: 58, Remaining: 2:24
+Pass: 13989, Skip: 6511, Duration: 1:00, Remaining: 2:13
+Pass: 14663, Skip: 6837, Duration: 1:02, Remaining: 2:08
+Pass: 15332, Skip: 7168, Duration: 1:04, Remaining: 2:04
+ERROR - Test dEQP-VK.api.copy_and_blit.copy_memory_indirect.size_12.offset_4.count_63.normal_stride.graphics: Fail: See "/data/local/tmp/openbook-gfx/out/vk14/run/c41.r1.log"
+Pass: 16008, Skip: 7492, Duration: 1:06, Remaining: 2:00
+Pass: 16343, Skip: 7657, Duration: 1:08, Remaining: 1:59
+Pass: 16343, Skip: 7657, Duration: 1:10, Remaining: 2:03
+Pass: 16343, Skip: 7657, Duration: 1:12, Remaining: 2:06
+Pass: 16343, Skip: 7657, Duration: 1:14, Remaining: 2:10
+Pass: 16343, Skip: 7657, Duration: 1:16, Remaining: 2:13
+Pass: 16343, Skip: 7657, Duration: 1:18, Remaining: 2:17
+Pass: 16684, Skip: 7816, Duration: 1:20, Remaining: 2:16
+Pass: 16684, Skip: 7816, Duration: 1:22, Remaining: 2:19
+Pass: 16684, Skip: 7816, Duration: 1:24, Remaining: 2:23
+Pass: 17727, Skip: 8273, Duration: 1:26, Remaining: 2:13
+Pass: 18395, Skip: 8605, Duration: 1:28, Remaining: 2:07
+Pass: 19809, Skip: 9191, Duration: 1:30, Remaining: 1:55
+Pass: 20157, Skip: 9343, Duration: 1:32, Remaining: 1:54
+ERROR - Test dEQP-VK.api.copy_and_blit.copy_memory_indirect.size_12.offset_4.count_63.normal_stride.graphics: Fail: See "/data/local/tmp/openbook-gfx/out/vk14/run/c41.r2.log"
+Pass: 20501, Fail: 1, Skip: 9498, Duration: 1:34, Remaining: 1:53
+Pass: 20849, Fail: 1, Skip: 9650, Duration: 1:36, Remaining: 1:52
+Pass: 20849, Fail: 1, Skip: 9650, Duration: 1:38, Remaining: 1:54
+Pass: 21195, Fail: 1, Skip: 9804, Duration: 1:40, Remaining: 1:53
+Pass: 21926, Fail: 1, Skip: 10073, Duration: 1:42, Remaining: 1:49
+Pass: 21926, Fail: 1, Skip: 10073, Duration: 1:44, Remaining: 1:51
+Pass: 22262, Fail: 1, Skip: 10237, Duration: 1:46, Remaining: 1:50
+Pass: 22604, Fail: 1, Skip: 10395, Duration: 1:48, Remaining: 1:48
+Pass: 22604, Fail: 1, Skip: 10395, Duration: 1:50, Remaining: 1:50
+Pass: 22604, Fail: 1, Skip: 10395, Duration: 1:52, Remaining: 1:52
+Pass: 23293, Fail: 1, Skip: 10706, Duration: 1:54, Remaining: 1:48
+Pass: 23619, Fail: 1, Skip: 10880, Duration: 1:56, Remaining: 1:46
+Pass: 24658, Fail: 1, Skip: 11341, Duration: 1:58, Remaining: 1:39
+Pass: 25321, Fail: 1, Skip: 11678, Duration: 2:00, Remaining: 1:34
+Pass: 25321, Fail: 1, Skip: 11678, Duration: 2:02, Remaining: 1:36
+Pass: 25321, Fail: 1, Skip: 11678, Duration: 2:04, Remaining: 1:37
+Pass: 25671, Fail: 1, Skip: 11828, Duration: 2:06, Remaining: 1:36
+Pass: 25671, Fail: 1, Skip: 11828, Duration: 2:08, Remaining: 1:38
+Pass: 26007, Fail: 1, Skip: 11992, Duration: 2:10, Remaining: 1:36
+Pass: 26342, Fail: 1, Skip: 12157, Duration: 2:12, Remaining: 1:35
+Pass: 27031, Fail: 1, Skip: 12468, Duration: 2:14, Remaining: 1:30
+Pass: 27382, Fail: 1, Skip: 12617, Duration: 2:16, Remaining: 1:29
+Pass: 28039, Fail: 1, Skip: 12960, Duration: 2:18, Remaining: 1:24
+Pass: 29064, Fail: 1, Skip: 13435, Duration: 2:20, Remaining: 1:18
+Pass: 29416, Fail: 1, Skip: 13583, Duration: 2:22, Remaining: 1:16
+Pass: 30091, Fail: 1, Skip: 13908, Duration: 2:24, Remaining: 1:12
+Pass: 30771, Fail: 1, Skip: 14228, Duration: 2:26, Remaining: 1:08
+Pass: 31088, Fail: 1, Skip: 14411, Duration: 2:28, Remaining: 1:07
+Pass: 31088, Fail: 1, Skip: 14411, Duration: 2:30, Remaining: 1:08
+ERROR - Test dEQP-VK.draw.renderpass.ahb.triangle_list: Fail: See "/data/local/tmp/openbook-gfx/out/vk14/run/c94.r1.log"
+Pass: 32131, Fail: 1, Skip: 14868, Duration: 2:32, Remaining: 1:02
+Pass: 32805, Fail: 1, Skip: 15194, Duration: 2:34, Remaining: 58
+Pass: 33475, Fail: 1, Skip: 15524, Duration: 2:36, Remaining: 54
+ERROR - Test dEQP-VK.spirv_assembly.instruction.compute.opfma.fp64.vec4.rte.denorm_flush.float_controls: Fail: See "/data/local/tmp/openbook-gfx/out/vk14/run/c97.r1.log"
+Pass: 33814, Fail: 1, Skip: 15685, Duration: 2:38, Remaining: 53
+Pass: 34164, Fail: 1, Skip: 15835, Duration: 2:40, Remaining: 51
+Pass: 34500, Fail: 1, Skip: 15999, Duration: 2:42, Remaining: 50
+Pass: 34500, Fail: 1, Skip: 15999, Duration: 2:44, Remaining: 51
+Pass: 34841, Fail: 1, Skip: 16158, Duration: 2:46, Remaining: 49
+Pass: 35517, Fail: 1, Skip: 16482, Duration: 2:48, Remaining: 45
+Pass: 35517, Fail: 1, Skip: 16482, Duration: 2:50, Remaining: 46
+Pass: 35517, Fail: 1, Skip: 16482, Duration: 2:52, Remaining: 47
+ERROR - Test dEQP-VK.api.copy_and_blit.copy_memory_indirect.size_12.offset_0.count_2.normal_stride.graphics: Fail: See "/data/local/tmp/openbook-gfx/out/vk14/run/c105.r1.log"
+ERROR - Test dEQP-VK.draw.renderpass.ahb.triangle_list: Fail: See "/data/local/tmp/openbook-gfx/out/vk14/run/c94.r2.log"
+Pass: 36244, Fail: 2, Skip: 16754, Duration: 2:54, Remaining: 43
+Pass: 36244, Fail: 2, Skip: 16754, Duration: 2:56, Remaining: 43
+Pass: 36244, Fail: 2, Skip: 16754, Duration: 2:58, Remaining: 44
+Pass: 36578, Fail: 2, Skip: 16920, Duration: 3:00, Remaining: 42
+Pass: 36578, Fail: 2, Skip: 16920, Duration: 3:02, Remaining: 43
+Pass: 36578, Fail: 2, Skip: 16920, Duration: 3:04, Remaining: 43
+Pass: 36578, Fail: 2, Skip: 16920, Duration: 3:06, Remaining: 44
+Pass: 36578, Fail: 2, Skip: 16920, Duration: 3:08, Remaining: 44
+Pass: 36578, Fail: 2, Skip: 16920, Duration: 3:10, Remaining: 45
+Pass: 36578, Fail: 2, Skip: 16920, Duration: 3:12, Remaining: 45
+Pass: 36929, Fail: 2, Skip: 17069, Duration: 3:14, Remaining: 43
+ERROR - Test dEQP-VK.info.device_extensions: Fail: See "/data/local/tmp/openbook-gfx/out/vk14/run/c110.r1.log"
+Pass: 37571, Fail: 2, Skip: 17427, Duration: 3:16, Remaining: 40
+ERROR - Test dEQP-VK.spirv_assembly.instruction.compute.opfma.fp64.vec4.rte.denorm_flush.float_controls: Fail: See "/data/local/tmp/openbook-gfx/out/vk14/run/c97.r2.log"
+Pass: 38241, Fail: 3, Skip: 17756, Duration: 3:18, Remaining: 36
+Pass: 38590, Fail: 3, Skip: 17907, Duration: 3:20, Remaining: 34
+ERROR - Test dEQP-VK.api.copy_and_blit.copy_memory_indirect.size_12.offset_0.count_2.normal_stride.graphics: Fail: See "/data/local/tmp/openbook-gfx/out/vk14/run/c105.r2.log"
+Pass: 39983, Fail: 4, Skip: 18513, Duration: 3:22, Remaining: 26
+Pass: 40327, Fail: 4, Skip: 18669, Duration: 3:24, Remaining: 24
+Pass: 40327, Fail: 4, Skip: 18669, Duration: 3:26, Remaining: 25
+Pass: 40670, Fail: 4, Skip: 18826, Duration: 3:28, Remaining: 23
+Pass: 41013, Fail: 4, Skip: 18983, Duration: 3:30, Remaining: 21
+ERROR - Test dEQP-VK.info.device_extensions: Fail: See "/data/local/tmp/openbook-gfx/out/vk14/run/c110.r2.log"
+Pass: 42356, Fail: 5, Skip: 19639, Duration: 3:32, Remaining: 14
+Pass: 43015, Fail: 5, Skip: 19980, Duration: 3:34, Remaining: 10
+Pass: 43706, Fail: 5, Skip: 20289, Duration: 3:36, Remaining: 7
+Pass: 44191, Fail: 5, Skip: 20530, Duration: 3:38, Remaining: 5
+Pass: 44544, Fail: 5, Skip: 20677, Duration: 3:40, Remaining: 3
+Pass: 45220, Fail: 5, Skip: 21001, Duration: 3:41, Remaining: 0
+
+Slowest tests:
+  dEQP-VK.binding_model.descriptor_buffer.sparse_residency_buffer.multiple.graphics_tesc_buffers1_sets3 (12.76s)
+  dEQP-VK.robustness.robustness2.bind.notemplate.r32i.dontunroll.nonvolatile.uniform_buffer.no_fmt_qual.len_31.samples_1.1d.comp (11.36s)
+  dEQP-VK.renderpasses.renderpass1.suballocation.formats.r32_uint.input.dont_care.store.self_dep_draw_use_input_aspect (11.12s)
+  dEQP-VK.synchronization.op.multi_queue.fence.write_copy_image_to_buffer_read_ssbo_compute_indirect.buffer_262144_concurrent (10.47s)
+  dEQP-VK.ray_tracing_pipeline.inside_aabbs.chit.ray_end_inside.scaling_factor_0.rotation_0 (10.21s)
+
+Unexpected results:
+  dEQP-VK.api.copy_and_blit.copy_memory_indirect.size_12.offset_0.count_2.normal_stride.graphics,Fail
+  dEQP-VK.api.copy_and_blit.copy_memory_indirect.size_12.offset_4.count_63.normal_stride.graphics,Fail
+  dEQP-VK.draw.renderpass.ahb.triangle_list,Fail
+  dEQP-VK.info.device_extensions,Fail
+  dEQP-VK.spirv_assembly.instruction.compute.opfma.fp64.vec4.rte.denorm_flush.float_controls,Fail

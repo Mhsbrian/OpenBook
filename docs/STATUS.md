@@ -12,7 +12,7 @@
 |---|---|---|---|
 | Kernel (GKI android17-6.18 + 138 AMD modules) | Boots our Android 17 | **Yes:** 235 modules, 0 failed | `evidence/2026-10-16-g14-hwcheck/` |
 | Live USB boot, desktop | 40/40 live checks | **The normal enforcing boot reaches the desktop:** 28 s (`anal178c`) and 29 s (`anal176s`). No app crashed; 0 dropped frames since PR #52 (151 before); the stick is no longer offered for formatting; no lock-screen blackout | `evidence/2026-10-17-g14-desktop/g14-anal178c/`, `g14-anal176s/` |
-| Graphics (RADV, radeonsi, ANGLE, minigbm, drm_hwcomposer) | Passing; dEQP pre-check on a Radeon 610M | **Desktop renders with 0 dropped frames**, composed on the GPU (overlay planes off since PR #52). dEQP not run yet | `evidence/2026-10-17-graphics-cts/` |
+| Graphics (RADV, radeonsi, ANGLE, minigbm, drm_hwcomposer) | Passing; dEQP pre-check on a Radeon 610M | **Desktop renders with 0 dropped frames**, composed on the GPU (overlay planes off since PR #52). **dEQP on the 890M** (`anal176t`, 14 min): Vulkan 1.4 45,220 pass / 5 fail, Vulkan 1.1 (shipped) 43,222 / 8 / 2 crash; GLES on ANGLE 13,099 / 0 and on radeonsi 13,621 / 0; EGL 847 / 0; ANGLE end2end 1,814 / 2. **Decided: ship Vulkan 1.4** (next image). Open: AHB rendering fails, and one GPU hang under 1.1 cost a full GPU reset and an Android UI restart (GC 11.5 has no per-queue reset with our firmware) | `evidence/2026-10-17-graphics-cts/g14-anal176t/` |
 | Touchpad, keyboard | Yes | **Yes.** The touchpad's "Clock changed backwards" errors (every 40 ms of finger contact) are explained: the kernel autorepeats `BTN_TOOL_FINGER`. Fixed in Android (EventHub) and shown in QEMU with the laptop's own HID descriptor; on the laptop with the next stick | `evidence/2026-10-16-installer/g14-live/`, `evidence/2026-10-17-power-input/g14-sessions/` |
 | Lid, power button, hotkeys, battery health | Yes | **Config in force, battery health works:** lid and power-button settings, hotkey layouts, the health HAL (charge counter, 88.7 % state of health, GOOD) and the power HAL's EPP changes, all on the laptop. **Closing the lid puts it to sleep and opening it wakes it** (`anal176t`) | `evidence/2026-10-17-power-input/g14-sessions/`, `g14-anal176t/` |
 | Sleep | s2idle in a VM | **s2idle works, under Android too** (screen timeout → s2idle → key wake, display and Wi-Fi back); **deep sleep (S0i3) never reached.** The power check ruled out the driverless PSP; the SMU points at MPM or the USB4 router (unconfirmed) | `docs/power-input.md` §1.3, §7.6 |
@@ -20,12 +20,12 @@
 | ARM apps (Digitalis, built from source) | 14/16 ARM-only apps; works in enforcing | **The bridge self-check passes on Zen 5** (5/5 verdicts, both sessions). No arm64 app run yet: the ARM apps check is on ANAL-192's stick | `evidence/2026-10-17-digitalis-a17/`, `evidence/2026-10-17-digitalis-g14/` |
 | Installer | **Wizard 25/25, engine 53/53:** installs to a virtual NVMe disk that then boots by itself into OpenBook setup (SELinux enforcing) | Live USB boots; the wizard has not run yet | `evidence/2026-10-17-installer-wizard/` |
 
-**What is left on the G14:** S0i3 deep sleep (needs the laptop's own Linux comparison), audible Bluetooth and app audio, the Android audio path with the HAL fix, the ARM apps check, the installer dry run, and the graphics results (ANAL-177 is reading the run the owner already did). All but S0i3 are on ANAL-192's one checklist.
+**What is left on the G14:** S0i3 deep sleep (needs the laptop's own Linux comparison), audible Bluetooth and app audio, the Android audio path with the HAL fix, the ARM apps check, the installer dry run, and the graphics check on Vulkan 1.4 with the tuned lists (ANAL-177 read the first run). All but S0i3 are on ANAL-192's one checklist.
 
 ### Running now
 
 - **ANAL-192** builds the integrated owner stick from `main` at `9598403` or later: product rebuilt with #57's touchpad fix and #58's audio HAL fix, plus the installer and three add-ons (power check, graphics check, ARM apps check), with one checklist. Then the installer's end-to-end tests in QEMU.
-- **ANAL-177** is reading the graphics check the owner ran on `anal176t` (`g14/stick-20261017T154112Z`, `live-002`).
+- **ANAL-177** read the graphics check the owner ran on `anal176t`. Results and the Vulkan 1.4 decision are in its PR; the second run (1.4 in the image, tuned lists) is on ANAL-192's checklist.
 - **ANAL-176** is reading the same session for Bluetooth audio and app audio under enforcing.
 - **Merged today since 14:45:** #56 (ANAL-200, the bridge on Zen 5), #57 (ANAL-178, power and input on the G14, the touchpad fix), #58 (ANAL-179, audio, Wi-Fi and Bluetooth on the G14, the codec-paced audio HAL).
 

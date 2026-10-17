@@ -1,0 +1,6 @@
+{"part": "vk", "rc": 1, "seconds": 270, "jobs": 12, "amdgpu_events": 5, "quick": 0}
+{"part": "vk14", "rc": 1, "seconds": 222, "jobs": 12, "amdgpu_events": 0, "quick": 0}
+{"part": "gles-angle", "rc": 0, "seconds": 35, "jobs": 12, "amdgpu_events": 0, "quick": 0}
+{"part": "gles-mesa", "rc": 0, "seconds": 33, "jobs": 12, "amdgpu_events": 0, "quick": 0}
+{"part": "egl", "rc": 0, "seconds": 204, "jobs": 12, "amdgpu_events": 0, "quick": 0}
+{"part": "angle", "rc": 0, "seconds": 66, "jobs": 12, "amdgpu_events": 0, "quick": 0}

@@ -1,0 +1,10 @@
+dEQP-VK.api.copy_and_blit.copy_memory_indirect.size_12.offset_0.count_2.normal_stride.graphics,Fail
+dEQP-VK.api.copy_and_blit.copy_memory_indirect.size_12.offset_4.count_63.normal_stride.graphics,Fail
+dEQP-VK.api.info.format_properties.g10x6_b10x6r10x6_2plane_420_unorm_3pack16,Fail
+dEQP-VK.api.info.format_properties.g12x4_b12x4r12x4_2plane_420_unorm_3pack16,Fail
+dEQP-VK.api.info.format_properties.g8_b8r8_2plane_420_unorm,Fail
+dEQP-VK.draw.renderpass.ahb.triangle_list,Fail
+dEQP-VK.fragment_shading_rate.renderpass2.monolithic.attachment_rate.setup_with_copying_using_transfer_queue_concurent.r8_uint.rate_1x2_general_layout,Crash
+dEQP-VK.info.device_extensions,Fail
+dEQP-VK.ray_tracing_pipeline.amber.barycentrics,Crash
+dEQP-VK.spirv_assembly.instruction.compute.opfma.fp64.vec4.rte.denorm_flush.float_controls,Fail

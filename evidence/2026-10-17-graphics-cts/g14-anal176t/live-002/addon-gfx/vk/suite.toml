@@ -1,0 +1,10 @@
+[[deqp]]
+deqp = "/data/local/tmp/openbook-gfx/bin/deqp-binary64"
+caselists = ["/data/local/tmp/openbook-gfx/caselists/vk.txt"]
+skips = ["/data/local/tmp/openbook-gfx/skips/radv.txt"]
+tests_per_group = 500
+renderer_check = "RADV"
+deqp_args = ["--deqp-archive-dir=/data/local/tmp/openbook-gfx/data", "--deqp-log-images=disable", "--deqp-log-shader-sources=disable", "--deqp-shadercache=disable"]
+[deqp.env]
+LD_PRELOAD = "/data/local/tmp/openbook-gfx/lib/libdeqp_stdout.so"
+

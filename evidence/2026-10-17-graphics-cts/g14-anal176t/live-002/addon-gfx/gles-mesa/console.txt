@@ -1,0 +1,31 @@
+dEQP version: unknown (0xcafebabe)
+renderer: AMD Radeon 890M Graphics (radeonsi, strix1, ACO, DRM 3.64, 6.18.21-android17-5-g44a90255c95f)
+version: OpenGL ES 3.2 Mesa 26.2.5 (git-f30f204df4)
+Running dEQP on 12 threads in 300-test groups
+Running dEQP on 12 threads in 447-test groups
+Running dEQP on 12 threads in 393-test groups
+Pass: 0, Duration: 0
+Pass: 0, Duration: 2
+Pass: 3587, Warn: 1, Skip: 10, Duration: 4, Remaining: 11
+Pass: 3587, Warn: 1, Skip: 10, Duration: 6, Remaining: 16
+Pass: 3587, Warn: 1, Skip: 10, Duration: 8, Remaining: 22
+Pass: 4480, Warn: 1, Skip: 11, Duration: 10, Remaining: 20
+Pass: 7156, Warn: 2, Skip: 11, Duration: 12, Remaining: 10
+Pass: 7156, Warn: 2, Skip: 11, Duration: 14, Remaining: 12
+Pass: 8049, Warn: 2, Skip: 12, Duration: 16, Remaining: 11
+Pass: 8495, Warn: 2, Skip: 13, Duration: 18, Remaining: 10
+Pass: 8495, Warn: 2, Skip: 13, Duration: 20, Remaining: 12
+Pass: 8495, Warn: 2, Skip: 13, Duration: 22, Remaining: 13
+Pass: 11672, Warn: 2, Skip: 34, Duration: 24, Remaining: 4
+Pass: 12453, Warn: 2, Skip: 39, Duration: 26, Remaining: 2
+Pass: 12844, Warn: 2, Skip: 41, Duration: 28, Remaining: 1
+Pass: 13235, Warn: 2, Skip: 43, Duration: 30, Remaining: 0
+Pass: 13235, Warn: 2, Skip: 43, Duration: 32, Remaining: 0
+Pass: 13621, Warn: 2, Skip: 48, Duration: 32, Remaining: 0
+
+Slowest tests:
+  dEQP-GLES3.functional.shaders.builtin_functions.precision.refract.lowp_fragment.vec4 (6.29s)
+  dEQP-GLES3.functional.shaders.builtin_functions.precision.refract.highp_fragment.vec4 (5.61s)
+  dEQP-GLES3.functional.shaders.builtin_functions.precision.refract.mediump_fragment.vec4 (4.78s)
+  dEQP-GLES3.functional.shaders.builtin_functions.precision.faceforward.mediump_fragment.vec4 (4.49s)
+  dEQP-GLES3.functional.shaders.builtin_functions.precision.faceforward.highp_fragment.vec4 (3.90s)

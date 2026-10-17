@@ -290,8 +290,10 @@ Owner steps (Linux comparison on the laptop, the add-on on the stick) and how to
 # test modules for the G14 product (AOSP lane, ~8 min incremental)
 AOSP_JOBS=24 scripts/aosp-docker.sh -d anybook-aosp-build /repo/scripts/aosp-build.sh anybook_g14_x86_64-cp2a-userdebug \
   deqp-binary com.drawelements.deqp AngleEnd2EndTestsHelper && docker wait anybook-aosp-build
-# RADV without android-strict (Vulkan 1.4), in its own build/out dirs: never staged into the image
-MESA_VARIANT=-nonstrict ANDROID_STRICT=false scripts/mesa-android-build.sh fetch setup build install verify -- upstream
+# Since ANAL-177 the default build is non-strict (Vulkan 1.4) and graphics-amd-stage-mesa.sh writes mesa.mk, so the
+# image declares the version its RADV reports. A strict (1.1) build for comparison or fallback, in its own dirs:
+MESA_VARIANT=-strict ANDROID_STRICT=true scripts/mesa-android-build.sh fetch setup build install verify -- upstream
+# (the first G14 run's second RADV was MESA_VARIANT=-nonstrict ANDROID_STRICT=false, when the default was strict)
 scripts/graphics/build-deqp-runner.sh                                   # Mesa's deqp-runner 0.23.2, static musl
 scripts/graphics/mkcaselists.py ~/anybook/aosp/src/external/deqp/android/cts/main ~/anybook/gfx-cts/caselists/v1 \
   --angle-expectations ~/anybook/aosp/src/external/angle/android/cts/angle_end2end_tests_expectations.txt

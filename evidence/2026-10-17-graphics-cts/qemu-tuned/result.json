@@ -1,0 +1,41 @@
+{
+ "reason": "QEMU exited (0)",
+ "seconds": 194.1,
+ "steps_done": 6,
+ "steps": 6,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "openbook-live: live boot: boot_part_uuid=",
+   "t": 3.7
+  },
+  {
+   "step": 1,
+   "wait": "openbook-live: logs: saving to openbook/logs/live-\\d+ on the stick.s ESP; add-on gfx",
+   "t": 5.2
+  },
+  {
+   "step": 2,
+   "wait": "openbook-live: logs: sys.boot_completed=1",
+   "t": 20.9
+  },
+  {
+   "step": 3,
+   "wait": "openbook-live: addon gfx: running run.sh",
+   "t": 116.7
+  },
+  {
+   "step": 4,
+   "wait": "openbook-live: addon gfx: run.sh exit",
+   "t": 158.0
+  },
+  {
+   "step": 5,
+   "wait": "openbook-live: logs: done: ",
+   "t": 190.4
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "<data dir>/installer/gfxcheck/openbook-gfxcheck-anal177r2/qemu-quick-r2/stick.img",
+ "nvme": null
+}

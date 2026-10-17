@@ -1,6 +1,6 @@
 # AMD graphics in the OpenBook device tree
 
-This covers ANAL-174, as of 2026-10-16; the last part, "dEQP and CTS on the G14", covers ANAL-177 (2026-10-17). It builds on ANAL-173 (Mesa built with the NDK, `docs/mesa.md`) and ANAL-169 (the `anybook_cf_x86_64_pc` desktop product, `docs/aosp-desktop.md`). Evidence is in `evidence/2026-10-16-graphics-amd/`.
+This covers ANAL-174, as of 2026-10-16; the last part, "dEQP and CTS on the G14", covers ANAL-177 (2026-10-17, with the G14's results). It builds on ANAL-173 (Mesa built with the NDK, `docs/mesa.md`) and ANAL-169 (the `anybook_cf_x86_64_pc` desktop product, `docs/aosp-desktop.md`). Evidence is in `evidence/2026-10-16-graphics-amd/`.
 
 ## Result
 
@@ -176,7 +176,7 @@ scripts/gpu-probe-capture.sh > g14.txt                   # probe fixture from an
    - the probe at early-init with amdgpu loaded from `vendor_dlkm`
    - scanout of GBM's implicit tiled layout. HYPOTHESIS: radeonsi picks no DCC for shared surfaces without modifiers; otherwise minigbm handles multi-plane layouts.
 2. **The G14 product (ANAL-199)** inherits `graphics-amd.mk` with the platform HALs on. It needs `sepolicy/platform` built and probably a composer policy beyond Cuttlefish's.
-3. **Vulkan 1.1 under android-strict.** Decide with CTS whether to ship `ANDROID_STRICT=false` (1.4). ANAL-177's pre-check on the 610M favours 1.4; the G14 run settles it ("Vulkan 1.1 or 1.4" below).
+3. **Vulkan 1.1 under android-strict: decided, 1.4** (ANAL-177, from the G14's dEQP run; "Vulkan 1.1 or 1.4" below). The default Mesa build is now non-strict, and the image declares whatever version the staged RADV reports.
 4. **Explicit modifiers and DCC.** GBM cannot enumerate modifiers, so buffers use the driver's implicit layout. Querying modifiers through EGL (`eglQueryDmaBufModifiersEXT`) in the allocator would allow DCC-capable scanout layouts.
 5. **YV12 on RDNA.** ChromeOS's `amdgpu.c` gives YV12 a chroma stride of 512 for a 640-pixel-wide image (its "bad strides" warning, `minigbm-host/test.log`). Android CTS YV12 tests may notice.
 6. **An in-tree Soong build of Mesa** (meson2hermetic configs for radeonsi/RADV) would give Mesa the IMapper backend and drop the prebuilts.
@@ -192,7 +192,62 @@ This part covers ANAL-177, as of 2026-10-17. Evidence is in `evidence/2026-10-17
 - **Pre-check on the build host's Radeon 610M** (gfx1036, RDNA2; a different GPU from the G14's gfx1150): the same case lists, binaries and drivers. Results are below and in `evidence/2026-10-17-graphics-cts/precheck-610m/`.
 - **QEMU:** the add-on on a copy of `openbook-live-20261017-combined`, end to end. Every step ran, from the applier to the power-off, and every part that applies without an AMD GPU passed its 40-case quick list on SwiftShader.
 - **Cuttlefish:** the two app parts with their full lists (`evidence/2026-10-17-graphics-cts/`).
-- **Not done: the G14 run itself.** It needs the owner (checklist below) or the device agent (ANAL-193). Nothing in this section has run on the Radeon 890M yet.
+- **Run on the G14** (2026-10-17, the owner's `anal176t` stick with the add-on, `live-002`): every part ran, in 834 s. Results are in the next subsection and `evidence/2026-10-17-graphics-cts/g14-anal176t/`.
+
+### Results on the G14 (Radeon 890M, gfx1150)
+
+The owner's `openbook-live-20261017-anal176t` stick, with the add-on `openbook-gfxcheck-20261017` (`dc8b8b9`).
+- **Session:** booted from the "OpenBook graphics check" entry on AC power, `boot_completed` at 28 s. The add-on ran 834 s (12 jobs of 24 CPUs), and the laptop powered off by itself.
+- **Driver identity:** the shipped RADV is the android-strict build (`vulkan.radv.so` `10ebe2a3…`, the same file as in the 610M pre-check). The renderer strings prove which driver each pass used:
+  - `vk`: `AMD Radeon 890M Graphics (RADV STRIX1)`
+  - `gles-angle`: `ANGLE (AMD, Vulkan 1.1.354 (AMD Radeon 890M Graphics (RADV STRIX1)…), radv-26.2.5)`
+  - `gles-mesa`: `AMD Radeon 890M Graphics (radeonsi, strix1, ACO, DRM 3.64, …)`
+
+| Part | Cases | Pass | Fail | Crash | Flake | Not supported | Time | amdgpu |
+|---|---|---|---|---|---|---|---|---|
+| `vk`, RADV 1.1 (android-strict, shipped) | 66,226 | 43,222 | 8 | 2 | 19 | 22,975 | 270 s | **1 GPU hang, full reset** |
+| `vk14`, RADV 1.4 (non-strict) | 66,226 | **45,220** | 5 | 0 | 0 | 21,001 | 222 s | none |
+| `gles-angle`, ANGLE on RADV 1.1 | 13,671 | 13,099 | 0 | 0 | 0 | 509 (+63 warnings) | 35 s | none |
+| `gles-mesa`, radeonsi | 13,671 | 13,621 | 0 | 0 | 0 | 48 (+2 warnings) | 33 s | none |
+| `egl`, dEQP app, window surfaces | 1,287 | 847 | 0 | 0 | 0 | 438 (+2 warnings) | 204 s | none |
+| `angle`, ANGLE end2end (CTS helper app) | 2,364 | 1,814 | 2 | 0 | 0 | 329 skipped by ANGLE; 219 not in this build | 66 s | none |
+
+**The GPU hang (`vk`, at 166 s of uptime, 38 s into the pass):**
+- What the kernel logged:
+  1. `ring gfx_0.0.0 timeout` in a `deqp-binary64` process.
+  2. The per-queue reset failed: `MES failed to respond to msg=RESET`, `The CPFW hasn't support pipe reset yet`.
+  3. amdgpu then did a full MODE2 GPU reset: `VRAM is lost due to GPU reset!`, `GPU reset(1) succeeded`, `device wedged, but recovered through reset`.
+- What it did to the rest of the session:
+  - All 12 dEQP processes in flight lost their device. 8 got `VK_ERROR_DEVICE_LOST` and 4 sat until deqp-runner's 60 s time-out. All 12 passed on retry (they are 12 of the 19 flakes).
+  - So the guilty test cannot be pinned. The in-flight cases were ray-query sparse-binding, sparse image rebind, multi-queue timeline-semaphore, mipmap, GPL renderpass and instanced multiview draws (`g14-anal176t/ANALYSIS.md`).
+  - The same cases then ran clean under 1.4, with no hang. HYPOTHESIS: a load-dependent hang (12 concurrent GPU clients), not a property of the 1.1 build.
+  - The reset took Android's framework with it. SystemUI and SurfaceFlinger aborted on `EGL_CONTEXT_LOST`, and zygote restarted at 222 s (`sys.system_server.start_count` 3). The desktop came back, and the later parts, including both apps, ran normally.
+- **Per-queue reset is missing.** With the CP and MES firmware we ship (linux-firmware `38c1a709`, 2026-10-16) and our 6.18 kernel, GC 11.5 has no working queue or pipe reset. So any app's GPU hang becomes a whole-GPU reset that restarts the Android UI. That is a robustness item for the kernel and firmware lane, not a dEQP result.
+
+**Failures, classified:**
+
+| Case | 1.1 | 1.4 | What | Class |
+|---|---|---|---|---|
+| `api.copy_and_blit.copy_memory_indirect.size_12.*` (2) | Fail | Fail | "Error opening file!": dEQP opens `./vulkan/data/…` relative to its working directory, ignoring `--deqp-archive-dir`. The 610M lacks `VK_KHR_copy_memory_indirect`, so it never ran there | **Harness**, fixed: `run.sh` now runs from the archive directory |
+| `info.device_extensions` | Fail | Fail | Mesa 26.2.5 advertises KHR extensions that Android 17's dEQP does not know (`VK_KHR_device_address_commands` first) | Mesa newer than the CTS; also on the 610M |
+| `spirv_assembly.instruction.compute.opfma.fp64.vec4.rte.denorm_flush.float_controls` | Fail | Fail | Wrong result | RADV/ACO; also on the 610M (RDNA2) |
+| `draw.renderpass.ahb.triangle_list` | Fail | Fail | Image comparison failed (difference 41,493 against a threshold of 0.053): rendering into an AHardwareBuffer | **Real, Android-specific:** the gralloc (minigbm) and RADV AHB path. The 610M container had no AHB |
+| `api.info.format_properties.{g8_b8r8_2plane_420_unorm, g10x6…, g12x4…}` | Fail | Pass | Video decode/encode format bits without the video extensions | android-strict only, as on the 610M |
+| `fragment_shading_rate…transfer_queue_concurent…` | Crash | Pass | SIGSEGV: a null call through `vk::createRenderPass2`, the Vulkan 1.2 entry point, which a 1.1 device does not provide | android-strict only; also crashed on the 610M |
+| `ray_tracing_pipeline.amber.barycentrics` | Crash | Pass | SIGSEGV: a null call in `amber::Executor::Execute` | android-strict only |
+| ANGLE `MultisampledRenderToTextureWithAdvancedBlendTest.{ClearThenDraw, RenderbufferClearThenDraw}/ES3_1_Vulkan` | — | — | Red 64 where 127 is expected | ANGLE's advanced-blend emulation with multisampled render-to-texture on RADV 1.1. Marked PASS in Android 17's CTS list, so a CTS failure today |
+
+**Against the 610M pre-check and Cuttlefish:**
+- **radeonsi:** the same result on both GPUs: 13,621 pass, 0 fail, 48 not supported.
+- **Vulkan 1.4:** the same count of failures (5). Only `info.device_extensions` and `opfma.fp64` are common to both GPUs. The 610M's other three came from the pre-check path; the G14's are the AHB case and the two harness cases.
+- **Vulkan 1.1:** the 610M's 47 Amber failures (`vkGetBufferDeviceAddress`) **do not occur on the G14.** Through Android's own loader, all 26 sampled `graphicsfuzz` Amber cases pass under 1.1. They were an artifact of the pre-check's HAL shim, not of android-strict (corrected below).
+- **ANGLE end2end:** Cuttlefish's 7 `TextureBorderClamp*` failures pass on the G14, so they were gfxstream's. The G14's 2 failures are the advanced-blend pair above.
+- **EGL:** 847 pass and 0 fail on the G14, against 822 and 0 in Cuttlefish.
+
+**Against Mesa CI** (Mesa 26.2.5 `src/amd/ci/`):
+- None of the G14's failures is in `radv-fails.txt`, `radv-navi31-fails.txt`, `radeonsi-vangogh-fails.txt` or `angle-radv-stoney-fails.txt`.
+- The RADV and radeonsi lists cannot say more. `radv-navi31-fails.txt` (44 entries) and `radeonsi-vangogh-fails.txt` (410) contain no case of the Android mustpass at all; they list VK-GL-CTS-only and GL/KHR cases.
+- `angle-radv-stoney-fails.txt` lists 92 cases from our GLES subset as failing for ANGLE on a GCN Stoney. The G14 passes all 92.
 
 ### How the run reaches the laptop without a new image
 
@@ -229,8 +284,8 @@ flowchart TD
 
 | Part | What | Path | Cases | Why |
 |---|---|---|---|---|
-| `vk` | dEQP-VK | `deqp-binary64` → Android's `libvulkan` → `/vendor/lib64/hw/vulkan.radv.so` (android-strict, Vulkan 1.1, as shipped) | 66,226 | The shipped driver, through the shipped loader, as the CTS reaches it |
-| `vk14` | the same cases | the same, with RADV built without android-strict (Vulkan 1.4) bind-mounted over the shipped file | 66,226 | ANAL-174's open question: ship 1.1 or 1.4 |
+| `vk` | dEQP-VK | `deqp-binary64` → Android's `libvulkan` → `/vendor/lib64/hw/vulkan.radv.so`, the shipped build (1.1 on the first run's stick; 1.4 from the next image) | 66,226 (first run) | The shipped driver, through the shipped loader, as the CTS reaches it |
+| `vk14` | the same cases | the same, with RADV built without android-strict (Vulkan 1.4) bind-mounted over the shipped file; only for an image that ships 1.1 | 66,226 (first run) | ANAL-174's question, now decided: 1.4 |
 | `gles-angle` | dEQP-GLES2/3/31 | Android's `libEGL` → ANGLE → RADV (the system driver); pbuffer 256×256, `rgba8888d24s8ms0`, as Mesa CI runs them | 3,598 + 5,359 + 4,714 | What apps get |
 | `gles-mesa` | the same cases | `persist.graphics.egl=mesa` for the pass → radeonsi (the "safe graphics" driver) | 13,671 | The fallback driver, and Mesa CI's own comparison point |
 | `egl` | dEQP-EGL | AOSP's dEQP app (`com.drawelements.deqp`), window surfaces, through `am instrument`, as the CTS runs it; resumes after a crash | 1,287 | EGL needs a window system: `deqp-binary`'s surfaceless platform has no EGL |
@@ -252,14 +307,21 @@ flowchart TD
 
 - **Source:** the Android CTS mustpass in AOSP 17's `external/deqp` (`android/cts/main`, deqp `eae519aaa698`). For each suite, the union of the dated lists a new Android 17 device runs: `*-main-2020-03-01.txt` through `*-2026-03-01.txt`, plus the `vk-main-2019…2026-03-01/` directories. That is 3,848 EGL, 14,371 GLES2, 42,804 GLES3, 37,653 GLES3.1 and 1,760,314 Vulkan cases.
 - **Subset:** every Nth case of each source file, so every area keeps its share.
-  - Strides: EGL 3, GLES2 4, GLES3 8, GLES3.1 8, Vulkan 30, ANGLE end2end 2.
+  - Strides:
+    - **First run** (the 610M pre-check and the G14's first run): EGL 3, GLES2 4, GLES3 8, GLES3.1 8, Vulkan 30, ANGLE end2end 2.
+    - **Tuned after the G14's run:** EGL 3, GLES 1 (in full), Vulkan 15, ANGLE end2end 1 (in full). Each tuned list contains the first run's cases, except EGL, which is unchanged.
   - Always kept: the driver-identity groups (`dEQP-VK.info.*`, `api.smoke`, `api.version_check`, `api.info`, `*.info.*`).
   - Dropped: `dEQP-VK.wsi.*` (15,245 cases), which needs a native window. The desktop exercises RADV's Android swapchain path, and ANAL-176's `amd-android-hwtest.sh swapchain` covers its deferred binding.
-- **Exact lists:** `evidence/2026-10-17-graphics-cts/caselists/` (gzip; `caselists.json` holds the sha256 of every source and output). To regenerate: `scripts/graphics/mkcaselists.py <aosp>/external/deqp/android/cts/main OUT --angle-expectations <aosp>/external/angle/android/cts/angle_end2end_tests_expectations.txt`. The pre-check's lists and the add-on's are byte-identical.
+- **Exact lists:** `evidence/2026-10-17-graphics-cts/caselists/` for the first run and `caselists-tuned/` for the tuned lists (gzip; `caselists.json` holds the sha256 of every source and output). To regenerate: `scripts/graphics/mkcaselists.py <aosp>/external/deqp/android/cts/main OUT --angle-expectations <aosp>/external/angle/android/cts/angle_end2end_tests_expectations.txt`. The pre-check's lists and the add-on's are byte-identical.
 - **Time:**
   - Measured off the laptop: on the build host (7950X, 12 jobs, 610M), the Vulkan passes took 116 s and 96 s and GLES 18 s. In Cuttlefish (ANGLE over gfxstream on the 610M, 3 jobs), the dEQP-EGL app took 198 s and ANGLE end2end 147 s.
-  - The G14 has a slower CPU at 12 jobs and a much larger GPU (16 CUs against 2). HYPOTHESIS: 3–6 minutes per Vulkan pass, 1–5 per GLES pass (ANGLE the slower), and about 3 each for the two apps.
-  - Expected total, with boot and unpacking: about 15–30 minutes. The run records each part's time, so the strides can be tuned after the first G14 run.
+  - **Measured on the G14** (first run, 12 jobs): Vulkan 270 s (1.1) and 222 s (1.4) for 66,226 cases; GLES 35 s (ANGLE) and 33 s (radeonsi) for 13,671; EGL app 204 s; ANGLE end2end 66 s. That is 834 s for everything, about 16.5 minutes from power-on to power-off.
+  - **Tuned after it** (`mkcaselists.py` since ANAL-177's second PR):
+    - GLES2/3/3.1 in full (94,828 cases).
+    - Vulkan at stride 15 (124,117 cases).
+    - ANGLE end2end in full (all 4,728 CTS PASS tests).
+    - EGL unchanged (1,287).
+    - Estimate from the measured rates: about 7 minutes of Vulkan, 4 minutes per GLES driver, 3.5 for EGL and 2 for ANGLE end2end. That is about 24 minutes with boot when the image ships Vulkan 1.4, so `vk14` skips itself; about 31 while it still ships 1.1.
 
 ### Pre-check on the build host (Radeon 610M, gfx1036)
 
@@ -274,14 +336,14 @@ flowchart TD
 | `vk14`, RADV non-strict (1.4) | 66,226 | 45,161 | 5 | 0 | 5 | 21,055 | 96 s |
 | `gles-mesa`, radeonsi | 13,671 | 13,621 | 0 (2 quality warnings) | 0 | 0 | 48 | 18 s |
 
-- **`vk` (1.1):** 47 of the 58 failures are `InternalError: Unable to load vkGetBufferDeviceAddress pointer`. Amber-based tests, all 26 sampled `graphicsfuzz` cases among them, need that Vulkan 1.2 core entry point, which an API-1.1 device does not provide.
+- **`vk` (1.1):** 47 of the 58 failures are `InternalError: Unable to load vkGetBufferDeviceAddress pointer` in Amber-based tests, all 26 sampled `graphicsfuzz` cases among them. **Correction after the G14 run:** these pass on the G14 under 1.1 through Android's real loader. They come from the pre-check's HAL shim, which hands out RADV's own entry points without the loader's mapping, not from android-strict.
   - 3 `api.info.format_properties` cases report video decode/encode format bits that a 1.1 device without the video extensions must not set.
   - The single crash is a fragment-shading-rate case that uses a transfer queue. Mesa CI enables those with `RADV_EXPERIMENTAL=transfer_queue`; we do not.
 - **`vk14` (1.4):** 5 failures.
   - `api.info.android.no_unknown_extensions` and `info.instance_extensions` come from the pre-check path: the shim shows RADV's raw extension lists, including `VK_ANDROID_native_buffer`, which Android's loader hides. HYPOTHESIS: `api.version_check.entry_points` has the same cause.
   - `info.device_extensions`: Mesa 26.2.5 advertises KHR extensions that Android 17's dEQP does not know (`VK_KHR_maintenance11`, `device_fault`, `device_address_commands`, `extended_flags`, `internally_synchronized_queues`, `shader_abort`, `shader_constant_data`). It fails under 1.1 too, and the G14 should reproduce it through the real loader. Mesa CI skips this test (`all-skips.txt`).
   - `spirv_assembly…opfma.fp64.vec4.rte.denorm_flush.float_controls`: a wrong result, also failing under 1.1.
-- **1.1 against 1.4:** 53 cases fail only with 1.1, 0 fail only with 1.4, and 1,915 pass only with 1.4.
+- **1.1 against 1.4:** 53 cases fail only with 1.1, 0 fail only with 1.4, and 1,915 pass only with 1.4. On the G14, with the real loader, the counts are 5, 0 and 1,998.
 - **radeonsi:** no failures. The two warnings are rasterization line cases.
 
 ### Plumbing tests off the laptop
@@ -327,19 +389,33 @@ These test the add-on, the runner and the two apps, not the G14's drivers.
   - deqp-runner itself says it "is not a valid way to produce a VK/GL conformance result". These runs measure driver behaviour; they are not a CTS submission.
 - `scripts/graphics/gfx-report.py DIR --mesa-ci <mesa>/src/amd/ci --radv-gpu navi31 --radeonsi-gpu vangogh` writes this comparison for any run: our failures that Mesa CI lists, new ones, and listed ones we pass. `live-report.py` calls it for a live-NNN folder with graphics results.
 
-### Vulkan 1.1 or 1.4 (ANAL-174's question)
+### Vulkan 1.1 or 1.4 (ANAL-174's question): decided, 1.4
 
-- **Recommendation, provisional until the G14 run:** ship RADV **without android-strict (Vulkan 1.4)**.
-  - On the 610M it fixes 53 failures (mostly Amber's Vulkan 1.2 entry point), adds 1,915 passes and adds no failure.
-  - Google's Intel Googlebook ships newer Vulkan, so parity points the same way.
-- **Before switching:**
-  1. The G14's `vk` and `vk14` passes must agree with the 610M on this.
-  2. `graphics-amd.mk` must declare the matching `android.hardware.vulkan.version` and `level` feature files.
-  3. `info.device_extensions` needs an answer either way: Mesa 26.2.5's KHR extensions newer than Android 17's CTS. The choices are to hide them on Android (a Mesa patch) or to accept this CTS failure.
-- **Also missing:** the image declares no `android.software.vulkan.deqp.level` or `opengles.deqp.level` feature. It should declare them once these lists pass.
-- The switch is `ANDROID_STRICT=false scripts/mesa-android-build.sh …`, then `graphics-amd-stage-mesa.sh` and an image build (AOSP lane). The non-strict build differs from the shipped one in `vulkan.radv.so` only; radeonsi, EGL and GBM are byte-identical (`build/mesa-nonstrict.txt`).
+**Decision: ship RADV without android-strict, reporting Vulkan 1.4.** From the G14's own run (same 66,226 cases, through Android's loader):
+- **Passes:** 1.4 passes 1,998 more cases than 1.1 (45,220 against 43,222). These are cases 1.1 reports as not supported.
+- **No new failure:** no case fails under 1.4 that passes under 1.1, and 1.4 had no crash and no flake.
+- **What 1.4 fixes:** 5 cases that fail only under 1.1 (the video format bits, the transfer-queue crash, the Amber ray-tracing crash).
+- **Stability:** the GPU hang happened in the 1.1 pass and did not recur with the same cases under 1.4. One run cannot pin it on either build, but it gives no reason to stay on 1.1.
+- **Parity:** Google's Intel Googlebook ships newer Vulkan than 1.1.
+- **Not yet shown:** ANGLE, the dEQP-EGL app and ANGLE end2end on RADV 1.4. They ran on the shipped 1.1 build, because the second build only reaches native processes through `gfx-nsbind`. The next stick, with 1.4 in the image, covers them, as does the desktop itself (on ANAL-192's checklist).
+
+**How it is applied** (this PR; the image changes when ANAL-192 rebuilds Mesa and the product):
+- `scripts/mesa-android-build.sh` builds non-strict by default. `ANDROID_STRICT=true MESA_VARIANT=-strict` still builds 1.1 for a comparison or a fallback, and `graphics-amd-stage-mesa.sh upstream-strict` stages it.
+- `graphics-amd-stage-mesa.sh` writes `vendor/anybook/mesa/mesa.mk` with the version the staged RADV reports. `graphics-amd.mk` includes it, so `android.hardware.vulkan.version` is 1.4 with a non-strict build, 1.1 with a strict one, and 1.1 without the file.
+  - Checked with `get_build_var PRODUCT_COPY_FILES` in our tree: `version-1_1.xml` today, `version-1_4.xml` with a 1.4 `mesa.mk`.
+  - Checked by staging both builds into a scratch tree: `mesa.mk` reads 1.1 and 1.4.
+- `make-gfx-check.sh` puts the second RADV (`vk14`) into the payload only for an image that declares 1.1.
+
+**Still open either way:**
+- `info.device_extensions` (Mesa 26.2.5's KHR extensions newer than Android 17's CTS): hide them on Android with a Mesa patch, or accept this CTS failure.
+- The AHB rendering failure.
+- `android.software.vulkan.deqp.level` and `opengles.deqp.level` are still undeclared; declare them once the full lists pass.
+- **Fallback** if 1.4 regresses the desktop on the next stick: `ANDROID_STRICT=true scripts/mesa-android-build.sh setup build install verify -- upstream`, stage, rebuild. `mesa.mk` brings the 1.1 declaration back with it.
+- The non-strict build differs from the strict one in `vulkan.radv.so` only; radeonsi, EGL and GBM are byte-identical (`build/mesa-nonstrict.txt`).
 
 ### Owner checklist (until the device agent can do it)
+
+The owner ran this once (2026-10-17, on `anal176t`). The next run is on ANAL-192's integrated stick, which carries the add-on rebuilt from `main` (tuned lists, the working-directory fix), so these steps apply only to a stick without it.
 
 1. On the build host, build or reuse the add-on: `scripts/graphics/make-gfx-check.sh openbook-gfxcheck-20261017`. The output is in `<data dir>/installer/out/`; the sha256 is in `evidence/2026-10-17-graphics-cts/addon/`.
 2. Plug in the `openbook-live-20261017-combined` stick and find its name: `ls -l /dev/disk/by-id/ | grep usb-`.
@@ -353,8 +429,11 @@ These test the add-on, the runner and the two apps, not the G14's drivers.
 
 ### Open items
 
-1. **The G14 run** (device gate). After it: update the matrix rows, settle the Vulkan recommendation, and tune the strides to the measured times.
-2. ANGLE off the laptop: its user-space spin without a property service is not understood. A property area in the pre-check container could fix it (follow-up).
-3. `dEQP-VK.wsi.*` is not covered by this check. A window-backed Vulkan run would need the dEQP app with the Vulkan lists, which is slow: one process.
-4. Strict mode's `format_properties` video bits are a possible Mesa issue under android-strict. Report it upstream only if it reproduces on the G14, and only with the owner's OK (outward-facing).
-5. These are subsets of the CTS lists, not a CTS run: no tradefed and no `CtsDeqpTestCases` module. A full CTS needs a host-driven run over adb, which the live stick does not offer yet.
+1. **Second G14 run, on ANAL-192's stick:** RADV 1.4 in the image (ANGLE, the EGL app and ANGLE end2end on 1.4, and the desktop on it), the tuned lists, and the two `copy_memory_indirect` cases with the working-directory fix.
+2. **AHardwareBuffer rendering:** `draw.renderpass.ahb.triangle_list` renders a wrong image under both builds. Apps and media that hand AHBs to Vulkan depend on this path; the next step is a small reproducer with the image's minigbm and RADV on the 610M.
+3. **GPU hang recovery:** one hang in 1.1 cost a full GPU reset and an Android framework restart, because GC 11.5 has no per-queue reset with our firmware and kernel. Kernel and firmware lane: check newer MES/CP firmware and amdgpu queue reset for GC 11.5.
+4. ANGLE `MultisampledRenderToTextureWithAdvancedBlendTest` (2 cases, ES 3.1): a CTS failure today. Re-check on RADV 1.4 before looking further.
+5. ANGLE off the laptop: its user-space spin without a property service is not understood. A property area in the pre-check container could fix it (follow-up).
+6. `dEQP-VK.wsi.*` is not covered by this check. A window-backed Vulkan run would need the dEQP app with the Vulkan lists, which is slow: one process.
+7. Strict mode's `format_properties` video bits reproduce on the G14 (gfx1150) as on the 610M. A possible Mesa issue under android-strict, moot with 1.4. Report upstream only with the owner's OK (outward-facing).
+8. These are subsets of the CTS lists, not a CTS run: no tradefed and no `CtsDeqpTestCases` module. A full CTS needs a host-driven run over adb, which the live stick does not offer yet.
