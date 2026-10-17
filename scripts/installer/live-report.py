@@ -198,7 +198,8 @@ def main():
         verdict("epp", bool(sec.get("EPP", "").strip()) if "EPP" in sec else None,
                 policies=sec.get("EPP", "").splitlines())
         tc = touchpad_clock(sec.get("TOUCHPADEV", ""))
-        verdict("touchpad_clock", tc["ok"] if tc else None, **(tc or {"note": "no touchpad events captured"}))
+        tc = tc or {"ok": None, "note": "no touchpad events captured"}
+        verdict("touchpad_clock", tc["ok"], **{k: x for k, x in tc.items() if k != "ok"})
     hw = {}
     if os.path.exists(f"{d}/hwtest-final.txt"):
         for line in open(f"{d}/hwtest-final.txt", errors="replace"):

@@ -45,7 +45,7 @@
 
 | Issue | State | Next step | Needs |
 |---|---|---|---|
-| ANAL-176 G14 desktop and stability | **Running** | Finish reading `anal176s`; PR #52 (live-stick safety, no boot lock screen, no overlay planes). Then the remaining denials | — |
+| ANAL-176 G14 desktop and stability | In review | **The enforcing default entry reaches the desktop on the G14** (`anal178c` 28 s, `anal176s` 29 s). On the G14, PR #52's fixes hold: no storage notice for the stick, no lock-screen blackout, 0 dropped frames (151 before). `anal176t` adds the Bluetooth-audio and app-audio policy fixes (QEMU 40/40). Next: Bluetooth audio and browser sound on the G14, then the remaining denials | The owner's next stick run |
 | ANAL-177 graphics conformance | In review | Read the G14 dEQP/ANGLE results; decide Vulkan 1.1 or 1.4 (the 610M favours 1.4); add matrix rows | The graphics-check boot on ANAL-192's stick |
 | ANAL-178 input and power | **Reading results** | Touchpad, lid, battery and EPP facts from the two sessions; then the S0i3 fix (kernel lane), the touchpad clock, the skin sensor | The power-check boot (or the Linux `linux-s2idle.py` run) on ANAL-192's stick |
 | ANAL-179 Wi-Fi, Bluetooth, audio | **Reading results** | Wi-Fi, Bluetooth and audio verdicts from the two sessions; fix what fails; speaker tuning | — |
@@ -82,6 +82,17 @@
 - **Woke ANAL-178, ANAL-179 and ANAL-200** to read their parts of the owner's last two sessions from the host copies. The owner had replied only on ANAL-176.
 - **Promoted ANAL-192**, which now builds the single owner stick and checklist, then runs the installer's end-to-end tests.
 
+### 2026-10-17: anal176s on the G14: the three fixes hold; Bluetooth and app audio fixed (ANAL-176)
+- **G14** (`anal176s` = `main` + PR #52, default entry, enforcing, 8 minutes):
+  - no storage notice for the stick (`Not managing disk 8:0`);
+  - no lock-screen blackout;
+  - 0 frames dropped (151 on `anal178c`).
+- **Found and fixed:**
+  - Bluetooth aborted whenever an audio device connected (the A2DP queue memfd was denied to `bluetooth`).
+  - The browser had no sound: AudioFlinger's control blocks are MLS-protected `s0` memfds, because AOSP 17 does not enable `memfd_class`.
+  - Two policy lines in `hal_audio_net.te`.
+- **Next stick:** `openbook-live-20261017-anal176t`, QEMU 40/40, with one lock held across the build and the snapshot. Evidence: `evidence/2026-10-17-g14-desktop/g14-anal176s/`, `anal176t/`.
+
 ### 2026-10-17: the installer wizard, the install engine and first-boot setup (ANAL-191, PR #53)
 - **Done** (`docs/installer.md` §12):
   - `openbook-install`: the engine and its daemon. It does the disk inventory, the hardware check, the read-only plan and the install, with S1–S13 in the engine. It writes GPT and FAT itself, with no mounts.
@@ -97,6 +108,18 @@
   - screenshots of every screen.
 - **Not shown:** anything on the G14; alongside booted in QEMU; `openbook-bootsync`; the text hardware report.
 - **Next:** the owner's dry run on the G14 (§12.8), then ANAL-192.
+
+### 2026-10-17: the G14's default entry reaches the desktop under enforcing; live stick safety (ANAL-176)
+- **Done:**
+  - Read the owner's `anal178c` stick (built from `main`). The default entry, under SELinux enforcing, reached the desktop at 28 s on a freshly written stick, with the boot animation at 17 s (desktop3: 59 s) and no APEX decompression. It was then used for 4 minutes: Wi-Fi connected, Bluetooth, browser, apps.
+  - The boot had 23 denials and no crashes.
+- **Fixed** (branch `anal-176/live-stick-safety`):
+  - vold took the boot stick for a USB drive, and SystemUI offered to set it up (format it). The owner opened the wizard and backed out. Fix: a vold patch that skips the disk the running system is on, with a QEMU matrix check for it.
+  - The boot lock screen turned the screen off after 10 s. Fix: none until a PIN is set.
+  - drm_hwcomposer's overlay planes cost 151 frames that were never shown. Fix: overlay planes off (H).
+  - `live-report.py` crashed on the touchpad-clock verdict.
+- **Evidence:** `evidence/2026-10-17-g14-desktop/g14-anal178c/`. `vold` and the overlay build. No image was built from this branch, because ANAL-191 holds the lane.
+- **Next:** the next combined stick from `main` (`docs/g14-desktop.md` §6).
 
 ### 2026-10-17: cleanup and one consolidated status (ANAL-159)
 - **Done:** the owner asked for less sprawl. No PRs are open. The remote branches went from 49 to 4. Two branches with commits never merged are kept as `archive/` tags. This file's top section is now one state of the union, with a next step for every open issue. `docs/PLAN.md` §4 and §7 point here instead of keeping their own copies.

@@ -1,0 +1,4 @@
+misc/logd 5468 KiB, 5 files
+tombstones 4 KiB, 0 files
+anr 4 KiB, 0 files
+system/dropbox 168 KiB, 40 files
