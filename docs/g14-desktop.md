@@ -91,26 +91,27 @@ Built with `scripts/installer-image.sh --label openbook-live-20261017-desktop2 -
 
 Denials on the VM path (`avc-summary.py` on the save-logs case): 41 Android lines in the kernel log and 8 distinct, down from 69 and 16 with the first build of this branch (`desktop1`, before `vendor.minigbm.*`). No `vendor_default_prop` is left. What remains is not G14-specific: the audio HAL's memfd (ANAL-199), the Bluetooth app aborting without a Bluetooth HAL (ANAL-179) and what `crash_dump` reads for it, SystemUI's `bluetooth_lea_prop`, `secure_element`'s dex cache, and the two open items in §4.
 
-## 6. On the G14: owner checklist
+## 6. On the G14: owner checklist (`desktop3`)
 
-The stick written at 00:29 UTC on 2026-10-17 for ANAL-190 holds `openbook-live-20261017a` (PR #38's build: the ANGLE workaround, Mesa unpatched). Finish that test first. Then:
+`openbook-live-20261017-desktop3` carries the fixes from §9: the kernel may load firmware under enforcing (the black default entry), the GPU HALs are chosen before SurfaceFlinger starts, the screen stays on for 10 minutes, and every boot keeps its logcat on the stick for a later "save logs" boot.
 
-1. **Write this image** (erases the stick; the reports on it are copied to the PC first):
+1. **Write the image** (erases the stick; the reports on it are copied to the PC first):
    ```bash
-   cd <ANAL-176 checkout of OpenBook>
+   cd <a checkout of this repo>
    OPENBOOK_WRITE_CONFIRM=/dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0 \
-     scripts/installer/write-stick.sh ~/anybook/installer/out/openbook-live-20261017-desktop2.img \
+     scripts/installer/write-stick.sh ~/anybook/installer/out/openbook-live-20261017-desktop3.img \
      /dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0
    ```
    Done when it prints `stick powered off: safe to unplug`.
-2. **Boot "OpenBook"** (Esc → USB stick → Enter). Hoped for: the boot animation, then the desktop within about a minute. Photograph the screen; try the touchpad, the keyboard and its backlight keys, and open an app. Hold the power button to turn it off.
-3. **If the screen stayed black:** boot **"OpenBook - safe graphics"** (↓ twice, Enter) and photograph it too.
-4. **Save logs:** boot **"OpenBook - save logs to this USB stick"** (↓ once, Enter), or **"safe graphics, save logs"** (↓ three times) if only safe graphics showed a desktop. Leave it alone; after 15 minutes holding the power button is safe.
-5. Plug the stick into the PC and reply "stick attached" with the photos. The agent runs, read-only:
+2. **Boot "OpenBook"**, the default entry (Esc → USB stick → Enter). The first boot of a freshly written stick takes longer (it formats `/data` and unpacks the system on the stick). Expected: the boot animation, then the desktop. This entry never switches itself off. Use it; photograph the desktop. Note the time if anything goes black or freezes.
+3. **Then one "save logs" boot** (↓ once, Enter). It brings back the logs of the earlier boots too (`prior-boots.tar.gz`), not only its own. It still powers off by itself about a minute after the desktop appears; that is the entry's design, not a crash.
+4. Plug the stick into the PC and reply "stick attached", with the photos and anything that went wrong. The agent runs, read-only:
    ```bash
    scripts/installer/read-stick-logs.sh /dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0
    python3 scripts/installer/avc-summary.py <data dir>/installer/g14/stick-<UTC>/live-NNN --json avc.json --md avc.md
    ```
+
+`desktop2` (§5) is superseded: its default and safe-graphics entries cannot work on the G14 (§9).
 
 **Acceptance** (from the issue): a photo of the desktop on the panel, `boot_completed=1` in the saved logs, the `live-report.py --expect g14` verdicts, and fewer than 66 denials by `avc-summary.py`'s kernel-log count.
 
