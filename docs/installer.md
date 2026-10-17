@@ -701,7 +701,7 @@ Status as of 2026-10-17. Evidence is in `evidence/2026-10-17-installer-wizard/`,
 - **Whole disk:** the firmware starts the disk through the fallback path `EFI/BOOT/BOOTX64.EFI`. This booted in QEMU with fresh NVRAM.
 - **Alongside:** the user must pick OpenBook in the firmware's boot menu or add a boot option in the firmware setup. The plan and the Confirm screen say so (`nvram_unavailable`). This is the open item for the kernel lane.
 
-**Update 2026-10-17 (ANAL-198, #PRNUM):** `efivarfs.ko` now ships in `vendor_dlkm`, with Google's GKI configuration unchanged (`docs/kernel.md`, follow-up).
+**Update 2026-10-17 (ANAL-198, #64):** `efivarfs.ko` now ships in `vendor_dlkm`, with Google's GKI configuration unchanged (`docs/kernel.md`, follow-up).
 - **In QEMU/OVMF:** `mount -t efivarfs efivarfs /sys/firmware/efi/efivars` works, and `Boot####` and `BootOrder` read correctly.
 - **Writing is blocked by SELinux under enforcing:** efivarfs is `unlabeled` (AOSP 17 has no `genfscon` for it), so `associate` is denied. With SELinux permissive, a variable is created, read and deleted.
 - **Left for ANAL-191:** an efivarfs type, rules for `openbook_installd`, and the `Boot####`/`BootOrder` writes.
