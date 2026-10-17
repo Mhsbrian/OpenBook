@@ -6,13 +6,13 @@ Status as of 2026-10-17. Goal: speakers, microphone, headphone jack, Wi-Fi and B
 
 | | |
 |---|---|
-| Wi-Fi | AOSP's wpa_supplicant and the framework's own nl80211 code, **no vendor HAL** (none is public) and no wificond (Android 17 has none). In QEMU over `mac80211_hwsim`: scan, WPA2-PSK connect in about 1 s, DHCP through Android's IpClient, gateway ping 0% loss, **iperf3 668/577 to 742/644 Mbit/s** up/down (runs e–h) (C, VM) |
+| Wi-Fi | AOSP's wpa_supplicant and the framework's own nl80211 code, **no vendor HAL** (none is public) and no wificond (Android 17 has none). In QEMU over `mac80211_hwsim`: scan, WPA2-PSK connect in about 1 s, DHCP through Android's IpClient, gateway ping 0% loss, **iperf3 661–770 Mbit/s up, 577–715 down** (runs e–i) (C, VM) |
 | Regulatory database | signed `regulatory.db` loads at boot (cfg80211 reports no error; `wifi_regulatory` yes) after two SELinux fixes (C, VM). Before: missing on the G14 (live-001) |
 | Bluetooth | AOSP's AIDL HAL over the HCI user channel; starts, and finds no controller in a VM, as expected (C). Pairing waits for the G14 |
-| Audio | `openbook-audio-setup` finds the codec card and unmutes it (the codec comes up at 0/off); a 1 kHz tone reaches the codec **directly through ALSA** (2.0 s at −18.1 dBFS RMS, exactly the −15 dBFS peak played) and **through AudioFlinger** (AAudio; parts of it, see §9) (C, VM). Capture opens through both paths (the VM codec records silence) |
+| Audio | `openbook-audio-setup` finds the codec card and unmutes it (the codec comes up at 0/off); a 1 kHz tone reaches the codec **directly through ALSA** (2.0 s at −18.1 dBFS RMS, exactly the −15 dBFS peak played) and **through AudioFlinger** (AAudio → HAL): 1.65 s of the 2 s tone arrives, with phase breaks in about 24 of its 50 ms windows, i.e. the HAL drops buffers in the VM (§9) (C, VM). Capture opens through both paths (the VM codec records silence) |
 | Found and fixed on the way | the audio HAL could not write its own stream queues, so **no app could play or record** (memfd SELinux type); cfg80211's regulatory keyring was unsearchable; HDA mixers come up muted; firmware loads from `/vendor/firmware` were denied under enforcing (ANAL-176's fix, taken over) |
-| Tests | `openbook-hwtest` in the save-logs entry, verdicts in `live-report.py`; `openbook_audio_logic_test` 7/7, `openbook_hals_test` 15/15 on the host |
-| Stick image | `openbook-live-20261017-audionet2` (this branch + ANAL-176's desktop4 + `main`): @@LIVE@@ |
+| Tests | `openbook-hwtest` in the save-logs entry, verdicts in `live-report.py`; `openbook_audio_logic_test` 8/8, `openbook_hals_test` 15/15 on the host |
+| Stick image | `openbook-live-20261017-audionet3` (this branch + ANAL-176's desktop4 + `main`): @@LIVE@@ |
 | On the G14 | **not run yet** (device gate): owner steps in §7 |
 
 ## 2. What the G14 has (from its inventory and the first live boot)
@@ -65,17 +65,17 @@ In QEMU there is no controller: the HAL starts, logs "waiting for hci interface 
 | `live-report.py` | turns the `HWTEST` lines into verdicts: `wifi_regulatory`, `wifi_scan`, `wifi_connected`, `wifi_dhcp`, `wifi_gateway_ping`, `wifi_internet`, `wifi_iperf3`, `bt_enabled`, `bt_paired`, `audio_card`, `audio_loopback_alsa`, `audio_loopback_android` |
 | `scripts/audio-net-qemu.sh` | the QEMU rig (§8): an HDA card recorded to a WAV file, and two `mac80211_hwsim` radios with an access point on one |
 
-The tone counts as heard when 1 kHz comes back at least 20 dB above its level before the tone and carries at least a fifth of the energy (`openbook_audio_logic_test`, 7 host tests, C).
+The tone counts as heard when 1 kHz comes back at least 20 dB above its level before the tone and carries at least a fifth of the energy, averaged over 50 ms slices; slices under 90% are counted as glitches (`glitched_slices`), which is how dropped buffers show (`openbook_audio_logic_test`, 8 host tests, C).
 
 ## 7. On the G14: owner checklist
 
-The stick image is **`openbook-live-20261017-audionet2`**: this branch merged with ANAL-176's `anal-176/g14-stability` (desktop4, `a81c25e`) and `main` (`9515e22`), so it carries the desktop fixes too. It is on the build host in `~/anybook/installer/out/` (sha256 in its `.sha256` file).
+The stick image is **`openbook-live-20261017-audionet3`**: this branch merged with ANAL-176's `anal-176/g14-stability` (desktop4, `a81c25e`) and `main` (`9515e22`), so it carries the desktop fixes too. It is on the build host in `~/anybook/installer/out/` (sha256 in its `.sha256` file).
 
 1. **Optional, for the throughput test:** on a PC on the same Wi-Fi network, run `iperf3 -s` (Arch: `sudo pacman -S iperf3`) and note its address (`ip -4 addr`). Have a Bluetooth device ready to pair: headphones or a speaker is best, a mouse or a phone also counts.
 2. **Write the stick** (erases it; reports already on it are copied to the PC first). From any OpenBook checkout on the build host:
    ```bash
    OPENBOOK_WRITE_CONFIRM=/dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0 \
-     scripts/installer/write-stick.sh ~/anybook/installer/out/openbook-live-20261017-audionet2.img \
+     scripts/installer/write-stick.sh ~/anybook/installer/out/openbook-live-20261017-audionet3.img \
      /dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0
    ```
    Done when it prints `stick powered off: safe to unplug`.
@@ -108,19 +108,22 @@ The stick image is **`openbook-live-20261017-audionet2`**: this branch merged wi
 |---|---|---|
 | a | `anal179-a` | invalid: half of the device tree was another branch's (stale copied outputs in the shared tree); SurfaceFlinger found no EGL. Led to the device-tree touch before each build (BUILD.md) and ANAL-176's content sync |
 | b | `anal179-b` | boot in 21 s. Codec found, mixer set; **every AudioTrack failed** (`NO_INIT`): the HAL's message-queue memfds; regulatory keyring denied; QEMU-only nl80211 family renumbering after the radio swap (`qemu-b/findings.md`) |
-| c | `anal179-c` | audio through AudioFlinger works (AAudio both ways); regulatory database loads at boot; Wi-Fi scan finds the AP, but the test AP never answered (hostapd stuck in its AIDL registration) |
+| c | `anal179-c` | audio through AudioFlinger works (AAudio both ways; 1.65 s of the tone, ~24 glitched windows, media volume at its default); regulatory database loads at boot; Wi-Fi scan finds the AP, but the test AP never answered (hostapd stuck in its AIDL registration) |
 | d | `anal179-c` | same, with hostapd's own log: blocked on `/dev/vndbinder` |
 | e | `anal179-c` | **Wi-Fi end to end**: connect in 1 s, DHCP `192.168.77.10/24`, ping 0.13 ms, iperf3 661/715 Mbit/s |
-| f | `anal179-stick-a` (integration) | the same on the integration build: iperf3 742/644 Mbit/s; the AAudio tone at media volume 10/15 |
+| f | `anal179-stick-a` (integration) | the same on the integration build: iperf3 742/644 Mbit/s; the AAudio tone at media volume 10/15: −34 dBFS, 1.65 s, 23 glitched windows |
 | g | `anal179-stick-b` | a patch turning off the HAL's wall-clock pacing made the AAudio tone disappear entirely: the HAL writes into a non-blocking pipe, and the pacing is what keeps it real time. Reverted |
-@@RUNH@@
+| h | `anal179-stick-c` | the final configuration on the integration build: iperf3 770/712 Mbit/s; the AAudio tone as in f |
+| i | `anal179-stick-d` | the same plus the slice metrics in the loopback tests (the stick's build): iperf3 733/650 Mbit/s; the codec gets the ALSA tone whole (0 glitched windows) and 1.65 s of the AAudio tone (24 of 33 windows glitched) |
+
+Per-run table: `evidence/2026-10-17-g14-audio-net/qemu-summary/runs.md`.
 
 Evidence: `evidence/2026-10-17-g14-audio-net/qemu-*` (results, the guest's sections, `hwtest.json`, `audio-out-tones.json`, serial log, logcat and dmesg). The live image's own QEMU matrix (`scripts/installer/live-qemu.sh`, ANAL-190's six cases) is in `.../live-audionet2/`; its save-logs case shows the helper running `openbook-hwtest` and `live-report.py` giving the new verdicts.
 
 ## 9. Open items
 
 - **Everything on the G14** (device gate). In particular: MT7925 scan, connect and throughput through this stack; `btmtk` with the HCI user channel (the HAL reopens `hci0` after the kernel's own setup, H); the CS35L56 amplifiers driven by Android's playback; the internal mics' level (boost left at the kernel default, H); the headphone jack switching.
-- **Audio through the HAL in a VM loses part of a tone** (runs c–f: 0.6–0.7 s of 2 s arrived, with one xrun). The direct ALSA path is clean. The example HAL drops a buffer whenever its stream falls behind the wall clock, an emulator workaround (b/302587331); VM timing makes that frequent. On the G14 it may not happen (H); `audio_loopback_android` and its `xruns` will show. If it does, the fix belongs in the HAL's pipe, not in the pacing (run g).
+- **Audio through the HAL in a VM drops buffers** (runs c, e, f, h: 1.65 s of a 2 s tone, phase breaks in about 24 of its 50 ms windows, one xrun). The direct ALSA path is clean (0 glitched windows). The example HAL drops a buffer whenever its stream falls behind the wall clock, an emulator workaround (b/302587331); VM timing makes that frequent. On the G14 it may not happen (H); `audio_loopback_android` and its `xruns` will show. If it does, the fix belongs in the HAL's pipe, not in the pacing (run g).
 - **Wi-Fi country:** without telephony and without `ro.boot.wificountrycode`, the framework sets the world domain (`00`); cfg80211 then follows the access point's country element once connected. An installer question (ANAL-191) could pass the country in bootconfig.
 - **No HFP gateway** (headset microphones in calls), no LE Audio, no Wi-Fi Direct or hotspot: each needs work and a test of its own.
 - **HDMI/DP audio** (the Radeon's card) is not routed; external displays are USB-C only while the dGPU is off.

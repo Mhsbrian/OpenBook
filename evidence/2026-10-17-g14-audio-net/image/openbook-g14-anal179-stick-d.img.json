@@ -1,7 +1,7 @@
 {
- "image": "/home/hive/anybook/installer/out/openbook-g14-anal179-stick-c.img",
+ "image": "/home/hive/anybook/installer/out/openbook-g14-anal179-stick-d.img",
  "size": 12884901888,
- "label": "openbook-g14-anal179-stick-c",
+ "label": "openbook-g14-anal179-stick-d",
  "loader": "systemd-boot",
  "fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
  "vendor_cmdline": "firmware_class.path=/vendor/firmware log_buf_len=1M bootconfig",
@@ -13,7 +13,7 @@
   "vendor_ramdisk00",
   "vendor_ramdisk01"
  ],
- "vbmeta_digest": "0fab2b566563d077118081be848114eb061558357b306450c15581b55041cd17",
+ "vbmeta_digest": "b967ce80099df93885237633137e414c039af0119be7d020a908cf1c2b65c28a",
  "vbmeta_size": 6208,
  "super_bytes": 8589934592,
  "bootconfig_a": {
@@ -25,10 +25,10 @@
   "androidboot.vbmeta.avb_version": "1.3",
   "androidboot.vbmeta.hash_alg": "sha256",
   "androidboot.vbmeta.size": "6208",
-  "androidboot.vbmeta.digest": "0fab2b566563d077118081be848114eb061558357b306450c15581b55041cd17",
+  "androidboot.vbmeta.digest": "b967ce80099df93885237633137e414c039af0119be7d020a908cf1c2b65c28a",
   "androidboot.vbmeta.invalidate_on_error": "yes",
   "androidboot.veritymode": "enforcing",
-  "androidboot.boot_part_uuid": "144eba9c-44a8-5641-8b17-fea17b429929",
+  "androidboot.boot_part_uuid": "070904ab-7926-5002-bf55-df3520b89559",
   "androidboot.serialno": "OPENBOOKG14USB01",
   "androidboot.openbook.loader": "sdboot"
  },
@@ -38,104 +38,104 @@
    "start": 2048,
    "sectors": 524288,
    "type": "ef00",
-   "uuid": "144eba9c-44a8-5641-8b17-fea17b429929"
+   "uuid": "070904ab-7926-5002-bf55-df3520b89559"
   },
   {
    "name": "misc",
    "start": 526336,
    "sectors": 8192,
    "type": "8300",
-   "uuid": "2b8b1507-f2ef-5437-b9f2-db43acde535c"
+   "uuid": "2a978e57-bc76-5ef6-803f-3fc3a46f9a43"
   },
   {
    "name": "boot_a",
    "start": 534528,
    "sectors": 131072,
    "type": "8300",
-   "uuid": "2cf41bfd-384b-5075-83a9-69c0d3d10af2"
+   "uuid": "6493b15a-4aa9-5e6c-8558-3c352afd1f48"
   },
   {
    "name": "boot_b",
    "start": 665600,
    "sectors": 131072,
    "type": "8300",
-   "uuid": "84011ff4-b971-53ef-885a-49ea98ed30d7"
+   "uuid": "cf84cb44-e53f-536b-9fb6-76fb953f6934"
   },
   {
    "name": "init_boot_a",
    "start": 796672,
    "sectors": 16384,
    "type": "8300",
-   "uuid": "fbd5691d-e9c9-5f3d-b856-4117125e31a7"
+   "uuid": "88bec142-8ea5-512e-aa3b-3bf53ff03727"
   },
   {
    "name": "init_boot_b",
    "start": 813056,
    "sectors": 16384,
    "type": "8300",
-   "uuid": "6009da5f-4e27-5553-b5d6-637424221f33"
+   "uuid": "f4a12ae5-8ec2-5e32-a92f-df3a32a696a1"
   },
   {
    "name": "vendor_boot_a",
    "start": 829440,
    "sectors": 131072,
    "type": "8300",
-   "uuid": "b5468f95-efdc-54c7-a5cd-118f8bbcd609"
+   "uuid": "fbcc7050-b921-52db-8b77-36f66b108195"
   },
   {
    "name": "vendor_boot_b",
    "start": 960512,
    "sectors": 131072,
    "type": "8300",
-   "uuid": "34d1072a-fcac-58fe-bed5-ed66c8a59b27"
+   "uuid": "b9c31226-d545-5d8c-9a48-8690751189de"
   },
   {
    "name": "vbmeta_a",
    "start": 1091584,
    "sectors": 2048,
    "type": "8300",
-   "uuid": "4a5024ce-998c-5862-9853-b785baaa4691"
+   "uuid": "d6b7fb2e-04f8-51f5-a870-ecfe859544f3"
   },
   {
    "name": "vbmeta_b",
    "start": 1093632,
    "sectors": 2048,
    "type": "8300",
-   "uuid": "f1b258f3-fcf9-53e3-9b3a-c2d1b2d2cfbf"
+   "uuid": "eb8d6d86-094a-5709-bd97-fd28101a7e8d"
   },
   {
    "name": "metadata",
    "start": 1095680,
    "sectors": 131072,
    "type": "8300",
-   "uuid": "110d6118-f7f0-5756-8c02-33ad1d7f2cdf"
+   "uuid": "7a7949bd-0da3-51c0-93e7-05d38d244195"
   },
   {
    "name": "super",
    "start": 1226752,
    "sectors": 16777216,
    "type": "8300",
-   "uuid": "01b3642b-11af-5977-b129-2702b7754e99"
+   "uuid": "77e9cfef-4382-5500-ba04-6b8b741ee9c0"
   },
   {
    "name": "userdata",
    "start": 18003968,
    "sectors": 7157760,
    "type": "8300",
-   "uuid": "ecf513f1-be64-50d2-a9f4-31933df553f3"
+   "uuid": "1503fc55-d809-5ced-8903-7d4e44152f9f"
   }
  ],
  "verified_sha256": {
-  "EFI": "6816587b5cf5ff1520a283aab50d2e284138f875eaa958645130a4d425ac4f03",
-  "super": "870a354e1184c9b2a952ba066fe8d06095138617b278f1ce929f5a7d8384a5ff",
+  "EFI": "a73ca2f5dbb3a680dd683f294e740bc53f954d708d28cddaabffa2b1bbfc17bd",
+  "super": "8486b3c196a4f321f6fc456a9b930c3b55181c78afb5f828ebb05411f95ea3db",
   "boot_a": "08c62a9b1ffb37bf368bbf1b1a51b49d0792229c8e1e83403b23ddb5c0b9dabc",
-  "init_boot_a": "833f7d718d5b3bd3c744862ff2d93ca808a59725fa7e34989b84a056034d7d99",
-  "vendor_boot_a": "809c27cad570f6a33f5a4e314fbc5798e16217384c455c1e940b055a66a99d61",
-  "vbmeta_a": "a278c600de6164693b359152a4844eb59f37f04af5639dc19c70e65d5c46994d",
+  "init_boot_a": "d42fdd9ecf0e79b905bdeccf998432ff7b95f1331fae87b21904eb59b9c6d6f0",
+  "vendor_boot_a": "18b053f35932de80d18ed7eb66573878dc04677d4daf7207681551664b54f692",
+  "vbmeta_a": "ade98c9bb78ea5ff861c800db4448771e2ff6c67d4f63698df601a65d6dce6c9",
   "boot_b": "08c62a9b1ffb37bf368bbf1b1a51b49d0792229c8e1e83403b23ddb5c0b9dabc",
-  "init_boot_b": "833f7d718d5b3bd3c744862ff2d93ca808a59725fa7e34989b84a056034d7d99",
-  "vendor_boot_b": "809c27cad570f6a33f5a4e314fbc5798e16217384c455c1e940b055a66a99d61",
-  "vbmeta_b": "a278c600de6164693b359152a4844eb59f37f04af5639dc19c70e65d5c46994d"
+  "init_boot_b": "d42fdd9ecf0e79b905bdeccf998432ff7b95f1331fae87b21904eb59b9c6d6f0",
+  "vendor_boot_b": "18b053f35932de80d18ed7eb66573878dc04677d4daf7207681551664b54f692",
+  "vbmeta_b": "ade98c9bb78ea5ff861c800db4448771e2ff6c67d4f63698df601a65d6dce6c9"
  },
  "esp_files": [
   "EFI/BOOT/BOOTX64.EFI",

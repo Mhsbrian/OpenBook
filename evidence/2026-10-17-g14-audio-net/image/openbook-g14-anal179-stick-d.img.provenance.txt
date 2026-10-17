@@ -1,5 +1,5 @@
-snapshot: 2026-10-17T03:48:39Z
-product_out: /home/hive/anybook/audio-net/product/anal179-stick-c
+snapshot: 2026-10-17T03:58:03Z
+product_out: /home/hive/anybook/audio-net/product/anal179-stick-d
 vendor fingerprint: OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys
 kernel: staged: 2026-10-16T19:35:34Z by scripts/g14-stage-kernel.sh
 kernel: kernel dist: /home/hive/anybook/kernel/dist/anybook-g14-gbos-16302624
@@ -11,7 +11,7 @@ kernel: f6f57b04090361c8b21b610770941e182a5672f951c7c7e197a6c6d0bcdd39f4  vendor
 kernel: 01b64d4491ded8c6896b63065609d3c475390f9b611f014657407bc443b5e61b  system_dlkm.img
 kernel: 3c80536cc34c000f3bce81e2b9fdc94d16804548b6aee16b5a5bf5759a9bf4d6  vendor_boot-ramdisk.lz4
 08c62a9b1ffb37bf368bbf1b1a51b49d0792229c8e1e83403b23ddb5c0b9dabc  boot.img
-833f7d718d5b3bd3c744862ff2d93ca808a59725fa7e34989b84a056034d7d99  init_boot.img
-809c27cad570f6a33f5a4e314fbc5798e16217384c455c1e940b055a66a99d61  vendor_boot.img
-a278c600de6164693b359152a4844eb59f37f04af5639dc19c70e65d5c46994d  vbmeta.img
-5076e231563529c0bb60f2849b8f599ea5dc3a0875dc384b8b6b10e990c3f1a2  super.img
+d42fdd9ecf0e79b905bdeccf998432ff7b95f1331fae87b21904eb59b9c6d6f0  init_boot.img
+18b053f35932de80d18ed7eb66573878dc04677d4daf7207681551664b54f692  vendor_boot.img
+ade98c9bb78ea5ff861c800db4448771e2ff6c67d4f63698df601a65d6dce6c9  vbmeta.img
+0a98e8508fbe9a59d66076180f3f02eb07202f0d0a89f6124b88f49512095f7e  super.img

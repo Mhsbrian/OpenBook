@@ -8,17 +8,16 @@
   {
    "start_s": 0.5,
    "seconds": 2.0,
-   "tone_rms_dbfs": -18.1
+   "tone_rms_dbfs": -18.1,
+   "window_share_mean": 0.997,
+   "glitched_windows": 0
   },
   {
-   "start_s": 3.2,
-   "seconds": 0.65,
-   "tone_rms_dbfs": -51.7
-  },
-  {
-   "start_s": 3.9,
-   "seconds": 0.7,
-   "tone_rms_dbfs": -51.7
+   "start_s": 2.95,
+   "seconds": 1.65,
+   "tone_rms_dbfs": -51.8,
+   "window_share_mean": 0.764,
+   "glitched_windows": 24
   }
  ]
 }

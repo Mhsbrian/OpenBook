@@ -1,13 +1,13 @@
 {
  "schema": "openbook-live-image/1",
- "image": "openbook-live-20261017-audionet2.img",
- "label": "openbook-live-20261017-audionet2",
+ "image": "openbook-live-20261017-audionet3.img",
+ "label": "openbook-live-20261017-audionet3",
  "bytes": 2949644288,
  "fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
  "kernel_release": "6.18.21-android17-5-g44a90255c95f",
  "loader": "systemd-boot 262-1",
  "menu_timeout": "10",
- "epoch": 1792208750,
+ "epoch": 1792209312,
  "vendor_cmdline": "firmware_class.path=/vendor/firmware log_buf_len=1M bootconfig",
  "vendor_bootconfig": {
   "androidboot.hardware": "openbook",
@@ -17,7 +17,7 @@
   "vendor_ramdisk00",
   "vendor_ramdisk01"
  ],
- "vbmeta_digest": "0fab2b566563d077118081be848114eb061558357b306450c15581b55041cd17",
+ "vbmeta_digest": "b967ce80099df93885237633137e414c039af0119be7d020a908cf1c2b65c28a",
  "vbmeta_size": 6208,
  "super": {
   "original_bytes": 8589934592,
@@ -25,23 +25,23 @@
   "partitions": {
    "system_a": {
     "size": 676528128,
-    "sha256": "9617cbe78f0a2d8ec0557827d5347afb23608a972e1cf5982eece8e301521d73"
+    "sha256": "f0ee9804fa3122bb0ad0d8798206f9ecd4ea81783d936e824e069eef7fc6a4a0"
    },
    "system_b": {
     "size": 4591616,
-    "sha256": "ec9eda1d2d8a50974da7689b3fad92b6c30597a84adb97f5fcdbcf3bf0e1958e"
+    "sha256": "9eee59290138f1d587b9c825678646490d819b387fb9228af6266412dc6d0870"
    },
    "system_ext_a": {
     "size": 125087744,
-    "sha256": "417978cf54f8692e66ab99f3ad293dc06119889fc4bcce2833b7370ad0cf138b"
+    "sha256": "b6e3a9cd9991678b4f6ac3ca9b6cf47c6aa9a3ed5f2179098fa3c914579056b8"
    },
    "product_a": {
     "size": 292503552,
-    "sha256": "3f63d6203b93ddba57c8d11d8490d66f0e37c77b394a19ea840e642caf0389e2"
+    "sha256": "588d1d6a939b8bc5de266574b0307fff990422cb997f9bf78a98ca3e9e8507b0"
    },
    "vendor_a": {
-    "size": 148443136,
-    "sha256": "a8384aa9cbf824ce7dae83062a19088dd8b8150e57c688ffcd6cd69fcd128f1b"
+    "size": 148447232,
+    "sha256": "bde8a20f163a581cb4c7247ed27eeea0006e71ffd2681696ea850dc19b586ca1"
    },
    "vendor_dlkm_a": {
     "size": 53403648,
@@ -69,10 +69,10 @@
     "androidboot.vbmeta.avb_version": "1.3",
     "androidboot.vbmeta.hash_alg": "sha256",
     "androidboot.vbmeta.size": "6208",
-    "androidboot.vbmeta.digest": "0fab2b566563d077118081be848114eb061558357b306450c15581b55041cd17",
+    "androidboot.vbmeta.digest": "b967ce80099df93885237633137e414c039af0119be7d020a908cf1c2b65c28a",
     "androidboot.vbmeta.invalidate_on_error": "yes",
     "androidboot.veritymode": "enforcing",
-    "androidboot.boot_part_uuid": "742354a8-65dd-5899-9843-8d3aea3a5b10",
+    "androidboot.boot_part_uuid": "c53de530-412f-54bf-be37-d8e5cc561f2c",
     "androidboot.serialno": "OPENBOOKLIVE0001",
     "androidboot.openbook.loader": "sdboot",
     "androidboot.openbook.live": "1"
@@ -91,10 +91,10 @@
     "androidboot.vbmeta.avb_version": "1.3",
     "androidboot.vbmeta.hash_alg": "sha256",
     "androidboot.vbmeta.size": "6208",
-    "androidboot.vbmeta.digest": "0fab2b566563d077118081be848114eb061558357b306450c15581b55041cd17",
+    "androidboot.vbmeta.digest": "b967ce80099df93885237633137e414c039af0119be7d020a908cf1c2b65c28a",
     "androidboot.vbmeta.invalidate_on_error": "yes",
     "androidboot.veritymode": "enforcing",
-    "androidboot.boot_part_uuid": "742354a8-65dd-5899-9843-8d3aea3a5b10",
+    "androidboot.boot_part_uuid": "c53de530-412f-54bf-be37-d8e5cc561f2c",
     "androidboot.serialno": "OPENBOOKLIVE0001",
     "androidboot.openbook.loader": "sdboot",
     "androidboot.openbook.live": "1",
@@ -115,10 +115,10 @@
     "androidboot.vbmeta.avb_version": "1.3",
     "androidboot.vbmeta.hash_alg": "sha256",
     "androidboot.vbmeta.size": "6208",
-    "androidboot.vbmeta.digest": "0fab2b566563d077118081be848114eb061558357b306450c15581b55041cd17",
+    "androidboot.vbmeta.digest": "b967ce80099df93885237633137e414c039af0119be7d020a908cf1c2b65c28a",
     "androidboot.vbmeta.invalidate_on_error": "yes",
     "androidboot.veritymode": "enforcing",
-    "androidboot.boot_part_uuid": "742354a8-65dd-5899-9843-8d3aea3a5b10",
+    "androidboot.boot_part_uuid": "c53de530-412f-54bf-be37-d8e5cc561f2c",
     "androidboot.serialno": "OPENBOOKLIVE0001",
     "androidboot.openbook.loader": "sdboot",
     "androidboot.openbook.live": "1",
@@ -138,10 +138,10 @@
     "androidboot.vbmeta.avb_version": "1.3",
     "androidboot.vbmeta.hash_alg": "sha256",
     "androidboot.vbmeta.size": "6208",
-    "androidboot.vbmeta.digest": "0fab2b566563d077118081be848114eb061558357b306450c15581b55041cd17",
+    "androidboot.vbmeta.digest": "b967ce80099df93885237633137e414c039af0119be7d020a908cf1c2b65c28a",
     "androidboot.vbmeta.invalidate_on_error": "yes",
     "androidboot.veritymode": "enforcing",
-    "androidboot.boot_part_uuid": "742354a8-65dd-5899-9843-8d3aea3a5b10",
+    "androidboot.boot_part_uuid": "c53de530-412f-54bf-be37-d8e5cc561f2c",
     "androidboot.serialno": "OPENBOOKLIVE0001",
     "androidboot.openbook.loader": "sdboot",
     "androidboot.openbook.live": "1",
@@ -163,10 +163,10 @@
     "androidboot.vbmeta.avb_version": "1.3",
     "androidboot.vbmeta.hash_alg": "sha256",
     "androidboot.vbmeta.size": "6208",
-    "androidboot.vbmeta.digest": "0fab2b566563d077118081be848114eb061558357b306450c15581b55041cd17",
+    "androidboot.vbmeta.digest": "b967ce80099df93885237633137e414c039af0119be7d020a908cf1c2b65c28a",
     "androidboot.vbmeta.invalidate_on_error": "yes",
     "androidboot.veritymode": "enforcing",
-    "androidboot.boot_part_uuid": "742354a8-65dd-5899-9843-8d3aea3a5b10",
+    "androidboot.boot_part_uuid": "c53de530-412f-54bf-be37-d8e5cc561f2c",
     "androidboot.serialno": "OPENBOOKLIVE0001",
     "androidboot.openbook.loader": "sdboot",
     "androidboot.openbook.live": "1",
@@ -186,10 +186,10 @@
     "androidboot.vbmeta.avb_version": "1.3",
     "androidboot.vbmeta.hash_alg": "sha256",
     "androidboot.vbmeta.size": "6208",
-    "androidboot.vbmeta.digest": "0fab2b566563d077118081be848114eb061558357b306450c15581b55041cd17",
+    "androidboot.vbmeta.digest": "b967ce80099df93885237633137e414c039af0119be7d020a908cf1c2b65c28a",
     "androidboot.vbmeta.invalidate_on_error": "yes",
     "androidboot.veritymode": "enforcing",
-    "androidboot.boot_part_uuid": "742354a8-65dd-5899-9843-8d3aea3a5b10",
+    "androidboot.boot_part_uuid": "c53de530-412f-54bf-be37-d8e5cc561f2c",
     "androidboot.serialno": "OPENBOOKLIVE0001",
     "androidboot.openbook.loader": "sdboot",
     "androidboot.openbook.live": "1",
@@ -209,10 +209,10 @@
     "androidboot.vbmeta.avb_version": "1.3",
     "androidboot.vbmeta.hash_alg": "sha256",
     "androidboot.vbmeta.size": "6208",
-    "androidboot.vbmeta.digest": "0fab2b566563d077118081be848114eb061558357b306450c15581b55041cd17",
+    "androidboot.vbmeta.digest": "b967ce80099df93885237633137e414c039af0119be7d020a908cf1c2b65c28a",
     "androidboot.vbmeta.invalidate_on_error": "yes",
     "androidboot.veritymode": "enforcing",
-    "androidboot.boot_part_uuid": "742354a8-65dd-5899-9843-8d3aea3a5b10",
+    "androidboot.boot_part_uuid": "c53de530-412f-54bf-be37-d8e5cc561f2c",
     "androidboot.serialno": "OPENBOOKLIVE0001",
     "androidboot.openbook.loader": "sdboot",
     "androidboot.openbook.live": "1",
@@ -233,10 +233,10 @@
     "androidboot.vbmeta.avb_version": "1.3",
     "androidboot.vbmeta.hash_alg": "sha256",
     "androidboot.vbmeta.size": "6208",
-    "androidboot.vbmeta.digest": "0fab2b566563d077118081be848114eb061558357b306450c15581b55041cd17",
+    "androidboot.vbmeta.digest": "b967ce80099df93885237633137e414c039af0119be7d020a908cf1c2b65c28a",
     "androidboot.vbmeta.invalidate_on_error": "yes",
     "androidboot.veritymode": "enforcing",
-    "androidboot.boot_part_uuid": "742354a8-65dd-5899-9843-8d3aea3a5b10",
+    "androidboot.boot_part_uuid": "c53de530-412f-54bf-be37-d8e5cc561f2c",
     "androidboot.serialno": "OPENBOOKLIVE0001",
     "androidboot.openbook.loader": "sdboot",
     "androidboot.openbook.live": "1",
@@ -247,79 +247,79 @@
    }
   }
  },
- "esp_partuuid": "742354a8-65dd-5899-9843-8d3aea3a5b10",
+ "esp_partuuid": "c53de530-412f-54bf-be37-d8e5cc561f2c",
  "partitions": [
   {
    "name": "EFI",
    "start": 2048,
    "sectors": 524288,
    "type": "ef00",
-   "uuid": "742354a8-65dd-5899-9843-8d3aea3a5b10"
+   "uuid": "c53de530-412f-54bf-be37-d8e5cc561f2c"
   },
   {
    "name": "misc",
    "start": 526336,
    "sectors": 8192,
    "type": "8300",
-   "uuid": "7d6fe2c1-d5fe-564e-8f58-4e94b2ed380f"
+   "uuid": "915058d2-1f18-59fa-9752-6aaa1a869e55"
   },
   {
    "name": "boot_a",
    "start": 534528,
    "sectors": 131072,
    "type": "8300",
-   "uuid": "d1f61019-a1dd-536e-9de4-8c0e9afb8f2f"
+   "uuid": "1462cb95-12ec-554c-9437-8361588af4e4"
   },
   {
    "name": "init_boot_a",
    "start": 665600,
    "sectors": 16384,
    "type": "8300",
-   "uuid": "60d25304-6d9e-5f6e-b0a3-55f039cd204d"
+   "uuid": "e7a60fd6-0403-505f-a596-f4796b23456d"
   },
   {
    "name": "vendor_boot_a",
    "start": 681984,
    "sectors": 131072,
    "type": "8300",
-   "uuid": "f657a69a-36a0-540d-bbed-342495f87603"
+   "uuid": "f517672c-824a-59b1-89b4-9e52d4217acf"
   },
   {
    "name": "vbmeta_a",
    "start": 813056,
    "sectors": 2048,
    "type": "8300",
-   "uuid": "9292eebc-2762-599c-bf94-5c6e47b47a24"
+   "uuid": "45f467e1-1d2f-5cb2-93fc-7da0a99354fd"
   },
   {
    "name": "metadata",
    "start": 815104,
    "sectors": 131072,
    "type": "8300",
-   "uuid": "bcd07d7b-f271-5d78-beb9-28db580ab131"
+   "uuid": "c7eccbf0-fc44-55ea-a88d-5a515682a908"
   },
   {
    "name": "super",
    "start": 946176,
    "sectors": 2715648,
    "type": "8300",
-   "uuid": "f3231c6d-8605-59d7-a01f-0d44458647bb"
+   "uuid": "897afee5-190f-5e6b-b790-57d636a42f88"
   },
   {
    "name": "userdata",
    "start": 3661824,
    "sectors": 2097152,
    "type": "8300",
-   "uuid": "cd06bdd5-4b05-557b-9e24-06c6b72e08fe"
+   "uuid": "d23c31f0-3724-5de5-a082-469152ed70bc"
   }
  ],
  "verified_sha256": {
-  "EFI": "34d1075a1cf0fb786f1a37f8f3891d77c2f7d7e91128f4c253bcc95ff8185d41",
+  "EFI": "2d6ad0734ef421f7590b400ca6ea01f7fd0f2f7c0de93f2cf1f5d0e9fbfd53c2",
   "boot_a": "08c62a9b1ffb37bf368bbf1b1a51b49d0792229c8e1e83403b23ddb5c0b9dabc",
-  "init_boot_a": "833f7d718d5b3bd3c744862ff2d93ca808a59725fa7e34989b84a056034d7d99",
-  "vendor_boot_a": "809c27cad570f6a33f5a4e314fbc5798e16217384c455c1e940b055a66a99d61",
-  "vbmeta_a": "a278c600de6164693b359152a4844eb59f37f04af5639dc19c70e65d5c46994d",
-  "super": "f50473c319c5020f6efa81dc86f62f7a66a0b0c1ef15f7b4796f0e332e041e5e"
+  "init_boot_a": "d42fdd9ecf0e79b905bdeccf998432ff7b95f1331fae87b21904eb59b9c6d6f0",
+  "vendor_boot_a": "18b053f35932de80d18ed7eb66573878dc04677d4daf7207681551664b54f692",
+  "vbmeta_a": "ade98c9bb78ea5ff861c800db4448771e2ff6c67d4f63698df601a65d6dce6c9",
+  "super": "6587bf82ba310f945918ccc2b673dace0e7af56cb5badcc1a7428221006c5504"
  },
  "firmware": {
   "files": 139,
