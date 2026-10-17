@@ -406,6 +406,22 @@ static int compute_layout(const struct plan_req *r, struct disk *d, int n, struc
     return 0;
 }
 
+// The partition the firmware entry points at: the one holding EFI/OpenBook/systemd-bootx64.efi.
+static void loader_partition(const struct layout *L, uint32_t *index, uint64_t *start, uint64_t *bytes,
+                             const char **uuid) {
+    if (L->shared_esp) {
+        *index = L->shared_esp->index;
+        *start = L->shared_esp->start;
+        *bytes = L->shared_esp->bytes;
+        *uuid = L->shared_esp->uuid;
+    } else {
+        *index = L->p[L->boot].index;
+        *start = L->p[L->boot].start;
+        *bytes = L->p[L->boot].bytes;
+        *uuid = L->p[L->boot].uuid;
+    }
+}
+
 static const char *seg_kind(const struct part_info *p) {
     if (!strcmp(p->os, "Windows")) return "windows";
     if (!strcmp(p->os, "Linux")) return "linux";
@@ -589,6 +605,7 @@ static void plan_core(struct layout *L, struct jw *w) {
     jw_str(w, "entry", "loader/entries/openbook-a.conf");
     jw_bool(w, "fallback_path", !L->shared_esp);
     jw_str(w, "nvram", E.efivars ? "planned" : "unavailable");
+    jw_str(w, "boot_order", !E.efivars ? "unchanged" : L->r->set_default ? "first" : "unchanged");
     jw_bool(w, "set_default", L->r->set_default);
     jw_endo(w);
     uint64_t verify = L->write_bytes;
@@ -597,6 +614,7 @@ static void plan_core(struct layout *L, struct jw *w) {
     jw_int(w, "estimated_seconds", (long long)((L->source_bytes + L->write_bytes + verify) / (120.0 * 1e6)) + 10);
     jw_arr(w, "warnings");
     if (!E.efivars) jw_str(w, NULL, "nvram_unavailable");
+    else if (!L->r->set_default) jw_str(w, NULL, "boot_order_unchanged");
     if (t->external) jw_str(w, NULL, "external");
     if (t->encrypted) jw_str(w, NULL, L->whole ? "encrypted_erased" : "encrypted_kept");
     jw_enda(w);
@@ -666,10 +684,16 @@ static void plan_core(struct layout *L, struct jw *w) {
         if (L->f[i].activate)
             op(w, "activate", "After verification: write %s on %s (%u bytes)", L->f[i].path,
                L->f[i].shared ? "the existing EFI partition" : L->p[L->boot].name, L->f[i].bytes);
-    if (E.efivars)
-        op(w, "nvram", "Add the firmware boot entry \"OpenBook\" -> \\EFI\\OpenBook\\systemd-bootx64.efi%s",
-           L->r->set_default ? " and make it the first in BootOrder" : "");
-    else
+    if (E.efivars) {
+        uint32_t li;
+        uint64_t ls, lb;
+        const char *lu;
+        loader_partition(L, &li, &ls, &lb, &lu);
+        op(w, "nvram", "After verification: add one firmware boot entry, a free Boot####, \"OpenBook\" -> "
+                       "HD(%u, GPT, %s)/\\EFI\\OpenBook\\systemd-bootx64.efi; %s",
+           li, lu, L->r->set_default ? "put it first in BootOrder, keeping the other entries in their order"
+                                     : "BootOrder unchanged (no consent to change the boot order)");
+    } else
         op(w, "nvram", "No firmware boot entry: this kernel has no efivarfs (docs/installer.md decision 6)%s",
            L->shared_esp ? "; pick OpenBook from the firmware's boot menu or add an entry in its setup"
                          : "; the firmware boots the disk through the fallback path EFI/BOOT/BOOTX64.EFI");
@@ -935,6 +959,7 @@ int apply_run(const struct plan_req *r, const char *expect_sha, const char *type
     int have_layout = 0;
     struct sb plan = {0};
     char sha[65] = "";
+    struct nvram_result nv_res = {.num = -1};
     LOG("openbook-install %s: apply %s on %s (%s), SELinux %s", ENGINE_VERSION, r->layout, r->target,
         src.label[0] ? src.label : "no source", E.selinux);
 
@@ -1253,6 +1278,25 @@ int apply_run(const struct plan_req *r, const char *expect_sha, const char *type
     if (verify_files(&L, fd, 1, v, &nv, err, sizeof err)) goto fail;
     verified_ok = 1;
     if (ioctl(fd, BLKRRPART, 0) == 0) LOG("the kernel re-read the partition table");
+    // The firmware boot entry, only now that everything verified (S9, S11). A failure here is reported, not fatal:
+    // the disk is installed and verified; a whole disk still boots through the fallback path.
+    if (E.efivars) {
+        uint32_t li;
+        uint64_t ls, lb;
+        const char *lu;
+        uint8_t g[16];
+        loader_partition(&L, &li, &ls, &lb, &lu);
+        guid_from_str(lu, g);
+        if (nvram_add_entry("OpenBook", li, ls / L.t->sector, lb / L.t->sector, g, "\\EFI\\OpenBook\\systemd-bootx64.efi",
+                            L.r->set_default, &nv_res))
+            LOG("nvram: %s", nv_res.why);
+        if (nv_res.created)
+            LOG("nvram: created Boot%04X \"OpenBook\" -> HD(%u, GPT, %s)/\\EFI\\OpenBook\\systemd-bootx64.efi; BootOrder %s",
+                nv_res.num, li, lu, nv_res.order ? nv_res.order : "?");
+    } else {
+        LOG("nvram: no efivarfs; %s", L.shared_esp ? "the user picks OpenBook in the firmware"
+                                                   : "the firmware boots the fallback path EFI/BOOT/BOOTX64.EFI");
+    }
     step(5, "done");
     goto report;
 
@@ -1310,7 +1354,16 @@ out_json:;
     }
     jw_enda(&w);
     jw_str(&w, "boot_entry", verified_ok ? "loader/entries/openbook-a.conf" : NULL);
-    jw_str(&w, "nvram", E.efivars ? "not_implemented" : "unavailable");
+    if (!E.efivars || !verified_ok) {
+        jw_str(&w, "nvram", E.efivars ? "skipped" : "unavailable");
+    } else {
+        jw_str(&w, "nvram", nv_res.created ? "created" : "failed");
+        char nb[16];
+        snprintf(nb, sizeof nb, "Boot%04X", nv_res.num);
+        jw_str(&w, "nvram_entry", nv_res.created ? nb : NULL);
+        jw_str(&w, "boot_order", nv_res.order ? nv_res.order : "unchanged");
+        jw_str(&w, "nvram_error", nv_res.why[0] ? nv_res.why : NULL);
+    }
     jw_bool(&w, "fallback_path", have_layout && !L.shared_esp && verified_ok);
     char rp[96], lp[96];
     snprintf(rp, sizeof rp, "openbook/logs/install-%s.json", ts);
