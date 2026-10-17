@@ -1,0 +1,7 @@
+AOSP build: build-20261017T134609Z.log (anybook_g14_x86_64-cp2a-userdebug; incremental, the last of this issue's builds)
+=== 2026-10-17T13:46:09Z target anybook_g14_x86_64-cp2a-userdebug goals droid -j32 on 32 CPUs
+=== 2026-10-17T13:46:09Z synced device/anybook from /repo (AnyBook 8b04961-dirty)
+=== 2026-10-17T13:47:54Z m exit 0
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:42.13
+	Maximum resident set size (kbytes): 45647768
+container cgroup memory.peak: container cgroup memory.peak: 48215433216 bytes

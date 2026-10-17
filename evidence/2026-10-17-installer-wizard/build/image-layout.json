@@ -1,0 +1,73 @@
+{
+ "label": "openbook-live-20261017-anal191e",
+ "fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
+ "kernel_release": "6.18.21-android17-5-g44a90255c95f",
+ "loader": "systemd-boot 262-1",
+ "partitions": [
+  {
+   "name": "EFI",
+   "start": 2048,
+   "sectors": 524288,
+   "type": "ef00",
+   "uuid": "ea548c4b-202c-5400-ac0c-70ed6fe52d13"
+  },
+  {
+   "name": "misc",
+   "start": 526336,
+   "sectors": 8192,
+   "type": "8300",
+   "uuid": "fd96a422-0a9d-5ade-bf46-63b675cddbc4"
+  },
+  {
+   "name": "boot_a",
+   "start": 534528,
+   "sectors": 131072,
+   "type": "8300",
+   "uuid": "d69a5bd3-c38a-533a-a888-a72b81c704a3"
+  },
+  {
+   "name": "init_boot_a",
+   "start": 665600,
+   "sectors": 16384,
+   "type": "8300",
+   "uuid": "1ce0b96b-e87c-58dd-8170-ad1b4d2eea14"
+  },
+  {
+   "name": "vendor_boot_a",
+   "start": 681984,
+   "sectors": 131072,
+   "type": "8300",
+   "uuid": "d40fa356-61b2-5008-b577-cbdfaca35a17"
+  },
+  {
+   "name": "vbmeta_a",
+   "start": 813056,
+   "sectors": 2048,
+   "type": "8300",
+   "uuid": "fb8f721b-bf59-51ce-90bb-a6f0e4940025"
+  },
+  {
+   "name": "metadata",
+   "start": 815104,
+   "sectors": 131072,
+   "type": "8300",
+   "uuid": "629bba5c-db0e-5cad-ad78-2554ebc05477"
+  },
+  {
+   "name": "super",
+   "start": 946176,
+   "sectors": 2756608,
+   "type": "8300",
+   "uuid": "e7d9a41e-5d01-55b9-920c-e3ad8c9d2f11"
+  },
+  {
+   "name": "userdata",
+   "start": 3702784,
+   "sectors": 2097152,
+   "type": "8300",
+   "uuid": "a6b2dd80-b4a0-59fd-b7b4-2fcef78d1f15"
+  }
+ ],
+ "esp_partuuid": "ea548c4b-202c-5400-ac0c-70ed6fe52d13",
+ "vbmeta_digest": "1d6cff0792d5568f531da00d7db2fd300e6ad99faff5f75da102ae44ea99b6de"
+}

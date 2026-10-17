@@ -1,0 +1,44 @@
+14:09:14 openbook-install 1: apply whole on nvme-QEMU_NVMe_Ctrl_internal0 (openbook-live-20261017-anal191e), SELinux enforcing
+14:09:14 plan f019e892bc8bfa38a183eb36f1ede00edf02fd6c5f4def4a407f5c4d18233dd7: 13 partitions, 1524498023 bytes to write, target nvme-QEMU_NVMe_Ctrl_internal0 (QEMU NVMe Ctrl, 68719476736 bytes)
+14:09:14 step check_source: running
+14:09:14 source boot_a: 67108864 bytes, sha256 ok
+14:09:15 source init_boot_a: 8388608 bytes, sha256 ok
+14:09:15 source vendor_boot_a: 67108864 bytes, sha256 ok
+14:09:15 source vbmeta_a: 65536 bytes, sha256 ok
+14:09:18 source super: 1411383296 bytes, sha256 ok
+14:09:18 step check_source: done
+14:09:18 step prepare_disk: running
+14:09:18 wiping the partition table of nvme-QEMU_NVMe_Ctrl_internal0
+14:09:18 step prepare_disk: done
+14:09:18 step boot_images: running
+14:09:18 copied boot_a -> partition 3 "boot_a" (67108864 bytes)
+14:09:19 copied init_boot_a -> partition 5 "init_boot_a" (8388608 bytes)
+14:09:19 copied vendor_boot_a -> partition 7 "vendor_boot_a" (67108864 bytes)
+14:09:19 copied vbmeta_a -> partition 9 "vbmeta_a" (65536 bytes)
+14:09:19 step boot_images: done
+14:09:19 step system: running
+14:09:20 super: system_a, 695439360 bytes at 1048576
+14:09:20 super: system_b, 4677632 bytes at 697303040
+14:09:21 super: system_ext_a, 127385600 bytes at 702545920
+14:09:21 super: product_a, 292503552 bytes at 830472192
+14:09:22 super: vendor_a, 148406272 bytes at 1123024896
+14:09:22 super: vendor_dlkm_a, 53403648 bytes at 1271922688
+14:09:22 super: system_dlkm_a, 18165760 bytes at 1325400064
+14:09:22 super: metadata for 12884901888 bytes written
+14:09:22 step system: done
+14:09:22 step boot_entry: running
+14:09:22 wrote openbook/a/kernel (26854400 bytes)
+14:09:22 wrote openbook/a/vendor_ramdisk.img (128012 bytes)
+14:09:22 wrote openbook/a/ramdisk.img (3005944 bytes)
+14:09:22 wrote openbook/a/bootconfig.img (796 bytes)
+14:09:22 partition table written: 13 partitions
+14:09:22 step boot_entry: done
+14:09:22 step verify: running
+14:09:26 verified 29 partitions and files
+14:09:26 wrote loader/entries/openbook-a.conf (255 bytes)
+14:09:26 wrote loader/loader.conf (72 bytes)
+14:09:26 wrote EFI/OpenBook/systemd-bootx64.efi (160256 bytes)
+14:09:26 wrote EFI/BOOT/BOOTX64.EFI (160256 bytes)
+14:09:26 step verify: done
+14:09:26 step report: running
+14:09:26 step report: done
