@@ -1,0 +1,8 @@
+(genfscon efivarfs "/" (u object_r openbook_efivarfs ((s0) (s0))))
+(type openbook_efivarfs)
+(roletype object_r openbook_efivarfs)
+(allow openbook_efivarfs openbook_efivarfs (filesystem (associate)))
+(allow init openbook_efivarfs (filesystem (mount)))
+(allow openbook_installd openbook_efivarfs (filesystem (getattr)))
+(allow openbook_installd openbook_efivarfs (dir (read write getattr open add_name search)))
+(allow openbook_installd openbook_efivarfs (file (read write create getattr open)))

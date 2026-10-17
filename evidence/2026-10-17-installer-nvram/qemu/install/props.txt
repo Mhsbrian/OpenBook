@@ -1,0 +1,6 @@
+[init.svc.openbook_installd]: [running]
+[ro.boot.boot_part_uuid]: [68c7eaa4-4ed1-5d2c-8f7a-ac5f1c07a41c]
+[ro.boot.openbook.live]: [1]
+[ro.boot.openbook.loader]: [sdboot]
+[ro.build.fingerprint]: [OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys]
+Enforcing
