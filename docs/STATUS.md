@@ -21,7 +21,7 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 - **Live USB on the G14** (ANAL-190): the owner booted the live stick on the G14 (`evidence/2026-10-16-installer/g14-live/`). The rebuild on ANAL-199's audio fix (`openbook-live-20261016b`) boots to Launcher3 in QEMU and is ready to write (`docs/installer.md` §11.6, §11.11).
 
 **Lanes on the dev host** (the 7950X has 61 GB RAM; an AOSP build peaks at about 41 GiB):
-- **AOSP lane**, one builder at a time in `~/anybook/aosp/src`: ✓ ANAL-174 (PR #23), ✓ ANAL-199 (PR #35), ✓ ANAL-176 (PR #39; stability follow-ups in #42), ✓ ANAL-179 (PR #43, Wi-Fi/BT/audio). Now ▶ ANAL-176 follow-ups and ▶ ANAL-178's Android-side work share the lane under the lock. ANAL-178 starts in the kernel/hwcheck lane (S0i3, input); its Android-side work follows. ANAL-200 comes after that. Builds take `flock ~/anybook/aosp/.lane.lock`. The VM product's device is now `anybook_vsoc_x86_64`, so boot it with `CF_DEVICE=anybook_vsoc_x86_64`.
+- **AOSP lane**, one builder at a time in `~/anybook/aosp/src`: ✓ ANAL-174 (PR #23), ✓ ANAL-199 (PR #35), ✓ ANAL-176 (PRs #39 and #42), ✓ ANAL-179 (PR #43, Wi-Fi/BT/audio), ✓ ANAL-178's Android side (PR #41). ANAL-200 comes next. Builds take `flock ~/anybook/aosp/.lane.lock` (PR #42: `aosp-docker.sh` takes and keeps it for `aosp-build.sh`, which refuses otherwise; `installer-image.sh` holds it for its `PRODUCT_OUT` snapshot). The VM product's device is now `anybook_vsoc_x86_64`, so boot it with `CF_DEVICE=anybook_vsoc_x86_64`.
 - **Kernel lane:** ✓ ANAL-198 (PR #26). The G14 images and firmware are ready for ANAL-199, and the lane is free.
 - **Light lanes:** ✓ ANAL-189 (design and QEMU boot-chain prototype in PRs #22 and #25: high-fidelity wizard design, OpenBook naming, quiet boot, G14 hardware-check stick; awaiting sign-off) and ✓ ANAL-187 (research delivered; its dGPU-off default feeds ANAL-199 and ANAL-176).
 - **Hand-offs:** condition wakeups on ANAL-159 promote each next step as soon as its dependencies reach review with a merged PR.
@@ -81,6 +81,38 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 **Evidence:** `evidence/2026-10-17-g14-audio-net/`. In QEMU: WPA2 connect, DHCP, iperf3 about 650–770 Mbit/s; a tone reaches the codec through ALSA cleanly and through AudioFlinger with dropped buffers (VM; open item). Nothing on the G14 yet.
 
 **Next:** the owner boots `openbook-live-20261017-audionet3` (this branch + ANAL-176's desktop4): connect Wi-Fi, pair a device, then the save-logs entry (`docs/g14-audio-net.md` §7).
+
+### 2026-10-17: G14 boots of desktop3, and desktop4 (ANAL-176)
+
+- **Done:**
+  - Read the owner's two `desktop3` boots:
+    - The amdgpu `firmware_load` denial is gone.
+    - The save-logs boot reached the desktop; enforcing boots would hit 14 denial lines, down from 66.
+    - The first boot (non-logs) was switched off on a black screen while it was still decompressing APEXes, before SurfaceFlinger could start. So the enforcing entry is still unproven on the panel.
+    - Escape killed the launcher.
+    - The save-logs entry powered off, as designed.
+  - Fixed:
+    - APEXes now ship uncompressed (first boot of a fresh stick without the 34 s decompression);
+    - the Launcher3 Escape crash (AOSP patch);
+    - `aosp-patches.sh` now resets other branches' leftover patches in the shared tree;
+    - builds and the image snapshot both hold the AOSP lane lock. `aosp-docker.sh` takes it and keeps it until the build's container exits, and `aosp-build.sh` refuses unless its own container holds it. The snapshot waits for the lock. This follows two Checker findings: the snapshot only checked container names once, and a build could start while someone else held the lock;
+    - the `df /data` parsing in `live-report.py` and `live-qemu-check.py`.
+- **Evidence:** `evidence/2026-10-17-g14-desktop/g14-desktop3/` (the G14 boots) and `desktop4/` (build, 37/39 in QEMU, first boot 17.8 s vs 27.9 s with SurfaceFlinger at 5.4 s vs 19.9 s). The save-logs helper now reports the earlier-boots archive honestly (`prior-boots.txt`, pipeline status).
+- **Found:** drm_hwcomposer proposes more planes than amdgpu's display core takes per stream (4), so its test commit fails every frame and SurfaceFlinger composes on the GPU (open, `docs/g14-desktop.md` §7).
+- **Next:** the owner boots the default entry on the `desktop3` stick as it is (first-boot setup is done), then `desktop4`.
+
+### 2026-10-17: G14 boots of desktop2: why only "save logs" worked (ANAL-176)
+
+- **Done:**
+  - **Every enforcing boot was black because amdgpu could not load its firmware** (`firmware_load` denied on `/vendor/firmware`); this is now fixed in policy.
+  - Also fixed:
+    - a race that could start SurfaceFlinger before the GPU HALs were chosen;
+    - the 1-minute screen-off;
+    - shared-tree builds keeping stale outputs.
+  - Every boot now keeps its logs, so a later "save logs" boot brings them back.
+- **Evidence:** the owner's runs and the device's own screenshot of the desktop are in `evidence/2026-10-17-g14-desktop/g14-desktop2/`. The image `openbook-live-20261017-desktop3` passes 37/39 in QEMU.
+- **Handed on:** the Bluetooth crash loop (ANAL-179), the missing `system` DMA-BUF heap (kernel lane), and touchpad clock warnings (ANAL-178).
+- **Next:** the owner boots `desktop3`'s default entry.
 
 ### 2026-10-17: G14 desktop from USB, RADV swapchain fix and SELinux (ANAL-176)
 

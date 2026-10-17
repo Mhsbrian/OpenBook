@@ -1,0 +1,52 @@
+SystemUptimeMs: 122081
+Process: com.android.launcher3
+PID: 3883
+UID: 10076
+Frozen: false
+Flags: 0x34cbbe45
+Package: com.android.launcher3 v37 (17)
+Foreground: Yes
+Process-Runtime: 49174
+Timestamp: 2026-10-17 02:31:18.831+0000
+Build: OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+DefaultScreen-State: ON
+Keyguard-Locked: false
+Crash-Handler: com.android.internal.os.RuntimeInit$KillApplicationHandler
+Loading-Progress: 1.0
+Dropped-Count: 0
+
+java.lang.NullPointerException: Attempt to invoke virtual method 'com.android.launcher3.allapps.SearchUiManager com.android.launcher3.allapps.ActivityAllAppsContainerView.getSearchUiManager()' on a null object reference
+	at com.android.launcher3.taskbar.overlay.TaskbarOverlayDragLayer.tryHandleEscapeKey(TaskbarOverlayDragLayer.java:107)
+	at com.android.launcher3.taskbar.overlay.TaskbarOverlayDragLayer.dispatchKeyEvent(TaskbarOverlayDragLayer.java:96)
+	at android.view.ViewRootImpl$ViewPostImeInputStage.processKeyEvent(ViewRootImpl.java:8716)
+	at android.view.ViewRootImpl$ViewPostImeInputStage.onProcess(ViewRootImpl.java:8547)
+	at android.view.ViewRootImpl$InputStage.deliver(ViewRootImpl.java:7918)
+	at android.view.ViewRootImpl$InputStage.onDeliverToNext(ViewRootImpl.java:7975)
+	at android.view.ViewRootImpl$InputStage.forward(ViewRootImpl.java:7941)
+	at android.view.ViewRootImpl$AsyncInputStage.forward(ViewRootImpl.java:8112)
+	at android.view.ViewRootImpl$InputStage.apply(ViewRootImpl.java:7949)
+	at android.view.ViewRootImpl$AsyncInputStage.apply(ViewRootImpl.java:8169)
+	at android.view.ViewRootImpl$InputStage.deliver(ViewRootImpl.java:7922)
+	at android.view.ViewRootImpl$InputStage.onDeliverToNext(ViewRootImpl.java:7975)
+	at android.view.ViewRootImpl$InputStage.forward(ViewRootImpl.java:7941)
+	at android.view.ViewRootImpl$InputStage.apply(ViewRootImpl.java:7949)
+	at android.view.ViewRootImpl$InputStage.deliver(ViewRootImpl.java:7922)
+	at android.view.ViewRootImpl$InputStage.onDeliverToNext(ViewRootImpl.java:7975)
+	at android.view.ViewRootImpl$InputStage.forward(ViewRootImpl.java:7941)
+	at android.view.ViewRootImpl$AsyncInputStage.forward(ViewRootImpl.java:8145)
+	at android.view.ViewRootImpl$ImeInputStage.onFinishedInputEvent(ViewRootImpl.java:8395)
+	at android.view.inputmethod.InputMethodManager$PendingEvent.run(InputMethodManager.java:5358)
+	at android.view.inputmethod.InputMethodManager.invokeFinishedInputEventCallback(InputMethodManager.java:4687)
+	at android.view.inputmethod.InputMethodManager.finishedInputEvent(InputMethodManager.java:4678)
+	at android.view.inputmethod.InputMethodManager.-$$Nest$mfinishedInputEvent(InputMethodManager.java:0)
+	at android.view.inputmethod.InputMethodManager$ImeInputEventSender.onInputEventFinished(InputMethodManager.java:5335)
+	at android.view.InputEventSender.dispatchInputEventFinished(InputEventSender.java:202)
+	at android.os.MessageQueue.nativePollOnce(Native Method)
+	at android.os.MessageQueue.nextDeliQueue(MessageQueue.java:791)
+	at android.os.MessageQueue.next(MessageQueue.java:771)
+	at android.os.Looper.loopOnce(Looper.java:232)
+	at android.os.Looper.loop(Looper.java:397)
+	at android.app.ActivityThread.main(ActivityThread.java:9523)
+	at java.lang.reflect.Method.invoke(Native Method)
+	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:575)
+	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:939)

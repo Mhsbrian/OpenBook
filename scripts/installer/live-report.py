@@ -22,6 +22,7 @@ import json
 import os
 import re
 import shutil
+import sys
 
 
 def sections(path):
@@ -81,7 +82,10 @@ def touchpad_clock(text):
 
 
 MAC = re.compile(r"\b(?!00:00:00:00:00:00|ff:ff:ff:ff:ff:ff)([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}\b")
-SERIAL = re.compile(r"(SerialNumber: |iSerial\s+\d+\s+|usb-[A-Za-z0-9_]+_)([A-Za-z0-9]{6,})")
+# Kernel ("SerialNumber: "), lsusb, /dev/disk/by-id names, and Android's UsbHostManager
+# ("mfg/product/ver/serial SanDisk/Ultra/1.00/<serial>").
+SERIAL = re.compile(r"(SerialNumber: |iSerial\s+\d+\s+|usb-[A-Za-z0-9_]+_|mfg/product/ver/serial [^/\s]*/[^/\s]*/[^/\s]*/)"
+                    r"([A-Za-z0-9]{6,})")
 SSID = re.compile(r'(\b(?:SSID|ssid)\b[\s:=]*)("[^"]*"|[^\s,}"]+)')
 
 
@@ -131,8 +135,10 @@ def main():
     verdict("gpu_hal", hal == ("amdgpu" if a.expect == "g14" else "virtio"), hal=hal, egl=props.get("ro.hardware.egl"),
             vulkan=props.get("ro.hardware.vulkan"), gralloc=props.get("ro.hardware.gralloc"),
             hwcomposer=props.get("ro.hardware.hwcomposer"))
-    # toybox df names /data by the last mount of its device, which can be /data_mirror/...
-    m = re.search(r"^\S+\s+(\d+)\s+(\d+)\s+(\d+)\s+\d+% /data(?:_mirror/\S+)?$", sec.get("DF", ""), re.M)
+    # df -k /data /metadata ...: toybox prints its arguments in order but names each by the last mount of its
+    # device (/data_mirror/..., /data/user/0, /mnt/pass_through/0/emulated), so /data is the first line.
+    m = re.search(r"^Filesystem .*\n\S+\s+(\d+)\s+(\d+)\s+\d+\s+\d+%\s+(\S+)\s*$", sec.get("DF", ""), re.M)
+    m = m if m and m.group(3) not in ("/metadata", "/", "/system", "/vendor") else None
     verdict("data_on_stick", bool(m) and "f2fs" in sec.get("MOUNTS", ""),
             data_kib=int(m.group(1)) if m else None, used_kib=int(m.group(2)) if m else None,
             byname_targets=sorted({os.path.basename(t).rstrip("0123456789")
@@ -246,7 +252,11 @@ def main():
         os.makedirs(a.redact, exist_ok=True)
         for f in sorted(os.listdir(d)):
             src, dst = f"{d}/{f}", f"{a.redact}/{f}"
-            if f.endswith((".txt", ".json", ".md")):
+            # Earlier boots' logs (prior-boots.tar.gz, unpacked into prior/ by read-stick-logs.sh) are not masked
+            # as a whole: pick files from them with --redact-file.
+            if os.path.isdir(src) or f.endswith(".tar.gz"):
+                print(f"not copied to {a.redact}: {f} (use --redact-file on single files)", file=sys.stderr)
+            elif f.endswith((".txt", ".json", ".md")):
                 open(dst, "w").write(redact(open(src, errors="replace").read()))
             else:
                 shutil.copy(src, dst)

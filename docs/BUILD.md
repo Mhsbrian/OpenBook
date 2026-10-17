@@ -119,6 +119,7 @@ docker wait anybook-aosp-build          # ~2 h 10 min cold on the shared host; r
 scripts/cf-boot.sh                      # Cuttlefish container: launch, wait for boot_completed, capture, tear down (~45 s)
 ```
 
+- The AOSP tree and `out/` are shared between lanes, so builds run under the lane lock `~/anybook/aosp/.lane.lock`. `aosp-docker.sh` takes it for `aosp-build.sh` and `aosp-sync.sh` (any command with `ANYBOOK_LANE=1`): it waits for whoever holds it and keeps it until the container exits, `-d` included. A caller that already holds it with `flock <lock> …` is recognised; one holding it through an inherited fd sets `ANYBOOK_LANE_LOCK_HELD=1`. Started any other way, `aosp-build.sh` refuses. `installer-image.sh` holds the lock while it snapshots `PRODUCT_OUT`. `ANYBOOK_LANE_UNLOCKED=1` for a tree of your own. Test: `scripts/aosp-lane-test.sh`.
 - Plan for about 41 GiB of RAM plus swap, 137 GB for `out/` (165 GB with `dist`), and 10 GB of ccache.
 - Cuttlefish runs in `cuttlefish-orchestration:1.56.0` (pinned by digest) with `--cap-add NET_ADMIN`, `seccomp=unconfined`, and `/dev/kvm`, `/dev/net/tun`, `/dev/vhost-net` and `/dev/vhost-vsock`.
 - Images are staged as reflink copies in `~/anybook/aosp/cf/product`; `out/` is never modified.

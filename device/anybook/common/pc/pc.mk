@@ -28,6 +28,10 @@ PRODUCT_SHIPPING_API_LEVEL := 37
 PRODUCT_USE_DYNAMIC_PARTITIONS := true
 PRODUCT_SET_DEBUGFS_RESTRICTIONS := true
 PRODUCT_FS_COMPRESSION := 1
+# APEXes ship uncompressed, as on Cuttlefish (device/google/cuttlefish/shared/device.mk). Compressed ones are
+# decompressed into /data on the first boot of every fresh /data. On the G14's USB stick that took 34 s (20 APEXes)
+# before SurfaceFlinger could start, so the first boot sat on a black screen for about a minute (ANAL-176).
+PRODUCT_COMPRESSED_APEX := false
 DEVICE_MANIFEST_FILE += device/anybook/common/pc/manifest.xml
 
 VENDOR_SECURITY_PATCH = $(PLATFORM_SECURITY_PATCH)
@@ -56,6 +60,15 @@ PRODUCT_PACKAGES += openbook-pc-setup
 PRODUCT_PACKAGES_DEBUG += \
     dgpu-power-check \
     openbook-pc-setup-test
+
+# Bring-up: keep logcat, the kernel log included, across boots in /data/misc/logd (16 files of 2 MiB), so a boot
+# that never shows anything can still be read later from a "save logs" boot (ANAL-176: the enforcing G14 boots left
+# no trace). logcatd only exists on userdebug and eng builds.
+ifneq ($(TARGET_BUILD_VARIANT),user)
+PRODUCT_PRODUCT_PROPERTIES += \
+    persist.logd.logpersistd=logcatd \
+    persist.logd.logpersistd.size=16
+endif
 
 # Graphics: AMD (Mesa radeonsi/RADV, minigbm amdgpu, drm_hwcomposer, ANGLE), picked at boot (ANAL-174). The
 # platform HALs stay on: minigbm allocator/mapper and drm_hwcomposer serve amdgpu and, as a fallback,
