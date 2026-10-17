@@ -10,7 +10,9 @@ use the same file (docs/installer.md section 11).
   --expect vm    verdicts for QEMU: virtio-gpu HAL, a connected virtual display (no Wi-Fi, touchpad or dGPU)
 Either way, hwtest-final.txt (openbook-hwtest, ANAL-179: its "HWTEST {json}" lines) adds the Wi-Fi, Bluetooth and
 audio verdicts: regulatory database, scan, connection, DHCP, internet, iperf3, Bluetooth on and paired, the
-built-in sound card, and the speaker-to-microphone loopback directly on ALSA and through Android.
+built-in sound card, and the speaker-to-microphone loopback directly on ALSA and through Android. Since ANAL-200 it
+also adds the arm64 native bridge's: its configuration, an arm64 binary running, the ID registers, FRECPE/FRSQRTE
+against golden values, and CRC32/NEON.
   --redact DIR   also copy the folder to DIR with MAC addresses, USB serial numbers and Wi-Fi network names
                  masked, for committing as evidence
 
@@ -224,6 +226,11 @@ def main():
         loop = ("card", "tone_bin_dbfs", "noise_bin_dbfs", "glitched_slices", "slices", "playback_error", "capture_error",
                 "error")
         hv("audio_loopback_alsa", "alsa-loopback", "heard", loop)
+        hv("bridge_config", "bridge-config", keep=("native_bridge", "binfmt", "guest_libs", "abilist"))
+        hv("bridge_exec", "bridge-exec", keep=("uname_machine", "hwcap", "error"))
+        hv("bridge_id_registers", "bridge-id-registers", keep=("sigill", "first_sigill", "midr", "isar0", "pfr0"))
+        hv("bridge_fp_estimates", "bridge-fp-estimates", keep=("cases", "bad", "first_bad"))
+        hv("bridge_int_simd", "bridge-int-simd", keep=("crc32", "neon_fma"))
         hv("audio_loopback_android", "aaudio-loopback", "heard",
            ("tone_bin_dbfs", "noise_bin_dbfs", "glitched_slices", "slices", "xruns", "media_volume", "input_error",
             "output_error", "error"))

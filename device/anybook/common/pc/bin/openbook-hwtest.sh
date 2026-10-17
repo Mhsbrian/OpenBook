@@ -1,7 +1,7 @@
 #!/system/bin/sh
 # SPDX-License-Identifier: Apache-2.0
-# OpenBook Wi-Fi, Bluetooth and audio checks for the live image's "save logs" entry (live-init runs it as root in
-# Android's mount namespace) and for a device agent; also by hand: `su 0 openbook-hwtest [wifi|bt|audio]`.
+# OpenBook Wi-Fi, Bluetooth, audio and arm64-bridge checks for the live image's "save logs" entry (live-init runs it as
+# root in Android's mount namespace) and for a device agent; also by hand: `su 0 openbook-hwtest [wifi|bt|audio|bridge]`.
 # mksh + toybox. Prints readable facts plus one "HWTEST {json}" line per result, which live-report.py turns into
 # verdicts. Changes nothing persistent: it may switch Wi-Fi and Bluetooth on (the user's own toggles), scans,
 # and plays a 2 s, 1 kHz tone on the speakers while it records the built-in mic. docs/g14-audio-net.md.
@@ -141,11 +141,38 @@ audio() {
   fi
 }
 
+# The arm64 native bridge (Digitalis, ANAL-200): its configuration, then openbook_bridge_check, an arm64 binary that
+# binfmt_misc runs through the translator and that prints one JSON result per check (docs/digitalis.md).
+bridge() {
+  h "bridge: arm64 native bridge"
+  nb=$(getprop ro.dalvik.vm.native.bridge)
+  echo "native bridge: $nb isa.arm64=$(getprop ro.dalvik.vm.isa.arm64) exec=$(getprop ro.enable.native.bridge.exec)" \
+    "flags=$(getprop ro.berberis.flags) abilist=$(getprop ro.product.cpu.abilist)"
+  binfmt=true
+  for f in arm64_dyn arm64_exe; do
+    echo "binfmt $f: $(head -n 2 /proc/sys/fs/binfmt_misc/$f 2>&1 | tr '\n' ' ')"
+    grep -q '^enabled' /proc/sys/fs/binfmt_misc/$f 2>/dev/null || binfmt=false
+  done
+  guest=$(ls /system/lib64/arm64 2>/dev/null | wc -l)
+  cfg=false; [ "$nb" = libberberis_arm64.so ] && $binfmt && [ "$guest" -gt 0 ] && cfg=true
+  j "\"test\": \"bridge-config\", \"ok\": $cfg, \"native_bridge\": $(q "$nb"), \"binfmt\": $binfmt, \"guest_libs\": $guest, \"abilist\": $(q "$(getprop ro.product.cpu.abilist)")"
+  chk=/system/bin/arm64/openbook_bridge_check
+  if [ -x $chk ]; then
+    out=$(timeout 120 $chk 2>&1); rc=$?
+    echo "$out"; echo "exit $rc"
+    echo "$out" | while IFS= read -r l; do case $l in '{'*) echo "HWTEST $l" ;; esac; done
+    echo "$out" | grep -q '"bridge-exec"' || j "\"test\": \"bridge-exec\", \"ok\": false, \"error\": $(q "exit $rc: $(echo "$out" | tail -n 1)")"
+  else
+    j "\"test\": \"bridge-exec\", \"ok\": false, \"error\": \"$chk missing\""
+  fi
+}
+
 case ${1:-all} in
   wifi) wifi ;;
   bt) bt ;;
   audio) audio ;;
-  all) audio; wifi; bt ;;
-  *) echo "usage: openbook-hwtest [wifi|bt|audio|all]" >&2; exit 2 ;;
+  bridge) bridge ;;
+  all) bridge; audio; wifi; bt ;;
+  *) echo "usage: openbook-hwtest [wifi|bt|audio|bridge|all]" >&2; exit 2 ;;
 esac
 exit 0
