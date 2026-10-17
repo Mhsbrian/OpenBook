@@ -18,13 +18,14 @@
 | Sleep | s2idle in a VM | **s2idle works; deep sleep (S0i3) never reached.** Hypothesis: the driverless PSP | `docs/power-input.md` |
 | Wi-Fi, Bluetooth, audio | Yes (WPA2, iperf3, tone through ALSA) | Not tested | `evidence/2026-10-17-g14-audio-net/` |
 | ARM apps (Digitalis, built from source) | 14/16 ARM-only apps; works in enforcing | Not tested | `evidence/2026-10-17-digitalis-a17/`, `evidence/2026-10-17-g14-combined/` |
-| Installer | Design done; live USB done | Live USB boots | `docs/installer.md` |
+| Installer | **Wizard 25/25, engine 53/53:** installs to a virtual NVMe disk that then boots by itself into OpenBook setup (SELinux enforcing) | Live USB boots; the wizard has not run yet | `evidence/2026-10-17-installer-wizard/` |
 
 **One gap holds back most of the table:** the owner's run of the latest stick on the G14. Everything marked "not tested" is built and waiting for that run.
 
 ### Running now
 
-- **ANAL-191** (installer wizard and `openbook-install` engine, QEMU only) holds the AOSP lane.
+- **ANAL-191 delivered** in PR #53 (installer wizard, `openbook-install` engine, OpenBook setup; QEMU only). The AOSP lane is free.
+- **The installer stick, for after the `anal178c` run:** `openbook-live-20261017-anal191e`. It has the same Android system as `anal178c` (`main` has had no device changes since) plus the installer, without the power and graphics checks. In QEMU: wizard 25/25, engine 53/53, live checks 39/39 (`evidence/2026-10-17-installer-wizard/`, sha256 there). On the G14 it is a dry run only (`docs/installer.md` §12.8).
 - **The latest stick is ready:** `openbook-live-20261017-anal178c`, built from `main` (PR #50, `evidence/2026-10-17-power-input/anal178c/`). It covers ANAL-176, ANAL-177, ANAL-178, ANAL-179 and ANAL-200, with the power check and the graphics check already on it. In QEMU: live checks 39/39, power check 10/10, graphics check 6/6. It supersedes `combined` and every older stick.
 
 ### Waiting on the owner
@@ -54,8 +55,8 @@
 | ANAL-178 input and power | In review | Read the lid, touchpad and power check results; then the S0i3 fix (kernel lane), the touchpad clock warnings, the skin sensor | Owner's stick run (boots A–C) |
 | ANAL-179 Wi-Fi, Bluetooth, audio | In review | Read Wi-Fi, pairing and speaker/mic results; fix what fails; speaker tuning | Owner's stick run |
 | ANAL-200 ARM bridge | In review | Read the bridge verdicts; run the probe and CoreMark on the G14 | Owner's stick run; upstream-report OK |
-| ANAL-191 installer wizard and engine | **Running** | A PR with the engine, the app and a QEMU install that boots from a virtual NVMe | — |
-| ANAL-192 installer end-to-end tests | Backlog | Starts when ANAL-191 delivers: the QEMU install matrix, then a spare-drive install on the G14 | Owner names the spare drive |
+| ANAL-191 installer wizard and engine | In review | The owner's dry run on the G14 from `anal191e`: wizard, hardware report, the plan, then Try (`docs/installer.md` §12.8). Open: `openbook-bootsync`, the text hardware report, efivarfs for firmware entries (kernel lane) | Owner's stick run (after `anal178c`) |
+| ANAL-192 installer end-to-end tests | Backlog | Can start: the QEMU install matrix (alongside booted, interrupted installs, slot switch), then a spare-drive install on the G14 | Owner names the spare drive |
 | ANAL-193 to ANAL-197 device loop | Backlog | ANAL-194 first: the Multica runtime and test agent on the G14's Linux | Owner installs the daemon |
 | ANAL-166 performance and parity | Backlog | After the installer: benchmarks, Chrome, the Linux terminal (AVF without pKVM). No sub-issues yet | — |
 | ANAL-186 NVIDIA | Parked | Research is done (ANAL-187); N1–N6 after M4 | — |
@@ -74,6 +75,22 @@
 **Build host:** one AOSP build at a time (`flock ~/anybook/aosp/.lane.lock`, taken by `scripts/aosp-docker.sh`), because builds peak at about 50 GB of the 61 GB RAM. Builds and images are in `docs/BUILD.md`; the live image and the owner checklists are in `docs/installer.md` §11.
 
 ## History
+
+### 2026-10-17: the installer wizard, the install engine and first-boot setup (ANAL-191, PR #53)
+- **Done** (`docs/installer.md` §12):
+  - `openbook-install`: the engine and its daemon. It does the disk inventory, the hardware check, the read-only plan and the install, with S1–S13 in the engine. It writes GPT and FAT itself, with no mounts.
+  - `OpenBookInstaller`: the seven Compose screens after the hi-fi design. It opens by itself on live boots.
+  - OpenBook setup: language, Wi-Fi and screen lock on an installed system's first boot.
+  - Install data on the stick: the layout, hashes, and `super` metadata for the installed 12 GiB size.
+- **SELinux:** the daemon runs enforcing in its own domain and writes only through whole-disk nodes with their own label. The disk-identity sysfs files carry a new label. The app supplies display, touchpad and battery, because Treble keeps a system daemon out of those files.
+- **Decision 6:** our G14 kernel has no `EFIVAR_FS`, so there is no firmware boot entry. Whole-disk installs boot through the fallback path; alongside installs need a firmware entry made by hand.
+- **Evidence** (`evidence/2026-10-17-installer-wizard/`):
+  - engine host tests 53/53;
+  - QEMU 25/25, enforcing, at 2880×1800 with density 240: the dry run leaves the NVMe untouched (0 allocated blocks), the install takes 20 s and is verified, and the NVMe alone boots into OpenBook setup and then the launcher;
+  - the live matrix 39/39 on the same image;
+  - screenshots of every screen.
+- **Not shown:** anything on the G14; alongside booted in QEMU; `openbook-bootsync`; the text hardware report.
+- **Next:** the owner's dry run on the G14 (§12.8), then ANAL-192.
 
 ### 2026-10-17: cleanup and one consolidated status (ANAL-159)
 - **Done:** the owner asked for less sprawl. No PRs are open. The remote branches went from 49 to 4. Two branches with commits never merged are kept as `archive/` tags. This file's top section is now one state of the union, with a next step for every open issue. `docs/PLAN.md` §4 and §7 point here instead of keeping their own copies.

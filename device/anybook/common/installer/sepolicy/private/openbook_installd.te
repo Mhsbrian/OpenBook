@@ -1,0 +1,52 @@
+# openbook-installd: the install engine's daemon (device/anybook/common/installer). Live sessions only.
+type openbook_installd, domain, coredomain;
+type openbook_installd_exec, system_file_type, exec_type, file_type;
+init_daemon_domain(openbook_installd)
+
+# The wizard app (platform-signed, platform_app) talks to it over /dev/socket/openbook_installd. Apps run with MLS
+# categories (s0:cX,cY), so the daemon they connect to must be an MLS-trusted subject, as other app-facing daemons.
+type openbook_installd_socket, file_type, coredomain_socket, mlstrustedobject;
+typeattribute openbook_installd mlstrustedsubject;
+unix_socket_connect(platform_app, openbook_installd, openbook_installd)
+
+# Whole disks (file_contexts): read every disk's identity and partition table; write the target chosen by the user,
+# and the stick's own EFI partition for logs and reports. Partitions are never opened: the engine works at offsets
+# on the whole disk, so Android's by-name partition types stay out of reach.
+type openbook_disk_block_device, dev_type;
+allow openbook_installd block_device:dir r_dir_perms;
+allow openbook_installd openbook_disk_block_device:blk_file rw_file_perms;
+allowxperm openbook_installd openbook_disk_block_device:blk_file ioctl {
+    BLKGETSIZE64 BLKSSZGET BLKPBSZGET BLKROGET BLKRRPART BLKFLSBUF
+};
+# BLKRRPART (the kernel re-reads the new table) and BLKFLSBUF (drop cached blocks before the read-back).
+allow openbook_installd self:global_capability_class_set sys_admin;
+
+# The engine forks the install so it survives the app; its log lives in its own data directory.
+type openbook_install_data_file, file_type, data_file_type, core_data_file_type;
+allow openbook_installd openbook_install_data_file:dir rw_dir_perms;
+allow openbook_installd openbook_install_data_file:file create_file_perms;
+
+# sysfs. A system domain may not read unlabeled sysfs files, the battery's or the LEDs' (Treble), so: directories
+# and links everywhere (finding disks, their holders, GPUs, network interfaces and drivers), attribute files only
+# where labeled: disk identity and DMI for the installer (file_contexts), the iGPU's PCI IDs (sysfs_gpu), cpufreq,
+# the sleep states (/sys/power/mem_sleep, /sys/power/state). Display, touchpad and battery come from the app (PROTOCOL.md).
+type sysfs_openbook_installer, fs_type, sysfs_type;
+allow openbook_installd sysfs_type:dir r_dir_perms;
+allow openbook_installd sysfs_type:lnk_file read;
+allow openbook_installd sysfs_openbook_installer:file r_file_perms;
+allow openbook_installd sysfs_gpu:file r_file_perms;
+allow openbook_installd sysfs_devices_system_cpu:file r_file_perms;
+allow openbook_installd sysfs_power:file r_file_perms;
+allow openbook_installd sysfs_mem_sleep:file r_file_perms;
+# The hardware check probes GPU IDs that are labeled only for the iGPU; elsewhere (VMs) it falls back to the driver
+# name. Those reads are expected to fail.
+dontaudit openbook_installd sysfs:file { open read };
+# vold reads SCSI disks' vendor (the name of a public volume); those files carry the installer's label now.
+allow vold sysfs_openbook_installer:file r_file_perms;
+
+# procfs: CPU, memory, swap and sound cards (the hardware check); mounts come from /proc/self.
+allow openbook_installd proc_cpuinfo:file r_file_perms;
+allow openbook_installd proc_meminfo:file r_file_perms;
+allow openbook_installd proc_swaps:file r_file_perms;
+allow openbook_installd proc_asound:dir r_dir_perms;
+allow openbook_installd proc_asound:file r_file_perms;

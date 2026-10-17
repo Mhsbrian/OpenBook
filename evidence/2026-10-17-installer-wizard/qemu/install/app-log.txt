@@ -1,0 +1,43 @@
+10-17 13:51:02.319   729   896 I BluetoothSystemServer: BluetoothManagerService: BluetoothManagerService Start with: Name=OpenBook on ROG Zephyrus G14 (GA403WR) Address=[address is null] HciInstance=default BluetoothAllowed=false PersistentState=1 EnableExternal=true AutoOnEnabled=false
+10-17 13:51:02.954  1029  1188 D NavigationModeController:     /vendor/overlay/OpenBookPcFrameworkOverlay.apk
+10-17 13:51:05.676   572  1398 I adbd    : Registering TCP with framework 'adb-OPENBOOKLIVE0001-4kRISz'
+10-17 13:51:05.677   729   952 I serviceDiscovery: [MdnsAdvertiser] Adding service name: adb-OPENBOOKLIVE0001-4kRISz, type: _adb._tcp, subtypes: , hostAddresses: , hostname: null, port: 5555, network: null, expirationTime: null, txtRecord: {given_name=OpenBook on ROG Zephyrus G14 (GA403WR), serial=OPENBOOKLIVE0001, v=2.0, api=37.0, name=OpenBook on ROG Zephyrus G14 (GA403WR)} with ID 2 and subtypes {} advertisingOptions MdnsAdvertisingOptions{ }
+10-17 13:51:06.805  1318  1340 D AlphabeticIndexCompat: computeSectionName: cs: Install OpenBook sectionName: I
+10-17 13:51:06.836  1318  1340 D AlphabeticIndexCompat: computeSectionName: cs: Install OpenBook sectionName: I
+10-17 13:51:07.093  1318  1340 D AlphabeticIndexCompat: computeSectionName: cs: Install OpenBook sectionName: I
+10-17 13:51:07.346  1318  1318 D AlphabeticalAppsList: addAppsWithSections: adding sectionName: I with appInfoTitle: Install OpenBook
+10-17 13:51:07.346  1318  1318 D AlphabeticalAppsList: addAppsWithSections: adding sectionName: I with appInfoTitle: Install OpenBook
+10-17 13:51:07.491  1922  1922 I Zygote  : Process 1922 created for com.android.packageinstaller
+10-17 13:51:07.491  1922  1922 I ackageinstaller: Using generational CollectorTypeCMC GC.
+10-17 13:51:07.502  1922  1922 D nativeloader: Configuring clns-shared-9 for other apk /system/priv-app/PackageInstaller/PackageInstaller.apk. target_sdk_version=37, uses_libraries=, library_path=/system/priv-app/PackageInstaller/lib/x86_64:/system/lib64, permitted_path=/data:/mnt/expand:/data/user_de/0/com.android.packageinstaller:/system/priv-app/PackageInstaller:/system/lib64
+10-17 13:51:07.520  1922  1922 V GraphicsEnvironment: com.android.packageinstaller is not listed in per-application setting
+10-17 13:51:07.654  1982  1982 I Zygote  : Process 1982 created for org.openbook.installer
+10-17 13:51:07.654  1982  1982 I nbook.installer: Using generational CollectorTypeCMC GC.
+10-17 13:51:07.664  1982  1982 D nativeloader: Configuring clns-shared-9 for other apk /system_ext/priv-app/OpenBookInstaller/OpenBookInstaller.apk. target_sdk_version=37, uses_libraries=, library_path=/system_ext/priv-app/OpenBookInstaller/lib/x86_64:/system/lib64, permitted_path=/data:/mnt/expand:/data/user/0/org.openbook.installer:/system_ext/priv-app/OpenBookInstaller:/system/lib64
+10-17 13:51:07.670  1982  1982 V GraphicsEnvironment: org.openbook.installer is not listed in per-application setting
+10-17 13:51:07.705  1029  1173 I Surface : Creating surface for consumer VRI[installer]#3(BLAST Consumer)3 with slotExpansion=1 for 64 slots
+10-17 13:51:08.383   729   812 I ActivityTaskManager: Displayed org.openbook.installer/.MainActivity for user 0: +709ms
+10-17 13:52:58.049  1407  1407 D ImeBackCallbackSender: Register OnBackInvokedCallback with priority=0 at app window (packageName=org.openbook.installer)
+10-17 13:52:58.342  1982  1982 W InteractionJankMonitor: Initializing without READ_DEVICE_CONFIG permission. enabled=true, interval=1, missedFrameThreshold=3, frameTimeThreshold=64, package=org.openbook.installer
+10-17 13:52:58.779  1982  1982 W FrameTracker: Missed SF frame:jankTypeLegacy: JANK_COMPOSER, jankTypeExperimental: JANK_NONE, vsyncId: 4864, totalDuration: 20008405, CUJ=J<IME_INSETS_SHOW_ANIMATION::0@1@org.openbook.installer>
+10-17 13:52:58.780  1982  1982 W FrameTracker: Missed SF frame:jankTypeLegacy: JANK_COMPOSER, jankTypeExperimental: JANK_NONE, vsyncId: 4873, totalDuration: 20903354, CUJ=J<IME_INSETS_SHOW_ANIMATION::0@1@org.openbook.installer>
+10-17 13:52:58.780  1982  1982 W FrameTracker: Missed SF frame:jankTypeLegacy: JANK_COMPOSER, jankTypeExperimental: JANK_NONE, vsyncId: 4882, totalDuration: 20447809, CUJ=J<IME_INSETS_SHOW_ANIMATION::0@1@org.openbook.installer>
+10-17 13:52:58.780  1982  1982 W FrameTracker: Missed SF frame:jankTypeLegacy: JANK_COMPOSER, jankTypeExperimental: JANK_NONE, vsyncId: 4891, totalDuration: 20113284, CUJ=J<IME_INSETS_SHOW_ANIMATION::0@1@org.openbook.installer>
+10-17 13:52:58.780  1982  1982 W FrameTracker: Missed SF frame:jankTypeLegacy: JANK_COMPOSER, jankTypeExperimental: JANK_NONE, vsyncId: 4900, totalDuration: 21527652, CUJ=J<IME_INSETS_SHOW_ANIMATION::0@1@org.openbook.installer>
+10-17 13:52:58.780  1982  1982 W FrameTracker: Missed SF frame:jankTypeLegacy: JANK_COMPOSER, jankTypeExperimental: JANK_NONE, vsyncId: 4909, totalDuration: 21118797, CUJ=J<IME_INSETS_SHOW_ANIMATION::0@1@org.openbook.installer>
+10-17 13:52:58.780  1982  1982 W FrameTracker: Missed SF frame:jankTypeLegacy: JANK_COMPOSER, jankTypeExperimental: JANK_NONE, vsyncId: 4918, totalDuration: 20086865, CUJ=J<IME_INSETS_SHOW_ANIMATION::0@1@org.openbook.installer>
+10-17 13:52:58.780  1982  1982 W FrameTracker: Missed SF frame:jankTypeLegacy: JANK_COMPOSER, jankTypeExperimental: JANK_NONE, vsyncId: 4927, totalDuration: 21000745, CUJ=J<IME_INSETS_SHOW_ANIMATION::0@1@org.openbook.installer>
+10-17 13:52:58.780  1982  1982 W FrameTracker: Missed SF frame:jankTypeLegacy: JANK_COMPOSER, jankTypeExperimental: JANK_NONE, vsyncId: 4936, totalDuration: 20939698, CUJ=J<IME_INSETS_SHOW_ANIMATION::0@1@org.openbook.installer>
+10-17 13:52:58.780  1982  1982 W FrameTracker: Missed SF frame:jankTypeLegacy: JANK_COMPOSER, jankTypeExperimental: JANK_NONE, vsyncId: 4945, totalDuration: 20833581, CUJ=J<IME_INSETS_SHOW_ANIMATION::0@1@org.openbook.installer>
+10-17 13:52:58.780  1982  1982 W FrameTracker: Missed SF frame:jankTypeLegacy: JANK_COMPOSER, jankTypeExperimental: JANK_NONE, vsyncId: 4954, totalDuration: 20487627, CUJ=J<IME_INSETS_SHOW_ANIMATION::0@1@org.openbook.installer>
+10-17 13:52:58.780  1982  1982 W FrameTracker: Missed SF frame:jankTypeLegacy: JANK_COMPOSER, jankTypeExperimental: JANK_NONE, vsyncId: 4963, totalDuration: 21819715, CUJ=J<IME_INSETS_SHOW_ANIMATION::0@1@org.openbook.installer>
+10-17 13:53:09.215  1407  1407 D ImeBackCallbackSender: Unregister OnBackInvokedCallback at app window (packageName=org.openbook.installer)
+10-17 13:53:09.265  1982  1982 W FrameTracker: Missed SF frame:jankTypeLegacy: JANK_COMPOSER, jankTypeExperimental: JANK_APPLICATION, vsyncId: 5327, totalDuration: 123637605, CUJ=J<IME_INSETS_HIDE_ANIMATION::1@1@org.openbook.installer>
+10-17 13:53:09.265  1982  1982 W FrameTracker: Missed App frame:jankTypeLegacy: UNKNOWN: 3, jankTypeExperimental: JANK_APPLICATION, vsyncId: 5341, totalDuration: 143360415, CUJ=J<IME_INSETS_HIDE_ANIMATION::1@1@org.openbook.installer>
+10-17 13:53:09.265  1982  1982 W FrameTracker: Missed SF frame:jankTypeLegacy: UNKNOWN: 3, jankTypeExperimental: JANK_APPLICATION, vsyncId: 5341, totalDuration: 143360415, CUJ=J<IME_INSETS_HIDE_ANIMATION::1@1@org.openbook.installer>
+10-17 13:53:09.265  1982  1982 W FrameTracker: Missed SF frame:jankTypeLegacy: JANK_COMPOSER, jankTypeExperimental: JANK_COMPOSER, vsyncId: 5346, totalDuration: 68121763, CUJ=J<IME_INSETS_HIDE_ANIMATION::1@1@org.openbook.installer>
+10-17 13:53:09.265  1982  1982 W FrameTracker: Missed SF frame:jankTypeLegacy: JANK_COMPOSER, jankTypeExperimental: JANK_NONE, vsyncId: 5356, totalDuration: 20614473, CUJ=J<IME_INSETS_HIDE_ANIMATION::1@1@org.openbook.installer>
+10-17 13:53:09.265  1982  1982 W FrameTracker: Missed SF frame:jankTypeLegacy: JANK_COMPOSER, jankTypeExperimental: JANK_NONE, vsyncId: 5365, totalDuration: 20656777, CUJ=J<IME_INSETS_HIDE_ANIMATION::1@1@org.openbook.installer>
+10-17 13:53:09.265  1982  1982 W FrameTracker: Missed SF frame:jankTypeLegacy: JANK_COMPOSER, jankTypeExperimental: JANK_NONE, vsyncId: 5374, totalDuration: 22551302, CUJ=J<IME_INSETS_HIDE_ANIMATION::1@1@org.openbook.installer>
+10-17 13:53:09.265  1982  1982 W FrameTracker: Missed SF frame:jankTypeLegacy: JANK_COMPOSER, jankTypeExperimental: JANK_NONE, vsyncId: 5383, totalDuration: 20663983, CUJ=J<IME_INSETS_HIDE_ANIMATION::1@1@org.openbook.installer>
+10-17 13:53:09.265  1982  1982 W FrameTracker: Missed SF frame:jankTypeLegacy: JANK_COMPOSER, jankTypeExperimental: JANK_NONE, vsyncId: 5401, totalDuration: 15655621, CUJ=J<IME_INSETS_HIDE_ANIMATION::1@1@org.openbook.installer>

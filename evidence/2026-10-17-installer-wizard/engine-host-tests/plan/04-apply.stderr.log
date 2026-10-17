@@ -1,0 +1,2 @@
+14:05:56 openbook-install 1: apply whole on nvme-QEMU_NVMe_Ctrl_internal0 (openbook-live-20261017-anal191e), SELinux enforcing
+14:05:56 refused (confirm_mismatch): unattended install needs --confirm-disk /dev/disk/by-id/nvme-QEMU_NVMe_Ctrl_internal0 and OPENBOOK_INSTALL_ERASE=/dev/disk/by-id/nvme-QEMU_NVMe_Ctrl_internal0

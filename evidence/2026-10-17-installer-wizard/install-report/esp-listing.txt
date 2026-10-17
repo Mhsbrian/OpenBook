@@ -1,0 +1,77 @@
+ Volume in drive : is OPENBOOK   
+ Volume Serial Number is 5930-5250
+Directory for ::/
+
+openbook     <DIR>     2026-10-17  13:53 
+loader       <DIR>     2026-10-17  13:55 
+EFI          <DIR>     2026-10-17  13:53 
+        3 files                   0 bytes
+
+Directory for ::/openbook
+
+.            <DIR>     2026-10-17  13:53 
+..           <DIR>     2026-10-17  13:53 
+a            <DIR>     2026-10-17  13:53 
+logs         <DIR>     2026-10-17  13:53 
+        4 files                   0 bytes
+
+Directory for ::/openbook/a
+
+.            <DIR>     2026-10-17  13:53 
+..           <DIR>     2026-10-17  13:53 
+kernel        26854400 2026-10-17  13:53 
+VENDOR~1 IMG    128012 2026-10-17  13:53  vendor_ramdisk.img
+ramdisk  img   3005944 2026-10-17  13:53 
+BOOTCO~1 IMG       796 2026-10-17  13:53  bootconfig.img
+        6 files          29 989 152 bytes
+
+Directory for ::/openbook/logs
+
+.            <DIR>     2026-10-17  13:53 
+..           <DIR>     2026-10-17  13:53 
+INSTAL~1 JSO     14263 2026-10-17  13:53  install-20261017T135308Z.json
+INSTAL~1 LOG      2370 2026-10-17  13:53  install-20261017T135308Z.log
+        4 files              16 633 bytes
+
+Directory for ::/loader
+
+.            <DIR>     2026-10-17  13:53 
+..           <DIR>     2026-10-17  13:53 
+entries      <DIR>     2026-10-17  13:53 
+LOADER~1 CON        72 2026-10-17  13:53  loader.conf
+RANDOM~1            32 2026-10-17  13:55  random-seed
+        5 files                 104 bytes
+
+Directory for ::/loader/entries
+
+.            <DIR>     2026-10-17  13:53 
+..           <DIR>     2026-10-17  13:53 
+OPENBO~1 CON       255 2026-10-17  13:53  openbook-a.conf
+        3 files                 255 bytes
+
+Directory for ::/EFI
+
+.            <DIR>     2026-10-17  13:53 
+..           <DIR>     2026-10-17  13:53 
+OPENBO~1     <DIR>     2026-10-17  13:53  OpenBook
+BOOT         <DIR>     2026-10-17  13:53 
+        4 files                   0 bytes
+
+Directory for ::/EFI/OpenBook
+
+.            <DIR>     2026-10-17  13:53 
+..           <DIR>     2026-10-17  13:53 
+SYSTEM~1 EFI    160256 2026-10-17  13:53  systemd-bootx64.efi
+        3 files             160 256 bytes
+
+Directory for ::/EFI/BOOT
+
+.            <DIR>     2026-10-17  13:53 
+..           <DIR>     2026-10-17  13:53 
+BOOTX64  EFI    160256 2026-10-17  13:53 
+        3 files             160 256 bytes
+
+Total files listed:
+       35 files          30 326 656 bytes
+                        505 409 536 bytes free
+

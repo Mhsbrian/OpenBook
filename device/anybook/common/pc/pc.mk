@@ -24,6 +24,9 @@ PRODUCT_VIRTUAL_AB_COW_VERSION := 3
 # Android desktop: desktop characteristics, windowing and flags (ANAL-169).
 $(call inherit-product, device/anybook/common/desktop/desktop.mk)
 
+# The installer: the "Install OpenBook" wizard and the install engine, live sessions only (ANAL-191).
+$(call inherit-product, device/anybook/common/installer/installer.mk)
+
 PRODUCT_SHIPPING_API_LEVEL := 37
 PRODUCT_USE_DYNAMIC_PARTITIONS := true
 PRODUCT_SET_DEBUGFS_RESTRICTIONS := true

@@ -1,0 +1,106 @@
+Slot 0:
+Metadata version: 10.2
+Metadata size: 1256 bytes
+Metadata max size: 65536 bytes
+Metadata slot count: 3
+Header flags: virtual_ab_device
+Partition table:
+------------------------
+  Name: system_a
+  Group: openbook_dynamic_partitions_a
+  Attributes: readonly
+  Extents:
+    0 .. 1358279 linear super 2048
+------------------------
+  Name: system_b
+  Group: openbook_dynamic_partitions_b
+  Attributes: readonly
+  Extents:
+    0 .. 9135 linear super 1361920
+------------------------
+  Name: system_ext_a
+  Group: openbook_dynamic_partitions_a
+  Attributes: readonly
+  Extents:
+    0 .. 248799 linear super 1372160
+------------------------
+  Name: system_ext_b
+  Group: openbook_dynamic_partitions_b
+  Attributes: readonly
+  Extents:
+------------------------
+  Name: product_a
+  Group: openbook_dynamic_partitions_a
+  Attributes: readonly
+  Extents:
+    0 .. 571295 linear super 1622016
+------------------------
+  Name: product_b
+  Group: openbook_dynamic_partitions_b
+  Attributes: readonly
+  Extents:
+------------------------
+  Name: vendor_a
+  Group: openbook_dynamic_partitions_a
+  Attributes: readonly
+  Extents:
+    0 .. 289855 linear super 2193408
+------------------------
+  Name: vendor_b
+  Group: openbook_dynamic_partitions_b
+  Attributes: readonly
+  Extents:
+------------------------
+  Name: vendor_dlkm_a
+  Group: openbook_dynamic_partitions_a
+  Attributes: readonly
+  Extents:
+    0 .. 104303 linear super 2484224
+------------------------
+  Name: vendor_dlkm_b
+  Group: openbook_dynamic_partitions_b
+  Attributes: readonly
+  Extents:
+------------------------
+  Name: system_dlkm_a
+  Group: openbook_dynamic_partitions_a
+  Attributes: readonly
+  Extents:
+    0 .. 35479 linear super 2588672
+------------------------
+  Name: system_dlkm_b
+  Group: openbook_dynamic_partitions_b
+  Attributes: readonly
+  Extents:
+------------------------
+Super partition layout:
+------------------------
+super: 2048 .. 1360328: system_a (1358280 sectors)
+super: 1361920 .. 1371056: system_b (9136 sectors)
+super: 1372160 .. 1620960: system_ext_a (248800 sectors)
+super: 1622016 .. 2193312: product_a (571296 sectors)
+super: 2193408 .. 2483264: vendor_a (289856 sectors)
+super: 2484224 .. 2588528: vendor_dlkm_a (104304 sectors)
+super: 2588672 .. 2624152: system_dlkm_a (35480 sectors)
+------------------------
+Block device table:
+------------------------
+  Partition name: super
+  First sector: 2048
+  Size: 12884901888 bytes
+  Flags: none
+------------------------
+Group table:
+------------------------
+  Name: default
+  Maximum size: 0 bytes
+  Flags: none
+------------------------
+  Name: openbook_dynamic_partitions_a
+  Maximum size: 8585740288 bytes
+  Flags: none
+------------------------
+  Name: openbook_dynamic_partitions_b
+  Maximum size: 8585740288 bytes
+  Flags: none
+------------------------

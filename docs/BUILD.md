@@ -205,6 +205,19 @@ scripts/installer/live-qemu.sh ~/anybook/installer/out/<label>.img <run>   # QEM
 ```
 Writing a stick: `scripts/installer/write-stick.sh` with `OPENBOOK_WRITE_CONFIRM=/dev/disk/by-id/usb-…` (owner confirmation). Details: `docs/installer.md` §11.
 
+## M8: installer wizard and install engine (ANAL-191)
+
+The wizard (`OpenBookInstaller`), the engine (`openbook-install`) and its daemon are part of the G14 product (`device/anybook/common/installer/`), so the product build and `scripts/installer-image.sh` above include them.
+
+```bash
+device/anybook/common/installer/app/tools/compile-check.sh        # the app's Kotlin, with the in-tree kotlinc (no Soong)
+scripts/installer/engine-test.sh ~/anybook/installer/out/<label>.img <run>    # engine host tests on image files, ~3 min
+scripts/installer/wizard-qemu.sh ~/anybook/installer/out/<label>.img <run>    # dryrun, install, installed, console in QEMU
+```
+- `engine-test.sh` builds the engine with gcc in the installer container and runs it on a fixture sysfs with image files. It covers refusals, a whole-disk install and an install alongside a Windows-like disk, checked with `sgdisk`, `fsck.fat`, mtools and `lpdump`.
+- `wizard-qemu.sh` drives the app with `uiautomator` and `input` over the serial console. It saves Android's screenshots to the stick's ESP (`openbook/shots/`), installs to a blank 64 GiB virtual NVMe disk, and boots that disk alone.
+- Results go to `~/anybook/logs/installer/<run>/` (`results.json`, `SUMMARY.md`). Details: `docs/installer.md` §12.
+
 ## M8: installer boot-chain prototype (ANAL-189)
 
 ```bash

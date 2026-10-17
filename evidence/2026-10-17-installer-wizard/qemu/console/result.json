@@ -1,0 +1,231 @@
+{
+ "reason": "all steps done",
+ "seconds": 99.8,
+ "steps_done": 82,
+ "steps": 82,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "init: init second stage started",
+   "t": 3.6
+  },
+  {
+   "step": 1,
+   "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+   "t": 5.3
+  },
+  {
+   "step": 3,
+   "wait": "console:/ \\$ ",
+   "t": 5.4
+  },
+  {
+   "step": 5,
+   "wait": "console:/ # ",
+   "t": 5.4
+  },
+  {
+   "step": 7,
+   "wait": "console:/ # ",
+   "t": 5.6
+  },
+  {
+   "step": 9,
+   "wait": "\\nBOOTDONE=1 uptime=",
+   "t": 12.9
+  },
+  {
+   "step": 10,
+   "wait": "console:/ # ",
+   "t": 12.9
+  },
+  {
+   "step": 12,
+   "wait": "console:/ # ",
+   "t": 14.1
+  },
+  {
+   "step": 14,
+   "wait": "console:/ # ",
+   "t": 15.1
+  },
+  {
+   "step": 16,
+   "wait": "console:/ # ",
+   "t": 15.8
+  },
+  {
+   "step": 18,
+   "wait": "console:/ # ",
+   "t": 18.3
+  },
+  {
+   "step": 20,
+   "wait": "console:/ # ",
+   "t": 19.9
+  },
+  {
+   "step": 22,
+   "wait": "console:/ # ",
+   "t": 21.7
+  },
+  {
+   "step": 24,
+   "wait": "console:/ # ",
+   "t": 25.3
+  },
+  {
+   "step": 26,
+   "wait": "console:/ # ",
+   "t": 25.7
+  },
+  {
+   "step": 28,
+   "wait": "===INSTALLED-END===",
+   "t": 28.7
+  },
+  {
+   "step": 29,
+   "wait": "console:/ # ",
+   "t": 28.7
+  },
+  {
+   "step": 31,
+   "wait": "===INSTALLER-STATE-END===",
+   "t": 32.3
+  },
+  {
+   "step": 32,
+   "wait": "console:/ # ",
+   "t": 32.3
+  },
+  {
+   "step": 34,
+   "wait": "console:/ # ",
+   "t": 32.7
+  },
+  {
+   "step": 36,
+   "wait": "@@SEEN\\[",
+   "t": 34.9
+  },
+  {
+   "step": 37,
+   "wait": "console:/ # ",
+   "t": 34.9
+  },
+  {
+   "step": 40,
+   "wait": "@@SNAP\\[",
+   "t": 37.6
+  },
+  {
+   "step": 41,
+   "wait": "console:/ # ",
+   "t": 37.6
+  },
+  {
+   "step": 44,
+   "wait": "@@TAPPED@@",
+   "t": 40.2
+  },
+  {
+   "step": 45,
+   "wait": "console:/ # ",
+   "t": 40.2
+  },
+  {
+   "step": 48,
+   "wait": "@@SEEN\\[",
+   "t": 45.5
+  },
+  {
+   "step": 49,
+   "wait": "console:/ # ",
+   "t": 45.5
+  },
+  {
+   "step": 52,
+   "wait": "@@SNAP\\[",
+   "t": 48.0
+  },
+  {
+   "step": 53,
+   "wait": "console:/ # ",
+   "t": 48.0
+  },
+  {
+   "step": 56,
+   "wait": "@@TAPPED@@",
+   "t": 50.7
+  },
+  {
+   "step": 57,
+   "wait": "console:/ # ",
+   "t": 50.7
+  },
+  {
+   "step": 60,
+   "wait": "@@SEEN\\[",
+   "t": 56.0
+  },
+  {
+   "step": 61,
+   "wait": "console:/ # ",
+   "t": 56.0
+  },
+  {
+   "step": 64,
+   "wait": "@@SNAP\\[",
+   "t": 58.5
+  },
+  {
+   "step": 65,
+   "wait": "console:/ # ",
+   "t": 58.5
+  },
+  {
+   "step": 68,
+   "wait": "@@TAPPED@@",
+   "t": 61.3
+  },
+  {
+   "step": 69,
+   "wait": "console:/ # ",
+   "t": 61.3
+  },
+  {
+   "step": 73,
+   "wait": "@@SNAP\\[",
+   "t": 73.2
+  },
+  {
+   "step": 74,
+   "wait": "console:/ # ",
+   "t": 73.2
+  },
+  {
+   "step": 77,
+   "wait": "===AFTER-SETUP-END===",
+   "t": 76.9
+  },
+  {
+   "step": 78,
+   "wait": "console:/ # ",
+   "t": 76.9
+  },
+  {
+   "step": 80,
+   "wait": "===AVC-END===",
+   "t": 77.9
+  },
+  {
+   "step": 81,
+   "wait": "console:/ # ",
+   "t": 78.1
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/qemu/wizard-f/blank-usb.img",
+ "nvme": "/home/hive/anybook/installer/qemu/wizard-f/console-nvme.img"
+}
