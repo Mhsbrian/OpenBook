@@ -27,12 +27,14 @@ import re
 # suite: (source globs relative to MUSTPASS_DIR, default stride, always-include patterns, exclude patterns)
 SUITES = {
     "egl": (["egl-main-20??-03-01.txt"], 3, ["dEQP-EGL.info.*"], []),
-    "gles2": (["gles2-main-20??-03-01.txt"], 4, ["dEQP-GLES2.info.*"], []),
-    "gles3": (["gles3-main-20??-03-01.txt"], 8, ["dEQP-GLES3.info.*"], []),
-    "gles31": (["gles31-main-20??-03-01.txt"], 8, ["dEQP-GLES31.info.*"], []),
+    # Strides tuned to the G14's first run (2026-10-17, 834 s for everything): GLES in full (about 4 minutes per
+    # driver there), Vulkan twice as dense, ANGLE end2end in full; about 24 minutes in all with one Vulkan pass.
+    "gles2": (["gles2-main-20??-03-01.txt"], 1, ["dEQP-GLES2.info.*"], []),
+    "gles3": (["gles3-main-20??-03-01.txt"], 1, ["dEQP-GLES3.info.*"], []),
+    "gles31": (["gles31-main-20??-03-01.txt"], 1, ["dEQP-GLES31.info.*"], []),
     # dEQP-VK.info.* records the device, its properties and formats; api.smoke draws a triangle; version_check
     # reports the API version the driver advertises (1.1 under android-strict, 1.4 without).
-    "vk": (["vk-main-20??-03-01/*.txt"], 30,
+    "vk": (["vk-main-20??-03-01/*.txt"], 15,
            ["dEQP-VK.info.*", "dEQP-VK.api.smoke.*", "dEQP-VK.api.version_check.*", "dEQP-VK.api.info.*",
             "dEQP-VK.api.device_init.create_device", "dEQP-VK.api.device_init.create_instance_name_version"],
            # WSI needs a native window (the surfaceless platform has none); the desktop itself exercises RADV's
@@ -54,7 +56,7 @@ def main():
     ap.add_argument("--angle-expectations")
     a = ap.parse_args()
     strides = {k: v[1] for k, v in SUITES.items()}
-    strides["angle"] = 2
+    strides["angle"] = 1
     for s in a.stride:
         k, _, n = s.partition("=")
         if (k not in SUITES and k != "angle") or not n.isdigit() or int(n) < 1:
@@ -106,8 +108,10 @@ def main():
             if "deqp_support/README.md" in l:
                 break
         path = os.path.join(a.out, "angle_end2end_tests_expectations.txt")
-        open(path, "w").write("\n".join(head + ["", f"// OpenBook ANAL-177: one in {strides['angle']} of the tests the "
-                                                 "Android 17 CTS list marks PASS; everything else is skipped.", ""] + keep +
+        open(path, "w").write("\n".join(head + ["", ("// OpenBook ANAL-177: every test the Android 17 CTS list marks PASS; everything else is skipped."
+                                                 if strides['angle'] == 1 else
+                                                 f"// OpenBook ANAL-177: one in {strides['angle']} of the tests the "
+                                                 "Android 17 CTS list marks PASS; everything else is skipped."), ""] + keep +
                                          ["", catch_all[0]]) + "\n")
         meta["suites"]["angle"] = {"file": os.path.basename(path), "cases": len(keep), "source_cases": len(passing),
                                    "stride": strides["angle"], "sha256": sha(path),

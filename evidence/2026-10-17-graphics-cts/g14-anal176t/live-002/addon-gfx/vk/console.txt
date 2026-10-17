@@ -1,0 +1,230 @@
+dEQP version: unknown (0xcafebabe)
+deviceName: AMD Radeon 890M Graphics (RADV STRIX1)
+Running dEQP on 12 threads in 500-test groups
+Pass: 0, Duration: 0
+Pass: 0, Duration: 2
+Pass: 0, Duration: 4
+Pass: 0, Duration: 6
+Pass: 0, Duration: 8
+Pass: 0, Duration: 10
+Pass: 319, Skip: 181, Duration: 12, Remaining: 26:17
+Pass: 1293, Skip: 707, Duration: 14, Remaining: 7:29
+Pass: 3561, Skip: 1939, Duration: 16, Remaining: 2:56
+Pass: 3883, Skip: 2117, Duration: 18, Remaining: 3:00
+Pass: 3883, Skip: 2117, Duration: 20, Remaining: 3:20
+Pass: 3883, Skip: 2117, Duration: 22, Remaining: 3:40
+Pass: 3883, Skip: 2117, Duration: 24, Remaining: 4:00
+Pass: 3883, Skip: 2117, Duration: 26, Remaining: 4:21
+Pass: 4203, Skip: 2297, Duration: 28, Remaining: 4:17
+Pass: 4203, Skip: 2297, Duration: 30, Remaining: 4:35
+Pass: 4203, Skip: 2297, Duration: 32, Remaining: 4:54
+Pass: 4203, Skip: 2297, Duration: 34, Remaining: 5:12
+Pass: 4203, Skip: 2297, Duration: 36, Remaining: 5:30
+Pass: 4203, Skip: 2297, Duration: 38, Remaining: 5:49
+Pass: 4203, Skip: 2297, Duration: 40, Remaining: 6:07
+Pass: 4203, Skip: 2297, Duration: 42, Remaining: 6:25
+ERROR - dEQP error: radv/amdgpu: The CS has been cancelled because the context is lost. This context is innocent.
+ERROR - Test dEQP-VK.api.image_clearing.dedicated_allocation.clear_color_image.1d.optimal.remaining_array_layers.r5g5b5a1_unorm_pack16_200x1_clamp_input_multiple_subresourcerange: Crash: See "/data/local/tmp/openbook-gfx/out/vk/run/c24.r1.log"
+ERROR - dEQP error: radv/amdgpu: The CS has been cancelled because the context is lost. This context is innocent.
+ERROR - Test dEQP-VK.renderpasses.dynamic_rendering.graphics_pipeline_library.suballocation.formats.a8b8g8r8_uint_pack32.input.dont_care.store.draw: Fail: See "/data/local/tmp/openbook-gfx/out/vk/run/c20.r1.log"
+ERROR - Test dEQP-VK.renderpasses.dynamic_rendering.graphics_pipeline_library.suballocation.formats.d32_sfloat_s8_uint.input.clear.dont_care.clear_stencil_read_only: Crash: See "/data/local/tmp/openbook-gfx/out/vk/run/c20.r1.log"
+ERROR - dEQP error: radv/amdgpu: The CS has been cancelled because the context is lost. This context is innocent.
+ERROR - Test dEQP-VK.sparse_resources.image_rebind.cube.rg8i.256_256_1: Crash: See "/data/local/tmp/openbook-gfx/out/vk/run/c15.r1.log"
+ERROR - dEQP error: radv/amdgpu: The CS has been cancelled because the context is lost. This context is innocent.
+ERROR - Test dEQP-VK.ray_query.acceleration_structures.flags.sparse_binding_structures.fragment_shader.gpu_built.triangles_aop.identical_instances_aop.nopadding.fasttrace_update_compaction_lowmemory_topgeneric: Fail: See "/data/local/tmp/openbook-gfx/out/vk/run/c12.r1.log"
+ERROR - Test dEQP-VK.ray_query.acceleration_structures.flags.sparse_binding_structures.compute_shader.gpu_built.triangles.different_instances_aop.nopadding.fasttrace_update_compaction_0_bothgeneric: Crash: See "/data/local/tmp/openbook-gfx/out/vk/run/c12.r1.log"
+ERROR - dEQP error: radv/amdgpu: The CS has been cancelled because the context is lost. This context is innocent.
+ERROR - Test dEQP-VK.ray_query.acceleration_structures.format.sparse_binding_structures.tess_evaluation_shader.gpu_built.r32g32b32a32_sfloat.padded.index_uint32: Fail: See "/data/local/tmp/openbook-gfx/out/vk/run/c19.r1.log"
+ERROR - Test dEQP-VK.ray_query.acceleration_structures.operations.traditional_structures.compute_shader.serialization.gpu_built.bottom_acceleration_structure.triangles: Crash: See "/data/local/tmp/openbook-gfx/out/vk/run/c19.r1.log"
+ERROR - dEQP error: radv/amdgpu: The CS has been cancelled because the context is lost. This context is innocent.
+ERROR - Test dEQP-VK.synchronization.op.multi_queue.timeline_semaphore.write_ssbo_geometry_read_ubo_texel_geometry.buffer_16384_concurrent_maintenance9: Fail: See "/data/local/tmp/openbook-gfx/out/vk/run/c23.r1.log"
+ERROR - dEQP error: radv/amdgpu: The CS has been cancelled because the context is lost. This context is innocent.
+ERROR - Test dEQP-VK.synchronization.op.multi_queue.timeline_semaphore.write_ssbo_fragment_read_ubo_vertex.buffer_16384_concurrent_maintenance9: Crash: See "/data/local/tmp/openbook-gfx/out/vk/run/c23.r1.log"
+ERROR - Test dEQP-VK.draw.renderpass.instanced.draw_indirect_vk_primitive_topology_triangle_fan_attrib_divisor_20_multiview: Crash: See "/data/local/tmp/openbook-gfx/out/vk/run/c22.r1.log"
+ERROR - dEQP error: radv/amdgpu: The CS has been cancelled because the context is lost. This context is innocent.
+ERROR - Test dEQP-VK.texture.mipmap.3d.image_view_min_lod.base_level.nearest_nearest: Crash: See "/data/local/tmp/openbook-gfx/out/vk/run/c17.r1.log"
+Pass: 4203, Skip: 2297, Duration: 44, Remaining: 6:44
+Pass: 4203, Skip: 2297, Duration: 46, Remaining: 7:02
+Pass: 4203, Skip: 2297, Duration: 48, Remaining: 7:21
+Pass: 4203, Skip: 2297, Duration: 50, Remaining: 7:39
+Pass: 4203, Skip: 2297, Duration: 52, Remaining: 7:57
+Pass: 4203, Skip: 2297, Duration: 54, Remaining: 8:16
+Pass: 4203, Skip: 2297, Duration: 56, Remaining: 8:34
+Pass: 4203, Skip: 2297, Duration: 58, Remaining: 8:52
+Pass: 4203, Skip: 2297, Duration: 1:00, Remaining: 9:11
+Pass: 4521, Skip: 2477, Flake: 2, Duration: 1:02, Remaining: 8:44
+Pass: 4521, Skip: 2477, Flake: 2, Duration: 1:04, Remaining: 9:01
+Pass: 5514, Skip: 2980, Flake: 6, Duration: 1:06, Remaining: 7:28
+Pass: 5849, Skip: 3143, Flake: 8, Duration: 1:08, Remaining: 7:12
+Pass: 6526, Skip: 3463, Flake: 11, Duration: 1:10, Remaining: 6:33
+Pass: 6852, Skip: 3636, Flake: 12, Duration: 1:12, Remaining: 6:22
+Pass: 6852, Skip: 3636, Flake: 12, Duration: 1:14, Remaining: 6:32
+Pass: 7178, Skip: 3810, Flake: 12, Duration: 1:16, Remaining: 6:21
+Pass: 8196, Skip: 4292, Flake: 12, Duration: 1:18, Remaining: 5:35
+Pass: 8838, Skip: 4650, Flake: 12, Duration: 1:20, Remaining: 5:12
+Pass: 9137, Skip: 4851, Flake: 12, Duration: 1:22, Remaining: 5:05
+Pass: 9468, Skip: 5020, Flake: 12, Duration: 1:24, Remaining: 4:59
+Pass: 9794, Skip: 5194, Flake: 12, Duration: 1:26, Remaining: 4:53
+ERROR - dEQP error: radv/amdgpu: The CS has been cancelled because the context is lost. This context is innocent.
+ERROR - Test dEQP-VK.texture.compressed_3D.astc_10x8_srgb_block_3d_npot_mip1: Timeout: See "/data/local/tmp/openbook-gfx/out/vk/run/c14.r1.log"
+ERROR - dEQP error: radv/amdgpu: The CS has been cancelled because the context is lost. This context is innocent.
+ERROR - Test dEQP-VK.subgroups.arithmetic.compute.subgroupinclusivemin_ivec2_requiredsubgroupsize: Timeout: See "/data/local/tmp/openbook-gfx/out/vk/run/c16.r1.log"
+Pass: 9794, Skip: 5194, Flake: 12, Duration: 1:28, Remaining: 5:00
+Pass: 11083, Skip: 5905, Flake: 12, Duration: 1:30, Remaining: 4:20
+Pass: 11413, Skip: 6075, Flake: 12, Duration: 1:32, Remaining: 4:16
+Pass: 11739, Skip: 6249, Flake: 12, Duration: 1:34, Remaining: 4:11
+Pass: 11739, Skip: 6249, Flake: 12, Duration: 1:36, Remaining: 4:17
+Pass: 11739, Skip: 6249, Flake: 12, Duration: 1:38, Remaining: 4:22
+ERROR - Test dEQP-VK.api.copy_and_blit.copy_memory_indirect.size_12.offset_4.count_63.normal_stride.graphics: Fail: See "/data/local/tmp/openbook-gfx/out/vk/run/c41.r1.log"
+Pass: 11739, Skip: 6249, Flake: 12, Duration: 1:40, Remaining: 4:27
+Pass: 13039, Skip: 6949, Flake: 12, Duration: 1:42, Remaining: 3:55
+ERROR - dEQP error: radv/amdgpu: The CS has been cancelled because the context is lost. This context is innocent.
+ERROR - Test dEQP-VK.ray_query.acceleration_structures.flags.sparse_binding_structures.fragment_shader.gpu_built.triangles.identical_instances_aop.padded.fasttrace_0_compaction_lowmemory_bothgeneric: Fail: See "/data/local/tmp/openbook-gfx/out/vk/run/c18.r1.log"
+ERROR - Test dEQP-VK.ray_query.acceleration_structures.flags.sparse_binding_structures.fragment_shader.gpu_built.aabbs_aop.identical_instances.padded.fasttrace_0_compaction_lowmemory_bothgeneric: Timeout: See "/data/local/tmp/openbook-gfx/out/vk/run/c18.r1.log"
+ERROR - dEQP error: radv/amdgpu: The CS has been cancelled because the context is lost. This context is innocent.
+ERROR - Test dEQP-VK.synchronization2.op.multi_queue.intermediate_barrier_use_all.write_fill_buffer_read_ubo_texel_compute_indirect_buffer_16384.read_copy_buffer_write_ssbo_compute_maintenance9: Fail: See "/data/local/tmp/openbook-gfx/out/vk/run/c21.r1.log"
+ERROR - Test dEQP-VK.texture.filtering.2d_array.combinations.nearest.linear.mirrored_repeat.mirrored_repeat: Timeout: See "/data/local/tmp/openbook-gfx/out/vk/run/c21.r1.log"
+Pass: 14007, Skip: 7481, Flake: 12, Duration: 1:44, Remaining: 3:36
+Pass: 14331, Skip: 7656, Flake: 13, Duration: 1:46, Remaining: 3:33
+Pass: 14331, Skip: 7656, Flake: 13, Duration: 1:48, Remaining: 3:37
+Pass: 14331, Skip: 7656, Flake: 13, Duration: 1:50, Remaining: 3:41
+Pass: 14646, Skip: 7840, Flake: 14, Duration: 1:52, Remaining: 3:37
+Pass: 14646, Skip: 7840, Flake: 14, Duration: 1:54, Remaining: 3:41
+Pass: 14646, Skip: 7840, Flake: 14, Duration: 1:56, Remaining: 3:45
+Pass: 14976, Skip: 8010, Flake: 14, Duration: 1:58, Remaining: 3:41
+Pass: 14976, Skip: 8010, Flake: 14, Duration: 2:00, Remaining: 3:45
+ERROR - Test dEQP-VK.api.info.format_properties.g8_b8r8_2plane_420_unorm: Fail: See "/data/local/tmp/openbook-gfx/out/vk/run/c50.r1.log"
+ERROR - Test dEQP-VK.api.copy_and_blit.copy_memory_indirect.size_12.offset_4.count_63.normal_stride.graphics: Fail: See "/data/local/tmp/openbook-gfx/out/vk/run/c41.r2.log"
+Pass: 15964, Fail: 1, Skip: 8521, Flake: 14, Duration: 2:02, Remaining: 3:27
+ERROR - Test dEQP-VK.ray_tracing_pipeline.amber.barycentrics: Crash: See "/data/local/tmp/openbook-gfx/out/vk/run/c51.r1.log"
+Pass: 16617, Fail: 1, Skip: 8866, Flake: 16, Duration: 2:04, Remaining: 3:18
+Pass: 17294, Fail: 1, Skip: 9189, Flake: 16, Duration: 2:06, Remaining: 3:08
+Pass: 17606, Fail: 1, Skip: 9375, Flake: 18, Duration: 2:08, Remaining: 3:05
+Pass: 17920, Fail: 1, Skip: 9561, Flake: 18, Duration: 2:10, Remaining: 3:03
+Pass: 17920, Fail: 1, Skip: 9561, Flake: 18, Duration: 2:12, Remaining: 3:05
+Pass: 17920, Fail: 1, Skip: 9561, Flake: 18, Duration: 2:14, Remaining: 3:08
+Pass: 18253, Fail: 1, Skip: 9728, Flake: 18, Duration: 2:16, Remaining: 3:05
+ERROR - Test dEQP-VK.api.info.format_properties.g8_b8r8_2plane_420_unorm: Fail: See "/data/local/tmp/openbook-gfx/out/vk/run/c50.r2.log"
+Pass: 18906, Fail: 2, Skip: 10074, Flake: 18, Duration: 2:18, Remaining: 2:57
+Pass: 20238, Fail: 2, Skip: 10742, Flake: 18, Duration: 2:20, Remaining: 2:39
+ERROR - Test dEQP-VK.ray_tracing_pipeline.amber.barycentrics: Crash: See "/data/local/tmp/openbook-gfx/out/vk/run/c51.r2.log"
+Pass: 21239, Fail: 2, Skip: 11241, Flake: 18, Duration: 2:22, Remaining: 2:27
+Pass: 21239, Fail: 2, Skip: 11241, Flake: 18, Duration: 2:24, Remaining: 2:29
+Pass: 21239, Fail: 2, Skip: 11241, Flake: 18, Duration: 2:26, Remaining: 2:31
+Pass: 21239, Fail: 2, Skip: 11241, Flake: 18, Duration: 2:28, Remaining: 2:33
+Pass: 21239, Fail: 2, Skip: 11241, Flake: 18, Duration: 2:30, Remaining: 2:35
+Pass: 21581, Fail: 2, Crash: 1, Skip: 11398, Flake: 18, Duration: 2:32, Remaining: 2:33
+Pass: 21906, Fail: 2, Crash: 1, Skip: 11573, Flake: 18, Duration: 2:34, Remaining: 2:30
+Pass: 22231, Fail: 2, Crash: 1, Skip: 11748, Flake: 18, Duration: 2:36, Remaining: 2:27
+Pass: 22875, Fail: 2, Crash: 1, Skip: 12104, Flake: 18, Duration: 2:38, Remaining: 2:20
+Pass: 23520, Fail: 2, Crash: 1, Skip: 12459, Flake: 18, Duration: 2:40, Remaining: 2:14
+Pass: 25151, Fail: 2, Crash: 1, Skip: 13328, Flake: 18, Duration: 2:42, Remaining: 1:56
+Pass: 25151, Fail: 2, Crash: 1, Skip: 13328, Flake: 18, Duration: 2:44, Remaining: 1:58
+Pass: 25151, Fail: 2, Crash: 1, Skip: 13328, Flake: 18, Duration: 2:46, Remaining: 1:59
+Pass: 25151, Fail: 2, Crash: 1, Skip: 13328, Flake: 18, Duration: 2:48, Remaining: 2:00
+Pass: 25488, Fail: 2, Crash: 1, Skip: 13491, Flake: 18, Duration: 2:50, Remaining: 1:58
+Pass: 25804, Fail: 2, Crash: 1, Skip: 13675, Flake: 18, Duration: 2:52, Remaining: 1:56
+ERROR - Test dEQP-VK.fragment_shading_rate.renderpass2.monolithic.attachment_rate.setup_with_copying_using_transfer_queue_concurent.r8_uint.rate_1x2_general_layout: Crash: See "/data/local/tmp/openbook-gfx/out/vk/run/c83.r1.log"
+Pass: 26125, Fail: 2, Crash: 1, Skip: 13854, Flake: 18, Duration: 2:54, Remaining: 1:54
+Pass: 28414, Fail: 2, Crash: 1, Skip: 15065, Flake: 18, Duration: 2:56, Remaining: 1:31
+Pass: 28414, Fail: 2, Crash: 1, Skip: 15065, Flake: 18, Duration: 2:58, Remaining: 1:33
+Pass: 28414, Fail: 2, Crash: 1, Skip: 15065, Flake: 18, Duration: 3:00, Remaining: 1:34
+Pass: 28740, Fail: 2, Crash: 1, Skip: 15239, Flake: 18, Duration: 3:02, Remaining: 1:31
+ERROR - Test dEQP-VK.pipeline.monolithic.sampler.view_type.cube.format.r8g8_sint.min_reduce.comp_r_zero_zero_zero.min: Fail: See "/data/local/tmp/openbook-gfx/out/vk/run/c89.r1.log"
+Pass: 28740, Fail: 2, Crash: 1, Skip: 15239, Flake: 18, Duration: 3:04, Remaining: 1:32
+Pass: 28740, Fail: 2, Crash: 1, Skip: 15239, Flake: 18, Duration: 3:06, Remaining: 1:33
+Pass: 29048, Fail: 2, Crash: 1, Skip: 15431, Flake: 18, Duration: 3:08, Remaining: 1:31
+ERROR - Test dEQP-VK.fragment_shading_rate.renderpass2.monolithic.attachment_rate.setup_with_copying_using_transfer_queue_concurent.r8_uint.rate_1x2_general_layout: Crash: See "/data/local/tmp/openbook-gfx/out/vk/run/c83.r2.log"
+ERROR - Test dEQP-VK.draw.renderpass.ahb.triangle_list: Fail: See "/data/local/tmp/openbook-gfx/out/vk/run/c94.r1.log"
+Pass: 30363, Fail: 2, Crash: 2, Skip: 16115, Flake: 18, Duration: 3:10, Remaining: 1:20
+Pass: 31317, Fail: 2, Crash: 2, Skip: 16661, Flake: 18, Duration: 3:12, Remaining: 1:12
+ERROR - Test dEQP-VK.api.info.format_properties.g10x6_b10x6r10x6_2plane_420_unorm_3pack16: Fail: See "/data/local/tmp/openbook-gfx/out/vk/run/c97.r1.log"
+ERROR - Test dEQP-VK.spirv_assembly.instruction.compute.opfma.fp64.vec4.rte.denorm_flush.float_controls: Fail: See "/data/local/tmp/openbook-gfx/out/vk/run/c97.r1.log"
+Pass: 31632, Fail: 2, Crash: 2, Skip: 16846, Flake: 18, Duration: 3:14, Remaining: 1:10
+Pass: 31962, Fail: 2, Crash: 2, Skip: 17015, Flake: 19, Duration: 3:16, Remaining: 1:08
+Pass: 31962, Fail: 2, Crash: 2, Skip: 17015, Flake: 19, Duration: 3:18, Remaining: 1:09
+Pass: 32283, Fail: 2, Crash: 2, Skip: 17194, Flake: 19, Duration: 3:20, Remaining: 1:07
+Pass: 32607, Fail: 2, Crash: 2, Skip: 17370, Flake: 19, Duration: 3:22, Remaining: 1:05
+ERROR - Test dEQP-VK.draw.renderpass.ahb.triangle_list: Fail: See "/data/local/tmp/openbook-gfx/out/vk/run/c94.r2.log"
+ERROR - Test dEQP-VK.api.copy_and_blit.copy_memory_indirect.size_12.offset_0.count_2.normal_stride.graphics: Fail: See "/data/local/tmp/openbook-gfx/out/vk/run/c105.r1.log"
+Pass: 34259, Fail: 3, Crash: 2, Skip: 18217, Flake: 19, Duration: 3:24, Remaining: 53
+Pass: 34607, Fail: 3, Crash: 2, Skip: 18369, Flake: 19, Duration: 3:26, Remaining: 51
+ERROR - Test dEQP-VK.api.info.format_properties.g10x6_b10x6r10x6_2plane_420_unorm_3pack16: Fail: See "/data/local/tmp/openbook-gfx/out/vk/run/c97.r2.log"
+ERROR - Test dEQP-VK.spirv_assembly.instruction.compute.opfma.fp64.vec4.rte.denorm_flush.float_controls: Fail: See "/data/local/tmp/openbook-gfx/out/vk/run/c97.r2.log"
+Pass: 34946, Fail: 5, Crash: 2, Skip: 18528, Flake: 19, Duration: 3:28, Remaining: 49
+Pass: 34946, Fail: 5, Crash: 2, Skip: 18528, Flake: 19, Duration: 3:30, Remaining: 49
+Pass: 34946, Fail: 5, Crash: 2, Skip: 18528, Flake: 19, Duration: 3:32, Remaining: 50
+Pass: 34946, Fail: 5, Crash: 2, Skip: 18528, Flake: 19, Duration: 3:34, Remaining: 50
+Pass: 34946, Fail: 5, Crash: 2, Skip: 18528, Flake: 19, Duration: 3:36, Remaining: 51
+Pass: 34946, Fail: 5, Crash: 2, Skip: 18528, Flake: 19, Duration: 3:38, Remaining: 51
+Pass: 34946, Fail: 5, Crash: 2, Skip: 18528, Flake: 19, Duration: 3:40, Remaining: 52
+Pass: 35263, Fail: 5, Crash: 2, Skip: 18711, Flake: 19, Duration: 3:42, Remaining: 50
+Pass: 35263, Fail: 5, Crash: 2, Skip: 18711, Flake: 19, Duration: 3:44, Remaining: 50
+Pass: 35904, Fail: 5, Crash: 2, Skip: 19070, Flake: 19, Duration: 3:46, Remaining: 46
+Pass: 35904, Fail: 5, Crash: 2, Skip: 19070, Flake: 19, Duration: 3:48, Remaining: 46
+ERROR - Test dEQP-VK.info.device_extensions: Fail: See "/data/local/tmp/openbook-gfx/out/vk/run/c110.r1.log"
+ERROR - Test dEQP-VK.api.copy_and_blit.copy_memory_indirect.size_12.offset_0.count_2.normal_stride.graphics: Fail: See "/data/local/tmp/openbook-gfx/out/vk/run/c105.r2.log"
+Pass: 36542, Fail: 6, Crash: 2, Skip: 19431, Flake: 19, Duration: 3:50, Remaining: 42
+Pass: 36851, Fail: 6, Crash: 2, Skip: 19622, Flake: 19, Duration: 3:52, Remaining: 39
+Pass: 37519, Fail: 6, Crash: 2, Skip: 19954, Flake: 19, Duration: 3:54, Remaining: 35
+Pass: 38203, Fail: 6, Crash: 2, Skip: 20270, Flake: 19, Duration: 3:56, Remaining: 31
+Pass: 38203, Fail: 6, Crash: 2, Skip: 20270, Flake: 19, Duration: 3:58, Remaining: 31
+ERROR - Test dEQP-VK.api.info.format_properties.g12x4_b12x4r12x4_2plane_420_unorm_3pack16: Fail: See "/data/local/tmp/openbook-gfx/out/vk/run/c118.r1.log"
+Pass: 38203, Fail: 6, Crash: 2, Skip: 20270, Flake: 19, Duration: 4:00, Remaining: 31
+Pass: 38203, Fail: 6, Crash: 2, Skip: 20270, Flake: 19, Duration: 4:02, Remaining: 31
+Pass: 38203, Fail: 6, Crash: 2, Skip: 20270, Flake: 19, Duration: 4:04, Remaining: 32
+Pass: 38203, Fail: 6, Crash: 2, Skip: 20270, Flake: 19, Duration: 4:06, Remaining: 32
+Pass: 38203, Fail: 6, Crash: 2, Skip: 20270, Flake: 19, Duration: 4:08, Remaining: 32
+Pass: 38203, Fail: 6, Crash: 2, Skip: 20270, Flake: 19, Duration: 4:10, Remaining: 33
+Pass: 38203, Fail: 6, Crash: 2, Skip: 20270, Flake: 19, Duration: 4:12, Remaining: 33
+Pass: 38203, Fail: 6, Crash: 2, Skip: 20270, Flake: 19, Duration: 4:14, Remaining: 33
+Pass: 38537, Fail: 6, Crash: 2, Skip: 20436, Flake: 19, Duration: 4:16, Remaining: 31
+Pass: 39826, Fail: 6, Crash: 2, Skip: 21147, Flake: 19, Duration: 4:18, Remaining: 22
+Pass: 40803, Fail: 6, Crash: 2, Skip: 21670, Flake: 19, Duration: 4:20, Remaining: 15
+ERROR - Test dEQP-VK.info.device_extensions: Fail: See "/data/local/tmp/openbook-gfx/out/vk/run/c110.r2.log"
+Pass: 41759, Fail: 7, Crash: 2, Skip: 22213, Flake: 19, Duration: 4:22, Remaining: 9
+ERROR - Test dEQP-VK.api.info.format_properties.g12x4_b12x4r12x4_2plane_420_unorm_3pack16: Fail: See "/data/local/tmp/openbook-gfx/out/vk/run/c118.r2.log"
+Pass: 42089, Fail: 8, Crash: 2, Skip: 22382, Flake: 19, Duration: 4:24, Remaining: 7
+Pass: 42232, Fail: 8, Crash: 2, Skip: 22465, Flake: 19, Duration: 4:26, Remaining: 6
+Pass: 42232, Fail: 8, Crash: 2, Skip: 22465, Flake: 19, Duration: 4:28, Remaining: 6
+Pass: 43222, Fail: 8, Crash: 2, Skip: 22975, Flake: 19, Duration: 4:29, Remaining: 0
+
+Slowest tests:
+  dEQP-VK.ray_query.acceleration_structures.flags.sparse_binding_structures.fragment_shader.gpu_built.aabbs_aop.identical_instances.padded.fasttrace_0_compaction_lowmemory_bothgeneric (60.06s)
+  dEQP-VK.texture.filtering.2d_array.combinations.nearest.linear.mirrored_repeat.mirrored_repeat (60.06s)
+  dEQP-VK.texture.compressed_3D.astc_10x8_srgb_block_3d_npot_mip1 (60.04s)
+  dEQP-VK.subgroups.arithmetic.compute.subgroupinclusivemin_ivec2_requiredsubgroupsize (60.04s)
+  dEQP-VK.draw.renderpass.instanced.draw_indirect_vk_primitive_topology_triangle_fan_attrib_divisor_20_multiview (15.66s)
+
+Some new flakes found:
+  dEQP-VK.api.image_clearing.dedicated_allocation.clear_color_image.1d.optimal.remaining_array_layers.r5g5b5a1_unorm_pack16_200x1_clamp_input_multiple_subresourcerange
+  dEQP-VK.draw.renderpass.instanced.draw_indirect_vk_primitive_topology_triangle_fan_attrib_divisor_20_multiview
+  dEQP-VK.pipeline.monolithic.sampler.view_type.cube.format.r8g8_sint.min_reduce.comp_r_zero_zero_zero.min
+  dEQP-VK.ray_query.acceleration_structures.flags.sparse_binding_structures.compute_shader.gpu_built.triangles.different_instances_aop.nopadding.fasttrace_update_compaction_0_bothgeneric
+  dEQP-VK.ray_query.acceleration_structures.flags.sparse_binding_structures.fragment_shader.gpu_built.aabbs_aop.identical_instances.padded.fasttrace_0_compaction_lowmemory_bothgeneric
+  dEQP-VK.ray_query.acceleration_structures.flags.sparse_binding_structures.fragment_shader.gpu_built.triangles.identical_instances_aop.padded.fasttrace_0_compaction_lowmemory_bothgeneric
+  dEQP-VK.ray_query.acceleration_structures.flags.sparse_binding_structures.fragment_shader.gpu_built.triangles_aop.identical_instances_aop.nopadding.fasttrace_update_compaction_lowmemory_topgeneric
+  dEQP-VK.ray_query.acceleration_structures.format.sparse_binding_structures.tess_evaluation_shader.gpu_built.r32g32b32a32_sfloat.padded.index_uint32
+  dEQP-VK.ray_query.acceleration_structures.operations.traditional_structures.compute_shader.serialization.gpu_built.bottom_acceleration_structure.triangles
+  dEQP-VK.renderpasses.dynamic_rendering.graphics_pipeline_library.suballocation.formats.a8b8g8r8_uint_pack32.input.dont_care.store.draw
+  dEQP-VK.renderpasses.dynamic_rendering.graphics_pipeline_library.suballocation.formats.d32_sfloat_s8_uint.input.clear.dont_care.clear_stencil_read_only
+  dEQP-VK.sparse_resources.image_rebind.cube.rg8i.256_256_1
+  dEQP-VK.subgroups.arithmetic.compute.subgroupinclusivemin_ivec2_requiredsubgroupsize
+  dEQP-VK.synchronization.op.multi_queue.timeline_semaphore.write_ssbo_fragment_read_ubo_vertex.buffer_16384_concurrent_maintenance9
+  dEQP-VK.synchronization.op.multi_queue.timeline_semaphore.write_ssbo_geometry_read_ubo_texel_geometry.buffer_16384_concurrent_maintenance9
+  dEQP-VK.synchronization2.op.multi_queue.intermediate_barrier_use_all.write_fill_buffer_read_ubo_texel_compute_indirect_buffer_16384.read_copy_buffer_write_ssbo_compute_maintenance9
+  dEQP-VK.texture.compressed_3D.astc_10x8_srgb_block_3d_npot_mip1
+  dEQP-VK.texture.filtering.2d_array.combinations.nearest.linear.mirrored_repeat.mirrored_repeat
+  dEQP-VK.texture.mipmap.3d.image_view_min_lod.base_level.nearest_nearest
+
+Unexpected results:
+  dEQP-VK.api.copy_and_blit.copy_memory_indirect.size_12.offset_0.count_2.normal_stride.graphics,Fail
+  dEQP-VK.api.copy_and_blit.copy_memory_indirect.size_12.offset_4.count_63.normal_stride.graphics,Fail
+  dEQP-VK.api.info.format_properties.g10x6_b10x6r10x6_2plane_420_unorm_3pack16,Fail
+  dEQP-VK.api.info.format_properties.g12x4_b12x4r12x4_2plane_420_unorm_3pack16,Fail
+  dEQP-VK.api.info.format_properties.g8_b8r8_2plane_420_unorm,Fail
+  dEQP-VK.draw.renderpass.ahb.triangle_list,Fail
+  dEQP-VK.fragment_shading_rate.renderpass2.monolithic.attachment_rate.setup_with_copying_using_transfer_queue_concurent.r8_uint.rate_1x2_general_layout,Crash
+  dEQP-VK.info.device_extensions,Fail
+  dEQP-VK.ray_tracing_pipeline.amber.barycentrics,Crash
+  dEQP-VK.spirv_assembly.instruction.compute.opfma.fp64.vec4.rte.denorm_flush.float_controls,Fail

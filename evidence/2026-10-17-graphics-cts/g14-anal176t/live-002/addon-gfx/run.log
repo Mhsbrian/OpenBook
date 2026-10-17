@@ -1,0 +1,44 @@
+15:25:31 start: parts [vk vk14 gles-angle gles-mesa egl angle], jobs 12 of 24 CPUs, gpu hal [amdgpu], quick [0]
+15:25:31 vk: start
+  dEQP-VK.api.info.format_properties.g8_b8r8_2plane_420_unorm,Fail
+  dEQP-VK.draw.renderpass.ahb.triangle_list,Fail
+  dEQP-VK.fragment_shading_rate.renderpass2.monolithic.attachment_rate.setup_with_copying_using_transfer_queue_concurent.r8_uint.rate_1x2_general_layout,Crash
+  dEQP-VK.info.device_extensions,Fail
+  dEQP-VK.ray_tracing_pipeline.amber.barycentrics,Crash
+  dEQP-VK.spirv_assembly.instruction.compute.opfma.fp64.vec4.rte.denorm_flush.float_controls,Fail
+15:30:01 vk: done, exit 1, 270 s, 5 new amdgpu fault/reset line(s)
+15:30:01 vk14: start
+Unexpected results:
+  dEQP-VK.api.copy_and_blit.copy_memory_indirect.size_12.offset_0.count_2.normal_stride.graphics,Fail
+  dEQP-VK.api.copy_and_blit.copy_memory_indirect.size_12.offset_4.count_63.normal_stride.graphics,Fail
+  dEQP-VK.draw.renderpass.ahb.triangle_list,Fail
+  dEQP-VK.info.device_extensions,Fail
+  dEQP-VK.spirv_assembly.instruction.compute.opfma.fp64.vec4.rte.denorm_flush.float_controls,Fail
+15:33:43 vk14: done, exit 1, 222 s, 0 new amdgpu fault/reset line(s)
+15:33:43 gles-angle: start
+Slowest tests:
+  dEQP-GLES3.functional.shaders.builtin_functions.precision.refract.lowp_fragment.vec4 (7.06s)
+  dEQP-GLES3.functional.shaders.builtin_functions.precision.reflect.lowp_vertex.vec4 (4.58s)
+  dEQP-GLES3.functional.shaders.builtin_functions.precision.faceforward.highp_fragment.vec4 (4.57s)
+  dEQP-GLES3.functional.shaders.builtin_functions.precision.refract.mediump_fragment.vec4 (4.55s)
+  dEQP-GLES3.functional.shaders.builtin_functions.precision.refract.highp_fragment.vec4 (4.32s)
+15:34:18 gles-angle: done, exit 0, 35 s, 0 new amdgpu fault/reset line(s)
+15:34:18 gles-mesa: start
+Slowest tests:
+  dEQP-GLES3.functional.shaders.builtin_functions.precision.refract.lowp_fragment.vec4 (6.29s)
+  dEQP-GLES3.functional.shaders.builtin_functions.precision.refract.highp_fragment.vec4 (5.61s)
+  dEQP-GLES3.functional.shaders.builtin_functions.precision.refract.mediump_fragment.vec4 (4.78s)
+  dEQP-GLES3.functional.shaders.builtin_functions.precision.faceforward.mediump_fragment.vec4 (4.49s)
+  dEQP-GLES3.functional.shaders.builtin_functions.precision.faceforward.highp_fragment.vec4 (3.90s)
+15:34:51 gles-mesa: done, exit 0, 33 s, 0 new amdgpu fault/reset line(s)
+15:34:51 egl: start
+Success
+15:38:15 egl: done, exit 0, 204 s, 0 new amdgpu fault/reset line(s)
+15:38:15 angle: start
+Success
+OK (1 test)
+
+
+INSTRUMENTATION_CODE: -1
+15:39:25 angle: done, exit 0, 66 s, 0 new amdgpu fault/reset line(s)
+15:39:25 finished

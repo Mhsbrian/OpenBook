@@ -1,0 +1,5 @@
+dEQP-VK.api.copy_and_blit.copy_memory_indirect.size_12.offset_0.count_2.normal_stride.graphics,Fail
+dEQP-VK.api.copy_and_blit.copy_memory_indirect.size_12.offset_4.count_63.normal_stride.graphics,Fail
+dEQP-VK.draw.renderpass.ahb.triangle_list,Fail
+dEQP-VK.info.device_extensions,Fail
+dEQP-VK.spirv_assembly.instruction.compute.opfma.fp64.vec4.rte.denorm_flush.float_controls,Fail

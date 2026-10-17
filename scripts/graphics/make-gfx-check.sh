@@ -23,10 +23,14 @@ NAME=${1:-openbook-gfxcheck-$(date -u +%Y%m%d)}
 case $NAME in *[!A-Za-z0-9._-]*) echo "name: letters, digits, . _ - only" >&2; exit 2 ;; esac
 T=${AOSP_SRC:-$A/aosp/src}; P=${PRODUCT_OUT:-$T/out/target/product/anybook_g14}
 NS=${NONSTRICT:-$A/mesa/out/upstream-nonstrict/vendor/lib64/hw/vulkan.radv.so}
+# The second RADV (the vk14 part) is only for an image whose RADV is android-strict (Vulkan 1.1). Since ANAL-177 the
+# default Mesa build reports 1.4 and the image declares it; then the payload carries none and vk14 skips itself.
+VKXML=$P/vendor/etc/permissions/android.hardware.vulkan.version.xml
+VK14=0; grep -q 'version="4198400"' "$VKXML" 2>/dev/null && VK14=1   # 4198400 = Vulkan 1.1
 DQ=$P/data/nativetest64/deqp-binary
 APK_DEQP=$P/testcases/com.drawelements.deqp/x86_64/com.drawelements.deqp.apk
 APK_ANGLE=$P/testcases/AngleEnd2EndTestsHelper/x86_64/AngleEnd2EndTestsHelper.apk
-for f in "$DQ/deqp-binary64" "$APK_DEQP" "$APK_ANGLE" "$NS"; do
+for f in "$DQ/deqp-binary64" "$APK_DEQP" "$APK_ANGLE" "$VKXML" $([ $VK14 = 1 ] && echo "$NS"); do
   [ -f "$f" ] || { echo "missing $f (see the header for how to build it)" >&2; exit 2; }; done
 W=$I/gfxcheck/$NAME; PL=$W/payload; O=$I/out
 LOG=$A/logs/gfx-cts/gfxcheck-$NAME-$(date -u +%Y%m%dT%H%M%SZ).log
@@ -52,7 +56,8 @@ tail -n 2 "$W/live-init-test.txt"
 cp "$DQ/deqp-binary64" "$PL/bin/"
 for d in gles2 gles3 gles31 vulkan internal; do cp -r "$DQ/$d" "$PL/data/"; done
 [ "${GFX_APPS:-1}" = 0 ] || cp "$APK_DEQP" "$APK_ANGLE" "$PL/apk/"
-cp "$NS" "$PL/radv-nonstrict/vulkan.radv.so"
+if [ $VK14 = 1 ]; then cp "$NS" "$PL/radv-nonstrict/vulkan.radv.so"; else rmdir "$PL/radv-nonstrict"; fi
+echo "image declares $(sed -n 's/.*version="\([0-9]*\)".*/\1/p' "$VKXML") (android.hardware.vulkan.version); second RADV in the payload: $([ $VK14 = 1 ] && echo yes || echo no)"
 python3 "$R/scripts/graphics/mkcaselists.py" "$T/external/deqp/android/cts/main" "$PL/caselists" \
   --angle-expectations "$T/external/angle/android/cts/angle_end2end_tests_expectations.txt"
 cp "$R/scripts/graphics/gfx-run.sh" "$PL/run.sh"
@@ -87,7 +92,8 @@ cl = json.load(open("$PL/caselists/caselists.json"))
 json.dump({"schema": "openbook-gfx-payload/1", "name": "$NAME", "repo": "$(git -C "$R" rev-parse HEAD)",
   "product_fingerprint": props.get("ro.system.build.fingerprint"),
   "deqp": "$(git -C "$T/external/deqp" rev-parse HEAD)", "angle": "$(git -C "$T/external/angle" rev-parse HEAD)",
-  "deqp_binary64": sha("$PL/bin/deqp-binary64"), "radv_nonstrict": sha("$PL/radv-nonstrict/vulkan.radv.so"),
+  "deqp_binary64": sha("$PL/bin/deqp-binary64"),
+  "radv_nonstrict": sha("$PL/radv-nonstrict/vulkan.radv.so") if os.path.exists("$PL/radv-nonstrict/vulkan.radv.so") else None,
   "apps": {f: sha("$PL/apk/" + f) for f in sorted(os.listdir("$PL/apk"))},
   "deqp_runner": open("$G/bin/deqp-runner.txt").readline().strip(),
   "caselists": {k: {"cases": v["cases"], "stride": v["stride"], "sha256": v["sha256"]} for k, v in cl["suites"].items()}},
