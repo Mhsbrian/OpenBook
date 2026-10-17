@@ -1,0 +1,24 @@
+// Copyright (C) 2026 The OpenBook Authors
+// SPDX-License-Identifier: Apache-2.0
+
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+// openbook-install: the install engine and, as `openbook-install daemon`, openbook-installd for the wizard app
+// (docs/installer.md section 3.5, PROTOCOL.md). Plain C with libc only: the same sources are tested on the host
+// (scripts/installer/engine-test.sh). The daemon starts on live boots only (openbook-installd.rc).
+cc_binary {
+    name: "openbook-install",
+    system_ext_specific: true,
+    srcs: ["engine/*.c"],
+    cflags: [
+        "-Wall",
+        "-Werror",
+        "-Wno-unused-parameter",
+        "-Wno-sign-compare",
+        "-Wno-deprecated-declarations",
+        "-Wno-missing-field-initializers",
+    ],
+    init_rc: ["openbook-installd.rc"],
+}
