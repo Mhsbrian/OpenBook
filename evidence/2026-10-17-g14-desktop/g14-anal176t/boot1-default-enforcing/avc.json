@@ -1,0 +1,67 @@
+{
+ "schema": "openbook-avc-summary/1",
+ "dir": "t176avc",
+ "dmesg": {},
+ "logcat": {
+  "android": 43
+ },
+ "dmesg_lines": 0,
+ "tuples": 4,
+ "tuples_without_flags_health_check": 4,
+ "denials": [
+  {
+   "scontext": "keystore",
+   "tcontext": "hal_gatekeeper_service",
+   "tclass": "service_manager",
+   "perms": [
+    "find"
+   ],
+   "paths": [],
+   "in": [
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "platform_app",
+   "tcontext": "bluetooth_finder_prop",
+   "tclass": "file",
+   "perms": [
+    "read"
+   ],
+   "paths": [
+    "u:object_r:bluetooth_finder_prop:s0"
+   ],
+   "in": [
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "platform_app",
+   "tcontext": "bluetooth_lea_prop",
+   "tclass": "file",
+   "perms": [
+    "read"
+   ],
+   "paths": [
+    "u:object_r:bluetooth_lea_prop:s0"
+   ],
+   "in": [
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "system_server",
+   "tcontext": "wifi_hal_prop",
+   "tclass": "file",
+   "perms": [
+    "read"
+   ],
+   "paths": [
+    "u:object_r:wifi_hal_prop:s0"
+   ],
+   "in": [
+    "logcat"
+   ]
+  }
+ ]
+}
