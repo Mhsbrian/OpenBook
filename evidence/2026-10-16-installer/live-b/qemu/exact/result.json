@@ -1,0 +1,61 @@
+{
+ "reason": "QEMU exited (0)",
+ "seconds": 11.9,
+ "steps_done": 15,
+ "steps": 15,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "openbook-live: live boot: boot_part_uuid=",
+   "t": 3.6
+  },
+  {
+   "step": 1,
+   "wait": "openbook-live: grow: nothing to do",
+   "t": 5.2
+  },
+  {
+   "step": 2,
+   "wait": "openbook-live: exec /init",
+   "t": 5.2
+  },
+  {
+   "step": 3,
+   "wait": "init: init first stage started",
+   "t": 5.2
+  },
+  {
+   "step": 4,
+   "wait": "init: init second stage started",
+   "t": 5.3
+  },
+  {
+   "step": 5,
+   "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+   "t": 7.0
+  },
+  {
+   "step": 7,
+   "wait": "console:/ \\$ ",
+   "t": 7.0
+  },
+  {
+   "step": 9,
+   "wait": "console:/ \\$ ",
+   "t": 7.2
+  },
+  {
+   "step": 11,
+   "wait": "console:/ \\$ ",
+   "t": 8.6
+  },
+  {
+   "step": 13,
+   "wait": "console:/ \\$ ",
+   "t": 10.9
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/qemu/live-20261016b/exact.img",
+ "nvme": null
+}

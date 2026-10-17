@@ -1,0 +1,2762 @@
+
+===INFO===
+Fri Oct 16 23:51:55 GMT 2026
+73.14 330.45
+OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+
+===PROPS===
+[apex.all.ready]: [true]
+[apexd.config.compressed_apex]: [true]
+[apexd.config.runtime.erofs_file_backed_mount]: [true]
+[apexd.status]: [ready]
+[bootreceiver.enable]: [1]
+[bpf.progs_loaded]: [1]
+[build.version.extensions.ad_services]: [22]
+[build.version.extensions.b]: [22]
+[build.version.extensions.c]: [22]
+[build.version.extensions.r]: [22]
+[build.version.extensions.s]: [22]
+[build.version.extensions.t]: [22]
+[build.version.extensions.u]: [22]
+[build.version.extensions.v]: [22]
+[cache_key.bluetooth.bluetooth_adapter_get_connection_state]: [7911223452262397124]
+[cache_key.bluetooth.bluetooth_adapter_get_profile_connection_state]: [7911223452262397122]
+[cache_key.bluetooth.bluetooth_adapter_is_offloaded_filtering_supported]: [7911223452262397123]
+[cache_key.bluetooth.bluetooth_device_get_bond_state]: [7911223452262397125]
+[cache_key.bluetooth.bluetooth_map_get_connection_state]: [7911223452262397126]
+[cache_key.bluetooth.bluetooth_sap_get_connection_state]: [7911223452262397127]
+[crashrecovery.rescue_boot_count]: [1]
+[dalvik.vm.appimageformat]: [lz4]
+[dalvik.vm.dex2oat-Xms]: [64m]
+[dalvik.vm.dex2oat-Xmx]: [512m]
+[dalvik.vm.dex2oat-max-image-block-size]: [524288]
+[dalvik.vm.dex2oat-minidebuginfo]: [true]
+[dalvik.vm.dex2oat-resolve-startup-strings]: [true]
+[dalvik.vm.dex2oat64.enabled]: [true]
+[dalvik.vm.dexopt.secondary]: [true]
+[dalvik.vm.dexopt.thermal-cutoff]: [2]
+[dalvik.vm.enable_pr_dexopt]: [true]
+[dalvik.vm.heapgrowthlimit]: [192m]
+[dalvik.vm.heapmaxfree]: [8m]
+[dalvik.vm.heapminfree]: [512k]
+[dalvik.vm.heapsize]: [512m]
+[dalvik.vm.heapstartsize]: [16m]
+[dalvik.vm.heaptargetutilization]: [0.75]
+[dalvik.vm.image-dex2oat-Xms]: [64m]
+[dalvik.vm.image-dex2oat-Xmx]: [512m]
+[dalvik.vm.isa.x86_64.features]: [default]
+[dalvik.vm.isa.x86_64.variant]: [silvermont]
+[dalvik.vm.lockprof.threshold]: [500]
+[dalvik.vm.madvise.odexfile.size]: [104857600]
+[dalvik.vm.madvise.vdexfile.size]: [104857600]
+[dalvik.vm.minidebuginfo]: [true]
+[dalvik.vm.usap_pool_enabled]: [false]
+[dalvik.vm.usap_pool_refill_delay_ms]: [3000]
+[dalvik.vm.usap_pool_size_max]: [3]
+[dalvik.vm.usap_pool_size_min]: [1]
+[dalvik.vm.usap_refill_threshold]: [1]
+[dalvik.vm.useartservice]: [true]
+[dalvik.vm.usejit]: [true]
+[debug.atrace.tags.enableflags]: [0]
+[debug.force_rtl]: [false]
+[debug.hwui.skia_tracing_enabled]: [false]
+[debug.hwui.skia_use_perfetto_track_events]: [false]
+[debug.perfetto.sdk_sysprop_guard_generation]: [0]
+[debug.renderengine.skia_tracing_enabled]: [false]
+[debug.renderengine.skia_use_perfetto_track_events]: [false]
+[debug.tracing.battery_stats.brightness]: [2]
+[debug.tracing.battery_stats.charging]: [1]
+[debug.tracing.battery_stats.plugged]: [1]
+[debug.tracing.battery_stats.screen]: [1]
+[debug.tracing.battery_status]: [1]
+[debug.tracing.desktop_mode_visible_tasks]: [0]
+[debug.tracing.device_state]: [0:DEFAULT]
+[debug.tracing.plug_type]: [0]
+[debug.tracing.screen_brightness]: [0.39763778]
+[debug.tracing.screen_state]: [2]
+[dev.bootcomplete]: [1]
+[dev.mnt.blk.data]: [sda9]
+[dev.mnt.blk.data.user.0]: [sda9]
+[dev.mnt.blk.data_mirror.cur_profiles]: [sda9]
+[dev.mnt.blk.data_mirror.data_ce.null]: [sda9]
+[dev.mnt.blk.data_mirror.data_ce.null.0]: [sda9]
+[dev.mnt.blk.data_mirror.data_de.null]: [sda9]
+[dev.mnt.blk.data_mirror.misc_ce.null]: [sda9]
+[dev.mnt.blk.data_mirror.misc_de.null]: [sda9]
+[dev.mnt.blk.data_mirror.ref_profiles]: [sda9]
+[dev.mnt.blk.data_mirror.storage_area]: [sda9]
+[dev.mnt.blk.metadata]: [sda7]
+[dev.mnt.blk.postinstall]: []
+[dev.mnt.blk.product]: [sda8]
+[dev.mnt.blk.root]: [sda8]
+[dev.mnt.blk.system_dlkm]: [sda8]
+[dev.mnt.blk.system_ext]: [sda8]
+[dev.mnt.blk.vendor]: [sda8]
+[dev.mnt.blk.vendor_dlkm]: [sda8]
+[dev.mnt.dev.data]: [dm-60]
+[dev.mnt.dev.data.user.0]: [dm-60]
+[dev.mnt.dev.data_mirror.cur_profiles]: [dm-60]
+[dev.mnt.dev.data_mirror.data_ce.null]: [dm-60]
+[dev.mnt.dev.data_mirror.data_ce.null.0]: [dm-60]
+[dev.mnt.dev.data_mirror.data_de.null]: [dm-60]
+[dev.mnt.dev.data_mirror.misc_ce.null]: [dm-60]
+[dev.mnt.dev.data_mirror.misc_de.null]: [dm-60]
+[dev.mnt.dev.data_mirror.ref_profiles]: [dm-60]
+[dev.mnt.dev.data_mirror.storage_area]: [dm-60]
+[dev.mnt.dev.metadata]: [sda7]
+[dev.mnt.dev.postinstall]: []
+[dev.mnt.dev.product]: [dm-9]
+[dev.mnt.dev.root]: [dm-7]
+[dev.mnt.dev.system_dlkm]: [dm-12]
+[dev.mnt.dev.system_ext]: [dm-8]
+[dev.mnt.dev.vendor]: [dm-10]
+[dev.mnt.dev.vendor_dlkm]: [dm-11]
+[dev.mnt.rootdisk.data]: [sda]
+[dev.mnt.rootdisk.data.user.0]: [sda]
+[dev.mnt.rootdisk.data_mirror.cur_profiles]: [sda]
+[dev.mnt.rootdisk.data_mirror.data_ce.null]: [sda]
+[dev.mnt.rootdisk.data_mirror.data_ce.null.0]: [sda]
+[dev.mnt.rootdisk.data_mirror.data_de.null]: [sda]
+[dev.mnt.rootdisk.data_mirror.misc_ce.null]: [sda]
+[dev.mnt.rootdisk.data_mirror.misc_de.null]: [sda]
+[dev.mnt.rootdisk.data_mirror.ref_profiles]: [sda]
+[dev.mnt.rootdisk.data_mirror.storage_area]: [sda]
+[dev.mnt.rootdisk.metadata]: [sda]
+[dev.mnt.rootdisk.postinstall]: []
+[dev.mnt.rootdisk.product]: [sda]
+[dev.mnt.rootdisk.root]: [sda]
+[dev.mnt.rootdisk.system_dlkm]: [sda]
+[dev.mnt.rootdisk.system_ext]: [sda]
+[dev.mnt.rootdisk.vendor]: [sda]
+[dev.mnt.rootdisk.vendor_dlkm]: [sda]
+[dmesgd.start]: [0]
+[external_storage.casefold.enabled]: [1]
+[external_storage.projid.enabled]: [1]
+[external_storage.sdcardfs.enabled]: [0]
+[gsid.image_installed]: [0]
+[hwservicemanager.always_sets_disabled]: [true]
+[init.svc.adbd]: [running]
+[init.svc.apexd]: [stopped]
+[init.svc.apexd-bootstrap]: [stopped]
+[init.svc.apexd-snapshotde]: [stopped]
+[init.svc.art_boot]: [stopped]
+[init.svc.artd]: [running]
+[init.svc.audioserver]: [running]
+[init.svc.bootanim]: [stopped]
+[init.svc.boringssl_self_test64]: [stopped]
+[init.svc.boringssl_self_test64_vendor]: [stopped]
+[init.svc.boringssl_self_test_apex64]: [stopped]
+[init.svc.bpfloader]: [stopped]
+[init.svc.cameraserver]: [running]
+[init.svc.casefolding_remover]: [stopped]
+[init.svc.console]: [running]
+[init.svc.cppreopts]: [stopped]
+[init.svc.credstore]: [running]
+[init.svc.derive_classpath]: [stopped]
+[init.svc.derive_sdk]: [stopped]
+[init.svc.dmesgd]: [stopped]
+[init.svc.early_system_aconfigd_platform_init]: [stopped]
+[init.svc.gatekeeperd]: [running]
+[init.svc.gpu]: [running]
+[init.svc.heapprofd]: [stopped]
+[init.svc.idmap2d]: [stopped]
+[init.svc.incidentd]: [running]
+[init.svc.installd]: [running]
+[init.svc.keystore2]: [running]
+[init.svc.lmkd]: [running]
+[init.svc.logd]: [running]
+[init.svc.logd-auditctl]: [stopped]
+[init.svc.logd-reinit]: [stopped]
+[init.svc.mainline_aconfigd_init]: [stopped]
+[init.svc.mainline_aconfigd_socket_service]: [stopped]
+[init.svc.mdnsd]: [running]
+[init.svc.media]: [running]
+[init.svc.media.codeclist.generator]: [stopped]
+[init.svc.media.swcodec]: [running]
+[init.svc.mediadrm]: [running]
+[init.svc.mediaextractor]: [running]
+[init.svc.mediametrics]: [running]
+[init.svc.misctrl]: [stopped]
+[init.svc.mmd_setup]: [stopped]
+[init.svc.netd]: [running]
+[init.svc.netd1shot]: [stopped]
+[init.svc.odsign]: [stopped]
+[init.svc.perfetto_persistent_sysui_tracing_for_bugreport]: [stopped]
+[init.svc.pmgd]: [running]
+[init.svc.prng_seeder]: [running]
+[init.svc.profcollectctl_set_property]: [stopped]
+[init.svc.servicemanager]: [running]
+[init.svc.statsd]: [running]
+[init.svc.storaged]: [running]
+[init.svc.surfaceflinger]: [running]
+[init.svc.system_aconfigd_platform_init]: [stopped]
+[init.svc.system_aconfigd_socket_service]: [stopped]
+[init.svc.system_suspend]: [running]
+[init.svc.tombstoned]: [running]
+[init.svc.traced]: [running]
+[init.svc.traced_perf]: [stopped]
+[init.svc.traced_probes]: [running]
+[init.svc.traced_relay]: [stopped]
+[init.svc.ueventd]: [running]
+[init.svc.update_engine]: [running]
+[init.svc.usbd]: [stopped]
+[init.svc.vendor.anybook-gpu-probe]: [stopped]
+[init.svc.vendor.audio-effect-hal-aidl]: [running]
+[init.svc.vendor.audio-hal-aidl]: [running]
+[init.svc.vendor.authsecret_default]: [running]
+[init.svc.vendor.boot-default]: [running]
+[init.svc.vendor.cas-default]: [running]
+[init.svc.vendor.gatekeeper_nonsecure]: [running]
+[init.svc.vendor.graphics.allocator]: [running]
+[init.svc.vendor.health-default]: [running]
+[init.svc.vendor.hwcomposer-3]: [running]
+[init.svc.vendor.keymint-default]: [running]
+[init.svc.vendor.light-openbook]: [running]
+[init.svc.vendor.memtrack-default]: [running]
+[init.svc.vendor.openbook.dgpu-pm]: [stopped]
+[init.svc.vendor.openbook.dlkm]: [stopped]
+[init.svc.vendor.openbook.sysfs-perms]: [stopped]
+[init.svc.vendor.openbook.virtio-modules]: [stopped]
+[init.svc.vendor.power-openbook]: [running]
+[init.svc.vendor.power.stats-openbook]: [running]
+[init.svc.vendor.thermal-openbook]: [running]
+[init.svc.vendor.usb_default]: [running]
+[init.svc.vendor.weaver-openbook]: [running]
+[init.svc.vold]: [running]
+[init.svc.zygote]: [running]
+[init.svc_debug_pid.adbd]: [671]
+[init.svc_debug_pid.apexd]: []
+[init.svc_debug_pid.apexd-bootstrap]: []
+[init.svc_debug_pid.apexd-snapshotde]: []
+[init.svc_debug_pid.art_boot]: []
+[init.svc_debug_pid.artd]: [2320]
+[init.svc_debug_pid.audioserver]: [839]
+[init.svc_debug_pid.bootanim]: []
+[init.svc_debug_pid.boringssl_self_test64]: []
+[init.svc_debug_pid.boringssl_self_test64_vendor]: []
+[init.svc_debug_pid.boringssl_self_test_apex64]: []
+[init.svc_debug_pid.bpfloader]: []
+[init.svc_debug_pid.cameraserver]: [668]
+[init.svc_debug_pid.casefolding_remover]: []
+[init.svc_debug_pid.console]: [319]
+[init.svc_debug_pid.cppreopts]: []
+[init.svc_debug_pid.credstore]: [655]
+[init.svc_debug_pid.derive_classpath]: []
+[init.svc_debug_pid.derive_sdk]: []
+[init.svc_debug_pid.dmesgd]: []
+[init.svc_debug_pid.early_system_aconfigd_platform_init]: []
+[init.svc_debug_pid.gatekeeperd]: [705]
+[init.svc_debug_pid.gpu]: [656]
+[init.svc_debug_pid.heapprofd]: []
+[init.svc_debug_pid.idmap2d]: []
+[init.svc_debug_pid.incidentd]: [689]
+[init.svc_debug_pid.installd]: [690]
+[init.svc_debug_pid.keystore2]: [343]
+[init.svc_debug_pid.lmkd]: [308]
+[init.svc_debug_pid.logd]: [307]
+[init.svc_debug_pid.logd-auditctl]: []
+[init.svc_debug_pid.logd-reinit]: []
+[init.svc_debug_pid.mainline_aconfigd_init]: []
+[init.svc_debug_pid.mainline_aconfigd_socket_service]: []
+[init.svc_debug_pid.mdnsd]: [3069]
+[init.svc_debug_pid.media]: [669]
+[init.svc_debug_pid.media.codeclist.generator]: []
+[init.svc_debug_pid.media.swcodec]: [699]
+[init.svc_debug_pid.mediaextractor]: [691]
+[init.svc_debug_pid.mediametrics]: [693]
+[init.svc_debug_pid.misctrl]: []
+[init.svc_debug_pid.mmd_setup]: []
+[init.svc_debug_pid.netd]: [697]
+[init.svc_debug_pid.netd1shot]: []
+[init.svc_debug_pid.odsign]: []
+[init.svc_debug_pid.perfetto_persistent_sysui_tracing_for_bugreport]: []
+[init.svc_debug_pid.pmgd]: [3179]
+[init.svc_debug_pid.prng_seeder]: [304]
+[init.svc_debug_pid.profcollectctl_set_property]: []
+[init.svc_debug_pid.servicemanager]: [309]
+[init.svc_debug_pid.statsd]: [615]
+[init.svc_debug_pid.storaged]: [698]
+[init.svc_debug_pid.surfaceflinger]: [844]
+[init.svc_debug_pid.system_aconfigd_platform_init]: []
+[init.svc_debug_pid.system_aconfigd_socket_service]: []
+[init.svc_debug_pid.system_suspend]: [342]
+[init.svc_debug_pid.tombstoned]: [380]
+[init.svc_debug_pid.traced]: [684]
+[init.svc_debug_pid.traced_perf]: []
+[init.svc_debug_pid.traced_probes]: [683]
+[init.svc_debug_pid.traced_relay]: []
+[init.svc_debug_pid.ueventd]: [128]
+[init.svc_debug_pid.update_engine]: [706]
+[init.svc_debug_pid.usbd]: []
+[init.svc_debug_pid.vendor.anybook-gpu-probe]: []
+[init.svc_debug_pid.vendor.audio-effect-hal-aidl]: [836]
+[init.svc_debug_pid.vendor.audio-hal-aidl]: [835]
+[init.svc_debug_pid.vendor.authsecret_default]: [645]
+[init.svc_debug_pid.vendor.boot-default]: [347]
+[init.svc_debug_pid.vendor.cas-default]: [646]
+[init.svc_debug_pid.vendor.gatekeeper_nonsecure]: [348]
+[init.svc_debug_pid.vendor.graphics.allocator]: [833]
+[init.svc_debug_pid.vendor.health-default]: [627]
+[init.svc_debug_pid.vendor.hwcomposer-3]: [634]
+[init.svc_debug_pid.vendor.keymint-default]: [349]
+[init.svc_debug_pid.vendor.light-openbook]: [635]
+[init.svc_debug_pid.vendor.memtrack-default]: [649]
+[init.svc_debug_pid.vendor.openbook.dgpu-pm]: []
+[init.svc_debug_pid.vendor.openbook.dlkm]: []
+[init.svc_debug_pid.vendor.openbook.sysfs-perms]: []
+[init.svc_debug_pid.vendor.openbook.virtio-modules]: []
+[init.svc_debug_pid.vendor.power-openbook]: [636]
+[init.svc_debug_pid.vendor.power.stats-openbook]: [637]
+[init.svc_debug_pid.vendor.thermal-openbook]: [638]
+[init.svc_debug_pid.vendor.usb_default]: [633]
+[init.svc_debug_pid.vendor.weaver-openbook]: [639]
+[init.svc_debug_pid.vold]: [325]
+[init.svc_debug_pid.zygote]: [687]
+[kcmdline.binder]: [unset]
+[kcmdline.loaded]: [1]
+[keystore.boot_level]: [1000000000]
+[keystore.crash_count]: [0]
+[keystore.module_hash.sent]: [true]
+[khungtask.enable]: [false]
+[llk.enable]: [false]
+[log.tag.APM_AudioPolicyManager]: [D]
+[log.tag.stats_log]: [I]
+[logd.logpersistd.enable]: [true]
+[logd.ready]: [true]
+[mmd.enabled_aconfig]: [true]
+[net.bt.name]: [Android]
+[net.tcp_def_init_rwnd]: [60]
+[odsign.key.done]: [1]
+[odsign.verification.done]: [1]
+[odsign.verification.success]: [1]
+[ota.warm_reset]: [0]
+[partition.product.verified]: [2]
+[partition.product.verified.check_at_most_once]: [0]
+[partition.product.verified.hash_alg]: [sha256]
+[partition.product.verified.root_digest]: [143a96dab2209fec49a75e48b224a7946b9c09e86d8bd8deabc4251d3f03c307]
+[partition.system.verified]: [2]
+[partition.system.verified.check_at_most_once]: [0]
+[partition.system.verified.hash_alg]: [sha256]
+[partition.system.verified.root_digest]: [a584127e809c0cb30a04c53ce145808c82fdbb3dc276aece83cda914a538c70c]
+[partition.system_dlkm.verified]: [2]
+[partition.system_dlkm.verified.check_at_most_once]: [0]
+[partition.system_dlkm.verified.hash_alg]: [sha256]
+[partition.system_dlkm.verified.root_digest]: [d400834308da8c31b725eda6c20dcef083a3e435d91e2dc9e0a915eb632cc17d]
+[partition.system_ext.verified]: [2]
+[partition.system_ext.verified.check_at_most_once]: [0]
+[partition.system_ext.verified.hash_alg]: [sha256]
+[partition.system_ext.verified.root_digest]: [0b37a504ca92ca97c15e692fb12b5aab1012fddbf8e51ac7b503ab7fb2b4eb58]
+[partition.vendor.verified]: [2]
+[partition.vendor.verified.check_at_most_once]: [0]
+[partition.vendor.verified.hash_alg]: [sha256]
+[partition.vendor.verified.root_digest]: [429538f6d9d43053ae3e042723488a9d248092afaed7c13642f95ff5efa3cd36]
+[partition.vendor_dlkm.verified]: [2]
+[partition.vendor_dlkm.verified.check_at_most_once]: [0]
+[partition.vendor_dlkm.verified.hash_alg]: [sha256]
+[partition.vendor_dlkm.verified.root_digest]: [76c6f7e79163e5c7bb502ddc4eb317af1971e52022179ed80cbbbd3371766c8b]
+[persist.adb.wifi.guid]: [adb-OPENBOOKLIVE0001-IErMw6]
+[persist.debug.dalvik.vm.core_platform_api_policy]: [just-warn]
+[persist.device_config.attempted_boot_count]: [0]
+[persist.pcc.audit_mode.batching.enabled]: [1]
+[persist.pcc.audit_mode.batching.flush_time_ms]: [10000]
+[persist.pcc.audit_mode.batching.max_batch_size]: [100]
+[persist.pcc.audit_mode.enabled]: [0]
+[persist.pcc.audit_mode.max_log_file_size_kb]: [10240]
+[persist.pcc.audit_mode.max_log_files]: [10]
+[persist.profcollectd.enabled]: [false]
+[persist.settings.large_screen_opt.enabled]: [true]
+[persist.sys.boot.reason]: []
+[persist.sys.boot.reason.history]: [reboot,factory_reset,1792194666
+reboot,1792194655]
+[persist.sys.dalvik.vm.lib.2]: [libart.so]
+[persist.sys.device_provisioned]: [1]
+[persist.sys.displayinset.top]: [0]
+[persist.sys.fuse]: [true]
+[persist.sys.lmk.reportkills]: [true]
+[persist.sys.theme]: [1]
+[persist.sys.timezone]: [GMT]
+[persist.sys.usb.config]: [adb]
+[persist.traced.enable]: [1]
+[persist.wm.extensions.activity_embedding_guard_with_android_15]: [false]
+[persist.wm.extensions.enabled]: [true]
+[pm.dexopt.ab-ota]: [speed-profile]
+[pm.dexopt.bg-dexopt]: [speed-profile]
+[pm.dexopt.boot-after-mainline-update]: [verify]
+[pm.dexopt.boot-after-ota]: [verify]
+[pm.dexopt.cmdline]: [verify]
+[pm.dexopt.first-boot]: [verify]
+[pm.dexopt.inactive]: [verify]
+[pm.dexopt.install]: [speed-profile]
+[pm.dexopt.install-bulk]: [speed-profile]
+[pm.dexopt.install-bulk-downgraded]: [verify]
+[pm.dexopt.install-bulk-secondary]: [verify]
+[pm.dexopt.install-bulk-secondary-downgraded]: [verify]
+[pm.dexopt.install-fast]: [skip]
+[pm.dexopt.post-boot]: [verify]
+[pm.dexopt.shared]: [speed]
+[ro.actionable_compatible_property.enabled]: [true]
+[ro.allow.mock.location]: [0]
+[ro.apex.updatable]: [true]
+[ro.baseband]: [unknown]
+[ro.bionic.2nd_arch]: []
+[ro.bionic.2nd_cpu_variant]: []
+[ro.bionic.arch]: [x86_64]
+[ro.bionic.cpu_variant]: []
+[ro.board.api_frozen]: [true]
+[ro.board.api_level]: [202604]
+[ro.board.platform]: [openbook_pc]
+[ro.boot.avb_version]: [1.4]
+[ro.boot.boot_devices]: [pci0000:00/0000:00:02.1,pci0000:00/0000:00:08.1,pci0000:00/0000:00:08.3]
+[ro.boot.boot_part_uuid]: [77532184-ec9c-5380-a256-ea2a716a3675]
+[ro.boot.bootreason]: [reboot,factory_reset]
+[ro.boot.dynamic_partitions]: [true]
+[ro.boot.hardware]: [openbook]
+[ro.boot.hardware.cpu.pagesize]: [4096]
+[ro.boot.lcd_density]: [160]
+[ro.boot.openbook.live]: [1]
+[ro.boot.openbook.loader]: [sdboot]
+[ro.boot.openbook.logs]: [1]
+[ro.boot.openbook.logs_timeout]: [300]
+[ro.boot.selinux]: [permissive]
+[ro.boot.serialno]: [OPENBOOKLIVE0001]
+[ro.boot.slot_suffix]: [_a]
+[ro.boot.vbmeta.avb_version]: [1.3]
+[ro.boot.vbmeta.device_state]: [unlocked]
+[ro.boot.vbmeta.digest]: [5c9d7fed6acf01fb743b9a96b02a2cd2cfcb644e0ae31eaaf3050620c21a6d30]
+[ro.boot.vbmeta.hash_alg]: [sha256]
+[ro.boot.vbmeta.invalidate_on_error]: [yes]
+[ro.boot.vbmeta.size]: [6208]
+[ro.boot.verifiedbootstate]: [orange]
+[ro.boot.veritymode]: [enforcing]
+[ro.bootimage.build.date]: [Fri Oct 16 23:33:54 UTC 2026]
+[ro.bootimage.build.date.utc]: [1792193634]
+[ro.bootimage.build.fingerprint]: [OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys]
+[ro.bootimage.build.id]: [CP2A.260605.016]
+[ro.bootimage.build.tags]: [test-keys]
+[ro.bootimage.build.type]: [userdebug]
+[ro.bootimage.build.uuid]: [7g-7MgYksnTFjwlg3Pe2jCSbVxrwMgP7oDWQvrLfEWQ]
+[ro.bootimage.build.version.incremental]: [eng.builde]
+[ro.bootimage.build.version.release]: [17]
+[ro.bootimage.build.version.release_or_codename]: [17]
+[ro.bootimage.build.version.sdk]: [37]
+[ro.bootimage.build.version.sdk_full]: [37.0]
+[ro.bootloader]: [unknown]
+[ro.bootmode]: [unknown]
+[ro.boottime.adbd]: [12871565535]
+[ro.boottime.apexd]: [4038775270]
+[ro.boottime.apexd-bootstrap]: [2472406954]
+[ro.boottime.apexd-snapshotde]: [12290052381]
+[ro.boottime.art_boot]: [12042206658]
+[ro.boottime.artd]: [20511515408]
+[ro.boottime.audioserver]: [12664420450]
+[ro.boottime.bootanim]: [17855343113]
+[ro.boottime.boringssl_self_test64]: [3598003961]
+[ro.boottime.boringssl_self_test64_vendor]: [3507246504]
+[ro.boottime.boringssl_self_test_apex64]: [12947549225]
+[ro.boottime.bpfloader]: [12343840684]
+[ro.boottime.cameraserver]: [12776393758]
+[ro.boottime.casefolding_remover]: [4120466035]
+[ro.boottime.console]: [3578549853]
+[ro.boottime.cppreopts]: [17896604918]
+[ro.boottime.credstore]: [12677298456]
+[ro.boottime.derive_classpath]: [11990943994]
+[ro.boottime.derive_sdk]: [11918737259]
+[ro.boottime.dmesgd]: [24687862024]
+[ro.boottime.early_system_aconfigd_platform_init]: [3443412374]
+[ro.boottime.event.boot]: [12563757275]
+[ro.boottime.event.early-boot]: [12551400767]
+[ro.boottime.event.early-fs]: [3618536475]
+[ro.boottime.event.early-init]: [2460564274]
+[ro.boottime.event.firmware_mounts_complete]: [12550352292]
+[ro.boottime.event.fs]: [3622672947]
+[ro.boottime.event.init]: [3534502239]
+[ro.boottime.event.late-fs]: [3756998230]
+[ro.boottime.event.late-init]: [3610850827]
+[ro.boottime.event.load-bpf-programs]: [12337120483]
+[ro.boottime.event.load_persist_props_action]: [13083951189]
+[ro.boottime.event.nonencrypted]: [13016905112]
+[ro.boottime.event.perfetto_maybe_trace_on_boot]: [13133096821]
+[ro.boottime.event.post-fs]: [3702165321]
+[ro.boottime.event.post-fs-data]: [3949642037]
+[ro.boottime.event.zygote-start]: [12535458915]
+[ro.boottime.gatekeeperd]: [13066711332]
+[ro.boottime.gpu]: [12685267973]
+[ro.boottime.idmap2d]: [13024736879]
+[ro.boottime.incidentd]: [13028393484]
+[ro.boottime.init]: [2154311317]
+[ro.boottime.init.cold_boot_wait]: [0]
+[ro.boottime.init.first_stage]: [124837533]
+[ro.boottime.init.fsck.data]: [18]
+[ro.boottime.init.fsck.metadata]: [19]
+[ro.boottime.init.mount.data]: [8]
+[ro.boottime.init.mount.metadata]: [4]
+[ro.boottime.init.mount.postinstall]: [2]
+[ro.boottime.init.mount_all.default]: [14]
+[ro.boottime.init.mount_all.early]: [74]
+[ro.boottime.init.mount_all.late]: [158]
+[ro.boottime.init.selinux]: [45842206]
+[ro.boottime.installd]: [13033377713]
+[ro.boottime.keystore2]: [3760957883]
+[ro.boottime.lmkd]: [3562836730]
+[ro.boottime.logd]: [3558006920]
+[ro.boottime.logd-auditctl]: [24577731519]
+[ro.boottime.logd-reinit]: [4030175826]
+[ro.boottime.mainline_aconfigd_init]: [11707931469]
+[ro.boottime.mainline_aconfigd_socket_service]: [11915168324]
+[ro.boottime.mdnsd]: [24485515669]
+[ro.boottime.media]: [12781034268]
+[ro.boottime.media.codeclist.generator]: [22573711040]
+[ro.boottime.media.swcodec]: [13060027680]
+[ro.boottime.mediaextractor]: [13037594485]
+[ro.boottime.mediametrics]: [13042358225]
+[ro.boottime.misctrl]: [12691488916]
+[ro.boottime.mmd_setup]: [24699174256]
+[ro.boottime.netd]: [12532669427]
+[ro.boottime.netd1shot]: [12494867486]
+[ro.boottime.odsign]: [12056882026]
+[ro.boottime.pmgd]: [24634218580]
+[ro.boottime.prng_seeder]: [3501828148]
+[ro.boottime.profcollectctl_set_property]: [24639544368]
+[ro.boottime.servicemanager]: [3567466280]
+[ro.boottime.statsd]: [12538304223]
+[ro.boottime.storaged]: [13054634002]
+[ro.boottime.surfaceflinger]: [12700749557]
+[ro.boottime.system_aconfigd_platform_init]: [3720637493]
+[ro.boottime.system_aconfigd_socket_service]: [11703673357]
+[ro.boottime.system_suspend]: [3758008615]
+[ro.boottime.tombstoned]: [3997563724]
+[ro.boottime.traced]: [13007273183]
+[ro.boottime.traced_probes]: [13000651430]
+[ro.boottime.ueventd]: [2462526136]
+[ro.boottime.update_engine]: [13075008417]
+[ro.boottime.usbd]: [13079146270]
+[ro.boottime.vendor.anybook-gpu-probe]: [3519151694]
+[ro.boottime.vendor.audio-effect-hal-aidl]: [12621141353]
+[ro.boottime.vendor.audio-hal-aidl]: [12610785447]
+[ro.boottime.vendor.authsecret_default]: [12625519885]
+[ro.boottime.vendor.boot-default]: [3766771189]
+[ro.boottime.vendor.cas-default]: [12630580284]
+[ro.boottime.vendor.gatekeeper_nonsecure]: [3770915172]
+[ro.boottime.vendor.graphics.allocator]: [12573419735]
+[ro.boottime.vendor.health-default]: [12579422900]
+[ro.boottime.vendor.hwcomposer-3]: [12587490695]
+[ro.boottime.vendor.keymint-default]: [3775040604]
+[ro.boottime.vendor.light-openbook]: [12591185850]
+[ro.boottime.vendor.memtrack-default]: [12637903712]
+[ro.boottime.vendor.openbook.dgpu-pm]: [3402661776]
+[ro.boottime.vendor.openbook.dlkm]: [2700749550]
+[ro.boottime.vendor.openbook.sysfs-perms]: [3581832410]
+[ro.boottime.vendor.openbook.virtio-modules]: [12881357265]
+[ro.boottime.vendor.power-openbook]: [12594826844]
+[ro.boottime.vendor.power.stats-openbook]: [12598451119]
+[ro.boottime.vendor.thermal-openbook]: [12603308209]
+[ro.boottime.vendor.usb_default]: [12583474352]
+[ro.boottime.vendor.weaver-openbook]: [12607106122]
+[ro.boottime.vold]: [3619664530]
+[ro.boottime.zygote]: [12545354813]
+[ro.build.ab_update]: [true]
+[ro.build.backported_fixes.alias_bitset.long_list]: [114]
+[ro.build.characteristics]: [desktop]
+[ro.build.date]: [Fri Oct 16 23:33:54 UTC 2026]
+[ro.build.date.utc]: [1792193634]
+[ro.build.description]: [anybook_g14_x86_64-userdebug 17 CP2A.260605.016 eng.builde test-keys]
+[ro.build.display.id]: [anybook_g14_x86_64-userdebug 17 CP2A.260605.016 eng.builde test-keys]
+[ro.build.fingerprint]: [OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys]
+[ro.build.flavor]: [anybook_g14_x86_64-userdebug]
+[ro.build.host]: [b9f90b3fb135]
+[ro.build.id]: [CP2A.260605.016]
+[ro.build.product]: [anybook_g14]
+[ro.build.tags]: [test-keys]
+[ro.build.type]: [userdebug]
+[ro.build.user]: [builder]
+[ro.build.uuid]: [7g-7MgYksnTFjwlg3Pe2jCSbVxrwMgP7oDWQvrLfEWQ]
+[ro.build.version.all_codenames]: [REL]
+[ro.build.version.base_os]: []
+[ro.build.version.codename]: [REL]
+[ro.build.version.incremental]: [eng.builde]
+[ro.build.version.known_codenames]: [Base,Base11,Cupcake,Donut,Eclair,Eclair01,EclairMr1,Froyo,Gingerbread,GingerbreadMr1,Honeycomb,HoneycombMr1,HoneycombMr2,IceCreamSandwich,IceCreamSandwichMr1,JellyBean,JellyBeanMr1,JellyBeanMr2,Kitkat,KitkatWatch,Lollipop,LollipopMr1,M,N,NMr1,O,OMr1,P,Q,R,S,Sv2,Tiramisu,UpsideDownCake,VanillaIceCream,Baklava,CANARY,CinnamonBun]
+[ro.build.version.min_supported_target_sdk]: [28]
+[ro.build.version.preview_sdk]: [0]
+[ro.build.version.preview_sdk_fingerprint]: [REL]
+[ro.build.version.release]: [17]
+[ro.build.version.release_or_codename]: [17]
+[ro.build.version.release_or_preview_display]: [17]
+[ro.build.version.sdk]: [37]
+[ro.build.version.sdk_full]: [37.0]
+[ro.build.version.security_patch]: [2026-06-05]
+[ro.carrier]: [unknown]
+[ro.casefolding.adjusted]: [1]
+[ro.cold_boot_done]: [true]
+[ro.com.android.dataroaming]: [true]
+[ro.config.alarm_alert]: [Alarm_Classic.ogg]
+[ro.config.notification_sound]: [pixiedust.ogg]
+[ro.config.ringtone]: [Ring_Synth_04.ogg]
+[ro.cp_system_other_odex]: [1]
+[ro.crypto.metadata.enabled]: [true]
+[ro.crypto.metadata_init_delete_all_keys.enabled]: [true]
+[ro.crypto.state]: [encrypted]
+[ro.crypto.type]: [file]
+[ro.dalvik.vm.enable_uffd_gc]: [true]
+[ro.dalvik.vm.native.bridge]: [0]
+[ro.debuggable]: [1]
+[ro.force.debuggable]: [0]
+[ro.fstype.data]: [f2fs]
+[ro.fuse.bpf.is_running]: [true]
+[ro.gsid.image_running]: [0]
+[ro.hardware]: [openbook]
+[ro.hardware.egl]: [angle]
+[ro.hardware.gralloc]: [minigbm]
+[ro.hardware.hwcomposer]: [drm]
+[ro.hardware.keystore_desede]: [true]
+[ro.hardware.vulkan]: [pastel]
+[ro.hwui.use_vulkan]: []
+[ro.init.mnt_ns.count]: [2]
+[ro.kernel.version]: [6.18]
+[ro.kernel.watermark_scale_factor]: [10]
+[ro.llndk.api_level]: [202604]
+[ro.logd.kernel]: [true]
+[ro.logd.size]: [1M]
+[ro.logd.size.stats]: [64K]
+[ro.misctrl.16kb_before]: [0]
+[ro.odm.build.date]: [Fri Oct 16 23:33:54 UTC 2026]
+[ro.odm.build.date.utc]: [1792193634]
+[ro.odm.build.fingerprint]: [OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys]
+[ro.odm.build.id]: [CP2A.260605.016]
+[ro.odm.build.tags]: [test-keys]
+[ro.odm.build.type]: [userdebug]
+[ro.odm.build.uuid]: [7g-7MgYksnTFjwlg3Pe2jCSbVxrwMgP7oDWQvrLfEWQ]
+[ro.odm.build.version.incremental]: [eng.builde]
+[ro.odm.build.version.release]: [17]
+[ro.odm.build.version.release_or_codename]: [17]
+[ro.odm.build.version.sdk]: [37]
+[ro.odm.build.version.sdk_full]: [37.0]
+[ro.odm.product.cpu.abilist]: [x86_64]
+[ro.odm.product.cpu.abilist32]: []
+[ro.odm.product.cpu.abilist64]: [x86_64]
+[ro.opengles.version]: [196609]
+[ro.persistent_properties.ready]: [true]
+[ro.postinstall.fstab.prefix]: [/system]
+[ro.product.ab_ota_partitions]: [boot,init_boot,product,system,system_dlkm,system_ext,vbmeta,vendor,vendor_boot,vendor_dlkm]
+[ro.product.board]: [openbook]
+[ro.product.bootimage.brand]: [OpenBook]
+[ro.product.bootimage.device]: [anybook_g14]
+[ro.product.bootimage.manufacturer]: [ASUS]
+[ro.product.bootimage.model]: [OpenBook on ROG Zephyrus G14 (GA403WR)]
+[ro.product.bootimage.name]: [anybook_g14_x86_64]
+[ro.product.brand]: [OpenBook]
+[ro.product.build.16k_page.enabled]: [false]
+[ro.product.build.date]: [Fri Oct 16 23:33:54 UTC 2026]
+[ro.product.build.date.utc]: [1792193634]
+[ro.product.build.fingerprint]: [OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys]
+[ro.product.build.id]: [CP2A.260605.016]
+[ro.product.build.tags]: [test-keys]
+[ro.product.build.type]: [userdebug]
+[ro.product.build.uuid]: [7g-7MgYksnTFjwlg3Pe2jCSbVxrwMgP7oDWQvrLfEWQ]
+[ro.product.build.version.incremental]: [eng.builde]
+[ro.product.build.version.release]: [17]
+[ro.product.build.version.release_or_codename]: [17]
+[ro.product.build.version.sdk]: [37]
+[ro.product.build.version.sdk_full]: [37.0]
+[ro.product.cpu.abi]: [x86_64]
+[ro.product.cpu.abilist]: [x86_64]
+[ro.product.cpu.abilist32]: []
+[ro.product.cpu.abilist64]: [x86_64]
+[ro.product.cpu.pagesize.max]: [16384]
+[ro.product.debugfs_restrictions.enabled]: [true]
+[ro.product.device]: [anybook_g14]
+[ro.product.first_api_level]: [37]
+[ro.product.locale]: [en-US]
+[ro.product.manufacturer]: [ASUS]
+[ro.product.model]: [OpenBook on ROG Zephyrus G14 (GA403WR)]
+[ro.product.name]: [anybook_g14_x86_64]
+[ro.product.odm.brand]: [OpenBook]
+[ro.product.odm.device]: [anybook_g14]
+[ro.product.odm.manufacturer]: [ASUS]
+[ro.product.odm.model]: [OpenBook on ROG Zephyrus G14 (GA403WR)]
+[ro.product.odm.name]: [anybook_g14_x86_64]
+[ro.product.page_size]: [4096]
+[ro.product.product.brand]: [OpenBook]
+[ro.product.product.device]: [anybook_g14]
+[ro.product.product.manufacturer]: [ASUS]
+[ro.product.product.model]: [OpenBook on ROG Zephyrus G14 (GA403WR)]
+[ro.product.product.name]: [anybook_g14_x86_64]
+[ro.product.system.brand]: [Android]
+[ro.product.system.device]: [generic]
+[ro.product.system.manufacturer]: [Android]
+[ro.product.system.model]: [Generic System]
+[ro.product.system.name]: [generic_system]
+[ro.product.system_ext.brand]: [OpenBook]
+[ro.product.system_ext.device]: [anybook_g14]
+[ro.product.system_ext.manufacturer]: [ASUS]
+[ro.product.system_ext.model]: [OpenBook on ROG Zephyrus G14 (GA403WR)]
+[ro.product.system_ext.name]: [anybook_g14_x86_64]
+[ro.product.vendor.brand]: [OpenBook]
+[ro.product.vendor.device]: [anybook_g14]
+[ro.product.vendor.manufacturer]: [ASUS]
+[ro.product.vendor.model]: [OpenBook on ROG Zephyrus G14 (GA403WR)]
+[ro.product.vendor.name]: [anybook_g14_x86_64]
+[ro.property_service.version]: [2]
+[ro.recovery.usb.adb.pid]: [D001]
+[ro.recovery.usb.fastboot.pid]: [4EE0]
+[ro.recovery.usb.vid]: [18D1]
+[ro.revision]: [0]
+[ro.runtime.firstboot]: [1792194667109]
+[ro.secure]: [1]
+[ro.serialno]: [OPENBOOKLIVE0001]
+[ro.sf.lcd_density]: [160]
+[ro.soc.manufacturer]: [AMD]
+[ro.soc.model]: [Ryzen_AI_9_HX_370]
+[ro.surface_flinger.game_default_frame_rate_override]: [60]
+[ro.system.build.date]: [Fri Oct 16 23:33:54 UTC 2026]
+[ro.system.build.date.utc]: [1792193634]
+[ro.system.build.fingerprint]: [Android/generic_system/generic:17/CP2A.260605.016/eng.builde:userdebug/test-keys]
+[ro.system.build.id]: [CP2A.260605.016]
+[ro.system.build.tags]: [test-keys]
+[ro.system.build.type]: [userdebug]
+[ro.system.build.uuid]: [7g-7MgYksnTFjwlg3Pe2jCSbVxrwMgP7oDWQvrLfEWQ]
+[ro.system.build.version.incremental]: [eng.builde]
+[ro.system.build.version.release]: [17]
+[ro.system.build.version.release_or_codename]: [17]
+[ro.system.build.version.sdk]: [37]
+[ro.system.build.version.sdk_full]: [37.0]
+[ro.system.product.cpu.abilist]: [x86_64]
+[ro.system.product.cpu.abilist32]: []
+[ro.system.product.cpu.abilist64]: [x86_64]
+[ro.system_ext.build.date]: [Fri Oct 16 23:33:54 UTC 2026]
+[ro.system_ext.build.date.utc]: [1792193634]
+[ro.system_ext.build.fingerprint]: [OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys]
+[ro.system_ext.build.id]: [CP2A.260605.016]
+[ro.system_ext.build.tags]: [test-keys]
+[ro.system_ext.build.type]: [userdebug]
+[ro.system_ext.build.uuid]: [7g-7MgYksnTFjwlg3Pe2jCSbVxrwMgP7oDWQvrLfEWQ]
+[ro.system_ext.build.version.incremental]: [eng.builde]
+[ro.system_ext.build.version.release]: [17]
+[ro.system_ext.build.version.release_or_codename]: [17]
+[ro.system_ext.build.version.sdk]: [37]
+[ro.system_ext.build.version.sdk_full]: [37.0]
+[ro.treble.enabled]: [true]
+[ro.vendor.api_level]: [202604]
+[ro.vendor.boot_security_patch]: [2026-06-05]
+[ro.vendor.build.ab_ota_partitions]: [boot,init_boot,product,system,system_dlkm,system_ext,vbmeta,vendor,vendor_boot,vendor_dlkm]
+[ro.vendor.build.date]: [Fri Oct 16 20:09:50 UTC 2026]
+[ro.vendor.build.date.utc]: [1792181390]
+[ro.vendor.build.fingerprint]: [OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys]
+[ro.vendor.build.id]: [CP2A.260605.016]
+[ro.vendor.build.security_patch]: [2026-06-05]
+[ro.vendor.build.tags]: [test-keys]
+[ro.vendor.build.type]: [userdebug]
+[ro.vendor.build.uuid]: [7g-7MgYksnTFjwlg3Pe2jCSbVxrwMgP7oDWQvrLfEWQ]
+[ro.vendor.build.version.incremental]: [eng.builde]
+[ro.vendor.build.version.release]: [17]
+[ro.vendor.build.version.release_or_codename]: [17]
+[ro.vendor.build.version.sdk]: [37]
+[ro.vendor.build.version.sdk_full]: [37.0]
+[ro.vendor.openbook.lcd_density]: [240]
+[ro.vendor.product.cpu.abilist]: [x86_64]
+[ro.vendor.product.cpu.abilist32]: []
+[ro.vendor.product.cpu.abilist64]: [x86_64]
+[ro.virtual_ab.batch_writes]: [true]
+[ro.virtual_ab.compression.enabled]: [true]
+[ro.virtual_ab.compression.xor.enabled]: [true]
+[ro.virtual_ab.enabled]: [true]
+[ro.virtual_ab.io_uring.enabled]: [true]
+[ro.virtual_ab.ublk.enabled]: [true]
+[ro.virtual_ab.userspace.snapshots.enabled]: [true]
+[ro.wifi.channels]: []
+[ro.zygote]: [zygote64]
+[security.perf_harden]: [1]
+[selinux.restorecon_recursive]: [/data/misc_ce/0]
+[service.bootanim.exit]: [1]
+[service.bootanim.progress]: [0]
+[service.sf.cache_dir_available]: [1]
+[service.sf.present_timestamp]: [1]
+[servicemanager.ready]: [true]
+[sys.boot.reason]: [reboot,factory_reset]
+[sys.boot.reason.last]: [reboot]
+[sys.boot_completed]: [1]
+[sys.bootstat.first_boot_completed]: [1]
+[sys.cppreopt]: [finished]
+[sys.init.perf_lsm_hooks]: [1]
+[sys.lmk.minfree_levels]: [18432:0,23040:100,27648:200,32256:250,55296:900,80640:950]
+[sys.lmk.reportkills]: [1]
+[sys.retaildemo.enabled]: [0]
+[sys.sysctl.extra_free_kbytes]: [27000]
+[sys.system_server.start_count]: [1]
+[sys.system_server.start_elapsed]: [13799]
+[sys.system_server.start_uptime]: [13799]
+[sys.trace.traced_started]: [1]
+[sys.usb.config]: [adb]
+[sys.usb.configfs]: [0]
+[sys.usb.state]: [adb]
+[sys.user.0.ce_available]: [true]
+[sys.wifitracing.started]: [1]
+[tombstoned.max_tombstone_count]: [50]
+[vendor.anybook.gpu.driver]: [unbound]
+[vendor.anybook.gpu.hal]: [virtio]
+[vendor.anybook.gpu.pci_id]: [1af4:1050]
+[vendor.anybook.gpu.source]: [pci]
+[vendor.openbook.lcd_density]: [160]
+[vold.has_adoptable]: [0]
+[vold.has_compress]: [1]
+[vold.has_quota]: [1]
+[vold.has_reserved]: [1]
+
+===BOOTCONFIG===
+androidboot.hardware = "openbook"
+androidboot.boot_devices = "pci0000:00/0000:00:02.1,pci0000:00/0000:00:08.1,pci0000:00/0000:00:08.3"
+androidboot.slot_suffix = "_a"
+androidboot.verifiedbootstate = "orange"
+androidboot.vbmeta.device_state = "unlocked"
+androidboot.vbmeta.avb_version = "1.3"
+androidboot.vbmeta.hash_alg = "sha256"
+androidboot.vbmeta.size = "6208"
+androidboot.vbmeta.digest = "5c9d7fed6acf01fb743b9a96b02a2cd2cfcb644e0ae31eaaf3050620c21a6d30"
+androidboot.vbmeta.invalidate_on_error = "yes"
+androidboot.veritymode = "enforcing"
+androidboot.boot_part_uuid = "77532184-ec9c-5380-a256-ea2a716a3675"
+androidboot.serialno = "OPENBOOKLIVE0001"
+androidboot.openbook.loader = "sdboot"
+androidboot.openbook.live = "1"
+androidboot.openbook.logs = "1"
+androidboot.openbook.logs_timeout = "300"
+androidboot.lcd_density = "160"
+androidboot.selinux = "permissive"
+
+===CMDLINE===
+console=ttynull stack_depot_disable=on cgroup_disable=pressure bootconfig initrd=\openbook\a\vendor_ramdisk.img initrd=\openbook\a\ramdisk.img initrd=\openbook\a\live.img initrd=\openbook\a\bootconfig-vm-logs.img firmware_class.path=/vendor/firmware log_buf_len=1M bootconfig rdinit=/openbook-live-init console=ttyS0,115200 8250.nr_uarts=1 printk.devkmsg=on
+
+===BYNAME===
+total 0
+lrwxrwxrwx 1 root root 15 2026-10-16 23:50 EFI -> /dev/block/sda1
+lrwxrwxrwx 1 root root 15 2026-10-16 23:50 boot_a -> /dev/block/sda3
+lrwxrwxrwx 1 root root 15 2026-10-16 23:50 init_boot_a -> /dev/block/sda4
+lrwxrwxrwx 1 root root 15 2026-10-16 23:50 metadata -> /dev/block/sda7
+lrwxrwxrwx 1 root root 15 2026-10-16 23:50 misc -> /dev/block/sda2
+lrwxrwxrwx 1 root root 14 2026-10-16 23:50 sda -> /dev/block/sda
+lrwxrwxrwx 1 root root 15 2026-10-16 23:50 super -> /dev/block/sda8
+lrwxrwxrwx 1 root root 15 2026-10-16 23:50 userdata -> /dev/block/sda9
+lrwxrwxrwx 1 root root 15 2026-10-16 23:50 vbmeta_a -> /dev/block/sda6
+lrwxrwxrwx 1 root root 15 2026-10-16 23:50 vendor_boot_a -> /dev/block/sda5
+
+===PARTITIONS===
+major minor  #blocks  name
+
+   1        0       8192 ram0
+   1        1       8192 ram1
+   1        2       8192 ram2
+   1        3       8192 ram3
+   1        4       8192 ram4
+   1        5       8192 ram5
+   1        6       8192 ram6
+   1        7       8192 ram7
+   1        8       8192 ram8
+   1        9       8192 ram9
+   1       10       8192 ram10
+   1       11       8192 ram11
+   1       12       8192 ram12
+   1       13       8192 ram13
+   1       14       8192 ram14
+   1       15       8192 ram15
+   7        0       4668 loop0
+   7        1        464 loop1
+   7        2       1248 loop2
+   7        3       5508 loop3
+   7        4      38240 loop4
+   7        5        852 loop5
+   7        6       7356 loop6
+   7        7        464 loop7
+   7        8       6140 loop8
+   7        9      67920 loop9
+   7       10      19416 loop10
+   7       11       1248 loop11
+   7       12        376 loop12
+   7       13      30128 loop13
+   7       14       1196 loop14
+   7       15        268 loop15
+   8        0   16777216 sda
+   8        1     262144 sda1
+   8        2       4096 sda2
+   8        3      65536 sda3
+   8        4       8192 sda4
+   8        5      65536 sda5
+   8        6       1024 sda6
+   8        7      65536 sda7
+   8        8    1292288 sda8
+   8        9   15010816 sda9
+ 254        0     599836 dm-0
+ 254        1       4484 dm-1
+ 254        2     122120 dm-2
+ 254        3     285644 dm-3
+ 254        4     141136 dm-4
+ 254        5      52152 dm-5
+ 254        6      17740 dm-6
+ 254        7     588520 dm-7
+ 254        8     119752 dm-8
+ 254        9     280208 dm-9
+ 254       10     138408 dm-10
+ 254       11      51320 dm-11
+ 254       12      17444 dm-12
+   7       16        264 loop16
+   7       17       5508 loop17
+   7       18      28436 loop18
+   7       19      15416 loop19
+   7       20       1376 loop20
+   7       21       6400 loop21
+   7       22       3376 loop22
+   7       23       9944 loop23
+   7       24      22236 loop24
+   7       25       5472 loop25
+   7       26       4264 loop26
+   7       27       8428 loop27
+   7       28      38800 loop28
+   7       29      27872 loop29
+   7       30        880 loop30
+   7       31      21820 loop31
+   7       32       5864 loop32
+   7       33       4668 loop33
+   7       34       7148 loop34
+   7       35      24088 loop35
+   7       36       4908 loop36
+   7       37      29480 loop37
+   7       38       2400 loop38
+   7       39       5684 loop39
+   7       40        268 loop40
+   7       41      16632 loop41
+   7       42        372 loop42
+   7       43        676 loop43
+   7       44      38240 loop44
+   7       45       7356 loop45
+   7       46       5816 loop46
+   7       47        852 loop47
+   7       48       6016 loop48
+   7       49       1740 loop49
+   7       50        268 loop50
+   7       51      26948 loop51
+   7       52       4536 loop52
+   7       53        376 loop53
+ 254       18      19252 dm-18
+ 254       19       6080 dm-19
+ 254       21      29880 dm-21
+ 254       23        256 dm-23
+ 254       25        252 dm-25
+ 254       26      28200 dm-26
+ 254       27      15284 dm-27
+ 254       29       6336 dm-29
+ 254       31       9852 dm-31
+ 254       32      22048 dm-32
+ 254       33       5416 dm-33
+ 254       34       4216 dm-34
+ 254       35       8348 dm-35
+ 254       36      38484 dm-36
+ 254       37      27644 dm-37
+ 254       38        860 dm-38
+ 254       40      21636 dm-40
+ 254       43       5756 dm-43
+ 254       45       5956 dm-45
+ 254       46       7080 dm-46
+ 254       47       4856 dm-47
+ 254       48      23888 dm-48
+ 254       49      29236 dm-49
+ 254       50       2368 dm-50
+ 254       52       5628 dm-52
+ 254       55        360 dm-55
+ 254       57      26724 dm-57
+ 254       59       4488 dm-59
+ 254       60   15010816 dm-60
+
+===MOUNTS===
+/dev/block/dm-7 / erofs ro,seclabel,relatime,user_xattr,acl,cache_strategy=readaround 0 0
+tmpfs /dev tmpfs rw,seclabel,nosuid,relatime,mode=755 0 0
+devpts /dev/pts devpts rw,seclabel,relatime,mode=600,ptmxmode=000 0 0
+proc /proc proc rw,relatime,gid=3009,hidepid=invisible 0 0
+sysfs /sys sysfs rw,seclabel,relatime 0 0
+selinuxfs /sys/fs/selinux selinuxfs rw,relatime 0 0
+tmpfs /mnt tmpfs rw,seclabel,nosuid,nodev,noexec,relatime,mode=755,gid=1000 0 0
+tmpfs /mnt/installer tmpfs rw,seclabel,nosuid,nodev,noexec,relatime,mode=755,gid=1000 0 0
+tmpfs /mnt/androidwritable tmpfs rw,seclabel,nosuid,nodev,noexec,relatime,mode=755,gid=1000 0 0
+/dev/block/dm-8 /system_ext erofs ro,seclabel,relatime,user_xattr,acl,cache_strategy=readaround 0 0
+/dev/block/dm-9 /product erofs ro,seclabel,relatime,user_xattr,acl,cache_strategy=readaround 0 0
+/dev/block/dm-10 /vendor erofs ro,seclabel,relatime,user_xattr,acl,cache_strategy=readaround 0 0
+/dev/block/dm-11 /vendor_dlkm erofs ro,seclabel,relatime,user_xattr,acl,cache_strategy=readaround 0 0
+/dev/block/dm-12 /system_dlkm erofs ro,seclabel,relatime,user_xattr,acl,cache_strategy=readaround 0 0
+tmpfs /apex tmpfs rw,seclabel,nosuid,nodev,noexec,relatime,mode=755 0 0
+tmpfs /bootstrap-apex tmpfs rw,seclabel,nosuid,nodev,noexec,relatime,mode=755 0 0
+tmpfs /linkerconfig tmpfs rw,seclabel,nosuid,nodev,noexec,relatime,mode=755 0 0
+none /dev/blkio cgroup rw,nosuid,nodev,noexec,relatime,blkio 0 0
+none /sys/fs/cgroup cgroup2 rw,nosuid,nodev,noexec,relatime,memory_recursiveprot 0 0
+none /dev/cpuctl cgroup rw,nosuid,nodev,noexec,relatime,cpu 0 0
+none /dev/cpuset cgroup rw,nosuid,nodev,noexec,relatime,cpuset,noprefix,cpuset_v2_mode 0 0
+tracefs /sys/kernel/tracing tracefs rw,seclabel,relatime 0 0
+/dev/block/loop1 /bootstrap-apex/com.android.hardware.boot@1 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop1 /bootstrap-apex/com.android.hardware.boot ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop3 /bootstrap-apex/com.android.runtime@1 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop3 /bootstrap-apex/com.android.runtime ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop0 /bootstrap-apex/com.android.hardware.gatekeeper@1 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop0 /bootstrap-apex/com.android.hardware.gatekeeper ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop6 /bootstrap-apex/com.android.hardware.keymint@1 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop4 /bootstrap-apex/com.android.i18n@1 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop6 /bootstrap-apex/com.android.hardware.keymint ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop4 /bootstrap-apex/com.android.i18n ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop5 /bootstrap-apex/com.android.tzdata@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop5 /bootstrap-apex/com.android.tzdata ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop2 /bootstrap-apex/com.android.virt@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop2 /bootstrap-apex/com.android.virt ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+tmpfs /tmp tmpfs rw,seclabel,relatime 0 0
+none /config configfs rw,nosuid,nodev,noexec,relatime 0 0
+binder /dev/binderfs binder rw,relatime,max=1048576,stats=global 0 0
+none /sys/fs/fuse/connections fusectl rw,relatime 0 0
+bpf /sys/fs/bpf bpf rw,nosuid,nodev,noexec,relatime 0 0
+none /sys/fs/pstore pstore rw,seclabel,nosuid,nodev,noexec,relatime 0 0
+tmpfs /mnt/vm tmpfs rw,seclabel,nosuid,nodev,noexec,relatime 0 0
+/dev/block/sda7 /metadata ext4 rw,seclabel,nosuid,nodev,noatime 0 0
+tmpfs /storage tmpfs rw,seclabel,nosuid,nodev,noexec,relatime,mode=755,gid=1000 0 0
+/dev/block/dm-60 /data f2fs rw,lazytime,seclabel,nosuid,nodev,noatime,background_gc=on,nogc_merge,nodiscard,user_xattr,inline_xattr,acl,inline_data,inline_dentry,flush_merge,barrier,extent_cache,mode=adaptive,active_logs=6,reserve_root=32768,reserve_node=0,resuid=0,resgid=0,usrquota,grpquota,prjquota,inlinecrypt,alloc_mode=reuse,checkpoint_merge,fsync_mode=posix,compress_algorithm=lz4,compress_log_size=2,compress_mode=fs,memory=normal,errors=continue,lookup_mode=perf 0 0
+tmpfs /linkerconfig tmpfs rw,seclabel,nosuid,nodev,noexec,relatime,mode=755 0 0
+tmpfs /data_mirror tmpfs rw,seclabel,nosuid,nodev,noexec,relatime,mode=700,gid=1000 0 0
+/dev/block/dm-60 /data_mirror/data_ce/null f2fs rw,lazytime,seclabel,nosuid,nodev,noatime,background_gc=on,nogc_merge,nodiscard,user_xattr,inline_xattr,acl,inline_data,inline_dentry,flush_merge,barrier,extent_cache,mode=adaptive,active_logs=6,reserve_root=32768,reserve_node=0,resuid=0,resgid=0,usrquota,grpquota,prjquota,inlinecrypt,alloc_mode=reuse,checkpoint_merge,fsync_mode=posix,compress_algorithm=lz4,compress_log_size=2,compress_mode=fs,memory=normal,errors=continue,lookup_mode=perf 0 0
+/dev/block/dm-60 /data_mirror/data_de/null f2fs rw,lazytime,seclabel,nosuid,nodev,noatime,background_gc=on,nogc_merge,nodiscard,user_xattr,inline_xattr,acl,inline_data,inline_dentry,flush_merge,barrier,extent_cache,mode=adaptive,active_logs=6,reserve_root=32768,reserve_node=0,resuid=0,resgid=0,usrquota,grpquota,prjquota,inlinecrypt,alloc_mode=reuse,checkpoint_merge,fsync_mode=posix,compress_algorithm=lz4,compress_log_size=2,compress_mode=fs,memory=normal,errors=continue,lookup_mode=perf 0 0
+/dev/block/dm-60 /data_mirror/misc_ce/null f2fs rw,lazytime,seclabel,nosuid,nodev,noatime,background_gc=on,nogc_merge,nodiscard,user_xattr,inline_xattr,acl,inline_data,inline_dentry,flush_merge,barrier,extent_cache,mode=adaptive,active_logs=6,reserve_root=32768,reserve_node=0,resuid=0,resgid=0,usrquota,grpquota,prjquota,inlinecrypt,alloc_mode=reuse,checkpoint_merge,fsync_mode=posix,compress_algorithm=lz4,compress_log_size=2,compress_mode=fs,memory=normal,errors=continue,lookup_mode=perf 0 0
+/dev/block/dm-60 /data_mirror/misc_de/null f2fs rw,lazytime,seclabel,nosuid,nodev,noatime,background_gc=on,nogc_merge,nodiscard,user_xattr,inline_xattr,acl,inline_data,inline_dentry,flush_merge,barrier,extent_cache,mode=adaptive,active_logs=6,reserve_root=32768,reserve_node=0,resuid=0,resgid=0,usrquota,grpquota,prjquota,inlinecrypt,alloc_mode=reuse,checkpoint_merge,fsync_mode=posix,compress_algorithm=lz4,compress_log_size=2,compress_mode=fs,memory=normal,errors=continue,lookup_mode=perf 0 0
+/dev/block/dm-60 /data_mirror/storage_area f2fs rw,lazytime,seclabel,nosuid,nodev,noatime,background_gc=on,nogc_merge,nodiscard,user_xattr,inline_xattr,acl,inline_data,inline_dentry,flush_merge,barrier,extent_cache,mode=adaptive,active_logs=6,reserve_root=32768,reserve_node=0,resuid=0,resgid=0,usrquota,grpquota,prjquota,inlinecrypt,alloc_mode=reuse,checkpoint_merge,fsync_mode=posix,compress_algorithm=lz4,compress_log_size=2,compress_mode=fs,memory=normal,errors=continue,lookup_mode=perf 0 0
+/dev/block/dm-60 /data_mirror/cur_profiles f2fs rw,lazytime,seclabel,nosuid,nodev,noatime,background_gc=on,nogc_merge,nodiscard,user_xattr,inline_xattr,acl,inline_data,inline_dentry,flush_merge,barrier,extent_cache,mode=adaptive,active_logs=6,reserve_root=32768,reserve_node=0,resuid=0,resgid=0,usrquota,grpquota,prjquota,inlinecrypt,alloc_mode=reuse,checkpoint_merge,fsync_mode=posix,compress_algorithm=lz4,compress_log_size=2,compress_mode=fs,memory=normal,errors=continue,lookup_mode=perf 0 0
+/dev/block/dm-60 /data_mirror/ref_profiles f2fs rw,lazytime,seclabel,nosuid,nodev,noatime,background_gc=on,nogc_merge,nodiscard,user_xattr,inline_xattr,acl,inline_data,inline_dentry,flush_merge,barrier,extent_cache,mode=adaptive,active_logs=6,reserve_root=32768,reserve_node=0,resuid=0,resgid=0,usrquota,grpquota,prjquota,inlinecrypt,alloc_mode=reuse,checkpoint_merge,fsync_mode=posix,compress_algorithm=lz4,compress_log_size=2,compress_mode=fs,memory=normal,errors=continue,lookup_mode=perf 0 0
+securityfs /sys/kernel/security securityfs rw,relatime 0 0
+/dev/block/loop7 /apex/com.android.hardware.boot@1 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop7 /apex/com.android.hardware.boot ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop9 /apex/com.android.hardware.audio@1 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop9 /apex/com.android.hardware.audio ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-19 /apex/com.android.webapp@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-19 /apex/com.android.webapp ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop11 /apex/com.android.virt@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop11 /apex/com.android.virt ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-23 /apex/com.android.scheduling@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-23 /apex/com.android.scheduling ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-21 /apex/com.android.tethering@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-21 /apex/com.android.tethering ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-18 /apex/com.android.wifi@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-18 /apex/com.android.wifi ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop22 /apex/com.android.os.statsd@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop33 /apex/com.android.hardware.gatekeeper@1 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop33 /apex/com.android.hardware.gatekeeper ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop17 /apex/com.android.runtime@1 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop17 /apex/com.android.runtime ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-38 /apex/com.android.ipsec@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop45 /apex/com.android.hardware.keymint@1 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-46 /apex/com.android.uwb@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop44 /apex/com.android.i18n@1 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop45 /apex/com.android.hardware.keymint ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop44 /apex/com.android.i18n ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop14 /apex/com.android.sdkext@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-33 /apex/com.android.neuralnetworks@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop14 /apex/com.android.sdkext ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop47 /apex/com.android.tzdata@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop47 /apex/com.android.tzdata ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop22 /apex/com.android.os.statsd ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop12 /apex/com.android.hardware.memtrack@1 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop12 /apex/com.android.hardware.memtrack ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop32 /apex/com.android.devicelock@1 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop20 /apex/com.android.rkpd@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop32 /apex/com.android.devicelock ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-26 /apex/com.android.permission@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop41 /apex/com.android.healthfitness@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-33 /apex/com.android.neuralnetworks ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop20 /apex/com.android.rkpd ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-36 /apex/com.android.media.swcodec@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop41 /apex/com.android.healthfitness ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-38 /apex/com.android.ipsec ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-46 /apex/com.android.uwb ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-32 /apex/com.android.cellbroadcast@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop49 /apex/com.android.hardware.dumpstate@1 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-40 /apex/com.android.adservices@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop50 /apex/com.android.hardware.cas@1 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop50 /apex/com.android.hardware.cas ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-25 /apex/com.android.resolv@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-29 /apex/com.android.media@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop49 /apex/com.android.hardware.dumpstate ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop53 /apex/com.android.hardware.authsecret@1 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop53 /apex/com.android.hardware.authsecret ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop43 /apex/com.android.hardware.biometrics.fingerprint.virtual@1 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop43 /apex/com.android.hardware.biometrics.fingerprint.virtual ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-34 /apex/com.android.uprobestats@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop40 /apex/com.android.apex.cts.shim@1 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-35 /apex/com.android.adbd@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/loop40 /apex/com.android.apex.cts.shim ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-48 /apex/com.android.extservices@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-27 /apex/com.android.ondevicepersonalization@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-37 /apex/com.android.mediaprovider@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-36 /apex/com.android.media.swcodec ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-45 /apex/com.android.configinfrastructure@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-57 /apex/com.android.bt@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-43 /apex/com.android.conscrypt@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-26 /apex/com.android.permission ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-59 /apex/com.android.appsearch@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-55 /apex/com.android.crashrecovery@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-34 /apex/com.android.uprobestats ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-47 /apex/com.android.telephonycore@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-31 /apex/com.android.nfcservices@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-52 /apex/com.android.npumanager@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-25 /apex/com.android.resolv ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-29 /apex/com.android.media ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-49 /apex/com.android.art@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-40 /apex/com.android.adservices ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-27 /apex/com.android.ondevicepersonalization ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-45 /apex/com.android.configinfrastructure ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-50 /apex/com.android.profiling@370399999 ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-32 /apex/com.android.cellbroadcast ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-59 /apex/com.android.appsearch ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-43 /apex/com.android.conscrypt ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-35 /apex/com.android.adbd ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-52 /apex/com.android.npumanager ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-37 /apex/com.android.mediaprovider ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-31 /apex/com.android.nfcservices ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-55 /apex/com.android.crashrecovery ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-50 /apex/com.android.profiling ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-57 /apex/com.android.bt ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-48 /apex/com.android.extservices ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-49 /apex/com.android.art ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-47 /apex/com.android.telephonycore ext4 ro,dirsync,seclabel,nodev,noatime 0 0
+/dev/block/dm-60 /data/user/0 f2fs rw,lazytime,seclabel,nosuid,nodev,noatime,background_gc=on,nogc_merge,nodiscard,user_xattr,inline_xattr,acl,inline_data,inline_dentry,flush_merge,barrier,extent_cache,mode=adaptive,active_logs=6,reserve_root=32768,reserve_node=0,resuid=0,resgid=0,usrquota,grpquota,prjquota,inlinecrypt,alloc_mode=reuse,checkpoint_merge,fsync_mode=posix,compress_algorithm=lz4,compress_log_size=2,compress_mode=fs,memory=normal,errors=continue,lookup_mode=perf 0 0
+/dev/block/dm-60 /data_mirror/data_ce/null/0 f2fs rw,lazytime,seclabel,nosuid,nodev,noatime,background_gc=on,nogc_merge,nodiscard,user_xattr,inline_xattr,acl,inline_data,inline_dentry,flush_merge,barrier,extent_cache,mode=adaptive,active_logs=6,reserve_root=32768,reserve_node=0,resuid=0,resgid=0,usrquota,grpquota,prjquota,inlinecrypt,alloc_mode=reuse,checkpoint_merge,fsync_mode=posix,compress_algorithm=lz4,compress_log_size=2,compress_mode=fs,memory=normal,errors=continue,lookup_mode=perf 0 0
+/dev/fuse /storage/emulated fuse rw,lazytime,nosuid,nodev,noexec,noatime,user_id=0,group_id=0,allow_other 0 0
+/dev/fuse /mnt/user/0/emulated fuse rw,lazytime,nosuid,nodev,noexec,noatime,user_id=0,group_id=0,allow_other 0 0
+/dev/fuse /mnt/androidwritable/0/emulated fuse rw,lazytime,nosuid,nodev,noexec,noatime,user_id=0,group_id=0,allow_other 0 0
+/dev/fuse /mnt/installer/0/emulated fuse rw,lazytime,nosuid,nodev,noexec,noatime,user_id=0,group_id=0,allow_other 0 0
+/dev/block/dm-60 /mnt/pass_through/0/emulated f2fs rw,lazytime,seclabel,nosuid,nodev,noatime,background_gc=on,nogc_merge,nodiscard,user_xattr,inline_xattr,acl,inline_data,inline_dentry,flush_merge,barrier,extent_cache,mode=adaptive,active_logs=6,reserve_root=32768,reserve_node=0,resuid=0,resgid=0,usrquota,grpquota,prjquota,inlinecrypt,alloc_mode=reuse,checkpoint_merge,fsync_mode=posix,compress_algorithm=lz4,compress_log_size=2,compress_mode=fs,memory=normal,errors=continue,lookup_mode=perf 0 0
+
+===DF===
+Filesystem       1K-blocks   Used Available Use% Mounted on
+/dev/block/dm-60  15008768 729516  14279252   5% /mnt/pass_through/0/emulated
+/dev/block/sda7      53232   1124     52108   3% /metadata
+/dev/block/dm-7     588520 588520         0 100% /
+/dev/block/dm-10    138408 138408         0 100% /vendor
+
+===MODULES===
+virtio_input 24576 0 - Live 0x0000000000000000
+virtio_gpu 118784 40 - Live 0x0000000000000000
+virtio_dma_buf 12288 1 virtio_gpu, Live 0x0000000000000000
+virtio_pci 53248 0 - Live 0x0000000000000000
+virtio_pci_legacy_dev 16384 1 virtio_pci, Live 0x0000000000000000
+virtio_pci_modern_dev 24576 1 virtio_pci, Live 0x0000000000000000
+btusb 81920 0 - Live 0x0000000000000000
+btbcm 28672 1 btusb, Live 0x0000000000000000
+btmtk 36864 1 btusb, Live 0x0000000000000000
+btrtl 32768 1 btusb, Live 0x0000000000000000
+btintel 69632 1 btusb, Live 0x0000000000000000
+bluetooth 901120 5 btusb,btbcm,btmtk,btrtl,btintel, Live 0x0000000000000000
+rtw89_8922ae 12288 0 - Live 0x0000000000000000
+rtw89_8922a 90112 1 rtw89_8922ae, Live 0x0000000000000000
+rtw89_8852ce 12288 0 - Live 0x0000000000000000
+rtw89_8852c 1036288 1 rtw89_8852ce, Live 0x0000000000000000
+rtw89_8852be 12288 0 - Live 0x0000000000000000
+rtw89_8852b 409600 1 rtw89_8852be, Live 0x0000000000000000
+rtw89_8852b_common 86016 1 rtw89_8852b, Live 0x0000000000000000
+rtw89_8852ae 12288 0 - Live 0x0000000000000000
+rtw89_8852a 770048 1 rtw89_8852ae, Live 0x0000000000000000
+rtw89_8851be 12288 0 - Live 0x0000000000000000
+rtw89_8851b 376832 1 rtw89_8851be, Live 0x0000000000000000
+rtw89_pci 139264 5 rtw89_8922ae,rtw89_8852ce,rtw89_8852be,rtw89_8852ae,rtw89_8851be, Live 0x0000000000000000
+rtw89_core 1011712 7 rtw89_8922a,rtw89_8852c,rtw89_8852b,rtw89_8852b_common,rtw89_8852a,rtw89_8851b,rtw89_pci, Live 0x0000000000000000
+mt7921e 24576 0 - Live 0x0000000000000000
+mt7921_common 122880 1 mt7921e, Live 0x0000000000000000
+mt7925e 24576 0 - Live 0x0000000000000000
+mt7925_common 155648 1 mt7925e, Live 0x0000000000000000
+mt792x_lib 86016 4 mt7921e,mt7921_common,mt7925e,mt7925_common, Live 0x0000000000000000
+mt76_connac_lib 110592 5 mt7921e,mt7921_common,mt7925e,mt7925_common,mt792x_lib, Live 0x0000000000000000
+mt76 180224 6 mt7921e,mt7921_common,mt7925e,mt7925_common,mt792x_lib,mt76_connac_lib, Live 0x0000000000000000
+mac80211 1474560 7 rtw89_pci,rtw89_core,mt7921_common,mt7925_common,mt792x_lib,mt76_connac_lib,mt76, Live 0x0000000000000000
+libarc4 12288 1 mac80211, Live 0x0000000000000000
+cfg80211 1564672 11 rtw89_8922a,rtw89_8852c,rtw89_8852b_common,rtw89_8852a,rtw89_8851b,rtw89_core,mt7921_common,mt7925_common,mt76_connac_lib,mt76,mac80211, Live 0x0000000000000000
+snd_acp_sof_mach 12288 0 - Live 0x0000000000000000
+snd_sof_probes 28672 0 - Live 0x0000000000000000
+snd_sof_amd_acp70 16384 0 - Live 0x0000000000000000
+snd_sof_amd_acp63 16384 0 - Live 0x0000000000000000
+snd_sof_amd_rembrandt 16384 0 - Live 0x0000000000000000
+snd_sof_amd_acp 65536 3 snd_sof_amd_acp70,snd_sof_amd_acp63,snd_sof_amd_rembrandt, Live 0x0000000000000000
+snd_sof_pci 20480 3 snd_sof_amd_acp70,snd_sof_amd_acp63,snd_sof_amd_rembrandt, Live 0x0000000000000000
+snd_sof_xtensa_dsp 12288 1 snd_sof_amd_acp, Live 0x0000000000000000
+snd_sof 274432 3 snd_sof_probes,snd_sof_amd_acp,snd_sof_pci, Live 0x0000000000000000
+snd_sof_utils 12288 1 snd_sof, Live 0x0000000000000000
+snd_acp_legacy_mach 20480 0 - Live 0x0000000000000000
+snd_acp_mach 45056 2 snd_acp_sof_mach,snd_acp_legacy_mach, Live 0x0000000000000000
+snd_soc_max98388 36864 0 - Live 0x0000000000000000
+snd_soc_max98357a 12288 0 - Live 0x0000000000000000
+snd_soc_nau8825 69632 0 - Live 0x0000000000000000
+snd_soc_nau8821 61440 1 snd_acp_mach, Live 0x0000000000000000
+snd_soc_rt5682s 86016 0 - Live 0x0000000000000000
+snd_soc_rt5682_i2c 12288 0 - Live 0x0000000000000000
+snd_soc_rt5682 94208 1 snd_soc_rt5682_i2c, Live 0x0000000000000000
+snd_soc_rt1019 20480 0 - Live 0x0000000000000000
+snd_soc_rl6231 12288 2 snd_soc_rt5682,snd_soc_rt1019, Live 0x0000000000000000
+snd_acp_pci 12288 0 - Live 0x0000000000000000
+snd_amd_acpi_mach 12288 1 snd_acp_pci, Live 0x0000000000000000
+snd_acp70 12288 0 - Live 0x0000000000000000
+snd_acp_legacy_common 24576 2 snd_acp_pci,snd_acp70, Live 0x0000000000000000
+snd_acp_pdm 12288 1 snd_acp70, Live 0x0000000000000000
+snd_acp_i2s 16384 1 snd_acp70, Live 0x0000000000000000
+snd_acp_pcm 20480 1 snd_acp70, Live 0x0000000000000000
+snd_pci_ps 28672 0 - Live 0x0000000000000000
+snd_soc_ps_mach 12288 0 - Live 0x0000000000000000
+snd_ps_sdw_dma 24576 0 - Live 0x0000000000000000
+snd_ps_pdm_dma 20480 0 - Live 0x0000000000000000
+snd_soc_dmic 12288 0 - Live 0x0000000000000000
+snd_amd_sdw_acpi 12288 0 - Live 0x0000000000000000
+snd_soc_acpi_amd_match 16384 3 snd_sof_amd_acp70,snd_sof_amd_acp63,snd_pci_ps, Live 0x0000000000000000
+snd_acp_config 24576 5 snd_sof_amd_acp70,snd_sof_amd_acp63,snd_sof_amd_rembrandt,snd_acp_pci,snd_pci_ps, Live 0x0000000000000000
+snd_hda_intel 61440 0 - Live 0x0000000000000000
+snd_hda_codec_tegrahdmi 12288 0 - Live 0x0000000000000000
+snd_hda_codec_nvhdmi_mcp 12288 0 - Live 0x0000000000000000
+snd_hda_codec_nvhdmi 16384 0 - Live 0x0000000000000000
+snd_hda_codec_intelhdmi 20480 0 - Live 0x0000000000000000
+snd_hda_codec_simplehdmi 20480 1 snd_hda_codec_nvhdmi_mcp, Live 0x0000000000000000
+snd_hda_codec_atihdmi 16384 0 - Live 0x0000000000000000
+snd_hda_codec_hdmi 57344 4 snd_hda_codec_tegrahdmi,snd_hda_codec_nvhdmi,snd_hda_codec_intelhdmi,snd_hda_codec_atihdmi, Live 0x0000000000000000
+snd_hda_scodec_cs35l56_i2c 12288 0 - Live 0x0000000000000000
+snd_hda_scodec_cs35l56 28672 1 snd_hda_scodec_cs35l56_i2c, Live 0x0000000000000000
+snd_hda_cirrus_scodec 12288 1 snd_hda_scodec_cs35l56, Live 0x0000000000000000
+snd_soc_cs35l56_shared 45056 2 snd_hda_scodec_cs35l56_i2c,snd_hda_scodec_cs35l56, Live 0x0000000000000000
+snd_soc_cs_amp_lib 20480 2 snd_hda_scodec_cs35l56,snd_soc_cs35l56_shared, Live 0x0000000000000000
+cs_dsp 73728 3 snd_hda_scodec_cs35l56,snd_soc_cs35l56_shared,snd_soc_cs_amp_lib, Live 0x0000000000000000
+snd_hda_codec_alc882 20480 0 - Live 0x0000000000000000
+snd_hda_codec_alc880 12288 0 - Live 0x0000000000000000
+snd_hda_codec_alc861vd 12288 0 - Live 0x0000000000000000
+snd_hda_codec_alc861 12288 0 - Live 0x0000000000000000
+snd_hda_codec_alc680 12288 0 - Live 0x0000000000000000
+snd_hda_codec_alc662 20480 0 - Live 0x0000000000000000
+snd_hda_codec_alc268 12288 0 - Live 0x0000000000000000
+snd_hda_codec_alc262 12288 0 - Live 0x0000000000000000
+snd_hda_codec_alc260 12288 0 - Live 0x0000000000000000
+snd_hda_codec_alc269 143360 0 - Live 0x0000000000000000
+snd_hda_scodec_component 16384 1 snd_hda_codec_alc269, Live 0x0000000000000000
+snd_hda_codec_realtek_lib 65536 10 snd_hda_codec_alc882,snd_hda_codec_alc880,snd_hda_codec_alc861vd,snd_hda_codec_alc861,snd_hda_codec_alc680,snd_hda_codec_alc662,snd_hda_codec_alc268,snd_hda_codec_alc262,snd_hda_codec_alc260,snd_hda_codec_alc269, Live 0x0000000000000000
+snd_hda_codec_generic 122880 11 snd_hda_codec_alc882,snd_hda_codec_alc880,snd_hda_codec_alc861vd,snd_hda_codec_alc861,snd_hda_codec_alc680,snd_hda_codec_alc662,snd_hda_codec_alc268,snd_hda_codec_alc262,snd_hda_codec_alc260,snd_hda_codec_alc269,snd_hda_codec_realtek_lib, Live 0x0000000000000000
+snd_ctl_led 28672 0 - Live 0x0000000000000000
+snd_hda_codec 225280 20 snd_hda_intel,snd_hda_codec_tegrahdmi,snd_hda_codec_nvhdmi_mcp,snd_hda_codec_nvhdmi,snd_hda_codec_intelhdmi,snd_hda_codec_simplehdmi,snd_hda_codec_atihdmi,snd_hda_codec_hdmi,snd_hda_codec_alc882,snd_hda_codec_alc880,snd_hda_codec_alc861vd,snd_hda_codec_alc861,snd_hda_codec_alc680,snd_hda_codec_alc662,snd_hda_codec_alc268,snd_hda_codec_alc262,snd_hda_codec_alc260,snd_hda_codec_alc269,snd_hda_codec_realtek_lib,snd_hda_codec_generic, Live 0x0000000000000000
+snd_hda_core 155648 13 snd_hda_intel,snd_hda_codec_tegrahdmi,snd_hda_codec_nvhdmi_mcp,snd_hda_codec_intelhdmi,snd_hda_codec_simplehdmi,snd_hda_codec_atihdmi,snd_hda_codec_hdmi,snd_hda_codec_alc861vd,snd_hda_codec_alc662,snd_hda_codec_alc269,snd_hda_codec_realtek_lib,snd_hda_codec_generic,snd_hda_codec, Live 0x0000000000000000
+rtsx_pci_sdmmc 28672 0 - Live 0x0000000000000000
+rtsx_pci 131072 1 rtsx_pci_sdmmc, Live 0x0000000000000000
+amdxdna 159744 0 - Live 0x0000000000000000
+amdgpu 14340096 0 - Live 0x0000000000000000
+amdxcp 12288 1 amdgpu, Live 0x0000000000000000
+i2c_algo_bit 20480 1 amdgpu, Live 0x0000000000000000
+gpu_sched 73728 2 amdxdna,amdgpu, Live 0x0000000000000000
+drm_panel_backlight_quirks 12288 1 amdgpu, Live 0x0000000000000000
+drm_display_helper 253952 1 amdgpu, Live 0x0000000000000000
+drm_ttm_helper 12288 1 amdgpu, Live 0x0000000000000000
+drm_suballoc_helper 24576 1 amdgpu, Live 0x0000000000000000
+drm_exec 20480 1 amdgpu, Live 0x0000000000000000
+drm_buddy 28672 1 amdgpu, Live 0x0000000000000000
+nvidia_wmi_ec_backlight 12288 0 - Live 0x0000000000000000
+hid_asus 32768 0 - Live 0x0000000000000000
+asus_wmi 118784 1 hid_asus, Live 0x0000000000000000
+rfkill 40960 6 bluetooth,rtw89_core,mt7921e,mt7925e,cfg80211,asus_wmi, Live 0x0000000000000000
+amd_sfh 61440 0 - Live 0x0000000000000000
+i2c_hid_acpi 12288 0 - Live 0x0000000000000000
+i2c_hid 40960 1 i2c_hid_acpi, Live 0x0000000000000000
+i2c_designware_platform 12288 0 - Live 0x0000000000000000
+i2c_designware_core 36864 1 i2c_designware_platform, Live 0x0000000000000000
+ucsi_acpi 12288 0 - Live 0x0000000000000000
+tpm_crb 20480 0 - Live 0x0000000000000000
+tpm 118784 1 tpm_crb, Live 0x0000000000000000
+amd_pmc 53248 0 - Live 0x0000000000000000
+serial_multi_instantiate 12288 0 - Live 0x0000000000000000
+mfd_core 20480 1 rtsx_pci, Live 0x0000000000000000
+spi_amd_pci 12288 0 - Live 0x0000000000000000
+spi_amd 16384 1 spi_amd_pci, Live 0x0000000000000000
+i2c_piix4 28672 0 - Live 0x0000000000000000
+i2c_smbus 16384 1 i2c_piix4, Live 0x0000000000000000
+k10temp 16384 0 - Live 0x0000000000000000
+thermal 24576 0 - Live 0x0000000000000000
+fan 20480 0 - Live 0x0000000000000000
+battery 24576 1 asus_wmi, Live 0x0000000000000000
+ac 16384 0 - Live 0x0000000000000000
+hwmon 49152 6 mt7921_common,mt7925_common,amdgpu,asus_wmi,k10temp,fan, Live 0x0000000000000000
+sparse_keymap 16384 1 asus_wmi, Live 0x0000000000000000
+platform_profile 24576 1 asus_wmi, Live 0x0000000000000000
+video 81920 3 amdgpu,nvidia_wmi_ec_backlight,asus_wmi, Live 0x0000000000000000
+wmi_bmof 12288 0 - Live 0x0000000000000000
+wmi 40960 4 nvidia_wmi_ec_backlight,asus_wmi,video,wmi_bmof, Live 0x0000000000000000
+
+===PS===
+  PID  PPID USER         S    RSS NAME                       
+    1     0 root         S  14852 init
+    2     0 root         S      0 [kthreadd]
+    3     2 root         S      0 [pool_workqueue_release]
+    4     2 root         I      0 [kworker/R-rcu_gp]
+    5     2 root         I      0 [kworker/R-sync_wq]
+    6     2 root         I      0 [kworker/R-kvfree_rcu_reclaim]
+    7     2 root         I      0 [kworker/R-slub_flushwq]
+    8     2 root         I      0 [kworker/R-netns]
+    9     2 root         I      0 [kworker/0:0-events]
+   10     2 root         I      0 [kworker/0:1-events]
+   11     2 root         I      0 [kworker/0:0H-kverityd]
+   12     2 root         I      0 [kworker/u24:0-kvfree_rcu_reclaim]
+   13     2 root         I      0 [kworker/u24:1-async]
+   14     2 root         I      0 [kworker/R-mm_percpu_wq]
+   15     2 root         S      0 [ksoftirqd/0]
+   16     2 root         I      0 [rcu_preempt]
+   17     2 root         S      0 [rcub/0]
+   18     2 root         S      0 [rcu_exp_par_gp_kthread_worker/0]
+   19     2 root         S      0 [rcu_exp_gp_kthread_worker]
+   20     2 root         S      0 [migration/0]
+   21     2 root         S      0 [idle_inject/0]
+   22     2 root         S      0 [cpuhp/0]
+   23     2 root         S      0 [cpuhp/1]
+   24     2 root         S      0 [idle_inject/1]
+   25     2 root         S      0 [migration/1]
+   26     2 root         S      0 [ksoftirqd/1]
+   27     2 root         I      0 [kworker/1:0-events]
+   28     2 root         I      0 [kworker/1:0H-kblockd]
+   29     2 root         S      0 [cpuhp/2]
+   30     2 root         S      0 [idle_inject/2]
+   31     2 root         S      0 [migration/2]
+   32     2 root         S      0 [ksoftirqd/2]
+   33     2 root         I      0 [kworker/2:0-events]
+   34     2 root         I      0 [kworker/2:0H-kblockd]
+   35     2 root         S      0 [cpuhp/3]
+   36     2 root         S      0 [idle_inject/3]
+   37     2 root         S      0 [migration/3]
+   38     2 root         S      0 [ksoftirqd/3]
+   39     2 root         I      0 [kworker/3:0-mm_percpu_wq]
+   40     2 root         I      0 [kworker/3:0H-kverityd]
+   41     2 root         S      0 [cpuhp/4]
+   42     2 root         S      0 [idle_inject/4]
+   43     2 root         S      0 [migration/4]
+   44     2 root         S      0 [ksoftirqd/4]
+   45     2 root         I      0 [kworker/4:0-mm_percpu_wq]
+   46     2 root         I      0 [kworker/4:0H-kverityd]
+   47     2 root         S      0 [cpuhp/5]
+   48     2 root         S      0 [idle_inject/5]
+   49     2 root         S      0 [migration/5]
+   50     2 root         S      0 [ksoftirqd/5]
+   51     2 root         I      0 [kworker/5:0-events]
+   52     2 root         I      0 [kworker/5:0H-kverityd]
+   53     2 root         I      0 [kworker/R-inet_frag_wq]
+   54     2 root         I      0 [rcu_tasks_kthread]
+   55     2 root         I      0 [rcu_tasks_trace_kthread]
+   56     2 root         S      0 [kauditd]
+   57     2 root         S      0 [khungtaskd]
+   58     2 root         S      0 [oom_reaper]
+   59     2 root         I      0 [kworker/R-writeback]
+   60     2 root         S      0 [kcompactd0]
+   61     2 root         S      0 [khugepaged]
+   62     2 root         I      0 [kworker/R-kblockd]
+   63     2 root         S      0 [irq/9-acpi]
+   64     2 root         I      0 [kworker/R-edac-poller]
+   65     2 root         I      0 [kworker/R-devfreq_wq]
+   66     2 root         S      0 [watchdogd]
+   67     2 root         I      0 [kworker/1:1-mm_percpu_wq]
+   68     2 root         I      0 [kworker/R-quota_events_unbound]
+   69     2 root         I      0 [kworker/0:1H-kverityd]
+   70     2 root         I      0 [kworker/2:1-mm_percpu_wq]
+   71     2 root         S      0 [kswapd0]
+   72     2 root         I      0 [kworker/u25:0-blk_crypto_wq]
+   73     2 root         I      0 [kworker/R-kthrotld]
+   74     2 root         I      0 [kworker/R-nvme-wq]
+   75     2 root         I      0 [kworker/R-nvme-reset-wq]
+   76     2 root         I      0 [kworker/R-nvme-delete-wq]
+   77     2 root         I      0 [kworker/R-uas]
+   78     2 root         I      0 [kworker/R-dm_bufio_cache]
+   79     2 root         I      0 [kworker/5:1H-kblockd]
+   80     2 root         I      0 [kworker/5:1-events]
+   81     2 root         I      0 [kworker/R-mld]
+   82     2 root         I      0 [kworker/R-ipv6_addrconf]
+   84     2 root         I      0 [kworker/1:1H-kblockd]
+   85     2 root         I      0 [kworker/3:1-events]
+   86     2 root         I      0 [kworker/3:2-cgroup_bpf_destroy]
+   87     2 root         I      0 [kworker/1:2-events]
+   88     2 root         S      0 [scsi_eh_0]
+   89     2 root         I      0 [kworker/R-scsi_tmf_0]
+   90     2 root         S      0 [usb-storage]
+   91     2 root         I      0 [kworker/4:1-events]
+   92     2 root         I      0 [kworker/u24:2-async]
+   93     2 root         I      0 [kworker/2:1H-kverityd]
+   94     2 root         I      0 [kworker/3:1H-kblockd]
+   95     1 root         S    804 openbook-live-init
+   96     2 root         I      0 [kworker/R-kdmflush/254:0]
+   97     2 root         I      0 [kworker/R-kdmflush/254:1]
+   98     2 root         I      0 [kworker/R-kdmflush/254:2]
+   99     2 root         I      0 [kworker/R-kdmflush/254:3]
+  100     2 root         I      0 [kworker/R-kdmflush/254:4]
+  101     2 root         I      0 [kworker/R-kdmflush/254:5]
+  102     2 root         I      0 [kworker/R-kdmflush/254:6]
+  103     2 root         I      0 [kworker/R-kdmflush/254:7]
+  104     2 root         I      0 [kworker/R-kverityd]
+  105     2 root         I      0 [kworker/2:2H-kverityd]
+  106     2 root         S      0 [erofs_worker/0]
+  112     2 root         I      0 [kworker/R-kdmflush/254:8]
+  113     2 root         I      0 [kworker/R-kverityd]
+  114     2 root         I      0 [kworker/5:2H-kblockd]
+  115     2 root         I      0 [kworker/R-kdmflush/254:9]
+  116     2 root         I      0 [kworker/R-kverityd]
+  117     2 root         I      0 [kworker/3:2H-kverityd]
+  118     2 root         I      0 [kworker/R-kdmflush/254:10]
+  119     2 root         I      0 [kworker/R-kverityd]
+  120     2 root         I      0 [kworker/0:2H-kverityd]
+  121     2 root         I      0 [kworker/R-kdmflush/254:11]
+  122     2 root         I      0 [kworker/R-kverityd]
+  123     2 root         I      0 [kworker/R-kdmflush/254:12]
+  124     2 root         I      0 [kworker/R-kverityd]
+  127     1 root         S   8368 init
+  128     1 root         S   9264 ueventd
+  181     2 root         I      0 [kworker/1:2H-kverityd]
+  184     2 root         I      0 [kworker/1:3H-kverityd]
+  185     2 root         I      0 [kworker/5:3H-kblockd]
+  186     2 root         I      0 [kworker/5:4H-kverityd]
+  187     2 root         I      0 [kworker/2:3H-kverityd]
+  188     2 root         I      0 [kworker/3:3H-kblockd]
+  189     2 root         I      0 [kworker/5:5H-kblockd]
+  190     2 root         I      0 [kworker/3:4H-kverityd]
+  191     2 root         I      0 [kworker/2:4H-kblockd]
+  192     2 root         I      0 [kworker/3:5H-kverityd]
+  193     2 root         I      0 [kworker/5:6H-kblockd]
+  194     2 root         I      0 [kworker/3:6H-kverityd]
+  195     2 root         I      0 [kworker/2:5H-kverityd]
+  196     2 root         I      0 [kworker/3:7H-kverityd]
+  197     2 root         I      0 [kworker/1:4H-kverityd]
+  198     2 root         I      0 [kworker/2:6H-kblockd]
+  199     2 root         I      0 [kworker/3:8H-kblockd]
+  200     2 root         I      0 [kworker/0:3H-kverityd]
+  201     2 root         I      0 [kworker/2:7H-kblockd]
+  202     2 root         I      0 [kworker/3:9H-kverityd]
+  203     2 root         I      0 [kworker/5:7H-kblockd]
+  204     2 root         I      0 [kworker/0:4H-kblockd]
+  205     2 root         I      0 [kworker/2:8H-kverityd]
+  206     2 root         I      0 [kworker/0:5H-kverityd]
+  207     2 root         I      0 [kworker/1:5H-kblockd]
+  208     2 root         I      0 [kworker/1:6H-kblockd]
+  209     2 root         I      0 [kworker/1:7H-kblockd]
+  210     2 root         I      0 [kworker/0:6H-kverityd]
+  211     2 root         I      0 [kworker/2:9H-kverityd]
+  212     2 root         I      0 [kworker/5:8H-kblockd]
+  218     2 root         I      0 [kworker/R-kdmflush/254:18]
+  219     2 root         I      0 [kworker/R-kdmflush/254:19]
+  221     2 root         I      0 [kworker/R-kdmflush/254:21]
+  223     2 root         I      0 [kworker/R-kdmflush/254:23]
+  225     2 root         I      0 [kworker/R-kdmflush/254:25]
+  226     2 root         I      0 [kworker/R-kdmflush/254:26]
+  227     2 root         I      0 [kworker/R-kdmflush/254:27]
+  229     2 root         I      0 [kworker/R-kdmflush/254:29]
+  231     2 root         I      0 [kworker/R-kdmflush/254:31]
+  232     2 root         I      0 [kworker/R-kdmflush/254:32]
+  233     2 root         I      0 [kworker/R-kdmflush/254:33]
+  234     2 root         I      0 [kworker/R-kdmflush/254:34]
+  235     2 root         I      0 [kworker/R-kdmflush/254:35]
+  236     2 root         I      0 [kworker/R-kdmflush/254:36]
+  237     2 root         I      0 [kworker/R-kdmflush/254:37]
+  238     2 root         I      0 [kworker/R-kdmflush/254:38]
+  240     2 root         I      0 [kworker/R-kdmflush/254:40]
+  243     2 root         I      0 [kworker/R-kdmflush/254:43]
+  245     2 root         I      0 [kworker/R-kdmflush/254:45]
+  246     2 root         I      0 [kworker/R-kdmflush/254:46]
+  247     2 root         I      0 [kworker/R-kdmflush/254:47]
+  248     2 root         I      0 [kworker/R-kdmflush/254:48]
+  249     2 root         I      0 [kworker/R-kdmflush/254:49]
+  250     2 root         I      0 [kworker/R-kdmflush/254:50]
+  252     2 root         I      0 [kworker/R-kdmflush/254:52]
+  255     2 root         I      0 [kworker/R-kdmflush/254:55]
+  257     2 root         I      0 [kworker/R-kdmflush/254:57]
+  259     2 root         I      0 [kworker/R-kdmflush/254:59]
+  267     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  268     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  269     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  270     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  271     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  272     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  273     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  276     2 root         I      0 [kworker/R-acpi_thermal_pm]
+  277     2 root         I      0 [kworker/R-tpm_dev_wq]
+  278     2 root         I      0 [kworker/5:2-mm_percpu_wq]
+  280     2 root         I      0 [kworker/4:1H-kblockd]
+  282     2 root         I      0 [kworker/R-cfg80211]
+  304     1 prng_seeder  S   7888 prng_seeder
+  307     1 logd         S   7476 logd
+  308     1 lmkd         S   4728 lmkd
+  309     1 system       S   7472 servicemanager
+  310     2 root         S      0 [psimon]
+  319     1 shell        S   3780 sh
+  325     1 root         S  10828 vold
+  327     2 root         I      0 [kworker/R-kdmflush/254:60]
+  337     2 root         S      0 [jbd2/sda7-8]
+  338     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  342     1 system       S   5660 android.system.suspend-service
+  343     1 keystore     S  16736 keystore2
+  347     1 root         S   5408 android.hardware.boot-service.default
+  348     1 system       S   8096 android.hardware.gatekeeper-service.nonsecure
+  349     1 nobody       S   9632 android.hardware.security.keymint-service.nonsecure
+  350     2 root         I      0 [kworker/u24:3-loop52]
+  365     2 root         I      0 [kworker/R-blk_crypto_wq]
+  368     2 root         I      0 [kworker/u25:1-blk_crypto_wq]
+  371     2 root         S      0 [f2fs_ckpt-254:60]
+  372     2 root         S      0 [f2fs_flush-254:60]
+  373     2 root         I      0 [kworker/u25:2-blk_crypto_wq]
+  374     2 root         I      0 [kworker/u25:3-blk_crypto_wq]
+  375     2 root         I      0 [kworker/u25:4-blk_crypto_wq]
+  376     2 root         S      0 [f2fs_gc-254:60]
+  380     1 tombstoned   S   3608 tombstoned
+  435     2 root         I      0 [kworker/4:2H-kverityd]
+  483     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  484     2 root         I      0 [kworker/R-kverityd]
+  485     2 root         I      0 [kworker/R-dio/dm-60]
+  486     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  487     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  488     2 root         I      0 [kworker/R-kverityd]
+  489     2 root         I      0 [kworker/R-kverityd]
+  490     2 root         I      0 [kworker/R-kverityd]
+  491     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  492     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  493     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  494     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  495     2 root         I      0 [kworker/R-kverityd]
+  496     2 root         I      0 [kworker/R-kverityd]
+  497     2 root         I      0 [kworker/R-kverityd]
+  498     2 root         I      0 [kworker/R-kverityd]
+  499     2 root         I      0 [kworker/R-kverityd]
+  500     2 root         I      0 [kworker/u24:4-loop41]
+  501     2 root         I      0 [kworker/R-kverityd]
+  502     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  503     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  504     2 root         I      0 [kworker/R-kverityd]
+  505     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  506     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  507     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  508     2 root         I      0 [kworker/R-kverityd]
+  509     2 root         I      0 [kworker/R-kverityd]
+  510     2 root         I      0 [kworker/R-kverityd]
+  511     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  512     2 root         I      0 [kworker/u24:5-async]
+  513     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  514     2 root         I      0 [kworker/u24:6-async]
+  515     2 root         I      0 [kworker/u24:7-async]
+  516     2 root         I      0 [kworker/R-kverityd]
+  517     2 root         I      0 [kworker/R-kverityd]
+  518     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  519     2 root         I      0 [kworker/u24:8-async]
+  520     2 root         I      0 [kworker/R-kverityd]
+  521     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  522     2 root         I      0 [kworker/R-kverityd]
+  523     2 root         I      0 [kworker/R-kverityd]
+  524     2 root         I      0 [kworker/u24:9-loop20]
+  525     2 root         I      0 [kworker/u24:10-loop37]
+  526     2 root         I      0 [kworker/u24:11-loop42]
+  527     2 root         I      0 [kworker/u24:12-loop24]
+  528     2 root         I      0 [kworker/u24:13-loop35]
+  529     2 root         I      0 [kworker/u24:14-events_unbound]
+  530     2 root         I      0 [kworker/u24:15-loop39]
+  531     2 root         I      0 [kworker/u24:16-async]
+  532     2 root         I      0 [kworker/u24:17-writeback]
+  533     2 root         I      0 [kworker/u24:18-async]
+  534     2 root         D      0 [kworker/u24:19+events_unbound]
+  535     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  536     2 root         I      0 [kworker/u24:20-async]
+  537     2 root         I      0 [kworker/R-kverityd]
+  538     2 root         I      0 [kworker/R-kverityd]
+  539     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  540     2 root         I      0 [kworker/R-kverityd]
+  541     2 root         I      0 [kworker/u24:21-loop46]
+  542     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  543     2 root         I      0 [kworker/R-kverityd]
+  544     2 root         I      0 [kworker/u24:22-async]
+  545     2 root         I      0 [kworker/R-kverityd]
+  546     2 root         I      0 [kworker/R-kverityd]
+  547     2 root         I      0 [kworker/u24:23-async]
+  548     2 root         I      0 [kworker/R-kverityd]
+  549     2 root         I      0 [kworker/R-kverityd]
+  550     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  551     2 root         I      0 [kworker/u24:24-async]
+  552     2 root         I      0 [kworker/u24:25-loop46]
+  553     2 root         I      0 [kworker/R-kverityd]
+  554     2 root         I      0 [kworker/u24:26-loop29]
+  555     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  556     2 root         I      0 [kworker/4:3H-kverityd]
+  557     2 root         I      0 [kworker/4:4H-kverityd]
+  558     2 root         I      0 [kworker/u24:27-loop43]
+  559     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  560     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  561     2 root         I      0 [kworker/4:5H-kverityd]
+  562     2 root         I      0 [kworker/4:6H-kverityd]
+  563     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  564     2 root         I      0 [kworker/4:7H-kverityd]
+  565     2 root         I      0 [kworker/4:8H-kverityd]
+  566     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  567     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  568     2 root         I      0 [kworker/u24:28-loop49]
+  569     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  570     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  571     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  572     2 root         I      0 [kworker/u24:29]
+  573     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  574     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  575     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  576     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  577     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  578     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  579     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  580     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  581     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  582     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  583     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  584     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  585     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  586     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  587     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  588     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  589     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  590     2 root         I      0 [kworker/R-ext4-rsv-conversion]
+  591     2 root         I      0 [kworker/u25:5-blk_crypto_wq]
+  615     1 statsd       S   7444 statsd
+  627     1 system       S   7296 android.hardware.health-service.example
+  633     1 system       S   6880 android.hardware.usb-service.example
+  634     1 system       S  11444 android.hardware.composer.hwc3-service.drm
+  635     1 system       S   6000 android.hardware.lights-service.openbook
+  636     1 system       S   6076 android.hardware.power-service.openbook
+  637     1 system       S   5940 android.hardware.power.stats-service.openbook
+  638     1 system       S   6140 android.hardware.thermal-service.openbook
+  639     1 system       S   6016 android.hardware.weaver-service.openbook
+  645     1 hsm          S   5108 android.hardware.authsecret-service.example
+  646     1 media        S   4772 android.hardware.cas-service.example
+  649     1 nobody       S   4996 android.hardware.memtrack-service.example
+  655     1 credstore    S   9020 credstore
+  656     1 gpu_service  S   9908 gpuservice
+  668     1 cameraserver S  29112 cameraserver
+  669     1 media        S  34880 mediaserver
+  671     1 shell        S   7680 adbd
+  683     1 nobody       S   4684 traced_probes
+  684     1 nobody       S   4900 traced
+  687     1 root         S 201664 zygote64
+  689     1 incidentd    S   6780 incidentd
+  690     1 root         S   8560 installd
+  691     1 mediaex      S  31368 media.extractor
+  693     1 media        S   9780 media.metrics
+  697     1 root         S  12760 netd
+  698     1 root         S   7032 storaged
+  699     1 mediacodec   S  34284 media.swcodec
+  702   697 root         S   3972 iptables-restore
+  703   697 root         S   3944 ip6tables-restore
+  705     1 system       S   7620 gatekeeperd
+  706     1 root         S  13072 update_engine
+  725     2 root         I      0 [kworker/4:9H-kverityd]
+  726     2 root         I      0 [kworker/4:10H-kverityd]
+  727     2 root         I      0 [kworker/4:11H-kverityd]
+  728     2 root         I      0 [kworker/4:12H-kverityd]
+  729     2 root         I      0 [kworker/4:13H-kverityd]
+  730     2 root         I      0 [kworker/4:14H-kverityd]
+  731     2 root         I      0 [kworker/4:15H-kverityd]
+  732     2 root         I      0 [kworker/4:16H-kverityd]
+  733     2 root         I      0 [kworker/4:17H-kverityd]
+  742   687 system       S 414340 system_server
+  748     2 root         I      0 [kworker/3:10H-kverityd]
+  749     2 root         I      0 [kworker/3:11H-kblockd]
+  750     2 root         I      0 [kworker/3:12H-kverityd]
+  751     2 root         I      0 [kworker/3:13H-kblockd]
+  752     2 root         I      0 [kworker/3:14H-kverityd]
+  753     2 root         I      0 [kworker/3:15H-kverityd]
+  754     2 root         I      0 [kworker/3:16H-kverityd]
+  755     2 root         I      0 [kworker/0:7H-kverityd]
+  756     2 root         I      0 [kworker/0:8H-kverityd]
+  757     2 root         I      0 [kworker/0:9H-kverityd]
+  758     2 root         I      0 [kworker/0:10H-kverityd]
+  759     2 root         I      0 [kworker/0:11H-kverityd]
+  760     2 root         I      0 [kworker/0:12H-kverityd]
+  761     2 root         I      0 [kworker/0:13H-kverityd]
+  762     2 root         I      0 [kworker/0:14H-kverityd]
+  763     2 root         I      0 [kworker/0:15H-kverityd]
+  764     2 root         I      0 [kworker/0:16H-kverityd]
+  765     2 root         I      0 [kworker/0:17H-kverityd]
+  766     2 root         I      0 [kworker/0:18H-kverityd]
+  767     2 root         I      0 [kworker/0:19H-kverityd]
+  768     2 root         I      0 [kworker/0:20H-kverityd]
+  769     2 root         I      0 [kworker/3:17H-kverityd]
+  770     2 root         I      0 [kworker/3:18H-kverityd]
+  771     2 root         I      0 [kworker/3:19H-kverityd]
+  772     2 root         I      0 [kworker/3:20H-kverityd]
+  773     2 root         I      0 [kworker/3:21H-kblockd]
+  774     2 root         I      0 [kworker/3:22H-kverityd]
+  775     2 root         I      0 [kworker/0:21H-kverityd]
+  776     2 root         I      0 [kworker/0:22H-kverityd]
+  777     2 root         I      0 [kworker/0:23H-kverityd]
+  778     2 root         I      0 [kworker/0:24H-kverityd]
+  779     2 root         I      0 [kworker/0:25H]
+  780     2 root         I      0 [kworker/0:26H-kverityd]
+  833     1 system       S   9680 android.hardware.graphics.allocator-service.minigbm
+  835     1 audioserver  S  14268 android.hardware.audio.service-aidl.example
+  836     1 audioserver  S  11976 android.hardware.audio.effect.service-aidl.example
+  839     1 audioserver  S  29252 audioserver
+  844     1 system       S 111136 surfaceflinger
+ 2320     1 artd         S  19168 artd
+ 2629   687 u0_a78       S 326024 com.android.systemui
+ 2633   687 u0_a90       S 136060 com.android.permissioncontroller
+ 2695   687 webview_zygote S 91208 webview_zygote
+ 2709   687 network_stack S 118672 com.android.networkstack.process
+ 2762   687 secure_element S 106284 com.android.se
+ 2772   687 radio        S 133992 com.android.phone
+ 2787   687 u0_a76       S 147984 com.android.provision
+ 2838   687 system       S 187764 com.android.settings
+ 2979   687 u0_a75       S 294664 com.android.launcher3
+ 3069     1 mdnsr        S   3864 mdnsd
+ 3079   687 u0_a101      S 121152 com.android.devicelockcontroller
+ 3115     2 root         I      0 [kworker/0:2-events]
+ 3124   687 u0_a103      S 144564 com.android.providers.media.module
+ 3127   687 u0_a53       S 109928 com.android.printspooler
+ 3152   687 u0_a24       S 137092 com.android.documentsui
+ 3179     1 nobody       S   7932 pmgd
+ 3185   687 u0_a25       S 116320 android.process.media
+ 3192   687 system       S 109440 com.android.keychain
+ 3194   687 u0_a30       S 114096 com.android.managedprovisioning
+ 3241   687 u0_a104      S 112256 com.android.photopicker
+ 3275   687 u0_a19       S 114592 com.android.providers.calendar
+ 3295   687 u0_a26       S 108976 com.android.externalstorage
+ 3311   687 u0_a71       S 108072 com.android.quicksearchbox
+ 3348   687 u0_a17       S 129988 android.process.acore
+ 3400   687 u0_a57       S 114380 com.android.contacts
+ 3430   687 u0_a61       S 117156 com.android.statementservice
+ 3470   687 u0_a55       S 109732 com.android.traceur
+ 3486   687 u0_a63       S 113080 com.android.calendar
+ 3505   687 u0_a102      S 114536 .adservices
+ 3521   687 u0_a64       S 109992 com.android.camera2
+ 3540   687 u0_a84       S 129896 com.android.cellbroadcastreceiver.module
+ 3554   687 u0_a23       S 109980 com.android.devicediagnostics
+ 3566   687 u0_a20       S 105896 com.android.cellbroadcastreceiver
+ 3578   687 system       S 105696 com.android.dynsystem
+ 3590   687 u0_a97       S 106624 com.android.federatedcompute.services
+ 3591   687 system       S 107636 com.android.dynsystem:dynsystem
+ 3626   687 u0_a59       S 111716 com.android.imsserviceentitlement
+ 3638   687 u0_a72       S 120248 com.android.messaging
+ 3677   687 u0_a96       S 107980 com.android.ondevicepersonalization.services
+ 3689   687 u0_a32       S 108216 com.android.packageinstaller
+ 3701   687 u0_a98       S 118172 com.android.rkpdapp
+ 3717   687 shell        S 106628 com.android.shell
+ 3734   687 u0_a102      S 118904 android.ext.services
+ 3789   687 system       S 108488 com.android.localtransport
+ 3840   687 u0_a67       S 144508 com.android.inputmethod.latin
+ 3861     2 root         S      0 [erofs_worker/1]
+ 3862     2 root         S      0 [erofs_worker/2]
+ 3863     2 root         S      0 [erofs_worker/3]
+ 3864     2 root         S      0 [erofs_worker/4]
+ 3865     2 root         S      0 [erofs_worker/5]
+ 3960    95 root         S   3692 sh
+ 3972  3960 root         R   5312 ps
+
+===PCI===
+0000:00:00.0 0x8086 0x29c0 0x060000  D0 active
+0000:00:01.0 0x1b36 0x000d 0x0c0330 xhci_hcd D0 active
+0000:00:02.0 0x1af4 0x1050 0x030000 virtio-pci D0 active
+0000:00:1f.0 0x8086 0x2918 0x060100  D0 active
+0000:00:1f.2 0x8086 0x2922 0x010601  D0 active
+0000:00:1f.3 0x8086 0x2930 0x0c0500  D0 active
+
+===DRM===
+card0-Virtual-1 connected enabled 1920x1200
+
+===BACKLIGHT===
+cat: /sys/class/backlight/*/brightness: No such file or directory
+cat: /sys/class/backlight/*/max_brightness: No such file or directory
+* /
+
+===POWER===
+freeze mem disk
+s2idle [deep]
+cat: /sys/devices/system/cpu/amd_pstate/status: No such file or directory
+cat: /sys/devices/system/cpu/cpufreq/policy0/scaling_driver: No such file or directory
+cat: /sys/devices/system/cpu/cpufreq/policy0/energy_performance_preference: No such file or directory
+
+===SUPPLY===
+cat: /sys/class/power_supply/*/type: No such file or directory
+*:   
+
+===NET===
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+2: dummy0: <BROADCAST,NOARP,UP,LOWER_UP> mtu 1500 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/ether xx:xx:xx:xx:xx:xx brd ff:ff:ff:ff:ff:ff
+    inet6 fe80::a8a6:15ff:fe2b:8e76/64 scope link 
+       valid_lft forever preferred_lft forever
+3: ifb0: <BROADCAST,NOARP> mtu 1500 qdisc noop state DOWN group default qlen 32
+    link/ether xx:xx:xx:xx:xx:xx brd ff:ff:ff:ff:ff:ff
+4: ifb1: <BROADCAST,NOARP> mtu 1500 qdisc noop state DOWN group default qlen 32
+    link/ether xx:xx:xx:xx:xx:xx brd ff:ff:ff:ff:ff:ff
+5: tunl0@NONE: <NOARP> mtu 1480 qdisc noop state DOWN group default qlen 1000
+    link/ipip 0.0.0.0 brd 0.0.0.0
+6: gre0@NONE: <NOARP> mtu 1476 qdisc noop state DOWN group default qlen 1000
+    link/gre 0.0.0.0 brd 0.0.0.0
+7: gretap0@NONE: <BROADCAST,MULTICAST> mtu 1462 qdisc noop state DOWN group default qlen 1000
+    link/ether 00:00:00:00:00:00 brd ff:ff:ff:ff:ff:ff
+8: erspan0@NONE: <BROADCAST,MULTICAST> mtu 1450 qdisc noop state DOWN group default qlen 1000
+    link/ether 00:00:00:00:00:00 brd ff:ff:ff:ff:ff:ff
+9: ip_vti0@NONE: <NOARP> mtu 1480 qdisc noop state DOWN group default qlen 1000
+    link/ipip 0.0.0.0 brd 0.0.0.0
+10: ip6_vti0@NONE: <NOARP> mtu 1364 qdisc noop state DOWN group default qlen 1000
+    link/tunnel6 :: brd ::
+11: sit0@NONE: <NOARP> mtu 1480 qdisc noop state DOWN group default qlen 1000
+    link/sit 0.0.0.0 brd 0.0.0.0
+12: ip6tnl0@NONE: <NOARP> mtu 1452 qdisc noop state DOWN group default qlen 1000
+    link/tunnel6 :: brd ::
+13: ip6gre0@NONE: <NOARP> mtu 1448 qdisc noop state DOWN group default qlen 1000
+    link/gre6 00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00 brd 00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00
+
+===WIFI===
+cmd: Can't find service: wifi
+
+===BLUETOOTH===
+Bluetooth Status:
+  State:         OFF
+  Address:       [address is null]
+  Name:          OpenBook on ROG Zephyrus G14 (GA403WR)
+  Inner app:     com.android.bluetooth
+
+Enable log:
+  TIMESTAMP          ACTION     REASON               PACKAGE              
+  ------------------ ---------- -------------------- ---------------------
+  10-16 23:51:04.810 Enable     SYSTEM_BOOT          android              
+  10-16 23:51:05.339 Disable    CRASH                BluetoothSystemServer
+  10-16 23:51:05.740 Enable     RESTARTED            BluetoothSystemServer
+  10-16 23:51:06.050 Disable    CRASH                BluetoothSystemServer
+  10-16 23:51:06.851 Enable     RESTARTED            BluetoothSystemServer
+  10-16 23:51:07.341 Disable    CRASH                BluetoothSystemServer
+  10-16 23:51:08.541 Enable     RESTARTED            BluetoothSystemServer
+  10-16 23:51:08.966 Disable    CRASH                BluetoothSystemServer
+  10-16 23:51:29.322 Enable     RESTARTED            BluetoothSystemServer
+  10-16 23:51:29.586 Disable    CRASH                BluetoothSystemServer
+  10-16 23:51:49.587 Enable     RESTARTED            BluetoothSystemServer
+  10-16 23:51:49.823 Disable    CRASH                BluetoothSystemServer
+
+Bluetooth crashed 6 times
+  10-16 23:51:05.339
+  10-16 23:51:06.050
+  10-16 23:51:07.341
+  10-16 23:51:08.966
+  10-16 23:51:29.586
+  10-16 23:51:49.823
+
+
+===INPUTDEV===
+I: Bus=0019 Vendor=0000 Product=0001 Version=0000
+N: Name="Power Button"
+P: Phys=LNXPWRBN/button/input0
+S: Sysfs=/devices/LNXSYSTM:00/LNXPWRBN:00/input/input0
+U: Uniq=
+H: Handlers=event0 
+B: PROP=0
+B: EV=3
+B: KEY=8000 10000000000000 0
+
+I: Bus=0011 Vendor=0001 Product=0001 Version=ab41
+N: Name="AT Translated Set 2 keyboard"
+P: Phys=isa0060/serio0/input0
+S: Sysfs=/devices/platform/i8042/serio0/input/input1
+U: Uniq=
+H: Handlers=leds event1 
+B: PROP=0
+B: EV=120013
+B: KEY=402000007 ff803078f800d001 feffffdfffcfffff fffffffffffffffe
+B: MSC=10
+B: LED=7
+
+I: Bus=0003 Vendor=0627 Product=0001 Version=0111
+N: Name="QEMU QEMU USB Keyboard"
+P: Phys=usb-0000:00:01.0-2/input0
+S: Sysfs=/devices/pci0000:00/0000:00:01.0/usb1/1-2/1-2:1.0/0003:0627:0001.0001/input/input3
+U: Uniq=68284-0000:00:01.0-2
+H: Handlers=leds event2 
+B: PROP=0
+B: EV=120013
+B: KEY=1000000000007 ff9f207ac14057ff febeffdfffefffff fffffffffffffffe
+B: MSC=10
+B: LED=1f
+
+I: Bus=0003 Vendor=0627 Product=0001 Version=0001
+N: Name="QEMU QEMU USB Tablet"
+P: Phys=usb-0000:00:01.0-3/input0
+S: Sysfs=/devices/pci0000:00/0000:00:01.0/usb1/1-3/1-3:1.0/0003:0627:0001.0002/input/input4
+U: Uniq=28754-0000:00:01.0-3
+H: Handlers=event3 
+B: PROP=0
+B: EV=1f
+B: KEY=1f0000 0 0 0 0
+B: REL=900
+B: ABS=3
+B: MSC=10
+
+
+===INPUT===
+INPUT MANAGER (dumpsys input)
+
+Input properties:
+  velocitytracker_strategy (flag value) = default
+
+Input Manager State:
+  Display not interactive: {}
+  System UI Lights Out: false
+  Pointer Speed: 0
+  Display with Mouse Scaling Disabled: {}
+  Pointer Gestures Enabled: true
+  Pointer Capture: UNCAPTURED, seq=0
+
+Event Hub State:
+  BuiltInKeyboardId: -2
+  Devices:
+    1: QEMU QEMU USB Tablet
+      Classes: ROTARY_ENCODER | EXTERNAL
+      Path: /dev/input/event3
+      Enabled: true
+      Descriptor: 916efe6f642ae0e7794706c6c27e0ec4edb5f92e
+      Location: usb-0000:00:01.0-3/input0
+      ControllerNumber: 0
+      UniqueId: 28754-0000:00:01.0-3
+      Identifier: bus=0x0003, vendor=0x0627, product=0x0001, version=0x0001, bluetoothAddress=<not set>
+      KeyLayoutFile: 
+      KeyCharacterMapFile: 
+      LanguageTag: 
+      LayoutType: 
+      ConfigurationFile: <none>
+      VideoDevice: <none>
+      SysfsDevicePath: /sys/devices/pci0000:00/0000:00:01.0/usb1/1-3/1-3:1.0/0003:0627:0001.0002
+      KeyState (pressed): <none>
+      AbsState: ABS_X=0, ABS_Y=0
+    2: QEMU QEMU USB Keyboard
+      Classes: KEYBOARD | ALPHAKEY | EXTERNAL
+      Path: /dev/input/event2
+      Enabled: true
+      Descriptor: 0071a9a2fbf9983f65cd0386359477748c6d0aa4
+      Location: usb-0000:00:01.0-2/input0
+      ControllerNumber: 0
+      UniqueId: 68284-0000:00:01.0-2
+      Identifier: bus=0x0003, vendor=0x0627, product=0x0001, version=0x0111, bluetoothAddress=<not set>
+      KeyLayoutFile: /system/usr/keylayout/Generic.kl
+      KeyCharacterMapFile: /system/usr/keychars/Generic.kcm
+      LanguageTag: 
+      LayoutType: 
+      ConfigurationFile: <none>
+      VideoDevice: <none>
+      SysfsDevicePath: /sys/devices/pci0000:00/0000:00:01.0/usb1/1-2/1-2:1.0/0003:0627:0001.0001
+      KeyState (pressed): <none>
+    3: Power Button
+      Classes: KEYBOARD
+      Path: /dev/input/event0
+      Enabled: true
+      Descriptor: 26d13db3fa0f6bd5d05831266fb01ea6c500b88c
+      Location: LNXPWRBN/button/input0
+      ControllerNumber: 0
+      UniqueId: 
+      Identifier: bus=0x0019, vendor=0x0000, product=0x0001, version=0x0000, bluetoothAddress=<not set>
+      KeyLayoutFile: /system/usr/keylayout/Generic.kl
+      KeyCharacterMapFile: /system/usr/keychars/Generic.kcm
+      ConfigurationFile: <none>
+      VideoDevice: <none>
+      SysfsDevicePath: /sys/devices/LNXSYSTM:00/LNXPWRBN:00
+      KeyState (pressed): <none>
+    4: AT Translated Set 2 keyboard
+      Classes: KEYBOARD | ALPHAKEY
+      Path: /dev/input/event1
+      Enabled: true
+      Descriptor: 485d69228e24f5e46da1598745890b214130dbc4
+      Location: isa0060/serio0/input0
+      ControllerNumber: 0
+      UniqueId: 
+      Identifier: bus=0x0011, vendor=0x0001, product=0x0001, version=0xab41, bluetoothAddress=<not set>
+      KeyLayoutFile: /system/usr/keylayout/Generic.kl
+      KeyCharacterMapFile: /system/usr/keychars/Generic.kcm
+      ConfigurationFile: <none>
+      VideoDevice: <none>
+      SysfsDevicePath: /sys/devices/platform/i8042/serio0
+      KeyState (pressed): <none>
+    -1: Virtual
+      Classes: KEYBOARD | ALPHAKEY | DPAD | VIRTUAL
+      Path: <virtual>
+      Enabled: true
+      Descriptor: a718a782d34bc767f4689c232d64d527998ea7fd
+      Location: 
+      ControllerNumber: 0
+      UniqueId: <virtual>
+      Identifier: bus=0x0000, vendor=0x0000, product=0x0000, version=0x0000, bluetoothAddress=<not set>
+      KeyLayoutFile: /system/usr/keylayout/Generic.kl
+      KeyCharacterMapFile: /system/usr/keychars/Virtual.kcm
+      ConfigurationFile: <none>
+      VideoDevice: <none>
+      SysfsDevicePath: <none>
+  Unattached video devices:
+    <none>
+
+Input Reader State (Nums of device: 5):
+  Device 5: QEMU QEMU USB Tablet
+    EventHub Devices: [ 1 ] 
+    Generation: 21
+    IsExternal: true
+    IsVirtualDevice: false
+    IsWaking: false
+    AssociatedDisplayPort: <none>
+    AssociatedDisplayUniqueIdByPort: <none>
+    AssociatedDisplayUniqueIdByDescriptor: <none>
+    SysfsRootPath:     /sys/devices/pci0000:00/0000:00:01.0/usb1/1-3/1-3:1.0/0003:0627:0001.0002
+    HasMic:     false
+    Sources: ROTARY_ENCODER
+    KeyboardType: 0
+    ControllerNum: 0
+    Motion Ranges:
+      SCROLL: source=ROTARY_ENCODER, min=-1.000, max=1.000, flat=0.000, fuzz=0.000, resolution=0.000
+    Rotary Encoder Input Mapper:
+      HaveWheel: true
+      HaveSlopController: false
+  Device 4: QEMU QEMU USB Keyboard
+    EventHub Devices: [ 2 ] 
+    Generation: 26
+    IsExternal: true
+    IsVirtualDevice: false
+    IsWaking: false
+    AssociatedDisplayPort: <none>
+    AssociatedDisplayUniqueIdByPort: <none>
+    AssociatedDisplayUniqueIdByDescriptor: <none>
+    SysfsRootPath:     /sys/devices/pci0000:00/0000:00:01.0/usb1/1-2/1-2:1.0/0003:0627:0001.0001
+    HasMic:     false
+    Sources: KEYBOARD
+    KeyboardType: 2
+    ControllerNum: 0
+    Keyboard Input Mapper:
+      Parameters:
+        OrientationAware: false
+        HandlesKeyRepeat: false
+      Orientation: Rotation0
+      KeyDowns: 0 keys currently down
+      MetaState: 0x0
+      KeyboardLayoutInfo: <not set>
+  Device 3: Power Button
+    EventHub Devices: [ 3 ] 
+    Generation: 27
+    IsExternal: false
+    IsVirtualDevice: false
+    IsWaking: false
+    AssociatedDisplayPort: <none>
+    AssociatedDisplayUniqueIdByPort: <none>
+    AssociatedDisplayUniqueIdByDescriptor: <none>
+    SysfsRootPath:     /sys/devices/LNXSYSTM:00/LNXPWRBN:00
+    HasMic:     false
+    Sources: KEYBOARD
+    KeyboardType: 1
+    ControllerNum: 0
+    Keyboard Input Mapper:
+      Parameters:
+        OrientationAware: false
+        HandlesKeyRepeat: false
+      Orientation: Rotation0
+      KeyDowns: 0 keys currently down
+      MetaState: 0x0
+      KeyboardLayoutInfo: <not set>
+  Device 2: AT Translated Set 2 keyboard
+    EventHub Devices: [ 4 ] 
+    Generation: 28
+    IsExternal: false
+    IsVirtualDevice: false
+    IsWaking: false
+    AssociatedDisplayPort: <none>
+    AssociatedDisplayUniqueIdByPort: <none>
+    AssociatedDisplayUniqueIdByDescriptor: <none>
+    SysfsRootPath:     /sys/devices/platform/i8042/serio0
+    HasMic:     false
+    Sources: KEYBOARD
+    KeyboardType: 2
+    ControllerNum: 0
+    Keyboard Input Mapper:
+      Parameters:
+        OrientationAware: false
+        HandlesKeyRepeat: false
+      Orientation: Rotation0
+      KeyDowns: 0 keys currently down
+      MetaState: 0x0
+      KeyboardLayoutInfo: <not set>
+  Device -1: Virtual
+    EventHub Devices: [ -1 ] 
+    Generation: 3
+    IsExternal: false
+    IsVirtualDevice: false
+    IsWaking: false
+    AssociatedDisplayPort: <none>
+    AssociatedDisplayUniqueIdByPort: <none>
+    AssociatedDisplayUniqueIdByDescriptor: <none>
+    SysfsRootPath:     <none>
+    HasMic:     false
+    Sources: KEYBOARD | DPAD
+    KeyboardType: 2
+    ControllerNum: 0
+    Keyboard Input Mapper:
+      Parameters:
+
+===DISPLAY===
+DISPLAY MANAGER (dumpsys display)
+  mSafeMode=false
+  mPendingTraversal=false
+  mViewports=[DisplayViewport{type=INTERNAL, valid=true, isActive=true, displayId=0, uniqueId='local:4632256312697818880', physicalPort=0, orientation=0, densityDpi=160, xDpi=100.13963, yDpi=100.26316, logicalFrame=Rect(0, 0 - 1920, 1200), physicalFrame=Rect(0, 0 - 1920, 1200), deviceWidth=1920, deviceHeight=1200}]
+  mDefaultDisplayDefaultColorMode=0
+  mWifiDisplayScanRequestCount=0
+  mStableDisplaySize=Point(1920, 1200)
+  mMinimumBrightnessCurve=[(0.0, 0.0), (2000.0, 50.0), (4000.0, 90.0)]
+  mMaxImportanceForRRCallbacks=200
+  mMirrorBuiltInDisplaySetting=false
+
+  mHdrConversionMode=HdrConversionMode{ConversionMode=HDR_CONVERSION_SYSTEM, PreferredHdrOutputType=HDR_TYPE_INVALID}
+
+Display States: size=1
+---------------------
+  Display Id=0
+  Display State=ON
+  Display Brightness=0.39763778
+  Display SdrBrightness=0.39763778
+
+Display Adapters: size=3
+------------------------
+  LocalDisplayAdapter
+  VirtualDisplayAdapter
+  OverlayDisplayAdapter
+    mCurrentOverlaySetting=
+    mOverlays: size=0
+
+Display Devices: size=1
+-----------------------
+  DisplayDeviceInfo{"Built-in Screen": uniqueId="local:4632256312697818880", 1920 x 1200, modeId 1, renderFrameRate 37.499252, hasArrSupport false, frameRateCategoryRate FrameRateCategoryRate {normal=60.0, high=90.0}, supportedRefreshRates [74.998505, 37.499252, 24.999502], defaultModeId 1, userPreferredModeId -1, supportedModes [{id=1, parentModeId=-1, sfModeId=0, flags=, width=1920, height=1200, fps=74.998505, vsync=74.998505, alternativeRefreshRates=[], supportedHdrTypes=[]}, {id=2, parentModeId=-1, sfModeId=1, flags=, width=5120, height=2160, fps=50.0, vsync=50.0, alternativeRefreshRates=[], supportedHdrTypes=[]}, {id=3, parentModeId=-1, sfModeId=2, flags=, width=4096, height=2160, fps=50.0, vsync=50.0, alternativeRefreshRates=[], supportedHdrTypes=[]}, {id=4, parentModeId=-1, sfModeId=3, flags=, width=3840, height=2160, fps=60.0, vsync=60.0, alternativeRefreshRates=[], supportedHdrTypes=[]}, {id=5, parentModeId=-1, sfModeId=4, flags=, width=3840, height=2160, fps=59.940105, vsync=59.940105, alternativeRefreshRates=[], supportedHdrTypes=[]}, {id=6, parentModeId=-1, sfModeId=5, flags=, width=3840, height=2160, fps=50.0, vsync=50.0, alternativeRefreshRates=[], supportedHdrTypes=[]}, {id=7, parentModeId=-1, sfModeId=6, flags=, width=1920, height=1440, fps=60.0, vsync=60.0, alternativeRefreshRates=[], supportedHdrTypes=[]}, {id=8, parentModeId=-1, sfModeId=7, flags=, width=2560, height=1080, fps=50.0, vsync=50.0, alternativeRefreshRates=[], supportedHdrTypes=[]}, {id=9, parentModeId=-1, sfModeId=8, flags=, width=1856, height=1392, fps=59.995186, vsync=59.995186, alternativeRefreshRates=[], supportedHdrTypes=[]}, {id=10, parentModeId=-1, sfModeId=9, flags=, width=1792, height=1344, fps=59.99979, vsync=59.99979, alternativeRefreshRates=[], supportedHdrTypes=[]}, {id=11, parentModeId=-1, sfModeId=10, flags=, width=2048, height=1152, fps=60.0, vsync=60.0, alternativeRefreshRates=[], supportedHdrTypes=[]}, {id=12, parentModeId=-1, sfModeId=11, flags=, width=1920, height=1200, fps=59.884605, vsync=59.884605, alternativeRefreshRates=[], supportedHdrTypes=[]}, {id=13, parentModeId=-1, sfModeId=12, flags=, width=1920, height=1080, fps=60.0, vsync=60.0, alternativeRefreshRates=[], supportedHdrTypes=[]}, {id=14, parentModeId=-1, sfModeId=13, flags=, width=1920, height=1080, fps=50.0, vsync=50.0, alternativeRefreshRates=[], supportedHdrTypes=[]}, {id=15, parentModeId=-1, sfModeId=14, flags=, width=1600, height=1200, fps=60.0, vsync=60.0, alternativeRefreshRates=[], supportedHdrTypes=[]}, {id=16, parentModeId=-1, sfModeId=15, flags=, width=1680, height=1050, fps=59.954258, vsync=59.954258, alternativeRefreshRates=[], supportedHdrTypes=[]}, {id=17, parentModeId=-1, sfModeId=16, flags=, width=1400, height=1050, fps=59.978443, vsync=59.978443, alternativeRefreshRates=[], supportedHdrTypes=[]}, {id=18, parentModeId=-1, sfModeId=17, flags=, width=1280, height=1024, fps=60.01974, vsync=60.01974, alternativeRefreshRates=[], supportedHdrTypes=[]}, {id=19, parentModeId=-1, sfModeId=18, flags=, width=1440, height=900, fps=59.88745, vsync=59.88745, alternativeRefreshRates=[], supportedHdrTypes=[]}, {id=20, parentModeId=-1, sfModeId=19, flags=, width=1280, height=960, fps=60.0, vsync=60.0, alternativeRefreshRates=[], supportedHdrTypes=[]}, {id=21, parentModeId=-1, sfModeId=20, flags=, width=1360, height=768, fps=60.015163, vsync=60.015163, alternativeRefreshRates=[], supportedHdrTypes=[]}, {id=22, parentModeId=-1, sfModeId=21, flags=, width=1280, height=768, fps=59.870228, vsync=59.870228, alternativeRefreshRates=[], supportedHdrTypes=[]}, {id=23, parentModeId=-1, sfModeId=22, flags=, width=1024, height=768, fps=60.00384, vsync=60.00384, alternativeRefreshRates=[], supportedHdrTypes=[]}, {id=24, parentModeId=-1, sfModeId=23, flags=, width=800, height=600, fps=60.316544, vsync=60.316544, alternativeRefreshRates=[], supportedHdrTypes=[]}, {id=25, parentModeId=-1, sfModeId=24, flags=, width=640, height=480, fps=60.0, vsync=60.0, alternativeRefreshRates=[], supportedHdrTypes=[]}, {id=26, parentModeId=-1, sfModeId=25, flags=, width=640, height=480, fps=59.94048, vsync=59.94048, alternativeRefreshRates=[], supportedHdrTypes=[]}], colorMode 0, supportedColorModes [0], hdrCapabilities HdrCapabilities{mSupportedHdrTypes=[], mMaxLuminance=500.0, mMaxAverageLuminance=500.0, mMinLuminance=0.0}, isForceSdr false, allmSupported false, gameContentTypeSupported false, density 160, 100.13963 x 100.26316 dpi, appVsyncOff 1000000, presDeadline 26667198, touch INTERNAL, rotation 0, type INTERNAL, address StablePhysical{id=4632256312697818880, port=0}, deviceProductInfo DeviceProductInfo{name=QEMU Monitor, manufacturerPnpId=RHT, productId=4660, modelYear=null, manufactureDate=ManufactureDate{week=42, year=2014}, connectionToSinkType=1, edidStructureMetadata=EdidStructureMetadata{version=0, revision=0}, videoInputType=0}, state ON, committedState ON, frameRateOverride , brightnessMinimum 0.035433073, brightnessMaximum 1.0, brightnessDefault 0.39763778, brightnessDim 0.05, hdrSdrRatio NaN, FLAG_ALLOWED_TO_BE_DEFAULT_DISPLAY, FLAG_ROTATES_WITH_CONTENT, FLAG_SECURE, FLAG_SUPPORTS_PROTECTED_BUFFERS, FLAG_PRESENTATION, FLAG_TRUSTED, installOrientation 0, displayShape DisplayShape{type=2, displayWidth=1920, displayHeight=1200, physicalPixelDisplaySizeRatio=1.0, rotation=0, offsetX=0, offsetY=0, scale=1.0}}
+    mAdapter=LocalDisplayAdapter
+    mUniqueId=local:4632256312697818880
+    mDisplayToken=android.os.BinderProxy@d76cf6
+    mCurrentLayerStack=0
+    mCurrentFlags=1
+    mCurrentOrientation=0
+    mCurrentLayerStackRect=Rect(0, 0 - 1920, 1200)
+    mCurrentDisplayRect=Rect(0, 0 - 1920, 1200)
+    mCurrentSurface=null
+    mPhysicalDisplayId=4632256312697818880
+    mPort=0
+    mDisplayModeSpecs={baseModeId=1 allowGroupSwitching=false primary=physical: (0.0 Infinity) render:  (0.0 60.0) appRequest=physical: (0.0 Infinity) render:  (0.0 Infinity) idleScreenRefreshRateConfig=null workDurationsData=null}
+    mDisplayModeSpecsInvalid=false
+    mActiveModeId=1
+    mActiveColorMode=0
+    mDefaultModeId=1
+    mUserPreferredModeId=-1
+    mHasArrSupport=false
+    mSupportedRefreshRates=[74.998505, 37.499252, 24.999502]
+    mState=ON
+    mCommittedState=ON
+    mBrightnessState=0.39763778
+    mBacklightAdapter=BacklightAdapter [useSurfaceControl=false (force_anyway? false), backlight=null]
+    mAllmSupported=false
+    mAllmRequested=false
+    mGameContentTypeSupported=false
+    mGameContentTypeRequested=false
+    mStaticDisplayInfo=StaticDisplayInfo{isInternal=true, port=0, density=1.0, secure=true, deviceProductInfo=DeviceProductInfo{name=QEMU Monitor, manufacturerPnpId=RHT, productId=4660, modelYear=null, manufactureDate=ManufactureDate{week=42, year=2014}, connectionToSinkType=1, edidStructureMetadata=EdidStructureMetadata{version=0, revision=0}, videoInputType=0}, installOrientation=0, screenPartStatus=0}
+    mSfDisplayModes=
+      DisplayMode{id=0, width=1920, height=1200, xDpi=100.13963, yDpi=100.26316, peakRefreshRate=74.998505, vsyncRate=74.998505, appVsyncOffsetNanos=2000000, presentationDeadlineNanos=13333599, supportedHdrTypes=[], group=1}
+      DisplayMode{id=1, width=5120, height=2160, xDpi=267.039, yDpi=180.47368, peakRefreshRate=50.0, vsyncRate=50.0, appVsyncOffsetNanos=1000000, presentationDeadlineNanos=19999999, supportedHdrTypes=[], group=2}
+      DisplayMode{id=2, width=4096, height=2160, xDpi=213.63121, yDpi=180.47368, peakRefreshRate=50.0, vsyncRate=50.0, appVsyncOffsetNanos=1000000, presentationDeadlineNanos=19999999, supportedHdrTypes=[], group=3}
+      DisplayMode{id=3, width=3840, height=2160, xDpi=200.27927, yDpi=180.47368, peakRefreshRate=60.0, vsyncRate=60.0, appVsyncOffsetNanos=1000000, presentationDeadlineNanos=16666667, supportedHdrTypes=[], group=4}
+      DisplayMode{id=4, width=3840, height=2160, xDpi=200.27927, yDpi=180.47368, peakRefreshRate=59.940105, vsyncRate=59.940105, appVsyncOffsetNanos=1000000, presentationDeadlineNanos=16683321, supportedHdrTypes=[], group=5}
+      DisplayMode{id=5, width=3840, height=2160, xDpi=200.27927, yDpi=180.47368, peakRefreshRate=50.0, vsyncRate=50.0, appVsyncOffsetNanos=1000000, presentationDeadlineNanos=19999999, supportedHdrTypes=[], group=6}
+      DisplayMode{id=6, width=1920, height=1440, xDpi=100.13963, yDpi=120.31579, peakRefreshRate=60.0, vsyncRate=60.0, appVsyncOffsetNanos=1000000, presentationDeadlineNanos=16666667, supportedHdrTypes=[], group=7}
+      DisplayMode{id=7, width=2560, height=1080, xDpi=133.5195, yDpi=90.23684, peakRefreshRate=50.0, vsyncRate=50.0, appVsyncOffsetNanos=1000000, presentationDeadlineNanos=19999999, supportedHdrTypes=[], group=8}
+      DisplayMode{id=8, width=1856, height=1392, xDpi=96.801636, yDpi=116.30527, peakRefreshRate=59.995186, vsyncRate=59.995186, appVsyncOffsetNanos=1000000, presentationDeadlineNanos=16668004, supportedHdrTypes=[], group=9}
+      DisplayMode{id=9, width=1792, height=1344, xDpi=93.46365, yDpi=112.29473, peakRefreshRate=59.99979, vsyncRate=59.99979, appVsyncOffsetNanos=1000000, presentationDeadlineNanos=16666725, supportedHdrTypes=[], group=10}
+      DisplayMode{id=10, width=2048, height=1152, xDpi=106.815605, yDpi=96.252625, peakRefreshRate=60.0, vsyncRate=60.0, appVsyncOffsetNanos=1000000, presentationDeadlineNanos=16666667, supportedHdrTypes=[], group=11}
+      DisplayMode{id=11, width=1920, height=1200, xDpi=100.13963, yDpi=100.26316, peakRefreshRate=59.884605, vsyncRate=59.884605, appVsyncOffsetNanos=1000000, presentationDeadlineNanos=16698783, supportedHdrTypes=[], group=12}
+      DisplayMode{id=12, width=1920, height=1080, xDpi=100.13963, yDpi=90.23684, peakRefreshRate=60.0, vsyncRate=60.0, appVsyncOffsetNanos=1000000, presentationDeadlineNanos=16666667, supportedHdrTypes=[], group=13}
+      DisplayMode{id=13, width=1920, height=1080, xDpi=100.13963, yDpi=90.23684, peakRefreshRate=50.0, vsyncRate=50.0, appVsyncOffsetNanos=1000000, presentationDeadlineNanos=19999999, supportedHdrTypes=[], group=14}
+      DisplayMode{id=14, width=1600, height=1200, xDpi=83.44969, yDpi=100.26316, peakRefreshRate=60.0, vsyncRate=60.0, appVsyncOffsetNanos=1000000, presentationDeadlineNanos=16666667, supportedHdrTypes=[], group=15}
+      DisplayMode{id=15, width=1680, height=1050, xDpi=87.62218, yDpi=87.73026, peakRefreshRate=59.954258, vsyncRate=59.954258, appVsyncOffsetNanos=1000000, presentationDeadlineNanos=16679383, supportedHdrTypes=[], group=16}
+      DisplayMode{id=16, width=1400, height=1050, xDpi=73.01848, yDpi=87.73026, peakRefreshRate=59.978443, vsyncRate=59.978443, appVsyncOffsetNanos=1000000, presentationDeadlineNanos=16672657, supportedHdrTypes=[], group=17}
+      DisplayMode{id=17, width=1280, height=1024, xDpi=66.75975, yDpi=85.55789, peakRefreshRate=60.01974, vsyncRate=60.01974, appVsyncOffsetNanos=1000000, presentationDeadlineNanos=16661185, supportedHdrTypes=[], group=18}
+      DisplayMode{id=18, width=1440, height=900, xDpi=75.10472, yDpi=75.197365, peakRefreshRate=59.88745, vsyncRate=59.88745, appVsyncOffsetNanos=1000000, presentationDeadlineNanos=16697989, supportedHdrTypes=[], group=19}
+      DisplayMode{id=19, width=1280, height=960, xDpi=66.75975, yDpi=80.210526, peakRefreshRate=60.0, vsyncRate=60.0, appVsyncOffsetNanos=1000000, presentationDeadlineNanos=16666667, supportedHdrTypes=[], group=20}
+      DisplayMode{id=20, width=1360, height=768, xDpi=70.932236, yDpi=64.16842, peakRefreshRate=60.015163, vsyncRate=60.015163, appVsyncOffsetNanos=1000000, presentationDeadlineNanos=16662456, supportedHdrTypes=[], group=21}
+      DisplayMode{id=21, width=1280, height=768, xDpi=66.75975, yDpi=64.16842, peakRefreshRate=59.870228, vsyncRate=59.870228, appVsyncOffsetNanos=1000000, presentationDeadlineNanos=16702793, supportedHdrTypes=[], group=22}
+      DisplayMode{id=22, width=1024, height=768, xDpi=53.407803, yDpi=64.16842, peakRefreshRate=60.00384, vsyncRate=60.00384, appVsyncOffsetNanos=1000000, presentationDeadlineNanos=16665600, supportedHdrTypes=[], group=23}
+      DisplayMode{id=23, width=800, height=600, xDpi=41.724846, yDpi=50.13158, peakRefreshRate=60.316544, vsyncRate=60.316544, appVsyncOffsetNanos=1000000, presentationDeadlineNanos=16579199, supportedHdrTypes=[], group=24}
+      DisplayMode{id=24, width=640, height=480, xDpi=33.379875, yDpi=40.105263, peakRefreshRate=60.0, vsyncRate=60.0, appVsyncOffsetNanos=1000000, presentationDeadlineNanos=16666667, supportedHdrTypes=[], group=25}
+      DisplayMode{id=25, width=640, height=480, xDpi=33.379875, yDpi=40.105263, peakRefreshRate=59.94048, vsyncRate=59.94048, appVsyncOffsetNanos=1000000, presentationDeadlineNanos=16683217, supportedHdrTypes=[], group=26}
+    mActiveSfDisplayMode=DisplayMode{id=0, width=1920, height=1200, xDpi=100.13963, yDpi=100.26316, peakRefreshRate=74.998505, vsyncRate=74.998505, appVsyncOffsetNanos=2000000, presentationDeadlineNanos=13333599, supportedHdrTypes=[], group=1}
+    mActiveRenderFrameRate=37.499252
+    mAppVsyncOffsetNanos=1000000
+    mPresentationDeadlineNanos=26667198
+    mSupportedModes=
+      DisplayModeRecord{mMode={id=1, parentModeId=-1, sfModeId=0, flags=, width=1920, height=1200, fps=74.998505, vsync=74.998505, alternativeRefreshRates=[], supportedHdrTypes=[]}}
+      DisplayModeRecord{mMode={id=2, parentModeId=-1, sfModeId=1, flags=, width=5120, height=2160, fps=50.0, vsync=50.0, alternativeRefreshRates=[], supportedHdrTypes=[]}}
+      DisplayModeRecord{mMode={id=3, parentModeId=-1, sfModeId=2, flags=, width=4096, height=2160, fps=50.0, vsync=50.0, alternativeRefreshRates=[], supportedHdrTypes=[]}}
+      DisplayModeRecord{mMode={id=4, parentModeId=-1, sfModeId=3, flags=, width=3840, height=2160, fps=60.0, vsync=60.0, alternativeRefreshRates=[], supportedHdrTypes=[]}}
+      DisplayModeRecord{mMode={id=5, parentModeId=-1, sfModeId=4, flags=, width=3840, height=2160, fps=59.940105, vsync=59.940105, alternativeRefreshRates=[], supportedHdrTypes=[]}}
+      DisplayModeRecord{mMode={id=6, parentModeId=-1, sfModeId=5, flags=, width=3840, height=2160, fps=50.0, vsync=50.0, alternativeRefreshRates=[], supportedHdrTypes=[]}}
+      DisplayModeRecord{mMode={id=7, parentModeId=-1, sfModeId=6, flags=, width=1920, height=1440, fps=60.0, vsync=60.0, alternativeRefreshRates=[], supportedHdrTypes=[]}}
+      DisplayModeRecord{mMode={id=8, parentModeId=-1, sfModeId=7, flags=, width=2560, height=1080, fps=50.0, vsync=50.0, alternativeRefreshRates=[], supportedHdrTypes=[]}}
+      DisplayModeRecord{mMode={id=9, parentModeId=-1, sfModeId=8, flags=, width=1856, height=1392, fps=59.995186, vsync=59.995186, alternativeRefreshRates=[], supportedHdrTypes=[]}}
+      DisplayModeRecord{mMode={id=10, parentModeId=-1, sfModeId=9, flags=, width=1792, height=1344, fps=59.99979, vsync=59.99979, alternativeRefreshRates=[], supportedHdrTypes=[]}}
+      DisplayModeRecord{mMode={id=11, parentModeId=-1, sfModeId=10, flags=, width=2048, height=1152, fps=60.0, vsync=60.0, alternativeRefreshRates=[], supportedHdrTypes=[]}}
+      DisplayModeRecord{mMode={id=12, parentModeId=-1, sfModeId=11, flags=, width=1920, height=1200, fps=59.884605, vsync=59.884605, alternativeRefreshRates=[], supportedHdrTypes=[]}}
+      DisplayModeRecord{mMode={id=13, parentModeId=-1, sfModeId=12, flags=, width=1920, height=1080, fps=60.0, vsync=60.0, alternativeRefreshRates=[], supportedHdrTypes=[]}}
+      DisplayModeRecord{mMode={id=14, parentModeId=-1, sfModeId=13, flags=, width=1920, height=1080, fps=50.0, vsync=50.0, alternativeRefreshRates=[], supportedHdrTypes=[]}}
+      DisplayModeRecord{mMode={id=15, parentModeId=-1, sfModeId=14, flags=, width=1600, height=1200, fps=60.0, vsync=60.0, alternativeRefreshRates=[], supportedHdrTypes=[]}}
+      DisplayModeRecord{mMode={id=16, parentModeId=-1, sfModeId=15, flags=, width=1680, height=1050, fps=59.954258, vsync=59.954258, alternativeRefreshRates=[], supportedHdrTypes=[]}}
+      DisplayModeRecord{mMode={id=17, parentModeId=-1, sfModeId=16, flags=, width=1400, height=1050, fps=59.978443, vsync=59.978443, alternativeRefreshRates=[], supportedHdrTypes=[]}}
+      DisplayModeRecord{mMode={id=18, parentModeId=-1, sfModeId=17, flags=, width=1280, height=1024, fps=60.01974, vsync=60.01974, alternativeRefreshRates=[], supportedHdrTypes=[]}}
+      DisplayModeRecord{mMode={id=19, parentModeId=-1, sfModeId=18, flags=, width=1440, height=900, fps=59.88745, vsync=59.88745, alternativeRefreshRates=[], supportedHdrTypes=[]}}
+      DisplayModeRecord{mMode={id=20, parentModeId=-1, sfModeId=19, flags=, width=1280, height=960, fps=60.0, vsync=60.0, alternativeRefreshRates=[], supportedHdrTypes=[]}}
+      DisplayModeRecord{mMode={id=21, parentModeId=-1, sfModeId=20, flags=, width=1360, height=768, fps=60.015163, vsync=60.015163, alternativeRefreshRates=[], supportedHdrTypes=[]}}
+      DisplayModeRecord{mMode={id=22, parentModeId=-1, sfModeId=21, flags=, width=1280, height=768, fps=59.870228, vsync=59.870228, alternativeRefreshRates=[], supportedHdrTypes=[]}}
+      DisplayModeRecord{mMode={id=23, parentModeId=-1, sfModeId=22, flags=, width=1024, height=768, fps=60.00384, vsync=60.00384, alternativeRefreshRates=[], supportedHdrTypes=[]}}
+      DisplayModeRecord{mMode={id=24, parentModeId=-1, sfModeId=23, flags=, width=800, height=600, fps=60.316544, vsync=60.316544, alternativeRefreshRates=[], supportedHdrTypes=[]}}
+      DisplayModeRecord{mMode={id=25, parentModeId=-1, sfModeId=24, flags=, width=640, height=480, fps=60.0, vsync=60.0, alternativeRefreshRates=[], supportedHdrTypes=[]}}
+      DisplayModeRecord{mMode={id=26, parentModeId=-1, sfModeId=25, flags=, width=640, height=480, fps=59.94048, vsync=59.94048, alternativeRefreshRates=[], supportedHdrTypes=[]}}
+    mSupportedColorModes=[0]
+    
+    DisplayDeviceConfig: 
+    ---------------------
+    DisplayDeviceConfig{mLoadedFrom=<config.xml>
+    mBacklight=null, mNits=null, mRawBacklight=null, mRawNits=null, mInterpolationType=0mBrightness=null
+    mBrightnessToBacklightSpline=MonotoneCubicSpline{[(0.0, 0.0: 1.0), (1.0, 1.0: 1.0)]}, mBacklightToBrightnessSpline=MonotoneCubicSpline{[(0.0, 0.0: 1.0), (1.0, 1.0: 1.0)]}, mNitsToBacklightSpline=null, mBacklightMinimum=0.035433073, mBacklightMaximum=1.0, mBrightnessDefault=0.39763778, mBrightnessDim=0.05, mQuirks=null
+    mLuxThrottlingData={}, mHbmData=null, mThermalThrottlingData=ThermalThrottlingData{mThermalBrightnessThrottlingDataMapByThrottlingId={}, mRefreshRateThrottlingMap={}, mThermalThrottlingWorkDurations={}}
+    , mPowerThrottlingDataMapByThrottlingId={}
+    mBrightnessRampFastDecrease=0.70472443, mBrightnessRampFastIncrease=0.70472443, mBrightnessRampSlowDecrease=0.23228346, mBrightnessRampSlowIncrease=0.23228346, mBrightnessRampSlowDecreaseIdle=NaN, mBrightnessRampSlowIncreaseIdle=NaN, mBrightnessRampDecreaseMaxMillis=0, mBrightnessRampIncreaseMaxMillis=0, mBrightnessRampDecreaseMaxIdleMillis=0, mBrightnessRampIncreaseMaxIdleMillis=0, mLuxDeltaToRampIncreaseMaxMillis=null, mLuxDeltaToRampDecreaseMaxMillis=null, mAutoBrightnessBrighteningRampGamma=NaN, mAutoBrightnessDarkeningRampGamma=NaN
+    mAmbientHorizonLong=10000, mAmbientHorizonShort=2000
+    mAmbientBrightnessHysteresis=HysteresisLevels {
+        mBrighteningThresholdLevels=[0.0],
+        mBrighteningThresholdsPercentages=[0.1],
+        mMinBrightening=0.0,
+        mDarkeningThresholdLevels=[0.0],
+        mDarkeningThresholdsPercentages=[0.2],
+        mMinDarkening=0.0
+    }
+    mAmbientIdleHysteresis=HysteresisLevels {
+        mBrighteningThresholdLevels=[0.0],
+        mBrighteningThresholdsPercentages=[0.1],
+        mMinBrightening=0.0,
+        mDarkeningThresholdLevels=[0.0],
+        mDarkeningThresholdsPercentages=[0.2],
+        mMinDarkening=0.0
+    }
+    mScreenBrightnessHysteresis=HysteresisLevels {
+        mBrighteningThresholdLevels=[0.0],
+        mBrighteningThresholdsPercentages=[0.1],
+        mMinBrightening=0.0,
+        mDarkeningThresholdLevels=[0.0],
+        mDarkeningThresholdsPercentages=[0.2],
+
+===SF===
+
+*** SERVICE 'SurfaceFlinger' DUMP TIMEOUT (10000ms) EXPIRED ***
+
+
+*** SERVICE 'SurfaceFlinger' DUMP TIMEOUT (10000ms) EXPIRED ***
+
+
+===WINDOW===
+WINDOW MANAGER DISPLAY CONTENTS (dumpsys window displays)
+  Display: mDisplayId=0 (organized)
+    init=1920x1200 160dpi mMinSizeOfResizeableTaskDp=220 cur=1920x1200 app=1920x1200 rng=1200x1200-1920x1920
+    deferred=false mLayoutNeeded=false
+  overrideConfig={1.0 ?mcc0mnc [en_US] ldltr sw1200dp w1920dp h1200dp 160dpi xlrg compactNeeded land -touch qwerty/v/v -nav/h winConfig={ mBounds=Rect(0, 0 - 1920, 1200) mAppBounds=Rect(0, 0 - 1920, 1200) mMaxBounds=Rect(0, 0 - 1920, 1200) mDisplayRotation=ROTATION_0 mWindowingMode=fullscreen mActivityType=undefined mAlwaysOnTop=undefined mRotation=ROTATION_0} as.3 s.9 fontWeightAdjustment=0}
+  mHasSetIgnoreOrientationRequest=false ignoreOrientationRequest=true
+  mSleeping=false mAllSleepTokens=[]
+  mLayoutSeq=75
+  mImeWindow=Window{d9e2f26 u0 InputMethod}
+  mImeLayeringTarget=Window{4107c49 u0 com.android.launcher3/com.android.launcher3.uioverrides.QuickstepLauncher}
+  mImeInputTarget=Window{4107c49 u0 com.android.launcher3/com.android.launcher3.uioverrides.QuickstepLauncher}
+  mImeControlTarget=Window{4107c49 u0 com.android.launcher3/com.android.launcher3.uioverrides.QuickstepLauncher}
+  ImeContainer
+    mNeedsLayer=false
+    mImeWindowToken=null
+  mImeParent=ActivityRecord{42604741 u0 com.android.launcher3/.uioverrides.QuickstepLauncher t7}
+  mRemoteInsetsControlTarget=RemoteInsetsControlTarget{39feae8 displayId=0 requestedVisibleTypes=503 animatingTypes=0}
+  mCurrentFocus=Window{4107c49 u0 com.android.launcher3/com.android.launcher3.uioverrides.QuickstepLauncher}
+  mFocusedApp=ActivityRecord{42604741 u0 com.android.launcher3/.uioverrides.QuickstepLauncher t7}
+  mFixedRotationLaunchingApp=null
+
+  mHoldScreenWindow=null
+  mObscuringWindow=Window{20d9e6e u0 com.android.systemui.wallpapers.ImageWallpaper}
+  mLastWakeLockHoldingWindow=null
+  mLastWakeLockObscuringWindow=null
+
+  mIsHardwareRendererOutputDisabled=false
+  mAreClientRenderingLimitationsEnabled=false
+
+  displayId=0
+  mWallpaperTarget=Window{4107c49 u0 com.android.launcher3/com.android.launcher3.uioverrides.QuickstepLauncher}
+  mLastWallpaperZoomOut=0.0
+  token WallpaperWindowToken{a82e669 showWhenLocked=true}:
+    mWallpaperX=0.0
+    mWallpaperY=0.5
+    mWallpaperXStep=0.33333334
+    mWallpaperYStep=1.0
+    mWallpaperDisplayOffsetX=NA
+    mWallpaperDisplayOffsetY=NA
+
+  mSystemGestureExclusion=SkRegion()
+
+  Display areas in top down Z order:
+    * Leaf:36:36
+    * OneHanded:34:35
+      * Leaf:34:35
+    * Leaf:33:33
+    * OneHanded:32:32
+      * Leaf:32:32
+    * WindowedMagnification:0:31 (organized)
+      * OneHanded:26:31
+        * Leaf:26:31
+      * Leaf:24:25
+      * OneHanded:0:23
+        * Leaf:23:23
+        * AppZoomOut:20:22 (organized)
+          * Leaf:20:22
+        * Leaf:17:19
+        * AppZoomOut:16:16 (organized)
+          * Leaf:16:16
+        * Leaf:15:15
+        * AppZoomOut:2:14 (organized)
+          * ImePlaceholder:13:14
+            * ImeContainer
+          * Leaf:3:12
+          * DefaultTaskDisplayArea (organized)
+        * Leaf:1:1
+        * AppZoomOut:0:0 (organized)
+          * Leaf:0:0
+
+  Task display areas in top down Z order:
+    TaskDisplayArea DefaultTaskDisplayArea
+      overrideConfig={0.0 ?mcc0mnc ?localeList ?layoutDir ?swdp ?wdp ?hdp ?density ?lsize ?long ?round ?ldr ?wideColorGamut ?orien ?uimode ?night ?touch ?keyb/?/? ?nav/? winConfig={ mBounds=Rect(0, 0 - 0, 0) mAppBounds=null mMaxBounds=Rect(0, 0 - 0, 0) mDisplayRotation=undefined mWindowingMode=fullscreen mActivityType=undefined mAlwaysOnTop=undefined mRotation=undefined} ?fontWeightAdjustment}
+      mPreferredTopFocusableRootTask=Task{34b8a36 #1 type=home}
+      mLastFocusedRootTask=Task{34b8a36 #1 type=home}
+      Application tokens in top down Z order:
+      * Task{34b8a36 #1 type=home U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+        bounds=[0,0][1920,1200]
+        * Task{5b6c21a #7 type=home I=com.android.launcher3/.uioverrides.QuickstepLauncher U=0 rootTaskId=1 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+          bounds=[0,0][1920,1200]
+
+===ACTIVITY===
+      topResumedActivity=ActivityRecord{42604741 u0 com.android.launcher3/.uioverrides.QuickstepLauncher t7}
+  ResumedActivity: ActivityRecord{42604741 u0 com.android.launcher3/.uioverrides.QuickstepLauncher t7}
+  mFocusedApp=ActivityRecord{42604741 u0 com.android.launcher3/.uioverrides.QuickstepLauncher t7}
+    mFocusedWindow=Window{4107c49 u0 com.android.launcher3/com.android.launcher3.uioverrides.QuickstepLauncher}
+
+===BATTERY===
+Current Battery Service state:
+  AC powered: false
+  USB powered: false
+  Wireless powered: false
+  Dock powered: false
+  Max charging current: 0
+ Time when the latest updated value of the Max charging current was sent via battery changed broadcast: +20s271ms
+  Max charging voltage: 0
+  Charge counter: 0
+  status: 1
+  health: 1
+  present: false
+  level: 0
+  scale: 100
+  voltage: 0
+ Time when the latest updated value of the voltage was sent via battery changed broadcast: +20s271ms
+ The last voltage value sent via the battery changed broadcast: 0
+  temperature: 0
+  technology: 
+  Charging state: 0
+  Charging policy: 0
+  Capacity level: -1
+
+===THERMAL===
+IsStatusOverride: false
+ThermalEventListeners:
+	callbacks: 4
+	killed: false
+	broadcasts count: -1
+ThermalStatusListeners:
+	callbacks: 2
+	killed: false
+	broadcasts count: -1
+Thermal Status: 0
+Cached temperatures:
+HAL Ready: true
+HAL connection:
+	ThermalHAL AIDL 3  connected: yes
+Current temperatures from HAL:
+Current cooling devices from HAL:
+	CoolingDevice{mValue=0, mType=2, mName=Processor-0}
+	CoolingDevice{mValue=0, mType=2, mName=Processor-1}
+	CoolingDevice{mValue=0, mType=2, mName=Processor-2}
+	CoolingDevice{mValue=0, mType=2, mName=Processor-3}
+	CoolingDevice{mValue=0, mType=2, mName=Processor-4}
+	CoolingDevice{mValue=0, mType=2, mName=Processor-5}
+Temperature static thresholds from HAL:
+Temperature headroom thresholds:
+[NaN, NaN, NaN, NaN, NaN, NaN, NaN]
+
+===AUDIO===
+Start begin: 10-16 23:50:59.793
+Start end:   10-16 23:51:02.329
+Now:         10-16 23:52:05.500
+Notification Clients:
+   pid    uid  name
+   742   1000  android.uid.system
+   839   1041  audioserver
+Global session refs:
+  session  cnt     pid    uid  name
+Hardware status: 0
+Vibrator infos(size=0):
+Bluetooth latency modes are enabled
+
+ ## BEGIN thread dump 
+
+Output thread 0x7e2c2ef04790, name AudioOut_D, tid 852, type 0 (MIXER):
+  I/O handle: 13
+  Standby: yes
+  Sample rate: 44100 Hz
+  HAL frame count: 4096
+  HAL format: 0x1 (AUDIO_FORMAT_PCM_16_BIT)
+  HAL buffer size: 16384 bytes
+  Channel count: 2
+  Channel mask: 0x00000003 (front-left, front-right)
+  Processing format: 0x1 (AUDIO_FORMAT_PCM_16_BIT)
+  Processing frame size: 4 bytes
+  Pending config events: none
+  Output devices: 0x2 (AUDIO_DEVICE_OUT_SPEAKER)
+  Input device: 0 (AUDIO_DEVICE_NONE)
+  Audio source: 0 (AUDIO_SOURCE_DEFAULT)
+  Timestamp stats: n=1 disc=1 cold=0 nRdy=0 err=0 rate=-nan jitterMs(unavail) localSR(-nan, -nan) correctedJitterMs(unavail)
+  Timestamp corrected: no
+  Master volume: 1.000000
+  Master mute: off
+  Mixer channel Mask: 0x3 (front-left, front-right)
+  Normal frame count: 4096
+  Total writes: 0
+  Delayed writes: 0
+  Blocked in write: no
+  Suspend count: 0
+
+===FEATURES===
+feature:reqGlEsVersion=0x30001
+feature:android.hardware.audio.output
+feature:android.hardware.bluetooth
+feature:android.hardware.hardware_keystore=500
+feature:android.hardware.location
+feature:android.hardware.location.network
+feature:android.hardware.microphone
+feature:android.hardware.opengles.aep
+feature:android.hardware.ram.normal
+feature:android.hardware.screen.landscape
+feature:android.hardware.screen.portrait
+feature:android.hardware.security.model.compatible
+feature:android.hardware.type.pc
+feature:android.hardware.usb.host
+feature:android.hardware.vulkan.compute
+feature:android.hardware.vulkan.level=1
+feature:android.hardware.vulkan.version=4198400
+feature:android.software.activities_on_secondary_displays
+feature:android.software.app_enumeration
+feature:android.software.app_widgets
+feature:android.software.autofill
+feature:android.software.backup
+feature:android.software.cant_save_state
+feature:android.software.companion_device_setup
+feature:android.software.controls
+feature:android.software.credentials
+feature:android.software.cts
+feature:android.software.device_admin
+feature:android.software.device_lock
+feature:android.software.erofs
+feature:android.software.file_based_encryption
+feature:android.software.freeform_window_management
+feature:android.software.home_screen
+feature:android.software.incremental_delivery=2
+feature:android.software.input_methods
+feature:android.software.ipsec_tunnel_migration
+feature:android.software.ipsec_tunnels
+feature:android.software.live_wallpaper
+feature:android.software.managed_users
+feature:android.software.picture_in_picture
+feature:android.software.print
+feature:android.software.secure_lock_screen
+feature:android.software.securely_removes_users
+feature:android.software.verified_boot
+feature:android.software.voice_recognizers
+feature:android.software.webview
+feature:android.software.window_magnification
+feature:com.google.android.mainline.patchlevel.2
+
+===SERVICES===
+Found 278 services:
+0	DockObserver: []
+1	SurfaceFlinger: [android.ui.ISurfaceComposer]
+2	SurfaceFlingerAIDL: [android.gui.ISurfaceComposer]
+3	accessibility: [android.view.accessibility.IAccessibilityManager]
+4	account: [android.accounts.IAccountManager]
+5	activity: [android.app.IActivityManager]
+6	activity_structured: [android.app.IActivityManagerStructured]
+7	activity_task: [android.app.IActivityTaskManager]
+8	adb: [android.debug.IAdbManager]
+9	adservices_manager: [android.app.adservices.IAdServicesManager]
+10	advanced_protection: [android.security.advancedprotection.IAdvancedProtectionService]
+11	alarm: [android.app.IAlarmManager]
+12	allowlist: [android.os.allowlist.IAllowlistService]
+13	android.frameworks.cameraservice.service.ICameraService/default: [android.frameworks.cameraservice.service.ICameraService]
+14	android.frameworks.devicestate.IDeviceStateService/default: [android.frameworks.devicestate.IDeviceStateService]
+15	android.frameworks.location.altitude.IAltitudeService/default: [android.frameworks.location.altitude.IAltitudeService]
+16	android.frameworks.sensorservice.ISensorManager/default: [android.frameworks.sensorservice.ISensorManager]
+17	android.frameworks.stats.IStats/default: [android.frameworks.stats.IStats]
+18	android.frameworks.vibrator.IVibratorControlService/default: [android.frameworks.vibrator.IVibratorControlService]
+19	android.hardware.audio.core.IConfig/default: [android.hardware.audio.core.IConfig]
+20	android.hardware.audio.core.IModule/bluetooth: [android.hardware.audio.core.IModule]
+21	android.hardware.audio.core.IModule/default: [android.hardware.audio.core.IModule]
+22	android.hardware.audio.core.IModule/r_submix: [android.hardware.audio.core.IModule]
+23	android.hardware.audio.effect.IFactory/default: [android.hardware.audio.effect.IFactory]
+24	android.hardware.authsecret.IAuthSecret/default: [android.hardware.authsecret.IAuthSecret]
+25	android.hardware.bluetooth.audio.IBluetoothAudioProviderFactory/default: [android.hardware.bluetooth.audio.IBluetoothAudioProviderFactory]
+26	android.hardware.boot.IBootControl/default: [android.hardware.boot.IBootControl]
+27	android.hardware.cas.IMediaCasService/default: [android.hardware.cas.IMediaCasService]
+28	android.hardware.gatekeeper.IGatekeeper/default: [android.hardware.gatekeeper.IGatekeeper]
+29	android.hardware.graphics.allocator.IAllocator/default: [android.hardware.graphics.allocator.IAllocator]
+30	android.hardware.graphics.composer3.IComposer/default: [android.hardware.graphics.composer3.IComposer]
+31	android.hardware.health.IHealth/default: [android.hardware.health.IHealth]
+32	android.hardware.light.ILights/default: [android.hardware.light.ILights]
+33	android.hardware.media.c2.IComponentStore/software: [android.hardware.media.c2.IComponentStore]
+34	android.hardware.memtrack.IMemtrack/default: [android.hardware.memtrack.IMemtrack]
+35	android.hardware.power.IPower/default: [android.hardware.power.IPower]
+36	android.hardware.power.stats.IPowerStats/default: [android.hardware.power.stats.IPowerStats]
+37	android.hardware.security.keymint.IKeyMintDevice/default: [android.hardware.security.keymint.IKeyMintDevice]
+38	android.hardware.security.keymint.IRemotelyProvisionedComponent/default: [android.hardware.security.keymint.IRemotelyProvisionedComponent]
+39	android.hardware.security.secureclock.ISecureClock/default: [android.hardware.security.secureclock.ISecureClock]
+40	android.hardware.security.sharedsecret.ISharedSecret/default: [android.hardware.security.sharedsecret.ISharedSecret]
+41	android.hardware.security.sharedsecret.ISharedSecret/gatekeeper: [android.hardware.security.sharedsecret.ISharedSecret]
+42	android.hardware.thermal.IThermal/default: [android.hardware.thermal.IThermal]
+43	android.hardware.usb.IUsb/default: [android.hardware.usb.IUsb]
+44	android.hardware.weaver.IWeaver/default: [android.hardware.weaver.IWeaver]
+45	android.os.UpdateEngineService: [android.os.IUpdateEngine]
+46	android.os.UpdateEngineStableService: [android.os.IUpdateEngineStable]
+47	android.security.apc: [android.security.apc.IProtectedConfirmation]
+48	android.security.authorization: [android.security.authorization.IKeystoreAuthorization]
+49	android.security.compat: [android.security.compat.IKeystoreCompatService]
+50	android.security.identity: [android.security.identity.ICredentialStoreFactory]
+51	android.security.legacykeystore: [android.security.legacykeystore.ILegacyKeystore]
+52	android.security.maintenance: [android.security.maintenance.IKeystoreMaintenance]
+53	android.security.metrics: [android.security.metrics.IKeystoreMetrics]
+54	android.service.gatekeeper.IGateKeeperService: [android.service.gatekeeper.IGateKeeperService]
+55	android.system.keystore2.IKeystoreService/default: [android.system.keystore2.IKeystoreService]
+56	android.system.net.netd.INetd/default: [android.system.net.netd.INetd]
+57	android.system.suspend.ISystemSuspend/default: [android.system.suspend.ISystemSuspend]
+58	android.system.vold.IVold/default: [android.system.vold.IVold]
+59	anomaly_detector: [android.os.profiling.anomaly.IAnomalyDetectorService]
+60	app_binding: []
+61	app_function: [android.app.appfunctions.IAppFunctionManager]
+62	app_hibernation: [android.apphibernation.IAppHibernationService]
+63	app_integrity: [android.content.integrity.IAppIntegrityManager]
+64	app_search: [android.app.appsearch.aidl.IAppSearchManager]
+65	appops: [com.android.internal.app.IAppOpsService]
+66	appwidget: [com.android.internal.appwidget.IAppWidgetService]
+67	artd: [com.android.server.art.IArtd]
+68	attestation_verification: [android.security.attestationverification.IAttestationVerificationManagerService]
+69	audio: [android.media.IAudioService]
+70	auth: [android.hardware.biometrics.IAuthService]
+71	authentication_policy: [android.security.authenticationpolicy.IAuthenticationPolicyService]
+72	autofill: [android.view.autofill.IAutoFillManager]
+73	background_install_control: [android.content.pm.IBackgroundInstallControlService]
+74	backup: [android.app.backup.IBackupManager]
+75	battery: []
+76	batteryproperties: [android.os.IBatteryPropertiesRegistrar]
+77	batterystats: [com.android.internal.app.IBatteryStats]
+78	binder_calls_stats: []
+79	binder_stats_consumer: [android.os.binder.IBinderStatsConsumerService]
+80	biometric: [android.hardware.biometrics.IBiometricService]
+81	blob_store: [android.app.blob.IBlobStoreManager]
+82	bluetooth_manager: [android.bluetooth.IBluetoothManager]
+83	bugreport: [android.os.IDumpstate]
+84	cacheinfo: []
+85	clipboard: [android.content.IClipboard]
+86	color_display: [android.hardware.display.IColorDisplayManager]
+87	companiondevice: [android.companion.ICompanionDeviceManager]
+88	connectivity: [android.net.IConnectivityManager]
+89	connectivity_native: [android.net.connectivity.aidl.ConnectivityNative]
+90	connmetrics: [android.net.IIpConnectivityMetrics]
+91	content: [android.content.IContentService]
+92	content_safety: [android.app.contentsafety.IContentSafetyManager]
+93	contextual_mode: [android.app.modes.IContextualModeManager]
+94	country_detector: [android.location.ICountryDetector]
+95	cpuinfo: []
+96	credential: [android.credentials.ICredentialManager]
+97	crossprofileapps: [android.content.pm.ICrossProfileApps]
+98	dataloader_manager: [android.content.pm.IDataLoaderManager]
+99	dbinfo: []
+100	device_config: []
+101	device_identifiers: [android.os.IDeviceIdentifiersPolicyService]
+102	device_lock: [android.devicelock.IDeviceLockService]
+103	device_policy: [android.app.admin.IDevicePolicyManager]
+104	device_state: [android.hardware.devicestate.IDeviceStateManager]
+105	deviceidle: [android.os.IDeviceIdleController]
+106	devicestoragemonitor: []
+107	diskstats: []
+108	display: [android.hardware.display.IDisplayManager]
+109	dnsresolver: [android.net.IDnsResolver]
+110	domain_verification: [android.content.pm.verify.domain.IDomainVerificationManager]
+111	dreams: [android.service.dreams.IDreamManager]
+112	dropbox: [com.android.internal.os.IDropBoxManagerService]
+113	dynamic_instrumentation: [android.os.instrumentation.IDynamicInstrumentationManager]
+114	dynamic_system: [android.os.image.IDynamicSystemService]
+115	ecm_enhanced_confirmation: [android.app.ecm.IEnhancedConfirmationManager]
+116	emergency_affordance: []
+117	ethernet: [android.net.IEthernetManager]
+118	external_vibrator_service: [android.os.IExternalVibratorService]
+119	feature_flags: [android.flags.IFeatureFlags]
+120	file: [android.os.storage.IFileService]
+121	file_integrity: [android.security.IFileIntegrityService]
+122	font: [com.android.internal.graphics.fonts.IFontManager]
+123	game: [android.app.IGameManagerService]
+124	gfxinfo: []
+125	gpu: [android.graphicsenv.IGpuService]
+126	grammatical_inflection: [android.app.IGrammaticalInflectionManager]
+127	graphicsstats: [android.view.IGraphicsStats]
+128	hardware_properties: [android.os.IHardwarePropertiesManager]
+129	healthconnect: [android.health.connect.aidl.IHealthConnectService]
+130	incident: [android.os.IIncidentManager]
+131	incidentcompanion: [android.os.IIncidentCompanion]
+132	incremental: [android.os.incremental.IIncrementalService]
+133	input: [android.hardware.input.IInputManager]
+134	input_method: [com.android.internal.view.IInputMethodManager]
+135	inputflinger: [android.os.IInputFlinger]
+136	installd: [android.os.IInstalld]
+137	intrusion_detection: [android.security.intrusiondetection.IIntrusionDetectionService]
+138	ions: [com.android.internal.telephony.IOns]
+139	ipsec: [android.net.IIpSecService]
+140	jobscheduler: [android.app.job.IJobScheduler]
+141	launcherapps: [android.content.pm.ILauncherApps]
+142	legacy_permission: [android.permission.ILegacyPermissionManager]
+143	lights: [android.hardware.lights.ILightsManager]
+144	locale: [android.app.ILocaleManager]
+145	location: [android.location.ILocationManager]
+146	location_time_zone_manager: []
+147	lock_settings: [com.android.internal.widget.ILockSettings]
+148	logcat: [android.os.logcat.ILogcatManagerService]
+149	looper_stats: []
+150	manager: [android.os.IServiceManager]
+151	mdns: [android.net.mdns.aidl.IMDns]
+152	media.audio_flinger: [android.media.IAudioFlingerService]
+153	media.audio_policy: [android.media.IAudioPolicyService]
+154	media.camera: [android.hardware.ICameraService]
+155	media.camera.proxy: [android.hardware.ICameraServiceProxy]
+156	media.extractor: [android.IMediaExtractorService]
+157	media.metrics: [android.media.IMediaMetricsService]
+158	media.player: [android.media.IMediaPlayerService]
+159	media.resource_manager: [android.media.IResourceManagerService]
+160	media.resource_observer: [android.media.IResourceObserverService]
+161	media_communication: [android.media.IMediaCommunicationService]
+162	media_metrics: [android.media.metrics.IMediaMetricsManager]
+163	media_projection: [android.media.projection.IMediaProjectionManager]
+164	media_resource_monitor: [android.media.IMediaResourceMonitor]
+165	media_router: [android.media.IMediaRouterService]
+166	media_session: [android.media.session.ISessionManager]
+167	meminfo: []
+168	memtrack.proxy: [android.hardware.memtrack.IMemtrack]
+169	mount: [android.os.storage.IStorageManager]
+170	nearby: [android.nearby.INearbyManager]
+171	netd: [android.net.INetd]
+172	netd_listener: [android.net.metrics.INetdEventListener]
+173	netpolicy: [android.net.INetworkPolicyManager]
+174	netstats: [android.net.INetworkStatsService]
+175	network_management: [android.os.INetworkManagementService]
+176	network_score: [android.net.INetworkScoreService]
+177	network_stack: [android.net.INetworkStackConnector]
+178	network_time_update_service: []
+179	network_watchlist: [com.android.internal.net.INetworkWatchlistManager]
+180	notification: [android.app.INotificationManager]
+181	on_device_intelligence: [android.app.ondeviceintelligence.IOnDeviceIntelligenceManager]
+182	ondevicepersonalization_system_service: [android.ondevicepersonalization.IOnDevicePersonalizationSystemService]
+183	overlay: [android.content.om.IOverlayManager]
+184	pac_proxy: [android.net.IPacProxyManager]
+185	package: [android.content.pm.IPackageManager]
+186	package_native: [android.content.pm.IPackageManagerNative]
+187	pcc_sandbox: [android.app.privatecompute.IPccSandboxManager]
+188	pcc_sandbox_native: [android.app.privatecompute.IPccSandboxManagerNative]
+189	people: [android.app.people.IPeopleManager]
+190	performance_hint: [android.os.IHintManager]
+191	permission: [android.os.IPermissionController]
+192	permission_checker: [android.permission.IPermissionChecker]
+193	permissionmgr: [android.permission.IPermissionManager]
+194	pinner: [android.app.pinner.IPinnerService]
+195	platform_compat: [com.android.internal.compat.IPlatformCompat]
+196	platform_compat_native: [com.android.internal.compat.IPlatformCompatNative]
+197	power: [android.os.IPowerManager]
+198	powerstats: [android.os.IPowerStatsService]
+199	print: [android.print.IPrintManager]
+200	processinfo: [android.os.IProcessInfoService]
+201	procstats: [com.android.internal.app.procstats.IProcessStats]
+202	profiling_service: [android.os.IProfilingService]
+203	protolog_configuration: [com.android.internal.protolog.IProtoLogConfigurationService]
+204	reboot_readiness: [android.scheduling.IRebootReadinessManager]
+205	recovery: [android.os.IRecoverySystem]
+206	remote_provisioning: [android.security.rkp.IRemoteProvisioning]
+207	resources: [android.content.res.IResourcesManager]
+208	restrictions: [android.content.IRestrictionsManager]
+209	role: [android.app.role.IRoleManager]
+210	rollback: [android.content.rollback.IRollbackManager]
+211	runtime: []
+212	safety_center: [android.safetycenter.ISafetyCenterManager]
+213	scheduling_policy: [android.os.ISchedulingPolicyService]
+214	sdk_sandbox: [android.app.sdksandbox.ISdkSandboxManager]
+215	search: [android.app.ISearchManager]
+216	sec_key_att_app_id_provider: [android.security.keystore.IKeyAttestationApplicationIdProvider]
+217	secure_element: [android.se.omapi.ISecureElementService]
+218	security_state: [android.os.ISecurityStateManager]
+219	selection_toolbar: [android.view.selectiontoolbar.ISelectionToolbarManager]
+220	sensitive_content_protection_service: [android.view.ISensitiveContentProtectionManager]
+221	sensor_privacy: [android.hardware.ISensorPrivacyManager]
+222	sensorservice: [android.gui.SensorServer]
+223	serial: [android.hardware.serial.ISerialManager]
+224	servicediscovery: [android.net.nsd.INsdManager]
+225	settings: []
+226	shortcut: [android.content.pm.IShortcutService]
+227	slice: [android.app.slice.ISliceManager]
+228	soundtrigger: [com.android.internal.app.ISoundTriggerService]
+229	soundtrigger_middleware: [android.media.soundtrigger_middleware.ISoundTriggerMiddlewareService]
+230	speech_recognition: [android.speech.IRecognitionServiceManager]
+231	stats: [android.os.IStatsd]
+232	statsbootstrap: [android.os.IStatsBootstrapAtomService]
+233	statscompanion: [android.os.IStatsCompanionService]
+234	statsmanager: [android.os.IStatsManagerService]
+235	statusbar: [com.android.internal.statusbar.IStatusBarService]
+236	storaged: [android.os.IStoraged]
+237	storaged_pri: [android.os.storaged.IStoragedPrivate]
+238	storagestats: [android.app.usage.IStorageStatsManager]
+239	supervision: [android.app.supervision.ISupervisionManager]
+240	suspend_control: [android.system.suspend.ISuspendControlService]
+241	suspend_control_internal: [android.system.suspend.internal.ISuspendControlServiceInternal]
+242	system_config: [android.os.ISystemConfig]
+243	system_server_dumper: []
+244	system_update: [android.os.ISystemUpdateManager]
+245	task_continuity: [android.companion.datatransfer.continuity.ITaskContinuityManager]
+246	telecom: [com.android.internal.telecom.ITelecomService]
+247	telephony.registry: [com.android.internal.telephony.ITelephonyRegistry]
+248	testharness: []
+249	tethering: [android.net.ITetheringConnector]
+250	textclassification: [android.service.textclassifier.ITextClassifierService]
+251	textservices: [com.android.internal.textservice.ITextServicesManager]
+252	texttospeech: [android.speech.tts.ITextToSpeechManager]
+253	thermalservice: [android.os.IThermalService]
+254	time_detector: [android.app.timedetector.ITimeDetectorService]
+255	time_zone_detector: [android.app.timezonedetector.ITimeZoneDetectorService]
+256	tracing.proxy: [android.tracing.ITracingServiceProxy]
+257	tradeinmode: [android.os.ITradeInMode]
+258	transparency: [com.android.internal.os.IBinaryTransparencyService]
+259	trust: [android.app.trust.ITrustManager]
+260	uimode: [android.app.IUiModeManager]
+261	updatelock: [android.os.IUpdateLock]
+262	uprobestats_bridge: [com.android.uprobestats.IUprobeStatsBridgeService]
+263	uri_grants: [android.app.IUriGrantsManager]
+264	usagestats: [android.app.usage.IUsageStatsManager]
+265	usb: [android.hardware.usb.IUsbManager]
+266	user: [android.os.IUserManager]
+267	vcn_management: [android.net.vcn.IVcnManagementService]
+268	vibrator_manager: [android.os.IVibratorManagerService]
+269	virtualdevice: [android.companion.virtual.IVirtualDeviceManager]
+270	virtualdevice_native: [android.companion.virtualnative.IVirtualDeviceManagerNative]
+271	voiceinteraction: [com.android.internal.app.IVoiceInteractionManagerService]
+272	vold: [android.os.IVold]
+273	vpn_management: [android.net.IVpnManager]
+274	wallpaper: [android.app.IWallpaperManager]
+275	wearable_sensing: [android.app.wearable.IWearableSensingManager]
+276	webviewupdate: [android.webkit.IWebViewUpdateService]
+277	window: [android.view.IWindowManager]
+
+===AVC===
+386
+718
+
+===END===
