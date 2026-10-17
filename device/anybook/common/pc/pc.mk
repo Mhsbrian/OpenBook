@@ -38,6 +38,8 @@ VENDOR_SECURITY_PATCH = $(PLATFORM_SECURITY_PATCH)
 BOOT_SECURITY_PATCH = $(PLATFORM_SECURITY_PATCH)
 PRODUCT_VENDOR_PROPERTIES += ro.vendor.boot_security_patch=$(BOOT_SECURITY_PATCH)
 
+# Laptop behaviour (lid, power button, battery saver; ANAL-178): OpenBookPcFrameworkOverlay, added with audio below.
+
 # A PC: no telephony, a keyboard and a pointer, a lid.
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/pc_core_hardware.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/pc_core_hardware.xml \

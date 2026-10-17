@@ -5,6 +5,7 @@
 # Kleaf outputs are never written. Runs in the openbook-installer container.
 #
 # usage: build-check-kmod.sh            -> $I/build/kmod/*.ko (and vermagic printed)
+#   CHECK_KMOD_OUT=DIR: write the modules to DIR (below $I) instead, so parallel work does not share outputs
 set -euo pipefail
 R=$(cd "$(dirname "$0")/../.." && pwd); S=$R/scripts/installer
 A=${OPENBOOK_HOME:-${ANYBOOK_HOME:-$HOME/anybook}}; I=$A/installer
@@ -12,7 +13,7 @@ KSRC=${CHECK_KSRC:-$A/kernel/src/common}
 DIST=${CHECK_KDIST:-$A/kernel/dist/anybook-amd-gbos-16302624}   # bzImage 6d964789..., the check's kernel
 CLANG=${CHECK_CLANG:-$A/kernel/src/prebuilts/clang/host/linux-x86/clang-r584948c/bin}
 REL=$(sed -n 's/^Linux version \([^ ]*\) .*/\1/p' "$DIST/linux_banner.txt")
-O=$I/kbuild/$REL; M=$I/build/kmod-src; OUT=$I/build/kmod
+O=$I/kbuild/$REL; OUT=${CHECK_KMOD_OUT:-$I/build/kmod}; M=$OUT-src
 [ -n "$REL" ] || { echo "no release in $DIST/linux_banner.txt" >&2; exit 2; }
 mkdir -p "$O" "$OUT"
 rm -rf "$M" && mkdir -p "$M" && cp "$S"/kmod/* "$M/"

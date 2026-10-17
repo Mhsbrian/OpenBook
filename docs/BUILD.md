@@ -239,3 +239,15 @@ scripts/installer-image.sh --product-out ~/anybook/audio-net/product/NAME --labe
 - `aosp-build.sh` applies both `aosp/patches/hardware/interfaces` patches (the audio HAL's card and pacing properties).
 - Before a build that follows another branch's, give the tree's `device/anybook` the current time (`find ~/anybook/aosp/src/device/anybook -exec touch {} +`): outputs another branch copied from its own version of a file can otherwise look up to date.
 - Details: `docs/g14-audio-net.md`.
+
+## Power and input: the power check and laptop config (ANAL-178)
+```bash
+docker build -t openbook-installer:anal178 -f tools/Dockerfile.installer tools   # needs make for the test modules
+export OPENBOOK_INSTALLER_IMAGE=openbook-installer:anal178
+scripts/power/make-power-check.sh openbook-powercheck-anal178-a        # add-on for a live stick, ~1 min
+scripts/power/power-check-qemu.sh openbook-powercheck-anal178-a vm     # QEMU: LPS0 fixture, s2idle, 14 steps
+scripts/power/power-check-qemu.sh openbook-powercheck-anal178-a real   # QEMU: the entry as shipped
+scripts/power/collect-qemu.sh a                                        # save-logs facts inside Android 17
+```
+Owner steps (Linux comparison on the laptop, the add-on on the stick) and how to read the results: `docs/power-input.md`.
+

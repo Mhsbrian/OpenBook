@@ -1,0 +1,5 @@
+== make-power-check.sh openbook-powercheck-anal178-a (2026-10-17T02:07:36Z), repo c9f71ca+dirty
+openbook_acpi_d3cold.ko: vermagic '6.18.21-android17-5-g44a90255c95f SMP preempt mod_unload modversions ', sha256 7205afaaa8d1dc01
+openbook_pci_pm.ko: vermagic '6.18.21-android17-5-g44a90255c95f SMP preempt mod_unload modversions ', sha256 4cb29d358a90e8b6
+openbook_s0i3_snapshot.ko: vermagic '6.18.21-android17-5-g44a90255c95f SMP preempt mod_unload modversions ', sha256 dfd1cc3275afde8d
+kernel: vermagic '6.18.21-android17-5-g44a90255c95f SMP preempt mod_unload modversions '

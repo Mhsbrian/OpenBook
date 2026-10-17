@@ -1,0 +1,71 @@
+{
+ "reason": "all steps done",
+ "seconds": 194.0,
+ "steps_done": 21,
+ "steps": 21,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "init: init second stage started",
+   "t": 14.2
+  },
+  {
+   "step": 2,
+   "wait": "console:/ \\$ ",
+   "t": 19.3
+  },
+  {
+   "step": 4,
+   "wait": "console:/ \\$ ",
+   "t": 19.5
+  },
+  {
+   "step": 6,
+   "wait": "BOOTDONE=1",
+   "t": 116.3
+  },
+  {
+   "step": 7,
+   "wait": "console:/ \\$ ",
+   "t": 116.3
+  },
+  {
+   "step": 9,
+   "wait": "console:/ \\$ ",
+   "t": 138.8
+  },
+  {
+   "step": 11,
+   "wait": "console:/ \\$ ",
+   "t": 139.1
+  },
+  {
+   "step": 13,
+   "wait": "console:/ \\$ ",
+   "t": 173.8
+  },
+  {
+   "step": 15,
+   "wait": "COLLECTRC=\\d+",
+   "t": 186.3
+  },
+  {
+   "step": 16,
+   "wait": "console:/ \\$ ",
+   "t": 186.3
+  },
+  {
+   "step": 18,
+   "wait": "\n===B64-END===",
+   "t": 187.9
+  },
+  {
+   "step": 19,
+   "wait": "console:/ \\$ ",
+   "t": 187.9
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/powercheck/collect-a/stick.img",
+ "nvme": null
+}

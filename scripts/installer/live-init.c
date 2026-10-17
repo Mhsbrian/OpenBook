@@ -707,6 +707,23 @@ static const char COLLECT[] =
     "s ACTIVITY; dumpsys activity activities 2>&1 | grep -E 'mResumed|ResumedActivity|mFocused' | head -n 20\n"
     "s BATTERY; dumpsys battery 2>&1\n"
     "s THERMAL; dumpsys thermalservice 2>&1 | head -n 60\n"
+    // Power and input facts (ANAL-178): suspend statistics (on AMD, hw_sleep is time in S0i3), Android's power and
+    // lid state and the lid/power-button config in force, EPP per CPU policy, thermal sensors, battery and charge
+    // limit, LEDs, and every input device's capabilities and axis ranges (getevent -lp).
+    "s SUSPEND; for f in success fail last_hw_sleep total_hw_sleep max_hw_sleep last_failed_dev last_failed_errno; "
+    "do echo \"$f=$(cat /sys/power/suspend_stats/$f 2>/dev/null)\"; done\n"
+    "s POWERSTATE; dumpsys power 2>&1 | grep -E 'mWakefulness=|mIsPowered=|mPlugType=|mBatteryLevel=|mStayOn=|"
+    "mHalAutoSuspendModeEnabled=|mHalInteractiveModeEnabled=|mDeviceIdleMode=|mLowPowerModeEnabled=|mLastSleepTime=|"
+    "mLastSleepReason=|mLastWakeTime=|mLastWakeReason=' | head -n 30; "
+    "dumpsys window 2>&1 | grep -E 'mLidState=|mLidKeyboardAccessibility=|ShortPressOnPower|LongPressOnPower' | head -n 8\n"
+    "s EPP; cat /sys/devices/system/cpu/cpufreq/policy*/energy_performance_preference 2>&1 | sort | uniq -c\n"
+    "s SENSORS; for z in /sys/class/thermal/thermal_zone*; do echo \"${z##*/} $(cat $z/type) $(cat $z/temp)\"; done; "
+    "for h in /sys/class/hwmon/hwmon*; do echo \"${h##*/} $(cat $h/name) $(cat $h/temp1_input 2>/dev/null)\"; done\n"
+    "s BAT; for b in /sys/class/power_supply/BAT*; do for k in status capacity power_now current_now voltage_now "
+    "charge_now charge_full charge_full_design energy_now energy_full energy_full_design cycle_count "
+    "charge_control_end_threshold; do [ -e $b/$k ] && echo \"${b##*/} $k=$(cat $b/$k)\"; done; done\n"
+    "s LEDS; for l in /sys/class/leds/*; do echo \"${l##*/} $(cat $l/brightness)/$(cat $l/max_brightness)\"; done\n"
+    "s GETEVENT; getevent -lp 2>&1 | head -n 900\n"
     "s AUDIO; dumpsys media.audio_flinger 2>&1 | head -n 40\n"
     "s FEATURES; pm list features 2>&1\n"
     "s SERVICES; service list 2>&1\n"
