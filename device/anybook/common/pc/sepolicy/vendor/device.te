@@ -5,3 +5,5 @@ type sysfs_openbook_hwmon, sysfs_type, fs_type;
 type sysfs_keyboard_backlight, sysfs_type, fs_type;
 type sysfs_openbook_hid, sysfs_type, fs_type;
 type sysfs_openbook_block_queue, sysfs_type, fs_type;
+# rfkill's control device: the Bluetooth HAL unblocks the controller through it (hal_audio_net.te).
+type openbook_rfkill_device, dev_type;

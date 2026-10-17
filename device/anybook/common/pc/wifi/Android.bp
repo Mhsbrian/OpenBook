@@ -1,0 +1,52 @@
+// Copyright (C) 2026 The OpenBook Authors
+// SPDX-License-Identifier: Apache-2.0
+//
+// Wi-Fi on an OpenBook PC: AOSP's wpa_supplicant over standard nl80211, no vendor Wi-Fi HAL (wifi.mk).
+
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+// wpa_supplicant's DRIVER command hook (BOARD_WPA_SUPPLICANT_PRIVATE_LIB): COUNTRY through nl80211.
+cc_library_static {
+    name: "lib_driver_cmd_openbook",
+    srcs: ["driver_cmd_openbook.c"],
+    cflags: [
+        "-DCONFIG_ANDROID_LOG",
+        "-Wall",
+        "-Werror",
+    ],
+    header_libs: ["wpa_supplicant_headers"],
+    shared_libs: [
+        "libc",
+        "libcutils",
+        "libnl",
+    ],
+    soc_specific: true,
+}
+
+// The supplicant copies these to /data/vendor/wifi/wpa/ when the framework adds wlan0.
+prebuilt_etc {
+    name: "wpa_supplicant.conf.openbook",
+    src: ":wpa_supplicant_template.conf",
+    filename: "wpa_supplicant.conf",
+    relative_install_path: "wifi",
+    vendor: true,
+}
+
+prebuilt_etc {
+    name: "wpa_supplicant_overlay.conf.openbook",
+    src: "wpa_supplicant_overlay.conf",
+    filename: "wpa_supplicant_overlay.conf",
+    relative_install_path: "wifi",
+    vendor: true,
+}
+
+// Wi-Fi framework settings for a PC without a vendor Wi-Fi HAL.
+runtime_resource_overlay {
+    name: "OpenBookWifiOverlay",
+    resource_dirs: ["overlay/res"],
+    manifest: "overlay/AndroidManifest.xml",
+    vendor: true,
+    sdk_version: "current",
+}

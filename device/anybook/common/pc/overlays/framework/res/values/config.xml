@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2026 The OpenBook Authors. SPDX-License-Identifier: Apache-2.0
+
+     Framework config for PC hardware (the desktop UI's own settings are in common/desktop). -->
+<resources>
+    <!-- HDA codecs report the headphone and headset-mic jacks as input switches (SW_HEADPHONE_INSERT,
+         SW_MICROPHONE_INSERT on "HD-Audio Generic Headphone/Mic"), not through the old h2w switch class. -->
+    <bool name="config_useDevInputEventForAudioJack">true</bool>
+</resources>

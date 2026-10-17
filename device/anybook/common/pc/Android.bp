@@ -27,3 +27,19 @@ sh_binary {
     src: "bin/openbook-pc-setup-test.sh",
     vendor: true,
 }
+
+// Framework settings for PC hardware: headphone jack events from input devices.
+runtime_resource_overlay {
+    name: "OpenBookPcFrameworkOverlay",
+    manifest: "overlays/framework/AndroidManifest.xml",
+    resource_dirs: ["overlays/framework/res"],
+    vendor: true,
+    sdk_version: "current",
+}
+
+// What the "save logs" entry runs for Wi-Fi, Bluetooth and audio (docs/g14-audio-net.md). userdebug only.
+sh_binary {
+    name: "openbook-hwtest",
+    src: "bin/openbook-hwtest.sh",
+    system_ext_specific: true,
+}

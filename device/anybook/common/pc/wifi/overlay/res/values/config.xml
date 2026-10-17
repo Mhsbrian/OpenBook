@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2026 The OpenBook Authors. SPDX-License-Identifier: Apache-2.0
+
+     Wi-Fi framework settings for OpenBook PCs: a mac80211 driver (MT7925 on the G14) through wpa_supplicant and
+     wificond, with no vendor Wi-Fi HAL (wifi.mk, docs/g14-audio-net.md). -->
+<resources>
+    <!-- The bands come from the driver through wificond; these let the framework use them. -->
+    <bool name="config_wifi5ghzSupport">true</bool>
+    <bool name="config_wifi6ghzSupport">true</bool>
+    <!-- Changing a station or AP MAC address goes through the vendor HAL, which OpenBook does not have. -->
+    <bool name="config_wifi_connected_mac_randomization_supported">false</bool>
+    <bool name="config_wifi_p2p_mac_randomization_supported">false</bool>
+    <bool name="config_wifi_ap_mac_randomization_supported">false</bool>
+</resources>

@@ -1,0 +1,23 @@
+# Wi-Fi, Bluetooth and audio on an OpenBook PC (ANAL-179, docs/g14-audio-net.md). Wi-Fi needs nothing here: AOSP's
+# wpa_supplicant runs in AOSP's hal_wifi_supplicant_default domain, wificond in its own.
+
+# Bluetooth: AOSP's AIDL HAL (android.hardware.bluetooth-service.default) finds the controller through the
+# kernel's management channel, unblocks it with rfkill and opens it as an HCI user channel (btusb + btmtk own
+# the hardware and its firmware).
+allow hal_bluetooth_default openbook_rfkill_device:chr_file rw_file_perms;
+allow hal_bluetooth_default self:bluetooth_socket { getattr ioctl getopt setopt };
+
+# Audio: the example HAL's primary module reads which ALSA card is the built-in codec.
+get_prop(hal_audio_default, vendor_openbook_audio_prop)
+
+# openbook-audio-setup (init, boot): reads /proc/asound and the HDA driver's bound devices, publishes the card,
+# sets the codec's mixer.
+type openbook_audio_setup, domain;
+type openbook_audio_setup_exec, exec_type, vendor_file_type, file_type;
+init_daemon_domain(openbook_audio_setup)
+allow openbook_audio_setup kmsg_device:chr_file w_file_perms;
+r_dir_file(openbook_audio_setup, proc_asound)
+allow openbook_audio_setup audio_device:dir r_dir_perms;
+allow openbook_audio_setup audio_device:chr_file rw_file_perms;
+allow openbook_audio_setup sysfs:dir r_dir_perms;
+set_prop(openbook_audio_setup, vendor_openbook_audio_prop)

@@ -29,6 +29,11 @@ on fs
     # /metadata (formatted here on first boot) and the rest of fstab.openbook that needs no fsck.
     mount_all --early
 
+on post-fs
+    # The built-in sound card for the audio HAL (started later, with class hal): which ALSA card the codec is,
+    # and its mixer's switches and volumes (audio/openbook-audio-setup.cpp).
+    exec_start vendor.openbook.audio-setup
+
 on late-fs
     # /data: f2fs with metadata encryption, formatted on first boot.
     mount_all --late
@@ -47,6 +52,10 @@ on property:vendor.anybook.gpu.hal=virtio
 
 on post-fs-data
     mkdir /data/vendor/weaver 0700 system system
+    # wpa_supplicant's configuration and control sockets (wifi/wifi.mk).
+    mkdir /data/vendor/wifi 0771 wifi wifi
+    mkdir /data/vendor/wifi/wpa 0770 wifi wifi
+    mkdir /data/vendor/wifi/wpa/sockets 0770 wifi wifi
 
 service vendor.openbook.dlkm /vendor/bin/modprobe -b -s -d /vendor/lib/modules --all=/vendor/lib/modules/modules.load
     user root
@@ -68,6 +77,13 @@ service vendor.openbook.virtio-modules /vendor/bin/modprobe -s -d /system/lib/mo
 service vendor.openbook.dgpu-pm /vendor/bin/openbook-pc-setup dgpu-pm
     user root
     group root system
+    oneshot
+    disabled
+    stdio_to_kmsg
+
+service vendor.openbook.audio-setup /vendor/bin/openbook-audio-setup boot
+    user root
+    group root system audio
     oneshot
     disabled
     stdio_to_kmsg
