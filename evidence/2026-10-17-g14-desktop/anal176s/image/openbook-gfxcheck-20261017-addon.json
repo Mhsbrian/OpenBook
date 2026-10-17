@@ -1,0 +1,64 @@
+{
+ "schema": "openbook-gfx-check-addon/1",
+ "name": "openbook-gfxcheck-20261017",
+ "payload": {
+  "bytes": 88242502,
+  "tar_bytes": 289413120,
+  "sha256": "70c5814c64f66932f2947fe42580eccb7ded111b16a7fd74ac6b18b179b46050",
+  "files": 2061
+ },
+ "live_init_sha256": "6d292e3da851ee5440b9dbeb4891dd19fd6e02d65ba43f26b0466b281cef0e61",
+ "esp_files": [
+  "openbook/gfx/README-graphics-check.txt",
+  "openbook/gfx/gfx-init.img",
+  "openbook/gfx/payload"
+ ],
+ "esp_bytes": 89305415,
+ "version": {
+  "schema": "openbook-gfx-payload/1",
+  "name": "openbook-gfxcheck-20261017",
+  "repo": "dc8b8b92e436c1c1dff9eebeee9f4ace1b1db5e2",
+  "product_fingerprint": "Android/generic_system/generic:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
+  "deqp": "eae519aaa6980b2a34ec07141bb19de3f6ddf69e",
+  "angle": "1f4500d3906c24de59eec5b9cda17a2ad2a8ba2d",
+  "deqp_binary64": "77674c78020a67fa4aa177de47cb73ccef748275ffa19605c0d764cf22a524d7",
+  "radv_nonstrict": "64ca20e147f6b2bf9d694ee1425a4402e733c5df8b09ffb7db29afe142e18e3e",
+  "apps": {
+   "AngleEnd2EndTestsHelper.apk": "b87216c4878476ba5834cc7a0b352375d7fafaa47ae62eb34415d298e15d0c4d",
+   "com.drawelements.deqp.apk": "8df2a55be78788ad9b6f3ed0ec460f0ddcf0166fb8b06c52fa35de1d8bd38c03"
+  },
+  "deqp_runner": "deqp-runner 0.23.2 (5dcd87423198d9f1af5dff4fd33bb852109da065, https://gitlab.freedesktop.org/mesa/deqp-runner.git), MIT",
+  "caselists": {
+   "egl": {
+    "cases": 1287,
+    "stride": 3,
+    "sha256": "9dc5c7c5e1a73cea701431145048d8a012979a23282cff3e5582de20970e0237"
+   },
+   "gles2": {
+    "cases": 3598,
+    "stride": 4,
+    "sha256": "b198f889399d0b130c538ded4749d180b8812bdcc1a82c462b6c0733f18666a7"
+   },
+   "gles3": {
+    "cases": 5359,
+    "stride": 8,
+    "sha256": "c9f003602aa67e35bcc90c6e528f5eeab73bbda92dee550ac6fd9f1516c89ff6"
+   },
+   "gles31": {
+    "cases": 4714,
+    "stride": 8,
+    "sha256": "4abe0bf4214430863aadc304585fff81d15501aafb4e55047bcd0eca814be2e8"
+   },
+   "vk": {
+    "cases": 66226,
+    "stride": 30,
+    "sha256": "afc01c8896326047d93118fd00a01acce5c667c478c3fac183d1574356ffb7f0"
+   },
+   "angle": {
+    "cases": 2364,
+    "stride": 2,
+    "sha256": "65caa2001643b54081aac24bf175871ecc91223a5a16946dc10602d47ded9eef"
+   }
+  }
+ }
+}

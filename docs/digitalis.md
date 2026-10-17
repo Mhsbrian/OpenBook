@@ -212,7 +212,7 @@ ANAL-176 copied both sessions to the build host. We read those copies only, neve
   - The permissive "save logs" boots log denials but don't block them, from 0 s. Their kernel logs have no binfmt_misc or `mounton` denial. So the policy allows the mount (the ANAL-159 fix above is in these images).
   - The default boot's own kernel log is not saved, so in enforcing mode on the G14 this is an inference, not an observation.
 - **No arm64 app ran:** the apps brought to the foreground were Settings, Gallery, Dialer and WebView Shell, all x86_64.
-- **Evidence:** `evidence/2026-10-17-digitalis-g14/g14-*/`. It holds `report.json`/`report.md` (redacted with `live-report.py --redact`, using PR #52's version of the script, which fixes a crash in the `touchpad_clock` verdict), the bridge section of `hwtest-final.txt`, and `bridge-logs.txt`.
+- **Evidence:** `evidence/2026-10-17-digitalis-g14/g14-*/`. It holds `report.json`/`report.md` (redacted with `live-report.py --redact`, using the script as fixed by PR #52, now on `main`, for a crash in the `touchpad_clock` verdict), the bridge section of `hwtest-final.txt`, and `bridge-logs.txt`.
 
 ### The ARM apps check add-on (probe and CoreMark on the laptop)
 

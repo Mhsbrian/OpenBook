@@ -1,0 +1,25 @@
+# What the three fixes look like in QEMU (anal176s vs desktop4, the logs case)
+
+## vold (persisted logcat in prior-boots.tar.gz; the logcat capture had rotated vold's coldboot out)
+10-17 12:58:47.101902  root   385   395 I vold    : Not managing disk 8:0, which holds the running system's partitions
+desktop4 (live-20261017-desktop4b):
+10-17 03:29:21.290   383   383 D vold    :     /dev/block/vold/disk:8,0
+10-17 03:29:21.308   383   383 W vold    : disk:8,0 has unknown partition table; trying entire device
+10-17 03:29:21.308   383   383 D vold    :     /dev/block/vold/disk:8,0
+10-17 03:29:21.316   383   383 W vold    : blkid failed to identify /dev/block/vold/disk:8,0
+10-17 03:29:21.316   383   383 W vold    : disk:8,0 failed to identify, giving up
+
+## Lock screen at boot
+anal176s:
+10-17 12:59:07.680   725  2546 I wm_set_keyguard_shown: [0,1,0,0,0,setKeyguardShown]
+10-17 12:59:07.716   725  2142 I wm_set_keyguard_shown: [0,1,0,1,0,keyguardGoingAway]
+10-17 12:59:07.718   725  2142 I wm_set_keyguard_shown: [0,0,0,1,0,setKeyguardShown]
+desktop4:
+10-17 03:29:20.735   703  2744 I wm_set_keyguard_shown: [0,1,0,0,0,setKeyguardShown]
+10-17 03:29:31.328   703   769 I PowerManagerService: Going to sleep due to timeout (uid 1000, screenOffTimeout=600000, activityTimeoutWM=10
+10-17 03:29:31.332   703   733 I wm_set_keyguard_shown: [0,1,0,1,0,keyguardGoingAway]
+10-17 03:29:31.343   703   733 I wm_set_keyguard_shown: [0,0,0,1,0,setKeyguardShown]
+
+## drm_hwcomposer
+[ro.vendor.hwc.use_overlay_planes]: [false]
+drmhwc errors: anal176s 4 (all 'Failed to rm fb'), desktop4 6 (same)
