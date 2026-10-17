@@ -87,15 +87,15 @@ Each milestone is small, has a verification artifact, and is checked into `evide
 | # | Milestone | Track | Done when | State |
 |---|---|---|---|---|
 | M0 | Research, dev host, baselines | A+B | AOSP Desktop emulator boots with desktop windowing; Googlebook image downloaded, verified, unpacked and scanned; stock kernel and init executed under KVM on Zen 4 | **Done** (2026-10-15) |
-| M1a | Googlebook OS to an adb shell in a VM | B | QEMU/KVM boot gets past keystore2 to `sys.boot_completed=1` using software KeyMint/Gatekeeper/Weaver and the GSC services disabled, via a local vendor overlay (GBRUNCH method) | Next |
-| M1b | AOSP 17 PC build boots | A | `aosp_cf_x86_64_pc` built from `android17-release` in an Ubuntu 24.04 container; boots in the Cuttlefish container (podcvd image 1.56) | Next |
-| M2 | Graphics in a VM | A+B | Custom 6.18 kernel with virtio-gpu; virgl or venus; SurfaceFlinger up, with a screenshot and `dumpsys SurfaceFlinger` | |
-| M3 | AMD kernel on bare metal | A+B | android17-6.18 plus an AMD fragment, booted from USB or a spare drive on the target laptop; dmesg shows amdgpu, amd-pstate, pinctrl-amd, amd_pmc and Wi-Fi bound | Needs a confirmed target device |
-| M4 | AMD graphics stack | A+B | radeonsi/RADV, minigbm and HWC running on the target; ANGLE on RADV; `dEQP`/CTS graphics subset | |
-| M5 | Desktop UI, input and power | A+B | Touchpad and keyboard, s2idle suspend/resume cycles, battery, backlight, audio (ACP/SOF) | |
-| M6 | Apps and ARM translation | A+B | ARM-only APK compatibility matrix (top 50 plus a stress list) under houdini, ndk_translation and Digitalis | |
-| M7 | Performance and parity | A+B | Benchmarks against an Intel Googlebook baseline (needs device access); Chrome; Linux terminal fallback | |
-| M8 | USB installer | A | A bootable OpenBook USB image that runs live and installs through a graphical wizard, only to a disk the user confirms by name (epic ANAL-188, owner goal 2026-10-16) | Design and QEMU boot-chain prototype delivered (ANAL-189, `docs/installer.md`); live USB image built and tested in QEMU (ANAL-190, §11), G14 boot pending |
+| M1a | Googlebook OS to an adb shell in a VM | B | QEMU/KVM boot gets past keystore2 to `sys.boot_completed=1` using software KeyMint/Gatekeeper/Weaver and the GSC services disabled, via a local vendor overlay (GBRUNCH method) | Parked with Track B (owner decision) |
+| M1b | AOSP 17 PC build boots | A | `aosp_cf_x86_64_pc` built from `android17-release` in an Ubuntu 24.04 container; boots in the Cuttlefish container (podcvd image 1.56) | **Done** (2026-10-16, ANAL-168) |
+| M2 | Graphics in a VM | A+B | Custom 6.18 kernel with virtio-gpu; virgl or venus; SurfaceFlinger up, with a screenshot and `dumpsys SurfaceFlinger` | **Done** (2026-10-16, ANAL-169/172) |
+| M3 | AMD kernel on bare metal | A+B | android17-6.18 plus an AMD fragment, booted from USB or a spare drive on the target laptop; dmesg shows amdgpu, amd-pstate, pinctrl-amd, amd_pmc and Wi-Fi bound | **Mostly done:** the G14 boots our kernel (235 modules, 0 failed) and reaches the desktop in permissive boots; the enforcing boot is unproven |
+| M4 | AMD graphics stack | A+B | radeonsi/RADV, minigbm and HWC running on the target; ANGLE on RADV; `dEQP`/CTS graphics subset | **In progress:** the desktop renders on the G14; dEQP pre-check on a 610M; the G14 dEQP run is pending (ANAL-177) |
+| M5 | Desktop UI, input and power | A+B | Touchpad and keyboard, s2idle suspend/resume cycles, battery, backlight, audio (ACP/SOF) | **In progress:** touchpad and keyboard work on the G14; lid, power, battery and audio are VM-tested; S0i3 is open (ANAL-178/179) |
+| M6 | Apps and ARM translation | A+B | ARM-only APK compatibility matrix (top 50 plus a stress list) under houdini, ndk_translation and Digitalis | **Done in a VM:** Digitalis built from source, 14/16 ARM-only apps (ANAL-200); the G14 run is pending |
+| M7 | Performance and parity | A+B | Benchmarks against an Intel Googlebook baseline (needs device access); Chrome; Linux terminal fallback | Not started (ANAL-166) |
+| M8 | USB installer | A | A bootable OpenBook USB image that runs live and installs through a graphical wizard, only to a disk the user confirms by name (epic ANAL-188, owner goal 2026-10-16) | **In progress:** design done (ANAL-189); the live USB builds and boots on the G14 (ANAL-190); the wizard and install engine are being built (ANAL-191) |
 
 ## 4a. Device-in-the-loop: Multica on the G14 (owner directive, 2026-10-16)
 
@@ -131,32 +131,9 @@ Everything built for bare metal must therefore be scripted, unattended-safe, and
 - Emulator system images fall under the Android SDK (Preview) License: local use only, no redistribution.
 - libhoudini and libndk_translation are proprietary. Track A will not bundle them.
 
-## 7. Next steps (in order, updated 2026-10-16, night)
-
-Execution is tracked as Multica epics under ANAL-159. The live map, lanes and critical path are in `docs/STATUS.md`.
+## 7. Next steps
 
 **End deliverable (owner, 2026-10-16):** a bootable USB image with an interactive installer wizard (M8, ANAL-188), verified on the G14 by an on-device agent (§4a).
 
-**Delivered and merged** (PRs #1–#14):
-- Track A in a VM: our AOSP 17 PC build gives the Android desktop experience on the host GPU (ANAL-169).
-- The OpenBook GKI with 138 AMD vendor modules boots our userspace (ANAL-172).
-- Mesa for Android (ANAL-173).
-- The ARM compat baseline and the Digitalis evaluation (ANAL-180/181).
+The live next step for every open issue, what runs now and what waits on the owner are in `docs/STATUS.md` ("State of the union"). That is the only copy, so it doesn't drift.
 
-**Now running, by lane:**
-- **AOSP lane:** ANAL-174, the AMD graphics stack in the tree as a reusable makefile with VM/bare-metal HAL selection.
-- **Kernel lane:** ANAL-198, bare-metal packaging: first-stage NVMe and USB boot, vendor_boot, vendor_dlkm, system_dlkm and the firmware subset, validated in QEMU.
-- **Light lanes:**
-  - ANAL-189: installer and boot-chain design, with a QEMU/OVMF prototype. It was promoted ahead of ANAL-176 so the loader is proven before it reaches hardware.
-  - ANAL-187: NVIDIA research, including how to keep the dGPU off at first boot. Delivered: `docs/nvidia.md` and `scripts/dgpu-power-check.sh`.
-
-**Then, handed off automatically:**
-1. ANAL-199: the real G14 product (GPT, fstab, kernel packaging, base HALs). It must boot in QEMU/OVMF as a PC first.
-2. ANAL-176: USB boot on the G14, with the owner at the laptop or the device loop.
-3. ANAL-200: Digitalis on Android 17 as our redistributable arm64 bridge.
-4. ANAL-178/179: input, power, audio and Wi-Fi.
-5. The installer: ANAL-190 to ANAL-192.
-
-**In parallel, when the owner is ready:** the device-loop runtime on the G14 (ANAL-194 → ANAL-197).
-
-Track B (ANAL-182) waits on the owner's licensing decision.

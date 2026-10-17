@@ -1,0 +1,258 @@
+{
+ "schema": "openbook-live-report/1",
+ "dir": "live-001",
+ "expect": "g14",
+ "phase": "final",
+ "fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
+ "model": "OpenBook on ROG Zephyrus G14 (GA403WR)",
+ "selinux": "permissive",
+ "verdicts": {
+  "boot_completed": {
+   "ok": true,
+   "seconds": 17.7,
+   "second_stage_s": 2.7
+  },
+  "display": {
+   "ok": false,
+   "connectors": [
+    "card0-Virtual-1 connected disabled 1920x1200"
+   ],
+   "surfaceflinger": "running",
+   "screenshot": true
+  },
+  "gpu_hal": {
+   "ok": false,
+   "hal": "virtio",
+   "egl": "angle",
+   "vulkan": "pastel",
+   "gralloc": "minigbm",
+   "hwcomposer": "drm"
+  },
+  "data_on_stick": {
+   "ok": true,
+   "data_kib": 14924800,
+   "used_kib": 359024,
+   "byname_targets": [
+    "sda"
+   ]
+  },
+  "wifi": {
+   "ok": false,
+   "interface": false,
+   "status": [
+    "Wifi is disabled",
+    "Wifi scanning is only available when wifi is enabled"
+   ],
+   "supplicant": null
+  },
+  "touchpad": {
+   "ok": false,
+   "devices": []
+  },
+  "keyboard": {
+   "ok": true,
+   "devices": [
+    "AT Translated Set 2 keyboard",
+    "QEMU QEMU USB Keyboard"
+   ]
+  },
+  "dgpu_off": {
+   "ok": true,
+   "functions": "no NVIDIA function on the bus"
+  },
+  "backlight": {
+   "ok": false,
+   "devices": []
+  },
+  "battery": {
+   "ok": false,
+   "supplies": []
+  },
+  "cpu_power": {
+   "ok": false,
+   "facts": [
+    "freeze mem disk",
+    "s2idle [deep]"
+   ]
+  },
+  "touchpad_gestures": {
+   "ok": null,
+   "classes": null
+  },
+  "key_layouts": {
+   "ok": null,
+   "layouts": {}
+  },
+  "lid_switch": {
+   "ok": false,
+   "power_button": true
+  },
+  "lid_and_power_config": {
+   "ok": true,
+   "config": {
+    "mLidKeyboardAccessibility": "1",
+    "getLidBehavior": "LID_BEHAVIOR_SLEEP",
+    "mShortPressOnPowerBehavior": "6",
+    "mLongPressOnPowerBehavior": "LONG_PRESS_POWER_GLOBAL_ACTIONS"
+   },
+   "lid": "LID_ABSENT"
+  },
+  "s0i3": {
+   "ok": null,
+   "suspends": 0,
+   "fails": "0",
+   "total_hw_sleep_us": 0,
+   "last_hw_sleep_us": ""
+  },
+  "kbd_backlight": {
+   "ok": false,
+   "leds": []
+  },
+  "epp": {
+   "ok": true,
+   "policies": [
+    "1 cat: /sys/devices/system/cpu/cpufreq/policy*/energy_performance_preference: No such file or directory"
+   ]
+  },
+  "touchpad_clock": {
+   "ok": null,
+   "note": "no touchpad events captured"
+  },
+  "wifi_regulatory": {
+   "ok": true,
+   "driver": ".",
+   "country": "00"
+  },
+  "wifi_enabled": {
+   "ok": false,
+   "supplicant": ""
+  },
+  "wifi_scan": {
+   "ok": false,
+   "networks": 0,
+   "ghz2": 0,
+   "ghz5": 0,
+   "ghz6": 0
+  },
+  "wifi_connected": {
+   "ok": false,
+   "freq_mhz": null,
+   "signal_dbm": null,
+   "tx_mbit": null,
+   "rx_mbit": null
+  },
+  "wifi_dhcp": {
+   "ok": false,
+   "prefix": "",
+   "gateway": false
+  },
+  "wifi_gateway_ping": {
+   "ok": null
+  },
+  "wifi_internet": {
+   "ok": false
+  },
+  "wifi_iperf3": {
+   "ok": null,
+   "up_mbit_s": null,
+   "down_mbit_s": null,
+   "seconds": null
+  },
+  "bt_enabled": {
+   "ok": false,
+   "hal": "running"
+  },
+  "bt_paired": {
+   "ok": false,
+   "bonded": 0
+  },
+  "audio_card": {
+   "ok": false,
+   "card": -1,
+   "pcm": ""
+  },
+  "audio_loopback_alsa": {
+   "ok": false,
+   "card": null,
+   "tone_bin_dbfs": null,
+   "noise_bin_dbfs": null,
+   "glitched_slices": null,
+   "slices": null,
+   "playback_error": null,
+   "capture_error": null,
+   "error": "no built-in sound card"
+  },
+  "bridge_config": {
+   "ok": true,
+   "native_bridge": "libberberis_arm64.so",
+   "binfmt": true,
+   "guest_libs": 57,
+   "abilist": "x86_64,arm64-v8a"
+  },
+  "bridge_exec": {
+   "ok": true,
+   "uname_machine": "aarch64",
+   "hwcap": "0x9fb",
+   "error": null
+  },
+  "bridge_id_registers": {
+   "ok": true,
+   "sigill": 0,
+   "first_sigill": -1,
+   "midr": "0x410fd034",
+   "isar0": "0x211120",
+   "pfr0": "0x11"
+  },
+  "bridge_fp_estimates": {
+   "ok": true,
+   "cases": 6900,
+   "bad": 0,
+   "first_bad": ""
+  },
+  "bridge_int_simd": {
+   "ok": true,
+   "crc32": true,
+   "neon_fma": true
+  },
+  "audio_loopback_android": {
+   "ok": false,
+   "tone_bin_dbfs": -36.7,
+   "noise_bin_dbfs": -46.2,
+   "glitched_slices": 30,
+   "slices": 30,
+   "xruns": 1,
+   "media_volume": "10/15",
+   "input_error": 0,
+   "output_error": 0,
+   "error": null
+  }
+ },
+ "modules_loaded": 144,
+ "amdgpu_loaded": true,
+ "avc_denials": {
+  "dmesg": "108",
+  "logcat": "207"
+ },
+ "live_init": {
+  "action": "grow",
+  "detail": "",
+  "disk": "sda",
+  "disk_sectors": 33554432,
+  "gpt_backup_lba_before": 5797887,
+  "gpt_backup_lba_after": 33554431,
+  "userdata_sectors_before": 2097152,
+  "userdata_sectors_after": 29853696,
+  "userdata_blank": true,
+  "reset": false
+ },
+ "files": [
+  "collect-final.txt",
+  "dmesg.txt",
+  "hwtest-final.txt",
+  "logcat-final.txt",
+  "prior-boots.tar.gz",
+  "prior-boots.txt",
+  "screen-final.png",
+  "summary.json"
+ ]
+}
