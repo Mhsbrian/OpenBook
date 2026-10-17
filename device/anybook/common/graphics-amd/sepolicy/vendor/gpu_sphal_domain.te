@@ -1,0 +1,10 @@
+# Every domain that loads the AMD graphics stack: AOSP's gpu_sphal_use() domains (apps, bootanim, surfaceflinger,
+# system_server, ...) plus the allocator and composer.
+
+# Mesa reads vendor.mesa.* for each option it looks up (property_contexts). Isolated apps may not read vendor
+# properties (sepolicy_test); for them the lookup just finds nothing.
+get_prop({ gpu_sphal_domain -isolated_app_all }, vendor_mesa_prop)
+dontaudit isolated_app_all vendor_mesa_prop:file { getattr open read map };
+
+# libdrm's device enumeration stats every /dev/dri node; only the render node is opened.
+dontaudit gpu_sphal_domain graphics_device:chr_file getattr;

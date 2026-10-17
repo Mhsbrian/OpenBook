@@ -14,3 +14,5 @@ typeattribute hal_graphics_allocator_default_tmpfs mlstrustedobject;
 # file_contexts) and stats every /dev/dri node (G14 live boot, ANAL-190 live-001).
 r_dir_file(hal_graphics_allocator_default, sysfs_gpu)
 allow hal_graphics_allocator_default graphics_device:chr_file getattr;
+# Mesa (radeonsi through GBM) also looks for options as mesa.*, which is default_prop: an unset option.
+dontaudit hal_graphics_allocator_default default_prop:file { getattr open read map };

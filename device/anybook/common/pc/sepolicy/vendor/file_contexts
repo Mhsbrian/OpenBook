@@ -39,7 +39,14 @@
 # The iGPU's PCI identity, read by libdrm (drmGetDevice2) in every process that renders. On AMD APUs (Raphael,
 # Phoenix, Strix) the iGPU is function 0 behind the internal GPP bridge 00:08.1 (65:00.0 on the G14).
 /sys/devices/pci0000:00/0000:00:08\.1/0000:[0-9a-f]{2}:00\.0/(vendor|device|subsystem_vendor|subsystem_device|revision|class|uevent|config|irq|resource)  u:object_r:sysfs_gpu:s0
+# The same GPU's drm directory, which libdrm and Mesa list to find its card and render nodes (G14 live-001:
+# bootanim, surfaceflinger, the allocator and the composer).
+/sys/devices/pci0000:00/0000:00:08\.1/0000:[0-9a-f]{2}:00\.0/drm  u:object_r:sysfs_gpu:s0
 # hwmon chips: under a hwmon/ class directory (amdgpu) or straight under their device (NVMe: .../nvme/nvme0/hwmon1).
 /sys/devices/.*/hwmon[0-9]+(/.*)?             u:object_r:sysfs_openbook_hwmon:s0
 /sys/devices/.*/typec(/.*)?                   u:object_r:sysfs_typec:s0
 /sys/devices/.*/usb_power_delivery(/.*)?      u:object_r:sysfs_usb_pd:s0
+# Disks' request queues: init.rc caps discard_max_bytes on /dev/sys/block/by-name/rootdisk and asks the vendor to
+# label it. USB sticks are block/sd*, eMMC block/mmcblk*; NVMe namespaces sit straight under their controller
+# (.../nvme/nvme0/nvme0n1) or, with multipath, under the virtual nvme-subsystem.
+/sys/devices/.*/(block/sd[a-z]+|block/mmcblk[0-9]+|nvme[0-9]+n[0-9]+)/queue(/.*)?  u:object_r:sysfs_openbook_block_queue:s0
