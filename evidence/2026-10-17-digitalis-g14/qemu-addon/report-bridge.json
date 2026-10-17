@@ -1,0 +1,117 @@
+{
+ "schema": "openbook-bridge-report/1",
+ "dir": "/home/hive/anybook/installer/bridgecheck/openbook-bridgecheck-20261017/qemu-q1/logs/live-001",
+ "fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
+ "model": "OpenBook on ROG Zephyrus G14 (GA403WR)",
+ "cpu": "AMD Ryzen 9 7950X 16-Core Processor, 8 CPUs; MemTotal: 8112180 kB",
+ "cpu_flags": "fma movbe bmi1 avx2 bmi2 avx512f adx sha_ni vaes ",
+ "cpufreq": "driver= governor= epp= max_khz= amd_pstate=",
+ "platform_profile": "",
+ "power": " AC powered: false level: 0 Capacity level: -1 ",
+ "selinux": "permissive",
+ "addon": {
+  "name": "bridge",
+  "rc": 0,
+  "seconds": 375.3,
+  "timeout_s": 1800,
+  "out_rc": 0,
+  "out_bytes": 72192
+ },
+ "verdicts": {
+  "addon_ran": true,
+  "bridge_check": true,
+  "probe_x86_64": true,
+  "probe_arm64": true,
+  "coremark_valid": true
+ },
+ "bridge_check": [
+  {
+   "test": "bridge-exec",
+   "ok": true,
+   "abi": "arm64-v8a",
+   "uname_machine": "aarch64",
+   "hwcap": "0x9fb"
+  },
+  {
+   "test": "bridge-id-registers",
+   "ok": true,
+   "sigill": 0,
+   "first_sigill": -1,
+   "midr": "0x410fd034",
+   "isar0": "0x211120",
+   "pfr0": "0x11",
+   "hwcap_cpuid": true
+  },
+  {
+   "test": "bridge-fp-estimates",
+   "ok": true,
+   "cases": 6900,
+   "bad": 0,
+   "first_bad": ""
+  },
+  {
+   "test": "bridge-int-simd",
+   "ok": true,
+   "crc32": true,
+   "neon_fma": true
+  }
+ ],
+ "probe": {
+  "x86_64": {
+   "done": {
+    "pass": 18,
+    "fail": 0,
+    "skip": 2
+   },
+   "fail": {},
+   "skip": [
+    "neon",
+    "isa"
+   ],
+   "summary": {
+    "abi": "x86_64",
+    "primary_cpu_abi": "x86_64",
+    "pid": "3864",
+    "bridge_maps": "4",
+    "finished": "yes",
+    "secs": "3.34"
+   },
+   "start": "pkg=dev.anybook.probe.x86_64 mode=tests abis=x86_64,arm64-v8a cpu_abi=x86_64 os.arch=x86_64 sdk=37"
+  },
+  "arm64": {
+   "done": {
+    "pass": 18,
+    "fail": 2,
+    "skip": 0
+   },
+   "fail": {
+    "isa": "checks=32 failed=nan_snan_priority,default_nan_positive nan=[7fc0000a 7fc0000a ffc00000 7fc0000b] fmax(qNaN,1)=7fc0000a fmaxnm(qNaN,1)=3f800000 fmin(+0,-0)=80000000 fmin(-0,+0)=80000000 cntfrq=19200000 cnt/wall=0.999 ctr_el0=0x8444c004(sig0) dczid=0x10(sig0) midr=0x410fd034(sig0) isar0=0x211120(sig0",
+    "signals": "checks=13 failed=sigill_si_code_kernel sigill_signo=4 sigill_code=-1 alarm_on_this_thread=0 ms=232"
+   },
+   "skip": [],
+   "summary": {
+    "abi": "arm64",
+    "primary_cpu_abi": "arm64-v8a",
+    "pid": "4103",
+    "bridge_maps": "4",
+    "finished": "yes",
+    "secs": "3.5"
+   },
+   "start": "pkg=dev.anybook.probe.arm64 mode=tests abis=x86_64,arm64-v8a cpu_abi=arm64-v8a os.arch=aarch64 sdk=37"
+  }
+ },
+ "probe_arm64_unexpected_fails": [],
+ "coremark": {
+  "median_iter_per_sec": {
+   "exe x86_64": 37308.8,
+   "exe arm64-v8a": 13512.0,
+   "apk x86_64": 38885.3,
+   "apk arm64-v8a": 14446.3
+  },
+  "ratio": {
+   "exe": 0.362,
+   "apk": 0.372
+  },
+  "valid": true
+ }
+}
