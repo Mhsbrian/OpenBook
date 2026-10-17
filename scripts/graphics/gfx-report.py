@@ -4,7 +4,8 @@
 check, or the folder it unpacks to) or the build host's pre-check (scripts/graphics/pre-check.sh). Writes
 gfx-report.json (schema openbook-gfx-report/1) and gfx-report.md into the run folder and prints the markdown.
 
-Per part (vk, vk14, gles-angle, gles-mesa, egl, angle): the counts per result (deqp-runner's names: Pass, Fail, Crash,
+The blur part (ANAL-203) goes to scripts/ui/blur-report.py: its verdicts, medians and summary.md in blur/.
+Per dEQP or ANGLE part (vk, vk14, gles-angle, gles-mesa, egl, angle): the counts per result (deqp-runner's names: Pass, Fail, Crash,
 Timeout, Skip = not supported or skipped, Warn = quality or compatibility warning, Flake = failed, then passed on a
 retry), the renderer the run saw, the failing cases with dEQP's own status and message, grouped by message, and a
 comparison with Mesa CI's expectation files for the closest GPU (--mesa-ci src/amd/ci of the Mesa tree, --radv-gpu,
@@ -25,7 +26,7 @@ import re
 import sys
 import tarfile
 
-PARTS = ("vk", "vk14", "gles-angle", "gles-mesa", "egl", "angle")
+PARTS = ("blur", "vk", "vk14", "gles-angle", "gles-mesa", "egl", "angle")
 STATUSES = ("Pass", "Fail", "Crash", "Timeout", "Skip", "Warn", "Flake", "Missing")
 QPA_STATUS = {"Pass": "Pass", "NotSupported": "Skip", "QualityWarning": "Warn", "CompatibilityWarning": "Warn",
               "Fail": "Fail", "InternalError": "Fail", "ResourceError": "Fail", "Crash": "Crash", "Timeout": "Timeout",
@@ -203,6 +204,18 @@ def angle_part(pdir):
     return r, results
 
 
+def blur_part(pdir):
+    """The blur part (ANAL-203): scripts/ui/blur-report.py's report on blur-check.sh's output."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "blur_report", os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ui", "blur-report.py"))
+    br = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(br)
+    rep, md = br.report(pdir)
+    return {"part": "blur", "ran": bool(rep["rounds"]), "verdicts": rep["verdicts"], "limits": rep["limits"],
+            "medians": rep["medians"]}, md
+
+
 def summarise(r, results, reasons, mesa_fails=None, mesa_flakes=None, mesa_files=()):
     counts = collections.Counter(results.values())
     r["counts"] = {s: counts.get(s, 0) for s in STATUSES if counts.get(s, 0) or s in ("Pass", "Fail", "Crash")}
@@ -267,6 +280,7 @@ def main():
     if os.path.exists(facts):
         report["facts"] = open(facts, errors="replace").read().splitlines()[:60]
     all_results = {}
+    blur_md = None
     for name in PARTS:
         pdir = os.path.join(d, name)
         meta = parts_meta.get(name, {})
@@ -275,7 +289,10 @@ def main():
         if meta.get("skipped"):
             report["parts"][name] = {"part": name, "ran": False, "skipped": meta["skipped"]}
             continue
-        if name == "egl":
+        if name == "blur":
+            r, blur_md = blur_part(pdir)
+            results = {}
+        elif name == "egl":
             r, results, reasons = egl_part(pdir)
             r = summarise(r, results, reasons)
         elif name == "angle":
@@ -314,6 +331,12 @@ def main():
     lines += ["| Part | Renderer | Cases | Pass | Fail | Crash | Timeout | Skip | Warn | Flake | Not run | Time | Mesa CI: our fails listed / new |",
               "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for name, r in report["parts"].items():
+        if name == "blur" and r.get("ran"):
+            word = {True: "pass", False: "FAIL", None: "incomplete"}
+            t = f"{r['seconds']} s" if "seconds" in r else ""
+            vs = ", ".join(f"{k} {word[x['ok']]}" for k, x in r["verdicts"].items())
+            lines.append(f"| blur | see below | | | | | | | | | | {t} | {vs} |")
+            continue
         if not r.get("ran"):
             lines.append(f"| {name} | | | | | | | | | | | | {r.get('skipped') or r.get('note', 'not run')} |")
             continue
@@ -337,6 +360,8 @@ def main():
             if mc and mc["our_failures_not_listed"]:
                 lines += ["", f"Not in Mesa CI's lists ({len(mc['our_failures_not_listed'])}):", ""]
                 lines += [f"- `{c}`" for c in mc["our_failures_not_listed"][:40]]
+    if blur_md:
+        lines += ["", "## blur: background blur on the desktop (ANAL-203)", "", blur_md.rstrip()]
     if "vk_vs_vk14" in report:
         x = report["vk_vs_vk14"]
         lines += ["", "## Vulkan 1.1 (android-strict, shipped) vs 1.4 (non-strict)", "",

@@ -15,7 +15,8 @@ kept that clean), and the audio routes (jacks, Bluetooth audio). Since ANAL-200 
 also adds the arm64 native bridge's: its configuration, an arm64 binary running, the ID registers, FRECPE/FRSQRTE
 against golden values, and CRC32/NEON. A graphics check boot (ANAL-177, addon-gfx-out.tar) adds one verdict per part
 (gfx_vk, gfx_vk14, gfx_gles_angle, gfx_gles_mesa, gfx_egl, gfx_angle_end2end: it ran, passed cases, and had no crash,
-time-out or amdgpu fault), from scripts/graphics/gfx-report.py, which also writes addon-gfx/gfx-report.md.
+time-out or amdgpu fault), from scripts/graphics/gfx-report.py, which also writes addon-gfx/gfx-report.md; and
+gfx_blur (ANAL-203: blur applied, no GPU hang, frame cost within scripts/ui/blur-report.py's limits).
   --redact DIR   also copy the folder to DIR with MAC addresses, USB serial numbers and Wi-Fi network names
                  masked, for committing as evidence
 
@@ -330,6 +331,14 @@ def main():
                     not r.get("amdgpu_events"), renderer=r.get("renderer"), cases=r.get("total"),
                     counts=c, seconds=r.get("seconds"), amdgpu_events=r.get("amdgpu_events"),
                     not_in_mesa_ci=len(mc.get("our_failures_not_listed", [])) if mc else None)
+        b = g["parts"].get("blur")
+        if not b or not b.get("ran"):
+            verdict("gfx_blur", None, note=(b or {}).get("skipped") or "not in this run")
+        else:
+            oks = [x["ok"] for x in b["verdicts"].values()]
+            verdict("gfx_blur", False if False in oks else (None if None in oks else True),
+                    **{k: x["ok"] for k, x in b["verdicts"].items()}, seconds=b.get("seconds"),
+                    amdgpu_events=b.get("amdgpu_events"))
     mods = sec.get("MODULES", "").splitlines()
     avc = sec.get("AVC", "").split()
     report = {
