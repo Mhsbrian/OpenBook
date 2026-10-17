@@ -25,7 +25,14 @@ Digitalis (https://github.com/DigitalisX64) is an Apache-2.0 fork of AOSP's Berb
   - So Digitalis reaches about 65% of libndk_translation's speed in the same VM. The port neither helped nor hurt.
   - **HYPOTHESIS:** our VM gives the guest AVX2, BMI1/2, FMA and the other host features the emulator hides, and the translator uses them.
 - **Licensing is clean** (CONFIRMED, `audit/`). Everything is built from source. The only prebuilt among the bridge's files is AOSP's own toolchain `libc++.so`, the same library the x86_64 system ships. No Digitalis binary is in the image. The Cuttlefish and G14 products ship the same 89 files from the same modules.
-- **G14:** the G14 product builds with the bridge. Its live image's "save logs" entry now also runs `openbook-hwtest bridge`, a scripted check that writes machine-readable results. Booted under QEMU/KVM (`-cpu host`, `scripts/installer/live-qemu.sh`, 10/10), the G14 live image's own report gives all five `bridge_*` verdicts as passing: 57 guest libraries, `MIDR_EL1` 0x410fd034, 6,900 estimate cases with 0 wrong (`g14-live-qemu/`). That is the G14 image in a VM, not the G14 itself. The hardware run is the owner's next stick.
+- **On the G14 itself (CONFIRMED, 2026-10-17, `evidence/2026-10-17-digitalis-g14/`):** the bridge runs on real Zen 5 (Ryzen AI 9 HX 370). In both of the owner's sessions (`anal178c`, `anal176s`), all five `bridge_*` verdicts pass:
+  - the bridge is configured: 57 guest libraries, binfmt_misc on;
+  - an arm64 binary runs;
+  - all 9 ID registers read without SIGILL;
+  - 6,900 `FRECPE`/`FRSQRTE` cases give 0 wrong results;
+  - CRC32 and NEON FMA are correct.
+
+  The owner opened no arm64 app, and the stick has none, so app behaviour, the probe and CoreMark on the G14 are still to come. The "ARM apps check" add-on below runs them; it is on ANAL-192's stick checklist.
 
 ## How it is built
 
@@ -143,7 +150,7 @@ The `nsZipArchive` log shows the two failed lookups repeated about 970 times, th
 
 - Every round passed CoreMark validation, and the CoreMark binaries are byte-identical to ANAL-180's.
 - The emulator overlay is our Android 17 bridge collected from the product (`scripts/compat/digitalis/bundle.sh`) and installed on the same AVD ANAL-181 used.
-- **HYPOTHESIS:** Cuttlefish passes the host's CPU features to the guest (`avx2 bmi1 bmi2 fma movbe adx avx512f`, `install.txt`); the emulator's guest has none of these, and the translator selects code by host CPU features. The G14's Zen 5 has them all, so expect the Cuttlefish figure or better there. The G14 measurement is still to come.
+- **HYPOTHESIS:** Cuttlefish passes the host's CPU features to the guest (`avx2 bmi1 bmi2 fma movbe adx avx512f`, `install.txt`); the emulator's guest has none of these, and the translator selects code by host CPU features. The G14's Zen 5 has them all, so expect the Cuttlefish figure or better there. The G14 measurement comes from the ARM apps check add-on ("On the G14").
 
 ## License and provenance of what ships (ANAL-200)
 
@@ -183,6 +190,66 @@ The check needs no network or user input and changes nothing. It passes in all t
 
 **Enforcing boots on the G14 product (fixed 2026-10-17, ANAL-159).** `berberis.rc` mounts binfmt_misc and registers the runners in early-init. The Cuttlefish product inherits Cuttlefish's two rules for that; the G14 product's policy lacked them, so its enforcing boots logged `mount binfmt_misc ... Permission denied` and arm64 executables could not run. App libraries still loaded through libnativebridge. The same two rules are now in `device/anybook/common/pc/sepolicy/vendor/init.te`. On `openbook-live-20261017-combined`, an enforcing boot has no binfmt_misc denial, and `openbook_bridge_check` run as the shell user passes all four checks (`evidence/2026-10-17-g14-combined/`). The "save logs" entry is permissive, so its verdicts cannot catch an enforcing-only gap like this one.
 
+### Results on the G14 (2026-10-17)
+
+The owner booted two sticks, each with a default (enforcing) boot and then a "save logs" boot:
+- `openbook-live-20261017-anal178c`;
+- `openbook-live-20261017-anal176s` (`anal178c` plus PR #52's fixes).
+
+ANAL-176 copied both sessions to the build host. We read those copies only, never the stick. Machine: ROG Zephyrus G14 GA403WR, BIOS GA403WR.309, AMD Ryzen AI 9 HX 370 (family 0x1a, model 0x24).
+
+| Verdict (`live-report.py --expect g14`) | `anal178c` | `anal176s` |
+|---|---|---|
+| `bridge_config` (property, both binfmt_misc entries, guest libraries) | PASS (57 libraries) | PASS (57) |
+| `bridge_exec` (an arm64 binary through binfmt_misc) | PASS (`aarch64`, `AT_HWCAP` 0x9fb) | PASS |
+| `bridge_id_registers` (9 registers, no SIGILL, agreement with `AT_HWCAP`) | PASS (`MIDR` 0x410fd034, `ISAR0` 0x211120) | PASS |
+| `bridge_fp_estimates` (6,900 golden cases from QEMU) | PASS (0 wrong) | PASS (0 wrong) |
+| `bridge_int_simd` (CRC32, NEON FMA) | PASS | PASS |
+
+- **Where it ran:** the self-check runs in the "save logs" boot, which is permissive. All 67 berberis log lines come from that process, and every block was translated by the JIT tiers (`jit=N interp=0`).
+- **Enforcing boots:** zygote starts with `-XX:NativeBridge=libberberis_arm64.so` in every boot.
+  - The default boots logged no denial that names binfmt_misc, berberis or a native-bridge path.
+  - The permissive "save logs" boots log denials but don't block them, from 0 s. Their kernel logs have no binfmt_misc or `mounton` denial. So the policy allows the mount (the ANAL-159 fix above is in these images).
+  - The default boot's own kernel log is not saved, so in enforcing mode on the G14 this is an inference, not an observation.
+- **No arm64 app ran:** the apps brought to the foreground were Settings, Gallery, Dialer and WebView Shell, all x86_64.
+- **Evidence:** `evidence/2026-10-17-digitalis-g14/g14-*/`. It holds `report.json`/`report.md` (redacted with `live-report.py --redact`, using PR #52's version of the script, which fixes a crash in the `touchpad_clock` verdict), the bridge section of `hwtest-final.txt`, and `bridge-logs.txt`.
+
+### The ARM apps check add-on (probe and CoreMark on the laptop)
+
+The live stick has no adb and no arm64 app, so the probe and CoreMark go on the stick as an add-on. It uses the same live-init hook as ANAL-177's graphics check (`androidboot.openbook.addon=NAME`), and its entry is "OpenBook ARM apps check". It boots like "save logs". Once Android is up, the stick's own `openbook-live-init` unpacks the payload into the stick's `/data` and runs `scripts/compat/digitalis/stick/run.sh` as root. The run takes about 6 minutes:
+- `openbook_bridge_check`;
+- the compat probe as arm64 and as x86_64 (the control);
+- CoreMark, 600k iterations, 3 interleaved rounds, as executables and inside the probe app, as `run-bench.sh` runs it.
+
+Afterwards it uninstalls the two probe apps, puts the keep-screen-on setting back, saves the results next to the boot's logs and powers off. The laptop's disks are never touched.
+
+```bash
+scripts/compat/build-probes.sh                                           # probe APKs and CoreMark (NDK r30)
+scripts/compat/digitalis/stick/make-bridge-check.sh openbook-bridgecheck-<date>      # -> <data dir>/installer/out/NAME-addon (5 MB)
+scripts/installer/inst-docker.sh "$PWD"/scripts/compat/digitalis/stick/add-to-image.sh IMG <data dir>/installer/out/NAME-addon   # mtools
+scripts/compat/digitalis/stick/bridge-qemu.sh NAME RUN [LIVE_IMAGE]      # QEMU/KVM test on a copy of a live image
+python3 -I scripts/compat/digitalis/stick/bridge-report.py <live-NNN>    # report-bridge.{json,md}
+```
+
+- **Image files only.** `add-to-image.sh` refuses block devices. The owner's stick is ANAL-192's integrated image, written with `write-stick.sh`.
+- **Verdicts:**
+  - `addon_ran`;
+  - `bridge_check`;
+  - `probe_x86_64`: no failure;
+  - `probe_arm64`: installed as `arm64-v8a`, `Build.CPU_ABI` is `arm64-v8a`, and no failed group beyond `isa` and `signals`, the two known differences;
+  - `coremark_valid`.
+
+  The report also gives the CoreMark ratios for executables and in the app.
+- **QEMU proof (2026-10-17):** on a copy of `openbook-live-20261017-anal176s` (the image the owner booted), QEMU/KVM on the Ryzen 9 7950X, `-cpu host`, 8 vCPUs:
+  - the add-on ran in 375 s and all five verdicts pass;
+  - probes: x86_64 18 pass / 0 fail, arm64 18 pass / 2 fail (`isa`, `signals`);
+  - CoreMark arm64 / x86_64: 0.362 for executables, 0.372 in the app;
+  - cleanup left no probe app installed (`evidence/2026-10-17-digitalis-g14/qemu-addon/`).
+
+  This is a VM sharing a busy host, not the laptop.
+- **A finding from that run:** `libberberis_arm64.so` is mapped in x86_64 app processes too (ANAL-181's finding 8). So "the bridge is mapped" says nothing about which ABI ran. The report keys on the installed ABI and `Build.CPU_ABI` instead.
+- **What the owner does (ANAL-192's checklist):** boot "OpenBook ARM apps check" once, on mains power with the lid open, and leave the laptop for about 10 minutes until it powers off. Results: `openbook/logs/live-NNN/addon-bridge*`.
+
 ## Open issues
 
 - **Not fixed, by design of this issue:** x86 NaN semantics (default-NaN sign, sNaN priority), the SIGILL `si_code`, Element X's `JNI_GetCreatedJavaVMs`, and AAAAXY (a crash in the app itself).
@@ -193,9 +260,10 @@ The check needs no network or user input and changes nothing. It passes in all t
 
 ## Next
 
-1. The owner's next G14 stick (`openbook-live-20261017-combined`, which carries the bridge): read the `bridge_*` verdicts in `report.json`, then run the probe and CoreMark on the G14 (`docs/compat-harness.md`).
-2. Merge android17-release into the fork once Digitalis tracks Android 17, or do it ourselves (64 conflicts).
-3. Upstream reports to DigitalisX64 and AOSP, after the owner's OK.
+1. ANAL-192's integrated stick carries the ARM apps check. After the owner's boot of it, run `bridge-report.py`, then record the G14 probe and CoreMark rows (COMPAT-MATRIX) and compare them with Cuttlefish's 0.394 / 0.399.
+2. An arm64 app in an **enforcing** G14 boot. The default boot has no arm64 app, and the add-on runs permissive. A small arm64 app preinstalled on the live image, or a device agent (ANAL-194), would close this.
+3. Merge android17-release into the fork once Digitalis tracks Android 17, or do it ourselves (64 conflicts).
+4. Upstream reports to DigitalisX64 and AOSP, after the owner's OK.
 
 ## ANAL-181 evaluation (2026-10-16)
 

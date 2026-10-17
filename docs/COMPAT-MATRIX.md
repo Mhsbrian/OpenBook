@@ -13,6 +13,8 @@
 | 2026-10-17 | Our build: `anybook_g14_x86_64-cp2a-userdebug` live image with the Digitalis bridge (ANAL-200) | QEMU 11.1.2, KVM `-cpu host`, q35 + OVMF from USB | **Bridge checks pass in the VM:** all five `bridge_*` verdicts true (config, arm64 exec, ID registers, 6,900 `FRECPE`/`FRSQRTE` cases, CRC32/NEON). G14 untested | `evidence/2026-10-17-digitalis-a17/g14-live-qemu/` |
 | 2026-10-17 | `openbook-live-20261017-combined` + the graphics check add-on (`openbook-gfxcheck-20261017`, ANAL-177), 40 cases per list | QEMU 11.1.2, KVM, q35 + OVMF from USB, SwiftShader | **The add-on works end to end:** unpacked and checked, every part that applies without an AMD GPU passes (VK 40/40, GLES on ANGLE 111 + 9 not supported, EGL app 40/40, ANGLE end2end 32 + 8 skipped), settings restored, results on the stick, power-off. Plumbing only: no AMD GPU | `evidence/2026-10-17-graphics-cts/qemu/` |
 | 2026-10-17 | Our build: `openbook-live-20261017-combined` (`main` + the G14 binfmt_misc policy fix, ANAL-159) | QEMU 11.1.2, KVM `-cpu host`, q35 + OVMF from USB | **Live matrix 39/39; the bridge works in an enforcing boot:** no binfmt_misc denial, and `openbook_bridge_check` as the shell user passes exec, ID registers, 6,900 `FRECPE`/`FRSQRTE` cases and CRC32/NEON. Power check 10/10. G14 untested | `evidence/2026-10-17-g14-combined/` |
+| 2026-10-17 | **G14 run, arm64 bridge (ANAL-200):** the owner's `openbook-live-20261017-anal178c` and `-anal176s` sticks, default (enforcing) boot then "save logs" | **ASUS GA403WR, Ryzen AI 9 HX 370 (Zen 5)**, bare metal from USB | **The bridge works on real Zen 5:** all five `bridge_*` verdicts pass in both sessions. That covers config, arm64 exec, 9 ID registers without SIGILL, 6,900 `FRECPE`/`FRSQRTE` cases with 0 wrong, and CRC32/NEON. No bridge-related denial in the enforcing boots. No arm64 app was opened; the probe and CoreMark are on ANAL-192's stick (the ARM apps check add-on) | `evidence/2026-10-17-digitalis-g14/` |
+| 2026-10-17 | `openbook-live-20261017-anal176s` + the ARM apps check add-on (`openbook-bridgecheck-20261017`, ANAL-200) | QEMU 11.1.2, KVM `-cpu host` (Ryzen 9 7950X), q35 + OVMF from USB | **The add-on works:** it ran in 375 s and all five verdicts pass. Probe x86_64 18/0, arm64 18/2 (`isa`, `signals`); CoreMark 0.362 / 0.372; nothing left installed. A VM, not the G14 | `evidence/2026-10-17-digitalis-g14/qemu-addon/` |
 
 ## ARM-only APKs
 
@@ -67,6 +69,8 @@ CoreMark, translated arm64 / native x86_64 (600k iterations, 3 interleaved round
 | Digitalis A17, our build, Cuttlefish | **0.394** | **0.399** | `bench/` |
 | Digitalis A17 as an overlay, Google's image, emulator | 0.300 | 0.298 | `emulator-overlay/bench/` |
 | libndk_translation, Google's image, emulator | 0.457 | 0.456 | `bench-ndk/` |
+| Digitalis A17, G14 image, QEMU/KVM on the 7950X (the ARM apps check add-on; busy host) | 0.362 | 0.372 | `../2026-10-17-digitalis-g14/qemu-addon/` |
+| Digitalis A17, **on the G14** (Ryzen AI 9 HX 370) | — | — | pending: the ARM apps check on ANAL-192's stick |
 
 In the same VM, Digitalis runs at about 65% of libndk_translation's speed. The higher figure on our build is a different VM. HYPOTHESIS: Cuttlefish passes AVX2, BMI and FMA to the guest and the emulator does not.
 
