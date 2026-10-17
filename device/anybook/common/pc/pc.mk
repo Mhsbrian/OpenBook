@@ -80,7 +80,7 @@ PRODUCT_REQUIRES_INSECURE_EXECMEM_FOR_SWIFTSHADER := true
 # Base HALs. AOSP implementations; the ones listed with "openbook" use the real sysfs of a PC instead of the
 # AOSP examples' fixed values. docs/g14-product.md has the table.
 PRODUCT_PACKAGES += \
-    android.hardware.health-service.example \
+    android.hardware.health-service.openbook \
     com.android.hardware.boot \
     com.android.hardware.authsecret \
     com.android.hardware.dumpstate \

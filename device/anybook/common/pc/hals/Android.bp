@@ -25,6 +25,24 @@ cc_defaults {
     ],
 }
 
+// AOSP's health HAL plus the ACPI battery's charge counter and state of health (ANAL-178).
+cc_binary {
+    name: "android.hardware.health-service.openbook",
+    defaults: [
+        "openbook_hal_defaults",
+        "libhealth_aidl_impl_user",
+    ],
+    static_libs: ["libhealth_aidl_impl"],
+    srcs: [
+        "health/battery.cpp",
+        "health/HealthOpenbook.cpp",
+        "health/main.cpp",
+    ],
+    init_rc: ["health/health-openbook.rc"],
+    vintf_fragments: ["health/health-openbook.xml"],
+    overrides: ["charger"],
+}
+
 cc_binary {
     name: "android.hardware.lights-service.openbook",
     defaults: ["openbook_hal_defaults"],
@@ -101,6 +119,7 @@ cc_test_host {
     name: "openbook_hals_test",
     local_include_dirs: [
         "common",
+        "health",
         "lights",
         "power",
         "powerstats",
@@ -109,6 +128,7 @@ cc_test_host {
     ],
     srcs: [
         "common/sysfs.cpp",
+        "health/battery.cpp",
         "lights/backlight.cpp",
         "power/epp.cpp",
         "powerstats/sleep_stats.cpp",

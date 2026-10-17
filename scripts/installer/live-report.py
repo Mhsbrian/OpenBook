@@ -179,7 +179,7 @@ def main():
         cfg = dict(re.findall(r"\b(mLidKeyboardAccessibility|getLidBehavior|mShortPressOnPowerBehavior|"
                               r"mLongPressOnPowerBehavior)=(\S+)", ps or ""))
         want_cfg = {"mLidKeyboardAccessibility": "1", "getLidBehavior": "LID_BEHAVIOR_SLEEP",
-                    "mShortPressOnPowerBehavior": "SHORT_PRESS_POWER_LOCK_OR_SLEEP",
+                    "mShortPressOnPowerBehavior": "6",  # LOCK_OR_SLEEP: dumpsys prints this one as a number
                     "mLongPressOnPowerBehavior": "LONG_PRESS_POWER_GLOBAL_ACTIONS"}
         verdict("lid_and_power_config", all(cfg.get(k) == x for k, x in want_cfg.items()) if cfg else None,
                 config=cfg, lid=(re.search(r"mLidState=(\S+)", ps or "") or [None, None])[1])

@@ -14,6 +14,7 @@
 #include <gtest/gtest.h>
 
 #include "backlight.h"
+#include "battery.h"
 #include "epp.h"
 #include "sensors.h"
 #include "sleep_stats.h"
@@ -231,6 +232,57 @@ TEST(SleepStats, Reads) {
     EXPECT_EQ(4, r->suspends);
     EXPECT_EQ(7250, r->hw_sleep_ms);
     EXPECT_EQ(1500, r->last_hw_sleep_ms);
+}
+
+// ---------------------------------------------------------------- health
+// The GA403WR's BAT1 (ANAL-189 run 2): charge in uAh, no health, charge_counter or state_of_health files.
+TEST(Battery, G14ChargeBased) {
+    Tree t;
+    const std::string bat = "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C0A:00/power_supply/BAT1";
+    t.File(bat + "/type", "Battery");
+    t.File(bat + "/present", "1");
+    t.File(bat + "/charge_now", "2560000");
+    t.File(bat + "/charge_full", "4063000");
+    t.File(bat + "/charge_full_design", "4580000");
+    t.File("/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0003:00/power_supply/ACAD/type", "Mains");
+    t.Link("../../devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C0A:00/power_supply/BAT1", "/sys/class/power_supply/BAT1");
+    t.Link("../../devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0003:00/power_supply/ACAD", "/sys/class/power_supply/ACAD");
+    auto b = ReadBattery(t.sysfs());
+    ASSERT_TRUE(b);
+    EXPECT_EQ("BAT1", b->name);
+    EXPECT_EQ(2560000, *b->charge_now_uah);
+    EXPECT_EQ(4063000, *b->full_uah);
+    EXPECT_EQ(4580000, *b->design_uah);
+    EXPECT_EQ(88, *b->state_of_health_percent);
+    EXPECT_EQ(BatteryCondition::kGood, ConditionFromStateOfHealth(*b->state_of_health_percent));
+}
+
+TEST(Battery, EnergyBasedAndWorn) {
+    Tree t;
+    t.File("/sys/class/power_supply/BAT0/type", "Battery");
+    t.File("/sys/class/power_supply/BAT0/energy_now", "30000000");          // 30 Wh
+    t.File("/sys/class/power_supply/BAT0/energy_full", "42000000");         // 42 Wh
+    t.File("/sys/class/power_supply/BAT0/energy_full_design", "60000000");  // 60 Wh
+    t.File("/sys/class/power_supply/BAT0/voltage_min_design", "15000000");  // 15 V
+    auto b = ReadBattery(t.sysfs());
+    ASSERT_TRUE(b);
+    EXPECT_EQ(2000000, *b->charge_now_uah);
+    EXPECT_EQ(2800000, *b->full_uah);
+    EXPECT_EQ(4000000, *b->design_uah);
+    EXPECT_EQ(70, *b->state_of_health_percent);
+    EXPECT_EQ(BatteryCondition::kFair, ConditionFromStateOfHealth(*b->state_of_health_percent));
+}
+
+TEST(Battery, SkipsDevicesAndAbsent) {
+    Tree t;
+    t.File("/sys/class/power_supply/hidpp_battery_0/type", "Battery");   // a mouse
+    t.File("/sys/class/power_supply/hidpp_battery_0/scope", "Device");
+    t.File("/sys/class/power_supply/BAT1/type", "Battery");              // bay empty
+    t.File("/sys/class/power_supply/BAT1/present", "0");
+    t.File("/sys/class/power_supply/ucsi-source-psy-USBC000:001/type", "USB");
+    EXPECT_FALSE(ReadBattery(t.sysfs()));
+    Tree none;
+    EXPECT_FALSE(ReadBattery(none.sysfs()));
 }
 
 // ---------------------------------------------------------------- weaver
