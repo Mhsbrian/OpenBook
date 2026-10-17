@@ -1,0 +1,28 @@
+
+--- bluetooth: controller and HAL ---
+[    3.366359] Bluetooth: HCI device and connection manager initialized
+[    3.367069] Bluetooth: HCI socket layer initialized
+[    3.374409] modprobe: Loading module /vendor/lib/modules/btmtk.ko with args ''
+[    3.376075] modprobe: Loaded kernel module /vendor/lib/modules/btmtk.ko
+[    3.379492] modprobe: Loading module /vendor/lib/modules/btusb.ko with args ''
+[    3.381396] usbcore: registered new interface driver btusb
+[    3.382043] modprobe: Loaded kernel module /vendor/lib/modules/btusb.ko
+HAL: running
+ShellCommand: Exec enable
+enable: Success
+ShellCommand: Exec wait-for-state:STATE_ON
+ShellCommand: wait-for-state:STATE_ON: Failed
+  State:         BLE_TURNING_ON
+Bluetooth crashed 0 times
+Enabled Profile Services:
+  GATT
+  A2DP
+  AVRCP
+  BATTERY
+  HEARING_AID
+  HID_HOST
+  OPP
+  PAN
+
+HWTEST {"test": "bt-enabled", "ok": false, "hal": "running"}
+HWTEST {"test": "bt-bonded", "ok": false, "bonded": 0, "audio_lines": 0}
