@@ -2,7 +2,7 @@
 
 ## Now (2026-10-17, morning)
 
-The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`github.com/Mhsbrian/AnyBook`) redirects. PRs #1–#47 are merged (latest: #47 the G14 bridge's enforcing-boot policy fix and the combined G14 stick; #46 ANAL-200 Digitalis on Android 17; #41 ANAL-178 power and input; #42 ANAL-176 G14 stability and the AOSP lane lock; #43 ANAL-179 Wi-Fi, Bluetooth and audio). ANAL-177's PR (the graphics check) is open. #38 was closed as superseded, because #39 contains its commits. Every PR was checked before merging (script syntax, Python compile, no binaries or secrets, sizes, evidence backs the claim), and doc conflicts were resolved by hand.
+The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`github.com/Mhsbrian/AnyBook`) redirects. PRs #1–#47 are merged (latest: #47 the G14 bridge's enforcing-boot policy fix and the combined G14 stick; #46 ANAL-200 Digitalis on Android 17; #41 ANAL-178 power and input; #42 ANAL-176 G14 stability and the AOSP lane lock; #43 ANAL-179 Wi-Fi, Bluetooth and audio). ANAL-177's PR #48 (the graphics check) is open. #38 was closed as superseded, because #39 contains its commits. Every PR was checked before merging (script syntax, Python compile, no binaries or secrets, sizes, evidence backs the claim), and doc conflicts were resolved by hand.
 
 **Decided by the owner**
 - **Keep the dGPU disabled for now** (2026-10-16, on ANAL-187):
