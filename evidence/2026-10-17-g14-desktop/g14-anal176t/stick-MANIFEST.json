@@ -1,0 +1,30 @@
+{
+ "fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
+ "kernel_release": "6.18.21-android17-5-g44a90255c95f",
+ "label": "openbook-live-20261017-anal176t",
+ "partitions": {
+  "boot_a": {
+   "bytes": 67108864,
+   "sha256": "08c62a9b1ffb37bf368bbf1b1a51b49d0792229c8e1e83403b23ddb5c0b9dabc"
+  },
+  "init_boot_a": {
+   "bytes": 8388608,
+   "sha256": "f31022343024fb10c9d83fb0794d4c6e13ddfe1b998ae3ed4cd0ea36c7081169"
+  },
+  "super": {
+   "bytes": 1409286144,
+   "sha256": "fa13716046021bb7a474cd08dbc1aa2f77f394bee5a3ffdad75fe0c8c63a78a9"
+  },
+  "vbmeta_a": {
+   "bytes": 65536,
+   "sha256": "09ebc09f22adc2038d5cadb92528026bc9fb379a945575628b30f758fc3acd18"
+  },
+  "vendor_boot_a": {
+   "bytes": 67108864,
+   "sha256": "61f56fc08ac9dc26c552de4c4ae4e8cdd0f777822ad002b8606d75489af7f2e3"
+  }
+ },
+ "schema": "openbook-live-manifest/1",
+ "slot": "a",
+ "vbmeta_digest": "7361a0c443302f9c9c82ddf3cc1226d0ecb94bf594395b357bd19a2d77ffd67b"
+}
