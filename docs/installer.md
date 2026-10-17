@@ -939,7 +939,7 @@ The "save logs" boot then measures both directions. Without it, `wifi_iperf3` st
 What each step is read for:
 - ANAL-191: `hwcheck-live-NNN.json` and the photos.
 - ANAL-176: tombstones, denials, frame stats, decoder errors.
-- ANAL-179: `live-report.py --expect g14`: `audio_android_clean`, `wifi_connected`, `wifi_pno`, `audio_routes`, Bluetooth and app audio denials.
+- ANAL-179: `live-report.py --expect g14`: `audio_android_clean`, `wifi_connected`, `wifi_pno`, `audio_routes`, Bluetooth and app audio denials. On a stick with the SoundPool fix: no `audioserver appdomain_tmpfs` denial for the unlock sound at boot.
 - ANAL-178: `touchpad_clock`, `epp_modes.battery_saver_seen`.
 - ANAL-200: `bridge-report.py` on `addon-bridge*`.
 

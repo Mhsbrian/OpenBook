@@ -75,6 +75,13 @@
 
 ## History
 
+### 2026-10-17: SystemUI's SoundPool sounds under enforcing (ANAL-179)
+- **Done:** ANAL-198 found that `audioserver` could not use SystemUI's SoundPool memfds (`appdomain_tmpfs`) once Codec2 decoded. It is fixed with one TE rule, `system_ext/audioserver.te`, which is AOSP's own `appdomain:memfd_file` grant in tmpfs form. No MLS change was needed: `private/mls` exempts `appdomain_tmpfs` from its read and write constraints.
+- **Evidence** (`evidence/2026-10-17-soundpool/`), QEMU, enforcing:
+  - on `main`, the unlock sound fails twice (2 denials, "could not create track"), and nothing reaches the codec;
+  - with the fix, there are 0 denials, and both unlock sounds reach the codec (0.10 s and 0.15 s, the length of `Unlock.ogg`).
+- **Next:** the next owner stick carries it. On the G14, the default boot's logs should show no `audioserver appdomain_tmpfs` denial.
+
 ### 2026-10-17: the kernel heap and efivarfs, and the `anal198` stick (ANAL-159)
 - **The owner merged** #64 (ANAL-198: system DMA-BUF heap, efivarfs, Codec2 fixes) and #65 (the stick `openbook-live-20261017-anal198`, built from `main` `2d90741`, with Vulkan 1.4 and four add-ons). In QEMU: live 40/40, wizard 25/25, end to end 78/78, a ringtone decodes.
 - **Woke ANAL-179** (SoundPool memory under MLS) and **ANAL-191** (efivarfs label for `Boot####` entries). Deleted the merged branches. ANAL-198's description now routes the owner's results to each issue.
