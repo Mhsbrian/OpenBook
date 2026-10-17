@@ -14,7 +14,7 @@ ADB=${ADB:-$HOME/anybook/android-sdk/platform-tools/adb}
 a(){ "$ADB" -s "$S" "$@"; }
 sh_(){ a shell "$@" | tr -d '\r'; }
 R=$O/defaults-check.txt; : > "$R"; fails=0
-chk(){ local ok=$1; shift; if [ "$ok" = 1 ]; then echo "PASS $*"; else echo "FAIL $*"; fails=$((fails + 1)); fi | tee -a "$R"; }
+chk(){ local ok=$1; shift; if [ "$ok" = 1 ]; then echo "PASS $*" | tee -a "$R"; else echo "FAIL $*" | tee -a "$R"; fails=$((fails + 1)); fi; }
 is(){ [ "$1" = "$2" ] && echo 1 || echo 0; }
 
 for _ in $(seq 150); do [ "$(sh_ getprop sys.boot_completed)" = 1 ] && break; sleep 2; done
@@ -33,7 +33,7 @@ w=$(grep -c 'quicksearchbox' "$O/appwidget.txt" || true)
 chk "$(is "$w" 0)" "no QuickSearchBox widget bound (dumpsys appwidget: $w lines)"
 for _ in 1 2 3; do sh_ uiautomator dump /data/local/tmp/ui.xml >/dev/null 2>&1 && break; sleep 2; done
 sh_ cat /data/local/tmp/ui.xml > "$O/home-ui.xml"
-hv=$(grep -o 'AppWidgetHostView\|quicksearchbox\|text="Search"' "$O/home-ui.xml" | wc -l)
+hv=$(grep -o 'AppWidgetHostView\|quicksearchbox\|text="Search"' "$O/home-ui.xml" | wc -l || true)
 chk "$(is "$hv" 0)" "Home has no search widget or Search button (uiautomator: $hv nodes)"
 sh_ cmd overlay list > "$O/overlays.txt"
 for p in launcher latinime settingsprovider; do
@@ -41,7 +41,7 @@ for p in launcher latinime settingsprovider; do
 done
 
 # Taskbar pins from the partner customization package.
-pr=$(sh_ cmd package query-receivers --brief -a com.android.launcher3.action.PARTNER_CUSTOMIZATION | grep / || true)
+pr=$(sh_ cmd package query-receivers --brief -a com.android.launcher3.action.PARTNER_CUSTOMIZATION | grep / | tr -d ' ' || true)
 chk "$(is "$pr" dev.anybook.desktop.partner/.PartnerCustomization)" "partner customization package found ($pr)"
 sh_ dumpsys activity service com.android.launcher3/com.android.quickstep.TouchInteractionService > "$O/launcher.txt" 2>&1 || true
 pins=$(grep -m1 -o 'shownHotseatItems=\[[^]]*\]' "$O/launcher.txt" | sed 's/shownHotseatItems=//' || true)
@@ -59,9 +59,15 @@ kb=$(sh_ cmd overlay lookup com.android.inputmethod.latin com.android.inputmetho
 chk "$(is "$kb" false)" "on-screen keyboard keypress sound default off (LatinIME config_default_sound_enabled=$kb)"
 fl=$(sh_ aflags list 2>/dev/null | grep -F 'com.android.systemui.screenshot_remove_nonforced_sound' | awk '{print $2}' || true)
 chk "$(is "$fl" enabled)" "screenshot shutter sound only when forced (com.android.systemui.screenshot_remove_nonforced_sound=$fl)"
-# Take a screenshot: SystemUI must not create its non-forced shutter MediaPlayer.
+# Take a full-screen screenshot with the power + volume-down chord (on this desktop, KEYCODE_SYSRQ opens the
+# screen capture toolbar instead). SystemUI's screenshot process (com.android.systemui:screenshot, SystemUI's uid)
+# preloads the forced shutter sound as a SoundPool either way; without the flag it also creates a MediaPlayer.
 sui=$(sh_ pidof com.android.systemui || true); suid=$(sh_ stat -c %u "/proc/$sui" 2>/dev/null || true)
-sh_ input keyevent KEYCODE_SYSRQ; sleep 4; sh_ input keyevent KEYCODE_ESCAPE || true; sleep 1
+n0=$(sh_ 'ls /sdcard/Pictures/Screenshots 2>/dev/null' | grep -c . || true)
+sh_ input keycombination -t 100 KEYCODE_POWER KEYCODE_VOLUME_DOWN; sleep 6
+sh_ input keyevent KEYCODE_BACK || true; sleep 2
+n1=$(sh_ 'ls /sdcard/Pictures/Screenshots 2>/dev/null' | grep -c . || true)
+chk "$([ "$n1" -gt "$n0" ] && echo 1 || echo 0)" "screenshot taken (/sdcard/Pictures/Screenshots: $n0 -> $n1 files)"
 sh_ dumpsys audio > "$O/audio.txt"
 mp=$(grep -E 'new player piid:' "$O/audio.txt" | grep -E "uid/pid:${suid:-x}/" | grep -c 'MediaPlayer' || true)
 grep -E 'new player piid:' "$O/audio.txt" > "$O/audio-new-players.txt" || true

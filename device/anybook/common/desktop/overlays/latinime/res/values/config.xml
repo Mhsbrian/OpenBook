@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (C) 2026 The OpenBook Authors. SPDX-License-Identifier: Apache-2.0 -->
 <resources>
-    <!-- No sound on keypress in the on-screen keyboard (ANAL-206). AOSP turns it on for screens of 600 dp and up
-         (values-sw600dp, values-sw768dp), which is every OpenBook desktop. LatinIME plays it with
-         AudioManager.playSoundEffect(type, volume), which ignores the system "Touch sounds" setting. An overlay
-         value replaces all of the target's configurations, so values/ is enough. -->
+    <!-- No sound on keypress in the on-screen keyboard (ANAL-206). LatinIME plays it with
+         AudioManager.playSoundEffect(type, volume), which ignores the system "Touch sounds" setting. AOSP turns it
+         on for screens of 600 dp and up (values-sw600dp, values-sw768dp), which is every OpenBook desktop. An
+         overlay value only wins where its configuration is at least as specific as the target's (AssetManager2),
+         so the same value is repeated for both. -->
     <bool name="config_default_sound_enabled">false</bool>
 </resources>
