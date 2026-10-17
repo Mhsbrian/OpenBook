@@ -19,13 +19,15 @@ i=0; while [ ! -s "$D/ns.pid" ] && [ $i -lt 50 ]; do sleep 0.1; i=$((i + 1)); do
 ns=$(cat "$D/ns.pid")
 phy=$(cat /sys/class/net/wlan1/phy80211/name)
 iw phy "$phy" set netns "$ns" && log "$phy (wlan1) -> netns of pid $ns"
-nsenter -t "$ns" -n sh -c "
-  ip link set lo up; ip link set wlan1 up; ip addr add 192.168.77.1/24 dev wlan1
-  LD_LIBRARY_PATH=$D/lib:/vendor/lib64 $D/hostapd -B -P $D/hostapd.pid $D/hostapd.conf > $D/hostapd.log 2>&1
-  $D/openbook-test-dhcpd wlan1 > $D/dhcpd.log 2>&1 &
-  iperf3 -s -D -B 192.168.77.1 --logfile $D/iperf3.log
-  ip addr show wlan1
-"
+# toybox nsenter takes no "sh -c ..." (it parses -c itself): the access point side is its own script.
+cat > "$D/ap-ns.sh" <<EOS
+ip link set lo up; ip link set wlan1 up; ip addr add 192.168.77.1/24 dev wlan1
+LD_LIBRARY_PATH=$D/lib:/vendor/lib64 $D/hostapd -B -P $D/hostapd.pid $D/hostapd.conf > $D/hostapd.log 2>&1
+$D/openbook-test-dhcpd wlan1 > $D/dhcpd.log 2>&1 &
+iperf3 -s -D -B 192.168.77.1 --logfile $D/iperf3.log
+ip addr show wlan1
+EOS
+nsenter -t "$ns" -n sh "$D/ap-ns.sh"
 sleep 2
 log "hostapd: $(cat $D/hostapd.pid 2>/dev/null || echo none) $(tail -n 3 $D/hostapd.log 2>/dev/null | tr '\n' ' ')"
 log "dhcpd: $(head -n 1 $D/dhcpd.log 2>/dev/null)"
