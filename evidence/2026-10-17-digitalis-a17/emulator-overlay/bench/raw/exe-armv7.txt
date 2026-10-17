@@ -1,0 +1,2 @@
+/system/bin/sh: /data/local/tmp/anybook-bench/coremark-armv7: not executable: 32-bit ELF file
+exit=1

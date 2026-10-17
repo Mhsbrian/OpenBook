@@ -1,0 +1,21 @@
+bundle: /home/hive/anybook/digitalis/bundle-a17
+Digitalis overlay bundle collected by OpenBook scripts/compat/digitalis/bundle.sh on 2026-10-17T07:56:31Z
+product: Android/generic_system/generic:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+frameworks/libs/binary_translation d412a8451e1f6f8419fcc9911d739e7c425ec88b
+frameworks/libs/native_bridge_support 3d6ed1bcc2f0be54f92cf40458253647e8891176
+artifacts: 74 present, 0 missing
+
+fingerprint: google/sdk_gdesktop_x86_64/emu64xa:17/CLE1.260506.004/15373846:userdebug/test-keys
+native_bridge: libberberis_arm64.so isa.arm64=x86_64 exec=1 flags=disable-ir-check
+abilist: x86_64,arm64-v8a
+binfmt arm64_dyn: enabled interpreter /system/bin/berberis_program_runner_binfmt_misc_arm64 flags: P offset 0 magic 7f454c460201010000000000000000000300b7 
+-rwxr-xr-x 1 root root u:object_r:system_file:s0       929624 2026-10-17 01:45 /system/bin/arm64/linker64
+-rwxr-xr-x 1 root root u:object_r:system_file:s0        51376 2026-10-17 01:45 /system/bin/berberis_program_runner_binfmt_misc_arm64
+-rwxr-xr-x 1 root root u:object_r:system_lib_file:s0  2994864 2026-10-17 03:19 /system/lib64/libberberis_arm64.so
+guest libs: 43
+native bridge in zygote log:
+10-17 03:57:28.730   438   438 I odrefresh: System property ro.dalvik.vm.native.bridge value changed (before: "libndk_translation.so", now: "libberberis_arm64.so").
+10-17 03:57:28.754   439   439 I odrefresh: System property ro.dalvik.vm.native.bridge value changed (before: "libndk_translation.so", now: "libberberis_arm64.so").
+10-17 03:57:41.189  1544  1544 I adbd    :   echo "native_bridge: $(getprop ro.dalvik.vm.native.bridge) isa.arm64=$(getprop ro.dalvik.vm.isa.arm64) exec=$(getprop ro.enable.native.bridge.exec) flags=$(getprop ro.berberis.flags)"
+10-17 03:57:41.189  1544  1544 I adbd    :   ls -lZ /system/lib64/libberberis_arm64.so /system/bin/berberis_program_runner_binfmt_misc_arm64 /system/bin/arm64/linker64
+10-17 03:57:41.189  1544  1544 I adbd    :   echo "native bridge in zygote log:"; logcat -d -b main,system | grep -iE "nativebridge|native_bridge|berberis" | head -20'

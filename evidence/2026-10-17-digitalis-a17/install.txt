@@ -1,0 +1,13 @@
+fingerprint: AnyBook/anybook_cf_x86_64_pc/anybook_vsoc_x86_64:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+native_bridge: libberberis_arm64.so isa.arm64=x86_64 exec=1 flags=disable-ir-check
+abilist: x86_64,arm64-v8a abilist64: x86_64,arm64-v8a
+binfmt arm64_dyn: enabled interpreter /system/bin/berberis_program_runner_binfmt_misc_arm64 
+binfmt arm64_exe: enabled interpreter /system/bin/berberis_program_runner_binfmt_misc_arm64 
+-rwxr-xr-x 1 root shell u:object_r:system_file:s0        51216 2026-10-17 05:44 /system/bin/arm64/app_process64
+-rwxr-xr-x 1 root shell u:object_r:system_file:s0       929624 2026-10-17 05:44 /system/bin/arm64/linker64
+-rwxr-xr-x 1 root shell u:object_r:system_file:s0        51376 2026-10-17 05:44 /system/bin/berberis_program_runner_binfmt_misc_arm64
+-rw-r--r-- 1 root root  u:object_r:system_lib_file:s0  2994864 2026-10-17 07:19 /system/lib64/libberberis_arm64.so
+guest libs: 57
+zygote: zygote64                                                                                           
+libberberis in zygote64: 4 mappings
+cpu flags (JIT-relevant): fma movbe bmi1 avx2 bmi2 avx512f adx 

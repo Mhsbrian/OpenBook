@@ -1,0 +1,46 @@
+  rule='so:libmozglue.so,so:libxul.so:0-48a6800' mode=lite-translate-or-interpret -> pid=8855  [lite_bail: 2 rules]
+range 0-48a6800
+  rule='so:libmozglue.so,so:libxul.so:0-2453400' mode=lite-translate-or-interpret -> pid=none CRASH guest_pc=0x7d0da020ed9c [lite_bail: 2 rules]
+  rule='so:libmozglue.so,so:libxul.so:2453400-48a6800' mode=lite-translate-or-interpret -> pid=9108  [lite_bail: 2 rules]
+range 2453400-48a6800
+  rule='so:libmozglue.so,so:libxul.so:2453400-367ce00' mode=lite-translate-or-interpret -> pid=9231  [lite_bail: 2 rules]
+range 2453400-367ce00
+  rule='so:libmozglue.so,so:libxul.so:2453400-2d68100' mode=lite-translate-or-interpret -> pid=9348  [lite_bail: 2 rules]
+range 2453400-2d68100
+  rule='so:libmozglue.so,so:libxul.so:2453400-28dda80' mode=lite-translate-or-interpret -> pid=none CRASH guest_pc=0x7d0da224cd9c [lite_bail: 2 rules]
+  rule='so:libmozglue.so,so:libxul.so:28dda80-2d68100' mode=lite-translate-or-interpret -> pid=9603  [lite_bail: 2 rules]
+range 28dda80-2d68100
+  rule='so:libmozglue.so,so:libxul.so:28dda80-2b22dc0' mode=lite-translate-or-interpret -> pid=none CRASH guest_pc=0x7d0d9eec0d9c [lite_bail: 2 rules]
+  rule='so:libmozglue.so,so:libxul.so:2b22dc0-2d68100' mode=lite-translate-or-interpret -> pid=9852  [lite_bail: 2 rules]
+range 2b22dc0-2d68100
+  rule='so:libmozglue.so,so:libxul.so:2b22dc0-2c45760' mode=lite-translate-or-interpret -> pid=9971  [lite_bail: 2 rules]
+range 2b22dc0-2c45760
+  rule='so:libmozglue.so,so:libxul.so:2b22dc0-2bb4290' mode=lite-translate-or-interpret -> pid=10092  [lite_bail: 2 rules]
+range 2b22dc0-2bb4290
+  rule='so:libmozglue.so,so:libxul.so:2b22dc0-2b6b828' mode=lite-translate-or-interpret -> pid=none CRASH guest_pc=0x7d0da2a92da0 [lite_bail: 2 rules]
+  rule='so:libmozglue.so,so:libxul.so:2b6b828-2bb4290' mode=lite-translate-or-interpret -> pid=10341  [lite_bail: 2 rules]
+range 2b6b828-2bb4290
+  rule='so:libmozglue.so,so:libxul.so:2b6b828-2b8fd5c' mode=lite-translate-or-interpret -> pid=10458  [lite_bail: 2 rules]
+range 2b6b828-2b8fd5c
+  rule='so:libmozglue.so,so:libxul.so:2b6b828-2b7dac0' mode=lite-translate-or-interpret -> pid=10577  [lite_bail: 2 rules]
+range 2b6b828-2b7dac0
+  rule='so:libmozglue.so,so:libxul.so:2b6b828-2b74974' mode=lite-translate-or-interpret -> pid=10693  [lite_bail: 2 rules]
+range 2b6b828-2b74974
+  rule='so:libmozglue.so,so:libxul.so:2b6b828-2b700cc' mode=lite-translate-or-interpret -> pid=none CRASH guest_pc=0x7d0da1e25d9c [lite_bail: 2 rules]
+  rule='so:libmozglue.so,so:libxul.so:2b700cc-2b74974' mode=lite-translate-or-interpret -> pid=10943  [lite_bail: 2 rules]
+range 2b700cc-2b74974
+  rule='so:libmozglue.so,so:libxul.so:2b700cc-2b72520' mode=lite-translate-or-interpret -> pid=none CRASH guest_pc=0x7d0da4554d9c [lite_bail: 2 rules]
+  rule='so:libmozglue.so,so:libxul.so:2b72520-2b74974' mode=lite-translate-or-interpret -> pid=11194  [lite_bail: 2 rules]
+range 2b72520-2b74974
+  rule='so:libmozglue.so,so:libxul.so:2b72520-2b73748' mode=lite-translate-or-interpret -> pid=11314  [lite_bail: 2 rules]
+range 2b72520-2b73748
+  rule='so:libmozglue.so,so:libxul.so:2b72520-2b72e34' mode=lite-translate-or-interpret -> pid=none CRASH guest_pc=0x7d0da2fd2d9c [lite_bail: 2 rules]
+  rule='so:libmozglue.so,so:libxul.so:2b72e34-2b73748' mode=lite-translate-or-interpret -> pid=11563  [lite_bail: 2 rules]
+range 2b72e34-2b73748
+  rule='so:libmozglue.so,so:libxul.so:2b72e34-2b732bc' mode=lite-translate-or-interpret -> pid=none CRASH guest_pc=0x7d0da2876d9c [lite_bail: 2 rules]
+  rule='so:libmozglue.so,so:libxul.so:2b732bc-2b73748' mode=lite-translate-or-interpret -> pid=11813  [lite_bail: 2 rules]
+range 2b732bc-2b73748
+  rule='so:libmozglue.so,so:libxul.so:2b732bc-2b73500' mode=lite-translate-or-interpret -> pid=none CRASH guest_pc=0x7d0da4897d9c [lite_bail: 2 rules]
+  rule='so:libmozglue.so,so:libxul.so:2b73500-2b73748' mode=lite-translate-or-interpret -> pid=none CRASH guest_pc=0x7d0da3de3d9c [lite_bail: 2 rules]
+both halves needed: 2b732bc-2b73500-2b73748
+RESULT libxul.so 2b732bc-2b73748

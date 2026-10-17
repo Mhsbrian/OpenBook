@@ -1,0 +1,19 @@
+/system/bin/arm64/openbook_bridge_check: ELF executable, 64-bit LSB arm64, static, for Android 37, BuildID=16fc392ecdaaa757a452b5fc0a432a0b, stripped
+== BERBERIS_MODE=two-gear
+{"test": "bridge-exec", "ok": true, "abi": "arm64-v8a", "uname_machine": "aarch64", "hwcap": "0x9fb"}
+{"test": "bridge-id-registers", "ok": true, "sigill": 0, "first_sigill": -1, "midr": "0x410fd034", "isar0": "0x211120", "pfr0": "0x11", "hwcap_cpuid": true}
+{"test": "bridge-fp-estimates", "ok": true, "cases": 6900, "bad": 0, "first_bad": ""}
+{"test": "bridge-int-simd", "ok": true, "crc32": true, "neon_fma": true}
+exit 0
+== BERBERIS_MODE=lite-translate-or-interpret
+{"test": "bridge-exec", "ok": true, "abi": "arm64-v8a", "uname_machine": "aarch64", "hwcap": "0x9fb"}
+{"test": "bridge-id-registers", "ok": true, "sigill": 0, "first_sigill": -1, "midr": "0x410fd034", "isar0": "0x211120", "pfr0": "0x11", "hwcap_cpuid": true}
+{"test": "bridge-fp-estimates", "ok": true, "cases": 6900, "bad": 0, "first_bad": ""}
+{"test": "bridge-int-simd", "ok": true, "crc32": true, "neon_fma": true}
+exit 0
+== BERBERIS_MODE=interpret-only
+{"test": "bridge-exec", "ok": true, "abi": "arm64-v8a", "uname_machine": "aarch64", "hwcap": "0x9fb"}
+{"test": "bridge-id-registers", "ok": true, "sigill": 0, "first_sigill": -1, "midr": "0x410fd034", "isar0": "0x211120", "pfr0": "0x11", "hwcap_cpuid": true}
+{"test": "bridge-fp-estimates", "ok": true, "cases": 6900, "bad": 0, "first_bad": ""}
+{"test": "bridge-int-simd", "ok": true, "crc32": true, "neon_fma": true}
+exit 0

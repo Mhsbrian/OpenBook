@@ -1,0 +1,9 @@
+# Fennec arm64 on Google's AOSP Desktop 37 emulator image with libndk_translation, MOZ_LOG=nsZipArchive:5
+    943 [Parent 2485: Main Thread]: D/nsZipArchive ZipHandle::GetItem[759572c74100] x86_64/greprefs.js
+    943 [Parent 2485: Main Thread]: D/nsZipArchive ZipHandle::GetItem[759572c74100] greprefs.js
+     29 [(null) 2485: Main Thread]: D/nsZipArchive ZipHandle::GetItem[759572c74100] x86_64/greprefs.js
+     29 [(null) 2485: Main Thread]: D/nsZipArchive ZipHandle::GetItem[759572c74100] greprefs.js
+      2 [(null) 2485: Main Thread]: D/nsZipArchive ZipHandle::GetItem[759572c76e00] assets/omni.ja
+      1 [Parent 2485: Main Thread]: D/nsZipArchive ZipHandle::GetItem[759572c74100] components/components.manifest
+# Gecko thread CPU after the failed lookups (ps/top 30 s after launch, 2026-10-17 03:17):
+Gecko thread utime ticks over 5 s: 155 (100/s = one full CPU); top: TID 2522 Gecko R 100% CPU, TIME+ 1:21.81

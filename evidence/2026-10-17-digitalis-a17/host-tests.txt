@@ -1,0 +1,38 @@
+# berberis_arm64_host_tests on the final ANAL-200 tree (frameworks/libs/binary_translation d412a845), built 2026-10-17 with scripts/aosp-build.sh anybook_cf_x86_64_pc-cp2a-userdebug berberis_arm64_host_tests
+# build log: build-20261017T090613Z.log (build completed successfully)
+8602309829da4fba815a999ac396b507dace75b87f1ca3de481cdd6dad7a9037  berberis_arm64_host_tests
+lite DupScalarExhaustive: compared=6000
+SbfmExhaustive: compared=5120
+MrsMsrNzcv: compared=2000
+MrsFpcr: compared=512
+lite Sha256: compared=3000/3000
+ScalarLoadStoreImm: compared=3000/3000
+TaggedBaseAddressIsIgnored: compared=3000/3000
+LoadStorePair: compared=2995/3000
+RegisterOffsetAddressing: compared=2993/3000
+PrePostIndexWriteback: compared=3000/3000
+SimdLoadStoreImm: compared=3000/3000
+LseAtomics: compared=2996/3000
+LseAtomics: (declines are legitimate)
+MixedMemoryRegions: compared=1500/1500
+LoadStorePairWritebackAndSpBase: compared=2918/3000
+FunctionPrologueRegionSpPropagation: compared=2000/2000
+BENCH int     :    3651748 ns /  54000000 insns =  14787.4 Mips (median of 5)
+BENCH branch  :    6818316 ns /  36000000 insns =   5279.9 Mips (median of 5)
+BENCH call    :   17870962 ns /  42000000 insns =   2350.2 Mips (median of 5)
+BENCH neon    :    2574378 ns /  30000000 insns =  11653.3 Mips (median of 5)
+BENCH fp      :   13436440 ns /  30000000 insns =   2232.7 Mips (median of 5)
+BENCH mem     :    5207146 ns /  30000000 insns =   5761.3 Mips (median of 5)
+BENCH syscall :   25492891 ns /   5000000 insns =    196.1 Mips (median of 5)
+DecoderObjdumpDiff: checked=48032 mismatches=0
+DecoderObjdumpDiff: 'fmaxnmv' now decodes -- drop it from decoder/arm64_test/arm64_decoder_undefined_baseline.txt
+DecoderObjdumpDiff: 'fmaxv' now decodes -- drop it from decoder/arm64_test/arm64_decoder_undefined_baseline.txt
+DecoderObjdumpDiff: 'fminv' now decodes -- drop it from decoder/arm64_test/arm64_decoder_undefined_baseline.txt
+AdvSimdShiftByImmDifferential: 8736 encodings JIT-accepted, 104832 pairs, ALL MATCH
+FpIntConversionDifferential: 65 encodings JIT-accepted, 2600 pairs, ALL MATCH
+[==========] 3763 tests from 43 test suites ran. (23770 ms total)
+[  PASSED  ] 3761 tests.
+[  SKIPPED ] 2 tests.
+
+  YOU HAVE 3 DISABLED TESTS
+

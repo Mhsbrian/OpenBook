@@ -1,0 +1,14 @@
+--- bridge: arm64 native bridge ---
+native bridge: libberberis_arm64.so isa.arm64=x86_64 exec=1 flags=disable-ir-check abilist=x86_64,arm64-v8a
+binfmt arm64_dyn: enabled interpreter /system/bin/berberis_program_runner_binfmt_misc_arm64 
+binfmt arm64_exe: enabled interpreter /system/bin/berberis_program_runner_binfmt_misc_arm64 
+HWTEST {"test": "bridge-config", "ok": true, "native_bridge": "libberberis_arm64.so", "binfmt": true, "guest_libs": 57, "abilist": "x86_64,arm64-v8a"}
+{"test": "bridge-exec", "ok": true, "abi": "arm64-v8a", "uname_machine": "aarch64", "hwcap": "0x9fb"}
+{"test": "bridge-id-registers", "ok": true, "sigill": 0, "first_sigill": -1, "midr": "0x410fd034", "isar0": "0x211120", "pfr0": "0x11", "hwcap_cpuid": true}
+{"test": "bridge-fp-estimates", "ok": true, "cases": 6900, "bad": 0, "first_bad": ""}
+{"test": "bridge-int-simd", "ok": true, "crc32": true, "neon_fma": true}
+exit 0
+HWTEST {"test": "bridge-exec", "ok": true, "abi": "arm64-v8a", "uname_machine": "aarch64", "hwcap": "0x9fb"}
+HWTEST {"test": "bridge-id-registers", "ok": true, "sigill": 0, "first_sigill": -1, "midr": "0x410fd034", "isar0": "0x211120", "pfr0": "0x11", "hwcap_cpuid": true}
+HWTEST {"test": "bridge-fp-estimates", "ok": true, "cases": 6900, "bad": 0, "first_bad": ""}
+HWTEST {"test": "bridge-int-simd", "ok": true, "crc32": true, "neon_fma": true}

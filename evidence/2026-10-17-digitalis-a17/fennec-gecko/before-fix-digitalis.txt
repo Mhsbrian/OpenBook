@@ -1,0 +1,18 @@
+# Fennec arm64 on our image BEFORE the ART fix (Digitalis, two-gear), MOZ_LOG=nsZipArchive:5 via the GeckoView debug config
+      1 [(null) 2868: Main Thread]: D/nsZipArchive ZipHandle::Init /data/app/~~hcH5l3pl36G83Ig7QOfbKA==/org.mozilla.fennec_fdroid-C0PvyoZLMhb7M6gLXB77VQ==/base.apk
+      1 [(null) 2868: Main Thread]: D/nsZipArchive ZipHandle::BuildFileList[768b02b74100]
+      1 [(null) 2868: Main Thread]: D/nsZipArchive ZipHandle::OpenArchive[768b02b74100]
+      1 [(null) 2868: Main Thread]: D/nsZipArchive ZipHandle::Init entry assets/omni.ja
+      2 [(null) 2868: Main Thread]: D/nsZipArchive ZipHandle::GetItem[768b02b74100] assets/omni.ja
+      1 [(null) 2868: Main Thread]: D/nsZipArchive ZipHandle::BuildFileList[768b02b75c00]
+      1 [(null) 2868: Main Thread]: D/nsZipArchive ZipHandle::OpenArchive[768b02b75c00]
+      1 [(null) 2868: Main Thread]: D/nsZipArchive ZipHandle::GetItem[768b02b75c00] x86_64/greprefs.js
+      1 [(null) 2868: Main Thread]: D/nsZipArchive ZipHandle::GetItem[768b02b75c00] greprefs.js
+      1 [(null) 2868: Main Thread]: D/nsZipArchive ZipHandle::GetItem[768b02b75c00] x86_64/greprefs.js
+      1 [(null) 2868: Main Thread]: D/nsZipArchive ZipHandle::GetItem[768b02b75c00] greprefs.js
+      1 [(null) 2868: Main Thread]: D/nsZipArchive ZipHandle::GetItem[768b02b75c00] x86_64/greprefs.js
+...
+972
+(lookups of x86_64/greprefs.js; the same count for greprefs.js)
+10-17 07:13:24.199  2868  2892 E berberis: LowAddr fault: sig=11 si_addr=0x8 si_code=1 guest_pc=0x768a60854d9c x30(lr)=0x768a60854d9c x0=0x0 x1=0x0 tls=0x768e501a7040
+10-17 07:13:24.199  2868  2892 E berberis: HandleFatalSignal: sig=11 si_addr=0x8 si_code=1 host_rip=0x0 host_rsp=0x0 host_rbp=0x0
