@@ -1,0 +1,40 @@
+# anal176s: sleep, wake, suspend and lid lines of both boots of the session, from the stick's persisted logcat
+# (prior-boots.tar.gz: logd keeps writing it during the save-logs boot too), sorted, redacted. A boot starts at
+# the kernel's 'Lid Switch [LID0]' line.
+--- boot 1 (default entry) ---
+10-17 13:40:23.474404  root     1     1 I ACPI    : button: Lid Switch [LID0]
+10-17 13:40:36.566631  1000  1030  1030 I bootstat: Canonical boot reason: reboot
+10-17 13:40:36.566634  1000  1030  1030 I bootstat: Canonical boot reason: reboot
+10-17 13:40:51.838556  1000  1223  1301 I screen_toggled: 1
+10-17 13:40:52.021649 10081  3474  3474 V SystemUIBootTiming: StartServices com.android.systemui.globalactions.GlobalActionsComponent took to complete: 1ms
+10-17 13:40:52.484178  1000  3980  3980 I bootstat: Canonical boot reason: reboot,factory_reset
+10-17 13:48:15.192228 10081  3474  3474 D WindowOnBackDispatcher: setTopOnBackInvokedCallback (unwrapped): com.android.systemui.globalactions.GlobalActionsDialogLite$ActionsDialogLiteDelegate$$ExternalSyntheticLambda0@f05aebc
+10-17 13:48:15.192307  1000  1223  3554 D CoreBackPreview: Window{9438b7b u0 GlobalActionsDialogLite}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@7ec942d, mPriority=-
+10-17 13:48:15.192347  1000  1223  3554 D CoreBackPreview: Window{9438b7b u0 GlobalActionsDialogLite}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@caefd62, mPriority=0
+10-17 13:48:15.192366  1000  1223  3554 D CoreBackPreview: Window{9438b7b u0 GlobalActionsDialogLite}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@381eef3, mPriority=0
+10-17 13:48:15.192594  1000  1223  3554 D CoreBackPreview: Window{9438b7b u0 GlobalActionsDialogLite}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@812f7b0, mPriority=0
+10-17 13:48:15.194415  1000  1223  3554 D WindowManager: setClientSurface Surface(name=VRI-GlobalActionsDialogLite#691)/@0x9ab4629 for 9438b7b GlobalActionsDialogLite
+10-17 13:48:15.195114  1000  1223  1302 I input_focus: [Focus request 9438b7b GlobalActionsDialogLite,reason=UpdateInputWindows]
+10-17 13:48:15.195460 10081  3474  3474 I Surface : Creating surface for consumer VRI[GlobalActionsDialogLite]#50(BLAST Consumer)50 with slotExpansion=1 for 64 slots
+10-17 13:48:15.195552 10081  3474  3474 I viewroot_draw_event: [VRI[GlobalActionsDialogLite]cf90ff0,applyTransactionOnDraw applyImmediately]
+10-17 13:48:15.199898 10081  3474  3474 I viewroot_draw_event: [VRI[GlobalActionsDialogLite]cf90ff0,reportDrawFinished seqId=1]
+10-17 13:48:15.233824  1000  1223  2712 I input_focus: [Focus entering 9438b7b GlobalActionsDialogLite,reason=setFocusedWindow]
+10-17 13:48:15.234848 10081  3474  3474 I input_focus: ViewRootImpl focus=true for GlobalActionsDialogLite
+10-17 13:48:15.474827  1000  1223  2712 I input_interaction: Interaction with: [e4c8727 NotificationShade,9438b7b GlobalActionsDialogLite,[Gesture Monitor] edge-swipe,PointerEventDispatcher0,[Gesture Monitor] swipe-up], on display
+10-17 13:48:15.526294  1000  1223  2712 I input_interaction: Interaction with: [9438b7b GlobalActionsDialogLite,[Gesture Monitor] edge-swipe,PointerEventDispatcher0,[Gesture Monitor] swipe-up], on displayId 0
+10-17 13:48:16.588335  1000  1223  2681 D CoreBackPreview: Window{9438b7b u0 GlobalActionsDialogLite}: Setting back callback null
+10-17 13:48:16.594572  1000  1223  7704 I ShutdownThread: Logging pre-reboot information...
+10-17 13:48:16.594899  1000  1223  7704 I ShutdownThread: Sending shutdown broadcast...
+10-17 13:48:16.600329  1000  1223  2680 I InputDispatcher: Touched window was removed: 9438b7b GlobalActionsDialogLite in display %0
+10-17 13:48:16.626246  1000  1223  7704 I ShutdownThread: Shutting down activity manager...
+10-17 13:48:16.887726  1000  1223  7704 I ShutdownThread: Shutting down package manager...
+10-17 13:48:16.891128  1000  1223  7704 W FileUtils: 	at com.android.server.power.ShutdownThread.run(ShutdownThread.java:611)
+10-17 13:48:16.894926  1000  1223  7707 I ShutdownThread: Waiting for Radio...
+10-17 13:48:16.894946  1000  1223  7707 I ShutdownThread: Radio shutdown complete.
+10-17 13:48:16.895258  1000  1223  7704 I ShutdownThread: Performing low-level shutdown...
+--- boot 2 (save logs entry) ---
+10-17 13:49:21.478742  root     1     1 I ACPI    : button: Lid Switch [LID0]
+10-17 13:49:30.236549  1000  1017  1017 I bootstat: Canonical boot reason: shutdown,userrequested
+10-17 13:49:30.236561  1000  1017  1017 I bootstat: Canonical boot reason: shutdown,userrequested
+10-17 13:49:39.058245  1000  1181  1244 I screen_toggled: 1
+10-17 13:49:39.066272 10081  1470  1470 V SystemUIBootTiming: StartServices com.android.systemui.globalactions.GlobalActionsComponent took to complete: 1ms

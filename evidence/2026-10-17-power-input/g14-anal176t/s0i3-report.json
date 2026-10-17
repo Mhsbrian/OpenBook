@@ -1,0 +1,158 @@
+{
+ "schema": "openbook-s0i3-report/1",
+ "cycles": [
+  {
+   "source": "OpenBook hwcheck-001.json",
+   "kind": "openbook",
+   "change": "baseline",
+   "detail": [],
+   "s0i3": false,
+   "hw_sleep_us": 0,
+   "smu": "Unknown/Fail",
+   "idlemask": "0xffef9abd",
+   "deepest_cstate": null,
+   "not_met_us": {
+    "USB4_0": 78416,
+    "MPM": 14765
+   },
+   "awake": [
+    "0000:00:00.0 1022:1507 D0 -",
+    "0000:00:00.2 1022:1508 D0 -",
+    "0000:00:01.0 1022:1509 D0 -",
+    "0000:00:02.0 1022:1509 D0 -",
+    "0000:00:03.0 1022:1509 D0 -",
+    "0000:00:08.0 1022:1509 D0 -",
+    "0000:00:14.0 1022:790b D0 piix4_smbus",
+    "0000:00:14.3 1022:790e D0 -",
+    "0000:00:18.0 1022:16f8 D0 -",
+    "0000:00:18.1 1022:16f9 D0 -",
+    "0000:00:18.2 1022:16fa D0 -",
+    "0000:00:18.3 1022:16fb D0 k10temp",
+    "0000:00:18.4 1022:16fc D0 -",
+    "0000:00:18.5 1022:16fd D0 -",
+    "0000:00:18.6 1022:16fe D0 -",
+    "0000:00:18.7 1022:16ff D0 -",
+    "0000:66:00.0 1022:150d D0 -"
+   ],
+   "awake_summary": "39 PCI functions, 17 not in D3"
+  },
+  {
+   "source": "OpenBook hwcheck-001.json",
+   "kind": "openbook",
+   "change": "psp",
+   "detail": [
+    "0000:65:00.2 1022:17e0 - -> openbook_pci_pm"
+   ],
+   "s0i3": false,
+   "hw_sleep_us": 0,
+   "smu": "Unknown/Fail",
+   "idlemask": "0xffef9afd",
+   "deepest_cstate": null,
+   "not_met_us": {
+    "USB4_0": 4884998220813513296,
+    "MPM": 2805
+   },
+   "awake": [
+    "0000:00:00.0 1022:1507 D0 -",
+    "0000:00:00.2 1022:1508 D0 -",
+    "0000:00:01.0 1022:1509 D0 -",
+    "0000:00:02.0 1022:1509 D0 -",
+    "0000:00:03.0 1022:1509 D0 -",
+    "0000:00:08.0 1022:1509 D0 -",
+    "0000:00:14.0 1022:790b D0 piix4_smbus",
+    "0000:00:14.3 1022:790e D0 -",
+    "0000:00:18.0 1022:16f8 D0 -",
+    "0000:00:18.1 1022:16f9 D0 -",
+    "0000:00:18.2 1022:16fa D0 -",
+    "0000:00:18.3 1022:16fb D0 k10temp",
+    "0000:00:18.4 1022:16fc D0 -",
+    "0000:00:18.5 1022:16fd D0 -",
+    "0000:00:18.6 1022:16fe D0 -",
+    "0000:00:18.7 1022:16ff D0 -",
+    "0000:66:00.0 1022:150d D0 -"
+   ],
+   "awake_summary": "41 PCI functions, 17 not in D3"
+  },
+  {
+   "source": "OpenBook hwcheck-001.json",
+   "kind": "openbook",
+   "change": "dummy",
+   "detail": [
+    "0000:66:00.0 1022:150d - -> openbook_pci_pm"
+   ],
+   "s0i3": false,
+   "hw_sleep_us": 0,
+   "smu": "Unknown/Fail",
+   "idlemask": "0xffef9afd",
+   "deepest_cstate": null,
+   "not_met_us": {
+    "USB4_0": 78416,
+    "MPM": 2268
+   },
+   "awake": [
+    "0000:00:00.0 1022:1507 D0 -",
+    "0000:00:00.2 1022:1508 D0 -",
+    "0000:00:01.0 1022:1509 D0 -",
+    "0000:00:02.0 1022:1509 D0 -",
+    "0000:00:03.0 1022:1509 D0 -",
+    "0000:00:08.0 1022:1509 D0 -",
+    "0000:00:14.0 1022:790b D0 piix4_smbus",
+    "0000:00:14.3 1022:790e D0 -",
+    "0000:00:18.0 1022:16f8 D0 -",
+    "0000:00:18.1 1022:16f9 D0 -",
+    "0000:00:18.2 1022:16fa D0 -",
+    "0000:00:18.3 1022:16fb D0 k10temp",
+    "0000:00:18.4 1022:16fc D0 -",
+    "0000:00:18.5 1022:16fd D0 -",
+    "0000:00:18.6 1022:16fe D0 -",
+    "0000:00:18.7 1022:16ff D0 -"
+   ],
+   "awake_summary": "41 PCI functions, 16 not in D3"
+  },
+  {
+   "source": "OpenBook hwcheck-001.json",
+   "kind": "openbook",
+   "change": "asus",
+   "detail": [
+    "asus-wmi.ko loaded",
+    "asus-nb-wmi.ko not loaded",
+    "hid-asus.ko loaded"
+   ],
+   "s0i3": false,
+   "hw_sleep_us": 0,
+   "smu": "Unknown/Fail",
+   "idlemask": "0xffef9abf",
+   "deepest_cstate": null,
+   "not_met_us": {
+    "USB4_0": 4647714815446430288,
+    "MPM": 3296
+   },
+   "awake": [
+    "0000:00:00.0 1022:1507 D0 -",
+    "0000:00:00.2 1022:1508 D0 -",
+    "0000:00:01.0 1022:1509 D0 -",
+    "0000:00:02.0 1022:1509 D0 -",
+    "0000:00:03.0 1022:1509 D0 -",
+    "0000:00:08.0 1022:1509 D0 -",
+    "0000:00:14.0 1022:790b D0 piix4_smbus",
+    "0000:00:14.3 1022:790e D0 -",
+    "0000:00:18.0 1022:16f8 D0 -",
+    "0000:00:18.1 1022:16f9 D0 -",
+    "0000:00:18.2 1022:16fa D0 -",
+    "0000:00:18.3 1022:16fb D0 k10temp",
+    "0000:00:18.4 1022:16fc D0 -",
+    "0000:00:18.5 1022:16fd D0 -",
+    "0000:00:18.6 1022:16fe D0 -",
+    "0000:00:18.7 1022:16ff D0 -"
+   ],
+   "awake_summary": "41 PCI functions, 16 not in D3"
+  }
+ ],
+ "verdict": {
+  "openbook_reached_s0i3": false,
+  "first_fixing_step": null,
+  "linux_reached_s0i3": null,
+  "linux_phases_without_s0i3": []
+ },
+ "comparisons": []
+}

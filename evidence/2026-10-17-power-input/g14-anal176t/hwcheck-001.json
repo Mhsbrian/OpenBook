@@ -1,0 +1,33 @@
+{
+ "schema": "openbook-hwcheck/6",
+ "board": "GA403WR",
+ "bios": "GA403WR.309",
+ "cpu": "AMD Ryzen AI 9 HX 370 w/ Radeon 890M",
+ "modules": {"loaded": 237, "failed": 0, "skipped": 30},
+ "checks": {
+  "gpu_amdgpu": true,
+  "edp_connected": true,
+  "wifi_wlan0": true,
+  "bluetooth_hci0": true,
+  "touchpad": true,
+  "keyboard": true,
+  "lid_switch": true,
+  "battery": true,
+  "npu_accel": true,
+  "usb4_thunderbolt": true,
+  "typec_ports": 2,
+  "sound_cards": 3,
+  "cpufreq_driver": "amd-pstate-epp",
+  "mem_sleep": "[s2idle]",
+  "dgpu_power": "D0/active"
+ },
+ "dgpu_detach": {"ran": true, "functions": 2, "bridge": "0000:00:03.1", "bridge_before": "D0", "bridge_after": "D3cold"},
+ "acpi_d3cold": {"ran": true, "paths": "_SB.PCI0.GPP0.SWUS", "load_rc": 0},
+ "sleep_test": {"ran": true, "write_rc": 3, "asleep_s": 19.1, "suspend_success_delta": 1, "suspend_fail_delta": 0, "s0ix_residency_us": 0, "edp_after": "connected"},
+ "s0i3_snapshot": {"loaded": true},
+ "sleep_cycles": [
+  {"cycle": 0, "step": "baseline", "bound": [], "write_rc": 3, "asleep_s": 19.1, "suspend_success_delta": 1, "suspend_fail_delta": 0, "s0i3": false, "s0ix_residency_us": 0, "last_hw_sleep_us": 0, "total_hw_sleep_delta_us": 0, "smu": {"last_s0i3": "Unknown/Fail", "hint_count": 1, "time_to_s0i3_us": 0, "time_in_s0i3_us": 0, "not_met_us": {"USB4_0": 78416, "MPM": 14765}}, "idlemask_entry": "0xffef9abd", "idlemask_after": "0xfd4c90fd", "cpuidle": [], "snapshot": {"summary": "39 PCI functions, 17 not in D3", "not_in_d3": ["0000:00:00.0 1022:1507 D0 -", "0000:00:00.2 1022:1508 D0 -", "0000:00:01.0 1022:1509 D0 -", "0000:00:02.0 1022:1509 D0 -", "0000:00:03.0 1022:1509 D0 -", "0000:00:08.0 1022:1509 D0 -", "0000:00:14.0 1022:790b D0 piix4_smbus", "0000:00:14.3 1022:790e D0 -", "0000:00:18.0 1022:16f8 D0 -", "0000:00:18.1 1022:16f9 D0 -", "0000:00:18.2 1022:16fa D0 -", "0000:00:18.3 1022:16fb D0 k10temp", "0000:00:18.4 1022:16fc D0 -", "0000:00:18.5 1022:16fd D0 -", "0000:00:18.6 1022:16fe D0 -", "0000:00:18.7 1022:16ff D0 -", "0000:66:00.0 1022:150d D0 -"]}},
+  {"cycle": 1, "step": "psp", "bound": ["0000:65:00.2 1022:17e0 - -> openbook_pci_pm"], "write_rc": 3, "asleep_s": 18.8, "suspend_success_delta": 1, "suspend_fail_delta": 0, "s0i3": false, "s0ix_residency_us": 0, "last_hw_sleep_us": 0, "total_hw_sleep_delta_us": 0, "smu": {"last_s0i3": "Unknown/Fail", "hint_count": 1, "time_to_s0i3_us": 0, "time_in_s0i3_us": 0, "not_met_us": {"USB4_0": 4884998220813513296, "MPM": 2805}}, "idlemask_entry": "0xffef9afd", "idlemask_after": "0xfd4c90fd", "cpuidle": [], "snapshot": {"summary": "41 PCI functions, 17 not in D3", "not_in_d3": ["0000:00:00.0 1022:1507 D0 -", "0000:00:00.2 1022:1508 D0 -", "0000:00:01.0 1022:1509 D0 -", "0000:00:02.0 1022:1509 D0 -", "0000:00:03.0 1022:1509 D0 -", "0000:00:08.0 1022:1509 D0 -", "0000:00:14.0 1022:790b D0 piix4_smbus", "0000:00:14.3 1022:790e D0 -", "0000:00:18.0 1022:16f8 D0 -", "0000:00:18.1 1022:16f9 D0 -", "0000:00:18.2 1022:16fa D0 -", "0000:00:18.3 1022:16fb D0 k10temp", "0000:00:18.4 1022:16fc D0 -", "0000:00:18.5 1022:16fd D0 -", "0000:00:18.6 1022:16fe D0 -", "0000:00:18.7 1022:16ff D0 -", "0000:66:00.0 1022:150d D0 -"]}},
+  {"cycle": 2, "step": "dummy", "bound": ["0000:66:00.0 1022:150d - -> openbook_pci_pm"], "write_rc": 3, "asleep_s": 17.9, "suspend_success_delta": 1, "suspend_fail_delta": 0, "s0i3": false, "s0ix_residency_us": 0, "last_hw_sleep_us": 0, "total_hw_sleep_delta_us": 0, "smu": {"last_s0i3": "Unknown/Fail", "hint_count": 1, "time_to_s0i3_us": 0, "time_in_s0i3_us": 0, "not_met_us": {"USB4_0": 78416, "MPM": 2268}}, "idlemask_entry": "0xffef9afd", "idlemask_after": "0xfd4c90fd", "cpuidle": [], "snapshot": {"summary": "41 PCI functions, 16 not in D3", "not_in_d3": ["0000:00:00.0 1022:1507 D0 -", "0000:00:00.2 1022:1508 D0 -", "0000:00:01.0 1022:1509 D0 -", "0000:00:02.0 1022:1509 D0 -", "0000:00:03.0 1022:1509 D0 -", "0000:00:08.0 1022:1509 D0 -", "0000:00:14.0 1022:790b D0 piix4_smbus", "0000:00:14.3 1022:790e D0 -", "0000:00:18.0 1022:16f8 D0 -", "0000:00:18.1 1022:16f9 D0 -", "0000:00:18.2 1022:16fa D0 -", "0000:00:18.3 1022:16fb D0 k10temp", "0000:00:18.4 1022:16fc D0 -", "0000:00:18.5 1022:16fd D0 -", "0000:00:18.6 1022:16fe D0 -", "0000:00:18.7 1022:16ff D0 -"]}},
+  {"cycle": 3, "step": "asus", "bound": ["asus-wmi.ko loaded", "asus-nb-wmi.ko not loaded", "hid-asus.ko loaded"], "write_rc": 3, "asleep_s": 19.0, "suspend_success_delta": 1, "suspend_fail_delta": 0, "s0i3": false, "s0ix_residency_us": 0, "last_hw_sleep_us": 0, "total_hw_sleep_delta_us": 0, "smu": {"last_s0i3": "Unknown/Fail", "hint_count": 1, "time_to_s0i3_us": 0, "time_in_s0i3_us": 0, "not_met_us": {"USB4_0": 4647714815446430288, "MPM": 3296}}, "idlemask_entry": "0xffef9abf", "idlemask_after": "0xfd4c90fd", "cpuidle": [], "snapshot": {"summary": "41 PCI functions, 16 not in D3", "not_in_d3": ["0000:00:00.0 1022:1507 D0 -", "0000:00:00.2 1022:1508 D0 -", "0000:00:01.0 1022:1509 D0 -", "0000:00:02.0 1022:1509 D0 -", "0000:00:03.0 1022:1509 D0 -", "0000:00:08.0 1022:1509 D0 -", "0000:00:14.0 1022:790b D0 piix4_smbus", "0000:00:14.3 1022:790e D0 -", "0000:00:18.0 1022:16f8 D0 -", "0000:00:18.1 1022:16f9 D0 -", "0000:00:18.2 1022:16fa D0 -", "0000:00:18.3 1022:16fb D0 k10temp", "0000:00:18.4 1022:16fc D0 -", "0000:00:18.5 1022:16fd D0 -", "0000:00:18.6 1022:16fe D0 -", "0000:00:18.7 1022:16ff D0 -"]}}]
+}

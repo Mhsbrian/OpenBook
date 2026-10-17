@@ -1,0 +1,31 @@
+# anal176t session: lid, sleep, suspend and wake lines from the persisted logcat (prior-boots.tar.gz), sorted, redacted.
+# Kernel lines logged after a suspend carry a wall time shifted by the time asleep (logd maps the kernel's
+# monotonic clock, which stops during suspend): the 15:11:52 amd_pmc and wakeup lines belong to the 15:06:38 resume.
+--- boot 1 (default entry) ---
+10-17 14:57:46.477338  root     1     1 I ACPI    : button: Lid Switch [LID0]
+10-17 14:57:59.485012  1000  1027  1027 I bootstat: Canonical boot reason: reboot
+10-17 14:57:59.485015  1000  1027  1027 I bootstat: Canonical boot reason: reboot
+10-17 14:58:14.364935  1000  1217  1333 I screen_toggled: 1
+10-17 14:58:14.971032  1000  4009  4009 I bootstat: Canonical boot reason: reboot,factory_reset
+10-17 15:01:12.166908  1000  1217  2746 I PowerGroup: Sleeping power group (groupId=0, uid=1000, reason=lid_switch)...
+10-17 15:01:12.647617  1000  1217  1217 I screen_toggled: 0
+10-17 15:01:13.037153  1000   988   988 I openbook.power: energy_performance_preference=power on 24 policies
+10-17 15:01:13.138172  1000  5627  5627 I PM      : suspend entry (s2idle)
+10-17 15:01:13.245726  root  5638  5638 I PM      : PM: Pending Wakeup Sources: mmc0
+10-17 15:01:14.248028  1000  5627  5627 I Abort   : Pending Wakeup Sources: mmc0
+10-17 15:01:14.258075  1000  5627  5627 I PM      : suspend exit
+10-17 15:01:18.323617  1000  5627  5627 I PM      : suspend entry (s2idle)
+10-17 15:06:38.036288  1000  1217  2746 I PowerGroup: Waking up power group from Asleep (groupId=0, uid=1000, reason=WAKE_REASON_LID, details=android.policy:LID)...
+10-17 15:06:38.036824  1000  1217  1217 I screen_toggled: 1
+10-17 15:06:38.036889  1000  1217  2746 I PowerManagerService: Waking up from Asleep (uid=1000, reason=WAKE_REASON_LID, details=android.policy:LID)...
+10-17 15:06:52.743525  1000  1217  5703 I ShutdownThread: Performing low-level shutdown...
+--- boot 2 (save logs entry) ---
+10-17 15:07:35.474680  root     1     1 I ACPI    : button: Lid Switch [LID0]
+10-17 15:07:44.464478  1000  1016  1016 I bootstat: Canonical boot reason: shutdown,userrequested
+10-17 15:07:44.464494  1000  1016  1016 I bootstat: Canonical boot reason: shutdown,userrequested
+10-17 15:07:53.584053  1000  1169  1287 I screen_toggled: 1
+10-17 15:11:52.770851  root     0     0 W [    C3] PM: pm_system_irq_wakeup: 7 triggered pinctrl_amd
+10-17 15:11:52.771323  1000  5627  5627 I PM      : PM: Pending Wakeup Sources: [timerfd] [timerfd]
+10-17 15:11:52.772745  1000  5627  5627 W amd_pmc AMDI000A: 00: Last suspend didn't reach deepest state
+10-17 15:11:52.778667  root     0     0 W [    C1] PM: pm_system_irq_wakeup: 9 triggered acpi
+10-17 15:11:54.810312  1000  5627  5627 I PM      : suspend exit

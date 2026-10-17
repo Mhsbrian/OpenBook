@@ -1,0 +1,60 @@
+# anal178c: sleep, wake, suspend and lid lines of both boots of the session, from the stick's persisted logcat
+# (prior-boots.tar.gz: logd keeps writing it during the save-logs boot too), sorted, redacted. A boot starts at
+# the kernel's 'Lid Switch [LID0]' line.
+--- boot 1 (default entry) ---
+10-17 12:14:56.478713  root     1     1 I ACPI    : button: Lid Switch [LID0]
+10-17 12:15:09.394842  1000  1025  1025 I bootstat: Canonical boot reason: reboot
+10-17 12:15:09.394844  1000  1025  1025 I bootstat: Canonical boot reason: reboot
+10-17 12:15:23.780885  1000  1214  1288 I screen_toggled: 1
+10-17 12:15:23.912118 10081  3467  3467 V SystemUIBootTiming: StartServices com.android.systemui.globalactions.GlobalActionsComponent took to complete: 1ms
+10-17 12:15:24.422028  1000  3960  3960 I bootstat: Canonical boot reason: reboot,factory_reset
+10-17 12:15:34.610078  1000  1214  1214 I screen_toggled: 1
+10-17 12:15:34.610813  1000  1214  1316 I PowerManagerService: Going to sleep due to timeout (uid 1000, screenOffTimeout=600000, activityTimeoutWM=10000, maxDimRatio=0.20000005, maxDimDur=7000)...
+10-17 12:15:35.521628  1000  1214  1214 I screen_toggled: 0
+10-17 12:15:35.621420  1000  4671  4671 I PM      : suspend entry (s2idle)
+10-17 12:15:35.862912  1000  4671  4671 I PM      : suspend exit
+10-17 12:15:35.882265  1000  1214  2703 I PowerManagerService: Waking up from Asleep (uid=1000, reason=WAKE_REASON_WAKE_MOTION, details=android.policy:MOTION)...
+10-17 12:15:35.882479  1000  1214  1214 I screen_toggled: 1
+10-17 12:19:15.966649 10081  3467  3467 D WindowOnBackDispatcher: setTopOnBackInvokedCallback (unwrapped): com.android.systemui.globalactions.GlobalActionsDialogLite$ActionsDialogLiteDelegate$$ExternalSyntheticLambda0@cab0a89
+10-17 12:19:15.966717  1000  1214  1274 D CoreBackPreview: Window{a1b0a16 u0 GlobalActionsDialogLite}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@cb5b1a2, mPriority=-
+10-17 12:19:15.966745  1000  1214  1274 D CoreBackPreview: Window{a1b0a16 u0 GlobalActionsDialogLite}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@ac82e33, mPriority=0
+10-17 12:19:15.966762  1000  1214  1274 D CoreBackPreview: Window{a1b0a16 u0 GlobalActionsDialogLite}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@3c165f0, mPriority=0
+10-17 12:19:15.966804  1000  1214  1274 D CoreBackPreview: Window{a1b0a16 u0 GlobalActionsDialogLite}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@e07b769, mPriority=0
+10-17 12:19:15.968077  1000  1214  1274 D WindowManager: setClientSurface Surface(name=VRI-GlobalActionsDialogLite#403)/@0x76145ee for a1b0a16 GlobalActionsDialogLite
+10-17 12:19:15.968666  1000  1214  1289 I input_focus: [Focus request a1b0a16 GlobalActionsDialogLite,reason=UpdateInputWindows]
+10-17 12:19:15.969008 10081  3467  3467 I Surface : Creating surface for consumer VRI[GlobalActionsDialogLite]#25(BLAST Consumer)25 with slotExpansion=1 for 64 slots
+10-17 12:19:15.969105 10081  3467  3467 I viewroot_draw_event: [VRI[GlobalActionsDialogLite]9749b6d,applyTransactionOnDraw applyImmediately]
+10-17 12:19:15.974244 10081  3467  3467 I viewroot_draw_event: [VRI[GlobalActionsDialogLite]9749b6d,reportDrawFinished seqId=1]
+10-17 12:19:16.017875  1000  1214  2702 I input_focus: [Focus entering a1b0a16 GlobalActionsDialogLite,reason=Window became focusable. Previous reason: NOT_VISIBLE]
+10-17 12:19:16.018026 10081  3467  3467 I input_focus: ViewRootImpl focus=true for GlobalActionsDialogLite
+10-17 12:19:16.376020  1000  1214  2702 I input_interaction: Interaction with: [2dca648 NotificationShade,[Gesture Monitor] edge-swipe,PointerEventDispatcher0,[Gesture Monitor] swipe-up,a1b0a16 GlobalActionsDialogLite], on display
+10-17 12:19:16.419239  1000  1214  2702 I input_interaction: Interaction with: [[Gesture Monitor] edge-swipe,PointerEventDispatcher0,[Gesture Monitor] swipe-up,a1b0a16 GlobalActionsDialogLite], on displayId 0
+10-17 12:19:17.246208  1000  1214  1274 D CoreBackPreview: Window{a1b0a16 u0 GlobalActionsDialogLite}: Setting back callback null
+10-17 12:19:17.251679  1000  1214  5608 I ShutdownThread: Logging pre-reboot information...
+10-17 12:19:17.251920  1000  1214  5608 I ShutdownThread: Sending shutdown broadcast...
+10-17 12:19:17.267974  1000  1214  3630 I InputDispatcher: Touched window was removed: a1b0a16 GlobalActionsDialogLite in display %0
+10-17 12:19:17.293521  1000  1214  5608 I ShutdownThread: Shutting down activity manager...
+10-17 12:19:17.705231  1000  1214  5608 I ShutdownThread: Shutting down package manager...
+10-17 12:19:17.708307  1000  1214  5608 W FileUtils: 	at com.android.server.power.ShutdownThread.run(ShutdownThread.java:611)
+10-17 12:19:17.712078  1000  1214  5622 I ShutdownThread: Waiting for Radio...
+10-17 12:19:17.712095  1000  1214  5622 I ShutdownThread: Radio shutdown complete.
+10-17 12:19:17.712327  1000  1214  5608 I ShutdownThread: Rebooting, reason: userrequested
+--- boot 2 (save logs entry) ---
+10-17 12:20:11.474981  root     1     1 I ACPI    : button: Lid Switch [LID0]
+10-17 12:20:20.345035  1000  1022  1022 I bootstat: Canonical boot reason: reboot,userrequested
+10-17 12:20:20.345042  1000  1022  1022 I bootstat: Canonical boot reason: reboot,userrequested
+10-17 12:20:29.216577  1000  1192  1311 I screen_toggled: 1
+10-17 12:20:29.262609 10081  1536  1536 V SystemUIBootTiming: StartServices com.android.systemui.globalactions.GlobalActionsComponent took to complete: 1ms
+10-17 12:20:40.004262  1000  1192  1192 I screen_toggled: 1
+10-17 12:20:40.004685  1000  1192  1339 I PowerManagerService: Going to sleep due to timeout (uid 1000, screenOffTimeout=600000, activityTimeoutWM=10000, maxDimRatio=0.20000005, maxDimDur=7000)...
+10-17 12:20:40.897727  1000  1192  1192 I screen_toggled: 0
+10-17 12:20:41.492349  1000  2544  2544 I PM      : suspend entry (s2idle)
+10-17 12:20:41.843546  1000  2544  2544 I PM      : suspend exit
+10-17 12:20:46.925755  1000  2544  2544 I PM      : suspend entry (s2idle)
+10-17 12:20:47.085389  1000  2544  2544 I PM      : suspend exit
+10-17 12:20:48.977701  1000  2544  2544 I PM      : suspend entry (s2idle)
+10-17 12:20:49.159938  1000  2544  2544 I PM      : suspend exit
+10-17 12:20:51.053555  1000  2544  2544 I PM      : suspend entry (s2idle)
+10-17 12:21:12.985424  1000  1192  1393 I PowerManagerService: Waking up from Asleep (uid=1000, reason=WAKE_REASON_WAKE_KEY, details=android.policy:KEY)...
+10-17 12:21:12.985610  1000  1192  1192 I screen_toggled: 1
+10-17 12:21:13.688846  1000  2544  2544 I PM      : suspend exit

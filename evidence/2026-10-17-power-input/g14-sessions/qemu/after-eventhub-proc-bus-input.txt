@@ -1,0 +1,22 @@
+I: Bus=0018 Vendor=04f3 Product=3315 Version=0100
+N: Name="OpenBook test ELAN 04F3:3315 Mouse"
+P: Phys=uhid-openbook-test
+S: Sysfs=/devices/virtual/misc/uhid/0018:04F3:3315.0003/input/input6
+U: Uniq=
+H: Handlers=event4 
+B: PROP=0
+B: EV=17
+B: KEY=30000 0 0 0 0
+B: REL=1943
+B: MSC=10
+I: Bus=0018 Vendor=04f3 Product=3315 Version=0100
+N: Name="OpenBook test ELAN 04F3:3315 Touchpad"
+P: Phys=uhid-openbook-test
+S: Sysfs=/devices/virtual/misc/uhid/0018:04F3:3315.0003/input/input7
+U: Uniq=
+H: Handlers=event5 
+B: PROP=5
+B: EV=10001b
+B: KEY=e520 10000 0 0 0 0
+B: ABS=2e0800000000003
+B: MSC=20

@@ -1,0 +1,8 @@
+# amd_pmc smu_fw_info after each power-check cycle (hwcheck-001.txt), non-zero 'Active time' slots only.
+# Each slot is a u64 in the kernel's struct smu_metrics; hi32/lo32 show its two halves. USB4_0's low half is
+# always 0x13250 and its high half changes (0x43cb0000 and 0x40800000 read as IEEE floats 406.0 and 4.0), so the
+# firmware's table v3 layout does not match the kernel's array there: treat the slot names as unconfirmed.
+cycle 0 (baseline): table v3, idle mask after 0xfd4c90fd; USB4_0 78416 (hi32 0x0, lo32 0x13250); MPM 14765 (hi32 0x0, lo32 0x39ad)
+cycle 1 (psp): table v3, idle mask after 0xfd4c90fd; USB4_0 4884998220813513296 (hi32 0x43cb0000, lo32 0x13250); MPM 2805 (hi32 0x0, lo32 0xaf5)
+cycle 2 (dummy): table v3, idle mask after 0xfd4c90fd; USB4_0 78416 (hi32 0x0, lo32 0x13250); MPM 2268 (hi32 0x0, lo32 0x8dc)
+cycle 3 (asus): table v3, idle mask after 0xfd4c90fd; USB4_0 4647714815446430288 (hi32 0x40800000, lo32 0x13250); MPM 3296 (hi32 0x0, lo32 0xce0)
