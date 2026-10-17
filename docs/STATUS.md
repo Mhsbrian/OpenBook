@@ -1,10 +1,10 @@
 # Status
 
-## State of the union (2026-10-17, 20:35 UTC)
+## State of the union (2026-10-17, 21:25 UTC)
 
 **Goal:** the Googlebook-style Android 17 desktop on the ASUS ROG Zephyrus G14 (GA403WR: Ryzen AI 9 HX 370, Radeon 890M), installed from a USB stick through a wizard and verified on the laptop. Repo: https://github.com/Mhsbrian/OpenBook.
 
-**Repo hygiene:** PRs #1–#66 are merged and none are open. The 2026-10-17 cleanup left one remote branch, `main`; every other branch was merged or superseded. Two branches with commits never merged are kept as tags: `archive/anal-190-live-image-b` (superseded on `main`) and `archive/anal-178-stick-integration`.
+**Repo hygiene:** PRs #1–#69 are merged and none are open. The 2026-10-17 cleanup left one remote branch, `main`; every other branch was merged or superseded. Two branches with commits never merged are kept as tags: `archive/anal-190-live-image-b` (superseded on `main`) and `archive/anal-178-stick-integration`.
 
 ### What works, and where it has been shown
 
@@ -18,13 +18,13 @@
 | Sleep | s2idle in a VM | **s2idle works, under Android too** (screen timeout → s2idle → key wake, display and Wi-Fi back); **deep sleep (S0i3) never reached.** The power check ruled out the driverless PSP; the SMU points at MPM or the USB4 router (unconfirmed) | `docs/power-input.md` §1.3, §7.6 |
 | Wi-Fi, Bluetooth, audio | Yes (WPA2, iperf3, tone through ALSA and, with the HAL fix, through Android) | **Wi-Fi to the internet** (5 GHz, 160 MHz); **Bluetooth pairs**, A2DP with LDAC; **speakers and mic through ALSA** heard. Through Android the tone was broken (HAL fix in ANAL-179's PR, QEMU only). **Under enforcing (`anal176t`), Bluetooth audio connects without the Bluetooth app aborting**: A2DP Connected, the HAL's A2DP session and outputs open, 0 crashes, so #52's policy fix holds. Sound over Bluetooth and app (browser) sound are still unheard. The only playback tried, ringtone previews, **failed to decode** (`Failed to create audio/vorbis decoder`; missing system DMA-BUF heap suspected). Headphone jack and iperf3 not tested | `evidence/2026-10-17-g14-audio-net/`, `evidence/2026-10-17-g14-desktop/g14-anal176s/`, `g14-anal176t/` |
 | ARM apps (Digitalis, built from source) | 14/16 ARM-only apps; works in enforcing | **The bridge self-check passes on Zen 5** (5/5 verdicts, both sessions). No arm64 app run yet: the ARM apps check is on ANAL-192's stick | `evidence/2026-10-17-digitalis-a17/`, `evidence/2026-10-17-digitalis-g14/` |
-| Installer | **Wizard 25/25, engine 53/53, end to end 79/79** (SELinux enforcing): whole disk and **alongside a Windows-like disk** (Windows' partitions byte-identical and still booting; OpenBook boots from a firmware boot option); **power cuts at 6 points**, each leaving the old table, a blank disk or a complete install, and each restart completing; reinstall; the installed disk with and without the stick. **Firmware boot entries (since ANAL-191's #68):** the installer creates `Boot####` "OpenBook" itself; OVMF boots it with the fallback path deleted, and alongside leaves Windows' entry and `BootOrder` byte-identical | Live USB boots; the wizard has not run yet | `evidence/2026-10-17-installer-wizard/`, `evidence/2026-10-17-installer-e2e/` |
+| Installer | **Wizard 25/25, engine 63/63, end to end 79/79; the firmware boot entry (`Boot####`, #68) boots with no fallback path** (SELinux enforcing): whole disk and **alongside a Windows-like disk** (Windows' partitions byte-identical and still booting; OpenBook boots from a firmware boot option); **power cuts at 6 points**, each leaving the old table, a blank disk or a complete install, and each restart completing; reinstall; the installed disk with and without the stick. **Firmware boot entries (since ANAL-191's #68):** the installer creates `Boot####` "OpenBook" itself; OVMF boots it with the fallback path deleted, and alongside leaves Windows' entry and `BootOrder` byte-identical | Live USB boots; the wizard has not run yet | `evidence/2026-10-17-installer-wizard/`, `evidence/2026-10-17-installer-e2e/` |
 
 **What is left on the G14:** S0i3 deep sleep (needs the laptop's own Linux comparison), audible Bluetooth and app audio, the Android audio path with the HAL fix, media decoding on the laptop (it failed on `anal176t`; fixed in QEMU by #64, on `anal198`), the ARM apps check, the installer dry run, and the second graphics run on Vulkan 1.4. All but S0i3 are on `anal198`'s checklist.
 
 ### Running now
 
-- **The two follow-ups ANAL-198 found are fixed in QEMU:** ANAL-179 (system sounds: `audioserver` and SystemUI's SoundPool memory, #67 merged) and ANAL-191 (an efivarfs SELinux label, so the installer writes its own `Boot####` entry; #68 in review, `docs/installer.md` §12.11). Both ride the stick after `anal198`.
+- **Nothing is running; waiting on the owner's `anal198` session.** The two follow-ups ANAL-198 found are merged: #67 (ANAL-179: system sounds play under enforcing, QEMU) and #68 (ANAL-191: the installer creates its firmware `Boot####` entry, with an efivarfs SELinux label, QEMU/OVMF). They ride the stick after `anal198`, which ANAL-192 builds once the owner's results are read, so it can also carry that session's fixes.
 - **ANAL-198 (kernel lane): #64 merged.** It adds the system DMA-BUF heap and fixes two product bugs behind it (Codec2 HAL selection, Codec2 memfds under SELinux), so media decodes in QEMU. It also ships `efivarfs` as a vendor module, with Google's GKI configuration unchanged. Writing variables needed installer SELinux policy: done by ANAL-191 (#68).
 - **The owner's stick is now `openbook-live-20261017-anal198`** (built on the owner's request after #64; `docs/installer.md` §13.11). It comes from `main` `2d90741` and has everything `anal192c` had, plus Vulkan 1.4 (#61), the #64 kernel and media fixes, and ANAL-177's graphics check (sha256 `3b405d08…`). In QEMU: live 40/40, wizard 25/25, installer end to end 78/78, all four add-ons, and the media check. It replaces `anal192c`. The checklist is `anal192c`'s three boots (§13.6) plus a fourth, the graphics check.
 - **After that session:** results go to ANAL-176, ANAL-177, ANAL-178, ANAL-179, ANAL-191 and ANAL-200.
@@ -36,6 +36,7 @@
    Reply "stick attached" on ANAL-192 only; the coordinator routes each issue to its part. Ringtone sound is expected to fail until ANAL-198's heap fix ships on the next stick, along with Vulkan 1.4 and ANAL-177's second graphics run.
    Optional and independent of the stick, for S0i3: on the laptop's own Linux run `sudo python3 scripts/power/linux-s2idle.py --amd-s2idle` (about 5 min; `docs/power-input.md` §7.6) and attach the tarball to ANAL-178.
 2. **Decisions:** none blocks running work.
+   - **New, from ANAL-191:** when an alongside install leaves "Start OpenBook by default" unticked, the `Boot####` entry stays out of `BootOrder`, so OpenBook doesn't appear in the firmware's boot menu. Recommendation: add it at the **end** of `BootOrder`. Windows stays the default, and OpenBook becomes selectable from the boot menu.
    - repo license (Apache-2.0 suggested);
    - upstream reports for the bridge (DigitalisX64; AOSP `Build.CPU_ABI`);
    - amd-pmf (`docs/kernel.md`);
@@ -74,6 +75,13 @@
 **Build host:** one AOSP build at a time (`flock ~/anybook/aosp/.lane.lock`, taken by `scripts/aosp-docker.sh`), because builds peak at about 50 GB of the 61 GB RAM. Builds and images are in `docs/BUILD.md`; the live image and the owner checklists are in `docs/installer.md` §11.
 
 ## History
+
+### 2026-10-17: the follow-ups merged; the next stick waits for the owner's results (ANAL-159)
+- **Merged** #67 (ANAL-179: `audioserver` may use apps' memfds, the same rule AOSP gives mediaserver; SoundPool denials 2 → 0 in QEMU) and #68 (ANAL-191: the efivarfs label, mounted on live boots only).
+  - The engine creates a new `Boot####` with `O_EXCL`, so it can't overwrite another OS's entry.
+  - It touches `BootOrder` only with consent.
+  - In QEMU/OVMF it booted with the fallback file removed (`BootCurrent=0005`), and Windows' entry and `BootOrder` stayed byte-identical.
+- **Not building a new stick yet.** The owner hasn't run `anal198`. ANAL-198's routing now wakes the coordinator to order the next stick from ANAL-192 once that session is read.
 
 ### 2026-10-17: the installer creates firmware boot entries (ANAL-191, PR #68, follow-up to ANAL-198's #64)
 - **Done** (`docs/installer.md` §12.11):
