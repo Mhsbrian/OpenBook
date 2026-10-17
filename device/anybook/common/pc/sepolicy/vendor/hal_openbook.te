@@ -3,6 +3,8 @@
 # Lights: /sys/class/backlight/<dev>/{type,max_brightness,brightness}, through the class directory's symlinks.
 allow hal_light_default sysfs:dir r_dir_perms;
 allow hal_light_default sysfs:lnk_file read;
+# amdgpu_bl0 sits below the GPU's drm directory, which is sysfs_gpu (file_contexts).
+allow hal_light_default sysfs_gpu:dir search;
 
 # Power: amd-pstate EPP per cpufreq policy (openbook-pc-setup perms makes the files writable by system).
 r_dir_file(hal_power_default, sysfs_devices_system_cpu)

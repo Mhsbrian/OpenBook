@@ -3,13 +3,17 @@
   Copyright (C) 2026 The OpenBook Authors
   SPDX-License-Identifier: Apache-2.0
 
-  Framework config for OpenBook on a laptop (ANAL-178): lid, power button and power behaviour. The desktop
-  overlay (common/desktop) copies Google's AOSP Desktop emulator image, which has no lid or battery. These values
-  are the ones Google's Googlebook image for a real laptop sets (ruby, 16452207_CL3B.260622.271.R1,
+  Framework config for PC hardware (the desktop UI's own settings are in common/desktop): headphone jacks
+  (ANAL-179); lid, power button and power behaviour (ANAL-178). The lid and power values are the ones Google's
+  Googlebook image for a real laptop sets (ruby, 16452207_CL3B.260622.271.R1,
   /product/overlay/FrameworkDesktopOverlay.apk, read with aapt2; docs/power-input.md), except where noted.
   Defaults: frameworks/base/core/res/res/values/config.xml.
 -->
 <resources>
+    <!-- HDA codecs report the headphone and headset-mic jacks as input switches (SW_HEADPHONE_INSERT,
+         SW_MICROPHONE_INSERT on "HD-Audio Generic Headphone/Mic"), not through the old h2w switch class. -->
+    <bool name="config_useDevInputEventForAudioJack">true</bool>
+
     <!-- Lid: closing it puts the device to sleep (then the kernel suspends to idle), opening it wakes it. The
          keyboard and the touchpad count as usable only while the lid is open. AOSP's default is false: without
          this a closed laptop stays awake with its screen on. -->

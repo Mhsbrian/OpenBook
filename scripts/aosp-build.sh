@@ -20,8 +20,11 @@ stamp "target $TGT goals ${GOALS[*]} -j$J on $(nproc) CPUs"; free -g
 # not symlinked: Soong's nsjail sandbox only sees /aosp/src. --delete keeps it an exact mirror of the repo.
 if [ -d /repo/device/anybook ]; then
   # --copy-unsafe-links: files the device tree links from elsewhere in this repo (scripts/dgpu-power-check.sh)
-  # arrive as copies.
-  rsync -a --copy-unsafe-links --delete /repo/device/anybook/ "$T/device/anybook/"
+  # arrive as copies. Content is compared (--checksum) and times are not kept: builders of different branches take
+  # turns in this tree, and a file that keeps its checkout time can look older than an output another branch's
+  # build just made from its own version, so the build keeps the stale output (ANAL-176 met ANAL-179's
+  # file_contexts that way). A file that changed gets the current time; one that did not keeps its old time.
+  rsync -rlpD --checksum --copy-unsafe-links --delete /repo/device/anybook/ "$T/device/anybook/"
   stamp "synced device/anybook from /repo (AnyBook ${ANYBOOK_REV:-unknown})"
 fi
 # AnyBook's patches to AOSP projects (aosp/patches/<project>), on top of each project's pin.

@@ -13,6 +13,7 @@
 
 # Vendor executables.
 /vendor/bin/openbook-pc-setup                 u:object_r:openbook_pc_setup_exec:s0
+/vendor/bin/openbook-audio-setup              u:object_r:openbook_audio_setup_exec:s0
 /vendor/bin/hw/android\.hardware\.health-service\.openbook       u:object_r:hal_health_default_exec:s0
 /vendor/bin/hw/android\.hardware\.lights-service\.openbook       u:object_r:hal_light_default_exec:s0
 /vendor/bin/hw/android\.hardware\.power-service\.openbook        u:object_r:hal_power_default_exec:s0
@@ -21,6 +22,8 @@
 /vendor/bin/hw/android\.hardware\.weaver-service\.openbook       u:object_r:hal_weaver_default_exec:s0
 
 /data/vendor/weaver(/.*)?                     u:object_r:openbook_weaver_data_file:s0
+
+/dev/rfkill                                   u:object_r:openbook_rfkill_device:s0
 
 # sysfs nodes the HALs read or write. Their ACPI and PCI paths differ from laptop to laptop, so they are matched by
 # class directory name; ueventd restorecons a device's sysfs directory when the device is added.

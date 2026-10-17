@@ -223,6 +223,23 @@ scripts/g14-qemu.sh <img> <run> && scripts/g14-qemu.sh --again <run>   # two boo
 ```
 Details: `docs/g14-product.md`.
 
+## Bare metal: audio, Wi-Fi and Bluetooth on the G14 (ANAL-179)
+
+```bash
+# In one lane-lock hold (other branches build in the same tree): build, then snapshot PRODUCT_OUT
+flock ~/anybook/aosp/.lane.lock bash -c 'AOSP_JOBS=24 scripts/aosp-docker.sh -d anybook-aosp-build /repo/scripts/aosp-build.sh \
+  anybook_g14_x86_64-cp2a-userdebug droid openbook_hals_test openbook_audio_logic_test validatekeymaps \
+  out/soong/.intermediates/external/wpa_supplicant_8/hostapd/hostapd/android_vendor_x86_64_silvermont_cfi/hostapd \
+  && docker wait anybook-aosp-build && scripts/audio-net-qemu.sh snapshot NAME'
+scripts/g14-image.sh --label openbook-g14-NAME --product-out ~/anybook/audio-net/product/NAME
+scripts/audio-net-qemu.sh payload                      # hwsim + hostapd + DHCP test disk for the guest
+scripts/audio-net-qemu.sh run ~/anybook/installer/out/openbook-g14-NAME.img RUN   # HDA card + Wi-Fi AP in QEMU
+scripts/installer-image.sh --product-out ~/anybook/audio-net/product/NAME --label openbook-live-<date>-<name> --menu-timeout 10
+```
+- `aosp-build.sh` applies both `aosp/patches/hardware/interfaces` patches (the audio HAL's card and pacing properties).
+- Before a build that follows another branch's, give the tree's `device/anybook` the current time (`find ~/anybook/aosp/src/device/anybook -exec touch {} +`): outputs another branch copied from its own version of a file can otherwise look up to date.
+- Details: `docs/g14-audio-net.md`.
+
 ## Power and input: the power check and laptop config (ANAL-178)
 ```bash
 docker build -t openbook-installer:anal178 -f tools/Dockerfile.installer tools   # needs make for the test modules

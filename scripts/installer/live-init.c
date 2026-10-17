@@ -14,7 +14,9 @@
 //          (androidboot.openbook.logs_after=poweroff, the default; =reboot for unattended runs; =stay). It
 //          mounts the ESP with the new mount API (fsopen/fsmount), so the mount is attached nowhere and Android
 //          never sees it. That entry also boots SELinux permissive (userdebug only), which the helper needs to
-//          read logcat and take the screenshot from outside Android's own domains.
+//          read logcat and take the screenshot from outside Android's own domains. On products that ship it
+//          (userdebug), the final capture first runs /system_ext/bin/openbook-hwtest (Wi-Fi, Bluetooth and audio
+//          checks, ANAL-179) into hwtest-final.txt, with the settings in openbook/hwtest.conf on the ESP.
 // Safety: it acts only with androidboot.openbook.live=1 (set only by the live stick's boot entries), only on the
 // disk holding the ESP whose PARTUUID is androidboot.boot_part_uuid, only if that disk is on USB, and only if its
 // GPT is valid and has the OpenBook live layout (EFI, metadata, super, userdata; userdata last). Anything
@@ -582,6 +584,12 @@ static const char *ANDROID_ENV[] = {
     "ANDROID_I18N_ROOT=/apex/com.android.i18n", "ANDROID_TZDATA_ROOT=/apex/com.android.tzdata", "HOME=/data/local/tmp",
     "TMPDIR=/data/local/tmp", NULL};
 
+// ANDROID_ENV plus the OPENBOOK_HWTEST_<KEY> settings from openbook/hwtest.conf on the ESP (read_hwtest_conf), for
+// the Wi-Fi, Bluetooth and audio checks (openbook-hwtest, ANAL-179).
+#define HWTEST_MAX 16
+static const char *hwtest_env[sizeof ANDROID_ENV / sizeof *ANDROID_ENV + HWTEST_MAX];
+static const char *const *run_env = ANDROID_ENV;
+
 // Run CMD with /system/bin/sh in Android's mount namespace and root (init's: /proc/1/ns/mnt, /proc/1/root), so
 // /proc/self/mounts, df and the APEX mounts look as they do to Android's own shell. Output goes to out_fd, or into
 // cap (NUL-terminated) when cap is not NULL. Returns the exit status, or -1 (spawn failed or timed out).
@@ -602,7 +610,7 @@ static int run_android(const char *cmd, int out_fd, char *cap, size_t caplen, in
         dup2(o, 2);
         setsid();
         char *const argv[] = {(char *)"sh", (char *)"-c", (char *)cmd, NULL};
-        execve("/system/bin/sh", argv, (char *const *)ANDROID_ENV);
+        execve("/system/bin/sh", argv, (char *const *)run_env);
         _exit(127);
     }
     size_t got = 0;
@@ -739,7 +747,7 @@ static const char *SUMMARY_PROPS[] = {
     "init.svc.vendor.openbook.dlkm", "init.svc.vendor.openbook.dgpu-pm", "init.svc.wpa_supplicant", "wifi.interface",
     "ro.crypto.state", "ro.crypto.type", "sys.system_server.start_count", "ro.boottime.init", NULL};
 
-struct capture { char phase[16]; double at; int collect, logcat, screen; };
+struct capture { char phase[16]; double at; int collect, logcat, screen, hwtest; };
 static struct capture caps[4];
 static int ncaps;
 static double t_second = -1, t_complete = -1;
@@ -789,6 +797,16 @@ static void capture(const char *phase) {
     c->at = uptime_s();
     char f[64];
     say("logs: %s capture at %.0f s", phase, c->at);
+    // The final capture first runs the userdebug product's Wi-Fi, Bluetooth and audio checks, so the logcat and
+    // system facts below include what they did. -1: not run (early capture, or a product without the tool).
+    c->hwtest = -1;
+    if (!strcmp(phase, "final")) {
+        run_env = hwtest_env;
+        c->hwtest = run_to_file("[ -x /system_ext/bin/openbook-hwtest ] || exit 127; /system_ext/bin/openbook-hwtest",
+                                "hwtest-final.txt", 360);
+        run_env = ANDROID_ENV;
+        drain_kmsg();
+    }
     snprintf(f, sizeof f, "collect-%s.txt", phase);
     c->collect = run_to_file(COLLECT, f, 240);
     snprintf(f, sizeof f, "logcat-%s.txt", phase);
@@ -810,8 +828,8 @@ static void write_summary(const char *after) {
     SB_LIT(&b, ",\n \"captures\": [");
     for (int i = 0; i < ncaps; i++)
         sb_printf(&b, "%s\n  {\"phase\": \"%s\", \"uptime_s\": %.1f, \"collect_rc\": %d, \"logcat_rc\": %d, "
-                      "\"screencap_rc\": %d}", i ? "," : "", caps[i].phase, caps[i].at, caps[i].collect,
-                  caps[i].logcat, caps[i].screen);
+                      "\"screencap_rc\": %d, \"hwtest_rc\": %d}", i ? "," : "", caps[i].phase, caps[i].at,
+                  caps[i].collect, caps[i].logcat, caps[i].screen, caps[i].hwtest);
     SB_LIT(&b, "\n ],\n \"props\": {");
     for (int i = 0; SUMMARY_PROPS[i]; i++) {
         char cmd[128], v[512];
@@ -823,6 +841,40 @@ static void write_summary(const char *after) {
     SB_LIT(&b, "\n }\n}\n");
     if (write_at(logdir, "summary.json", b.p, b.n)) say("logs: writing summary.json failed (%s)", strerror(errno));
     free(b.p);
+}
+
+// openbook/hwtest.conf on the ESP: "key=value" lines the owner or a device agent writes (e.g.
+// iperf3_server=192.168.1.20), passed to openbook-hwtest as OPENBOOK_HWTEST_<KEY>. Keys [a-z0-9_], values
+// [A-Za-z0-9.:_-] only, at most HWTEST_MAX; anything else is skipped. Never put credentials there: the file is
+// plain text on the stick.
+static void read_hwtest_conf(void) {
+    static char store[HWTEST_MAX][128];
+    int n = 0, e = 0;
+    while (ANDROID_ENV[e]) { hwtest_env[e] = ANDROID_ENV[e]; e++; }
+    hwtest_env[e] = NULL;
+    int fd = openat(espfd, "openbook/hwtest.conf", O_RDONLY | O_CLOEXEC);
+    if (fd < 0) return;
+    char buf[4096];
+    ssize_t len = read(fd, buf, sizeof buf - 1);
+    close(fd);
+    if (len <= 0) return;
+    buf[len] = 0;
+    for (char *line = strtok(buf, "\r\n"); line && n < HWTEST_MAX; line = strtok(NULL, "\r\n")) {
+        char *eq = strchr(line, '=');
+        if (line[0] == '#' || !eq || eq == line || eq - line > 32 || strlen(eq + 1) > 64) continue;
+        int good = 1;
+        for (char *k = line; k < eq; k++) good &= (*k >= 'a' && *k <= 'z') || (*k >= '0' && *k <= '9') || *k == '_';
+        for (char *v = eq + 1; *v; v++)
+            good &= (*v >= 'A' && *v <= 'Z') || (*v >= 'a' && *v <= 'z') || (*v >= '0' && *v <= '9') || *v == '.' ||
+                    *v == ':' || *v == '_' || *v == '-';
+        if (!good) continue;
+        int m = snprintf(store[n], sizeof store[n], "OPENBOOK_HWTEST_");
+        for (char *k = line; k < eq && m < (int)sizeof store[n] - 1; k++) store[n][m++] = (char)toupper((unsigned char)*k);
+        snprintf(store[n] + m, sizeof store[n] - m, "=%s", eq + 1);
+        hwtest_env[e++] = store[n++];
+        hwtest_env[e] = NULL;
+    }
+    say("logs: %d setting(s) from openbook/hwtest.conf", n);
 }
 
 // The helper process. Runs alongside Android until the final capture, then asks Android to shut down.
@@ -847,6 +899,7 @@ static void logs_helper(int ready_fd, const char *esp_node) {
     if (!ok) say("logs: setup failed (kmsg %d, esp %d, proc %d, dir %d: %s); no logs this boot", kmsg_in, espfd,
                  procfd, logdir, strerror(errno));
     else say("logs: saving to %s on the stick's ESP", logdir_name);
+    if (ok) read_hwtest_conf();
     if (write(ready_fd, ok ? "1" : "0", 1) < 0) { /* the parent goes on after a timeout */ }
     close(ready_fd);
     if (!ok) _exit(1);

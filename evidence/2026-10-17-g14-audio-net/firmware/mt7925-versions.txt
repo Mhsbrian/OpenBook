@@ -1,0 +1,9 @@
+# MT7925 firmware: AOSP's copies (what the image ships) vs ANAL-198's linux-firmware staging (not shipped)
+AOSP external/linux-firmware  mediatek/mt7925/WIFI_RAM_CODE_MT7925_1_1.bin  1246968 bytes  sha256 00a1c7c22d9d9851  build 20260414153105
+ANAL-198 staging (38c1a709)  mediatek/mt7925/WIFI_RAM_CODE_MT7925_1_1.bin  1392088 bytes  sha256 23ff53b4bb639b30  build 20260813113118
+AOSP external/linux-firmware  mediatek/mt7925/WIFI_MT7925_PATCH_MCU_1_1_hdr.bin  197792 bytes  sha256 d1d83b7b23e1af7a  build 20260414153001a
+ANAL-198 staging (38c1a709)  mediatek/mt7925/WIFI_MT7925_PATCH_MCU_1_1_hdr.bin  188192 bytes  sha256 8eb46014d2a6b412  build 20260813113015a
+AOSP external/linux-firmware  mediatek/mt7925/BT_RAM_CODE_MT7925_1_1_hdr.bin  460207 bytes  sha256 6c23dc15256fb03d  build 20260414153243
+ANAL-198 staging (38c1a709)  mediatek/mt7925/BT_RAM_CODE_MT7925_1_1_hdr.bin  448367 bytes  sha256 be7c18e37221e277  build 20260813113236
+
+live-001 on the G14 (AOSP's files): WM build 20260414153105, BT build 20260414153243 (evidence/2026-10-16-installer/g14-live/live-001/dmesg.txt.gz)

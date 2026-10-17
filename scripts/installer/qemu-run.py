@@ -6,7 +6,7 @@ timeout. Runs inside the openbook-installer container. Image files only; never a
 
 usage: qemu-run.py --usb IMG [--nvme IMG] --out DIR [--timeout S] [--expect STEPS.json] [--shot SECONDS ...]
                    [--mem MiB] [--smp N] [--vars FILE] [--pause-on-reset] [--vga MODEL] [--gpu DEVICE]
-                   [--usb-input] [--tpm] [--detach-test-device] [--trace]
+                   [--usb-input] [--tpm] [--detach-test-device] [--trace] [--audio WAV] [--extra-usb IMG]
 
 STEPS.json: [{"wait": "regex", "timeout": 120}, {"send": "text\\n"}, {"shot": "name"}, {"pause": seconds},
 {"monitor": "QEMU monitor command"}, ...]; steps run in order on the serial stream; "shot" saves the screen as
@@ -73,9 +73,12 @@ def main():
     ap.add_argument("--detach-test-device", action="store_true",
                     help="add a virtio-rng (1af4) behind a PCIe root port, a stand-in for the dGPU detach test")
     ap.add_argument("--trace", action="store_true", help="log CPU resets and guest errors to DIR/qemu-debug.log")
+    ap.add_argument("--audio", help="an ICH9 HDA controller with QEMU's duplex codec; what the guest plays goes to "
+                    "this WAV file (48 kHz stereo); the guest records silence")
+    ap.add_argument("--extra-usb", help="a second USB disk (image file), e.g. test files for the guest")
     args = ap.parse_args()
 
-    for img in (args.usb, args.nvme):  # image files only: refuse anything that is a real block device
+    for img in (args.usb, args.nvme, args.extra_usb):  # image files only: refuse anything that is a real block device
         if img and (not os.path.isfile(img) or stat.S_ISBLK(os.stat(img).st_mode)):
             sys.exit(f"refusing {img}: not a regular image file")
     os.makedirs(args.out, exist_ok=True)
@@ -117,6 +120,12 @@ def main():
     if args.nvme:
         cmd += ["-drive", f"if=none,id=internal,format=raw,cache=unsafe,file={args.nvme}",
                 "-device", "nvme,drive=internal,serial=internal0,bootindex=2"]
+    if args.audio:
+        cmd += ["-audiodev", f"wav,id=snd0,path={args.audio},out.frequency=48000,out.channels=2",
+                "-device", "ich9-intel-hda,id=hda", "-device", "hda-duplex,bus=hda.0,audiodev=snd0"]
+    if args.extra_usb:
+        cmd += ["-drive", f"if=none,id=extra,format=raw,cache=unsafe,file={args.extra_usb}",
+                "-device", "usb-storage,bus=xhci.0,drive=extra,removable=on"]
     if args.detach_test_device:
         cmd += ["-device", "pcie-root-port,id=rpx,chassis=9,slot=9", "-device", "virtio-rng-pci,bus=rpx"]
     if args.pause_on_reset:  # freeze instead of rebooting, so a screenshot can show the last screen
