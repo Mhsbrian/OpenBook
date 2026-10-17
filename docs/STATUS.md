@@ -18,7 +18,7 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 - **Digitalis upstream report** (ANAL-181/200): OK to report the Fennec, `MRS` and `FRECPE` findings to DigitalisX64? That is an outward-facing action.
 - **Device-in-the-loop** (ANAL-194): install the Multica daemon on the G14's current Linux when ready (`docs/PLAN.md` §4a).
 - **G14 hardware-check stick** (optional, owner): `scripts/installer/make-hwcheck-stick.sh` builds a USB image. It boots our kernel, drivers and firmware on the laptop, writes a report and the kernel log to the stick, and powers off without touching internal disks (`docs/installer.md` §2.7). Writing the stick needs you to name the exact USB device.
-- **Live USB on the G14** (ANAL-190): the live image is built and tested in QEMU. Its first G14 boot needs you to confirm the stick by `/dev/disk/by-id` (checklist: `docs/installer.md` §11.6).
+- **Live USB on the G14** (ANAL-190): the owner booted the live stick on the G14 (`evidence/2026-10-16-installer/g14-live/`). The rebuild on ANAL-199's audio fix (`openbook-live-20261016b`) boots to Launcher3 in QEMU and is ready to write (`docs/installer.md` §11.6, §11.11).
 
 **Lanes on the dev host** (the 7950X has 61 GB RAM; an AOSP build peaks at about 41 GiB):
 - **AOSP lane**, one builder at a time in `~/anybook/aosp/src`: ✓ ANAL-174 (PR #23), ✓ ANAL-199 (PR #35), then ▶ **ANAL-176**, the first OpenBook desktop on the G14 (promoted 2026-10-17). ANAL-200 follows when the lane frees up. The VM product's device is now `anybook_vsoc_x86_64`, so boot it with `CF_DEVICE=anybook_vsoc_x86_64`.
@@ -74,6 +74,7 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
   - Working: USB boot, the 56 GiB live `/data` on the stick, amdgpu on the panel, SurfaceFlinger with a touchpad-driven pointer, keyboard, and the dGPU in D3cold.
   - Black screen because the boot animation crashes in RADV (`AcquireNextImageKHR`), and the framework loops on audio.
   - Evidence: `evidence/2026-10-16-installer/g14-live/`.
+- **Rebuilt after ANAL-199's audio fix** (`openbook-live-20261016b`): Android finishes booting from the stick in QEMU, at 23 s with Launcher3. The G14 still needs the RADV fix: `radv_BindImageMemory2` dereferences a null memory object on Android's deferred swapchain path (`docs/installer.md` §11.11).
 
 ### 2026-10-16: Kernel, bare-metal packaging for the G14 (ANAL-198)
 

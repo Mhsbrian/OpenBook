@@ -1,0 +1,65 @@
+{
+ "schema": "openbook-live-report/1",
+ "dir": "live-001",
+ "expect": "vm",
+ "phase": "final",
+ "fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
+ "model": "OpenBook on ROG Zephyrus G14 (GA403WR)",
+ "selinux": "permissive",
+ "verdicts": {
+  "boot_completed": {
+   "ok": true,
+   "seconds": 27.7,
+   "second_stage_s": 2.6
+  },
+  "display": {
+   "ok": true,
+   "connectors": [
+    "card0-Virtual-1 connected enabled 1920x1200"
+   ],
+   "surfaceflinger": "running",
+   "screenshot": false
+  },
+  "gpu_hal": {
+   "ok": true,
+   "hal": "virtio",
+   "egl": "angle",
+   "vulkan": "pastel",
+   "gralloc": "minigbm",
+   "hwcomposer": "drm"
+  },
+  "data_on_stick": {
+   "ok": false,
+   "data_kib": null,
+   "used_kib": null,
+   "byname_targets": [
+    "sda"
+   ]
+  }
+ },
+ "modules_loaded": 144,
+ "amdgpu_loaded": true,
+ "avc_denials": {
+  "dmesg": "385",
+  "logcat": "713"
+ },
+ "live_init": {
+  "action": "grow",
+  "detail": "",
+  "disk": "sda",
+  "disk_sectors": 33554432,
+  "gpt_backup_lba_before": 5629951,
+  "gpt_backup_lba_after": 33554431,
+  "userdata_sectors_before": 2097152,
+  "userdata_sectors_after": 30021632,
+  "userdata_blank": true,
+  "reset": false
+ },
+ "files": [
+  "collect-final.txt",
+  "dmesg.txt",
+  "logcat-final.txt",
+  "screen-final.png",
+  "summary.json"
+ ]
+}

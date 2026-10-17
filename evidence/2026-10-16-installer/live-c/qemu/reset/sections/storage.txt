@@ -1,0 +1,25 @@
+cat: /proc/partitions: Permission denied
+total 0
+lrwxrwxrwx 1 root root 15 2026-10-17 00:20 EFI -> /dev/block/sda1
+lrwxrwxrwx 1 root root 15 2026-10-17 00:20 boot_a -> /dev/block/sda3
+lrwxrwxrwx 1 root root 15 2026-10-17 00:20 init_boot_a -> /dev/block/sda4
+lrwxrwxrwx 1 root root 15 2026-10-17 00:20 metadata -> /dev/block/sda7
+lrwxrwxrwx 1 root root 15 2026-10-17 00:20 misc -> /dev/block/sda2
+lrwxrwxrwx 1 root root 14 2026-10-17 00:20 sda -> /dev/block/sda
+lrwxrwxrwx 1 root root 15 2026-10-17 00:20 super -> /dev/block/sda8
+lrwxrwxrwx 1 root root 15 2026-10-17 00:20 userdata -> /dev/block/sda9
+lrwxrwxrwx 1 root root 15 2026-10-17 00:20 vbmeta_a -> /dev/block/sda6
+lrwxrwxrwx 1 root root 15 2026-10-17 00:20 vendor_boot_a -> /dev/block/sda5
+df: '/metadata': Permission denied
+Filesystem       1K-blocks   Used Available Use% Mounted on
+/dev/block/dm-60  15008768 501504  14376192   4% /data
+[ro.boot.boot_part_uuid]: [10b508aa-72be-59e6-ac9d-deb173da97fa]
+[ro.boot.openbook.live]: [1]
+[ro.boot.openbook.live_reset]: [1]
+[ro.boot.openbook.loader]: [sdboot]
+[ro.boot.slot_suffix]: [_a]
+[ro.boot.verifiedbootstate]: [orange]
+[ro.crypto.metadata.enabled]: [true]
+[ro.crypto.metadata_init_delete_all_keys.enabled]: [true]
+[ro.crypto.state]: [encrypted]
+[ro.crypto.type]: [file]
