@@ -27,8 +27,10 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
   Reply "stick attached" on ANAL-176, ANAL-178, ANAL-179 and ANAL-200 afterwards. The "save logs" boot also records the bridge verdicts.
   - Optional, ANAL-177: add the graphics check to the same stick and boot "OpenBook graphics check" once (`docs/graphics-amd.md`, owner checklist). The add-on fits on a fresh `combined` stick; after other "save logs" boots, copy the logs off first. Reply "stick attached" on ANAL-177.
 
+- **New stick, when the `combined` runs are done: `openbook-live-20261017-anal191e`.** The same Android system as `combined` (built from `main`), plus the installer. In QEMU: wizard 25/25, engine 53/53, live matrix 39/39 (`evidence/2026-10-17-installer-wizard/`, sha256 there). The power-check and graphics-check add-ons are not on it; add them with their scripts if needed. The G14 check is a dry run only: open the installer, save the hardware report, view the plan, then Try (`docs/installer.md` §12.8). Installing to a disk is ANAL-192, on a spare drive named by `/dev/disk/by-id`.
+
 **Lanes on the dev host** (the 7950X has 61 GB RAM; an AOSP build peaks at about 41 GiB):
-- **AOSP lane**, one builder at a time in `~/anybook/aosp/src`: ✓ ANAL-174 (PR #23), ✓ ANAL-199 (PR #35), ✓ ANAL-176 (PRs #39 and #42), ✓ ANAL-179 (PR #43, Wi-Fi/BT/audio), ✓ ANAL-178's Android side (PR #41), ✓ ANAL-200 (PR #46; its G14 enforcing-boot fix in #47). ✓ ANAL-177 (its G14 test modules in 7 min 56 s; the lane is free). Builds take `flock ~/anybook/aosp/.lane.lock` (PR #42: `aosp-docker.sh` takes and keeps it for `aosp-build.sh`, which refuses otherwise; `installer-image.sh` holds it for its `PRODUCT_OUT` snapshot). The VM product's device is now `anybook_vsoc_x86_64`, so boot it with `CF_DEVICE=anybook_vsoc_x86_64`.
+- **AOSP lane**, one builder at a time in `~/anybook/aosp/src`: ✓ ANAL-174 (PR #23), ✓ ANAL-199 (PR #35), ✓ ANAL-176 (PRs #39 and #42), ✓ ANAL-179 (PR #43, Wi-Fi/BT/audio), ✓ ANAL-178's Android side (PR #41), ✓ ANAL-200 (PR #46; its G14 enforcing-boot fix in #47). ✓ ANAL-177 (its G14 test modules in 7 min 56 s). ✓ ANAL-191 (the installer app, engine and SELinux policy; incremental builds of about 2 min). ANAL-176 was building modules in the lane between ANAL-191's builds. Builds take `flock ~/anybook/aosp/.lane.lock` (PR #42: `aosp-docker.sh` takes and keeps it for `aosp-build.sh`, which refuses otherwise; `installer-image.sh` holds it for its `PRODUCT_OUT` snapshot). The VM product's device is now `anybook_vsoc_x86_64`, so boot it with `CF_DEVICE=anybook_vsoc_x86_64`.
 - **Kernel lane:** ✓ ANAL-198 (PR #26). The G14 images and firmware are ready for ANAL-199, and the lane is free.
 - **Light lanes:** ✓ ANAL-189 (design and QEMU boot-chain prototype in PRs #22 and #25: high-fidelity wizard design, OpenBook naming, quiet boot, G14 hardware-check stick; awaiting sign-off) and ✓ ANAL-187 (research delivered; its dGPU-off default feeds ANAL-199 and ANAL-176).
 - **Hand-offs:** condition wakeups on ANAL-159 promote each next step as soon as its dependencies reach review with a merged PR.
@@ -42,7 +44,7 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 | ANAL-162 AMD graphics userspace | ✓ ANAL-173 Mesa radeonsi/RADV for Android (PR #3) | ✓ ANAL-174 AMD graphics in the tree, boot-time HAL selection (PR #23) | ▶ ANAL-177 dEQP/CTS: the graphics check add-on and the 610M pre-check delivered; the G14 run waits for the owner's stick | — |
 | ANAL-164 ARM compat and native bridge | ✓ ANAL-180 harness and baseline (PR #6) | ✓ ANAL-181 Digitalis: GO with conditions (PR #11) | ✓ ANAL-200 Digitalis on Android 17 ships in both products, 14/16 arm64-only apps (PR #46; enforcing fix for the G14 in #47) | — |
 | ANAL-163 Bare metal on the G14 (GA403WR) | ✓ ANAL-175 inventory and full driver map (PRs #8, #16; the owner's root run is processed too: dGPU `10de:2f58`, panel ATNA40CU05-0, speaker tuning found) | ✓ ANAL-199 G14 product `anybook_g14_x86_64`: USB GPT image, `boot_completed` in QEMU/OVMF, SELinux enforcing (PR #35) | ✓ ANAL-176 G14 desktop from USB (PRs #39, #42). The desktop was reached on the G14 in "save logs" boots; the enforcing entry is next on the `anal178b` stick | ✓ ANAL-178 input and power (PR #41; the S0i3 root cause needs the owner's stick run), ✓ ANAL-179 Wi-Fi, BT and audio (PR #43; G14 run pending) |
-| ANAL-188 USB installer (M8) | ✓ ANAL-189 design and boot-chain prototype (PR #22): systemd-boot recommended, GRUB fallback; **awaiting owner sign-off** | ✓ ANAL-190 live USB image (PR #34): QEMU 38/39; booted on the G14 by the owner (`evidence/2026-10-16-installer/g14-live/`) | ⏸ ANAL-191 wizard | ⏸ ANAL-192 end-to-end tests |
+| ANAL-188 USB installer (M8) | ✓ ANAL-189 design and boot-chain prototype (PR #22): systemd-boot recommended, GRUB fallback; **awaiting owner sign-off** | ✓ ANAL-190 live USB image (PR #34): QEMU 38/39; booted on the G14 by the owner (`evidence/2026-10-16-installer/g14-live/`) | ✓ ANAL-191 wizard, install engine and first-boot setup: QEMU 25/25, host tests 53/53; G14 run pending | ⏸ ANAL-192 end-to-end tests |
 | **ANAL-193 Device-in-the-loop on the G14 (§4a)** | ⏸ ANAL-194 runtime and agent on G14 Linux (owner installs the daemon) | ⏸ ANAL-195 Zen 5 validation in KVM | ⏸ ANAL-196 dual-boot test cycle | ⏸ ANAL-197 runtime on installed OpenBook |
 | ANAL-186 NVIDIA dGPU | ✓ ANAL-187 research and dGPU-off default (`docs/nvidia.md`: off for M3–M8, N1–N6 after M4) | — | — | — |
 | ANAL-165 Track B: Googlebook OS on AMD | ⏸ ANAL-182, ANAL-183 | ⏸ ANAL-184 | ⏸ ANAL-185 | — |
@@ -53,10 +55,25 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 2. ✓ ANAL-199 (PR #35): the G14 product, booting in QEMU. ✓ ANAL-190 (PR #34): the live USB image, first booted on the G14.
 3. ✓ ANAL-176 (PRs #39, #42): the RADV crash that kept the G14 screen black is fixed. **The desktop appeared on the G14's panel** in the owner's `desktop2` and `desktop3` "save logs" boots (permissive). In the `desktop3` boots the amdgpu firmware denial is gone, and an enforcing boot would hit 14 denial lines, down from 66 (`evidence/2026-10-17-g14-desktop/`). The default enforcing entry reaching the desktop is still unproven.
 4. ✓ ANAL-179 (PR #43): Wi-Fi (WPA2, DHCP, iperf3), Bluetooth and audio, tested in QEMU. ✓ ANAL-178 (PR #41): lid, power button, hotkeys, health HAL and S0i3 bisect tooling, tested in QEMU. ✓ ANAL-200 (PRs #46, #47): arm64 apps through Digitalis in both products. The owner's `combined` stick run on the G14 is the hardware test for all three.
-5. The installer (ANAL-190 to ANAL-192).
+5. The installer (ANAL-190 to ANAL-192). ✓ ANAL-191: the wizard installs to a virtual NVMe disk that boots into OpenBook setup by itself (QEMU). Next: the owner's dry run on the G14, then ANAL-192 (a spare drive, alongside, interruptions).
 6. ANAL-197: the runtime on the device.
 
 ## History
+
+### 2026-10-17: the installer wizard, the install engine and first-boot setup (ANAL-191)
+- **Done** (`docs/installer.md` §12):
+  - `openbook-install`: the engine and its daemon. It does the disk inventory, the hardware check, the read-only plan and the install, with S1–S13 in the engine. It writes GPT and FAT itself, with no mounts.
+  - `OpenBookInstaller`: the seven Compose screens after the hi-fi design. It opens by itself on live boots.
+  - OpenBook setup: language, Wi-Fi and screen lock on an installed system's first boot.
+  - Install data on the stick: the layout, hashes, and `super` metadata for the installed 12 GiB size.
+- **SELinux:** the daemon runs enforcing in its own domain and writes only through whole-disk nodes with their own label. The disk-identity sysfs files carry a new label. The app supplies display, touchpad and battery, because Treble keeps a system daemon out of those files.
+- **Decision 6:** our G14 kernel has no `EFIVAR_FS`, so there is no firmware boot entry. Whole-disk installs boot through the fallback path; alongside installs need a firmware entry made by hand.
+- **Evidence** (`evidence/2026-10-17-installer-wizard/`):
+  - engine host tests 53/53;
+  - QEMU 25/25, enforcing, at 2880×1800 with density 240: the dry run leaves the NVMe untouched (0 allocated blocks), the install takes 20 s and is verified, and the NVMe alone boots into OpenBook setup and then the launcher;
+  - screenshots of every screen.
+- **Not shown:** anything on the G14; alongside booted in QEMU; `openbook-bootsync`; the text hardware report.
+- **Next:** the owner's dry run on the G14 (§12.8), then ANAL-192.
 
 ### 2026-10-17: Graphics conformance, the graphics check for the G14 stick (ANAL-177)
 - **Done** (`docs/graphics-amd.md`, "dEQP and CTS on the G14"):

@@ -1,6 +1,6 @@
 # Installer: USB image, boot chain, install flow and wizard (ANAL-189)
 
-Status as of 2026-10-16. This is the design for milestone M8 (epic ANAL-188). The owner gave the go-ahead to move on to live USB booting on 2026-10-16 (ANAL-189), and stage 2 (ANAL-190, the live USB image) is built: see §11.
+Status as of 2026-10-17. This is the design for milestone M8 (epic ANAL-188). The owner gave the go-ahead to move on to live USB booting on 2026-10-16 (ANAL-189). Stage 2 (ANAL-190, the live USB image) is built: see §11. Stage 3 (ANAL-191: the wizard, the install engine and first-boot setup) is built and tested in QEMU: see §12.
 
 Labels: **C** = confirmed (a primary source, or we ran it), **R** = reported by others, **H** = hypothesis (not tested yet). Evidence is in `evidence/2026-10-16-installer/`, starting with `SUMMARY.md`.
 
@@ -13,7 +13,7 @@ Labels: **C** = confirmed (a primary source, or we ran it), **R** = reported by 
 | 3 | Install layouts | Whole disk (A/B, virtual A/B `super`), or alongside an existing OS **in space the user has already freed**. Our files go under `EFI/OpenBook/` plus an XBOOTLDR partition, and we add a firmware boot entry. Nothing is resized in v1. | §3 |
 | 4 | Wizard | **An Android app in the live OpenBook session** (Compose), backed by a privileged install engine with a CLI (`openbook-install`: dry run, JSON plan, logs). There is no separate Linux live system. | Scores in §4 |
 | 5 | Safety | Rules S1–S13 in §5. They are enforced in the engine, not just the UI: the boot stick is never a target, the user types the disk name, identity is re-checked before the first write, and there is a dry run and a log. | §5 |
-| 6 | Kernel delta | Add `CONFIG_EFIVAR_FS` to the OpenBook GKI (built-in, or a module if the KMI allows), so the installer can create the firmware boot entry. Optionally add `SYSFB_SIMPLEFB`/`DRM_SIMPLEDRM` for a "safe graphics" mode. | Our GKI has neither (C, `dot_config`) |
+| 6 | Kernel delta | Add `CONFIG_EFIVAR_FS` to the OpenBook GKI (built-in, or a module if the KMI allows), so the installer can create the firmware boot entry. Optionally add `SYSFB_SIMPLEFB`/`DRM_SIMPLEDRM` for a "safe graphics" mode. | Our GKI has neither (C, `dot_config`; re-checked for ANAL-191 on the G14 kernel, §12.2). Until then whole-disk installs boot through the fallback path; alongside needs a firmware entry made by hand |
 
 **Naming.** The project is **OpenBook**: images, boot entries, the installer, its tools and `androidboot.openbook.*` all use that name.
 - A few identifiers still carry the old name because running work builds with them today: the `anybook_cf_x86_64_pc` product, `device/anybook`, `kernel/devices/anybook` and the `anybook_amd` KMI list, the `anybook-*` tool images, and the host data dir `~/anybook`.
@@ -298,10 +298,12 @@ About 13 GiB is fixed. The minimum disk is 64 GB (H; set it once ANAL-174's imag
    9. Write a JSON report.
 4. **Logs:** an append-only log and `install-<UTC>.json` go to the stick's `openbook/logs/`, and a copy goes to `/metadata/openbook/` on the new system (copied on first boot). No secrets are logged.
 
+**Built (ANAL-191, §12):** all of the above except the NVRAM entry (no efivarfs, decision 6) and the copy into `/metadata` (the report is on the new ESP's `openbook/logs/` instead).
+
 ### 3.6 First boot and setup
 - `/metadata` and `/data` are created on first boot, as in the prototype. Android then starts its setup flow.
 - **Google's SetupWizard is not in AOSP:** AOSP 17 only has the `setupcompat`/`setupdesign`/`setupwizard` libraries and `Provision`, which only sets the provisioned bit (C).
-- OpenBook therefore needs its own small setup app, built on those libraries: language (pre-selected from `ro.boot.openbook.locale`), Wi-Fi, user and screen lock, privacy. No Google account step. This is a work item for ANAL-191.
+- OpenBook therefore needs its own small setup app, built on those libraries: language (pre-selected from `ro.boot.openbook.locale`), Wi-Fi, user and screen lock, privacy. No Google account step. **Built (ANAL-191, §12.4):** language, Wi-Fi and screen lock, in the installer app; it uses Compose, not the `setupdesign` libraries.
 
 ## 4. Wizard technology
 
@@ -418,7 +420,7 @@ flowchart LR
   - a slot-A-only layout;
   - the `userdata` grow service and `openbook.live`;
   - QEMU tests with these scripts, then a G14 USB boot. Writing the stick needs the owner's confirmation naming its `/dev/disk/by-id/…`.
-- **ANAL-191 (wizard and engine).** The `openbook-install` engine (disks, plan, apply, JSON), `openbook-installd` with SELinux, the Compose app (7 screens), `openbook-bootsync` with the boot control HAL, the setup app, and the text hardware report.
+- **ANAL-191 (wizard and engine).** The `openbook-install` engine (disks, plan, apply, JSON), `openbook-installd` with SELinux, the Compose app (7 screens), `openbook-bootsync` with the boot control HAL, the setup app, and the text hardware report. **Built (§12):** the engine, the daemon, the app and the setup screen. Still open: `openbook-bootsync` and the text hardware report.
 - **ANAL-192 (end-to-end tests).** In QEMU:
   - install from the USB image onto an NVMe image file, then boot the installed disk with the stick removed and again with it present;
   - alongside, with a Windows-like ESP image;
@@ -608,7 +610,7 @@ Every step is scripted and writes JSON: `installer-image.sh` writes `<label>.bui
 - **Product (ANAL-199, ANAL-179):** the audio HAL registration, the display path in QEMU, a Wi-Fi HAL, and `regulatory.db`. Once ANAL-199 boots to the desktop, re-run `installer-image.sh` and `live-qemu.sh`. Nothing in the image builder needs to change.
 - **Public images** still need the decisions in §6: repo licence, Mesa libelf, AVB release key (this image uses the AOSP test keys, `userdebug`), and a trademark check. Until then, images stay on the build host and the owner's stick.
 - **Menu:** release builds keep `timeout menu-hidden`. Test sticks use `--menu-timeout 10`.
-- **"Install OpenBook"** (`androidboot.openbook.live=1` → launcher entry and installer app) is ANAL-191.
+- **"Install OpenBook"** (`androidboot.openbook.live=1` → launcher entry and installer app) is ANAL-191: built, §12.
 
 ### 11.9 Reproduce
 
@@ -653,3 +655,146 @@ The rebuild used ANAL-199's product with the audio fix (PR #35): sha256 `cb5961b
 ### 11.12 Rebuilt on ANAL-199's G14 live-boot fixes (`openbook-live-20261017a`, C, `evidence/2026-10-16-installer/live-c/`)
 
 ANAL-199's PR #38 keeps ANGLE off the deferred swapchain path (`debug.angle.feature_overrides_disabled=supportsSwapchainMaintenance1`) and labels the denials seen on the laptop. The stick built from it (sha256 `8dfba134…`) passes the same 37 of 39 QEMU checks as image `b`, booting to Launcher3 at 23 s. Whether the G14 now shows the desktop needs the next G14 boot.
+
+## 12. The wizard, the install engine and first-boot setup (ANAL-191)
+
+Status as of 2026-10-17. Evidence is in `evidence/2026-10-17-installer-wizard/`, starting with `SUMMARY.md`. Everything below ran in QEMU/OVMF on image files; nothing has run on the G14 yet (§12.8).
+
+### 12.1 What is built
+| Piece | Where | What it does |
+|---|---|---|
+| `openbook-install` (engine) | `device/anybook/common/installer/engine/`, plain C, libc only (5,600 lines) | `disks`, `hwinfo`, `plan` (the dry run), `apply` (the install), and `daemon`. Writes GPT and FAT itself, so it needs no mount permission. The same sources build for Android (`/system_ext/bin`) and for the host tests |
+| `openbook-installd` | the engine's `daemon` mode; `openbook-installd.rc`; SELinux in `sepolicy/private/` | Started only when `ro.boot.openbook.live=1`. Serves the app over `/dev/socket/openbook_installd` (`PROTOCOL.md`). The install runs in a child process, so it survives the app |
+| `OpenBookInstaller` | `device/anybook/common/installer/app/`, Kotlin and Compose (Material 3) | The seven screens of §4.1 after the hi-fi design. Starts by itself on live boots; its launcher entry "Install OpenBook" exists only there |
+| OpenBook setup | `SetupActivity` in the same app | The first screen of an installed system: language (pre-selected from the wizard's choice), Wi-Fi, screen lock, no account step (§3.6) |
+| Install data on the stick | `scripts/installer/mklive.py` | `MANIFEST.json` gains an `install` section, and `openbook/install/super-metadata.img` is added to the ESP (§12.5) |
+| Tests | `scripts/installer/engine-test.{sh,py}`, `scripts/installer/wizard-qemu.{sh,py}` | Host tests of the engine on image files (53 checks); the wizard end to end in QEMU (25 checks) |
+
+### 12.2 The engine
+- **The dry run and the install share one computation.** `plan` builds the layout and every operation from the disk inventory, the stick's manifest and random seeds (disk GUID, PARTUUIDs, serial number), and prints them with a `plan_sha256`. `apply` re-computes the plan with the same seeds and refuses (`plan_changed`) if the hash differs. The plan includes the target's model, serial, WWN, size and a hash of its first and last MiB, so this is also the S4 identity check. It is repeated on the exclusively opened disk just before the first write.
+- **Whole disk** (§3.2): `EFI` 512 MiB, `misc`, `boot`/`init_boot`/`vendor_boot`/`vbmeta` `_a` and `_b`, `metadata`, `super` 12 GiB, `userdata` (the rest). Slot B and `misc`, `metadata` and `userdata` start blank; Android formats `metadata` and `userdata` on the first boot.
+- **Alongside** (§3.3): our partitions go into the largest free extent, at the lowest free GPT entries. Kernels and the entry go on a new XBOOTLDR partition, and only `EFI/OpenBook/systemd-bootx64.efi` is added to the existing ESP. Nothing is moved, resized or deleted, and `EFI/BOOT/BOOTX64.EFI` there is not touched (S7).
+- **`super`** is copied extent by extent: the 7 logical partitions from the stick's re-packed super, then the metadata for a 12 GiB super that `mklive.py` made with `lpmake` (same partitions, groups, attributes, virtual A/B flag). The installed super is not a copy of the stick's 1.4 GB one.
+- **Write order (S9).** Whole disk: the old table is wiped first (first and last MiB). Then the boot images, `super`, the new ESP and its files, then the GPT, backup first. Every partition and file is then read back and compared by sha256 (caches dropped first). Only then are the loader entry, `loader.conf` and the fallback `EFI/BOOT/BOOTX64.EFI` written, and verified in turn. A cut leaves the old table or a blank disk; a failed read-back leaves nothing that boots.
+- **The boot entry.** `loader/entries/openbook-a.conf` loads the stick's kernel and ramdisks (byte-identical, checked against the manifest) and a new bootconfig: the product's static values, slot `_a`, orange AVB with the vbmeta digest, `boot_part_uuid` = the new ESP (or XBOOTLDR), a new random `serialno`, `androidboot.openbook.locale`/`.keyboard`, and `androidboot.openbook.installed=whole|alongside`. No live flags.
+- **Reports (S6):** `openbook/logs/install-<UTC>.{json,log}` on the stick and on the new ESP. The JSON has every step with its time, every verified item with its hash, and the whole plan.
+
+| Rule | Where it is enforced |
+|---|---|
+| S1 boot medium | The disk holding `boot_part_uuid` is refused in `disks`, `plan` and `apply`; so are disks with a mounted, held (dm) or swap partition, and read-only disks. `apply` opens the target `O_EXCL`, which the kernel refuses if anything holds a partition |
+| S2 identity | `disks`/`plan`: model, vendor, serial, WWN, size, bus, the udev-style `by-id`, partitions with filesystem, label and OS |
+| S3 typed confirmation | App: `typed` must equal the model (case and spaces ignored). CLI: `--confirm-disk /dev/disk/by-id/X` and `OPENBOOK_INSTALL_ERASE=/dev/disk/by-id/X` |
+| S4 re-check | The plan hash (identity and table hash), and the table hash again on the `O_EXCL` descriptor |
+| S5 dry run | `plan` opens every disk read-only. In QEMU the 64 GiB NVMe file had 0 allocated blocks after the app's and the CLI's dry runs |
+| S6 logs | Reports and logs on the stick and the new ESP; the daemon's log in `/data/misc/openbook_install/` |
+| S7 alongside | Tested on a Windows-like disk image (host tests): MSR, NTFS and recovery partitions byte-identical afterwards; `bootmgfw.efi` and `EFI/BOOT/BOOTX64.EFI` untouched |
+| S8 power | AC, or battery ≥ 50 %, or no battery. On Android only the health HAL may read the battery's sysfs, so the app sends its `BatteryManager` reading with `apply` |
+| S9 interruption | Write order above |
+| S10 source integrity | Every source partition and loader file is hashed against `MANIFEST.json` before anything is written. A corrupted stick is refused with the target untouched (host test). The manifest itself is not signed yet (no release key, §6) |
+| S11 firmware | No firmware writes. NVRAM entries need efivarfs (below) |
+| S12 sizes | 64 GB minimum (whole disk or free space). BitLocker and LUKS volumes are flagged: erased with "whole", kept with "alongside" |
+| S13 external | USB and Thunderbolt targets are allowed with a warning |
+
+**Decision 6, checked.** Our G14 kernel (`anybook-g14-gbos-16302624/dot_config`) has `# CONFIG_EFIVAR_FS is not set`; the `android17-6.18` tip has `EFIVAR_FS` in `gki_defconfig` (`docs/kernel.md`). So v1 creates no firmware boot entry:
+- **Whole disk:** the firmware starts the disk through the fallback path `EFI/BOOT/BOOTX64.EFI`. This booted in QEMU with fresh NVRAM.
+- **Alongside:** the user must pick OpenBook in the firmware's boot menu or add a boot option in the firmware setup. The plan and the Confirm screen say so (`nvram_unavailable`). This is the open item for the kernel lane.
+
+### 12.3 The daemon and SELinux
+- **The domain.** `openbook_installd` is a system (`coredomain`) domain, so Treble rules apply. They forbid reading unlabeled sysfs and procfs files and the battery's sysfs. What the daemon can read:
+  - **Whole disks only:** `/dev/block/(sdX|nvmeNnM|mmcblkN|vdX)` are labeled `openbook_disk_block_device`. The engine never opens a partition node; it works at offsets on the whole disk, so Android's by-name partition types stay out of its reach. Size, sector size and the read-only flag come from ioctls.
+  - **Labeled sysfs:** disk identity files (WWN, NVMe model and serial, SCSI vendor, model and unit serial, USB vendor ID and serial, MMC name and serial) and the DMI names get the type `sysfs_openbook_installer` (file_contexts; ueventd labels them as devices appear). vold, which reads SCSI vendors, is allowed that type too.
+  - **Existing types:** the iGPU's PCI IDs (`sysfs_gpu`), cpufreq, `mem_sleep`, `/proc/cpuinfo`, `meminfo`, `swaps`, `asound`. Directories and links anywhere in sysfs are readable, which is enough to find disks, holders, GPUs and drivers.
+- **What the app supplies.** Display, touchpad and battery come from the app (`DisplayManager`, `InputManager`, `BatteryManager`), so the daemon never touches those files.
+- **MLS.** Apps run with categories (`s0:c512,c768`), so the daemon is an `mlstrustedsubject`. Without that, `connectto` is denied.
+- **Result.** No denial for the app or the daemon in enforcing dry-run and install boots (`qemu/*/avc.txt`). PCI attributes that only the iGPU has labels for are not probed on Android; on VMs the GPU is named by its driver.
+
+### 12.4 The app and OpenBook setup
+- **Screens:** `screens/1-welcome.png` to `7-done.png`, plus `4-plan.png` (the dry run) and `6-install-details.png`.
+  - The theme is the design's palette (seed `#4A5BD4`), light and dark.
+  - The window is fullscreen in QEMU, where the desktop mode does not engage. On the G14 it requests a 1200×780 dp freeform window.
+  - At 2880×1800 and density 240 (the G14's panel) the layout is 1920×1200 dp (`1-welcome-2880x1800.png`).
+- **Keyboard:** Tab order, Enter on the focused button, Escape is Back except while installing. The red button never takes the default focus, and Enter in the confirmation field does not press it.
+- **Accessibility:** content descriptions, headings, live regions for progress and errors. The toggles are larger text, high-contrast text and reduce motion. AOSP has no screen reader, so the Screen reader toggle is shown disabled with that reason (TalkBack is Apache-2.0 but not built).
+- **Language:** applied system-wide at once and passed to the installed system.
+  - Keyboard layouts are recorded for the installed system; they are not applied in the live session.
+  - Only the English strings exist so far.
+- **OpenBook setup.** A home activity above Provision, and direct-boot aware: Provision is too, and without that it takes the home screen during the first boot's locked phase and marks the device provisioned. It sets `device_provisioned` and `user_setup_complete` and then turns itself off. On a live stick it steps aside at once.
+  - **QEMU:** the installed disk's first screen is OpenBook setup. After it, the launcher runs and setup is off (`screens/8-setup-*.png`, `9-desktop.png`).
+
+### 12.5 What changed on the stick
+`MANIFEST.json` is now `openbook-live-manifest/2` with an `install` section:
+- the minimum size and the partition list;
+- `super` (device bytes, the metadata file and its hash, and every logical partition's offset in both supers with its hash);
+- the loader files with sizes and hashes;
+- the entry title and options;
+- `loader.conf`;
+- the bootconfig without the live-only values.
+
+`openbook/install/super-metadata.img` is 1 MiB. Sticks built before this have no install data: the wizard's "Install" choice is disabled there with that reason, and "Try" works.
+
+### 12.6 Results (C)
+Image `openbook-live-20261017-anal191e` (built from this branch, `userdebug`, AOSP test keys), virtio-vga 2880×1800 at density 240, SELinux enforcing, a blank 64 GiB virtual NVMe disk:
+
+| Run | Result |
+|---|---|
+| Engine host tests (`engine-test.sh`) | **53/53**: inventory and by-id; dry run leaves the target unchanged; refusals (no `OPENBOOK_INSTALL_ERASE`, wrong disk, the stick, a held partition, 32 GiB, a disk changed after the plan, a corrupted stick); whole-disk install checked from outside by `sgdisk -v`, `fsck.fat`, mtools, `lpdump` and sha256; alongside a Windows-like disk |
+| `dryrun` | The wizard opens by itself after boot. Welcome, hardware check, try or install, disk, and the plan through the app and the daemon. CLI `disks` and `plan` logged. The NVMe file has **0 allocated blocks** afterwards |
+| `install` | Confirm with the typed name, progress, done. **20.2 s**: check the stick 6.5 s, `super` 7.4 s, read-back 5.6 s; 33 items verified. "Restart now" reboots |
+| `installed` | The installed disk alone (fresh NVRAM, no stick): the boot animation at 10 s, **OpenBook setup at 30 s** |
+| `console` | A copy with a serial-console entry: `boot_completed` at 10 s; all 14 by-name links on `nvme0n1`; no live flags; `installed=whole`; enforcing; the installer's daemon and launcher entry off; OpenBook setup first, then the launcher |
+| Live matrix (`live-qemu.sh`, regression) | **39/39** on the same image: the installer changes nothing in the live stick's behaviour (grow, persist, start fresh, save logs, the decoy NVMe disk unchanged) |
+
+### 12.7 What these runs do not show
+- **No G14.** USB 3 and the 890M will change timings; the install's reads run at stick speed. On a real install, `userdata` is the rest of a 1 TB disk.
+- **Alongside was not booted in QEMU,** only checked on image files. A firmware entry needs efivarfs (decision 6). End-to-end alongside, interrupted installs and an OTA slot switch are ANAL-192.
+- **QEMU's display shows red and blue swapped.** The wizard's `#4355B9` shows as `#B95543` in QEMU's screendump (`screens/qemu-display-channel-swap-example.png`). Android's own `screencap` is correct; the screenshots here are `screencap`s. The two `installed-boot-*` frames were captured through QEMU and have their channels swapped back. This is the VM display path (virtio-gpu fallback), not the app; it is passed to the graphics lane.
+- **Not built yet:** `openbook-bootsync` and the boot control link (slot B stays blank), the text hardware report boot entry (`androidboot.openbook.diag`), a signed manifest, translations, and copying the install report into `/metadata` on first boot.
+- **The boot animation** of the installed system is AOSP's, not OpenBook's.
+
+### 12.8 On the G14: owner checklist (until the device agent exists)
+Installing onto the laptop's own disk is not part of this check: that is ANAL-192, on a spare drive the owner names by `/dev/disk/by-id`. These steps only read the laptop's disks.
+1. **Write the new stick** (it erases the stick; the reports on it are backed up first):
+   ```bash
+   OPENBOOK_WRITE_CONFIRM=/dev/disk/by-id/usb-<stick> \
+     scripts/installer/write-stick.sh ~/anybook/installer/out/openbook-live-20261017-anal191e.img /dev/disk/by-id/usb-<stick>
+   ```
+   It replaces `openbook-live-20261017-combined`: the same Android system from `main`, plus the installer. The power-check and graphics-check add-ons are not on it; add them with their scripts if wanted (`docs/power-input.md`, `docs/graphics-amd.md`).
+2. **Boot the default "OpenBook" entry** (enforcing). The installer opens by itself. Photograph each screen as you go.
+   - **Welcome:** pick a language.
+   - **Hardware check:** press **Save report to USB**.
+   - **Try or install:** choose **Install OpenBook**, then Continue.
+   - **Disk:** select the internal NVMe and press **View the plan**. Read it, close it.
+   - **Then stop.** Press Back to **Try or install**, choose **Try OpenBook**, and shut down from the desktop.
+3. **Plug the stick into the dev host and reply "stick attached".** The agent reads it, read-only:
+   ```bash
+   scripts/installer/read-stick-logs.sh /dev/disk/by-id/usb-<stick>
+   ```
+   Attach the photos.
+   - **Expected on the stick:** `openbook/logs/hwcheck-live-NNN.json` (the hardware check).
+   - **Not expected:** `install-*` files. A dry run writes no report; the daemon's log stays on the stick's userdata.
+4. **Optional:** boot "OpenBook - save logs to this USB stick" once and leave the wizard open. That entry saves logcat, the kernel log and a screenshot to the stick and shuts down by itself within about 12 minutes. "Save report to USB" refuses there, because the logs helper owns the stick's ESP on that boot.
+
+### 12.9 Unattended runs for the device agent
+Every step has machine-readable output. A device agent on the G14 (ANAL-193) can run the following unattended (designed, not run yet):
+- **The engine CLI from a root shell on the live system:**
+  ```bash
+  openbook-install disks                                             # JSON inventory
+  openbook-install hwinfo                                            # JSON hardware check
+  openbook-install plan --target /dev/disk/by-id/<target> --layout whole --out /data/local/tmp/plan.json
+  OPENBOOK_INSTALL_ERASE=/dev/disk/by-id/<target> openbook-install apply --plan /data/local/tmp/plan.json \
+      --confirm-disk /dev/disk/by-id/<target> --events               # progress as JSON lines, then the report
+  ```
+- **The same flow from the host, in QEMU:** `scripts/installer/wizard-qemu.sh` (results in `results.json`).
+
+A real target needs the owner's by-id confirmation (ANAL-192).
+
+### 12.10 Reproduce
+```bash
+scripts/aosp-docker.sh -d anybook-aosp-build /repo/scripts/aosp-build.sh anybook_g14_x86_64-cp2a-userdebug && docker wait anybook-aosp-build
+scripts/installer-image.sh --label openbook-live-<date>-<x> --menu-timeout 10                  # ~30 s
+scripts/installer/engine-test.sh ~/anybook/installer/out/<label>.img <run>                     # host tests, ~3 min
+scripts/installer/wizard-qemu.sh ~/anybook/installer/out/<label>.img <run> [dryrun install installed console]
+device/anybook/common/installer/app/tools/compile-check.sh                                     # the app's Kotlin, without Soong
+```
+- **Costs:** the incremental product build took 1 min 42 s here (memory peak 48 GB). `wizard-qemu.sh` takes about 20 minutes for all four cases.
+- **Logs:** `~/anybook/logs/installer/<run>/`.

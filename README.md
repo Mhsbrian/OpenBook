@@ -111,7 +111,7 @@
 | 🚧 | **M3** OpenBook kernel on real hardware | **First boots on the G14:** 235 modules, 0 failed. Our Android 17 live image reaches the desktop on the panel ("save logs" boots, SELinux permissive) |
 | 🚧 | **M4** AMD graphics stack | Passing on a Radeon 610M; on the G14 the desktop renders through ANGLE on RADV. Composition still runs on the GPU |
 | 🚧 | **M6** ARM app compatibility | Our build ships the open Digitalis bridge, built from source: 14 of 16 ARM-only test apps run in a VM, up from 13 with Google's translator. The G14 run is next |
-| 🚧 | **M8** USB installer | Design done; the live USB image builds and boots on the G14 ([`docs/installer.md`](docs/installer.md)) |
+| 🚧 | **M8** USB installer | The live USB image boots on the G14. The installer app and engine install to a virtual NVMe disk that then boots by itself, in QEMU ([`docs/installer.md`](docs/installer.md) §12). Not yet run on the laptop |
 | 🚧 | **M5** Desktop, input and power on the laptop | Desktop, touchpad and keyboard work in Android on the G14. Lid, power button, hotkeys and battery health are built and checked in a VM. Deep sleep (S0i3) is under investigation |
 | ⏳ | **M7** Performance and parity | Later |
 
