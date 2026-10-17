@@ -2,6 +2,8 @@
 virtio_dma_buf.ko
 virtio-gpu.ko
 virtio_input.ko
+system_heap.ko
+efivarfs.ko
 wmi.ko
 wmi-bmof.ko
 video.ko

@@ -2,7 +2,7 @@
 """Generate the G14 module lists from kernel/devices/anybook/g14/modules.tsv, and check them against a dist.
 
 usage: kernel-g14-modlists.py gen   [--tsv TSV] [--out DIR]
-       kernel-g14-modlists.py check [--tsv TSV] [--out DIR] --dist DIST [--vendor-list FILE]
+       kernel-g14-modlists.py check [--tsv TSV] [--out DIR] --dist DIST [--build BUILD.bazel]
                                     [--report FILE.md] [--json FILE]
 
   gen    writes DIR/ (default: the TSV's directory):
@@ -13,8 +13,8 @@ usage: kernel-g14-modlists.py gen   [--tsv TSV] [--out DIR]
            modules.{bm,vm}.blocklist          "blocklist <name>.ko" lines, as Android's libmodprobe reads them
   check  regenerates into a temporary directory and fails if DIR differs, then checks the plan against DIST
          (a dist from scripts/kernel-build.sh: the .ko files and system_dlkm.modules.load):
-           - each AnyBook vendor module (--vendor-list, default evidence/2026-10-16-kernel-amd/vendor-modules.txt)
-             has exactly one row, and every row names a module in the dist
+           - each AnyBook vendor module (the module_outs list _ANYBOOK_AMD_MODULES in --build, default
+             kernel/devices/anybook/BUILD.bazel) has exactly one row, and every row names a module in the dist
            - gki rows are GKI modules (system_dlkm.modules.load)
            - first stage is closed under dependencies: nothing there may need vendor_dlkm or system_dlkm,
              which are not mounted yet
@@ -29,6 +29,7 @@ import csv
 import filecmp
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -92,11 +93,18 @@ def modinfo_depends(path):
     return [d for d in out.strip().split(",") if d]
 
 
-def check(rows, dist, vendor_list):
+def vendor_modules(build):
+    """Basenames of the .ko files in _ANYBOOK_AMD_MODULES, the vendor modules' module_outs."""
+    text = open(build).read()
+    block = re.search(r"^_ANYBOOK_AMD_MODULES = \[(.*?)^\]", text, re.S | re.M).group(1)
+    return {os.path.basename(m) for m in re.findall(r'"([^"]+\.ko)"', block)}
+
+
+def check(rows, dist, build):
     problems = []
     gki = {canon(l.strip()) for l in open(os.path.join(dist, "system_dlkm.modules.load")) if l.strip()}
     on_disk = {f for f in os.listdir(dist) if f.endswith(".ko")}
-    vendor = {l.strip() for l in open(vendor_list) if l.strip() and not l.startswith("#")}
+    vendor = vendor_modules(build)
     by_file = {}
     for r in rows:
         if r["module"] in by_file:
@@ -112,7 +120,7 @@ def check(rows, dist, vendor_list):
         problems.append(f"{f}: vendor module with no row in modules.tsv")
     for r in rows:
         if r["source"] == "anybook" and r["module"] not in vendor:
-            problems.append(f"{r['module']}: marked anybook but not in {os.path.basename(vendor_list)}")
+            problems.append(f"{r['module']}: marked anybook but not in _ANYBOOK_AMD_MODULES")
 
     deps = {r["module"]: modinfo_depends(os.path.join(dist, r["module"])) for r in rows if r["module"] in on_disk}
     gki_needed = {}
@@ -146,7 +154,7 @@ def main():
     ap.add_argument("--tsv", default=DEFAULT_TSV)
     ap.add_argument("--out")
     ap.add_argument("--dist")
-    ap.add_argument("--vendor-list", default=os.path.join(R, "evidence/2026-10-16-kernel-amd/vendor-modules.txt"))
+    ap.add_argument("--build", default=os.path.join(R, "kernel/devices/anybook/BUILD.bazel"))
     ap.add_argument("--report")
     ap.add_argument("--json")
     a = ap.parse_args()
@@ -162,7 +170,7 @@ def main():
         gen(rows, t, os.path.basename(a.tsv))
         stale = [f for f in sorted(os.listdir(t)) if not os.path.exists(os.path.join(out, f))
                  or not filecmp.cmp(os.path.join(t, f), os.path.join(out, f), shallow=False)]
-    problems, summary, gki_needed = check(rows, a.dist, a.vendor_list)
+    problems, summary, gki_needed = check(rows, a.dist, a.build)
     problems = [f"{f}: out of date, rerun `{os.path.basename(sys.argv[0])} gen`" for f in stale] + problems
     lines = ["# G14 module lists: check", "",
              f"- plan: `{os.path.relpath(a.tsv, R)}`, {len(rows)} rows",

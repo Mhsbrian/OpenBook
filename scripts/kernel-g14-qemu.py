@@ -506,6 +506,7 @@ def run_one(a, name, spec, prep, log):
             ("vendor_lib_modules", "ls -l /vendor/lib/modules /system/lib/modules | head -3; "
                                    "ls /vendor_dlkm/lib/modules/*.ko | wc -l; ls /system_dlkm/lib/modules/*.ko | wc -l"),
             ("tainted", "cat /proc/sys/kernel/tainted"),
+            ("dma_heap", "ls -l /dev/dma_heap/; grep -w efivarfs /proc/filesystems"),
         ]:
             captures[key] = con.run(key, cmd, timeout=60)
         con.send("reboot -p\n")
@@ -520,7 +521,7 @@ def run_one(a, name, spec, prep, log):
     res = analyse(a, name, spec, prep, captures, con.text(), timeline, bc, cmdline, qemu)
     json.dump(res, open(res_path, "w"), indent=1)
     open(f"{out}.md", "w").write(report(res))
-    for k in ("by_name", "block_dirs", "mounts", "modules", "dm", "props", "bootconfig", "sys_block"):
+    for k in ("by_name", "block_dirs", "mounts", "modules", "dm", "props", "bootconfig", "sys_block", "dma_heap"):
         if captures.get(k) is not None:
             open(f"{out}.{k}.txt", "w").write(captures[k] + "\n")
     # readable excerpts of the kernel log: how the disk appeared and what first-stage init did with it, and
@@ -603,6 +604,9 @@ def analyse(a, name, spec, prep, cap, serial, timeline, bc, cmdline, qemu):
         "no_symbol_crc_signature_errors": not any(errors.values()),
         "gki_deps_from_system_dlkm_live": gki_live == ["bluetooth", "btbcm", "libarc4", "rfkill"],
     }
+    heaps = cap.get("dma_heap") or ""
+    checks["dma_heap_system"] = bool(re.search(r"\ssystem$", heaps, re.M))
+    checks["efivarfs_registered"] = bool(re.search(r"^nodev\s+efivarfs$", heaps, re.M))
     if spec["select"] == "boot_part_uuid":
         checks["boot_device_found_by_uuid"] = bool(fs["boot_device_from_uuid"])
     if v == "vm":
