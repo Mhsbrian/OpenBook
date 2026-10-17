@@ -752,6 +752,13 @@ static int second_stage_running(void) {
     return memmem(buf, n, "second_stage", 12) != NULL;
 }
 
+// What earlier boots left on /data: logcat with the kernel log persisted by logcatd (persist.logd.logpersistd on
+// userdebug, device/anybook/common/pc/pc.mk), tombstones, ANR traces and dropbox. The only trace of boots that saved
+// no logs themselves, such as the enforcing entries' (ANAL-176). Capped at 96 MiB; a cut archive still unpacks.
+static const char PRIOR_BOOTS[] =
+    "cd /data && tar -cf - misc/logd tombstones anr system/dropbox 2>/dev/null | gzip -c | head -c 100663296";
+static int prior_done, prior_rc = -2;  // -2: not attempted
+
 static void capture(const char *phase) {
     struct statfs s;
     if (!fstatfs(logdir, &s) && (unsigned long long)s.f_bavail * s.f_bsize < 24 * MiB) {
@@ -769,6 +776,10 @@ static void capture(const char *phase) {
     c->logcat = run_to_file("logcat -d -b all -v threadtime", f, 120);
     snprintf(f, sizeof f, "screen-%s.png", phase);
     c->screen = run_to_file("screencap -p", f, 60);
+    if (!prior_done) {  // once, at the first capture
+        prior_done = 1;
+        prior_rc = run_to_file(PRIOR_BOOTS, "prior-boots.tar.gz", 180);
+    }
     drain_kmsg();
     fsync(dmesg_out);
 }
@@ -779,7 +790,8 @@ static void write_summary(const char *after) {
               uptime_s());
     sb_printf(&b, " \"second_stage_s\": %.1f,\n \"boot_completed\": %s,\n \"boot_completed_s\": %.1f,\n", t_second,
               t_complete >= 0 ? "true" : "false", t_complete);
-    sb_printf(&b, " \"dmesg_bytes\": %llu,\n \"after\": \"%s\",\n \"live_init\": ", dmesg_bytes, after);
+    sb_printf(&b, " \"dmesg_bytes\": %llu,\n \"after\": \"%s\",\n \"prior_boots_rc\": %d,\n \"live_init\": ", dmesg_bytes,
+              after, prior_rc);
     result_json(&b);
     SB_LIT(&b, ",\n \"captures\": [");
     for (int i = 0; i < ncaps; i++)

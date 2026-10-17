@@ -55,6 +55,15 @@ PRODUCT_PACKAGES_DEBUG += \
     dgpu-power-check \
     openbook-pc-setup-test
 
+# Bring-up: keep logcat, the kernel log included, across boots in /data/misc/logd (16 files of 2 MiB), so a boot
+# that never shows anything can still be read later from a "save logs" boot (ANAL-176: the enforcing G14 boots left
+# no trace). logcatd only exists on userdebug and eng builds.
+ifneq ($(TARGET_BUILD_VARIANT),user)
+PRODUCT_PRODUCT_PROPERTIES += \
+    persist.logd.logpersistd=logcatd \
+    persist.logd.logpersistd.size=16
+endif
+
 # Graphics: AMD (Mesa radeonsi/RADV, minigbm amdgpu, drm_hwcomposer, ANGLE), picked at boot (ANAL-174). The
 # platform HALs stay on: minigbm allocator/mapper and drm_hwcomposer serve amdgpu and, as a fallback,
 # virtio-gpu in VMs. The fallback renders with SwiftShader Vulkan under ANGLE (init.openbook.rc).

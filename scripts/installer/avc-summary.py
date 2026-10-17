@@ -5,12 +5,16 @@
 
 The save-logs entries boot permissive, and their log helper runs in the kernel domain, so the raw counts
 (live-report.py's avc_denials) are mostly the helper. This separates:
-  helper      scontext kernel: the helper itself (expected; never in a normal boot)
+  helper      scontext kernel from the helper's own processes (openbook-live-init and the shell tools it runs, or
+              service lookups by uid 0): expected, never in a normal boot
+  kernel      scontext kernel from anything else (modprobe, kworkers: firmware loads). These are real: the enforcing
+              entries block them too (ANAL-176: amdgpu's firmware_load)
   induced     tcontext kernel, or vfat: Android services answering the helper (dumpsys, screencap, getprop), or
               writing into the helper's files on the stick's ESP, which only the helper mounts
   android     everything else: what the enforcing entries would block
-The "dmesg_lines" figure is the number of android denial lines in the kernel log, the measure ANAL-176 used for
-live-001 (66). "tuples" are the distinct (source, target, class) triples in the kernel log and logcat together.
+The "dmesg_lines" figure is the number of android and kernel denial lines in the kernel log. ANAL-176 first
+counted only android ones (live-001: 66) and so missed amdgpu's firmware_load, which is what kept every enforcing
+G14 boot black. "tuples" are the distinct (source, target, class) triples in the kernel log and logcat together.
 
   avc-summary.py LIVE_DIR [--json OUT] [--md OUT]
 """
@@ -29,9 +33,17 @@ def lines(path):
             return
 
 
-def classify(scon, tcon):
+# Processes of the log helper (comm is cut to 15 characters).
+HELPER_COMMS = {"openbook-live-i", "sh", "toolbox", "toybox", "getprop", "logcat", "dumpsys", "screencap", "cat", "ls",
+                "df", "ps", "date", "grep", "head", "ip", "cmd", "service", "pm", "readlink", "tar", "gzip", "tail"}
+
+
+def classify(scon, tcon, tclass="", comm=None):
     if scon == "kernel":
-        return "helper"
+        # Service lookups and binder calls by uid 0 carry no comm: the helper's dumpsys/cmd.
+        if comm is None or comm in HELPER_COMMS or tclass in ("service_manager", "binder"):
+            return "helper"
+        return "kernel"
     if tcon in ("kernel", "vfat"):
         return "induced"
     return "android"
@@ -53,9 +65,10 @@ def main():
                 if not m:
                     continue
                 perms, scon, tcon, tclass = m.groups()
-                kind = classify(scon, tcon)
+                cm = re.search(r' comm="([^"]*)"', line)
+                kind = classify(scon, tcon, tclass, cm.group(1) if cm else None)
                 counts[src][kind] += 1
-                if kind != "android":
+                if kind not in ("android", "kernel"):
                     continue
                 t = tuples[(scon, tcon, tclass)]
                 t["perms"].update(perms.split())
@@ -68,11 +81,12 @@ def main():
                   key=lambda r: (r["scontext"], r["tcontext"], r["tclass"]))
     out = {"schema": "openbook-avc-summary/1", "dir": os.path.basename(os.path.normpath(d)),
            "dmesg": dict(counts["dmesg"]), "logcat": dict(counts["logcat"]),
-           "dmesg_lines": counts["dmesg"]["android"], "tuples": len(rows),
+           "dmesg_lines": counts["dmesg"]["android"] + counts["dmesg"]["kernel"], "tuples": len(rows),
            "tuples_without_flags_health_check": sum(r["scontext"] != "flags_health_check" for r in rows),
            "denials": rows}
     md = [f"# SELinux denials: {out['dir']}", "",
-          f"- Android denial lines in the kernel log (helper and helper-induced excluded): **{out['dmesg_lines']}**",
+          f"- Denial lines in the kernel log that the enforcing entries would hit (helper and helper-induced excluded): "
+          f"**{out['dmesg_lines']}**",
           f"- Distinct (source, target, class) in kernel log + logcat: **{out['tuples']}** "
           f"({out['tuples_without_flags_health_check']} without flags_health_check, which only runs after repeated "
           "system_server crashes)",
