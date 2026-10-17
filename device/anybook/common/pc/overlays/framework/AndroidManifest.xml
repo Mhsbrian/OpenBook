@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (C) 2026 The OpenBook Authors. SPDX-License-Identifier: Apache-2.0 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="dev.anybook.overlay.pc.framework">
+    package="org.openbook.overlay.pc.framework">
     <application android:hasCode="false" />
-    <!-- Sets no value the desktop overlay (common/desktop, priority 10 on /product) also sets. -->
-    <overlay android:targetPackage="android" android:isStatic="true" android:priority="20" />
+    <overlay android:targetPackage="android" android:isStatic="true" android:priority="5" />
 </manifest>

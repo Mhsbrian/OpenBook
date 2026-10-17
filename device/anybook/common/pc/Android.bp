@@ -28,7 +28,8 @@ sh_binary {
     vendor: true,
 }
 
-// Laptop framework config (lid, power button, battery saver): ANAL-178, values from Googlebook's own laptop image.
+// Framework settings for PC hardware: lid and power button, screen saver and battery saver (ANAL-178, values from
+// Googlebook's own laptop image). ANAL-179 adds headphone jack events to the same overlay (PR #43).
 runtime_resource_overlay {
     name: "OpenBookPcFrameworkOverlay",
     manifest: "overlays/framework/AndroidManifest.xml",
