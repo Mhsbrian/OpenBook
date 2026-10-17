@@ -19,6 +19,7 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <sound/asound.h>
+#include <sound/tlv.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
 
