@@ -130,8 +130,8 @@ Done when it prints `stick powered off: safe to unplug`. Then follow A from step
 scripts/mesa-android-build.sh fetch setup build install verify -- upstream     # applies mesa/patches/upstream
 MESA_OUT=~/anybook/mesa/out/upstream/vendor scripts/amd-android-hwtest.sh "" <out> swapchain
 scripts/graphics-amd-stage-mesa.sh                                              # -> vendor/anybook/mesa (+ PROVENANCE)
-flock ~/anybook/aosp/.lane.lock sh -c 'AOSP_JOBS=24 scripts/aosp-docker.sh -d anybook-aosp-build /repo/scripts/aosp-build.sh \
-  anybook_g14_x86_64-cp2a-userdebug droid openbook_hals_test validatekeymaps && docker wait anybook-aosp-build'   # the lane lock
+AOSP_JOBS=24 scripts/aosp-docker.sh -d anybook-aosp-build /repo/scripts/aosp-build.sh anybook_g14_x86_64-cp2a-userdebug droid openbook_hals_test validatekeymaps
+docker wait anybook-aosp-build                                                  # aosp-docker.sh holds the lane lock until it exits
 python3 scripts/sepolicy-label-check.py ~/anybook/aosp/src/out/target/product/anybook_g14 scripts/sepolicy-label-cases-g14.txt
 scripts/installer-image.sh --label openbook-live-20261017-desktop4 --menu-timeout 10
 scripts/installer/live-qemu.sh ~/anybook/installer/out/openbook-live-20261017-desktop4.img live-20261017-desktop4

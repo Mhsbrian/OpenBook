@@ -12,16 +12,18 @@ TGT=${1:-${AOSP_TARGET:-aosp_cf_x86_64_pc-cp2a-userdebug}}; shift || true
 GOALS=("$@"); [ ${#GOALS[@]} -gt 0 ] || GOALS=(droid)
 J=${AOSP_JOBS:-$(nproc)}
 T=/aosp/src; L=/logs; TS=$(date -u +%Y%m%dT%H%M%SZ); CG=/sys/fs/cgroup
-# The tree and out/ are shared: builders take turns under the AOSP lane lock, <data dir>/aosp/.lane.lock (here
-# /aosp/.lane.lock), which the caller holds for the whole build:
-#   flock ~/anybook/aosp/.lane.lock sh -c 'scripts/aosp-docker.sh -d NAME /repo/scripts/aosp-build.sh ARGS &&
-#     docker wait NAME'
-# installer-image.sh takes the same lock while it snapshots PRODUCT_OUT. ANYBOOK_LANE_UNLOCKED=1 skips this check
-# (a tree of your own).
-if [ "${ANYBOOK_LANE_UNLOCKED:-0}" != 1 ] && flock -n /aosp/.lane.lock true; then
-  echo "aosp-build.sh: nobody holds the AOSP lane lock; run the build under it:" >&2
-  echo "  flock ~/anybook/aosp/.lane.lock sh -c 'scripts/aosp-docker.sh -d NAME /repo/scripts/aosp-build.sh ... && docker wait NAME'" >&2
-  exit 1
+# The tree and out/ are shared: builds run under the AOSP lane lock, <data dir>/aosp/.lane.lock (here
+# /aosp/.lane.lock), which scripts/aosp-docker.sh takes and keeps until this container exits (see there).
+# installer-image.sh takes the same lock while it snapshots PRODUCT_OUT. Started any other way, or while the lock
+# belongs to someone else, the build refuses: the lock must be held and the token aosp-docker.sh wrote to
+# /aosp/.lane.owner must be this container's. ANYBOOK_LANE_UNLOCKED=1 skips the check (a tree of your own).
+if [ "${ANYBOOK_LANE_UNLOCKED:-0}" != 1 ]; then
+  if flock -n /aosp/.lane.lock true || [ -z "${ANYBOOK_LANE_TOKEN:-}" ] ||
+     [ "$(cat /aosp/.lane.owner 2>/dev/null)" != "$ANYBOOK_LANE_TOKEN" ]; then
+    echo "aosp-build.sh: this container does not hold the AOSP lane lock. Start builds with scripts/aosp-docker.sh," >&2
+    echo "  which takes it: scripts/aosp-docker.sh -d NAME /repo/scripts/aosp-build.sh ... && docker wait NAME" >&2
+    exit 1
+  fi
 fi
 exec > >(tee -a "$L/build-$TS.log") 2>&1
 stamp(){ echo "=== $(date -u +%FT%TZ) $*"; }

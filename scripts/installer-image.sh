@@ -63,10 +63,10 @@ if [ -z "$IN" ]; then
   # during the snapshot: wait for a running build, up to OPENBOOK_LANE_WAIT seconds (default 2 h). A caller that
   # already holds the lock sets OPENBOOK_LANE_LOCK_HELD=1 (taking it again from here would wait for ever).
   if [ "${OPENBOOK_LANE_LOCK_HELD:-0}" != 1 ]; then
-    exec 9>>"$A/aosp/.lane.lock"
-    if ! flock -n 9; then
+    exec {LFD}>>"$A/aosp/.lane.lock"
+    if ! flock -n "$LFD"; then
       echo "waiting for the AOSP lane lock ($A/aosp/.lane.lock): a build is running" >&2
-      flock -w "${OPENBOOK_LANE_WAIT:-7200}" 9 || { echo "no AOSP lane lock after ${OPENBOOK_LANE_WAIT:-7200} s" >&2; exit 1; }
+      flock -w "${OPENBOOK_LANE_WAIT:-7200}" "$LFD" || { echo "no AOSP lane lock after ${OPENBOOK_LANE_WAIT:-7200} s" >&2; exit 1; }
     fi
   fi
   # A build started without the lock: lanes name their containers anybook-aosp-build or anybook-aosp-build-<issue>.
@@ -89,7 +89,7 @@ if [ -z "$IN" ]; then
     (cd "$IN" && sha256sum boot.img init_boot.img vendor_boot.img vbmeta.img super.img)
   } > "$IN/provenance.txt"
   echo "snapshot: $IN"
-  [ "${OPENBOOK_LANE_LOCK_HELD:-0}" = 1 ] || exec 9>&-  # releases the lane lock
+  [ "${OPENBOOK_LANE_LOCK_HELD:-0}" = 1 ] || exec {LFD}>&-  # releases the lane lock
 fi
 cat "$IN/provenance.txt"
 T1=$(date +%s)

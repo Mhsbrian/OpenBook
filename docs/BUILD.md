@@ -114,13 +114,12 @@ The checks (config, modules, symbol list, QEMU load test, equivalence build, fir
 ## M1b: build aosp_cf_x86_64_pc and boot it in Cuttlefish (ANAL-168)
 
 ```bash
-flock ~/anybook/aosp/.lane.lock sh -c 'AOSP_JOBS=32 scripts/aosp-docker.sh -d anybook-aosp-build \
-  /repo/scripts/aosp-build.sh aosp_cf_x86_64_pc-cp2a-userdebug && docker wait anybook-aosp-build'
-                                        # ~2 h 10 min cold on the shared host; re-running resumes
+AOSP_JOBS=32 scripts/aosp-docker.sh -d anybook-aosp-build /repo/scripts/aosp-build.sh aosp_cf_x86_64_pc-cp2a-userdebug
+docker wait anybook-aosp-build          # ~2 h 10 min cold on the shared host; re-running resumes
 scripts/cf-boot.sh                      # Cuttlefish container: launch, wait for boot_completed, capture, tear down (~45 s)
 ```
 
-- The AOSP tree and `out/` are shared between lanes: every build holds the lane lock `~/anybook/aosp/.lane.lock` for its whole run, as above. `aosp-build.sh` refuses to start without it (`ANYBOOK_LANE_UNLOCKED=1` for a tree of your own), and `installer-image.sh` holds it while it snapshots `PRODUCT_OUT`.
+- The AOSP tree and `out/` are shared between lanes, so builds run under the lane lock `~/anybook/aosp/.lane.lock`. `aosp-docker.sh` takes it for `aosp-build.sh` and `aosp-sync.sh` (any command with `ANYBOOK_LANE=1`): it waits for whoever holds it and keeps it until the container exits, `-d` included. A caller that already holds it with `flock <lock> …` is recognised; one holding it through an inherited fd sets `ANYBOOK_LANE_LOCK_HELD=1`. Started any other way, `aosp-build.sh` refuses. `installer-image.sh` holds the lock while it snapshots `PRODUCT_OUT`. `ANYBOOK_LANE_UNLOCKED=1` for a tree of your own. Test: `scripts/aosp-lane-test.sh`.
 - Plan for about 41 GiB of RAM plus swap, 137 GB for `out/` (165 GB with `dist`), and 10 GB of ccache.
 - Cuttlefish runs in `cuttlefish-orchestration:1.56.0` (pinned by digest) with `--cap-add NET_ADMIN`, `seccomp=unconfined`, and `/dev/kvm`, `/dev/net/tun`, `/dev/vhost-net` and `/dev/vhost-vsock`.
 - Images are staged as reflink copies in `~/anybook/aosp/cf/product`; `out/` is never modified.
