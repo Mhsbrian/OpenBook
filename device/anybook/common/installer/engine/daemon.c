@@ -245,6 +245,7 @@ static void cmd_hello(long long id) {
         jw_null(&w, "power");  // the app reads it (BatteryManager) and sends it with apply
     }
     jw_bool(&w, "logs_on_stick", !E.logs_mode && s.disk != NULL);
+    addons_json(&w, "addons", &s);
     job_json(&w, "job");
     jw_endo(&w);
     send_line(w.b.p);
@@ -337,6 +338,12 @@ static void cmd_plan(long long id, struct jv *q) {
     snprintf(r.locale, sizeof r.locale, "%s", jstr(q, "locale") ? jstr(q, "locale") : "");
     snprintf(r.keyboard, sizeof r.keyboard, "%s", jstr(q, "keyboard") ? jstr(q, "keyboard") : "");
     r.set_default = jbool(q, "set_default", 0);
+    struct jv *ad = jget(q, "addons");
+    for (int i = 0; ad && ad->t == J_ARR && i < ad->len; i++)
+        if (ad->items[i]->t != J_STR || plan_req_add_addon(&r, ad->items[i]->s)) {
+            reply_err(id, "bad_request", "addons: names of add-ons, each once");
+            return;
+        }
     for (const char *p = r.locale; *p; p++)
         if (!(isalnum((unsigned char)*p) || *p == '-' || *p == '_')) r.locale[0] = 0;
     for (const char *p = r.keyboard; *p; p++)

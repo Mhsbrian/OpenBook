@@ -22,7 +22,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
 import org.json.JSONObject
+import org.openbook.installer.daemon.Addon
 import org.openbook.installer.daemon.DaemonClient
 import org.openbook.installer.daemon.DaemonException
 import org.openbook.installer.daemon.Disk
@@ -158,6 +160,9 @@ class InstallerViewModel(app: Application) : AndroidViewModel(app) {
         private set
     /** S7: changing the firmware's boot order on a disk that keeps another OS needs consent. */
     var alongsideSetDefault by mutableStateOf(false)
+        private set
+    /** App add-ons the user ticked (ANAL-210): off by default; none means the plan is exactly as before add-ons. */
+    var selectedAddons by mutableStateOf<Set<String>>(emptySet())
         private set
     var plan by mutableStateOf<Plan?>(null)
         private set
@@ -396,6 +401,17 @@ class InstallerViewModel(app: Application) : AndroidViewModel(app) {
         invalidatePlan()
     }
 
+    /** The add-ons this stick carries, as the daemon reports them in `hello`. */
+    val availableAddons: List<Addon>
+        get() = (hello as? Load.Ready)?.value?.addons?.filter { it.onStick } ?: emptyList()
+
+    fun setAddon(name: String, on: Boolean) {
+        selectedAddons = if (on) selectedAddons + name else selectedAddons - name
+        invalidatePlan()
+    }
+
+    private fun planAddons() = selectedAddons.filter { n -> availableAddons.any { it.name == n } }.sorted()
+
     private fun layoutAllowed(disk: Disk, l: InstallLayout) =
         if (l == InstallLayout.WHOLE) disk.whole.ok else disk.alongside.ok
 
@@ -411,7 +427,7 @@ class InstallerViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun currentPlanKey(): String? {
         val target = selectedDisk ?: return null
-        return listOf(target, layout.id, languageTag, keyboardId, setDefault().toString()).joinToString("|")
+        return (listOf(target, layout.id, languageTag, keyboardId, setDefault().toString()) + planAddons()).joinToString("|")
     }
 
     private fun setDefault() = layout == InstallLayout.WHOLE || alongsideSetDefault
@@ -437,6 +453,7 @@ class InstallerViewModel(app: Application) : AndroidViewModel(app) {
             put("locale", languageTag)
             put("keyboard", keyboardId)
             put("set_default", setDefault())
+            planAddons().takeIf { it.isNotEmpty() }?.let { put("addons", JSONArray(it)) }
         }
         planJob = viewModelScope.launch {
             val result = call { Parse.plan(client.request("plan", timeoutMs = DaemonClient.PLAN_TIMEOUT_MS, args = args)) }

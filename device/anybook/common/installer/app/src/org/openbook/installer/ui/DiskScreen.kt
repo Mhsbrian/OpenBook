@@ -311,6 +311,38 @@ private fun LayoutChooser(vm: InstallerViewModel, d: Disk) {
             Switch(checked = vm.alongsideSetDefault, onCheckedChange = null)
         }
     }
+    // App add-ons the stick carries (ANAL-210), off by default: installed as normal apps on the first start.
+    for (a in vm.availableAddons) {
+        val on = a.name in vm.selectedAddons
+        Row(
+            Modifier
+                .padding(top = 12.dp)
+                .widthIn(max = 640.dp)
+                .fillMaxWidth()
+                .focusRing(RoundedCornerShape(16.dp))
+                .clip(RoundedCornerShape(16.dp))
+                .toggleable(value = on, role = Role.Switch, onValueChange = { vm.setAddon(a.name, it) })
+                .padding(horizontal = 4.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                val known = a.name == "microg"
+                Text(
+                    if (known) stringResource(R.string.addon_microg) else a.title,
+                    style = Ob.type.body,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    if (known) stringResource(R.string.addon_microg_detail, bytesText(a.bytes))
+                    else stringResource(R.string.addon_detail, a.version, bytesText(a.bytes)),
+                    style = Ob.type.caption,
+                    color = cs.onSurfaceVariant,
+                )
+            }
+            Spacer(Modifier.width(12.dp))
+            Switch(checked = on, onCheckedChange = null)
+        }
+    }
 }
 
 @Composable
