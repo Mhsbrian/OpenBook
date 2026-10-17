@@ -1,0 +1,52 @@
+[
+ {
+  "wait": "hwcheck: OpenBook hardware check v7",
+  "timeout": 120
+ },
+ {
+  "wait": "sleep: RTC alarm in \\d+ s; suspending",
+  "timeout": 240
+ },
+ {
+  "pause": 14
+ },
+ {
+  "monitor": "system_powerdown"
+ },
+ {
+  "wait": "sleep\\[0\\]: (REACHED|did NOT|S0i3 unknown)",
+  "timeout": 150
+ },
+ {
+  "wait": "sleep: RTC alarm in \\d+ s; suspending",
+  "timeout": 240
+ },
+ {
+  "pause": 14
+ },
+ {
+  "monitor": "system_powerdown"
+ },
+ {
+  "wait": "sleep\\[1\\]: (REACHED|did NOT|S0i3 unknown)",
+  "timeout": 150
+ },
+ {
+  "wait": "sleep: RTC alarm in \\d+ s; suspending",
+  "timeout": 240
+ },
+ {
+  "pause": 14
+ },
+ {
+  "monitor": "system_powerdown"
+ },
+ {
+  "wait": "sleep\\[2\\]: (REACHED|did NOT|S0i3 unknown)",
+  "timeout": 150
+ },
+ {
+  "wait": "hwcheck: report saved; powering off",
+  "timeout": 240
+ }
+]

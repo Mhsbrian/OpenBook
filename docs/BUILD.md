@@ -222,3 +222,15 @@ scripts/g14-image.sh --xz                                     # USB GPT image in
 scripts/g14-qemu.sh <img> <run> && scripts/g14-qemu.sh --again <run>   # two boots in QEMU/OVMF from USB
 ```
 Details: `docs/g14-product.md`.
+
+## Power and input: the power check and laptop config (ANAL-178)
+```bash
+docker build -t openbook-installer:anal178 -f tools/Dockerfile.installer tools   # needs make for the test modules
+export OPENBOOK_INSTALLER_IMAGE=openbook-installer:anal178
+scripts/power/make-power-check.sh openbook-powercheck-anal178-a        # add-on for a live stick, ~1 min
+scripts/power/power-check-qemu.sh openbook-powercheck-anal178-a vm     # QEMU: LPS0 fixture, s2idle, 14 steps
+scripts/power/power-check-qemu.sh openbook-powercheck-anal178-a real   # QEMU: the entry as shipped
+scripts/power/collect-qemu.sh a                                        # save-logs facts inside Android 17
+```
+Owner steps (Linux comparison on the laptop, the add-on on the stick) and how to read the results: `docs/power-input.md`.
+
