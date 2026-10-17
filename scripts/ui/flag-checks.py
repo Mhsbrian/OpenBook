@@ -3,6 +3,11 @@
 Run it after scripts/desktop-capture.sh, which leaves Settings and Files open as desktop windows.
 
   scripts/ui/flag-checks.py SERIAL OUTDIR [--triage device/anybook/common/desktop/release/googlebook-triage.tsv]
+  scripts/ui/flag-checks.py SERIAL --reset      # VM only: forget saved desks and recents, reboot, wait
+
+Android 17 restores desk windows and recent tasks after a reboot, and WM Shell remembers window bounds, so runs on
+one VM build on each other. --reset (adb root) deletes /data/system_ce/0/recent_tasks and WM Shell's desktop
+datastore, then reboots; run it, then scripts/desktop-capture.sh, then the checks.
 Env: ADB (default ~/anybook/android-sdk/platform-tools/adb); ANDROID_ADB_SERVER_PORT for a private adb server.
 
 Input goes through a virtual USB mouse made with the device's `uinput -` tool, so WM Shell, Launcher and SystemUI
@@ -166,34 +171,45 @@ RECT = re.compile(r"Rect\((-?\d+), (-?\d+) - (-?\d+), (-?\d+)\)")
 
 
 def tasks(d):
-    """Visible freeform/fullscreen app tasks: [{id, pkg, bounds, mode, visible}] from `dumpsys activity activities`."""
+    """App tasks: [{id, pkg, bounds, mode, visible}] from `dumpsys activity activities`."""
     out, cur = [], None
     for line in d.sh("dumpsys activity activities").splitlines():
-        m = re.match(r"\s+\* Task\{\w+ #(\d+) type=standard (?:A|I)=[\d:]*([\w.]+)", line)
-        if m:
-            cur = {"id": int(m.group(1)), "pkg": m.group(2), "bounds": None, "mode": None, "visible": None}
+        m = re.match(r"\s+\* Task\{\w+ #(\d+) type=standard (?:A=\d+:|I=)([\w.]+)", line)
+        if m and any(t["id"] == int(m.group(1)) for t in out):
+            cur = None  # the hierarchy is dumped twice
+        elif m:
+            v, mode = re.search(r" visible=(\w+)", line), re.search(r" mode=([\w-]+)", line)
+            cur = {"id": int(m.group(1)), "pkg": m.group(2), "bounds": None, "mode": mode and mode.group(1),
+                   "visible": bool(v) and v.group(1) == "true"}
             out.append(cur)
-            continue
-        if cur is None:
-            continue
-        if cur["bounds"] is None and "mBounds=" in line:
-            r = RECT.search(line.split("mBounds=", 1)[1])
-            if r:
-                cur["bounds"] = tuple(map(int, r.groups()))
-        m = re.search(r"mWindowingMode=(\w+)", line)
-        if m and cur["mode"] is None:
-            cur["mode"] = m.group(1)
-        m = re.search(r"\bisVisible=(\w+)|\bvisible=(true|false)", line)
-        if m and cur["visible"] is None:
-            cur["visible"] = (m.group(1) or m.group(2)) == "true"
+        elif re.match(r"\s+\* Task\{", line):
+            cur = None
+        elif cur is not None and cur["bounds"] is None and line.strip().startswith("mBounds="):
+            r = RECT.search(line)
+            cur["bounds"] = r and tuple(map(int, r.groups()))
     return out
 
 
-def task_for(d, pkg):
-    for t in tasks(d):
-        if t["pkg"].startswith(pkg):
-            return t
-    return None
+def task_for(d, pkg, settle=True, tid=None, until=None):
+    """Task tid, or the first visible task of pkg (else the first). With settle, polled until its bounds and
+    visibility hold for 0.8 s, so a transition in flight isn't read; with until(task), polled up to 6 s until
+    it holds (a transition that hasn't started yet)."""
+    last, t0 = None, time.time()
+    while True:
+        ts = [t for t in tasks(d) if (t["id"] == tid if tid else t["pkg"].startswith(pkg))]
+        cur = next((t for t in ts if t["visible"]), ts[0] if ts else None)
+        if until:
+            if (cur and until(cur)) or time.time() - t0 > 6:
+                return cur
+        elif not settle or (cur and last and (cur["bounds"], cur["visible"]) == (last["bounds"], last["visible"])) \
+                or time.time() - t0 > 8:
+            return cur
+        last = cur
+        time.sleep(0.8)
+
+
+def width(t):
+    return t["bounds"][2] - t["bounds"][0] if t and t["bounds"] else 0
 
 
 def ui_nodes(d, name="ui.xml"):
@@ -251,79 +267,135 @@ def check_flags(d, triage):
     d.result("flag state", None, "; ".join(f"group {g}: {sum(v)}/{len(v)} enabled" for g, v in sorted(by_group.items())))
 
 
+def focused(d):
+    m = re.search(r"mCurrentFocus=Window\{\w+ u\d+ ([\w.]+)", d.sh("dumpsys window | grep mCurrentFocus"))
+    return m.group(1) if m else ""
+
+
+# Caption geometry at 160 dpi (px = dp): 48 px tall; buttons centred 32, 88 and 144 px from the right edge
+# (close, maximize, minimize); the app chip starts at the left edge. WM Shell's caption views are not in the
+# accessibility dump, so they are found by position.
+CAPTION_Y, BTN_CLOSE, BTN_MAX, BTN_MIN = 24, 32, 88, 144
+
+
+def focus(d, m, pkg, tid=None):
+    """Click the window's caption (between the app chip and the buttons) so it comes to the front and key
+    gestures go to it; a point in the body may be covered by another window."""
+    for _ in range(2):
+        t = task_for(d, pkg, tid=tid)
+        if t and t["bounds"]:
+            l, top, r, b = t["bounds"]
+            m.click(max(l + 160, (l + r) // 2 - 60), top + CAPTION_Y)
+            time.sleep(0.8)
+        if focused(d).startswith(pkg.split(".root")[0]):
+            return True
+    return False
+
+
+def instances(d, pkg):
+    return [f"#{t['id']}{'' if t['visible'] else ' (hidden)'}" for t in tasks(d) if t["pkg"].startswith(pkg)]
+
+
 def check_windows(d, m):
-    t = task_for(d, "com.android.documentsui") or task_for(d, "com.android.settings")
+    pkg = "com.android.documentsui"
+    t = task_for(d, pkg)
     if not t or not t["bounds"]:
-        d.result("windows", False, "no app task with bounds (did desktop-capture.sh run?)")
+        d.result("windows", False, "no Files task with bounds (did desktop-capture.sh run?)")
         return
-    d.result("windows: start", None, f"task #{t['id']} {t['pkg']} mode={t['mode']} bounds={t['bounds']}")
+    tid = t["id"]
+    d.result("windows: start", None, f"task #{tid} {t['pkg']} mode={t['mode']} bounds={t['bounds']}")
     d.save("activities-start.txt", "dumpsys activity activities")
     l, top, r, b = t["bounds"]
-    # Focus the window first: click its caption.
-    m.click(l + (r - l) // 3, top + 18)
-    time.sleep(1)
+    d.result("focus (click into the window)", focus(d, m, pkg, tid), f"mCurrentFocus={focused(d)}")
     d.shot("window-focused")
-    # Move: drag the caption.
-    m.drag(l + (r - l) // 3, top + 18, l + (r - l) // 3 - 160, top + 18 + 90)
-    t2 = task_for(d, t["pkg"])
-    moved = t2 and t2["bounds"] and (t2["bounds"][0] - l, t2["bounds"][1] - top)
-    d.result("move (caption drag)", bool(moved and abs(moved[0] + 160) < 30 and abs(moved[1] - 90) < 30),
+    # Move: drag the caption up and left, so the whole window stays on screen.
+    dx, dy = (-150 if l > 200 else 150), (-80 if top > 120 else 80)
+    m.drag(l + (r - l) // 3, top + CAPTION_Y, l + (r - l) // 3 + dx, top + CAPTION_Y + dy)
+    t2 = task_for(d, pkg, tid=tid)
+    got = t2 and t2["bounds"] and (t2["bounds"][0] - l, t2["bounds"][1] - top)
+    d.result("move (caption drag)", bool(got and abs(got[0] - dx) < 30 and abs(got[1] - dy) < 30),
              f"bounds {t['bounds']} -> {t2 and t2['bounds']}")
     d.shot("window-moved")
-    # Resize: drag the bottom-right corner outwards.
+    # Resize: drag the bottom-right corner, outwards if there is room, else inwards.
     l, top, r, b = t2["bounds"]
-    m.drag(r - 2, b - 2, r + 140, b + 100)
-    t3 = task_for(d, t["pkg"])
-    grown = t3 and t3["bounds"] and ((t3["bounds"][2] - t3["bounds"][0]) - (r - l), (t3["bounds"][3] - t3["bounds"][1]) - (b - top))
-    d.result("resize (corner drag)", bool(grown and grown[0] > 60 and grown[1] > 40), f"bounds {t2['bounds']} -> {t3 and t3['bounds']}")
+    gx, gy = (120 if r + 120 < 1910 else -120), (80 if b + 80 < 1010 else -80)
+    m.drag(r - 3, b - 3, r - 3 + gx, b - 3 + gy)
+    t3 = task_for(d, pkg, tid=tid)
+    dw = t3 and t3["bounds"] and ((t3["bounds"][2] - t3["bounds"][0]) - (r - l), (t3["bounds"][3] - t3["bounds"][1]) - (b - top))
+    d.result("resize (corner drag)", bool(dw and abs(dw[0] - gx) < 40 and abs(dw[1] - gy) < 40),
+             f"bounds {t2['bounds']} -> {t3 and t3['bounds']}")
     d.shot("window-resized")
-    # Resize below the minimum size: the no-resize cursor shows while the drag violates the size limits.
+    # Below the minimum size: with enable_no_resize_cursor WM Shell reports the violation and shows a
+    # no-resize cursor (resolvedPointerType changes while the drag is held).
     l, top, r, b = t3["bounds"]
-    seen = m.drag(r - 2, b - 2, l + 60, top + 60, hold=lambda: (time.sleep(0.4), pointer_type(d), d.shot("resize-too-small"))[1:])
-    d.result("no-resize cursor (drag below minimum size)", None, f"resolvedPointerType while dragging: {seen[0]}")
-    t4 = task_for(d, t["pkg"])
+    held = m.drag(r - 3, b - 3, l + 40, top + 40,
+                  hold=lambda: (time.sleep(0.5), pointer_type(d), d.shot("resize-below-minimum"))[1])
+    t4 = task_for(d, pkg, tid=tid)
+    d.result("no-resize cursor (drag below minimum size)", None,
+             f"resolvedPointerType while held: {held} (1000 = arrow); bounds after: {t4 and t4['bounds']}")
+    # App chip (left of the caption): the handle menu with the windowing options.
+    l, top, r, b = t4["bounds"]
+    m.click(l + 60, top + CAPTION_Y)
+    time.sleep(1.5)
+    d.shot("app-handle-menu")
+    d.key("KEYCODE_ESCAPE")
+    time.sleep(0.8)
+    # Hover the maximize button: the maximize/layout menu.
+    m.move_to(r - BTN_MAX, top + CAPTION_Y)
+    time.sleep(2.5)
+    d.shot("maximize-button-hover")
+    m.move_to((l + r) // 2, min(b - 20, top + 200))
+    d.key("KEYCODE_ESCAPE")
+    time.sleep(0.8)
     # Maximize and restore with Meta+= (KEY_GESTURE_TYPE_TOGGLE_MAXIMIZE_FREEFORM_WINDOW).
+    focus(d, m, pkg, tid)
     d.key("KEYCODE_META_LEFT", "KEYCODE_EQUALS")
     time.sleep(1.5)
-    t5 = task_for(d, t["pkg"])
+    t5 = task_for(d, pkg, tid=tid, until=lambda t: width(t) >= 1900)
     d.shot("window-maximized")
-    wide = t5 and t5["bounds"] and (t5["bounds"][2] - t5["bounds"][0]) >= 1800
-    d.result("maximize (Meta+=)", bool(wide), f"bounds {t4 and t4['bounds']} -> {t5 and t5['bounds']}")
+    wide = t5 and t5["bounds"] and (t5["bounds"][2] - t5["bounds"][0]) >= 1900
+    d.result("maximize (Meta+=)", bool(wide), f"bounds {t4['bounds']} -> {t5 and t5['bounds']}")
     d.key("KEYCODE_META_LEFT", "KEYCODE_EQUALS")
     time.sleep(1.5)
-    t6 = task_for(d, t["pkg"])
-    d.result("restore (Meta+= again)", bool(t6 and t6["bounds"] and (t6["bounds"][2] - t6["bounds"][0]) < 1800),
+    t6 = task_for(d, pkg, tid=tid, until=lambda t: 0 < width(t) < 1900)
+    d.result("restore (Meta+= again)", bool(t6 and t6["bounds"] and (t6["bounds"][2] - t6["bounds"][0]) < 1900),
              f"bounds -> {t6 and t6['bounds']}")
-    # Maximize button hover: opens the maximize/layout menu.
-    nodes = ui_nodes(d, "ui-windows.xml")
-    mx = find(nodes, **{"resource-id": "maximize_window|maximize_button"})
-    if mx:
-        m.move_to(*center(mx["rect"]))
-        time.sleep(2.5)
-        d.shot("maximize-button-hover")
-        menu = find(ui_nodes(d, "ui-maximize-menu.xml"), **{"resource-id": "maximize_menu|windowing_pill|layout_menu|snap"})
-        d.result("maximize menu on hover", None, f"menu node: {menu and menu.get('resource-id')}")
-        m.move_to(960, 540)
-        d.key("KEYCODE_ESCAPE")
-    else:
-        d.result("maximize menu on hover", None, "maximize button not found in the UI dump")
-    # Minimize with Meta+- and bring it back from the taskbar.
-    d.key("KEYCODE_META_LEFT", "KEYCODE_MINUS")
+    # Maximize with the caption button, then restore with a double click on the caption.
+    l, top, r, b = t6["bounds"]
+    m.click(r - BTN_MAX, top + CAPTION_Y)
+    time.sleep(1.5)
+    t7 = task_for(d, pkg, tid=tid, until=lambda t: width(t) >= 1900)
+    d.result("maximize (caption button)", bool(t7 and t7["bounds"] and (t7["bounds"][2] - t7["bounds"][0]) >= 1900),
+             f"bounds -> {t7 and t7['bounds']}")
+    if t7 and t7["bounds"]:
+        m.click((t7["bounds"][0] + t7["bounds"][2]) // 2, t7["bounds"][1] + CAPTION_Y, double=True)
+        time.sleep(1.5)
+    t8 = task_for(d, pkg, tid=tid, until=lambda t: 0 < width(t) < 1900)
+    d.result("restore (caption double click)", None, f"bounds -> {t8 and t8['bounds']}")
+    # Minimize with the caption button; the taskbar icon brings it back.
+    l, top, r, b = t8["bounds"]
+    m.click(r - BTN_MIN, top + CAPTION_Y)
     time.sleep(1.5)
     d.shot("window-minimized")
-    t7 = task_for(d, t["pkg"])
-    d.result("minimize (Meta+-)", t7 is not None and t7["visible"] is False, f"task visible={t7 and t7['visible']}")
+    t9 = task_for(d, pkg, tid=tid, until=lambda t: t["visible"] is False)
+    d.result("minimize (caption button)", bool(t9 and t9["visible"] is False), f"task visible={t9 and t9['visible']}")
     d.save("wmshell-after-minimize.txt", "dumpsys activity service SystemUIService WMShell")
     nodes = ui_nodes(d, "ui-taskbar.xml")
-    label = "Files" if "documentsui" in t["pkg"] else "Settings"
-    icon = find(nodes, **{"content-desc": f"^{label}", "package": "launcher3"}) or find(nodes, **{"content-desc": f"^{label}"})
+    icon = find(nodes, **{"content-desc": "^Files", "package": "launcher3"})
     if icon:
         m.click(*center(icon["rect"]))
         time.sleep(1.5)
-        t8 = task_for(d, t["pkg"])
+        t10 = task_for(d, pkg, tid=tid, until=lambda t: t["visible"])
         d.shot("taskbar-click-restores")
-        d.result("taskbar click restores the minimized window", bool(t8 and t8["visible"]), f"icon {icon['rect']}, task visible={t8 and t8['visible']}")
-        # Right-click: long-press menu.
+        d.result("taskbar click restores the minimized window", bool(t10 and t10["visible"]),
+                 f"icon {icon['rect']}, task visible={t10 and t10['visible']}")
+        # Click the icon of the focused, visible window: AOSP 17 brings it to front; click-to-minimize is
+        # enable_taskbar_icon_desktop_clicks, which has no reader in AOSP 17.
+        m.click(*center(icon["rect"]))
+        time.sleep(1.5)
+        t11 = task_for(d, pkg, tid=tid)
+        d.result("taskbar click on the focused window", None,
+                 f"task visible={t11 and t11['visible']}; Files tasks: {', '.join(instances(d, pkg))}")
         m.click(*center(icon["rect"]), b="BTN_RIGHT")
         time.sleep(1.5)
         d.shot("taskbar-right-click-menu")
@@ -331,7 +403,17 @@ def check_windows(d, m):
         d.key("KEYCODE_ESCAPE")
         time.sleep(0.5)
     else:
-        d.result("taskbar click restores the minimized window", False, f"no taskbar icon labelled {label}")
+        d.result("taskbar click restores the minimized window", False, "no taskbar icon labelled Files")
+    # Minimize with Meta+- .
+    focus(d, m, pkg, tid)
+    d.key("KEYCODE_META_LEFT", "KEYCODE_MINUS")
+    time.sleep(1.5)
+    t12 = task_for(d, pkg, tid=tid, until=lambda t: t["visible"] is False)
+    d.result("minimize (Meta+-)", bool(t12 and t12["visible"] is False),
+             f"task visible={t12 and t12['visible']}; focus was {focused(d)}; Files tasks: {', '.join(instances(d, pkg))}")
+    if icon:
+        m.click(*center(icon["rect"]))
+        time.sleep(1.5)
 
 
 def check_cascade(d):
@@ -367,28 +449,34 @@ def check_shade(d, m):
     time.sleep(1)
 
 
-def check_hun(d, m):
-    """A DeskClock timer posts a heads-up notification. Hover it and see whether it outlives the decay."""
-    d.sh("am start -a android.intent.action.SET_TIMER --ei android.intent.extra.alarm.LENGTH 3 "
-         "--ez android.intent.extra.alarm.SKIP_UI true >/dev/null 2>&1")
-    deadline, hun = time.time() + 20, None
-    while time.time() < deadline and not hun:
-        time.sleep(1)
-        nodes = ui_nodes(d, "ui-hun.xml")
-        hun = find(nodes, **{"package": "systemui", "resource-id": "expandableNotificationRow|notification_headsup|headsup"}) or \
-            find(nodes, **{"package": "systemui", "text": "Timer|Time's up"})
-    d.shot("heads-up")
-    if not hun:
-        d.result("heads-up notification hover", None, "no heads-up notification seen")
-        return
-    m.move_to(*center(hun["rect"]))
-    time.sleep(12)
-    still = find(ui_nodes(d, "ui-hun-after-hover.xml"), **{"package": "systemui", "text": "Timer|Time's up"})
-    d.shot("heads-up-after-12s-hover")
-    d.result("heads-up stays while hovered (12 s)", None, f"hun {hun['rect']}; still shown: {bool(still)}")
-    m.move_to(960, 700)
-    d.sh("am start -a android.intent.action.DISMISS_TIMER >/dev/null 2>&1")
+def check_notifications(d, m):
+    """Hover and right-click a notification in the shade (inline_notification_settings_access opens its
+    settings on a context click; notification_add_x_on_hover_to_dismiss, on since ANAL-169, shows an X)."""
+    d.sh("cmd notification post -t 'B3 hover test' b3hover 'A notification to hover and right-click' >/dev/null")
+    d.sh("cmd statusbar expand-notifications")
+    time.sleep(2)
+    # `cmd notification post` notifications don't show on this image; Cuttlefish always has Settings'
+    # "Issue with Virtual SD card" notification, which serves as well.
+    row = find(ui_nodes(d, "ui-shade.xml"), **{"package": "systemui", "text": "B3 hover test|Issue with|Tap to fix"})
+    if not row:
+        d.result("notification hover", None, "no notification row in the shade dump")
+        d.shot("shade-notification")
+    else:
+        x, y = center(row["rect"])
+        m.move_to(x + 200, y + 10)
+        time.sleep(1.5)
+        d.shot("notification-hover")
+        d.result("notification hover", None, f"row {row['rect']}: screenshot")
+        m.click(x + 200, y + 10, b="BTN_RIGHT")
+        time.sleep(1.5)
+        d.shot("notification-right-click")
+        guts = [n for n in ui_nodes(d, "ui-notification-right-click.xml")
+                if re.search(r"Turn off notifications|Settings|Default|Silent|Done", n.get("text", "")) and "systemui" in n.get("package", "")]
+        d.result("notification right click (inline settings)", None, f"settings-like nodes after right click: {len(guts)}")
+        d.key("KEYCODE_ESCAPE")
+    d.sh("cmd notification cancel b3hover 2020 >/dev/null 2>&1; service call notification 1 >/dev/null 2>&1")
     d.sh("cmd statusbar collapse")
+    time.sleep(1)
 
 
 def check_blur(d):
@@ -436,14 +524,34 @@ def check_health(d):
     d.result("SELinux denials", None, f"{len(denials.splitlines())} distinct")
 
 
+def reset(d):
+    d.run("root")
+    time.sleep(2)
+    d.run("wait-for-device", timeout=60)
+    d.sh("rm -f /data/system_ce/0/recent_tasks/* /data/user_de/0/com.android.systemui/files/datastore/desktop*")
+    d.run("reboot")
+    time.sleep(15)
+    d.run("wait-for-device", timeout=300)
+    for _ in range(100):
+        if d.sh("getprop sys.boot_completed").strip() == "1":
+            return True
+        time.sleep(3)
+    return False
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("serial")
-    ap.add_argument("out")
+    ap.add_argument("out", nargs="?", default="")
+    ap.add_argument("--reset", action="store_true")
     ap.add_argument("--triage", default=str(Path(__file__).resolve().parents[2] /
                                            "device/anybook/common/desktop/release/googlebook-triage.tsv"))
-    ap.add_argument("--skip", default="", help="comma-separated: windows,cascade,shade,hun,blur")
+    ap.add_argument("--skip", default="", help="comma-separated: windows,cascade,shade,notifications,blur")
     a = ap.parse_args()
+    if a.reset:
+        ok = reset(Dev(a.serial, Path.home() / ".cache/flag-checks"))
+        print("reset: boot completed" if ok else "reset: no boot", flush=True)
+        raise SystemExit(0 if ok else 1)
     d = Dev(a.serial, a.out)
     skip = set(a.skip.split(","))
     d.log(d.sh("getprop ro.build.fingerprint").strip())
@@ -458,8 +566,8 @@ def main():
             check_cascade(d)
         if "shade" not in skip:
             check_shade(d, m)
-        if "hun" not in skip:
-            check_hun(d, m)
+        if "notifications" not in skip:
+            check_notifications(d, m)
         if "blur" not in skip:
             check_blur(d)
     finally:
