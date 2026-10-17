@@ -95,7 +95,7 @@ scripts/
 
 | HAL | Implementation | Backend | In QEMU |
 |---|---|---|---|
-| health | AOSP `android.hardware.health-service.example` | real: `/sys/class/power_supply` (ACPI battery, AC, UCSI) | runs; "No battery devices found" |
+| health | **OpenBook** `android.hardware.health-service.openbook` (AOSP's `libhealth_aidl_impl` plus ANAL-178's subclass) | real: `/sys/class/power_supply` (ACPI battery, AC, UCSI); charge counter from `charge_now`, state of health and GOOD/FAIR from `charge_full`/`charge_full_design` where the kernel reports none | runs; "No battery devices found" |
 | boot control | AOSP `com.android.hardware.boot` | real: `misc` partition | initialised `misc` on first boot |
 | lights | **OpenBook** `android.hardware.lights-service.openbook` | the panel backlight: firmware > platform > raw, so `amdgpu_bl1` (raw, max 400000) in Optimus/Integrated mode and `nvidia_wmi_ec_backlight` (firmware) in a dGPU MUX mode. The keyboard backlight is the N-KEY's input light (`.idc`) | no backlight: reports no lights |
 | power | **OpenBook** `android.hardware.power-service.openbook` | amd-pstate EPP per cpufreq policy: screen off → `power`, battery saver → `balance_power`, launch or fixed performance → `performance`, else the boot value. Never touches `platform_profile` or asus-wmi, which persist in firmware | no amd-pstate in the VM: modes accepted, nothing written |

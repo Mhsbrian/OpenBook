@@ -1,0 +1,39 @@
+$ out/host/linux-x86/nativetest64/openbook_hals_test/openbook_hals_test (built in this run, 2026-10-17)
+[ RUN      ] Backlight.G14PicksAmdgpu
+[       OK ] Backlight.G14PicksAmdgpu (0 ms)
+[ RUN      ] Backlight.FirmwareBeatsRaw
+[       OK ] Backlight.FirmwareBeatsRaw (0 ms)
+[ RUN      ] Backlight.NoneOrBroken
+[       OK ] Backlight.NoneOrBroken (0 ms)
+[ RUN      ] Backlight.Scale
+[       OK ] Backlight.Scale (0 ms)
+[ RUN      ] Epp.ChooseByModes
+[       OK ] Epp.ChooseByModes (0 ms)
+[ RUN      ] Epp.WritesEveryPolicy
+[       OK ] Epp.WritesEveryPolicy (1 ms)
+[ RUN      ] Epp.IgnoresOtherDrivers
+[       OK ] Epp.IgnoresOtherDrivers (0 ms)
+[ RUN      ] Thermal.G14Sensors
+[       OK ] Thermal.G14Sensors (0 ms)
+[ RUN      ] Thermal.BatteryTenths
+[       OK ] Thermal.BatteryTenths (0 ms)
+[ RUN      ] Thermal.Severity
+[       OK ] Thermal.Severity (0 ms)
+[ RUN      ] Thermal.EmptyVm
+[       OK ] Thermal.EmptyVm (0 ms)
+[ RUN      ] SleepStats.Reads
+[       OK ] SleepStats.Reads (0 ms)
+[ RUN      ] Battery.G14ChargeBased
+[       OK ] Battery.G14ChargeBased (0 ms)
+[ RUN      ] Battery.EnergyBasedAndWorn
+[       OK ] Battery.EnergyBasedAndWorn (0 ms)
+[ RUN      ] Battery.SkipsDevicesAndAbsent
+[       OK ] Battery.SkipsDevicesAndAbsent (0 ms)
+[ RUN      ] Weaver.RetrySchedule
+[       OK ] Weaver.RetrySchedule (0 ms)
+[ RUN      ] Weaver.PersistsAndThrottles
+[       OK ] Weaver.PersistsAndThrottles (0 ms)
+[ RUN      ] Weaver.ThrottleSurvivesRestart
+[       OK ] Weaver.ThrottleSurvivesRestart (0 ms)
+[==========] 18 tests from 6 test suites ran. (3 ms total)
+[  PASSED  ] 18 tests.

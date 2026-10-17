@@ -1,0 +1,17 @@
+From collect.txt (live image openbook-live-20261017-anal178b, serial-console entry, QEMU):
+    mLidKeyboardAccessibility=1 mLidNavigationAccessibility=1 getLidBehavior=LID_BEHAVIOR_SLEEP
+    mShortPressOnPowerBehavior=6
+    mLongPressOnPowerBehavior=LONG_PRESS_POWER_GLOBAL_ACTIONS
+    mLongPressOnPowerAssistantTimeoutMs=500
+    mVeryLongPressOnPowerBehavior=VERY_LONG_PRESS_POWER_NOTHING
+    mAllowStartActivityForLongPressOnPowerDuringSetup=false
+    mDockMode=EXTRA_DOCK_STATE_UNDOCKED mLidState=LID_ABSENT
+
+[init.svc.vendor.health-openbook]: [running]
+[init.svc_debug_pid.vendor.health-openbook]: [530]
+[ro.boottime.vendor.health-openbook]: [4974654032]
+===AVC===
+3
+6
+
+===END===

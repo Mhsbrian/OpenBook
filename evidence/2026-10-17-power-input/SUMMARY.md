@@ -32,3 +32,18 @@ The add-on as built (`openbook-powercheck-anal178-a`, 75 MiB): its JSON (kernel 
 | `googlebook-ruby-laptop-config.txt` | The lid, power-button, dream and battery-saver values in Googlebook's own laptop overlay (ruby `FrameworkDesktopOverlay.apk`, read with `aapt2`; the image is never committed) |
 
 Not built or booted: the overlay and layout need the AOSP lane (after ANAL-179).
+
+## anal178b/ (AOSP lane, 2026-10-17 04:20–05:00 UTC, after ANAL-179 reached review)
+The G14 product built from `anal-178/stick-integration` (ANAL-179's `stick-integration`, which carries ANAL-176's desktop4 fixes and `main`, merged with this branch, plus the health HAL), and the live image `openbook-live-20261017-anal178b` with the power check add-on on its ESP. Still **QEMU only**.
+
+| File | What it shows |
+|---|---|
+| `product-check.txt` | Build `ea04243`: exit 0, 2:10 incremental, 45.7 GB peak RSS. In `PRODUCT_OUT`: `android.hardware.health-service.openbook` (no example health HAL), its VINTF fragment, both key layouts, and the PC overlay with 15 values (this issue's 14 and ANAL-179's jack setting) |
+| `hals-test.txt` | `openbook_hals_test`: 18/18, including the three battery fixtures |
+| `live-matrix-SUMMARY.md`, `live-matrix-results.json` | ANAL-190's live image matrix on the image as offered (with the add-on): **39/39** |
+| `live-matrix-logs-case-report.md` | `live-report.py --expect vm` on the matrix's save-logs folder |
+| `collect-*`, `lid-power-health.txt` | COLLECT inside Android on the same image: completes (`COLLECTRC=0`, AVC and END present after bounding `service list`); `getLidBehavior=LID_BEHAVIOR_SLEEP`, `mShortPressOnPowerBehavior=6`, `LONG_PRESS_POWER_GLOBAL_ACTIONS`, lid keyboard/navigation 1; `vendor.health-openbook` running |
+| `powercheck-real-*` | The add-on's S0i3 entry, unchanged, on this image: 10/10 steps |
+| `openbook-live-20261017-anal178b.{build.json,sha256}` | The image as offered: sha256 `be09ebb7…` (xz `96600a6e…`), the add-on recorded in the build record |
+
+Found on the way: `service list` blocks in QEMU at the service after `IAuthSecret` on images with ANAL-179's Wi-Fi/Bluetooth/audio (also in `audionet3`'s own matrix), which cut the save-logs capture short before AVC and END; it is now bounded to 30 s.
