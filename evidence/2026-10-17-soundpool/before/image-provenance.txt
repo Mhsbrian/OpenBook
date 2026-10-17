@@ -1,0 +1,17 @@
+snapshot: 2026-10-17T18:59:51Z
+product_out: /home/hive/anybook/aosp/src/out/target/product/anybook_g14
+vendor fingerprint: OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+kernel: staged: 2026-10-17T18:49:26Z by scripts/g14-stage-kernel.sh
+kernel: kernel dist: /home/hive/anybook/kernel/dist/anybook-g14-gbos-16302624
+kernel: packaging: /home/hive/anybook/kernel/g14/anybook-g14-gbos-16302624
+kernel: release: 6.18.21-android17-5-gfbfdd65b0fd1
+kernel: firmware: 142 files
+kernel: 55b86074614a94592ddecebd2b77b1f2ed9aa38e8ad992b73c78c64d04c516f9  bzImage
+kernel: 024774373cb9c09c634140ef9504bd5d9d81a9ee2006d5c4c3183a596ee0ce63  vendor_dlkm.img
+kernel: 34185c35cb8bbccd5dfd0bb74eecb8a21e2445730411ef1583e1245628e0d617  system_dlkm.img
+kernel: 7007f46433a1308293dff52e10ec71626f9892040ed31f4aaa88065244c88f78  vendor_boot-ramdisk.lz4
+f6fc1a5892cba10d24ba3c250f5abe4115ba0f7c0556a653995b41373bfbcec8  boot.img
+24b500503f7ee26d91a7e98d135c8c7149329c064c2e33eb72cadbffa52fa4a7  init_boot.img
+c76d7406047a4c167a8e79a5b877bc1aea6488520c13783b0fc2d8e4af1c9717  vendor_boot.img
+b6487f6c520b3d66d543ae40f2e0a9bb658ef8061bc8687615bb5674cddbf8b5  vbmeta.img
+e5a31cb7e1a03fc2e282f57042d0cee59b84e04af558ddc822024a957ea4a2a0  super.img
