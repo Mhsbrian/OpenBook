@@ -1,0 +1,10 @@
+{
+ "reason": "timeout 400s",
+ "seconds": 400.7,
+ "steps_done": 0,
+ "steps": 0,
+ "hits": [],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/qemu/live-20261016b/default16.img",
+ "nvme": null
+}

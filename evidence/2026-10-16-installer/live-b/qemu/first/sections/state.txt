@@ -1,0 +1,37 @@
+[init.svc.bootanim]: [stopped]
+[init.svc.surfaceflinger]: [running]
+[init.svc.zygote]: [running]
+[ro.hardware.egl]: [angle]
+[ro.hardware.gralloc]: [minigbm]
+[ro.hardware.hwcomposer]: [drm]
+[ro.hardware.vulkan]: [pastel]
+[sys.boot_completed]: [1]
+[sys.system_server.start_count]: [1]
+[sys.system_server.start_elapsed]: [13910]
+[sys.system_server.start_uptime]: [13910]
+
+*** SERVICE 'SurfaceFlinger' DUMP TIMEOUT (10000ms) EXPIRED ***
+
+
+*** SERVICE 'SurfaceFlinger' DUMP TIMEOUT (10000ms) EXPIRED ***
+
+WINDOW MANAGER DISPLAY CONTENTS (dumpsys window displays)
+  Display: mDisplayId=0 (organized)
+    init=1920x1200 160dpi mMinSizeOfResizeableTaskDp=220 cur=1920x1200 app=1920x1200 rng=1200x1200-1920x1920
+    deferred=false mLayoutNeeded=false
+  overrideConfig={1.0 ?mcc0mnc [en_US] ldltr sw1200dp w1920dp h1200dp 160dpi xlrg compactNeeded land -touch qwerty/v/v -nav/h winConfig={ mBounds=Rect(0, 0 - 1920, 1200) mAppBounds=Rect(0, 0 - 1920, 1200) mMaxBounds=Rect(0, 0 - 1920, 1200) mDisplayRotation=ROTATION_0 mWindowingMode=fullscreen mActivityType=undefined mAlwaysOnTop=undefined mRotation=ROTATION_0} as.4 s.20 fontWeightAdjustment=0}
+  mHasSetIgnoreOrientationRequest=false ignoreOrientationRequest=true
+  mSleeping=false mAllSleepTokens=[]
+  mLayoutSeq=92
+  mImeWindow=Window{2365a16 u0 InputMethod}
+  mImeLayeringTarget=Window{9cc4aa3 u0 com.android.launcher3/com.android.launcher3.uioverrides.QuickstepLauncher}
+  mImeInputTarget=Window{9cc4aa3 u0 com.android.launcher3/com.android.launcher3.uioverrides.QuickstepLauncher}
+  mImeControlTarget=Window{9cc4aa3 u0 com.android.launcher3/com.android.launcher3.uioverrides.QuickstepLauncher}
+  ImeContainer
+    mNeedsLayer=false
+    mImeWindowToken=null
+  mImeParent=ActivityRecord{116964899 u0 com.android.launcher3/.uioverrides.QuickstepLauncher t7}
+  mRemoteInsetsControlTarget=RemoteInsetsControlTarget{4952617 displayId=0 requestedVisibleTypes=503 animatingTypes=0}
+  mCurrentFocus=Window{9cc4aa3 u0 com.android.launcher3/com.android.launcher3.uioverrides.QuickstepLauncher}
+  mFocusedApp=ActivityRecord{116964899 u0 com.android.launcher3/.uioverrides.QuickstepLauncher t7}
+  mFixedRotationLaunchingApp=null

@@ -634,3 +634,20 @@ The owner wrote `openbook-live-20261016a.img` with `write-stick.sh` (read back a
   3. 66 SELinux denials by Android services (this entry was permissive).
   4. No Wi-Fi service.
 - **Next:** ANAL-199 takes the RADV swapchain crash and the denials. When its fixed build lands, `installer-image.sh` rebuilds the stick and the owner reruns "save logs".
+
+### 11.11 Rebuilt after ANAL-199 delivered (`openbook-live-20261016b`, C, `evidence/2026-10-16-installer/live-b/`)
+
+The rebuild used ANAL-199's product with the audio fix (PR #35): sha256 `cb5961b0…`, `.xz` `7e911ae2…`, built in 42 s.
+- **QEMU: Android now finishes booting from the stick.** `sys.boot_completed=1` at 23 s, with one `system_server` start and Launcher3 resumed. 37 of 39 checks pass.
+- **Kernel power-off hangs** after Android's clean shutdown (also in ANAL-199's own boots), so the save-logs entry doesn't switch the machine off. Init's reboot monitor reboots it after 300 s. The logs are saved and closed before shutdown starts, so holding the power button after the capture is safe.
+- **`screencap` times out in the VM** (VM display path); on the G14 it worked.
+- **Still open for the G14 desktop:** the RADV crash of §11.10.
+  - Root cause, from the sources: Android 17's libvulkan binds swapchain images at acquire time with `memory = VK_NULL_HANDLE` and a `VkNativeBufferANDROID` in `pNext` (`frameworks/native/vulkan/libvulkan/swapchain.cpp:2593`, the deferred-allocation path).
+  - `radv_BindImageMemory2` (Mesa 26.2.5 and the Android-Generic 26.0 tree) handles a null `memory` only with `RADV_USE_WSI_PLATFORM`, which Android builds don't have. It dereferences the null memory object (`mem->alloc_size`): the SIGSEGV at 0x60.
+  - The crash symbolizes to `radv_BindImageMemory2` in the unstripped build `mesa/build/upstream/src/amd/vulkan/libvulkan_radeon.so`, Build ID `301af9c5…` (matches the shipped `vulkan.radv.so`).
+  - ANV handles this case (`anv_image.c`, `VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID` in its bind path), so a RADV patch can import the gralloc buffer there.
+  - A stop-gap is to keep ANGLE off the deferred-allocation swapchain (H). Any app window drawn through ANGLE on RADV takes the same path, not only the boot animation (H).
+
+### 11.12 Rebuilt on ANAL-199's G14 live-boot fixes (`openbook-live-20261017a`, C, `evidence/2026-10-16-installer/live-c/`)
+
+ANAL-199's PR #38 keeps ANGLE off the deferred swapchain path (`debug.angle.feature_overrides_disabled=supportsSwapchainMaintenance1`) and labels the denials seen on the laptop. The stick built from it (sha256 `8dfba134…`) passes the same 37 of 39 QEMU checks as image `b`, booting to Launcher3 at 23 s. Whether the G14 now shows the desktop needs the next G14 boot.
