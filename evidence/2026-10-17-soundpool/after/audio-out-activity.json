@@ -1,0 +1,20 @@
+{
+ "file": "<logs>/anal179-sp-after/boot1/audio-out.wav",
+ "rate": 48000,
+ "channels": 2,
+ "seconds": 6.26,
+ "sounds": [
+  {
+   "start_s": 0.0,
+   "seconds": 0.1,
+   "peak_dbfs": -26.9,
+   "rms_dbfs": -46.4
+  },
+  {
+   "start_s": 3.1,
+   "seconds": 0.15,
+   "peak_dbfs": -26.9,
+   "rms_dbfs": -46.4
+  }
+ ]
+}

@@ -74,6 +74,13 @@
 
 ## History
 
+### 2026-10-17: SystemUI's SoundPool sounds under enforcing (ANAL-179)
+- **Done:** ANAL-198 found that `audioserver` could not use SystemUI's SoundPool memfds (`appdomain_tmpfs`) once Codec2 decoded. It is fixed with one TE rule, `system_ext/audioserver.te`, which is AOSP's own `appdomain:memfd_file` grant in tmpfs form. No MLS change was needed: `private/mls` exempts `appdomain_tmpfs` from its read and write constraints.
+- **Evidence** (`evidence/2026-10-17-soundpool/`), QEMU, enforcing:
+  - on `main`, the unlock sound fails twice (2 denials, "could not create track"), and nothing reaches the codec;
+  - with the fix, there are 0 denials, and both unlock sounds reach the codec (0.10 s and 0.15 s, the length of `Unlock.ogg`).
+- **Next:** the next owner stick carries it. On the G14, the default boot's logs should show no `audioserver appdomain_tmpfs` denial.
+
 ### 2026-10-17: G14 results merged for power, input, audio, Wi-Fi and the bridge (ANAL-159)
 - **Merged** #56 (ANAL-200), #57 (ANAL-178) and #58 (ANAL-179) after checks, with `main` merged into each and STATUS resolved by hand. The only MACs in the evidence are locally administered QEMU addresses.
 - **Woke ANAL-192** to rebuild the integrated stick on `9598403` (two AOSP patches and a third add-on landed after its first image). **Woke ANAL-177 and ANAL-176** to read the owner's `anal176t` session, which holds the graphics check and the audio fixes. The owner had replied only on ANAL-178.

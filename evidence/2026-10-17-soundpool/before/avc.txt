@@ -1,0 +1,3 @@
+      2 { read } platform_app bluetooth_lea_prop file
+      2 { read write } audioserver appdomain_tmpfs file
+      1 { find } keystore hal_gatekeeper_service service_manager

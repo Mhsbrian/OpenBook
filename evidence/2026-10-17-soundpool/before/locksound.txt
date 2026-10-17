@@ -1,0 +1,10 @@
+Lock screen disabled set to false
+lockscreen_sounds=1
+10-17 20:26:40.233  2637  2637 D KeyguardViewMediator: keyguardDone: 0
+10-17 20:26:40.234  2637  3834 E AudioTrack: createTrack_l(0): AudioFlinger could not create track, status: -2147483646 output 0
+10-17 20:26:40.234  2637  3834 E SoundPool::Stream: play_l: error -2147483646 creating AudioTrack
+10-17 20:26:40.234  2637  3834 D AudioTrack: gather(): no metrics gathered, track status=-2147483646
+10-17 20:26:40.232  2637  2637 W SoundPool_2: type=1400 audit(0.0:7): avc:  denied  { read write } for  path=2F6D656D66643A4D656D6F72794865617042617365202864656C6574656429 dev="tmpfs" ino=4103 scontext=u:r:audioserver:s0 tcontext=u:object_r:appdomain_tmpfs:s0:c512,c768 tclass=file permissive=0 app=com.android.systemui
+track_failures=1
+denials=2
+Lock screen disabled set to true

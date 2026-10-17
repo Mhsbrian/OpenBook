@@ -1,0 +1,5 @@
+enforcing=Enforcing
+denials=0
+track_failures=0
+10-17 20:38:18.068  2587  2587 D KeyguardViewMediator: keyguardDone: 0
+10-17 20:38:18.071   562  2767 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
