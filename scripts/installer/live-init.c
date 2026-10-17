@@ -743,6 +743,12 @@ static const char COLLECT[] =
     "d=/dev/input/${e##*/};; esac; done; [ -n \"$d\" ] && [ \"$(getprop sys.boot_completed)\" = 1 ] && "
     "timeout 20 getevent -lt $d 2>&1 | head -n 30000\n"
     "s AUDIO; dumpsys media.audio_flinger 2>&1 | head -n 40\n"
+    // App add-ons (ANAL-210): what openbook-addons did, microG's packages, and which apps provide location (the
+    // coordinates of a last fix are not saved).
+    "s ADDONS; tail -n 40 /data/misc/openbook_addons/addons.log 2>&1; cat /data/misc/openbook_addons/microg.json 2>&1; "
+    "pm list packages --show-versioncode 2>&1 | grep -E 'com.google.android.gms |com.google.android.gsf |com.android.vending '; "
+    "dumpsys location 2>&1 | grep -A9 -E '^ *(network|fused) provider:' | grep -E 'provider:|identity=|last location' | "
+    "sed -E 's/(Location\\[[a-z]+) [-0-9.]+,[-0-9.]+/\\1 <redacted>/'\n"
     "s FEATURES; pm list features 2>&1\n"
     // Bounded: one stuck service (a HAL with no hardware behind it, in a VM) blocks service list, and with it the
     // rest of this capture (ANAL-178, QEMU).
@@ -756,7 +762,8 @@ static const char *SUMMARY_PROPS[] = {
     "vendor.anybook.gpu.hal", "ro.hardware.egl", "ro.hardware.vulkan", "ro.hardware.gralloc",
     "ro.hardware.hwcomposer", "ro.sf.lcd_density", "init.svc.surfaceflinger", "init.svc.zygote", "init.svc.bootanim",
     "init.svc.vendor.openbook.dlkm", "init.svc.vendor.openbook.dgpu-pm", "init.svc.wpa_supplicant", "wifi.interface",
-    "ro.crypto.state", "ro.crypto.type", "sys.system_server.start_count", "ro.boottime.init", NULL};
+    "ro.crypto.state", "ro.crypto.type", "sys.system_server.start_count", "ro.boottime.init", "init.svc.openbook_addons",
+    NULL};
 
 struct capture { char phase[16]; double at; int collect, logcat, screen, hwtest; };
 static struct capture caps[4];
