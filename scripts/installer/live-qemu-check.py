@@ -200,6 +200,10 @@ def main():
             sc = f"{p}/screen-final.png"
             check(c, "screenshot is a PNG", os.path.exists(sc) and open(sc, "rb").read(8) == b"\x89PNG\r\n\x1a\n",
                   os.path.getsize(sc) if os.path.exists(sc) else 0)
+            ls_ = f"{p}/logcat-stream.txt"
+            check(c, "logcat streamed to the stick from early second stage",
+                  os.path.exists(ls_) and os.path.getsize(ls_) > 10000, os.path.getsize(ls_) if os.path.exists(ls_) else 0)
+            check(c, "wake lock held while recording (no suspend)", "logs: wake lock held" in text)
             co = f"{p}/collect-final.txt"
             check(c, "system facts saved", os.path.exists(co) and "===PROPS===" in open(co, errors="replace").read())
         check(c, "stick GPT valid (sgdisk -v)", gpt_facts(img)["ok"])

@@ -9,8 +9,10 @@
 //   reset  androidboot.openbook.live_reset=1 (the "start fresh" entry): zero the first MiB of "metadata" and
 //          "userdata", so Android formats both again, exactly as on the first boot.
 //   logs   androidboot.openbook.logs=1 (the "save logs" entry): a helper process copies the kernel log to the
-//          stick's ESP while Android boots. Once Android has booted (or after a timeout) it also saves logcat,
-//          system facts, a screenshot and summary.json to openbook/logs/live-NNN/, then shuts Android down
+//          stick's ESP while Android boots, streams logcat there from the start of second stage, and holds a
+//          kernel wake lock so the machine cannot suspend while it records. 30 s into second stage, and again
+//          once Android has booted (or after a timeout), it saves logcat, system facts, a screenshot and
+//          summary.json to openbook/logs/live-NNN/, then shuts Android down
 //          (androidboot.openbook.logs_after=poweroff, the default; =reboot for unattended runs; =stay). It
 //          mounts the ESP with the new mount API (fsopen/fsmount), so the mount is attached nowhere and Android
 //          never sees it. That entry also boots SELinux permissive (userdebug only), which the helper needs to
@@ -582,6 +584,30 @@ static const char *ANDROID_ENV[] = {
     "ANDROID_I18N_ROOT=/apex/com.android.i18n", "ANDROID_TZDATA_ROOT=/apex/com.android.tzdata", "HOME=/data/local/tmp",
     "TMPDIR=/data/local/tmp", NULL};
 
+// In a forked child: enter Android's mount namespace and root (init's), wire stdio to OUT (or /dev/null), exec CMD.
+static void android_exec(const char *cmd, int out) {
+    int ns = openat(procfd, "1/ns/mnt", O_RDONLY | O_CLOEXEC);
+    int root = openat(procfd, "1/root", O_PATH | O_DIRECTORY | O_CLOEXEC);
+    if (ns < 0 || setns(ns, CLONE_NEWNS)) _exit(125);
+    if (root < 0 || fchdir(root) || chroot(".") || chdir("/")) _exit(126);
+    int nul = open("/dev/null", O_RDWR | O_CLOEXEC);
+    int o = out >= 0 ? out : nul;
+    dup2(nul >= 0 ? nul : o, 0);
+    dup2(o, 1);
+    dup2(o, 2);
+    setsid();
+    char *const argv[] = {(char *)"sh", (char *)"-c", (char *)cmd, NULL};
+    execve("/system/bin/sh", argv, (char *const *)ANDROID_ENV);
+    _exit(127);
+}
+
+// Start CMD in Android's root in the background, output to OUT. Returns its pid, or -1.
+static pid_t spawn_android(const char *cmd, int out) {
+    pid_t pid = fork();
+    if (pid == 0) android_exec(cmd, out);
+    return pid;
+}
+
 // Run CMD with /system/bin/sh in Android's mount namespace and root (init's: /proc/1/ns/mnt, /proc/1/root), so
 // /proc/self/mounts, df and the APEX mounts look as they do to Android's own shell. Output goes to out_fd, or into
 // cap (NUL-terminated) when cap is not NULL. Returns the exit status, or -1 (spawn failed or timed out).
@@ -590,21 +616,7 @@ static int run_android(const char *cmd, int out_fd, char *cap, size_t caplen, in
     if (cap && pipe2(pfd, O_CLOEXEC)) return -1;
     pid_t pid = fork();
     if (pid < 0) return -1;
-    if (pid == 0) {
-        int ns = openat(procfd, "1/ns/mnt", O_RDONLY | O_CLOEXEC);
-        int root = openat(procfd, "1/root", O_PATH | O_DIRECTORY | O_CLOEXEC);
-        if (ns < 0 || setns(ns, CLONE_NEWNS)) _exit(125);
-        if (root < 0 || fchdir(root) || chroot(".") || chdir("/")) _exit(126);
-        int nul = open("/dev/null", O_RDWR | O_CLOEXEC);
-        int o = cap ? pfd[1] : out_fd >= 0 ? out_fd : nul;
-        dup2(nul >= 0 ? nul : o, 0);
-        dup2(o, 1);
-        dup2(o, 2);
-        setsid();
-        char *const argv[] = {(char *)"sh", (char *)"-c", (char *)cmd, NULL};
-        execve("/system/bin/sh", argv, (char *const *)ANDROID_ENV);
-        _exit(127);
-    }
+    if (pid == 0) android_exec(cmd, cap ? pfd[1] : out_fd);
     size_t got = 0;
     if (cap) {
         close(pfd[1]);
@@ -703,6 +715,7 @@ static const char COLLECT[] =
     "s FEATURES; pm list features 2>&1\n"
     "s SERVICES; service list 2>&1\n"
     "s AVC; dmesg | grep -c 'avc:  denied'; logcat -d -b all | grep -c 'avc:  denied'\n"
+    "s WAKELOCKS; cat /sys/power/wake_lock; cat /sys/power/wakeup_count\n"
     "s END\n";
 
 static const char *SUMMARY_PROPS[] = {
@@ -810,7 +823,7 @@ static void logs_helper(int ready_fd, const char *esp_node) {
     if (pfs >= 0) close(pfs);
     // Read the settings now: /proc is unmounted once the parent execs Android's init.
     long timeout = conf_long("androidboot.openbook.logs_timeout", 600);  // after second stage starts
-    long settle = conf_long("androidboot.openbook.logs_settle", 45);     // after sys.boot_completed=1
+    long settle = conf_long("androidboot.openbook.logs_settle", 20);     // after sys.boot_completed=1
     char after[16] = "poweroff";
     conf_get("androidboot.openbook.logs_after", after, sizeof after);
     if (strcmp(after, "reboot") && strcmp(after, "stay")) snprintf(after, sizeof after, "poweroff");
@@ -826,11 +839,32 @@ static void logs_helper(int ready_fd, const char *esp_node) {
     if (!ok) _exit(1);
 
     double t_start = uptime_s(), t_check = 0, t_sync = 0;
-    int early_done = 0;
+    int early_done = 0, stream_fd = -1, wakelock = 0;
+    pid_t stream_pid = -1;
     for (;;) {
         drain_kmsg();
         double now = uptime_s();
-        if (now - t_sync >= 5) { fsync(dmesg_out); t_sync = now; }
+        if (now - t_sync >= 5) {
+            fsync(dmesg_out);
+            if (stream_fd >= 0) fsync(stream_fd);
+            t_sync = now;
+        }
+        // From 5 s into second stage (logd is up): hold a wake lock so the machine cannot suspend while we record,
+        // and stream logcat to the stick, restarting the stream if logcat exits.
+        if (t_second >= 0 && now - t_second >= 5) {
+            if (!wakelock) {
+                wakelock = run_android("echo openbook-logs > /sys/power/wake_lock", -1, NULL, 0, 10) == 0 ? 1 : -1;
+                say("logs: wake lock %s", wakelock > 0 ? "held (no suspend while recording)" : "NOT available");
+            }
+            int st;
+            if (stream_pid > 0 && waitpid(stream_pid, &st, WNOHANG) == stream_pid) stream_pid = -1;
+            if (stream_pid < 0) {
+                if (stream_fd < 0)
+                    stream_fd = openat(logdir, "logcat-stream.txt", O_WRONLY | O_CREAT | O_APPEND | O_CLOEXEC, 0644);
+                if (stream_fd >= 0) stream_pid = spawn_android("logcat -b all -v threadtime", stream_fd);
+                if (stream_pid > 0) say("logs: streaming logcat to %s/logcat-stream.txt", logdir_name);
+            }
+        }
         if (t_second < 0) {
             if (second_stage_running()) { t_second = now; say("logs: Android second stage seen at %.0f s", now); }
             else if (now - t_start > timeout) { say("logs: no second stage after %ld s", timeout); break; }
@@ -843,7 +877,7 @@ static void logs_helper(int ready_fd, const char *esp_node) {
                     say("logs: sys.boot_completed=1 at %.0f s", now);
                 }
             }
-            if (t_complete < 0 && !early_done && now - t_second >= 90) { capture("early"); early_done = 1; }
+            if (t_complete < 0 && !early_done && now - t_second >= 30) { capture("early"); early_done = 1; }
             if (t_complete < 0 && now - t_second >= timeout) { say("logs: boot not completed after %ld s", timeout); break; }
         } else if (now - t_complete >= settle) {
             break;
@@ -851,7 +885,13 @@ static void logs_helper(int ready_fd, const char *esp_node) {
         usleep(500000);
     }
     capture("final");
+    if (stream_pid > 0) {
+        kill(stream_pid, SIGTERM);
+        waitpid(stream_pid, NULL, 0);
+    }
+    if (stream_fd >= 0) { fsync(stream_fd); close(stream_fd); }
     write_summary(after);
+    if (wakelock > 0) run_android("echo openbook-logs > /sys/power/wake_unlock", -1, NULL, 0, 10);
     say("logs: done: %s (dmesg %llu bytes, %d capture(s))", logdir_name, dmesg_bytes, ncaps);
     drain_kmsg();
     fsync(dmesg_out);
