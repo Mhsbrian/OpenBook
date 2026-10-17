@@ -52,6 +52,25 @@ echo "===BT-BEGIN==="
 openbook-hwtest bt
 echo "===BT-END==="
 
+echo "===PACED-BEGIN==="
+# For comparison, the same AAudio loopback with AOSP's wall-clock pacing back on (patch 0002 off): a third tone in
+# the WAV file, and the HAL's padding and drops counted the way openbook-hwtest counts them.
+setprop vendor.audio.primary.pacing true
+setprop ctl.restart vendor.audio-hal-aidl
+sleep 5; i=0; while [ $i -lt 60 ] && ! dumpsys media.audio_policy 2>/dev/null | grep -q 'Port ID: [0-9]*; "Speaker"'; do sleep 2; i=$((i + 2)); done
+sleep 5
+pol=$(dumpsys media.audio_policy 2>&1)
+spk=$(echo "$pol" | sed -n 's/.*Port ID: \([0-9]*\); "Speaker".*/\1/p' | head -n 1)
+mic=$(echo "$pol" | sed -n 's/.*Port ID: \([0-9]*\); "Built-In Mic".*/\1/p' | head -n 1)
+echo "audio back after ${i} s, pacing $(getprop vendor.audio.primary.pacing), ports $spk $mic"
+cmd media_session volume --stream 3 --set 10 > /dev/null 2>&1
+t0=$(date +'%m-%d %H:%M:%S.000')
+r=$(timeout 30 openbook-audio-test --wav /data/local/tmp/openbook-aaudio-paced.wav ${spk:+--out-device $spk} \
+      ${mic:+--in-device $mic} 2>&1 | tail -n 1)
+hal=$(logcat -d -b main -T "$t0" 2>/dev/null | grep 'AHAL_')
+echo "PACED ${r%\}}, \"hal_input_pads\": $(echo "$hal" | grep -c 'inserting [0-9]* frames of silence'), \"hal_output_drops\": $(echo "$hal" | grep -c 'dropping [0-9]* frames'), \"hal_skipped_transfers\": $(echo "$hal" | grep -c 'skipping transfer')}"
+echo "===PACED-END==="
+
 echo "===HALLOG-BEGIN==="
 logcat -d -b all | grep -iE 'wpa_supplicant|WifiNative|WifiVendorHal|wificond|AHAL_|audioserver|AudioFlinger.*(open|fail)|BluetoothHci|bluetooth-service|openbook' | tail -n 250
 echo "===HALLOG-END==="
