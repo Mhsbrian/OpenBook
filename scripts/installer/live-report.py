@@ -8,6 +8,9 @@ use the same file (docs/installer.md section 11).
 
   --expect g14   verdicts for the GA403WR: amdgpu HAL, eDP panel, Wi-Fi, touchpad, keyboard, dGPU in D3cold
   --expect vm    verdicts for QEMU: virtio-gpu HAL, a connected virtual display (no Wi-Fi, touchpad or dGPU)
+Either way, hwtest-final.txt (openbook-hwtest, ANAL-179: its "HWTEST {json}" lines) adds the Wi-Fi, Bluetooth and
+audio verdicts: regulatory database, scan, connection, DHCP, internet, iperf3, Bluetooth on and paired, the
+built-in sound card, and the speaker-to-microphone loopback directly on ALSA and through Android.
   --redact DIR   also copy the folder to DIR with MAC addresses, USB serial numbers and Wi-Fi network names
                  masked, for committing as evidence
 
@@ -111,6 +114,39 @@ def main():
         verdict("battery", any(" Battery" in l for l in sup) if "SUPPLY" in sec else None, supplies=sup)
         verdict("cpu_power", "active" in sec.get("POWER", "") if "POWER" in sec else None,
                 facts=[l for l in sec.get("POWER", "").splitlines() if "No such" not in l])
+    hw = {}
+    if os.path.exists(f"{d}/hwtest-final.txt"):
+        for line in open(f"{d}/hwtest-final.txt", errors="replace"):
+            if line.startswith("HWTEST {"):
+                try:
+                    o = json.loads(line[len("HWTEST "):])
+                    hw[o.get("test")] = o
+                except ValueError:
+                    pass
+    if hw:
+        def hv(name, test, field="ok", keep=()):
+            o = hw.get(test)
+            verdict(name, None if o is None else bool(o.get(field)), **{k: o.get(k) for k in keep if o})
+        hv("wifi_regulatory", "wifi-driver", "regdb_loaded", ("driver", "country"))
+        hv("wifi_enabled", "wifi-enabled", keep=("supplicant",))
+        hv("wifi_scan", "wifi-scan", keep=("networks", "ghz2", "ghz5", "ghz6"))
+        hv("wifi_connected", "wifi-connect", keep=("freq_mhz", "signal_dbm", "tx_mbit", "rx_mbit"))
+        hv("wifi_dhcp", "wifi-dhcp", keep=("prefix", "gateway"))
+        hv("wifi_gateway_ping", "wifi-ping-gateway", keep=("loss_pct", "avg_ms"))
+        hv("wifi_internet", "wifi-validated")
+        up, down = hw.get("wifi-iperf3-up"), hw.get("wifi-iperf3-down")
+        verdict("wifi_iperf3", None if not (up or down) else bool(up and up.get("ok") and down and down.get("ok")),
+                up_mbit_s=up and up.get("mbit_s"), down_mbit_s=down and down.get("mbit_s"),
+                seconds=(up or down or {}).get("seconds"))
+        hv("bt_enabled", "bt-enabled", keep=("hal",))
+        hv("bt_paired", "bt-bonded", keep=("bonded",))
+        hv("audio_card", "audio-card", keep=("card", "pcm"))
+        loop = ("card", "tone_bin_dbfs", "noise_bin_dbfs", "glitched_slices", "slices", "playback_error", "capture_error",
+                "error")
+        hv("audio_loopback_alsa", "alsa-loopback", "heard", loop)
+        hv("audio_loopback_android", "aaudio-loopback", "heard",
+           ("tone_bin_dbfs", "noise_bin_dbfs", "glitched_slices", "slices", "xruns", "media_volume", "input_error",
+            "output_error", "error"))
     mods = sec.get("MODULES", "").splitlines()
     avc = sec.get("AVC", "").split()
     report = {

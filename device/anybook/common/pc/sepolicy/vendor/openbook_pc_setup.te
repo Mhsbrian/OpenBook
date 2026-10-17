@@ -12,6 +12,8 @@ userdebug_or_eng(`allow openbook_pc_setup kmsg_debug_device:chr_file { getattr i
 # snd_hda_intel's power_save.
 r_dir_file(openbook_pc_setup, sysfs)
 allow openbook_pc_setup sysfs:file w_file_perms;
+# It reads every PCI function's vendor ID, the iGPU's included (sysfs_gpu, file_contexts).
+r_dir_file(openbook_pc_setup, sysfs_gpu)
 
 # perms: hand cpufreq's energy_performance_preference to the power HAL.
 r_dir_file(openbook_pc_setup, sysfs_devices_system_cpu)

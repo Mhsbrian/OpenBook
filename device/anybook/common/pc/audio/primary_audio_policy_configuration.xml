@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (C) 2026 The OpenBook Authors. SPDX-License-Identifier: Apache-2.0
+
+     The primary module of AOSP's example audio HAL on an OpenBook PC: the built-in codec's analog PCM, which
+     openbook-audio-setup finds at boot and publishes as vendor.audio.primary.card/.device. On HDA laptops (the G14:
+     ALC285 with two CS35L56 amplifiers) one PCM carries the speakers and the headphone jack, and the codec driver
+     switches between them itself (auto-mute); likewise for the internal and the headset microphones. The headphone
+     and headset ports exist so Android picks the right volume curves when the jack reports a plug
+     (config_useDevInputEventForAudioJack). 48 kHz stereo 16-bit is what HDA codecs all take: the G14's speaker DAC
+     accepts nothing else, and the HAL opens ALSA without resampling; AudioFlinger converts for clients. -->
+<module name="primary" halVersion="3.0">
+    <attachedDevices>
+        <item>Speaker</item>
+        <item>Built-In Mic</item>
+    </attachedDevices>
+    <defaultOutputDevice>Speaker</defaultOutputDevice>
+    <mixPorts>
+        <mixPort name="primary output" role="source" flags="AUDIO_OUTPUT_FLAG_PRIMARY">
+            <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+                     samplingRates="48000" channelMasks="AUDIO_CHANNEL_OUT_STEREO"/>
+        </mixPort>
+        <mixPort name="primary input" role="sink">
+            <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+                     samplingRates="48000" channelMasks="AUDIO_CHANNEL_IN_STEREO"/>
+        </mixPort>
+    </mixPorts>
+    <devicePorts>
+        <devicePort tagName="Speaker" type="AUDIO_DEVICE_OUT_SPEAKER" role="sink">
+            <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+                     samplingRates="48000" channelMasks="AUDIO_CHANNEL_OUT_STEREO"/>
+        </devicePort>
+        <devicePort tagName="Wired Headphones" type="AUDIO_DEVICE_OUT_WIRED_HEADPHONE" role="sink">
+            <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+                     samplingRates="48000" channelMasks="AUDIO_CHANNEL_OUT_STEREO"/>
+        </devicePort>
+        <devicePort tagName="Wired Headset" type="AUDIO_DEVICE_OUT_WIRED_HEADSET" role="sink">
+            <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+                     samplingRates="48000" channelMasks="AUDIO_CHANNEL_OUT_STEREO"/>
+        </devicePort>
+        <devicePort tagName="Built-In Mic" type="AUDIO_DEVICE_IN_BUILTIN_MIC" role="source">
+            <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+                     samplingRates="48000" channelMasks="AUDIO_CHANNEL_IN_STEREO"/>
+        </devicePort>
+        <devicePort tagName="Wired Headset Mic" type="AUDIO_DEVICE_IN_WIRED_HEADSET" role="source">
+            <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+                     samplingRates="48000" channelMasks="AUDIO_CHANNEL_IN_STEREO"/>
+        </devicePort>
+    </devicePorts>
+    <routes>
+        <route type="mix" sink="Speaker" sources="primary output"/>
+        <route type="mix" sink="Wired Headphones" sources="primary output"/>
+        <route type="mix" sink="Wired Headset" sources="primary output"/>
+        <route type="mix" sink="primary input" sources="Built-In Mic,Wired Headset Mic"/>
+    </routes>
+</module>

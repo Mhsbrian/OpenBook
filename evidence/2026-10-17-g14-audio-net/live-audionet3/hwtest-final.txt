@@ -1,0 +1,108 @@
+
+--- audio: cards, PCMs and mixer ---
+--- no soundcards ---
+vendor.audio.primary.card=-1
+vendor.audio.primary.device=unset
+HWTEST {"test": "audio-card", "ok": false, "card": -1, "pcm": ""}
+
+--- audio: policy ---
+ Available output devices (1):
+  1. Port ID: 2; "Speaker"; {AUDIO_DEVICE_OUT_SPEAKER, @:}
+     Encapsulation modes: 0, metadata types: 0
+     Port Hal ID: 1
+   - Profiles (1):
+--
+ Available input devices (2):
+  1. Port ID: 5; "Built-In Mic"; {AUDIO_DEVICE_IN_BUILTIN_MIC, @:bottom}
+     Encapsulation modes: 0, metadata types: 0
+     Port Hal ID: 4
+   - Profiles (1):
+Hardware status: 0
+  Standby: yes
+  Sample rate: 48000 Hz
+  HAL format: 0x1 (AUDIO_FORMAT_PCM_16_BIT)
+  Output devices: 0x2 (AUDIO_DEVICE_OUT_SPEAKER)
+  Input device: 0 (AUDIO_DEVICE_NONE)
+  Standby delay ns=3000000000
+-   Standby: yes
+-   Sample rate: 48000 Hz
+-   HAL format: 0x1 (AUDIO_FORMAT_PCM_16_BIT)
+-   Output devices:  (Empty device types)
+-   Input device: 0 (AUDIO_DEVICE_NONE)
+-   Standby: yes
+-   Sample rate: 192000 Hz
+-   HAL format: 0x1 (AUDIO_FORMAT_PCM_16_BIT)
+-   Output devices:  (Empty device types)
+-   Input device: 0 (AUDIO_DEVICE_NONE)
+
+--- audio: speaker -> built-in mic, direct ALSA (2 s at 1 kHz) ---
+{"test": "alsa-loopback", "ok": false, "error": "no built-in sound card"}
+HWTEST {"test": "alsa-loopback", "ok": false, "error": "no built-in sound card"}
+
+--- audio: speaker -> built-in mic through Android (AAudio) ---
+{"test": "aaudio-loopback", "ok": true, "in_rate": 48000, "in_channels": 2, "out_rate": 48000, "out_channels": 2, "captured_frames": 168000, "written_frames": 120000, "xruns": 1, "freq": 1000, "tone_dbfs_out": -15, "noise_rms_dbfs": -4.7, "noise_bin_dbfs": -47.3, "tone_rms_dbfs": -4.7, "tone_bin_dbfs": -36.3, "tone_share": 0.000, "slice_share_mean": 0.001, "slice_share_min": 0.000, "glitched_slices": 30, "slices": 30, "heard": false, "input_error": 0, "output_error": 0, "media_volume": "10/15"}
+HWTEST {"test": "aaudio-loopback", "ok": true, "in_rate": 48000, "in_channels": 2, "out_rate": 48000, "out_channels": 2, "captured_frames": 168000, "written_frames": 120000, "xruns": 1, "freq": 1000, "tone_dbfs_out": -15, "noise_rms_dbfs": -4.7, "noise_bin_dbfs": -47.3, "tone_rms_dbfs": -4.7, "tone_bin_dbfs": -36.3, "tone_share": 0.000, "slice_share_mean": 0.001, "slice_share_min": 0.000, "glitched_slices": 30, "slices": 30, "heard": false, "input_error": 0, "output_error": 0, "media_volume": "10/15"}
+
+--- wifi: driver and regulatory ---
+ls: /sys/class/net/wlan0/device/driver: No such file or directory
+global
+country 00: DFS-UNSET
+	(755 - 928 @ 2), (N/A, 20), (N/A), PASSIVE-SCAN
+	(2402 - 2472 @ 40), (N/A, 20), (N/A)
+	(2457 - 2482 @ 20), (N/A, 20), (N/A), AUTO-BW, PASSIVE-SCAN
+	(2474 - 2494 @ 20), (N/A, 20), (N/A), NO-OFDM, PASSIVE-SCAN
+	(5170 - 5250 @ 80), (N/A, 20), (N/A), AUTO-BW, PASSIVE-SCAN
+	(5250 - 5330 @ 80), (N/A, 20), (0 ms), DFS, AUTO-BW, PASSIVE-SCAN
+	(5490 - 5730 @ 160), (N/A, 20), (0 ms), DFS, PASSIVE-SCAN
+	(5735 - 5835 @ 80), (N/A, 20), (N/A), PASSIVE-SCAN
+	(57240 - 63720 @ 2160), (N/A, 0), (N/A)
+
+[    3.372932] modprobe: Loading module /vendor/lib/modules/cfg80211.ko with args ''
+[    3.389445] cfg80211: Loading compiled-in X.509 certificates for regulatory database
+[    3.392103] modprobe: Loaded kernel module /vendor/lib/modules/cfg80211.ko
+HWTEST {"test": "wifi-driver", "iface": "wlan0", "present": false, "driver": ".", "regdb_loaded": true, "country": "00"}
+
+--- wifi: framework ---
+supplicant: 
+Wifi is disabled
+Wifi scanning is only available when wifi is enabled
+HWTEST {"test": "wifi-enabled", "ok": false, "supplicant": ""}
+
+--- wifi: scan ---
+0 networks: 0 on 2.4 GHz, 0 on 5 GHz, 0 on 6 GHz
+HWTEST {"test": "wifi-scan", "ok": false, "networks": 0, "ghz2": 0, "ghz5": 0, "ghz6": 0}
+
+--- wifi: connection ---
+command failed: No such device (-19)
+IPv4 none, gateway none
+HWTEST {"test": "wifi-connect", "ok": false, "freq_mhz": null, "signal_dbm": null, "tx_mbit": null, "rx_mbit": null}
+HWTEST {"test": "wifi-dhcp", "ok": false, "prefix": "", "gateway": false}
+HWTEST {"test": "wifi-validated", "ok": false}
+
+--- bluetooth: controller and HAL ---
+[    3.501758] Bluetooth: HCI device and connection manager initialized
+[    3.502468] Bluetooth: HCI socket layer initialized
+[    3.510023] modprobe: Loading module /vendor/lib/modules/btmtk.ko with args ''
+[    3.511649] modprobe: Loaded kernel module /vendor/lib/modules/btmtk.ko
+[    3.515112] modprobe: Loading module /vendor/lib/modules/btusb.ko with args ''
+[    3.517082] usbcore: registered new interface driver btusb
+[    3.517792] modprobe: Loaded kernel module /vendor/lib/modules/btusb.ko
+HAL: running
+ShellCommand: Exec enable
+enable: Success
+ShellCommand: Exec wait-for-state:STATE_ON
+ShellCommand: wait-for-state:STATE_ON: Failed
+  State:         BLE_TURNING_ON
+Bluetooth crashed 0 times
+Enabled Profile Services:
+  GATT
+  A2DP
+  AVRCP
+  BATTERY
+  HEARING_AID
+  HID_HOST
+  OPP
+  PAN
+
+HWTEST {"test": "bt-enabled", "ok": false, "hal": "running"}
+HWTEST {"test": "bt-bonded", "ok": false, "bonded": 0, "audio_lines": 0}

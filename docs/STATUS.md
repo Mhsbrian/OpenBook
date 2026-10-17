@@ -51,6 +51,19 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 
 ## History
 
+### 2026-10-17: G14 audio, Wi-Fi and Bluetooth, Android side (ANAL-179)
+
+**Done** (`docs/g14-audio-net.md`)
+- **Wi-Fi:** AOSP's wpa_supplicant and the framework's own nl80211 code, no vendor HAL (none is public) and no wificond (Android 17 has none); a DRIVER-command hook for the country code; the signed `regulatory.db`; AOSP's MT7925 firmware kept (the build the G14 loaded).
+- **Bluetooth:** AOSP's AIDL HAL over the HCI user channel (`btusb` + `btmtk`), laptop profiles.
+- **Audio:** `openbook-audio-setup` finds the codec's ALSA card at boot (the ALC285 is card 1 or 2) and unmutes it; an AOSP patch lets the example HAL use that card; a 48 kHz policy with jack handling.
+- **Found:** no app could play or record (the audio HAL's message-queue memfds were denied), cfg80211's regulatory keyring was unsearchable, HDA codecs come up muted.
+- **Tests:** `openbook-hwtest` runs in the save-logs entry (Wi-Fi scan/connect/DHCP/iperf3, Bluetooth, speaker-to-mic loopbacks), with `live-report.py` verdicts; a QEMU rig with an HDA card and a `mac80211_hwsim` access point.
+
+**Evidence:** `evidence/2026-10-17-g14-audio-net/`. In QEMU: WPA2 connect, DHCP, iperf3 about 650–770 Mbit/s; a tone reaches the codec through ALSA cleanly and through AudioFlinger with dropped buffers (VM; open item). Nothing on the G14 yet.
+
+**Next:** the owner boots `openbook-live-20261017-audionet3` (this branch + ANAL-176's desktop4): connect Wi-Fi, pair a device, then the save-logs entry (`docs/g14-audio-net.md` §7).
+
 ### 2026-10-17: G14 desktop from USB, RADV swapchain fix and SELinux (ANAL-176)
 
 **Done**

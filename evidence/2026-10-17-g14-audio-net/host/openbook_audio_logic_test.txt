@@ -1,0 +1,26 @@
+Running main() from external/googletest/googletest/src/gtest_main.cc
+[==========] Running 7 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 4 tests from AlsaCards
+[ RUN      ] AlsaCards.ParsesProcAsoundPcm
+[       OK ] AlsaCards.ParsesProcAsoundPcm (0 ms)
+[ RUN      ] AlsaCards.PicksTheAnalogCodecWhateverItsCardNumber
+[       OK ] AlsaCards.PicksTheAnalogCodecWhateverItsCardNumber (0 ms)
+[ RUN      ] AlsaCards.NeverPicksDisplayAudio
+[       OK ] AlsaCards.NeverPicksDisplayAudio (0 ms)
+[ RUN      ] AlsaCards.FallsBackToAnyNonDisplayPlaybackPcm
+[       OK ] AlsaCards.FallsBackToAnyNonDisplayPlaybackPcm (0 ms)
+[----------] 4 tests from AlsaCards (0 ms total)
+
+[----------] 3 tests from Tone
+[ RUN      ] Tone.MeasuresASineAtItsLevel
+[       OK ] Tone.MeasuresASineAtItsLevel (6 ms)
+[ RUN      ] Tone.SilenceAndNoiseAreNotATone
+[       OK ] Tone.SilenceAndNoiseAreNotATone (17 ms)
+[ RUN      ] Tone.AQuietButCleanToneIsHeard
+[       OK ] Tone.AQuietButCleanToneIsHeard (6 ms)
+[----------] 3 tests from Tone (31 ms total)
+
+[----------] Global test environment tear-down
+[==========] 7 tests from 2 test suites ran. (31 ms total)
+[  PASSED  ] 7 tests.

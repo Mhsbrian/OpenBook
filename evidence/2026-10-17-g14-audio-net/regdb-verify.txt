@@ -1,0 +1,12 @@
+CMS Verification successful
+5560f4f0fdac7d1bb2adf8d4d083f39e3bee5ba55192feadadc091df55a813eb  regulatory.db
+5dd27969661bed1e021ce435f535a53f201705bda14c2dba0db6353d1cdc6fff  regulatory.db.p7s
+subject=CN=wens
+notBefore=Dec  1 07:41:14 2023 GMT
+notAfter=Nov  7 07:41:14 2123 GMT
+/* Chen-Yu Tsai's regdb certificate */
+0x30, 0x82, 0x02, 0xa7, 0x30, 0x82, 0x01, 0x8f,
+0x02, 0x14, 0x61, 0xc0, 0x38, 0x65, 0x1a, 0xab,
+0xdc, 0xf9, 0x4b, 0xd0, 0xac, 0x7f, 0xf0, 0x6c,
+0x72, 0x48, 0xdb,
+kernel wens cert sha256 eeb049594eb3a83e AOSP wens.x509.pem sha256 eeb049594eb3a83e same

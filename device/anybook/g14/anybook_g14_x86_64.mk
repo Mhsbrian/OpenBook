@@ -18,8 +18,8 @@ ANYBOOK_G14_FIRMWARE_DIR := $(OPENBOOK_G14_KERNEL_DIR)/firmware/vendor/firmware
 include $(OPENBOOK_G14_KERNEL_DIR)/firmware/firmware.mk
 # AOSP 17 imports the MediaTek MT7921/MT7922/MT7925 Wi-Fi and Bluetooth files itself (external/linux-firmware, at
 # linux-firmware 0d347a3f, 2026-04-23), and Soong owns their /vendor/firmware paths. Those 9 come from AOSP's
-# modules; ANAL-198's copies (38c1a709, 2026-10) of the same names differ and are dropped. ANAL-179 decides whether
-# MT7925 needs the newer ones.
+# modules; ANAL-198's copies (38c1a709, 2026-10) of the same names differ and are dropped. ANAL-179 keeps AOSP's
+# (firmware build 20260414, the one the G14 loaded in live-001): docs/g14-audio-net.md.
 OPENBOOK_AOSP_FIRMWARE := \
     mediatek/BT_RAM_CODE_MT7922_1_1_hdr.bin \
     mediatek/BT_RAM_CODE_MT7961_1_2_hdr.bin \
