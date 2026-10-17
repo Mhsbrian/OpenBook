@@ -94,7 +94,9 @@ def microg_checks():
                           "dumpsys package $p | grep -E 'codePath=|versionCode=|installerPackageName=|pkgFlags='; done; "
                           "echo GRANTED; dumpsys package com.google.android.gms | grep -E 'granted=true' | sed 's/^ *//' | sort -u; "
                           "echo APPOPS; appops get com.google.android.gms SYSTEM_ALERT_WINDOW; "
-                          "echo DEVICEIDLE; cmd deviceidle whitelist | grep -E 'com.google.android.gms'", 120)
+                          "echo DEVICEIDLE; cmd deviceidle whitelist | grep -E 'com.google.android.gms'; "
+                          "echo LAUNCHER; pm query-activities --brief -a android.intent.action.MAIN -c android.intent.category.LAUNCHER "
+                          "| grep -E 'com.google.android.gms/|com.android.vending/|com.google.android.gsf/'", 120)
     # microG's self-check, as the user opens it: the UI tree (labels and checkboxes) and a screenshot.
     s += W.send("am start -W -n 'com.google.android.gms/org.microg.gms.ui.SelfCheckFragment$AsActivity' >/dev/null; sleep 10", 60)
     s += section("SELFCHECK-UI", "ui; cat /data/local/tmp/ui.xml; echo", 60)
@@ -219,7 +221,10 @@ def check(run):
                          "INTERACT_ACROSS_USERS"):
                 chk(case, f"GmsCore holds {perm}", re.search(rf"android.permission.{perm}: granted=true", m), "")
             chk(case, "SYSTEM_ALERT_WINDOW allowed", re.search(r"SYSTEM_ALERT_WINDOW: allow", m), m[-300:])
-            chk(case, "battery-optimisation exemption", "com.google.android.gms" in m.split("DEVICEIDLE")[-1], m[-200:])
+            chk(case, "battery-optimisation exemption", "com.google.android.gms" in m.split("DEVICEIDLE")[-1].split("LAUNCHER")[0], m[-200:])
+            launch = m.split("LAUNCHER")[-1]
+            chk(case, "microG Services has a launcher entry", "com.google.android.gms/" in launch, launch[-300:])
+            res[-1]["detail"] = launch.strip().replace("\n", "; ")[:300]
             items = selfcheck(sec.get("SELFCHECK-UI", ""))
             chk(case, f"microG self-check: all green ({sum(ok for _, ok in items)}/{len(items)} on the first screen)",
                 items and all(ok for _, ok in items), [t for t, ok in items if not ok] or "no items")
