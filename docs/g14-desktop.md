@@ -1,6 +1,6 @@
 # G14 desktop from USB: RADV swapchain fix, SELinux, live image (ANAL-176)
 
-Status as of 2026-10-17. Goal: the OpenBook desktop on the GA403WR's panel, booted from USB, nothing written to internal disks. Evidence is in `evidence/2026-10-17-g14-desktop/`, starting with `SUMMARY.md`. Labels: **C** = confirmed (we ran it), **H** = hypothesis. **Nothing here has run on the G14 yet:** the owner checklist is in §6.
+Status as of 2026-10-17. Goal: the OpenBook desktop on the GA403WR's panel, booted from USB, nothing written to internal disks. Evidence is in `evidence/2026-10-17-g14-desktop/`, starting with `SUMMARY.md`. Labels: **C** = confirmed (we ran it), **H** = hypothesis. **On the G14:** the desktop has appeared in the "save logs" boots (permissive) of `desktop2` and `desktop3` (§9, §10); the default, enforcing entry has not been seen to reach it yet. Owner steps: §6.
 
 This builds on PR #38 (ANAL-199's follow-up to the first live boot: an ANGLE workaround for the crash and most of the SELinux labels) and PR #34/#37 (ANAL-190's live image tooling).
 
@@ -13,7 +13,7 @@ This builds on PR #38 (ANAL-199's follow-up to the first live boot: an ANGLE wor
 | Fix | three upstream Mesa commits backported to 26.2.5, plus one OpenBook patch for minigbm's modifier-less buffers (§3). The patched RADV passes 8 of 8 swapchain cases with 0 wrong pixels, both directions between RADV and radeonsi (C) |
 | SELinux | the 22 distinct Android denials of live-001 are addressed by PR #38 and this branch, except 3 AOSP or kernel-side ones (§4). 24 of 24 G14 sysfs paths get their intended labels in the built policy (C) |
 | Live image | `openbook-live-20261017-desktop2`: new "safe graphics" entries (Mesa GL instead of ANGLE), QEMU matrix in §5 |
-| On the G14 | **not run yet** (device gate): owner steps in §6 |
+| On the G14 | the desktop on the panel in the save-logs boots of `desktop2` and `desktop3` (C, §9, §10); the enforcing default entry not shown yet (owner steps in §6) |
 
 ## 2. The crash (C)
 
@@ -91,33 +91,25 @@ Built with `scripts/installer-image.sh --label openbook-live-20261017-desktop2 -
 
 Denials on the VM path (`avc-summary.py` on the save-logs case): 41 Android lines in the kernel log and 8 distinct, down from 69 and 16 with the first build of this branch (`desktop1`, before `vendor.minigbm.*`). No `vendor_default_prop` is left. What remains is not G14-specific: the audio HAL's memfd (ANAL-199), the Bluetooth app aborting without a Bluetooth HAL (ANAL-179) and what `crash_dump` reads for it, SystemUI's `bluetooth_lea_prop`, `secure_element`'s dex cache, and the two open items in §4.
 
-## 6. On the G14: owner checklist (`desktop3`)
+## 6. On the G14: owner checklist (after the `desktop3` boots)
 
-`openbook-live-20261017-desktop3` carries the fixes from §9: the kernel may load firmware under enforcing (the black default entry), the GPU HALs are chosen before SurfaceFlinger starts, the screen stays on for 10 minutes, and every boot keeps its logcat on the stick for a later "save logs" boot.
-- Checked off the laptop (`evidence/2026-10-17-g14-desktop/desktop3/`):
-  - the compiled policy allows the firmware load;
-  - QEMU/OVMF passes 37 of 39 with `boot_completed` at 20.3 s;
-  - the HAL event runs at 3.74 s, 8.6 s before SurfaceFlinger;
-  - `logcatd` runs, and the save-logs helper archives the earlier boots.
-- Not checked: the 10-minute timeout at runtime (the overlay is installed), and everything that needs the G14.
+What is still unknown is whether the default, enforcing entry reaches the desktop now that the firmware load is allowed. On `desktop3` its first boot was switched off while it was still in first-boot setup on a black screen (§10).
 
-1. **Write the image** (erases the stick; the reports on it are copied to the PC first):
-   ```bash
-   cd <a checkout of this repo>
-   OPENBOOK_WRITE_CONFIRM=/dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0 \
-     scripts/installer/write-stick.sh ~/anybook/installer/out/openbook-live-20261017-desktop3.img \
-     /dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0
-   ```
-   Done when it prints `stick powered off: safe to unplug`.
-2. **Boot "OpenBook"**, the default entry (Esc → USB stick → Enter). The first boot of a freshly written stick takes longer (it formats `/data` and unpacks the system on the stick). Expected: the boot animation, then the desktop. This entry never switches itself off. Use it; photograph the desktop. Note the time if anything goes black or freezes.
-3. **Then one "save logs" boot** (↓ once, Enter). It brings back the logs of the earlier boots too (`prior-boots.tar.gz`), not only its own. It still powers off by itself about a minute after the desktop appears; that is the entry's design, not a crash.
-4. Plug the stick into the PC and reply "stick attached", with the photos and anything that went wrong. The agent runs, read-only:
-   ```bash
-   scripts/installer/read-stick-logs.sh /dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0
-   python3 scripts/installer/avc-summary.py <data dir>/installer/g14/stick-<UTC>/live-NNN --json avc.json --md avc.md
-   ```
+**A. Now, on the stick as it is (no rewrite).** First-boot setup is done on this stick, so the next boots skip it.
+1. Boot **"OpenBook"**, the default entry (Esc → USB stick → Enter, or wait for the 10 s menu). Wait **2 minutes** before deciding it is stuck. Expected: a black screen for some seconds (no boot logo before SurfaceFlinger), then the boot animation, then the desktop. Photograph the desktop.
+2. Use it. Avoid until `desktop4`: **Escape** while the taskbar's All Apps or a taskbar menu is open (it kills the launcher; fixed in `desktop4`). Avoid for now: the **lid**, a short press of the **power button**, and leaving it idle for 10 minutes. Those put the laptop to sleep, and sleep on the G14 is ANAL-178's open work. If the screen goes black, note the time and what you had just done.
+3. To stop: Quick Settings → power icon → **Power off**. A clean power-off keeps this boot's logs. Holding the power button can lose the last minute.
+4. Then boot **"save logs"** once (↓ once, Enter). It brings back the logs of the boots before it (`prior-boots.tar.gz`: logcat with the kernel log, tombstones, ANR traces, dropbox), not only its own. It still powers off by itself about 45 s after the desktop appears. That is the design of this entry (ANAL-190 is changing it), not a crash.
+5. Plug the stick into the PC and reply "stick attached" with the photos and notes. The agent reads it read-only (`scripts/installer/read-stick-logs.sh`, `live-report.py`, `avc-summary.py`).
 
-`desktop2` (§5) is superseded: its default and safe-graphics entries cannot work on the G14 (§9).
+**B. Next image, `openbook-live-20261017-desktop4`**: `desktop3` plus the Launcher3 Escape fix, and APEXes shipped uncompressed so a freshly written stick no longer spends ~34 s decompressing them before anything shows (§10). Its save-logs helper also says what the earlier-boots archive holds (`prior-boots.txt`), and `prior_boots_rc` covers the whole archive pipeline (the Checker found that tar or gzip failures read as 0). Its QEMU results are in `evidence/2026-10-17-g14-desktop/desktop4/`. Writing erases the stick; `write-stick.sh` first copies the reports on it to `~/anybook/installer/stick-backup/`:
+```bash
+cd <a checkout of this repo>
+OPENBOOK_WRITE_CONFIRM=/dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0 \
+  scripts/installer/write-stick.sh ~/anybook/installer/out/openbook-live-20261017-desktop4.img \
+  /dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0
+```
+Done when it prints `stick powered off: safe to unplug`. Then follow A from step 1. The first boot of a fresh stick also formats `/data`, so give it the full 2 minutes.
 
 **Acceptance** (from the issue): a photo of the desktop on the panel, `boot_completed=1` in the saved logs, the `live-report.py --expect g14` verdicts, and fewer than 66 denials by `avc-summary.py`'s kernel-log count.
 
@@ -126,7 +118,7 @@ Denials on the VM path (`avc-summary.py` on the save-logs case): 41 Android line
 ## 7. Open items
 
 - **gfx1150 itself** (H): every claim about RDNA 3.5 waits for the G14 run. The host GPU is RDNA2.
-- **drm_hwcomposer's test-only commits fail with `EINVAL`** in live-001 whenever the pointer moved (hundreds of `Test-only seamless=0 ret=-22`), so SurfaceFlinger composes on the GPU instead. Not a blocker; a likely cause is the cursor plane rejecting a GBM-tiled cursor buffer (H). To look at once the desktop is up (`drm.debug` on the save-logs entry).
+- **drm_hwcomposer's test-only commits fail with `EINVAL`**, up to once per frame, so SurfaceFlinger composes on the GPU instead. The G14 kernel log of `desktop3` gives the reason: each failure comes with `dc_state_add_plane: can not attach plane_state! Maximum is: 4`, so drm_hwcomposer puts more planes on the panel's stream than amdgpu's display core accepts (`MAX_SURFACES 4` in `dc.h`). The earlier guess, a tiled cursor buffer, is ruled out. Not a blocker, but it costs GPU time and floods the kernel log (1,775 lines in 2 minutes). Next: list the planes amdgpu exposes for gfx1150 (`drm_info` from a save-logs boot) and cap drm_hwcomposer's plane use to what one stream takes.
 - **Wi-Fi** (no HAL, no `regulatory.db`): ANAL-179.
 - **The two open denials** in §4.
 - **The kernel power-off hang** after Android's clean shutdown (ANAL-190's QEMU runs): product side, still open.
@@ -141,8 +133,8 @@ scripts/graphics-amd-stage-mesa.sh                                              
 AOSP_JOBS=24 scripts/aosp-docker.sh -d anybook-aosp-build /repo/scripts/aosp-build.sh anybook_g14_x86_64-cp2a-userdebug droid openbook_hals_test validatekeymaps
 docker wait anybook-aosp-build                                                  # 45 s to 2.5 min incremental
 python3 scripts/sepolicy-label-check.py ~/anybook/aosp/src/out/target/product/anybook_g14 scripts/sepolicy-label-cases-g14.txt
-scripts/installer-image.sh --label openbook-live-20261017-desktop2 --menu-timeout 10
-scripts/installer/live-qemu.sh ~/anybook/installer/out/openbook-live-20261017-desktop2.img live-20261017-desktop2
+scripts/installer-image.sh --label openbook-live-20261017-desktop4 --menu-timeout 10
+scripts/installer/live-qemu.sh ~/anybook/installer/out/openbook-live-20261017-desktop4.img live-20261017-desktop4
 python3 scripts/installer/avc-summary.py evidence/2026-10-16-installer/g14-live/live-001
 ```
 
@@ -163,7 +155,24 @@ The owner wrote `openbook-live-20261017-desktop2` at 01:05 UTC and booted the de
 
 **No logs from the enforcing boots.** They saved nothing, so they had to be reconstructed from the next boots (bootstat, APEX state, FAT timestamps). From the next image on, `persist.logd.logpersistd=logcatd` keeps logcat with the kernel log in `/data/misc/logd` across boots (userdebug), and the save-logs helper's first capture archives it with tombstones, ANR traces and dropbox (`prior-boots.tar.gz`, unpacked by `read-stick-logs.sh` into `live-NNN/prior/`).
 
-## 10. Sources (accessed 2026-10-17)
+## 10. G14 boots of `desktop3` (2026-10-17)
+
+The owner booted `desktop3` twice and reattached the stick. The stick was read back read-only at 02:36Z. The full timeline and files are in `evidence/2026-10-17-g14-desktop/g14-desktop3/` (redacted).
+
+| Finding | Evidence | Status |
+|---|---|---|
+| **Boot 1 (not save-logs) was switched off on a black screen while still in first-boot setup.** It started 02:28:17 and was off before boot 2 started at 02:29:16 (POST and the 10 s menu included). A fresh `/data` first decompresses 20 compressed APEXes on the stick: 34 s in boot 2, with SurfaceFlinger at 55.4 s and the boot animation at 59.4 s. Before SurfaceFlinger there is nothing on the panel. Boot 1 left `/data` formatted but uncleanly closed, and no decompressed APEXes | `live-init-001.json` (FAT time), boot 2's f2fs roll-forward recovery and its 20 × `apexd: Decompressing`, `Wait for property 'apexd.status=activated' took 40695ms` | **Changed**: `PRODUCT_COMPRESSED_APEX := false` (as Cuttlefish does), so the first boot does no decompression. Whether the *enforcing* entry reaches the desktop on the G14 is still not shown |
+| The `firmware_load` denial is gone; amdgpu up at 5.6 s | boot 2's kernel log: no `firmware_load`, `[drm] Initialized amdgpu 3.64.0` | Policy fix in effect (seen permissive) |
+| Boot 2 ("save logs") reached the desktop, slowly, because it had to do boot 1's first-boot setup again | `boot_completed` 78.6 s; `bootstat`: `reboot,factory_reset` (first completed boot of this `/data`) | Expected; later boots of this stick skip it |
+| **Escape on the keyboard killed the launcher** (taskbar and desktop gone until it restarts) when the taskbar overlay held something other than All Apps: `TaskbarOverlayDragLayer.tryHandleEscapeKey` reads `getAppsView()` without a null check | dropbox `system_app_crash` 02:31:18.8, the owner had the wallpaper chooser open | **Fixed** (AOSP Launcher3 patch, `aosp/patches/packages/apps/Launcher3`) |
+| "It turned off" again: the save-logs entry's power-off, 45 s after `boot_completed` | `summary.json` `"after": "poweroff"`, uptime 129.9 s | By design in this image; ANAL-190's branch `anal-190/live-image-b` makes that entry keep running |
+| Per-frame plane errors from drm_hwcomposer | 1,775 `can not attach plane_state! Maximum is: 4` | Open, §7 |
+| Bluetooth app aborts (6 per 2 minutes); no Wi-Fi service | tombstones; `cmd: Can't find service: wifi` | ANAL-179 |
+| Denials: 14 lines an enforcing boot would hit, 7 distinct, none graphics | `live-001/avc.md` | Known (§9 row) |
+
+## 11. Sources (accessed 2026-10-17)
 
 - Mesa: `f7a951028`, `15a3bb617`, `90b5425e8` on `main` (gitlab.freedesktop.org/mesa/mesa), MR 44426.
 - AOSP 17 (`android17-release` tree in `~/anybook/aosp/src`): `frameworks/native/vulkan/libvulkan/swapchain.cpp` and `driver.cpp`, `frameworks/native/vulkan/include/vulkan/vk_android_native_buffer.h`, `external/angle/src/libANGLE/renderer/vulkan/SurfaceVk.cpp`, `frameworks/base/libs/hwui/Properties.cpp`, `system/sepolicy` (`gpu_sphal_use`, `vendor_restricted_prop`), `system/core/rootdir/init.rc` (`discard_max_bytes`), `external/minigbm/cros_gralloc` (gralloc0 `perform`, shared `libminigbm_gralloc`).
+- AOSP 17, for §10: `build/make/core/product_config.mk` (`PRODUCT_COMPRESSED_APEX`), `device/google/cuttlefish/shared/device.mk` (sets it to false), `packages/apps/Launcher3/quickstep/src/com/android/launcher3/taskbar/overlay/TaskbarOverlayDragLayer.java` and `TaskbarOverlayContext.java` (`getAppsView()` is a `findViewById`, so it is null without All Apps).
+- Kernel (`~/anybook/kernel/src/common`, android17-6.18): `drivers/gpu/drm/amd/display/dc/dc.h` (`MAX_SURFACES 4`), `dc/core/dc_state.c` (`dc_state_add_plane`).

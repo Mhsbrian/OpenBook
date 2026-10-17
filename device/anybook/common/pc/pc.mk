@@ -28,6 +28,10 @@ PRODUCT_SHIPPING_API_LEVEL := 37
 PRODUCT_USE_DYNAMIC_PARTITIONS := true
 PRODUCT_SET_DEBUGFS_RESTRICTIONS := true
 PRODUCT_FS_COMPRESSION := 1
+# APEXes ship uncompressed, as on Cuttlefish (device/google/cuttlefish/shared/device.mk). Compressed ones are
+# decompressed into /data on the first boot of every fresh /data. On the G14's USB stick that took 34 s (20 APEXes)
+# before SurfaceFlinger could start, so the first boot sat on a black screen for about a minute (ANAL-176).
+PRODUCT_COMPRESSED_APEX := false
 DEVICE_MANIFEST_FILE += device/anybook/common/pc/manifest.xml
 
 VENDOR_SECURITY_PATCH = $(PLATFORM_SECURITY_PATCH)

@@ -763,9 +763,21 @@ static int second_stage_running(void) {
 // What earlier boots left on /data: logcat with the kernel log persisted by logcatd (persist.logd.logpersistd on
 // userdebug, device/anybook/common/pc/pc.mk), tombstones, ANR traces and dropbox. The only trace of boots that saved
 // no logs themselves, such as the enforcing entries' (ANAL-176). Capped at 96 MiB; a cut archive still unpacks.
+// The exit status is the whole pipeline's: non-zero when tar or gzip failed or the cap cut the archive (SIGPIPE), 4
+// when none of the directories exists. stderr would land in the archive, hence the 2>/dev/null. prior-boots.txt
+// lists each directory's size and file count, or "missing".
+#define PRIOR_CAP 100663296  // 96 MiB
+#define STR_(x) #x
+#define STR(x) STR_(x)
 static const char PRIOR_BOOTS[] =
-    "cd /data && tar -cf - misc/logd tombstones anr system/dropbox 2>/dev/null | gzip -c | head -c 100663296";
+    "cd /data 2>/dev/null || exit 3; L=; for d in misc/logd tombstones anr system/dropbox; do [ -d $d ] && L=\"$L $d\"; "
+    "done; [ -n \"$L\" ] || exit 4; set -o pipefail; tar -cf - $L 2>/dev/null | gzip -c 2>/dev/null | "
+    "head -c " STR(PRIOR_CAP);
+static const char PRIOR_LIST[] =
+    "cd /data && for d in misc/logd tombstones anr system/dropbox; do if [ -d $d ]; then "
+    "echo \"$d $(du -sk $d | cut -f1) KiB, $(find $d -type f | wc -l) files\"; else echo \"$d missing\"; fi; done";
 static int prior_done, prior_rc = -2;  // -2: not attempted
+static long long prior_bytes = -1;
 
 static void capture(const char *phase) {
     struct statfs s;
@@ -796,7 +808,10 @@ static void capture(const char *phase) {
     c->screen = run_to_file("screencap -p", f, 60);
     if (!prior_done) {  // once, at the first capture
         prior_done = 1;
+        run_to_file(PRIOR_LIST, "prior-boots.txt", 30);
         prior_rc = run_to_file(PRIOR_BOOTS, "prior-boots.tar.gz", 180);
+        struct stat st;
+        if (!fstatat(logdir, "prior-boots.tar.gz", &st, 0)) prior_bytes = st.st_size;
     }
     drain_kmsg();
     fsync(dmesg_out);
@@ -808,8 +823,9 @@ static void write_summary(const char *after) {
               uptime_s());
     sb_printf(&b, " \"second_stage_s\": %.1f,\n \"boot_completed\": %s,\n \"boot_completed_s\": %.1f,\n", t_second,
               t_complete >= 0 ? "true" : "false", t_complete);
-    sb_printf(&b, " \"dmesg_bytes\": %llu,\n \"after\": \"%s\",\n \"prior_boots_rc\": %d,\n \"live_init\": ", dmesg_bytes,
-              after, prior_rc);
+    sb_printf(&b, " \"dmesg_bytes\": %llu,\n \"after\": \"%s\",\n \"prior_boots_rc\": %d,\n \"prior_boots_bytes\": %lld,\n"
+                  " \"prior_boots_capped\": %s,\n \"live_init\": ", dmesg_bytes, after, prior_rc, prior_bytes,
+              prior_bytes == PRIOR_CAP ? "true" : "false");
     result_json(&b);
     SB_LIT(&b, ",\n \"captures\": [");
     for (int i = 0; i < ncaps; i++)

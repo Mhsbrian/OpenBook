@@ -96,8 +96,10 @@ def main():
         links = re.findall(r" (\S+) -> (/dev/block/\S+)", st)
         check(c, "by-name links point at the USB stick only", links and all("/sd" in t for _, t in links),
               f"{len(links)} links: " + ", ".join(sorted({os.path.basename(t).rstrip('0123456789') for _, t in links})))
-        m = re.search(r"^\S+\s+(\d+)\s+\d+\s+\d+\s+\d+% /data$", st, re.M)
-        return int(m.group(1)) if m else None
+        # df -k /data /metadata: toybox prints its arguments in order but names each by the last mount of its
+        # device (/data_mirror/..., /data/user/0), so /data is the first line.
+        m = re.search(r"^Filesystem .*\n\S+\s+(\d+)\s+\d+\s+\d+\s+\d+%\s+(\S+)\s*$", st, re.M)
+        return int(m.group(1)) if m and m.group(2) != "/metadata" else None
 
     # first boot: grow, format, marker, boot, decoy untouched
     got = case("first")
