@@ -121,10 +121,10 @@ Nothing current in that space covers Android 17 x86_64 (C, research summary 2026
 - Copying GMS out of the Googlebook image or the SDK desktop images, even locally inside the installer. Both licences forbid copying.
 - arm64 GApps under the native bridge. GMS's native code would run translated; it is slow and fragile, and unnecessary when x86_64 exists.
 
-## Owner decisions
+## Owner decisions (2026-10-17)
 
-1. **G1 (microG):** should OpenBook carry the signature-spoofing patch for user builds and offer microG as an add-on? Recommendation: yes. It is the only Google-services path we can ship ourselves.
-2. **G2 (bring your own GApps):** should the installer offer a user-supplied package at all? The licensing risk then falls on the user's choice of package, not on OpenBook's distribution. Recommendation: prototype it after G1, keep it behind an "advanced" step, and require the user to confirm.
+1. **G1 (microG):** approved. The patch and the add-on are ANAL-210.
+2. **G2 (bring your own GApps):** approved. It is ANAL-211, worked in parallel with G1, behind an "advanced" step that the user must confirm. Its tests use a synthetic package only.
 3. **Track B (Google's whole image, `docs/PLAN.md` §6)** is unchanged by this. It remains the only way to get the real Googlebook launcher and apps, and it stays parked until you decide.
 
 ## Sources
