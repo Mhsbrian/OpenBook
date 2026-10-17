@@ -371,6 +371,7 @@ def expect(case):
         s += section("INSTALLED", "getprop | grep -E 'ro.boot.(openbook|selinux|boot_part_uuid|serialno|slot_suffix|verifiedbootstate)|init.svc.openbook|sys.boot_completed'; getenforce; ls -l /dev/block/by-name; cat /proc/partitions; echo MOUNTS; grep -E '/dev/block/(nvme|sd|vd)' /proc/mounts; df -k /data /metadata")
         s += section("INSTALLER-STATE", "pm query-activities -a android.intent.action.MAIN -c android.intent.category.LAUNCHER | grep -c org.openbook.installer; echo daemon=[$(getprop init.svc.openbook_installd)]; settings get global device_provisioned; dumpsys activity activities | grep -E 'topResumedActivity' | head -n 2")
         s += section("VOLD", "logcat -d -b main,system | grep -iE 'vold|StorageManager|DiskInfo|VolumeInfo' | grep -iE 'disk|volume|8:0|public|unsupported|mount' | tail -n 40; sm list-disks; sm list-volumes all", 120)
+        s += section("NOTIFICATIONS", "dumpsys notification --noredact | grep -E 'pkg=|android.title=|android.text=' | grep -iE -B1 'usb|drive|storage|disk' | head -n 20; echo NOTIF-END", 120)
         s += W.send("input keyevent 224; wm dismiss-keyguard", 30)
         s += W.wait_ui("Language", 180)
         s += W.shot(f"{case}-setup-language")
@@ -655,6 +656,10 @@ def check(a):
                 ch = {p["name"]: p["digest"] == q["digest"] for p, q in zip(ss[0]["partitions"], ss[1]["partitions"])}
                 chk(c, "the stick's partitions unchanged by the installed system", all(ch.values()), ch)
             res.setdefault("notes", {})["inst-stick-vold"] = sec.get("VOLD", "")[-1500:]
+            nt = sec.get("NOTIFICATIONS", "")
+            res["notes"]["inst-stick-notifications"] = nt[-1500:]
+            chk(c, "reported: storage notifications about the plugged-in stick (not gated)", True,
+                " / ".join(l.strip() for l in nt.splitlines() if "title=" in l or "text=" in l)[:300] or "none")
         else:
             s0 = (W.sections(open(f"{R}/inst-stick/serial.log", "rb").read().decode("utf-8", "replace")).get("INSTALLED", "")
                   if os.path.exists(f"{R}/inst-stick/serial.log") else "")
