@@ -18,8 +18,8 @@ ANYBOOK_G14_FIRMWARE_DIR := $(OPENBOOK_G14_KERNEL_DIR)/firmware/vendor/firmware
 include $(OPENBOOK_G14_KERNEL_DIR)/firmware/firmware.mk
 # AOSP 17 imports the MediaTek MT7921/MT7922/MT7925 Wi-Fi and Bluetooth files itself (external/linux-firmware, at
 # linux-firmware 0d347a3f, 2026-04-23), and Soong owns their /vendor/firmware paths. Those 9 come from AOSP's
-# modules; ANAL-198's copies (38c1a709, 2026-10) of the same names differ and are dropped. ANAL-179 decides whether
-# MT7925 needs the newer ones.
+# modules; ANAL-198's copies (38c1a709, 2026-10) of the same names differ and are dropped. ANAL-179 keeps AOSP's
+# (firmware build 20260414, the one the G14 loaded in live-001): docs/g14-audio-net.md.
 OPENBOOK_AOSP_FIRMWARE := \
     mediatek/BT_RAM_CODE_MT7922_1_1_hdr.bin \
     mediatek/BT_RAM_CODE_MT7961_1_2_hdr.bin \
@@ -41,11 +41,13 @@ PRODUCT_PACKAGES += \
 PRODUCT_COPY_FILES += $(OPENBOOK_G14_KERNEL_DIR)/bzImage:kernel
 
 # Built-in keyboard (ASUS N-KEY, USB 0b05:19b6) and touchpad (ELAN 04f3:3315, I2C HID). Marking them internal is
-# what makes WM Shell put the panel into desktop mode on its own (docs/aosp-desktop.md).
+# what makes WM Shell put the panel into desktop mode on its own (docs/aosp-desktop.md). The firmware's WMI hotkeys
+# (asus-nb-wmi, no USB IDs) get a layout by device name (ANAL-178).
 PRODUCT_COPY_FILES += \
     device/anybook/g14/input/Vendor_0b05_Product_19b6.idc:$(TARGET_COPY_OUT_VENDOR)/usr/idc/Vendor_0b05_Product_19b6.idc \
     device/anybook/g14/input/Vendor_0b05_Product_19b6.kl:$(TARGET_COPY_OUT_VENDOR)/usr/keylayout/Vendor_0b05_Product_19b6.kl \
-    device/anybook/g14/input/Vendor_04f3_Product_3315.idc:$(TARGET_COPY_OUT_VENDOR)/usr/idc/Vendor_04f3_Product_3315.idc
+    device/anybook/g14/input/Vendor_04f3_Product_3315.idc:$(TARGET_COPY_OUT_VENDOR)/usr/idc/Vendor_04f3_Product_3315.idc \
+    device/anybook/g14/input/Asus_WMI_hotkeys.kl:$(TARGET_COPY_OUT_VENDOR)/usr/keylayout/Asus_WMI_hotkeys.kl
 
 # 14" 2880x1800 OLED (Samsung ATNA40CU05-0): 243 ppi. 240 dpi gives a 1920x1200 dp desktop, as on Googlebook.
 PRODUCT_VENDOR_PROPERTIES += ro.vendor.openbook.lcd_density=240

@@ -1,0 +1,158 @@
+{
+ "image": "/home/hive/anybook/installer/out/openbook-g14-anal179-stick-d.img",
+ "size": 12884901888,
+ "label": "openbook-g14-anal179-stick-d",
+ "loader": "systemd-boot",
+ "fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
+ "vendor_cmdline": "firmware_class.path=/vendor/firmware log_buf_len=1M bootconfig",
+ "vendor_bootconfig": {
+  "androidboot.hardware": "openbook",
+  "androidboot.boot_devices": "pci0000:00/0000:00:02.1,pci0000:00/0000:00:08.1,pci0000:00/0000:00:08.3"
+ },
+ "vendor_ramdisk_fragments": [
+  "vendor_ramdisk00",
+  "vendor_ramdisk01"
+ ],
+ "vbmeta_digest": "b967ce80099df93885237633137e414c039af0119be7d020a908cf1c2b65c28a",
+ "vbmeta_size": 6208,
+ "super_bytes": 8589934592,
+ "bootconfig_a": {
+  "androidboot.hardware": "openbook",
+  "androidboot.boot_devices": "pci0000:00/0000:00:02.1,pci0000:00/0000:00:08.1,pci0000:00/0000:00:08.3",
+  "androidboot.slot_suffix": "_a",
+  "androidboot.verifiedbootstate": "orange",
+  "androidboot.vbmeta.device_state": "unlocked",
+  "androidboot.vbmeta.avb_version": "1.3",
+  "androidboot.vbmeta.hash_alg": "sha256",
+  "androidboot.vbmeta.size": "6208",
+  "androidboot.vbmeta.digest": "b967ce80099df93885237633137e414c039af0119be7d020a908cf1c2b65c28a",
+  "androidboot.vbmeta.invalidate_on_error": "yes",
+  "androidboot.veritymode": "enforcing",
+  "androidboot.boot_part_uuid": "070904ab-7926-5002-bf55-df3520b89559",
+  "androidboot.serialno": "OPENBOOKG14USB01",
+  "androidboot.openbook.loader": "sdboot"
+ },
+ "partitions": [
+  {
+   "name": "EFI",
+   "start": 2048,
+   "sectors": 524288,
+   "type": "ef00",
+   "uuid": "070904ab-7926-5002-bf55-df3520b89559"
+  },
+  {
+   "name": "misc",
+   "start": 526336,
+   "sectors": 8192,
+   "type": "8300",
+   "uuid": "2a978e57-bc76-5ef6-803f-3fc3a46f9a43"
+  },
+  {
+   "name": "boot_a",
+   "start": 534528,
+   "sectors": 131072,
+   "type": "8300",
+   "uuid": "6493b15a-4aa9-5e6c-8558-3c352afd1f48"
+  },
+  {
+   "name": "boot_b",
+   "start": 665600,
+   "sectors": 131072,
+   "type": "8300",
+   "uuid": "cf84cb44-e53f-536b-9fb6-76fb953f6934"
+  },
+  {
+   "name": "init_boot_a",
+   "start": 796672,
+   "sectors": 16384,
+   "type": "8300",
+   "uuid": "88bec142-8ea5-512e-aa3b-3bf53ff03727"
+  },
+  {
+   "name": "init_boot_b",
+   "start": 813056,
+   "sectors": 16384,
+   "type": "8300",
+   "uuid": "f4a12ae5-8ec2-5e32-a92f-df3a32a696a1"
+  },
+  {
+   "name": "vendor_boot_a",
+   "start": 829440,
+   "sectors": 131072,
+   "type": "8300",
+   "uuid": "fbcc7050-b921-52db-8b77-36f66b108195"
+  },
+  {
+   "name": "vendor_boot_b",
+   "start": 960512,
+   "sectors": 131072,
+   "type": "8300",
+   "uuid": "b9c31226-d545-5d8c-9a48-8690751189de"
+  },
+  {
+   "name": "vbmeta_a",
+   "start": 1091584,
+   "sectors": 2048,
+   "type": "8300",
+   "uuid": "d6b7fb2e-04f8-51f5-a870-ecfe859544f3"
+  },
+  {
+   "name": "vbmeta_b",
+   "start": 1093632,
+   "sectors": 2048,
+   "type": "8300",
+   "uuid": "eb8d6d86-094a-5709-bd97-fd28101a7e8d"
+  },
+  {
+   "name": "metadata",
+   "start": 1095680,
+   "sectors": 131072,
+   "type": "8300",
+   "uuid": "7a7949bd-0da3-51c0-93e7-05d38d244195"
+  },
+  {
+   "name": "super",
+   "start": 1226752,
+   "sectors": 16777216,
+   "type": "8300",
+   "uuid": "77e9cfef-4382-5500-ba04-6b8b741ee9c0"
+  },
+  {
+   "name": "userdata",
+   "start": 18003968,
+   "sectors": 7157760,
+   "type": "8300",
+   "uuid": "1503fc55-d809-5ced-8903-7d4e44152f9f"
+  }
+ ],
+ "verified_sha256": {
+  "EFI": "a73ca2f5dbb3a680dd683f294e740bc53f954d708d28cddaabffa2b1bbfc17bd",
+  "super": "8486b3c196a4f321f6fc456a9b930c3b55181c78afb5f828ebb05411f95ea3db",
+  "boot_a": "08c62a9b1ffb37bf368bbf1b1a51b49d0792229c8e1e83403b23ddb5c0b9dabc",
+  "init_boot_a": "d42fdd9ecf0e79b905bdeccf998432ff7b95f1331fae87b21904eb59b9c6d6f0",
+  "vendor_boot_a": "18b053f35932de80d18ed7eb66573878dc04677d4daf7207681551664b54f692",
+  "vbmeta_a": "ade98c9bb78ea5ff861c800db4448771e2ff6c67d4f63698df601a65d6dce6c9",
+  "boot_b": "08c62a9b1ffb37bf368bbf1b1a51b49d0792229c8e1e83403b23ddb5c0b9dabc",
+  "init_boot_b": "d42fdd9ecf0e79b905bdeccf998432ff7b95f1331fae87b21904eb59b9c6d6f0",
+  "vendor_boot_b": "18b053f35932de80d18ed7eb66573878dc04677d4daf7207681551664b54f692",
+  "vbmeta_b": "ade98c9bb78ea5ff861c800db4448771e2ff6c67d4f63698df601a65d6dce6c9"
+ },
+ "esp_files": [
+  "EFI/BOOT/BOOTX64.EFI",
+  "loader/entries/openbook-a+3.conf",
+  "loader/entries/openbook-a-console.conf",
+  "loader/entries/openbook-b+3.conf",
+  "loader/entries/openbook-b-console.conf",
+  "loader/loader.conf",
+  "openbook/a/bootconfig-console.img",
+  "openbook/a/bootconfig.img",
+  "openbook/a/kernel",
+  "openbook/a/ramdisk.img",
+  "openbook/a/vendor_ramdisk.img",
+  "openbook/b/bootconfig-console.img",
+  "openbook/b/bootconfig.img",
+  "openbook/b/kernel",
+  "openbook/b/ramdisk.img",
+  "openbook/b/vendor_ramdisk.img"
+ ]
+}

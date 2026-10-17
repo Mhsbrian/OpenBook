@@ -1,2 +1,4 @@
 vendor_internal_prop(vendor_openbook_prop)
 vendor_restricted_prop(vendor_openbook_config_prop)
+# vendor.audio.primary.card/.device: the built-in codec's ALSA card, for the audio HAL (openbook-audio-setup).
+vendor_internal_prop(vendor_openbook_audio_prop)

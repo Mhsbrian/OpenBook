@@ -214,6 +214,8 @@ def firmware_licences(vendor_img, w, manifest_tsv):
         lic = known.get(rel)
         if lic is None and rel.startswith("mediatek/"):
             lic = "LICENCE.mediatek"  # AOSP's linux_firmware_mt79xx modules (external/linux-firmware)
+        if lic is None and rel.startswith("regulatory.db"):
+            lic = "LICENSE.wireless-regdb"  # cfg80211's database from external/wireless-regdb (wifi/wifi.mk)
         if lic is None or lic not in lic_names:
             unmatched.append(rel)
         rows.append((rel, os.path.getsize(f"{fw}/{rel}"), sha256(f"{fw}/{rel}"), lic or "?"))

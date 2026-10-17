@@ -1,0 +1,22 @@
+From collect.txt (live image openbook-live-20261017-anal178b, serial-console entry, QEMU):
+    mLidKeyboardAccessibility=1 mLidNavigationAccessibility=1 getLidBehavior=LID_BEHAVIOR_SLEEP
+    mShortPressOnPowerBehavior=6
+    mLongPressOnPowerBehavior=LONG_PRESS_POWER_GLOBAL_ACTIONS
+    mLongPressOnPowerAssistantTimeoutMs=500
+    mVeryLongPressOnPowerBehavior=VERY_LONG_PRESS_POWER_NOTHING
+    mAllowStartActivityForLongPressOnPowerDuringSetup=false
+    mDockMode=EXTRA_DOCK_STATE_UNDOCKED mLidState=LID_ABSENT
+
+[init.svc.vendor.health-openbook]: [running]
+[init.svc_debug_pid.vendor.health-openbook]: [530]
+[ro.boottime.vendor.health-openbook]: [4974654032]
+===AVC===
+3
+6
+
+===END===
+
+SELinux denials in the same image (QEMU, serial-console entry, boot_completed + 40 s; re-run 2026-10-17 to name the
+sources of the AVC counts above: 3 in dmesg, 6 in logcat). None involves vendor.health-openbook (hal_health_default):
+        3 avc:  denied  { find } scontext=u:r:keystore:s0 tcontext=u:object_r:hal_gatekeeper_service:s0 tclass=service_manager
+        6 avc:  denied  { read } scontext=u:r:platform_app:s0:c512,c768 tcontext=u:object_r:bluetooth_lea_prop:s0 tclass=file

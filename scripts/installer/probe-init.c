@@ -26,6 +26,20 @@
 //   openbook.probe.acpi_d3cold=PATH[,PATH]  with report mode, before the sleep test: load the test-only module
 //                          kmod/openbook_acpi_d3cold.c, which puts these ACPI device objects into D3cold if no device
 //                          uses them (an ACPI object left on below an empty PCI port). For this boot only.
+// v7 (ANAL-178), S0i3 investigation on the GA403WR:
+//   openbook.probe.s0i3_snapshot=1  before the sleep test, load kmod/openbook_s0i3_snapshot.c: at the moment of the
+//                          S0i3 attempt (LPS0 prepare) it logs every PCI function not in D3, with skip_bus_pm, ASPM,
+//                          L1 substates and PTM ("s0i3-entry:" lines in the kernel log).
+//   openbook.probe.s0i3_steps=STEP[,STEP]  with the sleep test: after the first cycle, one more cycle per step, each
+//                          step adding to the ones before. A step binds kmod/openbook_pci_pm.c (PCI power management
+//                          only, D3 at suspend) to functions by PCI ID, unbinding their driver first: "psp"
+//                          (1022:17e0, ccp under Linux), "dummy" (1022:150d), or "pm:VVVV:DDDD[+VVVV:DDDD]". A step
+//                          "asus" instead loads asus-wmi, asus-nb-wmi and hid-asus (skipped by the safety list, but
+//                          loaded by Linux and by OpenBook's Android on the laptop); "mod:NAME[+NAME]" any module. Stops
+//                          after the first cycle that reaches S0i3 unless openbook.probe.s0i3_all=1.
+//   openbook.probe.sleep_s=N  seconds per sleep cycle (default 20, 10 to 120).
+//   Every cycle records the s0ix residency, /sys/power/suspend_stats/last_hw_sleep, the SMU's verdict and per-IP
+//   times, the idle mask amd_pmc logged at S0i3 entry, and which cpuidle state each CPU used while asleep.
 // Build: gcc -static -O2 -o openbook-probe probe-init.c
 #define _GNU_SOURCE
 #include <dirent.h>
@@ -328,12 +342,14 @@ static int blocked(const char *dir, const char *name) {
     return b;
 }
 
+static int allow_unsafe;  // set while a bisect step loads modules from the safety list on purpose
+
 static int load_mod(const char *dir, int i, int depth) {
     if (mod_state[i] == 2) return 0;
     if (mod_state[i] == 1 || depth > 32) return 0;
     mod_state[i] = 1;
     const char *name = base(mod_path[i]);
-    if (unsafe(name) || blocked(dir, name)) {
+    if ((unsafe(name) && !allow_unsafe) || blocked(dir, name)) {
         say("module %s: skipped (%s)", name, unsafe(name) ? "safety list" : "blocklist");
         skipped++;
         mod_state[i] = 2;
@@ -601,6 +617,8 @@ static int count_prefix(const char *dir, const char *prefix) {
 static char sleep_json[512] = "null";
 static char detach_json[512] = "null";
 static char acpi_json[256] = "null";
+static char snapshot_json[128] = "null";
+static char cycles_json[24576] = "";  // comma-separated cycle objects of the S0i3 bisect
 
 static void write_json(const char *path) {
     char board[128] = "", bios[128] = "", cpu[160] = "", drv[64] = "", ms[128] = "", line[512];
@@ -612,15 +630,16 @@ static void write_json(const char *path) {
     while (f && fgets(line, sizeof line, f))
         if (!strncmp(line, "model name", 10)) { snprintf(cpu, sizeof cpu, "%s", strchr(line, ':') + 2); cpu[strcspn(cpu, "\n")] = 0; break; }
     if (f) fclose(f);
-    char j[4096];
+    static char j[32768];
     int n = snprintf(j, sizeof j,
-        "{\n \"schema\": \"openbook-hwcheck/5\",\n \"board\": \"%s\",\n \"bios\": \"%s\",\n \"cpu\": \"%s\",\n"
+        "{\n \"schema\": \"openbook-hwcheck/6\",\n \"board\": \"%s\",\n \"bios\": \"%s\",\n \"cpu\": \"%s\",\n"
         " \"modules\": {\"loaded\": %d, \"failed\": %d, \"skipped\": %d},\n"
         " \"checks\": {\n  \"gpu_amdgpu\": %s,\n  \"edp_connected\": %s,\n  \"wifi_wlan0\": %s,\n"
         "  \"bluetooth_hci0\": %s,\n  \"touchpad\": %s,\n  \"keyboard\": %s,\n  \"lid_switch\": %s,\n"
         "  \"battery\": %s,\n  \"npu_accel\": %s,\n  \"usb4_thunderbolt\": %s,\n  \"typec_ports\": %d,\n"
         "  \"sound_cards\": %d,\n  \"cpufreq_driver\": \"%s\",\n  \"mem_sleep\": \"%s\",\n"
-        "  \"dgpu_power\": \"%s\"\n },\n \"dgpu_detach\": %s,\n \"acpi_d3cold\": %s,\n \"sleep_test\": %s\n}\n",
+        "  \"dgpu_power\": \"%s\"\n },\n \"dgpu_detach\": %s,\n \"acpi_d3cold\": %s,\n \"sleep_test\": %s,\n"
+        " \"s0i3_snapshot\": %s,\n \"sleep_cycles\": [%s]\n}\n",
         board, bios, cpu, loaded_ok, load_failed, skipped,
         pci_driver_bound("amdgpu") ? "true" : "false", edp_connected ? "true" : "false",
         exists("/sys/class/net/wlan0") ? "true" : "false", exists("/sys/class/bluetooth/hci0") ? "true" : "false",
@@ -628,7 +647,7 @@ static void write_json(const char *path) {
         input_has("Lid Switch") ? "true" : "false", exists("/sys/class/power_supply/BAT1") ? "true" : "false",
         exists("/sys/class/accel/accel0") ? "true" : "false", pci_driver_bound("thunderbolt") ? "true" : "false",
         count_prefix("/sys/class/typec", "port"), count_prefix("/sys/class/sound", "card"), drv, ms, dgpu_state,
-        detach_json, acpi_json, sleep_json);
+        detach_json, acpi_json, sleep_json, snapshot_json, cycles_json);
     if (n > 0) write_all(path, j, n < (int)sizeof j ? n : (int)sizeof j - 1);
 }
 
@@ -777,8 +796,151 @@ static void detach_dgpu(const char *vendor) {
              n, bridge, before, after);
 }
 
-// One s2idle cycle, woken by the RTC. The stick is unmounted while the machine sleeps.
-static void sleep_test(void) {
+// ------------------------------------------------------------------ sleep cycles and the S0i3 bisect (v7)
+
+static int sleep_secs = 20;
+
+// Text after the last occurrence of key in the kernel log (to the end of that line). 0 if found.
+static int klog_last(const char *key, char *out, size_t len) {
+    int size = klogctl(10 /* SYSLOG_ACTION_SIZE_BUFFER */, NULL, 0);
+    if (size <= 0) size = 1 << 20;
+    char *buf = malloc(size + 1);
+    if (!buf) return -1;
+    int n = klogctl(3 /* SYSLOG_ACTION_READ_ALL */, buf, size), rc = -1;
+    if (n > 0) {
+        buf[n] = 0;
+        char *hit = NULL;
+        for (char *q = buf; (q = strstr(q, key)); q += strlen(key)) hit = q;
+        if (hit) {
+            hit += strlen(key);
+            int l = (int)strcspn(hit, "\n");
+            snprintf(out, len, "%.*s", l, hit);
+            rc = 0;
+        }
+    }
+    free(buf);
+    return rc;
+}
+
+// The snapshot module's list from the last S0i3 attempt: "BDF VVVV:DDDD state driver[ skip_bus_pm]" entries as a
+// JSON array, and its summary line.
+static void snapshot_last(char *list, size_t len, char *summary, size_t slen) {
+    snprintf(list, len, "[]");
+    summary[0] = 0;
+    int size = klogctl(10, NULL, 0);
+    if (size <= 0) size = 1 << 20;
+    char *buf = malloc(size + 1);
+    if (!buf) return;
+    int n = klogctl(3, buf, size);
+    if (n <= 0) { free(buf); return; }
+    buf[n] = 0;
+    static char cur[4096], done[4096];
+    cur[0] = done[0] = 0;
+    const char *key = "openbook_s0i3_snapshot: s0i3-entry: ";
+    for (char *line = buf; line && *line;) {
+        char *nl = strchr(line, '\n');
+        if (nl) *nl = 0;
+        char *k = strstr(line, key);
+        if (k) {
+            k += strlen(key);
+            if (!strncmp(k, "0000:", 5)) {
+                char bdf[16] = "", id[16] = "", st[16] = "", drv[48] = "";
+                sscanf(k, "%15s %15s class %*s kernel %15s pmcsr %*s driver %47s", bdf, id, st, drv);
+                char item[128];
+                snprintf(item, sizeof item, "%s\"%s %s %s %s%s\"", cur[0] ? ", " : "", bdf, id, st, drv,
+                         strstr(k, "skip_bus_pm") ? " skip_bus_pm" : "");
+                if (strlen(cur) + strlen(item) + 1 < sizeof cur) strcat(cur, item);
+            } else {
+                snprintf(done, sizeof done, "%s", cur);
+                snprintf(summary, slen, "%s", k);
+                cur[0] = 0;
+            }
+        }
+        line = nl ? nl + 1 : NULL;
+    }
+    snprintf(list, len, "[%s]", done);
+    free(buf);
+}
+
+struct smu { char status[32]; long hint, to_s0i3, in_s0i3; char not_met[640]; };
+
+// /sys/kernel/debug/amd_pmc/smu_fw_info: the SMU's verdict on the last S0i3 attempt and, per IP block, the time its
+// idle condition was not met (only non-zero ones are kept).
+static void smu_read(struct smu *s) {
+    memset(s, 0, sizeof *s);
+    s->hint = s->to_s0i3 = s->in_s0i3 = -1;
+    snprintf(s->status, sizeof s->status, "?");
+    FILE *f = fopen("/sys/kernel/debug/amd_pmc/smu_fw_info", "r");
+    char line[256];
+    int active = 0;
+    while (f && fgets(line, sizeof line, f)) {
+        line[strcspn(line, "\n")] = 0;
+        if (!strncmp(line, "Hint Count:", 11)) s->hint = atol(line + 11);
+        else if (!strncmp(line, "Last S0i3 Status:", 17)) snprintf(s->status, sizeof s->status, "%s", line + 18);
+        else if (!strncmp(line, "Time (in us) to S0i3:", 21)) s->to_s0i3 = atol(line + 21);
+        else if (!strncmp(line, "Time (in us) in S0i3:", 21)) s->in_s0i3 = atol(line + 21);
+        else if (strstr(line, "Active time")) active = 1;
+        else if (active) {
+            char name[32];
+            long long v;
+            if (sscanf(line, "%31s : %lld", name, &v) == 2 && v) {
+                char item[64];
+                snprintf(item, sizeof item, "%s\"%s\": %lld", s->not_met[0] ? ", " : "", name, v);
+                if (strlen(s->not_met) + strlen(item) + 1 < sizeof s->not_met) strcat(s->not_met, item);
+            }
+        }
+    }
+    if (f) fclose(f);
+}
+
+// cpuidle: per CPU and state, how often and how long the state was entered for suspend-to-idle.
+#define MAXCPU 128
+#define MAXST 10
+static long long ci_use[2][MAXCPU][MAXST], ci_time[2][MAXCPU][MAXST];
+static int ci_cpus, ci_states;
+static void cpuidle_read(int k) {
+    ci_cpus = ci_states = 0;
+    for (int c = 0; c < MAXCPU; c++) {
+        char p[160];
+        snprintf(p, sizeof p, "/sys/devices/system/cpu/cpu%d/cpuidle", c);
+        if (!exists(p)) { if (c > 0) break; else continue; }
+        ci_cpus = c + 1;
+        for (int s = 0; s < MAXST; s++) {
+            snprintf(p, sizeof p, "/sys/devices/system/cpu/cpu%d/cpuidle/state%d/s2idle/usage", c, s);
+            if (!exists(p)) break;
+            if (s + 1 > ci_states) ci_states = s + 1;
+            ci_use[k][c][s] = read_long(p);
+            snprintf(p, sizeof p, "/sys/devices/system/cpu/cpu%d/cpuidle/state%d/s2idle/time", c, s);
+            ci_time[k][c][s] = read_long(p);
+        }
+    }
+}
+
+static void cpuidle_report(char *json, size_t len) {
+    json[0] = 0;
+    for (int s = 0; s < ci_states; s++) {
+        char p[160], name[32] = "?", lat[32] = "?";
+        snprintf(p, sizeof p, "/sys/devices/system/cpu/cpu0/cpuidle/state%d/name", s); read_line(p, name, sizeof name);
+        snprintf(p, sizeof p, "/sys/devices/system/cpu/cpu0/cpuidle/state%d/latency", s); read_line(p, lat, sizeof lat);
+        long long use = 0, tm = 0;
+        int cpus = 0;
+        for (int c = 0; c < ci_cpus; c++) {
+            long long du = ci_use[1][c][s] - ci_use[0][c][s];
+            use += du;
+            tm += ci_time[1][c][s] - ci_time[0][c][s];
+            cpus += du > 0;
+        }
+        say("cpuidle: state%d %s (latency %s us): s2idle entries +%lld on %d of %d CPUs, %.1f s in total", s, name, lat,
+            use, cpus, ci_cpus, tm / 1e6);
+        char item[160];
+        snprintf(item, sizeof item, "%s{\"state\": %d, \"name\": \"%s\", \"latency_us\": %s, \"entries\": %lld, \"cpus\": %d, "
+                 "\"time_us\": %lld}", json[0] ? ", " : "", s, name, lat, use, cpus, tm);
+        if (strlen(json) + strlen(item) + 1 < len) strcat(json, item);
+    }
+    if (!ci_states) say("cpuidle: no cpuidle states with s2idle statistics");
+}
+
+static void sleep_setup(void) {
     mkdir("/sys/kernel/debug", 0700);
     mount("debugfs", "/sys/kernel/debug", "debugfs", 0, NULL);
     dump_file("pmc-before", "/sys/kernel/debug/amd_pmc/s0ix_stats");
@@ -789,22 +951,37 @@ static void sleep_test(void) {
     static const char *dyn[] = {"module amd_pmc +p", "module pinctrl_amd +p", "file drivers/acpi/x86/s2idle.c +p", NULL};
     for (int i = 0; dyn[i]; i++)
         if (!write_str("/sys/kernel/debug/dynamic_debug/control", dyn[i])) say("sleep: dynamic debug '%s' on", dyn[i]);
-    long res0 = s0ix_residency();
-    awake_devices("before-suspend");
-    acpi_power("before-suspend");
+}
+
+static void sleep_teardown(void) {
+    acpi_power("after-resume");
+    write_str("/sys/power/pm_debug_messages", "0");
+    umount("/sys/kernel/debug");
+}
+
+// One s2idle cycle, woken by the RTC; the stick is unmounted while the machine sleeps. Returns 1 if the SoC reached
+// S0i3 (s0ix residency, last_hw_sleep or the SMU's own status), 0 if not, -1 if no cycle ran.
+static int sleep_cycle(int idx, const char *step, const char *bound) {
+    say("sleep[%d]: step %s", idx, step);
+    long res0 = s0ix_residency(), tot0 = read_long("/sys/power/suspend_stats/total_hw_sleep");
+    awake_devices(idx ? "before-suspend-n" : "before-suspend");
+    if (!idx) acpi_power("before-suspend");
     long ok0 = read_long("/sys/power/suspend_stats/success"), fail0 = read_long("/sys/power/suspend_stats/fail");
+    char alarm[16];
+    snprintf(alarm, sizeof alarm, "+%d", sleep_secs);
     int fd = open("/sys/class/rtc/rtc0/wakealarm", O_WRONLY);
     if (fd < 0 || write(fd, "0", 1) < 0 || (close(fd), fd = open("/sys/class/rtc/rtc0/wakealarm", O_WRONLY)) < 0 ||
-        write(fd, "+20", 3) < 0) {
+        write(fd, alarm, strlen(alarm)) < 0) {
         say("sleep: cannot set the RTC wake alarm (%s); skipping the sleep test", strerror(errno));
         if (fd >= 0) close(fd);
-        snprintf(sleep_json, sizeof sleep_json, "{\"ran\": false, \"reason\": \"no rtc wakealarm\"}");
-        return;
+        if (!idx) snprintf(sleep_json, sizeof sleep_json, "{\"ran\": false, \"reason\": \"no rtc wakealarm\"}");
+        return -1;
     }
     close(fd);
     char ms[128] = "";
     read_line("/sys/power/mem_sleep", ms, sizeof ms);
-    say("sleep: RTC alarm in 20 s; suspending (mem_sleep: %s)", ms);
+    say("sleep: RTC alarm in %d s; suspending (mem_sleep: %s)", sleep_secs, ms);
+    cpuidle_read(0);
     sync();
     struct timespec m0, b0, m1, b1;
     clock_gettime(CLOCK_MONOTONIC, &m0);
@@ -815,6 +992,7 @@ static void sleep_test(void) {
     if (fd >= 0) close(fd);
     clock_gettime(CLOCK_MONOTONIC, &m1);
     clock_gettime(CLOCK_BOOTTIME, &b1);
+    cpuidle_read(1);
     double asleep = ((b1.tv_sec - b0.tv_sec) + (b1.tv_nsec - b0.tv_nsec) / 1e9) -
                     ((m1.tv_sec - m0.tv_sec) + (m1.tv_nsec - m0.tv_nsec) / 1e9);
     long ok1 = read_long("/sys/power/suspend_stats/success"), fail1 = read_long("/sys/power/suspend_stats/fail");
@@ -825,21 +1003,139 @@ static void sleep_test(void) {
     dump_file("pmc-after", "/sys/kernel/debug/amd_pmc/s0ix_stats");
     dump_file("pmc-fw-after", "/sys/kernel/debug/amd_pmc/smu_fw_info");
     dump_file("pmc-idlemask-after", "/sys/kernel/debug/amd_pmc/amd_pmc_idlemask");
-    dump_file("wakeup-sources", "/sys/kernel/debug/wakeup_sources");
-    acpi_power("after-resume");
-    write_str("/sys/power/pm_debug_messages", "0");
-    long res1 = s0ix_residency();
-    say("sleep: s0ix residency %ld us (%s)", res1 >= 0 && res0 >= 0 ? res1 - res0 : -1,
-        res0 < 0 || res1 < 0 ? "unknown: no AMD PMC counters"
-                             : res1 > res0 ? "reached the deepest state" : "did NOT reach the deepest state");
+    if (!idx) dump_file("wakeup-sources", "/sys/kernel/debug/wakeup_sources");
+    long res1 = s0ix_residency(), hw = read_long("/sys/power/suspend_stats/last_hw_sleep"),
+         tot1 = read_long("/sys/power/suspend_stats/total_hw_sleep");
+    long res = res1 >= 0 && res0 >= 0 ? res1 - res0 : -1;
+    struct smu s;
+    smu_read(&s);
+    char mask_entry[32] = "", mask_after[64] = "", ci[1024], snap[4200], snap_sum[96];
+    klog_last("SMU idlemask s0i3: ", mask_entry, sizeof mask_entry);
+    FILE *f = fopen("/sys/kernel/debug/amd_pmc/amd_pmc_idlemask", "r");
+    if (f) {
+        char l[128];
+        if (fgets(l, sizeof l, f) && strchr(l, ':')) sscanf(strchr(l, ':') + 1, " %63s", mask_after);
+        fclose(f);
+    }
+    cpuidle_report(ci, sizeof ci);
+    snapshot_last(snap, sizeof snap, snap_sum, sizeof snap_sum);
+    if (snap_sum[0]) say("sleep: at the S0i3 attempt: %s", snap_sum);
+    int reached = res > 0 || hw > 0 || !strcmp(s.status, "Success");
+    int known = res >= 0 || hw >= 0 || strcmp(s.status, "?");  // VMs have no AMD PMC: no verdict
+    say("sleep[%d]: %s: s0ix residency %ld us, last_hw_sleep %ld us, SMU \"%s\" (hint count %ld), idle mask at entry %s",
+        idx, reached ? "REACHED S0i3" : known ? "did NOT reach S0i3" : "S0i3 unknown (no AMD PMC counters)", res, hw,
+        s.status, s.hint, mask_entry[0] ? mask_entry : "?");
     char st[32] = "";
     read_line("/sys/class/drm/card0-eDP-1/status", st, sizeof st);
     say("sleep: after resume eDP-1 %s, wlan0 %s", st[0] ? st : "?", exists("/sys/class/net/wlan0") ? "present" : "missing");
-    snprintf(sleep_json, sizeof sleep_json,
-             "{\"ran\": true, \"write_rc\": %d, \"asleep_s\": %.1f, \"suspend_success_delta\": %ld, "
-             "\"suspend_fail_delta\": %ld, \"s0ix_residency_us\": %ld, \"edp_after\": \"%s\"}",
-             rc, asleep, ok1 - ok0, fail1 - fail0, res1 >= 0 && res0 >= 0 ? res1 - res0 : -1, st);
-    umount("/sys/kernel/debug");
+    if (!idx)
+        snprintf(sleep_json, sizeof sleep_json,
+                 "{\"ran\": true, \"write_rc\": %d, \"asleep_s\": %.1f, \"suspend_success_delta\": %ld, "
+                 "\"suspend_fail_delta\": %ld, \"s0ix_residency_us\": %ld, \"edp_after\": \"%s\"}",
+                 rc, asleep, ok1 - ok0, fail1 - fail0, res, st);
+    char item[8192];
+    snprintf(item, sizeof item,
+             "%s\n  {\"cycle\": %d, \"step\": \"%s\", \"bound\": [%s], \"write_rc\": %d, \"asleep_s\": %.1f, "
+             "\"suspend_success_delta\": %ld, \"suspend_fail_delta\": %ld, \"s0i3\": %s, \"s0ix_residency_us\": %ld, "
+             "\"last_hw_sleep_us\": %ld, \"total_hw_sleep_delta_us\": %ld, "
+             "\"smu\": {\"last_s0i3\": \"%s\", \"hint_count\": %ld, \"time_to_s0i3_us\": %ld, \"time_in_s0i3_us\": %ld, "
+             "\"not_met_us\": {%s}}, \"idlemask_entry\": \"%s\", \"idlemask_after\": \"%s\", \"cpuidle\": [%s], "
+             "\"snapshot\": {\"summary\": \"%s\", \"not_in_d3\": %s}}",
+             cycles_json[0] ? "," : "", idx, step, bound, rc, asleep, ok1 - ok0, fail1 - fail0,
+             reached ? "true" : known ? "false" : "null",
+             res, hw, tot1 >= 0 && tot0 >= 0 ? tot1 - tot0 : -1, s.status, s.hint, s.to_s0i3, s.in_s0i3, s.not_met,
+             mask_entry, mask_after, ci, snap_sum, snap);
+    if (strlen(cycles_json) + strlen(item) + 1 < sizeof cycles_json) strcat(cycles_json, item);
+    else say("sleep: JSON full; cycle %d is in the text report only", idx);
+    return reached;
+}
+
+static int load_kmod(const char *name, const char *params) {
+    char p[160];
+    snprintf(p, sizeof p, "/openbook-check/kmod/%s", name);
+    int fd = open(p, O_RDONLY | O_CLOEXEC);
+    long r = fd < 0 ? -1 : syscall(SYS_finit_module, fd, params, 0);
+    int err = fd < 0 ? errno : (r ? errno : 0);
+    if (fd >= 0) close(fd);
+    if (r && err == EEXIST) return 0;
+    say("kmod: load %s %s: %s", name, params, r ? strerror(err) : "ok");
+    return r ? -err : 0;
+}
+
+// A bisect step: bind openbook_pci_pm (PCI power management only) to every function with one of the PCI IDs,
+// unbinding its driver first. The bound functions go to json as "BDF VVVV:DDDD old-driver -> new-driver".
+static void step_bind(const char *step, char *json, size_t len) {
+    static int loaded;
+    char ids[160] = "";
+    json[0] = 0;
+    char mods[160] = "";
+    if (!strcmp(step, "asus")) snprintf(mods, sizeof mods, "asus-wmi+asus-nb-wmi+hid-asus");
+    else if (!strncmp(step, "mod:", 4)) snprintf(mods, sizeof mods, "%s", step + 4);
+    if (mods[0]) {  // load these modules (and what they depend on), safety list or not
+        char rel[128] = "", dir[256], *msave = NULL;
+        read_line("/proc/sys/kernel/osrelease", rel, sizeof rel);
+        snprintf(dir, sizeof dir, "/openbook-check/modules/%s", rel);
+        allow_unsafe = 1;
+        for (char *m = strtok_r(mods, "+", &msave); m; m = strtok_r(NULL, "+", &msave)) {
+            int hit = -1;
+            for (int i = 0; i < nmod && hit < 0; i++) {
+                char want[96];
+                snprintf(want, sizeof want, "%s.ko", m);
+                if (!strcmp(base(mod_path[i]), want)) hit = i;
+            }
+            if (hit < 0) { say("step %s: no module %s.ko in the check's module set", step, m); continue; }
+            mod_state[hit] = 0;  // the first pass skipped it (safety list)
+            int r = load_mod(dir, hit, 0);
+            char item[128];
+            snprintf(item, sizeof item, "%s\"%s.ko %s\"", json[0] ? ", " : "", m, r ? "not loaded" : "loaded");
+            if (strlen(json) + strlen(item) + 1 < len) strcat(json, item);
+        }
+        allow_unsafe = 0;
+        say("hwcheck: waiting 5 s for the drivers to bind");
+        sleep(5);
+        return;
+    }
+    if (!strcmp(step, "psp")) snprintf(ids, sizeof ids, "1022:17e0");
+    else if (!strcmp(step, "dummy")) snprintf(ids, sizeof ids, "1022:150d");
+    else if (!strncmp(step, "pm:", 3)) snprintf(ids, sizeof ids, "%s", step + 3);
+    else { say("step %s: unknown step, nothing changed", step); return; }
+    if (!loaded) loaded = load_kmod("openbook_pci_pm.ko", "") == 0 ? 1 : -1;
+    if (loaded < 0) { say("step %s: openbook_pci_pm.ko not loaded, nothing changed", step); return; }
+    char *save = NULL;
+    for (char *id = strtok_r(ids, "+", &save); id; id = strtok_r(NULL, "+", &save)) {
+        unsigned ven = 0, dev = 0;
+        if (sscanf(id, "%x:%x", &ven, &dev) != 2) { say("step %s: bad PCI ID %s", step, id); continue; }
+        DIR *d = opendir("/sys/bus/pci/devices");
+        struct dirent *e;
+        int hits = 0;
+        while (d && (e = readdir(d))) {
+            if (e->d_name[0] == '.') continue;
+            char p[256], v[16] = "", dv[16] = "", link[256], before[64] = "-", after[64] = "-";
+            snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/vendor", e->d_name); read_line(p, v, sizeof v);
+            snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/device", e->d_name); read_line(p, dv, sizeof dv);
+            if (strtoul(v, NULL, 16) != ven || strtoul(dv, NULL, 16) != dev) continue;
+            hits++;
+            snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/driver", e->d_name);
+            ssize_t l = readlink(p, link, sizeof link - 1);
+            if (l > 0) { link[l] = 0; snprintf(before, sizeof before, "%s", strrchr(link, '/') + 1); }
+            if (strcmp(before, "-") && strcmp(before, "openbook_pci_pm")) {
+                snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/driver/unbind", e->d_name);
+                if (write_str(p, e->d_name)) say("step %s: unbind %s from %s: %s", step, e->d_name, before, strerror(errno));
+            }
+            snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/driver_override", e->d_name);
+            write_str(p, "openbook_pci_pm");
+            if (strcmp(before, "openbook_pci_pm")) write_str("/sys/bus/pci/drivers_probe", e->d_name);
+            snprintf(p, sizeof p, "/sys/bus/pci/devices/%s/driver", e->d_name);
+            l = readlink(p, link, sizeof link - 1);
+            if (l > 0) { link[l] = 0; snprintf(after, sizeof after, "%s", strrchr(link, '/') + 1); }
+            say("step %s: %s %04x:%04x driver %s -> %s", step, e->d_name, ven, dev, before, after);
+            char item[160];
+            snprintf(item, sizeof item, "%s\"%s %04x:%04x %s -> %s\"", json[0] ? ", " : "", e->d_name, ven, dev, before, after);
+            if (strlen(json) + strlen(item) + 1 < len) strcat(json, item);
+        }
+        if (d) closedir(d);
+        if (!hits) say("step %s: no %04x:%04x function on the bus", step, ven, dev);
+    }
 }
 
 static void hardware_check(const char *uuid) {
@@ -850,8 +1146,15 @@ static void hardware_check(const char *uuid) {
     char vendor[16] = "0x10de";
     char *dv = strstr(cmdline, "openbook.probe.detach_vendor=");
     if (dv) sscanf(dv + 29, "%15[0-9a-fx]", vendor);
-    say("hwcheck: OpenBook hardware check v6%s%s. Writes only to the boot stick, then powers off.",
-        want_sleep ? " with a sleep test" : "", want_detach ? " (dGPU powered down first)" : "");
+    int want_snapshot = strstr(cmdline, "openbook.probe.s0i3_snapshot=1") != NULL;
+    int want_all = strstr(cmdline, "openbook.probe.s0i3_all=1") != NULL;
+    char steps[256] = "", *st = strstr(cmdline, "openbook.probe.s0i3_steps=");
+    if (st) sscanf(st + 26, "%255[A-Za-z0-9:+,_-]", steps);
+    char *ss = strstr(cmdline, "openbook.probe.sleep_s=");
+    if (ss) { int v = atoi(ss + 23); if (v >= 10 && v <= 120) sleep_secs = v; }
+    say("hwcheck: OpenBook hardware check v7%s%s%s. Writes only to the boot stick, then powers off.",
+        want_sleep ? " with a sleep test" : "", want_detach ? " (dGPU powered down first)" : "",
+        steps[0] ? " and an S0i3 bisect" : "");
     dmi_facts();
     cpu_facts();
     pci_facts("before");
@@ -890,7 +1193,28 @@ static void hardware_check(const char *uuid) {
     }
     if (want_sleep) {
         if (have_esp) { sync(); umount("/ob-esp"); }
-        sleep_test();
+        sleep_setup();
+        if (want_snapshot)
+            snprintf(snapshot_json, sizeof snapshot_json, "{\"loaded\": %s}",
+                     load_kmod("openbook_s0i3_snapshot.ko", "") ? "false" : "true");
+        int reached = sleep_cycle(0, "baseline", "");
+        char list[sizeof steps], *save = NULL;
+        snprintf(list, sizeof list, "%s", steps);
+        int idx = 1;
+        for (char *step = strtok_r(list, ",", &save); step && reached >= 0; step = strtok_r(NULL, ",", &save), idx++) {
+            // Between cycles: put the report on the stick, so a hang in the next step still leaves the evidence.
+            sleep(3);  // let USB storage come back
+            if (have_esp) {
+                int ok = 0;
+                for (int i = 0; i < 50 && !(ok = !esp_mount()); i++) usleep(200000);
+                if (ok) { save_report(report); write_json(json); save_dmesg(dmesg); sync(); umount("/ob-esp"); }
+            }
+            if (reached > 0 && !want_all) { say("sleep: S0i3 reached; remaining steps skipped"); break; }
+            char bound[1024];
+            step_bind(step, bound, sizeof bound);
+            reached = sleep_cycle(idx, step, bound);
+        }
+        sleep_teardown();
         sleep(3);  // let USB storage come back
         if (have_esp) {
             int ok = 0;
@@ -917,6 +1241,9 @@ int main(int argc, char **argv) {
     mount("devtmpfs", "/dev", "devtmpfs", 0, NULL);
     mount("proc", "/proc", "proc", 0, NULL);
     mount("sysfs", "/sys", "sysfs", 0, NULL);
+    // GKI has no devtmpfs. The Android ramdisks the check entries used to load carry the node; the power check's
+    // entries boot only this initrd, so make /dev/kmsg (char 1:11) if it is missing.
+    if (!exists("/dev/kmsg")) mknod("/dev/kmsg", S_IFCHR | 0600, makedev(1, 11));
     kmsg = open("/dev/kmsg", O_WRONLY | O_CLOEXEC);
 
     say("openbook-probe start (pid %d)", getpid());

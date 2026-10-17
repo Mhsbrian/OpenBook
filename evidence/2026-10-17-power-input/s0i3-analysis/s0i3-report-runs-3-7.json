@@ -1,0 +1,82 @@
+{
+ "schema": "openbook-s0i3-report/1",
+ "cycles": [
+  {
+   "source": "OpenBook hwcheck-003.json",
+   "kind": "openbook",
+   "change": "baseline",
+   "detail": [],
+   "s0i3": false,
+   "hw_sleep_us": null,
+   "smu": null,
+   "idlemask": null,
+   "deepest_cstate": null,
+   "not_met_us": {},
+   "awake": [],
+   "awake_summary": null
+  },
+  {
+   "source": "OpenBook hwcheck-004.json",
+   "kind": "openbook",
+   "change": "baseline",
+   "detail": [],
+   "s0i3": false,
+   "hw_sleep_us": null,
+   "smu": null,
+   "idlemask": null,
+   "deepest_cstate": null,
+   "not_met_us": {},
+   "awake": [],
+   "awake_summary": null
+  },
+  {
+   "source": "OpenBook hwcheck-005.json",
+   "kind": "openbook",
+   "change": "baseline",
+   "detail": [],
+   "s0i3": false,
+   "hw_sleep_us": null,
+   "smu": null,
+   "idlemask": "0xffef9afd",
+   "deepest_cstate": null,
+   "not_met_us": {},
+   "awake": [],
+   "awake_summary": null
+  },
+  {
+   "source": "OpenBook hwcheck-006.json",
+   "kind": "openbook",
+   "change": "baseline",
+   "detail": [],
+   "s0i3": false,
+   "hw_sleep_us": null,
+   "smu": null,
+   "idlemask": "0xffef9afd",
+   "deepest_cstate": null,
+   "not_met_us": {},
+   "awake": [],
+   "awake_summary": null
+  },
+  {
+   "source": "OpenBook hwcheck-007.json",
+   "kind": "openbook",
+   "change": "baseline",
+   "detail": [],
+   "s0i3": false,
+   "hw_sleep_us": null,
+   "smu": null,
+   "idlemask": "0xffef9afd",
+   "deepest_cstate": null,
+   "not_met_us": {},
+   "awake": [],
+   "awake_summary": null
+  }
+ ],
+ "verdict": {
+  "openbook_reached_s0i3": false,
+  "first_fixing_step": null,
+  "linux_reached_s0i3": null,
+  "linux_phases_without_s0i3": []
+ },
+ "comparisons": []
+}

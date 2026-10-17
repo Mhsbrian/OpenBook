@@ -11,6 +11,8 @@
 # usage: g14-qemu.sh IMG RUN [EXPECT]            fresh copy of IMG, then boot (default expect-g14.json)
 #        g14-qemu.sh --again RUN [EXPECT]        boot RUN's disk again, data kept (default expect-g14-reboot.json)
 # Logs: <data dir>/logs/installer/<RUN>/ (serial.log, result.json, shot-*.png, sections/)
+# Env: QEMU_AUDIO=1 adds an HDA sound card whose output goes to <boot dir>/audio-out.wav; QEMU_EXTRA_USB=IMG plugs
+#      a copy of IMG in as a second USB disk (scripts/audio-net-qemu.sh).
 set -euo pipefail
 A=${OPENBOOK_HOME:-${ANYBOOK_HOME:-$HOME/anybook}}
 R=$(cd "$(dirname "$0")/.." && pwd)
@@ -36,9 +38,16 @@ fi
 n=1; while [ -d "$L/boot$n" ]; do n=$((n + 1)); done
 O=$L/boot$n
 mkdir -p "$O"
+EXTRA=()
+[ "${QEMU_AUDIO:-0}" = 1 ] && EXTRA+=(--audio "$O/audio-out.wav")
+if [ -n "${QEMU_EXTRA_USB:-}" ]; then
+  cp --reflink=auto "$QEMU_EXTRA_USB" "$D/extra-usb.img"
+  EXTRA+=(--extra-usb "$D/extra-usb.img")
+fi
 set +e
 "$I/inst-docker.sh" python3 "$I/qemu-run.py" --usb "$D/disk.img" --out "$O" --expect "$EXPECT" \
-  --gpu virtio-vga,xres=1920,yres=1200 --usb-input --tpm --mem 8192 --smp 8 --timeout 2400 --linger 60 --vars "$D/OVMF_VARS.fd"
+  --gpu virtio-vga,xres=1920,yres=1200 --usb-input --tpm --mem 8192 --smp 8 --timeout 2400 --linger 60 --vars "$D/OVMF_VARS.fd" \
+  "${EXTRA[@]}"
 rc=$?
 set -e
 python3 "$I/serial-extract.py" "$O/serial.log" "$O/sections" || true

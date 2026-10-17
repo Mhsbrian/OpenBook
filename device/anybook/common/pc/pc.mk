@@ -38,6 +38,8 @@ VENDOR_SECURITY_PATCH = $(PLATFORM_SECURITY_PATCH)
 BOOT_SECURITY_PATCH = $(PLATFORM_SECURITY_PATCH)
 PRODUCT_VENDOR_PROPERTIES += ro.vendor.boot_security_patch=$(BOOT_SECURITY_PATCH)
 
+# Laptop behaviour (lid, power button, battery saver; ANAL-178): OpenBookPcFrameworkOverlay, added with audio below.
+
 # A PC: no telephony, a keyboard and a pointer, a lid.
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/pc_core_hardware.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/pc_core_hardware.xml \
@@ -78,7 +80,7 @@ PRODUCT_REQUIRES_INSECURE_EXECMEM_FOR_SWIFTSHADER := true
 # Base HALs. AOSP implementations; the ones listed with "openbook" use the real sysfs of a PC instead of the
 # AOSP examples' fixed values. docs/g14-product.md has the table.
 PRODUCT_PACKAGES += \
-    android.hardware.health-service.example \
+    android.hardware.health-service.openbook \
     com.android.hardware.boot \
     com.android.hardware.authsecret \
     com.android.hardware.dumpstate \
@@ -97,16 +99,50 @@ PRODUCT_PACKAGES += \
     android.hardware.weaver-service.openbook
 PRODUCT_VENDOR_PROPERTIES += ro.hardware.keystore_desede=true
 
-# Audio stays on AOSP's AIDL example HAL until ANAL-179 brings the ALC285/CS35L56 configuration. The HAL creates
-# its modules from /vendor/etc/audio_policy_configuration.xml (audio/ explains which ones it needs);
+# Audio: AOSP's AIDL example HAL, its primary module on the built-in codec (ANAL-179, docs/g14-audio-net.md).
+# openbook-audio-setup finds the codec's ALSA card at boot and sets its mixer up; OpenBook's HAL patch
+# (aosp/patches/hardware/interfaces) reads the card from vendor.audio.primary.card. The HAL creates its modules
+# from /vendor/etc/audio_policy_configuration.xml (audio/ explains which ones it needs);
 # audio_policy_config_vendor_1.mk adds the AOSP files it includes, these the rest.
-PRODUCT_PACKAGES += com.android.hardware.audio
+PRODUCT_PACKAGES += \
+    com.android.hardware.audio \
+    openbook-audio-setup \
+    OpenBookPcFrameworkOverlay
 PRODUCT_COPY_FILES += \
     device/anybook/common/pc/audio/audio_policy_configuration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_policy_configuration.xml \
-    frameworks/av/services/audiopolicy/config/primary_audio_policy_configuration_7_0.xml:$(TARGET_COPY_OUT_VENDOR)/etc/primary_audio_policy_configuration.xml \
+    device/anybook/common/pc/audio/primary_audio_policy_configuration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/primary_audio_policy_configuration.xml \
     frameworks/av/services/audiopolicy/config/bluetooth_with_le_audio_policy_configuration_7_0.xml:$(TARGET_COPY_OUT_VENDOR)/etc/bluetooth_with_le_audio_policy_configuration_7_0.xml
 $(call inherit-product, frameworks/av/services/audiopolicy/audio_policy_config_vendor_1.mk)
 $(call inherit-product, hardware/interfaces/audio/aidl/default/audio_effects.mk)
+
+# Wi-Fi: AOSP's wpa_supplicant and wificond on the laptop's mac80211 driver, no vendor Wi-Fi HAL (wifi/wifi.mk).
+$(call inherit-product, device/anybook/common/pc/wifi/wifi.mk)
+
+# Bluetooth: AOSP's AIDL HAL over the kernel's HCI user channel (btusb + btmtk on the G14). The profiles a laptop
+# uses: audio out (A2DP source, AVRCP), keyboards and mice (HID host), LE (GATT), battery levels, file transfer,
+# tethering to a phone (PANU). No HFP gateway yet: it needs the HAL's SCO audio path, untested. Class of device:
+# computer/laptop with networking, capturing, object transfer and audio services.
+PRODUCT_PACKAGES += android.hardware.bluetooth-service.default
+PRODUCT_COPY_FILES += \
+    frameworks/native/data/etc/android.hardware.bluetooth_le.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.bluetooth_le.xml
+PRODUCT_PRODUCT_PROPERTIES += \
+    bluetooth.device.class_of_device=58,1,12 \
+    bluetooth.profile.a2dp.source.enabled=true \
+    bluetooth.profile.avrcp.target.enabled=true \
+    bluetooth.profile.bas.client.enabled=true \
+    bluetooth.profile.gatt.enabled=true \
+    bluetooth.profile.hid.host.enabled=true \
+    bluetooth.profile.opp.enabled=true \
+    bluetooth.profile.pan.panu.enabled=true
+
+# userdebug: the checks the live image's "save logs" entry runs (openbook-hwtest) and their tools.
+PRODUCT_PACKAGES_DEBUG += \
+    openbook-hwtest \
+    openbook-audio-test \
+    tinycap \
+    tinymix \
+    tinypcminfo \
+    tinyplay
 
 PRODUCT_VENDOR_PROPERTIES += \
     ro.logd.size=1M \

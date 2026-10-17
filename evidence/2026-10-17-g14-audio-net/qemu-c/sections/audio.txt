@@ -1,0 +1,66 @@
+primary card 0 device 0
+ 0 [Intel          ]: HDA-Intel - HDA Intel
+                      HDA Intel at 0x80810000 irq 33
+00-00: Generic Analog : Generic Analog : playback 1 : capture 1
+[    3.966593] openbook-audio-setup: pcm 00-00 'Generic Analog' playback capture
+[    3.967509] openbook-audio-setup: primary card 0 device 0 ('Generic Analog', capture too)
+[    3.968581] openbook-audio-setup: card 0 'Master Playback Switch': 0 -> 1
+[    3.969434] openbook-audio-setup: card 0 'Capture Switch': 0 -> 1
+[    3.970359] openbook-audio-setup: card 0 'Master Playback Volume': 0 -> 74
+[    3.971220] openbook-audio-setup: card 0 'Capture Volume': 0 -> 74
+audio HAL: running 
+
+--- audio: cards, PCMs and mixer ---
+ 0 [Intel          ]: HDA-Intel - HDA Intel
+                      HDA Intel at 0x80810000 irq 33
+00-00: Generic Analog : Generic Analog : playback 1 : capture 1
+vendor.audio.primary.card=0
+vendor.audio.primary.device=0
+card 0 mixer 'HDA Intel':
+  Master Playback Volume [INT] 74 74 (0..74)
+  Master Playback Switch [BOOL] 1 1
+  Capture Volume [INT] 74 74 (0..74)
+  Capture Switch [BOOL] 1 1
+  Line Phantom Jack [BOOL] 1
+  Line Out Phantom Jack [BOOL] 1
+  Playback Channel Map [INT] 0 0 (0..36)
+  Capture Channel Map [INT] 0 0 (0..36)
+HWTEST {"test": "audio-card", "ok": true, "card": 0, "pcm": "00-00: Generic Analog : Generic Analog : playback 1 : capture 1"}
+
+--- audio: policy ---
+ Available output devices (1):
+  1. Port ID: 2; "Speaker"; {AUDIO_DEVICE_OUT_SPEAKER, @:}
+     Encapsulation modes: 0, metadata types: 0
+     Port Hal ID: 1
+   - Profiles (1):
+--
+ Available input devices (2):
+  1. Port ID: 5; "Built-In Mic"; {AUDIO_DEVICE_IN_BUILTIN_MIC, @:bottom}
+     Encapsulation modes: 0, metadata types: 0
+     Port Hal ID: 4
+   - Profiles (1):
+Hardware status: 0
+  Standby: yes
+  Sample rate: 48000 Hz
+  HAL format: 0x1 (AUDIO_FORMAT_PCM_16_BIT)
+  Output devices: 0x2 (AUDIO_DEVICE_OUT_SPEAKER)
+  Input device: 0 (AUDIO_DEVICE_NONE)
+  Standby delay ns=3000000000
+-   Standby: yes
+-   Sample rate: 48000 Hz
+-   HAL format: 0x1 (AUDIO_FORMAT_PCM_16_BIT)
+-   Output devices:  (Empty device types)
+-   Input device: 0 (AUDIO_DEVICE_NONE)
+-   Standby: yes
+-   Sample rate: 192000 Hz
+-   HAL format: 0x1 (AUDIO_FORMAT_PCM_16_BIT)
+-   Output devices:  (Empty device types)
+-   Input device: 0 (AUDIO_DEVICE_NONE)
+
+--- audio: speaker -> built-in mic, direct ALSA (2 s at 1 kHz) ---
+{"test": "alsa-loopback", "ok": false, "card": 0, "device": 0, "rate": 48000, "channels": 2, "freq": 1000, "seconds": 2.00, "tone_dbfs_out": -15, "noise_rms_dbfs": -200.0, "noise_bin_dbfs": -200.0, "tone_rms_dbfs": -200.0, "tone_bin_dbfs": -200.0, "tone_share": 0.000, "heard": false, "playback_error": "", "capture_error": "cannot read stream data: I/O error"}
+HWTEST {"test": "alsa-loopback", "ok": false, "card": 0, "device": 0, "rate": 48000, "channels": 2, "freq": 1000, "seconds": 2.00, "tone_dbfs_out": -15, "noise_rms_dbfs": -200.0, "noise_bin_dbfs": -200.0, "tone_rms_dbfs": -200.0, "tone_bin_dbfs": -200.0, "tone_share": 0.000, "heard": false, "playback_error": "", "capture_error": "cannot read stream data: I/O error"}
+
+--- audio: speaker -> built-in mic through Android (AAudio) ---
+{"test": "aaudio-loopback", "ok": true, "in_rate": 48000, "in_channels": 2, "out_rate": 48000, "out_channels": 2, "captured_frames": 168000, "written_frames": 120000, "xruns": 1, "freq": 1000, "tone_dbfs_out": -15, "noise_rms_dbfs": -200.0, "noise_bin_dbfs": -200.0, "tone_rms_dbfs": -200.0, "tone_bin_dbfs": -200.0, "tone_share": 0.000, "heard": false, "input_error": 0, "output_error": 0}
+HWTEST {"test": "aaudio-loopback", "ok": true, "in_rate": 48000, "in_channels": 2, "out_rate": 48000, "out_channels": 2, "captured_frames": 168000, "written_frames": 120000, "xruns": 1, "freq": 1000, "tone_dbfs_out": -15, "noise_rms_dbfs": -200.0, "noise_bin_dbfs": -200.0, "tone_rms_dbfs": -200.0, "tone_bin_dbfs": -200.0, "tone_share": 0.000, "heard": false, "input_error": 0, "output_error": 0}

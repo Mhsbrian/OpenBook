@@ -1,1 +1,3 @@
 obj-m += openbook_acpi_d3cold.o
+obj-m += openbook_s0i3_snapshot.o
+obj-m += openbook_pci_pm.o

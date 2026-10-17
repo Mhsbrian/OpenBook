@@ -1,0 +1,146 @@
+{
+ "schema": "openbook-live-report/1",
+ "dir": "live-001",
+ "expect": "vm",
+ "phase": "final",
+ "fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
+ "model": "OpenBook on ROG Zephyrus G14 (GA403WR)",
+ "selinux": "permissive",
+ "verdicts": {
+  "boot_completed": {
+   "ok": true,
+   "seconds": 17.6,
+   "second_stage_s": 2.6
+  },
+  "display": {
+   "ok": true,
+   "connectors": [
+    "card0-Virtual-1 connected disabled 1920x1200"
+   ],
+   "surfaceflinger": "running",
+   "screenshot": true
+  },
+  "gpu_hal": {
+   "ok": true,
+   "hal": "virtio",
+   "egl": "angle",
+   "vulkan": "pastel",
+   "gralloc": "minigbm",
+   "hwcomposer": "drm"
+  },
+  "data_on_stick": {
+   "ok": true,
+   "data_kib": 14943232,
+   "used_kib": 358948,
+   "byname_targets": [
+    "sda"
+   ]
+  },
+  "wifi_regulatory": {
+   "ok": true,
+   "driver": ".",
+   "country": "00"
+  },
+  "wifi_enabled": {
+   "ok": false,
+   "supplicant": ""
+  },
+  "wifi_scan": {
+   "ok": false,
+   "networks": 0,
+   "ghz2": 0,
+   "ghz5": 0,
+   "ghz6": 0
+  },
+  "wifi_connected": {
+   "ok": false,
+   "freq_mhz": null,
+   "signal_dbm": null,
+   "tx_mbit": null,
+   "rx_mbit": null
+  },
+  "wifi_dhcp": {
+   "ok": false,
+   "prefix": "",
+   "gateway": false
+  },
+  "wifi_gateway_ping": {
+   "ok": null
+  },
+  "wifi_internet": {
+   "ok": false
+  },
+  "wifi_iperf3": {
+   "ok": null,
+   "up_mbit_s": null,
+   "down_mbit_s": null,
+   "seconds": null
+  },
+  "bt_enabled": {
+   "ok": false,
+   "hal": "running"
+  },
+  "bt_paired": {
+   "ok": false,
+   "bonded": 0
+  },
+  "audio_card": {
+   "ok": false,
+   "card": -1,
+   "pcm": ""
+  },
+  "audio_loopback_alsa": {
+   "ok": false,
+   "card": null,
+   "tone_bin_dbfs": null,
+   "noise_bin_dbfs": null,
+   "glitched_slices": null,
+   "slices": null,
+   "playback_error": null,
+   "capture_error": null,
+   "error": "no built-in sound card"
+  },
+  "audio_loopback_android": {
+   "ok": false,
+   "tone_bin_dbfs": -36.3,
+   "noise_bin_dbfs": -47.3,
+   "glitched_slices": 30,
+   "slices": 30,
+   "xruns": 1,
+   "media_volume": "10/15",
+   "input_error": 0,
+   "output_error": 0,
+   "error": null
+  }
+ },
+ "modules_loaded": 144,
+ "amdgpu_loaded": true,
+ "avc_denials": {
+  "dmesg": null,
+  "logcat": null
+ },
+ "live_init": {
+  "action": "grow",
+  "detail": "",
+  "disk": "sda",
+  "disk_sectors": 33554432,
+  "gpt_backup_lba_before": 5761023,
+  "gpt_backup_lba_after": 33554431,
+  "userdata_sectors_before": 2097152,
+  "userdata_sectors_after": 29890560,
+  "userdata_blank": true,
+  "reset": false
+ },
+ "files": [
+  "collect-final.txt",
+  "dmesg.txt",
+  "hwtest-final.txt",
+  "logcat-final.txt",
+  "prior-boots.tar.gz",
+  "prior-boots.txt",
+  "report.json",
+  "report.md",
+  "screen-final.png",
+  "summary.json"
+ ]
+}

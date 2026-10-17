@@ -1,0 +1,69 @@
+{
+ "collectrc": [
+  "0"
+ ],
+ "lines": {
+  "INFO": 3,
+  "PROPS": 817,
+  "BOOTCONFIG": 16,
+  "CMDLINE": 1,
+  "BYNAME": 11,
+  "PARTITIONS": 88,
+  "MOUNTS": 142,
+  "DF": 5,
+  "MODULES": 144,
+  "PS": 371,
+  "PCI": 6,
+  "DRM": 1,
+  "BACKLIGHT": 3,
+  "POWER": 5,
+  "SUPPLY": 2,
+  "NET": 32,
+  "WIFI": 2,
+  "BLUETOOTH": 24,
+  "INPUTDEV": 43,
+  "INPUT": 196,
+  "DISPLAY": 145,
+  "SF": 232,
+  "WINDOW": 74,
+  "ACTIVITY": 3,
+  "BATTERY": 22,
+  "THERMAL": 25,
+  "SUSPEND": 7,
+  "POWERSTATE": 23,
+  "EPP": 1,
+  "SENSORS": 5,
+  "BAT": 0,
+  "LEDS": 8,
+  "GETEVENT": 111,
+  "HIDDESC": 2,
+  "TOUCHPADEV": 0,
+  "AUDIO": 38,
+  "FEATURES": 50,
+  "SERVICES": 26,
+  "AVC": 2,
+  "END": 0
+ },
+ "errors": {
+  "BACKLIGHT": [
+   "cat: /sys/class/backlight/*/brightness: No such file or directory",
+   "cat: /sys/class/backlight/*/max_brightness: No such file or directory"
+  ],
+  "POWER": [
+   "cat: /sys/devices/system/cpu/amd_pstate/status: No such file or directory",
+   "cat: /sys/devices/system/cpu/cpufreq/policy0/scaling_driver: No such file or directory",
+   "cat: /sys/devices/system/cpu/cpufreq/policy0/energy_performance_preference: No such file or directory"
+  ],
+  "SUPPLY": [
+   "cat: /sys/class/power_supply/*/type: No such file or directory"
+  ],
+  "EPP": [
+   "      1 cat: /sys/devices/system/cpu/cpufreq/policy*/energy_performance_preference: No such file or directory"
+  ],
+  "SENSORS": [
+   "cat: /sys/class/thermal/thermal_zone*/type: No such file or directory",
+   "cat: /sys/class/thermal/thermal_zone*/temp: No such file or directory",
+   "cat: /sys/class/hwmon/hwmon*/name: No such file or directory"
+  ]
+ }
+}

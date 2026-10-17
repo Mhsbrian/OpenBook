@@ -1,0 +1,87 @@
+run-ap: rmmod rtw89_8922ae
+run-ap: rmmod rtw89_8922a
+run-ap: rmmod rtw89_8852ce
+run-ap: rmmod rtw89_8852c
+run-ap: rmmod rtw89_8852be
+run-ap: rmmod rtw89_8852b
+run-ap: rmmod rtw89_8852b_common
+run-ap: rmmod rtw89_8852ae
+run-ap: rmmod rtw89_8852a
+run-ap: rmmod rtw89_8851be
+run-ap: rmmod rtw89_8851b
+run-ap: rmmod rtw89_pci
+run-ap: rmmod rtw89_core
+run-ap: rmmod mt7921e
+run-ap: rmmod mt7921_common
+run-ap: rmmod mt7925e
+run-ap: rmmod mt7925_common
+run-ap: rmmod mt792x_lib
+run-ap: rmmod mt76_connac_lib
+run-ap: rmmod mt76
+run-ap: rmmod mac80211
+run-ap: rmmod cfg80211
+run-ap: interfaces: dummy0 erspan0 gre0 gretap0 hwsim0 ifb0 ifb1 ip6_vti0 ip6gre0 ip6tnl0 ip_vti0 lo sit0 tunl0 wlan0 wlan1 
+run-ap: phy1 (wlan1) -> netns of pid 3955
+16: wlan1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
+    link/ether xx:xx:xx:xx:xx:xx brd ff:ff:ff:ff:ff:ff
+    inet 192.168.77.1/24 scope global wlan1
+       valid_lft forever preferred_lft forever
+    inet6 fe80::ff:fe00:100/64 scope link tentative 
+       valid_lft forever preferred_lft forever
+run-ap: hostapd: none 
+run-ap: dhcpd: openbook-test-dhcpd: serving 192.168.77.0/24 on wlan1
+run-ap: done
+framework back after 6 s
+supplicant: running
+test network in scan results: 0
+connected after 60 s
+
+--- wifi: driver and regulatory ---
+../../../../bus/platform/drivers/mac80211_hwsim
+phy#0
+	Interface wlan0
+		ifindex 15
+		wdev 0x1
+		type managed
+		txpower 20.00 dBm
+		multicast TXQ:
+			qsz-byt	qsz-pkt	flows	drops	marks	overlmt	hashcol	tx-bytes	tx-packets
+			0	0	0	0	0	0	0	0		0
+global
+country 00: DFS-UNSET
+	(2402 - 2472 @ 40), (6, 20), (N/A)
+	(2457 - 2482 @ 20), (6, 20), (N/A), AUTO-BW, PASSIVE-SCAN
+	(2474 - 2494 @ 20), (6, 20), (N/A), NO-OFDM, PASSIVE-SCAN
+	(5170 - 5250 @ 80), (6, 20), (N/A), AUTO-BW, PASSIVE-SCAN
+	(5250 - 5330 @ 80), (6, 20), (0 ms), DFS, AUTO-BW, PASSIVE-SCAN
+	(5490 - 5730 @ 160), (6, 20), (0 ms), DFS, PASSIVE-SCAN
+	(5735 - 5835 @ 80), (6, 20), (N/A), PASSIVE-SCAN
+	(57240 - 63720 @ 2160), (N/A, 0), (N/A)
+
+[    3.394316] modprobe: Loading module /vendor/lib/modules/cfg80211.ko with args ''
+[    3.413281] cfg80211: Loading compiled-in X.509 certificates for regulatory database
+[    3.415824] modprobe: Loaded kernel module /vendor/lib/modules/cfg80211.ko
+[   72.185028] cfg80211: Loading compiled-in X.509 certificates for regulatory database
+[   72.185890] cfg80211: loaded regulatory.db is malformed or signature is missing/invalid
+HWTEST {"test": "wifi-driver", "iface": "wlan0", "present": true, "driver": "mac80211_hwsim", "regdb_loaded": false, "country": "00"}
+
+--- wifi: framework ---
+supplicant: running
+Wifi is enabled
+Wifi scanning is only available when wifi is enabled
+==== ClientModeManager instance: ConcreteClientModeManager{id=98395 iface=wlan0 role=ROLE_CLIENT_PRIMARY} ====
+Wifi is not connected
+HWTEST {"test": "wifi-enabled", "ok": true, "supplicant": "running"}
+
+--- wifi: scan ---
+1 networks: 1 on 2.4 GHz, 0 on 5 GHz, 0 on 6 GHz
+HWTEST {"test": "wifi-scan", "ok": true, "networks": 1, "ghz2": 1, "ghz5": 0, "ghz6": 0}
+
+--- wifi: connection ---
+Not connected.
+IPv4 none, gateway none
+HWTEST {"test": "wifi-connect", "ok": false, "freq_mhz": null, "signal_dbm": null, "tx_mbit": null, "rx_mbit": null}
+HWTEST {"test": "wifi-dhcp", "ok": false, "prefix": "", "gateway": false}
+HWTEST {"test": "wifi-validated", "ok": false}
+--- dhcpd and hostapd (access point side) ---
+openbook-test-dhcpd: serving 192.168.77.0/24 on wlan1

@@ -2,7 +2,7 @@
 
 ## Now (2026-10-16, night)
 
-The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`github.com/Mhsbrian/AnyBook`) redirects. PRs #1–#39 are merged (latest: #37 ANAL-190 live image on the audio fix; #39 ANAL-176 RADV swapchain fix, SELinux labels, desktop2 live image). #38 was closed as superseded, because #39 contains its commits. Every PR was checked before merging (script syntax, Python compile, no binaries or secrets, sizes, evidence backs the claim), and doc conflicts were resolved by hand.
+The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`github.com/Mhsbrian/AnyBook`) redirects. PRs #1–#43 are merged (latest: #39 ANAL-176 RADV swapchain fix and SELinux labels; #43 ANAL-179 Wi-Fi, Bluetooth and audio for the G14). Open: #42 (ANAL-176 stability) and #41 (ANAL-178), both still being worked. #38 was closed as superseded, because #39 contains its commits. Every PR was checked before merging (script syntax, Python compile, no binaries or secrets, sizes, evidence backs the claim), and doc conflicts were resolved by hand.
 
 **Decided by the owner**
 - **Keep the dGPU disabled for now** (2026-10-16, on ANAL-187):
@@ -21,7 +21,7 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 - **Live USB on the G14** (ANAL-190): the owner booted the live stick on the G14 (`evidence/2026-10-16-installer/g14-live/`). The rebuild on ANAL-199's audio fix (`openbook-live-20261016b`) boots to Launcher3 in QEMU and is ready to write (`docs/installer.md` §11.6, §11.11).
 
 **Lanes on the dev host** (the 7950X has 61 GB RAM; an AOSP build peaks at about 41 GiB):
-- **AOSP lane**, one builder at a time in `~/anybook/aosp/src`: ✓ ANAL-174 (PR #23), ✓ ANAL-199 (PR #35), ✓ ANAL-176 (PR #39; the G14 desktop boot is waiting on the owner), then ▶ **ANAL-179** (Wi-Fi, BT and audio). ANAL-178 starts in the kernel/hwcheck lane (S0i3, input); its Android-side work follows. ANAL-200 comes after that. Builds take `flock ~/anybook/aosp/.lane.lock` (PR #42: `aosp-docker.sh` takes and keeps it for `aosp-build.sh`, which refuses otherwise; `installer-image.sh` holds it for its `PRODUCT_OUT` snapshot). The VM product's device is now `anybook_vsoc_x86_64`, so boot it with `CF_DEVICE=anybook_vsoc_x86_64`.
+- **AOSP lane**, one builder at a time in `~/anybook/aosp/src`: ✓ ANAL-174 (PR #23), ✓ ANAL-199 (PR #35), ✓ ANAL-176 (PRs #39 and #42), ✓ ANAL-179 (PR #43, Wi-Fi/BT/audio), ✓ ANAL-178's Android side (PR #41). ANAL-200 comes next. Builds take `flock ~/anybook/aosp/.lane.lock` (PR #42: `aosp-docker.sh` takes and keeps it for `aosp-build.sh`, which refuses otherwise; `installer-image.sh` holds it for its `PRODUCT_OUT` snapshot). The VM product's device is now `anybook_vsoc_x86_64`, so boot it with `CF_DEVICE=anybook_vsoc_x86_64`.
 - **Kernel lane:** ✓ ANAL-198 (PR #26). The G14 images and firmware are ready for ANAL-199, and the lane is free.
 - **Light lanes:** ✓ ANAL-189 (design and QEMU boot-chain prototype in PRs #22 and #25: high-fidelity wizard design, OpenBook naming, quiet boot, G14 hardware-check stick; awaiting sign-off) and ✓ ANAL-187 (research delivered; its dGPU-off default feeds ANAL-199 and ANAL-176).
 - **Hand-offs:** condition wakeups on ANAL-159 promote each next step as soon as its dependencies reach review with a merged PR.
@@ -34,7 +34,7 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 | ANAL-161 AMD GKI kernel (android17-6.18) | ✓ ANAL-170 stock GKI reproduced (PR #4) | ✓ ANAL-171 AMD config, 138 vendor modules (PR #8) | ✓ ANAL-172 our kernel boots our userspace (PR #12) | ✓ ANAL-198 bare-metal packaging: first-stage NVMe and USB boot, vendor_boot, dlkm images, firmware (PR #26) |
 | ANAL-162 AMD graphics userspace | ✓ ANAL-173 Mesa radeonsi/RADV for Android (PR #3) | ✓ ANAL-174 AMD graphics in the tree, boot-time HAL selection (PR #23) | ⏸ ANAL-177 dEQP/CTS on the G14 | — |
 | ANAL-164 ARM compat and native bridge | ✓ ANAL-180 harness and baseline (PR #6) | ✓ ANAL-181 Digitalis: GO with conditions (PR #11) | ⏳ ANAL-200 Digitalis on Android 17 as our bridge (after ANAL-199) | — |
-| ANAL-163 Bare metal on the G14 (GA403WR) | ✓ ANAL-175 inventory and full driver map (PRs #8, #16; the owner's root run is processed too: dGPU `10de:2f58`, panel ATNA40CU05-0, speaker tuning found) | ✓ ANAL-199 G14 product `anybook_g14_x86_64`: USB GPT image, `boot_completed` in QEMU/OVMF, SELinux enforcing (PR #35) | ✓ ANAL-176 G14 desktop from USB (PR #39): RADV swapchain fix, SELinux labels, `desktop2` stick. **Owner's G14 boot pending** | ▶ ANAL-178 input and power (S0i3 first), ▶ ANAL-179 Wi-Fi, BT and audio |
+| ANAL-163 Bare metal on the G14 (GA403WR) | ✓ ANAL-175 inventory and full driver map (PRs #8, #16; the owner's root run is processed too: dGPU `10de:2f58`, panel ATNA40CU05-0, speaker tuning found) | ✓ ANAL-199 G14 product `anybook_g14_x86_64`: USB GPT image, `boot_completed` in QEMU/OVMF, SELinux enforcing (PR #35) | ✓ ANAL-176 G14 desktop from USB (PR #39; follow-ups in #42). The desktop was reached on the G14 in a logs boot; the enforcing entry is being verified | ▶ ANAL-178 input and power (S0i3 first), ✓ ANAL-179 Wi-Fi, BT and audio (PR #43; G14 run pending) |
 | ANAL-188 USB installer (M8) | ✓ ANAL-189 design and boot-chain prototype (PR #22): systemd-boot recommended, GRUB fallback; **awaiting owner sign-off** | ✓ ANAL-190 live USB image (PR #34): QEMU 38/39; booted on the G14 by the owner (`evidence/2026-10-16-installer/g14-live/`) | ⏸ ANAL-191 wizard | ⏸ ANAL-192 end-to-end tests |
 | **ANAL-193 Device-in-the-loop on the G14 (§4a)** | ⏸ ANAL-194 runtime and agent on G14 Linux (owner installs the daemon) | ⏸ ANAL-195 Zen 5 validation in KVM | ⏸ ANAL-196 dual-boot test cycle | ⏸ ANAL-197 runtime on installed OpenBook |
 | ANAL-186 NVIDIA dGPU | ✓ ANAL-187 research and dGPU-off default (`docs/nvidia.md`: off for M3–M8, N1–N6 after M4) | — | — | — |
@@ -45,11 +45,42 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 1. ✓ ANAL-174 (PR #23) and ANAL-198 (PR #26).
 2. ✓ ANAL-199 (PR #35): the G14 product, booting in QEMU. ✓ ANAL-190 (PR #34): the live USB image, first booted on the G14.
 3. ✓ ANAL-176 (PR #39): the RADV crash that kept the G14 screen black is fixed and verified on a Radeon 610M. **The owner's boot of the `desktop2` stick confirms the desktop on the panel.**
-4. ▶ ANAL-179 (Wi-Fi, BT, audio) and ▶ ANAL-178 (S0i3 power, input), in parallel lanes.
+4. ✓ ANAL-179 (PR #43): Wi-Fi (WPA2, DHCP, iperf3), Bluetooth and audio, tested in QEMU. The owner's `audionet3` stick run on the G14 is the hardware test. ▶ ANAL-178 (S0i3 power, input) is running.
+
+**Reported, not yet in the repo:** in the owner's `desktop3` "save logs" boot, Android reached the desktop on the G14 at 78 s, the firmware fix worked, and an enforcing boot would hit 14 denials (down from 66). This comes from ANAL-176's reading of the stick logs; the evidence lands with PR #42.
 5. The installer (ANAL-190 to ANAL-192).
 6. ANAL-197: the runtime on the device.
 
 ## History
+
+### 2026-10-17: Power and input, Android side built: health HAL, lid config in force, one stick for all G14 tests (ANAL-178)
+- **Done:** an OpenBook health HAL (the ACPI battery's charge counter and state of health; Android showed health "unknown"); the lid, power-button and hotkey pieces built and checked in a booted image; save logs records the touchpad's HID descriptors and raw events for the "Clock changed backwards" errors ANAL-176 handed on, and `service list` no longer stalls the capture.
+- **Stick:** `openbook-live-20261017-anal178b` contains ANAL-179's `audionet3` (and ANAL-176's desktop4 fixes) plus all of this, with the power check on its ESP. QEMU: live matrix 39/39, power check 10/10, lid config in force (`evidence/2026-10-17-power-input/anal178b/`).
+- **Next:** the owner writes `anal178b` instead of `audionet3` and runs `docs/power-input.md` §5.
+
+### 2026-10-17: Power and input: S0i3 tests, laptop lid and power config (ANAL-178)
+
+**Done** (`docs/power-input.md`)
+- **S0i3, from the desk:** the laptop's own Linux 7.2 shows no S0i3 failure in 4 cycles (indirect), so the BIOS is not the blocker. amd_pmc, LPS0, IOMMU and CPU idle behave the same on both kernels. The one PCI function Linux drives and we don't is the AMD PSP (`ccp`). HYPOTHESIS: a driverless PSP stays in D0 and keeps its bridge GPPA in D0 through suspend.
+- **Tests:** two test-only modules (an S0i3-entry PCI snapshot, and PCI power management for driverless functions), probe v7 with a one-boot bisect (`psp`, `dummy`, `asus`), an add-on that puts it on the owner's live stick, and a Linux comparison script (baseline, without amd-pmf, without `ccp`).
+- **Android:** a PC framework overlay with Googlebook's laptop values (lid closes → sleep, AOSP's default is nothing; power button locks), a key layout for the ASUS WMI hotkeys, and save-logs facts and verdicts for power and input.
+
+**Evidence:** `evidence/2026-10-17-power-input/`. In QEMU: the add-on's entries 14/14 (LPS0 fixture, s2idle) and 10/10 (as shipped), and the save-logs script inside Android 17. The overlay links against the product's framework (`aapt2`, `idmap2`); the layouts pass `validatekeymaps`. Nothing new has run on the G14 yet.
+
+**Next:** the owner runs the Linux comparison and the power check (`docs/power-input.md` §1.5); then the kernel-lane fix, and the Android pieces in the AOSP lane after ANAL-179.
+
+### 2026-10-17: G14 audio, Wi-Fi and Bluetooth, Android side (ANAL-179)
+
+**Done** (`docs/g14-audio-net.md`)
+- **Wi-Fi:** AOSP's wpa_supplicant and the framework's own nl80211 code, no vendor HAL (none is public) and no wificond (Android 17 has none); a DRIVER-command hook for the country code; the signed `regulatory.db`; AOSP's MT7925 firmware kept (the build the G14 loaded).
+- **Bluetooth:** AOSP's AIDL HAL over the HCI user channel (`btusb` + `btmtk`), laptop profiles.
+- **Audio:** `openbook-audio-setup` finds the codec's ALSA card at boot (the ALC285 is card 1 or 2) and unmutes it; an AOSP patch lets the example HAL use that card; a 48 kHz policy with jack handling.
+- **Found:** no app could play or record (the audio HAL's message-queue memfds were denied), cfg80211's regulatory keyring was unsearchable, HDA codecs come up muted.
+- **Tests:** `openbook-hwtest` runs in the save-logs entry (Wi-Fi scan/connect/DHCP/iperf3, Bluetooth, speaker-to-mic loopbacks), with `live-report.py` verdicts; a QEMU rig with an HDA card and a `mac80211_hwsim` access point.
+
+**Evidence:** `evidence/2026-10-17-g14-audio-net/`. In QEMU: WPA2 connect, DHCP, iperf3 about 650–770 Mbit/s; a tone reaches the codec through ALSA cleanly and through AudioFlinger with dropped buffers (VM; open item). Nothing on the G14 yet.
+
+**Next:** the owner boots `openbook-live-20261017-audionet3` (this branch + ANAL-176's desktop4): connect Wi-Fi, pair a device, then the save-logs entry (`docs/g14-audio-net.md` §7).
 
 ### 2026-10-17: G14 boots of desktop3, and desktop4 (ANAL-176)
 

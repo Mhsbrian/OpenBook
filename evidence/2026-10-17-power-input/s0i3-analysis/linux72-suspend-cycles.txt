@@ -1,0 +1,15 @@
+Linux 7.2.8 (the laptop's own Omarchy kernel, owner's root inventory run 2026-10-16 13:57): s2idle cycles in that boot and what amd_pmc said.
+amd_pmc logs 'Last suspend didn't reach deepest state' after every cycle that misses S0i3 (drivers/platform/x86/amd/pmc/pmc.c, amd_pmc_validate_deepest(), same in 6.18 and 7.2.8).
+
+2183:[ 5539.729864] PM: suspend entry (s2idle)
+2285:[61018.415993] PM: suspend exit
+2312:[61045.801484] PM: suspend entry (s2idle)
+2402:[61505.667202] PM: suspend exit
+2417:[61525.176680] PM: suspend entry (s2idle)
+2505:[69869.691708] PM: suspend exit
+2596:[70730.587182] PM: suspend entry (s2idle)
+2684:[84044.526755] PM: suspend exit
+2757:[84671.557422]  snd_hda_scodec_cs35l56_i2c kvm_amd btmtk videobuf2_v4l2 snd_hwdep asus_nb_wmi snd_pci_acp6x snd_hda_scodec_cs35l56 amdxdna hid_multitouch snd_hda_cirrus_scodec btrtl videobuf2_common ucsi_acpi snd_pci_acp5x snd_pcm kvm btbcm mac80211 snd_soc_cs35l56_shared asus_armoury snd_rn_pci_acp3x typec_ucsi snd_timer videodev btintel snd_soc_cs_amp_lib snd_acp_config joydev sp5100_tco irqbypass bluetooth wmi_bmof mousedev firmware_attributes_class pcspkr rapl roles cs_dsp mc nvidia_wmi_ec_backlight amd_pmf cfg80211 amdtee snd_soc_acpi snd i2c_piix4 i2c_hid_acpi typec amd_pmc i2c_smbus amd_sfh soundcore libarc4 i2c_hid k10temp snd_pci_acp3x serial_multi_instantiate mac_hid ip6t_REJECT nf_reject_ipv6 xt_hl ip6t_rt ipt_REJECT nf_reject_ipv4 xt_LOG nf_log_syslog nft_limit xt_limit xt_addrtype xt_tcpudp xt_conntrack nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 nft_compat x_tables nf_tables tcp_bbr sch_fq i2c_dev sg crypto_user zram 842_decompress 842_compress lz4hc_compress dm_crypt encrypted_keys trusted asn1_encoder tee
+
+count of 'didn't reach deepest state': 0
+count of suspend entries: 4

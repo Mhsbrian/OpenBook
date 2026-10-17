@@ -1,0 +1,42 @@
+{
+ "schema": "openbook-power-check-addon/1",
+ "name": "openbook-powercheck-anal178-a",
+ "kernel_release": "6.18.21-android17-5-g44a90255c95f",
+ "kernel_sha256": "6d964789134e6fc44bf910199218fe54dd752fd35cebdac3d348fe19362e948c",
+ "probe_sha256": "b9de6cebf21221ac913853f08255bad6813b331a83928be18782aae9c7380d42",
+ "kmod": {
+  "openbook_acpi_d3cold.ko": "7205afaaa8d1dc0147f6c9061793315f8d5a46704d61120d3596835a863d8fc7",
+  "openbook_pci_pm.ko": "4cb29d358a90e8b655af59bca6b855044a9d18416c6a0d88484597dd8207faaf",
+  "openbook_s0i3_snapshot.ko": "dfd1cc3275afde8dae905a2582620649ee00bef19ff9f395f6d01c38c4b372a5"
+ },
+ "modules": 265,
+ "firmware_files": 152,
+ "hwcheck_img": {
+  "bytes": 51441434,
+  "cpio_bytes": 126156420,
+  "sha256": "5e511dc50c3a9b8013c6ed0d536f36aa3b1c88724be561c4f4b6442a423b7694"
+ },
+ "entries": {
+  "check-s0i3": {
+   "title": "OpenBook power check: S0i3 (about 3 min, then powers off)",
+   "options": "printk.devkmsg=on audit=1 panic=-1 8250.nr_uarts=1 binder.impl=rust cma=0 firmware_class.path=/vendor/etc/ loop.max_part=7 bootconfig console=ttyS0,115200 loglevel=7 log_buf_len=8M rdinit=/openbook-check/probe openbook.probe=report openbook.probe.sleep=1 openbook.probe.dgpu=detach openbook.probe.acpi_d3cold=_SB.PCI0.GPP0.SWUS openbook.probe.s0i3_snapshot=1 openbook.probe.s0i3_steps=psp,dummy,asus"
+  },
+  "check-s0i3-long": {
+   "title": "OpenBook power check: S0i3, 60 s cycles, all steps",
+   "options": "printk.devkmsg=on audit=1 panic=-1 8250.nr_uarts=1 binder.impl=rust cma=0 firmware_class.path=/vendor/etc/ loop.max_part=7 bootconfig console=ttyS0,115200 loglevel=7 log_buf_len=8M rdinit=/openbook-check/probe openbook.probe=report openbook.probe.sleep=1 openbook.probe.dgpu=detach openbook.probe.acpi_d3cold=_SB.PCI0.GPP0.SWUS openbook.probe.s0i3_snapshot=1 openbook.probe.sleep_s=60 openbook.probe.s0i3_steps=psp,dummy,asus openbook.probe.s0i3_all=1"
+  },
+  "check-hw": {
+   "title": "OpenBook hardware check (no sleep test)",
+   "options": "printk.devkmsg=on audit=1 panic=-1 8250.nr_uarts=1 binder.impl=rust cma=0 firmware_class.path=/vendor/etc/ loop.max_part=7 bootconfig console=ttyS0,115200 loglevel=7 log_buf_len=8M rdinit=/openbook-check/probe openbook.probe=report"
+  }
+ },
+ "files": [
+  "loader/entries/openbook-check-hw.conf",
+  "loader/entries/openbook-check-s0i3-long.conf",
+  "loader/entries/openbook-check-s0i3.conf",
+  "openbook/check/README-power-check.txt",
+  "openbook/check/hwcheck.img",
+  "openbook/check/kernel"
+ ],
+ "bytes": 78298854
+}

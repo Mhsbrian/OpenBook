@@ -9,3 +9,6 @@
 # USB Type-C (UCSI): role swaps from the USB HAL.
 /sys/class/typec/*  data_role   0664  system  system
 /sys/class/typec/*  power_role  0664  system  system
+
+# rfkill's control device: the Bluetooth HAL (user bluetooth) unblocks the controller with it.
+/dev/rfkill  0660  root  bluetooth

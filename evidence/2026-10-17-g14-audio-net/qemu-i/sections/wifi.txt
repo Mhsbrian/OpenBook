@@ -1,0 +1,131 @@
+run-ap: rmmod rtw89_8922ae
+run-ap: rmmod rtw89_8922a
+run-ap: rmmod rtw89_8852ce
+run-ap: rmmod rtw89_8852c
+run-ap: rmmod rtw89_8852be
+run-ap: rmmod rtw89_8852b
+run-ap: rmmod rtw89_8852b_common
+run-ap: rmmod rtw89_8852ae
+run-ap: rmmod rtw89_8852a
+run-ap: rmmod rtw89_8851be
+run-ap: rmmod rtw89_8851b
+run-ap: rmmod rtw89_pci
+run-ap: rmmod rtw89_core
+run-ap: rmmod mt7921e
+run-ap: rmmod mt7921_common
+run-ap: rmmod mt7925e
+run-ap: rmmod mt7925_common
+run-ap: rmmod mt792x_lib
+run-ap: rmmod mt76_connac_lib
+run-ap: rmmod mt76
+run-ap: rmmod mac80211
+run-ap: rmmod cfg80211
+run-ap: interfaces: dummy0 erspan0 gre0 gretap0 hwsim0 ifb0 ifb1 ip6_vti0 ip6gre0 ip6tnl0 ip_vti0 lo sit0 tunl0 wlan0 wlan1 
+run-ap: phy1 (wlan1) -> netns of pid 3889
+16: wlan1: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default qlen 1000
+    link/ether xx:xx:xx:xx:xx:xx brd ff:ff:ff:ff:ff:ff
+    inet 192.168.77.1/24 scope global wlan1
+       valid_lft forever preferred_lft forever
+run-ap: hostapd: pid 3899; 
+run-ap: dhcpd: openbook-test-dhcpd: serving 192.168.77.0/24 on wlan1
+run-ap: done
+framework back after 6 s
+supplicant: running
+test network in scan results after 4 s: 1
+connected after 1 s
+
+--- wifi: driver and regulatory ---
+../../../../bus/platform/drivers/mac80211_hwsim
+phy#0
+	Interface wlan0
+		ifindex 15
+		wdev 0x1
+		type managed
+		channel 6 (2437 MHz), width: 20 MHz, center1: 2437 MHz
+		txpower 20.00 dBm
+		multicast TXQ:
+			qsz-byt	qsz-pkt	flows	drops	marks	overlmt	hashcol	tx-bytes	tx-packets
+			0	0	0	0	0	0	0	0		0
+global
+country 00: DFS-UNSET
+	(2402 - 2472 @ 40), (6, 20), (N/A)
+	(2457 - 2482 @ 20), (6, 20), (N/A), AUTO-BW, PASSIVE-SCAN
+	(2474 - 2494 @ 20), (6, 20), (N/A), NO-OFDM, PASSIVE-SCAN
+	(5170 - 5250 @ 80), (6, 20), (N/A), AUTO-BW, PASSIVE-SCAN
+	(5250 - 5330 @ 80), (6, 20), (0 ms), DFS, AUTO-BW, PASSIVE-SCAN
+	(5490 - 5730 @ 160), (6, 20), (0 ms), DFS, PASSIVE-SCAN
+	(5735 - 5835 @ 80), (6, 20), (N/A), PASSIVE-SCAN
+	(57240 - 63720 @ 2160), (N/A, 0), (N/A)
+
+[    3.347905] modprobe: Loading module /vendor/lib/modules/cfg80211.ko with args ''
+[    3.364564] cfg80211: Loading compiled-in X.509 certificates for regulatory database
+[    3.367222] modprobe: Loaded kernel module /vendor/lib/modules/cfg80211.ko
+[   57.059953] cfg80211: Loading compiled-in X.509 certificates for regulatory database
+[   57.060787] cfg80211: loaded regulatory.db is malformed or signature is missing/invalid
+HWTEST {"test": "wifi-driver", "iface": "wlan0", "present": true, "driver": "mac80211_hwsim", "regdb_loaded": false, "country": "00"}
+
+--- wifi: framework ---
+supplicant: running
+Wifi is enabled
+Wifi scanning is only available when wifi is enabled
+==== ClientModeManager instance: ConcreteClientModeManager{id=83245 iface=wlan0 role=ROLE_CLIENT_PRIMARY} ====
+Wifi is connected to "<name>"
+WifiInfo: SSID: [redacted], BSSID: <name>, MAC: <mac>, IP: /192.168.77.10, Security type: 2, Supplicant state: COMPLETED, Wi-Fi standard: 11n, RSSI: -30, Link speed: 1Mbps, Tx Link speed: 1Mbps, Max Supported Tx Link speed: 144Mbps, Calculated Tx : 0Mbps, Rx Link speed: 1Mbps, Max Supported Rx Link speed: 144Mbps, Calculated Rx : 0Mbps, Frequency: 2437MHz, Net ID: 0, Metered hint: false, score: 100, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <name>, Requesting package name: <name>, Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>
+successfulTxPackets: 3
+successfulTxPacketsPerSecond: 0.9971720109453104
+retriedTxPackets: 0
+retriedTxPacketsPerSecond: 0.0
+lostTxPackets: 0
+lostTxPacketsPerSecond: 0.0
+successfulRxPackets: 1
+successfulRxPacketsPerSecond: 0.33239067031510344
+NetworkCapabilities: [ Transports: WIFI Capabilities: NOT_METERED&INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VPN&NOT_ROAMING&FOREGROUND&NOT_CONGESTED&NOT_SUSPENDED&NOT_VCN_MANAGED&NOT_BANDWIDTH_CONSTRAINED LinkUpBandwidth>=12000Kbps LinkDnBandwidth>=30000Kbps TransportInfo: <SSID: [redacted], BSSID: <name>, MAC: <mac>, IP: /192.168.77.10, Security type: 2, Supplicant state: COMPLETED, Wi-Fi standard: 11n, RSSI: -30, Link speed: 1Mbps, Tx Link speed: 1Mbps, Max Supported Tx Link speed: 144Mbps, Calculated Tx : 0Mbps, Rx Link speed: 1Mbps, Max Supported Rx Link speed: 144Mbps, Calculated Rx : 0Mbps, Frequency: 2437MHz, Net ID: -1, Metered hint: false, score: 100, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <name>, Requesting package name: <name>, Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>> SignalStrength: -30 AdminUids: [0] SSID: [redacted]
+HWTEST {"test": "wifi-enabled", "ok": true, "supplicant": "running"}
+
+--- wifi: scan ---
+1 networks: 1 on 2.4 GHz, 0 on 5 GHz, 0 on 6 GHz
+HWTEST {"test": "wifi-scan", "ok": true, "networks": 1, "ghz2": 1, "ghz5": 0, "ghz6": 0}
+
+--- wifi: connection ---
+	freq: 2437.0
+	RX: 41568 bytes (376 packets)
+	TX: 11981 bytes (162 packets)
+	signal: -30 dBm
+	rx bitrate: 78.0 MBit/s MCS 12
+	tx bitrate: 130.0 MBit/s MCS 15
+	bss flags: short-slot-time
+	dtim period: 2
+	beacon int: 100
+IPv4 192.168.77.10/24, gateway 192.168.77.1
+HWTEST {"test": "wifi-connect", "ok": true, "freq_mhz": 2437.0, "signal_dbm": -30, "tx_mbit": 130.0, "rx_mbit": 78.0}
+HWTEST {"test": "wifi-dhcp", "ok": true, "prefix": "24", "gateway": true}
+5 packets transmitted, 5 received, 0% packet loss, time 4099ms
+rtt min/avg/max/mdev = 0.051/0.078/0.103/0.024 ms
+HWTEST {"test": "wifi-ping-gateway", "ok": true, "loss_pct": 0, "avg_ms": 0.078}
+HWTEST {"test": "wifi-validated", "ok": false}
+
+--- wifi: iperf3 to the configured server, 5 s each way ---
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-5.00   sec   439 MBytes   736 Mbits/sec    0             sender
+[  5]   0.00-5.00   sec   437 MBytes   733 Mbits/sec                  receiver
+
+iperf Done.
+HWTEST {"test": "wifi-iperf3-up", "ok": true, "mbit_s": 733, "seconds": 5}
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-5.00   sec   390 MBytes   654 Mbits/sec    0             sender
+[  5]   0.00-5.00   sec   387 MBytes   650 Mbits/sec                  receiver
+
+iperf Done.
+HWTEST {"test": "wifi-iperf3-down", "ok": true, "mbit_s": 650, "seconds": 5}
+--- dhcpd and hostapd (access point side) ---
+ 3899 hostapd
+ 3900 openbook-test-dhcpd
+ 3902 iperf3
+	ssid [redacted]
+	type AP
+	channel 6 (2437 MHz), width: 20 MHz, center1: 2437 MHz
+openbook-test-dhcpd: serving 192.168.77.0/24 on wlan1
+openbook-test-dhcpd: OFFER 192.168.77.10
+openbook-test-dhcpd: ACK 192.168.77.10

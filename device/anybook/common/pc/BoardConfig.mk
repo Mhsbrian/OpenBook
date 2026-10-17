@@ -104,6 +104,17 @@ BOARD_MALLOC_ALIGNMENT := 16
 
 BOARD_VENDOR_SEPOLICY_DIRS += device/anybook/common/pc/sepolicy/vendor
 
+# Wi-Fi: AOSP's wpa_supplicant over nl80211, with its own init service (WIFI_HIDL_UNIFIED_...) and OpenBook's
+# DRIVER-command hook (wifi/driver_cmd_openbook.c: COUNTRY through nl80211). No BOARD_WLAN_DEVICE: there is no
+# vendor Wi-Fi HAL (wifi/wifi.mk).
+BOARD_WPA_SUPPLICANT_DRIVER := NL80211
+BOARD_WPA_SUPPLICANT_PRIVATE_LIB := lib_driver_cmd_openbook
+WPA_SUPPLICANT_VERSION := VER_0_8_X
+WIFI_HIDL_UNIFIED_SUPPLICANT_SERVICE_RC_ENTRY := true
+# Lets Soong build AOSP's hostapd, which the image does not install: the QEMU Wi-Fi test runs it as the access
+# point on a second simulated radio (scripts/audio-net-qemu.sh).
+BOARD_HOSTAPD_DRIVER := NL80211
+
 # Software rendering (SwiftShader under ANGLE) for GPUs no OpenBook driver handles: what VMs display with. It
 # needs execmem in four system domains (sepolicy/swiftshader). Set false (and drop vulkan.pastel from the product)
 # for an image that should refuse to run without a supported GPU.

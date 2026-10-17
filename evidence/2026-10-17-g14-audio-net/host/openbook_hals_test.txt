@@ -1,0 +1,52 @@
+Running main() from external/googletest/googletest/src/gtest_main.cc
+[==========] Running 15 tests from 5 test suites.
+[----------] Global test environment set-up.
+[----------] 4 tests from Backlight
+[ RUN      ] Backlight.G14PicksAmdgpu
+[       OK ] Backlight.G14PicksAmdgpu (0 ms)
+[ RUN      ] Backlight.FirmwareBeatsRaw
+[       OK ] Backlight.FirmwareBeatsRaw (0 ms)
+[ RUN      ] Backlight.NoneOrBroken
+[       OK ] Backlight.NoneOrBroken (0 ms)
+[ RUN      ] Backlight.Scale
+[       OK ] Backlight.Scale (0 ms)
+[----------] 4 tests from Backlight (0 ms total)
+
+[----------] 3 tests from Epp
+[ RUN      ] Epp.ChooseByModes
+[       OK ] Epp.ChooseByModes (0 ms)
+[ RUN      ] Epp.WritesEveryPolicy
+10-16 23:50:03.420 1287244 1287244 I openbook.power: epp.cpp:52 energy_performance_preference=power on 24 policies
+[       OK ] Epp.WritesEveryPolicy (1 ms)
+[ RUN      ] Epp.IgnoresOtherDrivers
+[       OK ] Epp.IgnoresOtherDrivers (0 ms)
+[----------] 3 tests from Epp (1 ms total)
+
+[----------] 4 tests from Thermal
+[ RUN      ] Thermal.G14Sensors
+[       OK ] Thermal.G14Sensors (0 ms)
+[ RUN      ] Thermal.BatteryTenths
+[       OK ] Thermal.BatteryTenths (0 ms)
+[ RUN      ] Thermal.Severity
+[       OK ] Thermal.Severity (0 ms)
+[ RUN      ] Thermal.EmptyVm
+[       OK ] Thermal.EmptyVm (0 ms)
+[----------] 4 tests from Thermal (1 ms total)
+
+[----------] 1 test from SleepStats
+[ RUN      ] SleepStats.Reads
+[       OK ] SleepStats.Reads (0 ms)
+[----------] 1 test from SleepStats (0 ms total)
+
+[----------] 3 tests from Weaver
+[ RUN      ] Weaver.RetrySchedule
+[       OK ] Weaver.RetrySchedule (0 ms)
+[ RUN      ] Weaver.PersistsAndThrottles
+[       OK ] Weaver.PersistsAndThrottles (0 ms)
+[ RUN      ] Weaver.ThrottleSurvivesRestart
+[       OK ] Weaver.ThrottleSurvivesRestart (0 ms)
+[----------] 3 tests from Weaver (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 15 tests from 5 test suites ran. (4 ms total)
+[  PASSED  ] 15 tests.

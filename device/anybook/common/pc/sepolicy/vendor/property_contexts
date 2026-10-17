@@ -1,2 +1,3 @@
 vendor.openbook.               u:object_r:vendor_openbook_prop:s0
 ro.vendor.openbook.            u:object_r:vendor_openbook_config_prop:s0
+vendor.audio.primary.          u:object_r:vendor_openbook_audio_prop:s0

@@ -6,7 +6,13 @@
 
 # Internal: no aggressive wake, and with the built-in keyboard it puts the panel into desktop mode.
 device.internal = 1
+
+# On the G14 InputReader classes this device TOUCH | TOUCH_MT | TOUCHPAD (ANAL-190 live-001, dumpsys input), so
+# Android 17 drives it with TouchpadInputMapper and the ChromeOS gestures library: tap to click, two-finger scroll
+# and swipes, palm rejection. touch.deviceType is only read by the older TouchInputMapper; it stays as the setting
+# for builds with the gestures library switched off.
 touch.deviceType = touchPad
 
-# Gesture tuning (gestureProp.*, pressure calibration, palm rejection) waits for measurements on the laptop
-# (ANAL-178); until then the touchpad stack's defaults apply.
+# Gesture tuning (gestureProp.* properties, read by TouchpadInputMapper from this file) waits for measurements on
+# the laptop: the axis ranges and resolution (getevent -lp, in the live stick's "save logs" capture) and how taps,
+# scrolls and palms feel (docs/power-input.md). Until then the gestures library's defaults apply.
