@@ -1,0 +1,76 @@
+{
+ "reason": "QEMU exited (0)",
+ "seconds": 12.2,
+ "steps_done": 19,
+ "steps": 19,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "openbook-live: live boot: boot_part_uuid=",
+   "t": 3.1
+  },
+  {
+   "step": 1,
+   "wait": "openbook-live: reset: zeroed the first 1024 KiB of metadata",
+   "t": 4.6
+  },
+  {
+   "step": 2,
+   "wait": "openbook-live: reset: zeroed the first 1024 KiB of userdata",
+   "t": 4.6
+  },
+  {
+   "step": 3,
+   "wait": "openbook-live: exec /init",
+   "t": 4.6
+  },
+  {
+   "step": 4,
+   "wait": "init: init first stage started",
+   "t": 4.6
+  },
+  {
+   "step": 5,
+   "wait": "init: init second stage started",
+   "t": 4.8
+  },
+  {
+   "step": 6,
+   "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+   "t": 6.4
+  },
+  {
+   "step": 8,
+   "wait": "console:/ \\$ ",
+   "t": 6.4
+  },
+  {
+   "step": 10,
+   "wait": "console:/ \\$ ",
+   "t": 6.6
+  },
+  {
+   "step": 12,
+   "wait": "console:/ \\$ ",
+   "t": 8.0
+  },
+  {
+   "step": 14,
+   "wait": "console:/ \\$ ",
+   "t": 10.3
+  },
+  {
+   "step": 16,
+   "wait": "\nMARKER=absent",
+   "t": 11.2
+  },
+  {
+   "step": 17,
+   "wait": "console:/ \\$ ",
+   "t": 11.2
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/qemu/live-20261017a/s16.img",
+ "nvme": "/home/hive/anybook/installer/qemu/live-20261017a/decoy.img"
+}

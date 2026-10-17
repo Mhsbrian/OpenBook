@@ -645,3 +645,7 @@ The rebuild used ANAL-199's product with the audio fix (PR #35): sha256 `cb5961b
   - The crash symbolizes to `radv_BindImageMemory2` in the unstripped build `mesa/build/upstream/src/amd/vulkan/libvulkan_radeon.so`, Build ID `301af9c5…` (matches the shipped `vulkan.radv.so`).
   - ANV handles this case (`anv_image.c`, `VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID` in its bind path), so a RADV patch can import the gralloc buffer there.
   - A stop-gap is to keep ANGLE off the deferred-allocation swapchain (H). Any app window drawn through ANGLE on RADV takes the same path, not only the boot animation (H).
+
+### 11.12 Rebuilt on ANAL-199's G14 live-boot fixes (`openbook-live-20261017a`, C, `evidence/2026-10-16-installer/live-c/`)
+
+ANAL-199's PR #38 keeps ANGLE off the deferred swapchain path (`debug.angle.feature_overrides_disabled=supportsSwapchainMaintenance1`) and labels the denials seen on the laptop. The stick built from it (sha256 `8dfba134…`) passes the same 37 of 39 QEMU checks as image `b`, booting to Launcher3 at 23 s. Whether the G14 now shows the desktop needs the next G14 boot.
