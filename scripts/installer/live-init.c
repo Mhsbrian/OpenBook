@@ -716,6 +716,13 @@ static const char COLLECT[] =
     "charge_control_end_threshold; do [ -e $b/$k ] && echo \"${b##*/} $k=$(cat $b/$k)\"; done; done\n"
     "s LEDS; for l in /sys/class/leds/*; do echo \"${l##*/} $(cat $l/brightness)/$(cat $l/max_brightness)\"; done\n"
     "s GETEVENT; getevent -lp 2>&1 | head -n 900\n"
+    // The touchpad's "Clock changed backwards" errors (gestures library, ANAL-176 desktop2 logs): its HID report
+    // descriptor (the Scan Time unit) and, once the desktop is up, 20 s of its raw events with MSC_TIMESTAMP.
+    "s HIDDESC; for d in /sys/bus/hid/devices/*; do echo \"${d##*/} $(grep HID_NAME $d/uevent) "
+    "$(od -An -tx1 -v $d/report_descriptor | tr -d ' \\n')\"; done\n"
+    "s TOUCHPADEV; d=; for e in /sys/class/input/event*; do case \"$(cat $e/device/name)\" in *Touchpad) "
+    "d=/dev/input/${e##*/};; esac; done; [ -n \"$d\" ] && [ \"$(getprop sys.boot_completed)\" = 1 ] && "
+    "timeout 20 getevent -lt $d 2>&1 | head -n 30000\n"
     "s AUDIO; dumpsys media.audio_flinger 2>&1 | head -n 40\n"
     "s FEATURES; pm list features 2>&1\n"
     "s SERVICES; service list 2>&1\n"

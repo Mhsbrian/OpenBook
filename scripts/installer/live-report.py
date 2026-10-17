@@ -51,6 +51,32 @@ def device_blocks(text):
     return out
 
 
+def touchpad_clock(text):
+    """getevent -lt of the touchpad: does MSC_TIMESTAMP keep pace with the event clock? The gestures library rebuilds
+    its time base from it, and "Clock changed backwards" means that base jumped back (ANAL-178)."""
+    frames, msc = [], None
+    for m in re.finditer(r"\[\s*([\d.]+)\]\s+(?:\S+: )?(EV_\w+)\s+(\S+)\s+([0-9a-f]+)", text):
+        t, typ, code, val = float(m.group(1)), m.group(2), m.group(3), int(m.group(4), 16)
+        if typ == "EV_MSC" and code == "MSC_TIMESTAMP":
+            msc = val
+        elif typ == "EV_SYN" and code == "SYN_REPORT":
+            frames.append((t, msc))
+            msc = None
+    if len(frames) < 10:
+        return None
+    with_msc = [(t, m) for t, m in frames if m is not None]
+    back = [(b[0] - a[0]) for a, b in zip(with_msc, with_msc[1:]) if b[1] < a[1]]
+    ratios = sorted((b[1] - a[1]) / 1e6 / (b[0] - a[0]) for a, b in zip(with_msc, with_msc[1:])
+                    if b[1] >= a[1] and b[0] > a[0] and b[0] - a[0] < 0.5)
+    med = ratios[len(ratios) // 2] if ratios else None
+    gaps = sorted(b[0] - a[0] for a, b in zip(frames, frames[1:]))
+    return {"ok": not [g for g in back if g < 1.0] and len(with_msc) == len(frames) and med is not None
+            and 0.9 < med < 1.1, "frames": len(frames), "frames_with_msc": len(with_msc),
+            "msc_backward_steps": len(back), "msc_backward_within_1s": len([g for g in back if g < 1.0]),
+            "median_msc_per_event_second": round(med, 3) if med else None,
+            "median_frame_interval_ms": round(gaps[len(gaps) // 2] * 1000, 2) if gaps else None}
+
+
 MAC = re.compile(r"\b(?!00:00:00:00:00:00|ff:ff:ff:ff:ff:ff)([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}\b")
 SERIAL = re.compile(r"(SerialNumber: |iSerial\s+\d+\s+|usb-[A-Za-z0-9_]+_)([A-Za-z0-9]{6,})")
 SSID = re.compile(r'(\b(?:SSID|ssid)\b[\s:=]*)("[^"]*"|[^\s,}"]+)')
@@ -157,6 +183,8 @@ def main():
                 leds=[l for l in leds.splitlines() if "kbd" in l])
         verdict("epp", bool(sec.get("EPP", "").strip()) if "EPP" in sec else None,
                 policies=sec.get("EPP", "").splitlines())
+        tc = touchpad_clock(sec.get("TOUCHPADEV", ""))
+        verdict("touchpad_clock", tc["ok"] if tc else None, **(tc or {"note": "no touchpad events captured"}))
     mods = sec.get("MODULES", "").splitlines()
     avc = sec.get("AVC", "").split()
     report = {
