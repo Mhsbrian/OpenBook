@@ -216,6 +216,7 @@ def main():
         hv("wifi_regulatory", "wifi-driver", "regdb_loaded", ("driver", "country"))
         hv("wifi_enabled", "wifi-enabled", keep=("supplicant",))
         hv("wifi_scan", "wifi-scan", keep=("networks", "ghz2", "ghz5", "ghz6"))
+        hv("wifi_pno", "wifi-pno", keep=("driver_offers",))
         hv("wifi_connected", "wifi-connect", keep=("freq_mhz", "signal_dbm", "tx_mbit", "rx_mbit"))
         hv("wifi_dhcp", "wifi-dhcp", keep=("prefix", "gateway"))
         hv("wifi_gateway_ping", "wifi-ping-gateway", keep=("loss_pct", "avg_ms"))

@@ -61,6 +61,13 @@ wifi() {
   echo "$n networks: $f2 on 2.4 GHz, $f5 on 5 GHz, $f6 on 6 GHz"
   j "\"test\": \"wifi-scan\", \"ok\": $([ "$n" -gt 0 ] && echo true || echo false), \"networks\": $n, \"ghz2\": $f2, \"ghz5\": $f5, \"ghz6\": $f6"
 
+  h "wifi: scheduled scan (PNO, what the framework scans with when the screen is off)"
+  # The framework's own nl80211 path; started and stopped at once, it only shows whether the driver takes it.
+  pno=$(cmd wifi start-nl80211-pno-scan -n -i "$iface" -v 20000 -k 3 -m 3 -2 -80 -5 -80 2>&1)
+  echo "$pno"
+  cmd wifi stop-nl80211-pno-scan "$iface" -n 2>&1
+  j "\"test\": \"wifi-pno\", \"ok\": $(echo "$pno" | grep -q 'Start PNO scan succeeded' && echo true || echo false), \"driver_offers\": $(iw phy "$(cat /sys/class/net/$iface/phy80211/name 2>/dev/null)" info 2>/dev/null | grep -q '\* start_sched_scan$' && echo true || echo false)"
+
   h "wifi: connection"
   # Asked again now: right after enabling, the framework may not have reconnected yet (G14 anal178c: "Wifi is
   # not connected" at enable, then connected, with DHCP and validation, by the time of this step).
