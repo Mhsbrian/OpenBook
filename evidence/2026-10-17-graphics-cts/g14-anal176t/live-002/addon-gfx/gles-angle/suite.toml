@@ -1,0 +1,30 @@
+[[deqp]]
+deqp = "/data/local/tmp/openbook-gfx/bin/deqp-binary64"
+caselists = ["/data/local/tmp/openbook-gfx/caselists/gles2.txt"]
+skips = ["/data/local/tmp/openbook-gfx/skips/angle.txt"]
+tests_per_group = 500
+renderer_check = "ANGLE"
+deqp_args = ["--deqp-archive-dir=/data/local/tmp/openbook-gfx/data", "--deqp-log-images=disable", "--deqp-log-shader-sources=disable", "--deqp-shadercache=disable", "--deqp-surface-width=256", "--deqp-surface-height=256", "--deqp-surface-type=pbuffer", "--deqp-visibility=hidden", "--deqp-gl-config-name=rgba8888d24s8ms0"]
+[deqp.env]
+LD_PRELOAD = "/data/local/tmp/openbook-gfx/lib/libdeqp_stdout.so"
+
+[[deqp]]
+deqp = "/data/local/tmp/openbook-gfx/bin/deqp-binary64"
+caselists = ["/data/local/tmp/openbook-gfx/caselists/gles3.txt"]
+skips = ["/data/local/tmp/openbook-gfx/skips/angle.txt"]
+tests_per_group = 500
+renderer_check = "ANGLE"
+deqp_args = ["--deqp-archive-dir=/data/local/tmp/openbook-gfx/data", "--deqp-log-images=disable", "--deqp-log-shader-sources=disable", "--deqp-shadercache=disable", "--deqp-surface-width=256", "--deqp-surface-height=256", "--deqp-surface-type=pbuffer", "--deqp-visibility=hidden", "--deqp-gl-config-name=rgba8888d24s8ms0"]
+[deqp.env]
+LD_PRELOAD = "/data/local/tmp/openbook-gfx/lib/libdeqp_stdout.so"
+
+[[deqp]]
+deqp = "/data/local/tmp/openbook-gfx/bin/deqp-binary64"
+caselists = ["/data/local/tmp/openbook-gfx/caselists/gles31.txt"]
+skips = ["/data/local/tmp/openbook-gfx/skips/angle.txt"]
+tests_per_group = 500
+renderer_check = "ANGLE"
+deqp_args = ["--deqp-archive-dir=/data/local/tmp/openbook-gfx/data", "--deqp-log-images=disable", "--deqp-log-shader-sources=disable", "--deqp-shadercache=disable", "--deqp-surface-width=256", "--deqp-surface-height=256", "--deqp-surface-type=pbuffer", "--deqp-visibility=hidden", "--deqp-gl-config-name=rgba8888d24s8ms0"]
+[deqp.env]
+LD_PRELOAD = "/data/local/tmp/openbook-gfx/lib/libdeqp_stdout.so"
+

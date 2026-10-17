@@ -15,11 +15,13 @@
 #      LIBELF=shared|static (default shared): how radeonsi gets libelf (LGPL-3.0+, docs/mesa.md).
 #        shared ships it as lib64/libelf_mesa.so (the recommended option until the owner decides);
 #        static links it into libgallium_dri.so as ANAL-173 did. Changing it re-runs setup.
-#      ANDROID_STRICT=true|false (default true, Mesa's default): RADV reports Vulkan 1.1 on Android
-#        when true (CTS-safe), 1.4 when false. Changing it re-runs setup.
+#      ANDROID_STRICT=true|false (default false since ANAL-177): RADV reports Vulkan 1.4 on Android when
+#        false, 1.1 when true (Mesa's own default). On the G14's Radeon 890M, 1.4 passed 1,998 more dEQP-VK
+#        cases than 1.1 with no new failure (docs/graphics-amd.md). Changing it re-runs setup.
 #      MESA_VARIANT=-<name> (default empty): build, out and evidence go to <dir>/<tree><variant>, so a variant
-#        (e.g. MESA_VARIANT=-nonstrict ANDROID_STRICT=false for ANAL-177's Vulkan 1.4 runs) never replaces the
-#        build graphics-amd-stage-mesa.sh puts in the image. The source tree is shared.
+#        (e.g. MESA_VARIANT=-strict ANDROID_STRICT=true, a Vulkan 1.1 build for comparison or fallback) never
+#        replaces the default build. The source tree is shared; graphics-amd-stage-mesa.sh upstream-strict
+#        stages a variant.
 set -euo pipefail
 
 # ---- pins -------------------------------------------------------------------------------
@@ -34,7 +36,7 @@ AG_BASE=mesa-26.0.8   # upstream tag AG's 26.0/main is based on (merge-base 60e9
 # as libelf.a and as libelf_mesa.so (its own SONAME, so it can't clash with an AOSP libelf.so).
 ELFUTILS_URL=https://android.googlesource.com/platform/external/elfutils
 ELFUTILS_REF=android-17.0.0_r1; ELFUTILS_SHA=219c3a368b121307f2e05593cee89b8591cc40b9
-API=${API:-37}; STEP_TIMEOUT=${STEP_TIMEOUT:-3000}; LIBELF=${LIBELF:-shared}; ANDROID_STRICT=${ANDROID_STRICT:-true}
+API=${API:-37}; STEP_TIMEOUT=${STEP_TIMEOUT:-3000}; LIBELF=${LIBELF:-shared}; ANDROID_STRICT=${ANDROID_STRICT:-false}
 V=${MESA_VARIANT:-}
 [[ $V =~ ^(-[a-z0-9]+)?$ ]] || { echo "MESA_VARIANT must be empty or -<lowercase letters and digits>" >&2; exit 2; }
 IMAGE=anybook-mesa-android

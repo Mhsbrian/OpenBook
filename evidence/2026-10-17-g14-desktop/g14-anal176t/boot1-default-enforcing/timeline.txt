@@ -1,0 +1,56 @@
+10-17 14:57:45.773904  root     0     0 I         : Linux version 6.18.21-android17-5-g44a90255c95f (kleaf@build-host) (Android (15323222, +pgo, +bolt, +lto, +mlgo, based on r584948c) clang version 22.0.1 (https://android.googlesource.com/t
+10-17 14:57:46.545929  root     1     1 I openbook-live: live boot: boot_part_uuid=7fdc53fc-e3b9-59cf-8ebe-601c3254bc38 reset=0 logs=0
+10-17 14:57:48.578000  logd   772   772 I auditd  : type=1404 audit(0.0:3): enforcing=1 old_enforcing=0 auid=4294967295 ses=4294967295 enabled=1 old-enabled=1 lsm=selinux res=1
+10-17 14:57:53.066389  root   843   854 I vold    : Not managing disk 8:0, which holds the running system's partitions
+10-17 14:58:14.363244  1000  1217  1333 I boot_progress_enable_screen: 28589
+10-17 14:58:14.366950  1000  1217  3651 I wm_set_keyguard_shown: [0,1,0,0,0,setKeyguardShown]
+10-17 14:58:14.562309  1000  1217  3581 I wm_set_keyguard_shown: [0,1,0,1,0,keyguardGoingAway]
+10-17 14:58:14.564804  1000  1217  3581 I wm_set_keyguard_shown: [0,0,0,1,0,setKeyguardShown]
+10-17 14:58:14.860961  1000  1009  3919 I sf_stop_bootanim: 29087
+10-17 14:59:02.890974  1002  3662  4208 I BluetoothBondStateMachine: bondStateChangeCallback: Status: 0 Address: XX:XX:XX:XX:XX:XX Transport: 1 newState: BOND_BONDED pairingAlgorithm: 2 hciReason: 0
+10-17 14:59:03.382066  1002  3662  3662 I A2dpStateMachine: Enter Disconnected(XX:XX:XX:XX:XX:XX): -2
+10-17 14:59:03.382238  1002  3662  3662 I A2dpStateMachine: Enter Connecting(XX:XX:XX:XX:XX:XX): CONNECT
+10-17 14:59:03.787065  1002  3662  3662 I A2dpStateMachine: Enter Connected(XX:XX:XX:XX:XX:XX): CONNECTION_STATE_CHANGED
+10-17 14:59:03.857824  1002  3662  3937 I bluetooth-a2dp: system/btif/src/btif_a2dp_source.cc:452 btif_a2dp_source_start_session: peer_address=XX:XX:XX:XX:XX:XX state=STATE_RUNNING
+10-17 14:59:03.857841  1002  3662  3937 I bluetooth-a2dp: system/btif/src/btif_a2dp_source.cc:512 btif_a2dp_source_start_session_delayed: peer_address=XX:XX:XX:XX:XX:XX state=STATE_RUNNING
+10-17 14:59:03.859817  1000  1217  4831 I AS.AudioService: BluetoothActiveDeviceChanged for A2DP, device update null -> XX:XX:XX:XX:XX:XX
+10-17 14:59:03.859819  1000  1217  2713 I AS.AudioService: BluetoothActiveDeviceChanged for A2DP, device update XX:XX:XX:XX:XX:XX -> XX:XX:XX:XX:XX:XX
+10-17 14:59:03.895074  1041   992   992 D AHAL_BluetoothAudioPort: registerPort: session_type=A2DP_SOFTWARE_ENCODING_DATAPATH, cookie=0x100
+10-17 14:59:03.971147  1041   997   997 I AudioFlinger: openOutput() this 0x74347dc046b0, module 26 Device AUDIO_DEVICE_OUT_BLUETOOTH_A2DP, @:SUPPRESSED, SamplingRate 0, Format 00000000, Channels 0, flags 0
+10-17 14:59:03.973799  1041   992   992 I AHAL_BluetoothAudioPort: stop: session_type=A2DP_SOFTWARE_ENCODING_DATAPATH, cookie=0x100, STANDBY -> DISABLED
+10-17 14:59:03.974439  1041   997   997 I AudioFlinger: openOutput() this 0x74347dc046b0, module 26 Device AUDIO_DEVICE_OUT_BLUETOOTH_A2DP, @:SUPPRESSED, SamplingRate 96000, Format 0x000003, Channels 0x3, flags 0
+10-17 14:59:03.974565  1041   992   992 D AHAL_BluetoothAudioPort: registerPort: session_type=A2DP_SOFTWARE_ENCODING_DATAPATH, cookie=0x100
+10-17 14:59:50.924633 media  1037  5163 E NuPlayerDecoder: Failed to create audio/vorbis decoder
+10-17 14:59:54.351075 media  1037  5241 E NuPlayerDecoder: Failed to create audio/vorbis decoder
+10-17 14:59:56.687768 media  1037  5258 E NuPlayerDecoder: Failed to create audio/vorbis decoder
+10-17 14:59:59.538298 media  1037  5277 E NuPlayerDecoder: Failed to create audio/vorbis decoder
+10-17 15:00:05.849157 media  1037  5299 E NuPlayerDecoder: Failed to create audio/vorbis decoder
+10-17 15:00:06.781376 media  1037  5317 E NuPlayerDecoder: Failed to create audio/vorbis decoder
+10-17 15:00:10.108209 media  1037  5382 E NuPlayerDecoder: Failed to create audio/vorbis decoder
+10-17 15:00:33.005241 media  1037  5412 E NuPlayerDecoder: Failed to create audio/vorbis decoder
+10-17 15:00:36.815310 media  1037  5441 E NuPlayerDecoder: Failed to create audio/vorbis decoder
+10-17 15:00:39.866394 media  1037  5459 E NuPlayerDecoder: Failed to create audio/vorbis decoder
+10-17 15:00:46.756415 media  1037  5478 E NuPlayerDecoder: Failed to create audio/vorbis decoder
+10-17 15:00:47.456281 media  1037  5495 E NuPlayerDecoder: Failed to create audio/vorbis decoder
+10-17 15:00:53.654766  1002  3662  3937 W bluetooth-a2dp: system/bta/av/bta_av_aact.cc:2447 bta_av_str_closed: peer XX:XX:XX:XX:XX:XX bta_handle:0x41 open_status:0 chnl:64 co_started:0
+10-17 15:00:53.655069  1002  3662  3937 I bluetooth-a2dp: system/btif/src/btif_a2dp_source.cc:602 btif_a2dp_source_end_session: peer_address=XX:XX:XX:XX:XX:XX state=STATE_RUNNING
+10-17 15:00:53.655524  1002  3662  3662 I A2dpStateMachine: Enter Disconnecting(XX:XX:XX:XX:XX:XX): CONNECTION_STATE_CHANGED
+10-17 15:00:53.657327  1002  3662  3662 I A2dpStateMachine: Enter Disconnected(XX:XX:XX:XX:XX:XX): CONNECTION_STATE_CHANGED
+10-17 15:00:53.659327  1000  1217  1324 I AS.AudioService: BluetoothActiveDeviceChanged for A2DP, device update XX:XX:XX:XX:XX:XX -> null
+10-17 15:00:53.662501  1041   992   992 E AHAL_BluetoothAudioPort: suspend: session_type=A2DP_SOFTWARE_ENCODING_DATAPATH, cookie=0x100, state=DISABLED failure
+10-17 15:00:59.373273 media  1037  5556 E NuPlayerDecoder: Failed to create audio/vorbis decoder
+10-17 15:01:02.131143 media  1037  5569 E NuPlayerDecoder: Failed to create audio/vorbis decoder
+10-17 15:01:03.585988 media  1037  5578 E NuPlayerDecoder: Failed to create audio/vorbis decoder
+10-17 15:06:52.487768  1000  1217  5703 I ShutdownThread: Shutting down activity manager...
+# counts over boot 1 (14:57:45-15:06:52Z, default entry, enforcing)
+Failed to pin framebuffer: 0
+presentAndGetReleaseFences: present failed: 0
+can not attach plane_state: 0
+Test-only seamless: 12
+Fatal signal: 0
+FAILED_TRANSACTION: 0
+Could not get control block: 0
+NuPlayerDecoder: Failed to create audio/vorbis decoder: 15
+Could not open DMA-BUF heap named: system: 294
+permissive=0: 43
+tombstones on the stick (all boots before the save-logs capture): 0

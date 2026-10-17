@@ -14,7 +14,8 @@
 # Parts, in this order (the most important first, in case the whole run is cut short):
 #   vk          dEQP-VK through Android's Vulkan loader and the image's RADV (android-strict: Vulkan 1.1, as shipped)
 #   vk14        the same cases against RADV built without android-strict (Vulkan 1.4), bind-mounted over the shipped
-#               one in a mount namespace of its own (gfx-nsbind): nothing else on the device sees it
+#               one in a mount namespace of its own (gfx-nsbind): nothing else on the device sees it. Only when the
+#               image's RADV is android-strict (1.1): the payload then carries the second build
 #   gles-angle  dEQP-GLES2/3/31 through Android's libEGL on the system driver, ANGLE on RADV (as shipped), pbuffers
 #   gles-mesa   the same cases on radeonsi (persist.graphics.egl=mesa for the run's processes, then put back)
 #   egl         dEQP-EGL in AOSP's dEQP app (com.drawelements.deqp) with window surfaces, as the CTS runs it
@@ -121,8 +122,10 @@ amd() { [ "$HAL" = amdgpu ] && echo "$1"; }
 # deqp-runner on a suite: PART CAP_SECONDS [command prefix...]
 runner() {
   p=$1 cap=$2; shift 2
-  timeout -k 10 "$cap" "$@" "$H/bin/deqp-runner" suite --suite "$OUT/$p/suite.toml" --output "$OUT/$p/run" \
-    --jobs "$J" --summary-limit 40 > "$OUT/$p/console.txt" 2>&1
+  # From the archive directory: a few dEQP cases open their data relative to the working directory and ignore
+  # --deqp-archive-dir (copy_memory_indirect's ./vulkan/data/copy_memory_indirect/sample_text.txt; G14 run 1).
+  (cd "$H/data" && timeout -k 10 "$cap" "$@" "$H/bin/deqp-runner" suite --suite "$OUT/$p/suite.toml" \
+    --output "$OUT/$p/run" --jobs "$J" --summary-limit 40) > "$OUT/$p/console.txt" 2>&1
   rc=$?
   tail -n 6 "$OUT/$p/console.txt" | tee -a "$LOG"
   return $rc
@@ -242,7 +245,7 @@ for p in $PARTS; do
     *) skip="unknown part" ;;
   esac
   case $p in
-    vk14) [ -f "$H/radv-nonstrict/vulkan.radv.so" ] || skip="no non-strict RADV in the payload" ;;
+    vk14) [ -f "$H/radv-nonstrict/vulkan.radv.so" ] || skip="no second RADV in the payload (the image's reports Vulkan 1.4)" ;;
     egl) [ -f "$H/apk/com.drawelements.deqp.apk" ] || skip="no dEQP app in the payload" ;;
     angle) [ -f "$H/apk/AngleEnd2EndTestsHelper.apk" ] || skip="no ANGLE end2end app in the payload" ;;
   esac

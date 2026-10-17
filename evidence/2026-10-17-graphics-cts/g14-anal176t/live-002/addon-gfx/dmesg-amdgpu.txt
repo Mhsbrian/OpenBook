@@ -1,0 +1,114 @@
+[    5.280622] amdgpu 0000:65:00.0: enabling device (0006 -> 0007)
+[    5.280684] amdgpu 0000:65:00.0: amdgpu: initializing kernel modesetting (IP DISCOVERY 0x1002:0x150E 0x1043:0x39A8 0xC1).
+[    5.280816] amdgpu 0000:65:00.0: amdgpu: register mmio base: 0xDC600000
+[    5.280817] amdgpu 0000:65:00.0: amdgpu: register mmio size: 524288
+[    5.283825] amdgpu 0000:65:00.0: amdgpu: detected ip block number 0 <common_v1_0_0> (soc21_common)
+[    5.283828] amdgpu 0000:65:00.0: amdgpu: detected ip block number 1 <gmc_v11_0_0> (gmc_v11_0)
+[    5.283829] amdgpu 0000:65:00.0: amdgpu: detected ip block number 2 <ih_v6_0_0> (ih_v6_1)
+[    5.283830] amdgpu 0000:65:00.0: amdgpu: detected ip block number 3 <psp_v13_0_0> (psp)
+[    5.283831] amdgpu 0000:65:00.0: amdgpu: detected ip block number 4 <smu_v14_0_0> (smu)
+[    5.283832] amdgpu 0000:65:00.0: amdgpu: detected ip block number 5 <dce_v1_0_0> (dm)
+[    5.283833] amdgpu 0000:65:00.0: amdgpu: detected ip block number 6 <gfx_v11_0_0> (gfx_v11_0)
+[    5.283834] amdgpu 0000:65:00.0: amdgpu: detected ip block number 7 <sdma_v6_0_0> (sdma_v6_0)
+[    5.283835] amdgpu 0000:65:00.0: amdgpu: detected ip block number 8 <vcn_v4_0_5> (vcn_v4_0_5)
+[    5.283836] amdgpu 0000:65:00.0: amdgpu: detected ip block number 9 <jpeg_v4_0_5> (jpeg_v4_0_5)
+[    5.283837] amdgpu 0000:65:00.0: amdgpu: detected ip block number 10 <mes_v11_0_0> (mes_v11_0)
+[    5.283838] amdgpu 0000:65:00.0: amdgpu: detected ip block number 11 <vpe_v6_1_0> (vpe_v6_1)
+[    5.283861] amdgpu 0000:65:00.0: amdgpu: Fetched VBIOS from VFCT
+[    5.283862] amdgpu: ATOM BIOS: 113-STRIXEMU-001
+[    5.308271] amdgpu 0000:65:00.0: amdgpu: VPE: collaborate mode false
+[    5.308274] amdgpu 0000:65:00.0: amdgpu: Trusted Memory Zone (TMZ) feature disabled as experimental (default)
+[    5.308334] amdgpu 0000:65:00.0: amdgpu: vm size is 262144 GB, 4 levels, block size is 9-bit, fragment size is 9-bit
+[    5.308355] amdgpu 0000:65:00.0: amdgpu: VRAM: 512M 0x0000008000000000 - 0x000000801FFFFFFF (512M used)
+[    5.308357] amdgpu 0000:65:00.0: amdgpu: GART: 512M 0x00007FFF00000000 - 0x00007FFF1FFFFFFF
+[    5.308999] amdgpu 0000:65:00.0: amdgpu: amdgpu: 512M of VRAM memory ready
+[    5.309000] amdgpu 0000:65:00.0: amdgpu: amdgpu: 15593M of GTT memory ready.
+[    5.309721] amdgpu 0000:65:00.0: amdgpu: [drm] Loading DMUB firmware via PSP: version=0x09005700
+[    5.309976] amdgpu 0000:65:00.0: amdgpu: [VCN instance 0] Found VCN firmware Version ENC: 1.24 DEC: 9 VEP: 0 Revision: 34
+[    5.333755] amdgpu 0000:65:00.0: amdgpu: reserve 0x8900000 from 0x8010000000 for PSP TMR
+[    5.543905] amdgpu 0000:65:00.0: amdgpu: RAS: optional ras ta ucode is not available
+[    5.547781] amdgpu 0000:65:00.0: amdgpu: RAP: optional rap ta ucode is not available
+[    5.547783] amdgpu 0000:65:00.0: amdgpu: SECUREDISPLAY: optional securedisplay ta ucode is not available
+[    5.570609] amdgpu 0000:65:00.0: amdgpu: SMU is initialized successfully!
+[    5.572079] amdgpu 0000:65:00.0: amdgpu: [drm] Display Core v3.2.351 initialized on DCN 3.5
+[    5.572081] amdgpu 0000:65:00.0: amdgpu: [drm] DP-HDMI FRL PCON supported
+[    5.574897] amdgpu 0000:65:00.0: amdgpu: [drm] DMUB hardware initialized: version=0x09005700
+[    5.645502] amdgpu 0000:65:00.0: amdgpu: [drm] eDP-1: PSR support 1, DC PSR ver 0, sink PSR ver 1 DPCD caps 0x3a su_y_granularity 4
+[    5.645629] amdgpu 0000:65:00.0: amdgpu: [drm] DP-1: PSR support 0, DC PSR ver -1, sink PSR ver 0 DPCD caps 0x0 su_y_granularity 0
+[    5.645739] amdgpu 0000:65:00.0: amdgpu: [drm] DP-2: PSR support 0, DC PSR ver -1, sink PSR ver 0 DPCD caps 0x0 su_y_granularity 0
+[    5.645841] amdgpu 0000:65:00.0: amdgpu: [drm] DP-3: PSR support 0, DC PSR ver -1, sink PSR ver 0 DPCD caps 0x0 su_y_granularity 0
+[    5.645943] amdgpu 0000:65:00.0: amdgpu: [drm] DP-4: PSR support 0, DC PSR ver -1, sink PSR ver 0 DPCD caps 0x0 su_y_granularity 0
+[    5.645986] amdgpu 0000:65:00.0: amdgpu: [drm] DP-5: PSR support 0, DC PSR ver -1, sink PSR ver 0 DPCD caps 0x0 su_y_granularity 0
+[    5.646017] amdgpu 0000:65:00.0: amdgpu: [drm] DP-6: PSR support 0, DC PSR ver -1, sink PSR ver 0 DPCD caps 0x0 su_y_granularity 0
+[    5.646047] amdgpu 0000:65:00.0: amdgpu: [drm] DP-7: PSR support 0, DC PSR ver -1, sink PSR ver 0 DPCD caps 0x0 su_y_granularity 0
+[    5.646078] amdgpu 0000:65:00.0: amdgpu: [drm] DP-8: PSR support 0, DC PSR ver -1, sink PSR ver 0 DPCD caps 0x0 su_y_granularity 0
+[    5.652838] amdgpu 0000:65:00.0: amdgpu: SE 1, SH per SE 2, CU per SH 8, active_cu_number 16
+[    5.652841] amdgpu 0000:65:00.0: amdgpu: ring gfx_0.0.0 uses VM inv eng 0 on hub 0
+[    5.652842] amdgpu 0000:65:00.0: amdgpu: ring comp_1.0.0 uses VM inv eng 1 on hub 0
+[    5.652843] amdgpu 0000:65:00.0: amdgpu: ring comp_1.1.0 uses VM inv eng 4 on hub 0
+[    5.652844] amdgpu 0000:65:00.0: amdgpu: ring comp_1.2.0 uses VM inv eng 6 on hub 0
+[    5.652844] amdgpu 0000:65:00.0: amdgpu: ring comp_1.3.0 uses VM inv eng 7 on hub 0
+[    5.652844] amdgpu 0000:65:00.0: amdgpu: ring comp_1.0.1 uses VM inv eng 8 on hub 0
+[    5.652845] amdgpu 0000:65:00.0: amdgpu: ring comp_1.1.1 uses VM inv eng 9 on hub 0
+[    5.652846] amdgpu 0000:65:00.0: amdgpu: ring comp_1.2.1 uses VM inv eng 10 on hub 0
+[    5.652846] amdgpu 0000:65:00.0: amdgpu: ring comp_1.3.1 uses VM inv eng 11 on hub 0
+[    5.652847] amdgpu 0000:65:00.0: amdgpu: ring sdma0 uses VM inv eng 12 on hub 0
+[    5.652847] amdgpu 0000:65:00.0: amdgpu: ring vcn_unified_0 uses VM inv eng 0 on hub 8
+[    5.652848] amdgpu 0000:65:00.0: amdgpu: ring jpeg_dec_0 uses VM inv eng 1 on hub 8
+[    5.652848] amdgpu 0000:65:00.0: amdgpu: ring mes_kiq_3.1.0 uses VM inv eng 13 on hub 0
+[    5.652849] amdgpu 0000:65:00.0: amdgpu: ring vpe uses VM inv eng 4 on hub 8
+[    5.654007] amdgpu 0000:65:00.0: amdgpu: Runtime PM not available
+[    5.654210] amdgpu 0000:65:00.0: amdgpu: [drm] Using custom brightness curve
+[    5.655110] [drm] Initialized amdgpu 3.64.0 for 0000:65:00.0 on minor 0
+[    5.910158] snd_hda_intel 0000:65:00.1: bound 0000:65:00.0 (ops amdgpu_dm_audio_component_bind_ops [amdgpu])
+[    6.811075] anybook_gpu_probe: drm card0 driver=amdgpu pci=0000:65:00.0 vendor=0x1002 device=0x150e class=0x038000
+anybook_gpu_probe: pci 0000:65:00.0 driver=amdgpu vendor=0x1002 device=0x150e class=0x038000
+anybook_gpu_probe: hal=amdgpu pci_id=1002:150e driver=amdgpu source=drm others=nvidia
+[  128.287776] openbook-gfx: start: parts [vk vk14 gles-angle gles-mesa egl angle], jobs 12 of 24 CPUs, gpu hal [amdgpu], quick [0]
+[  166.469048] amdgpu 0000:65:00.0: amdgpu: Dumping IP State
+[  166.471251] amdgpu 0000:65:00.0: amdgpu: Dumping IP State Completed
+[  166.471341] amdgpu 0000:65:00.0: amdgpu: [drm] AMDGPU device coredump file has been created
+[  166.471343] amdgpu 0000:65:00.0: amdgpu: [drm] Check your /sys/class/drm/card0/device/devcoredump/data
+[  166.471345] amdgpu 0000:65:00.0: amdgpu: ring gfx_0.0.0 timeout, signaled seq=41352, emitted seq=41355
+[  166.471348] amdgpu 0000:65:00.0: amdgpu:  Process deqp-binary64 pid 6293 thread deqp-binary64 pid 6293
+[  166.471350] amdgpu 0000:65:00.0: amdgpu: Starting gfx_0.0.0 ring reset
+[  168.475180] amdgpu 0000:65:00.0: amdgpu: MES failed to respond to msg=RESET
+[  168.475184] amdgpu 0000:65:00.0: amdgpu: failed to reset legacy queue
+[  168.475185] amdgpu 0000:65:00.0: amdgpu: reset via MES failed and try pipe reset -110
+[  168.475187] amdgpu 0000:65:00.0: amdgpu: The CPFW hasn't support pipe reset yet.
+[  168.475188] amdgpu 0000:65:00.0: amdgpu: Ring gfx_0.0.0 reset failed
+[  168.475190] amdgpu 0000:65:00.0: amdgpu: GPU reset begin!. Source:  1
+[  170.851828] amdgpu 0000:65:00.0: amdgpu: MES failed to respond to msg=REMOVE_QUEUE
+[  170.851835] amdgpu 0000:65:00.0: amdgpu: failed to unmap legacy queue
+[  171.173277] [drm:gfx_v11_0_hw_fini [amdgpu]] *ERROR* failed to halt cp gfx
+[  171.175380] amdgpu 0000:65:00.0: amdgpu: MODE2 reset
+[  171.199040] amdgpu 0000:65:00.0: amdgpu: GPU reset succeeded, trying to resume
+[  171.199587] amdgpu 0000:65:00.0: amdgpu: VRAM is lost due to GPU reset!
+[  171.199591] amdgpu 0000:65:00.0: amdgpu: SMU is resuming...
+[  171.202875] amdgpu 0000:65:00.0: amdgpu: SMU is resumed successfully!
+[  171.214102] amdgpu 0000:65:00.0: amdgpu: [drm] DMUB hardware initialized: version=0x09005700
+[  171.718288] amdgpu 0000:65:00.0: amdgpu: ring gfx_0.0.0 uses VM inv eng 0 on hub 0
+[  171.718294] amdgpu 0000:65:00.0: amdgpu: ring comp_1.0.0 uses VM inv eng 1 on hub 0
+[  171.718295] amdgpu 0000:65:00.0: amdgpu: ring comp_1.1.0 uses VM inv eng 4 on hub 0
+[  171.718296] amdgpu 0000:65:00.0: amdgpu: ring comp_1.2.0 uses VM inv eng 6 on hub 0
+[  171.718297] amdgpu 0000:65:00.0: amdgpu: ring comp_1.3.0 uses VM inv eng 7 on hub 0
+[  171.718298] amdgpu 0000:65:00.0: amdgpu: ring comp_1.0.1 uses VM inv eng 8 on hub 0
+[  171.718298] amdgpu 0000:65:00.0: amdgpu: ring comp_1.1.1 uses VM inv eng 9 on hub 0
+[  171.718299] amdgpu 0000:65:00.0: amdgpu: ring comp_1.2.1 uses VM inv eng 10 on hub 0
+[  171.718300] amdgpu 0000:65:00.0: amdgpu: ring comp_1.3.1 uses VM inv eng 11 on hub 0
+[  171.718300] amdgpu 0000:65:00.0: amdgpu: ring sdma0 uses VM inv eng 12 on hub 0
+[  171.718301] amdgpu 0000:65:00.0: amdgpu: ring vcn_unified_0 uses VM inv eng 0 on hub 8
+[  171.718302] amdgpu 0000:65:00.0: amdgpu: ring jpeg_dec_0 uses VM inv eng 1 on hub 8
+[  171.718303] amdgpu 0000:65:00.0: amdgpu: ring mes_kiq_3.1.0 uses VM inv eng 13 on hub 0
+[  171.718303] amdgpu 0000:65:00.0: amdgpu: ring vpe uses VM inv eng 4 on hub 8
+[  171.726571] amdgpu 0000:65:00.0: amdgpu: GPU reset(1) succeeded!
+[  171.726577] amdgpu 0000:65:00.0: [drm] device wedged, but recovered through reset
+[  171.759022] amdgpu 0000:65:00.0: amdgpu: [drm] *ERROR* Failed to initialize parser -125!
+[  245.163114] type=1400 audit(1792250847.906:1049): avc:  denied  { read } for  comm="deqp-binary64" name="amdgpu.ids" dev="dm-10" ino=2169461 scontext=u:r:kernel:s0 tcontext=u:object_r:same_process_hal_file:s0 tclass=file permissive=1
+[  245.163197] type=1400 audit(1792250847.906:1050): avc:  denied  { open } for  comm="deqp-binary64" path="/vendor/etc/libdrm/amdgpu.ids" dev="dm-10" ino=2169461 scontext=u:r:kernel:s0 tcontext=u:object_r:same_process_hal_file:s0 tclass=file permissive=1
+[  399.018603] openbook-gfx: vk: done, exit 1, 270 s, 5 new amdgpu fault/reset line(s)
+[  620.956229] openbook-gfx: vk14: done, exit 1, 222 s, 0 new amdgpu fault/reset line(s)
+[  655.540961] openbook-gfx: gles-angle: done, exit 0, 35 s, 0 new amdgpu fault/reset line(s)
+[  688.784151] openbook-gfx: gles-mesa: done, exit 0, 33 s, 0 new amdgpu fault/reset line(s)
+[  892.796817] openbook-gfx: egl: done, exit 0, 204 s, 0 new amdgpu fault/reset line(s)
+[  962.509942] openbook-gfx: angle: done, exit 0, 66 s, 0 new amdgpu fault/reset line(s)

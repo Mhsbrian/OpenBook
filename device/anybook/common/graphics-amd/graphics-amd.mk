@@ -59,12 +59,15 @@ PRODUCT_PACKAGES += \
 # The client target SurfaceFlinger allocates is meant for scanout.
 PRODUCT_VENDOR_PROPERTIES += ro.vendor.hwc.use_overlay_planes=false
 
-# What RADV and ANGLE on RADV offer. Mesa's default android-strict build reports Vulkan 1.1; a build
-# with ANDROID_STRICT=false (scripts/mesa-android-build.sh) reports 1.4 and would declare that instead.
-# Products tune the dEQP levels once CTS has run (ANAL-177).
+# What RADV and ANGLE on RADV offer. The Vulkan version declared is the one the staged RADV reports, from
+# vendor/anybook/mesa/mesa.mk (scripts/graphics-amd-stage-mesa.sh): 1.4 for the default build since ANAL-177
+# (the G14's dEQP run, docs/graphics-amd.md), 1.1 for an android-strict build. Products tune the dEQP levels
+# once the full CTS has run.
+-include vendor/anybook/mesa/mesa.mk
+ANYBOOK_MESA_VULKAN_VERSION ?= 1_1
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.vulkan.level-1.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.vulkan.level.xml \
-    frameworks/native/data/etc/android.hardware.vulkan.version-1_1.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.vulkan.version.xml \
+    frameworks/native/data/etc/android.hardware.vulkan.version-$(ANYBOOK_MESA_VULKAN_VERSION).xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.vulkan.version.xml \
     frameworks/native/data/etc/android.hardware.vulkan.compute-0.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.vulkan.compute.xml \
     frameworks/native/data/etc/android.hardware.opengles.aep.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.opengles.aep.xml
 endif

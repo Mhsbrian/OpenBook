@@ -1,0 +1,2 @@
+== make-gfx-check.sh openbook-gfxcheck-anal177r2 (2026-10-17T16:06:26Z), repo 3908b14+dirty
+image declares 4198400 (android.hardware.vulkan.version); second RADV in the payload: yes
