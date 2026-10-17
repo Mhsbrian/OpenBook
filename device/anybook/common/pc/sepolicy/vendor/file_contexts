@@ -27,8 +27,19 @@
 /sys/devices/.*/power_supply/[^/]+/wakeup[0-9]+(/.*)?  u:object_r:sysfs_wakeup:s0
 # Wakeup sources (system_suspend reads their statistics), wherever their device sits.
 /sys/devices/.*/wakeup[0-9]+(/.*)?            u:object_r:sysfs_wakeup:s0
-/sys/devices/.*/backlight(/.*)?               u:object_r:sysfs_leds:s0
+# Panel backlights: most sit in a backlight/ class directory, but GPU drivers register theirs straight under the
+# connector (amdgpu: .../card0-eDP-1/amdgpu_bl0 on the G14).
+/sys/devices/.*/(backlight/[^/]+|amdgpu_bl[0-9]+|acpi_video[0-9]+|nvidia_wmi_ec_backlight|intel_backlight)(/.*)?  u:object_r:sysfs_leds:s0
 /sys/devices/.*/leds(/.*)?                    u:object_r:sysfs_leds:s0
-/sys/devices/.*/hwmon/hwmon[0-9]+(/.*)?       u:object_r:sysfs_openbook_hwmon:s0
+# Keyboard backlights belong to InputReader in system_server, which may not touch sysfs_leds (coredomain
+# neverallow); Googlebook gives them their own type the same way.
+/sys/devices/.*/leds/[^/]*kbd_backlight(/.*)? u:object_r:sysfs_keyboard_backlight:s0
+# HID country code, read by InputReader for the keyboard layout.
+/sys/devices/.*/[0-9A-F]{4}:[0-9A-F]{4}:[0-9A-F]{4}\.[0-9A-F]{4}/country  u:object_r:sysfs_openbook_hid:s0
+# The iGPU's PCI identity, read by libdrm (drmGetDevice2) in every process that renders. On AMD APUs (Raphael,
+# Phoenix, Strix) the iGPU is function 0 behind the internal GPP bridge 00:08.1 (65:00.0 on the G14).
+/sys/devices/pci0000:00/0000:00:08\.1/0000:[0-9a-f]{2}:00\.0/(vendor|device|subsystem_vendor|subsystem_device|revision|class|uevent|config|irq|resource)  u:object_r:sysfs_gpu:s0
+# hwmon chips: under a hwmon/ class directory (amdgpu) or straight under their device (NVMe: .../nvme/nvme0/hwmon1).
+/sys/devices/.*/hwmon[0-9]+(/.*)?             u:object_r:sysfs_openbook_hwmon:s0
 /sys/devices/.*/typec(/.*)?                   u:object_r:sysfs_typec:s0
 /sys/devices/.*/usb_power_delivery(/.*)?      u:object_r:sysfs_usb_pd:s0

@@ -8,6 +8,5 @@
 keyboard.builtIn = 1
 device.internal = 1
 
-# Keyboard backlight: asus-wmi registers it under the platform device, not under the USB keyboard. Android's
-# keyboard backlight controller drives it through this node.
-device.additionalSysfsLedsNode = /sys/class/leds/asus::kbd_backlight
+# The keyboard backlight (asus::kbd_backlight) is a child of this HID device (G14 live boot, ANAL-190 live-001),
+# so InputReader finds it by itself; device.additionalSysfsLedsNode would register it a second time.
