@@ -111,7 +111,7 @@
 | 🚧 | **M3** OpenBook kernel on real hardware | **The G14 boots our kernel and Android 17 to the desktop with SELinux enforcing**, from a USB stick (235 modules, 0 failed; desktop in 28 s) |
 | 🚧 | **M4** AMD graphics stack | **Conformance on the G14's Radeon 890M:** Vulkan 1.4 passes 45,220 dEQP cases with 5 failures, and GLES on ANGLE and radeonsi has 0 failures. Vulkan 1.4 is on the current test stick. Open: rendering into Android hardware buffers |
 | 🚧 | **M6** ARM app compatibility | Our build ships the open Digitalis bridge, built from source: 14 of 16 ARM-only test apps run in a VM, up from 13 with Google's translator. Its self-check passes on the G14's Zen 5; ARM apps on the laptop are next |
-| 🚧 | **M8** USB installer | The live USB boots on the G14. In a VM the installer passes 79/79 end-to-end checks: a whole disk; alongside Windows with Windows untouched; power cuts at six points; reinstall. The G14 dry run is next ([`docs/INSTALL.md`](docs/INSTALL.md)) |
+| 🚧 | **M8** USB installer | The live USB boots on the G14. In a VM the installer passes 79/79 end-to-end checks: a whole disk; alongside Windows with Windows untouched; power cuts at six points; reinstall. It also creates its own firmware boot entry. The G14 dry run is next ([`docs/INSTALL.md`](docs/INSTALL.md)) |
 | 🚧 | **M5** Desktop, input and power on the laptop | On the G14: desktop, touchpad, keyboard, Wi-Fi with internet, Bluetooth pairing, battery health and lid sleep/wake all work, with no dropped frames. Deep sleep (S0i3) is under investigation |
 | ⏳ | **M7** Performance and parity | Later |
 
@@ -142,7 +142,7 @@ The live tracker, decisions and next steps are in [`docs/STATUS.md`](docs/STATUS
 | XDNA 2 NPU | ✅ `accel0` | Userspace later |
 | Battery, USB-C, USB4 | ✅ Battery charge and health reach Android (88.7 %, GOOD) | OpenBook's health HAL, checked on the G14 |
 | CPU power and sleep | ✅ amd-pstate-epp switches modes with the screen and app launches; Android's own sleep and wake work; the NVIDIA GPU sleeps (D3cold) | 🚧 Deepest idle (S0i3) not reached yet. The PSP is ruled out; the firmware points at USB4 or "MPM" (unconfirmed) |
-| Audio (ALC285 + CS35L56) | ✅ Speakers and microphone work through ALSA | 🚧 Android's audio path glitched on the G14; the codec-paced HAL, SELinux fixes and the kernel's system DMA-BUF heap are merged, and a ringtone decodes in a VM. G14 check next |
+| Audio (ALC285 + CS35L56) | ✅ Speakers and microphone work through ALSA | 🚧 Android's audio path glitched on the G14. The codec-paced HAL, the SELinux fixes (app sound, system sounds) and the kernel's system DMA-BUF heap are merged, and a ringtone decodes in a VM. G14 check next |
 | NVIDIA RTX 50 dGPU | ⏸ Off by design (D3cold with no driver) | Research track in [`docs/nvidia.md`](docs/nvidia.md) |
 
 The full driver and firmware map is in [`docs/HARDWARE.md`](docs/HARDWARE.md). **Other laptops:** run [`scripts/hw-inventory.sh`](scripts/hw-inventory.sh). It is read-only and redacts serial numbers, and its output is how we plan support for a new machine.
