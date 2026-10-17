@@ -42,7 +42,7 @@
    - Track B (`docs/PLAN.md` §6);
    - installing the Multica daemon on the G14 (ANAL-194).
    - Before any public image: AVB release-key custody, an "OpenBook" trademark check, and Mesa libelf (shipped as a shared library, as recommended).
-3. **Already decided:** the dGPU stays off (`dgpu_disable=1`; HDMI is dark while it is set; NVIDIA work waits until after M4). The installer design follows our recommendation (owner on ANAL-189, 2026-10-16). Without "Start OpenBook by default", the installer appends OpenBook's `Boot####` to the end of `BootOrder`: the other system stays the default, and OpenBook is in the firmware's boot menu (owner on ANAL-159, 2026-10-17; ANAL-191's BootOrder PR).
+3. **Already decided:** the dGPU stays off (`dgpu_disable=1`; HDMI is dark while it is set; NVIDIA work waits until after M4). The installer design follows our recommendation (owner on ANAL-189, 2026-10-16). Without "Start OpenBook by default", the installer appends OpenBook's `Boot####` to the end of `BootOrder`: the other system stays the default, and OpenBook is in the firmware's boot menu (owner on ANAL-159, 2026-10-17; ANAL-191, #70).
 
 ### Next step for each open issue
 
@@ -75,7 +75,7 @@
 
 ## History
 
-### 2026-10-17: without consent, OpenBook goes last in `BootOrder` (ANAL-191, owner decision)
+### 2026-10-17: without consent, OpenBook goes last in `BootOrder` (ANAL-191, PR #70, owner decision)
 - **Done** (`docs/installer.md` S11, §12.11, §13.7). The owner approved our recommendation:
   - an install with "Start OpenBook by default" off now appends its new `Boot####` to the end of `BootOrder`, so the other system stays the default and OpenBook is in the firmware's boot menu;
   - with the box ticked it still goes first; no other entry changes, and every write is read back;
