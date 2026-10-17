@@ -1,0 +1,40 @@
+PROBE kmod: load openbook_s0i3_snapshot.ko : No such device
+PROBE sleep[0]: step baseline
+PROBE sleep: RTC alarm in 20 s; suspending (mem_sleep: s2idle [deep])
+PROBE sleep: write returned 3 (ok); asleep 20.3 s; suspend_stats success 0->1 fail 0->0
+PROBE sleep: last failed dev: 
+PROBE sleep: last failed errno: 0
+PROBE cpuidle: no cpuidle states with s2idle statistics
+PROBE sleep[0]: S0i3 unknown (no AMD PMC counters): s0ix residency -1 us, last_hw_sleep -1 us, SMU "?" (hint count -1), idle mask at entry ?
+PROBE sleep: after resume eDP-1 ?, wlan0 missing
+PROBE kmod: load openbook_pci_pm.ko : ok
+PROBE step psp: no 1022:17e0 function on the bus
+PROBE sleep[1]: step psp
+PROBE sleep: RTC alarm in 20 s; suspending (mem_sleep: s2idle [deep])
+PROBE sleep: write returned 3 (ok); asleep 19.5 s; suspend_stats success 1->2 fail 0->0
+PROBE sleep: last failed dev: 
+PROBE sleep: last failed errno: 0
+PROBE cpuidle: no cpuidle states with s2idle statistics
+PROBE sleep[1]: S0i3 unknown (no AMD PMC counters): s0ix residency -1 us, last_hw_sleep -1 us, SMU "?" (hint count -1), idle mask at entry ?
+PROBE sleep: after resume eDP-1 ?, wlan0 missing
+PROBE step dummy: no 1022:150d function on the bus
+PROBE sleep[2]: step dummy
+PROBE sleep: RTC alarm in 20 s; suspending (mem_sleep: s2idle [deep])
+PROBE sleep: write returned 3 (ok); asleep 19.5 s; suspend_stats success 2->3 fail 0->0
+PROBE sleep: last failed dev: 
+PROBE sleep: last failed errno: 0
+PROBE cpuidle: no cpuidle states with s2idle statistics
+PROBE sleep[2]: S0i3 unknown (no AMD PMC counters): s0ix residency -1 us, last_hw_sleep -1 us, SMU "?" (hint count -1), idle mask at entry ?
+PROBE sleep: after resume eDP-1 ?, wlan0 missing
+PROBE hwcheck: waiting 5 s for the drivers to bind
+PROBE sleep[3]: step asus
+PROBE sleep: RTC alarm in 20 s; suspending (mem_sleep: s2idle [deep])
+PROBE sleep: write returned 3 (ok); asleep 19.5 s; suspend_stats success 3->4 fail 0->0
+PROBE sleep: last failed dev: 
+PROBE sleep: last failed errno: 0
+PROBE cpuidle: no cpuidle states with s2idle statistics
+PROBE sleep[3]: S0i3 unknown (no AMD PMC counters): s0ix residency -1 us, last_hw_sleep -1 us, SMU "?" (hint count -1), idle mask at entry ?
+PROBE sleep: after resume eDP-1 ?, wlan0 missing
+PROBE hwcheck: done
+PROBE hwcheck: report saved; powering off
+power-real exit 0

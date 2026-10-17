@@ -1,0 +1,194 @@
+{
+ "disk": "whole.img",
+ "mbr": "protective",
+ "primary_valid": true,
+ "backup_valid": true,
+ "table_from": "primary",
+ "disk_guid": "ACE0766F-FAD6-4D9F-9F93-0AD075F4BF1D",
+ "partitions": [
+  {
+   "index": 1,
+   "type": "C12A7328-F81F-11D2-BA4B-00A0C93EC93B",
+   "uuid": "BE555814-237B-48A9-9E12-D51FDCE4DA26",
+   "first": 2048,
+   "last": 1050623,
+   "name": "EFI",
+   "bytes": 536870912,
+   "digest": "10fd4ee015797da89ca47fcdde11779271ba22ec8577af80af1c6c709d177c41",
+   "head_blank": false
+  },
+  {
+   "index": 2,
+   "type": "0FC63DAF-8483-4772-8E79-3D69D8477DE4",
+   "uuid": "0861CFC6-0F9E-4B03-89B8-9F6FF9EEBC4D",
+   "first": 1050624,
+   "last": 1058815,
+   "name": "misc",
+   "bytes": 4194304,
+   "digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "head_blank": true
+  },
+  {
+   "index": 3,
+   "type": "0FC63DAF-8483-4772-8E79-3D69D8477DE4",
+   "uuid": "EDF9DA8F-D933-4E3F-ACB8-269D9BDDE447",
+   "first": 1058816,
+   "last": 1189887,
+   "name": "boot_a",
+   "bytes": 67108864,
+   "digest": "f2f9b3ae194cb87beee4c23bb58233c1ae169ec49ab74306927dba81d13c9e55",
+   "head_blank": false
+  },
+  {
+   "index": 4,
+   "type": "0FC63DAF-8483-4772-8E79-3D69D8477DE4",
+   "uuid": "0BA208BF-09B0-4402-8383-F170ADE8C573",
+   "first": 1189888,
+   "last": 1320959,
+   "name": "boot_b",
+   "bytes": 67108864,
+   "digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "head_blank": true
+  },
+  {
+   "index": 5,
+   "type": "0FC63DAF-8483-4772-8E79-3D69D8477DE4",
+   "uuid": "1B155F53-5388-4548-B3B3-3623746D3E62",
+   "first": 1320960,
+   "last": 1337343,
+   "name": "init_boot_a",
+   "bytes": 8388608,
+   "digest": "997ea9a62cc93eab09fdab3ca234d094cac0f8d060f2b505b746bdbc23dce2e3",
+   "head_blank": false
+  },
+  {
+   "index": 6,
+   "type": "0FC63DAF-8483-4772-8E79-3D69D8477DE4",
+   "uuid": "B133B858-D5AE-4E11-A072-779E24E4B99D",
+   "first": 1337344,
+   "last": 1353727,
+   "name": "init_boot_b",
+   "bytes": 8388608,
+   "digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "head_blank": true
+  },
+  {
+   "index": 7,
+   "type": "0FC63DAF-8483-4772-8E79-3D69D8477DE4",
+   "uuid": "1627A59D-2055-4641-87E3-4895638D7F0A",
+   "first": 1353728,
+   "last": 1484799,
+   "name": "vendor_boot_a",
+   "bytes": 67108864,
+   "digest": "374017218cec872e357d5765bd6a17596a0692641927617f6fc8aa4e9b8e1762",
+   "head_blank": false
+  },
+  {
+   "index": 8,
+   "type": "0FC63DAF-8483-4772-8E79-3D69D8477DE4",
+   "uuid": "54CEE90A-7D30-42D3-A5CE-825138AD611D",
+   "first": 1484800,
+   "last": 1615871,
+   "name": "vendor_boot_b",
+   "bytes": 67108864,
+   "digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "head_blank": true
+  },
+  {
+   "index": 9,
+   "type": "0FC63DAF-8483-4772-8E79-3D69D8477DE4",
+   "uuid": "E70A1293-29F6-4F9B-8D36-B89D3DBD19BA",
+   "first": 1615872,
+   "last": 1617919,
+   "name": "vbmeta_a",
+   "bytes": 1048576,
+   "digest": "84b993c62c2c874664a52557068cc1f6b58cc03142a78c181267e6b57bf64210",
+   "head_blank": false
+  },
+  {
+   "index": 10,
+   "type": "0FC63DAF-8483-4772-8E79-3D69D8477DE4",
+   "uuid": "E2C06E57-C0F8-48FF-A16D-BCA94A71DD89",
+   "first": 1617920,
+   "last": 1619967,
+   "name": "vbmeta_b",
+   "bytes": 1048576,
+   "digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "head_blank": true
+  },
+  {
+   "index": 11,
+   "type": "0FC63DAF-8483-4772-8E79-3D69D8477DE4",
+   "uuid": "5E35D6E2-AB78-4F55-B213-15E3D34FF7FE",
+   "first": 1619968,
+   "last": 1751039,
+   "name": "metadata",
+   "bytes": 67108864,
+   "digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "head_blank": true
+  },
+  {
+   "index": 12,
+   "type": "0FC63DAF-8483-4772-8E79-3D69D8477DE4",
+   "uuid": "05259AD5-3D1B-4EC8-9CD3-165BA9A070EC",
+   "first": 1751040,
+   "last": 26916863,
+   "name": "super",
+   "bytes": 12884901888,
+   "digest": "1176bb2d7df482e73c0efcf629a1a7e9beabc71c225c1bc538ae24b651d5c0a3",
+   "head_blank": false
+  },
+  {
+   "index": 13,
+   "type": "0FC63DAF-8483-4772-8E79-3D69D8477DE4",
+   "uuid": "527EF2A4-E2D2-4047-B951-D50438BA8CCA",
+   "first": 26916864,
+   "last": 268433407,
+   "name": "userdata",
+   "bytes": 123656470528,
+   "digest": "7c743a121ea67c2fb782a6e46a41ccf458ddc026178ffe3997a2f2f186b52b46",
+   "head_blank": true
+  }
+ ],
+ "fat": {
+  "EFI": {
+   "files": [
+    "openbook/a/bootconfig.img",
+    "openbook/a/kernel",
+    "openbook/a/ramdisk.img",
+    "openbook/a/vendor_ramdisk.img"
+   ],
+   "fsck": {
+    "rc": 0,
+    "out": [
+     "fsck.fat 4.2 (2021-01-31)",
+     "/home/hive/anybook/logs/installer/e2e-anal192c/inspect/cut-4.json.tmp: 7 files, 7327/130812 clusters"
+    ]
+   },
+   "sha256": {}
+  }
+ },
+ "fallback": [],
+ "openbook_entry": [],
+ "plan_files_ok": 4,
+ "plan_files_bad": [
+  "loader/entries/openbook-a.conf",
+  "loader/loader.conf",
+  "EFI/OpenBook/systemd-bootx64.efi",
+  "EFI/BOOT/BOOTX64.EFI"
+ ],
+ "plan_table": true,
+ "ref_partitions": {
+  "EFI system partition": "gone",
+  "Microsoft reserved partition": "gone",
+  "Basic data partition": "gone",
+  "Recovery": "gone"
+ },
+ "ref_bytes": {
+  "EFI system partition": false,
+  "Microsoft reserved partition": true,
+  "Basic data partition": false,
+  "Recovery": true
+ },
+ "state": "new-not-activated"
+}

@@ -1,0 +1,450 @@
+{
+ "cases": {
+  "live-a": [
+   {
+    "check": "every expect step matched",
+    "ok": true,
+    "detail": "91/91 (QEMU exited (0))"
+   },
+   {
+    "check": "SELinux enforcing; booted from the stick (by-name on sda)",
+    "ok": true,
+    "detail": "total 0\nlrwxrwxrwx 1 root root 15 2026-10-17 16:26 EFI -> /dev/block/sda1\nlrwxrwxrwx 1 root root 15 2026-10-17 16:26 boot_a -> /dev/block/sda3\nlrwxrwxrwx 1 root root 15 2026-10-17 16:26 init_boot_a ->"
+   },
+   {
+    "check": "disks: the Windows-like disk shows Windows; alongside and whole both possible",
+    "ok": true,
+    "detail": "{'whole': {'ok': True, 'why': None}, 'alongside': {'ok': True, 'why': None, 'free_bytes': 106243817472}}"
+   },
+   {
+    "check": "disks: the 32 GiB disk is refused for both layouts (whole: too_small)",
+    "ok": true,
+    "detail": "{'whole': {'ok': False, 'why': 'too_small'}, 'alongside': {'ok': False, 'why': 'no_gpt', 'free_bytes': 0}}"
+   },
+   {
+    "check": "plan on the 32 GiB disk: refused (not_eligible: too_small)",
+    "ok": true,
+    "detail": "{\"ok\":false,\"code\":\"not_eligible\",\"error\":\"too_small\"}\n16:26:58 plan refused (not_eligible): too_small\nPLAN-RC=1\n"
+   },
+   {
+    "check": "the wizard's disk screen captured (screenshot)",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "alongside plan: keeps the 4 Windows partitions, erases none",
+    "ok": true,
+    "detail": "None"
+   },
+   {
+    "check": "apply without OPENBOOK_INSTALL_ERASE: refused (confirm_mismatch)",
+    "ok": true,
+    "detail": "ick OpenBook from the firmware's boot menu or add an entry in its setup\"},{\"op\":\"report\",\"text\":\"Save the install report and log to openbook/logs/ on the stick and on the new xbootldr\"}]}}\nAPPLY-RC=1\n"
+   },
+   {
+    "check": "unattended alongside install (--confirm-disk + OPENBOOK_INSTALL_ERASE): ok and verified",
+    "ok": true,
+    "detail": "None"
+   },
+   {
+    "check": "machine-readable progress: step and progress events, then the report",
+    "ok": true,
+    "detail": "83"
+   },
+   {
+    "check": "after the install: Windows and OpenBook on the disk; a second alongside refused (name_clash)",
+    "ok": true,
+    "detail": "(['Windows', 'OpenBook'], {'whole': {'ok': True, 'why': None}, 'alongside': {'ok': False, 'why': 'name_clash', 'free_bytes': 0}})"
+   },
+   {
+    "check": "no SELinux denial for the engine or the app (enforcing)",
+    "ok": true,
+    "detail": "[]"
+   },
+   {
+    "check": "MSR, NTFS and recovery partitions byte-identical (S7)",
+    "ok": true,
+    "detail": "{'EFI system partition': 'changed', 'Microsoft reserved partition': 'unchanged', 'Basic data partition': 'unchanged', 'Recovery': 'unchanged'}"
+   },
+   {
+    "check": "Windows ESP: only EFI/OpenBook/systemd-bootx64.efi added; bootmgfw.efi, BCD and BOOTX64.EFI unchanged",
+    "ok": true,
+    "detail": "['EFI/OpenBook/systemd-bootx64.efi']"
+   },
+   {
+    "check": "Windows ESP passes fsck.fat after the install",
+    "ok": true,
+    "detail": "{'rc': 0, 'out': ['fsck.fat 4.2 (2021-01-31)', '/home/hive/anybook/logs/installer/e2e-anal192c/inspect/windows-after.json.tmp: 10 files, 409/524252 clusters']}"
+   },
+   {
+    "check": "GPT: both copies valid, 4 + 13 partitions, the Windows ones at the same place",
+    "ok": true,
+    "detail": "17"
+   },
+   {
+    "check": "XBOOTLDR holds the OpenBook entry; no loader.conf; the fallback path is Windows'",
+    "ok": true,
+    "detail": "(['xbootldr'], ['EFI system partition'])"
+   }
+  ],
+  "al-windows": [
+   {
+    "check": "fresh NVRAM: the firmware starts the disk's fallback path, Windows' boot manager (stand-in)",
+    "ok": true,
+    "detail": "['BdsDxe: loading Boot0003 \"UEFI QEMU NVMe Ctrl internal0 1\"', 'BdsDxe: starting Boot0003 \"UEFI QEMU NVMe Ctrl internal0 1\"']"
+   }
+  ],
+  "al-fwsetup": [
+   {
+    "check": "a firmware boot option for EFI/OpenBook/systemd-bootx64.efi added (as in the firmware setup)",
+    "ok": true,
+    "detail": "-0000:00:01.0-1\" from PciRoot(0x0)/Pci(0x1,0x0)/USB(0x0,0x0)\r\nBdsDxe: starting Boot0002 \"UEFI QEMU QEMU USB HARDDRIVE 1-0000:00:01.0-1\" from PciRoot(0x0)/Pci(0x1,0x0)/USB(0x0,0x0)\r\nOBTEST-ADDBOOT ok: Boot1000 \"OpenBook\" -> \\EFI\\OpenBook\\systemd-bootx64.efi, first of 0x0000000000000006 in BootOrder\r\n"
+   }
+  ],
+  "al-openbook": [
+   {
+    "check": "the firmware starts Boot1000 \"OpenBook\" from the Windows ESP",
+    "ok": true,
+    "detail": "['BdsDxe: loading Boot1000 \"OpenBook\"', 'BdsDxe: starting Boot1000 \"OpenBook\"']"
+   },
+   {
+    "check": "OpenBook's screen comes up (a screenshot after 20 s is lit, not a black or firmware screen)",
+    "ok": true,
+    "detail": "{'shot-20.png': 0.997, 'shot-40.png': 0.997, 'shot-60.png': 0.997, 'shot-90.png': 0.997, 'shot-120.png': 0.997, 'shot-150.png': 0.997, 'shot-180.png': 0.997}"
+   },
+   {
+    "check": "Windows was not started instead",
+    "ok": true,
+    "detail": ""
+   }
+  ],
+  "al-console": [
+   {
+    "check": "every expect step matched",
+    "ok": true,
+    "detail": "80/80 (QEMU exited (0))"
+   },
+   {
+    "check": "booted alongside: installed=alongside, boot_part_uuid is XBOOTLDR, enforcing, no live flags",
+    "ok": true,
+    "detail": "[ro.boot.boot_part_uuid]: [32dae2e9-6a65-4e41-85c7-ffe033dca3f8]\n[ro.boot.openbook.installed]: [alongside]\n[ro.boot.openbook.keyboard]: [us]\n[ro.boot.openbook.loader]: [sdboot]\n[ro.boot.openbook.locale]: [en-US]\n[ro.boot.serialno]: [0A204822194C4FE9]\n[ro.boot.slot_suffix]: [_a]\n[ro.boot.verifiedboot"
+   },
+   {
+    "check": "Android's by-name links point at the NVMe disk",
+    "ok": true,
+    "detail": "Basic_data_partition, EFI_system_partition, Microsoft_reserved_partition, Recovery, boot_a, boot_b, init_boot_a, init_boot_b, metadata, misc, nvme0n1, super, userdata, vbmeta_a, vbmeta_b, vendor_boot_a, vendor_boot_b, xbootldr"
+   },
+   {
+    "check": "no Windows partition mounted (p1 to p4)",
+    "ok": true,
+    "detail": "\n/dev/block/nvme0n1p15 /metadata ext4 rw,seclabel,nosuid,nodev,noatime,discard 0 0\nFilesystem            1K-blocks   Used Available Use% Mounted on\n/dev/block/dm-13       90294272 929468  89364804   2"
+   },
+   {
+    "check": "OpenBook setup, then the desktop",
+    "ok": true,
+    "detail": "1\n1\n      topResumedActivity=ActivityRecord{42815507 u0 com.android.launcher3/.uioverrides.QuickstepLauncher t9}\n"
+   }
+  ],
+  "cut-1": [
+   {
+    "check": "the install reached its cut point (\"check_source\" \"running\" + 1 s) and the power was cut",
+    "ok": true,
+    "detail": "QEMU exited (0)"
+   },
+   {
+    "check": "restart from the stick: the engine reads the previous state and offers the disk again (whole ok)",
+    "ok": true,
+    "detail": "('whole-before', 'gpt', ['Windows'], {'ok': True, 'why': None})"
+   },
+   {
+    "check": "cut state is one of ['old-table'] (S9: the old table, a blank disk, or the new one, bootable only when complete)",
+    "ok": true,
+    "detail": "old-table (mbr protective, primary True, backup True, entry [], fallback ['EFI system partition'])"
+   },
+   {
+    "check": "the old table and every old partition unchanged",
+    "ok": true,
+    "detail": "{'EFI system partition': 'unchanged', 'Microsoft reserved partition': 'unchanged', 'Basic data partition': 'unchanged', 'Recovery': 'unchanged'}"
+   }
+  ],
+  "fw-cut-1": [
+   {
+    "check": "the firmware still starts the old system (Windows stand-in) from the untouched disk",
+    "ok": true,
+    "detail": "['Boot0003 \"UEFI QEMU NVMe Ctrl internal0 1\"']"
+   }
+  ],
+  "cut-2": [
+   {
+    "check": "the install reached its cut point (\"boot_images\" \"running\" + 0 s) and the power was cut",
+    "ok": true,
+    "detail": "QEMU exited (0)"
+   },
+   {
+    "check": "restart from the stick: the engine reads the previous state and offers the disk again (whole ok)",
+    "ok": true,
+    "detail": "('cut-1', 'gpt', ['Windows'], {'ok': True, 'why': None})"
+   },
+   {
+    "check": "cut state is one of ['blank'] (S9: the old table, a blank disk, or the new one, bootable only when complete)",
+    "ok": true,
+    "detail": "blank (mbr none, primary False, backup False, entry [], fallback [])"
+   }
+  ],
+  "fw-cut-2": [
+   {
+    "check": "the firmware starts nothing from the cut disk (no table, or not activated)",
+    "ok": true,
+    "detail": "['Boot0002 \"UEFI QEMU QEMU USB HARDDRIVE 1-0000:00:01.0-1\"', 'Boot0003 \"UEFI QEMU NVMe Ctrl internal0 1\"']"
+   }
+  ],
+  "cut-3": [
+   {
+    "check": "the install reached its cut point (\"system\" \"running\" + 3 s) and the power was cut",
+    "ok": true,
+    "detail": "QEMU exited (0)"
+   },
+   {
+    "check": "restart from the stick: the engine reads the previous state and offers the disk again (whole ok)",
+    "ok": true,
+    "detail": "('cut-2', 'none', [], {'ok': True, 'why': None})"
+   },
+   {
+    "check": "cut state is one of ['blank'] (S9: the old table, a blank disk, or the new one, bootable only when complete)",
+    "ok": true,
+    "detail": "blank (mbr none, primary False, backup False, entry [], fallback [])"
+   }
+  ],
+  "fw-cut-3": [
+   {
+    "check": "the firmware starts nothing from the cut disk (no table, or not activated)",
+    "ok": true,
+    "detail": "['Boot0002 \"UEFI QEMU QEMU USB HARDDRIVE 1-0000:00:01.0-1\"', 'Boot0003 \"UEFI QEMU NVMe Ctrl internal0 1\"']"
+   }
+  ],
+  "cut-4": [
+   {
+    "check": "the install reached its cut point (\"boot_entry\" \"running\" + 0.3 s) and the power was cut",
+    "ok": true,
+    "detail": "QEMU exited (0)"
+   },
+   {
+    "check": "restart from the stick: the engine reads the previous state and offers the disk again (whole ok)",
+    "ok": true,
+    "detail": "('cut-3', 'none', [], {'ok': True, 'why': None})"
+   },
+   {
+    "check": "cut state is one of ['blank', 'new-not-activated'] (S9: the old table, a blank disk, or the new one, bootable only when complete)",
+    "ok": true,
+    "detail": "new-not-activated (mbr protective, primary True, backup True, entry [], fallback [])"
+   },
+   {
+    "check": "the new ESP passes fsck.fat",
+    "ok": true,
+    "detail": "{'rc': 0, 'out': ['fsck.fat 4.2 (2021-01-31)', '/home/hive/anybook/logs/installer/e2e-anal192c/inspect/cut-4.json.tmp: 7 files, 7327/130812 clusters']}"
+   }
+  ],
+  "fw-cut-4": [
+   {
+    "check": "the firmware starts nothing from the cut disk (no table, or not activated)",
+    "ok": true,
+    "detail": "['Boot0002 \"UEFI QEMU QEMU USB HARDDRIVE 1-0000:00:01.0-1\"', 'Boot0003 \"UEFI QEMU NVMe Ctrl internal0 1\"']"
+   }
+  ],
+  "cut-5": [
+   {
+    "check": "the install reached its cut point (\"verify\" \"running\" + 1 s) and the power was cut",
+    "ok": true,
+    "detail": "QEMU exited (0)"
+   },
+   {
+    "check": "restart from the stick: the engine reads the previous state and offers the disk again (whole ok)",
+    "ok": true,
+    "detail": "('cut-4', 'gpt', ['OpenBook'], {'ok': True, 'why': None})"
+   },
+   {
+    "check": "cut state is one of ['new-not-activated'] (S9: the old table, a blank disk, or the new one, bootable only when complete)",
+    "ok": true,
+    "detail": "new-not-activated (mbr protective, primary True, backup True, entry [], fallback [])"
+   },
+   {
+    "check": "the new ESP passes fsck.fat",
+    "ok": true,
+    "detail": "{'rc': 0, 'out': ['fsck.fat 4.2 (2021-01-31)', '/home/hive/anybook/logs/installer/e2e-anal192c/inspect/cut-5.json.tmp: 7 files, 7327/130812 clusters']}"
+   }
+  ],
+  "fw-cut-5": [
+   {
+    "check": "the firmware starts nothing from the cut disk (no table, or not activated)",
+    "ok": true,
+    "detail": "['Boot0002 \"UEFI QEMU QEMU USB HARDDRIVE 1-0000:00:01.0-1\"', 'Boot0003 \"UEFI QEMU NVMe Ctrl internal0 1\"']"
+   }
+  ],
+  "cut-6": [
+   {
+    "check": "the install reached its cut point (\"report\" \"running\" + 0 s) and the power was cut",
+    "ok": true,
+    "detail": "QEMU exited (0)"
+   },
+   {
+    "check": "restart from the stick: the engine reads the previous state and offers the disk again (whole ok)",
+    "ok": true,
+    "detail": "('cut-5', 'gpt', ['OpenBook'], {'ok': True, 'why': None})"
+   },
+   {
+    "check": "cut state is one of ['new-complete'] (S9: the old table, a blank disk, or the new one, bootable only when complete)",
+    "ok": true,
+    "detail": "new-complete (mbr protective, primary True, backup True, entry ['EFI'], fallback ['EFI'])"
+   },
+   {
+    "check": "the new ESP passes fsck.fat",
+    "ok": true,
+    "detail": "{'rc': 0, 'out': ['fsck.fat 4.2 (2021-01-31)', '/home/hive/anybook/logs/installer/e2e-anal192c/inspect/cut-6.json.tmp: 19 files, 7420/130812 clusters']}"
+   }
+  ],
+  "fw-cut-6": [
+   {
+    "check": "the firmware starts the complete install (OpenBook's fallback path)",
+    "ok": true,
+    "detail": "['Boot0003 \"UEFI QEMU NVMe Ctrl internal0 1\"']"
+   }
+  ],
+  "install": [
+   {
+    "check": "every expect step matched",
+    "ok": true,
+    "detail": "27/27 (QEMU exited (0))"
+   },
+   {
+    "check": "restarted over the last cut disk: ok and verified",
+    "ok": true,
+    "detail": "None"
+   },
+   {
+    "check": "no SELinux denial for the engine (enforcing)",
+    "ok": true,
+    "detail": "[]"
+   },
+   {
+    "check": "the disk: both GPT copies valid, every planned file present and matching, bootable",
+    "ok": true,
+    "detail": "new-complete"
+   }
+  ],
+  "installed": [
+   {
+    "check": "no stick, fresh NVRAM: the firmware starts the installed disk's fallback path",
+    "ok": true,
+    "detail": "['BdsDxe: loading Boot0003 \"UEFI QEMU NVMe Ctrl internal0 1\"', 'BdsDxe: starting Boot0003 \"UEFI QEMU NVMe Ctrl internal0 1\"']"
+   },
+   {
+    "check": "OpenBook's first screen comes up (a screenshot after 20 s is lit)",
+    "ok": true,
+    "detail": "{'shot-20.png': 0.997, 'shot-40.png': 0.997, 'shot-60.png': 0.997, 'shot-90.png': 0.997, 'shot-120.png': 0.997, 'shot-150.png': 0.997, 'shot-180.png': 0.997}"
+   }
+  ],
+  "inst-stick": [
+   {
+    "check": "every expect step matched",
+    "ok": true,
+    "detail": "80/80 (QEMU exited (0))"
+   },
+   {
+    "check": "booted from the NVMe disk: by-name links there, installed=whole, enforcing, no live flags",
+    "ok": true,
+    "detail": "[ro.boot.boot_part_uuid]: [2158ae5e-f694-4890-b810-0467152dd954]\n[ro.boot.openbook.installed]: [whole]\n[ro.boot.openbook.keyboard]: [us]\n[ro.boot.openbook.loader]: [sdboot]\n[ro.boot.openbook.locale]: "
+   },
+   {
+    "check": "the installer is off (no launcher entry, no daemon); OpenBook setup is the first screen",
+    "ok": true,
+    "detail": "['0', 'daemon=[]', '0', '      topResumedActivity=ActivityRecord{243557731 u0 org.openbook.installer/.SetupActivity t2}']"
+   },
+   {
+    "check": "through setup to the desktop",
+    "ok": true,
+    "detail": "1\n1\n      topResumedActivity=ActivityRecord{84948968 u0 com.android.launcher3/.uioverrides.QuickstepLauncher t9}\n"
+   },
+   {
+    "check": "the stick plugged in: no partition of it mounted by Android (vold)",
+    "ok": true,
+    "detail": "\n/dev/block/nvme0n1p11 /metadata ext4 rw,seclabel,nosuid,nodev,noatime,discard 0 0\nFilesystem            1K-blocks    Used Available Use% Mounted on\n/dev/block/dm-13      120756224 1058984 119697240  "
+   },
+   {
+    "check": "the stick's partitions unchanged by the installed system",
+    "ok": true,
+    "detail": "{'EFI': True, 'misc': True, 'boot_a': True, 'init_boot_a': True, 'vendor_boot_a': True, 'vbmeta_a': True, 'metadata': True, 'super': True, 'userdata': True}"
+   },
+   {
+    "check": "known issue, reported: SystemUI's notification for the plugged-in stick (not gated)",
+    "ok": true,
+    "detail": "disk:8,0: 'QEMU USB drive detected' (Tap to set up = format)"
+   }
+  ],
+  "reinstalled": [
+   {
+    "check": "every expect step matched",
+    "ok": true,
+    "detail": "80/80 (QEMU exited (0))"
+   },
+   {
+    "check": "booted from the NVMe disk: by-name links there, installed=whole, enforcing, no live flags",
+    "ok": true,
+    "detail": "[ro.boot.boot_part_uuid]: [9d1d5b64-8cca-47f9-a697-ddc8e7d80a8e]\n[ro.boot.openbook.installed]: [whole]\n[ro.boot.openbook.keyboard]: [us]\n[ro.boot.openbook.loader]: [sdboot]\n[ro.boot.openbook.locale]: "
+   },
+   {
+    "check": "the installer is off (no launcher entry, no daemon); OpenBook setup is the first screen",
+    "ok": true,
+    "detail": "['0', 'daemon=[]', '0', '      topResumedActivity=ActivityRecord{266146649 u0 org.openbook.installer/.SetupActivity t2}']"
+   },
+   {
+    "check": "through setup to the desktop",
+    "ok": true,
+    "detail": "1\n1\n      topResumedActivity=ActivityRecord{201930636 u0 com.android.launcher3/.uioverrides.QuickstepLauncher t9}\n"
+   },
+   {
+    "check": "a new system: a new serial number, setup again",
+    "ok": true,
+    "detail": "('430AA5EB47C4E25D', '59058F830B632E4F')"
+   }
+  ],
+  "reinstall": [
+   {
+    "check": "every expect step matched",
+    "ok": true,
+    "detail": "85/85 (QEMU exited (0))"
+   },
+   {
+    "check": "the live system boots from the stick with OpenBook installed on the NVMe disk (by-name on sda, nothing of nvme mounted)",
+    "ok": true,
+    "detail": "total 0\nlrwxrwxrwx 1 root root 15 2026-10-17 16:48 EFI -> /dev/block/sda1\nlrwxrwxrwx 1 root root 15 2026-10-17 16:48 boot_a -> /dev/block/sda3\nlrwxrwxrwx 1 root root 15 2026-10-17 16:48 init_boot_a ->"
+   },
+   {
+    "check": "disks: OpenBook found on the NVMe disk, whole possible, alongside refused (name_clash)",
+    "ok": true,
+    "detail": "(['OpenBook', 'Linux'], {'whole': {'ok': True, 'why': None}, 'alongside': {'ok': False, 'why': 'name_clash', 'free_bytes': 0}})"
+   },
+   {
+    "check": "whole-disk reinstall over the installed OpenBook: ok and verified",
+    "ok": true,
+    "detail": "None"
+   },
+   {
+    "check": "a new disk GUID and new partition GUIDs",
+    "ok": true,
+    "detail": "('27E74A95-3BFD-4542-BE27-FDCE91553A40', 'C4069D3A-CC89-4870-8A7B-4DA1065F5F5E')"
+   },
+   {
+    "check": "the old system's userdata is gone (its digest changed; the new one starts blank)",
+    "ok": true,
+    "detail": "('6355c48b9462', 'a535d888997d', 'new-complete')"
+   }
+  ]
+ },
+ "notes": {
+  "inst-stick-vold": "troller: On volume mount VolumeInfo{emulated;0}:\n10-17 16:47:22.981   667   785 W UserManager: \tat com.android.server.StorageManagerService$8.onVolumeChecking(StorageManagerService.java:2477)\n10-17 16:47:22.981   667   785 W UserManager: \tat android.os.IVoldMountCallback$Stub.onTransact(IVoldMountCallback.java:89)\n10-17 16:47:22.981   667   785 W UserManager: \tat android.os.IVold$Stub$Proxy.mount(IVold.java:1785)\n10-17 16:47:22.981   667   785 W UserManager: \tat com.android.server.StorageManagerService.mount(StorageManagerService.java:2466)\n10-17 16:47:22.981   667   785 W UserManager: \tat com.android.server.StorageManagerService.-$$Nest$mmount(StorageManagerService.java:0)\n10-17 16:47:23.234   667   736 W StorageManagerService: Reporting emulated;0 unmounted due to system locked\n10-17 16:47:23.243   667   785 I StorageManagerService: Mounted volume VolumeInfo{emulated;0}:\n10-17 16:47:23.243   667   785 I StorageManagerService:     type=EMULATED diskId=null partGuid= mountFlags=PRIMARY|VISIBLE_FOR_WRITE \n10-17 16:47:23.243   667   785 I StorageManagerService:     mountUserId=0 state=MOUNTED \n10-17 16:47:23.269   667   785 D StorageManagerService: Volume emulated;0 broadcasting mounted to UserHandle{0}\n10-17 16:47:23.269   667   785 D StorageManagerService: Volume emulated;0 broadcasting checking to UserHandle{0}\n10-17 16:47:23.270   667   785 D StorageManagerService: Volume emulated;0 broadcasting mounted to UserHandle{0}\ndisk:8,0\nprivate mounted null\nemulated;0 mounted null\n",
+  "inst-stick-notifications": "    NotificationRecord(0x085a6ca4: pkg=com.android.systemui user=UserHandle{-1} id=1396986699 tag=disk:8,0 importance=2 key=-1|com.android.systemui|1396986699|disk:8,0|10082: Notification(channel=DSK shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=LOCAL_ONLY color=0x00000000 category=err vis=PUBLIC))\n                android.title=String (QEMU USB drive detected)\n                android.text=String (Tap to set up .)\nNOTIF-END\n"
+ },
+ "passed": 79,
+ "total": 79,
+ "image": "openbook-live-20261017-anal192c.img"
+}

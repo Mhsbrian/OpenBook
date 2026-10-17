@@ -1,0 +1,11 @@
+{
+ "reason": "timeout 200s",
+ "seconds": 201.1,
+ "steps_done": 0,
+ "steps": 0,
+ "hits": [],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/qemu/e2e-anal192c/blank-usb.img",
+ "nvme": "/home/hive/anybook/installer/qemu/e2e-anal192c/whole.img",
+ "nvme2": null
+}

@@ -1,0 +1,158 @@
+{
+ "logs": [
+  "/home/hive/anybook/logs/installer/live-20261017-anal192c/first/sections/logcat.txt.gz",
+  "/home/hive/anybook/logs/installer/wizard-20261017-anal192c/console/sections/avc.txt",
+  "/home/hive/anybook/logs/installer/wizard-20261017-anal192c/dryrun/sections/avc.txt",
+  "/home/hive/anybook/logs/installer/wizard-20261017-anal192c/install/sections/avc.txt",
+  "/home/hive/anybook/logs/installer/e2e-anal192c/al-console/sections/avc.txt",
+  "/home/hive/anybook/logs/installer/e2e-anal192c/install/sections/avc.txt",
+  "/home/hive/anybook/logs/installer/e2e-anal192c/inst-stick/sections/avc.txt",
+  "/home/hive/anybook/logs/installer/e2e-anal192c/live-a/sections/avc.txt",
+  "/home/hive/anybook/logs/installer/e2e-anal192c/reinstalled/sections/avc.txt",
+  "/home/hive/anybook/logs/installer/e2e-anal192c/reinstall/sections/avc.txt"
+ ],
+ "denials": [
+  {
+   "source": "mediaprovider_app",
+   "target": "shell_data_file",
+   "class": "dir",
+   "perms": "search",
+   "permissive": "0",
+   "count": 123,
+   "logs": [
+    "e2e-anal192c/al-console/sections/avc.txt",
+    "e2e-anal192c/inst-stick/sections/avc.txt",
+    "e2e-anal192c/live-a/sections/avc.txt",
+    "e2e-anal192c/reinstall/sections/avc.txt",
+    "e2e-anal192c/reinstalled/sections/avc.txt",
+    "wizard-20261017-anal192c/console/sections/avc.txt",
+    "wizard-20261017-anal192c/dryrun/sections/avc.txt",
+    "wizard-20261017-anal192c/install/sections/avc.txt"
+   ]
+  },
+  {
+   "source": "mediaprovider_app",
+   "target": "shell_data_file",
+   "class": "dir",
+   "perms": "getattr",
+   "permissive": "0",
+   "count": 62,
+   "logs": [
+    "e2e-anal192c/al-console/sections/avc.txt",
+    "e2e-anal192c/inst-stick/sections/avc.txt",
+    "e2e-anal192c/live-a/sections/avc.txt",
+    "e2e-anal192c/reinstall/sections/avc.txt",
+    "e2e-anal192c/reinstalled/sections/avc.txt",
+    "wizard-20261017-anal192c/console/sections/avc.txt",
+    "wizard-20261017-anal192c/dryrun/sections/avc.txt",
+    "wizard-20261017-anal192c/install/sections/avc.txt"
+   ]
+  },
+  {
+   "source": "keystore",
+   "target": "hal_gatekeeper_service",
+   "class": "service_manager",
+   "perms": "find",
+   "permissive": "0",
+   "count": 20,
+   "logs": [
+    "e2e-anal192c/al-console/sections/avc.txt",
+    "e2e-anal192c/inst-stick/sections/avc.txt",
+    "e2e-anal192c/install/sections/avc.txt",
+    "e2e-anal192c/live-a/sections/avc.txt",
+    "e2e-anal192c/reinstall/sections/avc.txt",
+    "e2e-anal192c/reinstalled/sections/avc.txt",
+    "live-20261017-anal192c/first/sections/logcat.txt.gz",
+    "wizard-20261017-anal192c/console/sections/avc.txt",
+    "wizard-20261017-anal192c/dryrun/sections/avc.txt",
+    "wizard-20261017-anal192c/install/sections/avc.txt"
+   ]
+  },
+  {
+   "source": "platform_app",
+   "target": "bluetooth_lea_prop",
+   "class": "file",
+   "perms": "read",
+   "permissive": "0",
+   "count": 20,
+   "logs": [
+    "e2e-anal192c/al-console/sections/avc.txt",
+    "e2e-anal192c/inst-stick/sections/avc.txt",
+    "e2e-anal192c/install/sections/avc.txt",
+    "e2e-anal192c/live-a/sections/avc.txt",
+    "e2e-anal192c/reinstall/sections/avc.txt",
+    "e2e-anal192c/reinstalled/sections/avc.txt",
+    "live-20261017-anal192c/first/sections/logcat.txt.gz",
+    "wizard-20261017-anal192c/console/sections/avc.txt",
+    "wizard-20261017-anal192c/dryrun/sections/avc.txt",
+    "wizard-20261017-anal192c/install/sections/avc.txt"
+   ]
+  },
+  {
+   "source": "shell",
+   "target": "metadata_file",
+   "class": "dir",
+   "perms": "getattr",
+   "permissive": "0",
+   "count": 3,
+   "logs": [
+    "live-20261017-anal192c/first/sections/logcat.txt.gz"
+   ]
+  },
+  {
+   "source": "shell",
+   "target": "linkerconfig_file",
+   "class": "dir",
+   "perms": "getattr",
+   "permissive": "0",
+   "count": 2,
+   "logs": [
+    "live-20261017-anal192c/first/sections/logcat.txt.gz"
+   ]
+  },
+  {
+   "source": "shell",
+   "target": "proc",
+   "class": "file",
+   "perms": "read",
+   "permissive": "0",
+   "count": 1,
+   "logs": [
+    "live-20261017-anal192c/first/sections/logcat.txt.gz"
+   ]
+  },
+  {
+   "source": "shell",
+   "target": "system_dlkm_file",
+   "class": "dir",
+   "perms": "getattr",
+   "permissive": "0",
+   "count": 1,
+   "logs": [
+    "live-20261017-anal192c/first/sections/logcat.txt.gz"
+   ]
+  },
+  {
+   "source": "shell",
+   "target": "vm_data_file",
+   "class": "dir",
+   "perms": "getattr",
+   "permissive": "0",
+   "count": 1,
+   "logs": [
+    "live-20261017-anal192c/first/sections/logcat.txt.gz"
+   ]
+  },
+  {
+   "source": "shell",
+   "target": "mirror_data_file",
+   "class": "dir",
+   "perms": "getattr",
+   "permissive": "0",
+   "count": 1,
+   "logs": [
+    "live-20261017-anal192c/first/sections/logcat.txt.gz"
+   ]
+  }
+ ]
+}

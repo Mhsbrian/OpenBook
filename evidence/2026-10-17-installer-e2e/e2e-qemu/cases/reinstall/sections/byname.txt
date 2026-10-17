@@ -1,0 +1,15 @@
+total 0
+lrwxrwxrwx 1 root root 15 2026-10-17 16:48 EFI -> /dev/block/sda1
+lrwxrwxrwx 1 root root 15 2026-10-17 16:48 boot_a -> /dev/block/sda3
+lrwxrwxrwx 1 root root 15 2026-10-17 16:48 init_boot_a -> /dev/block/sda4
+lrwxrwxrwx 1 root root 15 2026-10-17 16:48 metadata -> /dev/block/sda7
+lrwxrwxrwx 1 root root 15 2026-10-17 16:48 misc -> /dev/block/sda2
+lrwxrwxrwx 1 root root 14 2026-10-17 16:48 sda -> /dev/block/sda
+lrwxrwxrwx 1 root root 15 2026-10-17 16:48 super -> /dev/block/sda8
+lrwxrwxrwx 1 root root 15 2026-10-17 16:48 userdata -> /dev/block/sda9
+lrwxrwxrwx 1 root root 15 2026-10-17 16:48 vbmeta_a -> /dev/block/sda6
+lrwxrwxrwx 1 root root 15 2026-10-17 16:48 vendor_boot_a -> /dev/block/sda5
+MOUNTS
+/dev/block/sda7 /metadata ext4 rw,seclabel,nosuid,nodev,noatime 0 0
+SWAPS
+Filename				Type		Size		Used		Priority

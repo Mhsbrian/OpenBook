@@ -1,0 +1,30 @@
+{
+ "schema": "openbook-bridge-check-addon/1",
+ "name": "openbook-bridgecheck-anal192c",
+ "payload": {
+  "bytes": 5039235,
+  "tar_bytes": 5160960,
+  "sha256": "d5c316813877ab140ce1b7e9d8e54e7f15743915385ce68cbcd29f6a6ea01da9",
+  "files": 9
+ },
+ "esp_files": [
+  "openbook/bridge/README-bridge-check.txt",
+  "openbook/bridge/payload"
+ ],
+ "esp_bytes": 5040361,
+ "version": {
+  "name": "openbook-bridgecheck-anal192c",
+  "repo_commit": "3908b1411f1ffde3577bb277bde92f65fa85cda3",
+  "repo_dirty": false,
+  "toolchain": [
+   "Android (16134705, +pgo, +bolt, +lto, +mlgo, based on r574158c) clang version 21.0.0 (https://android.googlesource.com/toolchain/llvm-project 9f872551d3c681d06fd303b36f16ed5c274735eb)",
+   "NDK r30 (30.0.16248370), build-tools 37.0.0, platform android-36, minSdk 30"
+  ],
+  "probes": {
+   "anybook-probe-arm64.apk": "e5092508941bf1023b5a7f8028ad7da66bcc5fbe95dc5226129660fb73a2d0f2",
+   "anybook-probe-x86_64.apk": "32c5fdd452393ed8ff1bf93b2d7c49152b87e126253d4f866f42f00c6083a6b7",
+   "bench/coremark-arm64": "dfca26a917c9005dfbd7dc7c367c8fa37155da1125b70b754f234d9110f9afd2",
+   "bench/coremark-x86_64": "fefb564ff24c5845c58b1f30b21017b71eafe761201a8dbab5ed65e36ff022da"
+  }
+ }
+}

@@ -1,0 +1,4 @@
+0
+daemon=[]
+0
+      topResumedActivity=ActivityRecord{266146649 u0 org.openbook.installer/.SetupActivity t2}

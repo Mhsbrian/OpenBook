@@ -1,0 +1,8 @@
+# Reproducibility: anal192b rebuilt from its input snapshot
+
+installer-image.sh --inputs ~/anybook/installer/inputs/openbook-live-20261017-anal192b --label openbook-live-20261017-anal192b --menu-timeout 10 --no-xz --out ~/anybook/installer/out/repro-anal192b
+
+first build (15:19Z) before add-ons:
+aba999e241df092abd4108d86647901e6b29489d97caa3bed598da5cfd7b3e25  ~/anybook/installer/out/openbook-live-20261017-anal192b.img
+rebuild (15:32Z):
+aba999e241df092abd4108d86647901e6b29489d97caa3bed598da5cfd7b3e25  ~/anybook/installer/out/repro-anal192b/openbook-live-20261017-anal192b.img

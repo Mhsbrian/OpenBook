@@ -1,0 +1,82 @@
+{
+ "reason": "QEMU exited (0)",
+ "seconds": 68.7,
+ "steps_done": 22,
+ "steps": 22,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "init: init second stage started",
+   "t": 4.9
+  },
+  {
+   "step": 1,
+   "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+   "t": 6.7
+  },
+  {
+   "step": 3,
+   "wait": "console:/ \\$ ",
+   "t": 6.7
+  },
+  {
+   "step": 5,
+   "wait": "console:/ # ",
+   "t": 6.8
+  },
+  {
+   "step": 7,
+   "wait": "console:/ # ",
+   "t": 7.1
+  },
+  {
+   "step": 9,
+   "wait": "\\nBOOTDONE=1 uptime=",
+   "t": 14.3
+  },
+  {
+   "step": 10,
+   "wait": "console:/ # ",
+   "t": 14.3
+  },
+  {
+   "step": 12,
+   "wait": "console:/ # ",
+   "t": 16.2
+  },
+  {
+   "step": 14,
+   "wait": "\n===PRE-DISKS-END===",
+   "t": 17.1
+  },
+  {
+   "step": 15,
+   "wait": "console:/ # ",
+   "t": 17.2
+  },
+  {
+   "step": 17,
+   "wait": "\n===PLAN-END===",
+   "t": 19.3
+  },
+  {
+   "step": 18,
+   "wait": "console:/ # ",
+   "t": 19.3
+  },
+  {
+   "step": 20,
+   "wait": "\"step\":\"report\",\"state\":\"running\"",
+   "t": 68.2
+  },
+  {
+   "step": 21,
+   "monitor": "quit",
+   "t": 68.2
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/qemu/e2e-anal192c/stick.img",
+ "nvme": "/home/hive/anybook/installer/qemu/e2e-anal192c/whole.img",
+ "nvme2": null
+}

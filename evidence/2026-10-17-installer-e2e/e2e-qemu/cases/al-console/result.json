@@ -1,0 +1,237 @@
+{
+ "reason": "QEMU exited (0)",
+ "seconds": 80.5,
+ "steps_done": 80,
+ "steps": 80,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "init: init second stage started",
+   "t": 3.2
+  },
+  {
+   "step": 1,
+   "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+   "t": 4.9
+  },
+  {
+   "step": 3,
+   "wait": "console:/ \\$ ",
+   "t": 4.9
+  },
+  {
+   "step": 5,
+   "wait": "console:/ # ",
+   "t": 4.9
+  },
+  {
+   "step": 7,
+   "wait": "console:/ # ",
+   "t": 5.2
+  },
+  {
+   "step": 9,
+   "wait": "\\nBOOTDONE=1 uptime=",
+   "t": 12.4
+  },
+  {
+   "step": 10,
+   "wait": "console:/ # ",
+   "t": 12.4
+  },
+  {
+   "step": 12,
+   "wait": "console:/ # ",
+   "t": 13.7
+  },
+  {
+   "step": 14,
+   "wait": "console:/ # ",
+   "t": 14.7
+  },
+  {
+   "step": 16,
+   "wait": "console:/ # ",
+   "t": 15.4
+  },
+  {
+   "step": 18,
+   "wait": "console:/ # ",
+   "t": 17.8
+  },
+  {
+   "step": 20,
+   "wait": "console:/ # ",
+   "t": 19.5
+  },
+  {
+   "step": 22,
+   "wait": "console:/ # ",
+   "t": 21.3
+  },
+  {
+   "step": 24,
+   "wait": "console:/ # ",
+   "t": 24.9
+  },
+  {
+   "step": 26,
+   "wait": "console:/ # ",
+   "t": 25.2
+  },
+  {
+   "step": 28,
+   "wait": "\n===INSTALLED-END===",
+   "t": 28.7
+  },
+  {
+   "step": 29,
+   "wait": "console:/ # ",
+   "t": 28.7
+  },
+  {
+   "step": 31,
+   "wait": "\n===INSTALLER-STATE-END===",
+   "t": 32.2
+  },
+  {
+   "step": 32,
+   "wait": "console:/ # ",
+   "t": 32.2
+  },
+  {
+   "step": 34,
+   "wait": "\n===VOLD-END===",
+   "t": 35.1
+  },
+  {
+   "step": 35,
+   "wait": "console:/ # ",
+   "t": 35.1
+  },
+  {
+   "step": 37,
+   "wait": "\n===NOTIFICATIONS-END===",
+   "t": 37.1
+  },
+  {
+   "step": 38,
+   "wait": "console:/ # ",
+   "t": 37.1
+  },
+  {
+   "step": 40,
+   "wait": "console:/ # ",
+   "t": 37.6
+  },
+  {
+   "step": 42,
+   "wait": "@@SEEN\\[",
+   "t": 39.7
+  },
+  {
+   "step": 43,
+   "wait": "console:/ # ",
+   "t": 39.7
+  },
+  {
+   "step": 46,
+   "wait": "@@SNAP\\[",
+   "t": 42.6
+  },
+  {
+   "step": 47,
+   "wait": "console:/ # ",
+   "t": 42.6
+  },
+  {
+   "step": 50,
+   "wait": "@@TAPPED@@",
+   "t": 45.2
+  },
+  {
+   "step": 51,
+   "wait": "console:/ # ",
+   "t": 45.2
+  },
+  {
+   "step": 54,
+   "wait": "@@SEEN\\[",
+   "t": 50.5
+  },
+  {
+   "step": 55,
+   "wait": "console:/ # ",
+   "t": 50.5
+  },
+  {
+   "step": 57,
+   "wait": "@@TAPPED@@",
+   "t": 52.5
+  },
+  {
+   "step": 58,
+   "wait": "console:/ # ",
+   "t": 52.5
+  },
+  {
+   "step": 61,
+   "wait": "@@SEEN\\[",
+   "t": 57.8
+  },
+  {
+   "step": 62,
+   "wait": "console:/ # ",
+   "t": 57.8
+  },
+  {
+   "step": 64,
+   "wait": "@@TAPPED@@",
+   "t": 60.0
+  },
+  {
+   "step": 65,
+   "wait": "console:/ # ",
+   "t": 60.0
+  },
+  {
+   "step": 69,
+   "wait": "@@SNAP\\[",
+   "t": 72.1
+  },
+  {
+   "step": 70,
+   "wait": "console:/ # ",
+   "t": 72.1
+  },
+  {
+   "step": 73,
+   "wait": "\n===AFTER-SETUP-END===",
+   "t": 74.7
+  },
+  {
+   "step": 74,
+   "wait": "console:/ # ",
+   "t": 74.7
+  },
+  {
+   "step": 76,
+   "wait": "\n===AVC-END===",
+   "t": 75.8
+  },
+  {
+   "step": 77,
+   "wait": "console:/ # ",
+   "t": 75.8
+  },
+  {
+   "step": 79,
+   "wait": "reboot: Power down|ACPI: PM: Preparing to enter system sleep state S5|Power down",
+   "t": 79.4
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/qemu/e2e-anal192c/blank-usb.img",
+ "nvme": "/home/hive/anybook/installer/qemu/e2e-anal192c/win-console.img",
+ "nvme2": null
+}

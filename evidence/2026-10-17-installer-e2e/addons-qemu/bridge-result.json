@@ -1,0 +1,41 @@
+{
+ "reason": "QEMU exited (0)",
+ "seconds": 436.8,
+ "steps_done": 6,
+ "steps": 6,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "openbook-live: live boot: boot_part_uuid=",
+   "t": 3.7
+  },
+  {
+   "step": 1,
+   "wait": "openbook-live: logs: saving to openbook/logs/live-\\d+ on the stick.s ESP; add-on bridge",
+   "t": 5.2
+  },
+  {
+   "step": 2,
+   "wait": "openbook-live: logs: sys.boot_completed=1",
+   "t": 20.8
+  },
+  {
+   "step": 3,
+   "wait": "openbook-live: addon bridge: running run.sh",
+   "t": 66.0
+  },
+  {
+   "step": 4,
+   "wait": "openbook-live: addon bridge: run.sh exit",
+   "t": 401.2
+  },
+  {
+   "step": 5,
+   "wait": "openbook-live: logs: done: ",
+   "t": 433.2
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/bridgecheck/openbook-bridgecheck-anal192c/qemu-c/stick.img",
+ "nvme": null
+}

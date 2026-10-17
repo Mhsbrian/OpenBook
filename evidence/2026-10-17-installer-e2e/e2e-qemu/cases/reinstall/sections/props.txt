@@ -1,0 +1,6 @@
+[ro.boot.boot_part_uuid]: [83eb3578-1a3b-5822-8021-aead4fec9a89]
+[ro.boot.openbook.live]: [1]
+[ro.boot.openbook.loader]: [sdboot]
+[ro.boot.serialno]: [OPENBOOKLIVE0001]
+[ro.build.fingerprint]: [OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys]
+Enforcing

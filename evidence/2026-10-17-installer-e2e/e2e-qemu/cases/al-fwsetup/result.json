@@ -1,0 +1,11 @@
+{
+ "reason": "QEMU exited (0)",
+ "seconds": 2.7,
+ "steps_done": 0,
+ "steps": 0,
+ "hits": [],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/qemu/e2e-anal192c/helper.img",
+ "nvme": "/home/hive/anybook/installer/qemu/e2e-anal192c/win.img",
+ "nvme2": null
+}

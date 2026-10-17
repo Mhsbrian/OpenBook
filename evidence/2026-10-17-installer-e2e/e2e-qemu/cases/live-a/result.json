@@ -1,0 +1,272 @@
+{
+ "reason": "QEMU exited (0)",
+ "seconds": 101.0,
+ "steps_done": 91,
+ "steps": 91,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "init: init second stage started",
+   "t": 5.4
+  },
+  {
+   "step": 1,
+   "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+   "t": 7.1
+  },
+  {
+   "step": 3,
+   "wait": "console:/ \\$ ",
+   "t": 7.1
+  },
+  {
+   "step": 5,
+   "wait": "console:/ # ",
+   "t": 7.2
+  },
+  {
+   "step": 7,
+   "wait": "console:/ # ",
+   "t": 7.4
+  },
+  {
+   "step": 9,
+   "wait": "\\nBOOTDONE=1 uptime=",
+   "t": 14.7
+  },
+  {
+   "step": 10,
+   "wait": "console:/ # ",
+   "t": 14.7
+  },
+  {
+   "step": 12,
+   "wait": "console:/ # ",
+   "t": 16.0
+  },
+  {
+   "step": 14,
+   "wait": "console:/ # ",
+   "t": 17.0
+  },
+  {
+   "step": 16,
+   "wait": "console:/ # ",
+   "t": 17.7
+  },
+  {
+   "step": 18,
+   "wait": "console:/ # ",
+   "t": 20.2
+  },
+  {
+   "step": 20,
+   "wait": "console:/ # ",
+   "t": 21.8
+  },
+  {
+   "step": 22,
+   "wait": "console:/ # ",
+   "t": 23.6
+  },
+  {
+   "step": 24,
+   "wait": "console:/ # ",
+   "t": 27.2
+  },
+  {
+   "step": 26,
+   "wait": "\n===PROPS-END===",
+   "t": 28.7
+  },
+  {
+   "step": 27,
+   "wait": "console:/ # ",
+   "t": 28.7
+  },
+  {
+   "step": 29,
+   "wait": "\n===BYNAME-END===",
+   "t": 30.4
+  },
+  {
+   "step": 30,
+   "wait": "console:/ # ",
+   "t": 30.4
+  },
+  {
+   "step": 32,
+   "wait": "\n===DISKS-END===",
+   "t": 31.1
+  },
+  {
+   "step": 33,
+   "wait": "console:/ # ",
+   "t": 31.1
+  },
+  {
+   "step": 35,
+   "wait": "\n===PLAN-SMALL-END===",
+   "t": 32.8
+  },
+  {
+   "step": 36,
+   "wait": "console:/ # ",
+   "t": 32.8
+  },
+  {
+   "step": 38,
+   "wait": "@@SEEN\\[",
+   "t": 35.1
+  },
+  {
+   "step": 39,
+   "wait": "console:/ # ",
+   "t": 35.1
+  },
+  {
+   "step": 41,
+   "wait": "@@TAPPED@@",
+   "t": 37.2
+  },
+  {
+   "step": 42,
+   "wait": "console:/ # ",
+   "t": 37.2
+  },
+  {
+   "step": 45,
+   "wait": "@@SEEN\\[",
+   "t": 43.4
+  },
+  {
+   "step": 46,
+   "wait": "console:/ # ",
+   "t": 43.4
+  },
+  {
+   "step": 48,
+   "wait": "@@TAPPED@@",
+   "t": 45.5
+  },
+  {
+   "step": 49,
+   "wait": "console:/ # ",
+   "t": 45.5
+  },
+  {
+   "step": 52,
+   "wait": "@@SEEN\\[",
+   "t": 51.7
+  },
+  {
+   "step": 53,
+   "wait": "console:/ # ",
+   "t": 51.7
+  },
+  {
+   "step": 55,
+   "wait": "@@TAPPED@@",
+   "t": 53.9
+  },
+  {
+   "step": 56,
+   "wait": "console:/ # ",
+   "t": 53.9
+  },
+  {
+   "step": 59,
+   "wait": "@@TAPPED@@",
+   "t": 58.0
+  },
+  {
+   "step": 60,
+   "wait": "console:/ # ",
+   "t": 58.0
+  },
+  {
+   "step": 63,
+   "wait": "@@SEEN\\[",
+   "t": 64.1
+  },
+  {
+   "step": 64,
+   "wait": "console:/ # ",
+   "t": 64.1
+  },
+  {
+   "step": 68,
+   "wait": "@@SNAP\\[",
+   "t": 71.9
+  },
+  {
+   "step": 69,
+   "wait": "console:/ # ",
+   "t": 71.9
+  },
+  {
+   "step": 72,
+   "wait": "console:/ # ",
+   "t": 72.6
+  },
+  {
+   "step": 75,
+   "wait": "\n===PLAN-END===",
+   "t": 76.8
+  },
+  {
+   "step": 76,
+   "wait": "console:/ # ",
+   "t": 76.8
+  },
+  {
+   "step": 78,
+   "wait": "\n===APPLY-NOENV-END===",
+   "t": 78.9
+  },
+  {
+   "step": 79,
+   "wait": "console:/ # ",
+   "t": 78.9
+  },
+  {
+   "step": 81,
+   "wait": "\n===APPLY-END===",
+   "t": 95.2
+  },
+  {
+   "step": 82,
+   "wait": "console:/ # ",
+   "t": 95.2
+  },
+  {
+   "step": 84,
+   "wait": "\n===DISKS-AFTER-END===",
+   "t": 96.1
+  },
+  {
+   "step": 85,
+   "wait": "console:/ # ",
+   "t": 96.1
+  },
+  {
+   "step": 87,
+   "wait": "\n===AVC-END===",
+   "t": 97.2
+  },
+  {
+   "step": 88,
+   "wait": "console:/ # ",
+   "t": 97.2
+  },
+  {
+   "step": 90,
+   "wait": "reboot: Power down|ACPI: PM: Preparing to enter system sleep state S5|Power down",
+   "t": 100.9
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/qemu/e2e-anal192c/stick.img",
+ "nvme": "/home/hive/anybook/installer/qemu/e2e-anal192c/win.img",
+ "nvme2": "/home/hive/anybook/installer/qemu/e2e-anal192c/small.img"
+}
