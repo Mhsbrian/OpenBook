@@ -15,6 +15,8 @@ virtio_blk.ko	gki	-	first_stage	-	VM: root disk on virtio-blk (Cuttlefish/crosvm
 virtio_dma_buf.ko	anybook	block	first_stage	-	VM: dep of virtio-gpu. Never present on the laptop
 virtio-gpu.ko	anybook	block	first_stage	-	VM: display, so SurfaceFlinger has card0 early as in ANAL-172. Never present on the laptop
 virtio_input.ko	anybook	block	first_stage	-	VM: keyboard/tablet. Never present on the laptop
+system_heap.ko	anybook	load	load	DMA-BUF system heap	/dev/dma_heap/system; Codec2's software codecs and other buffer users allocate from it, and without it media decoding fails (ANAL-176). Googlebook loads it from vendor_dlkm too
+efivarfs.ko	anybook	load	load	UEFI variables	efivarfs, so the installer can write firmware boot entries (ANAL-191/192). Loading only registers the filesystem; nothing mounts it by default
 wmi.ko	anybook	load	load	ASUS WMI GUIDs	ACPI WMI bus; asus-wmi, video and nvidia-wmi-ec-backlight sit on it
 wmi-bmof.ko	anybook	load	load	WMI binary MOF	exposes the firmware's WMI MOF to userspace; harmless
 video.ko	anybook	load	load	ACPI video/backlight	acpi_video: backlight type selection and brightness hotkeys; amdgpu links it

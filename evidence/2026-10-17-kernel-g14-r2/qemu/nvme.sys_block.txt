@@ -1,0 +1,1 @@
+/sys/class/block/nvme0n1 /sys/devices/pci0000:00/0000:00:02.0/0000:01:00.0/nvme/nvme0/nvme0n1

@@ -103,6 +103,8 @@ BOARD_USES_GENERIC_AUDIO := false
 BOARD_MALLOC_ALIGNMENT := 16
 
 BOARD_VENDOR_SEPOLICY_DIRS += device/anybook/common/pc/sepolicy/vendor
+# Platform-side rules for AOSP's own media daemons on this kernel (Codec2 queues; see the .te).
+SYSTEM_EXT_PRIVATE_SEPOLICY_DIRS += device/anybook/common/pc/sepolicy/system_ext
 # The installer's daemon and the whole-disk label it writes through (ANAL-191).
 include device/anybook/common/installer/BoardConfig.mk
 

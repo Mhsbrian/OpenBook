@@ -1,3 +1,5 @@
+system_heap.ko
+efivarfs.ko
 wmi.ko
 wmi-bmof.ko
 video.ko

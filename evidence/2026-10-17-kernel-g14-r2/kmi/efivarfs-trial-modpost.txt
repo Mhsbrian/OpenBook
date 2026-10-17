@@ -1,0 +1,12 @@
+WARNING: modpost: missing MODULE_DESCRIPTION() in drivers/dma-buf/heaps/system_heap.o
+modpost: "get_next_ino" [fs/efivarfs/efivarfs.ko] undefined!
+modpost: "simple_recursive_removal" [fs/efivarfs/efivarfs.ko] undefined!
+modpost: "try_lookup_noperm" [fs/efivarfs/efivarfs.ko] undefined!
+modpost: "efivar_is_available" [fs/efivarfs/efivarfs.ko] undefined!
+modpost: "efivar_ops_nh" [fs/efivarfs/efivarfs.ko] undefined!
+modpost: "get_tree_single" [fs/efivarfs/efivarfs.ko] undefined!
+modpost: "efivar_supports_writes" [fs/efivarfs/efivarfs.ko] undefined!
+modpost: "find_next_child" [fs/efivarfs/efivarfs.ko] undefined!
+modpost: "efivar_query_variable_info" [fs/efivarfs/efivarfs.ko] undefined!
+modpost: "efivar_reserved_space" [fs/efivarfs/efivarfs.ko] undefined!
+WARNING: modpost: suppressed 11 unresolved symbol warnings because there were too many)

@@ -374,6 +374,8 @@ KCF_RESNAP=1 scripts/kernel-cf-boot.sh  # take a new snapshot of ~/anybook/aosp/
 
 ## Bare-metal packaging for the G14 (ANAL-198)
 
+> **Updated 2026-10-17:** the dist now has 140 vendor modules (`system_heap` and `efivarfs` added) and a rebuilt GKI with 26 more KMI symbols (release `6.18.21-android17-5-gfbfdd65b0fd1`). The figures below are from the first delivery (PR #26); see [Follow-up: system DMA-BUF heap, efivarfs, GPU reset](#follow-up-2026-10-17-system-dma-buf-heap-efivarfs-gpu-reset).
+
 Status as of 2026-10-16. Evidence is in `evidence/2026-10-16-kernel-g14/`; `results.json` has every check in machine-readable form and `qemu/summary.md` the boot runs. Guesses are labelled **HYPOTHESIS**. **Nothing here ran on the laptop:** the boot checks are QEMU/KVM on the Ryzen 9 7950X host.
 
 ### Results
@@ -520,3 +522,78 @@ python3 scripts/kernel-g14-modlists.py gen                           # after edi
 - **A recovery module list** (amdgpu and input), if the product ships a recovery or fastbootd UI.
 - **A fixed module-signing key.** `kernel_build` has `module_signing_key`, but `common_kernel()` in `build/kernel/kleaf/common_kernels.bzl` does not pass it through. It needs a small `build/kernel` patch plus a key kept outside the repo. Until then, every cold GKI rebuild gets a new key, and the whole dist has to ship together.
 - **The QEMU check reuses the Cuttlefish userspace.** Rerun it against ANAL-199's G14 product when that exists, by pointing `G14_PRODUCT` at its `PRODUCT_OUT`. It will need the product's fstab in place of `test/fstab.qemu`.
+
+### Follow-up (2026-10-17): system DMA-BUF heap, efivarfs, GPU reset
+
+Evidence is in `evidence/2026-10-17-kernel-g14-r2/`, starting with `SUMMARY.md`. The product checks ran in QEMU/OVMF on the G14 product (`anybook_g14_x86_64`), not on the laptop.
+
+**1. The system DMA-BUF heap now ships, and a Vorbis ringtone decodes.**
+- **How Googlebook does it:** ruby's `vendor_dlkm` carries `system_heap.ko`, line 451 of its `modules.load`. The GKI has `DMABUF_HEAPS=y` but not the heap, in Google's 16302624 and in the `android17-6.18` tip alike.
+- **What we changed:** `CONFIG_DMABUF_HEAPS_SYSTEM=m` in `anybook_amd.fragment`, and `system_heap.ko` in the module set and in both `modules.load` lists. All 46 symbols it imports were already on the KMI, so this alone needs no GKI change.
+- **QEMU on the G14 product.** The same product, with the same two userspace fixes below, was built twice; only the kernel differs (`product-qemu/before-full`, `after-full`):
+
+  | | PR #26 kernel (`g44a90255c95f`) | This kernel (`gfbfdd65b0fd1`) |
+  |---|---|---|
+  | `/dev/dma_heap/` | missing | `system`, `system-uncached` |
+  | `Could not open DMA-BUF heap named: system` | 64 | 0 |
+  | `stagefright -a -D out.pcm Atria.ogg` (Codec2 `c2.android.vorbis.decoder`) | aborts: `source->start()` = -12 (ENOMEM) | exit 0, 1,190,700 bytes of PCM: the whole 13.5 s ringtone |
+
+- **Two userspace bugs hid behind the heap.** Both sit in `device/anybook/common/pc` and are fixed in the same PR; without them the decoder never gets far enough to need the heap:
+  - **Codec2 HAL selection.** Clients default to HIDL (`media.c2.hal.selection`), and the product runs no `hwservicemanager`. So `MediaCodecList` saw only the in-process `__ApexCodecs__` store, which has AAC and no Vorbis: "No matching decoder". This matches the G14 log's "Only the `__ApexCodecs__` Codec2 service is listed". `pc.mk` now sets `media.c2.hal.selection=aidl`, as Cuttlefish, the emulator and dragonboard do.
+  - **Codec2's FMQ memfds under SELinux.** AOSP grants them as `memfd_file` objects, which needs the `memfd_class` policy capability that AOSP 17 leaves off. On this kernel each memfd is a tmpfs file with its creator's type. `mediaswcodec` had no tmpfs type and could not write its own queues, nor map those of `mediaserver`, `system_server` or the shell: "Codec2Client: queue -- bad input". `sepolicy/system_ext/mediaswcodec.te` gives it `mediaswcodec_tmpfs` (an `mlstrustedobject`, for apps) and access to its clients' queues. This is the same pattern as ANAL-179's audio HAL rule.
+- **`stagefright` is in the userdebug image now** (`PRODUCT_PACKAGES_DEBUG`), so the laptop can run the same check.
+- **Not shown: a ringtone preview through NuPlayer.** Driving the SoundPicker UI in QEMU did not start a preview, so the Settings path is still to be shown on the laptop (ANAL-192's checklist). `stagefright` exercises the same Codec2 component.
+- **The standard product boot check still passes** (`product-qemu/regress`). It has one new denial, and it only appears now that decoding works: `audioserver` cannot map SystemUI's SoundPool shared memory (`appdomain_tmpfs`). AOSP grants that as `audioserver appdomain:memfd_file`. A tmpfs rule alone would not be enough, because MLS stops `audioserver` (s0) from writing an app's `s0:c512,c768` file. So it belongs to the audio lane (ANAL-179); turning on `memfd_class` would be the general fix. SystemUI's UI sounds (SoundPool) are affected; streaming playback uses audioserver-created memory, which is already covered.
+
+**2. efivarfs: a vendor module plus 26 KMI symbols. This keeps Google's GKI configuration.**
+- **The trial build.** It failed at modpost on 10 symbols the trimmed GKI does not export (`kmi/efivarfs-trial-modpost.txt`). Kleaf's symbol-list update then listed 26 imports that are not on the KMI (`kmi/efivarfs-new-kmi-symbols.txt`):
+  - `efivar_*` (lock, get, set, query, …), `efivar_ops_nh` and `efi_status_to_err`;
+  - the `ucs2_*` helpers;
+  - VFS helpers: `d_alloc`, `get_tree_single`, `simple_recursive_removal`, `find_next_child`, `get_next_ino`, `try_lookup_noperm`, `inode_just_drop`, …
+
+  21 of the 26 are not exported by today's GKI at all; 5 are exported but protected from unsigned modules. None is on `build/kernel/abi/symbols.deny`.
+- **Route taken:** `CONFIG_EFIVAR_FS=m` in the vendor fragment, `efivarfs.ko` in `vendor_dlkm`, and the 26 symbols added to `anybook_amd` (patch 0003; 1,887 → 1,949 entries). That is the same partner-symbol-list mechanism ANAL-171 used for 214 symbols.
+  - The GKI `.config` is unchanged (`dot_config` sha256 `f0dff3f0…`, as before).
+  - The rebuilt GKI exports 21 more symbols. 0 CRCs changed and 0 removed, and all 4,038 stock KMI symbols are intact (`kmi/kmi-pr26-vs-r2.txt`, `kmi-stock-vs-r2.txt`).
+  - Because the GKI was rebuilt, the module-signing key changed. The whole dist is new and must ship together, as always.
+- **Alternatives, both owner decisions:**
+  - `CONFIG_EFIVAR_FS=y` in `gki_defconfig`, as the `android17-6.18` tip has it. That would be a fourth built-in deviation from Google's 16302624 configuration.
+  - Moving the base to the tip (6.18.32). That switches bases.
+
+  I recommend the module route taken here: it needs neither.
+- **What works (QEMU/OVMF):**
+  - The module loads on every boot; init only registers the filesystem, nothing mounts it.
+  - `mount -t efivarfs` works, the firmware's 37 variables are listed, and `BootOrder` reads correctly (0002, 0000, 0001, 0003).
+  - With SELinux permissive, a variable is created, read back and deleted.
+- **What the installer still needs (ANAL-191):**
+  - **SELinux policy.** Under enforcing, creating a variable fails: efivarfs is `unlabeled` and `associate` is denied, because AOSP 17's policy has no `genfscon` for it. ANAL-191 needs a type for it plus rules for `openbook_installd`.
+  - **`chattr -i` for test variables.** efivarfs makes variables under unknown GUIDs immutable. The `Boot####` entries under the EFI global GUID stay removable.
+
+**3. GPU hang recovery on gfx1150 (investigation; HYPOTHESIS where marked).**
+- **What happened on the G14** (`anal176t`, `docs/graphics-amd.md`):
+  1. amdgpu tried a per-queue reset: "Starting gfx_0.0.0 ring reset" through MES.
+  2. MES did not answer within 2 s: `MES failed to respond to msg=RESET`, -110, then the same for `REMOVE_QUEUE`.
+  3. The pipe-reset fallback was refused: "The CPFW hasn't support pipe reset yet".
+  4. MODE2 full reset, and VRAM was lost.
+- **What our kernel supports:**
+  - In 6.18, `gfx_v11_0.c` turns on `AMDGPU_RESET_TYPE_PER_QUEUE` for every GC 11 part except 11.0.0/2/3, which need ME ≥ 2280 and MEC ≥ 2410. So GC 11.5 does get the MES queue reset.
+  - `gfx_v11_pipe_reset_support()` returns false unconditionally, for every firmware version.
+  - The `android17-6.18` tip (6.18.32) has the same code. Since our base, only two unrelated GFX11 commits landed there.
+- **What our firmware is:** linux-firmware `38c1a709`, and the GC 11.5.0 CP/MES files were last updated in that very merge. There is nothing newer upstream to try.
+- **HYPOTHESIS:** the hung GFX pipe also stalled MES, so a MES-driven queue reset cannot succeed. Only a CP/MMIO pipe reset, which is disabled, or a full reset can recover.
+- **What would improve it:**
+  1. Upstream amdgpu work. Our 6.18 already has an MMIO queue-reset path in `gfx_v11_0_reset_kgq()`, but hard-wires `use_mmio = false`. Upstream is adding a pipe-reset fallback. Track both in `android-mainline`, and enable pipe reset once AMD's CP firmware supports it on GC 11.5.
+  2. Newer MES/CP firmware from AMD.
+  3. Userspace: SurfaceFlinger and SystemUI survive context loss instead of aborting on `EGL_CONTEXT_LOST`. That is the only lever that limits a full reset to the guilty app.
+  4. Next G14 session: capture `/sys/kernel/debug/dri/0/amdgpu_firmware_info`. The MES version is not in the file header in a form we could read.
+- **Exposure:** the hang came under Vulkan 1.1 with 12 concurrent dEQP clients, and Vulkan 1.4, which ships now, ran the same cases clean.
+
+**Commands**
+
+```bash
+scripts/kernel-g14-package.sh --evidence evidence/<date>-kernel-g14-r2   # kernel images, checks, firmware, kernel QEMU (5/5)
+scripts/g14-stage-kernel.sh && touch <AOSP>/vendor/anybook/g14-kernel/*  # older images keep older mtimes: touch, or the incremental build keeps the old copies
+scripts/aosp-docker.sh -d anybook-aosp-build /repo/scripts/aosp-build.sh anybook_g14_x86_64-cp2a-userdebug droid && docker wait anybook-aosp-build
+scripts/g14-image.sh --label <name>
+scripts/g14-qemu.sh <img> <run> $PWD/scripts/installer/expect-g14-media.json   # heap, Codec2 decode, efivarfs; ~75 s
+```

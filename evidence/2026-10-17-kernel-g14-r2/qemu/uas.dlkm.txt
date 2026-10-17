@@ -1,0 +1,298 @@
+[    1.824604][    T1] init: starting service 'vendor.dlkm_loader'...
+[    1.827052][    T1] init: ... started service 'vendor.dlkm_loader' has pid 380
+[    1.831472][  T380] dlkm_loader: dlkm loader successfully initialized
+[    1.834459][  T380] dlkm_loader: Loading module /vendor/lib/modules/system_heap.ko with args ''
+[    1.837984][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/system_heap.ko
+[    1.839041][  T380] dlkm_loader: Loading module /vendor/lib/modules/efivarfs.ko with args ''
+[    1.841449][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/efivarfs.ko
+[    1.842404][  T380] dlkm_loader: Loading module /vendor/lib/modules/wmi.ko with args ''
+[    1.846499][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/wmi.ko
+[    1.847195][  T380] dlkm_loader: Loading module /vendor/lib/modules/wmi-bmof.ko with args ''
+[    1.848365][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/wmi-bmof.ko
+[    1.849223][  T380] dlkm_loader: Loading module /vendor/lib/modules/video.ko with args ''
+[    1.850721][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/video.ko
+[    1.851562][  T380] dlkm_loader: Loading module /vendor/lib/modules/platform_profile.ko with args ''
+[    1.852971][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/platform_profile.ko
+[    1.853764][  T380] dlkm_loader: Loading module /vendor/lib/modules/sparse-keymap.ko with args ''
+[    1.854945][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/sparse-keymap.ko
+[    1.855823][  T380] dlkm_loader: Loading module /vendor/lib/modules/hwmon.ko with args ''
+[    1.857333][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/hwmon.ko
+[    1.858170][  T380] dlkm_loader: Loading module /vendor/lib/modules/ac.ko with args ''
+[    1.859337][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/ac.ko
+[    1.860146][  T380] dlkm_loader: Loading module /vendor/lib/modules/battery.ko with args ''
+[    1.861534][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/battery.ko
+[    1.862383][  T380] dlkm_loader: Loading module /vendor/lib/modules/fan.ko with args ''
+[    1.863555][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/fan.ko
+[    1.864367][  T380] dlkm_loader: Loading module /vendor/lib/modules/thermal.ko with args ''
+[    1.865677][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/thermal.ko
+[    1.866533][  T380] dlkm_loader: Loading module /vendor/lib/modules/k10temp.ko with args ''
+[    1.867734][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/k10temp.ko
+[    1.868455][  T380] dlkm_loader: Loading module /vendor/lib/modules/i2c-smbus.ko with args ''
+[    1.869657][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/i2c-smbus.ko
+[    1.870397][  T380] dlkm_loader: Loading module /vendor/lib/modules/i2c-piix4.ko with args ''
+[    1.871677][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/i2c-piix4.ko
+[    1.872549][  T380] dlkm_loader: Loading module /vendor/lib/modules/spi-amd.ko with args ''
+[    1.873763][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/spi-amd.ko
+[    1.874606][  T380] dlkm_loader: Loading module /vendor/lib/modules/spi-amd-pci.ko with args ''
+[    1.875785][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/spi-amd-pci.ko
+[    1.876536][  T380] dlkm_loader: Loading module /vendor/lib/modules/mfd-core.ko with args ''
+[    1.877728][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/mfd-core.ko
+[    1.878571][  T380] dlkm_loader: Loading module /vendor/lib/modules/serial-multi-instantiate.ko with args ''
+[    1.879959][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/serial-multi-instantiate.ko
+[    1.880811][  T380] dlkm_loader: Loading module /vendor/lib/modules/amd-pmc.ko with args ''
+[    1.882182][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/amd-pmc.ko
+[    1.883016][  T380] dlkm_loader: Loading module /vendor/lib/modules/tpm.ko with args ''
+[    1.885938][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/tpm.ko
+[    1.886802][  T380] dlkm_loader: Loading module /vendor/lib/modules/tpm_crb.ko with args ''
+[    1.888032][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/tpm_crb.ko
+[    1.888873][  T380] dlkm_loader: Loading module /vendor/lib/modules/ucsi_acpi.ko with args ''
+[    1.890081][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/ucsi_acpi.ko
+[    1.890926][  T380] dlkm_loader: Loading module /vendor/lib/modules/i2c-designware-core.ko with args ''
+[    1.892319][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/i2c-designware-core.ko
+[    1.893249][  T380] dlkm_loader: Loading module /vendor/lib/modules/i2c-designware-platform.ko with args ''
+[    1.894559][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/i2c-designware-platform.ko
+[    1.895399][  T380] dlkm_loader: Loading module /vendor/lib/modules/i2c-hid.ko with args ''
+[    1.896662][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/i2c-hid.ko
+[    1.897494][  T380] dlkm_loader: Loading module /vendor/lib/modules/i2c-hid-acpi.ko with args ''
+[    1.898696][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/i2c-hid-acpi.ko
+[    1.899451][  T380] dlkm_loader: Loading module /vendor/lib/modules/amd_sfh.ko with args ''
+[    1.900932][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/amd_sfh.ko
+[    1.901900][  T380] dlkm_loader: Loading module /system/lib/modules/rfkill.ko with args ''
+[    1.903536][  T380] dlkm_loader: Loaded kernel module /system/lib/modules/rfkill.ko
+[    1.904246][  T380] dlkm_loader: Loading module /vendor/lib/modules/asus-wmi.ko with args ''
+[    1.906713][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/asus-wmi.ko
+[    1.907438][  T380] dlkm_loader: Loading module /vendor/lib/modules/asus-nb-wmi.ko with args ''
+[    1.938071][  T380] dlkm_loader: Failed to insmod '/vendor/lib/modules/asus-nb-wmi.ko' with args '': No such device
+[    1.939196][  T380] dlkm_loader: LoadWithAliases was unable to load asus_nb_wmi, tried: asus_nb_wmi
+[    1.940222][  T380] dlkm_loader: Loading module /vendor/lib/modules/hid-asus.ko with args ''
+[    1.941571][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/hid-asus.ko
+[    1.942313][  T380] dlkm_loader: Loading module /vendor/lib/modules/nvidia-wmi-ec-backlight.ko with args ''
+[    1.943652][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/nvidia-wmi-ec-backlight.ko
+[    1.944487][  T380] dlkm_loader: Loading module /vendor/lib/modules/drm_buddy.ko with args ''
+[    1.945913][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/drm_buddy.ko
+[    1.946653][  T380] dlkm_loader: Loading module /vendor/lib/modules/drm_exec.ko with args ''
+[    1.947824][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/drm_exec.ko
+[    1.948667][  T380] dlkm_loader: Loading module /vendor/lib/modules/drm_suballoc_helper.ko with args ''
+[    1.949918][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/drm_suballoc_helper.ko
+[    1.950736][  T380] dlkm_loader: Loading module /vendor/lib/modules/drm_ttm_helper.ko with args ''
+[    1.951904][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/drm_ttm_helper.ko
+[    1.952679][  T380] dlkm_loader: Loading module /vendor/lib/modules/drm_display_helper.ko with args ''
+[    1.955302][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/drm_display_helper.ko
+[    1.956231][  T380] dlkm_loader: Loading module /vendor/lib/modules/drm_panel_backlight_quirks.ko with args ''
+[    1.957482][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/drm_panel_backlight_quirks.ko
+[    1.958471][  T380] dlkm_loader: Loading module /vendor/lib/modules/gpu-sched.ko with args ''
+[    1.960218][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/gpu-sched.ko
+[    1.961066][  T380] dlkm_loader: Loading module /vendor/lib/modules/i2c-algo-bit.ko with args ''
+[    1.962324][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/i2c-algo-bit.ko
+[    1.963192][  T380] dlkm_loader: Loading module /vendor/lib/modules/amdxcp.ko with args ''
+[    1.964417][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/amdxcp.ko
+[    1.965145][  T380] dlkm_loader: Loading module /vendor/lib/modules/amdgpu.ko with args ''
+[    2.108385][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/amdgpu.ko
+[    2.109319][  T380] dlkm_loader: Loading module /vendor/lib/modules/amdxdna.ko with args ''
+[    2.112367][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/amdxdna.ko
+[    2.113216][  T380] dlkm_loader: Loading module /vendor/lib/modules/rtsx_pci.ko with args ''
+[    2.115449][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtsx_pci.ko
+[    2.116294][  T380] dlkm_loader: Loading module /vendor/lib/modules/rtsx_pci_sdmmc.ko with args ''
+[    2.117695][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtsx_pci_sdmmc.ko
+[    2.118585][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-core.ko with args ''
+[    2.121238][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-core.ko
+[    2.122122][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec.ko with args ''
+[    2.125807][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec.ko
+[    2.126574][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-ctl-led.ko with args ''
+[    2.127946][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-ctl-led.ko
+[    2.128822][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-generic.ko with args ''
+[    2.131107][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-generic.ko
+[    2.132048][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-realtek-lib.ko with args ''
+[    2.133750][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-realtek-lib.ko
+[    2.134735][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-scodec-component.ko with args ''
+[    2.136163][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-scodec-component.ko
+[    2.137128][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-alc269.ko with args ''
+[    2.139439][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-alc269.ko
+[    2.140379][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-alc260.ko with args ''
+[    2.141731][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-alc260.ko
+[    2.142681][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-alc262.ko with args ''
+[    2.144001][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-alc262.ko
+[    2.144825][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-alc268.ko with args ''
+[    2.146162][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-alc268.ko
+[    2.146988][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-alc662.ko with args ''
+[    2.148386][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-alc662.ko
+[    2.149320][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-alc680.ko with args ''
+[    2.150606][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-alc680.ko
+[    2.151534][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-alc861.ko with args ''
+[    2.152838][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-alc861.ko
+[    2.153760][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-alc861vd.ko with args ''
+[    2.155097][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-alc861vd.ko
+[    2.156042][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-alc880.ko with args ''
+[    2.157384][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-alc880.ko
+[    2.158340][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-alc882.ko with args ''
+[    2.159724][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-alc882.ko
+[    2.160535][  T380] dlkm_loader: Loading module /vendor/lib/modules/cs_dsp.ko with args ''
+[    2.162402][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/cs_dsp.ko
+[    2.163224][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-soc-cs-amp-lib.ko with args ''
+[    2.164544][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-soc-cs-amp-lib.ko
+[    2.165455][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-soc-cs35l56-shared.ko with args ''
+[    2.166985][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-soc-cs35l56-shared.ko
+[    2.167929][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-cirrus-scodec.ko with args ''
+[    2.169153][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-cirrus-scodec.ko
+[    2.170098][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-scodec-cs35l56.ko with args ''
+[    2.171555][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-scodec-cs35l56.ko
+[    2.172500][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-scodec-cs35l56-i2c.ko with args ''
+[    2.173823][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-scodec-cs35l56-i2c.ko
+[    2.174804][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-hdmi.ko with args ''
+[    2.176604][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-hdmi.ko
+[    2.177407][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-atihdmi.ko with args ''
+[    2.178838][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-atihdmi.ko
+[    2.179678][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-simplehdmi.ko with args ''
+[    2.181142][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-simplehdmi.ko
+[    2.182012][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-intelhdmi.ko with args ''
+[    2.183486][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-intelhdmi.ko
+[    2.184345][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-nvhdmi.ko with args ''
+[    2.185696][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-nvhdmi.ko
+[    2.186524][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-nvhdmi-mcp.ko with args ''
+[    2.187924][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-nvhdmi-mcp.ko
+[    2.188912][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-tegrahdmi.ko with args ''
+[    2.190287][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-tegrahdmi.ko
+[    2.191122][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-intel.ko with args ''
+[    2.194152][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-intel.ko
+[    2.195024][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-acp-config.ko with args ''
+[    2.196242][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-acp-config.ko
+[    2.197011][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-soc-acpi-amd-match.ko with args ''
+[    2.198264][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-soc-acpi-amd-match.ko
+[    2.199229][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-amd-sdw-acpi.ko with args ''
+[    2.200444][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-amd-sdw-acpi.ko
+[    2.201351][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-soc-dmic.ko with args ''
+[    2.202608][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-soc-dmic.ko
+[    2.203480][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-ps-pdm-dma.ko with args ''
+[    2.204819][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-ps-pdm-dma.ko
+[    2.205589][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-ps-sdw-dma.ko with args ''
+[    2.206923][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-ps-sdw-dma.ko
+[    2.207815][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-soc-ps-mach.ko with args ''
+[    2.209164][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-soc-ps-mach.ko
+[    2.209949][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-pci-ps.ko with args ''
+[    2.211349][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-pci-ps.ko
+[    2.212207][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-acp-pcm.ko with args ''
+[    2.213445][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-acp-pcm.ko
+[    2.214203][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-acp-i2s.ko with args ''
+[    2.215411][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-acp-i2s.ko
+[    2.216156][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-acp-pdm.ko with args ''
+[    2.217337][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-acp-pdm.ko
+[    2.218095][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-acp-legacy-common.ko with args ''
+[    2.219499][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-acp-legacy-common.ko
+[    2.220329][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-acp70.ko with args ''
+[    2.221542][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-acp70.ko
+[    2.222283][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-amd-acpi-mach.ko with args ''
+[    2.223463][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-amd-acpi-mach.ko
+[    2.224264][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-acp-pci.ko with args ''
+[    2.225518][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-acp-pci.ko
+[    2.226388][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-soc-rl6231.ko with args ''
+[    2.227579][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-soc-rl6231.ko
+[    2.228350][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-soc-rt1019.ko with args ''
+[    2.229644][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-soc-rt1019.ko
+[    2.230534][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-soc-rt5682.ko with args ''
+[    2.232090][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-soc-rt5682.ko
+[    2.232853][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-soc-rt5682-i2c.ko with args ''
+[    2.234182][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-soc-rt5682-i2c.ko
+[    2.234983][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-soc-rt5682s.ko with args ''
+[    2.236663][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-soc-rt5682s.ko
+[    2.237437][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-soc-nau8821.ko with args ''
+[    2.238978][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-soc-nau8821.ko
+[    2.239758][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-soc-nau8825.ko with args ''
+[    2.241379][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-soc-nau8825.ko
+[    2.242295][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-soc-max98357a.ko with args ''
+[    2.243560][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-soc-max98357a.ko
+[    2.244491][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-soc-max98388.ko with args ''
+[    2.245884][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-soc-max98388.ko
+[    2.246678][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-acp-mach.ko with args ''
+[    2.248044][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-acp-mach.ko
+[    2.248807][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-acp-legacy-mach.ko with args ''
+[    2.250180][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-acp-legacy-mach.ko
+[    2.250985][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-sof-utils.ko with args ''
+[    2.252172][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-sof-utils.ko
+[    2.252938][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-sof.ko with args ''
+[    2.256630][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-sof.ko
+[    2.257466][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-sof-xtensa-dsp.ko with args ''
+[    2.258778][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-sof-xtensa-dsp.ko
+[    2.259858][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-sof-pci.ko with args ''
+[    2.261149][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-sof-pci.ko
+[    2.261914][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-sof-amd-acp.ko with args ''
+[    2.264750][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-sof-amd-acp.ko
+[    2.265675][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-sof-amd-rembrandt.ko with args ''
+[    2.267116][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-sof-amd-rembrandt.ko
+[    2.268094][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-sof-amd-acp63.ko with args ''
+[    2.269488][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-sof-amd-acp63.ko
+[    2.270449][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-sof-amd-acp70.ko with args ''
+[    2.271808][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-sof-amd-acp70.ko
+[    2.272602][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-sof-probes.ko with args ''
+[    2.274036][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-sof-probes.ko
+[    2.274800][  T380] dlkm_loader: Loading module /vendor/lib/modules/snd-acp-sof-mach.ko with args ''
+[    2.276070][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-acp-sof-mach.ko
+[    2.276865][  T380] dlkm_loader: Loading module /vendor/lib/modules/cfg80211.ko with args ''
+[    2.297584][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/cfg80211.ko
+[    2.298536][  T380] dlkm_loader: Loading module /system/lib/modules/libarc4.ko with args ''
+[    2.299960][  T380] dlkm_loader: Loaded kernel module /system/lib/modules/libarc4.ko
+[    2.300668][  T380] dlkm_loader: Loading module /vendor/lib/modules/mac80211.ko with args ''
+[    2.316963][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/mac80211.ko
+[    2.317695][  T380] dlkm_loader: Loading module /vendor/lib/modules/mt76.ko with args ''
+[    2.321797][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/mt76.ko
+[    2.322656][  T380] dlkm_loader: Loading module /vendor/lib/modules/mt76-connac-lib.ko with args ''
+[    2.325234][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/mt76-connac-lib.ko
+[    2.326017][  T380] dlkm_loader: Loading module /vendor/lib/modules/mt792x-lib.ko with args ''
+[    2.329951][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/mt792x-lib.ko
+[    2.330709][  T380] dlkm_loader: Loading module /vendor/lib/modules/mt7925-common.ko with args ''
+[    2.336939][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/mt7925-common.ko
+[    2.337884][  T380] dlkm_loader: Loading module /vendor/lib/modules/mt7925e.ko with args ''
+[    2.339729][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/mt7925e.ko
+[    2.340485][  T380] dlkm_loader: Loading module /vendor/lib/modules/mt7921-common.ko with args ''
+[    2.343783][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/mt7921-common.ko
+[    2.344562][  T380] dlkm_loader: Loading module /vendor/lib/modules/mt7921e.ko with args ''
+[    2.346358][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/mt7921e.ko
+[    2.347092][  T380] dlkm_loader: Loading module /vendor/lib/modules/rtw89_core.ko with args ''
+[    2.359639][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtw89_core.ko
+[    2.360418][  T380] dlkm_loader: Loading module /vendor/lib/modules/rtw89_pci.ko with args ''
+[    2.363385][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtw89_pci.ko
+[    2.364124][  T380] dlkm_loader: Loading module /vendor/lib/modules/rtw89_8851b.ko with args ''
+[    2.367900][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtw89_8851b.ko
+[    2.368786][  T380] dlkm_loader: Loading module /vendor/lib/modules/rtw89_8851be.ko with args ''
+[    2.370418][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtw89_8851be.ko
+[    2.371167][  T380] dlkm_loader: Loading module /vendor/lib/modules/rtw89_8852a.ko with args ''
+[    2.375140][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtw89_8852a.ko
+[    2.375881][  T380] dlkm_loader: Loading module /vendor/lib/modules/rtw89_8852ae.ko with args ''
+[    2.377625][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtw89_8852ae.ko
+[    2.378384][  T380] dlkm_loader: Loading module /vendor/lib/modules/rtw89_8852b_common.ko with args ''
+[    2.381496][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtw89_8852b_common.ko
+[    2.382299][  T380] dlkm_loader: Loading module /vendor/lib/modules/rtw89_8852b.ko with args ''
+[    2.385600][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtw89_8852b.ko
+[    2.386351][  T380] dlkm_loader: Loading module /vendor/lib/modules/rtw89_8852be.ko with args ''
+[    2.388348][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtw89_8852be.ko
+[    2.389099][  T380] dlkm_loader: Loading module /vendor/lib/modules/rtw89_8852c.ko with args ''
+[    2.394355][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtw89_8852c.ko
+[    2.395126][  T380] dlkm_loader: Loading module /vendor/lib/modules/rtw89_8852ce.ko with args ''
+[    2.396785][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtw89_8852ce.ko
+[    2.397694][  T380] dlkm_loader: Loading module /vendor/lib/modules/rtw89_8922a.ko with args ''
+[    2.400116][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtw89_8922a.ko
+[    2.400884][  T380] dlkm_loader: Loading module /vendor/lib/modules/rtw89_8922ae.ko with args ''
+[    2.402541][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtw89_8922ae.ko
+[    2.403464][  T380] dlkm_loader: Loading module /system/lib/modules/bluetooth.ko with args ''
+[    2.417959][  T380] dlkm_loader: Loaded kernel module /system/lib/modules/bluetooth.ko
+[    2.418691][  T380] dlkm_loader: Loading module /vendor/lib/modules/btintel.ko with args ''
+[    2.420458][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/btintel.ko
+[    2.421190][  T380] dlkm_loader: Loading module /vendor/lib/modules/btrtl.ko with args ''
+[    2.422614][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/btrtl.ko
+[    2.423385][  T380] dlkm_loader: Loading module /vendor/lib/modules/btmtk.ko with args ''
+[    2.424949][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/btmtk.ko
+[    2.425812][  T380] dlkm_loader: Loading module /system/lib/modules/btbcm.ko with args ''
+[    2.427416][  T380] dlkm_loader: Loaded kernel module /system/lib/modules/btbcm.ko
+[    2.428128][  T380] dlkm_loader: Loading module /vendor/lib/modules/btusb.ko with args ''
+[    2.430806][  T380] dlkm_loader: Loaded kernel module /vendor/lib/modules/btusb.ko
+[    2.431515][  T380] dlkm_loader: Check failed: m.LoadListedModules(false) modules from vendor dlkm weren't loaded correctly
+[    2.447745][  T388] DEBUG: Executable: /vendor/bin/dlkm_loader
+[    2.448169][  T388] DEBUG: Cmdline: /vendor/bin/dlkm_loader
+[    2.448726][  T388] DEBUG: pid: 380, ppid: 1, tid: 380, name: dlkm_loader  >>> /vendor/bin/dlkm_loader <<<
+[    2.457481][  T388] DEBUG:       #01 pc 0000000000015c3d  /vendor/bin/dlkm_loader (android::base::DefaultAborter(char const*)+13) (BuildId: a9b213305f1ed7122441ceea6b053394)
+[    2.458776][  T388] DEBUG:       #02 pc 0000000000017581  /vendor/bin/dlkm_loader (android::base::SetAborter(std::__1::function<void (char const*)>&&)::$_0::__invoke(char const*)+65) (BuildId: a9b213305f1ed7122441ceea6b053394)
+[    2.460151][  T388] DEBUG:       #03 pc 0000000000017084  /vendor/bin/dlkm_loader (android::base::LogMessage::~LogMessage()+564) (BuildId: a9b213305f1ed7122441ceea6b053394)
+[    2.461924][  T388] DEBUG:       #04 pc 00000000000090c9  /vendor/bin/dlkm_loader (main+1833) (BuildId: a9b213305f1ed7122441ceea6b053394)
+[    6.851130][    T1] init: Service 'vendor.dlkm_loader' (pid 380) received SIGABRT oneshot service took 5.025000 seconds in background
+[    6.852196][    T1] init: Sending SIGKILL to service 'vendor.dlkm_loader' (pid 380) process group...
+[    6.856316][    T1] init: Untracked process (pid: 390 name: (dlkm_loader) ppid: 1 pgrp: 390 state: Z) exited with status 0
+[    6.857254][    T1] init: Untracked process (pid: 390 name: (dlkm_loader) ppid: 1 pgrp: 390 state: Z) did not have an associated service entry and will not be reaped

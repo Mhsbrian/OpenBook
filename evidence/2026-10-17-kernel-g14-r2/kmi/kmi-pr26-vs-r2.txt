@@ -1,0 +1,24 @@
+exports: old 4700, new 4721, common 4700
+CRC changed: 0, removed: 0, added: 21
+KMI list (4323 symbols): CRC changed 0, removed 0
+added	-	d_alloc
+added	-	efi_status_to_err
+added	-	efivar_get_next_variable
+added	-	efivar_get_variable
+added	-	efivar_is_available
+added	-	efivar_lock
+added	-	efivar_ops_nh
+added	-	efivar_query_variable_info
+added	-	efivar_reserved_space
+added	-	efivar_set_variable_locked
+added	-	efivar_supports_writes
+added	-	efivar_unlock
+added	-	find_next_child
+added	-	get_next_ino
+added	-	get_tree_single
+added	-	inode_just_drop
+added	-	simple_recursive_removal
+added	-	try_lookup_noperm
+added	-	ucs2_as_utf8
+added	-	ucs2_strsize
+added	-	ucs2_utf8size

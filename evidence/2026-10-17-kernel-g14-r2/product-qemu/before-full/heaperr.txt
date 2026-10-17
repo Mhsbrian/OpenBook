@@ -1,0 +1,42 @@
+heap_errors=64
+decoder_failures=0
+10-17 18:31:40.002   535   709 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 18:31:40.097   535   709 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 18:31:40.100   535   709 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 18:31:40.100   535   709 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 18:31:40.101   535   709 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 18:31:40.101   535   709 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 18:31:40.186   535   709 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 18:31:40.206   535   709 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 18:31:40.222   535   709 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 18:31:40.295   535   709 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 18:31:40.301   535   709 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 18:31:40.304   535   709 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 18:31:40.309   535   709 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 18:31:40.451   535   709 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 18:31:40.506   535   709 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 18:31:40.507   535   708 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 18:31:40.507   535   708 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 18:31:40.529   535   708 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 18:31:40.529   535   708 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 18:31:40.529   535   708 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 18:31:40.530   535   708 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 18:31:40.546   535   708 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 18:31:40.546   535   708 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 18:31:40.546   535   708 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 18:31:40.547   535   708 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 18:31:40.675  2571  2578 I Codec2InfoBuilder: adding type 'audio/vorbis'
+10-17 18:31:40.777  3097  3250 I CCodec  : Created component [c2.android.hevc.decoder] for [c2.android.hevc.decoder]
+10-17 18:32:09.178  3728  3731 D CCodec  : allocate(c2.android.vorbis.decoder)
+10-17 18:32:09.179  3728  3731 I CCodec  : Created component [c2.android.vorbis.decoder] for [c2.android.vorbis.decoder]
+10-17 18:32:09.179  3728  3731 D CCodecConfig: read media type: audio/vorbis
+10-17 18:32:09.179  3728  3731 D CCodecConfig:   string input.media-type.value = "audio/vorbis"
+10-17 18:32:09.180  3728  3728 I SimpleDecodingSource: Successfully allocated codec 'c2.android.vorbis.decoder'
+10-17 18:32:09.180  3728  3731 D CCodec  : [c2.android.vorbis.decoder] buffers are bound to CCodec for this session
+10-17 18:32:09.180  3728  3731 D CCodec  :   string mime = "audio/vorbis"
+10-17 18:32:09.180  3728  3731 D CCodecBufferChannel: [c2.android.vorbis.decoder#210] Created input block pool with allocatorID 16 => poolID 17 - OK (0)
+10-17 18:32:09.181  3728  3731 I CCodecBufferChannel: [c2.android.vorbis.decoder#210] Created output block pool with allocatorID 16 => poolID 32 - OK
+10-17 18:32:09.181  3728  3731 D CCodecBufferChannel: [c2.android.vorbis.decoder#210] Configured output block pool ids 32 => OK
+10-17 18:32:09.181  3728  3731 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 18:32:09.181  3728  3731 W CCodecBufferChannel: [c2.android.vorbis.decoder#210] start: cannot allocate memory at all
+10-17 18:32:09.181   603  2761 I ResourceManagerMetrics: pushReclaimStats: Pushed MEDIA_CODEC_RECLAIM_REQUEST_COMPLETED atom: Requester[pid(3728): uid(2000): priority(-1)] Codec: [c2.android.vorbis.decoder] No of concurrent codecs: 1 Reclaim Status: 2 No of codecs reclaimed: 0 Target[-1][pid(-1): uid(-1): priority(-1)] result: 96

@@ -1,0 +1,4 @@
+144
+cat: /proc/sys/kernel/tainted: Permission denied
+6.18.21-android17-5-g44a90255c95f
+0

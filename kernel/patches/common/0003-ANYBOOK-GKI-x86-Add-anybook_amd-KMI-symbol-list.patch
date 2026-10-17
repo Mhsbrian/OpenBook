@@ -17,8 +17,8 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 Change-Id: Iee05da30818a9fd4f942053e1f76272002c97f96
 ---
  BUILD.bazel                    |    1 +
- gki/x86_64/symbols/anybook_amd | 2047 ++++++++++++++++++++++++++++++++
- 2 files changed, 2048 insertions(+)
+ gki/x86_64/symbols/anybook_amd | 2113 ++++++++++++++++++++++++++++++++
+ 2 files changed, 2114 insertions(+)
  create mode 100644 gki/x86_64/symbols/anybook_amd
 
 diff --git a/BUILD.bazel b/BUILD.bazel
@@ -35,10 +35,10 @@ index 6ceea79295f4..679f1652429e 100644
          "gki/x86_64/symbols/virtual_device",
 diff --git a/gki/x86_64/symbols/anybook_amd b/gki/x86_64/symbols/anybook_amd
 new file mode 100644
-index 000000000000..a08a21bd988f
+index 000000000000..d459177ea6f2
 --- /dev/null
 +++ b/gki/x86_64/symbols/anybook_amd
-@@ -0,0 +1,2047 @@
+@@ -0,0 +1,2113 @@
 +[abi_symbol_list]
 +# commonly used symbols
 +  acpi_bus_generate_netlink_event
@@ -154,6 +154,7 @@ index 000000000000..a08a21bd988f
 +  debugfs_create_u32
 +  debugfs_create_x32
 +  debugfs_remove
++  __default_kernel_pte_mask
 +  default_llseek
 +  delayed_work_timer_fn
 +  destroy_workqueue
@@ -252,6 +253,7 @@ index 000000000000..a08a21bd988f
 +  dma_resv_wait_timeout
 +  dma_set_coherent_mask
 +  dma_set_mask
++  __dma_sync_sg_for_device
 +  __dma_sync_single_for_cpu
 +  __dma_sync_single_for_device
 +  dma_unmap_page_attrs
@@ -402,6 +404,7 @@ index 000000000000..a08a21bd988f
 +  fput
 +  free_irq
 +  free_netdev
++  __free_pages
 +  fwnode_property_read_u32_array
 +  gcd
 +  get_random_bytes
@@ -465,6 +468,7 @@ index 000000000000..a08a21bd988f
 +  input_set_capability
 +  input_unregister_device
 +  iomem_resource
++  iommu_get_domain_for_dev
 +  ioread32
 +  ioread8
 +  ioremap
@@ -618,6 +622,7 @@ index 000000000000..a08a21bd988f
 +  __per_cpu_offset
 +  perf_trace_buf_alloc
 +  perf_trace_run_bpf_submit
++  pgprot_writecombine
 +  phys_base
 +  platform_device_register_full
 +  platform_device_unregister
@@ -703,6 +708,7 @@ index 000000000000..a08a21bd988f
 +  regulator_enable
 +  release_firmware
 +  __release_region
++  remap_pfn_range
 +  request_firmware
 +  request_firmware_direct
 +  request_firmware_nowait
@@ -906,9 +912,11 @@ index 000000000000..a08a21bd988f
 +  virtio_reset_device
 +  virtqueue_get_buf
 +  vmalloc_noprof
++  vmap
 +  __vma_start_write
 +  vmemdup_user
 +  vmemmap_base
++  vunmap
 +  vzalloc_noprof
 +  wait_for_completion
 +  wait_for_completion_interruptible_timeout
@@ -1154,7 +1162,6 @@ index 000000000000..a08a21bd988f
 +  drm_writeback_signal_completion
 +  emergency_restart
 +  fdget
-+  __free_pages
 +  generic_handle_domain_irq
 +  __get_user_4
 +  handle_simple_irq
@@ -1165,7 +1172,6 @@ index 000000000000..a08a21bd988f
 +  hrtimer_try_to_cancel
 +  i2c_new_client_device
 +  idr_alloc_cyclic
-+  iommu_get_domain_for_dev
 +  iommu_iova_to_phys
 +  ioremap_cache
 +  ioremap_wc
@@ -1310,7 +1316,6 @@ index 000000000000..a08a21bd988f
 +  __bitmap_clear
 +  can_do_mlock
 +  cleanup_srcu_struct
-+  __default_kernel_pte_mask
 +  dma_alloc_pages
 +  dma_buf_attach
 +  dma_buf_map_attachment_unlocked
@@ -1346,10 +1351,8 @@ index 000000000000..a08a21bd988f
 +  __srcu_read_unlock
 +  synchronize_srcu
 +  unpin_user_pages
-+  vmap
 +  vmf_insert_pfn
 +  vm_insert_pages
-+  vunmap
 +  __xa_alloc_cyclic
 +
 +# required by asus-wmi.ko
@@ -1506,6 +1509,63 @@ index 000000000000..a08a21bd988f
 +  ttm_bo_mmap_obj
 +  ttm_bo_vmap
 +  ttm_bo_vunmap
++
++# required by efivarfs.ko
++  blocking_notifier_chain_register
++  blocking_notifier_chain_unregister
++  d_add
++  d_alloc
++  d_instantiate
++  d_make_root
++  dput
++  drop_nlink
++  efi_status_to_err
++  efivar_get_next_variable
++  efivar_get_variable
++  efivar_is_available
++  efivar_lock
++  efivar_ops_nh
++  efivar_query_variable_info
++  efivar_reserved_space
++  efivar_set_variable_locked
++  efivar_supports_writes
++  efivar_unlock
++  fileattr_fill_flags
++  find_next_child
++  fs_param_is_gid
++  fs_param_is_uid
++  __fs_parse
++  get_next_ino
++  get_tree_single
++  hex_to_bin
++  inc_nlink
++  inode_init_once
++  inode_just_drop
++  inode_set_ctime_current
++  inode_set_flags
++  iput
++  kill_litter_super
++  lockref_get
++  __mark_inode_dirty
++  new_inode
++  overflowgid
++  overflowuid
++  register_filesystem
++  setattr_copy
++  setattr_prepare
++  set_default_d_op
++  simple_dir_operations
++  simple_inode_init_ts
++  simple_lookup
++  simple_recursive_removal
++  strreplace
++  try_lookup_noperm
++  ucs2_as_utf8
++  ucs2_strnlen
++  ucs2_strsize
++  ucs2_utf8size
++  unregister_filesystem
++  uuid_is_valid
 +
 +# required by fan.ko
 +  acpi_device_update_power
@@ -1950,6 +2010,15 @@ index 000000000000..a08a21bd988f
 +  spi_finalize_current_message
 +  spi_mem_default_supports_op
 +
++# required by system_heap.ko
++  dma_heap_add
++  dma_heap_get_dev
++  dma_heap_get_name
++  __dma_sync_sg_for_cpu
++  __sg_page_iter_next
++  __sg_page_iter_start
++  __swiotlb_find_pool
++
 +# required by thermal.ko
 +  acpi_active_trip_temp
 +  acpi_bus_update_power
@@ -2030,7 +2099,6 @@ index 000000000000..a08a21bd988f
 +  cc_mkdec
 +  dma_fence_match_context
 +  dma_max_mapping_size
-+  __dma_sync_sg_for_device
 +  drm_atomic_helper_damage_merged
 +  drm_connector_attach_edid_property
 +  drm_connector_register
@@ -2051,8 +2119,6 @@ index 000000000000..a08a21bd988f
 +  is_virtio_device
 +  page_shift_compat
 +  page_shift_compat_enabled
-+  pgprot_writecombine
-+  remap_pfn_range
 +  __SCK__tp_func_dma_fence_emit
 +  __SCT__tp_func_dma_fence_emit
 +  strncpy_from_user

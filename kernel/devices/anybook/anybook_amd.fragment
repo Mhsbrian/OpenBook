@@ -26,6 +26,15 @@ CONFIG_SENSORS_K10TEMP=m
 ## NPU: XDNA 2 (needs AMD_IOMMU=y in vmlinux)
 CONFIG_DRM_ACCEL_AMDXDNA=m
 
+## Buffers: the system DMA-BUF heap (/dev/dma_heap/system). Codec2's software codecs allocate from it; without it
+## media decoding fails (ANAL-176). The GKI has DMABUF_HEAPS=y but not the heap; Googlebook ships system_heap.ko
+## in vendor_dlkm the same way (ANAL-198 follow-up).
+CONFIG_DMABUF_HEAPS_SYSTEM=m
+
+## Firmware variables: efivarfs at /sys/firmware/efi/efivars, so the installer can write firmware boot entries
+## (ANAL-191/192). Needs 10 exports the stock GKI trims; they are on the anybook_amd KMI list. No vmlinux code reads it.
+CONFIG_EFIVAR_FS=m
+
 ## Virtual machines (QEMU/crosvm test target, ANAL-172)
 CONFIG_DRM_VIRTIO_GPU=m
 CONFIG_VIRTIO_INPUT=m

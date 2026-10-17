@@ -1,0 +1,42 @@
+heap_errors=0
+decoder_failures=0
+10-17 18:31:39.735  2597  2995 D CCodec  :   string mime = "audio/vorbis"
+10-17 18:31:39.735  2597  2996 I CCodecBufferChannel: [c2.android.vorbis.decoder#956] Created output block pool with allocatorID 16 => poolID 31 - OK
+10-17 18:31:39.735  2597  2996 D CCodecBufferChannel: [c2.android.vorbis.decoder#956] Configured output block pool ids 31 => OK
+10-17 18:31:39.735  2597  2995 D CCodecBufferChannel: [c2.android.vorbis.decoder#684] Created input block pool with allocatorID 16 => poolID 18 - OK (0)
+10-17 18:31:39.736  2597  2995 I CCodecBufferChannel: [c2.android.vorbis.decoder#684] Created output block pool with allocatorID 16 => poolID 32 - OK
+10-17 18:31:39.736  2597  2995 D CCodecBufferChannel: [c2.android.vorbis.decoder#684] Configured output block pool ids 32 => OK
+10-17 18:31:39.745  2597  2996 D CCodecBuffers: [c2.android.vorbis.decoder#956:Output[N]] grabBuffer failed: -12
+10-17 18:31:39.745  2597  2996 D CCodecBuffers: [c2.android.vorbis.decoder#956:Output[N]] reallocating with linear buffer of size 8192
+10-17 18:31:39.759  2597  2996 D CCodecBufferChannel: [c2.android.vorbis.decoder#956] MediaCodec discarded an unknown buffer
+10-17 18:31:39.760  2597  2996 D CCodecBufferChannel: [c2.android.vorbis.decoder#956] MediaCodec discarded an unknown buffer
+10-17 18:31:39.760  2597  2996 D CCodecBufferChannel: [c2.android.vorbis.decoder#956] MediaCodec discarded an unknown buffer
+10-17 18:31:39.769  2597  2995 D CCodecBufferChannel: [c2.android.vorbis.decoder#684] MediaCodec discarded an unknown buffer
+10-17 18:31:39.769  2597  2995 D CCodecBufferChannel: [c2.android.vorbis.decoder#684] MediaCodec discarded an unknown buffer
+10-17 18:31:39.769  2597  2995 D CCodecBufferChannel: [c2.android.vorbis.decoder#684] MediaCodec discarded an unknown buffer
+10-17 18:31:39.795  2597  3006 D CCodec  : allocate(c2.android.vorbis.decoder)
+10-17 18:31:39.796  2597  3006 I CCodec  : Created component [c2.android.vorbis.decoder] for [c2.android.vorbis.decoder]
+10-17 18:31:39.796  2597  3006 D CCodecConfig: read media type: audio/vorbis
+10-17 18:31:39.797  2597  3006 D CCodecConfig:   string input.media-type.value = "audio/vorbis"
+10-17 18:31:39.800  2597  3006 D CCodec  : [c2.android.vorbis.decoder] buffers are bound to CCodec for this session
+10-17 18:31:39.800  2597  3006 D CCodec  :   string mime = "audio/vorbis"
+10-17 18:31:39.801  2597  3006 D CCodecBufferChannel: [c2.android.vorbis.decoder#833] Created input block pool with allocatorID 16 => poolID 19 - OK (0)
+10-17 18:31:39.801  2597  3006 I CCodecBufferChannel: [c2.android.vorbis.decoder#833] Created output block pool with allocatorID 16 => poolID 34 - OK
+10-17 18:31:39.801  2597  3006 D CCodecBufferChannel: [c2.android.vorbis.decoder#833] Configured output block pool ids 34 => OK
+10-17 18:31:39.804  2597  3006 D CCodecBufferChannel: [c2.android.vorbis.decoder#833] MediaCodec discarded an unknown buffer
+10-17 18:31:40.871  2588  2590 I Codec2InfoBuilder: adding type 'audio/vorbis'
+10-17 18:31:40.894  3158  3310 I CCodec  : Created component [c2.android.hevc.decoder] for [c2.android.hevc.decoder]
+10-17 18:32:09.226  3755  3758 D CCodec  : allocate(c2.android.vorbis.decoder)
+10-17 18:32:09.228  3755  3758 I CCodec  : Created component [c2.android.vorbis.decoder] for [c2.android.vorbis.decoder]
+10-17 18:32:09.228  3755  3758 D CCodecConfig: read media type: audio/vorbis
+10-17 18:32:09.228  3755  3758 D CCodecConfig:   string input.media-type.value = "audio/vorbis"
+10-17 18:32:09.229  3755  3755 I SimpleDecodingSource: Successfully allocated codec 'c2.android.vorbis.decoder'
+10-17 18:32:09.229  3755  3758 D CCodec  : [c2.android.vorbis.decoder] buffers are bound to CCodec for this session
+10-17 18:32:09.229  3755  3758 D CCodec  :   string mime = "audio/vorbis"
+10-17 18:32:09.229  3755  3758 D CCodecBufferChannel: [c2.android.vorbis.decoder#203] Created input block pool with allocatorID 16 => poolID 17 - OK (0)
+10-17 18:32:09.229  3755  3758 I CCodecBufferChannel: [c2.android.vorbis.decoder#203] Created output block pool with allocatorID 16 => poolID 36 - OK
+10-17 18:32:09.230  3755  3758 D CCodecBufferChannel: [c2.android.vorbis.decoder#203] Configured output block pool ids 36 => OK
+10-17 18:32:09.351  3755  3758 D CCodecBuffers: [c2.android.vorbis.decoder#203:1D-Output] received null buffer
+10-17 18:32:09.351  3755  3758 D CCodecBufferChannel: [c2.android.vorbis.decoder#203] MediaCodec discarded an unknown buffer
+10-17 18:32:09.351  3755  3758 D CCodecBufferChannel: [c2.android.vorbis.decoder#203] MediaCodec discarded an unknown buffer
+10-17 18:32:09.351  3755  3758 D CCodecBufferChannel: [c2.android.vorbis.decoder#203] MediaCodec discarded an unknown buffer

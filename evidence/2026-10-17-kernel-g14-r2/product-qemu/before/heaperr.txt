@@ -1,0 +1,42 @@
+heap_errors=56
+decoder_failures=0
+10-17 17:50:16.136   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.136   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.136   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.149   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.149   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.149   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.151   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.255   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.255   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.255   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.255   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.285   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.285   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.287   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.288   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.367   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.451   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.452   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.452   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.453   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.581   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.601   535  2911 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.603   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.688   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.692   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.699   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.702   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.882   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.882   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.882   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.882   535  2911 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.901   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.901   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.902   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.902   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.907   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.908   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.908   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:16.908   535  2900 E DMABUFHEAPS: Could not open DMA-BUF heap named: system: No such file or directory
+10-17 17:50:43.983  3668  3668 E SimpleDecodingSource: No matching decoder! (mime: audio/vorbis)
