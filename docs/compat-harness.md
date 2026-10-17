@@ -132,6 +132,7 @@ scripts/compat/compare-runs.py <runA> <runB>   # reproducibility check
 - `-f REGEX` selects APKs by id, for example `-f 'probe-|vlc'`.
 - `-w` changes the 15 s wait.
 - Disk use is about 2 GB for the corpus, 3 GB for the toolchain, and 4.5 MB of evidence per two runs.
+- `COMPAT_TARGET=cf` (ANAL-200) runs `run-matrix.sh` and `run-bench.sh` on our own Cuttlefish build and its built-in Digitalis bridge instead of the emulator. `scripts/compat/cf.sh` boots `CF_DEVICE` (default `anybook_vsoc_x86_64`) with the baseline AVD's 6 vCPUs, 8 GiB and SwiftShader, from fresh images each time. Results are in `docs/digitalis.md` and `docs/COMPAT-MATRIX.md`.
 
 ### What `run-matrix.sh` does per APK
 

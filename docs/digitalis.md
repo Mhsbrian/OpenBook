@@ -1,12 +1,209 @@
-# Digitalis evaluation: an open arm64→x86_64 native bridge for Track A (ANAL-181)
+# Digitalis: Track A's arm64 native bridge (ANAL-181, ANAL-200)
 
-Status as of 2026-10-16. **CONFIRMED** means we observed it in our own build logs, device logs or test output. **HYPOTHESIS** means a likely explanation we have not proven.
+Status as of 2026-10-17. **CONFIRMED** means we observed it in our own build logs, device logs or test output. **HYPOTHESIS** means a likely explanation we have not proven. Evidence paths in the ANAL-200 sections are relative to `evidence/2026-10-17-digitalis-a17/`.
+
+Digitalis (https://github.com/DigitalisX64) is an Apache-2.0 fork of AOSP's Berberis binary translator that adds an arm64 guest. ANAL-181 evaluated it on Google's emulator image and recommended it with conditions (the evaluation is kept below). Since ANAL-200 it is the arm64 native bridge of OpenBook's own Android 17 build. It is built from source in our tree, ships in both products, and carries our Android 17 port and three fixes.
+
+## Status (ANAL-200)
+
+- **It ships in both products** (CONFIRMED, `install.txt`). `device/anybook/common/native-bridge` puts the bridge into `anybook_cf_x86_64_pc` and `anybook_g14_x86_64`:
+  - ABI list `x86_64,arm64-v8a`, `ro.dalvik.vm.native.bridge=libberberis_arm64.so`;
+  - binfmt_misc runners for arm64 executables;
+  - 57 arm64 guest libraries;
+  - 89 files, 30 MB, in `/system` (88 for the bridge, plus our self-check `openbook_bridge_check`).
+- **arm64 apps get the Android 17 NDK** (CONFIRMED, `analysis/ndk-api-gap.txt`). The guest libraries now come from our Android 17 tree. Every export of the host `libandroid`, `libbinder_ndk`, `libGLESv2` and `libnativewindow` is in the guest library. The only differences left are `__cfi_check` and libEGL's internal C++ symbols, which are not API. On Android 16 guest libraries, `libandroid` alone lacked 43 exports.
+- **arm64-only apps run on our build** (CONFIRMED, `run1`, `run2`, `repro-check.txt`). On the Cuttlefish desktop product, 15 of the 17 arm64-only entries run, which is 14 of the 16 apps. That compares with 13/16 for libndk_translation and 12/16 for Digitalis in ANAL-181. Two runs from wiped data gave identical outcomes.
+  - Fennec and Tor VPN are the two newly working apps.
+  - AAAAXY crashes the same way natively.
+  - Element X fails the same way on both bridges (`JNI_GetCreatedJavaVMs`).
+- **The three bugs are fixed** (CONFIRMED). Details are in the next section.
+  - `MRS` of the ID registers is emulated as Linux does it, so Tor VPN runs.
+  - `FRECPE`/`FRSQRTE` are bit-exact against QEMU's implementation of the Arm pseudocode on 154,000 cases on the device, in all three translation modes.
+  - The Fennec crash was not a translation bug. Android 17 stopped reporting the bridged ABI in `Build.CPU_ABI`. An ART patch restores it, and arm64 Firefox now starts Gecko and renders pages.
+- **Speed** (CONFIRMED numbers). CoreMark runs at 0.394× native (executable) and 0.399× (in an app) on our Cuttlefish image.
+  - On Google's emulator image, the same Android 17 build of the bridge gives 0.300 / 0.298, as Digitalis did in ANAL-181. libndk_translation gives 0.457 / 0.456 there on the same day.
+  - So Digitalis reaches about 65% of libndk_translation's speed in the same VM. The port neither helped nor hurt.
+  - **HYPOTHESIS:** our VM gives the guest AVX2, BMI1/2, FMA and the other host features the emulator hides, and the translator uses them.
+- **Licensing is clean** (CONFIRMED, `audit/`). Everything is built from source. The only prebuilt among the bridge's files is AOSP's own toolchain `libc++.so`, the same library the x86_64 system ships. No Digitalis binary is in the image. The Cuttlefish and G14 products ship the same 89 files from the same modules.
+- **G14:** the G14 product builds with the bridge. Its live image's "save logs" entry now also runs `openbook-hwtest bridge`, a scripted check that writes machine-readable results. Booted under QEMU/KVM (`-cpu host`, `scripts/installer/live-qemu.sh`, 10/10), the G14 live image's own report gives all five `bridge_*` verdicts as passing: 57 guest libraries, `MIDR_EL1` 0x410fd034, 6,900 estimate cases with 0 wrong (`g14-live-qemu/`). That is the G14 image in a VM, not the G14 itself. The hardware run is the owner's next stick.
+
+## How it is built
+
+The bridge is part of the normal product build (`scripts/aosp-build.sh`). Nothing is installed by hand.
+
+- **Source:** `aosp/patches/frameworks/libs/binary_translation/IMPORT` replaces AOSP's `frameworks/libs/binary_translation` (android17-release, `1290e88c`) with the Digitalis fork at `b6b7fc30`, fetched from GitHub once. `scripts/aosp-patches.sh` makes the import a reproducible commit on the pin and applies our patches on top. Other branches' runs of `aosp-patches.sh` put the project back on its pin, as they do for any branch's patches.
+- **Guest world:** `frameworks/libs/native_bridge_support` (the guest bionic, the NDK stub libraries and the proxy trampolines), bionic and the framework all come from our Android 17 tree. That is what closes the NDK gap.
+- **Our patches** (`aosp/patches/frameworks/libs/binary_translation/`):
+  1. `libberberis_runtime_library_headers`: the android17-release name and path of the runtime library header, which Android 17's `native_bridge_support` includes.
+  2. An unused variable that Android 17's clang (`clang-r584948b`) rejects under `-Werror`.
+  3. `MRS` of the ID registers.
+  4. Bit-exact `FRECPE`/`FRSQRTE`.
+- **ART patch** (`aosp/patches/art/`): `libnativebridge` sets `Build.CPU_ABI` and `CPU_ABI2` for bridged apps again (the Fennec fix).
+- **Device:** `device/anybook/common/native-bridge/`:
+  - `native-bridge.mk` inherits Digitalis's `enable_arm64_to_x86_64.mk` and adds `openbook_bridge_check`;
+  - `BoardConfig.mk` sets `TARGET_NATIVE_BRIDGE_ARCH=arm64`;
+  - `pc.mk`, `anybook_cf_x86_64_pc.mk` and both BoardConfigs include them.
+- **Why not merge android17-release into the fork:** a trial merge gives 64 conflicting files and 219 renames. Upstream android17-release has no arm64 translator (no decoder, interpreter or JIT); its new arm64 pieces are infrastructure that overlaps the fork's. Building the fork's translator, as ANAL-181 tested it, against the Android 17 tree needed only patches 1 and 2. A full merge is worth doing when Digitalis itself moves to Android 17. That is a follow-up, not a blocker.
+- **Cost:** adding the bridge to an existing `out/` took two passes. The first stopped on three compile errors that patches 1 and 2 fix; the second took 11 min 35 s at `-j28`, and the container's memory peaked at 57.7 GB (cgroup `memory.peak`). The G14 product's first build with the bridge took 29 min 31 s, and the final Cuttlefish rebuild 2 min 54 s (`build-summary.txt`).
+- **Host tests:** Digitalis's suite (`berberis_arm64_host_tests`) builds and runs in the container from the same tree. On the final tree, 3,761 of 3,763 tests pass, 2 are skipped and none fail (`host-tests.txt`).
+
+## The three bugs
+
+### 1. `MRS` of the ID registers (Tor VPN, Go)
+
+**Symptom (ANAL-180/181).** Tor VPN died of SIGILL at `mrs x0, id_aa64isar0_el1` under both bridges.
+
+Go's `golang.org/x/sys/cpu` reads `ID_AA64ISAR0/ISAR1/PFR0` when it cannot read `/proc/self/auxv`, and Android apps cannot read it. A real arm64 kernel traps these EL0 reads and returns sanitised values (`emulate_mrs` in `arch/arm64/kernel/cpufeature.c`). Digitalis emulated only `MIDR_EL1`.
+
+**Fix (patch 3).** `guest_id_registers_arm64.h` holds the guest CPU's identity in one place:
+- `AT_HWCAP`, which gains `HWCAP_CPUID`;
+- the values of `MIDR`/`MPIDR`/`REVIDR` and the `ID_AA64*` registers, built the way the kernel builds them: visible fields from the features the translator implements, hidden fields at the kernel's safe value;
+- the rest of the feature ID space (CRm 2–7) reads as zero, and everything outside it still raises SIGILL, as on Linux.
+
+The interpreter and the lite tier return these values. The heavy tier leaves such regions to the lite tier, as it did for `MIDR`.
+
+`ID_AA64ISAR0_EL1` = `0x211120` (AES+PMULL, SHA1, SHA2, CRC32, LSE), matching `AT_HWCAP` = `fp asimd aes pmull sha1 sha2 crc32 atomics cpuid`.
+
+**Result** (CONFIRMED):
+- Tor VPN runs in both runs.
+- The probe's `isa/mrs_cpuid_registers` passes.
+- The new `regress` group checks 9 ID registers and their agreement with `AT_HWCAP` field by field, as the kernel derives HWCAPs.
+
+### 2. `FRECPE` / `FRSQRTE` bit-exactness
+
+**Symptom.** `FRECPE(1.0)` returned `0x3f800000`, where every Arm CPU returns `0x3f7f8000`.
+
+All three tiers computed full-precision `1/x` and `1/sqrt(x)`. The special cases were wrong too:
+- `FRSQRTE(+0)` gave NaN, where Arm gives +inf with DZC;
+- NaN payloads were not propagated;
+- `FPCR.FZ`, `DN` and `RMode` and the FPSR flags were ignored.
+
+**Fix (patch 4).** `guest_fp_estimate_arm64.h` implements the Arm ARM's `FPRecipEstimate`, `FPRSqrtEstimate`, `RecipEstimate` and `RecipSqrtEstimate` for half, single and double precision.
+- **Interpreter:** uses it directly.
+- **Lite tier:** does the normal case inline per lane: a table lookup on the top fraction bits plus the result exponent, which needs neither FPCR nor FPSR. Any other lane (zero, denormal, infinity, NaN, negative `FRSQRTE` input, an `FRECPE` whose result would be denormal) calls the shared code out of line, with the caller-saved host registers saved around the call.
+- **Heavy tier:** leaves vector `FRECPE`/`FRSQRTE` to the lite tier; it had no scalar forms.
+- Digitalis's host tests that asserted the exact reciprocals now assert the Arm values. The tier-coverage table records the heavy tier's change.
+
+**Result** (CONFIRMED, `fp-estimate/`):
+- **The header against QEMU 11.1:** 0 mismatches in 189,200 cases. That covers scalar and vector, f16/f32/f64, `URECPE`/`URSQRTE`, and FPCR 0/FZ/DN/FZ|DN/RP/RM/RZ/FZ16, with edge cases and 2,000 random inputs per form.
+- **On the device** (`scripts/compat/digitalis/fp-estimate.sh device`, an arm64 executable through binfmt_misc): 0 of 154,000 lines differ from QEMU under `two-gear`, `lite-translate-or-interpret` and `interpret-only`. Each input runs 50 times, so the JIT tiers translate the loop.
+- **Probe:** `neon/frecpe_bit_exact` passes, and the `regress` group compares scalar and vector forms with QEMU golden values, including FPSR.
+
+### 3. Fennec's SIGSEGV at `libxul.so+0x2b32da0`: not a translation bug
+
+**What happens.** `Preferences::InitializeUserPrefs()` dereferences a NULL `Preferences` object. Gecko's `Preferences::GetInstanceForService()` had failed and dropped it, because `InitInitialObjects()` could not load the default preferences:
+- GeckoView exports `MOZ_ANDROID_CPU_ABI` from `android.os.Build.CPU_ABI`;
+- Gecko reads `<abi>/greprefs.js` from its omnijar, and then `greprefs.js`;
+- the arm64 APK's `omni.ja` holds only `arm64-v8a/greprefs.js`, and `Build.CPU_ABI` was `x86_64`.
+
+The `nsZipArchive` log shows the two failed lookups repeated about 970 times, then the crash (`analysis/fennec-root-cause.md`).
+
+**Why the ABI was wrong.** libnativebridge used to set `Build.CPU_ABI`/`CPU_ABI2` from the bridge's `getAppEnv()`, and Digitalis reports `arm64-v8a`. AOSP removed that in android17-release (art `b7947b0641`, May 2025: "deprecated since API 21").
+
+**libndk_translation is affected too** (CONFIRMED). On Google's image the same two lookups fail. Its Gecko thread then spins at 100% CPU: 155 ticks in 5 s, 1 min 22 s of CPU after 30 s. The Java UI stays up, so ANAL-180's "RUNS" for Fennec there meant only "the process is alive". Under Digitalis the NULL dereference is fatal instead.
+
+**Fix** (`aosp/patches/art/0001-…`). Restore the two fields in `SetupEnvironment()`, as before android17-release.
+
+**Result** (CONFIRMED, `fennec-gecko/`):
+- arm64 Fennec runs in both matrix runs.
+- Gecko logs "chrome startup finished" and runs its tab, content and GPU processes as arm64.
+- It renders a page served over `adb reverse`, with JavaScript running (screenshots arm64 and x86_64; the canvas is missing in both, so that is not translation).
+- The probe's `regress/build_cpu_abi_is_native_abi` checks the field for the arm64 and x86_64 probes.
+
+**How we got there.** Interpret-only mode at first seemed to fix it, which pointed at the JIT. A debug knob bisected the lite tier by instruction class and by library offsets (`analysis/lite-bail-bisection.md`) and narrowed it to mozjemalloc and Gecko's `HashString`. Then interpret-only crashed too. Those runs had only been slow enough to miss the crash inside the 20–25 s window, and app data left over between runs changed the timing. With cleared data and longer waits, every mode crashed. The tier-independence and `MOZ_LOG` led to the root cause. Lesson for future bisections: clear app data per run and confirm a "fix" survives a long wait.
+
+## Results on our image (2026-10-17)
+
+`anybook_cf_x86_64_pc-cp2a-userdebug` (`CP2A.260605.016`) runs in Cuttlefish (`scripts/compat/cf.sh`, `COMPAT_TARGET=cf`) with 6 vCPUs, 8 GiB and SwiftShader. These are the same resources as the baseline AVDs, and the corpus, probes and harness are the same too. There were two runs from wiped data, with identical outcomes (`repro-check.txt`).
+
+### Apps
+
+| App | Our build (Digitalis A17) | libndk_translation, Google image (ANAL-180) | Digitalis A16 overlay (ANAL-181) |
+|---|---|---|---|
+| OpenBook probe arm64 | RUNS, 18 pass / 2 fail (20 groups) | RUNS, 15/4 (19 groups) | RUNS, 16/3 |
+| VLC, KOReader, Lichess, LocalSend, Godot, Ogre, Wesnoth, OsmAnd, GCompris, TIC-80, Tux Paint | RUNS | RUNS | RUNS |
+| SimpleX | RUNS (window still black at 15 s) | RUNS (same) | RUNS (same) |
+| **Fennec 158** | **RUNS** (Gecko works) | RUNS, but Gecko spins at 100% CPU | EXITED (SIGSEGV) |
+| **Tor VPN** | **RUNS** | CRASH (SIGILL, `MRS`) | CRASH (SIGILL) |
+| AAAAXY | CRASH (as natively) | CRASH | CRASH |
+| Element X | CRASH (`JNI_GetCreatedJavaVMs`) | CRASH | CRASH |
+| **arm64 apps alive at 15 s** | **14 / 16** | 13 / 16 | 12 / 16 |
+
+- **Probe failures left** are the two known semantic differences, which this issue did not take on: x86 NaN rules (`isa`: sNaN priority, default-NaN sign) and the SIGILL `si_code` (`signals`).
+- **Launch times** (`am start -W`) are in the same range as libndk_translation's on the emulator: Fennec 0.62 s, Lichess 1.2 s, OsmAnd 1.0 s. They come from different VMs, so we don't compare them closely.
+
+### CPU speed (CoreMark, 600k iterations, 3 interleaved rounds, quiet host)
+
+| Bridge, image, VM | exe arm64 / x86_64 | apk arm64 / x86_64 | Evidence |
+|---|---|---|---|
+| **Digitalis A17, our image, Cuttlefish** | **0.394** (16,870 / 42,839 it/s) | **0.399** (16,181 / 40,568) | `bench/` |
+| Digitalis A17, Google's image, emulator | 0.300 (12,155 / 40,546) | 0.298 | `emulator-overlay/bench/` |
+| libndk_translation, Google's image, emulator | 0.457 (18,516 / 40,532) | 0.456 | `bench-ndk/` |
+| Digitalis A16, Google's image, emulator (ANAL-181) | 0.298 | 0.304 | `evidence/2026-10-16-digitalis/bench/` |
+
+- Every round passed CoreMark validation, and the CoreMark binaries are byte-identical to ANAL-180's.
+- The emulator overlay is our Android 17 bridge collected from the product (`scripts/compat/digitalis/bundle.sh`) and installed on the same AVD ANAL-181 used.
+- **HYPOTHESIS:** Cuttlefish passes the host's CPU features to the guest (`avx2 bmi1 bmi2 fma movbe adx avx512f`, `install.txt`); the emulator's guest has none of these, and the translator selects code by host CPU features. The G14's Zen 5 has them all, so expect the Cuttlefish figure or better there. The G14 measurement is still to come.
+
+## License and provenance of what ships (ANAL-200)
+
+`scripts/compat/digitalis/audit-shipped.py` lists every bridge file in a product's `PRODUCT_OUT`. For each file it records:
+- the Soong module that installs it and its source directory (`module-info.json`);
+- whether that source is under `prebuilts/`;
+- its SHA-256;
+- the licenses the image's own `NOTICE.xml.gz` gives for it, classified by their text.
+
+The results for both products are in `audit/cf/` and `audit/g14/`: 89 files each, 1 prebuilt, 1 not covered by NOTICE.
+
+| What | Source | License (NOTICE) | Verdict |
+|---|---|---|---|
+| Translator, proxies, exec region, program runners | `frameworks/libs/binary_translation` (Digitalis fork plus our patches), built from source | Apache-2.0 | **OK** |
+| binfmt_misc entries, `berberis.rc`, `ld.config.arm64.txt` | the fork's `prebuilt/` directory (text configs, not binaries) | Apache-2.0 | OK |
+| Guest stub libraries, guest linker, `app_process64`, vdso | `frameworks/libs/native_bridge_support` (Android 17), built from source | Apache-2.0 | OK |
+| Guest bionic, ICU, SQLite, zlib, BoringSSL, libpng, FreeType, liblzma, BLAS, RenderScript, libutils, liblog, … | AOSP projects, built from source for arm64 | Apache-2.0, BSD, MIT, ISC, zlib, Unicode, libpng, SQLite blessing, netlib BLAS | OK: the same projects ship natively in every AOSP image |
+| `lib64/arm64/libc++.so` | `prebuilts/clang/host/linux-x86` (AOSP's LLVM toolchain) | not listed in `NOTICE.xml.gz` | OK. Apache-2.0 WITH LLVM-exception; the x86_64 `/system/lib64/libc++.so` is missing from NOTICE too, so this is an AOSP-wide gap, not ours |
+| `openbook_bridge_check` | `device/anybook/common/native-bridge/check` | Apache-2.0 (OpenBook) | OK |
+| `libnativebridge.so` (ART APEX) | `art` plus our patch | Apache-2.0 | OK |
+
+- "GPL" appears in the NOTICE text of ICU and FreeType. It comes from build-tool files in those projects (autoconf/pkg-config macros, a collision-detection tool), and the x86_64 copies carry the same text. No GPL code is compiled into the bridge.
+- No file comes from the Digitalis repositories other than the translator source we build. ANAL-181's audit of the fork's source still applies: Apache-2.0, no third-party code copied in, 20 new files without headers, an agent-driven project with a single main author, trademarks.
+- Our patches carry Apache-2.0 headers ("The OpenBook Authors").
+
+## On the G14 (bare metal)
+
+`openbook_bridge_check` is an arm64 static binary, built from source in the tree as the bridge's guest architecture. It is installed as `/system/bin/arm64/openbook_bridge_check`; fsgen puts native-bridge modules on the system partition only. binfmt_misc runs it through the translator, and it prints one JSON result per check:
+- `bridge-exec`: it ran as arm64;
+- `bridge-id-registers`: 9 registers, no SIGILL, agreement with `AT_HWCAP`;
+- `bridge-fp-estimates`: 6,900 golden cases from QEMU, with FPSR;
+- `bridge-int-simd`: CRC32 and NEON FMA against references computed in the program.
+
+`openbook-hwtest bridge` adds the configuration (`bridge-config`: the property, both binfmt_misc entries, the guest libraries) and passes the results on as `HWTEST` lines. The live image's "save logs" entry runs it with the other checks, and `scripts/installer/live-report.py` turns the lines into the verdicts `bridge_config`, `bridge_exec`, `bridge_id_registers`, `bridge_fp_estimates` and `bridge_int_simd`.
+
+The check needs no network or user input and changes nothing. It passes in all three translation modes on Cuttlefish, as root and as the shell user (`bridge-check-cuttlefish.txt`). Under QEMU's `-cpu max` and `-cpu cortex-a53` (a real ARM CPU model) it passes too, which validates the check itself. The G14 product's live image passes it in QEMU/KVM as part of the "save logs" entry, so all five verdicts are true in its `report.json` (`g14-live-qemu/report.json`, `hwtest-bridge.txt`). It has not run on the G14 hardware yet.
+
+## Open issues
+
+- **Not fixed, by design of this issue:** x86 NaN semantics (default-NaN sign, sNaN priority), the SIGILL `si_code`, Element X's `JNI_GetCreatedJavaVMs`, and AAAAXY (a crash in the app itself).
+- **The `Build.CPU_ABI` patch changes Android 17 behaviour back to Android 16's.** It affects every bridged app, as intended. An upstream AOSP report (art `b7947b0641`) would be outward-facing and is for the owner to decide.
+- **Upstream reports to Digitalis** (`MRS`, `FRECPE`) are still waiting for the owner's OK. The patches stay in this repo; none was sent anywhere.
+- **Speed:** about 65% of libndk_translation in the same VM. The heavy tier now leaves regions with vector `FRECPE`/`FRSQRTE` to the lite tier, which costs nothing on CoreMark but may cost a little in NEON-heavy code with estimates (HYPOTHESIS, not measured).
+- **The emulated `/proc/cpuinfo`** lists `fphp asimdhp asimdrdm lrcpc dcpop asimddp`, but `AT_HWCAP` and the ID registers do not. The conservative `AT_HWCAP` is what code that probes features uses; the mismatch predates this work.
+
+## Next
+
+1. The owner's next G14 stick: read the `bridge_*` verdicts in `report.json`, then run the probe and CoreMark on the G14 (`docs/compat-harness.md`).
+2. Merge android17-release into the fork once Digitalis tracks Android 17, or do it ourselves (64 conflicts).
+3. Upstream reports to DigitalisX64 and AOSP, after the owner's OK.
+
+## ANAL-181 evaluation (2026-10-16)
+
+Kept as written on 2026-10-16, except for the corrections marked ANAL-200. Its fixes and its Next steps 1 and 2 are covered above.
 
 Digitalis (https://github.com/DigitalisX64) is an Apache-2.0 fork of AOSP's Berberis binary translator that adds an arm64 guest. We built it from source, installed it as the native bridge of the same AOSP Desktop 37.0 emulator image used for the libndk_translation baseline (ANAL-180), and ran the same corpus, probes and CoreMark benchmark on it.
 
 As a control, we also built and booted Digitalis's own reference image (`sdk_phone64_x86_64_digitalis`, AOSP 16) and ran the same tests there.
 
-## Recommendation for Track A: GO, with conditions
+### Recommendation for Track A: GO, with conditions
 
 Use Digitalis as Track A's arm64 bridge. Carry it as a pinned fork, and ship it as the default bridge only after the conditions below are met.
 
@@ -32,7 +229,7 @@ Conditions before it becomes the default:
 3. **Accept the speed gap or close it.** CoreMark under Digitalis runs at **0.30× native**, against **0.45×** for libndk_translation on the same image the same day, so Digitalis is about 34% slower. libndk_translation is 1.5× faster. Digitalis's own image gives the same 0.30×.
 4. **Plan for bus-factor risk.** One maintainer wrote 692 of the 716 fork commits, and the project is about 6 months old.
 
-## What Digitalis is (checked 2026-10-16)
+### What Digitalis is (checked 2026-10-16)
 
 | Repo (github.com/DigitalisX64) | Pinned commit | What it is |
 |---|---|---|
@@ -54,7 +251,7 @@ Digitalis has three translation tiers: an interpreter, a "lite" JIT and a "heavy
 - Rewriting of `/proc/self/maps` for linker introspection.
 - In-APK library extraction to `cache/berberis_extract`.
 
-## Build from source
+### Build from source
 
 ```bash
 scripts/compat/digitalis/docker.sh /repo/scripts/compat/digitalis/sync.sh             # ~/anybook/digitalis/aosp16
@@ -92,7 +289,7 @@ COMPAT_AVD=anybook-digitalis-a16 COMPAT_GLTRANSPORT= scripts/compat/run-matrix.s
 
 We made **no source changes** to Digitalis.
 
-## Install on the AOSP Desktop 37.0 emulator
+### Install on the AOSP Desktop 37.0 emulator
 
 `install.sh` uses a separate AVD, `anybook-digitalis`, built from the same system image, so the baseline AVD is never modified. Steps:
 
@@ -119,7 +316,7 @@ Gotchas we hit:
 - **The guest API level lags the platform.** arm64 apps see the Android 16 NDK surface (finding 7).
 - **Some results could come from the mix rather than from Digitalis.** To rule that out, we ran the control below.
 
-### Control: Digitalis's own AOSP 16 reference image
+#### Control: Digitalis's own AOSP 16 reference image
 
 `build.sh full` builds `sdk_phone64_x86_64_digitalis-trunk_staging-userdebug`, a stock phone emulator product. Its build fingerprint is `Android/sdk_phone64_x86_64_digitalis/emu64xa:Baklava/BP4A.251205.006`, it uses ANGLE as GLES, and Digitalis is built in. `a16-avd.sh` boots it with the same hardware settings (6 vCPU, 8 GB).
 
@@ -134,7 +331,7 @@ Gotchas we hit:
 
 So the Fennec arm64 crash, the probe results and the speed belong to Digitalis itself, not to the A16-on-A17 overlay.
 
-## Results, side by side
+### Results, side by side
 
 Same image (`google/sdk_gdesktop_x86_64/emu64xa:17/CLE1.260506.004`), same emulator (37.2.12), same 6 vCPU, same corpus, 15 s wait, both runs from wiped data.
 - libndk_translation: `evidence/2026-10-15-compat/run{1,2}`.
@@ -144,7 +341,7 @@ Each bridge's two runs agree on every outcome (`repro-check.txt` in each evidenc
 
 The `harness=` field in the Digitalis runs' `env.txt` shows pre-squash commit IDs (`4311e70-dirty`, `2743710-dirty`). The scripts that ran are the ones in this PR.
 
-### Apps
+#### Apps
 
 | App | arm64 via libndk_translation | arm64 via Digitalis | Notes |
 |---|---|---|---|
@@ -172,7 +369,7 @@ All 7 x86_64 controls behave the same under both bridges.
 
 One difference in the `native_bridge` column: under Digitalis, `libberberis_arm64.so` stays mapped in x86_64 app processes too, and it is unmapped under libndk_translation. So for Digitalis, that column means "the library is mapped", not "the app is translated". The arm64 rows also log `Initialized Berberis (aarch64)`.
 
-### Probes and the baseline's failure classes
+#### Probes and the baseline's failure classes
 
 | Class (ANAL-180 finding) | libndk_translation | Digitalis |
 |---|---|---|
@@ -189,7 +386,7 @@ One difference in the `native_bridge` column: under Digitalis, `libberberis_arm6
 
 The other 14 groups pass under both bridges: JNI, crypto, TLS, threads, syscalls, dlopen, C++ exceptions, JIT and memfd dual mapping, GLES 3.0 and Vulkan 1.3.
 
-### CPU speed (CoreMark, 600k iterations, 3 interleaved rounds)
+#### CPU speed (CoreMark, 600k iterations, 3 interleaved rounds)
 
 Both bridges were measured on the same day on a quiet host (load 1.4–8.3). The Digitalis run is `evidence/2026-10-16-digitalis/bench`; the libndk_translation run is `evidence/2026-10-16-digitalis/bench-ndk` (a re-run of the baseline).
 
@@ -205,7 +402,7 @@ Both bridges were measured on the same day on a quiet host (load 1.4–8.3). The
 
 Cold launch times (`am start -W`) are also slower under Digitalis. In run 2, for example, Lichess took 3.2 s against 1.9 s and LocalSend 4.4 s against 2.1–2.3 s. The host was still loaded during those runs, so we don't tabulate them.
 
-## License and provenance audit
+### License and provenance audit
 
 | Component | License | Binaries in it | Goes into a Track A image? | Verdict |
 |---|---|---|---|---|
@@ -222,20 +419,22 @@ What we found in the audit (**CONFIRMED**):
 - **No CLA or DCO.** Development is agent-driven: the project's README and `CLAUDE.md` describe a Claude Code `/dispatch` agent loop, and 12 fork commits mention `CLAUDE.md` or `.claude/` scripts in their messages. That does not block Apache-2.0 use. The copyright status of AI-assisted code is still an open legal question, so the owner should know about it.
 - **Trademarks:** Android and Berberis are Google trademarks, and Digitalis disclaims any affiliation. Track A must not imply Google endorsement either.
 
-## Track A integration (Android 17)
+### Track A integration (Android 17)
 
 - `device/google/cuttlefish/vsoc_x86_64_only/BoardConfig.mk` on `android17-release` already sets `TARGET_NATIVE_BRIDGE_ARCH := arm64` (and `TARGET_NATIVE_BRIDGE_ABI := arm64-v8a`). So `aosp_cf_x86_64_pc` needs only `$(call inherit-product, frameworks/libs/binary_translation/enable_arm64_to_x86_64.mk)` and the forked project, once it is ported.
 - `device/google/cuttlefish/shared/desktop/common_x86.mk` already switches translators through `AL_BINARY_TRANSLATION_MODE`, using `inherit-product-if-exists` on Google's unbundled `vendor/unbundled_google/libs/ndk_translation`, which is not in AOSP. A `digitalis` mode fits the same switch.
 - **Porting effort:** we trial-merged upstream `android17-release` into the fork (`b6b7fc30`, local only, not pushed). It gave 64 conflicting files and 219 renames. Most conflicts are in `cpu_emulation/backend/x86_64` (13 files) and in the arm64 `kernel_api`, `guest_os_primitives`, `runtime` and `native_bridge` code, where upstream added its own arm64 pieces.
 
-## Findings
+### Findings
 
 1. **Clean and redistributable (CONFIRMED).** Apache-2.0, built from source, and nothing prebuilt from Digitalis ships in the image. It is the only arm64 bridge that Track A can legally ship.
 2. **One app fewer than libndk_translation (CONFIRMED).** 12/16 against 13/16; Digitalis loses Fennec. Both bridges fail Tor VPN and Element X the same way.
+   - **ANAL-200 correction:** libndk_translation's Fennec "RUNS" was its Java UI only. Its Gecko thread spins at 100% of a CPU and Gecko never starts (`evidence/2026-10-17-digitalis-a17/fennec-gecko/libndk-translation.txt`).
 3. **Correctness differs (CONFIRMED).** Digitalis fixes seq_cst store→load ordering, `CNTVCT_EL0` rate, `uname` and FMAX NaN propagation. It adds an `FRECPE` estimate failure. It shares the `ID_AA64ISAR0_EL1` SIGILL, the x86 default-NaN sign and sNaN priority, and the `SI_QUEUE` code.
 4. **Speed: about 34% slower than libndk_translation on CoreMark (CONFIRMED).** 0.30× against 0.45× native.
 5. **`MRS ID_AA64ISAR0_EL1` is the most valuable single fix for both bridges (CONFIRMED symptom).** Go's `x/sys/cpu` falls back to the ID registers when `/proc/self/auxv` is unreadable, and the probe shows it is unreadable under both bridges. Digitalis even advertises `cpuid` in its emulated `/proc/cpuinfo` without emulating these registers. **HYPOTHESIS:** returning a synthetic `ID_AA64ISAR0_EL1` that matches `HWCAP` would fix Tor VPN and other gomobile apps.
 6. **Fennec dies under Digitalis; it is a translation bug (CONFIRMED, root cause open).**
+   - **ANAL-200 correction: it is not a translation bug.** The crash happens in interpreter-only mode too. Android 17 stopped reporting the bridged ABI in `Build.CPU_ABI`, so Gecko looks for `x86_64/greprefs.js` in an arm64 omnijar and fails ("The three bugs" above, `evidence/2026-10-17-digitalis-a17/analysis/fennec-root-cause.md`). The hypothesis below was wrong.
    - **Where:** the "Gecko" thread faults at `libxul.so+0x2b32da0` (arm64), `ldr x0, [x8, #0x8]`, where `x8` is a global (vaddr `0x97a95c0`) that reads as NULL right after `bl 0x2b33244` returns. Berberis reports the region start `…d9c` as the guest PC.
    - **Reproducibility:** it is the same in both processes of every launch: run 1, run 2 and Digitalis's own A16 image (`analysis/fennec-sigsegv.txt`).
    - **Not the app itself:** Fennec runs natively on x86_64 and as arm64 under libndk_translation on the same A17 image.
@@ -259,7 +458,7 @@ What we found in the audit (**CONFIRMED**):
    - It logs at debug level on every 100th translation (about 1,200 `trans#` lines per Fennec launch).
    - `libberberis_arm64.so` stays mapped in x86_64 processes.
 
-## Next
+### Next
 
 1. Port the fork to `android17-release` on an OpenBook branch of Digitalis. Build it inside the Track A tree (`aosp_cf_x86_64_pc`, after ANAL-168), boot it in Cuttlefish, and re-run this matrix. Check that the API gap (finding 7) is gone.
 2. Report findings 5 and 6, `FRECPE`, and the NaN and `si_code` differences upstream, with the probe and `analysis/fennec-sigsegv.txt` as reproducers. This is outward-facing, so it needs the owner's OK first.
