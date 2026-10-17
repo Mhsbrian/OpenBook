@@ -13,6 +13,21 @@
 | 2026-10-17 | Our build: `anybook_g14_x86_64-cp2a-userdebug` live image with the Digitalis bridge (ANAL-200) | QEMU 11.1.2, KVM `-cpu host`, q35 + OVMF from USB | **Bridge checks pass in the VM:** all five `bridge_*` verdicts true (config, arm64 exec, ID registers, 6,900 `FRECPE`/`FRSQRTE` cases, CRC32/NEON). G14 untested | `evidence/2026-10-17-digitalis-a17/g14-live-qemu/` |
 | 2026-10-17 | `openbook-live-20261017-combined` + the graphics check add-on (`openbook-gfxcheck-20261017`, ANAL-177), 40 cases per list | QEMU 11.1.2, KVM, q35 + OVMF from USB, SwiftShader | **The add-on works end to end:** unpacked and checked, every part that applies without an AMD GPU passes (VK 40/40, GLES on ANGLE 111 + 9 not supported, EGL app 40/40, ANGLE end2end 32 + 8 skipped), settings restored, results on the stick, power-off. Plumbing only: no AMD GPU | `evidence/2026-10-17-graphics-cts/qemu/` |
 | 2026-10-17 | Our build: `openbook-live-20261017-combined` (`main` + the G14 binfmt_misc policy fix, ANAL-159) | QEMU 11.1.2, KVM `-cpu host`, q35 + OVMF from USB | **Live matrix 39/39; the bridge works in an enforcing boot:** no binfmt_misc denial, and `openbook_bridge_check` as the shell user passes exec, ID registers, 6,900 `FRECPE`/`FRSQRTE` cases and CRC32/NEON. Power check 10/10. G14 untested | `evidence/2026-10-17-g14-combined/` |
+| 2026-10-17 | Our build with ANAL-179's G14 fixes (`anal179-g14r-c`: audio HAL patch 0002, PNO, hwtest) | QEMU 11.1.2, KVM, q35 + OVMF from USB; ICH9 HDA (WAV or silent backend); 2× `mac80211_hwsim` | **The AAudio tone reaches the codec whole:** 2.05 s with 2 glitched windows, against 1.65–1.70 s and 22–23 with AOSP's pacing in the same boot. **Capture padding 0, against 7.** Wi-Fi iperf3 681–755 / 702–732 Mbit/s. The PNO path reaches the driver, which hwsim refuses. G14: next stick | `evidence/2026-10-17-g14-audio-net/qemu-l/`, `qemu-m/`, `qemu-n/` |
+
+## Audio, Wi-Fi and Bluetooth on the G14
+
+The owner's two sessions of 2026-10-17 on the **ASUS GA403WR** (Ryzen AI 9 HX 370), live USB, ANAL-179. Session 1 was stick `anal178c` (`main`); session 2 was `anal176s` (`main` + PR #52 as of then). Each had a default boot (SELinux enforcing), then a "save logs" boot (permissive, `openbook-hwtest`). Details: `docs/g14-audio-net.md` §10.
+
+| Date | Function | Hardware, driver | Session 1 | Session 2 | Evidence (`evidence/2026-10-17-g14-audio-net/`) |
+|---|---|---|---|---|---|
+| 2026-10-17 | Wi-Fi | MediaTek MT7925, `mt7925e`, firmware `20260414`; wpa_supplicant, no vendor HAL | **Works:** scan 91 networks; connected on 5320 MHz (160 MHz, −37 dBm, link rate 1201/1922 Mbit/s); DHCP; gateway ping 0 % loss; internet validated | **Works:** the same (82 networks, ping 7.8 ms) | `g14-anal178c/`, `g14-anal176s/` |
+| 2026-10-17 | Wi-Fi throughput | same | not run (no iperf3 server configured) | not run | — |
+| 2026-10-17 | Bluetooth | MT7925, `btusb` + `btmtk`; AOSP's AIDL HAL | on, not paired | **paired** (SSP); A2DP with LDAC 96 kHz/32-bit. **Under enforcing, the Bluetooth app aborted at A2DP start** (`bluetooth → hal_audio_default_tmpfs` denied; fixed in PR #52, not yet run on the G14) | `g14-anal176s/tombstones.txt` |
+| 2026-10-17 | Speakers → built-in mic, straight on ALSA | Realtek ALC285 (card 2) + 2× Cirrus CS35L56 (`10431024-spkid1` tuning) | **heard**: −32.0 dBFS over −72.5 noise bin, 0 of 33 slices glitched | **heard**: −33.6 over −75.5, 2 of 33 | `report.md` |
+| 2026-10-17 | Speakers → built-in mic through Android (AAudio) | same, AOSP's example HAL | **heard, broken**: 24 of 30 slices glitched; the HAL padded the capture with silence 7 times. Fixed by AOSP patch 0002 (QEMU-tested, not yet run on the G14) | not heard: the tone went to the paired Bluetooth device (the test now names its ports) | `report.md`, `digest.txt` |
+| 2026-10-17 | App audio under enforcing | — | — | **no sound from the browser**: `untrusted_app_29 → audioserver_tmpfs` denied (fixed in PR #52, not yet run on the G14) | `evidence/2026-10-17-g14-desktop/` (PR #52) |
+| 2026-10-17 | Headphone jack | ALC285 pin `0x21`, HDA jack input device | not tested (nothing plugged in) | not tested | `digest.txt` |
 
 ## ARM-only APKs
 

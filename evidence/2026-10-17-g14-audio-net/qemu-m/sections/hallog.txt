@@ -1,0 +1,250 @@
+10-17 15:04:59.504   392   392 I servicemanager: Caller(pid=5609,uid=1041,sid=u:r:audioserver:s0) Found android.hardware.audio.core.IModule/default in device VINTF manifest.
+10-17 15:04:59.336  5610  5610 D AHAL_ModulePrimary: getTelephony: returning instance of ITelephony: 0x7c31a38783e0
+10-17 15:04:59.336  5610  5610 D AHAL_Module: getBluetooth: default: returning null
+10-17 15:04:59.336  5610  5610 D AHAL_Module: getBluetoothA2dp: default: returning null
+10-17 15:04:59.336  5610  5610 D AHAL_Module: getBluetoothLe: default: returning null
+10-17 15:04:59.336  5610  5610 D AHAL_Module: getSoundDose: default: returning instance of ISoundDose: 0x7c3093811c10
+10-17 15:04:59.336  5610  5610 D AHAL_SoundDose: registerSoundDoseCallback: Registered sound dose callback 
+10-17 15:04:59.336  5610  5610 D AHAL_Module: getAudioPorts: default: returning 7 ports
+10-17 15:04:59.336  5610  5610 D AHAL_Module: getAudioRoutes: default: returning 4 routes
+10-17 15:04:59.336  5610  5610 D AHAL_Module: getAudioPortConfigs: default: returning 0 port configs
+10-17 15:04:59.336  5610  5610 D AHAL_Module: getAudioPatches: default: returning 0 patches
+10-17 15:04:59.336  5610  5610 D AHAL_Module: getMasterVolume: default: returning 1
+10-17 15:04:59.336  5610  5610 D AHAL_Module: getMasterMute: default: returning 0
+10-17 15:04:59.336  5610  5610 D AHAL_Module: setMasterVolume: default: 1
+10-17 15:04:59.336  5610  5610 D AHAL_Module: setMasterMute: default: 0
+10-17 15:04:59.336  5610  5610 D AHAL_Module: supportsVariableLatency: default
+10-17 15:04:59.336  5610  5610 D AHAL_Telephony: switchAudioMode: NORMAL
+10-17 15:04:59.336  5610  5610 D AHAL_Module: updateAudioMode: default: NORMAL
+10-17 15:04:59.336  5610  5610 D AHAL_Module: getMmapPolicyInfos: default: mmap policy type DEFAULT
+10-17 15:04:59.336  5610  5610 D AHAL_Module: getAAudioMixerBurstCount: default: mmap is not supported 
+10-17 15:04:59.336  5610  5610 D AHAL_Module: getAAudioHardwareBurstMinUsec: default: mmap is not supported 
+10-17 15:04:59.336  5610  5610 D AHAL_Telephony: getSupportedAudioModes: returning [NORMAL, RINGTONE, IN_CALL, IN_COMMUNICATION]
+10-17 15:04:59.336  5610  5610 D AHAL_Module: getTelephony: r_submix: returning null
+10-17 15:04:59.336  5610  5610 D AHAL_Module: getBluetooth: r_submix: returning null
+10-17 15:04:59.336  5610  5610 D AHAL_Module: getBluetoothA2dp: r_submix: returning null
+10-17 15:04:59.336  5610  5610 D AHAL_Module: getBluetoothLe: r_submix: returning null
+10-17 15:04:59.336  5610  5610 D AHAL_Module: getSoundDose: r_submix: returning instance of ISoundDose: 0x7c3093811ab0
+10-17 15:04:59.337  5610  5610 D AHAL_SoundDose: registerSoundDoseCallback: Registered sound dose callback 
+10-17 15:04:59.337  5610  5610 D AHAL_Module: getAudioPorts: r_submix: returning 4 ports
+10-17 15:04:59.337  5610  5610 D AHAL_Module: connectExternalDevice: r_submix: device port 2 device set to AudioDevice{type: AudioDeviceDescription{type: IN_SUBMIX, connection: virtual}, address: AudioDeviceAddress{id: 0}}
+10-17 15:04:59.337  5610  5610 D AHAL_Module: getAudioPort: r_submix: returning port by id 4
+10-17 15:04:59.337  5610  5610 D AHAL_ModuleRemoteSubmix: populateConnectedDevicePort: populated from the mix port as: AudioPort{id: 2, name: Remote Submix In, profiles: [AudioProfile{name: , format: AudioFormatDescription{type: PCM, pcm: INT_16_BIT, encoding: }, channelMasks: [AudioChannelLayout{layoutMask: 3}], sampleRates: [8000, 11025, 16000, 32000, 44100, 48000, 192000], encapsulationType: NONE}], flags: AudioIoFlags{input: 0}, extraAudioDescriptors: [], gains: [], ext: AudioPortExt{device: AudioPortDeviceExt{device: AudioDevice{type: AudioDeviceDescription{type: IN_SUBMIX, connection: virtual}, address: AudioDeviceAddress{id: 0}}, flags: 0, encodedFormats: [], encapsulationModes: 0, encapsulationMetadataTypes: 0, speakerLayout: (null)}}}
+10-17 15:04:59.337  5610  5610 D AHAL_Module: connectExternalDevice: r_submix: template port 2 external device connected, connected port ID 5
+10-17 15:04:59.337  5610  5610 D AHAL_Module: onExternalDeviceConnectionChanged: r_submix: do nothing and return
+10-17 15:04:59.337  5610  5610 D AHAL_Module: connectExternalDevice: r_submix: device port 1 device set to AudioDevice{type: AudioDeviceDescription{type: OUT_SUBMIX, connection: virtual}, address: AudioDeviceAddress{id: 0}}
+10-17 15:04:59.337  5610  5610 D AHAL_Module: getAudioPort: r_submix: returning port by id 3
+10-17 15:04:59.337  5610  5610 D AHAL_ModuleRemoteSubmix: populateConnectedDevicePort: populated from the mix port as: AudioPort{id: 1, name: Remote Submix Out, profiles: [AudioProfile{name: , format: AudioFormatDescription{type: PCM, pcm: INT_16_BIT, encoding: }, channelMasks: [AudioChannelLayout{layoutMask: 3}], sampleRates: [8000, 11025, 16000, 32000, 44100, 48000, 192000], encapsulationType: NONE}], flags: AudioIoFlags{output: 0}, extraAudioDescriptors: [], gains: [], ext: AudioPortExt{device: AudioPortDeviceExt{device: AudioDevice{type: AudioDeviceDescription{type: OUT_SUBMIX, connection: virtual}, address: AudioDeviceAddress{id: 0}}, flags: 0, encodedFormats: [], encapsulationModes: 0, encapsulationMetadataTypes: 0, speakerLayout: (null)}}}
+10-17 15:04:59.337  5610  5610 D AHAL_Module: connectExternalDevice: r_submix: template port 1 external device connected, connected port ID 6
+10-17 15:04:59.337  5610  5610 D AHAL_Module: onExternalDeviceConnectionChanged: r_submix: do nothing and return
+10-17 15:04:59.337  5610  5610 D AHAL_Module: onExternalDeviceConnectionChanged: r_submix: do nothing and return
+10-17 15:04:59.337  5610  5610 D AHAL_Module: disconnectExternalDevice: r_submix: connected device port 6 released
+10-17 15:04:59.337  5610  5610 D AHAL_Module: getAudioRoutes: r_submix: returning 2 routes
+10-17 15:04:59.337  5610  5610 D AHAL_Module: getAudioPortConfigs: r_submix: returning 0 port configs
+10-17 15:04:59.337  5610  5610 D AHAL_Module: getAudioPatches: r_submix: returning 0 patches
+10-17 15:04:59.337  5610  5610 D AHAL_Module: setMasterVolume: r_submix: 1
+10-17 15:04:59.337  5610  5610 D AHAL_ModuleRemoteSubmix: onMasterVolumeChanged: is not supported
+10-17 15:04:59.337  5610  5610 E AHAL_Module: setMasterVolume: r_submix: failed calling onMasterVolumeChanged(1), error=Status(-7, EX_UNSUPPORTED_OPERATION): ''
+10-17 15:04:59.337  5610  5610 D AHAL_ModuleRemoteSubmix: onMasterVolumeChanged: is not supported
+10-17 15:04:59.337  5610  5610 D AHAL_Module: setMasterMute: r_submix: 0
+10-17 15:04:59.337  5610  5610 D AHAL_ModuleRemoteSubmix: onMasterMuteChanged: is not supported
+10-17 15:04:59.337  5610  5610 E AHAL_Module: setMasterMute: r_submix: failed calling onMasterMuteChanged(0), error=Status(-7, EX_UNSUPPORTED_OPERATION): ''
+10-17 15:04:59.337  5610  5610 D AHAL_ModuleRemoteSubmix: onMasterMuteChanged: is not supported
+10-17 15:04:59.337  5610  5610 D AHAL_Module: supportsVariableLatency: r_submix
+10-17 15:04:59.337  5610  5610 D AHAL_Module: getMmapPolicyInfos: r_submix: mmap policy type DEFAULT
+10-17 15:04:59.337  5610  5610 D AHAL_Module: getAAudioMixerBurstCount: r_submix: mmap is not supported 
+10-17 15:04:59.337  5610  5610 D AHAL_Module: getAAudioHardwareBurstMinUsec: r_submix: mmap is not supported 
+10-17 15:04:59.337  5610  5610 D AHAL_Module: getTelephony: bluetooth: returning null
+10-17 15:04:59.337  5610  5610 D AHAL_ModuleBluetooth: getBluetooth: returning instance of IBluetooth: 0
+10-17 15:04:59.337  5610  5610 D AHAL_ModuleBluetooth: getBluetoothA2dp: returning instance of IBluetoothA2dp: 0x7c310380b2f0
+10-17 15:04:59.337  5610  5610 D AHAL_ModuleBluetooth: getBluetoothLe: returning instance of IBluetoothLe: 0x7c310380ae20
+10-17 15:04:59.337  5610  5610 D AHAL_Module: getSoundDose: bluetooth: returning instance of ISoundDose: 0x7c30938101f0
+10-17 15:04:59.337  5610  5610 D AHAL_SoundDose: registerSoundDoseCallback: Registered sound dose callback 
+10-17 15:04:59.337  5610  5610 D AHAL_Module: getAudioPorts: bluetooth: returning 13 ports
+10-17 15:04:59.337  5610  5610 D AHAL_Module: getAudioRoutes: bluetooth: returning 8 routes
+10-17 15:04:59.337  5610  5610 D AHAL_Module: getAudioPortConfigs: bluetooth: returning 0 port configs
+10-17 15:04:59.337  5610  5610 D AHAL_Module: getAudioPatches: bluetooth: returning 0 patches
+10-17 15:04:59.337  5610  5610 D AHAL_Module: setMasterVolume: bluetooth: 1
+10-17 15:04:59.337  5610  5610 D AHAL_ModuleBluetooth: onMasterVolumeChanged: is not supported
+10-17 15:04:59.337  5610  5610 E AHAL_Module: setMasterVolume: bluetooth: failed calling onMasterVolumeChanged(1), error=Status(-7, EX_UNSUPPORTED_OPERATION): ''
+10-17 15:04:59.337  5610  5610 D AHAL_ModuleBluetooth: onMasterVolumeChanged: is not supported
+10-17 15:04:59.337  5610  5610 D AHAL_Module: setMasterMute: bluetooth: 0
+10-17 15:04:59.337  5610  5610 D AHAL_ModuleBluetooth: onMasterMuteChanged: is not supported
+10-17 15:04:59.337  5610  5610 E AHAL_Module: setMasterMute: bluetooth: failed calling onMasterMuteChanged(0), error=Status(-7, EX_UNSUPPORTED_OPERATION): ''
+10-17 15:04:59.337  5610  5610 D AHAL_ModuleBluetooth: onMasterMuteChanged: is not supported
+10-17 15:04:59.337  5610  5610 D AHAL_ModuleBluetooth: supportsVariableLatency: bluetooth
+10-17 15:04:59.337  5610  5610 D AHAL_Module: getMmapPolicyInfos: bluetooth: mmap policy type DEFAULT
+10-17 15:04:59.337  5610  5610 D AHAL_Module: getAAudioMixerBurstCount: bluetooth: mmap is not supported 
+10-17 15:04:59.337  5610  5610 D AHAL_Module: getAAudioHardwareBurstMinUsec: bluetooth: mmap is not supported 
+10-17 15:04:59.338  5609  5609 I AudioFlinger: openOutput() this 0x7286f36046b0, module 10 Device AUDIO_DEVICE_OUT_SPEAKER, @:, SamplingRate 48000, Format 0x000001, Channels 0x3, flags 0x2
+10-17 15:04:59.338  5610  5610 D AHAL_Module: setAudioPortConfigImpl: default: requested AudioPortConfig{id: 0, portId: 1, sampleRate: Int{value: 48000}, channelMask: AudioChannelLayout{layoutMask: 3}, format: AudioFormatDescription{type: PCM, pcm: INT_16_BIT, encoding: }, gain: (null), flags: (null), ext: AudioPortExt{unspecified: false}}
+10-17 15:04:59.338  5610  5610 D AHAL_Module: setAudioPortConfigImpl: default: not applied; existing config ? 0; requested is valid? 1, fully specified? 0
+10-17 15:04:59.338  5610  5610 D AHAL_Module: setAudioPortConfigImpl: default: requested AudioPortConfig{id: 0, portId: 1, sampleRate: Int{value: 48000}, channelMask: AudioChannelLayout{layoutMask: 3}, format: AudioFormatDescription{type: PCM, pcm: INT_16_BIT, encoding: }, gain: (null), flags: AudioIoFlags{output: 0}, ext: AudioPortExt{device: AudioPortDeviceExt{device: AudioDevice{type: AudioDeviceDescription{type: OUT_SPEAKER, connection: }, address: AudioDeviceAddress{id: }}, flags: 1, encodedFormats: [], encapsulationModes: 0, encapsulationMetadataTypes: 0, speakerLayout: (null)}}}
+10-17 15:04:59.338  5610  5610 D AHAL_Module: setAudioPortConfigImpl: default: created new port config AudioPortConfig{id: 8, portId: 1, sampleRate: Int{value: 48000}, channelMask: AudioChannelLayout{layoutMask: 3}, format: AudioFormatDescription{type: PCM, pcm: INT_16_BIT, encoding: }, gain: (null), flags: AudioIoFlags{output: 0}, ext: AudioPortExt{device: AudioPortDeviceExt{device: AudioDevice{type: AudioDeviceDescription{type: OUT_SPEAKER, connection: }, address: AudioDeviceAddress{id: }}, flags: 1, encodedFormats: [], encapsulationModes: 0, encapsulationMetadataTypes: 0, speakerLayout: (null)}}}
+10-17 15:04:59.338  5610  5610 D AHAL_Module: setAudioPortConfigImpl: default: requested AudioPortConfig{id: 0, portId: 6, sampleRate: Int{value: 48000}, channelMask: AudioChannelLayout{layoutMask: 3}, format: AudioFormatDescription{type: PCM, pcm: INT_16_BIT, encoding: }, gain: (null), flags: AudioIoFlags{output: 2}, ext: AudioPortExt{mix: AudioPortMixExt{handle: 13, usecase: AudioPortMixExtUseCase{unspecified: false}, maxOpenStreamCount: 0, maxActiveStreamCount: 0, recommendedMuteDurationMs: 0}}}
+10-17 15:04:59.338  5610  5610 D AHAL_Module: setAudioPortConfigImpl: default: created new port config AudioPortConfig{id: 9, portId: 6, sampleRate: Int{value: 48000}, channelMask: AudioChannelLayout{layoutMask: 3}, format: AudioFormatDescription{type: PCM, pcm: INT_16_BIT, encoding: }, gain: (null), flags: AudioIoFlags{output: 2}, ext: AudioPortExt{mix: AudioPortMixExt{handle: 13, usecase: AudioPortMixExtUseCase{unspecified: false}, maxOpenStreamCount: 0, maxActiveStreamCount: 1, recommendedMuteDurationMs: 0}}}
+10-17 15:04:59.338  5610  5610 D AHAL_Module: setAudioPatch: default: requested patch AudioPatch{id: 0, sourcePortConfigIds: [9], sinkPortConfigIds: [8], minimumStreamBufferSizeFrames: 0, latenciesMs: []}
+10-17 15:04:59.338  5610  5610 D AHAL_Module: setAudioPatch: default: created patch AudioPatch{id: 1, sourcePortConfigIds: [9], sinkPortConfigIds: [8], minimumStreamBufferSizeFrames: 4096, latenciesMs: [85]}
+10-17 15:04:59.338  5610  5610 D AHAL_Module: openOutputStream: default: port config id 9, has offload info? 0, buffer size 4096 frames
+10-17 15:04:59.338  5610  5610 D AHAL_Module: createStreamContext: default: frame size 4 bytes
+10-17 15:04:59.338  5610  5610 D AHAL_Module: getSoundDose: default: returning instance of ISoundDose: 0x7c3093811c10
+10-17 15:04:59.338  5610  5610 D AHAL_Stream: StreamOut
+10-17 15:04:59.339  5610  5623 D AHAL_Stream: [out|ioHandle:13] init
+10-17 15:04:59.339  5610  5610 D AHAL_StreamPrimary: setConnectedDevices: [AudioDevice{type: AudioDeviceDescription{type: OUT_SPEAKER, connection: }, address: AudioDeviceAddress{id: }}]
+10-17 15:04:59.339  5610  5610 D AHAL_Stream: getStreamCommonCommon: returning 0x7c31a3875380
+10-17 15:04:59.339  5610  5610 D AHAL_Stream: getRecommendedLatencyModes
+10-17 15:04:59.508   392   392 I servicemanager: Caller(pid=5609,uid=1041,sid=u:r:audioserver:s0) Found android.hardware.audio.effect.IFactory/default in device VINTF manifest.
+10-17 15:04:59.508   392   392 I servicemanager: Caller(pid=5609,uid=1041,sid=u:r:audioserver:s0) Found android.hardware.audio.core.IModule/default in device VINTF manifest.
+10-17 15:04:59.509   392   392 I servicemanager: Caller(pid=5609,uid=1041,sid=u:r:audioserver:s0) Found android.system.suspend.ISystemSuspend/default in framework VINTF manifest.
+10-17 15:04:59.382  5610  5610 D AHAL_Module: setAudioPatch: default: requested patch AudioPatch{id: 1, sourcePortConfigIds: [9], sinkPortConfigIds: [8], minimumStreamBufferSizeFrames: 0, latenciesMs: []}
+10-17 15:04:59.382  5610  5610 D AHAL_Module: setAudioPatch: default: updated patch AudioPatch{id: 1, sourcePortConfigIds: [9], sinkPortConfigIds: [8], minimumStreamBufferSizeFrames: 4096, latenciesMs: [85]}
+10-17 15:04:59.382  5610  5610 D AHAL_Stream: getRecommendedLatencyModes
+10-17 15:04:59.382  5610  5610 D AHAL_Stream: updateMetadataCommon
+10-17 15:04:59.383  5610  5610 D AHAL_Module: setAudioPortConfigImpl: default: requested AudioPortConfig{id: 0, portId: 4, sampleRate: Int{value: 48000}, channelMask: AudioChannelLayout{layoutMask: 3}, format: AudioFormatDescription{type: PCM, pcm: INT_16_BIT, encoding: }, gain: (null), flags: (null), ext: AudioPortExt{unspecified: false}}
+10-17 15:04:59.383  5610  5610 D AHAL_Module: setAudioPortConfigImpl: default: not applied; existing config ? 0; requested is valid? 1, fully specified? 0
+10-17 15:04:59.383  5610  5610 D AHAL_Module: setAudioPortConfigImpl: default: requested AudioPortConfig{id: 0, portId: 4, sampleRate: Int{value: 48000}, channelMask: AudioChannelLayout{layoutMask: 3}, format: AudioFormatDescription{type: PCM, pcm: INT_16_BIT, encoding: }, gain: (null), flags: AudioIoFlags{input: 0}, ext: AudioPortExt{device: AudioPortDeviceExt{device: AudioDevice{type: AudioDeviceDescription{type: IN_MICROPHONE, connection: }, address: AudioDeviceAddress{id: bottom}}, flags: 1, encodedFormats: [], encapsulationModes: 0, encapsulationMetadataTypes: 0, speakerLayout: (null)}}}
+10-17 15:04:59.383  5610  5610 D AHAL_Module: setAudioPortConfigImpl: default: created new port config AudioPortConfig{id: 10, portId: 4, sampleRate: Int{value: 48000}, channelMask: AudioChannelLayout{layoutMask: 3}, format: AudioFormatDescription{type: PCM, pcm: INT_16_BIT, encoding: }, gain: (null), flags: AudioIoFlags{input: 0}, ext: AudioPortExt{device: AudioPortDeviceExt{device: AudioDevice{type: AudioDeviceDescription{type: IN_MICROPHONE, connection: }, address: AudioDeviceAddress{id: bottom}}, flags: 1, encodedFormats: [], encapsulationModes: 0, encapsulationMetadataTypes: 0, speakerLayout: (null)}}}
+10-17 15:04:59.383  5610  5610 D AHAL_Module: setAudioPortConfigImpl: default: requested AudioPortConfig{id: 0, portId: 7, sampleRate: Int{value: 48000}, channelMask: AudioChannelLayout{layoutMask: 3}, format: AudioFormatDescription{type: PCM, pcm: INT_16_BIT, encoding: }, gain: (null), flags: AudioIoFlags{input: 0}, ext: AudioPortExt{mix: AudioPortMixExt{handle: 14, usecase: AudioPortMixExtUseCase{source: MIC}, maxOpenStreamCount: 0, maxActiveStreamCount: 0, recommendedMuteDurationMs: 0}}}
+10-17 15:04:59.383  5610  5610 D AHAL_Module: setAudioPortConfigImpl: default: created new port config AudioPortConfig{id: 11, portId: 7, sampleRate: Int{value: 48000}, channelMask: AudioChannelLayout{layoutMask: 3}, format: AudioFormatDescription{type: PCM, pcm: INT_16_BIT, encoding: }, gain: (null), flags: AudioIoFlags{input: 0}, ext: AudioPortExt{mix: AudioPortMixExt{handle: 14, usecase: AudioPortMixExtUseCase{source: MIC}, maxOpenStreamCount: 0, maxActiveStreamCount: 1, recommendedMuteDurationMs: 0}}}
+10-17 15:04:59.383  5610  5610 D AHAL_Module: setAudioPatch: default: requested patch AudioPatch{id: 0, sourcePortConfigIds: [10], sinkPortConfigIds: [11], minimumStreamBufferSizeFrames: 0, latenciesMs: []}
+10-17 15:04:59.383  5610  5610 D AHAL_Module: setAudioPatch: default: created patch AudioPatch{id: 2, sourcePortConfigIds: [10], sinkPortConfigIds: [11], minimumStreamBufferSizeFrames: 4096, latenciesMs: [85]}
+10-17 15:04:59.383  5610  5610 D AHAL_Module: openInputStream: default: port config id 11, buffer size 4096 frames
+10-17 15:04:59.383  5610  5610 D AHAL_Module: createStreamContext: default: frame size 4 bytes
+10-17 15:04:59.383  5610  5610 D AHAL_Module: getSoundDose: default: returning instance of ISoundDose: 0x7c3093811c10
+10-17 15:04:59.383  5610  5610 D AHAL_Stream: StreamIn
+10-17 15:04:59.383  5610  5625 D AHAL_Stream: [in|ioHandle:14] init
+10-17 15:04:59.383  5610  5610 D AHAL_StreamPrimary: setConnectedDevices: [AudioDevice{type: AudioDeviceDescription{type: IN_MICROPHONE, connection: }, address: AudioDeviceAddress{id: bottom}}]
+10-17 15:04:59.383  5610  5610 D AHAL_Stream: getStreamCommonCommon: returning 0x7c31a38767c0
+10-17 15:04:59.384  5610  5610 D AHAL_Stream: updateMetadataCommon
+10-17 15:04:59.384  5610  5610 D AHAL_Stream: close
+10-17 15:04:59.384  5610  5610 D AHAL_Stream: stopWorker: asking the worker to exit...
+10-17 15:04:59.384  5610  5610 D AHAL_Stream: stopWorker: done
+10-17 15:04:59.384  5610  5610 D AHAL_Stream: stopAndJoinWorker: joining the worker thread...
+10-17 15:04:59.384  5610  5625 D AHAL_Stream: cycle: received command Command{halReservedExit: 1550431280} in reader
+10-17 15:04:59.384  5610  5625 D AHAL_StreamAlsaMonoPipe: teardownIo: shutting down pipes
+10-17 15:04:59.384  5610  5625 D AHAL_StreamAlsaMonoPipe: teardownIo: stopping PCM streams
+10-17 15:04:59.384  5610  5625 D AHAL_StreamAlsaMonoPipe: teardownIo: joining threads
+10-17 15:04:59.384  5610  5625 D AHAL_StreamAlsaMonoPipe: teardownIo: closing PCM devices
+10-17 15:04:59.384  5610  5625 D AHAL_Stream: [in|ioHandle:14] shutdown
+10-17 15:04:59.384  5610  5610 D AHAL_Stream: stopAndJoinWorker: worker thread joined
+10-17 15:04:59.384  5610  5610 D AHAL_Module: resetAudioPatch: default: erased patch 2
+10-17 15:04:59.384  5610  5610 D AHAL_Module: resetAudioPortConfig: default: in_portConfigId 10 configs size: 4
+10-17 15:04:59.384  5610  5610 D AHAL_Module: resetAudioPortConfig: default: erased port config 10
+10-17 15:04:59.384  5610  5610 D AHAL_Module: setAudioPortConfigImpl: r_submix: requested AudioPortConfig{id: 0, portId: 5, sampleRate: Int{value: 192000}, channelMask: AudioChannelLayout{layoutMask: 3}, format: AudioFormatDescription{type: PCM, pcm: INT_16_BIT, encoding: }, gain: (null), flags: (null), ext: AudioPortExt{unspecified: false}}
+10-17 15:04:59.384  5610  5610 D AHAL_Module: setAudioPortConfigImpl: r_submix: not applied; existing config ? 0; requested is valid? 1, fully specified? 0
+10-17 15:04:59.384  5610  5610 D AHAL_Module: setAudioPortConfigImpl: r_submix: requested AudioPortConfig{id: 0, portId: 5, sampleRate: Int{value: 192000}, channelMask: AudioChannelLayout{layoutMask: 3}, format: AudioFormatDescription{type: PCM, pcm: INT_16_BIT, encoding: }, gain: (null), flags: AudioIoFlags{input: 0}, ext: AudioPortExt{device: AudioPortDeviceExt{device: AudioDevice{type: AudioDeviceDescription{type: IN_SUBMIX, connection: virtual}, address: AudioDeviceAddress{id: 0}}, flags: 0, encodedFormats: [], encapsulationModes: 0, encapsulationMetadataTypes: 0, speakerLayout: (null)}}}
+10-17 15:04:59.384  5610  5610 D AHAL_Module: setAudioPortConfigImpl: r_submix: created new port config AudioPortConfig{id: 7, portId: 5, sampleRate: Int{value: 192000}, channelMask: AudioChannelLayout{layoutMask: 3}, format: AudioFormatDescription{type: PCM, pcm: INT_16_BIT, encoding: }, gain: (null), flags: AudioIoFlags{input: 0}, ext: AudioPortExt{device: AudioPortDeviceExt{device: AudioDevice{type: AudioDeviceDescription{type: IN_SUBMIX, connection: virtual}, address: AudioDeviceAddress{id: 0}}, flags: 0, encodedFormats: [], encapsulationModes: 0, encapsulationMetadataTypes: 0, speakerLayout: (null)}}}
+10-17 15:04:59.384  5610  5610 D AHAL_Module: setAudioPortConfigImpl: r_submix: requested AudioPortConfig{id: 0, portId: 4, sampleRate: Int{value: 192000}, channelMask: AudioChannelLayout{layoutMask: 3}, format: AudioFormatDescription{type: PCM, pcm: INT_16_BIT, encoding: }, gain: (null), flags: AudioIoFlags{input: 0}, ext: AudioPortExt{mix: AudioPortMixExt{handle: 22, usecase: AudioPortMixExtUseCase{source: MIC}, maxOpenStreamCount: 0, maxActiveStreamCount: 0, recommendedMuteDurationMs: 0}}}
+10-17 15:04:59.384  5610  5610 D AHAL_Module: setAudioPortConfigImpl: r_submix: created new port config AudioPortConfig{id: 8, portId: 4, sampleRate: Int{value: 192000}, channelMask: AudioChannelLayout{layoutMask: 3}, format: AudioFormatDescription{type: PCM, pcm: INT_16_BIT, encoding: }, gain: (null), flags: AudioIoFlags{input: 0}, ext: AudioPortExt{mix: AudioPortMixExt{handle: 22, usecase: AudioPortMixExtUseCase{source: MIC}, maxOpenStreamCount: 10, maxActiveStreamCount: 10, recommendedMuteDurationMs: 0}}}
+10-17 15:04:59.384  5610  5610 D AHAL_Module: setAudioPatch: r_submix: requested patch AudioPatch{id: 0, sourcePortConfigIds: [7], sinkPortConfigIds: [8], minimumStreamBufferSizeFrames: 0, latenciesMs: []}
+10-17 15:04:59.384  5610  5610 D AHAL_Module: setAudioPatch: r_submix: created patch AudioPatch{id: 1, sourcePortConfigIds: [7], sinkPortConfigIds: [8], minimumStreamBufferSizeFrames: 4096, latenciesMs: [21]}
+10-17 15:04:59.384  5610  5610 D AHAL_Module: openInputStream: r_submix: port config id 8, buffer size 4096 frames
+10-17 15:04:59.384  5610  5610 D AHAL_Module: createStreamContext: r_submix: frame size 4 bytes
+10-17 15:04:59.384  5610  5610 D AHAL_Module: getSoundDose: r_submix: returning instance of ISoundDose: 0x7c3093811ab0
+10-17 15:04:59.384  5610  5610 D AHAL_Stream: StreamIn
+10-17 15:04:59.384  5610  5610 D AHAL_StreamRemoteSubmix: setConnectedDevices: ioHandle: 22, devices: [AudioDevice{type: AudioDeviceDescription{type: IN_SUBMIX, connection: virtual}, address: AudioDeviceAddress{id: 0}}]
+10-17 15:04:59.384  5610  5610 D AHAL_StreamRemoteSubmix: setConnectedDevices: connected to AudioDeviceAddress{id: 0}
+10-17 15:04:59.384  5610  5610 D AHAL_Stream: getStreamCommonCommon: returning 0x7c31a38767c0
+10-17 15:04:59.385  5610  5610 D AHAL_Stream: updateMetadataCommon
+10-17 15:04:59.385  5610  5610 D AHAL_Stream: close
+10-17 15:04:59.385  5610  5610 D AHAL_Stream: stopWorker: asking the worker to exit...
+10-17 15:04:59.385  5610  5610 D AHAL_Stream: stopWorker: done
+10-17 15:04:59.385  5610  5610 D AHAL_Stream: stopAndJoinWorker: joining the worker thread...
+10-17 15:04:59.385  5610  5628 D AHAL_Stream: cycle: received command Command{halReservedExit: 1584252819} in reader
+10-17 15:04:59.385  5610  5628 D AHAL_StreamRemoteSubmix: shutdown: pipe AudioDeviceAddress{id: 0} destroyed
+10-17 15:04:59.385  5610  5610 D AHAL_Stream: stopAndJoinWorker: worker thread joined
+10-17 15:04:59.385  5610  5610 D AHAL_Module: resetAudioPatch: r_submix: erased patch 1
+10-17 15:04:59.385  5610  5610 D AHAL_Module: resetAudioPortConfig: r_submix: in_portConfigId 7 configs size: 2
+10-17 15:04:59.385  5610  5610 D AHAL_Module: resetAudioPortConfig: r_submix: erased port config 7
+10-17 15:04:59.386  5609  5609 I audioserver_main: main: AudioPolicy created
+10-17 15:04:59.386  5609  5609 I audioserver_main: main: AudioSystem ready
+10-17 15:04:59.386   612   612 W AudioAnalytics: onAudioServerStart: (key=audio.policy) AudioPolicy ctor after uncaught failure, mStartCount:3 mStopCount:2 uptimeMs:50.956001 loadTimeMs:50.822056
+10-17 15:04:59.386  5610  5610 D AHAL_Module: getMmapPolicyInfos: default: mmap policy type DEFAULT
+10-17 15:04:59.386  5610  5610 D AHAL_Module: getMmapPolicyInfos: r_submix: mmap policy type DEFAULT
+10-17 15:04:59.386  5610  5610 D AHAL_Module: getMmapPolicyInfos: bluetooth: mmap policy type DEFAULT
+10-17 15:04:59.386  5609  5609 I audioserver_main: main: Do not init aaudio service, status 0, policy info size 3
+10-17 15:04:59.386  5609  5609 I audioserver_main: main: initialization done in 53.657 ms, joining thread pool
+10-17 15:04:59.555   392   392 I servicemanager: Caller(pid=5609,uid=1041,sid=u:r:audioserver:s0) Found android.hardware.audio.effect.IFactory/default in device VINTF manifest.
+10-17 15:04:59.555   392   392 I servicemanager: Caller(pid=5609,uid=1041,sid=u:r:audioserver:s0) Found android.hardware.audio.core.IModule/default in device VINTF manifest.
+10-17 15:04:59.801  3986  4202 I AS.AudioService: Audioserver started.
+10-17 15:04:59.802  5610  5610 D AHAL_Telephony: switchAudioMode: NORMAL
+10-17 15:04:59.802  5610  5610 D AHAL_Module: updateAudioMode: default: NORMAL
+10-17 15:04:59.803  5610  5610 D AHAL_Bluetooth: setEnabled: 1
+10-17 15:04:59.806  3986  4202 I AS.AudioService: after audioserver restart: initStreamVolume succeeded
+10-17 15:04:59.808  5610  5610 D AHAL_Module: getMicMute: default: returning 0
+10-17 15:04:59.808  5610  5610 D AHAL_Module: setMicMute: default: 0
+10-17 15:04:59.808  5610  5610 D AHAL_ModuleRemoteSubmix: setMicMute: is not supported
+10-17 15:04:59.808  5610  5610 D AHAL_ModuleBluetooth: setMicMute: is not supported
+10-17 15:04:59.808  5610  5610 D AHAL_Module: getMicMute: default: returning 0
+10-17 15:05:09.343  5610  5610 D AHAL_Module: getMmapPolicyInfos: default: mmap policy type EXCLUSIVE
+10-17 15:05:09.343  5610  5610 D AHAL_Module: getMmapPolicyInfos: r_submix: mmap policy type EXCLUSIVE
+10-17 15:05:09.343  5610  5610 D AHAL_Module: getMmapPolicyInfos: bluetooth: mmap policy type EXCLUSIVE
+10-17 15:05:09.343  5657  5657 D openbook-audio-test: PlayerBase::PlayerBase()
+10-17 15:05:09.344  5610  5610 D AHAL_Module: resetAudioPortConfig: default: in_portConfigId 11 configs size: 3
+10-17 15:05:09.344  5610  5610 D AHAL_Module: resetAudioPortConfig: default: erased port config 11
+10-17 15:05:09.344  5610  5610 D AHAL_Module: setAudioPortConfigImpl: default: requested AudioPortConfig{id: 0, portId: 4, sampleRate: Int{value: 48000}, channelMask: AudioChannelLayout{layoutMask: 3}, format: AudioFormatDescription{type: PCM, pcm: INT_16_BIT, encoding: }, gain: (null), flags: (null), ext: AudioPortExt{unspecified: false}}
+10-17 15:05:09.344  5610  5610 D AHAL_Module: setAudioPortConfigImpl: default: not applied; existing config ? 0; requested is valid? 1, fully specified? 0
+10-17 15:05:09.344  5610  5610 D AHAL_Module: setAudioPortConfigImpl: default: requested AudioPortConfig{id: 0, portId: 4, sampleRate: Int{value: 48000}, channelMask: AudioChannelLayout{layoutMask: 3}, format: AudioFormatDescription{type: PCM, pcm: INT_16_BIT, encoding: }, gain: (null), flags: AudioIoFlags{input: 0}, ext: AudioPortExt{device: AudioPortDeviceExt{device: AudioDevice{type: AudioDeviceDescription{type: IN_MICROPHONE, connection: }, address: AudioDeviceAddress{id: bottom}}, flags: 1, encodedFormats: [], encapsulationModes: 0, encapsulationMetadataTypes: 0, speakerLayout: (null)}}}
+10-17 15:05:09.344  5610  5610 D AHAL_Module: setAudioPortConfigImpl: default: created new port config AudioPortConfig{id: 12, portId: 4, sampleRate: Int{value: 48000}, channelMask: AudioChannelLayout{layoutMask: 3}, format: AudioFormatDescription{type: PCM, pcm: INT_16_BIT, encoding: }, gain: (null), flags: AudioIoFlags{input: 0}, ext: AudioPortExt{device: AudioPortDeviceExt{device: AudioDevice{type: AudioDeviceDescription{type: IN_MICROPHONE, connection: }, address: AudioDeviceAddress{id: bottom}}, flags: 1, encodedFormats: [], encapsulationModes: 0, encapsulationMetadataTypes: 0, speakerLayout: (null)}}}
+10-17 15:05:09.344  5610  5613 D AHAL_Module: setAudioPortConfigImpl: default: requested AudioPortConfig{id: 0, portId: 7, sampleRate: Int{value: 48000}, channelMask: AudioChannelLayout{layoutMask: 3}, format: AudioFormatDescription{type: PCM, pcm: INT_16_BIT, encoding: }, gain: (null), flags: AudioIoFlags{input: 0}, ext: AudioPortExt{mix: AudioPortMixExt{handle: 30, usecase: AudioPortMixExtUseCase{source: UNPROCESSED}, maxOpenStreamCount: 0, maxActiveStreamCount: 0, recommendedMuteDurationMs: 0}}}
+10-17 15:05:09.344  5610  5613 D AHAL_Module: setAudioPortConfigImpl: default: created new port config AudioPortConfig{id: 13, portId: 7, sampleRate: Int{value: 48000}, channelMask: AudioChannelLayout{layoutMask: 3}, format: AudioFormatDescription{type: PCM, pcm: INT_16_BIT, encoding: }, gain: (null), flags: AudioIoFlags{input: 0}, ext: AudioPortExt{mix: AudioPortMixExt{handle: 30, usecase: AudioPortMixExtUseCase{source: UNPROCESSED}, maxOpenStreamCount: 0, maxActiveStreamCount: 1, recommendedMuteDurationMs: 0}}}
+10-17 15:05:09.344  5610  5613 D AHAL_Module: setAudioPatch: default: requested patch AudioPatch{id: 0, sourcePortConfigIds: [12], sinkPortConfigIds: [13], minimumStreamBufferSizeFrames: 0, latenciesMs: []}
+10-17 15:05:09.344  5610  5613 D AHAL_Module: setAudioPatch: default: created patch AudioPatch{id: 3, sourcePortConfigIds: [12], sinkPortConfigIds: [13], minimumStreamBufferSizeFrames: 4096, latenciesMs: [85]}
+10-17 15:05:09.344  5610  5613 D AHAL_Module: openInputStream: default: port config id 13, buffer size 4096 frames
+10-17 15:05:09.344  5610  5613 D AHAL_Module: createStreamContext: default: frame size 4 bytes
+10-17 15:05:09.344  5610  5613 D AHAL_Module: getSoundDose: default: returning instance of ISoundDose: 0x7c3093811c10
+10-17 15:05:09.344  5610  5613 D AHAL_Stream: StreamIn
+10-17 15:05:09.344  5610  5660 D AHAL_Stream: [in|ioHandle:30] init
+10-17 15:05:09.344  5610  5613 D AHAL_StreamPrimary: setConnectedDevices: [AudioDevice{type: AudioDeviceDescription{type: IN_MICROPHONE, connection: }, address: AudioDeviceAddress{id: bottom}}]
+10-17 15:05:09.344  5610  5613 D AHAL_Stream: getStreamCommonCommon: returning 0x7c31a38767c0
+10-17 15:05:09.345  5610  5613 D AHAL_Stream: updateMetadataCommon
+10-17 15:05:09.345  5657  5657 D openbook-audio-test: PlayerBase::PlayerBase()
+10-17 15:05:09.345  5610  5613 D AHAL_Stream: updateMetadataCommon
+10-17 15:05:09.346  5610  5613 D AHAL_Stream: updateMetadataCommon
+10-17 15:05:09.346  5610  5613 D AHAL_Module: setAudioPatch: default: requested patch AudioPatch{id: 3, sourcePortConfigIds: [12], sinkPortConfigIds: [13], minimumStreamBufferSizeFrames: 0, latenciesMs: []}
+10-17 15:05:09.346  5610  5613 D AHAL_Module: setAudioPatch: default: updated patch AudioPatch{id: 3, sourcePortConfigIds: [12], sinkPortConfigIds: [13], minimumStreamBufferSizeFrames: 4096, latenciesMs: [85]}
+10-17 15:05:09.346  5610  5613 D AHAL_Stream: updateMetadataCommon
+10-17 15:05:09.346  5610  5613 D AHAL_Stream: setMicrophoneDirection: direction UNSPECIFIED
+10-17 15:05:09.346  5610  5660 D AHAL_Stream: cycle: received command Command{start: Void{}} in reader
+10-17 15:05:09.346  5610  5613 D AHAL_Stream: setMicrophoneFieldDimension: zoom 0
+10-17 15:05:09.346  5610  5660 D AHAL_Stream: cycle: writing reply Reply{status: 0, fmqByteCount: 0, observable: Position{frames: 0, timeNs: 163314571661}, hardware: Position{frames: -1, timeNs: -1}, latencyMs: 0, xrunFrames: 0, state: IDLE, flushFromPosition: 0}
+10-17 15:05:09.346  5610  5660 W AHAL_StreamAlsaMonoPipe: transfer: incomplete data received, inserting 4096 frames of silence
+10-17 15:05:09.432  5610  5660 W AHAL_StreamAlsaMonoPipe: transfer: incomplete data received, inserting 4096 frames of silence
+10-17 15:05:09.849  5610  5613 D AHAL_Stream: updateMetadataCommon
+10-17 15:05:09.849  5610  5623 D AHAL_Stream: cycle: received command Command{start: Void{}} in writer
+10-17 15:05:09.849  5610  5623 D AHAL_Stream: cycle: writing reply Reply{status: 0, fmqByteCount: 0, observable: Position{frames: 0, timeNs: 163817790256}, hardware: Position{frames: -1, timeNs: -1}, latencyMs: 0, xrunFrames: 0, state: IDLE, flushFromPosition: 0}
+10-17 15:05:09.935  5610  5613 D AHAL_Stream: updateMetadataCommon
+10-17 15:05:10.029  5610  5660 W AHAL_StreamAlsaMonoPipe: transfer: incomplete data received, inserting 4096 frames of silence
+10-17 15:05:10.712  5610  5660 W AHAL_StreamAlsaMonoPipe: transfer: incomplete data received, inserting 4096 frames of silence
+10-17 15:05:11.394  5610  5660 W AHAL_StreamAlsaMonoPipe: transfer: incomplete data received, inserting 4096 frames of silence
+10-17 15:05:11.992  5610  5660 W AHAL_StreamAlsaMonoPipe: transfer: incomplete data received, inserting 4096 frames of silence
+10-17 15:05:12.538  5610  5623 D AHAL_StreamPrimary: transfer: skipping transfer (4096 frames)
+10-17 15:05:12.674  5610  5660 W AHAL_StreamAlsaMonoPipe: transfer: incomplete data received, inserting 4096 frames of silence
+10-17 15:05:13.007  5610  5613 D AHAL_Stream: updateMetadataCommon
+10-17 15:05:13.016  5610  5613 D AHAL_Stream: updateMetadataCommon
+10-17 15:05:13.016  5610  5660 D AHAL_Stream: cycle: received command Command{pause: Void{}} in reader
+10-17 15:05:13.016  5610  5660 D AHAL_Stream: cycle: writing reply Reply{status: 0, fmqByteCount: 0, observable: Position{frames: 176128, timeNs: 166984398845}, hardware: Position{frames: -1, timeNs: -1}, latencyMs: 0, xrunFrames: 0, state: PAUSED, flushFromPosition: 0}
+10-17 15:05:13.016  5610  5660 D AHAL_Stream: cycle: received command Command{flush: Void{}} in reader
+10-17 15:05:13.016  5610  5660 D AHAL_StreamAlsaMonoPipe: teardownIo: shutting down pipes
+10-17 15:05:13.016  5610  5660 D AHAL_StreamAlsaMonoPipe: teardownIo: stopping PCM streams
+10-17 15:05:13.016  5610  5660 D AHAL_StreamAlsaMonoPipe: teardownIo: joining threads
+10-17 15:05:13.072  5610  5660 D AHAL_StreamAlsaMonoPipe: teardownIo: closing PCM devices
+10-17 15:05:13.072  5610  5660 D AHAL_Stream: cycle: writing reply Reply{status: 0, fmqByteCount: 0, observable: Position{frames: 176128, timeNs: 167040404309}, hardware: Position{frames: -1, timeNs: -1}, latencyMs: 0, xrunFrames: 0, state: STANDBY, flushFromPosition: 0}
+10-17 15:05:13.073  5610  5613 D AHAL_StreamPrimary: setConnectedDevices: []
+10-17 15:05:13.073  5610  5613 D AHAL_Module: updateStreamsConnectedState: The stream on port config id 13 has been disconnected
+10-17 15:05:13.073  5610  5613 D AHAL_Module: resetAudioPatch: default: erased patch 3
+10-17 15:05:13.073  5610  5613 D AHAL_Module: resetAudioPortConfig: default: in_portConfigId 12 configs size: 4
+10-17 15:05:13.073  5610  5613 D AHAL_Module: resetAudioPortConfig: default: erased port config 12
+10-17 15:05:13.080  5610  5613 D AHAL_Stream: updateMetadataCommon
+10-17 15:05:13.080  5657  5657 D openbook-audio-test: PlayerBase::~PlayerBase()
+10-17 15:05:13.081  5610  5613 D AHAL_Stream: close
+10-17 15:05:13.081  5610  5613 D AHAL_Stream: stopWorker: asking the worker to exit...
+10-17 15:05:13.081  5610  5613 D AHAL_Stream: stopWorker: done
+10-17 15:05:13.081  5610  5613 D AHAL_Stream: stopAndJoinWorker: joining the worker thread...
+10-17 15:05:13.081  5610  5660 D AHAL_Stream: cycle: received command Command{halReservedExit: 1432615955} in reader
+10-17 15:05:13.081  5610  5660 D AHAL_StreamAlsaMonoPipe: teardownIo: shutting down pipes
+10-17 15:05:13.081  5610  5660 D AHAL_StreamAlsaMonoPipe: teardownIo: stopping PCM streams
+10-17 15:05:13.081  5610  5660 D AHAL_StreamAlsaMonoPipe: teardownIo: joining threads
+10-17 15:05:13.081  5610  5660 D AHAL_StreamAlsaMonoPipe: teardownIo: closing PCM devices
+10-17 15:05:13.081  5610  5660 D AHAL_Stream: [in|ioHandle:30] shutdown
+10-17 15:05:13.081  5610  5613 D AHAL_Stream: stopAndJoinWorker: worker thread joined

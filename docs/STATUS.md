@@ -16,7 +16,7 @@
 | Touchpad, keyboard | Yes | **Yes** | `evidence/2026-10-16-installer/g14-live/` |
 | Lid, power button, hotkeys, battery health | Yes | Not tested | `evidence/2026-10-17-power-input/` |
 | Sleep | s2idle in a VM | **s2idle works; deep sleep (S0i3) never reached.** Hypothesis: the driverless PSP | `docs/power-input.md` |
-| Wi-Fi, Bluetooth, audio | Yes (WPA2, iperf3, tone through ALSA) | **Wi-Fi connected to the internet** in the enforcing boot; Bluetooth on. ANAL-179 is reading the full results | `evidence/2026-10-17-g14-audio-net/` |
+| Wi-Fi, Bluetooth, audio | Yes (WPA2, iperf3, tone through ALSA and, with the HAL fix, through Android) | **Wi-Fi to the internet** (5 GHz, 160 MHz); **Bluetooth pairs**, A2DP with LDAC; **speakers and mic through ALSA** heard. Through Android the tone was broken (HAL fix in PR, QEMU only). Under enforcing, Bluetooth audio and app audio fail (fixes in #52). Headphone jack and iperf3 not tested (ANAL-179) | `evidence/2026-10-17-g14-audio-net/` |
 | ARM apps (Digitalis, built from source) | 14/16 ARM-only apps; works in enforcing | Not tested | `evidence/2026-10-17-digitalis-a17/`, `evidence/2026-10-17-g14-combined/` |
 | Installer | **Wizard 25/25, engine 53/53:** installs to a virtual NVMe disk that then boots by itself into OpenBook setup (SELinux enforcing) | Live USB boots; the wizard has not run yet | `evidence/2026-10-17-installer-wizard/` |
 
@@ -70,6 +70,23 @@
 **Build host:** one AOSP build at a time (`flock ~/anybook/aosp/.lane.lock`, taken by `scripts/aosp-docker.sh`), because builds peak at about 50 GB of the 61 GB RAM. Builds and images are in `docs/BUILD.md`; the live image and the owner checklists are in `docs/installer.md` §11.
 
 ## History
+
+### 2026-10-17: G14 audio, Wi-Fi and Bluetooth results from the owner's two sessions (ANAL-179)
+- **Done:** read both sessions (`anal178c`, `anal176s`) from the host copies, read-only, and redacted them. The `wifi_*`, `bt_*` and `audio_*` verdicts and logs are in `docs/g14-audio-net.md` §10, with G14 rows in `COMPAT-MATRIX.md`.
+  - **Wi-Fi works:** MT7925 on 5320 MHz (160 MHz), DHCP, internet.
+  - **Bluetooth pairs**, and A2DP runs with LDAC 96 kHz.
+  - **The speakers and mic work through ALSA.**
+- **Fixed:**
+  - The audio HAL is now paced by the codec (AOSP patch 0002). Before, on the G14 the Android loopback lost 24 of 30 slices, and the HAL padded the capture 7 times. In QEMU, in one boot against AOSP's pacing: the tone reaches the codec whole (2.05 s against 1.65–1.70 s), and capture padding drops from 7 to 0.
+  - The hwtest loopback now names its ports. In session 2 the tone had gone to the Bluetooth headphones.
+  - hwtest's Wi-Fi status was stale.
+  - PNO now runs through the driver's scheduled scan. With the screen off and no connection, the G14 had stopped scanning.
+- **Blocked on PR #52:** Bluetooth audio and app audio under enforcing. The Bluetooth app aborted when A2DP started, and the browser had no sound.
+- **Next:** ANAL-192's integrated stick runs this issue's checks (`docs/g14-audio-net.md` §10.4):
+  - an iperf3 server configured;
+  - headphones plugged in during the default boot;
+  - Bluetooth audio and a browser video in the default boot;
+  - `audio_android_clean` and `wifi_pno` in the save-logs boot.
 
 ### 2026-10-17: installer merged; one owner stick from here on (ANAL-159)
 - **Merged** #53 (ANAL-191) after checks.
