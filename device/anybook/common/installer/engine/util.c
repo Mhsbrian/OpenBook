@@ -807,6 +807,12 @@ void env_init(const char *root, const char *boot_part_uuid) {
         snprintf(E.selinux, sizeof E.selinux, "%s", !strcmp(buf, "1") ? "enforcing" : "permissive");
     }
     env_path(path, sizeof path, "/sys/firmware/efi/efivars");
+    snprintf(E.efivars_dir, sizeof E.efivars_dir, "%s", path);
     struct statfs sf;
     E.efivars = !statfs(path, &sf) && sf.f_type == 0xde5e81e4;  // EFIVARFS_MAGIC
+}
+
+void env_set_efivars_dir(const char *dir) {
+    snprintf(E.efivars_dir, sizeof E.efivars_dir, "%s", dir);
+    E.efivars = 1;
 }

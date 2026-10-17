@@ -25,7 +25,7 @@ localises everything it renders from ids and states.
 {"id":1,"ok":true,"version":1,"live":true,"selinux":"enforcing",
  "boot_disk":{"name":"sda","by_id":"usb-SanDisk_Ultra_4C53...-0:0","model":"SanDisk Ultra","size_bytes":30752636928},
  "source":{"label":"openbook-live-20261017x","fingerprint":"OpenBook/anybook_g14_x86_64/...","ok":true,"why":null},
- "efivars":false,
+ "efivars":true,
  "power":{"ac":true,"battery_pct":87,"ok":true},
  "logs_on_stick":true,
  "job":null}
@@ -109,15 +109,17 @@ the disk: erased with "whole", kept with "alongside", S12).
  "before":[{"kind":"windows","bytes":412000000000,"label":"Windows"},{"kind":"linux","bytes":541000000000,"label":"Linux"},
            {"kind":"efi","bytes":272629760,"label":"EFI"},{"kind":"free","bytes":69000000000,"label":""}],
  "bytes_to_write":1621098496,"estimated_seconds":95,
- "boot":{"entry":"loader/entries/openbook-a.conf","fallback_path":true,"nvram":"unavailable","set_default":true},
- "warnings":["nvram_unavailable"],
+ "boot":{"entry":"loader/entries/openbook-a.conf","fallback_path":true,"nvram":"planned","boot_order":"first","set_default":true},
+ "warnings":[],
  "operations":[{"op":"wipe_table","text":"Erase the partition table (primary, backup and protective MBR)"},
                {"op":"copy","text":"Copy boot_a (64.0 MiB) from the stick to partition 3 at 545259520","bytes":67108864,"sha256":"..."}]}
 ```
 `before`/`after` segment kinds: `windows`, `linux`, `efi`, `openbook`, `other`, `free`. `operations[].text` is
-English; "View the plan" shows it in a monospace list. `warnings` codes: `nvram_unavailable` (no efivarfs: the
-whole-disk install boots through the fallback path; alongside needs a firmware boot entry the user adds), `external`,
-`encrypted_kept`, `encrypted_erased`, `battery`.
+English; "View the plan" shows it in a monospace list. `boot.nvram`: `planned` (efivarfs is mounted: one `Boot####`
+"OpenBook" will be created after verification) or `unavailable`. `boot.boot_order`: `first` (with `set_default`, the
+user's consent, S11) or `unchanged`. `warnings` codes: `nvram_unavailable` (no efivarfs: the whole-disk install boots
+through the fallback path; alongside needs a firmware boot entry the user adds), `boot_order_unchanged` (an entry is
+made, but the other system stays first), `external`, `encrypted_kept`, `encrypted_erased`, `battery`.
 
 ## apply (writes; S3, S4)
 `{"id":5,"cmd":"apply","plan_sha256":"9f2c...","target":"nvme-SK_hynix_PVC10_AN0BS4F2A","typed":"sk hynix pvc10","power":{"ac":true,"battery_pct":87}}`
@@ -132,10 +134,13 @@ if S8 fails. Then it streams:
 {"id":5,"event":"log","line":"12:00:03 verify super: sha256 ok (1409286144 bytes)"}
 ...
 {"id":5,"ok":true,"result":{"ok":true,"verified":true,"failed_step":null,"error":null,
-  "boot_entry":"loader/entries/openbook-a.conf","nvram":"unavailable","fallback_path":true,
+  "boot_entry":"loader/entries/openbook-a.conf","nvram":"created","nvram_entry":"Boot0005","boot_order":"first",
+  "nvram_error":null,"fallback_path":true,
   "report":"openbook/logs/install-20261017T120000Z.json","log":"openbook/logs/install-20261017T120000Z.log",
   "seconds":93}}
 ```
+`nvram`: `created` (and `nvram_entry`, `boot_order` = `first`/`unchanged`), `failed` (`nvram_error` says why; the
+disk is installed and verified all the same), `unavailable` (no efivarfs) or `skipped` (the install did not verify).
 Steps, in order: `check_source` (S10: the stick's partitions against its manifest), `prepare_disk` (S4 re-check,
 wipe or add the partition table), `boot_images` (boot/init_boot/vendor_boot/vbmeta), `system` (super),
 `boot_entry` (ESP/XBOOTLDR files, loader entry, NVRAM entry if possible), `verify` (read back every written

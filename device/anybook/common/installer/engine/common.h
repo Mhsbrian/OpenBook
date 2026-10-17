@@ -109,10 +109,12 @@ struct env {
     int live;                    // ro.boot.openbook.live
     int logs_mode;               // ro.boot.openbook.logs (the "save logs" helper owns the stick's ESP)
     char selinux[16];
-    int efivars;                 // /sys/firmware/efi/efivars is an efivarfs mount
+    int efivars;                 // /sys/firmware/efi/efivars is an efivarfs mount (or --efivars DIR in tests)
+    char efivars_dir[512];
 };
 extern struct env E;
 void env_init(const char *root, const char *boot_part_uuid);
+void env_set_efivars_dir(const char *dir);  // host tests: a plain directory stands in for efivarfs
 void env_path(char *out, size_t n, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 int prop_get(const char *name, char *out, size_t n);  // 0 and out = "" if unset
 
@@ -277,6 +279,19 @@ int normalized_equal(const char *a, const char *b);  // case-insensitive, whites
 // fsync, then drop the cached blocks of fd's device, so the next reads come from the disk. Before writing the
 // stick's ESP: the live system may have mounted that partition since (a different block device, its own cache).
 void drop_cache(int fd);
+
+// ------------------------------------------------------------------ UEFI boot entries (efivar.c)
+struct nvram_result {
+    int created;        // the Boot#### variable exists and reads back as written
+    int num;            // its number, -1 if none
+    const char *order;  // "first", "unchanged" or "failed"
+    char why[200];
+};
+// Create one Boot#### entry: desc -> HD(partnum, start_lba, size_lba, guid)/path. set_first: put it first in
+// BootOrder (the user's consent, S11); otherwise BootOrder is left alone.
+int nvram_add_entry(const char *desc, uint32_t partnum, uint64_t start_lba, uint64_t size_lba, const uint8_t guid[16],
+                    const char *path, int set_first, struct nvram_result *res);
+void nvram_json(struct jw *w);  // "nvram": BootOrder, BootCurrent and every Boot#### entry, read-only
 
 // ------------------------------------------------------------------ daemon
 int daemon_main(const char *socket_path);
