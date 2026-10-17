@@ -921,6 +921,12 @@ Wait for `stick powered off: safe to unplug`. On the G14: mains power, lid open,
 
 **Boot 3: "OpenBook ARM apps check"** (about 10 minutes, mains power, lid open, powers off by itself; ANAL-200). Leave it alone; test windows open now and then.
 
+**Optional, Wi-Fi throughput** (ANAL-179, `wifi_iperf3`). Before boot 2:
+- run `iperf3 -s` on a PC on the same network as the G14;
+- plug the written stick into a Linux PC and run `printf 'iperf3_server=<that PC's address>\n' > /run/media/$USER/OPENBOOK/openbook/hwtest.conf && sync` (`docs/g14-audio-net.md` §7).
+
+The "save logs" boot then measures both directions. Without it, `wifi_iperf3` stays "unknown"; everything else runs.
+
 **Optional, on the laptop's own Linux** (ANAL-178, deep sleep; about 5 minutes; save your work first): `sudo python3 scripts/power/linux-s2idle.py --amd-s2idle`, then attach the tarball to ANAL-178.
 
 **Then plug the stick into the build host and reply "stick attached".** The agents read it read-only (`scripts/installer/read-stick-logs.sh`). Attach the photos.
