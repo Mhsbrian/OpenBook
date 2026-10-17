@@ -1,10 +1,10 @@
 # Status
 
-## State of the union (2026-10-17, 17:20 UTC)
+## State of the union (2026-10-17, 17:30 UTC)
 
 **Goal:** the Googlebook-style Android 17 desktop on the ASUS ROG Zephyrus G14 (GA403WR: Ryzen AI 9 HX 370, Radeon 890M), installed from a USB stick through a wizard and verified on the laptop. Repo: https://github.com/Mhsbrian/OpenBook.
 
-**Repo hygiene:** PRs #1–#59 are merged. Open: #60 (ANAL-176, docs), #61 (ANAL-177, Vulkan 1.4) and ANAL-192's PR. The 2026-10-17 cleanup left one remote branch, `main`; every other branch was merged or superseded. Two branches with commits never merged are kept as tags: `archive/anal-190-live-image-b` (superseded on `main`) and `archive/anal-178-stick-integration`.
+**Repo hygiene:** PRs #1–#63 are merged and none are open. The 2026-10-17 cleanup left one remote branch, `main`; every other branch was merged or superseded. Two branches with commits never merged are kept as tags: `archive/anal-190-live-image-b` (superseded on `main`) and `archive/anal-178-stick-integration`.
 
 ### What works, and where it has been shown
 
@@ -24,7 +24,7 @@
 
 ### Running now
 
-- **Nothing is running.** Every issue has delivered and all PRs are merged.
+- **ANAL-198 (kernel lane)** is adding the missing system DMA-BUF heap: media decoding failed on the G14, so ringtones made no sound. It is also evaluating `EFIVAR_FS` for the installer's firmware boot entries; leaving Google's unmodified GKI configuration would be an owner decision. Everything else has delivered, and all PRs are merged.
 - **The owner's stick is `openbook-live-20261017-anal192c`** (ANAL-192, PR #62): built from `main` `3908b14`, with the installer, PR #52's fixes, #57's touchpad fix, #58's audio HAL fix, the power check and the ARM apps check (sha256 `dd1ebe20…`). In QEMU: live 40/40, wizard 25/25, installer end to end 79/79. The three-boot checklist is ANAL-192's comment of 2026-10-17 17:09 and `docs/installer.md` §13.
 - **After that session:** ANAL-192 builds the next stick from `main` with Vulkan 1.4 (PR #61) and ANAL-177's second graphics run. Results from `anal192c` go to ANAL-176, ANAL-178, ANAL-179, ANAL-191 and ANAL-200.
 - **Merged today since 14:45:** #56 (ANAL-200, the bridge on Zen 5), #57 (ANAL-178, power and input on the G14, the touchpad fix), #58 (ANAL-179, audio, Wi-Fi and Bluetooth on the G14, the codec-paced audio HAL).
@@ -32,6 +32,7 @@
 ### Waiting on the owner
 
 1. **Write `openbook-live-20261017-anal192c` and run its checklist** (`docs/installer.md` §13.6): three boots (the default entry, "save logs", the ARM apps check), then reply "stick attached" on ANAL-192. It replaces every earlier stick. A spare drive for the real install (§13.7) waits until you name one by `/dev/disk/by-id`.
+   Reply "stick attached" on ANAL-192 only; the coordinator routes each issue to its part. Ringtone sound is expected to fail until ANAL-198's heap fix ships on the next stick, along with Vulkan 1.4 and ANAL-177's second graphics run.
    Optional and independent of the stick, for S0i3: on the laptop's own Linux run `sudo python3 scripts/power/linux-s2idle.py --amd-s2idle` (about 5 min; `docs/power-input.md` §7.6) and attach the tarball to ANAL-178.
 2. **Decisions:** none blocks running work.
    - repo license (Apache-2.0 suggested);
@@ -53,6 +54,7 @@
 | ANAL-200 ARM bridge | In review (PR #56, merged) | Done: bridge verdicts 5/5 on the G14 in both sessions, G14 rows recorded, and the ARM apps check add-on (probe and CoreMark on the laptop, QEMU-tested). Next: read its G14 results | The ARM-apps-check boot on ANAL-192's stick; the upstream-report OK |
 | ANAL-191 installer wizard and engine | In review | The G14 dry run, on ANAL-192's stick. Open: `openbook-bootsync`, the text hardware report, a firmware boot entry (our GKI has no `EFIVAR_FS`: a kernel-lane decision) | — |
 | ANAL-192 installer end-to-end tests and the owner's stick | In review | Done in QEMU: the integrated stick `anal192c` (live 40/40, wizard 25/25), the end-to-end matrix 79/79 (`scripts/installer/e2e-qemu.sh`), the user guide and release checklist draft (`docs/INSTALL.md`). Found: an installed OpenBook offers to format a plugged-in installer stick; the wizard calls an installed OpenBook "Linux". Open: the OTA slot switch (needs `openbook-bootsync`) | The owner's run of `docs/installer.md` §13.6; a spare drive named by `/dev/disk/by-id` for §13.7; the release decisions (`docs/INSTALL.md` §9) |
+| ANAL-198 G14 kernel (follow-up) | **Running** | Add the system DMA-BUF heap (media decoding); evaluate `EFIVAR_FS` (firmware boot entries); note gfx1150 GPU-reset behaviour. QEMU proof on the G14 product | An owner decision only if the GKI base must change |
 | ANAL-193 to ANAL-197 device loop | Backlog | ANAL-194 first: the Multica runtime and test agent on the G14's Linux | Owner installs the daemon |
 | ANAL-166 performance and parity | Backlog | After the installer: benchmarks, Chrome, the Linux terminal (AVF without pKVM). No sub-issues yet | — |
 | ANAL-186 NVIDIA | Parked | Research is done (ANAL-187); N1–N6 after M4 | — |
