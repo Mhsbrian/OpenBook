@@ -1,0 +1,208 @@
+
+--- bridge: arm64 native bridge ---
+native bridge: libberberis_arm64.so isa.arm64=x86_64 exec=1 flags=disable-ir-check abilist=x86_64,arm64-v8a
+binfmt arm64_dyn: enabled interpreter /system/bin/berberis_program_runner_binfmt_misc_arm64 
+binfmt arm64_exe: enabled interpreter /system/bin/berberis_program_runner_binfmt_misc_arm64 
+HWTEST {"test": "bridge-config", "ok": true, "native_bridge": "libberberis_arm64.so", "binfmt": true, "guest_libs": 57, "abilist": "x86_64,arm64-v8a"}
+{"test": "bridge-exec", "ok": true, "abi": "arm64-v8a", "uname_machine": "aarch64", "hwcap": "0x9fb"}
+{"test": "bridge-id-registers", "ok": true, "sigill": 0, "first_sigill": -1, "midr": "0x410fd034", "isar0": "0x211120", "pfr0": "0x11", "hwcap_cpuid": true}
+{"test": "bridge-fp-estimates", "ok": true, "cases": 6900, "bad": 0, "first_bad": ""}
+{"test": "bridge-int-simd", "ok": true, "crc32": true, "neon_fma": true}
+exit 0
+HWTEST {"test": "bridge-exec", "ok": true, "abi": "arm64-v8a", "uname_machine": "aarch64", "hwcap": "0x9fb"}
+HWTEST {"test": "bridge-id-registers", "ok": true, "sigill": 0, "first_sigill": -1, "midr": "0x410fd034", "isar0": "0x211120", "pfr0": "0x11", "hwcap_cpuid": true}
+HWTEST {"test": "bridge-fp-estimates", "ok": true, "cases": 6900, "bad": 0, "first_bad": ""}
+HWTEST {"test": "bridge-int-simd", "ok": true, "crc32": true, "neon_fma": true}
+
+--- audio: cards, PCMs and mixer ---
+ 1 [Generic        ]: HDA-Intel - HD-Audio Generic
+                      HD-Audio Generic at 0xdc6c8000 irq 115
+ 2 [Generic_1      ]: HDA-Intel - HD-Audio Generic
+                      HD-Audio Generic at 0xdc6c0000 irq 116
+01-03: HDMI 0 : HDMI 0 : playback 1
+02-00: ALC285 Analog : ALC285 Analog : playback 1 : capture 1
+vendor.audio.primary.card=2
+vendor.audio.primary.device=0
+card 1 mixer 'HD-Audio Generic':
+  HDMI/DP,pcm=3 Jack [BOOL] 0
+  IEC958 Playback Con Mask [IEC958]
+  IEC958 Playback Pro Mask [IEC958]
+  IEC958 Playback Default [IEC958]
+  IEC958 Playback Switch [BOOL] 0
+  ELD [BYTE]
+  Playback Channel Map [INT] 0 0 0 0 0 0 0 0 (0..36)
+card 2 mixer 'HD-Audio Generic':
+  AMP1 Posture Number [INT] 0 (0..255)
+  AMP1 ASP1 TX1 Source [ENUM] VMON
+  AMP1 ASP1 TX2 Source [ENUM] IMON
+  AMP1 ASP1 TX3 Source [ENUM] ERRVOL
+  AMP1 ASP1 TX4 Source [ENUM] VDDBMON
+  AMP1 Speaker Playback Volume [INT] 400 (0..448)
+  AMP2 Posture Number [INT] 0 (0..255)
+  AMP2 ASP1 TX1 Source [ENUM] VMON
+  AMP2 ASP1 TX2 Source [ENUM] IMON
+  AMP2 ASP1 TX3 Source [ENUM] ERRVOL
+  AMP2 ASP1 TX4 Source [ENUM] VDDBMON
+  AMP2 Speaker Playback Volume [INT] 400 (0..448)
+  Headphone Playback Volume [INT] 87 87 (0..87)
+  Headphone Playback Switch [BOOL] 1 1
+  Speaker Playback Volume [INT] 87 87 (0..87)
+  Speaker Playback Switch [BOOL] 1 1
+  Bass Speaker Playback Switch [BOOL] 1 1
+  Auto-Mute Mode [ENUM] Enabled
+  Capture Source [ENUM] Internal Mic
+  Capture Volume [INT] 23 23 (0..63)
+  Capture Switch [BOOL] 1 1
+  Internal Mic Boost Volume [INT] 0 0 (0..3)
+  Internal Mic Boost Volume [INT] 0 0 (0..3)
+  Mic Boost Volume [INT] 0 0 (0..3)
+  Mic Boost Volume [INT] 0 0 (0..3)
+  Master Playback Volume [INT] 87 (0..87)
+  Master Playback Switch [BOOL] 1
+  Internal Mic Phantom Jack [BOOL] 1
+  Internal Mic Phantom Jack [BOOL] 1
+  Mic Jack [BOOL] 0
+  Mic Jack [BOOL] 0
+  Headphone Jack [BOOL] 0
+  Speaker Front Phantom Jack [BOOL] 1
+  Speaker Surround Phantom Jack [BOOL] 1
+  Playback Channel Map [INT] 0 0 0 0 (0..36)
+  Capture Channel Map [INT] 0 0 (0..36)
+HWTEST {"test": "audio-card", "ok": true, "card": 2, "pcm": "02-00: ALC285 Analog : ALC285 Analog : playback 1 : capture 1"}
+
+--- audio: policy ---
+ Available output devices (2):
+  1. Port ID: 2; "Speaker"; {AUDIO_DEVICE_OUT_SPEAKER, @:}
+     Encapsulation modes: 0, metadata types: 0
+     Port Hal ID: 1
+   - Profiles (1):
+--
+ Available input devices (2):
+  1. Port ID: 5; "Built-In Mic"; {AUDIO_DEVICE_IN_BUILTIN_MIC, @:bottom}
+     Encapsulation modes: 0, metadata types: 0
+     Port Hal ID: 4
+   - Profiles (1):
+Hardware status: 0
+  Standby: yes
+  Sample rate: 48000 Hz
+  HAL format: 0x1 (AUDIO_FORMAT_PCM_16_BIT)
+  Output devices: 0x2 (AUDIO_DEVICE_OUT_SPEAKER)
+  Input device: 0 (AUDIO_DEVICE_NONE)
+  Standby delay ns=3000000000
+  Standby: yes
+  Sample rate: 96000 Hz
+  HAL format: 0x3 (AUDIO_FORMAT_PCM_32_BIT)
+  Output devices: 0x80 (AUDIO_DEVICE_OUT_BLUETOOTH_A2DP)
+  Input device: 0 (AUDIO_DEVICE_NONE)
+  Standby delay ns=3000000000
+  Standby: yes
+  Sample rate: 96000 Hz
+  HAL format: 0x3 (AUDIO_FORMAT_PCM_32_BIT)
+  Output devices:  (Empty device types)
+  Input device: 0 (AUDIO_DEVICE_NONE)
+  Standby delay ns=3000000000
+-   Standby: no
+
+--- audio: speaker -> built-in mic, direct ALSA (2 s at 1 kHz) ---
+{"test": "alsa-loopback", "ok": true, "card": 2, "device": 0, "rate": 48000, "channels": 2, "freq": 1000, "seconds": 2.00, "tone_dbfs_out": -15, "noise_rms_dbfs": -14.5, "noise_bin_dbfs": -75.5, "tone_rms_dbfs": -33.5, "tone_bin_dbfs": -33.6, "tone_share": 0.979, "slice_share_mean": 0.982, "slice_share_min": 0.792, "glitched_slices": 2, "slices": 33, "heard": true, "playback_error": "", "capture_error": ""}
+HWTEST {"test": "alsa-loopback", "ok": true, "card": 2, "device": 0, "rate": 48000, "channels": 2, "freq": 1000, "seconds": 2.00, "tone_dbfs_out": -15, "noise_rms_dbfs": -14.5, "noise_bin_dbfs": -75.5, "tone_rms_dbfs": -33.5, "tone_bin_dbfs": -33.6, "tone_share": 0.979, "slice_share_mean": 0.982, "slice_share_min": 0.792, "glitched_slices": 2, "slices": 33, "heard": true, "playback_error": "", "capture_error": ""}
+
+--- audio: speaker -> built-in mic through Android (AAudio) ---
+{"test": "aaudio-loopback", "ok": true, "in_rate": 48000, "in_channels": 2, "out_rate": 48000, "out_channels": 2, "captured_frames": 168000, "written_frames": 120000, "xruns": 1, "freq": 1000, "tone_dbfs_out": -15, "noise_rms_dbfs": -46.2, "noise_bin_dbfs": -98.9, "tone_rms_dbfs": -61.2, "tone_bin_dbfs": -94.3, "tone_share": 0.000, "slice_share_mean": 0.001, "slice_share_min": 0.000, "glitched_slices": 30, "slices": 30, "heard": false, "input_error": 0, "output_error": 0, "media_volume": "10/15"}
+HWTEST {"test": "aaudio-loopback", "ok": true, "in_rate": 48000, "in_channels": 2, "out_rate": 48000, "out_channels": 2, "captured_frames": 168000, "written_frames": 120000, "xruns": 1, "freq": 1000, "tone_dbfs_out": -15, "noise_rms_dbfs": -46.2, "noise_bin_dbfs": -98.9, "tone_rms_dbfs": -61.2, "tone_bin_dbfs": -94.3, "tone_share": 0.000, "slice_share_mean": 0.001, "slice_share_min": 0.000, "glitched_slices": 30, "slices": 30, "heard": false, "input_error": 0, "output_error": 0, "media_volume": "10/15"}
+
+--- wifi: driver and regulatory ---
+../../../../bus/pci/drivers/mt7925e
+phy#0
+	Interface wlan0
+		ifindex 14
+		wdev 0x1
+		type managed
+		channel 64 (5320 MHz), width: 160 MHz, center1: 5250 MHz
+		txpower 3.00 dBm
+		multicast TXQ:
+			qsz-byt	qsz-pkt	flows	drops	marks	overlmt	hashcol	tx-bytes	tx-packets
+			0	0	0	0	0	0	0	0		0
+global
+country US: DFS-FCC
+	(902 - 904 @ 2), (N/A, 30), (N/A)
+	(904 - 920 @ 16), (N/A, 30), (N/A)
+	(920 - 928 @ 8), (N/A, 30), (N/A)
+	(2400 - 2472 @ 40), (N/A, 30), (N/A)
+	(5150 - 5250 @ 80), (N/A, 23), (N/A), AUTO-BW
+	(5250 - 5350 @ 80), (N/A, 24), (0 ms), DFS, AUTO-BW
+	(5470 - 5730 @ 160), (N/A, 24), (0 ms), DFS
+	(5730 - 5850 @ 80), (N/A, 30), (N/A), AUTO-BW
+	(5850 - 5895 @ 40), (N/A, 27), (N/A), NO-OUTDOOR, AUTO-BW, PASSIVE-SCAN
+	(5925 - 7125 @ 320), (N/A, 12), (N/A), NO-OUTDOOR, PASSIVE-SCAN
+	(57240 - 71000 @ 2160), (N/A, 40), (N/A)
+
+[    6.013207] cfg80211: Loading compiled-in X.509 certificates for regulatory database
+HWTEST {"test": "wifi-driver", "iface": "wlan0", "present": true, "driver": "mt7925e", "regdb_loaded": true, "country": "US"}
+
+--- wifi: framework ---
+supplicant: running
+Wifi is enabled
+Wifi scanning is only available when wifi is enabled
+==== ClientModeManager instance: ConcreteClientModeManager{id=16043 iface=wlan0 role=ROLE_CLIENT_PRIMARY} ====
+Wifi is connected to "<name>"
+WifiInfo: SSID: [redacted], BSSID: <name>, MAC: <mac>, IP: /<ip>, Security type: 2, Supplicant state: COMPLETED, Wi-Fi standard: 11ax, RSSI: -43, Link speed: 1200Mbps, Tx Link speed: 1200Mbps, Max Supported Tx Link speed: 1200Mbps, Calculated Tx : 0Mbps, Rx Link speed: 2401Mbps, Max Supported Rx Link speed: 1200Mbps, Calculated Rx : 0Mbps, Frequency: 5320MHz, Net ID: 0, Metered hint: false, score: 100, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <name>, Requesting package name: <name>, Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>
+successfulTxPackets: 772
+successfulTxPacketsPerSecond: 24.7624862820845
+retriedTxPackets: 0
+retriedTxPacketsPerSecond: 0.0
+lostTxPackets: 0
+lostTxPacketsPerSecond: 0.0
+successfulRxPackets: 2492
+successfulRxPacketsPerSecond: 86.40941197971442
+NetworkCapabilities: [ Transports: WIFI Capabilities: NOT_METERED&INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VPN&VALIDATED&NOT_ROAMING&FOREGROUND&NOT_CONGESTED&NOT_SUSPENDED&NOT_VCN_MANAGED&NOT_BANDWIDTH_CONSTRAINED LinkUpBandwidth>=12000Kbps LinkDnBandwidth>=60000Kbps TransportInfo: <SSID: [redacted], BSSID: <name>, MAC: <mac>, IP: /<ip>, Security type: 2, Supplicant state: COMPLETED, Wi-Fi standard: 11ax, RSSI: -40, Link speed: 1200Mbps, Tx Link speed: 1200Mbps, Max Supported Tx Link speed: 1200Mbps, Calculated Tx : 0Mbps, Rx Link speed: 2401Mbps, Max Supported Rx Link speed: 1200Mbps, Calculated Rx : 0Mbps, Frequency: 5320MHz, Net ID: -1, Metered hint: false, score: 100, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <name>, Requesting package name: <name>, Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>> SignalStrength: -40 AdminUids: [1000] SSID: [redacted]
+HWTEST {"test": "wifi-enabled", "ok": true, "supplicant": "running"}
+
+--- wifi: scan ---
+82 networks: 17 on 2.4 GHz, 64 on 5 GHz, 1 on 6 GHz
+HWTEST {"test": "wifi-scan", "ok": true, "networks": 82, "ghz2": 17, "ghz5": 64, "ghz6": 1}
+
+--- wifi: connection ---
+	freq: 5320.0
+	RX: 8833034 bytes (7851 packets)
+	TX: 311867 bytes (1604 packets)
+	signal: -38 dBm
+	rx bitrate: 1921.5 MBit/s 160MHz HE-MCS 9 HE-NSS 2 HE-GI 0 HE-DCM 0
+	tx bitrate: 1200.9 MBit/s 80MHz HE-MCS 11 HE-NSS 2 HE-GI 0 HE-DCM 0
+	bss flags: short-slot-time
+	dtim period: 1
+	beacon int: 100
+IPv4 <ip>/24, gateway <ip>
+HWTEST {"test": "wifi-connect", "ok": true, "freq_mhz": 5320.0, "signal_dbm": -38, "tx_mbit": 1200.9, "rx_mbit": 1921.5}
+HWTEST {"test": "wifi-dhcp", "ok": true, "prefix": "24", "gateway": true}
+5 packets transmitted, 5 received, 0% packet loss, time 4005ms
+rtt min/avg/max/mdev = 1.834/7.803/24.951/8.664 ms
+HWTEST {"test": "wifi-ping-gateway", "ok": true, "loss_pct": 0, "avg_ms": 7.803}
+HWTEST {"test": "wifi-validated", "ok": true}
+
+--- bluetooth: controller and HAL ---
+Loading module /vendor/lib/modules/btusb.ko with args ''
+Loaded kernel module /vendor/lib/modules/btusb.ko
+[    6.340248] Bluetooth: hci0: HW/SW Version: 0x00000000, Build Time: 20260414153243
+[    8.070293] Bluetooth: hci0: Device setup in 1695477 usecs
+[    8.070297] Bluetooth: hci0: HCI Enhanced Setup Synchronous Connection command is advertised, but not supported.
+[   37.155791] Bluetooth: hci0: HW/SW Version: 0x00000000, Build Time: 20260414153243
+[   37.448094] Bluetooth: hci0: Device setup in 286912 usecs
+[   37.448102] Bluetooth: hci0: HCI Enhanced Setup Synchronous Connection command is advertised, but not supported.
+HAL: running
+  State:         ON
+Bluetooth crashed 0 times
+    State: 2
+      State: 4
+Enabled Profile Services:
+  GATT
+  A2DP
+  AVRCP
+  BATTERY
+  HEARING_AID
+  HID_HOST
+  OPP
+  PAN
+
+HWTEST {"test": "bt-enabled", "ok": true, "hal": "running"}
+HWTEST {"test": "bt-bonded", "ok": true, "bonded": 1, "audio_lines": 2}

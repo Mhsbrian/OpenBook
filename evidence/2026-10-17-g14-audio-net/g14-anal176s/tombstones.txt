@@ -1,0 +1,10 @@
+Timestamp: 2026-10-17 13:43:34.013718768+0000
+Cmdline: com.android.bluetooth
+signal 6 (SIGABRT), code -1 (SI_QUEUE), fault addr --------
+Abort message: 'system/audio_hal_interface/aidl/a2dp/client_interface_aidl.cc:348 StartSession: BluetoothAudioHal failure: Status(-129, EX_TRANSACTION_FAILED): 'FAILED_TRANSACTION: ''
+Cmdline: com.android.bluetooth
+Timestamp: 2026-10-17 13:44:05.927302036+0000
+Cmdline: com.android.bluetooth
+signal 6 (SIGABRT), code -1 (SI_QUEUE), fault addr --------
+Abort message: 'system/audio_hal_interface/aidl/a2dp/client_interface_aidl.cc:348 StartSession: BluetoothAudioHal failure: Status(-129, EX_TRANSACTION_FAILED): 'FAILED_TRANSACTION: ''
+Cmdline: com.android.bluetooth

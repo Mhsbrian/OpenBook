@@ -16,7 +16,8 @@
 #        audio-net-qemu.sh run IMG RUN    boot IMG (scripts/g14-image.sh) from a fresh copy with the sound card and
 #                                         the test disk, run expect-g14-audio-net.json, then summarise:
 #                                         <boot dir>/audio-out-tones.json (what reached the "speaker"),
-#                                         <boot dir>/hwtest.json (the guest's HWTEST results)
+#                                         <boot dir>/hwtest.json (the guest's HWTEST results). AUDIO=none: a sound
+#                                         card that records silence at its own pace (capture tests), no WAV
 set -euo pipefail
 A=${OPENBOOK_HOME:-${ANYBOOK_HOME:-$HOME/anybook}}
 R=$(cd "$(dirname "$0")/.." && pwd)
@@ -65,7 +66,7 @@ run() {
   local IMG=${1:?usage: audio-net-qemu.sh run IMG RUN} RUN=${2:?run name}
   [ -f "$W/payload.img" ] || payload
   set +e
-  QEMU_AUDIO=1 QEMU_EXTRA_USB=$W/payload.img "$R/scripts/g14-qemu.sh" "$IMG" "$RUN" "$R/scripts/installer/expect-g14-audio-net.json"
+  QEMU_AUDIO=${AUDIO:-1} QEMU_EXTRA_USB=$W/payload.img "$R/scripts/g14-qemu.sh" "$IMG" "$RUN" "$R/scripts/installer/expect-g14-audio-net.json"
   local rc=$?
   set -e
   local O; O=$(ls -d "$A/logs/installer/$RUN"/boot* | sort -V | tail -1)

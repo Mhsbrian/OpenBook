@@ -11,4 +11,11 @@
     <bool name="config_wifi_connected_mac_randomization_supported">false</bool>
     <bool name="config_wifi_p2p_mac_randomization_supported">false</bool>
     <bool name="config_wifi_ap_mac_randomization_supported">false</bool>
+    <!-- Screen off and disconnected, the framework scans only through PNO. Without a vendor HAL that means the
+         driver's scheduled scan (Nl80211Native.startPnoScan; MT7925 offers one), which this enables; without it
+         the G14 logged "PNO is not available" 5 times and then stopped scanning until the screen came on
+         (anal178c, docs/g14-audio-net.md). If the scheduled scan fails, the framework retries and gives up as before.
+         Only while the system is awake: with no WoWLAN configured, cfg80211 stops scheduled scans (and disconnects)
+         at each suspend. -->
+    <bool name="config_wifi_background_scan_support">true</bool>
 </resources>

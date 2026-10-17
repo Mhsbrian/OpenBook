@@ -10,7 +10,8 @@ use the same file (docs/installer.md section 11).
   --expect vm    verdicts for QEMU: virtio-gpu HAL, a connected virtual display (no Wi-Fi, touchpad or dGPU)
 Either way, hwtest-final.txt (openbook-hwtest, ANAL-179: its "HWTEST {json}" lines) adds the Wi-Fi, Bluetooth and
 audio verdicts: regulatory database, scan, connection, DHCP, internet, iperf3, Bluetooth on and paired, the
-built-in sound card, and the speaker-to-microphone loopback directly on ALSA and through Android. Since ANAL-200 it
+built-in sound card, the speaker-to-microphone loopback directly on ALSA and through Android (and whether the HAL
+kept that clean), and the audio routes (jacks, Bluetooth audio). Since ANAL-200 it
 also adds the arm64 native bridge's: its configuration, an arm64 binary running, the ID registers, FRECPE/FRSQRTE
 against golden values, and CRC32/NEON. A graphics check boot (ANAL-177, addon-gfx-out.tar) adds one verdict per part
 (gfx_vk, gfx_vk14, gfx_gles_angle, gfx_gles_mesa, gfx_egl, gfx_angle_end2end: it ran, passed cases, and had no crash,
@@ -268,6 +269,7 @@ def main():
         hv("wifi_regulatory", "wifi-driver", "regdb_loaded", ("driver", "country"))
         hv("wifi_enabled", "wifi-enabled", keep=("supplicant",))
         hv("wifi_scan", "wifi-scan", keep=("networks", "ghz2", "ghz5", "ghz6"))
+        hv("wifi_pno", "wifi-pno", keep=("driver_offers",))
         hv("wifi_connected", "wifi-connect", keep=("freq_mhz", "signal_dbm", "tx_mbit", "rx_mbit"))
         hv("wifi_dhcp", "wifi-dhcp", keep=("prefix", "gateway"))
         hv("wifi_gateway_ping", "wifi-ping-gateway", keep=("loss_pct", "avg_ms"))
@@ -288,8 +290,17 @@ def main():
         hv("bridge_fp_estimates", "bridge-fp-estimates", keep=("cases", "bad", "first_bad"))
         hv("bridge_int_simd", "bridge-int-simd", keep=("crc32", "neon_fma"))
         hv("audio_loopback_android", "aaudio-loopback", "heard",
-           ("tone_bin_dbfs", "noise_bin_dbfs", "glitched_slices", "slices", "xruns", "media_volume", "input_error",
-            "output_error", "error"))
+           ("tone_bin_dbfs", "noise_bin_dbfs", "glitched_slices", "slices", "xruns", "media_volume", "out_device",
+            "in_device", "hal_input_pads", "hal_output_drops", "hal_skipped_transfers", "input_error", "output_error",
+            "error"))
+        # Clean through Android: heard, and the HAL neither padded the capture nor dropped or skipped buffers.
+        aa = hw.get("aaudio-loopback")
+        verdict("audio_android_clean", None if not aa or "hal_input_pads" not in aa else bool(
+                    aa.get("heard") and not aa.get("hal_input_pads") and not aa.get("hal_output_drops")
+                    and not aa.get("hal_skipped_transfers")),
+                glitched_slices=aa and aa.get("glitched_slices"), hal_input_pads=aa and aa.get("hal_input_pads"))
+        hv("audio_routes", "audio-routes", keep=("speaker_port", "mic_port", "headphone_jacks", "mic_jacks",
+                                                 "wired_connected", "a2dp_connected", "pacing"))
     if os.path.exists(f"{d}/addon-gfx-out.tar") or os.path.isdir(f"{d}/addon-gfx"):
         # The graphics check (ANAL-177): gfx-report.py unpacks the results and compares them with Mesa CI's lists
         # when the Mesa tree is on this host.

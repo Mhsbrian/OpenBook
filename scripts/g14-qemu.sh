@@ -11,7 +11,8 @@
 # usage: g14-qemu.sh IMG RUN [EXPECT]            fresh copy of IMG, then boot (default expect-g14.json)
 #        g14-qemu.sh --again RUN [EXPECT]        boot RUN's disk again, data kept (default expect-g14-reboot.json)
 # Logs: <data dir>/logs/installer/<RUN>/ (serial.log, result.json, shot-*.png, sections/)
-# Env: QEMU_AUDIO=1 adds an HDA sound card whose output goes to <boot dir>/audio-out.wav; QEMU_EXTRA_USB=IMG plugs
+# Env: QEMU_AUDIO=1 adds an HDA sound card whose output goes to <boot dir>/audio-out.wav (=none: one that records
+#      silence instead, for capture tests); QEMU_EXTRA_USB=IMG plugs
 #      a copy of IMG in as a second USB disk (scripts/audio-net-qemu.sh).
 set -euo pipefail
 A=${OPENBOOK_HOME:-${ANYBOOK_HOME:-$HOME/anybook}}
@@ -40,6 +41,7 @@ O=$L/boot$n
 mkdir -p "$O"
 EXTRA=()
 [ "${QEMU_AUDIO:-0}" = 1 ] && EXTRA+=(--audio "$O/audio-out.wav")
+[ "${QEMU_AUDIO:-0}" = none ] && EXTRA+=(--audio none)
 if [ -n "${QEMU_EXTRA_USB:-}" ]; then
   cp --reflink=auto "$QEMU_EXTRA_USB" "$D/extra-usb.img"
   EXTRA+=(--extra-usb "$D/extra-usb.img")

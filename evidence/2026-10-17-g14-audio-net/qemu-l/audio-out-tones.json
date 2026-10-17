@@ -1,0 +1,30 @@
+{
+ "file": "/home/hive/anybook/logs/installer/anal179-qemu-l/boot1/audio-out.wav",
+ "rate": 48000,
+ "channels": 2,
+ "seconds": 13.48,
+ "freq": 1000,
+ "tone_runs": [
+  {
+   "start_s": 0.5,
+   "seconds": 2.0,
+   "tone_rms_dbfs": -18.1,
+   "window_share_mean": 0.997,
+   "glitched_windows": 0
+  },
+  {
+   "start_s": 2.95,
+   "seconds": 2.05,
+   "tone_rms_dbfs": -32.7,
+   "window_share_mean": 0.973,
+   "glitched_windows": 2
+  },
+  {
+   "start_s": 8.4,
+   "seconds": 1.7,
+   "tone_rms_dbfs": -34.1,
+   "window_share_mean": 0.723,
+   "glitched_windows": 22
+  }
+ ]
+}

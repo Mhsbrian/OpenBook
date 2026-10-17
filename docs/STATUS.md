@@ -16,7 +16,7 @@
 | Touchpad, keyboard | Yes | **Yes.** The touchpad's "Clock changed backwards" errors (every 40 ms of finger contact) are explained: the kernel autorepeats `BTN_TOOL_FINGER`. Fixed in Android (EventHub) and shown in QEMU with the laptop's own HID descriptor; on the laptop with the next stick | `evidence/2026-10-16-installer/g14-live/`, `evidence/2026-10-17-power-input/g14-sessions/` |
 | Lid, power button, hotkeys, battery health | Yes | **Config in force, battery health works:** lid and power-button settings, hotkey layouts, the health HAL (charge counter, 88.7 % state of health, GOOD) and the power HAL's EPP changes, all on the laptop. **Closing the lid puts it to sleep and opening it wakes it** (`anal176t`) | `evidence/2026-10-17-power-input/g14-sessions/`, `g14-anal176t/` |
 | Sleep | s2idle in a VM | **s2idle works, under Android too** (screen timeout → s2idle → key wake, display and Wi-Fi back); **deep sleep (S0i3) never reached.** The power check ruled out the driverless PSP; the SMU points at MPM or the USB4 router (unconfirmed) | `docs/power-input.md` §1.3, §7.6 |
-| Wi-Fi, Bluetooth, audio | Yes (WPA2, iperf3, tone through ALSA) | **Wi-Fi on 5 GHz with internet; Bluetooth pairs.** SELinux blocked Bluetooth audio and app sound; the fix is in `anal176t` (QEMU 40/40), not yet run on the G14. ANAL-179 is reading the full results | `evidence/2026-10-17-g14-desktop/g14-anal176s/`, `evidence/2026-10-17-g14-audio-net/` |
+| Wi-Fi, Bluetooth, audio | Yes (WPA2, iperf3, tone through ALSA and, with the HAL fix, through Android) | **Wi-Fi to the internet** (5 GHz, 160 MHz); **Bluetooth pairs**, A2DP with LDAC; **speakers and mic through ALSA** heard. Through Android the tone was broken (HAL fix in ANAL-179's PR, QEMU only). SELinux blocked Bluetooth audio and app sound; the fix (#52) is in `anal176t` (QEMU 40/40), not yet run on the G14. Headphone jack and iperf3 not tested | `evidence/2026-10-17-g14-audio-net/`, `evidence/2026-10-17-g14-desktop/g14-anal176s/` |
 | ARM apps (Digitalis, built from source) | 14/16 ARM-only apps; works in enforcing | **The bridge self-check passes on Zen 5** (5/5 verdicts, both sessions). No arm64 app run yet: the ARM apps check is on ANAL-192's stick | `evidence/2026-10-17-digitalis-a17/`, `evidence/2026-10-17-digitalis-g14/` |
 | Installer | **Wizard 25/25, engine 53/53:** installs to a virtual NVMe disk that then boots by itself into OpenBook setup (SELinux enforcing) | Live USB boots; the wizard has not run yet | `evidence/2026-10-17-installer-wizard/` |
 
@@ -76,6 +76,23 @@
 - **S0i3:** missed in all four power-check cycles. At entry every endpoint, the PSP included, is in D3, so the driverless-PSP hypothesis is out. The SMU's "Active time" table names `USB4_0` and `MPM`, but the table's layout does not match the kernel's struct, so the names are unconfirmed. Next: the same table on the laptop's own Linux 7.2.
 - **Not seen:** battery saver (no trace in the logs); the touchpad capture saw no finger.
 - `lid_events` now reads Android 17's "Sleeping power group … reason=lid_switch".
+
+### 2026-10-17: G14 audio, Wi-Fi and Bluetooth results from the owner's two sessions (ANAL-179)
+- **Done:** read both sessions (`anal178c`, `anal176s`) from the host copies, read-only, and redacted them. The `wifi_*`, `bt_*` and `audio_*` verdicts and logs are in `docs/g14-audio-net.md` §10, with G14 rows in `COMPAT-MATRIX.md`.
+  - **Wi-Fi works:** MT7925 on 5320 MHz (160 MHz), DHCP, internet.
+  - **Bluetooth pairs**, and A2DP runs with LDAC 96 kHz.
+  - **The speakers and mic work through ALSA.**
+- **Fixed:**
+  - The audio HAL is now paced by the codec (AOSP patch 0002). Before, on the G14 the Android loopback lost 24 of 30 slices, and the HAL padded the capture 7 times. In QEMU, in one boot against AOSP's pacing: the tone reaches the codec whole (2.05 s against 1.65–1.70 s), and capture padding drops from 7 to 0.
+  - The hwtest loopback now names its ports. In session 2 the tone had gone to the Bluetooth headphones.
+  - hwtest's Wi-Fi status was stale.
+  - PNO now runs through the driver's scheduled scan. With the screen off and no connection, the G14 had stopped scanning.
+- **Waiting on the G14:** Bluetooth audio and app audio under enforcing. The Bluetooth app aborted when A2DP started, and the browser had no sound. The fix is #52, now merged.
+- **Next:** ANAL-192's integrated stick runs this issue's checks (`docs/g14-audio-net.md` §10.4):
+  - an iperf3 server configured;
+  - headphones plugged in during the default boot;
+  - Bluetooth audio and a browser video in the default boot;
+  - `audio_android_clean` and `wifi_pno` in the save-logs boot.
 
 ### 2026-10-17: G14 results for power and input; the touchpad clock fixed (ANAL-178)
 - **Read** the owner's `anal178c` and `anal176s` sessions from ANAL-176's host copies (`docs/power-input.md` §7, `evidence/2026-10-17-power-input/g14-sessions/`).

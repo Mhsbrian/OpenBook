@@ -1,0 +1,201 @@
+# Digest of stick-20261017T122351Z: the save-logs boot's dmesg and logcat (final), and the persisted logcat of the boots before it (earlier).
+
+## dmesg: the codec, its amplifiers and openbook-audio-setup
+[    5.817640] cs35l56-hda i2c-CSC3556:00-cs35l56-hda.0: Cirrus Logic CS35L56 Rev B0 OTP3 fw:3.4.4 (patched=0)
+[    5.828613] cs35l56-hda i2c-CSC3556:00-cs35l56-hda.0: DSP system name: '10431024-spkid1', amp name: 'AMP1'
+[    5.838664] cs35l56-hda i2c-CSC3556:00-cs35l56-hda.1: Cirrus Logic CS35L56 Rev B0 OTP3 fw:3.4.4 (patched=0)
+[    5.849598] cs35l56-hda i2c-CSC3556:00-cs35l56-hda.1: DSP system name: '10431024-spkid1', amp name: 'AMP2'
+[    5.867020] snd_hda_intel 0000:64:00.1: enabling device (0000 -> 0002)
+[    5.867038] snd_hda_intel 0000:64:00.1: Disabling MSI
+[    5.867192] snd_hda_intel 0000:65:00.1: enabling device (0000 -> 0002)
+[    5.870589] snd_hda_intel 0000:65:00.1: bound 0000:65:00.0 (ops amdgpu_dm_audio_component_bind_ops [amdgpu])
+[    5.877499] snd_hda_codec_alc269 hdaudioC2D0: ALC285: picked fixup  for PCI SSID [redacted]
+[    5.877546] snd_hda_codec_alc269 hdaudioC2D0: Found 2 CSC3556 on i2c (-%s:00-cs35l56-hda.%d)
+[    5.877563] snd_hda_codec_alc269 hdaudioC2D0: bound i2c-CSC3556:00-cs35l56-hda.0 (ops cs35l56_hda_comp_ops [snd_hda_scodec_cs35l56])
+[    5.877623] snd_hda_codec_alc269 hdaudioC2D0: bound i2c-CSC3556:00-cs35l56-hda.1 (ops cs35l56_hda_comp_ops [snd_hda_scodec_cs35l56])
+[    5.878137] snd_hda_codec_alc269 hdaudioC2D0: autoconfig for ALC285: line_outs=2 (0x14/0x17/0x0/0x0/0x0) type:speaker
+[    5.878138] snd_hda_codec_alc269 hdaudioC2D0:    speaker_outs=0 (0x0/0x0/0x0/0x0/0x0)
+[    5.878138] snd_hda_codec_alc269 hdaudioC2D0:    hp_outs=1 (0x21/0x0/0x0/0x0/0x0)
+[    5.878139] snd_hda_codec_alc269 hdaudioC2D0:    mono: mono_out=0x0
+[    5.878140] snd_hda_codec_alc269 hdaudioC2D0:    inputs:
+[    5.878140] snd_hda_codec_alc269 hdaudioC2D0:      Internal Mic=0x12
+[    5.878144] snd_hda_codec_alc269 hdaudioC2D0:      Internal Mic=0x13
+[    5.878145] snd_hda_codec_alc269 hdaudioC2D0:      Mic=0x19
+[    5.878145] snd_hda_codec_alc269 hdaudioC2D0:      Mic=0x1b
+[    6.375886] cs35l56-hda i2c-CSC3556:00-cs35l56-hda.0: DSP1: Firmware: 1a00d6 vendor: 0x2 v3.11.16, 41 algorithms
+[    6.376675] cs35l56-hda i2c-CSC3556:00-cs35l56-hda.1: DSP1: Firmware: 1a00d6 vendor: 0x2 v3.11.16, 41 algorithms
+[    6.597527] openbook-pc-setup: /sys/bus/pci/drivers/snd_hda_intel/unbind <- 0000:64:00.1
+[    6.612852] openbook-pc-setup: /sys/module/snd_hda_intel/parameters/power_save <- 10
+[    6.674470] cs35l56-hda i2c-CSC3556:00-cs35l56-hda.0: Tuning PID: 0x531116, SID: 0x281002, TID: 0x3c0b08
+[    6.674643] cs35l56-hda i2c-CSC3556:00-cs35l56-hda.1: Tuning PID: 0x531116, SID: 0x281102, TID: 0x3c0b08
+[    7.146807] openbook-audio-setup: pcm 01-03 'HDMI 0' playback
+[    7.146810] openbook-audio-setup: pcm 02-00 'ALC285 Analog' playback capture
+[    7.146947] openbook-audio-setup: primary card 2 device 0 ('ALC285 Analog', capture too)
+[    7.147407] openbook-audio-setup: card 2 'Master Playback Switch': 0 -> 1
+[    7.147411] openbook-audio-setup: card 2 'Speaker Playback Switch': 1 -> 1
+[    7.147414] openbook-audio-setup: card 2 'Bass Speaker Playback Switch': 1 -> 1
+[    7.147417] openbook-audio-setup: card 2 'Headphone Playback Switch': 1 -> 1
+[    7.147703] openbook-audio-setup: card 2 'Capture Switch': 0 -> 1
+[    7.147988] openbook-audio-setup: card 2 'Master Playback Volume': 0 -> 87
+[    7.147994] openbook-audio-setup: card 2 'Speaker Playback Volume': 87 -> 87
+[   63.262494] cs35l56-hda i2c-CSC3556:00-cs35l56-hda.0: DSP1: Firmware: 1a00d6 vendor: 0x2 v3.11.16, 41 algorithms
+[   63.263272] cs35l56-hda i2c-CSC3556:00-cs35l56-hda.1: DSP1: Firmware: 1a00d6 vendor: 0x2 v3.11.16, 41 algorithms
+[   63.542828] cs35l56-hda i2c-CSC3556:00-cs35l56-hda.1: Tuning PID: 0x531116, SID: 0x281102, TID: 0x3c0b08
+[   63.543016] cs35l56-hda i2c-CSC3556:00-cs35l56-hda.0: Tuning PID: 0x531116, SID: 0x281002, TID: 0x3c0b08
+
+## dmesg: Wi-Fi, Bluetooth, regulatory database
+[    5.997499] cfg80211: Loading compiled-in X.509 certificates for regulatory database
+[    6.096739] mt7925e 0000:63:00.0: ASIC revision: 79250000
+[    6.182745] mt7925e 0000:63:00.0: HW/SW Version: 0x8a108a10, Build Time: 20260414153001a\x0a
+[    6.327119] Bluetooth: hci0: HW/SW Version: 0x00000000, Build Time: 20260414153243
+[    6.520696] mt7925e 0000:63:00.0: WM Firmware Version: ____000000, Build Time: 20260414153105
+[    6.616388] Bluetooth: hci0: Device setup in 288631 usecs
+[    6.616394] Bluetooth: hci0: HCI Enhanced Setup Synchronous Connection command is advertised, but not supported.
+[   18.220862] Bluetooth: hci0: HW/SW Version: 0x00000000, Build Time: 20260414153243
+[   18.507908] Bluetooth: hci0: Device setup in 281836 usecs
+[   18.507913] Bluetooth: hci0: HCI Enhanced Setup Synchronous Connection command is advertised, but not supported.
+[   86.313463] wlan0: authenticated
+[   86.403065] wlan0: associated
+[   86.721735] wlan0: Limiting TX power to 21 (24 - 3) dBm as advertised by xx:xx:xx:xx:xx:xx
+
+## logcat (earlier): Wi-Fi connection, country, validation
+10-17 12:16:08.042766   3374 I WifiCountryCode: Receive onDriverCountryCodeChanged 00
+10-17 12:16:08.259802   3374 D WifiCountryCode: updateCountryCode to null
+10-17 12:16:08.264404   3374 I WifiClientModeImpl[72483:wlan0]: disconnectedstate enter
+10-17 12:16:27.444108   4904 I wpa_supplicant: wlan0: CTRL-EVENT-REGDOM-CHANGE init=COUNTRY_IE type=COUNTRY alpha2=US
+10-17 12:16:27.444181   1274 D SupplicantStaIfaceHalAidlBase: ISupplicantStaIfaceCallback.onStateChanged: newState=ASSOCIATED, bssid=xx:xx:xx:xx:xx:xx, ssid="[redacted]", filsHlpSent=false, supplicantKeyMgmtMask=0x00000002, frameworkKeyMgmt
+10-17 12:16:27.444649   3374 I WifiCountryCode: Receive onDriverCountryCodeChanged US
+10-17 12:16:28.086920   4904 I wpa_supplicant: wlan0: CTRL-EVENT-CONNECTED - Connection to xx:xx:xx:xx:xx:xx completed [id=0 id_str=[redacted]]
+10-17 12:16:28.087263   4272 D SupplicantStaIfaceHalAidlBase: ISupplicantStaIfaceCallback.onStateChanged: newState=COMPLETED, bssid=xx:xx:xx:xx:xx:xx, ssid="[redacted]", filsHlpSent=false, supplicantKeyMgmtMask=0x00000002, frameworkKeyMgmtM
+10-17 12:16:28.550368   5037 D NetworkMonitor/100: PROBE_DNS www.google.com 105ms OK 142.251.157.119,142.251.154.119,142.251.151.119,142.251.150.119,142.251.153.119,142.251.156.119,142.251.152.119,142.251.155.119
+10-17 12:16:28.550500   5038 D NetworkMonitor/100: PROBE_DNS connectivitycheck.gstatic.com 106ms OK 142.251.150.120
+10-17 12:16:23.782803   5038 D NetworkMonitor/100: PROBE_HTTP http://connectivitycheck.gstatic.com/generate_204 time=20ms ret=204 request={Connection=[close], User-Agent=[Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko
+10-17 12:16:23.823332   5037 D NetworkMonitor/100: PROBE_HTTPS https://www.google.com/generate_204 time=60ms ret=204 request={Connection=[close], User-Agent=[Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0
+10-17 12:20:26.811081   1442 I WifiCountryCode: Receive onDriverCountryCodeChanged 00
+10-17 12:20:27.008084   1442 D WifiCountryCode: updateCountryCode to null
+10-17 12:20:28.014454   1442 I WifiClientModeImpl[16245:wlan0]: disconnectedstate enter
+10-17 12:21:37.049864   1523 I wpa_supplicant: wlan0: CTRL-EVENT-REGDOM-CHANGE init=COUNTRY_IE type=COUNTRY alpha2=US
+10-17 12:21:37.050024   1555 D SupplicantStaIfaceHalAidlBase: ISupplicantStaIfaceCallback.onStateChanged: newState=ASSOCIATED, bssid=xx:xx:xx:xx:xx:xx, ssid="[redacted]", filsHlpSent=false, supplicantKeyMgmtMask=0x00000002, frameworkKeyMgmt
+10-17 12:21:37.050272   1442 I WifiCountryCode: Receive onDriverCountryCodeChanged US
+10-17 12:21:37.633967   1523 I wpa_supplicant: wlan0: CTRL-EVENT-CONNECTED - Connection to xx:xx:xx:xx:xx:xx completed [id=0 id_str=[redacted]]
+10-17 12:21:37.634396   1555 D SupplicantStaIfaceHalAidlBase: ISupplicantStaIfaceCallback.onStateChanged: newState=COMPLETED, bssid=xx:xx:xx:xx:xx:xx, ssid="[redacted]", filsHlpSent=false, supplicantKeyMgmtMask=0x00000002, frameworkKeyMgmtM
+10-17 12:21:37.895199   2807 D NetworkMonitor/100: PROBE_DNS www.google.com 53ms OK 142.251.152.119,142.251.150.119,142.251.157.119,142.251.153.119,142.251.151.119,142.251.155.119,142.251.156.119,142.251.154.119
+10-17 12:21:37.905105   2808 D NetworkMonitor/100: PROBE_DNS connectivitycheck.gstatic.com 63ms OK 142.251.150.120
+10-17 12:21:37.926688   2808 D NetworkMonitor/100: PROBE_HTTP http://connectivitycheck.gstatic.com/generate_204 time=21ms ret=204 request={Connection=[close], User-Agent=[Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko
+10-17 12:21:37.958678   2807 D NetworkMonitor/100: PROBE_HTTPS https://www.google.com/generate_204 time=60ms ret=204 request={Connection=[close], User-Agent=[Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0
+
+## logcat (earlier): Wi-Fi errors (counted)
+     47     N E NlNNative: getChannelsMhzForBand: Wiphy index not recorded for band N
+      6     N E WifiHal : Cannot call isSupported because mWifiHal is null
+      4     N E WifiHal : Cannot call isStarted because mWifiHal is null
+      3     N E NlNNative: Cannot abort scan when iface isn't scanning: wlanN
+      2     N E wpa_supplicant: wlanN: nlN: kernel reports: multicast RX registrations are not supported
+      2     N E WifiVendorHal: STA iface object is NULL - Failed to enable link layer stats
+      2     N E WifiHal : No HIDL or AIDL service available for the Wifi Vendor HAL.
+      2     N E WifiHal : Cannot call registerEventCallback because mWifiHal is null
+      2     N E SupplicantStaIfaceHalAidlBase: Can't call setDebugParams, ISupplicant is null
+      2     N E SupplicantStaIfaceHalAidlBase: Can't call getWpaDriverCapabilities, ISupplicantStaIface is null for iface=wlanN
+
+## logcat (earlier): Bluetooth state, pairing, A2DP
+10-17 12:15:08.985373   981 W libbinder.BackendUnifiedServiceManager: Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: android.hardware.bluetooth.IBluetoothHci/default
+10-17 12:15:08.985870   768 I servicemanager: Caller(pid=981,uid=1002,sid=u:r:hal_bluetooth_default:s0) Found android.hardware.bluetooth.IBluetoothHci/default in device VINTF manifest.
+10-17 12:15:17.625303   2704 I BluetoothSystemServer: BluetoothHciInstance: Service manager declared bluetooth hci instances: [default]
+10-17 12:15:23.479455   2704 I BluetoothSystemServer: BluetoothManagerService: handleOnBootPhase: enabling for UserHandle{0}
+10-17 12:15:24.307456   3641 I bluetooth: system/gd/hal/hci_backend_aidl.cc:153 CreateAidl: Attempting to subscribe to hci instance: android.hardware.bluetooth.IBluetoothHci/default
+10-17 12:15:24.307638   3641 I bluetooth: system/gd/hal/hci_backend_aidl.cc:92 AidlHci: Waiting for service android.hardware.bluetooth.IBluetoothHci/default
+10-17 12:15:24.311963   981 I android.hardware.bluetooth.service.default: initialize
+10-17 12:15:24.311987   981 I android.hardware.bluetooth.service.default: opening hci interface 0
+10-17 12:15:24.312031   981 I android.hardware.bluetooth.service.default: waiting for hci interface 0
+10-17 12:15:24.817394   3641 I bluetooth: system/btif/src/btif_hci_vs.cc:79 init: BluetoothHciVendorSpecificInterfaceImpl
+10-17 12:15:24.861301   2704 D BluetoothSystemServer: BluetoothManagerService: MESSAGE_BLUETOOTH_STATE_CHANGE: prevState=BLE_TURNING_ON newState=BLE_ON
+10-17 12:15:24.883189   2704 D BluetoothSystemServer: BluetoothManagerService: MESSAGE_BLUETOOTH_STATE_CHANGE: prevState=TURNING_ON newState=ON
+10-17 12:17:41.025446   3663 I BluetoothAdapterServiceBinder: startDiscovery: from uid/pid=1000/3682
+10-17 12:19:17.269643   2704 D BluetoothSystemServer: BluetoothManagerService: MESSAGE_BLUETOOTH_STATE_CHANGE: prevState=TURNING_OFF newState=BLE_TURNING_OFF
+10-17 12:19:17.471499   2704 D BluetoothSystemServer: BluetoothManagerService: MESSAGE_BLUETOOTH_STATE_CHANGE: prevState=BLE_TURNING_OFF newState=OFF
+10-17 12:19:17.502358   4153 I libbinder.BpBinder: onLastStrongRef automatically unlinking death recipients for binder (0x705d31607170) with descriptor: 'android.hardware.bluetooth.IBluetoothHciCallbacks'
+10-17 12:20:19.965399   977 W libbinder.BackendUnifiedServiceManager: Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: android.hardware.bluetooth.IBluetoothHci/default
+10-17 12:20:25.706776   1394 I BluetoothSystemServer: BluetoothHciInstance: Service manager declared bluetooth hci instances: [default]
+10-17 12:20:27.642587   1394 I BluetoothSystemServer: BluetoothManagerService: handleOnBootPhase: enabling for UserHandle{0}
+10-17 12:20:28.977155   1635 I bluetooth: system/gd/hal/hci_backend_aidl.cc:153 CreateAidl: Attempting to subscribe to hci instance: android.hardware.bluetooth.IBluetoothHci/default
+10-17 12:20:28.977409   1635 I bluetooth: system/gd/hal/hci_backend_aidl.cc:92 AidlHci: Waiting for service android.hardware.bluetooth.IBluetoothHci/default
+10-17 12:20:28.978592   977 I android.hardware.bluetooth.service.default: initialize
+10-17 12:20:28.978613   977 I android.hardware.bluetooth.service.default: opening hci interface 0
+10-17 12:20:28.978649   977 I android.hardware.bluetooth.service.default: waiting for hci interface 0
+10-17 12:20:28.977904   779 I servicemanager: Caller(pid=1635,uid=1002,sid=u:r:bluetooth:s0) Found android.hardware.bluetooth.IBluetoothHci/default in device VINTF manifest.
+10-17 12:20:29.345262   1635 I bluetooth: system/btif/src/btif_hci_vs.cc:79 init: BluetoothHciVendorSpecificInterfaceImpl
+10-17 12:20:29.367577   1394 D BluetoothSystemServer: BluetoothManagerService: MESSAGE_BLUETOOTH_STATE_CHANGE: prevState=BLE_TURNING_ON newState=BLE_ON
+10-17 12:20:29.378679   1394 D BluetoothSystemServer: BluetoothManagerService: MESSAGE_BLUETOOTH_STATE_CHANGE: prevState=TURNING_ON newState=ON
+10-17 12:22:06.324990   2344 I BluetoothAdapterServiceBinder: startDiscovery: from uid/pid=1000/1618
+10-17 12:22:10.265577   779 I auditd : avc: denied { find } for pid=3530 uid=0 name=android.hardware.bluetooth.IBluetoothHci/default scontext=u:r:kernel:s0 tcontext=u:object_r:hal_bluetooth_service:s0 tclass=service_manager permissive=1
+10-17 12:22:10.265586   3530 W libbinder.BackendUnifiedServiceManager: Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: android.hardware.bluetooth.IBluetoothHci/default
+
+## logcat (earlier): audio HAL warnings (counted) and routing
+      7     2725 W AHAL_StreamAlsaMonoPipe: transfer: incomplete data received, inserting N frames of silence
+      2     988 D AHAL_StreamPrimary: setConnectedDevices: [AudioDevice{type: AudioDeviceDescription{type: IN_MICROPHONE, connection: }, address: AudioDeviceAddress{id: bottom}}]
+      1     995 I AudioFlinger: openOutput() this 0x, module 10 Device AUDIO_DEVICE_OUT_SPEAKER, @:, SamplingRate 48000, Format 0x000001, Channels 0x3, flags 0x2
+      1     993 I AudioFlinger: openOutput() this 0x, module 10 Device AUDIO_DEVICE_OUT_SPEAKER, @:, SamplingRate 48000, Format 0x000001, Channels 0x3, flags 0x2
+      1     991 D AHAL_EffectConfig: EffectConfig successfully parsed /vendor/etc/audio_effects_config.xml, skipping 0 element(s)
+      1     990 E AHAL_Module: setMasterVolume: r_submix: failed calling onMasterVolumeChanged(1), error=Status(-7, EX_UNSUPPORTED_OPERATION): ''
+      1     990 E AHAL_Module: setMasterVolume: bluetooth: failed calling onMasterVolumeChanged(1), error=Status(-7, EX_UNSUPPORTED_OPERATION): ''
+      1     990 E AHAL_Module: setMasterMute: r_submix: failed calling onMasterMuteChanged(0), error=Status(-7, EX_UNSUPPORTED_OPERATION): ''
+      1     990 E AHAL_Module: setMasterMute: bluetooth: failed calling onMasterMuteChanged(0), error=Status(-7, EX_UNSUPPORTED_OPERATION): ''
+      1     990 D AHAL_StreamPrimary: setConnectedDevices: [AudioDevice{type: AudioDeviceDescription{type: OUT_SPEAKER, connection: }, address: AudioDeviceAddress{id: }}]
+      1     990 D AHAL_StreamPrimary: setConnectedDevices: [AudioDevice{type: AudioDeviceDescription{type: IN_MICROPHONE, connection: }, address: AudioDeviceAddress{id: bottom}}]
+      1     989 D AHAL_EffectConfig: EffectConfig successfully parsed /vendor/etc/audio_effects_config.xml, skipping 0 element(s)
+      1     988 E AHAL_Module: setMasterVolume: r_submix: failed calling onMasterVolumeChanged(1), error=Status(-7, EX_UNSUPPORTED_OPERATION): ''
+      1     988 E AHAL_Module: setMasterVolume: bluetooth: failed calling onMasterVolumeChanged(1), error=Status(-7, EX_UNSUPPORTED_OPERATION): ''
+      1     988 E AHAL_Module: setMasterMute: r_submix: failed calling onMasterMuteChanged(0), error=Status(-7, EX_UNSUPPORTED_OPERATION): ''
+
+## logcat (earlier): headphone jack
+10-17 12:15:02.560583   560 I input : HD-Audio Generic Headphone as /devices/pci0000:00/0000:00:08.1/0000:65:00.6/sound/card2/input23
+10-17 12:15:20.613572   1214 D SystemServerTiming: StartWiredAccessoryManager
+10-17 12:15:20.613788   1214 W WiredAccessoryManager: This kernel does not have usb audio support
+10-17 12:15:20.613821   1214 W WiredAccessoryManager: This kernel does not have HDMI audio support
+10-17 12:15:20.613834   1214 V SystemServerTiming: StartWiredAccessoryManager took to complete: 0ms
+10-17 12:15:23.886222   1214 W WiredAccessoryManager: Both input event and extcon are used for audio jack, please just choose one.
+10-17 12:15:24.248167   1214 I Telecom : WiredHeadsetManager: ACTION_HEADSET_PLUG event, plugged in: false, : WHC.oADA@AAI❗
+10-17 12:20:17.292548   568 I input : HD-Audio Generic Headphone as /devices/pci0000:00/0000:00:08.1/0000:65:00.6/sound/card2/input23
+
+## denials (earlier), all domains; permissive=0 means the boot was enforcing
+      8 permissive=0 { read } platform_app bluetooth_lea_prop file
+      2 permissive=0 { find } isolated_app content_capture_service service_manager
+      1 permissive=0 { read } system_server wifi_hal_prop file
+      1 permissive=0 { read } platform_app bluetooth_finder_prop file
+      1 permissive=0 { find } keystore hal_gatekeeper_service service_manager
+
+## logcat (final): Wi-Fi connection, country, validation
+10-17 12:21:37.049   I wpa_supplicant: wlan0: CTRL-EVENT-REGDOM-CHANGE init=COUNTRY_IE type=COUNTRY alpha2=US
+10-17 12:21:37.050   D SupplicantStaIfaceHalAidlBase: ISupplicantStaIfaceCallback.onStateChanged: newState=ASSOCIATED, bssid=xx:xx:xx:xx:xx:xx, ssid="[redacted]", filsHlpSent=false, supplicantKeyMgmtMask=0x00000002, frameworkKeyMgmtMask={1}
+10-17 12:21:37.050   I WifiCountryCode: Receive onDriverCountryCodeChanged US
+10-17 12:21:37.633   I wpa_supplicant: wlan0: CTRL-EVENT-CONNECTED - Connection to xx:xx:xx:xx:xx:xx completed [id=0 id_str=[redacted]]
+10-17 12:21:37.634   D SupplicantStaIfaceHalAidlBase: ISupplicantStaIfaceCallback.onStateChanged: newState=COMPLETED, bssid=xx:xx:xx:xx:xx:xx, ssid="[redacted]", filsHlpSent=false, supplicantKeyMgmtMask=0x00000002, frameworkKeyMgmtMask={1},
+10-17 12:21:37.895   D NetworkMonitor/100: PROBE_DNS www.google.com 53ms OK 142.251.152.119,142.251.150.119,142.251.157.119,142.251.153.119,142.251.151.119,142.251.155.119,142.251.156.119,142.251.154.119
+10-17 12:21:37.905   D NetworkMonitor/100: PROBE_DNS connectivitycheck.gstatic.com 63ms OK 142.251.150.120
+10-17 12:21:37.926   D NetworkMonitor/100: PROBE_HTTP http://connectivitycheck.gstatic.com/generate_204 time=21ms ret=204 request={Connection=[close], User-Agent=[Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome
+10-17 12:21:37.958   D NetworkMonitor/100: PROBE_HTTPS https://www.google.com/generate_204 time=60ms ret=204 request={Connection=[close], User-Agent=[Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.32
+
+## logcat (final): Wi-Fi errors (counted)
+     17     E NlNNative: getChannelsMhzForBand: Wiphy index not recorded for band N
+      1     E NlNNative: Failed to get BSSID from association event N
+      1     E NlNNative: Cannot abort scan when iface isn't scanning: wlanN
+
+## logcat (final): Bluetooth state, pairing, A2DP
+10-17 12:20:28.977   I servicemanager: Caller(pid=1635,uid=1002,sid=u:r:bluetooth:s0) Found android.hardware.bluetooth.IBluetoothHci/default in device VINTF manifest.
+10-17 12:22:06.324   I BluetoothAdapterServiceBinder: startDiscovery: from uid/pid=1000/1618
+10-17 12:22:10.265   I auditd : avc: denied { find } for pid=3530 uid=0 name=android.hardware.bluetooth.IBluetoothHci/default scontext=u:r:kernel:s0 tcontext=u:object_r:hal_bluetooth_service:s0 tclass=service_manager permissive=1
+10-17 12:22:10.265   W libbinder.BackendUnifiedServiceManager: Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: android.hardware.bluetooth.IBluetoothHci/default
+
+## logcat (final): audio HAL warnings (counted) and routing
+      7     W AHAL_StreamAlsaMonoPipe: transfer: incomplete data received, inserting N frames of silence
+      1     D AHAL_StreamPrimary: transfer: skipping transfer (N frames)
+      1     D AHAL_StreamPrimary: setConnectedDevices: [AudioDevice{type: AudioDeviceDescription{type: IN_MICROPHONE, connection: }, address: AudioDeviceAddress{id: bottom}}]
+
+## logcat (final): headphone jack
+10-17 12:20:17.292   I input : HD-Audio Generic Headphone as /devices/pci0000:00/0000:00:08.1/0000:65:00.6/sound/card2/input23
+10-17 12:20:26.232   D SystemServerTiming: StartWiredAccessoryManager
+10-17 12:20:26.232   W WiredAccessoryManager: This kernel does not have usb audio support
+10-17 12:20:26.232   W WiredAccessoryManager: This kernel does not have HDMI audio support
+10-17 12:20:26.232   V SystemServerTiming: StartWiredAccessoryManager took to complete: 0ms
+10-17 12:20:27.975   I Telecom : WiredHeadsetManager: ACTION_HEADSET_PLUG event, plugged in: false, : WHC.oADA@AAI❗
+
+## denials (final), all domains; permissive=0 means the boot was enforcing

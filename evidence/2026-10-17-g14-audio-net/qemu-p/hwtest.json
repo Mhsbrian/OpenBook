@@ -1,0 +1,146 @@
+{
+ "audio-card": {
+  "test": "audio-card",
+  "ok": true,
+  "card": 0,
+  "pcm": "00-00: Generic Analog : Generic Analog : playback 1 : capture 1"
+ },
+ "audio-routes": {
+  "test": "audio-routes",
+  "ok": true,
+  "speaker_port": 2,
+  "mic_port": 5,
+  "headphone_jacks": 0,
+  "mic_jacks": 0,
+  "wired_connected": false,
+  "a2dp_connected": false,
+  "pacing": "false"
+ },
+ "alsa-loopback": {
+  "test": "alsa-loopback",
+  "ok": true,
+  "card": 0,
+  "device": 0,
+  "rate": 48000,
+  "channels": 2,
+  "freq": 1000,
+  "seconds": 2.0,
+  "tone_dbfs_out": -15,
+  "noise_rms_dbfs": -200.0,
+  "noise_bin_dbfs": -200.0,
+  "tone_rms_dbfs": -200.0,
+  "tone_bin_dbfs": -200.0,
+  "tone_share": 0.0,
+  "slice_share_mean": 0.0,
+  "slice_share_min": 0.0,
+  "glitched_slices": 33,
+  "slices": 33,
+  "heard": false,
+  "playback_error": "",
+  "capture_error": ""
+ },
+ "aaudio-loopback": {
+  "test": "aaudio-loopback",
+  "ok": true,
+  "in_rate": 48000,
+  "in_channels": 2,
+  "out_rate": 48000,
+  "out_channels": 2,
+  "captured_frames": 168000,
+  "written_frames": 120000,
+  "xruns": 1,
+  "freq": 1000,
+  "tone_dbfs_out": -15,
+  "noise_rms_dbfs": -200.0,
+  "noise_bin_dbfs": -200.0,
+  "tone_rms_dbfs": -200.0,
+  "tone_bin_dbfs": -200.0,
+  "tone_share": 0.0,
+  "slice_share_mean": 0.0,
+  "slice_share_min": 0.0,
+  "glitched_slices": 30,
+  "slices": 30,
+  "heard": false,
+  "input_error": 0,
+  "output_error": 0,
+  "out_device": 2,
+  "in_device": 5,
+  "media_volume": "10/15",
+  "hal_input_pads": 0,
+  "hal_output_drops": 0,
+  "hal_skipped_transfers": 0
+ },
+ "wifi-driver": {
+  "test": "wifi-driver",
+  "iface": "wlan0",
+  "present": true,
+  "driver": "mac80211_hwsim",
+  "regdb_loaded": false,
+  "country": "00"
+ },
+ "wifi-enabled": {
+  "test": "wifi-enabled",
+  "ok": true,
+  "supplicant": "running"
+ },
+ "wifi-scan": {
+  "test": "wifi-scan",
+  "ok": true,
+  "networks": 1,
+  "ghz2": 1,
+  "ghz5": 0,
+  "ghz6": 0
+ },
+ "wifi-pno": {
+  "test": "wifi-pno",
+  "ok": false,
+  "driver_offers": false
+ },
+ "wifi-connect": {
+  "test": "wifi-connect",
+  "ok": true,
+  "freq_mhz": 2437.0,
+  "signal_dbm": -30,
+  "tx_mbit": 1.0,
+  "rx_mbit": 130.0
+ },
+ "wifi-dhcp": {
+  "test": "wifi-dhcp",
+  "ok": true,
+  "prefix": "24",
+  "gateway": true
+ },
+ "wifi-ping-gateway": {
+  "test": "wifi-ping-gateway",
+  "ok": true,
+  "loss_pct": 0,
+  "avg_ms": 0.082
+ },
+ "wifi-validated": {
+  "test": "wifi-validated",
+  "ok": false
+ },
+ "wifi-iperf3-up": {
+  "test": "wifi-iperf3-up",
+  "ok": true,
+  "mbit_s": 656,
+  "seconds": 5
+ },
+ "wifi-iperf3-down": {
+  "test": "wifi-iperf3-down",
+  "ok": true,
+  "mbit_s": 711,
+  "seconds": 5
+ },
+ "bt-enabled": {
+  "test": "bt-enabled",
+  "ok": false,
+  "hal": "running"
+ },
+ "bt-bonded": {
+  "test": "bt-bonded",
+  "ok": false,
+  "bonded": 0,
+  "audio_lines": 0
+ }
+}
