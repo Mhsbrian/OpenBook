@@ -1,0 +1,192 @@
+{
+ "cases": {
+  "dryrun": [
+   {
+    "check": "every expect step matched",
+    "ok": true,
+    "detail": "122/122 (all steps done)"
+   },
+   {
+    "check": "SELinux enforcing",
+    "ok": true,
+    "detail": "fec9a89]\n[ro.boot.openbook.live]: [1]\n[ro.boot.openbook.loader]: [sdboot]\n[ro.build.fingerprint]: [OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys]\nEnforcing\n"
+   },
+   {
+    "check": "the wizard started by itself after boot",
+    "ok": true,
+    "detail": "    topResumedActivity=ActivityRecord{263371762 u0 org.openbook.installer/.MainActivity t11}\n  ResumedActivity: ActivityRecord{263371762 u0 org.openbook.installer/.MainActivity t11}\n"
+   },
+   {
+    "check": "openbook_installd runs in its own domain",
+    "ok": true,
+    "detail": "608 278752 do_epoll_wait       0 S org.openbook.installer\nu:r:openbook_installd:s0       root          3196     1   10822620   3876 do_sys_poll         0 S openbook-install\nu:r:platform_app:s0:c512,c768  u0_a35        3729   546   16720388 106800 do_epoll_wait       0 S com.android.packageinstaller\n"
+   },
+   {
+    "check": "whole-disk nodes carry openbook_disk_block_device",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "CLI dry run: a plan for the NVMe disk",
+    "ok": true,
+    "detail": "{\"plan_sha256\":\"3e3f3fe852488a9ab36f6f6ed7f8f318aa680fbca04efca78205f6aa72f9d1c1\",\"created\":\"2026-10-17T16:36:17Z\",\"schema\":\"openbook-install-plan/1\",\"engine\":\"1\",\"layout\":\"whole\",\"request\":{\"target\":\"nvme-QEMU_NVMe_Ctrl_internal0\",\"layout\":\"whole\",\"locale\":\"en-US\",\"keyboard\":\"us\",\"set_default\":fals"
+   },
+   {
+    "check": "the app's dry run went through the daemon",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "screens captured: welcome, hardware, choose, disk, plan",
+    "ok": true,
+    "detail": "['shot-1-welcome.png', 'shot-2-hardware.png', 'shot-3-choose-install.png', 'shot-3-choose.png', 'shot-4-disk-selected.png', 'shot-4-disk.png', 'shot-4-plan.png']"
+   },
+   {
+    "check": "the NVMe disk has no allocated block after the dry run (nothing written)",
+    "ok": true,
+    "detail": "0 blocks"
+   },
+   {
+    "check": "no SELinux denial for the app or the daemon",
+    "ok": true,
+    "detail": ""
+   }
+  ],
+  "install": [
+   {
+    "check": "every expect step matched",
+    "ok": true,
+    "detail": "174/174 (QEMU exited (0))"
+   },
+   {
+    "check": "screens captured: confirm, typed, install, done",
+    "ok": true,
+    "detail": "['shot-1-welcome.png', 'shot-2-hardware.png', 'shot-3-choose-install.png', 'shot-3-choose.png', 'shot-4-disk-selected.png', 'shot-4-disk.png', 'shot-4-plan.png', 'shot-5-confirm-typed.png', 'shot-5-confirm.png', 'shot-6-install-details.png', 'shot-6-install-progress.png', 'shot-7-done.png']"
+   },
+   {
+    "check": "the daemon ran the install and it verified",
+    "ok": true,
+    "detail": "nf (72 bytes)\n16:40:36 wrote EFI/OpenBook/systemd-bootx64.efi (160256 bytes)\n16:40:36 wrote EFI/BOOT/BOOTX64.EFI (160256 bytes)\n16:40:36 the kernel re-read the partition table\n16:40:36 step verify: done\n16:40:36 step report: running\n16:40:36 step report: done\n16:40:36 install process 2605 ended: ok\n"
+   },
+   {
+    "check": "no SELinux denial for the app or the daemon (enforcing)",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "the run ended with the guest's reboot (Restart now)",
+    "ok": true,
+    "detail": "QEMU exited (0)"
+   }
+  ],
+  "installed": [
+   {
+    "check": "the installed disk boots without the stick (screenshots)",
+    "ok": true,
+    "detail": "['shot-10.png', 'shot-120.png', 'shot-180.png', 'shot-20.png', 'shot-240.png', 'shot-30.png', 'shot-300.png', 'shot-360.png', 'shot-420.png', 'shot-45.png', 'shot-60.png', 'shot-90.png']"
+   }
+  ],
+  "console": [
+   {
+    "check": "every expect step matched",
+    "ok": true,
+    "detail": "82/82 (all steps done)"
+   },
+   {
+    "check": "boot_completed from the NVMe disk",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "every by-name link points at the NVMe disk",
+    "ok": true,
+    "detail": "nvme0n1, nvme0n1p1, nvme0n1p10, nvme0n1p11, nvme0n1p12, nvme0n1p13, nvme0n1p2, nvme0n1p3, nvme0n1p4, nvme0n1p5, nvme0n1p6, nvme0n1p7, nvme0n1p8, nvme0n1p9"
+   },
+   {
+    "check": "no live flags; installed=whole; SELinux enforcing",
+    "ok": true,
+    "detail": "[ro.boot.boot_part_uuid]: [3c983f79-be49-46c2-bb33-9eadd9ccfa77]\n[ro.boot.openbook.installed]: [whole]\n[ro.boot.openbook.keyboard]: [us]\n[ro.boot.openbook.loader]: [sdboot]\n[ro.boot.openbook.locale]: [en-US]\n[ro.boot.serialno]: [62029153AFBF23DE]\n[ro.boot.slot_suffix]: [_a]\n[ro.boot.verifiedbootstat"
+   },
+   {
+    "check": "installer launcher entry off and daemon never started on the installed system",
+    "ok": true,
+    "detail": "['0', 'daemon=[]']"
+   },
+   {
+    "check": "first screen of the installed system is OpenBook setup",
+    "ok": true,
+    "detail": "0\ndaemon=[]\n0\n      topResumedActivity=ActivityRecord{6219539 u0 org.openbook.installer/.SetupActivity t2}\n"
+   },
+   {
+    "check": "after setup: provisioned, setup complete, setup off, the launcher on top",
+    "ok": true,
+    "detail": "['1', '1', '0', '      topResumedActivity=ActivityRecord{16342033 u0 com.android.launcher3/.uioverrides.QuickstepLauncher t9}']"
+   },
+   {
+    "check": "setup screens captured",
+    "ok": true,
+    "detail": "['shot-8-setup-language.png', 'shot-8-setup-lock.png', 'shot-8-setup-wifi.png', 'shot-9-desktop.png']"
+   },
+   {
+    "check": "AVC denials on the installed system (reported, not gated)",
+    "ok": true,
+    "detail": "54 lines"
+   }
+  ]
+ },
+ "console_avc": [
+  "10-17 16:51:54.482   343   343 E SELinux : avc:  denied  { find } for pid=372 uid=1017 name=android.hardware.security.sharedsecret.ISharedSecret/gatekeeper scontext=u:r:keystore:s0 tcontext=u:object_r:hal_gatekeeper_service:s0 tclass=service_manager permissive=0",
+  "10-17 16:51:54.310   343   343 I auditd  : avc:  denied  { find } for pid=372 uid=1017 name=android.hardware.security.sharedsecret.ISharedSecret/gatekeeper scontext=u:r:keystore:s0 tcontext=u:object_r:hal_gatekeeper_service:s0 tclass=service_manager permissive=0",
+  "10-17 16:51:59.680   909   909 I auditd  : type=1400 audit(0.0:4): avc:  denied  { read } for  comm=\"SystemUIBg-7\" name=\"u:object_r:bluetooth_lea_prop:s0\" dev=\"tmpfs\" ino=120 scontext=u:r:platform_app:s0:c512,c768 tcontext=u:object_r:bluetooth_lea_prop:s0 tclass=file permissive=0 app=com.android.systemui",
+  "10-17 16:51:59.680   909   909 W SystemUIBg-7: type=1400 audit(0.0:4): avc:  denied  { read } for  name=\"u:object_r:bluetooth_lea_prop:s0\" dev=\"tmpfs\" ino=120 scontext=u:r:platform_app:s0:c512,c768 tcontext=u:object_r:bluetooth_lea_prop:s0 tclass=file permissive=0 app=com.android.systemui",
+  "10-17 16:51:59.680   909   909 I auditd  : type=1400 audit(0.0:5): avc:  denied  { read } for  comm=\"SystemUIBg-1\" name=\"u:object_r:bluetooth_lea_prop:s0\" dev=\"tmpfs\" ino=120 scontext=u:r:platform_app:s0:c512,c768 tcontext=u:object_r:bluetooth_lea_prop:s0 tclass=file permissive=0 app=com.android.systemui",
+  "10-17 16:51:59.680   909   909 W SystemUIBg-1: type=1400 audit(0.0:5): avc:  denied  { read } for  name=\"u:object_r:bluetooth_lea_prop:s0\" dev=\"tmpfs\" ino=120 scontext=u:r:platform_app:s0:c512,c768 tcontext=u:object_r:bluetooth_lea_prop:s0 tclass=file permissive=0 app=com.android.systemui",
+  "10-17 16:52:24.436  1323  1323 I auditd  : type=1400 audit(0.0:6): avc:  denied  { search } for  comm=\"pool-4-thread-4\" name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:24.436  1323  1323 W pool-4-thread-4: type=1400 audit(0.0:6): avc:  denied  { search } for  name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:24.436  1323  1323 I auditd  : type=1400 audit(0.0:7): avc:  denied  { getattr } for  comm=\"pool-4-thread-4\" path=\"/data/local/tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:24.436  1323  1323 W pool-4-thread-4: type=1400 audit(0.0:7): avc:  denied  { getattr } for  path=\"/data/local/tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:24.436  1323  1323 I auditd  : type=1400 audit(0.0:8): avc:  denied  { search } for  comm=\"pool-4-thread-4\" name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:24.436  1323  1323 W pool-4-thread-4: type=1400 audit(0.0:8): avc:  denied  { search } for  name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:24.436  1323  1323 I auditd  : type=1400 audit(0.0:9): avc:  denied  { getattr } for  comm=\"pool-4-thread-4\" path=\"/data/local/tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:24.436  1323  1323 W pool-4-thread-4: type=1400 audit(0.0:9): avc:  denied  { getattr } for  path=\"/data/local/tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:24.436  1323  1323 I auditd  : type=1400 audit(0.0:10): avc:  denied  { search } for  comm=\"pool-4-thread-4\" name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:24.436  1323  1323 W pool-4-thread-4: type=1400 audit(0.0:10): avc:  denied  { search } for  name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:24.436  1323  1323 I auditd  : type=1400 audit(0.0:11): avc:  denied  { search } for  comm=\"pool-4-thread-4\" name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:24.436  1323  1323 W pool-4-thread-4: type=1400 audit(0.0:11): avc:  denied  { search } for  name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:24.436  1323  1323 I auditd  : type=1400 audit(0.0:12): avc:  denied  { search } for  comm=\"pool-4-thread-4\" name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:24.436  1323  1323 W pool-4-thread-4: type=1400 audit(0.0:12): avc:  denied  { search } for  name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:24.436  1323  1323 I auditd  : type=1400 audit(0.0:13): avc:  denied  { search } for  comm=\"pool-4-thread-4\" name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:24.436  1323  1323 W pool-4-thread-4: type=1400 audit(0.0:13): avc:  denied  { search } for  name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:34.936  1323  1323 I auditd  : type=1400 audit(0.0:14): avc:  denied  { search } for  comm=\"pool-4-thread-5\" name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:34.936  1323  1323 W pool-4-thread-5: type=1400 audit(0.0:14): avc:  denied  { search } for  name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:34.936  1323  1323 I auditd  : type=1400 audit(0.0:15): avc:  denied  { getattr } for  comm=\"pool-4-thread-5\" path=\"/data/local/tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:34.936  1323  1323 W pool-4-thread-5: type=1400 audit(0.0:15): avc:  denied  { getattr } for  path=\"/data/local/tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:34.936  1323  1323 I auditd  : type=1400 audit(0.0:16): avc:  denied  { search } for  comm=\"pool-4-thread-5\" name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:34.936  1323  1323 W pool-4-thread-5: type=1400 audit(0.0:16): avc:  denied  { search } for  name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:34.936  1323  1323 I auditd  : type=1400 audit(0.0:17): avc:  denied  { getattr } for  comm=\"pool-4-thread-5\" path=\"/data/local/tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:34.936  1323  1323 W pool-4-thread-5: type=1400 audit(0.0:17): avc:  denied  { getattr } for  path=\"/data/local/tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:34.936  1323  1323 I auditd  : type=1400 audit(0.0:18): avc:  denied  { search } for  comm=\"pool-4-thread-5\" name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:34.936  1323  1323 W pool-4-thread-5: type=1400 audit(0.0:18): avc:  denied  { search } for  name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:34.936  1323  1323 I auditd  : type=1400 audit(0.0:19): avc:  denied  { search } for  comm=\"pool-4-thread-5\" name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:34.936  1323  1323 W pool-4-thread-5: type=1400 audit(0.0:19): avc:  denied  { search } for  name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:45.384  1323  1323 I auditd  : type=1400 audit(0.0:22): avc:  denied  { search } for  comm=\"pool-4-thread-6\" name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:45.384  1323  1323 W pool-4-thread-6: type=1400 audit(0.0:22): avc:  denied  { search } for  name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:45.384  1323  1323 I auditd  : type=1400 audit(0.0:23): avc:  denied  { getattr } for  comm=\"pool-4-thread-6\" path=\"/data/local/tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:45.384  1323  1323 W pool-4-thread-6: type=1400 audit(0.0:23): avc:  denied  { getattr } for  path=\"/data/local/tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:45.384  1323  1323 I auditd  : type=1400 audit(0.0:24): avc:  denied  { search } for  comm=\"pool-4-thread-6\" name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:45.384  1323  1323 W pool-4-thread-6: type=1400 audit(0.0:24): avc:  denied  { search } for  name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:45.384  1323  1323 I auditd  : type=1400 audit(0.0:25): avc:  denied  { getattr } for  comm=\"pool-4-thread-6\" path=\"/data/local/tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:45.384  1323  1323 W pool-4-thread-6: type=1400 audit(0.0:25): avc:  denied  { getattr } for  path=\"/data/local/tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:45.384  1323  1323 I auditd  : type=1400 audit(0.0:26): avc:  denied  { search } for  comm=\"pool-4-thread-6\" name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:52:45.384  1323  1323 W pool-4-thread-6: type=1400 audit(0.0:26): avc:  denied  { search } for  name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:53:00.080  1323  1323 I auditd  : type=1400 audit(0.0:30): avc:  denied  { search } for  comm=\"pool-4-thread-7\" name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:53:00.080  1323  1323 W pool-4-thread-7: type=1400 audit(0.0:30): avc:  denied  { search } for  name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:53:00.080  1323  1323 I auditd  : type=1400 audit(0.0:31): avc:  denied  { getattr } for  comm=\"pool-4-thread-7\" path=\"/data/local/tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:53:00.080  1323  1323 W pool-4-thread-7: type=1400 audit(0.0:31): avc:  denied  { getattr } for  path=\"/data/local/tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:53:00.080  1323  1323 I auditd  : type=1400 audit(0.0:32): avc:  denied  { search } for  comm=\"pool-4-thread-7\" name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module",
+  "10-17 16:53:00.080  1323  1323 W pool-4-thread-7: type=1400 audit(0.0:32): avc:  denied  { search } for  name=\"tmp\" dev=\"dm-13\" ino=100 scontext=u:r:mediaprovider_app:s0:c106,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module"
+ ],
+ "passed": 25,
+ "total": 25,
+ "image": "openbook-live-20261017-anal192c.img"
+}

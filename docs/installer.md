@@ -427,6 +427,8 @@ flowchart LR
   - interrupted installs at each step;
   - an OTA slot switch with boot counting;
   - an unattended run for the device agent.
+
+  **Done in QEMU (§13)**, except the OTA slot switch, which waits for `openbook-bootsync`.
 - **GBL watch.** Re-test when CLs 4051936 and 4286120 merge (`MATRIX_ONLY=gbl scripts/installer/proto-matrix.sh`).
 
 ## 9. Reproduce
@@ -746,7 +748,7 @@ Image `openbook-live-20261017-anal191e` (built from this branch, `userdebug`, AO
 
 ### 12.7 What these runs do not show
 - **No G14.** USB 3 and the 890M will change timings; the install's reads run at stick speed. On a real install, `userdata` is the rest of a 1 TB disk.
-- **Alongside was not booted in QEMU,** only checked on image files. A firmware entry needs efivarfs (decision 6). End-to-end alongside, interrupted installs and an OTA slot switch are ANAL-192.
+- **Alongside was not booted in QEMU,** only checked on image files. A firmware entry needs efivarfs (decision 6). End-to-end alongside, interrupted installs and an OTA slot switch are ANAL-192. *Since done, except the OTA slot switch: §13.*
 - **QEMU's display shows red and blue swapped.** The wizard's `#4355B9` shows as `#B95543` in QEMU's screendump (`screens/qemu-display-channel-swap-example.png`). Android's own `screencap` is correct; the screenshots here are `screencap`s. The two `installed-boot-*` frames were captured through QEMU and have their channels swapped back. This is the VM display path (virtio-gpu fallback), not the app; it is passed to the graphics lane.
 - **Not built yet:** `openbook-bootsync` and the boot control link (slot B stays blank), the text hardware report boot entry (`androidboot.openbook.diag`), a signed manifest, translations, and copying the install report into `/metadata` on first boot.
 - **The boot animation** of the installed system is AOSP's, not OpenBook's.
@@ -798,3 +800,197 @@ device/anybook/common/installer/app/tools/compile-check.sh                      
 ```
 - **Costs:** the incremental product build took 1 min 42 s here (memory peak 48 GB). `wizard-qemu.sh` takes about 20 minutes for all four cases.
 - **Logs:** `~/anybook/logs/installer/<run>/`.
+
+## 13. End to end, and the owner's integrated stick (ANAL-192)
+
+Status as of 2026-10-17, 17:10 UTC. Evidence: `evidence/2026-10-17-installer-e2e/`, starting with `SUMMARY.md`. Everything here ran in QEMU/KVM + OVMF on image files, SELinux enforcing. **Nothing has run on the G14 yet** (§13.6).
+
+### 13.1 The stick: `openbook-live-20261017-anal192c`
+- **Built from `main` at `3908b14`** (clean checkout, PRs #1–#59), product `anybook_g14_x86_64-cp2a-userdebug`. The build and the `PRODUCT_OUT` snapshot ran under one hold of the lane lock (2 min 27 s). It includes:
+  - the installer (#53);
+  - PR #52's G14 fixes (vold leaves the live stick alone, no boot lock screen, no overlay planes, Bluetooth and app audio policy);
+  - ANAL-178's touchpad fix (#57, `frameworks/native`);
+  - ANAL-179's codec-paced audio HAL and PNO (#58, `hardware/interfaces` 0002).
+- **Add-ons**, each applied with its own applier in `--image` mode:
+  - the power check `openbook-powercheck-anal178-c`, unchanged since `anal178c` (its builder did not change);
+  - the ARM apps check `openbook-bridgecheck-anal192c`, built from `main` (#56).
+- **Not on it: the graphics check.** ANAL-177's second G14 run needs Vulkan 1.4, a Mesa rebuild and new case lists (PR #61, open). The first run is done (on `anal176t`), and re-running it on 1.1 would cost the owner 25 minutes for nothing new. Once #61 is on `main`, the next stick takes about 10 minutes to build: Mesa, stage, product, add-on.
+- **sha256** `dd1ebe202cb49e56317b4ec477c17464ef754d3bd7e482904ddc047612301442`, and `ab0c5726…` before the add-ons (`image/`).
+- **Superseded:** `anal192a` (main `42726e4`, for the first matrix runs) and `anal192b` (main `7787195`, before #56–#58 merged). Both passed the same tests (`dev-runs/`).
+
+| Run on `anal192c` | Result | Evidence |
+|---|---|---|
+| Live stick matrix (`live-qemu.sh`, two calls) | **40/40**; first boot `boot_completed` at 11.5 s | `live-qemu/` |
+| Wizard (`wizard-qemu.sh`: dry run, install, installed, console) | **25/25** | `wizard-qemu/` |
+| End-to-end matrix (`e2e-qemu.sh`, §13.2) | **79/79** | `e2e-qemu/` |
+| ARM apps check (`bridge-qemu.sh`, on a copy before the add-ons) | 5/5 verdicts; probe x86_64 18/0, arm64 18/2 (the known `isa` and `signals` groups); CoreMark arm64/x86_64 0.39 (exe) and 0.40 (app), in a VM | `addons-qemu/bridge-*` |
+| Power check (`power-check-qemu.sh vm` and `real`) | 14/14 and 10/10 steps | `addons-qemu/power-*` |
+| SELinux denials in every enforcing boot above | **None involve an OpenBook type.** 234 records in 10 groups, all AOSP's or from the test shell: MediaProvider and `/data/local/tmp`, SystemUI and `bluetooth_lea_prop`, keystore and a missing gatekeeper HAL | `avc/anal192c.md` |
+| Reproducibility | `anal192b` was rebuilt from its input snapshot, byte for byte | `image/reproducible-anal192b.txt` |
+
+### 13.2 The end-to-end matrix (`scripts/installer/e2e-qemu.sh`)
+**Disks** (image files):
+- a Windows-like 200 GiB disk: ESP, MSR, a 100 GiB NTFS partition, recovery, about 99 GiB free;
+- a 32 GiB blank disk;
+- a Windows-like 128 GiB disk that the whole-disk runs erase.
+
+The Windows ESPs hold `EFI/Microsoft/Boot/bootmgfw.efi` and `EFI/BOOT/BOOTX64.EFI`. Both are a **stand-in boot manager**: a 7 KB test EFI app (`scripts/installer/e2e/obtest-efi.c`, built with gcc and the PE linker) that prints `OBTEST-MARK windows-bootmgr <its path>` and powers off. So "Windows still boots" is a real firmware boot, read from the serial log.
+
+**Engine runs** are the device agent's unattended form: `openbook-install disks`, `plan`, `apply --confirm-disk /dev/disk/by-id/… --events` with `OPENBOOK_INSTALL_ERASE`, from the live stick's root shell. The output is JSON lines.
+
+**Disk states** are read from outside the VM after every run (`e2e-qemu.py inspect`):
+- both GPT copies, parsed and CRC-checked;
+- the protective MBR;
+- every FAT partition's files and `fsck.fat`;
+- the plan's files against their sha256;
+- a content digest of every partition: non-zero 64 KiB chunks with their offsets, so holes and written zeros compare equal.
+
+| Case | What it shows | Checks |
+|---|---|---|
+| `live-a` | Stick + Windows-like disk + 32 GiB disk. The disks are inventoried. The 32 GiB disk is refused (`too_small`, CLI and wizard: "Can't be used", `screens/1-…`). Apply without `OPENBOOK_INSTALL_ERASE` is refused. **The unattended alongside install: 13.5 s, 31 items verified.** Afterwards: MSR, NTFS and recovery byte-identical; the Windows ESP gained only `EFI/OpenBook/systemd-bootx64.efi`, its other files have unchanged hashes, and `fsck.fat` is clean; both GPT copies are valid with 4 + 13 partitions; a second alongside install is refused (`name_clash`) | 17/17 |
+| `al-windows` | The alongside disk alone, fresh NVRAM: the firmware's fallback path still starts "Windows" (`OBTEST-MARK windows-bootmgr \EFI\BOOT\BOOTX64.EFI`) | 1/1 |
+| `al-fwsetup` | What the user does in the firmware setup (OpenBook adds no entry: no efivarfs). A helper stick with the test app's other mode writes `Boot1000 "OpenBook"` → `\EFI\OpenBook\systemd-bootx64.efi` on the Windows ESP and puts it first in `BootOrder` | 1/1 |
+| `al-openbook` | The unchanged alongside disk with that NVRAM: the firmware starts `Boot1000 "OpenBook"`, then systemd-boot finds the entry on XBOOTLDR, and OpenBook setup is on screen (`screens/2-…`) | 3/3 |
+| `al-console` | A copy with a serial-console entry on XBOOTLDR. `installed=alongside`; `boot_part_uuid` is the XBOOTLDR partition; enforcing; every by-name link is on the NVMe disk; no Windows partition is mounted; setup, then the desktop | 5/5 |
+| `cut-1` … `cut-6`, `fw-cut-*`, `install` | A power cut at each install step, each followed by a restart from the stick (§13.3) | 32/32 |
+| `installed` | The installed disk alone, unchanged, fresh NVRAM: the firmware starts its fallback path, and OpenBook setup is up (`screens/4-…`) | 2/2 |
+| `inst-stick` | The stick left plugged in, with the disk first in the boot order. The system boots from its own disk (by-name, `installed=whole`, enforcing), the installer is off, setup runs, then the desktop. **The stick's partitions are unchanged.** Known issue: SystemUI posts "QEMU USB drive detected · Tap to set up" for the stick (§13.5) | 7/7 |
+| `reinstall` | Stick + the used installed disk (after setup). The live system boots from the stick and mounts nothing of the NVMe disk. The engine sees OpenBook on it; whole is possible, alongside is refused (`name_clash`). **Unattended reinstall: 29.5 s, 33 items verified;** new disk and partition GUIDs; the old `userdata` is gone and the new one starts blank | 6/6 |
+| `reinstalled` | Its console copy, no stick: a new serial number, setup again, then the desktop | 5/5 |
+
+### 13.3 Power cuts (whole disk over the Windows-like 128 GiB disk)
+A cut is `quit` on QEMU's monitor at the engine's `--events` line, plus a delay. The guest's page cache is lost. Writes that already reached the virtual disk stay, because QEMU writes through to the image file. **A disk's own volatile cache is not modelled.** Each `cut-N` restarts the install on `cut-(N-1)`'s disk, so every restart starts from a cut state.
+
+| Cut | At | Disk afterwards | Firmware, fresh NVRAM, disk alone | Restart |
+|---|---|---|---|---|
+| 1 | `check_source` running + 1 s | **Old table**, all four Windows partitions unchanged | starts "Windows" | `disks`: whole OK |
+| 2 | `boot_images` running | **Blank**: no MBR, no valid GPT | nothing from the disk | whole OK |
+| 3 | `system` running + 3 s | **Blank** | nothing | whole OK |
+| 4 | `boot_entry` running + 0.3 s | **New table, not activated**: both copies valid; the ESP passes `fsck.fat`; no loader entry, no `EFI/BOOT/BOOTX64.EFI` | nothing | whole OK |
+| 5 | `verify` running + 1 s | **New table, not activated** | nothing | whole OK |
+| 6 | `report` running | **Complete**: activated, every planned file matches, the ESP passes `fsck.fat` | starts OpenBook's fallback path | whole OK |
+| — | `install`: the restart over cut 6 | verified (33 items), both copies valid, bootable | — | — |
+
+An accidental seventh cut, in a development run, landed during `system` and left a blank disk too (`dev-runs/`). **S9 holds in every case:** the disk keeps its old table, is blank, or carries the new one, and it is bootable only when complete.
+
+### 13.4 What these runs do not show
+- **No G14.** USB 3, NVMe and the firmware's boot manager will differ. In particular, **QEMU's OVMF reorders `BootOrder` by QEMU's `bootindex`**, so the stick-first and disk-first orders here are set by QEMU, not by the NVRAM.
+- **The cut model is the guest's**, not a disk's: a real SSD can lose or reorder writes in its own cache. The engine flushes (fsync) after every step and before the GPT and the activation, but a crash-replay test of every write (`Next`) would show more.
+- **Windows is a stand-in.** BitLocker, Windows' own boot repair and Fast Startup were not tested. Real Windows ESPs are often 100 MB; ours is 260 MB.
+- **The firmware option was added by a test app**, through the same `SetVariable` a firmware setup uses. The G14's setup screens were not tried.
+- **No OTA slot switch or boot counting:** `openbook-bootsync` isn't built, and slot B is blank.
+
+### 13.5 Findings
+1. **The installed system offers to "set up" the installer stick.** With the stick plugged into an installed OpenBook, vold logs "disk:8,0 has unknown partition table … giving up", and SystemUI shows "QEMU USB drive detected · Tap to set up" (`StorageNotification`, unsupported disk). Tapping it leads to formatting the stick. PR #52's vold patch only skips the disk the running system booted from. *Fix proposal:* also skip any disk whose GPT has an ESP labelled `OPENBOOK` plus `super`/`misc` partitions (an OpenBook stick or disk), with a QEMU check in `e2e-qemu.py inst-stick`. Reported, not gated; in `docs/INSTALL.md` known issues.
+2. **The wizard calls an installed OpenBook "Linux".** On a disk with OpenBook, `disks` reports `os: ["OpenBook", "Linux"]`: the ext4 `metadata` and f2fs `userdata` partitions are classified as Linux. The disk bar then says "Linux 137 GB", with the tip "Want to keep OpenBook and Linux?" (`screens/5-…`). *Fix:* in `disks.c`, partitions whose GPT names are OpenBook's own (`metadata`, `userdata`, `misc`, `boot_*`, …) count as OpenBook. Safety is unaffected: alongside is refused (`name_clash`).
+3. **Alongside exposes Windows' partitions under `/dev/block/by-name`** (`EFI_system_partition`, `Basic_data_partition`, …), because by-name links follow the boot disk. Harmless (none is mounted, `name_clash` stops real clashes), but a write by name to the wrong partition would be possible for privileged code.
+4. **Harness bugs found and fixed while building the matrix:**
+   - `wizard-qemu.py`'s `section()` waits for its end marker, which the shell's echo of the typed command also contains. So any command running longer than the following 30 s prompt wait is cut off by the harness. `e2e-qemu.py` anchors the marker at a line start. `wizard-qemu.py` still has the pattern; its commands are short.
+   - `svc power shutdown` aborted once on the live system; `reboot -p` is used instead.
+
+### 13.6 On the G14: the owner's checklist for `anal192c`
+This one stick replaces `anal176t` and the earlier sticks. It covers every open G14 check in three boots, plus one optional run on Linux. **Nothing here writes to the laptop's disks:** the installer step is a dry run.
+
+**0. Write the stick** (on the build host, with the stick's full `by-id` name; it erases the stick after backing up its logs. The dry run passed at 17:02 UTC):
+```bash
+cd ~/anybook/repo && OPENBOOK_WRITE_CONFIRM=/dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0 \
+  scripts/installer/write-stick.sh ~/anybook/installer/out/openbook-live-20261017-anal192c.img \
+  /dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0
+```
+Wait for `stick powered off: safe to unplug`. On the G14: mains power, lid open, power on holding **Esc**, pick the stick.
+
+**Boot 1: "OpenBook"** (the default; about 25 minutes). The first boot after writing is slow.
+1. **Installer dry run** (ANAL-191). The installer opens by itself.
+   - Language → **Continue**.
+   - Hardware check → **Save report to USB** → Continue.
+   - **Install OpenBook** → Continue.
+   - Disk: select the internal NVMe, then press **View the plan**. Photograph the Disk screen and the plan, then close the plan.
+   - **Back** → **Try OpenBook**. Do not press Continue on the Disk screen.
+2. **Wi-Fi** (ANAL-179): connect.
+3. **Bluetooth audio** (ANAL-176, ANAL-179): connect your headphones and play music or a video through them. Turn them off and on, and play again.
+4. **Browser video with sound,** on the speakers and over Bluetooth.
+5. **Headphone jack:** plug wired headphones in while sound plays, then unplug them. The sound should move to them and back.
+6. **Speakers:** Settings → Sound → Phone ringtone, and play a preview. On `anal176t` every preview failed to decode (ANAL-176 suspects the missing system DMA-BUF heap). Note whether both speakers sound, or nothing.
+7. **Use it for 10+ minutes:** a few windows and the browser. Note any stutter with the time. With the taskbar's All Apps open, press **Esc**: the launcher should stay.
+8. **Battery Saver** (ANAL-178): turn it on in Quick Settings and confirm the dialog.
+9. Power off from the menu.
+
+**Boot 2: "OpenBook - save logs to this USB stick"** (about 12 minutes, powers off by itself).
+- As soon as the desktop appears, **use the touchpad for 20 seconds** (ANAL-178: the touchpad clock fix).
+- Then leave the laptop in a quiet room, lid open. The logs helper records the audio loopback (ANAL-179: `audio_android_clean`), Wi-Fi, PNO and the rest.
+
+**Boot 3: "OpenBook ARM apps check"** (about 10 minutes, mains power, lid open, powers off by itself; ANAL-200). Leave it alone; test windows open now and then.
+
+**Optional, on the laptop's own Linux** (ANAL-178, deep sleep; about 5 minutes; save your work first): `sudo python3 scripts/power/linux-s2idle.py --amd-s2idle`, then attach the tarball to ANAL-178.
+
+**Then plug the stick into the build host and reply "stick attached".** The agents read it read-only (`scripts/installer/read-stick-logs.sh`). Attach the photos.
+
+What each step is read for:
+- ANAL-191: `hwcheck-live-NNN.json` and the photos.
+- ANAL-176: tombstones, denials, frame stats, decoder errors.
+- ANAL-179: `live-report.py --expect g14`: `audio_android_clean`, `wifi_connected`, `wifi_pno`, `audio_routes`, Bluetooth and app audio denials.
+- ANAL-178: `touchpad_clock`, `epp_modes.battery_saver_seen`.
+- ANAL-200: `bridge-report.py` on `addon-bridge*`.
+
+**Not on this round:**
+- the graphics check: waits for PR #61 (Vulkan 1.4);
+- the power-check boot: done on `anal176t`. Its entries are still on the stick;
+- an install onto any disk (§13.7).
+
+### 13.7 The spare-drive install on the G14 (only once the owner names the drive)
+The install goes onto a **spare drive only**: an external USB/Thunderbolt SSD, or a second NVMe. It never goes onto the laptop's internal NVMe unless the owner names that disk explicitly as the target.
+
+1. **Owner:** plug the drive into the build host and reply with its exact `/dev/disk/by-id/…` path (`ls -l /dev/disk/by-id/`). The agent reads it read-only (`lsblk`, model, size, serial) and confirms it is not the internal disk.
+2. **On the G14,** boot "OpenBook" from the stick with the spare drive attached. In the wizard's Disk step, check that the spare drive's `by-id` line matches the named one.
+   - Choose **Erase disk and install**, type the name shown, then **Erase and install**.
+   - At **Done**, remove the stick and press **Restart now**.
+3. Boot the spare drive: Esc → pick it. Then run the smoke tests:
+   - OpenBook setup → Wi-Fi;
+   - a sound;
+   - close the lid for 1 minute and open it (suspend and resume);
+   - photograph each.
+4. Plug the stick into the build host: the install report and log are in `openbook/logs/install-*.{json,log}`. For an external drive, attach it too: its ESP carries the same report.
+
+The installed system has no "save logs" entry. Its logs need the device agent (ANAL-197) or a later debug entry.
+
+### 13.8 Unattended runs (the device agent, ANAL-193)
+The matrix is the agent's procedure. `e2e-qemu.sh IMG RUN all` runs every case in QEMU and writes `results.json`. On the laptop, the same engine commands run from a root shell on the live stick:
+```bash
+openbook-install disks                                                         # JSON inventory
+openbook-install plan --target /dev/disk/by-id/<spare> --layout whole --out /data/local/tmp/plan.json
+OPENBOOK_INSTALL_ERASE=/dev/disk/by-id/<spare> openbook-install apply --plan /data/local/tmp/plan.json \
+    --confirm-disk /dev/disk/by-id/<spare> --events                           # JSON lines, then the report
+```
+The live stick has no adb or network shell yet, so the agent can't run these on the G14 today. ANAL-194 and ANAL-197 add that.
+
+### 13.9 Reproduce
+```bash
+# the integrated stick, in one lane-lock hold, from a clean checkout of main
+flock ~/anybook/aosp/.lane.lock bash -c 'AOSP_JOBS=24 scripts/aosp-docker.sh -d anybook-aosp-build /repo/scripts/aosp-build.sh \
+  anybook_g14_x86_64-cp2a-userdebug droid openbook_hals_test validatekeymaps && docker wait anybook-aosp-build &&
+  OPENBOOK_LANE_LOCK_HELD=1 scripts/installer-image.sh --label openbook-live-<date>-<x> --menu-timeout 10 --no-xz'
+cp --reflink=always IMG pre/ && cp IMG.json pre/ && cp -r --reflink=always IMG.vm pre/      # keep a copy for the add-on tests
+scripts/installer/inst-docker.sh "$PWD"/scripts/power/add-to-live-stick.sh --image IMG ~/anybook/installer/out/openbook-powercheck-anal178-c-addon
+scripts/compat/build-probes.sh && scripts/compat/digitalis/stick/make-bridge-check.sh openbook-bridgecheck-<x>
+scripts/installer/inst-docker.sh "$PWD"/scripts/compat/digitalis/stick/add-to-image.sh IMG ~/anybook/installer/out/openbook-bridgecheck-<x>-addon
+sha256sum IMG > IMG.sha256 (in its directory)
+# tests (each call under 10 min; e2e cases keep their disks between calls)
+scripts/installer/live-qemu.sh IMG RUN first second reset ; scripts/installer/live-qemu.sh IMG RUN exact logs default
+scripts/installer/wizard-qemu.sh IMG RUN dryrun install ; scripts/installer/wizard-qemu.sh IMG RUN installed console
+scripts/installer/e2e-qemu.sh IMG RUN prep live-a al-windows al-fwsetup al-console al-openbook
+scripts/installer/e2e-qemu.sh IMG RUN cut-1 cut-2 cut-3 cut-4 cut-5 cut-6 install
+scripts/installer/e2e-qemu.sh IMG RUN installed inst-stick reinstall ; scripts/installer/e2e-qemu.sh IMG RUN reinstalled check
+scripts/compat/digitalis/stick/bridge-qemu.sh openbook-bridgecheck-<x> <run> pre/IMG
+OPENBOOK_INSTALLER_IMAGE=openbook-installer:anal178 scripts/power/power-check-qemu.sh openbook-powercheck-anal178-c vm|real pre/IMG
+python3 scripts/installer/e2e-qemu.py avc OUT <logcat.gz and sections/avc.txt files>
+```
+- **Costs:** the e2e matrix is about 25 minutes, the live matrix 11, the wizard 10, and the add-on tests 6 each. Pairs of independent runs share the host fine: 32 cores, 8 GiB per VM.
+- `bridge-qemu.sh` needs a short add-on name: QEMU's monitor socket path must stay under 108 bytes.
+
+### 13.10 Next
+- The owner's run of §13.6, then the spare-drive install (§13.7) once a drive is named.
+- When PR #61 is on `main`: the next stick, with Vulkan 1.4 and ANAL-177's second graphics run.
+- Fixes for §13.5 findings 1 and 2. They touch vold (ANAL-176's area) and the engine's OS labels (ANAL-191's).
+- `openbook-bootsync`, the slot B test and boot counting (an OTA switch). Slot B is blank today.
+- A crash-replay test of the engine on the host: log every write and replay every prefix, including writes lost since the last flush, especially for the shared Windows ESP.
+- The release checklist's open items (`docs/INSTALL.md` §9): `WHENCE`, the GPL source bundle, the release key, a signed manifest.

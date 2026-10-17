@@ -1,0 +1,60 @@
+{
+ "schema": "openbook-live-build/1",
+ "label": "openbook-live-20261017-anal192c",
+ "image": "openbook-live-20261017-anal192c.img",
+ "bytes": 2970615808,
+ "sha256": "ab0c5726412004f3b274fb1d21e447d331f8abcb12974207df607368efa9f82c",
+ "xz_bytes": null,
+ "xz_sha256": null,
+ "allocated_bytes": 1407016960,
+ "build_seconds": {
+  "total": 20,
+  "snapshot": 0,
+  "live_init_and_test": 11,
+  "image": 8,
+  "checksums_and_xz": 1
+ },
+ "fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
+ "kernel_release": "6.18.21-android17-5-g44a90255c95f",
+ "loader": "systemd-boot 262-1",
+ "menu_timeout": "10",
+ "epoch": 1792252653,
+ "super": {
+  "original_bytes": 8589934592,
+  "live_bytes": 1411383296,
+  "virtual_ab": true
+ },
+ "firmware": {
+  "files": 139,
+  "licence_files": [
+   "LICENSE.wireless-regdb",
+   "LICENSES/LICENCE.mediatek",
+   "LICENSES/LICENCE.rtlwifi_firmware.txt",
+   "LICENSES/LICENSE.amdgpu",
+   "LICENSES/LICENSE.amdnpu",
+   "LICENSES/LICENSE.cirrus"
+  ],
+  "without_licence": []
+ },
+ "inputs": {
+  "boot.img": "08c62a9b1ffb37bf368bbf1b1a51b49d0792229c8e1e83403b23ddb5c0b9dabc",
+  "init_boot.img": "d42e6b4932084f1eaf0032e65127714202673be128b6ee667ff6aacc9c2211f0",
+  "vendor_boot.img": "1f023b880740cc9a8f0fbaf2d5c37ceeebaa72fb1770142cd503c2dfd4d7bb67",
+  "vbmeta.img": "c01197c0a4cfb76f5da561d1fdad3a5465f08d0f5ef225ddf82755ff66b41c8d",
+  "super.img": "dc0f647b29c116a42daa719957fa4f8fd7904e38ec096f44376c1f9c87f1a670"
+ },
+ "repo": {
+  "commit": "3908b1411f1ffde3577bb277bde92f65fa85cda3",
+  "dirty": false
+ },
+ "tools": [
+  "gcc 16.2.1+r23+gd564253eb6c8-1",
+  "glibc 2.44+r50+g1848099f063e-1",
+  "systemd 262-1",
+  "dosfstools 4.2-5",
+  "mtools 1:4.0.49-1",
+  "gptfdisk 1.0.10-2",
+  "python 3.14.8-1"
+ ],
+ "log": "/home/hive/anybook/logs/installer/live-openbook-live-20261017-anal192c-20261017T162400Z.log"
+}

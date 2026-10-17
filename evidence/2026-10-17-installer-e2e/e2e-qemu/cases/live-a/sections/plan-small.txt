@@ -1,0 +1,3 @@
+{"ok":false,"code":"not_eligible","error":"too_small"}
+16:26:58 plan refused (not_eligible): too_small
+PLAN-RC=1

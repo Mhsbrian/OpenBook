@@ -1,0 +1,32 @@
+10-17 16:28:32.234  2522  2522 D StorageNotification: Notifying about private volume: VolumeInfo{private}:
+10-17 16:28:32.418   357   357 D vold    : fscrypt_prepare_user_storage for volume null, user 0, flags 2
+10-17 16:28:32.472   689  2587 W UserManager: 	at com.android.server.StorageManagerService.onVolumeCreatedLocked(StorageManagerService.java:1688)
+10-17 16:28:32.472   689  2587 W UserManager: 	at com.android.server.StorageManagerService.-$$Nest$monVolumeCreatedLocked(StorageManagerService.java:0)
+10-17 16:28:32.472   689  2587 W UserManager: 	at com.android.server.StorageManagerService$3.onVolumeCreated(StorageManagerService.java:1569)
+10-17 16:28:32.473   689  2587 V StorageManagerService: Found primary storage at VolumeInfo{emulated;0}:
+10-17 16:28:32.473   689  2587 V StorageManagerService:     type=EMULATED diskId=null partGuid= mountFlags=0 mountUserId=0 
+10-17 16:28:32.473   689  2587 V StorageManagerService:     state=UNMOUNTED 
+10-17 16:28:32.473   689  2151 I StorageManagerService: Mounting volume VolumeInfo{emulated;0}:
+10-17 16:28:32.473   689  2151 I StorageManagerService:     type=EMULATED diskId=null partGuid= mountFlags=PRIMARY|VISIBLE_FOR_WRITE 
+10-17 16:28:32.473   689  2151 I StorageManagerService:     mountUserId=0 state=UNMOUNTED 
+10-17 16:28:32.473   357   357 D vold    : /system/bin/sgdisk
+10-17 16:28:32.473   357   357 D vold    :     /dev/block/vold/disk:8,0
+10-17 16:28:32.478   357   357 W vold    : sgdisk failed to scan /dev/block/vold/disk:8,0
+10-17 16:28:32.478   357   401 I vold    : Mounting emulated fuse volume
+10-17 16:28:32.478   357   401 I vold    : Creating mount directory /mnt/user/0
+10-17 16:28:32.479   357   401 I vold    : Bind mounting /data/media to /mnt/pass_through/0/emulated
+10-17 16:28:32.479   689  2151 I StorageSessionController: On volume mount VolumeInfo{emulated;0}:
+10-17 16:28:32.480   689  2151 W UserManager: 	at com.android.server.StorageManagerService$8.onVolumeChecking(StorageManagerService.java:2477)
+10-17 16:28:32.480   689  2151 W UserManager: 	at android.os.IVoldMountCallback$Stub.onTransact(IVoldMountCallback.java:89)
+10-17 16:28:32.480   689  2151 W UserManager: 	at android.os.IVold$Stub$Proxy.mount(IVold.java:1785)
+10-17 16:28:32.480   689  2151 W UserManager: 	at com.android.server.StorageManagerService.mount(StorageManagerService.java:2466)
+10-17 16:28:32.480   689  2151 W UserManager: 	at com.android.server.StorageManagerService.-$$Nest$mmount(StorageManagerService.java:0)
+10-17 16:28:32.683   689  2783 W StorageManagerService: Reporting emulated;0 unmounted due to system locked
+10-17 16:28:32.700   689  2151 I StorageManagerService: Mounted volume VolumeInfo{emulated;0}:
+10-17 16:28:32.700   689  2151 I StorageManagerService:     type=EMULATED diskId=null partGuid= mountFlags=PRIMARY|VISIBLE_FOR_WRITE 
+10-17 16:28:32.700   689  2151 I StorageManagerService:     mountUserId=0 state=CHECKING 
+10-17 16:28:32.711   689  2151 D StorageManagerService: Volume emulated;0 broadcasting mounted to UserHandle{0}
+10-17 16:28:32.713   689  2151 D StorageManagerService: Volume emulated;0 broadcasting mounted to UserHandle{0}
+disk:8,0
+private mounted null
+emulated;0 mounted null

@@ -1,0 +1,33 @@
+added 6 file(s) to ~/anybook/installer/out/openbook-live-20261017-anal192c.img and verified them
+~/anybook/compat/dl/coremark-1f483d5b8316753a742cbf5590caf5bd0a4e4777.tar.gz: OK
+toolchain ready in ~/anybook/compat/sdk
+Note: /r/scripts/compat/probe/java/dev/anybook/probe/MainActivity.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+e5092508941bf1023b5a7f8028ad7da66bcc5fbe95dc5226129660fb73a2d0f2  anybook-probe-arm64.apk
+0af9bf6ccb144f21bd76fa1cdc62e73b2937dbcbd6044f5acf7a2693af33ecf9  anybook-probe-armv7.apk
+32c5fdd452393ed8ff1bf93b2d7c49152b87e126253d4f866f42f00c6083a6b7  anybook-probe-x86_64.apk
+dfca26a917c9005dfbd7dc7c367c8fa37155da1125b70b754f234d9110f9afd2  bench/coremark-arm64
+244aa9882d29b609c0df31e70314a1a7e90d0644a4e28cb87f1589f111a56e7e  bench/coremark-armv7
+fefb564ff24c5845c58b1f30b21017b71eafe761201a8dbab5ed65e36ff022da  bench/coremark-x86_64
+0115ee2a2a662fbbef63f3ce5e64c81641d2ac01f656e3c362da69701c613fc8  bench/coremark-x86_64-static
+{
+ "name": "openbook-bridgecheck-anal192c",
+ "payload": {
+  "bytes": 5039235,
+  "tar_bytes": 5160960,
+  "sha256": "d5c316813877ab140ce1b7e9d8e54e7f15743915385ce68cbcd29f6a6ea01da9",
+  "files": 9
+ },
+ "esp_bytes": 5040361
+}
+add-on: ~/anybook/installer/out/openbook-bridgecheck-anal192c-addon (4.9M); put it on an image with add-to-image.sh
+added 2 file(s) and loader/entries/openbook-bridge.conf to ~/anybook/installer/out/openbook-live-20261017-anal192c.img and verified them
+title OpenBook ARM apps check (about 10 min, then powers off)
+version 17 · live
+sort-key openbook-96
+linux /openbook/a/kernel
+initrd /openbook/a/vendor_ramdisk.img
+initrd /openbook/a/ramdisk.img
+initrd /openbook/a/live.img
+initrd /openbook/a/bootconfig-logs.img
+options firmware_class.path=/vendor/firmware log_buf_len=1M bootconfig rdinit=/openbook-live-init androidboot.openbook.addon=bridge androidboot.openbook.addon_timeout=1800

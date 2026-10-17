@@ -1,0 +1,43 @@
+10-17 16:47:17.263   359   366 I vold    : Found disk at /devices/pci0000:00/0000:00:01.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0/block/sda but delaying scan due to secure keyguard
+10-17 16:47:17.348   359   359 D vold    : fscrypt_mount_metadata_encrypted: /data encrypt: 0 format: 0 with null block device: /dev/block/by-name/userdata with zoned 0 length: 0
+10-17 16:47:17.354   359   359 D vold    : Mounting metadata-encrypted filesystem:/data
+10-17 16:47:17.445   359   359 I vold    : [libfs_mgr] __mount(source=/dev/block/mapper/userdata,target=/data,type=f2fs)=0: Success
+10-17 16:47:17.445   359   359 D vold    : Mounted /data
+10-17 16:47:17.758   359   359 D vold    : fscrypt_prepare_user_storage for volume null, user 0, flags 1
+10-17 16:47:22.745   907   907 D StorageNotification: Notifying about private volume: VolumeInfo{private}:
+10-17 16:47:22.910   359   359 D vold    : fscrypt_prepare_user_storage for volume null, user 0, flags 2
+10-17 16:47:22.959   359   359 D vold    : /system/bin/sgdisk
+10-17 16:47:22.959   359   359 D vold    :     /dev/block/vold/disk:8,0
+10-17 16:47:22.960   667   934 W UserManager: 	at com.android.server.StorageManagerService.onVolumeCreatedLocked(StorageManagerService.java:1688)
+10-17 16:47:22.960   667   934 W UserManager: 	at com.android.server.StorageManagerService.-$$Nest$monVolumeCreatedLocked(StorageManagerService.java:0)
+10-17 16:47:22.960   667   934 W UserManager: 	at com.android.server.StorageManagerService$3.onVolumeCreated(StorageManagerService.java:1569)
+10-17 16:47:22.960   667   934 V StorageManagerService: Found primary storage at VolumeInfo{emulated;0}:
+10-17 16:47:22.960   667   934 V StorageManagerService:     type=EMULATED diskId=null partGuid= mountFlags=0 mountUserId=0 
+10-17 16:47:22.960   667   934 V StorageManagerService:     state=UNMOUNTED 
+10-17 16:47:22.960   667   785 I StorageManagerService: Mounting volume VolumeInfo{emulated;0}:
+10-17 16:47:22.960   667   785 I StorageManagerService:     type=EMULATED diskId=null partGuid= mountFlags=PRIMARY|VISIBLE_FOR_WRITE 
+10-17 16:47:22.960   667   785 I StorageManagerService:     mountUserId=0 state=UNMOUNTED 
+10-17 16:47:22.972   359   359 D vold    : DISK gpt 47E1BAD3-8E59-5AC6-977B-215EDE5D54A9
+10-17 16:47:22.973   359   359 W vold    : disk:8,0 has unknown partition table; trying entire device
+10-17 16:47:22.973   359   359 D vold    :     /dev/block/vold/disk:8,0
+10-17 16:47:22.980   359   359 W vold    : blkid failed to identify /dev/block/vold/disk:8,0
+10-17 16:47:22.980   359   359 W vold    : disk:8,0 failed to identify, giving up
+10-17 16:47:22.980   359   473 I vold    : Mounting emulated fuse volume
+10-17 16:47:22.980   359   473 I vold    : Creating mount directory /mnt/user/0
+10-17 16:47:22.981   359   473 I vold    : Bind mounting /data/media to /mnt/pass_through/0/emulated
+10-17 16:47:22.981   667   785 I StorageSessionController: On volume mount VolumeInfo{emulated;0}:
+10-17 16:47:22.981   667   785 W UserManager: 	at com.android.server.StorageManagerService$8.onVolumeChecking(StorageManagerService.java:2477)
+10-17 16:47:22.981   667   785 W UserManager: 	at android.os.IVoldMountCallback$Stub.onTransact(IVoldMountCallback.java:89)
+10-17 16:47:22.981   667   785 W UserManager: 	at android.os.IVold$Stub$Proxy.mount(IVold.java:1785)
+10-17 16:47:22.981   667   785 W UserManager: 	at com.android.server.StorageManagerService.mount(StorageManagerService.java:2466)
+10-17 16:47:22.981   667   785 W UserManager: 	at com.android.server.StorageManagerService.-$$Nest$mmount(StorageManagerService.java:0)
+10-17 16:47:23.234   667   736 W StorageManagerService: Reporting emulated;0 unmounted due to system locked
+10-17 16:47:23.243   667   785 I StorageManagerService: Mounted volume VolumeInfo{emulated;0}:
+10-17 16:47:23.243   667   785 I StorageManagerService:     type=EMULATED diskId=null partGuid= mountFlags=PRIMARY|VISIBLE_FOR_WRITE 
+10-17 16:47:23.243   667   785 I StorageManagerService:     mountUserId=0 state=MOUNTED 
+10-17 16:47:23.269   667   785 D StorageManagerService: Volume emulated;0 broadcasting mounted to UserHandle{0}
+10-17 16:47:23.269   667   785 D StorageManagerService: Volume emulated;0 broadcasting checking to UserHandle{0}
+10-17 16:47:23.270   667   785 D StorageManagerService: Volume emulated;0 broadcasting mounted to UserHandle{0}
+disk:8,0
+private mounted null
+emulated;0 mounted null

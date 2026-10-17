@@ -1,0 +1,4 @@
+    NotificationRecord(0x0129bf22: pkg=com.android.systemui user=UserHandle{-1} id=1396986699 tag=disk:8,0 importance=2 key=-1|com.android.systemui|1396986699|disk:8,0|10082: Notification(channel=DSK shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=LOCAL_ONLY color=0x00000000 category=err vis=PUBLIC))
+                android.title=String (QEMU USB drive detected)
+                android.text=String (Tap to set up .)
+NOTIF-END

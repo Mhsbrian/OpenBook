@@ -1,0 +1,4 @@
+[2J[001;001H[=3h[2J[001;001H[2J[001;001H[8;042;160t[2J[001;001H[2J[001;001H[8;056;240t[2J[001;001HBdsDxe: failed to load Boot0002 "UEFI QEMU QEMU USB HARDDRIVE 1-0000:00:01.0-1" from PciRoot(0x0)/Pci(0x1,0x0)/USB(0x0,0x0): Not Found
+BdsDxe: loading Boot0003 "UEFI QEMU NVMe Ctrl internal0 1" from PciRoot(0x0)/Pci(0x3,0x0)/NVMe(0x1,00-00-00-00-00-00-00-00)
+BdsDxe: starting Boot0003 "UEFI QEMU NVMe Ctrl internal0 1" from PciRoot(0x0)/Pci(0x3,0x0)/NVMe(0x1,00-00-00-00-00-00-00-00)
+OBTEST-MARK windows-bootmgr \EFI\BOOT\BOOTX64.EFI

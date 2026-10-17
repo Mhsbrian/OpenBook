@@ -218,6 +218,16 @@ scripts/installer/wizard-qemu.sh ~/anybook/installer/out/<label>.img <run>    # 
 - `wizard-qemu.sh` drives the app with `uiautomator` and `input` over the serial console. It saves Android's screenshots to the stick's ESP (`openbook/shots/`), installs to a blank 64 GiB virtual NVMe disk, and boots that disk alone.
 - Results go to `~/anybook/logs/installer/<run>/` (`results.json`, `SUMMARY.md`). Details: `docs/installer.md` §12.
 
+## M8: installer end to end and the integrated owner stick (ANAL-192)
+
+```bash
+scripts/installer/e2e-qemu.sh ~/anybook/installer/out/<label>.img <run> all     # or the cases in groups, each call under 10 min
+python3 scripts/installer/e2e-qemu.py avc OUT <logcat.gz and sections/avc.txt files>   # SELinux denials, grouped
+```
+- `e2e-qemu.sh` covers alongside a Windows-like disk, a small disk, power cuts at every install step with restarts, the installed disk with and without the stick, and a reinstall. It builds its own test EFI apps (`scripts/installer/e2e/obtest-efi.c`) with the container's gcc and PE linker. Image files only, about 25 minutes.
+- The integrated stick (installer plus the check add-ons, built from a clean `main` checkout) and its full test set are in `docs/installer.md` §13.9. Keep a reflink copy of the image before the add-ons go on: the add-on QEMU tests apply their add-on to it.
+- The user guide and the release checklist draft: `docs/INSTALL.md`.
+
 ## M8: installer boot-chain prototype (ANAL-189)
 
 ```bash
