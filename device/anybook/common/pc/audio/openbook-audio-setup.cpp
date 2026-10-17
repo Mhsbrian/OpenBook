@@ -6,9 +6,9 @@
 //   boot   (init, before the audio HAL starts) Find the built-in codec's PCM (alsa_cards.h: "<codec> Analog" on
 //          HDA) and publish it as vendor.audio.primary.card/.device for the HAL's primary module
 //          (aosp/patches/hardware/interfaces; card -1 when there is none). Then give the codec's mixer a working
-//          state: the outputs' and capture switches on, their volumes at 0 dB. Android
-//          has no alsactl or UCM; this is the part of what desktop Linux's PipeWire profile does that a single
-//          analog PCM needs. Volume control stays in AudioFlinger (software volume).
+//          state: the outputs' and capture switches on, their volumes at 0 dB. Android has no alsactl or UCM;
+//          this is the part of what desktop Linux's PipeWire profile does that a single analog PCM needs. Volume
+//          control stays in AudioFlinger (software volume).
 //   list   Cards, PCMs and every mixer control with its values (for logs).
 //   test   Direct ALSA loopback, bypassing Android: record the built-in mic while the speakers play a tone,
 //          then measure it (alsa_cards.h). Prints one JSON object. [--seconds S] [--freq HZ] [--card N
