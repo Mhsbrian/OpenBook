@@ -137,8 +137,10 @@ audio() {
   # The ports the loopback asks for, so a connected Bluetooth headset does not take the tone (G14 anal176s).
   spk=$(echo "$pol" | sed -n 's/.*Port ID: \([0-9]*\); "Speaker".*/\1/p' | head -n 1)
   mic=$(echo "$pol" | sed -n 's/.*Port ID: \([0-9]*\); "Built-In Mic".*/\1/p' | head -n 1)
-  wired=false; echo "$pol" | grep -qE 'AUDIO_DEVICE_OUT_WIRED_(HEADPHONE|HEADSET)' && wired=true
-  a2dp=false; echo "$pol" | grep -q 'AUDIO_DEVICE_OUT_BLUETOOTH_A2DP' && a2dp=true
+  # Connected now: the available outputs only (the module's declared devices name every type).
+  avail=$(echo "$pol" | awk '/Available output devices/ { f = 1 } /Available input devices/ { f = 0 } f' | grep 'Port ID:')
+  wired=false; echo "$avail" | grep -qE 'AUDIO_DEVICE_OUT_WIRED_(HEADPHONE|HEADSET)' && wired=true
+  a2dp=false; echo "$avail" | grep -q 'AUDIO_DEVICE_OUT_BLUETOOTH_A2DP' && a2dp=true
   hpjack=$(grep -c 'N: Name=".*Headphone"' /proc/bus/input/devices)
   micjack=$(grep -c 'N: Name=".*Mic"' /proc/bus/input/devices)
   j "\"test\": \"audio-routes\", \"ok\": $([ -n "$spk" ] && [ -n "$mic" ] && echo true || echo false), \"speaker_port\": $(num "$spk"), \"mic_port\": $(num "$mic"), \"headphone_jacks\": $hpjack, \"mic_jacks\": $micjack, \"wired_connected\": $wired, \"a2dp_connected\": $a2dp, \"pacing\": $(q "$(getprop vendor.audio.primary.pacing)")"

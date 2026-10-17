@@ -39,10 +39,11 @@ echo "===WIFI-END==="
 echo "===PNO-BEGIN==="
 # Screen off and disconnected, the framework scans only through PNO, i.e. the driver's scheduled scan
 # (config_wifi_background_scan_support). hwsim has none, so here the attempt fails; without the setting it is never
-# made ("PNO is not available").
+# made ("PNO is not available"). The access point goes away, so the saved network stays eligible for PNO (turning
+# Wi-Fi off and on leaves none: "No saved network for starting disconnected PNO").
 t0=$(date +'%m-%d %H:%M:%S.000')
 input keyevent SLEEP; sleep 2
-cmd wifi set-wifi-enabled disabled; sleep 3; cmd wifi set-wifi-enabled enabled; sleep 20
+kill "$(cat "$D/hostapd.pid")"; sleep 25
 logcat -d -b main -T "$t0" | grep -E 'PNO|Pno|pno|SchedScan|sched scan' | tail -n 30
 input keyevent WAKEUP
 echo "===PNO-END==="
