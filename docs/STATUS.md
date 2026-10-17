@@ -24,7 +24,7 @@
 
 ### Running now
 
-- **ANAL-191 delivered** (installer wizard, `openbook-install` engine, OpenBook setup; QEMU only). The AOSP lane is free.
+- **ANAL-191 delivered** in PR #53 (installer wizard, `openbook-install` engine, OpenBook setup; QEMU only). The AOSP lane is free.
 - **The installer stick, for after the `anal178c` run:** `openbook-live-20261017-anal191e`. It has the same Android system as `anal178c` (`main` has had no device changes since) plus the installer, without the power and graphics checks. In QEMU: wizard 25/25, engine 53/53, live checks 39/39 (`evidence/2026-10-17-installer-wizard/`, sha256 there). On the G14 it is a dry run only (`docs/installer.md` §12.8).
 - **The latest stick is ready:** `openbook-live-20261017-anal178c`, built from `main` (PR #50, `evidence/2026-10-17-power-input/anal178c/`). It covers ANAL-176, ANAL-177, ANAL-178, ANAL-179 and ANAL-200, with the power check and the graphics check already on it. In QEMU: live checks 39/39, power check 10/10, graphics check 6/6. It supersedes `combined` and every older stick.
 
@@ -76,7 +76,7 @@
 
 ## History
 
-### 2026-10-17: the installer wizard, the install engine and first-boot setup (ANAL-191)
+### 2026-10-17: the installer wizard, the install engine and first-boot setup (ANAL-191, PR #53)
 - **Done** (`docs/installer.md` §12):
   - `openbook-install`: the engine and its daemon. It does the disk inventory, the hardware check, the read-only plan and the install, with S1–S13 in the engine. It writes GPT and FAT itself, with no mounts.
   - `OpenBookInstaller`: the seven Compose screens after the hi-fi design. It opens by itself on live boots.
