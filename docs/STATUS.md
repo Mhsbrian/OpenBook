@@ -51,6 +51,19 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 
 ## History
 
+### 2026-10-17: G14 boots of desktop2: why only "save logs" worked (ANAL-176)
+
+- **Done:**
+  - **Every enforcing boot was black because amdgpu could not load its firmware** (`firmware_load` denied on `/vendor/firmware`); this is now fixed in policy.
+  - Also fixed:
+    - a race that could start SurfaceFlinger before the GPU HALs were chosen;
+    - the 1-minute screen-off;
+    - shared-tree builds keeping stale outputs.
+  - Every boot now keeps its logs, so a later "save logs" boot brings them back.
+- **Evidence:** the owner's runs and the device's own screenshot of the desktop are in `evidence/2026-10-17-g14-desktop/g14-desktop2/`. The image `openbook-live-20261017-desktop3` passes 37/39 in QEMU.
+- **Handed on:** the Bluetooth crash loop (ANAL-179), the missing `system` DMA-BUF heap (kernel lane), and touchpad clock warnings (ANAL-178).
+- **Next:** the owner boots `desktop3`'s default entry.
+
 ### 2026-10-17: G14 desktop from USB, RADV swapchain fix and SELinux (ANAL-176)
 
 **Done**

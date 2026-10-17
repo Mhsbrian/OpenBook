@@ -94,6 +94,12 @@ Denials on the VM path (`avc-summary.py` on the save-logs case): 41 Android line
 ## 6. On the G14: owner checklist (`desktop3`)
 
 `openbook-live-20261017-desktop3` carries the fixes from §9: the kernel may load firmware under enforcing (the black default entry), the GPU HALs are chosen before SurfaceFlinger starts, the screen stays on for 10 minutes, and every boot keeps its logcat on the stick for a later "save logs" boot.
+- Checked off the laptop (`evidence/2026-10-17-g14-desktop/desktop3/`):
+  - the compiled policy allows the firmware load;
+  - QEMU/OVMF passes 37 of 39 with `boot_completed` at 20.3 s;
+  - the HAL event runs at 3.74 s, 8.6 s before SurfaceFlinger;
+  - `logcatd` runs, and the save-logs helper archives the earlier boots.
+- Not checked: the 10-minute timeout at runtime (the overlay is installed), and everything that needs the G14.
 
 1. **Write the image** (erases the stick; the reports on it are copied to the PC first):
    ```bash
