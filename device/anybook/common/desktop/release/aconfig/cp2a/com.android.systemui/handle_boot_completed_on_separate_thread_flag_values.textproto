@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 5: SystemUI handles LOCKED_BOOT_COMPLETED off the main thread
+flag_value {
+  package: "com.android.systemui"
+  name: "handle_boot_completed_on_separate_thread"
+  state: ENABLED
+  permission: READ_ONLY
+}
