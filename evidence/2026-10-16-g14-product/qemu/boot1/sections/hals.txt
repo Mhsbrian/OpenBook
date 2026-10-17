@@ -25,7 +25,7 @@ Current cooling devices from HAL:
 Temperature static thresholds from HAL:
 Temperature headroom thresholds:
 [NaN, NaN, NaN, NaN, NaN, NaN, NaN]
-android.hardware.light.ILights$Stub$Proxy@5f9f909
+android.hardware.light.ILights$Stub$Proxy@6a4267d
 Lights:
 Session clients:
 Current Battery Service state:
@@ -34,7 +34,7 @@ Current Battery Service state:
   Wireless powered: false
   Dock powered: false
   Max charging current: 0
- Time when the latest updated value of the Max charging current was sent via battery changed broadcast: +22s940ms
+ Time when the latest updated value of the Max charging current was sent via battery changed broadcast: +22s420ms
   Max charging voltage: 0
   Charge counter: 0
   status: 1

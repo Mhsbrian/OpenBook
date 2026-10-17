@@ -1,4 +1,4 @@
-snapshot: 2026-10-16T23:34:34Z
+snapshot: 2026-10-17T00:00:01Z
 product_out: /home/hive/anybook/aosp/src/out/target/product/anybook_g14
 vendor fingerprint: OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys
 kernel: staged: 2026-10-16T19:35:34Z by scripts/g14-stage-kernel.sh
@@ -11,7 +11,7 @@ kernel: f6f57b04090361c8b21b610770941e182a5672f951c7c7e197a6c6d0bcdd39f4  vendor
 kernel: 01b64d4491ded8c6896b63065609d3c475390f9b611f014657407bc443b5e61b  system_dlkm.img
 kernel: 3c80536cc34c000f3bce81e2b9fdc94d16804548b6aee16b5a5bf5759a9bf4d6  vendor_boot-ramdisk.lz4
 08c62a9b1ffb37bf368bbf1b1a51b49d0792229c8e1e83403b23ddb5c0b9dabc  boot.img
-11e86b8b2fca1aff76cd706dd6ef368103351af41fea1cec0c552f71195dadd3  init_boot.img
+acafdd04b7ec0cb9fd97d1a63d45a80fd94a112a4a23100c33f718afb67b8368  init_boot.img
 78bfb6c0f5e4ec3b9d9d5e2ff0a2aaf305ee0203b82fff2c3455438a82368e5f  vendor_boot.img
-f407902c61522103193baf7078c5f2c7badc28a727c08fead790b0a3b38b255e  vbmeta.img
-95cf1159a19d53db2ebf1fa526876f5aae5251ca2ea61ae453dcdc0d1f38e52d  super.img
+a7dbe95326fdbb98e7feb3e98476464dfbeda73992ec33fa017a5ee2eebdf9ba  vbmeta.img
+abd09199febf3364acda4869d48efd473b2e1bae80892f3d22a91daf3f78fd13  super.img

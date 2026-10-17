@@ -1,6 +1,6 @@
 {
  "reason": "all steps done",
- "seconds": 113.5,
+ "seconds": 113.9,
  "steps_done": 26,
  "steps": 26,
  "hits": [
@@ -32,50 +32,50 @@
   {
    "step": 8,
    "wait": "BOOTDONE=\\S* uptime=[0-9.]+",
-   "t": 14.5
+   "t": 14.4
   },
   {
    "step": 9,
    "wait": "console:/ \\$ ",
-   "t": 14.5
+   "t": 14.4
   },
   {
    "step": 11,
    "wait": "console:/ \\$ ",
-   "t": 38.7
+   "t": 39.4
   },
   {
    "step": 14,
    "wait": "console:/ \\$ ",
-   "t": 40.8
+   "t": 41.4
   },
   {
    "step": 16,
    "wait": "console:/ \\$ ",
-   "t": 41.8
+   "t": 42.4
   },
   {
    "step": 18,
    "wait": "console:/ \\$ ",
-   "t": 44.3
+   "t": 45.0
   },
   {
    "step": 20,
    "wait": "console:/ \\$ ",
-   "t": 46.1
+   "t": 46.8
   },
   {
    "step": 22,
    "wait": "console:/ \\$ ",
-   "t": 47.5
+   "t": 48.2
   },
   {
    "step": 24,
    "wait": "console:/ \\$ ",
-   "t": 52.9
+   "t": 53.4
   }
  ],
  "qemu_rc": 0,
- "usb": "/home/hive/anybook/installer/qemu/g14-release/disk.img",
+ "usb": "/home/hive/anybook/installer/qemu/g14-r2/disk.img",
  "nvme": null
 }
