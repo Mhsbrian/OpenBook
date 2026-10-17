@@ -18,10 +18,11 @@ Disk (PARTUUIDs derived from --label):
 ESP (FAT32 "OPENBOOK", systemd-boot at the removable-media path, Boot Loader Spec type #1 entries):
   openbook/a/{kernel, vendor_ramdisk.img, ramdisk.img, live.img, bootconfig*.img}
       live.img is a cpio with /openbook-live-init (scripts/installer/live-init.c), started as rdinit=.
-  Entries: "OpenBook" (default), "OpenBook - save logs to this USB stick", "OpenBook - start fresh",
-      "OpenBook - serial console (virtual machines)". Bootconfig per entry = vendor_boot's static values + the
-      loader's runtime values (slot _a, orange AVB state, vbmeta digest/size, boot_part_uuid = this disk's ESP,
-      serialno) + androidboot.openbook.live=1 (+ live_reset=1, or logs=1 and selinux=permissive).
+  Entries: "OpenBook" (default), "OpenBook - save logs to this USB stick", "OpenBook - safe graphics" and
+      "OpenBook - safe graphics, save logs", "OpenBook - start fresh", "OpenBook - serial console (virtual
+      machines)". Bootconfig per entry = vendor_boot's static values + the loader's runtime values (slot _a, orange
+      AVB state, vbmeta digest/size, boot_part_uuid = this disk's ESP, serialno) + androidboot.openbook.live=1
+      (+ live_reset=1, or logs=1 and selinux=permissive, or hardware.egl=mesa).
   LICENSES/: the firmware licence files taken from the vendor image itself, systemd-boot's and the kernel's licence
       texts and a README naming each component, its licence and where its source is.
   openbook/README.txt, openbook/MANIFEST.json (image identity and partition hashes), openbook/logs/.
@@ -321,15 +322,21 @@ def main():
     })
     logs = {"androidboot.openbook.logs": "1", "androidboot.selinux": "permissive"}
     reset = {"androidboot.openbook.live_reset": "1"}
+    # GLES straight on Mesa radeonsi instead of ANGLE on RADV; Vulkan stays RADV. The GPU HAL selection lets a
+    # bootloader-set androidboot.hardware.* win (init.anybook.graphics-amd.rc).
+    safe = {"androidboot.hardware.egl": "mesa"}
     vm = {"androidboot.lcd_density": str(a.vm_density)}
     variants = {  # file stem: (bootconfig, extra kernel options, title, sort key, in the image?)
         "live": (base, "", "OpenBook", "openbook-1", True),
         "logs": ({**base, **logs}, "", "OpenBook - save logs to this USB stick", "openbook-2", True),
-        "reset": ({**base, **reset}, "", "OpenBook - start fresh (erase this stick's saved data)", "openbook-3", True),
-        "vm": ({**base, **vm}, VM_OPTIONS, "OpenBook - serial console (virtual machines)", "openbook-4", True),
-        "vm-reset": ({**base, **vm, **reset}, VM_OPTIONS, "OpenBook - VM test: start fresh", "openbook-5", False),
+        "safe": ({**base, **safe}, "", "OpenBook - safe graphics (Mesa GL, no ANGLE)", "openbook-3", True),
+        "safe-logs": ({**base, **safe, **logs}, "", "OpenBook - safe graphics, save logs to this USB stick",
+                      "openbook-4", True),
+        "reset": ({**base, **reset}, "", "OpenBook - start fresh (erase this stick's saved data)", "openbook-5", True),
+        "vm": ({**base, **vm}, VM_OPTIONS, "OpenBook - serial console (virtual machines)", "openbook-6", True),
+        "vm-reset": ({**base, **vm, **reset}, VM_OPTIONS, "OpenBook - VM test: start fresh", "openbook-7", False),
         "vm-logs": ({**base, **vm, **logs, "androidboot.openbook.logs_timeout": "300"}, VM_OPTIONS,
-                    "OpenBook - VM test: save logs", "openbook-6", False),
+                    "OpenBook - VM test: save logs", "openbook-8", False),
     }
 
     # ---- ESP
@@ -408,6 +415,8 @@ Start a computer from this stick (UEFI, Secure Boot off). Hold a key while it st
   OpenBook - save logs to this USB stick    the same, and it saves the kernel log, logcat, system facts and a
                                             screenshot to openbook/logs/live-NNN/ on this stick, then shuts down
                                             (within about 10 minutes). For bug reports.
+  OpenBook - safe graphics                  draws with Mesa's OpenGL ES driver directly instead of ANGLE. Try it
+                                            if the screen stays black; "safe graphics, save logs" saves logs too.
   OpenBook - start fresh                    erases what the live system saved on this stick, then starts it.
   OpenBook - serial console                 for virtual machines (the console is on the first serial port).
 Nothing on the computer's own disks is changed by this stick.

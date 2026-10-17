@@ -6,4 +6,11 @@ allow hal_graphics_composer_default kmsg_device:chr_file w_file_perms;
 allow hal_graphics_composer_default hal_graphics_mapper_service:service_manager find;
 allow hal_graphics_composer_server hal_graphics_allocator_default_tmpfs:file read;
 # drm_hwcomposer probes optional vendor.hwc.* properties that AnyBook does not set.
-dontaudit hal_graphics_composer_default default_prop:file read;
+dontaudit hal_graphics_composer_default default_prop:file { getattr open read map };
+# drm_hwcomposer drives the panel backlight it finds under /sys/class/backlight (SysfsBacklightController:
+# brightness, bl_power, max_brightness), which device/anybook/common/pc labels sysfs_leds. With it, Android sets
+# the brightness through the composer (getDisplayBrightnessSupport) rather than the lights HAL.
+allow hal_graphics_composer_default sysfs:dir r_dir_perms;
+allow hal_graphics_composer_default sysfs:lnk_file read;
+allow hal_graphics_composer_default sysfs_leds:dir r_dir_perms;
+allow hal_graphics_composer_default sysfs_leds:file rw_file_perms;

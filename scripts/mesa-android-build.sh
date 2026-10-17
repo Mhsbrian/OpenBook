@@ -94,8 +94,20 @@ fetch(){ local t=$1 d=$M/src/$1
     run "$t-fetch" git -C "$d" fetch --filter=blob:none origin "${REF[$t]}" ||
     run "$t-fetch" git -C "$d" fetch --filter=blob:none origin "${SHA[$t]}"
   fi
-  [[ $(git -C "$d" rev-parse HEAD 2>/dev/null) == "${SHA[$t]}" ]] || git -C "$d" checkout -q --detach "${SHA[$t]}"
-  log "fetch: $t at $(git -C "$d" rev-parse HEAD) ($(cat "$d/VERSION"))"
+  # OpenBook's patches (mesa/patches/<tree>/*.patch) on top of the pin, applied with git am, a fixed
+  # committer and date, so the patched HEAD is reproducible. Skipped when HEAD already carries them.
+  local p=/repo/mesa/patches/$t want have
+  want=$(cat "$p"/*.patch 2>/dev/null | git patch-id --stable | cut -d' ' -f1)
+  have=$(git -C "$d" log --reverse -p --format='commit %H' "${SHA[$t]}..HEAD" 2>/dev/null | git patch-id --stable | cut -d' ' -f1)
+  if [[ $want != "$have" ]] || ! git -C "$d" diff --quiet HEAD; then
+    git -C "$d" checkout -q -f --detach "${SHA[$t]}"
+    for f in "$p"/*.patch; do
+      [[ -e $f ]] || continue
+      GIT_COMMITTER_NAME="OpenBook mesa-android-build.sh" GIT_COMMITTER_EMAIL=noreply@openbook.invalid \
+        GIT_COMMITTER_DATE=2026-10-17T00:00:00+00:00 git -C "$d" am -q "$f"
+    done
+  fi
+  log "fetch: $t at $(git -C "$d" rev-parse HEAD) ($(cat "$d/VERSION")), ${SHA[$t]:0:12} + $(git -C "$d" rev-list --count "${SHA[$t]}..HEAD") patches"
   if [[ $t == ag ]]; then   # record what AG carries on top of upstream
     git -C "$d" cat-file -e "$AG_BASE^{commit}" 2>/dev/null ||
       run ag-fetch git -C "$d" fetch --filter=blob:none "${URL[upstream]}" tag "$AG_BASE"
@@ -246,6 +258,8 @@ verify(){ local t=$1 b=$M/build/$1 o=$M/out/$1 e=$M/evidence/$1
     done
   } > "$e/isa-wide-vector-functions.txt"
   { echo "tree: $t ${REF[$t]} ${SHA[$t]} ($(cat "$M/src/$t/VERSION"))"
+    echo "patches: $(git -C "$M/src/$t" rev-list --count "${SHA[$t]}..HEAD") (mesa/patches/$t), HEAD $(git -C "$M/src/$t" rev-parse HEAD)"
+    git -C "$M/src/$t" log --reverse --format='  %h %s' "${SHA[$t]}..HEAD"
     echo "ndk: $(grep Pkg.Revision "$NDK/source.properties" | cut -d' ' -f3) ($NDK_VERSION), api $API"
     echo "clang: $("$TC/bin/clang" --version | head -1)"
     echo "meson: $(meson --version)  ninja: $(ninja --version)  glslang: $(glslangValidator --version | head -1)"

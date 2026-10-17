@@ -1,6 +1,6 @@
 stopped
 
-  ResumedActivity: ActivityRecord{143697518 u0 com.android.settings/.FallbackHome t2}
-  mFocusedApp=ActivityRecord{143697518 u0 com.android.settings/.FallbackHome t2}
-  mCurrentFocus=Window{16efabb u0 NotificationShade}
-  mFocusedApp=ActivityRecord{143697518 u0 com.android.settings/.FallbackHome t2}
+  ResumedActivity: ActivityRecord{167919301 u0 com.android.settings/.FallbackHome t2}
+  mFocusedApp=ActivityRecord{167919301 u0 com.android.settings/.FallbackHome t2}
+  mCurrentFocus=Window{2f95978 u0 NotificationShade}
+  mFocusedApp=ActivityRecord{167919301 u0 com.android.settings/.FallbackHome t2}

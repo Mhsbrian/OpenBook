@@ -1,0 +1,25 @@
+ok   sysfs_gpu                        /sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/uevent
+ok   sysfs_gpu                        /sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/vendor
+ok   sysfs_gpu                        /sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/device
+ok   sysfs_gpu                        /sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/subsystem_vendor
+ok   sysfs_gpu                        /sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/subsystem_device
+ok   sysfs_gpu                        /sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/revision
+ok   sysfs_gpu                        /sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/drm
+ok   (genfs_contexts)                 /sys/devices/pci0000:00/0000:00:08.1/0000:65:00.1/uevent
+ok   (genfs_contexts)                 /sys/devices/pci0000:00/0000:00:08.2/0000:66:00.1/uevent
+ok   sysfs_leds                       /sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/drm/card0/card0-eDP-1/amdgpu_bl0/max_brightness
+ok   sysfs_leds                       /sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/drm/card0/card0-eDP-1/amdgpu_bl0/brightness
+ok   sysfs_leds                       /sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/drm/card0/card0-eDP-1/amdgpu_bl0/bl_power
+ok   sysfs_keyboard_backlight         /sys/devices/pci0000:00/0000:00:08.3/0000:67:00.0/usb3/3-4/3-4:1.0/0003:0B05:19B6.0001/leds/asus::kbd_backlight/brightness
+ok   sysfs_keyboard_backlight         /sys/devices/pci0000:00/0000:00:08.3/0000:67:00.0/usb3/3-4/3-4:1.0/0003:0B05:19B6.0001/leds/asus::kbd_backlight/max_brightness
+ok   sysfs_openbook_hid               /sys/devices/pci0000:00/0000:00:08.3/0000:67:00.0/usb3/3-4/3-4:1.0/0003:0B05:19B6.0001/country
+ok   sysfs_openbook_hwmon             /sys/devices/pci0000:00/0000:00:02.3/0000:63:00.0/ieee80211/phy0/hwmon5/name
+ok   sysfs_openbook_hwmon             /sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/hwmon/hwmon6/temp1_input
+ok   sysfs_openbook_hwmon             /sys/devices/pci0000:00/0000:00:02.1/0000:61:00.0/nvme/nvme0/hwmon2/temp1_input
+ok   sysfs_openbook_block_queue       /sys/devices/pci0000:00/0000:00:08.3/0000:67:00.0/usb4/4-1/4-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/queue/discard_max_bytes
+ok   sysfs_openbook_block_queue       /sys/devices/pci0000:00/0000:00:02.1/0000:61:00.0/nvme/nvme0/nvme0n1/queue/discard_max_bytes
+ok   sysfs_openbook_block_queue       /sys/devices/virtual/nvme-subsystem/nvme-subsys0/nvme0n1/queue/discard_max_bytes
+ok   (genfs_contexts)                 /sys/devices/pci0000:00/0000:00:08.3/0000:67:00.0/usb4/4-1/4-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda1/size
+ok   sysfs_batteryinfo                /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C0A:00/power_supply/BAT1/capacity
+ok   sysfs_typec                      /sys/devices/platform/USBC000:00/typec/port0/data_role
+24 of 24 paths labelled as expected (1013 file_contexts entries)

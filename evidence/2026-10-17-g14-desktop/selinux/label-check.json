@@ -1,0 +1,199 @@
+{
+ "schema": "openbook-label-check/1",
+ "product_out": "/home/hive/anybook/aosp/src/out/target/product/anybook_g14",
+ "results": [
+  {
+   "path": "/sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/uevent",
+   "want": "sysfs_gpu",
+   "got": "sysfs_gpu",
+   "ok": true,
+   "rule": "/sys/devices/pci0000:00/0000:00:08\\.1/0000:[0-9a-f]{2}:00\\.0/(vendor|device|subsystem_vendor|subsystem_device|revision|class|uevent|config|irq|resource)",
+   "from": "vendor/etc/selinux/vendor_file_contexts:219"
+  },
+  {
+   "path": "/sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/vendor",
+   "want": "sysfs_gpu",
+   "got": "sysfs_gpu",
+   "ok": true,
+   "rule": "/sys/devices/pci0000:00/0000:00:08\\.1/0000:[0-9a-f]{2}:00\\.0/(vendor|device|subsystem_vendor|subsystem_device|revision|class|uevent|config|irq|resource)",
+   "from": "vendor/etc/selinux/vendor_file_contexts:219"
+  },
+  {
+   "path": "/sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/device",
+   "want": "sysfs_gpu",
+   "got": "sysfs_gpu",
+   "ok": true,
+   "rule": "/sys/devices/pci0000:00/0000:00:08\\.1/0000:[0-9a-f]{2}:00\\.0/(vendor|device|subsystem_vendor|subsystem_device|revision|class|uevent|config|irq|resource)",
+   "from": "vendor/etc/selinux/vendor_file_contexts:219"
+  },
+  {
+   "path": "/sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/subsystem_vendor",
+   "want": "sysfs_gpu",
+   "got": "sysfs_gpu",
+   "ok": true,
+   "rule": "/sys/devices/pci0000:00/0000:00:08\\.1/0000:[0-9a-f]{2}:00\\.0/(vendor|device|subsystem_vendor|subsystem_device|revision|class|uevent|config|irq|resource)",
+   "from": "vendor/etc/selinux/vendor_file_contexts:219"
+  },
+  {
+   "path": "/sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/subsystem_device",
+   "want": "sysfs_gpu",
+   "got": "sysfs_gpu",
+   "ok": true,
+   "rule": "/sys/devices/pci0000:00/0000:00:08\\.1/0000:[0-9a-f]{2}:00\\.0/(vendor|device|subsystem_vendor|subsystem_device|revision|class|uevent|config|irq|resource)",
+   "from": "vendor/etc/selinux/vendor_file_contexts:219"
+  },
+  {
+   "path": "/sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/revision",
+   "want": "sysfs_gpu",
+   "got": "sysfs_gpu",
+   "ok": true,
+   "rule": "/sys/devices/pci0000:00/0000:00:08\\.1/0000:[0-9a-f]{2}:00\\.0/(vendor|device|subsystem_vendor|subsystem_device|revision|class|uevent|config|irq|resource)",
+   "from": "vendor/etc/selinux/vendor_file_contexts:219"
+  },
+  {
+   "path": "/sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/drm",
+   "want": "sysfs_gpu",
+   "got": "sysfs_gpu",
+   "ok": true,
+   "rule": "/sys/devices/pci0000:00/0000:00:08\\.1/0000:[0-9a-f]{2}:00\\.0/drm",
+   "from": "vendor/etc/selinux/vendor_file_contexts:218"
+  },
+  {
+   "path": "/sys/devices/pci0000:00/0000:00:08.1/0000:65:00.1/uevent",
+   "want": "(genfs_contexts)",
+   "got": "(genfs_contexts)",
+   "ok": true,
+   "rule": null,
+   "from": null
+  },
+  {
+   "path": "/sys/devices/pci0000:00/0000:00:08.2/0000:66:00.1/uevent",
+   "want": "(genfs_contexts)",
+   "got": "(genfs_contexts)",
+   "ok": true,
+   "rule": null,
+   "from": null
+  },
+  {
+   "path": "/sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/drm/card0/card0-eDP-1/amdgpu_bl0/max_brightness",
+   "want": "sysfs_leds",
+   "got": "sysfs_leds",
+   "ok": true,
+   "rule": "/sys/devices/.*/(backlight/[^/]+|amdgpu_bl[0-9]+|acpi_video[0-9]+|nvidia_wmi_ec_backlight|intel_backlight)(/.*)?",
+   "from": "vendor/etc/selinux/vendor_file_contexts:208"
+  },
+  {
+   "path": "/sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/drm/card0/card0-eDP-1/amdgpu_bl0/brightness",
+   "want": "sysfs_leds",
+   "got": "sysfs_leds",
+   "ok": true,
+   "rule": "/sys/devices/.*/(backlight/[^/]+|amdgpu_bl[0-9]+|acpi_video[0-9]+|nvidia_wmi_ec_backlight|intel_backlight)(/.*)?",
+   "from": "vendor/etc/selinux/vendor_file_contexts:208"
+  },
+  {
+   "path": "/sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/drm/card0/card0-eDP-1/amdgpu_bl0/bl_power",
+   "want": "sysfs_leds",
+   "got": "sysfs_leds",
+   "ok": true,
+   "rule": "/sys/devices/.*/(backlight/[^/]+|amdgpu_bl[0-9]+|acpi_video[0-9]+|nvidia_wmi_ec_backlight|intel_backlight)(/.*)?",
+   "from": "vendor/etc/selinux/vendor_file_contexts:208"
+  },
+  {
+   "path": "/sys/devices/pci0000:00/0000:00:08.3/0000:67:00.0/usb3/3-4/3-4:1.0/0003:0B05:19B6.0001/leds/asus::kbd_backlight/brightness",
+   "want": "sysfs_keyboard_backlight",
+   "got": "sysfs_keyboard_backlight",
+   "ok": true,
+   "rule": "/sys/devices/.*/leds/[^/]*kbd_backlight(/.*)?",
+   "from": "vendor/etc/selinux/vendor_file_contexts:204"
+  },
+  {
+   "path": "/sys/devices/pci0000:00/0000:00:08.3/0000:67:00.0/usb3/3-4/3-4:1.0/0003:0B05:19B6.0001/leds/asus::kbd_backlight/max_brightness",
+   "want": "sysfs_keyboard_backlight",
+   "got": "sysfs_keyboard_backlight",
+   "ok": true,
+   "rule": "/sys/devices/.*/leds/[^/]*kbd_backlight(/.*)?",
+   "from": "vendor/etc/selinux/vendor_file_contexts:204"
+  },
+  {
+   "path": "/sys/devices/pci0000:00/0000:00:08.3/0000:67:00.0/usb3/3-4/3-4:1.0/0003:0B05:19B6.0001/country",
+   "want": "sysfs_openbook_hid",
+   "got": "sysfs_openbook_hid",
+   "ok": true,
+   "rule": "/sys/devices/.*/[0-9A-F]{4}:[0-9A-F]{4}:[0-9A-F]{4}\\.[0-9A-F]{4}/country",
+   "from": "vendor/etc/selinux/vendor_file_contexts:206"
+  },
+  {
+   "path": "/sys/devices/pci0000:00/0000:00:02.3/0000:63:00.0/ieee80211/phy0/hwmon5/name",
+   "want": "sysfs_openbook_hwmon",
+   "got": "sysfs_openbook_hwmon",
+   "ok": true,
+   "rule": "/sys/devices/.*/hwmon[0-9]+(/.*)?",
+   "from": "vendor/etc/selinux/vendor_file_contexts:200"
+  },
+  {
+   "path": "/sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/hwmon/hwmon6/temp1_input",
+   "want": "sysfs_openbook_hwmon",
+   "got": "sysfs_openbook_hwmon",
+   "ok": true,
+   "rule": "/sys/devices/.*/hwmon[0-9]+(/.*)?",
+   "from": "vendor/etc/selinux/vendor_file_contexts:200"
+  },
+  {
+   "path": "/sys/devices/pci0000:00/0000:00:02.1/0000:61:00.0/nvme/nvme0/hwmon2/temp1_input",
+   "want": "sysfs_openbook_hwmon",
+   "got": "sysfs_openbook_hwmon",
+   "ok": true,
+   "rule": "/sys/devices/.*/hwmon[0-9]+(/.*)?",
+   "from": "vendor/etc/selinux/vendor_file_contexts:200"
+  },
+  {
+   "path": "/sys/devices/pci0000:00/0000:00:08.3/0000:67:00.0/usb4/4-1/4-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/queue/discard_max_bytes",
+   "want": "sysfs_openbook_block_queue",
+   "got": "sysfs_openbook_block_queue",
+   "ok": true,
+   "rule": "/sys/devices/.*/(block/sd[a-z]+|block/mmcblk[0-9]+|nvme[0-9]+n[0-9]+)/queue(/.*)?",
+   "from": "vendor/etc/selinux/vendor_file_contexts:207"
+  },
+  {
+   "path": "/sys/devices/pci0000:00/0000:00:02.1/0000:61:00.0/nvme/nvme0/nvme0n1/queue/discard_max_bytes",
+   "want": "sysfs_openbook_block_queue",
+   "got": "sysfs_openbook_block_queue",
+   "ok": true,
+   "rule": "/sys/devices/.*/(block/sd[a-z]+|block/mmcblk[0-9]+|nvme[0-9]+n[0-9]+)/queue(/.*)?",
+   "from": "vendor/etc/selinux/vendor_file_contexts:207"
+  },
+  {
+   "path": "/sys/devices/virtual/nvme-subsystem/nvme-subsys0/nvme0n1/queue/discard_max_bytes",
+   "want": "sysfs_openbook_block_queue",
+   "got": "sysfs_openbook_block_queue",
+   "ok": true,
+   "rule": "/sys/devices/.*/(block/sd[a-z]+|block/mmcblk[0-9]+|nvme[0-9]+n[0-9]+)/queue(/.*)?",
+   "from": "vendor/etc/selinux/vendor_file_contexts:207"
+  },
+  {
+   "path": "/sys/devices/pci0000:00/0000:00:08.3/0000:67:00.0/usb4/4-1/4-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda1/size",
+   "want": "(genfs_contexts)",
+   "got": "(genfs_contexts)",
+   "ok": true,
+   "rule": null,
+   "from": null
+  },
+  {
+   "path": "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C0A:00/power_supply/BAT1/capacity",
+   "want": "sysfs_batteryinfo",
+   "got": "sysfs_batteryinfo",
+   "ok": true,
+   "rule": "/sys/devices/.*/power_supply(/.*)?",
+   "from": "vendor/etc/selinux/vendor_file_contexts:201"
+  },
+  {
+   "path": "/sys/devices/platform/USBC000:00/typec/port0/data_role",
+   "want": "sysfs_typec",
+   "got": "sysfs_typec",
+   "ok": true,
+   "rule": "/sys/devices/.*/typec(/.*)?",
+   "from": "vendor/etc/selinux/vendor_file_contexts:199"
+  }
+ ],
+ "failures": 0
+}

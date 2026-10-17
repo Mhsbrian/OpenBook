@@ -1,0 +1,101 @@
+{
+ "reason": "all steps done",
+ "seconds": 189.6,
+ "steps_done": 30,
+ "steps": 30,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "openbook-live: live boot: boot_part_uuid=",
+   "t": 3.6
+  },
+  {
+   "step": 1,
+   "wait": "openbook-live: grow: GPT backup moved",
+   "t": 5.2
+  },
+  {
+   "step": 2,
+   "wait": "openbook-live: exec /init",
+   "t": 5.2
+  },
+  {
+   "step": 3,
+   "wait": "init: init first stage started",
+   "t": 5.2
+  },
+  {
+   "step": 4,
+   "wait": "init: init second stage started",
+   "t": 5.4
+  },
+  {
+   "step": 5,
+   "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+   "t": 7.1
+  },
+  {
+   "step": 7,
+   "wait": "console:/ \\$ ",
+   "t": 7.1
+  },
+  {
+   "step": 9,
+   "wait": "console:/ \\$ ",
+   "t": 7.3
+  },
+  {
+   "step": 11,
+   "wait": "console:/ \\$ ",
+   "t": 8.7
+  },
+  {
+   "step": 13,
+   "wait": "console:/ \\$ ",
+   "t": 11.0
+  },
+  {
+   "step": 15,
+   "wait": "\nMARKER=openbook-live-marker-\\d+",
+   "t": 12.5
+  },
+  {
+   "step": 16,
+   "wait": "console:/ \\$ ",
+   "t": 12.5
+  },
+  {
+   "step": 18,
+   "wait": "BOOTDONE=\\S* uptime=[0-9.]+",
+   "t": 23.4
+  },
+  {
+   "step": 19,
+   "wait": "console:/ \\$ ",
+   "t": 23.4
+  },
+  {
+   "step": 21,
+   "wait": "console:/ \\$ ",
+   "t": 48.2
+  },
+  {
+   "step": 24,
+   "wait": "console:/ \\$ ",
+   "t": 62.0
+  },
+  {
+   "step": 26,
+   "wait": "console:/ \\$ ",
+   "t": 63.4
+  },
+  {
+   "step": 28,
+   "wait": "console:/ \\$ ",
+   "t": 69.1
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/qemu/live-20261017-desktop2/s16.img",
+ "nvme": "/home/hive/anybook/installer/qemu/live-20261017-desktop2/decoy.img"
+}

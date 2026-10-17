@@ -35,6 +35,7 @@ scripts/mesa-android-smoke.sh                    # load test on the AOSP Desktop
   - `LIBELF=shared|static` (default `shared` since ANAL-174; see libelf below).
   - `ANDROID_STRICT=true|false` (default `true`). RADV reports Vulkan 1.1 on Android when true and 1.4 when false.
   - Changing either one re-runs `setup`: the build directory records its configuration in `anybook-config.txt`.
+- **Patches:** `mesa/patches/<tree>/*.patch` go on top of the pin in the `fetch` step (`git am`, fixed committer and date, so the patched HEAD is reproducible); `versions.txt` lists them. Since ANAL-176, `upstream` carries three RADV commits from Mesa main and one OpenBook patch for Android swapchain images (`docs/g14-desktop.md` §3).
 - **Into the AOSP tree:** `scripts/graphics-amd-stage-mesa.sh` copies `out/upstream/vendor` (without `libdrm.so`; the image uses AOSP's) to `vendor/anybook/mesa/` with a generated `Android.bp` and `PROVENANCE.txt` (ANAL-174).
 
 ## Pins

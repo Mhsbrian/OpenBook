@@ -51,6 +51,16 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 
 ## History
 
+### 2026-10-17: G14 desktop from USB, RADV swapchain fix and SELinux (ANAL-176)
+
+**Done**
+- **The G14's black screen, root-caused and reproduced off the laptop:** RADV 26.2.5 dereferences a null memory object when Android 17 binds a deferred swapchain image (every ANGLE window). The image's own RADV crashes the same way on the build host's Radeon 610M.
+- **Fixed in Mesa:** three upstream RADV commits backported, plus an OpenBook patch so minigbm's modifier-less buffers use radeonsi's real tiling. 8 of 8 swapchain cases pass with 0 wrong pixels (`amd-android-hwtest.sh swapchain`).
+- **SELinux:** on top of PR #38, `vendor.mesa.*`, the GPU's `drm` directory, the composer's backlight and the disk queues. 24 of 24 G14 sysfs paths labelled as intended (`sepolicy-label-check.py`); live-001's 66 kernel-log denials are covered except 3 AOSP or kernel-side ones.
+- **Live image `openbook-live-20261017-desktop2`** with "safe graphics" entries (Mesa GL instead of ANGLE).
+
+**Next:** the owner boots it on the G14 (`docs/g14-desktop.md` §6).
+
 ### 2026-10-16: Bare metal, the OpenBook G14 product (ANAL-199)
 
 **Done**

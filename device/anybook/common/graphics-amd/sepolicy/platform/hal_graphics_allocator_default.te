@@ -9,3 +9,10 @@ allow { domain -logd -logpersist -recovery_persist -recovery_refresh } hal_graph
 # Apps run with MLS categories (s0:cX,cY) and may only write s0 objects whose type is an mlstrustedobject; without
 # it every app's buffer import fails its metadata write (priv_app/platform_app denials in ANAL-199 QEMU run 8).
 typeattribute hal_graphics_allocator_default_tmpfs mlstrustedobject;
+
+# libdrm's drmGetDevice2() in minigbm reads the GPU's PCI identity (labelled sysfs_gpu by the device's
+# file_contexts) and stats every /dev/dri node (G14 live boot, ANAL-190 live-001).
+r_dir_file(hal_graphics_allocator_default, sysfs_gpu)
+allow hal_graphics_allocator_default graphics_device:chr_file getattr;
+# Mesa (radeonsi through GBM) also looks for options as mesa.*, which is default_prop: an unset option.
+dontaudit hal_graphics_allocator_default default_prop:file { getattr open read map };

@@ -4,15 +4,15 @@
     SettingsEntry{mWindowingMode=0, mUserRotationMode=null, mUserRotation=null, mForcedWidth=0, mForcedHeight=0, mForcedDensity=0, mForcedDensityRatio=0.0, mForcedScalingMode=null, mRemoveContentMode=0, mShouldShowWithInsecureKeyguard=null, mShouldShowSystemDecors=null, mIsHomeSupported=null, mShouldShowIme=null, mFixedToUserRotation=null, mIgnoreOrientationRequest=null, mIgnoreDisplayCutout=null, mDontMoveToTop=null, mForceAppsUniversalResizable=null, mCanStealTopFocus=null}
       Classes: ROTARY_ENCODER | EXTERNAL
       Classes: KEYBOARD | ALPHAKEY | EXTERNAL
-      Classes: KEYBOARD
       Classes: KEYBOARD | ALPHAKEY
+      Classes: KEYBOARD
       Classes: KEYBOARD | ALPHAKEY | DPAD | VIRTUAL
+  Device 3: AT Translated Set 2 keyboard
+    IsExternal: false
   Device 4: QEMU QEMU USB Keyboard
     IsExternal: true
-  Device 3: Power Button
+  Device 2: Power Button
     IsExternal: false
   Device 5: QEMU QEMU USB Tablet
     IsExternal: true
-  Device 2: AT Translated Set 2 keyboard
-    IsExternal: false
     IsExternal: false

@@ -1,0 +1,42 @@
+# Labels the G14 (GA403WR) product should give its sysfs nodes: scripts/sepolicy-label-check.py PRODUCT_OUT <this>.
+# Paths marked (live-001) are from the first live boot's SELinux denials (evidence/2026-10-16-installer/g14-live);
+# the others follow the inventory's PCI topology (lspci, dmesg) and the kernel's sysfs layout.
+# <path> <expected type> [file-type flag]
+
+# The iGPU's PCI identity and drm directory, read by libdrm in every process that renders (live-001)
+/sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/uevent            sysfs_gpu
+/sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/vendor            sysfs_gpu
+/sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/device            sysfs_gpu
+/sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/subsystem_vendor  sysfs_gpu
+/sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/subsystem_device  sysfs_gpu
+/sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/revision          sysfs_gpu
+/sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/drm               sysfs_gpu  -d
+# ...but not the other functions behind the same bridge (HD audio, ACP, the NPU)
+/sys/devices/pci0000:00/0000:00:08.1/0000:65:00.1/uevent            (genfs_contexts)
+/sys/devices/pci0000:00/0000:00:08.2/0000:66:00.1/uevent            (genfs_contexts)
+
+# Panel backlight under the eDP connector: lights HAL, drm_hwcomposer (live-001)
+/sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/drm/card0/card0-eDP-1/amdgpu_bl0/max_brightness  sysfs_leds
+/sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/drm/card0/card0-eDP-1/amdgpu_bl0/brightness      sysfs_leds
+/sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/drm/card0/card0-eDP-1/amdgpu_bl0/bl_power        sysfs_leds
+
+# N-KEY keyboard: backlight LED and HID country code, for InputReader in system_server (live-001)
+/sys/devices/pci0000:00/0000:00:08.3/0000:67:00.0/usb3/3-4/3-4:1.0/0003:0B05:19B6.0001/leds/asus::kbd_backlight/brightness      sysfs_keyboard_backlight
+/sys/devices/pci0000:00/0000:00:08.3/0000:67:00.0/usb3/3-4/3-4:1.0/0003:0B05:19B6.0001/leds/asus::kbd_backlight/max_brightness  sysfs_keyboard_backlight
+/sys/devices/pci0000:00/0000:00:08.3/0000:67:00.0/usb3/3-4/3-4:1.0/0003:0B05:19B6.0001/country                                  sysfs_openbook_hid
+
+# hwmon chips, with and without a hwmon/ class directory: thermal HAL (live-001: the MT7925's)
+/sys/devices/pci0000:00/0000:00:02.3/0000:63:00.0/ieee80211/phy0/hwmon5/name        sysfs_openbook_hwmon
+/sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/hwmon/hwmon6/temp1_input          sysfs_openbook_hwmon
+/sys/devices/pci0000:00/0000:00:02.1/0000:61:00.0/nvme/nvme0/hwmon2/temp1_input     sysfs_openbook_hwmon
+
+# Request queues of the USB stick (live-001: init.rc's discard_max_bytes) and the internal NVMe
+/sys/devices/pci0000:00/0000:00:08.3/0000:67:00.0/usb4/4-1/4-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/queue/discard_max_bytes  sysfs_openbook_block_queue
+/sys/devices/pci0000:00/0000:00:02.1/0000:61:00.0/nvme/nvme0/nvme0n1/queue/discard_max_bytes                                    sysfs_openbook_block_queue
+/sys/devices/virtual/nvme-subsystem/nvme-subsys0/nvme0n1/queue/discard_max_bytes                                                sysfs_openbook_block_queue
+# ...and not the partitions or other block attributes
+/sys/devices/pci0000:00/0000:00:08.3/0000:67:00.0/usb4/4-1/4-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda1/size                (genfs_contexts)
+
+# Unchanged neighbours
+/sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C0A:00/power_supply/BAT1/capacity          sysfs_batteryinfo
+/sys/devices/platform/USBC000:00/typec/port0/data_role                              sysfs_typec

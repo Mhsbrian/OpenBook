@@ -1,0 +1,148 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Fri, 16 Oct 2026 20:09:35 -0400
+Subject: [PATCH] OPENBOOK: radv/android: lay out gralloc buffers without a
+ modifier from the BO metadata
+
+minigbm's amdgpu backend (OpenBook's minigbm patch) allocates tiled
+buffers through Mesa's GBM without modifiers: radeonsi picks the tiling,
+writes it into the BO metadata on export, and gralloc reports
+DRM_FORMAT_MOD_INVALID. amdgpu's display reads the same metadata.
+
+RADV passed that invalid modifier on as an explicit layout, so the
+swizzle mode was RADV's own choice, not the buffer's, and the bo_metadata
+path had the same gap on GFX9-GFX11: radv_patch_surface_from_metadata()
+reads the swizzle mode, but radv_image_reset_layout() clears it and
+ac_compute_surface() picks a new one unless the surface is forced.
+
+- ANB at vkCreateImage, ANB bound at vkBindImageMemory2 (deferred
+  swapchain images) and AHB imports take the metadata path when gralloc
+  has no modifier, with optimal tiling, and then check gralloc's pitch.
+- radv_image_create_layout() forces the metadata's swizzle mode for such
+  single-plane imports (GFX9 to GFX11.5, Android only).
+
+Explicit modifiers (linear buffers report DRM_FORMAT_MOD_LINEAR) keep
+upstream's path.
+---
+ src/amd/vulkan/radv_android.c | 51 ++++++++++++++++++++++++++++++++---
+ src/amd/vulkan/radv_image.c   | 14 ++++++++++
+ 2 files changed, 62 insertions(+), 3 deletions(-)
+
+diff --git a/src/amd/vulkan/radv_android.c b/src/amd/vulkan/radv_android.c
+index 152ceb115..83bebec7b 100644
+--- a/src/amd/vulkan/radv_android.c
++++ b/src/amd/vulkan/radv_android.c
+@@ -29,6 +29,36 @@
+ 
+ #define RADV_ANDROID_MAX_PLANES 4
+ 
++#if DETECT_OS_ANDROID || RADV_SUPPORT_ANDROID_HARDWARE_BUFFER
++
++/* Whether gralloc gave the buffer's real layout. minigbm's amdgpu backend allocates tiled buffers
++ * through Mesa's GBM without modifiers: gralloc then reports DRM_FORMAT_MOD_INVALID, and the tiling
++ * is only in the BO metadata that the exporter (radeonsi) wrote, which is also what amdgpu's display
++ * reads. An explicit layout with an invalid modifier would let RADV choose its own tiling for the
++ * buffer, so such imports take the metadata path instead.
++ */
++static bool
++radv_android_layout_is_explicit(const VkImageDrmFormatModifierExplicitCreateInfoEXT *mod_info)
++{
++   return mod_info->drmFormatModifier != DRM_FORMAT_MOD_INVALID;
++}
++
++/* After a metadata-path import: gralloc's row pitch (bytes) must be the one the layout has. */
++static VkResult
++radv_android_check_pitch(struct radv_device *device, struct radv_image *image, uint32_t row_pitch)
++{
++   const struct radv_physical_device *pdev = radv_device_physical(device);
++   const struct radeon_surf *surf = &image->planes[0].surface;
++
++   if (row_pitch % surf->bpe ||
++       !ac_surface_override_offset_stride(&pdev->info, &image->planes[0].surface, image->vk.array_layers,
++                                          image->vk.mip_levels, 0, row_pitch / surf->bpe))
++      return VK_ERROR_INVALID_EXTERNAL_HANDLE;
++   return VK_SUCCESS;
++}
++
++#endif
++
+ #if DETECT_OS_ANDROID
+ 
+ static VkResult
+@@ -129,7 +159,7 @@ radv_image_from_gralloc(VkDevice device_h, const VkImageCreateInfo *base_info,
+    VkSubresourceLayout layouts[RADV_ANDROID_MAX_PLANES];
+    assert(vk_find_struct_const(base_info->pNext, NATIVE_BUFFER_ANDROID));
+    result = vk_android_get_anb_layout(base_info, &mod_info, layouts, RADV_ANDROID_MAX_PLANES);
+-   if (result == VK_SUCCESS) {
++   if (result == VK_SUCCESS && radv_android_layout_is_explicit(&mod_info)) {
+       mod_info.pNext = updated_base_info.pNext;
+       updated_base_info.tiling = VK_IMAGE_TILING_DRM_FORMAT_MODIFIER_EXT;
+       updated_base_info.pNext = &mod_info;
+@@ -217,13 +247,23 @@ radv_android_get_wsi_memory(VkDevice device_h, const VkBindImageMemoryInfo *bind
+    struct radeon_bo_metadata md;
+    device->ws->buffer_get_metadata(device->ws, radv_device_memory_from_handle(memory_h)->bo, &md);
+ 
++   /* Without a modifier, lay the image out as radv_image_from_gralloc() does: optimal tiling from the
++    * metadata, then gralloc's pitch.
++    */
++   const bool explicit_layout = radv_android_layout_is_explicit(&mod_info);
++   if (!explicit_layout)
++      create_info->tiling = image->vk.tiling = VK_IMAGE_TILING_OPTIMAL;
++
+    result = radv_image_init_layout(device,
+                                    (struct radv_image_create_info){
+                                       .vk_info = create_info,
+                                       .no_metadata_planes = true,
+                                       .bo_metadata = &md,
+                                    },
+-                                   mod_info.drmFormatModifier, &mod_info, NULL, image);
++                                   explicit_layout ? mod_info.drmFormatModifier : DRM_FORMAT_MOD_INVALID,
++                                   explicit_layout ? &mod_info : NULL, NULL, image);
++   if (result == VK_SUCCESS && !explicit_layout)
++      result = radv_android_check_pitch(device, image, anb->stride * image->planes[0].surface.bpe);
+    if (result != VK_SUCCESS) {
+       radv_FreeMemory(device_h, memory_h, &device->vk.alloc);
+       goto restore_create_info;
+@@ -531,11 +571,16 @@ radv_import_ahb_memory(struct radv_device *device, struct radv_device_memory *me
+       VkImageDrmFormatModifierExplicitCreateInfoEXT mod_info;
+       VkSubresourceLayout layouts[RADV_ANDROID_MAX_PLANES];
+       result = vk_android_get_ahb_layout(info->buffer, &mod_info, layouts, RADV_ANDROID_MAX_PLANES);
+-      if (result == VK_SUCCESS)
++      const bool have_layout = result == VK_SUCCESS;
++      if (have_layout && radv_android_layout_is_explicit(&mod_info))
+          mod_info_p = &mod_info;
++      else if (have_layout)
++         mem->image->vk.android_deferred_create_info->tiling = mem->image->vk.tiling = VK_IMAGE_TILING_OPTIMAL;
+ 
+       const uint64_t modifier = mod_info_p ? mod_info.drmFormatModifier : DRM_FORMAT_MOD_INVALID;
+       result = radv_image_init_layout(device, create_info, modifier, mod_info_p, NULL, mem->image);
++      if (result == VK_SUCCESS && have_layout && !mod_info_p && mem->image->plane_count == 1)
++         result = radv_android_check_pitch(device, mem->image, layouts[0].rowPitch);
+       if (result != VK_SUCCESS) {
+          radv_bo_destroy(device, NULL, mem->bo);
+          mem->bo = NULL;
+diff --git a/src/amd/vulkan/radv_image.c b/src/amd/vulkan/radv_image.c
+index d3c374628..90be1e445 100644
+--- a/src/amd/vulkan/radv_image.c
++++ b/src/amd/vulkan/radv_image.c
+@@ -1241,6 +1241,20 @@ radv_image_create_layout(struct radv_device *device, struct radv_image_create_in
+          image->planes[plane].surface.u.gfx9.swizzle_mode = image->planes[0].surface.u.gfx9.swizzle_mode;
+       }
+ 
++#if DETECT_OS_ANDROID
++      /* A gralloc buffer imported without an explicit modifier (radv_android.c) is tiled the way its
++       * exporter chose, and only the BO metadata says how. radv_patch_surface_from_metadata() took the
++       * mode from it, but the swizzle mode is computed again below unless it is forced.
++       */
++      if (create_info.bo_metadata && !mod_info && plane_count == 1 &&
++          image->planes[plane].surface.modifier == DRM_FORMAT_MOD_INVALID && pdev->info.gfx_level >= GFX9 &&
++          pdev->info.gfx_level < GFX12 &&
++          RADEON_SURF_GET(image->planes[plane].surface.flags, MODE) == RADEON_SURF_MODE_2D) {
++         image->planes[plane].surface.flags |= RADEON_SURF_FORCE_SWIZZLE_MODE;
++         image->planes[plane].surface.u.gfx9.swizzle_mode = create_info.bo_metadata->u.gfx9.swizzle_mode;
++      }
++#endif
++
+       radv_surface_init(pdev, &info, &image->planes[plane].surface);
+ 
+       if (plane == 0) {

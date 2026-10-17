@@ -1,2 +1,7 @@
 # Written by anybook_gpu_probe at early-init, read by init (init.anybook.graphics-amd.rc).
 vendor.anybook.gpu.                    u:object_r:vendor_anybook_gpu_prop:s0 prefix string
+# Driver options looked up by every process that renders or maps graphics buffers: Mesa (debug.mesa.*, then
+# vendor.mesa.*, then mesa.*; src/util/os_misc.c) and minigbm (vendor.minigbm.debug; drv.c). Unlabelled they are
+# vendor_default_prop, which platform processes may not read.
+vendor.mesa.                           u:object_r:vendor_graphics_option_prop:s0 prefix string
+vendor.minigbm.                        u:object_r:vendor_graphics_option_prop:s0 prefix string

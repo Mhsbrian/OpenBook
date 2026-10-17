@@ -170,7 +170,7 @@ scripts/gpu-probe-capture.sh > g14.txt                   # probe fixture from an
 
 ## Known gaps and next steps
 
-1. **Run on the G14** (ANAL-176 boot, ANAL-177 dEQP/CTS):
+1. **Run on the G14** (ANAL-176 boot, ANAL-177 dEQP/CTS). ANAL-176 found and fixed RADV's missing deferred swapchain bind (the G14's first-boot crash) and its layout for minigbm's modifier-less buffers, tested on the build host with `amd-android-hwtest.sh swapchain` (`docs/g14-desktop.md`). Still open:
    - RADV and radeonsi on gfx1150
    - drm_hwcomposer on DCN 3.5
    - the probe at early-init with amdgpu loaded from `vendor_dlkm`

@@ -1,5 +1,5 @@
 Pin set to '1234'
 Lock credential verified successfully
 total 8
--rw------- 1 system system 42 2026-10-16 23:40 slot0
--rw------- 1 system system 42 2026-10-16 23:40 slot1
+-rw------- 1 system system 42 2026-10-17 00:02 slot0
+-rw------- 1 system system 42 2026-10-17 00:02 slot1
