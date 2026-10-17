@@ -1,0 +1,4 @@
+# AnyBook/anybook_cf_x86_64_pc/anybook_vsoc_x86_64:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+ro.surface_flinger.supports_background_blur=1
+## /product/etc/fonts_customization.xml families
+# Note: this capture stopped at the font-family listing: no /product/etc/fonts_customization.xml existed, and grep's exit status aborted the script (fixed in scripts/ui/ui-shots.sh before the after capture).

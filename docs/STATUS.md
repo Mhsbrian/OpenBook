@@ -42,6 +42,11 @@
    - amd-pmf (`docs/kernel.md`);
    - Track B (`docs/PLAN.md` §6);
    - installing the Multica daemon on the G14 (ANAL-194).
+   - **New, from ANAL-201:**
+     - ship Google Sans and Google Sans Flex (OFL) under the internal family names `google-sans*`;
+     - carry LineageOS's microG signature-spoofing patch and offer microG as an add-on;
+     - whether the installer should accept a GApps package the user supplies;
+     - which items of the beautification backlog B1–B8 to open (`docs/googlebook-ui.md` §4, `docs/gapps.md` §5).
    - Before any public image: AVB release-key custody, an "OpenBook" trademark check, and Mesa libelf (shipped as a shared library, as recommended).
 3. **Already decided:** the dGPU stays off (`dgpu_disable=1`; HDMI is dark while it is set; NVIDIA work waits until after M4). The installer design follows our recommendation (owner on ANAL-189, 2026-10-16).
 
@@ -58,6 +63,7 @@
 | ANAL-192 installer end-to-end tests and the owner's stick | In review | Done in QEMU: the integrated stick `anal192c` (live 40/40, wizard 25/25), the end-to-end matrix 79/79 (`scripts/installer/e2e-qemu.sh`), the user guide and release checklist draft (`docs/INSTALL.md`). Found: an installed OpenBook offers to format a plugged-in installer stick; the wizard calls an installed OpenBook "Linux". Open: the OTA slot switch (needs `openbook-bootsync`) | The owner's run of `docs/installer.md` §13.6; a spare drive named by `/dev/disk/by-id` for §13.7; the release decisions (`docs/INSTALL.md` §9) |
 | ANAL-198 G14 kernel (follow-up) | In review (#64, #65 merged) | Done: `system_heap.ko` and `efivarfs.ko` as vendor modules with Google's GKI configuration unchanged; Codec2 fixes, so a ringtone decodes in QEMU; the owner's stick `anal198`. GPU reset: MES didn't answer and pipe reset is off in 6.18, so a hang means a full reset (`docs/kernel.md`). Next: the G14 check on `anal198` | The owner's `anal198` session |
 | ANAL-193 to ANAL-197 device loop | Backlog | ANAL-194 first: the Multica runtime and test agent on the G14's Linux | Owner installs the daemon |
+| ANAL-201 Googlebook UI and GApps review | In review | Done: inventory of the Googlebook image, the Google APIs Desktop image and ours; why Googlebook looks cleaner, ranked; the GApps options; the Google Sans prototype in Cuttlefish (`docs/googlebook-ui.md`, `docs/gapps.md`). Next: the backlog items the owner picks (B1 fonts, B2 blur, B4 shapes and B5 a clean desktop first; G1 microG) | Owner decisions |
 | ANAL-166 performance and parity | Backlog | After the installer: benchmarks, Chrome, the Linux terminal (AVF without pKVM). No sub-issues yet | — |
 | ANAL-186 NVIDIA | Parked | Research is done (ANAL-187); N1–N6 after M4 | — |
 | ANAL-165 Track B (ANAL-182 to ANAL-185) | Parked | Starts only if the owner decides to use Google's image | Owner decision |
@@ -75,6 +81,21 @@
 **Build host:** one AOSP build at a time (`flock ~/anybook/aosp/.lane.lock`, taken by `scripts/aosp-docker.sh`), because builds peak at about 50 GB of the 61 GB RAM. Builds and images are in `docs/BUILD.md`; the live image and the owner checklists are in `docs/installer.md` §11.
 
 ## History
+
+### 2026-10-17: the Googlebook image reviewed, GApps options, and Google Sans on OpenBook in a VM (ANAL-201)
+- **Why Googlebook looks cleaner (C)** (`docs/googlebook-ui.md`):
+  - It replaces the platform UI with Google builds: the Pixel Launcher, plus SystemUITitan and SettingsGoogle, both signed with the platform key.
+  - It adds 61 overlays, Google Sans, background blur and 728 more flags; 510 of those flags aren't declared in AOSP 17.
+  - GMS doesn't change the look: Google's own Google APIs Desktop image has the same GMS APEX and still shows AOSP's launcher, SystemUI and Settings.
+- **Fonts (C).** AOSP 17's SystemUI, Launcher3 and SettingsLib ask for `google-sans*` and the 30 Material 3 `variable-*` families, and fall back to Roboto. Google Sans and Google Sans Flex are now OFL in google/fonts. In Cuttlefish, pushing the fonts, our `fonts_customization.xml` (40 families) and a four-value RRO renders Settings, Quick Settings and all apps in Google Sans (`evidence/2026-10-17-gbos-ui/fonts-prototype/`).
+- **G14 gap (C).** The G14 product doesn't enable background blur; Cuttlefish inherits it from `device/google/cuttlefish`.
+- **GApps (C)** (`docs/gapps.md`):
+  - No image may contain Google apps.
+  - microG (Apache-2.0, x86_64) plus LineageOS's Android 17 spoofing patch is the option we can ship.
+  - LiteGapps `x86_64/37` is the only current Android 17 x86_64 package; it would be user-supplied, with a `product` rebuild in the installer (design, untested).
+  - MindTheGapps dropped x86 after Android 13.
+- **Not booted:** Google APIs Desktop 37.1 in emulator 37.2.12. The binder storm between SurfaceFlinger and the ranchu composer is in `gapis-desktop-37.1/boot-failure.txt`.
+- **Tools:** `scripts/gbos-inventory.py`, `scripts/overlay-values.py`, `scripts/aconfig-storage-dump.py` (reads Android 17 flag storage offline), `scripts/ui/`.
 
 ### 2026-10-17: the follow-ups merged; the next stick waits for the owner's results (ANAL-159)
 - **Merged** #67 (ANAL-179: `audioserver` may use apps' memfds, the same rule AOSP gives mediaserver; SoundPool denials 2 → 0 in QEMU) and #68 (ANAL-191: the efivarfs label, mounted on live boots only).

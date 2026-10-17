@@ -1,0 +1,12 @@
+# Signing certificates (SHA-256, first 16 hex) of Googlebook ruby CL3B.260622.271.R1 packages; apksigner verify --print-certs
+# Same digest as framework-res.apk = signed with this device's platform key.
+system/framework/framework-res.apk                         87b95a0a12e30d41
+priv-app/SystemUITitan/SystemUITitan.apk                   87b95a0a12e30d41
+priv-app/SettingsGoogle/SettingsGoogle.apk                 87b95a0a12e30d41
+priv-app/NexusLauncherRelease/NexusLauncherRelease.apk     a86bdb059f28f265
+priv-app/WallpaperPickerGoogleRelease/WallpaperPickerGoogleRelease.apk c991989af90c7327
+priv-app/GoogleServicesFramework/GoogleServicesFramework.apk 7ce83c1b71f3d572
+priv-app/Phonesky/Phonesky.apk                             f0fd6c5b410f25cb
+app/Chrome/Chrome.apk                                      f0fd6c5b410f25cb
+priv-app/SetupWizardPrebuilt_cl3b/SetupWizardPrebuilt_cl3b.apk f0fd6c5b410f25cb
+apex gmssystem: PrebuiltGmsCoreVic.apk                     5f2391277b1dbd48

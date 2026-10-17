@@ -1,0 +1,16 @@
+# product/apex/com.google.android.gmssystem.prodvic.apex (Googlebook ruby CL3B.260622.271.R1), read offline
+apex_manifest: name=com.google.android.gmssystem version=2622430 versionName=26.22.43-0
+## payload files
+apex_manifest.pb
+etc/permissions/privapp_allowlist_com.google.android.gmssystem.xml
+etc/sysconfig/preinstalled_packages_com.google.android.gmssystem.xml
+priv-app/PrebuiltGmsCoreVic@CL3B.260622.271.R1/PrebuiltGmsCoreVic.apk
+priv-app/PrebuiltGmsCoreVic@CL3B.260622.271.R1/PrebuiltGmsCoreVic.apk.fsv_meta
+## PrebuiltGmsCoreVic.apk badging
+package: name='com.google.android.gms' versionCode='262243038' versionName='26.22.43 (260800-971486898)' platformBuildVersionName='DEV' platformBuildVersionCode='37' compileSdkVersion='37' compileSdkVersionCodename='DEV'
+targetSdkVersion:'37'
+application-label:'Google Play services'
+native-code: 'x86_64'
+alt-native-code: 'x86'
+uses-permission entries: 399
+privapp_allowlist permissions: 139

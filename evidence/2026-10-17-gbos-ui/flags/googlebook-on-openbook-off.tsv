@@ -1,0 +1,729 @@
+flag	container	in_aosp_17	declared_in
+android.app.accurate_smart_suggestions_logging	system	not-in-aosp	
+android.app.admin.flags.add_user_info_in_profile_off_deadline_alarm	system	declared	frameworks/base/core/java/android/app/admin/flags/flags.aconfig
+android.app.admin.flags.check_personal_suspension_for_all_profiles	system	declared	frameworks/base/core/java/android/app/admin/flags/flags.aconfig
+android.app.admin.flags.force_remove_admin_skip_feature_check_for_retail_demo	system	not-in-aosp	
+android.app.admin.flags.introduce_generic_provisioning_error	system	declared	frameworks/base/core/java/android/app/admin/flags/flags.aconfig
+android.app.admin.flags.policy_transparency_refactor_enabled	system	declared	frameworks/base/core/java/android/app/admin/flags/flags.aconfig
+android.app.admin.flags.skip_admin_feature_check_for_keyguard_restrictions	system	not-in-aosp	
+android.app.admin.flags.use_hardened_frp_active_check	system	declared	frameworks/base/core/java/android/app/admin/flags/flags.aconfig
+android.app.admin.flags.wipe_device_when_user_cannot_be_removed	system	not-in-aosp	
+android.app.app_start_info_timestamp_npe_fix	system	not-in-aosp	
+android.app.app_start_info_truncate_after_read	system	not-in-aosp	
+android.app.appfunctions.flags.close_observer_session_in_router	system	not-in-aosp	
+android.app.appfunctions.flags.enable_deadlock_fix_in_set_enabled_api	system	not-in-aosp	
+android.app.appfunctions.flags.enable_user_check_in_set_enabled_api	system	not-in-aosp	
+android.app.backup_restore_logging	system	declared	frameworks/base/core/java/android/app/notification.aconfig
+android.app.contextualsearch.flags.include_audio_playing_status	system	declared	frameworks/base/core/java/android/app/contextualsearch/flags.aconfig
+android.app.early_wallpaper_colors_caching	system	not-in-aosp	
+android.app.enable_automation_notification_ui	system	declared	frameworks/base/core/java/android/app/notification.aconfig
+android.app.fix_expanded_notification_a11y_traversal	system	not-in-aosp	
+android.app.fix_user_id_usage_on_context_impl	system	not-in-aosp	
+android.app.job.non_blocking_abandoned_jobs	system	not-in-aosp	
+android.app.metric_value_alternative_strings	system	declared	frameworks/base/core/java/android/app/notification.aconfig
+android.app.modes_ui_hide_sleeping_mode_on_desktop	system	not-in-aosp	
+android.app.motion_cues_init_fix	system	not-in-aosp	
+android.app.notifications_reduce_image_sizes_put_extras	system	not-in-aosp	
+android.app.optimize_default_wallpaper	system	declared	frameworks/base/core/java/android/app/wallpaper.aconfig
+android.app.privatecompute.flags.enable_pcc_audit_log_pcc_to_pcs_logging	system	not-in-aosp	
+android.app.supervision.flags.enable_remove_device_admin_checks_for_reset_password_token	system	declared	frameworks/base/core/java/android/app/supervision/flags.aconfig
+android.app.supervision.flags.enable_supervision_role_consent_in_user_setup	system	not-in-aosp	
+android.app.supervision.flags.enable_supported_apps_retrieval_updates	system	declared	frameworks/base/core/java/android/app/supervision/flags.aconfig
+android.app.supervision.flags.update_web_content_filters_supported_apps_title	system	not-in-aosp	
+android.companion.start_cdm_sync_service	system	not-in-aosp	
+android.companion.virtualdevice.flags.computer_control_access	system	declared	frameworks/base/core/java/android/companion/virtual/flags/flags.aconfig
+android.companion.virtualdevice.flags.computer_control_allowlist_from_allowlist_manager	system	not-in-aosp	
+android.companion.virtualdevice.flags.computer_control_from_virtual_devices	system	not-in-aosp	
+android.companion.virtualdevice.flags.computer_control_per_app_consent_v2	system	not-in-aosp	
+android.companion.virtualdevice.flags.computer_control_require_v5	system	not-in-aosp	
+android.companion.virtualdevice.flags.computer_control_support_v5	system	declared	frameworks/base/core/java/android/companion/virtual/flags/flags.aconfig
+android.companion.virtualdevice.flags.fix_computer_control_start_activity_identity	system	not-in-aosp	
+android.companion.virtualdevice.flags.vdm_propagate_device_id_to_attribution_context	system	not-in-aosp	
+android.companion.virtualdevice.flags.virtual_device_owner_self_permissions	system	not-in-aosp	
+android.content.pm.preferred_activity_xml_scheme	system	not-in-aosp	
+android.content.res.resources_manager_cache_leak_cleanup	system	declared	frameworks/base/core/java/android/content/res/flags.aconfig
+android.hardware.usb.flags.enable_pci_tunnel_control	system	declared	frameworks/base/core/java/android/hardware/usb/flags/desktop_usb_flags.aconfig
+android.hardware.usb.flags.enable_persistent_usb_device_permissions	system	declared	frameworks/base/core/java/android/hardware/usb/flags/desktop_usb_flags.aconfig
+android.hardware.usb.flags.enable_usb_dp_upstream_irq	system	declared	frameworks/base/core/java/android/hardware/usb/flags/system_sw_usb_flags.aconfig
+android.hardware.usb.flags.enable_usbdp_utils_library	system	declared	frameworks/base/core/java/android/hardware/usb/flags/system_sw_usb_flags.aconfig
+android.hardware.usb.flags.mtp_download_io_order_improvement	system	declared	frameworks/base/core/java/android/hardware/usb/flags/system_sw_usb_flags.aconfig
+android.hardware.usb.flags.mtp_ffs_handle_close_concurrency_fix	system	declared	frameworks/base/core/java/android/hardware/usb/flags/usb_framework_flags.aconfig
+android.location.flags.asynchronous_fgs_logging_lms	system	not-in-aosp	
+android.location.flags.disable_hardware_ar	system	declared	frameworks/base/location/java/android/location/flags/location.aconfig
+android.location.flags.location_auditing	system	declared	frameworks/base/location/java/android/location/flags/location.aconfig
+android.location.flags.skip_emergency_check_without_bypass	system	not-in-aosp	
+android.location.flags.use_settings_main_switch_for_scanning	system	declared	frameworks/base/location/java/android/location/flags/location.aconfig
+android.media.audio.enable_ringtone_haptics_customization	system	declared	frameworks/av/media/audio/aconfig/audio_framework.aconfig
+android.multiuser.desktop_user_switching_dialog	system	not-in-aosp	
+android.multiuser.dont_show_other_users_apps_to_admin	system	declared	frameworks/base/core/java/android/content/pm/multiuser.aconfig
+android.multiuser.enable_explicit_static_overlay_allowlisting	system	declared	frameworks/base/core/java/android/content/pm/multiuser.aconfig
+android.multiuser.hsu_allowlist_activities	system	declared	frameworks/base/core/java/android/content/pm/multiuser.aconfig
+android.multiuser.hsu_allowlist_notifications	system	declared	frameworks/base/core/java/android/content/pm/multiuser.aconfig
+android.multiuser.hsu_app_management	system	declared	frameworks/base/core/java/android/content/pm/multiuser.aconfig
+android.multiuser.hsu_denied_location	system	not-in-aosp	
+android.multiuser.hsu_device_provisioner	system	declared	frameworks/base/core/java/android/content/pm/multiuser.aconfig
+android.multiuser.hsu_disable_notifications	system	declared	frameworks/base/core/java/android/content/pm/multiuser.aconfig
+android.multiuser.neutral_space	system	not-in-aosp	
+android.multiuser.prevent_explicit_background_start_of_disallowed_users	system	not-in-aosp	
+android.multiuser.private_profiles_for_all	system	not-in-aosp	
+android.multiuser.refactor_activities_allowlist_initialization	system	not-in-aosp	
+android.multiuser.restricted_profiles_for_admins	system	not-in-aosp	
+android.multiuser.show_bugreport_on_system_user	system	not-in-aosp	
+android.multiuser.user_filter_refactoring	system	declared	frameworks/base/core/java/android/content/pm/multiuser.aconfig
+android.multiuser.user_removal_minor_apis_2026	system	declared	frameworks/base/core/java/android/content/pm/multiuser.aconfig
+android.os.binder_netlink_enabled	system	declared	frameworks/base/core/java/android/os/flags.aconfig
+android.os.disallow_add_guest	system	declared	frameworks/base/core/java/android/os/flags.aconfig
+android.os.do_not_set_native_driver_option_for_default_angle_query_result	system	not-in-aosp	
+android.os.login_add_user_enforcement	system	declared	frameworks/base/core/java/android/os/flags.aconfig
+android.os.remove_setup_angle_from_settings_apk	system	not-in-aosp	
+android.permission.flags.execute_app_functions_known_signer_enabled	system	not-in-aosp	
+android.permission.flags.use_clipboard_calling_uid	system	not-in-aosp	
+android.provider.enable_documentsprovider_search_by_document_api	system	not-in-aosp	
+android.provider.enable_redacted_value_for_readable_v2	system	not-in-aosp	
+android.security.enable_service_side_credential_type_cache	system	declared	frameworks/base/core/java/android/security/flags.aconfig
+android.security.lock_ce_storage_when_user_not_running	system	not-in-aosp	
+android.security.secure_lock_device_flexiglass	system	not-in-aosp	
+android.security.user_lockscreen_knowledge_factor_changed_broadcast	system	not-in-aosp	
+android.service.autofill.destroy_augmented_autofill_on_destroy	system	not-in-aosp	
+android.service.autofill.fix_ghost_inline_suggestion_chips	system	not-in-aosp	
+android.service.dreams.dreams_switcher	system	declared	frameworks/base/core/java/android/service/dreams/flags.aconfig
+android.service.dreams.dreams_switcher_edge_swipe_enabled	system	declared	frameworks/base/core/java/android/service/dreams/flags.aconfig
+android.service.dreams.dreams_switcher_long_press_enabled	system	declared	frameworks/base/core/java/android/service/dreams/flags.aconfig
+android.service.dreams.drive_dream_state_from_occlusion	system	declared	frameworks/base/core/java/android/service/dreams/flags.aconfig
+android.service.personalcontext.allow_null_autofill_value_in_hint	system	not-in-aosp	
+android.service.personalcontext.debounce_component_service_unbind	system	not-in-aosp	
+android.service.personalcontext.force_stop_client_unbind	system	not-in-aosp	
+android.service.personalcontext.service_client_cleanup	system	not-in-aosp	
+android.service.personalcontext.use_shared_package_monitor_in_embedded_renderer	system	not-in-aosp	
+android.tracing.protolog_auto_clear_incremental_state	system	declared	frameworks/base/core/java/android/tracing/flags.aconfig
+android.view.accessibility.enable_captions_easy_reader	system	declared	frameworks/base/core/java/android/view/accessibility/flags/accessibility_flags.aconfig
+android.view.accessibility.fix_a11y_lock_screen_jank	system	declared	frameworks/base/core/java/android/view/accessibility/flags/accessibility_flags.aconfig
+android.view.accessibility.fix_focus_scrolling_offsets	system	not-in-aosp	
+android.view.accessibility.fix_take_screenshot_of_window_bounds	system	not-in-aosp	
+android.view.accessibility.volume_shortcut_silent_for_magnification	system	not-in-aosp	
+android.view.flags.enable_global_keyboard_window_navigation	system	not-in-aosp	
+android.view.flags.hw_rotary_navigation	system	not-in-aosp	
+android.view.flags.time_picker_focused_hint_color_fix	system	not-in-aosp	
+android.view.flags.toolkit_disable_category_on_mrr	system	declared	frameworks/base/core/java/android/view/flags/refresh_rate_flags.aconfig
+android.view.inputmethod.delay_start_input_when_window_with_unfocused_editor_launches	system	not-in-aosp	
+android.view.inputmethod.ime_switcher_button_in_navbar_setting	system	declared	frameworks/base/core/java/android/view/inputmethod/flags.aconfig
+android.view.inputmethod.ime_switcher_menu_systemui_style_update	system	declared	frameworks/base/core/java/android/view/inputmethod/flags.aconfig
+android.view.inputmethod.inherit_ime_handwriting_surface_bounds_from_parent_surface	system	not-in-aosp	
+android.view.inputmethod.parsing_ime_config_changes_from_xml_bugfix	system	not-in-aosp	
+android.view.inputmethod.remove_ims_window_with_no_delay	system	not-in-aosp	
+android.view.inputmethod.restart_display_ime_animation_on_leash_change	system	not-in-aosp	
+android.view.inputmethod.set_self_visibility_only_once	system	declared	frameworks/base/core/java/android/view/inputmethod/flags.aconfig
+android.view.inputmethod.soft_input_state_unchanged_requested_ime_visibility_fix	system	not-in-aosp	
+com.android.aconfig_new_storage.enable_bootloader_sync	system	declared	system/server_configurable_flags/aconfigd/new_aconfig_storage.aconfig
+com.android.btaudio.hal.flags.leaudio_iso_parameter_update	vendor	declared	hardware/interfaces/bluetooth/audio/flags/btaudiohal.aconfig
+com.android.desktop.print.flags.add_missing_desktop_telemetry	system	not-in-aosp	
+com.android.desktop.print.flags.comprehensive_print_job_status	system	not-in-aosp	
+com.android.desktop.print.flags.compress_raster_data	system	not-in-aosp	
+com.android.desktop.print.flags.correct_printer_status_reporting	system	not-in-aosp	
+com.android.desktop.print.flags.enable_basic_finishings	system	not-in-aosp	
+com.android.desktop.print.flags.enable_expanded_desktop_telemetry	system	not-in-aosp	
+com.android.desktop.print.flags.enable_job_release_with_pin	system	not-in-aosp	
+com.android.desktop.print.flags.enable_legacy_print	system	not-in-aosp	
+com.android.desktop.print.flags.enable_multi_job_printing	system	not-in-aosp	
+com.android.desktop.print.flags.fix_face_up_page_order	system	not-in-aosp	
+com.android.desktop.print.flags.legacy_allow_cancel_job	system	not-in-aosp	
+com.android.desktop.print.flags.localize_fallback_media	system	not-in-aosp	
+com.android.desktop.print.flags.manually_add_printer	system	not-in-aosp	
+com.android.desktop.print.flags.manually_add_printer_activity	system	not-in-aosp	
+com.android.desktop.print.flags.non_borderless_preferred_as_default_media	system	not-in-aosp	
+com.android.desktop.print.flags.reconnect_on_uri_update	system	not-in-aosp	
+com.android.desktop.print.flags.retry_install_when_conn_error	system	not-in-aosp	
+com.android.desktop.print.flags.send_job_name	system	not-in-aosp	
+com.android.desktop.print.flags.send_requesting_user	system	not-in-aosp	
+com.android.desktop.print.flags.update_ui_26q2	system	not-in-aosp	
+com.android.desktop.print.flags.update_ui_26q2_accessibility_fixes	system	not-in-aosp	
+com.android.desktop.print.flags.use_local_ppd_index	system	not-in-aosp	
+com.android.desktop.print.flags.use_raster_pdl_resolution	system	not-in-aosp	
+com.android.desktop.print.flags.white_color_as_a_background	system	not-in-aosp	
+com.android.desktop.sar.flags.enabled_dynamic_sar	system_ext	not-in-aosp	
+com.android.desktop.services.flags.enable_desktop_repair_mode_service	system	not-in-aosp	
+com.android.desktop.services.flags.enable_fetching_general_logcat	system	not-in-aosp	
+com.android.desktop.services.flags.enable_keyboard_proxy_service	system	not-in-aosp	
+com.android.desktop.services.flags.profile_detection_service_enabled	system	not-in-aosp	
+com.android.documentsui.flags.hide_non_search_chips	system	not-in-aosp	
+com.android.documentsui.flags.homescreen_file_operations_contentprovider	system	not-in-aosp	
+com.android.documentsui.flags.in_memory_sorting	system	not-in-aosp	
+com.android.documentsui.flags.stop_copy_on_exception	system	not-in-aosp	
+com.android.documentsui.flags.use_approved_document_handler	system	declared	packages/apps/DocumentsUI/flags.aconfig
+com.android.documentsui.flags.use_custom_menu	system	not-in-aosp	
+com.android.documentsui.flags.use_documentsprovider_search_by_document_api	system	not-in-aosp	
+com.android.documentsui.flags.use_file_operation_speedometer	system	not-in-aosp	
+com.android.documentsui.flags.use_peek_preview_ro	system	declared	packages/apps/DocumentsUI/flags.aconfig
+com.android.documentsui.flags.use_updated_last_modified_filters	system	not-in-aosp	
+com.android.graphics.bootanimation.flags.boot_animation_2026	system	not-in-aosp	
+com.android.graphics.bootanimation.flags.multithreaded_image_load	system	not-in-aosp	
+com.android.graphics.egl.flags.egl_clean_up_angle_name_space	system	not-in-aosp	
+com.android.graphics.egl.flags.egl_loader_cache_loaded_driver_suffix	system	not-in-aosp	
+com.android.graphics.flags.cache_ashmem_bitmaps	system	not-in-aosp	
+com.android.graphics.flags.downscale_uri_icons	system	not-in-aosp	
+com.android.graphics.hwui.flags.bigger_shader_cache	system	not-in-aosp	
+com.android.graphics.libgui.flags.allocate_buffer_priority_inheritance	system	declared	frameworks/native/libs/gui/libgui_flags.aconfig
+com.android.graphics.libgui.flags.wb_ring_buffer	system	declared	frameworks/native/libs/gui/libgui_flags.aconfig
+com.android.graphics.surfaceflinger.flags.bugfix_apply_selected_mode_on_hotplug	system	not-in-aosp	
+com.android.graphics.surfaceflinger.flags.bugfix_clear_content_requirements	system	not-in-aosp	
+com.android.graphics.surfaceflinger.flags.bugfix_on_display_mode_changed_display_id	system	not-in-aosp	
+com.android.graphics.surfaceflinger.flags.color_transform_box_shadows_and_border	system	declared	frameworks/native/services/surfaceflinger/surfaceflinger_flags_new.aconfig
+com.android.graphics.surfaceflinger.flags.exempt_cursor_layer_caching	system	not-in-aosp	
+com.android.graphics.surfaceflinger.flags.graphite_renderengine_preview_rollout	system	declared	frameworks/native/services/surfaceflinger/surfaceflinger_flags_new.aconfig
+com.android.graphics.surfaceflinger.flags.hwc_buffer_override_skip	system	declared	frameworks/native/services/surfaceflinger/surfaceflinger_flags_new.aconfig
+com.android.graphics.surfaceflinger.flags.layer_caching_allow_excluded_protected_layers	system	not-in-aosp	
+com.android.graphics.surfaceflinger.flags.layer_caching_geometry_changes	system	not-in-aosp	
+com.android.graphics.surfaceflinger.flags.layer_caching_new_layer_exclusion	system	not-in-aosp	
+com.android.graphics.surfaceflinger.flags.mirror_with_crop	system	declared	frameworks/native/services/surfaceflinger/surfaceflinger_flags_new.aconfig
+com.android.graphics.surfaceflinger.flags.modeset_multi_display	system	declared	frameworks/native/services/surfaceflinger/surfaceflinger_flags_new.aconfig
+com.android.graphics.surfaceflinger.flags.use_last_vsync_predict	system	declared	frameworks/native/services/surfaceflinger/surfaceflinger_flags_new.aconfig
+com.android.graphics.surfaceflinger.flags.wb_framebuffersurface2	system	declared	frameworks/native/services/surfaceflinger/surfaceflinger_flags_new.aconfig
+com.android.hardware.input.enable_close_window_meta_w_bugfix	system	not-in-aosp	
+com.android.hardware.input.enable_contextual_cursor_desktop_entrypoints	system	declared	frameworks/base/core/java/android/hardware/input/input_framework.aconfig
+com.android.hardware.input.enable_ctrl_w_fallback	system	not-in-aosp	
+com.android.hardware.input.enable_keyboard_a11y_confirmation_dialogs	system	not-in-aosp	
+com.android.hardware.input.enable_new_26q3_keycodes	system	not-in-aosp	
+com.android.hardware.input.enable_notes_role_bookmarks_kb_shortcut	system	not-in-aosp	
+com.android.hardware.input.enable_poem_input_customization	system	declared	frameworks/base/core/java/android/hardware/input/input_framework.aconfig
+com.android.hardware.input.hid_api	system	declared	frameworks/base/core/java/android/hardware/input/input_framework.aconfig
+com.android.hardware.input.meta_questions_shortcut	system	not-in-aosp	
+com.android.hardware.input.support_poem_input_customization	system	not-in-aosp	
+com.android.input.flags.cancel_touches_on_topology_change	system	not-in-aosp	
+com.android.input.flags.enable_attention_service_apis	system	declared	frameworks/native/libs/input/input_flags.aconfig
+com.android.input.flags.enable_read_input_device_wakeup_event_count	system	not-in-aosp	
+com.android.input.flags.fix_mouse_pointer_capture_consistency	system	not-in-aosp	
+com.android.input.flags.only_reconfigure_merged_devices_once	system	not-in-aosp	
+com.android.input.flags.stop_sending_device_reset	system	not-in-aosp	
+com.android.intentresolver.desktop_ui	system	declared	packages/modules/IntentResolver/aconfig/FeatureFlags.aconfig
+com.android.intentresolver.fix_reported_bounds_rect	system	not-in-aosp	
+com.android.intentresolver.include_link_sticky_checkbox	system	declared	packages/modules/IntentResolver/aconfig/FeatureFlags.aconfig
+com.android.intentresolver.tap_share_notification	system	not-in-aosp	
+com.android.internal.content.storage.flags.esp_performance_optimizations	system	not-in-aosp	
+com.android.internal.telephony.flags.cancel_obsolete_data_retry_on_apn_change	system	not-in-aosp	
+com.android.internal.telephony.flags.disconnect_other_domain_calls_on_emergency_redial	system	not-in-aosp	
+com.android.internal.telephony.flags.downloadable_subscription_include_carrier_identifier_internal	system	declared	frameworks/opt/telephony/flags/uicc.aconfig
+com.android.internal.telephony.flags.dsda_adhoc_filtering	system	not-in-aosp	
+com.android.internal.telephony.flags.enable_ons_cleanup	system	declared	frameworks/opt/telephony/flags/subscription.aconfig
+com.android.internal.telephony.flags.enforce_emergency_exit_multi_call	system	declared	frameworks/opt/telephony/flags/domainselection.aconfig
+com.android.internal.telephony.flags.fix_get_cfnry_time_when_timer_not_supported	system	not-in-aosp	
+com.android.internal.telephony.flags.fix_ims_pdn_disconnect_upon_sim_removal	system	not-in-aosp	
+com.android.internal.telephony.flags.fix_sql_injection_hbpcd	system	declared	frameworks/opt/telephony/flags/messaging.aconfig
+com.android.internal.telephony.flags.ignore_incall_mmi_for_emergency	system	declared	frameworks/opt/telephony/flags/calling.aconfig
+com.android.internal.telephony.flags.init_rcs_provisioning_monitor_async	system	declared	frameworks/opt/telephony/flags/ims.aconfig
+com.android.internal.telephony.flags.key_2g_toggle_emergency	system	not-in-aosp	
+com.android.internal.telephony.flags.make_metered_unmetered_configurable_for_slice_network	system	not-in-aosp	
+com.android.internal.telephony.flags.new_satellite_icon	system	declared	frameworks/opt/telephony/flags/satellite.aconfig
+com.android.internal.telephony.flags.offload_startup_binder_calls	system	declared	frameworks/opt/telephony/flags/misc.aconfig
+com.android.internal.telephony.flags.ons_handler_thread	system	declared	frameworks/opt/telephony/flags/subscription.aconfig
+com.android.internal.telephony.flags.prevent_dialing_during_resume	system	not-in-aosp	
+com.android.internal.telephony.flags.refactor_uicc_profile_to_use_correct_card_state	system	not-in-aosp	
+com.android.internal.telephony.flags.satellite_data_metrics_enhancement	system	declared	frameworks/opt/telephony/flags/satellite.aconfig
+com.android.internal.telephony.flags.stk_sms_packing	system	not-in-aosp	
+com.android.internal.telephony.flags.stk_sms_tp_mr_handling	system	not-in-aosp	
+com.android.internal.telephony.flags.support_same_uri_conference_srvcc	system	declared	frameworks/opt/telephony/flags/calling.aconfig
+com.android.internal.telephony.flags.synchronous_rcs_uce_callback_registration	system	not-in-aosp	
+com.android.internal.telephony.flags.use_emergency_over_ims_supported_3gpp_network_types_for_emergency_sms_on_nr	system	not-in-aosp	
+com.android.internal.widget.flags.explore_by_touch_stop_overwriting_client_parent	system	not-in-aosp	
+com.android.launcher3.all_apps_surface	system_ext	declared	packages/apps/Launcher3/aconfig/launcher.aconfig
+com.android.launcher3.bind_model_using_repository	system_ext	declared	packages/apps/Launcher3/aconfig/launcher.aconfig
+com.android.launcher3.block_trackpad_interruption_to_overview	system_ext	not-in-aosp	
+com.android.launcher3.blur_on_more_surfaces	system_ext	declared	packages/apps/Launcher3/aconfig/launcher.aconfig
+com.android.launcher3.delay_handoff_recents_targets	system_ext	not-in-aosp	
+com.android.launcher3.dismiss_widget_picker_as_system_dialog	system_ext	not-in-aosp	
+com.android.launcher3.enable_autohidden_desktop_taskbar_insets_fix	system_ext	not-in-aosp	
+com.android.launcher3.enable_collapse_sysui_panels_for_quick_actions	system_ext	not-in-aosp	
+com.android.launcher3.enable_collapse_sysui_panels_on_taskbar_click	system_ext	declared	packages/apps/Launcher3/aconfig/launcher.aconfig
+com.android.launcher3.enable_compose_for_options_popup_menu_dialog	system_ext	declared	packages/apps/Launcher3/aconfig/launcher.aconfig
+com.android.launcher3.enable_cue_bar_desktop_form_factor	system_ext	declared	packages/apps/Launcher3/aconfig/launcher.aconfig
+com.android.launcher3.enable_desktop_all_apps_uninstall	system_ext	not-in-aosp	
+com.android.launcher3.enable_desktop_default_widget	system_ext	not-in-aosp	
+com.android.launcher3.enable_drag_start_end_multi_dispatch	system_ext	declared	packages/apps/Launcher3/aconfig/launcher.aconfig
+com.android.launcher3.enable_focus_rings	system_ext	not-in-aosp	
+com.android.launcher3.enable_home_as_default_desk_for_recents	system_ext	not-in-aosp	
+com.android.launcher3.enable_home_screen_files_copy_paste	system_ext	declared	packages/apps/Launcher3/aconfig/launcher.aconfig
+com.android.launcher3.enable_home_screen_files_file_operation_service_proxy	system_ext	not-in-aosp	
+com.android.launcher3.enable_home_screen_files_perf_mitigations	system_ext	not-in-aosp	
+com.android.launcher3.enable_home_screen_files_renaming	system_ext	declared	packages/apps/Launcher3/aconfig/launcher.aconfig
+com.android.launcher3.enable_keyboard_quick_switch_thumbnail_loading_fix	system_ext	not-in-aosp	
+com.android.launcher3.enable_options_popup_menu_ui_v2	system_ext	not-in-aosp	
+com.android.launcher3.enable_papercut_hit_context_menu_changes	system_ext	not-in-aosp	
+com.android.launcher3.enable_previously_appeared_task_view_check	system_ext	not-in-aosp	
+com.android.launcher3.enable_recents_transition_tuning	system_ext	not-in-aosp	
+com.android.launcher3.enable_recents_window_livetile_fix	system_ext	not-in-aosp	
+com.android.launcher3.enable_recents_window_proto_log	system_ext	declared	packages/apps/Launcher3/aconfig/launcher.aconfig
+com.android.launcher3.enable_state_manager_proto_log	system_ext	declared	packages/apps/Launcher3/aconfig/launcher.aconfig
+com.android.launcher3.enable_swipe_handler_state_manager_transition_handling	system_ext	not-in-aosp	
+com.android.launcher3.enable_system_drag_of_wrapped_item_info	system_ext	not-in-aosp	
+com.android.launcher3.enable_taskbar_customization	system_ext	declared	packages/apps/Launcher3/aconfig/launcher.aconfig
+com.android.launcher3.enable_taskbar_icon_desktop_clicks	system_ext	declared	packages/apps/Launcher3/aconfig/launcher.aconfig
+com.android.launcher3.enable_taskbar_remote_apps	system_ext	not-in-aosp	
+com.android.launcher3.enable_taskbar_ui_thread	system_ext	declared	packages/apps/Launcher3/aconfig/launcher.aconfig
+com.android.launcher3.enable_widgets_section_in_options_menu	system_ext	declared	packages/apps/Launcher3/aconfig/launcher.aconfig
+com.android.launcher3.enable_workspace_animation_for_overview_transition_from_desk	system_ext	not-in-aosp	
+com.android.launcher3.expandable_long_press_menu	system_ext	declared	packages/apps/Launcher3/aconfig/launcher.aconfig
+com.android.launcher3.fallback_reveal_animation	system_ext	declared	packages/apps/Launcher3/aconfig/launcher.aconfig
+com.android.launcher3.finish_synthetic_transition_in_overview	system_ext	not-in-aosp	
+com.android.launcher3.fix_notification_shade_integration	system_ext	not-in-aosp	
+com.android.launcher3.force_reload_stale_thumbnails	system_ext	not-in-aosp	
+com.android.launcher3.hide_back_button_settings	system_ext	not-in-aosp	
+com.android.launcher3.refactor_empty_desk_launch	system_ext	not-in-aosp	
+com.android.launcher3.reject_overview_to_home_gesture	system_ext	not-in-aosp	
+com.android.launcher3.reparent_overview_overlay_on_home_task_overlay	system_ext	not-in-aosp	
+com.android.launcher3.show_task_description_icon_in_taskbar	system_ext	not-in-aosp	
+com.android.launcher3.snackbar_in_compose	system_ext	not-in-aosp	
+com.android.launcher3.update_trackpad_gesture_overview_transition	system_ext	not-in-aosp	
+com.android.libsnapshot.memory_efficient_data_structures	system	declared	system/fs/fs_mgr/libsnapshot/flags/libsnapshot_flags.aconfig
+com.android.media.audio.camera_shutter_sound	system	declared	frameworks/av/media/audio/aconfig/audio.aconfig
+com.android.media.audio.mute_not_aliased_pc	system	not-in-aosp	
+com.android.media.audioclient.audiotrack_set_offload_end_of_stream	system	not-in-aosp	
+com.android.media.flags.fallback_to_route_address_for_sys_mr2_provider_route_selection	system	not-in-aosp	
+com.android.media.flags.make_device_selection_behaviour_respect_route_listing_preference	system	declared	frameworks/base/media/java/android/media/flags/media_better_together.aconfig
+com.android.media.flags.move_output_switcher_calls_to_background_thread	system	declared	frameworks/base/media/java/android/media/flags/media_better_together.aconfig
+com.android.media.playback.flags.add_uid_to_media_metrics_playback	system	not-in-aosp	
+com.android.printspooler.flags.enable_additional_printing_telemetry	system	not-in-aosp	
+com.android.printspooler.flags.enable_live_update_notifications	system	not-in-aosp	
+com.android.printspooler.flags.expand_options_by_default	system	not-in-aosp	
+com.android.printspooler.flags.raise_notification_importance	system	not-in-aosp	
+com.android.printspooler.flags.setup_ui_fixes	system	not-in-aosp	
+com.android.server.accessibility.always_disable_magnification_on_drag_end	system	not-in-aosp	
+com.android.server.accessibility.bold_text_retained_from_suw_after_restore	system	not-in-aosp	
+com.android.server.accessibility.enable_color_daltonizer_in_suw	system	declared	frameworks/base/services/accessibility/accessibility.aconfig
+com.android.server.accessibility.enable_magnification_hide_settings_button_in_temporary_mode	system	declared	frameworks/base/services/accessibility/accessibility.aconfig
+com.android.server.accessibility.enable_magnification_skip_triple_tap_on_ime_and_panel	system	not-in-aosp	
+com.android.server.accessibility.fix_a11y_service_connection_race	system	not-in-aosp	
+com.android.server.accessibility.fix_dragging_state_sync	system	not-in-aosp	
+com.android.server.accessibility.fix_edge_swipe_touch_exploration	system	not-in-aosp	
+com.android.server.accessibility.fix_full_screen_magnification_event_time_corruption	system	declared	frameworks/base/services/accessibility/accessibility.aconfig
+com.android.server.accessibility.fix_touch_explorer_state_lockup_on_cancel	system	not-in-aosp	
+com.android.server.accessibility.send_hover_exit_on_gesture_interruption	system	declared	frameworks/base/services/accessibility/accessibility.aconfig
+com.android.server.adb.flags.use_pairing_server_v2	system	declared	frameworks/base/services/core/jni/adb/flags.aconfig
+com.android.server.am.cleanup_inactive_broadcast_loopers	system	not-in-aosp	
+com.android.server.am.enable_capability_controller_computation	system	declared	frameworks/base/services/core/java/com/android/server/am/flags.aconfig
+com.android.server.am.enable_long_method_tracing_on_anr_timer	system	declared	frameworks/base/services/core/java/com/android/server/am/flags.aconfig
+com.android.server.am.encapsulate_cur_oom_adj	system	declared	frameworks/base/services/core/java/com/android/server/am/flags.aconfig
+com.android.server.am.encapsulate_cur_proc_state	system	declared	frameworks/base/services/core/java/com/android/server/am/flags.aconfig
+com.android.server.am.explicit_cpu_capability_for_top_processes	system	declared	frameworks/base/services/core/java/com/android/server/am/flags.aconfig
+com.android.server.am.remove_set_process_important	system	not-in-aosp	
+com.android.server.am.set_initial_oom_score_adj	system	declared	frameworks/base/services/core/java/com/android/server/am/flags.aconfig
+com.android.server.am.set_initial_oom_score_adj_for_type_added_application	system	declared	frameworks/base/services/core/java/com/android/server/am/flags.aconfig
+com.android.server.am.set_initial_oom_score_adj_for_type_broadcast	system	declared	frameworks/base/services/core/java/com/android/server/am/flags.aconfig
+com.android.server.am.set_initial_oom_score_adj_for_type_link_failed	system	declared	frameworks/base/services/core/java/com/android/server/am/flags.aconfig
+com.android.server.am.set_initial_oom_score_adj_for_type_on_hold	system	declared	frameworks/base/services/core/java/com/android/server/am/flags.aconfig
+com.android.server.am.validate_broadcast_finish_receiver_caller	system	not-in-aosp	
+com.android.server.backup.enable_skip_restore_finished_when_null_agent	system	not-in-aosp	
+com.android.server.backup.enable_synchronous_restore_session_cleanup	system	declared	frameworks/base/services/backup/flags.aconfig
+com.android.server.clipboard.trusted_paste_key_events_enabled	system	not-in-aosp	
+com.android.server.connectivity.sync_airplane_mode_with_watches	system	declared	frameworks/base/services/core/java/com/android/server/connectivity/flags.aconfig
+com.android.server.deviceidle.quick_doze_on_lid_close	system	declared	frameworks/base/apex/jobscheduler/service/aconfig/device_idle.aconfig
+com.android.server.deviceidle.support_allow_while_idle_quota_zero	system	declared	frameworks/base/apex/jobscheduler/service/aconfig/device_idle.aconfig
+com.android.server.display.feature.flags.atomic_mode_set_aggregation_enabled	system	not-in-aosp	
+com.android.server.display.feature.flags.atomic_mode_set_downgrade_enabled	system	not-in-aosp	
+com.android.server.display.feature.flags.enable_global_default_work_durations	system	not-in-aosp	
+com.android.server.display.feature.flags.force_projection_update_on_external_displays	system	not-in-aosp	
+com.android.server.display.feature.flags.logical_display_event_controller_enabled	system	not-in-aosp	
+com.android.server.display.feature.flags.refactor_persistent_data_store	system	declared	frameworks/base/services/core/java/com/android/server/display/feature/display_flags.aconfig
+com.android.server.display.feature.flags.reload_topologies_current_thread	system	not-in-aosp	
+com.android.server.display.feature.flags.skip_transition_phase_for_docked_device_state	system	not-in-aosp	
+com.android.server.display.feature.flags.smart_adaptive_brightness	system	declared	frameworks/base/services/core/java/com/android/server/display/feature/display_flags.aconfig
+com.android.server.flags.enable_hsum_mount_restrictions_for_pluggables	system	not-in-aosp	
+com.android.server.flags.parallelize_onbootphase	system	declared	frameworks/base/services/core/java/com/android/server/flags/services.aconfig
+com.android.server.job.desktop_idleness_tracker_enabled	system	not-in-aosp	
+com.android.server.job.intern_job_names_in_perfetto	system	not-in-aosp	
+com.android.server.notification.favorites_incoming_call_lights	system	declared	frameworks/base/services/core/java/com/android/server/notification/flags.aconfig
+com.android.server.notification.notification_vibration_in_sound_uri	system	declared	frameworks/base/services/core/java/com/android/server/notification/flags.aconfig
+com.android.server.policy.brightness_keys_target_default_display	system	not-in-aosp	
+com.android.server.power.feature.flags.defer_low_power_standby_system_ready	system	not-in-aosp	
+com.android.server.power.feature.flags.register_timeout_policy_listeners_when_system_ready	system	not-in-aosp	
+com.android.server.power.optimization.measure_energy_consumed_results	system	not-in-aosp	
+com.android.server.power.optimization.x86_cpu_energy_attribution	system	declared	frameworks/base/services/core/java/com/android/server/power/stats/flags.aconfig
+com.android.server.stats.add_webview_pin_quota_puller	system	declared	frameworks/base/services/core/java/com/android/server/stats/stats_flags.aconfig
+com.android.server.ui_latency_stats.ui_latency_stats_service	system	declared	frameworks/base/services/core/java/com/android/server/uilatencystats/flags.aconfig
+com.android.server.usb.flags.enable_camera_policy_check	system	declared	frameworks/base/services/usb/java/com/android/server/usb/flags/usb_flags.aconfig
+com.android.server.usb.flags.enable_usb4_mode_check	system	not-in-aosp	
+com.android.server.usb.flags.enable_usbauth_async_io	system	not-in-aosp	
+com.android.server.usb.flags.wait_for_alsa_scan_results_if_has_audio_interface	system	declared	frameworks/base/services/usb/java/com/android/server/usb/flags/usb_flags.aconfig
+com.android.server.utils.long_method_trace	system	declared	frameworks/base/services/core/java/com/android/server/utils/flags.aconfig
+com.android.settings.accessibility.enable_a11y_menu_survey	system_ext	not-in-aosp	
+com.android.settings.accessibility.enable_camera_category	system_ext	not-in-aosp	
+com.android.settings.accessibility.exclude_unsupported_shortcuts_from_tutorial	system_ext	not-in-aosp	
+com.android.settings.accessibility.hearing_devices_granular_output_routing_media	system_ext	not-in-aosp	
+com.android.settings.flags.background_refresh_without_pending_result	system_ext	not-in-aosp	
+com.android.settings.flags.catalyst_migration_26q3	system_ext	declared	packages/apps/Settings/aconfig/catalyst/miscs.aconfig
+com.android.settings.flags.choose_lock_password_keyboard_navigation	system_ext	not-in-aosp	
+com.android.settings.flags.default_focus_dialog_fingerprint_enroll	system_ext	not-in-aosp	
+com.android.settings.flags.enable_binary_transparency_in_safety_center	system_ext	declared	packages/apps/Settings/aconfig/settings_safety_center.aconfig
+com.android.settings.flags.enable_satellite_toggle	system_ext	declared	packages/apps/Settings/aconfig/settings_satellite_enable_toggle_flag_declarations.aconfig
+com.android.settings.flags.enable_search_in_primary_pane	system_ext	not-in-aosp	
+com.android.settings.flags.enable_updated_format_confirm	system_ext	not-in-aosp	
+com.android.settings.flags.face_settings_crash_fix	system_ext	not-in-aosp	
+com.android.settings.flags.other_users_storage_bugfix	system_ext	not-in-aosp	
+com.android.settings.flags.owl_v2_enabled	system_ext	declared	packages/apps/Settings/aconfig/settings_globalintl_flag_declarations.aconfig
+com.android.settings.flags.receive_troubleshooting_message_on_internet_dialog	system_ext	not-in-aosp	
+com.android.settings.flags.setup_choose_lock_generic_theme_bugfix	system_ext	not-in-aosp	
+com.android.settings.flags.show_footer_buttons_on_password_confirm	system_ext	declared	packages/apps/Settings/aconfig/settings_desktop_flag_declarations.aconfig
+com.android.settings.flags.show_selected_user_info_user_details_settings	system_ext	not-in-aosp	
+com.android.settings.flags.skip_onboarding_when_same_set	system_ext	not-in-aosp	
+com.android.settings.flags.storage_summary_percentage_alignment	system_ext	declared	packages/apps/Settings/aconfig/settings_flag_declarations.aconfig
+com.android.settings.flags.wifi_dialog_transparent	system_ext	not-in-aosp	
+com.android.settingslib.flags.enable_focus_rings	system	not-in-aosp	
+com.android.settingslib.flags.enable_focus_rings_read_only	system	not-in-aosp	
+com.android.settingslib.flags.suppress_unfocused_ripple_read_only	system	not-in-aosp	
+com.android.systemui.accessibility_key_launch_suw_assistive_options_in_oobe	system	not-in-aosp	
+com.android.systemui.allow_user_activity_on_keyguard	system	not-in-aosp	
+com.android.systemui.alternate_bouncer_handler_thread	system	not-in-aosp	
+com.android.systemui.animation_library_dynamic_target_resolution	system	declared	frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+com.android.systemui.animation_library_override_dialog_background_opacity	system	not-in-aosp	
+com.android.systemui.animation_library_shared_container	system	not-in-aosp	
+com.android.systemui.async_notification_launch_ipc	system	declared	frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+com.android.systemui.block_automatic_keyguard_autofocus	system	not-in-aosp	
+com.android.systemui.blur_on_more_surfaces	system	declared	frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+com.android.systemui.clipboard_overlay_multiuser	system	declared	frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+com.android.systemui.compose_focus_rings_on_lock_screen	system	not-in-aosp	
+com.android.systemui.controls_unbind_after_inactivity	system	not-in-aosp	
+com.android.systemui.controls_validate_preferred_packages	system	not-in-aosp	
+com.android.systemui.default_hun_expansion	system	declared	frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+com.android.systemui.depth_controller_cleanup	system	not-in-aosp	
+com.android.systemui.desktop_av_controls_icons	system	not-in-aosp	
+com.android.systemui.desktop_status_bar_taps_close_all_apps	system	not-in-aosp	
+com.android.systemui.disable_dream_suppression_v2	system	not-in-aosp	
+com.android.systemui.disable_status_bar_focus_restoration	system	not-in-aosp	
+com.android.systemui.dismiss_action_does_not_run_cancel_action	system	not-in-aosp	
+com.android.systemui.dream_occlusion_refactor	system	not-in-aosp	
+com.android.systemui.dual_shade_nssl_expansion_fix	system	not-in-aosp	
+com.android.systemui.enable_compose_external_display_dialog	system	declared	frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+com.android.systemui.enable_desktop_calendar_overlay	system	not-in-aosp	
+com.android.systemui.enable_desktop_heads_up_appearance_controller	system	not-in-aosp	
+com.android.systemui.enable_material_focus_rings	system	not-in-aosp	
+com.android.systemui.enable_note_in_action_corner	system	declared	frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+com.android.systemui.enable_note_qs_tile	system	declared	frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+com.android.systemui.enable_qs_tile_tooltips	system	declared	frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+com.android.systemui.enable_short_content_overscroll_unconditionally	system	not-in-aosp	
+com.android.systemui.enabled_notes_lockscreen_consent_flow	system	not-in-aosp	
+com.android.systemui.end_going_away_transition_on_lockscreen_shown	system	not-in-aosp	
+com.android.systemui.face_auth_avoid_dropped_statuses	system	not-in-aosp	
+com.android.systemui.face_unlock_default_ripple_location_fix	system	not-in-aosp	
+com.android.systemui.face_unlock_retry_button_on_bouncer	system	not-in-aosp	
+com.android.systemui.fix_predictive_back_clipping	system	declared	frameworks/base/packages/SystemUI/aconfig/predictive_back.aconfig
+com.android.systemui.flexiglass_aosp_slice_view	system	not-in-aosp	
+com.android.systemui.flexiglass_report_expensive_frames	system	not-in-aosp	
+com.android.systemui.floating_menu_adjust_cutout_avoidance	system	declared	frameworks/base/packages/SystemUI/aconfig/accessibility.aconfig
+com.android.systemui.floating_menu_layout_update	system	not-in-aosp	
+com.android.systemui.floating_menu_on_headless_user	system	declared	frameworks/base/packages/SystemUI/aconfig/accessibility.aconfig
+com.android.systemui.focus_anything_on_bouncer_2	system	not-in-aosp	
+com.android.systemui.handle_boot_completed_on_separate_thread	system	declared	frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+com.android.systemui.hide_navigation_bars_on_lockscreen_if_bouncer_has_back_button	system	not-in-aosp	
+com.android.systemui.hide_sign_out_button_when_user_setup_is_not_complete	system	not-in-aosp	
+com.android.systemui.hsu_qs_changes	system	declared	frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+com.android.systemui.hsu_qs_disable_settings_icon_on_detail_panels	system	not-in-aosp	
+com.android.systemui.hun_rendering_without_blur_fix	system	not-in-aosp	
+com.android.systemui.hun_timer_pause_on_hover	system	declared	frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+com.android.systemui.inline_notification_settings_access	system	declared	frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+com.android.systemui.internet_dialog_delegate_legacy_deprecation	system	declared	frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+com.android.systemui.keyguard_surface_behind_animation_enabled_config	system	not-in-aosp	
+com.android.systemui.launch_default_notes_app_in_activity	system	not-in-aosp	
+com.android.systemui.lockscreen_gone_visibility_race_fix	system	not-in-aosp	
+com.android.systemui.magnification_fullscreen_border_fix_corners	system	not-in-aosp	
+com.android.systemui.media_compose_compressed_default_transition	system	not-in-aosp	
+com.android.systemui.media_compose_surface_effects	system	not-in-aosp	
+com.android.systemui.media_output_dialog_use_display_context	system	not-in-aosp	
+com.android.systemui.media_output_dialog_volume_lockup_fix	system	not-in-aosp	
+com.android.systemui.nesteddraggable_gesture_pickup	system	declared	frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+com.android.systemui.nesteddraggable_touchpad_pan_drags	system	not-in-aosp	
+com.android.systemui.notification_accessible_dismiss_button	system	not-in-aosp	
+com.android.systemui.notification_animated_action_style_2026	system	declared	frameworks/base/packages/SystemUI/aconfig/notifications.aconfig
+com.android.systemui.notification_empty_shade_in_compose	system	not-in-aosp	
+com.android.systemui.notification_section_clear_button_hover_fix	system	not-in-aosp	
+com.android.systemui.notification_storage_alerts_channel	system	declared	frameworks/base/packages/SystemUI/aconfig/notifications.aconfig
+com.android.systemui.notification_summarization_allow_animation	system	declared	frameworks/base/packages/SystemUI/aconfig/notifications.aconfig
+com.android.systemui.nssl_touch_dispatch_fix	system	declared	frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+com.android.systemui.press_any_key_to_access_bouncer_2	system	declared	frameworks/base/packages/SystemUI/aconfig/users_and_accounts.aconfig
+com.android.systemui.privacy_indicator_oobe_hide	system	not-in-aosp	
+com.android.systemui.qs_cast_tile_skip_wifi_check	system	declared	frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+com.android.systemui.qs_edit_mode_tooltip_hover_dismiss	system	not-in-aosp	
+com.android.systemui.qs_ime_tile	system	not-in-aosp	
+com.android.systemui.qs_immediate_mouse_drag	system	not-in-aosp	
+com.android.systemui.qs_security_dialog_use_themed_context	system	not-in-aosp	
+com.android.systemui.qs_toolbar_tweaks	system	not-in-aosp	
+com.android.systemui.scene_bounds_update_on_config_change	system	not-in-aosp	
+com.android.systemui.scene_filter_multiple_touch_streams	system	not-in-aosp	
+com.android.systemui.screenshot_exclude_layers	system	not-in-aosp	
+com.android.systemui.screenshot_remove_nonforced_sound	system	declared	frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+com.android.systemui.scroll_shade_on_bottom_notif_expand	system	not-in-aosp	
+com.android.systemui.shade_displays_mirror_display_multi_user	system	not-in-aosp	
+com.android.systemui.share_screen_privacy_indicator	system	not-in-aosp	
+com.android.systemui.shared.brightness_system_ui_dialog	system	not-in-aosp	
+com.android.systemui.shared.enable_lockscreen_shortcut_enablement_dialog_customization	system	not-in-aosp	
+com.android.systemui.shared.enable_recents_in_taskbar	system	declared	frameworks/libs/systemui/aconfig/systemui.aconfig
+com.android.systemui.shared.enable_surface_shadow	system	not-in-aosp	
+com.android.systemui.shared.notification_sound_enabled_preference	system	not-in-aosp	
+com.android.systemui.shared.selective_dialog_taskbar_stash	system	not-in-aosp	
+com.android.systemui.shortcut_helper_dialog	system	not-in-aosp	
+com.android.systemui.show_language_code_on_bouncer	system	not-in-aosp	
+com.android.systemui.start_on_gone_scene_if_no_lockscreen	system	declared	frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+com.android.systemui.status_bar_event_forwarding_modernization	system	declared	frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+com.android.systemui.status_bar_is_connected_display_chip_controlled_by_config	system	declared	frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+com.android.systemui.status_bar_system_status_icons_in_compose	system	declared	frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+com.android.systemui.status_icons_in_compose_refresh	system	declared	frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+com.android.systemui.stl_fling_animation_consume_overshoot	system	declared	frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+com.android.systemui.stl_fling_delegate_use_target_content	system	not-in-aosp	
+com.android.systemui.stl_fling_dynamic_spring	system	not-in-aosp	
+com.android.systemui.stl_no_transition_read_during_element_composition	system	not-in-aosp	
+com.android.systemui.stl_remove_canceled_transition_filtration	system	not-in-aosp	
+com.android.systemui.sync_note_lockscreen_shortcut_with_app_selection	system	not-in-aosp	
+com.android.systemui.udfps_dedicated_window_thread	system	not-in-aosp	
+com.android.systemui.updated_media_chip	system	not-in-aosp	
+com.android.systemui.upright_charging_dreams_setup	system	declared	frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+com.android.systemui.use_android_ui_dispatcher	system	declared	frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+com.android.systemui.use_on_device_entered_flow	system	not-in-aosp	
+com.android.systemui.volume_dialog_horizontal_no_buttons	system	not-in-aosp	
+com.android.systemui.wakefulness_events_shared_flow	system	declared	frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+com.android.systemui.wakefulness_for_animations	system	declared	frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+com.android.systemui.wallpaper_zoom_enabled_config	system	not-in-aosp	
+com.android.text.flags.use_region_for_font_fallback	system	not-in-aosp	
+com.android.wallpaper.enable_effect_for_cat_smile	system_ext	declared	packages/apps/WallpaperPicker2/aconfig/customization_picker.aconfig
+com.android.wallpaper.enable_focus_rings	system_ext	not-in-aosp	
+com.android.wallpaper.refactor_wallpaper_info_flag	system_ext	declared	packages/apps/WallpaperPicker2/aconfig/customization_picker.aconfig
+com.android.wallpaper.refactor_wallpaper_preview_screen_flag	system_ext	declared	packages/apps/WallpaperPicker2/aconfig/customization_picker.aconfig
+com.android.window.flags.activity_start_interceptor_speedbumps	system	declared	frameworks/base/core/java/android/window/flags/windowing_sdk.aconfig
+com.android.window.flags.add_bg_color_for_transparent_bubbles	system	declared	frameworks/base/core/java/android/window/flags/windowing_sdk.aconfig
+com.android.window.flags.adjust_dimmer_on_visible_token	system	not-in-aosp	
+com.android.window.flags.affect_system_bar_during_transition	system	not-in-aosp	
+com.android.window.flags.app_compat_properties_caching	system	not-in-aosp	
+com.android.window.flags.appheader_launch_color_bugfix	system	declared	frameworks/base/core/java/android/window/flags/lse_desktop_experience.aconfig
+com.android.window.flags.attach_client_surface_with_sync	system	not-in-aosp	
+com.android.window.flags.backnav_minimize_on_close	system	not-in-aosp	
+com.android.window.flags.camera_compat_enable_simulate_requested_orientation_override	system	not-in-aosp	
+com.android.window.flags.camera_compat_ignore_requested_orientation_allowed	system	declared	frameworks/base/core/java/android/window/flags/large_screen_experiences_app_compat.aconfig
+com.android.window.flags.camera_compat_landscape_opt_in	system	not-in-aosp	
+com.android.window.flags.camera_compat_single_front_camera_treatment	system	not-in-aosp	
+com.android.window.flags.camera_compat_update_treatment_on_rotation	system	declared	frameworks/base/core/java/android/window/flags/large_screen_experiences_app_compat.aconfig
+com.android.window.flags.can_control_touch_mode_api	system	not-in-aosp	
+com.android.window.flags.consolidate_remove_starting_window_from_task	system	declared	frameworks/base/core/java/android/window/flags/windowing_frontend.aconfig
+com.android.window.flags.deactivate_desk_on_home_toback	system	not-in-aosp	
+com.android.window.flags.desktop_minimize_last_task_bugfix	system	declared	frameworks/base/core/java/android/window/flags/lse_desktop_experience.aconfig
+com.android.window.flags.desktop_minimize_multiple_tasks_bugfix	system	not-in-aosp	
+com.android.window.flags.desktop_scrim_always_use_altered_task_bounds_bugfix	system	not-in-aosp	
+com.android.window.flags.desktop_scrim_animation_driven_maximize	system	not-in-aosp	
+com.android.window.flags.desktop_scrim_display_layout_change_transition_bugfix	system	not-in-aosp	
+com.android.window.flags.desktop_scrim_move_to_display_bugfix	system	not-in-aosp	
+com.android.window.flags.desktop_scrim_non_resizable_maximize_bugfix	system	not-in-aosp	
+com.android.window.flags.desktop_scrim_pass_pending_task_bounds_on_desk_activation	system	not-in-aosp	
+com.android.window.flags.desktop_scrim_stable_bounds_listener_bugfix	system	not-in-aosp	
+com.android.window.flags.desktop_scrim_transition_observer_bugfix	system	not-in-aosp	
+com.android.window.flags.desktop_scrim_use_divider_bar_signal	system	not-in-aosp	
+com.android.window.flags.disable_desktop_windowing_full_immersive	system	not-in-aosp	
+com.android.window.flags.disable_home_animation_when_sliding_to_desk	system	not-in-aosp	
+com.android.window.flags.disable_taskbar_icon_menu_in_split_select	system	not-in-aosp	
+com.android.window.flags.display_aware_autofill_dialog	system	not-in-aosp	
+com.android.window.flags.display_compat_mode_per_app_override	system	not-in-aosp	
+com.android.window.flags.enable_add_window_decoration_to_all_tasks	system	declared	frameworks/base/core/java/android/window/flags/lse_desktop_experience.aconfig
+com.android.window.flags.enable_adjust_restored_bounds_in_fallback_display	system	not-in-aosp	
+com.android.window.flags.enable_alt_tab_desk_switch_animations_in_shell	system	not-in-aosp	
+com.android.window.flags.enable_attach_drag_indicator_to_desk	system	not-in-aosp	
+com.android.window.flags.enable_clipping_remembered_bounds_bugfix	system	not-in-aosp	
+com.android.window.flags.enable_close_task_policy_check_bugfix	system	not-in-aosp	
+com.android.window.flags.enable_consolidated_window_options	system	declared	frameworks/base/core/java/android/window/flags/lse_desktop_experience.aconfig
+com.android.window.flags.enable_custom_header_in_fullscreen	system	not-in-aosp	
+com.android.window.flags.enable_desktop_alttab_lastfocusedtime	system	not-in-aosp	
+com.android.window.flags.enable_desktop_first_policy_fullscreen_refocus_bugfix	system	not-in-aosp	
+com.android.window.flags.enable_desktop_first_policy_keyguard_locked_bugfix	system	not-in-aosp	
+com.android.window.flags.enable_desktop_first_policy_no_active_desk_bugfix	system	not-in-aosp	
+com.android.window.flags.enable_desktop_first_policy_relaunch_bugfix	system	not-in-aosp	
+com.android.window.flags.enable_desktop_first_policy_source_aware_launch_root_bugfix	system	not-in-aosp	
+com.android.window.flags.enable_desktop_focus_observer_pipeline_fix	system	not-in-aosp	
+com.android.window.flags.enable_desktop_task_snapshot_on_focus_loss	system	not-in-aosp	
+com.android.window.flags.enable_desktop_taskbar_autohide_on_homescreen	system	not-in-aosp	
+com.android.window.flags.enable_desktop_taskbar_in_fullscreen_mode	system	declared	frameworks/base/core/java/android/window/flags/lse_desktop_experience.aconfig
+com.android.window.flags.enable_desktop_windowing_mode_modifier_done	system	not-in-aosp	
+com.android.window.flags.enable_disconnect_resize	system	not-in-aosp	
+com.android.window.flags.enable_dynamic_window_decor_task_description	system	not-in-aosp	
+com.android.window.flags.enable_exclude_tiled_tasks_from_remembered_bounds	system	not-in-aosp	
+com.android.window.flags.enable_external_display_connection_while_locked	system	not-in-aosp	
+com.android.window.flags.enable_focus_reset_on_display_removal	system	declared	frameworks/base/core/java/android/window/flags/lse_desktop_experience.aconfig
+com.android.window.flags.enable_freeform_box_shadows_v2	system	declared	frameworks/base/core/java/android/window/flags/lse_desktop_experience.aconfig
+com.android.window.flags.enable_fresh_start_on_reboot	system	not-in-aosp	
+com.android.window.flags.enable_fullscreen_header_animation	system	not-in-aosp	
+com.android.window.flags.enable_fullscreen_in_new_task_preference	system	declared	frameworks/base/core/java/android/window/flags/lse_desktop_experience.aconfig
+com.android.window.flags.enable_fullscreen_to_desk_slide_on_launch	system	not-in-aosp	
+com.android.window.flags.enable_fullscreen_window_controls	system	declared	frameworks/base/core/java/android/window/flags/lse_desktop_experience.aconfig
+com.android.window.flags.enable_handle_menu_below_header	system	not-in-aosp	
+com.android.window.flags.enable_hide_minimize_button_in_fullscreen	system	not-in-aosp	
+com.android.window.flags.enable_home_focus_while_peeking	system	not-in-aosp	
+com.android.window.flags.enable_home_screen_peeking	system	declared	frameworks/base/core/java/android/window/flags/lse_desktop_experience.aconfig
+com.android.window.flags.enable_input_dispatcher_long_method_tracing	system	declared	frameworks/base/core/java/android/window/flags/tracing.aconfig
+com.android.window.flags.enable_interactive_pip_float_over_fullscreen_bugfix	system	not-in-aosp	
+com.android.window.flags.enable_keyboard_shortcut_move_focused_window_to_desk	system	not-in-aosp	
+com.android.window.flags.enable_multi_instance_picker_refresh	system	not-in-aosp	
+com.android.window.flags.enable_no_resize_cursor	system	declared	frameworks/base/core/java/android/window/flags/lse_desktop_experience.aconfig
+com.android.window.flags.enable_pinned_window_trusted_overlay	system	not-in-aosp	
+com.android.window.flags.enable_position_aware_status_bar_hover	system	not-in-aosp	
+com.android.window.flags.enable_preserve_desktop_z_order_on_exit	system	not-in-aosp	
+com.android.window.flags.enable_recents_during_bubbles_mixed_transition	system	not-in-aosp	
+com.android.window.flags.enable_recents_with_always_on_top_tasks_bugfix	system	not-in-aosp	
+com.android.window.flags.enable_rect_maximized_windows	system	not-in-aosp	
+com.android.window.flags.enable_scrim_update_on_fullscreen_task_launch	system	not-in-aosp	
+com.android.window.flags.enable_shell_slide_in_for_running_task_from_taskbar	system	not-in-aosp	
+com.android.window.flags.enable_shrink_window_to_display_size_on_drag	system	not-in-aosp	
+com.android.window.flags.enable_skip_app_header_view_update_during_recents_transitions	system	not-in-aosp	
+com.android.window.flags.enable_slide_to_desk_wallpaper_fix	system	not-in-aosp	
+com.android.window.flags.enable_split_dismiss_animation_v2	system	declared	frameworks/base/core/java/android/window/flags/windowing_frontend.aconfig
+com.android.window.flags.enable_splitscreen_fullscreen_header	system	not-in-aosp	
+com.android.window.flags.enable_stepped_cascading	system	declared	frameworks/base/core/java/android/window/flags/lse_desktop_experience.aconfig
+com.android.window.flags.enable_swipe_down_to_show_fullscreen_header	system	not-in-aosp	
+com.android.window.flags.enable_task_in_another_desk_relaunch_bugfix	system	not-in-aosp	
+com.android.window.flags.enable_task_visibility_during_veiled_resize	system	not-in-aosp	
+com.android.window.flags.enable_taskbar_desk_to_fullscreen_switch	system	not-in-aosp	
+com.android.window.flags.exit_desktop_on_keyguard_occlude_bugfix	system	not-in-aosp	
+com.android.window.flags.extended_seamless_rotation	system	not-in-aosp	
+com.android.window.flags.fallback_wallpaper_dim_amount_bugfix	system	not-in-aosp	
+com.android.window.flags.filter_events_from_irrelevant_devices_in_drag_move_resize	system	declared	frameworks/base/core/java/android/window/flags/lse_desktop_experience.aconfig
+com.android.window.flags.fix_cursor_resize_hitbox	system	not-in-aosp	
+com.android.window.flags.fix_desk_switch_alpha_animation	system	not-in-aosp	
+com.android.window.flags.fix_focus_moved_while_dimming_task	system	not-in-aosp	
+com.android.window.flags.fix_focused_app_desync	system	not-in-aosp	
+com.android.window.flags.fix_multi_window_task_focus_change	system	declared	frameworks/base/core/java/android/window/flags/windowing_sdk.aconfig
+com.android.window.flags.fix_split_veil_glitch	system	not-in-aosp	
+com.android.window.flags.focus_launcher_behind	system	not-in-aosp	
+com.android.window.flags.force_laptop_mode_landscape_rotation	system	not-in-aosp	
+com.android.window.flags.hide_3button_nav_on_external_display	system	not-in-aosp	
+com.android.window.flags.ignore_user_context_changes_for_specific_transitions	system	not-in-aosp	
+com.android.window.flags.ignore_vis_when_desk_activation_bugfix	system	not-in-aosp	
+com.android.window.flags.ignore_vis_when_unsecured_awake_bugfix	system	not-in-aosp	
+com.android.window.flags.improve_fluid_resizing_performance	system	declared	frameworks/base/core/java/android/window/flags/windowing_frontend.aconfig
+com.android.window.flags.init_transform_of_default_start_tx	system	not-in-aosp	
+com.android.window.flags.keep_empty_desk_active_in_desktop_first_showing_home	system	not-in-aosp	
+com.android.window.flags.keyguard_default_display_on_top	system	not-in-aosp	
+com.android.window.flags.launch_games_in_fullscreen_by_allowlist	system	declared	frameworks/base/core/java/android/window/flags/lse_desktop_experience.aconfig
+com.android.window.flags.layout_insets_during_animation_mode_visible_types	system	not-in-aosp	
+com.android.window.flags.log_task_trampolines	system	not-in-aosp	
+com.android.window.flags.merge_display_window_settings_on_restore	system	not-in-aosp	
+com.android.window.flags.new_app_window_animations_full_opacity	system	not-in-aosp	
+com.android.window.flags.offload_set_top_on_back_invoked	system	not-in-aosp	
+com.android.window.flags.only_cache_low_res_task_snapshot	system	declared	frameworks/base/core/java/android/window/flags/windowing_frontend.aconfig
+com.android.window.flags.perfect_edge	system	declared	frameworks/base/core/java/android/window/flags/windowing_frontend.aconfig
+com.android.window.flags.predictive_back_transition_fast_gesture_fix	system	not-in-aosp	
+com.android.window.flags.prioritize_visible_task_display_over_source	system	declared	frameworks/base/core/java/android/window/flags/lse_desktop_experience.aconfig
+com.android.window.flags.projected_mode_app_display_move_bugfix	system	not-in-aosp	
+com.android.window.flags.reduce_header_and_taskbar_reveal_delay	system	not-in-aosp	
+com.android.window.flags.reduce_window_traversal_on_entering	system	declared	frameworks/base/core/java/android/window/flags/windowing_frontend.aconfig
+com.android.window.flags.remove_move_to_display_animation	system	not-in-aosp	
+com.android.window.flags.remove_starting_window_when_commit_invisible	system	declared	frameworks/base/core/java/android/window/flags/windowing_frontend.aconfig
+com.android.window.flags.report_missed_enter_anim_on_resume	system	declared	frameworks/base/core/java/android/window/flags/windowing_frontend.aconfig
+com.android.window.flags.reset_first_window_drawn_on_stopping	system	not-in-aosp	
+com.android.window.flags.resolve_resumed_activity_from_leaf_task	system	not-in-aosp	
+com.android.window.flags.restore_tiling_on_unminimize	system	not-in-aosp	
+com.android.window.flags.return_windowless_root_views_in_wmglobal_getwindowview	system	declared	frameworks/base/core/java/android/window/flags/lse_desktop_experience.aconfig
+com.android.window.flags.screen_capture_exclusion_flags	system	declared	frameworks/base/core/java/android/window/flags/window_surfaces.aconfig
+com.android.window.flags.separate_starting_window_records	system	not-in-aosp	
+com.android.window.flags.set_user_initiated_on_minimize_task	system	not-in-aosp	
+com.android.window.flags.show_ime_layering_target_when_adding	system	declared	frameworks/base/core/java/android/window/flags/windowing_frontend.aconfig
+com.android.window.flags.show_pointer_in_app_recording	system	not-in-aosp	
+com.android.window.flags.show_when_locked_desktop_bugfix	system	declared	frameworks/base/core/java/android/window/flags/lse_desktop_experience.aconfig
+com.android.window.flags.simplify_window_movement	system	not-in-aosp	
+com.android.window.flags.skip_incompatible_root_task_from_source	system	not-in-aosp	
+com.android.window.flags.skip_screenshot_if_no_window_drawn	system	not-in-aosp	
+com.android.window.flags.trampoline_launch_task_cleanup	system	not-in-aosp	
+com.android.window.flags.trampoline_tracing	system	not-in-aosp	
+com.android.window.flags.transparent_fullscreen_launch_exit_desktop_bugfix	system	not-in-aosp	
+com.android.window.flags.transparent_policy_reachability_position	system	not-in-aosp	
+com.android.window.flags.unique_global_desk_ids	system	not-in-aosp	
+com.android.window.flags.update_app_compat_properties_on_root_change_bugfix	system	not-in-aosp	
+com.android.window.flags.update_desktop_scrim_on_drag_resize_end_bugfix	system	not-in-aosp	
+com.android.window.flags.update_dims_when_window_shown	system	declared	frameworks/base/core/java/android/window/flags/windowing_frontend.aconfig
+com.android.window.flags.update_focused_app_in_ae	system	not-in-aosp	
+com.android.window.flags.use_base_intent_label_for_app_header_title	system	not-in-aosp	
+com.android.window.flags.use_gesture_interceptor_for_pinned_windows	system	not-in-aosp	
+com.android.window.flags.use_snapshot_fixed_rotation	system	declared	frameworks/base/core/java/android/window/flags/windowing_frontend.aconfig
+com.android.window.flags.use_task_description_background_color_bugfix	system	not-in-aosp	
+com.android.window.flags.use_top_opaque_background_color_for_caption	system	not-in-aosp	
+com.android.wm.shell.add_one_off_handler_leashes	system	declared	frameworks/base/libs/WindowManager/Shell/aconfig/multitasking.aconfig
+com.android.wm.shell.consolidate_split_keyboard_shortcut_controllers	system	declared	frameworks/base/libs/WindowManager/Shell/aconfig/multitasking.aconfig
+com.android.wm.shell.enable_bubble_swipe_down_to_collapse	system	not-in-aosp	
+com.android.wm.shell.enable_drag_out_of_bubble	system	not-in-aosp	
+com.android.wm.shell.enable_pip_box_shadows_v2	system	declared	frameworks/base/libs/WindowManager/Shell/aconfig/multitasking.aconfig
+com.android.wm.shell.fix_bubble_bar_stashing_with_hardware_keyboard	system	declared	frameworks/base/libs/WindowManager/Shell/aconfig/multitasking.aconfig
+com.android.wm.shell.fix_bubble_bar_visibility_update_dropped	system	declared	frameworks/base/libs/WindowManager/Shell/aconfig/multitasking.aconfig
+com.android.wm.shell.fix_bubbles_stack_visible_in_immersive	system	declared	frameworks/base/libs/WindowManager/Shell/aconfig/multitasking.aconfig
+com.android.wm.shell.fix_notes_bubble_new_task	system	not-in-aosp	
+com.android.wm.shell.fix_pip_with_bubble_transition	system	not-in-aosp	
+com.android.wm.shell.no_bubble_scrim	system	not-in-aosp	
+com.android.wm.shell.optimize_pip_app_icon_overlay	system	not-in-aosp	
+com.android.wm.shell.set_max_height_for_bubbles_on_large_screens	system	not-in-aosp	
+com.android.wm.shell.set_remaining_split_stage_windowing_mode_on_desktop_exit	system	not-in-aosp	
+com.android.wm.shell.split_tighter_inner_corner_radius	system	not-in-aosp	
+com.android.wm.shell.task_view_clear_pending	system	not-in-aosp	
+com.example.android.aconfig.demo.flags.platform_beta_release_config_test_flag	system	not-in-aosp	
+com.example.android.aconfig.demo.flags.test_voyager_denise_flag_1	system	not-in-aosp	
+com.google.android.apps.magicportrait.enable_cat_smile	system_ext	not-in-aosp	
+com.google.android.apps.miphone.aiai.matchmaker.overview.ui.enable_barcode_detection_in_overview	system_ext	not-in-aosp	
+com.google.android.apps.nexuslauncher.allapps_2026_refresh	system_ext	not-in-aosp	
+com.google.android.apps.nexuslauncher.allow_omni_keyguard	system_ext	not-in-aosp	
+com.google.android.apps.nexuslauncher.allow_omni_splitscreen	system_ext	not-in-aosp	
+com.google.android.apps.nexuslauncher.enable_dynamic_ranking_m3	system_ext	not-in-aosp	
+com.google.android.apps.nexuslauncher.use_custom_create_widget_button	system_ext	not-in-aosp	
+com.google.android.apps.nexuslauncher.use_custom_effects	system_ext	not-in-aosp	
+com.google.android.desktop.audio.flags.dras_allow_input_style_transfer	vendor	not-in-aosp	
+com.google.android.desktop.audio.flags.dras_suspend_resume	vendor	not-in-aosp	
+com.google.android.desktop.camera.flags.uvc_metadata	vendor	not-in-aosp	
+com.google.android.desktop.camera.flags.video_chat	vendor	not-in-aosp	
+com.google.android.desktop.identity.login.entry_exit_animations	system_ext	not-in-aosp	
+com.google.android.desktop.personalization.flags.desktop_streamline	system_ext	not-in-aosp	
+com.google.android.desktop.power.flags.power_attr_manager_enabled	vendor	not-in-aosp	
+com.google.android.desktop.repairmode.flags.full_user_environment	system	not-in-aosp	
+com.google.android.desktop.repairmode.flags.restricted_environment	system	not-in-aosp	
+com.google.android.desktop.repairmode.flags.splash_screen	system	not-in-aosp	
+com.google.android.desktop.snapshot.flags.enable_aqueduct_upload_for_cached_files	vendor	not-in-aosp	
+com.google.android.desktop.snapshot.flags.enable_blotly	vendor	not-in-aosp	
+com.google.android.desktop.snapshot.flags.enable_echolode	vendor	not-in-aosp	
+com.google.android.desktop.snapshot.flags.enable_echolode_receiver	vendor	not-in-aosp	
+com.google.android.desktop.snapshot.flags.enable_gpu_snapshot	vendor	not-in-aosp	
+com.google.android.desktop.snapshot.flags.enable_snapshot_collector	vendor	not-in-aosp	
+com.google.android.desktop.snapshot.flags.enable_snapshot_service	vendor	not-in-aosp	
+com.google.android.desktop.snapshot.flags.enable_statsd_config_setup	vendor	not-in-aosp	
+com.google.android.desktop.snapshot.flags.enable_uevent_monitor	vendor	not-in-aosp	
+com.google.android.desktop.video.flags.cros_codecs_decoder_hal	vendor	not-in-aosp	
+com.google.android.desktop.video.flags.cros_codecs_encoder_hal	vendor	not-in-aosp	
+com.google.android.haptics.flags.vendor_vibration_control	system_ext	not-in-aosp	
+com.google.android.pixel.pixelstats.enable_hardware_component_info_reporting	vendor	not-in-aosp	
+com.google.android.settings.dawn.flags.fast_follows_enabled	system_ext	not-in-aosp	
+com.google.android.settings.flags.battery_advanced_info_resources_enabled	system_ext	not-in-aosp	
+com.google.android.settings.flags.biometrics_safety_source_requires_parent_consent	system_ext	not-in-aosp	
+com.google.android.settings.flags.catalyst_adaptive_vibration	system_ext	not-in-aosp	
+com.google.android.settings.flags.catalyst_touch_sensitivity_settings_page	system_ext	not-in-aosp	
+com.google.android.settings.flags.em_value	system_ext	not-in-aosp	
+com.google.android.settings.flags.enable_focus_ring_in_setup_wizard_read_only	system_ext	not-in-aosp	
+com.google.android.settings.flags.enable_power_manager_battery_estimates	system_ext	not-in-aosp	
+com.google.android.settings.flags.enable_prism_qr_for_wifi_sharing	system_ext	not-in-aosp	
+com.google.android.settings.flags.exp	system_ext	not-in-aosp	
+com.google.android.settings.flags.face_enroll_dim_dialog	system_ext	not-in-aosp	
+com.google.android.settings.flags.owl_enabled	system_ext	not-in-aosp	
+com.google.android.settings.flags.pixel_face_enrollment_text_responsiveness	system_ext	not-in-aosp	
+com.google.android.settings.flags.pixel_fingerprint_confirm_lottie	system_ext	not-in-aosp	
+com.google.android.settings.flags.pixel_udfps_icon_size	system_ext	not-in-aosp	
+com.google.android.settings.flags.safe_boot_policy_enabled	system_ext	not-in-aosp	
+com.google.android.settings.flags.show_desktop_version	system_ext	not-in-aosp	
+com.google.android.settings.flags.suppress_idle_light	system_ext	not-in-aosp	
+com.google.android.systemui.backend_only_pearl	system_ext	not-in-aosp	
+com.google.android.systemui.enable_insufficient_charger_notification_v2	system_ext	not-in-aosp	
+com.google.android.systemui.enable_whiskey	system_ext	not-in-aosp	
+com.google.android.systemui.now_playing_lockscreen_extended_interaction	system_ext	not-in-aosp	
+com.google.wear.sdk.enable_can_app_be_muted	system	not-in-aosp	
+com.google.wear.sdk.require_manage_tiles_permission	system	not-in-aosp	
+com.google.wear.sdk.rotary_scroll_haptic_constants	system	not-in-aosp	
+com.google.wear.sdk.wear_api_version	system	not-in-aosp	
+com.google.wear.sdk.wrist_detection_auto_locking_api	system	not-in-aosp	
+com.google.wear.services.infra.flags.enable_get_active_tiles_api	system	not-in-aosp	
+com.google.wear.services.infra.flags.enable_get_packages_to_reinstall_from_pending_state_api	system	not-in-aosp	
+com.google.wear.services.infra.flags.enable_tether_config_client_feature_extensions_v2	system	not-in-aosp	
+com.google.wear.services.infra.flags.enable_tiles_api_for_wearsky	system	not-in-aosp	
+com.google.wear.services.infra.flags.enable_transfer_editing_session	system	not-in-aosp	
+com.google.wear.services.infra.flags.restrict_complications_telemetry_flag	system	not-in-aosp	
+face.flags.policy.enable_camera_availability_listener	vendor	not-in-aosp	
+perfetto.flags.sys_stats_large_read	system	not-in-aosp	
+perfetto.flags.use_pcre2	system	not-in-aosp	
+perfetto.flags.use_unix_socket_inotify	system	declared	external/perfetto/perfetto_flags.aconfig
+suspend_service.flags.enable_pm_fs_abort	system	declared	system/hardware/interfaces/suspend/aidl/default/flags.aconfig
+vendor.google.desktop.serviceability.flags.enable_cbi_read_write_api	vendor	not-in-aosp	
+vendor.google.desktop.serviceability.flags.enable_futility_append_gbb_flag	vendor	not-in-aosp	
+vendor.google.desktop.serviceability.flags.enable_serviceability_api_26q2	vendor	not-in-aosp	
+vendor.google.desktop.serviceability.flags.enable_write_vpd_activate_date	vendor	not-in-aosp	

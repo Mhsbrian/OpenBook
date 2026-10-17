@@ -6,17 +6,19 @@
 # private adb server (port 5047). Only the emulator PID this script started is ever killed.
 #
 # usage: desktop-ref-emulator.sh OUTDIR
+# Env: REF_API=37.1 boots the "Google APIs Desktop (Preview)" image instead (system-images;android-37.1;
+#      android-desktop;x86_64, Android SDK License, local use only), in its own AVD.
 set -euo pipefail
 A=${ANYBOOK_HOME:-$HOME/anybook}; S=$A/android-sdk; O=${1:?outdir}; HERE=$(cd "$(dirname "$0")" && pwd)
-D=$A/desktop/avd; P=${REF_PORT:-5600}
-SYSIMG=system-images/android-37.0/android-desktop/x86_64/
+D=$A/desktop/avd; P=${REF_PORT:-5600}; API=${REF_API:-37.0}
+SYSIMG=system-images/android-$API/android-desktop/x86_64/; AVD=anybook-desktop-ref; [ "$API" = 37.0 ] || AVD=$AVD-$API
 [ -f "$S/$SYSIMG/system.img" ] || { echo "run scripts/m0-emulator.sh first (SDK + desktop image)" >&2; exit 1; }
-mkdir -p "$O" "$D/anybook-desktop-ref.avd" "$A/desktop/android-user"
-printf 'avd.ini.encoding=UTF-8\npath=%s\ntarget=android-37.0\n' "$D/anybook-desktop-ref.avd" > "$D/anybook-desktop-ref.ini"
+mkdir -p "$O" "$D/$AVD.avd" "$A/desktop/android-user"
+printf 'avd.ini.encoding=UTF-8\npath=%s\ntarget=android-%s\n' "$D/$AVD.avd" "$API" > "$D/$AVD.ini"
 # Same hardware as the M0 baseline (scripts/m0-emulator.sh): 1920x1080 at 160 dpi, keyboard, no Play Store.
-cat > "$D/anybook-desktop-ref.avd/config.ini" <<CFG
+cat > "$D/$AVD.avd/config.ini" <<CFG
 avd.ini.encoding=UTF-8
-AvdId=anybook-desktop-ref
+AvdId=$AVD
 PlayStore.enabled=false
 abi.type=x86_64
 hw.cpu.arch=x86_64
@@ -38,7 +40,7 @@ CFG
 export ANDROID_SDK_ROOT=$S ANDROID_HOME=$S ANDROID_AVD_HOME=$D ANDROID_USER_HOME=$A/desktop/android-user \
        ANDROID_EMULATOR_HOME=$A/desktop/android-user ANDROID_ADB_SERVER_PORT=${REF_ADB_SERVER_PORT:-5047}
 ADB=$S/platform-tools/adb
-"$S/emulator/emulator" -avd anybook-desktop-ref -no-window -no-audio -no-snapshot -no-boot-anim -wipe-data \
+"$S/emulator/emulator" -avd "$AVD" -no-window -no-audio -no-snapshot -no-boot-anim -wipe-data \
   -gpu swiftshader_indirect -accel on -ports "$P,$((P+1))" > "$O/emulator.log" 2>&1 &
 EPID=$!
 trap 'kill $EPID 2>/dev/null || true; wait $EPID 2>/dev/null || true; "$ADB" kill-server 2>/dev/null || true' EXIT
