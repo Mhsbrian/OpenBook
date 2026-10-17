@@ -1,0 +1,83 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivaylo Spasov <Ivaylo.Spasov@amd.com>
+Date: Thu, 30 Jul 2026 16:05:29 +0300
+Subject: [PATCH] radv/android: fail image creation when the gralloc stride
+ override fails
+
+ac_surface_override_offset_stride() can fail when the gralloc stride is
+incompatible with the tiled layout, but the only caller ignored that and
+kept the image.
+
+Call ac_surface_override_offset_stride() directly and tear the image and
+its imported memory down on failure.
+
+Signed-off-by: Ivaylo Spasov <Ivaylo.Spasov@amd.com>
+Assisted-by: Cursor
+Part-of: <https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/44426>
+(cherry picked from commit 15a3bb6179b08817a71e082578a1bb7185ad0769)
+---
+ src/amd/vulkan/radv_android.c | 8 +++++++-
+ src/amd/vulkan/radv_image.c   | 9 ---------
+ src/amd/vulkan/radv_image.h   | 3 ---
+ 3 files changed, 7 insertions(+), 13 deletions(-)
+
+diff --git a/src/amd/vulkan/radv_android.c b/src/amd/vulkan/radv_android.c
+index 53ac15988..c7ad7187c 100644
+--- a/src/amd/vulkan/radv_android.c
++++ b/src/amd/vulkan/radv_android.c
+@@ -121,7 +121,11 @@ radv_image_from_gralloc(VkDevice device_h, const VkImageCreateInfo *base_info,
+ 
+    image = radv_image_from_handle(image_h);
+ 
+-   radv_image_override_offset_stride(device, image, 0, gralloc_info->stride);
++   if (!ac_surface_override_offset_stride(&pdev->info, &image->planes[0].surface, image->vk.array_layers,
++                                          image->vk.mip_levels, 0, gralloc_info->stride)) {
++      result = VK_ERROR_INVALID_EXTERNAL_HANDLE;
++      goto fail_override;
++   }
+ 
+    VkBindImageMemoryInfo bind_info = {.sType = VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_INFO,
+                                       .image = image_h,
+@@ -135,6 +139,8 @@ radv_image_from_gralloc(VkDevice device_h, const VkImageCreateInfo *base_info,
+ 
+    return VK_SUCCESS;
+ 
++fail_override:
++   radv_DestroyImage(device_h, image_h, alloc);
+ fail_create_image:
+    radv_FreeMemory(device_h, memory_h, alloc);
+    return result;
+diff --git a/src/amd/vulkan/radv_image.c b/src/amd/vulkan/radv_image.c
+index 2fc9a4a5b..3fa5fa72f 100644
+--- a/src/amd/vulkan/radv_image.c
++++ b/src/amd/vulkan/radv_image.c
+@@ -830,15 +830,6 @@ radv_image_bo_set_metadata(struct radv_device *device, struct radv_image *image,
+    device->ws->buffer_set_metadata(device->ws, bo, &md);
+ }
+ 
+-void
+-radv_image_override_offset_stride(struct radv_device *device, struct radv_image *image, uint64_t offset,
+-                                  uint32_t stride)
+-{
+-   const struct radv_physical_device *pdev = radv_device_physical(device);
+-   ac_surface_override_offset_stride(&pdev->info, &image->planes[0].surface, image->vk.array_layers,
+-                                     image->vk.mip_levels, offset, stride);
+-}
+-
+ static void
+ radv_image_alloc_single_sample_cmask(const struct radv_device *device, const struct radv_image *image,
+                                      struct radeon_surf *surf)
+diff --git a/src/amd/vulkan/radv_image.h b/src/amd/vulkan/radv_image.h
+index 49df8a7d1..ac5a2ec6c 100644
+--- a/src/amd/vulkan/radv_image.h
++++ b/src/amd/vulkan/radv_image.h
+@@ -400,9 +400,6 @@ void radv_compose_swizzle(const struct util_format_description *desc, const VkCo
+ 
+ void radv_image_bo_set_metadata(struct radv_device *device, struct radv_image *image, struct radeon_winsys_bo *bo);
+ 
+-void radv_image_override_offset_stride(struct radv_device *device, struct radv_image *image, uint64_t offset,
+-                                       uint32_t stride);
+-
+ bool radv_image_can_fast_clear(const struct radv_device *device, const struct radv_image *image);
+ 
+ struct ac_surf_info radv_get_ac_surf_info(struct radv_device *device, const struct radv_image *image);
