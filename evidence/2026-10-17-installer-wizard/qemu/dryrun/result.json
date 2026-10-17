@@ -1,0 +1,326 @@
+{
+ "reason": "all steps done",
+ "seconds": 137.1,
+ "steps_done": 122,
+ "steps": 122,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "init: init second stage started",
+   "t": 5.4
+  },
+  {
+   "step": 1,
+   "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+   "t": 7.2
+  },
+  {
+   "step": 3,
+   "wait": "console:/ \\$ ",
+   "t": 7.2
+  },
+  {
+   "step": 5,
+   "wait": "console:/ # ",
+   "t": 7.3
+  },
+  {
+   "step": 7,
+   "wait": "console:/ # ",
+   "t": 7.5
+  },
+  {
+   "step": 9,
+   "wait": "\\nBOOTDONE=1 uptime=",
+   "t": 14.8
+  },
+  {
+   "step": 10,
+   "wait": "console:/ # ",
+   "t": 14.8
+  },
+  {
+   "step": 12,
+   "wait": "console:/ # ",
+   "t": 16.0
+  },
+  {
+   "step": 14,
+   "wait": "console:/ # ",
+   "t": 17.0
+  },
+  {
+   "step": 16,
+   "wait": "console:/ # ",
+   "t": 17.7
+  },
+  {
+   "step": 18,
+   "wait": "console:/ # ",
+   "t": 20.2
+  },
+  {
+   "step": 20,
+   "wait": "console:/ # ",
+   "t": 21.8
+  },
+  {
+   "step": 22,
+   "wait": "console:/ # ",
+   "t": 23.6
+  },
+  {
+   "step": 24,
+   "wait": "console:/ # ",
+   "t": 27.2
+  },
+  {
+   "step": 26,
+   "wait": "===PROPS-END===",
+   "t": 28.8
+  },
+  {
+   "step": 27,
+   "wait": "console:/ # ",
+   "t": 28.9
+  },
+  {
+   "step": 29,
+   "wait": "===LABELS-END===",
+   "t": 30.6
+  },
+  {
+   "step": 30,
+   "wait": "console:/ # ",
+   "t": 30.7
+  },
+  {
+   "step": 32,
+   "wait": "===CLI-DISKS-END===",
+   "t": 31.4
+  },
+  {
+   "step": 33,
+   "wait": "console:/ # ",
+   "t": 31.5
+  },
+  {
+   "step": 35,
+   "wait": "===CLI-PLAN-END===",
+   "t": 33.5
+  },
+  {
+   "step": 36,
+   "wait": "console:/ # ",
+   "t": 33.7
+  },
+  {
+   "step": 38,
+   "wait": "@@SEEN\\[",
+   "t": 36.0
+  },
+  {
+   "step": 39,
+   "wait": "console:/ # ",
+   "t": 36.0
+  },
+  {
+   "step": 41,
+   "wait": "===WIZARD-AUTOSTART-END===",
+   "t": 37.5
+  },
+  {
+   "step": 42,
+   "wait": "console:/ # ",
+   "t": 37.5
+  },
+  {
+   "step": 45,
+   "wait": "@@SNAP\\[",
+   "t": 40.3
+  },
+  {
+   "step": 46,
+   "wait": "console:/ # ",
+   "t": 40.3
+  },
+  {
+   "step": 49,
+   "wait": "@@TAPPED@@",
+   "t": 43.1
+  },
+  {
+   "step": 50,
+   "wait": "console:/ # ",
+   "t": 43.1
+  },
+  {
+   "step": 53,
+   "wait": "@@SEEN\\[",
+   "t": 49.3
+  },
+  {
+   "step": 54,
+   "wait": "console:/ # ",
+   "t": 49.3
+  },
+  {
+   "step": 58,
+   "wait": "@@SNAP\\[",
+   "t": 57.8
+  },
+  {
+   "step": 59,
+   "wait": "console:/ # ",
+   "t": 57.8
+  },
+  {
+   "step": 62,
+   "wait": "@@TAPPED@@",
+   "t": 60.6
+  },
+  {
+   "step": 63,
+   "wait": "console:/ # ",
+   "t": 60.6
+  },
+  {
+   "step": 66,
+   "wait": "@@SEEN\\[",
+   "t": 66.8
+  },
+  {
+   "step": 67,
+   "wait": "console:/ # ",
+   "t": 66.8
+  },
+  {
+   "step": 70,
+   "wait": "@@SNAP\\[",
+   "t": 69.4
+  },
+  {
+   "step": 71,
+   "wait": "console:/ # ",
+   "t": 69.4
+  },
+  {
+   "step": 74,
+   "wait": "@@TAPPED@@",
+   "t": 72.2
+  },
+  {
+   "step": 75,
+   "wait": "console:/ # ",
+   "t": 72.2
+  },
+  {
+   "step": 79,
+   "wait": "@@SNAP\\[",
+   "t": 76.9
+  },
+  {
+   "step": 80,
+   "wait": "console:/ # ",
+   "t": 76.9
+  },
+  {
+   "step": 83,
+   "wait": "@@TAPPED@@",
+   "t": 79.7
+  },
+  {
+   "step": 84,
+   "wait": "console:/ # ",
+   "t": 79.7
+  },
+  {
+   "step": 87,
+   "wait": "@@SEEN\\[",
+   "t": 85.9
+  },
+  {
+   "step": 88,
+   "wait": "console:/ # ",
+   "t": 85.9
+  },
+  {
+   "step": 92,
+   "wait": "@@SNAP\\[",
+   "t": 92.3
+  },
+  {
+   "step": 93,
+   "wait": "console:/ # ",
+   "t": 92.3
+  },
+  {
+   "step": 96,
+   "wait": "@@TAPPED@@",
+   "t": 95.2
+  },
+  {
+   "step": 97,
+   "wait": "console:/ # ",
+   "t": 95.2
+  },
+  {
+   "step": 101,
+   "wait": "@@SNAP\\[",
+   "t": 99.7
+  },
+  {
+   "step": 102,
+   "wait": "console:/ # ",
+   "t": 99.7
+  },
+  {
+   "step": 105,
+   "wait": "@@TAPPED@@",
+   "t": 102.6
+  },
+  {
+   "step": 106,
+   "wait": "console:/ # ",
+   "t": 102.6
+  },
+  {
+   "step": 110,
+   "wait": "@@SNAP\\[",
+   "t": 111.0
+  },
+  {
+   "step": 111,
+   "wait": "console:/ # ",
+   "t": 111.0
+  },
+  {
+   "step": 114,
+   "wait": "console:/ # ",
+   "t": 111.7
+  },
+  {
+   "step": 117,
+   "wait": "===INSTALLD-LOG-END===",
+   "t": 114.8
+  },
+  {
+   "step": 118,
+   "wait": "console:/ # ",
+   "t": 114.8
+  },
+  {
+   "step": 120,
+   "wait": "===AVC-END===",
+   "t": 115.8
+  },
+  {
+   "step": 121,
+   "wait": "console:/ # ",
+   "t": 116.1
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/qemu/wizard-f/stick.img",
+ "nvme": "/home/hive/anybook/installer/qemu/wizard-f/dryrun-nvme.img"
+}

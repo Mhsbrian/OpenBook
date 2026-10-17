@@ -103,6 +103,8 @@ BOARD_USES_GENERIC_AUDIO := false
 BOARD_MALLOC_ALIGNMENT := 16
 
 BOARD_VENDOR_SEPOLICY_DIRS += device/anybook/common/pc/sepolicy/vendor
+# The installer's daemon and the whole-disk label it writes through (ANAL-191).
+include device/anybook/common/installer/BoardConfig.mk
 
 # Wi-Fi: AOSP's wpa_supplicant over nl80211, with its own init service (WIFI_HIDL_UNIFIED_...) and OpenBook's
 # DRIVER-command hook (wifi/driver_cmd_openbook.c: COUNTRY through nl80211). No BOARD_WLAN_DEVICE: there is no

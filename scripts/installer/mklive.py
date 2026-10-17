@@ -26,12 +26,16 @@ ESP (FAT32 "OPENBOOK", systemd-boot at the removable-media path, Boot Loader Spe
   LICENSES/: the firmware licence files taken from the vendor image itself, systemd-boot's and the kernel's licence
       texts and a README naming each component, its licence and where its source is.
   openbook/README.txt, openbook/MANIFEST.json (image identity and partition hashes), openbook/logs/.
+  openbook/install/super-metadata.img and MANIFEST.json's "install" section (ANAL-191): what the installer
+      (openbook-install, device/anybook/common/installer) needs to put this system on a disk: the installed
+      layout, super's metadata for the installed size with every logical partition's offset in both supers, the
+      loader files and their hashes, and the bootconfig without the live-only values.
 --vm-bundle DIR also writes the extra entries the QEMU tests use (console + start fresh, console + save logs).
 Deterministic: the same inputs, --label and --epoch give the same image, byte for byte.
 
 usage: mklive.py --inputs DIR --live-init FILE --work DIR --out IMG [--label L] [--userdata-mib N]
                  [--super-margin-mib N] [--menu-timeout T] [--epoch S] [--vm-bundle DIR]
-                 [--firmware-manifest TSV]
+                 [--firmware-manifest TSV] [--install-super-mib N] [--install-min-gb N]
 """
 import argparse
 import hashlib
@@ -142,7 +146,50 @@ def extract_partitions(super_raw, parts, out):
     return files
 
 
-def repack_super(super_raw, w, margin_mib):
+def install_super(w, hdr, groups, parts, live_parts, check, size_mib):
+    """super's metadata for an installed disk (docs/installer.md 3.2): the same partitions, groups (at their
+    original maximum sizes), attributes and virtual A/B flag as the product's super, for a size_mib partition.
+    lpmake allocates the logical partitions in the same order and alignment as for the live super, so every
+    partition sits at the same offset in both; the installer copies the live super's extents and then writes this
+    metadata region (the reserved area, both geometries and every metadata slot, up to the first logical sector)."""
+    size = size_mib * MiB
+    img = f"{w}/super.install-meta.img"
+    cmd = [proto.tool("lpmake"), "--device-size", size, "--metadata-size", hdr["metadata_size"],
+           "--metadata-slots", hdr["metadata_slots"], "--super-name", "super", "--alignment", hdr["alignment"],
+           "--block-size", hdr["block_size"], "--force-full-image", "--output", img]
+    if hdr["virtual_ab"]:
+        cmd.append("--virtual-ab")
+    for g, maxsize in groups:
+        cmd += ["--group", f"{g}:{maxsize}"]
+    for name, p in parts.items():
+        cmd += ["--partition", f"{name}:{p['attrs']}:{p['size']}:{p['group']}"]
+    proto.run(cmd, stdout=subprocess.DEVNULL)
+    ihdr, igroups, iparts = lp_layout(img)
+    if [g for g, _ in igroups] != [g for g, _ in groups] or ihdr["virtual_ab"] != hdr["virtual_ab"]:
+        sys.exit("install super: groups or flags differ")
+    extents, first = [], None
+    for name, p in parts.items():
+        q, lp = iparts.get(name), live_parts.get(name)
+        if not q or (q["size"], q["attrs"], q["group"]) != (p["size"], p["attrs"], p["group"]):
+            sys.exit(f"install super: {name} differs")
+        if not p["size"]:
+            continue
+        if len(q["extents"]) != 1 or len(lp["extents"]) != 1:
+            sys.exit(f"install super: {name} is not one linear extent")
+        src, dst = lp["extents"][0][2] * 512, q["extents"][0][2] * 512
+        extents.append({"name": name, "src": src, "dst": dst, "bytes": p["size"], "sha256": check[name]["sha256"]})
+        first = dst if first is None else min(first, dst)
+    with open(img, "rb") as f:
+        meta = f.read(first)
+    os.remove(img)
+    path = f"{w}/super-metadata.img"
+    open(path, "wb").write(meta)
+    return path, {"metadata_file": "openbook/install/super-metadata.img", "metadata_bytes": len(meta),
+                  "metadata_sha256": hashlib.sha256(meta).hexdigest(), "device_bytes": size,
+                  "virtual_ab": hdr["virtual_ab"], "extents": extents}
+
+
+def repack_super(super_raw, w, margin_mib, install_mib):
     hdr, groups, parts = lp_layout(super_raw)
     files = extract_partitions(super_raw, parts, f"{w}/lp")
     align = hdr["alignment"]
@@ -179,8 +226,10 @@ def repack_super(super_raw, w, margin_mib):
                 sys.exit(f"repacked super: {name} content differs")
             check[name] = {"size": p["size"], "sha256": a}
     shutil.rmtree(f"{w}/lp2")
+    meta_path, inst = install_super(w, hdr, groups, parts, parts2, check, install_mib)
     return f"{w}/super.live.img", {"original_bytes": hdr["device_size"], "live_bytes": size, "partitions": check,
-                                   "virtual_ab": hdr["virtual_ab"], "metadata_slots": hdr["metadata_slots"]}, files
+                                   "virtual_ab": hdr["virtual_ab"], "metadata_slots": hdr["metadata_slots"]}, files, \
+        meta_path, inst
 
 
 # ---------------------------------------------------------------- licences
@@ -239,6 +288,8 @@ def main():
     ap.add_argument("--vm-bundle", help="write the QEMU-only entries (console + reset, console + logs) here")
     ap.add_argument("--firmware-manifest", help="ANAL-198 firmware-manifest.tsv, to map firmware files to licences")
     ap.add_argument("--provenance", help="text file copied to openbook/PROVENANCE.txt")
+    ap.add_argument("--install-super-mib", type=int, default=12288, help="super on an installed disk (3.2)")
+    ap.add_argument("--install-min-gb", type=int, default=64, help="smallest disk (or free space) to install to")
     a = ap.parse_args()
     if os.path.exists(a.out) and not os.path.isfile(a.out):
         sys.exit(f"refusing {a.out}: not a regular file")
@@ -282,7 +333,8 @@ def main():
         proto.run([proto.tool("simg2img"), f"{P}/super.img", super_raw])
     else:
         shutil.copy(f"{P}/super.img", super_raw)
-    super_live, super_info, lp_files = repack_super(super_raw, w, a.super_margin_mib)
+    super_live, super_info, lp_files, install_meta, install_super_info = repack_super(
+        super_raw, w, a.super_margin_mib, a.install_super_mib)
     os.remove(super_raw)
 
     # ---- firmware licences, from the vendor image that ships
@@ -343,7 +395,7 @@ def main():
 
     # ---- ESP
     e = f"{w}/esp"
-    for d in ("EFI/BOOT", "loader/entries", "openbook/a", "openbook/logs", "LICENSES/firmware"):
+    for d in ("EFI/BOOT", "loader/entries", "openbook/a", "openbook/logs", "openbook/install", "LICENSES/firmware"):
         os.makedirs(f"{e}/{d}")
     shutil.copy(SDBOOT, f"{e}/EFI/BOOT/BOOTX64.EFI")
     open(f"{e}/loader/loader.conf", "w").write(
@@ -428,10 +480,33 @@ Licences: LICENSES/README.txt.
         shutil.copy(a.provenance, f"{e}/openbook/PROVENANCE.txt")
     copies = [("boot_a", f"{P}/boot.img"), ("init_boot_a", f"{P}/init_boot.img"),
               ("vendor_boot_a", f"{P}/vendor_boot.img"), ("vbmeta_a", f"{P}/vbmeta.img"), ("super", super_live)]
+    shutil.copy(install_meta, f"{e}/openbook/install/super-metadata.img")
+    esp_files = {}
+    for rel in ("EFI/BOOT/BOOTX64.EFI", "openbook/a/kernel", "openbook/a/vendor_ramdisk.img", "openbook/a/ramdisk.img"):
+        esp_files[rel] = {"bytes": os.path.getsize(f"{e}/{rel}"), "sha256": sha256(f"{e}/{rel}")}
+    live_only = ("androidboot.openbook.live", "androidboot.boot_part_uuid", "androidboot.serialno")
+    install = {
+        "schema": "openbook-install-source/1",
+        "min_disk_bytes": a.install_min_gb * 1000 ** 3,
+        "esp_mib": 512, "xbootldr_mib": 512,
+        # docs/installer.md 3.2: A/B boot partitions; slot B stays blank until the first update (bootsync, later).
+        "partitions": [{"name": "misc", "mib": 4}] +
+                      [x for n in ("boot", "init_boot", "vendor_boot", "vbmeta")
+                       for x in ({"name": f"{n}_a", "mib": sizes[n], "src": f"{n}_a"}, {"name": f"{n}_b", "mib": sizes[n]})] +
+                      [{"name": "metadata", "mib": 64}, {"name": "super", "mib": a.install_super_mib, "src": "super"},
+                       {"name": "userdata", "mib": 0}],
+        "super": install_super_info,
+        "esp": {"loader": "EFI/BOOT/BOOTX64.EFI", "kernel": "openbook/a/kernel",
+                "initrds": ["openbook/a/vendor_ramdisk.img", "openbook/a/ramdisk.img"], "files": esp_files},
+        "entry": {"title": "OpenBook", "version": "17 · slot A", "options": vendor_cmdline},
+        "loader_conf": "timeout menu-hidden\nconsole-mode keep\neditor no\n",
+        "bootconfig": {k: v for k, v in base.items() if k not in live_only},
+    }
     manifest = {
-        "schema": "openbook-live-manifest/1", "label": a.label, "fingerprint": fp, "kernel_release": release,
+        "schema": "openbook-live-manifest/2", "label": a.label, "fingerprint": fp, "kernel_release": release,
         "slot": "a", "vbmeta_digest": digest,
         "partitions": {n: {"bytes": os.path.getsize(s), "sha256": sha256(s)} for n, s in copies},
+        "install": install,
     }
     json.dump(manifest, open(f"{e}/openbook/MANIFEST.json", "w"), indent=1, sort_keys=True)
     # Deterministic FAT: fixed volume ID and times (mkfs.fat --invariant, mcopy -m with fixed file times).

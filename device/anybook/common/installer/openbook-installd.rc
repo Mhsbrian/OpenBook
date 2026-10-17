@@ -1,0 +1,21 @@
+# Copyright (C) 2026 The OpenBook Authors
+# SPDX-License-Identifier: Apache-2.0
+#
+# openbook-installd: the install engine's daemon for the "Install OpenBook" app (ANAL-191, PROTOCOL.md). Only on the
+# live USB stick (its boot entries set androidboot.openbook.live=1); an installed system never starts it. The
+# socket is world-connectable by mode; SELinux lets only platform_app connect. Log:
+# /data/misc/openbook_install/installd.log (on the stick's userdata), and each install's log and report on the stick's
+# ESP (openbook/logs/install-*.{log,json}).
+
+on post-fs-data && property:ro.boot.openbook.live=1
+    mkdir /data/misc/openbook_install 0770 root system
+
+service openbook_installd /system_ext/bin/openbook-install daemon
+    class main
+    user root
+    group root system
+    socket openbook_installd stream 0666 root system
+    disabled
+
+on property:sys.boot_completed=1 && property:ro.boot.openbook.live=1
+    start openbook_installd

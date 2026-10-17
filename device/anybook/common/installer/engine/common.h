@@ -1,0 +1,282 @@
+// Copyright (C) 2026 The OpenBook Authors
+// SPDX-License-Identifier: Apache-2.0
+//
+// openbook-install: the OpenBook install engine (ANAL-191, docs/installer.md section 3.5 and 5). Plain C with libc
+// only, so the same sources build for Android (Soong, /system_ext/bin/openbook-install) and for the host tests
+// (gcc, image files; scripts/installer/engine-test.sh).
+#pragma once
+#define _GNU_SOURCE
+#include <stdarg.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <strings.h>
+
+#define MiB (1024ull * 1024ull)
+#define ARRAY_LEN(a) (sizeof(a) / sizeof((a)[0]))
+
+// ------------------------------------------------------------------ string builder
+struct sb {
+    char *p;
+    size_t n, cap;
+};
+void sb_add(struct sb *b, const char *s, size_t n);
+void sb_puts(struct sb *b, const char *s);
+void sb_printf(struct sb *b, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+void sb_json_str(struct sb *b, const char *s);  // a quoted, escaped JSON string ("null" for NULL)
+void sb_free(struct sb *b);
+
+// ------------------------------------------------------------------ JSON writer (commas handled for you)
+struct jw {
+    struct sb b;
+    int depth;
+    int need_comma[64];
+};
+void jw_obj(struct jw *w, const char *key);  // key NULL inside arrays and at the top level
+void jw_arr(struct jw *w, const char *key);
+void jw_end(struct jw *w);                   // closes the innermost object or array (tracked by caller)
+void jw_endo(struct jw *w);
+void jw_enda(struct jw *w);
+void jw_str(struct jw *w, const char *key, const char *v);
+void jw_int(struct jw *w, const char *key, long long v);
+void jw_u64(struct jw *w, const char *key, uint64_t v);
+void jw_dbl(struct jw *w, const char *key, double v, int decimals);
+void jw_bool(struct jw *w, const char *key, int v);
+void jw_null(struct jw *w, const char *key);
+void jw_raw(struct jw *w, const char *key, const char *json);
+
+// ------------------------------------------------------------------ JSON reader (small DOM)
+enum { J_NULL, J_BOOL, J_NUM, J_STR, J_ARR, J_OBJ };
+struct jv {
+    int t;
+    int b;
+    double n;
+    char *s;
+    int len;
+    char **keys;        // J_OBJ
+    struct jv **items;  // J_ARR, J_OBJ
+};
+struct jv *json_parse(const char *text, char *err, size_t errlen);
+void json_free(struct jv *v);
+struct jv *jget(const struct jv *o, const char *key);
+const char *jstr(const struct jv *o, const char *key);  // NULL unless a string
+double jnum(const struct jv *o, const char *key, double def);
+int jbool(const struct jv *o, const char *key, int def);
+
+// ------------------------------------------------------------------ hashing, CRC, GUIDs
+struct sha256 {
+    uint32_t h[8];
+    uint64_t len;
+    uint8_t buf[64];
+    size_t used;
+};
+void sha256_init(struct sha256 *c);
+void sha256_update(struct sha256 *c, const void *data, size_t n);
+void sha256_final_hex(struct sha256 *c, char out[65]);
+void sha256_hex(const void *data, size_t n, char out[65]);
+uint32_t crc32_buf(uint32_t crc, const void *data, size_t n);  // crc starts at 0
+void guid_to_str(const uint8_t g[16], char out[37]);            // GPT mixed-endian bytes -> canonical text
+int guid_from_str(const char *s, uint8_t g[16]);
+void guid_random(uint8_t g[16]);                                 // version 4
+void random_bytes(void *buf, size_t n);
+
+// ------------------------------------------------------------------ I/O
+int pread_all(int fd, void *buf, size_t n, uint64_t off);
+int pwrite_all(int fd, const void *buf, size_t n, uint64_t off);
+int zero_range(int fd, uint64_t off, uint64_t n);
+int read_text(const char *path, char *buf, size_t n);  // trimmed; -1 if unreadable
+char *read_file(const char *path, size_t *len);         // malloc'd, NUL-terminated
+int write_file(const char *path, const void *data, size_t n);
+void trim(char *s);
+void human_bytes(uint64_t n, char *out, size_t outlen);  // decimal GB/MB like disk vendors, "1.0 TB"
+void utc_stamp(char *out, size_t n, int compact);        // 2026-10-17T12:00:00Z or 20261017T120000Z
+double now_s(void);
+
+// ------------------------------------------------------------------ logging and events
+// The log goes to stderr (CLI), to the daemon's ring buffer, and to the install log. Events are JSON lines on the
+// event fd (apply in the daemon), or nothing.
+extern int g_event_fd;   // -1: no events
+extern FILE *g_logfile;  // NULL: none
+extern struct sb g_install_log;
+void logf_(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+#define LOG(...) logf_(__VA_ARGS__)
+void emit_event(const char *json);  // one line, without the trailing newline
+
+// ------------------------------------------------------------------ environment (Android or a test root)
+struct env {
+    const char *root;            // "" on a device; a fixture directory in host tests
+    char boot_part_uuid[96];     // ro.boot.boot_part_uuid / --boot-part-uuid
+    int live;                    // ro.boot.openbook.live
+    int logs_mode;               // ro.boot.openbook.logs (the "save logs" helper owns the stick's ESP)
+    char selinux[16];
+    int efivars;                 // /sys/firmware/efi/efivars is an efivarfs mount
+};
+extern struct env E;
+void env_init(const char *root, const char *boot_part_uuid);
+void env_path(char *out, size_t n, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+int prop_get(const char *name, char *out, size_t n);  // 0 and out = "" if unset
+
+// ------------------------------------------------------------------ GPT
+#define GPT_MAX_PARTS 128
+struct gpt_part {
+    int index;           // 1-based GPT entry number
+    uint8_t type[16], uniq[16];
+    uint64_t first, last;  // LBAs, inclusive
+    uint64_t attrs;
+    char name[73];       // UTF-8 (ASCII subset), from UTF-16
+};
+struct gpt {
+    int valid;
+    uint32_t sector;     // logical sector size
+    uint64_t sectors;    // device size in sectors
+    uint8_t disk_guid[16];
+    uint64_t first_usable, last_usable, entries_lba, alt_lba;
+    uint32_t n_entries, entry_size;
+    int nparts;
+    struct gpt_part p[GPT_MAX_PARTS];
+    uint8_t *raw_entries;  // n_entries * entry_size, as on disk
+    char why[160];         // when !valid
+};
+int gpt_read(int fd, uint32_t sector, uint64_t sectors, struct gpt *g);  // 0 = a valid primary GPT
+void gpt_free(struct gpt *g);
+const struct gpt_part *gpt_find(const struct gpt *g, const char *name);
+const struct gpt_part *gpt_find_uuid(const struct gpt *g, const char *uuid);
+// Write a GPT holding exactly parts[] (a new table, protective MBR included), backup first, then primary.
+int gpt_write_new(int fd, uint32_t sector, uint64_t sectors, const uint8_t disk_guid[16], const struct gpt_part *parts,
+                  int n);
+// Add entries to an existing valid GPT (free slots), backup first, then primary. MBR untouched.
+int gpt_write_add(int fd, const struct gpt *g, const struct gpt_part *add, int n);
+int gpt_wipe(int fd, uint32_t sector, uint64_t sectors);  // protective MBR, primary and backup GPT zeroed
+// type GUIDs
+extern const char *const GUID_ESP, *const GUID_XBOOTLDR, *const GUID_LINUX, *const GUID_MSDATA, *const GUID_MSRES,
+    *const GUID_MSRECOVERY, *const GUID_SWAP, *const GUID_LVM, *const GUID_LUKS, *const GUID_APFS,
+    *const GUID_LINUX_ROOT_X64, *const GUID_LINUX_HOME;
+const char *gpt_type_kind(const uint8_t type[16]);  // esp, xbootldr, msdata, linux, ... (PROTOCOL.md)
+
+// ------------------------------------------------------------------ FAT12/16/32 (no kernel mount needed)
+struct fat {
+    int fd;
+    uint64_t off, size;  // the partition, in bytes on fd
+    uint32_t bps, spc, cluster_bytes;
+    uint32_t reserved, nfats, fat_sectors, root_entries, root_dir_sectors, first_data_sector, total_sectors;
+    uint32_t nclusters, root_cluster, fsinfo_sector;
+    int type;  // 12, 16, 32
+    uint8_t *fatbuf;
+    int dirty;
+    uint32_t hint;
+    char label[12];
+};
+int fat_format32(int fd, uint64_t off, uint64_t size, uint32_t bps, const char *label, uint32_t volid);
+int fat_open(struct fat *f, int fd, uint64_t off, uint64_t size);
+void fat_close(struct fat *f);  // flushes FATs and FSInfo if dirty
+int fat_flush(struct fat *f);
+// Read a whole file (path with '/' separators, case-insensitive). Returns malloc'd data or NULL.
+uint8_t *fat_read(struct fat *f, const char *path, uint32_t *len);
+int fat_exists(struct fat *f, const char *path, int *is_dir);
+int fat_write(struct fat *f, const char *path, const void *data, uint32_t len);  // creates parent dirs, replaces
+int fat_mkdirs(struct fat *f, const char *path);
+int fat_list(struct fat *f, const char *dir, void (*cb)(const char *name, int is_dir, uint32_t size, void *arg),
+             void *arg);
+int fat_probe(int fd, uint64_t off, uint64_t size, char *label, size_t labellen);  // 12/16/32 or 0
+
+// ------------------------------------------------------------------ disks
+struct part_info {
+    int index;
+    char name[73];
+    const char *kind;  // gpt_type_kind / mbr
+    char type_guid[37];
+    char uuid[37];
+    char fs[16];
+    char label[64];
+    char os[24];
+    uint64_t start, bytes;
+    int encrypted, mounted;
+};
+struct free_ext {
+    uint64_t start, bytes;  // bytes, 1 MiB aligned
+};
+struct disk {
+    char name[32];       // nvme0n1
+    char dev[160];       // device node path
+    char syspath[512];   // resolved /sys/block/<name> path
+    char by_id[160];     // udev-style, without /dev/disk/by-id/
+    char model[96], vendor[64], serial[96], wwn[96];
+    char bus[16];        // nvme, usb, sata, mmc, virtio, scsi
+    uint64_t size;
+    uint32_t sector;
+    int removable, read_only, rotational;
+    int boot_disk;       // holds the boot_part_uuid partition (the OpenBook stick)
+    int mounted;         // a partition is mounted, used by dm, or swap
+    int external;        // USB or Thunderbolt and not the boot disk
+    char table[8];       // gpt, mbr, none
+    struct gpt gpt;
+    int nparts;
+    struct part_info parts[GPT_MAX_PARTS];
+    uint64_t free_bytes;
+    struct free_ext largest;
+    int esp_index;       // GPT index of the first ESP, 0 if none
+    int android_names;   // has partitions named like ours (super, userdata, boot_a, ...)
+    int encrypted;
+    char os_list[96];    // "Windows,Linux"
+    char table_sha256[65];  // primary + backup GPT area (S4)
+};
+int disks_scan(struct disk **out);  // all whole disks; returns count
+void disks_free(struct disk *d, int n);
+struct disk *disk_by_id(struct disk *d, int n, const char *by_id);
+void disk_json(struct jw *w, const struct disk *d, uint64_t min_bytes);
+int disk_open(const struct disk *d, int writable);  // read-only, or O_RDWR|O_EXCL on a block device
+int disk_layout_ok(const struct disk *d, const char *layout, uint64_t min_bytes, const char **why);
+void disk_table_hash(int fd, const struct disk *d, char out[65]);
+
+// ------------------------------------------------------------------ the stick (install source)
+struct source {
+    int ok;
+    char why[200];
+    struct disk *disk;     // the boot disk
+    int fd;
+    char manifest_text_sha256[65];
+    struct jv *manifest;   // openbook/MANIFEST.json
+    struct jv *install;    // manifest.install
+    const struct gpt_part *esp;
+    char label[96], fingerprint[256];
+};
+int source_open(struct source *s, struct disk *d, int n);
+void source_close(struct source *s);
+
+// ------------------------------------------------------------------ hardware check
+void hwinfo_json(struct jw *w, struct disk *d, int n);
+
+// ------------------------------------------------------------------ plan and apply
+struct plan_req {
+    char target[160];
+    char layout[16];      // whole | alongside
+    char locale[32];
+    char keyboard[32];
+    int set_default;
+    // seeds: random per plan, kept by apply so the plan can be re-computed exactly
+    char disk_guid[37];
+    char serialno[17];
+    char part_guids[24][37];
+};
+struct power {
+    int ac, battery_pct, have_battery, ok;
+    int known;  // 0: power supplies present but unreadable (Android: only the health HAL may read them)
+};
+void power_read(struct power *p);
+// The app's reading (BatteryManager), sent with "apply"; used when power_read() cannot read the supplies.
+extern struct power g_power_override;
+extern int g_power_override_set;
+int plan_seed(struct plan_req *r);
+// Compute the plan JSON. Returns 0 and fills *out (and plan_sha256), or -1 with code/why.
+int plan_build(const struct plan_req *r, struct disk *disks, int n, struct source *src, struct sb *out,
+               char plan_sha256[65], const char **code, char *why, size_t whylen);
+int plan_req_from_json(const struct jv *plan, struct plan_req *r);
+int apply_run(const struct plan_req *r, const char *expect_sha256, const char *typed_or_null,
+              const char *confirm_disk_or_null, struct sb *result_json);
+int normalized_equal(const char *a, const char *b);  // case-insensitive, whitespace ignored
+// fsync, then drop the cached blocks of fd's device, so the next reads come from the disk. Before writing the
+// stick's ESP: the live system may have mounted that partition since (a different block device, its own cache).
+void drop_cache(int fd);
+
+// ------------------------------------------------------------------ daemon
+int daemon_main(const char *socket_path);

@@ -1,0 +1,41 @@
+14:09:30 openbook-install 1: apply alongside on nvme-QEMU_NVMe_Ctrl_win0 (openbook-live-20261017-anal191e), SELinux enforcing
+14:09:30 plan df563f93781e7a21f6fe1c65b3b74e8f294faa2d7a2d86a032c3ec961f64677a: 13 partitions, 1524337631 bytes to write, target nvme-QEMU_NVMe_Ctrl_win0 (QEMU NVMe Ctrl, 322122547200 bytes)
+14:09:30 step check_source: running
+14:09:30 source boot_a: 67108864 bytes, sha256 ok
+14:09:30 source init_boot_a: 8388608 bytes, sha256 ok
+14:09:30 source vendor_boot_a: 67108864 bytes, sha256 ok
+14:09:30 source vbmeta_a: 65536 bytes, sha256 ok
+14:09:34 source super: 1411383296 bytes, sha256 ok
+14:09:34 step check_source: done
+14:09:34 step prepare_disk: running
+14:09:34 step prepare_disk: done
+14:09:34 step boot_images: running
+14:09:34 copied boot_a -> partition 7 "boot_a" (67108864 bytes)
+14:09:34 copied init_boot_a -> partition 9 "init_boot_a" (8388608 bytes)
+14:09:34 copied vendor_boot_a -> partition 11 "vendor_boot_a" (67108864 bytes)
+14:09:34 copied vbmeta_a -> partition 13 "vbmeta_a" (65536 bytes)
+14:09:34 step boot_images: done
+14:09:34 step system: running
+14:09:36 super: system_a, 695439360 bytes at 1048576
+14:09:36 super: system_b, 4677632 bytes at 697303040
+14:09:36 super: system_ext_a, 127385600 bytes at 702545920
+14:09:37 super: product_a, 292503552 bytes at 830472192
+14:09:37 super: vendor_a, 148406272 bytes at 1123024896
+14:09:37 super: vendor_dlkm_a, 53403648 bytes at 1271922688
+14:09:37 super: system_dlkm_a, 18165760 bytes at 1325400064
+14:09:37 super: metadata for 12884901888 bytes written
+14:09:37 step system: done
+14:09:37 step boot_entry: running
+14:09:37 wrote openbook/a/kernel (26854400 bytes)
+14:09:37 wrote openbook/a/vendor_ramdisk.img (128012 bytes)
+14:09:37 wrote openbook/a/ramdisk.img (3005944 bytes)
+14:09:37 wrote openbook/a/bootconfig.img (732 bytes)
+14:09:37 partition table extended: 13 partitions
+14:09:37 step boot_entry: done
+14:09:37 step verify: running
+14:09:41 verified 29 partitions and files
+14:09:41 wrote loader/entries/openbook-a.conf (255 bytes)
+14:09:41 wrote existing ESP: EFI/OpenBook/systemd-bootx64.efi (160256 bytes)
+14:09:41 step verify: done
+14:09:41 step report: running
+14:09:41 step report: done
