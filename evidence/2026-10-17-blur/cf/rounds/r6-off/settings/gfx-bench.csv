@@ -1,0 +1,2 @@
+label,round,frames,janky,janky_pct,p50_ms,p90_ms,p95_ms,p99_ms,gpu_p50_ms,gpu_p90_ms,host_load1,renderer
+blur-off,1,0,0,0.00,4950,4950,4950,4950,4950,4950,92.25,Google Inc. (AMD); ANGLE (AMD; Vulkan 1.4.305 (Virtio-GPU GFXStream (AMD Radeon Graphics (RADV RAPHAEL_MENDOCINO)) (0x0000164E)); AMD-26.0.99)
