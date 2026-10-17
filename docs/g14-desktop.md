@@ -1,6 +1,6 @@
 # G14 desktop from USB: RADV swapchain fix, SELinux, live image (ANAL-176)
 
-Status as of 2026-10-17. Goal: the OpenBook desktop on the GA403WR's panel, booted from USB, nothing written to internal disks. Evidence is in `evidence/2026-10-17-g14-desktop/`, starting with `SUMMARY.md`. Labels: **C** = confirmed (we ran it), **H** = hypothesis. **On the G14:** the desktop has appeared in the "save logs" boots (permissive) of `desktop2` and `desktop3` (§9, §10); the default, enforcing entry has not been seen to reach it yet. Owner steps: §6.
+Status as of 2026-10-17. Goal: the OpenBook desktop on the GA403WR's panel, booted from USB, nothing written to internal disks. Evidence is in `evidence/2026-10-17-g14-desktop/`, starting with `SUMMARY.md`. Labels: **C** = confirmed (we ran it), **H** = hypothesis. **On the G14:** the desktop has appeared in the "save logs" boots (permissive) of `desktop2` and `desktop3` (§9, §10); and on the `anal178c` stick from `main` (12:15Z) **the default, enforcing entry reached it at 28 s on a freshly written stick** (§11). Owner steps: §6.
 
 This builds on PR #38 (ANAL-199's follow-up to the first live boot: an ANGLE workaround for the crash and most of the SELinux labels) and PR #34/#37 (ANAL-190's live image tooling).
 
@@ -13,7 +13,7 @@ This builds on PR #38 (ANAL-199's follow-up to the first live boot: an ANGLE wor
 | Fix | three upstream Mesa commits backported to 26.2.5, plus one OpenBook patch for minigbm's modifier-less buffers (§3). The patched RADV passes 8 of 8 swapchain cases with 0 wrong pixels, both directions between RADV and radeonsi (C) |
 | SELinux | the 22 distinct Android denials of live-001 are addressed by PR #38 and this branch, except 3 AOSP or kernel-side ones (§4). 24 of 24 G14 sysfs paths get their intended labels in the built policy (C) |
 | Live image | `openbook-live-20261017-desktop2`: new "safe graphics" entries (Mesa GL instead of ANGLE), QEMU matrix in §5 |
-| On the G14 | the desktop on the panel in the save-logs boots of `desktop2` and `desktop3` (C, §9, §10); the enforcing default entry not shown yet (owner steps in §6) |
+| On the G14 | the desktop on the panel under enforcing, default entry, first boot of a fresh stick at 28 s, 4 minutes of use, 23 denials (C, §11); earlier in the save-logs boots of `desktop2` and `desktop3` (§9, §10) |
 
 ## 2. The crash (C)
 
@@ -91,25 +91,17 @@ Built with `scripts/installer-image.sh --label openbook-live-20261017-desktop2 -
 
 Denials on the VM path (`avc-summary.py` on the save-logs case): 41 Android lines in the kernel log and 8 distinct, down from 69 and 16 with the first build of this branch (`desktop1`, before `vendor.minigbm.*`). No `vendor_default_prop` is left. What remains is not G14-specific: the audio HAL's memfd (ANAL-199), the Bluetooth app aborting without a Bluetooth HAL (ANAL-179) and what `crash_dump` reads for it, SystemUI's `bluetooth_lea_prop`, `secure_element`'s dex cache, and the two open items in §4.
 
-## 6. On the G14: owner checklist (after the `desktop3` boots)
+## 6. On the G14: owner checklist (after the `anal178c` boots)
 
-What is still unknown is whether the default, enforcing entry reaches the desktop now that the firmware load is allowed. On `desktop3` its first boot was switched off while it was still in first-boot setup on a black screen (§10).
+The default, enforcing entry now reaches the desktop (§11). The next combined stick from `main` (once `anal-176/live-stick-safety` is merged) carries the three fixes from that session. It checks:
+1. Boot **"OpenBook"** on the freshly written stick. Expected: the boot animation at about 17 s, the desktop at about 30 s, and **no lock screen**: it should not go black 10 s after the desktop appears.
+2. **No "USB drive" or "set up" notice for the stick.** Until this fix is on your stick: if one appears, dismiss it, and never confirm a format in a storage wizard. It would format the stick you are running from.
+3. Use it for 10 minutes or more: Wi-Fi with a password dialog, the browser, Settings, a few windows. Note any freeze or flicker, and when. Those are the frames §11 found dropped; the overlay-plane change should remove them (H).
+4. **Escape** with the taskbar's All Apps open: the launcher should stay (the fix is in `main` since PR #42).
+5. Avoid the lid, a short press of the power button, and 10 minutes idle: sleep is ANAL-178's work.
+6. Stop with Quick Settings → power icon → **Power off**. Then boot **"save logs"** once, plug the stick into the PC, and reply "stick attached" with notes.
 
-**A. Now, on the stick as it is (no rewrite).** First-boot setup is done on this stick, so the next boots skip it.
-1. Boot **"OpenBook"**, the default entry (Esc → USB stick → Enter, or wait for the 10 s menu). Wait **2 minutes** before deciding it is stuck. Expected: a black screen for some seconds (no boot logo before SurfaceFlinger), then the boot animation, then the desktop. Photograph the desktop.
-2. Use it. Avoid until `desktop4`: **Escape** while the taskbar's All Apps or a taskbar menu is open (it kills the launcher; fixed in `desktop4`). Avoid for now: the **lid**, a short press of the **power button**, and leaving it idle for 10 minutes. Those put the laptop to sleep, and sleep on the G14 is ANAL-178's open work. If the screen goes black, note the time and what you had just done.
-3. To stop: Quick Settings → power icon → **Power off**. A clean power-off keeps this boot's logs. Holding the power button can lose the last minute.
-4. Then boot **"save logs"** once (↓ once, Enter). It brings back the logs of the boots before it (`prior-boots.tar.gz`: logcat with the kernel log, tombstones, ANR traces, dropbox), not only its own. It still powers off by itself about 45 s after the desktop appears. That is the design of this entry (ANAL-190 is changing it), not a crash.
-5. Plug the stick into the PC and reply "stick attached" with the photos and notes. The agent reads it read-only (`scripts/installer/read-stick-logs.sh`, `live-report.py`, `avc-summary.py`).
-
-**B. Next image, `openbook-live-20261017-desktop4`**: `desktop3` plus the Launcher3 Escape fix, and APEXes shipped uncompressed so a freshly written stick no longer spends ~34 s decompressing them before anything shows (§10). Its save-logs helper also says what the earlier-boots archive holds (`prior-boots.txt`), and `prior_boots_rc` covers the whole archive pipeline (the Checker found that tar or gzip failures read as 0). Its QEMU results are in `evidence/2026-10-17-g14-desktop/desktop4/`. Writing erases the stick; `write-stick.sh` first copies the reports on it to `~/anybook/installer/stick-backup/`:
-```bash
-cd <a checkout of this repo>
-OPENBOOK_WRITE_CONFIRM=/dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0 \
-  scripts/installer/write-stick.sh ~/anybook/installer/out/openbook-live-20261017-desktop4.img \
-  /dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0
-```
-Done when it prints `stick powered off: safe to unplug`. Then follow A from step 1. The first boot of a fresh stick also formats `/data`, so give it the full 2 minutes.
+Writing a stick: `scripts/installer/write-stick.sh <image> /dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0` with `OPENBOOK_WRITE_CONFIRM` set to the same device. It erases the stick and first copies the reports on it to `~/anybook/installer/stick-backup/`.
 
 **Acceptance** (from the issue): a photo of the desktop on the panel, `boot_completed=1` in the saved logs, the `live-report.py --expect g14` verdicts, and fewer than 66 denials by `avc-summary.py`'s kernel-log count.
 
@@ -118,8 +110,12 @@ Done when it prints `stick powered off: safe to unplug`. Then follow A from step
 ## 7. Open items
 
 - **gfx1150 itself** (H): every claim about RDNA 3.5 waits for the G14 run. The host GPU is RDNA2.
-- **drm_hwcomposer's test-only commits fail with `EINVAL`**, up to once per frame, so SurfaceFlinger composes on the GPU instead. The G14 kernel log of `desktop3` gives the reason: each failure comes with `dc_state_add_plane: can not attach plane_state! Maximum is: 4`, so drm_hwcomposer puts more planes on the panel's stream than amdgpu's display core accepts (`MAX_SURFACES 4` in `dc.h`). The earlier guess, a tiled cursor buffer, is ruled out. Not a blocker, but it costs GPU time and floods the kernel log (1,775 lines in 2 minutes). Next: list the planes amdgpu exposes for gfx1150 (`drm_info` from a save-logs boot) and cap drm_hwcomposer's plane use to what one stream takes.
-- **Wi-Fi** (no HAL, no `regulatory.db`): ANAL-179.
+- **drm_hwcomposer and overlay planes.**
+  - Test commits fail with `EINVAL` up to once per frame: `dc_state_add_plane: can not attach plane_state! Maximum is: 4` means drm_hwcomposer puts more planes on the panel's stream than amdgpu's display core accepts (`MAX_SURFACES 4` in `dc.h`).
+  - In the first long enforcing session (§11), 151 *real* commits also failed (`Failed to pin framebuffer with error -22`, then SurfaceFlinger `present failed`): frames never shown, in half-second bursts while dialogs opened.
+  - `anal-176/live-stick-safety` sets `ro.vendor.hwc.use_overlay_planes=false`, which leaves the primary and cursor planes. Hypothesis until the next G14 session: both kinds of failure stop, at the cost of GPU composition every frame.
+  - If dropped frames remain, look at the cursor plane's buffer next.
+- **Wi-Fi** works since ANAL-179 (PR #43): connected and validated on the G14 (§11).
 - **The two open denials** in §4.
 - **The kernel power-off hang** after Android's clean shutdown (ANAL-190's QEMU runs): product side, still open.
 - **Upstreaming 0004**: the metadata swizzle problem is general to RADV on Android with modifier-less gralloc; worth an upstream MR once the G14 has confirmed it.
@@ -170,9 +166,23 @@ The owner booted `desktop3` twice and reattached the stick. The stick was read b
 | Bluetooth app aborts (6 per 2 minutes); no Wi-Fi service | tombstones; `cmd: Can't find service: wifi` | ANAL-179 |
 | Denials: 14 lines an enforcing boot would hit, 7 distinct, none graphics | `live-001/avc.md` | Known (§9 row) |
 
-## 11. Sources (accessed 2026-10-17)
+## 11. G14 boots of `anal178c`, built from `main` (2026-10-17 12:14Z)
+
+ANAL-178's combined stick `openbook-live-20261017-anal178c` was built from `main` at `ea3c25e`: PR #42, Wi-Fi/Bluetooth/audio, the arm64 bridge. The owner wrote it and booted the default entry, then "save logs". The redacted files are in `evidence/2026-10-17-g14-desktop/g14-anal178c/`.
+
+| Finding | Evidence | Status |
+|---|---|---|
+| **The default entry, under enforcing, reached the desktop** at 28 s on a freshly written stick: boot animation at 17.1 s (desktop3: 59.4 s), 0 APEX decompressions. Four minutes of use (Settings, Wi-Fi, Gallery, browser, Bluetooth, Calendar), then a clean power-off | `boot1-default-enforcing/timeline.txt`: `enforcing=1`, `boot_progress_enable_screen: 28005` | **Done**: the goal of this issue, with PR #42's first-boot fix confirmed on hardware |
+| 23 denials (5 distinct) in the enforcing boot, none of them graphics; 0 app crashes, 0 tombstones | `boot1-default-enforcing/avc.md` | Known; below 66 |
+| **vold treated the boot stick as a USB drive** it could not read, and SystemUI offered to set it up. The wizard behind that formats the disk. The owner opened it and backed out | vold `disk:8,0 failed to identify`, `notification_clicked … disk:8,0`, `StorageWizardInit` | **Fixed**: `aosp/patches/system/vold` skips the disk holding the running system's partitions. The QEMU matrix reproduces the problem and now checks it |
+| The screen went off 10 s after the desktop appeared: the boot lock screen's display timeout | `Going to sleep due to timeout (… activityTimeoutWM=10000)` | **Fixed**: `config_disableLockscreenByDefault` (a lock screen only once a PIN, pattern or password is set) |
+| **151 frames never shown** (`Failed to pin framebuffer` → `present failed`), in bursts, plus 3211 refused test commits | counts in `timeline.txt` | **Changed** (H): `ro.vendor.hwc.use_overlay_planes=false` (§7) |
+| Save-logs boot: `boot_completed` at 28.2 s; Wi-Fi validated; touchpad, keyboard, backlight, battery and dGPU-off verdicts yes | `live-001/report.md`, `screen-final-redacted.png` | Done |
+
+## 12. Sources (accessed 2026-10-17)
 
 - Mesa: `f7a951028`, `15a3bb617`, `90b5425e8` on `main` (gitlab.freedesktop.org/mesa/mesa), MR 44426.
 - AOSP 17 (`android17-release` tree in `~/anybook/aosp/src`): `frameworks/native/vulkan/libvulkan/swapchain.cpp` and `driver.cpp`, `frameworks/native/vulkan/include/vulkan/vk_android_native_buffer.h`, `external/angle/src/libANGLE/renderer/vulkan/SurfaceVk.cpp`, `frameworks/base/libs/hwui/Properties.cpp`, `system/sepolicy` (`gpu_sphal_use`, `vendor_restricted_prop`), `system/core/rootdir/init.rc` (`discard_max_bytes`), `external/minigbm/cros_gralloc` (gralloc0 `perform`, shared `libminigbm_gralloc`).
 - AOSP 17, for §10: `build/make/core/product_config.mk` (`PRODUCT_COMPRESSED_APEX`), `device/google/cuttlefish/shared/device.mk` (sets it to false), `packages/apps/Launcher3/quickstep/src/com/android/launcher3/taskbar/overlay/TaskbarOverlayDragLayer.java` and `TaskbarOverlayContext.java` (`getAppsView()` is a `findViewById`, so it is null without All Apps).
 - Kernel (`~/anybook/kernel/src/common`, android17-6.18): `drivers/gpu/drm/amd/display/dc/dc.h` (`MAX_SURFACES 4`), `dc/core/dc_state.c` (`dc_state_add_plane`).
+- AOSP 17, for §11: `system/vold/VolumeManager.cpp` (`handleBlockEvent`), `frameworks/base/core/java/com/android/internal/widget/LockPatternUtils.java` (`isLockScreenDisabled`), `frameworks/base/packages/SystemUI/…/NotificationShadeWindowControllerImpl.java` (`config_lockScreenDisplayTimeout`), `external/drm_hwcomposer/drm/DrmDisplayPipeline.cpp` and `utils/properties.cpp` (`ro.vendor.hwc.use_overlay_planes`).

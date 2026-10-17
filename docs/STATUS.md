@@ -49,7 +49,7 @@
 
 | Issue | State | Next step | Needs |
 |---|---|---|---|
-| ANAL-176 G14 desktop and stability | In review | Read the enforcing boot from the stick; fix the remaining denials; fix drm_hwcomposer's plane count (`docs/g14-desktop.md` §7) | Owner's stick run |
+| ANAL-176 G14 desktop and stability | In review | The enforcing default entry reached the desktop on `anal178c` (28 s, 23 denials). Next: merge `anal-176/live-stick-safety`, then on the next stick from `main` check no storage notice for the stick, no lock screen at boot, and no dropped frames (`docs/g14-desktop.md` §6, §11) | Next combined stick |
 | ANAL-177 graphics conformance | In review | Read the G14 dEQP/ANGLE results; decide Vulkan 1.1 or 1.4 (the 610M favours 1.4); add matrix rows | Owner's stick run (boot D) |
 | ANAL-178 input and power | In review | Read the lid, touchpad and power check results; then the S0i3 fix (kernel lane), the touchpad clock warnings, the skin sensor | Owner's stick run (boots A–C) |
 | ANAL-179 Wi-Fi, Bluetooth, audio | In review | Read Wi-Fi, pairing and speaker/mic results; fix what fails; speaker tuning | Owner's stick run |
@@ -74,6 +74,18 @@
 **Build host:** one AOSP build at a time (`flock ~/anybook/aosp/.lane.lock`, taken by `scripts/aosp-docker.sh`), because builds peak at about 50 GB of the 61 GB RAM. Builds and images are in `docs/BUILD.md`; the live image and the owner checklists are in `docs/installer.md` §11.
 
 ## History
+
+### 2026-10-17: the G14's default entry reaches the desktop under enforcing; live stick safety (ANAL-176)
+- **Done:**
+  - Read the owner's `anal178c` stick (built from `main`). The default entry, under SELinux enforcing, reached the desktop at 28 s on a freshly written stick, with the boot animation at 17 s (desktop3: 59 s) and no APEX decompression. It was then used for 4 minutes: Wi-Fi connected, Bluetooth, browser, apps.
+  - The boot had 23 denials and no crashes.
+- **Fixed** (branch `anal-176/live-stick-safety`):
+  - vold took the boot stick for a USB drive, and SystemUI offered to set it up (format it). The owner opened the wizard and backed out. Fix: a vold patch that skips the disk the running system is on, with a QEMU matrix check for it.
+  - The boot lock screen turned the screen off after 10 s. Fix: none until a PIN is set.
+  - drm_hwcomposer's overlay planes cost 151 frames that were never shown. Fix: overlay planes off (H).
+  - `live-report.py` crashed on the touchpad-clock verdict.
+- **Evidence:** `evidence/2026-10-17-g14-desktop/g14-anal178c/`. `vold` and the overlay build. No image was built from this branch, because ANAL-191 holds the lane.
+- **Next:** the next combined stick from `main` (`docs/g14-desktop.md` §6).
 
 ### 2026-10-17: cleanup and one consolidated status (ANAL-159)
 - **Done:** the owner asked for less sprawl. No PRs are open. The remote branches went from 49 to 4. Two branches with commits never merged are kept as `archive/` tags. This file's top section is now one state of the union, with a next step for every open issue. `docs/PLAN.md` §4 and §7 point here instead of keeping their own copies.
