@@ -1,0 +1,45 @@
+10-17 12:14:55.774314  root     0     0 I         : Linux version 6.18.21-android17-5-g44a90255c95f (kleaf@build-host) (Android (15323222, +pgo, +bolt, +lto, +mlgo, based on r584948c) clang version 22.0.1 (https://android.googlesource.com/toolchain/llvm-projec
+10-17 12:14:56.538019  root     1     1 I openbook-live: live boot: boot_part_uuid=f477491f-262d-544d-ac03-054066228549 reset=0 logs=0
+10-17 12:14:58.150200  root     1     1 I openbook-live: boot ESP sda1 on disk sda (1.6 s): ../../devices/pci0000:00/0000:00:08.3/0000:67:00.0/usb4/4-1/4-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda1
+10-17 12:14:58.174953  root     1     1 I openbook-live: grow: disk 121307136 sectors, GPT backup at LBA 5797887, userdata 2097152 sectors (blank)
+10-17 12:14:58.306682  root     1     1 I openbook-live: grow: GPT backup moved LBA 5797887 -> 121307135; userdata 2097152 -> 117606400 sectors (56.1 GiB)
+10-17 12:14:58.360366  root     1     1 I openbook-live: grow: kernel re-read the partition table
+10-17 12:14:58.417954  root     1     1 I openbook-live: report: wrote openbook/logs/live-init-001.json
+10-17 12:14:58.446371  root     1     1 I openbook-live: exec /init (grow)
+10-17 12:14:58.714000  logd   766   766 I auditd  : type=1404 audit(0.0:3): enforcing=1 old_enforcing=0 auid=4294967295 ses=4294967295 enabled=1 old-enabled=1 lsm=selinux res=1
+10-17 12:14:58.714000  logd   766   766 W auditd  : type=1404 audit(0.0:3): enforcing=1 old_enforcing=0 auid=4294967295 ses=4294967295 enabled=1 old-enabled=1 lsm=selinux res=1
+10-17 12:15:11.213427  root   974   974 I boot_progress_start: 15439
+10-17 12:15:12.829331  root     1     1 I init    : starting service 'bootanim'...
+10-17 12:15:23.779335  1000  1214  1288 I boot_progress_enable_screen: 28005
+10-17 12:15:24.295881  1000  1008  3899 I sf_stop_bootanim: 28521
+10-17 12:15:24.371904  1017   857   873 I keystore2: system/security/keystore2/src/globals.rs:478 - wait_for_boot_completed done, triggering GC
+10-17 12:15:24.446970  root   837   837 D vold    :     /dev/block/vold/disk:8,0
+10-17 12:15:24.568473  root   837   837 W vold    : disk:8,0 has unknown partition table; trying entire device
+10-17 12:15:24.568497  root   837   837 D vold    :     /dev/block/vold/disk:8,0
+10-17 12:15:24.598308  root   837   837 W vold    : blkid failed to identify /dev/block/vold/disk:8,0
+10-17 12:15:24.598324  root   837   837 W vold    : disk:8,0 failed to identify, giving up
+10-17 12:15:34.610813  1000  1214  1316 I PowerManagerService: Going to sleep due to timeout (uid 1000, screenOffTimeout=600000, activityTimeoutWM=10000, maxDimRatio=0.20000005, maxDimDur=7000)...
+10-17 12:15:35.882265  1000  1214  2703 I PowerManagerService: Waking up from Asleep (uid=1000, reason=WAKE_REASON_WAKE_MOTION, details=android.policy:MOTION)...
+10-17 12:16:28.417907  1000  1214  3374 D WifiClientModeImpl[72483:wlan0]: sendNetworkChangeBroadcast oldState=OBTAINING_IPADDR newState=CONNECTED hidden=false
+10-17 12:16:25.364248  1000  1214  2669 I ActivityTaskManager: START u0 {xflg=0x4 cmp=com.android.settings/.deviceinfo.StorageWizardInit (has extras)} with LAUNCH_MULTIPLE from uid 10081 (com.android.systemui) (BAL_ALLOW_ALLOWLISTED_COMPONENT) result code=0
+10-17 12:16:25.364875  1000  1214  3600 I notification_clicked: [-1|com.android.systemui|1396986699|disk:8,0|10081,60689,60689,632,0,4]
+10-17 12:19:15.966717  1000  1214  1274 D CoreBackPreview: Window{a1b0a16 u0 GlobalActionsDialogLite}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@cb5b1a2, mPriority=-1, mIsAnimationCallback=false,
+10-17 12:19:15.966745  1000  1214  1274 D CoreBackPreview: Window{a1b0a16 u0 GlobalActionsDialogLite}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@ac82e33, mPriority=0, mIsAnimationCallback=false, 
+10-17 12:19:15.966762  1000  1214  1274 D CoreBackPreview: Window{a1b0a16 u0 GlobalActionsDialogLite}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@3c165f0, mPriority=0, mIsAnimationCallback=true, m
+10-17 12:19:15.966804  1000  1214  1274 D CoreBackPreview: Window{a1b0a16 u0 GlobalActionsDialogLite}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@e07b769, mPriority=0, mIsAnimationCallback=true, m
+10-17 12:19:17.246208  1000  1214  1274 D CoreBackPreview: Window{a1b0a16 u0 GlobalActionsDialogLite}: Setting back callback null
+10-17 12:19:17.251679  1000  1214  5608 I ShutdownThread: Logging pre-reboot information...
+10-17 12:19:17.251920  1000  1214  5608 I ShutdownThread: Sending shutdown broadcast...
+10-17 12:19:17.293521  1000  1214  5608 I ShutdownThread: Shutting down activity manager...
+10-17 12:19:17.705231  1000  1214  5608 I ShutdownThread: Shutting down package manager...
+10-17 12:19:17.712078  1000  1214  5622 I ShutdownThread: Waiting for Radio...
+10-17 12:19:17.712095  1000  1214  5622 I ShutdownThread: Radio shutdown complete.
+10-17 12:19:17.712327  1000  1214  5608 I ShutdownThread: Rebooting, reason: userrequested
+# counts over the whole boot (12:14:55-12:19:17Z)
+Failed to pin framebuffer: 151
+drmhwc Failed to commit the frame composition: 151
+SurfaceFlinger present failed: 151
+dc_state_add_plane Maximum is: 4: 3211
+apexd Decompressing: 0
+FATAL EXCEPTION: 0
+avc denied permissive=0: 23

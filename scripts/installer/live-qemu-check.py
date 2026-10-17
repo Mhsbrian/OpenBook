@@ -16,6 +16,7 @@ import json
 import os
 import re
 import subprocess
+import tarfile
 
 
 def sh(*cmd):
@@ -199,6 +200,21 @@ def main():
             lc = f"{p}/logcat-final.txt"
             check(c, "logcat saved", os.path.exists(lc) and os.path.getsize(lc) > 10000,
                   os.path.getsize(lc) if os.path.exists(lc) else 0)
+            # The stick is a USB disk to vold too; scanning it ends in SystemUI's offer to set it up (format) (ANAL-176).
+            # vold decides at coldboot, which the logcat capture may have rotated out; on a fresh stick the archive of
+            # earlier boots holds this boot's own persisted logcat from the start.
+            t = open(lc, errors="replace").read() if os.path.exists(lc) else ""
+            try:
+                with tarfile.open(f"{p}/prior-boots.tar.gz") as tf:
+                    for m in tf.getmembers():
+                        if re.fullmatch(r"misc/logd/logcat(\.\d+)?", m.name) and m.isfile():
+                            t += tf.extractfile(m).read().decode("utf-8", "replace")
+            except (OSError, tarfile.TarError):
+                pass
+            scanned = sorted(set(re.findall(r"vold +: (disk:\d+,\d+) (?:failed to identify|has unknown partition table)", t)))
+            skipped = re.findall(r"Not managing disk (\d+:\d+), which holds the running system", t)
+            check(c, "vold leaves the boot stick alone", bool(skipped) and not scanned,
+                  f"not managed: {skipped}, scanned: {scanned}")
             sc = f"{p}/screen-final.png"
             check(c, "screenshot is a PNG", os.path.exists(sc) and open(sc, "rb").read(8) == b"\x89PNG\r\n\x1a\n",
                   os.path.getsize(sc) if os.path.exists(sc) else 0)

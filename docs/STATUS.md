@@ -1,22 +1,22 @@
 # Status
 
-## State of the union (2026-10-17, 14:35 UTC)
+## State of the union (2026-10-17, 14:45 UTC)
 
 **Goal:** the Googlebook-style Android 17 desktop on the ASUS ROG Zephyrus G14 (GA403WR: Ryzen AI 9 HX 370, Radeon 890M), installed from a USB stick through a wizard and verified on the laptop. Repo: https://github.com/Mhsbrian/OpenBook.
 
-**Repo hygiene:** PRs #1–#53 are merged. #52 (ANAL-176) stays open until its run finishes, then gets merged and its branch deleted. The 2026-10-17 cleanup left one remote branch, `main`; every other branch was merged or superseded. Two branches with commits never merged are kept as tags: `archive/anal-190-live-image-b` (superseded on `main`) and `archive/anal-178-stick-integration`.
+**Repo hygiene:** PRs #1–#55 are merged and none are open. The 2026-10-17 cleanup left one remote branch, `main`; every other branch was merged or superseded. Two branches with commits never merged are kept as tags: `archive/anal-190-live-image-b` (superseded on `main`) and `archive/anal-178-stick-integration`.
 
 ### What works, and where it has been shown
 
 | Area | In a VM (QEMU or Cuttlefish) | On the G14 | Evidence |
 |---|---|---|---|
 | Kernel (GKI android17-6.18 + 138 AMD modules) | Boots our Android 17 | **Yes:** 235 modules, 0 failed | `evidence/2026-10-16-g14-hwcheck/` |
-| Live USB boot, desktop | 39/39 live checks | **The normal enforcing boot reached the desktop at 28 s** (owner's `anal178c` run, 2026-10-17), and earlier "save logs" boots did too. No app crashed; 23 denials of 5 kinds | `evidence/2026-10-17-g14-desktop/` (the enforcing run lands with PR #52) |
-| Graphics (RADV, radeonsi, ANGLE, minigbm, drm_hwcomposer) | Passing; dEQP pre-check on a Radeon 610M | **Desktop renders.** drm_hwcomposer falls back to GPU composition (plane limit). dEQP not run yet | `evidence/2026-10-17-graphics-cts/` |
+| Live USB boot, desktop | 40/40 live checks | **The normal enforcing boot reaches the desktop:** 28 s (`anal178c`) and 29 s (`anal176s`). No app crashed; 0 dropped frames since PR #52 (151 before); the stick is no longer offered for formatting; no lock-screen blackout | `evidence/2026-10-17-g14-desktop/g14-anal178c/`, `g14-anal176s/` |
+| Graphics (RADV, radeonsi, ANGLE, minigbm, drm_hwcomposer) | Passing; dEQP pre-check on a Radeon 610M | **Desktop renders with 0 dropped frames**, composed on the GPU (overlay planes off since PR #52). dEQP not run yet | `evidence/2026-10-17-graphics-cts/` |
 | Touchpad, keyboard | Yes | **Yes.** The touchpad's "Clock changed backwards" errors (every 40 ms of finger contact) are explained: the kernel autorepeats `BTN_TOOL_FINGER`. Fixed in Android (EventHub) and shown in QEMU with the laptop's own HID descriptor; on the laptop with the next stick | `evidence/2026-10-16-installer/g14-live/`, `evidence/2026-10-17-power-input/g14-sessions/` |
 | Lid, power button, hotkeys, battery health | Yes | **Config in force, battery health works:** lid and power-button settings, hotkey layouts, the health HAL (charge counter, 88.7 % state of health, GOOD) and the power HAL's EPP changes, all on the laptop. Closing the lid was not tried yet | `evidence/2026-10-17-power-input/g14-sessions/` |
 | Sleep | s2idle in a VM | **s2idle works, under Android too** (screen timeout → s2idle → key wake, display and Wi-Fi back); **deep sleep (S0i3) never reached.** Hypothesis: the driverless PSP | `docs/power-input.md` §7 |
-| Wi-Fi, Bluetooth, audio | Yes (WPA2, iperf3, tone through ALSA) | **Wi-Fi connected to the internet** in the enforcing boot; Bluetooth on. ANAL-179 is reading the full results | `evidence/2026-10-17-g14-audio-net/` |
+| Wi-Fi, Bluetooth, audio | Yes (WPA2, iperf3, tone through ALSA) | **Wi-Fi on 5 GHz with internet; Bluetooth pairs.** SELinux blocked Bluetooth audio and app sound; the fix is in `anal176t` (QEMU 40/40), not yet run on the G14. ANAL-179 is reading the full results | `evidence/2026-10-17-g14-desktop/g14-anal176s/`, `evidence/2026-10-17-g14-audio-net/` |
 | ARM apps (Digitalis, built from source) | 14/16 ARM-only apps; works in enforcing | Not tested | `evidence/2026-10-17-digitalis-a17/`, `evidence/2026-10-17-g14-combined/` |
 | Installer | **Wizard 25/25, engine 53/53:** installs to a virtual NVMe disk that then boots by itself into OpenBook setup (SELinux enforcing) | Live USB boots; the wizard has not run yet | `evidence/2026-10-17-installer-wizard/` |
 
@@ -24,14 +24,13 @@
 
 ### Running now
 
-- **ANAL-176** is reading the owner's `anal176s` session. PR #52, still open, fixes three things: Android offering to format the live stick, the 10 s lock-screen timeout, and dropped frames from overlay planes.
-- **ANAL-178, ANAL-179 and ANAL-200** are reading their results from the owner's two sessions (host copies, read-only). The power check and the graphics check were not booted in those sessions.
-- **ANAL-192 owns the owner's stick from now on.** Once #52 is on `main`, it builds one integrated image (installer plus the power and graphics checks) with one checklist. Then it runs the installer's end-to-end tests in QEMU.
-- **ANAL-191 delivered** the installer wizard, the `openbook-install` engine and OpenBook setup (PR #53, QEMU only).
+- **ANAL-192 builds the integrated owner stick now** (PR #52 is on `main`): installer, the power check and the graphics check, with one checklist. Then the installer's end-to-end tests in QEMU.
+- **ANAL-178, ANAL-179 and ANAL-200** are reading their results from the owner's sessions (host copies).
+- **Delivered today:** ANAL-176 (PR #52: enforcing desktop on the G14 and its fixes), ANAL-191 (PR #53: the installer).
 
 ### Waiting on the owner
 
-1. **No stick to write right now.** The next one comes from ANAL-192, with one checklist, once #52 is merged. It replaces `anal178c`, `anal176s` and `anal191e`. Still to do on the G14: the power check, the graphics check and the installer dry run.
+1. **The next stick is ANAL-192's**, with one checklist for every open G14 test. It contains everything in `anal176t` plus the installer, and replaces `anal178c`, `anal176s`, `anal176t` and `anal191e`. If you test before it's ready, `anal176t` with ANAL-176's steps is a subset. Still to do on the G14: Bluetooth audio and browser sound, the power check, the graphics check, the installer dry run.
 2. **Decisions:** none blocks running work.
    - repo license (Apache-2.0 suggested);
    - upstream reports for the bridge (DigitalisX64; AOSP `Build.CPU_ABI`);
@@ -45,13 +44,13 @@
 
 | Issue | State | Next step | Needs |
 |---|---|---|---|
-| ANAL-176 G14 desktop and stability | **Running** | Finish reading `anal176s`; PR #52 (live-stick safety, no boot lock screen, no overlay planes). Then the remaining denials | — |
+| ANAL-176 G14 desktop and stability | In review | **The enforcing default entry reaches the desktop on the G14** (`anal178c` 28 s, `anal176s` 29 s). On the G14, PR #52's fixes hold: no storage notice for the stick, no lock-screen blackout, 0 dropped frames (151 before). `anal176t` adds the Bluetooth-audio and app-audio policy fixes (QEMU 40/40). Next: Bluetooth audio and browser sound on the G14, then the remaining denials | The owner's next stick run |
 | ANAL-177 graphics conformance | In review | Read the G14 dEQP/ANGLE results; decide Vulkan 1.1 or 1.4 (the 610M favours 1.4); add matrix rows | The graphics-check boot on ANAL-192's stick |
 | ANAL-178 input and power | In review (PR, see History) | Results read; touchpad clock fixed (EventHub). Then the S0i3 fix (kernel lane) from the power check | On ANAL-192's stick: the power-check boot (or the Linux `linux-s2idle.py` run), a lid close, battery saver, touchpad use (`docs/power-input.md` §7.5) |
 | ANAL-179 Wi-Fi, Bluetooth, audio | **Reading results** | Wi-Fi, Bluetooth and audio verdicts from the two sessions; fix what fails; speaker tuning | — |
 | ANAL-200 ARM bridge | **Reading results** | Bridge verdicts on real Zen 5; record the G14 row | The probe and CoreMark step on ANAL-192's stick; the upstream-report OK |
 | ANAL-191 installer wizard and engine | In review | The G14 dry run, on ANAL-192's stick. Open: `openbook-bootsync`, the text hardware report, a firmware boot entry (our GKI has no `EFIVAR_FS`: a kernel-lane decision) | — |
-| ANAL-192 installer end-to-end tests and the owner's stick | **Running** | The integrated stick and its one checklist (after #52); then the QEMU matrix (alongside booted, interrupted installs, reinstall, an unattended run); a release-checklist draft | The owner names a spare drive for the real install |
+| ANAL-192 installer end-to-end tests and the owner's stick | **Running** | The integrated stick and its one checklist (#52 is merged); then the QEMU matrix (alongside booted, interrupted installs, reinstall, an unattended run); a release-checklist draft | The owner names a spare drive for the real install |
 | ANAL-193 to ANAL-197 device loop | Backlog | ANAL-194 first: the Multica runtime and test agent on the G14's Linux | Owner installs the daemon |
 | ANAL-166 performance and parity | Backlog | After the installer: benchmarks, Chrome, the Linux terminal (AVF without pKVM). No sub-issues yet | — |
 | ANAL-186 NVIDIA | Parked | Research is done (ANAL-187); N1–N6 after M4 | — |
@@ -77,6 +76,13 @@
 - **Shown on the laptop:** the lid and power-button config, the hotkey layouts, the health HAL (charge counter, state of health 88.7 %, GOOD), the power HAL's EPP changes, and Android's own s2idle (woken by a key; display and Wi-Fi back). S0i3 is still missed, and the lid was not closed.
 - **For ANAL-192's stick:** the power-check boot (or the Linux run), a lid close, battery saver, 20 s of touchpad use in "save logs". New report verdicts read them: `lid_events`, `epp_modes`, `health_hal`, `touchpad_clock_warnings`.
 
+### 2026-10-17: G14 enforcing desktop merged; ANAL-192 builds the owner stick (ANAL-159)
+- **Merged** #52 (ANAL-176) after checks.
+  - Privacy: the G14 screenshot's Bluetooth list is blanked.
+  - Evidence: `enforcing=1`; desktop at 28.0 s and 29.0 s; dropped frames from 151 to 0; Wi-Fi on 5 GHz with internet; QEMU 40/40.
+  - The Checker's validation came first.
+- **README:** the G14 screenshot is now the multi-window desktop from `anal178c`; M3, M5 and the hardware table record the enforcing desktop. COMPAT-MATRIX has the first bare-metal G14 row.
+- **Woke ANAL-192** to build the integrated stick from `main`.
 
 ### 2026-10-17: installer merged; one owner stick from here on (ANAL-159)
 - **Merged** #53 (ANAL-191) after checks.
@@ -88,6 +94,17 @@
 - **On the G14:** the owner's `anal178c` session showed the normal enforcing boot reaching the desktop at 28 s, with Wi-Fi connected (ANAL-176; evidence with PR #52).
 - **Woke ANAL-178, ANAL-179 and ANAL-200** to read their parts of the owner's last two sessions from the host copies. The owner had replied only on ANAL-176.
 - **Promoted ANAL-192**, which now builds the single owner stick and checklist, then runs the installer's end-to-end tests.
+
+### 2026-10-17: anal176s on the G14: the three fixes hold; Bluetooth and app audio fixed (ANAL-176)
+- **G14** (`anal176s` = `main` + PR #52, default entry, enforcing, 8 minutes):
+  - no storage notice for the stick (`Not managing disk 8:0`);
+  - no lock-screen blackout;
+  - 0 frames dropped (151 on `anal178c`).
+- **Found and fixed:**
+  - Bluetooth aborted whenever an audio device connected (the A2DP queue memfd was denied to `bluetooth`).
+  - The browser had no sound: AudioFlinger's control blocks are MLS-protected `s0` memfds, because AOSP 17 does not enable `memfd_class`.
+  - Two policy lines in `hal_audio_net.te`.
+- **Next stick:** `openbook-live-20261017-anal176t`, QEMU 40/40, with one lock held across the build and the snapshot. Evidence: `evidence/2026-10-17-g14-desktop/g14-anal176s/`, `anal176t/`.
 
 ### 2026-10-17: the installer wizard, the install engine and first-boot setup (ANAL-191, PR #53)
 - **Done** (`docs/installer.md` §12):
@@ -104,6 +121,18 @@
   - screenshots of every screen.
 - **Not shown:** anything on the G14; alongside booted in QEMU; `openbook-bootsync`; the text hardware report.
 - **Next:** the owner's dry run on the G14 (§12.8), then ANAL-192.
+
+### 2026-10-17: the G14's default entry reaches the desktop under enforcing; live stick safety (ANAL-176)
+- **Done:**
+  - Read the owner's `anal178c` stick (built from `main`). The default entry, under SELinux enforcing, reached the desktop at 28 s on a freshly written stick, with the boot animation at 17 s (desktop3: 59 s) and no APEX decompression. It was then used for 4 minutes: Wi-Fi connected, Bluetooth, browser, apps.
+  - The boot had 23 denials and no crashes.
+- **Fixed** (branch `anal-176/live-stick-safety`):
+  - vold took the boot stick for a USB drive, and SystemUI offered to set it up (format it). The owner opened the wizard and backed out. Fix: a vold patch that skips the disk the running system is on, with a QEMU matrix check for it.
+  - The boot lock screen turned the screen off after 10 s. Fix: none until a PIN is set.
+  - drm_hwcomposer's overlay planes cost 151 frames that were never shown. Fix: overlay planes off (H).
+  - `live-report.py` crashed on the touchpad-clock verdict.
+- **Evidence:** `evidence/2026-10-17-g14-desktop/g14-anal178c/`. `vold` and the overlay build. No image was built from this branch, because ANAL-191 holds the lane.
+- **Next:** the next combined stick from `main` (`docs/g14-desktop.md` §6).
 
 ### 2026-10-17: cleanup and one consolidated status (ANAL-159)
 - **Done:** the owner asked for less sprawl. No PRs are open. The remote branches went from 49 to 4. Two branches with commits never merged are kept as `archive/` tags. This file's top section is now one state of the union, with a next step for every open issue. `docs/PLAN.md` §4 and §7 point here instead of keeping their own copies.
