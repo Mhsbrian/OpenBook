@@ -4,9 +4,9 @@
 // openbook-audio-setup: the built-in sound card of an OpenBook PC, for AOSP's example audio HAL (docs/g14-audio-net.md).
 //
 //   boot   (init, before the audio HAL starts) Find the built-in codec's PCM (alsa_cards.h: "<codec> Analog" on
-//          HDA) and publish it as vendor.audio.primary.card/.device for the HAL's primary module, with the HAL's
-//          emulator pacing off (aosp/patches/hardware/interfaces; card -1 when there is none). Then give the
-//          codec's mixer a working state: the outputs' and capture switches on, their volumes at 0 dB. Android
+//          HDA) and publish it as vendor.audio.primary.card/.device for the HAL's primary module
+//          (aosp/patches/hardware/interfaces; card -1 when there is none). Then give the codec's mixer a working
+//          state: the outputs' and capture switches on, their volumes at 0 dB. Android
 //          has no alsactl or UCM; this is the part of what desktop Linux's PipeWire profile does that a single
 //          analog PCM needs. Volume control stays in AudioFlinger (software volume).
 //   list   Cards, PCMs and every mixer control with its values (for logs).
@@ -166,8 +166,6 @@ int Boot() {
     }
     property_set("vendor.audio.primary.card", std::to_string(p->card).c_str());
     property_set("vendor.audio.primary.device", std::to_string(p->device).c_str());
-    // A real codec's blocking ALSA I/O paces the HAL's streams; the HAL's emulator pacing would drop audio.
-    property_set("vendor.audio.primary.pacing", "false");
     printf("openbook-audio-setup: primary card %d device %d ('%s'%s)\n", p->card, p->device, p->name.c_str(),
            p->capture ? ", capture too" : ", NO capture");
     struct mixer* m = mixer_open(p->card);
