@@ -1,0 +1,327 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Sat, 17 Oct 2026 12:00:00 +0000
+Subject: [PATCH] OPENBOOK: arm64: emulate MRS of the ID registers as Linux
+ does
+
+A real arm64 kernel traps EL0 reads of MIDR_EL1, MPIDR_EL1, REVIDR_EL1 and the
+ID_AA64* feature registers (op0=3, op1=0, CRn=0, CRm 0 or 2..7) and returns
+sanitised values, and says so with HWCAP_CPUID. Here only MIDR_EL1 was
+handled; every other ID register raised SIGILL. Go's golang.org/x/sys/cpu reads
+ID_AA64ISAR0_EL1, ID_AA64ISAR1_EL1 and ID_AA64PFR0_EL1 when it cannot read
+/proc/self/auxv, which Android apps cannot, so every gomobile library died at
+load (Tor VPN: SIGILL at mrs x0, id_aa64isar0_el1).
+
+guest_id_registers_arm64.h now holds the guest CPU identity: AT_HWCAP and the
+ID register values, built like arm64_ftr_reg_user_value() (visible fields from
+the features the guest has, hidden fields at the kernel's safe value, untracked
+registers RAZ). The interpreter and the lite translator return them; the heavy
+tier still leaves these regions to the lite tier. AT_HWCAP gains HWCAP_CPUID,
+which the emulated /proc/cpuinfo already listed.
+---
+ guest_loader/Android.bp                       |  1 +
+ guest_loader/arm64/guest_loader_arch.cc       | 15 +--
+ .../guest_state/guest_id_registers_arm64.h    | 96 +++++++++++++++++++
+ heavy_optimizer/arm64/arm64_tier_coverage.txt |  2 +-
+ interpreter/arm64/interpreter.h               | 12 +--
+ .../lite_translate_region_exec_tests.cc       | 44 +++++++++
+ .../arm64_to_x86_64/lite_translator.h         |  1 +
+ .../lite_translator_integer_ctrl.inc          | 11 +--
+ 8 files changed, 158 insertions(+), 24 deletions(-)
+ create mode 100644 guest_state/arm64/include/berberis/guest_state/guest_id_registers_arm64.h
+
+diff --git a/guest_loader/Android.bp b/guest_loader/Android.bp
+index c4ad5144..9ba81ba6 100644
+--- a/guest_loader/Android.bp
++++ b/guest_loader/Android.bp
+@@ -111,6 +111,7 @@ cc_library_static {
+     ],
+     header_libs: [
+         "libberberis_guest_abi_arm64_headers",
++        "libberberis_guest_state_arm64_headers",
+     ],
+ }
+ // endregion
+diff --git a/guest_loader/arm64/guest_loader_arch.cc b/guest_loader/arm64/guest_loader_arch.cc
+index d97923eb..f1b07ba8 100644
+--- a/guest_loader/arm64/guest_loader_arch.cc
++++ b/guest_loader/arm64/guest_loader_arch.cc
+@@ -22,6 +22,7 @@
+ #include "berberis/base/bit_util.h"  // AlignDown
+ #include "berberis/calling_conventions/calling_conventions_arm64.h"
+ #include "berberis/guest_state/guest_addr.h"
++#include "berberis/guest_state/guest_id_registers_arm64.h"
+ #include "berberis/kernel_api/exec_emulation.h"  // DemangleGuestEnvp
+ 
+ namespace berberis {
+@@ -41,17 +42,9 @@ GuestAddr InitKernelArgs(GuestAddr guest_sp,
+                          size_t phdr_count,
+                          GuestAddr ehdr_vdso,
+                          const uint8_t (*random_bytes)[16]) {
+-  // ARM64 AT_HWCAP bits for features we emulate.
+-  // See arch/arm64/include/uapi/asm/hwcap.h
+-  static constexpr uint64_t kArm64ValueHwcap =
+-      (1UL << 0) |   // HWCAP_FP
+-      (1UL << 1) |   // HWCAP_ASIMD (NEON)
+-      (1UL << 3) |   // HWCAP_AES
+-      (1UL << 4) |   // HWCAP_PMULL
+-      (1UL << 5) |   // HWCAP_SHA1
+-      (1UL << 6) |   // HWCAP_SHA2
+-      (1UL << 7) |   // HWCAP_CRC32
+-      (1UL << 8);    // HWCAP_ATOMICS (LSE)
++  // ARM64 AT_HWCAP bits for features we emulate, the same CPU the ID registers describe
++  // (guest_id_registers_arm64.h; arch/arm64/include/uapi/asm/hwcap.h).
++  static constexpr uint64_t kArm64ValueHwcap = arm64::kGuestHwcap;
+ 
+   // Bionic linker_main passes AT_EXECFN's string to __libc_shared_globals's
+   // init_progname; the riscv64 path also doesn't set it, but providing the
+diff --git a/guest_state/arm64/include/berberis/guest_state/guest_id_registers_arm64.h b/guest_state/arm64/include/berberis/guest_state/guest_id_registers_arm64.h
+new file mode 100644
+index 00000000..b2436167
+--- /dev/null
++++ b/guest_state/arm64/include/berberis/guest_state/guest_id_registers_arm64.h
+@@ -0,0 +1,96 @@
++/*
++ * Copyright (C) 2026 The OpenBook Authors
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef BERBERIS_GUEST_STATE_GUEST_ID_REGISTERS_ARM64_H_
++#define BERBERIS_GUEST_STATE_GUEST_ID_REGISTERS_ARM64_H_
++
++#include <cstdint>
++#include <optional>
++
++namespace berberis::arm64 {
++
++// The guest's CPU identity: what EL0 sees through AT_HWCAP and through MRS of the ID registers. Every
++// execution tier and the guest loader take it from here, so the two views cannot drift apart.
++
++// AT_HWCAP bits (Linux arch/arm64/include/uapi/asm/hwcap.h) for the features the translator implements.
++// HWCAP_CPUID says that MRS of the ID registers below works, as the Linux kernel's MRS emulation does.
++inline constexpr uint64_t kGuestHwcap = (uint64_t{1} << 0) |   // HWCAP_FP
++                                        (uint64_t{1} << 1) |   // HWCAP_ASIMD
++                                        (uint64_t{1} << 3) |   // HWCAP_AES
++                                        (uint64_t{1} << 4) |   // HWCAP_PMULL
++                                        (uint64_t{1} << 5) |   // HWCAP_SHA1
++                                        (uint64_t{1} << 6) |   // HWCAP_SHA2
++                                        (uint64_t{1} << 7) |   // HWCAP_CRC32
++                                        (uint64_t{1} << 8) |   // HWCAP_ATOMICS
++                                        (uint64_t{1} << 11);   // HWCAP_CPUID
++
++// MRS system register key: (op0 << 14) | (op1 << 11) | (CRn << 7) | (CRm << 3) | op2, as the decoder builds it.
++constexpr uint16_t IdRegKey(unsigned op0, unsigned op1, unsigned crn, unsigned crm, unsigned op2) {
++  return static_cast<uint16_t>((op0 << 14) | (op1 << 11) | (crn << 7) | (crm << 3) | op2);
++}
++
++// MIDR_EL1: Cortex-A53 r0p4 (implementer 0x41, architecture 0xF, part 0xD03, revision 4).
++inline constexpr uint64_t kGuestMidrEl1 = 0x410FD034;
++
++// User-visible values of the ID registers, built the way Linux builds them for EL0 (arm64_ftr_reg_user_value in
++// arch/arm64/kernel/cpufeature.c, Documentation/arch/arm64/cpu-feature-registers.rst): visible fields describe
++// the guest CPU above, hidden fields read as the kernel's safe value. They agree with kGuestHwcap.
++//   ID_AA64ISAR0_EL1: AES=2 (AES+PMULL) [7:4], SHA1=1 [11:8], SHA2=1 [15:12], CRC32=1 [19:16], Atomic=2 [23:20]
++inline constexpr uint64_t kGuestIdAa64Isar0El1 = 0x0000000000211120;
++//   ID_AA64PFR0_EL1: FP=0 and AdvSIMD=0 (implemented, no FP16) [19:16] [23:20]; hidden EL1=1, EL0=1 (AArch64)
++inline constexpr uint64_t kGuestIdAa64Pfr0El1 = 0x0000000000000011;
++//   ID_AA64MMFR0_EL1: hidden TGran4_2/TGran64_2/TGran16_2=1 [43:32], TGran4=0xF, TGran64=0xF [31:24]
++inline constexpr uint64_t kGuestIdAa64Mmfr0El1 = 0x00000111FF000000;
++//   ID_AA64DFR0_EL1: hidden DebugVer=6 [3:0]
++inline constexpr uint64_t kGuestIdAa64Dfr0El1 = 0x0000000000000006;
++
++// Linux emulates EL0 MRS for the feature ID space: op0=3, op1=0, CRn=0 and CRm 0 or 2..7. With CRm=0 only
++// MIDR_EL1, MPIDR_EL1 and REVIDR_EL1 are emulated (the rest of CRm=0 raises SIGILL); with CRm 2..7 a register the
++// kernel does not track reads as zero (RAZ). Returns nullopt for registers outside that space, which raise SIGILL
++// on a real arm64 kernel too.
++constexpr std::optional<uint64_t> EmulatedIdRegister(uint16_t key) {
++  const unsigned op0 = key >> 14, op1 = (key >> 11) & 7, crn = (key >> 7) & 15, crm = (key >> 3) & 15;
++  if (op0 != 3 || op1 != 0 || crn != 0 || crm == 1 || crm > 7) {
++    return std::nullopt;
++  }
++  switch (key) {
++    case IdRegKey(3, 0, 0, 0, 0):  // MIDR_EL1
++      return kGuestMidrEl1;
++    case IdRegKey(3, 0, 0, 0, 5):  // MPIDR_EL1: SYS_MPIDR_SAFE_VAL
++      return uint64_t{1} << 31;
++    case IdRegKey(3, 0, 0, 0, 6):  // REVIDR_EL1: IMPLEMENTATION DEFINED, emulated as 0
++      return 0;
++    case IdRegKey(3, 0, 0, 4, 0):  // ID_AA64PFR0_EL1
++      return kGuestIdAa64Pfr0El1;
++    case IdRegKey(3, 0, 0, 5, 0):  // ID_AA64DFR0_EL1
++      return kGuestIdAa64Dfr0El1;
++    case IdRegKey(3, 0, 0, 6, 0):  // ID_AA64ISAR0_EL1
++      return kGuestIdAa64Isar0El1;
++    case IdRegKey(3, 0, 0, 7, 0):  // ID_AA64MMFR0_EL1
++      return kGuestIdAa64Mmfr0El1;
++    default:
++      // The rest of CRm=0 is not emulated; everything else in CRm 2..7 (ID_AA64PFR1/ZFR0/SMFR0, ISAR1/2,
++      // MMFR1-4, DFR1, the AArch32 ID registers, ...) has no feature the guest implements, or is untracked: 0.
++      if (crm == 0) {
++        return std::nullopt;
++      }
++      return 0;
++  }
++}
++
++}  // namespace berberis::arm64
++
++#endif  // BERBERIS_GUEST_STATE_GUEST_ID_REGISTERS_ARM64_H_
+diff --git a/heavy_optimizer/arm64/arm64_tier_coverage.txt b/heavy_optimizer/arm64/arm64_tier_coverage.txt
+index 89c846c5..ef42559b 100644
+--- a/heavy_optimizer/arm64/arm64_tier_coverage.txt
++++ b/heavy_optimizer/arm64/arm64_tier_coverage.txt
+@@ -468,7 +468,7 @@ movi 128 128 128
+ movk 128 128 128
+ movz 1 1 1
+ mrrs 17 0 0
+-mrs 125 78 31
++mrs 125 88 31
+ msr 57 27 4
+ msrr 6 0 0
+ msub 128 128 128
+diff --git a/interpreter/arm64/interpreter.h b/interpreter/arm64/interpreter.h
+index ee578f8d..225af3ac 100644
+--- a/interpreter/arm64/interpreter.h
++++ b/interpreter/arm64/interpreter.h
+@@ -33,6 +33,7 @@
+ #include "berberis/decoder/arm64/decoder.h"
+ #include "berberis/decoder/arm64/semantics_player.h"
+ #include "berberis/guest_state/guest_addr.h"
++#include "berberis/guest_state/guest_id_registers_arm64.h"
+ #include "berberis/guest_state/guest_state.h"
+ #include "berberis/kernel_api/run_guest_syscall.h"
+ #include "berberis/runtime_primitives/interpret_helpers.h"
+@@ -553,12 +554,6 @@ class Interpreter {
+         // DCZID_EL0: Data Cache Zero ID Register.
+         // DZP=1 (DC ZVA prohibited), BS=4 (log2 of 64-byte block)
+         return 0x10ULL;  // DZP=1: DC ZVA not available
+-      case Decoder::SystemReg::kMidrEl1:
+-        // MIDR_EL1: Main ID Register. Cortex-A53 r0p4 layout.
+-        //   Implementer 0x41 ('A' = ARM Ltd)
+-        //   Variant 0x0, Architecture 0xF (defined by ID_AA64*_EL1)
+-        //   PartNum 0xD03 (Cortex-A53), Revision 0x4
+-        return 0x410FD034ULL;
+       case Decoder::SystemReg::kRndr:
+       case Decoder::SystemReg::kRndrrs: {
+         // RNDR / RNDRRS (FEAT_RNG): return a 64-bit random value and report
+@@ -587,6 +582,11 @@ class Interpreter {
+             (static_cast<__uint128_t>(ns) * 19200000ULL) / 1000000000ULL);
+       }
+       default:
++        // MIDR_EL1, MPIDR_EL1, REVIDR_EL1 and the ID_AA64* feature registers, as the Linux kernel emulates
++        // them for EL0 (Go's x/sys/cpu reads ID_AA64ISAR0_EL1 when it cannot read /proc/self/auxv).
++        if (auto value = arm64::EmulatedIdRegister(static_cast<uint16_t>(sysreg))) {
++          return *value;
++        }
+         Undefined();
+         return 0;
+     }
+diff --git a/lite_translator/arm64_to_x86_64/lite_translate_region_exec_tests.cc b/lite_translator/arm64_to_x86_64/lite_translate_region_exec_tests.cc
+index 43a2f607..a2712fed 100644
+--- a/lite_translator/arm64_to_x86_64/lite_translate_region_exec_tests.cc
++++ b/lite_translator/arm64_to_x86_64/lite_translate_region_exec_tests.cc
+@@ -29,6 +29,7 @@
+ 
+ #include "berberis/assembler/machine_code.h"
+ #include "berberis/guest_state/guest_addr.h"
++#include "berberis/guest_state/guest_id_registers_arm64.h"
+ #include "berberis/guest_state/guest_state.h"
+ #include "berberis/interpreter/arm64/interpreter.h"
+ #include "berberis/lite_translator/lite_translate_region.h"
+@@ -48252,6 +48253,49 @@ TEST_F(Arm64LiteTranslateRegionTest, MrsCounterTimer) {
+   EXPECT_GE(state_.cpu.x[1], t0);
+ }
+ 
++// MRS of the ID registers, as Linux emulates it for EL0 (guest_id_registers_arm64.h), in the interpreter and the
++// lite tier: MIDR/MPIDR/REVIDR, the ID_AA64* feature registers matching AT_HWCAP, and an unallocated register of
++// the feature ID space, which reads as zero. Go's x/sys/cpu reads ISAR0/ISAR1/PFR0 when /proc/self/auxv is
++// unreadable; an SIGILL here killed every gomobile library (Tor VPN).
++TEST_F(Arm64LiteTranslateRegionTest, MrsIdRegistersAsLinux) {
++  constexpr auto Mrs = [](unsigned crm, unsigned op2) {  // mrs x3, S3_0_C0_C<crm>_<op2>
++    return 0xD5380003u | (crm << 8) | (op2 << 5);
++  };
++  struct Case {
++    uint32_t insn;
++    uint64_t want;
++  };
++  const Case kCases[] = {
++      {Mrs(0, 0), 0x410FD034},          // MIDR_EL1
++      {Mrs(0, 5), 0x80000000},          // MPIDR_EL1
++      {Mrs(0, 6), 0},                   // REVIDR_EL1
++      {Mrs(4, 0), 0x11},                // ID_AA64PFR0_EL1: FP, AdvSIMD, EL0/EL1 AArch64
++      {Mrs(4, 1), 0},                   // ID_AA64PFR1_EL1
++      {Mrs(4, 4), 0},                   // ID_AA64ZFR0_EL1
++      {Mrs(5, 0), 0x6},                 // ID_AA64DFR0_EL1
++      {Mrs(6, 0), 0x211120},            // ID_AA64ISAR0_EL1: AES+PMULL, SHA1, SHA2, CRC32, LSE
++      {Mrs(6, 1), 0},                   // ID_AA64ISAR1_EL1
++      {Mrs(6, 2), 0},                   // ID_AA64ISAR2_EL1
++      {Mrs(7, 0), 0x00000111FF000000},  // ID_AA64MMFR0_EL1
++      {Mrs(7, 7), 0},                   // unallocated: RAZ
++      {Mrs(2, 0), 0},                   // ID_ISAR0_EL1 (AArch32): RAZ
++  };
++  for (const Case& c : kCases) {
++    SCOPED_TRACE(testing::Message() << std::hex << "insn=" << c.insn);
++    state_.cpu.x[3] = 0xDEADBEEF;
++    Interpret(c.insn);
++    EXPECT_EQ(state_.cpu.x[3], c.want);
++    state_.cpu.x[3] = 0xDEADBEEF;
++    const uint32_t code[] = {c.insn};
++    ASSERT_TRUE(RunN(code, 1, ToGuestAddr(code) + sizeof(code)));
++    EXPECT_EQ(state_.cpu.x[3], c.want);
++  }
++  // HWCAP_CPUID tells the guest the ID registers can be read, and the HWCAPs and ISAR0 describe the same CPU.
++  EXPECT_TRUE(arm64::kGuestHwcap & (1u << 11));
++  EXPECT_EQ(((arm64::kGuestIdAa64Isar0El1 >> 4) & 0xf) >= 2, (arm64::kGuestHwcap & (1u << 4)) != 0);  // PMULL
++  EXPECT_EQ(((arm64::kGuestIdAa64Isar0El1 >> 20) & 0xf) >= 2, (arm64::kGuestHwcap & (1u << 8)) != 0);  // LSE
++}
++
+ // DUP (general) from the zero register must broadcast zero, not call
+ // GetReg(31). `dup v.<T>, xzr/wzr` is a common compiler idiom to zero a vector;
+ // the JIT handler previously called GetReg(31) and aborted (CHECK 31<31),
+diff --git a/lite_translator/arm64_to_x86_64/lite_translator.h b/lite_translator/arm64_to_x86_64/lite_translator.h
+index 38d4e79a..ea9abbc2 100644
+--- a/lite_translator/arm64_to_x86_64/lite_translator.h
++++ b/lite_translator/arm64_to_x86_64/lite_translator.h
+@@ -30,6 +30,7 @@
+ #include "berberis/decoder/arm64/decoder.h"
+ #include "berberis/decoder/arm64/semantics_player.h"
+ #include "berberis/guest_state/guest_addr.h"
++#include "berberis/guest_state/guest_id_registers_arm64.h"
+ #include "berberis/guest_state/guest_state.h"
+ #include "berberis/lite_translator/lite_translate_region.h"
+ #include "berberis/runtime_primitives/platform.h"
+diff --git a/lite_translator/arm64_to_x86_64/lite_translator_integer_ctrl.inc b/lite_translator/arm64_to_x86_64/lite_translator_integer_ctrl.inc
+index 9d87844f..829b2f49 100644
+--- a/lite_translator/arm64_to_x86_64/lite_translator_integer_ctrl.inc
++++ b/lite_translator/arm64_to_x86_64/lite_translator_integer_ctrl.inc
+@@ -736,14 +736,13 @@
+       as_.Movq(res, 0x10ULL);
+       return res;
+     }
+-    if (sysreg == Decoder::SystemReg::kMidrEl1) {
+-      // MIDR_EL1: synthesised Cortex-A53 r0p4 layout. Same value the
+-      // interpreter returns; keeping it JIT-resolved avoids a region
+-      // exit on every CPU-detect MRS in hot code (Bionic ifunc
+-      // resolvers, compression-lib feature probes).
++    if (auto value = arm64::EmulatedIdRegister(static_cast<uint16_t>(sysreg))) {
++      // MIDR_EL1, MPIDR_EL1, REVIDR_EL1 and the ID_AA64* feature registers: the constants the interpreter
++      // returns, as the Linux kernel emulates them for EL0. Keeping them JIT-resolved avoids a region exit
++      // on every CPU-detect MRS in hot code (Bionic ifunc resolvers, compression-lib feature probes).
+       Register res = AllocTempReg();
+       if (!success()) return no_register;
+-      as_.Movq(res, 0x410FD034ULL);
++      as_.Movq(res, static_cast<int64_t>(*value));
+       return res;
+     }
+     Undefined();
