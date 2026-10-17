@@ -1,0 +1,52 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Sat, 17 Oct 2026 03:00:00 +0000
+Subject: [PATCH] ANYBOOK: taskbar overlay: Escape without All Apps does not
+ crash
+
+TaskbarOverlayDragLayer.tryHandleEscapeKey() read the All Apps search
+state through mContainer.getAppsView(), which is null when the taskbar
+overlay window holds a view other than All Apps. Pressing Escape on a
+hardware keyboard then threw a NullPointerException and killed
+com.android.launcher3, taking the taskbar and desktop with it until the
+process restarted.
+
+Seen on the ROG Zephyrus G14 (OpenBook desktop3, 2026-10-17 02:31:18Z):
+java.lang.NullPointerException ... ActivityAllAppsContainerView
+.getSearchUiManager() on a null object reference
+  at TaskbarOverlayDragLayer.tryHandleEscapeKey(TaskbarOverlayDragLayer.java:107)
+  at TaskbarOverlayDragLayer.dispatchKeyEvent(TaskbarOverlayDragLayer.java:96)
+
+Only reset the search when there is an apps view; otherwise Escape goes
+on to close the top floating view, as before.
+---
+ .../taskbar/overlay/TaskbarOverlayDragLayer.java         | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/quickstep/src/com/android/launcher3/taskbar/overlay/TaskbarOverlayDragLayer.java b/quickstep/src/com/android/launcher3/taskbar/overlay/TaskbarOverlayDragLayer.java
+index 6c203c8e7f..286cd6bfc2 100644
+--- a/quickstep/src/com/android/launcher3/taskbar/overlay/TaskbarOverlayDragLayer.java
++++ b/quickstep/src/com/android/launcher3/taskbar/overlay/TaskbarOverlayDragLayer.java
+@@ -31,6 +31,7 @@ import androidx.annotation.NonNull;
+ 
+ import com.android.app.viewcapture.ViewCaptureFactory;
+ import com.android.launcher3.AbstractFloatingView;
++import com.android.launcher3.taskbar.allapps.TaskbarAllAppsContainerView;
+ import com.android.launcher3.testing.TestLogging;
+ import com.android.launcher3.testing.shared.TestProtocol;
+ import com.android.launcher3.util.TouchController;
+@@ -103,9 +104,11 @@ public class TaskbarOverlayDragLayer extends
+             return false;
+         }
+ 
+-        // Reset the search and go back to the All Apps grid.
+-        if (!mContainer.getAppsView().getSearchUiManager().isSearchQueryEmpty()) {
+-            mContainer.getAppsView().getSearchUiManager().resetSearch();
++        // Reset the search and go back to the All Apps grid. The overlay also hosts views other than
++        // All Apps, and then there is no apps view.
++        TaskbarAllAppsContainerView appsView = mContainer.getAppsView();
++        if (appsView != null && !appsView.getSearchUiManager().isSearchQueryEmpty()) {
++            appsView.getSearchUiManager().resetSearch();
+             return true;
+         }
+ 
