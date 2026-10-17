@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 5: notification metric values pick a fitting format (10,000 / 10k)
+flag_value {
+  package: "android.app"
+  name: "metric_value_alternative_strings"
+  state: ENABLED
+  permission: READ_ONLY
+}

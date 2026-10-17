@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 6: Launcher model binds through repositories (model_repository and simplified binding are on)
+flag_value {
+  package: "com.android.launcher3"
+  name: "bind_model_using_repository"
+  state: ENABLED
+  permission: READ_ONLY
+}

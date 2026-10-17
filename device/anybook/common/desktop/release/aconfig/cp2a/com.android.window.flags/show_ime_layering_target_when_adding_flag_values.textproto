@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 5: no IME flicker when a layering target is added
+flag_value {
+  package: "com.android.window.flags"
+  name: "show_ime_layering_target_when_adding"
+  state: ENABLED
+  permission: READ_ONLY
+}

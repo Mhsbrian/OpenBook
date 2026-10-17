@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 1: reports size-constraint violations during drag-resize so WM Shell shows the no-resize cursor
+flag_value {
+  package: "com.android.window.flags"
+  name: "enable_no_resize_cursor"
+  state: ENABLED
+  permission: READ_ONLY
+}

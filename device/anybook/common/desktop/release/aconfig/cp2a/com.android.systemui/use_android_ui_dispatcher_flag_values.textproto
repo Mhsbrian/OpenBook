@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 6: SystemUI main coroutine dispatcher becomes Compose's AndroidUiDispatcher
+flag_value {
+  package: "com.android.systemui"
+  name: "use_android_ui_dispatcher"
+  state: ENABLED
+  permission: READ_ONLY
+}

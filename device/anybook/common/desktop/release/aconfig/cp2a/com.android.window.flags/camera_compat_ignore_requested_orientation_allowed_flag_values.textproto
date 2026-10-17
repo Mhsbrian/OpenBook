@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 5: camera compat in freeform windows
+flag_value {
+  package: "com.android.window.flags"
+  name: "camera_compat_ignore_requested_orientation_allowed"
+  state: ENABLED
+  permission: READ_ONLY
+}

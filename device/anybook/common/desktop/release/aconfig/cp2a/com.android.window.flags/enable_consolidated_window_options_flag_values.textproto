@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 3: one maximize/layout menu instead of the windowing pill plus menu
+flag_value {
+  package: "com.android.window.flags"
+  name: "enable_consolidated_window_options"
+  state: ENABLED
+  permission: READ_ONLY
+}

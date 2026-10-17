@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 5: predictive-back animation clipping with a pinned taskbar
+flag_value {
+  package: "com.android.systemui"
+  name: "fix_predictive_back_clipping"
+  state: ENABLED
+  permission: READ_ONLY
+}

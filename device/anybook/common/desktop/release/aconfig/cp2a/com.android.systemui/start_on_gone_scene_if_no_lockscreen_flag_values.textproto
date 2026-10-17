@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 3: with no lock screen set, SystemUI starts on the Gone scene (straight to the desktop)
+flag_value {
+  package: "com.android.systemui"
+  name: "start_on_gone_scene_if_no_lockscreen"
+  state: ENABLED
+  permission: READ_ONLY
+}
