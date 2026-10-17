@@ -1,17 +1,20 @@
 #!/usr/bin/env bash
 # Stage a Mesa build from scripts/mesa-android-build.sh (radeonsi + RADV, ACO, no LLVM) into the AOSP
 # tree as vendor prebuilts, for device/anybook/common/graphics-amd/graphics-amd.mk:
-#   $AOSP/vendor/anybook/mesa/{Android.bp, lib64/..., etc/libdrm/amdgpu.ids, licenses/, PROVENANCE.txt}
+#   $AOSP/vendor/anybook/mesa/{Android.bp, mesa.mk, lib64/..., etc/libdrm/amdgpu.ids, licenses/, PROVENANCE.txt}
+# mesa.mk tells graphics-amd.mk which Vulkan version this RADV reports, so the image declares the same:
+# android-strict builds report 1.1, others 1.4 (ANAL-177).
 # The binaries are local build outputs and are never committed (docs/mesa.md, libelf licensing).
 # Android.bp is generated here: one cc_prebuilt_library_shared per library, with shared_libs taken
 # from its DT_NEEDED so Soong's ELF checks and the install graph match the real dependencies.
 # Rerun after every Mesa rebuild. Runs on the host (needs readelf).
 #
-#   scripts/graphics-amd-stage-mesa.sh [TREE]        (default: upstream)
+#   scripts/graphics-amd-stage-mesa.sh [TREE]        (default: upstream; a variant such as upstream-strict too)
 set -euo pipefail
 R=$(cd "$(dirname "$0")/.." && pwd); A=${ANYBOOK_HOME:-$HOME/anybook}
 TREE=${1:-upstream}
 M=$A/mesa; SRC=$M/out/$TREE/vendor; D=${AOSP_SRC:-$A/aosp/src}/vendor/anybook/mesa
+SRCTREE=${TREE%%-*}   # a MESA_VARIANT build (upstream-strict) shares its source tree (upstream)
 [ -f "$SRC/lib64/hw/vulkan.radv.so" ] || { echo "no Mesa build in $SRC (scripts/mesa-android-build.sh)" >&2; exit 1; }
 cfg=$(cat "$M/build/$TREE/anybook-config.txt" 2>/dev/null || echo unknown)
 
@@ -20,9 +23,9 @@ rm -rf "$D"; mkdir -p "$D/licenses"
 # libdrm.so is left out; libdrm_amdgpu stays ours (Mesa 26.2 needs >= 2.4.133), as libdrm_amdgpu_mesa.so.
 (cd "$SRC" && find lib64 etc -type f ! -name libdrm.so | sort) > "$D/files.txt"
 (cd "$SRC" && cpio -pdm --quiet "$D") < "$D/files.txt"
-cp "$M/src/$TREE/docs/license.rst" "$D/licenses/mesa-license.rst"
+cp "$M/src/$SRCTREE/docs/license.rst" "$D/licenses/mesa-license.rst"
 cp "$M/src/deps/elfutils/COPYING-LGPLV3" "$D/licenses/elfutils-COPYING-LGPLV3"
-sed -n '1,/^ \*\//p' "$M/src/$TREE/subprojects/libdrm-2.4.133/amdgpu/amdgpu.h" > "$D/licenses/libdrm-amdgpu-NOTICE"
+sed -n '1,/^ \*\//p' "$M/src/$SRCTREE/subprojects/libdrm-2.4.133/amdgpu/amdgpu.h" > "$D/licenses/libdrm-amdgpu-NOTICE"
 
 # file -> module name (the build already renamed what clashes with AOSP: libdrm_amdgpu_mesa, libelf_mesa).
 mod(){ basename "$1" .so; }
@@ -101,4 +104,12 @@ EOF
   echo; (cd "$D" && sha256sum $(cat files.txt))
 } > "$D/PROVENANCE.txt"
 rm "$D/files.txt"
-echo "staged Mesa ($TREE) -> $D"; grep -c cc_prebuilt_library_shared "$D/Android.bp" | sed 's/$/ libraries/'
+# The Vulkan version this RADV reports, for graphics-amd.mk's android.hardware.vulkan.version feature.
+case $cfg in
+  *-Dandroid-strict=false*) vk=1_4 ;;
+  *-Dandroid-strict=true*) vk=1_1 ;;
+  *) echo "cannot tell android-strict from the build config ($cfg)" >&2; exit 1 ;;
+esac
+printf '# Written by scripts/graphics-amd-stage-mesa.sh: the staged RADV reports Vulkan %s.\nANYBOOK_MESA_VULKAN_VERSION := %s\n' \
+  "${vk/_/.}" "$vk" > "$D/mesa.mk"
+echo "staged Mesa ($TREE, Vulkan ${vk/_/.}) -> $D"; grep -c cc_prebuilt_library_shared "$D/Android.bp" | sed 's/$/ libraries/'
