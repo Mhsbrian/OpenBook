@@ -51,6 +51,11 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 
 ## History
 
+### 2026-10-17: Power and input, Android side built: health HAL, lid config in force, one stick for all G14 tests (ANAL-178)
+- **Done:** an OpenBook health HAL (the ACPI battery's charge counter and state of health; Android showed health "unknown"); the lid, power-button and hotkey pieces built and checked in a booted image; save logs records the touchpad's HID descriptors and raw events for the "Clock changed backwards" errors ANAL-176 handed on, and `service list` no longer stalls the capture.
+- **Stick:** `openbook-live-20261017-anal178b` contains ANAL-179's `audionet3` (and ANAL-176's desktop4 fixes) plus all of this, with the power check on its ESP. QEMU: live matrix 39/39, power check 10/10, lid config in force (`evidence/2026-10-17-power-input/anal178b/`).
+- **Next:** the owner writes `anal178b` instead of `audionet3` and runs `docs/power-input.md` §5.
+
 ### 2026-10-17: G14 boots of desktop3, and desktop4 (ANAL-176)
 
 - **Done:**
