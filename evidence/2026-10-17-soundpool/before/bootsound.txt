@@ -1,0 +1,8 @@
+enforcing=Enforcing
+denials=1
+type=1400 audit(1792268763.440:6): avc:  denied  { read write } for  comm="SoundPool_1" path=2F6D656D66643A4D656D6F72794865617042617365202864656C6574656429 dev="tmpfs" ino=4103 scontext=u:r:audioserver:s0 tcontext=u:object_r:appdomain_tmpfs:s0:c512,c768 tclass=file permissive=0 app=com.android.systemui
+track_failures=1
+10-17 20:26:03.438  2637  2637 D KeyguardViewMediator: keyguardDone: 0
+10-17 20:26:03.444  2637  3469 E AudioTrack: createTrack_l(0): AudioFlinger could not create track, status: -2147483646 output 0
+10-17 20:26:03.440  2637  2637 W SoundPool_1: type=1400 audit(0.0:6): avc:  denied  { read write } for  path=2F6D656D66643A4D656D6F72794865617042617365202864656C6574656429 dev="tmpfs" ino=4103 scontext=u:r:audioserver:s0 tcontext=u:object_r:appdomain_tmpfs:s0:c512,c768 tclass=file permissive=0 app=com.android.systemui
+10-17 20:26:03.444  2637  3469 E SoundPool::Stream: play_l: error -2147483646 creating AudioTrack
