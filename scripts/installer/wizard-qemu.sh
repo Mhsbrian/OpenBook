@@ -6,7 +6,13 @@
 # entry). The stick boots a test entry at the G14's 2880x1800 with density 240 on virtio-vga, SELinux enforcing.
 # Results: <data dir>/logs/installer/RUN/<case>/ (serial.log, shot-*.png, sections/) and RUN/results.json + SUMMARY.md.
 #
+# Firmware boot entries (efivarfs, S11): nvram-boot boots a copy of the installed disk with EFI/BOOT/BOOTX64.EFI
+# deleted, with the NVRAM the install left (so only OpenBook's Boot#### can start it); alongside installs next to a
+# Windows-like disk whose "Windows Boot Manager" entry is first in BootOrder, then points BootNext at OpenBook's new
+# entry (the test's stand-in for the firmware's boot menu); alongside-boot boots that disk with that NVRAM.
+#
 # usage: wizard-qemu.sh IMG RUN [CASE...]      default: dryrun install installed console (in that order)
+#        cases also: nvram-boot (after install), alongside, alongside-boot (after alongside)
 set -euo pipefail
 A=${OPENBOOK_HOME:-${ANYBOOK_HOME:-$HOME/anybook}}
 R=$(cd "$(dirname "$0")/../.." && pwd)
@@ -19,10 +25,11 @@ mkdir -p "$Q" "$L"
 ESP_OFF=$(python3 -c 'import json,sys; print(next(p["start"] for p in json.load(open(sys.argv[1]))["partitions"] if p["name"]=="EFI") * 512)' "$IMG.json")
 GPU=(--gpu virtio-vga,xres=2880,yres=1800 --usb-input --tpm)
 has() { case " $CASES " in *" $1 "*) return 0 ;; *) return 1 ;; esac; }
+EXPECT_ARGS=()
 run_case() {  # CASE TIMEOUT [qemu-run args...]
   local c=$1 t=$2; shift 2
   rm -rf "$L/$c"; mkdir -p "$L/$c"
-  "$D" python3 "$S/wizard-qemu.py" expect "$c" "$L/$c/expect.json"
+  "$D" python3 "$S/wizard-qemu.py" expect "$c" "$L/$c/expect.json" "${EXPECT_ARGS[@]}"
   set +e
   "$D" python3 "$S/qemu-run.py" --out "$L/$c" --expect "$L/$c/expect.json" "${GPU[@]}" --mem 8192 --smp 8 \
     --timeout "$t" --linger 20 "$@" > "$L/$c/driver.log" 2>&1
@@ -93,5 +100,46 @@ if has console; then
   "$D" bash -c "off=\$(sgdisk -i 1 '$Q/console-nvme.img' | sed -n 's/^First sector: \([0-9]*\).*/\1/p'); off=\$((off * 512))
     mkdir -p '$L/console/screens' && mcopy -n -o -s -i \"$Q/console-nvme.img@@\$off\" ::/openbook/shots/ '$L/console/screens/'" ||
     echo "no screenshots on the installed disk copy" >&2
+fi
+# OpenBook's firmware entry alone: the installed disk with its fallback path deleted, the NVRAM of the install.
+if has nvram-boot; then
+  rm -f "$Q/nvboot-nvme.img" "$Q/nvboot.vars"; truncate -s 64M "$Q/blank-usb.img"
+  cp --reflink=auto "$Q/nvme.img" "$Q/nvboot-nvme.img"; cp "$Q/stick.vars" "$Q/nvboot.vars"
+  "$D" bash -c "set -e; cd '$Q'
+    off=\$(sgdisk -i 1 nvboot-nvme.img | sed -n 's/^First sector: \([0-9]*\).*/\1/p'); off=\$((off * 512))
+    mdel -i \"nvboot-nvme.img@@\$off\" ::/EFI/BOOT/BOOTX64.EFI
+    mcopy -n -o -i \"nvboot-nvme.img@@\$off\" ::/loader/entries/openbook-a.conf a.conf
+    sed -e 's/^title .*/title OpenBook (serial console test)/' -e 's/^sort-key .*/sort-key openbook-0/' \
+        -e 's/^options \(.*\)/options \1 console=ttyS0,115200 8250.nr_uarts=1 printk.devkmsg=on/' a.conf > openbook-a-console.conf
+    printf 'timeout 0\ndefault openbook-a-console.conf\nconsole-mode keep\neditor no\n' > loader-console.conf
+    mcopy -o -i \"nvboot-nvme.img@@\$off\" openbook-a-console.conf ::/loader/entries/openbook-a-console.conf
+    mcopy -o -i \"nvboot-nvme.img@@\$off\" loader-console.conf ::/loader/loader.conf
+    mdir -/ -b -i \"nvboot-nvme.img@@\$off\" ::/EFI" > "$L/nvboot-esp.txt"
+  run_case nvram-boot 600 --usb "$Q/blank-usb.img" --nvme "$Q/nvboot-nvme.img" --vars "$Q/nvboot.vars" --no-bootindex
+  mv "$L/nvboot-esp.txt" "$L/nvram-boot/esp-EFI-listing.txt"
+fi
+# Alongside a Windows-like disk whose firmware entry is first, then that disk booted through OpenBook's entry.
+if has alongside; then
+  [ -f "$Q/stick.img" ] || { echo "alongside needs the stick of a dryrun/install run in $Q" >&2; exit 1; }
+  rm -f "$Q/win.img" "$Q/alongside.vars"
+  WIN=$("$D" python3 "$S/wizard-qemu.py" mkwin "$Q/win.img")
+  echo "$WIN" > "$Q/win.json"
+  EXPECT_ARGS=(--win "$WIN")
+  run_case alongside 2400 --usb "$Q/stick.img" --nvme "$Q/win.img" --vars "$Q/alongside.vars"
+  EXPECT_ARGS=()
+  fetch_shots alongside
+  "$D" bash -c "sgdisk -v '$Q/win.img'; sgdisk -p '$Q/win.img'" > "$L/alongside/win-gpt.txt" 2>&1 || true
+fi
+if has alongside-boot; then
+  rm -f "$Q/winboot.img" "$Q/winboot.vars"; truncate -s 64M "$Q/blank-usb.img"
+  cp --reflink=auto "$Q/win.img" "$Q/winboot.img"; cp "$Q/alongside.vars" "$Q/winboot.vars"
+  "$D" bash -c "set -e; cd '$Q'
+    n=\$(sgdisk -p winboot.img | awk '\$NF == \"xbootldr\" {print \$1}')
+    off=\$(sgdisk -i \$n winboot.img | sed -n 's/^First sector: \([0-9]*\).*/\1/p'); off=\$((off * 512))
+    mcopy -n -o -i \"winboot.img@@\$off\" ::/loader/entries/openbook-a.conf wa.conf
+    sed -e 's/^title .*/title OpenBook (serial console test)/' -e 's/^sort-key .*/sort-key openbook-0/' \
+        -e 's/^options \(.*\)/options \1 console=ttyS0,115200 8250.nr_uarts=1 printk.devkmsg=on/' wa.conf > wopenbook-a-console.conf
+    mcopy -o -i \"winboot.img@@\$off\" wopenbook-a-console.conf ::/loader/entries/openbook-a-console.conf"
+  run_case alongside-boot 600 --usb "$Q/blank-usb.img" --nvme "$Q/winboot.img" --vars "$Q/winboot.vars" --no-bootindex
 fi
 "$D" python3 "$S/wizard-qemu.py" check --run "$L" --disks "$Q" --image "$IMG"

@@ -25,6 +25,7 @@ import gzip
 import json
 import os
 import re
+import struct
 import subprocess
 import sys
 
@@ -35,6 +36,8 @@ while read -r k n v; do [ "$k" = export ] && export "$n=$v"; done < /data/system
 ui() { uiautomator dump /data/local/tmp/ui.xml >/dev/null 2>&1; }
 bnd() { ui; tr '>' '\n' < /data/local/tmp/ui.xml | grep -F 'package="org.openbook.installer"' | grep -F -e "text=\"$1" -e "content-desc=\"$1" | head -n 1 | sed -n 's/.*bounds="\[\([0-9]*\),\([0-9]*\)\]\[\([0-9]*\),\([0-9]*\)\]".*/\1 \2 \3 \4/p'; }
 tap() { b=$(bnd "$1"); if [ -z "$b" ]; then echo "@@NOTFOUND[$1]@@"; return 1; fi; set -- $b; input tap $(( ($1+$3)/2 )) $(( ($2+$4)/2 )); echo "@@TAPPED@@"; }
+bndx() { ui; tr '>' '\n' < /data/local/tmp/ui.xml | grep -F 'package="org.openbook.installer"' | grep -F -e "text=\"$1\"" | head -n 1 | sed -n 's/.*bounds="\[\([0-9]*\),\([0-9]*\)\]\[\([0-9]*\),\([0-9]*\)\]".*/\1 \2 \3 \4/p'; }
+tapx() { b=$(bndx "$1"); if [ -z "$b" ]; then echo "@@NOTFOUND[$1]@@"; return 1; fi; set -- $b; input tap $(( ($1+$3)/2 )) $(( ($2+$4)/2 )); echo "@@TAPPED@@"; }
 waitfor() { i=0; while [ $i -lt ${2:-90} ]; do b=$(bnd "$1"); if [ -n "$b" ]; then echo "@@SEEN[$1]@@"; return 0; fi; sleep 2; i=$((i+2)); done; echo "@@TIMEOUT[$1]@@"; return 1; }
 snap() { screencap -p /data/local/tmp/snap.png && sync && echo 3 > /proc/sys/vm/drop_caches && mkdir -p /mnt/obesp && mount -t vfat ${SNAPDEV:-/dev/block/sda1} /mnt/obesp && mkdir -p /mnt/obesp/openbook/shots && cp /data/local/tmp/snap.png "/mnt/obesp/openbook/shots/$1.png"; sync; umount /mnt/obesp; echo 3 > /proc/sys/vm/drop_caches; echo "@@SNAP[$1]@@"; }
 """
@@ -92,6 +95,69 @@ def shot(name, snap=True):
     return s + [{"shot": name}]
 
 
+EFI_GLOBAL = "8be4df61-93ca-11d2-aa0d-00e098032b8c"
+EV = "/sys/firmware/efi/efivars"
+
+
+def _guid_bytes(s):
+    b = bytes.fromhex(s.replace("-", ""))
+    return b[3::-1] + b[5:3:-1] + b[7:5:-1] + b[8:]
+
+
+def _ucs2(s):
+    return s.encode("utf-16-le") + b"\0\0"
+
+
+def load_option(desc, partnum, start, size, guid, path):
+    """An EFI_LOAD_OPTION: HD(partnum, GPT, guid)/File(path), active."""
+    hd = bytes([4, 1, 42, 0]) + struct.pack("<IQQ", partnum, start, size) + _guid_bytes(guid) + bytes([2, 2])
+    fp = _ucs2(path)
+    dp = hd + bytes([4, 4]) + struct.pack("<H", 4 + len(fp)) + fp + bytes([0x7F, 0xFF, 4, 0])
+    return struct.pack("<IH", 1, len(dp)) + _ucs2(desc) + dp
+
+
+def nvram_section(name):
+    return section(name, f"openbook-install nvram; sha256sum {EV}/Boot0007-{EFI_GLOBAL} {EV}/BootOrder-{EFI_GLOBAL} 2>&1", 60)
+
+
+def tapx(text, settle=3):
+    return [{"send": f"tapx '{text}'\n"}, {"wait": r"@@TAPPED@@", "timeout": 90}, {"wait": PROMPT, "timeout": 30},
+            {"pause": settle}]
+
+
+def mkwin(out):
+    """A Windows-like 300 GiB disk image: ESP (260 MiB, EFI/Microsoft/Boot/bootmgfw.efi and EFI/BOOT/BOOTX64.EFI), MSR,
+    a 200 GiB NTFS partition, an 800 MiB recovery partition, about 99 GiB free. Prints the ESP's facts as JSON."""
+    import tempfile
+    if os.path.exists(out):
+        os.remove(out)
+    with open(out, "wb") as f:
+        f.truncate(300 * 1024 ** 3)
+    subprocess.run(["sgdisk", "-n", "1:2048:+260M", "-t", "1:ef00", "-c", "1:EFI system partition",
+                    "-n", "2:0:+16M", "-t", "2:0c01", "-c", "2:Microsoft reserved partition",
+                    "-n", "3:0:+200G", "-t", "3:0700", "-c", "3:Basic data partition",
+                    "-n", "4:0:+800M", "-t", "4:2700", "-c", "4:", out], check=True, capture_output=True)
+    with tempfile.TemporaryDirectory() as d:
+        esp, fake = f"{d}/esp.img", f"{d}/bootmgfw.efi"
+        subprocess.run(["mkfs.fat", "-F", "32", "-n", "SYSTEM", "-C", esp, str(260 * 1024)], check=True, capture_output=True)
+        for x in ("::/EFI", "::/EFI/Microsoft", "::/EFI/Microsoft/Boot", "::/EFI/BOOT"):
+            subprocess.run(["mmd", "-i", esp, x], check=True)
+        open(fake, "wb").write(os.urandom(150000))
+        subprocess.run(["mcopy", "-i", esp, fake, "::/EFI/Microsoft/Boot/bootmgfw.efi"], check=True)
+        subprocess.run(["mcopy", "-i", esp, fake, "::/EFI/BOOT/BOOTX64.EFI"], check=True)
+        with open(out, "r+b") as f:
+            f.seek(2048 * 512)
+            f.write(open(esp, "rb").read())
+    p = subprocess.run(["sgdisk", "-p", out], capture_output=True, text=True).stdout
+    starts = [int(m.group(1)) for m in re.finditer(r"^\s+\d+\s+(\d+)\s+\d+", p, re.M)]
+    with open(out, "r+b") as f:  # an NTFS boot sector on partition 3
+        f.seek(starts[2] * 512 + 3)
+        f.write(b"NTFS    ")
+    guid = re.search(r"unique GUID: (\S+)", subprocess.run(["sgdisk", "-i", "1", out], capture_output=True,
+                                                           text=True).stdout).group(1).lower()
+    print(json.dumps({"esp_guid": guid, "esp_start": 2048, "esp_sectors": 260 * 2048}))
+
+
 def helpers():
     out = []
     for line in HELPERS.strip().splitlines():
@@ -126,14 +192,14 @@ def wizard_front(model):
     return s
 
 
-def expect(case, target, model):
+def expect(case, target, model, win=None):
     if case == "installed":
         return []  # no serial console on the installed entry: screenshots only (wizard-qemu.sh --shot)
     s = steps_common_boot()
-    if case in ("dryrun", "install"):
+    if case in ("dryrun", "install", "alongside"):
         s += helpers()
         s += section("PROPS", "getprop | grep -E 'ro.boot.(openbook|selinux|boot_part_uuid)|init.svc.openbook|ro.build.fingerprint'; getenforce")
-        s += section("LABELS", "ls -lZ /dev/block | grep -E ' (sd[a-z]+|nvme0n1)$'; ls -lZ /dev/socket/openbook_installd; ps -AZ | grep -E 'openbook|installer'")
+        s += section("LABELS", "ls -lZ /dev/block | grep -E ' (sd[a-z]+|nvme0n1)$'; ls -lZ /dev/socket/openbook_installd; ps -AZ | grep -E 'openbook|installer'; grep efivarfs /proc/mounts; ls -dZ /sys/firmware/efi/efivars; ls -Z /sys/firmware/efi/efivars | head -n 3")
     if case == "dryrun":
         s += section("CLI-DISKS", "openbook-install disks", 120)
         s += section("CLI-PLAN", f"openbook-install plan --target /dev/disk/by-id/{target} --layout whole --locale en-US --keyboard us --out /data/local/tmp/plan.json", 120)
@@ -160,9 +226,62 @@ def expect(case, target, model):
         s += section("INSTALLD-LOG", "cat /data/misc/openbook_install/installd.log", 120)
         s += section("AVC", "logcat -d -b all | grep -E 'avc: +denied' | head -n 200", 120)
         s += section("APP-LOG", "logcat -d -b main | grep -iE 'openbook|installer' | tail -n 200", 120)
+        s += section("NVRAM-AFTER", "openbook-install nvram", 60)
         s += [{"send": "sync\n"}, {"wait": PROMPT, "timeout": 60}]
         # The guest reboots and QEMU (-no-reboot) exits: the tap's own marker is the last step.
         s += [{"send": "tap 'Restart now'\n"}, {"wait": r"@@TAPPED@@", "timeout": 90}]
+    elif case == "alongside":
+        # An installed Windows, as its firmware sees it: Boot0007 "Windows Boot Manager" -> its ESP, first in BootOrder.
+        wvar = struct.pack("<I", 7) + load_option("Windows Boot Manager", 1, win["esp_start"], win["esp_sectors"],
+                                                   win["esp_guid"], "\\EFI\\Microsoft\\Boot\\bootmgfw.efi")
+        b64 = base64.b64encode(wvar).decode()
+        s += send(f"echo {b64} | base64 -d > /data/local/tmp/w.bin; dd if=/data/local/tmp/w.bin "
+                  f"of={EV}/Boot0007-{EFI_GLOBAL} bs=4096 2>/dev/null; echo winentry=$?", 30)
+        s += send(f"{{ printf '\\007\\000\\000\\000\\007\\000'; tail -c +5 {EV}/BootOrder-{EFI_GLOBAL}; }} > "
+                  f"/data/local/tmp/bo.bin; dd if=/data/local/tmp/bo.bin of={EV}/BootOrder-{EFI_GLOBAL} bs=4096 "
+                  f"conv=notrunc 2>/dev/null; echo bootorder=$?", 30)
+        s += nvram_section("NVRAM-BEFORE")
+        s += wait_ui("Choose your language", 180)
+        s += tap("Continue", 4)
+        s += wait_ui("STEP 2 OF 7", 120)
+        s += tap("Continue", 4)
+        s += wait_ui("STEP 3 OF 7", 60)
+        s += tap("Install OpenBook", 2)
+        s += tap("Continue", 4)
+        s += wait_ui("STEP 4 OF 7", 90)
+        s += [{"pause": 4}]
+        s += tap(model, 2)
+        s += tap("Install alongside", 2)
+        s += shot("a4-disk-alongside")
+        s += tap("View the plan", 6)
+        s += shot("a4-plan")
+        s += [{"send": "input keyevent 111\n"}, {"wait": PROMPT, "timeout": 30}, {"pause": 2}]
+        s += tap("Continue", 5)
+        s += wait_ui("STEP 5 OF 7", 90)
+        s += shot("a5-confirm")
+        s += tap("Type", 2)
+        s += send("input text '" + model.replace(" ", "%s") + "'", 30)
+        s += [{"pause": 3}]
+        s += tapx("Install", 1)
+        s += wait_ui("OpenBook is installed", 1500)
+        s += [{"pause": 4}]
+        s += shot("a7-done")
+        s += nvram_section("NVRAM-AFTER")
+        s += section("INSTALLD-LOG", "cat /data/misc/openbook_install/installd.log", 120)
+        s += section("AVC", "logcat -d -b all | grep -E 'avc: +denied' | head -n 200", 120)
+        # Test step, standing in for the firmware's boot menu: start OpenBook's new entry once (BootNext).
+        s += send("n=$(openbook-install nvram | tr '{' '\\n' | grep '\"description\":\"OpenBook\"' | head -n 1 | "
+                  "sed 's/.*\"num\":\"\\([0-9A-F]*\\)\".*/\\1/'); echo NEWENTRY=$n; v=$((16#$n)); "
+                  "printf '07000000%02x%02x' $((v & 255)) $((v >> 8)) | xxd -r -p > /data/local/tmp/bn.bin; "
+                  f"dd if=/data/local/tmp/bn.bin of={EV}/BootNext-{EFI_GLOBAL} bs=4096 2>/dev/null; echo bootnext=$?", 30)
+        s += section("NVRAM-NEXT", "openbook-install nvram", 60)
+        s += [{"send": "sync\n"}, {"wait": PROMPT, "timeout": 60}]
+    elif case in ("nvram-boot", "alongside-boot"):
+        # The installed system, started by the firmware through OpenBook's own entry (no fallback path, no stick).
+        s += send("mount -t efivarfs efivarfs /sys/firmware/efi/efivars 2>/dev/null; true", 30)
+        s += section("NVRAM-BOOT", "openbook-install nvram; getprop ro.boot.openbook.installed; getprop ro.boot.openbook.live; "
+                     "getenforce; ls -l /dev/block/by-name", 60)
+        s += [{"pause": 5}] + shot("boot-screen", snap=False)
     elif case == "console":
         s += helpers()
         s += send("export SNAPDEV=/dev/block/nvme0n1p1", 30)
@@ -255,6 +374,89 @@ def check(a):
         avc = [l for l in sec.get("AVC", "").splitlines() if "denied" in l and re.search(r"openbook|org\.openbook", l)]
         chk("install", "no SELinux denial for the app or the daemon (enforcing)", not avc, "\n".join(avc[:5]))
         chk("install", "the run ended with the guest's reboot (Restart now)", r["reason"].startswith("QEMU exited"), r["reason"])
+    def nvjson(text):
+        """The first `openbook-install nvram` JSON object in a section."""
+        for line in text.splitlines():
+            line = line.strip()
+            if line.startswith("{") and '"nvram"' in line:
+                try:
+                    return json.loads(line)["nvram"]
+                except ValueError:
+                    pass
+        return {}
+
+    def ob_entry(nv):
+        return next((e for e in nv.get("entries", []) if e.get("description") == "OpenBook"), None)
+
+    def hashes(text):
+        return dict((os.path.basename(m.group(2)).split("-")[0], m.group(1))
+                    for m in re.finditer(r"^([0-9a-f]{64})\s+(\S+)", text, re.M))
+
+    installed_entry = None
+    if r:
+        nv = nvjson(sec.get("NVRAM-AFTER", ""))
+        e = ob_entry(nv)
+        installed_entry = e and e["num"]
+        chk("install", "firmware entry: one \"OpenBook\" Boot#### -> HD(1, GPT)/\\EFI\\OpenBook\\systemd-bootx64.efi, first in BootOrder",
+            e and e.get("partition") == 1 and e.get("path") == "\\EFI\\OpenBook\\systemd-bootx64.efi" and
+            nv.get("boot_order", [None])[0] == e["num"], {"entry": e, "boot_order": nv.get("boot_order")})
+        chk("install", "efivarfs mounted by init with its own label (openbook_efivarfs)",
+            "openbook_efivarfs" in sec.get("LABELS", "") and "efivarfs /sys/firmware/efi/efivars" in sec.get("LABELS", ""),
+            sec.get("LABELS", "")[-300:])
+    r, t, sec = load("nvram-boot")
+    if r:
+        nv = nvjson(sec.get("NVRAM-BOOT", ""))
+        e = ob_entry(nv)
+        s = sec.get("NVRAM-BOOT", "")
+        chk("nvram-boot", "every expect step matched", r["steps_done"] == r["steps"], f"{r['steps_done']}/{r['steps']} ({r['reason']})")
+        lst = open(f"{R}/nvram-boot/esp-EFI-listing.txt").read() if os.path.exists(f"{R}/nvram-boot/esp-EFI-listing.txt") else ""
+        chk("nvram-boot", "the copy has no fallback path: EFI/BOOT/BOOTX64.EFI deleted",
+            lst and "::/EFI/BOOT/BOOTX64.EFI" not in lst.upper(), lst.strip()[:200])
+        chk("nvram-boot", "the firmware kept the install's BootOrder (OpenBook first; no bootindex hints)",
+            installed_entry and nv.get("boot_order", [None])[0] == installed_entry, nv.get("boot_order"))
+        chk("nvram-boot", "OVMF started the installed system through OpenBook's entry (BootCurrent = the entry the install made)",
+            e and nv.get("boot_current") == e["num"] == installed_entry, {"boot_current": nv.get("boot_current"),
+                                                                           "entry": e and e["num"], "installed": installed_entry})
+        links = re.findall(r" (\S+) -> (/dev/block/\S+)", s)
+        chk("nvram-boot", "Android booted from the NVMe disk (by-name links on nvme0n1, installed=whole)",
+            "BOOTDONE=1" in t and links and all("nvme0n1" in x for _, x in links) and "\nwhole" in s, len(links))
+    r, t, sec = load("alongside")
+    if r:
+        before, after, nxt = (nvjson(sec.get(k, "")) for k in ("NVRAM-BEFORE", "NVRAM-AFTER", "NVRAM-NEXT"))
+        hb, ha = hashes(sec.get("NVRAM-BEFORE", "")), hashes(sec.get("NVRAM-AFTER", ""))
+        e = ob_entry(after)
+        win = next((x for x in before.get("entries", []) if x.get("description") == "Windows Boot Manager"), {})
+        chk("alongside", "every expect step matched", r["steps_done"] == r["steps"], f"{r['steps_done']}/{r['steps']} ({r['reason']})")
+        chk("alongside", "before: Windows Boot Manager (Boot0007) first in BootOrder", before.get("boot_order", [None])[0] == "0007"
+            and win.get("num") == "0007", before.get("boot_order"))
+        chk("alongside", "the install verified (daemon, enforcing)", re.search(r"verified \d+ partitions and files", sec.get("INSTALLD-LOG", ""))
+            and "Enforcing" in sec.get("PROPS", ""))
+        chk("alongside", "one new \"OpenBook\" entry -> HD(1, GPT, the Windows ESP)/\\EFI\\OpenBook\\systemd-bootx64.efi",
+            e and e.get("partition") == 1 and e.get("partuuid") == win.get("partuuid") and
+            e.get("path") == "\\EFI\\OpenBook\\systemd-bootx64.efi" and
+            len(after.get("entries", [])) == len(before.get("entries", [])) + 1, e)
+        chk("alongside", "Windows Boot Manager and BootOrder byte-identical (no consent to change the boot order, S11)",
+            hb and hb == ha and before.get("boot_order") == after.get("boot_order"), {"before": hb, "after": ha})
+        chk("alongside", "no SELinux denial for the app or the daemon", not [l for l in sec.get("AVC", "").splitlines()
+                                                                          if "denied" in l and re.search(r"openbook|org\.openbook", l)])
+        chk("alongside", "test step: BootNext points at OpenBook's entry", e and nxt.get("boot_next") == e["num"], nxt.get("boot_next"))
+        alongside_entry = e and e["num"]
+    else:
+        alongside_entry = None
+    r, t, sec = load("alongside-boot")
+    if r:
+        nv = nvjson(sec.get("NVRAM-BOOT", ""))
+        s = sec.get("NVRAM-BOOT", "")
+        chk("alongside-boot", "every expect step matched", r["steps_done"] == r["steps"], f"{r['steps_done']}/{r['steps']} ({r['reason']})")
+        chk("alongside-boot", "OVMF started OpenBook through its entry once (BootCurrent = the new entry, BootNext used up)",
+            alongside_entry and nv.get("boot_current") == alongside_entry and not nv.get("boot_next"),
+            {"boot_current": nv.get("boot_current"), "boot_next": nv.get("boot_next"), "entry": alongside_entry})
+        chk("alongside-boot", "Windows stays first in BootOrder; its entry is still there",
+            nv.get("boot_order", [None])[0] == "0007" and any(x.get("description") == "Windows Boot Manager" for x in nv.get("entries", [])),
+            nv.get("boot_order"))
+        links = re.findall(r" (\S+) -> (/dev/block/\S+)", s)
+        chk("alongside-boot", "Android booted from the Windows disk's new partitions (installed=alongside)",
+            "BOOTDONE=1" in t and links and all("nvme0n1" in x for _, x in links) and "\nalongside" in s, len(links))
     r, t, sec = load("installed")
     if r:
         sh = shots_of("installed")
@@ -307,13 +509,19 @@ def main():
     e.add_argument("out")
     e.add_argument("--target", default="nvme-QEMU_NVMe_Ctrl_internal0")
     e.add_argument("--model", default="QEMU NVMe Ctrl")
+    e.add_argument("--win", help="mkwin's JSON (the alongside case)")
+    m = sub.add_parser("mkwin")
+    m.add_argument("out")
     c = sub.add_parser("check")
     c.add_argument("--run", required=True)
     c.add_argument("--disks", required=True)
     c.add_argument("--image", required=True)
     a = ap.parse_args()
     if a.cmd == "expect":
-        json.dump(expect(a.case, a.target, a.model), open(a.out, "w"), indent=0)
+        json.dump(expect(a.case, a.target, a.model, json.loads(a.win) if a.win else None), open(a.out, "w"), indent=0)
+        return 0
+    if a.cmd == "mkwin":
+        mkwin(a.out)
         return 0
     return check(a)
 
