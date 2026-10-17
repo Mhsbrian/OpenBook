@@ -19,6 +19,7 @@ import json
 import os
 import re
 import shutil
+import sys
 
 
 def sections(path):
@@ -139,7 +140,11 @@ def main():
         os.makedirs(a.redact, exist_ok=True)
         for f in sorted(os.listdir(d)):
             src, dst = f"{d}/{f}", f"{a.redact}/{f}"
-            if f.endswith((".txt", ".json", ".md")):
+            # Earlier boots' logs (prior-boots.tar.gz, unpacked into prior/ by read-stick-logs.sh) are not masked
+            # as a whole: pick files from them with --redact-file.
+            if os.path.isdir(src) or f.endswith(".tar.gz"):
+                print(f"not copied to {a.redact}: {f} (use --redact-file on single files)", file=sys.stderr)
+            elif f.endswith((".txt", ".json", ".md")):
                 open(dst, "w").write(redact(open(src, errors="replace").read()))
             else:
                 shutil.copy(src, dst)

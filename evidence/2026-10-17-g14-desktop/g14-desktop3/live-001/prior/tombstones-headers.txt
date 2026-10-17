@@ -1,0 +1,78 @@
+*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+Build fingerprint: 'OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys'
+Kernel Release: '6.18.21-android17-5-g44a90255c95f'
+Revision: '0'
+ABI: 'x86_64'
+Timestamp: 2026-10-17 02:30:30.698192628+0000
+Process uptime: 0s
+Executable: /system/bin/app_process64
+Cmdline: com.android.bluetooth
+pid: 3721, ppid: 1051, tid: 3721, name: droid.bluetooth  >>> com.android.bluetooth <<<
+uid: 1002
+signal 6 (SIGABRT), code -1 (SI_QUEUE), fault addr --------
+
+*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+Build fingerprint: 'OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys'
+Kernel Release: '6.18.21-android17-5-g44a90255c95f'
+Revision: '0'
+ABI: 'x86_64'
+Timestamp: 2026-10-17 02:30:31.408150816+0000
+Process uptime: 0s
+Executable: /system/bin/app_process64
+Cmdline: com.android.bluetooth
+pid: 4343, ppid: 1051, tid: 4343, name: droid.bluetooth  >>> com.android.bluetooth <<<
+uid: 1002
+signal 6 (SIGABRT), code -1 (SI_QUEUE), fault addr --------
+
+*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+Build fingerprint: 'OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys'
+Kernel Release: '6.18.21-android17-5-g44a90255c95f'
+Revision: '0'
+ABI: 'x86_64'
+Timestamp: 2026-10-17 02:30:32.458171418+0000
+Process uptime: 0s
+Executable: /system/bin/app_process64
+Cmdline: com.android.bluetooth
+pid: 4651, ppid: 1051, tid: 4651, name: droid.bluetooth  >>> com.android.bluetooth <<<
+uid: 1002
+signal 6 (SIGABRT), code -1 (SI_QUEUE), fault addr --------
+
+*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+Build fingerprint: 'OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys'
+Kernel Release: '6.18.21-android17-5-g44a90255c95f'
+Revision: '0'
+ABI: 'x86_64'
+Timestamp: 2026-10-17 02:30:33.955179282+0000
+Process uptime: 0s
+Executable: /system/bin/app_process64
+Cmdline: com.android.bluetooth
+pid: 4787, ppid: 1051, tid: 4787, name: droid.bluetooth  >>> com.android.bluetooth <<<
+uid: 1002
+signal 6 (SIGABRT), code -1 (SI_QUEUE), fault addr --------
+
+*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+Build fingerprint: 'OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys'
+Kernel Release: '6.18.21-android17-5-g44a90255c95f'
+Revision: '0'
+ABI: 'x86_64'
+Timestamp: 2026-10-17 02:30:50.285984919+0000
+Process uptime: 0s
+Executable: /system/bin/app_process64
+Cmdline: com.android.bluetooth
+pid: 4879, ppid: 1051, tid: 4879, name: droid.bluetooth  >>> com.android.bluetooth <<<
+uid: 1002
+signal 6 (SIGABRT), code -1 (SI_QUEUE), fault addr --------
+
+*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+Build fingerprint: 'OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys'
+Kernel Release: '6.18.21-android17-5-g44a90255c95f'
+Revision: '0'
+ABI: 'x86_64'
+Timestamp: 2026-10-17 02:31:10.667913360+0000
+Process uptime: 0s
+Executable: /system/bin/app_process64
+Cmdline: com.android.bluetooth
+pid: 5037, ppid: 1051, tid: 5037, name: droid.bluetooth  >>> com.android.bluetooth <<<
+uid: 1002
+signal 6 (SIGABRT), code -1 (SI_QUEUE), fault addr --------
+

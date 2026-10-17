@@ -126,7 +126,7 @@ Denials on the VM path (`avc-summary.py` on the save-logs case): 41 Android line
 ## 7. Open items
 
 - **gfx1150 itself** (H): every claim about RDNA 3.5 waits for the G14 run. The host GPU is RDNA2.
-- **drm_hwcomposer's test-only commits fail with `EINVAL`** in live-001 whenever the pointer moved (hundreds of `Test-only seamless=0 ret=-22`), so SurfaceFlinger composes on the GPU instead. Not a blocker; a likely cause is the cursor plane rejecting a GBM-tiled cursor buffer (H). To look at once the desktop is up (`drm.debug` on the save-logs entry).
+- **drm_hwcomposer's test-only commits fail with `EINVAL`**, up to once per frame, so SurfaceFlinger composes on the GPU instead. The G14 kernel log of `desktop3` gives the reason: each failure comes with `dc_state_add_plane: can not attach plane_state! Maximum is: 4`, so drm_hwcomposer puts more planes on the panel's stream than amdgpu's display core accepts (`MAX_SURFACES 4` in `dc.h`). The earlier guess, a tiled cursor buffer, is ruled out. Not a blocker, but it costs GPU time and floods the kernel log (1,775 lines in 2 minutes). Next: list the planes amdgpu exposes for gfx1150 (`drm_info` from a save-logs boot) and cap drm_hwcomposer's plane use to what one stream takes.
 - **Wi-Fi** (no HAL, no `regulatory.db`): ANAL-179.
 - **The two open denials** in §4.
 - **The kernel power-off hang** after Android's clean shutdown (ANAL-190's QEMU runs): product side, still open.
@@ -163,7 +163,24 @@ The owner wrote `openbook-live-20261017-desktop2` at 01:05 UTC and booted the de
 
 **No logs from the enforcing boots.** They saved nothing, so they had to be reconstructed from the next boots (bootstat, APEX state, FAT timestamps). From the next image on, `persist.logd.logpersistd=logcatd` keeps logcat with the kernel log in `/data/misc/logd` across boots (userdebug), and the save-logs helper's first capture archives it with tombstones, ANR traces and dropbox (`prior-boots.tar.gz`, unpacked by `read-stick-logs.sh` into `live-NNN/prior/`).
 
-## 10. Sources (accessed 2026-10-17)
+## 10. G14 boots of `desktop3` (2026-10-17)
+
+The owner booted `desktop3` twice and reattached the stick. The stick was read back read-only at 02:36Z. The full timeline and files are in `evidence/2026-10-17-g14-desktop/g14-desktop3/` (redacted).
+
+| Finding | Evidence | Status |
+|---|---|---|
+| **Boot 1 (not save-logs) was switched off on a black screen while still in first-boot setup.** It started 02:28:17 and was off before boot 2 started at 02:29:16 (POST and the 10 s menu included). A fresh `/data` first decompresses 20 compressed APEXes on the stick: 34 s in boot 2, with SurfaceFlinger at 55.4 s and the boot animation at 59.4 s. Before SurfaceFlinger there is nothing on the panel. Boot 1 left `/data` formatted but uncleanly closed, and no decompressed APEXes | `live-init-001.json` (FAT time), boot 2's f2fs roll-forward recovery and its 20 × `apexd: Decompressing`, `Wait for property 'apexd.status=activated' took 40695ms` | **Changed**: `PRODUCT_COMPRESSED_APEX := false` (as Cuttlefish does), so the first boot does no decompression. Whether the *enforcing* entry reaches the desktop on the G14 is still not shown |
+| The `firmware_load` denial is gone; amdgpu up at 5.6 s | boot 2's kernel log: no `firmware_load`, `[drm] Initialized amdgpu 3.64.0` | Policy fix in effect (seen permissive) |
+| Boot 2 ("save logs") reached the desktop, slowly, because it had to do boot 1's first-boot setup again | `boot_completed` 78.6 s; `bootstat`: `reboot,factory_reset` (first completed boot of this `/data`) | Expected; later boots of this stick skip it |
+| **Escape on the keyboard killed the launcher** (taskbar and desktop gone until it restarts) when the taskbar overlay held something other than All Apps: `TaskbarOverlayDragLayer.tryHandleEscapeKey` reads `getAppsView()` without a null check | dropbox `system_app_crash` 02:31:18.8, the owner had the wallpaper chooser open | **Fixed** (AOSP Launcher3 patch, `aosp/patches/packages/apps/Launcher3`) |
+| "It turned off" again: the save-logs entry's power-off, 45 s after `boot_completed` | `summary.json` `"after": "poweroff"`, uptime 129.9 s | By design in this image; ANAL-190's branch `anal-190/live-image-b` makes that entry keep running |
+| Per-frame plane errors from drm_hwcomposer | 1,775 `can not attach plane_state! Maximum is: 4` | Open, §7 |
+| Bluetooth app aborts (6 per 2 minutes); no Wi-Fi service | tombstones; `cmd: Can't find service: wifi` | ANAL-179 |
+| Denials: 14 lines an enforcing boot would hit, 7 distinct, none graphics | `live-001/avc.md` | Known (§9 row) |
+
+## 11. Sources (accessed 2026-10-17)
 
 - Mesa: `f7a951028`, `15a3bb617`, `90b5425e8` on `main` (gitlab.freedesktop.org/mesa/mesa), MR 44426.
 - AOSP 17 (`android17-release` tree in `~/anybook/aosp/src`): `frameworks/native/vulkan/libvulkan/swapchain.cpp` and `driver.cpp`, `frameworks/native/vulkan/include/vulkan/vk_android_native_buffer.h`, `external/angle/src/libANGLE/renderer/vulkan/SurfaceVk.cpp`, `frameworks/base/libs/hwui/Properties.cpp`, `system/sepolicy` (`gpu_sphal_use`, `vendor_restricted_prop`), `system/core/rootdir/init.rc` (`discard_max_bytes`), `external/minigbm/cros_gralloc` (gralloc0 `perform`, shared `libminigbm_gralloc`).
+- AOSP 17, for §10: `build/make/core/product_config.mk` (`PRODUCT_COMPRESSED_APEX`), `device/google/cuttlefish/shared/device.mk` (sets it to false), `packages/apps/Launcher3/quickstep/src/com/android/launcher3/taskbar/overlay/TaskbarOverlayDragLayer.java` and `TaskbarOverlayContext.java` (`getAppsView()` is a `findViewById`, so it is null without All Apps).
+- Kernel (`~/anybook/kernel/src/common`, android17-6.18): `drivers/gpu/drm/amd/display/dc/dc.h` (`MAX_SURFACES 4`), `dc/core/dc_state.c` (`dc_state_add_plane`).
