@@ -10,5 +10,6 @@ The Checker's follow-up on PR #42 at `a81c25e`: `installer-image.sh` checked the
 | `installer-image.sh` while another process held the real lane lock for 20 s (04:10:58 to 04:11:18Z) | printed `waiting for the AOSP lane lock …`, took its snapshot at 04:11:19Z, image built, rc 0 |
 | the same with the lock free | no wait, snapshot at once |
 | `OPENBOOK_LANE_LOCK_HELD=1` under the caller's own `flock` | no second lock (which would wait for ever), image built, rc 0 |
+| the lock after the snapshot, checked once a second while the rest of the image built | free in 22 of 22 checks (the log's `tee` starts before the lock is taken, so nothing inherits it), rc 0 |
 
 Logs: `<data dir>/logs/installer/live-anal176-locktest-20261017T0410*Z.log` … `T041213Z.log`. The test images and snapshots were deleted.
