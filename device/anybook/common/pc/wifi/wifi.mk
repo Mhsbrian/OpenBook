@@ -3,11 +3,10 @@
 #
 # Wi-Fi on an OpenBook PC (product half; BoardConfig.mk has the supplicant's board variables). The laptop's
 # mac80211 driver (mt7925e on the G14) creates wlan0 when vendor_dlkm loads; Android drives it with AOSP's
-# wpa_supplicant (AIDL) and wificond, both over standard nl80211. There is no vendor Wi-Fi HAL: AOSP's
-# libwifi_hal knows a "desktop" WLAN device whose implementation (libwifi-hal-desktop) is not public, and the
-# framework supports running without one (WifiNative: "Vendor Hal not supported"). Android 17 also has no wificond
-# (RELEASE_DISABLE_WIFICOND): the Wi-Fi module speaks nl80211 itself (Nl80211Proxy). What that costs is listed in
-# docs/g14-audio-net.md.
+# wpa_supplicant (AIDL) and the Wi-Fi module's own nl80211 code (Nl80211Proxy: Android 17 builds without wificond,
+# RELEASE_DISABLE_WIFICOND). There is no vendor Wi-Fi HAL: AOSP's libwifi_hal knows a "desktop" WLAN device whose
+# implementation (libwifi-hal-desktop) is not public, and the framework supports running without one (WifiNative:
+# "Vendor Hal not supported"). What that costs is listed in docs/g14-audio-net.md.
 
 PRODUCT_PACKAGES += \
     wpa_supplicant \

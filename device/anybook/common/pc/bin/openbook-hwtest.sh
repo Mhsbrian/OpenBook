@@ -33,7 +33,9 @@ wifi() {
   iw reg get 2>&1 | head -n 20
   regdb=$(dmesg | grep -iE 'regulatory|regdb|cfg80211' | tail -n 8)
   echo "$regdb"
-  regdb_ok=false; [ -f /vendor/firmware/regulatory.db ] && ! echo "$regdb" | grep -q 'failed to load regulatory.db' && regdb_ok=true
+  # The last word on the database: cfg80211 says nothing when it loads it, and names the problem when it does not.
+  regdb_ok=false
+  [ -f /vendor/firmware/regulatory.db ] && ! echo "$regdb" | tail -n 2 | grep -qE 'failed to load regulatory.db|regulatory.db is malformed' && regdb_ok=true
   country=$(iw reg get 2>/dev/null | sed -n 's/^country \([A-Z0-9][A-Z0-9]\).*/\1/p' | head -n 1)
   j "\"test\": \"wifi-driver\", \"iface\": $(q "$iface"), \"present\": $([ -e /sys/class/net/$iface ] && echo true || echo false), \"driver\": $(q "$(basename "$(readlink /sys/class/net/$iface/device/driver)" 2>/dev/null)"), \"regdb_loaded\": $regdb_ok, \"country\": $(q "$country")"
 

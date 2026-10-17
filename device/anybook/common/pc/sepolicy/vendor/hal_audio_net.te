@@ -1,5 +1,11 @@
-# Wi-Fi, Bluetooth and audio on an OpenBook PC (ANAL-179, docs/g14-audio-net.md). Wi-Fi needs nothing here: AOSP's
-# wpa_supplicant runs in AOSP's hal_wifi_supplicant_default domain, wificond in its own.
+# Wi-Fi, Bluetooth and audio on an OpenBook PC (ANAL-179, docs/g14-audio-net.md). AOSP's wpa_supplicant runs in
+# AOSP's hal_wifi_supplicant_default domain, and the Wi-Fi module's nl80211 code in system_server.
+
+# Wi-Fi: cfg80211 checks regulatory.db's signature against a keyring it creates when it loads. modprobe loads it
+# (vendor_dlkm, early-init), so the keyring carries vendor_modprobe's label, and the kernel worker that reads the
+# database may not search it: "loaded regulatory.db is malformed or signature is missing/invalid" and the world
+# domain only (ANAL-179 QEMU run b: kernel -> vendor_modprobe key { search } denied).
+allow kernel vendor_modprobe:key search;
 
 # Bluetooth: AOSP's AIDL HAL (android.hardware.bluetooth-service.default) finds the controller through the
 # kernel's management channel, unblocks it with rfkill and opens it as an HCI user channel (btusb + btmtk own
