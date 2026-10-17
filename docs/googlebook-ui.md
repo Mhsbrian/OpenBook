@@ -184,23 +184,25 @@ AOSP 17 keeps the hooks (contextual-search shake gesture, the Ambient Cue UI, Sm
 - Upstream Google Sans Flex has no GRAD axis, so our `variable-*` families leave it out.
 - The clock families map to Google Sans Flex.
 
-## 4. Proposed beautification backlog (alpha → beta)
+## 4. Beautification backlog (alpha → beta)
 
-| # | Item | Size | Needs |
-|---|---|---|---|
-| B1 | **Fonts in the product.** `PRODUCT_COPY_FILES` for the three OFL fonts and `OFL.txt`, the generated `fonts_customization.xml`, and the four values in `AnyBookDesktopFrameworkOverlay`. Then the desktop capture in Cuttlefish and the G14 checklist | small | Owner OK on the trademark reading |
-| B2 | **Blur on the G14.** `ro.surface_flinger.supports_background_blur=1`; check frame times on the 890M | small | — |
-| B3 | **Flag set v2.** Evaluate the 128 UI flags AOSP 17 declares, in groups. Start with box shadows, blur on more surfaces, resizing (`perfect_edge`, no-resize cursor, fluid resizing) and taskbar clicks. `scripts/desktop-flags.py` already writes the value set | medium | — |
-| B4 | **Shape and wallpaper values:** circular icon mask, round icons, wallpaper dim 0, wallpaper colour thresholds | small | — |
-| B5 | **A clean default desktop:** remove the QuickSearchBox widget and the app, set taskbar pins (Files, Settings, browser) | small | Owner's pin list |
-| B6 | **Brand assets:** wallpapers (our own or CC0/CC-BY, not bulk Unsplash), a sound set with click sounds off by default, a boot animation, a pointer theme. Based on the brand mark in `assets/brand/` | medium | Owner design input |
-| B7 | **Document fonts:** the 42 OFL metric-compatible fonts, for web and Office fidelity | small | — |
-| B8 | **Setup:** a first-run flow in our style, after the installer | medium | After M8 |
+The owner approved every item on 2026-10-17. Each one is a sub-issue of ANAL-201, and all are being worked in parallel.
 
-## Owner decisions
+| # | Issue | Item | Size | Needs |
+|---|---|---|---|---|
+| B1 | ANAL-202 | **Fonts in the product.** `PRODUCT_COPY_FILES` for the three OFL fonts and `OFL.txt`, the generated `fonts_customization.xml`, and the four values in `AnyBookDesktopFrameworkOverlay`. Then the desktop capture in Cuttlefish and the G14 checklist | small | — (approved) |
+| B2 | ANAL-203 | **Blur on the G14.** `ro.surface_flinger.supports_background_blur=1`; check frame times on the 890M | small | — |
+| B3 | ANAL-204 | **Flag set v2.** Evaluate the 128 UI flags AOSP 17 declares, in groups. Start with box shadows, blur on more surfaces, resizing (`perfect_edge`, no-resize cursor, fluid resizing) and taskbar clicks. `scripts/desktop-flags.py` already writes the value set | medium | — |
+| B4 | ANAL-205 | **Shape and wallpaper values:** circular icon mask, round icons, wallpaper dim 0, wallpaper colour thresholds | small | — |
+| B5 | ANAL-206 | **A clean default desktop:** remove the QuickSearchBox widget and the app, set taskbar pins (Files, Settings, browser) | small | Pins proposed in the PR; the owner reviews |
+| B6 | ANAL-207 | **Brand assets:** wallpapers (our own or CC0/CC-BY, not bulk Unsplash), a sound set with click sounds off by default, a boot animation, a pointer theme. Based on the brand mark in `assets/brand/` | medium | Owner reviews the visuals in the PR |
+| B7 | ANAL-208 | **Document fonts:** the 42 OFL metric-compatible fonts, for web and Office fidelity | small | — |
+| B8 | ANAL-209 | **Setup:** a first-run flow in our style, after the installer | medium | Coordinate with ANAL-191 (installer) |
 
-1. **Fonts:** ship Google Sans and Google Sans Flex (OFL) under the internal family names `google-sans*`, never in OpenBook branding. Recommendation: yes.
-2. **Backlog:** which of B1–B8 to open as issues. Recommendation: B1, B2, B4 and B5 first; together they are about a day of work plus G14 checks.
+## Owner decisions (2026-10-17)
+
+1. **Fonts:** approved. We ship Google Sans and Google Sans Flex (OFL) under the internal family names `google-sans*`, never in OpenBook branding.
+2. **Backlog:** all of B1–B8 approved and opened as ANAL-202 to ANAL-209.
 
 ## Reproduce
 
