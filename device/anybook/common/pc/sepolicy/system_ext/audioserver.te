@@ -1,0 +1,8 @@
+# SoundPool (SystemUI's lock and unlock sounds, and any app's) gives AudioFlinger a static AudioTrack whose samples
+# sit in a MemoryHeapBase memfd the app created. AOSP grants that as appdomain:memfd_file (private/audioserver.te),
+# which needs the memfd_class policy capability; AOSP 17 does not turn it on, so on the android17-6.18 kernel the memfd
+# is a tmpfs file labelled appdomain_tmpfs, and the binder transfer of its fd to audioserver was denied: "AudioFlinger
+# could not create track", no sound (ANAL-198 follow-up, QEMU on the G14 product). This is the rule AOSP gives
+# mediaserver, system_server and mediaextractor for the same files. MLS needs nothing more: private/mls exempts
+# appdomain_tmpfs from its read and write constraints, and only open is limited by category (the fd arrives open).
+allow audioserver appdomain_tmpfs:file { getattr map read write };
