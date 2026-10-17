@@ -20,7 +20,9 @@ Cases:
   nvram        (in whole and alongside) a directory in efivarfs's file format stands in for the firmware's variables
                (--efivars), with a "Windows Boot Manager" entry and a BootOrder: the whole-disk install, with consent,
                adds one Boot#### pointing at the new ESP and puts it first; the alongside install, without consent,
-               adds one pointing at the existing ESP and leaves BootOrder and the other entry byte-identical (S11)
+               adds one pointing at the existing ESP and appends it to BootOrder, so Windows stays first and the
+               Windows entry is byte-identical (S11; owner decision 2026-10-17). A stale BootOrder reference (an
+               entry that no longer exists) keeps its place and its number is not reused
 Writes RUN/results.json and RUN/SUMMARY.md, and keeps each command's stdout/stderr in RUN/<case>/.
 
 usage: engine-test.py --engine BIN --image LIVE.img --run DIR
@@ -475,13 +477,14 @@ def main():
         i, s, e = int(m.group(1)), int(m.group(2)), int(m.group(3))
         if i in (2, 3, 4):
             parts_before[i] = sha_file(w, min((e - s + 1) * 512, 64 * MiB), s * 512)
-    # The firmware knows Windows: Boot0000 -> HD(1, GPT, its ESP)/\EFI\Microsoft\Boot\bootmgfw.efi, first in BootOrder.
+    # The firmware knows Windows: Boot0000 -> HD(1, GPT, its ESP)/\EFI\Microsoft\Boot\bootmgfw.efi, first in BootOrder,
+    # then 0001, a stale reference (an entry since deleted, e.g. a USB stick's).
     win_esp_guid = re.search(r"unique GUID: (\S+)", sh("sgdisk", "-i", "1", w).stdout).group(1).lower()
     eva = f"{run}/efivars-alongside"
     shutil.rmtree(eva, ignore_errors=True)
     efi_write(eva, "Boot0000", load_option("Windows Boot Manager", 1, 2048, 260 * 2048, win_esp_guid,
                                            "\\EFI\\Microsoft\\Boot\\bootmgfw.efi"))
-    efi_write(eva, "BootOrder", struct.pack("<H", 0))
+    efi_write(eva, "BootOrder", struct.pack("<HH", 0, 1))
     eva_before = {n: efi_read(eva, n) for n in ("Boot0000", "BootOrder")}
     Ea = Engine(a.engine, make_root(run, "alongside", stick, w, target_serial="win0"), uuid, f"{run}/alongside",
                 efivars=eva)
@@ -500,6 +503,7 @@ def main():
     rc, j, _ = Ea.run("apply", "--plan", pa, "--confirm-disk", "/dev/disk/by-id/nvme-QEMU_NVMe_Ctrl_win0",
                       env={"OPENBOOK_INSTALL_ERASE": "/dev/disk/by-id/nvme-QEMU_NVMe_Ctrl_win0"})
     check("alongside", "apply succeeds and verifies", rc == 0 and j.get("verified"), j.get("error"))
+    along_result = j
     v = sh("sgdisk", "-v", w).stdout
     check("alongside", "GPT valid (sgdisk -v)", "No problems found" in v, v[-200:])
     pw2 = sh("sgdisk", "-p", w).stdout
@@ -530,17 +534,27 @@ def main():
           "BOOTX64" not in ls, ls[-300:])
     pt = sh("sgdisk", "-i", str(xb["index"]), w).stdout
     check("alongside", "XBOOTLDR has its type GUID", "BC13C2FF-59E6-4262-A352-B275FD6F7172" in pt)
-    ra = efi_read(eva, "Boot0001")
+    ra = efi_read(eva, "Boot0002")
     ea = efi_parse(ra) if ra else {}
-    check("nvram", "alongside: plan warns that the boot order stays as it is (no consent)",
-          "boot_order_unchanged" in plan_a.get("warnings", []) and plan_a["boot"].get("boot_order") == "unchanged",
-          plan_a.get("warnings"))
-    check("nvram", "alongside: Boot0001 \"OpenBook\" -> HD(1, GPT, the existing Windows ESP)/\\EFI\\OpenBook\\systemd-bootx64.efi",
-          ea.get("desc") == "OpenBook" and ea.get("partition") == 1 and ea.get("guid") == win_esp_guid and
+    nvop = next((o["text"] for o in plan_a.get("operations", []) if o["op"] == "nvram"), "")
+    check("nvram", "alongside: plan puts OpenBook last in BootOrder (no consent), no boot order warning",
+          plan_a["boot"].get("boot_order") == "last" and "end of BootOrder" in nvop and
+          not any(w.startswith("boot_order") for w in plan_a.get("warnings", [])), [plan_a.get("warnings"), nvop])
+    check("nvram", "alongside: result says Boot0002 created and last in BootOrder",
+          along_result.get("nvram") == "created" and along_result.get("nvram_entry") == "Boot0002" and
+          along_result.get("boot_order") == "last",
+          {k: along_result.get(k) for k in ("nvram", "nvram_entry", "boot_order", "nvram_error")})
+    check("nvram", "alongside: Boot0002 \"OpenBook\" -> HD(1, GPT, the existing Windows ESP)/\\EFI\\OpenBook\\systemd-bootx64.efi "
+          "(0001, the stale BootOrder reference, not reused)",
+          ea.get("desc") == "OpenBook" and ea.get("attrs") == 7 and ea.get("partition") == 1 and ea.get("guid") == win_esp_guid and
           ea.get("start") == 2048 and ea.get("size") == 260 * 2048 and ea.get("path") == "\\EFI\\OpenBook\\systemd-bootx64.efi", ea)
-    check("nvram", "alongside: Windows Boot Manager and BootOrder byte-identical (no consent, S11)",
-          all(efi_read(eva, n) == b for n, b in eva_before.items()) and sorted(os.listdir(eva)) ==
-          sorted(f"{n}-{EFI_GLOBAL}" for n in ("Boot0000", "Boot0001", "BootOrder")), sorted(os.listdir(eva)))
+    bo = efi_read(eva, "BootOrder") or b""
+    order_a = struct.unpack("<" + "H" * ((len(bo) - 4) // 2), bo[4:]) if len(bo) >= 4 else ()
+    check("nvram", "alongside: BootOrder 0000, 0001, 0002 (Windows still first, OpenBook appended; owner decision)",
+          order_a == (0, 1, 2) and bo[:4] == eva_before["BootOrder"][:4], order_a)
+    check("nvram", "alongside: Windows Boot Manager byte-identical; no other variable added or removed (S11)",
+          efi_read(eva, "Boot0000") == eva_before["Boot0000"] and sorted(os.listdir(eva)) ==
+          sorted(f"{n}-{EFI_GLOBAL}" for n in ("Boot0000", "Boot0002", "BootOrder")), sorted(os.listdir(eva)))
 
     total = sum(len(v) for v in results["cases"].values())
     passed = sum(x["ok"] for v in results["cases"].values() for x in v)
