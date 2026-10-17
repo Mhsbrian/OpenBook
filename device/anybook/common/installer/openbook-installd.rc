@@ -9,6 +9,10 @@
 
 on post-fs-data && property:ro.boot.openbook.live=1
     mkdir /data/misc/openbook_install 0770 root system
+    # The firmware's variables (efivarfs.ko from vendor_dlkm), for the installer's boot entry (S11). Only here: an
+    # installed system does not mount them. Not a UEFI boot, or no module: the mount fails and the installer reports
+    # the boot entry as unavailable.
+    mount efivarfs efivarfs /sys/firmware/efi/efivars nosuid nodev noexec
 
 service openbook_installd /system_ext/bin/openbook-install daemon
     class main

@@ -13,7 +13,7 @@ Labels: **C** = confirmed (a primary source, or we ran it), **R** = reported by 
 | 3 | Install layouts | Whole disk (A/B, virtual A/B `super`), or alongside an existing OS **in space the user has already freed**. Our files go under `EFI/OpenBook/` plus an XBOOTLDR partition, and we add a firmware boot entry. Nothing is resized in v1. | §3 |
 | 4 | Wizard | **An Android app in the live OpenBook session** (Compose), backed by a privileged install engine with a CLI (`openbook-install`: dry run, JSON plan, logs). There is no separate Linux live system. | Scores in §4 |
 | 5 | Safety | Rules S1–S13 in §5. They are enforced in the engine, not just the UI: the boot stick is never a target, the user types the disk name, identity is re-checked before the first write, and there is a dry run and a log. | §5 |
-| 6 | Kernel delta | Add `CONFIG_EFIVAR_FS` to the OpenBook GKI (built-in, or a module if the KMI allows), so the installer can create the firmware boot entry. Optionally add `SYSFB_SIMPLEFB`/`DRM_SIMPLEDRM` for a "safe graphics" mode. | Our GKI has neither (C, `dot_config`; re-checked for ANAL-191 on the G14 kernel, §12.2). Until then whole-disk installs boot through the fallback path; alongside needs a firmware entry made by hand |
+| 6 | Kernel delta | Add `CONFIG_EFIVAR_FS` to the OpenBook GKI (built-in, or a module if the KMI allows), so the installer can create the firmware boot entry. Optionally add `SYSFB_SIMPLEFB`/`DRM_SIMPLEDRM` for a "safe graphics" mode. | **Done another way:** `efivarfs.ko` ships as a vendor module, with the GKI configuration unchanged (ANAL-198, #64), and the installer creates the firmware entry (§12.11). `SYSFB_SIMPLEFB`/`DRM_SIMPLEDRM`: not added |
 
 **Naming.** The project is **OpenBook**: images, boot entries, the installer, its tools and `androidboot.openbook.*` all use that name.
 - A few identifiers still carry the old name because running work builds with them today: the `anybook_cf_x86_64_pc` product, `device/anybook`, `kernel/devices/anybook` and the `anybook_amd` KMI list, the `anybook-*` tool images, and the host data dir `~/anybook`.
@@ -142,7 +142,7 @@ Full serial logs are `matrix/*/serial.log.gz`.
 - **On the USB stick:** systemd-boot at `EFI/BOOT/BOOTX64.EFI`, the removable-media path, so no NVRAM change is needed.
 - **Installed:**
   - systemd-boot goes to `EFI/OpenBook/systemd-bootx64.efi`, and we add an NVRAM `Boot####` entry named "OpenBook". The fallback `EFI/BOOT/BOOTX64.EFI` is written only on a whole-disk install.
-  - Creating the NVRAM entry from Android needs efivarfs, which our GKI lacks (decision 6). Without it, the user picks "OpenBook" from the firmware boot menu (Esc on the G14 (R)) once, and we print exact instructions.
+  - Creating the NVRAM entry from Android needs efivarfs. **Built (§12.11):** `efivarfs.ko` (ANAL-198) and the installer's `Boot####` entry; `BootOrder` changes only with consent.
 - **Secure Boot must be off** for now. Later: sign systemd-boot and the kernel with an OpenBook key and enroll it via shim/MOK (H).
 
 ### 2.7 Test stick for a first hardware check (G14)
@@ -298,7 +298,7 @@ About 13 GiB is fixed. The minimum disk is 64 GB (H; set it once ANAL-174's imag
    9. Write a JSON report.
 4. **Logs:** an append-only log and `install-<UTC>.json` go to the stick's `openbook/logs/`, and a copy goes to `/metadata/openbook/` on the new system (copied on first boot). No secrets are logged.
 
-**Built (ANAL-191, §12):** all of the above except the NVRAM entry (no efivarfs, decision 6) and the copy into `/metadata` (the report is on the new ESP's `openbook/logs/` instead).
+**Built (ANAL-191, §12):** all of the above except the copy into `/metadata` (the report is on the new ESP's `openbook/logs/` instead). The NVRAM entry came with efivarfs (§12.11).
 
 ### 3.6 First boot and setup
 - `/metadata` and `/data` are created on first boot, as in the prototype. Android then starts its setup flow.
@@ -693,7 +693,7 @@ Status as of 2026-10-17. Evidence is in `evidence/2026-10-17-installer-wizard/`,
 | S8 power | AC, or battery ≥ 50 %, or no battery. On Android only the health HAL may read the battery's sysfs, so the app sends its `BatteryManager` reading with `apply` |
 | S9 interruption | Write order above |
 | S10 source integrity | Every source partition and loader file is hashed against `MANIFEST.json` before anything is written. A corrupted stick is refused with the target untouched (host test). The manifest itself is not signed yet (no release key, §6) |
-| S11 firmware | No firmware writes. NVRAM entries need efivarfs (below) |
+| S11 firmware | No firmware writes except one `Boot####` entry after verification, and `BootOrder` only when the user turned on "Start OpenBook by default" (§12.11). Never deletes a variable, never writes `BootNext`, Secure Boot keys or settings |
 | S12 sizes | 64 GB minimum (whole disk or free space). BitLocker and LUKS volumes are flagged: erased with "whole", kept with "alongside" |
 | S13 external | USB and Thunderbolt targets are allowed with a warning |
 
@@ -704,7 +704,7 @@ Status as of 2026-10-17. Evidence is in `evidence/2026-10-17-installer-wizard/`,
 **Update 2026-10-17 (ANAL-198, #64):** `efivarfs.ko` now ships in `vendor_dlkm`, with Google's GKI configuration unchanged (`docs/kernel.md`, follow-up).
 - **In QEMU/OVMF:** `mount -t efivarfs efivarfs /sys/firmware/efi/efivars` works, and `Boot####` and `BootOrder` read correctly.
 - **Writing is blocked by SELinux under enforcing:** efivarfs is `unlabeled` (AOSP 17 has no `genfscon` for it), so `associate` is denied. With SELinux permissive, a variable is created, read and deleted.
-- **Left for ANAL-191:** an efivarfs type, rules for `openbook_installd`, and the `Boot####`/`BootOrder` writes.
+- **Left for ANAL-191:** an efivarfs type, rules for `openbook_installd`, and the `Boot####`/`BootOrder` writes. **Done: §12.11.**
 
 ### 12.3 The daemon and SELinux
 - **The domain.** `openbook_installd` is a system (`coredomain`) domain, so Treble rules apply. They forbid reading unlabeled sysfs and procfs files and the battery's sysfs. What the daemon can read:
@@ -753,7 +753,7 @@ Image `openbook-live-20261017-anal191e` (built from this branch, `userdebug`, AO
 
 ### 12.7 What these runs do not show
 - **No G14.** USB 3 and the 890M will change timings; the install's reads run at stick speed. On a real install, `userdata` is the rest of a 1 TB disk.
-- **Alongside was not booted in QEMU,** only checked on image files. A firmware entry needs efivarfs (decision 6). End-to-end alongside, interrupted installs and an OTA slot switch are ANAL-192. *Since done, except the OTA slot switch: §13.*
+- **Alongside was not booted in QEMU,** only checked on image files. A firmware entry needs efivarfs (decision 6). End-to-end alongside, interrupted installs and an OTA slot switch are ANAL-192. *Since done, except the OTA slot switch: §13. The firmware entry: §12.11.*
 - **QEMU's display shows red and blue swapped.** The wizard's `#4355B9` shows as `#B95543` in QEMU's screendump (`screens/qemu-display-channel-swap-example.png`). Android's own `screencap` is correct; the screenshots here are `screencap`s. The two `installed-boot-*` frames were captured through QEMU and have their channels swapped back. This is the VM display path (virtio-gpu fallback), not the app; it is passed to the graphics lane.
 - **Not built yet:** `openbook-bootsync` and the boot control link (slot B stays blank), the text hardware report boot entry (`androidboot.openbook.diag`), a signed manifest, translations, and copying the install report into `/metadata` on first boot.
 - **The boot animation** of the installed system is AOSP's, not OpenBook's.
@@ -806,6 +806,41 @@ device/anybook/common/installer/app/tools/compile-check.sh                      
 - **Costs:** the incremental product build took 1 min 42 s here (memory peak 48 GB). `wizard-qemu.sh` takes about 20 minutes for all four cases.
 - **Logs:** `~/anybook/logs/installer/<run>/`.
 
+### 12.11 Firmware boot entries (efivarfs, after ANAL-198's #64)
+
+Status as of 2026-10-17, 21:00 UTC. Evidence: `evidence/2026-10-17-installer-nvram/`, starting with `SUMMARY.md`. QEMU/OVMF only.
+- **The kernel side** (ANAL-198): `efivarfs.ko` in `vendor_dlkm`, loaded on every boot; Google's GKI configuration unchanged.
+- **Mount.** On live boots only, init mounts it at `/sys/firmware/efi/efivars` (`openbook-installd.rc`). An installed system does not mount it yet; `openbook-bootsync` will need it.
+- **SELinux** (`sepolicy/private/`): AOSP 17 has no label for efivarfs, so its files were `unlabeled` and nothing could create one.
+  - `genfscon efivarfs / openbook_efivarfs`.
+  - init may mount that type.
+  - `openbook_installd` may search and list it, read variables, and create files in it. It cannot unlink or relabel, and it needs no capability for this.
+- **The engine** (`engine/efivar.c`). After every partition and file has been read back and verified, and the loader entry activated, it creates one `Boot####` (the lowest free number):
+  - attributes NV+BS+RT, `LOAD_OPTION_ACTIVE`, description "OpenBook";
+  - the device path `HD(n, GPT, PARTUUID, start, size)/\EFI\OpenBook\systemd-bootx64.efi`, where the partition is the new ESP (whole disk) or the existing ESP that received `EFI/OpenBook/` (alongside);
+  - it reads the variable back and compares it byte for byte.
+- **BootOrder (S11).** Only when the request has `set_default`, the app's "Start OpenBook by default". Then OpenBook goes first and the other entries keep their order, and the result is read back. Without it, `BootOrder` is not touched.
+  - The app always sends `set_default` for a whole-disk install, because that disk becomes OpenBook's. For alongside the switch is off by default.
+- **A failed NVRAM write does not fail the install.** The disk is installed and verified. The report says `nvram: failed` with the reason; a whole disk still has its fallback path.
+- **Plan and report fields:** `boot.nvram` (`planned`/`unavailable`), `boot.boot_order` (`first`/`unchanged`), the warning `boot_order_unchanged`; in the result, `nvram` (`created`/`failed`/`unavailable`/`skipped`), `nvram_entry` (`Boot0005`), `boot_order`, `nvram_error`.
+- **`openbook-install nvram`:** a read-only JSON listing of `BootOrder`, `BootCurrent`, `BootNext` and every `Boot####`, for checks and the device agent.
+
+| Run (`wizard-qemu.sh`, image `anal191g`, enforcing) | Result |
+|---|---|
+| Engine host tests, with a directory in efivarfs format standing in for the firmware | **63/63**. The whole-disk install with consent: `Boot0002` → the new ESP, first, the other entries byte-identical. Alongside without consent: `Boot0001` → the Windows ESP, `Boot0000` "Windows Boot Manager" and `BootOrder` byte-identical. The dry run leaves the variables untouched |
+| `install`: the wizard, whole disk, fresh NVRAM | `Boot0005 "OpenBook"` → `HD(1, GPT, new ESP)`, first in `BootOrder`. efivarfs is mounted by init with `openbook_efivarfs` |
+| `nvram-boot`: a copy of that disk **with `EFI/BOOT/BOOTX64.EFI` deleted**, the install's NVRAM, no stick, no `bootindex` hints | OVMF starts **`BootCurrent=0005`**: Android boots from the NVMe, `installed=whole` |
+| `alongside`: the wizard, next to a Windows-like disk whose `Boot0007 "Windows Boot Manager"` is first | One new `Boot0005` → `HD(1, GPT, the Windows ESP)`. **`Boot0007` and `BootOrder` byte-identical** (sha256 before and after). The Confirm screen warns that the boot order stays; Done says Windows still starts first |
+| `alongside-boot`: that disk, that NVRAM plus `BootNext=0005` (the test's stand-in for the firmware's boot menu), no stick | **`BootCurrent=0005`**, `BootNext` used up, `Boot0007` still first. Android boots from the Windows disk's new partitions (`installed=alongside`) |
+| SELinux | No denial for init, `openbook_installd` or the app in the enforcing install runs |
+| Live stick regression (`live-qemu.sh`) | **40/40**, with init now mounting efivarfs on live boots |
+
+**A question for the owner (S11 as written).** EDK2 firmware (OVMF, and likely many laptop firmwares; H for the G14's AMI firmware) lists only the entries in `BootOrder` in its boot menu. So an alongside install without consent gets an entry the firmware may not show. The app says so on the Done screen; the user can add it in the firmware setup.
+
+The alternative is to append OpenBook at the **end** of `BootOrder` without asking. Windows would stay first, and the entry would appear in the boot menu. That is still a `BootOrder` change, so it is the owner's call; until then the rule is applied literally.
+
+**Not shown:** the G14's firmware with these entries. ANAL-192's spare-drive install will be the first real NVRAM write, and the NVRAM write is one more reason that step needs the owner's go-ahead.
+
 ## 13. End to end, and the owner's integrated stick (ANAL-192)
 
 Status as of 2026-10-17, 17:10 UTC. Evidence: `evidence/2026-10-17-installer-e2e/`, starting with `SUMMARY.md`. Everything here ran in QEMU/KVM + OVMF on image files, SELinux enforcing. **Nothing has run on the G14 yet** (§13.6).
@@ -854,7 +889,7 @@ The Windows ESPs hold `EFI/Microsoft/Boot/bootmgfw.efi` and `EFI/BOOT/BOOTX64.EF
 |---|---|---|
 | `live-a` | Stick + Windows-like disk + 32 GiB disk. The disks are inventoried. The 32 GiB disk is refused (`too_small`, CLI and wizard: "Can't be used", `screens/1-…`). Apply without `OPENBOOK_INSTALL_ERASE` is refused. **The unattended alongside install: 13.5 s, 31 items verified.** Afterwards: MSR, NTFS and recovery byte-identical; the Windows ESP gained only `EFI/OpenBook/systemd-bootx64.efi`, its other files have unchanged hashes, and `fsck.fat` is clean; both GPT copies are valid with 4 + 13 partitions; a second alongside install is refused (`name_clash`) | 17/17 |
 | `al-windows` | The alongside disk alone, fresh NVRAM: the firmware's fallback path still starts "Windows" (`OBTEST-MARK windows-bootmgr \EFI\BOOT\BOOTX64.EFI`) | 1/1 |
-| `al-fwsetup` | What the user does in the firmware setup (OpenBook adds no entry: no efivarfs). A helper stick with the test app's other mode writes `Boot1000 "OpenBook"` → `\EFI\OpenBook\systemd-bootx64.efi` on the Windows ESP and puts it first in `BootOrder` | 1/1 |
+| `al-fwsetup` | What the user does in the firmware setup (OpenBook added no entry then: no efivarfs; since §12.11 it does). A helper stick with the test app's other mode writes `Boot1000 "OpenBook"` → `\EFI\OpenBook\systemd-bootx64.efi` on the Windows ESP and puts it first in `BootOrder` | 1/1 |
 | `al-openbook` | The unchanged alongside disk with that NVRAM: the firmware starts `Boot1000 "OpenBook"`, then systemd-boot finds the entry on XBOOTLDR, and OpenBook setup is on screen (`screens/2-…`) | 3/3 |
 | `al-console` | A copy with a serial-console entry on XBOOTLDR. `installed=alongside`; `boot_part_uuid` is the XBOOTLDR partition; enforcing; every by-name link is on the NVMe disk; no Windows partition is mounted; setup, then the desktop | 5/5 |
 | `cut-1` … `cut-6`, `fw-cut-*`, `install` | A power cut at each install step, each followed by a restart from the stick (§13.3) | 32/32 |

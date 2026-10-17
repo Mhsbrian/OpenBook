@@ -567,7 +567,7 @@ Evidence is in `evidence/2026-10-17-kernel-g14-r2/`, starting with `SUMMARY.md`.
   - `mount -t efivarfs` works, the firmware's 37 variables are listed, and `BootOrder` reads correctly (0002, 0000, 0001, 0003).
   - With SELinux permissive, a variable is created, read back and deleted.
 - **What the installer still needs (ANAL-191):**
-  - **SELinux policy.** Under enforcing, creating a variable fails: efivarfs is `unlabeled` and `associate` is denied, because AOSP 17's policy has no `genfscon` for it. ANAL-191 needs a type for it plus rules for `openbook_installd`.
+  - **SELinux policy.** Under enforcing, creating a variable fails: efivarfs is `unlabeled` and `associate` is denied, because AOSP 17's policy has no `genfscon` for it. ANAL-191 needed a type for it plus rules for `openbook_installd`. **Done** (`openbook_efivarfs`, `docs/installer.md` §12.11).
   - **`chattr -i` for test variables.** efivarfs makes variables under unknown GUIDs immutable. The `Boot####` entries under the EFI global GUID stay removable.
 
 **3. GPU hang recovery on gfx1150 (investigation; HYPOTHESIS where marked).**

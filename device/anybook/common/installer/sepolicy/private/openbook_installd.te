@@ -50,3 +50,14 @@ allow openbook_installd proc_meminfo:file r_file_perms;
 allow openbook_installd proc_swaps:file r_file_perms;
 allow openbook_installd proc_asound:dir r_dir_perms;
 allow openbook_installd proc_asound:file r_file_perms;
+
+# efivarfs (efivarfs.ko, ANAL-198): the firmware's boot entries. AOSP 17 has no label for it, so its files are
+# unlabeled and nothing may create one. init mounts it on live boots only (openbook-installd.rc). The daemon reads
+# the Boot#### entries and BootOrder, creates one Boot#### for OpenBook, and rewrites BootOrder only when the user
+# agreed to start OpenBook by default (S11). It never deletes a variable.
+type openbook_efivarfs, fs_type;
+allow openbook_efivarfs openbook_efivarfs:filesystem associate;
+allow init openbook_efivarfs:filesystem mount;
+allow openbook_installd openbook_efivarfs:filesystem getattr;
+allow openbook_installd openbook_efivarfs:dir { search open read getattr write add_name };
+allow openbook_installd openbook_efivarfs:file { create open read write getattr };

@@ -137,6 +137,9 @@ data class InstallResult(
     val error: String?,
     val bootEntry: String?,
     val nvram: String?,
+    /** The firmware entry the engine created (Boot####), and whether it now starts first ("first"/"unchanged"). */
+    val nvramEntry: String?,
+    val bootOrder: String?,
     val fallbackPath: Boolean,
     val report: String?,
     val log: String?,
@@ -320,6 +323,8 @@ object Parse {
         error = r.str("error"),
         bootEntry = r.str("boot_entry"),
         nvram = r.str("nvram"),
+        nvramEntry = r.str("nvram_entry"),
+        bootOrder = r.str("boot_order"),
         fallbackPath = r.bool("fallback_path"),
         report = r.str("report"),
         log = r.str("log"),

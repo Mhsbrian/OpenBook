@@ -104,6 +104,8 @@ private fun Summary(vm: InstallerViewModel, result: InstallResult?) {
         // installs next to another system then need the firmware's boot menu.
         val nvramMissing = result?.nvram == "unavailable" || result?.nvram == "failed"
         val needsFirmwareMenu = result != null && nvramMissing && (!result.fallbackPath || vm.install.layout == "alongside")
+        // A firmware entry was made, but the boot order stayed as it was (no consent): the other system starts first.
+        val entryNotFirst = result?.nvram == "created" && result.bootOrder != "first"
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             ResultRow(
                 Icons.Rounded.Verified,
@@ -115,6 +117,13 @@ private fun Summary(vm: InstallerViewModel, result: InstallResult?) {
                     Icons.Rounded.Info,
                     stringResource(R.string.done_boot_entry),
                     stringResource(R.string.done_boot_firmware_menu),
+                    warn = true,
+                )
+            } else if (entryNotFirst) {
+                ResultRow(
+                    Icons.Rounded.Info,
+                    stringResource(R.string.done_boot_entry_added),
+                    stringResource(R.string.done_boot_entry_not_first, result?.nvramEntry ?: ""),
                     warn = true,
                 )
             } else {

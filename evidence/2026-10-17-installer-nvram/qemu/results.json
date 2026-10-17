@@ -1,0 +1,182 @@
+{
+ "cases": {
+  "dryrun": [
+   {
+    "check": "every expect step matched",
+    "ok": true,
+    "detail": "126/126 (all steps done)"
+   },
+   {
+    "check": "SELinux enforcing",
+    "ok": true,
+    "detail": "c07a41c]\n[ro.boot.openbook.live]: [1]\n[ro.boot.openbook.loader]: [sdboot]\n[ro.build.fingerprint]: [OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys]\nEnforcing\n"
+   },
+   {
+    "check": "the wizard started by itself after boot",
+    "ok": true,
+    "detail": "    topResumedActivity=ActivityRecord{88447240 u0 org.openbook.installer/.MainActivity t11}\n  ResumedActivity: ActivityRecord{88447240 u0 org.openbook.installer/.MainActivity t11}\n"
+   },
+   {
+    "check": "openbook_installd runs in its own domain",
+    "ok": true,
+    "detail": "ime 0 0\nu:object_r:openbook_efivarfs:s0 /sys/firmware/efi/efivars\nu:object_r:openbook_efivarfs:s0 Boot0000-8be4df61-93ca-11d2-aa0d-00e098032b8c\nu:object_r:openbook_efivarfs:s0 Boot0001-8be4df61-93ca-11d2-aa0d-00e098032b8c\nu:object_r:openbook_efivarfs:s0 Boot0002-8be4df61-93ca-11d2-aa0d-00e098032b8c\n"
+   },
+   {
+    "check": "whole-disk nodes carry openbook_disk_block_device",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "CLI dry run: a plan for the NVMe disk",
+    "ok": true,
+    "detail": "{\"plan_sha256\":\"bb09d5f31ee41548dc1e2b0e7f02514c09e9f7c7e8e03b0394d8fd991426d7e7\",\"created\":\"2026-10-17T20:42:50Z\",\"schema\":\"openbook-install-plan/1\",\"engine\":\"1\",\"layout\":\"whole\",\"request\":{\"target\":\"nvme-QEMU_NVMe_Ctrl_internal0\",\"layout\":\"whole\",\"locale\":\"en-US\",\"keyboard\":\"us\",\"set_default\":fals"
+   },
+   {
+    "check": "the app's dry run went through the daemon",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "screens captured: welcome, hardware, choose, disk, plan",
+    "ok": true,
+    "detail": "['shot-1-welcome.png', 'shot-2-hardware.png', 'shot-3-choose-install.png', 'shot-3-choose.png', 'shot-4-disk-selected.png', 'shot-4-disk.png', 'shot-4-plan.png']"
+   },
+   {
+    "check": "the NVMe disk has no allocated block after the dry run (nothing written)",
+    "ok": true,
+    "detail": "0 blocks"
+   },
+   {
+    "check": "no SELinux denial for the app or the daemon",
+    "ok": true,
+    "detail": ""
+   }
+  ],
+  "install": [
+   {
+    "check": "every expect step matched",
+    "ok": true,
+    "detail": "181/181 (QEMU exited (0))"
+   },
+   {
+    "check": "screens captured: confirm, typed, install, done",
+    "ok": true,
+    "detail": "['shot-1-welcome.png', 'shot-2-hardware.png', 'shot-3-choose-install.png', 'shot-3-choose.png', 'shot-4-disk-selected.png', 'shot-4-disk.png', 'shot-4-plan.png', 'shot-5-confirm-typed.png', 'shot-5-confirm.png', 'shot-6-install-details.png', 'shot-6-install-progress.png', 'shot-7-done.png']"
+   },
+   {
+    "check": "the daemon ran the install and it verified",
+    "ok": true,
+    "detail": " re-read the partition table\n20:47:19 nvram: created Boot0005 \"OpenBook\" -> HD(1, GPT, 4d3c50e8-c6c8-48dd-a2cf-54ad54b22046)/\\EFI\\OpenBook\\systemd-bootx64.efi; BootOrder first\n20:47:19 step verify: done\n20:47:19 step report: running\n20:47:19 step report: done\n20:47:19 install process 2634 ended: ok\n"
+   },
+   {
+    "check": "no SELinux denial for the app or the daemon (enforcing)",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "the run ended with the guest's reboot (Restart now)",
+    "ok": true,
+    "detail": "QEMU exited (0)"
+   },
+   {
+    "check": "firmware entry: one \"OpenBook\" Boot#### -> HD(1, GPT)/\\EFI\\OpenBook\\systemd-bootx64.efi, first in BootOrder",
+    "ok": true,
+    "detail": "{'entry': {'num': '0005', 'description': 'OpenBook', 'active': True, 'partition': 1, 'partuuid': '4d3c50e8-c6c8-48dd-a2cf-54ad54b22046', 'path': '\\\\EFI\\\\OpenBook\\\\systemd-bootx64.efi'}, 'boot_order': ['0005', '0002', '0003', '0000', '0001', '0004']}"
+   },
+   {
+    "check": "efivarfs mounted by init with its own label (openbook_efivarfs)",
+    "ok": true,
+    "detail": "ime 0 0\nu:object_r:openbook_efivarfs:s0 /sys/firmware/efi/efivars\nu:object_r:openbook_efivarfs:s0 Boot0000-8be4df61-93ca-11d2-aa0d-00e098032b8c\nu:object_r:openbook_efivarfs:s0 Boot0001-8be4df61-93ca-11d2-aa0d-00e098032b8c\nu:object_r:openbook_efivarfs:s0 Boot0002-8be4df61-93ca-11d2-aa0d-00e098032b8c\n"
+   }
+  ],
+  "nvram-boot": [
+   {
+    "check": "every expect step matched",
+    "ok": true,
+    "detail": "21/21 (all steps done)"
+   },
+   {
+    "check": "the copy has no fallback path: EFI/BOOT/BOOTX64.EFI deleted",
+    "ok": true,
+    "detail": "::/EFI/OpenBook/\n::/EFI/BOOT/\n::/EFI/OpenBook/systemd-bootx64.efi"
+   },
+   {
+    "check": "the firmware kept the install's BootOrder (OpenBook first; no bootindex hints)",
+    "ok": true,
+    "detail": "['0005', '0002', '0003', '0000', '0001', '0004']"
+   },
+   {
+    "check": "OVMF started the installed system through OpenBook's entry (BootCurrent = the entry the install made)",
+    "ok": true,
+    "detail": "{'boot_current': '0005', 'entry': '0005', 'installed': '0005'}"
+   },
+   {
+    "check": "Android booted from the NVMe disk (by-name links on nvme0n1, installed=whole)",
+    "ok": true,
+    "detail": "14"
+   }
+  ],
+  "alongside": [
+   {
+    "check": "every expect step matched",
+    "ok": true,
+    "detail": "144/144 (all steps done)"
+   },
+   {
+    "check": "before: Windows Boot Manager (Boot0007) first in BootOrder",
+    "ok": true,
+    "detail": "['0007', '0002', '0003', '0000', '0001', '0004']"
+   },
+   {
+    "check": "the install verified (daemon, enforcing)",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "one new \"OpenBook\" entry -> HD(1, GPT, the Windows ESP)/\\EFI\\OpenBook\\systemd-bootx64.efi",
+    "ok": true,
+    "detail": "{'num': '0005', 'description': 'OpenBook', 'active': True, 'partition': 1, 'partuuid': '33cb431f-bfe9-4edf-af4c-c9bf576582f4', 'path': '\\\\EFI\\\\OpenBook\\\\systemd-bootx64.efi'}"
+   },
+   {
+    "check": "Windows Boot Manager and BootOrder byte-identical (no consent to change the boot order, S11)",
+    "ok": true,
+    "detail": "{'before': {'Boot0007': '3e182ed8419b4f030d4e5677312458e2584cd6c23922f55c2486b0df1b6ed056', 'BootOrder': 'a5a4a12b5826a4f4613fd697908f2d941fb713923d1aa9cb4d0b241b2d9723dc'}, 'after': {'Boot0007': '3e182ed8419b4f030d4e5677312458e2584cd6c23922f55c2486b0df1b6ed056', 'BootOrder': 'a5a4a12b5826a4f4613fd697908f2d941fb713923d1aa9cb4d0b241b2d9723dc'}}"
+   },
+   {
+    "check": "no SELinux denial for the app or the daemon",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "test step: BootNext points at OpenBook's entry",
+    "ok": true,
+    "detail": "0005"
+   }
+  ],
+  "alongside-boot": [
+   {
+    "check": "every expect step matched",
+    "ok": true,
+    "detail": "21/21 (all steps done)"
+   },
+   {
+    "check": "OVMF started OpenBook through its entry once (BootCurrent = the new entry, BootNext used up)",
+    "ok": true,
+    "detail": "{'boot_current': '0005', 'boot_next': None, 'entry': '0005'}"
+   },
+   {
+    "check": "Windows stays first in BootOrder; its entry is still there",
+    "ok": true,
+    "detail": "['0007', '0002', '0003', '0000', '0001', '0004']"
+   },
+   {
+    "check": "Android booted from the Windows disk's new partitions (installed=alongside)",
+    "ok": true,
+    "detail": "18"
+   }
+  ]
+ },
+ "passed": 33,
+ "total": 33,
+ "image": "openbook-live-20261017-anal191g.img"
+}
