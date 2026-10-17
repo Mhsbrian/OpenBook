@@ -1,0 +1,32 @@
+reconnected after 0 s, validation off
+10-17 15:36:30.894  4129  4325 W Nl80211Native: Max PNO match SSIDs exceeded, skipping: "openbook-test"
+10-17 15:36:30.894  4129  4325 E Nl80211Native: PNO scan failed with reason: -1
+10-17 15:36:30.894  4129  4325 E WificondScannerImpl: Failed to start PNO scan
+10-17 15:36:30.894  4129  4325 I WifiScanningService: addHwPnoScanRequest: ClientInfo[uid=1000, package=android, attributionTag=null, com.android.server.wifi.scanner.WifiScannerInternal$ScanListener@1642515], ScanSettings {  type:LOW LATENCY band:24Ghz & 5Ghz (DFS incl) & 6Ghz ignoreLocationSettings:false period:20000 reportEvents:4 numBssidsPerScan:0 maxScansToCache:0 rnrSetting:0 6GhzPscOnlyEnabled:false channels:[  ]  } , PnoSettings {  min5GhzRssi:-77 min24GhzRssi:-80 min6GhzRssi:-77 scanIterations:3 scanIntervalMultiplier:3 isConnected:false networks:[ "openbook-test", ]  } 
+10-17 15:36:30.894  4129  4325 W WificondScannerImpl: No PNO scan running
+10-17 15:36:30.894  4129  4325 E WifiScanningService: Failed to stop pno on wlan0
+10-17 15:36:30.894  4129  4315 V WifiConnectivityManager: PnoScanListener onFailure: reason: -1 description: pno scan failed
+10-17 15:36:32.894  4129  4315 V WifiConnectivityManager: startConnectivityScan: screenOn=false wifiState=disconnected scanImmediately=true wifiEnabled=true mAutoJoinEnabled=true mAutoJoinEnabledExternal=true mAutoJoinEnabledExternalSetByDeviceAdmin=false mPnoScanEnabledByFramework=true mEnablePnoScanAfterWifiToggle=true mSpecificNetworkRequestInProgress=false mTrustedConnectionAllowed=true isSufficiencyCheckEnabled=true isAssociatedNetworkSelectionEnabled=true noPotentialNetworkAvailable=false
+10-17 15:36:32.894  4129  4315 E WifiMetrics: Called WifiMetrics#logPNoScanStop() without calling WifiMetrics#logPnoScanStart() first!
+10-17 15:36:32.894  4129  4325 I WifiScanningService: stop pno scan: android AttributionTag null
+10-17 15:36:32.894  4129  4325 I WifiScanningService: start pno scan: ClientInfo[uid=1000, package=android, com.android.server.wifi.scanner.WifiScannerInternal$ScanListener@1642515] AttributionTag null
+10-17 15:36:32.894  4129  4325 W Nl80211Native: Max PNO match SSIDs exceeded, skipping: "openbook-test"
+10-17 15:36:32.894  4129  4325 E Nl80211Native: PNO scan failed with reason: -1
+10-17 15:36:32.894  4129  4325 E WificondScannerImpl: Failed to start PNO scan
+10-17 15:36:32.894  4129  4325 I WifiScanningService: addHwPnoScanRequest: ClientInfo[uid=1000, package=android, attributionTag=null, com.android.server.wifi.scanner.WifiScannerInternal$ScanListener@1642515], ScanSettings {  type:LOW LATENCY band:24Ghz & 5Ghz (DFS incl) & 6Ghz ignoreLocationSettings:false period:20000 reportEvents:4 numBssidsPerScan:0 maxScansToCache:0 rnrSetting:0 6GhzPscOnlyEnabled:false channels:[  ]  } , PnoSettings {  min5GhzRssi:-77 min24GhzRssi:-80 min6GhzRssi:-77 scanIterations:3 scanIntervalMultiplier:3 isConnected:false networks:[ "openbook-test", ]  } 
+10-17 15:36:32.894  4129  4325 W WificondScannerImpl: No PNO scan running
+10-17 15:36:32.894  4129  4325 E WifiScanningService: Failed to stop pno on wlan0
+10-17 15:36:32.894  4129  4315 V WifiConnectivityManager: PnoScanListener onFailure: reason: -1 description: pno scan failed
+10-17 15:36:34.894  4129  4315 V WifiConnectivityManager: startConnectivityScan: screenOn=false wifiState=disconnected scanImmediately=true wifiEnabled=true mAutoJoinEnabled=true mAutoJoinEnabledExternal=true mAutoJoinEnabledExternalSetByDeviceAdmin=false mPnoScanEnabledByFramework=true mEnablePnoScanAfterWifiToggle=true mSpecificNetworkRequestInProgress=false mTrustedConnectionAllowed=true isSufficiencyCheckEnabled=true isAssociatedNetworkSelectionEnabled=true noPotentialNetworkAvailable=false
+10-17 15:36:34.894  4129  4315 E WifiMetrics: Called WifiMetrics#logPNoScanStop() without calling WifiMetrics#logPnoScanStart() first!
+10-17 15:36:34.894  4129  4325 I WifiScanningService: stop pno scan: android AttributionTag null
+10-17 15:36:34.894  4129  4325 I WifiScanningService: start pno scan: ClientInfo[uid=1000, package=android, com.android.server.wifi.scanner.WifiScannerInternal$ScanListener@1642515] AttributionTag null
+10-17 15:36:34.894  4129  4325 W Nl80211Native: Max PNO match SSIDs exceeded, skipping: "openbook-test"
+10-17 15:36:34.894  4129  4325 E Nl80211Native: PNO scan failed with reason: -1
+10-17 15:36:34.894  4129  4325 E WificondScannerImpl: Failed to start PNO scan
+10-17 15:36:34.894  4129  4325 I WifiScanningService: addHwPnoScanRequest: ClientInfo[uid=1000, package=android, attributionTag=null, com.android.server.wifi.scanner.WifiScannerInternal$ScanListener@1642515], ScanSettings {  type:LOW LATENCY band:24Ghz & 5Ghz (DFS incl) & 6Ghz ignoreLocationSettings:false period:20000 reportEvents:4 numBssidsPerScan:0 maxScansToCache:0 rnrSetting:0 6GhzPscOnlyEnabled:false channels:[  ]  } , PnoSettings {  min5GhzRssi:-77 min24GhzRssi:-80 min6GhzRssi:-77 scanIterations:3 scanIntervalMultiplier:3 isConnected:false networks:[ "openbook-test", ]  } 
+10-17 15:36:34.894  4129  4325 W WificondScannerImpl: No PNO scan running
+10-17 15:36:34.894  4129  4325 E WifiScanningService: Failed to stop pno on wlan0
+10-17 15:36:34.894  4129  4315 V WifiConnectivityManager: PnoScanListener onFailure: reason: -1 description: pno scan failed
+10-17 15:36:34.894  4129  4315 V WifiConnectivityManager: Failed to successfully start PNO scan for 5 times
+Deleted 1 rows

@@ -10,6 +10,7 @@ The QEMU runs ran on the build host (Ryzen 9 7950X) under KVM. **`g14-anal178c/`
 | `qemu-l/` | the G14 fixes (`anal179-g14r-c`: patch 0002, PNO, hwtest), with the WAV backend: the AAudio tone at the codec, as built and then with AOSP's pacing in the same boot (`audio-out-tones.json`, third tone; `sections/paced.txt`), and the Wi-Fi and PNO steps |
 | `qemu-m/` | the same image with the silent card: the HAL's capture padding, as built (0) and with AOSP's pacing (7 plus 1 skipped transfer) |
 | `qemu-n/` | the PNO check with the test network eligible: the framework's hardware-PNO path (`sections/pno.txt`) |
+| `qemu-o/`, `qemu-p/` | the same checks on this branch merged with `main` (PR #52, #55): WAV and silent card; results, sections, no serial log |
 | `qemu-summary/runs.md` | one row per QEMU run (c–n), and the pacing A/B of runs l–n: codec found, what reached QEMU's codec through ALSA and through AudioFlinger, Wi-Fi scan/connect/DHCP/ping/iperf3 |
 | `qemu-i/` | the stick's own build (`anal179-stick-d` = the image inside `openbook-live-20261017-audionet3`): `hwtest.json` (the guest's `HWTEST` results), `audio-out-tones.json` (what reached the codec, from QEMU's WAV), the guest's sections (`audio`, `wifi`, `bt`, `avcnew`, `hallog`, `props`), logcat, dmesg, serial log |
 | `qemu-e/` | the first full Wi-Fi pass (this branch alone, image `anal179-c`): connect in 1 s, DHCP, iperf3 661/715 Mbit/s |
