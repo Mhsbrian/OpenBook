@@ -4,7 +4,9 @@
 // openbook-audio-test: the same speaker-to-microphone loopback as `openbook-audio-setup test`, but through Android
 // (AAudio -> AudioFlinger -> the audio HAL's primary module -> ALSA), so it shows what apps get. Prints one JSON
 // object. userdebug only; run as root or shell.
-//   openbook-audio-test [--seconds S] [--freq HZ] [--wav FILE]
+//   openbook-audio-test [--seconds S] [--freq HZ] [--wav FILE] [--out-device ID] [--in-device ID]
+// The device IDs are audio port IDs (dumpsys media.audio_policy: "Port ID: 2; "Speaker""); without them Android
+// routes as it would for an app, e.g. to a connected Bluetooth headset instead of the speakers.
 
 #include <aaudio/AAudio.h>
 #include <unistd.h>
@@ -25,13 +27,14 @@ namespace {
 constexpr int kRate = 48000;
 constexpr int kChannels = 2;
 
-AAudioStream* Open(aaudio_direction_t dir, std::string* err) {
+AAudioStream* Open(aaudio_direction_t dir, int device, std::string* err) {
     AAudioStreamBuilder* b = nullptr;
     if (AAudio_createStreamBuilder(&b) != AAUDIO_OK) {
         *err = "createStreamBuilder";
         return nullptr;
     }
     AAudioStreamBuilder_setDirection(b, dir);
+    if (device > 0) AAudioStreamBuilder_setDeviceId(b, device);
     AAudioStreamBuilder_setSampleRate(b, kRate);
     AAudioStreamBuilder_setChannelCount(b, kChannels);
     AAudioStreamBuilder_setFormat(b, AAUDIO_FORMAT_PCM_I16);
@@ -54,14 +57,17 @@ AAudioStream* Open(aaudio_direction_t dir, std::string* err) {
 int main(int argc, char** argv) {
     double seconds = 2, freq = 1000;
     std::string wav;
+    int out_device = 0, in_device = 0;
     for (int i = 1; i + 1 < argc; i += 2) {
+        if (!strcmp(argv[i], "--out-device")) out_device = atoi(argv[i + 1]);
+        if (!strcmp(argv[i], "--in-device")) in_device = atoi(argv[i + 1]);
         if (!strcmp(argv[i], "--seconds")) seconds = atof(argv[i + 1]);
         else if (!strcmp(argv[i], "--freq")) freq = atof(argv[i + 1]);
         else if (!strcmp(argv[i], "--wav")) wav = argv[i + 1];
     }
     std::string ierr, oerr;
-    AAudioStream* in = Open(AAUDIO_DIRECTION_INPUT, &ierr);
-    AAudioStream* out = Open(AAUDIO_DIRECTION_OUTPUT, &oerr);
+    AAudioStream* in = Open(AAUDIO_DIRECTION_INPUT, in_device, &ierr);
+    AAudioStream* out = Open(AAUDIO_DIRECTION_OUTPUT, out_device, &oerr);
     if (!in || !out) {
         printf("{\"test\": \"aaudio-loopback\", \"ok\": false, \"error\": \"%s%s%s%s\"}\n", in ? "" : "input: ",
                in ? "" : ierr.c_str(), out ? "" : " output: ", out ? "" : oerr.c_str());
@@ -109,6 +115,8 @@ int main(int argc, char** argv) {
     AAudioStream_requestStop(out);
     AAudioStream_requestStop(in);
     int xruns = AAudioStream_getXRunCount(out);
+    // Where Android actually routed the two streams (audio port IDs).
+    const int routed_out = AAudioStream_getDeviceId(out), routed_in = AAudioStream_getDeviceId(in);
     AAudioStream_close(out);
     AAudioStream_close(in);
     captured.resize(static_cast<size_t>(got) * in_ch);
@@ -133,10 +141,11 @@ int main(int argc, char** argv) {
            "\"out_channels\": %d, \"captured_frames\": %ld, \"written_frames\": %ld, \"xruns\": %d, \"freq\": %.0f, "
            "\"tone_dbfs_out\": -15, \"noise_rms_dbfs\": %.1f, \"noise_bin_dbfs\": %.1f, \"tone_rms_dbfs\": %.1f, "
            "\"tone_bin_dbfs\": %.1f, \"tone_share\": %.3f, \"slice_share_mean\": %.3f, \"slice_share_min\": %.3f, "
-           "\"glitched_slices\": %d, \"slices\": %d, \"heard\": %s, \"input_error\": %d, \"output_error\": %d}\n",
+           "\"glitched_slices\": %d, \"slices\": %d, \"heard\": %s, \"input_error\": %d, \"output_error\": %d, "
+           "\"out_device\": %d, \"in_device\": %d}\n",
            !in_err && !out_err ? "true" : "false", in_rate, in_ch, out_rate, out_ch, static_cast<long>(got), written,
            xruns, freq, l.noise_rms_dbfs, l.noise_bin_dbfs, l.tone_rms_dbfs, l.tone_bin_dbfs, l.tone_share,
            l.slice_share_mean, l.slice_share_min, l.glitched_slices, l.slices,
-           heard ? "true" : "false", static_cast<int>(in_err), out_err);
+           heard ? "true" : "false", static_cast<int>(in_err), out_err, routed_out, routed_in);
     return !in_err && !out_err ? 0 : 1;
 }

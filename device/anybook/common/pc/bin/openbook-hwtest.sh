@@ -62,8 +62,12 @@ wifi() {
   j "\"test\": \"wifi-scan\", \"ok\": $([ "$n" -gt 0 ] && echo true || echo false), \"networks\": $n, \"ghz2\": $f2, \"ghz5\": $f5, \"ghz6\": $f6"
 
   h "wifi: connection"
-  conn=false; echo "$st" | grep -q 'Wifi is connected to' && conn=true
+  # Asked again now: right after enabling, the framework may not have reconnected yet (G14 anal178c: "Wifi is
+  # not connected" at enable, then connected, with DHCP and validation, by the time of this step).
   link=$(iw dev "$iface" link 2>&1)
+  conn=false
+  cmd wifi status 2>&1 | grep -q 'Wifi is connected to' && conn=true
+  echo "$link" | grep -q '^Connected to' && conn=true
   echo "$link" | grep -vE 'SSID|Connected to' | head -n 12 | red
   freq=$(echo "$link" | sed -n 's/.*freq: *\([0-9.]*\).*/\1/p' | head -n 1)
   sig=$(echo "$link" | sed -n 's/.*signal: *\(-*[0-9]*\) dBm.*/\1/p' | head -n 1)
@@ -71,7 +75,7 @@ wifi() {
   rx=$(echo "$link" | sed -n 's/.*rx bitrate: *\([0-9.]*\) MBit.*/\1/p' | head -n 1)
   ip4=$(ip -4 addr show "$iface" 2>/dev/null | sed -n 's/.*inet \([0-9.]*\/[0-9]*\).*/\1/p' | head -n 1)
   gw=$(ip route show table all 2>/dev/null | sed -n "s/^default via \([0-9.]*\) dev $iface .*/\1/p" | head -n 1)
-  echo "IPv4 ${ip4:-none}, gateway ${gw:-none}"
+  echo "IPv4: $([ -n "$ip4" ] && echo "an address, /${ip4#*/}" || echo none); gateway: $([ -n "$gw" ] && echo yes || echo none)"
   j "\"test\": \"wifi-connect\", \"ok\": $conn, \"freq_mhz\": $(num "$freq"), \"signal_dbm\": $(num "$sig"), \"tx_mbit\": $(num "$tx"), \"rx_mbit\": $(num "$rx")"
   j "\"test\": \"wifi-dhcp\", \"ok\": $([ -n "$ip4" ] && echo true || echo false), \"prefix\": $(q "${ip4#*/}"), \"gateway\": $([ -n "$gw" ] && echo true || echo false)"
   if [ -n "$gw" ]; then
@@ -121,7 +125,16 @@ audio() {
   pcm=$(grep "^$(printf '%02d' "${card:-0}" 2>/dev/null)-" /proc/asound/pcm 2>/dev/null | head -n 1)
   j "\"test\": \"audio-card\", \"ok\": $([ -n "$card" ] && [ "$card" != -1 ] && echo true || echo false), \"card\": $(num "$card"), \"pcm\": $(q "$pcm")"
   h "audio: policy"
-  dumpsys media.audio_policy 2>&1 | grep -A4 -E 'Available (output|input) devices' | head -n 20
+  pol=$(dumpsys media.audio_policy 2>&1)
+  echo "$pol" | grep -A4 -E 'Available (output|input) devices' | head -n 20 | red
+  # The ports the loopback asks for, so a connected Bluetooth headset does not take the tone (G14 anal176s).
+  spk=$(echo "$pol" | sed -n 's/.*Port ID: \([0-9]*\); "Speaker".*/\1/p' | head -n 1)
+  mic=$(echo "$pol" | sed -n 's/.*Port ID: \([0-9]*\); "Built-In Mic".*/\1/p' | head -n 1)
+  wired=false; echo "$pol" | grep -qE 'AUDIO_DEVICE_OUT_WIRED_(HEADPHONE|HEADSET)' && wired=true
+  a2dp=false; echo "$pol" | grep -q 'AUDIO_DEVICE_OUT_BLUETOOTH_A2DP' && a2dp=true
+  hpjack=$(grep -c 'N: Name=".*Headphone"' /proc/bus/input/devices)
+  micjack=$(grep -c 'N: Name=".*Mic"' /proc/bus/input/devices)
+  j "\"test\": \"audio-routes\", \"ok\": $([ -n "$spk" ] && [ -n "$mic" ] && echo true || echo false), \"speaker_port\": $(num "$spk"), \"mic_port\": $(num "$mic"), \"headphone_jacks\": $hpjack, \"mic_jacks\": $micjack, \"wired_connected\": $wired, \"a2dp_connected\": $a2dp, \"pacing\": $(q "$(getprop vendor.audio.primary.pacing)")"
   dumpsys media.audio_flinger 2>&1 | grep -E 'Hardware status|Output devices|Input device|Standby|Sample rate|HAL format' | head -n 20
   if [ "$TONE" = 1 ]; then
     h "audio: speaker -> built-in mic, direct ALSA (2 s at 1 kHz)"
@@ -134,9 +147,16 @@ audio() {
     vol=$(cmd media_session volume --stream 3 --get 2>&1 | sed -n 's/.*volume is \([0-9]*\) in range \[[0-9]*\.\.\([0-9]*\)\].*/\1 \2/p')
     cur=${vol% *}; max=${vol#* }
     [ -n "$vol" ] && cmd media_session volume --stream 3 --set $((max * 2 / 3)) > /dev/null 2>&1
-    r=$(timeout 30 openbook-audio-test --wav /data/local/tmp/openbook-aaudio-loopback.wav 2>&1 | tail -n 1)
+    t0=$(date +'%m-%d %H:%M:%S.000')
+    r=$(timeout 30 openbook-audio-test --wav /data/local/tmp/openbook-aaudio-loopback.wav \
+          ${spk:+--out-device $spk} ${mic:+--in-device $mic} 2>&1 | tail -n 1)
     [ -n "$vol" ] && cmd media_session volume --stream 3 --set "$cur" > /dev/null 2>&1
-    case $r in '{'*'}') r="${r%\}}, \"media_volume\": \"$((max * 2 / 3))/$max\"}" ;; esac
+    # What the audio HAL did to the data meanwhile: padded captures, dropped output, skipped buffers.
+    hal=$(logcat -d -b main -T "$t0" 2>/dev/null | grep 'AHAL_')
+    pads=$(echo "$hal" | grep -c 'inserting [0-9]* frames of silence')
+    drops=$(echo "$hal" | grep -c 'dropping [0-9]* frames')
+    skips=$(echo "$hal" | grep -c 'skipping transfer')
+    case $r in '{'*'}') r="${r%\}}, \"media_volume\": \"$((max * 2 / 3))/$max\", \"hal_input_pads\": $pads, \"hal_output_drops\": $drops, \"hal_skipped_transfers\": $skips}" ;; esac
     echo "$r"; case $r in '{'*) echo "HWTEST ${r}" ;; esac
   fi
 }

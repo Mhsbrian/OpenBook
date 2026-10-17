@@ -74,7 +74,8 @@ def main():
                     help="add a virtio-rng (1af4) behind a PCIe root port, a stand-in for the dGPU detach test")
     ap.add_argument("--trace", action="store_true", help="log CPU resets and guest errors to DIR/qemu-debug.log")
     ap.add_argument("--audio", help="an ICH9 HDA controller with QEMU's duplex codec; what the guest plays goes to "
-                    "this WAV file (48 kHz stereo); the guest records silence")
+                    "this WAV file (48 kHz stereo) and its capture fails; 'none' instead: no file, and the guest "
+                    "records silence at the codec's own pace")
     ap.add_argument("--extra-usb", help="a second USB disk (image file), e.g. test files for the guest")
     args = ap.parse_args()
 
@@ -121,8 +122,9 @@ def main():
         cmd += ["-drive", f"if=none,id=internal,format=raw,cache=unsafe,file={args.nvme}",
                 "-device", "nvme,drive=internal,serial=internal0,bootindex=2"]
     if args.audio:
-        cmd += ["-audiodev", f"wav,id=snd0,path={args.audio},out.frequency=48000,out.channels=2",
-                "-device", "ich9-intel-hda,id=hda", "-device", "hda-duplex,bus=hda.0,audiodev=snd0"]
+        dev = ("none,id=snd0" if args.audio == "none" else
+               f"wav,id=snd0,path={args.audio},out.frequency=48000,out.channels=2")
+        cmd += ["-audiodev", dev, "-device", "ich9-intel-hda,id=hda", "-device", "hda-duplex,bus=hda.0,audiodev=snd0"]
     if args.extra_usb:
         cmd += ["-drive", f"if=none,id=extra,format=raw,cache=unsafe,file={args.extra_usb}",
                 "-device", "usb-storage,bus=xhci.0,drive=extra,removable=on"]
