@@ -109,9 +109,9 @@
 | ✅ | **M1** Our Android 17 build boots in a VM | `boot_completed` in 17–29 s ([evidence](evidence/2026-10-16-aosp/)) |
 | ✅ | **M2** Desktop windowing and GPU graphics in a VM | Matches Google's desktop image; RADV on an AMD iGPU |
 | 🚧 | **M3** OpenBook kernel on real hardware | **First boots on the G14:** 235 modules, 0 failed. Our Android 17 live image reaches the desktop on the panel ("save logs" boots, SELinux permissive) |
-| 🚧 | **M4** AMD graphics stack | Passing on a Radeon 610M; on the G14 the desktop renders through ANGLE on RADV. Composition still runs on the GPU |
+| 🚧 | **M4** AMD graphics stack | Passing on a Radeon 610M; on the G14 the desktop renders through ANGLE on RADV. A one-boot conformance check (dEQP, ANGLE end2end) is ready for the G14 stick. Composition still runs on the GPU |
 | 🚧 | **M6** ARM app compatibility | Our build ships the open Digitalis bridge, built from source: 14 of 16 ARM-only test apps run in a VM, up from 13 with Google's translator. The G14 run is next |
-| 🚧 | **M8** USB installer | Design done; the live USB image builds and boots on the G14 ([`docs/installer.md`](docs/installer.md)) |
+| 🚧 | **M8** USB installer | Design done; the live USB image builds and boots on the G14; the install wizard is being built ([`docs/installer.md`](docs/installer.md)) |
 | 🚧 | **M5** Desktop, input and power on the laptop | Desktop, touchpad and keyboard work in Android on the G14. Lid, power button, hotkeys and battery health are built and checked in a VM. Deep sleep (S0i3) is under investigation |
 | ⏳ | **M7** Performance and parity | Later |
 
