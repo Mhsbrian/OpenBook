@@ -1,6 +1,5 @@
-16
+14
       9 { write } hal_audio_default tmpfs file
-      2 { read } system_server sysfs file
       2 { read } platform_app bluetooth_lea_prop file
       1 { write } init sysfs file
       1 { read } shell proc file

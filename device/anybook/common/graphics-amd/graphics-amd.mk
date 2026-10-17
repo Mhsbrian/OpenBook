@@ -36,6 +36,14 @@ PRODUCT_PACKAGES += \
 # HAL selection at boot.
 PRODUCT_PACKAGES += anybook_gpu_probe
 
+# ANGLE asks for deferred swapchain memory (VK_SWAPCHAIN_CREATE_DEFERRED_MEMORY_ALLOCATION_BIT_EXT) whenever
+# libvulkan offers VK_EXT_swapchain_maintenance1, which it does for any driver with external fence FDs. Android's
+# loader then binds each swapchain image later, with vkBindImageMemory2 + VkNativeBufferANDROID and no
+# VkDeviceMemory. RADV in Mesa 26.2.5 does not handle that (radv_BindImageMemory2 dereferences the null memory:
+# the boot animation's SIGSEGV on the G14, ANAL-190 live-001). Without the feature, swapchain images take RADV's
+# vkCreateImage + VkNativeBufferANDROID path instead. ANGLE reads this property in every build type.
+PRODUCT_PRODUCT_PROPERTIES += debug.angle.feature_overrides_disabled=supportsSwapchainMaintenance1
+
 ifneq ($(ANYBOOK_GRAPHICS_PLATFORM_HALS),false)
 # Allocator and stable-C mapper (minigbm, with the amdgpu backend), and drm_hwcomposer on the KMS
 # device. The policy for them is in sepolicy/platform.
