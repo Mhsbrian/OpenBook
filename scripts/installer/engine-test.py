@@ -17,6 +17,10 @@ Cases:
   alongside    a Windows-like disk (ESP with EFI/Microsoft/Boot/bootmgfw.efi and EFI/BOOT/BOOTX64.EFI, MSR, an NTFS
                partition, 70 GiB free): our partitions go into the free space; the existing partitions' bytes are
                unchanged except the ESP, which gains only EFI/OpenBook/systemd-bootx64.efi (S7)
+  nvram        (in whole and alongside) a directory in efivarfs's file format stands in for the firmware's variables
+               (--efivars), with a "Windows Boot Manager" entry and a BootOrder: the whole-disk install, with consent,
+               adds one Boot#### pointing at the new ESP and puts it first; the alongside install, without consent,
+               adds one pointing at the existing ESP and leaves BootOrder and the other entry byte-identical (S11)
 Writes RUN/results.json and RUN/SUMMARY.md, and keeps each command's stdout/stderr in RUN/<case>/.
 
 usage: engine-test.py --engine BIN --image LIVE.img --run DIR
@@ -27,6 +31,7 @@ import json
 import os
 import re
 import shutil
+import struct
 import subprocess
 import sys
 
@@ -111,9 +116,73 @@ def make_root(run, name, stick_img, target_img, target_serial="internal0", mount
     return root
 
 
+EFI_GLOBAL = "8be4df61-93ca-11d2-aa0d-00e098032b8c"
+
+
+def guid_bytes(s):
+    b = bytes.fromhex(s.replace("-", ""))
+    return b[3::-1] + b[5:3:-1] + b[7:5:-1] + b[8:]
+
+
+def ucs2(s):
+    return s.encode("utf-16-le") + b"\0\0"
+
+
+def load_option(desc, partnum, start, size, guid, path):
+    hd = bytes([4, 1, 42, 0]) + struct.pack("<IQQ", partnum, start, size) + guid_bytes(guid) + bytes([2, 2])
+    fp = ucs2(path)
+    dp = hd + bytes([4, 4]) + struct.pack("<H", 4 + len(fp)) + fp + bytes([0x7F, 0xFF, 4, 0])
+    return struct.pack("<IH", 1, len(dp)) + ucs2(desc) + dp
+
+
+def efi_write(d, name, data, attrs=7):
+    os.makedirs(d, exist_ok=True)
+    open(f"{d}/{name}-{EFI_GLOBAL}", "wb").write(struct.pack("<I", attrs) + data)
+
+
+def efi_read(d, name):
+    p = f"{d}/{name}-{EFI_GLOBAL}"
+    return open(p, "rb").read() if os.path.exists(p) else None
+
+
+def efi_parse(raw):
+    """A Boot#### variable as efivarfs shows it: attributes, then EFI_LOAD_OPTION."""
+    attrs, opt = struct.unpack_from("<I", raw)[0], raw[4:]
+    oattrs, dplen = struct.unpack_from("<IH", opt)
+    i, desc = 6, ""
+    while opt[i:i + 2] != b"\0\0":
+        desc += opt[i:i + 2].decode("utf-16-le")
+        i += 2
+    i += 2
+    dp, out = opt[i:i + dplen], {"attrs": attrs, "active": bool(oattrs & 1), "desc": desc}
+    j = 0
+    while j + 4 <= len(dp):
+        t, st, ln = dp[j], dp[j + 1], struct.unpack_from("<H", dp, j + 2)[0]
+        if t == 4 and st == 1:
+            pn, s, sz = struct.unpack_from("<IQQ", dp, j + 4)
+            g = dp[j + 24:j + 40]
+            gs = (g[3::-1] + g[5:3:-1] + g[7:5:-1] + g[8:]).hex()
+            out.update(partition=pn, start=s, size=sz,
+                       guid=f"{gs[:8]}-{gs[8:12]}-{gs[12:16]}-{gs[16:20]}-{gs[20:]}", gpt=dp[j + 40] == 2)
+        elif t == 4 and st == 4:
+            out["path"] = dp[j + 4:j + ln].decode("utf-16-le").rstrip("\0")
+        elif t == 0x7F:
+            break
+        j += ln
+    return out
+
+
+def efi_dir_digest(d):
+    h = hashlib.sha256()
+    for f in sorted(os.listdir(d)):
+        h.update(f.encode() + open(f"{d}/{f}", "rb").read())
+    return h.hexdigest()
+
+
 class Engine:
-    def __init__(self, binary, root, uuid, out):
+    def __init__(self, binary, root, uuid, out, efivars=None):
         self.binary, self.root, self.uuid, self.out = binary, root, uuid, out
+        self.efivars = efivars
         os.makedirs(out, exist_ok=True)
         self.n = 0
 
@@ -122,7 +191,8 @@ class Engine:
         e = dict(os.environ)
         e.pop("OPENBOOK_INSTALL_ERASE", None)
         e.update(env or {})
-        r = sh(self.binary, "--root", self.root, "--boot-part-uuid", self.uuid, *args, env=e)
+        g = ["--efivars", self.efivars] if self.efivars else []
+        r = sh(self.binary, "--root", self.root, "--boot-part-uuid", self.uuid, *g, *args, env=e)
         tag = f"{self.n:02d}-{args[0]}"
         open(f"{self.out}/{tag}.stdout.json", "w").write(r.stdout)
         open(f"{self.out}/{tag}.stderr.log", "w").write(r.stderr)
@@ -172,7 +242,16 @@ def main():
 
     # ---------------------------------------------------------------- disks, plan, refusals
     t = blank("target", 64)
-    E = Engine(a.engine, make_root(run, "main", stick, t), uuid, f"{run}/plan")
+    # The firmware's variables before the install: another OS's entry and a USB entry, in that boot order.
+    efiv = f"{run}/efivars-main"
+    shutil.rmtree(efiv, ignore_errors=True)
+    old_guid = "0d9b5c11-6c5f-4c8e-9a8b-1e2f3a4b5c6d"
+    efi_write(efiv, "Boot0000", load_option("Windows Boot Manager", 1, 2048, 532480, old_guid,
+                                          "\\EFI\\Microsoft\\Boot\\bootmgfw.efi"))
+    efi_write(efiv, "Boot0001", struct.pack("<IH", 1, 4) + ucs2("UEFI QEMU HARDDISK") + bytes([0x7F, 0xFF, 4, 0]))
+    efi_write(efiv, "BootOrder", struct.pack("<HH", 0, 1))
+    ev_before = {n: efi_read(efiv, n) for n in ("Boot0000", "Boot0001")}
+    E = Engine(a.engine, make_root(run, "main", stick, t), uuid, f"{run}/plan", efivars=efiv)
     rc, j, _ = E.run("disks")
     disks = {d["name"]: d for d in j.get("disks", [])}
     check("disks", "two disks found, the stick by its USB by-id", set(disks) == {"sda", "nvme0n1"} and
@@ -191,9 +270,14 @@ def main():
     before = sha_file(t)
     target = "nvme-QEMU_NVMe_Ctrl_internal0"
     plan = f"{run}/plan/plan-whole.json"
+    ev_digest = efi_dir_digest(efiv)
     rc, j, _ = E.run("plan", "--target", f"/dev/disk/by-id/{target}", "--layout", "whole", "--locale", "en-US",
-                     "--keyboard", "us", "--out", plan)
+                     "--keyboard", "us", "--set-default", "--out", plan)
     check("plan", "plan succeeds", rc == 0 and j.get("plan_sha256"), j.get("error"))
+    check("nvram", "plan: a firmware entry is planned and goes first (consent given)",
+          j.get("boot", {}).get("nvram") == "planned" and j["boot"].get("boot_order") == "first" and
+          "nvram_unavailable" not in j.get("warnings", []), j.get("boot"))
+    check("nvram", "plan: the firmware's variables were only read", efi_dir_digest(efiv) == ev_digest)
     ops = [o["op"] for o in j.get("operations", [])]
     check("plan", "operations listed in order (check, recheck, wipe, copies, super, format, files, table, verify, "
                   "activate, nvram, report)", ops[:3] == ["check_source", "recheck", "wipe_table"] and
@@ -262,6 +346,7 @@ def main():
     rc, j, r = E.run("apply", "--plan", plan, "--confirm-disk", f"/dev/disk/by-id/{target}", "--events",
                      env={"OPENBOOK_INSTALL_ERASE": f"/dev/disk/by-id/{target}"})
     check("whole", "apply succeeds and verifies", rc == 0 and j.get("ok") and j.get("verified"), j.get("error"))
+    whole_result = j
     steps = j.get("steps", {})
     check("whole", "every step done", all(s["state"] == "done" for s in steps.values()), steps)
     ev = [json.loads(l) for l in r.stdout.splitlines()[:-1] if l.startswith("{\"event\"")]
@@ -269,6 +354,24 @@ def main():
           any(e["event"] == "step" for e in ev), len(ev))
     v = sh("sgdisk", "-v", t).stdout
     check("whole", "GPT valid (sgdisk -v)", "No problems found" in v, v[-200:])
+    # The firmware entry (S11): one new Boot####, first in BootOrder, the others untouched.
+    pe = {p["name"]: p for p in plan_j["partitions"]}["EFI"]
+    raw = efi_read(efiv, "Boot0002")
+    ent = efi_parse(raw) if raw else {}
+    check("nvram", "whole: result says Boot0002 created and first in BootOrder",
+          whole_result.get("nvram") == "created" and whole_result.get("nvram_entry") == "Boot0002" and
+          whole_result.get("boot_order") == "first", {k: whole_result.get(k) for k in ("nvram", "nvram_entry", "boot_order", "nvram_error")})
+    check("nvram", "whole: Boot0002 = \"OpenBook\", active, NV+BS+RT, HD(1, GPT, the new ESP)/\\EFI\\OpenBook\\systemd-bootx64.efi",
+          ent.get("desc") == "OpenBook" and ent.get("active") and ent.get("attrs") == 7 and ent.get("gpt") and
+          ent.get("partition") == 1 and ent.get("guid") == pe["partuuid"] and ent.get("start") == pe["start"] // 512 and
+          ent.get("size") == pe["bytes"] // 512 and ent.get("path") == "\\EFI\\OpenBook\\systemd-bootx64.efi", ent)
+    order = struct.unpack("<" + "H" * ((len(efi_read(efiv, "BootOrder")) - 4) // 2), efi_read(efiv, "BootOrder")[4:])
+    check("nvram", "whole: BootOrder 0002, 0000, 0001 (OpenBook first, the rest in their order)", order == (2, 0, 1), order)
+    check("nvram", "whole: the other entries are byte-identical", all(efi_read(efiv, n) == b for n, b in ev_before.items()))
+    rc, jn, _ = E.run("nvram")
+    check("nvram", "openbook-install nvram lists the entries and the order",
+          [e["num"] for e in jn.get("nvram", {}).get("entries", [])] == ["0000", "0001", "0002"] and
+          jn["nvram"].get("boot_order") == ["0002", "0000", "0001"], jn.get("nvram"))
     gl = gpt_list(t)
     check("whole", "13 partitions as planned", list(gl) == [p["name"] for p in plan_j["partitions"]], list(gl))
     planned = {p["name"]: p for p in plan_j["partitions"]}
@@ -372,7 +475,16 @@ def main():
         i, s, e = int(m.group(1)), int(m.group(2)), int(m.group(3))
         if i in (2, 3, 4):
             parts_before[i] = sha_file(w, min((e - s + 1) * 512, 64 * MiB), s * 512)
-    Ea = Engine(a.engine, make_root(run, "alongside", stick, w, target_serial="win0"), uuid, f"{run}/alongside")
+    # The firmware knows Windows: Boot0000 -> HD(1, GPT, its ESP)/\EFI\Microsoft\Boot\bootmgfw.efi, first in BootOrder.
+    win_esp_guid = re.search(r"unique GUID: (\S+)", sh("sgdisk", "-i", "1", w).stdout).group(1).lower()
+    eva = f"{run}/efivars-alongside"
+    shutil.rmtree(eva, ignore_errors=True)
+    efi_write(eva, "Boot0000", load_option("Windows Boot Manager", 1, 2048, 260 * 2048, win_esp_guid,
+                                           "\\EFI\\Microsoft\\Boot\\bootmgfw.efi"))
+    efi_write(eva, "BootOrder", struct.pack("<H", 0))
+    eva_before = {n: efi_read(eva, n) for n in ("Boot0000", "BootOrder")}
+    Ea = Engine(a.engine, make_root(run, "alongside", stick, w, target_serial="win0"), uuid, f"{run}/alongside",
+                efivars=eva)
     rc, j, _ = Ea.run("disks")
     wd = next((d for d in j.get("disks", []) if d["name"] == "nvme0n1"), {})
     check("alongside", "Windows found on the disk, alongside possible with the free space",
@@ -418,6 +530,17 @@ def main():
           "BOOTX64" not in ls, ls[-300:])
     pt = sh("sgdisk", "-i", str(xb["index"]), w).stdout
     check("alongside", "XBOOTLDR has its type GUID", "BC13C2FF-59E6-4262-A352-B275FD6F7172" in pt)
+    ra = efi_read(eva, "Boot0001")
+    ea = efi_parse(ra) if ra else {}
+    check("nvram", "alongside: plan warns that the boot order stays as it is (no consent)",
+          "boot_order_unchanged" in plan_a.get("warnings", []) and plan_a["boot"].get("boot_order") == "unchanged",
+          plan_a.get("warnings"))
+    check("nvram", "alongside: Boot0001 \"OpenBook\" -> HD(1, GPT, the existing Windows ESP)/\\EFI\\OpenBook\\systemd-bootx64.efi",
+          ea.get("desc") == "OpenBook" and ea.get("partition") == 1 and ea.get("guid") == win_esp_guid and
+          ea.get("start") == 2048 and ea.get("size") == 260 * 2048 and ea.get("path") == "\\EFI\\OpenBook\\systemd-bootx64.efi", ea)
+    check("nvram", "alongside: Windows Boot Manager and BootOrder byte-identical (no consent, S11)",
+          all(efi_read(eva, n) == b for n, b in eva_before.items()) and sorted(os.listdir(eva)) ==
+          sorted(f"{n}-{EFI_GLOBAL}" for n in ("Boot0000", "Boot0001", "BootOrder")), sorted(os.listdir(eva)))
 
     total = sum(len(v) for v in results["cases"].values())
     passed = sum(x["ok"] for v in results["cases"].values() for x in v)
