@@ -23,6 +23,7 @@ import json, re, sys
 src = open(sys.argv[1]).read()
 body = src[src.index("static const char COLLECT[] ="):]
 body = body[:body.index(";\n")]
+body = re.sub(r"//[^\n]*", "", body)  # C comments may quote text too
 lits = re.findall(r'"((?:[^"\\]|\\.)*)"', body)
 script = "".join(bytes(l, "utf-8").decode("unicode_escape") for l in lits)
 assert "OBEOF" not in script
@@ -34,7 +35,8 @@ steps = [{"wait": "init: init second stage started", "timeout": 300}, {"send": "
          {"wait": "BOOTDONE=1", "timeout": 660}, prompt, {"send": "sleep 20\n"}, prompt,
          {"send": "export TMPDIR=/data/local/tmp\n"}, prompt,  # mksh keeps heredocs in $TMPDIR
          {"send": "cat > /data/local/tmp/collect.sh <<'OBEOF'\n" + script + "OBEOF\n"}, {**prompt, "timeout": 300},
-         {"send": "su 0 sh /data/local/tmp/collect.sh > /data/local/tmp/collect.txt 2>&1; echo COLLECTRC=$?\n"},
+         {"send": "su 0 timeout 240 sh /data/local/tmp/collect.sh > /data/local/tmp/collect.txt 2>&1; echo COLLECTRC=$?; "
+                  "grep -n '^===' /data/local/tmp/collect.txt | tail -n 2\n"},
          {"wait": "COLLECTRC=\\d+", "timeout": 300}, prompt,
          {"send": "echo ===B64-\"\"BEGIN===; gzip -c /data/local/tmp/collect.txt | base64; echo ===B64-\"\"END===\n"},
          {"wait": "\n===B64-END===", "timeout": 300}, prompt, {"send": "su 0 reboot -p\n"}]

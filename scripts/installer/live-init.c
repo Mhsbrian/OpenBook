@@ -725,7 +725,9 @@ static const char COLLECT[] =
     "timeout 20 getevent -lt $d 2>&1 | head -n 30000\n"
     "s AUDIO; dumpsys media.audio_flinger 2>&1 | head -n 40\n"
     "s FEATURES; pm list features 2>&1\n"
-    "s SERVICES; service list 2>&1\n"
+    // Bounded: one stuck service (a HAL with no hardware behind it, in a VM) blocks service list, and with it the
+    // rest of this capture (ANAL-178, QEMU).
+    "s SERVICES; timeout 30 service list 2>&1\n"
     "s AVC; dmesg | grep -c 'avc:  denied'; logcat -d -b all | grep -c 'avc:  denied'\n"
     "s END\n";
 

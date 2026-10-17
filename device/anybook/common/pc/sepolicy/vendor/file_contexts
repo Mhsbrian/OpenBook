@@ -13,6 +13,7 @@
 
 # Vendor executables.
 /vendor/bin/openbook-pc-setup                 u:object_r:openbook_pc_setup_exec:s0
+/vendor/bin/hw/android\.hardware\.health-service\.openbook       u:object_r:hal_health_default_exec:s0
 /vendor/bin/hw/android\.hardware\.lights-service\.openbook       u:object_r:hal_light_default_exec:s0
 /vendor/bin/hw/android\.hardware\.power-service\.openbook        u:object_r:hal_power_default_exec:s0
 /vendor/bin/hw/android\.hardware\.power\.stats-service\.openbook u:object_r:hal_power_stats_default_exec:s0
