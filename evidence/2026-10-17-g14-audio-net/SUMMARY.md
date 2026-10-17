@@ -16,7 +16,7 @@ Everything here ran on the build host (Ryzen 9 7950X) in QEMU/KVM; **nothing ran
 | `host/` | `openbook_audio_logic_test` 8/8, `openbook_hals_test` 15/15 |
 | `image/` | the stick image `openbook-live-20261017-audionet3` (sha256, build and layout records) and the QEMU test image of the same build |
 | `build/` | the stick build's log and timing (integration commit `7953651`) |
-| `live-audionet3/` | the live image's QEMU matrix (ANAL-190's six cases) and the save-logs case's `report.md`/`hwtest-final.txt` |
+| `live-audionet3/` | the stick image's QEMU matrix (ANAL-190's six cases, 39/39) and its save-logs case: `hwtest-final.txt` written by the helper, `report.md` from the integration branch's `live-report.py` (a VM has no Wi-Fi, sound card or Bluetooth controller, so those verdicts are no) |
 
 ## Results (C = we ran it, in a VM)
 

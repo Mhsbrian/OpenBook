@@ -12,7 +12,7 @@ Status as of 2026-10-17. Goal: speakers, microphone, headphone jack, Wi-Fi and B
 | Audio | `openbook-audio-setup` finds the codec card and unmutes it (the codec comes up at 0/off); a 1 kHz tone reaches the codec **directly through ALSA** (2.0 s at −18.1 dBFS RMS, exactly the −15 dBFS peak played) and **through AudioFlinger** (AAudio → HAL): 1.65 s of the 2 s tone arrives, with phase breaks in about 24 of its 50 ms windows, i.e. the HAL drops buffers in the VM (§9) (C, VM). Capture opens through both paths (the VM codec records silence) |
 | Found and fixed on the way | the audio HAL could not write its own stream queues, so **no app could play or record** (memfd SELinux type); cfg80211's regulatory keyring was unsearchable; HDA mixers come up muted; firmware loads from `/vendor/firmware` were denied under enforcing (ANAL-176's fix, taken over) |
 | Tests | `openbook-hwtest` in the save-logs entry, verdicts in `live-report.py`; `openbook_audio_logic_test` 8/8, `openbook_hals_test` 15/15 on the host |
-| Stick image | `openbook-live-20261017-audionet3` (this branch + ANAL-176's desktop4 + `main`): @@LIVE@@ |
+| Stick image | `openbook-live-20261017-audionet3` (this branch + ANAL-176's desktop4 + `main`, branch `anal-179/stick-integration` `7953651`): ANAL-190's QEMU matrix **39/39**; its save-logs case ran `openbook-hwtest` and `live-report.py` gave the new verdicts (`evidence/.../live-audionet3/`) |
 | On the G14 | **not run yet** (device gate): owner steps in §7 |
 
 ## 2. What the G14 has (from its inventory and the first live boot)
@@ -118,7 +118,7 @@ The stick image is **`openbook-live-20261017-audionet3`**: this branch merged wi
 
 Per-run table: `evidence/2026-10-17-g14-audio-net/qemu-summary/runs.md`.
 
-Evidence: `evidence/2026-10-17-g14-audio-net/qemu-*` (results, the guest's sections, `hwtest.json`, `audio-out-tones.json`, serial log, logcat and dmesg). The live image's own QEMU matrix (`scripts/installer/live-qemu.sh`, ANAL-190's six cases) is in `.../live-audionet2/`; its save-logs case shows the helper running `openbook-hwtest` and `live-report.py` giving the new verdicts.
+Evidence: `evidence/2026-10-17-g14-audio-net/qemu-*` (results, the guest's sections, `hwtest.json`, `audio-out-tones.json`, serial log, logcat and dmesg). The live image's own QEMU matrix (`scripts/installer/live-qemu.sh`, ANAL-190's six cases) is in `.../live-audionet3/` (39/39); its save-logs case shows the helper running `openbook-hwtest` and `live-report.py` giving the new verdicts.
 
 ## 9. Open items
 
