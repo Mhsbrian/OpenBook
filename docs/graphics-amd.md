@@ -1,6 +1,6 @@
 # AMD graphics in the OpenBook device tree
 
-This covers ANAL-174, as of 2026-10-16. It builds on ANAL-173 (Mesa built with the NDK, `docs/mesa.md`) and ANAL-169 (the `anybook_cf_x86_64_pc` desktop product, `docs/aosp-desktop.md`). Evidence is in `evidence/2026-10-16-graphics-amd/`.
+This covers ANAL-174, as of 2026-10-16; the last part, "dEQP and CTS on the G14", covers ANAL-177 (2026-10-17). It builds on ANAL-173 (Mesa built with the NDK, `docs/mesa.md`) and ANAL-169 (the `anybook_cf_x86_64_pc` desktop product, `docs/aosp-desktop.md`). Evidence is in `evidence/2026-10-16-graphics-amd/`.
 
 ## Result
 
@@ -176,8 +176,185 @@ scripts/gpu-probe-capture.sh > g14.txt                   # probe fixture from an
    - the probe at early-init with amdgpu loaded from `vendor_dlkm`
    - scanout of GBM's implicit tiled layout. HYPOTHESIS: radeonsi picks no DCC for shared surfaces without modifiers; otherwise minigbm handles multi-plane layouts.
 2. **The G14 product (ANAL-199)** inherits `graphics-amd.mk` with the platform HALs on. It needs `sepolicy/platform` built and probably a composer policy beyond Cuttlefish's.
-3. **Vulkan 1.1 under android-strict.** Decide with CTS whether to ship `ANDROID_STRICT=false` (1.4).
+3. **Vulkan 1.1 under android-strict.** Decide with CTS whether to ship `ANDROID_STRICT=false` (1.4). ANAL-177's pre-check on the 610M favours 1.4; the G14 run settles it ("Vulkan 1.1 or 1.4" below).
 4. **Explicit modifiers and DCC.** GBM cannot enumerate modifiers, so buffers use the driver's implicit layout. Querying modifiers through EGL (`eglQueryDmaBufModifiersEXT`) in the allocator would allow DCC-capable scanout layouts.
 5. **YV12 on RDNA.** ChromeOS's `amdgpu.c` gives YV12 a chroma stride of 512 for a 640-pixel-wide image (its "bad strides" warning, `minigbm-host/test.log`). Android CTS YV12 tests may notice.
 6. **An in-tree Soong build of Mesa** (meson2hermetic configs for radeonsi/RADV) would give Mesa the IMapper backend and drop the prebuilts.
 7. **Licensing.** The staged libraries are MIT (Mesa, libdrm) plus LGPL-3.0+ (`libelf_mesa.so`, shared by default). Nothing is redistributed yet; see `docs/mesa.md` before shipping images.
+
+## dEQP and CTS on the G14 (ANAL-177)
+
+This part covers ANAL-177, as of 2026-10-17. Evidence is in `evidence/2026-10-17-graphics-cts/`.
+
+### Status
+
+- **Built and tested off the laptop:** a graphics check that runs dEQP (Vulkan, GLES 2/3/3.1, EGL) and ANGLE's end2end tests on the G14's own drivers, unattended, as an add-on for the owner's live stick. It needs no new image.
+- **Pre-check on the build host's Radeon 610M** (gfx1036, RDNA2; a different GPU from the G14's gfx1150): the same case lists, binaries and drivers. Results are below and in `evidence/2026-10-17-graphics-cts/precheck-610m/`.
+- **QEMU:** the add-on on a copy of `openbook-live-20261017-combined`, end to end. Every step ran, from the applier to the power-off, and every part that applies without an AMD GPU passed its 40-case quick list on SwiftShader.
+- **Cuttlefish:** the two app parts with their full lists (`evidence/2026-10-17-graphics-cts/`).
+- **Not done: the G14 run itself.** It needs the owner (checklist below) or the device agent (ANAL-193). Nothing in this section has run on the Radeon 890M yet.
+
+### How the run reaches the laptop without a new image
+
+```mermaid title="Graphics check: one boot of the owner's stick"
+flowchart TD
+  A[boot entry 'OpenBook graphics check'<br/>the stick's own kernel, ramdisks, save-logs bootconfig<br/>+ openbook/gfx/gfx-init.img] --> B[rdinit=/openbook-gfx-init<br/>openbook-live-init from this branch]
+  B --> C[logs helper: kernel log to the ESP all along]
+  C --> D[Android boots, SELinux permissive<br/>boot_completed + 90 s]
+  D --> E[unpack openbook/gfx/payload<br/>into /data/local/tmp/openbook-gfx on the stick<br/>sha256 check of 2,060 files]
+  E --> F[run.sh, as root, cap 90 min:<br/>vk, vk14, gles-angle, gles-mesa, egl, angle]
+  F --> G[run.sh --cleanup: settings back, apps uninstalled]
+  G --> H[addon-gfx-out.tar + addon-gfx.txt<br/>+ the usual capture in openbook/logs/live-NNN]
+  H --> I[power off]
+```
+
+- **The add-on** (`scripts/graphics/make-gfx-check.sh`, then `add-to-live-stick.sh`, modelled on ANAL-178's power check) only adds files to the stick's ESP: `openbook/gfx/` (payload 88 MB, bzip2; `gfx-init.img`; a README) and `loader/entries/openbook-gfx.conf`.
+  - The applier writes the entry from the stick's own "save logs" entry, so it always matches the image on the stick. It adds `gfx-init.img` before the bootconfig, swaps `rdinit=` and appends `androidboot.openbook.addon=gfx androidboot.openbook.addon_timeout=5400 androidboot.openbook.logs_settle=90`.
+  - `gfx-init.img` holds `/openbook-gfx-init`: openbook-live-init built from this branch. Its new add-on step (below) is the only change. The stick's own entries keep their own `openbook-live-init`.
+- **The add-on step in `openbook-live-init`** (`scripts/installer/live-init.c`, `androidboot.openbook.addon=NAME`), in the "save logs" helper:
+  - It runs once Android has booted and settled.
+  - It streams `openbook/NAME/payload` from the ESP into `tar` inside Android, checks the payload's `MANIFEST.sha256`, then runs `run.sh` and `run.sh --cleanup`. The results are tarred back to the ESP, capped at 32 MiB and at the free space minus 24 MiB.
+  - The kernel log keeps flowing to `dmesg.txt` during the hour-long command, a fix that also helps the existing captures.
+  - On an add-on boot, `openbook-hwtest` and the earlier-boots archive are skipped, because the ESP is shared with the payload. `summary.json` gains an `addon` object.
+  - The live-init host test still passes 9/9 (`addon/live-init-test.txt`).
+- **Space on the stick.** The combined image's ESP has 154.6 MB free when fresh; the add-on takes 89.3 MB.
+  - The applier wants 48 MiB to spare for the results and the boot's logs, and refuses otherwise. It names three ways out: copy old logs off with `read-stick-logs.sh` and delete them, take the power check off after its run, or build the add-on without the two apps (`GFX_APPS=0`, about 40 MB smaller; no EGL or ANGLE end2end).
+- **Safety.**
+  - The run writes only the stick: its userdata (the payload copy) and its ESP (the results).
+  - Two settings change: `persist.graphics.egl` (one pass) and keep-screen-on. Two test apps are installed. `--cleanup` puts all of it back, and live-init runs `--cleanup` even after a failed or timed-out run.
+  - The Vulkan 1.4 driver is bind-mounted only inside its own mount namespace (`gfx-nsbind`: the namespace is made a recursive slave first), so nothing else on the system sees it.
+  - No internal disk is opened.
+
+### What runs, and why this way
+
+| Part | What | Path | Cases | Why |
+|---|---|---|---|---|
+| `vk` | dEQP-VK | `deqp-binary64` → Android's `libvulkan` → `/vendor/lib64/hw/vulkan.radv.so` (android-strict, Vulkan 1.1, as shipped) | 66,226 | The shipped driver, through the shipped loader, as the CTS reaches it |
+| `vk14` | the same cases | the same, with RADV built without android-strict (Vulkan 1.4) bind-mounted over the shipped file | 66,226 | ANAL-174's open question: ship 1.1 or 1.4 |
+| `gles-angle` | dEQP-GLES2/3/31 | Android's `libEGL` → ANGLE → RADV (the system driver); pbuffer 256×256, `rgba8888d24s8ms0`, as Mesa CI runs them | 3,598 + 5,359 + 4,714 | What apps get |
+| `gles-mesa` | the same cases | `persist.graphics.egl=mesa` for the pass → radeonsi (the "safe graphics" driver) | 13,671 | The fallback driver, and Mesa CI's own comparison point |
+| `egl` | dEQP-EGL | AOSP's dEQP app (`com.drawelements.deqp`), window surfaces, through `am instrument`, as the CTS runs it; resumes after a crash | 1,287 | EGL needs a window system: `deqp-binary`'s surfaceless platform has no EGL |
+| `angle` | ANGLE end2end | Android 17's CTS helper app (`AngleEnd2EndTestsHelper`, the device side of `CtsAngleEnd2EndTestCases`), with a subset of its expectations file; a progress watchdog stops a hanging test after 2 minutes and the next round resumes behind it | 2,364 | Android 17's CTS runs these on every new device whose system driver is ANGLE |
+
+- **The runner:** Mesa's deqp-runner 0.23.2 (MIT), the version Mesa 26.2.5's CI pins, built as one static musl binary (`build-deqp-runner.sh`). It runs N parallel dEQP processes, restarts after a crash or a 60 s hang, retries failures to find flakes, and writes `results.csv` and `failures.csv` in Mesa CI's format.
+  - deqp-runner reads dEQP's console output, which dEQP sends to logcat on Android. `libdeqp_stdout.so` (an LD_PRELOAD, `deqp-stdout.c`) sends the `dEQP` log tag to stdout instead. The dEQP binary is unchanged.
+  - Mesa CI's lists of tests that hang AMD GPUs or take minutes are skipped (`mkskips.sh`: `radv-skips.txt`, `radv-slow-skips.txt`, and the dEQP lines of the radeonsi skip lists). Mesa's `all-skips.txt` is deliberately not used: it skips `dEQP-VK.info.device_extensions`, which the Android CTS runs.
+  - deqp-runner checks the renderer before each pass: `RADV`, `ANGLE` or `radeonsi`. That proves which driver each pass really used.
+- **Jobs:** half the CPUs, at most 12 (12 on the HX 370). Each pass is capped at 20 minutes, and the whole run at 90.
+- **The two apps:**
+  - `am instrument` runs Java (`app_process`), which needs init's classpath exports. live-init's environment is minimal, so `run.sh` imports them from `/data/system/environ/classpath`; the first QEMU run failed with exit 134 without them.
+  - dEQP-EGL resumes after a crash with the cases not begun yet. dEQP runs a list in its own tree order, so "behind the last case" would re-run cases.
+  - ANGLE's own per-test watchdog runs only in its child-process mode, never in the app. In an early Cuttlefish run, `CapturedTest.MultiFrame/ES3_Vulkan` hung for 12 minutes. That was while `/sdcard` was broken (next point); it ran normally later, but it showed that one hang blocks the whole part. `run.sh` therefore stops the app when gtest's `out.txt` has not grown for 2 minutes (`ANGLE_STALL`), and the next round runs the PASS tests not started yet. The test that hung counts as a time-out, at most 8 rounds.
+  - The helper app's files live on `/sdcard`, MediaProvider's FUSE view of `/data/media/0`. They are created and deleted only through `/sdcard` as the shell user. A file deleted underneath FUSE leaves a stale entry, after which the app cannot create `/sdcard/out.txt` ("No such file or directory"). That reproduced in Cuttlefish and cleared after `drop_caches`.
+- **Built in our tree:** `scripts/aosp-docker.sh -d … /repo/scripts/aosp-build.sh anybook_g14_x86_64-cp2a-userdebug deqp-binary com.drawelements.deqp AngleEnd2EndTestsHelper` built all three in 7 min 56 s, with a cgroup memory peak of 50.4 GB (`build/`). **ANGLE end2end builds in our tree:** AOSP 17's `external/angle/android/cts` has the helper app, its JNI library `libangle_end2end_tests__library` and the CTS expectations (4,728 tests marked PASS). No alternative was needed.
+
+### Case lists
+
+- **Source:** the Android CTS mustpass in AOSP 17's `external/deqp` (`android/cts/main`, deqp `eae519aaa698`). For each suite, the union of the dated lists a new Android 17 device runs: `*-main-2020-03-01.txt` through `*-2026-03-01.txt`, plus the `vk-main-2019…2026-03-01/` directories. That is 3,848 EGL, 14,371 GLES2, 42,804 GLES3, 37,653 GLES3.1 and 1,760,314 Vulkan cases.
+- **Subset:** every Nth case of each source file, so every area keeps its share.
+  - Strides: EGL 3, GLES2 4, GLES3 8, GLES3.1 8, Vulkan 30, ANGLE end2end 2.
+  - Always kept: the driver-identity groups (`dEQP-VK.info.*`, `api.smoke`, `api.version_check`, `api.info`, `*.info.*`).
+  - Dropped: `dEQP-VK.wsi.*` (15,245 cases), which needs a native window. The desktop exercises RADV's Android swapchain path, and ANAL-176's `amd-android-hwtest.sh swapchain` covers its deferred binding.
+- **Exact lists:** `evidence/2026-10-17-graphics-cts/caselists/` (gzip; `caselists.json` holds the sha256 of every source and output). To regenerate: `scripts/graphics/mkcaselists.py <aosp>/external/deqp/android/cts/main OUT --angle-expectations <aosp>/external/angle/android/cts/angle_end2end_tests_expectations.txt`. The pre-check's lists and the add-on's are byte-identical.
+- **Time:**
+  - Measured off the laptop: on the build host (7950X, 12 jobs, 610M), the Vulkan passes took 116 s and 96 s and GLES 18 s. In Cuttlefish (ANGLE over gfxstream on the 610M, 3 jobs), the dEQP-EGL app took 198 s and ANGLE end2end 147 s.
+  - The G14 has a slower CPU at 12 jobs and a much larger GPU (16 CUs against 2). HYPOTHESIS: 3–6 minutes per Vulkan pass, 1–5 per GLES pass (ANGLE the slower), and about 3 each for the two apps.
+  - Expected total, with boot and unpacking: about 15–30 minutes. The run records each part's time, so the strides can be tuned after the first G14 run.
+
+### Pre-check on the build host (Radeon 610M, gfx1036)
+
+`scripts/graphics/pre-check.sh <caselists>` runs the lists with the image's own bionic, `deqp-binary64` and Mesa in a container, as `amd-android-hwtest.sh` does. There is no property service there, so the path differs from the G14:
+- Vulkan goes through `libvk_hal_shim.so` (`vk-hal-shim.c`: it opens RADV's HAL as Android's loader does and exports `vkGetInstanceProcAddr`), not Android's `libvulkan`. RADV's Android build exports only its HAL symbol.
+- GLES goes through Android's own `libEGL`, which finds radeonsi by its exact file name.
+- **ANGLE cannot run there:** it spins in user space right after loading (no system call for 25 s). So `gles-angle`, `egl` and `angle` run on the G14 only.
+
+| Pass (610M) | Cases | Pass | Fail | Crash | Flake | Not supported | Time |
+|---|---|---|---|---|---|---|---|
+| `vk`, RADV android-strict (1.1), as shipped | 66,226 | 43,248 | 57 | 1 | 3 | 22,917 | 116 s |
+| `vk14`, RADV non-strict (1.4) | 66,226 | 45,161 | 5 | 0 | 5 | 21,055 | 96 s |
+| `gles-mesa`, radeonsi | 13,671 | 13,621 | 0 (2 quality warnings) | 0 | 0 | 48 | 18 s |
+
+- **`vk` (1.1):** 47 of the 58 failures are `InternalError: Unable to load vkGetBufferDeviceAddress pointer`. Amber-based tests, all 26 sampled `graphicsfuzz` cases among them, need that Vulkan 1.2 core entry point, which an API-1.1 device does not provide.
+  - 3 `api.info.format_properties` cases report video decode/encode format bits that a 1.1 device without the video extensions must not set.
+  - The single crash is a fragment-shading-rate case that uses a transfer queue. Mesa CI enables those with `RADV_EXPERIMENTAL=transfer_queue`; we do not.
+- **`vk14` (1.4):** 5 failures.
+  - `api.info.android.no_unknown_extensions` and `info.instance_extensions` come from the pre-check path: the shim shows RADV's raw extension lists, including `VK_ANDROID_native_buffer`, which Android's loader hides. HYPOTHESIS: `api.version_check.entry_points` has the same cause.
+  - `info.device_extensions`: Mesa 26.2.5 advertises KHR extensions that Android 17's dEQP does not know (`VK_KHR_maintenance11`, `device_fault`, `device_address_commands`, `extended_flags`, `internally_synchronized_queues`, `shader_abort`, `shader_constant_data`). It fails under 1.1 too, and the G14 should reproduce it through the real loader. Mesa CI skips this test (`all-skips.txt`).
+  - `spirv_assembly…opfma.fp64.vec4.rte.denorm_flush.float_controls`: a wrong result, also failing under 1.1.
+- **1.1 against 1.4:** 53 cases fail only with 1.1, 0 fail only with 1.4, and 1,915 pass only with 1.4.
+- **radeonsi:** no failures. The two warnings are rasterization line cases.
+
+### Plumbing tests off the laptop
+
+These test the add-on, the runner and the two apps, not the G14's drivers.
+- **QEMU** (`gfx-qemu.sh`): the add-on on a copy of `openbook-live-20261017-combined`, 40 cases per list, SwiftShader (no AMD GPU). One boot of a fresh 16 GiB copy (`evidence/2026-10-17-graphics-cts/qemu/`):
+  - Android was up in 18 s. After the 90 s settle, the payload unpacked and its 2,060 files checked out.
+  - `run.sh` took 41 s:
+    - `vk`: 40/40 pass on SwiftShader through Android's loader.
+    - `gles-angle`: 111 pass, 9 not supported.
+    - `egl`: 40/40 pass.
+    - ANGLE end2end: 32 pass, 8 skipped.
+    - `vk14` and `gles-mesa` skipped themselves (no AMD GPU).
+  - Cleanup restored the settings and removed both apps. 0.9 MB of results went to the ESP, `live-report.py` gave all `gfx_*` verdicts, and the laptop powered off.
+  - Earlier rounds of this test found the bugs listed below.
+- **Cuttlefish:** our VM product with ANGLE over gfxstream on the 610M, SELinux set permissive by hand as the stick's entry boots it. It ran `run.sh`'s two app parts with the full lists (`evidence/2026-10-17-graphics-cts/cuttlefish/`):
+  - **dEQP-EGL:** 1,287 cases: 822 pass, 0 fail, 463 not supported, 2 quality warnings. 198 s, in one app run.
+  - **ANGLE end2end:** the 2,364-test subset: 1,802 pass, 7 fail, 336 skipped by ANGLE (config not available there), 219 not in this build. 147 s, in one round. All 7 failures are `TextureBorderClamp*`. HYPOTHESIS: gfxstream's border-colour path, not RADV; the G14 will tell.
+- **Found and fixed on the way:**
+  - `am instrument` needs init's classpath (QEMU, exit 134).
+  - dEQP-EGL's resume order.
+  - ANGLE's missing in-app watchdog.
+  - Files deleted underneath MediaProvider's FUSE view of `/data/media/0`, which broke `/sdcard` for the ANGLE app.
+  - The add-on boot's own logs: the earlier-boots archive (up to 96 MiB) is skipped, so the results fit on the ESP.
+
+### Baselines: Mesa CI expectations
+
+- **No gfx1150 files.** Mesa 26.2.5's `src/amd/ci/` has none, and neither does Mesa main at `335d5698` (2026-10-17, checked with `git ls-tree`).
+- **The closest files** (cited by path in Mesa 26.2.5):
+
+| Driver on the G14 (gfx1150, RDNA 3.5) | Closest Mesa CI expectation | Why |
+|---|---|---|
+| RADV | `radv-navi31-{fails,flakes,skips}.txt` (gfx1100, RDNA3) + `radv-fails.txt` | The nearest architecture; `radv-gfx1201-*` (RDNA4) is the next one |
+| radeonsi | `radeonsi-vangogh-*` (gfx1033) and `radeonsi-mendocino-*` (gfx1037) | Mesa CI runs radeonsi only on these RDNA2 APUs; there is no RDNA3 radeonsi job |
+| ANGLE | `angle-radv-stoney-*` (GCN, ANGLE on RADV) | The only ANGLE-on-AMD job; architecturally far |
+
+- **For the 610M pre-check:** `radv-raphael-*` is the 610M's own GPU (gfx1036), and `radeonsi-mendocino-*` is gfx1037.
+  - None of the 58 + 5 Vulkan failures above are in `radv-raphael-fails.txt` or `radv-fails.txt`, and none of the failures listed there fall within our subset.
+  - Raphael's list is mostly transfer-queue copy cases, which our run reports as not supported because it does not enable `RADV_EXPERIMENTAL=transfer_queue`.
+- **Differences from Mesa CI** (so the comparison is a guide, not a verdict):
+  - Mesa CI runs VK-GL-CTS `vulkan-cts-1.4.6.1`, `opengl-es-cts-3.2.14.0` and main `634a3fc6` on Linux, with the Khronos loader and a different list (`vk-main.txt`).
+  - We run Android 17's dEQP through Android's loader with the Android mustpass.
+  - deqp-runner itself says it "is not a valid way to produce a VK/GL conformance result". These runs measure driver behaviour; they are not a CTS submission.
+- `scripts/graphics/gfx-report.py DIR --mesa-ci <mesa>/src/amd/ci --radv-gpu navi31 --radeonsi-gpu vangogh` writes this comparison for any run: our failures that Mesa CI lists, new ones, and listed ones we pass. `live-report.py` calls it for a live-NNN folder with graphics results.
+
+### Vulkan 1.1 or 1.4 (ANAL-174's question)
+
+- **Recommendation, provisional until the G14 run:** ship RADV **without android-strict (Vulkan 1.4)**.
+  - On the 610M it fixes 53 failures (mostly Amber's Vulkan 1.2 entry point), adds 1,915 passes and adds no failure.
+  - Google's Intel Googlebook ships newer Vulkan, so parity points the same way.
+- **Before switching:**
+  1. The G14's `vk` and `vk14` passes must agree with the 610M on this.
+  2. `graphics-amd.mk` must declare the matching `android.hardware.vulkan.version` and `level` feature files.
+  3. `info.device_extensions` needs an answer either way: Mesa 26.2.5's KHR extensions newer than Android 17's CTS. The choices are to hide them on Android (a Mesa patch) or to accept this CTS failure.
+- **Also missing:** the image declares no `android.software.vulkan.deqp.level` or `opengles.deqp.level` feature. It should declare them once these lists pass.
+- The switch is `ANDROID_STRICT=false scripts/mesa-android-build.sh …`, then `graphics-amd-stage-mesa.sh` and an image build (AOSP lane). The non-strict build differs from the shipped one in `vulkan.radv.so` only; radeonsi, EGL and GBM are byte-identical (`build/mesa-nonstrict.txt`).
+
+### Owner checklist (until the device agent can do it)
+
+1. On the build host, build or reuse the add-on: `scripts/graphics/make-gfx-check.sh openbook-gfxcheck-20261017`. The output is in `<data dir>/installer/out/`; the sha256 is in `evidence/2026-10-17-graphics-cts/addon/`.
+2. Plug in the `openbook-live-20261017-combined` stick and find its name: `ls -l /dev/disk/by-id/ | grep usb-`.
+3. **Add the check (this writes to the stick's ESP; name the exact device in your reply first):** `scripts/graphics/add-to-live-stick.sh /dev/disk/by-id/usb-<stick> <data dir>/installer/out/openbook-gfxcheck-20261017-addon`. If it says there is not enough room, follow its hint (copy the logs off first, or remove the power check after its run).
+4. Boot the G14 from the stick, on AC power with the lid open, and pick **"OpenBook graphics check"**. Leave it alone for about 30 minutes. Test windows flash now and then. It powers off by itself. If you set a screen-lock PIN or password on this stick, remove it first (Settings → Security): the two app parts need an unlocked screen. A swipe lock is fine.
+5. Back on the build host: `scripts/installer/read-stick-logs.sh /dev/disk/by-id/usb-<stick>`. It copies `openbook/logs/` read-only and runs `live-report.py`, which runs `gfx-report.py`.
+6. Attach to ANAL-177 the newest `live-NNN/` folder: `summary.json`, `report.md`, `addon-gfx.txt`, `addon-gfx-out.tar`, `dmesg.txt`, and `logcat-final.txt`. Or reply "stick attached".
+7. Optional: `scripts/graphics/add-to-live-stick.sh --remove /dev/disk/by-id/usb-<stick>` takes the add-on off again.
+
+**For the device agent (ANAL-193):** the same payload runs by hand, unattended, on an installed or live OpenBook: `su 0 sh /data/local/tmp/openbook-gfx/run.sh OUT` and then `run.sh --cleanup`. The machine-readable results are `OUT/parts.jsonl`, each part's `run/results.csv.gz` and `failures.csv`, `egl/egl-*.qpa.gz` and `angle/output.json`. `gfx-report.json` (schema `openbook-gfx-report/1`) and `report.json`'s `gfx_*` verdicts summarise them. `GFX_PARTS`, `GFX_JOBS` and `GFX_QUICK` choose what runs.
+
+### Open items
+
+1. **The G14 run** (device gate). After it: update the matrix rows, settle the Vulkan recommendation, and tune the strides to the measured times.
+2. ANGLE off the laptop: its user-space spin without a property service is not understood. A property area in the pre-check container could fix it (follow-up).
+3. `dEQP-VK.wsi.*` is not covered by this check. A window-backed Vulkan run would need the dEQP app with the Vulkan lists, which is slow: one process.
+4. Strict mode's `format_properties` video bits are a possible Mesa issue under android-strict. Report it upstream only if it reproduces on the G14, and only with the owner's OK (outward-facing).
+5. These are subsets of the CTS lists, not a CTS run: no tradefed and no `CtsDeqpTestCases` module. A full CTS needs a host-driven run over adb, which the live stick does not offer yet.

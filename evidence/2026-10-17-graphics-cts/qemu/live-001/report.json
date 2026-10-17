@@ -1,0 +1,140 @@
+{
+ "schema": "openbook-live-report/1",
+ "dir": "live-001",
+ "expect": "vm",
+ "phase": "final",
+ "fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
+ "model": "OpenBook on ROG Zephyrus G14 (GA403WR)",
+ "selinux": "permissive",
+ "verdicts": {
+  "boot_completed": {
+   "ok": true,
+   "seconds": 17.6,
+   "second_stage_s": 2.6
+  },
+  "display": {
+   "ok": true,
+   "connectors": [
+    "card0-Virtual-1 connected enabled 1920x1200"
+   ],
+   "surfaceflinger": "running",
+   "screenshot": true
+  },
+  "gpu_hal": {
+   "ok": true,
+   "hal": "virtio",
+   "egl": "angle",
+   "vulkan": "pastel",
+   "gralloc": "minigbm",
+   "hwcomposer": "drm"
+  },
+  "data_on_stick": {
+   "ok": true,
+   "data_kib": 14924800,
+   "used_kib": 655768,
+   "byname_targets": [
+    "sda"
+   ]
+  },
+  "gfx_run": {
+   "ok": true,
+   "rc": 0,
+   "seconds": 40.9,
+   "out_bytes": 899584
+  },
+  "gfx_vk": {
+   "ok": true,
+   "renderer": "SwiftShader Device (LLVM 16.0.0)",
+   "cases": 40,
+   "counts": {
+    "Pass": 40,
+    "Fail": 0,
+    "Crash": 0
+   },
+   "seconds": 0,
+   "amdgpu_events": 0,
+   "not_in_mesa_ci": 0
+  },
+  "gfx_vk14": {
+   "ok": null,
+   "note": "needs the AMD GPU (hal=virtio)"
+  },
+  "gfx_gles_angle": {
+   "ok": true,
+   "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 16.0.0) (0x0000C0DE)), SwiftShader driver-5.0.0)",
+   "cases": 120,
+   "counts": {
+    "Pass": 111,
+    "Fail": 0,
+    "Crash": 0,
+    "Skip": 9
+   },
+   "seconds": 1,
+   "amdgpu_events": 0,
+   "not_in_mesa_ci": 0
+  },
+  "gfx_gles_mesa": {
+   "ok": null,
+   "note": "needs the AMD GPU (hal=virtio)"
+  },
+  "gfx_egl": {
+   "ok": true,
+   "renderer": null,
+   "cases": 40,
+   "counts": {
+    "Pass": 40,
+    "Fail": 0,
+    "Crash": 0
+   },
+   "seconds": 30,
+   "amdgpu_events": 0,
+   "not_in_mesa_ci": null
+  },
+  "gfx_angle_end2end": {
+   "ok": true,
+   "renderer": null,
+   "cases": 40,
+   "counts": {
+    "Pass": 32,
+    "Fail": 0,
+    "Crash": 0,
+    "Skip": 8
+   },
+   "seconds": 5,
+   "amdgpu_events": 0,
+   "not_in_mesa_ci": null
+  }
+ },
+ "modules_loaded": 144,
+ "amdgpu_loaded": true,
+ "avc_denials": {
+  "dmesg": "131",
+  "logcat": "253"
+ },
+ "live_init": {
+  "action": "grow",
+  "detail": "",
+  "disk": "sda",
+  "disk_sectors": 33554432,
+  "gpt_backup_lba_before": 5797887,
+  "gpt_backup_lba_after": 33554431,
+  "userdata_sectors_before": 2097152,
+  "userdata_sectors_after": 29853696,
+  "userdata_blank": true,
+  "reset": false
+ },
+ "files": [
+  "addon-gfx",
+  "addon-gfx-cleanup.txt",
+  "addon-gfx-out.tar",
+  "addon-gfx-unpack.txt",
+  "addon-gfx.txt",
+  "collect-final.txt",
+  "dmesg.txt",
+  "logcat-final.txt",
+  "report.json",
+  "report.md",
+  "screen-final.png",
+  "summary.json"
+ ]
+}

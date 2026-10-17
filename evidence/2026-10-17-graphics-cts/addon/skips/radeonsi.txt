@@ -1,0 +1,4 @@
+# OpenBook graphics check skip list, from Mesa 26.2.5 (f30f204df):
+#   src/amd/ci/radeonsi-mendocino-skips.txt bba7d968fd1528f9
+#   src/amd/ci/radeonsi-vangogh-skips.txt 248133f1d74fa929
+dEQP-GLES31.functional.geometry_shading.basic.output_256

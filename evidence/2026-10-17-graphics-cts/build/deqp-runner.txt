@@ -1,0 +1,4 @@
+deqp-runner 0.23.2 (5dcd87423198d9f1af5dff4fd33bb852109da065, https://gitlab.freedesktop.org/mesa/deqp-runner.git), MIT
+built: x86_64-unknown-linux-musl, static (crt-static), rust:1-bookworm
+ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), static-pie linked, BuildID[sha1]=09ee1586395d5f118bc77058ff6a6bc9e06999cd, not stripped
+61de6896f1f2e87aa975c7fe8580658cd894aeb43c6f26f8cdab1b86e2ab9eb5

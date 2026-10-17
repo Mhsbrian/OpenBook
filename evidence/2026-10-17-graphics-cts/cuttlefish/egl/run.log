@@ -1,0 +1,12 @@
+10:57:16 start: parts [egl angle], jobs 3 of 6 CPUs, gpu hal [virtio], quick [0]
+10:57:17 egl: start
+Success
+11:00:35 egl: done, exit 0, 198 s, 0 new amdgpu fault/reset line(s)
+11:00:35 angle: start
+Success
+INSTRUMENTATION_STATUS: test=testAngleEnd2End
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_RESULT: shortMsg=Process crashed.
+INSTRUMENTATION_CODE: 0
+11:00:40 angle: done, exit 1, 5 s, 0 new amdgpu fault/reset line(s)
+11:00:40 finished

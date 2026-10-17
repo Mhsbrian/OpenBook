@@ -12,7 +12,9 @@ Either way, hwtest-final.txt (openbook-hwtest, ANAL-179: its "HWTEST {json}" lin
 audio verdicts: regulatory database, scan, connection, DHCP, internet, iperf3, Bluetooth on and paired, the
 built-in sound card, and the speaker-to-microphone loopback directly on ALSA and through Android. Since ANAL-200 it
 also adds the arm64 native bridge's: its configuration, an arm64 binary running, the ID registers, FRECPE/FRSQRTE
-against golden values, and CRC32/NEON.
+against golden values, and CRC32/NEON. A graphics check boot (ANAL-177, addon-gfx-out.tar) adds one verdict per part
+(gfx_vk, gfx_vk14, gfx_gles_angle, gfx_gles_mesa, gfx_egl, gfx_angle_end2end: it ran, passed cases, and had no crash,
+time-out or amdgpu fault), from scripts/graphics/gfx-report.py, which also writes addon-gfx/gfx-report.md.
   --redact DIR   also copy the folder to DIR with MAC addresses, USB serial numbers and Wi-Fi network names
                  masked, for committing as evidence
 
@@ -24,6 +26,7 @@ import json
 import os
 import re
 import shutil
+import subprocess
 import sys
 
 
@@ -234,6 +237,35 @@ def main():
         hv("audio_loopback_android", "aaudio-loopback", "heard",
            ("tone_bin_dbfs", "noise_bin_dbfs", "glitched_slices", "slices", "xruns", "media_volume", "input_error",
             "output_error", "error"))
+    if os.path.exists(f"{d}/addon-gfx-out.tar") or os.path.isdir(f"{d}/addon-gfx"):
+        # The graphics check (ANAL-177): gfx-report.py unpacks the results and compares them with Mesa CI's lists
+        # when the Mesa tree is on this host.
+        here = os.path.dirname(os.path.abspath(__file__))
+        ci = os.path.join(os.environ.get("OPENBOOK_HOME", os.environ.get("ANYBOOK_HOME", os.path.expanduser(
+            "~/anybook"))), "mesa", "src", "upstream", "src", "amd", "ci")
+        cmd = [sys.executable, os.path.join(here, "..", "graphics", "gfx-report.py"), d]
+        if os.path.isdir(ci):
+            cmd += ["--mesa-ci", ci]
+        subprocess.run(cmd, stdout=subprocess.DEVNULL, check=False)
+        try:
+            g = json.load(open(f"{d}/addon-gfx/gfx-report.json"))
+        except (OSError, ValueError):
+            g = {"parts": {}}
+        ad = s.get("addon") or {}
+        verdict("gfx_run", (ad.get("rc") == 0) if ad else None, rc=ad.get("rc"), seconds=ad.get("seconds"),
+                out_bytes=ad.get("out_bytes"))
+        for part, name in (("vk", "gfx_vk"), ("vk14", "gfx_vk14"), ("gles-angle", "gfx_gles_angle"),
+                           ("gles-mesa", "gfx_gles_mesa"), ("egl", "gfx_egl"), ("angle", "gfx_angle_end2end")):
+            r = g["parts"].get(part)
+            if not r or not r.get("ran"):
+                verdict(name, None, note=(r or {}).get("skipped") or (r or {}).get("note") or "not in this run")
+                continue
+            c = r.get("counts", {})
+            mc = r.get("mesa_ci") or {}
+            verdict(name, c.get("Pass", 0) > 0 and not c.get("Crash") and not c.get("Timeout") and
+                    not r.get("amdgpu_events"), renderer=r.get("renderer"), cases=r.get("total"),
+                    counts=c, seconds=r.get("seconds"), amdgpu_events=r.get("amdgpu_events"),
+                    not_in_mesa_ci=len(mc.get("our_failures_not_listed", [])) if mc else None)
     mods = sec.get("MODULES", "").splitlines()
     avc = sec.get("AVC", "").split()
     report = {

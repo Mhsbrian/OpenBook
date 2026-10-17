@@ -1,0 +1,12 @@
+dEQP version: unknown (0xcafebabe)
+deviceName: SwiftShader Device (LLVM 16.0.0)
+Running dEQP on 4 threads in 10-test groups
+Pass: 0, Duration: 0
+Pass: 40, Duration: 0, Remaining: 0
+
+Slowest tests:
+  dEQP-VK.api.buffer.suballocation.transfer_dst.uniform_texel.storage_texel.storage.index.vertex.indirect.create.zero (0.00s)
+  dEQP-VK.api.buffer.suballocation.transfer_dst.uniform_texel.storage.vertex.create.zero (0.00s)
+  dEQP-VK.api.buffer.suballocation.transfer_dst.uniform_texel.storage_texel.index.vertex.indirect.create.zero (0.00s)
+  dEQP-VK.api.buffer.suballocation.transfer_dst.storage_texel.vertex.create.zero (0.00s)
+  dEQP-VK.api.buffer.dedicated_alloc.transfer_src.uniform_texel.storage_texel.storage.vertex.indirect.create.zero (0.00s)

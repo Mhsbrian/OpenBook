@@ -1,0 +1,23 @@
+# AOSP test modules for anybook_g14_x86_64-cp2a-userdebug (ANAL-177), built in the AOSP lane (lock held by aosp-docker.sh)
+=== 2026-10-17T10:00:22Z target anybook_g14_x86_64-cp2a-userdebug goals deqp-binary com.drawelements.deqp AngleEnd2EndTestsHelper -j24 on 32 CPUs
+=== 2026-10-17T10:00:22Z synced device/anybook from /repo (AnyBook 9bdc2a1)
+=== 2026-10-17T10:00:24Z vendor/anybook/mesa: upstream mesa-26.2.5 ddaf85e353442d9d7f192fdcf1823e652e3f2ee3 (26.2.5)
+=== 2026-10-17T10:00:24Z m -j24 deqp-binary com.drawelements.deqp AngleEnd2EndTestsHelper
+#### build completed successfully (07:54 (mm:ss)) ####
+=== 2026-10-17T10:08:20Z m exit 0
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 7:55.95
+	Maximum resident set size (kbytes): 46313328
+container cgroup memory.peak: 50436591616 bytes
+	Percent of CPU this job got: 2195%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 7:55.95
+	Maximum resident set size (kbytes): 46313328
+
+# outputs (sha256)
+77674c78020a67fa4aa177de47cb73ccef748275ffa19605c0d764cf22a524d7  86498944  data/nativetest64/deqp-binary/deqp-binary64
+8df2a55be78788ad9b6f3ed0ec460f0ddcf0166fb8b06c52fa35de1d8bd38c03  103697719  testcases/com.drawelements.deqp/x86_64/com.drawelements.deqp.apk
+b87216c4878476ba5834cc7a0b352375d7fafaa47ae62eb34415d298e15d0c4d  39498052  testcases/AngleEnd2EndTestsHelper/x86_64/AngleEnd2EndTestsHelper.apk
+
+# trees
+external/deqp eae519aaa6980b2a34ec07141bb19de3f6ddf69e
+external/angle 1f4500d3906c24de59eec5b9cda17a2ad2a8ba2d
+product images untouched: 2026-10-17T05:35:16 <data dir>/aosp/src/out/target/product/anybook_g14/super.img

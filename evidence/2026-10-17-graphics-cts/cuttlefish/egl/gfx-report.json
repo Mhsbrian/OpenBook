@@ -1,0 +1,90 @@
+{
+ "schema": "openbook-gfx-report/1",
+ "dir": "<data dir>/gfx-cts/cf-apps",
+ "label": "Cuttlefish, gfxstream_guest_angle on the 610M: dEQP-EGL (app)",
+ "parts": {
+  "egl": {
+   "part": "egl",
+   "ran": true,
+   "restarts": 0,
+   "renderer": null,
+   "counts": {
+    "Pass": 822,
+    "Fail": 0,
+    "Crash": 0,
+    "Skip": 463,
+    "Warn": 2
+   },
+   "total": 1287,
+   "failing": [],
+   "failing_by_message": [],
+   "flakes": [],
+   "rc": 0,
+   "seconds": 198,
+   "jobs": 3,
+   "amdgpu_events": 0,
+   "quick": 0
+  },
+  "angle": {
+   "part": "angle",
+   "ran": false,
+   "rounds": 0,
+   "note": "no output.json or gtest output",
+   "instrument_tail": [
+    "INSTRUMENTATION_STATUS: stream=",
+    "com.android.angle.test.AngleEnd2EndTest:",
+    "INSTRUMENTATION_STATUS: test=testAngleEnd2End",
+    "INSTRUMENTATION_STATUS_CODE: 1",
+    "INSTRUMENTATION_RESULT: shortMsg=Process crashed.",
+    "INSTRUMENTATION_CODE: 0"
+   ],
+   "counts": {
+    "Pass": 0,
+    "Fail": 0,
+    "Crash": 0
+   },
+   "total": 0,
+   "failing": [],
+   "failing_by_message": [],
+   "flakes": [],
+   "rc": 1,
+   "seconds": 5,
+   "jobs": 3,
+   "amdgpu_events": 0,
+   "quick": 0
+  }
+ },
+ "facts": [
+  "date: 2026-10-17T10:57:16Z",
+  "uptime: 843.83 5011.48",
+  "classpath: BOOTCLASSPATH has 52 jars",
+  "ro.build.fingerprint=AnyBook/anybook_cf_x86_64_pc/anybook_vsoc_x86_64:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
+  "ro.product.model=AnyBook Cuttlefish x86_64 desktop",
+  "ro.boot.selinux=",
+  "ro.boot.openbook.live=",
+  "vendor.anybook.gpu.hal=virtio",
+  "vendor.anybook.gpu.pci_id=1af4:1050",
+  "vendor.anybook.gpu.driver=virtio-pci",
+  "ro.hardware.egl=angle",
+  "ro.hardware.vulkan=ranchu",
+  "ro.hardware.gralloc=minigbm",
+  "ro.hardware.hwcomposer=ranchu",
+  "persist.graphics.egl=",
+  "ro.opengles.version=196609",
+  "ro.vendor.api_level=202604",
+  "ro.board.first_api_level=",
+  "kernel: Linux localhost 6.12.74-android16-6-g3ec022196c4e-ab15076761 #1 SMP PREEMPT Tue Mar 24 05:36:21 UTC 2026 x86_64 Toybox",
+  "cpu:  AMD Ryzen 9 7950X 16-Core Processor, 6 CPUs; MemTotal:        8111280 kB",
+  "card0: 0x1af4 0x1050 0x01 0x1af4 0x1050 driver=virtio-pci",
+  "10ebe2a387bf1521295bdb0ba84ee3c4a2bfc1621ca4ae1001b8d34ce5825d57  /vendor/lib64/hw/vulkan.radv.so",
+  "e764c8971b6b8ab2fb1fee717e026ec7a05cd69c822c037ff4a84f42b25a207e  /vendor/lib64/libgallium_dri.so",
+  "bedba7a813b25856a2e45010bc66effb3f3cdcedfd877bc45141ddcb3283632d  /vendor/lib64/egl/libEGL_mesa.so",
+  "20c3d6b6e65ebf6af2591e184020d66566c103b2b3bb5c8b873951ddf843dffe  /system/lib64/libEGL_angle.so",
+  "e8271f38af37e1dfeccd9636cc432c4db5f71f759128b3da6b80a61b696d00c0  /system/lib64/libGLESv2_angle.so",
+  "power:  AC powered: true level: 85 Capacity level: -1 ",
+  "keyguard:  isKeyguardShowing=false ",
+  "amdgpu events before: 0",
+  "payload: { \"schema\": \"openbook-gfx-payload/1\", \"name\": \"openbook-gfxcheck-20261017\", \"repo\": \"9bdc2a1cf87d35bc69aa1249499582d78f98f20e\", \"product_fingerprint\": \"Android/generic_system/generic:17/CP2A.260605.016/eng.builde:userdebug/test-keys\", \"deqp\": \"eae519aaa6980b2a34ec07141bb19de3f6ddf69e\", \"angle\": \"1f4500d3906c24de59eec5b9cda17a2ad2a8ba2d\", \"deqp_binary64\": \"77674c78020a67fa4aa177de47cb73ccef748275ffa19605c0d764cf22a524d7\", \"radv_nonstrict\": \"64ca20e147f6b2bf9d694ee1425a4402e733c5df8b09ffb7db29afe142e18e3e\", \"apps\": {  \"AngleEnd2EndTestsHelper.apk\": \"b87216c4878476ba5834cc7a0b352375d7fafaa47ae62eb34415d298e15d0c4d\",  \"com.drawelements.deqp.apk\": \"8df2a55be78788ad9b6f3ed0ec460f0ddcf0166fb8b06c52fa35de1d8bd38c03\" }, \"deqp_runner\": \"deqp-runner 0.23.2 (5dcd87423198d9f1af5dff4fd33bb852109da065, https://gitlab.freedesktop.org/mesa/deqp-runner.git), MIT\", \"caselists\": {  \"egl\": {   \"cases\": 1287,   \"stride\": 3,   \"sha256\": \"9dc5c7c5e1a73cea701431145048d8a012979a23282cff3e5582de20970e0237\"  },  \"gles2\": {   \"cases\": 3598,   \"stride\": 4,   \"sha256\": \"b198f889399d0b130c538ded4749d180b8812bdcc1a82c462b6c0733f18666a7\"  },  \"gles3\": {   \"cases\": 5359,   \"stride\": 8,   \"sha256\": \"c9f003602aa67e35bcc90c6e528f5eeab73bbda92dee550ac6fd9f1516c89ff6\"  },  \"gles31\": {   \"cases\": 4714,   \"stride\": 8,   \"sha256\": \"4abe0bf4214430863aadc304585fff81d15501aafb4e55047bcd0eca814be2e8\"  },  \"vk\": {   \"cases\": 66226,   \"stride\": 30,   \"sha256\": \"afc01c8896326047d93118fd00a01acce5c667c478c3fac183d1574356ffb7f0\"  },  \"angle\": {   \"cases\": 2364,   \"stride\": 2,   \"sha256\": \"65caa2001643b54081aac24bf175871ecc91223a5a16946dc10602d47ded9eef\"  } }}",
+  "amdgpu events after: 0"
+ ]
+}

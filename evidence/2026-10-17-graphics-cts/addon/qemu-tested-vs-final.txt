@@ -1,0 +1,8 @@
+The QEMU run (qemu/) used the add-on built just before this one. The two differ only in run.sh, by one comment;
+the code lines are identical (diff of run.sh without comment lines):
+  (no difference)
+  176c176,177
+  < # hanging test would hold the whole part (CapturedTest.MultiFrame did for 12 minutes in Cuttlefish). Here, when
+  ---
+  > # hanging test would hold the whole part (CapturedTest.MultiFrame did for 12 minutes in an early Cuttlefish run, while
+  > # /sdcard was broken as described below). Here, when

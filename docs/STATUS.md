@@ -2,7 +2,7 @@
 
 ## Now (2026-10-17, morning)
 
-The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`github.com/Mhsbrian/AnyBook`) redirects. PRs #1–#47 are merged (latest: #47 the G14 bridge's enforcing-boot policy fix and the combined G14 stick; #46 ANAL-200 Digitalis on Android 17; #41 ANAL-178 power and input; #42 ANAL-176 G14 stability and the AOSP lane lock; #43 ANAL-179 Wi-Fi, Bluetooth and audio). No PR is open. #38 was closed as superseded, because #39 contains its commits. Every PR was checked before merging (script syntax, Python compile, no binaries or secrets, sizes, evidence backs the claim), and doc conflicts were resolved by hand.
+The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`github.com/Mhsbrian/AnyBook`) redirects. PRs #1–#47 are merged (latest: #47 the G14 bridge's enforcing-boot policy fix and the combined G14 stick; #46 ANAL-200 Digitalis on Android 17; #41 ANAL-178 power and input; #42 ANAL-176 G14 stability and the AOSP lane lock; #43 ANAL-179 Wi-Fi, Bluetooth and audio). ANAL-177's PR #48 (the graphics check) is open. #38 was closed as superseded, because #39 contains its commits. Every PR was checked before merging (script syntax, Python compile, no binaries or secrets, sizes, evidence backs the claim), and doc conflicts were resolved by hand.
 
 **Decided by the owner**
 - **Keep the dGPU disabled for now** (2026-10-16, on ANAL-187):
@@ -17,6 +17,7 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 - **amd-pmf** (ANAL-171): it needs `ccp.ko` with SEV, which calls `kernel_read`/`kernel_write` from GKI's deny list. Options are in `docs/kernel.md`.
 - **Upstream reports for the arm64 bridge** (ANAL-181/200): OK to report the `MRS` and `FRECPE` fixes to DigitalisX64, and the Android 17 `Build.CPU_ABI` regression (art `b7947b0641`, the real cause of the Fennec crash) to AOSP? Both are outward-facing; the patches stay in this repo until then (`docs/digitalis.md`).
 - **Device-in-the-loop** (ANAL-194): install the Multica daemon on the G14's current Linux when ready (`docs/PLAN.md` §4a).
+- **Graphics check on the stick** (ANAL-177): adding `openbook-gfxcheck-20261017` to the `combined` stick writes its ESP (89 MB, new files only; `scripts/graphics/add-to-live-stick.sh`), so name the exact `/dev/disk/by-id/usb-…` device. Then boot "OpenBook graphics check" once, on AC, for about 30 minutes (`docs/graphics-amd.md`, owner checklist). It settles Vulkan 1.1 vs 1.4 on the 890M: the 610M pre-check favours 1.4.
 - **G14 hardware-check stick** (optional, owner): `scripts/installer/make-hwcheck-stick.sh` builds a USB image. It boots our kernel, drivers and firmware on the laptop, writes a report and the kernel log to the stick, and powers off without touching internal disks (`docs/installer.md` §2.7). Writing the stick needs you to name the exact USB device.
 - **Next G14 stick: `openbook-live-20261017-combined`.** One stick covers ANAL-176, ANAL-178, ANAL-179 and ANAL-200. It is built from `main` and supersedes `anal178b`, `anal200`, `audionet3` and `desktop4`. In QEMU it passes the live matrix 39/39 and the power check 10/10, and the arm64 bridge works in an enforcing boot (`evidence/2026-10-17-g14-combined/`, sha256 there). Write it with `write-stick.sh`, naming the exact `/dev/disk/by-id/` device. Then:
   - boot the default (enforcing) entry to the desktop;
@@ -24,9 +25,10 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
   - close the lid for a minute, use the touchpad in "save logs", and boot "power check: S0i3" once (`docs/power-input.md` §5).
 
   Reply "stick attached" on ANAL-176, ANAL-178, ANAL-179 and ANAL-200 afterwards. The "save logs" boot also records the bridge verdicts.
+  - Optional, ANAL-177: add the graphics check to the same stick and boot "OpenBook graphics check" once (`docs/graphics-amd.md`, owner checklist). The add-on fits on a fresh `combined` stick; after other "save logs" boots, copy the logs off first. Reply "stick attached" on ANAL-177.
 
 **Lanes on the dev host** (the 7950X has 61 GB RAM; an AOSP build peaks at about 41 GiB):
-- **AOSP lane**, one builder at a time in `~/anybook/aosp/src`: ✓ ANAL-174 (PR #23), ✓ ANAL-199 (PR #35), ✓ ANAL-176 (PRs #39 and #42), ✓ ANAL-179 (PR #43, Wi-Fi/BT/audio), ✓ ANAL-178's Android side (PR #41), ✓ ANAL-200 (PR #46; its G14 enforcing-boot fix in #47). Now ▶ **ANAL-177** (dEQP/CTS graphics subset for the G14) owns the lane. Builds take `flock ~/anybook/aosp/.lane.lock` (PR #42: `aosp-docker.sh` takes and keeps it for `aosp-build.sh`, which refuses otherwise; `installer-image.sh` holds it for its `PRODUCT_OUT` snapshot). The VM product's device is now `anybook_vsoc_x86_64`, so boot it with `CF_DEVICE=anybook_vsoc_x86_64`.
+- **AOSP lane**, one builder at a time in `~/anybook/aosp/src`: ✓ ANAL-174 (PR #23), ✓ ANAL-199 (PR #35), ✓ ANAL-176 (PRs #39 and #42), ✓ ANAL-179 (PR #43, Wi-Fi/BT/audio), ✓ ANAL-178's Android side (PR #41), ✓ ANAL-200 (PR #46; its G14 enforcing-boot fix in #47). ✓ ANAL-177 (its G14 test modules in 7 min 56 s; the lane is free). Builds take `flock ~/anybook/aosp/.lane.lock` (PR #42: `aosp-docker.sh` takes and keeps it for `aosp-build.sh`, which refuses otherwise; `installer-image.sh` holds it for its `PRODUCT_OUT` snapshot). The VM product's device is now `anybook_vsoc_x86_64`, so boot it with `CF_DEVICE=anybook_vsoc_x86_64`.
 - **Kernel lane:** ✓ ANAL-198 (PR #26). The G14 images and firmware are ready for ANAL-199, and the lane is free.
 - **Light lanes:** ✓ ANAL-189 (design and QEMU boot-chain prototype in PRs #22 and #25: high-fidelity wizard design, OpenBook naming, quiet boot, G14 hardware-check stick; awaiting sign-off) and ✓ ANAL-187 (research delivered; its dGPU-off default feeds ANAL-199 and ANAL-176).
 - **Hand-offs:** condition wakeups on ANAL-159 promote each next step as soon as its dependencies reach review with a merged PR.
@@ -37,7 +39,7 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 |---|---|---|---|---|
 | ANAL-160 Track A: AOSP 17 desktop boots in a VM | ✓ ANAL-167 build env (PR #5) | ✓ ANAL-168 `aosp_cf_x86_64_pc-cp2a` boots in Cuttlefish (PR #9) | ✓ ANAL-169 desktop windowing on the host GPU (PR #14) | — |
 | ANAL-161 AMD GKI kernel (android17-6.18) | ✓ ANAL-170 stock GKI reproduced (PR #4) | ✓ ANAL-171 AMD config, 138 vendor modules (PR #8) | ✓ ANAL-172 our kernel boots our userspace (PR #12) | ✓ ANAL-198 bare-metal packaging: first-stage NVMe and USB boot, vendor_boot, dlkm images, firmware (PR #26) |
-| ANAL-162 AMD graphics userspace | ✓ ANAL-173 Mesa radeonsi/RADV for Android (PR #3) | ✓ ANAL-174 AMD graphics in the tree, boot-time HAL selection (PR #23) | ▶ ANAL-177 dEQP/CTS on the G14 (owns the AOSP lane since 2026-10-17) | — |
+| ANAL-162 AMD graphics userspace | ✓ ANAL-173 Mesa radeonsi/RADV for Android (PR #3) | ✓ ANAL-174 AMD graphics in the tree, boot-time HAL selection (PR #23) | ▶ ANAL-177 dEQP/CTS: the graphics check add-on and the 610M pre-check delivered; the G14 run waits for the owner's stick | — |
 | ANAL-164 ARM compat and native bridge | ✓ ANAL-180 harness and baseline (PR #6) | ✓ ANAL-181 Digitalis: GO with conditions (PR #11) | ✓ ANAL-200 Digitalis on Android 17 ships in both products, 14/16 arm64-only apps (PR #46; enforcing fix for the G14 in #47) | — |
 | ANAL-163 Bare metal on the G14 (GA403WR) | ✓ ANAL-175 inventory and full driver map (PRs #8, #16; the owner's root run is processed too: dGPU `10de:2f58`, panel ATNA40CU05-0, speaker tuning found) | ✓ ANAL-199 G14 product `anybook_g14_x86_64`: USB GPT image, `boot_completed` in QEMU/OVMF, SELinux enforcing (PR #35) | ✓ ANAL-176 G14 desktop from USB (PRs #39, #42). The desktop was reached on the G14 in "save logs" boots; the enforcing entry is next on the `anal178b` stick | ✓ ANAL-178 input and power (PR #41; the S0i3 root cause needs the owner's stick run), ✓ ANAL-179 Wi-Fi, BT and audio (PR #43; G14 run pending) |
 | ANAL-188 USB installer (M8) | ✓ ANAL-189 design and boot-chain prototype (PR #22): systemd-boot recommended, GRUB fallback; **awaiting owner sign-off** | ✓ ANAL-190 live USB image (PR #34): QEMU 38/39; booted on the G14 by the owner (`evidence/2026-10-16-installer/g14-live/`) | ⏸ ANAL-191 wizard | ⏸ ANAL-192 end-to-end tests |
@@ -55,6 +57,25 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 6. ANAL-197: the runtime on the device.
 
 ## History
+
+### 2026-10-17: Graphics conformance, the graphics check for the G14 stick (ANAL-177)
+- **Done** (`docs/graphics-amd.md`, "dEQP and CTS on the G14"):
+  - The graphics check: an add-on for the owner's live stick, so no new image is needed. One boot runs Android 17's dEQP (Vulkan 1.1 as shipped and 1.4, GLES on ANGLE and radeonsi, EGL in the dEQP app) and ANGLE's end2end CTS tests on the laptop's own drivers through Mesa's deqp-runner, saves the results on the stick and powers off.
+  - `openbook-live-init` gained the add-on step (`androidboot.openbook.addon`). It also keeps copying the kernel log during long commands.
+  - The case lists are fixed subsets of the Android 17 mustpass (66,226 VK, 13,671 GLES, 1,287 EGL and 2,364 ANGLE end2end cases), recorded in the evidence.
+  - ANGLE end2end builds in our tree (`external/angle/android/cts`).
+- **Pre-check on the 610M** (gfx1036, not the G14's GPU):
+  - Vulkan 1.1 as shipped: 43,248 pass, 57 fail, 1 crash. 47 of the failures are Amber needing a Vulkan 1.2 entry point.
+  - Vulkan 1.4: 45,161 pass, 5 fail.
+  - radeonsi GLES: 13,621 pass, 0 fail.
+  - **Provisional recommendation: ship Vulkan 1.4 (`ANDROID_STRICT=false`)**, once the 890M agrees.
+- **Baselines:** Mesa CI has no gfx1150 expectation files, neither in 26.2.5 nor in main of 2026-10-17. The closest are `radv-navi31` (RDNA3) for RADV and the `vangogh`/`mendocino` files for radeonsi.
+- **Plumbing, off the laptop:**
+  - QEMU ran the add-on end to end on a copy of `combined` (SwiftShader).
+  - Cuttlefish ran the two app parts with full lists: dEQP-EGL 822 pass, 0 fail; ANGLE end2end 1,802 pass, 7 fail.
+  - Fixed on the way: `am instrument` needing init's classpath; ANGLE's missing in-app watchdog; stale FUSE entries breaking `/sdcard`.
+- **Evidence:** `evidence/2026-10-17-graphics-cts/`.
+- **Next:** the owner's stick run or the device agent, then the matrix rows and the Vulkan decision.
 
 ### 2026-10-17: one G14 stick from `main`; the bridge in enforcing boots (ANAL-159)
 - **Done:** merged #46 (ANAL-200) after checks. Built the G14 product and a live image from `main` (`8b40298`), with ANAL-178's power check add-on, and ran the full live matrix (39/39).

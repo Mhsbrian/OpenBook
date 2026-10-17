@@ -1,0 +1,5 @@
+dEQP-VK.api.info.android.no_unknown_extensions,Fail
+dEQP-VK.api.version_check.entry_points,Fail
+dEQP-VK.info.device_extensions,Fail
+dEQP-VK.info.instance_extensions,Fail
+dEQP-VK.spirv_assembly.instruction.compute.opfma.fp64.vec4.rte.denorm_flush.float_controls,Fail

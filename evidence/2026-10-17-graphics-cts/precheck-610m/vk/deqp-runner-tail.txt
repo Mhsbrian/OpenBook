@@ -1,0 +1,60 @@
+ERROR - Test dEQP-VK.graphicsfuzz.cov-min-vec2-transpose-mat2-identity: Fail: See "/out/run/c121.r1.log"
+ERROR - Test dEQP-VK.graphicsfuzz.always-discarding-function: Fail: See "/out/run/c113.r2.log"
+ERROR - Test dEQP-VK.subgroups.subgroup_uniform_control_flow.small_partial_control.small_subgroup_reconverge_partial13: Fail: See "/out/run/c122.r1.log"
+Pass: 39524, Fail: 53, Crash: 1, Skip: 20920, Flake: 2, Duration: 1:46, Remaining: 10
+Pass: 40820, Fail: 53, Crash: 1, Skip: 21624, Flake: 2, Duration: 1:48, Remaining: 6
+ERROR - Test dEQP-VK.api.info.format_properties.g12x4_b12x4r12x4_2plane_420_unorm_3pack16: Fail: See "/out/run/c118.r2.log"
+ERROR - Test dEQP-VK.draw.renderpass.multi_draw.mosaic.indexed_mixed.one_draw.stride_extra_12.1_instance.tess_geom.multiview.no_offset_no_draw_id: Fail: See "/out/run/c130.r1.log"
+ERROR - Test dEQP-VK.graphicsfuzz.cov-int-initialize-from-multiple-large-arrays: Fail: See "/out/run/c130.r1.log"
+Pass: 41473, Fail: 54, Crash: 1, Skip: 21970, Flake: 2, Duration: 1:50, Remaining: 4
+Pass: 41924, Fail: 54, Crash: 1, Skip: 22245, Flake: 2, Duration: 1:52, Remaining: 3
+ERROR - Test dEQP-VK.graphicsfuzz.cov-min-vec2-transpose-mat2-identity: Fail: See "/out/run/c121.r2.log"
+ERROR - Test dEQP-VK.subgroups.subgroup_uniform_control_flow.small_partial_control.small_subgroup_reconverge_partial13: Fail: See "/out/run/c122.r2.log"
+Pass: 42908, Fail: 56, Crash: 1, Skip: 22759, Flake: 2, Duration: 1:54, Remaining: 0
+ERROR - Test dEQP-VK.graphicsfuzz.cov-int-initialize-from-multiple-large-arrays: Fail: See "/out/run/c130.r2.log"
+Pass: 43248, Fail: 57, Crash: 1, Skip: 22917, Flake: 3, Duration: 1:55, Remaining: 0
+
+Slowest tests:
+  dEQP-VK.memory.pipeline_barrier.host_write_uniform_texel_buffer.1024 (2.19s)
+  dEQP-VK.mesh_shader.ext.misc.many_task_work_groups_z (1.94s)
+  dEQP-VK.memory.external_memory_acquire_unmodified.dma_buf.r16g16b16a16_sfloat (1.49s)
+  dEQP-VK.texture.explicit_lod.2d.sizes.128x128_nearest_nearest_mipmap_nearest_clamp (1.38s)
+  dEQP-VK.texture.explicit_lod.2d.formats.r32g32b32a32_sfloat_linear (1.38s)
+
+Some new flakes found:
+  dEQP-VK.draw.dynamic_rendering.primary_cmd_buff.multi_draw.mosaic.indexed_mixed.one_draw.standard_stride.2_instances_base_3.tess_geom.multiview.offset_6_no_draw_id
+  dEQP-VK.draw.renderpass.multi_draw.mosaic.indexed_mixed.one_draw.stride_extra_12.1_instance.tess_geom.multiview.no_offset_no_draw_id
+  dEQP-VK.ray_tracing_pipeline.build.gpu.level_primitives.mixed_4_4_4096
+
+Unexpected results:
+  dEQP-VK.api.info.android.no_unknown_extensions,Fail
+  dEQP-VK.api.info.format_properties.g10x6_b10x6r10x6_2plane_420_unorm_3pack16,Fail
+  dEQP-VK.api.info.format_properties.g12x4_b12x4r12x4_2plane_420_unorm_3pack16,Fail
+  dEQP-VK.api.info.format_properties.g8_b8r8_2plane_420_unorm,Fail
+  dEQP-VK.api.version_check.entry_points,Fail
+  dEQP-VK.compute.pipeline.basic.atomic_barrier_sum_small,Fail
+  dEQP-VK.compute.pipeline.basic.branch_past_barrier,Fail
+  dEQP-VK.compute.pipeline.zero_initialize_workgroup_memory.shared_memory_blocks.workgroup_size_2x8x8,Fail
+  dEQP-VK.depth.bias_fs_clamp,Fail
+  dEQP-VK.draw.dynamic_rendering.primary_cmd_buff.multi_draw.mosaic.indexed_mixed.max_draws.standard_stride.10_instances.tess_geom.multiview.offset_6_no_draw_id,Fail
+  dEQP-VK.draw.dynamic_rendering.primary_cmd_buff.multi_draw.mosaic.indexed_packed.one_draw.stride_zero.10_instances.tess_geom.single_view.offset_6_no_draw_id,Fail
+  dEQP-VK.draw.renderpass.output_location.array.r32g32b32a32-sfloat-mediump,Fail
+  dEQP-VK.fragment_shading_rate.renderpass2.monolithic.attachment_rate.setup_with_copying_using_transfer_queue_concurent.r8_uint.rate_1x2_general_layout,Crash
+  dEQP-VK.glsl.combined_operations.notxor,Fail
+  dEQP-VK.graphicsfuzz.access-new-vector-inside-if-condition,Fail
+  dEQP-VK.graphicsfuzz.always-discarding-function,Fail
+  dEQP-VK.graphicsfuzz.cov-and-even-numbers-from-fragcoord,Fail
+  dEQP-VK.graphicsfuzz.cov-array-cast-bool-float-div-by-zero-no-effect,Fail
+  dEQP-VK.graphicsfuzz.cov-const-folding-bitfieldinsert-div-one,Fail
+  dEQP-VK.graphicsfuzz.cov-dead-branch-func-return-arg,Fail
+  dEQP-VK.graphicsfuzz.cov-do-while-loop-until-uniform-lt-itself,Fail
+  dEQP-VK.graphicsfuzz.cov-folding-rules-redundant-mix,Fail
+  dEQP-VK.graphicsfuzz.cov-function-index-array-redundant-clamps,Fail
+  dEQP-VK.graphicsfuzz.cov-function-unpack-unorm-2x16-one,Fail
+  dEQP-VK.graphicsfuzz.cov-global-loop-counter-findlsb-zero,Fail
+  dEQP-VK.graphicsfuzz.cov-inst-combine-select-findlsb-uaddcarry,Fail
+  dEQP-VK.graphicsfuzz.cov-int-initialize-from-multiple-large-arrays,Fail
+  dEQP-VK.graphicsfuzz.cov-loop-function-call-vector-matrix-multiplication,Fail
+  dEQP-VK.graphicsfuzz.cov-loop-with-two-integers,Fail
+  dEQP-VK.graphicsfuzz.cov-max-clamp-same-minval,Fail
+  ... and more (see failures.csv)

@@ -1,0 +1,60 @@
+ERROR - Test dEQP-VK.api.version_check.entry_points: Fail: See "/out/run/c46.r2.log"
+Pass: 18090, Fail: 2, Skip: 8407, Flake: 1, Duration: 42, Remaining: 1:02
+ERROR - Test dEQP-VK.api.info.android.no_unknown_extensions: Fail: See "/out/run/c40.r2.log"
+Pass: 19446, Fail: 3, Skip: 9049, Flake: 2, Duration: 44, Remaining: 58
+Pass: 20473, Fail: 3, Skip: 9522, Flake: 2, Duration: 46, Remaining: 55
+Pass: 21195, Fail: 3, Skip: 9800, Flake: 2, Duration: 48, Remaining: 54
+Pass: 22230, Fail: 3, Skip: 10265, Flake: 2, Duration: 50, Remaining: 51
+Pass: 22230, Fail: 3, Skip: 10265, Flake: 2, Duration: 52, Remaining: 53
+ERROR - Test dEQP-VK.draw.dynamic_rendering.primary_cmd_buff.multi_draw.mosaic.indexed_packed.one_draw.stride_zero.2_instances_base_3.tess_geom.multiview.offset_6_no_draw_id: Fail: See "/out/run/c68.r1.log"
+Pass: 23596, Fail: 3, Skip: 10899, Flake: 2, Duration: 54, Remaining: 49
+Pass: 25299, Fail: 3, Skip: 11696, Flake: 2, Duration: 56, Remaining: 44
+Pass: 25631, Fail: 3, Skip: 11864, Flake: 2, Duration: 58, Remaining: 44
+Pass: 26337, Fail: 3, Skip: 12158, Flake: 2, Duration: 1:00, Remaining: 43
+Pass: 27978, Fail: 3, Skip: 13016, Flake: 3, Duration: 1:02, Remaining: 38
+Pass: 29362, Fail: 3, Skip: 13632, Flake: 3, Duration: 1:04, Remaining: 34
+Pass: 29704, Fail: 3, Skip: 13790, Flake: 3, Duration: 1:06, Remaining: 34
+Pass: 30698, Fail: 3, Skip: 14296, Flake: 3, Duration: 1:08, Remaining: 32
+Pass: 32768, Fail: 3, Skip: 15226, Flake: 3, Duration: 1:10, Remaining: 26
+ERROR - Test dEQP-VK.spirv_assembly.instruction.compute.opfma.fp64.vec4.rte.denorm_flush.float_controls: Fail: See "/out/run/c97.r1.log"
+ERROR - Test dEQP-VK.draw.dynamic_rendering.primary_cmd_buff.multi_draw.mosaic.normal.16_draws.stride_extra_12.10_instances.tess_geom.single_view.no_offset_no_draw_id: Fail: See "/out/run/c97.r1.log"
+Pass: 33112, Fail: 3, Skip: 15382, Flake: 3, Duration: 1:12, Remaining: 26
+Pass: 33781, Fail: 3, Skip: 15713, Flake: 3, Duration: 1:14, Remaining: 25
+ERROR - Test dEQP-VK.draw.dynamic_rendering.primary_cmd_buff.multi_draw.mosaic.indexed_random.16_draws.stride_extra_4.2_instances_base_3.with_geom.multiview.no_offset: Fail: See "/out/run/c100.r1.log"
+Pass: 34795, Fail: 3, Skip: 16199, Flake: 3, Duration: 1:16, Remaining: 22
+Pass: 36186, Fail: 3, Skip: 16808, Flake: 3, Duration: 1:18, Remaining: 19
+ERROR - Test dEQP-VK.spirv_assembly.instruction.compute.opfma.fp64.vec4.rte.denorm_flush.float_controls: Fail: See "/out/run/c97.r2.log"
+Pass: 37217, Fail: 4, Skip: 17275, Flake: 4, Duration: 1:20, Remaining: 17
+ERROR - Test dEQP-VK.info.device_extensions: Fail: See "/out/run/c110.r1.log"
+Pass: 37529, Fail: 4, Skip: 17463, Flake: 4, Duration: 1:22, Remaining: 16
+ERROR - dEQP error: scudo: Can't populate more pages for size class 65552.
+ERROR - dEQP error: 
+Pass: 38519, Fail: 4, Skip: 17972, Flake: 5, Duration: 1:24, Remaining: 14
+Pass: 39927, Fail: 4, Skip: 18564, Flake: 5, Duration: 1:26, Remaining: 11
+Pass: 40955, Fail: 4, Skip: 19036, Flake: 5, Duration: 1:28, Remaining: 9
+ERROR - Test dEQP-VK.info.device_extensions: Fail: See "/out/run/c110.r2.log"
+Pass: 41635, Fail: 5, Skip: 19355, Flake: 5, Duration: 1:30, Remaining: 7
+Pass: 42983, Fail: 5, Skip: 20007, Flake: 5, Duration: 1:32, Remaining: 4
+Pass: 44485, Fail: 5, Skip: 20731, Flake: 5, Duration: 1:34, Remaining: 1
+Pass: 45161, Fail: 5, Skip: 21055, Flake: 5, Duration: 1:35, Remaining: 0
+
+Slowest tests:
+  dEQP-VK.ray_tracing_pipeline.misc.recursiveTraces_AABB_15 (29.39s)
+  dEQP-VK.memory.pipeline_barrier.host_write_uniform_texel_buffer.1024 (2.18s)
+  dEQP-VK.mesh_shader.ext.misc.many_task_work_groups_z (1.94s)
+  dEQP-VK.memory.external_memory_acquire_unmodified.dma_buf.r16g16b16a16_sfloat (1.45s)
+  dEQP-VK.texture.explicit_lod.2d.formats.r32g32b32a32_sfloat_linear (1.40s)
+
+Some new flakes found:
+  dEQP-VK.draw.dynamic_rendering.primary_cmd_buff.multi_draw.mosaic.indexed_packed.16_draws.stride_extra_4.10_instances.tess_geom.single_view.no_offset
+  dEQP-VK.draw.dynamic_rendering.primary_cmd_buff.multi_draw.mosaic.indexed_packed.one_draw.stride_zero.2_instances_base_3.tess_geom.multiview.offset_6_no_draw_id
+  dEQP-VK.draw.dynamic_rendering.primary_cmd_buff.multi_draw.mosaic.indexed_random.16_draws.stride_extra_4.2_instances_base_3.with_geom.multiview.no_offset
+  dEQP-VK.draw.dynamic_rendering.primary_cmd_buff.multi_draw.mosaic.indexed_random.one_draw.stride_extra_4.10_instances.tess_geom.multiview.no_offset
+  dEQP-VK.draw.dynamic_rendering.primary_cmd_buff.multi_draw.mosaic.normal.16_draws.stride_extra_12.10_instances.tess_geom.single_view.no_offset_no_draw_id
+
+Unexpected results:
+  dEQP-VK.api.info.android.no_unknown_extensions,Fail
+  dEQP-VK.api.version_check.entry_points,Fail
+  dEQP-VK.info.device_extensions,Fail
+  dEQP-VK.info.instance_extensions,Fail
+  dEQP-VK.spirv_assembly.instruction.compute.opfma.fp64.vec4.rte.denorm_flush.float_controls,Fail

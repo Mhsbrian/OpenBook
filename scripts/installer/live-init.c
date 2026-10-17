@@ -17,6 +17,14 @@
 //          read logcat and take the screenshot from outside Android's own domains. On products that ship it
 //          (userdebug), the final capture first runs /system_ext/bin/openbook-hwtest (Wi-Fi, Bluetooth and audio
 //          checks, ANAL-179) into hwtest-final.txt, with the settings in openbook/hwtest.conf on the ESP.
+//   addon  androidboot.openbook.addon=NAME on a "save logs" boot (an add-on's own boot entry, e.g. ANAL-177's
+//          graphics check): once Android has booted and settled, the helper streams openbook/NAME/payload (a tar,
+//          plain or gzip/bzip2-compressed: toybox tar detects which) from the ESP into /data/local/tmp/openbook-NAME/
+//          (the stick's own userdata), checks it against its MANIFEST.sha256, runs its run.sh there as root in
+//          Android's mount namespace (androidboot.openbook.addon_timeout, default 3600 s), then `run.sh --cleanup`,
+//          and saves run.sh's output and its out/ directory as addon-NAME.txt and addon-NAME-out.tar next to the
+//          other logs. openbook-hwtest and the earlier boots' archive are skipped on such a boot (the ESP is shared
+//          with the add-on's payload). The kernel log is copied throughout.
 // Safety: it acts only with androidboot.openbook.live=1 (set only by the live stick's boot entries), only on the
 // disk holding the ESP whose PARTUUID is androidboot.boot_part_uuid, only if that disk is on USB, and only if its
 // GPT is valid and has the OpenBook live layout (EFI, metadata, super, userdata; userdata last). Anything
@@ -589,6 +597,8 @@ static const char *ANDROID_ENV[] = {
 #define HWTEST_MAX 16
 static const char *hwtest_env[sizeof ANDROID_ENV / sizeof *ANDROID_ENV + HWTEST_MAX];
 static const char *const *run_env = ANDROID_ENV;
+static int run_stdin = -1;  // stdin for run_android's command (default /dev/null)
+static void dmesg_keep(void);
 
 // Run CMD with /system/bin/sh in Android's mount namespace and root (init's: /proc/1/ns/mnt, /proc/1/root), so
 // /proc/self/mounts, df and the APEX mounts look as they do to Android's own shell. Output goes to out_fd, or into
@@ -605,7 +615,7 @@ static int run_android(const char *cmd, int out_fd, char *cap, size_t caplen, in
         if (root < 0 || fchdir(root) || chroot(".") || chdir("/")) _exit(126);
         int nul = open("/dev/null", O_RDWR | O_CLOEXEC);
         int o = cap ? pfd[1] : out_fd >= 0 ? out_fd : nul;
-        dup2(nul >= 0 ? nul : o, 0);
+        dup2(run_stdin >= 0 ? run_stdin : nul >= 0 ? nul : o, 0);
         dup2(o, 1);
         dup2(o, 2);
         setsid();
@@ -621,6 +631,7 @@ static int run_android(const char *cmd, int out_fd, char *cap, size_t caplen, in
     double t0 = uptime_s();
     int status = -1;
     for (;;) {
+        dmesg_keep();  // an add-on's run takes up to an hour: keep copying the kernel log meanwhile
         if (cap) {
             struct pollfd p = {.fd = pfd[0], .events = POLLIN};
             if (poll(&p, 1, 200) > 0) {
@@ -776,6 +787,15 @@ static void drain_kmsg(void) {
     }
 }
 
+// drain_kmsg plus an fsync of dmesg.txt every 5 s; a no-op before the logs helper has set up.
+static void dmesg_keep(void) {
+    static double t_sync;
+    if (kmsg_in < 0 || dmesg_out < 0) return;
+    drain_kmsg();
+    double now = uptime_s();
+    if (now - t_sync >= 5) { fsync(dmesg_out); t_sync = now; }
+}
+
 static int second_stage_running(void) {
     char buf[256];
     int fd = openat(procfd, "1/cmdline", O_RDONLY | O_CLOEXEC);
@@ -805,6 +825,57 @@ static const char PRIOR_LIST[] =
 static int prior_done, prior_rc = -2;  // -2: not attempted
 static long long prior_bytes = -1;
 
+// The add-on run (androidboot.openbook.addon=NAME; see the header). rc: -2 none asked for, -3 not run (boot not
+// completed), -4 payload missing on the ESP, -5 unpacking or its checksum check failed, -1 timed out; else run.sh's
+// exit status.
+#define ADDON_CAP 33554432  // 32 MiB of results at most on the ESP
+static char addon[17];
+static long addon_timeout = 3600;
+static int addon_rc = -2, addon_out_rc = -2;
+static double addon_s = -1;
+static long long addon_out_bytes = -1;
+
+static void run_addon(void) {
+    char path[64], cmd[512], file[64];
+    const char *D = "/data/local/tmp/openbook-";
+    snprintf(path, sizeof path, "openbook/%s/payload", addon);
+    int in = openat(espfd, path, O_RDONLY | O_CLOEXEC);
+    if (in < 0) { say("addon %s: no %s on the ESP (%s)", addon, path, strerror(errno)); addon_rc = -4; return; }
+    say("addon %s: unpacking %s", addon, path);
+    // A fresh copy on every run; MANIFEST.sha256 inside the payload catches a bad copy on the stick.
+    snprintf(cmd, sizeof cmd, "rm -rf %s%s && mkdir -p %s%s && cd %s%s && tar -xf - || exit 4; "
+             "sha256sum -c MANIFEST.sha256 > unpack-check.txt 2>&1; r=$?; grep -v ': OK$' unpack-check.txt; "
+             "echo \"$(grep -c ': OK$' unpack-check.txt) file(s) OK\"; exit $r", D, addon, D, addon, D, addon);
+    snprintf(file, sizeof file, "addon-%s-unpack.txt", addon);
+    run_stdin = in;
+    int rc = run_to_file(cmd, file, 900);
+    run_stdin = -1;
+    close(in);
+    if (rc) { say("addon %s: unpacking failed (%d)", addon, rc); addon_rc = -5; return; }
+    say("addon %s: running run.sh (timeout %ld s)", addon, addon_timeout);
+    snprintf(cmd, sizeof cmd, "cd %s%s && exec sh ./run.sh %s%s/out", D, addon, D, addon);
+    snprintf(file, sizeof file, "addon-%s.txt", addon);
+    double t0 = uptime_s();
+    addon_rc = run_to_file(cmd, file, addon_timeout);
+    addon_s = uptime_s() - t0;
+    say("addon %s: run.sh exit %d after %.0f s", addon, addon_rc, addon_s);
+    // Whatever happened, let the add-on undo its settings.
+    snprintf(cmd, sizeof cmd, "cd %s%s && sh ./run.sh --cleanup", D, addon);
+    snprintf(file, sizeof file, "addon-%s-cleanup.txt", addon);
+    run_to_file(cmd, file, 120);
+    struct statfs st;
+    long long room = !fstatfs(logdir, &st) ? (long long)st.f_bavail * st.f_bsize - 24 * (long long)MiB : 0;
+    if (room > ADDON_CAP) room = ADDON_CAP;
+    if (room <= 0) { say("addon %s: no room on the ESP for its results", addon); return; }
+    snprintf(cmd, sizeof cmd, "cd %s%s/out || exit 3; set -o pipefail; tar -cf - . 2>/dev/null | head -c %lld",
+             D, addon, room);
+    snprintf(file, sizeof file, "addon-%s-out.tar", addon);
+    addon_out_rc = run_to_file(cmd, file, 300);
+    struct stat sb;
+    if (!fstatat(logdir, file, &sb, 0)) addon_out_bytes = sb.st_size;
+    say("addon %s: results %lld bytes (rc %d)", addon, addon_out_bytes, addon_out_rc);
+}
+
 static void capture(const char *phase) {
     struct statfs s;
     if (!fstatfs(logdir, &s) && (unsigned long long)s.f_bavail * s.f_bsize < 24 * MiB) {
@@ -819,7 +890,7 @@ static void capture(const char *phase) {
     // The final capture first runs the userdebug product's Wi-Fi, Bluetooth and audio checks, so the logcat and
     // system facts below include what they did. -1: not run (early capture, or a product without the tool).
     c->hwtest = -1;
-    if (!strcmp(phase, "final")) {
+    if (!strcmp(phase, "final") && !addon[0]) {
         run_env = hwtest_env;
         c->hwtest = run_to_file("[ -x /system_ext/bin/openbook-hwtest ] || exit 127; /system_ext/bin/openbook-hwtest",
                                 "hwtest-final.txt", 360);
@@ -832,7 +903,7 @@ static void capture(const char *phase) {
     c->logcat = run_to_file("logcat -d -b all -v threadtime", f, 120);
     snprintf(f, sizeof f, "screen-%s.png", phase);
     c->screen = run_to_file("screencap -p", f, 60);
-    if (!prior_done) {  // once, at the first capture
+    if (!prior_done && !addon[0]) {  // once, at the first capture; not on an add-on's boot
         prior_done = 1;
         run_to_file(PRIOR_LIST, "prior-boots.txt", 30);
         prior_rc = run_to_file(PRIOR_BOOTS, "prior-boots.tar.gz", 180);
@@ -849,6 +920,10 @@ static void write_summary(const char *after) {
               uptime_s());
     sb_printf(&b, " \"second_stage_s\": %.1f,\n \"boot_completed\": %s,\n \"boot_completed_s\": %.1f,\n", t_second,
               t_complete >= 0 ? "true" : "false", t_complete);
+    if (addon[0])
+        sb_printf(&b, " \"addon\": {\"name\": \"%s\", \"rc\": %d, \"seconds\": %.1f, \"timeout_s\": %ld, "
+                      "\"out_rc\": %d, \"out_bytes\": %lld},\n", addon, addon_rc, addon_s, addon_timeout, addon_out_rc,
+                  addon_out_bytes);
     sb_printf(&b, " \"dmesg_bytes\": %llu,\n \"after\": \"%s\",\n \"prior_boots_rc\": %d,\n \"prior_boots_bytes\": %lld,\n"
                   " \"prior_boots_capped\": %s,\n \"live_init\": ", dmesg_bytes, after, prior_rc, prior_bytes,
               prior_bytes == PRIOR_CAP ? "true" : "false");
@@ -920,13 +995,18 @@ static void logs_helper(int ready_fd, const char *esp_node) {
     char after[16] = "poweroff";
     conf_get("androidboot.openbook.logs_after", after, sizeof after);
     if (strcmp(after, "reboot") && strcmp(after, "stay")) snprintf(after, sizeof after, "poweroff");
+    conf_get("androidboot.openbook.addon", addon, sizeof addon);
+    for (char *c = addon; *c; c++)
+        if (!((*c >= 'a' && *c <= 'z') || (*c >= '0' && *c <= '9'))) { addon[0] = 0; break; }
+    addon_timeout = conf_long("androidboot.openbook.addon_timeout", 3600);
+    if (addon_timeout < 60 || addon_timeout > 14400) addon_timeout = 3600;
     int ok = kmsg_in >= 0 && espfd >= 0 && procfd >= 0 && !mkdir_free(espfd, "live-", logdir_name, sizeof logdir_name);
     if (ok) logdir = openat(espfd, logdir_name, O_DIRECTORY | O_CLOEXEC);
     if (ok && logdir >= 0) dmesg_out = openat(logdir, "dmesg.txt", O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0644);
     ok = ok && logdir >= 0 && dmesg_out >= 0;
     if (!ok) say("logs: setup failed (kmsg %d, esp %d, proc %d, dir %d: %s); no logs this boot", kmsg_in, espfd,
                  procfd, logdir, strerror(errno));
-    else say("logs: saving to %s on the stick's ESP", logdir_name);
+    else say("logs: saving to %s on the stick's ESP%s%s", logdir_name, addon[0] ? "; add-on " : "", addon);
     if (ok) read_hwtest_conf();
     if (write(ready_fd, ok ? "1" : "0", 1) < 0) { /* the parent goes on after a timeout */ }
     close(ready_fd);
@@ -956,6 +1036,10 @@ static void logs_helper(int ready_fd, const char *esp_node) {
             break;
         }
         usleep(500000);
+    }
+    if (addon[0]) {
+        if (t_complete >= 0) run_addon();
+        else { addon_rc = -3; say("addon %s: not run, Android did not finish booting", addon); }
     }
     capture("final");
     write_summary(after);

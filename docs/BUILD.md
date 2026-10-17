@@ -270,3 +270,21 @@ scripts/power/collect-qemu.sh a                                        # save-lo
 ```
 Owner steps (Linux comparison on the laptop, the add-on on the stick) and how to read the results: `docs/power-input.md`.
 
+
+## Graphics conformance: dEQP and ANGLE end2end on the G14 (ANAL-177)
+```bash
+# test modules for the G14 product (AOSP lane, ~8 min incremental)
+AOSP_JOBS=24 scripts/aosp-docker.sh -d anybook-aosp-build /repo/scripts/aosp-build.sh anybook_g14_x86_64-cp2a-userdebug \
+  deqp-binary com.drawelements.deqp AngleEnd2EndTestsHelper && docker wait anybook-aosp-build
+# RADV without android-strict (Vulkan 1.4), in its own build/out dirs: never staged into the image
+MESA_VARIANT=-nonstrict ANDROID_STRICT=false scripts/mesa-android-build.sh fetch setup build install verify -- upstream
+scripts/graphics/build-deqp-runner.sh                                   # Mesa's deqp-runner 0.23.2, static musl
+scripts/graphics/mkcaselists.py ~/anybook/aosp/src/external/deqp/android/cts/main ~/anybook/gfx-cts/caselists/v1 \
+  --angle-expectations ~/anybook/aosp/src/external/angle/android/cts/angle_end2end_tests_expectations.txt
+scripts/graphics/pre-check.sh ~/anybook/gfx-cts/caselists/v1            # the lists on this host's AMD GPU (~4 min)
+scripts/graphics/gfx-report.py ~/anybook/logs/gfx-cts/precheck-<ts> --mesa-ci ~/anybook/mesa/src/upstream/src/amd/ci \
+  --radv-gpu raphael --radeonsi-gpu mendocino
+scripts/graphics/make-gfx-check.sh openbook-gfxcheck-20261017           # add-on for a live stick (~30 s)
+scripts/graphics/gfx-qemu.sh openbook-gfxcheck-20261017 quick1          # QEMU: the add-on end to end, 40 cases per list
+```
+Owner steps (add the check to the stick, run it, read the results): `docs/graphics-amd.md`, "dEQP and CTS on the G14".

@@ -1,0 +1,1 @@
+not copied to evidence/2026-10-17-graphics-cts/qemu/live-001: addon-gfx (use --redact-file on single files)
