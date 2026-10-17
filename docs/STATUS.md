@@ -1,62 +1,82 @@
 # Status
 
-## Now (2026-10-17, morning)
+## State of the union (2026-10-17, 12:30 UTC)
 
-The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`github.com/Mhsbrian/AnyBook`) redirects. PRs #1–#48 are merged (latest: #48 ANAL-177 the graphics check for the G14 stick; #47 the G14 bridge's enforcing-boot policy fix and the combined G14 stick; #46 ANAL-200 Digitalis on Android 17; #41 ANAL-178 power and input; #42 ANAL-176 G14 stability and the AOSP lane lock; #43 ANAL-179 Wi-Fi, Bluetooth and audio). No PR is open. #38 was closed as superseded, because #39 contains its commits. Every PR was checked before merging (script syntax, Python compile, no binaries or secrets, sizes, evidence backs the claim), and doc conflicts were resolved by hand.
+**Goal:** the Googlebook-style Android 17 desktop on the ASUS ROG Zephyrus G14 (GA403WR: Ryzen AI 9 HX 370, Radeon 890M), installed from a USB stick through a wizard and verified on the laptop. Repo: https://github.com/Mhsbrian/OpenBook.
 
-**Decided by the owner**
-- **Keep the dGPU disabled for now** (2026-10-16, on ANAL-187):
-  - `dgpu_disable=1` is the bring-up default. ANAL-176 runs `scripts/dgpu-power-check.sh` read-only first, then sets the flag on the G14 from Linux before the first OpenBook boot. Commands and rollback are in `docs/nvidia.md` §1.
-  - HDMI stays dark while the flag is set.
-  - NVIDIA work beyond the research is parked; the N1–N6 track waits until after M4.
+**Repo hygiene:** PRs #1–#51 are merged and none are open. The 2026-10-17 cleanup left one remote branch, `main`; every other branch was merged or superseded. Two branches with commits never merged are kept as tags: `archive/anal-190-live-image-b` (superseded on `main`) and `archive/anal-178-stick-integration`.
 
-**Decisions needed from the owner** (no running work is blocked by these)
-- **Repo license** for the scripts and docs. Apache-2.0 is suggested; the `device/anybook` files already carry SPDX Apache-2.0 headers.
-- **Track B** (ANAL-165): whether to go past research with Google's proprietary image (`docs/PLAN.md` §6).
-- **Mesa libelf licensing** (ANAL-173): libelf is LGPL-3.0+. Since ANAL-174, the image build ships it as a shared `libelf_mesa.so` (the recommended option), and `LIBELF=static` restores the static link (`docs/mesa.md`).
-- **amd-pmf** (ANAL-171): it needs `ccp.ko` with SEV, which calls `kernel_read`/`kernel_write` from GKI's deny list. Options are in `docs/kernel.md`.
-- **Upstream reports for the arm64 bridge** (ANAL-181/200): OK to report the `MRS` and `FRECPE` fixes to DigitalisX64, and the Android 17 `Build.CPU_ABI` regression (art `b7947b0641`, the real cause of the Fennec crash) to AOSP? Both are outward-facing; the patches stay in this repo until then (`docs/digitalis.md`).
-- **Device-in-the-loop** (ANAL-194): install the Multica daemon on the G14's current Linux when ready (`docs/PLAN.md` §4a).
-- **Graphics check on the stick** (ANAL-177): `openbook-gfxcheck-20261017` is already on the `anal178c` stick image (below). Boot "OpenBook graphics check" once, on AC, for about 30 minutes, after the other test boots (`docs/graphics-amd.md`, owner checklist). It settles Vulkan 1.1 vs 1.4 on the 890M: the 610M pre-check favours 1.4. On a `combined` stick, add it with `scripts/graphics/add-to-live-stick.sh`, naming the exact `/dev/disk/by-id/usb-…` device.
-- **G14 hardware-check stick** (optional, owner): `scripts/installer/make-hwcheck-stick.sh` builds a USB image. It boots our kernel, drivers and firmware on the laptop, writes a report and the kernel log to the stick, and powers off without touching internal disks (`docs/installer.md` §2.7). Writing the stick needs you to name the exact USB device.
-- **Next G14 stick: `openbook-live-20261017-anal178c`.** One stick covers ANAL-176, ANAL-177, ANAL-178, ANAL-179 and ANAL-200. It is `combined`'s product rebuilt into an image from `main` at `ea3c25e` (live-init with the add-on hook), with the power check and the graphics check already on its ESP. It supersedes `combined`. In QEMU: the live matrix 39/39, the power check 10/10 (stick entry) and 14/14 (VM entry), and the graphics check's quick run 6/6 (`evidence/2026-10-17-power-input/anal178c/`, sha256 there). Write it with `write-stick.sh`, naming the exact `/dev/disk/by-id/` device. Then, in this order:
-  - boot the default (enforcing) entry to the desktop;
-  - connect Wi-Fi and pair a device (`docs/g14-audio-net.md` §7);
-  - close the lid for a minute, use the touchpad in "save logs", and boot "power check: S0i3" once (`docs/power-input.md` §5);
-  - last, boot "OpenBook graphics check" once (about 30 minutes, on AC). It runs last because it fills the ESP more than the other boots do: it keeps its results to the room that is left.
+### What works, and where it has been shown
 
-  Reply "stick attached" on ANAL-176, ANAL-177, ANAL-178, ANAL-179 and ANAL-200 afterwards. The "save logs" boot also records the bridge verdicts.
+| Area | In a VM (QEMU or Cuttlefish) | On the G14 | Evidence |
+|---|---|---|---|
+| Kernel (GKI android17-6.18 + 138 AMD modules) | Boots our Android 17 | **Yes:** 235 modules, 0 failed | `evidence/2026-10-16-g14-hwcheck/` |
+| Live USB boot, desktop | 39/39 live checks | **Desktop on the panel** in "save logs" boots (SELinux permissive). The normal enforcing boot reaching the desktop is **not proven yet** | `evidence/2026-10-17-g14-desktop/` |
+| Graphics (RADV, radeonsi, ANGLE, minigbm, drm_hwcomposer) | Passing; dEQP pre-check on a Radeon 610M | **Desktop renders.** drm_hwcomposer falls back to GPU composition (plane limit). dEQP not run yet | `evidence/2026-10-17-graphics-cts/` |
+| Touchpad, keyboard | Yes | **Yes** | `evidence/2026-10-16-installer/g14-live/` |
+| Lid, power button, hotkeys, battery health | Yes | Not tested | `evidence/2026-10-17-power-input/` |
+| Sleep | s2idle in a VM | **s2idle works; deep sleep (S0i3) never reached.** Hypothesis: the driverless PSP | `docs/power-input.md` |
+| Wi-Fi, Bluetooth, audio | Yes (WPA2, iperf3, tone through ALSA) | Not tested | `evidence/2026-10-17-g14-audio-net/` |
+| ARM apps (Digitalis, built from source) | 14/16 ARM-only apps; works in enforcing | Not tested | `evidence/2026-10-17-digitalis-a17/`, `evidence/2026-10-17-g14-combined/` |
+| Installer | Design done; live USB done | Live USB boots | `docs/installer.md` |
 
-**Lanes on the dev host** (the 7950X has 61 GB RAM; an AOSP build peaks at about 41 GiB):
-- **AOSP lane**, one builder at a time in `~/anybook/aosp/src`: ✓ ANAL-174 (PR #23), ✓ ANAL-199 (PR #35), ✓ ANAL-176 (PRs #39 and #42), ✓ ANAL-179 (PR #43, Wi-Fi/BT/audio), ✓ ANAL-178's Android side (PR #41), ✓ ANAL-200 (PR #46; its G14 enforcing-boot fix in #47). ✓ ANAL-177 (PR #48; its G14 test modules in 7 min 56 s). Now ▶ **ANAL-191** (installer wizard and install engine, QEMU only) owns the lane. Builds take `flock ~/anybook/aosp/.lane.lock` (PR #42: `aosp-docker.sh` takes and keeps it for `aosp-build.sh`, which refuses otherwise; `installer-image.sh` holds it for its `PRODUCT_OUT` snapshot). The VM product's device is now `anybook_vsoc_x86_64`, so boot it with `CF_DEVICE=anybook_vsoc_x86_64`.
-- **Kernel lane:** ✓ ANAL-198 (PR #26). The G14 images and firmware are ready for ANAL-199, and the lane is free.
-- **Light lanes:** ✓ ANAL-189 (design and QEMU boot-chain prototype in PRs #22 and #25: high-fidelity wizard design, OpenBook naming, quiet boot, G14 hardware-check stick; the design is adopted as recommended, and the items for a public image stay open) and ✓ ANAL-187 (research delivered; its dGPU-off default feeds ANAL-199 and ANAL-176).
-- **Hand-offs:** condition wakeups on ANAL-159 promote each next step as soon as its dependencies reach review with a merged PR.
+**One gap holds back most of the table:** the owner's run of the latest stick on the G14. Everything marked "not tested" is built and waiting for that run.
 
-**Tracking** (Multica, children of ANAL-159). ✓ = delivered and PR merged, ▶ = running, ⏳ = starts automatically when its dependency delivers, ⏸ = parked.
+### Running now
 
-| Epic | Stage 1 | Stage 2 | Stage 3 | Stage 4 |
-|---|---|---|---|---|
-| ANAL-160 Track A: AOSP 17 desktop boots in a VM | ✓ ANAL-167 build env (PR #5) | ✓ ANAL-168 `aosp_cf_x86_64_pc-cp2a` boots in Cuttlefish (PR #9) | ✓ ANAL-169 desktop windowing on the host GPU (PR #14) | — |
-| ANAL-161 AMD GKI kernel (android17-6.18) | ✓ ANAL-170 stock GKI reproduced (PR #4) | ✓ ANAL-171 AMD config, 138 vendor modules (PR #8) | ✓ ANAL-172 our kernel boots our userspace (PR #12) | ✓ ANAL-198 bare-metal packaging: first-stage NVMe and USB boot, vendor_boot, dlkm images, firmware (PR #26) |
-| ANAL-162 AMD graphics userspace | ✓ ANAL-173 Mesa radeonsi/RADV for Android (PR #3) | ✓ ANAL-174 AMD graphics in the tree, boot-time HAL selection (PR #23) | ✓ ANAL-177 dEQP/CTS: the graphics check add-on and the 610M pre-check (PR #48); the G14 run waits for the owner's stick | — |
-| ANAL-164 ARM compat and native bridge | ✓ ANAL-180 harness and baseline (PR #6) | ✓ ANAL-181 Digitalis: GO with conditions (PR #11) | ✓ ANAL-200 Digitalis on Android 17 ships in both products, 14/16 arm64-only apps (PR #46; enforcing fix for the G14 in #47) | — |
-| ANAL-163 Bare metal on the G14 (GA403WR) | ✓ ANAL-175 inventory and full driver map (PRs #8, #16; the owner's root run is processed too: dGPU `10de:2f58`, panel ATNA40CU05-0, speaker tuning found) | ✓ ANAL-199 G14 product `anybook_g14_x86_64`: USB GPT image, `boot_completed` in QEMU/OVMF, SELinux enforcing (PR #35) | ✓ ANAL-176 G14 desktop from USB (PRs #39, #42). The desktop was reached on the G14 in "save logs" boots; the enforcing entry is next on the `anal178b` stick | ✓ ANAL-178 input and power (PR #41; the S0i3 root cause needs the owner's stick run), ✓ ANAL-179 Wi-Fi, BT and audio (PR #43; G14 run pending) |
-| ANAL-188 USB installer (M8) | ✓ ANAL-189 design and boot-chain prototype (PRs #22, #25): systemd-boot, GRUB fallback; the owner left the design to our recommendation (2026-10-16) | ✓ ANAL-190 live USB image (PR #34): QEMU 38/39; booted on the G14 by the owner (`evidence/2026-10-16-installer/g14-live/`) | ▶ ANAL-191 wizard and install engine (owns the AOSP lane since 2026-10-17; QEMU only) | ⏸ ANAL-192 end-to-end tests (a spare-drive install needs the owner to name the drive) |
-| **ANAL-193 Device-in-the-loop on the G14 (§4a)** | ⏸ ANAL-194 runtime and agent on G14 Linux (owner installs the daemon) | ⏸ ANAL-195 Zen 5 validation in KVM | ⏸ ANAL-196 dual-boot test cycle | ⏸ ANAL-197 runtime on installed OpenBook |
-| ANAL-186 NVIDIA dGPU | ✓ ANAL-187 research and dGPU-off default (`docs/nvidia.md`: off for M3–M8, N1–N6 after M4) | — | — | — |
-| ANAL-165 Track B: Googlebook OS on AMD | ⏸ ANAL-182, ANAL-183 | ⏸ ANAL-184 | ⏸ ANAL-185 | — |
-| ANAL-166 Performance and parity | ⏸ | — | — | — |
+- **ANAL-191** (installer wizard and `openbook-install` engine, QEMU only) holds the AOSP lane.
+- **The latest stick is ready:** `openbook-live-20261017-anal178c`, built from `main` (PR #50, `evidence/2026-10-17-power-input/anal178c/`). It covers ANAL-176, ANAL-177, ANAL-178, ANAL-179 and ANAL-200, with the power check and the graphics check already on it. In QEMU: live checks 39/39, power check 10/10, graphics check 6/6. It supersedes `combined` and every older stick.
 
-**Critical path to "OpenBook on the G14":**
-1. ✓ ANAL-174 (PR #23) and ANAL-198 (PR #26).
-2. ✓ ANAL-199 (PR #35): the G14 product, booting in QEMU. ✓ ANAL-190 (PR #34): the live USB image, first booted on the G14.
-3. ✓ ANAL-176 (PRs #39, #42): the RADV crash that kept the G14 screen black is fixed. **The desktop appeared on the G14's panel** in the owner's `desktop2` and `desktop3` "save logs" boots (permissive). In the `desktop3` boots the amdgpu firmware denial is gone, and an enforcing boot would hit 14 denial lines, down from 66 (`evidence/2026-10-17-g14-desktop/`). The default enforcing entry reaching the desktop is still unproven.
-4. ✓ ANAL-179 (PR #43): Wi-Fi (WPA2, DHCP, iperf3), Bluetooth and audio, tested in QEMU. ✓ ANAL-178 (PR #41): lid, power button, hotkeys, health HAL and S0i3 bisect tooling, tested in QEMU. ✓ ANAL-200 (PRs #46, #47): arm64 apps through Digitalis in both products. The owner's `combined` stick run on the G14 is the hardware test for all three.
-5. The installer: ✓ ANAL-190 (live USB), ▶ ANAL-191 (wizard and `openbook-install` engine, tested in QEMU), then ANAL-192 (end-to-end tests; installing to a spare drive needs the owner to name it).
-6. ANAL-197: the runtime on the device.
+### Waiting on the owner
+
+1. **The stick run:** write `anal178c` and do the four boots in order, using the exact commands in ANAL-178's reply of 2026-10-17 12:01:
+   - A. "OpenBook": Wi-Fi, pairing, a sound, the lid;
+   - B. "save logs": touchpad for 20 s;
+   - C. "power check: S0i3";
+   - D. "OpenBook graphics check": about 30 min, on AC.
+
+   Then reply "stick attached" on ANAL-176, ANAL-177, ANAL-178, ANAL-179 and ANAL-200.
+2. **Decisions:** none blocks running work.
+   - repo license (Apache-2.0 suggested);
+   - upstream reports for the bridge (DigitalisX64; AOSP `Build.CPU_ABI`);
+   - amd-pmf (`docs/kernel.md`);
+   - Track B (`docs/PLAN.md` §6);
+   - installing the Multica daemon on the G14 (ANAL-194).
+   - Before any public image: AVB release-key custody, an "OpenBook" trademark check, and Mesa libelf (shipped as a shared library, as recommended).
+3. **Already decided:** the dGPU stays off (`dgpu_disable=1`; HDMI is dark while it is set; NVIDIA work waits until after M4). The installer design follows our recommendation (owner on ANAL-189, 2026-10-16).
+
+### Next step for each open issue
+
+| Issue | State | Next step | Needs |
+|---|---|---|---|
+| ANAL-176 G14 desktop and stability | In review | Read the enforcing boot from the stick; fix the remaining denials; fix drm_hwcomposer's plane count (`docs/g14-desktop.md` §7) | Owner's stick run |
+| ANAL-177 graphics conformance | In review | Read the G14 dEQP/ANGLE results; decide Vulkan 1.1 or 1.4 (the 610M favours 1.4); add matrix rows | Owner's stick run (boot D) |
+| ANAL-178 input and power | In review | Read the lid, touchpad and power check results; then the S0i3 fix (kernel lane), the touchpad clock warnings, the skin sensor | Owner's stick run (boots A–C) |
+| ANAL-179 Wi-Fi, Bluetooth, audio | In review | Read Wi-Fi, pairing and speaker/mic results; fix what fails; speaker tuning | Owner's stick run |
+| ANAL-200 ARM bridge | In review | Read the bridge verdicts; run the probe and CoreMark on the G14 | Owner's stick run; upstream-report OK |
+| ANAL-191 installer wizard and engine | **Running** | A PR with the engine, the app and a QEMU install that boots from a virtual NVMe | — |
+| ANAL-192 installer end-to-end tests | Backlog | Starts when ANAL-191 delivers: the QEMU install matrix, then a spare-drive install on the G14 | Owner names the spare drive |
+| ANAL-193 to ANAL-197 device loop | Backlog | ANAL-194 first: the Multica runtime and test agent on the G14's Linux | Owner installs the daemon |
+| ANAL-166 performance and parity | Backlog | After the installer: benchmarks, Chrome, the Linux terminal (AVF without pKVM). No sub-issues yet | — |
+| ANAL-186 NVIDIA | Parked | Research is done (ANAL-187); N1–N6 after M4 | — |
+| ANAL-165 Track B (ANAL-182 to ANAL-185) | Parked | Starts only if the owner decides to use Google's image | Owner decision |
+
+**Delivered, nothing left to do** (in review with merged PRs; the owner can close them):
+- ANAL-167, ANAL-168, ANAL-169 (VM track);
+- ANAL-170, ANAL-171, ANAL-172, ANAL-198 (kernel);
+- ANAL-173, ANAL-174 (graphics);
+- ANAL-175, ANAL-199 (G14 bring-up);
+- ANAL-180, ANAL-181 (ARM evaluation);
+- ANAL-187 (NVIDIA research);
+- ANAL-189, ANAL-190 (installer design and live USB);
+- the epics ANAL-160 (Track A in a VM) and ANAL-161 (kernel).
+
+**Build host:** one AOSP build at a time (`flock ~/anybook/aosp/.lane.lock`, taken by `scripts/aosp-docker.sh`), because builds peak at about 50 GB of the 61 GB RAM. Builds and images are in `docs/BUILD.md`; the live image and the owner checklists are in `docs/installer.md` §11.
 
 ## History
+
+### 2026-10-17: cleanup and one consolidated status (ANAL-159)
+- **Done:** the owner asked for less sprawl. No PRs are open. The remote branches went from 49 to 4. Two branches with commits never merged are kept as `archive/` tags. This file's top section is now one state of the union, with a next step for every open issue. `docs/PLAN.md` §4 and §7 point here instead of keeping their own copies.
 
 ### 2026-10-17: graphics check merged; the installer wizard starts (ANAL-159)
 - **Merged** #48 (ANAL-177) after checks. Every number matches the raw results (610M pre-check, Cuttlefish EGL and ANGLE end2end), and nothing is claimed for the G14. The add-on applier writes new files only, and only on a `/dev/disk/by-id/usb-*` stick.
