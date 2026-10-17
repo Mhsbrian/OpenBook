@@ -544,6 +544,7 @@ Evidence is in `evidence/2026-10-17-kernel-g14-r2/`, starting with `SUMMARY.md`.
 - **`stagefright` is in the userdebug image now** (`PRODUCT_PACKAGES_DEBUG`), so the laptop can run the same check.
 - **Not shown: a ringtone preview through NuPlayer.** Driving the SoundPicker UI in QEMU did not start a preview, so the Settings path is still to be shown on the laptop (ANAL-192's checklist). `stagefright` exercises the same Codec2 component.
 - **The standard product boot check still passes** (`product-qemu/regress`). It has one new denial, and it only appears now that decoding works: `audioserver` cannot map SystemUI's SoundPool shared memory (`appdomain_tmpfs`). AOSP grants that as `audioserver appdomain:memfd_file`. A tmpfs rule alone would not be enough, because MLS stops `audioserver` (s0) from writing an app's `s0:c512,c768` file. So it belongs to the audio lane (ANAL-179); turning on `memfd_class` would be the general fix. SystemUI's UI sounds (SoundPool) are affected; streaming playback uses audioserver-created memory, which is already covered.
+  - **Fixed by ANAL-179** with one TE rule. MLS turned out not to be in the way: AOSP's `private/mls` exempts `appdomain_tmpfs` from its read and write constraints (`docs/g14-audio-net.md` §5, `evidence/2026-10-17-soundpool/`).
 
 **2. efivarfs: a vendor module plus 26 KMI symbols. This keeps Google's GKI configuration.**
 - **The trial build.** It failed at modpost on 10 symbols the trimmed GKI does not export (`kmi/efivarfs-trial-modpost.txt`). Kleaf's symbol-list update then listed 26 imports that are not on the KMI (`kmi/efivarfs-new-kmi-symbols.txt`):
@@ -566,7 +567,7 @@ Evidence is in `evidence/2026-10-17-kernel-g14-r2/`, starting with `SUMMARY.md`.
   - `mount -t efivarfs` works, the firmware's 37 variables are listed, and `BootOrder` reads correctly (0002, 0000, 0001, 0003).
   - With SELinux permissive, a variable is created, read back and deleted.
 - **What the installer still needs (ANAL-191):**
-  - **SELinux policy.** Under enforcing, creating a variable fails: efivarfs is `unlabeled` and `associate` is denied, because AOSP 17's policy has no `genfscon` for it. ANAL-191 needs a type for it plus rules for `openbook_installd`.
+  - **SELinux policy.** Under enforcing, creating a variable fails: efivarfs is `unlabeled` and `associate` is denied, because AOSP 17's policy has no `genfscon` for it. ANAL-191 needed a type for it plus rules for `openbook_installd`. **Done** (`openbook_efivarfs`, `docs/installer.md` §12.11).
   - **`chattr -i` for test variables.** efivarfs makes variables under unknown GUIDs immutable. The `Boot####` entries under the EFI global GUID stay removable.
 
 **3. GPU hang recovery on gfx1150 (investigation; HYPOTHESIS where marked).**

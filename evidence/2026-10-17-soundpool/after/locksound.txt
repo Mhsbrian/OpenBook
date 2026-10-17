@@ -1,0 +1,6 @@
+Lock screen disabled set to false
+lockscreen_sounds=1
+10-17 20:38:54.906  2587  2587 D KeyguardViewMediator: keyguardDone: 0
+track_failures=0
+denials=0
+Lock screen disabled set to true
