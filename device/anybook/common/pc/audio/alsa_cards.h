@@ -36,6 +36,12 @@ struct ToneLevels {
     double tone_rms_dbfs = -200;   // the window while the tone played (everything in it)
     double tone_bin_dbfs = -200;   // the tone frequency alone (Goertzel), in the same window
     double tone_share = 0;         // tone frequency's share of that window's energy, 0..1
+    // The same share in each 50 ms slice of the tone window: a clean tone keeps it near 1 everywhere, while
+    // dropped or repeated buffers break its phase and pull single slices down (glitches).
+    double slice_share_mean = 0;
+    double slice_share_min = 0;
+    int slices = 0;
+    int glitched_slices = 0;       // slices whose share is under 0.9
 };
 
 // samples: interleaved 16-bit frames at `rate`. Noise window [noise_from, noise_to), tone window [tone_from,
@@ -44,7 +50,8 @@ ToneLevels MeasureTone(const std::vector<int16_t>& samples, int channels, int ra
                        double noise_to, double tone_from, double tone_to);
 
 // The tone counts as heard when its frequency comes back at least 20 dB over that frequency before the tone,
-// and carries at least a fifth of the energy while it plays.
+// and carries at least a fifth of the energy while it plays (averaged over the 50 ms slices, so a glitching tone
+// still counts as heard; glitched_slices says how clean it was).
 bool ToneDetected(const ToneLevels& l);
 
 }  // namespace openbook::audio

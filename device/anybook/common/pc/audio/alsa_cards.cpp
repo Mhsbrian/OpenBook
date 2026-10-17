@@ -103,11 +103,30 @@ ToneLevels MeasureTone(const std::vector<int16_t>& samples, int channels, int ra
     l.tone_rms_dbfs = Db(all);
     l.tone_bin_dbfs = Db(bin);
     l.tone_share = all > 0 ? std::min(1.0, (bin * bin) / (all * all)) : 0;
+    double sum = 0, power = 0;
+    l.slice_share_min = 1;
+    for (double t = tone_from; t + 0.05 <= tone_to + 1e-9; t += 0.05) {
+        double a, b;
+        Levels(samples, channels, rate, freq, t, t + 0.05, &a, &b);
+        double share = a > 0 ? std::min(1.0, (b * b) / (a * a)) : 0;
+        sum += share;
+        power += b * b;
+        l.slice_share_min = std::min(l.slice_share_min, share);
+        l.glitched_slices += share < 0.9;
+        l.slices++;
+    }
+    if (l.slices) {
+        l.slice_share_mean = sum / l.slices;
+        // The tone's level from the slices, so phase breaks between slices do not hide it.
+        l.tone_bin_dbfs = Db(std::sqrt(power / l.slices));
+    } else {
+        l.slice_share_min = 0;
+    }
     return l;
 }
 
 bool ToneDetected(const ToneLevels& l) {
-    return l.tone_bin_dbfs > -90 && l.tone_bin_dbfs - l.noise_bin_dbfs >= 20 && l.tone_share >= 0.2;
+    return l.tone_bin_dbfs > -90 && l.tone_bin_dbfs - l.noise_bin_dbfs >= 20 && l.slice_share_mean >= 0.2;
 }
 
 }  // namespace openbook::audio

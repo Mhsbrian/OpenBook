@@ -141,10 +141,12 @@ def main():
         hv("bt_enabled", "bt-enabled", keep=("hal",))
         hv("bt_paired", "bt-bonded", keep=("bonded",))
         hv("audio_card", "audio-card", keep=("card", "pcm"))
-        loop = ("card", "tone_bin_dbfs", "noise_bin_dbfs", "tone_share", "playback_error", "capture_error", "error")
+        loop = ("card", "tone_bin_dbfs", "noise_bin_dbfs", "glitched_slices", "slices", "playback_error", "capture_error",
+                "error")
         hv("audio_loopback_alsa", "alsa-loopback", "heard", loop)
         hv("audio_loopback_android", "aaudio-loopback", "heard",
-           ("tone_bin_dbfs", "noise_bin_dbfs", "tone_share", "xruns", "input_error", "output_error", "error"))
+           ("tone_bin_dbfs", "noise_bin_dbfs", "glitched_slices", "slices", "xruns", "media_volume", "input_error",
+            "output_error", "error"))
     mods = sec.get("MODULES", "").splitlines()
     avc = sec.get("AVC", "").split()
     report = {

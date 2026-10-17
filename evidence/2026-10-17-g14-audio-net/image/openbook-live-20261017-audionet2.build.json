@@ -1,0 +1,60 @@
+{
+ "schema": "openbook-live-build/1",
+ "label": "openbook-live-20261017-audionet2",
+ "image": "openbook-live-20261017-audionet2.img",
+ "bytes": 2949644288,
+ "sha256": "5019db293c5ef5311062e07eb020731d14b6d9f1f9b381b80e6206e0773f3354",
+ "xz_bytes": 899575372,
+ "xz_sha256": "e6d71f6bb3fec071db2ff0dfbc202f9e0d8be3bf6da7e7f377d499ec65b39d43",
+ "allocated_bytes": 1384697856,
+ "build_seconds": {
+  "total": 45,
+  "snapshot": 1,
+  "live_init_and_test": 11,
+  "image": 8,
+  "checksums_and_xz": 25
+ },
+ "fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
+ "kernel_release": "6.18.21-android17-5-g44a90255c95f",
+ "loader": "systemd-boot 262-1",
+ "menu_timeout": "10",
+ "epoch": 1792208750,
+ "super": {
+  "original_bytes": 8589934592,
+  "live_bytes": 1390411776,
+  "virtual_ab": true
+ },
+ "firmware": {
+  "files": 139,
+  "licence_files": [
+   "LICENSE.wireless-regdb",
+   "LICENSES/LICENCE.mediatek",
+   "LICENSES/LICENCE.rtlwifi_firmware.txt",
+   "LICENSES/LICENSE.amdgpu",
+   "LICENSES/LICENSE.amdnpu",
+   "LICENSES/LICENSE.cirrus"
+  ],
+  "without_licence": []
+ },
+ "inputs": {
+  "boot.img": "08c62a9b1ffb37bf368bbf1b1a51b49d0792229c8e1e83403b23ddb5c0b9dabc",
+  "init_boot.img": "833f7d718d5b3bd3c744862ff2d93ca808a59725fa7e34989b84a056034d7d99",
+  "vendor_boot.img": "809c27cad570f6a33f5a4e314fbc5798e16217384c455c1e940b055a66a99d61",
+  "vbmeta.img": "a278c600de6164693b359152a4844eb59f37f04af5639dc19c70e65d5c46994d",
+  "super.img": "5076e231563529c0bb60f2849b8f599ea5dc3a0875dc384b8b6b10e990c3f1a2"
+ },
+ "repo": {
+  "commit": "165118252f44908daa3ba44bc9591e7fc6b87c63",
+  "dirty": false
+ },
+ "tools": [
+  "gcc 16.2.1+r23+gd564253eb6c8-1",
+  "glibc 2.44+r50+g1848099f063e-1",
+  "systemd 262-1",
+  "dosfstools 4.2-5",
+  "mtools 1:4.0.49-1",
+  "gptfdisk 1.0.10-2",
+  "python 3.14.8-1"
+ ],
+ "log": "/home/hive/anybook/logs/installer/live-openbook-live-20261017-audionet2-20261017T034859Z.log"
+}

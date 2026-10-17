@@ -1,0 +1,32 @@
+[
+ {
+  "commit": "50e034a2",
+  "date": "2026-08-25",
+  "title": "mediatek MT7925: update bluetooth firmware to 20260813113236"
+ },
+ {
+  "commit": "3c11e660",
+  "date": "2026-08-25",
+  "title": "linux-firmware: update firmware for MT7925 WiFi device"
+ },
+ {
+  "commit": "2d705393",
+  "date": "2026-06-22",
+  "title": "mediatek MT7925: update bluetooth firmware to 20260605184935"
+ },
+ {
+  "commit": "bd1c66cf",
+  "date": "2026-06-22",
+  "title": "linux-firmware: update firmware for MT7925 WiFi device"
+ },
+ {
+  "commit": "c8949c63",
+  "date": "2026-04-23",
+  "title": "mediatek MT7925: update bluetooth firmware to 20260414153243"
+ },
+ {
+  "commit": "b981cd37",
+  "date": "2026-04-23",
+  "title": "linux-firmware: update firmware for MT7925 WiFi device"
+ }
+]

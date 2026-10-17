@@ -100,6 +100,25 @@ TEST(Tone, SilenceAndNoiseAreNotATone) {
             ToneDetected(MeasureTone(Signal(3, 0.5, 2.5, 3000, -20, 0.001), 2, 48000, 1000, 0.1, 0.45, 0.75, 2.4)));
 }
 
+TEST(Tone, AGlitchingToneIsHeardAndCounted) {
+    // What QEMU recorded through the HAL (ANAL-179 run h): the tone with a buffer dropped every ~175 ms, so its
+    // phase jumps. Heard, with glitched slices; a clean tone has none.
+    auto clean = Signal(4, 0.5, 3.5, 1000, -30, 0.0005);
+    auto broken = clean;
+    const size_t frames = clean.size() / 2, from = 48000 * 7 / 10;
+    for (size_t i = from; i < frames; i++) {  // from 0.7 s on, 2.3 ms dropped every 175 ms
+        size_t src = i + 110 * ((i - from) / 8400 + 1);
+        broken[2 * i] = broken[2 * i + 1] = src < frames ? clean[2 * src] : 0;
+    }
+    auto c = MeasureTone(clean, 2, 48000, 1000, 0.1, 0.45, 0.75, 2.4);
+    auto b = MeasureTone(broken, 2, 48000, 1000, 0.1, 0.45, 0.75, 2.4);
+    EXPECT_TRUE(ToneDetected(c));
+    EXPECT_EQ(0, c.glitched_slices);
+    EXPECT_TRUE(ToneDetected(b));
+    EXPECT_GT(b.glitched_slices, 3);
+    EXPECT_LT(b.slice_share_min, 0.9);
+}
+
 TEST(Tone, AQuietButCleanToneIsHeard) {
     // What a laptop mic may return from its own speakers: -50 dBFS over a -70 dBFS noise floor.
     EXPECT_TRUE(
