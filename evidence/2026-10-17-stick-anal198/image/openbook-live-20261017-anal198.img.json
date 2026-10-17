@@ -1,0 +1,372 @@
+{
+ "schema": "openbook-live-image/1",
+ "image": "openbook-live-20261017-anal198.img",
+ "label": "openbook-live-20261017-anal198",
+ "bytes": 2970615808,
+ "fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
+ "kernel_release": "6.18.21-android17-5-gfbfdd65b0fd1",
+ "loader": "systemd-boot 262-1",
+ "menu_timeout": "10",
+ "epoch": 1792262801,
+ "vendor_cmdline": "firmware_class.path=/vendor/firmware log_buf_len=1M bootconfig",
+ "vendor_bootconfig": {
+  "androidboot.hardware": "openbook",
+  "androidboot.boot_devices": "pci0000:00/0000:00:02.1,pci0000:00/0000:00:08.1,pci0000:00/0000:00:08.3"
+ },
+ "vendor_ramdisk_fragments": [
+  "vendor_ramdisk00",
+  "vendor_ramdisk01"
+ ],
+ "vbmeta_digest": "1a73ee4c2445ac64db47eff5c1f10af6307bd27d5c7c28d551cd714d82cb1969",
+ "vbmeta_size": 6208,
+ "super": {
+  "original_bytes": 8589934592,
+  "live_bytes": 1411383296,
+  "partitions": {
+   "system_a": {
+    "size": 695439360,
+    "sha256": "e62ad2cf2d67e84d06983a1e02db47f791d9f8327b64df2509c5f7a3b589bf97"
+   },
+   "system_b": {
+    "size": 4677632,
+    "sha256": "4f994ed84ce4dedb9b3b1fbfdecb90c35489e8827e3451b0db9f656b16a50f48"
+   },
+   "system_ext_a": {
+    "size": 127447040,
+    "sha256": "5daa4c818f0b15899eec438d28a2f8fa37528297afab48feec5cadbb368aaf68"
+   },
+   "product_a": {
+    "size": 292503552,
+    "sha256": "c8253f248acc0e1387addf3a36821d3abda2e7411a16cb1bb4dc27d6c74f5991"
+   },
+   "vendor_a": {
+    "size": 148406272,
+    "sha256": "9c3e94d941680b5bb9d1d49cbb0dddfdac7f77edf311f4514aadddda14a0eb47"
+   },
+   "vendor_dlkm_a": {
+    "size": 53424128,
+    "sha256": "024774373cb9c09c634140ef9504bd5d9d81a9ee2006d5c4c3183a596ee0ce63"
+   },
+   "system_dlkm_a": {
+    "size": 18165760,
+    "sha256": "34185c35cb8bbccd5dfd0bb74eecb8a21e2445730411ef1583e1245628e0d617"
+   }
+  },
+  "virtual_ab": true,
+  "metadata_slots": 3
+ },
+ "entries": {
+  "live": {
+   "title": "OpenBook",
+   "in_image": true,
+   "file": "loader/entries/openbook-live.conf",
+   "bootconfig": {
+    "androidboot.hardware": "openbook",
+    "androidboot.boot_devices": "pci0000:00/0000:00:02.1,pci0000:00/0000:00:08.1,pci0000:00/0000:00:08.3",
+    "androidboot.slot_suffix": "_a",
+    "androidboot.verifiedbootstate": "orange",
+    "androidboot.vbmeta.device_state": "unlocked",
+    "androidboot.vbmeta.avb_version": "1.3",
+    "androidboot.vbmeta.hash_alg": "sha256",
+    "androidboot.vbmeta.size": "6208",
+    "androidboot.vbmeta.digest": "1a73ee4c2445ac64db47eff5c1f10af6307bd27d5c7c28d551cd714d82cb1969",
+    "androidboot.vbmeta.invalidate_on_error": "yes",
+    "androidboot.veritymode": "enforcing",
+    "androidboot.boot_part_uuid": "606cfc03-8e5d-5278-aea6-ee75a8c8b16c",
+    "androidboot.serialno": "OPENBOOKLIVE0001",
+    "androidboot.openbook.loader": "sdboot",
+    "androidboot.openbook.live": "1"
+   }
+  },
+  "logs": {
+   "title": "OpenBook - save logs to this USB stick",
+   "in_image": true,
+   "file": "loader/entries/openbook-logs.conf",
+   "bootconfig": {
+    "androidboot.hardware": "openbook",
+    "androidboot.boot_devices": "pci0000:00/0000:00:02.1,pci0000:00/0000:00:08.1,pci0000:00/0000:00:08.3",
+    "androidboot.slot_suffix": "_a",
+    "androidboot.verifiedbootstate": "orange",
+    "androidboot.vbmeta.device_state": "unlocked",
+    "androidboot.vbmeta.avb_version": "1.3",
+    "androidboot.vbmeta.hash_alg": "sha256",
+    "androidboot.vbmeta.size": "6208",
+    "androidboot.vbmeta.digest": "1a73ee4c2445ac64db47eff5c1f10af6307bd27d5c7c28d551cd714d82cb1969",
+    "androidboot.vbmeta.invalidate_on_error": "yes",
+    "androidboot.veritymode": "enforcing",
+    "androidboot.boot_part_uuid": "606cfc03-8e5d-5278-aea6-ee75a8c8b16c",
+    "androidboot.serialno": "OPENBOOKLIVE0001",
+    "androidboot.openbook.loader": "sdboot",
+    "androidboot.openbook.live": "1",
+    "androidboot.openbook.logs": "1",
+    "androidboot.selinux": "permissive"
+   }
+  },
+  "safe": {
+   "title": "OpenBook - safe graphics (Mesa GL, no ANGLE)",
+   "in_image": true,
+   "file": "loader/entries/openbook-safe.conf",
+   "bootconfig": {
+    "androidboot.hardware": "openbook",
+    "androidboot.boot_devices": "pci0000:00/0000:00:02.1,pci0000:00/0000:00:08.1,pci0000:00/0000:00:08.3",
+    "androidboot.slot_suffix": "_a",
+    "androidboot.verifiedbootstate": "orange",
+    "androidboot.vbmeta.device_state": "unlocked",
+    "androidboot.vbmeta.avb_version": "1.3",
+    "androidboot.vbmeta.hash_alg": "sha256",
+    "androidboot.vbmeta.size": "6208",
+    "androidboot.vbmeta.digest": "1a73ee4c2445ac64db47eff5c1f10af6307bd27d5c7c28d551cd714d82cb1969",
+    "androidboot.vbmeta.invalidate_on_error": "yes",
+    "androidboot.veritymode": "enforcing",
+    "androidboot.boot_part_uuid": "606cfc03-8e5d-5278-aea6-ee75a8c8b16c",
+    "androidboot.serialno": "OPENBOOKLIVE0001",
+    "androidboot.openbook.loader": "sdboot",
+    "androidboot.openbook.live": "1",
+    "androidboot.hardware.egl": "mesa"
+   }
+  },
+  "safe-logs": {
+   "title": "OpenBook - safe graphics, save logs to this USB stick",
+   "in_image": true,
+   "file": "loader/entries/openbook-safe-logs.conf",
+   "bootconfig": {
+    "androidboot.hardware": "openbook",
+    "androidboot.boot_devices": "pci0000:00/0000:00:02.1,pci0000:00/0000:00:08.1,pci0000:00/0000:00:08.3",
+    "androidboot.slot_suffix": "_a",
+    "androidboot.verifiedbootstate": "orange",
+    "androidboot.vbmeta.device_state": "unlocked",
+    "androidboot.vbmeta.avb_version": "1.3",
+    "androidboot.vbmeta.hash_alg": "sha256",
+    "androidboot.vbmeta.size": "6208",
+    "androidboot.vbmeta.digest": "1a73ee4c2445ac64db47eff5c1f10af6307bd27d5c7c28d551cd714d82cb1969",
+    "androidboot.vbmeta.invalidate_on_error": "yes",
+    "androidboot.veritymode": "enforcing",
+    "androidboot.boot_part_uuid": "606cfc03-8e5d-5278-aea6-ee75a8c8b16c",
+    "androidboot.serialno": "OPENBOOKLIVE0001",
+    "androidboot.openbook.loader": "sdboot",
+    "androidboot.openbook.live": "1",
+    "androidboot.hardware.egl": "mesa",
+    "androidboot.openbook.logs": "1",
+    "androidboot.selinux": "permissive"
+   }
+  },
+  "reset": {
+   "title": "OpenBook - start fresh (erase this stick's saved data)",
+   "in_image": true,
+   "file": "loader/entries/openbook-reset.conf",
+   "bootconfig": {
+    "androidboot.hardware": "openbook",
+    "androidboot.boot_devices": "pci0000:00/0000:00:02.1,pci0000:00/0000:00:08.1,pci0000:00/0000:00:08.3",
+    "androidboot.slot_suffix": "_a",
+    "androidboot.verifiedbootstate": "orange",
+    "androidboot.vbmeta.device_state": "unlocked",
+    "androidboot.vbmeta.avb_version": "1.3",
+    "androidboot.vbmeta.hash_alg": "sha256",
+    "androidboot.vbmeta.size": "6208",
+    "androidboot.vbmeta.digest": "1a73ee4c2445ac64db47eff5c1f10af6307bd27d5c7c28d551cd714d82cb1969",
+    "androidboot.vbmeta.invalidate_on_error": "yes",
+    "androidboot.veritymode": "enforcing",
+    "androidboot.boot_part_uuid": "606cfc03-8e5d-5278-aea6-ee75a8c8b16c",
+    "androidboot.serialno": "OPENBOOKLIVE0001",
+    "androidboot.openbook.loader": "sdboot",
+    "androidboot.openbook.live": "1",
+    "androidboot.openbook.live_reset": "1"
+   }
+  },
+  "vm": {
+   "title": "OpenBook - serial console (virtual machines)",
+   "in_image": true,
+   "file": "loader/entries/openbook-vm.conf",
+   "bootconfig": {
+    "androidboot.hardware": "openbook",
+    "androidboot.boot_devices": "pci0000:00/0000:00:02.1,pci0000:00/0000:00:08.1,pci0000:00/0000:00:08.3",
+    "androidboot.slot_suffix": "_a",
+    "androidboot.verifiedbootstate": "orange",
+    "androidboot.vbmeta.device_state": "unlocked",
+    "androidboot.vbmeta.avb_version": "1.3",
+    "androidboot.vbmeta.hash_alg": "sha256",
+    "androidboot.vbmeta.size": "6208",
+    "androidboot.vbmeta.digest": "1a73ee4c2445ac64db47eff5c1f10af6307bd27d5c7c28d551cd714d82cb1969",
+    "androidboot.vbmeta.invalidate_on_error": "yes",
+    "androidboot.veritymode": "enforcing",
+    "androidboot.boot_part_uuid": "606cfc03-8e5d-5278-aea6-ee75a8c8b16c",
+    "androidboot.serialno": "OPENBOOKLIVE0001",
+    "androidboot.openbook.loader": "sdboot",
+    "androidboot.openbook.live": "1",
+    "androidboot.lcd_density": "160"
+   }
+  },
+  "vm-reset": {
+   "title": "OpenBook - VM test: start fresh",
+   "in_image": false,
+   "file": "loader/entries/openbook-vm-reset.conf",
+   "bootconfig": {
+    "androidboot.hardware": "openbook",
+    "androidboot.boot_devices": "pci0000:00/0000:00:02.1,pci0000:00/0000:00:08.1,pci0000:00/0000:00:08.3",
+    "androidboot.slot_suffix": "_a",
+    "androidboot.verifiedbootstate": "orange",
+    "androidboot.vbmeta.device_state": "unlocked",
+    "androidboot.vbmeta.avb_version": "1.3",
+    "androidboot.vbmeta.hash_alg": "sha256",
+    "androidboot.vbmeta.size": "6208",
+    "androidboot.vbmeta.digest": "1a73ee4c2445ac64db47eff5c1f10af6307bd27d5c7c28d551cd714d82cb1969",
+    "androidboot.vbmeta.invalidate_on_error": "yes",
+    "androidboot.veritymode": "enforcing",
+    "androidboot.boot_part_uuid": "606cfc03-8e5d-5278-aea6-ee75a8c8b16c",
+    "androidboot.serialno": "OPENBOOKLIVE0001",
+    "androidboot.openbook.loader": "sdboot",
+    "androidboot.openbook.live": "1",
+    "androidboot.lcd_density": "160",
+    "androidboot.openbook.live_reset": "1"
+   }
+  },
+  "vm-logs": {
+   "title": "OpenBook - VM test: save logs",
+   "in_image": false,
+   "file": "loader/entries/openbook-vm-logs.conf",
+   "bootconfig": {
+    "androidboot.hardware": "openbook",
+    "androidboot.boot_devices": "pci0000:00/0000:00:02.1,pci0000:00/0000:00:08.1,pci0000:00/0000:00:08.3",
+    "androidboot.slot_suffix": "_a",
+    "androidboot.verifiedbootstate": "orange",
+    "androidboot.vbmeta.device_state": "unlocked",
+    "androidboot.vbmeta.avb_version": "1.3",
+    "androidboot.vbmeta.hash_alg": "sha256",
+    "androidboot.vbmeta.size": "6208",
+    "androidboot.vbmeta.digest": "1a73ee4c2445ac64db47eff5c1f10af6307bd27d5c7c28d551cd714d82cb1969",
+    "androidboot.vbmeta.invalidate_on_error": "yes",
+    "androidboot.veritymode": "enforcing",
+    "androidboot.boot_part_uuid": "606cfc03-8e5d-5278-aea6-ee75a8c8b16c",
+    "androidboot.serialno": "OPENBOOKLIVE0001",
+    "androidboot.openbook.loader": "sdboot",
+    "androidboot.openbook.live": "1",
+    "androidboot.lcd_density": "160",
+    "androidboot.openbook.logs": "1",
+    "androidboot.selinux": "permissive",
+    "androidboot.openbook.logs_timeout": "300"
+   }
+  }
+ },
+ "esp_partuuid": "606cfc03-8e5d-5278-aea6-ee75a8c8b16c",
+ "partitions": [
+  {
+   "name": "EFI",
+   "start": 2048,
+   "sectors": 524288,
+   "type": "ef00",
+   "uuid": "606cfc03-8e5d-5278-aea6-ee75a8c8b16c"
+  },
+  {
+   "name": "misc",
+   "start": 526336,
+   "sectors": 8192,
+   "type": "8300",
+   "uuid": "dddfe892-774c-5962-ab99-4f3e62ef717a"
+  },
+  {
+   "name": "boot_a",
+   "start": 534528,
+   "sectors": 131072,
+   "type": "8300",
+   "uuid": "851381d8-5274-5e5f-95aa-517c4ef4c088"
+  },
+  {
+   "name": "init_boot_a",
+   "start": 665600,
+   "sectors": 16384,
+   "type": "8300",
+   "uuid": "22bf263e-844e-568d-947a-ee620eadba2d"
+  },
+  {
+   "name": "vendor_boot_a",
+   "start": 681984,
+   "sectors": 131072,
+   "type": "8300",
+   "uuid": "14d8463f-25f3-5f92-b380-1c3b23113b1b"
+  },
+  {
+   "name": "vbmeta_a",
+   "start": 813056,
+   "sectors": 2048,
+   "type": "8300",
+   "uuid": "185eb97f-bb6a-52c8-adfb-e7b3a338f359"
+  },
+  {
+   "name": "metadata",
+   "start": 815104,
+   "sectors": 131072,
+   "type": "8300",
+   "uuid": "01ec9bb1-980f-5369-a150-a89e179fa2f6"
+  },
+  {
+   "name": "super",
+   "start": 946176,
+   "sectors": 2756608,
+   "type": "8300",
+   "uuid": "2f904543-98dd-5e26-aa35-7e0a073ae9ce"
+  },
+  {
+   "name": "userdata",
+   "start": 3702784,
+   "sectors": 2097152,
+   "type": "8300",
+   "uuid": "61a8bc17-d96f-547d-a0c9-6b2e64ca68ee"
+  }
+ ],
+ "verified_sha256": {
+  "EFI": "b6f9516345f19bfa232377f71cfe4e034809fcc1d7396368080ff76d004f69b4",
+  "boot_a": "f6fc1a5892cba10d24ba3c250f5abe4115ba0f7c0556a653995b41373bfbcec8",
+  "init_boot_a": "24b500503f7ee26d91a7e98d135c8c7149329c064c2e33eb72cadbffa52fa4a7",
+  "vendor_boot_a": "c76d7406047a4c167a8e79a5b877bc1aea6488520c13783b0fc2d8e4af1c9717",
+  "vbmeta_a": "b6487f6c520b3d66d543ae40f2e0a9bb658ef8061bc8687615bb5674cddbf8b5",
+  "super": "58d09061b02635b076b69cb0db721b43a748251fb03e929f9c0c4d85a090e9c6"
+ },
+ "firmware": {
+  "files": 139,
+  "licence_files": [
+   "LICENSE.wireless-regdb",
+   "LICENSES/LICENCE.mediatek",
+   "LICENSES/LICENCE.rtlwifi_firmware.txt",
+   "LICENSES/LICENSE.amdgpu",
+   "LICENSES/LICENSE.amdnpu",
+   "LICENSES/LICENSE.cirrus"
+  ],
+  "without_licence": []
+ },
+ "esp_files": [
+  "EFI/BOOT/BOOTX64.EFI",
+  "LICENSES/Apache-2.0.txt",
+  "LICENSES/GPL-2.0-only.txt",
+  "LICENSES/LGPL-2.1-or-later.txt",
+  "LICENSES/README.txt",
+  "LICENSES/firmware/FILES.tsv",
+  "LICENSES/firmware/LICENCE.mediatek",
+  "LICENSES/firmware/LICENCE.rtlwifi_firmware.txt",
+  "LICENSES/firmware/LICENSE.amdgpu",
+  "LICENSES/firmware/LICENSE.amdnpu",
+  "LICENSES/firmware/LICENSE.cirrus",
+  "LICENSES/firmware/LICENSE.wireless-regdb",
+  "loader/entries/openbook-live.conf",
+  "loader/entries/openbook-logs.conf",
+  "loader/entries/openbook-reset.conf",
+  "loader/entries/openbook-safe-logs.conf",
+  "loader/entries/openbook-safe.conf",
+  "loader/entries/openbook-vm.conf",
+  "loader/loader.conf",
+  "openbook/MANIFEST.json",
+  "openbook/PROVENANCE.txt",
+  "openbook/README.txt",
+  "openbook/a/bootconfig-live.img",
+  "openbook/a/bootconfig-logs.img",
+  "openbook/a/bootconfig-reset.img",
+  "openbook/a/bootconfig-safe-logs.img",
+  "openbook/a/bootconfig-safe.img",
+  "openbook/a/bootconfig-vm.img",
+  "openbook/a/kernel",
+  "openbook/a/live.img",
+  "openbook/a/ramdisk.img",
+  "openbook/a/vendor_ramdisk.img",
+  "openbook/install/super-metadata.img"
+ ],
+ "live_init_sha256": "6d292e3da851ee5440b9dbeb4891dd19fd6e02d65ba43f26b0466b281cef0e61"
+}
