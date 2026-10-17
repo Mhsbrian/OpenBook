@@ -1,0 +1,28 @@
+# Native-bridge activity in this G14 session (ANAL-200), from the host copy stick-20261017T122351Z/live-001 (read-only).
+# Persisted logcat (prior-boots.tar.gz) covers both boots of the session: the default (enforcing) boot, then "save logs".
+
+## zygote started with the bridge, once per boot
+10-17 12:15:11.216590  root   974   974 I zygote64: option[47]=-XX:NativeBridge=libberberis_arm64.so
+10-17 12:20:21.817848  root   973   973 I zygote64: option[47]=-XX:NativeBridge=libberberis_arm64.so
+
+## berberis log lines by process: the large count is openbook_bridge_check (run by openbook-hwtest in the save-logs boot); the single lines are zygote's option above
+     67 root 2679
+      1 root 973
+      1 root 974
+
+## apps brought to the foreground in either boot (top-activity): all built-in x86_64 apps, no arm64 app
+      1 com.android.gallery3d/u0a69
+      1 com.android.provision/u0a79
+      2 com.android.settings/1000
+      1 org.chromium.webview_shell/u0a65
+
+## enforcing-mode denials (permissive=0, default boot) naming binfmt, berberis, a native-bridge path or init mounton: 0
+## save-logs boot dmesg.txt (from 0 s; permissive still logs denials): lines naming binfmt: 0, denials naming mounton: 0
+
+## save-logs boot: first berberis lines of the self-check (logcat-final.txt, 67 in all)
+10-17 12:21:24.243  2679  2679 D berberis: berberis: trans#1 pc=0x214000 size=5 JIT jit=1 interp=0 avg=5
+10-17 12:21:24.244  2679  2679 D berberis: berberis: trans#2 pc=0x214014 size=29 JIT jit=2 interp=0 avg=17
+10-17 12:21:24.244  2679  2679 D berberis: berberis: trans#3 pc=0x214094 size=19 JIT jit=3 interp=0 avg=17
+10-17 12:21:24.244  2679  2679 D berberis: berberis: trans#4 pc=0x2140d8 size=2 JIT jit=4 interp=0 avg=13
+10-17 12:21:24.244  2679  2679 D berberis: berberis: trans#5 pc=0x2140e0 size=4 JIT jit=5 interp=0 avg=11
+10-17 12:21:24.244  2679  2679 D berberis: berberis: trans#6 pc=0x2140f0 size=14 JIT jit=6 interp=0 avg=12

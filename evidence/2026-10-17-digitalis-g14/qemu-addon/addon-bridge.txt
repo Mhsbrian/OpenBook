@@ -1,0 +1,19 @@
+14:32:54 start: parts [check probe bench], CoreMark 3 round(s) of 600000 iterations
+14:32:58 check: exit 0, 4 check(s) ok
+14:32:58 probe x86_64: install: Success
+14:33:01 probe x86_64: PROBE_DONE pass=18 fail=0 skip=2, primary ABI x86_64, bridge maps 4
+14:33:02 probe arm64: install: Success
+14:33:05 probe arm64: PROBE_DONE pass=18 fail=2 skip=0, primary ABI arm64-v8a, bridge maps 4
+14:33:21 bench exe x86_64 round 1: 38928.177512 it/s in 15.413000 s valid=yes
+14:33:39 bench apk x86_64 round 1: 39719.316828 it/s in 15.106000 s valid=yes
+14:34:27 bench exe arm64-v8a round 1: 12672.397406 it/s in 47.347000 s valid=yes
+14:35:12 bench apk arm64-v8a round 1: 13508.949679 it/s in 44.415000 s valid=yes
+14:35:28 bench exe x86_64 round 2: 37308.792439 it/s in 16.082000 s valid=yes
+14:35:46 bench apk x86_64 round 2: 38885.288399 it/s in 15.430000 s valid=yes
+14:36:31 bench exe arm64-v8a round 2: 13511.991893 it/s in 44.405000 s valid=yes
+14:37:13 bench apk arm64-v8a round 2: 14446.343871 it/s in 41.533000 s valid=yes
+14:37:32 bench exe x86_64 round 3: 31326.685115 it/s in 19.153000 s valid=yes
+14:37:51 bench apk x86_64 round 3: 37460.198539 it/s in 16.017000 s valid=yes
+14:38:30 bench exe arm64-v8a round 3: 15299.487467 it/s in 39.217000 s valid=yes
+14:39:09 bench apk arm64-v8a round 3: 15545.249631 it/s in 38.597000 s valid=yes
+14:39:09 done: 437.97 s uptime
