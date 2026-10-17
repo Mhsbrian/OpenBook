@@ -1,0 +1,378 @@
+{
+"descriptor": "scripts/power/touchpad/elan-04f3-3315.rdesc.hex (752 bytes, from the anal178c save-logs boot's HIDDESC)",
+"report_bytes": {
+"input:1": 9,
+"feature:14": 5,
+"input:84": 42,
+"feature:2": 2,
+"feature:7": 3,
+"feature:6": 257,
+"feature:13": 5,
+"feature:12": 897,
+"feature:11": 131,
+"feature:3": 3,
+"feature:5": 3
+},
+"touchpad_input_report_fields": [
+{
+"id": 84,
+"bit": 8,
+"size": 1,
+"usage": "0x90001",
+"lmin": 0,
+"lmax": 1,
+"unit": "0x0",
+"uexp": 0
+},
+{
+"id": 84,
+"bit": 11,
+"size": 1,
+"usage": "0xff010001",
+"lmin": 0,
+"lmax": 1,
+"unit": "0x0",
+"uexp": 0
+},
+{
+"id": 84,
+"bit": 12,
+"size": 4,
+"usage": "0xd0054",
+"lmin": 0,
+"lmax": 15,
+"unit": "0x0",
+"uexp": 0
+},
+{
+"id": 84,
+"bit": 16,
+"size": 16,
+"usage": "0xd0056",
+"lmin": 0,
+"lmax": 65535,
+"unit": "0x1001",
+"uexp": 12
+},
+{
+"id": 84,
+"bit": 32,
+"size": 1,
+"usage": "0xd0047",
+"lmin": 0,
+"lmax": 1,
+"unit": "0x1001",
+"uexp": 12
+},
+{
+"id": 84,
+"bit": 33,
+"size": 1,
+"usage": "0xd0042",
+"lmin": 0,
+"lmax": 1,
+"unit": "0x1001",
+"uexp": 12
+},
+{
+"id": 84,
+"bit": 36,
+"size": 4,
+"usage": "0xd0051",
+"lmin": 0,
+"lmax": 15,
+"unit": "0x1001",
+"uexp": 12
+},
+{
+"id": 84,
+"bit": 40,
+"size": 16,
+"usage": "0x10030",
+"lmin": 0,
+"lmax": 3905,
+"unit": "0x11",
+"uexp": 13
+},
+{
+"id": 84,
+"bit": 56,
+"size": 16,
+"usage": "0x10031",
+"lmin": 0,
+"lmax": 2382,
+"unit": "0x11",
+"uexp": 13
+},
+{
+"id": 84,
+"bit": 72,
+"size": 1,
+"usage": "0xd0047",
+"lmin": 0,
+"lmax": 1,
+"unit": "0x11",
+"uexp": 13
+},
+{
+"id": 84,
+"bit": 73,
+"size": 1,
+"usage": "0xd0042",
+"lmin": 0,
+"lmax": 1,
+"unit": "0x11",
+"uexp": 13
+},
+{
+"id": 84,
+"bit": 76,
+"size": 4,
+"usage": "0xd0051",
+"lmin": 0,
+"lmax": 15,
+"unit": "0x11",
+"uexp": 13
+},
+{
+"id": 84,
+"bit": 80,
+"size": 16,
+"usage": "0x10030",
+"lmin": 0,
+"lmax": 3905,
+"unit": "0x11",
+"uexp": 13
+},
+{
+"id": 84,
+"bit": 96,
+"size": 16,
+"usage": "0x10031",
+"lmin": 0,
+"lmax": 2382,
+"unit": "0x11",
+"uexp": 13
+},
+{
+"id": 84,
+"bit": 112,
+"size": 1,
+"usage": "0xd0047",
+"lmin": 0,
+"lmax": 1,
+"unit": "0x11",
+"uexp": 13
+},
+{
+"id": 84,
+"bit": 113,
+"size": 1,
+"usage": "0xd0042",
+"lmin": 0,
+"lmax": 1,
+"unit": "0x11",
+"uexp": 13
+},
+{
+"id": 84,
+"bit": 116,
+"size": 4,
+"usage": "0xd0051",
+"lmin": 0,
+"lmax": 15,
+"unit": "0x11",
+"uexp": 13
+},
+{
+"id": 84,
+"bit": 120,
+"size": 16,
+"usage": "0x10030",
+"lmin": 0,
+"lmax": 3905,
+"unit": "0x11",
+"uexp": 13
+},
+{
+"id": 84,
+"bit": 136,
+"size": 16,
+"usage": "0x10031",
+"lmin": 0,
+"lmax": 2382,
+"unit": "0x11",
+"uexp": 13
+},
+{
+"id": 84,
+"bit": 152,
+"size": 1,
+"usage": "0xd0047",
+"lmin": 0,
+"lmax": 1,
+"unit": "0x11",
+"uexp": 13
+},
+{
+"id": 84,
+"bit": 153,
+"size": 1,
+"usage": "0xd0042",
+"lmin": 0,
+"lmax": 1,
+"unit": "0x11",
+"uexp": 13
+},
+{
+"id": 84,
+"bit": 156,
+"size": 4,
+"usage": "0xd0051",
+"lmin": 0,
+"lmax": 15,
+"unit": "0x11",
+"uexp": 13
+},
+{
+"id": 84,
+"bit": 160,
+"size": 16,
+"usage": "0x10030",
+"lmin": 0,
+"lmax": 3905,
+"unit": "0x11",
+"uexp": 13
+},
+{
+"id": 84,
+"bit": 176,
+"size": 16,
+"usage": "0x10031",
+"lmin": 0,
+"lmax": 2382,
+"unit": "0x11",
+"uexp": 13
+},
+{
+"id": 84,
+"bit": 192,
+"size": 1,
+"usage": "0xd0047",
+"lmin": 0,
+"lmax": 1,
+"unit": "0x11",
+"uexp": 13
+},
+{
+"id": 84,
+"bit": 193,
+"size": 1,
+"usage": "0xd0042",
+"lmin": 0,
+"lmax": 1,
+"unit": "0x11",
+"uexp": 13
+},
+{
+"id": 84,
+"bit": 196,
+"size": 4,
+"usage": "0xd0051",
+"lmin": 0,
+"lmax": 15,
+"unit": "0x11",
+"uexp": 13
+},
+{
+"id": 84,
+"bit": 200,
+"size": 16,
+"usage": "0x10030",
+"lmin": 0,
+"lmax": 3905,
+"unit": "0x11",
+"uexp": 13
+},
+{
+"id": 84,
+"bit": 216,
+"size": 16,
+"usage": "0x10031",
+"lmin": 0,
+"lmax": 2382,
+"unit": "0x11",
+"uexp": 13
+},
+{
+"id": 84,
+"bit": 232,
+"size": 16,
+"usage": "0xff010002",
+"lmin": 0,
+"lmax": 65535,
+"unit": "0x11",
+"uexp": 13
+},
+{
+"id": 84,
+"bit": 248,
+"size": 16,
+"usage": "0xff010003",
+"lmin": 0,
+"lmax": 65535,
+"unit": "0x11",
+"uexp": 13
+},
+{
+"id": 84,
+"bit": 264,
+"size": 16,
+"usage": "0xff010004",
+"lmin": 0,
+"lmax": 65535,
+"unit": "0x11",
+"uexp": 13
+},
+{
+"id": 84,
+"bit": 280,
+"size": 16,
+"usage": "0xff010005",
+"lmin": 0,
+"lmax": 65535,
+"unit": "0x11",
+"uexp": 13
+},
+{
+"id": 84,
+"bit": 296,
+"size": 16,
+"usage": "0xff010006",
+"lmin": 0,
+"lmax": 65535,
+"unit": "0x11",
+"uexp": 13
+},
+{
+"id": 84,
+"bit": 312,
+"size": 16,
+"usage": "0xff010007",
+"lmin": 0,
+"lmax": 65535,
+"unit": "0x11",
+"uexp": 13
+},
+{
+"id": 84,
+"bit": 328,
+"size": 8,
+"usage": "0xff010014",
+"lmin": 0,
+"lmax": 255,
+"unit": "0x11",
+"uexp": 13
+}
+]
+}

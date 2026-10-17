@@ -13,9 +13,9 @@
 | Kernel (GKI android17-6.18 + 138 AMD modules) | Boots our Android 17 | **Yes:** 235 modules, 0 failed | `evidence/2026-10-16-g14-hwcheck/` |
 | Live USB boot, desktop | 39/39 live checks | **The normal enforcing boot reached the desktop at 28 s** (owner's `anal178c` run, 2026-10-17), and earlier "save logs" boots did too. No app crashed; 23 denials of 5 kinds | `evidence/2026-10-17-g14-desktop/` (the enforcing run lands with PR #52) |
 | Graphics (RADV, radeonsi, ANGLE, minigbm, drm_hwcomposer) | Passing; dEQP pre-check on a Radeon 610M | **Desktop renders.** drm_hwcomposer falls back to GPU composition (plane limit). dEQP not run yet | `evidence/2026-10-17-graphics-cts/` |
-| Touchpad, keyboard | Yes | **Yes** | `evidence/2026-10-16-installer/g14-live/` |
-| Lid, power button, hotkeys, battery health | Yes | Not tested | `evidence/2026-10-17-power-input/` |
-| Sleep | s2idle in a VM | **s2idle works; deep sleep (S0i3) never reached.** Hypothesis: the driverless PSP | `docs/power-input.md` |
+| Touchpad, keyboard | Yes | **Yes.** The touchpad's "Clock changed backwards" errors (every 40 ms of finger contact) are explained: the kernel autorepeats `BTN_TOOL_FINGER`. Fixed in Android (EventHub) and shown in QEMU with the laptop's own HID descriptor; on the laptop with the next stick | `evidence/2026-10-16-installer/g14-live/`, `evidence/2026-10-17-power-input/g14-sessions/` |
+| Lid, power button, hotkeys, battery health | Yes | **Config in force, battery health works:** lid and power-button settings, hotkey layouts, the health HAL (charge counter, 88.7 % state of health, GOOD) and the power HAL's EPP changes, all on the laptop. Closing the lid was not tried yet | `evidence/2026-10-17-power-input/g14-sessions/` |
+| Sleep | s2idle in a VM | **s2idle works, under Android too** (screen timeout → s2idle → key wake, display and Wi-Fi back); **deep sleep (S0i3) never reached.** Hypothesis: the driverless PSP | `docs/power-input.md` §7 |
 | Wi-Fi, Bluetooth, audio | Yes (WPA2, iperf3, tone through ALSA) | **Wi-Fi connected to the internet** in the enforcing boot; Bluetooth on. ANAL-179 is reading the full results | `evidence/2026-10-17-g14-audio-net/` |
 | ARM apps (Digitalis, built from source) | 14/16 ARM-only apps; works in enforcing | Not tested | `evidence/2026-10-17-digitalis-a17/`, `evidence/2026-10-17-g14-combined/` |
 | Installer | **Wizard 25/25, engine 53/53:** installs to a virtual NVMe disk that then boots by itself into OpenBook setup (SELinux enforcing) | Live USB boots; the wizard has not run yet | `evidence/2026-10-17-installer-wizard/` |
@@ -47,7 +47,7 @@
 |---|---|---|---|
 | ANAL-176 G14 desktop and stability | **Running** | Finish reading `anal176s`; PR #52 (live-stick safety, no boot lock screen, no overlay planes). Then the remaining denials | — |
 | ANAL-177 graphics conformance | In review | Read the G14 dEQP/ANGLE results; decide Vulkan 1.1 or 1.4 (the 610M favours 1.4); add matrix rows | The graphics-check boot on ANAL-192's stick |
-| ANAL-178 input and power | **Reading results** | Touchpad, lid, battery and EPP facts from the two sessions; then the S0i3 fix (kernel lane), the touchpad clock, the skin sensor | The power-check boot (or the Linux `linux-s2idle.py` run) on ANAL-192's stick |
+| ANAL-178 input and power | In review (PR, see History) | Results read; touchpad clock fixed (EventHub). Then the S0i3 fix (kernel lane) from the power check | On ANAL-192's stick: the power-check boot (or the Linux `linux-s2idle.py` run), a lid close, battery saver, touchpad use (`docs/power-input.md` §7.5) |
 | ANAL-179 Wi-Fi, Bluetooth, audio | **Reading results** | Wi-Fi, Bluetooth and audio verdicts from the two sessions; fix what fails; speaker tuning | — |
 | ANAL-200 ARM bridge | **Reading results** | Bridge verdicts on real Zen 5; record the G14 row | The probe and CoreMark step on ANAL-192's stick; the upstream-report OK |
 | ANAL-191 installer wizard and engine | In review | The G14 dry run, on ANAL-192's stick. Open: `openbook-bootsync`, the text hardware report, a firmware boot entry (our GKI has no `EFIVAR_FS`: a kernel-lane decision) | — |
@@ -70,6 +70,13 @@
 **Build host:** one AOSP build at a time (`flock ~/anybook/aosp/.lane.lock`, taken by `scripts/aosp-docker.sh`), because builds peak at about 50 GB of the 61 GB RAM. Builds and images are in `docs/BUILD.md`; the live image and the owner checklists are in `docs/installer.md` §11.
 
 ## History
+
+### 2026-10-17: G14 results for power and input; the touchpad clock fixed (ANAL-178)
+- **Read** the owner's `anal178c` and `anal176s` sessions from ANAL-176's host copies (`docs/power-input.md` §7, `evidence/2026-10-17-power-input/g14-sessions/`).
+- **Touchpad.** The gestures library's "Clock changed backwards" every 40 ms comes from the kernel autorepeating `BTN_TOOL_FINGER`. A vendor usage page in the ELAN descriptor turns on `EV_REP`, and the repeat frames carry no `MSC_TIMESTAMP`. Fix: EventHub turns kernel key repeat off on touchpads (`aosp/patches/frameworks/native`). QEMU, with the laptop's own descriptor on `uhid`: 173 repeat frames and 172 errors before the fix, 0 and 0 after.
+- **Shown on the laptop:** the lid and power-button config, the hotkey layouts, the health HAL (charge counter, state of health 88.7 %, GOOD), the power HAL's EPP changes, and Android's own s2idle (woken by a key; display and Wi-Fi back). S0i3 is still missed, and the lid was not closed.
+- **For ANAL-192's stick:** the power-check boot (or the Linux run), a lid close, battery saver, 20 s of touchpad use in "save logs". New report verdicts read them: `lid_events`, `epp_modes`, `health_hal`, `touchpad_clock_warnings`.
+
 
 ### 2026-10-17: installer merged; one owner stick from here on (ANAL-159)
 - **Merged** #53 (ANAL-191) after checks.

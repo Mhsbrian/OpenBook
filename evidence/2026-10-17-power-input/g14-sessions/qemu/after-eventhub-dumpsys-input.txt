@@ -1,0 +1,45 @@
+    6: OpenBook test ELAN 04F3:3315 Touchpad
+      Classes: TOUCH | TOUCH_MT | TOUCHPAD
+      Path: /dev/input/event5
+      Enabled: true
+      Descriptor: 785990bdb05cb985600f2e6f32187b00d57e1a43
+      Location: uhid-openbook-test
+      ControllerNumber: 0
+      UniqueId: 
+      Identifier: bus=0x0018, vendor=0x04f3, product=0x3315, version=0x0100, bluetoothAddress=<not set>
+      KeyLayoutFile: 
+      KeyCharacterMapFile: 
+      LanguageTag: 
+      LayoutType: 
+      ConfigurationFile: /vendor/usr/idc/Vendor_04f3_Product_3315.idc
+      VideoDevice: <none>
+      SysfsDevicePath: /sys/devices/virtual/misc/uhid/0018:04F3:3315.0003
+      KeyState (pressed): <none>
+      AbsState: ABS_X=2850, ABS_Y=1190, ABS_MT_SLOT=0, ABS_MT_POSITION_X=2850, ABS_MT_POSITION_Y=1190, ABS_MT_TOOL_TYPE=0, ABS_MT_TRACKING_ID=-1
+    5: OpenBook test ELAN 04F3:3315 Mouse
+      Classes: CURSOR
+      Path: /dev/input/event4
+      Enabled: true
+      Descriptor: 3de4f455fe5afd5606484e333132d008c9530a48
+      Location: uhid-openbook-test
+      ControllerNumber: 0
+      UniqueId: 
+      Identifier: bus=0x0018, vendor=0x04f3, product=0x3315, version=0x0100, bluetoothAddress=<not set>
+      KeyLayoutFile: 
+      KeyCharacterMapFile: 
+      LanguageTag: 
+      LayoutType: 
+      ConfigurationFile: /vendor/usr/idc/Vendor_04f3_Product_3315.idc
+      VideoDevice: <none>
+      SysfsDevicePath: /sys/devices/virtual/misc/uhid/0018:04F3:3315.0003
+      KeyState (pressed): <none>
+    1: QEMU QEMU USB Tablet
+      Classes: ROTARY_ENCODER | EXTERNAL
+      Path: /dev/input/event3
+      Enabled: true
+      Descriptor: 916efe6f642ae0e7794706c6c27e0ec4edb5f92e
+      Location: usb-0000:00:01.0-3/input0
+--
+  Device 7: OpenBook test ELAN 04F3:3315 Touchpad
+    EventHub Devices: [ 6 ] 
+    Generation: 40

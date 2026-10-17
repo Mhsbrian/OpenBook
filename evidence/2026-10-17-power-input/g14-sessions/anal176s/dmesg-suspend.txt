@@ -1,0 +1,11 @@
+# anal176s: the save-logs boot's suspend lines (dmesg.txt)
+[    0.464308] ACPI: EC: interrupt blocked
+[    0.619411] ACPI: EC: interrupt unblocked
+[    9.168046] healthd: batteryChargeTimeToFullNowPath. not found
+[    9.168047] healthd: batteryStateOfHealthPath not found
+[    9.168047] healthd: batteryHealthStatusPath not found
+[    9.168048] healthd: batteryManufacturingDatePath not found
+[   14.748875] healthd: battery l=30 v=14735 t=0.0 h=1 st=3 c=1989000 fc=4063000 cc=0 chg=
+[   16.011156] healthd: battery l=30 v=14748 t=0.0 h=1 st=3 c=1857000 fc=4063000 cc=0 chg=
+[   16.027128] healthd: battery l=30 v=14748 t=0.0 h=1 st=3 c=1857000 fc=4063000 cc=0 chg=
+[  119.936766] healthd: battery l=30 v=14745 t=0.0 h=1 st=3 c=1125000 fc=4063000 cc=0 chg=
