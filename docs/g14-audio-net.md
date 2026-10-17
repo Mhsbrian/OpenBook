@@ -65,6 +65,11 @@ Unset (another branch's image, or a VM without sound), nothing changes. Turning 
 
 **SELinux, found in QEMU (C):** the HAL's stream message queues are memfds, which on this kernel carry their creator's tmpfs type; denied writing its own queues, the HAL failed every stream open, AudioPolicy had no output and every AudioTrack got `NO_INIT`. `hal_audio_default` now gets its own tmpfs type, which audioserver may map. These are the "audio HAL writing a tmpfs memfd" denials ANAL-199 listed as harmless: they were, while nothing played.
 
+**SoundPool (found by ANAL-198 once Codec2 decoded; C, QEMU, enforcing).** SoundPool hands AudioFlinger a static AudioTrack whose samples are in a memfd the app created: SystemUI's lock and unlock sounds, and any app's SoundPool. On this kernel that memfd is an `appdomain_tmpfs` file with the app's categories (`s0:c512,c768`). Its fd transfer to `audioserver` was denied, so SystemUI got "AudioFlinger could not create track" and no sound played.
+- The fix is one TE rule, `allow audioserver appdomain_tmpfs:file { getattr map read write }` (`sepolicy/system_ext/audioserver.te`). It is the tmpfs-file form of AOSP's `audioserver appdomain:memfd_file` grant, and AOSP gives `mediaserver`, `system_server` and `mediaextractor` the same rule.
+- MLS needs no change: AOSP's `private/mls` exempts `appdomain_tmpfs` from its read and write constraints, and only `open` is limited by category; the fd arrives already open.
+- In QEMU, the unlock sound at boot and on unlocking now reaches the codec (two 0.10–0.15 s sounds, the length of `Unlock.ogg`). Before the fix, nothing did, and there were 2 denials (`evidence/2026-10-17-soundpool/`).
+
 ## 6. Tests
 
 | Tool | What it does |
@@ -76,6 +81,7 @@ Unset (another branch's image, or a VM without sound), nothing changes. Turning 
 | `live-report.py` | turns the `HWTEST` lines into verdicts: `wifi_regulatory`, `wifi_scan`, `wifi_pno`, `wifi_connected`, `wifi_dhcp`, `wifi_gateway_ping`, `wifi_internet`, `wifi_iperf3`, `bt_enabled`, `bt_paired`, `audio_card`, `audio_loopback_alsa`, `audio_loopback_android`, `audio_android_clean` (heard, and the HAL padded, dropped and skipped nothing meanwhile), `audio_routes` (Speaker and Built-In Mic ports, jack input devices, wired or A2DP output connected, the HAL's pacing) |
 | `openbook-hwtest bridge` (ANAL-200) | the arm64 native bridge: its configuration, then `/system/bin/arm64/openbook_bridge_check` through the translator. Verdicts `bridge_config`, `bridge_exec`, `bridge_id_registers`, `bridge_fp_estimates`, `bridge_int_simd`; `all` runs it first (`docs/digitalis.md`) |
 | `scripts/audio-net-qemu.sh` | the QEMU rig (§8): an HDA card recorded to a WAV file, and two `mac80211_hwsim` radios with an access point on one |
+| `scripts/installer/expect-g14-soundpool.json` | QEMU, with `QEMU_AUDIO=1 scripts/g14-qemu.sh`: SystemUI's unlock sound at boot, then with the lock screen turned on for the test, sleep, wake and dismiss. It reports the SoundPool denials and track failures; `wav-tone.py --activity` then lists what reached the codec |
 
 The tone counts as heard when 1 kHz comes back at least 20 dB above its level before the tone and carries at least a fifth of the energy, averaged over 50 ms slices; slices under 90% are counted as glitches (`glitched_slices`), which is how dropped buffers show (`openbook_audio_logic_test`, 8 host tests, C).
 
@@ -249,6 +255,7 @@ PR #52 is merged, and ANAL-192 builds one integrated image from `main`. That ima
 | App audio under enforcing | in the default entry: play a video in the browser | sound, with no `untrusted_app_29 audioserver_tmpfs` denial (PR #52's rules) |
 | Headphone jack | in the default entry: plug in wired headphones while sound plays, then unplug | the sound moves to the headphones and back; logcat `ACTION_HEADSET_PLUG ... plugged in: true`; `audio_routes` `wired_connected` if they are still plugged in at "save logs" |
 | Speakers by ear | in the default entry: Settings → Sound → a ringtone | both speakers (the CS35L56 pair) audible |
+| UI sounds (SoundPool) under enforcing | none: SystemUI plays the unlock sound at every boot | no `audioserver appdomain_tmpfs` denial and no "AudioFlinger could not create track" in the default boot's logs |
 
 The Bluetooth device can stay paired. The loopback no longer follows the default route, and `audio_routes` reports `a2dp_connected`.
 
