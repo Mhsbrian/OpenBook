@@ -24,14 +24,14 @@
 
 ### Running now
 
-- **ANAL-198 (kernel lane) delivered #64 (in review).** It adds the system DMA-BUF heap and fixes two product bugs behind it (Codec2 HAL selection, Codec2 memfds under SELinux), so media decodes in QEMU. It also ships `efivarfs` as a vendor module, with Google's GKI configuration unchanged. Writing variables still needs installer SELinux policy (ANAL-191). The next stick should be built after #64 merges. Everything else has delivered.
-- **The owner's stick is `openbook-live-20261017-anal192c`** (ANAL-192, PR #62): built from `main` `3908b14`, with the installer, PR #52's fixes, #57's touchpad fix, #58's audio HAL fix, the power check and the ARM apps check (sha256 `dd1ebe20…`). In QEMU: live 40/40, wizard 25/25, installer end to end 79/79. The three-boot checklist is ANAL-192's comment of 2026-10-17 17:09 and `docs/installer.md` §13.
-- **After that session:** ANAL-192 builds the next stick from `main` with Vulkan 1.4 (PR #61) and ANAL-177's second graphics run. Results from `anal192c` go to ANAL-176, ANAL-178, ANAL-179, ANAL-191 and ANAL-200.
+- **ANAL-198 (kernel lane): #64 merged.** It adds the system DMA-BUF heap and fixes two product bugs behind it (Codec2 HAL selection, Codec2 memfds under SELinux), so media decodes in QEMU. It also ships `efivarfs` as a vendor module, with Google's GKI configuration unchanged. Writing variables still needs installer SELinux policy (ANAL-191).
+- **The owner's stick is now `openbook-live-20261017-anal198`** (built on the owner's request after #64; `docs/installer.md` §13.11). It comes from `main` `2d90741` and has everything `anal192c` had, plus Vulkan 1.4 (#61), the #64 kernel and media fixes, and ANAL-177's graphics check (sha256 `3b405d08…`). In QEMU: live 40/40, wizard 25/25, installer end to end 78/78, all four add-ons, and the media check. It replaces `anal192c`. The checklist is `anal192c`'s three boots (§13.6) plus a fourth, the graphics check.
+- **After that session:** results go to ANAL-176, ANAL-177, ANAL-178, ANAL-179, ANAL-191 and ANAL-200.
 - **Merged today since 14:45:** #56 (ANAL-200, the bridge on Zen 5), #57 (ANAL-178, power and input on the G14, the touchpad fix), #58 (ANAL-179, audio, Wi-Fi and Bluetooth on the G14, the codec-paced audio HAL).
 
 ### Waiting on the owner
 
-1. **Write `openbook-live-20261017-anal192c` and run its checklist** (`docs/installer.md` §13.6): three boots (the default entry, "save logs", the ARM apps check), then reply "stick attached" on ANAL-192. It replaces every earlier stick. A spare drive for the real install (§13.7) waits until you name one by `/dev/disk/by-id`.
+1. **Write `openbook-live-20261017-anal198` and run its checklist** (`docs/installer.md` §13.11): `anal192c`'s three boots (the default entry, "save logs", the ARM apps check) plus "OpenBook graphics check", then reply "stick attached" on ANAL-192. It replaces every earlier stick. A spare drive for the real install (§13.7) waits until you name one by `/dev/disk/by-id`.
    Reply "stick attached" on ANAL-192 only; the coordinator routes each issue to its part. Ringtone sound is expected to fail until ANAL-198's heap fix ships on the next stick, along with Vulkan 1.4 and ANAL-177's second graphics run.
    Optional and independent of the stick, for S0i3: on the laptop's own Linux run `sudo python3 scripts/power/linux-s2idle.py --amd-s2idle` (about 5 min; `docs/power-input.md` §7.6) and attach the tarball to ANAL-178.
 2. **Decisions:** none blocks running work.

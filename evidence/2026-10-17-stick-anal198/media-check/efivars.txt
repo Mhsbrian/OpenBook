@@ -1,0 +1,22 @@
+mount_rc=0
+efivarfs /sys/firmware/efi/efivars efivarfs rw,relatime 0 0
+37
+Boot0000-8be4df61-93ca-11d2-aa0d-00e098032b8c
+Boot0001-8be4df61-93ca-11d2-aa0d-00e098032b8c
+Boot0002-8be4df61-93ca-11d2-aa0d-00e098032b8c
+Boot0003-8be4df61-93ca-11d2-aa0d-00e098032b8c
+BootCurrent-8be4df61-93ca-11d2-aa0d-00e098032b8c
+BootOrder-8be4df61-93ca-11d2-aa0d-00e098032b8c
+ 07 00 00 00 02 00 00 00 01 00 03 00
+sh: can't create /sys/firmware/efi/efivars/OpenBookTest-a0a1b6a2-1b8f-4c3e-9d4d-0b0e0a198198: Permission denied
+write_rc=1
+od: /sys/firmware/efi/efivars/OpenBookTest-a0a1b6a2-1b8f-4c3e-9d4d-0b0e0a198198: No such file or directory
+delete_rc=0
+ls: /sys/firmware/efi/efivars/OpenBookTest-a0a1b6a2-1b8f-4c3e-9d4d-0b0e0a198198: No such file or directory
+enforcing_write_above_permissive_below
+pwrite_rc=0
+  \a  \0  \0  \0   O   p   e   n   B   o   o   k
+pdelete_rc=0
+ls: /sys/firmware/efi/efivars/OpenBookTest2-a0a1b6a2-1b8f-4c3e-9d4d-0b0e0a198198: No such file or directory
+enforce=Enforcing
+umount_rc=0
