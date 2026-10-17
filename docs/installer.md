@@ -524,6 +524,8 @@ A 1 MB static `rdinit=` in `live.img`. It runs as PID 1 before Android's first-s
 |---|---|---|
 | `openbook-live.conf` (default) | OpenBook | `androidboot.openbook.live=1` |
 | `openbook-logs.conf` | OpenBook - save logs to this USB stick | `+ openbook.logs=1`, `selinux=permissive` |
+| `openbook-safe.conf` | OpenBook - safe graphics (Mesa GL, no ANGLE) | `+ hardware.egl=mesa` (ANAL-176) |
+| `openbook-safe-logs.conf` | OpenBook - safe graphics, save logs to this USB stick | `+ hardware.egl=mesa`, `openbook.logs=1`, `selinux=permissive` |
 | `openbook-reset.conf` | OpenBook - start fresh (erase this stick's saved data) | `+ openbook.live_reset=1` |
 | `openbook-vm.conf` | OpenBook - serial console (virtual machines) | `+ lcd_density=160`; `console=ttyS0` on the cmdline |
 | `<label>.vm/`: `openbook-vm-reset.conf`, `openbook-vm-logs.conf` | QEMU tests only | console + start fresh, console + save logs |

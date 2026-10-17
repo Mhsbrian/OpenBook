@@ -201,7 +201,7 @@ scripts/installer/render-design.sh                         # installer design PN
 ## AMD graphics in the device tree (ANAL-174)
 
 ```bash
-scripts/mesa-android-build.sh fetch deps setup build install verify -- upstream   # LIBELF=shared, ANDROID_STRICT=true by default
+scripts/mesa-android-build.sh fetch deps setup build install verify -- upstream   # LIBELF=shared, ANDROID_STRICT=true by default; applies mesa/patches/upstream
 scripts/graphics-amd-stage-mesa.sh              # Mesa prebuilts -> ~/anybook/aosp/src/vendor/anybook/mesa (never committed)
 AOSP_JOBS=24 scripts/aosp-docker.sh -d anybook-aosp-build /repo/scripts/aosp-build.sh anybook_cf_x86_64_pc-cp2a-userdebug
 docker wait anybook-aosp-build                  # also applies aosp/patches/* (scripts/aosp-patches.sh)
