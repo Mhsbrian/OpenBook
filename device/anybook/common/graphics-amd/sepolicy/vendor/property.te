@@ -1,2 +1,2 @@
 vendor_restricted_prop(vendor_anybook_gpu_prop)
-vendor_restricted_prop(vendor_mesa_prop)
+vendor_restricted_prop(vendor_graphics_option_prop)
