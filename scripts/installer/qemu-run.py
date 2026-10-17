@@ -4,9 +4,9 @@
 playing the laptop's internal drive. Logs the serial console, can type into it, takes screenshots, and stops on a
 timeout. Runs inside the openbook-installer container. Image files only; never a host block device.
 
-usage: qemu-run.py --usb IMG [--nvme IMG] --out DIR [--timeout S] [--expect STEPS.json] [--shot SECONDS ...]
-                   [--mem MiB] [--smp N] [--vars FILE] [--pause-on-reset] [--vga MODEL] [--gpu DEVICE]
-                   [--usb-input] [--tpm] [--detach-test-device] [--trace] [--audio WAV] [--extra-usb IMG]
+usage: qemu-run.py --usb IMG [--nvme IMG] [--nvme2 IMG] [--nvme-first] --out DIR [--timeout S] [--expect STEPS.json]
+                   [--shot SECONDS ...] [--mem MiB] [--smp N] [--vars FILE] [--pause-on-reset] [--vga MODEL]
+                   [--gpu DEVICE] [--usb-input] [--tpm] [--detach-test-device] [--trace] [--audio WAV] [--extra-usb IMG]
 
 STEPS.json: [{"wait": "regex", "timeout": 120}, {"send": "text\\n"}, {"shot": "name"}, {"pause": seconds},
 {"monitor": "QEMU monitor command"}, ...]; steps run in order on the serial stream; "shot" saves the screen as
@@ -56,6 +56,10 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--usb", required=True)
     ap.add_argument("--nvme")
+    ap.add_argument("--nvme2", help="a second NVMe disk (image file), serial internal1, never a boot device")
+    ap.add_argument("--nvme-first", action="store_true",
+                    help="the NVMe disk before the stick in the firmware's boot order (an installed system with "
+                         "the stick left plugged in)")
     ap.add_argument("--out", required=True)
     ap.add_argument("--timeout", type=int, default=300)
     ap.add_argument("--linger", type=int, default=3)
@@ -79,7 +83,7 @@ def main():
     ap.add_argument("--extra-usb", help="a second USB disk (image file), e.g. test files for the guest")
     args = ap.parse_args()
 
-    for img in (args.usb, args.nvme, args.extra_usb):  # image files only: refuse anything that is a real block device
+    for img in (args.usb, args.nvme, args.nvme2, args.extra_usb):  # image files only: refuse anything that is a real block device
         if img and (not os.path.isfile(img) or stat.S_ISBLK(os.stat(img).st_mode)):
             sys.exit(f"refusing {img}: not a regular image file")
     os.makedirs(args.out, exist_ok=True)
@@ -104,7 +108,7 @@ def main():
            "-drive", f"if=pflash,format=raw,file={vars_fd}",
            "-device", "qemu-xhci,id=xhci",
            "-drive", f"if=none,id=stick,format=raw,cache=unsafe,file={args.usb}",
-           "-device", "usb-storage,bus=xhci.0,drive=stick,removable=on,bootindex=1",
+           "-device", f"usb-storage,bus=xhci.0,drive=stick,removable=on,bootindex={2 if args.nvme_first else 1}",
            "-display", "none",
            "-chardev", f"pipe,id=ser0,path={ser_base}", "-serial", "chardev:ser0",
            "-monitor", f"unix:{mon_path},server=on,wait=off"]
@@ -120,7 +124,10 @@ def main():
                 "-device", "tpm-crb,tpmdev=tpm0"]
     if args.nvme:
         cmd += ["-drive", f"if=none,id=internal,format=raw,cache=unsafe,file={args.nvme}",
-                "-device", "nvme,drive=internal,serial=internal0,bootindex=2"]
+                "-device", f"nvme,drive=internal,serial=internal0,bootindex={1 if args.nvme_first else 2}"]
+    if args.nvme2:
+        cmd += ["-drive", f"if=none,id=internal1,format=raw,cache=unsafe,file={args.nvme2}",
+                "-device", "nvme,drive=internal1,serial=internal1"]
     if args.audio:
         dev = ("none,id=snd0" if args.audio == "none" else
                f"wav,id=snd0,path={args.audio},out.frequency=48000,out.channels=2")
@@ -228,7 +235,7 @@ def main():
             ppm_to_png(f"{args.out}/{f}", f"{args.out}/{f[:-4]}.png")
             os.remove(f"{args.out}/{f}")
     res = {"reason": reason, "seconds": round(time.time() - t0, 1), "steps_done": step_i, "steps": len(steps),
-           "hits": hits, "qemu_rc": q.returncode, "usb": args.usb, "nvme": args.nvme}
+           "hits": hits, "qemu_rc": q.returncode, "usb": args.usb, "nvme": args.nvme, "nvme2": args.nvme2}
     json.dump(res, open(f"{args.out}/result.json", "w"), indent=1)
     print(json.dumps(res))
     return 0 if step_i == len(steps) else 1
