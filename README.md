@@ -128,13 +128,13 @@ The live tracker, decisions and next steps are in [`docs/STATUS.md`](docs/STATUS
 
 | Component | On the G14 today | Notes |
 |---|---|---|
-| Radeon 890M (gfx1150) | ✅ amdgpu drives the 2880×1800 panel; SurfaceFlinger runs on ANGLE/RADV | 🚧 The boot animation crashes in RADV's Android swapchain; fix in progress |
-| Wi-Fi 7 / Bluetooth (MT7925) | ✅ `wlan0` and `hci0` up | `regulatory.db` added in check v2 |
+| Radeon 890M (gfx1150) | ✅ amdgpu drives the 2880×1800 panel; SurfaceFlinger runs on ANGLE/RADV | 🚧 The RADV swapchain crash behind the black screen is fixed (verified on a Radeon 610M); the G14 run is next |
+| Wi-Fi 7 / Bluetooth (MT7925) | ✅ `wlan0` and `hci0` up | 🚧 Android Wi-Fi and Bluetooth services in progress |
 | Touchpad, keyboard, lid | ✅ Detected | ELAN I2C HID over pinctrl-amd |
 | XDNA 2 NPU | ✅ `accel0` | Userspace later |
 | Battery, USB-C, USB4 | ✅ Detected | Battery health read: 88.7 % |
 | CPU power and sleep | ✅ amd-pstate-epp active; suspend and resume work | 🚧 Deepest idle (S0ix) not reached while the NVIDIA GPU is awake. Fix under test (check v3) |
-| Audio (ALC285 + CS35L56) | 🚧 Codec found | Speaker amps not yet exercised |
+| Audio (ALC285 + CS35L56) | 🚧 Codec found | 🚧 Audio HAL and speaker amps in progress |
 | NVIDIA RTX 50 dGPU | ⏸ Off by design (D3cold with no driver) | Research track in [`docs/nvidia.md`](docs/nvidia.md) |
 
 The full driver and firmware map is in [`docs/HARDWARE.md`](docs/HARDWARE.md). **Other laptops:** run [`scripts/hw-inventory.sh`](scripts/hw-inventory.sh). It is read-only and redacts serial numbers, and its output is how we plan support for a new machine.

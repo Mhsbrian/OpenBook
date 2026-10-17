@@ -20,12 +20,18 @@ service vendor.anybook-gpu-probe /vendor/bin/anybook_gpu_probe
 
 on early-init
     exec_start vendor.anybook-gpu-probe
+    # Act on the probe's choice through an event, not a property trigger. init runs the property triggers of
+    # values set during early-init only after the whole late-init chain, `on boot` included, where the HALs and
+    # SurfaceFlinger start; on the G14 SurfaceFlinger then sometimes started before ro.hardware.egl was set and
+    # aborted ("couldn't find an OpenGL ES implementation", ANAL-176 live-002). An event queued here runs right
+    # after late-init's own commands, before early-fs.
+    trigger vendor-anybook-gpu-${vendor.anybook.gpu.hal:-none}
 
 # Vulkan: Mesa RADV. GLES: ANGLE on RADV (as on Google's own desktop builds); radeonsi stays
 # installed as the fallback, e.g. `setprop persist.graphics.egl mesa` or androidboot.hardware.egl=mesa.
 # Gralloc0 (gralloc.minigbm) serves Mesa's "cros" buffer-info queries. Composer: drm_hwcomposer.
 # A value the bootloader passes as androidboot.hardware.* still wins.
-on property:vendor.anybook.gpu.hal=amdgpu
+on vendor-anybook-gpu-amdgpu
     setprop ro.hardware.vulkan ${ro.boot.hardware.vulkan:-radv}
     setprop ro.hardware.egl ${ro.boot.hardware.egl:-angle}
     setprop ro.hardware.gralloc ${ro.boot.hardware.gralloc:-minigbm}

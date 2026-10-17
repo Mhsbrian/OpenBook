@@ -39,7 +39,10 @@ def sections(path):
 
 
 MAC = re.compile(r"\b(?!00:00:00:00:00:00|ff:ff:ff:ff:ff:ff)([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}\b")
-SERIAL = re.compile(r"(SerialNumber: |iSerial\s+\d+\s+|usb-[A-Za-z0-9_]+_)([A-Za-z0-9]{6,})")
+# Kernel ("SerialNumber: "), lsusb, /dev/disk/by-id names, and Android's UsbHostManager
+# ("mfg/product/ver/serial SanDisk/Ultra/1.00/<serial>").
+SERIAL = re.compile(r"(SerialNumber: |iSerial\s+\d+\s+|usb-[A-Za-z0-9_]+_|mfg/product/ver/serial [^/\s]*/[^/\s]*/[^/\s]*/)"
+                    r"([A-Za-z0-9]{6,})")
 SSID = re.compile(r'(\b(?:SSID|ssid)\b[\s:=]*)("[^"]*"|[^\s,}"]+)')
 
 

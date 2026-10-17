@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2026 The OpenBook Authors. SPDX-License-Identifier: Apache-2.0 -->
+<!-- Defaults for a laptop, applied when /data is created. -->
+<resources>
+    <!-- 10 minutes instead of the phone default of 1 minute. After the screen turns off, Android lets the laptop
+         sleep (s2idle), which on the first G14 sticks looked like the machine had switched itself off (ANAL-176). -->
+    <integer name="def_screen_off_timeout">600000</integer>
+</resources>

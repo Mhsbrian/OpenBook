@@ -68,7 +68,7 @@ The vulkan, gles and gralloc parts pass as before. `MESA_OUT=<mesa out>/vendor` 
 | keystore → software Gatekeeper's `ISharedSecret` | **open**: AOSP forbids keystore that service type (known since ANAL-199) |
 | init: `debugfs_bootreceiver_tracing` | **open**: init.rc enables a tracing event our GKI lacks; kernel lane |
 
-**Why this matters beyond the count (H).** The enforcing default entry on the G14 showed a black screen *without* the pointer, while the permissive save-logs entry showed the pointer. With the GPU's sysfs files denied, libdrm's `drmGetDevices2` cannot identify the GPU in SurfaceFlinger, so RADV finds no device and ANGLE cannot start: a likely cause of that difference.
+**Why the enforcing entries stayed black: corrected in §9.** This section first guessed that unlabelled GPU sysfs files kept RADV from finding the GPU. The G14 runs of `desktop2` showed the real cause: the kernel was denied `firmware_load` on `/vendor/firmware`, so amdgpu never initialised under enforcing. The kernel-side denial had been filtered out with the log helper's own (§9).
 
 **Checked without the laptop.** `scripts/sepolicy-label-check.py PRODUCT_OUT scripts/sepolicy-label-cases-g14.txt` resolves the G14's sysfs paths (from live-001 and its PCI topology) against the built `file_contexts` the way libselinux does: **24 of 24** as intended, including the neighbours that must stay unlabelled. It found one mistake on the way: NVMe namespaces have no `block/` directory in their path.
 
@@ -91,26 +91,33 @@ Built with `scripts/installer-image.sh --label openbook-live-20261017-desktop2 -
 
 Denials on the VM path (`avc-summary.py` on the save-logs case): 41 Android lines in the kernel log and 8 distinct, down from 69 and 16 with the first build of this branch (`desktop1`, before `vendor.minigbm.*`). No `vendor_default_prop` is left. What remains is not G14-specific: the audio HAL's memfd (ANAL-199), the Bluetooth app aborting without a Bluetooth HAL (ANAL-179) and what `crash_dump` reads for it, SystemUI's `bluetooth_lea_prop`, `secure_element`'s dex cache, and the two open items in §4.
 
-## 6. On the G14: owner checklist
+## 6. On the G14: owner checklist (`desktop3`)
 
-The stick written at 00:29 UTC on 2026-10-17 for ANAL-190 holds `openbook-live-20261017a` (PR #38's build: the ANGLE workaround, Mesa unpatched). Finish that test first. Then:
+`openbook-live-20261017-desktop3` carries the fixes from §9: the kernel may load firmware under enforcing (the black default entry), the GPU HALs are chosen before SurfaceFlinger starts, the screen stays on for 10 minutes, and every boot keeps its logcat on the stick for a later "save logs" boot.
+- Checked off the laptop (`evidence/2026-10-17-g14-desktop/desktop3/`):
+  - the compiled policy allows the firmware load;
+  - QEMU/OVMF passes 37 of 39 with `boot_completed` at 20.3 s;
+  - the HAL event runs at 3.74 s, 8.6 s before SurfaceFlinger;
+  - `logcatd` runs, and the save-logs helper archives the earlier boots.
+- Not checked: the 10-minute timeout at runtime (the overlay is installed), and everything that needs the G14.
 
-1. **Write this image** (erases the stick; the reports on it are copied to the PC first):
+1. **Write the image** (erases the stick; the reports on it are copied to the PC first):
    ```bash
-   cd <ANAL-176 checkout of OpenBook>
+   cd <a checkout of this repo>
    OPENBOOK_WRITE_CONFIRM=/dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0 \
-     scripts/installer/write-stick.sh ~/anybook/installer/out/openbook-live-20261017-desktop2.img \
+     scripts/installer/write-stick.sh ~/anybook/installer/out/openbook-live-20261017-desktop3.img \
      /dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0
    ```
    Done when it prints `stick powered off: safe to unplug`.
-2. **Boot "OpenBook"** (Esc → USB stick → Enter). Hoped for: the boot animation, then the desktop within about a minute. Photograph the screen; try the touchpad, the keyboard and its backlight keys, and open an app. Hold the power button to turn it off.
-3. **If the screen stayed black:** boot **"OpenBook - safe graphics"** (↓ twice, Enter) and photograph it too.
-4. **Save logs:** boot **"OpenBook - save logs to this USB stick"** (↓ once, Enter), or **"safe graphics, save logs"** (↓ three times) if only safe graphics showed a desktop. Leave it alone; after 15 minutes holding the power button is safe.
-5. Plug the stick into the PC and reply "stick attached" with the photos. The agent runs, read-only:
+2. **Boot "OpenBook"**, the default entry (Esc → USB stick → Enter). The first boot of a freshly written stick takes longer (it formats `/data` and unpacks the system on the stick). Expected: the boot animation, then the desktop. This entry never switches itself off. Use it; photograph the desktop. Note the time if anything goes black or freezes.
+3. **Then one "save logs" boot** (↓ once, Enter). It brings back the logs of the earlier boots too (`prior-boots.tar.gz`), not only its own. It still powers off by itself about a minute after the desktop appears; that is the entry's design, not a crash.
+4. Plug the stick into the PC and reply "stick attached", with the photos and anything that went wrong. The agent runs, read-only:
    ```bash
    scripts/installer/read-stick-logs.sh /dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0
    python3 scripts/installer/avc-summary.py <data dir>/installer/g14/stick-<UTC>/live-NNN --json avc.json --md avc.md
    ```
+
+`desktop2` (§5) is superseded: its default and safe-graphics entries cannot work on the G14 (§9).
 
 **Acceptance** (from the issue): a photo of the desktop on the panel, `boot_completed=1` in the saved logs, the `live-report.py --expect g14` verdicts, and fewer than 66 denials by `avc-summary.py`'s kernel-log count.
 
@@ -139,7 +146,24 @@ scripts/installer/live-qemu.sh ~/anybook/installer/out/openbook-live-20261017-de
 python3 scripts/installer/avc-summary.py evidence/2026-10-16-installer/g14-live/live-001
 ```
 
-## 9. Sources (accessed 2026-10-17)
+## 9. First G14 boots of `desktop2` and what they showed (2026-10-17)
+
+The owner wrote `openbook-live-20261017-desktop2` at 01:05 UTC and booted the default entry (01:11, the first boot: `/data` formatted and APEXes decompressed), probably safe graphics, then "save logs" twice (01:17 and 01:19). Only "save logs" showed anything: the boot animation, then the desktop at 28 s (`evidence/2026-10-17-g14-desktop/g14-desktop2/`, including the device's own screenshot of the desktop at 2880×1800). Read back read-only with `read-stick-logs.sh`; the files are redacted.
+
+| Finding | Evidence | Status |
+|---|---|---|
+| **Every enforcing boot was black because amdgpu could not load its firmware.** The kernel reads firmware straight from `/vendor/firmware` (`firmware_class.path`); since 6.x SELinux checks `system { firmware_load }` against the file's label, and AOSP only allows it for `kernel self` (ueventd's fallback). Permissive boots log it once and carry on. It also blocks the MT7925 Wi-Fi firmware | `avc: denied { firmware_load } … comm="modprobe" path="/vendor/firmware/amdgpu/psp_14_0_0_toc.bin" scontext=u:r:kernel …` in both runs, and already in the very first G14 boot (live-001 of 2026-10-16). bootstat: no boot before the first "save logs" ever reached `boot_completed` (`reboot,factory_reset` is bootstat's label for the first completed boot of a fresh `/data`) | **Fixed** (C, policy): `allow kernel openbook_vendor_fw_file:system firmware_load`. QEMU cannot show it (no firmware is loaded there) |
+| **SurfaceFlinger could start before `ro.hardware.egl` was set** and abort ("couldn't find an OpenGL ES implementation"); init restarted it. Property triggers for values set at early-init only run after `on boot` | live-002 tombstone, SurfaceFlinger uptime 2 s; init's `QueueAllPropertyActions` | **Fixed**: the probe's rc queues an init event (`vendor-anybook-gpu-<hal>`) that runs before `early-fs` |
+| "The screen went black and it turned off" after a few actions | Both sessions ended at 77 s: the save-logs helper's final capture 45 s after `boot_completed`, then its scheduled power-off. In live-002 the owner had just opened the wallpaper chooser (01:20:33) | By design of that entry (ANAL-190 is reworking the helper). The default entry has no such power-off |
+| The screen turns off after 1 minute and the laptop sleeps (s2idle) | SettingsProvider default; ANAL-190's earlier stick showed `PM: suspend entry/exit` | **Changed**: 10 minutes on the desktop products |
+| Bluetooth app aborts every few seconds (`HidlHci: assert failed: hci_ != nullptr`: no Bluetooth HAL) | 6 crashes per 45 s session | **ANAL-179** (Bluetooth HAL). RescueParty is off on userdebug, so it cannot reboot the machine |
+| No `system` DMA-BUF heap: our GKI (and stock android17-6.18) has `CONFIG_DMABUF_HEAPS_SYSTEM` off; minigbm's BLOB buffers and Codec2 need it | 132 `Could not open DMA-BUF heap named: system` per session from the allocator | **Kernel lane**: build `system_heap` as a module. Video playback likely fails until then (H) |
+| Touchpad: "Clock changed backwards" from the gesture library about 300 times per session | `HardwareStateConverter` passes the touchpad's `MSC_TIMESTAMP` scan clock, which likely restarts per touch (H) | **ANAL-178** (input) |
+| Remaining denials after the fixes, by the corrected count | `avc-summary.py`: 29 and 22 lines (66 before), none blocking: the audio HAL's memfd, Gatekeeper's shared secret, `crash_dump`, SystemUI's `bluetooth_lea_prop`, `secure_element`, init's bootreceiver tracing | Known |
+
+**No logs from the enforcing boots.** They saved nothing, so they had to be reconstructed from the next boots (bootstat, APEX state, FAT timestamps). From the next image on, `persist.logd.logpersistd=logcatd` keeps logcat with the kernel log in `/data/misc/logd` across boots (userdebug), and the save-logs helper's first capture archives it with tombstones, ANR traces and dropbox (`prior-boots.tar.gz`, unpacked by `read-stick-logs.sh` into `live-NNN/prior/`).
+
+## 10. Sources (accessed 2026-10-17)
 
 - Mesa: `f7a951028`, `15a3bb617`, `90b5425e8` on `main` (gitlab.freedesktop.org/mesa/mesa), MR 44426.
 - AOSP 17 (`android17-release` tree in `~/anybook/aosp/src`): `frameworks/native/vulkan/libvulkan/swapchain.cpp` and `driver.cpp`, `frameworks/native/vulkan/include/vulkan/vk_android_native_buffer.h`, `external/angle/src/libANGLE/renderer/vulkan/SurfaceVk.cpp`, `frameworks/base/libs/hwui/Properties.cpp`, `system/sepolicy` (`gpu_sphal_use`, `vendor_restricted_prop`), `system/core/rootdir/init.rc` (`discard_max_bytes`), `external/minigbm/cros_gralloc` (gralloc0 `perform`, shared `libminigbm_gralloc`).

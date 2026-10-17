@@ -1,0 +1,21 @@
+# desktop3's compiled vendor policy (out/target/product/anybook_g14/vendor/etc/selinux/precompiled_sepolicy, build of 2026-10-17T02:04:30Z)
+# sepolicy-analyze reports a neverallow as violated exactly when the policy allows it.
+
+$ sepolicy-analyze precompiled_sepolicy neverallow -n "neverallow kernel openbook_vendor_fw_file:system firmware_load;"
+libsepol.report_failure: neverallow violated by allow kernel openbook_vendor_fw_file:system { firmware_load };
+libsepol.check_assertions: 1 neverallow failures occurred
+
+$ sepolicy-analyze precompiled_sepolicy neverallow -n "neverallow vendor_init vendor_anybook_gpu_prop:file read;"
+libsepol.report_failure: neverallow violated by allow vendor_init vendor_anybook_gpu_prop:file { read };
+libsepol.check_assertions: 1 neverallow failures occurred
+
+$ sepolicy-analyze precompiled_sepolicy neverallow -n "neverallow hal_light_default sysfs_gpu:dir search;"
+libsepol.report_failure: neverallow violated by allow hal_light_default sysfs_gpu:dir { search };
+libsepol.check_assertions: 1 neverallow failures occurred
+
+$ sepolicy-analyze precompiled_sepolicy neverallow -n "neverallow openbook_pc_setup sysfs_gpu:file read;"
+libsepol.report_failure: neverallow violated by allow openbook_pc_setup sysfs_gpu:file { read };
+libsepol.check_assertions: 1 neverallow failures occurred
+
+# vendor_sepolicy.cil
+2795:(allow kernel_202604 openbook_vendor_fw_file (system (firmware_load)))

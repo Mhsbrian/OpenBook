@@ -26,6 +26,14 @@ for f in openbook/MANIFEST.json openbook/PROVENANCE.txt loader/loader.conf; do
 done
 [ $OURS = 0 ] || udisksctl unmount -b "$PART" >/dev/null
 echo "copied $(find "$DEST" -type f | wc -l) file(s) from $PART to $DEST$([ $OURS = 1 ] && echo '; unmounted')"
+# What earlier boots left on /data (persisted logcat, tombstones, ANR traces, dropbox), archived by the helper's
+# first capture: unpacked into live-NNN/prior/. A cut archive (96 MiB cap) unpacks as far as it goes.
+for a in "$DEST"/live-[0-9][0-9][0-9]/prior-boots.tar.gz; do
+  [ -f "$a" ] || continue
+  mkdir -p "${a%/*}/prior"
+  tar -xzf "$a" -C "${a%/*}/prior" --no-same-owner --no-same-permissions 2>/dev/null ||
+    echo "note: ${a#"$DEST"/} is cut or damaged; unpacked what it holds"
+done
 for d in "$DEST"/live-[0-9][0-9][0-9]; do
   [ -d "$d" ] && python3 "$R/scripts/installer/live-report.py" "$d" | head -n 40
 done
