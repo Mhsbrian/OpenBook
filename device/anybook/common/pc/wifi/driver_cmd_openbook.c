@@ -19,6 +19,7 @@
 
 #include "includes.h"
 
+#include "android_drv.h"
 #include "common.h"
 #include "driver.h"
 #include "driver_nl80211.h"

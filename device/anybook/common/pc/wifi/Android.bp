@@ -13,6 +13,7 @@ cc_library_static {
     srcs: ["driver_cmd_openbook.c"],
     cflags: [
         "-DCONFIG_ANDROID_LOG",
+        "-DCONFIG_DRIVER_NL80211",
         "-Wall",
         "-Werror",
         // wpa_supplicant's own headers have unused parameters in their inline stubs.
