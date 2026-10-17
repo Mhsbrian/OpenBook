@@ -31,6 +31,7 @@ usage: e2e-qemu.py mkdisk windows OUT --gib N --mark EFI      a Windows-like dis
        e2e-qemu.py expect CASE OUT.json                       CASE's expect script
        e2e-qemu.py inspect DISK OUT.json [--plan PLAN.json] [--ref REF.json]   GPT, ESP files, bootability, digests
        e2e-qemu.py plan-of CASE_DIR OUT.json                  the plan a live case printed
+       e2e-qemu.py avc OUT LOG... [--base DIR]                SELinux denials in logs, grouped (OUT.json, OUT.md)
        e2e-qemu.py check --run DIR --disks DIR --image IMG    results.json + SUMMARY.md
 """
 import argparse
@@ -371,7 +372,7 @@ def expect(case):
         s += section("INSTALLED", "getprop | grep -E 'ro.boot.(openbook|selinux|boot_part_uuid|serialno|slot_suffix|verifiedbootstate)|init.svc.openbook|sys.boot_completed'; getenforce; ls -l /dev/block/by-name; cat /proc/partitions; echo MOUNTS; grep -E '/dev/block/(nvme|sd|vd)' /proc/mounts; df -k /data /metadata")
         s += section("INSTALLER-STATE", "pm query-activities -a android.intent.action.MAIN -c android.intent.category.LAUNCHER | grep -c org.openbook.installer; echo daemon=[$(getprop init.svc.openbook_installd)]; settings get global device_provisioned; dumpsys activity activities | grep -E 'topResumedActivity' | head -n 2")
         s += section("VOLD", "logcat -d -b main,system | grep -iE 'vold|StorageManager|DiskInfo|VolumeInfo' | grep -iE 'disk|volume|8:0|public|unsupported|mount' | tail -n 40; sm list-disks; sm list-volumes all", 120)
-        s += section("NOTIFICATIONS", "dumpsys notification --noredact | grep -E 'pkg=|android.title=|android.text=' | grep -iE -B1 'usb|drive|storage|disk' | head -n 20; echo NOTIF-END", 120)
+        s += section("NOTIFICATIONS", "dumpsys notification --noredact | grep -A40 'tag=disk:' | grep -E 'tag=disk:|android.title=|android.text=' | head -n 12; echo NOTIF-END", 120)
         s += W.send("input keyevent 224; wm dismiss-keyguard", 30)
         s += W.wait_ui("Language", 180)
         s += W.shot(f"{case}-setup-language")
@@ -658,8 +659,11 @@ def check(a):
             res.setdefault("notes", {})["inst-stick-vold"] = sec.get("VOLD", "")[-1500:]
             nt = sec.get("NOTIFICATIONS", "")
             res["notes"]["inst-stick-notifications"] = nt[-1500:]
-            chk(c, "reported: storage notifications about the plugged-in stick (not gated)", True,
-                " / ".join(l.strip() for l in nt.splitlines() if "title=" in l or "text=" in l)[:300] or "none")
+            # Known issue (docs/INSTALL.md): vold cannot read the stick's table and SystemUI offers to set it up
+            # (format it). PR #52 only leaves alone the disk the running system booted from. Reported, not gated.
+            m = re.search(r"tag=(disk:\d+,\d+).*?android\.title=String \(([^)]*)\)", nt, re.S)
+            chk(c, "known issue, reported: SystemUI's notification for the plugged-in stick (not gated)", True,
+                f"{m.group(1)}: '{m.group(2).strip()}' (Tap to set up = format)" if m else "none")
         else:
             s0 = (W.sections(open(f"{R}/inst-stick/serial.log", "rb").read().decode("utf-8", "replace")).get("INSTALLED", "")
                   if os.path.exists(f"{R}/inst-stick/serial.log") else "")
@@ -701,6 +705,49 @@ def check(a):
     return 0 if passed == total else 1
 
 
+def avc(a):
+    """SELinux denials in logs (plain or .gz: AVC sections, logcat, dmesg), grouped by source, target, class and
+    permissions, enforcing (permissive=0) and permissive apart. Writes OUT.json and OUT.md."""
+    import gzip
+    groups = {}
+    for path in a.logs:
+        op = gzip.open if path.endswith(".gz") else open
+        with op(path, "rt", errors="replace") as f:
+            seen = set()
+            for line in f:
+                if "avc:" not in line or "denied" not in line:
+                    continue
+                m = re.search(r"denied\s+\{([^}]*)\}.*?scontext=(\S+) tcontext=(\S+) tclass=(\S+)(?: permissive=(\d))?", line)
+                if not m:
+                    continue
+                ev = re.search(r"audit\(([\d.:]+)\)", line)
+                k = (m.group(2).split(":")[2], m.group(3).split(":")[2], m.group(4), " ".join(sorted(m.group(1).split())),
+                     m.group(5) or "?")
+                # logcat repeats each kernel audit record (auditd and the process's own tag): count records once
+                key = (k, ev.group(1) if ev else line)
+                if key in seen:
+                    continue
+                seen.add(key)
+                g = groups.setdefault(k, {"count": 0, "logs": set()})
+                g["count"] += 1
+                g["logs"].add(os.path.relpath(path, a.base) if a.base else path)
+    rows = sorted(groups.items(), key=lambda kv: (kv[0][4] != "0", -kv[1]["count"]))
+    out = [{"source": k[0], "target": k[1], "class": k[2], "perms": k[3], "permissive": k[4], "count": v["count"],
+            "logs": sorted(v["logs"])} for k, v in rows]
+    json.dump({"logs": a.logs, "denials": out}, open(a.out + ".json", "w"), indent=1)
+    ours = [r for r in out if re.search(r"openbook", r["source"] + r["target"])]
+    with open(a.out + ".md", "w") as f:
+        f.write(f"# SELinux denials in {len(a.logs)} logs\n\n{sum(r['count'] for r in out if r['permissive'] == '0')} "
+                f"enforcing denial records in {sum(r['permissive'] == '0' for r in out)} groups; "
+                f"{len(ours)} groups involve an openbook type.\n\n| permissive | source | target | class | perms | count | logs |\n"
+                "|---|---|---|---|---|---|---|\n")
+        for r in out:
+            f.write(f"| {r['permissive']} | {r['source']} | {r['target']} | {r['class']} | {r['perms']} | {r['count']} | "
+                    f"{', '.join(r['logs'])[:160]} |\n")
+    print(open(a.out + ".md").read())
+    return 0
+
+
 def plan_of(a):
     """The plan a live case printed (its PLAN section), for `inspect --plan`."""
     t = open(f"{a.case_dir}/serial.log", "rb").read().decode("utf-8", "replace")
@@ -715,6 +762,10 @@ def plan_of(a):
 def main():
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
+    av = sub.add_parser("avc")
+    av.add_argument("out")
+    av.add_argument("logs", nargs="+")
+    av.add_argument("--base")
     po = sub.add_parser("plan-of")
     po.add_argument("case_dir")
     po.add_argument("out")
@@ -745,6 +796,8 @@ def main():
         return inspect(a)
     if a.cmd == "plan-of":
         return plan_of(a)
+    if a.cmd == "avc":
+        return avc(a)
     return check(a)
 
 
