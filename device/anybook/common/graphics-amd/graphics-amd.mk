@@ -52,6 +52,13 @@ PRODUCT_PACKAGES += \
     mapper.minigbm \
     android.hardware.composer.hwc3-service.drm
 
+# drm_hwcomposer composes on the primary plane (and the cursor plane) only; SurfaceFlinger composes the rest on the
+# GPU. With overlay planes, the first G14 desktop session (ANAL-176) logged 3211 test commits refused by amdgpu's
+# display core (more than its 4 planes per stream) and 151 real commits that failed to pin a layer's buffer for
+# scanout ("Failed to pin framebuffer with error -22"): 151 frames never shown, in bursts of about half a second.
+# The client target SurfaceFlinger allocates is meant for scanout.
+PRODUCT_VENDOR_PROPERTIES += ro.vendor.hwc.use_overlay_planes=false
+
 # What RADV and ANGLE on RADV offer. Mesa's default android-strict build reports Vulkan 1.1; a build
 # with ANDROID_STRICT=false (scripts/mesa-android-build.sh) reports 1.4 and would declare that instead.
 # Products tune the dEQP levels once CTS has run (ANAL-177).

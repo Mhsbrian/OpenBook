@@ -22,6 +22,18 @@ get_prop(hal_audio_default, vendor_openbook_audio_prop)
 type hal_audio_default_tmpfs, file_type;
 tmpfs_domain(hal_audio_default)
 allow audioserver hal_audio_default_tmpfs:file { getattr map read write };
+# The HAL process also hosts the Bluetooth audio provider, which hands the Bluetooth stack the A2DP data queue, a memfd
+# of the same type. Without this the transfer fails, StartSession gets FAILED_TRANSACTION and com.android.bluetooth
+# aborts as soon as an audio device connects. On the G14 under enforcing (anal176s, 2026-10-17 13:43Z) it aborted twice;
+# the permissive save-logs boot reached A2DP Connected with read, write and map granted (ANAL-176).
+allow bluetooth hal_audio_default_tmpfs:file { getattr map read write };
+# AudioFlinger's track control blocks are memfds too, and carry audioserver_tmpfs: AOSP 17 does not turn on the
+# memfd_class capability that would make them memfd_file objects. Apps run with MLS categories (s0:cX,cY) and may only
+# write s0 objects whose type is an mlstrustedobject, so apps targeting SDK 28+ could not write theirs, although
+# AOSP's private/app.te allows appdomain to. createTrack then fails with "Could not get control block": the WebView
+# browser had no sound on the G14 under enforcing (anal176s, 13:45Z, ANAL-176). AOSP marks system_server_tmpfs the same
+# way, and graphics-amd does it for the allocator's memfds.
+typeattribute audioserver_tmpfs mlstrustedobject;
 
 # openbook-audio-setup (init, boot): reads /proc/asound and the HDA driver's bound devices, publishes the card,
 # sets the codec's mixer.

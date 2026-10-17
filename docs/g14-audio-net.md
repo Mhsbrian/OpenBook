@@ -154,7 +154,7 @@ Evidence: `evidence/2026-10-17-g14-audio-net/qemu-*` (results, the guest's secti
 ## 10. On the G14: the owner's two sessions (2026-10-17)
 
 The two sticks were read from their host copies, read-only. The redacted evidence is in `evidence/2026-10-17-g14-audio-net/g14-anal178c/` and `g14-anal176s/`:
-- `report.md`/`report.json`: `live-report.py --expect g14 --redact`, using PR #52's version, because `main`'s crashes on the touchpad verdict;
+- `report.md`/`report.json`: `live-report.py --expect g14 --redact`, using PR #52's version (before #52, `main`'s crashed on the touchpad verdict);
 - `hwtest-final.txt`;
 - `digest.txt`: the Wi-Fi, Bluetooth, audio, jack and denial lines of dmesg and logcat, for the save-logs boot and the boots before it;
 - `tombstones.txt`.
@@ -236,7 +236,7 @@ ANAL-176's analysis of the same sessions (desktop, enforcing boot, all denials) 
 
 ### 10.4 For ANAL-192's integrated stick: this issue's G14 checks
 
-ANAL-192 builds one integrated image from `main` once PR #52 is merged. It needs this branch's PR merged too, for patch 0002, the hwtest changes and the PNO setting. The checks below go on that stick's checklist.
+PR #52 is merged, and ANAL-192 builds one integrated image from `main`. That image needs this PR merged too, for patch 0002, the hwtest changes and the PNO setting. The checks below go on that stick's checklist.
 
 | Check | What it needs from the owner | Verdict / evidence that counts |
 |---|---|---|
@@ -244,8 +244,8 @@ ANAL-192 builds one integrated image from `main` once PR #52 is merged. It needs
 | Wi-Fi throughput | `iperf3 -s` on a PC on the same network, and its address in `openbook/hwtest.conf` (`iperf3_server=…`) | `wifi_iperf3` with Mbit/s both ways |
 | Wi-Fi connection at its own step | none | `wifi_connected` yes in the same run as `wifi_dhcp` |
 | PNO on the MT7925 | none | `wifi_pno` yes (`driver_offers` true). A no here means the driver rejects scheduled scans, and the setting changes nothing |
-| Bluetooth audio under enforcing | in the **default** entry: connect the paired headphones and play a sound | no `com.android.bluetooth` tombstone, and no `bluetooth hal_audio_default_tmpfs` denial (needs PR #52) |
-| App audio under enforcing | in the default entry: play a video in the browser | sound, with no `untrusted_app_29 audioserver_tmpfs` denial (needs PR #52) |
+| Bluetooth audio under enforcing | in the **default** entry: connect the paired headphones and play a sound | no `com.android.bluetooth` tombstone, and no `bluetooth hal_audio_default_tmpfs` denial (PR #52's rules) |
+| App audio under enforcing | in the default entry: play a video in the browser | sound, with no `untrusted_app_29 audioserver_tmpfs` denial (PR #52's rules) |
 | Headphone jack | in the default entry: plug in wired headphones while sound plays, then unplug | the sound moves to the headphones and back; logcat `ACTION_HEADSET_PLUG ... plugged in: true`; `audio_routes` `wired_connected` if they are still plugged in at "save logs" |
 | Speakers by ear | in the default entry: Settings → Sound → a ringtone | both speakers (the CS35L56 pair) audible |
 

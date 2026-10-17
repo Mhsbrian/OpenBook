@@ -1,0 +1,67 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Sat, 17 Oct 2026 13:00:00 +0000
+Subject: [PATCH] ANYBOOK: vold: do not manage the disk the running system is
+ on
+
+On a PC booted from a USB stick (an OpenBook live stick), the stick
+matches the usb disk source like any other USB drive. It holds no volume
+vold can mount (its GPT has the system's own partitions), so vold gives
+up ("disk:8,0 failed to identify") and SystemUI posts a "set up" notice
+for it. The storage wizard behind that notice formats the disk, under the
+running system.
+
+Seen on the ROG Zephyrus G14 (OpenBook live, 2026-10-17 12:15Z): the
+notification for disk:8,0, the stick itself, was tapped and opened
+StorageWizardInit; nothing was formatted.
+
+Skip a disk-add event when the disk holds the running system's own
+partitions: the parent disk of /dev/block/by-name/userdata (else
+by-name/super), read from /sys/dev/block/<maj:min>/../dev. Internal
+storage on phones is never matched by a disk source, so nothing changes
+there; a partition-less device (Cuttlefish's per-partition virtio disks)
+has no parent "dev" file and is not matched.
+---
+ VolumeManager.cpp | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+
+diff --git a/VolumeManager.cpp b/VolumeManager.cpp
+index 9846e12a..7b3a1992 100644
+--- a/VolumeManager.cpp
++++ b/VolumeManager.cpp
+@@ -106,6 +106,23 @@ static const unsigned int kSizeVirtualDisk = 536870912;
+ 
+ static const unsigned int kMajorBlockMmc = 179;
+ 
++// The disk that holds the running system's own partitions ("userdata", else "super"), as "major:minor", or "".
++// On a phone that is internal storage, which no disk source matches anyway. On a PC booted from a USB stick (an
++// OpenBook live stick) it is the stick: it matches the USB source, holds no volume vold can mount, and SystemUI then
++// offers to set it up, which formats it under the running system.
++static std::string GetSystemDisk() {
++    for (const char* name : {"userdata", "super"}) {
++        struct stat st;
++        if (stat((std::string("/dev/block/by-name/") + name).c_str(), &st) != 0 || !S_ISBLK(st.st_mode)) continue;
++        std::string dev;
++        if (android::base::ReadFileToString(
++                    StringPrintf("/sys/dev/block/%u:%u/../dev", major(st.st_rdev), minor(st.st_rdev)), &dev)) {
++            return android::base::Trim(dev);
++        }
++    }
++    return "";
++}
++
+ using ScanProcCallback = bool(*)(uid_t uid, pid_t pid, int nsFd, const char* name, void* params);
+ 
+ VolumeManager* VolumeManager::sInstance = NULL;
+@@ -217,6 +234,11 @@ void VolumeManager::handleBlockEvent(NetlinkEvent* evt) {
+ 
+     switch (evt->getAction()) {
+         case NetlinkEvent::Action::kAdd: {
++            if (GetSystemDisk() == StringPrintf("%d:%d", major, minor)) {
++                LOG(INFO) << "Not managing disk " << major << ":" << minor
++                          << ", which holds the running system's partitions";
++                break;
++            }
+             for (const auto& source : mDiskSources) {
+                 if (source->matches(eventPath)) {
+                     // For now, assume that MMC and virtio-blk (the latter is

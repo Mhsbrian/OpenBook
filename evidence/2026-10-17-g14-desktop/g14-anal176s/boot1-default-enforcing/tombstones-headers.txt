@@ -1,0 +1,30 @@
+*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+Build fingerprint: 'OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys'
+Kernel Release: '6.18.21-android17-5-g44a90255c95f'
+Revision: '0'
+ABI: 'x86_64'
+Timestamp: 2026-10-17 13:43:34.013718768+0000
+Process uptime: 0s
+Executable: /system/bin/app_process64
+Cmdline: com.android.bluetooth
+pid: 3628, ppid: 968, tid: 3921, name: bt_main_thread  >>> com.android.bluetooth <<<
+uid: 1002
+signal 6 (SIGABRT), code -1 (SI_QUEUE), fault addr --------
+Abort message: 'system/audio_hal_interface/aidl/a2dp/client_interface_aidl.cc:348 StartSession: BluetoothAudioHal failure: Status(-129, EX_TRANSACTION_FAILED): 'FAILED_TRANSACTION: ''
+    rax 0000000000000000  rbx 0000000000000e2c  rcx 00007e20c2b29acd  rdx 0000000000000006
+
+*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+Build fingerprint: 'OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys'
+Kernel Release: '6.18.21-android17-5-g44a90255c95f'
+Revision: '0'
+ABI: 'x86_64'
+Timestamp: 2026-10-17 13:44:05.927302036+0000
+Process uptime: 0s
+Executable: /system/bin/app_process64
+Cmdline: com.android.bluetooth
+pid: 5944, ppid: 968, tid: 5964, name: bt_main_thread  >>> com.android.bluetooth <<<
+uid: 1002
+signal 6 (SIGABRT), code -1 (SI_QUEUE), fault addr --------
+Abort message: 'system/audio_hal_interface/aidl/a2dp/client_interface_aidl.cc:348 StartSession: BluetoothAudioHal failure: Status(-129, EX_TRANSACTION_FAILED): 'FAILED_TRANSACTION: ''
+    rax 0000000000000000  rbx 0000000000001738  rcx 00007e20c2b29acd  rdx 0000000000000006
+

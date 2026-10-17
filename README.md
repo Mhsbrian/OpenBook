@@ -68,9 +68,9 @@
 
 ### Running today on the G14
 
-<img src="assets/readme/g14-desktop.jpg" alt="OpenBook's Android 17 desktop on the ASUS ROG Zephyrus G14: wallpaper, the desktop taskbar with pinned apps, and the taskbar tutorial card" width="100%">
+<img src="assets/readme/g14-desktop.jpg" alt="OpenBook's Android 17 desktop on the ASUS ROG Zephyrus G14: Search, Settings and Calendar in freeform windows above the desktop taskbar, with Wi-Fi connected" width="100%">
 
-<sub>A real screenshot that the G14 took of its own panel (<code>screencap</code>, 2880×1800, scaled to 1440×900, otherwise unedited) on 2026-10-17. It comes from a <code>desktop2</code> live USB stick's "save logs" boot, which runs SELinux in permissive mode. Evidence: <a href="evidence/2026-10-17-g14-desktop/g14-desktop2/SUMMARY.md"><code>evidence/2026-10-17-g14-desktop/</code></a>.</sub>
+<sub>A real screenshot that the G14 took of its own panel (<code>screencap</code>, 2880×1800, scaled to 1440×900) on 2026-10-17, from the <code>anal178c</code> live stick's "save logs" boot. The list of nearby Bluetooth devices is blanked for privacy; nothing else is edited. In the same session the normal boot, with SELinux enforcing, reached the desktop in 28 s. Evidence: <a href="evidence/2026-10-17-g14-desktop/g14-anal178c/SUMMARY.md"><code>evidence/2026-10-17-g14-desktop/g14-anal178c/</code></a>.</sub>
 
 ### In a VM: our Android 17 desktop build
 
@@ -108,15 +108,15 @@
 | ✅ | **M0** Research, baselines, image analysis | Done. See [`docs/RESEARCH.md`](docs/RESEARCH.md) |
 | ✅ | **M1** Our Android 17 build boots in a VM | `boot_completed` in 17–29 s ([evidence](evidence/2026-10-16-aosp/)) |
 | ✅ | **M2** Desktop windowing and GPU graphics in a VM | Matches Google's desktop image; RADV on an AMD iGPU |
-| 🚧 | **M3** OpenBook kernel on real hardware | **First boots on the G14:** 235 modules, 0 failed. Our Android 17 live image reaches the desktop on the panel ("save logs" boots, SELinux permissive) |
+| 🚧 | **M3** OpenBook kernel on real hardware | **The G14 boots our kernel and Android 17 to the desktop with SELinux enforcing**, from a USB stick (235 modules, 0 failed; desktop in 28 s) |
 | 🚧 | **M4** AMD graphics stack | Passing on a Radeon 610M; on the G14 the desktop renders through ANGLE on RADV. Composition still runs on the GPU |
 | 🚧 | **M6** ARM app compatibility | Our build ships the open Digitalis bridge, built from source: 14 of 16 ARM-only test apps run in a VM, up from 13 with Google's translator. The G14 run is next |
 | 🚧 | **M8** USB installer | The live USB image boots on the G14. The installer app and engine install to a virtual NVMe disk that then boots by itself, in QEMU ([`docs/installer.md`](docs/installer.md) §12). Not yet run on the laptop |
-| 🚧 | **M5** Desktop, input and power on the laptop | Desktop, touchpad and keyboard work in Android on the G14. Lid, power button, hotkeys and battery health are built and checked in a VM. Deep sleep (S0i3) is under investigation |
+| 🚧 | **M5** Desktop, input and power on the laptop | On the G14: desktop, touchpad, keyboard, Wi-Fi with internet and Bluetooth pairing work, with no dropped frames. Lid, power button, hotkeys and battery health are checked in a VM. Deep sleep (S0i3) is under investigation |
 | ⏳ | **M7** Performance and parity | Later |
 
 > [!TIP]
-> **Milestone, 2026-10-17: the Android desktop on real hardware.** Our Android 17 build reached the desktop on the G14's own panel from a live USB stick, and the touchpad and keyboard worked ([screenshot above](#running-today-on-the-g14)). These were "save logs" boots, which run SELinux in permissive mode. The next check is the default boot, which is enforcing. [Read the report →](evidence/2026-10-17-g14-desktop/g14-desktop2/SUMMARY.md)
+> **Milestone, 2026-10-17: the Android desktop on real hardware.** Our Android 17 build boots from a live USB stick to the desktop on the G14's own panel, **with SELinux enforcing**, in 28 s. Wi-Fi reached the internet, Bluetooth paired, and the touchpad and keyboard worked ([screenshot above](#running-today-on-the-g14)). A follow-up stick brought dropped frames from 151 to 0. [Read the report →](evidence/2026-10-17-g14-desktop/g14-anal176s/SUMMARY.md)
 >
 > **2026-10-16: first boot on real hardware.** Our UEFI boot chain, GKI kernel and drivers ran on an ASUS ROG Zephyrus G14 (Ryzen AI 9 HX 370) from a USB stick. The following all came up:
 > - Radeon 890M graphics (amdgpu, DCN 3.5)
@@ -136,13 +136,13 @@ The live tracker, decisions and next steps are in [`docs/STATUS.md`](docs/STATUS
 
 | Component | On the G14 today | Notes |
 |---|---|---|
-| Radeon 890M (gfx1150) | ✅ amdgpu drives the 2880×1800 panel; the Android desktop renders on ANGLE/RADV | 🚧 drm_hwcomposer asks for more planes than the display core allows (4), so SurfaceFlinger composes on the GPU |
-| Wi-Fi 7 / Bluetooth (MT7925) | ✅ `wlan0` and `hci0` up | 🚧 Android Wi-Fi (WPA2, DHCP) and Bluetooth built and passing in QEMU; G14 run next |
+| Radeon 890M (gfx1150) | ✅ amdgpu drives the 2880×1800 panel; the Android desktop renders on ANGLE/RADV with 0 dropped frames | Composition runs on the GPU (hardware overlay planes are off: they dropped frames on this display engine). Conformance tests (dEQP) are next |
+| Wi-Fi 7 / Bluetooth (MT7925) | ✅ Android Wi-Fi with internet (5 GHz), Bluetooth pairing | 🚧 Bluetooth audio was blocked by SELinux; the fix is built (QEMU) and the G14 check is next |
 | Touchpad, keyboard, lid | ✅ Pointer and keyboard work in Android | Lid → sleep, power button and ASUS hotkeys configured (checked in a VM); touchpad clock warnings under study |
 | XDNA 2 NPU | ✅ `accel0` | Userspace later |
 | Battery, USB-C, USB4 | ✅ Detected | Battery health read: 88.7 %. An OpenBook health HAL reports charge and health to Android (G14 run next) |
 | CPU power and sleep | ✅ amd-pstate-epp active; suspend and resume work; the NVIDIA GPU sleeps (D3cold) | 🚧 Deepest idle (S0i3) not reached yet. Hypothesis: the driverless PSP keeps its PCIe bridge awake; a one-boot test is on the next stick |
-| Audio (ALC285 + CS35L56) | 🚧 Codec found | 🚧 Audio HAL built; tone playback verified in QEMU; speaker and mic test on the G14 next |
+| Audio (ALC285 + CS35L56) | 🚧 Codec found | 🚧 App sound was blocked by SELinux on the G14; the fix is built (QEMU). Speaker, microphone and headphone tests are next |
 | NVIDIA RTX 50 dGPU | ⏸ Off by design (D3cold with no driver) | Research track in [`docs/nvidia.md`](docs/nvidia.md) |
 
 The full driver and firmware map is in [`docs/HARDWARE.md`](docs/HARDWARE.md). **Other laptops:** run [`scripts/hw-inventory.sh`](scripts/hw-inventory.sh). It is read-only and redacts serial numbers, and its output is how we plan support for a new machine.
