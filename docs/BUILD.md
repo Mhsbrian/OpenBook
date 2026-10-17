@@ -114,11 +114,13 @@ The checks (config, modules, symbol list, QEMU load test, equivalence build, fir
 ## M1b: build aosp_cf_x86_64_pc and boot it in Cuttlefish (ANAL-168)
 
 ```bash
-AOSP_JOBS=32 scripts/aosp-docker.sh -d anybook-aosp-build /repo/scripts/aosp-build.sh aosp_cf_x86_64_pc-cp2a-userdebug
-docker wait anybook-aosp-build          # ~2 h 10 min cold on the shared host; re-running resumes
+flock ~/anybook/aosp/.lane.lock sh -c 'AOSP_JOBS=32 scripts/aosp-docker.sh -d anybook-aosp-build \
+  /repo/scripts/aosp-build.sh aosp_cf_x86_64_pc-cp2a-userdebug && docker wait anybook-aosp-build'
+                                        # ~2 h 10 min cold on the shared host; re-running resumes
 scripts/cf-boot.sh                      # Cuttlefish container: launch, wait for boot_completed, capture, tear down (~45 s)
 ```
 
+- The AOSP tree and `out/` are shared between lanes: every build holds the lane lock `~/anybook/aosp/.lane.lock` for its whole run, as above. `aosp-build.sh` refuses to start without it (`ANYBOOK_LANE_UNLOCKED=1` for a tree of your own), and `installer-image.sh` holds it while it snapshots `PRODUCT_OUT`.
 - Plan for about 41 GiB of RAM plus swap, 137 GB for `out/` (165 GB with `dist`), and 10 GB of ccache.
 - Cuttlefish runs in `cuttlefish-orchestration:1.56.0` (pinned by digest) with `--cap-add NET_ADMIN`, `seccomp=unconfined`, and `/dev/kvm`, `/dev/net/tun`, `/dev/vhost-net` and `/dev/vhost-vsock`.
 - Images are staged as reflink copies in `~/anybook/aosp/cf/product`; `out/` is never modified.

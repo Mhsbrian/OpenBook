@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: Apache-2.0
 # Build the OpenBook live USB image (ANAL-190; docs/installer.md section 11) from our own builds:
-#   1. snapshot the product's images from PRODUCT_OUT (reflinks; refuses while an AOSP build runs), or reuse a
-#      snapshot with --inputs;
+#   1. snapshot the product's images from PRODUCT_OUT (reflinks, under the AOSP lane lock, so it waits for a running
+#      build and no build starts during it), or reuse a snapshot with --inputs;
 #   2. build openbook-live-init (scripts/installer/live-init.c) and run its host test;
 #   3. assemble the image with scripts/installer/mklive.py in the openbook-installer container: GPT, systemd-boot,
 #      slot A, super re-packed to its content, blank metadata/userdata, firmware licences from the vendor image;
@@ -59,10 +59,20 @@ echo "== installer-image.sh $LABEL ($(date -u +%FT%TZ)), repo $(git -C "$R" rev-
 
 # 1. snapshot
 if [ -z "$IN" ]; then
-  # Lanes name their build containers anybook-aosp-build or anybook-aosp-build-<issue> (ANAL-179).
+  # Hold the AOSP lane lock that builds run under (scripts/aosp-build.sh), so no build starts writing PRODUCT_OUT
+  # during the snapshot: wait for a running build, up to OPENBOOK_LANE_WAIT seconds (default 2 h). A caller that
+  # already holds the lock sets OPENBOOK_LANE_LOCK_HELD=1 (taking it again from here would wait for ever).
+  if [ "${OPENBOOK_LANE_LOCK_HELD:-0}" != 1 ]; then
+    exec 9>>"$A/aosp/.lane.lock"
+    if ! flock -n 9; then
+      echo "waiting for the AOSP lane lock ($A/aosp/.lane.lock): a build is running" >&2
+      flock -w "${OPENBOOK_LANE_WAIT:-7200}" 9 || { echo "no AOSP lane lock after ${OPENBOOK_LANE_WAIT:-7200} s" >&2; exit 1; }
+    fi
+  fi
+  # A build started without the lock: lanes name their containers anybook-aosp-build or anybook-aosp-build-<issue>.
   b=$(docker ps --format '{{.Names}}' | grep -E '^anybook-aosp-build(-|$)' | head -1 || true)
   if [ -n "$b" ]; then
-    echo "an AOSP build ($b) is running; PRODUCT_OUT may be half-written. Try later." >&2; exit 1
+    echo "an AOSP build ($b) is running without the lane lock; PRODUCT_OUT may be half-written. Try later." >&2; exit 1
   fi
   IN=$A/installer/inputs/$LABEL
   rm -rf "$IN"; mkdir -p "$IN"
@@ -79,6 +89,7 @@ if [ -z "$IN" ]; then
     (cd "$IN" && sha256sum boot.img init_boot.img vendor_boot.img vbmeta.img super.img)
   } > "$IN/provenance.txt"
   echo "snapshot: $IN"
+  [ "${OPENBOOK_LANE_LOCK_HELD:-0}" = 1 ] || exec 9>&-  # releases the lane lock
 fi
 cat "$IN/provenance.txt"
 T1=$(date +%s)
