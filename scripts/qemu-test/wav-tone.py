@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 """Where a WAV file carries a steady tone: what the QEMU audio test's guest played into QEMU's HDA codec
 (scripts/audio-net-qemu.sh). Scans 50 ms windows of the first channel for the tone frequency (Goertzel) and
-prints the stretches where it is at least half of the energy and above -60 dBFS, as JSON. QEMU leaves the RIFF and
+prints the stretches where it is at least 30% of the energy and above -60 dBFS, as JSON, with how many windows
+fall under 90% (glitches). QEMU leaves the RIFF and
 data sizes at 0 when the guest powers off, so the samples are taken to run from the data chunk to the end of the file.
 
 usage: wav-tone.py FILE.wav [--freq 1000]
@@ -49,12 +50,14 @@ def main():
             s1, s2 = f + coeff * s1 - s2, s1
         power = s1 * s1 + s2 * s2 - coeff * s1 * s2
         rms, tone = math.sqrt(tot / win), math.sqrt(2 * max(power, 0)) / win
-        on = rms > 1e-3 and tone * tone >= 0.5 * rms * rms
+        share = tone * tone / (rms * rms) if rms > 0 else 0
+        on = rms > 1e-3 and share >= 0.3
         t = i / rate
         if on and cur is None:
-            cur = {"start_s": round(t, 2), "levels": []}
+            cur = {"start_s": round(t, 2), "levels": [], "shares": []}
         if on:
             cur["levels"].append(tone)
+            cur["shares"].append(share)
         if not on and cur is not None:
             runs.append(cur)
             cur = None
@@ -62,9 +65,12 @@ def main():
         runs.append(cur)
     out = []
     for r in runs:
-        lv = r.pop("levels")
+        lv, sh = r.pop("levels"), r.pop("shares")
         r["seconds"] = round(len(lv) * win / rate, 2)
         r["tone_rms_dbfs"] = round(20 * math.log10(sum(lv) / len(lv)), 1)
+        # A clean tone keeps every 50 ms window near 1; broken phase (dropped buffers) pulls windows down.
+        r["window_share_mean"] = round(sum(sh) / len(sh), 3)
+        r["glitched_windows"] = sum(1 for x in sh if x < 0.9)
         if r["seconds"] >= 0.5:
             out.append(r)
     print(json.dumps({"file": a.wav, "rate": rate, "channels": ch, "seconds": round(n / rate, 2), "freq": a.freq,

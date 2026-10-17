@@ -132,9 +132,11 @@ int main(int argc, char** argv) {
     printf("{\"test\": \"aaudio-loopback\", \"ok\": %s, \"in_rate\": %d, \"in_channels\": %d, \"out_rate\": %d, "
            "\"out_channels\": %d, \"captured_frames\": %ld, \"written_frames\": %ld, \"xruns\": %d, \"freq\": %.0f, "
            "\"tone_dbfs_out\": -15, \"noise_rms_dbfs\": %.1f, \"noise_bin_dbfs\": %.1f, \"tone_rms_dbfs\": %.1f, "
-           "\"tone_bin_dbfs\": %.1f, \"tone_share\": %.3f, \"heard\": %s, \"input_error\": %d, \"output_error\": %d}\n",
+           "\"tone_bin_dbfs\": %.1f, \"tone_share\": %.3f, \"slice_share_mean\": %.3f, \"slice_share_min\": %.3f, "
+           "\"glitched_slices\": %d, \"slices\": %d, \"heard\": %s, \"input_error\": %d, \"output_error\": %d}\n",
            !in_err && !out_err ? "true" : "false", in_rate, in_ch, out_rate, out_ch, static_cast<long>(got), written,
            xruns, freq, l.noise_rms_dbfs, l.noise_bin_dbfs, l.tone_rms_dbfs, l.tone_bin_dbfs, l.tone_share,
+           l.slice_share_mean, l.slice_share_min, l.glitched_slices, l.slices,
            heard ? "true" : "false", static_cast<int>(in_err), out_err);
     return !in_err && !out_err ? 0 : 1;
 }

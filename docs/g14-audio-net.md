@@ -4,7 +4,16 @@ Status as of 2026-10-17. Goal: speakers, microphone, headphone jack, Wi-Fi and B
 
 ## 1. Result
 
-@@RESULT@@
+| | |
+|---|---|
+| Wi-Fi | AOSP's wpa_supplicant and the framework's own nl80211 code, **no vendor HAL** (none is public) and no wificond (Android 17 has none). In QEMU over `mac80211_hwsim`: scan, WPA2-PSK connect in about 1 s, DHCP through Android's IpClient, gateway ping 0% loss, **iperf3 668/577 to 742/644 Mbit/s** up/down (runs e–h) (C, VM) |
+| Regulatory database | signed `regulatory.db` loads at boot (cfg80211 reports no error; `wifi_regulatory` yes) after two SELinux fixes (C, VM). Before: missing on the G14 (live-001) |
+| Bluetooth | AOSP's AIDL HAL over the HCI user channel; starts, and finds no controller in a VM, as expected (C). Pairing waits for the G14 |
+| Audio | `openbook-audio-setup` finds the codec card and unmutes it (the codec comes up at 0/off); a 1 kHz tone reaches the codec **directly through ALSA** (2.0 s at −18.1 dBFS RMS, exactly the −15 dBFS peak played) and **through AudioFlinger** (AAudio; parts of it, see §9) (C, VM). Capture opens through both paths (the VM codec records silence) |
+| Found and fixed on the way | the audio HAL could not write its own stream queues, so **no app could play or record** (memfd SELinux type); cfg80211's regulatory keyring was unsearchable; HDA mixers come up muted; firmware loads from `/vendor/firmware` were denied under enforcing (ANAL-176's fix, taken over) |
+| Tests | `openbook-hwtest` in the save-logs entry, verdicts in `live-report.py`; `openbook_audio_logic_test` 7/7, `openbook_hals_test` 15/15 on the host |
+| Stick image | `openbook-live-20261017-audionet2` (this branch + ANAL-176's desktop4 + `main`): @@LIVE@@ |
+| On the G14 | **not run yet** (device gate): owner steps in §7 |
 
 ## 2. What the G14 has (from its inventory and the first live boot)
 
@@ -60,17 +69,63 @@ The tone counts as heard when 1 kHz comes back at least 20 dB above its level be
 
 ## 7. On the G14: owner checklist
 
-@@OWNER@@
+The stick image is **`openbook-live-20261017-audionet2`**: this branch merged with ANAL-176's `anal-176/g14-stability` (desktop4, `a81c25e`) and `main` (`9515e22`), so it carries the desktop fixes too. It is on the build host in `~/anybook/installer/out/` (sha256 in its `.sha256` file).
+
+1. **Optional, for the throughput test:** on a PC on the same Wi-Fi network, run `iperf3 -s` (Arch: `sudo pacman -S iperf3`) and note its address (`ip -4 addr`). Have a Bluetooth device ready to pair: headphones or a speaker is best, a mouse or a phone also counts.
+2. **Write the stick** (erases it; reports already on it are copied to the PC first). From any OpenBook checkout on the build host:
+   ```bash
+   OPENBOOK_WRITE_CONFIRM=/dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0 \
+     scripts/installer/write-stick.sh ~/anybook/installer/out/openbook-live-20261017-audionet2.img \
+     /dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0
+   ```
+   Done when it prints `stick powered off: safe to unplug`.
+3. **Optional: tell the stick where the iperf3 server is.** Plug it back in; its `OPENBOOK` partition mounts. Then:
+   ```bash
+   printf 'iperf3_server=192.168.1.20\n' > /run/media/$USER/OPENBOOK/openbook/hwtest.conf && sync   # your PC's address
+   ```
+   Eject it. Only the address goes there, never a Wi-Fi password.
+4. **Boot "OpenBook"** (Esc → USB stick → Enter). On the desktop:
+   - Settings → Network & internet → Internet: turn Wi-Fi on, pick your network, enter its password. Hoped for: "Connected". The network stays saved on the stick.
+   - Settings → Connected devices → Pair new device: pair the Bluetooth device. With headphones, play a sound (next point) through them too.
+   - Speakers: Settings → Sound & vibration → Default notification sound (or Default alarm sound): choosing a sound plays it. Then plug wired headphones in and play one again: it should move to the headphones.
+   - Note or photograph anything odd. Hold the power button to turn off.
+5. **Boot "OpenBook - save logs to this USB stick"** (↓ once, Enter). After the boot it runs the checks by itself: **two 2-second beeps from the speakers** (the microphone test: keep the room quiet and the lid open), a Wi-Fi scan and measurements, Bluetooth status. Then it shuts down, about 5 minutes in all. If the screen stays black, wait 15 minutes before holding the power button.
+6. Plug the stick into the build host and reply "stick attached". The agent runs, read-only:
+   ```bash
+   scripts/installer/read-stick-logs.sh /dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0
+   python3 scripts/installer/live-report.py <data dir>/installer/g14/stick-<UTC>/live-NNN --expect g14
+   ```
+
+**What counts** (the issue's acceptance, as `report.md` verdicts): `wifi_connected`, `wifi_dhcp` and `wifi_iperf3` (Mbit/s both ways) for Wi-Fi; `bt_paired` for Bluetooth; `audio_loopback_alsa` and `audio_loopback_android` (the beep heard by the built-in mic) for playback and capture; plus what you heard in step 4. The raw facts are in `hwtest-final.txt`.
+
+**Unattended (device agent, ANAL-193/194):** the same entry with `androidboot.openbook.logs_after=reboot` (`docs/installer.md` §11.7) and `openbook/hwtest.conf` on the ESP. Wi-Fi and Bluetooth need one interactive connect and pairing first; both stay on the stick's `/data`. `report.json` has the verdicts.
 
 ## 8. QEMU rig
 
-`scripts/audio-net-qemu.sh payload` builds a test disk for the guest: `mac80211_hwsim` with the cfg80211 and mac80211 it was built with (the virtual-device Kleaf dist; `modversions-check.py` shows all their CRCs match our vmlinux, while our own mac80211 differs in `ieee80211_alloc_hw_nm`), AOSP's `hostapd` (built, not installed: `BOARD_HOSTAPD_DRIVER`), `openbook-test-dhcpd` (60 lines of C, static, NDK), and the access point scripts. `run IMG RUN` boots the image with QEMU's HDA controller and duplex codec (output recorded to `audio-out.wav`) and the test disk on USB. In the guest (`guest-test.sh`), as root: the audio checks, then the radio swap (the image's own Wi-Fi drivers unloaded, hwsim with two radios loaded, the second moved into a network namespace with hostapd, the DHCP server and an iperf3 server), a framework restart so it resolves nl80211 again, connect to `openbook-test` (WPA2-PSK) through `cmd wifi`, and `openbook-hwtest wifi` against that iperf3 server. QEMU's codec records silence and there is no Bluetooth controller, so "heard" is false and Bluetooth stays off by design.
+`scripts/audio-net-qemu.sh payload` builds a test disk for the guest: `mac80211_hwsim` with the cfg80211 and mac80211 it was built with (the virtual-device Kleaf dist; `modversions-check.py` shows all their CRCs match our vmlinux, while our own mac80211 differs in `ieee80211_alloc_hw_nm`), AOSP's `hostapd` (built, not installed: `BOARD_HOSTAPD_DRIVER`), `openbook-test-dhcpd` (a 100-line DHCP server, static, NDK), a shim that lets hostapd skip its AIDL registration, and the access point scripts. `run IMG RUN` boots the image with QEMU's HDA controller and duplex codec (output recorded to `audio-out.wav`) and the test disk on USB. In the guest (`guest-test.sh`), as root: the audio checks, then the radio swap (the image's own Wi-Fi drivers unloaded, hwsim with two radios loaded, the second moved into a network namespace with hostapd, the DHCP server and an iperf3 server), a framework restart so it resolves nl80211 again, connect to `openbook-test` (WPA2-PSK) through `cmd wifi`, and `openbook-hwtest wifi` against that iperf3 server. QEMU's codec records silence and there is no Bluetooth controller, so "heard" is false and Bluetooth stays off by design.
 
-@@QEMU@@
+| Run | Image | What it showed |
+|---|---|---|
+| a | `anal179-a` | invalid: half of the device tree was another branch's (stale copied outputs in the shared tree); SurfaceFlinger found no EGL. Led to the device-tree touch before each build (BUILD.md) and ANAL-176's content sync |
+| b | `anal179-b` | boot in 21 s. Codec found, mixer set; **every AudioTrack failed** (`NO_INIT`): the HAL's message-queue memfds; regulatory keyring denied; QEMU-only nl80211 family renumbering after the radio swap (`qemu-b/findings.md`) |
+| c | `anal179-c` | audio through AudioFlinger works (AAudio both ways); regulatory database loads at boot; Wi-Fi scan finds the AP, but the test AP never answered (hostapd stuck in its AIDL registration) |
+| d | `anal179-c` | same, with hostapd's own log: blocked on `/dev/vndbinder` |
+| e | `anal179-c` | **Wi-Fi end to end**: connect in 1 s, DHCP `192.168.77.10/24`, ping 0.13 ms, iperf3 661/715 Mbit/s |
+| f | `anal179-stick-a` (integration) | the same on the integration build: iperf3 742/644 Mbit/s; the AAudio tone at media volume 10/15 |
+| g | `anal179-stick-b` | a patch turning off the HAL's wall-clock pacing made the AAudio tone disappear entirely: the HAL writes into a non-blocking pipe, and the pacing is what keeps it real time. Reverted |
+@@RUNH@@
+
+Evidence: `evidence/2026-10-17-g14-audio-net/qemu-*` (results, the guest's sections, `hwtest.json`, `audio-out-tones.json`, serial log, logcat and dmesg). The live image's own QEMU matrix (`scripts/installer/live-qemu.sh`, ANAL-190's six cases) is in `.../live-audionet2/`; its save-logs case shows the helper running `openbook-hwtest` and `live-report.py` giving the new verdicts.
 
 ## 9. Open items
 
-@@OPEN@@
+- **Everything on the G14** (device gate). In particular: MT7925 scan, connect and throughput through this stack; `btmtk` with the HCI user channel (the HAL reopens `hci0` after the kernel's own setup, H); the CS35L56 amplifiers driven by Android's playback; the internal mics' level (boost left at the kernel default, H); the headphone jack switching.
+- **Audio through the HAL in a VM loses part of a tone** (runs c–f: 0.6–0.7 s of 2 s arrived, with one xrun). The direct ALSA path is clean. The example HAL drops a buffer whenever its stream falls behind the wall clock, an emulator workaround (b/302587331); VM timing makes that frequent. On the G14 it may not happen (H); `audio_loopback_android` and its `xruns` will show. If it does, the fix belongs in the HAL's pipe, not in the pacing (run g).
+- **Wi-Fi country:** without telephony and without `ro.boot.wificountrycode`, the framework sets the world domain (`00`); cfg80211 then follows the access point's country element once connected. An installer question (ANAL-191) could pass the country in bootconfig.
+- **No HFP gateway** (headset microphones in calls), no LE Audio, no Wi-Fi Direct or hotspot: each needs work and a test of its own.
+- **HDMI/DP audio** (the Radeon's card) is not routed; external displays are USB-C only while the dGPU is off.
+- **The AOSP tree is shared:** the audio HAL patch stays applied for other branches' builds. Unset, its properties keep AOSP's behaviour, so their images are unaffected.
+- **`wifi_hal_prop`:** system_server is denied reading `wifi.interface` once per Wi-Fi start (AOSP policy); it falls back to `wlan0`, which is right here.
 
 ## 10. Sources (accessed 2026-10-16/17)
 

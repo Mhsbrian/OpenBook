@@ -314,10 +314,12 @@ int Test(int argc, char** argv) {
     bool heard = openbook::audio::ToneDetected(l);
     printf("{\"test\": \"alsa-loopback\", \"ok\": %s, \"card\": %d, \"device\": %d, \"rate\": %d, \"channels\": %d, "
            "\"freq\": %.0f, \"seconds\": %.2f, \"tone_dbfs_out\": -15, \"noise_rms_dbfs\": %.1f, "
-           "\"noise_bin_dbfs\": %.1f, \"tone_rms_dbfs\": %.1f, \"tone_bin_dbfs\": %.1f, \"tone_share\": %.3f, "
+           "\"noise_bin_dbfs\": %.1f, \"tone_rms_dbfs\": %.1f, \"tone_bin_dbfs\": %.1f, \"tone_share\": %.3f, \"slice_share_mean\": %.3f, \"slice_share_min\": %.3f, "
+           "\"glitched_slices\": %d, \"slices\": %d, "
            "\"heard\": %s, \"playback_error\": \"%s\", \"capture_error\": \"%s\"}\n",
            !play_err && !cap_err ? "true" : "false", card, device, kRate, kChannels, freq, seconds,
-           l.noise_rms_dbfs, l.noise_bin_dbfs, l.tone_rms_dbfs, l.tone_bin_dbfs, l.tone_share,
+           l.noise_rms_dbfs, l.noise_bin_dbfs, l.tone_rms_dbfs, l.tone_bin_dbfs, l.tone_share, l.slice_share_mean,
+           l.slice_share_min, l.glitched_slices, l.slices,
            heard ? "true" : "false", Json(play_msg).c_str(), Json(cap_msg).c_str());
     return !play_err && !cap_err ? 0 : 1;
 }
