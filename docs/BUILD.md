@@ -280,6 +280,7 @@ scripts/power/make-power-check.sh openbook-powercheck-anal178-a        # add-on 
 scripts/power/power-check-qemu.sh openbook-powercheck-anal178-a vm     # QEMU: LPS0 fixture, s2idle, 14 steps
 scripts/power/power-check-qemu.sh openbook-powercheck-anal178-a real   # QEMU: the entry as shipped
 scripts/power/collect-qemu.sh a                                        # save-logs facts inside Android 17
+scripts/power/touchpad/touchpad-qemu.sh RUN [LIVE_IMAGE]               # the G14 touchpad on uhid: repeat frames, clock errors
 ```
 Owner steps (Linux comparison on the laptop, the add-on on the stick) and how to read the results: `docs/power-input.md`.
 

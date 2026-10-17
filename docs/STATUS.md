@@ -13,11 +13,11 @@
 | Kernel (GKI android17-6.18 + 138 AMD modules) | Boots our Android 17 | **Yes:** 235 modules, 0 failed | `evidence/2026-10-16-g14-hwcheck/` |
 | Live USB boot, desktop | 40/40 live checks | **The normal enforcing boot reaches the desktop:** 28 s (`anal178c`) and 29 s (`anal176s`). No app crashed; 0 dropped frames since PR #52 (151 before); the stick is no longer offered for formatting; no lock-screen blackout | `evidence/2026-10-17-g14-desktop/g14-anal178c/`, `g14-anal176s/` |
 | Graphics (RADV, radeonsi, ANGLE, minigbm, drm_hwcomposer) | Passing; dEQP pre-check on a Radeon 610M | **Desktop renders with 0 dropped frames**, composed on the GPU (overlay planes off since PR #52). dEQP not run yet | `evidence/2026-10-17-graphics-cts/` |
-| Touchpad, keyboard | Yes | **Yes** | `evidence/2026-10-16-installer/g14-live/` |
-| Lid, power button, hotkeys, battery health | Yes | Not tested | `evidence/2026-10-17-power-input/` |
-| Sleep | s2idle in a VM | **s2idle works; deep sleep (S0i3) never reached.** Hypothesis: the driverless PSP | `docs/power-input.md` |
+| Touchpad, keyboard | Yes | **Yes.** The touchpad's "Clock changed backwards" errors (every 40 ms of finger contact) are explained: the kernel autorepeats `BTN_TOOL_FINGER`. Fixed in Android (EventHub) and shown in QEMU with the laptop's own HID descriptor; on the laptop with the next stick | `evidence/2026-10-16-installer/g14-live/`, `evidence/2026-10-17-power-input/g14-sessions/` |
+| Lid, power button, hotkeys, battery health | Yes | **Config in force, battery health works:** lid and power-button settings, hotkey layouts, the health HAL (charge counter, 88.7 % state of health, GOOD) and the power HAL's EPP changes, all on the laptop. **Closing the lid puts it to sleep and opening it wakes it** (`anal176t`) | `evidence/2026-10-17-power-input/g14-sessions/`, `g14-anal176t/` |
+| Sleep | s2idle in a VM | **s2idle works, under Android too** (screen timeout → s2idle → key wake, display and Wi-Fi back); **deep sleep (S0i3) never reached.** The power check ruled out the driverless PSP; the SMU points at MPM or the USB4 router (unconfirmed) | `docs/power-input.md` §1.3, §7.6 |
 | Wi-Fi, Bluetooth, audio | Yes (WPA2, iperf3, tone through ALSA and, with the HAL fix, through Android) | **Wi-Fi to the internet** (5 GHz, 160 MHz); **Bluetooth pairs**, A2DP with LDAC; **speakers and mic through ALSA** heard. Through Android the tone was broken (HAL fix in ANAL-179's PR, QEMU only). SELinux blocked Bluetooth audio and app sound; the fix (#52) is in `anal176t` (QEMU 40/40), not yet run on the G14. Headphone jack and iperf3 not tested | `evidence/2026-10-17-g14-audio-net/`, `evidence/2026-10-17-g14-desktop/g14-anal176s/` |
-| ARM apps (Digitalis, built from source) | 14/16 ARM-only apps; works in enforcing | Not tested | `evidence/2026-10-17-digitalis-a17/`, `evidence/2026-10-17-g14-combined/` |
+| ARM apps (Digitalis, built from source) | 14/16 ARM-only apps; works in enforcing | **The bridge self-check passes on Zen 5** (5/5 verdicts, both sessions). No arm64 app run yet: the ARM apps check is on ANAL-192's stick | `evidence/2026-10-17-digitalis-a17/`, `evidence/2026-10-17-digitalis-g14/` |
 | Installer | **Wizard 25/25, engine 53/53:** installs to a virtual NVMe disk that then boots by itself into OpenBook setup (SELinux enforcing) | Live USB boots; the wizard has not run yet | `evidence/2026-10-17-installer-wizard/` |
 
 **One gap holds back most of the table:** the owner's run of the latest stick on the G14. Everything marked "not tested" is built and waiting for that run.
@@ -46,9 +46,9 @@
 |---|---|---|---|
 | ANAL-176 G14 desktop and stability | In review | **The enforcing default entry reaches the desktop on the G14** (`anal178c` 28 s, `anal176s` 29 s). On the G14, PR #52's fixes hold: no storage notice for the stick, no lock-screen blackout, 0 dropped frames (151 before). `anal176t` adds the Bluetooth-audio and app-audio policy fixes (QEMU 40/40). Next: Bluetooth audio and browser sound on the G14, then the remaining denials | The owner's next stick run |
 | ANAL-177 graphics conformance | In review | Read the G14 dEQP/ANGLE results; decide Vulkan 1.1 or 1.4 (the 610M favours 1.4); add matrix rows | The graphics-check boot on ANAL-192's stick |
-| ANAL-178 input and power | **Reading results** | Touchpad, lid, battery and EPP facts from the two sessions; then the S0i3 fix (kernel lane), the touchpad clock, the skin sensor | The power-check boot (or the Linux `linux-s2idle.py` run) on ANAL-192's stick |
+| ANAL-178 input and power | In review (PR #57) | Lid works; touchpad clock fixed (EventHub, QEMU); the power check ruled out the PSP. Next: S0i3 from the Linux comparison | The laptop's own Linux `linux-s2idle.py --amd-s2idle` run; on ANAL-192's stick: battery saver, touchpad use (`docs/power-input.md` §7.5, §7.6) |
 | ANAL-179 Wi-Fi, Bluetooth, audio | **Reading results** | Wi-Fi, Bluetooth and audio verdicts from the two sessions; fix what fails; speaker tuning | — |
-| ANAL-200 ARM bridge | **Reading results** | Bridge verdicts on real Zen 5; record the G14 row | The probe and CoreMark step on ANAL-192's stick; the upstream-report OK |
+| ANAL-200 ARM bridge | In review (PR #56) | Done: bridge verdicts 5/5 on the G14 in both sessions, G14 rows recorded, and the ARM apps check add-on (probe and CoreMark on the laptop, QEMU-tested). Next: read its G14 results | The ARM-apps-check boot on ANAL-192's stick; the upstream-report OK |
 | ANAL-191 installer wizard and engine | In review | The G14 dry run, on ANAL-192's stick. Open: `openbook-bootsync`, the text hardware report, a firmware boot entry (our GKI has no `EFIVAR_FS`: a kernel-lane decision) | — |
 | ANAL-192 installer end-to-end tests and the owner's stick | **Running** | The integrated stick and its one checklist (#52 is merged); then the QEMU matrix (alongside booted, interrupted installs, reinstall, an unattended run); a release-checklist draft | The owner names a spare drive for the real install |
 | ANAL-193 to ANAL-197 device loop | Backlog | ANAL-194 first: the Multica runtime and test agent on the G14's Linux | Owner installs the daemon |
@@ -70,6 +70,13 @@
 
 ## History
 
+### 2026-10-17: the power check on the laptop: PSP ruled out; the lid works (ANAL-178)
+- **Read** the owner's `anal176t` stick (read-only copy `g14/stick-20261017T154112Z`): default boot with the lid test, "save logs", the power check, and ANAL-177's graphics check (`live-002`, for ANAL-177).
+- **Lid:** close → sleep → s2idle for 5 min 20 s → open → wake (C).
+- **S0i3:** missed in all four power-check cycles. At entry every endpoint, the PSP included, is in D3, so the driverless-PSP hypothesis is out. The SMU's "Active time" table names `USB4_0` and `MPM`, but the table's layout does not match the kernel's struct, so the names are unconfirmed. Next: the same table on the laptop's own Linux 7.2.
+- **Not seen:** battery saver (no trace in the logs); the touchpad capture saw no finger.
+- `lid_events` now reads Android 17's "Sleeping power group … reason=lid_switch".
+
 ### 2026-10-17: G14 audio, Wi-Fi and Bluetooth results from the owner's two sessions (ANAL-179)
 - **Done:** read both sessions (`anal178c`, `anal176s`) from the host copies, read-only, and redacted them. The `wifi_*`, `bt_*` and `audio_*` verdicts and logs are in `docs/g14-audio-net.md` §10, with G14 rows in `COMPAT-MATRIX.md`.
   - **Wi-Fi works:** MT7925 on 5320 MHz (160 MHz), DHCP, internet.
@@ -86,6 +93,12 @@
   - headphones plugged in during the default boot;
   - Bluetooth audio and a browser video in the default boot;
   - `audio_android_clean` and `wifi_pno` in the save-logs boot.
+
+### 2026-10-17: G14 results for power and input; the touchpad clock fixed (ANAL-178)
+- **Read** the owner's `anal178c` and `anal176s` sessions from ANAL-176's host copies (`docs/power-input.md` §7, `evidence/2026-10-17-power-input/g14-sessions/`).
+- **Touchpad.** The gestures library's "Clock changed backwards" every 40 ms comes from the kernel autorepeating `BTN_TOOL_FINGER`. A vendor usage page in the ELAN descriptor turns on `EV_REP`, and the repeat frames carry no `MSC_TIMESTAMP`. Fix: EventHub turns kernel key repeat off on touchpads (`aosp/patches/frameworks/native`). QEMU, with the laptop's own descriptor on `uhid`: 173 repeat frames and 172 errors before the fix, 0 and 0 after.
+- **Shown on the laptop:** the lid and power-button config, the hotkey layouts, the health HAL (charge counter, state of health 88.7 %, GOOD), the power HAL's EPP changes, and Android's own s2idle (woken by a key; display and Wi-Fi back). S0i3 is still missed, and the lid was not closed.
+- **For ANAL-192's stick:** the power-check boot (or the Linux run), a lid close, battery saver, 20 s of touchpad use in "save logs". New report verdicts read them: `lid_events`, `epp_modes`, `health_hal`, `touchpad_clock_warnings`.
 
 ### 2026-10-17: G14 enforcing desktop merged; ANAL-192 builds the owner stick (ANAL-159)
 - **Merged** #52 (ANAL-176) after checks.

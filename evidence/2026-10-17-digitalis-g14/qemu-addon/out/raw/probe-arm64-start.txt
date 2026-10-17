@@ -1,0 +1,7 @@
+Starting: Intent { cmp=dev.anybook.probe.arm64/dev.anybook.probe.MainActivity }
+Status: ok
+LaunchState: COLD
+Activity: dev.anybook.probe.arm64/dev.anybook.probe.MainActivity
+TotalTime: 440
+WaitTime: 441
+Complete

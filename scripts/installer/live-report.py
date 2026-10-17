@@ -23,6 +23,7 @@ usage: live-report.py DIR [--expect g14|vm] [--redact OUT_DIR]
        live-report.py --redact-file FILE      print FILE with the same masking (serial logs for evidence)
 """
 import argparse
+import glob
 import json
 import os
 import re
@@ -61,9 +62,18 @@ def device_blocks(text):
     return out
 
 
+def read(path):
+    try:
+        return open(path, errors="replace").read()
+    except OSError:
+        return ""
+
+
 def touchpad_clock(text):
     """getevent -lt of the touchpad: does MSC_TIMESTAMP keep pace with the event clock? The gestures library rebuilds
-    its time base from it, and "Clock changed backwards" means that base jumped back (ANAL-178)."""
+    its time base from it, and "Clock changed backwards" means that base jumped back (ANAL-178). The cause on the G14:
+    the kernel's autorepeat of BTN_TOOL_FINGER (the touchpad has EV_REP), in frames without MSC_TIMESTAMP; Android
+    turns kernel repeat off for touchpads with aosp/patches/frameworks/native."""
     frames, msc = [], None
     for m in re.finditer(r"\[\s*([\d.]+)\]\s+(?:\S+: )?(EV_\w+)\s+(\S+)\s+([0-9a-f]+)", text):
         t, typ, code, val = float(m.group(1)), m.group(2), m.group(3), int(m.group(4), 16)
@@ -80,8 +90,10 @@ def touchpad_clock(text):
                     if b[1] >= a[1] and b[0] > a[0] and b[0] - a[0] < 0.5)
     med = ratios[len(ratios) // 2] if ratios else None
     gaps = sorted(b[0] - a[0] for a, b in zip(frames, frames[1:]))
+    repeats = len(re.findall(r"EV_KEY\s+BTN_TOOL_\w+\s+REPEAT", text))
     return {"ok": not [g for g in back if g < 1.0] and len(with_msc) == len(frames) and med is not None
-            and 0.9 < med < 1.1, "frames": len(frames), "frames_with_msc": len(with_msc),
+            and 0.9 < med < 1.1 and not repeats, "frames": len(frames), "frames_with_msc": len(with_msc),
+            "repeat_frames": repeats,
             "msc_backward_steps": len(back), "msc_backward_within_1s": len([g for g in back if g < 1.0]),
             "median_msc_per_event_second": round(med, 3) if med else None,
             "median_frame_interval_ms": round(gaps[len(gaps) // 2] * 1000, 2) if gaps else None}
@@ -191,8 +203,48 @@ def main():
                 config=cfg, lid=(re.search(r"mLidState=(\S+)", ps or "") or [None, None])[1])
         su = dict(re.findall(r"^(\w+)=(.*)$", sec.get("SUSPEND", ""), re.M))
         n_ok, hw_sleep = int(su.get("success") or 0), int(su.get("total_hw_sleep") or 0)
+        dm = read(f"{d}/dmesg.txt")
         verdict("s0i3", (hw_sleep > 0) if "SUSPEND" in sec and n_ok else None, suspends=n_ok, fails=su.get("fail"),
-                total_hw_sleep_us=hw_sleep, last_hw_sleep_us=su.get("last_hw_sleep"))
+                total_hw_sleep_us=hw_sleep, last_hw_sleep_us=su.get("last_hw_sleep"),
+                last_failed_dev=su.get("last_failed_dev") or None, not_deepest=dm.count("didn't reach deepest state"),
+                resume_causes=sorted(set(re.findall(r"Resume caused by (IRQ \d+, \S+)", dm))))
+        # The health HAL (vendor.health-openbook): Android's charge counter and health against the kernel's battery.
+        bat = dict(re.findall(r"^BAT\d+ (\w+)=(\S+)$", sec.get("BAT", ""), re.M))
+        bs = sec.get("BATTERY", "")
+        cc = re.search(r"Charge counter: (-?\d+)", bs)
+        health = re.search(r"^\s*health: (\d+)", bs, re.M)
+        full, design = int(bat.get("charge_full") or 0), int(bat.get("charge_full_design") or 0)
+        soh = round(100 * full / design, 1) if full and design else None
+        want_h = None if soh is None else 2 if soh >= 80 else 8  # BatteryHealth GOOD / FAIR (health/battery.cpp)
+        now = int(bat.get("charge_now") or 0)
+        cc_ok = bool(cc and now and abs(int(cc.group(1)) - now) <= max(50000, now // 10))
+        verdict("health_hal", (props.get("init.svc.vendor.health-openbook") == "running" and cc_ok
+                               and (want_h is None or (health and int(health.group(1)) == want_h)))
+                if "BAT" in sec and bat else None,
+                service=props.get("init.svc.vendor.health-openbook"), charge_counter_uah=int(cc.group(1)) if cc else None,
+                charge_now_uah=now or None, state_of_health_pct=soh, android_health=int(health.group(1)) if health else None,
+                cycle_count=bat.get("cycle_count"), charge_limit_pct=bat.get("charge_control_end_threshold"))
+        # Lid: PowerManager names the lid as a sleep or wake reason; this boot's logcat and the earlier boots' on the
+        # stick (prior/, unpacked by read-stick-logs.sh). None: the lid was not used.
+        logs = read(f"{d}/logcat-{phase}.txt") + "".join(read(f) for f in sorted(glob.glob(f"{d}/prior/misc/logd/logcat*")))
+        # Android 17 logs the close as "Sleeping power group (... reason=lid_switch)"; older ones "Going to sleep due to".
+        close_re = r"Going to sleep due to lid_switch|Sleeping power group \([^)]*reason=lid_switch"
+        open_re = r"PowerManagerService: Waking up from \w+ \([^)]*reason=WAKE_REASON_LID"
+        closes, opens = len(re.findall(close_re, logs)), len(re.findall(open_re, logs))
+        c, o = re.search(close_re, logs), re.search(open_re, logs)
+        suspended = "PM      : suspend entry" in logs[c.end():o.start()] if c and o and o.start() > c.end() else None
+        verdict("lid_events", (closes > 0 and opens > 0) if closes or opens else None, sleeps_on_close=closes,
+                wakes_on_open=opens, suspended_while_closed=suspended)
+        # The power HAL (vendor.power-openbook) logs every EPP it sets: screen off -> power, app launch -> performance,
+        # battery saver -> balance_power, otherwise the kernel's default (balance_performance).
+        epp = re.findall(r"openbook\.power: energy_performance_preference=(\w+)", logs)
+        tally = {x: epp.count(x) for x in sorted(set(epp))}
+        screen_off = "screen_toggled: 0" in logs  # "power" is only due once the screen went off
+        verdict("epp_modes", ("performance" in tally and ("power" in tally or not screen_off)) if epp else None,
+                set_counts=tally, screen_went_off=screen_off, battery_saver_seen="balance_power" in tally)
+        # The gestures library's complaint itself, in this boot's logcat (touchpad_clock below is the raw events).
+        warn = read(f"{d}/logcat-{phase}.txt").count("Clock changed backwards")
+        verdict("touchpad_clock_warnings", warn == 0 if any("Touchpad" in n for n in names) else None, count=warn)
         leds = sec.get("LEDS", "")
         verdict("kbd_backlight", "kbd_backlight" in leds if "LEDS" in sec else None,
                 leds=[l for l in leds.splitlines() if "kbd" in l])

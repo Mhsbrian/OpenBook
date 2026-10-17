@@ -1,0 +1,42 @@
+# anal178c: the save-logs boot's suspend lines (dmesg.txt)
+[    0.464166] ACPI: EC: interrupt blocked
+[    0.619263] ACPI: EC: interrupt unblocked
+[    9.204616] healthd: batteryChargeTimeToFullNowPath. not found
+[    9.204616] healthd: batteryStateOfHealthPath not found
+[    9.204617] healthd: batteryHealthStatusPath not found
+[    9.204617] healthd: batteryManufacturingDatePath not found
+[   14.782381] healthd: battery l=36 v=14768 t=0.0 h=1 st=3 c=2510000 fc=4063000 cc=0 chg=
+[   16.015921] healthd: battery l=36 v=14752 t=0.0 h=1 st=3 c=2315000 fc=4063000 cc=0 chg=
+[   16.032966] healthd: battery l=36 v=14752 t=0.0 h=1 st=3 c=2315000 fc=4063000 cc=0 chg=
+[   20.981672] healthd: battery l=36 v=14630 t=0.0 h=1 st=3 c=2093000 fc=4063000 cc=0 chg=
+[   29.723560] healthd: battery l=35 v=14890 t=0.0 h=1 st=3 c=1553000 fc=4063000 cc=0 chg=
+[   30.732344] PM: suspend entry (s2idle)
+[   30.921581] alarmtimer alarmtimer.0.auto: PM: dpm_run_callback(): platform_pm_suspend returns -16
+[   30.921597] alarmtimer alarmtimer.0.auto: PM: failed to suspend: error -16
+[   31.075831] Abort: Device alarmtimer.0.auto failed to suspend: error -16
+[   31.083541] PM: suspend exit
+[   36.165750] PM: suspend entry (s2idle)
+[   36.193093] alarmtimer alarmtimer.0.auto: PM: dpm_run_callback(): platform_pm_suspend returns -16
+[   36.193109] alarmtimer alarmtimer.0.auto: PM: failed to suspend: error -16
+[   36.193115] PM: PM: Pending Wakeup Sources: alarmtimer.0.auto 
+[   36.310847] Abort: Device alarmtimer.0.auto failed to suspend: error -16
+[   36.325384] PM: suspend exit
+[   38.217696] PM: suspend entry (s2idle)
+[   38.267982] alarmtimer alarmtimer.0.auto: PM: dpm_run_callback(): platform_pm_suspend returns -16
+[   38.267998] alarmtimer alarmtimer.0.auto: PM: failed to suspend: error -16
+[   38.268011] PM: PM: Pending Wakeup Sources: alarmtimer.0.auto 
+[   38.392451] Abort: Device alarmtimer.0.auto failed to suspend: error -16
+[   38.399933] PM: suspend exit
+[   40.293550] PM: suspend entry (s2idle)
+[   40.825236] ACPI: EC: interrupt blocked
+[   60.934877] PM: pm_system_irq_wakeup: 7 triggered pinctrl_amd
+[   60.935333] PM: PM: Pending Wakeup Sources: [timerfd] [timerfd] 
+[   60.936703] amd_pmc AMDI000A:00: Last suspend didn't reach deepest state
+[   60.942596] PM: pm_system_irq_wakeup: 9 triggered acpi
+[   61.040886] ACPI: EC: interrupt unblocked
+[   62.726193] ACPI: button: The lid device is not compliant to SW_LID.
+[   62.919865] healthd: battery l=35 v=14469 t=0.0 h=1 st=3 c=530000 fc=4063000 cc=0 chg=
+[   62.921200] Resume caused by IRQ 7, pinctrl_amd
+[   62.921204] Resume caused by IRQ 9, acpi
+[   62.928841] PM: suspend exit
+[   62.964864] healthd: battery l=35 v=14469 t=0.0 h=1 st=3 c=530000 fc=4063000 cc=0 chg=
