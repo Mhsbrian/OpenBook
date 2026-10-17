@@ -35,6 +35,11 @@
     </string-array>
     <bool name="config_supportsCamToggle">true</bool>
     <bool name="config_supportsMicToggle">true</bool>
+    <!-- No lock screen unless the user sets a PIN, pattern or password (LockPatternUtils.isLockScreenDisabled()). The
+         phone default shows a swipe lock screen at every boot, and SystemUI turns the screen off after 10 seconds on it
+         (config_lockScreenDisplayTimeout): on the G14 the first boot went black 10 s after reaching the desktop
+         (ANAL-176). -->
+    <bool name="config_disableLockscreenByDefault">true</bool>
     <bool name="config_lockPatternVisibleDefault">false</bool>
     <bool name="config_lockPinEnhancedPrivacyDefault">true</bool>
     <bool name="config_magnification_keep_zoom_level_when_context_changed">true</bool>
