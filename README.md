@@ -66,7 +66,13 @@
 
 ## Screenshots
 
-### Running today: our Android 17 desktop build
+### Running today on the G14
+
+<img src="assets/readme/g14-desktop.jpg" alt="OpenBook's Android 17 desktop on the ASUS ROG Zephyrus G14: wallpaper, the desktop taskbar with pinned apps, and the taskbar tutorial card" width="100%">
+
+<sub>A real screenshot that the G14 took of its own panel (<code>screencap</code>, 2880×1800, scaled to 1440×900, otherwise unedited) on 2026-10-17. It comes from a <code>desktop2</code> live USB stick's "save logs" boot, which runs SELinux in permissive mode. Evidence: <a href="evidence/2026-10-17-g14-desktop/g14-desktop2/SUMMARY.md"><code>evidence/2026-10-17-g14-desktop/</code></a>.</sub>
+
+### In a VM: our Android 17 desktop build
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/readme/desktop-dark.jpg">
@@ -102,15 +108,17 @@
 | ✅ | **M0** Research, baselines, image analysis | Done. See [`docs/RESEARCH.md`](docs/RESEARCH.md) |
 | ✅ | **M1** Our Android 17 build boots in a VM | `boot_completed` in 17–29 s ([evidence](evidence/2026-10-16-aosp/)) |
 | ✅ | **M2** Desktop windowing and GPU graphics in a VM | Matches Google's desktop image; RADV on an AMD iGPU |
-| 🚧 | **M3** OpenBook kernel on real hardware | **First boots on the G14:** 235 modules, 0 failed. Our Android 17 live image reaches SurfaceFlinger on the panel |
-| 🚧 | **M4** AMD graphics stack | Built and passing on a Radeon 610M; the G14 run is next |
-| 🚧 | **M6** ARM app compatibility | 13 of 16 ARM-only apps run; open bridge being ported to Android 17 |
+| 🚧 | **M3** OpenBook kernel on real hardware | **First boots on the G14:** 235 modules, 0 failed. Our Android 17 live image reaches the desktop on the panel ("save logs" boots, SELinux permissive) |
+| 🚧 | **M4** AMD graphics stack | Passing on a Radeon 610M; on the G14 the desktop renders through ANGLE on RADV. Composition still runs on the GPU |
+| 🚧 | **M6** ARM app compatibility | 13 of 16 ARM-only apps run; porting the open bridge to Android 17 has started |
 | 🚧 | **M8** USB installer | Design done; the live USB image builds and boots on the G14 ([`docs/installer.md`](docs/installer.md)) |
-| 🚧 | **M5** Desktop, input and power on the laptop | Touchpad pointer and keyboard work in Android on the G14; desktop in progress |
+| 🚧 | **M5** Desktop, input and power on the laptop | Desktop, touchpad and keyboard work in Android on the G14. Lid, power button, hotkeys and battery health are built and checked in a VM. Deep sleep (S0i3) is under investigation |
 | ⏳ | **M7** Performance and parity | Later |
 
 > [!TIP]
-> **Milestone, 2026-10-16: first boot on real hardware.** Our UEFI boot chain, GKI kernel and drivers ran on an ASUS ROG Zephyrus G14 (Ryzen AI 9 HX 370) from a USB stick. The following all came up:
+> **Milestone, 2026-10-17: the Android desktop on real hardware.** Our Android 17 build reached the desktop on the G14's own panel from a live USB stick, and the touchpad and keyboard worked ([screenshot above](#running-today-on-the-g14)). These were "save logs" boots, which run SELinux in permissive mode. The next check is the default boot, which is enforcing. [Read the report →](evidence/2026-10-17-g14-desktop/g14-desktop2/SUMMARY.md)
+>
+> **2026-10-16: first boot on real hardware.** Our UEFI boot chain, GKI kernel and drivers ran on an ASUS ROG Zephyrus G14 (Ryzen AI 9 HX 370) from a USB stick. The following all came up:
 > - Radeon 890M graphics (amdgpu, DCN 3.5)
 > - MediaTek Wi-Fi 7 and Bluetooth
 > - the ELAN touchpad and the keyboard
@@ -128,12 +136,12 @@ The live tracker, decisions and next steps are in [`docs/STATUS.md`](docs/STATUS
 
 | Component | On the G14 today | Notes |
 |---|---|---|
-| Radeon 890M (gfx1150) | ✅ amdgpu drives the 2880×1800 panel; SurfaceFlinger runs on ANGLE/RADV | 🚧 The RADV swapchain crash behind the black screen is fixed (verified on a Radeon 610M); the G14 run is next |
+| Radeon 890M (gfx1150) | ✅ amdgpu drives the 2880×1800 panel; the Android desktop renders on ANGLE/RADV | 🚧 drm_hwcomposer asks for more planes than the display core allows (4), so SurfaceFlinger composes on the GPU |
 | Wi-Fi 7 / Bluetooth (MT7925) | ✅ `wlan0` and `hci0` up | 🚧 Android Wi-Fi (WPA2, DHCP) and Bluetooth built and passing in QEMU; G14 run next |
-| Touchpad, keyboard, lid | ✅ Detected | ELAN I2C HID over pinctrl-amd |
+| Touchpad, keyboard, lid | ✅ Pointer and keyboard work in Android | Lid → sleep, power button and ASUS hotkeys configured (checked in a VM); touchpad clock warnings under study |
 | XDNA 2 NPU | ✅ `accel0` | Userspace later |
-| Battery, USB-C, USB4 | ✅ Detected | Battery health read: 88.7 % |
-| CPU power and sleep | ✅ amd-pstate-epp active; suspend and resume work | 🚧 Deepest idle (S0ix) not reached while the NVIDIA GPU is awake. Fix under test (check v3) |
+| Battery, USB-C, USB4 | ✅ Detected | Battery health read: 88.7 %. An OpenBook health HAL reports charge and health to Android (G14 run next) |
+| CPU power and sleep | ✅ amd-pstate-epp active; suspend and resume work; the NVIDIA GPU sleeps (D3cold) | 🚧 Deepest idle (S0i3) not reached yet. Hypothesis: the driverless PSP keeps its PCIe bridge awake; a one-boot test is on the next stick |
 | Audio (ALC285 + CS35L56) | 🚧 Codec found | 🚧 Audio HAL built; tone playback verified in QEMU; speaker and mic test on the G14 next |
 | NVIDIA RTX 50 dGPU | ⏸ Off by design (D3cold with no driver) | Research track in [`docs/nvidia.md`](docs/nvidia.md) |
 
