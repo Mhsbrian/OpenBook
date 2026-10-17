@@ -7,7 +7,7 @@ Build: `OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:us
 | boot_completed | yes | {"seconds": 78.6, "second_stage_s": 2.9} |
 | display | yes | {"connectors": ["card0-DP-1 disconnected disabled", "card0-DP-2 disconnected disabled", "card0-DP-3 disconnected disabled", "card0-DP-4 disconnected disabled", "card0-DP-5 disconnected disabled", "card0-DP-6 disconnected |
 | gpu_hal | yes | {"hal": "amdgpu", "egl": "angle", "vulkan": "radv", "gralloc": "minigbm", "hwcomposer": "drm"} |
-| data_on_stick | NO | {"data_kib": null, "used_kib": null, "byname_targets": ["sda"]} |
+| data_on_stick | yes | {"data_kib": 58885120, "used_kib": 1167600, "byname_targets": ["sda"]} |
 | wifi | yes | {"interface": true, "status": ["cmd: Can't find service: wifi"], "supplicant": null} |
 | touchpad | yes | {"devices": ["ASCE1206:00 04F3:3315 Touchpad"]} |
 | keyboard | yes | {"devices": ["Asus Keyboard"]} |

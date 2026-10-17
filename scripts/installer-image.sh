@@ -59,8 +59,10 @@ echo "== installer-image.sh $LABEL ($(date -u +%FT%TZ)), repo $(git -C "$R" rev-
 
 # 1. snapshot
 if [ -z "$IN" ]; then
-  if docker ps --format '{{.Names}}' | grep -qx anybook-aosp-build; then
-    echo "an AOSP build (anybook-aosp-build) is running; PRODUCT_OUT may be half-written. Try later." >&2; exit 1
+  # Lanes name their build containers anybook-aosp-build or anybook-aosp-build-<issue> (ANAL-179).
+  b=$(docker ps --format '{{.Names}}' | grep -E '^anybook-aosp-build(-|$)' | head -1 || true)
+  if [ -n "$b" ]; then
+    echo "an AOSP build ($b) is running; PRODUCT_OUT may be half-written. Try later." >&2; exit 1
   fi
   IN=$A/installer/inputs/$LABEL
   rm -rf "$IN"; mkdir -p "$IN"

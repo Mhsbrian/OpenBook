@@ -38,9 +38,9 @@
    "hwcomposer": "drm"
   },
   "data_on_stick": {
-   "ok": false,
-   "data_kib": null,
-   "used_kib": null,
+   "ok": true,
+   "data_kib": 58885120,
+   "used_kib": 1167600,
    "byname_targets": [
     "sda"
    ]
@@ -120,8 +120,6 @@
   "collect-final.txt",
   "dmesg.txt",
   "logcat-final.txt",
-  "prior",
-  "prior-boots.tar.gz",
   "report.json",
   "report.md",
   "screen-final.png",

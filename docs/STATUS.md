@@ -51,6 +51,25 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 
 ## History
 
+### 2026-10-17: G14 boots of desktop3, and desktop4 (ANAL-176)
+
+- **Done:**
+  - Read the owner's two `desktop3` boots:
+    - The amdgpu `firmware_load` denial is gone.
+    - The save-logs boot reached the desktop; enforcing boots would hit 14 denial lines, down from 66.
+    - The first boot (non-logs) was switched off on a black screen while it was still decompressing APEXes, before SurfaceFlinger could start. So the enforcing entry is still unproven on the panel.
+    - Escape killed the launcher.
+    - The save-logs entry powered off, as designed.
+  - Fixed:
+    - APEXes now ship uncompressed (first boot of a fresh stick without the 34 s decompression);
+    - the Launcher3 Escape crash (AOSP patch);
+    - `aosp-patches.sh` now resets other branches' leftover patches in the shared tree;
+    - the image script's build guard now also sees `anybook-aosp-build-<issue>` containers;
+    - the `df /data` parsing in `live-report.py` and `live-qemu-check.py`.
+- **Evidence:** `evidence/2026-10-17-g14-desktop/g14-desktop3/` (the G14 boots) and `desktop4/` (build, 37/39 in QEMU, first boot 17.8 s vs 27.9 s with SurfaceFlinger at 5.4 s vs 19.9 s).
+- **Found:** drm_hwcomposer proposes more planes than amdgpu's display core takes per stream (4), so its test commit fails every frame and SurfaceFlinger composes on the GPU (open, `docs/g14-desktop.md` §7).
+- **Next:** the owner boots the default entry on the `desktop3` stick as it is (first-boot setup is done), then `desktop4`.
+
 ### 2026-10-17: G14 boots of desktop2: why only "save logs" worked (ANAL-176)
 
 - **Done:**
