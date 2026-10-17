@@ -1,0 +1,356 @@
+{
+ "cases": {
+  "disks": [
+   {
+    "check": "two disks found, the stick by its USB by-id",
+    "ok": true,
+    "detail": "['nvme0n1', 'sda']"
+   },
+   {
+    "check": "the stick is the boot disk and not a target (S1)",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "the NVMe disk: by-id nvme-QEMU_NVMe_Ctrl_internal0",
+    "ok": true,
+    "detail": "nvme-QEMU_NVMe_Ctrl_internal0"
+   },
+   {
+    "check": "blank NVMe: whole ok, alongside refused (no GPT)",
+    "ok": true,
+    "detail": "{'whole': {'ok': True, 'why': None}, 'alongside': {'ok': False, 'why': 'no_gpt', 'free_bytes': 0}}"
+   },
+   {
+    "check": "install source found on the stick",
+    "ok": true,
+    "detail": "{'label': 'openbook-live-20261017-anal191g', 'ok': True, 'why': None}"
+   },
+   {
+    "check": "hwinfo answers (fixture: no hardware)",
+    "ok": true,
+    "detail": ""
+   }
+  ],
+  "plan": [
+   {
+    "check": "plan succeeds",
+    "ok": true,
+    "detail": "None"
+   },
+   {
+    "check": "operations listed in order (check, recheck, wipe, copies, super, format, files, table, verify, activate, nvram, report)",
+    "ok": true,
+    "detail": "['check_source', 'recheck', 'wipe_table', 'format', 'zero', 'copy', 'zero', 'copy', 'zero', 'copy', 'zero', 'copy', 'zero', 'zero', 'super', 'zero', 'file', 'file', 'file', 'file', 'write_table', 'verify', 'activate', 'activate', 'activate', 'activate', 'nvram', 'report']"
+   },
+   {
+    "check": "whole-disk layout (docs/installer.md 3.2)",
+    "ok": true,
+    "detail": "['EFI', 'misc', 'boot_a', 'boot_b', 'init_boot_a', 'init_boot_b', 'vendor_boot_a', 'vendor_boot_b', 'vbmeta_a', 'vbmeta_b', 'metadata', 'super', 'userdata']"
+   },
+   {
+    "check": "confirm text is the disk's model",
+    "ok": true,
+    "detail": "QEMU NVMe Ctrl"
+   },
+   {
+    "check": "the target was only read (sha256 unchanged)",
+    "ok": true,
+    "detail": ""
+   }
+  ],
+  "nvram": [
+   {
+    "check": "plan: a firmware entry is planned and goes first (consent given)",
+    "ok": true,
+    "detail": "{'boot_part_uuid': '01df0dc0-91a2-463b-9894-e668927ac383', 'serialno': '14B8E5E9AFF2A95D', 'entry': 'loader/entries/openbook-a.conf', 'fallback_path': True, 'nvram': 'planned', 'boot_order': 'first', 'set_default': True}"
+   },
+   {
+    "check": "plan: the firmware's variables were only read",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "whole: result says Boot0002 created and first in BootOrder",
+    "ok": true,
+    "detail": "{'nvram': 'created', 'nvram_entry': 'Boot0002', 'boot_order': 'first', 'nvram_error': None}"
+   },
+   {
+    "check": "whole: Boot0002 = \"OpenBook\", active, NV+BS+RT, HD(1, GPT, the new ESP)/\\EFI\\OpenBook\\systemd-bootx64.efi",
+    "ok": true,
+    "detail": "{'attrs': 7, 'active': True, 'desc': 'OpenBook', 'partition': 1, 'start': 2048, 'size': 1048576, 'guid': '01df0dc0-91a2-463b-9894-e668927ac383', 'gpt': True, 'path': '\\\\EFI\\\\OpenBook\\\\systemd-bootx64.efi'}"
+   },
+   {
+    "check": "whole: BootOrder 0002, 0000, 0001 (OpenBook first, the rest in their order)",
+    "ok": true,
+    "detail": "(2, 0, 1)"
+   },
+   {
+    "check": "whole: the other entries are byte-identical",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "openbook-install nvram lists the entries and the order",
+    "ok": true,
+    "detail": "{'available': True, 'dir': '/home/hive/anybook/installer/work/et-anal191-append/efivars-main', 'boot_order': ['0002', '0000', '0001'], 'boot_current': None, 'boot_next': None, 'entries': [{'num': '0000', 'description': 'Windows Boot Manager', 'active': True, 'partition': 1, 'partuuid': '0d9b5c11-6c5"
+   },
+   {
+    "check": "alongside: plan puts OpenBook last in BootOrder (no consent), no boot order warning",
+    "ok": true,
+    "detail": "[[], 'After verification: add one firmware boot entry, a free Boot####, \"OpenBook\" -> HD(1, GPT, ab25bba1-a010-42fa-a257-a022859e3c45)/\\\\EFI\\\\OpenBook\\\\systemd-bootx64.efi; add it at the end of BootOrder, so the system that starts now stays the default (no consent to change it)']"
+   },
+   {
+    "check": "alongside: result says Boot0002 created and last in BootOrder",
+    "ok": true,
+    "detail": "{'nvram': 'created', 'nvram_entry': 'Boot0002', 'boot_order': 'last', 'nvram_error': None}"
+   },
+   {
+    "check": "alongside: Boot0002 \"OpenBook\" -> HD(1, GPT, the existing Windows ESP)/\\EFI\\OpenBook\\systemd-bootx64.efi (0001, the stale BootOrder reference, not reused)",
+    "ok": true,
+    "detail": "{'attrs': 7, 'active': True, 'desc': 'OpenBook', 'partition': 1, 'start': 2048, 'size': 532480, 'guid': 'ab25bba1-a010-42fa-a257-a022859e3c45', 'gpt': True, 'path': '\\\\EFI\\\\OpenBook\\\\systemd-bootx64.efi'}"
+   },
+   {
+    "check": "alongside: BootOrder 0000, 0001, 0002 (Windows still first, OpenBook appended; owner decision)",
+    "ok": true,
+    "detail": "(0, 1, 2)"
+   },
+   {
+    "check": "alongside: Windows Boot Manager byte-identical; no other variable added or removed (S11)",
+    "ok": true,
+    "detail": "['Boot0000-8be4df61-93ca-11d2-aa0d-00e098032b8c', 'Boot0002-8be4df61-93ca-11d2-aa0d-00e098032b8c', 'BootOrder-8be4df61-93ca-11d2-aa0d-00e098032b8c']"
+   }
+  ],
+  "refuse-no-env": [
+   {
+    "check": "without OPENBOOK_INSTALL_ERASE: refused",
+    "ok": true,
+    "detail": "confirm_mismatch"
+   }
+  ],
+  "refuse-wrong-disk": [
+   {
+    "check": "a different disk named: refused",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "target unchanged",
+    "ok": true,
+    "detail": ""
+   }
+  ],
+  "refuse-boot-disk": [
+   {
+    "check": "planning onto the stick: refused (boot_disk)",
+    "ok": true,
+    "detail": "{'ok': False, 'code': 'not_eligible', 'error': 'boot_disk'}"
+   }
+  ],
+  "refuse-mounted": [
+   {
+    "check": "a disk with a partition in use: refused (mounted)",
+    "ok": true,
+    "detail": "{'ok': False, 'code': 'not_eligible', 'error': 'mounted'}"
+   }
+  ],
+  "refuse-small": [
+   {
+    "check": "a 32 GiB disk: refused (too_small)",
+    "ok": true,
+    "detail": "{'ok': False, 'code': 'not_eligible', 'error': 'too_small'}"
+   }
+  ],
+  "refuse-changed": [
+   {
+    "check": "the disk changed after the plan: refused (plan_changed, S4)",
+    "ok": true,
+    "detail": "plan_changed"
+   },
+   {
+    "check": "target unchanged",
+    "ok": true,
+    "detail": ""
+   }
+  ],
+  "refuse-bad-stick": [
+   {
+    "check": "a corrupted super on the stick: check_source fails (S10)",
+    "ok": true,
+    "detail": "the stick's super does not match its manifest (sha256 2b30109a154371f4, expected 9a1be3aee260b47b): the stick may be failing or badly written"
+   },
+   {
+    "check": "nothing written to the target",
+    "ok": true,
+    "detail": ""
+   }
+  ],
+  "whole": [
+   {
+    "check": "apply succeeds and verifies",
+    "ok": true,
+    "detail": "None"
+   },
+   {
+    "check": "every step done",
+    "ok": true,
+    "detail": "{'check_source': {'state': 'done', 'seconds': 3.8}, 'prepare_disk': {'state': 'done', 'seconds': 0.0}, 'boot_images': {'state': 'done', 'seconds': 0.4}, 'system': {'state': 'done', 'seconds': 3.8}, 'boot_entry': {'state': 'done', 'seconds': 0.0}, 'verify': {'state': 'done', 'seconds': 4.8}, 'report'"
+   },
+   {
+    "check": "progress events streamed",
+    "ok": true,
+    "detail": "84"
+   },
+   {
+    "check": "GPT valid (sgdisk -v)",
+    "ok": true,
+    "detail": "\nNo problems found. 4029 free sectors (2.0 MiB) available in 2\nsegments, the largest of which is 2015 (1007.5 KiB) in size.\n"
+   },
+   {
+    "check": "13 partitions as planned",
+    "ok": true,
+    "detail": "['EFI', 'misc', 'boot_a', 'boot_b', 'init_boot_a', 'init_boot_b', 'vendor_boot_a', 'vendor_boot_b', 'vbmeta_a', 'vbmeta_b', 'metadata', 'super', 'userdata']"
+   },
+   {
+    "check": "partition offsets as planned",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "ESP PARTUUID is the bootconfig's boot_part_uuid",
+    "ok": true,
+    "detail": "<re.Match object; span=(91, 140), match='unique GUID: 01DF0DC0-91A2-463B-9894-E668927AC383>"
+   },
+   {
+    "check": "ESP passes fsck.fat",
+    "ok": true,
+    "detail": "fsck.fat 4.2 (2021-01-31)\n/home/hive/anybook/installer/work/et-anal191-append/whole/esp.img: 19 files, 7421/130812 clusters\n"
+   },
+   {
+    "check": "every ESP file read by mtools matches the plan",
+    "ok": true,
+    "detail": "[('openbook/a/kernel', True), ('openbook/a/vendor_ramdisk.img', True), ('openbook/a/ramdisk.img', True), ('openbook/a/bootconfig.img', True), ('loader/entries/openbook-a.conf', True), ('loader/loader.conf', True), ('EFI/OpenBook/systemd-bootx64.efi', True), ('EFI/BOOT/BOOTX64.EFI', True)]"
+   },
+   {
+    "check": "loader entry: kernel, three initrds with bootconfig last, vendor cmdline",
+    "ok": true,
+    "detail": "title OpenBook | version 17 \u00b7 slot A | sort-key openbook-1 | linux /openbook/a/kernel | initrd /openbook/a/vendor_ramdisk.img | initrd /openbook/a/ramdisk.img | initrd /openbook/a/bootconfig.img | options firmware_class.path=/vendor/firmware log_buf_len=1M bootconfig | "
+   },
+   {
+    "check": "bootconfig: the new ESP's PARTUUID, a new serial, no live flags, locale",
+    "ok": true,
+    "detail": "androidboot.boot_devices = \"pci0000:00/0000:00:02.1,pci0000:00/0000:00:08.1,pci0000:00/0000:00:08.3\"\nandroidboot.hardware = openbook\nandroidboot.openbook.loader = sdboot\nandroidboot.slot_suffix = _a\nandroidboot.vbmeta.avb_version = 1.3\nandroidboot.vbmeta.device_state = unlocked\nandroidboot.vbmeta.di"
+   },
+   {
+    "check": "bootconfig trailer checks out (bootconfig.py show)",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "lpdump: super metadata for 12 GiB, virtual A/B, every logical partition at its offset",
+    "ok": true,
+    "detail": "{'system_a': 2048, 'system_b': 1361920, 'system_ext_a': 1372160, 'product_a': 1622016, 'vendor_a': 2193408, 'vendor_dlkm_a': 2484224, 'system_dlkm_a': 2588672}"
+   },
+   {
+    "check": "every logical partition's bytes match the product image (sha256)",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "boot_a, init_boot_a, vendor_boot_a, vbmeta_a match the stick (sha256)",
+    "ok": true,
+    "detail": "['boot_a', 'init_boot_a', 'vendor_boot_a', 'vbmeta_a']"
+   },
+   {
+    "check": "metadata, userdata, misc and slot B start blank (Android formats them on first boot)",
+    "ok": true,
+    "detail": "{'userdata': True, 'metadata': True, 'misc': True, 'boot_b': True}"
+   },
+   {
+    "check": "install report on the new ESP",
+    "ok": true,
+    "detail": "['::/openbook/logs/install-20261017T213338Z.json']"
+   },
+   {
+    "check": "install report and log on the stick (S6)",
+    "ok": true,
+    "detail": "['::/openbook/logs/install-20261017T213338Z.json', '::/openbook/logs/install-20261017T213338Z.log']"
+   },
+   {
+    "check": "the stick's ESP still passes fsck.fat after the report",
+    "ok": true,
+    "detail": "fsck.fat 4.2 (2021-01-31)\n/home/hive/anybook/installer/work/et-anal191-append/whole/stick-esp.img: 46 files, 63313/516190 clusters\n"
+   },
+   {
+    "check": "the stick's other partitions are unchanged",
+    "ok": true,
+    "detail": ""
+   }
+  ],
+  "alongside": [
+   {
+    "check": "Windows found on the disk, alongside possible with the free space",
+    "ok": true,
+    "detail": "{'whole': {'ok': True, 'why': None}, 'alongside': {'ok': True, 'why': None, 'free_bytes': 106243817472}}"
+   },
+   {
+    "check": "plan: an XBOOTLDR partition and the Android partitions in the free space",
+    "ok": true,
+    "detail": "None"
+   },
+   {
+    "check": "plan keeps every existing partition and erases none",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "apply succeeds and verifies",
+    "ok": true,
+    "detail": "None"
+   },
+   {
+    "check": "GPT valid (sgdisk -v)",
+    "ok": true,
+    "detail": "\nNo problems found. 4029 free sectors (2.0 MiB) available in 2\nsegments, the largest of which is 2015 (1007.5 KiB) in size.\n"
+   },
+   {
+    "check": "MSR, NTFS and recovery partitions unchanged (S7)",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "4 + 13 partitions in the table",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "the Windows ESP passes fsck.fat",
+    "ok": true,
+    "detail": "fsck.fat 4.2 (2021-01-31)\n/home/hive/anybook/installer/work/et-anal191-append/alongside/win-esp-after.img: 9 files, 905/524252 clusters\n"
+   },
+   {
+    "check": "EFI/Microsoft/Boot/bootmgfw.efi and EFI/BOOT/BOOTX64.EFI untouched",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "EFI/OpenBook/systemd-bootx64.efi added to the existing ESP",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "XBOOTLDR holds the entry and the boot files, no loader.conf or fallback path",
+    "ok": true,
+    "detail": "\n::/loader/\n::/openbook/a/\n::/openbook/logs/\n::/openbook/a/kernel\n::/openbook/a/vendor_ramdisk.img\n::/openbook/a/ramdisk.img\n::/openbook/a/bootconfig.img\n::/openbook/logs/install-20261017T213356Z.json\n::/openbook/logs/install-20261017T213356Z.log\n::/loader/entries/\n::/loader/entries/openbook-a.conf\n"
+   },
+   {
+    "check": "XBOOTLDR has its type GUID",
+    "ok": true,
+    "detail": ""
+   }
+  ]
+ },
+ "passed": 65,
+ "total": 65,
+ "image": "openbook-live-20261017-anal191g.img"
+}

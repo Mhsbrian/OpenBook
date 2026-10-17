@@ -1,0 +1,17 @@
+brw------- 1 root root u:object_r:openbook_disk_block_device:s0  259,   0 2026-10-17 22:00 nvme0n1
+brw------- 1 root root u:object_r:openbook_disk_block_device:s0    8,   0 2026-10-17 22:00 sda
+srw-rw-rw- 1 root system u:object_r:openbook_installd_socket:s0  0 2026-10-17 22:00 /dev/socket/openbook_installd
+u:r:hal_health_default:s0      system         535     1   10847328   6840 do_epoll_wait       0 S android.hardware.health-service.openbook
+u:r:hal_light_default:s0       system         537     1   10890276   5796 binder_ioctl_write_read 0 S android.hardware.lights-service.openbook
+u:r:hal_power_default:s0       system         538     1   10890444   5724 binder_ioctl_write_read 0 S android.hardware.power-service.openbook
+u:r:hal_power_stats_default:s0 system         539     1   10869816   5748 binder_ioctl_write_read 0 S android.hardware.power.stats-service.openbook
+u:r:hal_thermal_default:s0     system         540     1   10877104   5784 binder_ioctl_write_read 0 S android.hardware.thermal-service.openbook
+u:r:hal_weaver_default:s0      system         541     1   10800156   5716 binder_ioctl_write_read 0 S android.hardware.weaver-service.openbook
+u:r:openbook_installd:s0       root          1442     1   10769380   3832 do_sys_poll         0 S openbook-install
+u:r:platform_app:s0:c512,c768  u0_a35        1892   527   16485424 108432 do_epoll_wait       0 S com.android.packageinstaller
+u:r:platform_app:s0:c512,c768  u0_a79        1951   527   17130408 270744 do_epoll_wait       0 S org.openbook.installer
+efivarfs /sys/firmware/efi/efivars efivarfs rw,nosuid,nodev,noexec,relatime 0 0
+u:object_r:openbook_efivarfs:s0 /sys/firmware/efi/efivars
+u:object_r:openbook_efivarfs:s0 Boot0000-8be4df61-93ca-11d2-aa0d-00e098032b8c
+u:object_r:openbook_efivarfs:s0 Boot0001-8be4df61-93ca-11d2-aa0d-00e098032b8c
+u:object_r:openbook_efivarfs:s0 Boot0002-8be4df61-93ca-11d2-aa0d-00e098032b8c
