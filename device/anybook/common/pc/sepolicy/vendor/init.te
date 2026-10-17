@@ -1,3 +1,10 @@
 # init.rc: write /dev/sys/block/by-name/rootdisk/queue/discard_max_bytes (file_contexts).
 allow init sysfs_openbook_block_queue:dir search;
 allow init sysfs_openbook_block_queue:file w_file_perms;
+
+# The arm64 native bridge's berberis.rc (ANAL-200): early-init mounts binfmt_misc on /proc/sys/fs/binfmt_misc
+# (labelled proc) and registers the arm64 runners, so arm64 executables run through the translator. Cuttlefish's
+# vendor policy has the same two rules for its translator; without them the enforcing boot logs
+# "mount binfmt_misc ... failed: Permission denied" and arm64 executables don't run.
+allow init proc:dir mounton;
+allow init binfmt_miscfs:file w_file_perms;

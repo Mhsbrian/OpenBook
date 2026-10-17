@@ -1,0 +1,20 @@
+### art: patches already applied (b753cf97923c)
+### art: base b753cf97923c + 1 patches -> HEAD c235db82327e
+###   c235db8232 OPENBOOK: libnativebridge: bridged apps see the bridge's CPU_ABI again
+### external/minigbm: patches already applied (ce79bbee67b3)
+### external/minigbm: base ce79bbee67b3 + 1 patches -> HEAD e1a806bd3f50
+###   e1a806b ANYBOOK: amdgpu: allocate through Mesa's GBM, linear-only without it
+### frameworks/libs/binary_translation: pin 1290e88c6030 + import b6b7fc30f5e1 -> b9d25f5ea260
+### frameworks/libs/binary_translation: base b9d25f5ea260 + 4 patches -> HEAD d412a8451e1f
+###   d412a845 OPENBOOK: arm64: bit-exact FRECPE and FRSQRTE
+###   7ebe429f OPENBOOK: arm64: emulate MRS of the ID registers as Linux does
+###   9ee5c256 OPENBOOK: android17: build with Android 17's clang
+###   6aae7322 OPENBOOK: android17: libberberis_runtime_library_headers
+### hardware/interfaces: patches already applied (0162af698935)
+### hardware/interfaces: base 0162af698935 + 1 patches -> HEAD 38dea1c96dad
+###   38dea1c96d OPENBOOK: audio: primary module's ALSA card and device from properties
+### packages/apps/Launcher3: patches already applied (c612e6ece389)
+### packages/apps/Launcher3: base c612e6ece389 + 1 patches -> HEAD 21f6b66c1b7d
+###   21f6b66c1b ANYBOOK: taskbar overlay: Escape without All Apps does not crash
+#### build completed successfully (02:55 (mm:ss)) ####
+container cgroup memory.peak: 47633850368 bytes

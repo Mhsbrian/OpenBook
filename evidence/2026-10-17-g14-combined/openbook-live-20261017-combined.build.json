@@ -1,0 +1,67 @@
+{
+ "schema": "openbook-live-build/1",
+ "label": "openbook-live-20261017-combined",
+ "image": "openbook-live-20261017-combined.img",
+ "bytes": 2968518656,
+ "sha256": "8b0c690dd306508f20a45df97fb1645d01e4e940fee96739743467c3d14275c8",
+ "xz_bytes": null,
+ "xz_sha256": null,
+ "allocated_bytes": 1403576320,
+ "build_seconds": {
+  "total": 22,
+  "snapshot": 1,
+  "live_init_and_test": 11,
+  "image": 9,
+  "checksums_and_xz": 1
+ },
+ "fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
+ "kernel_release": "6.18.21-android17-5-g44a90255c95f",
+ "loader": "systemd-boot 262-1",
+ "menu_timeout": "10",
+ "epoch": 1792229537,
+ "super": {
+  "original_bytes": 8589934592,
+  "live_bytes": 1409286144,
+  "virtual_ab": true
+ },
+ "firmware": {
+  "files": 139,
+  "licence_files": [
+   "LICENSE.wireless-regdb",
+   "LICENSES/LICENCE.mediatek",
+   "LICENSES/LICENCE.rtlwifi_firmware.txt",
+   "LICENSES/LICENSE.amdgpu",
+   "LICENSES/LICENSE.amdnpu",
+   "LICENSES/LICENSE.cirrus"
+  ],
+  "without_licence": []
+ },
+ "inputs": {
+  "boot.img": "08c62a9b1ffb37bf368bbf1b1a51b49d0792229c8e1e83403b23ddb5c0b9dabc",
+  "init_boot.img": "a820139ba9b53d50e134b64d8dbdce0c5d2468b95cddccb7ef42b40cfd58cf1e",
+  "vendor_boot.img": "61f56fc08ac9dc26c552de4c4ae4e8cdd0f777822ad002b8606d75489af7f2e3",
+  "vbmeta.img": "0f8abd322f2136fd598143ec616e9be1d93d14898b97b2ad4b3d73851840b5c4",
+  "super.img": "2bb9d5b89cc9c948bcb4007beef072d3bfe7fc5f41714fbc8d524d350fa56318"
+ },
+ "repo": {
+  "commit": "01750c58810d1fbb736ab4055ead49bce3e515c6",
+  "dirty": false
+ },
+ "tools": [
+  "gcc 16.2.1+r23+gd564253eb6c8-1",
+  "glibc 2.44+r50+g1848099f063e-1",
+  "systemd 262-1",
+  "dosfstools 4.2-5",
+  "mtools 1:4.0.49-1",
+  "gptfdisk 1.0.10-2",
+  "python 3.14.8-1"
+ ],
+ "log": "~/anybook/logs/installer/live-openbook-live-20261017-combined-20261017T093545Z.log",
+ "image_sha256_before_addon": "0bc0378d61435e51f40b99b8d881b7db0f70588909e3a933e0c95b93db9a71dc",
+ "addon": {
+  "name": "openbook-powercheck-anal178-a-addon",
+  "applied_with": "scripts/power/add-to-live-stick.sh --image (in openbook-installer:anal178, for mtools)",
+  "manifest_sha256": "6ad994e4ab7bef7f940fff66c882ad4bdbe63325e0166ef7d401c387e951e6a0",
+  "note": "sha256 above is of the image with the add-on; the ESP gained openbook/check/ and three openbook-check entries (the same add-on as anal178b)"
+ }
+}
