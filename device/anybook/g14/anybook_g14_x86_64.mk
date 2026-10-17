@@ -52,6 +52,12 @@ PRODUCT_COPY_FILES += \
 # 14" 2880x1800 OLED (Samsung ATNA40CU05-0): 243 ppi. 240 dpi gives a 1920x1200 dp desktop, as on Googlebook.
 PRODUCT_VENDOR_PROPERTIES += ro.vendor.openbook.lcd_density=240
 
+# Background blur (shade, Quick Settings, launcher, app launch), as Googlebook sets it and Cuttlefish already does
+# (device/google/cuttlefish/shared/device.mk). SurfaceFlinger's RenderEngine draws it, on the GPU (SkiaGL on ANGLE
+# on RADV); WM turns it off by itself in battery saver and at severe thermal status (ANAL-203, docs/googlebook-ui.md
+# §2.3).
+PRODUCT_VENDOR_PROPERTIES += ro.surface_flinger.supports_background_blur=1
+
 PRODUCT_NAME := anybook_g14_x86_64
 PRODUCT_DEVICE := anybook_g14
 PRODUCT_BRAND := OpenBook
