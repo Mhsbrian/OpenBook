@@ -70,6 +70,8 @@ The tone counts as heard when 1 kHz comes back at least 20 dB above its level be
 
 ## 7. On the G14: owner checklist
 
+> **Superseded image (2026-10-17):** write **`openbook-live-20261017-combined`** instead (`evidence/2026-10-17-g14-combined/`). It contains this image's contents plus ANAL-178's and ANAL-200's work, and it passes the same tests in QEMU. The steps below are unchanged; use that file name in the `write-stick.sh` command.
+
 The stick image is **`openbook-live-20261017-audionet3`**: this branch merged with ANAL-176's `anal-176/g14-stability` (desktop4, `a81c25e`) and `main` (`9515e22`), so it carries the desktop fixes too. It is on the build host in `~/anybook/installer/out/` (sha256 in its `.sha256` file).
 
 1. **Optional, for the throughput test:** on a PC on the same Wi-Fi network, run `iperf3 -s` (Arch: `sudo pacman -S iperf3`) and note its address (`ip -4 addr`). Have a Bluetooth device ready to pair: headphones or a speaker is best, a mouse or a phone also counts.

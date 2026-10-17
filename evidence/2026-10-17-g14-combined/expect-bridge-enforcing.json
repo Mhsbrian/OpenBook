@@ -1,0 +1,58 @@
+[
+ {
+  "wait": "openbook-live: live boot: boot_part_uuid=",
+  "timeout": 120
+ },
+ {
+  "wait": "openbook-live: (grow|live)",
+  "timeout": 60
+ },
+ {
+  "wait": "openbook-live: exec /init",
+  "timeout": 120
+ },
+ {
+  "wait": "init: init first stage started",
+  "timeout": 60
+ },
+ {
+  "wait": "init: init second stage started",
+  "timeout": 120
+ },
+ {
+  "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+  "timeout": 300
+ },
+ {
+  "send": "\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 120
+ },
+ {
+  "send": "until [ \"$(getprop sys.boot_completed)\" = 1 ]; do sleep 2; done; echo BOOTED=$(getprop sys.boot_completed)\n"
+ },
+ {
+  "wait": "\nBOOTED=1",
+  "timeout": 600
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "echo ===BRIDGE-BEGIN===; getenforce; id; getprop ro.dalvik.vm.native.bridge; ls /proc/sys/fs/binfmt_misc; head -n 2 /proc/sys/fs/binfmt_misc/arm64_exe /proc/sys/fs/binfmt_misc/arm64_dyn; /system/bin/arm64/openbook_bridge_check; echo rc=$?; su 0 dmesg | grep -E 'avc:  denied.*permissive=0' | grep -c .; su 0 dmesg | grep -E 'binfmt' ; echo ===BRIDGE-END===\n"
+ },
+ {
+  "wait": "===BRIDGE-END===",
+  "timeout": 300
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "su 0 sync; su 0 reboot -p\n"
+ }
+]

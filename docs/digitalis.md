@@ -181,6 +181,8 @@ The results for both products are in `audit/cf/` and `audit/g14/`: 89 files each
 
 The check needs no network or user input and changes nothing. It passes in all three translation modes on Cuttlefish, as root and as the shell user (`bridge-check-cuttlefish.txt`). Under QEMU's `-cpu max` and `-cpu cortex-a53` (a real ARM CPU model) it passes too, which validates the check itself. The G14 product's live image passes it in QEMU/KVM as part of the "save logs" entry, so all five verdicts are true in its `report.json` (`g14-live-qemu/report.json`, `hwtest-bridge.txt`). It has not run on the G14 hardware yet.
 
+**Enforcing boots on the G14 product (fixed 2026-10-17, ANAL-159).** `berberis.rc` mounts binfmt_misc and registers the runners in early-init. The Cuttlefish product inherits Cuttlefish's two rules for that; the G14 product's policy lacked them, so its enforcing boots logged `mount binfmt_misc ... Permission denied` and arm64 executables could not run. App libraries still loaded through libnativebridge. The same two rules are now in `device/anybook/common/pc/sepolicy/vendor/init.te`. On `openbook-live-20261017-combined`, an enforcing boot has no binfmt_misc denial, and `openbook_bridge_check` run as the shell user passes all four checks (`evidence/2026-10-17-g14-combined/`). The "save logs" entry is permissive, so its verdicts cannot catch an enforcing-only gap like this one.
+
 ## Open issues
 
 - **Not fixed, by design of this issue:** x86 NaN semantics (default-NaN sign, sNaN priority), the SIGILL `si_code`, Element X's `JNI_GetCreatedJavaVMs`, and AAAAXY (a crash in the app itself).
@@ -191,7 +193,7 @@ The check needs no network or user input and changes nothing. It passes in all t
 
 ## Next
 
-1. The owner's next G14 stick: read the `bridge_*` verdicts in `report.json`, then run the probe and CoreMark on the G14 (`docs/compat-harness.md`).
+1. The owner's next G14 stick (`openbook-live-20261017-combined`, which carries the bridge): read the `bridge_*` verdicts in `report.json`, then run the probe and CoreMark on the G14 (`docs/compat-harness.md`).
 2. Merge android17-release into the fork once Digitalis tracks Android 17, or do it ourselves (64 conflicts).
 3. Upstream reports to DigitalisX64 and AOSP, after the owner's OK.
 

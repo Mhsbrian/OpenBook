@@ -1,0 +1,22 @@
+Enforcing boot (serial console entry openbook-vm.conf) of a 16 GiB copy of openbook-live-20261017-combined; expect-bridge-enforcing.json; QEMU/KVM q35 + OVMF
+result: {'reason': 'QEMU exited (0)', 'seconds': 22.2, 'steps_done': 15, 'steps': 15}
+===BRIDGE-BEGIN===
+Enforcing
+uid=2000(shell) gid=2000(shell) groups=2000(shell),1007(log),3009(readproc) context=u:r:shell:s0
+libberberis_arm64.so
+ls: /proc/sys/fs/binfmt_misc[   17.378735][  T381] type=1400 audit(1792230001.196:6): avc:  denied  { read } for  comm="ls" name="/" dev="binfmt_misc" ino=1 scontext=u:r:shell:s0 tcontext=u:object_r:binfmt_miscfs:s0 tclass=dir permissive=0
+: Permission denied
+head: [   17.384358][  T381] type=1400 audit(1792230001.204:7): avc:  denied  { search } for  comm="head" name="/" dev="binfmt_misc" ino=1 scontext=u:r:shell:s0 tcontext=u:object_r:binfmt_miscfs:s0 tclass=dir permissive=0
+/proc/sys/fs/binfmt_misc/arm64_exe: Permission denied
+head: [   17.386937][  T381] type=1400 audit(1792230001.204:8): avc:  denied  { search } for  comm="head" name="/" dev="binfmt_misc" ino=1 scontext=u:r:shell:s0 tcontext=u:object_r:binfmt_miscfs:s0 tclass=dir permissive=0
+/proc/sys/fs/binfmt_misc/arm64_dyn: Permission denied
+{"test": "bridge-exec", "ok": true, "abi": "arm64-v8a", "uname_machine": "aarch64", "hwcap": "0x9fb"}
+{"test": "bridge-id-registers", "ok": true, "sigill": 0, "first_sigill": -1, "midr": "0x410fd034", "isar0": "0x211120", "pfr0": "0x11", "hwcap_cpuid": true}
+{"test": "bridge-fp-estimates", "ok": true, "cases": 6900, "bad": 0, "first_bad": ""}
+{"test": "bridge-int-simd", "ok": true, "crc32": true, "neon_fma": true}
+rc=0
+6
+[   17.378735] type=1400 audit(1792230001.196:6): avc:  denied  { read } for  comm="ls" name="/" dev="binfmt_misc" ino=1 scontext=u:r:shell:s0 tcontext=u:object_r:binfmt_miscfs:s0 tclass=dir permissive=0
+[   17.384358] type=1400 audit(1792230001.204:7): avc:  denied  { search } for  comm="head" name="/" dev="binfmt_misc" ino=1 scontext=u:r:shell:s0 tcontext=u:object_r:binfmt_miscfs:s0 tclass=dir permissive=0
+[   17.386937] type=1400 audit(1792230001.204:8): avc:  denied  { search } for  comm="head" name="/" dev="binfmt_misc" ino=1 scontext=u:r:shell:s0 tcontext=u:object_r:binfmt_miscfs:s0 tclass=dir permissive=0
+===BRIDGE-END===

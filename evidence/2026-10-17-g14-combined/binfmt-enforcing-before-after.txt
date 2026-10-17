@@ -1,0 +1,19 @@
+Enforcing boots of openbook-live-20261017-main (main 8b40298, before the fix): binfmt_misc lines from each serial log
+== first
+[    3.716604][   T56] audit: type=1400 audit(...): avc:  denied  { mounton } for  pid=1 comm="init" path="/proc/sys/fs/binfmt_misc" dev="proc" ino=2273 scontext=u:r:init:s0 tcontext=u:object_r:proc:s0 tclass=dir permissive=0
+[    3.716605][    T1] init: Command 'mount binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc' action=ro.enable.native.bridge.exec=1 && early-init (/system/etc/init/berberis.rc:3) took 0ms and failed: mount() failed: Permission denied
+== second
+[    3.596083][    T1] init: Command 'mount binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc' action=ro.enable.native.bridge.exec=1 && early-init (/system/etc/init/berberis.rc:3) took 0ms and failed: mount() failed: Permission denied
+[    3.596085][   T56] audit: type=1400 audit(...): avc:  denied  { mounton } for  pid=1 comm="init" path="/proc/sys/fs/binfmt_misc" dev="proc" ino=4350 scontext=u:r:init:s0 tcontext=u:object_r:proc:s0 tclass=dir permissive=0
+== reset
+[    3.567647][   T56] audit: type=1400 audit(...): avc:  denied  { mounton } for  pid=1 comm="init" path="/proc/sys/fs/binfmt_misc" dev="proc" ino=4395 scontext=u:r:init:s0 tcontext=u:object_r:proc:s0 tclass=dir permissive=0
+[    3.567648][    T1] init: Command 'mount binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc' action=ro.enable.native.bridge.exec=1 && early-init (/system/etc/init/berberis.rc:3) took 0ms and failed: mount() failed: Permission denied
+== exact
+[    3.630881][   T56] audit: type=1400 audit(...): avc:  denied  { mounton } for  pid=1 comm="init" path="/proc/sys/fs/binfmt_misc" dev="proc" ino=5330 scontext=u:r:init:s0 tcontext=u:object_r:proc:s0 tclass=dir permissive=0
+[    3.630884][    T1] init: Command 'mount binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc' action=ro.enable.native.bridge.exec=1 && early-init (/system/etc/init/berberis.rc:3) took 0ms and failed: mount() failed: Permission denied
+
+Enforcing boots of openbook-live-20261017-combined (01750c5, with the fix): binfmt_misc lines
+== first: 0 lines
+== second: 0 lines
+== reset: 0 lines
+== exact: 0 lines
