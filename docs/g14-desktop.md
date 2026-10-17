@@ -91,20 +91,25 @@ Built with `scripts/installer-image.sh --label openbook-live-20261017-desktop2 -
 
 Denials on the VM path (`avc-summary.py` on the save-logs case): 41 Android lines in the kernel log and 8 distinct, down from 69 and 16 with the first build of this branch (`desktop1`, before `vendor.minigbm.*`). No `vendor_default_prop` is left. What remains is not G14-specific: the audio HAL's memfd (ANAL-199), the Bluetooth app aborting without a Bluetooth HAL (ANAL-179) and what `crash_dump` reads for it, SystemUI's `bluetooth_lea_prop`, `secure_element`'s dex cache, and the two open items in §4.
 
-## 6. On the G14: owner checklist (after the `anal178c` boots)
+## 6. On the G14: owner checklist (after the `anal176s` boots)
 
-The default, enforcing entry now reaches the desktop (§11). **`openbook-live-20261017-anal176s`** carries the three fixes from that session. It is `anal178c` (`main`) plus PR #52, with the same power and graphics check add-ons, and passes the QEMU matrix 40/40 (`evidence/2026-10-17-g14-desktop/anal176s/`). Its sha256 is `e3fbd5ab…`. With it:
-1. Boot **"OpenBook"** on the freshly written stick. Expected: the boot animation at about 17 s, the desktop at about 30 s, and **no lock screen**: it should not go black 10 s after the desktop appears.
-2. **No "USB drive" or "set up" notice for the stick.** Until this fix is on your stick: if one appears, dismiss it, and never confirm a format in a storage wizard. It would format the stick you are running from.
-3. Use it for 10 minutes or more: Wi-Fi with a password dialog, the browser, Settings, a few windows. Note any freeze or flicker, and when. Those are the frames §11 found dropped; the overlay-plane change should remove them (H).
-4. **Escape** with the taskbar's All Apps open: the launcher should stay (the fix is in `main` since PR #42).
+On `anal176s` the default, enforcing entry ran for 8 minutes (§12):
+- no storage notice for the stick;
+- no lock-screen blackout;
+- 0 dropped frames (151 before).
+
+Two audio problems remained: Bluetooth aborted when an audio device connected, and the browser had no sound. **`openbook-live-20261017-anal176t`** fixes both. It is `anal176s` plus two policy lines, with the same add-ons, and passes the QEMU matrix 40/40 (`evidence/2026-10-17-g14-desktop/anal176t/`). Its sha256 is `8ba0eff5…`. With it:
+1. Boot **"OpenBook"**. Expect the desktop at about 30 s, no lock screen, and no USB-drive notice.
+2. **Pair a Bluetooth audio device** (headphones or a speaker) and play sound through it. Bluetooth should stay up.
+3. **Play a video with sound in the browser.** You should hear it, on the laptop or the Bluetooth device.
+4. Use it for 10 minutes or more and note any stutter or freeze, with the time. Press **Escape** with the taskbar's All Apps open; the launcher should stay.
 5. Avoid the lid, a short press of the power button, and 10 minutes idle: sleep is ANAL-178's work.
-6. Stop with Quick Settings → power icon → **Power off**. Then boot **"save logs"** once, plug the stick into the PC, and reply "stick attached" with notes.
+6. Stop with Quick Settings → power icon → **Power off**. Then boot **"save logs"** once, plug the stick into the PC, and reply "stick attached".
 
-Writing the stick erases it; `write-stick.sh` first copies the reports on it to `~/anybook/installer/stick-backup/`:
+Writing the stick erases it; `write-stick.sh` first copies the reports on it to `~/anybook/installer/stick-backup/`. From the build host:
 ```bash
-OPENBOOK_WRITE_CONFIRM=/dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0 \
-  scripts/installer/write-stick.sh ~/anybook/installer/out/openbook-live-20261017-anal176s.img \
+cd ~/anybook/repo && OPENBOOK_WRITE_CONFIRM=/dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0 \
+  scripts/installer/write-stick.sh ~/anybook/installer/out/openbook-live-20261017-anal176t.img \
   /dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0
 ```
 
@@ -184,10 +189,23 @@ ANAL-178's combined stick `openbook-live-20261017-anal178c` was built from `main
 | **151 frames never shown** (`Failed to pin framebuffer` → `present failed`), in bursts, plus 3211 refused test commits | counts in `timeline.txt` | **Changed** (H): `ro.vendor.hwc.use_overlay_planes=false` (§7) |
 | Save-logs boot: `boot_completed` at 28.2 s; Wi-Fi validated; touchpad, keyboard, backlight, battery and dGPU-off verdicts yes | `live-001/report.md`, `screen-final-redacted.png` | Done |
 
-## 12. Sources (accessed 2026-10-17)
+## 12. G14 boots of `anal176s`: the three fixes on hardware (2026-10-17 13:40Z)
+
+`anal176s` is `main` plus PR #52; `evidence/2026-10-17-g14-desktop/g14-anal176s/` has the redacted files.
+
+| Finding | Evidence | Status |
+|---|---|---|
+| **The storage notice is gone**: vold logs `Not managing disk 8:0` | `boot1-default-enforcing/timeline.txt` | **Fixed** on hardware |
+| **No lock-screen blackout**: the lock screen was dismissed 168 ms after showing, with no sleep in an 8-minute session | `wm_set_keyguard_shown`, no `Going to sleep` | **Fixed** on hardware |
+| **0 frames dropped** (151 on `anal178c`), and 12 refused test commits, all during display bring-up (3211 before) | counts in `timeline.txt` | **Fixed** on hardware (overlay planes off) |
+| **Bluetooth aborted when an audio device connected.** The audio HAL hands Bluetooth the A2DP data queue, a memfd of `hal_audio_default_tmpfs`, which Bluetooth may not use (`FAILED_TRANSACTION`, 2 aborts). The permissive save-logs boot reached A2DP Connected | `tombstones-headers.txt`, `avc.md` | **Fixed** in `anal176t`: `allow bluetooth hal_audio_default_tmpfs:file { getattr map read write }` |
+| **No sound from the browser.** Apps run with MLS categories; AudioFlinger's control blocks are `s0` files (`audioserver_tmpfs`, because AOSP 17 does not enable `memfd_class`), so SDK 28+ apps may not write them (`Could not get control block`) | `avc.md`, AudioTrack errors | **Fixed** in `anal176t`: `typeattribute audioserver_tmpfs mlstrustedobject` |
+| Save-logs boot: `boot_completed` 28.1 s; Wi-Fi 5 GHz, internet; Bluetooth bonded, A2DP connected; ALSA loopback yes | `live-001/report.md` | Done |
+
+## 13. Sources (accessed 2026-10-17)
 
 - Mesa: `f7a951028`, `15a3bb617`, `90b5425e8` on `main` (gitlab.freedesktop.org/mesa/mesa), MR 44426.
 - AOSP 17 (`android17-release` tree in `~/anybook/aosp/src`): `frameworks/native/vulkan/libvulkan/swapchain.cpp` and `driver.cpp`, `frameworks/native/vulkan/include/vulkan/vk_android_native_buffer.h`, `external/angle/src/libANGLE/renderer/vulkan/SurfaceVk.cpp`, `frameworks/base/libs/hwui/Properties.cpp`, `system/sepolicy` (`gpu_sphal_use`, `vendor_restricted_prop`), `system/core/rootdir/init.rc` (`discard_max_bytes`), `external/minigbm/cros_gralloc` (gralloc0 `perform`, shared `libminigbm_gralloc`).
 - AOSP 17, for §10: `build/make/core/product_config.mk` (`PRODUCT_COMPRESSED_APEX`), `device/google/cuttlefish/shared/device.mk` (sets it to false), `packages/apps/Launcher3/quickstep/src/com/android/launcher3/taskbar/overlay/TaskbarOverlayDragLayer.java` and `TaskbarOverlayContext.java` (`getAppsView()` is a `findViewById`, so it is null without All Apps).
 - Kernel (`~/anybook/kernel/src/common`, android17-6.18): `drivers/gpu/drm/amd/display/dc/dc.h` (`MAX_SURFACES 4`), `dc/core/dc_state.c` (`dc_state_add_plane`).
-- AOSP 17, for §11: `system/vold/VolumeManager.cpp` (`handleBlockEvent`), `frameworks/base/core/java/com/android/internal/widget/LockPatternUtils.java` (`isLockScreenDisabled`), `frameworks/base/packages/SystemUI/…/NotificationShadeWindowControllerImpl.java` (`config_lockScreenDisplayTimeout`), `external/drm_hwcomposer/drm/DrmDisplayPipeline.cpp` and `utils/properties.cpp` (`ro.vendor.hwc.use_overlay_planes`).
+- AOSP 17, for §11 and §12: `system/sepolicy/private/mls` (file write needs `l1 eq l2` or `mlstrustedobject`), `private/policy_capabilities` (no `memfd_class`), `private/app.te` (`appdomain audioserver_tmpfs`); `system/vold/VolumeManager.cpp` (`handleBlockEvent`), `frameworks/base/core/java/com/android/internal/widget/LockPatternUtils.java` (`isLockScreenDisabled`), `frameworks/base/packages/SystemUI/…/NotificationShadeWindowControllerImpl.java` (`config_lockScreenDisplayTimeout`), `external/drm_hwcomposer/drm/DrmDisplayPipeline.cpp` and `utils/properties.cpp` (`ro.vendor.hwc.use_overlay_planes`).

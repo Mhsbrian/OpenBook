@@ -49,7 +49,7 @@
 
 | Issue | State | Next step | Needs |
 |---|---|---|---|
-| ANAL-176 G14 desktop and stability | In review | The enforcing default entry reached the desktop on `anal178c` (28 s, 23 denials). Next: the owner writes `openbook-live-20261017-anal176s` (`anal178c` + PR #52, QEMU 40/40) and checks: no storage notice for the stick, no lock screen at boot, no dropped frames (`docs/g14-desktop.md` §6, §11) | Owner's run of `anal176s` |
+| ANAL-176 G14 desktop and stability | In review | The enforcing default entry reached the desktop on `anal178c` (28 s, 23 denials). `anal176s` on the G14: the three fixes hold (no storage notice, no lock-screen blackout, 0 dropped frames). Next: the owner writes `openbook-live-20261017-anal176t` (+ Bluetooth audio and app audio under enforcing, QEMU 40/40) and checks Bluetooth audio and browser sound (`docs/g14-desktop.md` §6, §12) | Owner's run of `anal176t` |
 | ANAL-177 graphics conformance | In review | Read the G14 dEQP/ANGLE results; decide Vulkan 1.1 or 1.4 (the 610M favours 1.4); add matrix rows | Owner's stick run (boot D) |
 | ANAL-178 input and power | In review | Read the lid, touchpad and power check results; then the S0i3 fix (kernel lane), the touchpad clock warnings, the skin sensor | Owner's stick run (boots A–C) |
 | ANAL-179 Wi-Fi, Bluetooth, audio | In review | Read Wi-Fi, pairing and speaker/mic results; fix what fails; speaker tuning | Owner's stick run |
@@ -74,6 +74,17 @@
 **Build host:** one AOSP build at a time (`flock ~/anybook/aosp/.lane.lock`, taken by `scripts/aosp-docker.sh`), because builds peak at about 50 GB of the 61 GB RAM. Builds and images are in `docs/BUILD.md`; the live image and the owner checklists are in `docs/installer.md` §11.
 
 ## History
+
+### 2026-10-17: anal176s on the G14: the three fixes hold; Bluetooth and app audio fixed (ANAL-176)
+- **G14** (`anal176s` = `main` + PR #52, default entry, enforcing, 8 minutes):
+  - no storage notice for the stick (`Not managing disk 8:0`);
+  - no lock-screen blackout;
+  - 0 frames dropped (151 on `anal178c`).
+- **Found and fixed:**
+  - Bluetooth aborted whenever an audio device connected (the A2DP queue memfd was denied to `bluetooth`).
+  - The browser had no sound: AudioFlinger's control blocks are MLS-protected `s0` memfds, because AOSP 17 does not enable `memfd_class`.
+  - Two policy lines in `hal_audio_net.te`.
+- **Next stick:** `openbook-live-20261017-anal176t`, QEMU 40/40, with one lock held across the build and the snapshot. Evidence: `evidence/2026-10-17-g14-desktop/g14-anal176s/`, `anal176t/`.
 
 ### 2026-10-17: the G14's default entry reaches the desktop under enforcing; live stick safety (ANAL-176)
 - **Done:**

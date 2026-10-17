@@ -1,0 +1,66 @@
+10-17 13:40:22.811942  root     0     0 I         : Linux version 6.18.21-android17-5-g44a90255c95f (kleaf@build-host) (Android (15323222, +pgo, +bolt, +lto, +mlgo, based on r584948c) clang version 22.0.1 (https://android.googlesource.com/toolchain/llvm-projec
+10-17 13:40:23.534938  root     1     1 I openbook-live: live boot: boot_part_uuid=6247a2dc-7078-55b4-94ff-8efa6c065ae8 reset=0 logs=0
+10-17 13:40:25.149062  root     1     1 I openbook-live: boot ESP sda1 on disk sda (1.6 s): ../../devices/pci0000:00/0000:00:08.3/0000:67:00.0/usb4/4-1/4-1:1.0/host0/target0:0:0/0:0:0:0/block/sda/sda1
+10-17 13:40:25.173015  root     1     1 I openbook-live: grow: disk 121307136 sectors, GPT backup at LBA 5797887, userdata 2097152 sectors (blank)
+10-17 13:40:25.217752  root     1     1 I openbook-live: grow: GPT backup moved LBA 5797887 -> 121307135; userdata 2097152 -> 117606400 sectors (56.1 GiB)
+10-17 13:40:25.273816  root     1     1 I openbook-live: grow: kernel re-read the partition table
+10-17 13:40:25.295207  root     1     1 I openbook-live: report: wrote openbook/logs/live-init-001.json
+10-17 13:40:25.301314  root     1     1 I openbook-live: exec /init (grow)
+10-17 13:40:25.568000  logd   763   763 I auditd  : type=1404 audit(0.0:3): enforcing=1 old_enforcing=0 auid=4294967295 ses=4294967295 enabled=1 old-enabled=1 lsm=selinux res=1
+10-17 13:40:30.151074  root   834   845 I vold    : Not managing disk 8:0, which holds the running system's partitions
+10-17 13:40:38.422778  root   968   968 I boot_progress_start: 15610
+10-17 13:40:39.543959  root     1     1 I init    : starting service 'bootanim'...
+10-17 13:40:51.836920  1000  1223  1301 I boot_progress_enable_screen: 29024
+10-17 13:40:51.840329  1000  1223  1291 I wm_set_keyguard_shown: [0,1,0,0,0,setKeyguardShown]
+10-17 13:40:52.007846  1000  1223  1292 I wm_set_keyguard_shown: [0,1,0,1,0,keyguardGoingAway]
+10-17 13:40:52.009946  1000  1223  1292 I wm_set_keyguard_shown: [0,0,0,1,0,setKeyguardShown]
+10-17 13:40:52.351081  1000   996  3732 I sf_stop_bootanim: 29539
+10-17 13:43:28.365071  1002  3628  3921 I bt_btif_dm: system/btif/src/btif_dm.cc:610 bond_state_changed: xx:xx:xx:xx:xx:xx[BT_TRANSPORT_AUTO] Bond state changed to state=BT_BOND_STATE_BONDING(0x1)[0:none, 1:bonding, 2:bonded],prev_state=BT_BOND_STATE_NONE(0x0)
+10-17 13:43:32.499464  1002  3628  3921 I bt_btif_dm: system/btif/src/btif_dm.cc:610 bond_state_changed: xx:xx:xx:xx:xx:xx[BT_TRANSPORT_BR_EDR] Bond state changed to state=BT_BOND_STATE_BONDED(0x2)[0:none, 1:bonding, 2:bonded],prev_state=BT_BOND_STATE_BONDING(
+10-17 13:43:33.514145  1002  3628  3628 I A2dpStateMachine: Enter Disconnected(XX:XX:XX:XX:XX:XX): -2
+10-17 13:43:33.514351  1002  3628  3628 I A2dpStateMachine: Enter Connecting(XX:XX:XX:XX:XX:XX): CONNECT
+10-17 13:43:33.821501  1002  3628  3921 W bluetooth-a2dp-aidl: system/audio_hal_interface/aidl/a2dp/client_interface_aidl.cc:315 SetAllowedLatencyModes: BluetoothAudioHal is not ready: Status(-3, EX_ILLEGAL_ARGUMENT): ''. latency_modes_ is saved and it will be
+10-17 13:43:33.944706  1002  3628  3628 I A2dpStateMachine: Enter Connected(XX:XX:XX:XX:XX:XX): CONNECTION_STATE_CHANGED
+10-17 13:43:33.953885  1002  3628  3921 W bluetooth-a2dp-aidl: system/audio_hal_interface/aidl/a2dp/client_interface_aidl.cc:315 SetAllowedLatencyModes: BluetoothAudioHal is not ready: Status(-3, EX_ILLEGAL_ARGUMENT): ''. latency_modes_ is saved and it will be
+10-17 13:43:33.953935  1002  3628  3921 W bluetooth-a2dp-aidl: system/audio_hal_interface/aidl/a2dp/client_interface_aidl.cc:315 SetAllowedLatencyModes: BluetoothAudioHal is not ready: Status(-3, EX_ILLEGAL_ARGUMENT): ''. latency_modes_ is saved and it will be
+10-17 13:43:33.955894  1002  3628  3921 W bluetooth-a2dp-aidl: system/audio_hal_interface/aidl/a2dp/client_interface_aidl.cc:315 SetAllowedLatencyModes: BluetoothAudioHal is not ready: Status(-3, EX_ILLEGAL_ARGUMENT): ''. latency_modes_ is saved and it will be
+10-17 13:43:33.956104  1002  3628  3921 W bluetooth-a2dp-aidl: system/audio_hal_interface/aidl/a2dp/client_interface_aidl.cc:315 SetAllowedLatencyModes: BluetoothAudioHal is not ready: Status(-3, EX_ILLEGAL_ARGUMENT): ''. latency_modes_ is saved and it will be
+10-17 13:43:33.956556  1002  3628  3921 F bluetooth-a2dp-aidl: system/audio_hal_interface/aidl/a2dp/client_interface_aidl.cc:348 StartSession: BluetoothAudioHal failure: Status(-129, EX_TRANSACTION_FAILED): 'FAILED_TRANSACTION: '
+10-17 13:43:33.956651  1002  3628  3921 F libc    : Fatal signal 6 (SIGABRT), code -1 (SI_QUEUE) in tid 3921 (bt_main_thread), pid 3628 (droid.bluetooth)
+10-17 13:43:34.109509  1002  5931  5931 F DEBUG   : Abort message: 'system/audio_hal_interface/aidl/a2dp/client_interface_aidl.cc:348 StartSession: BluetoothAudioHal failure: Status(-129, EX_TRANSACTION_FAILED): 'FAILED_TRANSACTION: ''
+10-17 13:43:34.109574  1002  5931  5931 F DEBUG   :       #05 pc 00000000007f3731  /apex/com.android.bt/lib64/libbluetooth_jni.so (bluetooth::audio::aidl::a2dp::BluetoothAudioClientInterface::StartSession()+2385) (BuildId: 2783504600e5aab2792b1d372d1145de)
+10-17 13:43:47.155231  1002  5944  5964 I bt_btif_dm: system/btif/src/btif_dm.cc:610 bond_state_changed: xx:xx:xx:xx:xx:xx[BT_TRANSPORT_AUTO] Bond state changed to state=BT_BOND_STATE_BONDING(0x1)[0:none, 1:bonding, 2:bonded],prev_state=BT_BOND_STATE_NONE(0x0)
+10-17 13:43:52.290705  1002  5944  5964 W bt_btif_dm: system/btif/src/btif_dm.cc:606 bond_state_changed: Clearing security flags for xx:xx:xx:xx:xx:xx on pairing failure
+10-17 13:43:52.290719  1002  5944  5964 I bt_btif_dm: system/btif/src/btif_dm.cc:610 bond_state_changed: xx:xx:xx:xx:xx:xx[BT_TRANSPORT_BR_EDR] Bond state changed to state=BT_BOND_STATE_NONE(0x0)[0:none, 1:bonding, 2:bonded],prev_state=BT_BOND_STATE_BONDING(0x
+10-17 13:44:02.787617  1002  5944  5964 I bt_btif_dm: system/btif/src/btif_dm.cc:610 bond_state_changed: xx:xx:xx:xx:xx:xx[BT_TRANSPORT_AUTO] Bond state changed to state=BT_BOND_STATE_BONDING(0x1)[0:none, 1:bonding, 2:bonded],prev_state=BT_BOND_STATE_NONE(0x0)
+10-17 13:44:04.986807  1002  5944  5964 I bt_btif_dm: system/btif/src/btif_dm.cc:610 bond_state_changed: xx:xx:xx:xx:xx:xx[BT_TRANSPORT_BR_EDR] Bond state changed to state=BT_BOND_STATE_BONDED(0x2)[0:none, 1:bonding, 2:bonded],prev_state=BT_BOND_STATE_BONDING(
+10-17 13:44:05.454008  1002  5944  5944 I A2dpStateMachine: Enter Disconnected(XX:XX:XX:XX:XX:XX): -2
+10-17 13:44:05.454185  1002  5944  5944 I A2dpStateMachine: Enter Connecting(XX:XX:XX:XX:XX:XX): CONNECT
+10-17 13:44:05.733313  1002  5944  5964 W bluetooth-a2dp-aidl: system/audio_hal_interface/aidl/a2dp/client_interface_aidl.cc:315 SetAllowedLatencyModes: BluetoothAudioHal is not ready: Status(-3, EX_ILLEGAL_ARGUMENT): ''. latency_modes_ is saved and it will be
+10-17 13:44:05.852954  1002  5944  5944 I A2dpStateMachine: Enter Connected(XX:XX:XX:XX:XX:XX): CONNECTION_STATE_CHANGED
+10-17 13:44:05.863013  1002  5944  5964 W bluetooth-a2dp-aidl: system/audio_hal_interface/aidl/a2dp/client_interface_aidl.cc:315 SetAllowedLatencyModes: BluetoothAudioHal is not ready: Status(-3, EX_ILLEGAL_ARGUMENT): ''. latency_modes_ is saved and it will be
+10-17 13:44:05.863126  1002  5944  5964 W bluetooth-a2dp-aidl: system/audio_hal_interface/aidl/a2dp/client_interface_aidl.cc:315 SetAllowedLatencyModes: BluetoothAudioHal is not ready: Status(-3, EX_ILLEGAL_ARGUMENT): ''. latency_modes_ is saved and it will be
+10-17 13:44:05.865444  1002  5944  5964 W bluetooth-a2dp-aidl: system/audio_hal_interface/aidl/a2dp/client_interface_aidl.cc:315 SetAllowedLatencyModes: BluetoothAudioHal is not ready: Status(-3, EX_ILLEGAL_ARGUMENT): ''. latency_modes_ is saved and it will be
+10-17 13:44:05.865669  1002  5944  5964 W bluetooth-a2dp-aidl: system/audio_hal_interface/aidl/a2dp/client_interface_aidl.cc:315 SetAllowedLatencyModes: BluetoothAudioHal is not ready: Status(-3, EX_ILLEGAL_ARGUMENT): ''. latency_modes_ is saved and it will be
+10-17 13:44:05.866068  1002  5944  5964 F bluetooth-a2dp-aidl: system/audio_hal_interface/aidl/a2dp/client_interface_aidl.cc:348 StartSession: BluetoothAudioHal failure: Status(-129, EX_TRANSACTION_FAILED): 'FAILED_TRANSACTION: '
+10-17 13:44:05.866176  1002  5944  5964 F libc    : Fatal signal 6 (SIGABRT), code -1 (SI_QUEUE) in tid 5964 (bt_main_thread), pid 5944 (droid.bluetooth)
+10-17 13:44:06.029023  1002  6072  6072 F DEBUG   : Abort message: 'system/audio_hal_interface/aidl/a2dp/client_interface_aidl.cc:348 StartSession: BluetoothAudioHal failure: Status(-129, EX_TRANSACTION_FAILED): 'FAILED_TRANSACTION: ''
+10-17 13:44:06.029086  1002  6072  6072 F DEBUG   :       #05 pc 00000000007f3731  /apex/com.android.bt/lib64/libbluetooth_jni.so (bluetooth::audio::aidl::a2dp::BluetoothAudioClientInterface::StartSession()+2385) (BuildId: 2783504600e5aab2792b1d372d1145de)
+10-17 13:45:23.330239 10065  6541  6577 E AudioTrack: createTrack_l(0): Could not get control block
+10-17 13:47:10.268132 10065  6541  6577 E AudioTrack: createTrack_l(0): Could not get control block
+10-17 13:48:16.594572  1000  1223  7704 I ShutdownThread: Logging pre-reboot information...
+10-17 13:48:16.594899  1000  1223  7704 I ShutdownThread: Sending shutdown broadcast...
+10-17 13:48:16.626246  1000  1223  7704 I ShutdownThread: Shutting down activity manager...
+10-17 13:48:16.887726  1000  1223  7704 I ShutdownThread: Shutting down package manager...
+10-17 13:48:16.894926  1000  1223  7707 I ShutdownThread: Waiting for Radio...
+10-17 13:48:16.894946  1000  1223  7707 I ShutdownThread: Radio shutdown complete.
+10-17 13:48:16.895258  1000  1223  7704 I ShutdownThread: Performing low-level shutdown...
+# counts over boot 1 (13:40:22-13:48:16Z)
+Failed to pin framebuffer: 0
+presentAndGetReleaseFences: present failed: 0
+can not attach plane_state: 0
+Test-only seamless: 12
+apexd: Decompressing: 0
+FATAL EXCEPTION: 0
+Fatal signal: 2
+permissive=0: 77
