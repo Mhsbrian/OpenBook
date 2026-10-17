@@ -5,7 +5,10 @@
 # an access point (hostapd, a DHCP server, iperf3) in its own network namespace. Android uses the other as wlan0,
 # with the same supplicant, framework and policy as on the G14; only the driver differs.
 #
-# usage: audio-net-qemu.sh payload        test disk for the guest -> <data dir>/audio-net/qemu/payload.img:
+# usage: audio-net-qemu.sh snapshot NAME  reflink PRODUCT_OUT's images into <data dir>/audio-net/product/NAME, for
+#                                         g14-image.sh and installer-image.sh --product-out: run it in the same
+#                                         lane-lock hold as the build, since other branches build into the same tree
+#        audio-net-qemu.sh payload        test disk for the guest -> <data dir>/audio-net/qemu/payload.img:
 #                                         mac80211_hwsim with the cfg80211/mac80211 it was built with (virtual-device
 #                                         dist, checked against our vmlinux), AOSP's hostapd and the libraries the
 #                                         image lacks, openbook-test-dhcpd (NDK, static), run-ap.sh, hostapd.conf
@@ -78,7 +81,19 @@ PY
   return $rc
 }
 
+snapshot() {
+  local O=$A/audio-net/product/${1:?usage: audio-net-qemu.sh snapshot NAME}
+  rm -rf "$O"; mkdir -p "$O/system" "$O/vendor"
+  for f in boot.img init_boot.img vendor_boot.img vbmeta.img super.img android-info.txt; do
+    cp --reflink=auto --preserve=timestamps "$P/$f" "$O/"
+  done
+  cp --reflink=auto --preserve=timestamps "$P"/build_fingerprint*.txt "$O/" 2>/dev/null || true
+  cp "$P/system/build.prop" "$O/system/"; cp "$P/vendor/build.prop" "$O/vendor/"
+  echo "snapshot: $O ($(sed -n 's/^ro.build.fingerprint=//p' "$O/system/build.prop"))"
+}
+
 case ${1:-} in
+  snapshot) shift; snapshot "$@" ;;
   payload) payload ;;
   run) shift; run "$@" ;;
   *) sed -n '2,/^set -euo/p' "$0" | sed '$d'; exit 2 ;;

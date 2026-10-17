@@ -5,7 +5,7 @@
 # kernel's management channel, unblocks it with rfkill and opens it as an HCI user channel (btusb + btmtk own
 # the hardware and its firmware).
 allow hal_bluetooth_default openbook_rfkill_device:chr_file rw_file_perms;
-allow hal_bluetooth_default self:bluetooth_socket { getattr ioctl getopt setopt };
+allow hal_bluetooth_default self:bluetooth_socket { getattr getopt setopt };
 
 # Audio: the example HAL's primary module reads which ALSA card is the built-in codec.
 get_prop(hal_audio_default, vendor_openbook_audio_prop)
