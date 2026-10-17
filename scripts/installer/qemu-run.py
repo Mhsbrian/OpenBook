@@ -81,6 +81,9 @@ def main():
                     "this WAV file (48 kHz stereo) and its capture fails; 'none' instead: no file, and the guest "
                     "records silence at the codec's own pace")
     ap.add_argument("--extra-usb", help="a second USB disk (image file), e.g. test files for the guest")
+    ap.add_argument("--no-bootindex", action="store_true",
+                    help="no bootindex on the disks: OVMF then follows the NVRAM's BootOrder alone (with bootindex it "
+                         "moves the matching entries to the front on every boot)")
     args = ap.parse_args()
 
     for img in (args.usb, args.nvme, args.nvme2, args.extra_usb):  # image files only: refuse anything that is a real block device
@@ -108,7 +111,8 @@ def main():
            "-drive", f"if=pflash,format=raw,file={vars_fd}",
            "-device", "qemu-xhci,id=xhci",
            "-drive", f"if=none,id=stick,format=raw,cache=unsafe,file={args.usb}",
-           "-device", f"usb-storage,bus=xhci.0,drive=stick,removable=on,bootindex={2 if args.nvme_first else 1}",
+           "-device", "usb-storage,bus=xhci.0,drive=stick,removable=on" +
+           ("" if args.no_bootindex else f",bootindex={2 if args.nvme_first else 1}"),
            "-display", "none",
            "-chardev", f"pipe,id=ser0,path={ser_base}", "-serial", "chardev:ser0",
            "-monitor", f"unix:{mon_path},server=on,wait=off"]
@@ -124,7 +128,8 @@ def main():
                 "-device", "tpm-crb,tpmdev=tpm0"]
     if args.nvme:
         cmd += ["-drive", f"if=none,id=internal,format=raw,cache=unsafe,file={args.nvme}",
-                "-device", f"nvme,drive=internal,serial=internal0,bootindex={1 if args.nvme_first else 2}"]
+                "-device", "nvme,drive=internal,serial=internal0" +
+                ("" if args.no_bootindex else f",bootindex={1 if args.nvme_first else 2}")]
     if args.nvme2:
         cmd += ["-drive", f"if=none,id=internal1,format=raw,cache=unsafe,file={args.nvme2}",
                 "-device", "nvme,drive=internal1,serial=internal1"]

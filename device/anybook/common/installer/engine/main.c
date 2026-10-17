@@ -14,8 +14,10 @@
 //                                                      the install, unattended: OPENBOOK_INSTALL_ERASE must name the
 //                                                      same /dev/disk/by-id/ path (S3). --events: progress as JSON
 //                                                      lines on stdout before the report
+//   openbook-install [GLOBAL] nvram                    the firmware's boot entries and BootOrder (read-only)
 //   openbook-install [GLOBAL] daemon [--socket PATH]   openbook-installd (init passes its socket; PATH for tests)
 // GLOBAL: --root DIR (host tests: sysfs, procfs and /dev/block below DIR) --boot-part-uuid UUID --log FILE
+//         --efivars DIR (host tests: a plain directory in efivarfs's file format stands in for efivarfs)
 #include "common.h"
 
 #include <stdlib.h>
@@ -25,19 +27,20 @@
 static void usage(void) {
     fprintf(stderr,
             "usage: openbook-install [--root DIR] [--boot-part-uuid UUID] [--log FILE] COMMAND ...\n"
-            "  disks | hwinfo\n"
+            "  disks | hwinfo | nvram\n"
             "  plan --target BY-ID --layout whole|alongside [--locale L] [--keyboard K] [--set-default] [--out FILE]\n"
             "  apply --plan FILE --confirm-disk /dev/disk/by-id/BY-ID [--events]   (env OPENBOOK_INSTALL_ERASE)\n"
             "  daemon [--socket PATH]\n");
 }
 
 int main(int argc, char **argv) {
-    const char *root = NULL, *uuid = NULL, *logpath = NULL;
+    const char *root = NULL, *uuid = NULL, *logpath = NULL, *efidir = NULL;
     int i = 1;
     for (; i < argc && argv[i][0] == '-'; i++) {
         if (!strcmp(argv[i], "--root") && i + 1 < argc) root = argv[++i];
         else if (!strcmp(argv[i], "--boot-part-uuid") && i + 1 < argc) uuid = argv[++i];
         else if (!strcmp(argv[i], "--log") && i + 1 < argc) logpath = argv[++i];
+        else if (!strcmp(argv[i], "--efivars") && i + 1 < argc) efidir = argv[++i];
         else if (!strcmp(argv[i], "--version")) {
             puts("openbook-install 1");
             return 0;
@@ -51,6 +54,7 @@ int main(int argc, char **argv) {
         return 2;
     }
     env_init(root, uuid);
+    if (efidir) env_set_efivars_dir(efidir);
     if (logpath) g_logfile = fopen(logpath, "ae");
     const char *cmd = argv[i++];
     if (!strcmp(cmd, "daemon")) {
@@ -58,6 +62,15 @@ int main(int argc, char **argv) {
         for (; i < argc; i++)
             if (!strcmp(argv[i], "--socket") && i + 1 < argc) sock = argv[++i];
         return daemon_main(sock);
+    }
+    if (!strcmp(cmd, "nvram")) {
+        struct jw w = {0};
+        jw_obj(&w, NULL);
+        jw_bool(&w, "ok", 1);
+        nvram_json(&w);
+        jw_endo(&w);
+        puts(w.b.p);
+        return 0;
     }
     if (!strcmp(cmd, "disks") || !strcmp(cmd, "hwinfo")) {
         struct disk *d;
