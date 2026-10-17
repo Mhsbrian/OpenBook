@@ -68,7 +68,7 @@ The vulkan, gles and gralloc parts pass as before. `MESA_OUT=<mesa out>/vendor` 
 | keystore → software Gatekeeper's `ISharedSecret` | **open**: AOSP forbids keystore that service type (known since ANAL-199) |
 | init: `debugfs_bootreceiver_tracing` | **open**: init.rc enables a tracing event our GKI lacks; kernel lane |
 
-**Why this matters beyond the count (H).** The enforcing default entry on the G14 showed a black screen *without* the pointer, while the permissive save-logs entry showed the pointer. With the GPU's sysfs files denied, libdrm's `drmGetDevices2` cannot identify the GPU in SurfaceFlinger, so RADV finds no device and ANGLE cannot start: a likely cause of that difference.
+**Why the enforcing entries stayed black: corrected in §9.** This section first guessed that unlabelled GPU sysfs files kept RADV from finding the GPU. The G14 runs of `desktop2` showed the real cause: the kernel was denied `firmware_load` on `/vendor/firmware`, so amdgpu never initialised under enforcing. The kernel-side denial had been filtered out with the log helper's own (§9).
 
 **Checked without the laptop.** `scripts/sepolicy-label-check.py PRODUCT_OUT scripts/sepolicy-label-cases-g14.txt` resolves the G14's sysfs paths (from live-001 and its PCI topology) against the built `file_contexts` the way libselinux does: **24 of 24** as intended, including the neighbours that must stay unlabelled. It found one mistake on the way: NVMe namespaces have no `block/` directory in their path.
 
@@ -139,7 +139,24 @@ scripts/installer/live-qemu.sh ~/anybook/installer/out/openbook-live-20261017-de
 python3 scripts/installer/avc-summary.py evidence/2026-10-16-installer/g14-live/live-001
 ```
 
-## 9. Sources (accessed 2026-10-17)
+## 9. First G14 boots of `desktop2` and what they showed (2026-10-17)
+
+The owner wrote `openbook-live-20261017-desktop2` at 01:05 UTC and booted the default entry (01:11, the first boot: `/data` formatted and APEXes decompressed), probably safe graphics, then "save logs" twice (01:17 and 01:19). Only "save logs" showed anything: the boot animation, then the desktop at 28 s (`evidence/2026-10-17-g14-desktop/g14-desktop2/`, including the device's own screenshot of the desktop at 2880×1800). Read back read-only with `read-stick-logs.sh`; the files are redacted.
+
+| Finding | Evidence | Status |
+|---|---|---|
+| **Every enforcing boot was black because amdgpu could not load its firmware.** The kernel reads firmware straight from `/vendor/firmware` (`firmware_class.path`); since 6.x SELinux checks `system { firmware_load }` against the file's label, and AOSP only allows it for `kernel self` (ueventd's fallback). Permissive boots log it once and carry on. It also blocks the MT7925 Wi-Fi firmware | `avc: denied { firmware_load } … comm="modprobe" path="/vendor/firmware/amdgpu/psp_14_0_0_toc.bin" scontext=u:r:kernel …` in both runs, and already in the very first G14 boot (live-001 of 2026-10-16). bootstat: no boot before the first "save logs" ever reached `boot_completed` (`reboot,factory_reset` is bootstat's label for the first completed boot of a fresh `/data`) | **Fixed** (C, policy): `allow kernel openbook_vendor_fw_file:system firmware_load`. QEMU cannot show it (no firmware is loaded there) |
+| **SurfaceFlinger could start before `ro.hardware.egl` was set** and abort ("couldn't find an OpenGL ES implementation"); init restarted it. Property triggers for values set at early-init only run after `on boot` | live-002 tombstone, SurfaceFlinger uptime 2 s; init's `QueueAllPropertyActions` | **Fixed**: the probe's rc queues an init event (`vendor-anybook-gpu-<hal>`) that runs before `early-fs` |
+| "The screen went black and it turned off" after a few actions | Both sessions ended at 77 s: the save-logs helper's final capture 45 s after `boot_completed`, then its scheduled power-off. In live-002 the owner had just opened the wallpaper chooser (01:20:33) | By design of that entry (ANAL-190 is reworking the helper). The default entry has no such power-off |
+| The screen turns off after 1 minute and the laptop sleeps (s2idle) | SettingsProvider default; ANAL-190's earlier stick showed `PM: suspend entry/exit` | **Changed**: 10 minutes on the desktop products |
+| Bluetooth app aborts every few seconds (`HidlHci: assert failed: hci_ != nullptr`: no Bluetooth HAL) | 6 crashes per 45 s session | **ANAL-179** (Bluetooth HAL). RescueParty is off on userdebug, so it cannot reboot the machine |
+| No `system` DMA-BUF heap: our GKI (and stock android17-6.18) has `CONFIG_DMABUF_HEAPS_SYSTEM` off; minigbm's BLOB buffers and Codec2 need it | 132 `Could not open DMA-BUF heap named: system` per session from the allocator | **Kernel lane**: build `system_heap` as a module. Video playback likely fails until then (H) |
+| Touchpad: "Clock changed backwards" from the gesture library about 300 times per session | `HardwareStateConverter` passes the touchpad's `MSC_TIMESTAMP` scan clock, which likely restarts per touch (H) | **ANAL-178** (input) |
+| Remaining denials after the fixes, by the corrected count | `avc-summary.py`: 29 and 22 lines (66 before), none blocking: the audio HAL's memfd, Gatekeeper's shared secret, `crash_dump`, SystemUI's `bluetooth_lea_prop`, `secure_element`, init's bootreceiver tracing | Known |
+
+**No logs from the enforcing boots.** They saved nothing, so they had to be reconstructed from the next boots (bootstat, APEX state, FAT timestamps). From the next image on, `persist.logd.logpersistd=logcatd` keeps logcat with the kernel log in `/data/misc/logd` across boots (userdebug), and the save-logs helper's first capture archives it with tombstones, ANR traces and dropbox (`prior-boots.tar.gz`, unpacked by `read-stick-logs.sh` into `live-NNN/prior/`).
+
+## 10. Sources (accessed 2026-10-17)
 
 - Mesa: `f7a951028`, `15a3bb617`, `90b5425e8` on `main` (gitlab.freedesktop.org/mesa/mesa), MR 44426.
 - AOSP 17 (`android17-release` tree in `~/anybook/aosp/src`): `frameworks/native/vulkan/libvulkan/swapchain.cpp` and `driver.cpp`, `frameworks/native/vulkan/include/vulkan/vk_android_native_buffer.h`, `external/angle/src/libANGLE/renderer/vulkan/SurfaceVk.cpp`, `frameworks/base/libs/hwui/Properties.cpp`, `system/sepolicy` (`gpu_sphal_use`, `vendor_restricted_prop`), `system/core/rootdir/init.rc` (`discard_max_bytes`), `external/minigbm/cros_gralloc` (gralloc0 `perform`, shared `libminigbm_gralloc`).

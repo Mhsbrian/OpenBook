@@ -1,0 +1,224 @@
+{
+ "schema": "openbook-avc-summary/1",
+ "dir": "live-001",
+ "dmesg": {
+  "helper": 42,
+  "kernel": 2,
+  "android": 27
+ },
+ "logcat": {
+  "helper": 362,
+  "kernel": 2,
+  "android": 68
+ },
+ "dmesg_lines": 29,
+ "tuples": 13,
+ "tuples_without_flags_health_check": 13,
+ "denials": [
+  {
+   "scontext": "audioserver",
+   "tcontext": "tmpfs",
+   "tclass": "file",
+   "perms": [
+    "map",
+    "read",
+    "write"
+   ],
+   "paths": [],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "crash_dump",
+   "tcontext": "resourcecache_data_file",
+   "tclass": "file",
+   "perms": [
+    "getattr",
+    "map",
+    "open",
+    "read"
+   ],
+   "paths": [
+    "/data/resource-cache/data@resource-cache@com.android.systemui-dynamic-Pg0c.frro@idmap",
+    "data@resource-cache@com.android.systemui-dynamic-Pg0c.frro@idmap",
+    "product@overlay@AnyBookDesktopFrameworkOverlay.apk@idmap"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "hal_audio_default",
+   "tcontext": "tmpfs",
+   "tclass": "file",
+   "perms": [
+    "map",
+    "read",
+    "write"
+   ],
+   "paths": [
+    "memfd:MessageQueue"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "hal_light_default",
+   "tcontext": "sysfs_gpu",
+   "tclass": "dir",
+   "perms": [
+    "search"
+   ],
+   "paths": [
+    "drm"
+   ],
+   "in": [
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "init",
+   "tcontext": "debugfs_bootreceiver_tracing",
+   "tclass": "dir",
+   "perms": [
+    "add_name"
+   ],
+   "paths": [
+    "enable"
+   ],
+   "in": [
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "kernel",
+   "tcontext": "openbook_vendor_fw_file",
+   "tclass": "system",
+   "perms": [
+    "firmware_load"
+   ],
+   "paths": [
+    "/vendor/firmware/amdgpu/psp_14_0_0_toc.bin",
+    "/vendor/firmware/mediatek/mt7925/WIFI_RAM_CODE_MT7925_1_1.bin"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "keystore",
+   "tcontext": "hal_gatekeeper_default",
+   "tclass": "binder",
+   "perms": [
+    "call"
+   ],
+   "paths": [],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "keystore",
+   "tcontext": "hal_gatekeeper_service",
+   "tclass": "service_manager",
+   "perms": [
+    "find"
+   ],
+   "paths": [],
+   "in": [
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "openbook_pc_setup",
+   "tcontext": "sysfs_gpu",
+   "tclass": "file",
+   "perms": [
+    "open",
+    "read"
+   ],
+   "paths": [
+    "/sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/vendor",
+    "vendor"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "platform_app",
+   "tcontext": "bluetooth_lea_prop",
+   "tclass": "file",
+   "perms": [
+    "getattr",
+    "map",
+    "open",
+    "read"
+   ],
+   "paths": [
+    "/dev/__properties__/u:object_r:bluetooth_lea_prop:s0",
+    "u:object_r:bluetooth_lea_prop:s0"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "secure_element",
+   "tcontext": "system_data_file",
+   "tclass": "dir",
+   "perms": [
+    "add_name",
+    "create"
+   ],
+   "paths": [
+    "oat_primary",
+    "x86_64"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "secure_element",
+   "tcontext": "system_data_file",
+   "tclass": "file",
+   "perms": [
+    "create"
+   ],
+   "paths": [
+    "SecureElement.3739.tmp"
+   ],
+   "in": [
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "system_app",
+   "tcontext": "vendor_default_prop",
+   "tclass": "file",
+   "perms": [
+    "getattr",
+    "map",
+    "open"
+   ],
+   "paths": [
+    "/dev/__properties__/u:object_r:vendor_default_prop:s0"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  }
+ ]
+}

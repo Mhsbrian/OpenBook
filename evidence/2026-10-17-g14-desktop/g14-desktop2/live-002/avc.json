@@ -1,0 +1,189 @@
+{
+ "schema": "openbook-avc-summary/1",
+ "dir": "live-002",
+ "dmesg": {
+  "helper": 37,
+  "kernel": 1,
+  "android": 21
+ },
+ "logcat": {
+  "helper": 370,
+  "kernel": 1,
+  "android": 50
+ },
+ "dmesg_lines": 22,
+ "tuples": 11,
+ "tuples_without_flags_health_check": 11,
+ "denials": [
+  {
+   "scontext": "audioserver",
+   "tcontext": "tmpfs",
+   "tclass": "file",
+   "perms": [
+    "map",
+    "read",
+    "write"
+   ],
+   "paths": [],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "crash_dump",
+   "tcontext": "resourcecache_data_file",
+   "tclass": "file",
+   "perms": [
+    "getattr",
+    "map",
+    "open",
+    "read"
+   ],
+   "paths": [
+    "/data/resource-cache/data@resource-cache@com.android.systemui-dynamic-Pg0c.frro@idmap",
+    "data@resource-cache@com.android.systemui-dynamic-Pg0c.frro@idmap"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "hal_audio_default",
+   "tcontext": "tmpfs",
+   "tclass": "file",
+   "perms": [
+    "map",
+    "read",
+    "write"
+   ],
+   "paths": [
+    "memfd:MessageQueue"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "hal_light_default",
+   "tcontext": "sysfs_gpu",
+   "tclass": "dir",
+   "perms": [
+    "search"
+   ],
+   "paths": [
+    "drm"
+   ],
+   "in": [
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "init",
+   "tcontext": "debugfs_bootreceiver_tracing",
+   "tclass": "dir",
+   "perms": [
+    "add_name"
+   ],
+   "paths": [
+    "enable"
+   ],
+   "in": [
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "kernel",
+   "tcontext": "openbook_vendor_fw_file",
+   "tclass": "system",
+   "perms": [
+    "firmware_load"
+   ],
+   "paths": [
+    "/vendor/firmware/amdgpu/psp_14_0_0_toc.bin"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "keystore",
+   "tcontext": "hal_gatekeeper_default",
+   "tclass": "binder",
+   "perms": [
+    "call"
+   ],
+   "paths": [],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "keystore",
+   "tcontext": "hal_gatekeeper_service",
+   "tclass": "service_manager",
+   "perms": [
+    "find"
+   ],
+   "paths": [],
+   "in": [
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "openbook_pc_setup",
+   "tcontext": "sysfs_gpu",
+   "tclass": "file",
+   "perms": [
+    "open",
+    "read"
+   ],
+   "paths": [
+    "/sys/devices/pci0000:00/0000:00:08.1/0000:65:00.0/vendor",
+    "vendor"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "platform_app",
+   "tcontext": "bluetooth_lea_prop",
+   "tclass": "file",
+   "perms": [
+    "getattr",
+    "map",
+    "open",
+    "read"
+   ],
+   "paths": [
+    "/dev/__properties__/u:object_r:bluetooth_lea_prop:s0",
+    "u:object_r:bluetooth_lea_prop:s0"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "secure_element",
+   "tcontext": "system_data_file",
+   "tclass": "file",
+   "perms": [
+    "open"
+   ],
+   "paths": [
+    "/data/user_de/0/com.android.se/cache/oat_primary/x86_64/SecureElement.art"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  }
+ ]
+}
