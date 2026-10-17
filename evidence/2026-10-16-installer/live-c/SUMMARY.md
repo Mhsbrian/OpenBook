@@ -16,3 +16,5 @@ Hashes are in `build/inputs-provenance.txt`.
 **QEMU/OVMF: 37 of 39 checks pass** (`qemu/SUMMARY.md`), the same as image `b`: `sys.boot_completed=1` at 23 s from the USB stick, and grow, persistence, start fresh, exact size, decoy NVMe and the default entry pass. The two failures are the known VM-side ones: the kernel power-off hangs after Android's clean shutdown (product), and `screencap` times out in the VM.
 
 The RADV fix can only be checked on the G14, because QEMU has no AMD GPU.
+
+**Correction (2026-10-17):** the "Android shut down by itself" failure was the machine autosuspending between the release of the helper's wake lock and its shutdown request, not a kernel power-off hang. The helper now keeps the lock through the shutdown request, and the VM powers off (`../live-helper/`).

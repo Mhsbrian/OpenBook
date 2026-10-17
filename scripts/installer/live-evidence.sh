@@ -14,7 +14,8 @@ LABEL=${1:?usage: live-evidence.sh LABEL RUN DEST}; RUN=${2:?run}; DEST=${3:?des
 O=$A/installer/out; L=$A/logs/installer/$RUN
 mkdir -p "$DEST/build" "$DEST/qemu"
 cp "$O/$LABEL.build.json" "$O/$LABEL.img.json" "$O/$LABEL.sha256" "$DEST/build/"
-cp "$A/installer/inputs/$LABEL/provenance.txt" "$DEST/build/inputs-provenance.txt"
+# The snapshot is named after the label unless the image was rebuilt with --inputs; build.json has the hashes either way.
+[ -f "$A/installer/inputs/$LABEL/provenance.txt" ] && cp "$A/installer/inputs/$LABEL/provenance.txt" "$DEST/build/inputs-provenance.txt"
 log=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["log"])' "$O/$LABEL.build.json")
 gzip -9nc "$log" > "$DEST/build/$(basename "$log").gz"
 cp "$L/results.json" "$L/SUMMARY.md" "$DEST/qemu/"

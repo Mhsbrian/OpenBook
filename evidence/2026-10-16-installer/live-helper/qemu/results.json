@@ -1,0 +1,163 @@
+{
+ "image": "openbook-live-helpertest7-20261017.img",
+ "label": "openbook-live-helpertest7-20261017",
+ "cases": {
+  "logs": {
+   "result": {
+    "reason": "QEMU exited (0)",
+    "seconds": 59.2,
+    "steps_done": 4,
+    "steps": 4,
+    "hits": [
+     {
+      "step": 0,
+      "wait": "openbook-live: live boot: boot_part_uuid=",
+      "t": 3.7
+     },
+     {
+      "step": 1,
+      "wait": "openbook-live: logs: saving to openbook/logs/live-\\d+",
+      "t": 5.2
+     },
+     {
+      "step": 2,
+      "wait": "openbook-live: logs: (no second stage|Android second stage seen)",
+      "t": 5.7
+     },
+     {
+      "step": 3,
+      "wait": "openbook-live: logs: done: ",
+      "t": 54.3
+     }
+    ],
+    "qemu_rc": 0,
+    "usb": "/home/hive/anybook/installer/qemu/live-helpertest7/logs16.img",
+    "nvme": null
+   },
+   "checks": [
+    {
+     "check": "every expect step matched",
+     "ok": true,
+     "detail": "4/4 (QEMU exited (0))"
+    },
+    {
+     "check": "Android shut down by itself after saving",
+     "ok": true,
+     "detail": "QEMU exited (0)"
+    },
+    {
+     "check": "openbook/logs/live-NNN/ on the ESP",
+     "ok": true,
+     "detail": "['live-001']"
+    },
+    {
+     "check": "dmesg, logcat, system facts, screenshot and summary saved",
+     "ok": true,
+     "detail": "['collect-final.txt', 'dmesg.txt', 'logcat-final.txt', 'logcat-stream.txt', 'screen-final.png', 'summary.json']"
+    },
+    {
+     "check": "summary.json: second stage seen, captures done",
+     "ok": true,
+     "detail": "second stage 2.6 s, boot_completed True, 1 capture(s)"
+    },
+    {
+     "check": "dmesg.txt non-empty",
+     "ok": true,
+     "detail": "403659"
+    },
+    {
+     "check": "logcat saved",
+     "ok": true,
+     "detail": "2966899"
+    },
+    {
+     "check": "screenshot is a PNG",
+     "ok": true,
+     "detail": "1973789"
+    },
+    {
+     "check": "logcat streamed to the stick from early second stage",
+     "ok": true,
+     "detail": "5769926"
+    },
+    {
+     "check": "wake lock held while recording (no suspend)",
+     "ok": true,
+     "detail": ""
+    },
+    {
+     "check": "system facts saved",
+     "ok": true,
+     "detail": ""
+    },
+    {
+     "check": "stick GPT valid (sgdisk -v)",
+     "ok": true,
+     "detail": ""
+    }
+   ],
+   "summary": {
+    "schema": "openbook-live-logs/1",
+    "dir": "openbook/logs/live-001",
+    "uptime_s": 50.9,
+    "second_stage_s": 2.6,
+    "boot_completed": true,
+    "boot_completed_s": 28.2,
+    "dmesg_bytes": 402482,
+    "after": "poweroff",
+    "live_init": {
+     "action": "grow",
+     "detail": "",
+     "disk": "sda",
+     "disk_sectors": 33554432,
+     "gpt_backup_lba_before": 5629951,
+     "gpt_backup_lba_after": 33554431,
+     "userdata_sectors_before": 2097152,
+     "userdata_sectors_after": 30021632,
+     "userdata_blank": true,
+     "reset": false
+    },
+    "captures": [
+     {
+      "phase": "final",
+      "uptime_s": 48.3,
+      "collect_rc": 0,
+      "logcat_rc": 0,
+      "screencap_rc": 0
+     }
+    ],
+    "props": {
+     "sys.boot_completed": "1",
+     "dev.bootcomplete": "1",
+     "ro.build.fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
+     "ro.product.model": "OpenBook on ROG Zephyrus G14 (GA403WR)",
+     "ro.boot.openbook.live": "1",
+     "ro.boot.openbook.logs": "1",
+     "ro.boot.slot_suffix": "_a",
+     "ro.boot.verifiedbootstate": "orange",
+     "ro.boot.selinux": "permissive",
+     "ro.boot.hardware": "openbook",
+     "vendor.anybook.gpu.hal": "virtio",
+     "ro.hardware.egl": "angle",
+     "ro.hardware.vulkan": "pastel",
+     "ro.hardware.gralloc": "minigbm",
+     "ro.hardware.hwcomposer": "drm",
+     "ro.sf.lcd_density": "160",
+     "init.svc.surfaceflinger": "running",
+     "init.svc.zygote": "running",
+     "init.svc.bootanim": "stopped",
+     "init.svc.vendor.openbook.dlkm": "stopped",
+     "init.svc.vendor.openbook.dgpu-pm": "stopped",
+     "init.svc.wpa_supplicant": "",
+     "wifi.interface": "",
+     "ro.crypto.state": "encrypted",
+     "ro.crypto.type": "file",
+     "sys.system_server.start_count": "1",
+     "ro.boottime.init": "2086841662"
+    }
+   }
+  }
+ },
+ "passed": 12,
+ "total": 12
+}

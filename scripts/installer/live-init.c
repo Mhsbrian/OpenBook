@@ -715,7 +715,7 @@ static const char COLLECT[] =
     "s FEATURES; pm list features 2>&1\n"
     "s SERVICES; service list 2>&1\n"
     "s AVC; dmesg | grep -c 'avc:  denied'; logcat -d -b all | grep -c 'avc:  denied'\n"
-    "s WAKELOCKS; cat /sys/power/wake_lock; cat /sys/power/wakeup_count\n"
+    "s WAKELOCKS; cat /sys/power/wake_lock\n"  // not wakeup_count: reading it blocks while a wake lock is held
     "s END\n";
 
 static const char *SUMMARY_PROPS[] = {
@@ -839,7 +839,8 @@ static void logs_helper(int ready_fd, const char *esp_node) {
     if (!ok) _exit(1);
 
     double t_start = uptime_s(), t_check = 0, t_sync = 0;
-    int early_done = 0, stream_fd = -1, wakelock = 0;
+    int early_done = 0, stream_fd = -1, wakelock = 0, stream_starts = 0, stayon = 0;
+    double t_lock = 0, t_stream = 0, t_poke = 0;
     pid_t stream_pid = -1;
     for (;;) {
         drain_kmsg();
@@ -852,17 +853,27 @@ static void logs_helper(int ready_fd, const char *esp_node) {
         // From 5 s into second stage (logd is up): hold a wake lock so the machine cannot suspend while we record,
         // and stream logcat to the stick, restarting the stream if logcat exits.
         if (t_second >= 0 && now - t_second >= 5) {
-            if (!wakelock) {
-                wakelock = run_android("echo openbook-logs > /sys/power/wake_lock", -1, NULL, 0, 10) == 0 ? 1 : -1;
-                say("logs: wake lock %s", wakelock > 0 ? "held (no suspend while recording)" : "NOT available");
+            // Android's shell and logd only work some seconds into second stage: retry both every second.
+            if (wakelock == 0 && now - t_lock >= 1) {
+                char out[256];
+                t_lock = now;
+                if (run_android("echo openbook-logs > /sys/power/wake_lock && grep -qw openbook-logs /sys/power/wake_lock "
+                                "&& echo held", -1, out, sizeof out, 10) == 0 && strstr(out, "held")) {
+                    wakelock = 1;
+                    say("logs: wake lock held at %.0f s (no suspend while recording)", now);
+                } else if (now - t_second > 120) {
+                    wakelock = -1;
+                    say("logs: could not take a wake lock (%.80s); the machine may suspend while recording", out);
+                }
             }
             int st;
             if (stream_pid > 0 && waitpid(stream_pid, &st, WNOHANG) == stream_pid) stream_pid = -1;
-            if (stream_pid < 0) {
+            if (stream_pid < 0 && now - t_stream >= 1) {
+                t_stream = now;
                 if (stream_fd < 0)
                     stream_fd = openat(logdir, "logcat-stream.txt", O_WRONLY | O_CREAT | O_APPEND | O_CLOEXEC, 0644);
                 if (stream_fd >= 0) stream_pid = spawn_android("logcat -b all -v threadtime", stream_fd);
-                if (stream_pid > 0) say("logs: streaming logcat to %s/logcat-stream.txt", logdir_name);
+                if (stream_pid > 0 && stream_starts++ == 0) say("logs: streaming logcat to %s/logcat-stream.txt", logdir_name);
             }
         }
         if (t_second < 0) {
@@ -875,12 +886,26 @@ static void logs_helper(int ready_fd, const char *esp_node) {
                 if (run_android("getprop sys.boot_completed", -1, v, sizeof v, 20) == 0 && !strcmp(v, "1")) {
                     t_complete = now;
                     say("logs: sys.boot_completed=1 at %.0f s", now);
+                    // After boot the lock screen sets a 10 s inactivity timeout and Android puts the machine to
+                    // sleep (G14 image 20261017a: suspended 6 s after boot, before any capture). Keep it awake
+                    // while plugged in until the captures are done; restored before shutdown.
+                    char o[128];
+                    stayon = run_android("cmd settings put global stay_on_while_plugged_in 7 && "
+                                         "cmd settings get global stay_on_while_plugged_in", -1, o, sizeof o, 20) == 0 &&
+                             !strcmp(o, "7");
+                    say("logs: stay awake while plugged in: %s (%s)", stayon ? "on" : "FAILED", o);
                 }
             }
             if (t_complete < 0 && !early_done && now - t_second >= 30) { capture("early"); early_done = 1; }
             if (t_complete < 0 && now - t_second >= timeout) { say("logs: boot not completed after %ld s", timeout); break; }
         } else if (now - t_complete >= settle) {
             break;
+        }
+        // Until the final capture: a wake key every 4 s counts as user activity, so the lock screen's 10 s timeout
+        // cannot put the machine to sleep on battery either (and wakes it if it already went).
+        if (t_complete >= 0 && now - t_poke >= 4) {
+            t_poke = now;
+            run_android("cmd input keyevent KEYCODE_WAKEUP", -1, NULL, 0, 10);
         }
         usleep(500000);
     }
@@ -891,8 +916,11 @@ static void logs_helper(int ready_fd, const char *esp_node) {
     }
     if (stream_fd >= 0) { fsync(stream_fd); close(stream_fd); }
     write_summary(after);
-    if (wakelock > 0) run_android("echo openbook-logs > /sys/power/wake_unlock", -1, NULL, 0, 10);
-    say("logs: done: %s (dmesg %llu bytes, %d capture(s))", logdir_name, dmesg_bytes, ncaps);
+    if (stayon) run_android("cmd settings put global stay_on_while_plugged_in 0", -1, NULL, 0, 20);
+    // Keep the wake lock through the shutdown request: released first, the machine can suspend in between.
+    if (wakelock > 0 && !strcmp(after, "stay")) run_android("echo openbook-logs > /sys/power/wake_unlock", -1, NULL, 0, 10);
+    say("logs: done: %s (dmesg %llu bytes, %d capture(s), logcat stream started %d time(s), wake lock %s)", logdir_name,
+        dmesg_bytes, ncaps, stream_starts, wakelock > 0 ? "held" : "not held");
     drain_kmsg();
     fsync(dmesg_out);
     close(dmesg_out);

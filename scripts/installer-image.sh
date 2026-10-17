@@ -12,9 +12,11 @@
 # the owner's confirmation naming the /dev/disk/by-id/... device.
 #
 # usage: installer-image.sh [--product-out DIR | --inputs DIR] [--label NAME] [--menu-timeout T]
-#                           [--userdata-mib N] [--epoch S] [--out DIR] [--no-xz]
+#                           [--userdata-mib N] [--epoch S] [--out DIR] [--no-xz] [--force]
 #   default product: <data dir>/aosp/src/out/target/product/anybook_g14 (anybook_g14_x86_64-cp2a-userdebug)
 #   default label:   openbook-live-<build id>-<UTC date>
+#   --force:         replace an existing image or snapshot of the same label (refused by default: a label names
+#                    one build, and a stick written from it is identified by it)
 #   --epoch:         timestamps inside the image (default: this repo's HEAD commit time), so the same inputs and
 #                    label give the same image, byte for byte
 # Output: --out DIR (default <data dir>/installer/out/, which must be below <data dir>/installer); log: <data dir>/logs/installer/live-<label>-<UTC>.log
@@ -23,7 +25,7 @@ A=${OPENBOOK_HOME:-${ANYBOOK_HOME:-$HOME/anybook}}   # data dir: ~/anybook until
 R=$(cd "$(dirname "$0")/.." && pwd)
 S=$R/scripts/installer; D=$S/inst-docker.sh
 P=$A/aosp/src/out/target/product/anybook_g14
-IN=; LABEL=; MENU=menu-hidden; UD=1024; XZ=1; EPOCH=; O=$A/installer/out
+IN=; LABEL=; MENU=menu-hidden; UD=1024; XZ=1; EPOCH=; O=$A/installer/out; FORCE=0
 while [ $# -gt 0 ]; do
   case $1 in
     --product-out) P=$2; shift 2 ;;
@@ -34,7 +36,8 @@ while [ $# -gt 0 ]; do
     --epoch) EPOCH=$2; shift 2 ;;
     --out) O=$(realpath -m "$2"); shift 2 ;;
     --no-xz) XZ=0; shift ;;
-    -h|--help) sed -n '3,23p' "$0"; exit 0 ;;
+    --force) FORCE=1; shift ;;
+    -h|--help) sed -n '3,25p' "$0"; exit 0 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
 done
@@ -51,6 +54,11 @@ else
   LABEL=${LABEL:-openbook-live-$(basename "$IN")}
 fi
 case $LABEL in *[!A-Za-z0-9._-]*) echo "label: letters, digits, . _ - only" >&2; exit 2 ;; esac
+if [ $FORCE = 0 ]; then
+  [ ! -e "$O/$LABEL.img" ] || { echo "$O/$LABEL.img exists: pick a new --label (or --force to replace it)" >&2; exit 2; }
+  [ -n "$IN" ] || [ ! -e "$A/installer/inputs/$LABEL" ] || \
+    { echo "snapshot $A/installer/inputs/$LABEL exists: pick a new --label, or --inputs it (or --force)" >&2; exit 2; }
+fi
 mkdir -p "$O" "$A/logs/installer" "$A/installer/build" "$A/installer/work"
 LOG=$A/logs/installer/live-$LABEL-$(date -u +%Y%m%dT%H%M%SZ).log
 exec > >(tee -a "$LOG") 2>&1

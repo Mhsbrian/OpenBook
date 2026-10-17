@@ -1,0 +1,31 @@
+{
+ "reason": "QEMU exited (0)",
+ "seconds": 59.2,
+ "steps_done": 4,
+ "steps": 4,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "openbook-live: live boot: boot_part_uuid=",
+   "t": 3.7
+  },
+  {
+   "step": 1,
+   "wait": "openbook-live: logs: saving to openbook/logs/live-\\d+",
+   "t": 5.2
+  },
+  {
+   "step": 2,
+   "wait": "openbook-live: logs: (no second stage|Android second stage seen)",
+   "t": 5.7
+  },
+  {
+   "step": 3,
+   "wait": "openbook-live: logs: done: ",
+   "t": 54.3
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/qemu/live-helpertest7/logs16.img",
+ "nvme": null
+}
