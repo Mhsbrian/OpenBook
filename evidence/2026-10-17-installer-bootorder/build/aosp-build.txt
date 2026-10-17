@@ -1,0 +1,12 @@
+# AOSP build for this branch (lane lock, incremental): build-20261017T214051Z.log
+=== 2026-10-17T21:40:51Z target anybook_g14_x86_64-cp2a-userdebug goals droid -j32 on 32 CPUs
+=== 2026-10-17T21:40:51Z synced device/anybook from /repo (AnyBook 1023ded)
+=== 2026-10-17T21:40:54Z vendor/anybook/mesa: upstream mesa-26.2.5 ddaf85e353442d9d7f192fdcf1823e652e3f2ee3 (26.2.5)
+=== 2026-10-17T21:40:55Z m -j32 droid
+=== 2026-10-17T21:43:09Z m exit 0
+[  1% 36/2673] //device/anybook/common/installer:openbook-install clang engine/efivar.c
+[  8% 44/495] //device/anybook/common/installer:openbook-install clang engine/install.c
+[ 19% 83/432] //device/anybook/common/installer/app:OpenBookInstaller kotlinc[common]
+-rw-r--r-- 1 builder builder     334375 Oct 17 21:41 out/target/product/anybook_g14/vendor_ramdisk-debug.img
+-rw-r--r-- 1 builder builder     334760 Oct 17 21:41 out/target/product/anybook_g14/vendor_ramdisk-test-harness.img
+-rw-r--r-- 1 builder builder       1509 Oct 17 20:27 out/target/product/anybook_g14/vendor_ramdisk.img
