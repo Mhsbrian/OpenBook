@@ -17,6 +17,9 @@
 #        static links it into libgallium_dri.so as ANAL-173 did. Changing it re-runs setup.
 #      ANDROID_STRICT=true|false (default true, Mesa's default): RADV reports Vulkan 1.1 on Android
 #        when true (CTS-safe), 1.4 when false. Changing it re-runs setup.
+#      MESA_VARIANT=-<name> (default empty): build, out and evidence go to <dir>/<tree><variant>, so a variant
+#        (e.g. MESA_VARIANT=-nonstrict ANDROID_STRICT=false for ANAL-177's Vulkan 1.4 runs) never replaces the
+#        build graphics-amd-stage-mesa.sh puts in the image. The source tree is shared.
 set -euo pipefail
 
 # ---- pins -------------------------------------------------------------------------------
@@ -32,6 +35,8 @@ AG_BASE=mesa-26.0.8   # upstream tag AG's 26.0/main is based on (merge-base 60e9
 ELFUTILS_URL=https://android.googlesource.com/platform/external/elfutils
 ELFUTILS_REF=android-17.0.0_r1; ELFUTILS_SHA=219c3a368b121307f2e05593cee89b8591cc40b9
 API=${API:-37}; STEP_TIMEOUT=${STEP_TIMEOUT:-3000}; LIBELF=${LIBELF:-shared}; ANDROID_STRICT=${ANDROID_STRICT:-true}
+V=${MESA_VARIANT:-}
+[[ $V =~ ^(-[a-z0-9]+)?$ ]] || { echo "MESA_VARIANT must be empty or -<lowercase letters and digits>" >&2; exit 2; }
 IMAGE=anybook-mesa-android
 
 # --datadir=etc: libdrm_amdgpu's compiled-in marketing-name table becomes /vendor/etc/libdrm/amdgpu.ids
@@ -63,17 +68,17 @@ if [[ ! -d /opt/android-ndk ]]; then
   for s in "${steps[@]}"; do [[ $s == isa ]] && want_isa=1 || cstep+=("$s"); done
   if ((${#cstep[@]})); then
     docker run --rm -u "$(id -u):$(id -g)" -e HOME=/a/mesa/home -e CCACHE_DIR=/a/mesa/ccache \
-      -e STEP_TIMEOUT -e JOBS -e API -e CCACHE_DISABLE -e LIBELF -e ANDROID_STRICT -v "$A/mesa:/a/mesa" -v "$A/logs/mesa:/a/logs" -v "$repo:/repo:ro" \
+      -e STEP_TIMEOUT -e JOBS -e API -e CCACHE_DISABLE -e LIBELF -e ANDROID_STRICT -e MESA_VARIANT -v "$A/mesa:/a/mesa" -v "$A/logs/mesa:/a/logs" -v "$repo:/repo:ro" \
       "$IMAGE" /repo/scripts/mesa-android-build.sh "${cstep[@]}" -- "${trees[@]}"
   fi
   if ((want_isa)); then
     for t in "${trees[@]}"; do
-      mkdir -p "$A/mesa/evidence/$t"
+      mkdir -p "$A/mesa/evidence/$t$V"
       docker run --rm -u "$(id -u):$(id -g)" -v "$A/mesa:/a/mesa" anybook-inspect sh -c '
-        cd /a/mesa/out/'"$t"'/vendor && find . -name "*.so" | sort | while read -r f; do
+        cd /a/mesa/out/'"$t$V"'/vendor && find . -name "*.so" | sort | while read -r f; do
           echo "== $f"; elfx86exts "$f" | sed -n "/^Instruction set extensions used/,\$p"; done' \
-        > "$A/mesa/evidence/$t/isa-elfx86exts.txt"
-      echo "isa: $t -> $A/mesa/evidence/$t/isa-elfx86exts.txt"
+        > "$A/mesa/evidence/$t$V/isa-elfx86exts.txt"
+      echo "isa: $t$V -> $A/mesa/evidence/$t$V/isa-elfx86exts.txt"
     done
   fi
   exit 0
@@ -173,19 +178,19 @@ EOF
   echo "$f"; }
 
 # The build directory is kept only while its configuration (options + LIBELF) is unchanged.
-setup(){ local t=$1 b=$M/build/$1 cfg="LIBELF=$LIBELF ${MESON_OPTS[*]}"
+setup(){ local t=$1 b=$M/build/$1$V cfg="LIBELF=$LIBELF ${MESON_OPTS[*]}"
   [[ -f $b/build.ninja && $(cat "$b/anybook-config.txt" 2>/dev/null) == "$cfg" ]] &&
     { log "setup: $t already configured ($b, LIBELF=$LIBELF)"; return; }
-  rm -rf "$b"; : > "$L/$t-setup.log"; local cf; cf=$(cross_file); libelf_pc
-  run "$t-setup" meson setup "$b" "$M/src/$t" --cross-file "$cf" "${MESON_OPTS[@]}"
+  rm -rf "$b"; : > "$L/$t$V-setup.log"; local cf; cf=$(cross_file); libelf_pc
+  run "$t$V-setup" meson setup "$b" "$M/src/$t" --cross-file "$cf" "${MESON_OPTS[@]}"
   echo "$cfg" > "$b/anybook-config.txt"
 }
 
-build(){ local t=$1; run "$t-build" ninja -C "$M/build/$t" -j "$JOBS"; }
+build(){ local t=$1; run "$t$V-build" ninja -C "$M/build/$t$V" -j "$JOBS"; }
 
-install_(){ local t=$1 b=$M/build/$1 o=$M/out/$1
+install_(){ local t=$1 b=$M/build/$1$V o=$M/out/$1$V
   rm -rf "$o"; mkdir -p "$o"
-  run "$t-install" meson install -C "$b" --no-rebuild --strip --destdir "$o/staging"
+  run "$t$V-install" meson install -C "$b" --no-rebuild --strip --destdir "$o/staging"
   # Android vendor layout: EGL/GLES under lib64/egl (ro.hardware.egl=mesa), the gallium
   # megadriver, GBM and libdrm in lib64, GBM's DRI backend in lib64/gbm (libgbm_mesa's compiled-in
   # backends path), Vulkan HAL as lib64/hw/vulkan.radv.so (ro.hardware.vulkan=radv).
@@ -218,7 +223,7 @@ install_(){ local t=$1 b=$M/build/$1 o=$M/out/$1
   log "install: $t -> $o/vendor"
 }
 
-verify(){ local t=$1 b=$M/build/$1 o=$M/out/$1 e=$M/evidence/$1
+verify(){ local t=$1 b=$M/build/$1$V o=$M/out/$1$V e=$M/evidence/$1$V
   mkdir -p "$e"; cd "$o/vendor"
   local libs; mapfile -t libs < <(find . -name '*.so' | sort)
   sha256sum "${libs[@]}" > "$e/sha256sums.txt"
@@ -266,8 +271,9 @@ verify(){ local t=$1 b=$M/build/$1 o=$M/out/$1 e=$M/evidence/$1
     echo "libdrm: $(sed -n 's/^directory = //p' "$M/src/$t/subprojects/libdrm.wrap") (meson wrap, shared)"
     echo "libelf: elfutils $(cat "$DEPS/libelf.version") ($ELFUTILS_REF), LIBELF=$LIBELF"
     echo "options: ${MESON_OPTS[*]}"
+    echo "variant: ${V:-(none)}"
   } > "$e/versions.txt"
-  gzip -c "$L/$t-setup.log" > "$e/setup.log.gz"; gzip -c "$L/$t-build.log" > "$e/build.log.gz"
+  gzip -c "$L/$t$V-setup.log" > "$e/setup.log.gz"; gzip -c "$L/$t$V-build.log" > "$e/build.log.gz"
   gzip -c "$b/meson-logs/meson-log.txt" > "$e/meson-log.txt.gz"
   log "verify: $t -> $e"; tail -5 "$e/needed-check.txt"
 }
