@@ -145,6 +145,7 @@ fun planWarningSentence(code: String, alongside: Boolean): String = when (code) 
     } else {
         stringResource(R.string.plan_warning_nvram_whole)
     }
+    "boot_order_unchanged" -> stringResource(R.string.plan_warning_boot_order_unchanged)
     "external" -> stringResource(R.string.plan_warning_external)
     "encrypted_kept" -> stringResource(R.string.plan_warning_encrypted_kept)
     "encrypted_erased" -> stringResource(R.string.plan_warning_encrypted_erased)

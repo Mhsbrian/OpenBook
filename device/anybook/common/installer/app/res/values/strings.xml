@@ -228,7 +228,7 @@
     <string name="layout_whole_unavailable">Erasing isn\'t possible: <xliff:g id="reason">%1$s</xliff:g>.</string>
     <string name="layout_alongside_unavailable">Installing alongside isn\'t possible: <xliff:g id="reason">%1$s</xliff:g>.</string>
     <string name="layout_set_default">Start OpenBook by default</string>
-    <string name="layout_set_default_detail">Changes the boot order in this laptop\'s firmware. If off, pick OpenBook from the firmware\'s boot menu.</string>
+    <string name="layout_set_default_detail">Puts OpenBook first in this laptop\'s firmware boot order. If off, OpenBook still gets a firmware entry, but your other system stays first.</string>
     <string name="after_installing">After installing</string>
     <string name="os_and"><xliff:g id="first">%1$s</xliff:g> and <xliff:g id="last">%2$s</xliff:g></string>
     <string name="explainer_keep_title">Want to keep <xliff:g id="systems">%1$s</xliff:g>?</string>
@@ -352,6 +352,8 @@
     <string name="done_boot_entry_added">Boot entry added</string>
     <string name="done_boot_entry">Boot entry</string>
     <string name="done_boot_entry_detail">OpenBook now starts this laptop</string>
+    <string name="done_boot_entry_not_first">The firmware has an OpenBook entry (<xliff:g id="entry">%1$s</xliff:g>), but your other system still starts first. Some firmware lists only the systems in its boot order: add OpenBook to it in the firmware setup.</string>
+    <string name="plan_warning_boot_order_unchanged">OpenBook gets its own entry in this computer\'s firmware, but the boot order stays as it is, so your other system still starts first. Turn on \"Start OpenBook by default\" to put OpenBook first.</string>
     <string name="done_boot_firmware_menu">Pick OpenBook in your firmware\'s boot menu (Esc at power-on on ASUS laptops)</string>
     <string name="done_report">Report saved</string>
     <string name="done_report_detail">On the USB stick and on the new system</string>
