@@ -1,10 +1,10 @@
 # Status
 
-## State of the union (2026-10-17, 14:45 UTC)
+## State of the union (2026-10-17, 16:05 UTC)
 
 **Goal:** the Googlebook-style Android 17 desktop on the ASUS ROG Zephyrus G14 (GA403WR: Ryzen AI 9 HX 370, Radeon 890M), installed from a USB stick through a wizard and verified on the laptop. Repo: https://github.com/Mhsbrian/OpenBook.
 
-**Repo hygiene:** PRs #1–#55 are merged and none are open. The 2026-10-17 cleanup left one remote branch, `main`; every other branch was merged or superseded. Two branches with commits never merged are kept as tags: `archive/anal-190-live-image-b` (superseded on `main`) and `archive/anal-178-stick-integration`.
+**Repo hygiene:** PRs #1–#59 are merged and none are open. The 2026-10-17 cleanup left one remote branch, `main`; every other branch was merged or superseded. Two branches with commits never merged are kept as tags: `archive/anal-190-live-image-b` (superseded on `main`) and `archive/anal-178-stick-integration`.
 
 ### What works, and where it has been shown
 
@@ -20,17 +20,19 @@
 | ARM apps (Digitalis, built from source) | 14/16 ARM-only apps; works in enforcing | **The bridge self-check passes on Zen 5** (5/5 verdicts, both sessions). No arm64 app run yet: the ARM apps check is on ANAL-192's stick | `evidence/2026-10-17-digitalis-a17/`, `evidence/2026-10-17-digitalis-g14/` |
 | Installer | **Wizard 25/25, engine 53/53:** installs to a virtual NVMe disk that then boots by itself into OpenBook setup (SELinux enforcing) | Live USB boots; the wizard has not run yet | `evidence/2026-10-17-installer-wizard/` |
 
-**One gap holds back most of the table:** the owner's run of the latest stick on the G14. Everything marked "not tested" is built and waiting for that run.
+**What is left on the G14:** S0i3 deep sleep (needs the laptop's own Linux comparison), audible Bluetooth and app audio, the Android audio path with the HAL fix, the ARM apps check, the installer dry run, and the graphics results (ANAL-177 is reading the run the owner already did). All but S0i3 are on ANAL-192's one checklist.
 
 ### Running now
 
-- **ANAL-192 builds the integrated owner stick now** (PR #52 is on `main`): installer, the power check and the graphics check, with one checklist. Then the installer's end-to-end tests in QEMU.
-- **ANAL-178, ANAL-179 and ANAL-200** are reading their results from the owner's sessions (host copies).
-- **Delivered today:** ANAL-176 (PR #52: enforcing desktop on the G14 and its fixes), ANAL-191 (PR #53: the installer).
+- **ANAL-192** builds the integrated owner stick from `main` at `9598403` or later: product rebuilt with #57's touchpad fix and #58's audio HAL fix, plus the installer and three add-ons (power check, graphics check, ARM apps check), with one checklist. Then the installer's end-to-end tests in QEMU.
+- **ANAL-177** is reading the graphics check the owner ran on `anal176t` (`g14/stick-20261017T154112Z`, `live-002`).
+- **ANAL-176** is reading the same session for Bluetooth audio and app audio under enforcing.
+- **Merged today since 14:45:** #56 (ANAL-200, the bridge on Zen 5), #57 (ANAL-178, power and input on the G14, the touchpad fix), #58 (ANAL-179, audio, Wi-Fi and Bluetooth on the G14, the codec-paced audio HAL).
 
 ### Waiting on the owner
 
-1. **The next stick is ANAL-192's**, with one checklist for every open G14 test. It contains everything in `anal176t` plus the installer, and replaces `anal178c`, `anal176s`, `anal176t` and `anal191e`. If you test before it's ready, `anal176t` with ANAL-176's steps is a subset. Still to do on the G14: Bluetooth audio and browser sound, the power check, the graphics check, the installer dry run.
+1. **The next stick is ANAL-192's**, with one checklist. It replaces every earlier stick. Wait for it; there is nothing to write before then.
+   Optional and independent of the stick, for S0i3: on the laptop's own Linux run `sudo python3 scripts/power/linux-s2idle.py --amd-s2idle` (about 5 min; `docs/power-input.md` §7.6) and attach the tarball to ANAL-178.
 2. **Decisions:** none blocks running work.
    - repo license (Apache-2.0 suggested);
    - upstream reports for the bridge (DigitalisX64; AOSP `Build.CPU_ABI`);
@@ -45,10 +47,10 @@
 | Issue | State | Next step | Needs |
 |---|---|---|---|
 | ANAL-176 G14 desktop and stability | In review | **The enforcing default entry reaches the desktop on the G14** (`anal178c` 28 s, `anal176s` 29 s). On the G14, PR #52's fixes hold: no storage notice for the stick, no lock-screen blackout, 0 dropped frames (151 before). `anal176t` adds the Bluetooth-audio and app-audio policy fixes (QEMU 40/40). Next: Bluetooth audio and browser sound on the G14, then the remaining denials | The owner's next stick run |
-| ANAL-177 graphics conformance | In review | Read the G14 dEQP/ANGLE results; decide Vulkan 1.1 or 1.4 (the 610M favours 1.4); add matrix rows | The graphics-check boot on ANAL-192's stick |
-| ANAL-178 input and power | In review (PR #57) | Lid works; touchpad clock fixed (EventHub, QEMU); the power check ruled out the PSP. Next: S0i3 from the Linux comparison | The laptop's own Linux `linux-s2idle.py --amd-s2idle` run; on ANAL-192's stick: battery saver, touchpad use (`docs/power-input.md` §7.5, §7.6) |
-| ANAL-179 Wi-Fi, Bluetooth, audio | **Reading results** | Wi-Fi, Bluetooth and audio verdicts from the two sessions; fix what fails; speaker tuning | — |
-| ANAL-200 ARM bridge | In review (PR #56) | Done: bridge verdicts 5/5 on the G14 in both sessions, G14 rows recorded, and the ARM apps check add-on (probe and CoreMark on the laptop, QEMU-tested). Next: read its G14 results | The ARM-apps-check boot on ANAL-192's stick; the upstream-report OK |
+| ANAL-177 graphics conformance | **Reading results** | The owner's graphics-check run on the G14 (`anal176t`, `live-002`): dEQP VK 1.1/1.4, GLES, EGL, ANGLE end2end; decide Vulkan 1.1 or 1.4 | — |
+| ANAL-178 input and power | In review (PR #57, merged) | Lid works; touchpad clock fixed (EventHub, QEMU); the power check ruled out the PSP. Next: S0i3 from the Linux comparison | The laptop's own Linux `linux-s2idle.py --amd-s2idle` run; on ANAL-192's stick: battery saver, touchpad use (`docs/power-input.md` §7.5, §7.6) |
+| ANAL-179 Wi-Fi, Bluetooth, audio | In review (PR #58, merged) | On the G14: Wi-Fi to the internet, Bluetooth A2DP/LDAC, speakers and mic through ALSA. Android's audio path was broken; the codec-paced HAL fixes it in QEMU. Next: the G14 check | ANAL-192's stick: iperf3 server, Bluetooth audio, browser video, headphones |
+| ANAL-200 ARM bridge | In review (PR #56, merged) | Done: bridge verdicts 5/5 on the G14 in both sessions, G14 rows recorded, and the ARM apps check add-on (probe and CoreMark on the laptop, QEMU-tested). Next: read its G14 results | The ARM-apps-check boot on ANAL-192's stick; the upstream-report OK |
 | ANAL-191 installer wizard and engine | In review | The G14 dry run, on ANAL-192's stick. Open: `openbook-bootsync`, the text hardware report, a firmware boot entry (our GKI has no `EFIVAR_FS`: a kernel-lane decision) | — |
 | ANAL-192 installer end-to-end tests and the owner's stick | **Running** | The integrated stick and its one checklist (#52 is merged); then the QEMU matrix (alongside booted, interrupted installs, reinstall, an unattended run); a release-checklist draft | The owner names a spare drive for the real install |
 | ANAL-193 to ANAL-197 device loop | Backlog | ANAL-194 first: the Multica runtime and test agent on the G14's Linux | Owner installs the daemon |
@@ -69,6 +71,10 @@
 **Build host:** one AOSP build at a time (`flock ~/anybook/aosp/.lane.lock`, taken by `scripts/aosp-docker.sh`), because builds peak at about 50 GB of the 61 GB RAM. Builds and images are in `docs/BUILD.md`; the live image and the owner checklists are in `docs/installer.md` §11.
 
 ## History
+
+### 2026-10-17: G14 results merged for power, input, audio, Wi-Fi and the bridge (ANAL-159)
+- **Merged** #56 (ANAL-200), #57 (ANAL-178) and #58 (ANAL-179) after checks, with `main` merged into each and STATUS resolved by hand. The only MACs in the evidence are locally administered QEMU addresses.
+- **Woke ANAL-192** to rebuild the integrated stick on `9598403` (two AOSP patches and a third add-on landed after its first image). **Woke ANAL-177 and ANAL-176** to read the owner's `anal176t` session, which holds the graphics check and the audio fixes. The owner had replied only on ANAL-178.
 
 ### 2026-10-17: the power check on the laptop: PSP ruled out; the lid works (ANAL-178)
 - **Read** the owner's `anal176t` stick (read-only copy `g14/stick-20261017T154112Z`): default boot with the lid test, "save logs", the power check, and ANAL-177's graphics check (`live-002`, for ANAL-177).
