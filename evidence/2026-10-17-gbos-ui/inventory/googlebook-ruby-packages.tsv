@@ -1,0 +1,249 @@
+partition	kind	path	package	versionName	versionCode	targetSdk	abis	MiB	label	overlayTarget	isStatic	priority
+system	app	app/BasicDreams/BasicDreams.apk	com.android.dreams.basic	17	37	37		0.2	Basic Daydreams			
+system	app	app/BluetoothMidiService/BluetoothMidiService.apk	com.android.bluetoothmidiservice	17	37	37		0.0	Bluetooth MIDI Service			
+system	app	app/BookmarkProvider/BookmarkProvider.apk	com.android.bookmarkprovider	17	37	37		0.0	Bookmark Provider			
+system	app	app/CameraExtensionsProxy/CameraExtensionsProxy.apk	com.android.cameraextensions	17	37	37		0.1	CameraExtensionsProxy			
+system	app	app/CaptivePortalLoginGoogle/CaptivePortalLoginGoogle.apk	com.google.android.captiveportallogin	17	371899999	37		1.5	Captive Portal Login			
+system	app	app/CertInstaller/CertInstaller.apk	com.android.certinstaller	17	37	37		0.6	Certificate Installer			
+system	app	app/CompanionDeviceManager/CompanionDeviceManager.apk	com.android.companiondevicemanager	17	37	37		1.8	Companion Device Manager			
+system	app	app/EasterEgg/EasterEgg.apk	com.android.egg	1.0	12	37		2.3	Android Easter Egg			
+system	app	app/GameControlsInputProcessorService/GameControlsInputProcessorService.apk	com.google.android.gaming.controls	17	37	37		0.3	Game Controls Input Processor Service			
+system	app	app/GoogleAppSearchAiSealConfig/GoogleAppSearchAiSealConfig.apk	com.android.appsearch.aiseal.config	17	37	37		0.0				
+system	app	app/GoogleExtShared/GoogleExtShared.apk	com.google.android.ext.shared	1	1	37		0.0	Android Shared Library			
+system	app	app/GooglePrintRecommendationService/GooglePrintRecommendationService.apk	com.google.android.printservice.recommendation	1.3.0	4	37		0.3	Print Service Recommendation Service			
+system	app	app/HTMLViewer/HTMLViewer.apk	com.android.htmlviewer	17	37	37		0.2	HTML Viewer			
+system	app	app/IppPrintService/IppPrintService.apk	com.android.desktop.printservice	17	37	37		48.6	Desktop Print Service			
+system	app	app/KeyChain/KeyChain.apk	com.android.keychain	17	37	37		4.0	Key Chain			
+system	app	app/PacProcessor/PacProcessor.apk	com.android.pacprocessor	17	37	37		0.0	PacProcessor			
+system	app	app/PartnerBookmarksProvider/PartnerBookmarksProvider.apk	com.android.providers.partnerbookmarks	17	37	37		0.0				
+system	app	app/PrintSpooler/PrintSpooler.apk	com.android.printspooler	17	37	37		1.0	Print Spooler			
+system	app	app/SecureElement/SecureElement.apk	com.android.se	17	37	37		0.1	SecureElementApplication			
+system	app	app/SimAppDialog/SimAppDialog.apk	com.android.simappdialog	17	37	37		0.4	Sim App Dialog			
+system	app	app/Traceur/Traceur.apk	com.android.traceur	1.0	2	36		4.2	System Tracing			
+system	app	app/VirtualDeviceManager/VirtualDeviceManager.apk	com.android.virtualdevicemanager	17	37	37		0.7	Virtual Device Manager			
+system	app	app/WallpaperBackup/WallpaperBackup.apk	com.android.wallpaperbackup	17	37	37		0.0				
+system	other	etc/security/fsverity/BuildManifest.apk	com.android.security.fsverity_metadata.system	17	37			0.0				
+system	other	framework/framework-res.apk	android	17	37	37		36.4	Android System			
+system	priv-app	priv-app/BackupRestoreConfirmation/BackupRestoreConfirmation.apk	com.android.backupconfirm	17	37	37		0.4				
+system	priv-app	priv-app/BlockedNumberProvider/BlockedNumberProvider.apk	com.android.providers.blockednumber	17	37	37		0.1	Blocked Numbers Storage			
+system	priv-app	priv-app/BuiltInPrintService/BuiltInPrintService.apk	com.android.bips	17	37	37		2.1	Default Print Service			
+system	priv-app	priv-app/CalendarProvider/CalendarProvider.apk	com.android.providers.calendar	17	37	37		0.3	Calendar Storage			
+system	priv-app	priv-app/ContactsPicker/ContactsPicker.apk	com.android.contactspicker	17	37	37		4.1	Contacts Picker			
+system	priv-app	priv-app/ContactsProvider/ContactsProvider.apk	com.android.providers.contacts	17	37	37		0.9	Contacts Storage			
+system	priv-app	priv-app/CredentialManager/CredentialManager.apk	com.android.credentialmanager	17	37	37		3.2	Credential Manager			
+system	priv-app	priv-app/DeviceAsWebcam/DeviceAsWebcam.apk	com.android.DeviceAsWebcam	17	37	37		2.2	Webcam Service			
+system	priv-app	priv-app/DeviceDiagnostics/DeviceDiagnostics.apk	com.android.devicediagnostics	17	37	37		5.9	DeviceDiagnostics			
+system	priv-app	priv-app/DocumentsUIGoogle/DocumentsUIGoogle.apk	com.google.android.documentsui	17	371899999	37		12.1	Files			
+system	priv-app	priv-app/DownloadProvider/DownloadProvider.apk	com.android.providers.downloads	17	37	37		0.5	Download Manager			
+system	priv-app	priv-app/DownloadProviderUi/DownloadProviderUi.apk	com.android.providers.downloads.ui	17	37	37		0.2	Downloads			
+system	priv-app	priv-app/DynamicSystemInstallationService/DynamicSystemInstallationService.apk	com.android.dynsystem	17	37	37		0.1	Dynamic System Updates			
+system	priv-app	priv-app/E2eeContactKeysProvider/E2eeContactKeysProvider.apk	com.android.providers.contactkeys	17	37	37		0.0	ContactsKeys Storage			
+system	priv-app	priv-app/ExternalStorageProvider/ExternalStorageProvider.apk	com.android.externalstorage	17	37	37		0.1	External Storage			
+system	priv-app	priv-app/EyeDropper/EyeDropper.apk	com.android.eyedropper	17	37	37		1.8	EyeDropper			
+system	priv-app	priv-app/FusedLocation/FusedLocation.apk	com.android.location.fused	17	37	37		0.0	Fused Location			
+system	priv-app	priv-app/GooglePackageInstaller/GooglePackageInstaller.apk	com.google.android.packageinstaller	17	37	37		3.8	Package installer			
+system	priv-app	priv-app/InputDevices/InputDevices.apk	com.android.inputdevices	17	37	37		0.4	Input Devices			
+system	priv-app	priv-app/IntentResolver/IntentResolver.apk	com.android.intentresolver	2021-11		37		3.9	IntentResolver			
+system	priv-app	priv-app/LiveWallpapersPicker/LiveWallpapersPicker.apk	com.android.wallpaper.livepicker	17	37	37		4.4	Live Wallpaper Picker			
+system	priv-app	priv-app/LocalTransport/LocalTransport.apk	com.android.localtransport	17	37	37		0.0				
+system	priv-app	priv-app/ManagedProvisioning/ManagedProvisioning.apk	com.android.managedprovisioning	17	37	37		6.3	Work Setup			
+system	priv-app	priv-app/MmsService/MmsService.apk	com.android.mms.service	17	37	37		0.3	MmsService			
+system	priv-app	priv-app/MtpService/MtpService.apk	com.android.mtp	17	37	37		1.2	MTP Host			
+system	priv-app	priv-app/MusicFX/MusicFX.apk	com.android.musicfx	1.4	10400	37		0.4	MusicFX			
+system	priv-app	priv-app/NetworkStackGoogle/NetworkStackGoogle.apk	com.google.android.networkstack	17	371899999	37	x86_64	1.5	Network manager			
+system	priv-app	priv-app/PrivateSpace/PrivateSpace.apk	com.android.privatespace	17	37	36		2.6	Private Space			
+system	priv-app	priv-app/ProxyHandler/ProxyHandler.apk	com.android.proxyhandler	17	37	37		0.0	ProxyHandler			
+system	priv-app	priv-app/SettingsProvider/SettingsProvider.apk	com.android.providers.settings	17	37	37		0.5	Settings Storage			
+system	priv-app	priv-app/SharedStorageBackup/SharedStorageBackup.apk	com.android.sharedstoragebackup	17	37	37		0.0				
+system	priv-app	priv-app/Shell/Shell.apk	com.android.shell	17	37	37		0.5	Shell			
+system	priv-app	priv-app/SoundPicker/SoundPicker.apk	com.android.soundpicker	17	37	37		1.1	Sounds			
+system	priv-app	priv-app/TagGoogle/TagGoogle.apk	com.google.android.tag	1.1	101	37		0.8	Tags			
+system	priv-app	priv-app/TeleService/TeleService.apk	com.android.phone	17	37	37		9.6	Phone Services			
+system	priv-app	priv-app/TelecomShim/TelecomShim.apk	com.android.server.telecom	17	37	37		0.0				
+system	priv-app	priv-app/TelephonyProviderHsum/TelephonyProviderHsum.apk	com.android.providers.telephony	17	37	37		0.5	Phone and Messaging Storage			
+system	priv-app	priv-app/UserDictionaryProvider/UserDictionaryProvider.apk	com.android.providers.userdictionary	17	37	37		0.0	User Dictionary			
+system	priv-app	priv-app/VpnDialogs/VpnDialogs.apk	com.android.vpndialogs	17	37	37		0.2	VpnDialogs			
+system_ext	app	app/AccessibilityMenu/AccessibilityMenu.apk	com.android.systemui.accessibility.accessibilitymenu	17	37	37		2.7	Accessibility Menu			
+system_ext	app	app/DesktopRepairModeResources/DesktopRepairModeResources.apk	com.google.android.desktop.repairmode.resources	17	37	37		0.0				
+system_ext	app	app/DisplayCaptureService/DisplayCaptureService.apk	com.google.android.desktop.display_capture_service	17	37	37		0.3				
+system_ext	app	app/EmergencyInfoGoogleNoUi/EmergencyInfoGoogleNoUi.apk	com.android.emergency	17	37	37		3.9	Emergency information			
+system_ext	app	app/LenovoSSOPackagePrebuilt/LenovoSSOPackagePrebuilt.apk	com.lenovo.chrome.suw	V1.0.1.0087chromeos	11000087	36		4.7	Lenovo ID			
+system_ext	app	app/PersistentBackgroundServices-desktop/PersistentBackgroundServices-desktop.apk	com.google.android.pixelsystemservice	17	37	37		0.5	Pixel System Service			
+system_ext	other	etc/security/fsverity/BuildManifestSystemExt.apk	com.android.security.fsverity_metadata.system_ext	17	37			0.0				
+system_ext	overlay	overlay/DefaultWallpaperOverlayRuby.apk	com.google.android.desktop.default_wallpaper_overlay.ruby	1.0	1	35		30.9	DefaultWallpaperOverlay	android		1
+system_ext	overlay	overlay/com.google.android.ruby.framework_res_overlay.apk	com.google.android.ruby.framework_res_overlay	17	37	37		0.0		android	true	100
+system_ext	priv-app	priv-app/AvatarPickerGoogle/AvatarPickerGoogle.apk	com.google.android.avatarpicker	17	37	37		4.2	Choose a picture			
+system_ext	priv-app	priv-app/ChromePrewarm/ChromePrewarm.apk	com.google.android.desktop.prewarm	17	37	37		0.2	ChromePrewarm			
+system_ext	priv-app	priv-app/FauResetPreferences/FauResetPreferences.apk	com.google.android.desktop.fauresetpreferences	17	37	37		0.0				
+system_ext	priv-app	priv-app/GoogleServicesFramework/GoogleServicesFramework.apk	com.google.android.gsf	17	37	37		1.1	Google Services Framework			
+system_ext	priv-app	priv-app/Login/Login.apk	com.google.android.desktop.identity.login	17	37	36		2.2	Login			
+system_ext	priv-app	priv-app/NexusLauncherRelease/NexusLauncherRelease.apk	com.google.android.apps.nexuslauncher	17	907	37		17.8	Launcher			
+system_ext	priv-app	priv-app/RepairMode-Desktop/RepairMode-Desktop.apk	com.google.android.desktop.repairmode	17	37	37		5.0	Repair Mode (Experimental)			
+system_ext	priv-app	priv-app/SettingsGoogle/SettingsGoogle.apk	com.android.settings	17	37	37		98.6	Settings			
+system_ext	priv-app	priv-app/SettingsGoogleFutureFaceEnroll/SettingsGoogleFutureFaceEnroll.apk	com.google.android.settings.future.biometrics.faceenroll	17	37	37		5.8	Face Enroll			
+system_ext	priv-app	priv-app/SetupWizardDesktopPrebuilt_cl3b/SetupWizardDesktopPrebuilt_cl3b.apk	com.google.android.desktop.setupwizard	1.0.981800256	868	36	x86_64	10.2	Googlebook setup			
+system_ext	priv-app	priv-app/StorageManager/StorageManager.apk	com.android.storagemanager	17	37	37		12.0	Storage Manager			
+system_ext	priv-app	priv-app/SystemUIClocks-BigNum/SystemUIClocks-BigNum.apk	com.android.systemui.clocks.bignum	17	37	37		2.1				
+system_ext	priv-app	priv-app/SystemUIClocks-Calligraphy/SystemUIClocks-Calligraphy.apk	com.android.systemui.clocks.calligraphy	17	37	37		2.1				
+system_ext	priv-app	priv-app/SystemUIClocks-Growth/SystemUIClocks-Growth.apk	com.android.systemui.clocks.growth	17	37	37		2.1				
+system_ext	priv-app	priv-app/SystemUIClocks-Inflate/SystemUIClocks-Inflate.apk	com.android.systemui.clocks.inflate	17	37	37		2.1				
+system_ext	priv-app	priv-app/SystemUIClocks-Metro/SystemUIClocks-Metro.apk	com.android.systemui.clocks.metro	17	37	37		3.1				
+system_ext	priv-app	priv-app/SystemUIClocks-NumOverlap/SystemUIClocks-NumOverlap.apk	com.android.systemui.clocks.numoverlap	17	37	37		2.3				
+system_ext	priv-app	priv-app/SystemUIClocks-Weather/SystemUIClocks-Weather.apk	com.android.systemui.clocks.weather	17	37	37		2.3				
+system_ext	priv-app	priv-app/SystemUITitan/SystemUITitan.apk	com.android.systemui	17	37	37	x86_64	50.7	System UI			
+system_ext	priv-app	priv-app/WallpaperCropper/WallpaperCropper.apk	com.android.wallpapercropper	17	37	37		0.1				
+system_ext	priv-app	priv-app/WallpaperPickerGoogleRelease/WallpaperPickerGoogleRelease.apk	com.google.android.apps.wallpaper	17	200000300	37		10.1	Wallpaper & style			
+system_ext	priv-app	priv-app/YourWidgetsStub/YourWidgetsStub.apk	com.google.android.apps.yourwidget	1.0	1	36	arm64-v8a	5.5	YourWidget			
+system_ext	priv-app	priv-app/com.android.desktop.serviceability/com.android.desktop.serviceability.apk	com.android.desktop.serviceability	17	37	37		0.5	Serviceability Service			
+system_ext	priv-app	priv-app/desktop-sar-service/desktop-sar-service.apk	com.android.desktop.sar	17	37	37		0.1				
+system_ext	priv-app	priv-app/snapshotservice/snapshotservice.apk	com.google.android.snapshotservice	17	37	37		1.3				
+product	app	app/AL_Camera/AL_Camera.apk	com.google.android.desktop.camera	20260818.1.0.967000272	1	37	arm64-v8a x86_64	7.4	Camera			
+product	app	app/AdaptiveWallpaperPrebuilt/AdaptiveWallpaperPrebuilt.apk	com.google.android.desktop.adaptivewallpaper	1.0.945815413	194	37		2.8	Adaptive Wallpaper			
+product	app	app/Backpack/Backpack.apk	com.google.android.desktop.backpack.client	1.2.970276606	211	36	arm64-v8a x86_64	38.8	Viewer			
+product	app	app/CalculatorGooglePrebuilt_85011599/CalculatorGooglePrebuilt_85011599.apk	com.google.android.calculator	9.1 (886477075)	85011599	36		7.9	Calculator			
+product	app	app/Chrome/Chrome.apk	com.android.chrome	150.0.7871.181	787118169	36	x86_64	60.5	Chrome			
+product	app	app/DesktopWallpapers/DesktopWallpapers.apk	com.google.android.apps.wallpaper.desktop_default	17	1	36		0.0	Desktop Wallpaper Images			
+product	app	app/Drive/Drive.apk	com.google.android.apps.docs	2.26.307.6.x86_64.alldpi	214582276	37	x86_64	85.1	Drive			
+product	app	app/GoogleContacts/GoogleContacts.apk	com.google.android.contacts	4.79.26.911691810	3276391	37	arm64-v8a armeabi-v7a x86 x86_64	32.0	Contacts			
+product	app	app/GoogleKeepPrebuilt/GoogleKeepPrebuilt.apk	com.google.android.keep	5.26.181.01.90	220658918	36	x86_64	33.7	Keep Notes			
+product	app	app/GoogleTTS/GoogleTTS.apk	com.google.android.tts	googletts.google-speech-apk_20260511.02_p3.919856684	210645709	36	x86_64	75.7	Speech Recognition and Synthesis from Google			
+product	app	app/LocationHistoryPrebuilt/LocationHistoryPrebuilt.apk	com.google.android.gms.location.history	1.2	3	36		2.6	Google Location History			
+product	app	app/ModuleMetadata/ModuleMetadata.apk	com.android.modulemetadata	17	37	37		0.0	Module Metadata			
+product	app	app/Photos/Photos.apk	com.google.android.apps.photos	7.67.0.882706237	51413605	36	x86_64	194.8	Photos			
+product	app	app/PixelThemesStub2022_and_newer/PixelThemesStub2022_and_newer.apk	com.google.android.apps.customization.pixel	17	2	36		0.1	Googlebook Themes			
+product	app	app/Preloads_v1.0_20260327_RC00/Preloads_v1.0_20260327_RC00.apk	android.autoinstalls.config.google.desktop	1.0	1	36		2.6				
+product	app	app/SoundPickerPrebuilt_desktop_3.4/SoundPickerPrebuilt_desktop_3.4.apk	com.google.android.soundpicker	3.4 (966955356)	34000912	37		6.9	Sounds			
+product	app	app/StubHardwareDescriptorMappingTable/StubHardwareDescriptorMappingTable.apk	com.google.android.factory.mappingtable	17	37	37		0.0				
+product	app	app/TextEditor/TextEditor.apk	com.google.android.desktop.texteditor	1.0_stub	1	37	x86_64	44.8	Text			
+product	app	app/TrichromeLibrary/TrichromeLibrary.apk	com.google.android.trichromelibrary	150.0.7871.181	787118169	36	x86_64	213.8	Trichrome Library			
+product	app	app/VoiceAccessPrebuilt/VoiceAccessPrebuilt.apk	com.google.android.apps.accessibility.voiceaccess	17.0.928720002	133970	36	arm64-v8a	16.0	Voice Access			
+product	app	app/WallpaperAIPrebuilt_10000652/WallpaperAIPrebuilt_10000652.apk	com.google.android.apps.aiwallpapers	1.0.941156662	10000656	37	x86_64	21.5	AI wallpaper			
+product	app	app/WebViewGoogle/WebViewGoogle.apk	com.google.android.webview	149.0.7827.5	782700509	36	x86_64	182.9	Android System WebView			
+product	app	app/WorkspacePreloadsCalendar/WorkspacePreloadsCalendar.apk	com.google.android.calendar	2026.36.0-980779909-cros-release	2018305119	37	arm64-v8a armeabi-v7a x86 x86_64	47.2	Calendar			
+product	app	app/WorkspacePreloadsDocs/WorkspacePreloadsDocs.apk	com.google.android.apps.docs.editors.docs	1.26.241.02.00	220690741	37		2.8	Docs			
+product	app	app/WorkspacePreloadsGmail/WorkspacePreloadsGmail.apk	com.google.android.gm	2026.09.07.986350278.twa	66020121	36		2.8	Gmail			
+product	app	app/WorkspacePreloadsMeet/WorkspacePreloadsMeet.apk	com.google.android.apps.tachyon	376.0.974965375.duo.android_20260902.02_p0.t	7578326	37		3.4	Meet			
+product	app	app/WorkspacePreloadsSheets/WorkspacePreloadsSheets.apk	com.google.android.apps.docs.editors.sheets	1.26.241.01.00	220690732	37		2.8	Sheets			
+product	app	app/WorkspacePreloadsSlides/WorkspacePreloadsSlides.apk	com.google.android.apps.docs.editors.slides	1.26.241.00.00	220690975	37		2.9	Slides			
+product	app	app/YouTubeMusicPrebuiltTwa/YouTubeMusicPrebuiltTwa.apk	com.google.android.apps.youtube.music	1.1.971036814	2099000011	37		6.0	YouTube Music			
+product	app	app/YouTubeTwa/YouTubeTwa.apk	com.google.android.youtube	100.0.982605956	2099000023	37		0.6	YouTube			
+product	app	app/talkback/talkback.apk	com.google.android.marvin.talkback	17.0.5.926534758	60221408	37	x86_64	48.4	Android Accessibility Suite			
+product	overlay	overlay/AiServicesDesktopOverlay.apk	com.google.android.as.desktop.overlay	17	37	37		0.0	AiServicesDesktopOverlay	com.google.android.as	true	2
+product	overlay	overlay/AmbientCueOverlay.apk	com.android.systemui.overlay.ambientcue	17	37	37		0.0		android	false	1
+product	overlay	overlay/AvatarPickerPixelOverlay.apk	com.google.android.pixel.avatarpicker	17	37	37		1.4	AvatarPickerPixelOverlay	com.google.android.avatarpicker	true	210
+product	overlay	overlay/CompanionDeviceManager__desktop__auto_generated_characteristics_rro.apk	com.android.companiondevicemanager.auto_generated_characteristics_rro	17	37	37		0.0		com.android.companiondevicemanager	true	0
+product	overlay	overlay/DesktopServicesOverlay.apk	com.android.desktop.services.overlay	1.0	1	37		0.0		android	true	1
+product	overlay	overlay/DesktopTrafficLightFaceOverlay.apk	com.google.android.overlay.desktoptrafficlightfaceoverlay	1.0	1	37		0.3		com.android.settings	true	11
+product	overlay	overlay/FingerprintSensorDesktopOverlay.apk	com.google.android.fingerprintsensor.overlay.desktop	1.0	1	37		0.4		com.android.settings	true	10
+product	overlay	overlay/FrameworkDesktopOverlay.apk	android.overlay.desktop	17	37	37		9.4		android	true	200
+product	overlay	overlay/GmsCoreMultiDevicesInternetSharingDesktopOverlay.apk	com.google.android.gms.overlay.multidevicesinternetsharing.desktop	17	37	37		0.1		com.google.android.gms	true	100
+product	overlay	overlay/GmsCoreNearbyMigrationDesktopOverlay.apk	com.google.android.gms.overlay.nearbymigration.desktop	17	37	37		0.0		com.google.android.gms	true	100
+product	overlay	overlay/GmsCoreNearbySharingDesktopOverlay.apk	com.google.android.gms.overlay.nearbysharing.desktop	17	37	37		0.0		com.google.android.gms	true	100
+product	overlay	overlay/GmsCoreOtaDesktopOverlay.apk	com.google.android.gms.overlay.ota.desktop	17	37	37		0.0		com.google.android.gms	true	100
+product	overlay	overlay/GoogleConfigOverlay.apk	com.google.android.overlay.googleconfig	1.0	1	37		0.2		android	true	0
+product	overlay	overlay/GooglePermissionControllerOverlay.apk	com.google.android.overlay.permissioncontroller	1.0	1	37		0.0		com.google.android.permissioncontroller	true	0
+product	overlay	overlay/GoogleWebViewOverlay.apk	com.google.android.overlay.googlewebview	1.0	1	37		0.0		android	true	0
+product	overlay	overlay/HsuAsLoginConfigOverlay.apk	com.android.internal.overlay.hsum.loginconfig	1.0	1	37		0.0		android	true	2
+product	overlay	overlay/HsumDefaultConfigOverlay.apk	com.android.internal.overlay.hsum.defaultconfig	1.0	1	37		0.0		android	true	2
+product	overlay	overlay/LargeScreenConfigOverlay.apk	com.google.android.overlay.largescreenconfig	1.0	1	37		0.0		android	true	1
+product	overlay	overlay/LauncherConfigOverlay-Ruby.apk	com.google.android.factory.launcher.config_overlay.ruby	17	37	37		0.0		com.google.android.factory.launcher	true	10
+product	overlay	overlay/MediaProviderDesktopOverlay.apk	com.android.providers.media.theme.desktop	1.0	1	37		0.0		com.google.android.providers.media.module	true	0
+product	overlay	overlay/NexusLauncherOverlayDesktop.apk	com.google.android.apps.nexuslauncher.overlay.desktop	17	37	37		0.0	NexusLauncherOverlayDesktop	com.google.android.apps.nexuslauncher	true	2
+product	overlay	overlay/PearlOverlay2024.apk	com.android.systemui.overlay.pearloverlay2024	17	37	37		0.0		com.android.systemui	true	1
+product	overlay	overlay/PermissionControllerDesktopOverlay.apk	com.google.android.permissioncontroller.overlay.desktop	17	37	37		0.0		com.google.android.permissioncontroller	true	1
+product	overlay	overlay/PersonalContextConfigOverlay.apk	com.google.android.overlay.personalcontextconfig	1.0	1	37		0.0		android	true	100
+product	overlay	overlay/PixelNotesRoleOverlay.apk	com.google.android.overlay.pixelnotesrole	1.0	1	37		0.0		android	true	1
+product	overlay	overlay/PixelWorkProfileNotesRoleOverlay.apk	com.google.android.overlay.pixelworkprofilenotesrole	1.0	1	37		0.0		android	true	1
+product	overlay	overlay/ProactiveAssistOverlay2026.apk	com.google.android.settings.overlay.proactiveassistoverlay2026	1.0	1	37		0.0		com.android.settings	true	1
+product	overlay	overlay/RepairModeDesktopOverlay-Common.apk	com.google.android.desktop.repairmode.resources.overlay.common	17	37	37		0.0		com.google.android.desktop.repairmode.resources	true	10
+product	overlay	overlay/ResolverActivityDesktopOverlay.apk	com.android.internal.app.resolveractivity.overlay.desktop	17	37	37		0.0		android	true	1
+product	overlay	overlay/SettingsBiometricsFaceenrollDesktopOverlay.apk	com.google.android.settings.future.biometrics.faceenroll.overlay.desktop	17	37	37		0.0		com.google.android.settings.future.biometrics.faceenroll	true	100
+product	overlay	overlay/SettingsDesktopOverlay.apk	com.google.android.settings.overlay.desktop	17	37	37		0.3		com.android.settings	true	100
+product	overlay	overlay/SettingsDesktopRubyOverlay.apk	com.android.settings.desktop.ruby	17	37	37		0.1		com.android.settings	true	
+product	overlay	overlay/SettingsLibDesktopOverlay.apk	com.google.android.settingslib.overlay.desktop	17	37	37		0.1		com.android.settings	true	100
+product	overlay	overlay/SettingsProviderDesktopOverlay.apk	com.android.providers.settings.overlay.desktop	17	37	37		0.0		com.android.providers.settings	true	5
+product	overlay	overlay/SpoonOverlay2025.apk	com.android.systemui.overlay.spoonoverlay2025	17	37	37		0.0		android	true	1
+product	overlay	overlay/SwitchAccessDesktopOverlay.apk	com.google.android.accessibility.switchaccess.desktop.overlay	17	37	37		0.0	SwitchAccessDesktopOverlay	com.google.android.accessibility.switchaccess	true	2
+product	overlay	overlay/SystemUIDesktopOverlay.apk	com.android.systemui.overlay.desktop	17	37	37		0.0	SystemUIDesktopOverlay	com.android.systemui	true	1
+product	overlay	overlay/TeleService__desktop__auto_generated_characteristics_rro.apk	com.android.phone.auto_generated_characteristics_rro	17	37	37		0.0		com.android.phone	true	0
+product	overlay	overlay/TelephonyProviderHsum__desktop__auto_generated_characteristics_rro.apk	com.android.providers.telephony.auto_generated_characteristics_rro	17	37	37		0.4		com.android.providers.telephony	true	0
+product	overlay	overlay/TetheringOverlay.apk	com.google.android.tethering.overlay	17	37	37		0.0		com.google.android.networkstack.tethering	true	100
+product	overlay	overlay/TrafficLightFaceOverlay.apk	com.google.android.overlay.trafficlightfaceoverlay	1.0	1	37		0.3		com.android.settings	true	10
+product	overlay	overlay/VerifierResOverlay.apk	com.google.android.verifier.overlay	17	37	37		0.0		android	true	1
+product	overlay	overlay/VirtualDeviceManager__desktop__auto_generated_characteristics_rro.apk	com.android.virtualdevicemanager.auto_generated_characteristics_rro	17	37	37		0.0		com.android.virtualdevicemanager	true	0
+product	overlay	overlay/WallpaperPickerDesktopOverlay.apk	com.google.android.apps.wallpaper.overlay.desktop	17	37	37		0.0	WallpaperPickerDesktopOverlay	com.google.android.apps.wallpaper	true	1
+product	overlay	overlay/framework-res__desktop__auto_generated_characteristics_rro.apk	android.auto_generated_characteristics_rro	17	37	37		0.5		android	true	0
+product	overlay	overlay/serialservice_overlay.apk	com.android.internal.overlay.serialservice	1.0	1	37		0.0		android	true	2
+product	overlay	overlay/DisplayCutoutEmulationCorner/DisplayCutoutEmulationCornerOverlay.apk	com.android.internal.display.cutout.emulation.corner	1.0	1	37		0.0	Corner cutout	android		1
+product	overlay	overlay/DisplayCutoutEmulationDouble/DisplayCutoutEmulationDoubleOverlay.apk	com.android.internal.display.cutout.emulation.double	1.0	1	37		0.0	Double cutout	android		1
+product	overlay	overlay/DisplayCutoutEmulationHole/DisplayCutoutEmulationHoleOverlay.apk	com.android.internal.display.cutout.emulation.hole	1.0	1	37		0.0	Punch Hole cutout	android		1
+product	overlay	overlay/DisplayCutoutEmulationTall/DisplayCutoutEmulationTallOverlay.apk	com.android.internal.display.cutout.emulation.tall	1.0	1	37		0.0	Tall cutout	android		1
+product	overlay	overlay/DisplayCutoutEmulationWaterfall/DisplayCutoutEmulationWaterfallOverlay.apk	com.android.internal.display.cutout.emulation.waterfall	1.0	1	37		0.0	Waterfall cutout	android		1
+product	overlay	overlay/DocumentsUIGoogleOverlay/DocumentsUIGoogleOverlay.apk	com.google.android.documentsui.theme.desktop	1.0	1	37		0.2		com.google.android.documentsui	true	0
+product	overlay	overlay/FontNotoSerifSource/FontNotoSerifSourceOverlay.apk	com.android.theme.font.notoserifsource	1.0	1	37		0.0	Noto Serif / Source Sans Pro	android		1
+product	overlay	overlay/NavigationBarMode3Button/NavigationBarMode3ButtonOverlay.apk	com.android.internal.systemui.navbar.threebutton	1.0	1	37		0.0	3 Button Navigation Bar	android		1
+product	overlay	overlay/NavigationBarModeGestural/NavigationBarModeGesturalOverlay.apk	com.android.internal.systemui.navbar.gestural	1.0	1	37		0.0	Gestural Navigation Bar	android		1
+product	overlay	overlay/NotesRoleEnabled/NotesRoleEnabledOverlay.apk	com.android.role.notes.enabled	1.0	1	37		0.0	Notes Role enabled	android		1
+product	overlay	overlay/SoundNotificationDesktopOverlay/SoundNotificationDesktopOverlay.apk	com.google.audio.hearing.visualization.accessibility.scribe.desktop.overlay	17	37	37		0.0	SoundNotificationDesktopOverlay	com.google.audio.hearing.visualization.accessibility.scribe	true	2
+product	overlay	overlay/TerminalAppDesktopOverlay/TerminalAppDesktopOverlay.apk	com.android.virtualization.terminal.overlay.desktop	1.0	1	37		0.0		com.android.virtualization.terminal	true	0
+product	overlay	overlay/TransparentNavigationBar/TransparentNavigationBarOverlay.apk	com.android.internal.systemui.navbar.transparent	1.0	1	37		0.0	Transparent navigation bar	android		1
+product	overlay	overlay/WifiDesktopOverlay/WifiDesktopOverlayGoogle.apk	com.google.android.wifi.resources.desktop	1.0	1	37		0.0		com.google.android.wifi.resources	true	0
+product	overlay	overlay/WifiOverlayFatcat/WifiOverlayFatcatGoogle.apk	com.google.android.wifi.resources.desktop.fatcat	1.0	1	37		0.0		com.google.android.wifi.resources	true	0
+product	priv-app	priv-app/AICorePrebuilt-aicore_20260302.01_RC00/AICorePrebuilt-aicore_20260302.01_RC00.apk	com.google.android.aicore	0.stub.stub_aicore_20260302.01_RC00.877448964	395663	37		1.4	AICore			
+product	priv-app	priv-app/ALAIPrebuiltRelease/ALAIPrebuiltRelease.apk	com.google.android.desktop.alai	26.08.28.972329833.release	40	37	x86_64	43.0	Desktop System Intelligence			
+product	priv-app	priv-app/AmbientStreaming/AmbientStreaming.apk	com.google.ambient.streaming	1.1.2	1000002	36		0.0	Cross-Device Services			
+product	priv-app	priv-app/CampaignsManagerPrebuilt_917498234/CampaignsManagerPrebuilt_917498234.apk	com.google.android.desktop.growth	1.0.917498123	510	36		5.2	Googlebook Tips			
+product	priv-app	priv-app/ConfigUpdater/ConfigUpdater.apk	com.google.android.configupdater	36.0.6	42	36		3.6	ConfigUpdater			
+product	priv-app	priv-app/ContextualCursorPrebuilt/ContextualCursorPrebuilt.apk	com.google.android.desktop.gpointer.app	1.0.260824	26082402	37	x86_64	224.1	gPointer			
+product	priv-app	priv-app/DesktopContextualTools/DesktopContextualTools.apk	com.google.android.desktop.contextualtools	1.0.914657709	1	36		0.0				
+product	priv-app	priv-app/DesktopPrebuiltDeskClockGoogle_76042530/DesktopPrebuiltDeskClockGoogle_76042530.apk	com.google.android.deskclock	8.5 (875605641)	76042530	36		17.4	Clock			
+product	priv-app	priv-app/DesktopRecorderPrebuilt_953092853/DesktopRecorderPrebuilt_953092853.apk	com.google.android.apps.recorder	4.2.20260521.953092853	42405823	36	x86_64	92.5	Recorder			
+product	priv-app	priv-app/DesktopTips/DesktopTips.apk	com.google.android.desktop.tips	1.1.972332556	98	37	arm64-v8a x86_64	17.3	Tips			
+product	priv-app	priv-app/DeviceIntelligenceNetworkPrebuiltAstrea/DeviceIntelligenceNetworkPrebuiltAstrea.apk	com.google.android.as.oss	1.0.release.915381564	136101	36	x86_64	41.4	Private Compute Services			
+product	priv-app	priv-app/DevicePersonalizationAiAiPrebuiltPixel2025/DevicePersonalizationAiAiPrebuiltPixel2025.apk	com.google.android.as	C.6.playstore.pixel10.969650051	16935338	37	x86_64	115.8	Android System Intelligence			
+product	priv-app	priv-app/DiagnosticsPrebuilt/DiagnosticsPrebuilt.apk	com.google.android.factory.diagnostics	1.0.977743710	2	37	arm64-v8a x86_64	12.0	Diagnostics			
+product	priv-app	priv-app/FeedbackStable/FeedbackStable.apk	com.google.android.desktop.feedback	2026.08.21.970756714	1659	37	arm64-v8a x86_64	14.7	Feedback			
+product	priv-app	priv-app/GeminiShell_305/GeminiShell_305.apk	com.google.android.apps.bard	1.0.928324527	305	37	arm64-v8a armeabi-v7a x86 x86_64	5.7	Gemini			
+product	priv-app	priv-app/GoogleRestorePrebuilt-v1068888/GoogleRestorePrebuilt-v1068888.apk	com.google.android.apps.restore	1.0.927225098	1068888	36		28.4	Android Switch			
+product	priv-app	priv-app/HardwareDescriptorManagerPrebuilt/HardwareDescriptorManagerPrebuilt.apk	com.google.android.factory.hwdescriptor	1.0.940884927	2	37	arm64-v8a x86_64	8.1	Hardware Descriptor Manager			
+product	priv-app	priv-app/IOSHubPrebuilt/IOSHubPrebuilt.apk	com.google.android.desktop.ioshub	DEV	1	37	arm64-v8a x86_64	70.6	Link to iOS			
+product	priv-app	priv-app/KidsSupervisionStub/KidsSupervisionStub.apk	com.google.android.gms.supervision	1.0.929368679.phone	118104	36	x86_64	28.3	System parental controls			
+product	priv-app	priv-app/LatinIMEGoogleDesktopPrebuilt/LatinIMEGoogleDesktopPrebuilt.apk	com.google.android.inputmethod.latin	18.0.3.954559732-preload-x86_64	175940516	37	x86_64	87.1	Gboard			
+product	priv-app	priv-app/LcfcRmaStub/LcfcRmaStub.apk	com.lenovo.lcfcrma	6.0	6	36		2.0	LCFCRMA			
+product	priv-app	priv-app/LenovoChromebookDiagsStub/LenovoChromebookDiagsStub.apk	com.lenovo.chromebookdiags	0.0.8	8	36		1.9	$APP_NAME			
+product	priv-app	priv-app/LenovoVantageStub/LenovoVantageStub.apk	com.lenovo.vantage	1.0	2	36		2.0	Lenovo Vantage			
+product	priv-app	priv-app/OdadPrebuilt/OdadPrebuilt.apk	com.google.android.odad	C.6.odad-stub.948481320	116207	37		1.5	Google Play Protect Service			
+product	priv-app	priv-app/PartnerSetupPrebuilt/PartnerSetupPrebuilt.apk	com.google.android.partnersetup	100.740061114	2869	36		1.5	Google Partner Setup			
+product	priv-app	priv-app/Phonesky/Phonesky.apk	com.android.vending	52.4.41-31 [0] [PR] 953053140	85244130	37	x86_64	105.7	Google Play Store			
+product	priv-app	priv-app/PixelAIPrebuilt/PixelAIPrebuilt.apk	com.google.android.apps.pixel.agent	1.26.183.00.desktop.stub	3	36	x86_64	5.6	Pixel Screenshots			
+product	priv-app	priv-app/PixelSensePrebuilt/PixelSensePrebuilt.apk	com.google.android.apps.pixel.psi	18.20260812.00.desktop.stub.26q3	5	37	x86_64	5.5	Device Intelligence			
+product	priv-app	priv-app/PostManufacturingPrebuilt/PostManufacturingPrebuilt.apk	com.google.android.factory.postmanufacturing	1.0.957110119	2	37	arm64-v8a x86_64	6.6	Post Manufacturing App			
+product	priv-app	priv-app/PrebuiltBugle/PrebuiltBugle.apk	com.google.android.apps.messaging	messages.android_20260331_00_RC04.phone_dynamic	304819063	36	x86_64	168.6	Messages			
+product	priv-app	priv-app/PrebuiltGmsCore/app_chimera/m/PrebuiltGmsCoreVic_AdsDynamite/PrebuiltGmsCoreVic_AdsDynamite.apk	com.google.android.gms.policy_ads_fdr_dynamite	260480602017.868869642.868869642	260480608	36		5.4				
+product	priv-app	priv-app/PrebuiltGmsCore/app_chimera/m/PrebuiltGmsCoreVic_CronetDynamite/PrebuiltGmsCoreVic_CronetDynamite.apk	com.google.android.gms.dynamite_cronetdynamite	26.22.43 (260800-0)	262243038	37	x86 x86_64	14.6				
+product	priv-app	priv-app/PrebuiltGmsCore/app_chimera/m/PrebuiltGmsCoreVic_DynamiteLoader/PrebuiltGmsCoreVic_DynamiteLoader.apk	com.google.android.gms.dynamite_dynamiteloader	26.22.43 (260800-0)	262243038	37		0.2				
+product	priv-app	priv-app/PrebuiltGmsCore/app_chimera/m/PrebuiltGmsCoreVic_DynamiteModulesA/PrebuiltGmsCoreVic_DynamiteModulesA.apk	com.google.android.gms.dynamite_dynamitemodulesa	26.22.43 (260800-0)	262243038	37		1.1				
+product	priv-app	priv-app/PrebuiltGmsCore/app_chimera/m/PrebuiltGmsCoreVic_DynamiteModulesC/PrebuiltGmsCoreVic_DynamiteModulesC.apk	com.google.android.gms.dynamite_dynamitemodulesc	26.22.43 (260800-0)	262243038	37		2.5				
+product	priv-app	priv-app/PrebuiltGmsCore/app_chimera/m/PrebuiltGmsCoreVic_GoogleCertificates/PrebuiltGmsCoreVic_GoogleCertificates.apk	com.google.android.gms.dynamite_googlecertificates	26.22.43 (260800-0)	262243038	37		0.9				
+product	priv-app	priv-app/PrebuiltGmsCore/app_chimera/m/PrebuiltGmsCoreVic_MapsDynamite/PrebuiltGmsCoreVic_MapsDynamite.apk	com.google.android.gms.dynamite_mapsdynamite	26.22.43 (260800-0)	262243038	37		2.6				
+product	priv-app	priv-app/PrebuiltGmsCore/app_chimera/m/PrebuiltGmsCoreVic_MeasurementDynamite/PrebuiltGmsCoreVic_MeasurementDynamite.apk	com.google.android.gms.dynamite_measurementdynamite	26.22.43 (260800-0)	262243038	37		1.1				
+product	priv-app	priv-app/PrebuiltGmsCore/m/independent/AndroidPlatformServices/AndroidPlatformServices.apk	com.google.android.gms.policy_sidecar_aps	2052073.215491873.215491873	2052073	14		13.2				
+product	priv-app	priv-app/RepairLauncherPrebuilt/RepairLauncherPrebuilt.apk	com.google.android.factory.launcher	1.0.952088280	2	37	arm64-v8a x86_64	6.4	Repair Launcher			
+product	priv-app	priv-app/RepairPrebuilt/RepairPrebuilt.apk	com.google.android.factory.repair	1.0.944233535	2	37	arm64-v8a x86_64	7.4	Aluminium Repair Tool			
+product	priv-app	priv-app/RetailCorePrebuilt/RetailCorePrebuilt.apk	com.google.android.retaildemo	5.0.846145375	171	36		2.6				
+product	priv-app	priv-app/Satin/Satin.apk	com.google.android.googlequicksearchbox	17.46.15.sa.x86_64	301786729	37	x86_64	367.6	Google			
+product	priv-app	priv-app/ScribePrebuilt_v8.7.880674799/ScribePrebuilt_v8.7.880674799.apk	com.google.audio.hearing.visualization.accessibility.scribe	8.7.880674799	186094	36	x86_64	33.1	Live Transcribe & Sound Notifications			
+product	priv-app	priv-app/SearchSelectorPrebuilt/SearchSelectorPrebuilt.apk	com.google.android.apps.setupwizard.searchselector	1.36.932215516	6653	36		6.4	Search Engine Selector			
+product	priv-app	priv-app/SettingsIntelligenceGooglePrebuilt/SettingsIntelligenceGooglePrebuilt.apk	com.google.android.settings.intelligence	1.1.0.937862210.sr	1000299141	36	arm64-v8a	20.1	Settings Services			
+product	priv-app	priv-app/SetupWizardPrebuilt_cl3b/SetupWizardPrebuilt_cl3b.apk	com.google.android.setupwizard	236.965870331	44335	36	x86_64	18.7	Android Setup			
+product	priv-app	priv-app/SmartDisplayPrebuilt/SmartDisplayPrebuilt.apk	com.google.assistant.hubui	2026.05.30.923792083.0-release	442129	37	x86_64	38.0	Dreams			
+product	priv-app	priv-app/TaskManagerPrebuilt/TaskManagerPrebuilt.apk	com.google.android.factory.taskmanager	1.0.943140883	2	37	arm64-v8a x86_64	5.7	Task Manager			
+product	priv-app	priv-app/VerifierPrebuiltClassic/VerifierPrebuiltClassic.apk	com.google.android.verifier	1.0.866414232	48099	36		3.0	Android Developer Verifier			
+product	priv-app	priv-app/WallpaperEffect/WallpaperEffect.apk	com.google.android.wallpaper.effects	17	37	37	x86_64	7.0	Cinematic Wallpaper			
+product	priv-app	priv-app/WellbeingPrebuilt/WellbeingPrebuilt.apk	com.google.android.apps.wellbeing	1.43.933566460 (852237)	852237	36	arm64-v8a armeabi-v7a x86 x86_64	24.9	Digital Wellbeing			
+product	priv-app	priv-app/ZeroG/ZeroG.apk	com.google.android.apps.antigravity	1.0	1	37		2.6				
+product	priv-app	priv-app/glowbar_disco/glowbar_disco.apk	com.google.desktop.glowbar	1.0	1	36		0.1	Glowbar Disco			
+vendor	overlay	overlay/ConnectivityResourcesOverlayDesktop.apk	com.google.android.connectivity.resources.desktop.overlay	17	37	37		0.0		com.google.android.connectivity.resources	true	1
+vendor	overlay	overlay/SettingsGoogleFutureFaceEnroll__ruby__auto_generated_rro_vendor.apk	com.google.android.settings.future.biometrics.faceenroll.auto_generated_rro_vendor__	1.0	1	37		0.0		com.google.android.settings.future.biometrics.faceenroll	true	0
+vendor	overlay	overlay/framework-res__ruby__auto_generated_rro_vendor.apk	android.auto_generated_rro_vendor__	1.0	1	37		0.0		android	true	0
+vendor	priv-app	priv-app/vendor.google.desktop.serviceability/vendor.google.desktop.serviceability.apk	vendor.google.desktop.serviceability	17	37	37		0.2	Serviceability Vendor Service			

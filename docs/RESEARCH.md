@@ -29,6 +29,23 @@ Labels: **C** = confirmed (a primary source, or we checked it ourselves), **R** 
 - **Vendor stack is Intel-only:** `xe.ko`, SOF Intel, `iwlwifi`/`iwlmld`, IPU7 camera (`camera.libipu7_hal_fatcat.so`), OpenVINO and the Intel NPU (`libze_intel_npu.so`), and `vulkan.intel.so`.
 - **Kernel command line** includes `kvm-intel.pkvm=1 fred=on ia32_emulation=false vsyscall=none binder.impl=rust`.
 
+### UI and Google apps in the ruby image (ANAL-201, 2026-10-17)
+
+Details are in `docs/googlebook-ui.md` and `docs/gapps.md`; evidence in `evidence/2026-10-17-gbos-ui/`.
+
+- **UI apps (C).** Googlebook replaces the platform UI with Google builds:
+  - the Pixel Launcher (`NexusLauncherRelease`);
+  - Google's SystemUI (`SystemUITitan`) and Settings (`SettingsGoogle`), both signed with the platform key;
+  - Wallpaper & style;
+  - seven SystemUI clock plugins;
+  - 61 product overlays.
+
+  The Google APIs Desktop SDK image (37.1, `CLE3.260929.004`) has the same GMS but AOSP's Launcher3, SystemUI and Settings.
+- **GMS packaging (C).** GmsCore 26.22.43 (x86_64) ships inside the APEX `com.google.android.gmssystem` on `/product`, next to GSF, Play Store 52.4.41 and the setup wizard.
+- **Fonts (C).** Headlines use `google-sans` and body text `google-sans-text`. The 30 Material 3 `variable-*` families map to Google Sans Flex. AOSP 17's SystemUI, Launcher3 and SettingsLib ask for those family names but AOSP doesn't define them. **Google Sans (v14, added 2026-09-11) and Google Sans Flex (v5, 2026-10-09) are SIL OFL 1.1 in `github.com/google/fonts`.** The clock fonts are proprietary.
+- **Flags (C).** 728 flags are on in Googlebook and off in our G14 build. 510 of them are not declared in AOSP 17, so Googlebook runs code newer than `android17-release`.
+- **Blur (C).** Googlebook sets `ro.surface_flinger.supports_background_blur=1`.
+
 ## Public source
 
 - **AOSP releases:** source drops twice a year (Q2 and Q4). Use `android-latest-release`. The latest tag is `android-17.0.0_r1` (2026-06), and aosp-main has been frozen since 2025-03-27. (C, source.android.com)
@@ -58,6 +75,17 @@ Labels: **C** = confirmed (a primary source, or we checked it ourselves), **R** 
 | Intel Celadon | Intel AOSP reference | Apache-2.0 | Discontinued 2026-01-27 | Intel only | HWC and device-tree patterns |
 | Android-x86, PrimeOS, Phoenix OS | Old AOSP-x86 | mixed | 2020–2022 / dead | Old | Historical only |
 | DangerousAndroid/AluminiumOS | Leaked ARM64 GSI | — | 2026-07-01 | — | **Avoid** (leak) |
+
+## Google apps on custom x86_64 builds (ANAL-201, 2026-10-17)
+
+Details and sources are in `docs/gapps.md`.
+
+| Option | Android 17 x86_64 | License | Notes |
+|---|---|---|---|
+| microG GmsCore v0.3.17 (2026-09-29) | Yes | Apache-2.0 | Needs signature spoofing; LineageOS `198fa72864` is on `lineage-24.0` (C) |
+| LiteGapps | `x86_64/37` (2026-09-30) | Proprietary payload | Module or recovery install; the APK source is not stated (C) |
+| MindTheGapps | arm64 only | Proprietary payload | Dropped x86 after Android 13 (C) |
+| GSI+GMS, SDK desktop images | — | Testing and development only, no redistribution | Not a source for OpenBook (C) |
 
 ## ARM-on-x86 native bridges
 
