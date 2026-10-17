@@ -1,0 +1,13 @@
+frecpe_2d    15400 cases      0 mismatches
+frecpe_4s    15400 cases      0 mismatches
+frecpe_d     15400 cases      0 mismatches
+frecpe_h     17600 cases      0 mismatches
+frecpe_s     15400 cases      0 mismatches
+frsqrte_2d   15400 cases      0 mismatches
+frsqrte_4s   15400 cases      0 mismatches
+frsqrte_d    15400 cases      0 mismatches
+frsqrte_h    17600 cases      0 mismatches
+frsqrte_s    15400 cases      0 mismatches
+urecpe_4s    15400 cases      0 mismatches
+ursqrte_4s   15400 cases      0 mismatches
+total 189200 cases, 0 mismatches

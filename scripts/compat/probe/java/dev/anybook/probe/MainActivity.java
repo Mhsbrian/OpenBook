@@ -52,7 +52,7 @@ public class MainActivity extends Activity {
     }
 
     private void run(String mode, String arg) {
-        emit("PROBE_START pkg=" + getPackageName() + " mode=" + mode + " abis=" + String.join(",", Build.SUPPORTED_ABIS)
+        emit("PROBE_START pkg=" + getPackageName() + " mode=" + mode + " abis=" + String.join(",", Build.SUPPORTED_ABIS) + " cpu_abi=" + Build.CPU_ABI
                 + " os.arch=" + System.getProperty("os.arch") + " sdk=" + Build.VERSION.SDK_INT);
         try {
             System.loadLibrary("probe");

@@ -1,0 +1,222 @@
+From a00e98c3ce75b0a1a8f471ad89c727784060d760 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Sat, 17 Oct 2026 12:00:00 +0000
+Subject: [PATCH] DEBUG: berberis.lite_bail bisection knob (not shipped)
+
+---
+ kernel_api/arm64/syscall_emulation.cc         |  22 +++
+ .../arm64_to_x86_64/lite_translate_region.cc  | 141 ++++++++++++++++++
+ 2 files changed, 163 insertions(+)
+
+diff --git a/kernel_api/arm64/syscall_emulation.cc b/kernel_api/arm64/syscall_emulation.cc
+index c6cc7b23..1ed03710 100644
+--- a/kernel_api/arm64/syscall_emulation.cc
++++ b/kernel_api/arm64/syscall_emulation.cc
+@@ -171,7 +171,29 @@ long RunGuestSyscall___NR_newfstatat(long arg_1, long arg_2, long arg_3, long ar
+ 
+ }  // namespace
+ 
++static void RunGuestSyscallInner(ThreadState* state);
++
++// DEBUG (OpenBook): with berberis.tracing on, one line per guest syscall: number, guest pc, arguments, result,
++// and the path for the path-taking calls, to diff runs under different translation modes.
+ void RunGuestSyscall(ThreadState* state) {
++  if (!Tracing::IsOn()) {
++    RunGuestSyscallInner(state);
++    return;
++  }
++  const long nr = state->cpu.x[8];
++  const uint64_t a0 = state->cpu.x[0], a1 = state->cpu.x[1], a2 = state->cpu.x[2], a3 = state->cpu.x[3];
++  const uint64_t pc = state->cpu.insn_addr;
++  const char* path = nullptr;
++  if ((nr == 56 || nr == 48 || nr == 79 || nr == 291 || nr == 78 || nr == 35 || nr == 34) && a1) {
++    path = ToHostAddr<const char>(a1);  // openat, faccessat, newfstatat, statx, readlinkat, unlinkat, mkdirat
++  }
++  RunGuestSyscallInner(state);
++  Tracing::TraceF("SYS %ld pc=%lx (%lx,%lx,%lx,%lx) = %lx%s%s", nr, (unsigned long)pc, (unsigned long)a0,
++                  (unsigned long)a1, (unsigned long)a2, (unsigned long)a3, (unsigned long)state->cpu.x[0],
++                  path ? " " : "", path ? path : "");
++}
++
++static void RunGuestSyscallInner(ThreadState* state) {
+   // ATTENTION: run guest signal handlers instantly!
+   // If signal arrives while in a syscall, syscall should immediately return with EINTR.
+   // In this case pending signals are OK, as guest handlers will run on return from syscall.
+diff --git a/lite_translator/arm64_to_x86_64/lite_translate_region.cc b/lite_translator/arm64_to_x86_64/lite_translate_region.cc
+index 8f2cc804..8a039410 100644
+--- a/lite_translator/arm64_to_x86_64/lite_translate_region.cc
++++ b/lite_translator/arm64_to_x86_64/lite_translate_region.cc
+@@ -15,8 +15,18 @@
+  */
+ #include "berberis/lite_translator/lite_translate_region.h"
+ 
++#include <algorithm>
++#include <cinttypes>
+ #include <cstdint>
++#include <cstdio>
++#include <cstdlib>
++#include <cstring>
++#include <mutex>
++#include <string>
+ #include <tuple>
++#include <vector>
++
++#include "berberis/base/config_globals.h"
+ 
+ #include "berberis/assembler/machine_code.h"
+ #include "berberis/base/checks.h"
+@@ -49,6 +59,128 @@ void GenIncrementProfileCounter(x86_64::Assembler* as, const LiteTranslateParams
+   as->Jcc(x86_64::Assembler::Condition::kGreater, params.counter_threshold_callback);
+ }
+ 
++// DEBUG (OpenBook bisection knob): BERBERIS_LITE_BAIL / berberis.lite_bail = comma-separated rules; the lite
++// tier refuses (and so leaves to the interpreter) any instruction matching one:
++//   MASK/VALUE              (insn & MASK) == VALUE, hex
++//   so:NAME:LO-HI           the instruction's file offset in a mapping whose path contains NAME is in [LO, HI)
++//   so:NAME                 anywhere in such a mapping
++//   noregmap | nodispatch | maxinsns:N   region-level switches: no guest register mapping across instructions,
++//                           no direct dispatch between regions, at most N instructions per region
++//   !so:NAME:LO-HI          never bail there (takes precedence): translate only a window of otherwise bailed code
++struct BailRule {
++  uint32_t mask = 0, value = 0;
++  std::string so;
++  uint64_t lo = 0, hi = 0;
++  bool except = false;
++};
++struct RegionSwitches {
++  bool no_reg_map = false, no_dispatch = false;
++  uint32_t max_insns = 0;
++};
++RegionSwitches& Switches() {
++  static RegionSwitches sw;
++  return sw;
++}
++const std::vector<BailRule>& BailRules() {
++  static const std::vector<BailRule> rules = [] {
++    std::vector<BailRule> r;
++    ConfigStr var("BERBERIS_LITE_BAIL", "berberis.lite_bail");
++    if (!var.get() || !*var.get()) return r;
++    std::string s = var.get();
++    size_t pos = 0;
++    while (pos <= s.size()) {
++      size_t comma = s.find(',', pos);
++      std::string tok = s.substr(pos, comma == std::string::npos ? std::string::npos : comma - pos);
++      pos = comma == std::string::npos ? s.size() + 1 : comma + 1;
++      BailRule b;
++      if (!tok.empty() && tok[0] == '!') {
++        b.except = true;
++        tok = tok.substr(1);
++      }
++      if (tok == "noregmap") { Switches().no_reg_map = true; continue; }
++      if (tok == "nodispatch") { Switches().no_dispatch = true; continue; }
++      if (tok.rfind("maxinsns:", 0) == 0) { Switches().max_insns = atoi(tok.c_str() + 9); continue; }
++      if (tok.rfind("so:", 0) == 0) {
++        size_t c2 = tok.find(':', 3);
++        size_t dash = c2 == std::string::npos ? std::string::npos : tok.find('-', c2);
++        b.so = tok.substr(3, c2 == std::string::npos ? std::string::npos : c2 - 3);
++        b.lo = dash == std::string::npos ? 0 : strtoull(tok.c_str() + c2 + 1, nullptr, 16);
++        b.hi = dash == std::string::npos ? ~uint64_t{0} : strtoull(tok.c_str() + dash + 1, nullptr, 16);
++      } else {
++        size_t slash = tok.find('/');
++        if (slash == std::string::npos) continue;
++        b.mask = static_cast<uint32_t>(strtoul(tok.c_str(), nullptr, 16));
++        b.value = static_cast<uint32_t>(strtoul(tok.c_str() + slash + 1, nullptr, 16));
++      }
++      r.push_back(b);
++    }
++    TRACE_AND_ALOGD("berberis: lite_bail: %zu rules from '%s'", r.size(), s.c_str());
++    return r;
++  }();
++  return rules;
++}
++struct MapEntry {
++  uint64_t start, end, off;
++  std::string name;
++};
++// /proc/self/maps, re-read only when pc is in no cached mapping.
++bool FindMapping(GuestAddr pc, MapEntry* out) {
++  static std::mutex mu;
++  static std::vector<MapEntry> maps;
++  std::lock_guard<std::mutex> lock(mu);
++  for (int pass = 0; pass < 2; pass++) {
++    auto it = std::upper_bound(maps.begin(), maps.end(), pc,
++                               [](GuestAddr a, const MapEntry& m) { return a < m.start; });
++    // A hit in a non-file mapping may be stale: the guest linker reserves a library's range anonymously and
++    // maps the segments over it later, so re-read once before believing it.
++    if (it != maps.begin() && pc < (it - 1)->end && (pass == 1 || (it - 1)->name.rfind('/', 0) == 0)) {
++      *out = *(it - 1);
++      return true;
++    }
++    if (pass == 1) break;
++    maps.clear();
++    FILE* f = fopen("/proc/self/maps", "re");
++    if (!f) return false;
++    char line[1024];
++    while (fgets(line, sizeof(line), f)) {
++      MapEntry m;
++      char perms[8];
++      int name_pos = 0;
++      if (sscanf(line, "%" SCNx64 "-%" SCNx64 " %7s %" SCNx64 " %*s %*s %n", &m.start, &m.end, perms, &m.off,
++                 &name_pos) < 4) {
++        continue;
++      }
++      m.name = name_pos ? line + name_pos : "";
++      while (!m.name.empty() && (m.name.back() == '\n' || m.name.back() == ' ')) m.name.pop_back();
++      maps.push_back(m);
++    }
++    fclose(f);
++    std::sort(maps.begin(), maps.end(), [](const MapEntry& a, const MapEntry& b) { return a.start < b.start; });
++  }
++  return false;
++}
++bool InSoRange(GuestAddr pc, const BailRule& b) {
++  MapEntry m;
++  if (!FindMapping(pc, &m)) return false;
++  if (m.name.find(b.so) == std::string::npos) {
++    return false;
++  }
++  uint64_t foff = pc - m.start + m.off;
++  return foff >= b.lo && foff < b.hi;
++}
++bool DebugBail(GuestAddr pc) {
++  const auto& rules = BailRules();
++  if (rules.empty()) return false;
++  uint32_t insn = *ToHostAddr<const uint32_t>(pc);
++  for (const auto& b : rules) {
++    if (b.except && InSoRange(pc, b)) return false;
++  }
++  for (const auto& b : rules) {
++    if (!b.except && (b.so.empty() ? ((insn & b.mask) == b.value) : InSoRange(pc, b))) return true;
++  }
++  return false;
++}
++
+ struct PassResult {
+   bool success;
+   GuestAddr stop_pc;
+@@ -81,6 +213,9 @@ PassResult TranslatePass(GuestAddr start_pc,
+     // and translation continues to the region's natural end. Ending the region
+     // here instead would split hot straight-line code (function prologues are
+     // the worst case) into fragments too small for the heavy tier to gear up.
++    if (DebugBail(translator.GetInsnAddr())) {
++      return {false, translator.GetInsnAddr(), false, {}};
++    }
+     uint8_t insn_size = decoder.Decode(ToHostAddr<const uint16_t>(translator.GetInsnAddr()));
+     if (!translator.success()) {
+       // JIT break profiling
+@@ -119,6 +254,12 @@ std::tuple<bool, GuestAddr> TryLiteTranslateRegion(GuestAddr start_pc,
+                                                    MachineCode* machine_code,
+                                                    LiteTranslateParams params) {
+   CHECK_LT(start_pc, params.end_pc);
++  BailRules();  // parses the region switches too
++  if (Switches().no_reg_map) params.enable_reg_mapping = false;
++  if (Switches().no_dispatch) params.allow_dispatch = false;
++  if (Switches().max_insns && params.end_pc > start_pc + 4 * Switches().max_insns) {
++    params.end_pc = start_pc + 4 * Switches().max_insns;
++  }
+   if (params.allow_in_region_loops && !params.enable_self_profiling) {
+     // MachineCode cannot be reset, so the probing passes write scratch code.
+     // Pass 1 learns whether the region branches back to its start and the
+-- 
+2.56.0
+

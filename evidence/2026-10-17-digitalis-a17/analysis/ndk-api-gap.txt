@@ -1,0 +1,19 @@
+# Android 17 NDK surface for arm64 apps on our build (ANAL-200): dynamic exports (GLOBAL, defined) of each host library
+# (/system/lib64) against the Digitalis arm64 guest library (/system/lib64/arm64), both from Android/generic_system/generic:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+# ANAL-181 found, with Digitalis's Android 16 guest libraries on the Android 17 image: libandroid 43, libbinder_ndk 15, libmediandk 10, libaaudio 7, libEGL 7 missing
+library            host  guest  missing
+libandroid          473    473        0  
+libbinder_ndk       208    214        0  
+libmediandk         379    378        1  __cfi_check
+libaaudio            89     88        1  __cfi_check
+libEGL              124    117        7  _ZN7android11egl_cache_t6sCacheE _ZN7android11egl_cache_tC1Ev _ZN7android11egl_cache_tD1Ev _ZN7android13egl_display_t10displayMapE _ZN7android13egl_di (internal C++ symbols, not NDK API; __cfi_check is the CFI shadow check)
+libGLESv2           846    846        0  
+libvulkan           255    267        0  
+libnativewindow      73     73        0  
+liblog               64     64        0  
+libjnigraphics       39     39        0  
+libcamera2ndk        78     77        1  __cfi_check
+libOpenSLES          56     56        0  
+libamidi             14     14        0  
+
+android_getnetworkblockedreason in guest libandroid: 1

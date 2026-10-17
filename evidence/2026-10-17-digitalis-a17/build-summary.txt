@@ -1,0 +1,35 @@
+# ANAL-200 product builds (scripts/aosp-build.sh in the anybook-aosp container, -j28). Patch state, then the result line of each build.
+
+== build-20261017T053938Z.log: anybook_cf_x86_64_pc-cp2a-userdebug goals -k0 droid berberis_arm64_host_tests -j28 on 32 CPUs
+### frameworks/libs/binary_translation: pin 1290e88c6030 + import b6b7fc30f5e1 -> b9d25f5ea260
+### frameworks/libs/binary_translation: base b9d25f5ea260 + 4 patches -> HEAD 483768d8f4a5
+container cgroup memory.peak: 57674084352 bytes
+container cgroup memory.swap.peak: 16068792320 bytes
+#### build completed successfully (11:35 (mm:ss))
+
+== build-20261017T081825Z.log: anybook_cf_x86_64_pc-cp2a-userdebug goals droid -j28 on 32 CPUs
+### art: patches already applied (b753cf97923c)
+### art: base b753cf97923c + 1 patches -> HEAD c235db82327e
+### frameworks/libs/binary_translation: pin 1290e88c6030 + import b6b7fc30f5e1 -> b9d25f5ea260
+### frameworks/libs/binary_translation: base b9d25f5ea260 + 4 patches -> HEAD d412a8451e1f
+container cgroup memory.peak: 51913998336 bytes
+container cgroup memory.swap.peak: 333381632 bytes
+#### build completed successfully (02:54 (mm:ss))
+
+== build-20261017T082232Z.log: anybook_g14_x86_64-cp2a-userdebug goals droid -j28 on 32 CPUs
+### art: patches already applied (b753cf97923c)
+### art: base b753cf97923c + 1 patches -> HEAD c235db82327e
+### frameworks/libs/binary_translation: pin 1290e88c6030 + import b6b7fc30f5e1 -> b9d25f5ea260
+### frameworks/libs/binary_translation: base b9d25f5ea260 + 4 patches -> HEAD d412a8451e1f
+container cgroup memory.peak: 52974014464 bytes
+container cgroup memory.swap.peak: 11255332864 bytes
+#### build completed successfully (29:31 (mm:ss))
+
+== build-20261017T090613Z.log: anybook_cf_x86_64_pc-cp2a-userdebug goals berberis_arm64_host_tests -j28 on 32 CPUs
+### art: patches already applied (b753cf97923c)
+### art: base b753cf97923c + 1 patches -> HEAD c235db82327e
+### frameworks/libs/binary_translation: pin 1290e88c6030 + import b6b7fc30f5e1 -> b9d25f5ea260
+### frameworks/libs/binary_translation: base b9d25f5ea260 + 4 patches -> HEAD d412a8451e1f
+container cgroup memory.peak: 29347028992 bytes
+container cgroup memory.swap.peak: 12288 bytes
+#### build completed successfully (33 seconds)

@@ -1,0 +1,1647 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Sat, 17 Oct 2026 12:00:00 +0000
+Subject: [PATCH] OPENBOOK: arm64: bit-exact FRECPE and FRSQRTE
+
+All three tiers computed the full-precision 1/x and 1/sqrt(x) instead of the
+Arm estimates: FRECPE(1.0) returned 1.0 where every Arm CPU returns 0x3f7f8000.
+Code seeds Newton-Raphson steps (FRECPS/FRSQRTS) with these and expects the
+same bits as on hardware; the special cases differed too (FRSQRTE(+0) is +inf
+with DZC, not NaN; NaN payloads propagate; FPCR.FZ/DN/RMode and FPSR were
+ignored).
+
+guest_fp_estimate_arm64.h implements FPRecipEstimate, FPRSqrtEstimate,
+RecipEstimate and RecipSqrtEstimate from the Arm ARM for half, single and double
+precision, with FPCR.FZ/FZ16/DN/RMode and the FPSR exceptions. It matches QEMU's
+implementation on 189,200 cases (OpenBook scripts/compat/digitalis/fp-estimate).
+
+- Interpreter: scalar and vector (FP16 included) forms use it.
+- Lite tier: EmitFpEstimate does the normal case inline per lane (table lookup
+  plus result exponent, no FPCR/FPSR involved) and calls the shared code out of
+  line for any other lane, saving the caller-saved host registers around it.
+- Heavy tier: regions with vector FRECPE/FRSQRTE stay lite (it had no scalar
+  forms).
+
+The host tests that asserted the exact reciprocals now check the Arm values:
+known values per class, and a sweep of every form, input class and FPCR mode
+through the interpreter and the lite tier, with FPSR.
+---
+ .../guest_state/guest_fp_estimate_arm64.h     | 264 +++++++++
+ heavy_optimizer/arm64/arm64_tier_coverage.txt |   4 +-
+ heavy_optimizer/arm64/frontend.cc             |  87 +--
+ heavy_optimizer/arm64/frontend_tests.cc       |  65 +--
+ interpreter/arm64/interpreter.h               |  74 +--
+ .../lite_translate_region_exec_tests.cc       | 548 ++++++------------
+ .../arm64_to_x86_64/lite_translator.cc        | 129 +++++
+ .../arm64_to_x86_64/lite_translator.h         |   4 +
+ ...te_translator_simd_scalar_two_reg_misc.inc | 131 +----
+ .../lite_translator_simd_two_reg_misc.inc     | 104 +---
+ 10 files changed, 615 insertions(+), 795 deletions(-)
+ create mode 100644 guest_state/arm64/include/berberis/guest_state/guest_fp_estimate_arm64.h
+
+diff --git a/guest_state/arm64/include/berberis/guest_state/guest_fp_estimate_arm64.h b/guest_state/arm64/include/berberis/guest_state/guest_fp_estimate_arm64.h
+new file mode 100644
+index 00000000..f2d727a9
+--- /dev/null
++++ b/guest_state/arm64/include/berberis/guest_state/guest_fp_estimate_arm64.h
+@@ -0,0 +1,264 @@
++/*
++ * Copyright (C) 2026 The OpenBook Authors
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef BERBERIS_GUEST_STATE_GUEST_FP_ESTIMATE_ARM64_H_
++#define BERBERIS_GUEST_STATE_GUEST_FP_ESTIMATE_ARM64_H_
++
++#include <array>
++#include <cstdint>
++
++namespace berberis::arm64 {
++
++// FRECPE / FRSQRTE / URECPE / URSQRTE, bit-exact: the Arm ARM pseudocode FPRecipEstimate(), FPRSqrtEstimate(),
++// RecipEstimate() and RecipSqrtEstimate() for half, single and double precision, without FEAT_RPRES (the
++// increased-precision estimates, which only apply with FPCR.AH=1) and without FEAT_AFP. Software uses these
++// estimates as Newton-Raphson seeds and expects the same bits on every Arm CPU; an exact 1/x or 1/sqrt(x) gives
++// different results after the refinement steps.
++
++// FPSR cumulative exception bits and the FPCR bits these functions read.
++inline constexpr uint32_t kFpsrIoc = 1u << 0;
++inline constexpr uint32_t kFpsrDzc = 1u << 1;
++inline constexpr uint32_t kFpsrOfc = 1u << 2;
++inline constexpr uint32_t kFpsrUfc = 1u << 3;
++inline constexpr uint32_t kFpsrIxc = 1u << 4;
++inline constexpr uint32_t kFpsrIdc = 1u << 7;
++inline constexpr uint32_t kFpcrFz16 = 1u << 19;
++inline constexpr uint32_t kFpcrFz = 1u << 24;
++inline constexpr uint32_t kFpcrDn = 1u << 25;
++
++// RecipEstimate(a): a in 256..511 is a fixed-point number in [0.5, 1.0); the result, in 256..511, is in [1.0, 2.0).
++constexpr uint32_t RecipEstimate(uint32_t a) {
++  a = a * 2 + 1;              // round to nearest
++  uint32_t b = (1u << 19) / a;
++  return (b + 1) / 2;         // round to nearest
++}
++
++// RecipSqrtEstimate(a): a in 128..511 is a fixed-point number in [0.25, 1.0); the result is in 256..511.
++constexpr uint32_t RecipSqrtEstimate(uint32_t a) {
++  if (a < 256) {
++    a = a * 2 + 1;            // 0.25 .. 0.5, in units of 1/512 rounded to nearest
++  } else {
++    a = (a >> 1) << 1;        // 0.5 .. 1.0: discard the bottom bit,
++    a = (a + 1) * 2;          // in units of 1/256 rounded to nearest
++  }
++  // b = the largest b >= 512 with a * (b + 1)^2 < 2^28 ... plus one, as the pseudocode's loop leaves it:
++  // the smallest b >= 512 with a * (b + 1)^2 >= 2^28.
++  uint32_t lo = 512, hi = 1u << 14;
++  while (lo < hi) {
++    uint32_t mid = (lo + hi) / 2;
++    if (uint64_t{a} * (mid + 1) * (mid + 1) < (uint64_t{1} << 28)) {
++      lo = mid + 1;
++    } else {
++      hi = mid;
++    }
++  }
++  return (lo + 1) / 2;        // round to nearest
++}
++
++// RecipEstimate / RecipSqrtEstimate of every 9-bit input, for the per-lane lookups the translators emit.
++// Entries outside each function's domain are 0.
++inline constexpr std::array<uint16_t, 512> kRecipEstimateTable = [] {
++  std::array<uint16_t, 512> t{};
++  for (uint32_t a = 256; a < 512; a++) t[a] = static_cast<uint16_t>(RecipEstimate(a));
++  return t;
++}();
++inline constexpr std::array<uint16_t, 512> kRecipSqrtEstimateTable = [] {
++  std::array<uint16_t, 512> t{};
++  for (uint32_t a = 128; a < 512; a++) t[a] = static_cast<uint16_t>(RecipSqrtEstimate(a));
++  return t;
++}();
++
++// Low 8 bits of the estimate, as the translators' inline paths need them for normal inputs with normal results:
++//   kFrecpeFastTable[frac<top 8>]                 FRECPE: RecipEstimate(256 | fraction<51:44>)
++//   kFrsqrteFastTable[exp<0> << 8 | frac<top 8>]  FRSQRTE: RecipSqrtEstimate of '1':fraction<51:44> (even exponent)
++//                                                 or '01':fraction<51:45> (odd exponent)
++inline constexpr std::array<uint8_t, 256> kFrecpeFastTable = [] {
++  std::array<uint8_t, 256> t{};
++  for (uint32_t i = 0; i < 256; i++) t[i] = static_cast<uint8_t>(RecipEstimate(256 | i));
++  return t;
++}();
++inline constexpr std::array<uint8_t, 512> kFrsqrteFastTable = [] {
++  std::array<uint8_t, 512> t{};
++  for (uint32_t i = 0; i < 512; i++) {
++    t[i] = static_cast<uint8_t>(RecipSqrtEstimate((i & 256) ? (128 | ((i & 255) >> 1)) : (256 | i)));
++  }
++  return t;
++}();
++
++template <int kBits>
++struct FpEstimateFormat;
++template <>
++struct FpEstimateFormat<16> {
++  static constexpr int kExpBits = 5, kFracBits = 10;
++};
++template <>
++struct FpEstimateFormat<32> {
++  static constexpr int kExpBits = 8, kFracBits = 23;
++};
++template <>
++struct FpEstimateFormat<64> {
++  static constexpr int kExpBits = 11, kFracBits = 52;
++};
++
++namespace fp_estimate_internal {
++
++template <int kBits>
++struct Unpacked {
++  static constexpr int F = FpEstimateFormat<kBits>::kFracBits;
++  static constexpr uint64_t kExpMax = (uint64_t{1} << FpEstimateFormat<kBits>::kExpBits) - 1;
++  static constexpr uint64_t kFracMask = (uint64_t{1} << F) - 1;
++  static constexpr uint64_t kSign = uint64_t{1} << (kBits - 1);
++  static constexpr uint64_t kInf = kExpMax << F;
++  static constexpr uint64_t kQuiet = uint64_t{1} << (F - 1);
++  uint64_t sign;
++  int exp;
++  uint64_t frac;
++};
++
++// FPUnpack's flush of an input denormal under FPCR.FZ (FZ16 for half precision, which raises no IDC).
++template <int kBits>
++constexpr Unpacked<kBits> Unpack(uint64_t op, uint32_t fpcr, uint32_t* fpsr) {
++  using U = Unpacked<kBits>;
++  U u{op & U::kSign, static_cast<int>((op >> U::F) & U::kExpMax), op & U::kFracMask};
++  if (u.exp == 0 && u.frac != 0) {
++    if constexpr (kBits == 16) {
++      if (fpcr & kFpcrFz16) u.frac = 0;
++    } else if (fpcr & kFpcrFz) {
++      u.frac = 0;
++      *fpsr |= kFpsrIdc;
++    }
++  }
++  return u;
++}
++
++// FPProcessNaN: a signalling NaN raises Invalid Operation and is quietened; FPCR.DN selects the default NaN.
++template <int kBits>
++constexpr uint64_t ProcessNaN(uint64_t op, uint32_t fpcr, uint32_t* fpsr) {
++  using U = Unpacked<kBits>;
++  op &= U::kSign | U::kInf | U::kFracMask;
++  if (!(op & U::kQuiet)) {
++    *fpsr |= kFpsrIoc;
++    op |= U::kQuiet;
++  }
++  return (fpcr & kFpcrDn) ? (U::kInf | U::kQuiet) : op;
++}
++
++}  // namespace fp_estimate_internal
++
++// FPRecipEstimate (FRECPE). op holds kBits bits; fpsr gets the cumulative exception bits it raises.
++template <int kBits>
++constexpr uint64_t FpRecipEstimate(uint64_t op, uint32_t fpcr, uint32_t* fpsr) {
++  using namespace fp_estimate_internal;
++  using U = Unpacked<kBits>;
++  constexpr int F = U::F;
++  constexpr uint64_t kMask52 = (uint64_t{1} << 52) - 1;
++  const U u = Unpack<kBits>(op, fpcr, fpsr);
++  if (u.exp == static_cast<int>(U::kExpMax)) {
++    return u.frac ? ProcessNaN<kBits>(op, fpcr, fpsr) : u.sign;  // NaN; infinity -> zero
++  }
++  if (u.exp == 0 && u.frac == 0) {
++    *fpsr |= kFpsrDzc;
++    return u.sign | U::kInf;
++  }
++  if (u.exp == 0 && u.frac < (uint64_t{1} << (F - 2))) {
++    // |x| < 2^-(bias + 1): the reciprocal overflows. Round to infinity or to the largest normal by FPCR.RMode.
++    bool to_inf = true;
++    switch ((fpcr >> 22) & 3) {
++      case 1: to_inf = !u.sign; break;  // RP
++      case 2: to_inf = u.sign; break;   // RM
++      case 3: to_inf = false; break;    // RZ
++    }
++    *fpsr |= kFpsrOfc | kFpsrIxc;
++    return u.sign | (to_inf ? U::kInf : (((U::kExpMax - 1) << F) | U::kFracMask));
++  }
++  const bool fz = (kBits == 16) ? (fpcr & kFpcrFz16) : (fpcr & kFpcrFz);
++  if (fz && u.exp >= static_cast<int>(U::kExpMax) - 2) {
++    // |x| >= 2^(bias - 1): the reciprocal is denormal, flushed to zero.
++    *fpsr |= kFpsrUfc;
++    return u.sign;
++  }
++  uint64_t fraction = (u.frac << (52 - F)) & kMask52;
++  int exp = u.exp;
++  if (exp == 0) {
++    if (!(fraction >> 51)) {
++      exp = -1;
++      fraction = (fraction << 2) & kMask52;
++    } else {
++      fraction = (fraction << 1) & kMask52;
++    }
++  }
++  const uint32_t estimate = RecipEstimate(256 | static_cast<uint32_t>(fraction >> 44));
++  int result_exp = static_cast<int>(2 * (U::kExpMax >> 1)) - 1 - exp;  // 2 * bias - 1 - exp
++  fraction = uint64_t{estimate & 0xff} << 44;
++  if (result_exp == 0) {
++    fraction = (uint64_t{1} << 51) | (fraction >> 1);
++  } else if (result_exp == -1) {
++    fraction = (uint64_t{1} << 50) | (fraction >> 2);
++    result_exp = 0;
++  }
++  return u.sign | (static_cast<uint64_t>(result_exp) << F) | (fraction >> (52 - F));
++}
++
++// FPRSqrtEstimate (FRSQRTE).
++template <int kBits>
++constexpr uint64_t FpRSqrtEstimate(uint64_t op, uint32_t fpcr, uint32_t* fpsr) {
++  using namespace fp_estimate_internal;
++  using U = Unpacked<kBits>;
++  constexpr int F = U::F;
++  constexpr uint64_t kMask52 = (uint64_t{1} << 52) - 1;
++  const U u = Unpack<kBits>(op, fpcr, fpsr);
++  if (u.exp == static_cast<int>(U::kExpMax) && u.frac) {
++    return ProcessNaN<kBits>(op, fpcr, fpsr);
++  }
++  if (u.exp == 0 && u.frac == 0) {
++    *fpsr |= kFpsrDzc;
++    return u.sign | U::kInf;
++  }
++  if (u.sign) {
++    *fpsr |= kFpsrIoc;
++    return U::kInf | U::kQuiet;  // FPDefaultNaN
++  }
++  if (u.exp == static_cast<int>(U::kExpMax)) {
++    return 0;  // +infinity -> +0
++  }
++  uint64_t fraction = (u.frac << (52 - F)) & kMask52;
++  int exp = u.exp;
++  if (exp == 0) {
++    while (!(fraction >> 51)) {
++      fraction = (fraction << 1) & kMask52;
++      exp--;
++    }
++    fraction = (fraction << 1) & kMask52;
++  }
++  // Even exponent: '1':fraction<51:44> (0.5 .. 1.0); odd: '01':fraction<51:45> (0.25 .. 0.5).
++  const uint32_t scaled = (exp & 1) ? (128 | static_cast<uint32_t>(fraction >> 45))
++                                    : (256 | static_cast<uint32_t>(fraction >> 44));
++  const uint32_t estimate = RecipSqrtEstimate(scaled);
++  const int result_exp = (static_cast<int>(3 * (U::kExpMax >> 1)) - 1 - exp) / 2;  // (3 * bias - 1 - exp) DIV 2
++  return (static_cast<uint64_t>(result_exp) << F) | (uint64_t{estimate & 0xff} << (F - 8));
++}
++
++// UnsignedRecipEstimate (URECPE) and UnsignedRSqrtEstimate (URSQRTE) of one 32-bit lane.
++constexpr uint32_t UnsignedRecipEstimate(uint32_t op) {
++  return (op >> 31) ? RecipEstimate(op >> 23) << 23 : 0xffffffffu;
++}
++constexpr uint32_t UnsignedRSqrtEstimate(uint32_t op) {
++  return (op >> 30) ? RecipSqrtEstimate(op >> 23) << 23 : 0xffffffffu;
++}
++
++}  // namespace berberis::arm64
++
++#endif  // BERBERIS_GUEST_STATE_GUEST_FP_ESTIMATE_ARM64_H_
+diff --git a/heavy_optimizer/arm64/arm64_tier_coverage.txt b/heavy_optimizer/arm64/arm64_tier_coverage.txt
+index ef42559b..a44ef278 100644
+--- a/heavy_optimizer/arm64/arm64_tier_coverage.txt
++++ b/heavy_optimizer/arm64/arm64_tier_coverage.txt
+@@ -287,7 +287,7 @@ fneg 128 128 128
+ fnmadd 128 128 128
+ fnmsub 128 128 128
+ fnmul 128 128 128
+-frecpe 124 106 106
++frecpe 124 106 0
+ frecps 128 128 126
+ frint32z 2 0 0
+ frint64z 1 0 0
+@@ -298,7 +298,7 @@ frintn 52 44 42
+ frintp 128 128 114
+ frintx 128 128 128
+ frintz 128 128 118
+-frsqrte 44 35 35
++frsqrte 44 35 0
+ frsqrts 50 50 38
+ fscale 1 0 0
+ fsqrt 128 128 128
+diff --git a/heavy_optimizer/arm64/frontend.cc b/heavy_optimizer/arm64/frontend.cc
+index 05173606..04f2cd60 100644
+--- a/heavy_optimizer/arm64/frontend.cc
++++ b/heavy_optimizer/arm64/frontend.cc
+@@ -11861,91 +11861,12 @@ void HeavyOptimizerFrontend::AdvSimdTwoRegMisc(const Decoder::AdvSimdTwoRegMiscA
+       return;
+     }
+ 
+-    // FRECPE / FRSQRTE (vector, FP32 .2S/.4S size=10, FP64 .2D size=11). ARM
+-    // only requires ~8 bits of estimate precision; the interpreter and lite both
+-    // compute the FULL-precision reciprocal (1/x) / reciprocal-sqrt (1/sqrt(x)),
+-    // so this mirror is bit-exact vs the interpreter. FRECPE endpoints fall out
+-    // of SSE divide (±0->±inf, ±inf->±0, NaN->NaN). FRSQRTE needs the
+-    // (src<=0 || isNaN)->default-qNaN blend. FP16 and the reserved .1D bail.
+-    // Mirrors lite's kFrecpeV/kFrsqrteV.
++    // FRECPE / FRSQRTE (vector): bit-exact estimates need the lite tier's per-lane table lookup and its
++    // out-of-line path for special inputs (LiteTranslator::EmitFpEstimate), so these regions stay lite.
+     case Decoder::AdvSimdTwoRegMiscOpcode::kFrecpeV:
+-    case Decoder::AdvSimdTwoRegMiscOpcode::kFrsqrteV: {
+-      if (args.is_fp16) { UndefinedReturningVoid(); return; }
+-      if (args.size != 0b10 && args.size != 0b11) { UndefinedReturningVoid(); return; }
+-      const bool is_double = (args.size & 1);
+-      if (is_double && !args.q) { UndefinedReturningVoid(); return; }
+-      const bool is_rsqrt =
+-          (args.opcode == Decoder::AdvSimdTwoRegMiscOpcode::kFrsqrteV);
+-      FpRegister src = AllocTempSimdReg();
+-      builder_.GenGetSimd<16>(src.machine_reg(), vn_off);
+-      // recip = broadcast(1.0).
+-      FpRegister recip = AllocTempSimdReg();
+-      if (is_double) {
+-        builder_.Gen<x86_64::MovqXRegReg>(
+-            recip.machine_reg(), GetImm(uint64_t{0x3FF0000000000000}));
+-        builder_.Gen<x86_64::PshufdXRegXRegImm>(
+-            recip.machine_reg(), recip.machine_reg(), int8_t{0x44});
+-      } else {
+-        builder_.Gen<x86_64::MovdXRegReg>(
+-            recip.machine_reg(), GetImm(uint64_t{0x3F800000}));
+-        builder_.Gen<x86_64::PshufdXRegXRegImm>(
+-            recip.machine_reg(), recip.machine_reg(), int8_t{0x00});
+-      }
+-      if (!is_rsqrt) {
+-        // FRECPE: recip = 1.0 / src.
+-        if (is_double) {
+-          builder_.Gen<x86_64::DivpdXRegXReg>(recip.machine_reg(), src.machine_reg());
+-        } else {
+-          builder_.Gen<x86_64::DivpsXRegXReg>(recip.machine_reg(), src.machine_reg());
+-        }
+-        SetVRegFull(args.rd, recip, args.q);
+-        return;
+-      }
+-      // FRSQRTE: recip = 1.0 / sqrt(src), then blend qNaN where src<=0 || NaN.
+-      FpRegister sq = AllocTempSimdReg();
+-      if (is_double) {
+-        builder_.Gen<x86_64::SqrtpdXRegXReg>(sq.machine_reg(), src.machine_reg());
+-        builder_.Gen<x86_64::DivpdXRegXReg>(recip.machine_reg(), sq.machine_reg());
+-      } else {
+-        builder_.Gen<x86_64::SqrtpsXRegXReg>(sq.machine_reg(), src.machine_reg());
+-        builder_.Gen<x86_64::DivpsXRegXReg>(recip.machine_reg(), sq.machine_reg());
+-      }
+-      // mask = (src <= 0) | isNaN(src).
+-      FpRegister zero = AllocZeroedSimdReg();
+-      FpRegister mask = AllocTempSimdReg();
+-      builder_.Gen<x86_64::MovdqaXRegXReg>(mask.machine_reg(), src.machine_reg());
+-      FpRegister nan_mask = AllocTempSimdReg();
+-      builder_.Gen<x86_64::MovdqaXRegXReg>(nan_mask.machine_reg(), src.machine_reg());
+-      if (is_double) {
+-        builder_.Gen<x86_64::CmplepdXRegXReg>(mask.machine_reg(), zero.machine_reg());
+-        builder_.Gen<x86_64::CmpunordpdXRegXReg>(
+-            nan_mask.machine_reg(), nan_mask.machine_reg());
+-      } else {
+-        builder_.Gen<x86_64::CmplepsXRegXReg>(mask.machine_reg(), zero.machine_reg());
+-        builder_.Gen<x86_64::CmpunordpsXRegXReg>(
+-            nan_mask.machine_reg(), nan_mask.machine_reg());
+-      }
+-      builder_.Gen<x86_64::PorXRegXReg>(mask.machine_reg(), nan_mask.machine_reg());
+-      // qnan = broadcast(default qNaN).
+-      FpRegister qnan = AllocTempSimdReg();
+-      if (is_double) {
+-        builder_.Gen<x86_64::MovqXRegReg>(
+-            qnan.machine_reg(), GetImm(uint64_t{0x7FF8000000000000}));
+-        builder_.Gen<x86_64::PshufdXRegXRegImm>(
+-            qnan.machine_reg(), qnan.machine_reg(), int8_t{0x44});
+-      } else {
+-        builder_.Gen<x86_64::MovdXRegReg>(
+-            qnan.machine_reg(), GetImm(uint64_t{0x7FC00000}));
+-        builder_.Gen<x86_64::PshufdXRegXRegImm>(
+-            qnan.machine_reg(), qnan.machine_reg(), int8_t{0x00});
+-      }
+-      // result = (mask & qnan) | (~mask & recip).
+-      builder_.Gen<x86_64::PandXRegXReg>(qnan.machine_reg(), mask.machine_reg());
+-      builder_.Gen<x86_64::PandnXRegXReg>(mask.machine_reg(), recip.machine_reg());
+-      builder_.Gen<x86_64::PorXRegXReg>(qnan.machine_reg(), mask.machine_reg());
+-      SetVRegFull(args.rd, qnan, args.q);
++    case Decoder::AdvSimdTwoRegMiscOpcode::kFrsqrteV:
++      UndefinedReturningVoid();
+       return;
+-    }
+ 
+     // SQABS / SQNEG Vd.<T>, Vn.<T> — per-lane saturating signed abs / negate,
+     // size=00 .8B/.16B, 01 .4H/.8H, 10 .2S/.4S. INT_MIN_w is the only saturating
+diff --git a/heavy_optimizer/arm64/frontend_tests.cc b/heavy_optimizer/arm64/frontend_tests.cc
+index d3240295..15e362e1 100644
+--- a/heavy_optimizer/arm64/frontend_tests.cc
++++ b/heavy_optimizer/arm64/frontend_tests.cc
+@@ -7685,58 +7685,19 @@ TEST_F(Arm64HeavyOptimizerFrontendTest, Fcvtxn2Vec4S) {
+   EXPECT_EQ(VUpperHi64(&state_, 0), 0x3F8000013FC00000ULL);     // {0x3FC00000, 0x3F800001}
+ }
+ 
+-// FRECPE v0.4s: 1.0/x per lane (full precision, matches interpreter).
+-TEST_F(Arm64HeavyOptimizerFrontendTest, FrecpeVec4S) {
+-  static const uint32_t code[] = {FrecpeVec(/*dbl=*/false, /*q=*/true, 0, 1)};
+-  SetV128(&state_, 1, 0x4080000040000000ULL, 0x3F000000C1000000ULL);
+-  SetV128(&state_, 0, 0xAAAAAAAAAAAAAAAAULL, 0xCCCCCCCCCCCCCCCCULL);
+-  GuestAddr end_pc = ToGuestAddr(code) + sizeof(code);
+-  bool ok = false;
+-  RunRegion(&state_, code, end_pc, &ok);
+-  ASSERT_TRUE(ok);
+-  // {0.5, 0.25, -0.125, 2.0} = {0x3F000000,0x3E800000,0xBE000000,0x40000000}.
+-  EXPECT_EQ(VLo64(&state_, 0), 0x3E8000003F000000ULL);
+-  EXPECT_EQ(VUpperHi64(&state_, 0), 0x40000000BE000000ULL);
+-}
+-
+-// FRSQRTE v0.4s: 1/sqrt(x), with (x<=0 || NaN) -> default qNaN (0x7FC00000).
+-TEST_F(Arm64HeavyOptimizerFrontendTest, FrsqrteVec4S) {
+-  static const uint32_t code[] = {FrsqrteVec(/*dbl=*/false, /*q=*/true, 0, 1)};
+-  SetV128(&state_, 1, 0x4180000040800000ULL, 0x3E800000BF800000ULL);
+-  SetV128(&state_, 0, 0xAAAAAAAAAAAAAAAAULL, 0xCCCCCCCCCCCCCCCCULL);
+-  GuestAddr end_pc = ToGuestAddr(code) + sizeof(code);
+-  bool ok = false;
+-  RunRegion(&state_, code, end_pc, &ok);
+-  ASSERT_TRUE(ok);
+-  // {0.5, 0.25, qNaN, 2.0} = {0x3F000000,0x3E800000,0x7FC00000,0x40000000}.
+-  EXPECT_EQ(VLo64(&state_, 0), 0x3E8000003F000000ULL);
+-  EXPECT_EQ(VUpperHi64(&state_, 0), 0x400000007FC00000ULL);
+-}
+-
+-// FRECPE v0.2d (incl. a negative lane: 1/-4 = -0.25).
+-TEST_F(Arm64HeavyOptimizerFrontendTest, FrecpeVec2D) {
+-  static const uint32_t code[] = {FrecpeVec(/*dbl=*/true, /*q=*/true, 0, 1)};
+-  SetV128(&state_, 1, 0x4000000000000000ULL, 0xC010000000000000ULL);
+-  SetV128(&state_, 0, 0xAAAAAAAAAAAAAAAAULL, 0xCCCCCCCCCCCCCCCCULL);
+-  GuestAddr end_pc = ToGuestAddr(code) + sizeof(code);
+-  bool ok = false;
+-  RunRegion(&state_, code, end_pc, &ok);
+-  ASSERT_TRUE(ok);
+-  EXPECT_EQ(VLo64(&state_, 0), 0x3FE0000000000000ULL);   // 0.5
+-  EXPECT_EQ(VUpperHi64(&state_, 0), 0xBFD0000000000000ULL);  // -0.25
+-}
+-
+-// FRSQRTE v0.2d: negative lane -> default qNaN (0x7FF8000000000000).
+-TEST_F(Arm64HeavyOptimizerFrontendTest, FrsqrteVec2DNaN) {
+-  static const uint32_t code[] = {FrsqrteVec(/*dbl=*/true, /*q=*/true, 0, 1)};
+-  SetV128(&state_, 1, 0xC000000000000000ULL, 0x4010000000000000ULL);
+-  SetV128(&state_, 0, 0xAAAAAAAAAAAAAAAAULL, 0xCCCCCCCCCCCCCCCCULL);
+-  GuestAddr end_pc = ToGuestAddr(code) + sizeof(code);
+-  bool ok = false;
+-  RunRegion(&state_, code, end_pc, &ok);
+-  ASSERT_TRUE(ok);
+-  EXPECT_EQ(VLo64(&state_, 0), 0x7FF8000000000000ULL);   // qNaN
+-  EXPECT_EQ(VUpperHi64(&state_, 0), 0x3FE0000000000000ULL);  // 0.5
++// FRECPE / FRSQRTE (vector) bail: their bit-exact estimates (Arm pseudocode, guest_fp_estimate_arm64.h) are the
++// lite tier's (LiteTranslator::EmitFpEstimate), so a region with one stays lite.
++TEST_F(Arm64HeavyOptimizerFrontendTest, FrecpeFrsqrteVecBail) {
++  for (bool rsqrt : {false, true}) {
++    for (bool dbl : {false, true}) {
++      const uint32_t code[] = {rsqrt ? FrsqrteVec(dbl, /*q=*/true, 0, 1) : FrecpeVec(dbl, /*q=*/true, 0, 1)};
++      state_.cpu.insn_addr = ToGuestAddr(code);
++      MachineCode mc;
++      auto [stop, ok, n] = HeavyOptimizeRegion(
++          ToGuestAddr(code), &mc, HeavyOptimizeParams{.end_pc = ToGuestAddr(code) + sizeof(code)});
++      EXPECT_EQ(n, 0u) << "rsqrt=" << rsqrt << " dbl=" << dbl;
++    }
++  }
+ }
+ 
+ // SQABS v0.4s: per-lane saturating signed abs; INT_MIN -> INT_MAX.
+diff --git a/interpreter/arm64/interpreter.h b/interpreter/arm64/interpreter.h
+index 225af3ac..6fdbac0d 100644
+--- a/interpreter/arm64/interpreter.h
++++ b/interpreter/arm64/interpreter.h
+@@ -33,6 +33,7 @@
+ #include "berberis/decoder/arm64/decoder.h"
+ #include "berberis/decoder/arm64/semantics_player.h"
+ #include "berberis/guest_state/guest_addr.h"
++#include "berberis/guest_state/guest_fp_estimate_arm64.h"
+ #include "berberis/guest_state/guest_id_registers_arm64.h"
+ #include "berberis/guest_state/guest_state.h"
+ #include "berberis/kernel_api/run_guest_syscall.h"
+@@ -6163,38 +6164,26 @@ class Interpreter {
+         memcpy(&result, &f_bits, sizeof(f_bits));
+         break;
+       }
+-      // scalar FRECPE / FRSQRTE.
+-      // ARM spec only requires ~8 bits of mantissa precision; computing the
+-      // exact 1/x or 1/sqrt(x) is well within bound. Mirrors the vector
+-      // kFrecpeV/kFrsqrteV implementation. args.size bit 1 is pinned to 1
+-      // by the decoder; sz=args.size&1 selects single (0) vs double (1).
++      // scalar FRECPE / FRSQRTE: the Arm ARM's bit-exact estimates (guest_fp_estimate_arm64.h), with their
++      // FPCR.FZ/DN/RMode handling and FPSR exceptions. Software refines them with FRECPS/FRSQRTS and relies
++      // on the same bits as on hardware. args.size bit 1 is pinned to 1 by the decoder; sz=args.size&1
++      // selects single (0) vs double (1).
+       case Decoder::AdvSimdScalarTwoRegMiscOpcode::kFrecpe:
+       case Decoder::AdvSimdScalarTwoRegMiscOpcode::kFrsqrte: {
+         bool is_rsqrt =
+             (args.opcode == Decoder::AdvSimdScalarTwoRegMiscOpcode::kFrsqrte);
++        const uint32_t fpcr = state_->cpu.cached_fpcr;
++        uint32_t fpsr = 0;
+         if ((args.size & 1) == 0) {
+-          float f;
+-          memcpy(&f, &src, sizeof(f));
+-          float r;
+-          if (is_rsqrt) {
+-            r = (f <= 0.0f || f != f) ? __builtin_nanf("")
+-                                      : 1.0f / __builtin_sqrtf(f);
+-          } else {
+-            r = (f == 0.0f) ? __builtin_inff() * (1.0f / f) : 1.0f / f;
+-          }
+-          memcpy(&result, &r, sizeof(r));
++          uint64_t x = static_cast<uint32_t>(src);
++          result = is_rsqrt ? arm64::FpRSqrtEstimate<32>(x, fpcr, &fpsr)
++                            : arm64::FpRecipEstimate<32>(x, fpcr, &fpsr);
+         } else {
+-          double d;
+-          memcpy(&d, &src, sizeof(d));
+-          double r;
+-          if (is_rsqrt) {
+-            r = (d <= 0.0 || d != d) ? __builtin_nan("")
+-                                     : 1.0 / __builtin_sqrt(d);
+-          } else {
+-            r = (d == 0.0) ? __builtin_inf() * (1.0 / d) : 1.0 / d;
+-          }
+-          memcpy(&result, &r, sizeof(r));
++          uint64_t x = static_cast<uint64_t>(src);
++          result = is_rsqrt ? arm64::FpRSqrtEstimate<64>(x, fpcr, &fpsr)
++                            : arm64::FpRecipEstimate<64>(x, fpcr, &fpsr);
+         }
++        state_->cpu.emulated_fpsr |= fpsr;
+         break;
+       }
+     }
+@@ -7793,22 +7782,20 @@ class Interpreter {
+       case Decoder::AdvSimdTwoRegMiscOpcode::kFrsqrteV: {
+         bool is_rsqrt =
+             (args.opcode == Decoder::AdvSimdTwoRegMiscOpcode::kFrsqrteV);
++        // Bit-exact estimates per lane, as in the scalar forms (guest_fp_estimate_arm64.h).
++        const uint32_t fpcr = state_->cpu.cached_fpcr;
++        uint32_t fpsr = 0;
+         // FP16 form (FRECPE/FRSQRTE v.4h, v.4h).
+         if (args.is_fp16) {
+           uint8_t fp_count = args.q ? 8 : 4;
+           for (uint8_t i = 0; i < fp_count; i++) {
+             uint16_t h;
+             memcpy(&h, reinterpret_cast<const uint8_t*>(&src) + i * 2, 2);
+-            float f = FpHalfToSingle(h);
+-            float r;
+-            if (is_rsqrt) {
+-              r = (f <= 0.0f || f != f) ? __builtin_nanf("") : 1.0f / __builtin_sqrtf(f);
+-            } else {
+-              r = (f == 0.0f) ? __builtin_inff() * (1.0f / f) : 1.0f / f;
+-            }
+-            uint16_t rh = FpSingleToHalf(r);
++            uint16_t rh = static_cast<uint16_t>(is_rsqrt ? arm64::FpRSqrtEstimate<16>(h, fpcr, &fpsr)
++                                                         : arm64::FpRecipEstimate<16>(h, fpcr, &fpsr));
+             memcpy(reinterpret_cast<uint8_t*>(&result) + i * 2, &rh, 2);
+           }
++          state_->cpu.emulated_fpsr |= fpsr;
+           break;
+         }
+         uint8_t fp_esize = (args.size & 1) ? 8 : 4;
+@@ -7816,27 +7803,20 @@ class Interpreter {
+         uint8_t fp_count = vec_len / fp_esize;
+         for (uint8_t i = 0; i < fp_count; i++) {
+           if (fp_esize == 4) {
+-            float f;
++            uint32_t f;
+             memcpy(&f, reinterpret_cast<const uint8_t*>(&src) + i * 4, 4);
+-            float r;
+-            if (is_rsqrt) {
+-              r = (f <= 0.0f || f != f) ? __builtin_nanf("") : 1.0f / __builtin_sqrtf(f);
+-            } else {
+-              r = (f == 0.0f) ? __builtin_inff() * (1.0f / f) : 1.0f / f;
+-            }
++            uint32_t r = static_cast<uint32_t>(is_rsqrt ? arm64::FpRSqrtEstimate<32>(f, fpcr, &fpsr)
++                                                        : arm64::FpRecipEstimate<32>(f, fpcr, &fpsr));
+             memcpy(reinterpret_cast<uint8_t*>(&result) + i * 4, &r, 4);
+           } else {
+-            double d;
++            uint64_t d;
+             memcpy(&d, reinterpret_cast<const uint8_t*>(&src) + i * 8, 8);
+-            double r;
+-            if (is_rsqrt) {
+-              r = (d <= 0.0 || d != d) ? __builtin_nan("") : 1.0 / __builtin_sqrt(d);
+-            } else {
+-              r = (d == 0.0) ? __builtin_inf() * (1.0 / d) : 1.0 / d;
+-            }
++            uint64_t r = is_rsqrt ? arm64::FpRSqrtEstimate<64>(d, fpcr, &fpsr)
++                                  : arm64::FpRecipEstimate<64>(d, fpcr, &fpsr);
+             memcpy(reinterpret_cast<uint8_t*>(&result) + i * 8, &r, 8);
+           }
+         }
++        state_->cpu.emulated_fpsr |= fpsr;
+         break;
+       }
+ 
+diff --git a/lite_translator/arm64_to_x86_64/lite_translate_region_exec_tests.cc b/lite_translator/arm64_to_x86_64/lite_translate_region_exec_tests.cc
+index a2712fed..f795a958 100644
+--- a/lite_translator/arm64_to_x86_64/lite_translate_region_exec_tests.cc
++++ b/lite_translator/arm64_to_x86_64/lite_translate_region_exec_tests.cc
+@@ -29,6 +29,7 @@
+ 
+ #include "berberis/assembler/machine_code.h"
+ #include "berberis/guest_state/guest_addr.h"
++#include "berberis/guest_state/guest_fp_estimate_arm64.h"
+ #include "berberis/guest_state/guest_id_registers_arm64.h"
+ #include "berberis/guest_state/guest_state.h"
+ #include "berberis/interpreter/arm64/interpreter.h"
+@@ -9150,279 +9151,75 @@ TEST_F(Arm64LiteTranslateRegionTest, SqxtunBdHn_ZeroIdentity) {
+   EXPECT_EQ(reinterpret_cast<uint64_t*>(&state_.cpu.v[0])[1], 0ULL);
+ }
+ 
+-// FRECPE scalar: single-lane FP reciprocal estimate.  AdvSimd scalar
+-// two-reg-misc encoding with U=0, opcode=11101, bits[11:10]=10.
+-// Decoder pins size ∈ {10, 11}; bit0 selects S (FP32, size=10) vs
+-// D (FP64, size=11).  Encoding bits: 01 0 11110 sz 10000 11101 10 Rn Rd.
+-//   FRECPE Sd, Sn  (size=10): 0x5EA1_D800 for V0,V0.
+-//   FRECPE Dd, Dn  (size=11): 0x5EE1_D800 for V0,V0.
++// FRECPE / FRSQRTE scalar (AdvSimd scalar two-reg misc, opcode=11101; U=1 for FRSQRTE; size=10 S, 11 D):
++//   FRECPE Sd, Sn 0x5EA1D800, FRECPE Dd, Dn 0x5EE1D800, FRSQRTE Sd, Sn 0x7EA1D800, FRSQRTE Dd, Dn 0x7EE1D800
++// The results are the Arm ARM's estimates, bit for bit, with FPSR (values from QEMU 11.1's implementation of
++// the pseudocode). FpEstimateMatchesReference below sweeps every input class, FPCR mode and form.
+ constexpr uint32_t kFrecpeSdSnV0 = 0x5EA1D800;
+ constexpr uint32_t kFrecpeDdDnV0 = 0x5EE1D800;
+-
+-// FRECPE Sd, Sn: 2.0f -> 0.5f (exact).
+-TEST_F(Arm64LiteTranslateRegionTest, FrecpeSdSn_TwoToHalf) {
+-  state_.cpu.v[0] = ~__uint128_t{0};
+-  *reinterpret_cast<uint32_t*>(&state_.cpu.v[0]) = 0x40000000u;  // 2.0f
+-  static const uint32_t code[] = {kFrecpeSdSnV0};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  EXPECT_EQ(*reinterpret_cast<uint32_t*>(&state_.cpu.v[0]),
+-            0x3F000000u);  // 0.5f
+-  EXPECT_EQ(reinterpret_cast<uint64_t*>(&state_.cpu.v[0])[1], 0ULL);
+-}
+-
+-// FRECPE Sd, Sn: 1.0f -> 1.0f (exact identity at unity).
+-TEST_F(Arm64LiteTranslateRegionTest, FrecpeSdSn_OneToOne) {
+-  state_.cpu.v[0] = ~__uint128_t{0};
+-  *reinterpret_cast<uint32_t*>(&state_.cpu.v[0]) = 0x3F800000u;  // 1.0f
+-  static const uint32_t code[] = {kFrecpeSdSnV0};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  EXPECT_EQ(*reinterpret_cast<uint32_t*>(&state_.cpu.v[0]), 0x3F800000u);
+-  EXPECT_EQ(reinterpret_cast<uint64_t*>(&state_.cpu.v[0])[1], 0ULL);
+-}
+-
+-// FRECPE Sd, Sn: +0.0f -> +inf (FRECPE FPSR.DZC case).
+-TEST_F(Arm64LiteTranslateRegionTest, FrecpeSdSn_PosZeroToPosInf) {
+-  state_.cpu.v[0] = ~__uint128_t{0};
+-  *reinterpret_cast<uint32_t*>(&state_.cpu.v[0]) = 0x00000000u;  // +0.0f
+-  static const uint32_t code[] = {kFrecpeSdSnV0};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  EXPECT_EQ(*reinterpret_cast<uint32_t*>(&state_.cpu.v[0]),
+-            0x7F800000u);  // +inf
+-  EXPECT_EQ(reinterpret_cast<uint64_t*>(&state_.cpu.v[0])[1], 0ULL);
+-}
+-
+-// FRECPE Sd, Sn: -0.0f -> -inf (sign of zero preserved).
+-TEST_F(Arm64LiteTranslateRegionTest, FrecpeSdSn_NegZeroToNegInf) {
+-  state_.cpu.v[0] = ~__uint128_t{0};
+-  *reinterpret_cast<uint32_t*>(&state_.cpu.v[0]) = 0x80000000u;  // -0.0f
+-  static const uint32_t code[] = {kFrecpeSdSnV0};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  EXPECT_EQ(*reinterpret_cast<uint32_t*>(&state_.cpu.v[0]),
+-            0xFF800000u);  // -inf
+-}
+-
+-// FRECPE Sd, Sn: +inf -> +0.0f.
+-TEST_F(Arm64LiteTranslateRegionTest, FrecpeSdSn_PosInfToPosZero) {
+-  state_.cpu.v[0] = ~__uint128_t{0};
+-  *reinterpret_cast<uint32_t*>(&state_.cpu.v[0]) = 0x7F800000u;  // +inf
+-  static const uint32_t code[] = {kFrecpeSdSnV0};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  EXPECT_EQ(*reinterpret_cast<uint32_t*>(&state_.cpu.v[0]), 0x00000000u);
+-  EXPECT_EQ(reinterpret_cast<uint64_t*>(&state_.cpu.v[0])[1], 0ULL);
+-}
+-
+-// FRECPE Sd, Sn: -inf -> -0.0f.
+-TEST_F(Arm64LiteTranslateRegionTest, FrecpeSdSn_NegInfToNegZero) {
+-  state_.cpu.v[0] = ~__uint128_t{0};
+-  *reinterpret_cast<uint32_t*>(&state_.cpu.v[0]) = 0xFF800000u;  // -inf
+-  static const uint32_t code[] = {kFrecpeSdSnV0};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  EXPECT_EQ(*reinterpret_cast<uint32_t*>(&state_.cpu.v[0]), 0x80000000u);
+-}
+-
+-// FRECPE Sd, Sn: qNaN -> qNaN (propagates).
+-TEST_F(Arm64LiteTranslateRegionTest, FrecpeSdSn_QNanPropagates) {
+-  state_.cpu.v[0] = ~__uint128_t{0};
+-  *reinterpret_cast<uint32_t*>(&state_.cpu.v[0]) = 0x7FC00000u;  // qNaN
+-  static const uint32_t code[] = {kFrecpeSdSnV0};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  uint32_t r = *reinterpret_cast<uint32_t*>(&state_.cpu.v[0]);
+-  // Any NaN payload is acceptable; the result must be NaN
+-  // (exponent=0xFF, mantissa != 0).
+-  EXPECT_EQ(r & 0x7F800000u, 0x7F800000u);
+-  EXPECT_NE(r & 0x007FFFFFu, 0u);
+-}
+-
+-// FRECPE Dd, Dn: 2.0d -> 0.5d (exact).
+-TEST_F(Arm64LiteTranslateRegionTest, FrecpeDdDn_TwoToHalf) {
+-  state_.cpu.v[0] = ~__uint128_t{0};
+-  *reinterpret_cast<uint64_t*>(&state_.cpu.v[0]) = 0x4000000000000000ULL;
+-  static const uint32_t code[] = {kFrecpeDdDnV0};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  EXPECT_EQ(*reinterpret_cast<uint64_t*>(&state_.cpu.v[0]),
+-            0x3FE0000000000000ULL);  // 0.5d
+-  EXPECT_EQ(reinterpret_cast<uint64_t*>(&state_.cpu.v[0])[1], 0ULL);
+-}
+-
+-// FRECPE Dd, Dn: +0.0d -> +inf.
+-TEST_F(Arm64LiteTranslateRegionTest, FrecpeDdDn_PosZeroToPosInf) {
+-  state_.cpu.v[0] = ~__uint128_t{0};
+-  *reinterpret_cast<uint64_t*>(&state_.cpu.v[0]) = 0x0000000000000000ULL;
+-  static const uint32_t code[] = {kFrecpeDdDnV0};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  EXPECT_EQ(*reinterpret_cast<uint64_t*>(&state_.cpu.v[0]),
+-            0x7FF0000000000000ULL);  // +inf
+-  EXPECT_EQ(reinterpret_cast<uint64_t*>(&state_.cpu.v[0])[1], 0ULL);
+-}
+-
+-// FRECPE Dd, Dn: -0.0d -> -inf.
+-TEST_F(Arm64LiteTranslateRegionTest, FrecpeDdDn_NegZeroToNegInf) {
+-  state_.cpu.v[0] = ~__uint128_t{0};
+-  *reinterpret_cast<uint64_t*>(&state_.cpu.v[0]) = 0x8000000000000000ULL;
+-  static const uint32_t code[] = {kFrecpeDdDnV0};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  EXPECT_EQ(*reinterpret_cast<uint64_t*>(&state_.cpu.v[0]),
+-            0xFFF0000000000000ULL);  // -inf
+-}
+-
+-// FRECPE Dd, Dn: +inf -> +0.0d.
+-TEST_F(Arm64LiteTranslateRegionTest, FrecpeDdDn_PosInfToPosZero) {
+-  state_.cpu.v[0] = ~__uint128_t{0};
+-  *reinterpret_cast<uint64_t*>(&state_.cpu.v[0]) = 0x7FF0000000000000ULL;
+-  static const uint32_t code[] = {kFrecpeDdDnV0};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  EXPECT_EQ(*reinterpret_cast<uint64_t*>(&state_.cpu.v[0]), 0ULL);
+-  EXPECT_EQ(reinterpret_cast<uint64_t*>(&state_.cpu.v[0])[1], 0ULL);
+-}
+-
+-// FRECPE Dd, Dn: 4.0d -> 0.25d (exact at a power of two).
+-TEST_F(Arm64LiteTranslateRegionTest, FrecpeDdDn_FourToQuarter) {
+-  state_.cpu.v[0] = ~__uint128_t{0};
+-  *reinterpret_cast<uint64_t*>(&state_.cpu.v[0]) = 0x4010000000000000ULL;
+-  static const uint32_t code[] = {kFrecpeDdDnV0};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  EXPECT_EQ(*reinterpret_cast<uint64_t*>(&state_.cpu.v[0]),
+-            0x3FD0000000000000ULL);  // 0.25d
+-  EXPECT_EQ(reinterpret_cast<uint64_t*>(&state_.cpu.v[0])[1], 0ULL);
+-}
+-
+-// FRSQRTE scalar: single-lane FP reciprocal-square-root estimate.  AdvSimd
+-// scalar two-reg-misc encoding with U=1, opcode=11101, bits[11:10]=10.
+-// Decoder pins size ∈ {10, 11}; bit0 selects S (FP32, size=10) vs
+-// D (FP64, size=11).  Encoding bits: 01 1 11110 sz 10000 11101 10 Rn Rd.
+-//   FRSQRTE Sd, Sn (size=10): 0x7EA1_D800 for V0,V0.
+-//   FRSQRTE Dd, Dn (size=11): 0x7EE1_D800 for V0,V0.
+-// Per the interpreter (interpreter.h kFrsqrte), inputs satisfying
+-// (src <= 0) OR isNaN(src) yield the default qNaN; all other positive-
+-// finite inputs yield 1.0/sqrt(src).
+ constexpr uint32_t kFrsqrteSdSnV0 = 0x7EA1D800;
+ constexpr uint32_t kFrsqrteDdDnV0 = 0x7EE1D800;
+ 
+-// FRSQRTE Sd, Sn: 4.0f -> 0.5f (sqrt(4)=2, 1/2=0.5; exact).
+-TEST_F(Arm64LiteTranslateRegionTest, FrsqrteSdSn_FourToHalf) {
+-  state_.cpu.v[0] = ~__uint128_t{0};
+-  *reinterpret_cast<uint32_t*>(&state_.cpu.v[0]) = 0x40800000u;  // 4.0f
+-  static const uint32_t code[] = {kFrsqrteSdSnV0};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  EXPECT_EQ(*reinterpret_cast<uint32_t*>(&state_.cpu.v[0]),
+-            0x3F000000u);  // 0.5f
+-  EXPECT_EQ(reinterpret_cast<uint64_t*>(&state_.cpu.v[0])[1], 0ULL);
++// Host MXCSR exception flags are sticky; clear them so the FPSR the region exit mirrors is this test's own.
++static void ClearHostFpExceptions() {
++  __builtin_ia32_ldmxcsr(__builtin_ia32_stmxcsr() & ~0x3fu);
+ }
+ 
+-// FRSQRTE Sd, Sn: 1.0f -> 1.0f (sqrt(1)=1, 1/1=1; identity).
+-TEST_F(Arm64LiteTranslateRegionTest, FrsqrteSdSn_OneToOne) {
+-  state_.cpu.v[0] = ~__uint128_t{0};
+-  *reinterpret_cast<uint32_t*>(&state_.cpu.v[0]) = 0x3F800000u;  // 1.0f
+-  static const uint32_t code[] = {kFrsqrteSdSnV0};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  EXPECT_EQ(*reinterpret_cast<uint32_t*>(&state_.cpu.v[0]), 0x3F800000u);
+-  EXPECT_EQ(reinterpret_cast<uint64_t*>(&state_.cpu.v[0])[1], 0ULL);
+-}
+-
+-// FRSQRTE Sd, Sn: +0.0f -> default qNaN (interpreter rule: src <= 0).
+-TEST_F(Arm64LiteTranslateRegionTest, FrsqrteSdSn_PosZeroToQNan) {
+-  state_.cpu.v[0] = ~__uint128_t{0};
+-  *reinterpret_cast<uint32_t*>(&state_.cpu.v[0]) = 0x00000000u;  // +0.0f
+-  static const uint32_t code[] = {kFrsqrteSdSnV0};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  EXPECT_EQ(*reinterpret_cast<uint32_t*>(&state_.cpu.v[0]),
+-            0x7FC00000u);  // default qNaN
+-  EXPECT_EQ(reinterpret_cast<uint64_t*>(&state_.cpu.v[0])[1], 0ULL);
+-}
+-
+-// FRSQRTE Sd, Sn: -0.0f -> default qNaN.
+-TEST_F(Arm64LiteTranslateRegionTest, FrsqrteSdSn_NegZeroToQNan) {
+-  state_.cpu.v[0] = ~__uint128_t{0};
+-  *reinterpret_cast<uint32_t*>(&state_.cpu.v[0]) = 0x80000000u;  // -0.0f
+-  static const uint32_t code[] = {kFrsqrteSdSnV0};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  EXPECT_EQ(*reinterpret_cast<uint32_t*>(&state_.cpu.v[0]), 0x7FC00000u);
+-  EXPECT_EQ(reinterpret_cast<uint64_t*>(&state_.cpu.v[0])[1], 0ULL);
+-}
+-
+-// FRSQRTE Sd, Sn: -2.0f -> default qNaN (negative inputs -> NaN).
+-TEST_F(Arm64LiteTranslateRegionTest, FrsqrteSdSn_NegativeToQNan) {
+-  state_.cpu.v[0] = ~__uint128_t{0};
+-  *reinterpret_cast<uint32_t*>(&state_.cpu.v[0]) = 0xC0000000u;  // -2.0f
+-  static const uint32_t code[] = {kFrsqrteSdSnV0};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  EXPECT_EQ(*reinterpret_cast<uint32_t*>(&state_.cpu.v[0]), 0x7FC00000u);
+-  EXPECT_EQ(reinterpret_cast<uint64_t*>(&state_.cpu.v[0])[1], 0ULL);
+-}
+-
+-// FRSQRTE Sd, Sn: +inf -> +0.0f (sqrt(+inf)=+inf, 1/+inf=+0).
+-TEST_F(Arm64LiteTranslateRegionTest, FrsqrteSdSn_PosInfToPosZero) {
+-  state_.cpu.v[0] = ~__uint128_t{0};
+-  *reinterpret_cast<uint32_t*>(&state_.cpu.v[0]) = 0x7F800000u;  // +inf
+-  static const uint32_t code[] = {kFrsqrteSdSnV0};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  EXPECT_EQ(*reinterpret_cast<uint32_t*>(&state_.cpu.v[0]), 0x00000000u);
+-  EXPECT_EQ(reinterpret_cast<uint64_t*>(&state_.cpu.v[0])[1], 0ULL);
+-}
+-
+-// FRSQRTE Sd, Sn: qNaN -> default qNaN (NaN inputs map to default-NaN).
+-TEST_F(Arm64LiteTranslateRegionTest, FrsqrteSdSn_QNanToDefaultQNan) {
+-  state_.cpu.v[0] = ~__uint128_t{0};
+-  *reinterpret_cast<uint32_t*>(&state_.cpu.v[0]) = 0x7FC12345u;  // qNaN, non-default payload
+-  static const uint32_t code[] = {kFrsqrteSdSnV0};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  EXPECT_EQ(*reinterpret_cast<uint32_t*>(&state_.cpu.v[0]),
+-            0x7FC00000u);  // default qNaN payload
+-  EXPECT_EQ(reinterpret_cast<uint64_t*>(&state_.cpu.v[0])[1], 0ULL);
+-}
+-
+-// FRSQRTE Dd, Dn: 4.0d -> 0.5d (exact).
+-TEST_F(Arm64LiteTranslateRegionTest, FrsqrteDdDn_FourToHalf) {
+-  state_.cpu.v[0] = ~__uint128_t{0};
+-  *reinterpret_cast<uint64_t*>(&state_.cpu.v[0]) = 0x4010000000000000ULL;  // 4.0d
+-  static const uint32_t code[] = {kFrsqrteDdDnV0};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  EXPECT_EQ(*reinterpret_cast<uint64_t*>(&state_.cpu.v[0]),
+-            0x3FE0000000000000ULL);  // 0.5d
+-  EXPECT_EQ(reinterpret_cast<uint64_t*>(&state_.cpu.v[0])[1], 0ULL);
+-}
+-
+-// FRSQRTE Dd, Dn: 16.0d -> 0.25d (sqrt(16)=4, 1/4=0.25; exact).
+-TEST_F(Arm64LiteTranslateRegionTest, FrsqrteDdDn_SixteenToQuarter) {
+-  state_.cpu.v[0] = ~__uint128_t{0};
+-  *reinterpret_cast<uint64_t*>(&state_.cpu.v[0]) = 0x4030000000000000ULL;  // 16.0d
+-  static const uint32_t code[] = {kFrsqrteDdDnV0};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  EXPECT_EQ(*reinterpret_cast<uint64_t*>(&state_.cpu.v[0]),
+-            0x3FD0000000000000ULL);  // 0.25d
+-  EXPECT_EQ(reinterpret_cast<uint64_t*>(&state_.cpu.v[0])[1], 0ULL);
+-}
+-
+-// FRSQRTE Dd, Dn: +0.0d -> default qNaN.
+-TEST_F(Arm64LiteTranslateRegionTest, FrsqrteDdDn_PosZeroToQNan) {
+-  state_.cpu.v[0] = ~__uint128_t{0};
+-  *reinterpret_cast<uint64_t*>(&state_.cpu.v[0]) = 0x0000000000000000ULL;
+-  static const uint32_t code[] = {kFrsqrteDdDnV0};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  EXPECT_EQ(*reinterpret_cast<uint64_t*>(&state_.cpu.v[0]),
+-            0x7FF8000000000000ULL);  // default qNaN
+-  EXPECT_EQ(reinterpret_cast<uint64_t*>(&state_.cpu.v[0])[1], 0ULL);
+-}
+-
+-// FRSQRTE Dd, Dn: -1.0d -> default qNaN.
+-TEST_F(Arm64LiteTranslateRegionTest, FrsqrteDdDn_NegativeToQNan) {
+-  state_.cpu.v[0] = ~__uint128_t{0};
+-  *reinterpret_cast<uint64_t*>(&state_.cpu.v[0]) = 0xBFF0000000000000ULL;  // -1.0d
+-  static const uint32_t code[] = {kFrsqrteDdDnV0};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  EXPECT_EQ(*reinterpret_cast<uint64_t*>(&state_.cpu.v[0]),
+-            0x7FF8000000000000ULL);
+-  EXPECT_EQ(reinterpret_cast<uint64_t*>(&state_.cpu.v[0])[1], 0ULL);
+-}
+-
+-// FRSQRTE Dd, Dn: +inf -> +0.0d.
+-TEST_F(Arm64LiteTranslateRegionTest, FrsqrteDdDn_PosInfToPosZero) {
+-  state_.cpu.v[0] = ~__uint128_t{0};
+-  *reinterpret_cast<uint64_t*>(&state_.cpu.v[0]) = 0x7FF0000000000000ULL;
+-  static const uint32_t code[] = {kFrsqrteDdDnV0};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  EXPECT_EQ(*reinterpret_cast<uint64_t*>(&state_.cpu.v[0]), 0ULL);
+-  EXPECT_EQ(reinterpret_cast<uint64_t*>(&state_.cpu.v[0])[1], 0ULL);
++TEST_F(Arm64LiteTranslateRegionTest, FpEstimateScalarKnownValues) {
++  constexpr uint32_t kIoc = 1, kDzc = 2;
++  struct Case {
++    uint32_t insn;
++    uint64_t in, want;
++    uint32_t fpsr;
++  };
++  static const Case kCases[] = {
++      {kFrecpeSdSnV0, 0x3F800000, 0x3F7F8000, 0},     // 1.0f -> 0.998046875f, not 1.0f
++      {kFrecpeSdSnV0, 0x40000000, 0x3EFF8000, 0},     // 2.0f
++      {kFrecpeSdSnV0, 0x00000000, 0x7F800000, kDzc},  // +0 -> +inf
++      {kFrecpeSdSnV0, 0x80000000, 0xFF800000, kDzc},  // -0 -> -inf
++      {kFrecpeSdSnV0, 0x7F800000, 0x00000000, 0},     // +inf -> +0
++      {kFrecpeSdSnV0, 0xFF800000, 0x80000000, 0},     // -inf -> -0
++      {kFrecpeSdSnV0, 0x7FC00000, 0x7FC00000, 0},     // qNaN
++      {kFrecpeDdDnV0, 0x4000000000000000, 0x3FDFF00000000000, 0},  // 2.0
++      {kFrecpeDdDnV0, 0x4010000000000000, 0x3FCFF00000000000, 0},  // 4.0
++      {kFrecpeDdDnV0, 0x0000000000000000, 0x7FF0000000000000, kDzc},
++      {kFrecpeDdDnV0, 0x8000000000000000, 0xFFF0000000000000, kDzc},
++      {kFrecpeDdDnV0, 0x7FF0000000000000, 0x0000000000000000, 0},
++      {kFrsqrteSdSnV0, 0x40800000, 0x3EFF8000, 0},     // 4.0f
++      {kFrsqrteSdSnV0, 0x3F800000, 0x3F7F8000, 0},     // 1.0f
++      {kFrsqrteSdSnV0, 0x00000000, 0x7F800000, kDzc},  // +0 -> +inf (not NaN)
++      {kFrsqrteSdSnV0, 0x80000000, 0xFF800000, kDzc},  // -0 -> -inf
++      {kFrsqrteSdSnV0, 0xC0000000, 0x7FC00000, kIoc},  // -2.0f -> default NaN
++      {kFrsqrteSdSnV0, 0x7F800000, 0x00000000, 0},     // +inf -> +0
++      {kFrsqrteSdSnV0, 0x7FC12345, 0x7FC12345, 0},     // a quiet NaN propagates with its payload
++      {kFrsqrteDdDnV0, 0x4010000000000000, 0x3FDFF00000000000, 0},  // 4.0
++      {kFrsqrteDdDnV0, 0x4030000000000000, 0x3FCFF00000000000, 0},  // 16.0
++      {kFrsqrteDdDnV0, 0x0000000000000000, 0x7FF0000000000000, kDzc},
++      {kFrsqrteDdDnV0, 0xBFF0000000000000, 0x7FF8000000000000, kIoc},  // -1.0
++      {kFrsqrteDdDnV0, 0x7FF0000000000000, 0x0000000000000000, 0},
++  };
++  for (const Case& c : kCases) {
++    for (bool lite : {false, true}) {
++      SCOPED_TRACE(testing::Message() << std::hex << "insn=" << c.insn << " in=" << c.in << " lite=" << lite);
++      state_.cpu.v[0] = ~__uint128_t{0};
++      std::memcpy(&state_.cpu.v[0], &c.in, sizeof(c.in));
++      state_.cpu.cached_fpcr = 0;
++      state_.cpu.emulated_fpsr = 0;
++      ClearHostFpExceptions();
++      const uint32_t code[] = {c.insn};
++      if (lite) {
++        ASSERT_TRUE(RunN(code, 1, ToGuestAddr(code) + sizeof(code)));
++      } else {
++        Interpret(code[0]);
++      }
++      uint64_t lo, hi;
++      std::memcpy(&lo, &state_.cpu.v[0], 8);
++      std::memcpy(&hi, reinterpret_cast<const uint8_t*>(&state_.cpu.v[0]) + 8, 8);
++      EXPECT_EQ(lo, c.want);
++      EXPECT_EQ(hi, 0u);
++      EXPECT_EQ(state_.cpu.emulated_fpsr & 0x9f, c.fpsr);
++    }
++  }
+ }
+ 
+ // FRINTA Sd, Sn / Dd, Dn (round to nearest, ties AWAY from zero).
+@@ -13822,126 +13619,109 @@ constexpr uint32_t FrsqrteVec2D(uint8_t rd, uint8_t rn) {
+   return 0x6EE1D800u | (static_cast<uint32_t>(rn) << 5) | rd;
+ }
+ 
+-// FRECPE .4S: per-lane 1.0/x including ±0/±inf endpoints.
+-TEST_F(Arm64LiteTranslateRegionTest, FrecpeVec4SAllLanes) {
+-  const float inf = std::numeric_limits<float>::infinity();
+-  StoreVec4S(state_.cpu, 1, 2.0f, 0.0f, -0.0f, inf);
+-  static const uint32_t code[] = {FrecpeVec4S(0, 1)};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  float r[4];
+-  LoadVec4S(state_.cpu, 0, r);
+-  EXPECT_FLOAT_EQ(r[0], 0.5f);                  // 1/2 = 0.5
+-  EXPECT_EQ(r[1], inf);                          // 1/+0 = +inf
+-  EXPECT_EQ(r[2], -inf);                         // 1/-0 = -inf
+-  EXPECT_FLOAT_EQ(r[3], 0.0f);                  // 1/+inf = +0
++// FRECPE / FRSQRTE in every form (scalar S/D, vector .2S/.4S/.2D), interpreter and lite tier, against
++// guest_fp_estimate_arm64.h, which matches QEMU's implementation of the Arm pseudocode on 189,200 cases
++// (scripts/compat/digitalis/fp-estimate in OpenBook). Inputs cover every class: zeros, denormals around the
++// FRECPE overflow threshold, normals whose reciprocal is denormal, the largest normals, infinities, quiet and
++// signalling NaNs, negatives, plus pseudo-random values; vector lanes mix them, so one special lane sends the
++// whole instruction down the lite tier's out-of-line path. Each case runs under several FPCR settings and checks
++// the result, the zeroed upper bits, the untouched source and FPSR.
++TEST_F(Arm64LiteTranslateRegionTest, FpEstimateMatchesReference) {
++  struct Form {
++    uint32_t insn;  // Vd = V0, Vn = V1
++    bool rsqrt, dbl;
++    unsigned lanes;
++  };
++  static const Form kForms[] = {
++      {kFrecpeSdSnV0 | (1 << 5), false, false, 1}, {kFrecpeDdDnV0 | (1 << 5), false, true, 1},
++      {kFrsqrteSdSnV0 | (1 << 5), true, false, 1}, {kFrsqrteDdDnV0 | (1 << 5), true, true, 1},
++      {FrecpeVec4S(0, 1), false, false, 4},        {FrecpeVec2S(0, 1), false, false, 2},
++      {FrecpeVec2D(0, 1), false, true, 2},         {FrsqrteVec4S(0, 1), true, false, 4},
++      {FrsqrteVec2S(0, 1), true, false, 2},        {FrsqrteVec2D(0, 1), true, true, 2},
++  };
++  // FPCR: default, FZ, DN, FZ|DN, RP, RM, RZ.
++  static const uint32_t kFpcrs[] = {0, 1u << 24, 1u << 25, 3u << 24, 1u << 22, 2u << 22, 3u << 22};
++  auto inputs = [](bool dbl) {
++    const int f = dbl ? 52 : 23;
++    const uint64_t emax = dbl ? 0x7ff : 0xff, fmask = (uint64_t{1} << f) - 1;
++    std::vector<uint64_t> v;
++    for (uint64_t sign : {uint64_t{0}, uint64_t{1}}) {
++      for (uint64_t e : {uint64_t{0}, uint64_t{1}, uint64_t{2}, emax / 2, emax / 2 + 1, emax - 3, emax - 2,
++                         emax - 1, emax}) {
++        for (uint64_t fr : {uint64_t{0}, uint64_t{1}, fmask, uint64_t{1} << (f - 1), uint64_t{1} << (f - 2),
++                            (uint64_t{1} << (f - 2)) - 1, (uint64_t{3} << (f - 2)) + 5}) {
++          v.push_back((sign << (dbl ? 63 : 31)) | (e << f) | fr);
++        }
++      }
++    }
++    uint64_t x = 0x9E3779B97F4A7C15ull;
++    for (int i = 0; i < 200; i++) {
++      x ^= x << 13;
++      x ^= x >> 7;
++      x ^= x << 17;
++      v.push_back(dbl ? x : (x & 0xffffffff));
++    }
++    return v;
++  };
++  int cases = 0;
++  for (const Form& form : kForms) {
++    const std::vector<uint64_t> in = inputs(form.dbl);
++    const unsigned esize = form.dbl ? 8 : 4;
++    for (uint32_t fpcr : kFpcrs) {
++      for (size_t i = 0; i < in.size(); i++) {
++        uint8_t src[16];
++        std::memset(src, 0xA5, sizeof(src));
++        uint8_t want[16] = {};
++        uint32_t want_fpsr = 0;
++        for (unsigned l = 0; l < form.lanes; l++) {
++          uint64_t x = in[(i + l * 7) % in.size()];
++          uint64_t r = form.dbl ? (form.rsqrt ? arm64::FpRSqrtEstimate<64>(x, fpcr, &want_fpsr)
++                                              : arm64::FpRecipEstimate<64>(x, fpcr, &want_fpsr))
++                                : (form.rsqrt ? arm64::FpRSqrtEstimate<32>(x, fpcr, &want_fpsr)
++                                              : arm64::FpRecipEstimate<32>(x, fpcr, &want_fpsr));
++          std::memcpy(src + l * esize, &x, esize);
++          std::memcpy(want + l * esize, &r, esize);
++        }
++        for (bool lite : {false, true}) {
++          SCOPED_TRACE(testing::Message() << std::hex << "insn=" << form.insn << " fpcr=" << fpcr
++                                          << " in[0]=" << in[i] << " lite=" << lite);
++          std::memcpy(&state_.cpu.v[1], src, 16);
++          state_.cpu.v[0] = ~__uint128_t{0};
++          state_.cpu.cached_fpcr = fpcr;
++          state_.cpu.emulated_fpsr = 0;
++          ClearHostFpExceptions();
++          const uint32_t code[] = {form.insn};
++          if (lite) {
++            ASSERT_TRUE(RunN(code, 1, ToGuestAddr(code) + sizeof(code)));
++          } else {
++            Interpret(code[0]);
++          }
++          EXPECT_EQ(std::memcmp(&state_.cpu.v[0], want, 16), 0);
++          EXPECT_EQ(std::memcmp(&state_.cpu.v[1], src, 16), 0);
++          EXPECT_EQ(state_.cpu.emulated_fpsr & 0x9f, want_fpsr);
++          cases++;
++        }
++      }
++    }
++  }
++  EXPECT_GT(cases, 10000);
+ }
+ 
+-// FRECPE .2S: Q=0 upper-zero invariant.
+-TEST_F(Arm64LiteTranslateRegionTest, FrecpeVec2SUpperZero) {
+-  // Pre-trash Vd upper 64 bits with a NaN payload.
+-  StoreVec4S(state_.cpu, 0, std::nanf(""), std::nanf(""),
+-             std::nanf(""), std::nanf(""));
+-  StoreVec4S(state_.cpu, 1, 4.0f, 8.0f, 1.0f, 1.0f);
+-  static const uint32_t code[] = {FrecpeVec2S(0, 1)};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  float r[4];
+-  LoadVec4S(state_.cpu, 0, r);
+-  EXPECT_FLOAT_EQ(r[0], 0.25f);                 // 1/4
+-  EXPECT_FLOAT_EQ(r[1], 0.125f);                // 1/8
+-  // Upper 64 bits must be zero (Q=0 invariant).
+-  EXPECT_EQ(r[2], 0.0f);
+-  EXPECT_EQ(r[3], 0.0f);
+-}
+-
+-// FRECPE .2D: FP64 reciprocal.
+-TEST_F(Arm64LiteTranslateRegionTest, FrecpeVec2DAllLanes) {
+-  const double inf = std::numeric_limits<double>::infinity();
+-  StoreVec2D(state_.cpu, 1, 4.0, -0.5);
+-  static const uint32_t code[] = {FrecpeVec2D(0, 1)};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  double r[2];
+-  LoadVec2D(state_.cpu, 0, r);
+-  EXPECT_DOUBLE_EQ(r[0], 0.25);                 // 1/4
+-  EXPECT_DOUBLE_EQ(r[1], -2.0);                 // 1/-0.5
+-  (void)inf;
+-}
+-
+-// FRECPE .4S: NaN propagates.
+-TEST_F(Arm64LiteTranslateRegionTest, FrecpeVec4SNaNPropagates) {
+-  StoreVec4S(state_.cpu, 1, std::nanf(""), 1.0f, 1.0f, 1.0f);
+-  static const uint32_t code[] = {FrecpeVec4S(0, 1)};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  uint32_t r[4];
+-  std::memcpy(r, &state_.cpu.v[0], sizeof(r));
+-  // NaN propagates: result lane 0 must have NaN bit pattern (exponent
+-  // bits all 1, mantissa non-zero).
+-  EXPECT_EQ((r[0] >> 23) & 0xFF, 0xFFu);
+-  EXPECT_NE(r[0] & 0x7FFFFFu, 0u);
+-  EXPECT_FLOAT_EQ(*reinterpret_cast<float*>(&r[1]), 1.0f);
+-}
+-
+-// FRSQRTE .4S: positive lanes -> 1/sqrt; special cases (-x, +0, -0, NaN)
+-// -> default qNaN per ARM spec.
+-TEST_F(Arm64LiteTranslateRegionTest, FrsqrteVec4SMixed) {
+-  StoreVec4S(state_.cpu, 1, 4.0f, -1.0f, 0.0f, std::nanf(""));
+-  static const uint32_t code[] = {FrsqrteVec4S(0, 1)};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  uint32_t r[4];
+-  std::memcpy(r, &state_.cpu.v[0], sizeof(r));
+-  EXPECT_FLOAT_EQ(*reinterpret_cast<float*>(&r[0]), 0.5f);  // 1/sqrt(4)
+-  EXPECT_EQ(r[1], 0x7FC00000u);                  // -1 -> default qNaN
+-  EXPECT_EQ(r[2], 0x7FC00000u);                  // +0 -> default qNaN
+-  EXPECT_EQ(r[3], 0x7FC00000u);                  // NaN -> default qNaN
+-}
+-
+-// FRSQRTE .4S: -0 also returns default qNaN (not -inf).
+-TEST_F(Arm64LiteTranslateRegionTest, FrsqrteVec4SNegZero) {
+-  StoreVec4S(state_.cpu, 1, -0.0f, 16.0f, 0.25f, 1.0f);
+-  static const uint32_t code[] = {FrsqrteVec4S(0, 1)};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  uint32_t r[4];
+-  std::memcpy(r, &state_.cpu.v[0], sizeof(r));
+-  EXPECT_EQ(r[0], 0x7FC00000u);                  // -0 -> default qNaN
+-  EXPECT_FLOAT_EQ(*reinterpret_cast<float*>(&r[1]), 0.25f);   // 1/sqrt(16)
+-  EXPECT_FLOAT_EQ(*reinterpret_cast<float*>(&r[2]), 2.0f);    // 1/sqrt(0.25)
+-  EXPECT_FLOAT_EQ(*reinterpret_cast<float*>(&r[3]), 1.0f);    // 1/sqrt(1)
+-}
+-
+-// FRSQRTE .2S: Q=0 upper-zero invariant.
+-TEST_F(Arm64LiteTranslateRegionTest, FrsqrteVec2SUpperZero) {
+-  StoreVec4S(state_.cpu, 0, std::nanf(""), std::nanf(""),
+-             std::nanf(""), std::nanf(""));
+-  StoreVec4S(state_.cpu, 1, 4.0f, 16.0f, 100.0f, 100.0f);
+-  static const uint32_t code[] = {FrsqrteVec2S(0, 1)};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  float r[4];
+-  LoadVec4S(state_.cpu, 0, r);
+-  EXPECT_FLOAT_EQ(r[0], 0.5f);                  // 1/sqrt(4)
+-  EXPECT_FLOAT_EQ(r[1], 0.25f);                 // 1/sqrt(16)
+-  EXPECT_EQ(r[2], 0.0f);
+-  EXPECT_EQ(r[3], 0.0f);
+-}
+-
+-// FRSQRTE .2D: FP64 mixed positive / negative / NaN.
+-TEST_F(Arm64LiteTranslateRegionTest, FrsqrteVec2DMixed) {
+-  StoreVec2D(state_.cpu, 1, 4.0, std::nan(""));
+-  static const uint32_t code[] = {FrsqrteVec2D(0, 1)};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  uint64_t r[2];
+-  std::memcpy(r, &state_.cpu.v[0], sizeof(r));
+-  EXPECT_DOUBLE_EQ(*reinterpret_cast<double*>(&r[0]), 0.5);  // 1/sqrt(4)
+-  EXPECT_EQ(r[1], 0x7FF8000000000000ULL);                    // NaN -> qNaN
+-}
+-
+-// FRSQRTE .2D: negative input returns default qNaN.
+-TEST_F(Arm64LiteTranslateRegionTest, FrsqrteVec2DNegative) {
+-  StoreVec2D(state_.cpu, 1, -3.0, 0.0625);
+-  static const uint32_t code[] = {FrsqrteVec2D(0, 1)};
+-  EXPECT_TRUE(Run(code, ToGuestAddr(code) + sizeof(code)));
+-  uint64_t r[2];
+-  std::memcpy(r, &state_.cpu.v[0], sizeof(r));
+-  EXPECT_EQ(r[0], 0x7FF8000000000000ULL);                    // -3 -> qNaN
+-  EXPECT_DOUBLE_EQ(*reinterpret_cast<double*>(&r[1]), 4.0); // 1/sqrt(0.0625)
++// FRECPE with Vd == Vn: the lite tier writes Vd only after it has read every lane, on both of its paths.
++TEST_F(Arm64LiteTranslateRegionTest, FpEstimateVdIsVn) {
++  for (uint32_t lane1 : {0x40000000u, 0x00000000u}) {  // all lanes normal (inline path) / a zero (out of line)
++    const uint32_t lanes[4] = {0x3F800000u, lane1, 0x41200000u, 0x3E800000u};
++    std::memcpy(&state_.cpu.v[2], lanes, 16);
++    state_.cpu.cached_fpcr = 0;
++    const uint32_t code[] = {FrecpeVec4S(2, 2)};
++    ASSERT_TRUE(RunN(code, 1, ToGuestAddr(code) + sizeof(code)));
++    uint32_t r[4];
++    std::memcpy(r, &state_.cpu.v[2], 16);
++    uint32_t fpsr = 0;
++    for (int l = 0; l < 4; l++) {
++      EXPECT_EQ(r[l], arm64::FpRecipEstimate<32>(lanes[l], 0, &fpsr)) << "lane " << l;
++    }
++  }
+ }
+ 
+ // SQABS / SQNEG vector JIT (B/H/S widths, .2D bails).
+diff --git a/lite_translator/arm64_to_x86_64/lite_translator.cc b/lite_translator/arm64_to_x86_64/lite_translator.cc
+index 3998026d..ffa80eb8 100644
+--- a/lite_translator/arm64_to_x86_64/lite_translator.cc
++++ b/lite_translator/arm64_to_x86_64/lite_translator.cc
+@@ -17,14 +17,143 @@
+ #include "lite_translator.h"
+ 
+ #include <cstddef>
++#include <cstdint>
++#include <iterator>
+ 
+ #include "berberis/base/checks.h"
+ #include "berberis/base/macros.h"
+ #include "berberis/code_gen_lib/code_gen_lib.h"
++#include "berberis/guest_state/guest_fp_estimate_arm64.h"
+ #include "berberis/guest_state/guest_state.h"
+ 
+ namespace berberis {
+ 
++namespace {
++
++// FRECPE / FRSQRTE out of line, for the inputs EmitFpEstimate's inline path leaves out. desc: Rd [4:0],
++// Rn [9:5], FRSQRTE [10], double precision [11], lanes [14:12].
++void FpEstimateSlowPath(ThreadState* state, uint32_t desc) {
++  const unsigned rd = desc & 31, rn = (desc >> 5) & 31, lanes = (desc >> 12) & 7;
++  const bool is_rsqrt = desc & (1u << 10), is_double = desc & (1u << 11);
++  const uint32_t fpcr = state->cpu.cached_fpcr;
++  uint32_t fpsr = 0;
++  const __uint128_t src = state->cpu.v[rn];
++  __uint128_t res = 0;
++  for (unsigned i = 0; i < lanes; i++) {
++    if (is_double) {
++      uint64_t x = static_cast<uint64_t>(src >> (64 * i));
++      uint64_t r = is_rsqrt ? arm64::FpRSqrtEstimate<64>(x, fpcr, &fpsr) : arm64::FpRecipEstimate<64>(x, fpcr, &fpsr);
++      res |= static_cast<__uint128_t>(r) << (64 * i);
++    } else {
++      uint32_t x = static_cast<uint32_t>(src >> (32 * i));
++      uint64_t r = is_rsqrt ? arm64::FpRSqrtEstimate<32>(x, fpcr, &fpsr) : arm64::FpRecipEstimate<32>(x, fpcr, &fpsr);
++      res |= static_cast<__uint128_t>(r) << (32 * i);
++    }
++  }
++  state->cpu.v[rd] = res;
++  state->cpu.emulated_fpsr |= fpsr;
++}
++
++}  // namespace
++
++// FRECPE / FRSQRTE per the Arm ARM (guest_fp_estimate_arm64.h). Inline, per lane: the normal case, a table
++// lookup on the top fraction bits plus the result exponent, which needs neither FPCR nor FPSR (FRECPE of
++// biased exponent 1..2*bias-2, FRSQRTE of positive normals). If any lane is something else (zero, denormal,
++// infinity, NaN, a negative FRSQRTE input, an FRECPE whose result would be denormal), nothing has been written
++// yet and FpEstimateSlowPath computes the whole instruction with FPCR and FPSR. It runs as a plain call: the
++// guest V registers live in ThreadState, and the caller-saved host registers are saved around it.
++void LiteTranslator::EmitFpEstimate(bool is_rsqrt, bool is_double, unsigned lanes, uint8_t rd, uint8_t rn) {
++  SimdRegister res = AllocTempSimdReg();
++  Register tbl = AllocTempReg();
++  Register x = AllocTempReg();
++  Register t = AllocTempReg();
++  Register est = AllocTempReg();
++  if (!success()) {
++    return;
++  }
++  Assembler::Label* slow = as_.MakeLabel();
++  Assembler::Label* done = as_.MakeLabel();
++  as_.Pxor(res, res);
++  as_.Movq(tbl, reinterpret_cast<int64_t>(is_rsqrt ? arm64::kFrsqrteFastTable.data()
++                                                   : arm64::kFrecpeFastTable.data()));
++  for (unsigned i = 0; i < lanes; i++) {
++    if (!is_double) {
++      as_.Movl(x, {.base = Assembler::rbp, .disp = VRegOffset(rn) + static_cast<int32_t>(4 * i)});
++      // t = biased exponent - 1 (FRSQRTE: sign:exponent - 1, so negative inputs fail the range check too).
++      as_.Movl(t, x);
++      as_.Shrl(t, int8_t{23});
++      if (!is_rsqrt) as_.Andl(t, int32_t{0xff});
++      as_.Subl(t, int32_t{1});
++      as_.Cmpl(t, int32_t{is_rsqrt ? 253 : 251});
++      as_.Jcc(Condition::kAbove, *slow);
++      as_.Movl(est, x);
++      as_.Shrl(est, int8_t{15});
++      as_.Andl(est, int32_t{is_rsqrt ? 0x1ff : 0xff});
++      as_.Movzxbl(est, {.base = tbl, .index = est, .scale = Assembler::kTimesOne});
++      as_.Shll(est, int8_t{15});
++      as_.Negl(t);
++      if (!is_rsqrt) {
++        as_.Addl(t, int32_t{252});  // 253 - exponent
++        as_.Shll(t, int8_t{23});
++        as_.Andl(x, int32_t{INT32_MIN});  // sign
++        as_.Orl(x, t);
++      } else {
++        as_.Addl(t, int32_t{379});  // 380 - exponent, then DIV 2
++        as_.Shrl(t, int8_t{1});
++        as_.Shll(t, int8_t{23});
++        as_.Movl(x, t);
++      }
++      as_.Orl(x, est);
++      as_.Pinsrd(res, x, static_cast<int8_t>(i));
++    } else {
++      as_.Movq(x, {.base = Assembler::rbp, .disp = VRegOffset(rn) + static_cast<int32_t>(8 * i)});
++      as_.Movq(t, x);
++      as_.Shrq(t, int8_t{52});
++      if (!is_rsqrt) as_.Andl(t, int32_t{0x7ff});
++      as_.Subq(t, int32_t{1});
++      as_.Cmpq(t, int32_t{is_rsqrt ? 2045 : 2043});
++      as_.Jcc(Condition::kAbove, *slow);
++      as_.Movq(est, x);
++      as_.Shrq(est, int8_t{44});
++      as_.Andl(est, int32_t{is_rsqrt ? 0x1ff : 0xff});
++      as_.Movzxbl(est, {.base = tbl, .index = est, .scale = Assembler::kTimesOne});
++      as_.Shlq(est, int8_t{44});
++      as_.Negl(t);
++      if (!is_rsqrt) {
++        as_.Addl(t, int32_t{2044});  // 2045 - exponent
++        as_.Shlq(t, int8_t{52});
++        as_.Shrq(x, int8_t{63});  // sign
++        as_.Shlq(x, int8_t{63});
++        as_.Orq(x, t);
++      } else {
++        as_.Addl(t, int32_t{3067});  // 3068 - exponent, then DIV 2
++        as_.Shrl(t, int8_t{1});
++        as_.Shlq(t, int8_t{52});
++        as_.Movq(x, t);
++      }
++      as_.Orq(x, est);
++      as_.Pinsrq(res, x, static_cast<int8_t>(i));
++    }
++  }
++  StoreVReg(rd, res);
++  as_.Jmp(*done);
++
++  as_.Bind(slow);
++  // rax and the caller-saved registers of the allocator pool; nine pushes plus 8 bytes keep rsp 16-aligned.
++  static constexpr Register kSaved[] = {Assembler::rax, Assembler::rcx, Assembler::rdx, Assembler::rsi,
++                                        Assembler::rdi, Assembler::r8,  Assembler::r9,  Assembler::r10,
++                                        Assembler::r11};
++  for (Register r : kSaved) as_.Push(r);
++  as_.Subq(Assembler::rsp, int32_t{8});
++  as_.Movq(Assembler::rdi, Assembler::rbp);
++  as_.Movl(Assembler::rsi, static_cast<int32_t>(rd | (rn << 5) | (is_rsqrt ? 1u << 10 : 0) |
++                                                 (is_double ? 1u << 11 : 0) | (lanes << 12)));
++  as_.Call(reinterpret_cast<const void*>(&FpEstimateSlowPath));
++  as_.Addq(Assembler::rsp, int32_t{8});
++  for (int i = static_cast<int>(std::size(kSaved)) - 1; i >= 0; i--) as_.Pop(kSaved[i]);
++  as_.Bind(done);
++}
++
+ using Register = LiteTranslator::Register;
+ using Condition = LiteTranslator::Condition;
+ 
+diff --git a/lite_translator/arm64_to_x86_64/lite_translator.h b/lite_translator/arm64_to_x86_64/lite_translator.h
+index ea9abbc2..f980bf08 100644
+--- a/lite_translator/arm64_to_x86_64/lite_translator.h
++++ b/lite_translator/arm64_to_x86_64/lite_translator.h
+@@ -335,6 +335,10 @@ class LiteTranslator {
+   void StoreVReg(unsigned v, SimdRegister xmm) {
+     as_.Movdqu({.base = Assembler::rbp, .disp = VRegOffset(v)}, xmm);
+   }
++  // FRECPE / FRSQRTE, bit-exact (lite_translator.cc): `lanes` lanes of 32 or 64 bits (scalar forms: 1), the rest
++  // of Vd zeroed.
++  void EmitFpEstimate(bool is_rsqrt, bool is_double, unsigned lanes, uint8_t rd, uint8_t rn);
++
+   // Zero the upper 64 bits (Q=0 / D-register semantics).
+   void MaskLow64(SimdRegister xmm) {
+     as_.Pslldq(xmm, int8_t{8});
+diff --git a/lite_translator/arm64_to_x86_64/lite_translator_simd_scalar_two_reg_misc.inc b/lite_translator/arm64_to_x86_64/lite_translator_simd_scalar_two_reg_misc.inc
+index fa69fa89..10cc2c31 100644
+--- a/lite_translator/arm64_to_x86_64/lite_translator_simd_scalar_two_reg_misc.inc
++++ b/lite_translator/arm64_to_x86_64/lite_translator_simd_scalar_two_reg_misc.inc
+@@ -867,134 +867,11 @@
+         return;
+       }
+ 
+-      case Opcode::kFrecpe: {
+-        // FRECPE scalar: single-lane FP reciprocal estimate.  Decoder pins
+-        // bit1 of size (size ∈ {10, 11}); bit0 selects S (0) vs D (1).
+-        // Per ARM ARM C7.2.150 the result needs only ~8 bits of mantissa
+-        // precision; the exact 1.0/x computed by DIVSS / DIVSD is well
+-        // within bound.  All special-case inputs fall out of x86 IEEE-754
+-        // divide semantics natively:
+-        //   ±0   -> ±inf   (matches FRECPE FPSR.DZC behaviour)
+-        //   ±inf -> ±0
+-        //   NaN  -> NaN    (single-rounded, propagates input)
+-        // Matches Interpreter::AdvSimdScalarTwoRegMisc::kFrecpe by-result
+-        // for every input class — verified by the host exec tests.
+-        const bool is_double = ((args.size & 1) != 0);
+-        SimdRegister result_xmm = AllocTempSimdReg();
+-        SimdRegister src_xmm = AllocTempSimdReg();
+-        SimdRegister xzero = AllocTempSimdReg();
+-        Register tmp = AllocTempReg();
+-        if (result_xmm == no_simd_register || src_xmm == no_simd_register ||
+-            xzero == no_simd_register || tmp == no_register) {
+-          success_ = false; return;
+-        }
+-        // Build 1.0 in result_xmm; load src lane 0 into src_xmm; divide.
+-        if (is_double) {
+-          as_.Movq(tmp, int64_t{0x3FF0000000000000LL});  // bits of 1.0 (FP64)
+-          as_.Movq(result_xmm, tmp);
+-          as_.Movsd(src_xmm, {.base = Assembler::rbp, .disp = vn_off});
+-          as_.Divsd(result_xmm, src_xmm);
+-        } else {
+-          as_.Movl(tmp, int32_t{0x3F800000});  // bits of 1.0f (FP32)
+-          as_.Movd(result_xmm, tmp);
+-          as_.Movss(src_xmm, {.base = Assembler::rbp, .disp = vn_off});
+-          as_.Divss(result_xmm, src_xmm);
+-        }
+-        // Zero Vd, then write the scalar lane 0.
+-        as_.Pxor(xzero, xzero);
+-        as_.Movdqu({.base = Assembler::rbp, .disp = vd_off}, xzero);
+-        if (is_double) {
+-          as_.Movsd({.base = Assembler::rbp, .disp = vd_off}, result_xmm);
+-        } else {
+-          as_.Movss({.base = Assembler::rbp, .disp = vd_off}, result_xmm);
+-        }
+-        return;
+-      }
+-
++      case Opcode::kFrecpe:
+       case Opcode::kFrsqrte: {
+-        // FRSQRTE scalar: single-lane FP reciprocal-square-root estimate.
+-        // ARM ARM C7.2.155.  Decoder pins bit1 of size (size ∈ {10, 11});
+-        // bit0 selects S (0) vs D (1).
+-        //
+-        // Interpreter reference (interpreter.h kFrsqrte):
+-        //   r = (src <= 0 || isNaN(src)) ? default_qNaN : 1.0 / sqrt(src)
+-        //
+-        // The non-positive-or-NaN replacement uses the default qNaN
+-        // payload (0x7FC00000 / 0x7FF8000000000000) rather than the
+-        // input NaN — x86 SQRT/DIV would propagate the input NaN, so we
+-        // must blend it out explicitly.
+-        //
+-        // Branchless lowering: compute the normal-path 1.0/sqrt(src),
+-        // build the special-case mask (src <= 0 OR isNaN(src)), and blend
+-        // the default qNaN under the mask.
+-        //   sqrt   = SQRT(src)                  (SQRTSS / SQRTSD)
+-        //   recip  = 1.0 / sqrt                 (DIVSS / DIVSD)
+-        //   mask   = CMPLE(src, 0) | CMPUNORD(src, src)
+-        //   result = (mask & qNaN) | (~mask & recip)
+-        // Mantissa-precision requirement is only ~8 bits (same as FRECPE);
+-        // the exact 1.0/sqrt(x) computed by SQRT+DIV is well within bound
+-        // for every positive-finite input.
+-        const bool is_double = ((args.size & 1) != 0);
+-        SimdRegister src_xmm = AllocTempSimdReg();
+-        SimdRegister sqrt_xmm = AllocTempSimdReg();
+-        SimdRegister recip_xmm = AllocTempSimdReg();
+-        SimdRegister mask_xmm = AllocTempSimdReg();
+-        SimdRegister mask_nan_xmm = AllocTempSimdReg();
+-        Register tmp = AllocTempReg();
+-        if (src_xmm == no_simd_register || sqrt_xmm == no_simd_register ||
+-            recip_xmm == no_simd_register || mask_xmm == no_simd_register ||
+-            mask_nan_xmm == no_simd_register || tmp == no_register) {
+-          success_ = false; return;
+-        }
+-        if (is_double) {
+-          // src_xmm = src (memory load zero-extends to 128 bits).
+-          as_.Movsd(src_xmm, {.base = Assembler::rbp, .disp = vn_off});
+-          // sqrt_xmm = sqrt(src) at lane 0.
+-          as_.Sqrtsd(sqrt_xmm, src_xmm);
+-          // recip_xmm = 1.0 / sqrt(src).
+-          as_.Movq(tmp, int64_t{0x3FF0000000000000LL});  // bits of 1.0d
+-          as_.Movq(recip_xmm, tmp);
+-          as_.Divsd(recip_xmm, sqrt_xmm);
+-          // Build the (src <= 0) mask in mask_xmm.  Reuse sqrt_xmm as
+-          // the 0.0 source (its lane 0 contents are no longer needed).
+-          as_.Pxor(sqrt_xmm, sqrt_xmm);
+-          as_.Movdqa(mask_xmm, src_xmm);
+-          as_.Cmplesd(mask_xmm, sqrt_xmm);
+-          // Build the isNaN(src) mask in mask_nan_xmm.
+-          as_.Movdqa(mask_nan_xmm, src_xmm);
+-          as_.Cmpunordsd(mask_nan_xmm, mask_nan_xmm);
+-          // mask_xmm = (src <= 0) OR isNaN(src).
+-          as_.Por(mask_xmm, mask_nan_xmm);
+-          // Default qNaN constant into src_xmm (src is no longer needed).
+-          as_.Movq(tmp, int64_t{0x7FF8000000000000LL});
+-          as_.Movq(src_xmm, tmp);
+-        } else {
+-          as_.Movss(src_xmm, {.base = Assembler::rbp, .disp = vn_off});
+-          as_.Sqrtss(sqrt_xmm, src_xmm);
+-          as_.Movl(tmp, int32_t{0x3F800000});  // bits of 1.0f
+-          as_.Movd(recip_xmm, tmp);
+-          as_.Divss(recip_xmm, sqrt_xmm);
+-          as_.Pxor(sqrt_xmm, sqrt_xmm);
+-          as_.Movdqa(mask_xmm, src_xmm);
+-          as_.Cmpless(mask_xmm, sqrt_xmm);
+-          as_.Movdqa(mask_nan_xmm, src_xmm);
+-          as_.Cmpunordss(mask_nan_xmm, mask_nan_xmm);
+-          as_.Por(mask_xmm, mask_nan_xmm);
+-          as_.Movl(tmp, int32_t{0x7FC00000});  // default qNaN FP32
+-          as_.Movd(src_xmm, tmp);
+-        }
+-        // Blend: result_in_src_xmm = (mask & qNaN) | (~mask & recip).
+-        as_.Pand(src_xmm, mask_xmm);
+-        as_.Pandn(mask_xmm, recip_xmm);
+-        as_.Por(src_xmm, mask_xmm);
+-        // Zero Vd, then write the scalar lane 0.
+-        as_.Pxor(sqrt_xmm, sqrt_xmm);
+-        as_.Movdqu({.base = Assembler::rbp, .disp = vd_off}, sqrt_xmm);
+-        if (is_double) {
+-          as_.Movsd({.base = Assembler::rbp, .disp = vd_off}, src_xmm);
+-        } else {
+-          as_.Movss({.base = Assembler::rbp, .disp = vd_off}, src_xmm);
+-        }
++        // FRECPE / FRSQRTE scalar: the Arm ARM's bit-exact estimates (EmitFpEstimate); the decoder pins bit1
++        // of size (size in {10, 11}), bit0 selects S (0) vs D (1). The rest of Vd is zeroed.
++        EmitFpEstimate(args.opcode == Opcode::kFrsqrte, (args.size & 1) != 0, 1, args.rd, args.rn);
+         return;
+       }
+ 
+diff --git a/lite_translator/arm64_to_x86_64/lite_translator_simd_two_reg_misc.inc b/lite_translator/arm64_to_x86_64/lite_translator_simd_two_reg_misc.inc
+index 105e47ab..914e364f 100644
+--- a/lite_translator/arm64_to_x86_64/lite_translator_simd_two_reg_misc.inc
++++ b/lite_translator/arm64_to_x86_64/lite_translator_simd_two_reg_misc.inc
+@@ -509,26 +509,9 @@
+         as_.Movdqu({.base = Assembler::rbp, .disp = vd_off}, xn);
+         return;
+       }
+-      // FRECPE Vd.<T>, Vn.<T> — per-lane FP reciprocal estimate.
+-      // FRSQRTE Vd.<T>, Vn.<T> — per-lane FP reciprocal-square-root estimate.
+-      // Vector form: bit23=1 always; size=0b10 -> FP32, size=0b11 -> FP64.
+-      // FP16 form (separate encoding column, args.is_fp16==true) bails to
+-      // the interpreter; .1D (size=0b11, Q=0) is ARM-reserved.
+-      //
+-      // ARM ARM C7.2.118 / C7.2.131 require only ~8-bit mantissa precision;
+-      // the exact 1/x via DIVP{s,d} (FRECPE) and 1/sqrt(x) via SQRTP{s,d} +
+-      // DIVP{s,d} (FRSQRTE) is well within bound and matches the scalar
+-      // FRECPE/FRSQRTE lowering for endpoint consistency.
+-      //
+-      // FRECPE endpoints fall out of SSE IEEE-754 divide natively:
+-      //   ±0 -> ±inf, ±inf -> ±0, NaN -> NaN propagated.
+-      // FRSQRTE special case: ARM specifies negative/zero/NaN input returns
+-      // default qNaN, but SSE SQRT propagates NaN / writes signed inf for
+-      // ±0.  Branchless blend:
+-      //   sqrt   = SQRT(src)
+-      //   recip  = 1.0 / sqrt
+-      //   mask   = CMPLE(src, 0) | CMPUNORD(src, src)
+-      //   result = (mask & qNaN) | (~mask & recip)
++      // FRECPE / FRSQRTE Vd.<T>, Vn.<T> (FP32 .2S/.4S, FP64 .2D): the Arm ARM's bit-exact estimates, inline
++      // for normal lanes and out of line for the rest (EmitFpEstimate). The FP16 form (separate encoding
++      // column, args.is_fp16==true) bails to the interpreter; .1D (size=0b11, Q=0) is ARM-reserved.
+       case Decoder::AdvSimdTwoRegMiscOpcode::kFrecpeV:
+       case Decoder::AdvSimdTwoRegMiscOpcode::kFrsqrteV: {
+         if (args.is_fp16) { success_ = false; return; }
+@@ -537,86 +520,7 @@
+         if (is_double && !args.q) { Undefined(); return; }  // .1D reserved
+         const bool is_rsqrt =
+             (args.opcode == Decoder::AdvSimdTwoRegMiscOpcode::kFrsqrteV);
+-
+-        if (is_rsqrt) {
+-          // FRSQRTE: needs the (src <= 0 || isNaN(src)) -> qNaN blend.
+-          SimdRegister src = AllocTempSimdReg();
+-          SimdRegister sqrt_xmm = AllocTempSimdReg();
+-          SimdRegister recip = AllocTempSimdReg();
+-          SimdRegister mask_xmm = AllocTempSimdReg();
+-          SimdRegister mask_nan = AllocTempSimdReg();
+-          Register tmp = AllocTempReg();
+-          if (src == no_simd_register || sqrt_xmm == no_simd_register ||
+-              recip == no_simd_register || mask_xmm == no_simd_register ||
+-              mask_nan == no_simd_register || tmp == no_register) {
+-            success_ = false; return;
+-          }
+-          as_.Movdqu(src, {.base = Assembler::rbp, .disp = vn_off});
+-          // sqrt = SQRT(src)
+-          if (is_double) as_.Sqrtpd(sqrt_xmm, src);
+-          else           as_.Sqrtps(sqrt_xmm, src);
+-          // recip = 1.0 / sqrt(src) via broadcasted 1.0 vector.
+-          if (is_double) {
+-            as_.Movq(tmp, int64_t{0x3FF0000000000000LL});  // 1.0 (FP64)
+-            as_.Movq(recip, tmp);
+-            as_.Pshufd(recip, recip, static_cast<int8_t>(0x44));
+-            as_.Divpd(recip, sqrt_xmm);
+-          } else {
+-            as_.Movl(tmp, int32_t{0x3F800000});  // 1.0f (FP32)
+-            as_.Movd(recip, tmp);
+-            as_.Pshufd(recip, recip, static_cast<int8_t>(0x00));
+-            as_.Divps(recip, sqrt_xmm);
+-          }
+-          // sqrt_xmm is dead — reuse it as the all-zero vector for CMPLE.
+-          as_.Pxor(sqrt_xmm, sqrt_xmm);
+-          as_.Movdqa(mask_xmm, src);
+-          if (is_double) as_.Cmplepd(mask_xmm, sqrt_xmm);
+-          else           as_.Cmpleps(mask_xmm, sqrt_xmm);
+-          // mask_nan = CMPUNORD(src, src) — true lanes where src is NaN.
+-          as_.Movdqa(mask_nan, src);
+-          if (is_double) as_.Cmpunordpd(mask_nan, mask_nan);
+-          else           as_.Cmpunordps(mask_nan, mask_nan);
+-          as_.Por(mask_xmm, mask_nan);
+-          // mask_nan is dead — reuse for the broadcast qNaN.
+-          if (is_double) {
+-            as_.Movq(tmp, int64_t{0x7FF8000000000000LL});  // default qNaN
+-            as_.Movq(mask_nan, tmp);
+-            as_.Pshufd(mask_nan, mask_nan, static_cast<int8_t>(0x44));
+-          } else {
+-            as_.Movl(tmp, int32_t{0x7FC00000});  // default qNaN (FP32)
+-            as_.Movd(mask_nan, tmp);
+-            as_.Pshufd(mask_nan, mask_nan, static_cast<int8_t>(0x00));
+-          }
+-          // result = (mask_xmm & qNaN) | (~mask_xmm & recip)
+-          as_.Pand(mask_nan, mask_xmm);
+-          as_.Pandn(mask_xmm, recip);
+-          as_.Por(mask_nan, mask_xmm);
+-          if (!args.q) MaskLow64(mask_nan);
+-          as_.Movdqu({.base = Assembler::rbp, .disp = vd_off}, mask_nan);
+-          return;
+-        }
+-        // FRECPE: recip = 1.0 / src per lane. SSE DIV matches ARM endpoints.
+-        SimdRegister src = AllocTempSimdReg();
+-        SimdRegister recip = AllocTempSimdReg();
+-        Register tmp = AllocTempReg();
+-        if (src == no_simd_register || recip == no_simd_register ||
+-            tmp == no_register) {
+-          success_ = false; return;
+-        }
+-        as_.Movdqu(src, {.base = Assembler::rbp, .disp = vn_off});
+-        if (is_double) {
+-          as_.Movq(tmp, int64_t{0x3FF0000000000000LL});
+-          as_.Movq(recip, tmp);
+-          as_.Pshufd(recip, recip, static_cast<int8_t>(0x44));
+-          as_.Divpd(recip, src);
+-        } else {
+-          as_.Movl(tmp, int32_t{0x3F800000});
+-          as_.Movd(recip, tmp);
+-          as_.Pshufd(recip, recip, static_cast<int8_t>(0x00));
+-          as_.Divps(recip, src);
+-        }
+-        if (!args.q) MaskLow64(recip);
+-        as_.Movdqu({.base = Assembler::rbp, .disp = vd_off}, recip);
++        EmitFpEstimate(is_rsqrt, is_double, is_double ? 2 : (args.q ? 4 : 2), args.rd, args.rn);
+         return;
+       }
+       // SQABS Vd.<T>, Vn.<T> — per-lane saturating signed absolute value.

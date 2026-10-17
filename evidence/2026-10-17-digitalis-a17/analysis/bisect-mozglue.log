@@ -1,0 +1,30 @@
+  rule='so:libxul.so,so:libmozglue.so:0-93800' mode=lite-translate-or-interpret -> pid=6589  [lite_bail: 2 rules]
+range 0-93800
+  rule='so:libxul.so,so:libmozglue.so:0-49c00' mode=lite-translate-or-interpret -> pid=none CRASH guest_pc=0x7d0da34abda0 [lite_bail: 2 rules]
+  rule='so:libxul.so,so:libmozglue.so:49c00-93800' mode=lite-translate-or-interpret -> pid=6839  [lite_bail: 2 rules]
+range 49c00-93800
+  rule='so:libxul.so,so:libmozglue.so:49c00-6ea00' mode=lite-translate-or-interpret -> pid=none CRASH guest_pc=0x7d0da0543da0 [lite_bail: 2 rules]
+  rule='so:libxul.so,so:libmozglue.so:6ea00-93800' mode=lite-translate-or-interpret -> pid=7093  [lite_bail: 2 rules]
+range 6ea00-93800
+  rule='so:libxul.so,so:libmozglue.so:6ea00-81100' mode=lite-translate-or-interpret -> pid=7216  [lite_bail: 2 rules]
+range 6ea00-81100
+  rule='so:libxul.so,so:libmozglue.so:6ea00-77d80' mode=lite-translate-or-interpret -> pid=7333  [lite_bail: 2 rules]
+range 6ea00-77d80
+  rule='so:libxul.so,so:libmozglue.so:6ea00-733c0' mode=lite-translate-or-interpret -> pid=none CRASH guest_pc=0x7d0da40d7da0 [lite_bail: 2 rules]
+  rule='so:libxul.so,so:libmozglue.so:733c0-77d80' mode=lite-translate-or-interpret -> pid=7587  [lite_bail: 2 rules]
+range 733c0-77d80
+  rule='so:libxul.so,so:libmozglue.so:733c0-758a0' mode=lite-translate-or-interpret -> pid=none CRASH guest_pc=0x7d0d9df3fda0 [lite_bail: 2 rules]
+  rule='so:libxul.so,so:libmozglue.so:758a0-77d80' mode=lite-translate-or-interpret -> pid=7836  [lite_bail: 2 rules]
+range 758a0-77d80
+  rule='so:libxul.so,so:libmozglue.so:758a0-76b10' mode=lite-translate-or-interpret -> pid=none CRASH guest_pc=0x7d0d9f7c1da0 [lite_bail: 2 rules]
+  rule='so:libxul.so,so:libmozglue.so:76b10-77d80' mode=lite-translate-or-interpret -> pid=8088  [lite_bail: 2 rules]
+range 76b10-77d80
+  rule='so:libxul.so,so:libmozglue.so:76b10-77448' mode=lite-translate-or-interpret -> pid=8203  [lite_bail: 2 rules]
+range 76b10-77448
+  rule='so:libxul.so,so:libmozglue.so:76b10-76fac' mode=lite-translate-or-interpret -> pid=none CRASH guest_pc=0x7d0da45cada0 [lite_bail: 2 rules]
+  rule='so:libxul.so,so:libmozglue.so:76fac-77448' mode=lite-translate-or-interpret -> pid=8457  [lite_bail: 2 rules]
+range 76fac-77448
+  rule='so:libxul.so,so:libmozglue.so:76fac-771f8' mode=lite-translate-or-interpret -> pid=none CRASH guest_pc=0x7d0d9e41eda0 [lite_bail: 2 rules]
+  rule='so:libxul.so,so:libmozglue.so:771f8-77448' mode=lite-translate-or-interpret -> pid=none CRASH guest_pc=0x7d0d9ee96da0 [lite_bail: 2 rules]
+both halves needed: 76fac-771f8-77448
+RESULT libmozglue.so 76fac-77448

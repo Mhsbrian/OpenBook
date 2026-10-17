@@ -1,0 +1,74 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Sat, 17 Oct 2026 12:00:00 +0000
+Subject: [PATCH] OPENBOOK: libnativebridge: bridged apps see the bridge's
+ CPU_ABI again
+
+android17-release stopped setting android.os.Build.CPU_ABI and CPU_ABI2
+from NativeBridgeRuntimeValues (b7947b0641, "deprecated since API 21"), so
+an arm64 app on an x86_64 device sees CPU_ABI=x86_64 while its native code
+runs as arm64-v8a. Apps still use the field to pick ABI-specific files:
+Firefox (GeckoView) exports it as MOZ_ANDROID_CPU_ABI and loads
+<abi>/greprefs.js from its omnijar; an arm64-only build cannot find
+x86_64/greprefs.js, its preferences never initialise and Gecko dies at
+startup (a NULL Preferences object). Set the fields from the bridge's values
+again, as before.
+---
+ libnativebridge/native_bridge.cc | 37 ++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
+
+diff --git a/libnativebridge/native_bridge.cc b/libnativebridge/native_bridge.cc
+index 6af4d51d61..7ce07fd576 100644
+--- a/libnativebridge/native_bridge.cc
++++ b/libnativebridge/native_bridge.cc
+@@ -332,6 +332,30 @@ void PreZygoteForkNativeBridge() {
+   }
+ }
+ 
++// OpenBook: android.os.Build.CPU_ABI and CPU_ABI2 of a bridged app report the bridge's values (getAppEnv()), as
++// they did before android17-release. The fields are deprecated, but apps still use CPU_ABI to choose the
++// ABI-specific files their native code ships: Firefox (GeckoView) reads <CPU_ABI>/greprefs.js from its omnijar,
++// and an arm64-only build seeing "x86_64" there cannot load its default preferences and crashes at startup.
++static void SetCpuAbi(JNIEnv* env, jclass build_class, const char* field, const char* value) {
++  if (value != nullptr) {
++    jfieldID field_id = env->GetStaticFieldID(build_class, field, "Ljava/lang/String;");
++    if (field_id == nullptr) {
++      env->ExceptionClear();
++      ALOGW("Could not find %s field.", field);
++      return;
++    }
++
++    jstring str = env->NewStringUTF(value);
++    if (str == nullptr) {
++      env->ExceptionClear();
++      ALOGW("Could not create string %s.", value);
++      return;
++    }
++
++    env->SetStaticObjectField(build_class, field_id, str);
++  }
++}
++
+ // Set up the environment for the bridged app.
+ static void SetupEnvironment(const NativeBridgeCallbacks* cbs, JNIEnv* env, const char* isa) {
+   // Need a JNIEnv* to do anything.
+@@ -355,6 +379,19 @@ static void SetupEnvironment(const NativeBridgeCallbacks* cbs, JNIEnv* env, cons
+     return;
+   }
+ 
++  // Reset CPU_ABI & CPU_ABI2 to values required by the apps running with native bridge.
++  if (env_values->cpu_abi != nullptr || env_values->cpu_abi2 != nullptr) {
++    jclass bclass_id = env->FindClass("android/os/Build");
++    if (bclass_id != nullptr) {
++      SetCpuAbi(env, bclass_id, "CPU_ABI", env_values->cpu_abi);
++      SetCpuAbi(env, bclass_id, "CPU_ABI2", env_values->cpu_abi2);
++    } else {
++      // For example in a host test environment.
++      env->ExceptionClear();
++      ALOGW("Could not find Build class.");
++    }
++  }
++
+   if (env_values->os_arch != nullptr) {
+     jclass sclass_id = env->FindClass("java/lang/System");
+     if (sclass_id != nullptr) {

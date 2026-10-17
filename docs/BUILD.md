@@ -164,6 +164,24 @@ COMPAT_AVD=anybook-digitalis COMPAT_EMU_ARGS=-writable-system scripts/compat/run
 - `install.sh` wipes and reinstalls every time, because a data wipe drops the overlay. The libndk_translation AVD `anybook-desktop` is never modified.
 - Details and results are in `docs/digitalis.md`.
 
+## ARM compat: Digitalis as our built-in bridge on Android 17 (ANAL-200)
+
+The bridge is part of both products. `scripts/aosp-patches.sh` (which `aosp-build.sh` runs) imports the fork into `frameworks/libs/binary_translation` from `aosp/patches/frameworks/libs/binary_translation/IMPORT` and applies our patches, plus the ART patch in `aosp/patches/art/`.
+
+```bash
+scripts/aosp-docker.sh /repo/scripts/aosp-build.sh anybook_cf_x86_64_pc-cp2a-userdebug droid berberis_arm64_host_tests
+scripts/aosp-docker.sh bash -c 'cd /aosp/src/out/host/linux-x86/nativetest64/berberis_arm64_host_tests && ./berberis_arm64_host_tests --gtest_brief=1'
+COMPAT_TARGET=cf scripts/compat/run-matrix.sh -o <dir>        # our Cuttlefish build (scripts/compat/cf.sh up|down|status)
+COMPAT_TARGET=cf scripts/compat/run-bench.sh -o <dir>
+scripts/compat/digitalis/fp-estimate.sh build && scripts/compat/digitalis/fp-estimate.sh reference
+COMPAT_TARGET=cf scripts/compat/digitalis/fp-estimate.sh device -o <dir>   # FRECPE/FRSQRTE vs QEMU, every tier
+python3 -I scripts/compat/digitalis/audit-shipped.py out/target/product/<device> <dir>   # what ships, licenses
+scripts/compat/digitalis/bundle.sh && scripts/compat/digitalis/install.sh ~/anybook/digitalis/bundle-a17   # A17 bridge on the emulator AVD
+```
+
+- Adding the bridge to an existing `out/` took 11 min 35 s at `-j28`, and the container's memory peaked at 57.7 GB.
+- On a device or the live image, `su 0 openbook-hwtest bridge` checks it (`docs/digitalis.md`, "On the G14").
+
 ## M2: OpenBook desktop product and host-GPU Cuttlefish (ANAL-169)
 
 ```bash

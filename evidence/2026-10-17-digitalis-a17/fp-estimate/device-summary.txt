@@ -1,0 +1,35 @@
+device: AnyBook/anybook_cf_x86_64_pc/anybook_vsoc_x86_64:17/CP2A.260605.016/eng.builde:userdebug/test-keys bridge=libberberis_arm64.so
+reference: qemu-aarch64 version 11.1.2, 154000 lines, 2000 random inputs per form
+two-gear: 154000 lines, 0 differ from the reference
+      15400 frecpe_2d
+      15400 frecpe_4s
+      15400 frecpe_d
+      15400 frecpe_s
+      15400 frsqrte_2d
+      15400 frsqrte_4s
+      15400 frsqrte_d
+      15400 frsqrte_s
+      15400 urecpe_4s
+      15400 ursqrte_4s
+lite-translate-or-interpret: 154000 lines, 0 differ from the reference
+      15400 frecpe_2d
+      15400 frecpe_4s
+      15400 frecpe_d
+      15400 frecpe_s
+      15400 frsqrte_2d
+      15400 frsqrte_4s
+      15400 frsqrte_d
+      15400 frsqrte_s
+      15400 urecpe_4s
+      15400 ursqrte_4s
+interpret-only: 154000 lines, 0 differ from the reference
+      15400 frecpe_2d
+      15400 frecpe_4s
+      15400 frecpe_d
+      15400 frecpe_s
+      15400 frsqrte_2d
+      15400 frsqrte_4s
+      15400 frsqrte_d
+      15400 frsqrte_s
+      15400 urecpe_4s
+      15400 ursqrte_4s

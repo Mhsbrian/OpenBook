@@ -16,6 +16,9 @@ $(call inherit-product, device/anybook/common/graphics-amd/graphics-amd.mk)
 
 PRODUCT_PACKAGES += anybook_cf_display_settings.xml
 
+# arm64 apps through the Digitalis native bridge, as on the PC products (ANAL-200).
+$(call inherit-product, device/anybook/common/native-bridge/native-bridge.mk)
+
 # Desktop-first on the VM's only display. On real laptops WM Shell's DesktopDisplayModeController switches
 # the internal display to freeform by itself (touchpad plus physical keyboard, or a lid device state); the
 # VM has neither, so this uses the same property Google's desktop emulator image sets.

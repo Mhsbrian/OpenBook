@@ -15,7 +15,7 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 - **Track B** (ANAL-165): whether to go past research with Google's proprietary image (`docs/PLAN.md` §6).
 - **Mesa libelf licensing** (ANAL-173): libelf is LGPL-3.0+. Since ANAL-174, the image build ships it as a shared `libelf_mesa.so` (the recommended option), and `LIBELF=static` restores the static link (`docs/mesa.md`).
 - **amd-pmf** (ANAL-171): it needs `ccp.ko` with SEV, which calls `kernel_read`/`kernel_write` from GKI's deny list. Options are in `docs/kernel.md`.
-- **Digitalis upstream report** (ANAL-181/200): OK to report the Fennec, `MRS` and `FRECPE` findings to DigitalisX64? That is an outward-facing action.
+- **Upstream reports for the arm64 bridge** (ANAL-181/200): OK to report the `MRS` and `FRECPE` fixes to DigitalisX64, and the Android 17 `Build.CPU_ABI` regression (art `b7947b0641`, the real cause of the Fennec crash) to AOSP? Both are outward-facing; the patches stay in this repo until then (`docs/digitalis.md`).
 - **Device-in-the-loop** (ANAL-194): install the Multica daemon on the G14's current Linux when ready (`docs/PLAN.md` §4a).
 - **G14 hardware-check stick** (optional, owner): `scripts/installer/make-hwcheck-stick.sh` builds a USB image. It boots our kernel, drivers and firmware on the laptop, writes a report and the kernel log to the stick, and powers off without touching internal disks (`docs/installer.md` §2.7). Writing the stick needs you to name the exact USB device.
 - **Next G14 stick: `openbook-live-20261017-anal178b`.** One stick covers ANAL-176, ANAL-178 and ANAL-179, and it supersedes `audionet3` and `desktop4`. It passes 39/39 in QEMU, and its sha256 is in `evidence/2026-10-17-power-input/anal178b/`. Write it with `write-stick.sh`, naming the exact `/dev/disk/by-id/` device. Then:
@@ -26,7 +26,7 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
   Reply "stick attached" on those issues afterwards.
 
 **Lanes on the dev host** (the 7950X has 61 GB RAM; an AOSP build peaks at about 41 GiB):
-- **AOSP lane**, one builder at a time in `~/anybook/aosp/src`: ✓ ANAL-174 (PR #23), ✓ ANAL-199 (PR #35), ✓ ANAL-176 (PRs #39 and #42), ✓ ANAL-179 (PR #43, Wi-Fi/BT/audio), ✓ ANAL-178's Android side (PR #41). ANAL-200 comes next. Builds take `flock ~/anybook/aosp/.lane.lock` (PR #42: `aosp-docker.sh` takes and keeps it for `aosp-build.sh`, which refuses otherwise; `installer-image.sh` holds it for its `PRODUCT_OUT` snapshot). The VM product's device is now `anybook_vsoc_x86_64`, so boot it with `CF_DEVICE=anybook_vsoc_x86_64`.
+- **AOSP lane**, one builder at a time in `~/anybook/aosp/src`: ✓ ANAL-174 (PR #23), ✓ ANAL-199 (PR #35), ✓ ANAL-176 (PRs #39 and #42), ✓ ANAL-179 (PR #43, Wi-Fi/BT/audio), ✓ ANAL-178's Android side (PR #41), ✓ ANAL-200 (PR #46, in review). The lane is free. Builds take `flock ~/anybook/aosp/.lane.lock` (PR #42: `aosp-docker.sh` takes and keeps it for `aosp-build.sh`, which refuses otherwise; `installer-image.sh` holds it for its `PRODUCT_OUT` snapshot). The VM product's device is now `anybook_vsoc_x86_64`, so boot it with `CF_DEVICE=anybook_vsoc_x86_64`.
 - **Kernel lane:** ✓ ANAL-198 (PR #26). The G14 images and firmware are ready for ANAL-199, and the lane is free.
 - **Light lanes:** ✓ ANAL-189 (design and QEMU boot-chain prototype in PRs #22 and #25: high-fidelity wizard design, OpenBook naming, quiet boot, G14 hardware-check stick; awaiting sign-off) and ✓ ANAL-187 (research delivered; its dGPU-off default feeds ANAL-199 and ANAL-176).
 - **Hand-offs:** condition wakeups on ANAL-159 promote each next step as soon as its dependencies reach review with a merged PR.
@@ -38,7 +38,7 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 | ANAL-160 Track A: AOSP 17 desktop boots in a VM | ✓ ANAL-167 build env (PR #5) | ✓ ANAL-168 `aosp_cf_x86_64_pc-cp2a` boots in Cuttlefish (PR #9) | ✓ ANAL-169 desktop windowing on the host GPU (PR #14) | — |
 | ANAL-161 AMD GKI kernel (android17-6.18) | ✓ ANAL-170 stock GKI reproduced (PR #4) | ✓ ANAL-171 AMD config, 138 vendor modules (PR #8) | ✓ ANAL-172 our kernel boots our userspace (PR #12) | ✓ ANAL-198 bare-metal packaging: first-stage NVMe and USB boot, vendor_boot, dlkm images, firmware (PR #26) |
 | ANAL-162 AMD graphics userspace | ✓ ANAL-173 Mesa radeonsi/RADV for Android (PR #3) | ✓ ANAL-174 AMD graphics in the tree, boot-time HAL selection (PR #23) | ⏸ ANAL-177 dEQP/CTS on the G14 | — |
-| ANAL-164 ARM compat and native bridge | ✓ ANAL-180 harness and baseline (PR #6) | ✓ ANAL-181 Digitalis: GO with conditions (PR #11) | ▶ ANAL-200 Digitalis on Android 17 as our bridge (owns the AOSP lane since 2026-10-17) | — |
+| ANAL-164 ARM compat and native bridge | ✓ ANAL-180 harness and baseline (PR #6) | ✓ ANAL-181 Digitalis: GO with conditions (PR #11) | ▶ ANAL-200 Digitalis on Android 17 ships in both products, 14/16 arm64-only apps (PR #46, in review) | — |
 | ANAL-163 Bare metal on the G14 (GA403WR) | ✓ ANAL-175 inventory and full driver map (PRs #8, #16; the owner's root run is processed too: dGPU `10de:2f58`, panel ATNA40CU05-0, speaker tuning found) | ✓ ANAL-199 G14 product `anybook_g14_x86_64`: USB GPT image, `boot_completed` in QEMU/OVMF, SELinux enforcing (PR #35) | ✓ ANAL-176 G14 desktop from USB (PRs #39, #42). The desktop was reached on the G14 in "save logs" boots; the enforcing entry is next on the `anal178b` stick | ✓ ANAL-178 input and power (PR #41; the S0i3 root cause needs the owner's stick run), ✓ ANAL-179 Wi-Fi, BT and audio (PR #43; G14 run pending) |
 | ANAL-188 USB installer (M8) | ✓ ANAL-189 design and boot-chain prototype (PR #22): systemd-boot recommended, GRUB fallback; **awaiting owner sign-off** | ✓ ANAL-190 live USB image (PR #34): QEMU 38/39; booted on the G14 by the owner (`evidence/2026-10-16-installer/g14-live/`) | ⏸ ANAL-191 wizard | ⏸ ANAL-192 end-to-end tests |
 | **ANAL-193 Device-in-the-loop on the G14 (§4a)** | ⏸ ANAL-194 runtime and agent on G14 Linux (owner installs the daemon) | ⏸ ANAL-195 Zen 5 validation in KVM | ⏸ ANAL-196 dual-boot test cycle | ⏸ ANAL-197 runtime on installed OpenBook |
@@ -55,6 +55,20 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 6. ANAL-197: the runtime on the device.
 
 ## History
+
+### 2026-10-17: ARM compat, Digitalis is our Android 17 bridge (ANAL-200)
+- **Done** (`docs/digitalis.md`): Digitalis is built from source in our A17 tree and ships in both products. The A17 guest NDK closes the API gap. Three fixes:
+  - `MRS` ID registers emulated as Linux does (Tor VPN runs);
+  - bit-exact `FRECPE`/`FRSQRTE`;
+  - the Fennec crash, which was Android 17 no longer setting `Build.CPU_ABI` for bridged apps (ART patch). arm64 Firefox renders pages.
+- **Evidence** (`evidence/2026-10-17-digitalis-a17/`):
+  - 14/16 arm64-only apps on our Cuttlefish build (libndk_translation 13/16), in two identical runs;
+  - CoreMark 0.394/0.399 there; in the same emulator, 0.300 against libndk_translation's 0.457;
+  - 0 `FRECPE` mismatches against QEMU;
+  - host tests 3,761/3,763 (2 skipped);
+  - shipped-file audit: 89 files, built from source;
+  - the G14 live image's `bridge_*` verdicts all pass in QEMU.
+- **Next:** `bridge_*` verdicts, probe and CoreMark on the G14; upstream reports after the owner's OK.
 
 ### 2026-10-17: Power and input, Android side built: health HAL, lid config in force, one stick for all G14 tests (ANAL-178)
 - **Done:** an OpenBook health HAL (the ACPI battery's charge counter and state of health; Android showed health "unknown"); the lid, power-button and hotkey pieces built and checked in a booted image; save logs records the touchpad's HID descriptors and raw events for the "Clock changed backwards" errors ANAL-176 handed on, and `service list` no longer stalls the capture.

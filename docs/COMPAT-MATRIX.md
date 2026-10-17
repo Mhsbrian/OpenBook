@@ -9,6 +9,8 @@
 | 2026-10-16 | Our build: `aosp_cf_x86_64_pc-cp2a-userdebug`, Android 17 `CP2A.260605.016`, prebuilt android16-6.12 GKI | Cuttlefish (cvd 1.57.0) in Docker, KVM, Ryzen 9 7950X, `guest_swiftshader` | **Boots** (`boot_completed` 17–29 s); Launcher3 at 1920×1080; `type.pc` present; abilist lists `arm64-v8a` but there is **no native bridge** | `evidence/2026-10-16-aosp/` |
 | 2026-10-17 | Our build: `anybook_g14_x86_64-cp2a-userdebug` with ANAL-179's audio, Wi-Fi and Bluetooth stack | QEMU 11.1.2, KVM, q35 + OVMF from USB; ICH9 HDA with QEMU's duplex codec; 2× `mac80211_hwsim`, hostapd AP in a netns | **Works in the VM:** codec found and unmuted, a 1 kHz tone reaches the codec through ALSA and through AudioFlinger; Wi-Fi scan, WPA2-PSK connect, DHCP, gateway ping, iperf3 742/644 Mbit/s up/down; Bluetooth HAL up, no controller in a VM. G14 untested | `evidence/2026-10-17-g14-audio-net/` |
 | 2026-10-16 | Our build: `anybook_cf_x86_64_pc-cp2a-userdebug` (desktop product), Android 17 `CP2A.260605.016` | Cuttlefish (cvd 1.57.0) in Docker, KVM, Ryzen 9 7950X; `gfxstream_guest_angle` on the **Radeon 610M** (RADV) | **Boots** (17 s) straight to the desktop: freeform windows, pinned desktop taskbar, desktop status bar; matches the AOSP Desktop image (0 desktop flag or prop differences); 0% janky frames scrolling Settings | `evidence/2026-10-16-desktop/` |
+| 2026-10-17 | Our build: `anybook_cf_x86_64_pc-cp2a-userdebug` with the Digitalis arm64 bridge (ANAL-200) | Cuttlefish (cvd 1.57.0) in Docker, KVM, Ryzen 9 7950X, 6 vCPUs, `guest_swiftshader` | **arm64 apps run:** `ro.dalvik.vm.native.bridge=libberberis_arm64.so`, abilist `x86_64,arm64-v8a`, 57 guest libraries, binfmt_misc on; 14/16 arm64-only apps alive in two runs | `evidence/2026-10-17-digitalis-a17/` |
+| 2026-10-17 | Our build: `anybook_g14_x86_64-cp2a-userdebug` live image with the Digitalis bridge (ANAL-200) | QEMU 11.1.2, KVM `-cpu host`, q35 + OVMF from USB | **Bridge checks pass in the VM:** all five `bridge_*` verdicts true (config, arm64 exec, ID registers, 6,900 `FRECPE`/`FRSQRTE` cases, CRC32/NEON). G14 untested | `evidence/2026-10-17-digitalis-a17/g14-live-qemu/` |
 
 ## ARM-only APKs
 
@@ -20,7 +22,7 @@ The first baseline is libndk_translation in the AOSP Desktop (Preview) 37.0 emul
 | OpenBook probe | armeabi-v7a | — | **Install fails** | **Install fails** | `INSTALL_FAILED_NO_MATCHING_ABIS`: the image is 64-bit only |
 | OpenBook probe, on our AOSP build without a bridge (ANAL-168) | arm64-v8a | — | — | — | **Installs, then fails:** `dlopen ... is for EM_AARCH64`. The abilist advertises `arm64-v8a`, but no translator ships (`evidence/2026-10-16-aosp/boot1/arm64-probe-check.txt`) |
 | VLC 3.7.1 | arm64-v8a | — | Runs | Runs | x86_64 control runs |
-| Fennec F-Droid 158.0.0 | arm64-v8a | — | Runs | **Crash** | x86_64 control runs; launch 690 ms vs 190 ms. Under Digitalis, a Gecko thread hits a NULL+8 SIGSEGV that Berberis's handler catches (no tombstone, so the harness reports EXITED) |
+| Fennec F-Droid 158.0.0 | arm64-v8a | — | Runs | **Crash** | x86_64 control runs; launch 690 ms vs 190 ms. Under Digitalis, a Gecko thread hits a NULL+8 SIGSEGV that Berberis's handler catches (no tombstone, so the harness reports EXITED). ANAL-200: both come from Android 17 no longer setting `Build.CPU_ABI` for bridged apps; under ndk_translation only the Java UI runs and Gecko spins at 100% CPU (`docs/digitalis.md`) |
 | KOReader v2026.07.1 | arm64-v8a | — | Runs | Runs | LuaJIT |
 | Lichess 0.29.1 | arm64-v8a | — | Runs | Runs | Flutter; x86_64 control runs |
 | LocalSend 1.18.2 | arm64-v8a | — | Runs | Runs | Flutter + Rust; x86_64 control runs |
@@ -39,6 +41,32 @@ The first baseline is libndk_translation in the AOSP Desktop (Preview) 37.0 emul
 Benchmark: CoreMark translated arm64 / native x86_64 = 0.457 for executables and 0.453 inside an app, in the same emulator (`evidence/2026-10-15-compat/bench/`).
 
 Same-day re-run on a quiet host (2026-10-16): libndk_translation 0.452 / 0.456 and **Digitalis 0.298 / 0.304** (`evidence/2026-10-16-digitalis/bench-ndk/`, `bench/`). Digitalis runs at about two thirds of libndk_translation's speed. arm64-only apps alive at 15 s: libndk_translation 13/16, Digitalis 12/16 (Digitalis loses Fennec).
+
+### Our build with Digitalis (2026-10-17, ANAL-200)
+
+`anybook_cf_x86_64_pc-cp2a-userdebug` with Digitalis ported to Android 17 and the three ANAL-200 fixes, in Cuttlefish with the same resources, corpus and harness. There were two wiped-data runs with identical outcomes (`evidence/2026-10-17-digitalis-a17/run1/`, `run2/`, `repro-check.txt`). Details are in `docs/digitalis.md`.
+
+| App | ABI | Our build (Digitalis A17) | Notes |
+|---|---|---|---|
+| OpenBook probe | arm64-v8a | Runs; 18/20 test groups pass | Still fails the x86 NaN rules (`isa`) and the SIGILL `si_code` (`signals`); `MRS`, `FRECPE` and the new `regress` group pass |
+| VLC, KOReader, Lichess, LocalSend, Godot, Ogre, Wesnoth, OsmAnd, GCompris, TIC-80, Tux Paint | arm64-v8a | Runs | Same as both bridges on Google's image |
+| SimpleX Chat 7.0.4 | arm64-v8a | Runs (caveat) | Window still black at 15 s, as under both bridges |
+| Fennec F-Droid 158.0.0 | arm64-v8a | **Runs** | Gecko starts and renders a page with JavaScript (`fennec-gecko/`) |
+| Tor VPN Beta 1.9.1 | arm64-v8a | **Runs** | `MRS` of the ID registers is emulated as Linux does it |
+| AAAAXY 1.7.239 | arm64-v8a | Crash | Same as the x86_64 control |
+| Element X 26.09.1 | arm64-v8a | Crash | `JNI_GetCreatedJavaVMs`, as under both bridges |
+
+arm64-only apps alive at 15 s: **14/16**.
+
+CoreMark, translated arm64 / native x86_64 (600k iterations, 3 interleaved rounds, quiet host, 2026-10-17):
+
+| Bridge, image, VM | Executable | In an app | Evidence (`evidence/2026-10-17-digitalis-a17/`) |
+|---|---|---|---|
+| Digitalis A17, our build, Cuttlefish | **0.394** | **0.399** | `bench/` |
+| Digitalis A17 as an overlay, Google's image, emulator | 0.300 | 0.298 | `emulator-overlay/bench/` |
+| libndk_translation, Google's image, emulator | 0.457 | 0.456 | `bench-ndk/` |
+
+In the same VM, Digitalis runs at about 65% of libndk_translation's speed. The higher figure on our build is a different VM. HYPOTHESIS: Cuttlefish passes AVX2, BMI and FMA to the guest and the emulator does not.
 
 ## Graphics drivers
 

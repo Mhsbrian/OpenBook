@@ -12,6 +12,7 @@
 #   CF_IMAGE=cuttlefish-orchestration:1.56.0 (pinned)  CF_ADB_PORT=16520  CF_WEBRTC_PORT=11443 (127.0.0.1 only)
 #   CF_HOST_TOOLS=packaged (cvd's Debian host tools, Google's default) | build (our out/host tools)
 #   CF_LOGS=~/anybook/logs/aosp/cf-<ts> (cf-latest links to it)  CF_ARGS (extra launch_cvd flags, appended)  CF_KEEP=1 skips `down` in `all`
+#   CF_CPUS=4  CF_MEMORY_MB=8192
 #   CF_GPU_MODE=guest_swiftshader (-> --gpu_mode: drm_virgl, gfxstream, gfxstream_guest_angle, ...)
 #   CF_GPU=none (no host GPU) | amd (pass the AMD render node, Mesa radeonsi/RADV in the container) |
 #          nvidia (pass /dev/nvidia* and bind-mount the host's NVIDIA userspace from CF_NVIDIA_LIBDIR, default
@@ -90,9 +91,11 @@ up(){
   cx sh -c "mkdir -p $C_HOST && tar -xzf $C_PKG -C $C_HOST"
   if [ "${CF_HOST_TOOLS:-packaged}" = build ]; then cx rm -f "$C_HOST/etc/debian_substitution_marker"; fi
   stamp "host tools: ${CF_HOST_TOOLS:-packaged}"
-  # Defaults for the PC product: a laptop-sized display, 4 vCPUs, 8 GiB. The GPU mode is CF_GPU_MODE.
+  # Defaults for the PC product: a laptop-sized display, 4 vCPUs (CF_CPUS), 8 GiB (CF_MEMORY_MB). The GPU mode is
+  # CF_GPU_MODE.
   # shellcheck disable=SC2206  # CF_ARGS is a flag list, split on purpose
-  local args=(--x_res=1920 --y_res=1080 --dpi=160 --gpu_mode="${CF_GPU_MODE:-guest_swiftshader}" --cpus=4 --memory_mb=8192
+  local args=(--x_res=1920 --y_res=1080 --dpi=160 --gpu_mode="${CF_GPU_MODE:-guest_swiftshader}" --cpus="${CF_CPUS:-4}"
+              --memory_mb="${CF_MEMORY_MB:-8192}"
               --report_anonymous_usage_stats=n ${CF_ARGS:-})
   stamp "cvd create --host_path=$C_HOST --product_path=$C_PROD ${args[*]}"
   local t0; t0=$(date +%s)

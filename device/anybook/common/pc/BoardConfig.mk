@@ -17,8 +17,8 @@ TARGET_ARCH_VARIANT := silvermont
 TARGET_CPU_ABI := x86_64
 TARGET_BOARD_PLATFORM := openbook_pc
 TARGET_BOOTLOADER_BOARD_NAME := openbook
-# No native bridge yet: the ABI list stays x86_64 until ANAL-200 ships a translator, so arm64-only apps are not
-# offered and then fail to load (ANAL-168).
+# arm64 apps run through the Digitalis native bridge (pc.mk inherits native-bridge.mk; ANAL-200).
+include device/anybook/common/native-bridge/BoardConfig.mk
 
 # ---------------------------------------------------------------- kernel and boot images
 ifeq ($(wildcard $(OPENBOOK_KERNEL_DIR)/bzImage),)

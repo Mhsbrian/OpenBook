@@ -1,0 +1,24 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Sat, 17 Oct 2026 12:00:00 +0000
+Subject: [PATCH] OPENBOOK: android17: build with Android 17's clang
+
+clang-r584948b (android17-release) reports an unused variable that the
+android16-qpr2 toolchain did not, and berberis builds with -Werror.
+---
+ interpreter/arm64/interpreter.h | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/interpreter/arm64/interpreter.h b/interpreter/arm64/interpreter.h
+index ca9b4a2e..ee578f8d 100644
+--- a/interpreter/arm64/interpreter.h
++++ b/interpreter/arm64/interpreter.h
+@@ -3996,8 +3996,6 @@ class Interpreter {
+   void LoadStoreExclusive(const Decoder::LoadStoreExclusiveArgs& args, Register base) {
+     CHECK(!exception_raised_);
+     void* host_addr = ToHostAddr<void>(ApplyTbi(base));
+-    bool need_write = (args.op != Decoder::AtomicOp::kLdxr &&
+-                       args.op != Decoder::AtomicOp::kLdar);
+     // Atomic ops use __atomic builtins which handle their own faults via
+     // the registered FaultyLoad/FaultyStore recovery code addresses.
+ 

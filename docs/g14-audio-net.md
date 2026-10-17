@@ -63,6 +63,7 @@ In QEMU there is no controller: the HAL starts, logs "waiting for hci interface 
 | `openbook-audio-test` | the same through Android (AAudio → AudioFlinger → HAL), i.e. what apps get |
 | live stick, "save logs" entries | `openbook-live-init` runs `openbook-hwtest` in its final capture (`hwtest-final.txt`, `hwtest_rc` in `summary.json`), with settings from `openbook/hwtest.conf` on the stick's ESP (`iperf3_server=…`; letters, digits and `.:_-` only; never credentials) |
 | `live-report.py` | turns the `HWTEST` lines into verdicts: `wifi_regulatory`, `wifi_scan`, `wifi_connected`, `wifi_dhcp`, `wifi_gateway_ping`, `wifi_internet`, `wifi_iperf3`, `bt_enabled`, `bt_paired`, `audio_card`, `audio_loopback_alsa`, `audio_loopback_android` |
+| `openbook-hwtest bridge` (ANAL-200) | the arm64 native bridge: its configuration, then `/system/bin/arm64/openbook_bridge_check` through the translator. Verdicts `bridge_config`, `bridge_exec`, `bridge_id_registers`, `bridge_fp_estimates`, `bridge_int_simd`; `all` runs it first (`docs/digitalis.md`) |
 | `scripts/audio-net-qemu.sh` | the QEMU rig (§8): an HDA card recorded to a WAV file, and two `mac80211_hwsim` radios with an access point on one |
 
 The tone counts as heard when 1 kHz comes back at least 20 dB above its level before the tone and carries at least a fifth of the energy, averaged over 50 ms slices; slices under 90% are counted as glitches (`glitched_slices`), which is how dropped buffers show (`openbook_audio_logic_test`, 8 host tests, C).
