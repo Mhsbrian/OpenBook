@@ -142,13 +142,21 @@ PRODUCT_PRODUCT_PROPERTIES += \
     bluetooth.profile.pan.panu.enabled=true
 
 # userdebug: the checks the live image's "save logs" entry runs (openbook-hwtest) and their tools.
+# stagefright decodes a file through MediaCodec and the Codec2 software codecs, the path NuPlayer takes for
+# ringtones (`stagefright -a -D out.pcm file.ogg`; ANAL-198's media check).
 PRODUCT_PACKAGES_DEBUG += \
     openbook-hwtest \
     openbook-audio-test \
+    stagefright \
     tinycap \
     tinymix \
     tinypcminfo \
     tinyplay
+
+# Codec2: use the AIDL HAL, as Cuttlefish, the emulator and dragonboard do. Clients default to HIDL, and this product
+# runs no hwservicemanager, so MediaCodecList saw only the in-process __ApexCodecs__ store (AAC) and had no Vorbis,
+# MP3 or video decoder: the G14's "Failed to create audio/vorbis decoder" (ANAL-198 follow-up).
+PRODUCT_VENDOR_PROPERTIES += media.c2.hal.selection=aidl
 
 PRODUCT_VENDOR_PROPERTIES += \
     ro.logd.size=1M \
