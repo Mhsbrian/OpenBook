@@ -102,7 +102,7 @@ What is still unknown is whether the default, enforcing entry reaches the deskto
 4. Then boot **"save logs"** once (↓ once, Enter). It brings back the logs of the boots before it (`prior-boots.tar.gz`: logcat with the kernel log, tombstones, ANR traces, dropbox), not only its own. It still powers off by itself about 45 s after the desktop appears. That is the design of this entry (ANAL-190 is changing it), not a crash.
 5. Plug the stick into the PC and reply "stick attached" with the photos and notes. The agent reads it read-only (`scripts/installer/read-stick-logs.sh`, `live-report.py`, `avc-summary.py`).
 
-**B. Next image, `openbook-live-20261017-desktop4`**: `desktop3` plus the Launcher3 Escape fix, and APEXes shipped uncompressed so a freshly written stick no longer spends ~34 s decompressing them before anything shows (§10). Its QEMU results are in `evidence/2026-10-17-g14-desktop/desktop4/`. Writing erases the stick; `write-stick.sh` first copies the reports on it to `~/anybook/installer/stick-backup/`:
+**B. Next image, `openbook-live-20261017-desktop4`**: `desktop3` plus the Launcher3 Escape fix, and APEXes shipped uncompressed so a freshly written stick no longer spends ~34 s decompressing them before anything shows (§10). Its save-logs helper also says what the earlier-boots archive holds (`prior-boots.txt`), and `prior_boots_rc` covers the whole archive pipeline (the Checker found that tar or gzip failures read as 0). Its QEMU results are in `evidence/2026-10-17-g14-desktop/desktop4/`. Writing erases the stick; `write-stick.sh` first copies the reports on it to `~/anybook/installer/stick-backup/`:
 ```bash
 cd <a checkout of this repo>
 OPENBOOK_WRITE_CONFIRM=/dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0 \

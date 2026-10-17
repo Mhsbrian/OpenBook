@@ -66,7 +66,7 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
     - `aosp-patches.sh` now resets other branches' leftover patches in the shared tree;
     - the image script's build guard now also sees `anybook-aosp-build-<issue>` containers;
     - the `df /data` parsing in `live-report.py` and `live-qemu-check.py`.
-- **Evidence:** `evidence/2026-10-17-g14-desktop/g14-desktop3/` (the G14 boots) and `desktop4/` (build, 37/39 in QEMU, first boot 17.8 s vs 27.9 s with SurfaceFlinger at 5.4 s vs 19.9 s).
+- **Evidence:** `evidence/2026-10-17-g14-desktop/g14-desktop3/` (the G14 boots) and `desktop4/` (build, 37/39 in QEMU, first boot 17.8 s vs 27.9 s with SurfaceFlinger at 5.4 s vs 19.9 s). The save-logs helper now reports the earlier-boots archive honestly (`prior-boots.txt`, pipeline status).
 - **Found:** drm_hwcomposer proposes more planes than amdgpu's display core takes per stream (4), so its test commit fails every frame and SurfaceFlinger composes on the GPU (open, `docs/g14-desktop.md` §7).
 - **Next:** the owner boots the default entry on the `desktop3` stick as it is (first-boot setup is done), then `desktop4`.
 

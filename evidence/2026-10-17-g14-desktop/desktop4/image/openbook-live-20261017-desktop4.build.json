@@ -3,22 +3,22 @@
  "label": "openbook-live-20261017-desktop4",
  "image": "openbook-live-20261017-desktop4.img",
  "bytes": 2945449984,
- "sha256": "bc94e48adab4df8488757673098e80479f5446dbe512504f019c88a7be7ae9d4",
- "xz_bytes": 896594116,
- "xz_sha256": "0f44c04fb9ce7852d0ae4d8c0f7239bdfe5f6f62a492fbba2c95145305f87c5f",
- "allocated_bytes": 1380745216,
+ "sha256": "93b0b3f465b75aa38764f9a50c6394921da9d345defb835ef7f7d605c45da3cd",
+ "xz_bytes": 896595164,
+ "xz_sha256": "c0fb0d30578754db97e56f8ad004e532c5bf06e552989c537b7ac2cb6041aefa",
+ "allocated_bytes": 1380749312,
  "build_seconds": {
-  "total": 65,
-  "snapshot": 1,
-  "live_init_and_test": 12,
-  "image": 16,
-  "checksums_and_xz": 36
+  "total": 45,
+  "snapshot": 0,
+  "live_init_and_test": 10,
+  "image": 9,
+  "checksums_and_xz": 26
  },
  "fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
  "kernel_release": "6.18.21-android17-5-g44a90255c95f",
  "loader": "systemd-boot 262-1",
  "menu_timeout": "10",
- "epoch": 1792205653,
+ "epoch": 1792207688,
  "super": {
   "original_bytes": 8589934592,
   "live_bytes": 1386217472,
@@ -43,7 +43,7 @@
   "super.img": "10759627af2a785f47c9389782d1188d7a3455266b44089187a6674fc5ed85a4"
  },
  "repo": {
-  "commit": "e5c15ca7ec8bcc6a3f1540089800173cbb9d48da",
+  "commit": "d29a89d2f188342616e552214479ef57746506d2",
   "dirty": false
  },
  "tools": [
@@ -55,5 +55,5 @@
   "gptfdisk 1.0.10-2",
   "python 3.14.8-1"
  ],
- "log": "/home/hive/anybook/logs/installer/live-openbook-live-20261017-desktop4-20261017T025416Z.log"
+ "log": "/home/hive/anybook/logs/installer/live-openbook-live-20261017-desktop4-20261017T032808Z.log"
 }

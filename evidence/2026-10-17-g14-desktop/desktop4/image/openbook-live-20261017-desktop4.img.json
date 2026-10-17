@@ -7,7 +7,7 @@
  "kernel_release": "6.18.21-android17-5-g44a90255c95f",
  "loader": "systemd-boot 262-1",
  "menu_timeout": "10",
- "epoch": 1792205653,
+ "epoch": 1792207688,
  "vendor_cmdline": "firmware_class.path=/vendor/firmware log_buf_len=1M bootconfig",
  "vendor_bootconfig": {
   "androidboot.hardware": "openbook",
@@ -314,7 +314,7 @@
   }
  ],
  "verified_sha256": {
-  "EFI": "5c303bf97559fa8e7e26808d2cc2dc8c64a9a569fd41309e0bade8943daa4311",
+  "EFI": "4894ca46f70e91f0a07c26b69bfbc9ae0faa89fd905939ef17f7e541d0471736",
   "boot_a": "08c62a9b1ffb37bf368bbf1b1a51b49d0792229c8e1e83403b23ddb5c0b9dabc",
   "init_boot_a": "d8e9f91259f8e6a4f564f95ab4d926664429d5e677bb3d6a2e19e7405fe5f65b",
   "vendor_boot_a": "5bcdac46966e3a67194b73eda18926a7034f11a9e7f44dace4fe971572acccf9",
@@ -365,5 +365,5 @@
   "openbook/a/ramdisk.img",
   "openbook/a/vendor_ramdisk.img"
  ],
- "live_init_sha256": "1408ef822547db69da4f393381540c5ee447a2da2204294798b8c77b6b2adab4"
+ "live_init_sha256": "04cd1d300f647d46f4dd5deb1e16720e21a3a76aea7c6e4662db13d6634b8315"
 }
