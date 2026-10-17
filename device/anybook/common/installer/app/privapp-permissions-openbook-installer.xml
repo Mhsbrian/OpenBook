@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  Privileged permissions of OpenBookInstaller (system_ext priv-app, platform certificate). Only permissions with the
+  "privileged" protection flag are listed; WRITE_SETTINGS and ACCESS_KEYGUARD_SECURE_STORAGE come from the platform
+  signature, RECEIVE_BOOT_COMPLETED is normal.
+-->
+<permissions>
+    <privapp-permissions package="org.openbook.installer">
+        <permission name="android.permission.CHANGE_CONFIGURATION" />
+        <permission name="android.permission.REBOOT" />
+        <permission name="android.permission.START_ACTIVITIES_FROM_BACKGROUND" />
+        <permission name="android.permission.WRITE_SECURE_SETTINGS" />
+    </privapp-permissions>
+</permissions>

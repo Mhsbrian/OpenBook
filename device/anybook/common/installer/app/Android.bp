@@ -1,0 +1,67 @@
+// Copyright (C) 2026 The OpenBook Authors
+// SPDX-License-Identifier: Apache-2.0
+//
+// OpenBookInstaller (ANAL-191): the install wizard that runs in the live OpenBook session. It talks to the install
+// engine's daemon (openbook_installd) over the reserved UNIX socket described in ../PROTOCOL.md. The engine enforces
+// every safety rule (docs/installer.md §5); this app only shows them.
+//
+// tools/compile-check.sh compiles the Kotlin sources against the same static_libs outside Soong.
+
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+android_app {
+    name: "OpenBookInstaller",
+    srcs: ["src/**/*.kt"],
+    resource_dirs: ["res"],
+    manifest: "AndroidManifest.xml",
+    platform_apis: true,
+    certificate: "platform",
+    privileged: true,
+    system_ext_specific: true,
+    static_libs: [
+        // Activity + setContent
+        "androidx.activity_activity",
+        "androidx.activity_activity-compose",
+
+        // Jetpack Compose
+        "androidx.compose.runtime_runtime",
+        "androidx.compose.ui_ui",
+        "androidx.compose.ui_ui-graphics",
+        "androidx.compose.ui_ui-text",
+        "androidx.compose.ui_ui-unit",
+        "androidx.compose.foundation_foundation",
+        "androidx.compose.foundation_foundation-layout",
+        "androidx.compose.animation_animation",
+        "androidx.compose.material3_material3",
+        "androidx.compose.material_material-icons-core",
+        "androidx.compose.material_material-icons-extended",
+
+        // ViewModel (survives configuration changes while an install streams)
+        "androidx.lifecycle_lifecycle-common",
+        "androidx.lifecycle_lifecycle-runtime",
+        "androidx.lifecycle_lifecycle-viewmodel",
+        "androidx.lifecycle_lifecycle-viewmodel-savedstate",
+        "androidx.lifecycle_lifecycle-runtime-compose",
+        "androidx.lifecycle_lifecycle-viewmodel-compose",
+
+        "kotlinx-coroutines-android",
+        "kotlinx-coroutines-core",
+    ],
+    optimize: {
+        optimize: true,
+        shrink_resources: true,
+        proguard_flags_files: ["proguard.flags"],
+    },
+    required: ["privapp_whitelist_org.openbook.installer"],
+}
+
+// Privileged permissions the installer uses (docs: AndroidManifest.xml).
+prebuilt_etc {
+    name: "privapp_whitelist_org.openbook.installer",
+    system_ext_specific: true,
+    sub_dir: "permissions",
+    src: "privapp-permissions-openbook-installer.xml",
+    filename_from_src: true,
+}

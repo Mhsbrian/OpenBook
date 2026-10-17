@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  OpenBookInstaller strings (English). Copy is from docs/installer-design/index.html where the design has it.
+-->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name">OpenBook Installer</string>
+    <!-- Window, launcher shortcut and taskbar label -->
+    <string name="window_title">Install OpenBook</string>
+    <string name="brand_name" translatable="false">OpenBook</string>
+    <string name="brand_installer">Installer</string>
+    <!-- Separator between short facts, e.g. "1.02 TB · NVMe · inside this laptop" -->
+    <string name="separator_dot">" · "</string>
+
+    <!-- Overlines above each headline -->
+    <string name="overline_step">STEP <xliff:g id="number">%1$d</xliff:g> OF <xliff:g id="total">%2$d</xliff:g></string>
+    <string name="overline_step_named">STEP <xliff:g id="number">%1$d</xliff:g> OF <xliff:g id="total">%2$d</xliff:g> · <xliff:g id="name">%3$s</xliff:g></string>
+    <string name="overline_welcome">WELCOME</string>
+    <string name="overline_please_read">PLEASE READ</string>
+    <string name="overline_stopped">STOPPED</string>
+
+    <!-- Actions -->
+    <string name="action_continue">Continue</string>
+    <string name="action_back">Back</string>
+    <string name="action_help">Help</string>
+    <string name="action_close">Close</string>
+    <string name="action_try_again">Try again</string>
+    <string name="action_check_again">Check again</string>
+    <string name="action_view_plan">View the plan</string>
+    <string name="action_erase_install">Erase and install</string>
+    <string name="action_install">Install</string>
+    <string name="action_show_details">Show details</string>
+    <string name="action_hide_details">Hide details</string>
+    <string name="action_start_again">Start again</string>
+    <string name="action_keep_trying">Keep trying</string>
+    <string name="action_restart">Restart now</string>
+
+    <!-- Step rail -->
+    <string name="rail_language">Language</string>
+    <string name="rail_hardware">Hardware check</string>
+    <string name="rail_choose">Try or install</string>
+    <string name="rail_disk">Disk</string>
+    <string name="rail_confirm">Confirm</string>
+    <string name="rail_install">Install</string>
+    <string name="rail_done">Done</string>
+    <string name="rail_hint_hardware">Looking at your laptop</string>
+    <string name="rail_hint_choose">Pick how to start</string>
+    <string name="rail_hint_install">Install</string>
+    <string name="rail_hint_disk">Where OpenBook goes</string>
+    <string name="rail_hint_confirm">Last check</string>
+    <string name="rail_hint_done">Ready to restart</string>
+    <string name="rail_note_default">Nothing on this computer changes until you confirm.</string>
+    <string name="rail_note_confirm">Nothing has changed yet. You can still go back.</string>
+    <string name="rail_note_install">A log is being saved on the USB stick.</string>
+    <string name="rail_note_install_memory">A log is being kept for this session.</string>
+    <string name="rail_note_done">Install report saved on the stick and on the new system.</string>
+    <string name="rail_state_current">current step</string>
+    <string name="rail_state_done">done</string>
+    <string name="rail_state_upcoming">not yet</string>
+    <!-- Accessibility description of a rail entry, e.g. "Step 2 of 7: Hardware check, current step" -->
+    <string name="rail_step_description">Step <xliff:g id="number">%1$d</xliff:g> of <xliff:g id="total">%2$d</xliff:g>: <xliff:g id="name">%3$s</xliff:g>, <xliff:g id="state">%4$s</xliff:g></string>
+
+    <!-- 1 Welcome -->
+    <string name="hero_hello">Hello,\nOpenBook.</string>
+    <string name="hero_tag">A laptop OS built on open Android, ready in a few steps.</string>
+    <string name="hero_live_chip">Running from your USB stick</string>
+    <string name="welcome_title">Choose your language</string>
+    <string name="welcome_lede">Nothing on this computer changes until you say so. You can try OpenBook first and install later.</string>
+    <string name="language_search">Search languages</string>
+    <string name="language_none">No language matches your search.</string>
+    <string name="keyboard_section">KEYBOARD</string>
+    <string name="keyboard_layout">Layout</string>
+    <string name="keyboard_try">Try typing</string>
+    <string name="keyboard_try_hint">Hello from OpenBook</string>
+    <string name="a11y_section">ACCESSIBILITY</string>
+    <string name="a11y_larger_text">Larger text</string>
+    <string name="a11y_high_contrast">High contrast text</string>
+    <string name="a11y_reduce_motion">Reduce motion</string>
+    <string name="a11y_screen_reader">Screen reader</string>
+    <string name="a11y_screen_reader_missing">No screen reader in this build yet</string>
+    <string name="help_title">About this installer</string>
+    <string name="help_body">OpenBook runs from the USB stick until you install it. Nothing on this computer changes until you type the disk\'s name and confirm on step 5.\n\nThe hardware check shows what works on this laptop. A report and the install log are saved in the openbook/logs folder on the stick, for support.\n\nTo try OpenBook without installing, pick Try on step 3. The Install OpenBook shortcut stays in the taskbar.</string>
+
+    <!-- Language names, each in its own language (not translated) -->
+    <string name="lang_en_us" translatable="false">English (United States)</string>
+    <string name="lang_en_gb" translatable="false">English (United Kingdom)</string>
+    <string name="lang_es" translatable="false">Español</string>
+    <string name="lang_fr" translatable="false">Français</string>
+    <string name="lang_de" translatable="false">Deutsch</string>
+    <string name="lang_it" translatable="false">Italiano</string>
+    <string name="lang_pt_br" translatable="false">Português (Brasil)</string>
+    <string name="lang_nl" translatable="false">Nederlands</string>
+    <string name="lang_pl" translatable="false">Polski</string>
+    <string name="lang_sv" translatable="false">Svenska</string>
+    <string name="lang_tr" translatable="false">Türkçe</string>
+    <string name="lang_el" translatable="false">Ελληνικά</string>
+    <string name="lang_ru" translatable="false">Русский</string>
+    <string name="lang_uk" translatable="false">Українська</string>
+    <string name="lang_vi" translatable="false">Tiếng Việt</string>
+    <string name="lang_ja" translatable="false">日本語</string>
+    <string name="lang_ko" translatable="false">한국어</string>
+    <string name="lang_zh_hans" translatable="false">中文(简体)</string>
+
+    <!-- Keyboard layouts -->
+    <string name="kbd_us">English (US) · QWERTY</string>
+    <string name="kbd_gb">English (UK) · QWERTY</string>
+    <string name="kbd_de">German · QWERTZ</string>
+    <string name="kbd_fr">French · AZERTY</string>
+    <string name="kbd_es">Spanish · QWERTY</string>
+    <string name="kbd_it">Italian · QWERTY</string>
+    <string name="kbd_br">Portuguese (Brazil) · ABNT2</string>
+    <string name="kbd_nl">Dutch · QWERTY</string>
+    <string name="kbd_pl">Polish · QWERTY</string>
+    <string name="kbd_se">Swedish · QWERTY</string>
+    <string name="kbd_tr">Turkish · Q</string>
+    <string name="kbd_gr">Greek</string>
+    <string name="kbd_ru">Russian · ЙЦУКЕН</string>
+    <string name="kbd_ua">Ukrainian · ЙЦУКЕН</string>
+    <string name="kbd_jp">Japanese · JIS</string>
+    <string name="kbd_kr">Korean · Dubeolsik</string>
+
+    <!-- 2 Hardware check -->
+    <string name="hw_title_checking">Checking your laptop</string>
+    <string name="hw_title_failed">The hardware check didn\'t run</string>
+    <string name="hw_title_ready">Your laptop is ready</string>
+    <string name="hw_title_limited">OpenBook runs here with a few limits</string>
+    <string name="hw_title_unsupported">OpenBook can\'t run well here</string>
+    <string name="hw_lede_checking">We\'re looking at the parts OpenBook needs. This takes a few seconds.</string>
+    <string name="hw_lede_ready_all">We checked the parts OpenBook needs. Everything works.</string>
+    <plurals name="hw_lede_ready_some">
+        <item quantity="one">We checked the parts OpenBook needs. One of them works a little differently; there\'s nothing to fix now.</item>
+        <item quantity="other">We checked the parts OpenBook needs. <xliff:g id="count">%d</xliff:g> of them work a little differently; there\'s nothing to fix now.</item>
+    </plurals>
+    <string name="hw_lede_limited">Some parts aren\'t supported yet. You can still try OpenBook and decide later.</string>
+    <string name="hw_lede_unsupported">OpenBook needs a working display and storage. Save a report to the USB stick so support can look at it.</string>
+    <string name="hw_checking_parts">Looking at the processor, graphics, Wi-Fi, storage and more…</string>
+    <string name="hw_unreachable">The hardware check needs the OpenBook installer service, and it isn\'t answering. You can still try OpenBook.</string>
+    <string name="hw_save_report">Save report to USB</string>
+    <string name="hw_report_saved">Report saved on the USB stick: <xliff:g id="path">%1$s</xliff:g></string>
+    <string name="hw_report_failed">The report couldn\'t be saved: <xliff:g id="error">%1$s</xliff:g></string>
+    <string name="hw_ram_gb"><xliff:g id="gb">%1$d</xliff:g> GB</string>
+    <string name="hw_firmware_sb_on"><xliff:g id="firmware">%1$s</xliff:g>, Secure Boot on</string>
+    <string name="hw_firmware_sb_off"><xliff:g id="firmware">%1$s</xliff:g>, Secure Boot off</string>
+    <string name="hw_firmware_unknown">Firmware unknown</string>
+    <string name="hw_cpu">Processor</string>
+    <string name="hw_gpu">Graphics</string>
+    <string name="hw_display">Display</string>
+    <string name="hw_wifi">Wireless</string>
+    <string name="hw_touchpad">Touchpad</string>
+    <string name="hw_storage">Storage</string>
+    <string name="hw_audio">Speakers</string>
+    <string name="hw_sleep">Sleep</string>
+    <string name="hw_dgpu">Second GPU</string>
+    <string name="hw_dgpu_nvidia">NVIDIA GPU</string>
+    <string name="hw_dgpu_amd">AMD GPU</string>
+    <string name="hw_battery">Battery</string>
+    <string name="verdict_ready">Ready</string>
+    <string name="verdict_limited">Limited</string>
+    <string name="verdict_unsupported">Not supported</string>
+    <string name="state_ready">Ready</string>
+    <string name="state_quieter">Quieter</string>
+    <string name="state_limited">Limited</string>
+    <string name="state_new">New</string>
+    <string name="state_off">Off</string>
+    <string name="state_missing">Not found</string>
+    <string name="state_unknown">Unknown</string>
+    <string name="reason_speaker_tuning_missing">Quieter until tuned</string>
+    <string name="reason_untested_model">Not tested on this model yet</string>
+    <string name="reason_powered_down">Switched off to save power</string>
+    <string name="reason_software_rendering">Drawn in software</string>
+    <string name="reason_no_driver">No driver for this part yet</string>
+    <string name="reason_not_found">Not found on this laptop</string>
+    <string name="reason_s0i3_not_reached">Sleeps, but not in the deepest state yet</string>
+    <string name="reason_charging">Charging</string>
+    <string name="reason_on_battery">On battery</string>
+
+    <!-- Install path not available -->
+    <string name="blocker_checking">Checking the USB stick…</string>
+    <string name="blocker_unreachable">Installing needs the OpenBook USB stick. The installer service isn\'t answering in this session, so you can try OpenBook but not install it.</string>
+    <string name="blocker_not_live">Installing needs the OpenBook USB stick. This system wasn\'t started from it, so you can try OpenBook but not install it.</string>
+    <string name="blocker_no_source">Installing needs the OpenBook USB stick, and this stick can\'t be installed from: <xliff:g id="reason">%1$s</xliff:g></string>
+    <string name="source_why_unknown">its install data is missing or unreadable.</string>
+    <string name="source_why_no_manifest">its image manifest is missing.</string>
+    <string name="source_why_no_install_data">it has no install data.</string>
+
+    <!-- 3 Try or install -->
+    <string name="choose_title">How would you like to start?</string>
+    <string name="choose_lede">Try it from the USB stick, or install it on this laptop. You can switch from trying to installing at any time.</string>
+    <string name="choose_try_title">Try OpenBook</string>
+    <string name="choose_try_body">Use OpenBook right now, straight from the USB stick.</string>
+    <string name="choose_try_1">Nothing on this laptop changes</string>
+    <string name="choose_try_2">Apps and files stay on the stick</string>
+    <string name="choose_try_3">Install later from the taskbar</string>
+    <string name="choose_install_title">Install OpenBook</string>
+    <string name="choose_install_body">Make OpenBook this laptop\'s system. Faster, and no stick needed.</string>
+    <string name="choose_install_1">Choose the disk on the next step</string>
+    <string name="choose_install_2">Keep Windows or Linux if there\'s room</string>
+    <string name="choose_install_3">Updates install in the background</string>
+
+    <!-- 4 Disk -->
+    <string name="disk_title">Where should OpenBook live?</string>
+    <string name="disk_lede">Pick a disk. Your USB stick can\'t be picked: OpenBook is running from it.</string>
+    <string name="disk_loading">Looking for disks…</string>
+    <string name="disk_none">No disk on this computer can take OpenBook. Disks that are in use, read-only or too small can\'t be picked.</string>
+    <string name="disk_rescan">Look for disks again</string>
+    <string name="disk_internal">inside this laptop</string>
+    <string name="disk_external">external</string>
+    <string name="disk_boot_stick">OpenBook is running from this stick</string>
+    <string name="disk_in_use">In use</string>
+    <string name="disk_unavailable">Can\'t be used</string>
+    <string name="disk_by_id">by-id: <xliff:g id="by_id">%1$s</xliff:g></string>
+    <string name="disk_warning_external">External disk: it has to stay plugged in for OpenBook to start.</string>
+    <string name="disk_warning_encrypted">Encrypted volumes (BitLocker or LUKS): erased with Erase, kept with Install alongside.</string>
+    <string name="why_boot_disk">OpenBook is running from this stick</string>
+    <string name="why_mounted">A partition on this disk is in use</string>
+    <string name="why_read_only">This disk is read-only</string>
+    <string name="why_too_small">This disk is too small for OpenBook</string>
+    <string name="why_no_space">Not enough free space next to what\'s there</string>
+    <string name="why_no_gpt">Installing alongside needs a GPT partition table</string>
+    <string name="why_table_full">The partition table has no free entries</string>
+    <string name="why_name_clash">This disk already has Android partitions; erase it instead</string>
+    <string name="why_busy">This disk is busy</string>
+    <string name="layout_whole">Erase disk and install</string>
+    <string name="layout_alongside">Install alongside</string>
+    <string name="layout_alongside_free">Install alongside · <xliff:g id="size">%1$s</xliff:g> free</string>
+    <string name="layout_whole_unavailable">Erasing isn\'t possible: <xliff:g id="reason">%1$s</xliff:g>.</string>
+    <string name="layout_alongside_unavailable">Installing alongside isn\'t possible: <xliff:g id="reason">%1$s</xliff:g>.</string>
+    <string name="layout_set_default">Start OpenBook by default</string>
+    <string name="layout_set_default_detail">Changes the boot order in this laptop\'s firmware. If off, pick OpenBook from the firmware\'s boot menu.</string>
+    <string name="after_installing">After installing</string>
+    <string name="os_and"><xliff:g id="first">%1$s</xliff:g> and <xliff:g id="last">%2$s</xliff:g></string>
+    <string name="explainer_keep_title">Want to keep <xliff:g id="systems">%1$s</xliff:g>?</string>
+    <string name="explainer_keep_body">Choose Install alongside. OpenBook uses the <xliff:g id="size">%1$s</xliff:g> of free space and adds itself to the boot menu; nothing else is touched.</string>
+    <string name="explainer_keep_unavailable">Installing alongside isn\'t possible on this disk: <xliff:g id="reason">%1$s</xliff:g>.</string>
+    <string name="kind_windows">Windows</string>
+    <string name="kind_linux">Linux</string>
+    <string name="kind_efi">EFI</string>
+    <string name="kind_openbook" translatable="false">OpenBook</string>
+    <string name="kind_other">Other</string>
+    <string name="kind_free">Free</string>
+    <string name="bus_nvme">NVMe</string>
+    <string name="bus_sata">SATA</string>
+    <string name="bus_usb">USB</string>
+    <string name="bus_mmc">eMMC</string>
+    <string name="bus_virtio">Virtual disk</string>
+    <string name="bus_scsi">SCSI</string>
+    <string name="plan_title">The plan</string>
+    <string name="plan_summary">This is a dry run: nothing is written. To install on <xliff:g id="model">%1$s</xliff:g>, the installer writes <xliff:g id="size">%2$s</xliff:g>, which takes <xliff:g id="duration">%3$s</xliff:g>.</string>
+    <string name="plan_failed">The plan couldn\'t be made: <xliff:g id="error">%1$s</xliff:g></string>
+
+    <!-- 5 Confirm -->
+    <string name="confirm_title_whole">Erase <xliff:g id="model">%1$s</xliff:g>?</string>
+    <string name="confirm_title_alongside">Install alongside on <xliff:g id="model">%1$s</xliff:g>?</string>
+    <string name="confirm_erase_heading">Everything on this disk will be deleted</string>
+    <string name="confirm_erase_empty">The disk looks empty; its partition table will be replaced.</string>
+    <string name="confirm_erase_undo">This can\'t be undone. Back up anything you want to keep first.</string>
+    <string name="confirm_keep_heading">Nothing on this disk is erased</string>
+    <string name="confirm_keep_uses">OpenBook uses <xliff:g id="size">%1$s</xliff:g> of free space and adds itself to the boot menu.</string>
+    <string name="confirm_now">NOW</string>
+    <string name="confirm_after">AFTER</string>
+    <string name="confirm_by_id_path" translatable="false">/dev/disk/by-id/<xliff:g id="by_id">%1$s</xliff:g></string>
+    <string name="confirm_copy">Copy disk ID</string>
+    <string name="confirm_copy_label">Disk ID</string>
+    <string name="confirm_type_label">Type <xliff:g id="name">%1$s</xliff:g> to confirm</string>
+    <string name="confirm_type_help">Capital letters and spaces don\'t matter.</string>
+    <string name="confirm_matches">Matches the disk above.</string>
+    <string name="confirm_matches_icon">Matches</string>
+    <string name="plan_warning_nvram_whole">This computer\'s boot settings can\'t be changed from here, so OpenBook starts through the standard fallback boot file.</string>
+    <string name="plan_warning_nvram_alongside">This computer\'s boot settings can\'t be changed from here. After installing, pick OpenBook in the firmware\'s boot menu.</string>
+    <string name="plan_warning_external">This is an external disk. Keep it plugged in to start OpenBook.</string>
+    <string name="plan_warning_encrypted_kept">Encrypted volumes on this disk are kept as they are.</string>
+    <string name="plan_warning_encrypted_erased">Encrypted volumes on this disk (BitLocker or LUKS) will be erased, with everything in them.</string>
+    <string name="plan_warning_battery">Connect the charger: installing on battery needs at least 50 % charge.</string>
+
+    <!-- Errors from the installer service -->
+    <string name="error_unreachable">The installer service isn\'t answering.</string>
+    <string name="error_busy">Another install is already running.</string>
+    <string name="error_no_source">This USB stick can\'t be installed from.</string>
+    <string name="error_no_target">That disk is gone. Look for disks again.</string>
+    <string name="error_not_eligible">That disk can\'t be used any more. Look for disks again.</string>
+    <string name="error_plan_changed">The disk changed since you checked it. Go back and pick it again.</string>
+    <string name="error_confirm_mismatch">The name you typed doesn\'t match the disk.</string>
+    <string name="error_power">Connect the charger: installing on battery needs at least 50 % charge.</string>
+    <string name="error_generic">Something went wrong.</string>
+
+    <!-- 6 Install -->
+    <string name="install_title">Installing OpenBook</string>
+    <string name="install_title_not_started">The install didn\'t start</string>
+    <string name="install_title_failed">The install didn\'t finish</string>
+    <string name="install_percent"><xliff:g id="percent">%1$d</xliff:g>%%</string>
+    <string name="install_starting">Starting…</string>
+    <string name="install_reconnecting">Reconnecting to the installer…</string>
+    <string name="eta_less_than_minute">Less than a minute left</string>
+    <plurals name="eta_minutes_left">
+        <item quantity="one">About a minute left</item>
+        <item quantity="other">About <xliff:g id="minutes">%d</xliff:g> minutes left</item>
+    </plurals>
+    <string name="duration_under_minute">less than a minute</string>
+    <plurals name="duration_minutes">
+        <item quantity="one">about a minute</item>
+        <item quantity="other">about <xliff:g id="minutes">%d</xliff:g> minutes</item>
+    </plurals>
+    <string name="install_not_started">Nothing on the disk was changed. <xliff:g id="reason">%1$s</xliff:g></string>
+    <string name="install_failed_at">The install stopped at this step: <xliff:g id="step">%1$s</xliff:g>. The disk may now be blank. You can start the install again from the USB stick.</string>
+    <string name="install_failed">The install stopped. The disk may now be blank. You can start the install again from the USB stick.</string>
+    <string name="install_lost_contact">The installer service stopped answering. The disk may now be blank. Restart from the USB stick and install again.</string>
+    <string name="install_error_detail">Details: <xliff:g id="error">%1$s</xliff:g></string>
+    <string name="step_check_source">Checking the USB stick</string>
+    <string name="step_check_source_done">Checked the USB stick</string>
+    <string name="step_prepare_disk">Preparing the disk</string>
+    <string name="step_prepare_disk_done">Prepared the disk</string>
+    <string name="step_boot_images">Copying the boot images</string>
+    <string name="step_boot_images_done">Copied the boot images</string>
+    <string name="step_system">Copying the system</string>
+    <string name="step_system_done">Copied the system</string>
+    <string name="step_boot_entry">Adding the boot menu entry</string>
+    <string name="step_boot_entry_done">Added the boot menu entry</string>
+    <string name="step_verify">Verifying every partition</string>
+    <string name="step_verify_done">Verified every partition</string>
+    <string name="step_report">Saving the install report</string>
+    <string name="step_report_done">Saved the install report</string>
+    <string name="step_state_pending">waiting</string>
+    <string name="step_state_running">in progress</string>
+    <string name="step_state_done">done</string>
+    <string name="step_state_failed">Failed</string>
+    <string name="step_state_skipped">Skipped</string>
+    <string name="progress_bytes"><xliff:g id="done">%1$s</xliff:g> of <xliff:g id="total">%2$s</xliff:g></string>
+    <string name="chip_charger">Charger connected</string>
+    <string name="chip_battery">On battery · <xliff:g id="percent">%1$d</xliff:g>%%</string>
+    <string name="chip_no_battery">No battery</string>
+    <string name="chip_log_path">USB › <xliff:g id="path">%1$s</xliff:g></string>
+    <string name="chip_log_memory">Log not on the stick</string>
+    <string name="log_dir" translatable="false">openbook/logs</string>
+    <string name="log_title">INSTALL LOG</string>
+    <string name="log_empty">No log lines yet.</string>
+    <string name="tip_label">WHILE YOU WAIT</string>
+    <string name="tip_windows_title">Apps open in windows</string>
+    <string name="tip_windows_body">Move, resize and snap them side by side, just like on a desktop.</string>
+    <string name="tip_setup_title">Setup comes next</string>
+    <string name="tip_setup_body">After the restart, OpenBook asks for Wi-Fi and a screen lock. It takes a minute.</string>
+    <string name="tip_log_title">The stick keeps a log</string>
+    <string name="tip_log_body">Every step is written to openbook/logs on the USB stick, so support can see exactly what happened.</string>
+
+    <!-- 7 Done -->
+    <string name="done_overline">ALL DONE</string>
+    <string name="done_title">OpenBook is installed</string>
+    <string name="done_lede">Remove the USB stick, then restart. Setup continues with Wi-Fi and a screen lock.</string>
+    <string name="done_verified">Verified</string>
+    <string name="done_verified_detail">Every partition matches the image</string>
+    <string name="done_boot_entry_added">Boot entry added</string>
+    <string name="done_boot_entry">Boot entry</string>
+    <string name="done_boot_entry_detail">OpenBook now starts this laptop</string>
+    <string name="done_boot_firmware_menu">Pick OpenBook in your firmware\'s boot menu (Esc at power-on on ASUS laptops)</string>
+    <string name="done_report">Report saved</string>
+    <string name="done_report_detail">On the USB stick and on the new system</string>
+    <string name="done_report_path">On the USB stick: <xliff:g id="path">%1$s</xliff:g></string>
+
+    <!-- Sizes (decimal units) -->
+    <string name="size_b"><xliff:g id="n">%1$s</xliff:g> B</string>
+    <string name="size_kb"><xliff:g id="n">%1$s</xliff:g> kB</string>
+    <string name="size_mb"><xliff:g id="n">%1$s</xliff:g> MB</string>
+    <string name="size_gb"><xliff:g id="n">%1$s</xliff:g> GB</string>
+    <string name="size_tb"><xliff:g id="n">%1$s</xliff:g> TB</string>
+    <!-- OpenBook setup (SetupActivity): the first screens of an installed system. -->
+    <string name="setup_brand">Welcome to\nOpenBook.</string>
+    <string name="setup_brand_sub">Three quick steps, then your laptop is ready.</string>
+    <string name="setup_overline">SETUP · STEP <xliff:g id="number">%1$d</xliff:g> OF <xliff:g id="total">%2$d</xliff:g></string>
+    <string name="setup_title">Let\'s set up your laptop</string>
+    <string name="setup_body">OpenBook asks for no account. Pick your language, connect to Wi-Fi and protect your laptop with a screen lock.</string>
+    <string name="setup_language_label">Language</string>
+    <string name="setup_wifi_title">Connect to Wi-Fi</string>
+    <string name="setup_wifi_body">Choose a network to get apps, updates and the time. You can also do this later in Settings.</string>
+    <string name="setup_wifi_connected">You\'re online. You can pick another network if you like.</string>
+    <string name="setup_wifi_action">Choose a network</string>
+    <string name="setup_lock_title">Protect your laptop</string>
+    <string name="setup_lock_body">A PIN, password or pattern keeps your files private if someone else opens the lid.</string>
+    <string name="setup_lock_action">Set a screen lock</string>
+    <string name="setup_skip_note">Optional: you can skip this and do it later in Settings.</string>
+    <string name="setup_finish">Start using OpenBook</string>
+    <string name="setup_window_title">OpenBook setup</string>
+</resources>
