@@ -1005,3 +1005,19 @@ python3 scripts/installer/e2e-qemu.py avc OUT <logcat.gz and sections/avc.txt fi
 - `openbook-bootsync`, the slot B test and boot counting (an OTA switch). Slot B is blank today.
 - A crash-replay test of the engine on the host: log every write and replay every prefix, including writes lost since the last flush, especially for the shared Windows ESP.
 - The release checklist's open items (`docs/INSTALL.md` §9): `WHENCE`, the GPL source bundle, the release key, a signed manifest.
+
+### 13.11 The next stick: `openbook-live-20261017-anal198` (2026-10-17, ANAL-198)
+Built on the owner's request after PR #64 merged; it replaces `anal192c`. Evidence: `evidence/2026-10-17-stick-anal198/SUMMARY.md`.
+- **What it adds:** `main` `2d90741` (PRs #1–#64), with the recipe of §13.9.
+  - Mesa rebuilt non-strict, so the image declares Vulkan 1.4 (#61).
+  - The #64 kernel (`gfbfdd65b0fd1`: system DMA-BUF heap, efivarfs), plus Codec2 on AIDL with its memfd policy, and `stagefright`.
+  - The add-ons: the power check, the ARM apps check, and **the graphics check `openbook-gfxcheck-anal198`** for ANAL-177's second run.
+  - sha256 `3b405d0875332306695ae87eae741d905e02a20c4202edd48d1173f3fd749c8b`.
+- **QEMU results:** live 40/40, wizard 25/25, end to end 78/78 (cut 4 landed on a blank disk this time, which skips one check), the four add-on tests, and the media check: a ringtone decodes and `/dev/dma_heap/system` is present.
+- **Write it** (on the build host; it backs up the stick's reports first, then erases it):
+  ```bash
+  cd ~/anybook/repo && OPENBOOK_WRITE_CONFIRM=/dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0 \
+    scripts/installer/write-stick.sh ~/anybook/installer/out/openbook-live-20261017-anal198.img \
+    /dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0
+  ```
+- **On the G14:** boots 1–3 as in §13.6. In boot 1, step 6 (a ringtone preview) should now play. Then **boot 4, "OpenBook graphics check"**: about 30 minutes, AC power, lid open, no screen-lock PIN; it powers off by itself (`docs/graphics-amd.md`, owner checklist steps 4–6). Then plug the stick into the build host and reply "stick attached".

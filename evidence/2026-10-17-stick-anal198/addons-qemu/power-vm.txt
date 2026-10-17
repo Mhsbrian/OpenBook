@@ -1,0 +1,60 @@
+[   27.272562][    T1] openbook_s0i3_snapshot: s0i3-exit: 0000:00:02.0 1b36:000c class 060400 kernel D0 pmcsr no-pm-cap driver pcieport skip_bus_pm aspm off l1ss 0x0
+[   27.272564][    T1] openbook_s0i3_snapshot: s0i3-exit: 0000:00:1f.0 8086:2918 class 060100 kernel D0 pmcsr no-pm-cap driver -
+[   27.272566][    T1] openbook_s0i3_snapshot: s0i3-exit: 0000:00:1f.2 8086:2922 class 010601 kernel D0 pmcsr no-pm-cap driver -
+[   27.272568][    T1] openbook_s0i3_snapshot: s0i3-exit: 0000:00:1f.3 8086:2930 class 0c0500 kernel D0 pmcsr no-pm-cap driver -
+[   27.272569][    T1] openbook_s0i3_snapshot: s0i3-exit: 7 PCI functions, 6 not in D3
+PROBE sleep: write returned 3 (ok); asleep -0.0 s; suspend_stats success 0->1 fail 0->0
+PROBE sleep: last failed dev: 
+PROBE sleep: last failed errno: 0
+PROBE cpuidle: no cpuidle states with s2idle statistics
+PROBE sleep: at the S0i3 attempt: 7 PCI functions, 6 not in D3
+PROBE sleep[0]: S0i3 unknown (no AMD PMC counters): s0ix residency -1 us, last_hw_sleep -1 us, SMU "?" (hint count -1), idle mask at entry ?
+PROBE sleep: after resume eDP-1 ?, wlan0 missing
+PROBE kmod: load openbook_pci_pm.ko : ok
+[   30.721033][    T1] openbook_pci_pm 0000:01:00.0: openbook_pci_pm: bound for this boot (PCI power management only)
+PROBE step pm:1af4:1044+1af4:1005: 0000:01:00.0 1af4:1044 driver virtio-pci -> openbook_pci_pm
+PROBE step pm:1af4:1044+1af4:1005: no 1af4:1005 function on the bus
+PROBE sleep[1]: step pm:1af4:1044+1af4:1005
+PROBE awake[before-suspend-n]: 0000:01:00.0 unknown runtime active driver openbook_pci_pm
+PROBE sleep: RTC alarm in 10 s; suspending (mem_sleep: [s2idle] deep)
+[   30.824291][  T102] openbook_pci_pm 0000:01:00.0: openbook_pci_pm: suspend: D3hot (0)
+[   30.824810][    T1] openbook_s0i3_snapshot: s0i3-entry: 0000:00:00.0 8086:29c0 class 060000 kernel D0 pmcsr no-pm-cap driver -
+[   30.824825][    T1] openbook_s0i3_snapshot: s0i3-entry: 0000:00:01.0 1b36:000d class 0c0330 kernel D0 pmcsr no-pm-cap driver xhci_hcd skip_bus_pm aspm off l1ss 0x0
+[   30.824859][    T1] openbook_s0i3_snapshot: s0i3-entry: 0000:00:02.0 1b36:000c class 060400 kernel D0 pmcsr no-pm-cap driver pcieport skip_bus_pm aspm off l1ss 0x0
+[   30.824862][    T1] openbook_s0i3_snapshot: s0i3-entry: 0000:00:1f.0 8086:2918 class 060100 kernel D0 pmcsr no-pm-cap driver -
+[   30.824864][    T1] openbook_s0i3_snapshot: s0i3-entry: 0000:00:1f.2 8086:2922 class 010601 kernel D0 pmcsr no-pm-cap driver -
+[   30.824865][    T1] openbook_s0i3_snapshot: s0i3-entry: 0000:00:1f.3 8086:2930 class 0c0500 kernel D0 pmcsr no-pm-cap driver -
+[   30.824866][    T1] openbook_s0i3_snapshot: s0i3-entry: 7 PCI functions, 6 not in D3
+[   44.774077][    T1] openbook_s0i3_snapshot: s0i3-exit: the s2idle loop checked for a wakeup 1 time(s)
+[   44.774081][    T1] openbook_s0i3_snapshot: s0i3-exit: 0000:00:00.0 8086:29c0 class 060000 kernel D0 pmcsr no-pm-cap driver -
+[   44.774100][    T1] openbook_s0i3_snapshot: s0i3-exit: 0000:00:01.0 1b36:000d class 0c0330 kernel D0 pmcsr no-pm-cap driver xhci_hcd skip_bus_pm aspm off l1ss 0x0
+[   44.774136][    T1] openbook_s0i3_snapshot: s0i3-exit: 0000:00:02.0 1b36:000c class 060400 kernel D0 pmcsr no-pm-cap driver pcieport skip_bus_pm aspm off l1ss 0x0
+[   44.774139][    T1] openbook_s0i3_snapshot: s0i3-exit: 0000:00:1f.0 8086:2918 class 060100 kernel D0 pmcsr no-pm-cap driver -
+[   44.774141][    T1] openbook_s0i3_snapshot: s0i3-exit: 0000:00:1f.2 8086:2922 class 010601 kernel D0 pmcsr no-pm-cap driver -
+[   44.774143][    T1] openbook_s0i3_snapshot: s0i3-exit: 0000:00:1f.3 8086:2930 class 0c0500 kernel D0 pmcsr no-pm-cap driver -
+[   44.774144][    T1] openbook_s0i3_snapshot: s0i3-exit: 7 PCI functions, 6 not in D3
+[   44.787474][  T103] openbook_pci_pm 0000:01:00.0: openbook_pci_pm: resume: D0
+PROBE sleep: write returned 3 (ok); asleep -0.0 s; suspend_stats success 1->2 fail 0->0
+PROBE sleep: last failed dev: 
+PROBE sleep: last failed errno: 0
+PROBE cpuidle: no cpuidle states with s2idle statistics
+PROBE sleep: at the S0i3 attempt: 7 PCI functions, 6 not in D3
+PROBE sleep[1]: S0i3 unknown (no AMD PMC counters): s0ix residency -1 us, last_hw_sleep -1 us, SMU "?" (hint count -1), idle mask at entry ?
+PROBE sleep: after resume eDP-1 ?, wlan0 missing
+PROBE hwcheck: waiting 5 s for the drivers to bind
+PROBE sleep[2]: step asus
+PROBE awake[before-suspend-n]: 0000:01:00.0 D0 runtime active driver openbook_pci_pm
+PROBE sleep: RTC alarm in 10 s; suspending (mem_sleep: [s2idle] deep)
+[   53.292523][  T101] openbook_pci_pm 0000:01:00.0: openbook_pci_pm: suspend: D3hot (0)
+[   53.292985][    T1] openbook_s0i3_snapshot: s0i3-entry: 0000:00:00.0 8086:29c0 class 060000 kernel D0 pmcsr no-pm-cap driver -
+[   53.293004][    T1] openbook_s0i3_snapshot: s0i3-entry: 0000:00:01.0 1b36:000d class 0c0330 kernel D0 pmcsr no-pm-cap driver xhci_hcd skip_bus_pm aspm off l1ss 0x0
+[   53.293037][    T1] openbook_s0i3_snapshot: s0i3-entry: 0000:00:02.0 1b36:000c class 060400 kernel D0 pmcsr no-pm-cap driver pcieport skip_bus_pm aspm off l1ss 0x0
+[   53.293040][    T1] openbook_s0i3_snapshot: s0i3-entry: 0000:00:1f.0 8086:2918 class 060100 kernel D0 pmcsr no-pm-cap driver -
+[   53.293041][    T1] openbook_s0i3_snapshot: s0i3-entry: 0000:00:1f.2 8086:2922 class 010601 kernel D0 pmcsr no-pm-cap driver -
+[   53.293043][    T1] openbook_s0i3_snapshot: s0i3-entry: 0000:00:1f.3 8086:2930 class 0c0500 kernel D0 pmcsr no-pm-cap driver -
+[   53.293044][    T1] openbook_s0i3_snapshot: s0i3-entry: 7 PCI functions, 6 not in D3
+[   67.264421][    T1] openbook_s0i3_snapshot: s0i3-exit: the s2idle loop checked for a wakeup 1 time(s)
+[   67.264426][    T1] openbook_s0i3_snapshot: s0i3-exit: 0000:00:00.0 8086:29c0 class 060000 kernel D0 pmcsr no-pm-cap driver -
+[   67.264445][    T1] openbook_s0i3_snapshot: s0i3-exit: 0000:00:01.0 1b36:000d class 0c0330 kernel D0 pmcsr no-pm-cap driver xhci_hcd skip_bus_pm aspm off l1ss 0x0
+[   67.264481][    T1] openbook_s0i3_snapshot: s0i3-exit: 0000:00:02.0 1b36:000c class 060400 kernel D0 pmcsr no-pm-cap driver pcieport skip_bus_pm aspm off l1ss 0x0
+[   67.264483][    T1] openbook_s0i3_snapshot: s0i3-exit: 0000:00:1f.0 8086:2918 class 060100 kernel D0 pmcsr no-pm-cap driver -

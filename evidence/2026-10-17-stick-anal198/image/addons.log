@@ -1,0 +1,22 @@
+added 6 file(s) to /home/hive/anybook/installer/out/openbook-live-20261017-anal198.img and verified them
+added 2 file(s) and loader/entries/openbook-bridge.conf to /home/hive/anybook/installer/out/openbook-live-20261017-anal198.img and verified them
+title OpenBook ARM apps check (about 10 min, then powers off)
+version 17 · live
+sort-key openbook-96
+linux /openbook/a/kernel
+initrd /openbook/a/vendor_ramdisk.img
+initrd /openbook/a/ramdisk.img
+initrd /openbook/a/live.img
+initrd /openbook/a/bootconfig-logs.img
+options firmware_class.path=/vendor/firmware log_buf_len=1M bootconfig rdinit=/openbook-live-init androidboot.openbook.addon=bridge androidboot.openbook.addon_timeout=1800
+added 3 file(s) and loader/entries/openbook-gfx.conf to /home/hive/anybook/installer/out/openbook-live-20261017-anal198.img and verified them
+title OpenBook graphics check (about 30 min, then powers off)
+version 17 · live
+sort-key openbook-95
+linux /openbook/a/kernel
+initrd /openbook/a/vendor_ramdisk.img
+initrd /openbook/a/ramdisk.img
+initrd /openbook/a/live.img
+initrd /openbook/gfx/gfx-init.img
+initrd /openbook/a/bootconfig-logs.img
+options firmware_class.path=/vendor/firmware log_buf_len=1M bootconfig rdinit=/openbook-gfx-init androidboot.openbook.addon=gfx androidboot.openbook.addon_timeout=5400 androidboot.openbook.logs_settle=90
