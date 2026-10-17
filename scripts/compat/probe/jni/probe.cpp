@@ -1777,7 +1777,10 @@ static std::string t_vulkan(const char*) {
 //     falls back to ID_AA64ISAR0/ISAR1/PFR0 when /proc/self/auxv is unreadable, which it is for apps);
 //   - FRECPE / FRSQRTE give the Arm estimates bit for bit, with FPSR, under FPCR 0 / FZ / DN (golden values from
 //     QEMU, scripts/compat/digitalis/fp-estimate/golden.c), scalar and vector, in a loop the JIT tiers translate;
-//   - the libxul.so pattern that crashed Fennec: (see fennec_* below).
+//   - android.os.Build.CPU_ABI names the ABI this native code runs as. Firefox (GeckoView) loads
+//     <CPU_ABI>/greprefs.js from its omnijar; Android 17's libnativebridge stopped setting the field for bridged
+//     apps, so an arm64-only Firefox saw x86_64, could not initialise its preferences and died at
+//     libxul.so+0x2b32da0 (Digitalis) or spun in Gecko (libndk_translation).
 #if defined(__aarch64__)
 struct EstGolden32 {
   uint32_t in, fpcr, recpe, recpe_fpsr, rsqrte, rsqrte_fpsr;
@@ -1950,9 +1953,29 @@ static void fpsr_clear() { asm volatile("msr fpsr, xzr" : : : "memory"); }
 static unsigned field(uint64_t r, int shift) { return (r >> shift) & 0xf; }
 #endif
 
+// android.os.Build.CPU_ABI as the app's Java code sees it.
+static std::string build_cpu_abi() {
+  JNIEnv* env = nullptr;
+  if (!g_vm || g_vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK) return "?";
+  jclass build = env->FindClass("android/os/Build");
+  if (!build) { env->ExceptionClear(); return "?"; }
+  jfieldID f = env->GetStaticFieldID(build, "CPU_ABI", "Ljava/lang/String;");
+  if (!f) { env->ExceptionClear(); return "?"; }
+  jstring s = (jstring)env->GetStaticObjectField(build, f);
+  if (!s) return "(null)";
+  const char* c = env->GetStringUTFChars(s, nullptr);
+  std::string out = c ? c : "?";
+  if (c) env->ReleaseStringUTFChars(s, c);
+  return out;
+}
+
 static std::string t_regress(const char*) {
+  // Every ABI: Build.CPU_ABI matches the native code (on x86_64 the control, on arm64 the bridge's value).
+  std::string cpu_abi = build_cpu_abi();
 #if defined(__aarch64__)
   Res r;
+  r.add("Build.CPU_ABI=" + cpu_abi);
+  r.check(cpu_abi == ABI, "build_cpu_abi_is_native_abi");
   // --- MRS of the ID registers (Linux: op0=3, op1=0, CRn=0, CRm 0 or 2..7; unknown ones read as zero)
   static uint64_t (*const kRegs[])() = {r_midr, r_mpidr, r_revidr, r_pfr0, r_pfr1, r_zfr0, r_dfr0,
                                         r_isar0, r_isar1, r_isar2, r_mmfr0, r_mmfr1, r_mmfr2, r_idraz};
@@ -2057,7 +2080,10 @@ static std::string t_regress(const char*) {
   r.check(badv == 0, "frecpe_frsqrte_vector_exact");
   return r.str();
 #else
-  return "SKIP AArch64-only regressions (x86_64 is the native control)";
+  Res r;
+  r.add("Build.CPU_ABI=" + cpu_abi);
+  r.check(cpu_abi == ABI, "build_cpu_abi_is_native_abi");
+  return r.str();
 #endif
 }
 
