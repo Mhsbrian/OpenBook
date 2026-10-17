@@ -36,6 +36,17 @@ nsenter -t "$(cat "$D/ns.pid")" -n iw dev wlan1 info 2>&1 | grep -E 'type|ssid|c
 cat "$D/dhcpd.log"; grep -vE 'hexdump|^$' "$D/hostapd.log" | tail -n 40
 echo "===WIFI-END==="
 
+echo "===PNO-BEGIN==="
+# Screen off and disconnected, the framework scans only through PNO, i.e. the driver's scheduled scan
+# (config_wifi_background_scan_support). hwsim has none, so here the attempt fails; without the setting it is never
+# made ("PNO is not available").
+t0=$(date +'%m-%d %H:%M:%S.000')
+input keyevent SLEEP; sleep 2
+cmd wifi set-wifi-enabled disabled; sleep 3; cmd wifi set-wifi-enabled enabled; sleep 20
+logcat -d -b main -T "$t0" | grep -E 'PNO|Pno|pno|SchedScan|sched scan' | tail -n 30
+input keyevent WAKEUP
+echo "===PNO-END==="
+
 echo "===BT-BEGIN==="
 openbook-hwtest bt
 echo "===BT-END==="
