@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # ARM-only APK compatibility matrix on the AOSP Desktop (Preview) 37.0 x86_64 emulator, whose native
-# bridge is libndk_translation (ANAL-180), or Digitalis after scripts/compat/digitalis/install.sh (ANAL-181).
+# bridge is libndk_translation (ANAL-180), or Digitalis after scripts/compat/digitalis/install.sh (ANAL-181),
+# or with COMPAT_TARGET=cf on OpenBook's own Cuttlefish build and its built-in Digitalis bridge (ANAL-200,
+# scripts/compat/cf.sh).
 # For each APK: install, launch, wait, check the process is alive, count Java/native crashes, ANRs and
 # tombstones, take a screenshot, write a CSV row.
 #
@@ -17,9 +19,10 @@
 set -euo pipefail
 REPO=$(cd "$(dirname "$0")/../.." && pwd)
 A=${ANYBOOK_HOME:-$HOME/anybook}
-ADB="$A/android-sdk/platform-tools/adb -s emulator-5580"
+if [ "${COMPAT_TARGET:-emulator}" = cf ]; then EMU=$REPO/scripts/compat/cf.sh; else EMU=$REPO/scripts/compat/emulator.sh; fi
+SERIAL=$("$EMU" serial 2>/dev/null || echo emulator-5580)
+ADB="$A/android-sdk/platform-tools/adb -s $SERIAL"
 AAPT2=$A/compat/sdk/build-tools/37.0.0/aapt2
-EMU=$REPO/scripts/compat/emulator.sh
 WAIT=15; FILTER=.; FRESH=0; KEEP_EMU=0; KEEP_APPS=0; OUT=
 while [ $# -gt 0 ]; do
   case $1 in
@@ -35,7 +38,7 @@ if [ -f "$OUT/results.csv" ]; then RESUME=1; R=$(sed -n 2p "$OUT/results.csv" | 
 mkdir -p "$OUT/screens" "$OUT/logs"
 [ -x "$AAPT2" ] || { echo "run scripts/compat/setup-toolchain.sh first" >&2; exit 2; }
 
-# ---- emulator (this harness owns AVD anybook-desktop on port 5580) ----
+# ---- emulator (this harness owns AVD anybook-desktop on port 5580), or the Cuttlefish device ----
 booted(){ [ "$($ADB shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1 ]; }
 STARTED=0
 [ $FRESH = 1 ] && "$EMU" down
@@ -62,7 +65,8 @@ grep -E "^[^|]*($FILTER)" "$LIST" > "$LIST.sel" || { echo "no APK matches $FILTE
 [ $RESUME = 1 ] || {
   echo "run_id=$RUN_ID date=$(date -Is) wait_s=$WAIT harness=$(git -C "$REPO" rev-parse --short HEAD 2>/dev/null)$(git -C "$REPO" status --porcelain -- scripts/compat tools 2>/dev/null | grep -q . && echo -dirty)"
   echo "host: $(uname -sr) / $(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2 | xargs) / load $(cut -d' ' -f1-3 /proc/loadavg)"
-  echo "emulator: $("$A/android-sdk/emulator/emulator" -version 2>/dev/null | head -1)"
+  if [ "${COMPAT_TARGET:-emulator}" = cf ]; then echo "target: cuttlefish $SERIAL ($(docker exec "${CF_NAME:-anybook-cf-compat}" cvd version 2>/dev/null | grep -m1 -i version | xargs))"
+  else echo "emulator: $("$A/android-sdk/emulator/emulator" -version 2>/dev/null | head -1)"; fi
   $ADB shell 'echo "guest: $(getprop ro.build.fingerprint)"; echo "abilist: $(getprop ro.product.cpu.abilist) abilist32=[$(getprop ro.product.cpu.abilist32)]";
     echo "native_bridge: $(getprop ro.dalvik.vm.native.bridge) exec=$(getprop ro.enable.native.bridge.exec)";
     echo "gpu: egl=$(getprop ro.hardware.egl) vulkan=$(getprop ro.hardware.vulkan) gltransport=$(getprop ro.boot.hardware.gltransport)";

@@ -11,6 +11,7 @@
 #   emulator.sh up [--wipe]   boot (or reuse a booted instance), adb root, quiet the UI for testing
 #   emulator.sh down          stop the instance this script started (exact PID from the pidfile)
 #   emulator.sh status        print state
+#   emulator.sh serial        print the adb serial
 set -euo pipefail
 A=${ANYBOOK_HOME:-$HOME/anybook}; S=$A/android-sdk
 RUN=$A/compat/run; LOGS=$A/logs/compat; PIDF=$RUN/emulator.pid
@@ -62,8 +63,9 @@ down)
     for _ in $(seq 1 20); do kill -0 "$P" 2>/dev/null || break; sleep 1; done
     kill "$P" 2>/dev/null || true; rm -f "$PIDF"; echo "stopped emulator pid $P"
   else echo "no emulator started by this script"; fi ;;
+serial) echo "$SERIAL" ;;
 status)
   ours && echo "pid $(cat "$PIDF")" || echo "no pidfile process"
   booted && echo "$SERIAL booted" || echo "$SERIAL not booted" ;;
-*) echo "usage: $0 up [--wipe] | down | status" >&2; exit 2 ;;
+*) echo "usage: $0 up [--wipe] | down | status | serial" >&2; exit 2 ;;
 esac

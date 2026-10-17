@@ -9,8 +9,10 @@
 set -euo pipefail
 REPO=$(cd "$(dirname "$0")/../.." && pwd)
 A=${ANYBOOK_HOME:-$HOME/anybook}
-ADB="$A/android-sdk/platform-tools/adb -s emulator-5580"
-EMU=$REPO/scripts/compat/emulator.sh
+# COMPAT_TARGET=cf: OpenBook's own Cuttlefish build (scripts/compat/cf.sh) instead of the emulator.
+if [ "${COMPAT_TARGET:-emulator}" = cf ]; then EMU=$REPO/scripts/compat/cf.sh; else EMU=$REPO/scripts/compat/emulator.sh; fi
+SERIAL=$("$EMU" serial 2>/dev/null || echo emulator-5580)
+ADB="$A/android-sdk/platform-tools/adb -s $SERIAL"
 P=$A/compat/out/probes
 ROUNDS=3; ITER=600000; KEEP_EMU=0; OUT=
 while [ $# -gt 0 ]; do
