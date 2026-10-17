@@ -11,7 +11,8 @@
 #        audio-net-qemu.sh payload        test disk for the guest -> <data dir>/audio-net/qemu/payload.img:
 #                                         mac80211_hwsim with the cfg80211/mac80211 it was built with (virtual-device
 #                                         dist, checked against our vmlinux), AOSP's hostapd and the libraries the
-#                                         image lacks, openbook-test-dhcpd (NDK, static), run-ap.sh, hostapd.conf
+#                                         image lacks, a shim that lets it skip its AIDL registration,
+#                                         openbook-test-dhcpd (NDK, static), run-ap.sh, hostapd.conf
 #        audio-net-qemu.sh run IMG RUN    boot IMG (scripts/g14-image.sh) from a fresh copy with the sound card and
 #                                         the test disk, run expect-g14-audio-net.json, then summarise:
 #                                         <boot dir>/audio-out-tones.json (what reached the "speaker"),
@@ -47,6 +48,10 @@ payload() {
   docker run --rm -u "$(id -u):$(id -g)" -v "$T:/s:ro" -v "$W/build:/o" anybook-mesa-android \
     /opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android35-clang -static -O2 -Wall -Werror \
     -o /o/openbook-test-dhcpd /s/openbook-test-dhcpd.c
+  docker run --rm -u "$(id -u):$(id -g)" -v "$T:/s:ro" -v "$W/build:/o" anybook-mesa-android \
+    /opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android35-clang -shared -fPIC -O2 -Wall \
+    -Werror -o /o/libopenbook-test-noaidl.so /s/openbook-test-noaidl.c
+  cp "$W/build/libopenbook-test-noaidl.so" "$S/lib/"
   cp "$W/build/openbook-test-dhcpd" "$T/run-ap.sh" "$T/guest-test.sh" "$T/hostapd.conf" "$S/"
   # A plain tar written straight to the disk: the guest reads it with toybox tar from the block device, and vold
   # finds no filesystem to mount.
