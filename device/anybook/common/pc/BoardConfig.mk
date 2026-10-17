@@ -111,6 +111,9 @@ BOARD_WPA_SUPPLICANT_DRIVER := NL80211
 BOARD_WPA_SUPPLICANT_PRIVATE_LIB := lib_driver_cmd_openbook
 WPA_SUPPLICANT_VERSION := VER_0_8_X
 WIFI_HIDL_UNIFIED_SUPPLICANT_SERVICE_RC_ENTRY := true
+# Lets Soong build AOSP's hostapd, which the image does not install: the QEMU Wi-Fi test runs it as the access
+# point on a second simulated radio (scripts/audio-net-qemu.sh).
+BOARD_HOSTAPD_DRIVER := NL80211
 
 # Software rendering (SwiftShader under ANGLE) for GPUs no OpenBook driver handles: what VMs display with. It
 # needs execmem in four system domains (sepolicy/swiftshader). Set false (and drop vulkan.pastel from the product)
