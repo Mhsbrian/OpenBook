@@ -129,7 +129,14 @@ audio() {
     echo "$r"; case $r in '{'*) echo "HWTEST ${r}" ;; esac
     sleep 2
     h "audio: speaker -> built-in mic through Android (AAudio)"
+    # Media volume is a software gain in AudioFlinger (its default is about -30 dB): raise it to two thirds of its
+    # range for the test, then put it back.
+    vol=$(cmd media_session volume --stream 3 --get 2>&1 | sed -n 's/.*volume is \([0-9]*\) in range \[[0-9]*\.\.\([0-9]*\)\].*/\1 \2/p')
+    cur=${vol% *}; max=${vol#* }
+    [ -n "$vol" ] && cmd media_session volume --stream 3 --set $((max * 2 / 3)) > /dev/null 2>&1
     r=$(timeout 30 openbook-audio-test --wav /data/local/tmp/openbook-aaudio-loopback.wav 2>&1 | tail -n 1)
+    [ -n "$vol" ] && cmd media_session volume --stream 3 --set "$cur" > /dev/null 2>&1
+    case $r in '{'*'}') r="${r%\}}, \"media_volume\": \"$((max * 2 / 3))/$max\"}" ;; esac
     echo "$r"; case $r in '{'*) echo "HWTEST ${r}" ;; esac
   fi
 }

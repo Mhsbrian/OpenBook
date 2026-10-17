@@ -22,13 +22,14 @@ iw phy "$phy" set netns "$ns" && log "$phy (wlan1) -> netns of pid $ns"
 # toybox nsenter takes no "sh -c ..." (it parses -c itself): the access point side is its own script.
 cat > "$D/ap-ns.sh" <<EOS
 ip link set lo up; ip link set wlan1 up; ip addr add 192.168.77.1/24 dev wlan1
-LD_LIBRARY_PATH=$D/lib:/vendor/lib64 $D/hostapd -B -P $D/hostapd.pid $D/hostapd.conf > $D/hostapd.log 2>&1
+LD_LIBRARY_PATH=$D/lib:/vendor/lib64 $D/hostapd -dd -t $D/hostapd.conf > $D/hostapd.log 2>&1 &
+echo \$! > $D/hostapd.pid
 $D/openbook-test-dhcpd wlan1 > $D/dhcpd.log 2>&1 &
 iperf3 -s -D -B 192.168.77.1 --logfile $D/iperf3.log
 ip addr show wlan1
 EOS
 nsenter -t "$ns" -n sh "$D/ap-ns.sh"
 sleep 2
-log "hostapd: $(cat $D/hostapd.pid 2>/dev/null || echo none) $(tail -n 3 $D/hostapd.log 2>/dev/null | tr '\n' ' ')"
+log "hostapd: pid $(cat $D/hostapd.pid 2>/dev/null || echo none); $(grep -E 'AP-ENABLED|AP-DISABLED|Could not|failed' $D/hostapd.log 2>/dev/null | tail -n 3 | tr '\n' ' ')"
 log "dhcpd: $(head -n 1 $D/dhcpd.log 2>/dev/null)"
 log "done"

@@ -23,15 +23,17 @@ echo "framework back after ${i} s"; sleep 15
 cmd wifi set-wifi-enabled disabled; sleep 3; cmd wifi set-wifi-enabled enabled
 i=0; while [ $i -lt 30 ] && ! cmd wifi status | grep -q 'Wifi is enabled'; do sleep 1; i=$((i + 1)); done
 echo "supplicant: $(getprop init.svc.wpa_supplicant)"
-cmd wifi start-scan; sleep 8
-echo "test network in scan results: $(cmd wifi list-scan-results | grep -c openbook-test)"
+i=0; while [ $i -lt 40 ] && ! cmd wifi list-scan-results | grep -q openbook-test; do cmd wifi start-scan; sleep 4; i=$((i + 4)); done
+echo "test network in scan results after ${i} s: $(cmd wifi list-scan-results | grep -c openbook-test)"
 cmd wifi connect-network openbook-test wpa2 openbook-test-psk
 i=0; while [ $i -lt 60 ] && ! cmd wifi status | grep -q 'Wifi is connected to'; do sleep 1; i=$((i + 1)); done
 sleep 5
 echo "connected after ${i} s"
 OPENBOOK_HWTEST_IPERF3_SERVER=192.168.77.1 OPENBOOK_HWTEST_IPERF3_SECONDS=5 openbook-hwtest wifi
 echo "--- dhcpd and hostapd (access point side) ---"
-cat "$D/dhcpd.log"; tail -n 20 "$D/hostapd.log"
+ps -A -o PID,NAME | grep -E 'hostapd|dhcpd|iperf3'
+nsenter -t "$(cat "$D/ns.pid")" -n iw dev wlan1 info 2>&1 | grep -E 'type|ssid|channel'
+cat "$D/dhcpd.log"; grep -vE 'hexdump|^$' "$D/hostapd.log" | tail -n 40
 echo "===WIFI-END==="
 
 echo "===BT-BEGIN==="
