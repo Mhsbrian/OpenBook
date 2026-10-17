@@ -12,6 +12,8 @@
 #   CF_IMAGE=cuttlefish-orchestration:1.56.0 (pinned)  CF_ADB_PORT=16520  CF_WEBRTC_PORT=11443 (127.0.0.1 only)
 #   CF_HOST_TOOLS=packaged (cvd's Debian host tools, Google's default) | build (our out/host tools)
 #   CF_LOGS=~/anybook/logs/aosp/cf-<ts> (cf-latest links to it)  CF_ARGS (extra launch_cvd flags, appended)  CF_KEEP=1 skips `down` in `all`
+#   A second VM on the same host (another CF_NAME) needs CF_ARGS=--vhost_user_vsock=true: vsock ports are host-wide, and
+#   without it its modem simulator can't bind its port and `cvd create` fails (ANAL-203).
 #   CF_CPUS=4  CF_MEMORY_MB=8192
 #   CF_GPU_MODE=guest_swiftshader (-> --gpu_mode: drm_virgl, gfxstream, gfxstream_guest_angle, ...)
 #   CF_GPU=none (no host GPU) | amd (pass the AMD render node, Mesa radeonsi/RADV in the container) |
@@ -175,5 +177,5 @@ case ${1:-all} in
   up) up ;; wait) wait_boot ;; capture) capture ;; down) down ;;
   all) rc=0; up || rc=$?; [ "$rc" -ne 0 ] || wait_boot || rc=$?; capture || true; [ -n "${CF_KEEP:-}" ] || down
        stamp "all: exit $rc, logs in $L"; exit "$rc" ;;
-  *) sed -n '2,16p' "$0"; exit 2 ;;
+  *) sed -n '2,18p' "$0"; exit 2 ;;
 esac

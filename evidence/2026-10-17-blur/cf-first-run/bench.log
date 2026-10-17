@@ -1,0 +1,25 @@
+=== 2026-10-17T23:11:43Z round 1: blur on, host load 54.17
+blur-check: round 1, blur on
+blur-check: done, disable_window_blurs back to [0]
+blur-on,1,0,0,0.00,4950,4950,4950,4950,4950,4950,24.47,Google Inc. (AMD); ANGLE (AMD; Vulkan 1.4.305 (Virtio-GPU GFXStream (AMD Radeon Graphics (RADV RAPHAEL_MENDOCINO)) (0x0000164E)); AMD-26.0.99)
+=== 2026-10-17T23:13:51Z round 2: blur off, host load 24.47
+blur-check: round 2, blur off
+blur-check: done, disable_window_blurs back to [0]
+blur-off,1,716,2,0.28,6,11,13,21,1,1,13.85,Google Inc. (AMD); ANGLE (AMD; Vulkan 1.4.305 (Virtio-GPU GFXStream (AMD Radeon Graphics (RADV RAPHAEL_MENDOCINO)) (0x0000164E)); AMD-26.0.99)
+=== 2026-10-17T23:15:59Z round 3: blur on, host load 13.85
+blur-check: round 3, blur on
+blur-check: done, disable_window_blurs back to [1]
+blur-on,1,747,38,5.09,13,26,32,57,1,1,58.89,Google Inc. (AMD); ANGLE (AMD; Vulkan 1.4.305 (Virtio-GPU GFXStream (AMD Radeon Graphics (RADV RAPHAEL_MENDOCINO)) (0x0000164E)); AMD-26.0.99)
+=== 2026-10-17T23:18:11Z round 4: blur off, host load 58.89
+blur-check: round 4, blur off
+blur-check: done, disable_window_blurs back to [0]
+blur-off,1,539,13,2.41,7,14,17,29,1,1,69.95,Google Inc. (AMD); ANGLE (AMD; Vulkan 1.4.305 (Virtio-GPU GFXStream (AMD Radeon Graphics (RADV RAPHAEL_MENDOCINO)) (0x0000164E)); AMD-26.0.99)
+=== 2026-10-17T23:20:25Z round 5: blur on, host load 69.95
+blur-check: round 5, blur on
+blur-check: done, disable_window_blurs back to [1]
+blur-on,1,772,21,2.72,12,18,22,29,1,1,61.40,Google Inc. (AMD); ANGLE (AMD; Vulkan 1.4.305 (Virtio-GPU GFXStream (AMD Radeon Graphics (RADV RAPHAEL_MENDOCINO)) (0x0000164E)); AMD-26.0.99)
+=== 2026-10-17T23:22:37Z round 6: blur off, host load 61.40
+blur-check: round 6, blur off
+blur-check: done, disable_window_blurs back to [0]
+blur-off,1,736,2,0.27,7,11,13,18,1,1,45.15,Google Inc. (AMD); ANGLE (AMD; Vulkan 1.4.305 (Virtio-GPU GFXStream (AMD Radeon Graphics (RADV RAPHAEL_MENDOCINO)) (0x0000164E)); AMD-26.0.99)
+=== 2026-10-17T23:24:51Z done; blur on

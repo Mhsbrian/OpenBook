@@ -1,0 +1,2 @@
+    visible reason= buffer=11338713661568 frame=1716 backgroundBlurRadius=34 backgroundBlurScale=0.975
+    visible reason= buffer=11338713661568 frame=1716 backgroundBlurRadius=34 backgroundBlurScale=0.975
