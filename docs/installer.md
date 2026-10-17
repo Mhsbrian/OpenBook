@@ -516,7 +516,7 @@ A 1 MB static `rdinit=` in `live.img`. It runs as PID 1 before Android's first-s
 - **Save logs** (`androidboot.openbook.logs=1`). A helper process copies the kernel log to the stick while Android boots.
   - From 5 s into second stage it holds a kernel wake lock (`/sys/power/wake_lock`), so the machine cannot suspend while it records. The G14 run of image `20261017a` suspended 6 s after boot, before the old helper captured anything.
   - It also streams `logcat -b all` to `logcat-stream.txt`.
-  - 30 s into second stage, and again when `sys.boot_completed=1` (+20 s) or after 600 s, it saves logcat, system facts and a screenshot. It runs `logcat`, `dumpsys`, `getprop` and `screencap` inside Android's root via `/proc/1/root`. Everything goes to `openbook/logs/live-NNN/` with a `summary.json` (`openbook-live-logs/1`). Then it shuts Android down (`androidboot.openbook.logs_after`: `poweroff`, `reboot` or `stay`). It mounts the ESP with the new mount API (`fsopen`/`fsmount`), so the mount is attached to no directory and Android never sees it.
+  - 30 s into second stage, and again when `sys.boot_completed=1` (+20 s) or after 600 s, it saves logcat, system facts and a screenshot. It runs `logcat`, `dumpsys`, `getprop` and `screencap` inside Android's root via `/proc/1/root`. Everything goes to `openbook/logs/live-NNN/` with a `summary.json` (`openbook-live-logs/1`). Then it keeps appending dmesg and logcat, synced every 5 s, until the machine is turned off (`androidboot.openbook.logs_after=stay`, the default since 2026-10-17). `poweroff` is used by the QEMU test entry; `reboot` is for unattended device-agent runs. On the G14 the old automatic shutdown, 45 s after the desktop appeared, looked like a crash. It mounts the ESP with the new mount API (`fsopen`/`fsmount`), so the mount is attached to no directory and Android never sees it.
   - **This entry boots SELinux permissive** (`androidboot.selinux=permissive`, userdebug only). The helper reads logcat and talks to SurfaceFlinger from outside Android's own domains. Results from this entry say so (`ro.boot.selinux`), and its AVC counts are reported, not enforced.
 - **Safety.** It acts only on the disk holding the ESP whose PARTUUID is `androidboot.boot_part_uuid`, only if that disk is on USB, and only if its primary GPT is valid (header and entry CRCs) and has the live layout (`EFI` with that PARTUUID, `metadata`, `super`, `userdata` last). It refuses a stick smaller than the GPT says. Writes go backup GPT first, then primary, so a cut leaves one valid table. Anything unexpected is logged and the disk is left as it is. Every change is recorded in `openbook/logs/live-init-NNN.json` and in the kernel log (`openbook-live:`).
 - **Host test:** `scripts/installer/live-init-test.sh` runs 9 cases on GPT image files: grow, a second run, repair only, exact size, wrong ESP, userdata not last, a short stick, a bad CRC, and reset. `installer-image.sh` runs it on every build.
@@ -580,7 +580,7 @@ Nothing below has run yet. The first G14 boot of this image needs the owner to c
    It checks the image's sha256, writes, reads the stick back and compares, then powers the stick off. `--dry-run` shows the stick and writes nothing. Any flasher works too, with the `.img.xz` and its sha256.
 2. **On the G14** (Secure Boot off, as today): power on with **Esc**, pick the USB stick. The OpenBook menu shows for 10 s. Press **↓ once, then Enter** for "OpenBook - save logs to this USB stick".
 3. **Photograph the screen** at about 30 s, 2 min and 5 min. Expected (H): the ASUS logo, then the boot animation or a dark screen. The desktop is not expected yet (§11.5).
-4. **Leave it alone.** It saves logs and powers off by itself within about 12 minutes. If it is still on after 15 minutes, hold the power button: that is a result too.
+4. **Use it or leave it alone.** It saves a capture about 20 s after startup and keeps recording until you turn it off: hold the power button, or use Android's power menu. Keep the charger connected if you can.
 5. **Plug the stick into the dev host and reply.** The agent runs (read-only):
    ```bash
    scripts/installer/read-stick-logs.sh /dev/disk/by-id/usb-<stick>
@@ -669,3 +669,13 @@ ANAL-199's PR #38 keeps ANGLE off the deferred swapchain path (`debug.angle.feat
 - captures at second stage + 30 s and `boot_completed` + 20 s.
 
 **QEMU: 12 of 12**, including a real screenshot of the lock screen and Android powering the VM off.
+
+### 11.14 Save logs keeps running (2026-10-17, C)
+
+The owner's G14 boots of ANAL-176's `openbook-live-20261017-desktop2` reached the OpenBook desktop in the save-logs entry: `boot_completed` at 28 s, one `system_server` start, the `amdgpu` HAL, and a 2880×1800 screenshot of Settings and Quick Settings.
+
+About 50 s later, the old helper shut Android down by design (final capture at `boot_completed` + 45 s, then `sys.powerctl shutdown`). On the laptop that looked like a crash.
+
+The default is now `logs_after=stay`: after its captures the helper releases its wake lock, restores `stay_on_while_plugged_in`, and keeps appending dmesg and logcat until the machine is turned off.
+- QEMU, the real save-logs entry: captures at 48 s, then recording continued to the end of the 170 s run.
+- The QEMU test entry (`logs_after=poweroff`) still passes 12 of 12.

@@ -328,7 +328,8 @@ def main():
         "reset": ({**base, **reset}, "", "OpenBook - start fresh (erase this stick's saved data)", "openbook-3", True),
         "vm": ({**base, **vm}, VM_OPTIONS, "OpenBook - serial console (virtual machines)", "openbook-4", True),
         "vm-reset": ({**base, **vm, **reset}, VM_OPTIONS, "OpenBook - VM test: start fresh", "openbook-5", False),
-        "vm-logs": ({**base, **vm, **logs, "androidboot.openbook.logs_timeout": "300"}, VM_OPTIONS,
+        "vm-logs": ({**base, **vm, **logs, "androidboot.openbook.logs_timeout": "300",
+                     "androidboot.openbook.logs_after": "poweroff"}, VM_OPTIONS,
                     "OpenBook - VM test: save logs", "openbook-6", False),
     }
 
@@ -405,9 +406,10 @@ Build: {fp or 'unknown'}
 
 Start a computer from this stick (UEFI, Secure Boot off). Hold a key while it starts to see the menu:
   OpenBook                                  the live system. Your changes are kept on this stick.
-  OpenBook - save logs to this USB stick    the same, and it saves the kernel log, logcat, system facts and a
-                                            screenshot to openbook/logs/live-NNN/ on this stick, then shuts down
-                                            (within about 10 minutes). For bug reports.
+  OpenBook - save logs to this USB stick    the same, and it records the kernel log and logcat to
+                                            openbook/logs/live-NNN/ on this stick, with system facts and a
+                                            screenshot shortly after startup, until you turn the computer off.
+                                            For bug reports.
   OpenBook - start fresh                    erases what the live system saved on this stick, then starts it.
   OpenBook - serial console                 for virtual machines (the console is on the first serial port).
 Nothing on the computer's own disks is changed by this stick.

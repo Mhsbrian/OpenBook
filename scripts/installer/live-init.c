@@ -12,8 +12,9 @@
 //          stick's ESP while Android boots, streams logcat there from the start of second stage, and holds a
 //          kernel wake lock so the machine cannot suspend while it records. 30 s into second stage, and again
 //          once Android has booted (or after a timeout), it saves logcat, system facts, a screenshot and
-//          summary.json to openbook/logs/live-NNN/, then shuts Android down
-//          (androidboot.openbook.logs_after=poweroff, the default; =reboot for unattended runs; =stay). It
+//          summary.json to openbook/logs/live-NNN/. Then it keeps recording the kernel log and logcat until the
+//          machine is turned off (androidboot.openbook.logs_after=stay, the default), or shuts Android down
+//          (=poweroff, used by the QEMU tests; =reboot for unattended device-agent runs). It
 //          mounts the ESP with the new mount API (fsopen/fsmount), so the mount is attached nowhere and Android
 //          never sees it. That entry also boots SELinux permissive (userdebug only), which the helper needs to
 //          read logcat and take the screenshot from outside Android's own domains.
@@ -824,9 +825,9 @@ static void logs_helper(int ready_fd, const char *esp_node) {
     // Read the settings now: /proc is unmounted once the parent execs Android's init.
     long timeout = conf_long("androidboot.openbook.logs_timeout", 600);  // after second stage starts
     long settle = conf_long("androidboot.openbook.logs_settle", 20);     // after sys.boot_completed=1
-    char after[16] = "poweroff";
+    char after[16] = "stay";
     conf_get("androidboot.openbook.logs_after", after, sizeof after);
-    if (strcmp(after, "reboot") && strcmp(after, "stay")) snprintf(after, sizeof after, "poweroff");
+    if (strcmp(after, "reboot") && strcmp(after, "poweroff")) snprintf(after, sizeof after, "stay");
     int ok = kmsg_in >= 0 && espfd >= 0 && procfd >= 0 && !mkdir_free(espfd, "live-", logdir_name, sizeof logdir_name);
     if (ok) logdir = openat(espfd, logdir_name, O_DIRECTORY | O_CLOEXEC);
     if (ok && logdir >= 0) dmesg_out = openat(logdir, "dmesg.txt", O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0644);
@@ -910,13 +911,39 @@ static void logs_helper(int ready_fd, const char *esp_node) {
         usleep(500000);
     }
     capture("final");
-    if (stream_pid > 0) {
+    int keep = !strcmp(after, "stay");
+    if (!keep && stream_pid > 0) {
         kill(stream_pid, SIGTERM);
         waitpid(stream_pid, NULL, 0);
     }
-    if (stream_fd >= 0) { fsync(stream_fd); close(stream_fd); }
+    if (stream_fd >= 0) fsync(stream_fd);
     write_summary(after);
     if (stayon) run_android("cmd settings put global stay_on_while_plugged_in 0", -1, NULL, 0, 20);
+    if (keep) {
+        // The default: the person at the machine keeps using it (the G14 run of desktop2 reached the desktop in
+        // this entry, and an automatic shutdown looked like a crash). Release the wake lock so the machine
+        // behaves normally, and keep appending dmesg and logcat, synced every 5 s, until it is turned off.
+        if (wakelock > 0) run_android("echo openbook-logs > /sys/power/wake_unlock", -1, NULL, 0, 10);
+        say("logs: captures saved to %s; still recording dmesg and logcat until the machine is turned off",
+            logdir_name);
+        for (double t_s = 0, t_r = 0;;) {
+            drain_kmsg();
+            double now = uptime_s();
+            int st;
+            if (stream_pid > 0 && waitpid(stream_pid, &st, WNOHANG) == stream_pid) stream_pid = -1;
+            if (stream_pid < 0 && stream_fd >= 0 && now - t_r >= 5) {
+                t_r = now;
+                stream_pid = spawn_android("logcat -b all -v threadtime -T 1", stream_fd);
+            }
+            if (now - t_s >= 5) {
+                fsync(dmesg_out);
+                if (stream_fd >= 0) fsync(stream_fd);
+                t_s = now;
+            }
+            usleep(500000);
+        }
+    }
+    if (stream_fd >= 0) close(stream_fd);
     // Keep the wake lock through the shutdown request: released first, the machine can suspend in between.
     if (wakelock > 0 && !strcmp(after, "stay")) run_android("echo openbook-logs > /sys/power/wake_unlock", -1, NULL, 0, 10);
     say("logs: done: %s (dmesg %llu bytes, %d capture(s), logcat stream started %d time(s), wake lock %s)", logdir_name,
