@@ -36,8 +36,9 @@ on late-fs
 # Virtual machines: anybook_gpu_probe found virtio-gpu (unbound: its module is blocklisted for laptops). Load it
 # and render in software, SwiftShader Vulkan under ANGLE, with minigbm and drm_hwcomposer on the virtio-gpu KMS
 # device. This is what lets the PC image boot in QEMU, which has no AMD GPU. Real AMD GPUs take the
-# vendor.anybook.gpu.hal=amdgpu path in init.anybook.graphics-amd.rc instead.
-on property:vendor.anybook.gpu.hal=virtio
+# vendor-anybook-gpu-amdgpu event in init.anybook.graphics-amd.rc instead. Both events come from the probe at
+# early-init, so this runs before any HAL or SurfaceFlinger starts.
+on vendor-anybook-gpu-virtio
     exec_start vendor.openbook.virtio-modules
     setprop ro.hardware.vulkan ${ro.boot.hardware.vulkan:-pastel}
     setprop ro.hardware.egl ${ro.boot.hardware.egl:-angle}

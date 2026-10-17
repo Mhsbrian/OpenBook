@@ -1,0 +1,3 @@
+# init.anybook.graphics-amd.rc expands ${vendor.anybook.gpu.hal} in its early-init trigger; init does that for
+# vendor .rc files in the vendor_init context.
+get_prop(vendor_init, vendor_anybook_gpu_prop)
