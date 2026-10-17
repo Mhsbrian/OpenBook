@@ -7,7 +7,7 @@ How OpenBook handles suspend, CPU power, battery, lid, keyboard and touchpad on 
 | Feature | State | Source |
 |---|---|---|
 | Suspend to idle (s2idle) | Works: cycles complete, the panel and Wi-Fi come back (C). **Also under Android on the laptop** (`anal178c`): the screen timeout led to s2idle, a key woke it after 22 s, and the display, audio and Wi-Fi came back (C). Autosuspend attempts are refused while an alarm is due within 2 s (`alarmtimer` `-EBUSY`), as on any Android device | runs 3–7, `evidence/2026-10-16-g14-hwcheck/`, §7 |
-| Deepest sleep (S0i3) | **Not reached by our kernel** (C, runs 2–7, and Android's own s2idle on `anal178c`: "Last suspend didn't reach deepest state"). The laptop's own Linux 7.2 shows no failure in 4 cycles (C, indirect, §1.1). Root cause open; tests ready (§1.4), not run on the laptop yet | §1, §7 |
+| Deepest sleep (S0i3) | **Not reached by our kernel** (C, runs 2–7, Android's own s2idle on `anal178c` and `anal176t`, and the power check's four cycles on `anal176t`). The laptop's own Linux 7.2 shows no failure in 4 cycles (C, indirect, §1.1). **The driverless PSP is ruled out** (§1.3); the SMU points at MPM or the USB4 routers (HYPOTHESIS, the table's slot names are unconfirmed). Next: the same SMU table on Linux 7.2 | §1, §7.6 |
 | CPU power | `amd-pstate-epp` active, EPP `balance_performance` (C). **The power HAL's EPP hints work on the laptop** (C): screen off → `power`, app launch → `performance`, then back to `balance_performance`. Battery saver (→ `balance_power`) not exercised yet | §7 |
 | Battery | **The OpenBook health HAL works on the laptop** (C, both sessions): Android's charge counter follows `charge_now` (1,437,000 µAh against 1,430,000), and health is GOOD from a state of health of 88.7 % (`charge_full` 4.063 Ah of 4.580 Ah design). Temperature stays 0: the ACPI battery has no temperature. `cycle_count` reads 0; charge limit 100 % | §3, §7 |
 | Backlight | `amdgpu_bl0`, 0–399000 (C) | live-001 |
@@ -15,7 +15,7 @@ How OpenBook handles suspend, CPU power, battery, lid, keyboard and touchpad on 
 | Touchpad | ELAN `04F3:3315`: InputReader classes it `TOUCH \| TOUCH_MT \| TOUCHPAD`, so Android 17's gestures-library mapper drives it (C). **"Clock changed backwards" every 40 ms of finger contact: cause found** (C): the kernel autorepeats `BTN_TOOL_FINGER` on the touchpad. **Fix:** EventHub turns kernel key repeat off for touchpads (`aosp/patches/frameworks/native`); reproduced and fixed in QEMU with the laptop's own HID descriptor (§2, §7) | §2, §7 |
 | Keyboard | hid-asus, our layout file, keyboard backlight as an input light (`LIGHT`) (C) | live-001 |
 | ASUS hotkeys (WMI) | Own layout, **in force on the laptop** (C, `dumpsys input`: `Asus WMI hotkeys` → `Asus_WMI_hotkeys.kl`, `Asus Keyboard` → `Vendor_0b05_Product_19b6.kl`). Which key sends what is not captured yet | §2, §7 |
-| Lid, power and sleep buttons | Input devices present (C). The PC overlay's lid and power-button config is in force **on the laptop** (C, both sessions: `LID_BEHAVIOR_SLEEP`, short press 6 = lock or sleep, long press = power menu). **The lid was not closed in either session**, so lid → sleep → wake is still untested; the power menu's Restart and Power off worked (C) | §7 |
+| Lid, power and sleep buttons | Input devices present (C). The PC overlay's lid and power-button config is in force **on the laptop** (C: `LID_BEHAVIOR_SLEEP`, short press 6 = lock or sleep, long press = power menu). **Lid close → sleep → s2idle → lid open → wake works on the laptop** (C, `anal176t`: 5 min 20 s closed). The power menu's Restart and Power off work (C) | §7.6 |
 
 ## 1. S0i3
 
@@ -33,9 +33,11 @@ How OpenBook handles suspend, CPU power, battery, lid, keyboard and touchpad on 
 7. **USB4_0.** The SMU's "not met" time for USB4_0 is exactly 78 416 µs in runs 5, 6 and 7, across separate boots, so it looks like a fixed figure rather than a live blocker (HYPOTHESIS).
 
 ### 1.3 Leading hypothesis
-In `pci_pm_suspend_noirq()` (6.18 and 7.2 alike), a function with no driver is left in D0, and the PCI core marks **its parent bridge** `skip_bus_pm` so the bridge stays in D0 too. With no `ccp`, the PSP keeps `00:08.1` (`\_SB.PCI0.GPPA`, the internal bridge of the iGPU, display audio, PSP, xHCI 1, ACP and HDA) in D0 through every suspend. Under Linux, `ccp` has PM callbacks, so the PCI core puts the PSP into D3hot and GPPA can follow. **HYPOTHESIS:** the firmware does not list GPPA's D3 as an LPI constraint (`P1D3` = `0x55`), so this is plausible, not shown.
+**Ruled out on the laptop (2026-10-17, the power check on `anal176t`, §7.6).** The driverless PSP was the leading hypothesis: in `pci_pm_suspend_noirq()` a function with no driver stays in D0 and keeps its parent bridge (`00:08.1`, GPPA) in D0. The PCI snapshot at S0i3 entry shows otherwise. The PSP and every endpoint are already in D3; only the root complex, host bridges, SMBus, LPC and data-fabric functions stay in D0, as they do on any AMD laptop. Giving the PSP PCI power management (step `psp`), the same for `1022:150d` (`dummy`), and loading the ASUS modules (`asus`) all missed S0i3 as well.
 
-Other candidates, in order: amd-pmf (SMU power limits and policies), asus-wmi's `INIT` call, PTM (`CONFIG_PCIE_PTM` is off in GKI; Linux 7.2 enables PTM on root ports and turns it off at suspend, while ours leaves whatever the firmware set), then firmware.
+**What the SMU says.** After every cycle, amd_pmc's "Active time" table (`timecondition_notmet_lastcapture`) has two non-zero slots: **`MPM`** (2.3–14.8 ms, varying from cycle to cycle) and **`USB4_0`**. In `USB4_0` the low half is always `0x13250`, and the high half changes between 0 and float-looking values, so the firmware's table version 3 does not match the kernel's `u64` layout. Linux 7.2.8 uses the same struct. **HYPOTHESIS:** the IP that keeps the SoC out of S0i3 is among MPM and the USB4 routers, but the slot names are not trustworthy until the same table is read on the laptop's own Linux, where S0i3 works (§1.5 A, `--amd-s2idle`).
+
+Remaining candidates, in order: the USB4 routers (`thunderbolt` binds both NHIs; Linux 7.2's USB4 power management is newer), PTM (`CONFIG_PCIE_PTM` is off in GKI; Linux 7.2 enables PTM on root ports and turns it off at suspend, while ours leaves whatever the firmware set; the root ports are in D3 at entry, so the normal snapshot doesn't show their PTM state, but the "all steps" entry does), amd-pmf (SMU power limits and policies), then firmware.
 
 ### 1.4 Tests built in this issue
 - **`openbook_s0i3_snapshot`** (`scripts/installer/kmod/`, test-only): hooks the LPS0 prepare step, the moment the SoC may enter S0i3, and logs every PCI function not in D3 with the kernel's and the hardware's (PMCSR) state, `skip_bus_pm`, ASPM, L1 substates, PTM and the ACPI state. The same source builds for 7.2.
@@ -151,8 +153,8 @@ The installer image needs `make` for the test modules: `docker build -t openbook
   4. Optionally, step A of §1.5 on the laptop's Linux.
 
 ## 6. Open items
-- S0i3: the power-check boot or the Linux run (§7.5) on ANAL-192's stick, then the fix in the kernel lane (§1.6). Android's own suspends on the laptop miss S0i3 too (§7.3).
-- On ANAL-192's stick (§7.5): lid close → sleep → wake, battery saver → `balance_power`, and the touchpad without repeat frames and clock errors (the EventHub fix).
+- S0i3: the PSP is ruled out (§7.6). Next: the Linux 7.2 run with `--amd-s2idle` and the "all steps" power check (§7.6), then the fix in the kernel lane.
+- On ANAL-192's stick (§7.5): battery saver → `balance_power` (turn it on in Quick Settings and confirm the dialog), and the touchpad without repeat frames and clock errors (the EventHub fix; use the touchpad as soon as the desktop of the "save logs" boot appears). The lid is done (§7.6).
 - Fn keys: which key sends what, and whether brightness and keyboard-light keys arrive twice (ACPI video, hid-asus and asus-wmi all offer them). This needs the owner to press each key while `getevent` runs, which no save-logs step does yet.
 - Gesture tuning (`gestureProp.*` in the IDC): wait for the owner's feel of the touchpad with the clock fix in.
 - Upstream: the `hid-multitouch` side of the touchpad quirk (ignore every vendor page in a multitouch collection, not only `0xFF00`) and Android's `HardwareStateConverter` resetting `MSC_TIMESTAMP` at every report. Both are outward-facing, so they wait for the owner's OK; the patch stays in this repo.
@@ -200,7 +202,26 @@ ANAL-192 builds the single integrated stick from `main` once PR #52 is merged. F
 |---|---|---|
 | Boot **"OpenBook power check: S0i3"** once (about 3 min, powers off) | The power check add-on: `scripts/power/make-power-check.sh`, then `scripts/power/add-to-live-stick.sh --image IMG <add-on>`, as for `anal178c` | `hwcheck-NNN.json` → `scripts/power/s0i3-report.py` (§1.5–1.6) |
 | Or, on the laptop's own Linux: `sudo python3 scripts/power/linux-s2idle.py --amd-s2idle` | nothing | `s0i3-report.py <hwcheck> <summary.json>` |
-| Default boot, desktop up: **close the lid for 1 min, open it** | nothing new | `lid_events` in the next save-logs boot (it reads the earlier boot's logcat) |
+| Default boot, desktop up: **close the lid for 1 min, open it** | nothing new | `lid_events` in the next save-logs boot (it reads the earlier boot's logcat). **Done and passing on `anal176t`** (§7.6) |
 | Default boot: **Quick Settings → Battery Saver, confirm** | nothing new | `epp_modes.battery_saver_seen` (`balance_power`) |
 | Save-logs boot: **use the touchpad for 20 s** after the desktop appears | `main` with this PR (the EventHub patch) | `touchpad_clock` (0 repeat frames, every frame with MSC), `touchpad_clock_warnings` (0) |
 | Nothing to do | — | `health_hal`, `epp_modes`, `s0i3` (Android's own suspends), `lid_and_power_config`, `key_layouts` |
+
+### 7.6 Third session: `anal176t` with the power check
+The owner ran the steps of §7.5 on ANAL-176's `openbook-live-20261017-anal176t` stick: `anal178c` plus PR #52 and ANAL-176's audio policy, the power check and the graphics check, but not this issue's EventHub fix. Boots: a default boot with the lid test, "save logs" (`live-001`), "OpenBook power check: S0i3" (`hwcheck-001`), and ANAL-177's graphics check (`live-002`). ANAL-178 copied the stick read-only (`g14/stick-20261017T154112Z`). Evidence: `evidence/2026-10-17-power-input/g14-anal176t/`.
+
+- **Lid: works** (C). At 15:01:12, closing the lid made Android sleep ("Sleeping power group … reason=lid_switch"): screen off, EPP `power`, then s2idle. The first suspend attempt stopped after 1.1 s on a pending wakeup from `mmc0` (the card reader). The second held for 5 min 20 s, until opening the lid woke the laptop (`WAKE_REASON_LID`; IRQ 7 `pinctrl_amd` plus the ACPI SCI). amd_pmc again reported "didn't reach deepest state". The `lid_events` verdict missed this at first, because Android 17 words the close differently; it now reads `yes` with `suspended_while_closed: true`.
+- **Power check: S0i3 missed in all four cycles** (19 s each; baseline, `psp`, `dummy`, `asus`; `s0i3-report.md`), which rules out the driverless PSP (§1.3).
+  - At S0i3 entry only the root complex, host bridges, SMBus, LPC and data fabric are in D0 (16–17 functions). The PSP, both xHCs, the USB4 router (`67:00.5`, `thunderbolt`), the iGPU and NVMe are in D3.
+  - After each cycle the SMU's "Active time" table has non-zero `USB4_0` (low half always `0x13250`, high half changing) and `MPM` (2.3–14.8 ms) (`smu-not-met.txt`).
+  - One USB4 router is present (`NHI0`, power resource ON around the cycles; `NHI1` off).
+- **Battery saver:** not turned on in the logged boots: no `battery_saver_mode` event, no confirmation dialog, no `balance_power`. The logs reach back to the default boot at 14:57.
+- **Touchpad:** the 20 s capture saw no finger. The save-logs boot logged 170 clock errors, as expected without the EventHub fix.
+- **Health HAL:** the charge counter is 1,036,000 µAh against `charge_now` 1,034,000, health GOOD (88.7 %).
+
+**Next for S0i3**, in order. Both run on the current stick or the laptop, with no new image:
+1. The laptop's own Linux: `sudo python3 scripts/power/linux-s2idle.py --amd-s2idle`. It shows the same SMU table where S0i3 works, which shows whether `USB4_0`/`MPM` are real blockers or a decoding artifact.
+2. "OpenBook power check: S0i3, 60 s cycles, all steps": every PCI function with its link state (ASPM, L1 substates, PTM) at entry.
+
+Then a power-check step for the USB4 router (its D3cold through `NHI0.PWRS`), or PTM off on the root ports, in the kernel lane.
+

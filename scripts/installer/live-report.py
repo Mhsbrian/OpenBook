@@ -226,10 +226,14 @@ def main():
         # Lid: PowerManager names the lid as a sleep or wake reason; this boot's logcat and the earlier boots' on the
         # stick (prior/, unpacked by read-stick-logs.sh). None: the lid was not used.
         logs = read(f"{d}/logcat-{phase}.txt") + "".join(read(f) for f in sorted(glob.glob(f"{d}/prior/misc/logd/logcat*")))
-        closes = len(re.findall(r"Going to sleep due to lid_switch", logs))
-        opens = len(re.findall(r"Waking up from \w+ \([^)]*reason=WAKE_REASON_LID", logs))
+        # Android 17 logs the close as "Sleeping power group (... reason=lid_switch)"; older ones "Going to sleep due to".
+        close_re = r"Going to sleep due to lid_switch|Sleeping power group \([^)]*reason=lid_switch"
+        open_re = r"PowerManagerService: Waking up from \w+ \([^)]*reason=WAKE_REASON_LID"
+        closes, opens = len(re.findall(close_re, logs)), len(re.findall(open_re, logs))
+        c, o = re.search(close_re, logs), re.search(open_re, logs)
+        suspended = "PM      : suspend entry" in logs[c.end():o.start()] if c and o and o.start() > c.end() else None
         verdict("lid_events", (closes > 0 and opens > 0) if closes or opens else None, sleeps_on_close=closes,
-                wakes_on_open=opens)
+                wakes_on_open=opens, suspended_while_closed=suspended)
         # The power HAL (vendor.power-openbook) logs every EPP it sets: screen off -> power, app launch -> performance,
         # battery saver -> balance_power, otherwise the kernel's default (balance_performance).
         epp = re.findall(r"openbook\.power: energy_performance_preference=(\w+)", logs)
