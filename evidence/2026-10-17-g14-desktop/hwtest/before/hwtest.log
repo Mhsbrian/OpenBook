@@ -1,0 +1,51 @@
+linker: Warning: failed to find generated linker configuration from "/linkerconfig/ld.config.txt"
+WARNING: linker: Warning: failed to find generated linker configuration from "/linkerconfig/ld.config.txt"
+swapchain 2880x1800 create: gralloc RGBA_8888 usage 0xb00: stride 2944 px, perform(GET_BUFFER_INFO) = 0, modifier 0x00ffffffffffffff, plane stride 11776 B, BO swizzle mode 27
+swapchain 2880x1800 create: vkCreateImage = 0
+swapchain 2880x1800 create: wrapped at vkCreateImage; RADV row pitch 11776 B (gralloc 11776 B)
+swapchain 2880x1800 create: RADV wrote, radeonsi read: 0 of 5184000 pixels wrong
+swapchain 2880x1800 create: radeonsi wrote, RADV read: 0 of 5184000 pixels wrong
+swapchain 2880x1800 create: PASS
+swapchain 2880x1800 deferred: gralloc RGBA_8888 usage 0xb00: stride 2944 px, perform(GET_BUFFER_INFO) = 0, modifier 0x00ffffffffffffff, plane stride 11776 B, BO swizzle mode 27
+swapchain 2880x1800 deferred: vkCreateImage = 0
+swapchain 2880x1800 deferred: vkBindImageMemory2(memory = VK_NULL_HANDLE, VkNativeBufferANDROID) ...
+libc: Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x60 in tid 17 (amd-android-hwt), pid 17 (amd-android-hwt)
+swapchain 2880x1800 deferred: CRASHED with signal 11
+swapchain 2880x1800 deferred: FAIL
+swapchain 1920x1200 create: gralloc RGBA_8888 usage 0xb00: stride 1920 px, perform(GET_BUFFER_INFO) = 0, modifier 0x00ffffffffffffff, plane stride 7680 B, BO swizzle mode 27
+swapchain 1920x1200 create: vkCreateImage = 0
+swapchain 1920x1200 create: wrapped at vkCreateImage; RADV row pitch 7680 B (gralloc 7680 B)
+swapchain 1920x1200 create: RADV wrote, radeonsi read: 0 of 2304000 pixels wrong
+swapchain 1920x1200 create: radeonsi wrote, RADV read: 0 of 2304000 pixels wrong
+swapchain 1920x1200 create: PASS
+swapchain 1920x1200 deferred: gralloc RGBA_8888 usage 0xb00: stride 1920 px, perform(GET_BUFFER_INFO) = 0, modifier 0x00ffffffffffffff, plane stride 7680 B, BO swizzle mode 27
+swapchain 1920x1200 deferred: vkCreateImage = 0
+swapchain 1920x1200 deferred: vkBindImageMemory2(memory = VK_NULL_HANDLE, VkNativeBufferANDROID) ...
+libc: Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x60 in tid 37 (amd-android-hwt), pid 37 (amd-android-hwt)
+swapchain 1920x1200 deferred: CRASHED with signal 11
+swapchain 1920x1200 deferred: FAIL
+swapchain 1000x600 create: gralloc RGBA_8888 usage 0xb00: stride 1024 px, perform(GET_BUFFER_INFO) = 0, modifier 0x00ffffffffffffff, plane stride 4096 B, BO swizzle mode 27
+swapchain 1000x600 create: vkCreateImage = 0
+swapchain 1000x600 create: wrapped at vkCreateImage; RADV row pitch 4096 B (gralloc 4096 B)
+swapchain 1000x600 create: RADV wrote, radeonsi read: 0 of 600000 pixels wrong
+swapchain 1000x600 create: radeonsi wrote, RADV read: 0 of 600000 pixels wrong
+swapchain 1000x600 create: PASS
+swapchain 1000x600 deferred: gralloc RGBA_8888 usage 0xb00: stride 1024 px, perform(GET_BUFFER_INFO) = 0, modifier 0x00ffffffffffffff, plane stride 4096 B, BO swizzle mode 27
+swapchain 1000x600 deferred: vkCreateImage = 0
+swapchain 1000x600 deferred: vkBindImageMemory2(memory = VK_NULL_HANDLE, VkNativeBufferANDROID) ...
+libc: Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x60 in tid 57 (amd-android-hwt), pid 57 (amd-android-hwt)
+swapchain 1000x600 deferred: CRASHED with signal 11
+swapchain 1000x600 deferred: FAIL
+swapchain 64x64 create: gralloc RGBA_8888 usage 0xb00: stride 128 px, perform(GET_BUFFER_INFO) = 0, modifier 0x00ffffffffffffff, plane stride 512 B, BO swizzle mode 27
+swapchain 64x64 create: vkCreateImage = 0
+swapchain 64x64 create: wrapped at vkCreateImage; RADV row pitch 512 B (gralloc 512 B)
+swapchain 64x64 create: RADV wrote, radeonsi read: 0 of 4096 pixels wrong
+swapchain 64x64 create: radeonsi wrote, RADV read: 0 of 4096 pixels wrong
+swapchain 64x64 create: PASS
+swapchain 64x64 deferred: gralloc RGBA_8888 usage 0xb00: stride 128 px, perform(GET_BUFFER_INFO) = 0, modifier 0x00ffffffffffffff, plane stride 512 B, BO swizzle mode 27
+swapchain 64x64 deferred: vkCreateImage = 0
+swapchain 64x64 deferred: vkBindImageMemory2(memory = VK_NULL_HANDLE, VkNativeBufferANDROID) ...
+libc: Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x60 in tid 77 (amd-android-hwt), pid 77 (amd-android-hwt)
+swapchain 64x64 deferred: CRASHED with signal 11
+swapchain 64x64 deferred: FAIL
+result: FAIL

@@ -1,0 +1,77 @@
+# G14 live-001 tombstone, frame #00: vulkan.radv.so pc 0xc0c7ad, BuildId 301af9c5894b336880470636fa50c57a9c2f9e6d
+# Symbolized with the unstripped Mesa 26.2.5 build of the same BuildId (~/anybook/mesa/build/upstream/src/amd/vulkan/libvulkan_radeon.so)
+$ file libvulkan_radeon.so | BuildID
+BuildID[sha1]=301af9c5894b336880470636fa50c57a9c2f9e6d (the image's stripped vulkan.radv.so has the same)
+
+$ llvm-symbolizer --obj=libvulkan_radeon.so 0xc0c7ad
+radv_BindImageMemory2 (radv_image.c)
+
+$ llvm-objdump -d --start-address=0xc0c79d --stop-address=0xc0c7b1
+  c0c7a4:  callq radv_GetImageMemoryRequirements2
+  c0c7a9:  movq  -0x68(%rbp), %rdi        ; mem (VK_FROM_HANDLE(radv_device_memory, mem, pBindInfos[i].memory))
+  c0c7ad:  movq  0x60(%rdi), %rcx         ; mem->alloc_size  <- SIGSEGV, fault addr 0x60, rdi = 0
+
+# radv_image.c (26.2.5), radv_BindImageMemory2():
+      radv_GetImageMemoryRequirements2(_device, &info, &reqs);
+
+      if (mem->alloc_size) {
+         if (offset + reqs.memoryRequirements.size > mem->alloc_size) {
+            if (status)
+               *status->pResult = VK_ERROR_UNKNOWN;
+            return vk_errorf(device, VK_ERROR_UNKNOWN, "Device memory object too small for the image.\n");
+         }
+      }
+
+      /* Ignore this struct on Android, we cannot access swapchain structures there. */
+#ifdef RADV_USE_WSI_PLATFORM
+      if (!mem) {
+         const VkBindImageMemorySwapchainInfoKHR *swapchain_info =
+            vk_find_struct_const(pBindInfos[i].pNext, BIND_IMAGE_MEMORY_SWAPCHAIN_INFO_KHR);
+         assert(swapchain_info && swapchain_info->swapchain != VK_NULL_HANDLE);
+         mem = radv_device_memory_from_handle(
+            wsi_common_get_memory(swapchain_info->swapchain, swapchain_info->imageIndex));
+
+# Caller: frameworks/native/vulkan/libvulkan/swapchain.cpp (AOSP 17), AcquireNextImageKHR(), deferred-allocation swapchain:
+    // If this is a deferred alloc swapchain, this may be the first time we've
+    // seen a particular buffer. If so, there should be an empty slot. Find it,
+    // and bind the gralloc buffer to the VkImage for that slot. If there is no
+    // empty slot, then we dequeued an unexpected buffer. Non-deferred swapchains
+    // will also take this path, but will never have an empty slot since we
+    // populated them all upfront.
+    if (idx == swapchain.num_images) {
+        for (idx = 0; idx < swapchain.num_images; idx++) {
+            if (!swapchain.images[idx].buffer) {
+                // Note: this structure is technically required for
+                // Vulkan correctness, even though the driver is probably going
+                // to use everything from the VkNativeBufferANDROID below.
+                // This is kindof silly, but it's how we did the ANB
+                // side of VK_KHR_swapchain v69, so we're stuck with it unless
+                // we want to go tinkering with the ANB spec some more.
+                VkBindImageMemorySwapchainInfoKHR bimsi = {
+                    .sType = VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_SWAPCHAIN_INFO_KHR,
+                    .pNext = nullptr,
+                    .swapchain = swapchain_handle,
+                    .imageIndex = idx,
+                };
+                VkNativeBufferANDROID nb = {
+                    .sType = VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID,
+                    .pNext = &bimsi,
+                    .handle = buffer->handle,
+                    .stride = buffer->stride,
+                    .format = buffer->format,
+                    .usage = int(buffer->usage),
+                    .usage3 = buffer->usage,
+                    .ahb = ANativeWindowBuffer_getHardwareBuffer(buffer),
+                };
+                android_convertGralloc0To1Usage(int(buffer->usage),
+                                                &nb.usage2.producer,
+                                                &nb.usage2.consumer);
+                VkBindImageMemoryInfo bimi = {
+                    .sType = VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_INFO,
+                    .pNext = &nb,
+                    .image = swapchain.images[idx].image,
+                    .memory = VK_NULL_HANDLE,
+                    .memoryOffset = 0,
+                };
+                result = GetData(device).driver.BindImageMemory2(device, 1, &bimi);
+                if (result != VK_SUCCESS) {

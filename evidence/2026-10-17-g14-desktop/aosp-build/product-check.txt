@@ -1,0 +1,22 @@
+# vulkan.radv.so in the product (PRODUCT_OUT/vendor) and in the staged Mesa
+BuildID[sha1]=69152ccfa2669fc48a29c332de4a0bc9bc96c4c2
+staged: 2026-10-17T00:24:13Z by scripts/graphics-amd-stage-mesa.sh
+from: /home/hive/anybook/mesa/out/upstream/vendor
+tree: upstream mesa-26.2.5 ddaf85e353442d9d7f192fdcf1823e652e3f2ee3 (26.2.5)
+patches: 4 (mesa/patches/upstream), HEAD f30f204df44c09d41adaef97a550749a4cf4dac2
+  4fbbbf95d radv/android: fail image creation when the gralloc stride override fails
+  5d09beb49 radv/android: fix fd leak on gralloc memory import failure
+  169e1abcf radv/android: support deferred swapchain image binding
+  f30f204df OPENBOOK: radv/android: lay out gralloc buffers without a modifier from the BO metadata
+ndk: 30.0.16248370 (r30), api 37
+clang: Android (16134705, +pgo, +bolt, +lto, +mlgo, based on r574158c) clang version 21.0.0 (https://android.googlesource.com/toolchain/llvm-project 9f872551d3c681d06fd303b36f16ed5c274735eb)
+meson: 1.12.1  ninja: 1.11.1  glslang: Glslang Version: 11:15.1.0
+libdrm: libdrm-2.4.133 (meson wrap, shared)
+
+# product build.prop: ANGLE override from PR #38
+debug.angle.feature_overrides_disabled=supportsSwapchainMaintenance1
+
+# vendor_property_contexts
+# vendor.mesa.*, then mesa.*; src/util/os_misc.c) and minigbm (vendor.minigbm.debug; drv.c). Unlabelled they are
+vendor.mesa.                           u:object_r:vendor_graphics_option_prop:s0 prefix string
+vendor.minigbm.                        u:object_r:vendor_graphics_option_prop:s0 prefix string

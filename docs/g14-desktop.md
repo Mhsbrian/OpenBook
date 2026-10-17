@@ -87,7 +87,9 @@ Built with `scripts/installer-image.sh --label openbook-live-20261017-desktop2 -
 | OpenBook - start fresh | `+ openbook.live_reset=1` | erase the stick's saved data |
 | OpenBook - serial console | console, density 160 | VMs |
 
-The safe-graphics entries cannot be tested in QEMU (no AMD GPU there; the VM falls back to SwiftShader under ANGLE). QEMU results: `evidence/2026-10-17-g14-desktop/qemu/`.
+**QEMU/OVMF** (`scripts/installer/live-qemu.sh`, the same six cases as ANAL-190; `evidence/.../qemu/`): **37 of 39** checks pass, `sys.boot_completed=1` at 20.3 s uptime from the USB stick, the decoy NVMe unchanged. The two misses are the VM-only ones ANAL-190 also has: no power-off after the clean shutdown, and `screencap` timing out on the VM's display. The VM path runs SwiftShader under ANGLE, so neither the RADV fix nor the safe-graphics entries are exercised there; the VM screen shows "Display output is not active" (parked by the owner).
+
+Denials on the VM path (`avc-summary.py` on the save-logs case): 41 Android lines in the kernel log and 8 distinct, down from 69 and 16 with the first build of this branch (`desktop1`, before `vendor.minigbm.*`). No `vendor_default_prop` is left. What remains is not G14-specific: the audio HAL's memfd (ANAL-199), the Bluetooth app aborting without a Bluetooth HAL (ANAL-179) and what `crash_dump` reads for it, SystemUI's `bluetooth_lea_prop`, `secure_element`'s dex cache, and the two open items in §4.
 
 ## 6. On the G14: owner checklist
 
@@ -96,9 +98,9 @@ The stick written at 00:29 UTC on 2026-10-17 for ANAL-190 holds `openbook-live-2
 1. **Write this image** (erases the stick; the reports on it are copied to the PC first):
    ```bash
    cd <ANAL-176 checkout of OpenBook>
-   OPENBOOK_WRITE_CONFIRM=/dev/disk/by-id/usb-SanDisk_Ultra_4C530001041228122034-0:0 \
+   OPENBOOK_WRITE_CONFIRM=/dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0 \
      scripts/installer/write-stick.sh ~/anybook/installer/out/openbook-live-20261017-desktop2.img \
-     /dev/disk/by-id/usb-SanDisk_Ultra_4C530001041228122034-0:0
+     /dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0
    ```
    Done when it prints `stick powered off: safe to unplug`.
 2. **Boot "OpenBook"** (Esc → USB stick → Enter). Hoped for: the boot animation, then the desktop within about a minute. Photograph the screen; try the touchpad, the keyboard and its backlight keys, and open an app. Hold the power button to turn it off.
@@ -106,7 +108,7 @@ The stick written at 00:29 UTC on 2026-10-17 for ANAL-190 holds `openbook-live-2
 4. **Save logs:** boot **"OpenBook - save logs to this USB stick"** (↓ once, Enter), or **"safe graphics, save logs"** (↓ three times) if only safe graphics showed a desktop. Leave it alone; after 15 minutes holding the power button is safe.
 5. Plug the stick into the PC and reply "stick attached" with the photos. The agent runs, read-only:
    ```bash
-   scripts/installer/read-stick-logs.sh /dev/disk/by-id/usb-SanDisk_Ultra_4C530001041228122034-0:0
+   scripts/installer/read-stick-logs.sh /dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0
    python3 scripts/installer/avc-summary.py <data dir>/installer/g14/stick-<UTC>/live-NNN --json avc.json --md avc.md
    ```
 
@@ -133,7 +135,7 @@ AOSP_JOBS=24 scripts/aosp-docker.sh -d anybook-aosp-build /repo/scripts/aosp-bui
 docker wait anybook-aosp-build                                                  # 45 s to 2.5 min incremental
 python3 scripts/sepolicy-label-check.py ~/anybook/aosp/src/out/target/product/anybook_g14 scripts/sepolicy-label-cases-g14.txt
 scripts/installer-image.sh --label openbook-live-20261017-desktop2 --menu-timeout 10
-scripts/installer/live-qemu.sh ~/anybook/installer/out/openbook-live-20261017-desktop2.img live-20261017-desktop1
+scripts/installer/live-qemu.sh ~/anybook/installer/out/openbook-live-20261017-desktop2.img live-20261017-desktop2
 python3 scripts/installer/avc-summary.py evidence/2026-10-16-installer/g14-live/live-001
 ```
 

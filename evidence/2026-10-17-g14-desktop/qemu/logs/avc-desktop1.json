@@ -1,0 +1,287 @@
+{
+ "schema": "openbook-avc-summary/1",
+ "dir": "live-001",
+ "dmesg": {
+  "helper": 335,
+  "android": 69,
+  "induced": 4
+ },
+ "logcat": {
+  "helper": 623,
+  "android": 114,
+  "induced": 8
+ },
+ "dmesg_lines": 69,
+ "tuples": 16,
+ "tuples_without_flags_health_check": 16,
+ "denials": [
+  {
+   "scontext": "audioserver",
+   "tcontext": "tmpfs",
+   "tclass": "file",
+   "perms": [
+    "map",
+    "read",
+    "write"
+   ],
+   "paths": [],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "bootanim",
+   "tcontext": "vendor_default_prop",
+   "tclass": "file",
+   "perms": [
+    "getattr",
+    "map",
+    "open"
+   ],
+   "paths": [
+    "/dev/__properties__/u:object_r:vendor_default_prop:s0"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "crash_dump",
+   "tcontext": "resourcecache_data_file",
+   "tclass": "file",
+   "perms": [
+    "getattr",
+    "map",
+    "open",
+    "read"
+   ],
+   "paths": [
+    "/data/resource-cache/product@overlay@AnyBookDesktopFrameworkOverlay.apk@idmap",
+    "data@resource-cache@com.android.systemui-dynamic-4B3x.frro@idmap",
+    "product@overlay@AnyBookDesktopFrameworkOverlay.apk@idmap"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "hal_audio_default",
+   "tcontext": "tmpfs",
+   "tclass": "file",
+   "perms": [
+    "map",
+    "read",
+    "write"
+   ],
+   "paths": [
+    "memfd:MessageQueue"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "init",
+   "tcontext": "debugfs_bootreceiver_tracing",
+   "tclass": "dir",
+   "perms": [
+    "add_name"
+   ],
+   "paths": [
+    "enable"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "keystore",
+   "tcontext": "hal_gatekeeper_default",
+   "tclass": "binder",
+   "perms": [
+    "call"
+   ],
+   "paths": [],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "keystore",
+   "tcontext": "hal_gatekeeper_service",
+   "tclass": "service_manager",
+   "perms": [
+    "find"
+   ],
+   "paths": [],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "platform_app",
+   "tcontext": "bluetooth_lea_prop",
+   "tclass": "file",
+   "perms": [
+    "getattr",
+    "map",
+    "open",
+    "read"
+   ],
+   "paths": [
+    "/dev/__properties__/u:object_r:bluetooth_lea_prop:s0",
+    "u:object_r:bluetooth_lea_prop:s0"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "platform_app",
+   "tcontext": "vendor_default_prop",
+   "tclass": "file",
+   "perms": [
+    "getattr",
+    "map",
+    "open"
+   ],
+   "paths": [
+    "/dev/__properties__/u:object_r:vendor_default_prop:s0"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "priv_app",
+   "tcontext": "vendor_default_prop",
+   "tclass": "file",
+   "perms": [
+    "getattr",
+    "map",
+    "open"
+   ],
+   "paths": [
+    "/dev/__properties__/u:object_r:vendor_default_prop:s0"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "secure_element",
+   "tcontext": "system_data_file",
+   "tclass": "dir",
+   "perms": [
+    "add_name",
+    "create",
+    "remove_name"
+   ],
+   "paths": [
+    "SecureElement.2762.tmp",
+    "oat_primary",
+    "x86_64"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "secure_element",
+   "tcontext": "system_data_file",
+   "tclass": "file",
+   "perms": [
+    "create",
+    "open",
+    "write"
+   ],
+   "paths": [
+    "/data/user_de/0/com.android.se/cache/oat_primary/x86_64/SecureElement.2762.tmp",
+    "SecureElement.2762.tmp"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "surfaceflinger",
+   "tcontext": "vendor_default_prop",
+   "tclass": "file",
+   "perms": [
+    "getattr",
+    "map",
+    "open"
+   ],
+   "paths": [
+    "/dev/__properties__/u:object_r:vendor_default_prop:s0"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "system_app",
+   "tcontext": "vendor_default_prop",
+   "tclass": "file",
+   "perms": [
+    "getattr",
+    "map",
+    "open"
+   ],
+   "paths": [
+    "/dev/__properties__/u:object_r:vendor_default_prop:s0"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "system_server",
+   "tcontext": "vendor_default_prop",
+   "tclass": "file",
+   "perms": [
+    "getattr",
+    "map",
+    "open"
+   ],
+   "paths": [
+    "/dev/__properties__/u:object_r:vendor_default_prop:s0"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "untrusted_app_30",
+   "tcontext": "vendor_default_prop",
+   "tclass": "file",
+   "perms": [
+    "getattr",
+    "map",
+    "open"
+   ],
+   "paths": [
+    "/dev/__properties__/u:object_r:vendor_default_prop:s0"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  }
+ ]
+}

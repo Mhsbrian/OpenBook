@@ -1,0 +1,19 @@
+image: /home/hive/anybook/aosp/src/out/target/product/anybook_g14
+ro.build.id=CP2A.260605.016
+staged: 2026-10-16T18:02:33Z by scripts/graphics-amd-stage-mesa.sh
+from: /home/hive/anybook/mesa/out/upstream/vendor
+tree: upstream mesa-26.2.5 ddaf85e353442d9d7f192fdcf1823e652e3f2ee3 (26.2.5)
+ndk: 30.0.16248370 (r30), api 37
+MESA_OUT: /home/hive/anybook/mesa/out/upstream/vendor
+tree: upstream mesa-26.2.5 ddaf85e353442d9d7f192fdcf1823e652e3f2ee3 (26.2.5)
+patches: 4 (mesa/patches/upstream), HEAD f30f204df44c09d41adaef97a550749a4cf4dac2
+  4fbbbf95d radv/android: fail image creation when the gralloc stride override fails
+  5d09beb49 radv/android: fix fd leak on gralloc memory import failure
+  169e1abcf radv/android: support deferred swapchain image binding
+  f30f204df OPENBOOK: radv/android: lay out gralloc buffers without a modifier from the BO metadata
+ndk: 30.0.16248370 (r30), api 37
+clang: Android (16134705, +pgo, +bolt, +lto, +mlgo, based on r574158c) clang version 21.0.0 (https://android.googlesource.com/toolchain/llvm-project 9f872551d3c681d06fd303b36f16ed5c274735eb)
+hw/vulkan.radv.so: BuildID[sha1]=69152ccfa2669fc48a29c332de4a0bc9bc96c4c2
+libgallium_dri.so: BuildID[sha1]=8e66482d2b4f039b9afe7e9885e2a1e9ddf1e424
+node: /dev/dri/renderD129 (DRIVER=amdgpu PCI_CLASS=30000 PCI_ID=1002:164E PCI_SUBSYS_ID=1043:8877 PCI_SLOT_NAME=0000:12:00.0 MODALIAS=pci:v00001002d0000164Esv00001043sd00008877bc03sc00i00 )
+7.2.8-5-omarchy-bore

@@ -1,0 +1,10 @@
+image: /home/hive/anybook/aosp/src/out/target/product/anybook_g14
+ro.build.id=CP2A.260605.016
+staged: 2026-10-16T18:02:33Z by scripts/graphics-amd-stage-mesa.sh
+from: /home/hive/anybook/mesa/out/upstream/vendor
+tree: upstream mesa-26.2.5 ddaf85e353442d9d7f192fdcf1823e652e3f2ee3 (26.2.5)
+ndk: 30.0.16248370 (r30), api 37
+hw/vulkan.radv.so: BuildID[sha1]=301af9c5894b336880470636fa50c57a9c2f9e6d
+libgallium_dri.so: BuildID[sha1]=3551baae1d014d7e7fe4a3587699c0c0be2c7e0d
+node: /dev/dri/renderD129 (DRIVER=amdgpu PCI_CLASS=30000 PCI_ID=1002:164E PCI_SUBSYS_ID=1043:8877 PCI_SLOT_NAME=0000:12:00.0 MODALIAS=pci:v00001002d0000164Esv00001043sd00008877bc03sc00i00 )
+7.2.8-5-omarchy-bore
