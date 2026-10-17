@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2026 The OpenBook Authors. SPDX-License-Identifier: Apache-2.0 -->
+<resources>
+    <!-- See values/config.xml. -->
+    <bool name="config_default_sound_enabled">false</bool>
+</resources>
