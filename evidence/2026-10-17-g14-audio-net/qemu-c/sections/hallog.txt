@@ -1,0 +1,250 @@
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: BSS: last_scan_res_used=1/32
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: New scan results available (own=1 ext=0)
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: Radio work 'scan'@0x79b0f640ca20 done in 3.732677 seconds
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: radio_work_free('scan'@0x79b0f640ca20): num_active_works --> 0
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: Scan results matching the currently selected network
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: 0: xx:xx:xx:xx:xx:xx freq=2437 level=-30 snr=62 est_throughput=65000
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: Selecting BSS from priority group 0
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: 0: xx:xx:xx:xx:xx:xx ssid=[redacted] wpa_ie_len=0 rsn_ie_len=20 caps=0x411 level=-30 freq=2437 
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0:    selected based on RSN IE
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0:    selected BSS xx:xx:xx:xx:xx:xx ssid=[redacted]
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: Considering connect request: reassociate: 1  selected: xx:xx:xx:xx:xx:xx  bssid: 00:00:00:00:00:00  pending: 00:00:00:00:00:00  wpa_state: SCANNING  ssid=[redacted]  current_ssid=0x79b1764069d0
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: Request association with xx:xx:xx:xx:xx:xx
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: TDLS: TDLS is allowed in the target BSS
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: TDLS: TDLS channel switch allowed in the target BSS
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: No ongoing scan/p2p-scan found to abort
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: Add radio work 'sme-connect'@0x79b0f640ca20
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: First radio work item in the queue - schedule start immediately
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: Starting radio work 'sme-connect'@0x79b0f640ca20 after 0.000009 second wait
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: WPA: clearing own WPA/RSN IE
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: RSN: clearing own RSNXE
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: Automatic auth_alg selection: 0x1
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: RSN: PMKSA cache search - network_ctx=0x79b1764069d0 try_opportunistic=0 akmp=0x0
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: RSN: Search for BSSID xx:xx:xx:xx:xx:xx
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: RSN: No PMKSA cache entry found
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: RSN: using IEEE 802.11i/D9.0
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: WPA: Selected cipher suites: group 16 pairwise 16 key_mgmt 2 proto 2
+10-17 03:19:48.152  4091  4285 D WifiNative: Scan result ready event
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: WPA: Selected mgmt group cipher 32
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: WPA: clearing AP WPA IE
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: WPA: set AP RSN IE - hexdump(len=22): 30 14 01 00 00 0f ac 04 01 00 00 0f ac 04 01 00 00 0f ac 02 0c 00
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: WPA: clearing AP RSNXE
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: RSN: Clearing AP RSNE Override element
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: RSN: Clearing AP RSNE Override 2 element
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: RSN: Clearing AP RSNXE Override element
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: WPA: AP group 0x10 network profile group 0x1e; available group 0x10
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: WPA: using GTK CCMP
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: WPA: AP pairwise 0x10 network profile pairwise 0x18; available pairwise 0x10
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: WPA: using PTK CCMP
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: WPA: AP key_mgmt 0x2 network profile key_mgmt 0x142; available key_mgmt 0x2
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: WPA: using KEY_MGMT WPA-PSK
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: WPA: AP mgmt_group_cipher 0x20 network profile mgmt_group_cipher 0x0; available mgmt_group_cipher 0x0
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: WPA: not using MGMT group cipher
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: WPA: Set own WPA IE default - hexdump(len=22): 30 14 01 00 00 0f ac 04 01 00 00 0f ac 04 01 00 00 0f ac 02 8c 00
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: RSN: Set own RSNXE default - hexdump(len=0):
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: WPA: Set PMK based on external data - hexdump(len=32): [REMOVED]
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: RRM: Determining whether RRM can be used - device support: 0x10
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: RRM: No RRM in network
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: Added supported operating classes IE - hexdump(len=25): 3b 17 51 51 52 53 54 73 74 75 76 77 78 79 7a 7b 7c 7d 7e 7f 80 81 00 82 80
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: EAPOL: External notification - EAP success=0
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: EAPOL: External notification - EAP fail=0
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: EAPOL: External notification - portControl=Auto
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: Cancelling scan request
+10-17 03:19:48.152  5424  5424 I wpa_supplicant: wlan0: SME: Trying to authenticate with xx:xx:xx:xx:xx:xx (SSID=[redacted] freq=2437 MHz)
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: EAPOL: External notification - portValid=0
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: State: SCANNING -> AUTHENTICATING
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: Notifying state change event to aidl control: 4
+10-17 03:19:48.152  5424  5424 I wpa_supplicant: assoc key_mgmt 0x2 network key_mgmt 0x142
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: Determining shared radio frequencies (max len 1)
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: wlan0: Shared frequencies (len=0): completed iteration
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: nl80211: Authenticate (ifindex=15)
+10-17 03:19:48.152  5424  5424 D wpa_supplicant:   * bssid=xx:xx:xx:xx:xx:xx
+10-17 03:19:48.152  5424  5424 D wpa_supplicant:   * freq=2437
+10-17 03:19:48.152  5424  5424 D wpa_supplicant:   * SSID=[redacted]
+10-17 03:19:48.152  5424  5424 D wpa_supplicant:   * IEs - hexdump(len=0): [NULL]
+10-17 03:19:48.152  5424  5424 D wpa_supplicant:   * Auth Type 0
+10-17 03:19:48.152  5424  5424 D wpa_supplicant: nl80211: Authentication request send successfully
+10-17 03:19:48.153  5424  5424 D wpa_supplicant: nl80211: Drv Event 19 (NL80211_CMD_NEW_STATION) received for wlan0
+10-17 03:19:48.153  5424  5424 D wpa_supplicant: nl80211: New station xx:xx:xx:xx:xx:xx
+10-17 03:19:48.153  4091  4104 D SupplicantStaIfaceHalAidlBase: ISupplicantStaIfaceCallback.onStateChanged: newState=AUTHENTICATING, bssid=xx:xx:xx:xx:xx:xx, ssid="[redacted]", filsHlpSent=false, supplicantKeyMgmtMask=0x00000000, frameworkKeyMgmtMask=null, frequencyMhz=0 received
+10-17 03:19:48.153  4091  4285 D WifiScoreCard: ifaceName=wlan0,wifiInfo=SSID: "[redacted]", BSSID: xx:xx:xx:xx:xx:xx, MAC: xx:xx:xx:xx:xx:xx, IP: null, Security type: 2, Supplicant state: AUTHENTICATING, Wi-Fi standard: unknown, RSSI: -127, Link speed: -1Mbps, Tx Link speed: -1Mbps, Max Supported Tx Link speed: -1Mbps, Calculated Tx : 0Mbps, Rx Link speed: -1Mbps, Max Supported Rx Link speed: -1Mbps, Calculated Rx : 0Mbps, Frequency: -1MHz, Net ID: 0, Metered hint: false, score: 0, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none><none>MLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>
+10-17 03:19:48.153  4091  4285 D WifiClientModeImpl[98465:wlan0]: ConnectingOrConnectedState: Supplicant State change  ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx nid: 0 frequencyMhz: 0 state: AUTHENTICATING
+10-17 03:19:48.153  4091  4285 D WifiClientModeImpl[98465:wlan0]:  ClientModeImpl$ConnectingOrConnectedState screen=off 0 0 ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx nid: 0 frequencyMhz: 0 state: AUTHENTICATING
+10-17 03:19:48.153  4091  4285 D SupplicantStateTracker[wlan0]: DefaultState{ when=-1ms what=147462 obj= ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx nid: 0 frequencyMhz: 0 state: AUTHENTICATING target=com.android.wifi.x.com.android.internal.util.StateMachine$SmHandler async=false heapIndex=-1 }
+10-17 03:19:48.484  5424  5424 D wpa_supplicant: nl80211: Drv Event 20 (NL80211_CMD_DEL_STATION) received for wlan0
+10-17 03:19:48.484  5424  5424 D wpa_supplicant: nl80211: Delete station xx:xx:xx:xx:xx:xx
+10-17 03:19:48.484  5424  5424 D wpa_supplicant: nl80211: Drv Event 37 (NL80211_CMD_AUTHENTICATE) received for wlan0
+10-17 03:19:48.484  5424  5424 D wpa_supplicant: nl80211: MLME event 37; timeout with xx:xx:xx:xx:xx:xx
+10-17 03:19:48.484  5424  5424 D wpa_supplicant: wlan0: Event AUTH_TIMED_OUT (13) received
+10-17 03:19:48.484  5424  5424 D wpa_supplicant: wlan0: SME: Authentication timed out
+10-17 03:19:48.484  5424  5424 D wpa_supplicant: Notifying auth timeout to aidl control
+10-17 03:19:48.484  5424  5424 D wpa_supplicant: wlan0: Radio work 'sme-connect'@0x79b0f640ca20 done in 0.331843 seconds
+10-17 03:19:48.484  5424  5424 D wpa_supplicant: wlan0: radio_work_free('sme-connect'@0x79b0f640ca20): num_active_works --> 0
+10-17 03:19:48.484  5424  5424 D wpa_supplicant: wlan0: Ignore connection failure indication since auto connect is disabled
+10-17 03:19:48.484  5424  5424 D wpa_supplicant: nl80211: Data frame filter flags=0x0
+10-17 03:19:48.484  5424  5424 D wpa_supplicant: wlan0: State: AUTHENTICATING -> DISCONNECTED
+10-17 03:19:48.484  5424  5424 D wpa_supplicant: nl80211: Set wlan0 operstate 0->0 (DORMANT)
+10-17 03:19:48.484  5424  5424 D wpa_supplicant: netlink: Operstate: ifindex=15 linkmode=-1 (no change), operstate=5 (IF_OPER_DORMANT)
+10-17 03:19:48.484  5424  5424 D wpa_supplicant: Notifying state change event to aidl control: 0
+10-17 03:19:48.484  5424  5424 I wpa_supplicant: assoc key_mgmt 0x2 network key_mgmt 0x142
+10-17 03:19:48.484  5424  5424 D wpa_supplicant: EAPOL: External notification - portEnabled=0
+10-17 03:19:48.484  5424  5424 D wpa_supplicant: EAPOL: External notification - portValid=0
+10-17 03:19:48.484  5424  5424 D wpa_supplicant: EAPOL: External notification - EAP success=0
+10-17 03:19:48.484  4091  4104 D SupplicantStaIfaceHalAidlBase: ISupplicantStaIfaceCallback.onStateChanged: newState=DISCONNECTED, bssid=xx:xx:xx:xx:xx:xx, ssid="[redacted]", filsHlpSent=false, supplicantKeyMgmtMask=0x00000000, frameworkKeyMgmtMask=null, frequencyMhz=0 received
+10-17 03:19:48.484  4091  4285 V WifiBlocklistMonitor: Disable counter for network openbook-test for reason NETWORK_SELECTION_DISABLED_AUTHENTICATION_FAILURE is 1 and threshold is 3
+10-17 03:19:48.485  4091  4285 D WifiScoreCard: BSSID update CONNECTION_FAILURE ID: 1110963979 SSID: "[redacted]", BSSID: xx:xx:xx:xx:xx:xx, MAC: xx:xx:xx:xx:xx:xx, IP: null, Security type: 2, Supplicant state: AUTHENTICATING, Wi-Fi standard: unknown, RSSI: -127, Link speed: -1Mbps, Tx Link speed: -1Mbps, Max Supported Tx Link speed: -1Mbps, Calculated Tx : 0Mbps, Rx Link speed: -1Mbps, Max Supported Rx Link speed: -1Mbps, Calculated Rx : 0Mbps, Frequency: -1MHz, Net ID: 0, Metered hint: false, score: 0, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none><none>MLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>
+10-17 03:19:48.485  4091  4285 D WifiScoreCard: network update CONNECTION_FAILURE "openbook-test" ID: 1529935171 RSSI -127 txSpeed -1
+10-17 03:19:48.485  4091  4285 E WifiBlocklistMonitor: Invalid input: BSSID=any, config=ID: 0 SSID: "[redacted]" PROVIDER-NAME: null BSSID: null FQDN: null HOME-PROVIDER-NETWORK: false PRIO: 0 HIDDEN: false PMF: false CarrierId: -1 SubscriptionId: -1 SubscriptionGroup: null Currently Connected: false User Selected: false
+10-17 03:19:48.485  4091  4285 V WifiNetworkSuggestionsManager: handleConnectionAttemptEnded 3, ID: 0 SSID: "[redacted]" PROVIDER-NAME: null BSSID: null FQDN: null HOME-PROVIDER-NETWORK: false PRIO: 0 HIDDEN: false PMF: false CarrierId: -1 SubscriptionId: -1 SubscriptionGroup: null Currently Connected: false User Selected: false
+10-17 03:19:48.485  4091  4285 V WifiLastResortWatchdog: noteConnectionFailureAndTriggerIfNeeded: ["openbook-test", any, 2]
+10-17 03:19:48.485  4091  4285 V WifiLastResortWatchdog: updateFailureCountForNetwork: ["openbook-test", any, 2]
+10-17 03:19:48.485  4091  4285 D WifiLastResortWatchdog: updateFailureCountForNetwork: No networks for ssid = "[redacted]"
+10-17 03:19:48.485  4091  4285 D WifiClientModeImpl[98465:wlan0]: handleNetworkDisconnect clearTargetBssid any key="openbook-test"WPA_PSK
+10-17 03:19:48.486  5424  5424 D wpa_supplicant: openbook: driver command 'SETSUSPENDMODE 1' ignored
+10-17 03:19:48.486  5424  5424 D wpa_supplicant: nl80211: set_p2p_powersave (legacy_ps=1 opp_ps=-1 ctwindow=-1)
+10-17 03:19:48.486  5424  5424 D wpa_supplicant: openbook: driver command 'BTCOEXMODE 2' ignored
+10-17 03:19:48.486  4091  4285 D WifiScoreCard: network update DISCONNECTION "openbook-test" ID: 1529935171 RSSI -127 txSpeed -1
+10-17 03:19:48.487  4091  4285 D SupplicantStateTracker[wlan0]: HandshakeState{ when=-2ms what=147463 obj= ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx reasonCode: 1 errorCode: -1 target=com.android.wifi.x.com.android.internal.util.StateMachine$SmHandler async=false heapIndex=-1 }
+10-17 03:19:48.487  4091  4285 D SupplicantStateTracker[wlan0]: DefaultState{ when=-2ms what=147463 obj= ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx reasonCode: 1 errorCode: -1 target=com.android.wifi.x.com.android.internal.util.StateMachine$SmHandler async=false heapIndex=-1 }
+10-17 03:19:48.487  4091  4285 D WifiClientModeImpl[98465:wlan0]:  ClientModeImpl$ConnectableState screen=off 0 0 ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx nid: 0 frequencyMhz: 0 state: DISCONNECTED
+10-17 03:19:48.487  4091  4285 D SupplicantStateTracker[wlan0]: HandshakeState{ when=-2ms what=147462 obj= ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx nid: 0 frequencyMhz: 0 state: DISCONNECTED target=com.android.wifi.x.com.android.internal.util.StateMachine$SmHandler async=false heapIndex=-1 }
+10-17 03:19:48.487  4091  4285 D SupplicantStateTracker[wlan0]: DefaultState{ when=-2ms what=147462 obj= ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx nid: 0 frequencyMhz: 0 state: DISCONNECTED target=com.android.wifi.x.com.android.internal.util.StateMachine$SmHandler async=false heapIndex=-1 }
+10-17 03:20:49.971  5424  5424 D wpa_supplicant: nl80211: Drv Event 33 (NL80211_CMD_TRIGGER_SCAN) received for wlan0
+10-17 03:20:49.971  5424  5424 D wpa_supplicant: wlan0: nl80211: Scan trigger
+10-17 03:20:49.971  5424  5424 D wpa_supplicant: wlan0: Event SCAN_STARTED (47) received
+10-17 03:20:49.971  5424  5424 D wpa_supplicant: wlan0: External program started a scan
+10-17 03:20:53.716  5424  5424 D wpa_supplicant: nl80211: Drv Event 34 (NL80211_CMD_NEW_SCAN_RESULTS) received for wlan0
+10-17 03:20:53.716  5424  5424 D wpa_supplicant: wlan0: nl80211: New scan results available
+10-17 03:20:53.716  5424  5424 D wpa_supplicant: nl80211: Scan probed for SSID [redacted]
+10-17 03:20:53.716  5424  5424 D wpa_supplicant: nl80211: Scan included frequencies: 2412 2417 2422 2427 2432 2437 2442 2447 2452 2457 2462 2467 2472 2484 5180 5200 5220 5240 5260 5280 5300 5320 5500 5520 5540 5560 5580 5600 5620 5640 5660 5680 5700 5745 5765 5785 5805 5825
+10-17 03:20:53.716  5424  5424 D wpa_supplicant: wlan0: Event SCAN_RESULTS (3) received
+10-17 03:20:53.716  5424  5424 D wpa_supplicant: nl80211: Received scan results (1 BSSes)
+10-17 03:20:53.716  5424  5424 D wpa_supplicant: wlan0: BSS: Start scan result update 4
+10-17 03:20:53.716  5424  5424 D wpa_supplicant: BSS: last_scan_res_used=1/32
+10-17 03:20:53.716  5424  5424 D wpa_supplicant: wlan0: New scan results available (own=0 ext=1)
+10-17 03:20:53.716  5424  5424 D wpa_supplicant: wlan0: Do not use results from externally requested scan operation for network selection
+10-17 03:20:53.716  4091  4285 D WifiNative: Scan result ready event
+10-17 03:20:53.717  4091  4291 D WifiNative: get 1 scan results from nl80211
+10-17 03:20:53.717  4091  4285 V WifiConfigManager: getSavedNetworkFromScanResult Found "openbook-test"WPA_PSK for openbook-test[[WPA2-PSK-CCMP-128][RSN-PSK-CCMP-128][ESS]]
+10-17 03:20:53.718  4091  4285 V WifiConfigManager: getSavedNetworkFromScanResult Found "openbook-test"WPA_PSK for openbook-test[[WPA2-PSK-CCMP-128][RSN-PSK-CCMP-128][ESS]]
+10-17 03:20:53.718  4091  4285 V WifiLastResortWatchdog:  xx:xx:xx:xx:xx:xx: openbook-test
+10-17 03:20:53.718  4091  4285 V WifiLastResortWatchdog:  xx:xx:xx:xx:xx:xx: "openbook-test" HasEverConnected: false, Failures: {Assoc: 0, Auth: 0, Dhcp: 0}, Age: 0
+10-17 03:20:53.718  4091  4285 V WifiLastResortWatchdog: "openbook-test": 1, HasEverConnected: false, Failures: {Assoc: 0, Auth: 0, Dhcp: 0}
+10-17 03:20:53.718  4091  4285 D ThroughputScorer: Score for candidate: SSID: "[redacted]" BSSID: xx:xx:xx:xx:xx:xx rssiBoost: 48 throughputBoost: 27 currentNetworkBoost: 0 bandSpecificBonus: 0 frequencyScore: 0 securityAward: 40 unmeteredAward: 1000 savedNetworkAward: 500 trustedAward: 1000 notOemPaidAward: 500 notOemPrivateAward: 500 privateConfigAward: 0 final score: 1000075
+10-17 03:20:53.718  4091  4285 D WifiNetworkSelector: removeAutoUpgradeSecurityParamsIfNecessary: SSID: "[redacted]" baseSecurityType: 2 upgradableSecurityType: 4 isLegacyNetworkInRange: true isUpgradableTypeOnlyInRange: false isAutoUpgradeEnabled: true
+10-17 03:20:53.718  4091  4285 D WifiNetworkSelector: removeAutoUpgradeSecurityParamsIfNecessary: SSID: "[redacted]" baseSecurityType: 0 upgradableSecurityType: 6 isLegacyNetworkInRange: false isUpgradableTypeOnlyInRange: false isAutoUpgradeEnabled: true
+10-17 03:20:53.718  4091  4285 D WifiNetworkSelector: removeAutoUpgradeSecurityParamsIfNecessary: SSID: "[redacted]" baseSecurityType: 3 upgradableSecurityType: 9 isLegacyNetworkInRange: false isUpgradableTypeOnlyInRange: false isAutoUpgradeEnabled: true
+10-17 03:20:53.718  4091  4285 V WifiConfigManager: Set network candidate scan result SSID: "[redacted]", BSSID: xx:xx:xx:xx:xx:xx, capabilities: [WPA2-PSK-CCMP-128][RSN-PSK-CCMP-128][ESS], level: -30, frequency: 2437, timestamp: 173341158, distance: ?(cm), distanceSd: ?(cm), passpoint: no, ChannelBandwidth: 0, centerFreq0: 2437, centerFreq1: 0, standard: 11n, 80211mcResponder: is not supported, 80211azNtbResponder: is not supported, TWT Responder: no, Radio Chain Infos: [], interface name: wlan0 for 0 with security params Security Parameters:
+10-17 03:20:53.719  4091  4285 D ThroughputScorer: Score for candidate: SSID: "[redacted]" BSSID: xx:xx:xx:xx:xx:xx rssiBoost: 48 throughputBoost: 27 currentNetworkBoost: 0 bandSpecificBonus: 0 frequencyScore: 0 securityAward: 40 unmeteredAward: 1000 savedNetworkAward: 500 trustedAward: 1000 notOemPaidAward: 500 notOemPrivateAward: 500 privateConfigAward: 0 final score: 1000075
+10-17 03:20:53.719  4091  4285 V WifiConnectivityManager: AllSingleScanListener:  WNS candidate-"openbook-test"
+10-17 03:20:53.719  4091  4285 V WifiConnectivityManager: connectToNetwork(ConcreteClientModeManager{id=98395 iface=wlan0 role=ROLE_CLIENT_PRIMARY}): Connect to "openbook-test" : xx:xx:xx:xx:xx:xx from Disconnected
+10-17 03:20:53.719  4091  4285 D WifiScoreCard: network update CONNECTION_ATTEMPT "openbook-test" ID: 1529935171 RSSI -30 txSpeed -1
+10-17 03:20:53.719  4091  4285 D WifiClientModeImpl[98465:wlan0]: setTargetBssid set to xx:xx:xx:xx:xx:xx key="openbook-test"WPA_PSK
+10-17 03:20:53.719  4091  4285 D SupplicantStaIfaceHalAidlBase: connectToNetwork "openbook-test"WPA_PSK, actualSsid=null
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: Scan results matching the currently selected network
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: 0: xx:xx:xx:xx:xx:xx freq=2437 level=-30 snr=62 est_throughput=65000
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: Selecting BSS from priority group 0
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: 0: xx:xx:xx:xx:xx:xx ssid=[redacted] wpa_ie_len=0 rsn_ie_len=20 caps=0x411 level=-30 freq=2437 
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0:    selected based on RSN IE
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0:    selected BSS xx:xx:xx:xx:xx:xx ssid=[redacted]
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: Considering connect request: reassociate: 1  selected: xx:xx:xx:xx:xx:xx  bssid: 00:00:00:00:00:00  pending: 00:00:00:00:00:00  wpa_state: DISCONNECTED  ssid=[redacted]  current_ssid=0x79b1764069d0
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: Request association with xx:xx:xx:xx:xx:xx
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: Re-association to the same ESS
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: TDLS: TDLS is allowed in the target BSS
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: TDLS: TDLS channel switch allowed in the target BSS
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: No ongoing scan/p2p-scan found to abort
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: Add radio work 'sme-connect'@0x79b0f640ca20
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: First radio work item in the queue - schedule start immediately
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: Starting radio work 'sme-connect'@0x79b0f640ca20 after 0.000008 second wait
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: WPA: clearing own WPA/RSN IE
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: RSN: clearing own RSNXE
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: Automatic auth_alg selection: 0x1
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: RSN: PMKSA cache search - network_ctx=0x79b1764069d0 try_opportunistic=0 akmp=0x0
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: RSN: Search for BSSID xx:xx:xx:xx:xx:xx
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: RSN: No PMKSA cache entry found
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: RSN: using IEEE 802.11i/D9.0
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: WPA: Selected cipher suites: group 16 pairwise 16 key_mgmt 2 proto 2
+10-17 03:20:53.719  4091  4285 V WifiConfigManager: Update last used security param for "openbook-test"WPA_PSK with security type 2
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: WPA: Selected mgmt group cipher 32
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: WPA: clearing AP WPA IE
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: WPA: set AP RSN IE - hexdump(len=22): 30 14 01 00 00 0f ac 04 01 00 00 0f ac 04 01 00 00 0f ac 02 0c 00
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: WPA: clearing AP RSNXE
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: RSN: Clearing AP RSNE Override element
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: RSN: Clearing AP RSNE Override 2 element
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: RSN: Clearing AP RSNXE Override element
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: WPA: AP group 0x10 network profile group 0x1e; available group 0x10
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: WPA: using GTK CCMP
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: WPA: AP pairwise 0x10 network profile pairwise 0x18; available pairwise 0x10
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: WPA: using PTK CCMP
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: WPA: AP key_mgmt 0x2 network profile key_mgmt 0x142; available key_mgmt 0x2
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: WPA: using KEY_MGMT WPA-PSK
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: WPA: AP mgmt_group_cipher 0x20 network profile mgmt_group_cipher 0x0; available mgmt_group_cipher 0x0
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: WPA: not using MGMT group cipher
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: WPA: Set own WPA IE default - hexdump(len=22): 30 14 01 00 00 0f ac 04 01 00 00 0f ac 04 01 00 00 0f ac 02 8c 00
+10-17 03:20:53.719  4091  4285 D WifiClientModeImpl[98465:wlan0]:  ClientModeImpl$ConnectableState screen=off 0 1010 targetConfigKey="openbook-test"WPA_PSK BSSID=null targetBssid=xx:xx:xx:xx:xx:xx roam=false
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: RSN: Set own RSNXE default - hexdump(len=0):
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: WPA: Set PMK based on external data - hexdump(len=32): [REMOVED]
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: RRM: Determining whether RRM can be used - device support: 0x10
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: RRM: No RRM in network
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: Added supported operating classes IE - hexdump(len=25): 3b 17 51 51 52 53 54 73 74 75 76 77 78 79 7a 7b 7c 7d 7e 7f 80 81 00 82 80
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: EAPOL: External notification - EAP success=0
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: EAPOL: External notification - EAP fail=0
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: EAPOL: External notification - portControl=Auto
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: Cancelling scan request
+10-17 03:20:53.719  5424  5424 I wpa_supplicant: wlan0: SME: Trying to authenticate with xx:xx:xx:xx:xx:xx (SSID=[redacted] freq=2437 MHz)
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: EAPOL: External notification - portValid=0
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: State: DISCONNECTED -> AUTHENTICATING
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: Notifying state change event to aidl control: 4
+10-17 03:20:53.719  5424  5424 I wpa_supplicant: assoc key_mgmt 0x2 network key_mgmt 0x142
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: Determining shared radio frequencies (max len 1)
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: wlan0: Shared frequencies (len=0): completed iteration
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: nl80211: Authenticate (ifindex=15)
+10-17 03:20:53.719  5424  5424 D wpa_supplicant:   * bssid=xx:xx:xx:xx:xx:xx
+10-17 03:20:53.719  5424  5424 D wpa_supplicant:   * freq=2437
+10-17 03:20:53.719  5424  5424 D wpa_supplicant:   * SSID=[redacted]
+10-17 03:20:53.719  5424  5424 D wpa_supplicant:   * IEs - hexdump(len=0): [NULL]
+10-17 03:20:53.719  5424  5424 D wpa_supplicant:   * Auth Type 0
+10-17 03:20:53.719  4091  5062 D SupplicantStaIfaceHalAidlBase: ISupplicantStaIfaceCallback.onStateChanged: newState=AUTHENTICATING, bssid=xx:xx:xx:xx:xx:xx, ssid="[redacted]", filsHlpSent=false, supplicantKeyMgmtMask=0x00000000, frameworkKeyMgmtMask=null, frequencyMhz=0 received
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: nl80211: Authentication request send successfully
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: nl80211: Drv Event 19 (NL80211_CMD_NEW_STATION) received for wlan0
+10-17 03:20:53.719  5424  5424 D wpa_supplicant: nl80211: New station xx:xx:xx:xx:xx:xx
+10-17 03:20:53.720  4091  4285 D WifiScoreCard: ifaceName=wlan0,wifiInfo=SSID: "[redacted]", BSSID: xx:xx:xx:xx:xx:xx, MAC: xx:xx:xx:xx:xx:xx, IP: null, Security type: 2, Supplicant state: AUTHENTICATING, Wi-Fi standard: unknown, RSSI: -127, Link speed: -1Mbps, Tx Link speed: -1Mbps, Max Supported Tx Link speed: -1Mbps, Calculated Tx : 0Mbps, Rx Link speed: -1Mbps, Max Supported Rx Link speed: -1Mbps, Calculated Rx : 0Mbps, Frequency: 2437MHz, Net ID: 0, Metered hint: false, score: 0, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none><none>MLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>
+10-17 03:20:53.720  4091  4285 D WifiClientModeImpl[98465:wlan0]: ConnectingOrConnectedState: Supplicant State change  ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx nid: 0 frequencyMhz: 0 state: AUTHENTICATING
+10-17 03:20:53.720  4091  4285 D WifiClientModeImpl[98465:wlan0]:  ClientModeImpl$ConnectingOrConnectedState screen=off 0 0 ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx nid: 0 frequencyMhz: 0 state: AUTHENTICATING
+10-17 03:20:53.720  4091  4285 D SupplicantStateTracker[wlan0]: DefaultState{ when=0 what=147462 obj= ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx nid: 0 frequencyMhz: 0 state: AUTHENTICATING target=com.android.wifi.x.com.android.internal.util.StateMachine$SmHandler async=false heapIndex=-1 }
+10-17 03:20:54.044  5424  5424 D wpa_supplicant: nl80211: Drv Event 20 (NL80211_CMD_DEL_STATION) received for wlan0
+10-17 03:20:54.044  5424  5424 D wpa_supplicant: nl80211: Delete station xx:xx:xx:xx:xx:xx
+10-17 03:20:54.044  5424  5424 D wpa_supplicant: nl80211: Drv Event 37 (NL80211_CMD_AUTHENTICATE) received for wlan0
+10-17 03:20:54.044  5424  5424 D wpa_supplicant: nl80211: MLME event 37; timeout with xx:xx:xx:xx:xx:xx
+10-17 03:20:54.044  5424  5424 D wpa_supplicant: wlan0: Event AUTH_TIMED_OUT (13) received
+10-17 03:20:54.044  5424  5424 D wpa_supplicant: wlan0: SME: Authentication timed out
+10-17 03:20:54.044  5424  5424 D wpa_supplicant: Notifying auth timeout to aidl control
+10-17 03:20:54.044  5424  5424 D wpa_supplicant: wlan0: Radio work 'sme-connect'@0x79b0f640ca20 done in 0.324990 seconds
+10-17 03:20:54.044  5424  5424 D wpa_supplicant: wlan0: radio_work_free('sme-connect'@0x79b0f640ca20): num_active_works --> 0
+10-17 03:20:54.044  5424  5424 D wpa_supplicant: wlan0: Ignore connection failure indication since auto connect is disabled
+10-17 03:20:54.044  5424  5424 D wpa_supplicant: nl80211: Data frame filter flags=0x0
+10-17 03:20:54.044  5424  5424 D wpa_supplicant: wlan0: State: AUTHENTICATING -> DISCONNECTED
+10-17 03:20:54.044  5424  5424 D wpa_supplicant: nl80211: Set wlan0 operstate 0->0 (DORMANT)
+10-17 03:20:54.044  5424  5424 D wpa_supplicant: netlink: Operstate: ifindex=15 linkmode=-1 (no change), operstate=5 (IF_OPER_DORMANT)
+10-17 03:20:54.044  5424  5424 D wpa_supplicant: Notifying state change event to aidl control: 0
+10-17 03:20:54.044  5424  5424 I wpa_supplicant: assoc key_mgmt 0x2 network key_mgmt 0x142
+10-17 03:20:54.044  5424  5424 D wpa_supplicant: EAPOL: External notification - portEnabled=0
+10-17 03:20:54.044  5424  5424 D wpa_supplicant: EAPOL: External notification - portValid=0
+10-17 03:20:54.044  5424  5424 D wpa_supplicant: EAPOL: External notification - EAP success=0
+10-17 03:20:54.044  4091  5062 D SupplicantStaIfaceHalAidlBase: ISupplicantStaIfaceCallback.onStateChanged: newState=DISCONNECTED, bssid=xx:xx:xx:xx:xx:xx, ssid="[redacted]", filsHlpSent=false, supplicantKeyMgmtMask=0x00000000, frameworkKeyMgmtMask=null, frequencyMhz=0 received
+10-17 03:20:54.044  4091  4285 V WifiBlocklistMonitor: Disable counter for network openbook-test for reason NETWORK_SELECTION_DISABLED_AUTHENTICATION_FAILURE is 2 and threshold is 3
+10-17 03:20:54.045  4091  4285 D WifiScoreCard: BSSID update CONNECTION_FAILURE ID: 1110963979 SSID: "[redacted]", BSSID: xx:xx:xx:xx:xx:xx, MAC: xx:xx:xx:xx:xx:xx, IP: null, Security type: 2, Supplicant state: AUTHENTICATING, Wi-Fi standard: unknown, RSSI: -127, Link speed: -1Mbps, Tx Link speed: -1Mbps, Max Supported Tx Link speed: -1Mbps, Calculated Tx : 0Mbps, Rx Link speed: -1Mbps, Max Supported Rx Link speed: -1Mbps, Calculated Rx : 0Mbps, Frequency: 2437MHz, Net ID: 0, Metered hint: false, score: 0, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none><none>MLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>
+10-17 03:20:54.045  4091  4285 D WifiScoreCard: network update CONNECTION_FAILURE "openbook-test" ID: 1529935171 RSSI -30 txSpeed -1
+10-17 03:20:54.045  4091  4285 V WifiNetworkSuggestionsManager: handleConnectionAttemptEnded 3, ID: 0 SSID: "[redacted]" PROVIDER-NAME: null BSSID: null FQDN: null HOME-PROVIDER-NETWORK: false PRIO: 0 HIDDEN: false PMF: false CarrierId: -1 SubscriptionId: -1 SubscriptionGroup: null Currently Connected: false User Selected: false
+10-17 03:20:54.045  4091  4285 V WifiLastResortWatchdog: noteConnectionFailureAndTriggerIfNeeded: ["openbook-test", xx:xx:xx:xx:xx:xx, 2]
+10-17 03:20:54.045  4091  4285 V WifiLastResortWatchdog: updateFailureCountForNetwork: ["openbook-test", xx:xx:xx:xx:xx:xx, 2]
+10-17 03:20:54.045  4091  4285 D WifiClientModeImpl[98465:wlan0]: handleNetworkDisconnect clearTargetBssid any key="openbook-test"WPA_PSK
+10-17 03:20:54.045  5424  5424 D wpa_supplicant: openbook: driver command 'SETSUSPENDMODE 1' ignored
+10-17 03:20:54.045  5424  5424 D wpa_supplicant: nl80211: set_p2p_powersave (legacy_ps=1 opp_ps=-1 ctwindow=-1)
+10-17 03:20:54.045  5424  5424 D wpa_supplicant: openbook: driver command 'BTCOEXMODE 2' ignored
+10-17 03:20:54.046  4091  4285 D WifiScoreCard: network update DISCONNECTION "openbook-test" ID: 1529935171 RSSI -127 txSpeed -1
+10-17 03:20:54.046  4091  4285 D SupplicantStateTracker[wlan0]: HandshakeState{ when=-2ms what=147463 obj= ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx reasonCode: 1 errorCode: -1 target=com.android.wifi.x.com.android.internal.util.StateMachine$SmHandler async=false heapIndex=-1 }
+10-17 03:20:54.046  4091  4285 D SupplicantStateTracker[wlan0]: DefaultState{ when=-2ms what=147463 obj= ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx reasonCode: 1 errorCode: -1 target=com.android.wifi.x.com.android.internal.util.StateMachine$SmHandler async=false heapIndex=-1 }
+10-17 03:20:54.046  4091  4285 D WifiClientModeImpl[98465:wlan0]:  ClientModeImpl$ConnectableState screen=off 0 0 ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx nid: 0 frequencyMhz: 0 state: DISCONNECTED
+10-17 03:20:54.046  4091  4285 D SupplicantStateTracker[wlan0]: HandshakeState{ when=-2ms what=147462 obj= ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx nid: 0 frequencyMhz: 0 state: DISCONNECTED target=com.android.wifi.x.com.android.internal.util.StateMachine$SmHandler async=false heapIndex=-1 }
+10-17 03:20:54.046  4091  4285 D SupplicantStateTracker[wlan0]: DefaultState{ when=-2ms what=147462 obj= ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx nid: 0 frequencyMhz: 0 state: DISCONNECTED target=com.android.wifi.x.com.android.internal.util.StateMachine$SmHandler async=false heapIndex=-1 }

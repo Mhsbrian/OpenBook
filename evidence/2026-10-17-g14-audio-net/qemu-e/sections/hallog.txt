@@ -1,0 +1,250 @@
+10-17 03:28:58.176  4127  4318 D WifiScoreCard: ifaceName=wlan0,wifiInfo=SSID: "[redacted]", BSSID: xx:xx:xx:xx:xx:xx, MAC: xx:xx:xx:xx:xx:xx, IP: null, Security type: 2, Supplicant state: ASSOCIATING, Wi-Fi standard: unknown, RSSI: -127, Link speed: -1Mbps, Tx Link speed: -1Mbps, Max Supported Tx Link speed: -1Mbps, Calculated Tx : 0Mbps, Rx Link speed: -1Mbps, Max Supported Rx Link speed: -1Mbps, Calculated Rx : 0Mbps, Frequency: 2437MHz, Net ID: 0, Metered hint: false, score: 0, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none><none>MLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>
+10-17 03:28:58.176  4127  4318 D WifiClientModeImpl[97165:wlan0]: ConnectingOrConnectedState: Supplicant State change  ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx nid: 0 frequencyMhz: 0 state: ASSOCIATING
+10-17 03:28:58.176  4127  4318 D WifiClientModeImpl[97165:wlan0]:  ClientModeImpl$ConnectingOrConnectedState screen=off 0 0 ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx nid: 0 frequencyMhz: 0 state: ASSOCIATING
+10-17 03:28:58.176  4127  4318 D SupplicantStateTracker[wlan0]: HandshakeState{ when=-1ms what=147462 obj= ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx nid: 0 frequencyMhz: 0 state: ASSOCIATING target=com.android.wifi.x.com.android.internal.util.StateMachine$SmHandler async=false heapIndex=-1 }
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: nl80211: Drv Event 38 (NL80211_CMD_ASSOCIATE) received for wlan0
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: nl80211: Associate event
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: nl80211: Associated on 2437 MHz
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: nl80211: Associated with xx:xx:xx:xx:xx:xx
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: nl80211: Set drv->ssid [redacted] on scan res info to 'openbook-test'
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: wlan0: Event ASSOC (0) received
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: wlan0: Association info event
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: req_ies - hexdump(len=127): 00 0d 6f 70 65 6e 62 6f 6f 6b 2d 74 65 73 74 01 08 02 04 0b 16 0c 12 18 24 32 04 30 48 60 6c 30 ...
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: resp_ies - hexdump(len=104): 01 08 82 84 8b 96 0c 12 18 24 32 04 30 48 60 6c 2d 1a 0c 00 1b ff ff 00 00 00 00 00 00 00 00 00 ...
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: wlan0: freq=2437 MHz
+10-17 03:28:58.177  5414  5414 D wpa_supplicant:  IE indicates 320 supported: 0, 160 supported: 0, 80+80 supported: 0
+10-17 03:28:58.177  5414  5414 D wpa_supplicant:  overall operation CBW: 1
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: WPA: set own WPA/RSN IE - hexdump(len=22): 30 14 01 00 00 0f ac 04 01 00 00 0f ac 04 01 00 00 0f ac 02 8c 00
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: wlan0: RSN: clearing own RSNXE
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: wlan0: State: ASSOCIATING -> ASSOCIATED
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: nl80211: Set wlan0 operstate 0->0 (DORMANT)
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: netlink: Operstate: ifindex=15 linkmode=-1 (no change), operstate=5 (IF_OPER_DORMANT)
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: Notifying state change event to aidl control: 6
+10-17 03:28:58.177  5414  5414 I wpa_supplicant: assoc key_mgmt 0x2 network key_mgmt 0x142
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: wlan0: Associated to a new BSS: BSSID=xx:xx:xx:xx:xx:xx
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: Notifying bssid changed to aidl control
+10-17 03:28:58.177  5414  5414 I wpa_supplicant: wlan0: Associated with xx:xx:xx:xx:xx:xx
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: wlan0: WPA: Association event - clear replay counter
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: wlan0: WPA: Clear old PTK
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: TDLS: Remove peers on association
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: EAPOL: External notification - portEnabled=0
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: EAPOL: External notification - portValid=0
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: EAPOL: External notification - EAP success=0
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: EAPOL: External notification - portEnabled=1
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: EAPOL: SUPP_PAE entering state CONNECTING
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: EAPOL: enable timer tick
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: EAPOL: SUPP_BE entering state IDLE
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: wlan0: Setting authentication timeout: 10 sec 0 usec
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: wlan0: Cancelling scan request
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: WMM AC: AC mandatory: AC_BE=0 AC_BK=0 AC_VI=0 AC_VO=0
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: WMM AC: U-APSD queues=0x0
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: WMM AC: Valid WMM association, WMM AC is enabled
+10-17 03:28:58.177  5414  5414 I wpa_supplicant: wlan0: CTRL-EVENT-SUBNET-STATUS-UPDATE status=0
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: RTM_NEWLINK: ifi_index=15 ifname=wlan0 operstate=5 linkmode=1 ifi_family=0 ifi_flags=0x11003 ([UP][LOWER_UP])
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: nl80211: Drv Event 46 (NL80211_CMD_CONNECT) received for wlan0
+10-17 03:28:58.177  5414  5414 D wpa_supplicant: nl80211: Ignore connect event (cmd=46) when using userspace SME
+10-17 03:28:58.178  4127  4318 D WifiNative: interfaceLinkStateChanged: ifaceName=wlan0, mInterfaceId = 0, mIfaceMgr={0=Iface:{Name=wlan0,Id=0,Type=STA_CONNECTIVITY}}
+10-17 03:28:58.178  4127  4831 D SupplicantStaIfaceHalAidlBase: ISupplicantStaIfaceCallback.onStateChanged: newState=ASSOCIATED, bssid=xx:xx:xx:xx:xx:xx, ssid="[redacted]", filsHlpSent=false, supplicantKeyMgmtMask=0x00000002, frameworkKeyMgmtMask={1}, frequencyMhz=2437 received
+10-17 03:28:58.178  4127  4318 V WifiNative: Interface status unchanged on Iface:{Name=wlan0,Id=0,Type=STA_CONNECTIVITY} from true, Ignoring...
+10-17 03:28:58.178  4127  4318 D WifiScoreCard: Changing state to ASSOCIATED SSID: "[redacted]", BSSID: xx:xx:xx:xx:xx:xx, MAC: xx:xx:xx:xx:xx:xx, IP: null, Security type: 2, Supplicant state: ASSOCIATING, Wi-Fi standard: unknown, RSSI: -127, Link speed: -1Mbps, Tx Link speed: -1Mbps, Max Supported Tx Link speed: -1Mbps, Calculated Tx : 0Mbps, Rx Link speed: -1Mbps, Max Supported Rx Link speed: -1Mbps, Calculated Rx : 0Mbps, Frequency: 2437MHz, Net ID: 0, Metered hint: false, score: 0, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none><none>MLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>
+10-17 03:28:58.178  4127  4318 D WifiScoreCard: ifaceName=wlan0,wifiInfo=SSID: "[redacted]", BSSID: xx:xx:xx:xx:xx:xx, MAC: xx:xx:xx:xx:xx:xx, IP: null, Security type: 2, Supplicant state: ASSOCIATED, Wi-Fi standard: 11n, RSSI: -30, Link speed: -1Mbps, Tx Link speed: -1Mbps, Max Supported Tx Link speed: 144Mbps, Calculated Tx : 0Mbps, Rx Link speed: -1Mbps, Max Supported Rx Link speed: 144Mbps, Calculated Rx : 0Mbps, Frequency: 2437MHz, Net ID: 0, Metered hint: false, score: 0, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none><none>MLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>
+10-17 03:28:58.178  4127  4318 D WifiClientModeImpl[97165:wlan0]: ConnectingOrConnectedState: Supplicant State change  ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx nid: 0 frequencyMhz: 2437 state: ASSOCIATED
+10-17 03:28:58.178  4127  4318 D WifiClientModeImpl[97165:wlan0]:  ClientModeImpl$ConnectingOrConnectedState screen=off 0 0 ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx nid: 0 frequencyMhz: 2437 state: ASSOCIATED
+10-17 03:28:58.178  4127  4318 D SupplicantStateTracker[wlan0]: HandshakeState{ when=-1ms what=147462 obj= ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx nid: 0 frequencyMhz: 2437 state: ASSOCIATED target=com.android.wifi.x.com.android.internal.util.StateMachine$SmHandler async=false heapIndex=-1 }
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: nl80211: BSS Event 129 (NL80211_CMD_CONTROL_PORT_FRAME) received for wlan0
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: wlan0: Event EAPOL_RX (23) received
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: wlan0: RX EAPOL from xx:xx:xx:xx:xx:xx (encrypted=0)
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: wlan0: Setting authentication timeout: 10 sec 0 usec
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: wlan0: IEEE 802.1X RX: version=2 type=3 length=95
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: wlan0:   EAPOL-Key type=2
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: wlan0:   key_info 0x8a (ver=2 keyidx=0 rsvd=0 Pairwise Ack)
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: wlan0:   key_length=16 key_data_length=0
+10-17 03:28:58.197  5414  5414 D wpa_supplicant:   replay_counter - hexdump(len=8): 00 00 00 00 00 00 00 01
+10-17 03:28:58.197  5414  5414 D wpa_supplicant:   key_nonce - hexdump(len=32): 93 e8 c9 3f 4e 83 67 c2 e4 24 c3 52 df 3c c7 40 51 e1 36 e5 ad 81 0c d7 8c 25 e3 05 b9 e6 b7 74
+10-17 03:28:58.197  5414  5414 D wpa_supplicant:   key_iv - hexdump(len=16): 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+10-17 03:28:58.197  5414  5414 D wpa_supplicant:   key_rsc - hexdump(len=8): 00 00 00 00 00 00 00 00
+10-17 03:28:58.197  5414  5414 D wpa_supplicant:   key_id (reserved) - hexdump(len=8): 00 00 00 00 00 00 00 00
+10-17 03:28:58.197  5414  5414 D wpa_supplicant:   key_mic - hexdump(len=16): 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+10-17 03:28:58.197  5414  5414 I wpa_supplicant: wlan0: WPA: RX message 1 of 4-Way Handshake from xx:xx:xx:xx:xx:xx (ver=2)
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: RSN: msg 1/4 key data - hexdump(len=0):
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: wlan0: State: ASSOCIATED -> 4WAY_HANDSHAKE
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: Notifying state change event to aidl control: 7
+10-17 03:28:58.197  5414  5414 I wpa_supplicant: assoc key_mgmt 0x2 network key_mgmt 0x142
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: WPA: Renewed SNonce - hexdump(len=32): 54 80 97 c2 aa d3 c6 59 c4 95 90 de 36 04 77 70 91 67 69 1e 8a 41 d6 ae da dc 50 6f 9a 00 00 29
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: WPA: PTK derivation using PRF(SHA1)
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: WPA: PTK derivation - A1=xx:xx:xx:xx:xx:xx A2=xx:xx:xx:xx:xx:xx
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: WPA: Nonce1 - hexdump(len=32): 54 80 97 c2 aa d3 c6 59 c4 95 90 de 36 04 77 70 91 67 69 1e 8a 41 d6 ae da dc 50 6f 9a 00 00 29
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: WPA: Nonce2 - hexdump(len=32): 93 e8 c9 3f 4e 83 67 c2 e4 24 c3 52 df 3c c7 40 51 e1 36 e5 ad 81 0c d7 8c 25 e3 05 b9 e6 b7 74
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: WPA: PMK - hexdump(len=32): [REMOVED]
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: WPA: PTK - hexdump(len=48): [REMOVED]
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: WPA: KCK - hexdump(len=16): [REMOVED]
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: WPA: KEK - hexdump(len=16): [REMOVED]
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: WPA: TK - hexdump(len=16): [REMOVED]
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: WPA: WPA IE for msg 2/4 - hexdump(len=22): 30 14 01 00 00 0f ac 04 01 00 00 0f ac 04 01 00 00 0f ac 02 8c 00
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: WPA: Replay Counter - hexdump(len=8): 00 00 00 00 00 00 00 01
+10-17 03:28:58.197  5414  5414 I wpa_supplicant: wlan0: WPA: Sending EAPOL-Key 2/4
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: WPA: Send EAPOL-Key frame to xx:xx:xx:xx:xx:xx ver=2 mic_len=16 key_mgmt=0x2
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: WPA: EAPOL-Key MIC using HMAC-SHA1
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: WPA: KCK - hexdump(len=16): [REMOVED]
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: WPA: Derived Key MIC - hexdump(len=16): 60 52 46 0d f9 f4 3b ab 7c 77 0a 17 ae 9b 4e 8e
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: nl80211: Send over control port dest=xx:xx:xx:xx:xx:xx proto=0x888e len=121 no_encrypt=1
+10-17 03:28:58.197  4127  4832 D SupplicantStaIfaceHalAidlBase: ISupplicantStaIfaceCallback.onStateChanged: newState=FOUR_WAY_HANDSHAKE, bssid=xx:xx:xx:xx:xx:xx, ssid="[redacted]", filsHlpSent=false, supplicantKeyMgmtMask=0x00000002, frameworkKeyMgmtMask={1}, frequencyMhz=2437 received
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: nl80211: tx_control_port cookie=0x1
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: nl80211: Drv Event 139 (NL80211_CMD_CONTROL_PORT_FRAME_TX_STATUS) received for wlan0
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: nl80211: Control port TX status (ack=1), cookie=1
+10-17 03:28:58.197  5414  5414 D wpa_supplicant: wlan0: Event EAPOL_TX_STATUS (37) received
+10-17 03:28:58.198  5414  5414 D wpa_supplicant: nl80211: BSS Event 129 (NL80211_CMD_CONTROL_PORT_FRAME) received for wlan0
+10-17 03:28:58.198  5414  5414 D wpa_supplicant: wlan0: Event EAPOL_RX (23) received
+10-17 03:28:58.198  5414  5414 D wpa_supplicant: wlan0: RX EAPOL from xx:xx:xx:xx:xx:xx (encrypted=0)
+10-17 03:28:58.198  5414  5414 D wpa_supplicant: wlan0: IEEE 802.1X RX: version=2 type=3 length=151
+10-17 03:28:58.198  5414  5414 D wpa_supplicant: wlan0:   EAPOL-Key type=2
+10-17 03:28:58.198  5414  5414 D wpa_supplicant: wlan0:   key_info 0x13ca (ver=2 keyidx=0 rsvd=0 Pairwise Install Ack MIC Secure Encr)
+10-17 03:28:58.198  5414  5414 D wpa_supplicant: wlan0:   key_length=16 key_data_length=56
+10-17 03:28:58.198  5414  5414 D wpa_supplicant:   replay_counter - hexdump(len=8): 00 00 00 00 00 00 00 02
+10-17 03:28:58.198  5414  5414 D wpa_supplicant:   key_nonce - hexdump(len=32): 93 e8 c9 3f 4e 83 67 c2 e4 24 c3 52 df 3c c7 40 51 e1 36 e5 ad 81 0c d7 8c 25 e3 05 b9 e6 b7 74
+10-17 03:28:58.198  5414  5414 D wpa_supplicant:   key_iv - hexdump(len=16): 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+10-17 03:28:58.198  5414  5414 D wpa_supplicant:   key_rsc - hexdump(len=8): 00 00 00 00 00 00 00 00
+10-17 03:28:58.198  5414  5414 D wpa_supplicant:   key_id (reserved) - hexdump(len=8): 00 00 00 00 00 00 00 00
+10-17 03:28:58.198  5414  5414 D wpa_supplicant:   key_mic - hexdump(len=16): 42 30 9b 43 68 6c 5f da 63 24 4d dc 7a d2 15 e0
+10-17 03:28:58.198  5414  5414 D wpa_supplicant: WPA: EAPOL-Key MIC using HMAC-SHA1
+10-17 03:28:58.198  5414  5414 D wpa_supplicant: RSN: encrypted key data - hexdump(len=56): 57 2c e0 81 89 c3 5e 27 94 ac 61 04 34 c9 55 80 ce a5 bc ba 06 7f 50 21 69 aa 31 50 ba 32 29 35 ...
+10-17 03:28:58.198  5414  5414 D wpa_supplicant: WPA: Decrypt Key Data using AES-UNWRAP (KEK length 16)
+10-17 03:28:58.198  5414  5414 D wpa_supplicant: WPA: decrypted EAPOL-Key key data - hexdump(len=48): [REMOVED]
+10-17 03:28:58.198  5414  5414 D wpa_supplicant: wlan0: State: 4WAY_HANDSHAKE -> 4WAY_HANDSHAKE
+10-17 03:28:58.198  5414  5414 I wpa_supplicant: wlan0: RSN: RX message 3 of 4-Way Handshake from xx:xx:xx:xx:xx:xx (ver=2)
+10-17 03:28:58.198  5414  5414 D wpa_supplicant: WPA: IE KeyData - hexdump(len=48): 30 14 01 00 00 0f ac 04 01 00 00 0f ac 04 01 00 00 0f ac 02 0c 00 dd 16 00 0f ac 01 01 00 c2 53 ...
+10-17 03:28:58.198  5414  5414 D wpa_supplicant: WPA: RSN IE in EAPOL-Key - hexdump(len=22): 30 14 01 00 00 0f ac 04 01 00 00 0f ac 04 01 00 00 0f ac 02 0c 00
+10-17 03:28:58.198  5414  5414 D wpa_supplicant: WPA: GTK in EAPOL-Key - hexdump(len=24): [REMOVED]
+10-17 03:28:58.198  5414  5414 D wpa_supplicant: wlan0: WPA: Installing next TK to the driver
+10-17 03:28:58.198  5414  5414 D wpa_supplicant: wpa_driver_nl80211_set_key: ifindex=15 (wlan0) alg=3 addr=0x7ad25860c590 key_idx=0 set_tx=1 seq_len=6 key_len=16 key_flag=0xa4 link_id=-1
+10-17 03:28:58.198  5414  5414 D wpa_supplicant: nl80211: set_key for the next TK for RX-only - ignored
+10-17 03:28:58.198  5414  5414 I wpa_supplicant: wlan0: WPA: Sending EAPOL-Key 4/4
+10-17 03:28:58.198  5414  5414 D wpa_supplicant: WPA: Send EAPOL-Key frame to xx:xx:xx:xx:xx:xx ver=2 mic_len=16 key_mgmt=0x2
+10-17 03:28:58.198  5414  5414 D wpa_supplicant: WPA: EAPOL-Key MIC using HMAC-SHA1
+10-17 03:28:58.198  5414  5414 D wpa_supplicant: WPA: KCK - hexdump(len=16): [REMOVED]
+10-17 03:28:58.198  5414  5414 D wpa_supplicant: WPA: Derived Key MIC - hexdump(len=16): 8a 50 72 09 ec bc f3 c0 13 f3 d3 9f 18 15 21 8e
+10-17 03:28:58.198  5414  5414 D wpa_supplicant: nl80211: Send over control port dest=xx:xx:xx:xx:xx:xx proto=0x888e len=99 no_encrypt=1
+10-17 03:28:58.198  5414  5414 D wpa_supplicant: nl80211: tx_control_port cookie=0x2
+10-17 03:28:58.198  5414  5414 D wpa_supplicant: wlan0: WPA: Installing TK to the driver
+10-17 03:28:58.198  5414  5414 D wpa_supplicant: wpa_driver_nl80211_set_key: ifindex=15 (wlan0) alg=3 addr=0x7ad25860c590 key_idx=0 set_tx=1 seq_len=6 key_len=16 key_flag=0x2c link_id=-1
+10-17 03:28:58.198  5414  5414 D wpa_supplicant: nl80211: NEW_KEY
+10-17 03:28:58.198  5414  5414 D wpa_supplicant: nl80211: KEY_DATA - hexdump(len=16): [REMOVED]
+10-17 03:28:58.198  5414  5414 D wpa_supplicant: nl80211: KEY_SEQ - hexdump(len=6): 00 00 00 00 00 00
+10-17 03:28:58.198  5414  5414 D wpa_supplicant:    addr=xx:xx:xx:xx:xx:xx
+10-17 03:28:58.198  5414  5414 D wpa_supplicant:    pairwise key
+10-17 03:28:58.198  4127  4318 D WifiScoreCard: Changing state to FOUR_WAY_HANDSHAKE SSID: "[redacted]", BSSID: xx:xx:xx:xx:xx:xx, MAC: xx:xx:xx:xx:xx:xx, IP: null, Security type: 2, Supplicant state: ASSOCIATED, Wi-Fi standard: 11n, RSSI: -30, Link speed: -1Mbps, Tx Link speed: -1Mbps, Max Supported Tx Link speed: 144Mbps, Calculated Tx : 0Mbps, Rx Link speed: -1Mbps, Max Supported Rx Link speed: 144Mbps, Calculated Rx : 0Mbps, Frequency: 2437MHz, Net ID: 0, Metered hint: false, score: 0, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none><none>MLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>
+10-17 03:28:58.198  4127  4318 D WifiScoreCard: ifaceName=wlan0,wifiInfo=SSID: "[redacted]", BSSID: xx:xx:xx:xx:xx:xx, MAC: xx:xx:xx:xx:xx:xx, IP: null, Security type: 2, Supplicant state: FOUR_WAY_HANDSHAKE, Wi-Fi standard: 11n, RSSI: -30, Link speed: -1Mbps, Tx Link speed: -1Mbps, Max Supported Tx Link speed: 144Mbps, Calculated Tx : 0Mbps, Rx Link speed: -1Mbps, Max Supported Rx Link speed: 144Mbps, Calculated Rx : 0Mbps, Frequency: 2437MHz, Net ID: 0, Metered hint: false, score: 0, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none><none>MLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>
+10-17 03:28:58.198  4127  4318 D WifiClientModeImpl[97165:wlan0]: ConnectingOrConnectedState: Supplicant State change  ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx nid: 0 frequencyMhz: 2437 state: FOUR_WAY_HANDSHAKE
+10-17 03:28:58.198  4127  4318 D WifiClientModeImpl[97165:wlan0]:  ClientModeImpl$ConnectingOrConnectedState screen=off 0 0 ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx nid: 0 frequencyMhz: 2437 state: FOUR_WAY_HANDSHAKE
+10-17 03:28:58.198  4127  4318 D SupplicantStateTracker[wlan0]: HandshakeState{ when=0 what=147462 obj= ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx nid: 0 frequencyMhz: 2437 state: FOUR_WAY_HANDSHAKE target=com.android.wifi.x.com.android.internal.util.StateMachine$SmHandler async=false heapIndex=-1 }
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: Added PTKSA cache entry addr=xx:xx:xx:xx:xx:xx cipher=16
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: EAPOL: External notification - portValid=1
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: wlan0: State: 4WAY_HANDSHAKE -> GROUP_HANDSHAKE
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: Notifying state change event to aidl control: 8
+10-17 03:28:58.229  5414  5414 I wpa_supplicant: assoc key_mgmt 0x2 network key_mgmt 0x142
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: RSN: received GTK in pairwise handshake - hexdump(len=18): [REMOVED]
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: WPA: Group Key - hexdump(len=16): [REMOVED]
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: wlan0: WPA: Installing GTK to the driver (keyidx=1 tx=0 len=16)
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: WPA: RSC - hexdump(len=6): 00 00 00 00 00 00
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: wpa_driver_nl80211_set_key: ifindex=15 (wlan0) alg=3 addr=0x5906ec96d1db key_idx=1 set_tx=0 seq_len=6 key_len=16 key_flag=0x14 link_id=-1
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: nl80211: NEW_KEY
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: nl80211: KEY_DATA - hexdump(len=16): [REMOVED]
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: nl80211: KEY_SEQ - hexdump(len=6): 00 00 00 00 00 00
+10-17 03:28:58.229  5414  5414 D wpa_supplicant:    broadcast key
+10-17 03:28:58.229  4127  4832 D SupplicantStaIfaceHalAidlBase: ISupplicantStaIfaceCallback.onStateChanged: newState=GROUP_HANDSHAKE, bssid=xx:xx:xx:xx:xx:xx, ssid="[redacted]", filsHlpSent=false, supplicantKeyMgmtMask=0x00000002, frameworkKeyMgmtMask={1}, frequencyMhz=2437 received
+10-17 03:28:58.229  5414  5414 I wpa_supplicant: wlan0: WPA: Key negotiation completed with xx:xx:xx:xx:xx:xx [PTK=CCMP GTK=CCMP]
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: wlan0: Cancelling authentication timeout
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: wlan0: State: GROUP_HANDSHAKE -> COMPLETED
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: wlan0: Radio work 'sme-connect'@0x7ad44860ca90 done in 0.053894 seconds
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: wlan0: radio_work_free('sme-connect'@0x7ad44860ca90): num_active_works --> 0
+10-17 03:28:58.229  5414  5414 I wpa_supplicant: wlan0: CTRL-EVENT-CONNECTED - Connection to xx:xx:xx:xx:xx:xx completed [id=0 id_str=%7B%22configKey%22%3A%22%5C%22openbook-test%5C%22WPA_PSK%22%2C%22creatorUid%22%3A%220%22%7D]
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: nl80211: Set wlan0 operstate 0->1 (UP)
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: netlink: Operstate: ifindex=15 linkmode=-1 (no change), operstate=6 (IF_OPER_UP)
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: nl80211: Roaming policy: allowed=1
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: nl80211: Ignore roaming policy change since driver does not provide command for setting it
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: Notifying state change event to aidl control: 9
+10-17 03:28:58.229  5414  5414 I wpa_supplicant: assoc key_mgmt 0x2 network key_mgmt 0x142
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: EAPOL: External notification - portValid=1
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: EAPOL: External notification - EAP success=1
+10-17 03:28:58.229  4127  4318 D WifiScoreCard: Changing state to GROUP_HANDSHAKE SSID: "[redacted]", BSSID: xx:xx:xx:xx:xx:xx, MAC: xx:xx:xx:xx:xx:xx, IP: null, Security type: 2, Supplicant state: FOUR_WAY_HANDSHAKE, Wi-Fi standard: 11n, RSSI: -30, Link speed: -1Mbps, Tx Link speed: -1Mbps, Max Supported Tx Link speed: 144Mbps, Calculated Tx : 0Mbps, Rx Link speed: -1Mbps, Max Supported Rx Link speed: 144Mbps, Calculated Rx : 0Mbps, Frequency: 2437MHz, Net ID: 0, Metered hint: false, score: 0, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none><none>MLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: EAPOL: SUPP_PAE entering state AUTHENTICATING
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: EAPOL: SUPP_BE entering state SUCCESS
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: EAP: EAP entering state DISABLED
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: EAPOL: SUPP_PAE entering state AUTHENTICATED
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: EAPOL: Supplicant port status: Authorized
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: nl80211: Set supplicant port authorized for xx:xx:xx:xx:xx:xx
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: EAPOL: SUPP_BE entering state IDLE
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: EAPOL authentication completed - result=SUCCESS
+10-17 03:28:58.229  4127  4832 D SupplicantStaIfaceHalAidlBase: ISupplicantStaIfaceCallback.onStateChanged: newState=COMPLETED, bssid=xx:xx:xx:xx:xx:xx, ssid="[redacted]", filsHlpSent=false, supplicantKeyMgmtMask=0x00000002, frameworkKeyMgmtMask={1}, frequencyMhz=2437 received
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: nl80211: Set rekey offload
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: nl80211: Driver does not support rekey offload
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: RTM_NEWLINK: ifi_index=15 ifname=wlan0 operstate=6 linkmode=1 ifi_family=0 ifi_flags=0x11043 ([UP][RUNNING][LOWER_UP])
+10-17 03:28:58.229  4127  4318 D WifiScoreCard: ifaceName=wlan0,wifiInfo=SSID: "[redacted]", BSSID: xx:xx:xx:xx:xx:xx, MAC: xx:xx:xx:xx:xx:xx, IP: null, Security type: 2, Supplicant state: GROUP_HANDSHAKE, Wi-Fi standard: 11n, RSSI: -30, Link speed: -1Mbps, Tx Link speed: -1Mbps, Max Supported Tx Link speed: 144Mbps, Calculated Tx : 0Mbps, Rx Link speed: -1Mbps, Max Supported Rx Link speed: 144Mbps, Calculated Rx : 0Mbps, Frequency: 2437MHz, Net ID: 0, Metered hint: false, score: 0, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none><none>MLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>
+10-17 03:28:58.229  4127  4318 D WifiClientModeImpl[97165:wlan0]: ConnectingOrConnectedState: Supplicant State change  ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx nid: 0 frequencyMhz: 2437 state: GROUP_HANDSHAKE
+10-17 03:28:58.229  4127  4318 D WifiClientModeImpl[97165:wlan0]:  ClientModeImpl$ConnectingOrConnectedState screen=off 0 0 ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx nid: 0 frequencyMhz: 2437 state: GROUP_HANDSHAKE
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: nl80211: Drv Event 139 (NL80211_CMD_CONTROL_PORT_FRAME_TX_STATUS) received for wlan0
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: nl80211: Control port TX status (ack=1), cookie=2
+10-17 03:28:58.229  5414  5414 D wpa_supplicant: wlan0: Event EAPOL_TX_STATUS (37) received
+10-17 03:28:58.230  4127  4318 D SupplicantStateTracker[wlan0]: HandshakeState{ when=0 what=147462 obj= ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx nid: 0 frequencyMhz: 2437 state: GROUP_HANDSHAKE target=com.android.wifi.x.com.android.internal.util.StateMachine$SmHandler async=false heapIndex=-1 }
+10-17 03:28:58.230  4127  4318 V WifiConfigManager: Update last used security param for "openbook-test"WPA_PSK with security type 2
+10-17 03:28:58.230  4127  4318 D WifiClientModeImpl[97165:wlan0]:  ClientModeImpl$ConnectingOrConnectedState screen=off 0 false xx:xx:xx:xx:xx:xx nid=0 "openbook-test"WPA_PSK last="openbook-test"WPA_PSK
+10-17 03:28:58.231  4127  4318 D ConnectivityService: registerNetworkAgent NetworkAgentInfo{network{100}  handle{432902426637}  ni{WIFI CONNECTING extra: } created=2026-10-17T03:28:58.231Z Score(Policies : IS_UNMETERED&EVER_USER_SELECTED ; KeepConnected : 0)  explicitlySelected  lp{{LinkAddresses: [ ] DnsAddresses: [ ] Domains: null MTU: 0 Routes: [ ]}}  nc{[ Transports: WIFI Capabilities: NOT_METERED&INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VPN&NOT_ROAMING&NOT_CONGESTED&NOT_SUSPENDED&NOT_VCN_MANAGED&NOT_BANDWIDTH_CONSTRAINED LinkUpBandwidth>=500Kbps LinkDnBandwidth>=500Kbps Specifier: <WifiNetworkAgentSpecifier [WifiConfiguration=, SSID="[redacted]", BSSID=xx:xx:xx:xx:xx:xx, band=1, mMatchLocalOnlySpecifiers=false]> TransportInfo: <SSID: "[redacted]", BSSID: xx:xx:xx:xx:xx:xx, MAC: xx:xx:xx:xx:xx:xx, IP: null, Security type: 2, Supplicant state: GROUP_HANDSHAKE, Wi-Fi standard: 11n, RSSI: -30, Link speed: -1Mbps, Tx Link speed: -1Mbps, Max Supported Tx Link speed: 144Mbps, Calculated Tx : 0Mbps, Rx Link speed: -1Mbps, Max Supported Rx Link speed: 144Mbps, Calculated Rx : 0Mbps, Frequency: 2437MHz, Net ID: 0, Metered hint: false, score: 0, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none>"openbook-test"wpa2-pskMLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>> SignalStrength: -30 AllowedUids: <{0}> OwnerUid: 0 AdminUids: [0] SSID: "[redacted]" UnderlyingNetworks: Null]}  factorySerialNumber=5}
+10-17 03:28:58.231  4127  4318 D WifiClientModeImpl[97165:wlan0]: L2ConnectedState clearTargetBssid any key="openbook-test"WPA_PSK
+10-17 03:28:58.231  4127  4318 D WifiClientModeImpl[97165:wlan0]: startIpClient netId=0 "openbook-test"WPA_PSK  roam=false static=false randomMac=false isFilsConnection=false
+10-17 03:28:58.231  4127  4318 D WifiClientModeImpl[97165:wlan0]: ObtainingIpAddress clearTargetBssid any key="openbook-test"WPA_PSK
+10-17 03:28:58.231  5414  5414 D wpa_supplicant: openbook: driver command 'SETSUSPENDMODE 1' ignored
+10-17 03:28:58.231  5414  5414 D wpa_supplicant: nl80211: set_p2p_powersave (legacy_ps=1 opp_ps=-1 ctwindow=-1)
+10-17 03:28:58.232  5414  5414 D wpa_supplicant: openbook: driver command 'BTCOEXMODE 2' ignored
+10-17 03:28:58.232  4127  4318 D WifiScoreCard: Changing state to COMPLETED SSID: "[redacted]", BSSID: xx:xx:xx:xx:xx:xx, MAC: xx:xx:xx:xx:xx:xx, IP: null, Security type: 2, Supplicant state: GROUP_HANDSHAKE, Wi-Fi standard: 11n, RSSI: -30, Link speed: -1Mbps, Tx Link speed: -1Mbps, Max Supported Tx Link speed: 144Mbps, Calculated Tx : 0Mbps, Rx Link speed: -1Mbps, Max Supported Rx Link speed: 144Mbps, Calculated Rx : 0Mbps, Frequency: 2437MHz, Net ID: 0, Metered hint: false, score: 0, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none>"openbook-test"wpa2-pskMLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>
+10-17 03:28:58.232  4127  4318 D WifiScoreCard: ifaceName=wlan0,wifiInfo=SSID: "[redacted]", BSSID: xx:xx:xx:xx:xx:xx, MAC: xx:xx:xx:xx:xx:xx, IP: null, Security type: 2, Supplicant state: COMPLETED, Wi-Fi standard: 11n, RSSI: -30, Link speed: -1Mbps, Tx Link speed: -1Mbps, Max Supported Tx Link speed: 144Mbps, Calculated Tx : 0Mbps, Rx Link speed: -1Mbps, Max Supported Rx Link speed: 144Mbps, Calculated Rx : 0Mbps, Frequency: 2437MHz, Net ID: 0, Metered hint: false, score: 0, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none>"openbook-test"wpa2-pskMLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>
+10-17 03:28:58.232  4127  4318 D WifiClientModeImpl[97165:wlan0]: ConnectingOrConnectedState: Supplicant State change  ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx nid: 0 frequencyMhz: 2437 state: COMPLETED
+10-17 03:28:58.232  4127  4318 D WifiClientModeImpl[97165:wlan0]:  ClientModeImpl$ConnectingOrConnectedState screen=off 0 0 ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx nid: 0 frequencyMhz: 2437 state: COMPLETED
+10-17 03:28:58.232  4127  4318 D SupplicantStateTracker[wlan0]: HandshakeState{ when=-2ms what=147462 obj= ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx nid: 0 frequencyMhz: 2437 state: COMPLETED target=com.android.wifi.x.com.android.internal.util.StateMachine$SmHandler async=false heapIndex=-1 }
+10-17 03:28:58.232  4127  4318 D SupplicantStateTracker[wlan0]: DefaultState{ when=-2ms what=147462 obj= ssid: "[redacted]" bssid: xx:xx:xx:xx:xx:xx nid: 0 frequencyMhz: 2437 state: COMPLETED target=com.android.wifi.x.com.android.internal.util.StateMachine$SmHandler async=false heapIndex=-1 }
+10-17 03:28:58.232  4127  4318 V WifiConfigManager: Updating scan detail cache freq=2437 BSSID=xx:xx:xx:xx:xx:xx RSSI=-30 for "openbook-test"WPA_PSK
+10-17 03:28:58.235  4127  4318 D WifiClientModeImpl[97165:wlan0]:  ClientModeImpl$L2ConnectedState screen=off 0 0 "openbook-test" xx:xx:xx:xx:xx:xx rssi=-30 f=2437 sc=100 link=1 tx=0.0, 0.0, 0.0 rx=0.0 bcn=0 [on:0 tx:0 rx:0 period:1206375803] from screen [on:0 period:5023] score=100
+10-17 03:28:58.235  4127  4318 D WifiNative: interfaceLinkStateChanged: ifaceName=wlan0, mInterfaceId = 0, mIfaceMgr={0=Iface:{Name=wlan0,Id=0,Type=STA_CONNECTIVITY}}
+10-17 03:28:58.235  4127  4318 V WifiNative: Interface status unchanged on Iface:{Name=wlan0,Id=0,Type=STA_CONNECTIVITY} from true, Ignoring...
+10-17 03:28:58.235  4127  4318 D WifiVendorHal: configureNeighborDiscoveryOffload enabled=true
+10-17 03:28:58.235  5414  5414 D wpa_supplicant: openbook: driver command 'RXFILTER-STOP' ignored
+10-17 03:28:58.235  5414  5414 D wpa_supplicant: openbook: driver command 'RXFILTER-ADD 2' ignored
+10-17 03:28:58.235  5414  5414 D wpa_supplicant: openbook: driver command 'RXFILTER-START' ignored
+10-17 03:28:58.262  5414  5414 D wpa_supplicant: openbook: driver command 'BTCOEXMODE 1' ignored
+10-17 03:28:58.262  5414  5414 D wpa_supplicant: openbook: driver command 'SETSUSPENDMODE 0' ignored
+10-17 03:28:58.262  5414  5414 D wpa_supplicant: nl80211: set_p2p_powersave (legacy_ps=0 opp_ps=-1 ctwindow=-1)
+10-17 03:28:58.265  5414  5414 D wpa_supplicant: openbook: driver command 'SETSUSPENDMODE 1' ignored
+10-17 03:28:58.265  5414  5414 D wpa_supplicant: nl80211: set_p2p_powersave (legacy_ps=1 opp_ps=-1 ctwindow=-1)
+10-17 03:28:58.265  5414  5414 D wpa_supplicant: openbook: driver command 'BTCOEXMODE 2' ignored
+10-17 03:28:58.266  4127  4318 V WifiNetworkSuggestionsManager: handleConnectionAttemptEnded 1, ID: 0 SSID: "[redacted]" PROVIDER-NAME: null BSSID: null FQDN: null HOME-PROVIDER-NETWORK: false PRIO: 0 HIDDEN: false PMF: false CarrierId: -1 SubscriptionId: -1 SubscriptionGroup: null Currently Connected: false User Selected: false
+10-17 03:28:58.266  4127  4318 W WifiScoreReport: Cannot start external scoring netId=100 currentNetId=100 currentNetCapabilities=[ Transports: WIFI Capabilities: NOT_METERED&INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VPN&NOT_ROAMING&NOT_CONGESTED&NOT_SUSPENDED&NOT_VCN_MANAGED&NOT_BANDWIDTH_CONSTRAINED LinkUpBandwidth>=12000Kbps LinkDnBandwidth>=30000Kbps Specifier: <WifiNetworkAgentSpecifier [WifiConfiguration=, SSID="[redacted]", BSSID=xx:xx:xx:xx:xx:xx, band=1, mMatchLocalOnlySpecifiers=false]> TransportInfo: <SSID: "[redacted]", BSSID: xx:xx:xx:xx:xx:xx, MAC: xx:xx:xx:xx:xx:xx, IP: /192.168.77.10, Security type: 2, Supplicant state: COMPLETED, Wi-Fi standard: 11n, RSSI: -30, Link speed: 1Mbps, Tx Link speed: 1Mbps, Max Supported Tx Link speed: 144Mbps, Calculated Tx : 0Mbps, Rx Link speed: 1Mbps, Max Supported Rx Link speed: 144Mbps, Calculated Rx : 0Mbps, Frequency: 2437MHz, Net ID: 0, Metered hint: false, score: 100, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none>"openbook-test"wpa2-pskMLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>> SignalStrength: -30 AllowedUids: <{0}> OwnerUid: 0 AdminUids: [0] SSID: "[redacted]" UnderlyingNetworks: Null] sessionId=1008
+10-17 03:28:58.266  4127  4318 D WifiScoreCard: BSSID update IP_CONFIGURATION_SUCCESS ID: 1121344219 SSID: "[redacted]", BSSID: xx:xx:xx:xx:xx:xx, MAC: xx:xx:xx:xx:xx:xx, IP: /192.168.77.10, Security type: 2, Supplicant state: COMPLETED, Wi-Fi standard: 11n, RSSI: -30, Link speed: 1Mbps, Tx Link speed: 1Mbps, Max Supported Tx Link speed: 144Mbps, Calculated Tx : 0Mbps, Rx Link speed: 1Mbps, Max Supported Rx Link speed: 144Mbps, Calculated Rx : 0Mbps, Frequency: 2437MHz, Net ID: 0, Metered hint: false, score: 100, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none>"openbook-test"wpa2-pskMLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>
+10-17 03:28:58.266  4127  4318 D WifiScoreCard: network update IP_CONFIGURATION_SUCCESS "openbook-test" ID: 1948098294 RSSI -30 txSpeed 1
+10-17 03:28:58.267  4127  4318 D WifiScoreCard: SSID: "[redacted]"
+10-17 03:28:58.268  4127  4318 I WifiRoamingModeManager: Applying roaming policy for network "openbook-test" with value 1
+10-17 03:28:58.284  4127  4327 D ConnectivityService: Switching to new default network for: uid/pid:1000/4127 activeRequest: 1 callbackRequest: 1 [NetworkRequest [ REQUEST id=1, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VPN&NOT_VCN_MANAGED&NOT_BANDWIDTH_CONSTRAINED RequestorUid: 1000 RequestorPkg: android UnderlyingNetworks: Null] ]] callback flags: 0 order: 2147483647 isUidTracked: false declaredMethods: NONE using NetworkAgentInfo{network{100}  handle{432902426637}  ni{WIFI CONNECTED extra: } created=2026-10-17T03:28:58.231Z Score(Policies : TRANSPORT_PRIMARY&IS_UNMETERED&EVER_USER_SELECTED ; KeepConnected : 0)  created 102188 explicitlySelected  lp{{InterfaceName: wlan0 LinkAddresses: [ fe80::fa6a:ff1:b2f3:c74c/64,192.168.77.10/24 ] DnsAddresses: [ /192.168.77.1 ] Domains: null MTU: 0 ServerAddress: /192.168.77.1 TcpBufferSizes: 524288,1048576,2097152,262144,524288,1048576 Routes: [ fe80::/64 -> :: wlan0 mtu 0,192.168.77.0/24 -> 0.0.0.0 wlan0 mtu 0,0.0.0.0/0 -> 192.168.77.1 wlan0 mtu 0 ]}}  nc{[ Transports: WIFI Capabilities: NOT_METERED&INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VPN&NOT_ROAMING&FOREGROUND&NOT_CONGESTED&NOT_SUSPENDED&NOT_VCN_MANAGED&NOT_BANDWIDTH_CONSTRAINED LinkUpBandwidth>=12000Kbps LinkDnBandwidth>=30000Kbps Specifier: <WifiNetworkAgentSpecifier [WifiConfiguration=, SSID="[redacted]", BSSID=xx:xx:xx:xx:xx:xx, band=1, mMatchLocalOnlySpecifiers=false]> TransportInfo: <SSID: "[redacted]", BSSID: xx:xx:xx:xx:xx:xx, MAC: xx:xx:xx:xx:xx:xx, IP: /192.168.77.10, Security type: 2, Supplicant state: COMPLETED, Wi-Fi standard: 11n, RSSI: -30, Link speed: 1Mbps, Tx Link speed: 1Mbps, Max Supported Tx Link speed: 144Mbps, Calculated Tx : 0Mbps, Rx Link speed: 1Mbps, Max Supported Rx Link speed: 144Mbps, Calculated Rx : 0Mbps, Frequency: 2437MHz, Net ID: 0, Metered hint: false, score: 100, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none>"openbook-test"wpa2-pskMLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>> SignalStrength: -30 OwnerUid: 0 AdminUids: [0] SSID: "[redacted]" UnderlyingNetworks: Null]}  factorySerialNumber=5}
+10-17 03:28:58.315  4127  4351 I AdbWifiNetworkMonitor: Connected to a Wi-Fi network {bssid=xx:xx:xx:xx:xx:xx, ssid="[redacted]"}. Attempting to start adb over Wi-Fi.
+10-17 03:28:59.116  4127  4351 I AdbDebuggingManager: Registered service 'name: adb-OPENBOOKG14USB01-TKTKY6, type: null, subtypes: , hostAddresses: , hostname: Android_DBU4NIEG, port: 0, network: null, expirationTime: null, txtRecord: {}'
+10-17 03:29:00.179  5414  5414 D wpa_supplicant: EAPOL: startWhen --> 0
+10-17 03:29:00.179  5414  5414 D wpa_supplicant: EAPOL: disable timer tick
+10-17 03:29:03.324  4127  4318 D WifiClientModeImpl[97165:wlan0]:  ClientModeImpl$L3ConnectedState screen=off 1 0 "openbook-test" xx:xx:xx:xx:xx:xx rssi=-30 f=2437 sc=100 link=1 tx=0.9, 0.0, 0.0 rx=0.3 bcn=0 [on:0 tx:0 rx:0 period:5089] from screen [on:0 period:10112] score=100
+10-17 03:29:04.324  5414  5414 D wpa_supplicant: nl80211: Drv Event 33 (NL80211_CMD_TRIGGER_SCAN) received for wlan0
+10-17 03:29:04.324  5414  5414 D wpa_supplicant: wlan0: nl80211: Scan trigger
+10-17 03:29:04.324  5414  5414 D wpa_supplicant: wlan0: Event SCAN_STARTED (47) received
+10-17 03:29:04.324  5414  5414 D wpa_supplicant: wlan0: External program started a scan
+10-17 03:29:06.285  4127  4318 D WifiClientModeImpl[97165:wlan0]:  ClientModeImpl$L3ConnectedState screen=off 2 0 "openbook-test" xx:xx:xx:xx:xx:xx rssi=-30 f=2437 sc=100 link=1 tx=0.9, 0.0, 0.0 rx=0.3 bcn=0 [on:0 tx:0 rx:0 period:2960] from screen [on:0 period:13073] score=100
+10-17 03:29:06.285  4127  4327 D NetworkNotificationManager: showNotification tag=ConnectivityNotification:100 event=NO_INTERNET transport=Wi-Fi name=openbook-test highPriority=true
+10-17 03:29:14.277  5414  5414 D wpa_supplicant: nl80211: Drv Event 34 (NL80211_CMD_NEW_SCAN_RESULTS) received for wlan0
+10-17 03:29:14.277  5414  5414 D wpa_supplicant: wlan0: nl80211: New scan results available
+10-17 03:29:14.277  5414  5414 D wpa_supplicant: nl80211: Scan probed for SSID [redacted]
+10-17 03:29:14.277  5414  5414 D wpa_supplicant: nl80211: Scan included frequencies: 2412 2417 2422 2427 2432 2437 2442 2447 2452 2457 2462 2467 2472 2484 5180 5200 5220 5240 5260 5280 5300 5320 5500 5520 5540 5560 5580 5600 5620 5640 5660 5680 5700 5745 5765 5785 5805 5825
+10-17 03:29:14.277  5414  5414 D wpa_supplicant: wlan0: Event SCAN_RESULTS (3) received
+10-17 03:29:14.277  5414  5414 D wpa_supplicant: nl80211: Received scan results (1 BSSes)
+10-17 03:29:14.277  5414  5414 D wpa_supplicant: nl80211: Scan results indicate BSS status with xx:xx:xx:xx:xx:xx as associated
+10-17 03:29:14.277  5414  5414 D wpa_supplicant: wlan0: BSS: Start scan result update 3
+10-17 03:29:14.277  4127  4318 D WifiNative: Scan result ready event
+10-17 03:29:14.277  5414  5414 D wpa_supplicant: BSS: last_scan_res_used=1/32
+10-17 03:29:14.277  5414  5414 D wpa_supplicant: wlan0: New scan results available (own=0 ext=1)
+10-17 03:29:14.277  5414  5414 D wpa_supplicant: wlan0: Do not use results from externally requested scan operation for network selection
+10-17 03:29:14.278  4127  4324 D WifiNative: get 1 scan results from nl80211
+10-17 03:29:14.278  4127  4318 V WifiConfigManager: getSavedNetworkFromScanResult Found "openbook-test"WPA_PSK for openbook-test[[WPA2-PSK-CCMP-128][RSN-PSK-CCMP-128][ESS]]
+10-17 03:29:14.278  4127  4318 V WifiConfigManager: getSavedNetworkFromScanResult Found "openbook-test"WPA_PSK for openbook-test[[WPA2-PSK-CCMP-128][RSN-PSK-CCMP-128][ESS]]
