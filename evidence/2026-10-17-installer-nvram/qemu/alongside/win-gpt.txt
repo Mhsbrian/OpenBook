@@ -1,0 +1,30 @@
+
+No problems found. 4029 free sectors (2.0 MiB) available in 2
+segments, the largest of which is 2015 (1007.5 KiB) in size.
+Disk /home/hive/anybook/installer/qemu/nvram-a/win.img: 629145600 sectors, 300.0 GiB
+Sector size (logical): 512 bytes
+Disk identifier (GUID): 01FD83AC-8E12-45AF-80BA-FF07B033AFE2
+Partition table holds up to 128 entries
+Main partition table begins at sector 2 and ends at sector 33
+First usable sector is 34, last usable sector is 629145566
+Partitions will be aligned on 2048-sector boundaries
+Total free space is 4029 sectors (2.0 MiB)
+
+Number  Start (sector)    End (sector)  Size       Code  Name
+   1            2048          534527   260.0 MiB   EF00  EFI system partition
+   2          534528          567295   16.0 MiB    0C01  Microsoft reserved ...
+   3          567296       419997695   200.0 GiB   0700  Basic data partition
+   4       419997696       421636095   800.0 MiB   2700  
+   5       421636096       422684671   512.0 MiB   EA00  xbootldr
+   6       422684672       422692863   4.0 MiB     8300  misc
+   7       422692864       422823935   64.0 MiB    8300  boot_a
+   8       422823936       422955007   64.0 MiB    8300  boot_b
+   9       422955008       422971391   8.0 MiB     8300  init_boot_a
+  10       422971392       422987775   8.0 MiB     8300  init_boot_b
+  11       422987776       423118847   64.0 MiB    8300  vendor_boot_a
+  12       423118848       423249919   64.0 MiB    8300  vendor_boot_b
+  13       423249920       423251967   1024.0 KiB  8300  vbmeta_a
+  14       423251968       423254015   1024.0 KiB  8300  vbmeta_b
+  15       423254016       423385087   64.0 MiB    8300  metadata
+  16       423385088       448550911   12.0 GiB    8300  super
+  17       448550912       629143551   86.1 GiB    8300  userdata
