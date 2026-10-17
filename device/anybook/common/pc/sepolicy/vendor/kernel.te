@@ -2,5 +2,10 @@
 # probe (amdgpu, mt7925e, cs35l56, amdxdna). ueventd's sysfs fallback reads the same files.
 allow kernel openbook_vendor_fw_file:dir r_dir_perms;
 allow kernel openbook_vendor_fw_file:file r_file_perms;
+# Since 6.x the kernel also checks system { firmware_load } against the firmware file's own label when it reads a
+# file directly. AOSP only allows it for kernel self (ueventd's sysfs fallback). Without this, the enforcing
+# entries got no amdgpu (psp_14_0_0_toc.bin) and no MT7925 firmware, so no display at all: the black screen of
+# every enforcing G14 boot, while permissive boots only logged it (ANAL-176, live-001/002 kernel logs).
+allow kernel openbook_vendor_fw_file:system firmware_load;
 allow ueventd openbook_vendor_fw_file:dir r_dir_perms;
 allow ueventd openbook_vendor_fw_file:file r_file_perms;
