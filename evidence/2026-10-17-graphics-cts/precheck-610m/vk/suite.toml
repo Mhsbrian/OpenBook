@@ -1,0 +1,8 @@
+[[deqp]]
+deqp = "/deqp/deqp-binary64"
+caselists = ["/cl/vk.txt"]
+tests_per_group = 500
+renderer_check = "RADV"
+deqp_args = ["--deqp-archive-dir=/deqp", "--deqp-log-images=disable", "--deqp-log-shader-sources=disable", "--deqp-shadercache=disable", "--deqp-vk-library-path=/b/libvk_hal_shim.so"]
+[deqp.env]
+LD_PRELOAD = "/b/libdeqp_stdout.so"

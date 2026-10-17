@@ -1,0 +1,26 @@
+openbook-live: grow: disk 524288 sectors, GPT backup at LBA 131071, userdata 69599 sectors (blank)
+openbook-live: grow: GPT backup moved LBA 131071 -> 524287; userdata 69599 -> 460800 sectors (0.2 GiB)
+PASS grow: {"action": "grow", "detail": "", "disk": "", "disk_sectors": 524288, "gpt_backup_lba_before": 131071, "gpt_backup_lba_after": 524287, "userdata_sectors_before": 69599, "userdata_sectors_after": 460800, "userdata_blank": true, "reset": false}
+openbook-live: grow: disk 524288 sectors, GPT backup at LBA 524287, userdata 460800 sectors (blank)
+openbook-live: grow: nothing to do
+PASS again: none
+openbook-live: grow: disk 262144 sectors, GPT backup at LBA 131071, userdata 69599 sectors (in use)
+openbook-live: grow: GPT backup moved LBA 131071 -> 262143; userdata 69599 -> 69599 sectors (0.0 GiB)
+PASS repair: {"action": "repair", "detail": "", "disk": "", "disk_sectors": 262144, "gpt_backup_lba_before": 131071, "gpt_backup_lba_after": 262143, "userdata_sectors_before": 69599, "userdata_sectors_after": 69599, "userdata_blank": false, "reset": false}
+openbook-live: grow: disk 131072 sectors, GPT backup at LBA 131071, userdata 69599 sectors (blank)
+openbook-live: grow: nothing to do
+PASS exact: none
+openbook-live: grow: not the OpenBook live layout (EFI with the boot PARTUUID, metadata, super, userdata needed); leaving the disk as it is
+PASS wrong ESP: refused
+openbook-live: grow: userdata is not the last partition; leaving the disk as it is
+PASS userdata not last: refused
+openbook-live: grow: GPT says the disk has 131072 sectors, but it has 98304: written from a larger image?; leaving the disk as it is
+PASS short stick: refused
+openbook-live: grow: primary GPT header CRC mismatch; leaving the disk as it is
+PASS bad CRC: refused
+openbook-live: grow: disk 262144 sectors, GPT backup at LBA 131071, userdata 69599 sectors (blank)
+openbook-live: grow: GPT backup moved LBA 131071 -> 262143; userdata 69599 -> 198656 sectors (0.1 GiB)
+openbook-live: reset: zeroed the first 1024 KiB of metadata
+openbook-live: reset: zeroed the first 1024 KiB of userdata
+PASS reset: {"action": "reset", "detail": "", "disk": "", "disk_sectors": 0, "gpt_backup_lba_before": 0, "gpt_backup_lba_after": 0, "userdata_sectors_before": 0, "userdata_sectors_after": 0, "userdata_blank": false, "reset": true}
+9/9 passed

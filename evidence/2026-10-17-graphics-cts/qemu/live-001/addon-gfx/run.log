@@ -1,0 +1,30 @@
+11:16:59 start: parts [vk vk14 gles-angle gles-mesa egl angle], jobs 4 of 8 CPUs, gpu hal [virtio], quick [1]
+11:16:59 vk: start
+Slowest tests:
+  dEQP-VK.api.buffer.suballocation.transfer_dst.uniform_texel.storage_texel.storage.index.vertex.indirect.create.zero (0.00s)
+  dEQP-VK.api.buffer.suballocation.transfer_dst.uniform_texel.storage.vertex.create.zero (0.00s)
+  dEQP-VK.api.buffer.suballocation.transfer_dst.uniform_texel.storage_texel.index.vertex.indirect.create.zero (0.00s)
+  dEQP-VK.api.buffer.suballocation.transfer_dst.storage_texel.vertex.create.zero (0.00s)
+  dEQP-VK.api.buffer.dedicated_alloc.transfer_src.uniform_texel.storage_texel.storage.vertex.indirect.create.zero (0.00s)
+11:16:59 vk: done, exit 0, 0 s, 0 new amdgpu fault/reset line(s)
+11:16:59 vk14: skipped: needs the AMD GPU (hal=virtio)
+11:16:59 gles-angle: start
+Slowest tests:
+  dEQP-GLES2.functional.buffer.write.recreate_store.random_2 (0.08s)
+  dEQP-GLES2.functional.clip_control.depth_mode_zero_to_one (0.06s)
+  dEQP-GLES3.functional.buffer.copy.basic.array_uniform (0.04s)
+  dEQP-GLES3.functional.buffer.copy.basic.element_array_copy_read (0.04s)
+  dEQP-GLES2.functional.buffer.write.basic.array_stream_draw (0.04s)
+11:17:00 gles-angle: done, exit 0, 1 s, 0 new amdgpu fault/reset line(s)
+11:17:00 gles-mesa: skipped: needs the AMD GPU (hal=virtio)
+11:17:00 egl: start
+Success
+11:17:30 egl: done, exit 0, 30 s, 0 new amdgpu fault/reset line(s)
+11:17:30 angle: start
+Success
+OK (1 test)
+
+
+INSTRUMENTATION_CODE: -1
+11:17:39 angle: done, exit 0, 5 s, 0 new amdgpu fault/reset line(s)
+11:17:39 finished

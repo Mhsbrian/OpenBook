@@ -1,0 +1,8 @@
+[
+ {"wait": "openbook-live: live boot: boot_part_uuid=", "timeout": 120},
+ {"wait": "openbook-live: logs: saving to openbook/logs/live-\\d+ on the stick.s ESP; add-on gfx", "timeout": 60},
+ {"wait": "openbook-live: logs: sys.boot_completed=1", "timeout": 900},
+ {"wait": "openbook-live: addon gfx: running run.sh", "timeout": 600},
+ {"wait": "openbook-live: addon gfx: run.sh exit", "timeout": 5400},
+ {"wait": "openbook-live: logs: done: ", "timeout": 900}
+]

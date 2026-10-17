@@ -1,0 +1,2 @@
+{"part": "egl", "rc": 0, "seconds": 198, "jobs": 3, "amdgpu_events": 0, "quick": 0}
+{"part": "angle", "rc": 1, "seconds": 5, "jobs": 3, "amdgpu_events": 0, "quick": 0}

@@ -1,0 +1,2 @@
+keyguard:  isKeyguardShowing=false 
+instrument 0: exit 0, 1287 begun, 1287 ended, 0 left

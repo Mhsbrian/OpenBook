@@ -1,0 +1,15 @@
+dEQP version: unknown (0xcafebabe)
+renderer: ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 16.0.0) (0x0000C0DE)), SwiftShader driver-5.0.0)
+version: OpenGL ES 3.1 (ANGLE 2.1 git hash: 8d8796935e4faeaf19e67ac0a5949e71a5252e7f)
+Running dEQP on 4 threads in 10-test groups
+Running dEQP on 4 threads in 10-test groups
+Running dEQP on 4 threads in 10-test groups
+Pass: 0, Duration: 0
+Pass: 111, Skip: 9, Duration: 0, Remaining: 0
+
+Slowest tests:
+  dEQP-GLES2.functional.buffer.write.recreate_store.random_2 (0.08s)
+  dEQP-GLES2.functional.clip_control.depth_mode_zero_to_one (0.06s)
+  dEQP-GLES3.functional.buffer.copy.basic.array_uniform (0.04s)
+  dEQP-GLES3.functional.buffer.copy.basic.element_array_copy_read (0.04s)
+  dEQP-GLES2.functional.buffer.write.basic.array_stream_draw (0.04s)

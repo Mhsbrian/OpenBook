@@ -1,0 +1,6 @@
+{"part": "vk", "rc": 0, "seconds": 0, "jobs": 4, "amdgpu_events": 0, "quick": 1}
+{"part": "vk14", "skipped": "needs the AMD GPU (hal=virtio)"}
+{"part": "gles-angle", "rc": 0, "seconds": 1, "jobs": 4, "amdgpu_events": 0, "quick": 1}
+{"part": "gles-mesa", "skipped": "needs the AMD GPU (hal=virtio)"}
+{"part": "egl", "rc": 0, "seconds": 30, "jobs": 4, "amdgpu_events": 0, "quick": 1}
+{"part": "angle", "rc": 0, "seconds": 5, "jobs": 4, "amdgpu_events": 0, "quick": 1}

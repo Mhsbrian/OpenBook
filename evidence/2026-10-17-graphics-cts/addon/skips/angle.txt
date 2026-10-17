@@ -1,0 +1,1 @@
+# OpenBook graphics check skip list for ANGLE: empty (see scripts/graphics/mkskips.sh)

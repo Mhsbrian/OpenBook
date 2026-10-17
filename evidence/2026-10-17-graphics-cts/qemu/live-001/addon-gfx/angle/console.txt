@@ -1,0 +1,2 @@
+keyguard:  isKeyguardShowing=false 
+round 0: exit 0, 23285 started, 0 of 40 PASS tests left, output.json yes

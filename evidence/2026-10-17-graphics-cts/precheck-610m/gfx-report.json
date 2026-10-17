@@ -1,0 +1,676 @@
+{
+ "schema": "openbook-gfx-report/1",
+ "dir": "<data dir>/logs/gfx-cts/precheck-v1",
+ "label": "pre-check, Radeon 610M (gfx1036)",
+ "parts": {
+  "vk": {
+   "part": "vk",
+   "ran": true,
+   "renderer": "AMD Ryzen 9 7950X 16-Core Processor (RADV RAPHAEL_MENDOCINO)",
+   "threads": 12,
+   "counts": {
+    "Pass": 43248,
+    "Fail": 57,
+    "Crash": 1,
+    "Skip": 22917,
+    "Flake": 3
+   },
+   "total": 66226,
+   "failing": [
+    {
+     "case": "dEQP-VK.api.info.android.no_unknown_extensions",
+     "status": "Fail",
+     "code": "Fail",
+     "message": "Unknown extension: VK_ANDROID_native_buffer"
+    },
+    {
+     "case": "dEQP-VK.api.info.format_properties.g10x6_b10x6r10x6_2plane_420_unorm_3pack16",
+     "status": "Fail",
+     "code": "Fail",
+     "message": "linearTilingFeatures: has: VK_FORMAT_FEATURE_VIDEO_DECODE_OUTPUT_BIT_KHR|VK_FORMAT_FEATURE_VIDEO_ENCODE_INPUT_BIT_KHR"
+    },
+    {
+     "case": "dEQP-VK.api.info.format_properties.g12x4_b12x4r12x4_2plane_420_unorm_3pack16",
+     "status": "Fail",
+     "code": "Fail",
+     "message": "linearTilingFeatures: has: VK_FORMAT_FEATURE_VIDEO_DECODE_OUTPUT_BIT_KHR|VK_FORMAT_FEATURE_VIDEO_ENCODE_INPUT_BIT_KHR"
+    },
+    {
+     "case": "dEQP-VK.api.info.format_properties.g8_b8r8_2plane_420_unorm",
+     "status": "Fail",
+     "code": "Fail",
+     "message": "linearTilingFeatures: has: VK_FORMAT_FEATURE_VIDEO_DECODE_OUTPUT_BIT_KHR|VK_FORMAT_FEATURE_VIDEO_ENCODE_INPUT_BIT_KHR"
+    },
+    {
+     "case": "dEQP-VK.api.version_check.entry_points",
+     "status": "Fail",
+     "code": "Fail",
+     "message": "Fail"
+    },
+    {
+     "case": "dEQP-VK.compute.pipeline.basic.atomic_barrier_sum_small",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.compute.pipeline.basic.branch_past_barrier",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.compute.pipeline.zero_initialize_workgroup_memory.shared_memory_blocks.workgroup_size_2x8x8",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.depth.bias_fs_clamp",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.draw.dynamic_rendering.primary_cmd_buff.multi_draw.mosaic.indexed_mixed.max_draws.standard_stride.10_instances.tess_geom.multiview.offset_6_no_draw_id",
+     "status": "Fail",
+     "code": "Fail",
+     "message": "Color image comparison failed; check log for more details"
+    },
+    {
+     "case": "dEQP-VK.draw.dynamic_rendering.primary_cmd_buff.multi_draw.mosaic.indexed_packed.one_draw.stride_zero.10_instances.tess_geom.single_view.offset_6_no_draw_id",
+     "status": "Fail",
+     "code": "Fail",
+     "message": "Stencil image comparison failed; check log for more details"
+    },
+    {
+     "case": "dEQP-VK.draw.renderpass.output_location.array.r32g32b32a32-sfloat-mediump",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.fragment_shading_rate.renderpass2.monolithic.attachment_rate.setup_with_copying_using_transfer_queue_concurent.r8_uint.rate_1x2_general_layout",
+     "status": "Crash",
+     "code": null,
+     "message": null
+    },
+    {
+     "case": "dEQP-VK.glsl.combined_operations.notxor",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.graphicsfuzz.access-new-vector-inside-if-condition",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.graphicsfuzz.always-discarding-function",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.graphicsfuzz.cov-and-even-numbers-from-fragcoord",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.graphicsfuzz.cov-array-cast-bool-float-div-by-zero-no-effect",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.graphicsfuzz.cov-const-folding-bitfieldinsert-div-one",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.graphicsfuzz.cov-dead-branch-func-return-arg",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.graphicsfuzz.cov-do-while-loop-until-uniform-lt-itself",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.graphicsfuzz.cov-folding-rules-redundant-mix",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.graphicsfuzz.cov-function-index-array-redundant-clamps",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.graphicsfuzz.cov-function-unpack-unorm-2x16-one",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.graphicsfuzz.cov-global-loop-counter-findlsb-zero",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.graphicsfuzz.cov-inst-combine-select-findlsb-uaddcarry",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.graphicsfuzz.cov-int-initialize-from-multiple-large-arrays",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.graphicsfuzz.cov-loop-function-call-vector-matrix-multiplication",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.graphicsfuzz.cov-loop-with-two-integers",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.graphicsfuzz.cov-max-clamp-same-minval",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.graphicsfuzz.cov-min-vec2-transpose-mat2-identity",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.graphicsfuzz.cov-nested-loops-global-counter-increment-single-element",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.graphicsfuzz.cov-nested-loops-switch-case-fallthrough-increment-array-element",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.graphicsfuzz.cov-simplify-component-uniform-idx",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.graphicsfuzz.cov-transpose-multiply",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.graphicsfuzz.cov-value-tracking-selection-dag-negation-clamp-loop",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.graphicsfuzz.loop-call-discard",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.graphicsfuzz.spv-access-chains",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.graphicsfuzz.stable-colorgrid-modulo-injected-conditional-true",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.graphicsfuzz.two-2-iteration-loops",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.info.device_extensions",
+     "status": "Fail",
+     "code": "Fail",
+     "message": "Extension VK_EXT_hdr_metadata is missing dependency"
+    },
+    {
+     "case": "dEQP-VK.info.instance_extensions",
+     "status": "Fail",
+     "code": "Fail",
+     "message": "Extension VK_EXT_headless_surface is missing dependency"
+    },
+    {
+     "case": "dEQP-VK.memory_model.message_passing.permuted_index.barrier",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.rasterization.depth_bias.d16_unorm_constant_one",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.ray_tracing_pipeline.amber.barycentrics",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.reconvergence.maximal.fragment.demote_entire_quad",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.spirv_assembly.instruction.compute.ldexp.ldexp_f32vec4_i16vec4",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.spirv_assembly.instruction.compute.oparraylength.array-stride-larger-than-element-size",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.spirv_assembly.instruction.compute.opfma.fp64.vec4.rte.denorm_flush.float_controls",
+     "status": "Fail",
+     "code": "Fail",
+     "message": "Output doesn't match with expected"
+    },
+    {
+     "case": "dEQP-VK.spirv_assembly.instruction.graphics.early_fragment.depth_greater",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.spirv_assembly.instruction.graphics.float32.comparison_2.modfstruct_tese",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.spirv_assembly.instruction.spirv1p4.entrypoint.tess_eval_ubo_entry_point",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.spirv_assembly.instruction.spirv1p4.opptrdiff.ssbo_comparisons_diff",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.spirv_assembly.instruction.spirv1p4.opselect.nested_struct_select",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.subgroups.subgroup_uniform_control_flow.large_full_control.subgroup_reconverge19",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.subgroups.subgroup_uniform_control_flow.large_partial_control.subgroup_reconverge_partial07",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.subgroups.subgroup_uniform_control_flow.small_partial_control.small_subgroup_reconverge_partial13",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    },
+    {
+     "case": "dEQP-VK.texture.subgroup_lod.texturegrad",
+     "status": "Fail",
+     "code": "InternalError",
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579"
+    }
+   ],
+   "failing_by_message": [
+    {
+     "message": "Vulkan: Unable to load vkGetBufferDeviceAddress pointer at vktAmberTestCase.cpp:579",
+     "cases": 47
+    },
+    {
+     "message": "linearTilingFeatures: has: VK_FORMAT_FEATURE_VIDEO_DECODE_OUTPUT_BIT_KHR|VK_FORMAT_FEATURE_VIDEO_ENCODE_INPUT_BIT_KHR",
+     "cases": 3
+    },
+    {
+     "message": "Unknown extension: VK_ANDROID_native_buffer",
+     "cases": 1
+    },
+    {
+     "message": "Fail",
+     "cases": 1
+    },
+    {
+     "message": "Color image comparison failed; check log for more details",
+     "cases": 1
+    },
+    {
+     "message": "Stencil image comparison failed; check log for more details",
+     "cases": 1
+    },
+    {
+     "message": "Crash",
+     "cases": 1
+    },
+    {
+     "message": "Extension VK_EXT_hdr_metadata is missing dependency",
+     "cases": 1
+    },
+    {
+     "message": "Extension VK_EXT_headless_surface is missing dependency",
+     "cases": 1
+    },
+    {
+     "message": "Output doesn't match with expected",
+     "cases": 1
+    }
+   ],
+   "flakes": [
+    "dEQP-VK.draw.dynamic_rendering.primary_cmd_buff.multi_draw.mosaic.indexed_mixed.one_draw.standard_stride.2_instances_base_3.tess_geom.multiview.offset_6_no_draw_id",
+    "dEQP-VK.draw.renderpass.multi_draw.mosaic.indexed_mixed.one_draw.stride_extra_12.1_instance.tess_geom.multiview.no_offset_no_draw_id",
+    "dEQP-VK.ray_tracing_pipeline.build.gpu.level_primitives.mixed_4_4_4096"
+   ],
+   "mesa_ci": {
+    "files": [
+     "radv-fails.txt",
+     "radv-raphael-fails.txt"
+    ],
+    "our_failures_listed_by_mesa_ci": [],
+    "our_failures_not_listed": [
+     "dEQP-VK.api.info.android.no_unknown_extensions",
+     "dEQP-VK.api.info.format_properties.g10x6_b10x6r10x6_2plane_420_unorm_3pack16",
+     "dEQP-VK.api.info.format_properties.g12x4_b12x4r12x4_2plane_420_unorm_3pack16",
+     "dEQP-VK.api.info.format_properties.g8_b8r8_2plane_420_unorm",
+     "dEQP-VK.api.version_check.entry_points",
+     "dEQP-VK.compute.pipeline.basic.atomic_barrier_sum_small",
+     "dEQP-VK.compute.pipeline.basic.branch_past_barrier",
+     "dEQP-VK.compute.pipeline.zero_initialize_workgroup_memory.shared_memory_blocks.workgroup_size_2x8x8",
+     "dEQP-VK.depth.bias_fs_clamp",
+     "dEQP-VK.draw.dynamic_rendering.primary_cmd_buff.multi_draw.mosaic.indexed_mixed.max_draws.standard_stride.10_instances.tess_geom.multiview.offset_6_no_draw_id",
+     "dEQP-VK.draw.dynamic_rendering.primary_cmd_buff.multi_draw.mosaic.indexed_packed.one_draw.stride_zero.10_instances.tess_geom.single_view.offset_6_no_draw_id",
+     "dEQP-VK.draw.renderpass.output_location.array.r32g32b32a32-sfloat-mediump",
+     "dEQP-VK.fragment_shading_rate.renderpass2.monolithic.attachment_rate.setup_with_copying_using_transfer_queue_concurent.r8_uint.rate_1x2_general_layout",
+     "dEQP-VK.glsl.combined_operations.notxor",
+     "dEQP-VK.graphicsfuzz.access-new-vector-inside-if-condition",
+     "dEQP-VK.graphicsfuzz.always-discarding-function",
+     "dEQP-VK.graphicsfuzz.cov-and-even-numbers-from-fragcoord",
+     "dEQP-VK.graphicsfuzz.cov-array-cast-bool-float-div-by-zero-no-effect",
+     "dEQP-VK.graphicsfuzz.cov-const-folding-bitfieldinsert-div-one",
+     "dEQP-VK.graphicsfuzz.cov-dead-branch-func-return-arg",
+     "dEQP-VK.graphicsfuzz.cov-do-while-loop-until-uniform-lt-itself",
+     "dEQP-VK.graphicsfuzz.cov-folding-rules-redundant-mix",
+     "dEQP-VK.graphicsfuzz.cov-function-index-array-redundant-clamps",
+     "dEQP-VK.graphicsfuzz.cov-function-unpack-unorm-2x16-one",
+     "dEQP-VK.graphicsfuzz.cov-global-loop-counter-findlsb-zero",
+     "dEQP-VK.graphicsfuzz.cov-inst-combine-select-findlsb-uaddcarry",
+     "dEQP-VK.graphicsfuzz.cov-int-initialize-from-multiple-large-arrays",
+     "dEQP-VK.graphicsfuzz.cov-loop-function-call-vector-matrix-multiplication",
+     "dEQP-VK.graphicsfuzz.cov-loop-with-two-integers",
+     "dEQP-VK.graphicsfuzz.cov-max-clamp-same-minval",
+     "dEQP-VK.graphicsfuzz.cov-min-vec2-transpose-mat2-identity",
+     "dEQP-VK.graphicsfuzz.cov-nested-loops-global-counter-increment-single-element",
+     "dEQP-VK.graphicsfuzz.cov-nested-loops-switch-case-fallthrough-increment-array-element",
+     "dEQP-VK.graphicsfuzz.cov-simplify-component-uniform-idx",
+     "dEQP-VK.graphicsfuzz.cov-transpose-multiply",
+     "dEQP-VK.graphicsfuzz.cov-value-tracking-selection-dag-negation-clamp-loop",
+     "dEQP-VK.graphicsfuzz.loop-call-discard",
+     "dEQP-VK.graphicsfuzz.spv-access-chains",
+     "dEQP-VK.graphicsfuzz.stable-colorgrid-modulo-injected-conditional-true",
+     "dEQP-VK.graphicsfuzz.two-2-iteration-loops",
+     "dEQP-VK.info.device_extensions",
+     "dEQP-VK.info.instance_extensions",
+     "dEQP-VK.memory_model.message_passing.permuted_index.barrier",
+     "dEQP-VK.rasterization.depth_bias.d16_unorm_constant_one",
+     "dEQP-VK.ray_tracing_pipeline.amber.barycentrics",
+     "dEQP-VK.reconvergence.maximal.fragment.demote_entire_quad",
+     "dEQP-VK.spirv_assembly.instruction.compute.ldexp.ldexp_f32vec4_i16vec4",
+     "dEQP-VK.spirv_assembly.instruction.compute.oparraylength.array-stride-larger-than-element-size",
+     "dEQP-VK.spirv_assembly.instruction.compute.opfma.fp64.vec4.rte.denorm_flush.float_controls",
+     "dEQP-VK.spirv_assembly.instruction.graphics.early_fragment.depth_greater",
+     "dEQP-VK.spirv_assembly.instruction.graphics.float32.comparison_2.modfstruct_tese",
+     "dEQP-VK.spirv_assembly.instruction.spirv1p4.entrypoint.tess_eval_ubo_entry_point",
+     "dEQP-VK.spirv_assembly.instruction.spirv1p4.opptrdiff.ssbo_comparisons_diff",
+     "dEQP-VK.spirv_assembly.instruction.spirv1p4.opselect.nested_struct_select",
+     "dEQP-VK.subgroups.subgroup_uniform_control_flow.large_full_control.subgroup_reconverge19",
+     "dEQP-VK.subgroups.subgroup_uniform_control_flow.large_partial_control.subgroup_reconverge_partial07",
+     "dEQP-VK.subgroups.subgroup_uniform_control_flow.small_partial_control.small_subgroup_reconverge_partial13",
+     "dEQP-VK.texture.subgroup_lod.texturegrad"
+    ],
+    "mesa_ci_listed_failures_in_our_list": 0,
+    "mesa_ci_listed_failures_we_pass": []
+   },
+   "rc": 1,
+   "seconds": 116,
+   "jobs": 12,
+   "fraction": 1
+  },
+  "vk14": {
+   "part": "vk14",
+   "ran": true,
+   "renderer": "AMD Ryzen 9 7950X 16-Core Processor (RADV RAPHAEL_MENDOCINO)",
+   "threads": 12,
+   "counts": {
+    "Pass": 45161,
+    "Fail": 5,
+    "Crash": 0,
+    "Skip": 21055,
+    "Flake": 5
+   },
+   "total": 66226,
+   "failing": [
+    {
+     "case": "dEQP-VK.api.info.android.no_unknown_extensions",
+     "status": "Fail",
+     "code": "Fail",
+     "message": "Unknown extension: VK_ANDROID_native_buffer"
+    },
+    {
+     "case": "dEQP-VK.api.version_check.entry_points",
+     "status": "Fail",
+     "code": "Fail",
+     "message": "Fail"
+    },
+    {
+     "case": "dEQP-VK.info.device_extensions",
+     "status": "Fail",
+     "code": "Fail",
+     "message": "Unknown extension VK_KHR_device_address_commands"
+    },
+    {
+     "case": "dEQP-VK.info.instance_extensions",
+     "status": "Fail",
+     "code": "Fail",
+     "message": "Extension VK_EXT_headless_surface is missing dependency"
+    },
+    {
+     "case": "dEQP-VK.spirv_assembly.instruction.compute.opfma.fp64.vec4.rte.denorm_flush.float_controls",
+     "status": "Fail",
+     "code": "Fail",
+     "message": "Output doesn't match with expected"
+    }
+   ],
+   "failing_by_message": [
+    {
+     "message": "Unknown extension: VK_ANDROID_native_buffer",
+     "cases": 1
+    },
+    {
+     "message": "Fail",
+     "cases": 1
+    },
+    {
+     "message": "Unknown extension VK_KHR_device_address_commands",
+     "cases": 1
+    },
+    {
+     "message": "Extension VK_EXT_headless_surface is missing dependency",
+     "cases": 1
+    },
+    {
+     "message": "Output doesn't match with expected",
+     "cases": 1
+    }
+   ],
+   "flakes": [
+    "dEQP-VK.draw.dynamic_rendering.primary_cmd_buff.multi_draw.mosaic.indexed_packed.16_draws.stride_extra_4.10_instances.tess_geom.single_view.no_offset",
+    "dEQP-VK.draw.dynamic_rendering.primary_cmd_buff.multi_draw.mosaic.indexed_packed.one_draw.stride_zero.2_instances_base_3.tess_geom.multiview.offset_6_no_draw_id",
+    "dEQP-VK.draw.dynamic_rendering.primary_cmd_buff.multi_draw.mosaic.indexed_random.16_draws.stride_extra_4.2_instances_base_3.with_geom.multiview.no_offset",
+    "dEQP-VK.draw.dynamic_rendering.primary_cmd_buff.multi_draw.mosaic.indexed_random.one_draw.stride_extra_4.10_instances.tess_geom.multiview.no_offset",
+    "dEQP-VK.draw.dynamic_rendering.primary_cmd_buff.multi_draw.mosaic.normal.16_draws.stride_extra_12.10_instances.tess_geom.single_view.no_offset_no_draw_id"
+   ],
+   "mesa_ci": {
+    "files": [
+     "radv-fails.txt",
+     "radv-raphael-fails.txt"
+    ],
+    "our_failures_listed_by_mesa_ci": [],
+    "our_failures_not_listed": [
+     "dEQP-VK.api.info.android.no_unknown_extensions",
+     "dEQP-VK.api.version_check.entry_points",
+     "dEQP-VK.info.device_extensions",
+     "dEQP-VK.info.instance_extensions",
+     "dEQP-VK.spirv_assembly.instruction.compute.opfma.fp64.vec4.rte.denorm_flush.float_controls"
+    ],
+    "mesa_ci_listed_failures_in_our_list": 0,
+    "mesa_ci_listed_failures_we_pass": []
+   },
+   "rc": 1,
+   "seconds": 96,
+   "jobs": 12,
+   "fraction": 1
+  },
+  "gles-mesa": {
+   "part": "gles-mesa",
+   "ran": true,
+   "renderer": "AMD Ryzen 9 7950X 16-Core Processor (radeonsi, raphael_mendocino, ACO, DRM 3.64, 7.2.8-5-omarchy-bore)",
+   "threads": 12,
+   "counts": {
+    "Pass": 13621,
+    "Fail": 0,
+    "Crash": 0,
+    "Skip": 48,
+    "Warn": 2
+   },
+   "total": 13671,
+   "failing": [],
+   "failing_by_message": [],
+   "flakes": [],
+   "mesa_ci": {
+    "files": [
+     "radeonsi-mendocino-fails.txt"
+    ],
+    "our_failures_listed_by_mesa_ci": [],
+    "our_failures_not_listed": [],
+    "mesa_ci_listed_failures_in_our_list": 0,
+    "mesa_ci_listed_failures_we_pass": []
+   },
+   "rc": 0,
+   "seconds": 18,
+   "jobs": 12,
+   "fraction": 1
+  }
+ },
+ "vk_vs_vk14": {
+  "fail_only_in_vk11": [
+   "dEQP-VK.api.info.format_properties.g10x6_b10x6r10x6_2plane_420_unorm_3pack16",
+   "dEQP-VK.api.info.format_properties.g12x4_b12x4r12x4_2plane_420_unorm_3pack16",
+   "dEQP-VK.api.info.format_properties.g8_b8r8_2plane_420_unorm",
+   "dEQP-VK.compute.pipeline.basic.atomic_barrier_sum_small",
+   "dEQP-VK.compute.pipeline.basic.branch_past_barrier",
+   "dEQP-VK.compute.pipeline.zero_initialize_workgroup_memory.shared_memory_blocks.workgroup_size_2x8x8",
+   "dEQP-VK.depth.bias_fs_clamp",
+   "dEQP-VK.draw.dynamic_rendering.primary_cmd_buff.multi_draw.mosaic.indexed_mixed.max_draws.standard_stride.10_instances.tess_geom.multiview.offset_6_no_draw_id",
+   "dEQP-VK.draw.dynamic_rendering.primary_cmd_buff.multi_draw.mosaic.indexed_packed.one_draw.stride_zero.10_instances.tess_geom.single_view.offset_6_no_draw_id",
+   "dEQP-VK.draw.renderpass.output_location.array.r32g32b32a32-sfloat-mediump",
+   "dEQP-VK.fragment_shading_rate.renderpass2.monolithic.attachment_rate.setup_with_copying_using_transfer_queue_concurent.r8_uint.rate_1x2_general_layout",
+   "dEQP-VK.glsl.combined_operations.notxor",
+   "dEQP-VK.graphicsfuzz.access-new-vector-inside-if-condition",
+   "dEQP-VK.graphicsfuzz.always-discarding-function",
+   "dEQP-VK.graphicsfuzz.cov-and-even-numbers-from-fragcoord",
+   "dEQP-VK.graphicsfuzz.cov-array-cast-bool-float-div-by-zero-no-effect",
+   "dEQP-VK.graphicsfuzz.cov-const-folding-bitfieldinsert-div-one",
+   "dEQP-VK.graphicsfuzz.cov-dead-branch-func-return-arg",
+   "dEQP-VK.graphicsfuzz.cov-do-while-loop-until-uniform-lt-itself",
+   "dEQP-VK.graphicsfuzz.cov-folding-rules-redundant-mix",
+   "dEQP-VK.graphicsfuzz.cov-function-index-array-redundant-clamps",
+   "dEQP-VK.graphicsfuzz.cov-function-unpack-unorm-2x16-one",
+   "dEQP-VK.graphicsfuzz.cov-global-loop-counter-findlsb-zero",
+   "dEQP-VK.graphicsfuzz.cov-inst-combine-select-findlsb-uaddcarry",
+   "dEQP-VK.graphicsfuzz.cov-int-initialize-from-multiple-large-arrays",
+   "dEQP-VK.graphicsfuzz.cov-loop-function-call-vector-matrix-multiplication",
+   "dEQP-VK.graphicsfuzz.cov-loop-with-two-integers",
+   "dEQP-VK.graphicsfuzz.cov-max-clamp-same-minval",
+   "dEQP-VK.graphicsfuzz.cov-min-vec2-transpose-mat2-identity",
+   "dEQP-VK.graphicsfuzz.cov-nested-loops-global-counter-increment-single-element",
+   "dEQP-VK.graphicsfuzz.cov-nested-loops-switch-case-fallthrough-increment-array-element",
+   "dEQP-VK.graphicsfuzz.cov-simplify-component-uniform-idx",
+   "dEQP-VK.graphicsfuzz.cov-transpose-multiply",
+   "dEQP-VK.graphicsfuzz.cov-value-tracking-selection-dag-negation-clamp-loop",
+   "dEQP-VK.graphicsfuzz.loop-call-discard",
+   "dEQP-VK.graphicsfuzz.spv-access-chains",
+   "dEQP-VK.graphicsfuzz.stable-colorgrid-modulo-injected-conditional-true",
+   "dEQP-VK.graphicsfuzz.two-2-iteration-loops",
+   "dEQP-VK.memory_model.message_passing.permuted_index.barrier",
+   "dEQP-VK.rasterization.depth_bias.d16_unorm_constant_one",
+   "dEQP-VK.ray_tracing_pipeline.amber.barycentrics",
+   "dEQP-VK.reconvergence.maximal.fragment.demote_entire_quad",
+   "dEQP-VK.spirv_assembly.instruction.compute.ldexp.ldexp_f32vec4_i16vec4",
+   "dEQP-VK.spirv_assembly.instruction.compute.oparraylength.array-stride-larger-than-element-size",
+   "dEQP-VK.spirv_assembly.instruction.graphics.early_fragment.depth_greater",
+   "dEQP-VK.spirv_assembly.instruction.graphics.float32.comparison_2.modfstruct_tese",
+   "dEQP-VK.spirv_assembly.instruction.spirv1p4.entrypoint.tess_eval_ubo_entry_point",
+   "dEQP-VK.spirv_assembly.instruction.spirv1p4.opptrdiff.ssbo_comparisons_diff",
+   "dEQP-VK.spirv_assembly.instruction.spirv1p4.opselect.nested_struct_select",
+   "dEQP-VK.subgroups.subgroup_uniform_control_flow.large_full_control.subgroup_reconverge19",
+   "dEQP-VK.subgroups.subgroup_uniform_control_flow.large_partial_control.subgroup_reconverge_partial07",
+   "dEQP-VK.subgroups.subgroup_uniform_control_flow.small_partial_control.small_subgroup_reconverge_partial13",
+   "dEQP-VK.texture.subgroup_lod.texturegrad"
+  ],
+  "fail_only_in_vk14": [],
+  "pass_only_in_vk14": 1915,
+  "pass_only_in_vk11": 2
+ }
+}

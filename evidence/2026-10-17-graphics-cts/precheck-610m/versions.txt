@@ -1,0 +1,16 @@
+image: <data dir>/aosp/src/out/target/product/anybook_g14
+ro.system.build.fingerprint=Android/generic_system/generic:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+ro.system.build.id=CP2A.260605.016
+ro.build.id=CP2A.260605.016
+staged: 2026-10-17T00:24:13Z by scripts/graphics-amd-stage-mesa.sh
+from: <data dir>/mesa/out/upstream/vendor
+tree: upstream mesa-26.2.5 ddaf85e353442d9d7f192fdcf1823e652e3f2ee3 (26.2.5)
+patches: 4 (mesa/patches/upstream), HEAD f30f204df44c09d41adaef97a550749a4cf4dac2
+deqp-binary64: 77674c78020a67fa4aa177de47cb73ccef748275ffa19605c0d764cf22a524d7
+vulkan.radv.so (strict, image): 10ebe2a387bf1521295bdb0ba84ee3c4a2bfc1621ca4ae1001b8d34ce5825d57
+vulkan.radv.so (nonstrict): 64ca20e147f6b2bf9d694ee1425a4402e733c5df8b09ffb7db29afe142e18e3e
+deqp-runner 0.23.2 (5dcd87423198d9f1af5dff4fd33bb852109da065, https://gitlab.freedesktop.org/mesa/deqp-runner.git), MIT
+caselists: <data dir>/gfx-cts/caselists/v1 (484e7f8b41eff519adf2509670f216fdd69ff5e4aaf531dc4d0ae95b27a2c9a3)
+node: /dev/dri/renderD129 (DRIVER=amdgpu PCI_CLASS=30000 PCI_ID=1002:164E PCI_SUBSYS_ID=1043:8877 PCI_SLOT_NAME=0000:12:00.0 MODALIAS=pci:v00001002d0000164Esv00001043sd00008877bc03sc00i00 )
+7.2.8-5-omarchy-bore
+model name	: AMD Ryzen 9 7950X 16-Core Processor

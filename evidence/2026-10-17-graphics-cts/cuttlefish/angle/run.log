@@ -1,0 +1,9 @@
+11:06:53 start: parts [angle], jobs 3 of 6 CPUs, gpu hal [virtio], quick [0]
+11:06:54 angle: start
+Success
+OK (1 test)
+
+
+INSTRUMENTATION_CODE: -1
+11:09:24 angle: done, exit 0, 147 s, 0 new amdgpu fault/reset line(s)
+11:09:24 finished
