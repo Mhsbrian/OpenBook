@@ -34,6 +34,10 @@ VENDOR_SECURITY_PATCH = $(PLATFORM_SECURITY_PATCH)
 BOOT_SECURITY_PATCH = $(PLATFORM_SECURITY_PATCH)
 PRODUCT_VENDOR_PROPERTIES += ro.vendor.boot_security_patch=$(BOOT_SECURITY_PATCH)
 
+# Laptop behaviour: the lid puts the device to sleep, the power button locks, battery saver dims (ANAL-178;
+# values from Googlebook's own laptop image, overlays/framework/res/values/config.xml).
+PRODUCT_PACKAGES += OpenBookPcFrameworkOverlay
+
 # A PC: no telephony, a keyboard and a pointer, a lid.
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/pc_core_hardware.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/pc_core_hardware.xml \

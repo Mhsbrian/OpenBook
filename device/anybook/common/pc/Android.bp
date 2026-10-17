@@ -27,3 +27,12 @@ sh_binary {
     src: "bin/openbook-pc-setup-test.sh",
     vendor: true,
 }
+
+// Laptop framework config (lid, power button, battery saver): ANAL-178, values from Googlebook's own laptop image.
+runtime_resource_overlay {
+    name: "OpenBookPcFrameworkOverlay",
+    manifest: "overlays/framework/AndroidManifest.xml",
+    resource_dirs: ["overlays/framework/res"],
+    vendor: true,
+    sdk_version: "current",
+}
