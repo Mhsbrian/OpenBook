@@ -5,8 +5,9 @@
 # mac80211 driver (mt7925e on the G14) creates wlan0 when vendor_dlkm loads; Android drives it with AOSP's
 # wpa_supplicant (AIDL) and wificond, both over standard nl80211. There is no vendor Wi-Fi HAL: AOSP's
 # libwifi_hal knows a "desktop" WLAN device whose implementation (libwifi-hal-desktop) is not public, and the
-# framework supports running without one (WifiNative: "Vendor Hal not supported"), taking the interface name
-# from wifi.interface. What that costs is listed in docs/g14-audio-net.md.
+# framework supports running without one (WifiNative: "Vendor Hal not supported"). Android 17 also has no wificond
+# (RELEASE_DISABLE_WIFICOND): the Wi-Fi module speaks nl80211 itself (Nl80211Proxy). What that costs is listed in
+# docs/g14-audio-net.md.
 
 PRODUCT_PACKAGES += \
     wpa_supplicant \
@@ -17,7 +18,8 @@ PRODUCT_PACKAGES += \
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.wifi.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.wifi.xml
 
-PRODUCT_VENDOR_PROPERTIES += wifi.interface=wlan0
+# The framework takes the interface name from wifi.interface, default wlan0, which is what mac80211 drivers name
+# it; a vendor value would not help (system_server may not read wifi_hal_prop, ANAL-179 QEMU run b).
 
 # cfg80211's regulatory database (wireless-regdb, ISC), signed by its maintainer: the kernel checks the .p7s
 # against the keys built into cfg80211 (sforshee, wens) and loads it through firmware_class.path=/vendor/firmware.

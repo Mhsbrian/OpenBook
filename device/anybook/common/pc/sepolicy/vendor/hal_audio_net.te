@@ -9,6 +9,13 @@ allow hal_bluetooth_default self:bluetooth_socket { getattr getopt setopt };
 
 # Audio: the example HAL's primary module reads which ALSA card is the built-in codec.
 get_prop(hal_audio_default, vendor_openbook_audio_prop)
+# Its streams' fast message queues are memfds the HAL creates and audioserver maps. On the android17-6.18 kernel a
+# memfd carries its creator's tmpfs type, and without a type of its own the HAL may not even write its own queues:
+# every stream open failed, so AudioPolicy had no output and every AudioTrack got NO_INIT (ANAL-179 QEMU run b; the
+# "audio HAL writing a tmpfs memfd" denials ANAL-199 saw while nothing played yet).
+type hal_audio_default_tmpfs, file_type;
+tmpfs_domain(hal_audio_default)
+allow audioserver hal_audio_default_tmpfs:file { getattr map read write };
 
 # openbook-audio-setup (init, boot): reads /proc/asound and the HDA driver's bound devices, publishes the card,
 # sets the codec's mixer.
@@ -16,6 +23,7 @@ type openbook_audio_setup, domain;
 type openbook_audio_setup_exec, exec_type, vendor_file_type, file_type;
 init_daemon_domain(openbook_audio_setup)
 allow openbook_audio_setup kmsg_device:chr_file w_file_perms;
+userdebug_or_eng(`allow openbook_audio_setup kmsg_debug_device:chr_file { getattr ioctl w_file_perms };')
 r_dir_file(openbook_audio_setup, proc_asound)
 allow openbook_audio_setup audio_device:dir r_dir_perms;
 allow openbook_audio_setup audio_device:chr_file rw_file_perms;

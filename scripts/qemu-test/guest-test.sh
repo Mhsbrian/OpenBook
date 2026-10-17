@@ -15,6 +15,11 @@ echo "===AUDIO-END==="
 
 echo "===WIFI-BEGIN==="
 sh "$D/run-ap.sh"
+# The framework resolved nl80211's generic-netlink family when it started; reloading cfg80211 renumbered it. Restart
+# the framework so it finds the new one (on a laptop cfg80211 loads at early-init, before system_server).
+stop; start
+i=0; while [ $i -lt 120 ] && ! cmd wifi status > /dev/null 2>&1; do sleep 2; i=$((i + 2)); done
+echo "framework back after ${i} s"; sleep 15
 cmd wifi set-wifi-enabled disabled; sleep 3; cmd wifi set-wifi-enabled enabled
 i=0; while [ $i -lt 30 ] && ! cmd wifi status | grep -q 'Wifi is enabled'; do sleep 1; i=$((i + 1)); done
 echo "supplicant: $(getprop init.svc.wpa_supplicant)"
