@@ -758,7 +758,7 @@ Installing onto the laptop's own disk is not part of this check: that is ANAL-19
    OPENBOOK_WRITE_CONFIRM=/dev/disk/by-id/usb-<stick> \
      scripts/installer/write-stick.sh ~/anybook/installer/out/openbook-live-20261017-anal191e.img /dev/disk/by-id/usb-<stick>
    ```
-   It replaces `openbook-live-20261017-combined`: the same Android system from `main`, plus the installer. The power-check and graphics-check add-ons are not on it; add them with their scripts if wanted (`docs/power-input.md`, `docs/graphics-amd.md`).
+   Do this after the `anal178c` run (`docs/STATUS.md`): this stick has the same Android system as `anal178c` (`main` has had no device changes since) plus the installer, but not `anal178c`'s power and graphics checks. Their scripts can add them (`docs/power-input.md`, `docs/graphics-amd.md`).
 2. **Boot the default "OpenBook" entry** (enforcing). The installer opens by itself. Photograph each screen as you go.
    - **Welcome:** pick a language.
    - **Hardware check:** press **Save report to USB**.
