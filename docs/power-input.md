@@ -134,7 +134,7 @@ scripts/power/add-to-live-stick.sh --image ~/anybook/installer/out/<label>.img ~
 The installer image needs `make` for the test modules: `docker build -t openbook-installer:anal178 -f tools/Dockerfile.installer tools` (the `latest` tag on the build host predates it).
 
 ## 5. The `anal178b` stick (2026-10-17)
-> **Superseded image (2026-10-17):** write **`openbook-live-20261017-combined`** instead (`evidence/2026-10-17-g14-combined/`). It contains this image's contents plus ANAL-200's arm64 bridge, and it passes the same tests in QEMU. The steps below are unchanged; use that file name in the `write-stick.sh` command.
+> **Superseded image (2026-10-17):** write **`openbook-live-20261017-anal178c`** instead (`evidence/2026-10-17-power-input/anal178c/`). It contains `combined` (this image plus ANAL-200's arm64 bridge), is built from `main` at `ea3c25e`, and carries ANAL-177's graphics check next to the power check. The steps below are unchanged; use that file name in the `write-stick.sh` command, and boot "OpenBook graphics check" after them (`docs/STATUS.md`, "Next G14 stick").
 
 `openbook-live-20261017-anal178b` is one stick for all the open G14 tests:
 - **Contents.** Built from `anal-178/stick-integration`: ANAL-179's `stick-integration` (Wi-Fi, Bluetooth, audio and their save-logs tests, with ANAL-176's desktop4 fixes and `main`), merged with this issue's branch (PR #41: overlay, layouts, save-logs facts), plus the health HAL. The power check add-on is on its ESP.

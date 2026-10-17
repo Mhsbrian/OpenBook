@@ -4,7 +4,7 @@
 
 **Goal:** the Googlebook-style Android 17 desktop on the ASUS ROG Zephyrus G14 (GA403WR: Ryzen AI 9 HX 370, Radeon 890M), installed from a USB stick through a wizard and verified on the laptop. Repo: https://github.com/Mhsbrian/OpenBook.
 
-**Repo hygiene:** PRs #1–#50 are merged and none are open. The 2026-10-17 cleanup took the remote branches from 49 to 4: `main`, plus three ANAL-178 branches kept while its run is active. Two branches with commits never merged are kept as tags: `archive/anal-190-live-image-b` (superseded on `main`) and `archive/anal-178-stick-integration`.
+**Repo hygiene:** PRs #1–#51 are merged and none are open. The 2026-10-17 cleanup left one remote branch, `main`; the other 52 were merged or superseded. Two branches with commits never merged are kept as tags: `archive/anal-190-live-image-b` (superseded on `main`) and `archive/anal-178-stick-integration`.
 
 ### What works, and where it has been shown
 
@@ -24,12 +24,18 @@
 
 ### Running now
 
-- **ANAL-178** is preparing the latest stick image and the exact owner steps, as the owner asked on ANAL-178 (2026-10-17 11:36).
 - **ANAL-191** (installer wizard and `openbook-install` engine, QEMU only) holds the AOSP lane.
+- **The latest stick is ready:** `openbook-live-20261017-anal178c`, built from `main` (PR #50, `evidence/2026-10-17-power-input/anal178c/`). It covers ANAL-176, ANAL-177, ANAL-178, ANAL-179 and ANAL-200, with the power check and the graphics check already on it. In QEMU: live checks 39/39, power check 10/10, graphics check 6/6. It supersedes `combined` and every older stick.
 
 ### Waiting on the owner
 
-1. **The stick run** with the image and steps from ANAL-178's reply. Reply "stick attached" on the issues it names. Adding the graphics check (ANAL-177) is optional and needs the stick named by `/dev/disk/by-id/usb-…`.
+1. **The stick run:** write `anal178c` and do the four boots in order, using the exact commands in ANAL-178's reply of 2026-10-17 12:01:
+   - A. "OpenBook": Wi-Fi, pairing, a sound, the lid;
+   - B. "save logs": touchpad for 20 s;
+   - C. "power check: S0i3";
+   - D. "OpenBook graphics check": about 30 min, on AC.
+
+   Then reply "stick attached" on ANAL-176, ANAL-177, ANAL-178, ANAL-179 and ANAL-200.
 2. **Decisions:** none blocks running work.
    - repo license (Apache-2.0 suggested);
    - upstream reports for the bridge (DigitalisX64; AOSP `Build.CPU_ABI`);
@@ -44,8 +50,8 @@
 | Issue | State | Next step | Needs |
 |---|---|---|---|
 | ANAL-176 G14 desktop and stability | In review | Read the enforcing boot from the stick; fix the remaining denials; fix drm_hwcomposer's plane count (`docs/g14-desktop.md` §7) | Owner's stick run |
-| ANAL-177 graphics conformance | In review | Read the G14 dEQP/ANGLE results; decide Vulkan 1.1 or 1.4 (the 610M favours 1.4); add matrix rows | Owner adds the check and boots it |
-| ANAL-178 input and power | **Running** | Deliver the latest stick and steps; then the S0i3 fix (kernel lane), the touchpad clock warnings, the skin sensor | Owner's stick run |
+| ANAL-177 graphics conformance | In review | Read the G14 dEQP/ANGLE results; decide Vulkan 1.1 or 1.4 (the 610M favours 1.4); add matrix rows | Owner's stick run (boot D) |
+| ANAL-178 input and power | In review | Read the lid, touchpad and power check results; then the S0i3 fix (kernel lane), the touchpad clock warnings, the skin sensor | Owner's stick run (boots A–C) |
 | ANAL-179 Wi-Fi, Bluetooth, audio | In review | Read Wi-Fi, pairing and speaker/mic results; fix what fails; speaker tuning | Owner's stick run |
 | ANAL-200 ARM bridge | In review | Read the bridge verdicts; run the probe and CoreMark on the G14 | Owner's stick run; upstream-report OK |
 | ANAL-191 installer wizard and engine | **Running** | A PR with the engine, the app and a QEMU install that boots from a virtual NVMe | — |

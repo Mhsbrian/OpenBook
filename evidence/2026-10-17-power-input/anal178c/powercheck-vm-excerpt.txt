@@ -1,0 +1,17 @@
+{"cycle": 1, "step": "pm:1af4:1044+1af4:1005", "bound": ["0000:01:00.0 1af4:1044 virtio-pci -> openbook_pci_pm"], "s0i3": null, "s0ix_residency_us": -1, "last_hw_sleep_us": -1, "smu": {"last_s0i3": "?", "hint_count": -1, "time_to_s0i3_us": -1, "time_in_s0i3_us": -1, "not_met_us": {}}, "idlemask_entry": "", "cpuidle": [], "snapshot": {"summary": "7 PCI functions, 6 not in D3", "not_in_d3": ["0000:00:00.0 8086:29c0 D0 -", "0000:00:01.0 1b36:000d D0 xhci_hcd skip_bus_pm", "0000:00:02.0 1b36:000c D0 pcieport skip_bus_pm", "0000:00:1f.0 8086:2918 D0 -", "0000:00:1f.2 8086:2922 D0 -", "0000:00:1f.3 8086:2930 D0 -"]}}
+PROBE sleep[0]: step baseline
+openbook_s0i3_snapshot: s0i3-entry: 7 PCI functions, 6 not in D3
+PROBE sleep[0]: S0i3 unknown (no AMD PMC counters): s0ix residency -1 us, last_hw_sleep -1 us, SMU "?" (hint count -1), idle mask at entry ?
+PROBE kmod: load openbook_pci_pm.ko : ok
+openbook_pci_pm 0000:01:00.0: openbook_pci_pm: bound for this boot (PCI power management only)
+PROBE step pm:1af4:1044+1af4:1005: 0000:01:00.0 1af4:1044 driver virtio-pci -> openbook_pci_pm
+PROBE sleep[1]: step pm:1af4:1044+1af4:1005
+PROBE awake[before-suspend-n]: 0000:01:00.0 unknown runtime active driver openbook_pci_pm
+openbook_pci_pm 0000:01:00.0: openbook_pci_pm: suspend: D3hot (0)
+openbook_s0i3_snapshot: s0i3-entry: 7 PCI functions, 6 not in D3
+openbook_pci_pm 0000:01:00.0: openbook_pci_pm: resume: D0
+PROBE sleep[1]: S0i3 unknown (no AMD PMC counters): s0ix residency -1 us, last_hw_sleep -1 us, SMU "?" (hint count -1), idle mask at entry ?
+PROBE sleep[2]: step asus
+PROBE awake[before-suspend-n]: 0000:01:00.0 D0 runtime active driver openbook_pci_pm
+openbook_pci_pm 0000:01:00.0: openbook_pci_pm: suspend: D3hot (0)
+openbook_s0i3_snapshot: s0i3-entry: 7 PCI functions, 6 not in D3

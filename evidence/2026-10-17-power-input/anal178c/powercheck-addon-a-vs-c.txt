@@ -1,0 +1,7 @@
+MANIFEST.sha256 of openbook-powercheck-anal178-a-addon (on combined, anal178b) vs -c (built from main ea3c25e):
+4c4
+< 5e511dc50c3a9b8013c6ed0d536f36aa3b1c88724be561c4f4b6442a423b7694  openbook/check/hwcheck.img
+---
+> daeb7d288b0b826d73e332122f2bb14cc71e52842b4545fcfd66eeccf43c3355  openbook/check/hwcheck.img
+
+probe_sha256: a b9de6cebf21221ac913853f08255bad6813b331a83928be18782aae9c7380d42 c b9de6cebf21221ac913853f08255bad6813b331a83928be18782aae9c7380d42
