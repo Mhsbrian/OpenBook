@@ -14,6 +14,8 @@ are tested in Cuttlefish and QEMU). Cases:
   again          a second run: already installed, no cmd call
   uninstalled    the user uninstalled one app: the next run leaves it uninstalled
   kept           the same or a newer version installed already: kept, not reinstalled; its grants still applied
+  upgrade        an earlier version of the add-on was installed: older packages upgraded, one the user removed stays
+                 removed, no permission granted again
   tampered       one byte changed in one file: the whole add-on refused, nothing installed, exit 1
   missing        one file missing: refused
   commit-fails   PackageManager refuses a commit: failed, exit 1, and the next run tries again
@@ -248,6 +250,26 @@ def main():
           and st["installed"]["com.google.android.gms"] == 252432099, (acts, st["installed"]))
     check("kept", "grants still applied to kept packages", ["com.google.android.gms", FILES[0][4][0]] in st["grants"],
           st["grants"])
+
+    # upgrade: the state says 0.3.16 was installed; GmsCore is older, Companion was removed, the proxy is current
+    e = Env(run, "upgrade", a.addons, cat)
+    e.pm(apks, installed={"com.google.android.gms": 252432030, "com.google.android.gsf": 8})
+    os.makedirs(f"{e.d}/state", exist_ok=True)
+    json.dump({"schema": "openbook-addon-state/1", "name": "microg", "version": "0.3.16.252432", "result": "installed"},
+              open(f"{e.d}/state/microg.json", "w"))
+    disk = f"{e.d}/disk.img"
+    uuid = make_disk(disk, f"{run}/apks", names)
+    rc, out, calls, err = e.run("--disk", disk, "--boot-part-uuid", uuid)
+    st = e.pmstate()
+    acts = {p["package"]: p.get("action") for p in addon(out).get("packages", [])}
+    check("upgrade", "exit 0, installed, state at the new version",
+          rc == 0 and addon(out).get("result") == "installed" and (e.state() or {}).get("version") == cat["version"], (rc, addon(out)))
+    check("upgrade", "the older package upgraded, the removed one left out, the current one kept",
+          acts == {"com.google.android.gms": "installed", "com.android.vending": "removed_by_user",
+                   "com.google.android.gsf": "kept"} and "com.android.vending" not in st["installed"]
+          and st["installed"]["com.google.android.gms"] == 252432034, (acts, st["installed"]))
+    check("upgrade", "no permission, app-op or exemption applied again", not st["grants"] and not st["appops"] and
+          not st["deviceidle"], (st["grants"], st["appops"], st["deviceidle"]))
 
     # tampered
     e = Env(run, "tampered", a.addons, cat)
