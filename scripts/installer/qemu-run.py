@@ -8,8 +8,10 @@ usage: qemu-run.py --usb IMG [--nvme IMG] --out DIR [--timeout S] [--expect STEP
                    [--mem MiB] [--smp N] [--vars FILE] [--pause-on-reset] [--vga MODEL] [--gpu DEVICE]
                    [--usb-input] [--tpm] [--detach-test-device] [--trace] [--audio WAV] [--extra-usb IMG]
 
-STEPS.json: [{"wait": "regex", "timeout": 120}, {"send": "text\\n"}, {"shot": "name"}, ...]; steps run in order
-on the serial stream; "shot" saves the screen as DIR/shot-<name>.png at that point. The run ends when the steps
+STEPS.json: [{"wait": "regex", "timeout": 120}, {"send": "text\\n"}, {"shot": "name"}, {"pause": seconds},
+{"monitor": "QEMU monitor command"}, ...]; steps run in order on the serial stream; "shot" saves the screen as
+DIR/shot-<name>.png at that point ("monitor": "system_powerdown" presses the ACPI power button, which wakes a guest
+from suspend-to-idle; QEMU's RTC alarm does not). The run ends when the steps
 are done (plus --linger seconds), the guest powers off, or --timeout hits.
 Writes DIR/serial.log, DIR/qemu.log, DIR/result.json and DIR/shot-<t>.png.
 """
@@ -180,6 +182,16 @@ def main():
                 for ch in st["send"]:  # slow typing: the guest console has no flow control
                     os.write(ser_wr, ch.encode())
                     time.sleep(0.01)
+                step_i, step_t0 = step_i + 1, now
+                continue
+            if "pause" in st:  # wait this many seconds, still logging the serial port
+                if now - step_t0 < st["pause"]:
+                    break
+                step_i, step_t0 = step_i + 1, now
+                continue
+            if "monitor" in st:  # a QEMU monitor command, e.g. system_powerdown (ACPI power button)
+                monitor(st["monitor"])
+                hits.append({"step": step_i, "monitor": st["monitor"], "t": round(now - t0, 1)})
                 step_i, step_t0 = step_i + 1, now
                 continue
             m = re.search(st["wait"].encode(), buf)

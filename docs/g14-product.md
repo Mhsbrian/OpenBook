@@ -95,7 +95,7 @@ scripts/
 
 | HAL | Implementation | Backend | In QEMU |
 |---|---|---|---|
-| health | AOSP `android.hardware.health-service.example` | real: `/sys/class/power_supply` (ACPI battery, AC, UCSI) | runs; "No battery devices found" |
+| health | **OpenBook** `android.hardware.health-service.openbook` (AOSP's `libhealth_aidl_impl` plus ANAL-178's subclass) | real: `/sys/class/power_supply` (ACPI battery, AC, UCSI); charge counter from `charge_now`, state of health and GOOD/FAIR from `charge_full`/`charge_full_design` where the kernel reports none | runs; "No battery devices found" |
 | boot control | AOSP `com.android.hardware.boot` | real: `misc` partition | initialised `misc` on first boot |
 | lights | **OpenBook** `android.hardware.lights-service.openbook` | the panel backlight: firmware > platform > raw, so `amdgpu_bl1` (raw, max 400000) in Optimus/Integrated mode and `nvidia_wmi_ec_backlight` (firmware) in a dGPU MUX mode. The keyboard backlight is the N-KEY's input light (`.idc`) | no backlight: reports no lights |
 | power | **OpenBook** `android.hardware.power-service.openbook` | amd-pstate EPP per cpufreq policy: screen off → `power`, battery saver → `balance_power`, launch or fixed performance → `performance`, else the boot value. Never touches `platform_profile` or asus-wmi, which persist in firmware | no amd-pstate in the VM: modes accepted, nothing written |
@@ -120,7 +120,8 @@ Wi-Fi and Bluetooth HALs are not in the product (ANAL-179). Each OpenBook HAL's 
 
 - `Vendor_0b05_Product_19b6.idc` (N-KEY, USB): `keyboard.builtIn = 1`, `device.internal = 1`, and the keyboard backlight through `device.additionalSysfsLedsNode = /sys/class/leds/asus::kbd_backlight`. With the internal touchpad this is what lets WM Shell switch the panel to desktop mode without the testing property (`docs/aosp-desktop.md`).
 - `Vendor_0b05_Product_19b6.kl`: AOSP's `Generic.kl` plus the four keys hid-asus sends as `KEY_PROG1..4` (ROG key, Fn+C, Fn+Space, Fn+F5), mapped to `MACRO_1..4`.
-- `Vendor_04f3_Product_3315.idc` (ELAN, I2C HID): `device.internal = 1`, `touch.deviceType = touchPad`. Gesture tuning waits for measurements (ANAL-178).
+- `Vendor_04f3_Product_3315.idc` (ELAN, I2C HID): `device.internal = 1`. On the G14 InputReader classes it `TOUCHPAD`, so the gestures-library mapper drives it (live-001); gesture tuning waits for measurements (`docs/power-input.md` §2).
+- `Asus_WMI_hotkeys.kl` (ANAL-178): the firmware's WMI hotkeys (asus-nb-wmi, no USB IDs) get a layout by device name: `Generic.kl` plus `KEY_PROG1..4` → `MACRO_1..4` and the screenshot key.
 - **Density:** `ro.vendor.openbook.lcd_density=240` for the 14" 2880×1800 panel (243 ppi), giving a 1920×1200 dp desktop, overridable per boot with `androidboot.lcd_density`.
 
 ## dGPU
@@ -172,7 +173,7 @@ scripts/openbook-pc-setup-test.sh [sh|bash]
 ## Open items
 
 - **The G14 boot itself** (ANAL-176, with ANAL-190's live stick): amdgpu at second stage with firmware from `/vendor/firmware`, the probe's `hal=amdgpu`, RADV/ANGLE on gfx1150, drm_hwcomposer on DCN 3.5, backlight and EPP through the HALs, touchpad and N-KEY classification, the root ports in `boot_devices`.
-- **Thermal types.** ACPI zones `THRM` and `TZ01` stay `UNKNOWN`; `k10temp` is not built in our kernel (kernel lane). Pick a SKIN sensor once measured (ANAL-178).
+- **Thermal types.** ACPI zones `THRM` and `TZ01` stay `UNKNOWN`. `k10temp` is built and loads on the G14 (live-001, `00:18.3` in runs 2–7). `TZ01` reads a constant 20 °C; pick a SKIN sensor once measured under load (`docs/power-input.md` §3).
 - **No Wi-Fi or Bluetooth HAL, no `regulatory.db`** (ANAL-179), and the MT79xx firmware version choice above.
 - **The SwiftShader `execmem` grant** ships on by default; switch it off for release images.
 - **The VM display** stays on the boot-animation frame after `boot_completed` (VM-only; parked by the owner).

@@ -34,6 +34,8 @@ VENDOR_SECURITY_PATCH = $(PLATFORM_SECURITY_PATCH)
 BOOT_SECURITY_PATCH = $(PLATFORM_SECURITY_PATCH)
 PRODUCT_VENDOR_PROPERTIES += ro.vendor.boot_security_patch=$(BOOT_SECURITY_PATCH)
 
+# Laptop behaviour (lid, power button, battery saver; ANAL-178): OpenBookPcFrameworkOverlay, added with audio below.
+
 # A PC: no telephony, a keyboard and a pointer, a lid.
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/pc_core_hardware.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/pc_core_hardware.xml \
@@ -65,7 +67,7 @@ PRODUCT_REQUIRES_INSECURE_EXECMEM_FOR_SWIFTSHADER := true
 # Base HALs. AOSP implementations; the ones listed with "openbook" use the real sysfs of a PC instead of the
 # AOSP examples' fixed values. docs/g14-product.md has the table.
 PRODUCT_PACKAGES += \
-    android.hardware.health-service.example \
+    android.hardware.health-service.openbook \
     com.android.hardware.boot \
     com.android.hardware.authsecret \
     com.android.hardware.dumpstate \

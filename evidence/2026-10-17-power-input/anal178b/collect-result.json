@@ -1,0 +1,71 @@
+{
+ "reason": "QEMU exited (0)",
+ "seconds": 111.2,
+ "steps_done": 21,
+ "steps": 21,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "init: init second stage started",
+   "t": 5.3
+  },
+  {
+   "step": 2,
+   "wait": "console:/ \\$ ",
+   "t": 6.9
+  },
+  {
+   "step": 4,
+   "wait": "console:/ \\$ ",
+   "t": 7.1
+  },
+  {
+   "step": 6,
+   "wait": "BOOTDONE=1",
+   "t": 17.7
+  },
+  {
+   "step": 7,
+   "wait": "console:/ \\$ ",
+   "t": 17.7
+  },
+  {
+   "step": 9,
+   "wait": "console:/ \\$ ",
+   "t": 37.8
+  },
+  {
+   "step": 11,
+   "wait": "console:/ \\$ ",
+   "t": 38.1
+  },
+  {
+   "step": 13,
+   "wait": "console:/ \\$ ",
+   "t": 76.3
+  },
+  {
+   "step": 15,
+   "wait": "COLLECTRC=\\d+",
+   "t": 108.4
+  },
+  {
+   "step": 16,
+   "wait": "console:/ \\$ ",
+   "t": 108.4
+  },
+  {
+   "step": 18,
+   "wait": "\n===B64-END===",
+   "t": 109.8
+  },
+  {
+   "step": 19,
+   "wait": "console:/ \\$ ",
+   "t": 109.8
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "~/anybook/installer/powercheck/collect-anal178b/stick.img",
+ "nvme": null
+}

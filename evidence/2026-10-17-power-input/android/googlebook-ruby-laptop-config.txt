@@ -1,0 +1,25 @@
+Googlebook (ruby, build 16452207_CL3B.260622.271.R1, Google's recovery image; never committed) /product/overlay/FrameworkDesktopOverlay.apk
+package: name='android.overlay.desktop' versionCode='37' versionName='17' platformBuildVersionName='17' platformBuildVersionCode='37' compileSdkVersion='37' compileSdkVersionCodename='17'
+Values relevant to lid, power button, sleep and battery (aapt2 dump resources):
+bool/config_allowExtendedShutdownBroadcastTimeout () true
+bool/config_batterySaver_full_enableAdjustBrightness () true
+bool/config_batterySaver_full_enableNightMode () false
+bool/config_cameraDoubleTapPowerGestureEnabled () false
+bool/config_defaultBatteryPercentageSetting () true
+bool/config_dreamsActivatedOnDockByDefault () false
+bool/config_dreamsActivatedOnSleepByDefault () true
+bool/config_dreamsEnabledByDefault () false
+bool/config_dreamsShowWhenToDreamSetting () false
+bool/config_enableAutoPowerModes () true
+bool/config_handleVolumeKeysInWindowManager () true
+bool/config_hotswapCapable () true
+bool/config_lidControlsSleep () true
+dimen/config_batterySaver_full_adjustBrightnessFactor () 0.3
+integer/config_doublePressOnPowerBehavior () 1
+integer/config_doubleTapPowerGestureMode () 0
+integer/config_lidKeyboardAccessibility () 1
+integer/config_lidNavigationAccessibility () 1
+integer/config_longPressOnPowerBehavior () 1
+integer/config_screenBrightnessSettingMinimum () 1
+integer/config_shortPressOnPowerBehavior () 6
+integer/device_idle_quick_doze_delay_to_ms () 0

@@ -1,9 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (C) 2026 The OpenBook Authors. SPDX-License-Identifier: Apache-2.0
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
 
-     Framework config for PC hardware (the desktop UI's own settings are in common/desktop). -->
+  Framework config for PC hardware (the desktop UI's own settings are in common/desktop): headphone jacks
+  (ANAL-179); lid, power button and power behaviour (ANAL-178). The lid and power values are the ones Google's
+  Googlebook image for a real laptop sets (ruby, 16452207_CL3B.260622.271.R1,
+  /product/overlay/FrameworkDesktopOverlay.apk, read with aapt2; docs/power-input.md), except where noted.
+  Defaults: frameworks/base/core/res/res/values/config.xml.
+-->
 <resources>
     <!-- HDA codecs report the headphone and headset-mic jacks as input switches (SW_HEADPHONE_INSERT,
          SW_MICROPHONE_INSERT on "HD-Audio Generic Headphone/Mic"), not through the old h2w switch class. -->
     <bool name="config_useDevInputEventForAudioJack">true</bool>
+
+    <!-- Lid: closing it puts the device to sleep (then the kernel suspends to idle), opening it wakes it. The
+         keyboard and the touchpad count as usable only while the lid is open. AOSP's default is false: without
+         this a closed laptop stays awake with its screen on. -->
+    <bool name="config_lidControlsSleep">true</bool>
+    <integer name="config_lidKeyboardAccessibility">1</integer>
+    <integer name="config_lidNavigationAccessibility">1</integer>
+
+    <!-- Power button: a short press locks (or sleeps if there is no lock screen); a long press opens the power
+         menu (global actions) instead of AOSP's default assistant. -->
+    <integer name="config_shortPressOnPowerBehavior">6</integer>
+    <integer name="config_longPressOnPowerBehavior">1</integer>
+
+    <!-- No screen saver by default, so a laptop left on AC with its screen timed out goes to sleep like on
+         battery (AOSP: screen saver on, started while docked). As on Googlebook, a user who turns it on gets it
+         when the device goes to sleep. -->
+    <bool name="config_dreamsEnabledByDefault">false</bool>
+    <bool name="config_dreamsActivatedOnDockByDefault">false</bool>
+    <bool name="config_dreamsActivatedOnSleepByDefault">true</bool>
+
+    <!-- Battery: percentage shown; battery saver dims the screen to 30 % and keeps the theme. -->
+    <bool name="config_defaultBatteryPercentageSetting">true</bool>
+    <bool name="config_batterySaver_full_enableAdjustBrightness">true</bool>
+    <item name="config_batterySaver_full_adjustBrightnessFactor" format="float" type="dimen">0.3</item>
+    <bool name="config_batterySaver_full_enableNightMode">false</bool>
+    <integer name="config_screenBrightnessSettingMinimum">1</integer>
+
+    <!-- Not taken from Googlebook: config_enableAutoPowerModes (Doze) stays false. AOSP's own note says to enable
+         it only where a cloud-to-device messaging service lets apps receive messages while dozing; OpenBook ships
+         none. A laptop has no motion sensor to drive it anyway: -->
+    <bool name="config_autoPowerModeUseMotionSensor">false</bool>
 </resources>

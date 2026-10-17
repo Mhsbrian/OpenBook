@@ -1,0 +1,40 @@
+$ aapt2 compile --dir device/anybook/common/pc/overlays/framework/res; aapt2 link -I <anybook_g14 out>/system/framework/framework-res.apk (AOSP host tools of this tree, 2026-10-17)
+link: ok
+
+$ aapt2 dump resources overlay.apk
+ resource 0x7f010000 bool/config_autoPowerModeUseMotionSensor	 () false
+ resource 0x7f010001 bool/config_batterySaver_full_enableAdjustBrightness	 () true
+ resource 0x7f010002 bool/config_batterySaver_full_enableNightMode	 () false
+ resource 0x7f010003 bool/config_defaultBatteryPercentageSetting	 () true
+ resource 0x7f010004 bool/config_dreamsActivatedOnDockByDefault	 () false
+ resource 0x7f010005 bool/config_dreamsActivatedOnSleepByDefault	 () true
+ resource 0x7f010006 bool/config_dreamsEnabledByDefault	 () false
+ resource 0x7f010007 bool/config_lidControlsSleep	 () true
+ resource 0x7f020000 dimen/config_batterySaver_full_adjustBrightnessFactor	 () 0.3
+ resource 0x7f030000 integer/config_lidKeyboardAccessibility	 () 1
+ resource 0x7f030001 integer/config_lidNavigationAccessibility	 () 1
+ resource 0x7f030002 integer/config_longPressOnPowerBehavior	 () 1
+ resource 0x7f030003 integer/config_screenBrightnessSettingMinimum	 () 1
+ resource 0x7f030004 integer/config_shortPressOnPowerBehavior	 () 6
+
+$ idmap2 create --target-apk-path framework-res.apk --overlay-apk-path overlay.apk --policy public --policy vendor (overlayable checks on)
+Paths:
+    target path  : ~/anybook/aosp/src/out/target/product/anybook_g14/system/framework/framework-res.apk
+    overlay path : ~/anybook/power/rro-check/overlay.apk
+Constraints:
+    None
+Mapping:
+    0x01050107 -> 0x7f020000 (dimen/config_batterySaver_full_adjustBrightnessFactor -> dimen/config_batterySaver_full_adjustBrightnessFactor)
+    0x010e00cd -> 0x7f030000 (integer/config_lidKeyboardAccessibility -> integer/config_lidKeyboardAccessibility)
+    0x010e00ce -> 0x7f030001 (integer/config_lidNavigationAccessibility -> integer/config_lidNavigationAccessibility)
+    0x010e00d4 -> 0x7f030002 (integer/config_longPressOnPowerBehavior -> integer/config_longPressOnPowerBehavior)
+    0x010e0148 -> 0x7f030003 (integer/config_screenBrightnessSettingMinimum -> integer/config_screenBrightnessSettingMinimum)
+    0x010e0155 -> 0x7f030004 (integer/config_shortPressOnPowerBehavior -> integer/config_shortPressOnPowerBehavior)
+    0x01110041 -> 0x7f010000 (bool/config_autoPowerModeUseMotionSensor -> bool/config_autoPowerModeUseMotionSensor)
+    0x01110051 -> 0x7f010001 (bool/config_batterySaver_full_enableAdjustBrightness -> bool/config_batterySaver_full_enableAdjustBrightness)
+    0x01110054 -> 0x7f010002 (bool/config_batterySaver_full_enableNightMode -> bool/config_batterySaver_full_enableNightMode)
+    0x01110135 -> 0x7f010003 (bool/config_defaultBatteryPercentageSetting -> bool/config_defaultBatteryPercentageSetting)
+    0x01110167 -> 0x7f010004 (bool/config_dreamsActivatedOnDockByDefault -> bool/config_dreamsActivatedOnDockByDefault)
+    0x01110169 -> 0x7f010005 (bool/config_dreamsActivatedOnSleepByDefault -> bool/config_dreamsActivatedOnSleepByDefault)
+    0x0111016b -> 0x7f010006 (bool/config_dreamsEnabledByDefault -> bool/config_dreamsEnabledByDefault)
+    0x0111020e -> 0x7f010007 (bool/config_lidControlsSleep -> bool/config_lidControlsSleep)

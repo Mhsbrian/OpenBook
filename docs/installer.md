@@ -226,6 +226,8 @@ Full serial logs are `matrix/*/serial.log.gz`.
 - The S0i3 investigation moves to ANAL-178. The deciding next test is `amd-s2idle` on the owner's Linux on the same laptop.
 - S0i3 does not block live USB booting or installation (ANAL-190, ANAL-176).
 
+**v7 (ANAL-178).** The probe runs several sleep cycles in one boot with a bisect (`openbook.probe.s0i3_steps`), two more test-only modules (an S0i3-entry PCI snapshot, PCI power management for driverless functions), and per-cycle JSON (`openbook-hwcheck/6`). It ships as an add-on for the live stick instead of a separate stick image (`scripts/power/`, `docs/power-input.md` §1.4).
+
 ## 3. Install flow
 
 ### 3.1 Live USB layout (ANAL-190)

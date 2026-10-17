@@ -53,6 +53,22 @@ The repo is **https://github.com/Mhsbrian/OpenBook**; the old AnyBook URL (`gith
 
 ## History
 
+### 2026-10-17: Power and input, Android side built: health HAL, lid config in force, one stick for all G14 tests (ANAL-178)
+- **Done:** an OpenBook health HAL (the ACPI battery's charge counter and state of health; Android showed health "unknown"); the lid, power-button and hotkey pieces built and checked in a booted image; save logs records the touchpad's HID descriptors and raw events for the "Clock changed backwards" errors ANAL-176 handed on, and `service list` no longer stalls the capture.
+- **Stick:** `openbook-live-20261017-anal178b` contains ANAL-179's `audionet3` (and ANAL-176's desktop4 fixes) plus all of this, with the power check on its ESP. QEMU: live matrix 39/39, power check 10/10, lid config in force (`evidence/2026-10-17-power-input/anal178b/`).
+- **Next:** the owner writes `anal178b` instead of `audionet3` and runs `docs/power-input.md` §5.
+
+### 2026-10-17: Power and input: S0i3 tests, laptop lid and power config (ANAL-178)
+
+**Done** (`docs/power-input.md`)
+- **S0i3, from the desk:** the laptop's own Linux 7.2 shows no S0i3 failure in 4 cycles (indirect), so the BIOS is not the blocker. amd_pmc, LPS0, IOMMU and CPU idle behave the same on both kernels. The one PCI function Linux drives and we don't is the AMD PSP (`ccp`). HYPOTHESIS: a driverless PSP stays in D0 and keeps its bridge GPPA in D0 through suspend.
+- **Tests:** two test-only modules (an S0i3-entry PCI snapshot, and PCI power management for driverless functions), probe v7 with a one-boot bisect (`psp`, `dummy`, `asus`), an add-on that puts it on the owner's live stick, and a Linux comparison script (baseline, without amd-pmf, without `ccp`).
+- **Android:** a PC framework overlay with Googlebook's laptop values (lid closes → sleep, AOSP's default is nothing; power button locks), a key layout for the ASUS WMI hotkeys, and save-logs facts and verdicts for power and input.
+
+**Evidence:** `evidence/2026-10-17-power-input/`. In QEMU: the add-on's entries 14/14 (LPS0 fixture, s2idle) and 10/10 (as shipped), and the save-logs script inside Android 17. The overlay links against the product's framework (`aapt2`, `idmap2`); the layouts pass `validatekeymaps`. Nothing new has run on the G14 yet.
+
+**Next:** the owner runs the Linux comparison and the power check (`docs/power-input.md` §1.5); then the kernel-lane fix, and the Android pieces in the AOSP lane after ANAL-179.
+
 ### 2026-10-17: G14 audio, Wi-Fi and Bluetooth, Android side (ANAL-179)
 
 **Done** (`docs/g14-audio-net.md`)

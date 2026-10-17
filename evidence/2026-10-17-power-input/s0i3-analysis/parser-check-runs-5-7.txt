@@ -1,0 +1,7 @@
+scripts/power/linux-s2idle.py parsers on the G14 runs 5-7 (OpenBook kernel, ANAL-189 evidence): same facts as the reports.
+run 005 smu: {"last_s0i3": "Unknown/Fail", "hint_count": 1, "time_to_s0i3_us": 0, "time_in_s0i3_us": 0, "not_met_us": {"USB4_0": 78416, "MPM": 2170}}
+run 005 log: {"idlemask_entry": "0xffef9afd", "not_deepest_warning": true, "constraints_not_met": ["\\_SB_.PCI0.GPP0.SWUS"], "wake": ["IRQ 38", "IRQ 38, PCIe PME", "IRQ 9", "IRQ 9, acpi"], "timekeeping_suspended_s": [18.778], "snapshot_not_in_d3": [], "snapshot_summary": null}
+run 006 smu: {"last_s0i3": "Unknown/Fail", "hint_count": 1, "time_to_s0i3_us": 0, "time_in_s0i3_us": 0, "not_met_us": {"USB4_0": 78416, "MPM": 2019}}
+run 006 log: {"idlemask_entry": "0xffef9afd", "not_deepest_warning": true, "constraints_not_met": ["\\_SB_.PCI0.GPP0.SWUS"], "wake": ["IRQ 38", "IRQ 38, PCIe PME", "IRQ 9", "IRQ 9, acpi"], "timekeeping_suspended_s": [18.567], "snapshot_not_in_d3": [], "snapshot_summary": null}
+run 007 smu: {"last_s0i3": "Unknown/Fail", "hint_count": 1, "time_to_s0i3_us": 0, "time_in_s0i3_us": 0, "not_met_us": {"USB4_0": 78416, "MPM": 2263}}
+run 007 log: {"idlemask_entry": "0xffef9afd", "not_deepest_warning": true, "constraints_not_met": [], "wake": ["IRQ 38", "IRQ 38, PCIe PME", "IRQ 9", "IRQ 9, acpi"], "timekeeping_suspended_s": [18.59], "snapshot_not_in_d3": [], "snapshot_summary": null}
