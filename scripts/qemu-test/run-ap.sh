@@ -22,7 +22,7 @@ iw phy "$phy" set netns "$ns" && log "$phy (wlan1) -> netns of pid $ns"
 # toybox nsenter takes no "sh -c ..." (it parses -c itself): the access point side is its own script.
 cat > "$D/ap-ns.sh" <<EOS
 ip link set lo up; ip link set wlan1 up; ip addr add 192.168.77.1/24 dev wlan1
-LD_LIBRARY_PATH=$D/lib:/vendor/lib64 $D/hostapd -dd -t $D/hostapd.conf > $D/hostapd.log 2>&1 &
+LD_PRELOAD=$D/lib/libopenbook-test-noaidl.so LD_LIBRARY_PATH=$D/lib:/vendor/lib64 $D/hostapd -dd -t $D/hostapd.conf > $D/hostapd.log 2>&1 &
 echo \$! > $D/hostapd.pid
 $D/openbook-test-dhcpd wlan1 > $D/dhcpd.log 2>&1 &
 iperf3 -s -D -B 192.168.77.1 --logfile $D/iperf3.log
