@@ -77,6 +77,9 @@ $(call inherit-product, device/anybook/common/graphics-amd/graphics-amd.mk)
 PRODUCT_PACKAGES += vulkan.pastel
 PRODUCT_REQUIRES_INSECURE_EXECMEM_FOR_SWIFTSHADER := true
 
+# arm64 apps through the Digitalis native bridge (ANAL-200); BoardConfig.mk includes its board half.
+$(call inherit-product, device/anybook/common/native-bridge/native-bridge.mk)
+
 # Base HALs. AOSP implementations; the ones listed with "openbook" use the real sysfs of a PC instead of the
 # AOSP examples' fixed values. docs/g14-product.md has the table.
 PRODUCT_PACKAGES += \
