@@ -1,22 +1,22 @@
 # Status
 
-## State of the union (2026-10-17, 12:30 UTC)
+## State of the union (2026-10-17, 14:35 UTC)
 
 **Goal:** the Googlebook-style Android 17 desktop on the ASUS ROG Zephyrus G14 (GA403WR: Ryzen AI 9 HX 370, Radeon 890M), installed from a USB stick through a wizard and verified on the laptop. Repo: https://github.com/Mhsbrian/OpenBook.
 
-**Repo hygiene:** PRs #1–#51 are merged and none are open. The 2026-10-17 cleanup left one remote branch, `main`; every other branch was merged or superseded. Two branches with commits never merged are kept as tags: `archive/anal-190-live-image-b` (superseded on `main`) and `archive/anal-178-stick-integration`.
+**Repo hygiene:** PRs #1–#53 are merged. #52 (ANAL-176) stays open until its run finishes, then gets merged and its branch deleted. The 2026-10-17 cleanup left one remote branch, `main`; every other branch was merged or superseded. Two branches with commits never merged are kept as tags: `archive/anal-190-live-image-b` (superseded on `main`) and `archive/anal-178-stick-integration`.
 
 ### What works, and where it has been shown
 
 | Area | In a VM (QEMU or Cuttlefish) | On the G14 | Evidence |
 |---|---|---|---|
 | Kernel (GKI android17-6.18 + 138 AMD modules) | Boots our Android 17 | **Yes:** 235 modules, 0 failed | `evidence/2026-10-16-g14-hwcheck/` |
-| Live USB boot, desktop | 39/39 live checks | **Desktop on the panel** in "save logs" boots (SELinux permissive). The normal enforcing boot reaching the desktop is **not proven yet** | `evidence/2026-10-17-g14-desktop/` |
+| Live USB boot, desktop | 39/39 live checks | **The normal enforcing boot reached the desktop at 28 s** (owner's `anal178c` run, 2026-10-17), and earlier "save logs" boots did too. No app crashed; 23 denials of 5 kinds | `evidence/2026-10-17-g14-desktop/` (the enforcing run lands with PR #52) |
 | Graphics (RADV, radeonsi, ANGLE, minigbm, drm_hwcomposer) | Passing; dEQP pre-check on a Radeon 610M | **Desktop renders.** drm_hwcomposer falls back to GPU composition (plane limit). dEQP not run yet | `evidence/2026-10-17-graphics-cts/` |
 | Touchpad, keyboard | Yes | **Yes** | `evidence/2026-10-16-installer/g14-live/` |
 | Lid, power button, hotkeys, battery health | Yes | Not tested | `evidence/2026-10-17-power-input/` |
 | Sleep | s2idle in a VM | **s2idle works; deep sleep (S0i3) never reached.** Hypothesis: the driverless PSP | `docs/power-input.md` |
-| Wi-Fi, Bluetooth, audio | Yes (WPA2, iperf3, tone through ALSA) | Not tested | `evidence/2026-10-17-g14-audio-net/` |
+| Wi-Fi, Bluetooth, audio | Yes (WPA2, iperf3, tone through ALSA) | **Wi-Fi connected to the internet** in the enforcing boot; Bluetooth on. ANAL-179 is reading the full results | `evidence/2026-10-17-g14-audio-net/` |
 | ARM apps (Digitalis, built from source) | 14/16 ARM-only apps; works in enforcing | Not tested | `evidence/2026-10-17-digitalis-a17/`, `evidence/2026-10-17-g14-combined/` |
 | Installer | **Wizard 25/25, engine 53/53:** installs to a virtual NVMe disk that then boots by itself into OpenBook setup (SELinux enforcing) | Live USB boots; the wizard has not run yet | `evidence/2026-10-17-installer-wizard/` |
 
@@ -24,19 +24,14 @@
 
 ### Running now
 
-- **ANAL-191 delivered** in PR #53 (installer wizard, `openbook-install` engine, OpenBook setup; QEMU only). The AOSP lane is free.
-- **The installer stick, for after the `anal178c` run:** `openbook-live-20261017-anal191e`. It has the same Android system as `anal178c` (`main` has had no device changes since) plus the installer, without the power and graphics checks. In QEMU: wizard 25/25, engine 53/53, live checks 39/39 (`evidence/2026-10-17-installer-wizard/`, sha256 there). On the G14 it is a dry run only (`docs/installer.md` §12.8).
-- **The latest stick is ready:** `openbook-live-20261017-anal178c`, built from `main` (PR #50, `evidence/2026-10-17-power-input/anal178c/`). It covers ANAL-176, ANAL-177, ANAL-178, ANAL-179 and ANAL-200, with the power check and the graphics check already on it. In QEMU: live checks 39/39, power check 10/10, graphics check 6/6. It supersedes `combined` and every older stick.
+- **ANAL-176** is reading the owner's `anal176s` session. PR #52, still open, fixes three things: Android offering to format the live stick, the 10 s lock-screen timeout, and dropped frames from overlay planes.
+- **ANAL-178, ANAL-179 and ANAL-200** are reading their results from the owner's two sessions (host copies, read-only). The power check and the graphics check were not booted in those sessions.
+- **ANAL-192 owns the owner's stick from now on.** Once #52 is on `main`, it builds one integrated image (installer plus the power and graphics checks) with one checklist. Then it runs the installer's end-to-end tests in QEMU.
+- **ANAL-191 delivered** the installer wizard, the `openbook-install` engine and OpenBook setup (PR #53, QEMU only).
 
 ### Waiting on the owner
 
-1. **The stick run:** write `anal178c` and do the four boots in order, using the exact commands in ANAL-178's reply of 2026-10-17 12:01:
-   - A. "OpenBook": Wi-Fi, pairing, a sound, the lid;
-   - B. "save logs": touchpad for 20 s;
-   - C. "power check: S0i3";
-   - D. "OpenBook graphics check": about 30 min, on AC.
-
-   Then reply "stick attached" on ANAL-176, ANAL-177, ANAL-178, ANAL-179 and ANAL-200.
+1. **No stick to write right now.** The next one comes from ANAL-192, with one checklist, once #52 is merged. It replaces `anal178c`, `anal176s` and `anal191e`. Still to do on the G14: the power check, the graphics check and the installer dry run.
 2. **Decisions:** none blocks running work.
    - repo license (Apache-2.0 suggested);
    - upstream reports for the bridge (DigitalisX64; AOSP `Build.CPU_ABI`);
@@ -50,13 +45,13 @@
 
 | Issue | State | Next step | Needs |
 |---|---|---|---|
-| ANAL-176 G14 desktop and stability | In review | Read the enforcing boot from the stick; fix the remaining denials; fix drm_hwcomposer's plane count (`docs/g14-desktop.md` §7) | Owner's stick run |
-| ANAL-177 graphics conformance | In review | Read the G14 dEQP/ANGLE results; decide Vulkan 1.1 or 1.4 (the 610M favours 1.4); add matrix rows | Owner's stick run (boot D) |
-| ANAL-178 input and power | In review | Read the lid, touchpad and power check results; then the S0i3 fix (kernel lane), the touchpad clock warnings, the skin sensor | Owner's stick run (boots A–C) |
-| ANAL-179 Wi-Fi, Bluetooth, audio | In review | Read Wi-Fi, pairing and speaker/mic results; fix what fails; speaker tuning | Owner's stick run |
-| ANAL-200 ARM bridge | In review | Read the bridge verdicts; run the probe and CoreMark on the G14 | Owner's stick run; upstream-report OK |
-| ANAL-191 installer wizard and engine | In review | The owner's dry run on the G14 from `anal191e`: wizard, hardware report, the plan, then Try (`docs/installer.md` §12.8). Open: `openbook-bootsync`, the text hardware report, efivarfs for firmware entries (kernel lane) | Owner's stick run (after `anal178c`) |
-| ANAL-192 installer end-to-end tests | Backlog | Can start: the QEMU install matrix (alongside booted, interrupted installs, slot switch), then a spare-drive install on the G14 | Owner names the spare drive |
+| ANAL-176 G14 desktop and stability | **Running** | Finish reading `anal176s`; PR #52 (live-stick safety, no boot lock screen, no overlay planes). Then the remaining denials | — |
+| ANAL-177 graphics conformance | In review | Read the G14 dEQP/ANGLE results; decide Vulkan 1.1 or 1.4 (the 610M favours 1.4); add matrix rows | The graphics-check boot on ANAL-192's stick |
+| ANAL-178 input and power | **Reading results** | Touchpad, lid, battery and EPP facts from the two sessions; then the S0i3 fix (kernel lane), the touchpad clock, the skin sensor | The power-check boot (or the Linux `linux-s2idle.py` run) on ANAL-192's stick |
+| ANAL-179 Wi-Fi, Bluetooth, audio | **Reading results** | Wi-Fi, Bluetooth and audio verdicts from the two sessions; fix what fails; speaker tuning | — |
+| ANAL-200 ARM bridge | **Reading results** | Bridge verdicts on real Zen 5; record the G14 row | The probe and CoreMark step on ANAL-192's stick; the upstream-report OK |
+| ANAL-191 installer wizard and engine | In review | The G14 dry run, on ANAL-192's stick. Open: `openbook-bootsync`, the text hardware report, a firmware boot entry (our GKI has no `EFIVAR_FS`: a kernel-lane decision) | — |
+| ANAL-192 installer end-to-end tests and the owner's stick | **Running** | The integrated stick and its one checklist (after #52); then the QEMU matrix (alongside booted, interrupted installs, reinstall, an unattended run); a release-checklist draft | The owner names a spare drive for the real install |
 | ANAL-193 to ANAL-197 device loop | Backlog | ANAL-194 first: the Multica runtime and test agent on the G14's Linux | Owner installs the daemon |
 | ANAL-166 performance and parity | Backlog | After the installer: benchmarks, Chrome, the Linux terminal (AVF without pKVM). No sub-issues yet | — |
 | ANAL-186 NVIDIA | Parked | Research is done (ANAL-187); N1–N6 after M4 | — |
@@ -75,6 +70,17 @@
 **Build host:** one AOSP build at a time (`flock ~/anybook/aosp/.lane.lock`, taken by `scripts/aosp-docker.sh`), because builds peak at about 50 GB of the 61 GB RAM. Builds and images are in `docs/BUILD.md`; the live image and the owner checklists are in `docs/installer.md` §11.
 
 ## History
+
+### 2026-10-17: installer merged; one owner stick from here on (ANAL-159)
+- **Merged** #53 (ANAL-191) after checks.
+  - Engine refusals were verified with the target unchanged.
+  - The dry run wrote 0 blocks.
+  - The installed disk boots alone into OpenBook setup.
+  - No installer denials appeared in enforcing boots.
+  - The daemon runs on the live stick only, and only `platform_app` may use its socket.
+- **On the G14:** the owner's `anal178c` session showed the normal enforcing boot reaching the desktop at 28 s, with Wi-Fi connected (ANAL-176; evidence with PR #52).
+- **Woke ANAL-178, ANAL-179 and ANAL-200** to read their parts of the owner's last two sessions from the host copies. The owner had replied only on ANAL-176.
+- **Promoted ANAL-192**, which now builds the single owner stick and checklist, then runs the installer's end-to-end tests.
 
 ### 2026-10-17: the installer wizard, the install engine and first-boot setup (ANAL-191, PR #53)
 - **Done** (`docs/installer.md` §12):
