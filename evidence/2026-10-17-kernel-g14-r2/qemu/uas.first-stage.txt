@@ -1,0 +1,108 @@
+[    0.000000][    T0] Command line: firmware_class.path=/vendor/firmware log_buf_len=1M 8250.nr_uarts=1 console=ttyS0,115200 earlycon=uart8250,io,0x3f8,115200 printk.devkmsg=on panic=-1
+[    0.078279][    T0] Load bootconfig: 1579 bytes 70 nodes
+[    0.688534][    T1] init: init first stage started!
+[    0.689102][    T1] init: Release specific kernel module dir 6.18.21-android17-5-gfbfdd65b0fd1 found, loading modules from here with no fallbacks.
+[    0.690405][    T1] init: Copied ramdisk prop to /second_stage_resources/system/etc/ramdisk/build.prop
+[    0.691291][    T1] init: Using generic ramdisk copy of snapuserd /system/bin/snapuserd_ramdisk
+[    0.692093][    T1] init: hard linking /system/bin/snapuserd_ramdisk to /first_stage_ramdisk/system/bin/snapuserd succeeded
+[    0.693264][    T1] init: Switching root to '/first_stage_ramdisk'
+[    0.693889][    T1] init: [libfstab] Using Android DT directory /proc/device-tree/firmware/android/
+[    0.702995][    T1] init: bool android::init::BlockDevInitializer::InitDevices(std::set<std::string>): partition(s) not found in /sys, waiting for their uevent(s): boot_a, init_boot_a, metadata, super, vbmeta_a, vendor_boot_a
+[    0.926013][   T39] usb 2-1: new SuperSpeed USB device number 2 using xhci_hcd
+[    0.942615][   T39] usb 2-1: New USB device found, idVendor=46f4, idProduct=0003, bcdDevice= 0.00
+[    0.943581][   T39] usb 2-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[    0.944352][   T39] usb 2-1: Product: USB Attached SCSI HBA
+[    0.944902][   T39] usb 2-1: Manufacturer: QEMU
+[    0.945351][   T39] usb 2-1: SerialNumber: 27842-0000:00:08.0:00.0-1
+[    0.947105][   T39] scsi host0: uas
+[    0.947734][   T13] scsi 0:0:0:0: Direct-Access     QEMU     QEMU HARDDISK    2.5+ PQ: 0 ANSI: 5
+[    0.950498][    C3] sd 0:0:0:0: Power-on or device reset occurred
+[    0.951452][   T13] sd 0:0:0:0: [sda] 7856128 512-byte logical blocks: (4.02 GB/3.75 GiB)
+[    0.952299][   T13] sd 0:0:0:0: [sda] Write Protect is off
+[    0.953011][   T13] sd 0:0:0:0: [sda] Write cache: enabled, read cache: enabled, supports DPO and FUA
+[    0.971498][   T13]  sda: sda1 sda2 sda3 sda4 sda5 sda6 sda7 sda8
+[    0.972174][   T13] sd 0:0:0:0: [sda] Attached SCSI disk
+[    0.973360][    T1] init: Wait for partitions returned after 268ms
+[    0.974154][    T1] init: [libfs_mgr] superblock s_max_mnt_count:65535,/dev/block/by-name/metadata
+[    0.979899][    T1] EXT4-fs (sda6): mounted filesystem 0ff4d3e3-82a2-482b-a999-a10cf49a0d59 r/w with ordered data mode. Quota mode: none.
+[    0.981050][    T1] init: [libfs_mgr] check_fs(): mount(/dev/block/by-name/metadata,/metadata,ext4)=0: Success
+[    0.982180][    T1] EXT4-fs (sda6): unmounting filesystem 0ff4d3e3-82a2-482b-a999-a10cf49a0d59.
+[    0.983432][    T1] init: [libfs_mgr] umount_retry(): unmount(/metadata) succeeded
+[    0.984133][    T1] init: [libfs_mgr] Not running /system/bin/e2fsck on /dev/block/sda6 (executable not in system image)
+[    0.985131][    T1] init: [libfs_mgr] fsck on /metadata took 10ms
+[    0.990540][    T1] EXT4-fs (sda6): mounted filesystem 0ff4d3e3-82a2-482b-a999-a10cf49a0d59 r/w with ordered data mode. Quota mode: none.
+[    0.991661][    T1] init: [libfs_mgr] __mount(source=/dev/block/by-name/metadata,target=/metadata,type=ext4)=0: Success
+[    0.992781][    T1] init: Failed to copy /avb into /metadata/gsi/dsu/avb/: No such file or directory
+[    0.994417][    T1] init: [libfs_mgr] Created logical partition system_a on device /dev/block/dm-0
+[    0.995359][    T1] init: [libfs_mgr] Created logical partition system_ext_a on device /dev/block/dm-1
+[    0.996322][    T1] init: [libfs_mgr] Created logical partition product_a on device /dev/block/dm-2
+[    0.997260][    T1] init: [libfs_mgr] Created logical partition vendor_a on device /dev/block/dm-3
+[    0.998205][    T1] init: [libfs_mgr] Created logical partition odm_a on device /dev/block/dm-4
+[    0.999116][    T1] init: [libfs_mgr] Created logical partition odm_dlkm_a on device /dev/block/dm-5
+[    1.000069][    T1] init: [libfs_mgr] Created logical partition vendor_dlkm_a on device /dev/block/dm-6
+[    1.001048][    T1] init: [libfs_mgr] Created logical partition system_dlkm_a on device /dev/block/dm-7
+[    1.001906][    T1] init: DSU not detected, proceeding with normal boot
+[    1.003217][    T1] init: [libfs_avb] Returning avb_handle with status: Success
+[    1.003915][    T1] init: [libfs_avb] Built verity table: '1 /dev/block/dm-0 /dev/block/dm-0 4096 4096 212959 212959 sha256 af523665fe4c6039153b8900e3dec1f5fd37b770936514dd62eb8cd7f719b9fe 162be3601939f32e1f5a7140cf8c538359773cefd4e7c38600c4ae9d21b58261 10 use_fec_from_device /dev/block/dm-0 fec_roots 2 fec_blocks 214637 fec_start 214637 restart_on_corruption ignore_zero_blocks'
+[    1.007962][    T1] erofs (device dm-8): initialized per-cpu workers successfully.
+[    1.008668][    T1] erofs (device dm-8): mounted with root inode @ nid 55.
+[    1.009300][    T1] init: [libfs_mgr] __mount(source=/dev/block/dm-8,target=/system,type=erofs)=0: Success
+[    1.010227][    T1] init: Switching root to '/system'
+[    1.011106][    T1] init: [libfs_avb] Built verity table: '1 /dev/block/dm-1 /dev/block/dm-1 4096 4096 33880 33880 blake2b-256 5695ab2fd66eaaa83a5526a8a9fc247b94925e97fe63b14a162757dee3cae913 cb952a5b3690742498f3502bceb7d272ecc6aea69217def3c87ad9e498199cb6 10 use_fec_from_device /dev/block/dm-1 fec_roots 2 fec_blocks 34149 fec_start 34149 restart_on_corruption ignore_zero_blocks'
+[    1.015015][    T1] erofs (device dm-9): mounted with root inode @ nid 39.
+[    1.015652][    T1] init: [libfs_mgr] __mount(source=/dev/block/dm-9,target=/system_ext,type=erofs)=0: Success
+[    1.016632][    T1] init: [libfs_avb] Built verity table: '1 /dev/block/dm-2 /dev/block/dm-2 4096 4096 69964 69964 sha256 dfa7462db8bd14f619d5b938c515a745ff6ddf73dd9ea244949bc0ce8452881b cb952a5b3690742498f3502bceb7d272ecc6aea69217def3c87ad9e498199cb6 10 use_fec_from_device /dev/block/dm-2 fec_roots 2 fec_blocks 70517 fec_start 70517 restart_on_corruption ignore_zero_blocks'
+[    1.020477][    T1] erofs (device dm-10): mounted with root inode @ nid 40.
+[    1.021116][    T1] init: [libfs_mgr] __mount(source=/dev/block/dm-10,target=/product,type=erofs)=0: Success
+[    1.022102][    T1] init: [libfs_avb] Built verity table: '1 /dev/block/dm-3 /dev/block/dm-3 4096 4096 65685 65685 sha256 8cb7e9d4de11bdec2dbb132f050305e39a39b589ffaa348aaa26868b5a00ac38 cb952a5b3690742498f3502bceb7d272ecc6aea69217def3c87ad9e498199cb6 10 use_fec_from_device /dev/block/dm-3 fec_roots 2 fec_blocks 66205 fec_start 66205 restart_on_corruption ignore_zero_blocks'
+[    1.025994][    T1] erofs (device dm-11): mounted with root inode @ nid 48.
+[    1.026638][    T1] init: [libfs_mgr] __mount(source=/dev/block/dm-11,target=/vendor,type=erofs)=0: Success
+[    1.027598][    T1] init: [libfs_avb] Built verity table: '1 /dev/block/dm-4 /dev/block/dm-4 4096 4096 105 105 sha256 1f806def022d95f678f36dfd1cdbd2a8a97a3501602b082ea897b77b78983063 cb952a5b3690742498f3502bceb7d272ecc6aea69217def3c87ad9e498199cb6 10 use_fec_from_device /dev/block/dm-4 fec_roots 2 fec_blocks 106 fec_start 106 restart_on_corruption ignore_zero_blocks'
+[    1.031096][    T1] erofs (device dm-12): mounted with root inode @ nid 38.
+[    1.031740][    T1] init: [libfs_mgr] __mount(source=/dev/block/dm-12,target=/odm,type=erofs)=0: Success
+[    1.032860][    T1] init: [libfs_avb] Built verity table: '1 /dev/block/dm-6 /dev/block/dm-6 4096 4096 12835 12835 sha256 5ed1f2cae879ed865edbadd90819d298cbb9a22a6fc11bfe0f7a35fc3d92230c fb00bb747be35e98fc9541f6c07f03627e5d18b9b6c9f8bcee558884b7b83342 10 use_fec_from_device /dev/block/dm-6 fec_roots 2 fec_blocks 12937 fec_start 12937 restart_on_corruption ignore_zero_blocks'
+[    1.036518][    T1] erofs (device dm-13): mounted with root inode @ nid 38.
+[    1.037157][    T1] init: [libfs_mgr] __mount(source=/dev/block/dm-13,target=/vendor_dlkm,type=erofs)=0: Success
+[    1.038156][    T1] init: [libfs_avb] Built verity table: '1 /dev/block/dm-5 /dev/block/dm-5 4096 4096 2 2 sha256 17522b391bae7f82d40e1f572f32afb0ced31d67285e4734dff1af69d4fc04a1 cb952a5b3690742498f3502bceb7d272ecc6aea69217def3c87ad9e498199cb6 10 use_fec_from_device /dev/block/dm-5 fec_roots 2 fec_blocks 3 fec_start 3 restart_on_corruption ignore_zero_blocks'
+[    1.041553][    T1] erofs (device dm-14): mounted with root inode @ nid 38.
+[    1.042206][    T1] init: [libfs_mgr] __mount(source=/dev/block/dm-14,target=/odm_dlkm,type=erofs)=0: Success
+[    1.043197][    T1] init: [libfs_avb] Built verity table: '1 /dev/block/dm-7 /dev/block/dm-7 4096 4096 4361 4361 sha256 8a5e599cd59499e4e26c2b85b1a8933287fe2891691276522c3f2f645c2bc800 4cee44299dcb41dfd4a9a69fb5e93d7c2f93a015d8b73e378f7667f22873de9d 10 use_fec_from_device /dev/block/dm-7 fec_roots 2 fec_blocks 4397 fec_start 4397 restart_on_corruption ignore_zero_blocks'
+[    1.046913][    T1] erofs (device dm-15): mounted with root inode @ nid 38.
+[    1.047549][    T1] init: [libfs_mgr] __mount(source=/dev/block/dm-15,target=/system_dlkm,type=erofs)=0: Success
+[    1.050488][    T1] init: Skipped setting INIT_AVB_VERSION (not in recovery mode)
+[    1.083276][    T1] init: [libfstab] Using Android DT directory /proc/device-tree/firmware/android/
+[    1.085331][    T1] init: Opening SELinux policy
+[    1.088302][    T1] init: Loading SELinux policy
+[    1.093588][    T1] SELinux:  Permission watch_mountns in class file not defined in policy.
+[    1.094372][    T1] SELinux:  Permission watch_mountns in class dir not defined in policy.
+[    1.095119][    T1] SELinux:  Permission watch_mountns in class lnk_file not defined in policy.
+[    1.095908][    T1] SELinux:  Permission watch_mountns in class chr_file not defined in policy.
+[    1.096706][    T1] SELinux:  Permission watch_mountns in class blk_file not defined in policy.
+[    1.097490][    T1] SELinux:  Permission watch_mountns in class sock_file not defined in policy.
+[    1.098289][    T1] SELinux:  Permission watch_mountns in class fifo_file not defined in policy.
+[    1.099124][    T1] SELinux:  Permission watch_mountns in class anon_inode not defined in policy.
+[    1.099928][    T1] SELinux:  Permission watch_mountns in class memfd_file not defined in policy.
+[    1.100739][    T1] SELinux: the above unknown classes and permissions will be denied
+[    1.102395][    T1] SELinux:  policy capability network_peer_controls=1
+[    1.102999][    T1] SELinux:  policy capability open_perms=1
+[    1.103515][    T1] SELinux:  policy capability extended_socket_class=1
+[    1.104120][    T1] SELinux:  policy capability always_check_network=0
+[    1.104716][    T1] SELinux:  policy capability cgroup_seclabel=0
+[    1.105269][    T1] SELinux:  policy capability nnp_nosuid_transition=1
+[    1.105872][    T1] SELinux:  policy capability genfs_seclabel_symlinks=0
+[    1.106489][    T1] SELinux:  policy capability ioctl_skip_cloexec=0
+[    1.107071][    T1] SELinux:  policy capability userspace_initial_context=0
+[    1.107701][    T1] SELinux:  policy capability netlink_xperm=1
+[    1.108241][    T1] SELinux:  policy capability netif_wildcard=0
+[    1.108800][    T1] SELinux:  policy capability genfs_seclabel_wildcard=0
+[    1.109411][    T1] SELinux:  policy capability functionfs_seclabel=1
+[    1.110002][    T1] SELinux:  policy capability memfd_class=1
+[    1.116159][   T44] audit: type=1403 audit(1792258643.984:2): auid=4294967295 ses=4294967295 lsm=selinux res=1
+[    1.117197][   T44] audit: type=1404 audit(1792258643.984:3): enforcing=1 old_enforcing=0 auid=4294967295 ses=4294967295 enabled=1 old-enabled=1 lsm=selinux res=1
+[    1.119866][    T1] selinux: SELinux: Loaded file context from:
+[    1.120438][    T1] selinux: 		/system/etc/selinux/plat_file_contexts
+[    1.121032][    T1] selinux: 		/system_ext/etc/selinux/system_ext_file_contexts
+[    1.121694][    T1] selinux: 		/product/etc/selinux/product_file_contexts
+[    1.122316][    T1] selinux: 		/vendor/etc/selinux/vendor_file_contexts
+[    1.122916][    T1] selinux: 		/odm/etc/selinux/odm_file_contexts
+[    1.127160][    T1] init: init second stage started!

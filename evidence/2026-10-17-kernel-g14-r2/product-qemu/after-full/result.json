@@ -1,0 +1,92 @@
+{
+ "reason": "QEMU exited (0)",
+ "seconds": 80.4,
+ "steps_done": 29,
+ "steps": 29,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "init: init first stage started",
+   "t": 3.8
+  },
+  {
+   "step": 1,
+   "wait": "init: init second stage started",
+   "t": 5.5
+  },
+  {
+   "step": 2,
+   "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+   "t": 7.5
+  },
+  {
+   "step": 4,
+   "wait": "console:/ \\$ ",
+   "t": 7.5
+  },
+  {
+   "step": 6,
+   "wait": "console:/ \\$ ",
+   "t": 7.7
+  },
+  {
+   "step": 8,
+   "wait": "BOOTDONE=\\S* uptime=[0-9.]+",
+   "t": 21.7
+  },
+  {
+   "step": 9,
+   "wait": "console:/ \\$ ",
+   "t": 21.7
+  },
+  {
+   "step": 11,
+   "wait": "console:/ \\$ ",
+   "t": 41.8
+  },
+  {
+   "step": 13,
+   "wait": "console:/ \\$ ",
+   "t": 43.5
+  },
+  {
+   "step": 15,
+   "wait": "console:/ \\$ ",
+   "t": 45.1
+  },
+  {
+   "step": 17,
+   "wait": "console:/ \\$ ",
+   "t": 48.6
+  },
+  {
+   "step": 19,
+   "wait": "console:/ \\$ ",
+   "t": 53.2
+  },
+  {
+   "step": 21,
+   "wait": "console:/ \\$ ",
+   "t": 69.0
+  },
+  {
+   "step": 23,
+   "wait": "console:/ \\$ ",
+   "t": 71.4
+  },
+  {
+   "step": 25,
+   "wait": "console:/ \\$ ",
+   "t": 77.2
+  },
+  {
+   "step": 27,
+   "wait": "console:/ \\$ ",
+   "t": 78.7
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/qemu/anal198-heap-after-full/disk.img",
+ "nvme": null,
+ "nvme2": null
+}

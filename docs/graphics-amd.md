@@ -222,7 +222,7 @@ The owner's `openbook-live-20261017-anal176t` stick, with the add-on `openbook-g
   - So the guilty test cannot be pinned. The in-flight cases were ray-query sparse-binding, sparse image rebind, multi-queue timeline-semaphore, mipmap, GPL renderpass and instanced multiview draws (`g14-anal176t/ANALYSIS.md`).
   - The same cases then ran clean under 1.4, with no hang. HYPOTHESIS: a load-dependent hang (12 concurrent GPU clients), not a property of the 1.1 build.
   - The reset took Android's framework with it. SystemUI and SurfaceFlinger aborted on `EGL_CONTEXT_LOST`, and zygote restarted at 222 s (`sys.system_server.start_count` 3). The desktop came back, and the later parts, including both apps, ran normally.
-- **Per-queue reset is missing.** With the CP and MES firmware we ship (linux-firmware `38c1a709`, 2026-10-16) and our 6.18 kernel, GC 11.5 has no working queue or pipe reset. So any app's GPU hang becomes a whole-GPU reset that restarts the Android UI. That is a robustness item for the kernel and firmware lane, not a dEQP result.
+- **Per-queue reset is missing.** With the CP and MES firmware we ship (linux-firmware `38c1a709`, 2026-10-16) and our 6.18 kernel, GC 11.5 has no working queue or pipe reset. So any app's GPU hang becomes a whole-GPU reset that restarts the Android UI. That is a robustness item for the kernel and firmware lane, not a dEQP result. What our kernel and firmware support, and what would improve it, is in `docs/kernel.md` (ANAL-198 follow-up, item 3).
 
 **Failures, classified:**
 

@@ -1,0 +1,4 @@
+-rw-r--r-- 1 root root 89684 2026-10-16 20:12 /product/media/audio/ringtones/Atria.ogg
+stagefright_rc=139
+-rw------- 1 shell shell 0 2026-10-17 17:50 /data/local/tmp/atria.pcm
+pcm_bytes=0

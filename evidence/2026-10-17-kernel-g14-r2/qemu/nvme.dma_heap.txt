@@ -1,0 +1,4 @@
+total 0
+cr--r--r-- 1 system system 249,   0 2026-10-17 17:37 system
+cr--r--r-- 1 system system 249,   1 2026-10-17 17:37 system-uncached
+nodev	efivarfs

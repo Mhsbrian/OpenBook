@@ -1,0 +1,3 @@
+heap_errors=0
+decoder_failures=0
+10-17 17:50:42.626  3673  3673 E SimpleDecodingSource: No matching decoder! (mime: audio/vorbis)

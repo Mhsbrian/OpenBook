@@ -1,0 +1,162 @@
+{
+ "reason": "QEMU exited (0)",
+ "seconds": 84.6,
+ "steps_done": 58,
+ "steps": 58,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "init: init first stage started",
+   "t": 3.7
+  },
+  {
+   "step": 1,
+   "wait": "init: init second stage started",
+   "t": 5.4
+  },
+  {
+   "step": 2,
+   "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+   "t": 7.4
+  },
+  {
+   "step": 4,
+   "wait": "console:/ \\$ ",
+   "t": 7.4
+  },
+  {
+   "step": 6,
+   "wait": "console:/ \\$ ",
+   "t": 7.6
+  },
+  {
+   "step": 8,
+   "wait": "BOOTDONE=\\S* uptime=[0-9.]+",
+   "t": 18.5
+  },
+  {
+   "step": 9,
+   "wait": "console:/ \\$ ",
+   "t": 18.5
+  },
+  {
+   "step": 11,
+   "wait": "console:/ \\$ ",
+   "t": 38.6
+  },
+  {
+   "step": 14,
+   "wait": "console:/ \\$ ",
+   "t": 43.7
+  },
+  {
+   "step": 16,
+   "wait": "console:/ \\$ ",
+   "t": 44.6
+  },
+  {
+   "step": 18,
+   "wait": "console:/ \\$ ",
+   "t": 45.2
+  },
+  {
+   "step": 20,
+   "wait": "console:/ \\$ ",
+   "t": 46.0
+  },
+  {
+   "step": 22,
+   "wait": "console:/ \\$ ",
+   "t": 47.9
+  },
+  {
+   "step": 24,
+   "wait": "console:/ \\$ ",
+   "t": 49.7
+  },
+  {
+   "step": 26,
+   "wait": "console:/ \\$ ",
+   "t": 51.6
+  },
+  {
+   "step": 28,
+   "wait": "console:/ \\$ ",
+   "t": 54.6
+  },
+  {
+   "step": 30,
+   "wait": "console:/ \\$ ",
+   "t": 56.8
+  },
+  {
+   "step": 32,
+   "wait": "console:/ \\$ ",
+   "t": 58.7
+  },
+  {
+   "step": 34,
+   "wait": "console:/ \\$ ",
+   "t": 60.5
+  },
+  {
+   "step": 36,
+   "wait": "console:/ \\$ ",
+   "t": 62.6
+  },
+  {
+   "step": 38,
+   "wait": "console:/ \\$ ",
+   "t": 64.2
+  },
+  {
+   "step": 40,
+   "wait": "console:/ \\$ ",
+   "t": 65.5
+  },
+  {
+   "step": 42,
+   "wait": "console:/ \\$ ",
+   "t": 67.3
+  },
+  {
+   "step": 44,
+   "wait": "console:/ \\$ ",
+   "t": 69.2
+  },
+  {
+   "step": 46,
+   "wait": "console:/ \\$ ",
+   "t": 71.7
+  },
+  {
+   "step": 48,
+   "wait": "console:/ \\$ ",
+   "t": 73.3
+  },
+  {
+   "step": 50,
+   "wait": "console:/ \\$ ",
+   "t": 73.4
+  },
+  {
+   "step": 52,
+   "wait": "console:/ \\$ ",
+   "t": 75.9
+  },
+  {
+   "step": 54,
+   "wait": "console:/ \\$ ",
+   "t": 81.5
+  },
+  {
+   "step": 56,
+   "wait": "console:/ \\$ ",
+   "t": 83.0
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/qemu/anal198-g14-regress/disk.img",
+ "nvme": null,
+ "nvme2": null
+}

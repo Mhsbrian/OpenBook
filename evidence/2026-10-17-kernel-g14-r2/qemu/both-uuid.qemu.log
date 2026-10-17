@@ -1,0 +1,1 @@
+qemu-system-x86_64: -chardev socket,id=ser0,path=/home/hive/anybook/kernel/g14/qemu-work/both-uuid.sock,server=on,wait=on: info: QEMU waiting for connection on: disconnected:unix:/home/hive/anybook/kernel/g14/qemu-work/both-uuid.sock,server=on

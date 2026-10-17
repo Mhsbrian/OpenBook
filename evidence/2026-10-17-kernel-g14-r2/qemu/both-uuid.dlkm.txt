@@ -1,0 +1,298 @@
+[    3.039815][    T1] init: starting service 'vendor.dlkm_loader'...
+[    3.042446][    T1] init: ... started service 'vendor.dlkm_loader' has pid 500
+[    3.046009][  T500] dlkm_loader: dlkm loader successfully initialized
+[    3.051832][  T500] dlkm_loader: Loading module /vendor/lib/modules/system_heap.ko with args ''
+[    3.054075][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/system_heap.ko
+[    3.055216][  T500] dlkm_loader: Loading module /vendor/lib/modules/efivarfs.ko with args ''
+[    3.057287][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/efivarfs.ko
+[    3.058230][  T500] dlkm_loader: Loading module /vendor/lib/modules/wmi.ko with args ''
+[    3.061356][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/wmi.ko
+[    3.063955][  T500] dlkm_loader: Loading module /vendor/lib/modules/wmi-bmof.ko with args ''
+[    3.065375][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/wmi-bmof.ko
+[    3.066308][  T500] dlkm_loader: Loading module /vendor/lib/modules/video.ko with args ''
+[    3.068190][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/video.ko
+[    3.069095][  T500] dlkm_loader: Loading module /vendor/lib/modules/platform_profile.ko with args ''
+[    3.070857][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/platform_profile.ko
+[    3.071677][  T500] dlkm_loader: Loading module /vendor/lib/modules/sparse-keymap.ko with args ''
+[    3.073078][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/sparse-keymap.ko
+[    3.074039][  T500] dlkm_loader: Loading module /vendor/lib/modules/hwmon.ko with args ''
+[    3.075915][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/hwmon.ko
+[    3.076831][  T500] dlkm_loader: Loading module /vendor/lib/modules/ac.ko with args ''
+[    3.078056][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/ac.ko
+[    3.078998][  T500] dlkm_loader: Loading module /vendor/lib/modules/battery.ko with args ''
+[    3.080765][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/battery.ko
+[    3.081841][  T500] dlkm_loader: Loading module /vendor/lib/modules/fan.ko with args ''
+[    3.083077][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/fan.ko
+[    3.083975][  T500] dlkm_loader: Loading module /vendor/lib/modules/thermal.ko with args ''
+[    3.085559][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/thermal.ko
+[    3.086512][  T500] dlkm_loader: Loading module /vendor/lib/modules/k10temp.ko with args ''
+[    3.087950][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/k10temp.ko
+[    3.088667][  T500] dlkm_loader: Loading module /vendor/lib/modules/i2c-smbus.ko with args ''
+[    3.090209][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/i2c-smbus.ko
+[    3.090936][  T500] dlkm_loader: Loading module /vendor/lib/modules/i2c-piix4.ko with args ''
+[    3.105483][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/i2c-piix4.ko
+[    3.106494][  T500] dlkm_loader: Loading module /vendor/lib/modules/spi-amd.ko with args ''
+[    3.107759][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/spi-amd.ko
+[    3.108668][  T500] dlkm_loader: Loading module /vendor/lib/modules/spi-amd-pci.ko with args ''
+[    3.109890][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/spi-amd-pci.ko
+[    3.110634][  T500] dlkm_loader: Loading module /vendor/lib/modules/mfd-core.ko with args ''
+[    3.115066][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/mfd-core.ko
+[    3.116146][  T500] dlkm_loader: Loading module /vendor/lib/modules/serial-multi-instantiate.ko with args ''
+[    3.119975][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/serial-multi-instantiate.ko
+[    3.120818][  T500] dlkm_loader: Loading module /vendor/lib/modules/amd-pmc.ko with args ''
+[    3.122240][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/amd-pmc.ko
+[    3.123148][  T500] dlkm_loader: Loading module /vendor/lib/modules/tpm.ko with args ''
+[    3.125307][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/tpm.ko
+[    3.126198][  T500] dlkm_loader: Loading module /vendor/lib/modules/tpm_crb.ko with args ''
+[    3.127497][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/tpm_crb.ko
+[    3.128396][  T500] dlkm_loader: Loading module /vendor/lib/modules/ucsi_acpi.ko with args ''
+[    3.130340][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/ucsi_acpi.ko
+[    3.131266][  T500] dlkm_loader: Loading module /vendor/lib/modules/i2c-designware-core.ko with args ''
+[    3.132940][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/i2c-designware-core.ko
+[    3.133948][  T500] dlkm_loader: Loading module /vendor/lib/modules/i2c-designware-platform.ko with args ''
+[    3.135303][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/i2c-designware-platform.ko
+[    3.136136][  T500] dlkm_loader: Loading module /vendor/lib/modules/i2c-hid.ko with args ''
+[    3.137463][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/i2c-hid.ko
+[    3.138370][  T500] dlkm_loader: Loading module /vendor/lib/modules/i2c-hid-acpi.ko with args ''
+[    3.139606][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/i2c-hid-acpi.ko
+[    3.140356][  T500] dlkm_loader: Loading module /vendor/lib/modules/amd_sfh.ko with args ''
+[    3.142294][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/amd_sfh.ko
+[    3.143599][  T500] dlkm_loader: Loading module /system/lib/modules/rfkill.ko with args ''
+[    3.145498][  T500] dlkm_loader: Loaded kernel module /system/lib/modules/rfkill.ko
+[    3.146185][  T500] dlkm_loader: Loading module /vendor/lib/modules/asus-wmi.ko with args ''
+[    3.149056][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/asus-wmi.ko
+[    3.149784][  T500] dlkm_loader: Loading module /vendor/lib/modules/asus-nb-wmi.ko with args ''
+[    3.184867][  T500] dlkm_loader: Failed to insmod '/vendor/lib/modules/asus-nb-wmi.ko' with args '': No such device
+[    3.186007][  T500] dlkm_loader: LoadWithAliases was unable to load asus_nb_wmi, tried: asus_nb_wmi
+[    3.187154][  T500] dlkm_loader: Loading module /vendor/lib/modules/hid-asus.ko with args ''
+[    3.188923][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/hid-asus.ko
+[    3.189644][  T500] dlkm_loader: Loading module /vendor/lib/modules/nvidia-wmi-ec-backlight.ko with args ''
+[    3.191240][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/nvidia-wmi-ec-backlight.ko
+[    3.192071][  T500] dlkm_loader: Loading module /vendor/lib/modules/drm_buddy.ko with args ''
+[    3.194008][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/drm_buddy.ko
+[    3.194741][  T500] dlkm_loader: Loading module /vendor/lib/modules/drm_exec.ko with args ''
+[    3.196548][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/drm_exec.ko
+[    3.197505][  T500] dlkm_loader: Loading module /vendor/lib/modules/drm_suballoc_helper.ko with args ''
+[    3.198897][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/drm_suballoc_helper.ko
+[    3.199700][  T500] dlkm_loader: Loading module /vendor/lib/modules/drm_ttm_helper.ko with args ''
+[    3.200988][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/drm_ttm_helper.ko
+[    3.201753][  T500] dlkm_loader: Loading module /vendor/lib/modules/drm_display_helper.ko with args ''
+[    3.205016][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/drm_display_helper.ko
+[    3.206047][  T500] dlkm_loader: Loading module /vendor/lib/modules/drm_panel_backlight_quirks.ko with args ''
+[    3.207416][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/drm_panel_backlight_quirks.ko
+[    3.208486][  T500] dlkm_loader: Loading module /vendor/lib/modules/gpu-sched.ko with args ''
+[    3.210377][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/gpu-sched.ko
+[    3.211333][  T500] dlkm_loader: Loading module /vendor/lib/modules/i2c-algo-bit.ko with args ''
+[    3.212674][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/i2c-algo-bit.ko
+[    3.213648][  T500] dlkm_loader: Loading module /vendor/lib/modules/amdxcp.ko with args ''
+[    3.215302][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/amdxcp.ko
+[    3.216012][  T500] dlkm_loader: Loading module /vendor/lib/modules/amdgpu.ko with args ''
+[    3.331716][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/amdgpu.ko
+[    3.332747][  T500] dlkm_loader: Loading module /vendor/lib/modules/amdxdna.ko with args ''
+[    3.336018][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/amdxdna.ko
+[    3.336970][  T500] dlkm_loader: Loading module /vendor/lib/modules/rtsx_pci.ko with args ''
+[    3.339897][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtsx_pci.ko
+[    3.340847][  T500] dlkm_loader: Loading module /vendor/lib/modules/rtsx_pci_sdmmc.ko with args ''
+[    3.342388][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtsx_pci_sdmmc.ko
+[    3.343383][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-core.ko with args ''
+[    3.346704][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-core.ko
+[    3.347797][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec.ko with args ''
+[    3.352018][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec.ko
+[    3.352795][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-ctl-led.ko with args ''
+[    3.354482][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-ctl-led.ko
+[    3.355451][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-generic.ko with args ''
+[    3.358191][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-generic.ko
+[    3.359283][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-realtek-lib.ko with args ''
+[    3.361316][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-realtek-lib.ko
+[    3.362398][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-scodec-component.ko with args ''
+[    3.364238][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-scodec-component.ko
+[    3.365313][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-alc269.ko with args ''
+[    3.368343][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-alc269.ko
+[    3.369388][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-alc260.ko with args ''
+[    3.370853][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-alc260.ko
+[    3.371891][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-alc262.ko with args ''
+[    3.373327][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-alc262.ko
+[    3.374147][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-alc268.ko with args ''
+[    3.375897][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-alc268.ko
+[    3.376718][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-alc662.ko with args ''
+[    3.378218][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-alc662.ko
+[    3.379250][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-alc680.ko with args ''
+[    3.380645][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-alc680.ko
+[    3.381689][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-alc861.ko with args ''
+[    3.383507][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-alc861.ko
+[    3.384540][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-alc861vd.ko with args ''
+[    3.385983][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-alc861vd.ko
+[    3.387032][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-alc880.ko with args ''
+[    3.388462][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-alc880.ko
+[    3.389508][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-alc882.ko with args ''
+[    3.390991][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-alc882.ko
+[    3.391800][  T500] dlkm_loader: Loading module /vendor/lib/modules/cs_dsp.ko with args ''
+[    3.393786][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/cs_dsp.ko
+[    3.394710][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-soc-cs-amp-lib.ko with args ''
+[    3.396441][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-soc-cs-amp-lib.ko
+[    3.397472][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-soc-cs35l56-shared.ko with args ''
+[    3.399088][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-soc-cs35l56-shared.ko
+[    3.400123][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-cirrus-scodec.ko with args ''
+[    3.401489][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-cirrus-scodec.ko
+[    3.402526][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-scodec-cs35l56.ko with args ''
+[    3.404109][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-scodec-cs35l56.ko
+[    3.405164][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-scodec-cs35l56-i2c.ko with args ''
+[    3.406607][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-scodec-cs35l56-i2c.ko
+[    3.407677][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-hdmi.ko with args ''
+[    3.409838][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-hdmi.ko
+[    3.410635][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-atihdmi.ko with args ''
+[    3.412445][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-atihdmi.ko
+[    3.413266][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-simplehdmi.ko with args ''
+[    3.414812][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-simplehdmi.ko
+[    3.415649][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-intelhdmi.ko with args ''
+[    3.417194][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-intelhdmi.ko
+[    3.418026][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-nvhdmi.ko with args ''
+[    3.419509][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-nvhdmi.ko
+[    3.420313][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-nvhdmi-mcp.ko with args ''
+[    3.421826][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-nvhdmi-mcp.ko
+[    3.422889][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-codec-tegrahdmi.ko with args ''
+[    3.424951][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-codec-tegrahdmi.ko
+[    3.425783][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-hda-intel.ko with args ''
+[    3.427926][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-hda-intel.ko
+[    3.428977][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-acp-config.ko with args ''
+[    3.430376][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-acp-config.ko
+[    3.431164][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-soc-acpi-amd-match.ko with args ''
+[    3.432520][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-soc-acpi-amd-match.ko
+[    3.433562][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-amd-sdw-acpi.ko with args ''
+[    3.435128][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-amd-sdw-acpi.ko
+[    3.436116][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-soc-dmic.ko with args ''
+[    3.437479][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-soc-dmic.ko
+[    3.438433][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-ps-pdm-dma.ko with args ''
+[    3.439887][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-ps-pdm-dma.ko
+[    3.440647][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-ps-sdw-dma.ko with args ''
+[    3.442084][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-ps-sdw-dma.ko
+[    3.443063][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-soc-ps-mach.ko with args ''
+[    3.444662][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-soc-ps-mach.ko
+[    3.445451][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-pci-ps.ko with args ''
+[    3.447080][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-pci-ps.ko
+[    3.448050][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-acp-pcm.ko with args ''
+[    3.449702][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-acp-pcm.ko
+[    3.450460][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-acp-i2s.ko with args ''
+[    3.451852][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-acp-i2s.ko
+[    3.452599][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-acp-pdm.ko with args ''
+[    3.453980][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-acp-pdm.ko
+[    3.454740][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-acp-legacy-common.ko with args ''
+[    3.456484][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-acp-legacy-common.ko
+[    3.457309][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-acp70.ko with args ''
+[    3.458714][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-acp70.ko
+[    3.459453][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-amd-acpi-mach.ko with args ''
+[    3.460775][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-amd-acpi-mach.ko
+[    3.461569][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-acp-pci.ko with args ''
+[    3.463155][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-acp-pci.ko
+[    3.464132][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-soc-rl6231.ko with args ''
+[    3.465519][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-soc-rl6231.ko
+[    3.466277][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-soc-rt1019.ko with args ''
+[    3.467707][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-soc-rt1019.ko
+[    3.468673][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-soc-rt5682.ko with args ''
+[    3.470375][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-soc-rt5682.ko
+[    3.471139][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-soc-rt5682-i2c.ko with args ''
+[    3.472550][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-soc-rt5682-i2c.ko
+[    3.473346][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-soc-rt5682s.ko with args ''
+[    3.475227][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-soc-rt5682s.ko
+[    3.476022][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-soc-nau8821.ko with args ''
+[    3.477692][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-soc-nau8821.ko
+[    3.478472][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-soc-nau8825.ko with args ''
+[    3.480162][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-soc-nau8825.ko
+[    3.481174][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-soc-max98357a.ko with args ''
+[    3.482590][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-soc-max98357a.ko
+[    3.483601][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-soc-max98388.ko with args ''
+[    3.539568][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-soc-max98388.ko
+[    3.540438][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-acp-mach.ko with args ''
+[    3.542078][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-acp-mach.ko
+[    3.542854][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-acp-legacy-mach.ko with args ''
+[    3.544404][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-acp-legacy-mach.ko
+[    3.545217][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-sof-utils.ko with args ''
+[    3.546544][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-sof-utils.ko
+[    3.547317][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-sof.ko with args ''
+[    3.551127][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-sof.ko
+[    3.552070][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-sof-xtensa-dsp.ko with args ''
+[    3.553532][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-sof-xtensa-dsp.ko
+[    3.554758][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-sof-pci.ko with args ''
+[    3.556178][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-sof-pci.ko
+[    3.556935][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-sof-amd-acp.ko with args ''
+[    3.558876][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-sof-amd-acp.ko
+[    3.559883][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-sof-amd-rembrandt.ko with args ''
+[    3.561402][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-sof-amd-rembrandt.ko
+[    3.562436][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-sof-amd-acp63.ko with args ''
+[    3.563908][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-sof-amd-acp63.ko
+[    3.564924][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-sof-amd-acp70.ko with args ''
+[    3.566351][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-sof-amd-acp70.ko
+[    3.567154][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-sof-probes.ko with args ''
+[    3.568836][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-sof-probes.ko
+[    3.569612][  T500] dlkm_loader: Loading module /vendor/lib/modules/snd-acp-sof-mach.ko with args ''
+[    3.571033][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/snd-acp-sof-mach.ko
+[    3.571825][  T500] dlkm_loader: Loading module /vendor/lib/modules/cfg80211.ko with args ''
+[    3.592499][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/cfg80211.ko
+[    3.593498][  T500] dlkm_loader: Loading module /system/lib/modules/libarc4.ko with args ''
+[    3.595262][  T500] dlkm_loader: Loaded kernel module /system/lib/modules/libarc4.ko
+[    3.595964][  T500] dlkm_loader: Loading module /vendor/lib/modules/mac80211.ko with args ''
+[    3.615112][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/mac80211.ko
+[    3.615843][  T500] dlkm_loader: Loading module /vendor/lib/modules/mt76.ko with args ''
+[    3.619601][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/mt76.ko
+[    3.620522][  T500] dlkm_loader: Loading module /vendor/lib/modules/mt76-connac-lib.ko with args ''
+[    3.623041][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/mt76-connac-lib.ko
+[    3.623836][  T500] dlkm_loader: Loading module /vendor/lib/modules/mt792x-lib.ko with args ''
+[    3.626275][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/mt792x-lib.ko
+[    3.627041][  T500] dlkm_loader: Loading module /vendor/lib/modules/mt7925-common.ko with args ''
+[    3.633238][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/mt7925-common.ko
+[    3.634251][  T500] dlkm_loader: Loading module /vendor/lib/modules/mt7925e.ko with args ''
+[    3.636009][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/mt7925e.ko
+[    3.636733][  T500] dlkm_loader: Loading module /vendor/lib/modules/mt7921-common.ko with args ''
+[    3.639768][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/mt7921-common.ko
+[    3.640526][  T500] dlkm_loader: Loading module /vendor/lib/modules/mt7921e.ko with args ''
+[    3.642284][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/mt7921e.ko
+[    3.643004][  T500] dlkm_loader: Loading module /vendor/lib/modules/rtw89_core.ko with args ''
+[    3.654250][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtw89_core.ko
+[    3.654994][  T500] dlkm_loader: Loading module /vendor/lib/modules/rtw89_pci.ko with args ''
+[    3.657966][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtw89_pci.ko
+[    3.658698][  T500] dlkm_loader: Loading module /vendor/lib/modules/rtw89_8851b.ko with args ''
+[    3.662462][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtw89_8851b.ko
+[    3.663425][  T500] dlkm_loader: Loading module /vendor/lib/modules/rtw89_8851be.ko with args ''
+[    3.665239][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtw89_8851be.ko
+[    3.665994][  T500] dlkm_loader: Loading module /vendor/lib/modules/rtw89_8852a.ko with args ''
+[    3.670244][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtw89_8852a.ko
+[    3.670999][  T500] dlkm_loader: Loading module /vendor/lib/modules/rtw89_8852ae.ko with args ''
+[    3.674051][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtw89_8852ae.ko
+[    3.674815][  T500] dlkm_loader: Loading module /vendor/lib/modules/rtw89_8852b_common.ko with args ''
+[    3.677437][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtw89_8852b_common.ko
+[    3.678235][  T500] dlkm_loader: Loading module /vendor/lib/modules/rtw89_8852b.ko with args ''
+[    3.681816][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtw89_8852b.ko
+[    3.682561][  T500] dlkm_loader: Loading module /vendor/lib/modules/rtw89_8852be.ko with args ''
+[    3.684310][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtw89_8852be.ko
+[    3.685076][  T500] dlkm_loader: Loading module /vendor/lib/modules/rtw89_8852c.ko with args ''
+[    3.690174][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtw89_8852c.ko
+[    3.690927][  T500] dlkm_loader: Loading module /vendor/lib/modules/rtw89_8852ce.ko with args ''
+[    3.692657][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtw89_8852ce.ko
+[    3.693614][  T500] dlkm_loader: Loading module /vendor/lib/modules/rtw89_8922a.ko with args ''
+[    3.696169][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtw89_8922a.ko
+[    3.696965][  T500] dlkm_loader: Loading module /vendor/lib/modules/rtw89_8922ae.ko with args ''
+[    3.698741][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/rtw89_8922ae.ko
+[    3.699766][  T500] dlkm_loader: Loading module /system/lib/modules/bluetooth.ko with args ''
+[    3.714493][  T500] dlkm_loader: Loaded kernel module /system/lib/modules/bluetooth.ko
+[    3.715209][  T500] dlkm_loader: Loading module /vendor/lib/modules/btintel.ko with args ''
+[    3.717067][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/btintel.ko
+[    3.717791][  T500] dlkm_loader: Loading module /vendor/lib/modules/btrtl.ko with args ''
+[    3.719256][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/btrtl.ko
+[    3.719959][  T500] dlkm_loader: Loading module /vendor/lib/modules/btmtk.ko with args ''
+[    3.721693][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/btmtk.ko
+[    3.722669][  T500] dlkm_loader: Loading module /system/lib/modules/btbcm.ko with args ''
+[    3.724312][  T500] dlkm_loader: Loaded kernel module /system/lib/modules/btbcm.ko
+[    3.725054][  T500] dlkm_loader: Loading module /vendor/lib/modules/btusb.ko with args ''
+[    3.727699][  T500] dlkm_loader: Loaded kernel module /vendor/lib/modules/btusb.ko
+[    3.728388][  T500] dlkm_loader: Check failed: m.LoadListedModules(false) modules from vendor dlkm weren't loaded correctly
+[    3.746289][  T508] DEBUG: Executable: /vendor/bin/dlkm_loader
+[    3.746727][  T508] DEBUG: Cmdline: /vendor/bin/dlkm_loader
+[    3.747276][  T508] DEBUG: pid: 500, ppid: 1, tid: 500, name: dlkm_loader  >>> /vendor/bin/dlkm_loader <<<
+[    3.756071][  T508] DEBUG:       #01 pc 0000000000015c3d  /vendor/bin/dlkm_loader (android::base::DefaultAborter(char const*)+13) (BuildId: a9b213305f1ed7122441ceea6b053394)
+[    3.757382][  T508] DEBUG:       #02 pc 0000000000017581  /vendor/bin/dlkm_loader (android::base::SetAborter(std::__1::function<void (char const*)>&&)::$_0::__invoke(char const*)+65) (BuildId: a9b213305f1ed7122441ceea6b053394)
+[    3.758756][  T508] DEBUG:       #03 pc 0000000000017084  /vendor/bin/dlkm_loader (android::base::LogMessage::~LogMessage()+564) (BuildId: a9b213305f1ed7122441ceea6b053394)
+[    3.760541][  T508] DEBUG:       #04 pc 00000000000090c9  /vendor/bin/dlkm_loader (main+1833) (BuildId: a9b213305f1ed7122441ceea6b053394)
+[    8.068858][    T1] init: Service 'vendor.dlkm_loader' (pid 500) received SIGABRT oneshot service took 5.027000 seconds in background
+[    8.069916][    T1] init: Sending SIGKILL to service 'vendor.dlkm_loader' (pid 500) process group...
+[    8.071784][    T1] init: Untracked process (pid: 510 name: (dlkm_loader) ppid: 1 pgrp: 510 state: Z) exited with status 0
+[    8.072768][    T1] init: Untracked process (pid: 510 name: (dlkm_loader) ppid: 1 pgrp: 510 state: Z) did not have an associated service entry and will not be reaped
