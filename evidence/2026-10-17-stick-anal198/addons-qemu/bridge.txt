@@ -1,0 +1,52 @@
+added 2 file(s) and loader/entries/openbook-bridge.conf to /home/hive/anybook/installer/bridgecheck/openbook-bridgecheck-anal192c/qemu-br198/stick.img and verified them
+title OpenBook ARM apps check (about 10 min, then powers off)
+version 17 · live
+sort-key openbook-96
+linux /openbook/a/kernel
+initrd /openbook/a/vendor_ramdisk.img
+initrd /openbook/a/ramdisk.img
+initrd /openbook/a/live.img
+initrd /openbook/a/bootconfig-vm-logs.img
+options firmware_class.path=/vendor/firmware log_buf_len=1M bootconfig rdinit=/openbook-live-init console=ttyS0,115200 8250.nr_uarts=1 printk.devkmsg=on androidboot.openbook.addon=bridge androidboot.openbook.addon_timeout=1800
+{"reason": "QEMU exited (0)", "seconds": 432.2, "steps_done": 6, "steps": 6, "hits": [{"step": 0, "wait": "openbook-live: live boot: boot_part_uuid=", "t": 3.7}, {"step": 1, "wait": "openbook-live: logs: saving to openbook/logs/live-\\d+ on the stick.s ESP; add-on bridge", "t": 5.2}, {"step": 2, "wait": "openbook-live: logs: sys.boot_completed=1", "t": 20.8}, {"step": 3, "wait": "openbook-live: addon bridge: running run.sh", "t": 66.0}, {"step": 4, "wait": "openbook-live: addon bridge: run.sh exit", "t": 395.1}, {"step": 5, "wait": "openbook-live: logs: done: ", "t": 428.4}], "qemu_rc": 0, "usb": "/home/hive/anybook/installer/bridgecheck/openbook-bridgecheck-anal192c/qemu-br198/stick.img", "nvme": null, "nvme2": null}
+qemu-run exit 0
+-rw-r--r-- 1 1000 1000 768 Oct 17 19:47 /home/hive/anybook/installer/bridgecheck/openbook-bridgecheck-anal192c/qemu-br198/logs/live-init-001.json
+/home/hive/anybook/installer/bridgecheck/openbook-bridgecheck-anal192c/qemu-br198/logs/live-001:
+total 1312
+drwxr-xr-x 1 1000 1000    306 Oct 17 19:47 .
+drwxr-xr-x 1 1000 1000     52 Oct 17 19:47 ..
+-rw-r--r-- 1 1000 1000     75 Oct 17 19:47 addon-bridge-cleanup.txt
+-rw-r--r-- 1 1000 1000  73728 Oct 17 19:47 addon-bridge-out.tar
+-rw-r--r-- 1 1000 1000     13 Oct 17 19:47 addon-bridge-unpack.txt
+-rw-r--r-- 1 1000 1000   1370 Oct 17 19:47 addon-bridge.txt
+-rw-r--r-- 1 1000 1000 157529 Oct 17 19:47 collect-final.txt
+-rw-r--r-- 1 1000 1000 346180 Oct 17 19:47 dmesg.txt
+-rw-r--r-- 1 1000 1000 335903 Oct 17 19:47 logcat-final.txt
+-rw-r--r-- 1 1000 1000 401962 Oct 17 19:47 screen-final.png
+-rw-r--r-- 1 1000 1000   1857 Oct 17 19:47 summary.json
+openbook-live: logs: saving to openbook/logs/live-001 on the stick's ESP; add-on bridge
+openbook-live: logs: sys.boot_completed=1 at 18 s
+openbook-live: addon bridge: unpacking openbook/bridge/payload
+openbook-live: addon bridge: running run.sh (timeout 1800 s)
+openbook-bridge: start: parts [check probe bench], CoreMark 3 round(s) of 600000 iterations
+openbook-bridge: check: exit 0, 4 check(s) ok
+openbook-bridge: probe x86_64: install: Success
+openbook-bridge: probe x86_64: PROBE_DONE pass=18 fail=0 skip=2, primary ABI x86_64, bridge maps 4
+openbook-bridge: probe arm64: install: Success
+openbook-bridge: probe arm64: PROBE_DONE pass=18 fail=2 skip=0, primary ABI arm64-v8a, bridge maps 4
+openbook-bridge: bench exe x86_64 round 1: 42465.850379 it/s in 14.129000 s valid=yes
+openbook-bridge: bench apk x86_64 round 1: 40155.267033 it/s in 14.942000 s valid=yes
+openbook-bridge: bench exe arm64-v8a round 1: 16235.523325 it/s in 36.956000 s valid=yes
+openbook-bridge: bench apk arm64-v8a round 1: 15793.214182 it/s in 37.991000 s valid=yes
+openbook-bridge: bench exe x86_64 round 2: 41256.962112 it/s in 14.543000 s valid=yes
+openbook-bridge: bench apk x86_64 round 2: 40077.483134 it/s in 14.971000 s valid=yes
+openbook-bridge: bench exe arm64-v8a round 2: 16056.518947 it/s in 37.368000 s valid=yes
+openbook-bridge: bench apk arm64-v8a round 2: 15801.116612 it/s in 37.972000 s valid=yes
+openbook-bridge: bench exe x86_64 round 3: 41701.417848 it/s in 14.388000 s valid=yes
+openbook-bridge: bench apk x86_64 round 3: 40483.098306 it/s in 14.821000 s valid=yes
+openbook-bridge: bench exe arm64-v8a round 3: 16451.427161 it/s in 36.471000 s valid=yes
+openbook-bridge: bench apk arm64-v8a round 3: 15780.337699 it/s in 38.022000 s valid=yes
+openbook-bridge: done: 391.76 s uptime
+openbook-live: addon bridge: run.sh exit 0 after 329 s
+openbook-live: addon bridge: results 73728 bytes (rc 0)
+openbook-live: logs: done: openbook/logs/live-001 (dmesg 346080 bytes, 1 capture(s))

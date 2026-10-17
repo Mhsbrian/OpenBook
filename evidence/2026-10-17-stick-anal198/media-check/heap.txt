@@ -1,0 +1,6 @@
+total 0
+cr--r--r-- 1 system system 249,   0 2026-10-17 19:02 system
+cr--r--r-- 1 system system 249,   1 2026-10-17 19:02 system-uncached
+efivarfs 36864 0 - Live 0x0000000000000000
+system_heap 20480 22 [permanent], Live 0x0000000000000000
+nodev	efivarfs

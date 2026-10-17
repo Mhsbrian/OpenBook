@@ -1,0 +1,3 @@
+media          603 mediaserver
+mediacodec     605 media.swcodec
+35	android.hardware.media.c2.IComponentStore/software: [android.hardware.media.c2.IComponentStore]
