@@ -9,13 +9,13 @@ How OpenBook handles suspend, CPU power, battery, lid, keyboard and touchpad on 
 | Suspend to idle (s2idle) | Works: cycles complete, the panel and Wi-Fi come back (C) | runs 3–7, `evidence/2026-10-16-g14-hwcheck/` |
 | Deepest sleep (S0i3) | **Not reached by our kernel** (C, runs 2–7). The laptop's own Linux 7.2 shows no failure in 4 cycles (C, indirect, §1.1). Root cause open; tests ready (§1.4) | §1 |
 | CPU power | `amd-pstate-epp` active, EPP `balance_performance` (C). The power HAL's EPP hints (ANAL-199) are not yet observed on the laptop | runs 2–7, live-001 |
-| Battery | Level, status and voltage reach Android; **health "unknown", temperature 0, charge counter 0** (C): the ACPI battery has no `health`, `temp` or `charge_counter` file | live-001 `dumpsys battery` |
+| Battery | Level, status and voltage reach Android; **health "unknown", temperature 0, charge counter 0** (C): the ACPI battery has no `health`, `temp` or `charge_counter` file. **The OpenBook health HAL** fills charge counter, state of health and health from the files it has (host tests; built into `anal178b`, runs in QEMU; not yet on the laptop) | live-001 `dumpsys battery`, §3 |
 | Backlight | `amdgpu_bl0`, 0–399000 (C) | live-001 |
 | Thermal | Zones `THRM` (about 40 °C) and `TZ01` (a constant 20 °C), `k10temp` bound. The thermal HAL has not run with a booted framework on the laptop yet | runs 2–7, live-001 |
-| Touchpad | ELAN `04F3:3315`: InputReader classes it `TOUCH \| TOUCH_MT \| TOUCHPAD`, so Android 17's gestures-library mapper drives it (C) | live-001 `dumpsys input` |
+| Touchpad | ELAN `04F3:3315`: InputReader classes it `TOUCH \| TOUCH_MT \| TOUCHPAD`, so Android 17's gestures-library mapper drives it (C). The gestures library logs "Clock changed backwards" about every 40 ms of finger movement (C, ANAL-176's desktop2 boots); cause open, capture added (§2) | live-001 `dumpsys input`, desktop2 logcat |
 | Keyboard | hid-asus, our layout file, keyboard backlight as an input light (`LIGHT`) (C) | live-001 |
-| ASUS hotkeys (WMI) | Used AOSP's `Generic.kl` (C); **now has its own layout** (validated with `validatekeymaps`, not yet on the laptop) | §2 |
-| Lid, power and sleep buttons | Input devices present (C). **Closing the lid did nothing** in AOSP's default config; the new PC overlay makes it sleep (built and checked with `aapt2`/`idmap2`, not yet on the laptop) | §2, §3 |
+| ASUS hotkeys (WMI) | Used AOSP's `Generic.kl` (C); **now has its own layout** (`validatekeymaps`; in the `anal178b` image; not yet on the laptop) | §2 |
+| Lid, power and sleep buttons | Input devices present (C). **Closing the lid did nothing** in AOSP's default config; the new PC overlay makes it sleep. Booted in QEMU, the `anal178b` image reports `getLidBehavior=LID_BEHAVIOR_SLEEP`, short press 6 (lock or sleep), long press = power menu (C, QEMU); not yet on the laptop | §2, §3, §5 |
 
 ## 1. S0i3
 
@@ -62,7 +62,7 @@ sudo python3 scripts/power/linux-s2idle.py --amd-s2idle
 Attach the `openbook-linux-s2idle-<time>.tar.gz` it writes to the issue. The snapshot module taints the kernel until the next reboot; `--no-snapshot` skips it.
 
 **B. Power check on the OpenBook stick** (about 5 minutes):
-1. Plug the stick into the build host and reply with `Add the power check to /dev/disk/by-id/usb-<stick>`. The agent then runs `scripts/power/add-to-live-stick.sh /dev/disk/by-id/usb-<stick> ~/anybook/installer/out/openbook-powercheck-anal178-a-addon`, which writes only new files to the stick's OPENBOOK partition and verifies them. Or run that command yourself.
+1. The `anal178b` image (§5) already carries it. On a stick written from another live image, plug the stick into the build host and reply with `Add the power check to /dev/disk/by-id/usb-<stick>`. The agent then runs `scripts/power/add-to-live-stick.sh /dev/disk/by-id/usb-<stick> ~/anybook/installer/out/openbook-powercheck-anal178-a-addon`, which writes only new files to the stick's OPENBOOK partition and verifies them. Or run that command yourself.
 2. Boot the G14 from the stick, open the boot menu and pick **"OpenBook power check: S0i3"**. The screen stays black; the laptop powers off by itself after about 3 minutes.
 3. Plug the stick into the build host: `scripts/installer/read-stick-logs.sh /dev/disk/by-id/usb-<stick>`, then `scripts/power/s0i3-report.py <dest>/hwcheck-NNN.json <linux>/summary.json`.
 
@@ -89,6 +89,7 @@ Attach the `openbook-linux-s2idle-<time>.tar.gz` it writes to the issue. The sna
 
 - **WMI hotkeys.** AOSP's `Generic.kl` plus `KEY_PROG1..4` → `MACRO_1..4` (as on the keyboard) and `KEY_SELECTIVE_SCREENSHOT` → `SCREENSHOT`. Android 17 has no key code for touchpad toggle, airplane mode, Bluetooth, Wi-Fi or ALS toggle, so those stay unmapped. Fn+F5 (power profile) and the keyboard-backlight codes are handled inside asus-wmi and never reach Android as keys.
 - **Touchpad.** Android 17 classes a multitouch device with `INPUT_PROP_POINTER` and no stylus tool as a touchpad and gives it the gestures library: tap to click, two-finger scroll and swipes, palm rejection. `touch.deviceType` only matters to the older mapper. Gesture tuning (`gestureProp.*`) waits for `getevent -lp` from the laptop, which the save-logs capture now records.
+- **"Clock changed backwards"** (ANAL-176's desktop2 boots: 325 and 300 lines, about every 40 ms while a finger moves). The gestures library's `TimestampFilterInterpreter` rebuilds its time base from `MSC_TIMESTAMP`, re-syncing to the event clock when it goes backwards or is 0, and `LookaheadFilterInterpreter` logs this when a new state is due before the queued one. hid-multitouch derives `MSC_TIMESTAMP` from the device's Scan Time, assumed in 100 µs units, and restarts it at 0 after a second without reports. Neither path explains a jump every 40 ms with a correct device clock, so the device's Scan Time unit or its reports are the suspects (HYPOTHESIS). The save-logs capture now records every HID report descriptor (`HIDDESC`, for the Scan Time unit) and, after `boot_completed`, 20 s of the touchpad's raw events (`TOUCHPADEV`); `live-report.py` turns them into `touchpad_clock` (MSC frames, backward steps, MSC seconds per event second). For that capture, use the touchpad during the 20 s after the desktop appears in a save-logs boot. Possible fixes after that: a gestures property (`Fake Timestamp Delta`) in the IDC, or a hid-multitouch quirk in the kernel lane.
 - **To check on the laptop:** whether brightness and keyboard-backlight keys arrive twice (ACPI video, hid-asus and asus-wmi all advertise them), and what each Fn key sends.
 
 ## 3. Android power
@@ -109,9 +110,9 @@ Attach the `openbook-linux-s2idle-<time>.tar.gz` it writes to the issue. The sna
 | `config_autoPowerModeUseMotionSensor` | true | false |
 
 - **Why the lid needed this (C, Android 17 source).** PhoneWindowManager acts on `Settings.Global.lid_behavior`, which SettingsProvider sets on first boot from `config_lidControlsSleep`. On real Googlebooks a desktop flag sets it to "none" instead (`ro.boot.hardware=android-desktop`). With `LID_BEHAVIOR_SLEEP`, closing the lid calls `goToSleep(…LID_SWITCH…)`; Android then lets the kernel suspend to idle. A stick whose `/data` predates the overlay keeps the old value until "start fresh".
-- **Checked without a build:** `aapt2` links the overlay against the G14 product's own `framework-res.apk`, and `idmap2` maps all 14 values under the vendor policy with overlayable checks on (`android/overlay-check.txt`). Built and booted: next turn of the AOSP lane.
+- **Checked:** `aapt2` links the overlay against the G14 product's own `framework-res.apk`, and `idmap2` maps all 14 values under the vendor policy with overlayable checks on (`android/overlay-check.txt`). **Built and booted in QEMU** (`anal178b`, §5): the RRO carries these 14 values plus ANAL-179's jack setting, and `dumpsys window` shows them in force.
 - **Save logs** (`scripts/installer/live-init.c` COLLECT) now also records suspend statistics (`hw_sleep` is S0i3 time on AMD), Android's power and lid state with the lid and power-button behaviour in force, EPP per CPU policy, thermal sensors, the battery and its charge limit, LEDs, and `getevent -lp`. `live-report.py --expect g14` gains verdicts: `touchpad_gestures`, `key_layouts`, `lid_switch`, `lid_and_power_config`, `s0i3`, `kbd_backlight`, `epp`. Run inside Android 17 in QEMU with `scripts/power/collect-qemu.sh`: every section runs on the image's own mksh and toybox (`qemu/collect-*`). The VM also suspended itself after its screen timeout, one attempt failing with EBUSY.
-- **Health HAL.** AOSP's example HAL reads the ACPI battery but reports health "unknown", temperature 0 and charge counter 0 (C). An OpenBook health HAL could derive health from `charge_full`/`charge_full_design` (88.7 % on this battery) and the counter from `charge_now`; no battery temperature is exposed. Next AOSP lane turn.
+- **Health HAL** (`device/anybook/common/pc/hals/health`, `android.hardware.health-service.openbook`). AOSP's example HAL reads the ACPI battery but reports health "unknown", temperature 0 and charge counter 0 (C), because AOSP's `BatteryMonitor` takes those from `health`, `temp`, `charge_counter` and `state_of_health`, which phone fuel gauges have and ACPI batteries don't. The OpenBook HAL is AOSP's (`libhealth_aidl_impl`) plus a subclass: charge counter from `charge_now`, state of health from `charge_full`/`charge_full_design` (88 % on this battery, run 2), and health GOOD at 80 % and above, FAIR below (the 80 % line is a choice, HYPOTHESIS), only where the kernel reports nothing. `energy_*` batteries are converted with `voltage_min_design`. Values the kernel does report are untouched; no battery temperature exists. Host tests: 18/18 with three battery fixtures (the G14's BAT1, an energy-based worn battery, a mouse and an empty bay to skip). In QEMU the service runs (`init.svc.vendor.health-openbook=running`); a VM has no battery.
 - **Thermal.** `TZ01` reads a constant 20 °C, so it is no skin sensor; picking one needs readings under load (the save-logs `SENSORS` section).
 
 ## 4. Commands
@@ -124,11 +125,33 @@ scripts/power/add-to-live-stick.sh /dev/disk/by-id/usb-<stick> ~/anybook/install
 scripts/power/add-to-live-stick.sh --remove /dev/disk/by-id/usb-<stick>
 sudo python3 scripts/power/linux-s2idle.py [--amd-s2idle] [--dry-run]                            # on the laptop's Linux
 scripts/power/s0i3-report.py hwcheck-NNN.json summary.json [--json out.json]
+# The product and a live image with these pieces, in one lane-lock hold (docs/BUILD.md has the full form):
+flock ~/anybook/aosp/.lane.lock bash -c 'scripts/aosp-docker.sh -d anybook-aosp-build-anal178 /repo/scripts/aosp-build.sh \
+  anybook_g14_x86_64-cp2a-userdebug droid openbook_hals_test validatekeymaps && docker wait anybook-aosp-build-anal178'
+scripts/installer-image.sh --product-out <PRODUCT_OUT snapshot> --label openbook-live-<date>-<name> --menu-timeout 10
+scripts/power/add-to-live-stick.sh --image ~/anybook/installer/out/<label>.img ~/anybook/installer/out/NAME-addon  # then redo .sha256/.xz
 ```
 The installer image needs `make` for the test modules: `docker build -t openbook-installer:anal178 -f tools/Dockerfile.installer tools` (the `latest` tag on the build host predates it).
 
-## 5. Open items
+## 5. The `anal178b` stick (2026-10-17)
+`openbook-live-20261017-anal178b` is one stick for all the open G14 tests:
+- **Contents.** Built from `anal-178/stick-integration`: ANAL-179's `stick-integration` (Wi-Fi, Bluetooth, audio and their save-logs tests, with ANAL-176's desktop4 fixes and `main`), merged with this issue's branch (PR #41: overlay, layouts, save-logs facts), plus the health HAL. The power check add-on is on its ESP.
+- **Image:** sha256 `be09ebb7…` (xz `96600a6e…`), with the add-on; the build record (`.build.json`) says so.
+- **Tests (QEMU):**
+  - the live image matrix (`scripts/installer/live-qemu.sh`, ANAL-190's six cases): **39/39**. In its save-logs case the helper recorded the new sections through `END`, and the health HAL ran ("No battery devices found" in a VM);
+  - the save-logs facts inside Android (`collect-qemu.sh`): COLLECT completes, the lid and power config is in force, `vendor.health-openbook` runs;
+  - the power check entry, unchanged: 10/10.
+  - Evidence: `evidence/2026-10-17-power-input/anal178b/`.
+- **Owner steps.** Write it instead of `audionet3` (it contains it). ANAL-179's steps (`docs/g14-audio-net.md` §7) apply unchanged; for this issue:
+  1. In a normal **"OpenBook"** boot, once the desktop is up: close the lid for about a minute, then open it. The screen should come back (lock screen). Note it if it doesn't; the next "save logs" boot collects this boot's logs too.
+  2. In the **"save logs"** boot, use the touchpad (move, two-finger scroll, tap) for about 20 s as soon as the desktop appears.
+  3. Boot **"OpenBook power check: S0i3"** once.
+  4. Optionally, step A of §1.5 on the laptop's Linux.
+
+## 6. Open items
 - S0i3: results of §1.5 A and B, then the fix in the kernel lane (§1.6).
-- Android: build the overlay, the WMI layout and the save-logs facts into the next live image (AOSP lane after ANAL-179); health HAL; thermal skin sensor; gesture tuning.
-- On the laptop: double brightness/backlight steps, the Fn key map, lid close → sleep → S0i3 once fixed.
+- On the laptop (the `anal178b` steps, §5): lid close → sleep → wake, the health HAL's values, EPP hints, the touchpad clock capture; then double brightness/backlight steps and the Fn key map.
+- Touchpad "Clock changed backwards": decide the fix from the `touchpad_clock` capture (§2).
+- Thermal skin sensor and gesture tuning: need readings and feel from the laptop.
+- `service list` hangs in QEMU on the Wi-Fi/Bluetooth/audio images at the service after `IAuthSecret` (the Bluetooth HAL with no adapter, HYPOTHESIS; ANAL-179's area); save logs now bounds it to 30 s.
 - amd-pmf (owner decision, `docs/kernel.md`): the §1.5 Linux run shows whether S0i3 needs it.
