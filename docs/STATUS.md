@@ -49,7 +49,7 @@
 
 | Issue | State | Next step | Needs |
 |---|---|---|---|
-| ANAL-176 G14 desktop and stability | In review | The enforcing default entry reached the desktop on `anal178c` (28 s, 23 denials). Next: merge `anal-176/live-stick-safety`, then on the next stick from `main` check no storage notice for the stick, no lock screen at boot, and no dropped frames (`docs/g14-desktop.md` §6, §11) | Next combined stick |
+| ANAL-176 G14 desktop and stability | In review | The enforcing default entry reached the desktop on `anal178c` (28 s, 23 denials). Next: the owner writes `openbook-live-20261017-anal176s` (`anal178c` + PR #52, QEMU 40/40) and checks: no storage notice for the stick, no lock screen at boot, no dropped frames (`docs/g14-desktop.md` §6, §11) | Owner's run of `anal176s` |
 | ANAL-177 graphics conformance | In review | Read the G14 dEQP/ANGLE results; decide Vulkan 1.1 or 1.4 (the 610M favours 1.4); add matrix rows | Owner's stick run (boot D) |
 | ANAL-178 input and power | In review | Read the lid, touchpad and power check results; then the S0i3 fix (kernel lane), the touchpad clock warnings, the skin sensor | Owner's stick run (boots A–C) |
 | ANAL-179 Wi-Fi, Bluetooth, audio | In review | Read Wi-Fi, pairing and speaker/mic results; fix what fails; speaker tuning | Owner's stick run |

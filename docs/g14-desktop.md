@@ -93,7 +93,7 @@ Denials on the VM path (`avc-summary.py` on the save-logs case): 41 Android line
 
 ## 6. On the G14: owner checklist (after the `anal178c` boots)
 
-The default, enforcing entry now reaches the desktop (§11). The next combined stick from `main` (once `anal-176/live-stick-safety` is merged) carries the three fixes from that session. It checks:
+The default, enforcing entry now reaches the desktop (§11). **`openbook-live-20261017-anal176s`** carries the three fixes from that session. It is `anal178c` (`main`) plus PR #52, with the same power and graphics check add-ons, and passes the QEMU matrix 40/40 (`evidence/2026-10-17-g14-desktop/anal176s/`). Its sha256 is `e3fbd5ab…`. With it:
 1. Boot **"OpenBook"** on the freshly written stick. Expected: the boot animation at about 17 s, the desktop at about 30 s, and **no lock screen**: it should not go black 10 s after the desktop appears.
 2. **No "USB drive" or "set up" notice for the stick.** Until this fix is on your stick: if one appears, dismiss it, and never confirm a format in a storage wizard. It would format the stick you are running from.
 3. Use it for 10 minutes or more: Wi-Fi with a password dialog, the browser, Settings, a few windows. Note any freeze or flicker, and when. Those are the frames §11 found dropped; the overlay-plane change should remove them (H).
@@ -101,7 +101,12 @@ The default, enforcing entry now reaches the desktop (§11). The next combined s
 5. Avoid the lid, a short press of the power button, and 10 minutes idle: sleep is ANAL-178's work.
 6. Stop with Quick Settings → power icon → **Power off**. Then boot **"save logs"** once, plug the stick into the PC, and reply "stick attached" with notes.
 
-Writing a stick: `scripts/installer/write-stick.sh <image> /dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0` with `OPENBOOK_WRITE_CONFIRM` set to the same device. It erases the stick and first copies the reports on it to `~/anybook/installer/stick-backup/`.
+Writing the stick erases it; `write-stick.sh` first copies the reports on it to `~/anybook/installer/stick-backup/`:
+```bash
+OPENBOOK_WRITE_CONFIRM=/dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0 \
+  scripts/installer/write-stick.sh ~/anybook/installer/out/openbook-live-20261017-anal176s.img \
+  /dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0
+```
 
 **Acceptance** (from the issue): a photo of the desktop on the panel, `boot_completed=1` in the saved logs, the `live-report.py --expect g14` verdicts, and fewer than 66 denials by `avc-summary.py`'s kernel-log count.
 
