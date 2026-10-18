@@ -1,0 +1,35 @@
+build=OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+power_sounds=1 low_battery_sound=/product/media/audio/ui/OpenBook_LowBattery.ogg notification_sound=content://media/internal/audio/media/67?title=Spark&canonical=1
+enforcing=Enforcing uptime=205.84
+Bad value: true
+lowbatt_at=208.92
+notif_at=218.96
+10-18 12:58:16.819  2634  2776 D RingtonePlayer: play uri=file:///product/media/audio/ui/OpenBook_LowBattery.ogg
+10-18 12:58:17.420  2634  3929 D RingtonePlayer: player.start piid:135
+10-18 12:58:17.469   626  3938 E AudioTrack: createTrack_l(0): Could not get control block
+10-18 12:58:17.470   626  3938 E AudioSink: Unable to create audio track
+10-18 12:58:17.470   626  3938 W NuPlayerRenderer: openAudioSink: non offloaded open failed status: -19
+10-18 12:58:17.470   626  3931 E NuPlayer: received error(0xffffffed) from audio decoder, flushing(0), now shutting down
+10-18 12:58:17.471  2634  2776 E MediaPlayerNative: error (1, -19)
+10-18 12:58:17.471  2634  3929 E MediaPlayer: Error (1,-19)
+10-18 12:58:17.471  2634  3929 E RingtonePlayer: error 1 (extra=-19) playing notification
+10-18 12:58:17.471  2634  3929 D RingtonePlayer: onCompletion() abandoning AudioFocus
+10-18 12:58:17.472  2634  3929 D RingtonePlayer: onCompletion queue size=0
+10-18 12:58:29.880  2634  2664 D RingtonePlayer: play uri=content://settings/system/notification_sound
+10-18 12:58:30.399  2634  3960 D RingtonePlayer: player.start piid:143
+10-18 12:58:30.415   626  3965 E AudioTrack: createTrack_l(0): Could not get control block
+10-18 12:58:30.415   626  3965 E AudioSink: Unable to create audio track
+10-18 12:58:30.415   626  3965 W NuPlayerRenderer: openAudioSink: non offloaded open failed status: -19
+10-18 12:58:30.415   626  3962 E NuPlayer: received error(0xffffffed) from audio decoder, flushing(0), now shutting down
+10-18 12:58:30.415  2634  2664 E MediaPlayerNative: error (1, -19)
+10-18 12:58:30.415  2634  3960 E MediaPlayer: Error (1,-19)
+10-18 12:58:30.415  2634  3960 E RingtonePlayer: error 1 (extra=-19) playing notification
+10-18 12:58:30.415  2634  3960 D RingtonePlayer: onCompletion() abandoning AudioFocus
+10-18 12:58:30.416  2634  3960 D RingtonePlayer: onCompletion queue size=0
+plays=2
+control_block_failures=2
+player_errors=2
+mediaserver_denials=2
+      2 denied { read write } mediaserver audioserver_tmpfs file permissive=0
+10-18 12:58:16.819   761   761 I notification_alert: [-1|com.android.systemui|3|low_battery|10086,0,1,0,0,0]
+10-18 12:58:29.880   761   761 I notification_alert: [0|com.android.shell|2020|mp1|2000,0,1,0,0,0]

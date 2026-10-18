@@ -1,0 +1,24 @@
+# anal192d, read from the host copy ~/anybook/installer/g14/stick-20261018T123221Z (read-stick-logs.sh, 12:32Z)
+# default = live-001/prior/misc/logd (persisted logcat, 11:00:41-11:59:04Z); savelogs = live-001/logcat-final.txt; armcheck = live-002/logcat-final.txt
+
+boot         lines  FATAL  am_crash   ANR  native_crash sysui_start sysui_died minimize max_toggle     closes
+default     208101      1         1     0             0         1         0        1        5         24
+savelogs     17289      0         0     0             0         1         0        0        0          1
+armcheck      4101      0         0     0             0         0         0        0        0          1
+(armcheck's log starts at 12:05:15Z, after SystemUI started)
+
+## The one crash (default boot)
+10-18 11:05:07.132327  1000  1220  3569 I am_crash: [5315,0,com.android.wallpaper,550223429,java.lang.NullPointerException,Parameter specified as non-null is null: method com.android.wallpaper.picker.preview.ui.WallpaperPreviewActivity$requestFullscreen$1.onRe
+
+## The two failures B3 dropped in Cuttlefish: their signatures
+default: 'Expected non-null decoration container surface' 0
+savelogs: 'Expected non-null decoration container surface' 0
+armcheck: 'Expected non-null decoration container surface' 0
+
+## Error kinds that predate B3: count per G14 session (all logcat files in each host copy)
+session                   close-cuj tc-mismatch tc-nochain sysui-E-7f
+stick-20261017T122351Z            5          8         27         56
+stick-20261017T135624Z           14          2         35         51
+stick-20261017T154112Z            4          5         43         45
+stick-20261018T123221Z           27          8         35         80
+(stick-20261018T123221Z is anal192d, the first G14 session with B3; the other three are from 2026-10-17, before B3 was merged. Counts grow with session length and use, and the files of one copy overlap in time, so compare orders of magnitude only.)
