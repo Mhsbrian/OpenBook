@@ -1,0 +1,55 @@
+{
+ "case": "cut",
+ "checks": [
+  {
+   "check": "power cut while update_engine writes slot b",
+   "ok": true,
+   "detail": "at progress 42"
+  },
+  {
+   "check": "after the cut slot a boots, the old build, /data intact",
+   "ok": true,
+   "detail": "{'VBMETA': ('6d3735b9f31f31e923025243af06f6396673f8efcaef6b6fa3de862367498acf', '6d3735b9f31f31e923025243af06f6396673f8efcaef6b6fa3de862367498acf'), 'MARKER': ('e15da3960417fa11', 'e15da3960417fa11'), 'FILE': ('a2366ced60eabe4675687b9a5d1f23820798a0c5e5626c6833557f681f9a07f8', 'a2366ced60eabe4675687b9a5d1f23820798a0c5e5626c6833557f681f9a07f8'), 'APP': ('package:dev.anybook.probe.x86_64 versionCode:1', 'package:dev.anybook.probe.x86_64 versionCode:1')}"
+  },
+  {
+   "check": "the update re-run completes and verifies",
+   "ok": true,
+   "detail": "0.1:34245 wait && g14-adb.sh -a 127.0.0.1:34245 ota-status\n  Not yet:    g14-adb.sh -a 127.0.0.1:34245 ota-cancel        (before rebooting: slot a stays, as if nothing happened)\nIf slot b does not come up: it gets 3 tries. Hold the power button 10 s to force each restart; after the third\nfailed start systemd-boot starts slot a again by itself, with /data as it was. To pick a slot by hand: hold a key\nwhile powering on and choose \"OpenBook (17 \u00b7 slot A)\". Slot b counts as good once Android has booted it\n(markBootSuccessful); from then on update_engine merges, and slot a is no longer a fallback.\n"
+  },
+  {
+   "check": "slot b boots",
+   "ok": true,
+   "detail": "b"
+  },
+  {
+   "check": "after the re-run: the PIN unlocks the user's storage",
+   "ok": true,
+   "detail": "Lock credential verified successfully"
+  },
+  {
+   "check": "after the re-run: slot b runs the package's build (vbmeta digest, build date)",
+   "ok": true,
+   "detail": "{'SLOT': '_b', 'VBMETA': 'e0ec4b9ccb2df1e7b01c41e097b3d2b4ee56d14a3d1ecbf92db28b49acaa4fac', 'DATE': '1792362725'}"
+  },
+  {
+   "check": "after the re-run: /data intact: the setting, the 4 MiB file, the app, the serial number, provisioned",
+   "ok": true,
+   "detail": "{}"
+  },
+  {
+   "check": "after the re-run: no setup screen after the update (OpenBookSetup steps aside on a provisioned system)",
+   "ok": true,
+   "detail": "com.android.launcher3/.uioverrides.QuickstepLauncher"
+  },
+  {
+   "check": "after the re-run: SELinux enforcing; the OpenBook boot HAL runs",
+   "ok": true,
+   "detail": "running/"
+  },
+  {
+   "check": "the merge completes",
+   "ok": true,
+   "detail": "10-18 23:18:01.330   668   668 I update_engine: [INFO:cleanup_previous_update_action.cc(342)] Merge finished with state MergeCompleted.\n10-18 23:18:09.250  1521  1521 I adbd    : adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -b all | grep -E 'Merge finished with state|MergeFailed|merge failed' | tail -n 3; snapshotctl dump 2>&1 | grep -iE 'update.?state' | head -n 1'\nUpdate state: none"
+  }
+ ]
+}
