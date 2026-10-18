@@ -28,7 +28,7 @@ import (
 	"github.com/Mhsbrian/OpenBook/quire/quired/internal/harness"
 )
 
-const version = "0.2.0"
+const version = "0.2.1"
 
 var clientInfo = acp.Implementation{Name: "quired", Title: "Quire harness host (OpenBook)", Version: version}
 
