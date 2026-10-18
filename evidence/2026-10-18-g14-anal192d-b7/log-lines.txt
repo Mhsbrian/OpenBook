@@ -1,0 +1,48 @@
+# B7 log lines, G14 session anal192d (host copy stick-20261018T123221Z, read-only).
+# Boot A: default "OpenBook" boot, enforcing, ~11:00-11:59Z (live-001/prior/misc/logd/logcat*, concatenated oldest first;
+#   its tail also holds the start of boot B). Boot B: "save logs" (live-001/logcat-final.txt). Boot C: "ARM apps check" (live-002).
+
+## The zygote reads /system/etc/fonts.xml (B7's patched file: families at ../../product/fonts/) at every boot
+10-18 11:59:42.131148  root   965   965 I SystemFonts: Loading font config from /system/etc/fonts.xml
+10-18 11:59:45.282453  1000  1183  1422 I SystemFonts: Loading font config from /system/etc/font_fallback.xml
+10-18 11:00:51.560565  root   980   980 I SystemFonts: Loading font config from /system/etc/fonts.xml
+10-18 11:00:59.804693  1000  1220  3392 I SystemFonts: Loading font config from /system/etc/font_fallback.xml
+warnings or errors tagged SystemFonts, FontListParser, FontCustomizationParser, Typeface or FontManagerService, all boots: 0
+(the 40 W "TypefaceCache: MISS" lines, 28 from com.android.systemui and 12 from com.android.wallpaper, are a Compose typeface cache
+ looking up each font variation for the first time, "Total: 1..4" per process start; they are not font errors)
+lines naming a B7 font file (Arimo, Tinos, Cousine, Gelasio, ComicRelief, Archivo) or /product/fonts, all boots and dmesg: 0
+SELinux denials naming a font file type (system_font|font_data|fonts), all boots: 0
+
+## Browser sessions in boot A (WebView Shell, WebView 145, sandboxed renderers)
+10-18 11:14:49.229025  1000  1220  1312 I ActivityManager: Killing 6355:org.chromium.webview_shell/u0a70 (adj 905): remove task
+10-18 11:05:58.632209  1000  1220  1319 I ActivityManager: Start proc 5932:org.chromium.webview_shell/u0a70 for top-activity {org.chromium.webview_shell/org.chromium.webview_s
+10-18 11:05:58.724110  1000  1220  1319 I ActivityManager: Start proc 5966:com.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0/u0i1 for 
+10-18 11:05:58.867150  1000  1220  1309 I ActivityTaskManager: Displayed org.chromium.webview_shell/.WebViewBrowserActivity for user 0: +248ms
+10-18 11:06:01.230103  1000  1220  1319 I ActivityManager: Start proc 6047:com.android.webview:webview_service/u0a80 for bound-service {com.android.webview/org.chromium.androi
+10-18 11:07:14.051564  1000  1220  1312 I ActivityManager: Killing 5932:org.chromium.webview_shell/u0a70 (adj 905): remove task
+10-18 11:07:39.566377  1000  1220  1319 I ActivityManager: Start proc 6355:org.chromium.webview_shell/u0a70 for top-activity {org.chromium.webview_shell/org.chromium.webview_s
+10-18 11:07:39.650820  1000  1220  1319 I ActivityManager: Start proc 6389:com.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0/u0i2 for 
+10-18 11:07:39.769551  1000  1220  1309 I ActivityTaskManager: Displayed org.chromium.webview_shell/.WebViewBrowserActivity for user 0: +214ms
+10-18 11:01:49.906429  1000  1220  1319 I ActivityManager: Start proc 4856:org.chromium.webview_shell/u0a70 for top-activity {org.chromium.webview_shell/org.chromium.webview_s
+10-18 11:01:50.081481  1000  1220  1304 I ActivityManager: Start proc 4894:com.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0/u0ai9000 
+10-18 11:01:50.350181  1000  1220  1309 I ActivityTaskManager: Displayed org.chromium.webview_shell/.WebViewBrowserActivity for user 0: +462ms
+10-18 11:01:52.041595  1000  1220  1312 I ActivityManager: Killing 4856:org.chromium.webview_shell/u0a70 (adj 905): remove task
+
+## Pages, from the browser's console-message sources (count per origin)
+    150 source: https://challenges.cloudflare.com
+      8 source: https://m.youtube.com
+      6 source: https://static.adsafeprotected.com
+      6 source: https://securepubads.g.doubleclick.net
+      6 source: https://fw.adsafeprotected.com
+      4 source: https://auroraoss.com
+      3 source: https://cdn.ampproject.org
+      1 source: https://stc.utdstc.com
+      1 source: https://aurora-store.en.uptodown.com
+
+## Health of the browser and renderer processes (3756 log lines, pids 5932 5966 6355 6389 4856 4894 )
+FATAL / SIGSEGV / native crash lines: 0
+lines from these processes mentioning a font, other than page console output: 0
+dropbox crash entries (live-001/prior/system/dropbox): 1 (system_app_crash@1792321507133.txt ); the one system_app_crash is com.android.wallpaper (ANAL-202's evidence), not the browser
+chromium E lines: 41. 36 on the in-process GPU thread (WebGL GL_INVALID_OPERATION on glFramebufferTexture2DMultisample /
+glReadPixels, 11:06-11:14, on YouTube and the later pages), 3 on the network thread (SSL handshake failed, net_error -201),
+2 "variations seed missing signature" (AOSP WebView has no variations seed). None is about fonts

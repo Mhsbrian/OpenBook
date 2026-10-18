@@ -1,0 +1,51 @@
+# anal192d, default "OpenBook" boot (enforcing), 11:00:41-11:59Z, persisted logcat (live-001/prior)
+Could not open DMA-BUF heap                                                 0
+C2Store *: Using DMABUF Heaps                                               4
+Created component \[c2.android.vorbis.decoder\]                             10
+No matching decoder                                                         0
+Failed to create audio/vorbis decoder                                       0
+RingtonePlayer: player.start                                                1
+Could not get control block                                                 1
+MediaPlayerNative: error                                                    1
+Launching fragment com.android.settings.notification.SoundSettings          0
+am_proc_start.*soundpicker                                                  0
+
+# Settings screens opened in that boot (no Sound page, no SoundPicker)
+com.android.settings.DisplaySettings
+com.android.settings.applications.AppDashboardFragment
+com.android.settings.applications.manageapplications.ManageApplications
+com.android.settings.accounts.AccountDashboardFragment
+
+# memfd denials (tmpfs types) in that boot
+avc:  denied  { read write } for  comm="audioserver" dev="tmpfs" ino=11867 scontext=u:r:mediaserver:s0 tcontext=u:object_r:audioserver_tmpfs:s0 tclass=file permissive=0
+
+# GPU: amdgpu ring timeouts, resets, page faults in that boot (kernel lines in the persisted logcat)
+0
+
+# live-001: modules, mount, logcat counts
+efivarfs 36864 1 - Live 0x0000000000000000
+system_heap 20480 49 [permanent], Live 0x0000000000000000
+efivarfs /sys/firmware/efi/efivars efivarfs rw,nosuid,nodev,noexec,relatime 0 0
+modprobe: Loaded kernel module /vendor/lib/modules/system_heap.ko
+modprobe: Loaded kernel module /vendor/lib/modules/efivarfs.ko
+Could not open DMA-BUF heap: 0
+
+# live-002: modules, mount, logcat counts
+efivarfs 36864 1 - Live 0x0000000000000000
+system_heap 20480 53 [permanent], Live 0x0000000000000000
+efivarfs /sys/firmware/efi/efivars efivarfs rw,nosuid,nodev,noexec,relatime 0 0
+modprobe: Loaded kernel module /vendor/lib/modules/system_heap.ko
+modprobe: Loaded kernel module /vendor/lib/modules/efivarfs.ko
+Could not open DMA-BUF heap: 0
+
+# live-001 dmesg: amdgpu firmware lines (amdgpu_firmware_info itself was not captured)
+amdgpu 0000:65:00.0: amdgpu: detected ip block number 3 <psp_v13_0_0> (psp)
+amdgpu 0000:65:00.0: amdgpu: detected ip block number 4 <smu_v14_0_0> (smu)
+amdgpu 0000:65:00.0: amdgpu: detected ip block number 6 <gfx_v11_0_0> (gfx_v11_0)
+amdgpu 0000:65:00.0: amdgpu: detected ip block number 8 <vcn_v4_0_5> (vcn_v4_0_5)
+amdgpu 0000:65:00.0: amdgpu: detected ip block number 9 <jpeg_v4_0_5> (jpeg_v4_0_5)
+amdgpu 0000:65:00.0: amdgpu: detected ip block number 10 <mes_v11_0_0> (mes_v11_0)
+amdgpu 0000:65:00.0: amdgpu: detected ip block number 11 <vpe_v6_1_0> (vpe_v6_1)
+amdgpu 0000:65:00.0: amdgpu: [drm] Loading DMUB firmware via PSP: version=0x09005700
+amdgpu 0000:65:00.0: amdgpu: [VCN instance 0] Found VCN firmware Version ENC: 1.24 DEC: 9 VEP: 0 Revision: 34
+amdgpu 0000:65:00.0: amdgpu: SMU is initialized successfully!
