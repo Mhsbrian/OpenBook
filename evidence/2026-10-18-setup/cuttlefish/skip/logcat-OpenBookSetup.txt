@@ -1,0 +1,2 @@
+10-18 09:12:40.087  2774  2774 I OpenBookSetup: setup started (locale en-US)
+10-18 09:12:52.427  2774  2774 I OpenBookSetup: setup complete (skipped by the user on welcome); provisioned=true
