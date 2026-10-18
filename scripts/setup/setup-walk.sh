@@ -7,7 +7,8 @@
 #           24-hour clock, a name and a PIN, then the desktop
 #   skip    "Skip setup" on the first page
 #   absent  setup must not show at all (a boot with androidboot.openbook.setup=skip, or ro.setupwizard.mode=DISABLED)
-# Every mode then checks device_provisioned and user_setup_complete (1), that setup is off and Provision is gone.
+# Every mode then checks device_provisioned and user_setup_complete (1), that setup is off, Provision is gone and setup
+# never crashed.
 # Writes OUTDIR/*.png, OUTDIR/state.txt and OUTDIR/results.json; exits 1 if a check failed.
 #
 # usage: setup-walk.sh SERIAL OUTDIR MODE
@@ -121,6 +122,8 @@ check "OpenBookSetup installed, Provision not (overridden)" "$([ -z "$PROVP" ] &
 SUW=$(sh_ cmd package resolve-activity -a android.intent.action.MAIN -c android.intent.category.SETUP_WIZARD --components 2>/dev/null | tail -n 1 || true)
 t=$(top); check "the launcher is on top" "$(echo "$t" | grep -qi launcher; echo $?)" "$t"
 LOG=$(sh_ logcat -d -s OpenBookSetup:V | grep -v '^-' || true)
+CRASH=$(sh_ logcat -d -b events | grep -E 'am_(crash|anr)' | grep -F org.openbook.setup || true)
+check "setup never crashed (am_crash, am_anr)" "$([ -z "$CRASH" ]; echo $?)" "${CRASH:-none}"
 echo "$LOG" > "$O/logcat-OpenBookSetup.txt"
 case $MODE in
   walk)
