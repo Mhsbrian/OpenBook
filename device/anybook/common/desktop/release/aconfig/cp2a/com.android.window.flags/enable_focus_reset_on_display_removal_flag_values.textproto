@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 5: focus returns to the default display when an external one is unplugged
+flag_value {
+  package: "com.android.window.flags"
+  name: "enable_focus_reset_on_display_removal"
+  state: ENABLED
+  permission: READ_ONLY
+}

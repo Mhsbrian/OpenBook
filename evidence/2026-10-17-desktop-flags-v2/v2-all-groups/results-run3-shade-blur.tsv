@@ -1,0 +1,10 @@
+check	result	detail
+flag state	INFO	group 1: 6/6 enabled; group 2: 2/2 enabled; group 3: 14/14 enabled; group 4: 16/16 enabled; group 5: 42/42 enabled; group 6: 6/6 enabled
+window shadows (SurfaceFlinger)	INFO	'boxShadow' mentions: 40, layers with shadowRadius>0: 0
+QS tile hover (tooltip)	INFO	tile Wi-Fi,null (1542, 200, 1586, 244); tooltip-like nodes: 0
+notification hover	INFO	no notification row in the shade dump
+power menu blur	INFO	layers with backgroundBlurRadius>0: 4
+volume dialog blur	INFO	layers with backgroundBlurRadius>0: 0
+crash buffer	PASS	0 lines; 
+ANRs	PASS	am_anr events: 0
+SELinux denials	INFO	3 distinct

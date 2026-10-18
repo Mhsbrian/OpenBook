@@ -1,0 +1,40 @@
+# AnyBook/anybook_cf_x86_64_pc/anybook_vsoc_x86_64:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+## framework values as resolved (cmd overlay lookup)
+string/config_icon_mask = M 50 0 L 92 0 A 8 8 0 0 1 100 8 L 100 92 A 8 8 0 0 1 92 100 L 8 100 A 8 8 0 0 1 0 92 L 0 8 A 8 8 0 0 1 8 0 L 50 0 Z
+bool/config_useRoundIcon = false
+dimen/config_wallpaperDimAmount = 0.05
+## enabled overlays targeting android
+[x] android.auto_generated_rro_vendor__
+[x] android.cuttlefish.overlay
+[x] android.auto_generated_characteristics_rro
+[x] dev.anybook.overlay.desktop.framework
+[x] com.android.internal.systemui.navbar.gestural
+[x] com.android.systemui:neutral
+[x] com.android.systemui:accent
+[x] com.android.systemui:dynamic
+## properties
+persist.wallpapercolors.threshold=[]
+persist.wallpapercolors.max_dark_area=[]
+## Launcher3 shape options (is_default marks the one the picker shows as selected)
+Row: 0 shape_key=circle, shape_title=Circle, is_default=true
+Row: 1 shape_key=square, shape_title=Square, is_default=false
+Row: 2 shape_key=four_sided_cookie, shape_title=4-sided cookie, is_default=false
+Row: 3 shape_key=seven_sided_cookie, shape_title=7-sided cookie, is_default=false
+Row: 4 shape_key=arch, shape_title=Arch, is_default=false
+## Wallpaper & style (ThemePicker)
+package:com.android.wallpaper
+package:com.android.wallpapercropper
+package:com.android.wallpaperbackup
+package:com.android.wallpaper.livepicker
+## crash buffer
+--------- beginning of crash
+10-18 01:01:22.922  7203  7203 E AndroidRuntime: *** FATAL EXCEPTION IN SYSTEM PROCESS: main
+10-18 01:01:22.922  7203  7203 E AndroidRuntime: DeadSystemException: The system died; earlier logs will point to the root cause
+10-18 01:01:22.923  7203  7203 E AndroidRuntime: Couldn't report crash. Here's the crash:
+10-18 01:01:22.923  7203  7203 E AndroidRuntime: DeadSystemException: The system died; earlier logs will point to the root cause
+10-18 01:01:22.923  7203  7203 E AndroidRuntime: Error reporting crash. Here's the error:
+10-18 01:01:22.923  7203  7203 E AndroidRuntime: java.lang.NullPointerException: Attempt to invoke interface method 'void android.app.IActivityManager.handleApplicationCrash(android.os.IBinder, android.app.ApplicationErrorReport$ParcelableCrashInfo)' on a null object reference
+10-18 01:01:22.923  7203  7203 E AndroidRuntime: 	at com.android.internal.os.RuntimeInit$KillApplicationHandler.uncaughtException(RuntimeInit.java:166)
+10-18 01:01:22.923  7203  7203 E AndroidRuntime: 	at java.lang.ThreadGroup.uncaughtException(ThreadGroup.java:1098)
+10-18 01:01:22.923  7203  7203 E AndroidRuntime: 	at java.lang.ThreadGroup.uncaughtException(ThreadGroup.java:1093)
+10-18 01:01:22.923  7203  7203 E AndroidRuntime: 	at java.lang.Thread.dispatchUncaughtException(Thread.java:3387)

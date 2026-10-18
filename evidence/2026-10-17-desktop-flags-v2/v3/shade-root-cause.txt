@@ -1,0 +1,24 @@
+# v3, lock screen disabled (OpenBook's default, config_disableLockscreenByDefault=true): SystemUI starts on the Gone scene.
+# The placeholder view model has expandFraction=1.0, the stack never receives it, and its rows are never laid out (0,0-0,0).
+1 [877078a] NotificationScrollViewBinder:
+2 com.android.systemui.statusbar.notification.row.ExpandableNotificationRow{c534697 VFE...C.X ......I. 0,0-0,0 #7f0a0341 app:id/expandableNotificationRow}
+2 com.android.systemui.statusbar.notification.row.ExpandableNotificationRow{c9d4b17 VFE...C.X ......I. 0,0-0,0 #7f0a0341 app:id/expandableNotificationRow}
+2 com.android.systemui.statusbar.notification.row.ExpandableNotificationRow{f15c063 VFE.....X ......I. 0,0-0,0 #7f0a0341 app:id/expandableNotificationRow}
+1 CRITICAL dump took 0ms -- [877078a] NotificationScrollViewBinder
+1 currentOverlays=notifications_shade
+1 currentScene=gone
+4 expandFraction=1.0
+1 mExpansionFraction=0.0
+1 mStackHeight=0.0
+
+# The same v3 image after 'locksettings set-pin 1234' and a reboot: the initial scene is Lockscreen, the stack is bound and the rows are laid out.
+2 com.android.systemui.statusbar.notification.row.ExpandableNotificationRow{2f7f939 V.E.....X ........ 0,0-344,101 #7f0a0341 app:id/expandableNotificationRow}
+2 com.android.systemui.statusbar.notification.row.ExpandableNotificationRow{4a9363d VFE.....X ........ 16,0-360,274 #7f0a0341 app:id/expandableNotificationRow}
+2 com.android.systemui.statusbar.notification.row.ExpandableNotificationRow{9a40ec2 VFE...C.X ........ 16,0-360,100 #7f0a0341 app:id/expandableNotificationRow}
+2 com.android.systemui.statusbar.notification.row.ExpandableNotificationRow{eadee5e V.E.....X ........ 0,0-344,101 #7f0a0341 app:id/expandableNotificationRow}
+2 com.android.systemui.statusbar.notification.row.ExpandableNotificationRow{f3ac3a8 VFE...C.X ........ 16,0-360,136 #7f0a0341 app:id/expandableNotificationRow}
+1 currentOverlays=notifications_shade
+1 currentScene=gone
+5 expandFraction=1.0
+1 mExpansionFraction=1.0
+1 mStackHeight=380.0
