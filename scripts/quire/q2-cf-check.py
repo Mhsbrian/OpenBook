@@ -389,6 +389,9 @@ def night(d):
 
 def control(d):
     d.log("== control")
+    # Settings starts fresh on the session display. Already running on the person's display, its windows on the
+    # session display have no accessibility tree for the agent (0 windows, seen 2026-10-18; docs/quire.md §8).
+    d.sh(f"am force-stop {SETTINGS}")
     d.sh("cmd uimode night no")
     time.sleep(2)
     d.result("Dark theme off before", night(d).endswith("no"), night(d))

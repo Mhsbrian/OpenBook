@@ -1,0 +1,661 @@
+SERVICE com.android.launcher3/com.android.quickstep.TouchInteractionService 9aa516c pid=2938 user=0
+  Client:
+    PluginManager:
+      numEnabledPlugins=0
+      numDisabledPlugins=0
+      enabledPlugins=[]
+      disabledPlugins=[]
+    OverviewComponentObserver:
+      isDefaultHome=true
+      isHomeDisabled=false
+      homeAndOverviewSame=true
+      overviewIntent=Intent { act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10000000 pkg=com.android.launcher3 cmp=com.android.launcher3/.uioverrides.QuickstepLauncher }
+      homeIntent=Intent { act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10000000 cmp=com.android.launcher3/.uioverrides.QuickstepLauncher }
+      secondaryHomeIntent=Intent { act=android.intent.action.MAIN cat=[android.intent.category.SECONDARY_HOME] flg=0x10000000 pkg=com.android.launcher3 cmp=com.android.launcher3/.secondarydisplay.SecondaryDisplayLauncher }
+    OverviewCommandHelper:
+      pendingCommands=0
+      keyboardFocusTask=Unfocused
+    Input state:
+    	DisplayModel: display resources=[
+    		InputMonitorResource:
+    			displayId=0
+    			inputMonitorCompat=com.android.systemui.shared.system.InputMonitorCompat@e8e24a4
+    			inputEventReceiver=com.android.systemui.shared.system.InputChannelCompat$InputEventReceiver@c87c20d
+    			gestureStartNavMode=null
+    			consumer=TYPE_OTHER_ACTIVITY:TYPE_TASKBAR_STASH:TYPE_CURSOR_HOVER
+    			uncheckedConsumer=TYPE_NO_OP
+    			GestureState:
+    				displayID=0
+    				gestureID=100
+    				runningTask=com.android.quickstep.TopTaskTracker$CachedTaskInfo@6031c5
+    				endTarget=null
+    				lastAppearedTaskTargetId=null
+    				lastStartedTaskId=[-1, -1]
+    				isRecentsAnimationRunning=false
+    	]
+    DisplayController.Info (displayId=0):
+      normalizedDisplayInfo=CachedDisplayInfo{size=Point(1920, 1080), cutout=DisplayCutout{insets=Rect(0, 0 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=0 displayHeight=0 physicalDisplayWidth=0 physicalDisplayHeight=0 density={0.0} cutoutSpec={} rotation={0} scale={0.0} physicalPixelDisplaySizeRatio={0.0}}} sideOverrides=null}, rotation=0}
+      rotation=0
+      fontScale=1.0
+      densityDpi=160
+      navigationMode=NO_BUTTON
+      isInDesktopFirstMode=true
+      showDesktopFirstTaskbar=true
+      currentSize=Point(1920, 1080)
+      perDisplayBounds - CachedDisplayInfo{size=Point(1920, 1080), cutout=DisplayCutout{insets=Rect(0, 0 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=0 displayHeight=0 physicalDisplayWidth=0 physicalDisplayHeight=0 density={0.0} cutoutSpec={} rotation={0} scale={0.0} physicalPixelDisplaySizeRatio={0.0}}} sideOverrides=null}, rotation=0}: [WindowBounds{bounds=Rect(0, 0 - 1920, 1080), insets=Rect(0, 24 - 0, 0), availableSize=Point(1920, 1056), rotationHint=0}, WindowBounds{bounds=Rect(0, 0 - 1080, 1920), insets=Rect(0, 24 - 0, 0), availableSize=Point(1080, 1896), rotationHint=1}, WindowBounds{bounds=Rect(0, 0 - 1920, 1080), insets=Rect(0, 24 - 0, 0), availableSize=Point(1920, 1056), rotationHint=2}, WindowBounds{bounds=Rect(0, 0 - 1080, 1920), insets=Rect(0, 24 - 0, 0), availableSize=Point(1080, 1896), rotationHint=3}]
+    TouchState (displayId 0):
+    DeviceState:
+      canStartSystemGesture=true
+      systemUiFlagsForDefaultDisplay=275213582336
+      systemUiFlagsDesc=allow_gesture|freeform_active_in_desktop_mode|awake|dual_shade_enabled
+      assistantAvailable=true
+      assistantDisabled=false
+      isOneHandedModeEnabled=false
+      isSwipeToNotificationEnabled=false
+      deferredGestureRegion=Rect(0, 0 - 0, 0)
+      exclusionRegion=Rect(0, 0 - 0, 0)
+      pipIsActive=false
+      predictiveBackToHomeInProgress=false
+      RotationTouchHelper:
+    RotationTouchHelper:
+      currentActiveRotation=0
+      displayRotation=0
+    OrientationTouchTransformerState: 
+      currentActiveRotation=0
+      lastTouchedRegion=null
+      multipleRegionsEnabled=false
+      currentTouchableRotations=RectF(0.0, 1048.0, 1920.0, 1080.0) rotation: 0 
+      mNavBarGesturalHeight=32
+      mNavBarLargerGesturalHeight=80
+      mAssistantLeftRegion=RectF(0.0, 1048.0, 48.0, 1080.0)
+      mAssistantRightRegion=RectF(1872.0, 1048.0, 1920.0, 1080.0)
+      mOneHandedModeRegion=RectF(0.0, 1000.0, 1920.0, 1080.0)
+    	createdOverviewActivity=com.android.launcher3.uioverrides.QuickstepLauncher@3975052
+    	resumed=true
+    DeviceProfile:
+    	1 dp = 1.0 px
+    	isTablet:true
+    	isPhone:false
+    	transposeLayoutWithOrientation:false
+    	isGestureMode:true
+    	isLandscape:true
+    	isExternalDisplay:false
+    	isTwoPanels:false
+    	isLeftRightSplit:true
+    	windowX: 0.0px (0.0dp)
+    	windowY: 0.0px (0.0dp)
+    	widthPx: 1920.0px (1920.0dp)
+    	heightPx: 1080.0px (1080.0dp)
+    	availableWidthPx: 1920.0px (1920.0dp)
+    	availableHeightPx: 1056.0px (1056.0dp)
+    	mInsets.left: 0.0px (0.0dp)
+    	mInsets.top: 24.0px (24.0dp)
+    	mInsets.right: 0.0px (0.0dp)
+    	mInsets.bottom: 0.0px (0.0dp)
+    	aspectRatio:1.7777778
+    	isResponsiveGrid:false
+    	isScalableGrid:true
+    	inv.numRows: 5
+    	inv.numColumns: 6
+    	inv.numSearchContainerColumns: 3
+    	minCellSize: PointF(120.0, 104.0)dp
+    	cellWidthPx: 180.0px (180.0dp)
+    	cellHeightPx: 156.0px (156.0dp)
+    	getCellSize().x: 180.0px (180.0dp)
+    	getCellSize().y: 156.0px (156.0dp)
+    	cellLayoutBorderSpacePx Horizontal: 96.0px (96.0dp)
+    	cellLayoutBorderSpacePx Vertical: 24.0px (24.0dp)
+    	cellLayoutPaddingPx.left: 29.0px (29.0dp)
+    	cellLayoutPaddingPx.top: 2.0px (2.0dp)
+    	cellLayoutPaddingPx.right: 29.0px (29.0dp)
+    	cellLayoutPaddingPx.bottom: 29.0px (29.0dp)
+    	iconSizePx: 60.0px (60.0dp)
+    	iconTextSizePx: 14.0px (14.0dp)
+    	iconDrawablePaddingPx: 5.0px (5.0dp)
+    	numFolderRows: 3
+    	numFolderColumns: 3
+    	folderCellWidthPx: 180.0px (180.0dp)
+    	folderCellHeightPx: 156.0px (156.0dp)
+    	folderChildIconSizePx: 60.0px (60.0dp)
+    	folderChildTextSizePx: 14.0px (14.0dp)
+    	folderChildDrawablePaddingPx: 23.0px (23.0dp)
+    	folderCellLayoutBorderSpacePx.x: 0.0px (0.0dp)
+    	folderCellLayoutBorderSpacePx.y: 0.0px (0.0dp)
+    	folderContentPaddingLeftRight: 0.0px (0.0dp)
+    	folderTopPadding: 24.0px (24.0dp)
+    	folderFooterHeight: 56.0px (56.0dp)
+    	bottomSheetTopPadding: 24.0px (24.0dp)
+    	bottomSheetOpenDuration: 500
+    	bottomSheetCloseDuration: 500
+    	bottomSheetWorkspaceScale: 0.97
+    	bottomSheetDepth: 0.32999983
+    	allAppsShiftRange: 1080.0px (1080.0dp)
+    	allAppsOpenDuration: 500
+    	allAppsCloseDuration: 500
+    	allAppsIconSizePx: 60.0px (60.0dp)
+    	allAppsIconTextSizePx: 14.0px (14.0dp)
+    	allAppsIconDrawablePaddingPx: 5.0px (5.0dp)
+    	allAppsCellHeightPx: 150.0px (150.0dp)
+    	allAppsCellWidthPx: 189.0px (189.0dp)
+    	allAppsBorderSpacePxX: 24.0px (24.0dp)
+    	allAppsBorderSpacePxY: 24.0px (24.0dp)
+    	numShownAllAppsColumns: 6
+    	allAppsPadding.top: 24.0px (24.0dp)
+    	allAppsPadding.left: 16.0px (16.0dp)
+    	allAppsPadding.right: 16.0px (16.0dp)
+    	allAppsLeftRightMargin: 317.0px (317.0dp)
+    	hotseatBarSizePx: 151.0px (151.0dp)
+    	mHotseatColumnSpan: 6
+    	mHotseatWidthPx: 1440.0px (1440.0dp)
+    	hotseatCellHeightPx: 68.0px (68.0dp)
+    	hotseatBarBottomSpacePx: 40.0px (40.0dp)
+    	mHotseatBarEdgePaddingPx: 0.0px (0.0dp)
+    	mHotseatBarWorkspaceSpacePx: 0.0px (0.0dp)
+    	inlineNavButtonsEndSpacingPx: 0.0px (0.0dp)
+    	navButtonsLayoutWidthPx: 0.0px (0.0dp)
+    	hotseatBarEndOffset: 0.0px (0.0dp)
+    	hotseatQsbSpace: 0.0px (0.0dp)
+    	hotseatQsbHeight: 63.0px (63.0dp)
+    	springLoadedHotseatBarTopMarginPx: 64.0px (64.0dp)
+    	getHotseatLayoutPadding(context).top: 47.0px (47.0dp)
+    	getHotseatLayoutPadding(context).bottom: 36.0px (36.0dp)
+    	getHotseatLayoutPadding(context).left: 240.0px (240.0dp)
+    	getHotseatLayoutPadding(context).right: 240.0px (240.0dp)
+    	numShownHotseatIcons: 6
+    	hotseatBorderSpace: 216.0px (216.0dp)
+    	isQsbInline: false
+    	hotseatQsbWidth: 1435.0px (1435.0dp)
+    	isTaskbarPresent:true
+    	isTaskbarPresentInApps:true
+    	taskbarHeight: 56.0px (56.0dp)
+    	stashedTaskbarHeight: 24.0px (24.0dp)
+    	taskbarBottomMargin: 0.0px (0.0dp)
+    	taskbarIconSize: 44.0px (44.0dp)
+    	desiredWorkspaceHorizontalMarginPx: 180.0px (180.0dp)
+    	workspacePadding.left: 151.0px (151.0dp)
+    	workspacePadding.top: 0.0px (0.0dp)
+    	workspacePadding.right: 151.0px (151.0dp)
+    	workspacePadding.bottom: 149.0px (149.0dp)
+    	iconScale: 1.0px (1.0dp)
+    	cellScaleToFit : 1.5px (1.5dp)
+    	extraSpace: 5.0px (5.0dp)
+    	unscaled extraSpace: 5.0px (5.0dp)
+    	maxEmptySpace: 100.0px (100.0dp)
+    	workspaceTopPadding: 2.0px (2.0dp)
+    	workspaceBottomPadding: 3.0px (3.0dp)
+    	overviewTaskMarginPx: 16.0px (16.0dp)
+    	overviewTaskIconSizePx: 44.0px (44.0dp)
+    	overviewTaskIconDrawableSizePx: 44.0px (44.0dp)
+    	overviewTaskIconDrawableSizeGridPx: 44.0px (44.0dp)
+    	overviewActionsTopMarginPx: 24.0px (24.0dp)
+    	overviewActionsHeight: 48.0px (48.0dp)
+    	overviewActionsClaimedSpaceBelow: 124.0px (124.0dp)
+    	overviewPageSpacing: 44.0px (44.0dp)
+    	overviewRowSpacing: 36.0px (36.0dp)
+    	overviewGridSideMargin: 64.0px (64.0dp)
+    	dropTargetBarTopMarginPx: 0.0px (0.0dp)
+    	dropTargetBarSizePx: 72.0px (72.0dp)
+    	dropTargetBarBottomMarginPx: 32.0px (32.0dp)
+    	getCellLayoutSpringLoadShrunkTop(): 128.0px (128.0dp)
+    	getCellLayoutSpringLoadShrunkBottom(): 865.0px (865.0dp)
+    	workspaceSpringLoadedMinNextPageVisiblePx: 48.0px (48.0dp)
+    	getWorkspaceSpringLoadScale(): 0.8125689px (0.8125689dp)
+    	getCellLayoutHeight(): 907.0px (907.0dp)
+    	getCellLayoutWidth(): 1618.0px (1618.0dp)
+    	TaskAnimationManager:
+    		mDisplayId=0
+    		mRecentsAnimationStartPending=false
+    		mShouldIgnoreUpcomingGestures=false
+    ActiveGestureErrorDetector:
+    	Error messages for gesture ID: 101
+    		- Motion down never detected.
+    		- Motion up never detected.
+    		- AbsSwipeUpHandler.cancelCurrentAnimation wasn't called and STATE_HANDLER_INVALIDATED wasn't set.
+    ActiveGestureLog history:
+    	Logs for logId: 101
+    		15:57:07.168+0000  Current running task package name=dev.openbook.quire.secureprobe
+    		15:57:07.168+0000  Current SystemUi state flags=allow_gesture|freeform_active_in_desktop_mode|awake|dual_shade_enabled
+    		15:57:07.168+0000  setInputConsumer: TYPE_OTHER_ACTIVITY:TYPE_TASKBAR_STASH:TYPE_CURSOR_HOVER. reason(s):
+    			-> can start system gesture, trying to use base consumer; keyguard is not showing occluded; using OtherActivityInputConsumer
+    			-> device is in gesture navigation mode or 3-button mode with a trackpad gesture; TaskbarActivityContext != null, using TaskbarUnstashInputConsumer
+    		15:57:07.169+0000  onMotionEvent: ACTION_HOVER_ENTER, NONE, displayId=0
+    		15:57:07.231+0000  onMotionEvent: ACTION_HOVER_MOVE, NONE, displayId=0 & 8 similar events
+    		15:57:11.214+0000  onMotionEvent: ACTION_HOVER_EXIT, NONE, displayId=0
+    		15:57:20.061+0000  onMotionEvent: ACTION_HOVER_ENTER, NONE, displayId=0
+    		15:57:20.131+0000  onMotionEvent: ACTION_HOVER_MOVE, NONE, displayId=0 & 4 similar events
+    		15:57:41.404+0000  onMotionEvent: ACTION_HOVER_EXIT, NONE, displayId=0
+    		15:59:20.500+0000  preloadRecentsAnimation & 3 similar events
+    RecentsModel:
+       RecentTasksList:
+         mChangeId=212
+         mResultsUi=[id=212, tasks=
+           t0: (id=32; package=com.android.documentsui)
+           t1: (id=31; package=com.android.settings)
+           t2: (id=15; package=dev.openbook.quire)
+           t0: (id=27; package=com.android.settings)
+         ]
+         rawTasks=[
+      Desk ID= -1, Desk Display ID=-1, Tasks=[id=27 winMode=freeform visReq=false vis=false excluded=false baseIntent=com.android.settings/.Settings$DarkThemeSettingsActivity], Type=FULLSCREEN, Minimized Task IDs=null
+      Desk ID= 7, Desk Display ID=0, Tasks=[id=32 winMode=freeform visReq=true vis=true excluded=false baseIntent=com.android.documentsui/.files.FilesActivity, id=31 winMode=freeform visReq=true vis=true excluded=false baseIntent=com.android.settings/.Settings, id=15 winMode=freeform visReq=true vis=true excluded=false baseIntent=dev.openbook.quire/.control.LabActivity], Type=DESK, Minimized Task IDs=[]
+         ]
+    TaskbarManager:
+    	mUserUnlocked=true
+    	mDeviceUnlocked=true
+    	hasBootAppContext=false
+    DisplayModel: display resources=[
+    		Taskbar at display 0:
+    			TaskbarActivityContext:
+    				mNavMode=NO_BUTTON
+    				mImeDrawsImeNavBar=true
+    				mIsUserSetupComplete=true
+    				mWindowLayoutParams.height=117px
+    				mTaskbarFullscreenFlags=
+    				TaskbarControllers:
+    					mAreAllControllersInitialized=true
+    					TaskbarDragController:
+    						mDragIconSize=54
+    						mTempXY=[0, 0]
+    						mRegistrationX=0
+    						mRegistrationY=0
+    						mIsSystemDragInProgress=false
+    						isInternalDragInProgess=false
+    						mDisallowGlobalDrag=false
+    						mDisallowLongClick=false
+    					TaskbarNavButtonController:
+    						mLastScreenPinLongPress=0
+    						mScreenPinned=false
+    						mLastSentBackAction=ACTION_UP
+    					NavbarButtonsViewController:
+    						mState=
+    						mFloatingRotationButtonBounds=Rect(0, 0 - 0, 0)
+    						mSysuiStateFlags=allow_gesture|freeform_active_in_desktop_mode|awake|dual_shade_enabled
+    						Last set nav button translationY=0.0
+    							mTaskbarNavButtonTranslationY=0.0
+    							mTaskbarNavButtonTranslationYForInAppDisplay=0.0
+    							mTaskbarNavButtonDarkIntensity=0.0
+    							mNavButtonInAppDisplayProgressForSysui=0.0
+    							mNavButtonInAppDisplayProgressForIme=0.0
+    							mSlideInViewVisibleNavButtonColorOverride=0.0
+    							mOnTaskbarBackgroundNavButtonColorOverride=1.0
+    							mOnBackgroundNavButtonColorOverrideMultiplier=1.0
+    						NearestTouchFrame:
+    							mWindowOffset=[0, 61]
+    							mIsVertical=false
+    							mTouchingChild=null
+    							mTouchableRegions={}
+    					TaskbarDragLayerController:
+    						mBgOffset=0.0
+    						mTaskbarAlpha=1.0
+    						mFolderMargin=16
+    						mLastSetBackgroundAlpha=1.0
+    							mBgOverride=1.0
+    							mBgNavbar=0.0
+    							mBgTaskbar=1.0
+    							mKeyguardBgTaskbar=1.0
+    							mNotificationShadeBgTaskbar=1.0
+    							mImeBgTaskbar=1.0
+    							mAssistantBgTaskbar=1.0
+    							mBgTaskbarRecreate=1.0
+    					TaskbarScrimViewController:
+    						mScrimAlpha.value=0.0
+    					TaskbarViewController:
+    						ignoreTaskbarIconCount=0
+    						mTaskbarIconAlpha
+    							ALPHA_INDEX_HOME=1.0
+    							ALPHA_INDEX_KEYGUARD=1.0
+    							ALPHA_INDEX_STASH=1.0
+    							ALPHA_INDEX_RECENTS_DISABLED=1.0
+    							ALPHA_INDEX_NOTIFICATION_EXPANDED=1.0
+    							ALPHA_INDEX_ASSISTANT_INVOKED=1.0
+    							ALPHA_INDEX_SMALL_SCREEN=1.0
+    						TaskbarModelCallbacks:
+    							hotseat items count=6
+    							predicted items count=0
+    							mDeferUpdatesForSUW=false
+    							updates pending=false
+    					TaskbarUnfoldAnimationController:
+    					TaskbarKeyguardController:
+    						mKeyguardSysuiFlags=awake
+    						mBouncerShowing=false
+    					StashedHandleViewController:
+    						isStashedHandleVisible=false
+    						mStashedHandleWidth=220
+    						mStashedHandleHeight=4
+    					RegionSamplingHelper:
+    						sampleView isAttached: true
+    						sampleView isScValid: true
+    						mSamplingEnabled: false
+    						mSamplingListenerRegistered: false
+    						mSamplingRequestBounds: Rect(850, 1066 - 1070, 1070)
+    						mRegisteredSamplingBounds: Rect(0, 0 - 0, 0)
+    						mLastMedianLuma: 0.71750444
+    						mCurrentMedianLuma: 0.71750444
+    						mWindowVisible: false
+    						mWindowHasBlurs: false
+    						mWaitingOnDraw: false
+    						mRegisteredStopLayer: null
+    						mWrappedStopLayer: null
+    						mIsDestroyed: false
+    					TaskbarStashController:
+    						mStashedHeight=24
+    						mUnstashedHeight=56
+    						mIsStashed=false
+    						appliedState=FLAG_IN_APP
+    						mState=FLAG_IN_APP
+    						mIsImeVisible=false
+    					TaskbarAutohideSuspendController:
+    						mAutohideSuspendFlags=
+    					TaskbarPopupController:
+    					TaskbarInsetsController:
+    						windowHeight=117
+    						providedInsets: (type=navigationBars insetsSize=Insets{left=0, top=0, right=0, bottom=56}
+    						providedInsets: (type=tappableElement insetsSize=Insets{left=0, top=0, right=0, bottom=56} insetsSizeOverrides={TypedInsetsSize: {windowType=VOICE_INTERACTION, insetsSize=Insets{left=0, top=0, right=0, bottom=0}}})
+    						providedInsets: (type=mandatorySystemGestures insetsSize=Insets{left=0, top=0, right=0, bottom=56}
+    						providedInsets: (type=systemGestures insetsSize=Insets{left=30, top=0, right=0, bottom=0}
+    						providedInsets: (type=systemGestures insetsSize=Insets{left=0, top=0, right=30, bottom=0}
+    						debugTouchableRegion={lastSetTouchableBounds=Rect(0, 61 - 1920, 117), lastSetTouchableReason="Using default touchable region", lastSetTouchableInsets=TOUCHABLE_INSETS_REGION
+    					VoiceInteractionWindowController:
+    						isSeparateBackgroundEnabled=true
+    						isVoiceInteractionWindowVisible=false
+    						isSeparateTaskbarBackgroundAttachedToWindow=false
+    					 TaskbarRecentAppsController:
+    						canShowRunningApps=true
+    						canShowRecentApps=true
+    						shownHotseatItems=[com.android.documentsui, com.android.settings, org.chromium.webview_shell, com.android.calendar, com.android.gallery3d, com.android.camera2]
+    						allRecentTasks=[[com.android.documentsui, com.android.settings, dev.openbook.quire], [com.android.settings]]
+    						taskbarRunningTasks=[type=SINGLE task=[id=32 windowingMode=5 user=0 lastActiveTime=476124] null, type=SINGLE task=[id=31 windowingMode=5 user=0 lastActiveTime=470362] null, type=SINGLE task=[id=15 windowingMode=5 user=0 lastActiveTime=427411] null]
+    						shownTasks=[[dev.openbook.quire]]
+    						runningTaskIds=[32, 31, 15]
+    						minimizedTaskIds=[]
+    					TaskbarTranslationController:
+    						mTranslationYForSwipe=0.0
+    						mHasSprungOnceThisGesture=false
+    						mAnimationToHomeRunning=false
+    						mGestureEnded=false
+    						mSpringBounce is running=false
+    					TaskbarEduTooltipController:
+    						isTooltipEnabled=true
+    						isOpen=false
+    						tooltipStep=0
+    					TooltipEduCombinator:
+    						Shown tooltips: [search]
+    					KeyboardQuickSwitchController:
+    						isOpen=false
+    						mNumHiddenTasks=0
+    						mTaskListChangeId=-1
+    						mHasDesktopTask=false
+    						mWasDesktopTaskFilteredOut=false
+    						mTasks=[
+    						]
+    					TaskbarPinningController:
+    						isAnimatingTaskbarPinning=false
+    						TASKBAR_PINNING shared pref =false
+    						TASKBAR_PINNING_IN_DESKTOP_MODE shared pref in desktop mode =true
+    					NudgeController:
+    						isNudgeEnabled=true
+    						isOpen=false
+    					 CueBarController:
+    					   AmbientCueRepositoryImpl:
+    					   isDeactivated: false
+    					   isImeVisible: false
+    					   isOccludedBySystemUi: false
+    					   isTaskBarVisible: true
+    					   isGestureNav: true
+    					   actions: 0 actions
+    					   isAmbientCueEnabled: true
+    					   ambientCueTimeoutMs: 30000
+    					   globallyFocusedTaskId: 32
+    					   debounceTaskJob active: false
+    					   frontTaskPackageName: com.android.documentsui
+    					   lastPublishedInsight: null
+    					   lastRenderToken: null
+    					TaskbarUIController: using an instance of LauncherTaskbarUIController
+    						Taskbar in-app display progress: 0.00
+    							mTaskbarInAppDisplayProgressMultiProp
+    								MINUS_ONE_PAGE_PROGRESS_INDEX=0.0
+    								ALL_APPS_PAGE_PROGRESS_INDEX=0.0
+    								WIDGETS_PAGE_PROGRESS_INDEX=0.0
+    								SYSUI_SURFACE_PROGRESS_INDEX=0.0
+    								LAUNCHER_PAUSE_PROGRESS_INDEX=0.0
+    						mRecentsWindowContainer=com.android.launcher3.uioverrides.QuickstepLauncher@3975052
+    						mIgnoreOverlayUpdateOnHomePress=false
+    						TaskbarLauncherStateController:
+    							mIconAlignment=0.00
+    							mTaskbarBackgroundAlpha=1.00
+    							mTaskbarAlphaForHome=1.00
+    							mPrevState=awake
+    							mState=awake
+    							mLauncherState=Normal
+    							mIsAnimatingToLauncher=false
+    							mShouldDelayLauncherStateAnim=false
+    					RotationButtonController:
+    						mIsRecentsAnimationRunning=false
+    						mHomeRotationEnabled=false
+    						mLastRotationSuggestion=0
+    						mPendingRotationSuggestion=false
+    						mHoveringRotationSuggestion=false
+    						mListenersRegistered=false
+    						mIsNavigationBarShowing=false
+    						mBehavior=1
+    						mSkipOverrideUserLockPrefsOnce=false
+    						mLightIconColor=0xffffffff
+    						mDarkIconColor=0x99000000
+    Bubble bar view controller state:
+      mHiddenForSysui: false
+      mHiddenForNoBubbles: true
+      mHiddenForStashed: false
+      mShouldShowEducation: false
+      mBubbleBarTranslationY.value: 0.0
+      mBubbleBarSwipeUpTranslationY: 0.0
+      mOverflowAdded: true
+    BubbleBarView state:
+      bubbleBarLocation: DEFAULT
+      visibility: 4
+      alpha: 1.0
+      translationY: 0.0
+      childCount: 1
+      hasOverflow:  true
+        bubble key: Overflow
+      isExpanded: false
+      mDragging: false
+    Bubble stash controller state:
+      isStashed: false
+      launcherState: IN_APP
+      isSysuiLocked: false
+      bubbleBarTranslationYForHotseat: -46.0
+      bubbleBarTranslationYForTaskbar: -4.0
+      controllerType: persistent
+    Bubbles events history:
+    			DeviceProfile:
+    				1 dp = 1.0 px
+    				isTablet:true
+    				isPhone:false
+    				transposeLayoutWithOrientation:false
+    				isGestureMode:true
+    				isLandscape:true
+    				isExternalDisplay:false
+    				isTwoPanels:false
+    				isLeftRightSplit:true
+    				windowX: 0.0px (0.0dp)
+    				windowY: 0.0px (0.0dp)
+    				widthPx: 1920.0px (1920.0dp)
+    				heightPx: 1080.0px (1080.0dp)
+    				availableWidthPx: 1920.0px (1920.0dp)
+    				availableHeightPx: 1056.0px (1056.0dp)
+    				mInsets.left: 0.0px (0.0dp)
+    				mInsets.top: 24.0px (24.0dp)
+    				mInsets.right: 0.0px (0.0dp)
+    				mInsets.bottom: 0.0px (0.0dp)
+    				aspectRatio:1.7777778
+    				isResponsiveGrid:false
+    				isScalableGrid:true
+    				inv.numRows: 5
+    				inv.numColumns: 6
+    				inv.numSearchContainerColumns: 3
+    				minCellSize: PointF(120.0, 104.0)dp
+    				cellWidthPx: 180.0px (180.0dp)
+    				cellHeightPx: 156.0px (156.0dp)
+    				getCellSize().x: 180.0px (180.0dp)
+    				getCellSize().y: 156.0px (156.0dp)
+    				cellLayoutBorderSpacePx Horizontal: 96.0px (96.0dp)
+    				cellLayoutBorderSpacePx Vertical: 24.0px (24.0dp)
+    				cellLayoutPaddingPx.left: 29.0px (29.0dp)
+    				cellLayoutPaddingPx.top: 2.0px (2.0dp)
+    				cellLayoutPaddingPx.right: 29.0px (29.0dp)
+    				cellLayoutPaddingPx.bottom: 29.0px (29.0dp)
+    				iconSizePx: 44.0px (44.0dp)
+    				iconTextSizePx: 14.0px (14.0dp)
+    				iconDrawablePaddingPx: 5.0px (5.0dp)
+    				numFolderRows: 3
+    				numFolderColumns: 3
+    				folderCellWidthPx: 180.0px (180.0dp)
+    				folderCellHeightPx: 156.0px (156.0dp)
+    				folderChildIconSizePx: 60.0px (60.0dp)
+    				folderChildTextSizePx: 14.0px (14.0dp)
+    				folderChildDrawablePaddingPx: 23.0px (23.0dp)
+    				folderCellLayoutBorderSpacePx.x: 0.0px (0.0dp)
+    				folderCellLayoutBorderSpacePx.y: 0.0px (0.0dp)
+    				folderContentPaddingLeftRight: 0.0px (0.0dp)
+    				folderTopPadding: 24.0px (24.0dp)
+    				folderFooterHeight: 56.0px (56.0dp)
+    				bottomSheetTopPadding: 24.0px (24.0dp)
+    				bottomSheetOpenDuration: 500
+    				bottomSheetCloseDuration: 500
+    				bottomSheetWorkspaceScale: 0.97
+    				bottomSheetDepth: 0.32999983
+    				allAppsShiftRange: 1080.0px (1080.0dp)
+    				allAppsOpenDuration: 500
+    				allAppsCloseDuration: 500
+    				allAppsIconSizePx: 60.0px (60.0dp)
+    				allAppsIconTextSizePx: 14.0px (14.0dp)
+    				allAppsIconDrawablePaddingPx: 5.0px (5.0dp)
+    				allAppsCellHeightPx: 150.0px (150.0dp)
+    				allAppsCellWidthPx: 189.0px (189.0dp)
+    				allAppsBorderSpacePxX: 24.0px (24.0dp)
+    				allAppsBorderSpacePxY: 24.0px (24.0dp)
+    				numShownAllAppsColumns: 6
+    				allAppsPadding.top: 24.0px (24.0dp)
+    				allAppsPadding.left: 16.0px (16.0dp)
+    				allAppsPadding.right: 16.0px (16.0dp)
+    				allAppsLeftRightMargin: 317.0px (317.0dp)
+    				hotseatBarSizePx: 151.0px (151.0dp)
+    				mHotseatColumnSpan: 6
+    				mHotseatWidthPx: 1440.0px (1440.0dp)
+    				hotseatCellHeightPx: 68.0px (68.0dp)
+    				hotseatBarBottomSpacePx: 40.0px (40.0dp)
+    				mHotseatBarEdgePaddingPx: 0.0px (0.0dp)
+    				mHotseatBarWorkspaceSpacePx: 0.0px (0.0dp)
+    				inlineNavButtonsEndSpacingPx: 0.0px (0.0dp)
+    				navButtonsLayoutWidthPx: 0.0px (0.0dp)
+    				hotseatBarEndOffset: 0.0px (0.0dp)
+    				hotseatQsbSpace: 0.0px (0.0dp)
+    				hotseatQsbHeight: 63.0px (63.0dp)
+    				springLoadedHotseatBarTopMarginPx: 64.0px (64.0dp)
+    				getHotseatLayoutPadding(context).top: 55.0px (55.0dp)
+    				getHotseatLayoutPadding(context).bottom: 28.0px (28.0dp)
+    				getHotseatLayoutPadding(context).left: 288.0px (288.0dp)
+    				getHotseatLayoutPadding(context).right: 288.0px (288.0dp)
+    				numShownHotseatIcons: 6
+    				hotseatBorderSpace: 216.0px (216.0dp)
+    				isQsbInline: false
+    				hotseatQsbWidth: 1435.0px (1435.0dp)
+    				isTaskbarPresent:true
+    				isTaskbarPresentInApps:false
+    				taskbarHeight: 56.0px (56.0dp)
+    				stashedTaskbarHeight: 24.0px (24.0dp)
+    				taskbarBottomMargin: 0.0px (0.0dp)
+    				taskbarIconSize: 44.0px (44.0dp)
+    				desiredWorkspaceHorizontalMarginPx: 180.0px (180.0dp)
+    				workspacePadding.left: 151.0px (151.0dp)
+    				workspacePadding.top: 0.0px (0.0dp)
+    				workspacePadding.right: 151.0px (151.0dp)
+    				workspacePadding.bottom: 149.0px (149.0dp)
+    				iconScale: 1.0px (1.0dp)
+    				cellScaleToFit : 1.5px (1.5dp)
+    				extraSpace: 5.0px (5.0dp)
+    				unscaled extraSpace: 5.0px (5.0dp)
+    				maxEmptySpace: 100.0px (100.0dp)
+    				workspaceTopPadding: 2.0px (2.0dp)
+    				workspaceBottomPadding: 3.0px (3.0dp)
+    				overviewTaskMarginPx: 16.0px (16.0dp)
+    				overviewTaskIconSizePx: 44.0px (44.0dp)
+    				overviewTaskIconDrawableSizePx: 44.0px (44.0dp)
+    				overviewTaskIconDrawableSizeGridPx: 44.0px (44.0dp)
+    				overviewActionsTopMarginPx: 24.0px (24.0dp)
+    				overviewActionsHeight: 48.0px (48.0dp)
+    				overviewActionsClaimedSpaceBelow: 124.0px (124.0dp)
+    				overviewPageSpacing: 44.0px (44.0dp)
+    				overviewRowSpacing: 36.0px (36.0dp)
+    				overviewGridSideMargin: 64.0px (64.0dp)
+    				dropTargetBarTopMarginPx: 0.0px (0.0dp)
+    				dropTargetBarSizePx: 72.0px (72.0dp)
+    				dropTargetBarBottomMarginPx: 32.0px (32.0dp)
+    				getCellLayoutSpringLoadShrunkTop(): 128.0px (128.0dp)
+    				getCellLayoutSpringLoadShrunkBottom(): 865.0px (865.0dp)
+    				workspaceSpringLoadedMinNextPageVisiblePx: 48.0px (48.0dp)
+    				getWorkspaceSpringLoadScale(): 0.8125689px (0.8125689dp)
+    				getCellLayoutHeight(): 907.0px (907.0dp)
+    				getCellLayoutWidth(): 1618.0px (1618.0dp)
+    ]
+    DesktopVisibilityController:
+    	desktopVisibilityListeners=[com.android.launcher3.taskbar.TaskbarDesktopModeController@23b90db, com.android.quickstep.views.RecentsViewUtils@8ee774d, com.android.launcher3.taskbar.TaskbarManagerImpl$1@28f333b]
+    	inOverviewState={}
+    	context=com.android.launcher3.LauncherApplication@8438fc3
+    ContextualSearchStateManager:
+    	ContextualSearchStMgr event history:
+    	  15:56:07.719+0000  Updated isContextualSearchIntentAvailable: true
+    SystemUiProxy:
+    	mSystemUiProxy=com.android.systemui.shared.recents.ISystemUiProxy$Stub$Proxy@1c47c0e
+    	mPip=com.android.wm.shell.common.pip.IPip$Stub$Proxy@f49462f
+    	mPipAnimationListener=OneWayBinderList{[com.android.quickstep.views.RecentsView$PinnedStackAnimationListener@f0a1635]}
+    	mBubbles=com.android.wm.shell.bubbles.IBubbles$Stub$Proxy@4e025c5
+    	mBubblesListener=OneWayBinderList{[com.android.launcher3.taskbar.bubbles.BubbleBarController$BubbleBarListener@c0dcaca]}
+    	mSplitScreen=com.android.wm.shell.splitscreen.ISplitScreen$Stub$Proxy@b2e164b
+    	mSplitScreenListener=OneWayBinderList{[com.android.quickstep.TopTaskTracker@66c8828]}
+    	mSplitSelectListener=OneWayBinderList{[com.android.quickstep.split.SplitSelectStateController$DesktopSplitSelectListenerImpl@7e5143b]}
+    	mOneHanded=com.android.wm.shell.onehanded.IOneHanded$Stub$Proxy@997fee6
+    	mShellTransitions=com.android.wm.shell.shared.IShellTransitions$Stub$Proxy@145cc27
+    	mHomeVisibilityState={HomeVisibilityState isHomeVisible=true}
+    	mFocusState={FocusState focusedDisplayId=0}
+    	mStartingWindow=com.android.wm.shell.startingsurface.IStartingWindow$Stub$Proxy@c15fed4
+    	mStartingWindowListener=OneWayBinderList{[com.android.launcher3.remoteanimations.StartingWindowListener@955c758]}
+    	mSysuiUnlockAnimationController=com.android.systemui.shared.system.smartspace.ISysuiUnlockAnimationController$Stub$Proxy@e552372
+    	mLauncherActivityClass=null
+    	mLauncherUnlockAnimationController=null
+    	mRecentTasks=com.android.wm.shell.recents.IRecentTasks$Stub$Proxy@73903c3
+    	mRecentTasksListener=OneWayBinderList{[com.android.quickstep.RecentTasksList$recentTasksListener$1@e3e3440]}
+    	mBackAnimation=com.android.wm.shell.back.IBackAnimation$Stub$Proxy@de7ef79
+    	mBackToLauncherCallback=com.android.quickstep.LauncherBackAnimationController$OnBackInvokedCallbackStub@252e0b1
+    	mBackToLauncherRunner=com.android.quickstep.LauncherBackAnimationController$RemoteAnimationRunnerStub@7a5c996
+    	mDesktopMode=com.android.wm.shell.desktopmode.api.IDesktopMode$Stub$Proxy@df2546c
+    	mDesktopTaskListener=OneWayBinderList{[com.android.launcher3.statehandlers.DesktopVisibilityController$DesktopTaskListenerImpl@d6f0a35]}
+    	mUnfoldAnimation=null
+    	mUnfoldAnimationListener=OneWayBinderList{[]}
+    	mDragAndDrop=com.android.wm.shell.draganddrop.IDragAndDrop$Stub$Proxy@761aeca
+        DeviceConfigWrapper:
+       	customLpnhThresholds=true
+       	customLphThresholds=true
+       	overrideLpnhLphThresholds=false
+       	lpnhSlopPercentage=100
+       	animateLpnh=false
+       	shrinkNavHandleOnPress=false
+       	lpnhTimeoutMs=450
+       	enableLpnhTwoStages=false
+       	twoStageDurationPercentage=200
+       	twoStageSlopPercentage=50
+       	enableSearchHapticHint=true
+       	enableSearchHapticCommit=true
+       	lpnhHapticHintStartScalePercent=0
+       	lpnhHapticHintEndScalePercent=100
+       	lpnhHapticHintScaleExponent=1
+       	lpnhHapticHintIterations=50
+       	enableLpnhDeepPress=true
+       	lpnhHapticHintDelay=0
+       	lpnhExtraTouchWidthDp=0
+    AllAppsActionManager:
+    	isHomeAndOverviewSame=true
+    	isTaskbarPresent=true
+    	isSetupUiVisible=false
+    	isUserSetupComplete=true
+    	isActionRegistered=true
+    	isUserUnlocked=true

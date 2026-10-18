@@ -1,0 +1,15 @@
+--------- beginning of main
+10-18 15:56:09.047 I/Quire   ( 3157): assistant: ready
+10-18 15:57:10.828 I/Quire   ( 4123): q2-check shake 1792339030.906
+10-18 15:57:11.212 I/Quire   ( 3157): invocation: trigger=system_action entrypoint=9(SYSTEM_ACTION) visible=[dev.openbook.quire.secureprobe, com.android.settings, com.android.settings, com.android.launcher3] flagSecureFound=true screenshot=1920x1080 token=true audioPlaying=n/a managedProfileVisible=false caller=com.android.launcher3 mediaProjectionOffered=true
+10-18 15:57:11.378 I/Quire   ( 3157): invocation: saved /data/user/0/dev.openbook.quire/files/invocations/20261018-155711-211-system_action.json
+10-18 15:57:23.723 I/Quire   ( 4189): q2-check meta_space 1792339043.800
+10-18 15:57:23.785 I/Quire   ( 3157): assistant: session shown trigger=assistant_shortcut invocationType=0 keyboardHint=true display=0 showFlags=0x4
+10-18 15:57:23.785 I/Quire   ( 3157): assistant: started contextual search trigger=assistant_shortcut
+10-18 15:57:23.912 I/Quire   ( 3157): invocation: trigger=assistant_shortcut entrypoint=11(KEYBOARD_SHORTCUT) visible=[dev.openbook.quire.secureprobe, com.android.settings, com.android.settings, com.android.launcher3] flagSecureFound=true screenshot=1920x1080 token=true audioPlaying=n/a managedProfileVisible=false caller=dev.openbook.quire mediaProjectionOffered=true
+10-18 15:57:24.066 I/Quire   ( 3157): invocation: saved /data/user/0/dev.openbook.quire/files/invocations/20261018-155723-912-assistant_shortcut.json
+10-18 15:57:37.114 I/Quire   ( 4248): q2-check assist_key 1792339057.183
+10-18 15:57:37.192 I/Quire   ( 3157): assistant: session shown trigger=assist_key invocationType=7 keyboardHint=false display=0 showFlags=0x4
+10-18 15:57:37.192 I/Quire   ( 3157): assistant: started contextual search trigger=assist_key
+10-18 15:57:37.382 I/Quire   ( 3157): invocation: trigger=assist_key entrypoint=11(KEYBOARD_SHORTCUT) visible=[dev.openbook.quire.secureprobe, com.android.settings, com.android.settings, com.android.launcher3] flagSecureFound=true screenshot=1920x1080 token=true audioPlaying=n/a managedProfileVisible=false caller=dev.openbook.quire mediaProjectionOffered=true
+10-18 15:57:37.610 I/Quire   ( 3157): invocation: saved /data/user/0/dev.openbook.quire/files/invocations/20261018-155737-382-assist_key.json

@@ -1,0 +1,118 @@
+Activity Resolver Table:
+  Non-Data Actions:
+      android.app.contextualsearch.action.LAUNCH_CONTEXTUAL_SEARCH:
+        290924 dev.openbook.quire/.invocation.ContextualSearchActivity filter 81a0c8d
+          Action: "android.app.contextualsearch.action.LAUNCH_CONTEXTUAL_SEARCH"
+          Category: "android.intent.category.DEFAULT"
+      android.intent.action.MAIN:
+        c7c4cb6 dev.openbook.quire/.control.ControlActivity filter b104db7
+          Action: "android.intent.action.MAIN"
+          Category: "android.intent.category.LAUNCHER"
+
+Service Resolver Table:
+  Non-Data Actions:
+      android.speech.RecognitionService:
+        37f9390 dev.openbook.quire/.assist.QuireRecognitionService filter da7e489
+          Action: "android.speech.RecognitionService"
+          Category: "android.intent.category.DEFAULT"
+      android.service.voice.VoiceInteractionService:
+        4f87e42 dev.openbook.quire/.assist.QuireVoiceInteractionService filter d520e53 permission android.permission.BIND_VOICE_INTERACTION
+          Action: "android.service.voice.VoiceInteractionService"
+
+Domain verification status:
+
+Key Set Manager:
+  [dev.openbook.quire]
+      Signing KeySets: 2
+
+Packages:
+  Package [dev.openbook.quire] (7b00997):
+    appId=10095
+    pccId=-1
+    pkg=Package{aaa4784 dev.openbook.quire}
+    codePath=/system_ext/priv-app/OpenBookQuire
+    resourcePath=/system_ext/priv-app/OpenBookQuire
+    legacyNativeLibraryDir=/system_ext/priv-app/OpenBookQuire/lib
+    extractNativeLibs=true
+    primaryCpuAbi=null
+    secondaryCpuAbi=null
+    cpuAbiOverride=null
+    versionCode=37 minSdk=37 targetSdk=37
+    minExtensionVersions=[]
+    versionName=17
+    hiddenApiEnforcementPolicy=0
+    usesNonSdkApi=true
+    splits=[base]
+    apkSigningVersion=3
+    flags=[ SYSTEM HAS_CODE ALLOW_CLEAR_USER_DATA ]
+    privateFlags=[ PRIVATE_FLAG_ACTIVITIES_RESIZE_MODE_RESIZEABLE ALLOW_AUDIO_PLAYBACK_CAPTURE PRIVILEGED SYSTEM_EXT PRIVATE_FLAG_ALLOW_NATIVE_HEAP_POINTER_TAGGING ]
+    forceQueryable=false
+    pageSizeCompat=0
+    queriesIntents=[Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] }]
+    scannedAsStoppedSystemApp=true
+    supportsScreens=[small, medium, large, xlarge, resizeable, anyDensity]
+    timeStamp=2026-10-18 15:50:12
+    lastUpdateTime=2026-10-18 15:56:04
+    installerPackageName=null
+    installerPackageUid=-1
+    initiatingPackageName=null
+    originatingPackageName=null
+    packageSource=0
+    appMetadataFilePath=null
+    appMetadataSource=0
+    signatures=PackageSignatures{62db6d version:3, signatures:[b4addb29], past signatures:[]}
+    installPermissionsFixed=false
+    pkgFlags=[ SYSTEM HAS_CODE ALLOW_CLEAR_USER_DATA ]
+    privatePkgFlags=[ PRIVATE_FLAG_ACTIVITIES_RESIZE_MODE_RESIZEABLE ALLOW_AUDIO_PLAYBACK_CAPTURE PRIVILEGED SYSTEM_EXT PRIVATE_FLAG_ALLOW_NATIVE_HEAP_POINTER_TAGGING ]
+    apexModuleName=null
+    requested permissions:
+      android.permission.POST_NOTIFICATIONS
+      android.permission.ACCESS_CONTEXTUAL_SEARCH
+      android.permission.ACCESS_COMPUTER_CONTROL
+    install permissions:
+      android.permission.ACCESS_CONTEXTUAL_SEARCH: granted=true
+      android.permission.ACCESS_COMPUTER_CONTROL: granted=true
+    User 0: ceDataInode=2535 deDataInode=1536 pccCeDataInode=0 pccDeDataInode=0 installed=true hidden=false suspended=false appLockEnabled=false distractionFlags=0 stopped=false notLaunched=false enabled=0 instant=false virtual=false quarantined=false
+      installReason=0
+      dataDir=/data/user/0/dev.openbook.quire
+      firstInstallTime=2026-10-18 15:56:04
+      uninstallReason=0
+      overlay paths:
+        /product/overlay/NavigationBarModeGestural/NavigationBarModeGesturalOverlay.apk
+        /data/resource-cache/com.android.systemui-neutral-FS0D.frro
+        /data/resource-cache/com.android.systemui-accent-N2L6.frro
+        /data/resource-cache/com.android.systemui-dynamic-DogS.frro
+      legacy overlay paths:
+        /product/overlay/NavigationBarModeGestural/NavigationBarModeGesturalOverlay.apk
+      runtime permissions:
+        android.permission.POST_NOTIFICATIONS: granted=true, flags=[ GRANTED_BY_DEFAULT|USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+
+Queries:
+  system apps queryable: false
+  queries via forceQueryable:
+  forceQueryable:
+    dev.openbook.quire
+  queries via package name:
+  queries via component:
+    dev.openbook.quire:
+      com.android.contacts
+      com.android.dialer
+      org.chromium.webview_shell
+      com.android.calendar
+      com.android.camera2
+      com.android.deskclock
+      com.android.gallery3d
+      com.android.inputmethod.latin
+      com.android.cellbroadcastreceiver.module
+      dev.openbook.quire.secureprobe
+  queryable via interaction:
+    User 0:
+      dev.openbook.quire:
+        [com.android.localtransport,com.android.server.telecom,com.android.keychain,com.android.DeviceAsWebcam,com.android.providers.settings,com.android.location.fused,com.android.settings,android,com.android.gbaservice,com.android.dynsystem,com.android.inputdevices]
+  queryable via uses-library:
+
+Dexopt state:
+  [dev.openbook.quire]
+    path: /system_ext/priv-app/OpenBookQuire/OpenBookQuire.apk
+      x86_64: [status=verify] [reason=prebuilt] [primary-abi]
+        [location is /data/dalvik-cache/x86_64/system_ext@priv-app@OpenBookQuire@OpenBookQuire.apk@classes.dex]
