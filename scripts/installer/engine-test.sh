@@ -12,8 +12,7 @@ IMG=$(realpath "${1:?usage: engine-test.sh LIVE.img RUN}"); RUN=${2:?run name}
 L=$A/logs/installer/$RUN; W=$A/installer/work/$RUN
 mkdir -p "$L" "$W"
 B=$A/installer/build/openbook-install-host
-"$D" gcc -O2 -g -Wall -Wextra -Werror -Wno-sign-compare -Wno-unused-parameter -Wno-format-truncation \
-  -Wno-missing-field-initializers -o "$B" "$R"/device/anybook/common/installer/engine/*.c
+"$S/engine-host-build.sh" "$B" >/dev/null
 # Work files (copies of the stick, sparse targets) under $W; results and logs under $L.
 "$D" python3 "$S/engine-test.py" --engine "$B" --image "$IMG" --run "$W"
 cp "$W/results.json" "$W/SUMMARY.md" "$L/"
