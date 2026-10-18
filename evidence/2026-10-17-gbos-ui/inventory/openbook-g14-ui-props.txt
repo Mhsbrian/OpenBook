@@ -1,0 +1,11 @@
+# OpenBook anybook_g14 (main 2026-10-17 build): the same keys
+persist.wm.extensions.activity_embedding_guard_with_android_15=false
+persist.wm.extensions.enabled=true
+ro.build.characteristics=desktop
+ro.config.alarm_alert=Alarm_Classic.ogg
+ro.config.notification_sound=OnTheHunt.ogg
+ro.config.notification_sound=pixiedust.ogg
+ro.config.ringtone=Ring_Synth_04.ogg
+ro.hwui.use_vulkan=
+ro.surface_flinger.game_default_frame_rate_override=60
+ro.vendor.openbook.lcd_density=240
