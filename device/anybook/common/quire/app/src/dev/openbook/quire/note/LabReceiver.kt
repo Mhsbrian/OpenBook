@@ -25,7 +25,7 @@ import org.json.JSONArray
  * OPEN (trigger, x and y for a pointer anchor else the taskbar, intake window|region|selection|secure|none, name, text)
  * · SEND (text) · ESC · HIDE · CLOSE · REOPEN · PICKER · PICK (id) · CONTROL (prompt, app, launch, taps: JSON
  * [[text, title, done], ...]) · MIRROR (action pause|resume|takeover|stop) · TRAY · LISTEN (final, partial) ·
- * LISTEN_RELEASE · BROKER (title, meta, rows: JSON [[name, where, old, new], ...], why) · DUMP
+ * LISTEN_RELEASE · BROKER (title, meta, rows: JSON [[name, where, old, new], ...], why) · PALETTE · DUMP
  */
 class LabReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -68,6 +68,22 @@ class LabReceiver : BroadcastReceiver() {
                 else -> MirrorPanel.Action.STOP
             })
             "TRAY" -> surface.showTray()
+            "PALETTE" -> {
+                // The system roles the note reads, for scripts/quire/q5-contrast.py --device.
+                val p = dev.openbook.quire.ui.Palette.of(context)
+                val roles = org.json.JSONObject()
+                fun put(name: String, c: Int) = roles.put(name, String.format("#%06X", c and 0xFFFFFF))
+                put("primary", p.primary); put("onPrimary", p.onPrimary); put("primaryContainer", p.primaryContainer)
+                put("onPrimaryContainer", p.onPrimaryContainer); put("secondaryContainer", p.secondaryContainer)
+                put("onSecondaryContainer", p.onSecondaryContainer); put("tertiary", p.tertiary)
+                put("tertiaryContainer", p.tertiaryContainer); put("onTertiaryContainer", p.onTertiaryContainer)
+                put("error", p.error); put("surface", p.surface); put("surfaceContainer", p.surfaceContainer)
+                put("surfaceContainerHigh", p.surfaceHigh); put("surfaceContainerHighest", p.surfaceHighest)
+                put("surfaceContainerLowest", p.surfaceLowest); put("onSurface", p.onSurface)
+                put("onSurfaceVariant", p.onSurfaceVariant); put("inverseSurface", p.inverseSurface)
+                put("inverseOnSurface", p.inverseOnSurface); put("outlineVariant", p.outlineVariant)
+                Log.i(TAG, "note: palette ${if (p.dark) "dark" else "light"} $roles")
+            }
             "LISTEN" -> surface.window.task?.listen(intent.getStringExtra("final") ?: "",
                 intent.getStringExtra("partial") ?: "")
             "LISTEN_RELEASE" -> surface.window.task?.releaseListening()

@@ -191,14 +191,22 @@ class MirrorPanel(private val env: NoteEnv, private val onAction: (Action) -> Un
 
     /**
      * The 2× region (§3.4): half the session display's width, at the view's own aspect so the zoom fills the view,
-     * centred on the target and clamped to the display.
+     * centred on the target (or from its leading edge when it is wider) and clamped to the display.
      */
     private fun zoomed(m: Mirror): RectF? {
         val target = m.target ?: return null
         val size = mirror.sessionSize ?: return null
         val w = size.width / ZOOM
         val h = minOf(size.height.toFloat(), w * 10f / 16f)
-        val l = (target.exactCenterX() - w / 2f).coerceIn(0f, size.width - w)
+        // A control wider than the region (a full-width settings row) is shown from its leading edge, where its
+        // label is, rather than from its empty middle.
+        val margin = 48f * size.width / 1920f
+        val x = if (target.width() > w - 2 * margin) {
+            if (layoutDirection == LAYOUT_DIRECTION_RTL) target.right - w + margin else target.left - margin
+        } else {
+            target.exactCenterX() - w / 2f
+        }
+        val l = x.coerceIn(0f, size.width - w)
         val top = (target.exactCenterY() - h / 2f).coerceIn(0f, size.height - h)
         return RectF(l, top, l + w, top + h)
     }

@@ -1,0 +1,116 @@
+check	result	detail
+light: idle	INFO	the desktop with no note; the taskbar's Quire button is Launcher3's (not built)
+light: invoke-key (Meta+Space, the real path)	PASS	note: invocation anchor=pointer 715.0078,376.67188 bounds=Rect(269, 107 - 1651, 884) intake=Window
+light: invoke-shake (the pointer shake, the real path)	PASS	note: invocation anchor=pointer 566.9912,233.75977 bounds=Rect(269, 107 - 1651, 884) intake=Window
+light: invoke-secure	PASS	
+light: invoke-taskbar	PASS	
+light: invoke-voice	INFO	the listening card from the lab; speech to text and the mic indicator are Q7
+light: invoke-selection (ACTION_PROCESS_TEXT)	PASS	note: ask on a selection (68 chars)
+light: compose	PASS	
+light: agent-picker	INFO	claude (connected), cursor (needs sign-in once tried), codex (paired)
+light: streaming (agent_thought_chunk, agent_message_chunk)	PASS	
+light: steps (tool_call, tool_call_update)	PASS	
+light: done (stopReason end_turn)	PASS	the agent's own turn: steps fold into one chip, the answer stays; Undo appears only for broker changes (Q6)
+light: plan (plan entries)	PASS	
+light: consent (the broker's card, Quire's options)	INFO	raised from the lab: Q6's broker raises it for real; the agent-own consent is consent-command
+light: settings-help (the change list after Allow)	INFO	rows from the lab; applying and undoing the settings is Q6's change log
+light: consent-command (session/request_permission with a diff)	PASS	permission for c2 options=[deny, always, allow]
+light: consent-command answered	PASS	answered allow
+light: consent-system (onSessionPending, the platform's dialog)	PASS	the note waits beside the platform's dialog, without focus or touch
+light: mirror (InteractiveMirror, 2x zoom, agent pointer)	PASS	cc: created: display 1920x1080; first tap 349,732; aiming at Dark theme Rect(698,
+light: mirror-paused (notifyBlocked())	PASS	cc: lifecycle: blocked reason=3(CALLER_INITIATED)
+light: mirror-paused holds the agent's input	PASS	no tap on the paused control
+light: mirror-takeover (handOverApplications())	PASS	cc: lifecycle: closed reason=4(SESSION_EMPTY)
+light: stopped (Esc: session/cancel, stopReason cancelled)	PASS	ended stopReason=cancelled
+light: error (the agent's connection drops mid-turn)	PASS	acp: claude closed
+light: signin (session/new -32000, authMethods)	PASS	
+light: background (hidden tasks and the tray)	PASS	the tray is Quire's; the taskbar ring and badge are Launcher3's (not built)
+light: long-output (message chunks, 60 % cap, Jump to latest)	PASS	
+light: code (fenced code in message chunks)	PASS	
+light: images (an image ContentBlock over ACP)	PASS	the agent sends the region it was given back
+light: no-agent (nothing connected until the person chooses)	PASS	
+light: offline (a paired computer unreachable)	PASS	cannot reach tcp:127.0.0.1:7099
+dark: idle	INFO	the desktop with no note; the taskbar's Quire button is Launcher3's (not built)
+dark: invoke-key (Meta+Space, the real path)	PASS	note: invocation anchor=pointer 715.0078,376.67188 bounds=Rect(269, 107 - 1651, 884) intake=Window
+dark: invoke-shake (the pointer shake, the real path)	PASS	note: invocation anchor=pointer 566.9912,233.75977 bounds=Rect(269, 107 - 1651, 884) intake=Window
+dark: invoke-secure	PASS	
+dark: invoke-taskbar	PASS	
+dark: invoke-voice	INFO	the listening card from the lab; speech to text and the mic indicator are Q7
+dark: invoke-selection (ACTION_PROCESS_TEXT)	PASS	note: ask on a selection (68 chars)
+dark: compose	PASS	
+dark: agent-picker	INFO	claude (connected), cursor (needs sign-in once tried), codex (paired)
+dark: streaming (agent_thought_chunk, agent_message_chunk)	PASS	
+dark: steps (tool_call, tool_call_update)	PASS	
+dark: done (stopReason end_turn)	PASS	the agent's own turn: steps fold into one chip, the answer stays; Undo appears only for broker changes (Q6)
+dark: plan (plan entries)	PASS	
+dark: consent (the broker's card, Quire's options)	INFO	raised from the lab: Q6's broker raises it for real; the agent-own consent is consent-command
+dark: settings-help (the change list after Allow)	INFO	rows from the lab; applying and undoing the settings is Q6's change log
+dark: consent-command (session/request_permission with a diff)	PASS	permission for c2 options=[deny, always, allow]
+dark: consent-command answered	PASS	answered allow
+dark: consent-system (onSessionPending, the platform's dialog)	PASS	the note waits beside the platform's dialog, without focus or touch
+dark: mirror (InteractiveMirror, 2x zoom, agent pointer)	PASS	cc: created: display 1920x1080; first tap 349,732; aiming at Dark theme Rect(698,
+dark: mirror-paused (notifyBlocked())	PASS	cc: lifecycle: blocked reason=3(CALLER_INITIATED)
+dark: mirror-paused holds the agent's input	PASS	no tap on the paused control
+dark: mirror-takeover (handOverApplications())	PASS	cc: lifecycle: closed reason=4(SESSION_EMPTY)
+dark: stopped (Esc: session/cancel, stopReason cancelled)	PASS	ended stopReason=cancelled
+dark: error (the agent's connection drops mid-turn)	PASS	acp: claude closed
+dark: signin (session/new -32000, authMethods)	PASS	
+dark: background (hidden tasks and the tray)	PASS	the tray is Quire's; the taskbar ring and badge are Launcher3's (not built)
+dark: long-output (message chunks, 60 % cap, Jump to latest)	PASS	
+dark: code (fenced code in message chunks)	PASS	
+dark: images (an image ContentBlock over ACP)	PASS	the agent sends the region it was given back
+dark: no-agent (nothing connected until the person chooses)	PASS	
+dark: offline (a paired computer unreachable)	PASS	cannot reach tcp:127.0.0.1:7099
+keyboard: focus on open	PASS	'Ask Quire' android.widget.EditText
+keyboard: focus on the consent card when it arrives	PASS	'Claude Code asks: Write Documents/Lisbon-packing.md. Buttons: Don’t allow, Allow for this session, Allow.' android.widget.LinearLayout
+keyboard: Tab order on the card, reject first	FAIL	['Claude Code asks: Write Documents/Lisbon-packing.md. Buttons: Don’t allow, Allow for this session, Allow.', 'Allow for this session', 'Allow']
+keyboard: Shift+Tab back to the reject option	PASS	Don’t allow
+keyboard: Enter answers with the focused option	PASS	answered deny
+keyboard: Esc closes a finished note	PASS	note: closed task
+keyboard: Esc at consent answers cancelled and stops	PASS	answered cancelled; ended stopReason=cancelled
+keyboard: Esc mid-run stops and doesn't hide	PASS	ended stopReason=cancelled
+keyboard: Meta+Space hides a running task and brings it back	FAIL	-; -
+a11y: every focusable or clickable control in the note has a label	PASS	157 controls in 28 dumps
+a11y: TalkBack itself	INFO	TalkBack is not in AOSP; the labels, roles and live regions are checked from the dumps; the TalkBack walkthrough is for the G14 with TalkBack installed
+motion: Remove animations cuts the unfold and the fold	PASS	note: unfold animated=false; note: fold into=anchor animated=false
+motion: with animations on the note unfolds with spring.unfold	PASS	note: unfold animated=true
+frames: Quire's frames over open, stream, consent and fold (Cuttlefish)	INFO	total 958, janky 1 (0.10%), p90 5 ms, p99 8 ms; the acceptance measurement is the G14's
+video: shake, halo, note at the pointer, a turn, fold	PASS	invoke-stream-fold.mp4; note: invocation anchor=pointer
+video: consent by keyboard, Allow	PASS	consent.mp4; answered allow
+video: platform consent, the mirror zooming on each control, pause, take over	PASS	mirror.mp4
+health: no Quire crash	PASS	crash buffer clean of Quire
+health: no ANR	PASS	none
+health: SystemUI did not restart	PASS	0 SystemUI starts since the log began
+health: no SELinux denial for Quire (platform_app)	PASS	none
+health: no new SELinux denials	FAIL	19 denials, new: ['[  927.945913] type=1400 audit(1792352036.860:193): avc:  denied  { search } for  comm="pool-4-thread-4" name="tmp" dev="dm-17" ino=100 scontext=u:r:mediaprovider_app:s0:c107,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module', '[  927.946281] type=1400 audit(1792352036.860:194): avc:  denied  { getattr } for  comm="pool-4-thread-4" path="/data/local/tmp" dev="dm-17" ino=100 scontext=u:r:mediaprovider_app:s0:c107,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module', '[  942.389112] type=1400 audit(1792352051.304:201): avc:  denied  { search } for  comm="pool-4-thread-5" name="tmp" dev="dm-17" ino=100 scontext=u:r:mediaprovider_app:s0:c107,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module']
+keyboard: focus on open	PASS	'Ask Quire' android.widget.EditText
+keyboard: focus on the consent card when it arrives	PASS	'Claude Code asks: Write Documents/Lisbon-packing.md. Buttons: Don’t allow, Allow for this session, Allow.' android.widget.LinearLayout
+keyboard: Tab order on the card, reject first	PASS	['Don’t allow', 'Allow for this session', 'Allow']
+keyboard: Shift+Tab back to the reject option	PASS	Don’t allow
+keyboard: Enter answers with the focused option	PASS	answered deny
+keyboard: Esc closes a finished note	PASS	note: closed task
+keyboard: Esc at consent answers cancelled and stops	PASS	answered cancelled; ended stopReason=cancelled
+keyboard: Esc mid-run stops and doesn't hide	PASS	ended stopReason=cancelled
+keyboard: Meta+Space hides a running task and brings it back	PASS	note: hid task 4 running=true; note: reopened task 4 running=true
+video: shake, halo, note at the pointer, a turn, fold	PASS	invoke-stream-fold.mp4; note: invocation anchor=pointer
+video: consent by keyboard, Allow	PASS	consent.mp4; answered allow
+video: platform consent, the mirror zooming on each control, pause, take over	PASS	mirror.mp4
+contrast: 16 pairs on 8 wallpapers x 2 themes and on the device's palette	PASS	device light: 16 pairs, closest Stop (danger text) 5.07:1 (target 4.5), fails: none; device light: closest prediction openbook-folio-light.jpg, largest channel difference 6 of 255; device dark: 16 pairs, closest Stop (danger text) 5.21:1 (target 4.5), fails: none; device dark: closest prediction openbook-folio-light.jpg, largest channel difference 7 of 255
+health: no Quire crash	PASS	crash buffer clean of Quire
+health: no ANR	PASS	none
+health: SystemUI did not restart	PASS	0 SystemUI starts since the log began
+health: no SELinux denial for Quire (platform_app)	PASS	none
+health: no new SELinux denials	FAIL	13 denials, new: ['[  927.945913] type=1400 audit(1792352036.860:193): avc:  denied  { search } for  comm="pool-4-thread-4" name="tmp" dev="dm-17" ino=100 scontext=u:r:mediaprovider_app:s0:c107,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module', '[  927.946281] type=1400 audit(1792352036.860:194): avc:  denied  { getattr } for  comm="pool-4-thread-4" path="/data/local/tmp" dev="dm-17" ino=100 scontext=u:r:mediaprovider_app:s0:c107,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module', '[  942.389112] type=1400 audit(1792352051.304:201): avc:  denied  { search } for  comm="pool-4-thread-5" name="tmp" dev="dm-17" ino=100 scontext=u:r:mediaprovider_app:s0:c107,c256,c512,c768 tcontext=u:object_r:shell_data_file:s0 tclass=dir permissive=0 app=com.android.providers.media.module']
+light: consent-system (onSessionPending, the platform's dialog)	PASS	the note waits beside the platform's dialog, without focus or touch
+light: mirror (InteractiveMirror, 2x zoom, agent pointer)	PASS	cc: created: display 1920x1080; first tap 349,732; aiming at Dark theme Rect(698,
+light: mirror-paused (notifyBlocked())	PASS	cc: lifecycle: blocked reason=3(CALLER_INITIATED)
+light: mirror-paused holds the agent's input	PASS	no tap on the paused control
+light: mirror-takeover (handOverApplications())	PASS	cc: lifecycle: closed reason=4(SESSION_EMPTY)
+dark: consent-system (onSessionPending, the platform's dialog)	PASS	the note waits beside the platform's dialog, without focus or touch
+dark: mirror (InteractiveMirror, 2x zoom, agent pointer)	PASS	cc: created: display 1920x1080; first tap 349,732; aiming at Dark theme Rect(698,
+dark: mirror-paused (notifyBlocked())	PASS	cc: lifecycle: blocked reason=3(CALLER_INITIATED)
+dark: mirror-paused holds the agent's input	PASS	no tap on the paused control
+dark: mirror-takeover (handOverApplications())	PASS	cc: lifecycle: closed reason=4(SESSION_EMPTY)
+video: shake, halo, note at the pointer, a turn, fold	PASS	invoke-stream-fold.mp4; note: invocation anchor=pointer
+video: consent by keyboard, Allow	PASS	consent.mp4; answered allow
+video: platform consent, the mirror zooming on each control, pause, take over	PASS	mirror.mp4
