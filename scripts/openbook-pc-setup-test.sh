@@ -80,5 +80,17 @@ else
     { echo "FAIL perms: $(cat "$r.log")"; fails=$((fails + 1)); }
 fi
 
+# 5. kvm (ANAL-218): KVM's misc device registered (SVM on) -> vendor.openbook.kvm=1; absent (SVM off) -> 0.
+for case in on off; do
+  r=$T/kvm-$case
+  mkdir -p "$r/sys"
+  [ $case = on ] && w "$r/sys/devices/virtual/misc/kvm/dev" 10:232
+  OPENBOOK_SYSFS_ROOT=$r OPENBOOK_SETPROP="echo setprop" "$SH" "$SCRIPT" kvm > "$r.log" 2>&1; echo $? > "$r.rc"
+  check "kvm $case: exit 0" "$r.rc" 0
+  want=1; [ $case = off ] && want=0
+  grep -q "^setprop vendor.openbook.kvm $want\$" "$r.log" && echo "ok   kvm $case: vendor.openbook.kvm=$want" ||
+    { echo "FAIL kvm $case: $(cat "$r.log")"; fails=$((fails + 1)); }
+done
+
 echo "openbook-pc-setup-test: $fails failure(s)"
 [ $fails = 0 ]
