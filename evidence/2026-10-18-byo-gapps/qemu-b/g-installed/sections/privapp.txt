@@ -1,0 +1,2 @@
+{android.permission.WRITE_SECURE_SETTINGS}
+{}

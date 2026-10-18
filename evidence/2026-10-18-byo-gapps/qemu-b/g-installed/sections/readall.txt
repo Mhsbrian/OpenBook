@@ -1,0 +1,7 @@
+348
+READ-RC=0
+[    2.804941] init: [libfs_avb] Built verity table: '1 /dev/block/dm-4 /dev/block/dm-4 4096 4096 35532 35532 sha256 a23667877f707def5d104a6685eaafd5247ad01bc3cc5493f12794a055291869 a3a829c3172285da889d8cb405c89e3f06463e83de19ffd2f662002e918a539d 10 use_fec_from_device /dev/block/dm-4 fec_roots 2 fec_blocks 35814 fec_start 35814 restart_on_corruption ignore_zero_blocks'
+[    2.814859] init: [libfs_avb] Built verity table: '1 /dev/block/dm-5 /dev/block/dm-5 4096 4096 12835 12835 sha256 5ed1f2cae879ed865edbadd90819d298cbb9a22a6fc11bfe0f7a35fc3d92230c fb00bb747be35e98fc9541f6c07f03627e5d18b9b6c9f8bcee558884b7b83342 10 use_fec_from_device /dev/block/dm-5 fec_roots 2 fec_blocks 12937 fec_start 12937 restart_on_corruption ignore_zero_blocks'
+[    2.825335] init: [libfs_avb] Built verity table: '1 /dev/block/dm-6 /dev/block/dm-6 4096 4096 4361 4361 sha256 8a5e599cd59499e4e26c2b85b1a8933287fe2891691276522c3f2f645c2bc800 4cee44299dcb41dfd4a9a69fb5e93d7c2f93a015d8b73e378f7667f22873de9d 10 use_fec_from_device /dev/block/dm-6 fec_roots 2 fec_blocks 4397 fec_start 4397 restart_on_corruption ignore_zero_blocks'
+[    8.306675] init: [libfs_mgr] Enabling ext4 verity on /dev/block/by-name/metadata
+[    9.736340] fsck.f2fs: Info: superblock features = 3499 :  encrypt extra_attr project_quota quota verity casefold compression

@@ -1,0 +1,34 @@
+Footer version:           1.0
+Image size:               288837632 bytes
+Original image size:      286564352 bytes
+VBMeta offset:            288829440
+VBMeta size:              832 bytes
+--
+Minimum libavb version:   1.0
+Header Block:             256 bytes
+Authentication Block:     0 bytes
+Auxiliary Block:          576 bytes
+Algorithm:                NONE
+Rollback Index:           0
+Flags:                    0
+Rollback Index Location:  0
+Release String:           'avbtool 1.4.0'
+Descriptors:
+    Hashtree descriptor:
+      Version of dm-verity:  1
+      Image Size:            286564352 bytes
+      Tree Offset:           286564352
+      Tree Size:             2265088 bytes
+      Data Block Size:       4096 bytes
+      Hash Block Size:       4096 bytes
+      FEC num roots:         0
+      FEC offset:            0
+      FEC size:              0 bytes
+      Hash Algorithm:        sha256
+      Partition Name:        product
+      Salt:                  a3a829c3172285da889d8cb405c89e3f06463e83de19ffd2f662002e918a539d
+      Root Digest:           32d1a242e8fbb0fb1a62f614e2936d78e52efb5ed009ef5579f081968d207737
+      Flags:                 0
+    Prop: com.android.build.product.os_version -> '17'
+    Prop: com.android.build.product.fingerprint -> 'OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys'
+    Prop: com.android.build.product.security_patch -> '2026-06-05'

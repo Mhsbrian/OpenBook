@@ -94,7 +94,7 @@ fun DiskScreen(vm: InstallerViewModel, rail: RailModel) {
             TonalButton(stringResource(R.string.action_back), vm::back, icon = Icons.AutoMirrored.Rounded.ArrowBack)
             PrimaryButton(
                 stringResource(R.string.action_continue),
-                onClick = { vm.requestPlan(toConfirm = true) },
+                onClick = vm::continueFromDisk,
                 enabled = vm.canPlan,
                 busy = vm.planLoading,
                 icon = Icons.AutoMirrored.Rounded.ArrowForward,
@@ -342,6 +342,25 @@ private fun LayoutChooser(vm: InstallerViewModel, d: Disk) {
             Spacer(Modifier.width(12.dp))
             Switch(checked = on, onCheckedChange = null)
         }
+    }
+    // Advanced, off by default (ANAL-211): a Google apps package the user provides, on its own page after this one.
+    Row(
+        Modifier
+            .padding(top = 12.dp)
+            .widthIn(max = 640.dp)
+            .fillMaxWidth()
+            .focusRing(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(16.dp))
+            .toggleable(value = vm.gappsWanted, role = Role.Switch, onValueChange = vm::wantGapps)
+            .padding(horizontal = 4.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(stringResource(R.string.gapps_switch), style = Ob.type.body, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.gapps_switch_detail), style = Ob.type.caption, color = cs.onSurfaceVariant)
+        }
+        Spacer(Modifier.width(12.dp))
+        Switch(checked = vm.gappsWanted, onCheckedChange = null)
     }
 }
 

@@ -23,6 +23,7 @@
     <string name="rail_account">About you</string>
     <string name="rail_notice">This device</string>
     <string name="rail_extras">Extras</string>
+    <string name="rail_register">Register</string>
     <string name="rail_done">Done</string>
     <string name="rail_state_current">current step</string>
     <string name="rail_state_done">done</string>
@@ -141,10 +142,21 @@
     <string name="microg_open">Open microG settings</string>
     <string name="gapps_title">Google apps you provide</string>
     <string name="gapps_body">OpenBook never downloads Google apps or the Play Store. If you are licensed to use a Google apps package for Android 17 on x86_64, the "Google apps" guide in the OpenBook documentation explains what works and what doesn\'t.</string>
-    <string name="gapps_installed">Google apps are installed</string>
-    <string name="gapps_register">Google asks owners of uncertified devices to register them at google.com/android/uncertified, with the ID below.</string>
-    <string name="gapps_id">Google Services Framework ID: <xliff:g id="id">%1$s</xliff:g></string>
+    <string name="gapps_installed">Installed: <xliff:g id="name">%1$s</xliff:g></string>
+    <string name="gapps_register_next">The next page shows how to register this computer with Google.</string>
     <string name="extras_note">Nothing here is needed to use OpenBook.</string>
+
+    <!-- Only with a Google apps package the user provided (ANAL-211): the same text as the installer's Settings entry. -->
+    <string name="register_title">Register this computer with Google</string>
+    <string name="register_lede">You installed <xliff:g id="name">%1$s</xliff:g>. Google Play only works on devices Google knows about, so register this computer. It takes a minute.</string>
+    <string name="register_id_label">GSF Android ID</string>
+    <string name="register_id_hex">Hexadecimal: <xliff:g id="hex">%1$s</xliff:g></string>
+    <string name="register_no_id">No ID yet. Connect to the internet and wait a minute: Google Services Framework creates the ID the first time it goes online. Then check again here, or later in Settings › About.</string>
+    <string name="register_no_gsf">The installed package has no Google Services Framework, so there is nothing to register.</string>
+    <string name="register_retry">Check again</string>
+    <string name="register_copy">Copy the ID</string>
+    <string name="register_steps">1. On any device, open google.com/android/uncertified and sign in with your Google account.\n2. Enter the GSF Android ID shown here and submit it.\n3. After a few minutes, restart this computer. Google Play then treats it as registered.</string>
+    <string name="register_note">Registering doesn\'t make this computer certified, and Play Integrity device checks still fail. OpenBook doesn\'t work around them.</string>
 
     <!-- 9. Done -->
     <string name="done_title">You\'re all set</string>

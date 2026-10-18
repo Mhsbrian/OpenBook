@@ -337,18 +337,52 @@ object SetupSystem {
 
     fun launchIntent(context: Context, pkg: String): Intent? = context.packageManager.getLaunchIntentForPackage(pkg)
 
+    /** A Google apps package the user provided at install time (ANAL-211): the manifest the install engine writes. */
+    data class Gapps(val name: String, val apps: Int, val hasGsf: Boolean)
+
+    const val GAPPS_MANIFEST = "/product/etc/openbook/gapps-manifest.json"
+
+    /** The installed package, or null on a system without one (the installer's GappsInfo reads the same file). */
+    fun gapps(): Gapps? = try {
+        val f = java.io.File(GAPPS_MANIFEST)
+        if (!f.isFile) {
+            null
+        } else {
+            val m = org.json.JSONObject(f.readText())
+            val pkg = m.optJSONObject("package")
+            val apps = m.optJSONArray("apps")
+            val n = apps?.length() ?: 0
+            val gsf = (0 until n).any { apps!!.optJSONObject(it)?.optString("package") == PKG_GSF }
+            val name = pkg?.optString("name")?.takeIf { it.isNotBlank() && it != "null" } ?: pkg?.optString("file").orEmpty()
+            Gapps(name, n, gsf)
+        }
+    } catch (e: Exception) {
+        Log.w(TAG, "cannot read $GAPPS_MANIFEST: ${e.message}")
+        null
+    }
+
     /**
-     * The Google Services Framework Android ID (hex) that Google asks owners of uncertified devices to register, when a
-     * Google apps package the user brought (ANAL-211) is installed. Null if GSF is missing or does not answer.
-     * Not tested: no OpenBook image contains GSF.
+     * The GSF Android ID in decimal, as google.com/android/uncertified asks for it, from GSF's gservices provider; null
+     * until GSF has created one, or without GSF.
      */
-    fun gsfAndroidId(context: Context): String? = try {
+    fun gsfId(context: Context): String? = try {
         context.contentResolver.query(
             Uri.parse("content://com.google.android.gsf.gservices"), null, null, arrayOf("android_id"), null,
-        )?.use { c -> if (c.moveToFirst() && c.columnCount >= 2) c.getString(1)?.toLongOrNull()?.toString(16) else null }
+        )?.use { c ->
+            if (c.moveToFirst() && c.columnCount >= 2) c.getString(1)?.trim()?.takeIf { it.matches(Regex("-?[0-9]+")) } else null
+        }
     } catch (e: RuntimeException) {
         Log.i(TAG, "GSF Android ID not readable: $e")
         null
+    }
+
+    /** [id] as an unsigned 64-bit hexadecimal number (a negative long counts from 2^64). */
+    fun hex(id: String): String = try {
+        var v = java.math.BigInteger(id)
+        if (v.signum() < 0) v = v.add(java.math.BigInteger.ONE.shiftLeft(64))
+        v.toString(16)
+    } catch (e: NumberFormatException) {
+        ""
     }
 
     /** `ro.boot.verifiedbootstate`: orange on OpenBook (AOSP test keys, or the user's own, on an unlocked device). */

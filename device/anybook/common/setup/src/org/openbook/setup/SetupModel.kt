@@ -13,12 +13,13 @@ import com.android.internal.widget.LockscreenCredential
 import java.util.Locale
 import java.util.TimeZone
 
-/** The pages, in order (docs/setup.md). [optional] pages have a Skip button. */
+/**
+ * The pages, in order (docs/setup.md). [optional] pages have a Skip button. REGISTER is only there on a system installed
+ * with a Google apps package the user provided (ANAL-211).
+ */
 enum class Page(val optional: Boolean = false) {
     WELCOME, LANGUAGE, KEYBOARD, NETWORK(optional = true), TIME, ACCOUNT(optional = true), NOTICE,
-    EXTRAS(optional = true), DONE;
-
-    val number: Int get() = ordinal + 1
+    EXTRAS(optional = true), REGISTER, DONE
 }
 
 enum class LockKind { PIN, PASSWORD, NONE }
@@ -29,8 +30,17 @@ enum class LockKind { PIN, PASSWORD, NONE }
  * switches apply at once.
  */
 class SetupModel(private val context: Context) {
+    /** The user's own Google apps package, if the system was installed with one. */
+    val gapps: SetupSystem.Gapps? = SetupSystem.gapps()
+
+    /** This system's pages. */
+    val pages: List<Page> = Page.entries.filter { it != Page.REGISTER || gapps != null }
+
     var page by mutableStateOf(Page.WELCOME)
         private set
+
+    /** [p]'s step number, 1-based. */
+    fun number(p: Page): Int = pages.indexOf(p) + 1
 
     // Language and region
     var language by mutableStateOf(SetupSystem.languageOf(Locale.getDefault()) ?: "en")
@@ -57,13 +67,14 @@ class SetupModel(private val context: Context) {
         private set
 
     fun back() {
-        if (page.ordinal > 0) page = Page.entries[page.ordinal - 1]
+        val i = pages.indexOf(page)
+        if (i > 0) page = pages[i - 1]
     }
 
     /** Applies the current page and moves on; stays (and sets an error) when the page's input is not valid. */
     fun next(skip: Boolean = false) {
         if (!skip && !apply(page)) return
-        if (page != Page.DONE) page = Page.entries[page.ordinal + 1]
+        if (page != Page.DONE) page = pages[pages.indexOf(page) + 1]
     }
 
     private fun apply(p: Page): Boolean = when (p) {

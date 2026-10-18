@@ -190,7 +190,8 @@ def mkwin(out):
 
 # OpenBook setup (ANAL-209, docs/setup.md) on an installed system's first boot: each page's heading (or, where the
 # heading has an apostrophe, another text of the page) and the button that leaves it. Optional pages are skipped, so
-# no screen lock is set and the defaults stay.
+# no screen lock is set and the defaults stay. A system installed with a Google apps package of the user's (ANAL-211)
+# has one more page, "Register this computer with Google", before Done (SETUP_REGISTER).
 SETUP_PAGES = [
     ("welcome", "Get started", "Get started"),
     ("language", "Language and region", "Continue"),
@@ -202,15 +203,17 @@ SETUP_PAGES = [
     ("extras", "Optional extras", "Skip"),
     ("done", "Start using OpenBook", "Start using OpenBook"),
 ]
+SETUP_REGISTER = ("register", "Register this computer with Google", "Continue")
 
 
-def setup_steps(prefix, shots=True, first_timeout=180):
+def setup_steps(prefix, shots=True, first_timeout=180, pages=None):
+    pages = SETUP_PAGES if pages is None else pages
     s = []
-    for i, (name, seen, button) in enumerate(SETUP_PAGES):
+    for i, (name, seen, button) in enumerate(pages):
         s += wait_ui(seen, first_timeout if i == 0 else 60)
         if shots:
             s += shot(f"{prefix}-{i + 1}-{name}")
-        s += tapx(button, 8 if i == len(SETUP_PAGES) - 1 else 3)
+        s += tapx(button, 8 if name == "done" else 3)
     return s
 
 
