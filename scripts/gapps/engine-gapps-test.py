@@ -24,6 +24,7 @@ are used; no Google software.
                  vbmeta_a: unsigned, product's descriptor = the footer's, every other descriptor as on the stick,
                  avbtool calculate_vbmeta_digest = the bootconfig's androidboot.vbmeta.digest, size likewise;
                  every other logical partition byte-identical to the stick's
+  scale          a package with a 256 MiB app: check, install and avbtool verify_image, with timings
   refuse-*       an unknown package sha256 (no_gapps), a package that adds a file the image has (gapps_clash), an
                  unconfirmed step (gapps_not_confirmed), and a staged file changed after the plan (apply fails in
                  check_source; the target is untouched)
@@ -510,6 +511,45 @@ def main():
         diff.append((n, sha_file(t3, e["bytes"], sp["start"] + e["dst"]) == e["sha256"]))
     check("apply-gapps", "every other logical partition is byte-identical to the stick's", all(x for _, x in diff), diff)
     json.dump(res, open(f"{w}/report.json", "w"), indent=1)
+
+    # ---------------------------------------------------------------- scale: a 256 MiB app
+    big = f"{a.packages}/{REF}-big.zip"
+    if os.path.exists(big):
+        import time
+        tb = blank(f"{run}/target-big.img", 64)
+        B = engine(a.engine, "big", tb)
+        t0 = time.time()
+        rc, j, _ = B.run("gapps-check", "--package", big)
+        t_check = time.time() - t0
+        bsha = j.get("gapps_sha256", "")
+        bigf = next((f for f in j.get("gapps", {}).get("files", []) if f["path"].endswith("OpenBookTestBig.apk")), {})
+        check("scale", f"a {os.path.getsize(big) // MiB} MiB package with a 256 MiB app: accepted ({t_check:.1f} s)",
+              rc == 0 and j.get("ok") and bigf.get("sha256") == sha_file(f"{a.apks}/OpenBookTestBig.apk"), j.get("error"))
+        pb = f"{run}/big/plan.json"
+        rc, j, _ = B.run("plan", "--target", target, "--layout", "whole", "--gapps", bsha, "--out", pb)
+        prb = j.get("product", {})
+        t0 = time.time()
+        rc, j, _ = B.run("apply", "--plan", pb, "--confirm-disk", f"/dev/disk/by-id/{target}", env=erase)
+        t_apply = time.time() - t0
+        steps_s = {k: v.get("seconds") for k, v in j.get("steps", {}).items()}
+        check("scale", f"its install verifies ({t_apply:.1f} s; steps {steps_s})", rc == 0 and j.get("ok"), j.get("error"))
+        spb = next(p for p in json.load(open(pb))["partitions"] if p["name"] == "super")
+        bimg = f"{run}/big/product.img"
+        extract(tb, spb["start"] + prb.get("super_offset", 0), prb.get("bytes", 0), bimg)
+        vi = sh(f"{HOST}/avbtool", "verify_image", "--image", bimg)
+        check("scale", f"avbtool verify_image: the {prb.get('bytes', 0) // MiB} MiB product's hashtree is correct",
+              vi.returncode == 0 and "Successfully verified sha256 hashtree" in vi.stdout + vi.stderr, (vi.stdout + vi.stderr)[-200:])
+        fsx = Erofs(bimg)
+        nid = fsx.lookup("priv-app/OpenBookTestBig/OpenBookTestBig.apk")
+        ino = fsx.inode(nid) if nid is not None else {}
+        got = sha_file(bimg, ino.get("size", 0), ino.get("raw", 0) * 4096) if ino else ""
+        check("scale", "the 256 MiB app reads back from the image byte for byte",
+              got == sha_file(f"{a.apks}/OpenBookTestBig.apk"), got)
+        results["scale"] = {"package_bytes": os.path.getsize(big), "check_s": round(t_check, 1), "apply_s": round(t_apply, 1),
+                            "steps_s": steps_s, "product_bytes": prb.get("bytes"), "image_bytes": prb.get("image_bytes"),
+                            "hashtree_bytes": prb.get("hashtree_bytes")}
+        os.remove(bimg)
+        os.remove(tb)
 
     # ---------------------------------------------------------------- summary
     total = sum(len(v) for v in results["cases"].values())

@@ -13,6 +13,7 @@
 #   OpenBookTestPlatformUid.apk   negative test: android:sharedUserId="android.uid.system"
 #   OpenBookTestPriv-unsigned.apk negative test: the privileged app, aligned but not signed
 #   libobgapps-arm64.so           negative test: an arm64 library to put where x86_64 ones belong
+#   OpenBookTestBig.apk           org.openbook.test.gapps.big: a 256 MiB app, for scale
 # All signed with a local throwaway key that is never committed. Output: <data dir>/gapps/out/apks.
 set -euo pipefail
 if [ -z "${ANYBOOK_IN_CONTAINER:-}" ]; then
@@ -68,6 +69,17 @@ sign "$W/armonly/unsigned.apk" "$OUT/OpenBookTestArmOnly.apk"
 
 link platformuid
 sign "$W/platformuid/unsigned.apk" "$OUT/OpenBookTestPlatformUid.apk"
+
+link big    # 256 MiB of seeded random bytes, stored: as large and incompressible as a real app's payload
+mkdir -p "$W/big/assets"
+python3 -c "
+import random, sys
+r = random.Random(211)
+with open(sys.argv[1], 'wb') as f:
+    for _ in range(256):
+        f.write(r.randbytes(1 << 20))" "$W/big/assets/blob.bin"
+(cd "$W/big" && zip -q -X -0 unsigned.apk assets/blob.bin)
+sign "$W/big/unsigned.apk" "$OUT/OpenBookTestBig.apk"
 
 { for f in "$OUT"/*.apk; do
     echo "== ${f##*/}"; "$BT/apksigner" verify --print-certs "$f" 2>&1 | grep -E 'DN|SHA-256|DOES NOT VERIFY|ERROR' || true
