@@ -214,7 +214,9 @@ fun TimePage(model: SetupModel) {
     val everywhere = remember(model.locale) { lazy { SetupSystem.zones(null, model.locale) } }
     LaunchedEffect(regional) {
         // A one-zone region (Germany, Japan...) on a system still at its default zone: that zone is the answer.
-        if (!model.zoneChosen && regional.size == 1 && regional.none { it.id == model.zoneId }) {
+        if (!model.zoneChosen && settings.canSetZone && !settings.autoZone && regional.size == 1 &&
+            regional.none { it.id == model.zoneId }
+        ) {
             model.zoneId = regional[0].id
             model.zoneChosen = true
         }

@@ -72,7 +72,8 @@ val LocalCompact = staticCompositionLocalOf { false }
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SetupApp(model: SetupModel, onSkipAll: () -> Unit, onDone: () -> Unit) {
-    BackHandler(enabled = model.page != Page.WELCOME) { model.back() }
+    // Always taken: Back on the first page would finish the home activity, and the system would only start it again.
+    BackHandler { model.back() }
     // Test tags become resource ids, so scripts/setup/setup-walk.sh can find the text fields.
     BoxWithConstraints(
         Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface).safeDrawingPadding()
