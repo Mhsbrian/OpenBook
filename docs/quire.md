@@ -52,7 +52,12 @@ Motion principles for the brief: the note is anchored to where the person's atte
 - `GestureDetectionInteractor` detects a shake from cursor positions, with a range threshold in dp and a cooldown.
 - `ContextualCursorInteractor` listens only once the user is set up, provisioned and past the lock screen. On a shake it calls `LauncherProxy.invokeContextualSearch(ENTRYPOINT_SYSTEM_ACTION)`.
 - The code carries a TODO: it "temporarily invoke[s] contextual search before the actual launch method is landed".
-- The flag is `com.android.hardware.input.enable_contextual_cursor_desktop_entrypoints`, which OpenBook does not set today. ANAL-204 skipped it as an "AI service OpenBook does not have".
+- The flag is `com.android.hardware.input.enable_contextual_cursor_desktop_entrypoints`. ANAL-204 skipped it as an "AI service OpenBook does not have"; Q2 turns it on (`release/openbook/`).
+- **Keys, as Q2 found them (C):**
+  - **Meta+G** is the contextual cursor's shortcut (same flag). SystemUI maps it to contextual search too, for now (TODO b/484184229).
+  - **Meta+A** is the contextual search shortcut (`enable_contextual_search_desktop_entrypoints`, already enabled in cp2a).
+  - **Meta+Space is not contextual search:** `InputGestureManager` maps it to `KEY_GESTURE_TYPE_LAUNCH_ASSISTANT`, like the Copilot key's sequence and the assist key. All three go to the assistant role holder, so they reach Quire through its `VoiceInteractionService` (§2.3).
+- **The shake detector reads an `InputMonitor`** and only takes `SOURCE_MOUSE` or `SOURCE_TOUCHPAD` events: at least 3 left-right direction changes within 500 ms, inside a 100 dp box, then a 3 s cooldown. A shake goes SystemUI → `LauncherProxy.invokeContextualSearch(ENTRYPOINT_SYSTEM_ACTION)` → Launcher3's `ContextualSearchInvoker`.
 
 ### 2.3 Contextual search and the assistant role (C)
 
@@ -65,6 +70,14 @@ Motion principles for the brief: the note is anchored to where the person's atte
   - a token.
 
   The overlay value is empty in AOSP, so **Quire can be the contextual search app** by setting one string.
+- **What else contextual search needs (C, Q2):**
+  - Launcher3 refuses to invoke it unless the device declares the feature `com.google.android.feature.CONTEXTUAL_SEARCH` (`ContextualSearchManager.FEATURE_CONTEXTUAL_SEARCH`; AOSP's own name) and its activity resolves for Launcher3. Quire's image declares the feature, and its activity is exported but protected by `ACCESS_CONTEXTUAL_SEARCH`.
+  - On a `FEATURE_PC` device the service returns no package unless `enable_contextual_search_desktop_entrypoints` is on. It is, in cp2a.
+  - The screenshot leaves out `FLAG_SECURE` layers and reports them (`EXTRA_FLAG_SECURE_FOUND`). Screenshot and visible packages are withheld when assist data is not allowed.
+  - **The service also hands the app a `MediaProjection`** (`EXTRA_MEDIA_PROJECTION`, created for the contextual search package). Quire never uses it.
+- **The assist key and Meta+Space reach Quire's assistant session, not contextual search.** Quire's session hands each one to contextual search itself (`ContextualSearchManager.startContextualSearch`, which needs `ACCESS_CONTEXTUAL_SEARCH`, signature|privileged). Every way of calling Quire therefore arrives the same way, with the same screenshot rules. Contextual search has no entry point for the assist key, so Quire passes `ENTRYPOINT_KEYBOARD_SHORTCUT` and adds its own `trigger` extra (`assist_key`, `assistant_shortcut`).
+- The legacy route where a session asks the voice interaction service for contextual search (`showSessionFromSession` with `config_defaultContextualSearchKey`) is disabled in `trunk_staging` (`disable_starting_contextual_search_via_vims`), so Quire doesn't use it.
+- Holding the assistant role makes the assistant's recognition service the system's speech recognizer. Quire's says "not available" until Q7.
 - The assistant role (`ROLE_ASSISTANT`, a `VoiceInteractionService`) gives the assist key, long-press gestures and voice. Computer control requires the agent to hold it (`computer_control_role_assistant_requirement`, enabled in cp2a).
 
 ### 2.4 Computer control (C)
@@ -89,10 +102,18 @@ Motion principles for the brief: the note is anchored to where the person's atte
 - **Permission:** `ACCESS_COMPUTER_CONTROL` is `internal|privileged`. OpenBook builds its own image, so Quire can be a privileged system app with an allowlist entry.
 - **Flags:**
   - `computer_control_access` and `computer_control_support_v5` are **not enabled in cp2a**, our release config. They are enabled in `trunk_staging`.
-  - `computer_control_consent`, `_activity_policy_strict`, `_role_assistant_requirement`, `_user_restriction` and `_managed_profiles` are enabled in cp2a.
+  - `_role_assistant_requirement` and `_managed_profiles` are enabled in cp2a. cp2a also carries values for `computer_control_consent`, `_activity_policy_strict`, `_user_restriction` and `_config_change_override`, but **AOSP 17 declares none of those four** (no `.aconfig` entry, not in `aflags list`; checked in Q2), so the code they would gate is either unconditional (the consent dialog) or absent.
   - Launcher3's `enable_app_automation_indicator` is enabled.
-  - Turning the rest on is part of Q2 (§7).
-- **The API is `@hide`** (no `system-current.txt` entry). A platform app built in-tree, as Quire's core will be, can use it. Third-party apps can't.
+  - **Q2 turns on `computer_control_access` and `computer_control_support_v5`** in OpenBook's own value set (`device/anybook/common/desktop/release/openbook/cp2a/`). It leaves `_per_app_consent`, `_typing`, `_cross_device` and `notification_flag_computer_control` off; they are in `trunk_staging` only (§8).
+- **The API is `@hide`** (no `system-current.txt` entry). A platform app built in-tree, as Quire's core will be, can use it. Third-party apps can't. (AOSP also has a public extension library, `frameworks/base/libs/computercontrol`, `com.android.extensions.computercontrol`, with a ready `MirrorView`; Quire uses the framework API directly.)
+- **What a session needs, as Q2 found it (C):**
+  - **An allowlist entry.** `ComputerControlAllowlistController` lets a package own a session only if it is in DeviceConfig `computer_control/allowed_session_owner_apps` (package and signing-certificate SHA-256, upper-case hex), and lets it automate only apps in `allowed_automatable_apps` (`PREINSTALLED` matches the system image's copy; the permission controller and approved agents never match). The last valid DeviceConfig value is persisted in `/data/system/computercontrol/`. **A device without a configuration server has neither, so no agent can ever own a session.** OpenBook adds a third source, read only when both are empty: the image's own lists in `/system_ext/etc/computercontrol/` (`aosp/patches/frameworks/base/0005`). Nothing else changes: the permission, the role, the consent, the lock screen and the block reasons are checked as before. "Super agents" (`config_computerControlKnownSuperAgents`) bypass the allowlists on debuggable builds only; Quire doesn't use them.
+  - **Version 5** (`computer_control_support_v5`): `VirtualDeviceManager.COMPUTER_CONTROL_VERSION` becomes 5. A version 5 request must carry a promotable notification (ongoing, titled, `setRequestPromotedOngoing`), which the platform posts for the agent and makes undismissable, and an `AppInteractionAttribution` (`enable_app_interaction_api` is on in cp2a). It may name at most six apps, and the agent must have a visible window.
+  - **One session at a time** (`MAXIMUM_CONCURRENT_SESSIONS = 1`), each with a name unique to the agent; 60 minutes at most.
+  - **Consent.** The app op `COMPUTER_CONTROL` defaults to `MODE_DEFAULT`, so every request without "Always allow" opens `RequestComputerControlAccessActivity`: "Only this time", "Always allow" (sets the op to allowed) or "Don't allow". Three denials in a row set the op to ignored, and later requests fail at once. Without `computer_control_per_app_consent` (`trunk_staging` only) the consent is for the agent as a whole, not per app.
+  - **The lock screen** is checked when the session is created (`ERROR_DEVICE_LOCKED`); the session display itself is always unlocked.
+  - **`handOverApplications()`** moves the session's tasks to the main display and closes the session (`CLOSE_REASON_SESSION_EMPTY`).
+  - The flag `computer_control_access` also turns on safety paths outside the session: a warning when the user launches an app that is being automated, the session notification's no-clear flags, and Settings' "Screen automation" special access page.
 
 ## 3. How Multica runs agents, and what Quire does instead
 

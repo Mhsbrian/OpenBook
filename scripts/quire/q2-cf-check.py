@@ -51,7 +51,7 @@ FLAGS = [
     "android.companion.virtualdevice.flags.computer_control_support_v5",
     "com.android.hardware.input.enable_contextual_cursor_desktop_entrypoints",
     "com.android.hardware.input.enable_contextual_search_desktop_entrypoints",
-    "android.companion.virtualdevice.flags.computer_control_consent",
+    "android.companion.virtualdevice.flags.computer_control_managed_profiles",
     "android.companion.virtualdevice.flags.computer_control_role_assistant_requirement",
 ]
 
@@ -211,9 +211,9 @@ def magenta_pixels(png):
 def window_bounds(d, package):
     dump = d.sh("dumpsys window windows")
     for block in dump.split("Window #"):
-        if package in block and "mViewVisibility=0x0" in block:
-            m = re.search(r"mFrame=\[(\d+),(\d+)\]\[(\d+),(\d+)\]", block)
-            secure = "SECURE" in block
+        if package in block.split("\n", 1)[0] and "mViewVisibility=0x0" in block:
+            m = re.search(r" frame=\[(\d+),(\d+)\]\[(\d+),(\d+)\]", block)
+            secure = re.search(r"\bfl=[^\n]*\bSECURE\b", block) is not None
             if m:
                 return tuple(map(int, m.groups())), secure
     return None, None
