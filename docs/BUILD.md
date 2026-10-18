@@ -314,3 +314,18 @@ scripts/graphics/make-gfx-check.sh openbook-gfxcheck-20261017           # add-on
 scripts/graphics/gfx-qemu.sh openbook-gfxcheck-20261017 quick1          # QEMU: the add-on end to end, 40 cases per list
 ```
 Owner steps (add the check to the stick, run it, read the results): `docs/graphics-amd.md`, "dEQP and CTS on the G14".
+
+## Document fonts: metric-compatible stand-ins for Windows fonts (ANAL-208)
+```bash
+# The fonts are committed (device/anybook/common/desktop/fonts/documents/, README.md has sources and sha256).
+# After changing DOCS in scripts/ui/fonts-customization.py, regenerate both configs:
+scripts/ui/fonts-customization.py > device/anybook/common/desktop/fonts/fonts_customization.xml   # framework
+scripts/ui/fonts-legacy-patch.sh          # aosp/patches/frameworks/base: /system/etc/fonts.xml, for WebView
+# Check in Cuttlefish (B7's ports), then compare with the fonts' own metrics:
+scripts/ui/doc-fonts-check.sh 127.0.0.1:16537 OUT          # WebView: report.json, screen.png, cmd font dump
+scripts/ui/doc-fonts-typeface.sh 127.0.0.1:16537 OUT/typeface.tsv   # the framework: Typeface + Paint
+scripts/ui/doc-fonts-metrics.py --fonttools ~/anybook/aosp/src/external/fonttools/Lib --afm AFMDIR \
+  --font arimo=.../Arimo-VF.ttf ... --report LABEL=OUT/report.json --typeface LABEL=OUT/typeface.tsv
+```
+- `aosp-build.sh` applies the `frameworks/base` patch (legacy `fonts.xml` only; the framework reads `font_fallback.xml`).
+- Details: `docs/googlebook-ui.md` §2.1.1; evidence `evidence/2026-10-17-doc-fonts/`.

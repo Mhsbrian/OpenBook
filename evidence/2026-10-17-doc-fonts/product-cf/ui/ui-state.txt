@@ -1,0 +1,38 @@
+# AnyBook/anybook_cf_x86_64_pc/anybook_vsoc_x86_64:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+ro.surface_flinger.supports_background_blur=1
+## /product/etc/fonts_customization.xml families
+name="google-sans" name="google-sans-medium" name="google-sans-bold" name="google-sans-text" name="google-sans-text-medium" name="google-sans-text-bold" name="google-sans-text-italic" name="google-sans-flex" name="google-sans-clock" name="google-sans-flex-clock" name="variable-display-large" name="variable-display-medium" name="variable-display-small" name="variable-headline-large" name="variable-headline-medium" name="variable-headline-small" name="variable-title-large" name="variable-title-medium" name="variable-title-small" name="variable-label-large" name="variable-label-medium" name="variable-label-small" name="variable-body-large" name="variable-body-medium" name="variable-body-small" name="variable-display-large-emphasized" name="variable-display-medium-emphasized" name="variable-display-small-emphasized" name="variable-headline-large-emphasized" name="variable-headline-medium-emphasized" name="variable-headline-small-emphasized" name="variable-title-large-emphasized" name="variable-title-medium-emphasized" name="variable-title-small-emphasized" name="variable-label-large-emphasized" name="variable-label-medium-emphasized" name="variable-label-small-emphasized" name="variable-body-large-emphasized" name="variable-body-medium-emphasized" name="variable-body-small-emphasized" name="arimo" name="tinos" name="cousine" name="gelasio" name="comic-relief" name="archivo-black" name="archivo-narrow" name="arial" name="times new roman" name="courier new" name="georgia" name="comic sans ms" name="comic relief" name="archivo black" name="archivo narrow" 
+## /product/fonts
+total 13052
+-rw-r--r-- 1 root root   90988 2026-10-18 04:38 ArchivoBlack-Regular.ttf
+-rw-r--r-- 1 root root   98456 2026-10-18 04:38 ArchivoNarrow-Italic-VF.ttf
+-rw-r--r-- 1 root root   93304 2026-10-18 04:38 ArchivoNarrow-VF.ttf
+-rw-r--r-- 1 root root  543196 2026-10-18 04:38 Arimo-Italic-VF.ttf
+-rw-r--r-- 1 root root  496268 2026-10-18 04:38 Arimo-VF.ttf
+-rw-r--r-- 1 root root   94684 2026-10-18 04:38 ComicRelief-Bold.ttf
+-rw-r--r-- 1 root root   80324 2026-10-18 04:38 ComicRelief-Regular.ttf
+-rw-r--r-- 1 root root  298048 2026-10-18 04:38 Cousine-Bold.ttf
+-rw-r--r-- 1 root root  308292 2026-10-18 04:38 Cousine-BoldItalic.ttf
+-rw-r--r-- 1 root root  306880 2026-10-18 04:38 Cousine-Italic.ttf
+-rw-r--r-- 1 root root  296856 2026-10-18 04:38 Cousine-Regular.ttf
+-rw-r--r-- 1 root root  174212 2026-10-18 04:38 Gelasio-Italic-VF.ttf
+-rw-r--r-- 1 root root  168556 2026-10-18 04:38 Gelasio-VF.ttf
+-rw-r--r-- 1 root root 5079424 2026-10-18 04:38 GoogleSans-Italic-VF.ttf
+-rw-r--r-- 1 root root 4974940 2026-10-18 04:38 GoogleSans-VF.ttf
+-rw-r--r-- 1 root root 3910784 2026-10-18 04:38 GoogleSansFlex-VF.ttf
+-rw-r--r-- 1 root root  597880 2026-10-18 04:38 Tinos-Bold.ttf
+-rw-r--r-- 1 root root  578976 2026-10-18 04:38 Tinos-BoldItalic.ttf
+-rw-r--r-- 1 root root  565016 2026-10-18 04:38 Tinos-Italic.ttf
+-rw-r--r-- 1 root root  521588 2026-10-18 04:38 Tinos-Regular.ttf
+## enabled overlays targeting android
+[x] android.auto_generated_rro_vendor__
+[x] android.cuttlefish.overlay
+[x] android.auto_generated_characteristics_rro
+[x] dev.anybook.overlay.desktop.framework
+[x] com.android.internal.systemui.navbar.gestural
+[x] com.android.systemui:neutral
+[x] com.android.systemui:accent
+[x] com.android.systemui:dynamic
+## config_headlineFontFamily / config_bodyFontFamily as resolved
+google-sans
+google-sans-text
