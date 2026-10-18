@@ -142,6 +142,8 @@ Bold matches the same way. Both products build, B1's 40 families still load and 
 
 **Size:** 5,313,524 bytes of fonts in `/product/fonts`, plus 4,466 bytes in `fonts_customization.xml` and 5,309 bytes in `fonts.xml`. In the images: `product.img` +3,948,544 bytes (the partition is compressed) and `system.img` +4,096, measured on the Cuttlefish product against B1's own build (`evidence/2026-10-17-doc-fonts/build/image-sizes.md`).
 
+**On the G14** (C, `evidence/2026-10-18-g14-anal192d-b7/`). The owner's `anal192d` stick carries B7 byte for byte. The zygote loads its `fonts.xml` at every boot with no warning. No boot has a font error or a font-related denial. The browser ran for about 9 minutes on real pages under enforcing with no crash. Which font the pages drew needs the photo.
+
 **Open:**
 - Verdana and Tahoma wait for Google to publish Velarium and Tachyonic (and the other 11). Any other stand-in would need the owner's approval.
 - Helvetica, Times and Courier still map to Roboto, Noto Serif and Cutive Mono. Blink treats Arial↔Helvetica, Times↔Times New Roman and Courier↔Courier New as interchangeable (`alternate_font_family.h`), and the AFM check above shows the widths agree. Moving those three aliases is a small follow-up, but it goes beyond what the upstreams claim, so it needs an owner decision.
@@ -288,9 +290,16 @@ Corner radii already match. Googlebook ships its own wallpaper set (`DesktopWall
     - Clearing the pick brings the circles back.
     - Settings and SystemUI keep the system mask whatever the pick, which is AOSP's design.
   - **Open (AOSP behaviour, not caused by B4).** The taskbar's all-apps panel keeps drawing the system mask after a pick, even after Launcher restarts. The baseline build behaves the same way: the pixel diff is 0 with its rounded-square mask. **HYPOTHESIS:** that panel's icons don't follow `ThemeManager`'s shape the way the taskbar's do. The cause hasn't been traced.
+- **On the G14** (the owner's `anal192d` session, 2026-10-18, from the logs; photos pending; `evidence/2026-10-18-g14-anal192d-b4/`):
+  - **Properties:** `getprop` shows 55 and 12.
+  - **Icons:** every taskbar icon is a circle in the laptop's own screen captures.
+  - **No crash** from B4.
+  - **Dim:** the wallpaper on screen matches its file (B6's Folio dark) pixel for pixel, ratio 1.002. That proves nothing about the dim, though: every B6 wallpaper carries a dark-theme or dark-text hint, so neither AOSP's 0.05 nor our 0 would dim it.
+  - **Folio light, the default:** it sits at a mean luminance of about 0.701, just above AOSP's 0.70 dark-text threshold. B4's 55 leaves a wide margin.
+  - **Found, not caused by B4:** Wallpaper & style crashes when a full wallpaper preview is opened from a desktop window. In AOSP's `WallpaperPreviewActivity`, the `onResult(result: Void)` callback is non-null in Kotlin, but the framework passes `null` on success. The fix is `Void?` (reported on ANAL-192).
 - **Not checked yet:**
   - the lock screen, which is off by default on our desktop (`config_disableLockscreenByDefault`);
-  - the G14 itself. The checks go on ANAL-192's stick checklist.
+  - on the G14: All Apps, Settings and the Shape picker (the owner's photos), and `cmd overlay lookup` (the live collector doesn't record overlay values).
 
 ### 2.5 Pointer, sounds, boot animation, setup (C)
 
@@ -299,7 +308,7 @@ Corner radii already match. Googlebook ships its own wallpaper set (`DesktopWall
   - We can't copy that art. AOSP 17 has vector pointer icons with fill and stroke styles, which we can theme with our own design.
 - **Sounds:** Googlebook uses Google's set (`Soft_Mallets.ogg`, `Oxygen.ogg`, `product/media/audio/{ui,notifications,ringtones,alarms}`). We use AOSP's (`OnTheHunt.ogg`, `Alarm_Classic.ogg`). The 9to5Google review called Googlebook's default click sounds "very annoying". Googlebook's own `SettingsProviderDesktopOverlay` already sets `def_sound_effects_enabled=false` (C). OpenBook now does the same (§2.6).
 - **Boot animation:** Googlebook ships `system/media/bootanimation.zip`; we have none.
-- **Setup:** Googlebook runs Google's setup wizard (`setupwizard.theme=glif_expressive`); we run AOSP Provision.
+- **Setup:** Googlebook runs Google's setup wizard (`setupwizard.theme=glif_expressive`). OpenBook ran AOSP Provision, which only marks the device provisioned. **Since ANAL-209:** OpenBook setup, nine pages in the installer's style with no account, in both products ([`setup.md`](setup.md)).
 
 **Done in ANAL-207 (B6): OpenBook's own wallpapers, boot animation, sounds and pointer** (`assets/README.md`; evidence `evidence/2026-10-17-brand-assets/`). Everything is drawn or synthesised by `scripts/brand/` from the brand palette and mark, CC-BY-4.0. No Google art, sample or font was copied or traced; Googlebook's own assets were not opened.
 - **Wallpapers:** four designs, each light and dark, at 2880×1800 and 1920×1080: Folio (pages fanning out of the spine), Bloom, Strata and Tide.
@@ -321,7 +330,14 @@ Corner radii already match. Googlebook ships its own wallpaper set (`DesktopWall
   - **Dynamic colour:** each wallpaper gives its own seed. The primary colour matches `monet.py` within 3 RGB units for 7 of 8 (Bloom light: 7).
   - **Pointer:** the framework's own loader draws our 20 shapes in all 6 fills and 3 strokes. A virtual mouse shows our arrow on screen; `skipScreenshot` is false in this build, so screencap includes it.
   - **Sounds:** the ringtone, notification and alarm settings point to Open Pages, Spark and First Light. MediaProvider indexed all 8.
-- **Not covered:** the G14 (ANAL-192's stick), and listening to the sounds by ear.
+- **On the G14** (the owner's `anal192d` session, 2026-10-18, read from the stick's logs; `evidence/2026-10-18-brand-assets-g14/`):
+  - **Boot animation (C):** it played from our zip in both boots, at 30 fps as designed (`part0` 1.41 s for 42 frames, then `part1` looping, then a 0.40 s fade).
+  - **Sound defaults (C):** `ro.config.*` are ours, and the system set Open Pages, Spark and First Light as the defaults on the first boot.
+  - **Unlock sound (C):** under enforcing, SystemUI's track opened at keyguard dismissal, with 0 SoundPool denials and 0 track failures.
+  - **UI sound paths (C):** SystemUI played our `OpenBook_LowBattery.ogg` at 15 % battery. Under enforcing, MediaPlayer's track was refused; ANAL-198's #97 fixes that, and ringtone previews need it too.
+  - **Wallpaper set (C):** the owner set one of ours (Folio dark) from Wallpaper & style.
+  - **Preview crash, fixed (C):** the picker's preview crashed once on the way. It is an AOSP bug: the fullscreen callback rejects the framework's `onResult(null)`, so any preview in a desktop window that is granted fullscreen kills the app. We reproduced it in Cuttlefish and fixed it with a one-line patch, `aosp/patches/packages/apps/WallpaperPicker2`.
+  - **Still to see:** the boot animation on the panel, the default wallpaper and the pointer (the owner's photos), and the sounds by ear.
 
 ### 2.6 Desktop clutter (C for OpenBook, R for Googlebook)
 
@@ -418,8 +434,8 @@ The owner approved every item on 2026-10-17. Each one is a sub-issue of ANAL-201
 | B4 | ANAL-205 | **Shape and wallpaper values:** circular icon mask, round icons, wallpaper dim 0, wallpaper colour thresholds. **Done in Cuttlefish (§2.4); the G14 check is on ANAL-192's stick** | small | — |
 | B5 | ANAL-206 | **A clean default desktop:** remove the QuickSearchBox widget and the app, set taskbar pins (Files, Settings, browser), quiet sounds. **Done in Cuttlefish and on the G14 product in QEMU (§2.6); the G14 check is on ANAL-192's stick** | small | Pins proposed in the PR; the owner reviews |
 | B6 | ANAL-207 | **Brand assets:** wallpapers (our own or CC0/CC-BY, not bulk Unsplash), a sound set with click sounds off by default, a boot animation, a pointer theme. Based on the brand mark in `assets/brand/`. **Done in Cuttlefish (§2.5); the G14 check is on ANAL-192's stick** | medium | Owner reviews the visuals in the PR (contact sheet) |
-| B7 | ANAL-208 | **Document fonts:** the metric-compatible fonts, for web and Office fidelity. Done for the 7 public families (17 of the 42 files; §2.1.1): Arial, Times New Roman, Courier New, Georgia and Comic Sans MS render in them, in WebView and the framework (Cuttlefish). G14 check on the next stick | small | The other 13 families wait for Google to publish them |
-| B8 | ANAL-209 | **Setup:** a first-run flow in our style, after the installer | medium | Coordinate with ANAL-191 (installer) |
+| B7 | ANAL-208 | **Document fonts:** the metric-compatible fonts, for web and Office fidelity. Done for the 7 public families (17 of the 42 files; §2.1.1): Arial, Times New Roman, Courier New, Georgia and Comic Sans MS render in them, in WebView and the framework (Cuttlefish). G14 `anal192d`: in the image, no font errors, browser used without a crash; the photo is still to do | small | The other 13 families wait for Google to publish them |
+| B8 | ANAL-209 | **Setup:** a first-run flow in our style, after the installer. **Done in Cuttlefish and on the G14 product in QEMU ([`setup.md`](setup.md)): nine pages, Skip, and `androidboot.openbook.setup=skip` for unattended runs; the G14 check is on ANAL-192's stick** | medium | Coordinate with ANAL-191 (installer) |
 
 ## Owner decisions (2026-10-17)
 

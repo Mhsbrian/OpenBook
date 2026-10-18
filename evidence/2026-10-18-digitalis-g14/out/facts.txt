@@ -1,0 +1,19 @@
+date: 2026-10-18T12:05:07Z
+uptime: 73.43 1655.19
+ro.build.fingerprint=OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+ro.product.model=OpenBook on ROG Zephyrus G14 (GA403WR)
+ro.boot.selinux=permissive
+ro.boot.openbook.live=1
+ro.product.cpu.abilist=x86_64,arm64-v8a
+ro.dalvik.vm.native.bridge=libberberis_arm64.so
+ro.dalvik.vm.isa.arm64=x86_64
+ro.enable.native.bridge.exec=1
+ro.berberis.flags=disable-ir-check
+kernel: Linux localhost 6.18.21-android17-5-gfbfdd65b0fd1 #1 SMP PREEMPT Fri Oct 16 12:00:00 UTC 2026 x86_64 Toybox
+cpu: AMD Ryzen AI 9 HX 370 w/ Radeon 890M, 24 CPUs; MemTotal: 31934680 kB
+cpu flags (translator-relevant): fma movbe bmi1 avx2 bmi2 avx512f adx sha_ni vaes 
+cpufreq: driver=amd-pstate-epp governor=powersave epp=balance_performance max_khz=5157895 amd_pstate=active
+platform_profile: balanced
+power:  AC powered: true level: 16 Capacity level: 3 
+binfmt: arm64_dyn=enabled arm64_exe=enabled 
+payload: { "name": "openbook-bridgecheck-anal192c", "repo_commit": "3908b1411f1ffde3577bb277bde92f65fa85cda3", "repo_dirty": false, "toolchain": [  "Android (16134705, +pgo, +bolt, +lto, +mlgo, based on r574158c) clang version 21.0.0 (https://android.googlesource.com/toolchain/llvm-project 9f872551d3c681d06fd303b36f16ed5c274735eb)",  "NDK r30 (30.0.16248370), build-tools 37.0.0, platform android-36, minSdk 30" ], "probes": {  "anybook-probe-arm64.apk": "e5092508941bf1023b5a7f8028ad7da66bcc5fbe95dc5226129660fb73a2d0f2",  "anybook-probe-x86_64.apk": "32c5fdd452393ed8ff1bf93b2d7c49152b87e126253d4f866f42f00c6083a6b7",  "bench/coremark-arm64": "dfca26a917c9005dfbd7dc7c367c8fa37155da1125b70b754f234d9110f9afd2",  "bench/coremark-x86_64": "fefb564ff24c5845c58b1f30b21017b71eafe761201a8dbab5ed65e36ff022da" }}
