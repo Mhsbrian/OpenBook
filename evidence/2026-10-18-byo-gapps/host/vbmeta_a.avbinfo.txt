@@ -38,8 +38,8 @@ Descriptors:
       Image Size:            3010560 bytes
       Hash Algorithm:        sha256
       Partition Name:        init_boot
-      Salt:                  5342dd73101ba7961d01cca63869a569562bc7eff6ba3f80680d6ea3b95d3e4d55132fde8681493075ff53ff37cb524c7c5a516a25f88fa6490f5256a575c5f2
-      Digest:                f22e5b554fc18107d6140fbbeb2be24360625f56fe36b10e09a6e41657f5b9ce
+      Salt:                  5342dd73101ba7961d01cca63869a569562bc7eff6ba3f80680d6ea3b95d3e4ddef8d33680bf56c7743c3b953181aa4769597c5bc8aa27aefe5c9e13ee5322b9
+      Digest:                7b442709233f627e707cc84dfb74b605be86379fa16dc2766960c8dc86c9a24b
       Flags:                 0
     Hash descriptor:
       Image Size:            137216 bytes
@@ -61,22 +61,22 @@ Descriptors:
       Hash Algorithm:        sha256
       Partition Name:        product
       Salt:                  a3a829c3172285da889d8cb405c89e3f06463e83de19ffd2f662002e918a539d
-      Root Digest:           7f25845f8304903e557b48a9771edfe23a4c0c7ba9083f6e71695ff4b64410e1
+      Root Digest:           32d1a242e8fbb0fb1a62f614e2936d78e52efb5ed009ef5579f081968d207737
       Flags:                 0
     Hashtree descriptor:
       Version of dm-verity:  1
-      Image Size:            682328064 bytes
-      Tree Offset:           682328064
-      Tree Size:             5382144 bytes
+      Image Size:            684036096 bytes
+      Tree Offset:           684036096
+      Tree Size:             5394432 bytes
       Data Block Size:       4096 bytes
       Hash Block Size:       4096 bytes
       FEC num roots:         2
-      FEC offset:            687710208
-      FEC size:              5439488 bytes
+      FEC offset:            689430528
+      FEC size:              5455872 bytes
       Hash Algorithm:        sha256
       Partition Name:        system
       Salt:                  162be3601939f32e1f5a7140cf8c538359773cefd4e7c38600c4ae9d21b58261
-      Root Digest:           ad2d7ac282dc9d8579b91a386679bc3ac3f50c80f418b4a33782975106e6e0f0
+      Root Digest:           ae75d35e2aee686a889f3fbfaf520c9aad1eafbb5bafa25b368cf5368de81219
       Flags:                 0
     Hashtree descriptor:
       Version of dm-verity:  1
@@ -95,33 +95,33 @@ Descriptors:
       Flags:                 0
     Hashtree descriptor:
       Version of dm-verity:  1
-      Image Size:            124981248 bytes
-      Tree Offset:           124981248
-      Tree Size:             991232 bytes
+      Image Size:            125394944 bytes
+      Tree Offset:           125394944
+      Tree Size:             995328 bytes
       Data Block Size:       4096 bytes
       Hash Block Size:       4096 bytes
       FEC num roots:         2
-      FEC offset:            125972480
+      FEC offset:            126390272
       FEC size:              999424 bytes
       Hash Algorithm:        sha256
       Partition Name:        system_ext
       Salt:                  a3a829c3172285da889d8cb405c89e3f06463e83de19ffd2f662002e918a539d
-      Root Digest:           7d33b071f101cc73c2d9624f73a2e595b855155399a125e3e7312379b5eb3e6c
+      Root Digest:           af7929e6b987e94cac9ffa4b0be1a06ef2ef6903201af0598eb7427022d6b1dc
       Flags:                 0
     Hashtree descriptor:
       Version of dm-verity:  1
-      Image Size:            145534976 bytes
-      Tree Offset:           145534976
+      Image Size:            145539072 bytes
+      Tree Offset:           145539072
       Tree Size:             1155072 bytes
       Data Block Size:       4096 bytes
       Hash Block Size:       4096 bytes
       FEC num roots:         2
-      FEC offset:            146690048
+      FEC offset:            146694144
       FEC size:              1163264 bytes
       Hash Algorithm:        sha256
       Partition Name:        vendor
       Salt:                  a3a829c3172285da889d8cb405c89e3f06463e83de19ffd2f662002e918a539d
-      Root Digest:           8ba0c9189681c9ff4faf0115a3e3704f86d20261ee523b6d852f2036733392fb
+      Root Digest:           12f9d01ab90aac6b69daf3d0a0598c617e642dc2ce2df2b1673cdedb32958d06
       Flags:                 0
     Hashtree descriptor:
       Version of dm-verity:  1

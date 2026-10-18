@@ -6,15 +6,15 @@
  "code": null,
  "error": null,
  "failed_step": null,
- "started": "2026-10-18T07:45:32Z",
- "finished": "2026-10-18T07:45:57Z",
- "seconds": 25.0,
- "plan_sha256": "69af61dc87fe42892a4975e1b4e4b90af4d9a47f3014b67bb1e23e361643fa8b",
+ "started": "2026-10-18T09:06:26Z",
+ "finished": "2026-10-18T09:06:40Z",
+ "seconds": 14.5,
+ "plan_sha256": "304e772ac6946ddf9c57840437a3a21242973ac62b8e6d56c974469243c54fb8",
  "selinux": "enforcing",
  "steps": {
   "check_source": {
    "state": "done",
-   "seconds": 8.4
+   "seconds": 4.4
   },
   "prepare_disk": {
    "state": "done",
@@ -22,11 +22,11 @@
   },
   "boot_images": {
    "state": "done",
-   "seconds": 2.6
+   "seconds": 0.4
   },
   "system": {
    "state": "done",
-   "seconds": 9.8
+   "seconds": 5.0
   },
   "boot_entry": {
    "state": "done",
@@ -34,7 +34,7 @@
   },
   "verify": {
    "state": "done",
-   "seconds": 4.1
+   "seconds": 4.7
   },
   "report": {
    "state": "done",
@@ -129,7 +129,7 @@
   {
    "what": "init_boot_a",
    "bytes": 8388608,
-   "sha256": "14abe3e0a9d337348fad5816b9669080d9b22ab4c15977ffb2ffaaa0730b0e12",
+   "sha256": "c0f6da13eb6c38144123466702876e686451c82166d701a8e1aeb366be0fe1a6",
    "ok": true
   },
   {
@@ -141,37 +141,37 @@
   {
    "what": "vbmeta_a (rebuilt)",
    "bytes": 65536,
-   "sha256": "29f64d1da03ae5cf09af16d656c11f6c165c0aadf83de508702c31ee80ada861",
+   "sha256": "ab284ade7e61b79a3ff9ba92ce942da35acd233819ebc30453f1ef44fb4647ba",
    "ok": true
   },
   {
    "what": "super:system_a",
-   "bytes": 695439360,
-   "sha256": "262e3d81a93e1c80eed7982c2fb22417dfae47a13e9aef4ea4e7b167016ca98c",
+   "bytes": 697176064,
+   "sha256": "e04d337d146662f3a0088e61e4991ac780fba572296e5e0f39e882081084336b",
    "ok": true
   },
   {
    "what": "super:system_b",
-   "bytes": 4661248,
-   "sha256": "be5fa089d4e6ed4e34d8abe086af9131b2cb21765a2e76b17ce4177d27fb9710",
+   "bytes": 4698112,
+   "sha256": "5cd92e0a61bd8f746dce9136d0740370b20074ad7682824bf467d3cee5beba61",
    "ok": true
   },
   {
    "what": "super:system_ext_a",
-   "bytes": 127451136,
-   "sha256": "178fe783c4ef7d88aa60121ca2bb2588e83445f973590e0a94c81c6c85c9e61f",
+   "bytes": 127873024,
+   "sha256": "a48ae6244447d35799461bc7696831411c2121eac0561e8a0d58762215bca243",
    "ok": true
   },
   {
    "what": "super:product_a (with the package)",
    "bytes": 288837632,
-   "sha256": "81c8e4a1560313e47c8559f7632c4b9067e3d8634518b0b9646619c6686c4058",
+   "sha256": "474550549584cd5ab1078d27179096056b39da8e1d90125c80ac05adc2433586",
    "ok": true
   },
   {
    "what": "super:vendor_a",
-   "bytes": 148406272,
-   "sha256": "c8d7b173ede8330820362ffc010c9fcae48de69eaa2e4a3ffae36a234b09e593",
+   "bytes": 148410368,
+   "sha256": "6a4289203d9b6d8e2552bea15b5a57cfd53a0f8b39016aa13d636858d80b61e1",
    "ok": true
   },
   {
@@ -189,7 +189,7 @@
   {
    "what": "super:metadata",
    "bytes": 1048576,
-   "sha256": "35f8829497a73799bf460e0dbe1fd40504cbd57aac890aea0f33c5c742c3685d",
+   "sha256": "0df1b8c0be67c6cec7bc86152783f982f0a8085f38be4a8cb6f2610eee35497f",
    "ok": true
   },
   {
@@ -207,13 +207,13 @@
   {
    "what": "openbook/a/ramdisk.img",
    "bytes": 3005944,
-   "sha256": "943deb5e74be628b1231ea1e99ef64c032efe440e497e7a429819e6885c8f19f",
+   "sha256": "dd834a29b0a6e9849223f923fcb328ab841c7a0ad0e835d28879bf954280772c",
    "ok": true
   },
   {
    "what": "openbook/a/bootconfig.img",
    "bytes": 764,
-   "sha256": "cd92f791b33f62b68caece66ea256f553ce82510be4f196e4c6920e16e3fe81d",
+   "sha256": "01d83646bb11cdfa9a38d51ec7b864c9fe59674f9a5a50457c7446bd75e56fc6",
    "ok": true
   },
   {
@@ -245,16 +245,16 @@
  "nvram": "unavailable",
  "fallback_path": true,
  "gapps": {
-  "manifest_sha256": "d61967eb5e45f1d707732aa4b4907e00be5b730a82d48fb154ace48647ed89cf",
+  "manifest_sha256": "714e4ccfb04cf89a92164d7f9017db5a00db9f2afe1ace39b5b43fe6309bc5e3",
   "product": "product_a",
   "product_bytes": 288837632,
-  "product_sha256": "81c8e4a1560313e47c8559f7632c4b9067e3d8634518b0b9646619c6686c4058",
-  "root_digest": "7f25845f8304903e557b48a9771edfe23a4c0c7ba9083f6e71695ff4b64410e1",
-  "super_offset": 1344274432,
-  "vbmeta_digest": "45a9aeff2fe21a04a113d8c8d64a936df47638c87316f42090a98542a45b13e2",
+  "product_sha256": "474550549584cd5ab1078d27179096056b39da8e1d90125c80ac05adc2433586",
+  "root_digest": "32d1a242e8fbb0fb1a62f614e2936d78e52efb5ed009ef5579f081968d207737",
+  "super_offset": 1345323008,
+  "vbmeta_digest": "e445629f495d3912929679c33b8ba4d78608f9eba9cc439778753ff1f6fb8ca6",
   "vbmeta_size": 4608,
   "vbmeta": "unsigned"
  },
- "report": "openbook/logs/install-20261018T074532Z.json",
- "log": "openbook/logs/install-20261018T074532Z.log"
+ "report": "openbook/logs/install-20261018T090626Z.json",
+ "log": "openbook/logs/install-20261018T090626Z.log"
 }

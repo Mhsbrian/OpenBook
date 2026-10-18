@@ -10,19 +10,19 @@ Partition table:
   Group: openbook_dynamic_partitions_a
   Attributes: readonly
   Extents:
-    0 .. 1358279 linear super 2048
+    0 .. 1361671 linear super 2048
 ------------------------
   Name: system_b
   Group: openbook_dynamic_partitions_b
   Attributes: readonly
   Extents:
-    0 .. 9103 linear super 1361920
+    0 .. 9175 linear super 1363968
 ------------------------
   Name: system_ext_a
   Group: openbook_dynamic_partitions_a
   Attributes: readonly
   Extents:
-    0 .. 248927 linear super 1372160
+    0 .. 249751 linear super 1374208
 ------------------------
   Name: system_ext_b
   Group: openbook_dynamic_partitions_b
@@ -33,7 +33,7 @@ Partition table:
   Group: openbook_dynamic_partitions_a
   Attributes: readonly
   Extents:
-    0 .. 564135 linear super 2625536
+    0 .. 564135 linear super 2627584
 ------------------------
   Name: product_b
   Group: openbook_dynamic_partitions_b
@@ -44,7 +44,7 @@ Partition table:
   Group: openbook_dynamic_partitions_a
   Attributes: readonly
   Extents:
-    0 .. 289855 linear super 2193408
+    0 .. 289863 linear super 2195456
 ------------------------
   Name: vendor_b
   Group: openbook_dynamic_partitions_b
@@ -55,7 +55,7 @@ Partition table:
   Group: openbook_dynamic_partitions_a
   Attributes: readonly
   Extents:
-    0 .. 104343 linear super 2484224
+    0 .. 104343 linear super 2486272
 ------------------------
   Name: vendor_dlkm_b
   Group: openbook_dynamic_partitions_b
@@ -66,7 +66,7 @@ Partition table:
   Group: openbook_dynamic_partitions_a
   Attributes: readonly
   Extents:
-    0 .. 35479 linear super 2588672
+    0 .. 35479 linear super 2590720
 ------------------------
   Name: system_dlkm_b
   Group: openbook_dynamic_partitions_b
@@ -75,13 +75,13 @@ Partition table:
 ------------------------
 Super partition layout:
 ------------------------
-super: 2048 .. 1360328: system_a (1358280 sectors)
-super: 1361920 .. 1371024: system_b (9104 sectors)
-super: 1372160 .. 1621088: system_ext_a (248928 sectors)
-super: 2193408 .. 2483264: vendor_a (289856 sectors)
-super: 2484224 .. 2588568: vendor_dlkm_a (104344 sectors)
-super: 2588672 .. 2624152: system_dlkm_a (35480 sectors)
-super: 2625536 .. 3189672: product_a (564136 sectors)
+super: 2048 .. 1363720: system_a (1361672 sectors)
+super: 1363968 .. 1373144: system_b (9176 sectors)
+super: 1374208 .. 1623960: system_ext_a (249752 sectors)
+super: 2195456 .. 2485320: vendor_a (289864 sectors)
+super: 2486272 .. 2590616: vendor_dlkm_a (104344 sectors)
+super: 2590720 .. 2626200: system_dlkm_a (35480 sectors)
+super: 2627584 .. 3191720: product_a (564136 sectors)
 ------------------------
 Block device table:
 ------------------------

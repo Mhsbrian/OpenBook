@@ -1,0 +1,9 @@
+PKG=/mnt/media_rw/9EAD-775F/openbook-synthetic-gapps-x86_64-37.zip
+total 262284
+drwxrwx--- 2 root external_storage      4096 2026-10-18 10:06 LOST.DIR
+-rwxrwx--- 1 root external_storage     13903 2026-10-18 10:05 neg-framework.zip
+-rwxrwx--- 1 root external_storage 268539167 2026-10-18 10:05 openbook-synthetic-gapps-x86_64-37-big.zip
+-rwxrwx--- 1 root external_storage     13838 2026-10-18 10:05 openbook-synthetic-gapps-x86_64-37.zip
+public:8,16 mounted 9EAD-775F
+private mounted null
+emulated;0 mounted null
