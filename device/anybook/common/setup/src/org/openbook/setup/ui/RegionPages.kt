@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
@@ -91,7 +92,7 @@ fun LanguagePage(model: SetupModel) {
             }
             Column(Modifier.weight(1f).fillMaxHeight()) {
                 SectionLabel(stringResource(R.string.region_label))
-                SearchField(query, { query = it }, stringResource(R.string.region_search))
+                SearchField(query, { query = it }, stringResource(R.string.region_search), "region-search")
                 Spacer(Modifier.height(8.dp))
                 val shown = regions.filter { region(it).contains(query.trim(), ignoreCase = true) || it.country.equals(query.trim(), true) }
                 LazyColumn(Modifier.weight(1f)) {
@@ -145,7 +146,7 @@ fun KeyboardPage(model: SetupModel) {
         Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(36.dp)) {
             Column(Modifier.weight(1f).fillMaxHeight()) {
                 SectionLabel(stringResource(R.string.keyboard_layout_label))
-                SearchField(query, { query = it }, stringResource(R.string.keyboard_search))
+                SearchField(query, { query = it }, stringResource(R.string.keyboard_search), "keyboard-search")
                 Spacer(Modifier.height(8.dp))
                 LazyColumn(Modifier.weight(1f)) {
                     val q = query.trim()
@@ -185,7 +186,7 @@ fun KeyboardPage(model: SetupModel) {
                 Spacer(Modifier.height(18.dp))
                 SectionLabel(stringResource(R.string.keyboard_try))
                 OutlinedTextField(trial, { trial = it }, label = { Text(stringResource(R.string.keyboard_try_hint)) },
-                    singleLine = true, modifier = Modifier.fillMaxWidth())
+                    singleLine = true, modifier = Modifier.fillMaxWidth().testTag("keyboard-try"))
                 Spacer(Modifier.height(14.dp))
                 BodyText(stringResource(R.string.keyboard_keys_note))
             }
@@ -219,10 +220,11 @@ fun TimePage(model: SetupModel) {
         }
         if (regional.isEmpty()) world = true
     }
+    // The clock shows minutes: redraw on the minute, so the window is otherwise idle.
     val now by produceState(System.currentTimeMillis()) {
         while (true) {
             value = System.currentTimeMillis()
-            delay(1000)
+            delay(60_000 - value % 60_000 + 50)
         }
     }
     val zone = TimeZone.getTimeZone(model.zoneId)
@@ -269,7 +271,7 @@ fun TimePage(model: SetupModel) {
                     FilterChip(selected = world, onClick = { world = true }, label = { Text(stringResource(R.string.time_zone_all)) })
                 }
                 Spacer(Modifier.height(8.dp))
-                SearchField(query, { query = it }, stringResource(R.string.time_zone_search))
+                SearchField(query, { query = it }, stringResource(R.string.time_zone_search), "zone-search")
                 Spacer(Modifier.height(8.dp))
                 val q = query.trim()
                 val list = (if (world) everywhere.value else regional).filter {
