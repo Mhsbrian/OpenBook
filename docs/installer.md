@@ -1114,7 +1114,7 @@ Status as of 2026-10-18. Evidence: `evidence/2026-10-18-byo-gapps/`, starting wi
 - **Plan and report.** Only a plan with a package has `request.gapps`, the `gapps` and `product` sections, the operations `check_gapps`, `product` and `vbmeta`, and `bootconfig.img` marked `after_product`. The report adds the root digest, the vbmeta digest and the product's sha256. **Without the step, installs are byte-identical to `main`'s** (§14.4).
 
 ### 14.4 Host tests (`scripts/gapps/engine-gapps-test.sh`, C)
-Run on `openbook-live-20261017-anal206b` (main + B5) with this branch merged with `main` `0713b6a`: **85/85**.
+Run on `openbook-live-20261017-anal206b` (main + B5) with this branch merged with `main` `0713b6a`: **89/89**.
 
 | Case | Checks |
 |---|---|
@@ -1123,6 +1123,7 @@ Run on `openbook-live-20261017-anal206b` (main + B5) with this branch merged wit
 | `plan-gapps` | 9: the operations, request, product and package sections, the warnings, `bootconfig.img` after product, `vbmeta_a` rebuilt; the target only read |
 | `refuse-*` | 5: an unknown package (`no_gapps`), a file the image has (`gapps_clash`), no confirmation (`gapps_not_confirmed`), a staged APK changed after the plan (fails in `check_source`, target untouched) |
 | `apply-gapps` | 17: the install verifies. Then, from outside the engine: `lpdump` shows `product_a` moved and the others in place; `avbtool info_image`/`verify_image` show product's footer and descriptor (no FEC) and recompute its hashtree correctly; `avbtool add_hashtree_footer` over the same image and salt gives the same root digest and tree bytes; `fsck.erofs --extract` shows all 314 stick files unchanged and exactly the 7 package files plus the manifest added; the new inodes are root-owned, 0644/0755, labelled `system_file`; `vbmeta_a` is unsigned with only product's descriptor changed; `avbtool calculate_vbmeta_digest` equals the bootconfig's digest; every other logical partition is byte-identical to the stick's |
+| `alongside-gapps` | 4: next to a Windows-like disk: the plan puts everything in the free space and rebuilds product; the install verifies; MSR, NTFS and recovery byte-identical (S7); `avbtool verify_image` passes on the rebuilt product |
 | `scale` | 4: a package with a 256 MiB app (seeded random, incompressible): check 2.4 s, install 24.8 s on image files; `avbtool verify_image` passes on the 533 MiB product; the app reads back byte for byte |
 
 The installer's own host tests pass with this engine too: `engine-test.sh` 63/63, ANAL-210's `engine-addon-test.sh` 19/19.

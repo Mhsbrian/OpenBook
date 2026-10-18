@@ -27,7 +27,7 @@ Descriptors:
       Hash Algorithm:        sha256
       Partition Name:        product
       Salt:                  a3a829c3172285da889d8cb405c89e3f06463e83de19ffd2f662002e918a539d
-      Root Digest:           a116f1468bcf03cca1848a3acdeeb9040a065dfced79fbf2123ef90c7d0d8db6
+      Root Digest:           7f25845f8304903e557b48a9771edfe23a4c0c7ba9083f6e71695ff4b64410e1
       Flags:                 0
     Prop: com.android.build.product.os_version -> '17'
     Prop: com.android.build.product.fingerprint -> 'OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys'
