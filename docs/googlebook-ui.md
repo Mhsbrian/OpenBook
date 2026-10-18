@@ -334,6 +334,7 @@ Corner radii already match. Googlebook ships its own wallpaper set (`DesktopWall
   - **Boot animation (C):** it played from our zip in both boots, at 30 fps as designed (`part0` 1.41 s for 42 frames, then `part1` looping, then a 0.40 s fade).
   - **Sound defaults (C):** `ro.config.*` are ours, and the system set Open Pages, Spark and First Light as the defaults on the first boot.
   - **Unlock sound (C):** under enforcing, SystemUI's track opened at keyguard dismissal, with 0 SoundPool denials and 0 track failures.
+  - **UI sound paths (C):** SystemUI played our `OpenBook_LowBattery.ogg` at 15 % battery. Under enforcing, MediaPlayer's track was refused; ANAL-198's #97 fixes that, and ringtone previews need it too.
   - **Wallpaper set (C):** the owner set one of ours (Folio dark) from Wallpaper & style.
   - **Preview crash, fixed (C):** the picker's preview crashed once on the way. It is an AOSP bug: the fullscreen callback rejects the framework's `onResult(null)`, so any preview in a desktop window that is granted fullscreen kills the app. We reproduced it in Cuttlefish and fixed it with a one-line patch, `aosp/patches/packages/apps/WallpaperPicker2`.
   - **Still to see:** the boot animation on the panel, the default wallpaper and the pointer (the owner's photos), and the sounds by ear.
