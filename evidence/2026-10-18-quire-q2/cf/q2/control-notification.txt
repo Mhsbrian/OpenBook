@@ -1,4 +1,4 @@
-    NotificationRecord(0x08d9e56e: pkg=dev.openbook.quire user=UserHandle{0} id=216 tag=null importance=3 key=0|dev.openbook.quire|216|null|10095: Notification(channel=automation shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=ONGOING_EVENT|NO_CLEAR|NO_DISMISS|COMPUTER_CONTROL color=0x00000000 vis=PRIVATE))
+    NotificationRecord(0x0b526b7a: pkg=dev.openbook.quire user=UserHandle{0} id=216 tag=null importance=3 key=0|dev.openbook.quire|216|null|10095: Notification(channel=automation shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=ONGOING_EVENT|NO_CLEAR|NO_DISMISS|COMPUTER_CONTROL color=0x00000000 vis=PRIVATE))
       uid=10095 userId=0
       opPkg=android
       icon=Icon(typ=RESOURCE pkg=dev.openbook.quire id=0x7f010000)
@@ -10,11 +10,11 @@
       groupKey=0|dev.openbook.quire|216|null|10095
       notification=
             fullscreenIntent=null
-            contentIntent=PendingIntent{9c2640f: PendingIntentRecord{ea95f9f dev.openbook.quire startActivity (allowlist: 42b8fda:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+            contentIntent=PendingIntent{9331f2b: PendingIntentRecord{1b7a1ec dev.openbook.quire startActivity (allowlist: 6fae540:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
             deleteIntent=null
             number=0
             groupAlertBehavior=0
-            when=1792339327629/1792339327629
+            when=1792342715374/1792342715374
             tickerText=null
             vis=0
             contentView=null
@@ -26,7 +26,7 @@
                 android.title=String (Quire is using Settings)
                 android.reduced.images=Boolean (true)
                 android.text=String (It runs on a separate display. Open Quire to watch, take over or stop.)
-                android.appInfo=ApplicationInfo (ApplicationInfo{4db5c9c dev.openbook.quire})
+                android.appInfo=ApplicationInfo (ApplicationInfo{4858f88 dev.openbook.quire})
                 android.showWhen=Boolean (true)
                 android.requestPromotedOngoing=Boolean (true)
             }

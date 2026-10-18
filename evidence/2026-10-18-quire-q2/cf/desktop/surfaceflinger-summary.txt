@@ -6,18 +6,19 @@ Display 4619827353912518656 (HWC display 0): port=0 pnpId=GGL screenPartStatus=U
 GLES: Google Inc. (AMD), ANGLE (AMD, Vulkan 1.4.305 (Virtio-GPU GFXStream (AMD Radeon Graphics (RADV RAPHAEL_MENDOCINO)) (0x0000164E)), AMD-26.0.99), OpenGL ES 3.2 (ANGLE 2.1 git hash: 8d8796935e4faeaf19e67ac0a5949e71a5252e7f)
 RenderEngine chosen blur algorithm: KawaseDualFilterV2
 ## HWC layers (top to bottom): composition type, layer
-CLIENT	 VRI-Taskbar#81
-CLIENT	 VRI-StatusBar#84
-CLIENT	 Caption of Task=32#924
-CLIENT	 VRI-com.android.documentsui/com.android.documentsui.files.FilesActivity#929
-CLIENT	 Task=32#913
-CLIENT	 Caption of Task=31#897
-CLIENT	 VRI-com.android.settings/com.android[...]ettings$NetworkDashboardActivity#909
-CLIENT	 VRI-com.android.settings/com.android.settings.Settings#908
-CLIENT	 Task=31#886
-CLIENT	 Caption of Task=15#824
-CLIENT	 VRI-dev.openbook.quire/dev.openbook.quire.control.LabActivity#813
-CLIENT	 Background for 497f32 SurfaceView[de[...]nbook.quire.control.LabActivity]#817
-CLIENT	 Task=15#226
-CLIENT	 VRI-com.android.launcher3/com.androi[...]r3.uioverrides.QuickstepLauncher#812
-CLIENT	 Wallpaper BBQ wrapper#45
+CLIENT	 VRI-Taskbar#75
+CLIENT	 VRI-StatusBar#83
+CLIENT	 Caption of Task=26#618
+CLIENT	 VRI-com.android.documentsui/com.android.documentsui.files.FilesActivity#623
+CLIENT	 Task=26#607
+CLIENT	 Caption of Task=25#598
+CLIENT	 VRI-com.android.settings/com.android[...]ettings$NetworkDashboardActivity#605
+CLIENT	 VRI-com.android.settings/com.android.settings.Settings#604
+CLIENT	 Task=25#577
+CLIENT	 Caption of Task=15#417
+CLIENT	 VRI-dev.openbook.quire/dev.openbook.quire.control.LabActivity#406
+CLIENT	 Background for 42503d4 SurfaceView[d[...]nbook.quire.control.LabActivity]#410
+CLIENT	 Task=15#227
+CLIENT	 Task=10#129
+CLIENT	 VRI-com.android.launcher3/com.androi[...]r3.uioverrides.QuickstepLauncher#405
+CLIENT	 Wallpaper BBQ wrapper#47

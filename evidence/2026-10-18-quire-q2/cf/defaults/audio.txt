@@ -1,15 +1,15 @@
 AudioService Dumpsys
-Current time: Sun Oct 18 15:56:51 GMT 2026
+Current time: Sun Oct 18 16:57:40 GMT 2026
 
 # IPC
 ## Native audioserver lifecycle events
-10-18 15:56:06:743 AudioService()
-10-18 15:56:06:750 Controller start task complete
+10-18 16:56:53:475 AudioService()
+10-18 16:56:53:492 Controller start task complete
 
 ## AudioHandler
 Message handler (watch for unhandled messages):
-  Handler (com.android.server.audio.AudioService$AudioHandler) {b93633a} @ 55965
-    Looper (AudioService, tid 145) {680e48c}
+  Handler (com.android.server.audio.AudioService$AudioHandler) {9b79fdf} @ 62509
+    Looper (AudioService, tid 145) {8b98f35}
       (MessageQueue is using DeliQueue implementation)
       (Total messages: 0, polling=true, quitting=false)
 
@@ -17,15 +17,15 @@ Message handler (watch for unhandled messages):
 # Stream activity
 ## PlaybackActivityMonitor
   playback listeners:
- PlayMonitorClient:S uid:1000 pid:814
- PlayMonitorClient:S uid:1000 pid:814
- PlayMonitorClient:S uid:1000 pid:814
+ PlayMonitorClient:S uid:1000 pid:817
+ PlayMonitorClient:S uid:1000 pid:817
+ PlayMonitorClient:S uid:1000 pid:817
 
 
 
   players:
-(not logged)  AudioPlaybackConfiguration piid:47 deviceIds:[] type:android.media.SoundPool u/pid:1000/814 state:idle attr:AudioAttributes: usage=USAGE_ASSISTANCE_SONIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800(FLAG_MUTE_HAPTIC)  tags= bundle=null sessionId:0 mutedState:none  FormatInfo{isSpatialized=false, channelMask=0x0, sampleRate=0}
-  AudioPlaybackConfiguration piid:55 deviceIds:[] type:android.media.SoundPool u/pid:10099/2644 state:idle attr:AudioAttributes: usage=USAGE_ASSISTANCE_SONIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800(FLAG_MUTE_HAPTIC)  tags= bundle=null sessionId:0 mutedState:none  FormatInfo{isSpatialized=false, channelMask=0x0, sampleRate=0}
+(not logged)  AudioPlaybackConfiguration piid:63 deviceIds:[] type:android.media.SoundPool u/pid:1000/817 state:idle attr:AudioAttributes: usage=USAGE_ASSISTANCE_SONIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800(FLAG_MUTE_HAPTIC)  tags= bundle=null sessionId:0 mutedState:none  FormatInfo{isSpatialized=false, channelMask=0x0, sampleRate=0}
+  AudioPlaybackConfiguration piid:71 deviceIds:[] type:android.media.SoundPool u/pid:10099/2658 state:idle attr:AudioAttributes: usage=USAGE_ASSISTANCE_SONIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800(FLAG_MUTE_HAPTIC)  tags= bundle=null sessionId:0 mutedState:none  FormatInfo{isSpatialized=false, channelMask=0x0, sampleRate=0}
 
   ducked players piids:
 
@@ -43,13 +43,13 @@ Message handler (watch for unhandled messages):
 
 
 ### Playback activity
-10-18 15:56:07:085 new player piid:47 uid/pid:1000/814 package:com.android.keychain type:android.media.SoundPool attr:AudioAttributes: usage=USAGE_ASSISTANCE_SONIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800(FLAG_MUTE_HAPTIC)  tags= bundle=null session:0
-10-18 15:56:07:811 new player piid:55 uid/pid:10099/2644 package:com.android.systemui type:android.media.SoundPool attr:AudioAttributes: usage=USAGE_ASSISTANCE_SONIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800(FLAG_MUTE_HAPTIC)  tags= bundle=null session:0
-10-18 15:56:08:327 player piid:55 event:started
-10-18 15:56:08:523 player piid:55 event:started
-10-18 15:56:08:642 player piid:55 event:started
-10-18 15:56:43:417 new player piid:63 uid/pid:10099/3861 package:com.android.systemui type:android.media.SoundPool attr:AudioAttributes: usage=USAGE_ASSISTANCE_SONIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x801(FLAG_AUDIBILITY_ENFORCED+FLAG_MUTE_HAPTIC)  tags= bundle=null session:0
-10-18 15:56:49:733 releasing player piid:63, uid:10099
+10-18 16:56:54:174 new player piid:63 uid/pid:1000/817 package:com.android.dynsystem type:android.media.SoundPool attr:AudioAttributes: usage=USAGE_ASSISTANCE_SONIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800(FLAG_MUTE_HAPTIC)  tags= bundle=null session:0
+10-18 16:56:56:194 new player piid:71 uid/pid:10099/2658 package:com.android.systemui type:android.media.SoundPool attr:AudioAttributes: usage=USAGE_ASSISTANCE_SONIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800(FLAG_MUTE_HAPTIC)  tags= bundle=null session:0
+10-18 16:56:58:243 player piid:71 event:started
+10-18 16:56:58:320 player piid:71 event:started
+10-18 16:56:58:500 player piid:71 event:started
+10-18 16:57:31:952 new player piid:79 uid/pid:10099/3869 package:com.android.systemui type:android.media.SoundPool attr:AudioAttributes: usage=USAGE_ASSISTANCE_SONIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x801(FLAG_AUDIBILITY_ENFORCED+FLAG_MUTE_HAPTIC)  tags= bundle=null session:0
+10-18 16:57:38:315 releasing player piid:79, uid:10099
 
 
   allowed capture policies:
@@ -86,8 +86,8 @@ No additional audio focus environments.
 # Routing
 ## AudioDeviceBroker
   Message handler (watch for unhandled messages):
-    Handler (com.android.server.audio.AudioDeviceBroker$BrokerHandler) {669e7e1} @ 55966
-      Looper (AudioDeviceBroker, tid 142) {e6b9c6c}
+    Handler (com.android.server.audio.AudioDeviceBroker$BrokerHandler) {f22f48a} @ 62511
+      Looper (AudioDeviceBroker, tid 142) {d117ed0}
         (MessageQueue is using DeliQueue implementation)
         (Total messages: 0, polling=true, quitting=false)
 
@@ -139,7 +139,7 @@ devices:
   mScoAudioState: SCO_STATE_INACTIVE
   mSupportsBleHearingAids: false
 
-  mHearingAid: android.bluetooth.BluetoothHearingAid@e123427
+  mHearingAid: android.bluetooth.BluetoothHearingAid@416617a
 
   mLeAudio: null
   mA2dp: null
@@ -158,23 +158,23 @@ devices:
 ### Phone state changes
 
 ### Device connections
-10-18 15:56:07:076 setModeOwnerToken: null -> []
-10-18 15:56:07:076 stopBluetoothSco: resetBluetoothSco
-10-18 15:56:07:076 updateCommunicationRoute, preferredCommunicationDevice: null eventSource: resetBluetoothSco
-10-18 15:56:07:424 getAvailableCommunicationDevices: no EARPIECE!
-10-18 15:56:07:590 BT profile service: connecting HEARING_AID profile
-10-18 15:56:07:590 BT profile HEARING_AID connected to proxy android.bluetooth.BluetoothHearingAid@e123427
+10-18 16:56:54:160 setModeOwnerToken: null -> []
+10-18 16:56:54:166 stopBluetoothSco: resetBluetoothSco
+10-18 16:56:54:166 updateCommunicationRoute, preferredCommunicationDevice: null eventSource: resetBluetoothSco
+10-18 16:56:54:900 getAvailableCommunicationDevices: no EARPIECE!
+10-18 16:56:55:906 BT profile service: connecting HEARING_AID profile
+10-18 16:56:55:906 BT profile HEARING_AID connected to proxy android.bluetooth.BluetoothHearingAid@416617a
 
 ### Force Uses
-10-18 15:56:06:758 setForceUse(FOR_ENCODED_SURROUND, FORCE_NONE) due to readPersistedSettings
-10-18 15:56:06:758 setForceUse(FOR_DOCK, FORCE_DIGITAL_DOCK) due to readDockAudioSettings
-10-18 15:56:06:783 setForceUse(FOR_SYSTEM, FORCE_NONE) due to AudioService ctor
-10-18 15:56:06:806 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to updateStreamMuteFromRingerMode() from u/pid:1000/814
-10-18 15:56:06:920 setForceUse(FOR_DOCK, FORCE_DIGITAL_DOCK) due to readDockAudioSettings
-10-18 15:56:07:084 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to updateStreamMuteFromRingerMode() from u/pid:1000/814
-10-18 15:56:07:473 setForceUse(FOR_DOCK, FORCE_DIGITAL_DOCK) due to readDockAudioSettings
-10-18 15:56:07:474 setForceUse(FOR_ENCODED_SURROUND, FORCE_NONE) due to readPersistedSettings
-10-18 15:56:07:534 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to updateStreamMuteFromRingerMode() from u/pid:1000/814
+10-18 16:56:53:502 setForceUse(FOR_ENCODED_SURROUND, FORCE_NONE) due to readPersistedSettings
+10-18 16:56:53:502 setForceUse(FOR_DOCK, FORCE_DIGITAL_DOCK) due to readDockAudioSettings
+10-18 16:56:53:609 setForceUse(FOR_SYSTEM, FORCE_NONE) due to AudioService ctor
+10-18 16:56:53:739 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to updateStreamMuteFromRingerMode() from u/pid:1000/817
+10-18 16:56:53:870 setForceUse(FOR_DOCK, FORCE_DIGITAL_DOCK) due to readDockAudioSettings
+10-18 16:56:54:174 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to updateStreamMuteFromRingerMode() from u/pid:1000/817
+10-18 16:56:55:040 setForceUse(FOR_ENCODED_SURROUND, FORCE_NONE) due to readPersistedSettings
+10-18 16:56:55:040 setForceUse(FOR_DOCK, FORCE_DIGITAL_DOCK) due to readDockAudioSettings
+10-18 16:56:55:249 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to updateStreamMuteFromRingerMode() from u/pid:1000/817
 
 
 # Volume state
@@ -402,33 +402,33 @@ Ringer mode:
 
 ## Volume events
 ### Volume changes
-10-18 15:56:06:761 updateIndexFactors() stream:0 index min/max:1/15 indexStepFactor:3.5
-10-18 15:56:06:762 updateIndexFactors() stream:1 index min/max:0/7 indexStepFactor:1.0
-10-18 15:56:06:762 updateIndexFactors() stream:2 index min/max:0/7 indexStepFactor:1.0
-10-18 15:56:06:763 updateIndexFactors() stream:3 index min/max:0/15 indexStepFactor:1.0
-10-18 15:56:06:763 updateIndexFactors() stream:4 index min/max:1/7 indexStepFactor:1.0
-10-18 15:56:06:764 updateIndexFactors() stream:5 index min/max:0/7 indexStepFactor:1.0
-10-18 15:56:06:764 updateIndexFactors() stream:7 index min/max:0/7 indexStepFactor:1.0
-10-18 15:56:06:765 updateIndexFactors() stream:8 index min/max:0/15 indexStepFactor:1.0
-10-18 15:56:06:765 updateIndexFactors() stream:9 index min/max:0/15 indexStepFactor:1.0
-10-18 15:56:06:766 updateIndexFactors() stream:10 index min/max:1/15 indexStepFactor:1.0
-10-18 15:56:06:766 updateIndexFactors() stream:11 index min/max:0/15 indexStepFactor:1.0
-10-18 15:56:06:890 setRingerMode internal to 2, caller=AS.AudioService.setRingerModeDelegate, delegateModified=2
+10-18 16:56:53:509 updateIndexFactors() stream:0 index min/max:1/15 indexStepFactor:3.5
+10-18 16:56:53:513 updateIndexFactors() stream:1 index min/max:0/7 indexStepFactor:1.0
+10-18 16:56:53:514 updateIndexFactors() stream:2 index min/max:0/7 indexStepFactor:1.0
+10-18 16:56:53:516 updateIndexFactors() stream:3 index min/max:0/15 indexStepFactor:1.0
+10-18 16:56:53:520 updateIndexFactors() stream:4 index min/max:1/7 indexStepFactor:1.0
+10-18 16:56:53:523 updateIndexFactors() stream:5 index min/max:0/7 indexStepFactor:1.0
+10-18 16:56:53:526 updateIndexFactors() stream:7 index min/max:0/7 indexStepFactor:1.0
+10-18 16:56:53:526 updateIndexFactors() stream:8 index min/max:0/15 indexStepFactor:1.0
+10-18 16:56:53:529 updateIndexFactors() stream:9 index min/max:0/15 indexStepFactor:1.0
+10-18 16:56:53:530 updateIndexFactors() stream:10 index min/max:1/15 indexStepFactor:1.0
+10-18 16:56:53:530 updateIndexFactors() stream:11 index min/max:0/15 indexStepFactor:1.0
+10-18 16:56:53:818 setRingerMode internal to 2, caller=AS.AudioService.setRingerModeDelegate, delegateModified=2
 
 ### Mute commands
-10-18 15:56:06:781 RingerZenMutedStreams 0x0 from onInitStreamsAndVolumes
-10-18 15:56:06:781 RingerZenMutedStreams 0x0 from updateStreamMuteFromRingerMode
-10-18 15:56:07:077 RingerZenMutedStreams 0x0 from updateStreamMuteFromRingerMode
-10-18 15:56:07:534 RingerZenMutedStreams 0x0 from updateStreamMuteFromRingerMode
+10-18 16:56:53:589 RingerZenMutedStreams 0x0 from onInitStreamsAndVolumes
+10-18 16:56:53:589 RingerZenMutedStreams 0x0 from updateStreamMuteFromRingerMode
+10-18 16:56:54:167 RingerZenMutedStreams 0x0 from updateStreamMuteFromRingerMode
+10-18 16:56:55:250 RingerZenMutedStreams 0x0 from updateStreamMuteFromRingerMode
 
 ## Absolute Vol
   absolute volume devices=
   adjust-only absolute volume devices=
 Absolute volume devices with their volume driving streams:
-Device type: 0x10, driving stream 0
 Device type: 0x8000000, driving stream 3
 Device type: 0x20, driving stream 3
 Device type: 0x20000000, driving stream 3
+Device type: 0x10, driving stream 0
 Device type: 0x20000001, driving stream 3
 Device type: 0x20000002, driving stream 3
 Device type: 0x20000004, driving stream 3
@@ -462,7 +462,7 @@ Loudness updates
 
 # Misc state
   mUseVolumeGroupAliases=false
-  mVolumeController=VolumeController(android.os.BinderProxy@8c47906,mVisible=false)
+  mVolumeController=VolumeController(android.os.BinderProxy@5205afb,mVisible=false)
   sIndependentA11yVolume=false
   mCameraSoundForced=false
   mHasVibrator=false
@@ -499,20 +499,20 @@ Audio policies:
 
 # SoundEffects
   Message handler (watch for unhandled messages):
-  Handler (com.android.server.audio.SoundEffectsHelper$SfxHandler) {92b8bc7} @ 55970
-    Looper (AS.SfxWorker, tid 144) {f0b55f4}
+  Handler (com.android.server.audio.SoundEffectsHelper$SfxHandler) {3a16718} @ 62515
+    Looper (AS.SfxWorker, tid 144) {db26571}
       (MessageQueue is using DeliQueue implementation)
       (Total messages: 0, polling=true, quitting=false)
   Default attenuation (dB): -6
 Sound Effects Loading
-10-18 15:56:07:084 effects loading started
-10-18 15:56:07:161 effect Effect_Tick.ogg loaded
-10-18 15:56:07:165 effect KeypressStandard.ogg loaded
-10-18 15:56:07:200 effect KeypressDelete.ogg loaded
-10-18 15:56:07:224 effect KeypressSpacebar.ogg loaded
-10-18 15:56:07:270 effect KeypressReturn.ogg loaded
-10-18 15:56:07:273 effect KeypressInvalid.ogg loaded
-10-18 15:56:07:273 effects loading completed
+10-18 16:56:54:173 effects loading started
+10-18 16:56:54:396 effect Effect_Tick.ogg loaded
+10-18 16:56:54:406 effect KeypressStandard.ogg loaded
+10-18 16:56:54:461 effect KeypressSpacebar.ogg loaded
+10-18 16:56:54:461 effect KeypressDelete.ogg loaded
+10-18 16:56:54:538 effect KeypressInvalid.ogg loaded
+10-18 16:56:54:557 effect KeypressReturn.ogg loaded
+10-18 16:56:54:557 effects loading completed
 
 
 # Spatial audio
@@ -535,9 +535,9 @@ SpatializerHelper:
 	mTransauralEnabledDefault:true
 
 ## Spatial audio events
-10-18 15:56:06:782 init effectExpected=false
-10-18 15:56:06:782 init(): setting state to STATE_NOT_SUPPORTED due to effect not expected
-10-18 15:56:06:782 setFeatureEnabled(false) was featureEnabled:false
+10-18 16:56:53:605 init effectExpected=false
+10-18 16:56:53:605 init(): setting state to STATE_NOT_SUPPORTED due to effect not expected
+10-18 16:56:53:605 setFeatureEnabled(false) was featureEnabled:false
 
 
 # Flags
@@ -701,7 +701,7 @@ Supported System Usages
 mUserIdToZoneMap:
 
 AudioSystemAdapter:
- last cache clear time: 10-18 15:56:07:534
+ last cache clear time: 10-18 16:56:55:249
  mDevicesForAttrCache:
 	AudioAttributes: usage=USAGE_ASSISTANCE_SONIFICATION content=CONTENT_TYPE_UNKNOWN flags=0x800(FLAG_MUTE_HAPTIC)  tags= bundle=null forVolume: true stream: STREAM_SYSTEM(1)
 		AudioDeviceAttributes: role:output type:speaker addr: name: profiles:[] descriptors:[]

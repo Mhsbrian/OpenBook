@@ -138,22 +138,25 @@ Each change is the smallest that makes the hook work, and none relaxes a safety 
 
 ### 2.6 Q2 in Cuttlefish: what held (C)
 
-Cuttlefish on the AMD lane, `anybook_cf_x86_64_pc`, second Q2 image; evidence in
-[`evidence/2026-10-18-quire-q2/`](../evidence/2026-10-18-quire-q2/) (`SUMMARY.md`). `scripts/quire/q2-cf-check.py`: 63
-pass, 0 fail.
+Cuttlefish on the AMD lane, `anybook_cf_x86_64_pc`, third Q2 image, with per-app consent on; evidence in
+[`evidence/2026-10-18-quire-q2/`](../evidence/2026-10-18-quire-q2/) (`SUMMARY.md`). `scripts/quire/q2-cf-check.py`, one
+run on a fresh device: 69 pass, 0 fail.
 
 - **Invocation.** The pointer shake (a virtual USB mouse), Meta+Space and the assist key each open Quire's note. The
   shake arrives as `ENTRYPOINT_SYSTEM_ACTION` through SystemUI and Launcher3; the two keys arrive through Quire's
   assistant session as `ENTRYPOINT_KEYBOARD_SHORTCUT`, with Quire's trigger `assistant_shortcut` or `assist_key`. Each
   carries the visible packages (Settings, the secure test window's app, Launcher3), `EXTRA_FLAG_SECURE_FOUND=true`, and
   a 1920×1080 screenshot in which the secure window is black.
-- **Computer control.** A version 5 session for Settings: the platform's consent dialog ("Allow Quire to use screen
-  automation?"), Settings' Dark theme page on the session display, Quire's mirror of it, the undismissable "Quire is
+- **Computer control,** through the ordinary allowlist path (no debug super agent). A version 5 session for Settings:
+  fresh consent in the platform's dialog ("Allow Quire to use screen automation with Settings?"), Settings' Dark theme
+  page on the session display, Quire's mirror of it, the undismissable "Quire is
   using Settings" notification, two session screenshots, a tap found through the session's accessibility tree that
   turned Dark theme on, and `handOverApplications()` moving Settings to the main display and closing the session.
 - **Refusals,** each from the platform: "Don't allow" → `ERROR_PERMISSION_DENIED`; the lock screen →
   `ERROR_DEVICE_LOCKED`; a secure window on the session display → `BLOCK_REASON_SECURE_CONTENT`, after which the
   platform refuses Quire's tap and the mirror goes black; an app outside the allowlist → `IllegalArgumentException`.
+- **Per-app consent:** "Always allow" for Settings, and the next request for Settings needs no dialog; a request that
+  adds a second, unapproved app asks again for that app alone, and "Don't allow" refuses the whole session.
 - **No regression:** the desktop defaults check 16/16, the desktop capture as before, no crash, ANR or SystemUI restart
   in the whole session, and only the three SELinux denials Cuttlefish always has. Quire needed no SELinux policy: it
   runs as `platform_app`, and every service it uses is an `app_api_service`.
@@ -310,7 +313,7 @@ Each one is a sub-issue of ANAL-214 with its own acceptance checks. "G14" means 
 | # | Milestone | Owner | Done when |
 |---|---|---|---|
 | Q1 | **`quired` harness host** (ANAL-214) | Porter | Built and checked on this host (§6), this PR |
-| Q2 | **Platform hooks in the image** (ANAL-216). Quire core skeleton as a privileged system app: `ROLE_ASSISTANT`, contextual search package, `ACCESS_COMPUTER_CONTROL` allowlist, the shake flag and the computer-control flags in OpenBook's flag set | Porter | In Cuttlefish: a shake and Meta+Space open Quire with a screenshot and the visible packages; a computer-control session on Settings shows in an `InteractiveMirror`; with per-app consent on, through the ordinary allowlist path (not a debug super agent): fresh consent, a second unapproved app, denial, secure content, lock and take-over; no new SELinux denials; the release flags diff reviewed |
+| Q2 | **Platform hooks in the image** (ANAL-216). Quire core skeleton as a privileged system app: `ROLE_ASSISTANT`, contextual search package, `ACCESS_COMPUTER_CONTROL` allowlist, the shake flag and the computer-control flags in OpenBook's flag set | Porter | In Cuttlefish: a shake and Meta+Space open Quire with a screenshot and the visible packages; a computer-control session on Settings shows in an `InteractiveMirror`; with per-app consent on, through the ordinary allowlist path (not a debug super agent): fresh consent, a second unapproved app, denial, secure content, lock and take-over; no new SELinux denials; the release flags diff reviewed. **Done in Cuttlefish (§2.6)** |
 | Q3 | **Interaction and motion design** (ANAL-215) | Atelier | Invocation, the note's states (asking, streaming, steps, consent, mirror, done, error), motion specs and a clickable prototype; the visual language matches OpenBook's look |
 | Q4 | **The Linux environment and `quired serve`** (ANAL-218). AVF Terminal in OpenBook, KVM on AMD, `quired` in the Debian guest, ACP over vsock to the core, pairing for a second computer | Porter | An agent installed in the Linux environment answers a prompt from Quire core in Cuttlefish, then on the G14 |
 | Q5 | **The surface** (ANAL-219). The note, steps, consent and mirror, built to Q3's spec | Porter with Atelier | Q3's states, in a recorded Cuttlefish session; 60 fps on the G14; works with TalkBack and keyboard only |

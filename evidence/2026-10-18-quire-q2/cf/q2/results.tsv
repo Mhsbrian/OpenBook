@@ -13,6 +13,7 @@ config_defaultContextualSearchPackageName	PASS	dev.openbook.quire
 config_defaultAssistant	PASS	dev.openbook.quire
 flag computer_control_access	PASS	enabled - default
 flag computer_control_support_v5	PASS	enabled - default
+flag computer_control_per_app_consent	PASS	enabled - default
 flag enable_contextual_cursor_desktop_entrypoints	PASS	enabled - default
 flag enable_contextual_search_desktop_entrypoints	PASS	enabled - default
 flag computer_control_managed_profiles	PASS	enabled - default
@@ -36,30 +37,35 @@ assist_key: secure window reported	PASS	flagSecureFound=true
 assist_key: screenshot saved, secure window left out	PASS	1920x1080, 0 probe-coloured pixels
 Dark theme off before	PASS	Night mode: no
 consent asked (session pending)	PASS	cc: pending
-platform consent dialog, 'Only this time'	PASS	Allow Quire to use screen automation?
+platform consent dialog, 'Only this time'	PASS	Allow Quire to use screen automation with Settings?
 session created	PASS	cc: created: display 1920x1080
 session active	PASS	lifecycle: active
 Dark theme page launched through the session	PASS	com.android.settings/.Settings$DarkThemeSettingsActivity
-Settings runs on the session display	PASS	display #7
+Settings runs on the session display	PASS	display #2
 Quire's mirror	PASS	cc: mirror created
-session screenshot	PASS	cc: screenshot: 1920x1080 saved /data/user/0/dev.openbook.quire/files/control/20261018-160217-232-session.png
+session screenshot	PASS	cc: screenshot: 1920x1080 saved /data/user/0/dev.openbook.quire/files/control/20261018-165845-332-session.png
 tap through the session	PASS	cc: tap target: "Use Dark theme" checked=n/a bounds=Rect(714, 137 - 1904, 241) / cc: tap: 1309,189
 the tap turned Dark theme on	PASS	Night mode: yes
 handOverApplications()	PASS	cc: hand over: done
 session closed after hand over	PASS	cc: lifecycle: closed reason=4(SESSION_EMPTY)
 Settings moved to the main display	PASS	display #0
-deny: consent dialog, 'Don't allow'	PASS	Allow Quire to use screen automation?
+deny: consent dialog, 'Don't allow'	PASS	Allow Quire to use screen automation with Settings?
 deny: session refused	PASS	cc: creation failed: error=3(PERMISSION_DENIED)
 lock screen: session refused	PASS	cc: creation failed: error=2(DEVICE_LOCKED)
 app outside the allowlist refused	PASS	IllegalArgumentException: Invalid target package for ComputerControl: com.android.calendar
-secure: consent given	PASS	Allow Quire to use screen automation?
+per-app: 'Always allow' for Settings	PASS	Allow Quire to use screen automation with Settings?
+per-app: session created	PASS	created
+per-app: Settings again, no dialog	PASS	created, not asked
+per-app: a second app asks again, for itself alone	PASS	Allow Quire to use screen automation with Quire secure probe?
+per-app: second app denied, session refused	PASS	cc: creation failed: error=3(PERMISSION_DENIED)
+secure: consent given	PASS	Allow Quire to use screen automation with Quire secure probe?
 secure: session created for the probe	PASS	created
 secure: session blocked on the secure window	PASS	cc: lifecycle: blocked reason=1(SECURE_CONTENT) package=dev.openbook.quire.secureprobe
-secure: input refused while blocked	PASS	10-18 16:03:06.383   814  2702 W ComputerControlSession: Computer control interaction blocked since session is not active: tap
+secure: input refused while blocked	PASS	10-18 16:59:34.465   817  2921 W ComputerControlSession: Computer control interaction blocked since session is not active: tap
 secure: session closed	PASS	cc: lifecycle: closed reason=1(CALLER_INITIATED)
 allowlist restored (probe refused again)	PASS	IllegalArgumentException: Invalid target package for ComputerControl: dev.openbook.quire.secureprobe
 crash buffer empty	PASS	0 lines; 
 no ANR	PASS	am_anr events: 0
-no SystemUI restart	PASS	pid at start 2644, now 2644
+no SystemUI restart	PASS	pid at start 2658, now 2658
 no new SELinux denials	PASS	3 distinct, 0 new
 no denial for Quire (platform_app)	PASS	0
