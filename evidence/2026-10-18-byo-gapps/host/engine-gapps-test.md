@@ -95,7 +95,7 @@
 - PASS MSR, NTFS and recovery byte-identical (S7)
 - PASS avbtool verify_image passes on its rebuilt product
 ## scale: 4/4
-- PASS a 256 MiB package with a 256 MiB app: accepted (2.5 s)
-- PASS its install verifies (25.9 s; steps {'check_source': 7.5, 'prepare_disk': 0.0, 'boot_images': 0.6, 'system': 10.8, 'boot_entry': 0.0, 'verify': 6.9, 'report': 0.0})
+- PASS a 256 MiB package with a 256 MiB app: accepted (1.5 s)
+- PASS its install verifies (15.8 s; steps {'check_source': 4.5, 'prepare_disk': 0.0, 'boot_images': 0.4, 'system': 6.5, 'boot_entry': 0.0, 'verify': 4.3, 'report': 0.0})
 - PASS avbtool verify_image: the 533 MiB product's hashtree is correct
 - PASS the 256 MiB app reads back from the image byte for byte

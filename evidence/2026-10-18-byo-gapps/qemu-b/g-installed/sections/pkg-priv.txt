@@ -1,0 +1,12 @@
+    codePath=/product/priv-app/OpenBookTestPriv
+    primaryCpuAbi=x86_64
+    versionName=1.0-anal211-synthetic
+    privateFlags=[ PRIVATE_FLAG_ACTIVITIES_RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION ALLOW_AUDIO_PLAYBACK_CAPTURE PRIVILEGED PRODUCT PRIVATE_FLAG_ALLOW_NATIVE_HEAP_POINTER_TAGGING ]
+    signatures=PackageSignatures{5d3e047 version:3, signatures:[f8ea62a5], past signatures:[]}
+    pkgFlags=[ SYSTEM ALLOW_CLEAR_USER_DATA ALLOW_BACKUP KILL_AFTER_RESTORE ]
+      android.permission.ACCESS_FINE_LOCATION
+      android.permission.WRITE_SECURE_SETTINGS
+      android.permission.ACCESS_COARSE_LOCATION
+      android.permission.WRITE_SECURE_SETTINGS: granted=true
+        android.permission.ACCESS_FINE_LOCATION: granted=true, flags=[ GRANTED_BY_DEFAULT]
+        android.permission.ACCESS_COARSE_LOCATION: granted=true, flags=[ GRANTED_BY_DEFAULT]
