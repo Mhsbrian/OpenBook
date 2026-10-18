@@ -1,0 +1,17 @@
+    topResumedActivity=ActivityRecord{26671886 u0 com.android.documentsui/.picker.PickActivity t18}
+  ResumedActivity: ActivityRecord{26671886 u0 com.android.documentsui/.picker.PickActivity t18}
+      1 content-desc="Descending"
+      1 content-desc="Grid view"
+      1 content-desc="More options"
+      1 content-desc="Search"
+      1 content-desc="Show roots"
+     50 package="com.android.documentsui"
+      1 text="Large files"
+      1 text="Modified"
+      1 text="Name"
+      1 text="No items"
+      1 text="Recent files"
+      1 text="Recent"
+      1 text="Size"
+      1 text="This week"
+      1 text="Type"

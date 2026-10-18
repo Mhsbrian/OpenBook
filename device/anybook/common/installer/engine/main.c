@@ -8,8 +8,13 @@
 //   openbook-install [GLOBAL] disks                    the disks, their partitions, and whether each may be a target
 //   openbook-install [GLOBAL] hwinfo                   the hardware check
 //   openbook-install [GLOBAL] plan --target BY-ID --layout whole|alongside [--locale L] [--keyboard K]
-//                              [--set-default] [--addon NAME]... [--out PLAN.json]
-//                                                      the dry run: opens every disk read-only, prints every operation
+//                              [--set-default] [--addon NAME]... [--gapps SHA256] [--out PLAN.json]
+//                                                      the dry run: opens every disk read-only, prints every operation.
+//                                                      --gapps: a package checked by gapps-check, by its manifest's
+//                                                      sha256; naming it is the confirmation that the system will
+//                                                      not be Play Protect certified (ANAL-211)
+//   openbook-install [GLOBAL] gapps-check --package FILE  check a Google apps package the user supplied (LiteGapps
+//                                                      layout) and stage what it may install (docs/gapps.md section 5)
 //   openbook-install [GLOBAL] apply --plan PLAN.json --confirm-disk /dev/disk/by-id/BY-ID [--events]
 //                                                      the install, unattended: OPENBOOK_INSTALL_ERASE must name the
 //                                                      same /dev/disk/by-id/ path (S3). --events: progress as JSON
@@ -30,7 +35,8 @@ static void usage(void) {
             "usage: openbook-install [--root DIR] [--boot-part-uuid UUID] [--log FILE] COMMAND ...\n"
             "  disks | hwinfo | nvram | addons\n"
             "  plan --target BY-ID --layout whole|alongside [--locale L] [--keyboard K] [--set-default]\n"
-            "       [--addon NAME]... [--out FILE]\n"
+            "       [--addon NAME]... [--gapps SHA256] [--out FILE]\n"
+            "  gapps-check --package FILE\n"
             "  apply --plan FILE --confirm-disk /dev/disk/by-id/BY-ID [--events]   (env OPENBOOK_INSTALL_ERASE)\n"
             "  daemon [--socket PATH]\n");
 }
@@ -89,6 +95,23 @@ int main(int argc, char **argv) {
         disks_free(d, n);
         return 0;
     }
+    if (!strcmp(cmd, "gapps-check")) {
+        const char *pkg = NULL;
+        for (; i < argc; i++)
+            if (!strcmp(argv[i], "--package") && i + 1 < argc) pkg = argv[++i];
+        if (!pkg) {
+            usage();
+            return 2;
+        }
+        const char *base = strrchr(pkg, '/') ? strrchr(pkg, '/') + 1 : pkg;
+        struct jw w = {0};
+        char sha[65];
+        jw_obj(&w, NULL);
+        int rc = gapps_check(pkg, base, &w, sha);
+        jw_endo(&w);
+        puts(w.b.p);
+        return rc ? 1 : 0;
+    }
     if (!strcmp(cmd, "disks") || !strcmp(cmd, "hwinfo")) {
         struct disk *d;
         int n = disks_scan(&d);
@@ -131,6 +154,10 @@ int main(int argc, char **argv) {
                     fprintf(stderr, "--addon %s: not a valid add-on name, a duplicate, or more than %d\n", argv[i], ADDON_MAX);
                     return 2;
                 }
+            }
+            else if (!strcmp(argv[i], "--gapps") && i + 1 < argc) {
+                snprintf(r.gapps, sizeof r.gapps, "%s", argv[++i]);
+                r.gapps_confirmed = 1;
             }
             else if (!strcmp(argv[i], "--out") && i + 1 < argc) out = argv[++i];
             else {

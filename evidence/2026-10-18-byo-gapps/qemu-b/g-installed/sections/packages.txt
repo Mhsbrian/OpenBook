@@ -1,0 +1,3 @@
+package:/product/app/OpenBookTestApp/OpenBookTestApp.apk=org.openbook.test.gapps.app
+package:/product/priv-app/OpenBookTestPriv/OpenBookTestPriv.apk=org.openbook.test.gapps.priv
+package:/product/priv-app/OpenBookTestGsf/OpenBookTestGsf.apk=com.google.android.gsf

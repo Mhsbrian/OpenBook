@@ -1,0 +1,517 @@
+{
+ "reason": "QEMU exited (0)",
+ "seconds": 328.8,
+ "steps_done": 198,
+ "steps": 198,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "init: init second stage started",
+   "t": 5.2
+  },
+  {
+   "step": 1,
+   "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+   "t": 6.8
+  },
+  {
+   "step": 3,
+   "wait": "console:/ \\$ ",
+   "t": 6.8
+  },
+  {
+   "step": 5,
+   "wait": "console:/ # ",
+   "t": 6.9
+  },
+  {
+   "step": 7,
+   "wait": "console:/ # ",
+   "t": 7.1
+  },
+  {
+   "step": 9,
+   "wait": "\\nBOOTDONE=1 uptime=",
+   "t": 14.4
+  },
+  {
+   "step": 10,
+   "wait": "console:/ # ",
+   "t": 14.4
+  },
+  {
+   "step": 12,
+   "wait": "console:/ # ",
+   "t": 15.7
+  },
+  {
+   "step": 14,
+   "wait": "console:/ # ",
+   "t": 16.7
+  },
+  {
+   "step": 16,
+   "wait": "console:/ # ",
+   "t": 17.3
+  },
+  {
+   "step": 18,
+   "wait": "console:/ # ",
+   "t": 20.0
+  },
+  {
+   "step": 20,
+   "wait": "console:/ # ",
+   "t": 21.6
+  },
+  {
+   "step": 22,
+   "wait": "console:/ # ",
+   "t": 24.0
+  },
+  {
+   "step": 24,
+   "wait": "console:/ # ",
+   "t": 25.7
+  },
+  {
+   "step": 26,
+   "wait": "console:/ # ",
+   "t": 27.5
+  },
+  {
+   "step": 28,
+   "wait": "console:/ # ",
+   "t": 31.1
+  },
+  {
+   "step": 30,
+   "wait": "console:/ # ",
+   "t": 33.1
+  },
+  {
+   "step": 32,
+   "wait": "console:/ # ",
+   "t": 34.8
+  },
+  {
+   "step": 34,
+   "wait": "console:/ # ",
+   "t": 36.6
+  },
+  {
+   "step": 36,
+   "wait": "console:/ # ",
+   "t": 37.0
+  },
+  {
+   "step": 38,
+   "wait": "\n===PROPS-END===",
+   "t": 38.6
+  },
+  {
+   "step": 39,
+   "wait": "console:/ # ",
+   "t": 38.6
+  },
+  {
+   "step": 41,
+   "wait": "\n===USB-END===",
+   "t": 42.6
+  },
+  {
+   "step": 42,
+   "wait": "console:/ # ",
+   "t": 42.6
+  },
+  {
+   "step": 44,
+   "wait": "@@SEEN\\[",
+   "t": 44.9
+  },
+  {
+   "step": 45,
+   "wait": "console:/ # ",
+   "t": 44.9
+  },
+  {
+   "step": 47,
+   "wait": "@@TAPPED@@",
+   "t": 46.9
+  },
+  {
+   "step": 48,
+   "wait": "console:/ # ",
+   "t": 46.9
+  },
+  {
+   "step": 51,
+   "wait": "@@SEEN\\[",
+   "t": 53.1
+  },
+  {
+   "step": 52,
+   "wait": "console:/ # ",
+   "t": 53.1
+  },
+  {
+   "step": 54,
+   "wait": "@@TAPPED@@",
+   "t": 55.2
+  },
+  {
+   "step": 55,
+   "wait": "console:/ # ",
+   "t": 55.2
+  },
+  {
+   "step": 58,
+   "wait": "@@SEEN\\[",
+   "t": 61.4
+  },
+  {
+   "step": 59,
+   "wait": "console:/ # ",
+   "t": 61.4
+  },
+  {
+   "step": 61,
+   "wait": "@@TAPPED@@",
+   "t": 63.6
+  },
+  {
+   "step": 62,
+   "wait": "console:/ # ",
+   "t": 63.6
+  },
+  {
+   "step": 65,
+   "wait": "@@TAPPED@@",
+   "t": 67.7
+  },
+  {
+   "step": 66,
+   "wait": "console:/ # ",
+   "t": 67.7
+  },
+  {
+   "step": 69,
+   "wait": "@@SEEN\\[",
+   "t": 73.9
+  },
+  {
+   "step": 70,
+   "wait": "console:/ # ",
+   "t": 73.9
+  },
+  {
+   "step": 74,
+   "wait": "@@SNAP\\[",
+   "t": 80.4
+  },
+  {
+   "step": 75,
+   "wait": "console:/ # ",
+   "t": 80.4
+  },
+  {
+   "step": 78,
+   "wait": "@@TAPPED@@",
+   "t": 83.5
+  },
+  {
+   "step": 79,
+   "wait": "console:/ # ",
+   "t": 83.5
+  },
+  {
+   "step": 83,
+   "wait": "@@SNAP\\[",
+   "t": 88.0
+  },
+  {
+   "step": 84,
+   "wait": "console:/ # ",
+   "t": 88.0
+  },
+  {
+   "step": 87,
+   "wait": "@@TAPPED@@",
+   "t": 90.8
+  },
+  {
+   "step": 88,
+   "wait": "console:/ # ",
+   "t": 90.8
+  },
+  {
+   "step": 91,
+   "wait": "@@SEEN\\[",
+   "t": 97.1
+  },
+  {
+   "step": 92,
+   "wait": "console:/ # ",
+   "t": 97.1
+  },
+  {
+   "step": 95,
+   "wait": "@@SNAP\\[",
+   "t": 99.7
+  },
+  {
+   "step": 96,
+   "wait": "console:/ # ",
+   "t": 99.7
+  },
+  {
+   "step": 99,
+   "wait": "@@TAPPED@@",
+   "t": 102.5
+  },
+  {
+   "step": 100,
+   "wait": "console:/ # ",
+   "t": 102.5
+  },
+  {
+   "step": 103,
+   "wait": "\n===PICKER-UI-END===",
+   "t": 115.1
+  },
+  {
+   "step": 104,
+   "wait": "console:/ # ",
+   "t": 115.1
+  },
+  {
+   "step": 107,
+   "wait": "@@SNAP\\[",
+   "t": 117.6
+  },
+  {
+   "step": 108,
+   "wait": "console:/ # ",
+   "t": 117.6
+  },
+  {
+   "step": 111,
+   "wait": "console:/ # ",
+   "t": 163.2
+  },
+  {
+   "step": 113,
+   "wait": "@@SEEN\\[",
+   "t": 165.3
+  },
+  {
+   "step": 114,
+   "wait": "console:/ # ",
+   "t": 165.3
+  },
+  {
+   "step": 116,
+   "wait": "@@TAPPED@@",
+   "t": 167.4
+  },
+  {
+   "step": 117,
+   "wait": "console:/ # ",
+   "t": 167.4
+  },
+  {
+   "step": 120,
+   "wait": "@@SEEN\\[",
+   "t": 174.9
+  },
+  {
+   "step": 121,
+   "wait": "console:/ # ",
+   "t": 174.9
+  },
+  {
+   "step": 124,
+   "wait": "@@SNAP\\[",
+   "t": 177.4
+  },
+  {
+   "step": 125,
+   "wait": "console:/ # ",
+   "t": 177.4
+  },
+  {
+   "step": 128,
+   "wait": "@@TAPPED@@",
+   "t": 180.4
+  },
+  {
+   "step": 129,
+   "wait": "console:/ # ",
+   "t": 180.4
+  },
+  {
+   "step": 132,
+   "wait": "@@SEEN\\[",
+   "t": 188.9
+  },
+  {
+   "step": 133,
+   "wait": "console:/ # ",
+   "t": 188.9
+  },
+  {
+   "step": 137,
+   "wait": "@@SNAP\\[",
+   "t": 194.5
+  },
+  {
+   "step": 138,
+   "wait": "console:/ # ",
+   "t": 194.5
+  },
+  {
+   "step": 141,
+   "wait": "@@TAPPED@@",
+   "t": 197.5
+  },
+  {
+   "step": 142,
+   "wait": "console:/ # ",
+   "t": 197.5
+  },
+  {
+   "step": 146,
+   "wait": "@@SNAP\\[",
+   "t": 202.1
+  },
+  {
+   "step": 147,
+   "wait": "console:/ # ",
+   "t": 202.1
+  },
+  {
+   "step": 150,
+   "wait": "@@TAPPED@@",
+   "t": 204.8
+  },
+  {
+   "step": 151,
+   "wait": "console:/ # ",
+   "t": 204.8
+  },
+  {
+   "step": 154,
+   "wait": "@@SEEN\\[",
+   "t": 213.0
+  },
+  {
+   "step": 155,
+   "wait": "console:/ # ",
+   "t": 213.0
+  },
+  {
+   "step": 159,
+   "wait": "@@SNAP\\[",
+   "t": 218.5
+  },
+  {
+   "step": 160,
+   "wait": "console:/ # ",
+   "t": 218.5
+  },
+  {
+   "step": 163,
+   "wait": "@@TAPPED@@",
+   "t": 221.3
+  },
+  {
+   "step": 164,
+   "wait": "console:/ # ",
+   "t": 221.3
+  },
+  {
+   "step": 167,
+   "wait": "console:/ # ",
+   "t": 223.6
+  },
+  {
+   "step": 170,
+   "wait": "@@TAPPED@@",
+   "t": 228.8
+  },
+  {
+   "step": 171,
+   "wait": "console:/ # ",
+   "t": 228.8
+  },
+  {
+   "step": 175,
+   "wait": "@@SNAP\\[",
+   "t": 232.4
+  },
+  {
+   "step": 176,
+   "wait": "console:/ # ",
+   "t": 232.4
+  },
+  {
+   "step": 179,
+   "wait": "@@SEEN\\[",
+   "t": 312.1
+  },
+  {
+   "step": 180,
+   "wait": "console:/ # ",
+   "t": 312.1
+  },
+  {
+   "step": 184,
+   "wait": "@@SNAP\\[",
+   "t": 318.6
+  },
+  {
+   "step": 185,
+   "wait": "console:/ # ",
+   "t": 318.6
+  },
+  {
+   "step": 188,
+   "wait": "\n===INSTALLD-LOG-END===",
+   "t": 320.4
+  },
+  {
+   "step": 189,
+   "wait": "console:/ # ",
+   "t": 320.4
+  },
+  {
+   "step": 191,
+   "wait": "\n===REPORT-END===",
+   "t": 323.2
+  },
+  {
+   "step": 192,
+   "wait": "console:/ # ",
+   "t": 323.2
+  },
+  {
+   "step": 194,
+   "wait": "\n===AVC-END===",
+   "t": 324.5
+  },
+  {
+   "step": 195,
+   "wait": "console:/ # ",
+   "t": 324.5
+  },
+  {
+   "step": 197,
+   "wait": "reboot: Power down|ACPI: PM: Preparing to enter system sleep state S5|Power down",
+   "t": 328.2
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/qemu/anal211-e2e-a/stick.img",
+ "nvme": "/home/hive/anybook/installer/qemu/anal211-e2e-a/whole.img",
+ "nvme2": null
+}

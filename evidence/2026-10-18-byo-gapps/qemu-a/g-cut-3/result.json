@@ -1,0 +1,172 @@
+{
+ "reason": "QEMU exited (0)",
+ "seconds": 66.6,
+ "steps_done": 55,
+ "steps": 55,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "init: init second stage started",
+   "t": 5.2
+  },
+  {
+   "step": 1,
+   "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+   "t": 6.9
+  },
+  {
+   "step": 3,
+   "wait": "console:/ \\$ ",
+   "t": 6.9
+  },
+  {
+   "step": 5,
+   "wait": "console:/ # ",
+   "t": 7.0
+  },
+  {
+   "step": 7,
+   "wait": "console:/ # ",
+   "t": 7.2
+  },
+  {
+   "step": 9,
+   "wait": "\\nBOOTDONE=1 uptime=",
+   "t": 14.5
+  },
+  {
+   "step": 10,
+   "wait": "console:/ # ",
+   "t": 14.5
+  },
+  {
+   "step": 12,
+   "wait": "console:/ # ",
+   "t": 15.7
+  },
+  {
+   "step": 14,
+   "wait": "console:/ # ",
+   "t": 16.7
+  },
+  {
+   "step": 16,
+   "wait": "console:/ # ",
+   "t": 17.4
+  },
+  {
+   "step": 18,
+   "wait": "console:/ # ",
+   "t": 20.0
+  },
+  {
+   "step": 20,
+   "wait": "console:/ # ",
+   "t": 21.6
+  },
+  {
+   "step": 22,
+   "wait": "console:/ # ",
+   "t": 24.1
+  },
+  {
+   "step": 24,
+   "wait": "console:/ # ",
+   "t": 25.7
+  },
+  {
+   "step": 26,
+   "wait": "console:/ # ",
+   "t": 27.5
+  },
+  {
+   "step": 28,
+   "wait": "console:/ # ",
+   "t": 31.1
+  },
+  {
+   "step": 30,
+   "wait": "console:/ # ",
+   "t": 33.2
+  },
+  {
+   "step": 32,
+   "wait": "console:/ # ",
+   "t": 34.8
+  },
+  {
+   "step": 34,
+   "wait": "console:/ # ",
+   "t": 36.6
+  },
+  {
+   "step": 36,
+   "wait": "console:/ # ",
+   "t": 37.0
+  },
+  {
+   "step": 38,
+   "wait": "\n===PROPS-END===",
+   "t": 38.6
+  },
+  {
+   "step": 39,
+   "wait": "console:/ # ",
+   "t": 38.6
+  },
+  {
+   "step": 41,
+   "wait": "\n===USB-END===",
+   "t": 42.6
+  },
+  {
+   "step": 42,
+   "wait": "console:/ # ",
+   "t": 42.6
+  },
+  {
+   "step": 44,
+   "wait": "\n===GNEG-END===",
+   "t": 43.7
+  },
+  {
+   "step": 45,
+   "wait": "console:/ # ",
+   "t": 43.7
+  },
+  {
+   "step": 47,
+   "wait": "\n===GCHECK-END===",
+   "t": 49.2
+  },
+  {
+   "step": 48,
+   "wait": "console:/ # ",
+   "t": 49.2
+  },
+  {
+   "step": 50,
+   "wait": "\n===PLAN-END===",
+   "t": 51.5
+  },
+  {
+   "step": 51,
+   "wait": "console:/ # ",
+   "t": 51.5
+  },
+  {
+   "step": 53,
+   "wait": "product: \\d+ bytes \\(image",
+   "t": 66.1
+  },
+  {
+   "step": 54,
+   "monitor": "quit",
+   "t": 66.1
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/qemu/anal211-e2e-a/stick.img",
+ "nvme": "/home/hive/anybook/installer/qemu/anal211-e2e-a/whole.img",
+ "nvme2": null
+}

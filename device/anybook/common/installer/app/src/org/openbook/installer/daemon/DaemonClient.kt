@@ -11,6 +11,7 @@ import java.io.BufferedWriter
 import java.io.Closeable
 import java.io.EOFException
 import java.io.IOException
+import java.io.InputStream
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 import java.nio.charset.StandardCharsets
@@ -61,6 +62,57 @@ class DaemonClient(private val socketName: String = SOCKET_NAME) : Closeable {
                     closeLocked()
                     throw e2
                 }
+            }
+        }
+    }
+
+    /**
+     * Sends [cmd] with `"bytes": size`, then [size] raw bytes from [input] (gapps_check, ANAL-211), and returns the
+     * final `"ok": true` message. [onProgress] gets the daemon's receive progress and its own events. Never retried:
+     * the stream cannot be replayed.
+     */
+    suspend fun upload(
+        cmd: String,
+        input: InputStream,
+        size: Long,
+        timeoutMs: Int,
+        onProgress: (done: Long, total: Long) -> Unit,
+        args: JSONObject.() -> Unit = {},
+    ): JSONObject = withContext(Dispatchers.IO) {
+        lock.withLock {
+            try {
+                val id = send(cmd) {
+                    args()
+                    put("bytes", size)
+                }
+                val out = socket?.outputStream ?: throw IOException("not connected")
+                val buf = ByteArray(1 shl 16)
+                var sent = 0L
+                while (sent < size) {
+                    val n = input.read(buf, 0, minOf(buf.size.toLong(), size - sent).toInt())
+                    if (n < 0) throw IOException("the file ended after $sent of $size bytes")
+                    out.write(buf, 0, n)
+                    sent += n
+                }
+                out.flush()
+                socket?.soTimeout = timeoutMs
+                var reply: JSONObject? = null
+                while (reply == null) {
+                    val msg = readMessage() ?: throw EOFException("openbook-installd closed the connection")
+                    if (msg.optInt("id", -1) != id) continue
+                    if (msg.has("event")) {
+                        if (msg.optString("event") == "progress") onProgress(msg.long("done"), msg.long("total"))
+                        continue
+                    }
+                    if (!msg.optBoolean("ok", false)) {
+                        throw DaemonException(msg.text("code").ifEmpty { "internal" }, msg.text("error"), msg)
+                    }
+                    reply = msg
+                }
+                reply
+            } catch (e: IOException) {
+                closeLocked()
+                throw e
             }
         }
     }
@@ -161,6 +213,9 @@ class DaemonClient(private val socketName: String = SOCKET_NAME) : Closeable {
 
         /** `plan` hashes and checks the target; give it longer. */
         const val PLAN_TIMEOUT_MS = 180_000
+
+        /** gapps_check unpacks and checks a package that can be a gigabyte or more. */
+        const val GAPPS_CHECK_TIMEOUT_MS = 900_000
 
         /** No message at all for this long during an install counts as a dropped connection (then: attach). */
         const val STREAM_IDLE_TIMEOUT_MS = 300_000
