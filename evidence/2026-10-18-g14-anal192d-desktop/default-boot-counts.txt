@@ -1,0 +1,24 @@
+# default boot (11:00:33-11:59:04Z, enforcing): counts
+Failed to pin framebuffer: 0
+presentAndGetReleaseFences: present failed: 0
+can not attach plane_state: 0
+Test-only seamless: 12
+Fatal signal: 0
+FATAL EXCEPTION: 1
+ANR in: 0
+Going to sleep: 0
+amdgpu.*(GPU reset|ring .* timeout): 0
+Could not open DMA-BUF heap named: system: 0
+Failed to create (audio|video)/: 0
+Could not get control block: 1
+permissive=0: 229
+launcher3 process starts: 1; taskbar overlay windows closed: 35
+A2DP connected: 1; BTAudioSessionAidl SUCCESS: 8; bluetooth denials: 0; app audioserver_tmpfs denials: 0
+tombstones: 0; dropbox: 73 system_app_strictmode, 57 system_server_strictmode, 2 SYSTEM_BOOT, 1 system_app_crash (com.android.wallpaper)
+
+# FrameTracker missed-SF-frame reports in CUJs, by jankTypeExperimental
+   4769 jankTypeExperimental: JANK_NONE
+    138 jankTypeExperimental: JANK_COMPOSER
+     50 jankTypeExperimental: JANK_APPLICATION
+     16 jankTypeExperimental: UNKNOWN
+app frame duration of those frames: <=17ms 4793, 17-34 86, 34-67 87, 67-200 6, >200 1 (of 4973)
