@@ -18,7 +18,7 @@ Widgets:
  
 Hosts:
   [0] hostId=HostId{user:0, app:10094, hostId:1024, pkg:com.android.launcher3}
-    callbacks=com.android.internal.appwidget.IAppWidgetHost$Stub$Proxy@439d502
+    callbacks=com.android.internal.appwidget.IAppWidgetHost$Stub$Proxy@6bc0705
     widgets.size=0 zombie=false
  
 Grants:

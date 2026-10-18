@@ -2,7 +2,7 @@
     KeyguardServiceDelegate
       showing=true
       deviceHasKeyguard=true
-  mSleeping=true mAllSleepTokens=[{"keyguard", acquire at 413590 (2044 ms ago)}]
+  mSleeping=true mAllSleepTokens=[{"keyguard", acquire at 145304 (2428 ms ago)}]
     mIsImeShowing=false
     mKeyguardDrawComplete=true mWindowManagerDrawComplete=true
     mShowingDream=false mDreamingLockscreen=true

@@ -1,4 +1,4 @@
-SERVICE com.android.launcher3/com.android.quickstep.TouchInteractionService 9aa516c pid=2938 user=0
+SERVICE com.android.launcher3/com.android.quickstep.TouchInteractionService 4f4b440 pid=2935 user=0
   Client:
     PluginManager:
       numEnabledPlugins=0
@@ -19,15 +19,15 @@ SERVICE com.android.launcher3/com.android.quickstep.TouchInteractionService 9aa5
     	DisplayModel: display resources=[
     		InputMonitorResource:
     			displayId=0
-    			inputMonitorCompat=com.android.systemui.shared.system.InputMonitorCompat@e8e24a4
-    			inputEventReceiver=com.android.systemui.shared.system.InputChannelCompat$InputEventReceiver@c87c20d
+    			inputMonitorCompat=com.android.systemui.shared.system.InputMonitorCompat@c8756e4
+    			inputEventReceiver=com.android.systemui.shared.system.InputChannelCompat$InputEventReceiver@a71a74d
     			gestureStartNavMode=null
     			consumer=TYPE_OTHER_ACTIVITY:TYPE_TASKBAR_STASH:TYPE_CURSOR_HOVER
     			uncheckedConsumer=TYPE_NO_OP
     			GestureState:
     				displayID=0
     				gestureID=100
-    				runningTask=com.android.quickstep.TopTaskTracker$CachedTaskInfo@6031c5
+    				runningTask=com.android.quickstep.TopTaskTracker$CachedTaskInfo@9c4536f
     				endTarget=null
     				lastAppearedTaskTargetId=null
     				lastStartedTaskId=[-1, -1]
@@ -70,7 +70,7 @@ SERVICE com.android.launcher3/com.android.quickstep.TouchInteractionService 9aa5
       mAssistantLeftRegion=RectF(0.0, 1048.0, 48.0, 1080.0)
       mAssistantRightRegion=RectF(1872.0, 1048.0, 1920.0, 1080.0)
       mOneHandedModeRegion=RectF(0.0, 1000.0, 1920.0, 1080.0)
-    	createdOverviewActivity=com.android.launcher3.uioverrides.QuickstepLauncher@3975052
+    	createdOverviewActivity=com.android.launcher3.uioverrides.QuickstepLauncher@2052a69
     	resumed=true
     DeviceProfile:
     	1 dp = 1.0 px
@@ -213,30 +213,27 @@ SERVICE com.android.launcher3/com.android.quickstep.TouchInteractionService 9aa5
     		- AbsSwipeUpHandler.cancelCurrentAnimation wasn't called and STATE_HANDLER_INVALIDATED wasn't set.
     ActiveGestureLog history:
     	Logs for logId: 101
-    		15:57:07.168+0000  Current running task package name=dev.openbook.quire.secureprobe
-    		15:57:07.168+0000  Current SystemUi state flags=allow_gesture|freeform_active_in_desktop_mode|awake|dual_shade_enabled
-    		15:57:07.168+0000  setInputConsumer: TYPE_OTHER_ACTIVITY:TYPE_TASKBAR_STASH:TYPE_CURSOR_HOVER. reason(s):
+    		16:57:57.878+0000  Current running task package name=dev.openbook.quire.secureprobe
+    		16:57:57.878+0000  Current SystemUi state flags=allow_gesture|freeform_active_in_desktop_mode|awake|dual_shade_enabled
+    		16:57:57.879+0000  setInputConsumer: TYPE_OTHER_ACTIVITY:TYPE_TASKBAR_STASH:TYPE_CURSOR_HOVER. reason(s):
     			-> can start system gesture, trying to use base consumer; keyguard is not showing occluded; using OtherActivityInputConsumer
     			-> device is in gesture navigation mode or 3-button mode with a trackpad gesture; TaskbarActivityContext != null, using TaskbarUnstashInputConsumer
-    		15:57:07.169+0000  onMotionEvent: ACTION_HOVER_ENTER, NONE, displayId=0
-    		15:57:07.231+0000  onMotionEvent: ACTION_HOVER_MOVE, NONE, displayId=0 & 8 similar events
-    		15:57:11.214+0000  onMotionEvent: ACTION_HOVER_EXIT, NONE, displayId=0
-    		15:57:20.061+0000  onMotionEvent: ACTION_HOVER_ENTER, NONE, displayId=0
-    		15:57:20.131+0000  onMotionEvent: ACTION_HOVER_MOVE, NONE, displayId=0 & 4 similar events
-    		15:57:41.404+0000  onMotionEvent: ACTION_HOVER_EXIT, NONE, displayId=0
-    		15:59:20.500+0000  preloadRecentsAnimation & 3 similar events
+    		16:57:57.879+0000  onMotionEvent: ACTION_HOVER_ENTER, NONE, displayId=0
+    		16:57:57.944+0000  onMotionEvent: ACTION_HOVER_MOVE, NONE, displayId=0 & 15 similar events
+    		16:58:31.978+0000  onMotionEvent: ACTION_HOVER_EXIT, NONE, displayId=0
+    		16:58:48.374+0000  preloadRecentsAnimation & 1 similar events
     RecentsModel:
        RecentTasksList:
-         mChangeId=212
-         mResultsUi=[id=212, tasks=
-           t0: (id=32; package=com.android.documentsui)
-           t1: (id=31; package=com.android.settings)
+         mChangeId=156
+         mResultsUi=[id=156, tasks=
+           t0: (id=26; package=com.android.documentsui)
+           t1: (id=25; package=com.android.settings)
            t2: (id=15; package=dev.openbook.quire)
-           t0: (id=27; package=com.android.settings)
+           t0: (id=21; package=com.android.settings)
          ]
          rawTasks=[
-      Desk ID= -1, Desk Display ID=-1, Tasks=[id=27 winMode=freeform visReq=false vis=false excluded=false baseIntent=com.android.settings/.Settings$DarkThemeSettingsActivity], Type=FULLSCREEN, Minimized Task IDs=null
-      Desk ID= 7, Desk Display ID=0, Tasks=[id=32 winMode=freeform visReq=true vis=true excluded=false baseIntent=com.android.documentsui/.files.FilesActivity, id=31 winMode=freeform visReq=true vis=true excluded=false baseIntent=com.android.settings/.Settings, id=15 winMode=freeform visReq=true vis=true excluded=false baseIntent=dev.openbook.quire/.control.LabActivity], Type=DESK, Minimized Task IDs=[]
+      Desk ID= -1, Desk Display ID=-1, Tasks=[id=21 winMode=fullscreen visReq=false vis=false excluded=false baseIntent=com.android.settings/.Settings$DarkThemeSettingsActivity], Type=FULLSCREEN, Minimized Task IDs=null
+      Desk ID= 7, Desk Display ID=0, Tasks=[id=26 winMode=freeform visReq=true vis=true excluded=false baseIntent=com.android.documentsui/.files.FilesActivity, id=25 winMode=freeform visReq=true vis=true excluded=false baseIntent=com.android.settings/.Settings, id=15 winMode=freeform visReq=true vis=true excluded=false baseIntent=dev.openbook.quire/.control.LabActivity], Type=DESK, Minimized Task IDs=[]
          ]
     TaskbarManager:
     	mUserUnlocked=true
@@ -328,7 +325,7 @@ SERVICE com.android.launcher3/com.android.quickstep.TouchInteractionService 9aa5
     						mSamplingListenerRegistered: false
     						mSamplingRequestBounds: Rect(850, 1066 - 1070, 1070)
     						mRegisteredSamplingBounds: Rect(0, 0 - 0, 0)
-    						mLastMedianLuma: 0.71750444
+    						mLastMedianLuma: 0.701172
     						mCurrentMedianLuma: 0.71750444
     						mWindowVisible: false
     						mWindowHasBlurs: false
@@ -363,9 +360,9 @@ SERVICE com.android.launcher3/com.android.quickstep.TouchInteractionService 9aa5
     						canShowRecentApps=true
     						shownHotseatItems=[com.android.documentsui, com.android.settings, org.chromium.webview_shell, com.android.calendar, com.android.gallery3d, com.android.camera2]
     						allRecentTasks=[[com.android.documentsui, com.android.settings, dev.openbook.quire], [com.android.settings]]
-    						taskbarRunningTasks=[type=SINGLE task=[id=32 windowingMode=5 user=0 lastActiveTime=476124] null, type=SINGLE task=[id=31 windowingMode=5 user=0 lastActiveTime=470362] null, type=SINGLE task=[id=15 windowingMode=5 user=0 lastActiveTime=427411] null]
+    						taskbarRunningTasks=[type=SINGLE task=[id=26 windowingMode=5 user=0 lastActiveTime=229972] null, type=SINGLE task=[id=25 windowingMode=5 user=0 lastActiveTime=224505] null, type=SINGLE task=[id=15 windowingMode=5 user=0 lastActiveTime=172530] null]
     						shownTasks=[[dev.openbook.quire]]
-    						runningTaskIds=[32, 31, 15]
+    						runningTaskIds=[26, 25, 15]
     						minimizedTaskIds=[]
     					TaskbarTranslationController:
     						mTranslationYForSwipe=0.0
@@ -404,7 +401,7 @@ SERVICE com.android.launcher3/com.android.quickstep.TouchInteractionService 9aa5
     					   actions: 0 actions
     					   isAmbientCueEnabled: true
     					   ambientCueTimeoutMs: 30000
-    					   globallyFocusedTaskId: 32
+    					   globallyFocusedTaskId: 26
     					   debounceTaskJob active: false
     					   frontTaskPackageName: com.android.documentsui
     					   lastPublishedInsight: null
@@ -417,7 +414,7 @@ SERVICE com.android.launcher3/com.android.quickstep.TouchInteractionService 9aa5
     								WIDGETS_PAGE_PROGRESS_INDEX=0.0
     								SYSUI_SURFACE_PROGRESS_INDEX=0.0
     								LAUNCHER_PAUSE_PROGRESS_INDEX=0.0
-    						mRecentsWindowContainer=com.android.launcher3.uioverrides.QuickstepLauncher@3975052
+    						mRecentsWindowContainer=com.android.launcher3.uioverrides.QuickstepLauncher@2052a69
     						mIgnoreOverlayUpdateOnHomePress=false
     						TaskbarLauncherStateController:
     							mIconAlignment=0.00
@@ -598,40 +595,40 @@ SERVICE com.android.launcher3/com.android.quickstep.TouchInteractionService 9aa5
     				getCellLayoutWidth(): 1618.0px (1618.0dp)
     ]
     DesktopVisibilityController:
-    	desktopVisibilityListeners=[com.android.launcher3.taskbar.TaskbarDesktopModeController@23b90db, com.android.quickstep.views.RecentsViewUtils@8ee774d, com.android.launcher3.taskbar.TaskbarManagerImpl$1@28f333b]
+    	desktopVisibilityListeners=[com.android.launcher3.taskbar.TaskbarDesktopModeController@45ea0ef, com.android.launcher3.taskbar.TaskbarManagerImpl$1@b155717, com.android.quickstep.views.RecentsViewUtils@8a3fbc6]
     	inOverviewState={}
-    	context=com.android.launcher3.LauncherApplication@8438fc3
+    	context=com.android.launcher3.LauncherApplication@9330bbe
     ContextualSearchStateManager:
     	ContextualSearchStMgr event history:
-    	  15:56:07.719+0000  Updated isContextualSearchIntentAvailable: true
+    	  16:56:55.655+0000  Updated isContextualSearchIntentAvailable: true
     SystemUiProxy:
-    	mSystemUiProxy=com.android.systemui.shared.recents.ISystemUiProxy$Stub$Proxy@1c47c0e
-    	mPip=com.android.wm.shell.common.pip.IPip$Stub$Proxy@f49462f
-    	mPipAnimationListener=OneWayBinderList{[com.android.quickstep.views.RecentsView$PinnedStackAnimationListener@f0a1635]}
-    	mBubbles=com.android.wm.shell.bubbles.IBubbles$Stub$Proxy@4e025c5
-    	mBubblesListener=OneWayBinderList{[com.android.launcher3.taskbar.bubbles.BubbleBarController$BubbleBarListener@c0dcaca]}
-    	mSplitScreen=com.android.wm.shell.splitscreen.ISplitScreen$Stub$Proxy@b2e164b
-    	mSplitScreenListener=OneWayBinderList{[com.android.quickstep.TopTaskTracker@66c8828]}
-    	mSplitSelectListener=OneWayBinderList{[com.android.quickstep.split.SplitSelectStateController$DesktopSplitSelectListenerImpl@7e5143b]}
-    	mOneHanded=com.android.wm.shell.onehanded.IOneHanded$Stub$Proxy@997fee6
-    	mShellTransitions=com.android.wm.shell.shared.IShellTransitions$Stub$Proxy@145cc27
+    	mSystemUiProxy=com.android.systemui.shared.recents.ISystemUiProxy$Stub$Proxy@83a1c4e
+    	mPip=com.android.wm.shell.common.pip.IPip$Stub$Proxy@7b2016f
+    	mPipAnimationListener=OneWayBinderList{[com.android.quickstep.views.RecentsView$PinnedStackAnimationListener@196f65f]}
+    	mBubbles=com.android.wm.shell.bubbles.IBubbles$Stub$Proxy@6f97305
+    	mBubblesListener=OneWayBinderList{[com.android.launcher3.taskbar.bubbles.BubbleBarController$BubbleBarListener@8d208ac]}
+    	mSplitScreen=com.android.wm.shell.splitscreen.ISplitScreen$Stub$Proxy@287458b
+    	mSplitScreenListener=OneWayBinderList{[com.android.quickstep.TopTaskTracker@f4b2668]}
+    	mSplitSelectListener=OneWayBinderList{[com.android.quickstep.split.SplitSelectStateController$DesktopSplitSelectListenerImpl@11a4975]}
+    	mOneHanded=com.android.wm.shell.onehanded.IOneHanded$Stub$Proxy@c996726
+    	mShellTransitions=com.android.wm.shell.shared.IShellTransitions$Stub$Proxy@822af67
     	mHomeVisibilityState={HomeVisibilityState isHomeVisible=true}
     	mFocusState={FocusState focusedDisplayId=0}
-    	mStartingWindow=com.android.wm.shell.startingsurface.IStartingWindow$Stub$Proxy@c15fed4
-    	mStartingWindowListener=OneWayBinderList{[com.android.launcher3.remoteanimations.StartingWindowListener@955c758]}
-    	mSysuiUnlockAnimationController=com.android.systemui.shared.system.smartspace.ISysuiUnlockAnimationController$Stub$Proxy@e552372
+    	mStartingWindow=com.android.wm.shell.startingsurface.IStartingWindow$Stub$Proxy@8e04114
+    	mStartingWindowListener=OneWayBinderList{[com.android.launcher3.remoteanimations.StartingWindowListener@111d0a]}
+    	mSysuiUnlockAnimationController=com.android.systemui.shared.system.smartspace.ISysuiUnlockAnimationController$Stub$Proxy@5a4cfb2
     	mLauncherActivityClass=null
     	mLauncherUnlockAnimationController=null
-    	mRecentTasks=com.android.wm.shell.recents.IRecentTasks$Stub$Proxy@73903c3
-    	mRecentTasksListener=OneWayBinderList{[com.android.quickstep.RecentTasksList$recentTasksListener$1@e3e3440]}
-    	mBackAnimation=com.android.wm.shell.back.IBackAnimation$Stub$Proxy@de7ef79
-    	mBackToLauncherCallback=com.android.quickstep.LauncherBackAnimationController$OnBackInvokedCallbackStub@252e0b1
-    	mBackToLauncherRunner=com.android.quickstep.LauncherBackAnimationController$RemoteAnimationRunnerStub@7a5c996
-    	mDesktopMode=com.android.wm.shell.desktopmode.api.IDesktopMode$Stub$Proxy@df2546c
-    	mDesktopTaskListener=OneWayBinderList{[com.android.launcher3.statehandlers.DesktopVisibilityController$DesktopTaskListenerImpl@d6f0a35]}
+    	mRecentTasks=com.android.wm.shell.recents.IRecentTasks$Stub$Proxy@420db03
+    	mRecentTasksListener=OneWayBinderList{[com.android.quickstep.RecentTasksList$recentTasksListener$1@c0a5a80]}
+    	mBackAnimation=com.android.wm.shell.back.IBackAnimation$Stub$Proxy@6fbb8b9
+    	mBackToLauncherCallback=com.android.quickstep.LauncherBackAnimationController$OnBackInvokedCallbackStub@dde997b
+    	mBackToLauncherRunner=com.android.quickstep.LauncherBackAnimationController$RemoteAnimationRunnerStub@aad0398
+    	mDesktopMode=com.android.wm.shell.desktopmode.api.IDesktopMode$Stub$Proxy@4fa9eac
+    	mDesktopTaskListener=OneWayBinderList{[com.android.launcher3.statehandlers.DesktopVisibilityController$DesktopTaskListenerImpl@162775]}
     	mUnfoldAnimation=null
     	mUnfoldAnimationListener=OneWayBinderList{[]}
-    	mDragAndDrop=com.android.wm.shell.draganddrop.IDragAndDrop$Stub$Proxy@761aeca
+    	mDragAndDrop=com.android.wm.shell.draganddrop.IDragAndDrop$Stub$Proxy@2f2a30a
         DeviceConfigWrapper:
        	customLpnhThresholds=true
        	customLphThresholds=true

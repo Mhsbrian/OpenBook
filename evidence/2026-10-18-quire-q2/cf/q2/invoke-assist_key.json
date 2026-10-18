@@ -1,5 +1,5 @@
 {
-  "time": 1792339057382,
+  "time": 1792342707960,
   "trigger": "assist_key",
   "entrypoint": 11,
   "entrypointName": "KEYBOARD_SHORTCUT",
@@ -15,7 +15,7 @@
   "token": true,
   "callingPackage": "dev.openbook.quire",
   "mediaProjectionOffered": true,
-  "screenshot": "20261018-155737-382-assist_key.png",
+  "screenshot": "20261018-165827-960-assist_key.png",
   "width": 1920,
   "height": 1080
 }
