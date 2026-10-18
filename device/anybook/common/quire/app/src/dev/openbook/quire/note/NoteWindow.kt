@@ -126,6 +126,21 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
         show(t, Task.Focus.KEEP, animate = false)
     }
 
+    /**
+     * Runs [action] once the note's first frame is on the display, which is when the platform counts Quire as having
+     * a visible window (a computer-control session asked for before that is refused, §8).
+     */
+    fun whenVisible(action: () -> Unit) {
+        val r = root ?: return action()
+        r.post {
+            r.viewTreeObserver.registerFrameCommitCallback {
+                // The frame is submitted; give WM a frame to show the surface.
+                r.postDelayed(action, VISIBLE_SETTLE_MS)
+            }
+            r.invalidate()
+        }
+    }
+
     fun update(t: Task, focus: Task.Focus) {
         val c = card ?: return
         if (task !== t) return
@@ -369,6 +384,7 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
 
         /** §5.2 Out from the pointer: scale 0.2 → 1 with spring.unfold around the hotspot, opacity over 120 ms. */
         fun unfold(end: () -> Unit) {
+            Log.i(TAG, "note: unfold animated=${Motion.enabled}")
             card.alpha = 0f
             card.scaleX = FOLDED
             card.scaleY = FOLDED
@@ -389,6 +405,7 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
 
         /** §5.2 Fold back: scale 1 → 0.2 toward the origin with spring.fold; into the taskbar it also travels there. */
         fun fold(intoTaskbar: Boolean, end: () -> Unit) {
+            Log.i(TAG, "note: fold into=${if (intoTaskbar) "taskbar" else "anchor"} animated=${Motion.enabled}")
             folding = true
             requestLayout()
             if (intoTaskbar) {
@@ -466,6 +483,9 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
 
         /** The scale the note unfolds from and folds to (§5.2). */
         private const val FOLDED = 0.2f
+
+        /** After the first frame is committed, how long until WM has shown the surface. */
+        private const val VISIBLE_SETTLE_MS = 150L
 
         /** The platform consent dialog's footprint the note keeps clear of, generously (dp). */
         private const val DIALOG_W = 600f

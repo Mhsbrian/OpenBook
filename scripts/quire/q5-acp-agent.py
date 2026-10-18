@@ -155,6 +155,7 @@ class Session:
         text = " ".join(b.get("text", "") for b in p.get("prompt", []) if b.get("type") == "text").lower()
         images = sum(1 for b in p.get("prompt", []) if b.get("type") == "image")
         self.log("turn", {"sid": sid, "text": text[-120:], "images": images})
+        self.images = [b for b in p.get("prompt", []) if b.get("type") == "image"]
         self.cancelled.clear()
         for key, fn in SCENARIOS:
             if key in text:
@@ -338,6 +339,12 @@ class Session:
 
     def schedule(self, sid):
         self.think(sid, "Reading the region.")
+        # Shows the region it was given back as an image block, so the note's image state comes over ACP too.
+        if self.images:
+            img = self.images[0]
+            self.update(sid, {"sessionUpdate": "agent_message_chunk",
+                              "content": {"type": "image", "mimeType": img.get("mimeType", "image/jpeg"),
+                                          "data": img.get("data", "")}})
         self.say(sid, "From the region you pointed at:\n\n- **Mon** · Badge collection, afternoon\n- **Tue** "
                       "· Registration 08:30 · Keynote 09:15\n- **Wed–Thu** · Conference sessions")
         return "end_turn"

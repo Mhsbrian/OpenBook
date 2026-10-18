@@ -245,6 +245,21 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
     }
     val mirrorPanel = MirrorPanel(env) { actions.mirrorAction(it) }
 
+    // Listening (§3.2): seven level bars and the transcript, recognised words in onSurface, the partial ones in
+    // onSurfaceVariant.
+    private val levels = LevelBars(context, p.primary)
+    private val transcript = env.text(TextRole.BODY, p.onSurface).apply {
+        accessibilityLiveRegion = ACCESSIBILITY_LIVE_REGION_POLITE
+    }
+    private val listenRow = LinearLayout(context).apply {
+        orientation = LinearLayout.HORIZONTAL
+        gravity = Gravity.CENTER_VERTICAL
+        setPadding(dpi(16f), dpi(4f), dpi(16f), dpi(8f))
+        addView(levels, LinearLayout.LayoutParams(dpi(7 * 4f + 6 * 3f), dpi(28f)))
+        addView(transcript, LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f).apply { marginStart = dpi(12f) })
+        visibility = GONE
+    }
+
     /** TalkBack announcements (§6.3): a live region whose text changes, rather than the deprecated announce call. */
     private val announcer = TextView(context).apply {
         setTextColor(0)
@@ -259,7 +274,7 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
         announcer.text = text
     }
 
-    private val sections = listOf<View>(header, prompt, mirrorPanel, body, suggest, composer, footer)
+    private val sections = listOf<View>(header, prompt, listenRow, mirrorPanel, body, suggest, composer, footer)
     var task: Task? = null
         private set
     private var draftShown = 0
@@ -531,6 +546,19 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
         prompt.visibility = if (t.intake != null || t.prompt != null) VISIBLE else GONE
         (promptText.layoutParams as LinearLayout.LayoutParams).topMargin = if (t.intake != null) dpi(8f) else 0
 
+        // Listening.
+        val l = t.listening
+        listenRow.visibility = if (l != null) VISIBLE else GONE
+        levels.running = l != null
+        if (l != null) {
+            transcript.text = android.text.SpannableStringBuilder(l.final).apply {
+                val start = length
+                append(l.partial)
+                setSpan(android.text.style.ForegroundColorSpan(p.onSurfaceVariant), start, length,
+                    android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            }
+        }
+
         // Mirror or body.
         if (mirror != null) {
             mirrorPanel.visibility = VISIBLE
@@ -540,7 +568,7 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
             mirrorPanel.visibility = GONE
             mirrorPanel.unbind()
             bindBlocks(t, newTask)
-            body.visibility = if (t.blocks.isEmpty()) GONE else VISIBLE
+            body.visibility = if (t.blocks.isEmpty() || l != null) GONE else VISIBLE
         }
 
         // Suggestions.
@@ -549,7 +577,7 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
         s.forEach { (glyph, label) ->
             suggest.addView(SuggestionChip(env, glyph, label) { actions.send(label) })
         }
-        suggest.visibility = if (s.isEmpty()) GONE else VISIBLE
+        suggest.visibility = if (s.isEmpty() || l != null) GONE else VISIBLE
 
         // Composer.
         composer.visibility = if (t.composerVisible) VISIBLE else GONE
@@ -762,5 +790,55 @@ class SuggestionChip(env: NoteEnv, glyph: String, label: String, onClick: () -> 
         isClickable = true
         contentDescription = label
         setOnClickListener { onClick() }
+    }
+}
+
+/**
+ * The mic level bars (§5.1 loop.levels): 1100 ms ease-in-out per bar, staggered. With animations off they hold the
+ * still shape the design shows (§5.3). Q7 will drive them from the microphone's level.
+ */
+class LevelBars(context: Context, color: Int) : View(context) {
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { this.color = color }
+    private val still = floatArrayOf(0.4f, 0.8f, 1f, 0.6f, 0.9f, 0.5f, 0.3f)
+    private val delays = floatArrayOf(0f, 0.1f, 0.2f, 0.05f, 0.25f, 0.15f, 0.3f)
+    private var anim: android.animation.ValueAnimator? = null
+    private var t = 0f
+
+    var running = false
+        set(value) {
+            if (field == value) return
+            field = value
+            anim?.cancel()
+            anim = null
+            if (value && Motion.enabled) {
+                anim = android.animation.ValueAnimator.ofFloat(0f, 1f).apply {
+                    duration = 1100
+                    repeatCount = android.animation.ValueAnimator.INFINITE
+                    interpolator = android.view.animation.LinearInterpolator()
+                    addUpdateListener { t = it.animatedValue as Float; invalidate() }
+                    start()
+                }
+            }
+            invalidate()
+        }
+
+    override fun onDetachedFromWindow() {
+        running = false
+        super.onDetachedFromWindow()
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        val w = dp(4f)
+        val gap = dp(3f)
+        for (i in 0 until 7) {
+            val s = if (anim == null) still[i] else {
+                val ph = (t - delays[i] / 1.1f + 1f) % 1f
+                val tri = if (ph < 0.5f) ph * 2f else (1f - ph) * 2f
+                0.3f + 0.7f * android.view.animation.AccelerateDecelerateInterpolator().getInterpolation(tri)
+            }
+            val h = height * s
+            val x = i * (w + gap)
+            canvas.drawRoundRect(x, (height - h) / 2f, x + w, (height + h) / 2f, w / 2f, w / 2f, paint)
+        }
     }
 }

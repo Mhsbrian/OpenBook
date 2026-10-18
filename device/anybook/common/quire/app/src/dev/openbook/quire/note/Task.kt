@@ -83,7 +83,35 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
         get() = pending != null
 
     val composerVisible: Boolean
-        get() = phase != Phase.NO_AGENT && phase != Phase.MIRROR
+        get() = phase != Phase.NO_AGENT && phase != Phase.MIRROR && listening == null
+
+    /** Hold to talk (§3.2 Listening): what is recognised so far, and the partial words still changing. */
+    class Listening(var final: String, var partial: String)
+
+    var listening: Listening? = null
+        private set
+
+    fun listen(final: String, partial: String) {
+        if (running) return
+        val l = listening ?: Listening("", "").also { listening = it }
+        l.final = final
+        l.partial = partial
+        host.changed(this)
+    }
+
+    /** Release sends what was heard (§6.1 Hold to talk). */
+    fun releaseListening() {
+        val l = listening ?: return
+        listening = null
+        val text = (l.final + l.partial).trim()
+        if (text.isEmpty()) host.changed(this, Focus.FIELD) else send(text)
+    }
+
+    /** Esc while holding cancels: nothing is sent, the field is as it was (§6.1). */
+    fun cancelListening() {
+        listening = null
+        host.changed(this, Focus.FIELD)
+    }
 
     val canSend: Boolean
         get() = !running && agent != null && phase != Phase.NO_AGENT
@@ -117,6 +145,7 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
     fun footer(now: Long = SystemClock.elapsedRealtime()): String {
         val secs = ((if (running) now else endedAt) - startedAt).coerceAtLeast(0) / 1000
         return when {
+            listening != null -> context.getString(R.string.q_foot_listening)
             stopping -> context.getString(R.string.q_foot_stopping)
             phase == Phase.COMPOSE -> when (intake) {
                 Intake.Secure -> context.getString(R.string.q_foot_secure)
@@ -139,7 +168,11 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
 
     /** The footer's right side names what Esc does (§1: "how to stop" is always visible). */
     val escapeHint: String
-        get() = context.getString(if (running) R.string.q_esc_stop else R.string.q_esc_close)
+        get() = context.getString(when {
+            listening != null -> R.string.q_esc_cancel
+            running -> R.string.q_esc_stop
+            else -> R.string.q_esc_close
+        })
 
     // ---------------------------------------------------------------------------------------- the person's actions
 
@@ -258,6 +291,10 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
 
     /** Esc (§3.3 rule 4): stops a running task, closes the rest. Returns false when the note should close. */
     fun escape(): Boolean {
+        if (listening != null) {
+            cancelListening()
+            return true
+        }
         if (!running) return false
         stop()
         return true
@@ -478,6 +515,39 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
             if (mirror == null) blocks += Block.Thinking()
         }
         host.changed(this, Focus.FIELD)
+    }
+
+    /**
+     * The broker's card for a settings change (§3.3 rule 2, §3.2 Consent, settings), with Quire's own options. Q6's
+     * broker raises it while it holds the agent's MCP call; debuggable builds can raise it from the lab, so the card
+     * and the change list after it can be checked before Q6. After Allow the rows become the change list (§3.2
+     * Settings help); applying and undoing the changes is Q6's.
+     */
+    fun labBroker(title: String, meta: String, rows: List<Change>, why: String) {
+        val options = listOf(
+            Option("deny", context.getString(R.string.q_broker_deny), "reject_once"),
+            Option("task", context.getString(R.string.q_broker_task), "allow_always"),
+            Option("allow", context.getString(R.string.q_broker_allow), "allow_once"),
+        )
+        val wasRunning = running
+        if (!running) {
+            running = true
+            startedAt = SystemClock.elapsedRealtime()
+        }
+        val card = Block.Consent(Block.Consent.Source.BROKER, title, meta, rows, null, null, why, options, null) { id ->
+            if (id == "allow" || id == "task") {
+                blocks += Block.Changes(context.getString(R.string.q_changed_title, rows.size),
+                    context.getString(R.string.q_changed_meta), rows, undo = true)
+            }
+            if (!wasRunning) {
+                running = false
+                endedAt = SystemClock.elapsedRealtime()
+                phase = if (id == null) Phase.STOPPED else Phase.DONE
+                foldSteps(true)
+            }
+        }
+        removeThinking()
+        raiseBrokerCard(card)
     }
 
     /** A broker card for an OS tool (§3.3 rule 2): Quire's own options, enforced by Quire. Used by ControlRun and Q6. */

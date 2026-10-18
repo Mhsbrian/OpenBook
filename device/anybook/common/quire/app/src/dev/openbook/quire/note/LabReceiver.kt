@@ -24,7 +24,8 @@ import org.json.JSONArray
  * ENDPOINT (id, name, where, address tcp:127.0.0.1:PORT, cwd, local, connected) · ENDPOINT_REMOVE (id) ·
  * OPEN (trigger, x and y for a pointer anchor else the taskbar, intake window|region|selection|secure|none, name, text)
  * · SEND (text) · ESC · HIDE · CLOSE · REOPEN · PICKER · PICK (id) · CONTROL (prompt, app, launch, taps: JSON
- * [[text, title, done], ...]) · MIRROR (action pause|resume|takeover|stop) · DUMP
+ * [[text, title, done], ...]) · MIRROR (action pause|resume|takeover|stop) · TRAY · LISTEN (final, partial) ·
+ * LISTEN_RELEASE · BROKER (title, meta, rows: JSON [[name, where, old, new], ...], why) · DUMP
  */
 class LabReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -57,7 +58,8 @@ class LabReceiver : BroadcastReceiver() {
                     ControlRun.Tap(t.getString(0), t.getString(1), t.getString(2))
                 }
                 surface.startControl(intent.getStringExtra("prompt") ?: "", intent.getStringExtra("app") ?: "Settings",
-                    intent.getStringExtra("launch") ?: "com.android.settings", plan, anchor(intent))
+                    intent.getStringExtra("launch") ?: "com.android.settings", plan, anchor(intent),
+                    intent.getStringExtra("aimMs")?.toLongOrNull() ?: 700L)
             }
             "MIRROR" -> surface.mirrorAction(when (intent.getStringExtra("action")) {
                 "pause" -> MirrorPanel.Action.PAUSE
@@ -65,6 +67,18 @@ class LabReceiver : BroadcastReceiver() {
                 "takeover" -> MirrorPanel.Action.TAKE_OVER
                 else -> MirrorPanel.Action.STOP
             })
+            "TRAY" -> surface.showTray()
+            "LISTEN" -> surface.window.task?.listen(intent.getStringExtra("final") ?: "",
+                intent.getStringExtra("partial") ?: "")
+            "LISTEN_RELEASE" -> surface.window.task?.releaseListening()
+            "BROKER" -> {
+                val rows = JSONArray(intent.getStringExtra("rows") ?: "[]")
+                surface.window.task?.labBroker(intent.getStringExtra("title") ?: "", intent.getStringExtra("meta") ?: "",
+                    (0 until rows.length()).map {
+                        val r = rows.getJSONArray(it)
+                        Change(r.getString(0), r.getString(1), r.getString(2), r.getString(3))
+                    }, intent.getStringExtra("why") ?: "")
+            }
             "DUMP" -> {
                 surface.tasks.forEach {
                     Log.i(TAG, "lab: task ${it.id} phase=${it.phase} running=${it.running} hidden=${it.hidden} " +
