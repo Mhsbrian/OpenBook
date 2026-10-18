@@ -22,6 +22,7 @@ The write-up is `docs/quire.md` §9 (built) and §8 (findings); the design is PR
 | Build | Repo | Result | Log (host, `~/anybook/logs/aosp/`) |
 |---|---|---|---|
 | `OpenBookQuire` for `anybook_cf_x86_64_pc-cp2a-userdebug` | `628fc59` | OK in 2:47 (Soong, in-tree Kotlin, the OFL licence module) | `build-20261018T183829Z.log` |
+| `OpenBookQuire`, the final sources | `2ec9b15` | OK in 3:43 | `build-20261018T194443Z.log` |
 | `anybook_cf_x86_64_pc-cp2a-userdebug` `droid QuireSecureProbe` | `5c1d0c4` | OK in 7:06 (incremental), frameworks/base 8 patches applied, SystemUI with `0008` compiled; snapshot `~/anybook/aosp/cf/q5-out` | `build-20261018T191007Z.log` |
 
 Both ran under the lane lock (`scripts/aosp-docker.sh`, `AOSP_JOBS=24`). The image was booted on the AMD lane:
@@ -32,7 +33,7 @@ Quire (Soong, `5c1d0c4`). Four fixes found on the way were installed over it as 
 (`tools/build-apk.sh`, the same sources) before the keyboard, video, contrast and health checks and the control
 states were rerun: a lab-opened note no longer toggles an open one closed (only Meta+Space, the assist key and the
 taskbar toggle), the zoom shows a wide control from its leading edge, the palette dump, and a Tab check that waits
-for the dump. The final commit builds in-tree (see the PR).
+for the dump. The final sources build in-tree (`2ec9b15`, above).
 
 ## Results (`cf/`)
 
