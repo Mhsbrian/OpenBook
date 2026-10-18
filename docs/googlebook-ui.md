@@ -321,7 +321,13 @@ Corner radii already match. Googlebook ships its own wallpaper set (`DesktopWall
   - **Dynamic colour:** each wallpaper gives its own seed. The primary colour matches `monet.py` within 3 RGB units for 7 of 8 (Bloom light: 7).
   - **Pointer:** the framework's own loader draws our 20 shapes in all 6 fills and 3 strokes. A virtual mouse shows our arrow on screen; `skipScreenshot` is false in this build, so screencap includes it.
   - **Sounds:** the ringtone, notification and alarm settings point to Open Pages, Spark and First Light. MediaProvider indexed all 8.
-- **Not covered:** the G14 (ANAL-192's stick), and listening to the sounds by ear.
+- **On the G14** (the owner's `anal192d` session, 2026-10-18, read from the stick's logs; `evidence/2026-10-18-brand-assets-g14/`):
+  - **Boot animation (C):** it played from our zip in both boots, at 30 fps as designed (`part0` 1.41 s for 42 frames, then `part1` looping, then a 0.40 s fade).
+  - **Sound defaults (C):** `ro.config.*` are ours, and the system set Open Pages, Spark and First Light as the defaults on the first boot.
+  - **Unlock sound (C):** under enforcing, SystemUI's track opened at keyguard dismissal, with 0 SoundPool denials and 0 track failures.
+  - **Wallpaper set (C):** the owner set one of ours (Folio dark) from Wallpaper & style.
+  - **Preview crash, fixed (C):** the picker's preview crashed once on the way. It is an AOSP bug: the fullscreen callback rejects the framework's `onResult(null)`, so any preview in a desktop window that is granted fullscreen kills the app. We reproduced it in Cuttlefish and fixed it with a one-line patch, `aosp/patches/packages/apps/WallpaperPicker2`.
+  - **Still to see:** the boot animation on the panel, the default wallpaper and the pointer (the owner's photos), and the sounds by ear.
 
 ### 2.6 Desktop clutter (C for OpenBook, R for Googlebook)
 
