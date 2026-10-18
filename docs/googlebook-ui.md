@@ -88,11 +88,64 @@ Signers are listed in `inventory/googlebook-ruby-signers.txt`, and the GMS APEX 
 | Google Sans (variable: opsz 17–18, wght 400–700, GRAD) | v10.001, "not open source" | **OFL 1.1**, v14.000, `ofl/googlesans`, added 2026-09-11. Same axes |
 | Google Sans Flex (opsz, wdth, wght, ROND, slnt; Googlebook's copy also has GRAD) | v4.001, **OFL 1.1** | **OFL 1.1**, v5.000, `ofl/googlesansflex` (2026-10-09). No GRAD axis |
 | Google Sans Clock, Google Sans Flex Clock | proprietary | none. We substitute Google Sans Flex |
-| 42 extra system fonts: metric-compatible document fonts (Arimo, Tinos, Cousine, Tachyonic, Velarium, Geotic, Tisane, Gaumond, Trophis, Codecs, Comedic Sans, Whendings, Archivo, Gelasio, Comic Relief …) | OFL 1.1 (`github.com/googlefonts/*`) | Same projects. They render web pages and Office documents with correct metrics |
+| 42 extra system fonts: metric-compatible document fonts (Arimo, Tinos, Cousine, Tachyonic, Velarium, Geotic, Tisane, Gaumond, Trophis, Codecs, Comedic Sans, Whendings, Archivo, Gelasio, Comic Relief …) | OFL 1.1 (`name` tables) | **Only 17 of the 42 files are public** (7 families, all in google/fonts). The other 25 name `github.com/googlefonts/<name>` projects that were not public on 2026-10-17 (§2.1.1) |
 
 The OFL lets us ship both families unmodified with `OFL.txt`. Google's `TRADEMARKS.md` forbids using "Google" or "Google Sans" in our product name, and implying affiliation. Our use of `google-sans` as an internal font-family identifier refers to the original font. The owner approved that reading on 2026-10-17 (see Owner decisions).
 
 **Result:** the prototype in §3, then the product (§3.1, ANAL-202).
+
+#### 2.1.1 Document fonts (B7, ANAL-208)
+
+Web pages and Office documents name Windows fonts. Without a font of the same widths, lines break in different places and layouts shift. AOSP 17 maps `arial`, `verdana` and `tahoma` to Roboto, `times new roman` and `georgia` to Noto Serif, and `courier new` to Cutive Mono, none of which share their widths.
+
+**What is public (C, 2026-10-17).** Each of Googlebook's 42 document fonts names its upstream in its copyright string:
+- **Public, in google/fonts** (7 families, 17 files): Arimo, Tinos, Cousine, Gelasio, Comic Relief, Archivo Black, Archivo Narrow. Their versions are the ones Googlebook ships.
+- **Not public** (13 families, 25 files): Tachyonic, Velarium, Geotic, Tisane, Gaumond, Trophis, Codecs, Comedic Sans, Whendings 1–4, Arvos (and Black, Narrow). Their `github.com/googlefonts/<name>` repositories return 404, google/fonts doesn't have them, and a web search found no release. We don't copy them from Google's image.
+- So **Verdana and Tahoma have no stand-in yet**. Googlebook maps them to Velarium and Tachyonic.
+
+**Aliases, from upstream metadata only.** Each family's google/fonts description, which matches the font's own `name` table:
+
+| Family | Windows name it takes | Upstream says |
+|---|---|---|
+| `arimo` | `arial` | "metrically compatible with Arial" |
+| `tinos` | `times new roman` | "metrically compatible with Times New Roman" |
+| `cousine` | `courier new` | "metrically compatible with Courier New" |
+| `gelasio` | `georgia` | "metrics compatible with Georgia" in all four styles |
+| `comic-relief` | `comic sans ms` | "metrically equivalent to … Comic Sans MS" |
+| `archivo-black`, `archivo-narrow` | none | no metric claim. Googlebook maps `arial-black` and `arial-narrow` to them; we don't |
+
+The three multi-word families also answer to their own names (`comic relief`, `archivo black`, `archivo narrow`), because WebView knows a font only by the names `fonts.xml` gives it.
+
+**Independent check (C).** Arial was drawn to Helvetica's widths, Times New Roman to Times Roman's and Courier New to Courier's. Adobe's freely distributable Core 14 AFMs give those widths. On all 95 printable ASCII characters, Arimo, Tinos and Cousine match Helvetica, Times-Roman and Courier, regular and bold, within 0.24/1000 em, which is AFM rounding. Roboto matches 0 of 95 (`evidence/2026-10-17-doc-fonts/offline-metrics.md`). Georgia and Comic Sans MS have no public metrics, so for Gelasio and Comic Relief we have only their upstreams' word.
+
+**Where the names have to go (C):**
+- **The framework** reads `/system/etc/font_fallback.xml` plus `/product/etc/fonts_customization.xml`. AOSP 17's `FontCustomizationParser` accepts `<alias>`. `FontListParser` puts the customization's aliases ahead of the system's, and `Typeface.initSystemDefaultTypefaces` keeps the first alias of a name, so `arial → arimo` beats AOSP's `arial → sans-serif`. No framework patch is needed.
+- **WebView and Chrome never read the customization file.** Chromium 145 (`skia/ext/font_utils.cc`) uses Skia's `SkFontMgr_New_Android`, which parses only `/system/etc/fonts.xml`, with font paths relative to `$ANDROID_ROOT/fonts/`. The NDK path (`UseAndroidNDKFontAPI`) is off by default, and it wouldn't map aliases anyway. The framework itself reads `font_fallback.xml`; only the zygote still reads `fonts.xml`, to preload locale fonts.
+- **So OpenBook does both.** The fonts and the families go in `/product` (`device/anybook/common/desktop/fonts/documents/`, and B1's generated `fonts_customization.xml`). A small patch to the legacy `fonts.xml` (`aosp/patches/frameworks/base/0001-*`) declares the same families as `../../product/fonts/<file>`, moves the four aliases AOSP already has (`arial`, `times new roman`, `courier new`, `georgia`) and adds the others. Skia keeps the first family a name maps to, so the old aliases are removed, not overridden. `scripts/ui/fonts-customization.py --legacy-fonts-xml` writes the patched file and `scripts/ui/fonts-legacy-patch.sh` the patch.
+- **The alternative, named families only** (no aliases), would make `font-family: Arimo` work but not `Arial`, which is what pages use, so it doesn't meet the goal.
+
+**Measured in Cuttlefish** (C, the `anybook_cf_x86_64_pc` product build, `evidence/2026-10-17-doc-fonts/product-cf/`; a pushed-files prototype on `main` gave the same numbers). `scripts/ui/doc-fonts-check.sh` opens `scripts/ui/doc-fonts-test.html` in the shipped WebView 145 shell. The page measures two strings in each family at 100 px, with kerning and ligatures off, and `scripts/ui/doc-fonts-metrics.py` matches each width to the font whose advance widths give it:
+
+| CSS `font-family` | Before (AOSP fonts) | After | After − expected |
+|---|---|---|---|
+| Arial | Roboto | **Arimo** | +0.008 px of 2562.7 px |
+| Times New Roman | Noto Serif | **Tinos** | 0.000 px |
+| Courier New | Cutive Mono | **Cousine** | +0.004 px |
+| Georgia | Noto Serif | **Gelasio** | +0.012 px |
+| Comic Sans MS | Roboto | **Comic Relief** | +0.012 px |
+| Verdana, Tahoma | Roboto | Roboto (no stand-in) | — |
+| `initial` (unstyled text), `sans-serif`, `serif` | Roboto, Roboto, Noto Serif | unchanged | — |
+
+Bold matches the same way. Both products build, B1's 40 families still load and measure as Google Sans, and the crash buffer and SELinux denials are empty. Through the framework (`Typeface.create` and `Paint`, `scripts/ui/doc-fonts-typeface.sh`) each Windows name lands within 1 px of its stand-in on both strings; Paint returns whole pixels.
+
+**Side effect.** A page that names only fonts the device lacks, with no generic family, now gets Arimo instead of Roboto. Blink's last resort (`FontCache::GetLastResortFallbackFont`) tries `""`, then `Sans`, then `Arial`. Text with no font set, or ending in `sans-serif`, is unchanged.
+
+**Size:** 5,313,524 bytes of fonts in `/product/fonts`, plus 4,466 bytes in `fonts_customization.xml` and 5,309 bytes in `fonts.xml`. In the images: `product.img` +3,948,544 bytes (the partition is compressed) and `system.img` +4,096, measured on the Cuttlefish product against B1's own build (`evidence/2026-10-17-doc-fonts/build/image-sizes.md`).
+
+**Open:**
+- Verdana and Tahoma wait for Google to publish Velarium and Tachyonic (and the other 11). Any other stand-in would need the owner's approval.
+- Helvetica, Times and Courier still map to Roboto, Noto Serif and Cutive Mono. Blink treats Arial↔Helvetica, Times↔Times New Roman and Courier↔Courier New as interchangeable (`alternate_font_family.h`), and the AFM check above shows the widths agree. Moving those three aliases is a small follow-up, but it goes beyond what the upstreams claim, so it needs an owner decision.
+- Calibri and Cambria, Office's defaults since 2007, have open metric-compatible fonts (Carlito, Caladea). Googlebook doesn't ship them; they would be a separate item.
 
 ### 2.2 Google's SystemUI, Launcher and newer framework code (C)
 
@@ -331,7 +384,7 @@ The owner approved every item on 2026-10-17. Each one is a sub-issue of ANAL-201
 | B4 | ANAL-205 | **Shape and wallpaper values:** circular icon mask, round icons, wallpaper dim 0, wallpaper colour thresholds. **Done in Cuttlefish (§2.4); the G14 check is on ANAL-192's stick** | small | — |
 | B5 | ANAL-206 | **A clean default desktop:** remove the QuickSearchBox widget and the app, set taskbar pins (Files, Settings, browser), quiet sounds. **Done in Cuttlefish and on the G14 product in QEMU (§2.6); the G14 check is on ANAL-192's stick** | small | Pins proposed in the PR; the owner reviews |
 | B6 | ANAL-207 | **Brand assets:** wallpapers (our own or CC0/CC-BY, not bulk Unsplash), a sound set with click sounds off by default, a boot animation, a pointer theme. Based on the brand mark in `assets/brand/` | medium | Owner reviews the visuals in the PR |
-| B7 | ANAL-208 | **Document fonts:** the 42 OFL metric-compatible fonts, for web and Office fidelity | small | — |
+| B7 | ANAL-208 | **Document fonts:** the metric-compatible fonts, for web and Office fidelity. Done for the 7 public families (17 of the 42 files; §2.1.1): Arial, Times New Roman, Courier New, Georgia and Comic Sans MS render in them, in WebView and the framework (Cuttlefish). G14 check on the next stick | small | The other 13 families wait for Google to publish them |
 | B8 | ANAL-209 | **Setup:** a first-run flow in our style, after the installer | medium | Coordinate with ANAL-191 (installer) |
 
 ## Owner decisions (2026-10-17)
