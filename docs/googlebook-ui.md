@@ -150,6 +150,13 @@ The OFL lets us ship both families unmodified with `OFL.txt`. Google's `TRADEMAR
 - **No crash, restart or amdgpu fault line,** in the guest or on the host.
 - The first run had one off round in which the shade stayed blurred (`cf-first-run/`). It didn't recur in a manual test or in the second run. That run checks for it before every round.
 
+**The G14 product's image in QEMU** (C; `scripts/ui/blur-qemu.sh`; virtio-gpu, so SwiftShader, a CPU renderer):
+- The build carries the property (`vendor/build.prop`). In QEMU, SystemUI reports `supportsBlursOnWindows: true`.
+- After OpenBook setup is finished, Quick Settings with blur on draws `backgroundBlurRadius=34` behind it, and with blur off nothing (`evidence/2026-10-17-blur/qemu/cmp-qs-on-off.png`).
+- `blur-check.sh`, typed in over the serial console, ran both rounds: blur applied, no hang or restart.
+- On SwiftShader blur is expensive: RenderEngine +7.3–7.8 ms per frame, and SurfaceFlinger misses 18–22 % of the frames while a panel moves, against 1.5–2.4 % without blur.
+- That doesn't apply to the G14's GPU, but it does to the image's VM fallback. If QEMU-based UI tests of the G14 image get slower or flaky, gate blur on the GPU probe. That needs the property set by init on `hal=amdgpu` instead of in `vendor/build.prop`; HYPOTHESIS, untested, and the SELinux side is to check.
+
 **What this predicts for the G14 (HYPOTHESIS):**
 - the 890M has far more GPU than the 610M, and no gfxstream layer;
 - the G14 draws 2.5× the pixels, at 2880×1800;
