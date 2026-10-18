@@ -42,6 +42,10 @@ allow openbook_installd sysfs_gpu:file r_file_perms;
 allow openbook_installd sysfs_devices_system_cpu:file r_file_perms;
 allow openbook_installd sysfs_power:file r_file_perms;
 allow openbook_installd sysfs_mem_sleep:file r_file_perms;
+# The power supplies (S8: mains or a battery at 50 % or more), /sys/class/power_supply/*/{type,scope,capacity,online}.
+# A VM has none, so only the G14 showed the denial (anal192d): the daemon could not read them itself and relied on the
+# power reading the app sends with each install.
+allow openbook_installd sysfs_batteryinfo:file r_file_perms;
 # The hardware check probes GPU IDs that are labeled only for the iGPU; elsewhere (VMs) it falls back to the driver
 # name. Those reads are expected to fail.
 dontaudit openbook_installd sysfs:file { open read };
