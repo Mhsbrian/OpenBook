@@ -745,7 +745,7 @@ static const char COLLECT[] =
     "s AUDIO; dumpsys media.audio_flinger 2>&1 | head -n 40\n"
     // App add-ons (ANAL-210): what openbook-addons did, microG's packages, and which apps provide location (the
     // coordinates of a last fix are not saved).
-    "s ADDONS; tail -n 40 /data/misc/openbook_addons/addons.log 2>&1; cat /data/misc/openbook_addons/microg.json 2>&1; "
+    "s ADDONS; tail -n 40 /data/misc/openbook_addons/addons.log 2>&1; cat /data/misc/openbook_addons/microg.json 2>&1; echo; "
     "pm list packages --show-versioncode 2>&1 | grep -E 'com.google.android.gms |com.google.android.gsf |com.android.vending '; "
     "dumpsys location 2>&1 | grep -A9 -E '^ *(network|fused) provider:' | grep -E 'provider:|identity=|last location' | "
     "sed -E 's/(Location\\[[a-z]+) [-0-9.]+,[-0-9.]+/\\1 <redacted>/'\n"
