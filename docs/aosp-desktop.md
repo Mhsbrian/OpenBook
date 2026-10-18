@@ -67,6 +67,8 @@ device/anybook/
     Android.bp                             AnyBookDesktopFrameworkOverlay, AnyBookDesktopSystemUIOverlay (/product)
     overlays/framework/res/values/config.xml
     overlays/systemui/res/values/config.xml
+    fonts/                                 Google Sans and Google Sans Flex (OFL) -> /product/fonts; the generated
+                                           fonts_customization.xml (40 families) -> /product/etc (ANAL-202)
     release/                               aconfig value set "aconfig_value_set-anybook_desktop-cp2a" (79 flags)
   cuttlefish/
     anybook_cf_x86_64_pc.mk                aosp_cf_x86_64_pc + desktop.mk + the VM-only pieces below
@@ -96,6 +98,8 @@ A bare-metal product (ANAL-176 onward) inherits `device/anybook/common/desktop/d
 | `config_lockPatternVisibleDefault` | false | false | |
 | `config_lockPinEnhancedPrivacyDefault` | true | true | |
 | `config_magnification_keep_zoom_level_when_context_changed`, `config_magnification_magnify_keyboard_default` | true | true | |
+| `config_headlineFontFamily`, `config_headlineFontFamilyMedium` | `google-sans`, `google-sans-medium` | not set (AOSP default: empty, `@string/font_family_button_material`) | Googlebook's values (`FrameworkDesktopOverlay`). The families are in `fonts/fonts_customization.xml` (ANAL-202, `docs/googlebook-ui.md` §2.1) |
+| `config_bodyFontFamily`, `config_bodyFontFamilyMedium` | `google-sans-text`, `google-sans-text-medium` | not set (AOSP default: `sans-serif`, `sans-serif-medium`) | same |
 
 These reference values were left out:
 - **Look and feel:** `config_useRoundIcon=true`, `config_icon_mask` (circle), `config_buttonTextAllCaps=false`.
