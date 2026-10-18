@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
+<input-manager-state>
+  <key-remapping />
+  <input-devices>
+    <input-device descriptor="c462b579299206f077d22ec867b8b639ff5f2e0b">
+      <keyed-keyboard-layout key="layoutDescriptor:c462b579299206f077d22ec867b8b639ff5f2e0b,userId:0,subtypeHandle:com.android.inputmethod.latin/.LatinIME:subtype:-1337596075" layout="com.android.inputdevices/com.android.inputdevices.InputDeviceReceiver/keyboard_layout_english_uk" />
+      <selected-keyboard-layout layout="com.android.inputdevices/com.android.inputdevices.InputDeviceReceiver/keyboard_layout_english_uk" />
+    </input-device>
+  </input-devices>
+</input-manager-state>
