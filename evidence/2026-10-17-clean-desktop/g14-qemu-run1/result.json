@@ -1,0 +1,82 @@
+{
+ "reason": "QEMU exited (0)",
+ "seconds": 132.3,
+ "steps_done": 26,
+ "steps": 26,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "openbook-live: exec /init",
+   "t": 9.3
+  },
+  {
+   "step": 1,
+   "wait": "init: init first stage started",
+   "t": 9.3
+  },
+  {
+   "step": 2,
+   "wait": "init: init second stage started",
+   "t": 9.9
+  },
+  {
+   "step": 3,
+   "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+   "t": 13.3
+  },
+  {
+   "step": 5,
+   "wait": "console:/ \\$ ",
+   "t": 13.3
+  },
+  {
+   "step": 7,
+   "wait": "console:/ \\$ ",
+   "t": 13.6
+  },
+  {
+   "step": 9,
+   "wait": "BOOTDONE=\\S* uptime=[0-9.]+",
+   "t": 34.0
+  },
+  {
+   "step": 10,
+   "wait": "console:/ \\$ ",
+   "t": 34.0
+  },
+  {
+   "step": 12,
+   "wait": "console:/ \\$ ",
+   "t": 94.1
+  },
+  {
+   "step": 14,
+   "wait": "console:/ \\$ ",
+   "t": 107.9
+  },
+  {
+   "step": 16,
+   "wait": "console:/ \\$ ",
+   "t": 113.5
+  },
+  {
+   "step": 19,
+   "wait": "console:/ \\$ ",
+   "t": 119.5
+  },
+  {
+   "step": 22,
+   "wait": "console:/ \\$ ",
+   "t": 122.4
+  },
+  {
+   "step": 24,
+   "wait": "console:/ \\$ ",
+   "t": 129.3
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/qemu/b5-g14-a/desktop16.img",
+ "nvme": null,
+ "nvme2": null
+}

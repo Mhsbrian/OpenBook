@@ -1,0 +1,4 @@
+keyguard:  isKeyguardShowing=false 
+blur-check: round 1, blur on
+blur-check: round 2, blur off
+blur-check: done, disable_window_blurs back to [1]

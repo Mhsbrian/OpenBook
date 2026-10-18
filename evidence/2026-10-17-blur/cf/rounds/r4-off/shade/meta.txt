@@ -1,0 +1,2 @@
+cycles=20 hold_s=1.2 elapsed_s=50.2
+load: 0.67 0.69 0.72 2/1476 12774
