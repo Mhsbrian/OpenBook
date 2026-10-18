@@ -3,7 +3,6 @@
 
 package dev.openbook.quire.control
 
-import android.app.Activity
 import android.app.ActivityOptions
 import android.app.AppInteractionAttribution
 import android.app.Notification
@@ -44,6 +43,21 @@ class ComputerControl(private val context: Context) {
         fun onChanged()
     }
 
+    /** What happened to a request or a session, for the note (docs/quire-design.md §3.3 rule 5, §3.4). */
+    interface Events {
+        fun onPending(dialogShown: Boolean) {}
+        fun onCreated(session: ComputerControlSession) {}
+        fun onCreationFailed(errorCode: Int, dialogShown: Boolean) {}
+        fun onRefused(reason: String) {}
+        fun onActive() {}
+        fun onBlocked(reason: Int, blockingPackage: String?) {}
+        fun onClosed(reason: Int) {}
+    }
+
+    /** The note's listener for the current request and session; null for Q2's window and the lab. */
+    var events: Events? = null
+    private var dialogShown = false
+
     private val main = context.mainExecutor
     private val listeners = CopyOnWriteArraySet<Listener>()
     private var pendingLaunch: String? = null
@@ -66,19 +80,22 @@ class ComputerControl(private val context: Context) {
 
     /**
      * Asks the platform for a session that may run [targets], then launches [launch] (a package or a flattened
-     * component) on it. [activity] must be visible: the platform requires the agent to be in the foreground, and Quire
-     * starts the consent dialog from it.
+     * component) on it. Quire must have a visible window while it asks (Q2's activity, or the note): the platform
+     * requires the agent to be in the foreground, and Quire starts the consent dialog from [starter].
      */
-    fun request(activity: Activity, targets: List<String>, launch: String?) {
+    fun request(starter: Context, targets: List<String>, launch: String?) {
         if (session != null) {
             report("request refused by Quire: a session is already open")
+            events?.onRefused("a session is already open")
             return
         }
         val vdm = context.getSystemService(VirtualDeviceManager::class.java)
         if (vdm == null) {
             report("request failed: no VirtualDeviceManager")
+            events?.onRefused("no VirtualDeviceManager")
             return
         }
+        dialogShown = false
         val name = "quire-${System.currentTimeMillis()}"
         val params = try {
             ComputerControlSessionParams.Builder()
@@ -96,26 +113,28 @@ class ComputerControl(private val context: Context) {
                 .build()
         } catch (e: IllegalArgumentException) {
             report("request failed: invalid parameters: ${e.message}")
+            events?.onRefused("invalid parameters: ${e.message}")
             return
         }
         pendingLaunch = launch
         report("request name=$name targets=$targets version=${VirtualDeviceManager.COMPUTER_CONTROL_VERSION}")
         try {
-            vdm.requestComputerControlSession(params, main, callback(activity))
+            vdm.requestComputerControlSession(params, main, callback(starter))
         } catch (e: RuntimeException) {
             // SecurityException (not allowed to own a session), IllegalArgumentException (a target outside the
             // allowlist), IllegalStateException (computer control is off in this build), and so on.
             pendingLaunch = null
             report("request refused by the platform: ${e.javaClass.simpleName}: ${e.message}")
+            events?.onRefused("${e.javaClass.simpleName}: ${e.message}")
         }
     }
 
-    private fun callback(activity: Activity) =
+    private fun callback(starter: Context) =
         object : ComputerControlSession.Callback {
             override fun onSessionPending(intentSender: IntentSender) {
                 report("pending: the platform asks for consent")
                 try {
-                    activity.startIntentSender(
+                    starter.startIntentSender(
                         intentSender, null, 0, 0, 0,
                         ActivityOptions.makeBasic()
                             .setPendingIntentBackgroundActivityStartMode(
@@ -123,11 +142,14 @@ class ComputerControl(private val context: Context) {
                             )
                             .toBundle(),
                     )
+                    dialogShown = true
+                    events?.onPending(true)
                 } catch (e: Exception) {
                     // SendIntentException, or ActivityNotFoundException when the image lacks the platform's
                     // consent app (VirtualDeviceManager, RELEASE_PACKAGE_COMPUTER_CONTROL).
                     pendingLaunch = null
                     report("pending: could not open the consent dialog: ${e.javaClass.simpleName}: ${e.message}")
+                    events?.onPending(false)
                 }
             }
 
@@ -136,13 +158,15 @@ class ComputerControl(private val context: Context) {
                 val size = created.displaySize
                 report("created: display ${size.width}x${size.height}")
                 created.setLifecycleCallback(main, lifecycle)
+                events?.onCreated(created)
                 pendingLaunch?.let { launch(it) }
                 pendingLaunch = null
             }
 
             override fun onSessionCreationFailed(errorCode: Int) {
                 pendingLaunch = null
-                report("creation failed: error=$errorCode(${errorName(errorCode)})")
+                report("creation failed: error=$errorCode(${errorName(errorCode)}) dialogShown=$dialogShown")
+                events?.onCreationFailed(errorCode, dialogShown)
             }
 
             @Deprecated("The platform's own deprecation; LifecycleCallback.onClosed reports the reason.")
@@ -155,15 +179,18 @@ class ComputerControl(private val context: Context) {
         object : ComputerControlSession.LifecycleCallback {
             override fun onActive() {
                 report("lifecycle: active")
+                events?.onActive()
             }
 
             override fun onBlocked(reason: Int, blockingPackage: String?) {
                 report("lifecycle: blocked reason=$reason(${blockReasonName(reason)}) package=$blockingPackage")
+                events?.onBlocked(reason, blockingPackage)
             }
 
             override fun onClosed(reason: Int) {
                 report("lifecycle: closed reason=$reason(${closeReasonName(reason)})")
                 closed()
+                events?.onClosed(reason)
             }
         }
 
@@ -268,6 +295,56 @@ class ComputerControl(private val context: Context) {
 
     private fun checked(node: AccessibilityNodeInfo): String =
         (node.checked == AccessibilityNodeInfo.CHECKED_STATE_TRUE).toString()
+
+    /**
+     * Pause (docs/quire-design.md §3.4): the platform's own block. While blocked it drops agent input and lets the
+     * person use the interactive mirror.
+     */
+    fun pause() {
+        val s = session ?: return report("pause refused by Quire: no session")
+        try {
+            s.notifyBlocked()
+            report("pause: notifyBlocked")
+        } catch (e: RuntimeException) {
+            report("pause failed: ${e.javaClass.simpleName}: ${e.message}")
+        }
+    }
+
+    fun resume() {
+        val s = session ?: return report("resume refused by Quire: no session")
+        try {
+            s.requestUnblock()
+            report("resume: requestUnblock")
+        } catch (e: RuntimeException) {
+            report("resume failed: ${e.javaClass.simpleName}: ${e.message}")
+        }
+    }
+
+    /** True when the last [find] failed because the platform returned no accessibility windows at all. */
+    var windowsUnavailable = false
+        private set
+
+    /** The on-screen bounds of the first node whose text contains [text], and of its clickable ancestor. */
+    fun find(text: String): Rect? {
+        val s = session ?: return null
+        // Prefer a node whose text is exactly [text] ("Dark theme" the row, not "Dark theme, font size" a summary).
+        val windows = try {
+            s.accessibilityWindows.also { windowsUnavailable = false }
+        } catch (e: RuntimeException) {
+            windowsUnavailable = true
+            // AOSP: ProxyAccessibilityServiceConnection.getWindows() dereferences a null window list, so for a moment
+            // after the session is unblocked the query throws from system_server. The caller retries.
+            report("windows unavailable: ${e.javaClass.simpleName}: ${e.message}")
+            return null
+        }
+        val matches = windows.flatMap { window ->
+            window.root?.findAccessibilityNodeInfosByText(text)?.filter { it.isVisibleToUser }.orEmpty()
+        }
+        val node = matches.firstOrNull { it.text?.toString()?.equals(text, ignoreCase = true) == true }
+            ?: matches.firstOrNull() ?: return null
+        val target = clickableAncestor(node) ?: node
+        return Rect().also { target.getBoundsInScreen(it) }
+    }
 
     /** Moves the session's apps to the person's display; the platform then closes the session. */
     fun handOver() {

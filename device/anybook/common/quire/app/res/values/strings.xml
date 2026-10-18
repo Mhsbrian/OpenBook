@@ -3,19 +3,13 @@
   Copyright (C) 2026 The OpenBook Authors
   SPDX-License-Identifier: Apache-2.0
 
-  Q2 strings: plumbing only. Q3 (ANAL-215) designs the words people see; Q5 builds them.
+  Q2's strings: Quire's own window for computer control, and the session's notification. The note's words are in
+  strings_note.xml (ANAL-219).
 -->
 <resources>
     <string name="app_name">Quire</string>
-
-    <!-- The note opened by an invocation. -->
-    <string name="note_title">Quire</string>
-    <string name="note_trigger">Called by: %1$s</string>
-    <string name="note_visible">On screen: %1$s</string>
-    <string name="note_nothing_visible">nothing reported</string>
-    <string name="note_secure">A secure window was left out of the screenshot.</string>
-    <string name="note_no_screenshot">No screenshot was shared.</string>
-    <string name="note_close">Close</string>
+    <!-- The label Android shows in the text toolbar's overflow menu (docs/quire-design.md §2). -->
+    <string name="ask_quire">Ask Quire</string>
 
     <!-- Computer control. -->
     <string name="control_heading">Computer control</string>

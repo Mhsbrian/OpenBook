@@ -16,6 +16,14 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Start contextual search from the assistant session (Meta+Space, the assist key). -->
     <uses-permission android:name="android.permission.ACCESS_CONTEXTUAL_SEARCH" />
+    <!-- The note (ANAL-219, docs/quire-design.md §3.1 Layer): an application overlay of Quire's own uid, because the
+         platform creates a computer-control session only for an owner with a visible window. A *system* application
+         overlay (signature permission), so the platform's consent dialog doesn't hide it; see note/NoteWindow.kt. -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.SYSTEM_APPLICATION_OVERLAY" />
+    <!-- Agents are reached over sockets: loopback on debuggable builds today (note/LabReceiver.kt), vsock and paired
+         computers later (Q4). -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <!-- Names of the apps a session automates, for its notification and status. -->
     <queries>
@@ -32,7 +40,8 @@
         android:theme="@style/Theme.Quire"
         android:allowBackup="false"
         android:supportsRtl="true"
-        android:resizeableActivity="true">
+        android:resizeableActivity="true"
+        android:forceQueryable="true">
 
         <!-- Quire's window for Q2: computer-control status, the live mirror of the session display, and the last
              invocation. -->
@@ -69,12 +78,36 @@
             android:excludeFromRecents="true"
             android:launchMode="singleTask"
             android:taskAffinity="dev.openbook.quire.invocation"
-            android:theme="@style/Theme.Quire.Note">
+            android:noHistory="true"
+            android:theme="@android:style/Theme.NoDisplay">
             <intent-filter>
                 <action android:name="android.app.contextualsearch.action.LAUNCH_CONTEXTUAL_SEARCH" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
+        <!-- "Ask Quire" on a selection (docs/quire-design.md §2): listed in the text toolbar's overflow. Quire is
+             forceQueryable (above), or apps that target API 30+ without a <queries> entry wouldn't list it. -->
+        <activity
+            android:name=".invocation.ProcessTextActivity"
+            android:exported="true"
+            android:label="@string/ask_quire"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity="dev.openbook.quire.invocation"
+            android:theme="@android:style/Theme.NoDisplay">
+            <intent-filter>
+                <action android:name="android.intent.action.PROCESS_TEXT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
+
+        <!-- Scripted checks of the note (scripts/quire/q5-cf-check.py), debuggable builds only. Not exported: only root
+             and the system can reach it. -->
+        <receiver
+            android:name=".note.LabReceiver"
+            android:exported="false" />
 
         <!-- The assistant role (config_defaultAssistant). -->
         <service
