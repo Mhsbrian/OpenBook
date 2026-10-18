@@ -130,8 +130,8 @@ func (s *Server) logf(format string, args ...any) {
 }
 
 type conn struct {
-	s    *Server
-	peer string
+	s     *Server
+	peer  string
 	ctx   context.Context
 	rpc   *acp.Conn
 	ready chan struct{} // closed once rpc is set; the handlers may run before that
@@ -140,6 +140,7 @@ type conn struct {
 
 	mu          sync.Mutex
 	initialized bool
+	closed      bool // set by shutdown: no agent may start after it
 	next        int
 	agents      map[string]*running
 	sessions    map[string]*session
@@ -174,6 +175,7 @@ func (c *conn) count() int {
 
 func (c *conn) shutdown() {
 	c.mu.Lock()
+	c.closed = true
 	var rs []*running
 	for _, r := range c.agents {
 		rs = append(rs, r)
@@ -329,18 +331,28 @@ func (c *conn) agent(ctx context.Context, id string) (*running, error) {
 		return nil, acp.Errorf(acp.CodeInvalidParams, `name the agent in _meta: {"%s": {"agent": "..."}}`, MetaKey)
 	}
 	c.mu.Lock()
+	if c.closed {
+		c.mu.Unlock()
+		return nil, acp.ErrClosed
+	}
 	r := c.agents[id]
 	if r == nil {
 		r = &running{id: id, ready: make(chan struct{}), client: &agentClient{c: c, agent: id, pending: map[string][]json.RawMessage{}}}
 		c.agents[id] = r
 		c.mu.Unlock()
 		r.agent, r.err = c.start(id, r.client)
-		close(r.ready)
-		if r.err != nil {
-			c.mu.Lock()
-			delete(c.agents, id) // a later call may try again (after a sign-in, an install...)
-			c.mu.Unlock()
+		c.mu.Lock()
+		if r.err == nil && c.closed {
+			// The connection ended while the agent started; shutdown may not have seen it.
+			r.err = acp.ErrClosed
+			go r.agent.Close()
+			r.agent = nil
 		}
+		if r.err != nil {
+			delete(c.agents, id) // a later call may try again (after a sign-in, an install...)
+		}
+		c.mu.Unlock()
+		close(r.ready)
 	} else {
 		c.mu.Unlock()
 		select {
@@ -439,12 +451,19 @@ func (c *conn) newSession(ctx context.Context, req acp.NewSessionRequest) (any, 
 	if err != nil {
 		return nil, err
 	}
+	made := req.Cwd == "" // a folder serve made for this session, removed again if it stays empty
 	r, err := c.agent(ctx, id)
 	if err != nil {
+		if made {
+			_ = os.Remove(dir)
+		}
 		return nil, err
 	}
 	asid, err := r.agent.NewSession(ctx, dir, nil)
 	if err != nil {
+		if made {
+			_ = os.Remove(dir)
+		}
 		c.dropIfDead(r, err)
 		c.s.logf("%s: session/new %s: %s", c.peer, id, firstLine(err.Error()))
 		var re *acp.RPCError

@@ -361,3 +361,23 @@ scripts/quire/q2-cf-check.py SERIAL OUT --probe QuireSecureProbe.apk   # invocat
   four aconfig flags in `release/openbook/cp2a/`, and the build flag `RELEASE_PACKAGE_COMPUTER_CONTROL`
   (`release/flag_values/cp2a/`). Why: `docs/quire.md` §2.5.
 - `q2-cf-check.py` drives Quire through its root-only `LabActivity` alias, so it needs a userdebug build and `adb root`.
+
+## Quire Q4: the Linux environment and quired serve (ANAL-218)
+```bash
+(cd quire/quired && go test -race ./...)                       # quired, serve included
+quire/linux-env/build-deb.sh OUT [amd64|arm64]                  # quired_<version>_<arch>.deb
+# The Debian guest, with AOSP's builder from the pinned tree (privileged Docker, ~3 min warm, ~10 GB):
+scripts/quire/linux-env-image.sh OUT [--test-agent opencode]   # OUT/images.tar.gz, image-info.txt, kernel_config
+scripts/quire/linux-env-qemu.sh OUT/images.tar.gz RUN [--prompt opencode "Reply with exactly: QUIRE OK"]
+# Cuttlefish with AVF (the build and boot commands are in evidence/2026-10-18-quire-q4/SUMMARY.md, "Reproduce"):
+scripts/quire/q4-cf-check.py SERIAL RUN --image OUT/images.tar.gz        # facts, off, install, guest, prompt, refuse
+scripts/quire/q4-cf-check.py SERIAL RUN --image OUT/images.tar.gz --only nokvm,health   # a boot without KVM
+# On the device itself (the G14 has no host): adb push or the stick, then as root
+sh q4-device-check.sh /sdcard/linux/images.tar.gz /data/local/tmp/q4 [PROMPT]
+```
+- AVF comes from `device/anybook/common/linux-env/linux-env.mk` (both products, through `desktop.mk`); the Terminal
+  app's agent bridge is `aosp/patches/packages/modules/Virtualization/0001` (`aosp-build.sh` applies it).
+- The image builder runs as root in a privileged container and uses loop devices. A desktop automounter (udiskie
+  here) mounts them on the host; the script unmounts the build's own while it runs.
+- Why each piece: `docs/quire.md` §4.1, §5.4; pairing a second computer is a design under review
+  (`docs/quire-pairing.md`).
