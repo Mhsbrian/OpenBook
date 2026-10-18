@@ -12,9 +12,11 @@ itself, as AndroidToVmBridge does for ttyd, and relays the connection to
 one end of a socket pair. (A socket from virtmgr's connectVsock may only
 be read and written by the owner, and passing on the caller's half-close
 needs shutdown.) Other guest ports (ttyd, the guest agent) are not
-offered. Its status asks the VM itself, since VmController calls the VM
-running as soon as crosvm starts, also when crosvm exits at once
-(without KVM: "no enabled hypervisor").
+offered. Its status asks the guest's vsock (a connect to an unused port:
+ENODEV means no VM), since VmController calls the VM running as soon as
+crosvm starts, and AVF keeps listing it while its vhost-user helpers
+live, even when crosvm exited at once (without KVM: "no enabled
+hypervisor").
 
 Also: Cuttlefish products not named vsoc_* get the emulator boot
 timeout, found by ro.boot.hypervisor.version (cf-crosvm, cf-qemu); the
@@ -23,9 +25,9 @@ Debian guest runs under nested KVM there.
 OpenBook ANAL-218 (Quire Q4).
 ---
  android/TerminalApp/AndroidManifest.xml       |  10 +
- .../terminal/AgentBridgeProvider.kt           | 180 ++++++++++++++++++
+ .../terminal/AgentBridgeProvider.kt           | 203 ++++++++++++++++++
  .../terminal/new2/core/VmController.kt        |   6 +-
- 3 files changed, 195 insertions(+), 1 deletion(-)
+ 3 files changed, 218 insertions(+), 1 deletion(-)
  create mode 100644 android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt
 
 diff --git a/android/TerminalApp/AndroidManifest.xml b/android/TerminalApp/AndroidManifest.xml
@@ -58,10 +60,10 @@ index 022dd2d04..d1d564f5c 100644
              <intent-filter>
 diff --git a/android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt b/android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt
 new file mode 100644
-index 000000000..8c988e9a4
+index 000000000..af8064c49
 --- /dev/null
 +++ b/android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt
-@@ -0,0 +1,180 @@
+@@ -0,0 +1,203 @@
 +/*
 + * Copyright (C) 2026 The OpenBook Authors
 + *
@@ -123,6 +125,8 @@ index 000000000..8c988e9a4
 +        const val AUTHORITY = "com.android.virtualization.terminal.agentbridge"
 +        const val PERMISSION = "com.android.virtualization.terminal.permission.ACCESS_AGENT_BRIDGE"
 +        val PORTS = setOf(7690L)
++        /** Nothing listens here; [probe] only asks whether the guest answers at all. */
++        private const val PROBE_PORT = 7699
 +        private val nextId = AtomicInteger()
 +    }
 +
@@ -136,14 +140,35 @@ index 000000000..8c988e9a4
 +        if (!Flags.terminalNewuiJetpack()) return "error" to "the agent bridge needs the new Terminal UI"
 +        if (!InstalledImage.getDefault(context!!).isInstalled()) return "not_installed" to null
 +        return when (val s = VmController.vmState.value) {
-+            // VmController calls the VM running as soon as crosvm is started; ask the VM itself, which knows
-+            // whether crosvm is still alive (it exits at once without KVM: "no enabled hypervisor").
-+            is VmState.Running ->
-+                if (VmController.virtualMachine?.status == VirtualMachine.STATUS_RUNNING) "running" to null
-+                else "error" to "the VM stopped right after it started (no KVM?)"
++            // VmController calls the VM running as soon as crosvm is started, and AVF keeps listing it while its
++            // vhost-user helpers live, even after crosvm exited (at once without KVM: "no enabled hypervisor").
++            // The guest's vsock says what is true.
++            is VmState.Running -> probe()
 +            is VmState.Starting, is VmState.Rebooting -> "starting" to null
 +            is VmState.Error -> "error" to (s.cause.message ?: s.cause.javaClass.simpleName)
 +            else -> "stopped" to null
++        }
++    }
++
++    /**
++     * Connects to a port nothing listens on: no such device means there is no VM with that CID; a reset or
++     * a refusal means the guest kernel answered; a timeout means it is still booting.
++     */
++    private fun probe(): Pair<String, String?> {
++        val vm = VmController.virtualMachine ?: return "stopped" to null
++        if (vm.status != VirtualMachine.STATUS_RUNNING) return "stopped" to null
++        val fd = Os.socket(OsConstants.AF_VSOCK, OsConstants.SOCK_STREAM or OsConstants.SOCK_CLOEXEC, 0)
++        return try {
++            Os.connect(fd, VmSocketAddress(PROBE_PORT, vm.cid))
++            "running" to null
++        } catch (e: ErrnoException) {
++            when (e.errno) {
++                OsConstants.ENODEV -> "error" to "the VM is not running: its crosvm exited (no KVM?)"
++                OsConstants.ETIMEDOUT -> "starting" to null
++                else -> "running" to null
++            }
++        } finally {
++            Os.close(fd)
 +        }
 +    }
 +
