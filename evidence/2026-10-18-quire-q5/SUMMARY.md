@@ -23,9 +23,10 @@ The write-up is `docs/quire.md` §9 (built) and §8 (findings); the design is PR
 |---|---|---|---|
 | `OpenBookQuire` for `anybook_cf_x86_64_pc-cp2a-userdebug` | `628fc59` | OK in 2:47 (Soong, in-tree Kotlin, the OFL licence module) | `build-20261018T183829Z.log` |
 | `OpenBookQuire`, the final sources | `2ec9b15` | OK in 3:43 | `build-20261018T194443Z.log` |
+| `OpenBookQuire`, after Atelier's review | `500a57f` | OK in 7:14 (no Kotlin errors or warnings from Quire) | `build-20261018T205447Z.log` |
 | `anybook_cf_x86_64_pc-cp2a-userdebug` `droid QuireSecureProbe` | `5c1d0c4` | OK in 7:06 (incremental), frameworks/base 8 patches applied, SystemUI with `0008` compiled; snapshot `~/anybook/aosp/cf/q5-out` | `build-20261018T191007Z.log` |
 
-Both ran under the lane lock (`scripts/aosp-docker.sh`, `AOSP_JOBS=24`). The image was booted on the AMD lane:
+All ran under the lane lock (`scripts/aosp-docker.sh`, `AOSP_JOBS=24`). The image was booted on the AMD lane:
 `CF_GPU=amd`, `gfxstream_guest_angle`, 1920×1080 at 160 dpi, `boot_completed` 19 s after `cvd create`, fresh `/data`.
 
 **Which Quire ran.** The image (`5c1d0c4`) carries SystemUI `0008`; Quire's final sources, with the changes from
