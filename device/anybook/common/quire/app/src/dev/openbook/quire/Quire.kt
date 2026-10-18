@@ -23,6 +23,9 @@ object Quire {
     const val EXTRA_POINTER_X = "dev.openbook.quire.extra.POINTER_X"
     const val EXTRA_POINTER_Y = "dev.openbook.quire.extra.POINTER_Y"
 
+    /** On the assistant path SystemUI passes the window's bounds in the session args under this key. */
+    const val EXTRA_SOURCE_BOUNDS = "dev.openbook.quire.extra.SOURCE_BOUNDS"
+
     /**
      * Debuggable builds keep the last few invocations and session screenshots in Quire's private storage, as evidence
      * for the Q2 checks. User builds keep none. Q5 replaces this with the real surface.

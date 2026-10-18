@@ -313,6 +313,11 @@ class CodeBlock(private val env: NoteEnv) {
             env.announce(env.context.getString(R.string.q_copied))
         }
     }
+    // Focusable so a keyboard can scroll long lines sideways; labelled with the language for TalkBack.
+    private val scroller = HorizontalScrollView(env.context).apply {
+        isHorizontalScrollBarEnabled = false
+        addView(code)
+    }
     val view: View = LinearLayout(env.context).apply {
         orientation = LinearLayout.VERTICAL
         background = rounded(env.context, bg, 12f)
@@ -325,10 +330,7 @@ class CodeBlock(private val env: NoteEnv) {
             addView(lang, LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f))
             addView(copy, LinearLayout.LayoutParams(env.dpi(32f), env.dpi(32f)))
         })
-        addView(HorizontalScrollView(env.context).apply {
-            isHorizontalScrollBarEnabled = false
-            addView(code)
-        })
+        addView(scroller)
         setTag(R.id.q_code, this@CodeBlock)
     }
 
@@ -336,7 +338,8 @@ class CodeBlock(private val env: NoteEnv) {
         source = src
         lang.text = language.ifEmpty { env.context.getString(R.string.q_code) }
         code.text = src
-        view.contentDescription = env.context.getString(R.string.q_a11y_code, language)
+        scroller.contentDescription = env.context.getString(R.string.q_a11y_code, language.ifEmpty {
+            env.context.getString(R.string.q_code) })
     }
 }
 

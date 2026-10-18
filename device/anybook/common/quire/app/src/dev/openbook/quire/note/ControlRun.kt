@@ -31,6 +31,8 @@ class ControlRun(
     private val launch: String,
     private val plan: List<Tap>,
     private val window: NoteWindow,
+    /** How long the pointer rests on a control before the tap; the checks slow it down to take their screenshots. */
+    private val aimMs: Long = AIM_MS,
 ) : ComputerControl.Events {
     /** One step: tap the control labelled [text]; [title] is the step's line while it runs, [done] after. */
     data class Tap(val text: String, val title: String, val done: String)
@@ -204,7 +206,8 @@ class ControlRun(
         m.target = bounds
         m.pointer = PointF(bounds.exactCenterX(), bounds.exactCenterY())
         task.controlPhase(Task.Phase.MIRROR)
-        handler.postDelayed({ tapNow(tap, step) }, AIM_MS)
+        Log.i(TAG, "note: control aiming at \"${tap.text}\" bounds=$bounds")
+        handler.postDelayed({ tapNow(tap, step) }, aimMs)
     }
 
     private fun tapNow(tap: Tap, step: Step) {
@@ -234,8 +237,6 @@ class ControlRun(
         m.pointer = null
         Log.i(TAG, "note: control run complete")
         val secs = (SystemClock.elapsedRealtime() - task.startedAt) / 1000
-        control.events = null
-        control.close()
         end(false, plan.lastOrNull()?.done?.let { "$it." } ?: context.getString(R.string.q_cc_done, app),
             context.getString(R.string.q_cc_done_sub, app, plan.size, secs), Tone.SUCCESS, Icons.CHECK_CIRCLE)
     }

@@ -60,6 +60,8 @@
     <string name="q_foot_offline">Offline</string>
     <string name="q_esc_stop">stop</string>
     <string name="q_esc_close">close</string>
+    <string name="q_esc_cancel">cancel</string>
+    <string name="q_foot_listening">Listening · release to send</string>
     <string name="q_seconds">%1$d s</string>
 
     <!-- Streaming, steps, plan. -->
@@ -159,6 +161,28 @@
     <string name="q_picker_connect">Connect an agent</string>
     <string name="q_picker_connect_sub">or pair a computer</string>
     <string name="q_a11y_picker_item">%1$s, %2$s</string>
+
+    <!-- The tray (§3.5). -->
+    <string name="q_tray">Quire tasks</string>
+    <string name="q_tray_settings">Quire settings</string>
+    <string name="q_tray_new">New</string>
+    <string name="q_tray_history">History</string>
+    <string name="q_tray_new_note">New note</string>
+    <string name="q_tray_needs_answer">Needs your answer</string>
+    <string name="q_tray_done_now">Done just now</string>
+    <plurals name="q_tray_done_ago">
+        <item quantity="one">Done %1$d min ago</item>
+        <item quantity="other">Done %1$d min ago</item>
+    </plurals>
+
+    <!-- The broker's own card for an OS tool (§3.3 rule 2): Quire's options, enforced by Quire (Q6). -->
+    <string name="q_broker_deny">Don’t allow</string>
+    <string name="q_broker_task">Allow for this task</string>
+    <string name="q_broker_allow">Allow</string>
+    <string name="q_changed_title">Changed %1$d settings</string>
+    <string name="q_changed_meta">just now</string>
+    <string name="q_undo_all">Undo all</string>
+    <string name="q_foot_undo">Done · undo stays available for 24 h from the Quire button</string>
 
     <!-- Computer control (§3.3 rule 5, §3.4). -->
     <string name="q_cc_asking">Asking to use %1$s</string>

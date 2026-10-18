@@ -23,6 +23,7 @@ class QuireSurface(private val app: QuireApplication) : Task.Host, NoteWindow.Ca
     override val handler = Handler(Looper.getMainLooper())
     override val agents = AgentDirectory(app, app.mainExecutor)
     val window = NoteWindow(app, this)
+    val tray = TrayWindow(app, this)
 
     /** Tasks that exist: the one on screen, hidden ones still running, and finished ones until closed. */
     val tasks = mutableListOf<Task>()
@@ -61,8 +62,10 @@ class QuireSurface(private val app: QuireApplication) : Task.Host, NoteWindow.Ca
             if (shown.running) hide() else close()
             return
         }
+        // Meta+Space, the assist key and the taskbar button bring a hidden task back (§6.1); a shake or a selection
+        // is a new question.
         val hiddenTask = tasks.lastOrNull { it.hidden && (it.running || it.needsAnswer) }
-        if (hiddenTask != null && trigger != TRIGGER_SHAKE) {
+        if (hiddenTask != null && trigger in REOPEN_TRIGGERS) {
             reopen(hiddenTask)
             return
         }
@@ -73,8 +76,15 @@ class QuireSurface(private val app: QuireApplication) : Task.Host, NoteWindow.Ca
         window.show(t, Task.Focus.FIELD)
     }
 
+    /** The tray of tasks above the taskbar (§3.5). */
+    fun showTray() {
+        if (window.task != null) hide()
+        tray.show()
+    }
+
     /** Opens a task's note again at the taskbar anchor, where it was hidden (§3.2 Hidden). */
     fun reopen(t: Task) {
+        tray.hide()
         t.hidden = false
         t.anchor = Anchor.Taskbar(null)
         Log.i(TAG, "note: reopened task ${t.id} running=${t.running} needsAnswer=${t.needsAnswer}")
@@ -83,13 +93,14 @@ class QuireSurface(private val app: QuireApplication) : Task.Host, NoteWindow.Ca
     }
 
     /** Starts a computer-control run in a new note (debuggable builds; see ControlRun). */
-    fun startControl(prompt: String, appName: String, launch: String, plan: List<ControlRun.Tap>, anchor: Anchor) {
+    fun startControl(prompt: String, appName: String, launch: String, plan: List<ControlRun.Tap>, anchor: Anchor,
+        aimMs: Long = 700L) {
         window.task?.let { close() }
         val t = Task(this, agents.default(), Intake.Window(appName, null), anchor)
         tasks += t
         window.show(t, Task.Focus.KEEP)
-        val run = ControlRun(app, handler, app.computerControl, t, appName, launch, plan, window)
-        handler.post { run.start(prompt) }
+        val run = ControlRun(app, handler, app.computerControl, t, appName, launch, plan, window, aimMs)
+        window.whenVisible { run.start(prompt) }
     }
 
     // ---------------------------------------------------------------------------------------- NoteCard.Actions
@@ -171,6 +182,6 @@ class QuireSurface(private val app: QuireApplication) : Task.Host, NoteWindow.Ca
     }
 
     companion object {
-        const val TRIGGER_SHAKE = "system_action"
+        private val REOPEN_TRIGGERS = setOf("assistant_shortcut", "assist_key", "taskbar")
     }
 }
