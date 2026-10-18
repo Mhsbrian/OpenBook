@@ -19,3 +19,8 @@ total 13644
 -rw-r--r-- 1 hive hive 4974940 Oct 17 23:42 GoogleSans-VF.ttf
 ## product/etc/fonts_customization.xml
 -rw-r--r-- 1 hive hive 18195 Oct 17 23:42 product/etc/fonts_customization.xml
+
+# Merged tree (d5b12fa, with B2, B4, B5): product.img. Against the fonts-only build, main's B5 removes QuickSearchBox.apk
+# (758,435 B) and adds three small packages (installed-files-product.txt), so it is a little smaller.
+cf 302100480 product.img
+g14 301666304 product.img
