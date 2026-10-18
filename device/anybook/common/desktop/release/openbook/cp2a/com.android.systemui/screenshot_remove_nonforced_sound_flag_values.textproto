@@ -1,0 +1,9 @@
+# Declared in frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+# No shutter sound for screenshots unless the region requires one (ANAL-206). Enabled on Googlebook
+# (CL3B.260622.271.R1, evidence/2026-10-17-gbos-ui/flags/), not on the reference desktop emulator image.
+flag_value {
+  package: "com.android.systemui"
+  name: "screenshot_remove_nonforced_sound"
+  state: ENABLED
+  permission: READ_ONLY
+}

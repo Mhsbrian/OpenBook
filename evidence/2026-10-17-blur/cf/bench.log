@@ -1,0 +1,31 @@
+=== 2026-10-17T23:27:43Z round 1: blur on, host load 16.76
+blur-check: round 1, blur on
+blur-check: done, disable_window_blurs back to [1]
+blur-on,1,755,5,0.66,5,11,12,21,1,1,14.40,Google Inc. (AMD); ANGLE (AMD; Vulkan 1.4.305 (Virtio-GPU GFXStream (AMD Radeon Graphics (RADV RAPHAEL_MENDOCINO)) (0x0000164E)); AMD-26.0.99)
+round 1 end: host load 14.40
+=== 2026-10-17T23:29:52Z round 2: blur off, host load 14.40
+blur-check: round 2, blur off
+blur-check: done, disable_window_blurs back to [0]
+blur-off,1,771,4,0.52,17,21,23,27,1,1,26.56,Google Inc. (AMD); ANGLE (AMD; Vulkan 1.4.305 (Virtio-GPU GFXStream (AMD Radeon Graphics (RADV RAPHAEL_MENDOCINO)) (0x0000164E)); AMD-26.0.99)
+round 2 end: host load 26.56
+=== 2026-10-17T23:32:02Z round 3: blur on, host load 26.56
+blur-check: round 3, blur on
+blur-check: done, disable_window_blurs back to [1]
+blur-on,1,738,20,2.71,11,18,21,30,1,1,65.77,Google Inc. (AMD); ANGLE (AMD; Vulkan 1.4.305 (Virtio-GPU GFXStream (AMD Radeon Graphics (RADV RAPHAEL_MENDOCINO)) (0x0000164E)); AMD-26.0.99)
+round 3 end: host load 65.77
+=== 2026-10-17T23:34:14Z round 4: blur off, host load 65.77
+blur-check: round 4, blur off
+blur-check: done, disable_window_blurs back to [0]
+blur-off,1,709,68,9.59,16,34,42,57,1,1,84.63,Google Inc. (AMD); ANGLE (AMD; Vulkan 1.4.305 (Virtio-GPU GFXStream (AMD Radeon Graphics (RADV RAPHAEL_MENDOCINO)) (0x0000164E)); AMD-26.0.99)
+round 4 end: host load 84.63
+=== 2026-10-17T23:36:27Z round 5: blur on, host load 84.63
+blur-check: round 5, blur on
+blur-check: done, disable_window_blurs back to [1]
+blur-on,1,678,32,4.72,12,22,29,46,1,1,90.51,Google Inc. (AMD); ANGLE (AMD; Vulkan 1.4.305 (Virtio-GPU GFXStream (AMD Radeon Graphics (RADV RAPHAEL_MENDOCINO)) (0x0000164E)); AMD-26.0.99)
+round 5 end: host load 90.51
+=== 2026-10-17T23:38:41Z round 6: blur off, host load 90.51
+blur-check: round 6, blur off
+blur-check: done, disable_window_blurs back to [0]
+blur-off,1,0,0,0.00,4950,4950,4950,4950,4950,4950,92.25,Google Inc. (AMD); ANGLE (AMD; Vulkan 1.4.305 (Virtio-GPU GFXStream (AMD Radeon Graphics (RADV RAPHAEL_MENDOCINO)) (0x0000164E)); AMD-26.0.99)
+round 6 end: host load 92.25
+=== 2026-10-17T23:40:59Z done; blur on

@@ -1,0 +1,9 @@
+state=off disable_window_blurs=1 waited_s=0
+      minBlurRadius: 1.0
+      maxBlurRadius: 34.0
+      supportsBlursOnWindows: false
+      CROSS_WINDOW_BLUR_SUPPORTED: true
+      isHighEndGfx: true
+closed_blur_lines=0
+before: surfaceflinger=673 systemui=2640 system_server=816 system_server_starts=1 amdgpu_events=0 uptime=1240.29
+after: surfaceflinger=673 systemui=2640 system_server=816 system_server_starts=1 amdgpu_events=0 uptime=1342.06
