@@ -23,7 +23,7 @@ Stick `openbook-live-20261018-anal192d` (`main` `81578c1` + #83). I read it from
   - There was no tombstone, no Bluetooth or audio-HAL denial, and no underflow.
   - The headset dropped the link at 11:56:34 and did not reconnect before power-off.
 - **App audio under enforcing works:** Chrome and WebView Shell played media, with no `audioserver_tmpfs` denial and no track failure.
-- **The unlock sound at boot (SoundPool):** AudioFlinger created its track 50 ms after `keyguardDone`, with no denial. Whether it was audible is for the owner to say.
+- **The unlock sound at boot (SoundPool):** AudioFlinger created its track 50 ms after `keyguardDone`, with no denial. The owner confirmed hearing it (ANAL-179, 2026-10-18).
 - **MediaPlayer under enforcing fails.**
   - SystemUI's low-battery sound got "Could not get control block" at 11:51:48, after `mediaserver → audioserver_tmpfs:file { read write }` was denied.
   - ANAL-198's PR #97 adds the rule.
