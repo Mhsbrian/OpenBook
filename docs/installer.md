@@ -850,12 +850,19 @@ Evidence: `evidence/2026-10-18-g14-installer/SUMMARY.md` (filtered extracts of t
   - **Most likely S8** (H): the laptop was on battery at 41 %. The wizard only enables Install after the typed name matches, and the plan had not changed.
   - On mains power that install would have erased the internal NVMe. The checklist said to stop at the Disk screen.
 - **Two denials that only real hardware shows:**
-  - The daemon reading the power supplies (`sysfs_batteryinfo`). **Fixed:** `openbook_installd` may now read them, so S8 uses its own reading.
+  - The daemon reading the power supplies (`sysfs_batteryinfo`).
+    - AOSP lets only the health HAL read them (a neverallow), so the app's reading (BatteryManager) is the one S8 uses, as `PROTOCOL.md` says.
+    - The denial is now `dontaudit`.
+    - **S8 now fails closed:** with neither reading, the engine refuses with `power`. It used to log "not checked" and carry on.
   - The hardware check listing `/vendor/firmware`. Policy can't allow it (a `system_ext` domain and a vendor type). The speaker-tuning check then stays silent, by design.
 - **"Save logs" now collects the installer** (`scripts/installer/live-init.c`, section `INSTALLER`):
   - the daemon's log, with disk serial numbers, EUI and WWN masked;
   - `openbook-install nvram`.
   - `report.md` gains `installer_nvram` (the firmware's entries and `BootOrder`) and `installer_log` (dry runs, installs, refusals).
+- **Tests** (image `anal191i`, built at `b25f91a`):
+  - engine host tests **69/69**, with new S8 cases (on battery at 41 % with the charger off; unreadable supplies with no reading);
+  - QEMU "save logs" **11/11**: the `INSTALLER` section and both verdicts on a real capture;
+  - wizard dry run and install **17/17**, enforcing.
 
 ## 13. End to end, and the owner's integrated stick (ANAL-192)
 

@@ -42,7 +42,17 @@ because it holds the owner's network details.
 - The G14's own `Boot####` entries and `BootOrder` were not recorded: "save logs" did not collect them (added).
 
 **SELinux on real hardware** (QEMU has neither, so neither showed before):
-- `openbook_installd` → `sysfs_batteryinfo` (`/sys/class/power_supply/*/type`), 4 records per power reading. **Fixed:** a read rule.
+- `openbook_installd` → `sysfs_batteryinfo` (`/sys/class/power_supply/*/type`), 4 records per power reading.
+  - AOSP lets only the health HAL read these (neverallow in `domain.te`), so a read rule cannot build.
+  - The app's BatteryManager reading is what S8 uses. The denial is now `dontaudit`.
+  - **S8 now fails closed** when neither reading exists; before, it logged "not checked" and went on.
 - `openbook_installd` → `/vendor/firmware` (`openbook_vendor_fw_file`, search), from the hardware check's speaker-tuning test.
   - Policy can't allow it: a `system_ext` domain can't name a vendor type, and Treble keeps vendor files from core domains.
   - By design the check then says nothing about the tuning. A follow-up could have vendor init publish it as a property.
+
+## Tests of the fixes (PR #104, image `openbook-live-20261018-anal191i`, built at `b25f91a`)
+| Run | Result | Files |
+|---|---|---|
+| Engine host tests, with two new S8 cases (on battery at 41 % with the charger off; supplies unreadable and no reading given: both refused, target unchanged) | **69/69** | `tests/engine-host-SUMMARY.md` |
+| QEMU live "save logs" (`live-qemu.sh … logs`): the new `INSTALLER` section; `live-report.py` on that capture | **11/11**; `installer_nvram` and `installer_log` filled | `tests/live-logs-SUMMARY.md`, `tests/qemu-installer-section.txt`, `tests/qemu-report.md` |
+| QEMU wizard dry run and install, enforcing | **17/17** | `tests/wizard-SUMMARY.md` |
