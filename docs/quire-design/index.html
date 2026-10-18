@@ -8,7 +8,8 @@
   View:   open in a browser (gallery of every state, light and dark).
   One screen:   index.html?screen=<id>[&theme=dark][&size=g14|fhd]
   Play (interactive):   index.html?play=1[&theme=dark][&size=g14]
-      shake the pointer, press Meta+Space, click the taskbar button, hold the mic, select text; Esc folds the note.
+      shake the pointer, press Meta+Space, click the taskbar button, hold the mic, select text. Esc stops a run (or closes an
+      idle note); Meta+Space, the Hide button or a click elsewhere hides a running task behind the taskbar button.
       The HUD has "Remove animations" to see the reduced-motion behaviour.
   Render all PNGs:   scripts/quire/render-design.sh
   Fonts: fonts/ (not committed; render-design.sh fetches them) or system fallbacks.
@@ -78,7 +79,7 @@
   --on-surface: #E9E3EF; --on-surface-variant: #AEA9B5; --outline: #77747E; --outline-variant: #494650;
   --inverse-surface: #FDF8FE; --inverse-on-surface: #31323B;
   --success: #9BD5A8; --on-success-container: #BDEBCB; --success-container: #1E4A2F;
-  --note-bg: rgba(26, 25, 31, .80); --note-outline: rgba(73, 70, 80, .6);
+  --note-bg: rgba(26, 25, 31, .92); --note-outline: rgba(73, 70, 80, .6);
   --note-shadow: 0 12px 32px rgba(0, 0, 0, .5), 0 2px 6px rgba(0, 0, 0, .3);
   --intake: rgba(203, 192, 237, .6); --intake-glow: rgba(203, 192, 237, .16);
   --wall: url("../../assets/wallpapers/1920x1080/openbook-folio-dark.jpg") center / cover;
@@ -352,9 +353,17 @@ body.play .artboard { zoom: 1; border-radius: 0; box-shadow: none; }
 .btn.filled { background: var(--primary); color: var(--on-primary); }
 .btn.tonal { background: var(--secondary-container); color: var(--on-secondary-container); }
 .btn.outlined { outline: 1px solid var(--outline); }
-.btn.text { padding: 0 12px; }
+.btn.text { padding: 0 10px; }
+.card.consent .btns { gap: 6px; }   /* three agent-named options fit one row at 400 dp; at larger text they wrap (§6.4) */
 .btn.danger { color: var(--error); }
 .btn.focus { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--primary); }
+/* real <button>s: keyboard-focusable, Enter/Space activate; the look is the design's, the focus ring is §4.2's */
+button.btn, button.ibtn, button.tb-btn { font-family: inherit; appearance: none; border: 0; margin: 0; background: none; cursor: pointer; }
+button.btn { color: var(--primary); }
+button.ibtn { color: var(--on-surface-variant); }
+.btn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--primary); }
+.ibtn:focus-visible, .tb-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+.card:focus { outline: none; box-shadow: 0 0 0 2px var(--primary); }
 .btn.disabled { opacity: .38; }
 
 /* result */
