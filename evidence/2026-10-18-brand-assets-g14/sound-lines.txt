@@ -19,3 +19,13 @@
 # Boot A: SoundPool failure markers (docs/g14-audio-net.md): appdomain_tmpfs denials, 'could not create track'
 appdomain_tmpfs lines: 0
 could-not-create-track lines: 0
+
+# Boot A, 11:51:48 (battery at 15 %): SystemUI plays our low-battery sound (def_low_battery_sound -> OpenBook_LowBattery.ogg) through MediaPlayer;
+# under enforcing mediaserver's AudioTrack was refused (ANAL-179's finding, fixed by ANAL-198's #97, now in main)
+10-18 11:51:48.427245 10086  3492  7633 D RingtonePlayer: playAsync(uri=file:///product/media/audio/ui/OpenBook_LowBattery.ogg, user=UserHandle{-1})
+10-18 11:51:48.427770 10086  3492  7633 D RingtonePlayer: play uri=file:///product/media/audio/ui/OpenBook_LowBattery.ogg
+10-18 11:51:48.432195 media  1054  3484 D NuPlayerDriver: NuPlayerDriver(0x73f08ee04bd0) created, clientPid(3492)
+10-18 11:51:48.957999 media  1054 11981 E libbinder.IPCThreadState: Binder transaction failure. id: 1868846, cmd: BR_FAILED_REPLY (29201), error: -1 (Operation not permitted)
+10-18 11:51:48.958005 media  1054 11981 E AudioTrack: createTrack_l(0): Could not get control block
+10-18 11:51:48.952000  1041  1000  1000 W audioserver: type=1400 audit(0.0:143): avc:  denied  { read write } for  path=2F6D656D66643A4D656D6F72794865617042617365202864656C6574656429 dev="tmpfs" ino=11867 scontext=u:r:mediaserver:
+10-18 11:51:48.958163 media  1054 11981 W NuPlayerRenderer: openAudioSink: non offloaded open failed status: -19
