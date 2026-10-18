@@ -1,0 +1,5 @@
+# 2026-10-18T01:44:05Z anybook_g14_x86_64-cp2a-userdebug from ddfec87
+/home/hive/anybook/aosp/src/out/target/product/anybook_g14/system/build.prop:ro.build.id=CP2A.260605.016
+/home/hive/anybook/aosp/src/out/target/product/anybook_g14/system/build.prop:ro.build.date=Sun Oct 18 01:38:08 UTC 2026
+/home/hive/anybook/aosp/src/out/target/product/anybook_g14/vendor/build.prop:ro.vendor.openbook.lcd_density=240
+/home/hive/anybook/aosp/src/out/target/product/anybook_g14/vendor/build.prop:ro.surface_flinger.supports_background_blur=1

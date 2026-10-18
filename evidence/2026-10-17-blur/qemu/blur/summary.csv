@@ -1,0 +1,5 @@
+round,state,scenario,frames,janky,janky_pct,p50_ms,p90_ms,p95_ms,p99_ms,gpu_p50_ms,gpu_p90_ms,gpu_p99_ms,sf_frames,sf_missed,sf_missed_pct,sf_client,sf_janky,sf_frame_avg_ms,sf_frame_p90_ms,sf_re_avg_ms,sf_re_p50_ms,sf_re_p90_ms,sf_re_p99_ms,blurred_layers,max_blur_radius,elapsed_s
+1,on,shade,192,116,60.42,65,150,150,400,1,1,1,254,55,21.65,242,165,22.787,36,21.698,19,34,78,1,34,12.2
+1,on,qs,155,118,76.13,93,150,200,300,1,1,1,259,47,18.15,242,157,20.996,32,19.599,19,32,42,1,34,12.3
+2,off,shade,219,107,48.86,53,109,150,150,1,1,1,330,8,2.42,326,176,16.242,21,13.85,13,20,33,0,0,12.3
+2,off,qs,186,105,56.45,61,113,133,150,1,1,1,273,4,1.47,264,145,15.538,19,12.277,11,16,26,0,0,12.2

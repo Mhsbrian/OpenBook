@@ -30,7 +30,7 @@ Google apps and how to install them are covered in [`gapps.md`](gapps.md). Evide
   - **Both fonts are SIL OFL 1.1 in `github.com/google/fonts`.**
   - In a VM, our prototype puts them on the OpenBook desktop without rebuilding the image (§3).
 - **Other gaps we can close:**
-  - **Background blur.** The G14 product doesn't enable it; Googlebook does.
+  - **Background blur.** Googlebook enables it. The G14 product does now too (ANAL-203, §2.3); the laptop check is still to run.
   - **Window shadows, cursor fixes and other polish.** These sit behind flags AOSP 17 already declares.
   - **Circular icons** and **0 % wallpaper dim**.
   - **A tidy default desktop.** Today it carries AOSP's old search widget.
@@ -112,10 +112,67 @@ The OFL lets us ship both families unmodified with `OFL.txt`. Google's `TRADEMAR
 ### 2.3 Blur and surface effects (C)
 
 - **Googlebook:** `ro.surface_flinger.supports_background_blur=1`. Its framework overlay also sets `config_enableSurfaceShadow=true`, a config AOSP 17's framework doesn't have.
-- **OpenBook:**
-  - The Cuttlefish product inherits blur from `device/google/cuttlefish/shared/device.mk`. The prototype screenshots show the blurred Quick Settings panel.
-  - **The G14 product doesn't set the property, so OpenBook on the laptop has no blur at all** (`inventory/openbook-g14-ui-props.txt`).
-- **Next:** set it in `device/anybook/g14`, then measure frame times on the 890M with the scroll benchmark and `dumpsys gfxinfo`.
+- **OpenBook, since ANAL-203:**
+  - The G14 product sets the property too (`device/anybook/g14/anybook_g14_x86_64.mk`). Before, OpenBook on the laptop had no blur at all (`inventory/openbook-g14-ui-props.txt`).
+  - The Cuttlefish product is unchanged: it inherits the property from `device/google/cuttlefish/shared/device.mk`.
+  - Evidence is in `evidence/2026-10-17-blur/`.
+
+**What AOSP 17 needs alongside the property** (C, read from the source; nothing else to set in our tree):
+- **Framework configs.** `config_enableAppLaunchBlur` (Launcher3's app-launch blur) and `config_enableBlurExpansion` (blur on more surfaces, with B3's flags) default to `true` in AOSP 17. Googlebook doesn't override them, and neither do we.
+- **SystemUI and Launcher3** blur only when `ActivityManager.isHighEndGfx()` holds (not low-RAM, no `ro.config.avoid_gfx_accel`) and `persist.sysui.disableBlur` is unset. All of that holds on the G14.
+- **WM's `BlurController` turns blur off by itself:**
+  - in battery saver;
+  - at thermal status SEVERE or above;
+  - in tunnel mode;
+  - when `Settings.Global.disable_window_blurs` is 1 (`wm disable-blur 1`; Developer options).
+
+  The switch reaches SystemUI and Launcher3 without a restart; in our runs it took effect before the next panel opened.
+- **Flags already on in our build:** SystemUI's `notification_shade_blur` and Launcher3's `app_launch_blur`. `blur_on_more_surfaces` is B3 (ANAL-204).
+- **Who draws it:** SurfaceFlinger's RenderEngine, on the GPU, with `KawaseDualFilterV2`. On the G14 that is SkiaGL on ANGLE on RADV (`graphics-amd.md`, "Background blur and the renderer properties").
+
+**Found while measuring: Googlebook blurs less than we now do (C).** Both Googlebook's SystemUI desktop overlay and Google's 37.1 desktop emulator image set SystemUI's `config_supportBlurredWallpaper=false`. In AOSP 17 that stops `NotificationShadeDepthController` from blurring (and zooming) everything behind the shade. Without it, as on our builds, opening the small Quick Settings panel in the top-right corner blurs the whole desktop, at radius 34 px in Cuttlefish (`evidence/2026-10-17-blur/cf/screens/cmp-qs-on-off.png`). Googlebook's panels instead blur only behind themselves, which is what B3's `blur_on_more_surfaces` turns on. **Recommendation for B3:** take `config_supportBlurredWallpaper=false` together with those flags, and measure both with the same tool. Until then the G14 gets the full-screen blur, the heaviest case.
+
+**Cost in Cuttlefish** (C; Radeon 610M, `gfxstream_guest_angle`, 1920×1080 at 60 Hz; `scripts/ui/blur-bench.sh`):
+- **Method.** 20 openings and closings each of the shade and of Quick Settings, then a Settings scroll with the shade closed as a control. Six rounds alternate blur on and off (on, off, on, off, on, off), switched with `wm disable-blur`.
+- **Host load.** The shared host's load went from 14 to 92 (32 threads) while siblings built, so each on round is compared with the off round next to it.
+
+| Pair (host load) | Scenario | SystemUI janky % on / off | p90 ms on / off | SF frame time avg ms on / off | RenderEngine ms per GPU frame (on) | SF missed % on / off |
+|---|---|---|---|---|---|---|
+| r1/r2 (14–27, quiet) | shade | 3.6 / 4.6 | 16 / 19 | 4.2 / 3.3 | 4.0 | 0 / 0.3 |
+| r1/r2 (14–27, quiet) | Quick Settings | 0.8 / 0.9 | 8 / 8 | 2.7 / 2.2 | 2.8 | 0 / 0 |
+| r5/r6 (85–92, loaded) | shade | 16.9 / 8.1 | 40 / 25 | 6.3 / 4.2 | 6.1 | 1.3 / 0 |
+| r5/r6 (85–92, loaded) | Quick Settings | 19.2 / 12.2 | 46 / 32 | 5.5 / 4.3 | 5.4 | 0.2 / 0 |
+
+- **Blur is applied, and only when on.** With blur on, SurfaceFlinger blurs one layer, `VRI-NotificationShade`, at radius 34. With blur off it blurs none, and no layer stayed blurred with the panels closed.
+- **On a quiet host it costs SystemUI nothing measurable.** It costs SurfaceFlinger 2.8–4.0 ms of RenderEngine time per frame. Those frames go to the GPU: about 1,100 of each set's 1,600–1,800 frames with blur on, and none with it off, because Cuttlefish's composer handles them otherwise.
+- **Under heavy host load the shade with blur doubles its janky frames.** In Cuttlefish, gfxstream's renderer runs on the host's CPU threads.
+- **The control (Settings scroll) shows no blur effect.**
+- **No crash, restart or amdgpu fault line,** in the guest or on the host.
+- The first run had one off round in which the shade stayed blurred (`cf-first-run/`). It didn't recur in a manual test or in the second run. That run checks for it before every round.
+
+**The G14 product's image in QEMU** (C; `scripts/ui/blur-qemu.sh`; virtio-gpu, so SwiftShader, a CPU renderer):
+- The build carries the property (`vendor/build.prop`). In QEMU, SystemUI reports `supportsBlursOnWindows: true`.
+- After OpenBook setup is finished, Quick Settings with blur on draws `backgroundBlurRadius=34` behind it, and with blur off nothing (`evidence/2026-10-17-blur/qemu/cmp-qs-on-off.png`).
+- `blur-check.sh`, typed in over the serial console, ran both rounds: blur applied, no hang or restart.
+- On SwiftShader blur is expensive: RenderEngine +7.3–7.8 ms per frame, and SurfaceFlinger misses 18–22 % of the frames while a panel moves, against 1.5–2.4 % without blur.
+- That doesn't apply to the G14's GPU, but it does to the image's VM fallback. If QEMU-based UI tests of the G14 image get slower or flaky, gate blur on the GPU probe. That needs the property set by init on `hal=amdgpu` instead of in `vendor/build.prop`; HYPOTHESIS, untested, and the SELinux side is to check.
+
+**What this predicts for the G14 (HYPOTHESIS):**
+- the 890M has far more GPU than the 610M, and no gfxstream layer;
+- the G14 draws 2.5× the pixels, at 2880×1800;
+- drm_hwcomposer already sends most frames to the GPU (overlay planes are off), so blur adds only its own passes.
+
+Only the G14 run can say.
+
+**G14 check** (pass/fail; `scripts/ui/blur-report.py`). The graphics check's new `blur` part runs it unattended (`graphics-amd.md`), with blur on, off, on and off:
+
+| Verdict | Pass when |
+|---|---|
+| `blur_applied` | With blur on, SurfaceFlinger blurs a layer behind the open shade and Quick Settings, and SystemUI reports `supportsBlursOnWindows: true`. With blur off, no layer is blurred. No layer is blurred with the panels closed |
+| `no_gpu_hang` | No new amdgpu ring time-out, reset or page-fault line, and SurfaceFlinger, SystemUI and system_server keep their PIDs |
+| `frame_cost` | For the shade and Quick Settings, with blur on: SystemUI janky frames ≤ 10 % and ≤ off + 5 points (paired); SurfaceFlinger missed frames ≤ off + 2 % of frames; RenderEngine time per GPU-composed frame ≤ 6 ms on average, and its p90 ≤ 8 ms (one 120 Hz refresh is 8.3 ms) |
+
+Plus the owner's eye: in a normal session the desktop behind Quick Settings is blurred, not just dimmed.
 
 ### 2.4 Shape, icons and wallpaper (C)
 
@@ -242,7 +299,7 @@ The owner approved every item on 2026-10-17. Each one is a sub-issue of ANAL-201
 | # | Issue | Item | Size | Needs |
 |---|---|---|---|---|
 | B1 | ANAL-202 | **Fonts in the product.** `PRODUCT_COPY_FILES` for the three OFL fonts and `OFL.txt`, the generated `fonts_customization.xml`, and the four values in `AnyBookDesktopFrameworkOverlay`. Then the desktop capture in Cuttlefish and the G14 checklist | small | — (approved) |
-| B2 | ANAL-203 | **Blur on the G14.** `ro.surface_flinger.supports_background_blur=1`; check frame times on the 890M | small | — |
+| B2 | ANAL-203 | **Blur on the G14.** `ro.surface_flinger.supports_background_blur=1`; check frame times on the 890M. **Done in the product (ANAL-203); measured in Cuttlefish; the G14 check is on ANAL-192's stick** (§2.3) | small | — |
 | B3 | ANAL-204 | **Flag set v2.** Evaluate the 128 UI flags AOSP 17 declares, in groups. Start with box shadows, blur on more surfaces, resizing (`perfect_edge`, no-resize cursor, fluid resizing) and taskbar clicks. `scripts/desktop-flags.py` already writes the value set | medium | — |
 | B4 | ANAL-205 | **Shape and wallpaper values:** circular icon mask, round icons, wallpaper dim 0, wallpaper colour thresholds. **Done in Cuttlefish (§2.4); the G14 check is on ANAL-192's stick** | small | — |
 | B5 | ANAL-206 | **A clean default desktop:** remove the QuickSearchBox widget and the app, set taskbar pins (Files, Settings, browser), quiet sounds. **Done in Cuttlefish and on the G14 product in QEMU (§2.6); the G14 check is on ANAL-192's stick** | small | Pins proposed in the PR; the owner reviews |
