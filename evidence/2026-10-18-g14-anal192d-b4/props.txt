@@ -1,0 +1,7 @@
+# G14 anal192d, live-001 ("save logs" boot) and live-002 ("ARM apps check"): getprop, from collect-final.txt
+live-001 [persist.wallpapercolors.max_dark_area]: [12]
+live-001 [persist.wallpapercolors.threshold]: [55]
+live-001 [ro.build.fingerprint]: [OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys]
+live-002 [persist.wallpapercolors.max_dark_area]: [12]
+live-002 [persist.wallpapercolors.threshold]: [55]
+live-002 [ro.build.fingerprint]: [OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys]
