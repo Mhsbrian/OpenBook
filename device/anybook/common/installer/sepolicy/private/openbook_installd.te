@@ -27,6 +27,8 @@ allow openbook_installd self:global_capability_class_set sys_admin;
 type openbook_install_data_file, file_type, data_file_type, core_data_file_type;
 allow openbook_installd openbook_install_data_file:dir create_dir_perms;
 allow openbook_installd openbook_install_data_file:file create_file_perms;
+# The plan says whether this image enforces the privileged-permission allowlist (ro.control_privapp_permissions).
+get_prop(openbook_installd, packagemanager_config_prop)
 
 # sysfs. A system domain may not read unlabeled sysfs files, the battery's or the LEDs' (Treble), so: directories
 # and links everywhere (finding disks, their holders, GPUs, network interfaces and drivers), attribute files only

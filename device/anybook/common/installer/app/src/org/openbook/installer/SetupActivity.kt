@@ -138,7 +138,8 @@ private fun SetupScreens(onDone: () -> Unit) {
                 Text(stringResource(R.string.setup_brand), color = Color.White, fontSize = 52.sp,
                     lineHeight = 56.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(14.dp))
-                Text(stringResource(R.string.setup_brand_sub), color = Color.White.copy(alpha = 0.9f), fontSize = 18.sp)
+                Text(stringResource(if (gapps != null) R.string.setup_brand_sub_gapps else R.string.setup_brand_sub),
+                    color = Color.White.copy(alpha = 0.9f), fontSize = 18.sp)
             }
         }
         Column(Modifier.weight(1f).fillMaxHeight().padding(horizontal = 64.dp, vertical = 48.dp)) {

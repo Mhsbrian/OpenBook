@@ -66,10 +66,11 @@ for c in $CASES; do
   prep)
     "$S/e2e-qemu.sh" "$IMG" "$RUN" prep
     # The USB drive the user brings the package on (FAT32 "GAPPSUSB"): the reference package and a refused one.
-    "$D" bash -c "set -e; cd '$Q'; rm -f gapps-usb.img; mkfs.fat -C -F 32 -n GAPPSUSB gapps-usb.img 262144 >/dev/null
-      mcopy -i gapps-usb.img '$PK/openbook-synthetic-gapps-x86_64-37.zip' '$PK/neg-framework.zip' ::/
+    # The cuts use the large one (a 256 MiB app), the wizard the small reference package.
+    "$D" bash -c "set -e; cd '$Q'; rm -f gapps-usb.img; mkfs.fat -C -F 32 -n GAPPSUSB gapps-usb.img 1048576 >/dev/null
+      mcopy -i gapps-usb.img '$PK/openbook-synthetic-gapps-x86_64-37.zip' '$PK/openbook-synthetic-gapps-x86_64-37-big.zip' '$PK/neg-framework.zip' ::/
       mdir -i gapps-usb.img ::/" > "$L/gapps-usb.txt"
-    sha256sum "$PK/openbook-synthetic-gapps-x86_64-37.zip" "$PK/neg-framework.zip" >> "$L/gapps-usb.txt"
+    sha256sum "$PK/openbook-synthetic-gapps-x86_64-37.zip" "$PK/openbook-synthetic-gapps-x86_64-37-big.zip" "$PK/neg-framework.zip" >> "$L/gapps-usb.txt"
     ;;
   g-cut-[1-5])
     run_case "$c" 1200 "${LIVE[@]}"
@@ -90,7 +91,7 @@ for c in $CASES; do
     rm -f "$Q/gapps-console.img"
     ;;
   g-verity)
-    rep=$(ls "$L"/g-ui/report.json "$L"/g-cli/report.json 2>/dev/null | head -n 1)
+    rep=$(ls "$L"/g-ui/report.json "$L"/g-cli/report.json 2>/dev/null | head -n 1 || true)
     console_copy "$Q/whole.img" "$Q/verity.img"
     mkdir -p "$L/g-verity.prep"
     "$D" $P corrupt "$Q/verity.img" "$rep" app/OpenBookTestApp/lib/x86_64/libobgapps.so "$L/g-verity.prep/corrupted.json" >&2
