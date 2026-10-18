@@ -106,7 +106,7 @@ class Agents(private val context: Context) {
     fun agents(): List<AgentHost.Agent> {
         val list = connect().agents()
         list.forEach { Log.i(TAG, "agents: agent ${it.id} version=\"${it.version}\" supported=${it.supported}" + if (it.supported) "" else " note=\"${it.note}\"") }
-        publish(context.getString(dev.openbook.quire.R.string.agents_list, connector ?: "?",
+        publish(context.getString(dev.openbook.quire.R.string.agents_list, Connectors.label(context, connector ?: ""),
             list.filter { it.supported }.joinToString(", ") { it.name }.ifEmpty { "-" }))
         return list
     }
