@@ -113,12 +113,16 @@ fun localeName(loc: Locale): String = loc.getDisplayName(loc).replaceFirstChar {
 
 // ------------------------------------------------------------------------------------------------ Keyboard
 
+/** Alternative key arrangements people choose, not what is printed on a laptop's keys: never suggested. */
+private val ALTERNATIVE_TYPES = setOf("colemak", "dvorak", "workman")
+
 /** The installer's pick, the layout in use, then the layouts made for the chosen language and region. */
 private fun suggestions(all: List<KeyboardLayoutChoice>, inUse: String?, locale: Locale): List<KeyboardLayoutChoice> {
     val byName = all.associateBy { it.name }
     val byDescriptor = all.associateBy { it.descriptor }
-    val exact = all.filter { l -> l.locales.any { it.language == locale.language && it.country == locale.country } }
-    val language = all.filter { l -> l.locales.any { it.language == locale.language && it.country.isEmpty() } }
+    val printed = all.filter { it.type !in ALTERNATIVE_TYPES }
+    val exact = printed.filter { l -> l.locales.any { it.language == locale.language && it.country == locale.country } }
+    val language = printed.filter { l -> l.locales.any { it.language == locale.language && it.country.isEmpty() } }
     return listOfNotNull(
         SetupSystem.installerLayoutName()?.let { byName[it] },
         inUse?.let { byDescriptor[it] },

@@ -59,7 +59,7 @@ case $MODE in
     shot 2-language
     tap textx "Continue"
     wait_ "Keyboard layout"
-    tap textx "English (UK)" || tap text "English (UK)"
+    type_ keyboard-search "UK"; tap textx "English (UK)"
     shot 3-keyboard
     sh_ dumpsys input | grep -iE 'keyboard layout|KeyboardLayout|layoutDescriptor|keyboard_layout' | head -n 20 > "$O/keyboard-layouts.txt" || true
     tap textx "Continue"
@@ -75,7 +75,8 @@ case $MODE in
     # Where the device detects the time zone itself, turn that off to pick one (a region with one zone is preselected).
     if [ -n "$(find_ text "The time zone is set automatically")" ]; then tap text "Set time zone automatically"; fi
     tap textx "London" || true
-    tap text "Use 24-hour format"
+    # Twice: off, then on, so the setting is written whatever the locale's default (en-GB is 24-hour already).
+    tap text "Use 24-hour format"; tap text "Use 24-hour format"
     shot 5-time
     tap textx "Continue"
     wait_ "About you"

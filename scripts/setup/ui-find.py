@@ -4,8 +4,8 @@
 """Find a node in a `uiautomator dump` and print the centre of its bounds ("x y"), or nothing.
 
 usage: ui-find.py DUMP.xml KIND VALUE [--pkg PACKAGE]
-  KIND  text    text or content-desc starts with VALUE
-        textx   text or content-desc is exactly VALUE
+  KIND  text    text or content-desc starts with VALUE (text fields are skipped)
+        textx   text or content-desc is exactly VALUE (text fields are skipped)
         id      resource-id is VALUE (Compose test tags, with testTagsAsResourceId)
 The package defaults to org.openbook.setup; --pkg '' searches every package.
 """
@@ -30,6 +30,8 @@ def main():
         if pkg and n.get("package") != pkg:
             continue
         labels = [n.get("text") or "", n.get("content-desc") or ""]
+        if kind in ("text", "textx") and n.get("class") == "android.widget.EditText":
+            continue  # a text field holds what was typed into it, e.g. the search for the row to tap
         if kind == "text":
             hit = any(lab.startswith(value) for lab in labels if lab)
         elif kind == "textx":
