@@ -3,6 +3,8 @@
 
 package org.openbook.setup.ui
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,10 +33,21 @@ import androidx.compose.material.icons.rounded.Public
 import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material.icons.rounded.Shop
 import androidx.compose.material.icons.rounded.Wifi
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material.icons.rounded.ContentCopy
+import androidx.compose.material.icons.rounded.Fingerprint
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,6 +61,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.util.TimeZone
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
 import org.openbook.installer.ui.Ob
 import org.openbook.installer.ui.OpenBookMark
 import org.openbook.installer.ui.PrimaryButton
@@ -83,7 +98,7 @@ fun WelcomePage(model: SetupModel, onSkipAll: () -> Unit) {
         }
         Column(Modifier.weight(1f).fillMaxHeight().padding(horizontal = if (compact) 32.dp else 64.dp, vertical = 44.dp)) {
             Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).widthIn(max = 820.dp)) {
-                Text(stringResource(R.string.overline, Page.WELCOME.number, Page.entries.size,
+                Text(stringResource(R.string.overline, model.number(Page.WELCOME), model.pages.size,
                     stringResource(R.string.rail_welcome)).uppercase(),
                     style = Ob.type.overline, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(bottom = 10.dp))
                 Text(stringResource(R.string.welcome_title), style = Ob.type.headline, color = MaterialTheme.colorScheme.onSurface,
@@ -149,8 +164,6 @@ fun ExtrasPage(model: SetupModel) {
             .getOrNull().orEmpty()
     }
     val microG = gms != null && gmsLabel.contains("microG", ignoreCase = true)
-    val gsf = remember { SetupSystem.installedVersion(ctx, SetupSystem.PKG_GSF) }
-    val gsfId = remember(gsf) { if (gsf != null) SetupSystem.gsfAndroidId(ctx) else null }
     PageFrame(model, stringResource(R.string.extras_title), stringResource(R.string.extras_lede)) {
         Column(Modifier.widthIn(max = 900.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             InfoCard(Icons.Rounded.Extension, stringResource(R.string.microg_title)) {
@@ -169,16 +182,60 @@ fun ExtrasPage(model: SetupModel) {
             }
             InfoCard(Icons.Rounded.Shop, stringResource(R.string.gapps_title)) {
                 BodyText(stringResource(R.string.gapps_body))
-                if (gsf != null) {
-                    StatusPill(stringResource(R.string.gapps_installed), Tone.INFO)
-                    BodyText(stringResource(R.string.gapps_register))
-                    if (gsfId != null) {
-                        Text(stringResource(R.string.gapps_id, gsfId), style = Ob.type.mono.copy(fontSize = 15.sp),
-                            color = MaterialTheme.colorScheme.onSurface)
-                    }
+                model.gapps?.let {
+                    StatusPill(stringResource(R.string.gapps_installed, it.name), Tone.INFO)
+                    BodyText(stringResource(R.string.gapps_register_next))
                 }
             }
             BodyText(stringResource(R.string.extras_note))
+        }
+    }
+}
+
+// ------------------------------------------------------------------------------------------------ Register (ANAL-211)
+
+/** The GSF Android ID of a system installed with the user's own Google apps package, and how to register it. */
+@Composable
+fun RegisterPage(model: SetupModel) {
+    val ctx = LocalContext.current
+    val g = model.gapps
+    var attempt by remember { mutableIntStateOf(0) }
+    var id by remember { mutableStateOf<String?>(null) }
+    var looked by remember { mutableStateOf(false) }
+    LaunchedEffect(attempt) {
+        id = withContext(Dispatchers.IO) { if (g?.hasGsf == true) SetupSystem.gsfId(ctx) else null }
+        looked = true
+    }
+    PageFrame(model, stringResource(R.string.register_title), stringResource(R.string.register_lede, g?.name.orEmpty())) {
+        Column(Modifier.widthIn(max = 900.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            if (g?.hasGsf != true) {
+                BodyText(stringResource(R.string.register_no_gsf))
+                return@Column
+            }
+            InfoCard(Icons.Rounded.Fingerprint, stringResource(R.string.register_id_label)) {
+                val value = id
+                if (value != null) {
+                    SelectionContainer {
+                        Text(value, fontFamily = FontFamily.Monospace, fontSize = 30.sp, fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface)
+                    }
+                    Text(stringResource(R.string.register_id_hex, SetupSystem.hex(value)), style = Ob.type.mono.copy(fontSize = 14.sp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                } else if (looked) {
+                    BodyText(stringResource(R.string.register_no_id))
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (value != null) {
+                        TextActionButton(stringResource(R.string.register_copy), icon = Icons.Rounded.ContentCopy, onClick = {
+                            ctx.getSystemService(ClipboardManager::class.java)
+                                ?.setPrimaryClip(ClipData.newPlainText("GSF Android ID", value))
+                        })
+                    }
+                    TextActionButton(stringResource(R.string.register_retry), icon = Icons.Rounded.Refresh, onClick = { attempt++ })
+                }
+            }
+            BodyText(stringResource(R.string.register_steps))
+            BodyText(stringResource(R.string.register_note))
         }
     }
 }

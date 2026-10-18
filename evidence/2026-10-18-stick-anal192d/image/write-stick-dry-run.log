@@ -1,0 +1,18 @@
+== write-stick.sh 20261018T100200Z: ~/anybook/installer/out/openbook-live-20261018-anal192d.img -> /dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0 (dry run)
+stick: /dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0 -> /dev/sda; SanDisk Ultra; 62109253632 bytes (62 GB); removable=1
+today on it:
+  NAME    SIZE FSTYPE LABEL    PARTLABEL     MOUNTPOINTS
+  sda    57.8G                               
+  ├─sda1  256M vfat   OPENBOOK EFI           
+  ├─sda2    4M                 misc          
+  ├─sda3   64M                 boot_a        
+  ├─sda4    8M                 init_boot_a   
+  ├─sda5   64M                 vendor_boot_a 
+  ├─sda6    1M                 vbmeta_a      
+  ├─sda7   64M ext4            metadata      /run/media/hive/73fc037c-4997-4b1b-b433-ddad3d9b3503
+  ├─sda8  1.3G                 super         
+  └─sda9 56.1G                 userdata      
+image: ~/anybook/installer/out/openbook-live-20261018-anal192d.img, 2989490176 bytes; checking sha256 against ~/anybook/installer/out/openbook-live-20261018-anal192d.sha256 ...
+image sha256 OK: db2a820354c0f78d697e8813ffa280a23daf1e4954a8840e2d91829847192fbb
+reports on /dev/sda1: 9 file(s) in openbook/logs/
+dry run: nothing written

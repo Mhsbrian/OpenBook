@@ -83,7 +83,7 @@ fun SetupApp(model: SetupModel, onSkipAll: () -> Unit, onDone: () -> Unit) {
             when (model.page) {
                 Page.WELCOME -> WelcomePage(model, onSkipAll)
                 else -> Row(Modifier.fillMaxSize()) {
-                    StepRail(model.page, Modifier.width(if (LocalCompact.current) 236.dp else 286.dp).fillMaxHeight())
+                    StepRail(model, Modifier.width(if (LocalCompact.current) 236.dp else 286.dp).fillMaxHeight())
                     Box(Modifier.weight(1f).fillMaxHeight()) {
                         when (model.page) {
                             Page.LANGUAGE -> LanguagePage(model)
@@ -93,6 +93,7 @@ fun SetupApp(model: SetupModel, onSkipAll: () -> Unit, onDone: () -> Unit) {
                             Page.ACCOUNT -> AccountPage(model)
                             Page.NOTICE -> NoticePage(model)
                             Page.EXTRAS -> ExtrasPage(model)
+                            Page.REGISTER -> RegisterPage(model)
                             else -> DonePage(model, onDone)
                         }
                     }
@@ -113,6 +114,7 @@ fun pageLabel(page: Page): String = stringResource(
         Page.ACCOUNT -> R.string.rail_account
         Page.NOTICE -> R.string.rail_notice
         Page.EXTRAS -> R.string.rail_extras
+        Page.REGISTER -> R.string.rail_register
         Page.DONE -> R.string.rail_done
     },
 )
@@ -139,7 +141,7 @@ fun PageFrame(
     Column(Modifier.fillMaxSize().padding(start = hPad, end = hPad, top = if (compact) 28.dp else 40.dp, bottom = 24.dp)) {
         val page = model.page
         Text(
-            stringResource(R.string.overline, page.number, Page.entries.size, pageLabel(page)).uppercase(),
+            stringResource(R.string.overline, model.number(page), model.pages.size, pageLabel(page)).uppercase(),
             style = Ob.type.overline,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(bottom = 10.dp),
@@ -170,7 +172,7 @@ fun PageFrame(
 }
 
 @Composable
-private fun StepRail(current: Page, modifier: Modifier = Modifier) {
+private fun StepRail(model: SetupModel, modifier: Modifier = Modifier) {
     val cs = MaterialTheme.colorScheme
     val border = cs.outlineVariant.copy(alpha = 0.45f)
     Column(
@@ -192,7 +194,7 @@ private fun StepRail(current: Page, modifier: Modifier = Modifier) {
             }
         }
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
-            Page.entries.forEach { RailStep(it, current) }
+            model.pages.forEach { RailStep(it, model) }
         }
         Spacer(Modifier.height(16.dp))
         Surface(color = cs.surfaceContainerHigh, contentColor = cs.onSurfaceVariant, shape = RoundedCornerShape(18.dp)) {
@@ -206,11 +208,13 @@ private fun StepRail(current: Page, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun RailStep(step: Page, current: Page) {
+private fun RailStep(step: Page, model: SetupModel) {
     val cs = MaterialTheme.colorScheme
-    val done = step.ordinal < current.ordinal
+    val current = model.page
+    val number = model.number(step)
+    val done = number < model.number(current)
     val now = step == current
-    val connectorColor = if (step.ordinal <= current.ordinal) cs.primary else cs.outlineVariant
+    val connectorColor = if (number <= model.number(current)) cs.primary else cs.outlineVariant
     val label = pageLabel(step)
     val state = stringResource(
         when {
@@ -219,13 +223,13 @@ private fun RailStep(step: Page, current: Page) {
             else -> R.string.rail_state_upcoming
         },
     )
-    val description = stringResource(R.string.rail_step_description, step.number, Page.entries.size, label, state)
+    val description = stringResource(R.string.rail_step_description, number, model.pages.size, label, state)
     Row(
         Modifier
             .fillMaxWidth()
             .drawWithContent {
                 drawContent()
-                if (step.ordinal > 0) {
+                if (number > 1) {
                     val x = 20.dp.toPx()
                     drawLine(connectorColor, Offset(x, -7.dp.toPx()), Offset(x, 7.dp.toPx()), 2.dp.toPx())
                 }
@@ -248,7 +252,7 @@ private fun RailStep(step: Page, current: Page) {
                 when {
                     now && step == Page.DONE -> Icon(Icons.Rounded.Celebration, null, tint = cs.onPrimary, modifier = Modifier.size(18.dp))
                     done -> Icon(Icons.Rounded.Check, null, tint = cs.onPrimary, modifier = Modifier.size(18.dp))
-                    else -> Text(step.number.toString(), fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold,
+                    else -> Text(number.toString(), fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold,
                         color = if (now) cs.onPrimary else cs.onSurfaceVariant)
                 }
             }

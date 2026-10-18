@@ -1,0 +1,21 @@
+== OpenBookTestApp.apk
+V3.0 Signer: certificate DN: CN=OpenBook synthetic GApps test, O=OpenBook
+V3.0 Signer: certificate SHA-256 digest: 0f16809615328a713cfc75f17a3cb9dffb7dbb3966f36da8e09fbdbe722b7a52
+== OpenBookTestArmOnly.apk
+V3.0 Signer: certificate DN: CN=OpenBook synthetic GApps test, O=OpenBook
+V3.0 Signer: certificate SHA-256 digest: 0f16809615328a713cfc75f17a3cb9dffb7dbb3966f36da8e09fbdbe722b7a52
+== OpenBookTestBig.apk
+V3.0 Signer: certificate DN: CN=OpenBook synthetic GApps test, O=OpenBook
+V3.0 Signer: certificate SHA-256 digest: 0f16809615328a713cfc75f17a3cb9dffb7dbb3966f36da8e09fbdbe722b7a52
+== OpenBookTestGsf.apk
+V3.0 Signer: certificate DN: CN=OpenBook synthetic GApps test, O=OpenBook
+V3.0 Signer: certificate SHA-256 digest: 0f16809615328a713cfc75f17a3cb9dffb7dbb3966f36da8e09fbdbe722b7a52
+== OpenBookTestPlatformUid.apk
+V3.0 Signer: certificate DN: CN=OpenBook synthetic GApps test, O=OpenBook
+V3.0 Signer: certificate SHA-256 digest: 0f16809615328a713cfc75f17a3cb9dffb7dbb3966f36da8e09fbdbe722b7a52
+== OpenBookTestPriv-unsigned.apk
+DOES NOT VERIFY
+ERROR: Missing META-INF/MANIFEST.MF
+== OpenBookTestPriv.apk
+V3.0 Signer: certificate DN: CN=OpenBook synthetic GApps test, O=OpenBook
+V3.0 Signer: certificate SHA-256 digest: 0f16809615328a713cfc75f17a3cb9dffb7dbb3966f36da8e09fbdbe722b7a52

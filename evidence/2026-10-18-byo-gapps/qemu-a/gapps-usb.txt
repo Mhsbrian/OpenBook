@@ -1,0 +1,13 @@
+ Volume in drive : is GAPPSUSB   
+ Volume Serial Number is 086B-78A7
+Directory for ::/
+
+OPENBO~1 ZIP     13838 2026-10-18   8:17  openbook-synthetic-gapps-x86_64-37.zip
+OPENBO~2 ZIP  268539167 2026-10-18   8:17  openbook-synthetic-gapps-x86_64-37-big.zip
+NEG-FR~1 ZIP     13903 2026-10-18   8:17  neg-framework.zip
+        3 files         268 566 908 bytes
+                        803 045 376 bytes free
+
+3aebb54cb5721113acd7c67ea9e594c158ebf4bbfa89e2f6589d65764685bf88  /home/hive/anybook/installer/gapps/packages/openbook-synthetic-gapps-x86_64-37.zip
+3cbae401f9362328716feb41729734ed7a11bea7414356cf3d2b2f24ce3985ce  /home/hive/anybook/installer/gapps/packages/openbook-synthetic-gapps-x86_64-37-big.zip
+e80866406d468b9e68fc118004651559dc357602891cf0b1974db12269642953  /home/hive/anybook/installer/gapps/packages/neg-framework.zip

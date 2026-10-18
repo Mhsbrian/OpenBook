@@ -17,6 +17,8 @@ Backlog item B8 of ANAL-201 (`docs/googlebook-ui.md` §2.5, §4).
   7. "OpenBook isn't a Google-certified device" (the orange-state notice);
   8. optional extras: microG (G1) and Google apps you provide (G2) (optional);
   9. done.
+
+  On a system installed with a Google apps package the user provided (G2, ANAL-211), a tenth page, "Register this computer with Google", comes before Done.
 - **Both products** get it: `desktop.mk` inherits `setup/setup.mk`, and both `anybook_cf_x86_64_pc` and the PC/G14 product inherit `desktop.mk`.
 - **It never gets in the way of automation.** It steps aside, without drawing anything, on:
   - live sessions (`androidboot.openbook.live=1`): the install wizard is the first screen there, as before;
@@ -55,7 +57,8 @@ All pages use the installer's design (`docs/installer-design/`): the same theme,
 | 5 | Date and time | The time zone (the region's zones, or all of them, with search; a region with one zone is preselected), automatic time and automatic time zone where the device supports them, the 24-hour clock. "Set date and time by hand" opens Settings | `TimeManager` (`setManualTimeZone`, `updateTimeConfiguration`), `Settings.System.TIME_12_24` |
 | 6 | About you (optional) | The user's name; a PIN or password (at least 4), or none. Coming back and changing it replaces the one set here | `UserManager.setUserName`, `LockPatternUtils.setLockCredential` |
 | 7 | This device | Nothing. The orange-state notice (`docs/installer.md` §2): OpenBook isn't Google-certified; verified boot is orange (the live value of `ro.boot.verifiedbootstate`) but dm-verity still checks the system; Play Integrity apps may refuse to run; no Google apps included | — |
-| 8 | Extras (optional) | Nothing. **microG (G1, ANAL-210):** installed (version, "Open microG settings") or how to get it (the installer's add-on, off by default). **Google apps you provide (G2, ANAL-211):** OpenBook never downloads them; the guide is `docs/gapps.md`. If Google Services Framework is installed, the page shows Google's uncertified-device registration note and the GSF ID (HYPOTHESIS: not tested, no image of ours has GSF) | `PackageManager` (`<queries>` for the three packages) |
+| 8 | Extras (optional) | Nothing. **microG (G1, ANAL-210):** installed (version, "Open microG settings") or how to get it (the installer's add-on, off by default). **Google apps you provide (G2, ANAL-211):** OpenBook never downloads them; the guide is `docs/gapps.md`. If the system was installed with the user's own package, the card names it and points to the next page | `PackageManager` (`<queries>` for microG) |
+| (9) | Register (only with the user's Google apps package) | Nothing. G2's registration page, moved here from the installer's interim setup with the same text: the GSF Android ID (decimal and hexadecimal, copy, check again) from GSF's `gservices` provider, and the steps for `google.com/android/uncertified`. The package is detected from the manifest the install engine writes (`/product/etc/openbook/gapps-manifest.json`). The installer keeps the same page as Settings › About › Google apps registration | `READ_GSERVICES`, `<queries>` for the provider |
 | 9 | Done | A summary; **Start using OpenBook** finishes | — |
 
 "Google" appears only where the text is about Google's products. OpenBook's own name is never combined with it.
