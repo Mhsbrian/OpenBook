@@ -117,9 +117,10 @@ the disk: erased with "whole", kept with "alongside", S12).
 `before`/`after` segment kinds: `windows`, `linux`, `efi`, `openbook`, `other`, `free`. `operations[].text` is
 English; "View the plan" shows it in a monospace list. `boot.nvram`: `planned` (efivarfs is mounted: one `Boot####`
 "OpenBook" will be created after verification) or `unavailable`. `boot.boot_order`: `first` (with `set_default`, the
-user's consent, S11) or `unchanged`. `warnings` codes: `nvram_unavailable` (no efivarfs: the whole-disk install boots
-through the fallback path; alongside needs a firmware boot entry the user adds), `boot_order_unchanged` (an entry is
-made, but the other system stays first), `external`, `encrypted_kept`, `encrypted_erased`, `battery`.
+user's consent, S11), `last` (without it: OpenBook is in the firmware's boot menu and the system that starts now
+stays the default; owner decision 2026-10-17) or `unchanged` (no efivarfs). `warnings` codes: `nvram_unavailable`
+(no efivarfs: the whole-disk install boots through the fallback path; alongside needs a firmware boot entry the user
+adds), `external`, `encrypted_kept`, `encrypted_erased`, `battery`.
 
 ## apply (writes; S3, S4)
 `{"id":5,"cmd":"apply","plan_sha256":"9f2c...","target":"nvme-SK_hynix_PVC10_AN0BS4F2A","typed":"sk hynix pvc10","power":{"ac":true,"battery_pct":87}}`
@@ -139,7 +140,8 @@ if S8 fails. Then it streams:
   "report":"openbook/logs/install-20261017T120000Z.json","log":"openbook/logs/install-20261017T120000Z.log",
   "seconds":93}}
 ```
-`nvram`: `created` (and `nvram_entry`, `boot_order` = `first`/`unchanged`), `failed` (`nvram_error` says why; the
+`nvram`: `created` (and `nvram_entry`; `boot_order` = `first`, `last`, or `failed` when the entry exists but
+`BootOrder` could not be written, with `nvram_error`), `failed` (no entry; `nvram_error` says why; the
 disk is installed and verified all the same), `unavailable` (no efivarfs) or `skipped` (the install did not verify).
 Steps, in order: `check_source` (S10: the stick's partitions against its manifest), `prepare_disk` (S4 re-check,
 wipe or add the partition table), `boot_images` (boot/init_boot/vendor_boot/vbmeta), `system` (super),
