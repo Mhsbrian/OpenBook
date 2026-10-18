@@ -1,0 +1,5 @@
+10-18 12:50:39.760   822  3366 I ActivityTaskManager: START u0 {act=android.intent.action.SET_WALLPAPER flg=0x10000000 xflg=0x4 pkg=com.android.wallpaper cmp=com.android.wallpaper/com.android.customization.picker.Customi
+10-18 12:50:40.059   822  2997 I ActivityTaskManager: START u0 {xflg=0x4 cmp=com.android.wallpaper/.picker.customization.ui.CustomizationPickerActivity (has extras)} with LAUNCH_MULTIPLE from uid 10096 (com.android.wallp
+10-18 12:50:40.191   822  2882 I ActivityTaskManager: START u0 {act=android.settings.SETTINGS_EMBED_DEEP_LINK_ACTIVITY xflg=0x4 cmp=com.android.settings/.homepage.DeepLinkHomepageActivity (has extras)} with LAUNCH_SINGLE
+10-18 12:50:40.321   822  2997 I ActivityTaskManager: START u0 {act=android.intent.action.VIEW flg=0x2000000 xflg=0x4 cmp=com.android.wallpaper/.picker.customization.ui.CustomizationPickerActivity (has extras)} with LAUN
+10-18 12:50:48.170   822  2670 I ActivityTaskManager: START u0 {flg=0x10008000 xflg=0x4 cmp=com.android.wallpaper/.picker.preview.ui.WallpaperPreviewActivity (has extras)} with LAUNCH_MULTIPLE from uid 10096 (com.android

@@ -1,0 +1,9 @@
+# crash and ANR counts
+persisted logcat (live-001/prior/misc/logd): the default boot from 11:21Z (earlier lines rotated out) to 11:59Z, then the start of the save-logs boot. FATAL EXCEPTION/ANR lines: 0
+live-001 logcat-final.txt: 0
+live-002 logcat-final.txt: 0
+dropbox (live-001/prior/system/dropbox, both boots: 2 SYSTEM_BOOT) entry types:
+      1 system_app_crash
+     73 system_app_strictmode
+      2 SYSTEM_BOOT
+     57 system_server_strictmode

@@ -745,6 +745,12 @@ static const char COLLECT[] =
     "d=/dev/input/${e##*/};; esac; done; [ -n \"$d\" ] && [ \"$(getprop sys.boot_completed)\" = 1 ] && "
     "timeout 20 getevent -lt $d 2>&1 | head -n 30000; fi\n"
     "s AUDIO; dumpsys media.audio_flinger 2>&1 | head -n 40\n"
+    // Kernel facts (ANAL-198): the DMA-BUF heaps Codec2 allocates from, and amdgpu's firmware versions (MES, CP,
+    // SMU, ...), which only debugfs shows. The GKI allows debugfs; Android does not mount it.
+    "s DMAHEAP; ls -l /dev/dma_heap 2>&1\n"
+    "s GPUFW; grep -q ' /sys/kernel/debug ' /proc/mounts || mount -t debugfs debugfs /sys/kernel/debug; "
+    "for f in /sys/kernel/debug/dri/*/amdgpu_firmware_info; do [ -e $f ] && echo \"$f\" && cat $f; done 2>&1 | "
+    "head -n 80\n"
     // App add-ons (ANAL-210): what openbook-addons did, microG's packages, and which apps provide location (the
     // coordinates of a last fix are not saved).
     "s ADDONS; tail -n 40 /data/misc/openbook_addons/addons.log 2>&1; cat /data/misc/openbook_addons/microg.json 2>&1; echo; "

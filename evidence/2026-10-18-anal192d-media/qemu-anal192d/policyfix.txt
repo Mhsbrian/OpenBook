@@ -1,0 +1,10 @@
+vendor_plat=202604 genfs=202604
+(allow mediaserver audioserver_tmpfs (file (getattr map read write)))
+secilc_rc=0
+-rw------- 1 root root 859607 2026-10-18 12:58 /data/local/tmp/sepolicy.fix
+running_policy_bytes=859595
+0+1 records in
+0+1 records out
+859607 bytes (839 K) copied, 0.089 s, 9.2 M/s
+load_rc=0
+enforcing=Enforcing
