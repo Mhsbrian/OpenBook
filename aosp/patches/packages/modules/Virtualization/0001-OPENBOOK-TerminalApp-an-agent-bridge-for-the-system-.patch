@@ -12,7 +12,9 @@ itself, as AndroidToVmBridge does for ttyd, and relays the connection to
 one end of a socket pair. (A socket from virtmgr's connectVsock may only
 be read and written by the owner, and passing on the caller's half-close
 needs shutdown.) Other guest ports (ttyd, the guest agent) are not
-offered.
+offered. Its status asks the VM itself, since VmController calls the VM
+running as soon as crosvm starts, also when crosvm exits at once
+(without KVM: "no enabled hypervisor").
 
 Also: Cuttlefish products not named vsoc_* get the emulator boot
 timeout, found by ro.boot.hypervisor.version (cf-crosvm, cf-qemu); the
@@ -21,9 +23,9 @@ Debian guest runs under nested KVM there.
 OpenBook ANAL-218 (Quire Q4).
 ---
  android/TerminalApp/AndroidManifest.xml       |  10 +
- .../terminal/AgentBridgeProvider.kt           | 175 ++++++++++++++++++
+ .../terminal/AgentBridgeProvider.kt           | 180 ++++++++++++++++++
  .../terminal/new2/core/VmController.kt        |   6 +-
- 3 files changed, 190 insertions(+), 1 deletion(-)
+ 3 files changed, 195 insertions(+), 1 deletion(-)
  create mode 100644 android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt
 
 diff --git a/android/TerminalApp/AndroidManifest.xml b/android/TerminalApp/AndroidManifest.xml
@@ -56,10 +58,10 @@ index 022dd2d04..d1d564f5c 100644
              <intent-filter>
 diff --git a/android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt b/android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt
 new file mode 100644
-index 000000000..702a1f196
+index 000000000..8c988e9a4
 --- /dev/null
 +++ b/android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt
-@@ -0,0 +1,175 @@
+@@ -0,0 +1,180 @@
 +/*
 + * Copyright (C) 2026 The OpenBook Authors
 + *
@@ -87,6 +89,7 @@ index 000000000..702a1f196
 +import android.system.Os
 +import android.system.OsConstants
 +import android.system.VmSocketAddress
++import android.system.virtualmachine.VirtualMachine
 +import android.util.Log
 +import com.android.system.virtualmachine.flags.Flags
 +import com.android.virtualization.terminal.new2.core.VmController
@@ -133,7 +136,11 @@ index 000000000..702a1f196
 +        if (!Flags.terminalNewuiJetpack()) return "error" to "the agent bridge needs the new Terminal UI"
 +        if (!InstalledImage.getDefault(context!!).isInstalled()) return "not_installed" to null
 +        return when (val s = VmController.vmState.value) {
-+            is VmState.Running -> "running" to null
++            // VmController calls the VM running as soon as crosvm is started; ask the VM itself, which knows
++            // whether crosvm is still alive (it exits at once without KVM: "no enabled hypervisor").
++            is VmState.Running ->
++                if (VmController.virtualMachine?.status == VirtualMachine.STATUS_RUNNING) "running" to null
++                else "error" to "the VM stopped right after it started (no KVM?)"
 +            is VmState.Starting, is VmState.Rebooting -> "starting" to null
 +            is VmState.Error -> "error" to (s.cause.message ?: s.cause.javaClass.simpleName)
 +            else -> "stopped" to null

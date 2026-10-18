@@ -83,15 +83,18 @@ class Agents(private val context: Context) {
             throw Unavailable(why)
         }
         val t0 = SystemClock.elapsedRealtime()
-        val pfd = when (ready.connector) {
-            Connectors.LinuxEnvironment.NAME -> Connectors.LinuxEnvironment.connect(context)
-            else -> throw Unavailable(ready.describe(context))
-        }
+        // A connector that looked ready can still fail to connect (the VM died, quired isn't running): that too
+        // is said with the fallback, never only logged.
         val h = try {
+            val pfd = when (ready.connector) {
+                Connectors.LinuxEnvironment.NAME -> Connectors.LinuxEnvironment.connect(context)
+                else -> throw java.io.IOException(ready.describe(context))
+            }
             AgentHost.open(pfd, hostListener)
         } catch (e: Exception) {
-            val why = Connectors.Status(ready.connector, Connectors.State.ERROR, "quired: ${e.message}").describe(context)
-            Log.w(TAG, "agents: unavailable: $why", e)
+            val failed = Connectors.Status(ready.connector, Connectors.State.ERROR, e.message)
+            val why = (listOf(failed) + all.filter { it.connector != ready.connector }).joinToString(" ") { it.describe(context) }
+            Log.w(TAG, "agents: unavailable: $why")
             publish(why)
             throw Unavailable(why)
         }
