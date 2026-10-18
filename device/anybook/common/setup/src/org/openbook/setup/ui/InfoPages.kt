@@ -194,12 +194,13 @@ fun DonePage(model: SetupModel, onDone: () -> Unit) {
         model.layoutsApplied == 0 -> stringResource(R.string.summary_keyboard_none)
         else -> layouts.firstOrNull { it.descriptor == model.layout }?.label ?: stringResource(R.string.keyboard_default)
     }
-    val zone = TimeZone.getDefault()
+    // As the time page shows it ("London · United Kingdom Time"), not the standard-time name in summer.
+    val zone = SetupSystem.zone(TimeZone.getDefault().id, java.util.Locale.getDefault())
     val rows = listOf(
         Triple(Icons.Rounded.Language, R.string.summary_language, localeName(java.util.Locale.getDefault())),
         Triple(Icons.Rounded.Keyboard, R.string.summary_keyboard, keyboard),
         Triple(Icons.Rounded.Wifi, R.string.summary_network, linkName(link)),
-        Triple(Icons.Rounded.Schedule, R.string.summary_time, zone.getDisplayName(false, TimeZone.LONG, java.util.Locale.getDefault()) + " (${zone.id})"),
+        Triple(Icons.Rounded.Schedule, R.string.summary_time, "${zone.city} · ${zone.name} (${zone.offsetLabel})"),
         Triple(Icons.Rounded.Person, R.string.summary_name, SetupSystem.userName(ctx)),
         Triple(Icons.Rounded.Lock, R.string.summary_lock, if (model.lockSet == LockKind.NONE) stringResource(R.string.lock_none) else lockName(model.lockSet)),
     )
