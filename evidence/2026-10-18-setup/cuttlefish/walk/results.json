@@ -1,18 +1,18 @@
 {
  "schema": "openbook-setup-walk/1",
  "mode": "walk",
- "passed": 14,
- "total": 14,
+ "passed": 15,
+ "total": 15,
  "checks": [
   {
    "check": "setup is the first screen",
    "ok": true,
-   "detail": "      topResumedActivity=ActivityRecord{200097936 u0 org.openbook.setup/.SetupActivity t2} "
+   "detail": "      topResumedActivity=ActivityRecord{226496651 u0 org.openbook.setup/.SetupActivity t2} "
   },
   {
    "check": "Choose a network opens Wi-Fi settings",
    "ok": true,
-   "detail": "    topResumedActivity=ActivityRecord{37781762 u0 com.android.settings/.Settings$WifiSettingsActivity t8} "
+   "detail": "    topResumedActivity=ActivityRecord{99141937 u0 com.android.settings/.Settings$WifiSettingsActivity t8} "
   },
   {
    "check": "device_provisioned=1 and user_setup_complete=1",
@@ -32,7 +32,12 @@
   {
    "check": "the launcher is on top",
    "ok": true,
-   "detail": "      topResumedActivity=ActivityRecord{254456660 u0 com.android.launcher3/.uioverrides.QuickstepLauncher t9} "
+   "detail": "      topResumedActivity=ActivityRecord{234674609 u0 com.android.launcher3/.uioverrides.QuickstepLauncher t9} "
+  },
+  {
+   "check": "setup never crashed (am_crash, am_anr)",
+   "ok": true,
+   "detail": "none "
   },
   {
    "check": "language and region applied (en-GB)",
@@ -62,7 +67,7 @@
   {
    "check": "keyboard layout English (UK) set on the keyboards (reported)",
    "ok": true,
-   "detail": "10-18 10:09:18.558  2777  2777 I OpenBookSetup: keyboard layout keyboard_layout_english_uk on Cuttlefish Vhost User Keyboard 0; dumpsys input lines with english_uk: 0 "
+   "detail": "10-18 12:45:22.508  2760  2760 I OpenBookSetup: keyboard layout keyboard_layout_english_uk on Cuttlefish Vhost User Keyboard 0; dumpsys input lines with english_uk: 0 "
   },
   {
    "check": "all ten screenshots",
@@ -72,7 +77,7 @@
   {
    "check": "setup logged its end",
    "ok": true,
-   "detail": "10-18 10:10:54.143  2777  2777 I OpenBookSetup: setup complete (finished); provisioned=true "
+   "detail": "10-18 12:47:00.655  2760  2760 I OpenBookSetup: setup complete (finished); provisioned=true "
   }
  ]
 }

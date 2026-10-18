@@ -1,2 +1,1 @@
-10-18 09:13:46.217  2768  2768 I OpenBookSetup: setup complete (step aside: androidboot.openbook.setup=skip); provisioned=true
-10-18 09:13:46.536  2824  2824 I OpenBookSetup: setup complete (step aside: androidboot.openbook.setup=skip); provisioned=true
+10-18 11:40:56.564  2778  2778 I OpenBookSetup: setup complete (step aside: androidboot.openbook.setup=skip); provisioned=true
