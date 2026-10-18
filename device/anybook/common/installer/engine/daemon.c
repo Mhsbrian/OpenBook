@@ -45,6 +45,17 @@ static const char *const STEP_IDS[] = {"check_source", "prepare_disk", "boot_ima
 static int client = -1;
 static struct sb inbuf;
 
+// gapps_check (ANAL-211): the app streams the file the user picked right after the request line; the daemon saves
+// it below its data directory, checks it, and answers. No other request is read until the upload is complete.
+#define GAPPS_UPLOAD_MAX (8ull << 30)
+static struct {
+    long long id;
+    int fd;
+    uint64_t left, total;
+    char path[600], name[128];
+    double last;
+} up = {.fd = -1};
+
 static void send_line(const char *s) {
     if (client < 0) return;
     size_t n = strlen(s);
@@ -338,6 +349,14 @@ static void cmd_plan(long long id, struct jv *q) {
     snprintf(r.locale, sizeof r.locale, "%s", jstr(q, "locale") ? jstr(q, "locale") : "");
     snprintf(r.keyboard, sizeof r.keyboard, "%s", jstr(q, "keyboard") ? jstr(q, "keyboard") : "");
     r.set_default = jbool(q, "set_default", 0);
+    if (jstr(q, "gapps")) {  // a package the user checked (gapps_check) and confirmed in the app (ANAL-211)
+        if (strlen(jstr(q, "gapps")) != 64) {
+            reply_err(id, "bad_request", "gapps: the sha256 gapps_check returned");
+            return;
+        }
+        snprintf(r.gapps, sizeof r.gapps, "%s", jstr(q, "gapps"));
+        r.gapps_confirmed = jbool(q, "gapps_confirmed", 0);
+    }
     struct jv *ad = jget(q, "addons");
     for (int i = 0; ad && ad->t == J_ARR && i < ad->len; i++)
         if (ad->items[i]->t != J_STR || plan_req_add_addon(&r, ad->items[i]->s)) {
@@ -500,6 +519,73 @@ static void cmd_log(long long id, int tail) {
     sb_free(&w.b);
 }
 
+static void upload_start(long long id, struct jv *q) {
+    double bytes = jnum(q, "bytes", -1);
+    const char *name = jstr(q, "name");
+    if (job.pid && !job.finished) {
+        reply_err(id, "busy", "an install is running");
+        return;
+    }
+    if (bytes <= 0 || bytes > (double)GAPPS_UPLOAD_MAX) {
+        reply_err(id, "bad_request", "bytes: the size of the file that follows (at most 8 GiB)");
+        return;
+    }
+    char dir[512];
+    env_path(dir, sizeof dir, "/data/misc/openbook_install/gapps");
+    mkdir(dir, 0770);
+    snprintf(up.path, sizeof up.path, "%s/upload.zip", dir);
+    up.fd = open(up.path, O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0640);
+    if (up.fd < 0) {
+        reply_err(id, "io", strerror(errno));
+        return;
+    }
+    size_t o = 0;
+    for (const char *p = name ? name : "package.zip"; *p && o + 1 < sizeof up.name; p++)
+        up.name[o++] = (*p >= 0x20 && *p < 0x7f && *p != '/') ? *p : '_';
+    up.name[o] = 0;
+    up.id = id;
+    up.left = up.total = (uint64_t)bytes;
+    up.last = now_s();
+    LOG("gapps: receiving %s (%llu bytes)", up.name, (unsigned long long)up.total);
+}
+
+static void upload_done(void) {
+    close(up.fd);
+    up.fd = -1;
+    struct jw w = {0};
+    char sha[65];
+    jw_obj(&w, NULL);
+    jw_int(&w, "id", up.id);
+    gapps_check(up.path, up.name, &w, sha);
+    jw_endo(&w);
+    unlink(up.path);
+    send_line(w.b.p);
+    sb_free(&w.b);
+}
+
+// Raw upload bytes from the client; returns how many of n were consumed.
+static size_t upload_feed(const char *p, size_t n) {
+    size_t k = n < up.left ? n : up.left;
+    if (k && write(up.fd, p, k) != (ssize_t)k) {
+        close(up.fd);
+        up.fd = -1;
+        unlink(up.path);
+        reply_err(up.id, "io", "cannot save the package on the stick");
+        up.left = 0;
+        return n;
+    }
+    up.left -= k;
+    if (now_s() - up.last > 0.5 || !up.left) {
+        char e[200];
+        snprintf(e, sizeof e, "{\"id\":%lld,\"event\":\"progress\",\"step\":\"upload\",\"done\":%llu,\"total\":%llu}", up.id,
+                 (unsigned long long)(up.total - up.left), (unsigned long long)up.total);
+        send_line(e);
+        up.last = now_s();
+    }
+    if (!up.left && up.fd >= 0) upload_done();
+    return k;
+}
+
 static void handle(const char *line) {
     char err[128];
     struct jv *q = json_parse(line, err, sizeof err);
@@ -520,6 +606,7 @@ static void handle(const char *line) {
     else if (!strcmp(cmd, "attach")) cmd_attach(id);
     else if (!strcmp(cmd, "status")) cmd_status(id);
     else if (!strcmp(cmd, "log")) cmd_log(id, (int)jnum(q, "tail", 200));
+    else if (!strcmp(cmd, "gapps_check")) upload_start(id, q);
     else reply_err(id, "bad_request", "unknown cmd");
     json_free(q);
 }
@@ -593,7 +680,17 @@ int daemon_main(const char *socket_path) {
                 close(client);
                 client = -1;
                 job.client_id = -1;
+                if (up.fd >= 0) {  // the app went away mid-upload
+                    close(up.fd);
+                    up.fd = -1;
+                    unlink(up.path);
+                }
                 LOG("client disconnected");
+                continue;
+            }
+            if (up.fd >= 0) {  // an upload in progress: raw bytes, not request lines
+                size_t used = upload_feed(tmp, n);
+                if (used < (size_t)n) sb_add(&inbuf, tmp + used, n - used);
                 continue;
             }
             sb_add(&inbuf, tmp, n);
@@ -613,6 +710,12 @@ int daemon_main(const char *socket_path) {
                 inbuf.p[rest] = 0;
                 if (line[0]) handle(line);
                 free(line);
+                if (up.fd >= 0 && inbuf.n) {  // the request was followed by the first bytes of its upload
+                    size_t used = upload_feed(inbuf.p, inbuf.n);
+                    memmove(inbuf.p, inbuf.p + used, inbuf.n - used);
+                    inbuf.n -= used;
+                    inbuf.p[inbuf.n] = 0;
+                }
             }
         }
     }

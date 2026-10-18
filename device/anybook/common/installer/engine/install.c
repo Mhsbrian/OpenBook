@@ -24,7 +24,7 @@
 
 #define ENGINE_VERSION "1"
 
-enum content { C_NONE, C_COPY, C_ZERO_HEAD, C_ZERO_ALL, C_SUPER, C_FAT_NEW };
+enum content { C_NONE, C_COPY, C_ZERO_HEAD, C_ZERO_ALL, C_SUPER, C_FAT_NEW, C_VBMETA };  // C_VBMETA: ANAL-211
 
 struct lpart {
     int index;
@@ -46,6 +46,7 @@ struct efile {
     uint8_t *data;    // generated content, or the stick's file once read (check_source)
     uint32_t bytes;
     char sha256[65];
+    int after_product;  // generated after the new product is built (the bootconfig with its vbmeta digest)
 };
 
 struct layout {
@@ -67,11 +68,21 @@ struct layout {
     uint32_t super_meta_len;
     uint64_t write_bytes, source_bytes;
     struct power pw;
+    // A Google apps package the user brought (ANAL-211, product.c): the new product, super metadata and vbmeta.
+    int gapps;
+    struct gapps_product gp;
+    uint8_t *vbmeta_part;  // vbmeta_a's new content, after the product is built
+    size_t vbmeta_part_len;
+    char vbmeta_sha[65];
+    char vb_digest[65];
+    size_t vb_size;
 };
 
 static void layout_free(struct layout *L) {
     for (int i = 0; i < L->nfiles; i++) free(L->f[i].data);
     free(L->super_meta);
+    free(L->vbmeta_part);
+    gp_free(&L->gp);
     memset(L, 0, sizeof *L);
 }
 
@@ -154,6 +165,16 @@ static uint8_t *bootconfig_blob(struct layout *L, uint32_t *len) {
         if (!strcmp(k, "androidboot.boot_part_uuid") || !strcmp(k, "androidboot.serialno") ||
             !strncmp(k, "androidboot.openbook.live", 25) || !strcmp(k, "androidboot.openbook.logs"))
             continue;
+        if (L->vb_digest[0] && !strcmp(k, "androidboot.vbmeta.digest")) {  // a rebuilt vbmeta (ANAL-211)
+            bc_render_kv(&t, k, L->vb_digest);
+            continue;
+        }
+        if (L->vb_digest[0] && !strcmp(k, "androidboot.vbmeta.size")) {
+            char n[24];
+            snprintf(n, sizeof n, "%zu", L->vb_size);
+            bc_render_kv(&t, k, n);
+            continue;
+        }
         if (bc->items[i]->t == J_STR) bc_render_kv(&t, k, bc->items[i]->s);
     }
     bc_render_kv(&t, "androidboot.boot_part_uuid", L->boot_part_uuid);
@@ -409,6 +430,45 @@ static int compute_layout(const struct plan_req *r, struct disk *d, int n, struc
         }
         json_free(cat);
     }
+    // A Google apps package the user brought and confirmed (ANAL-211, product.c): a new product in super, super's
+    // metadata with product moved, and vbmeta_a rebuilt; the bootconfig follows the new vbmeta. Nothing of this
+    // exists in a plan without one.
+    if (r->gapps[0]) {
+        if (!r->gapps_confirmed) {
+            *code = "gapps_not_confirmed";
+            snprintf(why, wl, "the Google apps step needs the user's confirmation that this device is not certified");
+            return -1;
+        }
+        struct jv *sup = jget(L->inst, "super");
+        const char *mf = jstr(sup, "metadata_file");
+        struct fat sf;
+        uint32_t ml = 0;
+        uint8_t *meta = NULL;
+        uint64_t off = src->esp->first * src->disk->sector, size = (src->esp->last - src->esp->first + 1) * src->disk->sector;
+        if (mf && !fat_open(&sf, src->fd, off, size)) {
+            meta = fat_read(&sf, mf, &ml);
+            fat_close(&sf);
+        }
+        char got[65] = "";
+        if (meta) sha256_hex(meta, ml, got);
+        if (!meta || !jstr(sup, "metadata_sha256") || strcmp(got, jstr(sup, "metadata_sha256"))) {
+            free(meta);
+            *code = "no_source";
+            snprintf(why, wl, "the stick's super metadata does not match its manifest");
+            return -1;
+        }
+        int grc = gp_plan(&L->gp, r->gapps, src, L->inst, meta, ml, code, why, wl);
+        free(meta);
+        if (grc) return -1;
+        L->gapps = 1;
+        for (int i = 0; i < L->nparts; i++)
+            if (!strcmp(L->p[i].name, "vbmeta_a") && L->p[i].content == C_COPY) L->p[i].content = C_VBMETA;
+        for (int i = 0; i < L->nfiles; i++)
+            if (!strcmp(L->f[i].path, "openbook/a/bootconfig.img")) {
+                L->f[i].after_product = 1;
+                L->f[i].sha256[0] = 0;
+            }
+    }
     if (r->naddons) {
         uint64_t fb = 0;
         for (int i = 0; i < L->nfiles; i++)
@@ -423,13 +483,17 @@ static int compute_layout(const struct plan_req *r, struct disk *d, int n, struc
     for (int i = 0; i < L->nparts; i++) {
         struct lpart *p = &L->p[i];
         if (p->content == C_COPY || p->content == C_SUPER) L->source_bytes += p->src_bytes;
-        if (p->content == C_COPY) L->write_bytes += p->src_bytes;
+        if (p->content == C_COPY || p->content == C_VBMETA) L->write_bytes += p->src_bytes;
         if (p->content == C_ZERO_ALL) L->write_bytes += p->bytes;
         if (p->content == C_ZERO_HEAD) L->write_bytes += p->bytes < MiB ? p->bytes : MiB;
     }
     struct jv *ext = jget(sup, "extents");
     for (int i = 0; ext && i < ext->len; i++) L->write_bytes += (uint64_t)jnum(ext->items[i], "bytes", 0);
     L->write_bytes += (uint64_t)jnum(sup, "metadata_bytes", 0);
+    if (L->gapps) {  // product's new size instead of the stick's; the staged files and product are read once more
+        L->write_bytes += L->gp.part_bytes - L->gp.src_bytes;
+        L->source_bytes += L->gp.gapps_bytes + L->gp.src_bytes;
+    }
     for (int i = 0; i < L->nfiles; i++) {
         L->write_bytes += L->f[i].bytes;
         if (L->f[i].src[0]) L->source_bytes += L->f[i].bytes;
@@ -552,6 +616,18 @@ static void addon_ops(struct layout *L, struct jw *w) {
     }
 }
 
+// The package step (ANAL-211): its staged files are checked against the package check's manifest.
+static void gapps_ops(struct layout *L, struct jw *w) {
+    if (!L->gapps) return;
+    struct jv *pkg = jget(L->gp.manifest, "package");
+    char sz[32];
+    mib_str(L->gp.gapps_bytes, sz, sizeof sz);
+    op(w, "check_gapps", "Check the %d staged files (%s) of the Google apps package \"%s\" (sha256 %.16s) against "
+                         "its check's manifest (%.16s)",
+       L->gp.nfiles - 1, sz, jstr(pkg, "file") ? jstr(pkg, "file") : "", jstr(pkg, "sha256") ? jstr(pkg, "sha256") : "",
+       L->gp.sha);
+}
+
 static void plan_core(struct layout *L, struct jw *w) {
     const struct disk *t = L->t;
     char a[32], b[32];
@@ -569,6 +645,10 @@ static void plan_core(struct layout *L, struct jw *w) {
         jw_arr(w, "addons");
         for (int k = 0; k < L->r->naddons; k++) jw_str(w, NULL, L->r->addons[k]);
         jw_enda(w);
+    }
+    if (L->r->gapps[0]) {  // only then: a plan without a package is byte for byte what it was before (ANAL-211)
+        jw_str(w, "gapps", L->r->gapps);
+        jw_bool(w, "gapps_confirmed", L->r->gapps_confirmed);
     }
     jw_endo(w);
     jw_obj(w, "seeds");
@@ -628,7 +708,8 @@ static void plan_core(struct layout *L, struct jw *w) {
         jw_u64(w, "start", p->start);
         jw_u64(w, "bytes", p->bytes);
         jw_str(w, "content", p->content == C_COPY ? "copy" : p->content == C_SUPER ? "super" : p->content == C_FAT_NEW
-                             ? "fat32" : p->content == C_ZERO_ALL ? "zero" : "zero_head");
+                             ? "fat32" : p->content == C_ZERO_ALL ? "zero" : p->content == C_VBMETA ? "vbmeta_rebuilt"
+                             : "zero_head");
         if (p->src[0]) {
             jw_str(w, "source", p->src);
             jw_u64(w, "source_bytes", p->src_bytes);
@@ -645,8 +726,9 @@ static void plan_core(struct layout *L, struct jw *w) {
         jw_str(w, "on", f->shared ? "existing_esp" : L->p[L->boot].name);
         jw_str(w, "source", f->src[0] ? f->src : "generated");
         jw_u64(w, "bytes", f->bytes);
-        jw_str(w, "sha256", f->sha256);
+        jw_str(w, "sha256", f->after_product ? NULL : f->sha256);
         jw_bool(w, "after_verify", f->activate);
+        if (f->after_product) jw_bool(w, "after_product", 1);  // its vbmeta digest is known once product is built
         jw_endo(w);
     }
     jw_enda(w);
@@ -659,6 +741,7 @@ static void plan_core(struct layout *L, struct jw *w) {
     jw_str(w, "boot_order", !E.efivars ? "unchanged" : L->r->set_default ? "first" : "unchanged");
     jw_bool(w, "set_default", L->r->set_default);
     jw_endo(w);
+    if (L->gapps) gp_json(w, &L->gp);
     uint64_t verify = L->write_bytes;
     jw_u64(w, "bytes_to_write", L->write_bytes);
     jw_u64(w, "bytes_to_check", L->source_bytes);
@@ -668,6 +751,12 @@ static void plan_core(struct layout *L, struct jw *w) {
     else if (!L->r->set_default) jw_str(w, NULL, "boot_order_unchanged");
     if (t->external) jw_str(w, NULL, "external");
     if (t->encrypted) jw_str(w, NULL, L->whole ? "encrypted_erased" : "encrypted_kept");
+    if (L->gapps) {
+        char pp[16];
+        jw_str(w, NULL, "gapps_uncertified");  // no Play Protect certification, no Play Integrity device verdicts
+        prop_get("ro.control_privapp_permissions", pp, sizeof pp);
+        if (strcmp(pp, "enforce")) jw_str(w, NULL, "privapp_allowlist_not_enforced");
+    }
     jw_enda(w);
     // The operations, in order, as "View the plan" shows them (S5).
     jw_arr(w, "operations");
@@ -675,6 +764,7 @@ static void plan_core(struct layout *L, struct jw *w) {
         op(w, "check_source", "Check the stick's partitions and boot files against its manifest (%s)",
            L->src->label);
         addon_ops(L, w);
+        gapps_ops(L, w);
         op(w, "recheck", "Re-check the disk's identity (serial %s, %llu bytes) and partition table (sha256 %.16s)",
            t->serial, (unsigned long long)t->size, t->table_sha256);
         op(w, "wipe_table", "Erase the partition table: the first and last MiB of %s (protective MBR, primary and "
@@ -683,6 +773,7 @@ static void plan_core(struct layout *L, struct jw *w) {
         op(w, "check_source", "Check the stick's partitions and boot files against its manifest (%s)",
            L->src->label);
         addon_ops(L, w);
+        gapps_ops(L, w);
         op(w, "recheck", "Re-check the disk's identity (serial %s, %llu bytes) and partition table (sha256 %.16s)",
            t->serial, (unsigned long long)t->size, t->table_sha256);
         mib_str(t->largest.bytes, a, sizeof a);
@@ -708,12 +799,33 @@ static void plan_core(struct layout *L, struct jw *w) {
             break;
         case C_SUPER: {
             struct jv *ext = jget(jget(L->inst, "super"), "extents");
+            if (L->gapps) {
+                const struct gapps_product *g = &L->gp;
+                char s1[32], s2[32], s3[32];
+                mib_str(g->src_bytes, s1, sizeof s1);
+                mib_str(g->gapps_bytes, s2, sizeof s2);
+                mib_str(g->part_bytes, s3, sizeof s3);
+                op(w, "super", "Write partition %d \"super\" at %llu (%s): %d logical partitions from the stick's "
+                               "super except %s, then its metadata for this size with %s moved (sha256 %.16s)",
+                   p->index, (unsigned long long)p->start, a, ext ? ext->len - 1 : 0, g->part, g->part, g->lp_sha);
+                op(w, "product", "Build a new %s of %s at %llu in super: the stick's product (%s) plus the package's %d "
+                                 "files (%s) and their manifest; a new dm-verity hashtree (sha256, the stick's salt, no "
+                                 "FEC) and AVB footer",
+                   g->part, s3, (unsigned long long)g->new_dst, s1, g->nfiles - 1, s2);
+                break;
+            }
             op(w, "super", "Write partition %d \"super\" at %llu (%s): %d logical partitions from the stick's super, "
                            "then its metadata for this size (sha256 %.16s)",
                p->index, (unsigned long long)p->start, a, ext ? ext->len : 0,
                jstr(jget(L->inst, "super"), "metadata_sha256") ? jstr(jget(L->inst, "super"), "metadata_sha256") : "");
             break;
         }
+        case C_VBMETA:
+            op(w, "vbmeta", "Write partition %d \"%s\" at %llu (%s) once product is built: the stick's %s (sha256 "
+                            "%.16s) with product's new hashtree descriptor, unsigned (the loader reports the orange "
+                            "state; dm-verity still checks every block of product)",
+               p->index, p->name, (unsigned long long)p->start, a, p->src, p->sha256);
+            break;
         case C_FAT_NEW:
             op(w, "format", "Format partition %d \"%s\" at %llu (%s) as FAT32, label OPENBOOK", p->index, p->name,
                (unsigned long long)p->start, a);
@@ -723,7 +835,9 @@ static void plan_core(struct layout *L, struct jw *w) {
         }
     }
     for (int i = 0; i < L->nfiles; i++)
-        if (!L->f[i].activate)
+        if (!L->f[i].activate && L->f[i].after_product)
+            op(w, "file", "Write %s on %s with the new vbmeta's digest and size", L->f[i].path, L->p[L->boot].name);
+        else if (!L->f[i].activate)
             op(w, "file", "Write %s on %s (%u bytes, sha256 %.16s)", L->f[i].path,
                L->f[i].shared ? "the existing EFI partition" : L->p[L->boot].name, L->f[i].bytes, L->f[i].sha256);
     if (L->whole)
@@ -797,6 +911,11 @@ int plan_req_from_json(const struct jv *plan, struct plan_req *r) {
     struct jv *ad = jget(q, "addons");
     for (int i = 0; ad && ad->t == J_ARR && i < ad->len; i++)
         if (ad->items[i]->t != J_STR || plan_req_add_addon(r, ad->items[i]->s)) return -1;
+    if (jstr(q, "gapps")) {
+        if (strlen(jstr(q, "gapps")) != 64) return -1;
+        snprintf(r->gapps, sizeof r->gapps, "%s", jstr(q, "gapps"));
+        r->gapps_confirmed = jbool(q, "gapps_confirmed", 0);
+    }
     snprintf(r->disk_guid, sizeof r->disk_guid, "%s", jstr(s, "disk_guid") ? jstr(s, "disk_guid") : "");
     snprintf(r->serialno, sizeof r->serialno, "%s", jstr(s, "serialno") ? jstr(s, "serialno") : "");
     struct jv *g = jget(s, "part_guids");
@@ -817,6 +936,9 @@ static uint64_t step_base, step_total[7];  // the running step's own bytes, for 
 static int cur_step_i = -1;
 static double prog_last, prog_start;
 static const char *cur_step = "";
+
+static void progress(uint64_t add, int force);
+static void progress_cb(uint64_t add) { progress(add, 0); }
 
 static void step(int i, const char *state) {
     snprintf(step_state[i], sizeof step_state[i], "%s", state);
@@ -1152,6 +1274,10 @@ int apply_run(const struct plan_req *r, const char *expect_sha, const char *type
         L.super_meta = meta;
         L.super_meta_len = len;
     }
+    if (L.gapps) {  // the staged package, file by file, against its check (S10 for what the user brought)
+        if (gp_verify_staged(&L.gp, progress_cb, err, sizeof err)) goto fail;
+        LOG("gapps: %d staged files match the package check (%s)", L.gp.nfiles - 1, L.gp.sha);
+    }
     step(0, "done");
 
     // ---- 2. prepare_disk (S1 at open time, S4)
@@ -1198,6 +1324,11 @@ int apply_run(const struct plan_req *r, const char *expect_sha, const char *type
             }
             LOG("copied %s -> partition %d \"%s\" (%llu bytes)", p->src, p->index, p->name,
                 (unsigned long long)p->src_bytes);
+        } else if (p->content == C_VBMETA) {  // written once product is built (system)
+            if (zero_range(fd, p->start, p->bytes < MiB ? p->bytes : MiB)) {
+                snprintf(err, sizeof err, "zeroing %s: %s", p->name, strerror(errno));
+                goto fail;
+            }
         } else if (p->content == C_ZERO_ALL || p->content == C_ZERO_HEAD) {
             uint64_t z = p->content == C_ZERO_ALL || p->bytes < MiB ? p->bytes : MiB;
             if (zero_range(fd, p->start, z)) {
@@ -1221,6 +1352,7 @@ int apply_run(const struct plan_req *r, const char *expect_sha, const char *type
             struct jv *e = ext->items[k];
             uint64_t so = (uint64_t)jnum(e, "src", 0), dO = (uint64_t)jnum(e, "dst", 0), b = (uint64_t)jnum(e, "bytes", 0);
             char got[65];
+            if (L.gapps && jstr(e, "name") && !strcmp(jstr(e, "name"), L.gp.part)) continue;  // rebuilt below
             if (dO + b > p->bytes || so + b > p->src_bytes) {
                 snprintf(err, sizeof err, "super extent %s out of range", jstr(e, "name") ? jstr(e, "name") : "?");
                 goto fail;
@@ -1235,12 +1367,44 @@ int apply_run(const struct plan_req *r, const char *expect_sha, const char *type
             }
             LOG("super: %s, %llu bytes at %llu", jstr(e, "name"), (unsigned long long)b, (unsigned long long)dO);
         }
-        if (pwrite_all(fd, L.super_meta, L.super_meta_len, p->start)) {
+        if (L.gapps) {
+            if (gp_build(&L.gp, src.fd, fd, p->start, progress_cb, err, sizeof err)) goto fail;
+            LOG("super: %s rebuilt with the package, %llu bytes at %llu", L.gp.part, (unsigned long long)L.gp.part_bytes,
+                (unsigned long long)L.gp.new_dst);
+        }
+        const uint8_t *meta = L.gapps ? L.gp.lp : L.super_meta;
+        if (pwrite_all(fd, meta, L.super_meta_len, p->start)) {
             snprintf(err, sizeof err, "writing super metadata: %s", strerror(errno));
             goto fail;
         }
         progress(L.super_meta_len, 0);
-        LOG("super: metadata for %llu bytes written", (unsigned long long)p->bytes);
+        LOG("super: metadata for %llu bytes written%s", (unsigned long long)p->bytes,
+            L.gapps ? " (product moved)" : "");
+    }
+    // vbmeta_a with product's new descriptor, and the bootconfig with its digest (ANAL-211)
+    for (int i = 0; L.gapps && i < L.nparts; i++) {
+        struct lpart *p = &L.p[i];
+        if (p->content != C_VBMETA) continue;
+        L.vbmeta_part = gp_vbmeta_partition(&L.gp, &L.vbmeta_part_len);
+        if (!L.vbmeta_part || L.vbmeta_part_len > p->bytes || pwrite_all(fd, L.vbmeta_part, L.vbmeta_part_len, p->start)) {
+            snprintf(err, sizeof err, "writing %s: %s", p->name, strerror(errno));
+            goto fail;
+        }
+        sha256_hex(L.vbmeta_part, L.vbmeta_part_len, L.vbmeta_sha);
+        progress(L.vbmeta_part_len, 0);
+        snprintf(L.vb_digest, sizeof L.vb_digest, "%s", L.gp.vbmeta_digest);
+        L.vb_size = L.gp.vbmeta_new_len;
+        LOG("%s: rebuilt vbmeta, %zu bytes, digest %s (unsigned)", p->name, L.vb_size, L.vb_digest);
+        for (int k = 0; k < L.nfiles; k++) {
+            struct efile *f = &L.f[k];
+            if (!f->after_product) continue;
+            uint32_t bl;
+            uint8_t *bc = bootconfig_blob(&L, &bl);
+            free(f->data);
+            f->data = bc;
+            f->bytes = bl;
+            sha256_hex(bc, bl, f->sha256);
+        }
     }
     fsync(fd);
     step(3, "done");
@@ -1317,6 +1481,17 @@ int apply_run(const struct plan_req *r, const char *expect_sha, const char *type
             struct jv *sup = jget(L.inst, "super"), *ext = jget(sup, "extents");
             for (int k = 0; ext && k < ext->len; k++) {
                 struct jv *e = ext->items[k];
+                if (L.gapps && jstr(e, "name") && !strcmp(jstr(e, "name"), L.gp.part)) {
+                    struct verified *x = &v[nv++];
+                    snprintf(x->what, sizeof x->what, "super:%s (with the package)", L.gp.part);
+                    x->bytes = L.gp.part_bytes;
+                    if (hash_region(fd, p->start + L.gp.new_dst, x->bytes, x->sha256) || strcmp(x->sha256, L.gp.part_sha)) {
+                        snprintf(err, sizeof err, "read-back of the rebuilt %s does not match", L.gp.part);
+                        goto fail;
+                    }
+                    x->ok = 1;
+                    continue;
+                }
                 struct verified *x = &v[nv++];
                 snprintf(x->what, sizeof x->what, "super:%s", jstr(e, "name") ? jstr(e, "name") : "?");
                 x->bytes = (uint64_t)jnum(e, "bytes", 0);
@@ -1330,8 +1505,18 @@ int apply_run(const struct plan_req *r, const char *expect_sha, const char *type
             struct verified *x = &v[nv++];
             snprintf(x->what, sizeof x->what, "super:metadata");
             x->bytes = L.super_meta_len;
-            if (hash_region(fd, p->start, x->bytes, x->sha256) || strcmp(x->sha256, jstr(sup, "metadata_sha256"))) {
+            if (hash_region(fd, p->start, x->bytes, x->sha256) ||
+                strcmp(x->sha256, L.gapps ? L.gp.lp_sha : jstr(sup, "metadata_sha256"))) {
                 snprintf(err, sizeof err, "read-back of the super metadata does not match");
+                goto fail;
+            }
+            x->ok = 1;
+        } else if (p->content == C_VBMETA) {
+            struct verified *x = &v[nv++];
+            snprintf(x->what, sizeof x->what, "%s (rebuilt)", p->name);
+            x->bytes = L.vbmeta_part_len;
+            if (hash_region(fd, p->start, x->bytes, x->sha256) || strcmp(x->sha256, L.vbmeta_sha)) {
+                snprintf(err, sizeof err, "read-back of %s does not match", p->name);
                 goto fail;
             }
             x->ok = 1;
@@ -1432,6 +1617,19 @@ out_json:;
         jw_str(&w, "nvram_error", nv_res.why[0] ? nv_res.why : NULL);
     }
     jw_bool(&w, "fallback_path", have_layout && !L.shared_esp && verified_ok);
+    if (have_layout && L.gapps) {  // what the package step built (ANAL-211)
+        jw_obj(&w, "gapps");
+        jw_str(&w, "manifest_sha256", L.gp.sha);
+        jw_str(&w, "product", L.gp.part);
+        jw_u64(&w, "product_bytes", L.gp.part_bytes);
+        jw_str(&w, "product_sha256", L.gp.part_sha[0] ? L.gp.part_sha : NULL);
+        jw_str(&w, "root_digest", L.gp.root_hex[0] ? L.gp.root_hex : NULL);
+        jw_u64(&w, "super_offset", L.gp.new_dst);
+        jw_str(&w, "vbmeta_digest", L.vb_digest[0] ? L.vb_digest : NULL);
+        jw_int(&w, "vbmeta_size", (long long)L.vb_size);
+        jw_str(&w, "vbmeta", "unsigned");
+        jw_endo(&w);
+    }
     char rp[96], lp[96];
     snprintf(rp, sizeof rp, "openbook/logs/install-%s.json", ts);
     snprintf(lp, sizeof lp, "openbook/logs/install-%s.log", ts);
