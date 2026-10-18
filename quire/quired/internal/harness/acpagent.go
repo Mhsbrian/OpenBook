@@ -79,6 +79,19 @@ func startACP(ctx context.Context, spec agents.Spec, client Client, opts Options
 func (a *acpAgent) Info() acp.InitializeResponse { return a.info }
 func (a *acpAgent) Diagnostics() string          { return a.stderr.String() }
 
+func (a *acpAgent) Authenticate(ctx context.Context, methodID string) error {
+	for _, m := range a.info.AuthMethods {
+		if m.ID != methodID {
+			continue
+		}
+		if m.Type == acp.AuthTerminal {
+			return acp.Errorf(acp.CodeInvalidParams, "%s is signed in from a terminal, not through authenticate", methodID)
+		}
+		return a.wrap("authenticate", a.conn.Call(ctx, acp.MethodAuthenticate, acp.AuthenticateRequest{MethodID: methodID}, nil))
+	}
+	return acp.Errorf(acp.CodeInvalidParams, "the agent offers no sign-in method %q", methodID)
+}
+
 func (a *acpAgent) NewSession(ctx context.Context, cwd string, mcp []acp.McpServer) (string, error) {
 	if mcp == nil {
 		mcp = []acp.McpServer{}
