@@ -18,7 +18,7 @@ def main():
     c = Counter((r[ix["decision"]], r[ix["group"]]) for r in rows)
     print(f"{len(rows)} flags: " + ", ".join(f"{n} {d}" + (f" (group {g})" if g != "-" else "")
                                             for (d, g), n in sorted(c.items())) + ".\n")
-    for dec, title in [("enable", "Enabled"), ("defer", "Deferred"), ("skip", "Skipped")]:
+    for dec, title in [("enable", "Enabled"), ("drop", "Dropped after testing"), ("defer", "Deferred"), ("skip", "Skipped")]:
         sel = [r for r in rows if r[ix["decision"]] == dec]
         print(f"### {title} ({len(sel)})\n")
         print("| Group | Flag | Category | Readers | Reason |\n|---|---|---|---|---|")

@@ -1,0 +1,5 @@
+# v2 (all groups): every freeform window layer
+boxShadowSettings.length=BoxShadowSettings{boxShadows: [BoxShadowParams{blurRadius: 24.000000, spreadRadius: 0.000000, color: 419430400, offsetX: 0.000000, offsetY: 0.000000}, BoxShadowParams{blurRadius: 24.000000, spreadRadius: 0.000000, color: 855638016, offsetX: 0.000000, offsetY: 16.000000}]}borderSettings=BorderSettings{strokeWidth: 1.000000, color: 1304281542}
+
+# baseline: the same layers carry only the legacy elevation shadow
+visible reason= color{< 0.933105, 0.929199, 0.964844, 1 >} shadowSettings.length=20

@@ -1,0 +1,26 @@
+=== 01:47:54 AnyBook/anybook_cf_x86_64_pc/anybook_vsoc_x86_64:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+=== 01:47:54 INFO flag state: group 1: 6/6 enabled; group 2: 2/2 enabled; group 3: 13/13 enabled; group 4: 16/16 enabled; group 5: 42/42 enabled; group 6: 5/5 enabled
+=== 01:47:56 INFO window shadows (SurfaceFlinger): 'boxShadow' mentions: 20, layers with shadowRadius>0: 0
+=== 01:47:57 INFO windows: start: task #10 com.android.documentsui mode=freeform bounds=(329, 167, 1711, 944)
+=== 01:48:01 PASS focus (click into the window): mCurrentFocus=com.android.documentsui
+=== 01:48:08 PASS move (caption drag): bounds (329, 167, 1711, 944) -> (177, 88, 1559, 865)
+=== 01:48:14 PASS resize (corner drag): bounds (177, 88, 1559, 865) -> (177, 88, 1681, 947)
+=== 01:48:20 INFO no-resize cursor (drag below minimum size): resolvedPointerType while held: 1017 (1000 = arrow); bounds after: (177, 88, 573, 539)
+=== 01:48:38 PASS maximize (Meta+=): bounds (177, 88, 573, 539) -> (0, 24, 1920, 1024)
+=== 01:48:40 PASS restore (Meta+= again): bounds -> (177, 88, 573, 539)
+=== 01:48:43 PASS maximize (caption button): bounds -> (0, 24, 1920, 1024)
+=== 01:48:47 INFO restore (caption double click): bounds -> (177, 88, 573, 539)
+=== 01:48:52 PASS minimize (caption button): task visible=False
+=== 01:48:58 PASS taskbar click restores the minimized window: icon (1144, 1028, 1192, 1076), task visible=True
+=== 01:49:01 INFO taskbar click on the focused window: task visible=True; Files tasks: #10
+=== 01:49:04 INFO taskbar icon menu (right click): screenshot
+=== 01:49:10 PASS minimize (Meta+-): task visible=False; focus was com.android.settings; Files tasks: #10 (hidden)
+=== 01:49:19 INFO new window placement (cascade): #12 com.android.deskclock freeform (329, 167, 1711, 944); #11 android.task.calendar freeform (269, 107, 1651, 884)
+=== 01:49:34 INFO QS tile hover (tooltip): tile Wi-Fi,null (1542, 200, 1586, 244); tooltip-like nodes: 0
+=== 01:49:46 INFO notification hover: row (1608, 78, 1864, 97): screenshot
+=== 01:49:55 INFO notification right click (inline settings): settings-like nodes after right click: 0
+=== 01:50:06 INFO power menu blur: blurred layers: Dim Layer for - Display 0 name="Built-in Screen" (34), VRI-NotificationShade (34)
+=== 01:50:10 INFO volume dialog blur: blurred layers: none
+=== 01:50:14 PASS crash buffer: 0 lines; 
+=== 01:50:14 PASS ANRs: am_anr events: 0
+=== 01:50:14 INFO SELinux denials: 3 distinct

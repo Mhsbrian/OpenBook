@@ -67,7 +67,7 @@ device/anybook/
     Android.bp                             AnyBookDesktopFrameworkOverlay, AnyBookDesktopSystemUIOverlay (/product)
     overlays/framework/res/values/config.xml
     overlays/systemui/res/values/config.xml
-    release/                               aconfig value set "aconfig_value_set-anybook_desktop-cp2a" (79 flags)
+    release/                               aconfig value set "aconfig_value_set-anybook_desktop-cp2a" (163 flags: 79 here, 84 from ANAL-204)
   cuttlefish/
     anybook_cf_x86_64_pc.mk                aosp_cf_x86_64_pc + desktop.mk + the VM-only pieces below
     display_settings.xml                   port:0 windowingMode=5 ignoreOrientationRequest=true (-> /product/etc)
@@ -154,6 +154,18 @@ Google's desktop build turns on more flags than cp2a does. These are UI flags, n
 - Windowing and the taskbar were the same before and after.
 
 **Risk (HYPOTHESIS).** Google ships these 79 flags on Android 17. We have no regression tests for them, beyond the boot, the desktop capture and the benchmark below.
+
+#### Flag set v2: the Googlebook flags (ANAL-204)
+
+Googlebook enables 218 more flags that our tree declares. ANAL-204 triaged all of them and enabled **84**, in six groups, in the same value set. Details are in [`googlebook-flags.md`](googlebook-flags.md); the record is `device/anybook/common/desktop/release/googlebook-triage.tsv`.
+
+- `scripts/desktop-flags.py --list <triage.tsv> [--groups ...]` writes them. Each value file's first line names its source, so `--list` and the diff mode above each regenerate only their own files.
+- **Two flags break AOSP 17's desktop and stay off (C):**
+  - `enable_add_window_decoration_to_all_tasks`: SystemUI crashes when a minimized window is restored from the taskbar.
+  - `start_on_gone_scene_if_no_lockscreen`: the notification shade is empty. Our framework overlay disables the lock screen, so SystemUI would start on the Gone scene, and the keyguard section that binds the notification stack never runs.
+- **24 do nothing:** nothing in our tree reads them, e.g. `perfect_edge` and `enable_taskbar_icon_desktop_clicks`.
+- **Visible on the desktop (C, Cuttlefish):** box shadows and a 1 px border on windows, stepped cascading, the windowing pill inside the maximize menu, QS tile tooltips, power-menu blur, and a Cast tile that works over Ethernet.
+- Evidence: `evidence/2026-10-17-desktop-flags-v2/`. The G14 checks are on ANAL-192.
 
 ## Cuttlefish GPU modes on this host
 
