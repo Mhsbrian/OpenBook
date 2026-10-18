@@ -36,6 +36,19 @@ The owner's two sessions of 2026-10-17 on the **ASUS GA403WR** (Ryzen AI 9 HX 37
 | 2026-10-17 | App audio under enforcing | — | — | **no sound from the browser**: `untrusted_app_29 → audioserver_tmpfs` denied (fixed in PR #52, not yet run on the G14) | `evidence/2026-10-17-g14-desktop/` (PR #52) |
 | 2026-10-17 | Headphone jack | ALC285 pin `0x21`, HDA jack input device | not tested (nothing plugged in) | not tested | `digest.txt` |
 
+
+The owner's `anal192d` session of 2026-10-18 (`main` `81578c1` + #83). It had a default boot (enforcing, an hour) and "save logs"; details in `docs/g14-audio-net.md` §11.
+
+| Date | Function | `anal192d` | Evidence (`evidence/2026-10-18-g14-anal192d-audio-net/`) |
+|---|---|---|---|
+| 2026-10-18 | Speaker → mic through Android (AAudio) | **`audio_android_clean` yes**: heard, 0 of 30 slices glitched, no HAL padding (patch 0002) | `report.md` |
+| 2026-10-18 | Wi-Fi | connected (2.4 GHz, −22 dBm, Wi-Fi 6), DHCP, internet; the gateway did not answer ping (H: the access point drops ICMP). `wifi_pno` **yes**: the MT7925 takes scheduled scans | `report.md`, `hwtest-final.txt` |
+| 2026-10-18 | Bluetooth audio under enforcing | **works**: an AAC headset paired, and A2DP streamed four times (26 minutes the longest), with no crash or denial. Reconnect after turning it off and on: not seen | `digest-default-boot.txt` |
+| 2026-10-18 | Browser audio under enforcing | **works**: Chrome and WebView Shell, on the speakers and over A2DP | `digest-default-boot.txt` |
+| 2026-10-18 | UI sound at boot (SoundPool) | the unlock sound's track is created, with no denial (#67) | `digest-default-boot.txt` |
+| 2026-10-18 | Notification sound (MediaPlayer) | **failed**: `mediaserver → audioserver_tmpfs` denied, "Could not get control block". Fixed by ANAL-198's #97 (QEMU-tested there; not yet run on the G14) | `digest-default-boot.txt` |
+| 2026-10-18 | Headphone jack | not shown (no plug event) | `digest-default-boot.txt` |
+
 ## ARM-only APKs
 
 The first baseline is libndk_translation in the AOSP Desktop (Preview) 37.0 emulator, from 2026-10-15 (ANAL-180). Each verdict means the app is alive 15 s after launch, with crash, ANR and tombstone counts and a screenshot. Two wiped-emulator runs gave identical results. Method, probe details and findings are in `docs/compat-harness.md`; evidence is in `evidence/2026-10-15-compat/`. The Digitalis column (2026-10-16, ANAL-181) uses the same image, corpus and harness, with Digitalis built from source and installed as the native bridge on a separate AVD. It also had two identical wiped-emulator runs; details are in `docs/digitalis.md` and evidence in `evidence/2026-10-16-digitalis/`. The houdini column comes next. "—" means not tested yet.
