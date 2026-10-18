@@ -110,6 +110,7 @@ A bare-metal product (ANAL-176 onward) inherits `device/anybook/common/desktop/d
 | `config_wallpaperDimAmount` | 0 | AOSP default 0.05; Googlebook 0 | no 5 % default dim on wallpapers that support neither dark text nor a dark theme (ANAL-205) |
 | `config_headlineFontFamily`, `config_headlineFontFamilyMedium` | `google-sans`, `google-sans-medium` | not set (AOSP defaults: empty, `@string/font_family_button_material`); Googlebook the same as ours | headlines in Google Sans, as on Googlebook (ANAL-202, [`googlebook-ui.md`](googlebook-ui.md) §2.1). The families are defined in `fonts/fonts_customization.xml` |
 | `config_bodyFontFamily`, `config_bodyFontFamilyMedium` | `google-sans-text`, `google-sans-text-medium` | not set (AOSP defaults: `sans-serif`, `sans-serif-medium`); Googlebook the same as ours | running text in Google Sans Text (ANAL-202) |
+| `config_defaultRefreshRate`, `config_defaultPeakRefreshRate` | 0, 1000 | not set (AOSP defaults: 60, 0); Googlebook 0, 1000 | no 60 frames-a-second render cap: each panel draws up to its own top rate, and SurfaceFlinger still lowers it for content (ANAL-212, [`graphics-amd.md`](graphics-amd.md) "Refresh rate") |
 
 These reference values were left out:
 - **Look and feel:** `config_buttonTextAllCaps=false`. (The circle mask and round icons were left out at first; ANAL-205 added them, to match Googlebook.)
