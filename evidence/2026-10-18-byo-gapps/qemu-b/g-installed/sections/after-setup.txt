@@ -1,0 +1,8 @@
+1
+1
+        88d6d8e org.openbook.installer/.GappsRegistrationActivity filter 56d19af
+          Action: "com.android.settings.action.EXTRA_SETTINGS"
+      android.intent.action.MAIN:
+--
+        org.openbook.installer.GappsRegistrationActivity
+

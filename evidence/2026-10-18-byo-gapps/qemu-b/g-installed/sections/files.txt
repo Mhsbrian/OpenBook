@@ -1,0 +1,30 @@
+/product/app/OpenBookTestApp:
+total 16
+-rw-r--r-- 1 root root u:object_r:system_file:s0  8530 2026-10-18 10:04 OpenBookTestApp.apk
+drwxr-xr-x 3 root root u:object_r:system_file:s0    45 2026-10-18 10:04 lib
+
+/product/app/OpenBookTestApp/lib:
+total 4
+drwxr-xr-x 2 root root u:object_r:system_file:s0  52 2026-10-18 10:04 x86_64
+
+/product/app/OpenBookTestApp/lib/x86_64:
+total 8
+-rw-r--r-- 1 root root u:object_r:system_file:s0  5088 2026-10-18 10:04 libobgapps.so
+
+/product/etc/default-permissions:
+total 4
+-rw-r--r-- 1 root root u:object_r:system_file:s0  453 2026-10-18 10:04 default-permissions-openbook-synthetic.xml
+
+/product/etc/openbook:
+total 4
+-rw-r--r-- 1 root root u:object_r:system_file:s0  3495 2026-10-18 10:04 gapps-manifest.json
+
+/product/priv-app/OpenBookTestGsf:
+total 12
+-rw-r--r-- 1 root root u:object_r:system_file:s0  8587 2026-10-18 10:04 OpenBookTestGsf.apk
+
+/product/priv-app/OpenBookTestPriv:
+total 32
+-rw-r--r-- 1 root root u:object_r:system_file:s0  29080 2026-10-18 10:04 OpenBookTestPriv.apk
+-rw-r--r-- 1 root root u:object_r:system_file:s0  502 2026-10-18 10:04 /product/etc/permissions/privapp-permissions-openbook-synthetic.xml
+-rw-r--r-- 1 root root u:object_r:system_file:s0  270 2026-10-18 10:04 /product/etc/sysconfig/openbook-synthetic-sysconfig.xml

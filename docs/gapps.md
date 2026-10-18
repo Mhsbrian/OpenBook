@@ -12,7 +12,7 @@ As of 2026-10-17. Labels: **C** = confirmed (we read it from a primary source, o
   - The Googlebook look comes from platform components (Pixel Launcher, a platform-signed SystemUI and Settings, fonts, overlays and flags). No GApps package contains those.
 - **Options, best first:**
   1. **microG as an optional add-on.** Apache-2.0, x86_64, so OpenBook can ship it. It needs a small framework patch that LineageOS already carries on Android 17. **Built (ANAL-210, §6):** the patch is in every image; the add-on comes on the stick and the installer offers it, off by default; microG's self-check is all green in Cuttlefish.
-  2. **A GApps package the user brings.** Today the only current Android 17 x86_64 package we found is LiteGapps `x86_64/37`. It needs an install path into our dm-verity-protected `product` partition (§5, a design that still has to be prototyped).
+  2. **A GApps package the user brings.** Today the only current Android 17 x86_64 package we found is LiteGapps `x86_64/37`. **Built (ANAL-211, §5):** an advanced installer step that checks the package and puts its apps into a rebuilt, dm-verity-protected `product` partition.
   3. **Not viable:**
      - arm64 GApps such as MindTheGapps, NikGApps and BiTGApps. MindTheGapps dropped x86 after Android 13.
      - GMS copied out of the Googlebook or SDK images (their licences).
@@ -107,12 +107,25 @@ Nothing current in that space covers Android 17 x86_64 (C, research summary 2026
 
 ### G2: "Install a Google apps package you provide" (optional, user-supplied)
 
-**Shape (HYPOTHESIS until prototyped):**
-- The wizard offers a step after the disk choice, with a file picker on the stick or a USB drive. OpenBook never downloads, mirrors or names a download link.
-- It accepts an x86_64, SDK 37 package. LiteGapps' layout is the only current candidate.
-- It checks that the archive contains only the expected packages and XMLs, and that every native library is x86_64.
-- **The engine rebuilds `product`.** It copies the package's priv-apps and XMLs into a new EROFS image, regenerates its hashtree with `avbtool add_hashtree_footer`, and recomputes the vbmeta digest the loader passes. In the orange state, a key mismatch is allowed; dm-verity still protects the result.
-- After first boot, Settings › About shows the GSF Android ID and the registration steps.
+**Built (ANAL-211, 2026-10-18; `docs/installer.md` §15).** Tested with synthetic packages only: OpenBook's own dummy APKs and XMLs in LiteGapps' layout (`scripts/gapps/`). No Google package was downloaded or used.
+- **The wizard.** The disk screen has an off-by-default switch, "Install a Google apps package you provide (advanced)". Its page:
+  - picks a file with the system file picker, from this stick's storage or a USB drive. OpenBook never downloads, mirrors or names a download link;
+  - checks the file and lists every app with its package, version, privileged or not, native code, and its signer's name and SHA-256, or every refused path with its reason;
+  - asks the user to confirm a warning: not Play Protect certified, the GSF ID to register, no Play Integrity device verdict (Wallet, Netflix, banking apps), the read-only `product` partition, and no workaround.
+- **What it accepts** (`engine/gapps.c`). LiteGapps' layout, read from its MIT build scripts (`github.com/litegapps/litegapps` `764224e3`, 2026-10-03, C): a zip with `module.prop` (`litegapps_arch`, `litegapps_sdk`) and `files/files.tar.br`, `.xz` or `.tar`, whose tar holds `<arch>/<sdk>/system/product/…`.
+  - Only below `x86_64/37/system/product/`: `priv-app/` and `app/` APKs, with their `lib/x86_64/` libraries; `etc/permissions`, `etc/sysconfig` and `etc/default-permissions` XMLs.
+  - Refused, path by path: the framework (`framework/`, `overlay/`, APEX), init (`etc/init/`, `bin/`), SELinux, native libraries outside an app, other partitions, other ABIs and SDKs, links, unsafe names.
+  - In the XMLs, refused element by element: shared libraries, split permissions, permissions assigned to system UIDs or mapped to Linux groups, and anything not on the allowlist.
+  - APKs must be signed and must not claim `android.uid.*`. Their native code must include x86_64: ARM-only apps would run translated, and this image has no 32-bit ABI. Other ABIs in a multi-ABI APK are listed but never loaded.
+  - It records each APK's package, version, SDK levels, ABIs and signing certificate in the install manifest (`openbook-gapps/1`). The new system keeps that manifest as `/product/etc/openbook/gapps-manifest.json`.
+- **What it changes on the disk** (`engine/product.c`, `erofs.c`, `avb.c`, `lp.c`).
+  - The new `product` is the stick's EROFS image plus the package's files. Its blocks are kept byte for byte; the new files, directories and inodes are appended, so compressed files are never re-encoded. New files carry the same SELinux label as their directory (`system_file`).
+  - A new dm-verity hashtree (the stick's salt, no FEC) and AVB footer are written. `product_a` moves to a new extent in `super`.
+  - `vbmeta_a` gets the new descriptor, **unsigned**. The bootconfig's `androidboot.vbmeta.digest` and `.size` follow it.
+  - This is the orange state OpenBook already boots in: first-stage init allows the verification error and still sets up dm-verity from the new descriptor.
+  - Without the step, installs are byte-identical to `main`'s.
+- **After the install.** OpenBook setup's last step, and **Settings › About › Google apps registration**, show the GSF Android ID (from GSF's `gservices` provider) and the steps for `google.com/android/uncertified`.
+- **Found while building it (C).** OpenBook images don't set `ro.control_privapp_permissions`, so Android doesn't enforce the privileged-permission allowlist: a package's priv-apps get every privileged permission they request, allowlisted or not. The plan warns about it (`privapp_allowlist_not_enforced`). Whether OpenBook should set `enforce` is a separate decision; it would also apply to OpenBook's own priv-apps.
 
 **Why not a Magisk-style overlay:**
 - OpenBook has no root-manager layer.

@@ -13,7 +13,8 @@ import android.util.Log
  *  - live session (`ro.boot.openbook.live=1`): enable the "Install OpenBook" shortcut, skip the insecure keyguard and
  *    open the wizard;
  *  - installed system: remove the shortcut, and apply the language picked in the wizard once
- *    (`ro.boot.openbook.locale`, written into the boot entry by the install engine).
+ *    (`ro.boot.openbook.locale`, written into the boot entry by the install engine); show the Google apps
+ *    registration entry in Settings › About only if the user installed their own package (ANAL-211).
  */
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -33,6 +34,7 @@ class BootReceiver : BroadcastReceiver() {
         } else {
             LiveSystem.setLauncherAliasEnabled(context, false)
             applyInstalledLocaleOnce(context)
+            GappsInfo.setSettingsEntryEnabled(context, GappsInfo.installed() != null)
         }
     }
 

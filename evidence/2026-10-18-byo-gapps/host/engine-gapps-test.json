@@ -1,0 +1,490 @@
+{
+ "cases": {
+  "check": [
+   {
+    "check": "openbook-synthetic-gapps-x86_64-37.zip: accepted",
+    "ok": true,
+    "detail": "None"
+   },
+   {
+    "check": "openbook-synthetic-gapps-x86_64-37: the 7 files, each with the source's sha256",
+    "ok": true,
+    "detail": "['app/OpenBookTestApp/OpenBookTestApp.apk', 'app/OpenBookTestApp/lib/x86_64/libobgapps.so', 'etc/default-permissions/default-permissions-openbook-synthetic.xml', 'etc/permissions/privapp-permissions-openbook-synthetic.xml', 'etc/sysconfig/openbook-synthetic-sysconfig.xml', 'priv-app/OpenBookTestGsf/"
+   },
+   {
+    "check": "openbook-synthetic-gapps-x86_64-37: three apps, privileged where in priv-app/, x86_64 code where they have code",
+    "ok": true,
+    "detail": "['org.openbook.test.gapps.app', 'com.google.android.gsf', 'org.openbook.test.gapps.priv']"
+   },
+   {
+    "check": "openbook-synthetic-gapps-x86_64-37: version, SDK levels and signer as aapt2 and apksigner report them",
+    "ok": true,
+    "detail": "{'version_code': 211, 'signer_sha256': '0f16809615328a713cfc75f17a3cb9dffb7dbb3966f36da8e09fbdbe722b7a52', 'signer': 'CN=OpenBook synthetic GApps test, O=OpenBook'}"
+   },
+   {
+    "check": "openbook-synthetic-gapps-x86_64-37: staged files on disk match the manifest, which is staged by its sha256",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "openbook-synthetic-gapps-x86_64-37-xz.zip: accepted",
+    "ok": true,
+    "detail": "None"
+   },
+   {
+    "check": "openbook-synthetic-gapps-x86_64-37-xz: the 7 files, each with the source's sha256",
+    "ok": true,
+    "detail": "['app/OpenBookTestApp/OpenBookTestApp.apk', 'app/OpenBookTestApp/lib/x86_64/libobgapps.so', 'etc/default-permissions/default-permissions-openbook-synthetic.xml', 'etc/permissions/privapp-permissions-openbook-synthetic.xml', 'etc/sysconfig/openbook-synthetic-sysconfig.xml', 'priv-app/OpenBookTestGsf/"
+   },
+   {
+    "check": "openbook-synthetic-gapps-x86_64-37-xz: three apps, privileged where in priv-app/, x86_64 code where they have code",
+    "ok": true,
+    "detail": "['org.openbook.test.gapps.app', 'com.google.android.gsf', 'org.openbook.test.gapps.priv']"
+   },
+   {
+    "check": "openbook-synthetic-gapps-x86_64-37-xz: version, SDK levels and signer as aapt2 and apksigner report them",
+    "ok": true,
+    "detail": "{'version_code': 211, 'signer_sha256': '0f16809615328a713cfc75f17a3cb9dffb7dbb3966f36da8e09fbdbe722b7a52', 'signer': 'CN=OpenBook synthetic GApps test, O=OpenBook'}"
+   },
+   {
+    "check": "openbook-synthetic-gapps-x86_64-37-xz: staged files on disk match the manifest, which is staged by its sha256",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "openbook-synthetic-gapps-x86_64-37-tar.zip: accepted",
+    "ok": true,
+    "detail": "None"
+   },
+   {
+    "check": "openbook-synthetic-gapps-x86_64-37-tar: the 7 files, each with the source's sha256",
+    "ok": true,
+    "detail": "['app/OpenBookTestApp/OpenBookTestApp.apk', 'app/OpenBookTestApp/lib/x86_64/libobgapps.so', 'etc/default-permissions/default-permissions-openbook-synthetic.xml', 'etc/permissions/privapp-permissions-openbook-synthetic.xml', 'etc/sysconfig/openbook-synthetic-sysconfig.xml', 'priv-app/OpenBookTestGsf/"
+   },
+   {
+    "check": "openbook-synthetic-gapps-x86_64-37-tar: three apps, privileged where in priv-app/, x86_64 code where they have code",
+    "ok": true,
+    "detail": "['org.openbook.test.gapps.app', 'com.google.android.gsf', 'org.openbook.test.gapps.priv']"
+   },
+   {
+    "check": "openbook-synthetic-gapps-x86_64-37-tar: version, SDK levels and signer as aapt2 and apksigner report them",
+    "ok": true,
+    "detail": "{'version_code': 211, 'signer_sha256': '0f16809615328a713cfc75f17a3cb9dffb7dbb3966f36da8e09fbdbe722b7a52', 'signer': 'CN=OpenBook synthetic GApps test, O=OpenBook'}"
+   },
+   {
+    "check": "openbook-synthetic-gapps-x86_64-37-tar: staged files on disk match the manifest, which is staged by its sha256",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "neg-arm-lib-dir: refused (native_abi)",
+    "ok": true,
+    "detail": "('refused', ['native_abi'], '1 path cannot be installed')"
+   },
+   {
+    "check": "neg-arm-only: refused (native_abi)",
+    "ok": true,
+    "detail": "('refused', ['native_abi'], '1 path cannot be installed')"
+   },
+   {
+    "check": "neg-bad-elf: refused (native_abi)",
+    "ok": true,
+    "detail": "('refused', ['native_abi'], '1 path cannot be installed')"
+   },
+   {
+    "check": "neg-clash: passes the check (refused later, at plan: gapps_clash)",
+    "ok": true,
+    "detail": "None"
+   },
+   {
+    "check": "neg-corrupt: refused (not_a_package)",
+    "ok": true,
+    "detail": "files/files.tar.br: the archive's data is damaged (decompression failed)"
+   },
+   {
+    "check": "neg-empty: refused (empty)",
+    "ok": true,
+    "detail": "('refused', ['empty'], '1 path cannot be installed')"
+   },
+   {
+    "check": "neg-framework: refused (framework)",
+    "ok": true,
+    "detail": "('refused', ['framework'], '1 path cannot be installed')"
+   },
+   {
+    "check": "neg-init: refused (init)",
+    "ok": true,
+    "detail": "('refused', ['init'], '1 path cannot be installed')"
+   },
+   {
+    "check": "neg-lib64: refused (native_lib)",
+    "ok": true,
+    "detail": "('refused', ['native_lib'], '1 path cannot be installed')"
+   },
+   {
+    "check": "neg-not-a-zip: refused (not_a_package)",
+    "ok": true,
+    "detail": "not a zip file (no end of central directory)"
+   },
+   {
+    "check": "neg-not-litegapps: refused (not_a_package)",
+    "ok": true,
+    "detail": "not a LiteGapps-layout package (no files/files.tar.xz, .br or .tar)"
+   },
+   {
+    "check": "neg-overlay: refused (framework)",
+    "ok": true,
+    "detail": "('refused', ['framework'], '1 path cannot be installed')"
+   },
+   {
+    "check": "neg-platform-uid: refused (platform_uid)",
+    "ok": true,
+    "detail": "('refused', ['platform_uid'], '1 path cannot be installed')"
+   },
+   {
+    "check": "neg-selinux: refused (selinux)",
+    "ok": true,
+    "detail": "('refused', ['selinux'], '1 path cannot be installed')"
+   },
+   {
+    "check": "neg-symlink: refused (link)",
+    "ok": true,
+    "detail": "('refused', ['link'], '1 path cannot be installed')"
+   },
+   {
+    "check": "neg-system-ext: refused (outside_product)",
+    "ok": true,
+    "detail": "('refused', ['outside_product'], '1 path cannot be installed')"
+   },
+   {
+    "check": "neg-traversal: refused (unsafe_path)",
+    "ok": true,
+    "detail": "('refused', ['unsafe_path'], '7 paths cannot be installed')"
+   },
+   {
+    "check": "neg-unsigned: refused (unsigned)",
+    "ok": true,
+    "detail": "('refused', ['unsigned'], '1 path cannot be installed')"
+   },
+   {
+    "check": "neg-vendor: refused (outside_product)",
+    "ok": true,
+    "detail": "('refused', ['outside_product'], '1 path cannot be installed')"
+   },
+   {
+    "check": "neg-wrong-arch: refused (wrong_arch)",
+    "ok": true,
+    "detail": "('refused', ['wrong_arch'], '1 path cannot be installed')"
+   },
+   {
+    "check": "neg-wrong-sdk: refused (wrong_sdk)",
+    "ok": true,
+    "detail": "('refused', ['wrong_sdk'], '1 path cannot be installed')"
+   },
+   {
+    "check": "neg-wrong-sdk-tree: refused (wrong_sdk)",
+    "ok": true,
+    "detail": "('refused', ['wrong_sdk'], '7 paths cannot be installed')"
+   },
+   {
+    "check": "neg-xml-assign: refused (framework)",
+    "ok": true,
+    "detail": "('refused', ['framework'], '1 path cannot be installed')"
+   },
+   {
+    "check": "neg-xml-doctype: refused (xml_doctype)",
+    "ok": true,
+    "detail": "('refused', ['xml_doctype'], '1 path cannot be installed')"
+   },
+   {
+    "check": "neg-xml-group: refused (framework)",
+    "ok": true,
+    "detail": "('refused', ['framework'], '1 path cannot be installed')"
+   },
+   {
+    "check": "neg-xml-library: refused (framework)",
+    "ok": true,
+    "detail": "('refused', ['framework'], '1 path cannot be installed')"
+   },
+   {
+    "check": "neg-xml-unknown: refused (xml_element)",
+    "ok": true,
+    "detail": "('refused', ['xml_element'], '1 path cannot be installed')"
+   },
+   {
+    "check": "a refused package leaves nothing staged",
+    "ok": true,
+    "detail": ""
+   }
+  ],
+  "same-install": [
+   {
+    "check": "plan without a package succeeds",
+    "ok": true,
+    "detail": "None"
+   },
+   {
+    "check": "the plan has no package key, operation, section or file",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "main's engine accepts this engine's plan (same plan sha256) and installs it",
+    "ok": true,
+    "detail": "None"
+   },
+   {
+    "check": "this engine installs the same plan",
+    "ok": true,
+    "detail": "None"
+   },
+   {
+    "check": "every partition but EFI identical (content digest)",
+    "ok": true,
+    "detail": "[('misc', True), ('boot_a', True), ('boot_b', True), ('init_boot_a', True), ('init_boot_b', True), ('vendor_boot_a', True), ('vendor_boot_b', True), ('vbmeta_a', True), ('vbmeta_b', True), ('metadata', True), ('super', True), ('userdata', True)]"
+   },
+   {
+    "check": "partition tables identical (first and last MiB)",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "EFI partitions hold the same files, byte for byte (install logs aside)",
+    "ok": true,
+    "detail": "(8, 8)"
+   }
+  ],
+  "plan-gapps": [
+   {
+    "check": "plan with the package succeeds",
+    "ok": true,
+    "detail": "None"
+   },
+   {
+    "check": "operations: check_source, check_gapps, ..., super, product, ..., vbmeta",
+    "ok": true,
+    "detail": "['check_source', 'check_gapps', 'recheck', 'wipe_table', 'format', 'zero', 'copy', 'zero', 'copy', 'zero', 'copy', 'zero', 'vbmeta', 'zero', 'zero', 'super', 'product', 'zero', 'file', 'file', 'file', 'file', 'write_table', 'verify', 'activate', 'activate', 'activate', 'activate', 'nvram', 'report']"
+   },
+   {
+    "check": "request names the package and its confirmation",
+    "ok": true,
+    "detail": "{'target': 'nvme-QEMU_NVMe_Ctrl_internal0', 'layout': 'whole', 'locale': 'en-US', 'keyboard': '', 'set_default': False, 'gapps': '714e4ccfb04cf89a92164d7f9017db5a00db9f2afe1ace39b5b43fe6309bc5e3', 'gapps_confirmed': True}"
+   },
+   {
+    "check": "product section: product_a grows and moves; no FEC; unsigned vbmeta",
+    "ok": true,
+    "detail": "{'partition': 'product_a', 'stick_bytes': 291979264, 'stick_image_bytes': 286429184, 'bytes': 288837632, 'image_bytes': 286564352, 'hashtree_bytes': 2265088, 'fec_roots': 0, 'new_inodes': 15, 'rewritten_directories': 5, 'super_offset_before': 831520768, 'super_offset': 1345323008, 'super_metadata_sh"
+   },
+   {
+    "check": "gapps section: the package, 7 files, 3 apps with their signers",
+    "ok": true,
+    "detail": "{'file': 'openbook-synthetic-gapps-x86_64-37.zip', 'bytes': 13838, 'sha256': '3aebb54cb5721113acd7c67ea9e594c158ebf4bbfa89e2f6589d65764685bf88', 'name': 'OpenBook synthetic test package (not Google apps)', 'version': 'v1.0-anal211'}"
+   },
+   {
+    "check": "warnings: gapps_uncertified (and the image's privapp allowlist is not enforced)",
+    "ok": true,
+    "detail": "['nvram_unavailable', 'gapps_uncertified', 'privapp_allowlist_not_enforced']"
+   },
+   {
+    "check": "the bootconfig is written after product is built (no sha256 in the plan yet)",
+    "ok": true,
+    "detail": "[{'path': 'openbook/a/bootconfig.img', 'on': 'EFI', 'source': 'generated', 'bytes': 764, 'sha256': None, 'after_verify': False, 'after_product': True}]"
+   },
+   {
+    "check": "vbmeta_a: rebuilt",
+    "ok": true,
+    "detail": "[{'index': 9, 'name': 'vbmeta_a', 'type_guid': '0fc63daf-8483-4772-8e79-3d69d8477de4', 'partuuid': '0802d04a-fd1c-4735-b588-c8ac34c67dd5', 'start': 827326464, 'bytes': 1048576, 'content': 'vbmeta_rebuilt', 'source': 'vbmeta_a', 'source_bytes': 65536, 'sha256': '7f9188d4b38e68be8aa9a6818efc47a8ee2edf"
+   },
+   {
+    "check": "the target was only read",
+    "ok": true,
+    "detail": ""
+   }
+  ],
+  "refuse-unknown": [
+   {
+    "check": "an unknown package sha256: refused (no_gapps)",
+    "ok": true,
+    "detail": "no_gapps"
+   }
+  ],
+  "refuse-clash": [
+   {
+    "check": "a package that adds a file the image has: refused (gapps_clash)",
+    "ok": true,
+    "detail": "/product/etc/permissions/com.android.contacts.xml already exists in this image"
+   }
+  ],
+  "refuse-unconfirmed": [
+   {
+    "check": "an unconfirmed package step: refused (gapps_not_confirmed), target unchanged",
+    "ok": true,
+    "detail": "gapps_not_confirmed"
+   }
+  ],
+  "refuse-staged": [
+   {
+    "check": "a staged file changed after the plan: apply fails in check_source",
+    "ok": true,
+    "detail": "('check_source', 'the staged priv-app/OpenBookTestPriv/OpenBookTestPriv.apk does not match the package check (sha256 cbc477f4e4cba32a): check the package again')"
+   },
+   {
+    "check": "nothing written to the target",
+    "ok": true,
+    "detail": ""
+   }
+  ],
+  "apply-gapps": [
+   {
+    "check": "apply with the package succeeds and verifies",
+    "ok": true,
+    "detail": "None"
+   },
+   {
+    "check": "report: root digest, vbmeta digest, product sha256",
+    "ok": true,
+    "detail": "{'manifest_sha256': '714e4ccfb04cf89a92164d7f9017db5a00db9f2afe1ace39b5b43fe6309bc5e3', 'product': 'product_a', 'product_bytes': 288837632, 'product_sha256': '474550549584cd5ab1078d27179096056b39da8e1d90125c80ac05adc2433586', 'root_digest': '32d1a242e8fbb0fb1a62f614e2936d78e52efb5ed009ef5579f081968d"
+   },
+   {
+    "check": "verified items include the rebuilt product and vbmeta_a",
+    "ok": true,
+    "detail": "['EFI/BOOT/BOOTX64.EFI', 'EFI/OpenBook/systemd-bootx64.efi', 'boot_a', 'gpt:EFI', 'gpt:boot_a', 'gpt:boot_b', 'gpt:init_boot_a', 'gpt:init_boot_b', 'gpt:metadata', 'gpt:misc', 'gpt:super', 'gpt:userdata', 'gpt:vbmeta_a', 'gpt:vbmeta_b', 'gpt:vendor_boot_a', 'gpt:vendor_boot_b', 'init_boot_a', 'loade"
+   },
+   {
+    "check": "lpdump: product_a at its new offset and size; every other partition where it was",
+    "ok": true,
+    "detail": "{'system_a': (1048576, 697176064), 'system_b': (698351616, 4698112), 'system_ext_a': (703594496, 127873024), 'vendor_a': (1124073472, 148410368), 'vendor_dlkm_a': (1272971264, 53424128), 'system_dlkm_a': (1326448640, 18165760), 'product_a': (1345323008, 288837632)}"
+   },
+   {
+    "check": "product_a: AVB footer, hashtree descriptor for the new image, no FEC",
+    "ok": true,
+    "detail": "{'Image Size': '286564352 bytes', 'FEC num roots': '0', 'Root Digest': '32d1a242e8fbb0fb1a62f614e2936d78e52efb5ed009ef5579f081968d207737'}"
+   },
+   {
+    "check": "avbtool verify_image recomputes product's hashtree and finds it correct",
+    "ok": true,
+    "detail": "dded public key\nvbmeta: Successfully verified footer and NONE vbmeta struct in /home/hive/anybook/installer/work/anal211-host-5/gapps/out/product.img\nproduct: Successfully verified sha256 hashtree of /home/hive/anybook/installer/work/anal211-host-5/gapps/out/product.img for image of 286564352 bytes\n"
+   },
+   {
+    "check": "avbtool add_hashtree_footer over the same image and salt: same root digest and hashtree bytes",
+    "ok": true,
+    "detail": "('', '32d1a242e8fbb0fb1a62f614e2936d78e52efb5ed009ef5579f081968d207737', '32d1a242e8fbb0fb1a62f614e2936d78e52efb5ed009ef5579f081968d207737')"
+   },
+   {
+    "check": "fsck.erofs extracts stick-product_a.img without errors",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "fsck.erofs extracts product.img without errors",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "every one of the stick's 314 product files is unchanged in the new image",
+    "ok": true,
+    "detail": "[]"
+   },
+   {
+    "check": "the new image adds exactly the package's 7 files and the install manifest",
+    "ok": true,
+    "detail": "['app/OpenBookTestApp/OpenBookTestApp.apk', 'app/OpenBookTestApp/lib/x86_64/libobgapps.so', 'etc/default-permissions/default-permissions-openbook-synthetic.xml', 'etc/openbook/gapps-manifest.json', 'etc/permissions/privapp-permissions-openbook-synthetic.xml', 'etc/sysconfig/openbook-synthetic-syscon"
+   },
+   {
+    "check": "/product/etc/openbook/gapps-manifest.json is the package check's manifest",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "new files and directories: root-owned, 0644/0755, labeled u:object_r:system_file:s0",
+    "ok": true,
+    "detail": "{}"
+   },
+   {
+    "check": "vbmeta_a: unsigned; product's descriptor is the footer's; every other descriptor as on the stick",
+    "ok": true,
+    "detail": "32d1a242e8fbb0fb1a62f614e2936d78e52efb5ed009ef5579f081968d207737"
+   },
+   {
+    "check": "bootconfig: androidboot.vbmeta.digest = avbtool calculate_vbmeta_digest, size = the image's",
+    "ok": true,
+    "detail": "('e445629f495d3912929679c33b8ba4d78608f9eba9cc439778753ff1f6fb8ca6', ['androidboot.vbmeta.avb_version = 1.3', 'androidboot.vbmeta.device_state = unlocked', 'androidboot.vbmeta.digest = e445629f495d3912929679c33b8ba4d78608f9eba9cc439778753ff1f6fb8ca6', 'androidboot.vbmeta.hash_alg = sha256', 'android"
+   },
+   {
+    "check": "bootconfig: the same keys as without the package",
+    "ok": true,
+    "detail": "set()"
+   },
+   {
+    "check": "every other logical partition is byte-identical to the stick's",
+    "ok": true,
+    "detail": "[('system_a', True), ('system_b', True), ('system_ext_a', True), ('vendor_a', True), ('vendor_dlkm_a', True), ('system_dlkm_a', True)]"
+   }
+  ],
+  "alongside-gapps": [
+   {
+    "check": "an alongside plan with the package: in the free space, product rebuilt",
+    "ok": true,
+    "detail": "None"
+   },
+   {
+    "check": "the install verifies",
+    "ok": true,
+    "detail": "None"
+   },
+   {
+    "check": "MSR, NTFS and recovery byte-identical (S7)",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "avbtool verify_image passes on its rebuilt product",
+    "ok": true,
+    "detail": "staller/work/anal211-host-5/alongside/product.img\nproduct: Successfully verified sha256 hashtree of /home/hive/anybook/installer/work/anal211-host-5/alongside/product.img for image of 286564352 bytes\n"
+   }
+  ],
+  "scale": [
+   {
+    "check": "a 256 MiB package with a 256 MiB app: accepted (1.5 s)",
+    "ok": true,
+    "detail": "None"
+   },
+   {
+    "check": "its install verifies (15.8 s; steps {'check_source': 4.5, 'prepare_disk': 0.0, 'boot_images': 0.4, 'system': 6.5, 'boot_entry': 0.0, 'verify': 4.3, 'report': 0.0})",
+    "ok": true,
+    "detail": "None"
+   },
+   {
+    "check": "avbtool verify_image: the 533 MiB product's hashtree is correct",
+    "ok": true,
+    "detail": "e/anybook/installer/work/anal211-host-5/big/product.img\nproduct: Successfully verified sha256 hashtree of /home/hive/anybook/installer/work/anal211-host-5/big/product.img for image of 555020288 bytes\n"
+   },
+   {
+    "check": "the 256 MiB app reads back from the image byte for byte",
+    "ok": true,
+    "detail": "7b4474237aad75cf20ded207164b1f0b19f8e72d5c9dbb932c526a34f8fa90eb"
+   }
+  ]
+ },
+ "scale": {
+  "package_bytes": 268539167,
+  "check_s": 1.5,
+  "apply_s": 15.8,
+  "steps_s": {
+   "check_source": 4.5,
+   "prepare_disk": 0.0,
+   "boot_images": 0.4,
+   "system": 6.5,
+   "boot_entry": 0.0,
+   "verify": 4.3,
+   "report": 0.0
+  },
+  "product_bytes": 559407104,
+  "image_bytes": 555020288,
+  "hashtree_bytes": 4378624
+ },
+ "summary": {
+  "passed": 89,
+  "total": 89
+ }
+}
