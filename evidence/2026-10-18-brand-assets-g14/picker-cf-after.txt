@@ -1,0 +1,41 @@
+# Fixed build (anybook_cf_x86_64_pc from 7634a50: WallpaperPicker2 + the ANYBOOK patch b9f365549), anybook-cf-b6, 2026-10-18T13:48:02Z
+# Same steps as before (picker home page -> 2nd wallpaper -> tap the home preview), then 6 back/enter cycles
+fingerprint: AnyBook/anybook_cf_x86_64_pc/anybook_vsoc_x86_64:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+Shell approvals (ClientFullscreenRequestController reportResult RESULT_APPROVED): 13
+system_server rejections (FullscreenRequestChange not handled properly): 3
+app onError (E WallpaperPreviewActivity: Error requesting): 2
+FATAL EXCEPTION: 0; crash buffer lines: 0
+
+10-18 13:45:54.473  2612  2786 V WindowManagerShell: ClientFullscreenRequestController: handle mode=FULLSCREEN_MODE_REQUEST_ENTER task=11 hasCallback=true transition=android.os.BinderProxy@f3c7fbd
+10-18 13:45:54.474  2612  2786 V WindowManagerShell: ClientFullscreenRequestController: reportResult code=RESULT_APPROVED callback=android.os.IRemoteCallback$Stub$Proxy@81e2d03
+10-18 13:45:54.476   818   833 W ActivityTaskManager: FullscreenRequestChange not handled properly, rejecting
+10-18 13:46:41.212  2612  2786 V WindowManagerShell: ClientFullscreenRequestController: handle mode=FULLSCREEN_MODE_REQUEST_EXIT task=11 hasCallback=true transition=android.os.BinderProxy@3ca14c3
+10-18 13:46:41.217  2612  2786 V WindowManagerShell: ClientFullscreenRequestController: reportResult code=RESULT_APPROVED callback=android.os.IRemoteCallback$Stub$Proxy@ba1e879
+10-18 13:46:46.658  2612  2786 V WindowManagerShell: ClientFullscreenRequestController: handle mode=FULLSCREEN_MODE_REQUEST_ENTER task=11 hasCallback=true transition=android.os.BinderProxy@8f21075
+10-18 13:46:46.658  2612  2786 V WindowManagerShell: ClientFullscreenRequestController: reportResult code=RESULT_APPROVED callback=android.os.IRemoteCallback$Stub$Proxy@115387b
+10-18 13:46:46.659   818  3408 W ActivityTaskManager: FullscreenRequestChange not handled properly, rejecting
+10-18 13:46:46.678  3742  3742 E WallpaperPreviewActivity: Error requesting fullscreen mode 1
+10-18 13:46:46.678  3742  3742 E WallpaperPreviewActivity: java.lang.UnsupportedOperationException: Fullscreen request denied by system policy.
+10-18 13:46:51.792  2612  2786 V WindowManagerShell: ClientFullscreenRequestController: handle mode=FULLSCREEN_MODE_REQUEST_EXIT task=11 hasCallback=true transition=android.os.BinderProxy@c9c6c0e
+10-18 13:46:51.792  2612  2786 V WindowManagerShell: ClientFullscreenRequestController: reportResult code=RESULT_APPROVED callback=android.os.IRemoteCallback$Stub$Proxy@5e0d43c
+10-18 13:46:57.279  2612  2786 V WindowManagerShell: ClientFullscreenRequestController: handle mode=FULLSCREEN_MODE_REQUEST_ENTER task=11 hasCallback=true transition=android.os.BinderProxy@f473f67
+10-18 13:46:57.280  2612  2786 V WindowManagerShell: ClientFullscreenRequestController: reportResult code=RESULT_APPROVED callback=android.os.IRemoteCallback$Stub$Proxy@1670dbd
+10-18 13:47:02.413  2612  2786 V WindowManagerShell: ClientFullscreenRequestController: handle mode=FULLSCREEN_MODE_REQUEST_EXIT task=11 hasCallback=true transition=android.os.BinderProxy@f44e72
+10-18 13:47:02.416  2612  2786 V WindowManagerShell: ClientFullscreenRequestController: reportResult code=RESULT_APPROVED callback=android.os.IRemoteCallback$Stub$Proxy@764d740
+10-18 13:47:07.951  2612  2786 V WindowManagerShell: ClientFullscreenRequestController: handle mode=FULLSCREEN_MODE_REQUEST_ENTER task=11 hasCallback=true transition=android.os.BinderProxy@d5a1be0
+10-18 13:47:07.951  2612  2786 V WindowManagerShell: ClientFullscreenRequestController: reportResult code=RESULT_APPROVED callback=android.os.IRemoteCallback$Stub$Proxy@656455e
+10-18 13:47:13.125  2612  2786 V WindowManagerShell: ClientFullscreenRequestController: handle mode=FULLSCREEN_MODE_REQUEST_EXIT task=11 hasCallback=true transition=android.os.BinderProxy@c8b8370
+10-18 13:47:13.129  2612  2786 V WindowManagerShell: ClientFullscreenRequestController: reportResult code=RESULT_APPROVED callback=android.os.IRemoteCallback$Stub$Proxy@3065f6e
+10-18 13:47:18.693  2612  2786 V WindowManagerShell: ClientFullscreenRequestController: handle mode=FULLSCREEN_MODE_REQUEST_ENTER task=11 hasCallback=true transition=android.os.BinderProxy@7c71c68
+10-18 13:47:18.693  2612  2786 V WindowManagerShell: ClientFullscreenRequestController: reportResult code=RESULT_APPROVED callback=android.os.IRemoteCallback$Stub$Proxy@56d4d26
+10-18 13:47:23.826  2612  2786 V WindowManagerShell: ClientFullscreenRequestController: handle mode=FULLSCREEN_MODE_REQUEST_EXIT task=11 hasCallback=true transition=android.os.BinderProxy@ca00d5b
+10-18 13:47:23.827  2612  2786 V WindowManagerShell: ClientFullscreenRequestController: reportResult code=RESULT_APPROVED callback=android.os.IRemoteCallback$Stub$Proxy@3204ed1
+10-18 13:47:29.288  2612  2786 V WindowManagerShell: ClientFullscreenRequestController: handle mode=FULLSCREEN_MODE_REQUEST_ENTER task=11 hasCallback=true transition=android.os.BinderProxy@cd6df84
+10-18 13:47:29.289  2612  2786 V WindowManagerShell: ClientFullscreenRequestController: reportResult code=RESULT_APPROVED callback=android.os.IRemoteCallback$Stub$Proxy@3fb2ba2
+10-18 13:47:34.435  2612  2786 V WindowManagerShell: ClientFullscreenRequestController: handle mode=FULLSCREEN_MODE_REQUEST_EXIT task=11 hasCallback=true transition=android.os.BinderProxy@81ad826
+10-18 13:47:34.442  2612  2786 V WindowManagerShell: ClientFullscreenRequestController: reportResult code=RESULT_APPROVED callback=android.os.IRemoteCallback$Stub$Proxy@f19a14
+10-18 13:47:34.444   818  3299 W ActivityTaskManager: FullscreenRequestChange not handled properly, rejecting
+10-18 13:47:34.629  3742  3742 E WallpaperPreviewActivity: Error requesting fullscreen mode 0
+10-18 13:47:34.629  3742  3742 E WallpaperPreviewActivity: java.lang.UnsupportedOperationException: Fullscreen request denied by system policy.
+10-18 13:47:39.986  2612  2786 V WindowManagerShell: ClientFullscreenRequestController: handle mode=FULLSCREEN_MODE_REQUEST_ENTER task=11 hasCallback=true transition=android.os.BinderProxy@f1401ec
+10-18 13:47:39.987  2612  2786 V WindowManagerShell: ClientFullscreenRequestController: reportResult code=RESULT_APPROVED callback=android.os.IRemoteCallback$Stub$Proxy@b90d84a

@@ -304,6 +304,7 @@ About 13 GiB is fixed. The minimum disk is 64 GB (H; set it once ANAL-174's imag
 - `/metadata` and `/data` are created on first boot, as in the prototype. Android then starts its setup flow.
 - **Google's SetupWizard is not in AOSP:** AOSP 17 only has the `setupcompat`/`setupdesign`/`setupwizard` libraries and `Provision`, which only sets the provisioned bit (C).
 - OpenBook therefore needs its own small setup app, built on those libraries: language (pre-selected from `ro.boot.openbook.locale`), Wi-Fi, user and screen lock, privacy. No Google account step. **Built (ANAL-191, §12.4):** language, Wi-Fi and screen lock, in the installer app; it uses Compose, not the `setupdesign` libraries.
+- **Since ANAL-209:** a separate app, `OpenBookSetup`, replaces both Provision and the installer's interim setup, in both products: nine pages, Skip, and `androidboot.openbook.setup=skip` for unattended runs (`docs/setup.md`).
 
 ## 4. Wizard technology
 
@@ -668,7 +669,7 @@ Status as of 2026-10-17. Evidence is in `evidence/2026-10-17-installer-wizard/`,
 | `openbook-install` (engine) | `device/anybook/common/installer/engine/`, plain C, libc only (5,600 lines) | `disks`, `hwinfo`, `plan` (the dry run), `apply` (the install), and `daemon`. Writes GPT and FAT itself, so it needs no mount permission. The same sources build for Android (`/system_ext/bin`) and for the host tests |
 | `openbook-installd` | the engine's `daemon` mode; `openbook-installd.rc`; SELinux in `sepolicy/private/` | Started only when `ro.boot.openbook.live=1`. Serves the app over `/dev/socket/openbook_installd` (`PROTOCOL.md`). The install runs in a child process, so it survives the app |
 | `OpenBookInstaller` | `device/anybook/common/installer/app/`, Kotlin and Compose (Material 3) | The seven screens of §4.1 after the hi-fi design. Starts by itself on live boots; its launcher entry "Install OpenBook" exists only there |
-| OpenBook setup | `SetupActivity` in the same app | The first screen of an installed system: language (pre-selected from the wizard's choice), Wi-Fi, screen lock, no account step (§3.6) |
+| OpenBook setup | `SetupActivity` in the same app; **since ANAL-209 its own app**, `OpenBookSetup` (`docs/setup.md`) | The first screen of an installed system: language (pre-selected from the wizard's choice), Wi-Fi, screen lock, no account step (§3.6) |
 | Install data on the stick | `scripts/installer/mklive.py` | `MANIFEST.json` gains an `install` section, and `openbook/install/super-metadata.img` is added to the ESP (§12.5) |
 | Tests | `scripts/installer/engine-test.{sh,py}`, `scripts/installer/wizard-qemu.{sh,py}` | Host tests of the engine on image files (53 checks); the wizard end to end in QEMU (25 checks) |
 
@@ -727,6 +728,7 @@ Status as of 2026-10-17. Evidence is in `evidence/2026-10-17-installer-wizard/`,
   - Only the English strings exist so far.
 - **OpenBook setup.** A home activity above Provision, and direct-boot aware: Provision is too, and without that it takes the home screen during the first boot's locked phase and marks the device provisioned. It sets `device_provisioned` and `user_setup_complete` and then turns itself off. On a live stick it steps aside at once.
   - **QEMU:** the installed disk's first screen is OpenBook setup. After it, the launcher runs and setup is off (`screens/8-setup-*.png`, `9-desktop.png`).
+  - **Moved (ANAL-209):** setup is now `OpenBookSetup` (`device/anybook/common/setup`, `docs/setup.md`). The installer app keeps its theme, buttons and mark, which setup compiles in (`OpenBookInstallerDesign`). `wizard-qemu.py` and `e2e-qemu.py` walk its nine pages (`setup_steps`).
 
 ### 12.5 What changed on the stick
 `MANIFEST.json` is now `openbook-live-manifest/2` with an `install` section:
@@ -1227,7 +1229,7 @@ Status as of 2026-10-18. Evidence: `evidence/2026-10-18-byo-gapps/`, starting wi
   - **Before you continue:** not Play Protect certified (register the GSF Android ID at `google.com/android/uncertified`; OpenBook shows the ID); no Play Integrity device verdict (Google Wallet tap to pay, Netflix from Google Play and many banking apps may not work); the apps live in the read-only `product` partition, checked by dm-verity, and only a reinstall removes them; OpenBook doesn't work around any of this.
   - Continue only works once the user ticks "I understand. Install this package." The engine refuses a package step without that confirmation (`gapps_not_confirmed`).
 - **Confirm screen:** "Also installs <name>: N apps, size, into the new system", and the plan's warnings: `gapps_uncertified`, and `privapp_allowlist_not_enforced` (§15.6).
-- **After the install:** OpenBook setup gets a fourth step, "Register this computer with Google". It shows the GSF Android ID (decimal and hexadecimal, with a copy button), read from GSF's `gservices` provider, or "No ID yet" until GSF has been online. The same page stays available as **Settings › About › Google apps registration**: an injected Settings entry (category `com.android.settings.category.ia.my_device_info`), enabled at boot only when `/product/etc/openbook/gapps-manifest.json` exists.
+- **After the install:** OpenBook setup gets a fourth step, "Register this computer with Google" (**since ANAL-209** a page before Done in the separate `OpenBookSetup` app, `docs/setup.md`; same text and ID format). It shows the GSF Android ID (decimal and hexadecimal, with a copy button), read from GSF's `gservices` provider, or "No ID yet" until GSF has been online. The same page stays available as **Settings › About › Google apps registration**: an injected Settings entry (category `com.android.settings.category.ia.my_device_info`), enabled at boot only when `/product/etc/openbook/gapps-manifest.json` exists.
 
 ### 15.2 The check (`engine/gapps.c`, `zipr.c`, `apk.c`)
 `openbook-install gapps-check --package FILE`, or the daemon's `gapps_check`. The input is untrusted:
