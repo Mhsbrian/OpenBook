@@ -1,0 +1,38 @@
+# The first boot of a fresh live stick, image openbook-live-20261018-anal209 (ceec8ed): live-qemu.sh case 'first', logcat
+10-18 09:38:06.924   730   730 I PackageManager: /system_ext/priv-app/OpenBookSetup changed; collecting certs
+10-18 09:38:08.048   730   770 W PinnerService: Could not find pinlist.meta for "/system_ext/priv-app/OpenBookSetup/OpenBookSetup.apk": pinning as blob
+10-18 09:38:08.378  2198  2201 I artd    : GetBestInfo: odex in dalvik-cache (/data/dalvik-cache/x86_64/system_ext@priv-app@OpenBookSetup@OpenBookSetup.apk@classes.dex) is kOatUpToDate with filter 'verify' executable 'false'
+10-18 09:38:08.379   730  2191 I ArtService: Dexopt result: [packageName = org.openbook.setup] DexContainerFileDexoptResult{dexContainerFile=/system_ext/priv-app/OpenBookSetup/OpenBookSetup.apk, primaryAbi=true, abi=x86_64, actualCompilerFilter=verify, status=SKIPPED, dex2oatWallTimeMillis=0, dex2oatCpuTimeMillis=0, sizeBytes=0, sizeBeforeBytes=0, extendedStatusFlags=[]}
+10-18 09:38:11.767  2670  2670 D nativeloader: Configuring clns-shared-9 for other apk /system_ext/priv-app/OpenBookSetup/OpenBookSetup.apk. target_sdk_version=37, uses_libraries=, library_path=/system_ext/priv-app/OpenBookSetup/lib/x86_64:/system/lib64, permitted_path=/data:/mnt/expand:/data/user/0/org.openbook.setup:/system_ext/priv-app/OpenBookSetup:/system/lib64
+10-18 09:38:11.790  2670  2670 I OpenBookSetup: setup complete (step aside: live session); provisioned=true
+10-18 09:38:11.790   730  2143 W ActivityTaskManager: Permission Denial: starting Intent { act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10000000 xflg=0x4 cmp=com.android.settings/.FallbackHome } from ProcessRecord{41fe79e 2670:org.openbook.setup/u0a82} (pid=2670, uid=10082) requires android.permission.DEVICE_POWER
+10-18 09:38:11.791   730  2143 I ActivityTaskManager: START u0 {act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10000000 xflg=0x4 cmp=com.android.settings/.FallbackHome} with LAUNCH_MULTIPLE from uid 10082 (org.openbook.setup) (sr=102796054) result code=0
+10-18 09:38:11.793  2670  2670 E AndroidRuntime: Caused by: java.lang.SecurityException: Permission Denial: starting Intent { act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10000000 xflg=0x4 cmp=com.android.settings/.FallbackHome } from ProcessRecord{41fe79e 2670:org.openbook.setup/u0a82} (pid=2670, uid=10082) requires android.permission.DEVICE_POWER
+10-18 09:38:11.794   730   754 I am_crash: [2670,0,org.openbook.setup,818429509,java.lang.SecurityException,Remote stack trace:
+10-18 09:38:11.794   730   754 I am_crash: 	at com.android.server.wm.Session$$ExternalSyntheticBUOutline1.m(R8$$SyntheticClass:0)
+10-18 09:38:11.794   730   754 I am_crash: 	at com.android.server.wm.ActivityTaskSupervisor.checkStartAnyActivityPermission(ActivityTaskSupervisor.java:1253)
+10-18 09:38:11.794   730   754 I am_crash: 	at com.android.server.wm.ActivityStarter.executeRequest(ActivityStarter.java:1300)
+10-18 09:38:11.794   730   754 I am_crash: 	at com.android.server.wm.ActivityStarter.execute(ActivityStarter.java:912)
+10-18 09:38:11.794   730   754 I am_crash: 	at com.android.server.wm.ActivityTaskManagerService.startActivityAsUser(ActivityTaskManagerService.java:1349)
+10-18 09:38:11.794   730   754 I am_crash: ,Parcel.java,3392,0]
+10-18 09:38:11.875  2737  2737 D nativeloader: Configuring clns-shared-9 for other apk /system_ext/priv-app/OpenBookSetup/OpenBookSetup.apk. target_sdk_version=37, uses_libraries=, library_path=/system_ext/priv-app/OpenBookSetup/lib/x86_64:/system/lib64, permitted_path=/data:/mnt/expand:/data/user/0/org.openbook.setup:/system_ext/priv-app/OpenBookSetup:/system/lib64
+10-18 09:38:11.919  2737  2737 I OpenBookSetup: setup complete (step aside: live session); provisioned=true
+10-18 09:38:11.932   730  2661 W ActivityTaskManager: Permission Denial: starting Intent { act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10000000 xflg=0x4 cmp=com.android.settings/.FallbackHome } from ProcessRecord{92115ba 2737:org.openbook.setup/u0a82} (pid=2737, uid=10082) requires android.permission.DEVICE_POWER
+10-18 09:38:11.932   730  2661 I ActivityTaskManager: START u0 {act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10000000 xflg=0x4 cmp=com.android.settings/.FallbackHome} with LAUNCH_MULTIPLE from uid 10082 (org.openbook.setup) (sr=102796054) result code=0
+10-18 09:38:11.932  2737  2737 E AndroidRuntime: Caused by: java.lang.SecurityException: Permission Denial: starting Intent { act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10000000 xflg=0x4 cmp=com.android.settings/.FallbackHome } from ProcessRecord{92115ba 2737:org.openbook.setup/u0a82} (pid=2737, uid=10082) requires android.permission.DEVICE_POWER
+10-18 09:38:11.933   730  2661 I am_crash: [2737,0,org.openbook.setup,818429509,java.lang.SecurityException,Permission Denial: starting Intent { act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10000000 xflg=0x4 cmp=com.android.settings/.FallbackHome } from ProcessRecord{92115ba 2737:org.openbook.setup/u0a82} (pid=2737, uid=10082) requires android.permission.DEVICE_POWER,Par
+10-18 09:38:12.846   730  2143 W Binder  : java.lang.SecurityException: Need REGISTER_STATS_PULL_ATOM permission.: Neither user 10084 nor current process has android.permission.REGISTER_STATS_PULL_ATOM.
+10-18 09:38:14.545   730  2731 W Binder  : java.lang.SecurityException: Need REGISTER_STATS_PULL_ATOM permission.: Neither user 10080 nor current process has android.permission.REGISTER_STATS_PULL_ATOM.
+
+# wizard-qemu.sh dryrun (same image), twice
+case dryrun: qemu-run exit 1 ({"reason": "step 42 timed out waiting for '@@SEEN\\\\['", "seconds": 323.3, "steps_done": 42, "steps": 126, "hits": [{"step": 0, "wait": "init: init second stage started", "t": 11.8}, {"step": 1, "wai)
+| dryrun | every expect step matched | FAIL | 42/126 (step 42 timed out waiting for '@@SEEN\\[') |
+| dryrun | SELinux enforcing | PASS | 3a69b34] [ro.boot.openbook.live]: [1] [ro.boot.openbook.loader]: [sdboot] [ro.build.fingerprint]: [OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/en |
+| dryrun | the wizard started by itself after boot | FAIL |  |
+| dryrun | openbook_installd runs in its own domain | PASS | ime 0 0 u:object_r:openbook_efivarfs:s0 /sys/firmware/efi/efivars u:object_r:openbook_efivarfs:s0 Boot0000-8be4df61-93ca-11d2-aa0d-00e098032b8c u:object_r:openb |
+| dryrun | whole-disk nodes carry openbook_disk_block_device | PASS |  |
+| dryrun | CLI dry run: a plan for the NVMe disk | PASS | {"plan_sha256":"6097f2017d69cec36675c062f153516e11896e3d98b46ea36007755f354dfaec","created":"2026-10-18T10:16:09Z","schema":"openbook-install-plan/1","engine":" |
+| dryrun | the app's dry run went through the daemon | FAIL |  |
+| dryrun | screens captured: welcome, hardware, choose, disk, plan | FAIL | [] |
+| dryrun | the NVMe disk has no allocated block after the dry run (nothing written) | PASS | 0 blocks |
+| dryrun | no SELinux denial for the app or the daemon | PASS |  |

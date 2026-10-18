@@ -91,20 +91,20 @@ Built with `scripts/installer-image.sh --label openbook-live-20261017-desktop2 -
 
 Denials on the VM path (`avc-summary.py` on the save-logs case): 41 Android lines in the kernel log and 8 distinct, down from 69 and 16 with the first build of this branch (`desktop1`, before `vendor.minigbm.*`). No `vendor_default_prop` is left. What remains is not G14-specific: the audio HAL's memfd (ANAL-199), the Bluetooth app aborting without a Bluetooth HAL (ANAL-179) and what `crash_dump` reads for it, SystemUI's `bluetooth_lea_prop`, `secure_element`'s dex cache, and the two open items in §4.
 
-## 6. On the G14: what is left for ANAL-192's stick (after the `anal176t` boots)
+## 6. On the G14: what is left (after the `anal192d` boots)
 
-`anal176t` (§13) showed under enforcing that Bluetooth audio now connects without the Bluetooth app aborting:
-- A2DP Connected;
-- the audio HAL's A2DP session registered;
-- A2DP output streams opened;
-- 0 crashes and 0 denials on that path.
+On `anal192d` (§14) the default, enforcing boot ran for 58 minutes, with ANAL-179 reading the audio side (`docs/g14-audio-net.md` §11):
+- desktop at 30.7 s, no lock-screen blackout, no storage notice, no sleep;
+- 0 failed frames;
+- the launcher never restarted;
+- Bluetooth audio streamed for up to 26 minutes, and the browser played sound, both under enforcing;
+- 0 native crashes.
 
-It also showed again 0 dropped frames, no storage notice and no lock-screen blackout. The logs cannot show sound. **The next stick is ANAL-192's integrated one**, with one checklist; write nothing before it. These items belong on that checklist:
-1. **Bluetooth audio, audible.** Pair a Bluetooth audio device and play music or a video through it. Hear it, and confirm Bluetooth stays up after reconnecting.
-2. **Browser video with sound.** It must be heard on the speakers and over Bluetooth. This exercises the app-audio fix (`audioserver_tmpfs` `mlstrustedobject`); no app audio track was opened on `anal176t`.
-3. **A ringtone or notification sound** (Settings → Sound → Phone ringtone, tap a tone): it must play. On `anal176t` every preview failed to decode (`NuPlayerDecoder: Failed to create audio/vorbis decoder`, §13). That needs a fix first (§7), so expect silence until then.
-4. Use the desktop for 10 minutes or more and note any stutter, freeze or flicker with the time. Press **Escape** with the taskbar's All Apps open; the launcher should stay.
-5. Power off from the menu, boot "save logs" once, and reattach the stick.
+The next stick (`anal192e`, ANAL-192, with #88's refresh-rate change) should show:
+1. **Escape with the taskbar's All Apps open.** Press Esc while All Apps or a taskbar menu is open, and note it. Key presses are not logged; the launcher survived all 35 taskbar-overlay sessions on `anal192d`, but whether Esc was among them is unknown.
+2. **Smoothness at the panel's refresh rate.** Note any stutter or flicker, with the time, now that drawing is no longer capped at 60 fps (ANAL-212).
+3. Audio items that are ANAL-179's (a notification sound and ringtone preview with #97, the headphone jack, reconnecting the headset; `docs/g14-audio-net.md` §11).
+4. Power off from the menu, boot "save logs" once, and reattach the stick.
 
 **Acceptance** (from the issue): a photo of the desktop on the panel, `boot_completed=1` in the saved logs, the `live-report.py --expect g14` verdicts, and fewer than 66 denials by `avc-summary.py`'s kernel-log count.
 
@@ -112,10 +112,13 @@ It also showed again 0 dropped frames, no storage notice and no lock-screen blac
 
 ## 7. Open items
 
-- **Ringtones and other media sound do not decode** (`anal176t`, §13): `mediaserver`'s NuPlayer cannot create the Vorbis decoder (`Failed to create audio/vorbis decoder`). **Fixed in QEMU by #64** (ANAL-198 follow-up, `docs/kernel.md`). There were three causes: the missing system DMA-BUF heap (now `system_heap.ko`), Codec2 clients defaulting to HIDL without a `hwservicemanager` (`media.c2.hal.selection=aidl`), and Codec2's memfds under SELinux (`mediaswcodec_tmpfs`). On the G14 product `stagefright` now decodes a ringtone in full.
+- ~~**Ringtones and other media sound do not decode**~~ (`anal176t`, §13). **Resolved by others:** ANAL-198 added the system DMA-BUF heap (#64), so `anal192d` has 0 heap errors and 0 decoder failures. The remaining MediaPlayer failure is a `mediaserver → audioserver_tmpfs` denial ("Could not get control block"), fixed in #97 (`docs/g14-audio-net.md` §11).
   - **On the laptop (`anal192d`), decoding works,** but playback through MediaPlayer did not. SystemUI's low-battery sound failed with "Could not get control block": under enforcing, `mediaserver` may not map AudioFlinger's memfd (`audioserver_tmpfs`).
   - **Paths affected:** ringtones, notification sounds, Settings' previews, and apps that use MediaPlayer.
   - **Fix:** PR #97 (ANAL-198, `docs/kernel.md`), proven in QEMU on the `anal192d` image. On the laptop with the stick that carries it.
+- **New denials on `anal192d` (§14):**
+  - `openbook_installd → sysfs_batteryinfo` (`/sys/class/power_supply/*/type`, 26 lines) and `→ openbook_vendor_fw_file` (dir search): the installer daemon on real hardware (ANAL-191).
+  - `isolated_app → app_data_file:file setattr` on Chrome's `model-info.pb` (65 lines); no visible effect (H).
 - **A GPU reset restarts the whole UI.** SurfaceFlinger cannot survive a MODE2 reset that loses VRAM, so a GPU hang closes every app (`anal176t` graphics check, §13). The hang came from a dEQP case (ANAL-177); any app that hangs the GPU would do the same.
 - **gfx1150 itself** (H): every claim about RDNA 3.5 waits for the G14 run. The host GPU is RDNA2.
 - **drm_hwcomposer and overlay planes.**
@@ -214,7 +217,23 @@ The owner ran `anal176t` (`anal176s` plus the two audio policy lines) with the l
 | Desktop at 29.1 s on the freshly written stick; vold leaves the stick alone; lock screen dismissed at boot, no sleep; **0 dropped frames**, 12 refused test commits during bring-up only; clean power-off after 9 minutes | `timeline.txt` | Holds |
 | Graphics check (`live-002`, permissive, ANAL-177's run): at 166 s a dEQP case hung the GPU. The gfx ring timed out, a MODE2 reset followed and **VRAM was lost**. SystemUI (`EGL_CONTEXT_LOST`) and SurfaceFlinger (`Failed to create a valid texture`) aborted, and the framework restarted itself (zygote restart, SystemUI back within about 7 s) | `live-002` `dmesg.txt`, `logcat-final.txt` (ANAL-177 reads the run) | A GPU reset costs a full UI restart: noted in §7 |
 
-## 14. Sources (accessed 2026-10-17)
+## 14. G14 boots of `anal192d`: an hour on the enforcing desktop (2026-10-18 11:00Z)
+
+`openbook-live-20261018-anal192d` is ANAL-192's integrated stick (`main` `81578c1` + #83). The session was the default boot (11:00:33–11:59:04Z), then "save logs" and the ARM apps check. The host copy is `g14/stick-20261018T123221Z/`, read-only; the redacted extracts are in `evidence/2026-10-18-g14-anal192d-desktop/`. The audio side is ANAL-179's (`docs/g14-audio-net.md` §11); the refresh rate is ANAL-212's (`evidence/2026-10-18-refresh-rate/`).
+
+| Area | `anal192d`, default boot under enforcing | Source |
+|---|---|---|
+| Desktop | 30.7 s on the freshly written stick (`sf_stop_bootanim: 30687`); `Not managing disk 8:0`; lock screen dismissed at boot; no sleep; clean shutdown after 58 min | `default-boot-timeline.txt` |
+| Failed frames | **0** (`Failed to pin framebuffer`, `present failed`), and 0 refused test commits after bring-up (12 during it). No GPU reset | `default-boot-counts.txt` |
+| Stutter | Android's jank tracker flagged 4,973 frames inside UI animations as missed by SurfaceFlinger (legacy type `JANK_COMPOSER`). By its newer classification **4,769 of them are `JANK_NONE`**; only 138 are composer jank and 50 app jank. App frame times were ≤ 17 ms for 4,793, and over 67 ms for 7. The render rate was capped at 60 fps for 99.7 % of screen-on time; ANAL-212's #88 lifts the cap on `anal192e` | `default-boot-counts.txt`; ANAL-212's baseline |
+| Launcher, Esc | `com.android.launcher3` started once and never died. Its taskbar overlay (All Apps, menus) closed 35 times without a crash. Esc presses are not logged | counts |
+| Bluetooth audio | Under enforcing: A2DP connected, 8 × `BTAudioSessionAidl … SUCCESS`, streamed up to 26 min (ANAL-179), 0 Bluetooth denials, 0 tombstones | counts; ANAL-179 |
+| Browser audio | Chrome and WebView Shell played to the speakers and over Bluetooth (ANAL-179); 0 app `audioserver_tmpfs` denials, so PR #52's MLS rule works | counts; ANAL-179 |
+| Crashes | 0 native crashes, 0 tombstones, 0 ANRs. 1 Java crash: Wallpaper & style preview (`WallpaperPreviewActivity.requestFullscreen` NPE, 11:05:07), ANAL-205's (#91) | `default-boot-timeline.txt` |
+| Denials | 229 lines, 9 kinds: the 4 known ones; `mediaserver → audioserver_tmpfs` (#97); `openbook_installd → sysfs_batteryinfo` and `→ openbook_vendor_fw_file` (installer daemon, ANAL-191); `isolated_app → app_data_file setattr` (Chrome's `model-info.pb`) and `→ content_capture_service` | `default-boot-avc.md` |
+| Media decoding | 0 DMA-BUF heap errors and 0 decoder failures since ANAL-198's #64 (`anal176t`: 294 and 15) | counts |
+
+## 15. Sources (accessed 2026-10-17/18)
 
 - Mesa: `f7a951028`, `15a3bb617`, `90b5425e8` on `main` (gitlab.freedesktop.org/mesa/mesa), MR 44426.
 - AOSP 17 (`android17-release` tree in `~/anybook/aosp/src`): `frameworks/native/vulkan/libvulkan/swapchain.cpp` and `driver.cpp`, `frameworks/native/vulkan/include/vulkan/vk_android_native_buffer.h`, `external/angle/src/libANGLE/renderer/vulkan/SurfaceVk.cpp`, `frameworks/base/libs/hwui/Properties.cpp`, `system/sepolicy` (`gpu_sphal_use`, `vendor_restricted_prop`), `system/core/rootdir/init.rc` (`discard_max_bytes`), `external/minigbm/cros_gralloc` (gralloc0 `perform`, shared `libminigbm_gralloc`).
