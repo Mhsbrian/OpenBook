@@ -1,10 +1,10 @@
 # Status
 
-## State of the union (2026-10-18, 11:10 UTC)
+## State of the union (2026-10-18, 11:55 UTC)
 
 **Goal:** the Googlebook-style Android 17 desktop on the ASUS ROG Zephyrus G14 (GA403WR: Ryzen AI 9 HX 370, Radeon 890M), installed from a USB stick through a wizard and verified on the laptop. Repo: https://github.com/Mhsbrian/OpenBook.
 
-**Repo hygiene:** PRs #1–#84 are merged and none are open. The 2026-10-17 cleanup left one remote branch, `main`; every other branch was merged or superseded. Two branches with commits never merged are kept as tags: `archive/anal-190-live-image-b` (superseded on `main`) and `archive/anal-178-stick-integration`.
+**Repo hygiene:** PRs #1–#87 are merged and none are open. The 2026-10-17 cleanup left one remote branch, `main`; every other branch was merged or superseded. Two branches with commits never merged are kept as tags: `archive/anal-190-live-image-b` (superseded on `main`) and `archive/anal-178-stick-integration`.
 
 ### What works, and where it has been shown
 
@@ -26,7 +26,7 @@
 
 ### Running now
 
-- **Running:** ANAL-209 (B8 first-run setup) and ANAL-211 (G2 bring-your-own GApps). Merged from ANAL-201's backlog: B1 Google Sans (#77), B2 blur (#72), B3 flag set v2 (#79), B4 icons (#73), B5 clean desktop (#75), B6 OpenBook wallpapers, boot animation, sounds and pointer (#81), B7 document fonts (#78). ANAL-192 built the next owner stick, `anal192d`, from `main` with all of it, so the owner gets everything at once. It supersedes `anal198`, which the owner hasn't run. Also merged: #80 (G1 microG: spoofing limited to microG's two apps and certificate, add-on off by default) and #83 (the boot-animation link that #81 left out of git; clean checkouts build again).
+- **Running:** only ANAL-209 (B8 first-run setup). ANAL-201's other ten items are merged: B1–B7 (#77, #72, #79, #73, #75, #81, #78), G1 microG (#80) and G2 bring-your-own GApps (#85). **The owner's stick is `openbook-live-20261018-anal192d`** (#86, built from `main`, with all of B1–B7 and #67/#68/#70/#80): live 40/40, wizard 51/51, end to end 79/79. The write command and the checklist are in ANAL-192's comments of 2026-10-18 10:56–10:57; results are routed from ANAL-192.
 - **ANAL-198 (kernel lane): #64 merged.** It adds the system DMA-BUF heap and fixes two product bugs behind it (Codec2 HAL selection, Codec2 memfds under SELinux), so media decodes in QEMU. It also ships `efivarfs` as a vendor module, with Google's GKI configuration unchanged. Writing variables needed installer SELinux policy: done by ANAL-191 (#68).
 - **The owner's stick is now `openbook-live-20261018-anal192d`** (`docs/installer.md` §13.12; sha256 `db2a8203…`). It is `main` `81578c1` plus #83, the same tree as `main` `13a020c`. It has everything `anal198` had, plus #67, #68, #70, B1–B7 and #80's system part, and the power, ARM apps and graphics checks (with `blur`). The microG add-on doesn't fit next to the graphics check. In QEMU: live 40/40, wizard 51/51 (with the firmware-entry cases), end to end 79/79, the three add-on tests, and no OpenBook denial. The checklist is `anal198`'s four boots plus a look at the new visuals in boot 1.
 - **After that session:** results go to ANAL-176, ANAL-177, ANAL-178, ANAL-179, ANAL-191, ANAL-198, ANAL-200 and the B-issues ANAL-202–208 (routing table in §13.12).
