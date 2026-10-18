@@ -1,0 +1,13 @@
+## after picking square
+Row: 0 shape_key=circle, shape_title=Circle, is_default=false
+Row: 1 shape_key=square, shape_title=Square, is_default=true
+Row: 2 shape_key=four_sided_cookie, shape_title=4-sided cookie, is_default=false
+Row: 3 shape_key=seven_sided_cookie, shape_title=7-sided cookie, is_default=false
+Row: 4 shape_key=arch, shape_title=Arch, is_default=false
+## after clearing the pick
+Row: 0 shape_key=circle, shape_title=Circle, is_default=true
+Row: 1 shape_key=square, shape_title=Square, is_default=false
+Row: 2 shape_key=four_sided_cookie, shape_title=4-sided cookie, is_default=false
+Row: 3 shape_key=seven_sided_cookie, shape_title=7-sided cookie, is_default=false
+Row: 4 shape_key=arch, shape_title=Arch, is_default=false
+## crash buffer

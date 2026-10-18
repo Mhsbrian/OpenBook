@@ -1,0 +1,26 @@
+
+No problems found. 4029 free sectors (2.0 MiB) available in 2
+segments, the largest of which is 2015 (1007.5 KiB) in size.
+Disk /home/hive/anybook/installer/qemu/nvram-b/nvme.img: 134217728 sectors, 64.0 GiB
+Sector size (logical): 512 bytes
+Disk identifier (GUID): 98320C13-B979-4291-BDCF-267EF1F616A4
+Partition table holds up to 128 entries
+Main partition table begins at sector 2 and ends at sector 33
+First usable sector is 34, last usable sector is 134217694
+Partitions will be aligned on 2048-sector boundaries
+Total free space is 4029 sectors (2.0 MiB)
+
+Number  Start (sector)    End (sector)  Size       Code  Name
+   1            2048         1050623   512.0 MiB   EF00  EFI
+   2         1050624         1058815   4.0 MiB     8300  misc
+   3         1058816         1189887   64.0 MiB    8300  boot_a
+   4         1189888         1320959   64.0 MiB    8300  boot_b
+   5         1320960         1337343   8.0 MiB     8300  init_boot_a
+   6         1337344         1353727   8.0 MiB     8300  init_boot_b
+   7         1353728         1484799   64.0 MiB    8300  vendor_boot_a
+   8         1484800         1615871   64.0 MiB    8300  vendor_boot_b
+   9         1615872         1617919   1024.0 KiB  8300  vbmeta_a
+  10         1617920         1619967   1024.0 KiB  8300  vbmeta_b
+  11         1619968         1751039   64.0 MiB    8300  metadata
+  12         1751040        26916863   12.0 GiB    8300  super
+  13        26916864       134215679   51.2 GiB    8300  userdata

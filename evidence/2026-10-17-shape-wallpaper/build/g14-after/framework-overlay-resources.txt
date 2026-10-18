@@ -1,0 +1,47 @@
+Binary APK
+Package name=dev.anybook.overlay.desktop.framework id=7f
+  type array id=01 entryCount=1
+    resource 0x7f010000 array/config_globalActionsList
+      () (array) size=7
+        ["emergency", "lock", "power", "restart", 
+         "logout", "screenshot", "bugreport"]
+  type bool id=02 entryCount=15
+    resource 0x7f020000 bool/config_allowPresentationOnInternalDisplay
+      () true
+    resource 0x7f020001 bool/config_canInternalDisplayHostDesktops
+      () true
+    resource 0x7f020002 bool/config_disableLockscreenByDefault
+      () true
+    resource 0x7f020003 bool/config_enterDesktopByDefaultOnFreeformDisplay
+      () true
+    resource 0x7f020004 bool/config_isDesktopModeSupported
+      () true
+    resource 0x7f020005 bool/config_lockPatternVisibleDefault
+      () false
+    resource 0x7f020006 bool/config_lockPinEnhancedPrivacyDefault
+      () true
+    resource 0x7f020007 bool/config_magnification_keep_zoom_level_when_context_changed
+      () true
+    resource 0x7f020008 bool/config_magnification_magnify_keyboard_default
+      () true
+    resource 0x7f020009 bool/config_showGesturalNavigationHints
+      () true
+    resource 0x7f02000a bool/config_showHomeBehindDesktop
+      () true
+    resource 0x7f02000b bool/config_showNavigationBar
+      () true
+    resource 0x7f02000c bool/config_supportsCamToggle
+      () true
+    resource 0x7f02000d bool/config_supportsMicToggle
+      () true
+    resource 0x7f02000e bool/config_useRoundIcon
+      () true
+  type dimen id=03 entryCount=1
+    resource 0x7f030000 dimen/config_wallpaperDimAmount
+      () 0.000000e+00
+  type integer id=04 entryCount=1
+    resource 0x7f040000 integer/config_navBarInteractionMode
+      () 2
+  type string id=05 entryCount=1
+    resource 0x7f050000 string/config_icon_mask
+      () "M50,0 A50,50 0 1,1 50,100 A50,50 0 1,1 50,0 Z"
