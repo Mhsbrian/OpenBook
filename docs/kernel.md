@@ -542,9 +542,23 @@ Evidence is in `evidence/2026-10-17-kernel-g14-r2/`, starting with `SUMMARY.md`.
   - **Codec2 HAL selection.** Clients default to HIDL (`media.c2.hal.selection`), and the product runs no `hwservicemanager`. So `MediaCodecList` saw only the in-process `__ApexCodecs__` store, which has AAC and no Vorbis: "No matching decoder". This matches the G14 log's "Only the `__ApexCodecs__` Codec2 service is listed". `pc.mk` now sets `media.c2.hal.selection=aidl`, as Cuttlefish, the emulator and dragonboard do.
   - **Codec2's FMQ memfds under SELinux.** AOSP grants them as `memfd_file` objects, which needs the `memfd_class` policy capability that AOSP 17 leaves off. On this kernel each memfd is a tmpfs file with its creator's type. `mediaswcodec` had no tmpfs type and could not write its own queues, nor map those of `mediaserver`, `system_server` or the shell: "Codec2Client: queue -- bad input". `sepolicy/system_ext/mediaswcodec.te` gives it `mediaswcodec_tmpfs` (an `mlstrustedobject`, for apps) and access to its clients' queues. This is the same pattern as ANAL-179's audio HAL rule.
 - **`stagefright` is in the userdebug image now** (`PRODUCT_PACKAGES_DEBUG`), so the laptop can run the same check.
-- **Not shown: a ringtone preview through NuPlayer.** Driving the SoundPicker UI in QEMU did not start a preview, so the Settings path is still to be shown on the laptop (ANAL-192's checklist). `stagefright` exercises the same Codec2 component.
-- **The standard product boot check still passes** (`product-qemu/regress`). It has one new denial, and it only appears now that decoding works: `audioserver` cannot map SystemUI's SoundPool shared memory (`appdomain_tmpfs`). AOSP grants that as `audioserver appdomain:memfd_file`. A tmpfs rule alone would not be enough, because MLS stops `audioserver` (s0) from writing an app's `s0:c512,c768` file. So it belongs to the audio lane (ANAL-179); turning on `memfd_class` would be the general fix. SystemUI's UI sounds (SoundPool) are affected; streaming playback uses audioserver-created memory, which is already covered.
+- **Not shown: a ringtone preview through NuPlayer.** Driving the SoundPicker UI in QEMU did not start a preview, so the Settings path is still to be shown on the laptop (ANAL-192's checklist). `stagefright` exercises the same Codec2 component, but not playback: it decodes to a file and opens no AudioTrack. That gap hid the next bug (below).
+- **The standard product boot check still passes** (`product-qemu/regress`). It has one new denial, and it only appears now that decoding works: `audioserver` cannot map SystemUI's SoundPool shared memory (`appdomain_tmpfs`). AOSP grants that as `audioserver appdomain:memfd_file`. A tmpfs rule alone would not be enough, because MLS stops `audioserver` (s0) from writing an app's `s0:c512,c768` file. So it belongs to the audio lane (ANAL-179); turning on `memfd_class` would be the general fix. SystemUI's UI sounds (SoundPool) are affected. I wrote then that streaming playback, which uses audioserver-created memory, was already covered. That holds for apps, but not for `mediaserver` (below).
   - **Fixed by ANAL-179** with one TE rule. MLS turned out not to be in the way: AOSP's `private/mls` exempts `appdomain_tmpfs` from its read and write constraints (`docs/g14-audio-net.md` §5, `evidence/2026-10-17-soundpool/`).
+- **On the G14 (`anal192d`, 2026-10-18; `evidence/2026-10-18-anal192d-media/`).**
+  - **Heap and decode hold on the hardware:**
+    - `system_heap.ko` is loaded and in use on every boot;
+    - `Could not open DMA-BUF heap` occurs 0 times;
+    - the Vorbis decoder is created 10 times in the 59-minute enforcing session.
+  - **MediaPlayer playback failed under enforcing.** SystemUI's low-battery sound decoded, but `mediaserver`'s AudioTrack could not map the control block AudioFlinger gave it: "Could not get control block", MediaPlayer error (1, -19), no sound. The block is a memfd labelled `audioserver_tmpfs`. AOSP grants it to `mediaserver` as `audioserver:memfd_file`, the `memfd_class` form again.
+    - **Paths affected:** ringtones, notification and low-battery sounds, Settings' ringtone previews, and any app that plays through MediaPlayer. Apps with their own AudioTrack (Chrome, ExoPlayer) are not affected.
+    - **The owner did not open Settings → Sound** in that session, so the previews were not tried.
+  - **The fix:** `sepolicy/system_ext/mediaserver.te`, `allow mediaserver audioserver_tmpfs:file { getattr map read write };`.
+    - **Proof on the `anal192d` image in QEMU, enforcing:** the low-battery and notification sounds failed exactly as on the G14. With the image's own policy recompiled plus this rule and loaded, both played to the end with 0 denials.
+    - **Policy build check:** AOSP's `secilc` compiles the product's policy with all neverallows checked, with and without the rule.
+    - **Not yet built** with the product: the lane was busy.
+    - **Regression check:** `QEMU_AUDIO=1 scripts/g14-qemu.sh <image> <run> scripts/installer/expect-g14-mediaplayer.json` plays both sounds about 165 s after boot. Earlier, Android's 120 s "avalanche" mute after `BOOT_COMPLETED` silences notification sounds. The check reports `plays`, `control_block_failures`, `player_errors` and `mediaserver_denials`.
+  - **`system_server` has the same gap.** AOSP also grants `system_server audioserver:memfd_file`, again with no tmpfs form. It would matter only for audio `system_server` plays itself, such as touch sounds, which are off by default here. Not observed; left to the audio lane.
 
 **2. efivarfs: a vendor module plus 26 KMI symbols. This keeps Google's GKI configuration.**
 - **The trial build.** It failed at modpost on 10 symbols the trimmed GKI does not export (`kmi/efivarfs-trial-modpost.txt`). Kleaf's symbol-list update then listed 26 imports that are not on the KMI (`kmi/efivarfs-new-kmi-symbols.txt`):
@@ -566,6 +580,7 @@ Evidence is in `evidence/2026-10-17-kernel-g14-r2/`, starting with `SUMMARY.md`.
   - The module loads on every boot; init only registers the filesystem, nothing mounts it.
   - `mount -t efivarfs` works, the firmware's 37 variables are listed, and `BootOrder` reads correctly (0002, 0000, 0001, 0003).
   - With SELinux permissive, a variable is created, read back and deleted.
+- **On the G14 (`anal192d`):** the module loads on every boot, and `openbook-installd.rc` mounts efivarfs read-write, with no efivarfs denial. The installer's report was not saved that session, so its use of the boot entries is not shown yet.
 - **What the installer still needs (ANAL-191):**
   - **SELinux policy.** Under enforcing, creating a variable fails: efivarfs is `unlabeled` and `associate` is denied, because AOSP 17's policy has no `genfscon` for it. ANAL-191 needed a type for it plus rules for `openbook_installd`. **Done** (`openbook_efivarfs`, `docs/installer.md` §12.11).
   - **`chattr -i` for test variables.** efivarfs makes variables under unknown GUIDs immutable. The `Boot####` entries under the EFI global GUID stay removable.
@@ -586,7 +601,10 @@ Evidence is in `evidence/2026-10-17-kernel-g14-r2/`, starting with `SUMMARY.md`.
   1. Upstream amdgpu work. Our 6.18 already has an MMIO queue-reset path in `gfx_v11_0_reset_kgq()`, but hard-wires `use_mmio = false`. Upstream is adding a pipe-reset fallback. Track both in `android-mainline`, and enable pipe reset once AMD's CP firmware supports it on GC 11.5.
   2. Newer MES/CP firmware from AMD.
   3. Userspace: SurfaceFlinger and SystemUI survive context loss instead of aborting on `EGL_CONTEXT_LOST`. That is the only lever that limits a full reset to the guilty app.
-  4. Next G14 session: capture `/sys/kernel/debug/dri/0/amdgpu_firmware_info`. The MES version is not in the file header in a form we could read.
+  4. Capture `/sys/kernel/debug/dri/0/amdgpu_firmware_info`. The MES version is not in the file header in a form we could read.
+     - **Not captured on `anal192d`.** The graphics check did not run, and nothing else read debugfs: Android does not mount it.
+     - **From PR #97, "save logs" collects it.** The `GPUFW` section of `collect-final.txt` mounts debugfs and reads it; `DMAHEAP` lists `/dev/dma_heap`.
+     - **Already in dmesg:** DMUB `0x09005700`, and VCN ENC 1.24 / DEC 9 rev 34.
 - **Exposure:** the hang came under Vulkan 1.1 with 12 concurrent dEQP clients, and Vulkan 1.4, which ships now, ran the same cases clean.
 
 **Commands**

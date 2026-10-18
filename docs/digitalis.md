@@ -31,8 +31,10 @@ Digitalis (https://github.com/DigitalisX64) is an Apache-2.0 fork of AOSP's Berb
   - all 9 ID registers read without SIGILL;
   - 6,900 `FRECPE`/`FRSQRTE` cases give 0 wrong results;
   - CRC32 and NEON FMA are correct.
-
-  The owner opened no arm64 app, and the stick has none, so app behaviour, the probe and CoreMark on the G14 are still to come. The "ARM apps check" add-on below runs them; it is on ANAL-192's stick checklist.
+- **arm64 apps on the G14 (CONFIRMED, 2026-10-18, `evidence/2026-10-18-digitalis-g14/`):** the "ARM apps check" add-on ran on the owner's `anal192d` stick, and all five of its verdicts pass.
+  - The arm64 probe app runs through the bridge: 18 of 20 groups pass. The two failures, `isa` and `signals`, are the known semantic differences, and the results match Cuttlefish and QEMU.
+  - The x86_64 control passes 18 of 18, with 2 skips.
+  - CoreMark arm64 / native x86_64 is **0.361** for the executables and **0.351** inside the app.
 
 ## How it is built
 
@@ -147,10 +149,15 @@ The `nsZipArchive` log shows the two failed lookups repeated about 970 times, th
 | Digitalis A17, Google's image, emulator | 0.300 (12,155 / 40,546) | 0.298 | `emulator-overlay/bench/` |
 | libndk_translation, Google's image, emulator | 0.457 (18,516 / 40,532) | 0.456 | `bench-ndk/` |
 | Digitalis A16, Google's image, emulator (ANAL-181) | 0.298 | 0.304 | `evidence/2026-10-16-digitalis/bench/` |
+| **Digitalis A17, our image, on the G14** (bare metal, Ryzen AI 9 HX 370; "balanced", on mains; 2026-10-18) | **0.361** (10,012 / 27,724) | **0.351** (9,902 / 28,205) | `evidence/2026-10-18-digitalis-g14/` |
 
 - Every round passed CoreMark validation, and the CoreMark binaries are byte-identical to ANAL-180's.
 - The emulator overlay is our Android 17 bridge collected from the product (`scripts/compat/digitalis/bundle.sh`) and installed on the same AVD ANAL-181 used.
-- **HYPOTHESIS:** Cuttlefish passes the host's CPU features to the guest (`avx2 bmi1 bmi2 fma movbe adx avx512f`, `install.txt`); the emulator's guest has none of these, and the translator selects code by host CPU features. The G14's Zen 5 has them all, so expect the Cuttlefish figure or better there. The G14 measurement comes from the ARM apps check add-on ("On the G14").
+- **HYPOTHESIS:** Cuttlefish passes the host's CPU features to the guest (`avx2 bmi1 bmi2 fma movbe adx avx512f`, `install.txt`), and the emulator's guest has none of these. The translator selects code by host CPU features.
+- **The G14 does not confirm "Cuttlefish or better":** its Zen 5 has the same features and gives 0.361 / 0.351. So CPU features alone don't explain Cuttlefish's 0.394. More HYPOTHESES:
+  - the ratio depends on the microarchitecture;
+  - it depends on which core ran the benchmark. The HX 370 has 4 Zen 5 and 8 Zen 5c cores, and native CoreMark here was 27.7k it/s against 37–43k in VMs on the 7950X. That fits a Zen 5c core, or the "balanced" power profile.
+  - The rounds were steady (within 1%), so each round probably ran on the same kind of core. Pinning each run to a known core would settle it.
 
 ## License and provenance of what ships (ANAL-200)
 
@@ -214,9 +221,41 @@ ANAL-176 copied both sessions to the build host. We read those copies only, neve
 - **No arm64 app ran:** the apps brought to the foreground were Settings, Gallery, Dialer and WebView Shell, all x86_64.
 - **Evidence:** `evidence/2026-10-17-digitalis-g14/g14-*/`. It holds `report.json`/`report.md` (redacted with `live-report.py --redact`, using the script as fixed by PR #52, now on `main`, for a crash in the `touchpad_clock` verdict), the bridge section of `hwtest-final.txt`, and `bridge-logs.txt`.
 
+### ARM apps check on the G14 (2026-10-18, `anal192d`)
+
+The owner booted "OpenBook ARM apps check" on `openbook-live-20261018-anal192d`. The payload `openbook-bridgecheck-anal192c` was built from `main` `3908b14`. It ran on mains power (battery at 16%), with platform profile "balanced", `amd-pstate-epp` and EPP `balance_performance`. We read only the host copy (`stick-20261018T123221Z/live-002`), never the stick.
+
+| Verdict (`bridge-report.py`) | Result |
+|---|---|
+| `addon_ran` (payload 8/8 OK, run.sh rc 0 in 520 s, cleanup left no probe app) | PASS |
+| `bridge_check` (exec, ID registers, 6,900 `FRECPE`/`FRSQRTE` cases with 0 wrong, CRC32/NEON) | PASS |
+| `probe_x86_64` (18 pass, 0 fail, 2 skip: `neon` and `isa` are arm-only) | PASS |
+| `probe_arm64` (installed as `arm64-v8a`, `Build.CPU_ABI=arm64-v8a`, 18 pass, 2 fail: `isa`, `signals`) | PASS |
+| `coremark_valid` (12 of 12 runs pass CRC validation) | PASS |
+
+- **Probe:** the same results as on Cuttlefish and in QEMU.
+  - `regress` passes: the ID registers, `FRECPE(1.0)`=`0x3f7f8000`, and `Build.CPU_ABI`.
+  - `neon` passes.
+  - `isa` fails only on the x86 NaN rules (sNaN priority, default-NaN sign).
+  - `signals` fails only on the SIGILL `si_code`.
+- **CoreMark** (medians of 3 interleaved rounds, it/s):
+
+  | | x86_64 | arm64 | arm64 / native |
+  |---|---|---|---|
+  | executable | 27,724 | 10,012 | 0.361 |
+  | in the app | 28,205 | 9,902 | 0.351 |
+
+- **The default (enforcing) boot of that session:**
+  - zygote ran with the bridge;
+  - of 229 denials, none names binfmt_misc, berberis or a native-bridge path;
+  - the apps the owner installed and opened (Aurora Store, Chrome, an ad blocker) all ran as x86_64. No app process logged a berberis translation line, whereas the arm64 probe's process logged 315 of them in the add-on boot.
+
+  So an arm64 app in an enforcing boot is still unobserved.
+- **Evidence:** `evidence/2026-10-18-digitalis-g14/`. It holds `report-bridge.md`/`.json`, the add-on's output, `facts.txt`, `bench.csv`, the raw CoreMark outputs, the probe results and logcats (all redacted with `live-report.py --redact-file`), and `session.txt` (the default boot).
+
 ### The ARM apps check add-on (probe and CoreMark on the laptop)
 
-The live stick has no adb and no arm64 app, so the probe and CoreMark go on the stick as an add-on. It uses the same live-init hook as ANAL-177's graphics check (`androidboot.openbook.addon=NAME`), and its entry is "OpenBook ARM apps check". It boots like "save logs". Once Android is up, the stick's own `openbook-live-init` unpacks the payload into the stick's `/data` and runs `scripts/compat/digitalis/stick/run.sh` as root. The run takes about 6 minutes:
+The live stick has no adb and no arm64 app, so the probe and CoreMark go on the stick as an add-on. It uses the same live-init hook as ANAL-177's graphics check (`androidboot.openbook.addon=NAME`), and its entry is "OpenBook ARM apps check". It boots like "save logs". Once Android is up, the stick's own `openbook-live-init` unpacks the payload into the stick's `/data` and runs `scripts/compat/digitalis/stick/run.sh` as root. The run takes about 6 minutes in QEMU and 9 on the G14:
 - `openbook_bridge_check`;
 - the compat probe as arm64 and as x86_64 (the control);
 - CoreMark, 600k iterations, 3 interleaved rounds, as executables and inside the probe app, as `run-bench.sh` runs it.
@@ -260,10 +299,11 @@ python3 -I scripts/compat/digitalis/stick/bridge-report.py <live-NNN>    # repor
 
 ## Next
 
-1. ANAL-192's integrated stick carries the ARM apps check. After the owner's boot of it, run `bridge-report.py`, then record the G14 probe and CoreMark rows (COMPAT-MATRIX) and compare them with Cuttlefish's 0.394 / 0.399.
-2. An arm64 app in an **enforcing** G14 boot. The default boot has no arm64 app, and the add-on runs permissive. A small arm64 app preinstalled on the live image, or a device agent (ANAL-194), would close this.
-3. Merge android17-release into the fork once Digitalis tracks Android 17, or do it ourselves (64 conflicts).
-4. Upstream reports to DigitalisX64 and AOSP, after the owner's OK.
+1. An arm64 app in an **enforcing** G14 boot. The default boot has no arm64 app, and the add-on runs permissive. A small arm64 app preinstalled on the live image, or a device agent (ANAL-194), would close this.
+2. A like-for-like libndk_translation baseline on the G14. It is proprietary and lives only in Google's images, so it can't go on ours. Google's AOSP Desktop emulator image under KVM on the G14's own Linux would give one (device loop, ANAL-194/195).
+3. Why the G14 ratio is 0.36 and Cuttlefish's 0.39: pin CoreMark to a Zen 5 core and to a Zen 5c core in the add-on (`taskset`), and record the core each run used. Low priority.
+4. Merge android17-release into the fork once Digitalis tracks Android 17, or do it ourselves (64 conflicts).
+5. Upstream reports to DigitalisX64 and AOSP, after the owner's OK.
 
 ## ANAL-181 evaluation (2026-10-16)
 

@@ -1,0 +1,43 @@
+--------- beginning of main
+10-18 12:05:15.592  3297  3313 I AnyBookProbe: PROBE_START pkg=dev.anybook.probe.arm64 mode=tests abis=x86_64,arm64-v8a cpu_abi=arm64-v8a os.arch=aarch64 sdk=37
+10-18 12:05:15.675  3297  3313 I AnyBookProbe: PROBE_RESULT load PASS abi=arm64-v8a compiler=[clang 21.0.0 (https://android.googlesource.com/toolchain/llvm-project 9f872551d3c681d06fd303b36f16ed5c274735eb)]
+10-18 12:05:15.675  3297  3313 I AnyBookProbe: PROBE_BEGIN java_jni_args
+10-18 12:05:15.676  3297  3313 I AnyBookProbe: PROBE_RESULT java_jni_args PASS checks=1 ms=0
+10-18 12:05:15.676  3297  3313 I AnyBookProbe: PROBE_BEGIN java_jni_exception
+10-18 12:05:15.676  3297  3313 I AnyBookProbe: PROBE_RESULT java_jni_exception PASS checks=1 ms=0
+10-18 12:05:15.676  3297  3313 I AnyBookProbe: PROBE_BEGIN java_jni_register_natives
+10-18 12:05:15.676  3297  3313 I AnyBookProbe: PROBE_RESULT java_jni_register_natives PASS checks=1 ms=0
+10-18 12:05:15.676  3297  3313 I AnyBookProbe: PROBE_BEGIN java_jni_callbacks
+10-18 12:05:15.680  3297  3313 I AnyBookProbe: PROBE_RESULT java_jni_callbacks PASS checks=12 ms=5
+10-18 12:05:15.680  3297  3313 I AnyBookProbe: PROBE_BEGIN abi
+10-18 12:05:15.704  3297  3313 I AnyBookProbe: PROBE_RESULT abi PASS checks=3 abi=arm64-v8a uname.machine=aarch64 at_platform=? exe=/system/bin/arm64/app_process64 pagesz=4096 hwcap=fp+asimd+aes+pmull+sha1+sha2+crc32+atomics+cpuid(hwcap2=0x0) cpuinfo=[CPU implementer : 0x41 / Features : fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm lrcpc dcpop asimddp] proc_auxv=unreadable ms=24
+10-18 12:05:15.704  3297  3313 I AnyBookProbe: PROBE_BEGIN neon
+10-18 12:05:15.704  3297  3313 I AnyBookProbe: PROBE_RESULT neon PASS checks=16 cvt=[2147483647 -2147483648 0 2] frecpe(1.0)=0x3f7f8000 ms=0
+10-18 12:05:15.704  3297  3313 I AnyBookProbe: PROBE_BEGIN crypto
+10-18 12:05:15.705  3297  3313 I AnyBookProbe: PROBE_RESULT crypto PASS checks=5 present=[aes pmull crc32 ] ms=0
+10-18 12:05:15.705  3297  3313 I AnyBookProbe: PROBE_BEGIN isa
+10-18 12:05:15.757  3297  3313 I AnyBookProbe: PROBE_RESULT isa FAIL checks=32 failed=nan_snan_priority,default_nan_positive nan=[7fc0000a 7fc0000a ffc00000 7fc0000b] fmax(qNaN,1)=7fc0000a fmaxnm(qNaN,1)=3f800000 fmin(+0,-0)=80000000 fmin(-0,+0)=80000000 cntfrq=19200000 cnt/wall=0.999 ctr_el0=0x8444c004(sig0) dczid=0x10(sig0) midr=0x410fd034(sig0) isar0=0x211120(sig0) ms=52
+10-18 12:05:15.757  3297  3313 I AnyBookProbe: PROBE_BEGIN atomics
+10-18 12:05:16.128  3297  3313 I AnyBookProbe: PROBE_RESULT atomics PASS checks=7 wide_cas_bits=128 sb_seqcst_violations=0/200000 sb_relaxed_reorders=4199/200000 ms=372
+10-18 12:05:16.128  3297  3313 I AnyBookProbe: PROBE_BEGIN tls
+10-18 12:05:16.137  3297  3313 I AnyBookProbe: PROBE_RESULT tls PASS checks=3 ms=9
+10-18 12:05:16.137  3297  3313 I AnyBookProbe: PROBE_BEGIN threads
+10-18 12:05:16.258  3297  3313 I AnyBookProbe: PROBE_RESULT threads PASS checks=6 affinity=24 online=24 hwconc=24 ms=120
+10-18 12:05:16.258  3297  3313 I AnyBookProbe: PROBE_BEGIN syscalls
+10-18 12:05:16.269  3297  3313 I AnyBookProbe: PROBE_RESULT syscalls PASS checks=7 uname=Linux/aarch64 personality=0x0 ms=12
+10-18 12:05:16.269  3297  3313 I AnyBookProbe: PROBE_BEGIN dlopen
+10-18 12:05:16.418  3297  3313 I AnyBookProbe: PROBE_RESULT dlopen PASS checks=13 rtld_default_JNI_GetCreatedJavaVMs=absent dlopen(libart.so)=fail loaded_objects=21 dlopen(/system/lib64/libc.so)=ok ms=148
+10-18 12:05:16.418  3297  3313 I AnyBookProbe: PROBE_BEGIN cxx_exceptions
+10-18 12:05:16.430  3297  3313 I AnyBookProbe: PROBE_RESULT cxx_exceptions PASS checks=10 backtrace_frames=12 ms=12
+10-18 12:05:16.430  3297  3313 I AnyBookProbe: PROBE_BEGIN jit
+10-18 12:05:16.431  3297  3313 I AnyBookProbe: PROBE_RESULT jit PASS checks=4 dual_map_no_flush_sees=22 ms=2
+10-18 12:05:16.431  3297  3313 I AnyBookProbe: PROBE_BEGIN signals
+10-18 12:05:16.667  3297  3313 I AnyBookProbe: PROBE_RESULT signals FAIL checks=13 failed=sigill_si_code_kernel sigill_signo=4 sigill_code=-1 alarm_on_this_thread=0 ms=235
+10-18 12:05:16.667  3297  3313 I AnyBookProbe: PROBE_BEGIN gles
+10-18 12:05:16.674  3297  3313 I AnyBookProbe: PROBE_RESULT gles PASS checks=7 egl=1.5 renderer=[ANGLE (AMD  Vulkan 1.4.354 (AMD Radeon 890M Graphics (RADV S] version=[OpenGL ES 3.2 (ANGLE 2.1 git hash: 8d8796935e4faeaf19e67ac0a] pixel=255,128,0,255 ms=7
+10-18 12:05:16.674  3297  3313 I AnyBookProbe: PROBE_BEGIN vulkan
+10-18 12:05:16.694  3297  3313 I AnyBookProbe: PROBE_RESULT vulkan PASS checks=8 loader=1.4 device=[AMD Radeon 890M Graphics (RADV STRIX1)] api=1.4.354 ms=20
+10-18 12:05:16.694  3297  3313 I AnyBookProbe: PROBE_BEGIN regress
+10-18 12:05:16.719  3297  3313 I AnyBookProbe: PROBE_RESULT regress PASS checks=10 Build.CPU_ABI=arm64-v8a id: midr=0x410fd034 mpidr=0x80000000 pfr0=0x11 isar0=0x211120 isar1=0x0 mmfr0=0x111ff000000 sigill=0(first #-1) frecpe(1.0)=0x3f7f8000 bad: s=0 d=0 4s=0  ms=24
+10-18 12:05:16.719  3297  3313 I AnyBookProbe: PROBE_DONE pass=18 fail=2 skip=0
+PROBE_SUMMARY abi=arm64 primary_cpu_abi=arm64-v8a pid=3297 bridge_maps=4 finished=yes secs=3.39

@@ -1,0 +1,9 @@
+
+===DMAHEAP===
+total 0
+cr--r--r-- 1 system system 249,   0 2026-10-18 13:10 system
+cr--r--r-- 1 system system 249,   1 2026-10-18 13:10 system-uncached
+
+===GPUFW===
+rc=0
+debugfs /sys/kernel/debug debugfs rw,seclabel,relatime 0 0

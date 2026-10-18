@@ -1,0 +1,9 @@
+# anal192d, save-logs boot (live-001): collect-final.txt, blur-related properties and the display mode
+[ro.build.date]: [Sun Oct 18 09:37:28 UTC 2026]
+[ro.build.fingerprint]: [OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys]
+[ro.hardware.egl]: [angle]
+[ro.hardware.vulkan]: [radv]
+[ro.hwui.use_vulkan]: []
+[ro.surface_flinger.supports_background_blur]: [1]
+[vendor.anybook.gpu.hal]: [amdgpu]
+    activeMode={id=0, hwcId=2, resolution=2880x1800, vsyncRate=120.00 Hz, dpi=242.23x241.90, group=1, vrrConfig=N/A, hdrOutputType=SDR}

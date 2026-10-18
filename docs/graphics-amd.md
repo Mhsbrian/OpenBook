@@ -446,9 +446,9 @@ As of 2026-10-17. Evidence is in `evidence/2026-10-17-blur/`; the UI side is in 
 
 | | OpenBook G14 (`anybook_g14_x86_64`) | OpenBook Cuttlefish (`anybook_cf_x86_64_pc`, `gfxstream_guest_angle`) | Googlebook (`ruby`) |
 |---|---|---|---|
-| SurfaceFlinger's RenderEngine | **SkiaGL**, threaded, on ANGLE → Vulkan → RADV (C: `SkiaGLRenderEngine::create` in the G14's `g14-desktop2` crash backtrace) | SkiaGL on ANGLE → gfxstream → the host's RADV (C) | Skia **Graphite** on Vulkan (inferred from its properties and flags, below; not observed running) |
+| SurfaceFlinger's RenderEngine | **SkiaGL**, threaded, on ANGLE → Vulkan → RADV (C: `Threaded RenderEngine with SkiaGL Backend (Ganesh)` in the G14's `anal192d` logcat; earlier, `SkiaGLRenderEngine::create` in the `g14-desktop2` crash backtrace) | SkiaGL on ANGLE → gfxstream → the host's RADV (C) | Skia **Graphite** on Vulkan (inferred from its properties and flags, below; not observed running) |
 | HWUI (apps, SystemUI, Launcher) | **SkiaGL** (`ro.hwui.use_vulkan` unset) on ANGLE | **SkiaVk**: Cuttlefish's launcher sets `debug.hwui.renderer=skiavk` for gfxstream | SkiaVk (`ro.hwui.use_vulkan=true`) |
-| Background blur | **on, since this change** | on (inherited from `device/google/cuttlefish`) | on |
+| Background blur | **on, since this change**; on the G14 (`anal192d`): `Background Blurs Enabled (Kawase dual-filtering V2 algorithm)`, radius 51 px behind the shade | on (inherited from `device/google/cuttlefish`) | on |
 | Blur algorithm | `KawaseDualFilterV2`, AOSP 17's default (`debug.renderengine.blur_algorithm` unset) | the same (C: `RenderEngine chosen blur algorithm`) | not read |
 
 The blur itself is drawn by RenderEngine, on the GPU, when SurfaceFlinger composes a frame that has a blurred layer. A blurred layer forces GPU composition for that frame. In Cuttlefish, SurfaceFlinger composed none of the shade's frames on the GPU with blur off and about two thirds with it on (the composer HAL handles the rest); on the G14, drm_hwcomposer uses only the primary plane (`ro.vendor.hwc.use_overlay_planes=false`), so SurfaceFlinger composes most frames on the GPU anyway and blur adds only its own passes. HYPOTHESIS until the G14 run below.
@@ -483,3 +483,138 @@ The graphics add-on (`scripts/graphics/gfx-run.sh`) now starts with a `blur` par
 - counts amdgpu fault and reset lines, and watches the PIDs of SurfaceFlinger, SystemUI and system_server.
 
 `gfx-report.py` passes the part to `scripts/ui/blur-report.py`, and `live-report.py` turns it into the `gfx_blur` verdict. The thresholds are in `googlebook-ui.md` §2.3.
+
+## Refresh rate on the G14's 120 Hz panel (ANAL-212)
+
+As of 2026-10-18. The owner saw the G14 look like 60 Hz. **It was 60 frames a second on a 120 Hz scanout:** the panel
+always ran its 120 Hz mode, but DisplayManager let SurfaceFlinger draw at most 60 frames a second. The cause is
+AOSP's `config_defaultRefreshRate` of 60, which our desktop RRO inherited from the AOSP desktop emulator image.
+Googlebook sets it to 0. Fixed in `AnyBookDesktopFrameworkOverlay`; tests are below.
+
+### What the panel offers, and what each layer does with it (C)
+
+- **Panel** (Samsung `ATNA40CU05-0`, `evidence/2026-10-16-ga403wr-inventory/root/edid-card1-eDP-1.txt`). Two 2880×1800
+  timings with the same 652.27 MHz pixel clock:
+  - 120 Hz in the DisplayID 2.0 block (type 7, marked preferred);
+  - 60 Hz in the base EDID, made by stretching the vertical back porch to 1832 lines.
+  - The panel also does 48–120 Hz adaptive sync (DisplayID adaptive-sync block, AMD VSDB).
+- **amdgpu → KMS:** 13 modes. The two native ones plus 11 scaled ones at 120 Hz, from amdgpu's common-mode list.
+  The 120 Hz mode comes first.
+- **drm_hwcomposer** (`external/drm_hwcomposer`, `hwc/HwcDisplayConfigs.cpp`) gives every mode its own config
+  group, and its preferred config is the 120 Hz mode. SurfaceFlinger switches modes only within a group, unless
+  "match content frame rate" is set to always. So the panel stays at 120 Hz: every G14 capture shows
+  `activeMode=… vsyncRate=120.00 Hz`. VRR is not exposed: `vrrConfig=N/A` and `hasArrSupport false`, and
+  `hwc3/ComposerClient.cpp` says `TODO: Populate vrrConfig`.
+- **DisplayModeDirector** (`frameworks/base/services/core/java/com/android/server/display/mode/`) votes
+  `PRIORITY_DEFAULT_RENDER_FRAME_RATE` = render rate in [0, `config_defaultRefreshRate`]. This is its lowest
+  priority, below the app-request cutoff. So the cap lands in the primary range and not in the app-request range.
+  The G14 dumps show exactly that: `primaryRanges={physical=[0, inf], render=[0, 60]}` and
+  `appRequestRanges={… render=[0, inf]}`.
+  - Touch boost ranks inside the primary range (`RefreshRateSelector.cpp`), so touch boost also stopped at 60.
+  - Only explicit app votes reached 120.
+  - On the 75 Hz QEMU display, the highest divisor at or under 60 is 37.5. So VMs drew at 37.5 frames a second
+    (`evidence/2026-10-17-power-input/anal178b/`).
+- **Time by render rate** in SurfaceFlinger's own histogram, enforcing desktop sessions on the G14:
+
+  | Session | 120 Hz | 60 Hz | Lower |
+  |---|---|---|---|
+  | `anal176s` | 5.9 s | 76.0 s | 4.5 s |
+  | `anal178c` | 28.2 s | 25.6 s | 0 s |
+  | `desktop2` | 11.5 s | 49.9 s | 0 s |
+
+  The 2026-10-16 installer session showed 120 Hz and an unbounded policy, because it was captured before
+  DisplayManager sent SurfaceFlinger a policy (`mDisplayModeSpecsInvalid=true`).
+
+### What the references set
+
+| | `config_defaultRefreshRate` | `config_defaultPeakRefreshRate` | Where |
+|---|---|---|---|
+| AOSP default | 60 | 0 (no ceiling) | `frameworks/base/core/res/res/values/config.xml` |
+| AOSP desktop emulator (`sdk_gdesktop_x86_64`), the source of our desktop RRO | not set (60) | not set | `~/anybook/gbos-ui/gdesktop-37.1/overlay-values.txt` |
+| Googlebook (`ruby`) | **0** | **1000** | `/product/overlay/FrameworkDesktopOverlay.apk` (read offline, `~/anybook/gbos-ui/ruby/overlay-values.txt`) |
+| Cuttlefish | 0 | 1000 | `device/google/cuttlefish/shared/overlays/core` |
+
+Googlebook's `ruby` image (read offline, nothing copied):
+- It also uses drm_hwcomposer (`/vendor/etc/init/hwc3-drm.rc`).
+- It sets `ro.surface_flinger.set_idle_timer_ms=1000`.
+- It has per-panel display configs (`/vendor/etc/displayconfig/display_id_*.xml`). These cap the refresh rate by
+  thermal status: 61 at severe and critical, 31 at emergency and shutdown.
+- It shows no "Smooth display" switch (`config_show_smooth_display` is unset).
+
+### The change
+
+`device/anybook/common/desktop/overlays/framework/res/values/config.xml`: `config_defaultRefreshRate=0`,
+`config_defaultPeakRefreshRate=1000`, the same values as Googlebook. Every AnyBook desktop product gets them:
+- 0 removes the default render vote.
+- 1000 means no ceiling, so a 144 or 240 Hz laptop panel also gets its top rate. DisplayModeDirector also needs one
+  of the two values to be non-zero.
+
+Unchanged behaviour:
+- **SurfaceFlinger still picks the render rate from content.** Content detection and the 200 ms touch timer are on
+  by default in AOSP 17, because `enable_frame_rate_override` defaults to true. The dumps show frame-rate categories
+  `normal=60, high=90`, so content that only asks for "normal" can still draw at 60. This is the same policy
+  Googlebook runs.
+- **Battery saver** still caps the render rate at 60 (`PRIORITY_LOW_POWER_MODE_RENDER_RATE`).
+- **The scanout stays at 120 Hz**, as before.
+
+### Tests
+
+- **Static (C):** `aapt2` links the RRO against the G14 product's `framework-res.apk`. `idmap2` (policies public
+  and product, overlayable checks on) maps both values: `0x010e007a` (`config_defaultRefreshRate`, base 60) and
+  `0x010e0077` (`config_defaultPeakRefreshRate`, base 0).
+- **QEMU before and after:** `scripts/graphics/refresh-qemu.sh IMG RUN` boots a copy of a live image on its console
+  entry and records:
+  - what the RRO resolves to, and DisplayModeDirector's votes;
+  - SurfaceFlinger's scheduler dump;
+  - SurfaceFlinger's render rate while Settings scrolls under `input swipe`.
+
+  `scripts/graphics/refresh-report.py` turns that into `refresh.json` and `refresh.md`.
+
+  | | Before (`anal211b`, `main` before this change) | After (`anal212`, this change) |
+  |---|---|---|
+  | `config_defaultRefreshRate`, `config_defaultPeakRefreshRate` | 60, 0 | 0, 1000 |
+  | Primary render range | [0, 60] | [0, 1000] |
+  | Render rate while Settings scrolls, 12 samples | 37.5 Hz × 12 | **75 Hz × 12** |
+
+  Evidence: `evidence/2026-10-18-refresh-rate/`. After the change, the VM drew at 75 the whole run, idle
+  included, because no idle timer is set (see "Not done").
+- **Every live boot:** `scripts/installer/live-report.py` has a new `refresh_rate` verdict, on both G14 and VM
+  sticks. It passes when the active mode is the fastest mode and the primary render range reaches it. On the
+  existing G14 captures it says NO for `anal176s`, `anal178c`, `desktop2` and `desktop3` (render max 60).
+- **On the G14, before the fix** (the owner's `anal192d` session; `evidence/2026-10-18-refresh-rate/g14-anal192d-baseline.md`):
+  - Both captured boots: 120 Hz scanout, primary render range [0, 60], and `refresh_rate` NO.
+  - The hour-long default boot spent 99.7 % of its screen-on time drawing at 60. 120 Hz appeared only in 17 brief
+    stretches, adding up to 3.5 s.
+  - `scripts/graphics/render-rate-timeline.py` measures a session from its persisted logcat, for boots without a
+    dumpsys.
+- **On the G14, after:** `anal192e`. HYPOTHESIS until then: the dump shows `render=[0, 1000]`, `refresh_rate`
+  passes, and most screen-on time is at 120. Compare missed frames per minute too.
+
+**Check a stick that predates the fix:** Developer options → "Force peak refresh rate" sets `min_refresh_rate` to
+infinity. That vote has priority 3 and conflicts with the default vote at priority 0, so DisplayModeDirector drops
+the default vote. The result is a constant 120 Hz render rate, with no lowering for idle content. Use it as a
+test only, not as the fix.
+
+### Not done, in order of value
+
+1. **The G14 check** (above).
+2. **Adaptive sync (VRR / ARR).**
+   - What exists: the panel does 48–120 Hz, and amdgpu offers `vrr_capable` and the CRTC's `VRR_ENABLED` (from amdgpu's code; not yet read on the G14).
+   - What's missing: drm_hwcomposer populates no `VrrConfig` and never sets `VRR_ENABLED`.
+   - Exposing it would let SurfaceFlinger pace 24, 30 and 48 fps content without judder, and lower the panel's real
+     refresh rate. HYPOTHESIS: that is the main power gain on battery.
+   - Size: drm_hwcomposer work (HWC3 VRR configs, the CRTC property, present timing), plus CTS. It needs its own
+     issue.
+3. **Thermal limits as on Googlebook.** This needs a DisplayDeviceConfig file for the G14 panel,
+   `/vendor/etc/displayconfig/display_id_4633223054480985600.xml` (the ID in the G14 dumps). That file also needs
+   the panel's brightness-to-nits map, so it is its own task.
+4. **The idle timer** (`ro.surface_flinger.set_idle_timer_ms=1000`, as on Googlebook). Deferred:
+   - Our composer never changes the physical mode, so the timer would only lower the render rate of an idle screen,
+     which composes nothing anyway.
+   - It can delay the first frame of the next motion.
+   - Measure it with VRR, not before.
+5. **A physical 60 Hz mode on battery: not worth it before VRR.**
+   - The EDID's 60 Hz timing stretches the vertical back porch. amdgpu's seamless path (`is_freesync_video_mode`,
+     with the experimental `amdgpu.freesync_video=1`) needs a front-porch stretch.
+   - HYPOTHESIS, from reading `amdgpu_dm.c` (not measured): switching 120 → 60 is a full modeset with a visible
+     blank.

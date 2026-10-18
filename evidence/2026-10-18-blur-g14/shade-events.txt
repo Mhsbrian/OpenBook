@@ -1,0 +1,40 @@
+# anal192d default boot: shade openings (events) and SystemUI LatencyTracker (sysui_latency [action, ms]; 0 = ACTION_EXPAND_PANEL)
+10-18 11:01:03.838553  1000  1220  1304 I notification_panel_revealed: 0
+10-18 11:01:04.292353  1000  1220  2689 I notification_panel_hidden: 
+10-18 11:01:27.856717 10086  3492  3492 I sysui_latency: [0,0]
+10-18 11:01:27.858978  1000  1220  4109 I notification_panel_revealed: 3
+10-18 11:01:29.373387  1000  1220  4109 I notification_panel_hidden: 
+10-18 11:01:40.406656 10086  3492  3492 I sysui_latency: [15,4]
+10-18 11:02:17.227559 10086  3492  3492 I sysui_latency: [0,0]
+10-18 11:02:17.230420  1000  1220  3844 I notification_panel_revealed: 3
+10-18 11:02:32.272952  1000  1220  2691 I notification_panel_hidden: 
+10-18 11:05:34.888423 10067  5774  5774 I sysui_latency: [20,0]
+10-18 11:05:57.153185 10082  3803  3822 I sysui_latency: [20,0]
+10-18 11:08:38.410232 10086  3492  3492 I sysui_latency: [15,4]
+10-18 11:08:39.959901 10086  3492  3492 I sysui_latency: [15,4]
+10-18 11:08:42.977496 10086  3492  3492 I sysui_latency: [15,4]
+10-18 11:09:19.242222 10082  3803  3822 I sysui_latency: [20,1]
+10-18 11:15:58.821618 10086  3492  3492 I sysui_latency: [0,0]
+10-18 11:15:58.823504  1000  1220  4104 I notification_panel_revealed: 4
+10-18 11:16:03.323492  1000  1220  3569 I notification_panel_hidden: 
+10-18 11:16:07.707564 10086  3492  3492 I sysui_latency: [0,0]
+10-18 11:16:07.709825  1000  1220  3569 I notification_panel_revealed: 4
+10-18 11:16:24.298408  1000  1220  7649 I notification_panel_hidden: 
+10-18 11:17:33.936951 10086  3492  3492 I sysui_latency: [0,0]
+10-18 11:17:33.938800  1000  1220  3632 I notification_panel_revealed: 4
+10-18 11:17:35.716076  1000  1220  4109 I notification_panel_hidden: 
+10-18 11:19:41.650119 10086  3492  3492 I sysui_latency: [15,4]
+10-18 11:19:45.916504 10086  3492  3492 I sysui_latency: [15,3]
+10-18 11:19:46.874766 10086  3492  3492 I sysui_latency: [15,3]
+10-18 11:19:48.774535 10086  3492  3492 I sysui_latency: [15,3]
+10-18 11:24:34.550437 10067  5774  5774 I sysui_latency: [20,0]
+10-18 11:24:49.738135 10067  5774  5774 I sysui_latency: [20,0]
+10-18 11:27:00.024222 10086  3492  3492 I sysui_latency: [0,1]
+10-18 11:27:00.026601  1000  1220  7649 I notification_panel_revealed: 0
+10-18 11:27:06.314169  1000  1220  4981 I notification_panel_hidden: 
+10-18 11:37:45.781186 10086  3492  3492 I sysui_latency: [0,1]
+10-18 11:37:45.783406  1000  1220  3844 I notification_panel_revealed: 0
+10-18 11:37:52.554382  1000  1220  5027 I notification_panel_hidden: 
+10-18 11:59:01.305939 10086  3492  3492 I sysui_latency: [0,1]
+10-18 11:59:01.308235  1000  1220  5027 I notification_panel_revealed: 1
+10-18 11:59:04.510003  1000  1220  3569 I notification_panel_hidden: 
