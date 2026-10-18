@@ -1,0 +1,117 @@
+{
+ "reason": "all steps done",
+ "seconds": 53.9,
+ "steps_done": 36,
+ "steps": 36,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "windows-standin started: BootCurrent=\\w+ BootOrder=[0-9A-F,]+",
+   "t": 2.0
+  },
+  {
+   "step": 1,
+   "wait": "Please select boot device",
+   "t": 5.1
+  },
+  {
+   "step": 4,
+   "monitor": "sendkey up",
+   "t": 8.1
+  },
+  {
+   "step": 7,
+   "monitor": "sendkey ret",
+   "t": 10.1
+  },
+  {
+   "step": 8,
+   "wait": "init: init second stage started",
+   "t": 12.0
+  },
+  {
+   "step": 9,
+   "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+   "t": 13.8
+  },
+  {
+   "step": 11,
+   "wait": "console:/ \\$ ",
+   "t": 13.8
+  },
+  {
+   "step": 13,
+   "wait": "console:/ # ",
+   "t": 13.9
+  },
+  {
+   "step": 15,
+   "wait": "console:/ # ",
+   "t": 14.1
+  },
+  {
+   "step": 17,
+   "wait": "\\nBOOTDONE=1 uptime=",
+   "t": 23.4
+  },
+  {
+   "step": 18,
+   "wait": "console:/ # ",
+   "t": 23.4
+  },
+  {
+   "step": 20,
+   "wait": "console:/ # ",
+   "t": 24.8
+  },
+  {
+   "step": 22,
+   "wait": "console:/ # ",
+   "t": 25.5
+  },
+  {
+   "step": 24,
+   "wait": "===NVRAM-BOOT-END===",
+   "t": 27.3
+  },
+  {
+   "step": 25,
+   "wait": "console:/ # ",
+   "t": 27.4
+  },
+  {
+   "step": 27,
+   "wait": "===AVC-END===",
+   "t": 28.4
+  },
+  {
+   "step": 28,
+   "wait": "console:/ # ",
+   "t": 28.4
+  },
+  {
+   "step": 30,
+   "wait": "console:/ # ",
+   "t": 32.4
+  },
+  {
+   "step": 32,
+   "wait": "===NVRAM-NEXT-END===",
+   "t": 33.2
+  },
+  {
+   "step": 33,
+   "wait": "console:/ # ",
+   "t": 33.2
+  },
+  {
+   "step": 35,
+   "wait": "console:/ # ",
+   "t": 33.3
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/qemu/nvram-b/blank-usb.img",
+ "nvme": "/home/hive/anybook/installer/qemu/nvram-b/winboot.img",
+ "nvme2": null
+}

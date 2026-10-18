@@ -1,0 +1,67 @@
+{
+ "reason": "all steps done",
+ "seconds": 44.0,
+ "steps_done": 21,
+ "steps": 21,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "init: init second stage started",
+   "t": 3.3
+  },
+  {
+   "step": 1,
+   "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+   "t": 5.0
+  },
+  {
+   "step": 3,
+   "wait": "console:/ \\$ ",
+   "t": 5.0
+  },
+  {
+   "step": 5,
+   "wait": "console:/ # ",
+   "t": 5.0
+  },
+  {
+   "step": 7,
+   "wait": "console:/ # ",
+   "t": 5.3
+  },
+  {
+   "step": 9,
+   "wait": "\\nBOOTDONE=1 uptime=",
+   "t": 12.5
+  },
+  {
+   "step": 10,
+   "wait": "console:/ # ",
+   "t": 12.5
+  },
+  {
+   "step": 12,
+   "wait": "console:/ # ",
+   "t": 13.8
+  },
+  {
+   "step": 14,
+   "wait": "console:/ # ",
+   "t": 14.5
+  },
+  {
+   "step": 16,
+   "wait": "===NVRAM-BOOT-END===",
+   "t": 16.3
+  },
+  {
+   "step": 17,
+   "wait": "console:/ # ",
+   "t": 16.4
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/qemu/nvram-b/blank-usb.img",
+ "nvme": "/home/hive/anybook/installer/qemu/nvram-b/nvboot-nvme.img",
+ "nvme2": null
+}
