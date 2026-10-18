@@ -25,6 +25,7 @@ android_app {
     },
     required: [
         "default-permissions_dev.openbook.quire",
+        "privapp_whitelist_com.android.launcher3.contextual_search",
         "privapp_whitelist_dev.openbook.quire",
         "quire_computercontrol_automatable_app_allowlist",
         "quire_computercontrol_session_owner_allowlist",
@@ -38,6 +39,15 @@ prebuilt_etc {
     system_ext_specific: true,
     sub_dir: "permissions",
     src: "app/privapp-permissions-dev.openbook.quire.xml",
+    filename_from_src: true,
+}
+
+// Launcher3 starts contextual search (aosp/patches/packages/apps/Launcher3/0002).
+prebuilt_etc {
+    name: "privapp_whitelist_com.android.launcher3.contextual_search",
+    system_ext_specific: true,
+    sub_dir: "permissions",
+    src: "app/privapp-permissions-launcher3-contextual-search.xml",
     filename_from_src: true,
 }
 
