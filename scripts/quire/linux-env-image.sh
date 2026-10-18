@@ -15,7 +15,9 @@
 # --test-agent opencode puts a pinned, checksummed opencode release (MIT) in /usr/local/bin, so a
 # test can show an agent answering. A product image ships no agent.
 #
-# Needs Docker with --privileged (the builder uses loop devices) and about 10 GB in WORK.
+# Needs Docker with --privileged (the builder uses loop devices) and about 10 GB in WORK. The builder works in
+# WORK/work (its -W), so its loop devices are backed by files there, and scripts/quire/unmount-build-loops.sh
+# touches only those.
 # Output: OUTDIR/images.tar.gz, ready for /sdcard/linux/images.tar.gz on a debuggable build,
 # with its sha256, kernel version and kernel config beside it.
 set -euo pipefail
@@ -46,9 +48,14 @@ declare -A AGENT_SHA=(
 )
 
 src=$WORK/src/Virtualization
+wdir=$WORK/work
+# build.sh passes -W to docker unquoted.
+case $wdir in *[[:space:]]*) echo "WORK must not contain spaces: $WORK" >&2; exit 2 ;; esac
 # The builder runs as root in its container, so some leftovers are root's.
-rm -rf "$src" 2>/dev/null || docker run --rm -v "$WORK:/w" debian:trixie-slim rm -rf /w/src/Virtualization
-mkdir -p "$src/build"
+clean() { rm -rf "$WORK/$1" 2>/dev/null || docker run --rm -v "$WORK:/w" debian:trixie-slim rm -rf "/w/$1"; }
+clean src/Virtualization
+clean work
+mkdir -p "$src/build" "$wdir"
 cp -a "$AOSP/packages/modules/Virtualization/build/debian" "$src/build/"
 virt_head=$(git -C "$AOSP/packages/modules/Virtualization" rev-parse --short=12 HEAD)
 patch -d "$src" -p1 --no-backup-if-mismatch < "$repo/quire/linux-env/image/build-debian.patch"
@@ -68,31 +75,20 @@ log=$out/build.log
 echo "Virtualization $virt_head, build_id '$build_id', test agent '${agent:-none}'" | tee "$log"
 
 # A desktop automounter (udiskie, GNOME's) mounts the builder's loop devices on the host, which
-# keeps them attached after the builder unmounts them. While the build runs, unmount the build's
-# own loop devices (backing file root_part or disk.raw) and nothing else.
-unmount_build_loops() {
-	while :; do
-		for b in /sys/block/loop*; do
-			f=$(cat "$b/loop/backing_file" 2>/dev/null) || continue
-			case $f in */root_part|*/root_part" (deleted)"|*/disk.raw|*/disk.raw" (deleted)") ;; *) continue ;; esac
-			for dev in "/dev/${b##*/}" "/dev/${b##*/}"p*; do
-				[ -e "$dev" ] && grep -q "^$dev /run/media/" /proc/mounts &&
-					udisksctl unmount -b "$dev" >> "$log.unmount" 2>&1
-			done
-		done
-		sleep 1
-	done
-}
+# keeps them attached after the builder unmounts them. While the build runs, undo those mounts for
+# this build's own loop devices (backed by $wdir/root_part or $wdir/debian_cloud_image/disk.raw)
+# and nothing else.
 watch_pid=
 if command -v udisksctl >/dev/null; then
-	unmount_build_loops &
+	"$repo/scripts/quire/unmount-build-loops.sh" "$wdir" >> "$log.unmount" 2>&1 &
 	watch_pid=$!
 fi
 trap '[ -z "$watch_pid" ] || kill "$watch_pid" 2>/dev/null' EXIT
-(cd "$src/build/debian" && ./build.sh -a "$arch" -b "$build_id" -t "$src") 2>&1 | tee -a "$log"
+(cd "$src/build/debian" && ./build.sh -a "$arch" -b "$build_id" -t "$src" -W "$wdir") 2>&1 | tee -a "$log"
 
 mv "$src/build/debian/images.tar.gz" "$out/images.tar.gz"
 mv "$src/build/debian/kernel_version" "$src/build/debian/kernel_config" "$out/"
+clean work # about 10 GB; -W keeps it
 (cd "$out" && sha256sum images.tar.gz > images.tar.gz.sha256)
 {
 	echo "virtualization=$virt_head"
