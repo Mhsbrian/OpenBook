@@ -197,7 +197,7 @@ class TrayWindow(private val context: Context, private val surface: QuireSurface
             r.addView(LinearLayout(context).apply {
                 orientation = VERTICAL
                 addView(TextView(context).apply {
-                    role(TextRole(13.5f, 20f, 600), p.onSurface)
+                    role(TextRole(14f, 20f, 600), p.onSurface)
                     text = t.prompt ?: context.getString(R.string.q_tray_new_note)
                     maxLines = 1
                     ellipsize = TextUtils.TruncateAt.END
@@ -211,7 +211,7 @@ class TrayWindow(private val context: Context, private val surface: QuireSurface
             }, LayoutParams(0, WRAP_CONTENT, 1f).apply { marginStart = dpi(10f) })
             t.agent?.let { a ->
                 r.addView(TextView(context).apply {
-                    role(TextRole(11.5f, 16f, 500), p.onSurfaceVariant)
+                    role(TextRole.META_MEDIUM, p.onSurfaceVariant)
                     text = a.name
                     background = rounded(context, p.surfaceHigh, 10f)
                     setPadding(dpi(8f), dpi(3f), dpi(8f), dpi(3f))

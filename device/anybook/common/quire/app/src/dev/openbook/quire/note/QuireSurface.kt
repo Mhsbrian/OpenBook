@@ -170,6 +170,24 @@ class QuireSurface(private val app: QuireApplication) : Task.Host, NoteWindow.Ca
 
     override fun addScreen() {}
 
+    /** Save as a file (§3.2): the note steps aside for the picker and says where the file went. */
+    override fun saveFile(name: String, mime: String, text: String) {
+        val t = window.task ?: return
+        window.suspended = true
+        Saver.save(app, Saver.Job(name, mime, text) { r ->
+            window.suspended = false
+            r.onSuccess { t.notify(app.getString(dev.openbook.quire.R.string.q_saved, it)) }
+            r.onFailure {
+                if (it !is SaveActivity.CancelledException) {
+                    t.notify(app.getString(dev.openbook.quire.R.string.q_save_failed))
+                } else {
+                    t.refresh()
+                }
+            }
+            window.card?.focus(Task.Focus.FIELD)
+        })
+    }
+
     // ---------------------------------------------------------------------------------------- Task.Host
 
     override fun changed(task: Task, focus: Task.Focus) {

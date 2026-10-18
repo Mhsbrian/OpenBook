@@ -28,30 +28,43 @@ The write-up is `docs/quire.md` §9 (built) and §8 (findings); the design is PR
 Both ran under the lane lock (`scripts/aosp-docker.sh`, `AOSP_JOBS=24`). The image was booted on the AMD lane:
 `CF_GPU=amd`, `gfxstream_guest_angle`, 1920×1080 at 160 dpi, `boot_completed` 19 s after `cvd create`, fresh `/data`.
 
-**Which Quire ran.** The states, accessibility, Remove-animations and frames checks ran on the image's own
-Quire (Soong, `5c1d0c4`). Four fixes found on the way were installed over it as the dev APK
-(`tools/build-apk.sh`, the same sources) before the keyboard, video, contrast and health checks and the control
-states were rerun: a lab-opened note no longer toggles an open one closed (only Meta+Space, the assist key and the
-taskbar toggle), the zoom shows a wide control from its leading edge, the palette dump, and a Tab check that waits
-for the dump. The final sources build in-tree (`2ec9b15`, above).
+**Which Quire ran.** The image (`5c1d0c4`) carries SystemUI `0008`; Quire's final sources, with the changes from
+Atelier's review, were installed over the image's Quire as the dev APK (`tools/build-apk.sh`, the same sources Soong
+builds), and every section below ran on that one build, in one session, on a fresh boot of the snapshot. The final
+sources build in-tree (above).
+
+**Atelier's review (2026-10-18), and what answers it**
+
+| Item | Change | Evidence |
+|---|---|---|
+| 1. Stop and error copy | Only an interrupted step that changes something "may be partly applied"; an interrupted read "was interrupted"; with no changing step done or interrupted, "Nothing was changed." (`note/Task.kt` `effects()`) | `error`, `stopped` (light and dark): checked on the screen's text |
+| 2. Type sizes to §4.1 | The scale is 12, 13, 14, 15 with code at 12.5/18; no half points (`ui/Type.kt`, and every inline size) | Every capture |
+| 3. Long output | Wide (480 dp) once an answer passes 480 characters or overflows at 400 dp, and it stays wide for the task; Jump to latest while text arrives and the body is scrolled up (Page Up), Ctrl+End jumps; "Save as a file" in the footer, through the Storage Access Framework (`note/SaveActivity.kt`) | `long-output`: scrolled up with the pill and the save action; Ctrl+End hides the pill; the answer saved through DocumentsUI's picker as `Download/Quire answer.md` |
+| 4. Code block actions | "Save as file" under the block, same path; the file type follows the name | `code`: saved as `Download/script.sh`. "Run it" is a consent step and comes with Q6 |
+| 5. Done footer | "Done · 15 s" | `done`: checked on the screen's text |
+| Polish: diff | The tint carries added and removed; the sign sits in a 16 dp gutter in `onSurfaceVariant` | `consent-command` |
+| Polish: mirror side | Once the note has flipped to the hotspot's left, it stays there for the task | `mirror-takeover`: the note stays left of the hotspot after Take over |
+| Polish: lab broker | The lab starts the task (the prompt and the reads before the card), so the field reads "Ask a follow-up" | `consent`, `settings-help` |
+| Polish: no-agent | "Pair a computer" is not shown | Pairing is Q4's and isn't built (below) |
+| Also | Android's grey default focus highlight is off; the note draws its own ring | `consent` |
 
 ## Results (`cf/`)
 
-**`scripts/quire/q5-cf-check.py`: 72 PASS, 1 FAIL, 12 INFO** (`cf/results.tsv`, the last run of each check;
+**`scripts/quire/q5-cf-check.py`: 79 PASS, 0 FAIL, 12 INFO** (`cf/results.tsv`, the last run of each check;
 `cf/results-all-runs.tsv` has every run, `cf/checks.log` the transcript).
 
 | Section | Result |
 |---|---|
-| **States** (`cf/side-by-side/`, the capture left, the Q3 render right) | Every screen id of the design gallery in light and dark: 26 PASS and 5 INFO per theme. The content comes over ACP from the scripted agents; computer control is the platform's real session |
-| **Invocation, the real paths** | The pointer shake: `anchor=pointer 566,233 bounds=Rect(269, 107 - 1651, 884)`, so the note opens beside the pointer and takes in the Settings window (frameworks/base `0008`). Meta+Space after the pointer moved: `anchor=pointer 715,376`; with a still pointer it rises from the taskbar (the 10 s rule). "Ask Quire" on a selection: `ACTION_PROCESS_TEXT`, 68 chars |
+| **States** (`cf/side-by-side/`, the capture left, the Q3 render right) | Every screen id of the design gallery in light and dark: 29 PASS and 5 INFO per theme, with the copy, the footer, Jump to latest and both saves checked. The content comes over ACP from the scripted agents; computer control is the platform's real session |
+| **Invocation, the real paths** | The pointer shake: `anchor=pointer 566,233 bounds=Rect(329, 167 - 1711, 944)`, so the note opens beside the pointer and takes in the Settings window (frameworks/base `0008`). Meta+Space after the pointer moved: `anchor=pointer 715,376`; with a still pointer it rises from the taskbar (the 10 s rule). "Ask Quire" on a selection: `ACTION_PROCESS_TEXT`, 68 chars |
 | **Computer control** | The platform's dialog with the note waiting beside it; the session (1920×1080); the mirror zoomed 2× on each control with the agent's pointer and focus ring; Pause → `blocked reason=3(CALLER_INITIATED)` and no tap while paused; Take over → `closed reason=4(SESSION_EMPTY)`, "Settings is on your screen now." |
 | **Keyboard** (§6.1, §6.2) | 9/9: focus on the field when the note opens; focus on the consent card when it arrives; Tab order Don't allow → Allow for this session → Allow; Shift+Tab back; Enter answers `deny`; Esc at consent answers `cancelled` and stops; Esc mid-run stops and never hides; Meta+Space hides a running task and brings it back; Esc closes a finished note |
-| **Accessibility** (§6.3) | PASS: 157 focusable or clickable controls in 28 UI dumps, every one labelled. INFO: TalkBack isn't in AOSP, so its walkthrough is for the G14 |
+| **Accessibility** (§6.3) | PASS: 117 focusable or clickable controls in 27 UI dumps, every one labelled (a dump that fails while text streams is no longer replaced by the previous one, so fewer dumps count). INFO: TalkBack isn't in AOSP, so its walkthrough is for the G14 |
 | **Remove animations** (§5.3) | PASS: `unfold animated=false`, `fold animated=false`; with animations on, `unfold animated=true` |
-| **Frames** (Cuttlefish only) | INFO: 958 frames over three rounds of open, stream, consent and fold; 1 janky (0.10 %); p50 5 ms, p90 5 ms, p99 8 ms; 0 missed vsync (`cf/gfxinfo.txt`). The acceptance measurement is the G14's |
-| **Video** | PASS ×3 (`cf/video/`): the shake and the halo, the note at the pointer, a streamed answer, the fold; consent by keyboard; the platform consent, the mirror on each control, Pause, Take over. `halo-frames.png`: the ring and "Ask Quire" at the pointer, then the note unfolding out of it |
+| **Frames** (Cuttlefish only) | INFO: 1194 frames over three rounds of open, stream, consent and fold; 1 janky (0.08 %); p50 5 ms, p90 6 ms, p99 8 ms (`cf/gfxinfo.txt`), on a quiet host (load 0.6). The same scenario while another session's AOSP build loaded the host (load 114–138 on 32 CPUs): 31 janky (2.55 %), p99 31 ms (`cf/gfxinfo-busy-host.txt`). The acceptance measurement is the G14's |
+| **Video** | PASS ×3 (`cf/video/`): the shake and the halo, the note at the pointer, a streamed answer, the fold; consent by keyboard; the platform consent, the mirror on each control, Pause, Take over. `halo-frames.png`: the ring and "Ask Quire" at the pointer, then the note unfolding out of it (from the previous recording on the same image; SystemUI is unchanged) |
 | **Contrast** (§8) | PASS: 16 pairs on all 8 wallpapers × 2 themes (the closest, Stop on folio-light, 5.07:1 against 4.5:1), and on the device's own palette in light and dark; the device is within 6–7/255 of the predicted folio palette (`cf/contrast.md`, `cf/device-palette.json`) |
-| **Health** | No Quire crash, no ANR, no SystemUI restart, no SELinux denial for Quire. **FAIL** "no new SELinux denials": six `mediaprovider_app → shell_data_file` denials at 927–942 s. They came from the check's first video attempt, which wrote its recordings to `/data/local/tmp`, where MediaProvider then looked; the check writes to `/sdcard/Movies` since, and the rerun added none. Otherwise only Cuttlefish's known `gceservice` denial (`cf/selinux-denials.txt`) |
+| **Health** | PASS: no Quire crash, no ANR, no SystemUI restart, no SELinux denial for Quire, no new denial (`cf/selinux-denials.txt`). (The previous round's six MediaProvider denials came from the check writing its recordings to `/data/local/tmp`; it writes to `/sdcard/Movies` now) |
 
 The five INFO rows per theme are what is lab-driven or not built: `idle` (no Launcher3 button), `invoke-voice` (the
 listening card without Q7's recogniser), `agent-picker`, and `consent` and `settings-help` (the broker's card and the
@@ -76,7 +89,9 @@ run honestly and closes the session. Q6 needs a platform fix.
 | Halo | Follows the pointer until the note opens | Drawn where the shake ended | Next increment |
 | `invoke-selection` | The note at the pointer | Above the taskbar | `ACTION_PROCESS_TEXT` carries no geometry, and Quire should not hold INJECT_EVENTS to read the pointer |
 | `invoke-voice` | Mic indicator and privacy dot | Not shown | They appear when the microphone is in use (Q7) |
-| Type sizes | §4.1: label 14, chip and buttons 13, intake 13 | The prototype's CSS: 13.5, 13.5, 12.5 | The renders come from the CSS |
+| `code` | Run it · Save as file | Save as file | Run it is a consent step; it comes with Q6's tools |
+| `no-agent` | Pair a computer · Connect Claude Code | Connect Claude Code | Pairing a second computer is Q4's (ANAL-218) and isn't built |
+| Type sizes | The prototype's CSS (13.5, 12.5, 11.5) | §4.1's scale (14, 13, 12) | Atelier: the scale is the spec; #98's CSS follows |
 | Mirror | A 16:10 session | Cuttlefish's 16:9 session letterboxed in surface-dim when not zoomed | §3.4 allows the letterbox |
 | `images` | "Region you pointed at" | "Image from the agent" | The image comes back over ACP from the scripted agent |
 

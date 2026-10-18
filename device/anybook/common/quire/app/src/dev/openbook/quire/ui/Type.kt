@@ -41,23 +41,29 @@ class Type private constructor(context: Context) {
     }
 }
 
-/** One text role: size and line height in sp, and weight. */
+/**
+ * One text role: size and line height in sp, and weight. The scale is docs/quire-design.md §4.1's: 12, 13, 14 and 15,
+ * with code at 12.5/18; nothing else, and no half points.
+ */
 data class TextRole(val size: Float, val line: Float, val weight: Int) {
     companion object {
         val PROMPT = TextRole(15f, 22f, 500)
         val BODY = TextRole(15f, 22f, 400)
-        val LABEL = TextRole(13.5f, 20f, 400)
+        val LABEL = TextRole(14f, 20f, 400)
+        val LABEL_MEDIUM = TextRole(14f, 20f, 500)
         val FIELD = TextRole(14f, 20f, 400)
         val CHIP = TextRole(13f, 20f, 500)
-        val INTAKE = TextRole(12.5f, 18f, 500)
-        val BUTTON = TextRole(13.5f, 20f, 500)
+        val CHIP_REGULAR = TextRole(13f, 20f, 400)
+        val INTAKE = TextRole(13f, 20f, 500)
+        val BUTTON = TextRole(13f, 20f, 500)
         val TITLE = TextRole(13f, 20f, 600)
         val META = TextRole(12f, 16f, 400)
         val META_MEDIUM = TextRole(12f, 16f, 500)
-        val SUB = TextRole(12.5f, 18f, 400)
+        val META_BOLD = TextRole(12f, 16f, 600)
+        val SUB = TextRole(12f, 16f, 400)
         val CODE = TextRole(12.5f, 18f, 400)
-        val KBD = TextRole(11f, 14f, 500)
-        val HEADING = TextRole(11.5f, 16f, 600)
+        val KBD = TextRole(12f, 16f, 500)
+        val HEADING = TextRole(12f, 16f, 600)
     }
 }
 

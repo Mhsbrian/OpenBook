@@ -41,7 +41,9 @@ SUMMARY = ("**Summary of the trip notes**\n\nTravel is settled: flights on the 1
            "runs Tuesday to Thursday. Registration opens at 08:30 on Tuesday and the keynote is at 09:15; badges can "
            "also be collected on Monday afternoon.\n\nTwo things are still open: the dinner with the Porto team, and "
            "whether Thursday's workshop needs its own ticket.\n\nPacking: HDMI adapter, a second charger, walking "
-           "shoes and a light jacket. The forecast is 18 °C and mostly dry.\n\nSuggested next steps:\n\n"
+           "shoes and a light jacket. The forecast is 18 °C and mostly dry.\n\nGetting around: the 28 tram runs "
+           "past the apartment every ten minutes, and the metro from Santa Apolónia reaches the conference centre in "
+           "about twenty-five minutes with one change.\n\nSuggested next steps:\n\n"
            "- Confirm the Porto dinner by Friday.\n- Email the organisers about the workshop ticket.\n- Check the "
            "Belém tram times for Thursday afternoon.\n\nIf you want, I can add the registration and keynote to "
            "your calendar and draft the email to the organisers. I can also turn the packing list into a checklist "
@@ -327,9 +329,11 @@ class Session:
 
     def summary(self, sid):
         self.think(sid, "Reading the document.")
-        self.say(sid, SUMMARY[:SUMMARY.index("Suggested next")], step=4, delay=0.06)
+        # Holds once the answer overflows the note, with text still to come: the Jump to latest state.
+        cut = SUMMARY.index("If you want")
+        self.say(sid, SUMMARY[:cut], step=4, delay=0.04)
         self.hold()
-        self.say(sid, SUMMARY[SUMMARY.index("Suggested next"):], step=4, delay=0.06)
+        self.say(sid, SUMMARY[cut:], step=4, delay=0.06)
         return "end_turn"
 
     def code(self, sid):

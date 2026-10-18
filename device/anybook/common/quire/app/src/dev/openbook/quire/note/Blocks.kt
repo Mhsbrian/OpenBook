@@ -54,6 +54,9 @@ class NoteEnv(val context: Context, val palette: Palette, val task: () -> Task?)
 
     /** Speaks [text] through the note's live region (set by NoteCard). */
     var announce: (CharSequence) -> Unit = {}
+
+    /** Saves [text] as a file the person picks (the Storage Access Framework), set by the note's window. */
+    var save: (name: String, mime: String, text: String) -> Unit = { _, _, _ -> }
     fun dp(v: Float) = context.dp(v)
     fun dpi(v: Float) = context.dpi(v)
 
@@ -318,7 +321,17 @@ class CodeBlock(private val env: NoteEnv) {
         isHorizontalScrollBarEnabled = false
         addView(code)
     }
-    val view: View = LinearLayout(env.context).apply {
+    private val save = QButton(env.context, env.palette, env.context.getString(R.string.q_save_code), QButton.Style.TEXT,
+        Icons.SAVE).apply {
+        setOnClickListener {
+            // The type follows the name, or the document provider appends its own extension (script.sh.txt).
+            val name = fileName()
+            val mime = android.webkit.MimeTypeMap.getSingleton()
+                .getMimeTypeFromExtension(name.substringAfterLast('.')) ?: "application/octet-stream"
+            env.save(name, mime, source)
+        }
+    }
+    private val block: LinearLayout = LinearLayout(env.context).apply {
         orientation = LinearLayout.VERTICAL
         background = rounded(env.context, bg, 12f)
         clipToOutline = true
@@ -331,10 +344,34 @@ class CodeBlock(private val env: NoteEnv) {
             addView(copy, LinearLayout.LayoutParams(env.dpi(32f), env.dpi(32f)))
         })
         addView(scroller)
+    }
+
+    /** The block, and under it Save as file (§3.2 Code). Run it is a consent step and comes with Q6's tools. */
+    val view: View = LinearLayout(env.context).apply {
+        orientation = LinearLayout.VERTICAL
+        addView(block, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
+        addView(ButtonRow(env.context, 8f, false).apply { addView(save) },
+            LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = env.dpi(8f) })
         setTag(R.id.q_code, this@CodeBlock)
+    }
+    private var language = ""
+
+    private fun fileName(): String = "script." + when (language.lowercase()) {
+        "bash", "sh", "shell", "zsh" -> "sh"
+        "python", "py" -> "py"
+        "kotlin", "kt" -> "kt"
+        "java" -> "java"
+        "javascript", "js" -> "js"
+        "typescript", "ts" -> "ts"
+        "json" -> "json"
+        "html" -> "html"
+        "css" -> "css"
+        "markdown", "md" -> "md"
+        else -> "txt"
     }
 
     fun set(language: String, src: String) {
+        this.language = language
         source = src
         lang.text = language.ifEmpty { env.context.getString(R.string.q_code) }
         code.text = src
@@ -530,7 +567,7 @@ private class PlanView(env: NoteEnv) : BlockView<Block.Plan>(env) {
         b.entries.forEachIndexed { i, e ->
             val state = when (e.status) { "completed" -> "done"; "in_progress" -> "active"; else -> "pending" }
             val n = TextView(env.context).apply {
-                role(TextRole(11f, 14f, 600), when (state) {
+                role(TextRole.META_BOLD, when (state) {
                     "done" -> p.onSuccessContainer
                     "active" -> p.onPrimary
                     else -> p.onSurfaceVariant
@@ -558,7 +595,7 @@ private class PlanView(env: NoteEnv) : BlockView<Block.Plan>(env) {
                 addView(n, LinearLayout.LayoutParams(env.dpi(20f), env.dpi(20f)))
                 addView(t, LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f).apply { marginStart = env.dpi(10f) })
                 if (e.priority == "high") {
-                    addView(env.text(TextRole(11f, 14f, 600), p.tertiary,
+                    addView(env.text(TextRole.META_BOLD, p.tertiary,
                         env.context.getString(R.string.q_priority_high)).apply { isAllCaps = true })
                 }
             }
@@ -579,12 +616,12 @@ private class PlanView(env: NoteEnv) : BlockView<Block.Plan>(env) {
 /** A change row: name, where it lives, old → new as a pill, and an undo button after Allow (§3.2, §3.6). */
 fun changeRow(env: NoteEnv, c: Change, undo: (() -> Unit)?): View {
     val p = env.palette
-    val old = env.text(TextRole(13f, 18f, 400), p.onSurfaceVariant).apply {
+    val old = env.text(TextRole.CHIP_REGULAR, p.onSurfaceVariant).apply {
         text = SpannableStringBuilder(c.old).apply {
             setSpan(StrikethroughSpan(), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
     }
-    val nu = env.text(TextRole(13f, 18f, 600), p.onPrimaryContainer, c.new).apply {
+    val nu = env.text(TextRole.TITLE, p.onPrimaryContainer, c.new).apply {
         background = rounded(env.context, p.primaryContainer, 8f)
         setPadding(env.dpi(8f), env.dpi(2f), env.dpi(8f), env.dpi(2f))
     }
@@ -606,7 +643,7 @@ fun changeRow(env: NoteEnv, c: Change, undo: (() -> Unit)?): View {
         setPadding(env.dpi(10f), env.dpi(8f), env.dpi(10f), env.dpi(8f))
         addView(LinearLayout(env.context).apply {
             orientation = LinearLayout.VERTICAL
-            addView(env.text(TextRole(13.5f, 20f, 500), p.onSurface, c.name))
+            addView(env.text(TextRole.LABEL_MEDIUM, p.onSurface, c.name))
             addView(env.text(TextRole.META, p.onSurfaceVariant, c.where), env.lp(top = 6f))
         }, LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f))
         addView(values, LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply { marginStart = env.dpi(12f) })
@@ -662,7 +699,7 @@ class ConsentView(env: NoteEnv) : BlockView<Block.Consent>(env) {
             }, env.lp(top = 8f))
         }
         b.diff?.let { lines -> v.addView(diffView(lines), env.lp(top = 8f)) }
-        b.why?.let { v.addView(env.text(TextRole(13f, 18f, 400), p.onSurfaceVariant, it), env.lp(top = 8f)) }
+        b.why?.let { v.addView(env.text(TextRole.CHIP_REGULAR, p.onSurfaceVariant, it), env.lp(top = 8f)) }
         val row = ButtonRow(env.context, 6f, end = true)
         b.options.filter { it.kind != "reject_always" }.forEach { o ->
             row.addView(QButton(env.context, p, o.name, o.style).apply {
@@ -683,24 +720,40 @@ class ConsentView(env: NoteEnv) : BlockView<Block.Consent>(env) {
             clipToOutline = true
         }
         for (l in lines) {
-            col.addView(TextView(env.context).apply {
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
-                setLineHeight(TypedValue.COMPLEX_UNIT_SP, 18f)
+            fun codeText(color: Int) = TextView(env.context).apply {
+                role(TextRole.CODE, color, env.type)
                 typeface = env.type.code
-                setTextColor(if (l.kind == DiffLine.Kind.SKIP) p.onSurfaceVariant else p.onSurface)
                 maxLines = 1
                 ellipsize = TextUtils.TruncateAt.END
-                setPadding(env.dpi(10f), 0, env.dpi(10f), 0)
+            }
+            // The tint says added or removed; the sign is a quiet gutter, so a line isn't marked twice.
+            val sign = codeText(p.onSurfaceVariant).apply {
                 text = when (l.kind) {
-                    DiffLine.Kind.ADD -> "+ ${l.text}"
-                    DiffLine.Kind.DEL -> "− ${l.text}"
-                    DiffLine.Kind.SKIP -> "⋯ ${l.text}"
-                    DiffLine.Kind.SAME -> "  ${l.text}"
+                    DiffLine.Kind.ADD -> "+"
+                    DiffLine.Kind.DEL -> "−"
+                    DiffLine.Kind.SKIP -> "⋯"
+                    DiffLine.Kind.SAME -> ""
                 }
+                gravity = Gravity.CENTER
+            }
+            val line = codeText(if (l.kind == DiffLine.Kind.SKIP) p.onSurfaceVariant else p.onSurface).apply {
+                text = l.text
+            }
+            col.addView(LinearLayout(env.context).apply {
+                orientation = LinearLayout.HORIZONTAL
+                setPadding(env.dpi(4f), 0, env.dpi(10f), 0)
+                addView(sign, LinearLayout.LayoutParams(env.dpi(16f), WRAP_CONTENT))
+                addView(line, LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f).apply { marginStart = env.dpi(2f) })
                 when (l.kind) {
                     DiffLine.Kind.ADD -> setBackgroundColor(Palette.withAlpha(p.successContainer, 0.55f))
                     DiffLine.Kind.DEL -> setBackgroundColor(Palette.withAlpha(p.errorContainer, 0.35f))
                     else -> {}
+                }
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+                contentDescription = when (l.kind) {
+                    DiffLine.Kind.ADD -> env.context.getString(R.string.q_a11y_diff_add, l.text)
+                    DiffLine.Kind.DEL -> env.context.getString(R.string.q_a11y_diff_del, l.text)
+                    else -> l.text
                 }
             }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
         }
@@ -757,10 +810,10 @@ private class ErrorView(env: NoteEnv) : BlockView<Block.Error>(env) {
         val p = env.palette
         view.removeAllViews()
         view.addView(titleRow(env, Icons.ERROR, p.error, b.title, b.meta, filled = true))
-        view.addView(env.text(TextRole(13f, 18f, 400), p.onSurfaceVariant, b.message), env.lp(top = 8f))
+        view.addView(env.text(TextRole.CHIP_REGULAR, p.onSurfaceVariant, b.message), env.lp(top = 8f))
         if (b.showDetails && b.details != null) {
             view.addView(TextView(env.context).apply {
-                role(TextRole(12f, 17f, 400), p.onSurfaceVariant, env.type)
+                role(TextRole.META, p.onSurfaceVariant, env.type)
                 text = b.details
                 background = rounded(env.context, p.field, 8f)
                 setPadding(env.dpi(10f), env.dpi(8f), env.dpi(10f), env.dpi(8f))
@@ -798,7 +851,7 @@ private class RowsCardView(env: NoteEnv, private val glyph: String) : BlockView<
         view.removeAllViews()
         view.addView(titleRow(env, glyph, if (b is Block.Auth) p.onSurfaceVariant else p.onSurfaceVariant, title, null,
             filled = b is Block.Auth))
-        view.addView(env.text(TextRole(13f, 18f, 400), p.onSurfaceVariant, msg), env.lp(top = 8f))
+        view.addView(env.text(TextRole.CHIP_REGULAR, p.onSurfaceVariant, msg), env.lp(top = 8f))
         rows.forEachIndexed { i, r ->
             val row = object : LinearLayout(env.context), RingTarget {
                 override val ring = Ring.GAP
@@ -845,7 +898,7 @@ private class ImageBlockView(env: NoteEnv) : BlockView<Block.Image>(env) {
         scaleType = ImageView.ScaleType.CENTER_CROP
         adjustViewBounds = true
     }
-    private val cap = env.text(TextRole(11.5f, 16f, 500), env.palette.inverseOnSurface).apply {
+    private val cap = env.text(TextRole.META_MEDIUM, env.palette.inverseOnSurface).apply {
         background = rounded(env.context, env.palette.inverseSurface, 12f)
         setPadding(env.dpi(10f), env.dpi(4f), env.dpi(10f), env.dpi(4f))
     }

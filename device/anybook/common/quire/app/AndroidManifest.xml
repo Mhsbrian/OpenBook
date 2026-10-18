@@ -103,6 +103,15 @@
             </intent-filter>
         </activity>
 
+        <!-- Save as a file (docs/quire-design.md §3.2): carries the Storage Access Framework picker's result for the
+             note, which is a window. Not exported. -->
+        <activity
+            android:name=".note.SaveActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:taskAffinity="dev.openbook.quire.save"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
         <!-- Scripted checks of the note (scripts/quire/q5-cf-check.py), debuggable builds only. Not exported: only root
              and the system can reach it. -->
         <receiver

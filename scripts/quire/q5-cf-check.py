@@ -91,7 +91,8 @@ class Dev:
         return path
 
     def ui(self, path=None):
-        self.sh("uiautomator dump /data/local/tmp/q5-ui.xml >/dev/null 2>&1")
+        # A dump fails while the note streams (no idle state); never read the previous run's file instead.
+        self.sh("rm -f /data/local/tmp/q5-ui.xml; uiautomator dump /data/local/tmp/q5-ui.xml >/dev/null 2>&1")
         xml = self.sh("cat /data/local/tmp/q5-ui.xml")
         if path:
             (self.o / path).parent.mkdir(parents=True, exist_ok=True)
@@ -161,10 +162,16 @@ class Dev:
         return False
 
     def focused(self):
-        """The focused node in Quire's windows: its label and class."""
-        for n in self.nodes(self.ui()):
-            if n.get("focused") == "true" and n.get("package") == QUIRE:
-                return (n.get("content-desc") or n.get("text") or "").strip(), n.get("class")
+        """The focused node in Quire's windows: its label and class. A dump can fail while the note's footer ticks
+        (no idle state), so it is tried a few times."""
+        for _ in range(4):
+            nodes = self.nodes(self.ui())
+            for n in nodes:
+                if n.get("focused") == "true" and n.get("package") == QUIRE:
+                    return (n.get("content-desc") or n.get("text") or "").strip(), n.get("class")
+            if nodes:
+                break
+            time.sleep(0.5)
         return None, None
 
 
@@ -263,6 +270,33 @@ def desk(d, which):
         d.sh("am force-stop com.android.documentsui; "
              "am start -W -n com.android.documentsui/.files.FilesActivity >/dev/null")
     time.sleep(1.2)
+
+
+def quire_texts(d, xml):
+    """Every text and label in Quire's windows in a UI dump (texts may start with an icon glyph)."""
+    out = []
+    for n in d.nodes(xml):
+        if n.get("package") == QUIRE:
+            out += [t for t in (n.get("text"), n.get("content-desc")) if t]
+    return out
+
+
+def has_text(d, xml, needle):
+    return any(needle in t for t in quire_texts(d, xml))
+
+
+def save_through_picker(d, button_label, expect_name):
+    """Taps a Save button in the note, then SAVE in DocumentsUI's picker; returns the saved file's first line."""
+    d.sh("rm -f /sdcard/Download/*")
+    if not d.tap_text(button_label, desc=True):
+        return None, "no button"
+    time.sleep(2.0)
+    if not (d.tap_text("SAVE") or d.tap_text("Save")):
+        return None, "no picker"
+    time.sleep(2.0)
+    listing = d.sh("ls /sdcard/Download/").strip()
+    first = d.sh(f"head -n 1 '/sdcard/Download/{expect_name}'").strip()
+    return first, listing
 
 
 def openat(d, intake="window", name="Settings", at=PTR, text=None, trigger="lab"):
@@ -398,8 +432,9 @@ def states(d, agents, theme, design, only=None):
         agents.release()
         m = d.wait_log(r"ended stopReason=end_turn", tag, timeout=15)
         time.sleep(0.8)
-        cap("done", "stopReason end_turn", bool(m), "the agent's own turn: steps fold into one chip, the answer "
-            "stays; Undo appears only for broker changes (Q6)")
+        foot = [t for t in quire_texts(d, d.ui()) if re.fullmatch(r"Done · \d+ s", t)]
+        cap("done", "stopReason end_turn; the footer says Done and the time", bool(m) and bool(foot),
+            f"footer {foot[0] if foot else 'missing'}; Undo appears only for broker changes (Q6)")
 
     def plan(tag):
         desk(d, "settings")
@@ -416,7 +451,9 @@ def states(d, agents, theme, design, only=None):
         d.lab("BROKER", title="Change 2 settings", meta="Settings tool",
               rows=json.dumps([["Battery saver", "Settings · Battery", "Off", "On"],
                                ["Brightness level", "Settings · Display", "80%", "40%"]]),
-              why="You can undo this from the note or from the Quire button.")
+              why="You can undo this from the note or from the Quire button.",
+              prompt="Turn on Battery saver and lower the brightness",
+              steps=json.dumps([["Reading Display settings", "read"], ["Reading Battery settings", "read"]]))
         time.sleep(1.0)
         cap("consent", "the broker's card, Quire's options", None, "raised from the lab: Q6's broker raises it for "
             "real; the agent-own consent is consent-command")
@@ -471,7 +508,13 @@ def states(d, agents, theme, design, only=None):
         d.lab("MIRROR", action="takeover")
         h = d.wait_log(r"cc: lifecycle: closed reason=4\(SESSION_EMPTY\)", tag)
         time.sleep(1.2)
-        cap("mirror-takeover", "handOverApplications()", bool(h), h.group(0) if h else "not handed over")
+        chip = None
+        for n in d.nodes(d.ui()):
+            if n.get("package") == QUIRE and (n.get("content-desc") or "").startswith("Agent:"):
+                chip = list(map(int, re.findall(r"\d+", n.get("bounds"))))
+        left = chip is not None and chip[2] < 1400
+        cap("mirror-takeover", "handOverApplications(); the note keeps the side it flipped to", bool(h) and left,
+            (h.group(0) if h else "not handed over") + f"; agent chip {chip} (the hotspot is at x=1400)")
         d.sh(f"am force-stop {SETTINGS}")
 
     def stopped(tag):
@@ -482,7 +525,12 @@ def states(d, agents, theme, design, only=None):
         d.sh("input keyevent KEYCODE_ESCAPE")
         m = d.wait_log(r"ended stopReason=cancelled", tag)
         time.sleep(0.8)
-        cap("stopped", "Esc: session/cancel, stopReason cancelled", bool(m), m.group(0) if m else "not stopped")
+        texts = " ".join(quire_texts(d, d.ui()))
+        tail = texts.split("Stopped after")[-1]
+        honest = "Running the brightness script was interrupted and may be partly applied." in tail and \
+            "Reading Display settings was interrupted" not in tail
+        cap("stopped", "Esc: session/cancel; only the interrupted command may be partly applied", bool(m) and honest,
+            (m.group(0) if m else "not stopped") + ("" if honest else "; copy: " + tail[-300:]))
 
     def error(tag):
         desk(d, "settings")
@@ -490,7 +538,11 @@ def states(d, agents, theme, design, only=None):
         d.lab("SEND", text="Turn on Battery saver, but break while doing it")
         m = d.wait_log(r"acp: claude closed", tag, timeout=10)
         time.sleep(1.0)
-        cap("error", "the agent's connection drops mid-turn", bool(m), m.group(0) if m else "no drop logged")
+        texts = " ".join(quire_texts(d, d.ui()))
+        honest = "Nothing was changed." in texts and "may be partly applied" not in texts and \
+            "Reading Battery settings was interrupted." in texts
+        cap("error", "the agent's connection drops mid-turn; an interrupted read changed nothing", bool(m) and honest,
+            (m.group(0) if m else "no drop logged") + ("" if honest else "; copy: " + texts[-300:]))
 
     def signin(tag):
         desk(d, "settings")
@@ -541,12 +593,24 @@ def states(d, agents, theme, design, only=None):
         desk(d, "files")
         openat(d, name="Notes · Trip planning", at=(700, 300))
         d.lab("SEND", text="Summarise this document and suggest next steps")
-        time.sleep(3.5)
-        d.sh("input mouse scroll 900 500 --axis VSCROLL,2")
-        time.sleep(0.6)
-        cap("long-output", "message chunks, 60 % cap, Jump to latest", True)
+        time.sleep(4.5)
+        d.key("KEYCODE_PAGE_UP")              # the person scrolls up while text still arrives
+        time.sleep(0.8)
+        # The UI can't be dumped while text streams (no idle state), so the note's own log says what it shows.
+        pill = d.wait_log(r"note: jump to latest shown", tag, timeout=3)
+        save = d.wait_log(r"note: save as a file offered \(width (\d+) dp\)", tag, timeout=3)
+        cap("long-output", "wide, 60 % cap, scrolled up: Jump to latest and Save as a file", bool(pill and save),
+            f"jump pill {'shown' if pill else 'missing'}; {save.group(0) if save else 'save missing'}", dump=False)
+        d.sh("input keycombination KEYCODE_CTRL_LEFT KEYCODE_MOVE_END")
+        time.sleep(0.8)
+        gone = bool(d.wait_log(r"note: jump to latest hidden", tag, timeout=3))
+        d.result(f"{theme}: long-output Ctrl+End jumps to the latest", gone, "pill gone" if gone else "pill still shown")
         agents.release()
         d.wait_log(r"ended stopReason", tag, timeout=15)
+        first, listing = save_through_picker(d, "Save as a file", "Quire answer.md")
+        ok = first is not None and first.startswith("**Summary of the trip notes**")
+        d.result(f"{theme}: long-output Save as a file (Storage Access Framework)", ok,
+                 f"Download/: {listing}; first line: {first}")
 
     def code(tag):
         desk(d, "files")
@@ -554,7 +618,11 @@ def states(d, agents, theme, design, only=None):
         d.lab("SEND", text="Write a script that renames these photos by the date they were taken")
         m = d.wait_log(r"ended stopReason=end_turn", tag, timeout=15)
         time.sleep(0.6)
-        cap("code", "fenced code in message chunks", bool(m))
+        cap("code", "fenced code in message chunks, Save as file under the block", bool(m) and
+            has_text(d, d.ui(), "Save as file"))
+        first, listing = save_through_picker(d, "Save as file", "script.sh")
+        ok = first is not None and first.startswith("# Rename photos")
+        d.result(f"{theme}: code Save as file (Storage Access Framework)", ok, f"Download/: {listing}; first line: {first}")
 
     def images(tag):
         desk(d, "files")

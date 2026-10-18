@@ -37,7 +37,7 @@ class MirrorPanel(private val env: NoteEnv, private val onAction: (Action) -> Un
 
     private val p = env.palette
     private val dot = View(context)
-    private val chip = env.text(TextRole(12f, 16f, 600), p.onTertiaryContainer)
+    private val chip = env.text(TextRole.META_BOLD, p.onTertiaryContainer)
     private val chipWrap = LinearLayout(context).apply {
         orientation = HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
@@ -45,7 +45,7 @@ class MirrorPanel(private val env: NoteEnv, private val onAction: (Action) -> Un
         addView(dot, LayoutParams(dpi(8f), dpi(8f)))
         addView(chip, LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply { marginStart = dpi(6f) })
     }
-    private val title = env.text(TextRole(13f, 20f, 500), p.onSurface).apply {
+    private val title = env.text(TextRole.CHIP, p.onSurface).apply {
         maxLines = 1
         ellipsize = TextUtils.TruncateAt.END
     }
@@ -54,7 +54,7 @@ class MirrorPanel(private val env: NoteEnv, private val onAction: (Action) -> Un
         backdrop = p.surfaceDim
     }
     private val marks = Overlay(context)
-    private val scrimText = env.text(TextRole(13f, 18f, 500), p.inverseOnSurface).apply {
+    private val scrimText = env.text(TextRole.CHIP, p.inverseOnSurface).apply {
         background = rounded(context, p.inverseSurface, 18f)
         gravity = Gravity.CENTER
         setPadding(dpi(14f), 0, dpi(14f), 0)
@@ -84,7 +84,7 @@ class MirrorPanel(private val env: NoteEnv, private val onAction: (Action) -> Un
         accessibilityLiveRegion = ACCESSIBILITY_LIVE_REGION_POLITE
     }
     private val steps = StepsView(env)
-    private val status = env.text(TextRole(13f, 18f, 400), p.onSurfaceVariant).apply {
+    private val status = env.text(TextRole.CHIP_REGULAR, p.onSurfaceVariant).apply {
         maxLines = 1
         ellipsize = TextUtils.TruncateAt.END
     }
