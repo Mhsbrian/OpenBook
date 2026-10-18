@@ -102,7 +102,8 @@
 - **Found** (`docs/graphics-amd.md`, "Refresh rate"): drm_hwcomposer runs the panel's preferred 120 Hz mode, but DisplayModeDirector's lowest-priority vote caps the render rate at `config_defaultRefreshRate`, 60 in AOSP. Our desktop RRO came from the AOSP desktop emulator, which leaves it at 60. Googlebook sets 0 (and a peak of 1000), as Cuttlefish does. On the G14 the desktop spent most of its time at 60 (`anal176s`: 76 s at 60, 6 s at 120); in QEMU's 75 Hz display it drew at 37.5.
 - **Changed:** `config_defaultRefreshRate=0`, `config_defaultPeakRefreshRate=1000` in `AnyBookDesktopFrameworkOverlay`, for every desktop product. Content-based selection, touch boost and battery saver's 60 cap are unchanged.
 - **Tested:** idmap2 maps both values. QEMU, same harness (`scripts/graphics/refresh-qemu.sh`, 75 Hz virtual display): render range [0, 60] → [0, 1000], Settings scrolling at 37.5 → 75 frames a second (12 of 12 samples each; `evidence/2026-10-18-refresh-rate/`). New `refresh_rate` verdict in `live-report.py`: NO on all four enforcing G14 sessions so far.
-- **Not done:** the G14 (next stick); VRR (the panel does 48–120 Hz, drm_hwcomposer exposes none); thermal refresh limits (needs a display config for the panel); the idle timer.
+- **G14 baseline (`anal192d`, before the fix):** render range [0, 60] in both captured boots; the owner's hour-long default boot drew at 60 for 99.7 % of its screen-on time (`evidence/2026-10-18-refresh-rate/g14-anal192d-baseline.md`).
+- **Not done:** the G14 with the fix (`anal192e`); VRR (the panel does 48–120 Hz, drm_hwcomposer exposes none); thermal refresh limits (needs a display config for the panel); the idle timer.
 
 ### 2026-10-18: bring your own Google apps package (ANAL-211, G2)
 - **Built** (`docs/installer.md` §15, `docs/gapps.md` §5): an advanced, off-by-default step after the disk choice.
