@@ -1,0 +1,45 @@
+=== 2026-10-18T09:37:23Z target anybook_g14_x86_64-cp2a-userdebug goals droid openbook_hals_test validatekeymaps deqp-binary com.drawelements.deqp AngleEnd2EndTestsHelper -j24 on 32 CPUs
+=== 2026-10-18T09:37:23Z synced device/anybook from /repo (AnyBook 7d9bc0a)
+### art: patches already applied (b753cf97923c)
+### art: base b753cf97923c + 1 patches -> HEAD c235db82327e
+### external/minigbm: patches already applied (ce79bbee67b3)
+### external/minigbm: base ce79bbee67b3 + 1 patches -> HEAD e1a806bd3f50
+### frameworks/base: base 94b4c163b7df + 4 patches -> HEAD 8f5dedd3edc3
+### frameworks/libs/binary_translation: pin 1290e88c6030 + import b6b7fc30f5e1 -> b9d25f5ea260
+### frameworks/libs/binary_translation: base b9d25f5ea260 + 4 patches -> HEAD d412a8451e1f
+### frameworks/native: patches already applied (ae266dcb706d)
+### frameworks/native: base ae266dcb706d + 1 patches -> HEAD b385e2131947
+### hardware/interfaces: patches already applied (0162af698935)
+### hardware/interfaces: base 0162af698935 + 2 patches -> HEAD d41643629491
+### packages/apps/Launcher3: patches already applied (c612e6ece389)
+### packages/apps/Launcher3: base c612e6ece389 + 1 patches -> HEAD 21f6b66c1b7d
+### system/vold: patches already applied (6d20a0078c2b)
+### system/vold: base 6d20a0078c2b + 1 patches -> HEAD 307fbdc3bb08
+=== 2026-10-18T09:37:26Z vendor/anybook/mesa: upstream mesa-26.2.5 ddaf85e353442d9d7f192fdcf1823e652e3f2ee3 (26.2.5)
+=== 2026-10-18T09:37:26Z m -j24 droid openbook_hals_test validatekeymaps deqp-binary com.drawelements.deqp AngleEnd2EndTestsHelper
+    @ElapsedRealtimeLong private val elapsedRealtime: () -> Long,
+            @ElapsedRealtimeLong val elapsedRealtimeMillis: Long,
+#### build completed successfully (21:57 (mm:ss)) ####
+=== 2026-10-18T09:59:25Z m exit 0
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 21:59.01
+container cgroup memory.peak: 51402199040 bytes
+=== 2026-10-18T08:40:24Z waiting for the lane lock; repo b3ec979 Merge PR #82: state of the union after B1/B3/B6/B7; README M7
+=== 2026-10-18T09:37:22Z lane lock held
+=== building 7d9bc0a ANAL-192: commit the product's link to the boot animation (fixes clean-checkout builds) 81578c1 Merge PR #80: ANAL-210 microG option: signature-spoofing patch and optional add-on (G1) 60de532 Merge origin/main into ANAL-210's branch 
+aosp-docker.sh: the caller holds the AOSP lane lock
+a345d5bfcb2120ee84a1fc27ecbb430ff56c7d05e924b63b979df91d036340cc
+=== 2026-10-18T09:59:46Z build exit 0
+== installer-image.sh openbook-live-20261018-anal192d (2026-10-18T09:59:46Z), repo 7d9bc0a, epoch 1792316242
+snapshot: ~/anybook/installer/inputs/openbook-live-20261018-anal192d
+snapshot: 2026-10-18T09:59:46Z
+product_out: ~/anybook/aosp/src/out/target/product/anybook_g14
+vendor fingerprint: OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+kernel: staged: 2026-10-17T18:49:26Z by scripts/g14-stage-kernel.sh
+kernel: kernel dist: ~/anybook/kernel/dist/anybook-g14-gbos-16302624
+kernel: packaging: ~/anybook/kernel/g14/anybook-g14-gbos-16302624
+kernel: release: 6.18.21-android17-5-gfbfdd65b0fd1
+kernel: firmware: 142 files
+kernel: 55b86074614a94592ddecebd2b77b1f2ed9aa38e8ad992b73c78c64d04c516f9  bzImage
+kernel: 024774373cb9c09c634140ef9504bd5d9d81a9ee2006d5c4c3183a596ee0ce63  vendor_dlkm.img
+kernel: 34185c35cb8bbccd5dfd0bb74eecb8a21e2445730411ef1583e1245628e0d617  system_dlkm.img
+kernel: 7007f46433a1308293dff52e10ec71626f9892040ed31f4aaa88065244c88f78  vendor_boot-ramdisk.lz4

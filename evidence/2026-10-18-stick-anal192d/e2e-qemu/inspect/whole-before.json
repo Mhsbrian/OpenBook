@@ -1,0 +1,79 @@
+{
+ "disk": "whole.img",
+ "mbr": "protective",
+ "primary_valid": true,
+ "backup_valid": true,
+ "table_from": "primary",
+ "disk_guid": "E1DC66C6-17E8-49DF-BBCE-24C8179E86ED",
+ "partitions": [
+  {
+   "index": 1,
+   "type": "C12A7328-F81F-11D2-BA4B-00A0C93EC93B",
+   "uuid": "6FC075C2-0BFB-4FAF-B592-A82DFA85D4E4",
+   "first": 2048,
+   "last": 534527,
+   "name": "EFI system partition",
+   "bytes": 272629760,
+   "digest": "737ce05b4f94939dc06f30a6d9658192e88b2fe7de04593501d0a0d0c5800622",
+   "head_blank": false
+  },
+  {
+   "index": 2,
+   "type": "E3C9E316-0B5C-4DB8-817D-F92DF00215AE",
+   "uuid": "3AFDF66C-3474-4631-B96C-C0C2CDE830F8",
+   "first": 534528,
+   "last": 567295,
+   "name": "Microsoft reserved partition",
+   "bytes": 16777216,
+   "digest": "7cd6034c7d38082f8cde06027a4c3b60b457c6f590c16be0c6cd67274077c6db",
+   "head_blank": false
+  },
+  {
+   "index": 3,
+   "type": "EBD0A0A2-B9E5-4433-87C0-68B6B72699C7",
+   "uuid": "21BF0394-B2F5-4C67-882C-7EB3B4F1A7D2",
+   "first": 567296,
+   "last": 134785023,
+   "name": "Basic data partition",
+   "bytes": 68719476736,
+   "digest": "1768c1ad7535941c705189cf0c9fef8685736026cd72eaa0c6d81e8e23f65a87",
+   "head_blank": false
+  },
+  {
+   "index": 4,
+   "type": "DE94BBA4-06D1-4D40-A16A-BFD50179D6AC",
+   "uuid": "FBF57DF2-D1D8-46AC-9E07-B45482D74421",
+   "first": 134785024,
+   "last": 136423423,
+   "name": "Recovery",
+   "bytes": 838860800,
+   "digest": "d85665e4d87932bce139a34f4db90a767f1a27e8e6769088da1e8e1c9487bff7",
+   "head_blank": false
+  }
+ ],
+ "fat": {
+  "EFI system partition": {
+   "files": [
+    "EFI/BOOT/BOOTX64.EFI",
+    "EFI/Microsoft/Boot/BCD",
+    "EFI/Microsoft/Boot/bootmgfw.efi"
+   ],
+   "fsck": {
+    "rc": 0,
+    "out": [
+     "fsck.fat 4.2 (2021-01-31)",
+     "/home/hive/anybook/logs/installer/e2e-anal192d/inspect/whole-before.json.tmp: 8 files, 95/524252 clusters"
+    ]
+   },
+   "sha256": {
+    "EFI/BOOT/BOOTX64.EFI": "b604157a420e9c5a8cc608c793c31a0c79e4c1d9743d5f32b243e02d76ef53cf",
+    "EFI/Microsoft/Boot/bootmgfw.efi": "b604157a420e9c5a8cc608c793c31a0c79e4c1d9743d5f32b243e02d76ef53cf"
+   }
+  }
+ },
+ "fallback": [
+  "EFI system partition"
+ ],
+ "openbook_entry": [],
+ "state": "other-table"
+}
