@@ -66,7 +66,17 @@ class ControlActivity : Activity(), ComputerControl.Listener {
     private fun handleLab(intent: Intent) {
         if (intent.component?.className != LAB_ALIAS) return
         val action = intent.action ?: return
-        Log.i(TAG, "lab: $action")
+        // "delayMs" runs the command later, e.g. after the check has locked the screen.
+        val delay = intent.getLongExtra("delayMs", 0)
+        Log.i(TAG, "lab: $action" + if (delay > 0) " in $delay ms" else "")
+        if (delay > 0) {
+            mainThreadHandler.postDelayed({ runLab(action, intent) }, delay)
+        } else {
+            runLab(action, intent)
+        }
+    }
+
+    private fun runLab(action: String, intent: Intent) {
         when (action) {
             LAB_REQUEST -> control.request(
                 this,
