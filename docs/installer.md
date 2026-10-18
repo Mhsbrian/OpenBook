@@ -1178,6 +1178,69 @@ Then plug the stick into the build host and reply **"stick attached" on ANAL-192
 
 4. Then wake ANAL-159 (the coordinator) to merge the routed issues' PRs.
 
+### 13.13 The next stick: `openbook-live-20261018-anal192e` (2026-10-18, the 120 Hz fix)
+Built on the owner's request ("a new build that fixes 120 Hz … update the USB stick", 12:30Z). It replaces `anal192d`. Evidence: `evidence/2026-10-18-stick-anal192e/SUMMARY.md`. Everything ran in QEMU/KVM + OVMF on image files, SELinux enforcing. **Nothing has run on the G14 yet.**
+
+- **Built from `main` `cb6099a`** (clean checkout; the build, the snapshot and the graphics add-on in one lane-lock hold; 30 min 42 s). New in the product since `anal192d`:
+  - **#88 (ANAL-212): no 60 fps cap.** `config_defaultRefreshRate` 0 and `config_defaultPeakRefreshRate` 1000, Googlebook's values. On `anal192d` the G14 scanned out at 120 Hz but drew at most 60 frames a second.
+  - #85 (ANAL-211): the installer's bring-your-own-GApps step (advanced, off unless chosen).
+- **Not in it** (merged or opened after the build started):
+  - #97 (ANAL-198): the `mediaserver` memfd rule that lets MediaPlayer play under enforcing, and "save logs" collecting `amdgpu_firmware_info`. So Settings' sound previews may stay silent in the default (enforcing) boot, as on `anal192d`.
+  - Still open: #100 (B8 first-run setup), #101 (Wallpaper & style's preview crash), #104 (the installer's power check).
+- **Add-ons:** the power check, the ARM apps check, and the graphics check `openbook-gfxcheck-anal192e`, built from this product.
+- **sha256** `90631d0f5537cd36d7f52462cd8c8684ad3688072d9605e97ec4ac89a253f9c9`, and `8df3e31c…` before the add-ons.
+- **The owner's `anal192d` session** was copied read-only before this stick (`~/anybook/installer/g14/stick-20261018T123221Z/`): the default boot in `live-001/prior/`, "save logs" in `live-001`, the ARM apps check in `live-002`. It was routed to ANAL-176/178/179/191/198/200/202–208/212 and the coordinator; most have delivered (#91–#104).
+
+| Run on `anal192e` | Result |
+|---|---|
+| Live stick matrix (`live-qemu.sh`) | **40/40.** First boot `boot_completed` at 34.9 s during other agents' Cuttlefish builds; not a timing measurement |
+| **Refresh rate** (`refresh-qemu.sh`, #88's own check) | **3/3.** The config reads 0/1000 at runtime; DisplayModeDirector's primary render range goes up to 1000; Settings scrolling renders at the VM display's full 75 Hz in 12/12 samples (37.5 Hz on `anal211b`, under the old cap) |
+| Wizard (8 cases, with the firmware-entry and alongside cases) | **51/51** |
+| End to end (`e2e-qemu.sh`) | **79/79** |
+| Graphics check (`gfx-qemu.sh`, quick) | 6/6 steps; `blur` done in 46 s |
+| ARM apps check / power check | 5/5 verdicts / 14/14 and 10/10 steps |
+| SELinux denials | **None involve an OpenBook type** (266 records in the same 10 AOSP/test-shell groups) |
+| `write-stick.sh --dry-run` to the owner's SanDisk Ultra | passes; nothing written; 18 report files would be backed up (already copied, above) |
+
+**Write it** (on the build host; it backs up the stick's reports, then erases it):
+```bash
+cd ~/anybook/repo && OPENBOOK_WRITE_CONFIRM=/dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0 \
+  scripts/installer/write-stick.sh ~/anybook/installer/out/openbook-live-20261018-anal192e.img \
+  /dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0
+```
+
+**The owner's checklist** (mains power, lid open, power on holding **Esc**, pick the stick). Nothing here writes to the laptop's disks.
+
+**Boot 1: "OpenBook"** (about 30 minutes)
+1. **120 Hz** (ANAL-212). On the desktop, scroll a long Settings page, drag a window around and move the pointer in circles: it should look clearly smoother than `anal192d`. Then turn on Battery Saver for a minute (it caps drawing at 60 again) and off.
+2. **Installer dry run** (ANAL-191; not saved last time):
+   - Language → Continue;
+   - Hardware check → **Save report to USB** → Continue;
+   - **Install OpenBook** → Continue;
+   - Disk: the internal NVMe → **View the plan**. Photograph it;
+   - **Back** → **Try OpenBook**. Never press Continue on the Disk screen.
+3. **The look**, if you didn't photograph it on `anal192d`: the desktop, All Apps (round icons), Settings in Google Sans, two overlapping windows (shadows), Quick Settings (frosted blur).
+4. **Sound:**
+   - Bluetooth headphones and a browser video (speakers and Bluetooth);
+   - wired headphones in and out;
+   - Settings → Sound previews. They may stay silent in this boot (#97 isn't on this stick); try again in boot 2.
+5. **Battery Saver on** (ANAL-178; not captured last time), and confirm the dialog. Then power off from the menu.
+
+**Boot 2: "OpenBook - save logs to this USB stick"** (about 12 minutes; powers off by itself).
+- **Use the touchpad for 20 s as soon as the desktop appears** (ANAL-178; not captured last time).
+- Play one Settings → Sound preview.
+- Then leave the laptop in a quiet room. The `refresh_rate` verdict (#88) is in this boot's report.
+
+**Boot 3: "OpenBook graphics check"** (about 40 minutes; no screen-lock PIN; powers off by itself; ANAL-177, ANAL-203). It didn't run on `anal192d`.
+
+**Not needed again:** the ARM apps check (done on `anal192d`, ANAL-200 #93). Its entry is still on the stick.
+
+**Optional:**
+- ANAL-211's dry run of the GApps step. It needs a second USB drive with `~/anybook/installer/gapps/packages/openbook-synthetic-gapps-x86_64-37.zip` (14 kB, sha256 `35241f7f…`, already built). Follow ANAL-211's comment on this issue, Part A only;
+- `linux-s2idle.py` on the laptop's Linux (ANAL-178).
+
+Then plug the stick into the build host and reply **"stick attached" on ANAL-192**, with the photos. The routing is as in §13.12; also ANAL-212 (the `refresh_rate` verdict and the render rates), and ANAL-211 if its dry run was done.
+
 ## 14. App add-ons: microG (ANAL-210)
 
 Status as of 2026-10-17. Design, security trade-off and results: `docs/gapps.md` §6. Evidence: `evidence/2026-10-17-microg/`.
