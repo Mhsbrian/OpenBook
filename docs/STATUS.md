@@ -1,10 +1,10 @@
 # Status
 
-## State of the union (2026-10-18, 03:00 UTC)
+## State of the union (2026-10-18, 07:55 UTC)
 
 **Goal:** the Googlebook-style Android 17 desktop on the ASUS ROG Zephyrus G14 (GA403WR: Ryzen AI 9 HX 370, Radeon 890M), installed from a USB stick through a wizard and verified on the laptop. Repo: https://github.com/Mhsbrian/OpenBook.
 
-**Repo hygiene:** PRs #1–#76 are merged and none are open. The 2026-10-17 cleanup left one remote branch, `main`; every other branch was merged or superseded. Two branches with commits never merged are kept as tags: `archive/anal-190-live-image-b` (superseded on `main`) and `archive/anal-178-stick-integration`.
+**Repo hygiene:** PRs #1–#82 are merged except #80 (ANAL-210, microG; its run is still active). The 2026-10-17 cleanup left one remote branch, `main`; every other branch was merged or superseded. Two branches with commits never merged are kept as tags: `archive/anal-190-live-image-b` (superseded on `main`) and `archive/anal-178-stick-integration`.
 
 ### What works, and where it has been shown
 
@@ -18,13 +18,14 @@
 | Sleep | s2idle in a VM | **s2idle works, under Android too** (screen timeout → s2idle → key wake, display and Wi-Fi back); **deep sleep (S0i3) never reached.** The power check ruled out the driverless PSP; the SMU points at MPM or the USB4 router (unconfirmed) | `docs/power-input.md` §1.3, §7.6 |
 | Wi-Fi, Bluetooth, audio | Yes (WPA2, iperf3, tone through ALSA and, with the HAL fix, through Android) | **Wi-Fi to the internet** (5 GHz, 160 MHz); **Bluetooth pairs**, A2DP with LDAC; **speakers and mic through ALSA** heard. Through Android the tone was broken (HAL fix in ANAL-179's PR, QEMU only). **Under enforcing (`anal176t`), Bluetooth audio connects without the Bluetooth app aborting**: A2DP Connected, the HAL's A2DP session and outputs open, 0 crashes, so #52's policy fix holds. Sound over Bluetooth and app (browser) sound are still unheard. The only playback tried, ringtone previews, **failed to decode** (`Failed to create audio/vorbis decoder`; missing system DMA-BUF heap suspected). Headphone jack and iperf3 not tested | `evidence/2026-10-17-g14-audio-net/`, `evidence/2026-10-17-g14-desktop/g14-anal176s/`, `g14-anal176t/` |
 | ARM apps (Digitalis, built from source) | 14/16 ARM-only apps; works in enforcing | **The bridge self-check passes on Zen 5** (5/5 verdicts, both sessions). No arm64 app run yet: the ARM apps check is on ANAL-192's stick | `evidence/2026-10-17-digitalis-a17/`, `evidence/2026-10-17-digitalis-g14/` |
+| Google services compatibility (microG add-on, ANAL-210) | **Cuttlefish: microG's self-check 18/18 green**, signature spoofing only for microG's certificate (negative test passes), device registration, push tokens for 3 Play-services apps, microG as location provider. QEMU, G14 image `g1a`: the add-on installs under enforcing on the live stick and on an installed disk's first start (self-check 18/18), the wizard's switch off by default, the plain stick has the same 140 packages as `main`'s image. One denial per boot from `stdio_to_kmsg`, removed in `f7df42d` (rerun pending the build lane) | Not yet | `evidence/2026-10-17-microg/` |
 | Installer | **Wizard 25/25, engine 65/65, end to end 79/79; the firmware boot entry (`Boot####`, #68) boots with no fallback path** (SELinux enforcing): whole disk and **alongside a Windows-like disk** (Windows' partitions byte-identical and still booting; OpenBook boots from a firmware boot option); **power cuts at 6 points**, each leaving the old table, a blank disk or a complete install, and each restart completing; reinstall; the installed disk with and without the stick. **Firmware boot entries (since ANAL-191's #68):** the installer creates `Boot####` "OpenBook" itself; OVMF boots it with the fallback path deleted, and alongside leaves Windows' entry byte-identical and appends OpenBook to `BootOrder` (owner decision): Windows still starts by default and the firmware's boot menu lists OpenBook | Live USB boots; the wizard has not run yet | `evidence/2026-10-17-installer-wizard/`, `evidence/2026-10-17-installer-e2e/`, `evidence/2026-10-17-installer-bootorder/` |
 
 **What is left on the G14:** S0i3 deep sleep (needs the laptop's own Linux comparison), audible Bluetooth and app audio, the Android audio path with the HAL fix, media decoding on the laptop (it failed on `anal176t`; fixed in QEMU by #64, on `anal198`), the ARM apps check, the installer dry run, and the second graphics run on Vulkan 1.4. All but S0i3 are on `anal198`'s checklist.
 
 ### Running now
 
-- **Running: ANAL-201's beautification and Google-services backlog** (ANAL-202–204, ANAL-206–211: Google Sans, background blur, the flag set, a clean default desktop, brand assets, document fonts, first-run setup, microG, bring-your-own GApps). Nine runs share the host; builds take turns under the AOSP lane lock, and memory is tight (about 8 GB free). Merged since 21:30: #70 (BootOrder: OpenBook appended when not the default, owner decision), #71 (the Googlebook image review and GApps options), #73 (B4: circular icons, no wallpaper dim), #72 (B2: background blur on the G14 product), #75 (B5: a clean default desktop). The owner's `anal198` session hasn't happened yet; the next stick follows it.
+- **Running:** ANAL-209 (B8 first-run setup), ANAL-210 (G1 microG, PR #80) and ANAL-211 (G2 bring-your-own GApps). Merged from ANAL-201's backlog: B1 Google Sans (#77), B2 blur (#72), B3 flag set v2 (#79), B4 icons (#73), B5 clean desktop (#75), B6 OpenBook wallpapers, boot animation, sounds and pointer (#81), B7 document fonts (#78). ANAL-192 builds the next owner stick from `main` now, so the owner gets everything at once. It supersedes `anal198`, which the owner hasn't run.
 - **ANAL-198 (kernel lane): #64 merged.** It adds the system DMA-BUF heap and fixes two product bugs behind it (Codec2 HAL selection, Codec2 memfds under SELinux), so media decodes in QEMU. It also ships `efivarfs` as a vendor module, with Google's GKI configuration unchanged. Writing variables needed installer SELinux policy: done by ANAL-191 (#68).
 - **The owner's stick is now `openbook-live-20261017-anal198`** (built on the owner's request after #64; `docs/installer.md` §13.11). It comes from `main` `2d90741` and has everything `anal192c` had, plus Vulkan 1.4 (#61), the #64 kernel and media fixes, and ANAL-177's graphics check (sha256 `3b405d08…`). In QEMU: live 40/40, wizard 25/25, installer end to end 78/78, all four add-ons, and the media check. It replaces `anal192c`. The checklist is `anal192c`'s three boots (§13.6) plus a fourth, the graphics check.
 - **After that session:** results go to ANAL-176, ANAL-177, ANAL-178, ANAL-179, ANAL-191 and ANAL-200.
@@ -59,10 +60,15 @@
 | ANAL-193 to ANAL-197 device loop | Backlog | ANAL-194 first: the Multica runtime and test agent on the G14's Linux | Owner installs the daemon |
 | ANAL-201 Googlebook UI and GApps review | In progress (PR #71 merged) | Review done (`docs/googlebook-ui.md`, `docs/gapps.md`). All ten follow-ups approved and running in parallel on the shared lane (builds take turns under the lane lock; each issue has its own Cuttlefish ports) | — |
 | ANAL-202 to ANAL-209 beautification B1–B8 | In progress | B1 Google Sans · B2 blur on the G14 · B3 flag set v2 · B4 shapes and wallpaper dim · B5 clean desktop · B6 brand assets · B7 document fonts · B8 first-run setup. G14 checks go to ANAL-192's next stick | — |
+| ANAL-202 B1: Google Sans typography | In review (PR #77) | **Done in both products:** Google Sans and Google Sans Flex (OFL, google/fonts `47d54ca1`, unmodified) in `/product/fonts` with their OFL texts in the image notices; the generated `fonts_customization.xml` (40 families), which the build checks against its generator; the four `config_*FontFamily` values in the framework RRO. In Cuttlefish all 40 families load, both overlay values resolve, and Settings, captions, Quick Settings, notifications, all apps and Files render in Google Sans. Desktop capture unchanged, crash buffer empty, no new SELinux denials. `product.img` +9.24 MiB. Settings scroll: no regression (janky 1.35 vs 4.32 %, three alternating pairs; rows are a quarter taller). After merging `main` (B2, B4, B5), both products build again and Cuttlefish shows all of it together (`docs/googlebook-ui.md` §3.1) | G14 check on ANAL-192's stick |
 | ANAL-203 B2: background blur on the G14 | In review (PR #72 merged) | Done: the G14 product enables blur (built; Cuttlefish unchanged), and the G14 image blurs in QEMU. Measured in Cuttlefish: SurfaceFlinger blurs the shade's window (radius 34) only with blur on; on a quiet host SystemUI's frames don't change (janky 3.6 vs 4.6 %), RenderEngine spends 2.8–4.0 ms per GPU frame; under heavy host load the shade's janky frames double. The graphics check gets a `blur` part with pass/fail verdicts. Found: Googlebook turns off the full-screen shade blur (`config_supportBlurredWallpaper=false`), for B3. Renderer properties evaluated, not flipped (`docs/graphics-amd.md`) | ANAL-192's stick: the graphics check boot |
+| ANAL-204 B3 desktop flag set v2 | In review (PR #79) | Done: all 218 Googlebook flags that AOSP 17 declares are triaged (`device/anybook/common/desktop/release/googlebook-triage.tsv`), and 84 are on (value set 79 → 163). Two broke the desktop and stay off: a SystemUI crash on restoring a minimized window, and an empty notification shade with no lock screen. 23 do nothing, because AOSP 17 has no code for them. Shown in Cuttlefish: window box shadows, stepped cascading, QS tooltips, power-menu blur (`docs/googlebook-flags.md`). Next: the G14 check on ANAL-192's stick | ANAL-192's stick; B2 for blur on the G14 |
 | ANAL-205 B4: circular icons, no wallpaper dim | In review (PR #73 merged) | **Done in Cuttlefish:** the framework RRO sets the circle mask, round icons and 0 wallpaper dim; `desktop.mk` sets Googlebook's wallpaper colour thresholds 55 / 12. All apps, the taskbar and Settings now draw circles. A grey wallpaper is no longer dimmed (171 → 180 on screen). A pick in Wallpaper & style still wins in the taskbar. Both products build. Open: the taskbar's all-apps panel ignores a shape pick, on the baseline too (`docs/googlebook-ui.md` §2.4) | G14 check on ANAL-192's stick |
 | ANAL-206 B5: a clean default desktop | In review (PR #75 merged) | Done in Cuttlefish and on the G14 product in QEMU: no search box and no `QuickSearchBox`; taskbar pins Files, Settings, browser, Calendar, Gallery, Camera (only with a camera); touch, keypress and non-forced screenshot sounds off; installer live checks 40/40 (`docs/aosp-desktop.md`, `evidence/2026-10-17-clean-desktop/`). Next: the G14 check on the next stick | The owner's review of the pin list; ANAL-192's next stick |
-| ANAL-210, ANAL-211 Google services | In progress | G1 microG patch and add-on; G2 an installer step for a user-supplied GApps package (synthetic test package only) | — |
+| ANAL-207 B6 brand assets | In review (PR #81 merged) | **Done in Cuttlefish:** OpenBook's own wallpapers (4 designs, light and dark; Folio light is the default; an "OpenBook" collection in Wallpaper & style), boot animation, sound set and pointer theme, generated by `scripts/brand/` (CC-BY-4.0). The boot animation plays at boot; each wallpaper gives its own Monet palette, as predicted; 20 pointer shapes in all accessibility styles; ringtone, notification, alarm and UI sounds are the defaults. Installed in both products. Next: the G14 check, and the owner's review of the contact sheet (and a listen) | ANAL-192's stick; owner review |
+| ANAL-208 B7: document fonts | In review (PR #78 merged) | Arimo, Tinos, Cousine, Gelasio, Comic Relief, Archivo Black and Narrow (OFL, google/fonts) in `/product/fonts`. In WebView, Arial, Times New Roman, Courier New, Georgia and Comic Sans MS now render in them, within 0.015 px of their widths (Cuttlefish). Googlebook's 13 other families are unpublished, so Verdana and Tahoma stay on Roboto. Next: the G14 check | ANAL-192's next stick; an owner decision on Helvetica/Times/Courier aliases (`docs/googlebook-ui.md` §2.1.1) |
+| ANAL-210 microG (G1) | In review (PR #80) | Done in VMs: the patch in every image; the add-on on the stick, offered by the installer off by default, installed as normal apps on the first start. Cuttlefish: self-check 18/18, negative test, push tokens; QEMU: live and installed disk. Next: the rebuilt image's QEMU rerun (one denial removed), then the G14 | ANAL-192's next stick, after the PR merges |
+| ANAL-211 bring-your-own GApps (G2) | In progress | An installer step for a user-supplied GApps package (synthetic test package only); builds on ANAL-210's engine add-on fields | — |
 | ANAL-166 performance and parity | Backlog | After the installer: benchmarks, Chrome, the Linux terminal (AVF without pKVM). No sub-issues yet | — |
 | ANAL-186 NVIDIA | Parked | Research is done (ANAL-187); N1–N6 after M4 | — |
 | ANAL-165 Track B (ANAL-182 to ANAL-185) | Parked | Starts only if the owner decides to use Google's image | Owner decision |
@@ -80,6 +86,74 @@
 **Build host:** one AOSP build at a time (`flock ~/anybook/aosp/.lane.lock`, taken by `scripts/aosp-docker.sh`), because builds peak at about 50 GB of the 61 GB RAM. Builds and images are in `docs/BUILD.md`; the live image and the owner checklists are in `docs/installer.md` §11.
 
 ## History
+
+### 2026-10-18: microG as an optional add-on (ANAL-210)
+- **The framework patch is in every image.**
+  - LineageOS `198fa72864` (signature spoofing for microG) and `03da1783cb` (microG's location provider in /data), cherry-picked unchanged from `lineage-24.0`.
+  - Our own patch drops their debuggable-only condition.
+  - They apply to our `CP2A.260605` pin, and both products build.
+- **The add-on:** microG's signed release APKs, unchanged: GmsCore 0.3.17.252432, Companion and the Services Framework Proxy.
+  - They come on the stick (`scripts/microg/add-to-image.sh`).
+  - The installer's disk screen offers them, **off by default**.
+  - `openbook-addons` installs them as normal apps on the first start, after checking each against the sha256 the image pins.
+  - Without the add-on nothing changes: a plan without it is byte for byte the old one, and the live boot logs one line (`docs/gapps.md` §6, `docs/installer.md` §14).
+- **Cuttlefish (C):**
+  - microG's self-check **18/18 green**.
+  - **Negative test passes:** a `com.google.android.gms` signed with another key keeps its own certificate.
+  - Device registration and push connect to Google. Home Assistant, Bitwarden and Nextcloud get FCM tokens; their official builds start with and without microG (`docs/COMPAT-MATRIX.md`).
+  - After one restart, microG is the network and fused location provider. In the VM it has no network fix: synthetic Wi-Fi, online lookup opt-in.
+- **Host tests:** `openbook-addons` 37/37, the installer's add-on path 19/19, the ANAL-191 engine suite 63/63.
+- **QEMU (G14 image):** Image `g1a`: the add-on installs under enforcing on the live stick and on an installed disk's first start (self-check 18/18), the wizard's switch off by default, the plain stick has the same 140 packages as `main`'s image. One denial per boot from `stdio_to_kmsg`, removed in `f7df42d` (rerun pending the build lane).
+- **Not on the G14 yet:** the checklist is on ANAL-192.
+
+### 2026-10-18: B1, B3, B6, B7 merged; the next stick ordered (ANAL-159)
+- **Merged** #77 (B1 Google Sans; the three files byte-identical to google/fonts `47d54ca1`, OFL), #78 (B7 document fonts, OFL; `fonts_customization.xml --check` passes after the merge), #79 (B3 flags v2: 84 enabled, the three that crashed SystemUI or emptied the shade dropped) and #81 (B6: generated by `scripts/brand/`, CC-BY-4.0 by the OpenBook authors).
+- **Ordered the next owner stick** from ANAL-192: everything since `anal198`, so the owner writes one stick. The assets' CC-BY-4.0 licence joins the repo-licence decision.
+
+### 2026-10-18: OpenBook's own wallpapers, boot animation, sounds and pointer (ANAL-207, B6)
+
+- All of it is drawn or synthesised by `scripts/brand/` from the brand palette and mark, CC-BY-4.0. `render-brand-assets.sh --check` reproduces `assets/` from a clean checkout.
+- **Installed in both products** (the CF build and the G14 product image):
+  - `/product/media/bootanimation.zip`, and the sound set with `ro.config.*` and the UI sound paths;
+  - the default wallpaper in the framework overlay, and the set of eight in the partner package;
+  - `OpenBookPointerOverlay`.
+- **Cuttlefish (`anybook-cf-b6`), 8/8 checks:**
+  - The boot animation plays at boot and on replay.
+  - The desktop shows Folio light. Wallpaper & style lists the OpenBook collection.
+  - Each wallpaper's Monet primary matches the prediction within 3 RGB units for 7 of 8 (Bloom light: 7).
+  - The framework draws our 20 pointer shapes in all 6 fills and 3 strokes, and a virtual mouse shows our arrow on screen.
+- **The pointer overlay.** It replaces AOSP's nine pointer colour styles, adding its own attributes. A first try, compiled as resource package `android`, was enabled but ignored at runtime (package ID 0x01). Evidence: `evidence/2026-10-17-brand-assets/`.
+
+### 2026-10-18: metric-compatible document fonts (ANAL-208, backlog B7, PR #78)
+- **Only 7 of Googlebook's 20 document-font families are public (C).** Arimo, Tinos, Cousine, Gelasio, Comic Relief, Archivo Black and Archivo Narrow are in google/fonts, the versions Googlebook ships. Tachyonic, Velarium, Geotic, Tisane, Gaumond, Trophis, Codecs, Comedic Sans, Whendings and Arvos name `googlefonts` repositories that aren't public. So Verdana and Tahoma have no stand-in.
+- **Metrics (C).** On all 95 printable ASCII glyphs, Arimo, Tinos and Cousine match Adobe's Helvetica, Times and Courier AFMs, regular and bold; Roboto matches none.
+- **Two configs, because WebView reads only one (C).** The framework takes families and aliases from `/product/etc/fonts_customization.xml` (AOSP 17 accepts `<alias>`, and the customization's come first). WebView 145's Skia parses only `/system/etc/fonts.xml`, so a small `frameworks/base` patch declares the same families there and moves `arial`, `times new roman`, `courier new` and `georgia`, and adds `comic sans ms`.
+- **In Cuttlefish (C).** Each of those five names renders in its stand-in, within 0.015 px of the font's own widths; unstyled text, `sans-serif` and `serif` don't change. A family that exists nowhere now falls back to Arimo, through Blink's last resort (`Sans`, then `Arial`).
+- **Evidence:** `evidence/2026-10-17-doc-fonts/`.
+
+### 2026-10-18: Google Sans in the desktop products (ANAL-202, backlog B1, PR #77)
+- **Done** (`docs/googlebook-ui.md` §3.1, `device/anybook/common/desktop/fonts/`):
+  - **Fonts.** Google Sans, Google Sans Italic and Google Sans Flex from google/fonts `47d54ca1`, byte for byte (sha256 in `fonts/README.md`), as `prebuilt_font` modules in `/product/fonts`. Each family's `OFL.txt` reaches `/product/etc/NOTICE.xml.gz` through its own `license` module. `TRADEMARKS.md` ships next to them; "Google" stays out of OpenBook branding.
+  - **Font config.** `/product/etc/fonts_customization.xml` (40 families) is committed. The build regenerates it with `scripts/ui/fonts-customization.py --check` and fails if the two differ.
+  - **Framework values.** `config_headlineFontFamily(Medium)` and `config_bodyFontFamily(Medium)` in `AnyBookDesktopFrameworkOverlay`, as on Googlebook. Both products inherit them from `desktop.mk`.
+- **Evidence** (`evidence/2026-10-17-typography/`): both products build. Cuttlefish on the Radeon 610M, base against fonts: all 40 families load, the four values resolve, the UI renders in Google Sans; desktop capture unchanged; crash buffer empty and the same three denial kinds in every run. `product.img` +9.24 MiB in both products. Settings scroll, three alternating pairs on a loaded host: janky 1.35 % with the fonts against 4.32 % without. After merging `main` (B2, B4, B5), both products build again, and Cuttlefish shows Google Sans with B4's circles and B5's taskbar.
+- **Found:** Google Sans' taller line metrics make Settings' rows about a quarter taller. A Soong `genrule` can't name its output like one of its sources ("multiple locations for label").
+- **Next:** the G14 check on ANAL-192's stick. B7 (ANAL-208) adds its families to the same generator.
+
+### 2026-10-18: desktop flag set v2, 84 Googlebook flags on (ANAL-204)
+- **Triage (C).** Googlebook enables 218 flags that AOSP 17 declares and our build leaves off. Each now has a category, a decision and a reason (`device/anybook/common/desktop/release/googlebook-triage.tsv`): 84 enabled in six groups, 43 deferred, 89 skipped, 2 dropped.
+  - 23 have no reader in our tree, so they do nothing. Among them are `perfect_edge` and `enable_taskbar_icon_desktop_clicks`.
+  - Googlebook runs in headless system user mode (`ro.fw.mu.headless_system_user=true`); OpenBook doesn't, so the `hsu_*` flags are skipped.
+- **Dropped after testing (C, Cuttlefish):**
+  - `enable_add_window_decoration_to_all_tasks` crashed SystemUI when a minimized window was restored from the taskbar.
+  - `start_on_gone_scene_if_no_lockscreen` emptied the notification shade. With OpenBook's disabled lock screen, SystemUI starts on Gone, and the keyguard section that binds the notification stack never runs. Setting a PIN on the same image brings the rows back.
+- **Visible (C):** box shadows and a 1 px border on desktop windows, 60 px stepped cascading, the windowing pill in the maximize menu, QS tile tooltips, power-menu blur, and the Cast tile over Ethernet.
+- **Tools:**
+  - `scripts/desktop-flags.py --list` (the value set from the triage);
+  - `scripts/ui/flag-facts.py` (declarations and readers);
+  - `scripts/ui/flag-checks.py` (desktop checks driven by a virtual uinput mouse);
+  - `scripts/ui/flag-triage-md.py`.
+- **Deviation:** the six groups were built together in one image, because sibling builds held the shared lane. Each failure was then traced to one flag and confirmed in a rebuild (v3, v4).
 
 ### 2026-10-18: a clean default desktop (ANAL-206, backlog B5)
 - **Done** (`docs/aosp-desktop.md`, "The default desktop"):

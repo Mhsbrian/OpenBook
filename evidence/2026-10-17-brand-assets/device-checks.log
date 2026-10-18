@@ -1,0 +1,28 @@
+PASS pointer overlay enabled: 1
+PASS sounds overlay enabled: 1
+PASS boot animation installed: /product/media/bootanimation.zip
+PASS default_wallpaper resolves to the overlay: default_wallpaper.jpg
+default seed (SystemUI mMainWallpaperColor): ff7580ea
+wallpaper set: /data/local/tmp/wp.jpg id 11
+wallpaper set: /data/local/tmp/wp.jpg id 12
+wallpaper set: /data/local/tmp/wp.jpg id 13
+wallpaper set: /data/local/tmp/wp.jpg id 14
+wallpaper set: /data/local/tmp/wp.jpg id 15
+wallpaper set: /data/local/tmp/wp.jpg id 16
+wallpaper set: /data/local/tmp/wp.jpg id 17
+wallpaper set: /data/local/tmp/wp.jpg id 18
+wallpaper set: /data/local/tmp/wp.jpg id 19
+Starting: Intent { act=android.intent.action.SET_WALLPAPER pkg=com.android.wallpaper }
+Status: ok
+LaunchState: WARM
+Activity: com.android.wallpaper/.picker.customization.ui.CustomizationPickerActivity
+TotalTime: 570
+WaitTime: 588
+Complete
+PASS picker lists the OpenBook collection: 1
+OpenBook collection shows: content-desc="" content-desc="Bloom" content-desc="Folio" content-desc="Navigate up" content-desc="Strata" content-desc="Tide" 
+pointer icons rendered: 378 (types x 6 fills x 3 strokes)
+PASS ringtone default: OpenBook_Pages.ogg
+PASS lock sound: /product/media/audio/ui/OpenBook_Lock.ogg
+PASS MediaProvider indexed the set: 8
+done

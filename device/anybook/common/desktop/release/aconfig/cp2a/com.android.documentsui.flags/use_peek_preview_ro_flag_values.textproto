@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 3: Files: Peek preview of a file (desktop quick look); needs use_material3, which is on
+flag_value {
+  package: "com.android.documentsui.flags"
+  name: "use_peek_preview_ro"
+  state: ENABLED
+  permission: READ_ONLY
+}

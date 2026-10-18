@@ -1,0 +1,45 @@
+=== 2026-10-17T22:44:02Z waiting for lane; HEAD a7ceb27
+=== 2026-10-17T23:09:37Z lane acquired
+=== 2026-10-17T23:09:38Z target anybook_cf_x86_64_pc-cp2a-userdebug goals droid -j32 on 32 CPUs
+=== 2026-10-17T23:09:38Z synced device/anybook from /repo (AnyBook a7ceb27)
+### art: patches already applied (b753cf97923c)
+### art: base b753cf97923c + 1 patches -> HEAD c235db82327e
+###   c235db8232 OPENBOOK: libnativebridge: bridged apps see the bridge's CPU_ABI again
+### external/minigbm: patches already applied (ce79bbee67b3)
+### external/minigbm: base ce79bbee67b3 + 1 patches -> HEAD e1a806bd3f50
+###   e1a806b ANYBOOK: amdgpu: allocate through Mesa's GBM, linear-only without it
+### frameworks/base: base 94b4c163b7df + 3 patches -> HEAD bbd651efbce1
+###   bbd651efbce1 OPENBOOK: microG signature spoofing in user builds too
+###   b6eba57e492d ServiceWatcher: Allow microG location provider to be installed in /data
+###   6f06160ae4c7 Allow signature spoofing for microG Companion/Services
+### frameworks/libs/binary_translation: pin 1290e88c6030 + import b6b7fc30f5e1 -> b9d25f5ea260
+### frameworks/libs/binary_translation: base b9d25f5ea260 + 4 patches -> HEAD d412a8451e1f
+###   d412a845 OPENBOOK: arm64: bit-exact FRECPE and FRSQRTE
+###   7ebe429f OPENBOOK: arm64: emulate MRS of the ID registers as Linux does
+###   9ee5c256 OPENBOOK: android17: build with Android 17's clang
+###   6aae7322 OPENBOOK: android17: libberberis_runtime_library_headers
+### frameworks/native: patches already applied (ae266dcb706d)
+### frameworks/native: base ae266dcb706d + 1 patches -> HEAD b385e2131947
+###   b385e21319 OPENBOOK: EventHub: disable kernel key repeat on touchpads too
+### hardware/interfaces: patches already applied (0162af698935)
+### hardware/interfaces: base 0162af698935 + 2 patches -> HEAD d41643629491
+###   d416436294 OPENBOOK: audio: a real codec's clock paces the primary module's streams
+###   38dea1c96d OPENBOOK: audio: primary module's ALSA card and device from properties
+### packages/apps/Launcher3: patches already applied (c612e6ece389)
+### packages/apps/Launcher3: base c612e6ece389 + 1 patches -> HEAD 21f6b66c1b7d
+###   21f6b66c1b ANYBOOK: taskbar overlay: Escape without All Apps does not crash
+### system/vold: patches already applied (6d20a0078c2b)
+### system/vold: base 6d20a0078c2b + 1 patches -> HEAD 307fbdc3bb08
+###   307fbdc3 ANYBOOK: vold: do not manage the disk the running system is on
+=== 2026-10-17T23:09:41Z vendor/anybook/mesa: upstream mesa-26.2.5 ddaf85e353442d9d7f192fdcf1823e652e3f2ee3 (26.2.5)
+=== 2026-10-17T23:09:41Z m -j32 droid
+#### build completed successfully (05:10 (mm:ss)) ####
+=== 2026-10-17T23:14:54Z m exit 0
+=== 2026-10-17T23:15:17Z build done; free:
+=== 2026-10-17T23:15:17Z stage /home/hive/anybook/aosp/src/out/target/product/anybook_vsoc_x86_64 -> /home/hive/anybook/aosp/cf/g1 (top-level files, reflink)
+=== 2026-10-17T23:15:17Z up: us-docker.pkg.dev/android-cuttlefish-artifacts/cuttlefish-orchestration/cuttlefish-orchestration:1.56.0@sha256:ecdb337615c719ed62e12593f7931a313d7c15a99a919e69fd87510e14a249e6, host GPU: none 
+=== 2026-10-17T23:15:18Z unpack cvd-host_package.tar.gz -> /root/cvd-host
+=== 2026-10-17T23:15:25Z host tools: packaged
+=== 2026-10-17T23:15:25Z cvd create --host_path=/root/cvd-host --product_path=/cf/product --x_res=1920 --y_res=1080 --dpi=160 --gpu_mode=guest_swiftshader --cpus=4 --memory_mb=8192 --report_anonymous_usage_stats=n --vsock_guest_cid=139
+=== 2026-10-17T23:15:40Z cvd create exit 0 after 15 s
+=== 2026-10-17T23:15:40Z cf up done, releasing lane

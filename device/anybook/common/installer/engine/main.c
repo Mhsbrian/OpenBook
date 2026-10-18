@@ -8,13 +8,14 @@
 //   openbook-install [GLOBAL] disks                    the disks, their partitions, and whether each may be a target
 //   openbook-install [GLOBAL] hwinfo                   the hardware check
 //   openbook-install [GLOBAL] plan --target BY-ID --layout whole|alongside [--locale L] [--keyboard K]
-//                              [--set-default] [--out PLAN.json]
+//                              [--set-default] [--addon NAME]... [--out PLAN.json]
 //                                                      the dry run: opens every disk read-only, prints every operation
 //   openbook-install [GLOBAL] apply --plan PLAN.json --confirm-disk /dev/disk/by-id/BY-ID [--events]
 //                                                      the install, unattended: OPENBOOK_INSTALL_ERASE must name the
 //                                                      same /dev/disk/by-id/ path (S3). --events: progress as JSON
 //                                                      lines on stdout before the report
 //   openbook-install [GLOBAL] nvram                    the firmware's boot entries and BootOrder (read-only)
+//   openbook-install [GLOBAL] addons                   the image's add-ons and whether the stick carries them
 //   openbook-install [GLOBAL] daemon [--socket PATH]   openbook-installd (init passes its socket; PATH for tests)
 // GLOBAL: --root DIR (host tests: sysfs, procfs and /dev/block below DIR) --boot-part-uuid UUID --log FILE
 //         --efivars DIR (host tests: a plain directory in efivarfs's file format stands in for efivarfs)
@@ -27,8 +28,9 @@
 static void usage(void) {
     fprintf(stderr,
             "usage: openbook-install [--root DIR] [--boot-part-uuid UUID] [--log FILE] COMMAND ...\n"
-            "  disks | hwinfo | nvram\n"
-            "  plan --target BY-ID --layout whole|alongside [--locale L] [--keyboard K] [--set-default] [--out FILE]\n"
+            "  disks | hwinfo | nvram | addons\n"
+            "  plan --target BY-ID --layout whole|alongside [--locale L] [--keyboard K] [--set-default]\n"
+            "       [--addon NAME]... [--out FILE]\n"
             "  apply --plan FILE --confirm-disk /dev/disk/by-id/BY-ID [--events]   (env OPENBOOK_INSTALL_ERASE)\n"
             "  daemon [--socket PATH]\n");
 }
@@ -72,6 +74,21 @@ int main(int argc, char **argv) {
         puts(w.b.p);
         return 0;
     }
+    if (!strcmp(cmd, "addons")) {
+        struct disk *d;
+        int n = disks_scan(&d);
+        struct source s;
+        source_open(&s, d, n);
+        struct jw w = {0};
+        jw_obj(&w, NULL);
+        jw_bool(&w, "ok", 1);
+        addons_json(&w, "addons", &s);
+        jw_endo(&w);
+        puts(w.b.p);
+        source_close(&s);
+        disks_free(d, n);
+        return 0;
+    }
     if (!strcmp(cmd, "disks") || !strcmp(cmd, "hwinfo")) {
         struct disk *d;
         int n = disks_scan(&d);
@@ -109,6 +126,12 @@ int main(int argc, char **argv) {
             else if (!strcmp(argv[i], "--locale") && i + 1 < argc) snprintf(r.locale, sizeof r.locale, "%s", argv[++i]);
             else if (!strcmp(argv[i], "--keyboard") && i + 1 < argc) snprintf(r.keyboard, sizeof r.keyboard, "%s", argv[++i]);
             else if (!strcmp(argv[i], "--set-default")) r.set_default = 1;
+            else if (!strcmp(argv[i], "--addon") && i + 1 < argc) {
+                if (plan_req_add_addon(&r, argv[++i])) {
+                    fprintf(stderr, "--addon %s: not a valid add-on name, a duplicate, or more than %d\n", argv[i], ADDON_MAX);
+                    return 2;
+                }
+            }
             else if (!strcmp(argv[i], "--out") && i + 1 < argc) out = argv[++i];
             else {
                 usage();

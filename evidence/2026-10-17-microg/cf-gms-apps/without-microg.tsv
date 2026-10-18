@@ -1,0 +1,5 @@
+package	name	installed	alive_15s	crashes	anrs	play_services_seen	push_registered	notes
+io.homeassistant.companion.android	Home Assistant 2026.8.4 (full)	yes	yes	0	0	missing	no	
+com.x8bit.bitwarden	Bitwarden 2026.10.0 (standard)	yes	yes	0	0	missing	no	
+com.nextcloud.client	Nextcloud 35.0.1 (gplay)	yes	yes	0	0	missing	no	
+im.molly.app	Molly 8.19.2-4 (FCM build)	yes	yes	0	0	no complaint	no	

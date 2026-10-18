@@ -1,0 +1,27 @@
+# run label: crash-buffer lines, SELinux denial kinds (avc-denials.txt), boot
+r1 cf-base: crash=0 denial_kinds=3 boot_completed=1 at +40 s freeform_records=8
+          3 avc:  denied  { read } for  scontext=u:r:gceservice:s0 tcontext=u:object_r:zygote_config_prop:s0 tclass=file permissive=0
+          3 avc:  denied  { find } for uid=1003 name=gpu scontext=u:r:bootanim:s0 tcontext=u:object_r:gpu_service:s0 tclass=service_manager permissive=0
+          2 avc:  denied  { write } for  scontext=u:r:init:s0 tcontext=u:object_r:debugfs_bootreceiver_tracing:s0 tclass=dir permissive=0 bug=b/340399580
+r1 cf-fonts: crash=0 denial_kinds=3 boot_completed=1 at +40 s freeform_records=8
+          3 avc:  denied  { read } for  scontext=u:r:gceservice:s0 tcontext=u:object_r:zygote_config_prop:s0 tclass=file permissive=0
+          3 avc:  denied  { find } for uid=1003 name=gpu scontext=u:r:bootanim:s0 tcontext=u:object_r:gpu_service:s0 tclass=service_manager permissive=0
+          2 avc:  denied  { write } for  scontext=u:r:init:s0 tcontext=u:object_r:debugfs_bootreceiver_tracing:s0 tclass=dir permissive=0 bug=b/340399580
+r2-1 cf-base: crash=0 denial_kinds=5 boot_completed=1 at +35 s freeform_records=8
+          3 avc:  denied  { getattr } for  scontext=u:r:su:s0 tcontext=u:object_r:statsd_iouring:s0 tclass=anon_inode permissive=1
+          3 avc:  denied  { getattr } for  scontext=u:r:su:s0 tcontext=u:object_r:logd_iouring:s0 tclass=anon_inode permissive=1
+          3 avc:  denied  { find } for uid=1003 name=gpu scontext=u:r:bootanim:s0 tcontext=u:object_r:gpu_service:s0 tclass=service_manager permissive=0
+          2 avc:  denied  { read } for  scontext=u:r:gceservice:s0 tcontext=u:object_r:zygote_config_prop:s0 tclass=file permissive=0
+          1 avc:  denied  { write } for  scontext=u:r:init:s0 tcontext=u:object_r:debugfs_bootreceiver_tracing:s0 tclass=dir permissive=0 bug=b/340399580
+r2-2 cf-fonts: crash=0 denial_kinds=3 boot_completed=1 at +32 s freeform_records=8
+          3 avc:  denied  { read } for  scontext=u:r:gceservice:s0 tcontext=u:object_r:zygote_config_prop:s0 tclass=file permissive=0
+          3 avc:  denied  { find } for uid=1003 name=gpu scontext=u:r:bootanim:s0 tcontext=u:object_r:gpu_service:s0 tclass=service_manager permissive=0
+          2 avc:  denied  { write } for  scontext=u:r:init:s0 tcontext=u:object_r:debugfs_bootreceiver_tracing:s0 tclass=dir permissive=0 bug=b/340399580
+r2-3 cf-base: crash=0 denial_kinds=3 boot_completed=1 at +34 s freeform_records=8
+          3 avc:  denied  { read } for  scontext=u:r:gceservice:s0 tcontext=u:object_r:zygote_config_prop:s0 tclass=file permissive=0
+          3 avc:  denied  { find } for uid=1003 name=gpu scontext=u:r:bootanim:s0 tcontext=u:object_r:gpu_service:s0 tclass=service_manager permissive=0
+          2 avc:  denied  { write } for  scontext=u:r:init:s0 tcontext=u:object_r:debugfs_bootreceiver_tracing:s0 tclass=dir permissive=0 bug=b/340399580
+r2-4 cf-fonts: crash=0 denial_kinds=3 boot_completed=1 at +36 s freeform_records=8
+          3 avc:  denied  { read } for  scontext=u:r:gceservice:s0 tcontext=u:object_r:zygote_config_prop:s0 tclass=file permissive=0
+          3 avc:  denied  { find } for uid=1003 name=gpu scontext=u:r:bootanim:s0 tcontext=u:object_r:gpu_service:s0 tclass=service_manager permissive=0
+          2 avc:  denied  { write } for  scontext=u:r:init:s0 tcontext=u:object_r:debugfs_bootreceiver_tracing:s0 tclass=dir permissive=0 bug=b/340399580

@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 5: dream state from WM occlusion (race fix)
+flag_value {
+  package: "android.service.dreams"
+  name: "drive_dream_state_from_occlusion"
+  state: ENABLED
+  permission: READ_ONLY
+}

@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 5: notification list sends whole touch streams to Compose (scene container is on)
+flag_value {
+  package: "com.android.systemui"
+  name: "nssl_touch_dispatch_fix"
+  state: ENABLED
+  permission: READ_ONLY
+}

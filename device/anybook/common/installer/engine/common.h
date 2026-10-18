@@ -245,6 +245,16 @@ struct source {
 int source_open(struct source *s, struct disk *d, int n);
 void source_close(struct source *s);
 
+// ------------------------------------------------------------------ app add-ons (addon.c, ANAL-210)
+#define ADDON_MAX 4        // per install
+#define ADDON_MAX_FILES 8  // per add-on
+// The image's catalogue /system_ext/etc/openbook/addons/<name>.json, validated; NULL (and why) if there is none.
+struct jv *addon_catalog(const char *name, char *why, size_t wl);
+// 1 if the stick's openbook/addons/<name>/ holds every catalogued file at the catalogued size (sha256: check_source).
+int addon_on_stick(struct source *s, const struct jv *cat, char *why, size_t wl);
+uint64_t addon_bytes(const struct jv *cat);
+void addons_json(struct jw *w, const char *key, struct source *s);  // every catalogued add-on, and if the stick has it
+
 // ------------------------------------------------------------------ hardware check
 void hwinfo_json(struct jw *w, struct disk *d, int n);
 
@@ -255,6 +265,8 @@ struct plan_req {
     char locale[32];
     char keyboard[32];
     int set_default;
+    char addons[ADDON_MAX][32];  // add-ons the user ticked (ANAL-210); none: the plan is as before add-ons existed
+    int naddons;
     // seeds: random per plan, kept by apply so the plan can be re-computed exactly
     char disk_guid[37];
     char serialno[17];
@@ -273,6 +285,7 @@ int plan_seed(struct plan_req *r);
 int plan_build(const struct plan_req *r, struct disk *disks, int n, struct source *src, struct sb *out,
                char plan_sha256[65], const char **code, char *why, size_t whylen);
 int plan_req_from_json(const struct jv *plan, struct plan_req *r);
+int plan_req_add_addon(struct plan_req *r, const char *name);  // -1: not a valid name, a duplicate, or too many
 int apply_run(const struct plan_req *r, const char *expect_sha256, const char *typed_or_null,
               const char *confirm_disk_or_null, struct sb *result_json);
 int normalized_equal(const char *a, const char *b);  // case-insensitive, whitespace ignored

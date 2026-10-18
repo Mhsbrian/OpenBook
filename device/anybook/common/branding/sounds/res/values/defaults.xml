@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors. SPDX-License-Identifier: Apache-2.0
+  OpenBook's UI sounds (assets/sounds/ui, installed by branding.mk). AOSP's defaults:
+  frameworks/base/packages/SettingsProvider/res/values/defaults.xml. Dock sounds stay AOSP's (off by default).
+-->
+<resources>
+    <string name="def_lock_sound" translatable="false">/product/media/audio/ui/OpenBook_Lock.ogg</string>
+    <string name="def_unlock_sound" translatable="false">/product/media/audio/ui/OpenBook_Unlock.ogg</string>
+    <string name="def_trusted_sound" translatable="false">/product/media/audio/ui/OpenBook_Trusted.ogg</string>
+    <string name="def_low_battery_sound" translatable="false">/product/media/audio/ui/OpenBook_LowBattery.ogg</string>
+    <string name="def_charging_started_sound" translatable="false">/product/media/audio/ui/OpenBook_ChargingStarted.ogg</string>
+    <string name="def_wireless_charging_started_sound" translatable="false">/product/media/audio/ui/OpenBook_ChargingStarted.ogg</string>
+</resources>

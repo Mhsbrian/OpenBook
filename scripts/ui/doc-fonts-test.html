@@ -1,0 +1,77 @@
+<!doctype html>
+<!-- OpenBook document-font check (ANAL-208). Each row names one font family the way web pages and Office documents
+     do. The page measures two strings in each at 100 px, regular and bold, with kerning and ligatures off so the
+     width is the plain sum of advance widths, and POSTs the numbers to /report on the server that served it
+     (scripts/ui/doc-fonts-check.sh). scripts/ui/doc-fonts-metrics.py compares them with the fonts' own metrics. -->
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenBook document fonts</title>
+<style>
+  body { margin: 12px 20px; font: 13px sans-serif; color: #202124; }
+  h1 { font-size: 18px; margin: 0 0 8px; }
+  table { border-collapse: collapse; }
+  td { padding: 1px 10px 1px 0; vertical-align: baseline; white-space: nowrap; }
+  td.name { font: 13px monospace; color: #5f6368; }
+  td.sample { font-size: 30px; }
+  td.w { font: 12px monospace; text-align: right; }
+  .probe { position: absolute; left: -100000px; top: 0; white-space: pre; font-size: 100px;
+           font-kerning: none; font-variant-ligatures: none;
+           font-feature-settings: "kern" 0, "liga" 0, "clig" 0, "calt" 0; }
+</style>
+</head>
+<body>
+<h1>OpenBook document fonts (ANAL-208)</h1>
+<table id="rows"><tr><td class="name">font-family</td><td>sample</td>
+  <td class="w">400 px</td><td class="w">700 px</td></tr></table>
+<p id="status">measuring…</p>
+<script>
+// Two strings with different letter mixes, so two fonts are unlikely to give the same pair of widths.
+const TEXTS = ["The quick brown fox jumps over the lazy dog 0123456789", "WAVE Ivy, fjord; mmm iii (42%) & @#?!"];
+// The Windows/Office names first (the acceptance list), then the stand-ins by their own names, then the generics
+// and a family that exists nowhere.
+const NAMES = ["Arial", "Times New Roman", "Courier New", "Verdana", "Georgia", "Tahoma", "Comic Sans MS",
+               "Arimo", "Tinos", "Cousine", "Gelasio", "Comic Relief", "Archivo Black", "Archivo Narrow",
+               "sans-serif", "serif", "monospace", "initial", "OpenBookNoSuchFont"];
+// Keywords, not family names. "initial" is the browser's standard font, what unstyled text gets.
+const GENERIC = ["sans-serif", "serif", "monospace", "initial"];
+
+function measure(name, weight, text) {
+  const s = document.createElement("span");
+  s.className = "probe";
+  s.style.fontFamily = '"' + name + '"';
+  if (GENERIC.includes(name)) s.style.fontFamily = name;
+  s.style.fontWeight = weight;
+  s.textContent = text;
+  document.body.appendChild(s);
+  const w = s.getBoundingClientRect().width;
+  s.remove();
+  return w;
+}
+
+const results = [];
+const table = document.getElementById("rows");
+for (const name of NAMES) {
+  const r = { name, w400: TEXTS.map(t => measure(name, 400, t)), w700: TEXTS.map(t => measure(name, 700, t)) };
+  results.push(r);
+  const tr = table.insertRow();
+  tr.insertCell().textContent = name;
+  tr.cells[0].className = "name";
+  const sample = tr.insertCell();
+  sample.className = "sample";
+  sample.style.fontFamily = GENERIC.includes(name) ? name : '"' + name + '"';
+  sample.textContent = TEXTS[0];
+  for (const k of ["w400", "w700"]) {
+    const c = tr.insertCell(); c.className = "w"; c.textContent = r[k][0].toFixed(3);
+  }
+}
+const report = { texts: TEXTS, size_px: 100, devicePixelRatio: window.devicePixelRatio,
+                 userAgent: navigator.userAgent, results };
+document.getElementById("status").textContent = "posting results…";
+fetch("/report", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(report) })
+  .then(r => { document.getElementById("status").textContent = "reported (" + r.status + ")"; document.title = "DONE"; })
+  .catch(e => { document.getElementById("status").textContent = "report failed: " + e; });
+</script>
+</body>
+</html>

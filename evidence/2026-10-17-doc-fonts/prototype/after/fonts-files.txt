@@ -1,0 +1,44 @@
+-rw-r--r-- 1 root root 22661 2026-10-18 02:18 /product/etc/fonts_customization.xml
+
+/product/fonts:
+total 18880
+-rw-r--r-- 1 root root   90988 2026-10-18 02:14 ArchivoBlack-Regular.ttf
+-rw-r--r-- 1 root root   98456 2026-10-18 02:14 ArchivoNarrow-Italic-VF.ttf
+-rw-r--r-- 1 root root   93304 2026-10-18 02:14 ArchivoNarrow-VF.ttf
+-rw-r--r-- 1 root root  543196 2026-10-18 02:14 Arimo-Italic-VF.ttf
+-rw-r--r-- 1 root root  496268 2026-10-18 02:14 Arimo-VF.ttf
+-rw-r--r-- 1 root root   94684 2026-10-18 02:14 ComicRelief-Bold.ttf
+-rw-r--r-- 1 root root   80324 2026-10-18 02:14 ComicRelief-Regular.ttf
+-rw-r--r-- 1 root root  298048 2026-10-18 02:14 Cousine-Bold.ttf
+-rw-r--r-- 1 root root  308292 2026-10-18 02:14 Cousine-BoldItalic.ttf
+-rw-r--r-- 1 root root  306880 2026-10-18 02:14 Cousine-Italic.ttf
+-rw-r--r-- 1 root root  296856 2026-10-18 02:14 Cousine-Regular.ttf
+-rw-r--r-- 1 root root  174212 2026-10-18 02:14 Gelasio-Italic-VF.ttf
+-rw-r--r-- 1 root root  168556 2026-10-18 02:14 Gelasio-VF.ttf
+-rw-r--r-- 1 root root 5079424 2026-10-18 02:13 GoogleSans-Italic-VF.ttf
+-rw-r--r-- 1 root root 4974940 2026-10-18 02:13 GoogleSans-VF.ttf
+-rw-r--r-- 1 root root 3910784 2026-10-18 02:13 GoogleSansFlex-VF.ttf
+-rw-r--r-- 1 root root  597880 2026-10-18 02:14 Tinos-Bold.ttf
+-rw-r--r-- 1 root root  578976 2026-10-18 02:14 Tinos-BoldItalic.ttf
+-rw-r--r-- 1 root root  565016 2026-10-18 02:14 Tinos-Italic.ttf
+-rw-r--r-- 1 root root  521588 2026-10-18 02:14 Tinos-Regular.ttf
+dd9a89a019b4849f66ab75455fe7bdf931311042cbb0f0f97acc061539703180  ArchivoBlack-Regular.ttf
+147c09214be086bf1c70311ffb66f4f5a252e48f828f1d49e35ae56951016cc6  ArchivoNarrow-Italic-VF.ttf
+adbe027f625c8393ae0f6e174e32e233dda485bc3eda5153ce428275394ef97f  ArchivoNarrow-VF.ttf
+a80fc54fd0233c1dfe298577c4d00f5ae81d5bb83510975e473c47e699b7f4ed  Arimo-Italic-VF.ttf
+e43898b143ec826ac8cb4034816458a7047fbe0836558de2a1f8c6223ae3e0ca  Arimo-VF.ttf
+33aee007212b696afd57d50c901135cd723cd188f7ad98f3a1c572ea64e8f0d5  ComicRelief-Bold.ttf
+9ef4958ab06385d91f635f83a15569786b243f9d010cfb3f9a5cdda593c7bc22  ComicRelief-Regular.ttf
+17c8a7245156d2253531c9e529474937b09d9f641c5ae7695c5e33f22822eef4  Cousine-Bold.ttf
+848e858726fee0ae27b754e4cd6a2755209bf1428a8c91f747696d58c33906c3  Cousine-BoldItalic.ttf
+ea2a76ae3d0ece9cd59f0d30fdc08dd70e8f5f457beee5b0852a7b50c2286c7c  Cousine-Italic.ttf
+1da22250675fc4c42fcf3a9736c44bc0570516105331443b663fd5cfbd1412fe  Cousine-Regular.ttf
+52559e845a4d33514e5f93bb9ae7dbeae1894a53f2c565a15f18af40cd337c09  Gelasio-Italic-VF.ttf
+4daecea457258c9ebeb8bc99ed3fd24353618bfad3ea4b93fa0b5d0468fc04e4  Gelasio-VF.ttf
+b6662abd2131cad1b248750149a7f2b644f871ebcc9af7fe4cd1135cd290b6d1  GoogleSans-Italic-VF.ttf
+d0a87d835a944b8b40d0e82a5651bb59ab97b936a2aeed5946eb57e7b2a3a90a  GoogleSans-VF.ttf
+a9ac770798857d5e8ac593ced42b22e40a7c08cec98319f92b0eccc2783a77ba  GoogleSansFlex-VF.ttf
+393269dbab8899f938db19783eca5eac92eb431f7ae0ab45b8349ca895f1a06b  Tinos-Bold.ttf
+a5de79f0fe863ea0954757acb3d47b3ccd0a930ce3dd5b97230cd3866790a06e  Tinos-BoldItalic.ttf
+5942266ed398b155d7dc23e36833e7ec6be988f2439bdbeb8ef1bede808eaa91  Tinos-Italic.ttf
+60a0e8ef0c04dd5dd69ffe91025fa2ae5836cbd35600a82ba031977557e2cb61  Tinos-Regular.ttf

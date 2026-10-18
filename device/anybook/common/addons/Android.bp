@@ -1,0 +1,37 @@
+// Copyright (C) 2026 The OpenBook Authors
+// SPDX-License-Identifier: Apache-2.0
+
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+// openbook-addons: installs the optional app add-ons the boot disk carries (ANAL-210, addons.c, docs/gapps.md
+// section 6). Plain C with libc only, on the install engine's GPT, FAT, JSON and SHA-256 code, so the same sources
+// are tested on the host (scripts/microg/addons-test.sh).
+cc_binary {
+    name: "openbook-addons",
+    system_ext_specific: true,
+    srcs: [
+        "addons.c",
+        ":openbook-install-engine-lib",
+    ],
+    include_dirs: ["device/anybook/common/installer/engine"],
+    cflags: [
+        "-Wall",
+        "-Werror",
+        "-Wno-unused-parameter",
+        "-Wno-sign-compare",
+        "-Wno-missing-field-initializers",
+    ],
+    init_rc: ["openbook-addons.rc"],
+    required: ["openbook-addon-microg.json"],
+}
+
+// The catalogue: what each add-on may install, pinned by sha256 (scripts/microg/fetch.sh checks the same pins).
+prebuilt_etc {
+    name: "openbook-addon-microg.json",
+    system_ext_specific: true,
+    src: "microg.json",
+    filename: "microg.json",
+    sub_dir: "openbook/addons",
+}
