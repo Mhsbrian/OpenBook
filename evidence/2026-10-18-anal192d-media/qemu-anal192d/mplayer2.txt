@@ -1,0 +1,19 @@
+enforcing=Enforcing uptime=241.57
+Bad value: true
+lowbatt_at=244.64
+notif_at=254.68
+10-18 12:58:55.561  2634  2664 D RingtonePlayer: play uri=file:///product/media/audio/ui/OpenBook_LowBattery.ogg
+10-18 12:58:56.075  2634  4034 D RingtonePlayer: player.start piid:151
+10-18 12:58:57.564  2634  4034 D RingtonePlayer: onCompletion() abandoning AudioFocus
+10-18 12:58:57.565  2634  4034 D RingtonePlayer: onCompletion queue size=0
+10-18 12:59:05.587  2634  2664 D RingtonePlayer: play uri=content://settings/system/notification_sound
+10-18 12:59:06.097  2634  4052 D RingtonePlayer: player.start piid:159
+10-18 12:59:08.023  2634  4052 D RingtonePlayer: onCompletion() abandoning AudioFocus
+10-18 12:59:08.024  2634  4052 D RingtonePlayer: onCompletion queue size=0
+plays=2
+control_block_failures=0
+player_errors=0
+mediaserver_denials=0
+10-18 12:58:55.560   761   761 I notification_alert: [-1|com.android.systemui|3|low_battery|10086,0,1,0,1,0]
+10-18 12:59:05.586   761   761 I notification_alert: [0|com.android.shell|2020|mp2|2000,0,1,0,1,0]
+10-18 12:59:05.789   761   761 I notification_alert: [0|com.android.shell|0|0|com.android.shell|g:Aggregate_AlertingSection|2000|0|com.android.shell|g:Aggregate_AlertingSection,0,0,0,1,1024]
