@@ -1,0 +1,6 @@
+      showDesktopFirstTaskbar=true
+    	isTaskbarPresent:true
+    	isTaskbarPresentInApps:true
+    				isTaskbarPresent:true
+    				isTaskbarPresentInApps:false
+    	isTaskbarPresent=true
