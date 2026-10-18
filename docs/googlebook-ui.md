@@ -218,6 +218,12 @@ Bold matches the same way. Both products build, B1's 40 families still load and 
 
 Only the G14 run can say.
 
+**On the G14, the owner's `anal192d` session** (C, 2026-10-18; `evidence/2026-10-18-blur-g14/`; the graphics check wasn't booted):
+- SurfaceFlinger started with `Threaded RenderEngine with SkiaGL Backend (Ganesh)` and `Background Blurs Enabled (Kawase dual-filtering V2 algorithm)`.
+- In an hour of normal use the shade was opened 9 times, and SystemUI drew its blur each time, at radius 51 px (34 dp-equivalent at 240 dpi). This is the full-screen case, since `config_supportBlurredWallpaper` is still on.
+- No amdgpu fault or reset, no SurfaceFlinger, SystemUI or Launcher restart, no ≥ 30-frame skip or ≥ 700 ms frame.
+- So `blur_applied` and `no_gpu_hang` pass from the logs. **`frame_cost` is still unmeasured;** it needs the graphics check boot.
+
 **G14 check** (pass/fail; `scripts/ui/blur-report.py`). The graphics check's new `blur` part runs it unattended (`graphics-amd.md`), with blur on, off, on and off:
 
 | Verdict | Pass when |

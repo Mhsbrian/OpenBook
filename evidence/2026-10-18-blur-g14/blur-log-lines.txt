@@ -1,0 +1,23 @@
+# anal192d default boot (11:00:41-11:59:40Z, persisted logcat): SurfaceFlinger start, RenderEngine and blur
+10-18 11:00:48.960966  1000  1011  1011 I SurfaceFlinger: SurfaceFlinger is starting
+10-18 11:00:48.962739  1000  1011  1011 D SurfaceFlinger: Threaded RenderEngine with SkiaGL Backend (Ganesh)
+10-18 11:00:49.985421  1000  1011  1082 D SurfaceFlinger: Background Blurs Enabled (Kawase dual-filtering V2 algorithm)
+('Disabling blur effects, they are not supported.' lines: 0)
+
+# SystemUI (pid 3492) BlurUtils: the radius it last applied, in px
+10-18 11:59:04.511013 10086  3492  3492 W BlurUtils: resetEarlyWakeup invoked when lastAppliedBlur 51 is non-zero, this means that the early wakeup signal was reset while blur was still active
+
+# SystemUI BlurChoreographer warnings ('Multiple blur values emitted in the same frame'): blur animating, per minute
+     10 11:01
+     17 11:02
+      9 11:15
+     31 11:16
+     19 11:17
+     19 11:27
+     20 11:37
+      9 11:59
+
+# Launcher3 (pid 3803) BaseDepthController: 376 'Applying blur' lines, radii:  376 Applying blur: 0;
+
+# save-logs boot (live-001 logcat-final)
+10-18 12:00:27.898  1521  1521 W BlurUtils: resetEarlyWakeup invoked when lastAppliedBlur 1 is non-zero, this means that the early wakeup signal was reset while blur was still active

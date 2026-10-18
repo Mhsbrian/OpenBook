@@ -1,0 +1,19 @@
+# GPU faults: amdgpu ring time-out / reset / page fault / wedged / VRAM lost lines
+default boot (kernel log in the persisted logcat): 0
+save-logs boot (live-001/dmesg.txt): 0
+ARM apps check boot (live-002/dmesg.txt): 0
+
+# Restarts in the default boot: SurfaceFlinger starts, SystemUI and Launcher3 process starts
+SurfaceFlinger main-thread starts: 1
+10-18 11:01:03.110458  1000  1220  1319 I ActivityManager: Start proc 3492:com.android.systemui/u0a86 for bound-service 
+10-18 11:01:03.684376  1000  1220  1319 I ActivityManager: Start proc 3803:com.android.launcher3/u0a82 for bound-service
+
+# SystemUI frame hitches (Choreographer 'Skipped' >= 30 frames, HWUI 'Davey' >= 700 ms)
+skipped: 0, davey: 0
+
+# Crashes (am_crash) and dropbox tags
+10-18 11:05:07.132327  1000  1220  3569 I am_crash: [5315,0,com.android.wallpaper,550223429,java.lang.NullPointerException,Parameter specified as non-null is null: method com.android.wallpaper.picker.
+      1 system_app_crash
+     73 system_app_strictmode
+      2 SYSTEM_BOOT
+     57 system_server_strictmode
