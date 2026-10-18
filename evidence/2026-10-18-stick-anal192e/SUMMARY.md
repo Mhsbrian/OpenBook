@@ -9,7 +9,8 @@ Built on the owner's request on ANAL-192 (12:30Z). It replaces `anal192d`. Recip
   - #85 (ANAL-211): the bring-your-own-GApps installer step.
 - **Not in it:**
   - #97 (ANAL-198: the `mediaserver` memfd rule for MediaPlayer under enforcing, and `amdgpu_firmware_info` in "save logs"). It merged after this build started;
-  - the PRs still open at hand-off: #100, #101, #104.
+  - #100 (B8 first-run setup) and #101 (the Wallpaper & style crash), also merged after the build started;
+  - #104, still open at hand-off.
 - **Add-ons** (`image/addons.log`): the power check, the ARM apps check, and the graphics check `openbook-gfxcheck-anal192e` (`image/openbook-gfxcheck-anal192e-addon.json`).
 - **sha256** `90631d0f5537cd36d7f52462cd8c8684ad3688072d9605e97ec4ac89a253f9c9` (`image/`), and `before-addons.sha256`.
 

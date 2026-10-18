@@ -1186,7 +1186,7 @@ Built on the owner's request ("a new build that fixes 120 Hz … update the USB 
   - #85 (ANAL-211): the installer's bring-your-own-GApps step (advanced, off unless chosen).
 - **Not in it** (merged or opened after the build started):
   - #97 (ANAL-198): the `mediaserver` memfd rule that lets MediaPlayer play under enforcing, and "save logs" collecting `amdgpu_firmware_info`. So Settings' sound previews may stay silent in the default (enforcing) boot, as on `anal192d`.
-  - Still open: #100 (B8 first-run setup), #101 (Wallpaper & style's preview crash), #104 (the installer's power check).
+  - Also merged after the build started: #100 (B8, OpenBook's first-run setup, which replaces Provision) and #101 (Wallpaper & style's preview crash). Still open: #104 (the installer's power check). The stick after this one carries them.
 - **Add-ons:** the power check, the ARM apps check, and the graphics check `openbook-gfxcheck-anal192e`, built from this product.
 - **sha256** `90631d0f5537cd36d7f52462cd8c8684ad3688072d9605e97ec4ac89a253f9c9`, and `8df3e31c…` before the add-ons.
 - **The owner's `anal192d` session** was copied read-only before this stick (`~/anybook/installer/g14/stick-20261018T123221Z/`): the default boot in `live-001/prior/`, "save logs" in `live-001`, the ARM apps check in `live-002`. It was routed to ANAL-176/178/179/191/198/200/202–208/212 and the coordinator; most have delivered (#91–#104).
