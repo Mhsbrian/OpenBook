@@ -64,4 +64,13 @@
     <!-- No default dim: WallpaperService would otherwise dim a wallpaper that supports neither dark text nor a dark
          theme by 5 %. -->
     <item name="config_wallpaperDimAmount" format="float" type="dimen">0</item>
+
+    <!-- Refresh rate, as Googlebook's FrameworkDesktopOverlay sets it (ANAL-212; docs/graphics-amd.md, "Refresh
+         rate"). AOSP's config_defaultRefreshRate of 60 makes DisplayModeDirector cap the render rate at 60 at its
+         lowest priority: the G14's panel scanned out at 120 Hz while SurfaceFlinger drew at 60 (primary render range
+         [0, 60]), and the 75 Hz QEMU display drew at 37.5. 0 drops that cap. A peak of 1000 means no ceiling, so
+         every panel gets its own top rate. SurfaceFlinger still lowers the render rate for idle or slow content;
+         battery saver still caps it at 60. -->
+    <integer name="config_defaultRefreshRate">0</integer>
+    <integer name="config_defaultPeakRefreshRate">1000</integer>
 </resources>

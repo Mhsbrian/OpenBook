@@ -202,6 +202,7 @@ CF_GPU=amd CF_GPU_MODE=gfxstream_guest_angle CF_DEVICE=anybook_vsoc_x86_64 scrip
 ```bash
 scripts/installer-image.sh --menu-timeout 10      # live image from out/target/product/anybook_g14 -> ~/anybook/installer/out/
 scripts/installer/live-qemu.sh ~/anybook/installer/out/<label>.img <run>   # QEMU/OVMF: grow, persist, reset, logs, decoy NVMe
+scripts/graphics/refresh-qemu.sh ~/anybook/installer/out/<label>.img <run>  # refresh rate: render cap, render rate while scrolling (ANAL-212)
 ```
 Writing a stick: `scripts/installer/write-stick.sh` with `OPENBOOK_WRITE_CONFIRM=/dev/disk/by-id/usb-…` (owner confirmation). Details: `docs/installer.md` §11.
 

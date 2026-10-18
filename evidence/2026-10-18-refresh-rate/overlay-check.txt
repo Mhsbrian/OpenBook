@@ -1,0 +1,19 @@
+$ aapt2 compile --dir device/anybook/common/desktop/overlays/framework/res; aapt2 link -I <anybook_g14 out>/system/framework/framework-res.apk --manifest device/anybook/common/desktop/overlays/framework/AndroidManifest.xml (AOSP host tools of this tree, 2026-10-18)
+link: ok
+
+$ aapt2 dump resources overlay.apk | grep -i refresh
+    resource 0x7f050000 integer/config_defaultPeakRefreshRate
+    resource 0x7f050001 integer/config_defaultRefreshRate
+
+$ idmap2 create --policy public --policy product (overlayable checks on); idmap2 dump | grep -i refresh
+    target path  : ~/anybook/aosp/src/out/target/product/anybook_g14/system/framework/framework-res.apk
+Constraints:
+    0x010e0077 -> 0x7f050000 (integer/config_defaultPeakRefreshRate -> integer/config_defaultPeakRefreshRate)
+    0x010e007a -> 0x7f050001 (integer/config_defaultRefreshRate -> integer/config_defaultRefreshRate)
+
+$ framework-res defaults (aapt2 dump resources framework-res.apk)
+    resource 0x010e0077 integer/config_defaultPeakRefreshRate
+      () 0
+--
+    resource 0x010e007a integer/config_defaultRefreshRate
+      () 60
