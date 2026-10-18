@@ -22,3 +22,13 @@ cc_binary {
     ],
     init_rc: ["openbook-installd.rc"],
 }
+
+// The engine's GPT, FAT, JSON and SHA-256 code, for openbook-addons (device/anybook/common/addons).
+filegroup {
+    name: "openbook-install-engine-lib",
+    srcs: [
+        "engine/fat.c",
+        "engine/gpt.c",
+        "engine/util.c",
+    ],
+}

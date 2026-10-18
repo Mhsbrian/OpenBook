@@ -1,0 +1,7 @@
+# Apps whose official builds use Google Play services (FCM push, Play location), for scripts/microg/gms-apps.sh (ANAL-210).
+# The apps' own release APKs from their GitHub releases, pinned by sha256 (GitHub's asset digest); downloaded locally, never committed.
+# package	name	url	sha256
+io.homeassistant.companion.android	Home Assistant 2026.8.4 (full)	https://github.com/home-assistant/android/releases/download/2026.8.4/app-full-release.apk	ed1ded69472f2fa87c20c975b3e5f628889ec304dc9eb6aa5c52ecb6bd4c4687
+com.x8bit.bitwarden	Bitwarden 2026.10.0 (standard)	https://github.com/bitwarden/android/releases/download/v2026.10.0-bwpm/com.x8bit.bitwarden.apk	39f94a32d3facfc56c81a4feec751c4cd64bd6a6045d83103915e8ab2495d3a8
+com.nextcloud.client	Nextcloud 35.0.1 (gplay)	https://github.com/nextcloud/android/releases/download/stable-35.0.1/gplay-release-350000190.apk	8e0b3dd87dce05299ca1143acceb044e94c36698d139d1f8e88f4e96187f4950
+im.molly.app	Molly 8.19.2-4 (FCM build)	https://github.com/mollyim/mollyim-android/releases/download/v8.19.2-4/Molly-v8.19.2-4.apk	f1c6fd929f9047809a7a9bb4e663d1ec1ec4d9f33d9794799c8e2f8e1663ec11
