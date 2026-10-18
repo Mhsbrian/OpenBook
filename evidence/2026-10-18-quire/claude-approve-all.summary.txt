@@ -1,0 +1,6 @@
+exit: 0
+hello.txt: Hello from Quire
+permission requests: [("Run printf 'Hello from Quire\\n' > hello.txt && cat hello.txt", {'outcome': 'selected', 'optionId': 'allow'})]
+tool: Run printf 'Hello from Quire\n' > hello.txt && cat hello.txt -> pending,in_progress,completed
+reply: I created `hello.txt` in the current folder containing the line "Hello from Quire".
+result: {'ms': 5990, 'stopReason': 'end_turn'}

@@ -1,0 +1,12 @@
+AGENT        NAME                VERSION                                                                                    PROTOCOL          STATE
+claude       Claude Code         2.1.301 (Claude Code)                                                                      claude-stream     ready
+opencode     opencode            opencode v2.0.31                                                                           acp               ready
+copilot      GitHub Copilot CLI  GitHub Copilot CLI 1.0.98.                                                                 acp               ready
+cursor       Cursor Agent        2026.10.14-941492e                                                                         acp               ready
+kimi         Kimi Code           2.2.0                                                                                      acp               ready
+hermes       Hermes Agent        Hermes Agent v0.20.5 (2026.8.19) · upstream 0eb4f62a · local 987064ca (+1 carried commit)  acp               ready
+omp          Oh My Pi            omp/18.11.2                                                                                acp               ready
+grok         Grok CLI            grok 1.0.62 (1474f9cbdd91) [alpha]                                                         grok-headless     not yet: no ACP server; headless --output-format streaming-json emits ACP session updates (adapter planned)
+codex        Codex CLI           codex-cli 0.163.0                                                                          codex-app-server  not yet: speaks its own JSON-RPC (codex app-server); adapter planned
+antigravity  Antigravity CLI     1.4.0                                                                                      agy-stream        not yet: print mode with stream-json; adapter planned
+pi           Pi                  1.3.0                                                                                      none              not yet: no ACP or machine-readable stream found in --help
