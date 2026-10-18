@@ -392,7 +392,13 @@ AOSP 17 keeps the hooks (contextual-search shake gesture, the Ambient Cue UI, Sm
 
 - **With B2, B4 and B5.** After merging them, both products build again. In Cuttlefish that image shows Google Sans together with the circular icons and the taskbar without the search bar, with the same health results (`merged/`).
 
-**Not checked yet:** the G14 (the check is on ANAL-192's stick checklist), and non-Latin text.
+**On the G14** (C, the owner's `anal192d` session, 2026-10-18; `evidence/2026-10-18-g14-anal192d-typography/`):
+- **Logs.** No font warning or error, and no font-related SELinux denial under enforcing.
+- **Crashes.** The crash buffer holds one crash, the wallpaper preview's (`com.android.wallpaper`), which is not font-related.
+- **On screen.** The laptop's own screenshot shows the window caption and the status bar in Google Sans at 240 dpi, unclipped.
+- **The installer.** Its own text stays in Roboto, by its design.
+
+**Not checked yet:** the G14 photos of Settings, Quick Settings, notifications and all apps (clipped text), and non-Latin text.
 
 ## 4. Beautification backlog (alpha → beta)
 

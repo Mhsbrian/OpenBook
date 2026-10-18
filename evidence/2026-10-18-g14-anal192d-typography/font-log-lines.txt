@@ -1,0 +1,21 @@
+# Font lines from the G14 session anal192d (host copy stick-20261018T123221Z). Boot A: the default "OpenBook" boot, enforcing,
+# 11:00-11:59Z (live-001/prior, persisted logcat). Boot B: "save logs" (live-001), Boot C: "ARM apps check" (live-002), both permissive.
+
+## Boot A: SystemFonts / FontManagerService / font errors
+10-18 11:00:51.559050  root   980   980 I Typeface: Preloading /system/fonts/Roboto-Regular.ttf
+10-18 11:00:51.560464  root   980   980 I Typeface: Preloading /system/fonts/RobotoStatic-Regular.ttf
+10-18 11:00:51.560565  root   980   980 I SystemFonts: Loading font config from /system/etc/fonts.xml
+10-18 11:00:59.804227  1000  1220  1220 I FontManagerService: Using optimized boot-time font loading.
+10-18 11:00:59.804693  1000  1220  3392 I SystemFonts: Loading font config from /system/etc/font_fallback.xml
+warning/error lines from SystemFonts, FontManagerService, FontListParser, FontCustomizationParser: 0
+SELinux denials naming a font path or service: 0
+
+## Boot B (live-001/logcat-final.txt)
+warning/error lines from the font classes: 0
+SELinux denials naming font (permissive boot; uid 0 in the kernel domain = the log collector listing services):
+10-18 12:01:28.999   776   776 I auditd  : avc:  denied  { find } for pid=3718 uid=0 name=font scontext=u:r:kernel:s0 tcontext=u:object_r:font_service:s0 tclass=service_manager permissive=1
+
+## Boot C (live-002/logcat-final.txt)
+warning/error lines from the font classes: 0
+SELinux denials naming font (permissive boot; uid 0 in the kernel domain = the log collector listing services):
+10-18 12:14:11.542   770   770 I auditd  : avc:  denied  { find } for pid=4985 uid=0 name=font scontext=u:r:kernel:s0 tcontext=u:object_r:font_service:s0 tclass=service_manager permissive=1
