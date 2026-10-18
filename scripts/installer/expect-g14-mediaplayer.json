@@ -1,0 +1,84 @@
+[
+ {
+  "wait": "init: init first stage started",
+  "timeout": 120
+ },
+ {
+  "wait": "init: init second stage started",
+  "timeout": 120
+ },
+ {
+  "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+  "timeout": 300
+ },
+ {
+  "send": "\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 120
+ },
+ {
+  "send": "su 0 dmesg -n 1\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "i=0; while [ \"$(getprop sys.boot_completed)\" != 1 ] && [ $i -lt 900 ]; do sleep 3; i=$((i+3)); done; echo BOOTDONE=$(getprop sys.boot_completed) uptime=$(cut -d' ' -f1 /proc/uptime)\n"
+ },
+ {
+  "wait": "BOOTDONE=\\S* uptime=[0-9.]+",
+  "timeout": 960
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "sleep 150\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 210
+ },
+ {
+  "send": "mp() { t0=$(date +'%m-%d %H:%M:%S.000'); echo enforcing=$(getenforce) uptime=$(cut -d' ' -f1 /proc/uptime); cmd battery unplug; cmd battery set present 1; cmd battery set status 3; cmd battery set level 50; sleep 3; echo lowbatt_at=$(cut -d' ' -f1 /proc/uptime); cmd battery set level 4; sleep 10; echo notif_at=$(cut -d' ' -f1 /proc/uptime); cmd notification post -t OpenBook mp$1 'MediaPlayer check' >/dev/null; sleep 8; su 0 logcat -d -b main -T \"$t0\" | grep -E 'RingtonePlayer: (play uri|player.start|error|onCompletion)|MediaPlayer(Native)?: (E|e)rror|AudioTrack: createTrack|AudioSink|openAudioSink|NuPlayer: received error' | tail -n 40; echo plays=$(su 0 logcat -d -b main -T \"$t0\" | grep -c 'RingtonePlayer: player.start'); echo control_block_failures=$(su 0 logcat -d -b main -T \"$t0\" | grep -c 'Could not get control block'); echo player_errors=$(su 0 logcat -d -b main -T \"$t0\" | grep -c 'MediaPlayerNative: error'); echo mediaserver_denials=$(su 0 logcat -d -b all -T \"$t0\" | grep -cE 'auditd +: type=1400 .*avc:  denied .*scontext=u:r:mediaserver:'); su 0 logcat -d -b all -T \"$t0\" | grep -E 'auditd +: type=1400 .*avc:  denied' | sed -E 's/.*avc:  denied  (\\{[^}]*\\}).*scontext=u:r:([^:]*):[^ ]* tcontext=u:(object_)?r:([^:]*):[^ ]* tclass=([^ ]*) permissive=([01]).*/denied \\1 \\2 \\4 \\5 permissive=\\6/' | sort | uniq -c; su 0 logcat -d -b events -T \"$t0\" | grep notification_alert; cmd battery reset; }\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "echo ===MPLAYER-BEGIN===; echo build=$(getprop ro.build.fingerprint); echo power_sounds=$(settings get global power_sounds_enabled) low_battery_sound=$(settings get global low_battery_sound) notification_sound=$(settings get system notification_sound); mp 1; echo ===MPLAYER-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 180
+ },
+ {
+  "send": "echo ===AVC-BEGIN===; su 0 dmesg | grep 'avc:  denied' | sed -E 's/^\\[[ 0-9.]*\\] //; s/.*avc:  denied  (\\{[^}]*\\}).*scontext=u:r:([^:]*):[^ ]* tcontext=u:object_r:([^:]*):[^ ]* tclass=([^ ]*).*/\\1 \\2 \\3 \\4/' | sort | uniq -c | sort -rn; echo ===AVC-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "echo ===LOGCAT-BEGIN===; su 0 logcat -d -b all | gzip | base64; echo ===LOGCAT-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 300
+ },
+ {
+  "send": "echo ===DMESG-BEGIN===; su 0 dmesg | gzip | base64; echo ===DMESG-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 120
+ },
+ {
+  "send": "su 0 sync; su 0 reboot -p\n"
+ }
+]
