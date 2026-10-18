@@ -1,0 +1,8 @@
+# MediaPlayer plays in mediaserver (NuPlayer), whose AudioTrack maps the control block AudioFlinger allocates for it,
+# a MemoryHeapBase memfd. AOSP grants that as audioserver:memfd_file (private/mediaserver.te), which needs the
+# memfd_class policy capability; AOSP 17 does not turn it on, so on the android17-6.18 kernel the memfd is a tmpfs file
+# labelled audioserver_tmpfs, and the binder transfer of its fd to mediaserver was denied: "AudioTrack: createTrack_l(0):
+# Could not get control block", MediaPlayer error (1, -19), no sound. On the G14 under enforcing (anal192d, 2026-10-18
+# 11:51Z) SystemUI's low-battery sound failed that way after its Vorbis decode had started; ringtones, notification
+# sounds, Settings' ringtone previews and apps that use MediaPlayer take the same path (ANAL-198).
+allow mediaserver audioserver_tmpfs:file { getattr map read write };
