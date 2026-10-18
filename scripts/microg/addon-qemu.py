@@ -76,7 +76,7 @@ def wizard_disk(addon):
         s += W.tap("Google services compatibility (microG)", 3)
         s += section("WIZARD-SWITCH", "ui; cat /data/local/tmp/ui.xml; echo", 60)
         s += W.tap("View the plan", 8)
-        s += W.wait_ui("Check the add-on", 90)
+        s += W.wait_ui("2. Check the add-on", 90)  # the dialog numbers the operations; check_addon is the second
         s += W.shot("wizard-plan-addon")
     s += [{"send": "input keyevent 111\n"}, {"wait": PROMPT, "timeout": 30}, {"pause": 2}]
     return s
