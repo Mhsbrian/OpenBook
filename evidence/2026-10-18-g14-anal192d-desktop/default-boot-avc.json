@@ -1,0 +1,136 @@
+{
+ "schema": "openbook-avc-summary/1",
+ "dir": "d192avc",
+ "dmesg": {},
+ "logcat": {
+  "android": 229
+ },
+ "dmesg_lines": 0,
+ "tuples": 9,
+ "tuples_without_flags_health_check": 9,
+ "denials": [
+  {
+   "scontext": "isolated_app",
+   "tcontext": "app_data_file",
+   "tclass": "file",
+   "perms": [
+    "setattr"
+   ],
+   "paths": [
+    "model-info.pb",
+    "model.tflite",
+    "vocab_en-us.txt"
+   ],
+   "in": [
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "isolated_app",
+   "tcontext": "content_capture_service",
+   "tclass": "service_manager",
+   "perms": [
+    "find"
+   ],
+   "paths": [],
+   "in": [
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "keystore",
+   "tcontext": "hal_gatekeeper_service",
+   "tclass": "service_manager",
+   "perms": [
+    "find"
+   ],
+   "paths": [],
+   "in": [
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "mediaserver",
+   "tcontext": "audioserver_tmpfs",
+   "tclass": "file",
+   "perms": [
+    "read",
+    "write"
+   ],
+   "paths": [],
+   "in": [
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "openbook_installd",
+   "tcontext": "openbook_vendor_fw_file",
+   "tclass": "dir",
+   "perms": [
+    "search"
+   ],
+   "paths": [
+    "firmware"
+   ],
+   "in": [
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "openbook_installd",
+   "tcontext": "sysfs_batteryinfo",
+   "tclass": "file",
+   "perms": [
+    "read"
+   ],
+   "paths": [
+    "type"
+   ],
+   "in": [
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "platform_app",
+   "tcontext": "bluetooth_finder_prop",
+   "tclass": "file",
+   "perms": [
+    "read"
+   ],
+   "paths": [
+    "u:object_r:bluetooth_finder_prop:s0"
+   ],
+   "in": [
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "platform_app",
+   "tcontext": "bluetooth_lea_prop",
+   "tclass": "file",
+   "perms": [
+    "read"
+   ],
+   "paths": [
+    "u:object_r:bluetooth_lea_prop:s0"
+   ],
+   "in": [
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "system_server",
+   "tcontext": "wifi_hal_prop",
+   "tclass": "file",
+   "perms": [
+    "read"
+   ],
+   "paths": [
+    "u:object_r:wifi_hal_prop:s0"
+   ],
+   "in": [
+    "logcat"
+   ]
+  }
+ ]
+}
