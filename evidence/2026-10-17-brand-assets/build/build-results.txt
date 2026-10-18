@@ -1,0 +1,23 @@
+# ANAL-207 builds, one hold of the AOSP lane lock (scripts/aosp-docker.sh + scripts/aosp-build.sh, -j32), lane-20261018T042255Z.log
+=== 2026-10-18T06:37:16Z lane acquired; HEAD ea262d8
+=== 2026-10-18T06:37:16Z build anybook_cf_x86_64_pc
+=== 2026-10-18T06:37:16Z target anybook_cf_x86_64_pc-cp2a-userdebug goals droid -j32 on 32 CPUs
+=== 2026-10-18T06:37:16Z synced device/anybook from /repo (AnyBook ea262d8-dirty)
+=== 2026-10-18T06:37:19Z vendor/anybook/mesa: upstream mesa-26.2.5 ddaf85e353442d9d7f192fdcf1823e652e3f2ee3 (26.2.5)
+=== 2026-10-18T06:37:19Z m -j32 droid
+=== 2026-10-18T07:06:27Z m exit 0
+=== 2026-10-18T07:06:47Z snapshot CF images -> /home/hive/anybook/aosp/cf/b6-snap
+=== 2026-10-18T07:06:47Z build anybook_g14_x86_64
+=== 2026-10-18T07:06:47Z target anybook_g14_x86_64-cp2a-userdebug goals productimage -j32 on 32 CPUs
+=== 2026-10-18T07:06:47Z synced device/anybook from /repo (AnyBook ea262d8-dirty)
+=== 2026-10-18T07:06:50Z vendor/anybook/mesa: upstream mesa-26.2.5 ddaf85e353442d9d7f192fdcf1823e652e3f2ee3 (26.2.5)
+=== 2026-10-18T07:06:50Z m -j32 productimage
+=== 2026-10-18T07:13:21Z m exit 0
+=== 2026-10-18T07:13:42Z done
+## time-build-20261018T063716Z.txt
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 29:07.96
+	Maximum resident set size (kbytes): 45313788
+## time-build-20261018T070647Z.txt
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 6:30.61
+	Maximum resident set size (kbytes): 44462032
+# The repo was -dirty only for uncommitted docs/ and evidence/; device/anybook was committed at ea262d8.

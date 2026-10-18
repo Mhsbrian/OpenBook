@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 1: client-side fluid-resize pipeline (batched config changes, caption insets); Googlebook ships it
+flag_value {
+  package: "com.android.window.flags"
+  name: "improve_fluid_resizing_performance"
+  state: ENABLED
+  permission: READ_ONLY
+}

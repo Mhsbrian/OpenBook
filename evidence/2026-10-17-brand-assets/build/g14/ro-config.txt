@@ -1,0 +1,9 @@
+# Removed by post_process_props.py because overridden by ro.config.ringtone=OpenBook_Pages.ogg
+#ro.config.ringtone?=Ring_Synth_04.ogg
+# Removed by post_process_props.py because overridden by ro.config.notification_sound=OpenBook_Spark.ogg
+#ro.config.notification_sound?=pixiedust.ogg
+ro.config.ringtone=OpenBook_Pages.ogg
+ro.config.notification_sound=OpenBook_Spark.ogg
+ro.config.alarm_alert=OpenBook_FirstLight.ogg
+ro.config.notification_sound=OnTheHunt.ogg
+ro.config.alarm_alert=Alarm_Classic.ogg

@@ -1,0 +1,121 @@
+{
+ "schema": "openbook-engine-addon-test/1",
+ "passed": 19,
+ "total": 19,
+ "checks": [
+  {
+   "case": "inventory",
+   "check": "add-to-image.sh puts the add-on on a copy of the live image",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "inventory",
+   "check": "plain stick: microg catalogued, not on the stick",
+   "ok": true,
+   "detail": "{'ok': True, 'addons': [{'name': 'microg', 'title': 'Google services compatibility (microG)', 'version': '0.3.17.252432', 'bytes': 112345874, 'on_stick': False, 'why': 'the stick does not carry the add-on (openbook/addons/microg/)'}]}"
+  },
+  {
+   "case": "inventory",
+   "check": "add-on stick: on the stick, with its title, version and size",
+   "ok": true,
+   "detail": "{'name': 'microg', 'title': 'Google services compatibility (microG)', 'version': '0.3.17.252432', 'bytes': 112345874, 'on_stick': True, 'why': None}"
+  },
+  {
+   "case": "same-plan",
+   "check": "plan without add-ons succeeds",
+   "ok": true,
+   "detail": "None"
+  },
+  {
+   "case": "same-plan",
+   "check": "no add-on key, operation or file in it",
+   "ok": true,
+   "detail": "{'target': 'nvme-QEMU_NVMe_Ctrl_internal0', 'layout': 'whole', 'locale': 'en-US', 'keyboard': 'us', 'set_default': True}"
+  },
+  {
+   "case": "same-plan",
+   "check": "main's engine accepts it (its own re-computation has the same sha256)",
+   "ok": true,
+   "detail": "None"
+  },
+  {
+   "case": "old-apply",
+   "check": "main's engine installs and verifies it",
+   "ok": true,
+   "detail": "None"
+  },
+  {
+   "case": "plan-addon",
+   "check": "plan with --addon microg succeeds",
+   "ok": true,
+   "detail": "None"
+  },
+  {
+   "case": "plan-addon",
+   "check": "the request names the add-on",
+   "ok": true,
+   "detail": "{'target': 'nvme-QEMU_NVMe_Ctrl_internal0', 'layout': 'whole', 'locale': 'en-US', 'keyboard': 'us', 'set_default': True, 'addons': ['microg']}"
+  },
+  {
+   "case": "plan-addon",
+   "check": "a check_addon operation right after check_source",
+   "ok": true,
+   "detail": "['check_source', 'check_addon', 'recheck', 'wipe_table']"
+  },
+  {
+   "case": "plan-addon",
+   "check": "the three APKs, with the image's sha256 and size, from the same path on the stick",
+   "ok": true,
+   "detail": "{'openbook/addons/microg/com.google.android.gms-252432034.apk': {'path': 'openbook/addons/microg/com.google.android.gms-252432034.apk', 'on': 'EFI', 'source': 'openbook/addons/microg/com.google.android.gms-252432034.apk', 'bytes': 108113833, 'sha256': 'e5e6cba078bdec812b5450599350e5c1a12c8b7438da5bf"
+  },
+  {
+   "case": "apply-addon",
+   "check": "the install verifies",
+   "ok": true,
+   "detail": "None"
+  },
+  {
+   "case": "apply-addon",
+   "check": "the new EFI partition holds the three APKs with the pinned sha256 (mtools read-back)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "apply-addon",
+   "check": "the new EFI partition passes fsck.fat",
+   "ok": true,
+   "detail": "fsck.fat 4.2 (2021-01-31)\n/home/hive/anybook/installer/work/g1-engine-addon-1/t2-esp.img: 24 files, 34852/130812 clusters\n"
+  },
+  {
+   "case": "apply-addon",
+   "check": "every other file is as in the plan",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "refuse-not-on-stick",
+   "check": "--addon on a stick without it: refused, no_addon",
+   "ok": true,
+   "detail": "{'ok': False, 'code': 'no_addon', 'error': 'the stick does not carry the add-on (openbook/addons/microg/)'}"
+  },
+  {
+   "case": "refuse-no-catalogue",
+   "check": "--addon on an image without the catalogue: refused, no_addon",
+   "ok": true,
+   "detail": "{'ok': False, 'code': 'no_addon', 'error': 'this image has no valid catalogue for the add-on \"microg\" (/home/hive/anybook/installer/work/g1-engine-addon-1/roots/no-catalogue/system_ext/etc/openbook/addons/microg.json)'}"
+  },
+  {
+   "case": "refuse-corrupt",
+   "check": "a corrupted add-on APK: apply refuses at check_source",
+   "ok": true,
+   "detail": "{'failed_step': 'check_source', 'error': \"the stick's openbook/addons/microg/com.google.android.gms-252432034.apk does not match its manifest\"}"
+  },
+  {
+   "case": "refuse-corrupt",
+   "check": "the target is unchanged",
+   "ok": true,
+   "detail": ""
+  }
+ ]
+}

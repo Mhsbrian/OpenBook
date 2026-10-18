@@ -28,7 +28,7 @@ Google apps and how to install them are covered in [`gapps.md`](gapps.md). Evide
     - the 30 Material 3 Expressive `variable-*` families.
   - Googlebook defines all 40 families on top of Google Sans and Google Sans Flex.
   - **Both fonts are SIL OFL 1.1 in `github.com/google/fonts`.**
-  - In a VM, our prototype puts them on the OpenBook desktop without rebuilding the image (§3).
+  - Both OpenBook desktop products ship them since ANAL-202 (§3.1). The G14 check is still to run.
 - **Other gaps we can close:**
   - **Background blur.** Googlebook enables it. The G14 product does now too (ANAL-203, §2.3); the laptop check is still to run.
   - **Window shadows, cursor fixes and other polish.** These sit behind flags AOSP 17 already declares.
@@ -88,11 +88,64 @@ Signers are listed in `inventory/googlebook-ruby-signers.txt`, and the GMS APEX 
 | Google Sans (variable: opsz 17–18, wght 400–700, GRAD) | v10.001, "not open source" | **OFL 1.1**, v14.000, `ofl/googlesans`, added 2026-09-11. Same axes |
 | Google Sans Flex (opsz, wdth, wght, ROND, slnt; Googlebook's copy also has GRAD) | v4.001, **OFL 1.1** | **OFL 1.1**, v5.000, `ofl/googlesansflex` (2026-10-09). No GRAD axis |
 | Google Sans Clock, Google Sans Flex Clock | proprietary | none. We substitute Google Sans Flex |
-| 42 extra system fonts: metric-compatible document fonts (Arimo, Tinos, Cousine, Tachyonic, Velarium, Geotic, Tisane, Gaumond, Trophis, Codecs, Comedic Sans, Whendings, Archivo, Gelasio, Comic Relief …) | OFL 1.1 (`github.com/googlefonts/*`) | Same projects. They render web pages and Office documents with correct metrics |
+| 42 extra system fonts: metric-compatible document fonts (Arimo, Tinos, Cousine, Tachyonic, Velarium, Geotic, Tisane, Gaumond, Trophis, Codecs, Comedic Sans, Whendings, Archivo, Gelasio, Comic Relief …) | OFL 1.1 (`name` tables) | **Only 17 of the 42 files are public** (7 families, all in google/fonts). The other 25 name `github.com/googlefonts/<name>` projects that were not public on 2026-10-17 (§2.1.1) |
 
-The OFL lets us ship both families unmodified with `OFL.txt`. Google's `TRADEMARKS.md` forbids using "Google" or "Google Sans" in our product name, and implying affiliation. Our use of `google-sans` as an internal font-family identifier refers to the original font. **The owner should confirm that reading** (see Owner decisions).
+The OFL lets us ship both families unmodified with `OFL.txt`. Google's `TRADEMARKS.md` forbids using "Google" or "Google Sans" in our product name, and implying affiliation. Our use of `google-sans` as an internal font-family identifier refers to the original font. The owner approved that reading on 2026-10-17 (see Owner decisions).
 
-**Result:** the prototype in §3.
+**Result:** the prototype in §3, then the product (§3.1, ANAL-202).
+
+#### 2.1.1 Document fonts (B7, ANAL-208)
+
+Web pages and Office documents name Windows fonts. Without a font of the same widths, lines break in different places and layouts shift. AOSP 17 maps `arial`, `verdana` and `tahoma` to Roboto, `times new roman` and `georgia` to Noto Serif, and `courier new` to Cutive Mono, none of which share their widths.
+
+**What is public (C, 2026-10-17).** Each of Googlebook's 42 document fonts names its upstream in its copyright string:
+- **Public, in google/fonts** (7 families, 17 files): Arimo, Tinos, Cousine, Gelasio, Comic Relief, Archivo Black, Archivo Narrow. Their versions are the ones Googlebook ships.
+- **Not public** (13 families, 25 files): Tachyonic, Velarium, Geotic, Tisane, Gaumond, Trophis, Codecs, Comedic Sans, Whendings 1–4, Arvos (and Black, Narrow). Their `github.com/googlefonts/<name>` repositories return 404, google/fonts doesn't have them, and a web search found no release. We don't copy them from Google's image.
+- So **Verdana and Tahoma have no stand-in yet**. Googlebook maps them to Velarium and Tachyonic.
+
+**Aliases, from upstream metadata only.** Each family's google/fonts description, which matches the font's own `name` table:
+
+| Family | Windows name it takes | Upstream says |
+|---|---|---|
+| `arimo` | `arial` | "metrically compatible with Arial" |
+| `tinos` | `times new roman` | "metrically compatible with Times New Roman" |
+| `cousine` | `courier new` | "metrically compatible with Courier New" |
+| `gelasio` | `georgia` | "metrics compatible with Georgia" in all four styles |
+| `comic-relief` | `comic sans ms` | "metrically equivalent to … Comic Sans MS" |
+| `archivo-black`, `archivo-narrow` | none | no metric claim. Googlebook maps `arial-black` and `arial-narrow` to them; we don't |
+
+The three multi-word families also answer to their own names (`comic relief`, `archivo black`, `archivo narrow`), because WebView knows a font only by the names `fonts.xml` gives it.
+
+**Independent check (C).** Arial was drawn to Helvetica's widths, Times New Roman to Times Roman's and Courier New to Courier's. Adobe's freely distributable Core 14 AFMs give those widths. On all 95 printable ASCII characters, Arimo, Tinos and Cousine match Helvetica, Times-Roman and Courier, regular and bold, within 0.24/1000 em, which is AFM rounding. Roboto matches 0 of 95 (`evidence/2026-10-17-doc-fonts/offline-metrics.md`). Georgia and Comic Sans MS have no public metrics, so for Gelasio and Comic Relief we have only their upstreams' word.
+
+**Where the names have to go (C):**
+- **The framework** reads `/system/etc/font_fallback.xml` plus `/product/etc/fonts_customization.xml`. AOSP 17's `FontCustomizationParser` accepts `<alias>`. `FontListParser` puts the customization's aliases ahead of the system's, and `Typeface.initSystemDefaultTypefaces` keeps the first alias of a name, so `arial → arimo` beats AOSP's `arial → sans-serif`. No framework patch is needed.
+- **WebView and Chrome never read the customization file.** Chromium 145 (`skia/ext/font_utils.cc`) uses Skia's `SkFontMgr_New_Android`, which parses only `/system/etc/fonts.xml`, with font paths relative to `$ANDROID_ROOT/fonts/`. The NDK path (`UseAndroidNDKFontAPI`) is off by default, and it wouldn't map aliases anyway. The framework itself reads `font_fallback.xml`; only the zygote still reads `fonts.xml`, to preload locale fonts.
+- **So OpenBook does both.** The fonts and the families go in `/product` (`device/anybook/common/desktop/fonts/documents/`, and B1's generated `fonts_customization.xml`). A small patch to the legacy `fonts.xml` (`aosp/patches/frameworks/base/0001-*`) declares the same families as `../../product/fonts/<file>`, moves the four aliases AOSP already has (`arial`, `times new roman`, `courier new`, `georgia`) and adds the others. Skia keeps the first family a name maps to, so the old aliases are removed, not overridden. `scripts/ui/fonts-customization.py --legacy-fonts-xml` writes the patched file and `scripts/ui/fonts-legacy-patch.sh` the patch.
+- **The alternative, named families only** (no aliases), would make `font-family: Arimo` work but not `Arial`, which is what pages use, so it doesn't meet the goal.
+
+**Measured in Cuttlefish** (C, the `anybook_cf_x86_64_pc` product build, `evidence/2026-10-17-doc-fonts/product-cf/`; a pushed-files prototype on `main` gave the same numbers). `scripts/ui/doc-fonts-check.sh` opens `scripts/ui/doc-fonts-test.html` in the shipped WebView 145 shell. The page measures two strings in each family at 100 px, with kerning and ligatures off, and `scripts/ui/doc-fonts-metrics.py` matches each width to the font whose advance widths give it:
+
+| CSS `font-family` | Before (AOSP fonts) | After | After − expected |
+|---|---|---|---|
+| Arial | Roboto | **Arimo** | +0.008 px of 2562.7 px |
+| Times New Roman | Noto Serif | **Tinos** | 0.000 px |
+| Courier New | Cutive Mono | **Cousine** | +0.004 px |
+| Georgia | Noto Serif | **Gelasio** | +0.012 px |
+| Comic Sans MS | Roboto | **Comic Relief** | +0.012 px |
+| Verdana, Tahoma | Roboto | Roboto (no stand-in) | — |
+| `initial` (unstyled text), `sans-serif`, `serif` | Roboto, Roboto, Noto Serif | unchanged | — |
+
+Bold matches the same way. Both products build, B1's 40 families still load and measure as Google Sans, and the crash buffer and SELinux denials are empty. Through the framework (`Typeface.create` and `Paint`, `scripts/ui/doc-fonts-typeface.sh`) each Windows name lands within 1 px of its stand-in on both strings; Paint returns whole pixels.
+
+**Side effect.** A page that names only fonts the device lacks, with no generic family, now gets Arimo instead of Roboto. Blink's last resort (`FontCache::GetLastResortFallbackFont`) tries `""`, then `Sans`, then `Arial`. Text with no font set, or ending in `sans-serif`, is unchanged.
+
+**Size:** 5,313,524 bytes of fonts in `/product/fonts`, plus 4,466 bytes in `fonts_customization.xml` and 5,309 bytes in `fonts.xml`. In the images: `product.img` +3,948,544 bytes (the partition is compressed) and `system.img` +4,096, measured on the Cuttlefish product against B1's own build (`evidence/2026-10-17-doc-fonts/build/image-sizes.md`).
+
+**Open:**
+- Verdana and Tahoma wait for Google to publish Velarium and Tachyonic (and the other 11). Any other stand-in would need the owner's approval.
+- Helvetica, Times and Courier still map to Roboto, Noto Serif and Cutive Mono. Blink treats Arial↔Helvetica, Times↔Times New Roman and Courier↔Courier New as interchangeable (`alternate_font_family.h`), and the AFM check above shows the widths agree. Moving those three aliases is a small follow-up, but it goes beyond what the upstreams claim, so it needs an owner decision.
+- Calibri and Cambria, Office's defaults since 2007, have open metric-compatible fonts (Carlito, Caladea). Googlebook doesn't ship them; they would be a separate item.
 
 ### 2.2 Google's SystemUI, Launcher and newer framework code (C)
 
@@ -108,6 +161,7 @@ The OFL lets us ship both families unmodified with `OFL.txt`. Google's `TRADEMAR
   - Launcher3: `enable_taskbar_icon_desktop_clicks` (click to minimize), `expandable_long_press_menu`, `fallback_reveal_animation`; `com.android.systemui.shared.enable_recents_in_taskbar`.
   - SystemUI: `enable_qs_tile_tooltips`, `hun_timer_pause_on_hover`, `notification_animated_action_style_2026`, `default_hun_expansion`.
 - **Risk (HYPOTHESIS).** Some of these flags may guard code that is incomplete in the June 2026 AOSP snapshot. Turn them on in small groups, with the desktop capture and the G14 checks.
+- **Done in ANAL-204 (B3), see [`googlebook-flags.md`](googlebook-flags.md):** all 218 triaged and 85 enabled. Five of the visible flags above do nothing in AOSP 17: `perfect_edge`, `enable_taskbar_icon_desktop_clicks`, `enable_desktop_taskbar_in_fullscreen_mode`, `notification_animated_action_style_2026` and `appheader_launch_color_bugfix` have no reader in our tree. `enable_no_resize_cursor` is read, but nothing acts on its result. Two flags broke the desktop and stay off.
 
 ### 2.3 Blur and surface effects (C)
 
@@ -241,6 +295,28 @@ Corner radii already match. Googlebook ships its own wallpaper set (`DesktopWall
 - **Boot animation:** Googlebook ships `system/media/bootanimation.zip`; we have none.
 - **Setup:** Googlebook runs Google's setup wizard (`setupwizard.theme=glif_expressive`); we run AOSP Provision.
 
+**Done in ANAL-207 (B6): OpenBook's own wallpapers, boot animation, sounds and pointer** (`assets/README.md`; evidence `evidence/2026-10-17-brand-assets/`). Everything is drawn or synthesised by `scripts/brand/` from the brand palette and mark, CC-BY-4.0. No Google art, sample or font was copied or traced; Googlebook's own assets were not opened.
+- **Wallpapers:** four designs, each light and dark, at 2880×1800 and 1920×1080: Folio (pages fanning out of the spine), Bloom, Strata and Tide.
+  - The default, Folio light, is `default_wallpaper` in `AnyBookDesktopFrameworkOverlay`. AOSP has `nodpi`, `sw600dp` and `sw720dp` variants and the more specific one wins, so we override all three. The G14's 1200 dp wide screen uses `sw720dp`.
+  - The set of eight is an "OpenBook" collection in Wallpaper & style. WallpaperPicker2 reads `res/xml/wallpapers.xml` from the partner customization package (ANAL-206's `AnyBookDesktopPartnerCustomization`; only one such package may exist).
+  - Dynamic colour: `scripts/brand/monet.py` ports `WallpaperColors.fromBitmap` and `ColorScheme.getSeedColors` and predicts each wallpaper's seed and TonalSpot palette (`assets/wallpapers/monet.json`). The device's values are in the evidence.
+- **Boot animation:** `/product/media/bootanimation.zip`, 480×480 at 30 fps on the brand's dark surface `#121318`. The pages unfold and the spark lights (`part0`, always played), the spark breathes until boot completes (`part1`), then the mark fades (`part2`).
+- **Sounds:** one synthesised glass-mallet voice and one motif. Ringtone "Open Pages", notification "Spark", alarm "First Light", and the lock, unlock, trusted, low-battery and charging sounds.
+  - `ro.config.*` sets the defaults; `OpenBookSoundsSettingsProviderOverlay` sets the UI sound paths. AOSP's sounds stay selectable.
+  - Click and keypress sounds stay off (ANAL-206).
+- **Pointer:** 20 of AOSP 17's vector pointer shapes are redrawn on AOSP's grid and hotspots. Not replaced: the wait spinner, touch spots and the handwriting pointer.
+  - **How the colours work.** The accessibility fill (6 colours), stroke (white, black, none) and size settings still apply.
+  - **Why the overlay replaces the nine colour styles.** Android applies the user's choice as the styles `PointerIconVectorStyleFill*` / `Stroke*`, which set private framework attributes. aapt2 lets no other package's XML refer to those attributes. It does accept them as style item names (`*android:pointerIconVectorFill`). So `OpenBookPointerOverlay` also replaces the nine styles: each keeps AOSP's items and adds the same colour under the overlay's own `openbookPointerFill` / `openbookPointerStroke`, which our vectors use.
+  - **A first attempt that failed (C).** We compiled the overlay as resource package `android`, so that it could name the private attributes directly. The overlay was enabled, but Android ignored its values, and the framework kept loading AOSP's path data. aapt2 forces that package to ID 0x01, and Android treats 0x01 IDs in a dynamically loaded overlay as the framework's own (`DynamicRefTable`). Evidence: `pretest/`.
+- **Measured in Cuttlefish** (the B6 build, `anybook-cf-b6`, 2026-10-18; 8/8 scripted checks, C):
+  - **Boot animation:** it plays from `/product/media/bootanimation.zip` during boot (12 s, 28 frames captured), and on replay all three parts show.
+  - **Default wallpaper:** a fresh `/data` shows Folio light, in both themes.
+  - **Picker:** Wallpaper & style lists the OpenBook collection with all eight.
+  - **Dynamic colour:** each wallpaper gives its own seed. The primary colour matches `monet.py` within 3 RGB units for 7 of 8 (Bloom light: 7).
+  - **Pointer:** the framework's own loader draws our 20 shapes in all 6 fills and 3 strokes. A virtual mouse shows our arrow on screen; `skipScreenshot` is false in this build, so screencap includes it.
+  - **Sounds:** the ringtone, notification and alarm settings point to Open Pages, Spark and First Light. MediaProvider indexed all 8.
+- **Not covered:** the G14 (ANAL-192's stick), and listening to the sounds by ear.
+
 ### 2.6 Desktop clutter (C for OpenBook, R for Googlebook)
 
 - **OpenBook before ANAL-206 (C):** the default desktop showed AOSP's legacy `QuickSearchBox` widget, a dark "Google" bar across the bottom (`fonts-prototype/before-settings.png`). It is Launcher3's hotseat search box, and Google's AOSP Desktop emulator image shows the same bar. The taskbar held Launcher3's tablet defaults: Calendar, Gallery, WebView Shell, Camera.
@@ -288,9 +364,35 @@ AOSP 17 keeps the hooks (contextual-search shake gesture, the Ambient Cue UI, Sm
 
 **Limits:**
 - Prototype only: test-key RRO, a userdebug VM, files pushed at runtime.
-- The product build, the G14 and a font-rendering performance check are still to do.
+- ANAL-202 did the product build and the performance check (§3.1). The G14 is still to do.
 - Upstream Google Sans Flex has no GRAD axis, so our `variable-*` families leave it out.
 - The clock families map to Google Sans Flex.
+
+### 3.1 In the product (ANAL-202)
+
+**What ships** (C; `device/anybook/common/desktop/fonts/`, installed by `desktop.mk`, so both `anybook_cf_x86_64_pc` and `anybook_g14_x86_64` get it):
+- **The fonts.** The three files from google/fonts `47d54ca1`, byte for byte, as `prebuilt_font` modules in `/product/fonts`. Their sha256 are in the directory's `README.md`.
+  - They are named `GoogleSans-VF.ttf`, `GoogleSans-Italic-VF.ttf` and `GoogleSansFlex-VF.ttf`, because Soong reads the `[` in upstream's names (`GoogleSans[GRAD,opsz,wght].ttf`) as a glob.
+  - `OFL.txt` and `TRADEMARKS.md` sit next to them.
+- **Licence metadata.** Each family has its own `license` module (`SPDX-license-identifier-OFL-1.1`), pointing to its own `OFL.txt`, since the two copyright lines differ. Both texts reach `/product/etc/NOTICE.xml.gz`.
+- **The font config.** `/product/etc/fonts_customization.xml` is the committed output of `scripts/ui/fonts-customization.py` (40 families).
+  - The build runs the generator with `--check` on the committed file (a `python_binary_host` and a `genrule`), and installs it only if the two match. If someone edits one without the other, the build fails.
+- **Framework values.** `AnyBookDesktopFrameworkOverlay` sets the four `config_*FontFamily` values Googlebook uses (table in [`aosp-desktop.md`](aosp-desktop.md)).
+
+**Measured in Cuttlefish** (C; `evidence/2026-10-17-typography/`; base `c861cf4` against the fonts build, both products built; Radeon 610M, `gfxstream_guest_angle`):
+- **Fonts loaded.** The device's font manager lists all 40 families, and the four overlay values resolve to `google-sans`, `google-sans-medium`, `google-sans-text` and `google-sans-text-medium`.
+- **What changes on screen.** Settings, window captions, Quick Settings, notifications, all apps and Files render in Google Sans.
+  - Settings' rows grow by about a quarter (roughly 75 → 94 px at 160 dpi), because Google Sans has taller line metrics than Roboto.
+- **Desktop unchanged.** `scripts/desktop-capture.sh` still shows freeform windows with captions and the taskbar.
+- **No crashes or new denials.** The crash buffer was empty in every run, and the same three SELinux denial kinds (all Cuttlefish's own) appear with and without the fonts.
+- **Size.** `product.img` grows by 9.24 MiB in both products. The files are 13.98 MB; EROFS compresses them. No other image changes.
+- **Settings scroll** (`scripts/cf-gfx-bench.sh`, three alternating base/fonts pairs on a busy host):
+  - janky frames 1.35 % with the fonts against 4.32 % without; median p90 15 ms against 20 ms. The fonts build was better in every pair.
+  - **HYPOTHESIS:** the taller rows mean each swipe binds fewer new rows. So this shows no regression, not a faster font.
+
+- **With B2, B4 and B5.** After merging them, both products build again. In Cuttlefish that image shows Google Sans together with the circular icons and the taskbar without the search bar, with the same health results (`merged/`).
+
+**Not checked yet:** the G14 (the check is on ANAL-192's stick checklist), and non-Latin text.
 
 ## 4. Beautification backlog (alpha → beta)
 
@@ -298,13 +400,13 @@ The owner approved every item on 2026-10-17. Each one is a sub-issue of ANAL-201
 
 | # | Issue | Item | Size | Needs |
 |---|---|---|---|---|
-| B1 | ANAL-202 | **Fonts in the product.** `PRODUCT_COPY_FILES` for the three OFL fonts and `OFL.txt`, the generated `fonts_customization.xml`, and the four values in `AnyBookDesktopFrameworkOverlay`. Then the desktop capture in Cuttlefish and the G14 checklist | small | — (approved) |
+| B1 | ANAL-202 | **Fonts in the product:** the three OFL fonts with `OFL.txt` (prebuilt modules with licence metadata), the generated `fonts_customization.xml`, and the four values in `AnyBookDesktopFrameworkOverlay`. Then the desktop capture in Cuttlefish and the G14 checklist. **Done in both products (ANAL-202); measured in Cuttlefish (§3.1); the G14 check is on ANAL-192's stick** | small | — (approved) |
 | B2 | ANAL-203 | **Blur on the G14.** `ro.surface_flinger.supports_background_blur=1`; check frame times on the 890M. **Done in the product (ANAL-203); measured in Cuttlefish; the G14 check is on ANAL-192's stick** (§2.3) | small | — |
 | B3 | ANAL-204 | **Flag set v2.** Evaluate the 128 UI flags AOSP 17 declares, in groups. Start with box shadows, blur on more surfaces, resizing (`perfect_edge`, no-resize cursor, fluid resizing) and taskbar clicks. `scripts/desktop-flags.py` already writes the value set | medium | — |
 | B4 | ANAL-205 | **Shape and wallpaper values:** circular icon mask, round icons, wallpaper dim 0, wallpaper colour thresholds. **Done in Cuttlefish (§2.4); the G14 check is on ANAL-192's stick** | small | — |
 | B5 | ANAL-206 | **A clean default desktop:** remove the QuickSearchBox widget and the app, set taskbar pins (Files, Settings, browser), quiet sounds. **Done in Cuttlefish and on the G14 product in QEMU (§2.6); the G14 check is on ANAL-192's stick** | small | Pins proposed in the PR; the owner reviews |
-| B6 | ANAL-207 | **Brand assets:** wallpapers (our own or CC0/CC-BY, not bulk Unsplash), a sound set with click sounds off by default, a boot animation, a pointer theme. Based on the brand mark in `assets/brand/` | medium | Owner reviews the visuals in the PR |
-| B7 | ANAL-208 | **Document fonts:** the 42 OFL metric-compatible fonts, for web and Office fidelity | small | — |
+| B6 | ANAL-207 | **Brand assets:** wallpapers (our own or CC0/CC-BY, not bulk Unsplash), a sound set with click sounds off by default, a boot animation, a pointer theme. Based on the brand mark in `assets/brand/`. **Done in Cuttlefish (§2.5); the G14 check is on ANAL-192's stick** | medium | Owner reviews the visuals in the PR (contact sheet) |
+| B7 | ANAL-208 | **Document fonts:** the metric-compatible fonts, for web and Office fidelity. Done for the 7 public families (17 of the 42 files; §2.1.1): Arial, Times New Roman, Courier New, Georgia and Comic Sans MS render in them, in WebView and the framework (Cuttlefish). G14 check on the next stick | small | The other 13 families wait for Google to publish them |
 | B8 | ANAL-209 | **Setup:** a first-run flow in our style, after the installer | medium | Coordinate with ANAL-191 (installer) |
 
 ## Owner decisions (2026-10-17)

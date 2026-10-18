@@ -1,0 +1,379 @@
+{
+ "schema": "openbook-addon-qemu/1",
+ "passed": 56,
+ "total": 62,
+ "checks": [
+  {
+   "case": "addon-logs",
+   "check": "every expect step matched",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "addon-logs",
+   "check": "the helper's capture has the ADDONS section",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "addon-logs",
+   "check": "... with openbook-addons' state and microG's three packages",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "addon-logs",
+   "check": "... and microG as the network provider, coordinates redacted",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "plain",
+   "check": "every expect step matched",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "plain",
+   "check": "SELinux enforcing",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "plain",
+   "check": "no denial for an OpenBook domain",
+   "ok": false,
+   "detail": "['10-18 01:39:01.252  3150  3150 I auditd  : type=1400 audit(0.0:6): avc:  denied  { write } for  comm=\"openbook-addons\" path=\"/dev/kmsg_debug\" dev=\"tmpfs\" ino=6 scontext=u:r:openbook_addons:s0 tcontext=u:object_r:kmsg_debug_device:s0 tclass=chr_file permissive=0', '10-18 01:39:01.252  3150  3150 W openbook-addons: type=1400 audit(0.0:6): avc:  denied  { write } for  path=\"/dev/kmsg_debug\" dev=\"tm"
+  },
+  {
+   "case": "plain",
+   "check": "openbook-addons ran and found no add-on",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "plain",
+   "check": "the wizard's disk screen has no add-on switch",
+   "ok": false,
+   "detail": "<node text=\"\" checkable=\"true\" checked=\"true\" drawing-order=\"3\" hint=\"\"\n<node text=\"\" checkable=\"true\" checked=\"false\" drawing-order=\"0\" hint=\"\"\n<node text=\"\" checkable=\"true\" checked=\"true\" drawing-order=\"1\" hint=\"\""
+  },
+  {
+   "case": "plain",
+   "check": "no microG package",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "main",
+   "check": "every expect step matched",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "main",
+   "check": "SELinux enforcing",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "main",
+   "check": "no denial for an OpenBook domain",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "addon",
+   "check": "every expect step matched",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "addon",
+   "check": "SELinux enforcing",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "addon",
+   "check": "no denial for an OpenBook domain",
+   "ok": false,
+   "detail": "['10-18 01:41:11.512  3214  3214 I auditd  : type=1400 audit(0.0:6): avc:  denied  { write } for  comm=\"openbook-addons\" path=\"/dev/kmsg_debug\" dev=\"tmpfs\" ino=6 scontext=u:r:openbook_addons:s0 tcontext=u:object_r:kmsg_debug_device:s0 tclass=chr_file permissive=0', '10-18 01:41:11.512  3214  3214 W openbook-addons: type=1400 audit(0.0:6): avc:  denied  { write } for  path=\"/dev/kmsg_debug\" dev=\"tm"
+  },
+  {
+   "case": "addon",
+   "check": "openbook-addons installed the add-on",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "addon",
+   "check": "the three packages at the pinned versions",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "addon",
+   "check": "installed in /data as normal apps",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "addon",
+   "check": "GmsCore holds ACCESS_FINE_LOCATION",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "addon",
+   "check": "GmsCore holds ACCESS_BACKGROUND_LOCATION",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "addon",
+   "check": "GmsCore holds POST_NOTIFICATIONS",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "addon",
+   "check": "GmsCore holds RECEIVE_SMS",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "addon",
+   "check": "GmsCore holds INTERACT_ACROSS_USERS",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "addon",
+   "check": "SYSTEM_ALERT_WINDOW allowed",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "addon",
+   "check": "battery-optimisation exemption",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "addon",
+   "check": "microG Services has a launcher entry",
+   "ok": true,
+   "detail": "com.google.android.gms/org.microg.gms.ui.SettingsActivity"
+  },
+  {
+   "case": "addon",
+   "check": "microG self-check: all green (17/17)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "addon",
+   "check": "init started openbook_addons after boot_completed",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "addon-2",
+   "check": "every expect step matched",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "addon-2",
+   "check": "SELinux enforcing",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "addon-2",
+   "check": "no denial for an OpenBook domain",
+   "ok": false,
+   "detail": "['10-18 01:42:38.700  1440  1440 I auditd  : type=1400 audit(0.0:4): avc:  denied  { write } for  comm=\"openbook-addons\" path=\"/dev/kmsg_debug\" dev=\"tmpfs\" ino=6 scontext=u:r:openbook_addons:s0 tcontext=u:object_r:kmsg_debug_device:s0 tclass=chr_file permissive=0', '10-18 01:42:38.700  1440  1440 W openbook-addons: type=1400 audit(0.0:4): avc:  denied  { write } for  path=\"/dev/kmsg_debug\" dev=\"tm"
+  },
+  {
+   "case": "addon-2",
+   "check": "second boot: nothing reinstalled (already installed)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "addon-2",
+   "check": "microG is the network location provider (installed in /data)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "addon-2",
+   "check": "microG is the fused location provider",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "install",
+   "check": "every expect step matched",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "install",
+   "check": "SELinux enforcing",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "install",
+   "check": "no denial for an OpenBook domain",
+   "ok": false,
+   "detail": "['10-18 01:56:13.016  1499  1499 I auditd  : type=1400 audit(0.0:6): avc:  denied  { write } for  comm=\"openbook-addons\" path=\"/dev/kmsg_debug\" dev=\"tmpfs\" ino=6 scontext=u:r:openbook_addons:s0 tcontext=u:object_r:kmsg_debug_device:s0 tclass=chr_file permissive=0', '10-18 01:56:13.016  1499  1499 W openbook-addons: type=1400 audit(0.0:6): avc:  denied  { write } for  path=\"/dev/kmsg_debug\" dev=\"tm"
+  },
+  {
+   "case": "install",
+   "check": "the wizard's disk screen shows the microG switch, off",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "install",
+   "check": "tapping it turns it on",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "install",
+   "check": "\"View the plan\" then lists the add-on check",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "install",
+   "check": "the stick carries the add-on (openbook-install addons)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "install",
+   "check": "the plan names the add-on and checks it",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "install",
+   "check": "install ok and verified",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "installed",
+   "check": "every expect step matched",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "installed",
+   "check": "SELinux enforcing",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "installed",
+   "check": "no denial for an OpenBook domain",
+   "ok": false,
+   "detail": "['10-18 02:00:06.016  3081  3081 I auditd  : type=1400 audit(0.0:6): avc:  denied  { write } for  comm=\"openbook-addons\" path=\"/dev/kmsg_debug\" dev=\"tmpfs\" ino=6 scontext=u:r:openbook_addons:s0 tcontext=u:object_r:kmsg_debug_device:s0 tclass=chr_file permissive=0', '10-18 02:00:06.016  3081  3081 W openbook-addons: type=1400 audit(0.0:6): avc:  denied  { write } for  path=\"/dev/kmsg_debug\" dev=\"tm"
+  },
+  {
+   "case": "installed",
+   "check": "openbook-addons installed the add-on",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "installed",
+   "check": "the three packages at the pinned versions",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "installed",
+   "check": "installed in /data as normal apps",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "installed",
+   "check": "GmsCore holds ACCESS_FINE_LOCATION",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "installed",
+   "check": "GmsCore holds ACCESS_BACKGROUND_LOCATION",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "installed",
+   "check": "GmsCore holds POST_NOTIFICATIONS",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "installed",
+   "check": "GmsCore holds RECEIVE_SMS",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "installed",
+   "check": "GmsCore holds INTERACT_ACROSS_USERS",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "installed",
+   "check": "SYSTEM_ALERT_WINDOW allowed",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "installed",
+   "check": "battery-optimisation exemption",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "installed",
+   "check": "microG Services has a launcher entry",
+   "ok": true,
+   "detail": "com.google.android.gms/org.microg.gms.ui.SettingsActivity"
+  },
+  {
+   "case": "installed",
+   "check": "microG self-check: all green (18/18)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "installed",
+   "check": "init started openbook_addons after boot_completed",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "plain",
+   "check": "the same packages as the image from main",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "addon",
+   "check": "exactly microG's three packages more than without the add-on",
+   "ok": true,
+   "detail": ""
+  }
+ ]
+}

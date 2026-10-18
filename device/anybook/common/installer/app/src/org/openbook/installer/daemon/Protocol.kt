@@ -21,6 +21,9 @@ data class BootDisk(val name: String, val byId: String, val model: String, val s
 
 data class Source(val label: String, val fingerprint: String, val ok: Boolean, val why: String?)
 
+/** An app add-on this image catalogues (ANAL-210), and whether the stick carries it (`on_stick`). */
+data class Addon(val name: String, val title: String, val version: String, val bytes: Long, val onStick: Boolean, val why: String?)
+
 data class JobStatus(
     val running: Boolean,
     val pct: Double,
@@ -39,6 +42,7 @@ data class Hello(
     val power: Power,
     val logsOnStick: Boolean,
     val job: JobStatus?,
+    val addons: List<Addon> = emptyList(),
 )
 
 data class Machine(
@@ -219,6 +223,11 @@ object Parse {
                 ?: Power(ac = false, batteryPct = null, ok = true, known = false),
             logsOnStick = o.bool("logs_on_stick"),
             job = o.optJSONObject("job")?.let(::job),
+            addons = o.optJSONArray("addons")?.let { a ->
+                (0 until a.length()).mapNotNull { a.optJSONObject(it) }.map {
+                    Addon(it.text("name"), it.text("title"), it.text("version"), it.long("bytes"), it.bool("on_stick"), it.str("why"))
+                }
+            } ?: emptyList(),
         )
     }
 

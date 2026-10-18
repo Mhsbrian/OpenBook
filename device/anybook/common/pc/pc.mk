@@ -27,6 +27,9 @@ $(call inherit-product, device/anybook/common/desktop/desktop.mk)
 # The installer: the "Install OpenBook" wizard and the install engine, live sessions only (ANAL-191).
 $(call inherit-product, device/anybook/common/installer/installer.mk)
 
+# Optional app add-ons from the boot disk, such as microG; without one on the disk nothing changes (ANAL-210).
+$(call inherit-product, device/anybook/common/addons/addons.mk)
+
 PRODUCT_SHIPPING_API_LEVEL := 37
 PRODUCT_USE_DYNAMIC_PARTITIONS := true
 PRODUCT_SET_DEBUGFS_RESTRICTIONS := true

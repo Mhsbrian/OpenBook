@@ -1,0 +1,14 @@
+=== 2026-10-17T23:39:17Z waiting for lane; HEAD be86eec
+=== 2026-10-18T01:31:48Z lane acquired
+=== 2026-10-18T01:31:49Z target anybook_g14_x86_64-cp2a-userdebug goals droid -j32 on 32 CPUs
+=== 2026-10-18T01:31:49Z synced device/anybook from /repo (AnyBook 06000d8)
+=== 2026-10-18T01:31:51Z vendor/anybook/mesa: upstream mesa-26.2.5 ddaf85e353442d9d7f192fdcf1823e652e3f2ee3 (26.2.5)
+=== 2026-10-18T01:31:51Z m -j32 droid
+#### build completed successfully (05:31 (mm:ss)) ####
+=== 2026-10-18T01:37:24Z m exit 0
+=== 2026-10-18T01:37:39Z build done; live image openbook-live-anal210-g1a
+=== 2026-10-18T01:38:03Z image done, releasing lane
+### frameworks/base: base 94b4c163b7df + 3 patches -> HEAD bbd651efbce1
+###   bbd651efbce1 OPENBOOK: microG signature spoofing in user builds too
+###   b6eba57e492d ServiceWatcher: Allow microG location provider to be installed in /data
+###   6f06160ae4c7 Allow signature spoofing for microG Companion/Services
