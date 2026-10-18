@@ -25,7 +25,7 @@ Write-ups: `docs/installer.md` §15 and `docs/gapps.md` §5. **Only synthetic pa
 - **A real GApps package.** The owner may try one locally; nothing from it may be committed.
 - **OTAs** (`openbook-bootsync` isn't built): an update would replace `product` (H).
 - **Fuzzing of the package parser.**
-- **Other denials** in these boots aren't this step's: ANAL-210's `openbook-addons` writing `/dev/kmsg_debug`, MediaProvider and the test shell, SystemUI and `bluetooth_lea_prop`.
+- **Other denials** in these boots aren't this step's: MediaProvider and the test shell, SystemUI and `bluetooth_lea_prop`. Round 1 also had ANAL-210's pre-merge `openbook-addons` writing `/dev/kmsg_debug`; it's gone with #80.
 
 ## Reproduce
 `docs/installer.md` §15.9.

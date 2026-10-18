@@ -99,7 +99,6 @@
   - QEMU 79/79 on `anal211b`, enforcing: five power cuts in the new step, the wizard through the file picker to "installed", the installed system's dm-verity on the new product (a flipped byte gives `data block 74292 is corrupted`), and the apps privileged with their permissions.
 - **Found:**
   - OpenBook doesn't set `ro.control_privapp_permissions`, so priv-apps aren't held to an allowlist. The plan warns; the setting is the owner's call.
-  - ANAL-210's `openbook-addons` is denied writing `/dev/kmsg_debug` (passed on).
 - **Not done:** the G14 (steps on ANAL-192), a real package, OTAs (an update would replace `product`), fuzzing.
 
 ### 2026-10-18: microG as an optional add-on (ANAL-210)
