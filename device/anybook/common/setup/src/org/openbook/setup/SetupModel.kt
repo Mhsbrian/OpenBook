@@ -25,9 +25,9 @@ enum class Page(val optional: Boolean = false) {
 enum class LockKind { PIN, PASSWORD, NONE }
 
 /**
- * Setup's state. The activity handles every configuration change itself, so this lives as long as the activity.
- * Each page's choice is applied when the user leaves the page forward ([next]); the 24-hour and automatic-time
- * switches apply at once.
+ * Setup's state, kept in a ViewModel (SetupActivity.Holder) so it survives the activity being restarted. Each page's
+ * choice is applied when the user leaves the page forward ([next]); the 24-hour and automatic-time switches apply at
+ * once.
  */
 class SetupModel(private val context: Context) {
     /** The user's own Google apps package, if the system was installed with one. */
