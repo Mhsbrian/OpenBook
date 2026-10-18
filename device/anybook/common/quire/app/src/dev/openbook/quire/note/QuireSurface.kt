@@ -53,14 +53,25 @@ class QuireSurface(private val app: QuireApplication) : Task.Host, NoteWindow.Ca
 
     /**
      * A call from the person. A key or the taskbar while the note is up hides a running task or closes an idle one
-     * (§6.1: "Meta+Space again from anywhere"); with a hidden task running, the same key brings it back.
+     * (§6.1: "Meta+Space again from anywhere"); with a hidden task running, the same key brings it back. A shake or
+     * a selection while the note is up is a new question: the shown task is hidden (or closed when idle) first.
      */
     fun invoke(trigger: String, anchor: Anchor, intake: Intake?) {
         val shown = window.task
         if (shown != null) {
             Log.i(TAG, "note: invoked ($trigger) while task ${shown.id} is shown")
-            if (shown.running) hide() else close()
-            return
+            val toggle = trigger in REOPEN_TRIGGERS
+            if (shown.running || shown.needsAnswer) {
+                shown.hidden = true
+                window.remove()
+                Log.i(TAG, "note: hid task ${shown.id} running=${shown.running} needsAnswer=${shown.needsAnswer}")
+            } else {
+                tasks.remove(shown)
+                shown.close()
+                window.remove()
+                Log.i(TAG, "note: closed task ${shown.id} phase=${shown.phase}")
+            }
+            if (toggle) return
         }
         // Meta+Space, the assist key and the taskbar button bring a hidden task back (§6.1); a shake or a selection
         // is a new question.

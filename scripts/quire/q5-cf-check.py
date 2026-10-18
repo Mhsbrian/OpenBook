@@ -19,6 +19,10 @@ what can be checked from the outside. Sections, in order:
   motion     §5.3: with Remove animations the note appears and folds in one frame.
   frames     dumpsys gfxinfo for Quire over open, stream, consent and fold (Cuttlefish only: the G14 is the
              acceptance device).
+  video      Screen recordings of three flows (the shake and the halo through a turn and the fold; consent by
+             keyboard; the mirror with pause and take-over), with contact sheets.
+  contrast   §8: the note's colour pairs on the device's palette (light and dark) and on all eight wallpapers'
+             predicted palettes (scripts/quire/q5-contrast.py, with the brand venv's python).
   health     Crash buffer, ANRs, SystemUI restarts, SELinux denials against Cuttlefish's known three.
 
 Commands go to Quire through its root-only lab receiver (note/LabReceiver.kt), so the device must be rooted.
@@ -300,10 +304,20 @@ def states(d, agents, theme, design, only=None):
 
     def invoke_key(tag):
         desk(d, "settings")
+        # The pointer moves first: within 10 s, SystemUI passes its position and the note opens beside it (§2).
+        mouse = Mouse(d)
+        try:
+            mouse.move(-300, -200)
+            time.sleep(0.4)
+            mouse.move(60, 40)
+            time.sleep(0.4)
+        finally:
+            mouse.close()
         d.sh("input keycombination KEYCODE_META_LEFT KEYCODE_SPACE")
         m = d.wait_log(r"note: invocation anchor=(\S+).*intake=(\w+)", tag)
         time.sleep(1.0)
-        cap("invoke-key", "Meta+Space, the real path", bool(m), m.group(0) if m else "no invocation logged")
+        cap("invoke-key", "Meta+Space, the real path", bool(m) and m.group(1) == "pointer",
+            m.group(0) if m else "no invocation logged")
 
     def invoke_shake(tag):
         desk(d, "settings")
@@ -319,7 +333,8 @@ def states(d, agents, theme, design, only=None):
                     break
                 time.sleep(3.5)
             time.sleep(1.0)
-            cap("invoke-shake", "the pointer shake, the real path", bool(m), m.group(0) if m else "no invocation")
+            cap("invoke-shake", "the pointer shake, the real path", bool(m) and m.group(1) == "pointer",
+                m.group(0) if m else "no invocation")
         finally:
             mouse.close()
 
@@ -615,8 +630,15 @@ def keyboard(d, agents):
              f"{label!r} {cls}")
     order = []
     for _ in range(3):
+        before = d.focused()[0]
         d.key("KEYCODE_TAB")
-        order.append(d.focused()[0])
+        label = before
+        for _ in range(6):     # the dump can lag the key by a frame or two
+            label = d.focused()[0]
+            if label != before:
+                break
+            time.sleep(0.3)
+        order.append(label)
     d.result("keyboard: Tab order on the card, reject first", order[:3] == ["Don’t allow", "Allow for this session",
                                                                            "Allow"], f"{order}")
     d.screencap("keyboard/consent-tab-allow.png")
@@ -775,6 +797,148 @@ def frames(d, agents):
              "measurement is the G14's")
 
 
+# ------------------------------------------------------------------------------------------------ video
+class Recording:
+    """`screenrecord` on the device for one flow; pulled into OUTDIR/video/NAME.mp4."""
+
+    def __init__(self, d, name, seconds=20):
+        self.d, self.name = d, name
+        # On shared storage: MediaProvider scans the file, and it may not look in /data/local/tmp.
+        self.remote = f"/sdcard/Movies/q5-{name}.mp4"
+        d.sh(f"rm -f {self.remote}")
+        self.p = subprocess.Popen([d.adb, "-s", d.s, "shell", "screenrecord", "--time-limit", str(seconds),
+                                   "--bit-rate", "8000000", self.remote], stdout=subprocess.DEVNULL,
+                                  stderr=subprocess.DEVNULL)
+        time.sleep(1.0)
+
+    def stop(self):
+        self.d.sh("pkill -INT screenrecord")
+        try:
+            self.p.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            self.p.kill()
+        time.sleep(1.0)
+        out = self.d.o / "video" / f"{self.name}.mp4"
+        out.parent.mkdir(parents=True, exist_ok=True)
+        self.d.run("pull", self.remote, str(out))
+        return out
+
+
+def video(d, agents):
+    """Videos of the flows (acceptance 1): the shake and the halo, a turn and the fold; consent; the mirror."""
+    d.log("== video")
+    d.sh("cmd uimode night no")
+    clean(d)
+    desk(d, "settings")
+    rec = Recording(d, "invoke-stream-fold", 24)
+    mouse = Mouse(d)
+    try:
+        tag = d.mark("video shake")
+        mouse.move(-300, -200)
+        time.sleep(0.6)
+        m = None
+        for _ in range(3):
+            mouse.shake()
+            m = d.wait_log(r"note: invocation anchor=(\S+)", tag, timeout=5)
+            if m:
+                break
+            time.sleep(3.5)
+        time.sleep(1.2)
+        d.sh("input text 'What%sdoes%sAdaptive%sbrightness%sdo%shere?'")
+        d.key("KEYCODE_ENTER")
+        time.sleep(3.0)
+        agents.release()
+        d.wait_log(r"ended stopReason", tag, timeout=15)
+        time.sleep(1.0)
+        d.key("KEYCODE_ESCAPE")
+        time.sleep(1.5)
+    finally:
+        mouse.close()
+    out = rec.stop()
+    d.result("video: shake, halo, note at the pointer, a turn, fold", bool(m) and "pointer" in (m.group(1) if m else ""),
+             f"{out.name}; {m.group(0) if m else 'no invocation'}")
+    frames_of(d, out, "invoke-stream-fold")
+
+    clean(d)
+    desk(d, "files")
+    rec = Recording(d, "consent", 16)
+    tag = d.mark("video consent")
+    openat(d, intake="selection", name="Notes", at=(700, 520), text="Things to pack: the HDMI adapter, walking shoes")
+    d.sh("input text 'Turn%sthis%sinto%sa%schecklist%sfile%sin%smy%sDocuments'")
+    d.key("KEYCODE_ENTER")
+    d.wait_log(r"permission for", tag)
+    time.sleep(1.5)
+    d.key("KEYCODE_TAB", "KEYCODE_TAB", "KEYCODE_TAB")
+    time.sleep(0.8)
+    d.key("KEYCODE_ENTER")
+    a = d.wait_log(r"answered (\w+)", tag)
+    d.wait_log(r"ended stopReason", tag)
+    time.sleep(1.5)
+    d.key("KEYCODE_ESCAPE")
+    time.sleep(1.2)
+    out = rec.stop()
+    d.result("video: consent by keyboard, Allow", bool(a) and a.group(1) == "allow", f"{out.name}; {a.group(0) if a else '-'}")
+
+    clean(d)
+    d.sh(f"am force-stop {SETTINGS}")
+    desk(d, "files")
+    rec = Recording(d, "mirror", 40)
+    tag = d.mark("video mirror")
+    d.lab("CONTROL", prompt="In Settings, turn on Dark theme", app="Settings", launch=SETTINGS,
+          taps=json.dumps(TAPS), x=1400.0, y=300.0, aimMs="1500")
+    d.wait_log(r"cc: pending", tag)
+    time.sleep(1.5)
+    d.tap_text("Only this time")
+    t = d.wait_log(r'note: control aiming at "Use Dark theme"', tag, timeout=25)
+    time.sleep(0.5)
+    d.lab("MIRROR", action="pause")
+    time.sleep(2.5)
+    d.lab("MIRROR", action="takeover")
+    h = d.wait_log(r"cc: lifecycle: closed reason=4", tag)
+    time.sleep(2.0)
+    out = rec.stop()
+    d.sh("cmd uimode night no")
+    d.result("video: platform consent, the mirror zooming on each control, pause, take over", bool(t and h),
+             f"{out.name}")
+    frames_of(d, out, "mirror")
+    d.sh(f"am force-stop {SETTINGS}")
+
+
+def frames_of(d, video_path, name):
+    """A contact sheet of the video, one frame every 0.5 s, for the evidence."""
+    sheet = d.o / "video" / f"{name}-sheet.jpg"
+    subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", str(video_path), "-vf",
+                    "fps=2,scale=480:-1,tile=6x6", "-frames:v", "1", "-q:v", "4", str(sheet)])
+
+
+# ------------------------------------------------------------------------------------------------ contrast
+def contrast(d):
+    """§8: the note's pairs on the device's own palette, and on every wallpaper's predicted palette."""
+    d.log("== contrast")
+    pal = {}
+    for theme in ("light", "dark"):
+        d.sh(f"cmd uimode night {'yes' if theme == 'dark' else 'no'}")
+        time.sleep(2)
+        tag = d.mark(f"palette {theme}")
+        d.lab("PALETTE")
+        m = d.wait_log(r"note: palette (\w+) (\{.*\})", tag)
+        if m:
+            pal[m.group(1)] = json.loads(m.group(2))
+    d.sh("cmd uimode night no")
+    (d.o / "device-palette.json").write_text(json.dumps(pal, indent=1))
+    py = Path.home() / "anybook/tools-local/brand-venv/bin/python"
+    if not py.exists() or len(pal) < 2:
+        d.result("contrast: the note's pairs on every wallpaper and on the device", None,
+                 f"skipped: palette {sorted(pal)}, brand venv {'present' if py.exists() else 'missing'}")
+        return
+    r = subprocess.run([str(py), "-I", str(HERE / "q5-contrast.py"), "--md", "--device",
+                        str(d.o / "device-palette.json")], capture_output=True, text=True)
+    (d.o / "contrast.md").write_text(r.stdout)
+    dev = [l for l in r.stdout.splitlines() if l.startswith("device")]
+    d.result("contrast: 16 pairs on 8 wallpapers x 2 themes and on the device's palette", r.returncode == 0,
+             "; ".join(dev) or r.stderr.strip())
+
+
 # ------------------------------------------------------------------------------------------------ health
 def health(d):
     d.log("== health")
@@ -801,7 +965,7 @@ def main():
     ap.add_argument("serial")
     ap.add_argument("out")
     ap.add_argument("--design", help="Q3's docs/quire-design/ (png/ renders) for side-by-side images")
-    ap.add_argument("--only", default="states,keyboard,a11y,motion,frames,health")
+    ap.add_argument("--only", default="states,keyboard,a11y,motion,frames,video,contrast,health")
     ap.add_argument("--themes", default="light,dark")
     ap.add_argument("--states", help="only these state recipes (comma-separated), e.g. control,stopped")
     args = ap.parse_args()
@@ -826,6 +990,10 @@ def main():
             motion(d)
         if "frames" in sections:
             frames(d, agents)
+        if "video" in sections:
+            video(d, agents)
+        if "contrast" in sections:
+            contrast(d)
         if "health" in sections:
             health(d)
     finally:

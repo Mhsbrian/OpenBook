@@ -1,0 +1,19 @@
+Quire core and a real ACP agent (opencode 2.0.31, `opencode acp`, its default free model), Cuttlefish (Q2 image +
+the Q5 dev APK), 2026-10-18. The host bridged the agent to the device with
+`socat TCP-LISTEN:7072,bind=127.0.0.1,reuseaddr,fork EXEC:"opencode acp"` and `adb reverse tcp:7072 tcp:7072`; the
+agent's working directory was an empty folder. Logcat (tag Quire):
+
+19:01:49.337 acp: connected to opencode: OpenCode 2.0.31 auth=[opencode-login] images=true
+19:03:05.408 note: task 4 for lab, agent=opencode intake=None
+19:03:07.038 note: task 4 session ses_eaf9a90d6ffekcKnbxbUzj4f4J with opencode
+19:03:07.038 note: task 4 prompt (1 blocks)
+19:03:11.085 note: task 4 ended stopReason=end_turn confirmed=true          -> opencode-answer.png
+19:03:36.962 note: task 6 for lab, agent=opencode intake=Window
+19:03:38.588 note: task 6 session ses_eaf9a1597ffeDJY1J7yXTZ9Rn6 with opencode
+19:03:38.616 note: task 6 prompt (3 blocks)                                   (context text, the window's image, the prompt)
+19:03:47.352 note: task 6 ended stopReason=end_turn confirmed=true          -> opencode-image-intake.png
+
+The first prompt of the session (task 3, 19:01:49) got no update for 48 s and was stopped; the same prompt on the
+host without Quire answered in 3.4 s, and every later prompt through Quire answered in 4-9 s, so it was opencode's
+cold start. In task 6 the model answered that it can't read images although opencode advertises image prompts:
+the agent's limit, reported honestly in the note.
