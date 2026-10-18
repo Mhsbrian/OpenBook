@@ -1,0 +1,242 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: OpenBook <noreply@anybook.invalid>
+Date: Sun, 18 Oct 2026 13:51:05 -0400
+Subject: [PATCH] OPENBOOK: TerminalApp: an agent bridge for the system's agent
+ host
+
+AgentBridgeProvider lets a caller holding ACCESS_AGENT_BRIDGE
+(signature|privileged), on OpenBook Quire core, reach the guest's
+quired on vsock port 7690 while the Linux environment runs. Only the
+VM's owner may have a vsock to it, so the provider asks virtmgr for the
+connection (VirtualMachine.connectVsock) and relays it to one end of a
+socket pair. Other guest ports (ttyd, the guest agent) are not offered.
+
+Also: Cuttlefish products not named vsoc_* get the emulator boot
+timeout, found by ro.boot.hypervisor.version (cf-crosvm, cf-qemu); the
+Debian guest runs under nested KVM there.
+
+OpenBook ANAL-218 (Quire Q4).
+---
+ android/TerminalApp/AndroidManifest.xml       |  10 ++
+ .../terminal/AgentBridgeProvider.kt           | 166 ++++++++++++++++++
+ .../terminal/new2/core/VmController.kt        |   6 +-
+ 3 files changed, 181 insertions(+), 1 deletion(-)
+ create mode 100644 android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt
+
+diff --git a/android/TerminalApp/AndroidManifest.xml b/android/TerminalApp/AndroidManifest.xml
+index 022dd2d04..d1d564f5c 100644
+--- a/android/TerminalApp/AndroidManifest.xml
++++ b/android/TerminalApp/AndroidManifest.xml
+@@ -37,6 +37,10 @@
+ 
+     <uses-feature android:name="android.software.virtualization_framework" android:required="true" />
+ 
++    <!-- OpenBook: who may use AgentBridgeProvider (the system's agent host, Quire core). -->
++    <permission android:name="com.android.virtualization.terminal.permission.ACCESS_AGENT_BRIDGE"
++        android:protectionLevel="signature|privileged" />
++
+     <application
+         android:label="@string/app_name"
+         android:icon="@mipmap/ic_launcher"
+@@ -104,6 +108,12 @@
+                 android:name="android.support.FILE_PROVIDER_PATHS"
+                 android:resource="@xml/share_file_path" />
+         </provider>
++        <!-- OpenBook: relays the guest's quired (vsock 7690) to Quire core; see the class. -->
++        <provider
++            android:name=".AgentBridgeProvider"
++            android:authorities="com.android.virtualization.terminal.agentbridge"
++            android:exported="true"
++            android:permission="com.android.virtualization.terminal.permission.ACCESS_AGENT_BRIDGE" />
+         <activity android:name=".InstallerActivity"
+             android:exported="false">
+             <intent-filter>
+diff --git a/android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt b/android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt
+new file mode 100644
+index 000000000..74798ebbe
+--- /dev/null
++++ b/android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt
+@@ -0,0 +1,166 @@
++/*
++ * Copyright (C) 2026 The OpenBook Authors
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package com.android.virtualization.terminal
++
++import android.content.ContentProvider
++import android.content.ContentValues
++import android.database.Cursor
++import android.net.Uri
++import android.os.Bundle
++import android.os.ParcelFileDescriptor
++import android.system.ErrnoException
++import android.system.Os
++import android.system.OsConstants
++import android.util.Log
++import com.android.system.virtualmachine.flags.Flags
++import com.android.virtualization.terminal.new2.core.VmController
++import com.android.virtualization.terminal.new2.core.VmState
++import java.io.FileDescriptor
++import java.io.FileInputStream
++import java.io.FileNotFoundException
++import java.io.FileOutputStream
++import java.util.concurrent.atomic.AtomicInteger
++import kotlin.concurrent.thread
++
++/**
++ * OpenBook: lets the system's agent host (Quire core) reach one service in the Linux environment
++ * while it runs: the guest's `quired serve` on vsock port 7690.
++ *
++ * Only a VM's owner can have a vsock to it, so this process asks virtmgr for the connection
++ * ([android.system.virtualmachine.VirtualMachine.connectVsock]) and relays it to one end of a
++ * socket pair; the caller gets the other end. Callers need [PERMISSION]
++ * (signature|privileged), and only the ports in [PORTS] are offered: ttyd and the guest agent stay
++ * private to this app.
++ *
++ * - `openFile(content://com.android.virtualization.terminal.agentbridge/vsock/7690, "rw")`
++ * - `call("status")` returns `state` (not_installed, stopped, starting, running, error) and,
++ *   for an error, `message`.
++ */
++class AgentBridgeProvider : ContentProvider() {
++    companion object {
++        private const val TAG = "AgentBridge"
++        const val AUTHORITY = "com.android.virtualization.terminal.agentbridge"
++        const val PERMISSION = "com.android.virtualization.terminal.permission.ACCESS_AGENT_BRIDGE"
++        val PORTS = setOf(7690L)
++        private val nextId = AtomicInteger()
++    }
++
++    override fun onCreate(): Boolean = true
++
++    private fun enforce() {
++        context!!.enforceCallingPermission(PERMISSION, "the Linux environment's agent bridge")
++    }
++
++    private fun state(): Pair<String, String?> {
++        if (!Flags.terminalNewuiJetpack()) return "error" to "the agent bridge needs the new Terminal UI"
++        if (!InstalledImage.getDefault(context!!).isInstalled()) return "not_installed" to null
++        return when (val s = VmController.vmState.value) {
++            is VmState.Running -> "running" to null
++            is VmState.Starting, is VmState.Rebooting -> "starting" to null
++            is VmState.Error -> "error" to (s.cause.message ?: s.cause.javaClass.simpleName)
++            else -> "stopped" to null
++        }
++    }
++
++    override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
++        enforce()
++        if (method != "status") throw IllegalArgumentException("unknown method $method")
++        val (state, message) = state()
++        return Bundle().apply {
++            putString("state", state)
++            message?.let { putString("message", it) }
++        }
++    }
++
++    override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor {
++        enforce()
++        val seg = uri.pathSegments
++        val port = if (seg.size == 2 && seg[0] == "vsock") seg[1].toLongOrNull() else null
++        if (port == null || port !in PORTS) throw FileNotFoundException("not offered: ${uri.path}")
++        val (state, message) = state()
++        val vm = VmController.virtualMachine
++        if (state != "running" || vm == null) {
++            throw FileNotFoundException("the Linux environment is $state" + (message?.let { ": $it" } ?: ""))
++        }
++        val vsock =
++            try {
++                vm.connectVsock(port)
++            } catch (e: Exception) {
++                throw FileNotFoundException("no answer on vsock port $port: ${e.message}")
++            }
++        val pair = ParcelFileDescriptor.createSocketPair()
++        relay(nextId.incrementAndGet(), pair[0], vsock, callingPackage ?: "?", port)
++        return pair[1]
++    }
++
++    /** Copies both ways until both sides are done, passing on half-closes, then closes both. */
++    private fun relay(id: Int, caller: ParcelFileDescriptor, vm: ParcelFileDescriptor, who: String, port: Long) {
++        Log.i(TAG, "#$id: $who connected to vsock port $port")
++        val open = AtomicInteger(2)
++        val closeBoth = {
++            if (open.decrementAndGet() == 0) {
++                caller.close()
++                vm.close()
++                Log.i(TAG, "#$id: closed")
++            }
++        }
++        fun pipe(name: String, from: ParcelFileDescriptor, to: ParcelFileDescriptor) =
++            thread(name = "AgentBridge-$id-$name") {
++                val input = FileInputStream(from.fileDescriptor)
++                val output = FileOutputStream(to.fileDescriptor)
++                val buf = ByteArray(16 * 1024)
++                try {
++                    while (true) {
++                        val n = input.read(buf)
++                        if (n < 0) break
++                        output.write(buf, 0, n)
++                    }
++                    shutdownWrite(to.fileDescriptor)
++                } catch (e: Exception) {
++                    // One side failed: end the other direction too.
++                    Log.d(TAG, "#$id $name: ${e.message}")
++                    shutdownBoth(from.fileDescriptor)
++                    shutdownBoth(to.fileDescriptor)
++                } finally {
++                    closeBoth()
++                }
++            }
++        pipe("to-vm", caller, vm)
++        pipe("from-vm", vm, caller)
++    }
++
++    private fun shutdownWrite(fd: FileDescriptor) {
++        try {
++            Os.shutdown(fd, OsConstants.SHUT_WR)
++        } catch (_: ErrnoException) {}
++    }
++
++    private fun shutdownBoth(fd: FileDescriptor) {
++        try {
++            Os.shutdown(fd, OsConstants.SHUT_RDWR)
++        } catch (_: ErrnoException) {}
++    }
++
++    override fun query(u: Uri, p: Array<String>?, s: String?, a: Array<String>?, o: String?): Cursor? = null
++
++    override fun getType(uri: Uri): String? = null
++
++    override fun insert(uri: Uri, values: ContentValues?): Uri? = null
++
++    override fun delete(uri: Uri, s: String?, a: Array<String>?): Int = 0
++
++    override fun update(uri: Uri, v: ContentValues?, s: String?, a: Array<String>?): Int = 0
++}
+diff --git a/android/TerminalApp/java/com/android/virtualization/terminal/new2/core/VmController.kt b/android/TerminalApp/java/com/android/virtualization/terminal/new2/core/VmController.kt
+index cdfaa9290..1f7932afa 100644
+--- a/android/TerminalApp/java/com/android/virtualization/terminal/new2/core/VmController.kt
++++ b/android/TerminalApp/java/com/android/virtualization/terminal/new2/core/VmController.kt
+@@ -493,7 +493,11 @@ object VmController {
+     private val IS_EMULATOR: Boolean =
+         {
+             val deviceName = SystemProperties.get("ro.product.vendor.device", "")
+-            val cuttlefish = deviceName.startsWith("vsoc_")
++            // OpenBook: Cuttlefish products not named vsoc_* (anybook_vsoc_x86_64) are found by
++            // the hypervisor version Cuttlefish's launcher sets ("cf-crosvm", "cf-qemu").
++            val cuttlefish =
++                deviceName.startsWith("vsoc_") ||
++                    SystemProperties.get("ro.boot.hypervisor.version", "").startsWith("cf-")
+             val goldfish = deviceName.startsWith("emu64")
+ 
+             cuttlefish || goldfish
