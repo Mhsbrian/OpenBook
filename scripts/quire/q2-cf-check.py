@@ -14,10 +14,13 @@ Sections, in order (docs/quire.md §2, acceptance in ANAL-216):
   control     A computer-control session for Settings: the platform's consent dialog, "Only this time", Settings' Dark
               theme page on the session display, Quire's mirror of it, a tap through the session that turns Dark theme
               on, then handOverApplications() moving Settings to the main display.
-  refuse      Denied consent; the lock screen (a PIN, screen locked); an app outside the allowlist; a FLAG_SECURE window
-              on the session display (the probe, allowlisted for the test only through DeviceConfig, then restored).
+  refuse      Denied consent; the lock screen (a PIN, screen locked); an app outside the allowlist; per-app consent
+              ("Always allow" for Settings, then no dialog for it, then a second, unapproved app asks again for itself
+              alone); a FLAG_SECURE window on the session display. The probe is allowlisted for the test only, through
+              DeviceConfig, then the device's own allowlist is restored.
   health      Crash buffer, ANRs, tombstones, SystemUI restarts, SELinux denials against Cuttlefish's known three.
 
+Needs a fresh /data: consent the platform remembers ("Always allow") changes what the next run sees.
 Writes OUTDIR/results.tsv (check, PASS/FAIL/INFO, detail), OUTDIR/checks.log and the artifacts it names. Commands go to
 Quire through its non-exported LabActivity alias, so the device must be rooted (`adb root`, userdebug).
 Env: ADB (default ~/anybook/android-sdk/platform-tools/adb); set ANDROID_ADB_SERVER_PORT for a private server.
@@ -49,6 +52,7 @@ KNOWN_DENIALS = [
 FLAGS = [
     "android.companion.virtualdevice.flags.computer_control_access",
     "android.companion.virtualdevice.flags.computer_control_support_v5",
+    "android.companion.virtualdevice.flags.computer_control_per_app_consent",
     "com.android.hardware.input.enable_contextual_cursor_desktop_entrypoints",
     "com.android.hardware.input.enable_contextual_search_desktop_entrypoints",
     "android.companion.virtualdevice.flags.computer_control_managed_profiles",
@@ -505,11 +509,40 @@ def refuse(d):
     refused = d.wait_log(r"cc: request refused by the platform: (.*)", 10, since=tag)
     d.result("app outside the allowlist refused", refused is not None and "Invalid target package" in refused.group(1),
              refused.group(1) if refused else "not refused")
-    # 4. A FLAG_SECURE window on the session display. The probe is allowlisted through DeviceConfig for this check only.
+    # 4. Per-app consent (computer_control_per_app_consent). "Always allow" for Settings covers Settings only.
+    tag = d.mark("always")
+    d.sh(f"am force-stop {SETTINGS}")
+    d.lab("REQUEST", targets=SETTINGS, launch=DARK_THEME)
+    ok, title = consent(d, "always_allow_button", "refuse-always-allow.png")
+    d.result("per-app: 'Always allow' for Settings", ok and "Settings" in title, title)
+    created = d.wait_log(r"cc: created", 15, since=tag)
+    d.result("per-app: session created", created is not None, "created" if created else "not created")
+    time.sleep(2)
+    d.lab("CLOSE")
+    d.wait_log(r"cc: lifecycle: closed", 10, since=tag)
+    tag = d.mark("remembered")
+    d.lab("REQUEST", targets=SETTINGS, launch=DARK_THEME)
+    created = d.wait_log(r"cc: created", 15, since=tag)
+    since = d.quire_log()
+    asked = "cc: pending" in since[since.rfind(tag):]
+    d.result("per-app: Settings again, no dialog", created is not None and not asked,
+             ("created" if created else "not created") + (", asked again" if asked else ", not asked"))
+    time.sleep(2)
+    d.lab("CLOSE")
+    d.wait_log(r"cc: lifecycle: closed", 10, since=tag)
+    # The probe is allowlisted through DeviceConfig for the rest of this section only.
     d.run("install", "-r", "-g", str(d.probe))
     d.sh(f"device_config put computer_control allowed_automatable_apps "
          f"'{SETTINGS}:PREINSTALLED,{PROBE}:{TESTKEY_DIGEST}'")
     time.sleep(2)
+    tag = d.mark("second-app")
+    d.lab("REQUEST", targets=f"{SETTINGS},{PROBE}", launch=DARK_THEME)
+    ok, title = consent(d, "dont_allow_button", "refuse-second-app.png")
+    d.result("per-app: a second app asks again, for itself alone", ok and "secure probe" in title.lower(), title)
+    failed = d.wait_log(r"cc: creation failed: error=(\d+)\((\w+)\)", 15, since=tag)
+    d.result("per-app: second app denied, session refused", failed is not None and
+             failed.group(2) == "PERMISSION_DENIED", failed.group(0) if failed else "no failure logged")
+    # 5. A FLAG_SECURE window on the session display.
     tag = d.mark("secure")
     d.lab("REQUEST", targets=PROBE, launch=PROBE)
     ok, title = consent(d, "allow_button")
