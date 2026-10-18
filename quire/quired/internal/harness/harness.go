@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -36,7 +37,8 @@ type Agent interface {
 	Info() acp.InitializeResponse
 	NewSession(ctx context.Context, cwd string, mcp []acp.McpServer) (string, error)
 	// Prompt runs one turn and returns its stop reason. Cancelling ctx cancels the turn, and
-	// Prompt then returns acp.StopCancelled once the agent has stopped.
+	// Prompt then returns acp.StopCancelled once the agent has stopped. An agent that doesn't
+	// stop within the cancel grace is stopped with its process group, and the Agent is unusable.
 	Prompt(ctx context.Context, sessionID string, prompt []acp.ContentBlock) (string, error)
 	Close() error
 	// Diagnostics returns the tail of the agent's stderr, for error reports.
@@ -117,7 +119,8 @@ func command(path string, args []string, dir string, env []string) *exec.Cmd {
 	return cmd
 }
 
-// stop asks a process group to finish, then kills it after grace.
+// stop asks a process group to finish, then kills it after grace. It returns once the process
+// has been reaped (waited is closed).
 func stop(cmd *exec.Cmd, waited <-chan struct{}, grace time.Duration) {
 	if cmd.Process == nil {
 		return
@@ -132,54 +135,71 @@ func stop(cmd *exec.Cmd, waited <-chan struct{}, grace time.Duration) {
 	}
 }
 
-// confine resolves path for a file operation and refuses anything outside root, following
-// symlinks in the part of the path that exists.
-func confine(root, path string) (string, error) {
+// openRoot checks that path is inside root and returns root as an os.Root, with path relative to
+// it. Every open and create then goes through that directory handle, which refuses to leave it
+// by "..", by a symlink (a dangling one included), or by a component swapped after this check.
+func openRoot(root, path string) (*os.Root, string, error) {
 	if !filepath.IsAbs(path) {
-		return "", acp.Errorf(acp.CodeInvalidParams, "path must be absolute: %s", path)
+		return nil, "", acp.Errorf(acp.CodeInvalidParams, "path must be absolute: %s", path)
 	}
-	realRoot, err := filepath.EvalSymlinks(root)
+	rel, ok := under(root, path)
+	if !ok {
+		// An agent may name the folder by its real path when the session's cwd is a symlink.
+		if real, err := filepath.EvalSymlinks(root); err == nil {
+			rel, ok = under(real, path)
+		}
+	}
+	if !ok {
+		return nil, "", acp.Errorf(acp.CodeInvalidParams, "outside the session's folder: %s", path)
+	}
+	r, err := os.OpenRoot(root)
 	if err != nil {
-		return "", err
+		return nil, "", err
 	}
-	real, err := resolveExisting(filepath.Clean(path))
-	if err != nil {
-		return "", err
-	}
-	rel, err := filepath.Rel(realRoot, real)
-	if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
-		return "", acp.Errorf(acp.CodeInvalidParams, "outside the session's folder: %s", path)
-	}
-	return real, nil
+	return r, rel, nil
 }
 
-// resolveExisting evaluates symlinks in the longest existing prefix of p and keeps the rest.
-func resolveExisting(p string) (string, error) {
-	var tail []string
-	for cur := p; ; {
-		if real, err := filepath.EvalSymlinks(cur); err == nil {
-			return filepath.Join(append([]string{real}, tail...)...), nil
-		} else if !errors.Is(err, os.ErrNotExist) {
-			return "", err
-		}
-		parent := filepath.Dir(cur)
-		if parent == cur {
-			return p, nil
-		}
-		tail = append([]string{filepath.Base(cur)}, tail...)
-		cur = parent
+// under returns path relative to root, if it is lexically inside it.
+func under(root, path string) (string, bool) {
+	rel, err := filepath.Rel(filepath.Clean(root), filepath.Clean(path))
+	if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		return "", false
 	}
+	return rel, true
+}
+
+// openRegular opens rel in r and refuses anything but a regular file. O_NONBLOCK keeps a FIFO
+// left in the folder from hanging the open.
+func openRegular(r *os.Root, rel string, flag int) (*os.File, error) {
+	f, err := r.OpenFile(rel, flag|syscall.O_NONBLOCK, 0o644)
+	if err != nil {
+		return nil, err
+	}
+	if fi, err := f.Stat(); err != nil || !fi.Mode().IsRegular() {
+		f.Close()
+		if err == nil {
+			err = acp.Errorf(acp.CodeInvalidParams, "not a regular file: %s", rel)
+		}
+		return nil, err
+	}
+	return f, nil
 }
 
 func readText(root string, req acp.ReadTextFileRequest) (acp.ReadTextFileResponse, error) {
-	p, err := confine(root, req.Path)
+	r, rel, err := openRoot(root, req.Path)
 	if err != nil {
 		return acp.ReadTextFileResponse{}, err
 	}
-	b, err := os.ReadFile(p)
+	defer r.Close()
+	f, err := openRegular(r, rel, os.O_RDONLY)
 	if errors.Is(err, os.ErrNotExist) {
 		return acp.ReadTextFileResponse{}, acp.Errorf(acp.CodeResourceNotFound, "no such file: %s", req.Path)
 	} else if err != nil {
+		return acp.ReadTextFileResponse{}, err
+	}
+	defer f.Close()
+	b, err := io.ReadAll(f)
+	if err != nil {
 		return acp.ReadTextFileResponse{}, err
 	}
 	text := string(b)
@@ -198,17 +218,25 @@ func readText(root string, req acp.ReadTextFileRequest) (acp.ReadTextFileRespons
 	return acp.ReadTextFileResponse{Content: text}, nil
 }
 
+// writeText creates missing folders and the file inside root; an existing file keeps its mode.
 func writeText(root string, req acp.WriteTextFileRequest) error {
-	p, err := confine(root, req.Path)
+	r, rel, err := openRoot(root, req.Path)
 	if err != nil {
 		return err
 	}
-	mode := os.FileMode(0o644)
-	if fi, err := os.Stat(p); err == nil {
-		mode = fi.Mode().Perm()
+	defer r.Close()
+	if dir := filepath.Dir(rel); dir != "." {
+		if err := r.MkdirAll(dir, 0o755); err != nil {
+			return err
+		}
 	}
-	if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+	f, err := openRegular(r, rel, os.O_WRONLY|os.O_CREATE|os.O_TRUNC)
+	if err != nil {
 		return err
 	}
-	return os.WriteFile(p, []byte(req.Content), mode)
+	if _, err := io.WriteString(f, req.Content); err != nil {
+		f.Close()
+		return err
+	}
+	return f.Close()
 }

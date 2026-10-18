@@ -8,11 +8,14 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"net"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
 	"strings"
 	"sync"
+	"syscall"
 	"testing"
 	"time"
 
@@ -37,6 +40,9 @@ func TestMain(m *testing.M) {
 		os.Exit(0)
 	case "claude":
 		fakeClaude()
+		os.Exit(0)
+	case "stuck":
+		fakeStuck()
 		os.Exit(0)
 	}
 	os.Exit(m.Run())
@@ -113,10 +119,10 @@ func self(t *testing.T) string {
 	return p
 }
 
-func startFake(t *testing.T, kind string, spec agents.Spec, r *recorder) Agent {
+func startFake(t *testing.T, kind string, spec agents.Spec, r *recorder, env ...string) Agent {
 	t.Helper()
 	a, err := Start(context.Background(), spec, r, Options{Path: self(t), Self: self(t), FS: true,
-		ClientInfo: acp.Implementation{Name: "test"}, Env: []string{"QUIRED_FAKE=" + kind}})
+		ClientInfo: acp.Implementation{Name: "test"}, Env: append([]string{"QUIRED_FAKE=" + kind}, env...)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -348,28 +354,222 @@ func TestClaudeSeparateMessagesAreSeparateParagraphs(t *testing.T) {
 	}
 }
 
-func TestConfine(t *testing.T) {
-	root := t.TempDir()
-	outside := t.TempDir()
-	if err := os.Symlink(outside, filepath.Join(root, "link")); err != nil {
+func TestFileConfinement(t *testing.T) {
+	root, outside := t.TempDir(), t.TempDir()
+	if err := os.WriteFile(filepath.Join(outside, "secret.txt"), []byte("secret"), 0o600); err != nil {
 		t.Fatal(err)
 	}
+	for link, target := range map[string]string{
+		"link":        outside,                                     // a folder outside
+		"dangling":    filepath.Join(outside, "new.txt"),           // a file outside that doesn't exist yet
+		"danglingdir": filepath.Join(outside, "nodir"),             // a folder outside that doesn't exist yet
+		"alias.txt":   "inside.txt",                                // stays inside, target not there yet
+		"up":          filepath.Join("..", filepath.Base(outside)), // relative, leads out
+	} {
+		if err := os.Symlink(target, filepath.Join(root, link)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := syscall.Mkfifo(filepath.Join(root, "fifo"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "private.txt"), []byte("x"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
 	for _, c := range []struct {
 		path string
 		ok   bool
 	}{
 		{filepath.Join(root, "a.txt"), true},
 		{filepath.Join(root, "new", "dir", "b.txt"), true},
+		{filepath.Join(root, "alias.txt"), true}, // creates inside.txt
+		{filepath.Join(root, "private.txt"), true},
 		{filepath.Join(root, "..", filepath.Base(outside), "x"), false},
 		{filepath.Join(root, "link", "x"), false},
+		{filepath.Join(root, "dangling"), false},
+		{filepath.Join(root, "danglingdir", "x.txt"), false},
+		{filepath.Join(root, "up", "x"), false},
+		{filepath.Join(root, "fifo"), false}, // refused, and must not hang
 		{"relative.txt", false},
 		{"/etc/hostname", false},
 	} {
-		_, err := confine(root, c.path)
+		err := writeText(root, acp.WriteTextFileRequest{Path: c.path, Content: "data"})
 		if (err == nil) != c.ok {
-			t.Errorf("confine(%q) err=%v, want ok=%v", c.path, err, c.ok)
+			t.Errorf("writeText(%q) err=%v, want ok=%v", c.path, err, c.ok)
 		}
 	}
+	if entries, _ := os.ReadDir(outside); len(entries) != 1 {
+		t.Fatalf("a write escaped the session folder: %v", entries)
+	}
+	if got, _ := os.ReadFile(filepath.Join(root, "inside.txt")); string(got) != "data" {
+		t.Fatalf("write through an inside symlink: inside.txt = %q", got)
+	}
+	if fi, _ := os.Stat(filepath.Join(root, "private.txt")); fi.Mode().Perm() != 0o600 {
+		t.Fatalf("an existing file must keep its mode, got %v", fi.Mode().Perm())
+	}
+
+	for _, c := range []struct {
+		path string
+		ok   bool
+	}{
+		{filepath.Join(root, "alias.txt"), true},
+		{filepath.Join(root, "link", "secret.txt"), false},
+		{filepath.Join(root, "up", "secret.txt"), false},
+		{filepath.Join(outside, "secret.txt"), false},
+		{filepath.Join(root, "fifo"), false},
+	} {
+		res, err := readText(root, acp.ReadTextFileRequest{Path: c.path})
+		if (err == nil) != c.ok || strings.Contains(res.Content, "secret") {
+			t.Errorf("readText(%q) = %q, %v; want ok=%v", c.path, res.Content, err, c.ok)
+		}
+	}
+
+	// A session folder reached through a symlink may be named by either path.
+	real := t.TempDir()
+	alias := filepath.Join(t.TempDir(), "project")
+	if err := os.Symlink(real, alias); err != nil {
+		t.Fatal(err)
+	}
+	for _, p := range []string{filepath.Join(alias, "c.txt"), filepath.Join(real, "d.txt")} {
+		if err := writeText(alias, acp.WriteTextFileRequest{Path: p, Content: "ok"}); err != nil {
+			t.Errorf("writeText(%q) in a symlinked session folder: %v", p, err)
+		}
+	}
+}
+
+func TestStartRejectsUnsupportedProtocolVersion(t *testing.T) {
+	_, err := Start(context.Background(), acpSpec, &recorder{}, Options{Path: self(t), Self: self(t),
+		Env: []string{"QUIRED_FAKE=acp", "FAKE_ACP_VERSION=999"}})
+	if err == nil || !strings.Contains(err.Error(), "protocol version 999") {
+		t.Fatalf("want version 999 refused, got %v", err)
+	}
+}
+
+// shortTimeouts makes the cancel grace and exit grace short for one test.
+func shortTimeouts(t *testing.T, cancel, exit time.Duration) {
+	oldCancel, oldExit := cancelTimeout, exitGrace
+	cancelTimeout, exitGrace = cancel, exit
+	t.Cleanup(func() { cancelTimeout, exitGrace = oldCancel, oldExit })
+}
+
+// An agent that ignores session/cancel, or stops reading stdin altogether and ignores SIGTERM,
+// is stopped once the cancel grace ends: Prompt returns within its bounds and the process is gone.
+func TestACPCancelStopsUnresponsiveAgent(t *testing.T) {
+	for _, mode := range []string{"ignore", "deaf"} {
+		t.Run(mode, func(t *testing.T) {
+			shortTimeouts(t, 300*time.Millisecond, 300*time.Millisecond)
+			a := startFake(t, "stuck", acpSpec, &recorder{}, "FAKE_STUCK="+mode)
+			sid, err := a.NewSession(context.Background(), t.TempDir(), nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			// Bigger than a pipe's buffer, so writing it blocks once the agent stops reading.
+			big := strings.Repeat("x", 1<<20)
+			ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+			defer cancel()
+			start := time.Now()
+			stop, err := a.Prompt(ctx, sid, []acp.ContentBlock{acp.TextBlock(big)})
+			if stop != acp.StopCancelled || err == nil || !strings.Contains(err.Error(), "quired stopped it") {
+				t.Fatalf("prompt: %q, %v", stop, err)
+			}
+			if d := time.Since(start); d > 5*time.Second {
+				t.Fatalf("cancel took %s", d)
+			}
+			pid := a.(*acpAgent).cmd.Process.Pid
+			if err := syscall.Kill(pid, 0); !errors.Is(err, syscall.ESRCH) {
+				t.Fatalf("agent %d still exists after Prompt returned: %v", pid, err)
+			}
+			if _, err := a.NewSession(context.Background(), t.TempDir(), nil); err == nil {
+				t.Fatal("a stopped agent accepted session/new")
+			}
+		})
+	}
+}
+
+// close must not wait on a peer that sent half a question, or on a question nobody is answering.
+func TestPermissionBridgeCloseFreesStalledConnections(t *testing.T) {
+	r := &recorder{block: true}
+	c := newClaude(claudeSpec, r, Options{})
+	bridge, err := c.listenPermissions(context.Background(), "s", &claudeSession{always: map[string]bool{}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for p, want := range map[string]os.FileMode{bridge.dir: 0o700, bridge.socket: 0o600} {
+		if fi, err := os.Stat(p); err != nil || fi.Mode().Perm() != want {
+			t.Fatalf("%s: want mode %v, got %v (%v)", p, want, fi.Mode().Perm(), err)
+		}
+	}
+	half, err := net.Dial("unix", bridge.socket)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer half.Close()
+	if _, err := half.Write([]byte(`{"tool_name":`)); err != nil {
+		t.Fatal(err)
+	}
+	whole, err := net.Dial("unix", bridge.socket)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer whole.Close()
+	if err := json.NewEncoder(whole).Encode(permQuestion{ToolName: "Write", Input: json.RawMessage(`{}`)}); err != nil {
+		t.Fatal(err)
+	}
+	for deadline := time.Now().Add(5 * time.Second); ; time.Sleep(5 * time.Millisecond) {
+		r.mu.Lock()
+		n := len(r.asked)
+		r.mu.Unlock()
+		if n == 1 {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("the whole question never reached the client")
+		}
+	}
+
+	closed := make(chan struct{})
+	go func() { bridge.close(); close(closed) }()
+	select {
+	case <-closed:
+	case <-time.After(5 * time.Second):
+		t.Fatal("bridge.close hung on stalled connections")
+	}
+	for name, conn := range map[string]net.Conn{"half": half, "whole": whole} {
+		_ = conn.SetReadDeadline(time.Now().Add(5 * time.Second))
+		b, err := io.ReadAll(conn)
+		var a permAnswer
+		if err != nil || (len(b) > 0 && (json.Unmarshal(b, &a) != nil || a.Behavior != "deny")) {
+			t.Fatalf("%s: want hang-up or deny, got %q, %v", name, b, err)
+		}
+	}
+	if _, err := os.Stat(bridge.dir); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("socket folder left behind: %v", err)
+	}
+}
+
+// askBridge has no fixed timeout (a person may take a while), so it must end with its context.
+func TestAskBridgeEndsWithContext(t *testing.T) {
+	socket := filepath.Join(t.TempDir(), "s")
+	l, err := listenUnix(socket)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer l.Close()
+	held := make(chan net.Conn, 1)
+	go func() {
+		if conn, err := l.Accept(); err == nil {
+			held <- conn // accepted, never answered
+		}
+	}()
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	defer cancel()
+	start := time.Now()
+	_, err = askBridge(ctx, socket, permQuestion{ToolName: "Write", Input: json.RawMessage(`{}`)})
+	if !errors.Is(err, context.DeadlineExceeded) || time.Since(start) > 5*time.Second {
+		t.Fatalf("want deadline exceeded promptly, got %v after %s", err, time.Since(start))
+	}
+	(<-held).Close()
 }
 
 func readArgs(t *testing.T, dir string) [][]string {
@@ -408,10 +608,10 @@ func fakeACP() {
 	cwd := map[string]string{}
 	cancelled := make(chan struct{}, 1)
 	say := func(sid, s string) {
-		_ = conn.Notify(acp.MethodSessionUpdate, acp.SessionNotification{SessionID: sid, Update: acp.ChunkUpdate(acp.UpdateAgentMessageChunk, s).Marshal()})
+		_ = conn.Notify(context.Background(), acp.MethodSessionUpdate, acp.SessionNotification{SessionID: sid, Update: acp.ChunkUpdate(acp.UpdateAgentMessageChunk, s).Marshal()})
 	}
 	tool := func(sid string, u acp.SessionUpdate) {
-		_ = conn.Notify(acp.MethodSessionUpdate, acp.SessionNotification{SessionID: sid, Update: u.Marshal()})
+		_ = conn.Notify(context.Background(), acp.MethodSessionUpdate, acp.SessionNotification{SessionID: sid, Update: u.Marshal()})
 	}
 	h := acp.Handlers{
 		Notification: func(method string, _ json.RawMessage) {
@@ -422,7 +622,11 @@ func fakeACP() {
 		Request: func(ctx context.Context, method string, params json.RawMessage) (any, error) {
 			switch method {
 			case acp.MethodInitialize:
-				return acp.InitializeResponse{ProtocolVersion: 1, AgentCapabilities: acp.AgentCapabilities{LoadSession: true},
+				version := 1
+				if v := os.Getenv("FAKE_ACP_VERSION"); v != "" {
+					_ = json.Unmarshal([]byte(v), &version)
+				}
+				return acp.InitializeResponse{ProtocolVersion: version, AgentCapabilities: acp.AgentCapabilities{LoadSession: true},
 					AuthMethods: []acp.AuthMethod{}, AgentInfo: &acp.Implementation{Name: "fake-acp", Version: "1"}}, nil
 			case acp.MethodSessionNew:
 				var req acp.NewSessionRequest
@@ -477,6 +681,42 @@ func fakeACP() {
 	}
 	conn = acp.NewConn(os.Stdin, os.Stdout, h, nil)
 	<-conn.Done()
+}
+
+// fakeStuck answers initialize and session/new and nothing else. FAKE_STUCK=ignore keeps reading
+// and ignores the prompt and session/cancel; FAKE_STUCK=deaf stops reading stdin and ignores
+// SIGTERM, like an agent wedged in a tool call, so only SIGKILL stops it.
+func fakeStuck() {
+	deaf := os.Getenv("FAKE_STUCK") == "deaf"
+	if deaf {
+		signal.Ignore(syscall.SIGTERM)
+	}
+	in := bufio.NewReader(os.Stdin)
+	for {
+		line, err := in.ReadBytes('\n')
+		if err != nil {
+			return
+		}
+		var m struct {
+			ID     json.RawMessage `json:"id"`
+			Method string          `json:"method"`
+		}
+		_ = json.Unmarshal(line, &m)
+		var result any
+		switch m.Method {
+		case acp.MethodInitialize:
+			result = acp.InitializeResponse{ProtocolVersion: 1, AuthMethods: []acp.AuthMethod{}}
+		case acp.MethodSessionNew:
+			result = acp.NewSessionResponse{SessionID: "s-1"}
+		default:
+			continue
+		}
+		b, _ := json.Marshal(map[string]any{"jsonrpc": "2.0", "id": m.ID, "result": result})
+		_, _ = os.Stdout.Write(append(b, '\n'))
+		if deaf && m.Method == acp.MethodSessionNew {
+			time.Sleep(time.Hour)
+		}
+	}
 }
 
 // fakeClaude plays Claude Code's print mode: it plans with TodoWrite, asks the permission tool
@@ -580,7 +820,7 @@ func askPermission(mcpConfig, toolRef string, input map[string]any) (bool, strin
 		"clientInfo": map[string]any{"name": "fake-claude", "version": "0"}}, &init); err != nil {
 		return false, err.Error()
 	}
-	_ = conn.Notify("notifications/initialized", map[string]any{})
+	_ = conn.Notify(ctx, "notifications/initialized", map[string]any{})
 	var res struct {
 		Content []struct {
 			Text string `json:"text"`

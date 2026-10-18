@@ -58,10 +58,15 @@ type message struct {
 }
 
 // Conn is one JSON-RPC 2.0 connection framed as newline-delimited JSON, the framing ACP uses on stdio.
+//
+// One goroutine does all the writing. A peer that stops reading blocks only that goroutine:
+// every send waits for it with a context, so a stuck pipe never outlasts its caller's deadline.
+// Closing the writer (an agent's stdin) unblocks it and ends the connection.
 type Conn struct {
-	w   io.Writer
-	wmu sync.Mutex
-	h   Handlers
+	w     io.Writer
+	out   chan []byte   // to the writer goroutine; unbuffered, so a send is taken only when it is free
+	wdone chan struct{} // closed when the writer goroutine has stopped
+	h     Handlers
 
 	mu      sync.Mutex
 	next    int64
@@ -78,22 +83,25 @@ type Conn struct {
 // NewConn starts reading r. junk, if set, is given every line that isn't a JSON object.
 func NewConn(r io.Reader, w io.Writer, h Handlers, junk func(line []byte)) *Conn {
 	ctx, cancel := context.WithCancel(context.Background())
-	c := &Conn{w: w, h: h, pending: map[int64]chan message{}, ctx: ctx, cancel: cancel, done: make(chan struct{}), junk: junk}
+	c := &Conn{w: w, out: make(chan []byte), wdone: make(chan struct{}), h: h, pending: map[int64]chan message{},
+		ctx: ctx, cancel: cancel, done: make(chan struct{}), junk: junk}
 	go c.readLoop(r)
+	go c.writeLoop()
 	return c
 }
 
 // Done is closed when the peer's stream ends.
 func (c *Conn) Done() <-chan struct{} { return c.done }
 
-// Err is why the connection ended: nil for a clean EOF.
+// Err is why the connection ended: nil for a clean EOF, or the read or write error.
 func (c *Conn) Err() error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	return c.err
 }
 
-// Call sends a request and decodes the result into result (which may be nil).
+// Call sends a request and decodes the result into result (which may be nil). It returns when
+// ctx ends, even if the peer has stopped reading.
 func (c *Conn) Call(ctx context.Context, method string, params, result any) error {
 	c.mu.Lock()
 	if c.pending == nil {
@@ -107,13 +115,16 @@ func (c *Conn) Call(ctx context.Context, method string, params, result any) erro
 	c.mu.Unlock()
 
 	raw := json.RawMessage(fmt.Sprint(id))
-	if err := c.send(message{ID: &raw, Method: method, Params: mustMarshal(params)}); err != nil {
+	if err := c.send(ctx, message{ID: &raw, Method: method, Params: mustMarshal(params)}); err != nil {
 		c.forget(id)
 		return err
 	}
 	select {
 	case m, ok := <-ch:
 		if !ok {
+			if err := c.Err(); err != nil {
+				return fmt.Errorf("%w: %v", ErrClosed, err)
+			}
 			return ErrClosed
 		}
 		if m.Error != nil {
@@ -131,9 +142,9 @@ func (c *Conn) Call(ctx context.Context, method string, params, result any) erro
 	}
 }
 
-// Notify sends a notification.
-func (c *Conn) Notify(method string, params any) error {
-	return c.send(message{Method: method, Params: mustMarshal(params)})
+// Notify sends a notification, giving up when ctx ends.
+func (c *Conn) Notify(ctx context.Context, method string, params any) error {
+	return c.send(ctx, message{Method: method, Params: mustMarshal(params)})
 }
 
 func (c *Conn) forget(id int64) {
@@ -142,19 +153,55 @@ func (c *Conn) forget(id int64) {
 	c.mu.Unlock()
 }
 
-func (c *Conn) send(m message) error {
+// send hands m to the writer goroutine. It returns once the writer has taken it, not once the
+// peer has read it; a write that then fails ends the connection, which fails every pending Call.
+func (c *Conn) send(ctx context.Context, m message) error {
 	m.JSONRPC = "2.0"
 	b, err := json.Marshal(m)
 	if err != nil {
 		return err
 	}
 	b = append(b, '\n')
-	c.wmu.Lock()
-	defer c.wmu.Unlock()
-	if _, err := c.w.Write(b); err != nil {
-		return fmt.Errorf("acp: write: %w", err)
+	if err := ctx.Err(); err != nil {
+		return err
 	}
-	return nil
+	select {
+	case c.out <- b:
+		return nil
+	case <-c.wdone:
+		return ErrClosed
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
+func (c *Conn) writeLoop() {
+	defer close(c.wdone)
+	for {
+		select {
+		case b := <-c.out:
+			if _, err := c.w.Write(b); err != nil {
+				c.end(fmt.Errorf("acp: write: %w", err))
+				return
+			}
+		case <-c.ctx.Done():
+			return
+		}
+	}
+}
+
+// end fails every pending Call and cancels the handlers. err (nil for a clean EOF) is kept for Err.
+func (c *Conn) end(err error) {
+	c.mu.Lock()
+	if c.err == nil {
+		c.err = err
+	}
+	for _, ch := range c.pending {
+		close(ch)
+	}
+	c.pending = nil
+	c.mu.Unlock()
+	c.cancel()
 }
 
 func (c *Conn) readLoop(r io.Reader) {
@@ -170,16 +217,10 @@ func (c *Conn) readLoop(r io.Reader) {
 			break
 		}
 	}
-	c.mu.Lock()
-	if !errors.Is(err, io.EOF) {
-		c.err = err
+	if errors.Is(err, io.EOF) {
+		err = nil
 	}
-	for _, ch := range c.pending {
-		close(ch)
-	}
-	c.pending = nil
-	c.mu.Unlock()
-	c.cancel()
+	c.end(err)
 	close(c.done)
 }
 
@@ -226,7 +267,7 @@ func (c *Conn) answer(req message) {
 	} else {
 		reply.Result = mustMarshal(res)
 	}
-	_ = c.send(reply) // a peer that has gone away can't be told anything
+	_ = c.send(c.ctx, reply) // a peer that has gone away can't be told anything
 }
 
 func mustMarshal(v any) json.RawMessage {

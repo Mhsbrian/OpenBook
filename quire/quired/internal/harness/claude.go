@@ -521,8 +521,13 @@ func (c *claudeAgent) listenPermissions(ctx context.Context, sid string, s *clau
 		return nil, err
 	}
 	ctx, cancel := context.WithCancel(ctx)
+	// The accept loop counts itself in wg, so a connection it takes is always counted before
+	// close's Wait can see zero. Each connection is closed when ctx ends, which frees a peer
+	// that sent half a question or stopped reading.
 	var wg sync.WaitGroup
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		for {
 			conn, err := l.Accept()
 			if err != nil {
@@ -532,6 +537,7 @@ func (c *claudeAgent) listenPermissions(ctx context.Context, sid string, s *clau
 			go func() {
 				defer wg.Done()
 				defer conn.Close()
+				defer context.AfterFunc(ctx, func() { conn.Close() })()
 				var q permQuestion
 				if err := json.NewDecoder(conn).Decode(&q); err != nil {
 					return
@@ -640,17 +646,24 @@ func ServePermissionMCP(in io.Reader, out io.Writer, socket, version string) err
 	return conn.Err()
 }
 
+// askBridge asks the quired process on socket. There is no fixed timeout, since a person may take
+// their time; it ends when ctx does (Claude Code went away) or when quired closes the connection
+// (the turn ended), and every way it can fail is answered "deny" by the caller.
 func askBridge(ctx context.Context, socket string, q permQuestion) (permAnswer, error) {
 	conn, err := dialUnix(ctx, socket)
 	if err != nil {
 		return permAnswer{}, err
 	}
 	defer conn.Close()
+	defer context.AfterFunc(ctx, func() { conn.Close() })()
 	if err := json.NewEncoder(conn).Encode(q); err != nil {
 		return permAnswer{}, err
 	}
 	var a permAnswer
 	if err := json.NewDecoder(conn).Decode(&a); err != nil {
+		if ctx.Err() != nil {
+			return permAnswer{}, ctx.Err()
+		}
 		return permAnswer{}, err
 	}
 	if a.Behavior != "allow" && a.Behavior != "deny" {

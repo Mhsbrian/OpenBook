@@ -1,0 +1,47 @@
+ANAL-217 review counterexamples, rerun on the revised quired (2026-10-18)
+
+Tests: the checker's three review_test.go files from the ANAL-217 attachment
+quire-q1-review-c28d2eb.tar.gz, copied unchanged into a disposable copy of the
+revised quire/quired (not committed). No controlling terminal (setsid).
+  go test -race -count=1 -timeout 60s -run '^TestReview' -v ./...
+
+On c28d2eb all six counterexamples failed (checker's independent-checks.log).
+On the revised code:
+  PASS  TestReviewDanglingSymlinkWrite         (blocker 1)
+  PASS  TestReviewBlockedWriteIgnoresContext   (blocker 2)
+  PASS  TestReviewCancelTimeoutStillRunning    (blocker 2, agent reaped)
+  PASS  TestReviewIdlePermissionConnectionClose (blocker 3; 0700/0600 modes kept)
+  PASS  TestReviewNoTTYDenies
+  FAIL  TestReviewUnsupportedProtocolVersion: the test's helper calls t.Fatal
+        because Start now refuses version 999 ("initialize: review chose ACP
+        protocol version 999; quired supports 1"). That refusal is the fix.
+  FAIL  TestReviewFileWriteWithoutPermission: unchanged by design. ACP makes
+        permission requests optional for the agent; docs/quire.md §5.2 now says
+        quired does not gate fs/write_text_file (blocker 4).
+
+Output:
+=== RUN   TestReviewNoTTYDenies
+--- PASS: TestReviewNoTTYDenies (0.00s)
+PASS
+ok  	github.com/Mhsbrian/OpenBook/quire/quired	1.023s
+=== RUN   TestReviewBlockedWriteIgnoresContext
+--- PASS: TestReviewBlockedWriteIgnoresContext (0.02s)
+PASS
+ok  	github.com/Mhsbrian/OpenBook/quire/quired/internal/acp	1.043s
+PASS
+ok  	github.com/Mhsbrian/OpenBook/quire/quired/internal/agents	1.035s [no tests to run]
+=== RUN   TestReviewDanglingSymlinkWrite
+--- PASS: TestReviewDanglingSymlinkWrite (0.00s)
+=== RUN   TestReviewFileWriteWithoutPermission
+    review_test.go:32: fs/write_text_file wrote with zero permission requests despite deny client
+--- FAIL: TestReviewFileWriteWithoutPermission (0.00s)
+=== RUN   TestReviewIdlePermissionConnectionClose
+--- PASS: TestReviewIdlePermissionConnectionClose (0.06s)
+=== RUN   TestReviewUnsupportedProtocolVersion
+    review_test.go:79: initialize: review chose ACP protocol version 999; quired supports 1
+--- FAIL: TestReviewUnsupportedProtocolVersion (0.04s)
+=== RUN   TestReviewCancelTimeoutStillRunning
+--- PASS: TestReviewCancelTimeoutStillRunning (0.11s)
+FAIL
+FAIL	github.com/Mhsbrian/OpenBook/quire/quired/internal/harness	0.222s
+FAIL
