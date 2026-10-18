@@ -1,0 +1,12 @@
+=== 2026-10-18T03:42:02Z stage /home/hive/anybook/aosp/cf/b1-snap/cf-fonts/target/product/anybook_vsoc_x86_64 -> /home/hive/anybook/aosp/cf/b1 (top-level files, reflink)
+=== 2026-10-18T03:42:03Z up: anybook-cuttlefish, host GPU: amd /dev/dri/renderD129
+cvd(412)  I 10-18 03:42:06   412   412 main.cc:137] version: 1.57.0 | VCS: 9bb9c72329cedcb436bb75afc05c24d73fbcdf5d
+version: 1.57.0
+VCS: 9bb9c72329cedcb436bb75afc05c24d73fbcdf5d
+=== 2026-10-18T03:42:06Z unpack cvd-host_package.tar.gz -> /root/cvd-host
+=== 2026-10-18T03:42:18Z host tools: packaged
+=== 2026-10-18T03:42:18Z cvd create --host_path=/root/cvd-host --product_path=/cf/product --x_res=1920 --y_res=1080 --dpi=160 --gpu_mode=gfxstream_guest_angle --cpus=4 --memory_mb=8192 --report_anonymous_usage_stats=n
+=== 2026-10-18T03:42:54Z cvd create exit 0 after 36 s
+=== 2026-10-18T03:42:54Z wait for sys.boot_completed
+=== 2026-10-18T03:42:58Z sys.boot_completed=1 at +40 s from cvd create
+=== 2026-10-18T03:45:45Z down
