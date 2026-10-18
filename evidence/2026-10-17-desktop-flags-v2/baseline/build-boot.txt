@@ -1,0 +1,4 @@
+=== 2026-10-17T23:05:16Z m exit 0
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 29:14.50
+=== 2026-10-17T23:05:59Z cvd create exit 0 after 15 s
+=== 2026-10-17T23:06:10Z sys.boot_completed=1 at +26 s from cvd create

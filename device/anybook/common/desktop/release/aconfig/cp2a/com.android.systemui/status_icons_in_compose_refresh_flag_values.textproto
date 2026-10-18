@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 4: refreshed Compose status icons; pairs with status_bar_system_status_icons_in_compose
+flag_value {
+  package: "com.android.systemui"
+  name: "status_icons_in_compose_refresh"
+  state: ENABLED
+  permission: READ_ONLY
+}

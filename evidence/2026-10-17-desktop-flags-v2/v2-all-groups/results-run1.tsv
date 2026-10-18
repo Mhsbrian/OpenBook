@@ -1,0 +1,25 @@
+check	result	detail
+flag state	INFO	group 1: 6/6 enabled; group 2: 2/2 enabled; group 3: 15/15 enabled; group 4: 16/16 enabled; group 5: 42/42 enabled; group 6: 6/6 enabled
+window shadows (SurfaceFlinger)	INFO	'boxShadow' mentions: 20, layers with shadowRadius>0: 0
+windows: start	INFO	task #10 com.android.documentsui mode=freeform bounds=(329, 167, 1711, 944)
+focus (click into the window)	PASS	mCurrentFocus=com.android.documentsui
+move (caption drag)	PASS	bounds (329, 167, 1711, 944) -> (176, 88, 1558, 865)
+resize (corner drag)	PASS	bounds (176, 88, 1558, 865) -> (176, 88, 1680, 946)
+no-resize cursor (drag below minimum size)	INFO	resolvedPointerType while held: 1017 (1000 = arrow); bounds after: (176, 88, 569, 469)
+maximize (Meta+=)	PASS	bounds (176, 88, 569, 469) -> (0, 24, 1920, 1024)
+restore (Meta+= again)	PASS	bounds -> (176, 88, 569, 469)
+maximize (caption button)	PASS	bounds -> (0, 24, 1920, 1024)
+restore (caption double click)	INFO	bounds -> (176, 88, 569, 469)
+minimize (caption button)	PASS	task visible=False
+taskbar click restores the minimized window	FAIL	icon (1144, 1028, 1192, 1076), task visible=None
+taskbar click on the focused window	INFO	task visible=None; Files tasks: 
+taskbar icon menu (right click)	INFO	screenshot
+minimize (Meta+-)	FAIL	task visible=None; focus was Taskbar; Files tasks: 
+new window placement (cascade)	INFO	#17 com.android.deskclock freeform (329, 167, 1711, 944); #16 android.task.calendar freeform (269, 107, 1651, 884)
+QS tile hover (tooltip)	INFO	tile Wi-Fi,null (1542, 200, 1586, 244); tooltip-like nodes: 0
+notification hover	INFO	no notification row in the shade dump
+power menu blur	INFO	layers with a blur radius: 0
+volume dialog blur	INFO	layers with a blur radius: 0
+crash buffer	FAIL	22 lines; FATAL EXCEPTION, Process: com.android.systemui
+ANRs	PASS	am_anr events: 0
+SELinux denials	INFO	4 distinct

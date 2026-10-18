@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 6: status bar touch forwarding from Compose (scene container is on)
+flag_value {
+  package: "com.android.systemui"
+  name: "status_bar_event_forwarding_modernization"
+  state: ENABLED
+  permission: READ_ONLY
+}

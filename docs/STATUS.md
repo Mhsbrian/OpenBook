@@ -60,6 +60,7 @@
 | ANAL-201 Googlebook UI and GApps review | In progress (PR #71 merged) | Review done (`docs/googlebook-ui.md`, `docs/gapps.md`). All ten follow-ups approved and running in parallel on the shared lane (builds take turns under the lane lock; each issue has its own Cuttlefish ports) | — |
 | ANAL-202 to ANAL-209 beautification B1–B8 | In progress | B1 Google Sans · B2 blur on the G14 · B3 flag set v2 · B4 shapes and wallpaper dim · B5 clean desktop · B6 brand assets · B7 document fonts · B8 first-run setup. G14 checks go to ANAL-192's next stick | — |
 | ANAL-203 B2: background blur on the G14 | In review (PR #72 merged) | Done: the G14 product enables blur (built; Cuttlefish unchanged), and the G14 image blurs in QEMU. Measured in Cuttlefish: SurfaceFlinger blurs the shade's window (radius 34) only with blur on; on a quiet host SystemUI's frames don't change (janky 3.6 vs 4.6 %), RenderEngine spends 2.8–4.0 ms per GPU frame; under heavy host load the shade's janky frames double. The graphics check gets a `blur` part with pass/fail verdicts. Found: Googlebook turns off the full-screen shade blur (`config_supportBlurredWallpaper=false`), for B3. Renderer properties evaluated, not flipped (`docs/graphics-amd.md`) | ANAL-192's stick: the graphics check boot |
+| ANAL-204 B3 desktop flag set v2 | In review (PR #79) | Done: all 218 Googlebook flags that AOSP 17 declares are triaged (`device/anybook/common/desktop/release/googlebook-triage.tsv`), and 84 are on (value set 79 → 163). Two broke the desktop and stay off: a SystemUI crash on restoring a minimized window, and an empty notification shade with no lock screen. 23 do nothing, because AOSP 17 has no code for them. Shown in Cuttlefish: window box shadows, stepped cascading, QS tooltips, power-menu blur (`docs/googlebook-flags.md`). Next: the G14 check on ANAL-192's stick | ANAL-192's stick; B2 for blur on the G14 |
 | ANAL-205 B4: circular icons, no wallpaper dim | In review (PR #73 merged) | **Done in Cuttlefish:** the framework RRO sets the circle mask, round icons and 0 wallpaper dim; `desktop.mk` sets Googlebook's wallpaper colour thresholds 55 / 12. All apps, the taskbar and Settings now draw circles. A grey wallpaper is no longer dimmed (171 → 180 on screen). A pick in Wallpaper & style still wins in the taskbar. Both products build. Open: the taskbar's all-apps panel ignores a shape pick, on the baseline too (`docs/googlebook-ui.md` §2.4) | G14 check on ANAL-192's stick |
 | ANAL-206 B5: a clean default desktop | In review (PR #75 merged) | Done in Cuttlefish and on the G14 product in QEMU: no search box and no `QuickSearchBox`; taskbar pins Files, Settings, browser, Calendar, Gallery, Camera (only with a camera); touch, keypress and non-forced screenshot sounds off; installer live checks 40/40 (`docs/aosp-desktop.md`, `evidence/2026-10-17-clean-desktop/`). Next: the G14 check on the next stick | The owner's review of the pin list; ANAL-192's next stick |
 | ANAL-210, ANAL-211 Google services | In progress | G1 microG patch and add-on; G2 an installer step for a user-supplied GApps package (synthetic test package only) | — |
@@ -80,6 +81,21 @@
 **Build host:** one AOSP build at a time (`flock ~/anybook/aosp/.lane.lock`, taken by `scripts/aosp-docker.sh`), because builds peak at about 50 GB of the 61 GB RAM. Builds and images are in `docs/BUILD.md`; the live image and the owner checklists are in `docs/installer.md` §11.
 
 ## History
+
+### 2026-10-18: desktop flag set v2, 84 Googlebook flags on (ANAL-204)
+- **Triage (C).** Googlebook enables 218 flags that AOSP 17 declares and our build leaves off. Each now has a category, a decision and a reason (`device/anybook/common/desktop/release/googlebook-triage.tsv`): 84 enabled in six groups, 43 deferred, 89 skipped, 2 dropped.
+  - 23 have no reader in our tree, so they do nothing. Among them are `perfect_edge` and `enable_taskbar_icon_desktop_clicks`.
+  - Googlebook runs in headless system user mode (`ro.fw.mu.headless_system_user=true`); OpenBook doesn't, so the `hsu_*` flags are skipped.
+- **Dropped after testing (C, Cuttlefish):**
+  - `enable_add_window_decoration_to_all_tasks` crashed SystemUI when a minimized window was restored from the taskbar.
+  - `start_on_gone_scene_if_no_lockscreen` emptied the notification shade. With OpenBook's disabled lock screen, SystemUI starts on Gone, and the keyguard section that binds the notification stack never runs. Setting a PIN on the same image brings the rows back.
+- **Visible (C):** box shadows and a 1 px border on desktop windows, 60 px stepped cascading, the windowing pill in the maximize menu, QS tile tooltips, power-menu blur, and the Cast tile over Ethernet.
+- **Tools:**
+  - `scripts/desktop-flags.py --list` (the value set from the triage);
+  - `scripts/ui/flag-facts.py` (declarations and readers);
+  - `scripts/ui/flag-checks.py` (desktop checks driven by a virtual uinput mouse);
+  - `scripts/ui/flag-triage-md.py`.
+- **Deviation:** the six groups were built together in one image, because sibling builds held the shared lane. Each failure was then traced to one flag and confirmed in a rebuild (v3, v4).
 
 ### 2026-10-18: a clean default desktop (ANAL-206, backlog B5)
 - **Done** (`docs/aosp-desktop.md`, "The default desktop"):

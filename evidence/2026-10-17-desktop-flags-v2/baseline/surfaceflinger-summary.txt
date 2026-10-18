@@ -1,0 +1,19 @@
+# dumpsys SurfaceFlinger summary
+Build configuration: [sf PRESENT_TIME_OFFSET=0 FORCE_HWC_FOR_RBG_TO_YUV=0 MAX_VIRT_DISPLAY_DIM=0 RUNNING_WITHOUT_SYNC_FRAMEWORK=1 NUM_FRAMEBUFFER_SURFACE_BUFFERS=2]
+Display 4619827353912518656 (HWC display 0): port=0 pnpId=GGL screenPartStatus=UNSUPPORTED displayName="CrosvmDisplay"
+   isEnabled=true isSecure=true usesDeviceComposition=false 
+   usesClientComposition=true flipClientTarget=false reusedClientComposition=false 
+GLES: Google Inc. (AMD), ANGLE (AMD, Vulkan 1.4.305 (Virtio-GPU GFXStream (AMD Radeon Graphics (RADV RAPHAEL_MENDOCINO)) (0x0000164E)), AMD-26.0.99), OpenGL ES 3.2 (ANGLE 2.1 git hash: 8d8796935e4faeaf19e67ac0a5949e71a5252e7f)
+RenderEngine chosen blur algorithm: KawaseDualFilterV2
+## HWC layers (top to bottom): composition type, layer
+CLIENT	 VRI-Taskbar#75
+CLIENT	 VRI-StatusBar#72
+CLIENT	 Caption of Task=10#133
+CLIENT	 VRI-com.android.documentsui/com.android.documentsui.files.FilesActivity#139
+CLIENT	 Task=10#122
+CLIENT	 Caption of Task=9#110
+CLIENT	 VRI-com.android.settings/com.android[...]ettings$NetworkDashboardActivity#117
+CLIENT	 VRI-com.android.settings/com.android.settings.Settings#116
+CLIENT	 Task=9#97
+CLIENT	 VRI-com.android.launcher3/com.androi[...]er3.uioverrides.QuickstepLauncher#88
+CLIENT	 Wallpaper BBQ wrapper#43

@@ -1,0 +1,4 @@
+      2 avc: denied  { find } for uid=1003 name=gpu scontext=u:r:bootanim:s0 tcontext=u:object_r:gpu_service:s0 tclass=service_manager permissive=0
+      1 avc: denied  { write } for  comm="init" name="error_report_end" dev="tracefs" scontext=u:r:init:s0 tcontext=u:object_r:debugfs_bootreceiver_tracing:s0 tclass=dir permissive=0 bug=b/340399580
+      1 avc: denied  { read } for  name="u:object_r:zygote_config_prop:s0" dev="tmpfs" scontext=u:r:gceservice:s0:c66,c256,c512,c768 tcontext=u:object_r:zygote_config_prop:s0 tclass=file permissive=0 app=com.android.google.gce.gceservice
+      1 avc: denied  { read } for  comm=".gce.gceservice" name="u:object_r:zygote_config_prop:s0" dev="tmpfs" scontext=u:r:gceservice:s0:c66,c256,c512,c768 tcontext=u:object_r:zygote_config_prop:s0 tclass=file permissive=0 app=com.android.google.gce.gceservice
