@@ -1,0 +1,44 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Sun, 18 Oct 2026 13:00:00 +0000
+Subject: [PATCH] ANYBOOK: wallpaper preview: a granted fullscreen request does
+ not crash
+
+WallpaperPreviewActivity.requestFullscreen() passes an
+OutcomeReceiver<Void, Throwable> whose onResult() takes a non-null Void.
+FullscreenRequestHandler reports success as onResult(null), so Kotlin's
+parameter check threw a NullPointerException and killed
+com.android.wallpaper whenever the preview, opened in a desktop
+(freeform) window, was granted fullscreen.
+
+Seen on the ROG Zephyrus G14 (OpenBook anal192d, 2026-10-18 11:05:07Z),
+4 s after the owner opened a wallpaper preview from Wallpaper & style:
+java.lang.NullPointerException: Parameter specified as non-null is null:
+method ...WallpaperPreviewActivity$requestFullscreen$1.onResult
+  at WallpaperPreviewActivity$requestFullscreen$1.onResult(WallpaperPreviewActivity.kt:276)
+  at android.app.FullscreenRequestHandler.notifyFullscreenRequestResult(FullscreenRequestHandler.java:159)
+
+Take a nullable Void, as the framework delivers it.
+---
+ .../wallpaper/picker/preview/ui/WallpaperPreviewActivity.kt  | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/com/android/wallpaper/picker/preview/ui/WallpaperPreviewActivity.kt b/src/com/android/wallpaper/picker/preview/ui/WallpaperPreviewActivity.kt
+index 69d704887..947df13e8 100644
+--- a/src/com/android/wallpaper/picker/preview/ui/WallpaperPreviewActivity.kt
++++ b/src/com/android/wallpaper/picker/preview/ui/WallpaperPreviewActivity.kt
+@@ -273,8 +273,9 @@ class WallpaperPreviewActivity :
+     private fun requestFullscreen(request: Int, onError: ((Throwable) -> Unit)? = null) {
+         requestFullscreenMode(
+             request,
+-            object : OutcomeReceiver<Void, Throwable> {
+-                override fun onResult(result: Void) {
++            object : OutcomeReceiver<Void?, Throwable> {
++                // FullscreenRequestHandler reports success as onResult(null).
++                override fun onResult(result: Void?) {
+                     Log.v(TAG, "requestFullscreenMode $request success")
+                 }
+ 
+-- 
+2.56.0
+

@@ -1,0 +1,36 @@
+# Boot A: the default "OpenBook" boot (persisted logcat, live-001/prior/). SELinux:
+10-18 11:00:36.744000  logd   774   774 I auditd  : type=1404 audit(0.0:3): enforcing=1 old_enforcing=0 auid=4294967295 
+# BootAnimation and init's bootanim service
+10-18 11:00:51.528284  1003  1155  1155 D BootAnimation: BootAnimationStartTiming start time: 17804ms
+10-18 11:00:51.528495  1003  1155  1155 D BootAnimation: BootAnimationPreloadTiming start time: 17804ms
+10-18 11:00:51.538676  1003  1155  1155 D BootAnimation: /product/media/bootanimation.zip is loaded successfully
+10-18 11:00:51.673470  1003  1155  1155 D BootAnimation: BootAnimationPreloadTiming stop time: 17949ms
+10-18 11:00:51.749090  1003  1155  1188 D BootAnimation: BootAnimationShownTiming start time: 18025ms
+10-18 11:00:51.749104  1003  1155  1188 D BootAnimation: Playing files = /product/media/bootanimation.zip/part0, Requested repeat = 1, playUntilComplete = true
+10-18 11:00:53.155286  1003  1155  1188 D BootAnimation: Playing files = /product/media/bootanimation.zip/part1, Requested repeat = 0, playUntilComplete = false
+10-18 11:00:55.184615  1003  1155  1188 D BootAnimation: Playing files = /product/media/bootanimation.zip/part1, Requested repeat = 0, playUntilComplete = false
+10-18 11:00:57.192596  1003  1155  1188 D BootAnimation: Playing files = /product/media/bootanimation.zip/part1, Requested repeat = 0, playUntilComplete = false
+10-18 11:00:59.200045  1003  1155  1188 D BootAnimation: Playing files = /product/media/bootanimation.zip/part1, Requested repeat = 0, playUntilComplete = false
+10-18 11:01:01.212941  1003  1155  1188 D BootAnimation: Playing files = /product/media/bootanimation.zip/part1, Requested repeat = 0, playUntilComplete = false
+10-18 11:01:03.222222  1003  1155  1188 D BootAnimation: Playing files = /product/media/bootanimation.zip/part1, Requested repeat = 0, playUntilComplete = false
+10-18 11:01:03.957409  1003  1155  1188 D BootAnimation: Playing files = /product/media/bootanimation.zip/part2, Requested repeat = 1, playUntilComplete = true
+10-18 11:01:04.359936  1003  1155  1188 D BootAnimation: BootAnimationShownTiming End time: 30636ms
+10-18 11:01:04.367395  1003  1155  1155 D BootAnimation: BootAnimationStopTiming start time: 30643ms
+10-18 11:01:04.374705  root     1     1 I init    : Service 'bootanim' (pid 1155) exited with status 0 oneshot service took 12.934000 seconds in background
+10-18 11:01:04.411778  1000  1011  3954 I sf_stop_bootanim: 30687
+
+# Boot B: "OpenBook - save logs"
+10-18 11:59:42.324879  1003  1145  1145 D BootAnimation: BootAnimationStartTiming start time: 12550ms
+10-18 11:59:42.325063  1003  1145  1145 D BootAnimation: BootAnimationPreloadTiming start time: 12551ms
+10-18 11:59:42.327980  1003  1145  1145 D BootAnimation: /product/media/bootanimation.zip is loaded successfully
+10-18 11:59:42.450439  1003  1145  1145 D BootAnimation: BootAnimationPreloadTiming stop time: 12676ms
+10-18 11:59:42.545457  1003  1145  1150 D BootAnimation: BootAnimationShownTiming start time: 12771ms
+10-18 11:59:42.545474  1003  1145  1150 D BootAnimation: Playing files = /product/media/bootanimation.zip/part0, Requested repeat = 1, playUntilComplete = true
+10-18 11:59:43.951445  1003  1145  1150 D BootAnimation: Playing files = /product/media/bootanimation.zip/part1, Requested repeat = 0, playUntilComplete = false
+10-18 11:59:45.959633  1003  1145  1150 D BootAnimation: Playing files = /product/media/bootanimation.zip/part1, Requested repeat = 0, playUntilComplete = false
+10-18 11:59:47.969228  1003  1145  1150 D BootAnimation: Playing files = /product/media/bootanimation.zip/part1, Requested repeat = 0, playUntilComplete = false
+10-18 11:59:48.303486  1003  1145  1150 D BootAnimation: Playing files = /product/media/bootanimation.zip/part2, Requested repeat = 1, playUntilComplete = true
+10-18 11:59:48.705633  1003  1145  1150 D BootAnimation: BootAnimationShownTiming End time: 18931ms
+10-18 11:59:48.711680  1003  1145  1145 D BootAnimation: BootAnimationStopTiming start time: 18937ms
+10-18 11:59:48.718929  root     1     1 I init    : Service 'bootanim' (pid 1145) exited with status 0 oneshot service took 6.467000 seconds in background
+10-18 11:59:48.736345  1000  1000  1912 I sf_stop_bootanim: 18962
