@@ -21,9 +21,11 @@ allowxperm openbook_installd openbook_disk_block_device:blk_file ioctl {
 # BLKRRPART (the kernel re-reads the new table) and BLKFLSBUF (drop cached blocks before the read-back).
 allow openbook_installd self:global_capability_class_set sys_admin;
 
-# The engine forks the install so it survives the app; its log lives in its own data directory.
+# The engine forks the install so it survives the app; its log lives in its own data directory. A Google apps
+# package the user brings (ANAL-211) is received and staged there too (gapps/: the upload, and the accepted files
+# in a directory per check, renamed into place and removed when the next check starts).
 type openbook_install_data_file, file_type, data_file_type, core_data_file_type;
-allow openbook_installd openbook_install_data_file:dir rw_dir_perms;
+allow openbook_installd openbook_install_data_file:dir create_dir_perms;
 allow openbook_installd openbook_install_data_file:file create_file_perms;
 
 # sysfs. A system domain may not read unlabeled sysfs files, the battery's or the LEDs' (Treble), so: directories

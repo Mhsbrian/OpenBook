@@ -109,6 +109,14 @@ fun ConfirmScreen(vm: InstallerViewModel, rail: RailModel) {
         if (whole) EraseBox(plan) else KeepBox(plan)
         BeforeAfter(plan)
         IdRow(plan.targetById)
+        plan.gapps?.let { g ->  // the user's own Google apps package (ANAL-211)
+            Notice(icon = Icons.Rounded.Warning, modifier = Modifier.padding(bottom = 10.dp).fillMaxWidth()) {
+                Text(
+                    stringResource(R.string.confirm_gapps, g.name.ifEmpty { g.file }, g.apps, bytesText(g.bytes)),
+                    style = Ob.type.body,
+                )
+            }
+        }
         plan.warnings.forEach { w ->
             Notice(
                 icon = Icons.Rounded.Warning,

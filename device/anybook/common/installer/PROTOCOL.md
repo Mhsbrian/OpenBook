@@ -14,7 +14,9 @@ time; a second connection waits. Requests on one connection are handled in order
 Errors: `{"id": N, "ok": false, "code": "short_code", "error": "Human-readable sentence."}`.
 Codes: `bad_request`, `busy` (an install is running), `no_source` (not booted from an OpenBook stick, or its
 manifest is missing or unreadable), `no_target`, `not_eligible` (see `why`), `plan_changed`, `confirm_mismatch`,
-`power`, `io`, `internal`.
+`power`, `io`, `internal`. The Google apps step (ANAL-211, `gapps_check` below) adds `refused`, `not_a_package`,
+`no_package`, `no_gapps` (the plan names a package that is not staged, or changed), `gapps_clash` (the package adds
+a file the image has), `gapps_not_confirmed`.
 
 All sizes are bytes (integers). Strings from the engine (model names, details) are not localised; the app
 localises everything it renders from ids and states.
@@ -119,7 +121,25 @@ English; "View the plan" shows it in a monospace list. `boot.nvram`: `planned` (
 "OpenBook" will be created after verification) or `unavailable`. `boot.boot_order`: `first` (with `set_default`, the
 user's consent, S11) or `unchanged`. `warnings` codes: `nvram_unavailable` (no efivarfs: the whole-disk install boots
 through the fallback path; alongside needs a firmware boot entry the user adds), `boot_order_unchanged` (an entry is
-made, but the other system stays first), `external`, `encrypted_kept`, `encrypted_erased`, `battery`.
+made, but the other system stays first), `external`, `encrypted_kept`, `encrypted_erased`, `battery`;
+with a Google apps package: `gapps_uncertified` (always), `privapp_allowlist_not_enforced` (this image does not set
+`ro.control_privapp_permissions=enforce`).
+
+**With a Google apps package** (ANAL-211): the request adds `"gapps":"<gapps_sha256 from gapps_check>"` and
+`"gapps_confirmed":true` (the user ticked the uncertified-device warning; without it the plan is refused with
+`gapps_not_confirmed`). The plan then has `request.gapps`, the operations `check_gapps`, `product` and `vbmeta`,
+`vbmeta_a` with `content: "vbmeta_rebuilt"`, `openbook/a/bootconfig.img` with `"sha256": null, "after_product":
+true` (its vbmeta digest is known once product is built), and two sections:
+```json
+"gapps":{"manifest_sha256":"4074e384...","package":{"file":"LiteGapps-x86_64-17.0-....zip","bytes":220000000,
+  "sha256":"...","name":"LiteGapps","version":"..."},"files":120,"bytes":612000000,
+  "apps":[{"dir":"priv-app/GmsCore","package":"com.google.android.gms","version_name":"...","version_code":0,
+           "privileged":true,"native":"x86_64","signer_sha256":"...","signer":"CN=Android, OU=Android, O=Google Inc., ..."}]},
+"product":{"partition":"product_a","stick_bytes":292503552,"stick_image_bytes":286937088,"bytes":905969664,
+  "image_bytes":899000000,"hashtree_bytes":7090176,"fec_roots":0,"new_inodes":250,"rewritten_directories":5,
+  "super_offset_before":830472192,"super_offset":1344274432,"super_metadata_sha256":"...","vbmeta":"unsigned"}
+```
+A plan without `gapps` is exactly what it was before this step existed.
 
 ## apply (writes; S3, S4)
 `{"id":5,"cmd":"apply","plan_sha256":"9f2c...","target":"nvme-SK_hynix_PVC10_AN0BS4F2A","typed":"sk hynix pvc10","power":{"ac":true,"battery_pct":87}}`
@@ -146,6 +166,41 @@ wipe or add the partition table), `boot_images` (boot/init_boot/vendor_boot/vbme
 `boot_entry` (ESP/XBOOTLDR files, loader entry, NVRAM entry if possible), `verify` (read back every written
 partition, S9), `report`. Step states: `pending`, `running`, `done`, `failed`, `skipped`. `pct` is overall
 progress (0–100); `done`/`total` are the running step's own bytes, `all_done`/`all_total` the whole install's. If the client disconnects the install continues; reconnect and send `attach`.
+
+With a package, the report adds `"gapps":{"manifest_sha256":..., "product":"product_a", "product_bytes":...,
+"product_sha256":..., "root_digest":..., "super_offset":..., "vbmeta_digest":..., "vbmeta_size":..., "vbmeta":"unsigned"}`.
+
+## gapps_check (ANAL-211)
+A Google apps package the user picked (docs/gapps.md section 5). The request line is followed at once by exactly
+`bytes` raw bytes, the file itself:
+`{"id":10,"cmd":"gapps_check","name":"LiteGapps-....zip","bytes":220000000}` + the file. While it arrives the
+daemon sends `{"id":10,"event":"progress","step":"upload","done":...,"total":...}`; no other request is read until
+it is complete. The daemon saves it below `/data/misc/openbook_install/gapps/`, checks it and stages what it may
+install (the earlier staged package is removed), deletes the upload, and answers:
+```json
+{"id":10,"ok":true,"gapps_sha256":"4074e384...","gapps":{"schema":"openbook-gapps/1",
+  "package":{"file":"...","bytes":220000000,"sha256":"...","layout":"litegapps","payload":"files/files.tar.br",
+             "name":"...","version":"...","author":"...","type":"litegapps"},
+  "arch":"x86_64","sdk":37,"checked":"2026-10-18T06:00:00Z","bytes":612000000,
+  "files":[{"path":"priv-app/GmsCore/GmsCore.apk","kind":"apk","bytes":...,"sha256":"...","stage":"files/00042"}],
+  "apps":[{"dir":"priv-app/GmsCore","privileged":true,"apks":[{"path":"...","split":null}],
+           "package":"com.google.android.gms","version_code":...,"version_name":"...","min_sdk":...,"target_sdk":...,
+           "abis":["x86_64"],"native":"x86_64","requested_permissions":...,"signing_scheme":"v3",
+           "signer_sha256":"...","signer":"CN=Android, OU=Android, O=Google Inc., L=Mountain View, ST=California, C=US"}],
+  "xml":[{"path":"etc/permissions/privapp-permissions-google.xml","elements":{"privapp-permissions":20}}]},
+ "warnings":["multi_abi:com.google.android.gms"]}
+```
+`gapps` is the install manifest; `gapps_sha256` is the sha256 of its exact bytes and names it in `plan`. It is
+also written into the new system as `/product/etc/openbook/gapps-manifest.json`. `warnings`: `multi_abi:<package>`
+(an APK also carries libraries for other ABIs, never loaded here), `no_privapp_allowlist` (no `etc/permissions`
+file). A refusal is `{"id":10,"ok":false,"code":"refused","error":"3 paths cannot be installed","refused":[{"path":
+"framework/com.google.android.maps.jar","rule":"framework","why":"touches the framework (framework libraries)"}],
+"refused_more":0}`. Rules: `wrong_arch`, `wrong_sdk`, `outside_product`, `unexpected_path`, `unsafe_path`, `link`,
+`special_file`, `framework`, `init`, `selinux`, `native_lib`, `native_abi`, `preopted`, `duplicate`, `too_big`,
+`too_many_files`, `empty`, `apk_invalid`, `unsigned`, `platform_uid`, `needs_newer_sdk`, `split_mismatch`,
+`duplicate_package`, `xml_root`, `xml_element`, `xml_doctype`, `xml_malformed`. Other failures: `not_a_package`
+(not a zip, no `files/files.tar.*`, damaged data), `no_package` (unreadable), `io`. The CLI does the same:
+`openbook-install gapps-check --package FILE`, then `plan ... --gapps <sha256>`.
 
 ## attach / status
 `{"id":6,"cmd":"attach"}` replays the current job's step states, then streams like `apply` until it ends (or
