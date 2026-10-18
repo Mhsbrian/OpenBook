@@ -446,9 +446,9 @@ As of 2026-10-17. Evidence is in `evidence/2026-10-17-blur/`; the UI side is in 
 
 | | OpenBook G14 (`anybook_g14_x86_64`) | OpenBook Cuttlefish (`anybook_cf_x86_64_pc`, `gfxstream_guest_angle`) | Googlebook (`ruby`) |
 |---|---|---|---|
-| SurfaceFlinger's RenderEngine | **SkiaGL**, threaded, on ANGLE → Vulkan → RADV (C: `SkiaGLRenderEngine::create` in the G14's `g14-desktop2` crash backtrace) | SkiaGL on ANGLE → gfxstream → the host's RADV (C) | Skia **Graphite** on Vulkan (inferred from its properties and flags, below; not observed running) |
+| SurfaceFlinger's RenderEngine | **SkiaGL**, threaded, on ANGLE → Vulkan → RADV (C: `Threaded RenderEngine with SkiaGL Backend (Ganesh)` in the G14's `anal192d` logcat; earlier, `SkiaGLRenderEngine::create` in the `g14-desktop2` crash backtrace) | SkiaGL on ANGLE → gfxstream → the host's RADV (C) | Skia **Graphite** on Vulkan (inferred from its properties and flags, below; not observed running) |
 | HWUI (apps, SystemUI, Launcher) | **SkiaGL** (`ro.hwui.use_vulkan` unset) on ANGLE | **SkiaVk**: Cuttlefish's launcher sets `debug.hwui.renderer=skiavk` for gfxstream | SkiaVk (`ro.hwui.use_vulkan=true`) |
-| Background blur | **on, since this change** | on (inherited from `device/google/cuttlefish`) | on |
+| Background blur | **on, since this change**; on the G14 (`anal192d`): `Background Blurs Enabled (Kawase dual-filtering V2 algorithm)`, radius 51 px behind the shade | on (inherited from `device/google/cuttlefish`) | on |
 | Blur algorithm | `KawaseDualFilterV2`, AOSP 17's default (`debug.renderengine.blur_algorithm` unset) | the same (C: `RenderEngine chosen blur algorithm`) | not read |
 
 The blur itself is drawn by RenderEngine, on the GPU, when SurfaceFlinger composes a frame that has a blurred layer. A blurred layer forces GPU composition for that frame. In Cuttlefish, SurfaceFlinger composed none of the shade's frames on the GPU with blur off and about two thirds with it on (the composer HAL handles the rest); on the G14, drm_hwcomposer uses only the primary plane (`ro.vendor.hwc.use_overlay_planes=false`), so SurfaceFlinger composes most frames on the GPU anyway and blur adds only its own passes. HYPOTHESIS until the G14 run below.
