@@ -581,8 +581,14 @@ Unchanged behaviour:
 - **Every live boot:** `scripts/installer/live-report.py` has a new `refresh_rate` verdict, on both G14 and VM
   sticks. It passes when the active mode is the fastest mode and the primary render range reaches it. On the
   existing G14 captures it says NO for `anal176s`, `anal178c`, `desktop2` and `desktop3` (render max 60).
-- **On the G14:** next stick. HYPOTHESIS until then: on the G14 the dump shows `render=[0, inf]` and
-  `refresh_rate` passes.
+- **On the G14, before the fix** (the owner's `anal192d` session; `evidence/2026-10-18-refresh-rate/g14-anal192d-baseline.md`):
+  - Both captured boots: 120 Hz scanout, primary render range [0, 60], and `refresh_rate` NO.
+  - The hour-long default boot spent 99.7 % of its screen-on time drawing at 60. 120 Hz appeared only in 17 brief
+    stretches, adding up to 3.5 s.
+  - `scripts/graphics/render-rate-timeline.py` measures a session from its persisted logcat, for boots without a
+    dumpsys.
+- **On the G14, after:** `anal192e`. HYPOTHESIS until then: the dump shows `render=[0, 1000]`, `refresh_rate`
+  passes, and most screen-on time is at 120. Compare missed frames per minute too.
 
 **Check a stick that predates the fix:** Developer options → "Force peak refresh rate" sets `min_refresh_rate` to
 infinity. That vote has priority 3 and conflicts with the default vote at priority 0, so DisplayModeDirector drops
