@@ -17,8 +17,8 @@ mkdir -p "$L" "$W"
 OLD=$W/main-src; rm -rf "$OLD"; mkdir -p "$OLD"
 git -C "$R" archive origin/main device/anybook/common/installer/engine | tar -x -C "$OLD"
 B=$A/installer/build/openbook-install-host-g2; BM=$A/installer/build/openbook-install-host-main
-"$R/scripts/gapps/build-host-engine.sh" "$B" >/dev/null
-"$R/scripts/gapps/build-host-engine.sh" "$BM" "$OLD/device/anybook/common/installer/engine" >/dev/null
+"$R/scripts/installer/engine-host-build.sh" "$B" >/dev/null
+"$R/scripts/installer/engine-host-build.sh" "$BM" "$OLD/device/anybook/common/installer/engine" >/dev/null
 echo "engine $(git -C "$R" rev-parse --short HEAD)$( [ -z "$(git -C "$R" status --porcelain)" ] || echo +dirty) vs origin/main $(git -C "$R" rev-parse --short origin/main)" > "$L/engines.txt"
 rc=0
 "$D" python3 "$R/scripts/gapps/engine-gapps-test.py" --engine "$B" --main "$BM" --image "$IMG" --packages "$P" \

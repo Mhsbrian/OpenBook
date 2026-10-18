@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: Apache-2.0
-# Build openbook-install for the host with the decoders it links on Android (ANAL-211): zlib (the container's), the
-# LZMA SDK's xz decoder (external/lzma, as liblzma) and brotli's decoder (external/brotli, as libbrotli), compiled
-# from the AOSP tree, in the openbook-installer container.
+# Build openbook-install (device/anybook/common/installer/engine) for the host tests, in the openbook-installer
+# container. Since ANAL-211 the engine links the decoders it uses on Android: zlib (the container's), the LZMA SDK's
+# xz decoder (external/lzma, as liblzma) and brotli's decoder (external/brotli, as libbrotli), compiled from the AOSP
+# tree. Engines from before that (main's, for the "same plan" checks) are plain C with libc only.
 #
-# usage: build-host-engine.sh OUT [ENGINE_SRC_DIR]     (default: this tree's device/anybook/common/installer/engine)
+# usage: engine-host-build.sh OUT [ENGINE_SRC_DIR]     (default: this tree's device/anybook/common/installer/engine)
 set -euo pipefail
 A=${OPENBOOK_HOME:-${ANYBOOK_HOME:-$HOME/anybook}}
 R=$(cd "$(dirname "$0")/../.." && pwd)
-OUT=$(realpath -m "${1:?usage: build-host-engine.sh OUT [ENGINE_SRC_DIR]}"); SRC=$(realpath "${2:-$R/device/anybook/common/installer/engine}")
+OUT=$(realpath -m "${1:?usage: engine-host-build.sh OUT [ENGINE_SRC_DIR]}"); SRC=$(realpath "${2:-$R/device/anybook/common/installer/engine}")
 X=$A/aosp/src/external; LZ=$X/lzma/C; BR=$X/brotli/c
 CF=(-O2 -g -Wall -Wextra -Werror -Wno-sign-compare -Wno-unused-parameter -Wno-format-truncation -Wno-missing-field-initializers)
 LIBS=()
