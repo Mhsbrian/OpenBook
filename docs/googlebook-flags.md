@@ -157,6 +157,22 @@ Evidence: `v3/shade-root-cause.txt`, `v2-all-groups/cmp-shade-baseline-vs-v2.png
 - No ANR on any image.
 - SELinux denials: the same kinds on every image (bootanim `gpu_service`, `init` tracefs, `gceservice` `zygote_config_prop`), all present before this work. Nothing new.
 
+## On the G14: the `anal192d` session (2026-10-18)
+
+The owner's `anal192d` stick (`main` `81578c1`) is the first G14 image with this flag set. Evidence: `evidence/2026-10-18-g14-anal192d-b3/`.
+
+- **The flags are in the image (C):** all 84 read `ENABLED` in the image's own aconfig storage (read offline from its `super.img`), and both dropped flags are absent.
+- **Health, three boots (C):**
+  - SystemUI started once per boot and never died; no ANR; no native crash.
+  - The one app crash, in the wallpaper picker (`WallpaperPreviewActivity`), is an AOSP bug behind cp2a's own wallpaper flags, on before B3 as well. B4 has the fix on ANAL-192.
+  - The error kinds that remain (close-animation CUJ timeouts, `TransitionChain` mismatches) occur at the same rates as in the 2026-10-17 sessions without B3.
+- **Not yet shown on the G14:**
+  - Restoring a minimized window from the taskbar: one window was minimized and never restored.
+  - Stepped cascading: no stepped placement was logged, and Calendar wasn't opened.
+  - Everything visual (shadows, tooltips, the notification panel's rows, power-menu blur): no photos yet.
+
+  These stay on the next stick's checklist.
+
 ## Open items and G14 checks
 
 **G14 check items** (posted on ANAL-192 for the next stick):
