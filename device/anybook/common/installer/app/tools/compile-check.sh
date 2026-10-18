@@ -12,9 +12,11 @@
 # Writes only under $OUT (default /tmp/ob191-app). Reads the AOSP tree at $AOSP (default ~/anybook/aosp/src).
 #
 # Usage: tools/compile-check.sh [--keep]   (--keep reuses the extracted library jars from a previous run)
+# APP=<dir> checks another app laid out the same way (Android.bp, AndroidManifest.xml, res/, src/), with EXTRA_SRCS
+# (space-separated .kt files) compiled in too: OpenBook setup's tools/compile-check.sh does that.
 set -euo pipefail
 
-APP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+APP="${APP:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 AOSP="${AOSP:-$HOME/anybook/aosp/src}"
 OUT="${OUT:-/tmp/ob191-app}"
 KEEP=0
@@ -179,6 +181,8 @@ javac -nowarn -source 17 -target 17 -cp "$ANDROID_JAR" -d "$OUT/r-classes" $(fin
 # 3. Kotlin
 # ---------------------------------------------------------------------------------------------------------------
 mapfile -t SRCS < <(find "$APP/src" -name '*.kt' | sort)
+# shellcheck disable=SC2206  # a list of paths without spaces
+SRCS+=(${EXTRA_SRCS:-})
 CP="$FRAMEWORK_JAR:$ANDROID_JAR:$OUT/r-classes:$CP_LIBS"
 set +e
 "$KOTLINC/bin/kotlinc" -no-jdk -no-stdlib -jvm-target 17 -language-version 2.2 \
