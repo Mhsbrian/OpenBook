@@ -28,7 +28,7 @@ The write-up is `docs/quire.md` §2.2–2.6 and §8.
 | `anybook_cf_x86_64_pc-cp2a-userdebug`, first image | `af9a7b8` | OK, 14:15–14:47 UTC (31 min, peak RSS 41.6 GB) | `build-20261018T141558Z.log` |
 | `anybook_cf_x86_64_pc-cp2a-userdebug`, second image | `d0afeed` | OK, 15:25–15:54 UTC | `build-20261018T152522Z.log` |
 | `anybook_cf_x86_64_pc-cp2a-userdebug`, **third image** | `d69cad3` | OK, 16:26–16:55 UTC | `build-20261018T162652Z.log` |
-| `anybook_g14_x86_64-cp2a-userdebug`, compile check | `d69cad3` | see the PR | the next `build-*.log` |
+| `anybook_g14_x86_64-cp2a-userdebug`, compile check | `d69cad3` | OK, 16:56–17:26 UTC. `/system_ext/priv-app/OpenBookQuire`, `/system_ext/etc/computercontrol/` and `/system/app/VirtualDeviceManager` are installed. Not booted | `build-20261018T165614Z.log` |
 
 All ran under the lane lock (`scripts/aosp-docker.sh`, `AOSP_JOBS=24`). The Cuttlefish images, the host package and the two APKs were snapshotted (reflinks) inside the lock. Each image was booted on the AMD lane: `CF_GPU=amd`, `gfxstream_guest_angle`, 1920×1080, `boot_completed` 26–30 s after `cvd create`.
 
@@ -75,7 +75,7 @@ Each folder has a README.
 
 ## Not done here
 
-- **The G14:** a compile check of the G14 product only, with no boot and no stick.
+- **The G14:** the product builds with Quire in it (above), but nothing was booted: no QEMU run, no stick.
 - **The new unit tests** in the frameworks/base patches (VirtualDeviceServicesTests, SystemUI multivalent tests) were not run.
 
 ## Reproduce
