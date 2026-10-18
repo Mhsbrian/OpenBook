@@ -348,18 +348,27 @@ AVF_DENIALS = [
 
 
 def health(d, sysui_pid):
-    q2.health(d, sysui_pid)
-    # q2's denial count knows only Cuttlefish's baseline; it is replaced by the one below, which also knows AVF's.
-    d.results = [r for r in d.results if r[0] != "no new SELinux denials"]
-    text = re.sub(r":c\d+(,c\d+)*", "", (d.o / "selinux-denials.txt").read_text())
-    lines = [l for l in text.splitlines() if l.strip()]
+    """q2-cf-check.py's health section, with SELinux denials sorted into AOSP AVF's own and new ones."""
+    d.log("== health")
+    crash = d.sh("logcat -d -b crash")
+    d.write("logcat-crash.txt", crash)
+    fatal = sorted(set(re.findall(r"Process: [\w.:]+|signal \d+ \(SIG\w+\)", crash)))
+    d.result("crash buffer empty", not crash.strip(), f"{len(crash.splitlines())} lines; {', '.join(fatal[:6])}")
+    events = d.sh("logcat -d -b events | grep -E 'am_crash|am_anr|am_native_crash|am_proc_died.*systemui'")
+    d.write("events-crash-anr.txt", events)
+    d.result("no ANR", "am_anr" not in events, f"am_anr events: {events.count('am_anr')}")
+    pid = d.sh("pidof com.android.systemui").strip()
+    d.result("no SystemUI restart", pid == sysui_pid and "systemui" not in events, f"pid at start {sysui_pid}, now {pid}")
+    denials = d.sh("logcat -d -b all | grep 'avc:  denied' | grep -v 'service requested' | "
+                   "sed -E 's/.*avc:  denied/avc: denied/; s/ pid=[0-9]+//; s/ ino=[0-9]+//' | sort | uniq -c | sort -rn")
+    d.write("selinux-denials.txt", denials)
+    lines = [re.sub(r":c\d+(,c\d+)*", "", l) for l in denials.splitlines() if l.strip()]
     avf = [l for l in lines if any(k in l for k in AVF_DENIALS)]
     other = [l for l in lines if l not in avf and not any(k in l for k in q2.KNOWN_DENIALS)]
-    d.result("no new SELinux denial outside AOSP's AVF (and Cuttlefish's known three)", not other,
-             f"{len(other)}" + (": " + " | ".join(o.strip()[:160] for o in other[:4]) if other else ""))
-    d.result("AOSP AVF denials seen (the VM works with them)", None, f"{len(avf)} distinct: " +
-             "; ".join(sorted({re.search(r"scontext=\S+ tcontext=\S+ tclass=\S+", a).group(0) for a in avf
-                               if re.search(r"scontext=\S+ tcontext=\S+ tclass=\S+", a)})))
+    d.result("no new SELinux denial outside AOSP's AVF and Cuttlefish's known three", not other,
+             f"{len(lines)} distinct, {len(other)} new" + (": " + " | ".join(o.strip()[:160] for o in other[:4]) if other else ""))
+    kinds = sorted({m.group(0) for a in avf for m in [re.search(r"scontext=\S+ tcontext=\S+ tclass=\S+", a)] if m})
+    d.result("AOSP AVF denials seen (the VM works with them)", None, f"{len(avf)} lines: " + "; ".join(kinds))
     ours = [l for l in lines if "vmlauncher_app" in l or "platform_app" in l]
     d.result("no denial for the Terminal app's bridge or Quire", not ours, " | ".join(o.strip()[:160] for o in ours[:3]))
 

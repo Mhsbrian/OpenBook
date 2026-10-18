@@ -78,23 +78,32 @@ if [ $kvm = 0 ]; then
 fi
 
 log "== install"
+# Q4_WIFI=SSID joins an open network first (Cuttlefish: VirtWifi); on a laptop the person's Wi-Fi is already on.
+if [ -n "${Q4_WIFI:-}" ]; then
+  cmd wifi set-wifi-enabled enabled; sleep 3; cmd wifi connect-network "$Q4_WIFI" open; sleep 8
+fi
+ping -c1 -W3 8.8.8.8 > /dev/null 2>&1; result "Android has internet" $([ $? = 0 ] && echo PASS || echo INFO) "${Q4_WIFI:-its own network}"
 pm enable $T > /dev/null
 for p in ACCESS_LOCAL_NETWORK POST_NOTIFICATIONS RECORD_AUDIO; do pm grant $T android.permission.$p 2>/dev/null; done
 mkdir -p /sdcard/linux
 cp "$IMAGE" /sdcard/linux/images.tar.gz; check "image copied" $? "$(ls -l /sdcard/linux/images.tar.gz)"
+t0=$(date +%s)
 am start -n $T/.LauncherActivity > /dev/null
-tapped=1; n=0
-while [ $n -lt 40 ]; do
+# A debuggable build installs a local image by itself; otherwise the Terminal app shows Install for the person to tap.
+how=; n=0
+while [ $n -lt 120 ]; do
+  s=$(state)
+  case $s in starting|running) how="by itself ($s)"; break ;; esac
   uiautomator dump /data/local/tmp/q4-ui.xml > /dev/null 2>&1
   b=$(tr '>' '\n' < /data/local/tmp/q4-ui.xml | grep 'text="Install"' | sed -n 's/.*bounds="\[\([0-9]*\),\([0-9]*\)\]\[\([0-9]*\),\([0-9]*\)\]".*/\1 \2 \3 \4/p' | head -n 1)
   if [ -n "$b" ]; then
     set -- $b
-    input tap $((($1 + $3) / 2)) $((($2 + $4) / 2)); tapped=0; break
+    input tap $((($1 + $3) / 2)) $((($2 + $4) / 2)); how="Install tapped"; break
   fi
   sleep 1; n=$((n + 1))
 done
-check "Install tapped" $tapped ""
-t0=$(date +%s); started=; n=0; s=
+[ -n "$how" ]; check "Terminal installs the image" $? "$how"
+started=; n=0; s=
 while [ $n -lt 600 ]; do
   s=$(state)
   [ "$s" = starting ] && [ -z "$started" ] && started=$(date +%s)
@@ -114,7 +123,10 @@ while [ $n -lt 60 ]; do
 done
 since "$tag" > "$OUT/quire-agents.txt"
 check "Quire core lists the agents in the guest" $ok "$(grep 'agents: agent' "$OUT/quire-agents.txt" | sed 's/.*agents: //' | tr '\n' ';')"
-result "VM start -> quired answering (s)" INFO "$(($(date +%s) - started))"
+vm=$(logcat -d -v epoch | grep -m1 'virtual machine "debian".* started' | awk '{print $1}')
+qc=$(logcat -d -v epoch | grep -m1 'agents: connected via' | awk '{print $1}')
+took=$(awk -v a="$vm" -v b="$qc" 'BEGIN { if (a != "" && b != "") printf "%.1f", b - a; else print "?" }')
+result "VM start -> Quire connected to quired (s)" INFO "$took"
 cat /data/data/$T/files/*.log/* > "$OUT/guest-console.log" 2>/dev/null
 result "guest boot (systemd)" INFO "$(grep -o 'Startup finished in .*' "$OUT/guest-console.log" | head -n 1)"
 
