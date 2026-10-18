@@ -56,7 +56,7 @@ The table of every flag is [`device/anybook/common/desktop/release/googlebook-tr
 | enable | 84 | in groups 1–6 below |
 | drop | 2 | broke the desktop in testing (above) |
 | defer | 43 | process management (9), platform internals (7), laptop hardware for the G14 (6), graphics pipeline for the G14 (5), multi-user policy (4), wallpaper work for B4/B6 (3), and nine single items (listed after the table) |
-| skip | 89 | no reader (23), telephony (13), diagnostics only (11), HSUM (8), AI and agent services (8), work profile/DPC (4), tablet hub (4), one already enabled by ANAL-206 (`screenshot_remove_nonforced_sound`), and 17 other not-applicable or no-effect flags |
+| skip | 89 | no reader (23), telephony (13), diagnostics only (11), HSUM (8), AI and agent services (5), work profile/DPC (4), tablet hub (4), four already enabled in `release/openbook/` (ANAL-206's `screenshot_remove_nonforced_sound`; ANAL-216's `computer_control_access`, `computer_control_support_v5` and `enable_contextual_cursor_desktop_entrypoints`, for Quire), and 17 other not-applicable or no-effect flags |
 
 The nine single deferred items are: a games list the owner approves, lid-close doze (G14), binder netlink, the enterprise policy refactor, boot-phase parallelism, ARR panels, a Settings migration, an accessibility feature, and `use_android_ui_dispatcher`. That last one was taken out while the empty shade was bisected, and is untested on its own.
 
@@ -377,8 +377,6 @@ scripts/cf-boot.sh down
 |  | `android.app.enable_automation_notification_ui` | n/a | 2 | AI/agent services OpenBook does not have (computer control, contextual search, attention, summaries, Magic Pointer) |
 |  | `android.app.supervision.flags.enable_remove_device_admin_checks_for_reset_password_token` | n/a | 1 | Google supervision (Family Link) app |
 |  | `android.app.supervision.flags.enable_supported_apps_retrieval_updates` | n/a | 2 | Google supervision (Family Link) app |
-|  | `android.companion.virtualdevice.flags.computer_control_access` | n/a | 11 | AI/agent services OpenBook does not have (computer control, contextual search, attention, summaries, Magic Pointer) |
-|  | `android.companion.virtualdevice.flags.computer_control_support_v5` | n/a | 1 | AI/agent services OpenBook does not have (computer control, contextual search, attention, summaries, Magic Pointer) |
 |  | `android.hardware.usb.flags.mtp_download_io_order_improvement` | n/a | 1 | MTP device (gadget) mode; a laptop is the USB host |
 |  | `android.hardware.usb.flags.mtp_ffs_handle_close_concurrency_fix` | n/a | 1 | MTP device (gadget) mode; a laptop is the USB host |
 |  | `android.location.flags.disable_hardware_ar` | n/a | 1 | legacy hardware activity recognition; no such sensor |
@@ -393,7 +391,6 @@ scripts/cf-boot.sh down
 |  | `android.service.dreams.dreams_switcher_edge_swipe_enabled` | n/a | 1 | tablet hub / dream switcher |
 |  | `android.service.dreams.dreams_switcher_long_press_enabled` | n/a | 1 | tablet hub / dream switcher |
 |  | `com.android.aconfig_new_storage.enable_bootloader_sync` | n/a | 1 | bootloader reads flags from misc; OpenBook boots through UEFI/GRUB |
-|  | `com.android.hardware.input.enable_contextual_cursor_desktop_entrypoints` | n/a | 5 | AI/agent services OpenBook does not have (computer control, contextual search, attention, summaries, Magic Pointer) |
 |  | `com.android.input.flags.enable_attention_service_apis` | n/a | 4 | AI/agent services OpenBook does not have (computer control, contextual search, attention, summaries, Magic Pointer) |
 |  | `com.android.internal.telephony.flags.downloadable_subscription_include_carrier_identifier_internal` | n/a | 4 | telephony / modem (OpenBook laptops have none) |
 |  | `com.android.internal.telephony.flags.enable_ons_cleanup` | n/a | 2 | telephony / modem (OpenBook laptops have none) |
@@ -425,12 +422,15 @@ scripts/cf-boot.sh down
 |  | `com.android.window.flags.activity_start_interceptor_speedbumps` | n/a | 1 | digital-wellbeing distracting-app interception; no wellbeing app |
 |  | `android.app.admin.flags.introduce_generic_provisioning_error` | platform | 0 | no reader in AOSP 17: the code it gates is not public, so enabling it changes nothing |
 |  | `android.app.backup_restore_logging` | platform | 1 | diagnostics, logging or metrics only; no user-visible change |
+|  | `android.companion.virtualdevice.flags.computer_control_access` | platform | 11 | already on: ANAL-216 (Quire Q2) enables it in release/openbook/ (computer control for Quire); not duplicated in this value set |
+|  | `android.companion.virtualdevice.flags.computer_control_support_v5` | platform | 1 | already on: ANAL-216 (Quire Q2) enables it in release/openbook/ (computer control version 5); not duplicated in this value set |
 |  | `android.hardware.usb.flags.enable_usb_dp_upstream_irq` | platform | 0 | no reader in AOSP 17: the code it gates is not public, so enabling it changes nothing |
 |  | `android.hardware.usb.flags.enable_usbdp_utils_library` | platform | 0 | no reader in AOSP 17: the code it gates is not public, so enabling it changes nothing |
 |  | `android.location.flags.location_auditing` | platform | 2 | diagnostics, logging or metrics only; no user-visible change |
 |  | `android.multiuser.user_removal_minor_apis_2026` | platform | 0 | no reader in AOSP 17: the code it gates is not public, so enabling it changes nothing |
 |  | `android.tracing.protolog_auto_clear_incremental_state` | platform | 1 | diagnostics, logging or metrics only; no user-visible change |
 |  | `com.android.graphics.libgui.flags.wb_ring_buffer` | platform | 0 | no reader in AOSP 17: the code it gates is not public, so enabling it changes nothing |
+|  | `com.android.hardware.input.enable_contextual_cursor_desktop_entrypoints` | platform | 5 | already on: ANAL-216 (Quire Q2) enables it in release/openbook/ (the pointer shake starts contextual search, which Quire handles); not duplicated in this value set |
 |  | `com.android.hardware.input.enable_poem_input_customization` | platform | 0 | no reader in AOSP 17: the code it gates is not public, so enabling it changes nothing |
 |  | `com.android.launcher3.enable_recents_window_proto_log` | platform | 1 | diagnostics, logging or metrics only; no user-visible change |
 |  | `com.android.launcher3.enable_state_manager_proto_log` | platform | 1 | diagnostics, logging or metrics only; no user-visible change |

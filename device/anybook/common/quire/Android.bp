@@ -1,0 +1,96 @@
+// Copyright (C) 2026 The OpenBook Authors
+// SPDX-License-Identifier: Apache-2.0
+//
+// Quire core (ANAL-216, docs/quire.md §4): OpenBook's agent layer as a privileged system app. It holds the assistant
+// role, is the contextual search app, and may own computer-control sessions. This milestone (Q2) is the plumbing: the
+// AOSP 17 hooks reach Quire, and Quire can drive Settings on a computer-control display with the user's consent.
+// quire.mk installs it; ../desktop/desktop.mk inherits quire.mk.
+
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+android_app {
+    name: "OpenBookQuire",
+    srcs: ["app/src/**/*.kt"],
+    resource_dirs: ["app/res"],
+    manifest: "app/AndroidManifest.xml",
+    // The computer-control API (android.companion.virtual.computercontrol) is @hide.
+    platform_apis: true,
+    certificate: "platform",
+    privileged: true,
+    system_ext_specific: true,
+    optimize: {
+        enabled: false,
+    },
+    required: [
+        "default-permissions_dev.openbook.quire",
+        "privapp_whitelist_dev.openbook.quire",
+        "quire_computercontrol_automatable_app_allowlist",
+        "quire_computercontrol_session_owner_allowlist",
+        "quire_contextual_search_feature",
+    ],
+}
+
+// Privileged permissions: computer control and contextual search.
+prebuilt_etc {
+    name: "privapp_whitelist_dev.openbook.quire",
+    system_ext_specific: true,
+    sub_dir: "permissions",
+    src: "app/privapp-permissions-dev.openbook.quire.xml",
+    filename_from_src: true,
+}
+
+// POST_NOTIFICATIONS, which computer control requires (the session's running notification).
+prebuilt_etc {
+    name: "default-permissions_dev.openbook.quire",
+    system_ext_specific: true,
+    sub_dir: "default-permissions",
+    src: "app/default-permissions-dev.openbook.quire.xml",
+    filename_from_src: true,
+}
+
+// The system feature Launcher3 checks before it invokes contextual search (the pointer shake, Meta+A, Meta+G).
+prebuilt_etc {
+    name: "quire_contextual_search_feature",
+    system_ext_specific: true,
+    sub_dir: "permissions",
+    src: "etc/dev.openbook.quire.contextual_search.xml",
+    filename_from_src: true,
+}
+
+// Computer control's allowlists for a device with no server configuration (aosp/patches/frameworks/base/0005):
+// which agent may own a session, and which apps it may automate.
+prebuilt_etc {
+    name: "quire_computercontrol_session_owner_allowlist",
+    system_ext_specific: true,
+    sub_dir: "computercontrol",
+    src: "etc/computercontrol/session_owner_allowlist.txt",
+    filename_from_src: true,
+}
+
+prebuilt_etc {
+    name: "quire_computercontrol_automatable_app_allowlist",
+    system_ext_specific: true,
+    sub_dir: "computercontrol",
+    src: "etc/computercontrol/automatable_app_allowlist.txt",
+    filename_from_src: true,
+}
+
+// Quire as the default assistant and the contextual search app.
+runtime_resource_overlay {
+    name: "OpenBookQuireFrameworkOverlay",
+    manifest: "overlay/framework/AndroidManifest.xml",
+    resource_dirs: ["overlay/framework/res"],
+    product_specific: true,
+    sdk_version: "current",
+}
+
+// Test helper, never in an image: an app whose only window is FLAG_SECURE, for the contextual search screenshot and
+// the computer-control block checks (scripts/quire/q2-cf-check.sh installs it with adb).
+android_test_helper_app {
+    name: "QuireSecureProbe",
+    srcs: ["tests/secureprobe/src/**/*.kt"],
+    manifest: "tests/secureprobe/AndroidManifest.xml",
+    sdk_version: "current",
+}

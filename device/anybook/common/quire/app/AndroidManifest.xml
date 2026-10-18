@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  Quire core (ANAL-216, docs/quire.md §4). Privileged permissions are listed in privapp-permissions-dev.openbook.quire.xml,
+  the default grant of POST_NOTIFICATIONS in default-permissions-dev.openbook.quire.xml.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="dev.openbook.quire">
+
+    <!-- Own computer-control sessions (internal|privileged; the platform also requires the assistant role and an entry
+         in its session owner allowlist). -->
+    <uses-permission android:name="android.permission.ACCESS_COMPUTER_CONTROL" />
+    <!-- The session's running notification; the platform refuses agents without it. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Start contextual search from the assistant session (Meta+Space, the assist key). -->
+    <uses-permission android:name="android.permission.ACCESS_CONTEXTUAL_SEARCH" />
+
+    <!-- Names of the apps a session automates, for its notification and status. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
+
+    <application
+        android:name=".QuireApplication"
+        android:label="@string/app_name"
+        android:icon="@drawable/ic_quire"
+        android:theme="@style/Theme.Quire"
+        android:allowBackup="false"
+        android:supportsRtl="true"
+        android:resizeableActivity="true">
+
+        <!-- Quire's window for Q2: computer-control status, the live mirror of the session display, and the last
+             invocation. -->
+        <activity
+            android:name=".control.ControlActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:launchMode="singleTask">
+            <layout
+                android:defaultWidth="960dp"
+                android:defaultHeight="720dp"
+                android:gravity="center" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Scripted checks (scripts/quire/q2-cf-check.sh) send their commands here. Not exported: only root and the
+             system can start it, so no app can drive a session through Quire. -->
+        <activity-alias
+            android:name=".control.LabActivity"
+            android:targetActivity=".control.ControlActivity"
+            android:exported="false" />
+
+        <!-- Contextual search (config_defaultContextualSearchPackageName): ContextualSearchManagerService starts it
+             as the system with the screenshot, the visible packages and the entry point. Exported because Launcher3
+             checks that it resolves before it invokes contextual search; only callers that may start contextual
+             search themselves can start it directly. -->
+        <activity
+            android:name=".invocation.ContextualSearchActivity"
+            android:exported="true"
+            android:permission="android.permission.ACCESS_CONTEXTUAL_SEARCH"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTask"
+            android:taskAffinity="dev.openbook.quire.invocation"
+            android:theme="@style/Theme.Quire.Note">
+            <intent-filter>
+                <action android:name="android.app.contextualsearch.action.LAUNCH_CONTEXTUAL_SEARCH" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <!-- The assistant role (config_defaultAssistant). -->
+        <service
+            android:name=".assist.QuireVoiceInteractionService"
+            android:exported="true"
+            android:permission="android.permission.BIND_VOICE_INTERACTION">
+            <meta-data
+                android:name="android.voice_interaction"
+                android:resource="@xml/quire_voice_interaction_service" />
+            <intent-filter>
+                <action android:name="android.service.voice.VoiceInteractionService" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".assist.QuireSessionService"
+            android:exported="true"
+            android:permission="android.permission.BIND_VOICE_INTERACTION" />
+
+        <!-- Required by the assistant role; speech arrives with Q7 (ANAL-221). -->
+        <service
+            android:name=".assist.QuireRecognitionService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.speech.RecognitionService" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </service>
+    </application>
+</manifest>
