@@ -218,6 +218,12 @@ Bold matches the same way. Both products build, B1's 40 families still load and 
 
 Only the G14 run can say.
 
+**On the G14, the owner's `anal192d` session** (C, 2026-10-18; `evidence/2026-10-18-blur-g14/`; the graphics check wasn't booted):
+- SurfaceFlinger started with `Threaded RenderEngine with SkiaGL Backend (Ganesh)` and `Background Blurs Enabled (Kawase dual-filtering V2 algorithm)`.
+- In an hour of normal use the shade was opened 9 times, and SystemUI drew its blur each time, at radius 51 px (34 dp-equivalent at 240 dpi). This is the full-screen case, since `config_supportBlurredWallpaper` is still on.
+- No amdgpu fault or reset, no SurfaceFlinger, SystemUI or Launcher restart, no ≥ 30-frame skip or ≥ 700 ms frame.
+- So `blur_applied` and `no_gpu_hang` pass from the logs. **`frame_cost` is still unmeasured;** it needs the graphics check boot.
+
 **G14 check** (pass/fail; `scripts/ui/blur-report.py`). The graphics check's new `blur` part runs it unattended (`graphics-amd.md`), with blur on, off, on and off:
 
 | Verdict | Pass when |
@@ -399,7 +405,13 @@ AOSP 17 keeps the hooks (contextual-search shake gesture, the Ambient Cue UI, Sm
 
 - **With B2, B4 and B5.** After merging them, both products build again. In Cuttlefish that image shows Google Sans together with the circular icons and the taskbar without the search bar, with the same health results (`merged/`).
 
-**Not checked yet:** the G14 (the check is on ANAL-192's stick checklist), and non-Latin text.
+**On the G14** (C, the owner's `anal192d` session, 2026-10-18; `evidence/2026-10-18-g14-anal192d-typography/`):
+- **Logs.** No font warning or error, and no font-related SELinux denial under enforcing.
+- **Crashes.** The crash buffer holds one crash, the wallpaper preview's (`com.android.wallpaper`), which is not font-related.
+- **On screen.** The laptop's own screenshot shows the window caption and the status bar in Google Sans at 240 dpi, unclipped.
+- **The installer.** Its own text stays in Roboto, by its design.
+
+**Not checked yet:** the G14 photos of Settings, Quick Settings, notifications and all apps (clipped text), and non-Latin text.
 
 ## 4. Beautification backlog (alpha → beta)
 
