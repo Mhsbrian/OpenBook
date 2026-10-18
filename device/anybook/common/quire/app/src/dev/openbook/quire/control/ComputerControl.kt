@@ -102,10 +102,11 @@ class ComputerControl(private val context: Context) {
         report("request name=$name targets=$targets version=${VirtualDeviceManager.COMPUTER_CONTROL_VERSION}")
         try {
             vdm.requestComputerControlSession(params, main, callback(activity))
-        } catch (e: SecurityException) {
-            report("request refused by the platform: SecurityException: ${e.message}")
-        } catch (e: IllegalArgumentException) {
-            report("request refused by the platform: IllegalArgumentException: ${e.message}")
+        } catch (e: RuntimeException) {
+            // SecurityException (not allowed to own a session), IllegalArgumentException (a target outside the
+            // allowlist), IllegalStateException (computer control is off in this build), and so on.
+            pendingLaunch = null
+            report("request refused by the platform: ${e.javaClass.simpleName}: ${e.message}")
         }
     }
 
