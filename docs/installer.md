@@ -1059,6 +1059,9 @@ Built on the owner's request after PR #64 merged; it replaces `anal192c`. Eviden
 - **On the G14:** boots 1–3 as in §13.6. In boot 1, step 6 (a ringtone preview) should now play. Then **boot 4, "OpenBook graphics check"**: about 30 minutes, AC power, lid open, no screen-lock PIN; it powers off by itself (`docs/graphics-amd.md`, owner checklist steps 4–6). Then plug the stick into the build host and reply "stick attached".
 
 ### 13.12 The next stick: `openbook-live-20261018-anal192d` (2026-10-18)
+
+> **Ended 2026-10-18 (ANAL-222).** The owner installed `anal192e` on the G14's whole disk; testing now runs over adb from the build host (`docs/adb-debug.md`). This checklist is kept as the record of the `anal192d` session. A stick is still the tool for testing the installer itself, on a spare drive.
+
 Built on the coordinator's request (2026-10-18 07:55Z). It replaces `anal198`, which was written to the owner's stick at 20:25Z on 2026-10-17 and never booted. Evidence: `evidence/2026-10-18-stick-anal192d/SUMMARY.md`. Everything ran in QEMU/KVM + OVMF on image files, SELinux enforcing. **Nothing has run on the G14 yet.**
 
 - **Built from `main` `81578c1` plus PR #83's one commit,** as `7d9bc0a`. Its tree equals today's `main` (`13a020c`) apart from `docs/STATUS.md`.

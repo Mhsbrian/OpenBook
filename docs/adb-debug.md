@@ -90,6 +90,10 @@ The G14's QEMU tests use the serial console, not adb, so they are unaffected. Cu
 
 ## 6. Limits and next steps
 
+- **New builds still need a way onto the laptop.** adb replaces the stick for testing, not for delivery.
+  - The installed system is `anal192e`. Fixes merged since (#100 first-run setup, #101 wallpaper preview) and open ones (#97) are not on it.
+  - Today only a reinstall from a stick delivers them, and it erases the laptop's data.
+  - Proposed (`docs/PLAN.md` §4a, phase 2): an A/B slot update over adb, or an OTA through update_engine with `openbook-bootsync`. It writes the laptop's disk, so it waits for the owner's OK.
 - **A boot that never reaches Wi-Fi** (black screen, early hang, kernel panic) cannot be reached over adb.
   - If it got as far as logd, its logcat and kernel log are in `/data/misc/logd` and the next good boot's `capture` reads them.
   - A panic leaves nothing until a pstore backend is configured (follow-up).
