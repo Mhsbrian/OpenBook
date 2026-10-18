@@ -80,7 +80,7 @@ func TestNotificationsKeepOrderWhileRequestsBlock(t *testing.T) {
 		}
 	}()
 	for _, w := range []string{"a", "b", "c", "d"} {
-		if err := agent.Notify(MethodSessionUpdate, SessionNotification{SessionID: "s", Update: ChunkUpdate(UpdateAgentMessageChunk, w).Marshal()}); err != nil {
+		if err := agent.Notify(context.Background(), MethodSessionUpdate, SessionNotification{SessionID: "s", Update: ChunkUpdate(UpdateAgentMessageChunk, w).Marshal()}); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -141,6 +141,51 @@ func TestCallHonoursContext(t *testing.T) {
 	defer cancel()
 	if err := client.Call(ctx, MethodPrompt, nil, nil); !errors.Is(err, context.DeadlineExceeded) {
 		t.Fatalf("want deadline exceeded, got %v", err)
+	}
+}
+
+// A peer that stops reading must not hold a caller past its context, whether the caller's write
+// is the one stuck in the pipe or is waiting behind it; closing the pipe then ends the connection.
+func TestSendsHonourContextWhenPeerStopsReading(t *testing.T) {
+	inR, inW := io.Pipe()
+	outR, outW := io.Pipe() // nobody reads outR
+	c := NewConn(inR, outW, Handlers{}, nil)
+	defer inW.Close()
+
+	sends := map[string]func(context.Context) error{
+		"call (write stuck)":   func(ctx context.Context) error { return c.Call(ctx, MethodInitialize, nil, nil) },
+		"call (queued behind)": func(ctx context.Context) error { return c.Call(ctx, MethodPrompt, nil, nil) },
+		"notify (queued)": func(ctx context.Context) error {
+			return c.Notify(ctx, MethodCancel, CancelNotification{SessionID: "s"})
+		},
+	}
+	for _, name := range []string{"call (write stuck)", "call (queued behind)", "notify (queued)"} {
+		ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+		start := time.Now()
+		err := sends[name](ctx)
+		cancel()
+		if !errors.Is(err, context.DeadlineExceeded) || time.Since(start) > 2*time.Second {
+			t.Fatalf("%s: want deadline exceeded promptly, got %v after %s", name, err, time.Since(start))
+		}
+	}
+
+	pending := make(chan error, 1)
+	go func() { pending <- c.Call(context.Background(), MethodSessionNew, nil, nil) }()
+	time.Sleep(20 * time.Millisecond)
+	outR.Close() // the stuck write fails, which ends the connection
+	select {
+	case err := <-pending:
+		if !errors.Is(err, ErrClosed) {
+			t.Fatalf("want ErrClosed once the write failed, got %v", err)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("a call without a deadline outlived the connection")
+	}
+	if c.Err() == nil || !strings.Contains(c.Err().Error(), "write") {
+		t.Fatalf("Err should report the write failure, got %v", c.Err())
+	}
+	if err := c.Notify(context.Background(), MethodCancel, nil); !errors.Is(err, ErrClosed) {
+		t.Fatalf("notify after the writer stopped: %v", err)
 	}
 }
 

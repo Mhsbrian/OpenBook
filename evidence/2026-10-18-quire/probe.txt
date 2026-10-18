@@ -1,7 +1,7 @@
-claude    ok        0 ms  agent="claude-code 2.1.301 (Claude Code)" acp=v1 loadSession=true mcp(http=false sse=false) image=false auth=0 session=6d6c0359-099e-4d23-b94f-3d13a60b08c7
-opencode  ok     1337 ms  agent="OpenCode 2.0.31" acp=v1 loadSession=true mcp(http=true sse=false) image=true auth=1 session=ses_eb0ece177ffee3bDV05diOUinX
-copilot   ok     1713 ms  agent="Copilot 1.0.98" acp=v1 loadSession=true mcp(http=true sse=true) image=true auth=1 session=e2a62ea6-a500-4e44-990d-39e34bc16b4d
-cursor    FAIL   3833 ms  session/new: acp error -32000: Authentication required
-kimi      FAIL   1467 ms  session/new: acp error -32000: Authentication required
-hermes    FAIL   2122 ms  session/new: acp error -32603: Internal error
-omp       ok     2368 ms  agent="omp 18.11.2" acp=v1 loadSession=true mcp(http=true sse=true) image=true auth=1 session=01a14f13-43c3-7786-9617-ebd978f54de0
+claude    ok        0 ms  agent="claude-code 2.1.301 (Claude Code)" acp=v1 loadSession=true mcp(http=false sse=false) image=false auth=0 session=0dd6d0b0-5fdf-45ed-99f6-30aa384b81cb
+opencode  ok     2168 ms  agent="OpenCode 2.0.31" acp=v1 loadSession=true mcp(http=true sse=false) image=true auth=1 session=ses_eb0cdc8ecffeICOem4UXtjVLDb
+copilot   ok     2439 ms  agent="Copilot 1.0.98" acp=v1 loadSession=true mcp(http=true sse=true) image=true auth=1 session=fed7ce9a-0e58-45f0-b529-a12bcaaf7a85
+cursor    FAIL   3959 ms  session/new: acp error -32000: Authentication required
+kimi      FAIL   1866 ms  session/new: acp error -32000: Authentication required
+hermes    FAIL   2087 ms  session/new: acp error -32603: Internal error
+omp       ok     1721 ms  agent="omp 18.11.2" acp=v1 loadSession=true mcp(http=true sse=true) image=true auth=1 session=01a14f32-61b5-7766-b40d-6162b5ed590b

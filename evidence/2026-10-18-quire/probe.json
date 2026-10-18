@@ -24,7 +24,7 @@
         "version": "2.1.301 (Claude Code)"
       }
     },
-    "sessionId": "43e51d27-73b2-4387-b391-36e6e52c595c",
+    "sessionId": "cef6f408-a521-47ab-bada-2a3519efc8f3",
     "ms": 0
   },
   {
@@ -57,8 +57,8 @@
         "version": "2.0.31"
       }
     },
-    "sessionId": "ses_eb0eca9b8ffen1jIfYAcCMDG6w",
-    "ms": 1275
+    "sessionId": "ses_eb0cd8d78ffeeG33o4IY2omrM0",
+    "ms": 1489
   },
   {
     "agent": "copilot",
@@ -91,8 +91,8 @@
         "version": "1.0.98"
       }
     },
-    "sessionId": "cbbdf0ad-67e7-438b-b32d-5a8f5faee318",
-    "ms": 1836
+    "sessionId": "5db8c15a-d3e5-4cb6-b0d6-9ec9316775e0",
+    "ms": 1597
   },
   {
     "agent": "cursor",
@@ -121,7 +121,7 @@
       ]
     },
     "error": "session/new: acp error -32000: Authentication required",
-    "ms": 3746
+    "ms": 3874
   },
   {
     "agent": "kimi",
@@ -154,7 +154,7 @@
       }
     },
     "error": "session/new: acp error -32000: Authentication required\nagent stderr (tail):\n{\"level\":\"info\",\"msg\":\"acp: auth readiness probe failed, trying the OAuth summary\",\"error\":\"no provider configured; complete onboarding via /login or the providers endpoint\"}",
-    "ms": 1466
+    "ms": 1586
   },
   {
     "agent": "hermes",
@@ -186,8 +186,8 @@
         "version": "0.20.5"
       }
     },
-    "error": "session/new: acp error -32603: Internal error\nagent stderr (tail):\n2026-10-18 08:53:58 [INFO] acp_adapter.server: Initialize from quired (protocol v1)\n2026-10-18 08:53:58 [INFO] hermes_cli.plugin_capabilities: capability_check plugin=herdr-agent-state capability=tools.override decision=deny checked_by=plugin_capability_granted evidence=not granted\n2026-10-18 08:53:58 [INFO] hermes_cli.plugins: Plugin discovery complete: 56 found, 50 enabled\n2026-10-18 08:53:58 [INFO] run_agent: Loaded environment variables from ~/.hermes/.env\n2026-10-18 08:53:58 [WARNING] acp_adapter.session: Background MCP discovery previously exited with no connected servers; retrying discovery thread\n2026-10-18 08:53:58 [WARNING] agent.auxiliary_client: resolve_provider_client: xai-oauth requested but no xAI OAuth token found (run: hermes model -\u003e xAI Grok OAuth — SuperGrok / Premium+)\n2026-10-18 08:53:58 [WARNING] agent.auxiliary_client: Auxiliary client: PAID lane engaged for auxiliary task — OpenRouter fallback model 'google/gemini-3.6-flash' is not a :free SKU and may incur real spend. Set auxiliary.free_only: true to restrict auxiliary fallbacks to free models, or auxiliary.openrouter_model to a :free model.\n2026-10-18 08:53:58 [WARNING] agent.auxiliary_client: Auxiliary: marking openrouter unhealthy for 60s (payment / credit error). Subsequent auxiliary calls will skip it until 08:54:58.\n2026-10-18 08:53:58 [WARNING] agent.auxiliary_client: Auxiliary Nous client unavailable: no Nous authentication found (run: hermes auth).\n2026-10-18 08:53:58 [WARNING] agent.auxiliary_client: Auxiliary: marking nous unhealthy for 60s (payment / credit error). Subsequent auxiliary calls will skip it until 08:54:58.\n2026-10-18 08:53:58 [WARNING] agent.credential_pool: Copilot token exchange degraded to RAW token (exchange unavailable); enterprise-only models may 400 with model_not_available_for_integrator until exchange recovers.\n2026-10-18 08:53:58 [WARNING] agent.auxiliary_client: Auxiliary auto-detect: no provider available (tried: openrouter, nous, local/custom, api-key). Compression, summarization, and memory flush will not work. Set OPENROUTER_API_KEY or configure a local model in config.yaml.",
-    "ms": 2130
+    "error": "session/new: acp error -32603: Internal error\nagent stderr (tail):\n2026-10-18 09:27:56 [INFO] hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily\n2026-10-18 09:27:56 [INFO] hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai\n2026-10-18 09:27:56 [INFO] hermes_cli.plugin_capabilities: capability_check plugin=herdr-agent-state capability=tools.override decision=deny checked_by=plugin_capability_granted evidence=not granted\n2026-10-18 09:27:56 [INFO] hermes_cli.plugins: Plugin discovery complete: 56 found, 50 enabled\n2026-10-18 09:27:56 [WARNING] acp_adapter.session: Background MCP discovery previously exited with no connected servers; retrying discovery thread\n2026-10-18 09:27:57 [WARNING] agent.auxiliary_client: resolve_provider_client: xai-oauth requested but no xAI OAuth token found (run: hermes model -\u003e xAI Grok OAuth — SuperGrok / Premium+)\n2026-10-18 09:27:57 [WARNING] agent.auxiliary_client: Auxiliary client: PAID lane engaged for auxiliary task — OpenRouter fallback model 'google/gemini-3.6-flash' is not a :free SKU and may incur real spend. Set auxiliary.free_only: true to restrict auxiliary fallbacks to free models, or auxiliary.openrouter_model to a :free model.\n2026-10-18 09:27:57 [WARNING] agent.auxiliary_client: Auxiliary: marking openrouter unhealthy for 60s (payment / credit error). Subsequent auxiliary calls will skip it until 09:28:57.\n2026-10-18 09:27:57 [WARNING] agent.auxiliary_client: Auxiliary Nous client unavailable: no Nous authentication found (run: hermes auth).\n2026-10-18 09:27:57 [WARNING] agent.auxiliary_client: Auxiliary: marking nous unhealthy for 60s (payment / credit error). Subsequent auxiliary calls will skip it until 09:28:57.\n2026-10-18 09:27:57 [WARNING] agent.credential_pool: Copilot token exchange degraded to RAW token (exchange unavailable); enterprise-only models may 400 with model_not_available_for_integrator until exchange recovers.\n2026-10-18 09:27:57 [WARNING] agent.auxiliary_client: Auxiliary auto-detect: no provider available (tried: openrouter, nous, local/custom, api-key). Compression, summarization, and memory flush will not work. Set OPENROUTER_API_KEY or configure a local model in config.yaml.",
+    "ms": 1998
   },
   {
     "agent": "omp",
@@ -220,7 +220,7 @@
         "version": "18.11.2"
       }
     },
-    "sessionId": "01a14f13-7b96-7471-bb15-cc6c30df5fd8",
-    "ms": 1216
+    "sessionId": "01a14f32-97f9-7090-b051-fd1f3025635f",
+    "ms": 1637
   }
 ]
