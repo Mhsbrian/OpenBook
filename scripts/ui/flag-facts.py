@@ -21,7 +21,7 @@ SEARCH = ["frameworks", "packages", "system", "hardware", "build/make", "externa
 # Files that list or wrap flags without gating behaviour on them.
 REGISTRY = {"DesktopExperienceFlags.java", "DesktopModeFlags.java", "FlagManager.cpp", "FlagManager.h",
             "FlagDependencies.kt"}
-TEST = re.compile(r"(^|/)(tests?|testing|testutils|robolectric|multivalentTests|screenshot|benchmarks?)(/|$)"
+TEST = re.compile(r"(^|/)(tests?|testing|testutils|robolectric|multivalentTests|benchmarks?)(/|$)"
                   r"|Test[A-Za-z]*\.(java|kt)$|_test\.(cpp|cc|rs)$|/fakes?/|Fake[A-Z]\w*\.kt$")
 
 

@@ -8,7 +8,7 @@ The table of every flag is [`device/anybook/common/desktop/release/googlebook-tr
 
 - **All 218 flags are triaged (C):** `googlebook-triage.tsv` gives each one its declaration, its readers in our tree, a category, a decision, a group and a reason.
 - **84 are enabled**, in six groups, through the existing value set. With ANAL-169's 79 it now holds **163 flags**. 43 are deferred, 89 skipped, and 2 were dropped after testing.
-- **24 of the 218 do nothing in AOSP 17 (C):** no source file in our tree reads them. That includes four of ANAL-201's headline flags: `perfect_edge`, `enable_taskbar_icon_desktop_clicks` (click to minimize), `enable_desktop_taskbar_in_fullscreen_mode` and `notification_animated_action_style_2026`. A fifth, `enable_no_resize_cursor`, is read, but nothing acts on what it reports.
+- **23 of the 218 do nothing in AOSP 17 (C):** no source file in our tree reads them. That includes four of ANAL-201's headline flags: `perfect_edge`, `enable_taskbar_icon_desktop_clicks` (click to minimize), `enable_desktop_taskbar_in_fullscreen_mode` and `notification_animated_action_style_2026`. A fifth, `enable_no_resize_cursor`, is read, but nothing acts on what it reports.
 - **Two flags break the desktop in AOSP 17 and were dropped (C).** The issue warned of exactly this:
   - `com.android.window.flags.enable_add_window_decoration_to_all_tasks` crashes SystemUI when a minimized window is restored from the taskbar (`IllegalStateException: Expected non-null decoration container surface` in `DefaultWindowDecoration.updateDragResizeListenerIfNeeded`).
   - `com.android.systemui.start_on_gone_scene_if_no_lockscreen` leaves the notification shade empty. OpenBook disables the lock screen by default, so with this flag SystemUI starts on the Gone scene. The keyguard section that binds the notification stack never runs, and the rows are never laid out. With a PIN set, the same image shows them.
@@ -38,7 +38,7 @@ The table of every flag is [`device/anybook/common/desktop/release/googlebook-tr
    - a wrapper such as `DesktopExperienceFlags.ENABLE_FOO`;
    - the C++/Rust accessor.
 
-   Registries that only list flags (`DesktopExperienceFlags.java`, SurfaceFlinger's `FlagManager`) don't count. **24 flags have no reader at all**: the code they gate is not in AOSP 17, so turning them on changes nothing.
+   Registries that only list flags (`DesktopExperienceFlags.java`, SurfaceFlinger's `FlagManager`) don't count. **23 flags have no reader at all**: the code they gate is not in AOSP 17, so turning them on changes nothing.
 3. **What it guards.** For every flag with readers, the reader lines were read to see what changes. Dependencies were checked too:
    - `blur_on_more_surfaces` also needs `config_enableBlurExpansion` (true by default);
    - the Compose status icons need `scene_container` and `new_status_bar_icons` (both on);
@@ -56,7 +56,7 @@ The table of every flag is [`device/anybook/common/desktop/release/googlebook-tr
 | enable | 84 | in groups 1–6 below |
 | drop | 2 | broke the desktop in testing (above) |
 | defer | 43 | process management (9), platform internals (7), laptop hardware for the G14 (6), graphics pipeline for the G14 (5), multi-user policy (4), wallpaper work for B4/B6 (3), and nine single items (listed after the table) |
-| skip | 89 | no reader (24), telephony (13), diagnostics only (11), HSUM (8), AI and agent services (8), work profile/DPC (4), tablet hub (4), and 17 other not-applicable or no-effect flags |
+| skip | 89 | no reader (23), telephony (13), diagnostics only (11), HSUM (8), AI and agent services (8), work profile/DPC (4), tablet hub (4), one already enabled by ANAL-206 (`screenshot_remove_nonforced_sound`), and 17 other not-applicable or no-effect flags |
 
 The nine single deferred items are: a games list the owner approves, lid-close doze (G14), binder netlink, the enterprise policy refactor, boot-phase parallelism, ARR panels, a Settings migration, an accessibility feature, and `use_android_ui_dispatcher`. That last one was taken out while the empty shade was bisected, and is untested on its own.
 
@@ -171,7 +171,7 @@ Evidence: `v3/shade-root-cause.txt`, `v2-all-groups/cmp-shade-baseline-vs-v2.png
 9. Health: `logcat -b crash` is empty, and there is no `am_anr`.
 
 **Open:**
-- `enable_no_resize_cursor` and the 24 flags with no reader need Google's newer code. Revisit them on the next AOSP drop; `scripts/ui/flag-facts.py` recounts the readers.
+- `enable_no_resize_cursor` and the 23 flags with no reader need Google's newer code. Revisit them on the next AOSP drop; `scripts/ui/flag-facts.py` recounts the readers.
 - Recheck the two dropped flags on the next AOSP drop too:
   - The decoration crash looks like incomplete code.
   - `start_on_gone_scene_if_no_lockscreen` is what we'd want for a laptop without a lock screen, once the stack binding no longer depends on the keyguard.
@@ -361,7 +361,7 @@ scripts/cf-boot.sh down
 |---|---|---|---|---|
 |  | `android.location.flags.use_settings_main_switch_for_scanning` | bugfix | 0 | no reader in AOSP 17: the code it gates is not public, so enabling it changes nothing |
 |  | `com.android.graphics.libgui.flags.allocate_buffer_priority_inheritance` | bugfix | 0 | no reader in AOSP 17: the code it gates is not public, so enabling it changes nothing |
-|  | `com.android.systemui.screenshot_remove_nonforced_sound` | bugfix | 0 | no reader in AOSP 17: the code it gates is not public, so enabling it changes nothing |
+|  | `com.android.systemui.screenshot_remove_nonforced_sound` | bugfix | 1 | already on: ANAL-206 (B5) enables it in release/openbook/ (no screenshot shutter sound unless forced); not duplicated in this value set |
 |  | `com.android.window.flags.appheader_launch_color_bugfix` | bugfix | 0 | no reader in AOSP 17: the code it gates is not public, so enabling it changes nothing |
 |  | `com.android.window.flags.show_when_locked_desktop_bugfix` | bugfix | 0 | no reader in AOSP 17: the code it gates is not public, so enabling it changes nothing |
 |  | `com.android.wm.shell.consolidate_split_keyboard_shortcut_controllers` | bugfix | 0 | no reader in AOSP 17: the code it gates is not public, so enabling it changes nothing |
