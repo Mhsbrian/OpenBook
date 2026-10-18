@@ -30,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
@@ -92,7 +93,7 @@ fun SwitchRow(title: String, detail: String?, checked: Boolean, onChange: (Boole
 
 /** The pill search field of the installer's language list. */
 @Composable
-fun SearchField(value: String, onChange: (String) -> Unit, placeholder: String, modifier: Modifier = Modifier) {
+fun SearchField(value: String, onChange: (String) -> Unit, placeholder: String, tag: String, modifier: Modifier = Modifier) {
     val cs = MaterialTheme.colorScheme
     TextField(
         value = value,
@@ -107,7 +108,7 @@ fun SearchField(value: String, onChange: (String) -> Unit, placeholder: String, 
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
         ),
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().testTag(tag),
     )
 }
 

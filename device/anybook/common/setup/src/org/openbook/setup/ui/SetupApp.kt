@@ -39,6 +39,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,6 +52,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -67,10 +69,15 @@ import org.openbook.setup.SetupModel
 /** The window is 1920 x 1080 dp in Cuttlefish and 1920 x 1200 dp on the G14 (density 240); smaller ones are compact. */
 val LocalCompact = staticCompositionLocalOf { false }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SetupApp(model: SetupModel, onSkipAll: () -> Unit, onDone: () -> Unit) {
     BackHandler(enabled = model.page != Page.WELCOME) { model.back() }
-    BoxWithConstraints(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface).safeDrawingPadding()) {
+    // Test tags become resource ids, so scripts/setup/setup-walk.sh can find the text fields.
+    BoxWithConstraints(
+        Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface).safeDrawingPadding()
+            .semantics { testTagsAsResourceId = true },
+    ) {
         CompositionLocalProvider(LocalCompact provides (maxWidth < 1040.dp || maxHeight < 680.dp)) {
             when (model.page) {
                 Page.WELCOME -> WelcomePage(model, onSkipAll)
