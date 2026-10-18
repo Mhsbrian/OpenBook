@@ -1,0 +1,32 @@
+{
+ "reason": "QEMU exited (0)",
+ "seconds": 142.6,
+ "steps_done": 4,
+ "steps": 4,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "openbook-live: live boot: boot_part_uuid=",
+   "t": 3.6
+  },
+  {
+   "step": 1,
+   "wait": "openbook-live: logs: saving to openbook/logs/live-\\d+",
+   "t": 5.1
+  },
+  {
+   "step": 2,
+   "wait": "openbook-live: logs: (no second stage|Android second stage seen)",
+   "t": 5.6
+  },
+  {
+   "step": 3,
+   "wait": "openbook-live: logs: done: ",
+   "t": 138.8
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/qemu/g1-addon-qemu-1/addon.img",
+ "nvme": null,
+ "nvme2": null
+}

@@ -1,0 +1,30 @@
+  BuiltInKeyboardId: -2
+  Devices:
+    7: OpenBook test mouse
+      Classes: CURSOR | EXTERNAL
+      Path: /dev/input/event6
+      Enabled: true
+      Descriptor: ea011df68d5e458fae3d98067e2d851a8bb4cac2
+      Location: uinput:1:4660:22136
+      ControllerNumber: 0
+      UniqueId: 
+      Identifier: bus=0x0003, vendor=0x1234, product=0x5678, version=0x0000, bluetoothAddress=<not set>
+      KeyLayoutFile: 
+      KeyCharacterMapFile: 
+      ConfigurationFile: <none>
+      VideoDevice: <none>
+--
+      MetaState: 0x0
+      KeyboardLayoutInfo: <not set>
+  Device 8: OpenBook test mouse
+    EventHub Devices: [ 7 ] 
+    Generation: 43
+    IsExternal: true
+    IsVirtualDevice: false
+    IsWaking: false
+    AssociatedDisplayPort: <none>
+    AssociatedDisplayUniqueIdByPort: <none>
+    AssociatedDisplayUniqueIdByDescriptor: <none>
+    SysfsRootPath:     /sys/devices/virtual
+    HasMic:     false
+    Sources: MOUSE

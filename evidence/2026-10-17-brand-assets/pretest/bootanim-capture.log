@@ -1,0 +1,11 @@
+2026-10-18T03:19:10.678Z waiting for 127.0.0.1:16536
+2026-10-18T03:19:13.246Z adb up: device
+2026-10-18T03:19:13.695Z bootanim: running; zip: -rw-rw-rw- 1 root root 1510395 2026-10-18 02:11 /product/media/bootanimation.zip
+2026-10-18T03:19:24.282Z bootanim stopped after 10584 ms; 22 frames captured
+2026-10-18T03:19:25.480Z boot screenrecord pulled
+2026-10-18T03:19:25.485Z waiting for sys.boot_completed
+2026-10-18T03:19:42.880Z replay: start bootanim on the desktop
+2026-10-18T03:19:52.624Z replay: bootanim now stopped
+2026-10-18T03:19:53.051Z replay recorded
+2026-10-18T03:19:54.047Z replay frames: 36
+2026-10-18T03:19:54.112Z done

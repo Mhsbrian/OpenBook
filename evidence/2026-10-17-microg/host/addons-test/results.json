@@ -1,0 +1,229 @@
+{
+ "schema": "openbook-addons-test/1",
+ "passed": 37,
+ "total": 37,
+ "checks": [
+  {
+   "case": "absent",
+   "check": "exit 0",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "absent",
+   "check": "result absent",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "absent",
+   "check": "the EFI partition was found",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "absent",
+   "check": "no cmd call",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "absent",
+   "check": "no state written",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "no-uuid",
+   "check": "exit 0, result absent, no cmd call",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "install",
+   "check": "exit 0",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "install",
+   "check": "result installed",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "install",
+   "check": "all three packages installed at the pinned versions",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "install",
+   "check": "the exact pinned bytes were streamed, in catalogue order",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "install",
+   "check": "--bypass-low-target-sdk-block only for the package that asks for it",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "install",
+   "check": "the catalogue's permissions granted",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "install",
+   "check": "app-ops set",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "install",
+   "check": "battery-optimisation exemption for GmsCore only",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "install",
+   "check": "state: installed, this version",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "install",
+   "check": "the disk image is unchanged (read-only)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "install",
+   "check": "a log was written",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "again",
+   "check": "exit 0, already installed, no cmd call",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "uninstalled",
+   "check": "an app the user uninstalled stays uninstalled",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "kept",
+   "check": "exit 0, installed",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "kept",
+   "check": "newer and equal versions kept, the missing one installed",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "kept",
+   "check": "grants still applied to kept packages",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "upgrade",
+   "check": "exit 0, installed, state at the new version",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "upgrade",
+   "check": "the older package upgraded, the removed one left out, the current one kept",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "upgrade",
+   "check": "no permission, app-op or exemption applied again",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "tampered",
+   "check": "exit 1, refused",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "tampered",
+   "check": "nothing installed, no write call at all",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "tampered",
+   "check": "the reason names the file",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "tampered",
+   "check": "state: refused",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "missing",
+   "check": "exit 1, refused, nothing installed",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "commit-fails",
+   "check": "exit 1, failed",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "commit-fails",
+   "check": "stops at the failing package",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "commit-fails",
+   "check": "the next run tries again and completes",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "grant-fails",
+   "check": "installed; the failed grant is reported",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "bad-catalogue",
+   "check": "exit 1, bad_catalog, no cmd call",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "from-dir",
+   "check": "exit 0, installed from the directory",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "case": "status",
+   "check": "would_install, nothing written, no state",
+   "ok": true,
+   "detail": ""
+  }
+ ]
+}

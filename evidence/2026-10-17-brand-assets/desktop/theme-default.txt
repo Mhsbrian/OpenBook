@@ -1,0 +1,8 @@
+    mSystemColors={0=[WallpaperColors: ff7580ea ffa371eb ffd59be6 fffaf9ff ffe9add5 ffe6adc1 ffde9e99 fff6f7fc h: 5]}
+    mMainWallpaperColor=ff7580ea
+    mColorScheme=ColorScheme {
+    mThemeStyle=1
+    mSystemColors={0=[WallpaperColors: ff7580ea ffa371eb ffd59be6 fffaf9ff ffe9add5 ffe6adc1 ffde9e99 fff6f7fc h: 5]}
+    mMainWallpaperColor=ff7580ea
+    mColorScheme=ColorScheme {
+    mThemeStyle=1

@@ -1,0 +1,97 @@
+package: name='dev.anybook.overlay.pointer' versionCode='37' versionName='17' platformBuildVersionName='17' platformBuildVersionCode='37' compileSdkVersion='37' compileSdkVersionCodename='17'
+minSdkVersion:'37'
+targetSdkVersion:'37'
+Binary APK
+Package name=dev.anybook.overlay.pointer id=7f
+  type attr id=01 entryCount=2
+    resource 0x7f010000 attr/openbookPointerFill
+      () (attr) type=color
+    resource 0x7f010001 attr/openbookPointerStroke
+      () (attr) type=color
+  type drawable id=02 entryCount=20
+    resource 0x7f020000 drawable/pointer_alias_vector
+      () (file) res/drawable/pointer_alias_vector.xml type=XML
+    resource 0x7f020001 drawable/pointer_all_scroll_vector
+      () (file) res/drawable/pointer_all_scroll_vector.xml type=XML
+    resource 0x7f020002 drawable/pointer_arrow_vector
+      () (file) res/drawable/pointer_arrow_vector.xml type=XML
+    resource 0x7f020003 drawable/pointer_cell_vector
+      () (file) res/drawable/pointer_cell_vector.xml type=XML
+    resource 0x7f020004 drawable/pointer_context_menu_vector
+      () (file) res/drawable/pointer_context_menu_vector.xml type=XML
+    resource 0x7f020005 drawable/pointer_copy_vector
+      () (file) res/drawable/pointer_copy_vector.xml type=XML
+    resource 0x7f020006 drawable/pointer_crosshair_vector
+      () (file) res/drawable/pointer_crosshair_vector.xml type=XML
+    resource 0x7f020007 drawable/pointer_grab_vector
+      () (file) res/drawable/pointer_grab_vector.xml type=XML
+    resource 0x7f020008 drawable/pointer_grabbing_vector
+      () (file) res/drawable/pointer_grabbing_vector.xml type=XML
+    resource 0x7f020009 drawable/pointer_hand_vector
+      () (file) res/drawable/pointer_hand_vector.xml type=XML
+    resource 0x7f02000a drawable/pointer_help_vector
+      () (file) res/drawable/pointer_help_vector.xml type=XML
+    resource 0x7f02000b drawable/pointer_horizontal_double_arrow_vector
+      () (file) res/drawable/pointer_horizontal_double_arrow_vector.xml type=XML
+    resource 0x7f02000c drawable/pointer_nodrop_vector
+      () (file) res/drawable/pointer_nodrop_vector.xml type=XML
+    resource 0x7f02000d drawable/pointer_text_vector
+      () (file) res/drawable/pointer_text_vector.xml type=XML
+    resource 0x7f02000e drawable/pointer_top_left_diagonal_double_arrow_vector
+      () (file) res/drawable/pointer_top_left_diagonal_double_arrow_vector.xml type=XML
+    resource 0x7f02000f drawable/pointer_top_right_diagonal_double_arrow_vector
+      () (file) res/drawable/pointer_top_right_diagonal_double_arrow_vector.xml type=XML
+    resource 0x7f020010 drawable/pointer_vertical_double_arrow_vector
+      () (file) res/drawable/pointer_vertical_double_arrow_vector.xml type=XML
+    resource 0x7f020011 drawable/pointer_vertical_text_vector
+      () (file) res/drawable/pointer_vertical_text_vector.xml type=XML
+    resource 0x7f020012 drawable/pointer_zoom_in_vector
+      () (file) res/drawable/pointer_zoom_in_vector.xml type=XML
+    resource 0x7f020013 drawable/pointer_zoom_out_vector
+      () (file) res/drawable/pointer_zoom_out_vector.xml type=XML
+  type style id=03 entryCount=9
+    resource 0x7f030000 style/PointerIconVectorStyleFillBlack
+      () (style) size=3
+        0x011200c0=@0x0106000c
+        0x011200c1=@0x0106000b
+        openbookPointerFill(0x7f010000)=@0x0106000c
+    resource 0x7f030001 style/PointerIconVectorStyleFillBlue
+      () (style) size=3
+        0x011200c0=#ff009dc9
+        0x011200c1=#ff009dc9
+        openbookPointerFill(0x7f010000)=#ff009dc9
+    resource 0x7f030002 style/PointerIconVectorStyleFillGreen
+      () (style) size=3
+        0x011200c0=#ff1aa64a
+        0x011200c1=#ff1aa64a
+        openbookPointerFill(0x7f010000)=#ff1aa64a
+    resource 0x7f030003 style/PointerIconVectorStyleFillPink
+      () (style) size=3
+        0x011200c0=#fff94aab
+        0x011200c1=#fff94aab
+        openbookPointerFill(0x7f010000)=#fff94aab
+    resource 0x7f030004 style/PointerIconVectorStyleFillPurple
+      () (style) size=3
+        0x011200c0=#ffad72ff
+        0x011200c1=#ffad72ff
+        openbookPointerFill(0x7f010000)=#ffad72ff
+    resource 0x7f030005 style/PointerIconVectorStyleFillRed
+      () (style) size=3
+        0x011200c0=#fff55e57
+        0x011200c1=#fff55e57
+        openbookPointerFill(0x7f010000)=#fff55e57
+    resource 0x7f030006 style/PointerIconVectorStyleStrokeBlack
+      () (style) size=3
+        0x011200c2=@0x0106000c
+        0x011200c3=@0x0106000c
+        openbookPointerStroke(0x7f010001)=@0x0106000c
+    resource 0x7f030007 style/PointerIconVectorStyleStrokeNone
+      () (style) size=3
+        0x011200c2=@0x0106000d
+        0x011200c3=@0x0106000d
+        openbookPointerStroke(0x7f010001)=@0x0106000d
+    resource 0x7f030008 style/PointerIconVectorStyleStrokeWhite
+      () (style) size=3
+        0x011200c2=@0x0106000b
+        0x011200c3=@0x0106000c
+        openbookPointerStroke(0x7f010001)=@0x0106000b

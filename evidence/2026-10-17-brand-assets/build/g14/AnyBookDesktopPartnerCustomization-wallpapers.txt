@@ -1,0 +1,68 @@
+package: name='dev.anybook.desktop.partner' versionCode='37' versionName='17' platformBuildVersionName='17' platformBuildVersionCode='37' compileSdkVersion='37' compileSdkVersionCodename='17'
+minSdkVersion:'37'
+targetSdkVersion:'37'
+    resource 0x7f010000 drawable/openbook_bloom_dark
+      (nodpi) (file) res/drawable-nodpi-v4/openbook_bloom_dark.jpg
+    resource 0x7f010001 drawable/openbook_bloom_dark_thumb
+      (nodpi) (file) res/drawable-nodpi-v4/openbook_bloom_dark_thumb.jpg
+    resource 0x7f010002 drawable/openbook_bloom_light
+      (nodpi) (file) res/drawable-nodpi-v4/openbook_bloom_light.jpg
+    resource 0x7f010003 drawable/openbook_bloom_light_thumb
+      (nodpi) (file) res/drawable-nodpi-v4/openbook_bloom_light_thumb.jpg
+    resource 0x7f010004 drawable/openbook_folio_dark
+      (nodpi) (file) res/drawable-nodpi-v4/openbook_folio_dark.jpg
+    resource 0x7f010005 drawable/openbook_folio_dark_thumb
+      (nodpi) (file) res/drawable-nodpi-v4/openbook_folio_dark_thumb.jpg
+    resource 0x7f010006 drawable/openbook_folio_light
+      (nodpi) (file) res/drawable-nodpi-v4/openbook_folio_light.jpg
+    resource 0x7f010007 drawable/openbook_folio_light_thumb
+      (nodpi) (file) res/drawable-nodpi-v4/openbook_folio_light_thumb.jpg
+    resource 0x7f010008 drawable/openbook_strata_dark
+      (nodpi) (file) res/drawable-nodpi-v4/openbook_strata_dark.jpg
+    resource 0x7f010009 drawable/openbook_strata_dark_thumb
+      (nodpi) (file) res/drawable-nodpi-v4/openbook_strata_dark_thumb.jpg
+    resource 0x7f01000a drawable/openbook_strata_light
+      (nodpi) (file) res/drawable-nodpi-v4/openbook_strata_light.jpg
+    resource 0x7f01000b drawable/openbook_strata_light_thumb
+      (nodpi) (file) res/drawable-nodpi-v4/openbook_strata_light_thumb.jpg
+    resource 0x7f01000c drawable/openbook_tide_dark
+      (nodpi) (file) res/drawable-nodpi-v4/openbook_tide_dark.jpg
+    resource 0x7f01000d drawable/openbook_tide_dark_thumb
+      (nodpi) (file) res/drawable-nodpi-v4/openbook_tide_dark_thumb.jpg
+    resource 0x7f01000e drawable/openbook_tide_light
+      (nodpi) (file) res/drawable-nodpi-v4/openbook_tide_light.jpg
+    resource 0x7f01000f drawable/openbook_tide_light_thumb
+      (nodpi) (file) res/drawable-nodpi-v4/openbook_tide_light_thumb.jpg
+  type string id=02 entryCount=8
+    resource 0x7f020000 string/openbook_wallpaper_bloom
+      () "Bloom"
+      (en-rXA) "[βļööḿ one]"
+--
+    resource 0x7f020001 string/openbook_wallpaper_credit
+      () "The OpenBook Authors, CC BY 4.0"
+    resource 0x7f020002 string/openbook_wallpaper_dark
+      () "Dark"
+      (en-rXA) "[Ðåŕķ one]"
+--
+    resource 0x7f020003 string/openbook_wallpaper_folio
+      () "Folio"
+      (en-rXA) "[Föļîö one]"
+--
+    resource 0x7f020004 string/openbook_wallpaper_light
+      () "Light"
+      (en-rXA) "[Ļîĝĥţ one]"
+--
+    resource 0x7f020005 string/openbook_wallpaper_strata
+      () "Strata"
+      (en-rXA) "[Šţŕåţå one two]"
+--
+    resource 0x7f020006 string/openbook_wallpaper_tide
+      () "Tide"
+      (en-rXA) "[Ţîðé one]"
+--
+    resource 0x7f020007 string/openbook_wallpapers
+      () "OpenBook"
+      (en-rXA) "[Öþéñβööķ one two]"
+--
+    resource 0x7f030001 xml/wallpapers
+      () (file) res/xml/wallpapers.xml type=XML

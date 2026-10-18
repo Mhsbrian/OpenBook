@@ -1,0 +1,24 @@
+===ADDONS===
+01:41:11 openbook-addons run: 1 catalogued add-on(s) in /system_ext/etc/openbook/addons; source /dev/block/sda
+01:41:14 microg: com.google.android.gms-252432034.apk sha256 e5e6cba078bdec812b5450599350e5c1a12c8b7438da5bf77123af170f8c1a35 ok (108113833 bytes)
+01:41:14 microg: com.android.vending-84022634.apk sha256 9b8616011cc8f026bcbbe094df850794abb9d6d9f23214d7a8f8c4d1033ea012 ok (4210169 bytes)
+01:41:14 microg: com.google.android.gsf-8.apk sha256 86891b174301f06a1c84187b545a0a2a57044c6b768f3e84e865908743349692 ok (21872 bytes)
+01:41:17 microg: installed com.google.android.gms 252432034 from com.google.android.gms-252432034.apk
+01:41:18 microg: installed com.android.vending 84022634 from com.android.vending-84022634.apk
+01:41:18 microg: installed com.google.android.gsf 8 from com.google.android.gsf-8.apk
+01:41:18 microg 0.3.17.252432: done
+01:42:38 openbook-addons run: 1 catalogued add-on(s) in /system_ext/etc/openbook/addons; source /dev/block/sda
+01:42:38 microg 0.3.17.252432: installed on 2026-10-18T01:41:18Z already; nothing to do (uninstalled apps stay uninstalled)
+01:43:29 openbook-addons run: 1 catalogued add-on(s) in /system_ext/etc/openbook/addons; source /dev/block/sda
+01:43:29 microg 0.3.17.252432: installed on 2026-10-18T01:41:18Z already; nothing to do (uninstalled apps stay uninstalled)
+{"schema":"openbook-addon-state/1","name":"microg","version":"0.3.17.252432","result":"installed","why":null,"at":"2026-10-18T01:41:18Z","source":"/dev/block/sda"}package:com.google.android.gms versionCode:252432034
+package:com.google.android.gsf versionCode:8
+package:com.android.vending versionCode:84022634
+    network provider:
+      last location=null
+      identity=10112/com.google.android.gms
+    fused provider:
+      last location=null
+      identity=10112/com.google.android.gms
+
+===FEATURES===

@@ -1,0 +1,19 @@
+# 2026-10-17T23:18:33Z negative test on AnyBook/anybook_cf_x86_64_pc/anybook_vsoc_x86_64:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+$ pm install sigcheck.apk; pm install fakegms.apk
+Success
+Success
+$ dumpsys package com.google.android.gms (real signer, from PackageManager's own records)
+    codePath=/data/app/~~5aIZaoT7Ksl2rK2UmFxdsA==/com.google.android.gms-jcfyDhUtlFs78k4OEqZb2Q==
+    versionCode=1 minSdk=30 targetSdk=36
+    signatures=PackageSignatures{de5d432 version:3, signatures:[1d501800], past signatures:[]}
+    pkgFlags=[ ALLOW_CLEAR_USER_DATA ALLOW_BACKUP KILL_AFTER_RESTORE ]
+$ logcat -c; am start -W -n org.openbook.test.sigcheck/.Main
+10-17 23:18:36.191  4156  4156 I OpenBookSigCheck: {"com.google.android.gms":{"installed":true,"version_code":1,"system":false,"signatures":[{"sha1":"d3362e4942f210b8458efc6a9e2298cc7d0071f9","sha256":"32b8ad522642f7a88aba3ecd7a5ab16ec8d523d3296efe4ef1ea00ff4230dc04"}],"signing_certificates":[{"sha1":"d3362e4942f210b8458efc6a9e2298cc7d0071f9","sha256":"32b8ad522642f7a88aba3ecd7a5ab16ec8d523d3296efe4ef1ea00ff4230dc04"}]},"com.android.vending":{"installed":false},"com.google.android.gsf":{"installed":false}}
+$ aapt2 dump xmltree openbook-fakegms.apk (host): the meta-data it carries
+          E: meta-data (line=8)
+            A: http://schemas.android.com/apk/res/android:name(0x01010003)="fake-signature" (Raw: "fake-signature")
+            A: http://schemas.android.com/apk/res/android:value(0x01010024)="308204433082032ba0…(2,190 hex digits: Google's certificate)" (Raw: "308204433082032ba0030201...")
+sha256 of that value's bytes: f0fd6c5b410f25cb25c3b53346c8972fae30f8ee7411df910480ad6b2d60db83 (Google's certificate, the one microG asks for)
+signed by: Signer #1 certificate DN: CN=Not microG (OpenBook negative test), O=OpenBook Signer #1 certificate SHA-256 digest: 32b8ad522642f7a88aba3ecd7a5ab16ec8d523d3296efe4ef1ea00ff4230dc04 
+
+RESULT: PASS. The impostor asks for Google's certificate but both APIs return its own (32b8ad52...), not f0fd6c5b... (Google) and not 9bd06727... (microG).

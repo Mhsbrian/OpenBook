@@ -228,6 +228,25 @@ python3 scripts/installer/e2e-qemu.py avc OUT <logcat.gz and sections/avc.txt fi
 - The integrated stick (installer plus the check add-ons, built from a clean `main` checkout) and its full test set are in `docs/installer.md` §13.9. Keep a reflink copy of the image before the add-ons go on: the add-on QEMU tests apply their add-on to it.
 - The user guide and the release checklist draft: `docs/INSTALL.md`.
 
+## Google services compatibility: the microG add-on (ANAL-210)
+
+The framework patch (`aosp/patches/frameworks/base/0002`–`0004`; `0001` is B7's fonts.xml) is applied by `scripts/aosp-patches.sh` in every build. `openbook-addons` and its catalogue (`device/anybook/common/addons/`) are part of the PC products. The APKs are microG's own release files, fetched and checked here, never committed.
+
+```bash
+scripts/microg/fetch.sh                        # microG's APKs -> ~/anybook/dl/microg/<version>/ (sha256, size, OpenPGP, signing cert, package)
+scripts/microg/make-addon.sh                   # -> ~/anybook/installer/out/openbook-microg-<version>-addon/
+scripts/microg/add-to-image.sh IMG ADDON_DIR   # put it on a live IMAGE FILE (--remove IMG takes it off); then write-stick.sh as usual
+scripts/microg/addons-test.sh <run>                                    # openbook-addons host tests (image files, a fake cmd)
+scripts/microg/engine-addon-test.sh LIVE.img ADDON_DIR <run>           # the installer's add-on path, and a no-add-on plan against main's engine
+scripts/microg/addon-qemu.sh IMG MAIN_IMG ADDON_DIR <run> all          # the G14 image in QEMU: plain, main, add-on, second boot, install, installed
+scripts/microg/build-test-apks.sh                                      # signature/location checker and the negative-test APK (throwaway keys)
+ADB="adb -s <serial>" scripts/microg/gms-apps.sh <label> <outdir>      # Play-services apps on a device, with or without microG
+```
+- Cuttlefish tests use the VM's own Wi-Fi for internet: `cmd wifi set-wifi-enabled enabled; cmd wifi connect-network VirtWifi open`.
+- On Cuttlefish (no OpenBook ESP), `openbook-addons` runs from an NDK build with `--from-dir`. The command is in `evidence/2026-10-17-microg/SUMMARY.md`.
+- Before anything leaves the VM, `scripts/microg/redact.sh` removes FCM, MCS and check-in tokens and device IDs from the logs.
+- Details: `docs/gapps.md` §6 and `docs/installer.md` §14.
+
 ## M8: installer boot-chain prototype (ANAL-189)
 
 ```bash
@@ -314,3 +333,18 @@ scripts/graphics/make-gfx-check.sh openbook-gfxcheck-20261017           # add-on
 scripts/graphics/gfx-qemu.sh openbook-gfxcheck-20261017 quick1          # QEMU: the add-on end to end, 40 cases per list
 ```
 Owner steps (add the check to the stick, run it, read the results): `docs/graphics-amd.md`, "dEQP and CTS on the G14".
+
+## Document fonts: metric-compatible stand-ins for Windows fonts (ANAL-208)
+```bash
+# The fonts are committed (device/anybook/common/desktop/fonts/documents/, README.md has sources and sha256).
+# After changing DOCS in scripts/ui/fonts-customization.py, regenerate both configs:
+scripts/ui/fonts-customization.py > device/anybook/common/desktop/fonts/fonts_customization.xml   # framework
+scripts/ui/fonts-legacy-patch.sh          # aosp/patches/frameworks/base: /system/etc/fonts.xml, for WebView
+# Check in Cuttlefish (B7's ports), then compare with the fonts' own metrics:
+scripts/ui/doc-fonts-check.sh 127.0.0.1:16537 OUT          # WebView: report.json, screen.png, cmd font dump
+scripts/ui/doc-fonts-typeface.sh 127.0.0.1:16537 OUT/typeface.tsv   # the framework: Typeface + Paint
+scripts/ui/doc-fonts-metrics.py --fonttools ~/anybook/aosp/src/external/fonttools/Lib --afm AFMDIR \
+  --font arimo=.../Arimo-VF.ttf ... --report LABEL=OUT/report.json --typeface LABEL=OUT/typeface.tsv
+```
+- `aosp-build.sh` applies the `frameworks/base` patch (legacy `fonts.xml` only; the framework reads `font_fallback.xml`).
+- Details: `docs/googlebook-ui.md` §2.1.1; evidence `evidence/2026-10-17-doc-fonts/`.

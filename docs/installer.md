@@ -1056,11 +1056,48 @@ Built on the owner's request after PR #64 merged; it replaces `anal192c`. Eviden
   ```
 - **On the G14:** boots 1–3 as in §13.6. In boot 1, step 6 (a ringtone preview) should now play. Then **boot 4, "OpenBook graphics check"**: about 30 minutes, AC power, lid open, no screen-lock PIN; it powers off by itself (`docs/graphics-amd.md`, owner checklist steps 4–6). Then plug the stick into the build host and reply "stick attached".
 
-## 14. A Google apps package the user brings (ANAL-211, G2)
+## 14. App add-ons: microG (ANAL-210)
 
-Status as of 2026-10-18. Evidence: `evidence/2026-10-18-byo-gapps/`, starting with `SUMMARY.md`. Host tests on image files, then QEMU/KVM + OVMF, SELinux enforcing. **Nothing has run on the G14** (§14.7). Only synthetic packages were used: OpenBook's own dummy APKs and XMLs in LiteGapps' layout (`scripts/gapps/`). No Google package was downloaded, and none is committed. Why, and what users should expect: `docs/gapps.md` §4, §5.
+Status as of 2026-10-17. Design, security trade-off and results: `docs/gapps.md` §6. Evidence: `evidence/2026-10-17-microg/`.
 
-### 14.1 What the user sees
+### 14.1 What the image and the installer do
+- **The catalogue is part of the image.**
+  - `device/anybook/common/addons/<name>.json` installs to `/system_ext/etc/openbook/addons/`. It lists an add-on's APKs with their package, versionCode, sha256 and size, and what to grant.
+  - The APKs travel on the boot disk's EFI partition, in `openbook/addons/<name>/`. The image has none.
+  - Today the catalogue has one add-on, microG (112 MB).
+- **`openbook-addons`** (PC products, init, once per boot after `sys.boot_completed`, SELinux domain `openbook_addons`):
+  - It finds the partition `androidboot.boot_part_uuid` names. That is the stick's ESP in a live session, and the new disk's ESP or XBOOTLDR on an installed system.
+  - It reads that partition through the whole-disk node at the partition's offset, as the engine reads the stick, and never writes it.
+  - It installs a present add-on whose files all match the pins, as normal apps through PackageManager.
+  - It records the result in `/data/misc/openbook_addons/`.
+  - Without an add-on, it logs one line and stops.
+- **The stick:** `scripts/microg/add-to-image.sh IMG ADDON_DIR` works on image files only. It refuses a block device, writes only `openbook/addons/microg/`, checks that there is room and reads every file back. `--remove` takes it off.
+- **The engine** (`engine/addon.c`; PROTOCOL.md):
+  - `hello` and `openbook-install addons` list the catalogued add-ons with `on_stick`.
+  - A plan request may name add-ons. The plan then gains a `check_addon` operation and one file per APK on the new boot partition.
+  - `check_source` reads the APKs from the stick and compares them with the image's pins before anything is written. `verify` reads them back from the new disk.
+  - **A plan without add-ons is byte for byte what it was before**: `main`'s engine accepts it, because its own recomputation gives the same `plan_sha256`.
+- **The wizard:** on the disk screen, one switch per add-on the stick carries: "Google services compatibility (microG)", with its size and what it is. **It is off by default.** The plan key includes the ticked add-ons, so changing the switch makes a new plan.
+
+### 14.2 Tests
+| Test | Result | Evidence (`evidence/2026-10-17-microg/`) |
+|---|---|---|
+| `openbook-addons` on the host (`scripts/microg/addons-test.sh`): GPT/FAT image fixtures, a fake `cmd` | 37/37 | `host/addons-test/` |
+| The engine's add-on path on the host (`scripts/microg/engine-addon-test.sh`): inventory, the plan without add-ons against `main`'s engine, a plan and install with the add-on read back with mtools, refusals (not on the stick, no catalogue, a corrupted APK: refused in `check_source`, target unchanged) | 19/19 | `host/engine-addon-test/` |
+| The ANAL-191 engine suite (`scripts/installer/engine-test.sh`) on this branch | 63/63 | `host/engine-regress/` |
+| The wizard app (`app/tools/compile-check.sh`) | compiles, 0 warnings | — |
+| G14 image in QEMU (`scripts/microg/addon-qemu.sh`): live without and with the add-on, a second boot, the image from `main`, an install with the add-on ticked and that disk's first start | image `g1a`: the add-on installs under enforcing on the live stick and on an installed disk's first start (self-check 18/18), the wizard's switch off by default, the plain stick has the same 140 packages as `main`'s image. One denial per boot from `stdio_to_kmsg`, removed in `f7df42d` (rerun pending the build lane) | `qemu-g1a/` |
+
+### 14.3 Not done
+- The wizard switch has not been clicked through in QEMU; the install case drives the engine's CLI from the serial console, as the e2e matrix does.
+- No power-cut case for the add-on files. They are written in `boot_entry` like the other boot files, before the table and before verification, so the existing guarantees cover them (HYPOTHESIS until a cut lands in them).
+- The G14: the owner's checklist is on ANAL-192.
+
+## 15. A Google apps package the user brings (ANAL-211, G2)
+
+Status as of 2026-10-18. Evidence: `evidence/2026-10-18-byo-gapps/`, starting with `SUMMARY.md`. Host tests on image files, then QEMU/KVM + OVMF, SELinux enforcing. **Nothing has run on the G14** (§15.7). Only synthetic packages were used: OpenBook's own dummy APKs and XMLs in LiteGapps' layout (`scripts/gapps/`). No Google package was downloaded, and none is committed. Why, and what users should expect: `docs/gapps.md` §4, §5.
+
+### 15.1 What the user sees
 - **Disk screen (step 4):** under the layout choice (and ANAL-210's add-ons), a switch, off by default: "Install a Google apps package you provide (advanced)". With it on, Continue opens the package page. The page belongs to step 4, so the rail keeps its seven steps; Back returns to the disk.
 - **The package page** (`ui/GappsScreen.kt`):
   - "Choose a package…" opens the system file picker (DocumentsUI). It lists this stick's storage (the live session's internal storage lives on the stick) and any USB drive.
@@ -1069,10 +1106,10 @@ Status as of 2026-10-18. Evidence: `evidence/2026-10-18-byo-gapps/`, starting wi
   - **Refused:** the reason, and up to 12 paths, each with why.
   - **Before you continue:** not Play Protect certified (register the GSF Android ID at `google.com/android/uncertified`; OpenBook shows the ID); no Play Integrity device verdict (Google Wallet tap to pay, Netflix from Google Play and many banking apps may not work); the apps live in the read-only `product` partition, checked by dm-verity, and only a reinstall removes them; OpenBook doesn't work around any of this.
   - Continue only works once the user ticks "I understand. Install this package." The engine refuses a package step without that confirmation (`gapps_not_confirmed`).
-- **Confirm screen:** "Also installs <name>: N apps, size, into the new system", and the plan's warnings: `gapps_uncertified`, and `privapp_allowlist_not_enforced` (§14.6).
+- **Confirm screen:** "Also installs <name>: N apps, size, into the new system", and the plan's warnings: `gapps_uncertified`, and `privapp_allowlist_not_enforced` (§15.6).
 - **After the install:** OpenBook setup gets a fourth step, "Register this computer with Google". It shows the GSF Android ID (decimal and hexadecimal, with a copy button), read from GSF's `gservices` provider, or "No ID yet" until GSF has been online. The same page stays available as **Settings › About › Google apps registration**: an injected Settings entry (category `com.android.settings.category.ia.my_device_info`), enabled at boot only when `/product/etc/openbook/gapps-manifest.json` exists.
 
-### 14.2 The check (`engine/gapps.c`, `zipr.c`, `apk.c`)
+### 15.2 The check (`engine/gapps.c`, `zipr.c`, `apk.c`)
 `openbook-install gapps-check --package FILE`, or the daemon's `gapps_check`. The input is untrusted:
 - **Container.** A zip (stored or deflate, zip64 sizes; encrypted entries refused; each entry's CRC-32 and declared size enforced). The payload is `files/files.tar.br`, `.xz` or `.tar`, decoded as a stream: brotli (`libbrotli`), the LZMA SDK's xz (`liblzma`), and a tar reader (ustar, GNU long names, pax `path`/`size`).
 - **Layout.** LiteGapps' layout, read from its MIT build scripts (`docs/gapps.md` §5). `module.prop`'s `litegapps_arch` and `litegapps_sdk` must say x86_64 and this image's SDK (`ro.build.version.sdk`, 37).
@@ -1095,7 +1132,7 @@ Status as of 2026-10-18. Evidence: `evidence/2026-10-18-byo-gapps/`, starting wi
   - The signature itself is not verified here; PackageManager does that when it scans the app.
 - **Staging.** Accepted files go to `/data/misc/openbook_install/gapps/<sha256 of the manifest>/`, on the stick's userdata. One staged package at a time: a new check removes the old one, and a refused one leaves nothing. The manifest, `openbook-gapps/1`, records the package (file, size, sha256, `module.prop`), every file (path, size, sha256), and every app (package, version, SDK levels, ABIs, signing scheme, signer DN and SHA-256). It is the install manifest: `plan` names it by sha256, and the new system keeps it as `/product/etc/openbook/gapps-manifest.json`.
 
-### 14.3 The new product (`engine/product.c`, `erofs.c`, `avb.c`, `lp.c`)
+### 15.3 The new product (`engine/product.c`, `erofs.c`, `avb.c`, `lp.c`)
 - **Plan** (`plan --gapps SHA256`):
   - reads the stick's `vbmeta_a` (checked against its manifest), product's AVB footer and footer vbmeta, and the installed super's metadata (`openbook/install/super-metadata.img`);
   - merge-plans the EROFS image and refuses a package that would add a path the image already has (`gapps_clash`);
@@ -1111,9 +1148,9 @@ Status as of 2026-10-18. Evidence: `evidence/2026-10-18-byo-gapps/`, starting wi
 - **Where it runs (S9).** All of it happens in the `system` step, after `check_source` has verified every staged file against the manifest and before the GPT is written. So a power cut leaves the states the installer already guarantees: the old table, or a blank disk, or a new table that isn't activated.
   - Every input is re-hashed as it is read: the stick's product extent against the manifest, every staged file against the check.
   - The rebuilt `product_a`, the super metadata and `vbmeta_a` are read back and compared before activation.
-- **Plan and report.** Only a plan with a package has `request.gapps`, the `gapps` and `product` sections, the operations `check_gapps`, `product` and `vbmeta`, and `bootconfig.img` marked `after_product`. The report adds the root digest, the vbmeta digest and the product's sha256. **Without the step, installs are byte-identical to `main`'s** (§14.4).
+- **Plan and report.** Only a plan with a package has `request.gapps`, the `gapps` and `product` sections, the operations `check_gapps`, `product` and `vbmeta`, and `bootconfig.img` marked `after_product`. The report adds the root digest, the vbmeta digest and the product's sha256. **Without the step, installs are byte-identical to `main`'s** (§15.4).
 
-### 14.4 Host tests (`scripts/gapps/engine-gapps-test.sh`, C)
+### 15.4 Host tests (`scripts/gapps/engine-gapps-test.sh`, C)
 Run on `openbook-live-20261017-anal206b` (main + B5) with this branch merged with `main` `0713b6a`: **89/89**.
 
 | Case | Checks |

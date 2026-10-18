@@ -3,8 +3,8 @@
 #
 # openbook-addons (ANAL-210, addons.c): once per boot, after boot_completed, install the optional app add-ons the boot
 # disk's EFI partition carries in openbook/addons/<name>/ and the image catalogues in /system_ext/etc/openbook/addons/.
-# Without an add-on on the disk it only logs that there is none. Its log lines also go to the kernel log
-# ("openbook_addons"); its log, last result and per-add-on state are in /data/misc/openbook_addons/.
+# Without an add-on on the disk it only logs that there is none. Its log, last result and per-add-on state are in
+# /data/misc/openbook_addons/ (the live stick's "save logs" capture copies them).
 
 on post-fs-data
     mkdir /data/misc/openbook_addons 0700 root root
@@ -15,7 +15,6 @@ service openbook_addons /system_ext/bin/openbook-addons --json /data/misc/openbo
     group root
     oneshot
     disabled
-    stdio_to_kmsg
 
 on property:sys.boot_completed=1
     start openbook_addons
