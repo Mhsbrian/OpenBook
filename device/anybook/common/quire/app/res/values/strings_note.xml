@@ -54,6 +54,7 @@
     <string name="q_foot_waiting">Waiting for you</string>
     <string name="q_foot_stopping">Stopping…</string>
     <string name="q_foot_done">Done</string>
+    <string name="q_foot_done_time">Done · %1$d s</string>
     <string name="q_foot_stopped">Stopped</string>
     <string name="q_foot_signin">Not signed in</string>
     <string name="q_foot_noagent">Nothing is sent until you connect an agent</string>
@@ -87,6 +88,12 @@
     <string name="q_a11y_high">high priority</string>
     <string name="q_a11y_plan">Plan, %1$d of %2$d done.</string>
     <string name="q_code">code</string>
+    <!-- Save as a file (§3.2 Long output, Code), through the Storage Access Framework. -->
+    <string name="q_save_answer">Save as a file</string>
+    <string name="q_save_code">Save as file</string>
+    <string name="q_save_answer_name">Quire answer.md</string>
+    <string name="q_saved">Saved as %1$s</string>
+    <string name="q_save_failed">Couldn’t save the file</string>
     <string name="q_copy_code">Copy code</string>
     <string name="q_copied">Copied</string>
     <string name="q_a11y_code">Code block, %1$s</string>
@@ -108,6 +115,8 @@
     <string name="q_why_command">%1$s runs this %2$s.</string>
     <string name="q_a11y_consent">%1$s asks: %2$s. Buttons: %3$s.</string>
     <string name="q_a11y_change">%1$s, %2$s to %3$s.</string>
+    <string name="q_a11y_diff_add">Added: %1$s</string>
+    <string name="q_a11y_diff_del">Removed: %1$s</string>
     <string name="q_undo_one">Undo %1$s</string>
     <string name="q_moved_on">The agent moved on.</string>
 
@@ -116,9 +125,10 @@
     <string name="q_stopped">Stopped.</string>
     <string name="q_stopped_after">Stopped after %1$d of %2$d steps.</string>
     <string name="q_stop_unconfirmed">The agent didn’t confirm the stop.</string>
-    <string name="q_fx_none">It reported no changes.</string>
+    <string name="q_fx_none">Nothing was changed.</string>
     <string name="q_fx_done">Done before the stop: %1$s.</string>
     <string name="q_fx_interrupted">%1$s was interrupted and may be partly applied.</string>
+    <string name="q_fx_interrupted_read">%1$s was interrupted.</string>
     <string name="q_fx_own">Quire can’t undo the agent’s own file and command actions.</string>
     <string name="q_err_stopped">%1$s stopped</string>
     <string name="q_err_declined">%1$s declined</string>

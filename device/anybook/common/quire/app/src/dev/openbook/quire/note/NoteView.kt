@@ -60,6 +60,7 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
         fun openPicker(anchor: View)
         fun mirrorAction(action: MirrorPanel.Action)
         fun addScreen()
+        fun saveFile(name: String, mime: String, text: String)
     }
 
     private val p = env.palette
@@ -69,9 +70,9 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
 
     // Header (§3.1): leaf · agent chip · Hide · Close.
     private val leaf = Leaf(context, 22f)
-    private val avatar = Avatar(context, 18f, 9.5f)
+    private val avatar = Avatar(context, 18f, 10f)
     private val agentName = env.text(TextRole.CHIP, p.onSurface)
-    private val agentWhere = env.text(TextRole(13f, 20f, 400), p.onSurfaceVariant)
+    private val agentWhere = env.text(TextRole.CHIP_REGULAR, p.onSurfaceVariant)
     val agentChip: LinearLayout = object : LinearLayout(context), RingTarget {
         override val ring = Ring.GAP
         override val ringRadius = context.dp(14f)
@@ -232,6 +233,27 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
         maxLines = 1
         ellipsize = TextUtils.TruncateAt.END
     }
+    /** "Save as a file" for a long answer (§3.2 Long output): a quiet text button in the footer. */
+    private val footSave = object : TextView(context), RingTarget {
+        override val ring = Ring.GAP
+        override val ringRadius = context.dp(12f)
+    }.apply {
+        role(TextRole.META_MEDIUM, p.primary, env.type)
+        text = dev.openbook.quire.ui.withIcon(context, Icons.SAVE, context.getString(R.string.q_save_answer), 16f)
+        contentDescription = context.getString(R.string.q_save_answer)
+        gravity = Gravity.CENTER_VERTICAL
+        minHeight = dpi(24f)
+        setPadding(dpi(8f), 0, dpi(8f), 0)
+        background = hoverable(context, p.surfaceHigh, 12f)
+        isFocusable = true
+        isClickable = true
+        visibility = GONE
+        setOnClickListener {
+            task?.let { t ->
+                actions.saveFile(context.getString(R.string.q_save_answer_name), "text/markdown", t.answersMarkdown())
+            }
+        }
+    }
     private val footKey = kbd(context, p, "Esc")
     private val footAction = env.text(TextRole.META, p.onSurfaceVariant)
     private val footer = LinearLayout(context).apply {
@@ -240,6 +262,7 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
         setPadding(dpi(16f), 0, dpi(16f), dpi(10f))
         minimumHeight = dpi(30f)
         addView(footText, LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f))
+        addView(footSave, LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply { marginEnd = dpi(8f) })
         addView(footKey)
         addView(footAction, LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply { marginStart = dpi(6f) })
     }
@@ -299,6 +322,7 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
         sections.forEach { addView(it) }
         addView(announcer)
         env.announce = { announce(it, false) }
+        env.save = { name, mime, text -> actions.saveFile(name, mime, text) }
         clipChildren = true
         elevation = dp(12f)
         outlineAmbientShadowColor = p.shadow
@@ -403,6 +427,12 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
             y += v.measuredHeight
         }
         announcer.layout(0, 0, 1, 1)
+        val task = this.task
+        if (task != null && !task.wide && task.mirror == null && body.visibility == VISIBLE &&
+            blocksColumn.height > scroll.height + 1 && task.blocks.any { it is Block.Answer }) {
+            task.wide = true
+            post { this.task?.let { bind(it) } }
+        }
     }
 
     override fun dispatchDraw(canvas: Canvas) {
@@ -493,7 +523,10 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
     private fun updateJump() {
         val t = task
         val streaming = t?.blocks?.lastOrNull() is Block.Answer && t.running
-        jump.visibility = if (!atBottom && streaming) View.VISIBLE else View.GONE
+        val v = if (!atBottom && streaming) View.VISIBLE else View.GONE
+        if (jump.visibility != v) android.util.Log.i(dev.openbook.quire.Quire.TAG,
+            "note: jump to latest ${if (v == View.VISIBLE) "shown" else "hidden"}")
+        jump.visibility = v
     }
 
     fun scrollToEnd() {
@@ -511,10 +544,15 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
         val newTask = task !== t
         task = t
         val mirror = t.mirror
+        // Wide (480 dp) once a long answer or code arrives (§3.1); the task keeps the width, so the note doesn't
+        // flip back and forth while text streams. A body that overflows at 400 dp counts as long (onLayout).
+        if (t.blocks.any { b -> b is Block.Answer && (b.text.contains("```") || b.text.length > LONG) } ||
+            t.blocks.any { b -> b is Block.Consent && (b.diff != null || (b.command?.length ?: 0) > 80) }) {
+            t.wide = true
+        }
         widthDp = when {
             mirror != null -> MIRROR_WIDTH
-            t.blocks.any { b -> b is Block.Answer && (b.text.contains("```") || b.text.length > LONG) } ||
-                t.blocks.any { b -> b is Block.Consent && (b.diff != null || (b.command?.length ?: 0) > 80) } -> WIDE_WIDTH
+            t.wide -> WIDE_WIDTH
             else -> WIDTH
         }
 
@@ -604,6 +642,12 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
         footText.text = t.footer()
         footKey.text = "Esc"
         footAction.text = t.escapeHint
+        val save = if (t.wide && t.mirror == null && t.blocks.any { b -> b is Block.Answer &&
+            b.text.length > LONG }) VISIBLE else GONE
+        if (footSave.visibility != save && save == VISIBLE) {
+            android.util.Log.i(dev.openbook.quire.Quire.TAG, "note: save as a file offered (width ${widthDp} dp)")
+        }
+        footSave.visibility = save
         mirrorPanel.tick(t)
     }
 
@@ -680,7 +724,8 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
         const val MIRROR_WIDTH = 760
         const val RADIUS_DP = 28f
         const val BLUR_DP = 34f
-        private const val LONG = 900
+        /** Characters past which an answer is long (§3.2 Long output): about eight lines at 480 dp. */
+        private const val LONG = 480
     }
 }
 

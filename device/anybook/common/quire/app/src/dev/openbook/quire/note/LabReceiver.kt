@@ -25,7 +25,8 @@ import org.json.JSONArray
  * OPEN (trigger, x and y for a pointer anchor else the taskbar, intake window|region|selection|secure|none, name, text)
  * · SEND (text) · ESC · HIDE · CLOSE · REOPEN · PICKER · PICK (id) · CONTROL (prompt, app, launch, taps: JSON
  * [[text, title, done], ...]) · MIRROR (action pause|resume|takeover|stop) · TRAY · LISTEN (final, partial) ·
- * LISTEN_RELEASE · BROKER (title, meta, rows: JSON [[name, where, old, new], ...], why) · PALETTE · DUMP
+ * LISTEN_RELEASE · BROKER (title, meta, rows: JSON [[name, where, old, new], ...], why, prompt, steps: JSON
+ * [[title, kind], ...]) · PALETTE · DUMP
  */
 class LabReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -89,11 +90,13 @@ class LabReceiver : BroadcastReceiver() {
             "LISTEN_RELEASE" -> surface.window.task?.releaseListening()
             "BROKER" -> {
                 val rows = JSONArray(intent.getStringExtra("rows") ?: "[]")
+                val steps = JSONArray(intent.getStringExtra("steps") ?: "[]")
                 surface.window.task?.labBroker(intent.getStringExtra("title") ?: "", intent.getStringExtra("meta") ?: "",
                     (0 until rows.length()).map {
                         val r = rows.getJSONArray(it)
                         Change(r.getString(0), r.getString(1), r.getString(2), r.getString(3))
-                    }, intent.getStringExtra("why") ?: "")
+                    }, intent.getStringExtra("why") ?: "", intent.getStringExtra("prompt"),
+                    (0 until steps.length()).map { steps.getJSONArray(it).let { s -> s.getString(0) to s.getString(1) } })
             }
             "DUMP" -> {
                 surface.tasks.forEach {

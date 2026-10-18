@@ -57,6 +57,13 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
     var stopping = false
         private set
     var mirror: Mirror? = null
+
+    /** Set once an answer is long or holds code (§3.1 Wide); the note keeps the width for the task's life. */
+    var wide = false
+
+    /** A short line the footer shows for a few seconds instead of the status ("Saved as Quire answer.md"). */
+    var notice: String? = null
+    var noticeUntil = 0L
     var startedAt = 0L
         private set
     var endedAt = 0L
@@ -144,6 +151,7 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
     /** The footer's left side: what is happening, and for how long (§3.1). */
     fun footer(now: Long = SystemClock.elapsedRealtime()): String {
         val secs = ((if (running) now else endedAt) - startedAt).coerceAtLeast(0) / 1000
+        if (notice != null && now < noticeUntil) return notice!!
         return when {
             listening != null -> context.getString(R.string.q_foot_listening)
             stopping -> context.getString(R.string.q_foot_stopping)
@@ -157,7 +165,7 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
             phase == Phase.WORKING && blocks.lastOrNull() is Block.Answer ->
                 context.getString(R.string.q_foot_answering, secs)
             phase == Phase.WORKING -> context.getString(R.string.q_foot_working, secs)
-            phase == Phase.DONE -> context.getString(R.string.q_foot_done)
+            phase == Phase.DONE -> context.getString(R.string.q_foot_done_time, secs)
             phase == Phase.STOPPED || phase == Phase.ERROR -> context.getString(R.string.q_foot_stopped)
             phase == Phase.SIGNIN -> context.getString(R.string.q_foot_signin)
             phase == Phase.NO_AGENT -> context.getString(R.string.q_foot_noagent)
@@ -175,6 +183,18 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
         })
 
     // ---------------------------------------------------------------------------------------- the person's actions
+
+    /** The agent's answers in this task, as the markdown they arrived in, for Save as a file (§3.2 Long output). */
+    fun answersMarkdown(): String =
+        blocks.filterIsInstance<Block.Answer>().joinToString("\n\n") { it.text.toString().trim() }
+
+    /** Shows [text] in the footer for a few seconds. */
+    fun notify(text: String) {
+        notice = text
+        noticeUntil = SystemClock.elapsedRealtime() + NOTICE_MS
+        host.changed(this)
+        host.handler.postDelayed({ host.changed(this) }, NOTICE_MS + 50)
+    }
 
     /** Redraws after a view-only change (a disclosure, an expanded chip). */
     fun refresh() = host.changed(this)
@@ -523,7 +543,14 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
      * and the change list after it can be checked before Q6. After Allow the rows become the change list (§3.2
      * Settings help); applying and undoing the changes is Q6's.
      */
-    fun labBroker(title: String, meta: String, rows: List<Change>, why: String) {
+    fun labBroker(title: String, meta: String, rows: List<Change>, why: String, prompt: String? = null,
+        steps: List<Pair<String, String>> = emptyList()) {
+        if (this.prompt == null && prompt != null) this.prompt = prompt
+        if (steps.isNotEmpty()) {
+            blocks += Block.Steps().apply {
+                steps.forEachIndexed { i, (title, kind) -> items += Step("lab-$i", title, kind, StepStatus.DONE) }
+            }
+        }
         val options = listOf(
             Option("deny", context.getString(R.string.q_broker_deny), "reject_once"),
             Option("task", context.getString(R.string.q_broker_task), "allow_always"),
@@ -772,6 +799,11 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
         return msg to sub
     }
 
+    /**
+     * §3.3 rule 6: what is confirmed changed, what is confirmed unchanged, and what is unknown. Only an interrupted
+     * step that changes something "may be partly applied"; an interrupted read was only interrupted. With no changing
+     * step done or interrupted, nothing was changed.
+     */
     private fun effects(): String {
         val steps = allSteps()
         val changedDone = steps.filter { it.changes && it.status == StepStatus.DONE }
@@ -780,9 +812,15 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
         if (changedDone.isNotEmpty()) {
             parts += context.getString(R.string.q_fx_done, changedDone.joinToString(", ") { it.title })
         }
-        interrupted.forEach { parts += context.getString(R.string.q_fx_interrupted, it.title) }
-        if (parts.isEmpty()) return context.getString(R.string.q_fx_none)
-        if (changedDone.isNotEmpty() || interrupted.any { it.changes }) parts += context.getString(R.string.q_fx_own)
+        interrupted.forEach {
+            parts += context.getString(if (it.changes) R.string.q_fx_interrupted else R.string.q_fx_interrupted_read,
+                it.title)
+        }
+        if (changedDone.isEmpty() && interrupted.none { it.changes }) {
+            parts += context.getString(R.string.q_fx_none)
+        } else {
+            parts += context.getString(R.string.q_fx_own)
+        }
         return parts.joinToString(" ")
     }
 
@@ -848,5 +886,6 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
         private const val MAX_IMAGE = 1280
         private const val STOP_TIMEOUT_MS = 8000L
         private const val SETTINGS_LABEL = "Settings"
+        private const val NOTICE_MS = 4000L
     }
 }

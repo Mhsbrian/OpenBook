@@ -157,8 +157,10 @@ sealed class Intake {
 
 /** Where the note opens (§3.1 Placement). */
 sealed class Anchor {
-    /** At the pointer's hotspot, in display pixels. */
-    class Pointer(val at: PointF) : Anchor()
+    /** At the pointer's hotspot, in display pixels. Once the note has flipped to the hotspot's left, it stays there. */
+    class Pointer(val at: PointF) : Anchor() {
+        var flipped = false
+    }
 
     /** Above the taskbar's Quire button. [button] is the button's bounds when Launcher3 reports them. */
     class Taskbar(val button: Rect?) : Anchor()

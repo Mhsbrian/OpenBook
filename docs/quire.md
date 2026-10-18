@@ -385,14 +385,14 @@ Code: `device/anybook/common/quire/app/src/dev/openbook/quire/` (`note/`, `acp/`
   Quire above the taskbar), the broker's settings card with Quire's options and the change list after Allow (raised
   from the lab until Q6's broker raises them), and the note re-themes with the system's dark theme.
 
-**Checked (C):** `q5-cf-check.py` in Cuttlefish on the Q5 image: **72 pass, 1 fail, 12 info**
+**Checked (C):** `q5-cf-check.py` in Cuttlefish on the Q5 image: **79 pass, 0 fail, 12 info** after Atelier's review
 (`evidence/2026-10-18-quire-q5/SUMMARY.md`). Every screen id of the design in light and dark next to its render; the
 real shake and Meta+Space open the note at the pointer with the window's bounds; the platform's consent, the mirror,
-Pause (no tap while paused) and Take over; the keyboard paths of §6.1 and §6.2 (9/9); a label on all 157 controls in
-28 UI dumps (§6.3); Remove animations; three screen recordings; contrast on all eight wallpapers in both themes and on
-the device's own palette (closest pair 5.07:1 against 4.5:1); Quire's frames in Cuttlefish (958 frames, 1 janky, p99
-8 ms); no Quire crash, ANR, SystemUI restart or SELinux denial for Quire. The one fail is six MediaProvider denials
-the check's own first recording caused (written to `/data/local/tmp`; fixed in the check). A real agent, opencode
+Pause (no tap while paused) and Take over; honest stop and error copy; long output with Jump to latest and "Save as a
+file", and code saved through the Storage Access Framework; the keyboard paths of §6.1 and §6.2 (9/9); a label on
+every control in the UI dumps (§6.3); Remove animations; three screen recordings; contrast on all eight wallpapers in
+both themes and on the device's own palette (closest pair 5.07:1 against 4.5:1); Quire's frames in Cuttlefish (1194
+frames, 1 janky, p99 8 ms on a quiet host); no Quire crash, ANR, SystemUI restart or SELinux denial. A real agent, opencode
 2.0.31 over its own ACP mode, answered in the note (with the intake image sent; its model said it can't read images).
 
 **Not yet (open)**

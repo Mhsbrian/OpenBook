@@ -67,6 +67,20 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
     val isShowing: Boolean
         get() = root != null
 
+    /**
+     * True while a picker the note opened (Save as a file) is up: the note steps aside, invisible, with no focus or
+     * touch, and comes back where it was when the picker closes.
+     */
+    var suspended = false
+        set(value) {
+            if (field == value) return
+            field = value
+            root?.let {
+                it.visibility = if (value) View.INVISIBLE else View.VISIBLE
+                updateParams(it)
+            }
+        }
+
     /** True while the platform's computer-control dialog is up: no focus, no touch, clear of the centre. */
     var platformDialog = false
         set(value) {
@@ -175,12 +189,13 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
 
     private fun updateParams(r: NoteRoot) {
         val lp = r.params ?: return
-        val focusable = !platformDialog
+        val away = platformDialog || suspended
+        val focusable = !away
         lp.flags = if (focusable) lp.flags and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()
             else lp.flags or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-        // While the platform dialog is up, the person's clicks are for it: no touch, and no outside-touch events
-        // (a non-touchable window still gets ACTION_OUTSIDE, which would hide the note mid-consent).
-        lp.flags = if (platformDialog) {
+        // While the platform dialog (or a picker) is up, the person's clicks are for it: no touch, and no
+        // outside-touch events (a non-touchable window still gets ACTION_OUTSIDE, which would hide the note).
+        lp.flags = if (away) {
             (lp.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE) and
                 WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH.inv()
         } else {
@@ -330,7 +345,12 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
                     val hy = a.at.y.toInt()
                     x = hx + dpi(18f)
                     y = hy + dpi(18f)
-                    if (x + w > W - dpi(24f)) x = hx - dpi(18f) - w
+                    // Flips left near the right edge, and keeps that side for the task: a mirror that flipped the
+                    // note does not send it back across the hotspot when it shrinks again.
+                    if (a.flipped || x + w > W - dpi(24f)) {
+                        x = hx - dpi(18f) - w
+                        a.flipped = true
+                    }
                     if (y + h > floor - dpi(16f)) y = maxOf(topInset + dpi(8f), floor - dpi(16f) - h)
                     origin.set(a.at.x, a.at.y)
                 }
@@ -463,7 +483,7 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
 
         override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
             if (ev.actionMasked == MotionEvent.ACTION_OUTSIDE) {
-                if (!closePicker() && !platformDialog) surface.outside()
+                if (!closePicker() && !platformDialog && !suspended) surface.outside()
                 return true
             }
             if (ev.actionMasked == MotionEvent.ACTION_DOWN && pickerView != null) {

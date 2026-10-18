@@ -7,5 +7,7 @@
     <style name="Theme.Quire" parent="@android:style/Theme.DeviceDefault.DayNight">
         <item name="android:windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
+        <!-- The note draws its own keyboard focus ring (docs/quire-design.md §4.2); no grey default highlight. -->
+        <item name="android:defaultFocusHighlightEnabled">false</item>
     </style>
 </resources>
