@@ -107,6 +107,10 @@ object Connectors {
         fun status(@Suppress("UNUSED_PARAMETER") context: Context): Status = Status(NAME, State.NOT_PAIRED)
     }
 
+    /** A connector's name for people. */
+    fun label(context: Context, connector: String): String = context.getString(
+        if (connector == PairedComputer.NAME) R.string.agents_where_paired else R.string.agents_where_linux)
+
     /** Every connector's status, in the order Quire tries them. */
     fun statuses(context: Context): List<Status> =
         listOf(LinuxEnvironment.status(context), PairedComputer.status(context))

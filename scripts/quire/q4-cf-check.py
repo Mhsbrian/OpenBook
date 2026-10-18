@@ -57,7 +57,7 @@ def facts(d):
     d.log("== facts")
     feats = d.sh("pm list features")
     d.result("feature android.software.virtualization_framework", "virtualization_framework" in feats, "")
-    apex = d.sh("ls /apex/com.android.virt/bin /apex/com.android.virt/app 2>&1")
+    apex = d.sh("ls /apex/com.android.virt/bin /apex/com.android.virt/priv-app 2>&1")
     d.write("virt-apex.txt", apex)
     d.result("AVF in the APEX: crosvm, virtmgr, the Terminal app",
              all(x in apex for x in ("crosvm", "virtmgr", "VmTerminalApp")), " ".join(sorted(set(re.findall(r"crosvm|virtmgr|VmTerminalApp\w*", apex)))))
@@ -67,9 +67,11 @@ def facts(d):
              " ".join(l.strip() for l in props.splitlines()))
     kvm = d.sh("ls -lZ /dev/kvm 2>&1").strip()
     d.result("/dev/kvm", kvm.startswith("c"), kvm)
-    klog = d.sh("dmesg | grep -i -E 'kvm|svm' | head -8")
-    d.write("kernel-kvm.txt", klog)
-    d.result("KVM on AMD in the guest kernel", "kvm_amd" in klog or "SVM" in klog, " | ".join(klog.strip().splitlines()[:3]))
+    # The kernel's ring buffer has usually wrapped by now; kvm_amd's parameters show it initialised (built in).
+    km = d.sh("echo svm_cpus=$(grep -c -w svm /proc/cpuinfo) nested=$(cat /sys/module/kvm_amd/parameters/nested) "
+              "npt=$(cat /sys/module/kvm_amd/parameters/npt) misc=$(cat /sys/devices/virtual/misc/kvm/dev) 2>&1").strip()
+    d.write("kernel-kvm.txt", km)
+    d.result("KVM on AMD in the guest kernel (kvm_amd, nested)", "nested=1" in km and "misc=10:" in km, km)
     path = d.sh(f"pm path {TERMINAL}").strip()
     disabled = d.sh(f"pm list packages -d {TERMINAL}").strip()
     d.result("Terminal app installed, off by default", bool(path) and TERMINAL in disabled, f"{path}; disabled={TERMINAL in disabled}")
@@ -98,6 +100,14 @@ def off(d):
 
 def install(d, image):
     d.log("== install")
+    # Cuttlefish's Android has internet only over the VM's synthetic Wi-Fi (as in the microG checks); the guest's
+    # comes from Android through AVF's tethering. A laptop has its Wi-Fi on.
+    d.sh("cmd wifi set-wifi-enabled enabled; sleep 3; cmd wifi connect-network VirtWifi open")
+    for _ in range(20):
+        if " 0% packet loss" in d.sh("ping -c1 -W2 8.8.8.8"):
+            break
+        time.sleep(1)
+    d.result("Android has internet (the VM's Wi-Fi)", " 0% packet loss" in d.sh("ping -c1 -W2 8.8.8.8"), "")
     d.sh(f"pm enable {TERMINAL}")
     for p in ("android.permission.ACCESS_LOCAL_NETWORK", "android.permission.POST_NOTIFICATIONS",
               "android.permission.RECORD_AUDIO"):
@@ -111,19 +121,28 @@ def install(d, image):
     m = d.wait_log(r"agents: status (.*)", 15, since=tag)
     d.result("before install, Quire reports NOT_INSTALLED", m is not None and "NOT_INSTALLED" in m.group(1),
              m.group(1) if m else "")
+    t_launch = time.time()
     d.sh(f"am start -n {TERMINAL}/.LauncherActivity")
-    node = None
-    for _ in range(40):
+    # On a debuggable build with a local image, the Terminal app may install it by itself; otherwise it shows
+    # Install, which the person taps.
+    node, auto = None, None
+    for _ in range(120):
         node = d.find_node(d.ui(), text="Install")
         if node is not None:
             break
+        state, _ = bridge_status(d)
+        if state in ("starting", "running"):
+            auto = state
+            break
         time.sleep(1)
     d.screencap("terminal-install.png")
-    d.result("Terminal shows Install", node is not None, "")
-    if node is None:
+    d.result("Terminal installs the local image (Install tapped, or by itself)", node is not None or auto is not None,
+             "tapped Install" if node is not None else f"installed by itself, state {auto}")
+    if node is None and auto is None:
         return False
-    d.tap_node(node)
-    t1 = time.time()
+    if node is not None:
+        d.tap_node(node)
+    t1 = t_launch
     state, raw, started = None, "", None
     for _ in range(600):
         state, raw = bridge_status(d)
@@ -156,7 +175,8 @@ def guest(d):
     d.write("guest-agents-quire.txt", agents or quire_lines(d, tag))
     listed = re.findall(r"agents: agent (\w+) version=\"([^\"]*)\" supported=(\w+)", agents or "")
     conn = re.search(r"agents: connected via (\S+) in (\d+) ms; (.*)", agents or "")
-    d.result("Quire core reached quired in the guest", conn is not None, conn.group(0) if conn else "never connected")
+    d.result("Quire core reached quired in the guest", bool(listed),
+             conn.group(0) if conn else ("an open connection, reused" if listed else "never connected"))
     d.result("quired lists an agent installed in the guest", any(s == "true" for _, _, s in listed),
              ", ".join(f"{a} {v} supported={s}" for a, v, s in listed))
     d.result("VM start -> quired answering (s)", None, f"{time.time() - started:.1f}")
@@ -167,19 +187,42 @@ def guest(d):
     d.result("guest boot (systemd)", None, (boot.group(0) if boot else "no Startup line in the console") +
              (f"; kernel {kern.group(1)}" if kern else ""))
     d.agents = [a for a, _, s in listed if s == "true"]
-    return conn is not None
+    return bool(listed)
+
+
+def webview(d):
+    import xml.etree.ElementTree as ET
+    try:
+        root = ET.fromstring(d.ui())
+    except ET.ParseError:
+        return None
+    for n in root.iter("node"):
+        if n.get("class") == "android.webkit.WebView" and n.get("package") == TERMINAL:
+            return n
+    return None
 
 
 def terminal(d):
     d.log("== terminal")
     d.sh(f"am start -n {TERMINAL}/.LauncherActivity")
-    time.sleep(5)
+    node = None
+    for _ in range(30):
+        node = webview(d)
+        if node is not None:
+            break
+        time.sleep(2)
+    d.result("the Terminal app shows its terminal", node is not None, node.get("bounds") if node is not None else "no WebView")
+    if node is None:
+        d.screencap("terminal-missing.png")
+        return
+    d.tap_node(node)  # focus the terminal
+    time.sleep(8)  # the shell prompt
     d.sh("input text 'quired%sagents'")
     d.sh("input keyevent 66")
     time.sleep(4)
-    d.sh("input text 'systemctl%s--no-pager%sstatus%squired%s|%shead%s-5'")
+    d.sh("input text 'systemd-analyze;%ssystemctl%s--no-pager%sstatus%squired%s|%shead%s-4'")
     d.sh("input keyevent 66")
-    time.sleep(3)
+    time.sleep(4)
     shot = d.screencap("terminal-quired-agents.png")
     d.result("`quired agents` typed in the Terminal app (screenshot)", None, shot.name)
 
@@ -205,14 +248,13 @@ def prompt(d, text):
 
 def refuse(d):
     d.log("== refuse")
-    uid = re.search(r"userId=(\d+)", d.sh("dumpsys package com.android.calendar | grep userId=") or "")
-    if uid:
-        out = d.sh(f"su {uid.group(1)} content call --uri {BRIDGE} --method status 2>&1")
-        d.write("refuse-app-uid.txt", out)
-        d.result("an app without ACCESS_AGENT_BRIDGE is refused", "SecurityException" in out or "Permission Denial" in out,
-                 out.strip().splitlines()[-1][:200] if out.strip() else "")
-    else:
-        d.result("an app without ACCESS_AGENT_BRIDGE is refused", None, "no calendar app to borrow a uid from")
+    # The shell's uid: a platform-signed privileged package without the privapp grant, so the permission (not the
+    # caller's signature) must be what decides. Its dumpsys shows it isn't granted.
+    shell_grant = d.sh("dumpsys package com.android.shell | grep -c 'ACCESS_AGENT_BRIDGE: granted=true'").strip()
+    out = d.sh(f"su 2000 content call --uri {BRIDGE} --method status 2>&1 | head -2")
+    d.write("refuse-shell-uid.txt", out)
+    d.result("a caller without ACCESS_AGENT_BRIDGE is refused (shell, uid 2000)",
+             shell_grant == "0" and "Permission Denial" in out and PERMISSION in out, out.strip().splitlines()[-1][:220])
     out = d.sh(f"content read --uri {BRIDGE}/vsock/4000 2>&1 | head -3")
     d.result("other guest ports are not offered (4000, the guest agent)", "not offered" in out or "FileNotFound" in out,
              out.strip()[:200])
