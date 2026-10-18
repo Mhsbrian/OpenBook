@@ -14,10 +14,9 @@ L=$A/logs/installer/$RUN; W=$A/installer/work/$RUN
 mkdir -p "$L" "$W" "$A/installer/build"
 OLD=$W/old-src; rm -rf "$OLD"; mkdir -p "$OLD"
 git -C "$R" archive origin/main device/anybook/common/installer/engine | tar -x -C "$OLD"
-CF=(-O2 -g -Wall -Wextra -Werror -Wno-sign-compare -Wno-unused-parameter -Wno-format-truncation -Wno-missing-field-initializers)
 B=$A/installer/build/openbook-install-host-g1; BO=$A/installer/build/openbook-install-host-main
-"$D" gcc "${CF[@]}" -o "$B" "$R"/device/anybook/common/installer/engine/*.c
-"$D" gcc "${CF[@]}" -o "$BO" "$OLD"/device/anybook/common/installer/engine/*.c
+"$R/scripts/installer/engine-host-build.sh" "$B" >/dev/null
+"$R/scripts/installer/engine-host-build.sh" "$BO" "$OLD/device/anybook/common/installer/engine" >/dev/null
 echo "engine $(git -C "$R" rev-parse --short HEAD)$( [ -z "$(git -C "$R" status --porcelain)" ] || echo +dirty) vs origin/main $(git -C "$R" rev-parse --short origin/main)" > "$L/engines.txt"
 rc=0
 "$D" python3 "$R/scripts/microg/engine-addon-test.py" --engine "$B" --old "$BO" --image "$IMG" --addon "$U" \

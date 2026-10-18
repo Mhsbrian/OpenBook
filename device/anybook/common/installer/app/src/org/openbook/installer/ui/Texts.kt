@@ -149,6 +149,8 @@ fun planWarningSentence(code: String, alongside: Boolean): String = when (code) 
     "encrypted_kept" -> stringResource(R.string.plan_warning_encrypted_kept)
     "encrypted_erased" -> stringResource(R.string.plan_warning_encrypted_erased)
     "battery" -> stringResource(R.string.plan_warning_battery)
+    "gapps_uncertified" -> stringResource(R.string.plan_warning_gapps_uncertified)
+    "privapp_allowlist_not_enforced" -> stringResource(R.string.plan_warning_privapp_not_enforced)
     else -> code
 }
 
@@ -163,6 +165,8 @@ fun errorSentence(code: String?, fallback: String?): String = when (code) {
     "plan_changed" -> stringResource(R.string.error_plan_changed)
     "confirm_mismatch" -> stringResource(R.string.error_confirm_mismatch)
     "power" -> stringResource(R.string.error_power)
+    "no_gapps" -> stringResource(R.string.error_no_gapps)
+    "gapps_not_confirmed" -> stringResource(R.string.error_gapps_not_confirmed)
     else -> fallback?.takeIf { it.isNotBlank() } ?: stringResource(R.string.error_generic)
 }
 

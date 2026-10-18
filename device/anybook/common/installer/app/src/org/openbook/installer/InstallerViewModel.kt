@@ -4,6 +4,8 @@
 package org.openbook.installer
 
 import android.app.Application
+import android.net.Uri
+import android.provider.OpenableColumns
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
@@ -28,6 +30,7 @@ import org.openbook.installer.daemon.Addon
 import org.openbook.installer.daemon.DaemonClient
 import org.openbook.installer.daemon.DaemonException
 import org.openbook.installer.daemon.Disk
+import org.openbook.installer.daemon.GappsCheck
 import org.openbook.installer.daemon.HwInfo
 import org.openbook.installer.daemon.Hello
 import org.openbook.installer.daemon.INSTALL_STEPS
@@ -168,6 +171,25 @@ class InstallerViewModel(app: Application) : AndroidViewModel(app) {
     /** App add-ons the user ticked (ANAL-210): off by default; none means the plan is exactly as before add-ons. */
     var selectedAddons by mutableStateOf<Set<String>>(emptySet())
         private set
+
+    // 4b Google apps package the user brings (ANAL-211): an advanced step after the disk choice, off by default.
+    /** The disk screen's "advanced" switch; off: the plan is exactly as before this step existed. */
+    var gappsWanted by mutableStateOf(false)
+        private set
+    /** The step's own page, shown inside the Disk step (the rail keeps its seven steps). */
+    var gappsPage by mutableStateOf(false)
+        private set
+    var gappsCheck by mutableStateOf<Load<GappsCheck>>(Load.Idle)
+        private set
+    var gappsReceived by mutableLongStateOf(0L)
+        private set
+    var gappsTotal by mutableLongStateOf(0L)
+        private set
+    /** The user read that the system will not be certified, and agreed (the daemon refuses the step without it). */
+    var gappsConfirmed by mutableStateOf(false)
+        private set
+    private var gappsJob: Job? = null
+
     var plan by mutableStateOf<Plan?>(null)
         private set
     private var planKey: String? = null
@@ -231,8 +253,11 @@ class InstallerViewModel(app: Application) : AndroidViewModel(app) {
         when (step) {
             WizardStep.HARDWARE -> goTo(WizardStep.WELCOME)
             WizardStep.CHOOSE -> goTo(WizardStep.HARDWARE)
-            WizardStep.DISK -> goTo(WizardStep.CHOOSE)
-            WizardStep.CONFIRM -> goTo(WizardStep.DISK)
+            WizardStep.DISK -> if (gappsPage) gappsPage = false else goTo(WizardStep.CHOOSE)
+            WizardStep.CONFIRM -> {
+                gappsPage = gappsWanted
+                goTo(WizardStep.DISK)
+            }
             WizardStep.INSTALL -> {
                 val f = install.failure
                 if (f?.notStarted == true && f.code != "plan_changed" && plan != null) {
@@ -417,6 +442,83 @@ class InstallerViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun planAddons() = selectedAddons.filter { n -> availableAddons.any { it.name == n } }.sorted()
 
+    // -----------------------------------------------------------------------------------------------------------
+    // 4b Google apps package (advanced, ANAL-211)
+    // -----------------------------------------------------------------------------------------------------------
+
+    fun wantGapps(on: Boolean) {
+        gappsWanted = on
+        if (!on) {
+            gappsPage = false
+            gappsConfirmed = false
+        }
+        invalidatePlan()
+    }
+
+    /** Continue on the disk screen: with the advanced switch on, the package page comes first. */
+    fun continueFromDisk() {
+        if (gappsWanted && !gappsPage) gappsPage = true else requestPlan(toConfirm = true)
+    }
+
+    /** The file the user picked (internal storage or a USB drive): streamed to the daemon, which checks and stages it. */
+    fun checkGapps(uri: Uri) {
+        gappsJob?.cancel()
+        gappsConfirmed = false
+        invalidatePlan()
+        gappsCheck = Load.Loading
+        gappsReceived = 0L
+        gappsTotal = 0L
+        gappsJob = viewModelScope.launch {
+            gappsCheck = try {
+                val cr = context.contentResolver
+                val (name, size) = withContext(Dispatchers.IO) {
+                    var n = "package.zip"
+                    var sz = -1L
+                    cr.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE), null, null, null)?.use { c ->
+                        if (c.moveToFirst()) {
+                            if (!c.isNull(0)) n = c.getString(0)
+                            if (!c.isNull(1)) sz = c.getLong(1)
+                        }
+                    }
+                    if (sz < 0) sz = cr.openFileDescriptor(uri, "r")?.use { it.statSize } ?: -1L
+                    n to sz
+                }
+                if (size <= 0) throw IOException("the size of $name is unknown")
+                gappsTotal = size
+                val reply = withContext(Dispatchers.IO) {
+                    (cr.openInputStream(uri) ?: throw IOException("cannot open $name")).use { input ->
+                        client.upload("gapps_check", input, size, DaemonClient.GAPPS_CHECK_TIMEOUT_MS,
+                            onProgress = { done, _ -> gappsReceived = done }) { put("name", name) }
+                    }
+                }
+                Load.Ready(Parse.gappsCheck(reply))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: DaemonException) {
+                // A refused package is an answer, with the reasons per path.
+                val r = e.reply
+                if (r != null && (r.has("refused") || e.code in GAPPS_REFUSALS)) Load.Ready(Parse.gappsCheck(r))
+                else Load.Failed(e.code, e.message ?: "")
+            } catch (e: IOException) {
+                Log.w(TAG, "gapps_check: ${e.message}")
+                Load.Failed(Load.UNREACHABLE, e.message ?: "")
+            } catch (e: SecurityException) {
+                Load.Failed("no_package", e.message ?: "")
+            }
+        }
+    }
+
+    fun confirmGapps(on: Boolean) {
+        gappsConfirmed = on
+        invalidatePlan()
+    }
+
+    /** The package step is complete: a checked package, and the user's confirmation. */
+    val gappsReady: Boolean
+        get() = gappsCheck.valueOrNull?.let { it.ok && it.sha256 != null } == true && gappsConfirmed
+
+    private fun planGapps(): String? = if (gappsWanted) gappsCheck.valueOrNull?.takeIf { it.ok }?.sha256 else null
+
     private fun layoutAllowed(disk: Disk, l: InstallLayout) =
         if (l == InstallLayout.WHOLE) disk.whole.ok else disk.alongside.ok
 
@@ -432,13 +534,16 @@ class InstallerViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun currentPlanKey(): String? {
         val target = selectedDisk ?: return null
-        return (listOf(target, layout.id, languageTag, keyboardId, setDefault().toString()) + planAddons()).joinToString("|")
+        val gapps = planGapps()?.let { listOf("gapps=$it", "confirmed=$gappsConfirmed") } ?: emptyList()
+        return (listOf(target, layout.id, languageTag, keyboardId, setDefault().toString()) + planAddons() + gapps)
+            .joinToString("|")
     }
 
     private fun setDefault() = layout == InstallLayout.WHOLE || alongsideSetDefault
 
     val canPlan: Boolean
-        get() = installBlocker == InstallBlocker.NONE && selectedDiskInfo?.let { layoutAllowed(it, layout) } == true
+        get() = installBlocker == InstallBlocker.NONE && selectedDiskInfo?.let { layoutAllowed(it, layout) } == true &&
+            (!gappsWanted || !gappsPage || gappsReady)
 
     /** "View the plan" ([toConfirm] false) or Continue ([toConfirm] true). Both run the read-only `plan`. */
     fun requestPlan(toConfirm: Boolean) {
@@ -459,6 +564,10 @@ class InstallerViewModel(app: Application) : AndroidViewModel(app) {
             put("keyboard", keyboardId)
             put("set_default", setDefault())
             planAddons().takeIf { it.isNotEmpty() }?.let { put("addons", JSONArray(it)) }
+            planGapps()?.let {
+                put("gapps", it)
+                put("gapps_confirmed", gappsConfirmed)
+            }
         }
         planJob = viewModelScope.launch {
             val result = call { Parse.plan(client.request("plan", timeoutMs = DaemonClient.PLAN_TIMEOUT_MS, args = args)) }
@@ -682,6 +791,7 @@ class InstallerViewModel(app: Application) : AndroidViewModel(app) {
         private const val RECONNECT_ATTEMPTS = 30
         private const val RECONNECT_DELAY_MS = 1_000L
         private const val MAX_LOG_LINES = 1_000
+        private val GAPPS_REFUSALS = setOf("refused", "not_a_package", "no_package")
 
         fun normalizeConfirm(s: String): String = s.filterNot { it.isWhitespace() }.lowercase(Locale.ROOT)
     }

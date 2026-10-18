@@ -498,7 +498,7 @@ void sha256_update(struct sha256 *c, const void *data, size_t n) {
     }
 }
 
-void sha256_final_hex(struct sha256 *c, char out[65]) {
+void sha256_final(struct sha256 *c, uint8_t out[32]) {
     uint64_t bits = c->len * 8;
     uint8_t pad = 0x80;
     sha256_update(c, &pad, 1);
@@ -507,7 +507,13 @@ void sha256_final_hex(struct sha256 *c, char out[65]) {
     uint8_t L[8];
     for (int i = 0; i < 8; i++) L[i] = bits >> (56 - 8 * i);
     sha256_update(c, L, 8);
-    for (int i = 0; i < 8; i++) snprintf(out + 8 * i, 9, "%08x", c->h[i]);
+    for (int i = 0; i < 32; i++) out[i] = c->h[i / 4] >> (24 - 8 * (i % 4));
+}
+
+void sha256_final_hex(struct sha256 *c, char out[65]) {
+    uint8_t d[32];
+    sha256_final(c, d);
+    for (int i = 0; i < 32; i++) snprintf(out + 2 * i, 3, "%02x", d[i]);
 }
 
 void sha256_hex(const void *data, size_t n, char out[65]) {

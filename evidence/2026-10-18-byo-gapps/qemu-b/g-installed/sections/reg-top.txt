@@ -1,0 +1,1 @@
+    topResumedActivity=ActivityRecord{267999455 u0 org.openbook.installer/.GappsRegistrationActivity t10}

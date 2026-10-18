@@ -1,0 +1,26 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <bhoneycutt153@gmail.com>
+Date: Sun, 18 Oct 2026 12:00:00 +0000
+Subject: [PATCH] ANYBOOK: libbrotli: visible to the OpenBook installer
+
+The OpenBook installer (device/anybook/common/installer, openbook-install)
+checks Google apps packages a user brings themselves (ANAL-211). LiteGapps,
+the only current Android 17 x86_64 package, ships its files as
+files/files.tar.br, so the installer links the brotli decoder.
+---
+ Android.bp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/Android.bp b/Android.bp
+index 1a957d8..3f02ffa 100755
+--- a/Android.bp
++++ b/Android.bp
+@@ -71,6 +71,8 @@ cc_library_static {
+         "//packages/modules/adb:__subpackages__",
+         "//system/extras/partition_tools:__subpackages__",
+         "//system/update_engine:__subpackages__",
++        // OpenBook: the installer reads LiteGapps packages (files/files.tar.br)
++        "//device/anybook/common/installer:__subpackages__",
+     ],
+ 
+     cflags: [

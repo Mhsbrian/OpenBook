@@ -1,0 +1,28 @@
+{
+ "disk": "whole.img",
+ "mbr": "none",
+ "primary_valid": false,
+ "backup_valid": false,
+ "table_from": null,
+ "disk_guid": null,
+ "partitions": [],
+ "fat": {},
+ "fallback": [],
+ "openbook_entry": [],
+ "plan_files_ok": 0,
+ "plan_files_bad": [],
+ "plan_table": false,
+ "ref_partitions": {
+  "EFI system partition": "gone",
+  "Microsoft reserved partition": "gone",
+  "Basic data partition": "gone",
+  "Recovery": "gone"
+ },
+ "ref_bytes": {
+  "EFI system partition": true,
+  "Microsoft reserved partition": true,
+  "Basic data partition": false,
+  "Recovery": true
+ },
+ "state": "blank"
+}

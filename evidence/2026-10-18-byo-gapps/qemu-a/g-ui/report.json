@@ -1,0 +1,263 @@
+{
+ "schema": "openbook-install-report/1",
+ "engine": "1",
+ "ok": true,
+ "verified": true,
+ "code": null,
+ "error": null,
+ "failed_step": null,
+ "started": "2026-10-18T08:32:53Z",
+ "finished": "2026-10-18T08:34:15Z",
+ "seconds": 81.4,
+ "plan_sha256": "fe3cf76d7ff8433e8b625bf6a86954bb32bae9662dfd6b979d68548df75b00b9",
+ "selinux": "enforcing",
+ "steps": {
+  "check_source": {
+   "state": "done",
+   "seconds": 6.0
+  },
+  "prepare_disk": {
+   "state": "done",
+   "seconds": 0.0
+  },
+  "boot_images": {
+   "state": "done",
+   "seconds": 0.6
+  },
+  "system": {
+   "state": "done",
+   "seconds": 68.1
+  },
+  "boot_entry": {
+   "state": "done",
+   "seconds": 0.2
+  },
+  "verify": {
+   "state": "done",
+   "seconds": 6.4
+  },
+  "report": {
+   "state": "done",
+   "seconds": 0.0
+  }
+ },
+ "verified_items": [
+  {
+   "what": "gpt:EFI",
+   "bytes": 536870912,
+   "sha256": null,
+   "ok": true
+  },
+  {
+   "what": "gpt:misc",
+   "bytes": 4194304,
+   "sha256": null,
+   "ok": true
+  },
+  {
+   "what": "gpt:boot_a",
+   "bytes": 67108864,
+   "sha256": null,
+   "ok": true
+  },
+  {
+   "what": "gpt:boot_b",
+   "bytes": 67108864,
+   "sha256": null,
+   "ok": true
+  },
+  {
+   "what": "gpt:init_boot_a",
+   "bytes": 8388608,
+   "sha256": null,
+   "ok": true
+  },
+  {
+   "what": "gpt:init_boot_b",
+   "bytes": 8388608,
+   "sha256": null,
+   "ok": true
+  },
+  {
+   "what": "gpt:vendor_boot_a",
+   "bytes": 67108864,
+   "sha256": null,
+   "ok": true
+  },
+  {
+   "what": "gpt:vendor_boot_b",
+   "bytes": 67108864,
+   "sha256": null,
+   "ok": true
+  },
+  {
+   "what": "gpt:vbmeta_a",
+   "bytes": 1048576,
+   "sha256": null,
+   "ok": true
+  },
+  {
+   "what": "gpt:vbmeta_b",
+   "bytes": 1048576,
+   "sha256": null,
+   "ok": true
+  },
+  {
+   "what": "gpt:metadata",
+   "bytes": 67108864,
+   "sha256": null,
+   "ok": true
+  },
+  {
+   "what": "gpt:super",
+   "bytes": 12884901888,
+   "sha256": null,
+   "ok": true
+  },
+  {
+   "what": "gpt:userdata",
+   "bytes": 123656470528,
+   "sha256": null,
+   "ok": true
+  },
+  {
+   "what": "boot_a",
+   "bytes": 67108864,
+   "sha256": "f6fc1a5892cba10d24ba3c250f5abe4115ba0f7c0556a653995b41373bfbcec8",
+   "ok": true
+  },
+  {
+   "what": "init_boot_a",
+   "bytes": 8388608,
+   "sha256": "c0f6da13eb6c38144123466702876e686451c82166d701a8e1aeb366be0fe1a6",
+   "ok": true
+  },
+  {
+   "what": "vendor_boot_a",
+   "bytes": 67108864,
+   "sha256": "b8dc14803c8a07b0ec675d9cc9d2baf7b16c8acfd1a90c63782fa7e0d95bda80",
+   "ok": true
+  },
+  {
+   "what": "vbmeta_a (rebuilt)",
+   "bytes": 65536,
+   "sha256": "253e32084de01221f59a37ba0624a3d0ea12f758c59515ede6790f40b12e519a",
+   "ok": true
+  },
+  {
+   "what": "super:system_a",
+   "bytes": 697176064,
+   "sha256": "e04d337d146662f3a0088e61e4991ac780fba572296e5e0f39e882081084336b",
+   "ok": true
+  },
+  {
+   "what": "super:system_b",
+   "bytes": 4698112,
+   "sha256": "5cd92e0a61bd8f746dce9136d0740370b20074ad7682824bf467d3cee5beba61",
+   "ok": true
+  },
+  {
+   "what": "super:system_ext_a",
+   "bytes": 127873024,
+   "sha256": "a48ae6244447d35799461bc7696831411c2121eac0561e8a0d58762215bca243",
+   "ok": true
+  },
+  {
+   "what": "super:product_a (with the package)",
+   "bytes": 288837632,
+   "sha256": "7f90888d29e416035a0c688002418423584401132686ce15336fb9a72c7b297f",
+   "ok": true
+  },
+  {
+   "what": "super:vendor_a",
+   "bytes": 148410368,
+   "sha256": "6a4289203d9b6d8e2552bea15b5a57cfd53a0f8b39016aa13d636858d80b61e1",
+   "ok": true
+  },
+  {
+   "what": "super:vendor_dlkm_a",
+   "bytes": 53424128,
+   "sha256": "024774373cb9c09c634140ef9504bd5d9d81a9ee2006d5c4c3183a596ee0ce63",
+   "ok": true
+  },
+  {
+   "what": "super:system_dlkm_a",
+   "bytes": 18165760,
+   "sha256": "34185c35cb8bbccd5dfd0bb74eecb8a21e2445730411ef1583e1245628e0d617",
+   "ok": true
+  },
+  {
+   "what": "super:metadata",
+   "bytes": 1048576,
+   "sha256": "0df1b8c0be67c6cec7bc86152783f982f0a8085f38be4a8cb6f2610eee35497f",
+   "ok": true
+  },
+  {
+   "what": "openbook/a/kernel",
+   "bytes": 26858496,
+   "sha256": "55b86074614a94592ddecebd2b77b1f2ed9aa38e8ad992b73c78c64d04c516f9",
+   "ok": true
+  },
+  {
+   "what": "openbook/a/vendor_ramdisk.img",
+   "bytes": 128064,
+   "sha256": "33b36f34c48b7e6332be91d4900c4e7c32ffd0ab27c4380198c8f16a484993ff",
+   "ok": true
+  },
+  {
+   "what": "openbook/a/ramdisk.img",
+   "bytes": 3005944,
+   "sha256": "dd834a29b0a6e9849223f923fcb328ab841c7a0ad0e835d28879bf954280772c",
+   "ok": true
+  },
+  {
+   "what": "openbook/a/bootconfig.img",
+   "bytes": 796,
+   "sha256": "61c2c132a8352a6ea0ef176b827a42548a29450950aafe6c6eeb0ee1c96bfc9f",
+   "ok": true
+  },
+  {
+   "what": "loader/entries/openbook-a.conf",
+   "bytes": 255,
+   "sha256": "513b2828aea917b8f4fbf2e2022d29513cf4b72318b2bfd789b0c0a452b09ed7",
+   "ok": true
+  },
+  {
+   "what": "loader/loader.conf",
+   "bytes": 72,
+   "sha256": "330fa5840fa45944fff17e7a24a2d2bee8c5089116363f8857b02fe3f5809a10",
+   "ok": true
+  },
+  {
+   "what": "EFI/OpenBook/systemd-bootx64.efi",
+   "bytes": 160256,
+   "sha256": "15826b474fe9a4de16322e469edac3475dc061084d260082496a6d74ce894ed1",
+   "ok": true
+  },
+  {
+   "what": "EFI/BOOT/BOOTX64.EFI",
+   "bytes": 160256,
+   "sha256": "15826b474fe9a4de16322e469edac3475dc061084d260082496a6d74ce894ed1",
+   "ok": true
+  }
+ ],
+ "boot_entry": "loader/entries/openbook-a.conf",
+ "nvram": "created",
+ "nvram_entry": "Boot0005",
+ "boot_order": "first",
+ "nvram_error": null,
+ "fallback_path": true,
+ "gapps": {
+  "manifest_sha256": "781c499cff4b3ddd9e27cd9ceaff58c443f247b060c79bb2fd76cb7c91da96a7",
+  "product": "product_a",
+  "product_bytes": 288837632,
+  "product_sha256": "7f90888d29e416035a0c688002418423584401132686ce15336fb9a72c7b297f",
+  "root_digest": "2e9cd4e9078788bea59aef015cd7c25bcf3716aa4563a9cdb186b86e07a3d466",
+  "super_offset": 1345323008,
+  "vbmeta_digest": "2fdb103e566202acc5463fdd600e6ac9133caa91521fa3eb286064acadd2e1f0",
+  "vbmeta_size": 4608,
+  "vbmeta": "unsigned"
+ },
+ "report": "openbook/logs/install-20261018T083253Z.json",
+ "log": "openbook/logs/install-20261018T083253Z.log"
+}

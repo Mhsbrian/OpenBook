@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2026 The OpenBook Authors. SPDX-License-Identifier: Apache-2.0
+     ANAL-211 synthetic test package: an ordinary system app (app/OpenBookTestApp) whose x86_64 library sits next to
+     it, extracted (app/OpenBookTestApp/lib/x86_64/), the way some GApps packages ship them. No code. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="org.openbook.test.gapps.app">
+    <application android:label="OpenBook synthetic app (test)" android:hasCode="false" />
+</manifest>

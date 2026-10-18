@@ -1,0 +1,419 @@
+{
+ "cases": {
+  "g-cut-1": [
+   {
+    "check": "the expect steps up to the cut matched",
+    "ok": true,
+    "detail": "56/56 (QEMU exited (0))"
+   },
+   {
+    "check": "SELinux enforcing",
+    "ok": true,
+    "detail": "761558c]\n[ro.boot.openbook.live]: [1]\n[ro.boot.openbook.loader]: [sdboot]\n[ro.build.fingerprint]: [OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys]\nEnforcing\n"
+   },
+   {
+    "check": "the USB drive with the packages is mounted by vold",
+    "ok": true,
+    "detail": " neg-framework.zip\n-rwxrwx--- 1 root external_storage 268539167 2026-10-18 10:05 openbook-synthetic-gapps-x86_64-37-big.zip\n-rwxrwx--- 1 root external_storage     13838 2026-10-18 10:05 openbook-synthetic-gapps-x86_64-37.zip\npublic:8,16 mounted 9EAD-775F\nprivate mounted null\nemulated;0 mounted null\n"
+   },
+   {
+    "check": "gapps-check refuses the package that touches the framework",
+    "ok": true,
+    "detail": "android.maps.jar: touches the framework (framework libraries) (framework)\n{\"ok\":false,\"code\":\"refused\",\"error\":\"1 path cannot be installed\",\"refused\":[{\"path\":\"framework/com.google.android.maps.jar\",\"rule\":\"framework\",\"why\":\"touches the framework (framework libraries)\"}],\"refused_more\":0}\nGNEG-RC=1\n"
+   },
+   {
+    "check": "gapps-check accepts the package (on the live system, from the USB drive)",
+    "ok": true,
+    "detail": "er-save\":1}}]},\"warnings\":[]}\n\nSHA=ea08e3cd06a1b4c97d80d4028343a53dee05874e21bd461f7960c0fef5099856\ntotal 11\ndrwx------ 2 root root u:object_r:openbook_install_data_file:s0  3452 2026-10-18 10:06 files\n-rw------- 1 root root u:object_r:openbook_install_data_file:s0  4163 2026-10-18 10:06 gapps.json\n"
+   },
+   {
+    "check": "staged files labeled openbook_install_data_file",
+    "ok": true,
+    "detail": "er-save\":1}}]},\"warnings\":[]}\n\nSHA=ea08e3cd06a1b4c97d80d4028343a53dee05874e21bd461f7960c0fef5099856\ntotal 11\ndrwx------ 2 root root u:object_r:openbook_install_data_file:s0  3452 2026-10-18 10:06 files\n-rw------- 1 root root u:object_r:openbook_install_data_file:s0  4163 2026-10-18 10:06 gapps.json\n"
+   },
+   {
+    "check": "plan --gapps: product, vbmeta and check_gapps operations",
+    "ok": true,
+    "detail": "['check_source', 'check_gapps', 'recheck', 'wipe_table', 'format', 'zero', 'copy', 'zero', 'copy', 'zero', 'copy', 'zero', 'vbmeta', 'zero', 'zero', 'super', 'product', 'zero', 'file', 'file', 'file', 'file', 'write_table', 'verify', 'activate', 'activate', 'activate', 'activate', 'nvram', 'report']"
+   },
+   {
+    "check": "the cut came at its point (source super: \\d+ bytes, sha256 ok)",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "the disk afterwards: old-table (S9)",
+    "ok": true,
+    "detail": "{'state': 'old-table', 'mbr': 'protective', 'primary_valid': True, 'backup_valid': True, 'fallback': ['EFI system partition'], 'openbook_entry': []}"
+   },
+   {
+    "check": "the Windows-like partitions are unchanged",
+    "ok": true,
+    "detail": "{'EFI system partition': 'unchanged', 'Microsoft reserved partition': 'unchanged', 'Basic data partition': 'unchanged', 'Recovery': 'unchanged'}"
+   }
+  ],
+  "g-cut-2": [
+   {
+    "check": "the expect steps up to the cut matched",
+    "ok": true,
+    "detail": "56/56 (QEMU exited (0))"
+   },
+   {
+    "check": "SELinux enforcing",
+    "ok": true,
+    "detail": "761558c]\n[ro.boot.openbook.live]: [1]\n[ro.boot.openbook.loader]: [sdboot]\n[ro.build.fingerprint]: [OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys]\nEnforcing\n"
+   },
+   {
+    "check": "the USB drive with the packages is mounted by vold",
+    "ok": true,
+    "detail": " neg-framework.zip\n-rwxrwx--- 1 root external_storage 268539167 2026-10-18 10:05 openbook-synthetic-gapps-x86_64-37-big.zip\n-rwxrwx--- 1 root external_storage     13838 2026-10-18 10:05 openbook-synthetic-gapps-x86_64-37.zip\npublic:8,16 mounted 9EAD-775F\nprivate mounted null\nemulated;0 mounted null\n"
+   },
+   {
+    "check": "gapps-check refuses the package that touches the framework",
+    "ok": true,
+    "detail": "android.maps.jar: touches the framework (framework libraries) (framework)\n{\"ok\":false,\"code\":\"refused\",\"error\":\"1 path cannot be installed\",\"refused\":[{\"path\":\"framework/com.google.android.maps.jar\",\"rule\":\"framework\",\"why\":\"touches the framework (framework libraries)\"}],\"refused_more\":0}\nGNEG-RC=1\n"
+   },
+   {
+    "check": "gapps-check accepts the package (on the live system, from the USB drive)",
+    "ok": true,
+    "detail": "er-save\":1}}]},\"warnings\":[]}\n\nSHA=5aec2f2283c07a0f162ce822bd53bf732425f484e474af1d459f20cafad7d22b\ntotal 11\ndrwx------ 2 root root u:object_r:openbook_install_data_file:s0  3452 2026-10-18 10:08 files\n-rw------- 1 root root u:object_r:openbook_install_data_file:s0  4163 2026-10-18 10:08 gapps.json\n"
+   },
+   {
+    "check": "staged files labeled openbook_install_data_file",
+    "ok": true,
+    "detail": "er-save\":1}}]},\"warnings\":[]}\n\nSHA=5aec2f2283c07a0f162ce822bd53bf732425f484e474af1d459f20cafad7d22b\ntotal 11\ndrwx------ 2 root root u:object_r:openbook_install_data_file:s0  3452 2026-10-18 10:08 files\n-rw------- 1 root root u:object_r:openbook_install_data_file:s0  4163 2026-10-18 10:08 gapps.json\n"
+   },
+   {
+    "check": "plan --gapps: product, vbmeta and check_gapps operations",
+    "ok": true,
+    "detail": "['check_source', 'check_gapps', 'recheck', 'wipe_table', 'format', 'zero', 'copy', 'zero', 'copy', 'zero', 'copy', 'zero', 'vbmeta', 'zero', 'zero', 'super', 'product', 'zero', 'file', 'file', 'file', 'file', 'write_table', 'verify', 'activate', 'activate', 'activate', 'activate', 'nvram', 'report']"
+   },
+   {
+    "check": "the cut came at its point (product: building product_a)",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "the disk afterwards: blank (S9)",
+    "ok": true,
+    "detail": "{'state': 'blank', 'mbr': 'none', 'primary_valid': False, 'backup_valid': False, 'fallback': [], 'openbook_entry': []}"
+   }
+  ],
+  "g-cut-3": [
+   {
+    "check": "the expect steps up to the cut matched",
+    "ok": true,
+    "detail": "55/55 (QEMU exited (0))"
+   },
+   {
+    "check": "SELinux enforcing",
+    "ok": true,
+    "detail": "761558c]\n[ro.boot.openbook.live]: [1]\n[ro.boot.openbook.loader]: [sdboot]\n[ro.build.fingerprint]: [OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys]\nEnforcing\n"
+   },
+   {
+    "check": "the USB drive with the packages is mounted by vold",
+    "ok": true,
+    "detail": " neg-framework.zip\n-rwxrwx--- 1 root external_storage 268539167 2026-10-18 10:05 openbook-synthetic-gapps-x86_64-37-big.zip\n-rwxrwx--- 1 root external_storage     13838 2026-10-18 10:05 openbook-synthetic-gapps-x86_64-37.zip\npublic:8,16 mounted 9EAD-775F\nprivate mounted null\nemulated;0 mounted null\n"
+   },
+   {
+    "check": "gapps-check refuses the package that touches the framework",
+    "ok": true,
+    "detail": "android.maps.jar: touches the framework (framework libraries) (framework)\n{\"ok\":false,\"code\":\"refused\",\"error\":\"1 path cannot be installed\",\"refused\":[{\"path\":\"framework/com.google.android.maps.jar\",\"rule\":\"framework\",\"why\":\"touches the framework (framework libraries)\"}],\"refused_more\":0}\nGNEG-RC=1\n"
+   },
+   {
+    "check": "gapps-check accepts the package (on the live system, from the USB drive)",
+    "ok": true,
+    "detail": "er-save\":1}}]},\"warnings\":[]}\n\nSHA=f25fae8945610d20f3eae203e590ed170346c6a665813bb6e4c29559e5497297\ntotal 11\ndrwx------ 2 root root u:object_r:openbook_install_data_file:s0  3452 2026-10-18 10:10 files\n-rw------- 1 root root u:object_r:openbook_install_data_file:s0  4163 2026-10-18 10:10 gapps.json\n"
+   },
+   {
+    "check": "staged files labeled openbook_install_data_file",
+    "ok": true,
+    "detail": "er-save\":1}}]},\"warnings\":[]}\n\nSHA=f25fae8945610d20f3eae203e590ed170346c6a665813bb6e4c29559e5497297\ntotal 11\ndrwx------ 2 root root u:object_r:openbook_install_data_file:s0  3452 2026-10-18 10:10 files\n-rw------- 1 root root u:object_r:openbook_install_data_file:s0  4163 2026-10-18 10:10 gapps.json\n"
+   },
+   {
+    "check": "plan --gapps: product, vbmeta and check_gapps operations",
+    "ok": true,
+    "detail": "['check_source', 'check_gapps', 'recheck', 'wipe_table', 'format', 'zero', 'copy', 'zero', 'copy', 'zero', 'copy', 'zero', 'vbmeta', 'zero', 'zero', 'super', 'product', 'zero', 'file', 'file', 'file', 'file', 'write_table', 'verify', 'activate', 'activate', 'activate', 'activate', 'nvram', 'report']"
+   },
+   {
+    "check": "the cut came at its point (product: \\d+ bytes \\(image)",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "the disk afterwards: blank (S9)",
+    "ok": true,
+    "detail": "{'state': 'blank', 'mbr': 'none', 'primary_valid': False, 'backup_valid': False, 'fallback': [], 'openbook_entry': []}"
+   }
+  ],
+  "g-cut-4": [
+   {
+    "check": "the expect steps up to the cut matched",
+    "ok": true,
+    "detail": "55/55 (QEMU exited (0))"
+   },
+   {
+    "check": "SELinux enforcing",
+    "ok": true,
+    "detail": "761558c]\n[ro.boot.openbook.live]: [1]\n[ro.boot.openbook.loader]: [sdboot]\n[ro.build.fingerprint]: [OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys]\nEnforcing\n"
+   },
+   {
+    "check": "the USB drive with the packages is mounted by vold",
+    "ok": true,
+    "detail": " neg-framework.zip\n-rwxrwx--- 1 root external_storage 268539167 2026-10-18 10:05 openbook-synthetic-gapps-x86_64-37-big.zip\n-rwxrwx--- 1 root external_storage     13838 2026-10-18 10:05 openbook-synthetic-gapps-x86_64-37.zip\npublic:8,16 mounted 9EAD-775F\nprivate mounted null\nemulated;0 mounted null\n"
+   },
+   {
+    "check": "gapps-check refuses the package that touches the framework",
+    "ok": true,
+    "detail": "android.maps.jar: touches the framework (framework libraries) (framework)\n{\"ok\":false,\"code\":\"refused\",\"error\":\"1 path cannot be installed\",\"refused\":[{\"path\":\"framework/com.google.android.maps.jar\",\"rule\":\"framework\",\"why\":\"touches the framework (framework libraries)\"}],\"refused_more\":0}\nGNEG-RC=1\n"
+   },
+   {
+    "check": "gapps-check accepts the package (on the live system, from the USB drive)",
+    "ok": true,
+    "detail": "er-save\":1}}]},\"warnings\":[]}\n\nSHA=e34db031ffd0fb508e6ee9673d54b16e5d95d300b96cf5b974198323fe37b364\ntotal 11\ndrwx------ 2 root root u:object_r:openbook_install_data_file:s0  3452 2026-10-18 10:13 files\n-rw------- 1 root root u:object_r:openbook_install_data_file:s0  4163 2026-10-18 10:13 gapps.json\n"
+   },
+   {
+    "check": "staged files labeled openbook_install_data_file",
+    "ok": true,
+    "detail": "er-save\":1}}]},\"warnings\":[]}\n\nSHA=e34db031ffd0fb508e6ee9673d54b16e5d95d300b96cf5b974198323fe37b364\ntotal 11\ndrwx------ 2 root root u:object_r:openbook_install_data_file:s0  3452 2026-10-18 10:13 files\n-rw------- 1 root root u:object_r:openbook_install_data_file:s0  4163 2026-10-18 10:13 gapps.json\n"
+   },
+   {
+    "check": "plan --gapps: product, vbmeta and check_gapps operations",
+    "ok": true,
+    "detail": "['check_source', 'check_gapps', 'recheck', 'wipe_table', 'format', 'zero', 'copy', 'zero', 'copy', 'zero', 'copy', 'zero', 'vbmeta', 'zero', 'zero', 'super', 'product', 'zero', 'file', 'file', 'file', 'file', 'write_table', 'verify', 'activate', 'activate', 'activate', 'activate', 'nvram', 'report']"
+   },
+   {
+    "check": "the cut came at its point (vbmeta_a: rebuilt vbmeta)",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "the disk afterwards: blank (S9)",
+    "ok": true,
+    "detail": "{'state': 'blank', 'mbr': 'none', 'primary_valid': False, 'backup_valid': False, 'fallback': [], 'openbook_entry': []}"
+   }
+  ],
+  "g-cut-5": [
+   {
+    "check": "the expect steps up to the cut matched",
+    "ok": true,
+    "detail": "56/56 (QEMU exited (0))"
+   },
+   {
+    "check": "SELinux enforcing",
+    "ok": true,
+    "detail": "761558c]\n[ro.boot.openbook.live]: [1]\n[ro.boot.openbook.loader]: [sdboot]\n[ro.build.fingerprint]: [OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys]\nEnforcing\n"
+   },
+   {
+    "check": "the USB drive with the packages is mounted by vold",
+    "ok": true,
+    "detail": " neg-framework.zip\n-rwxrwx--- 1 root external_storage 268539167 2026-10-18 10:05 openbook-synthetic-gapps-x86_64-37-big.zip\n-rwxrwx--- 1 root external_storage     13838 2026-10-18 10:05 openbook-synthetic-gapps-x86_64-37.zip\npublic:8,16 mounted 9EAD-775F\nprivate mounted null\nemulated;0 mounted null\n"
+   },
+   {
+    "check": "gapps-check refuses the package that touches the framework",
+    "ok": true,
+    "detail": "android.maps.jar: touches the framework (framework libraries) (framework)\n{\"ok\":false,\"code\":\"refused\",\"error\":\"1 path cannot be installed\",\"refused\":[{\"path\":\"framework/com.google.android.maps.jar\",\"rule\":\"framework\",\"why\":\"touches the framework (framework libraries)\"}],\"refused_more\":0}\nGNEG-RC=1\n"
+   },
+   {
+    "check": "gapps-check accepts the package (on the live system, from the USB drive)",
+    "ok": true,
+    "detail": "er-save\":1}}]},\"warnings\":[]}\n\nSHA=18d6cebdc5186f17109e0c31e17b9a4c05b9381153ba8567a314a5822a4534ef\ntotal 11\ndrwx------ 2 root root u:object_r:openbook_install_data_file:s0  3452 2026-10-18 10:15 files\n-rw------- 1 root root u:object_r:openbook_install_data_file:s0  4163 2026-10-18 10:15 gapps.json\n"
+   },
+   {
+    "check": "staged files labeled openbook_install_data_file",
+    "ok": true,
+    "detail": "er-save\":1}}]},\"warnings\":[]}\n\nSHA=18d6cebdc5186f17109e0c31e17b9a4c05b9381153ba8567a314a5822a4534ef\ntotal 11\ndrwx------ 2 root root u:object_r:openbook_install_data_file:s0  3452 2026-10-18 10:15 files\n-rw------- 1 root root u:object_r:openbook_install_data_file:s0  4163 2026-10-18 10:15 gapps.json\n"
+   },
+   {
+    "check": "plan --gapps: product, vbmeta and check_gapps operations",
+    "ok": true,
+    "detail": "['check_source', 'check_gapps', 'recheck', 'wipe_table', 'format', 'zero', 'copy', 'zero', 'copy', 'zero', 'copy', 'zero', 'vbmeta', 'zero', 'zero', 'super', 'product', 'zero', 'file', 'file', 'file', 'file', 'write_table', 'verify', 'activate', 'activate', 'activate', 'activate', 'nvram', 'report']"
+   },
+   {
+    "check": "the cut came at its point (\"step\":\"verify\",\"state\":\"running\")",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "the disk afterwards: new-not-activated (S9)",
+    "ok": true,
+    "detail": "{'state': 'new-not-activated', 'mbr': 'protective', 'primary_valid': True, 'backup_valid': True, 'fallback': [], 'openbook_entry': []}"
+   }
+  ],
+  "g-ui": [
+   {
+    "check": "every expect step matched",
+    "ok": true,
+    "detail": "198/198 (QEMU exited (0))"
+   },
+   {
+    "check": "SELinux enforcing",
+    "ok": true,
+    "detail": "761558c]\n[ro.boot.openbook.live]: [1]\n[ro.boot.openbook.loader]: [sdboot]\n[ro.build.fingerprint]: [OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys]\nEnforcing\n"
+   },
+   {
+    "check": "the USB drive with the packages is mounted by vold",
+    "ok": true,
+    "detail": " neg-framework.zip\n-rwxrwx--- 1 root external_storage 268539167 2026-10-18 10:05 openbook-synthetic-gapps-x86_64-37-big.zip\n-rwxrwx--- 1 root external_storage     13838 2026-10-18 10:05 openbook-synthetic-gapps-x86_64-37.zip\npublic:8,16 mounted 9EAD-775F\nprivate mounted null\nemulated;0 mounted null\n"
+   },
+   {
+    "check": "screenshot g4-disk-advanced-on",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "screenshot g4b-package-page",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "screenshot g4b-package-checked",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "screenshot g5-confirm",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "screenshot g7-done",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "the wizard streamed the package to the daemon and the daemon checked it",
+    "ok": true,
+    "detail": " re-read the partition table\n10:22:57 nvram: created Boot0005 \"OpenBook\" -> HD(1, GPT, 6ff9f457-590a-4845-ae07-b82081f57d4a)/\\EFI\\OpenBook\\systemd-bootx64.efi; BootOrder first\n10:22:57 step verify: done\n10:22:57 step report: running\n10:22:57 step report: done\n10:22:57 install process 3147 ended: ok\n"
+   },
+   {
+    "check": "the install with the package verified",
+    "ok": true,
+    "detail": "None"
+   },
+   {
+    "check": "the report has the root digest and vbmeta digest",
+    "ok": true,
+    "detail": "{'manifest_sha256': '3588759ecfe646e7e6bf8bd3478687e762726346fc9b0bc0b4a2685bbdbed768', 'product': 'product_a', 'product_bytes': 306835456, 'product_sha256': 'adf17c409e95f36407e9768e1b112d1cee5d87fa2fc50cd345ab60cb11efea17', 'root_digest': '7860cb4ac1ac2ad67c1a9a13700d65da16b0695832cd2201063f71d7d3f28e64', 'super_offset': 1363148800, 'vbmeta_digest': '82207cbb6f593f7601cd5e5c0022b82fe0e56c2a12bfd"
+   },
+   {
+    "check": "no SELinux denial involves the installer's daemon, its files or the package's apps",
+    "ok": true,
+    "detail": "[]"
+   }
+  ],
+  "g-installed": [
+   {
+    "check": "every expect step matched",
+    "ok": true,
+    "detail": "154/154 (QEMU exited (0))"
+   },
+   {
+    "check": "SELinux enforcing, orange state, the installed system",
+    "ok": true,
+    "detail": "bmeta.digest]: [82207cbb6f593f7601cd5e5c0022b82fe0e56c2a12bfd92172516014ed53cb79]\n[ro.boot.vbmeta.hash_alg]: [sha256]\n[ro.boot.vbmeta.invalidate_on_error]: [yes]\n[ro.boot.vbmeta.size]: [4608]\n[ro.boot.verifiedbootstate]: [orange]\n[ro.boot.veritymode]: [enforcing]\n[sys.boot_completed]: [1]\nEnforcing\n"
+   },
+   {
+    "check": "the loader passed the rebuilt vbmeta's digest (bootconfig)",
+    "ok": true,
+    "detail": "bmeta.digest]: [82207cbb6f593f7601cd5e5c0022b82fe0e56c2a12bfd92172516014ed53cb79]\n[ro.boot.vbmeta.hash_alg]: [sha256]\n[ro.boot.vbmeta.invalidate_on_error]: [yes]\n[ro.boot.vbmeta.size]: [4608]\n[ro.boot.verifiedbootstate]: [orange]\n[ro.boot.veritymode]: [enforcing]\n[sys.boot_completed]: [1]\nEnforcing\n"
+   },
+   {
+    "check": "product is a dm-verity device with the report's root digest",
+    "ok": true,
+    "detail": "== by-uuid\n10-18 10:24:51.970  3730  3730 E dmctl   : dm.cpp:579 DM_TABLE_STATUS failed for by-uuid: No such device or address\nCould not query table status of device \"by-uuid\".\n== product-verity\nTargets in the device-mapper table for product-verity:\n0-594576: verity, 1 254:3 254:3 4096 4096 74322 74322 sha256 7860cb4ac1ac2ad67c1a9a13700d65da16b0695832cd2201063f71d7d3f28e64 a3a829c3172285da889d8cb4"
+   },
+   {
+    "check": "/product is mounted from that device",
+    "ok": true,
+    "detail": " 1 root root  16 2026-10-18 10:23 vendor-verity -> /dev/block/dm-10\nlrwxrwxrwx 1 root root  15 2026-10-18 10:23 vendor_a -> /dev/block/dm-4\nlrwxrwxrwx 1 root root  16 2026-10-18 10:23 vendor_dlkm-verity -> /dev/block/dm-11\nlrwxrwxrwx 1 root root  15 2026-10-18 10:23 vendor_dlkm_a -> /dev/block/dm-5\n"
+   },
+   {
+    "check": "every product file reads back through dm-verity",
+    "ok": true,
+    "detail": " fec_roots 2 fec_blocks 4397 fec_start 4397 restart_on_corruption ignore_zero_blocks'\n[    8.306675] init: [libfs_mgr] Enabling ext4 verity on /dev/block/by-name/metadata\n[    9.736340] fsck.f2fs: Info: superblock features = 3499 :  encrypt extra_attr project_quota quota verity casefold compression\n"
+   },
+   {
+    "check": "the package's files in /product, labeled system_file",
+    "ok": true,
+    "detail": "/product/app/OpenBookTestApp:\ntotal 16\n-rw-r--r-- 1 root root u:object_r:system_file:s0  8530 2026-10-18 10:04 OpenBookTestApp.apk\ndrwxr-xr-x 3 root root u:object_r:system_file:s0    45 2026-10-18 10:04 lib\n\n/product/app/OpenBookTestApp/lib:\ntotal 4\ndrwxr-xr-x 2 root root u:object_r:system_file:s0  52 2026-10-18 10:04 x86_64\n\n/product/app/OpenBookTestApp/lib/x86_64:\ntotal 8\n-rw-r--r-- 1 root root "
+   },
+   {
+    "check": "the three apps installed from /product",
+    "ok": true,
+    "detail": "package:/product/app/OpenBookTestApp/OpenBookTestApp.apk=org.openbook.test.gapps.app\npackage:/product/priv-app/OpenBookTestPriv/OpenBookTestPriv.apk=org.openbook.test.gapps.priv\npackage:/product/priv-app/OpenBookTestGsf/OpenBookTestGsf.apk=com.google.android.gsf\n"
+   },
+   {
+    "check": "the privileged app is PRIVILEGED, on product, x86_64, with WRITE_SECURE_SETTINGS granted",
+    "ok": true,
+    "detail": "    codePath=/product/priv-app/OpenBookTestPriv\n    primaryCpuAbi=x86_64\n    versionName=1.0-anal211-synthetic\n    privateFlags=[ PRIVATE_FLAG_ACTIVITIES_RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION ALLOW_AUDIO_PLAYBACK_CAPTURE PRIVILEGED PRODUCT PRIVATE_FLAG_ALLOW_NATIVE_HEAP_POINTER_TAGGING ]\n    signatures=PackageSignatures{5d3e047 version:3, signatures:[f8ea62a5], past signatures:[]}\n    pkgFlags=[ "
+   },
+   {
+    "check": "its runtime permissions are granted by default (default-permissions XML)",
+    "ok": true,
+    "detail": "TER_RESTORE ]\n      android.permission.ACCESS_FINE_LOCATION\n      android.permission.WRITE_SECURE_SETTINGS\n      android.permission.ACCESS_COARSE_LOCATION\n      android.permission.WRITE_SECURE_SETTINGS: granted=true\n        android.permission.ACCESS_FINE_LOCATION: granted=true, flags=[ GRANTED_BY_DEFAULT]\n        android.permission.ACCESS_COARSE_LOCATION: granted=true, flags=[ GRANTED_BY_DEFAULT]\n"
+   },
+   {
+    "check": "the stand-in GSF is a privileged app; the ordinary app is not privileged",
+    "ok": true,
+    "detail": "('    codePath=/product/priv-app/OpenBookTestGsf\\n    primaryCpuAbi=null\\n    versionName=1.0-anal211-synthetic\\n    privateFlags=[ PRIVATE_FLAG_ACTIVITIES_RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION ALLOW_AUDI', '    codePath=/product/app/OpenBookTestApp\\n    primaryCpuAbi=x86_64\\n    versionName=1.0-anal211-synthetic\\n    privateFlags=[ PRIVATE_FLAG_ACTIVITIES_RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION A"
+   },
+   {
+    "check": "SystemConfig read the package's privapp allowlist",
+    "ok": true,
+    "detail": "{android.permission.WRITE_SECURE_SETTINGS}\n{}\n"
+   },
+   {
+    "check": "... its feature",
+    "ok": true,
+    "detail": "feature:org.openbook.test.feature.SYNTHETIC_GAPPS\n"
+   },
+   {
+    "check": "... and its sysconfig (power-save allowlist)",
+    "ok": true,
+    "detail": "system-excidle,org.openbook.test.gapps.priv,10068\nsystem,org.openbook.test.gapps.priv,10068\n"
+   },
+   {
+    "check": "OpenBook setup shows the GSF Android ID (the stand-in's fake one) and the registration steps",
+    "ok": true,
+    "detail": "text=\"Welcome to&#10;OpenBook.\"\ntext=\"Four quick steps, then your laptop is ready.\"\ntext=\"SETUP \u00b7 STEP 4 OF 4\"\ntext=\"Register this computer with Google\"\ntext=\"You installed OpenBook synthetic test package (not Google apps). Google Play only works on devices Google knows about, so register this computer. It takes a minute.\"\ntext=\"GSF Android ID\"\ntext=\"3141592653589793238\"\ntext=\"Hexadecimal: 2b992dd"
+   },
+   {
+    "check": "Settings > About's entry: the activity answers Settings' EXTRA_SETTINGS and is enabled (the package is installed)",
+    "ok": true,
+    "detail": "org.openbook.installer/.GappsRegistrationActivity\n      disabledComponents:\n        org.openbook.installer.SetupActivity\n        org.openbook.installer.InstallLauncher\n      enabledComponents:\n        org.openbook.installer.GappsRegistrationActivity\n\nQueries:\ntext=\"SETUP \u00b7 STEP 4 OF 4\"\ntext=\"Registe"
+   },
+   {
+    "check": "tapping About's last row opens the registration page (screenshots g-settings-about-end, g-settings-register)",
+    "ok": true,
+    "detail": "    topResumedActivity=ActivityRecord{267999455 u0 org.openbook.installer/.GappsRegistrationActivity t10}\n"
+   },
+   {
+    "check": "no SELinux denial involves the installer's daemon, its files or the package's apps",
+    "ok": true,
+    "detail": "[]"
+   }
+  ],
+  "g-verity": [
+   {
+    "check": "an intact package file reads",
+    "ok": true,
+    "detail": "GOOD-RC=0\n"
+   },
+   {
+    "check": "the read never completed: the system restarted (restart_on_corruption)",
+    "ok": true,
+    "detail": "QEMU exited (0)"
+   },
+   {
+    "check": "reading the corrupted package file trips dm-verity on product, at the corrupted block",
+    "ok": true,
+    "detail": "('device-mapper: verity: 254:3: data block 74292 is corrupted', {'path': 'app/OpenBookTestApp/lib/x86_64/libobgapps.so', 'nid': 9513100, 'blkaddr': 74292, 'disk_offset': 2563981412, 'was': 0})"
+   }
+  ]
+ },
+ "summary": {
+  "passed": 79,
+  "total": 79
+ }
+}
