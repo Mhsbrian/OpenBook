@@ -31,8 +31,9 @@ All ran under the lane lock (`scripts/aosp-docker.sh`, `AOSP_JOBS=24`). The imag
 
 **Which Quire ran.** The image (`5c1d0c4`) carries SystemUI `0008`; Quire's final sources, with the changes from
 Atelier's review, were installed over the image's Quire as the dev APK (`tools/build-apk.sh`, the same sources Soong
-builds), and every section below ran on that one build, in one session, on a fresh boot of the snapshot. The final
-sources build in-tree (above).
+builds), and every section below ran on that one build, in one session, on a new boot of the snapshot. That boot kept
+`/data` from the review round's earlier runs, so the Files window behind some states lists their saves, including a
+`script.sh.txt` from before the code block's file type followed its name. The final sources build in-tree (above).
 
 **Atelier's review (2026-10-18), and what answers it**
 
