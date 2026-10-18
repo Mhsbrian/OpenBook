@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 5: Cast tile also works on Ethernet
+flag_value {
+  package: "com.android.systemui"
+  name: "qs_cast_tile_skip_wifi_check"
+  state: ENABLED
+  permission: READ_ONLY
+}
