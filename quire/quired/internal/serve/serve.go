@@ -23,9 +23,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"log"
+	"math/rand/v2"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -47,7 +50,8 @@ type Server struct {
 	Version    string
 	ClientInfo acp.Implementation // what quired tells the agents it starts
 	// Root holds every session's folder. A session/new without cwd gets a new folder under
-	// Root/Quire; one with cwd must name a folder inside Root.
+	// Root/Quire; one with cwd must name a folder inside Root. Either way a symlink may lead
+	// only to somewhere else inside Root.
 	Root     string
 	FS       bool // serve fs/read_text_file and fs/write_text_file to ACP agents
 	Discover func(context.Context) []agents.Found
@@ -343,10 +347,14 @@ func (c *conn) agent(ctx context.Context, id string) (*running, error) {
 		r.agent, r.err = c.start(id, r.client)
 		c.mu.Lock()
 		if r.err == nil && c.closed {
-			// The connection ended while the agent started; shutdown may not have seen it.
-			r.err = acp.ErrClosed
-			go r.agent.Close()
-			r.agent = nil
+			// The connection ended while the agent started. shutdown saw r (it was in c.agents
+			// before closed was set) and waits for ready, so stop the agent before closing ready:
+			// Serve then returns only once it has stopped.
+			a := r.agent
+			r.agent, r.err = nil, acp.ErrClosed
+			c.mu.Unlock()
+			_ = a.Close()
+			c.mu.Lock()
 		}
 		if r.err != nil {
 			delete(c.agents, id) // a later call may try again (after a sign-in, an install...)
@@ -407,32 +415,74 @@ func (c *conn) sessionDir(cwd string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if cwd == "" {
-		base := filepath.Join(root, "Quire")
-		if err := os.MkdirAll(base, 0o700); err != nil {
-			return "", err
-		}
-		return os.MkdirTemp(base, time.Now().Format("2006-01-02")+"-")
-	}
-	if !filepath.IsAbs(cwd) {
-		return "", acp.Errorf(acp.CodeInvalidParams, "cwd must be absolute: %s", cwd)
-	}
 	// Compare real paths, so a symlink inside Root can't name a folder outside it.
 	realRoot, err := filepath.EvalSymlinks(root)
 	if err != nil {
 		return "", err
 	}
+	if cwd == "" {
+		return newSessionDir(root, realRoot)
+	}
+	if !filepath.IsAbs(cwd) {
+		return "", acp.Errorf(acp.CodeInvalidParams, "cwd must be absolute: %s", cwd)
+	}
 	real, err := filepath.EvalSymlinks(cwd)
 	if err != nil {
 		return "", acp.Errorf(acp.CodeInvalidParams, "no such folder: %s", cwd)
 	}
-	if rel, err := filepath.Rel(realRoot, real); err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+	if _, ok := within(realRoot, real); !ok {
 		return "", acp.Errorf(acp.CodeInvalidParams, "cwd is outside %s: %s", root, cwd)
 	}
 	if fi, err := os.Stat(real); err != nil || !fi.IsDir() {
 		return "", acp.Errorf(acp.CodeInvalidParams, "not a folder: %s", cwd)
 	}
 	return cwd, nil
+}
+
+// within returns path relative to root, if it is lexically inside it.
+func within(root, path string) (string, bool) {
+	rel, err := filepath.Rel(root, path)
+	if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		return "", false
+	}
+	return rel, true
+}
+
+// newSessionDir makes a new, empty folder root/Quire/DATE-N, as os.MkdirTemp would. Quire's real
+// path must be inside realRoot, as for an explicit cwd, so a Quire that links out of root (a
+// dangling link included) is refused before anything is created. Every create goes through a
+// handle on realRoot (os.Root), so a folder swapped for a link after that check can't lead outside
+// it either.
+func newSessionDir(root, realRoot string) (string, error) {
+	r, err := os.OpenRoot(realRoot)
+	if err != nil {
+		return "", err
+	}
+	defer r.Close()
+	base := filepath.Join(root, "Quire")
+	if err := r.Mkdir("Quire", 0o700); err != nil && !errors.Is(err, fs.ErrExist) {
+		return "", fmt.Errorf("no session folder in %s: %w", root, err)
+	}
+	realBase, err := filepath.EvalSymlinks(filepath.Join(realRoot, "Quire"))
+	if err != nil {
+		return "", fmt.Errorf("no session folder in %s: %w", base, err)
+	}
+	rel, ok := within(realRoot, realBase)
+	if !ok {
+		return "", fmt.Errorf("no session folder in %s: it leads outside %s, to %s", base, root, realBase)
+	}
+	prefix := time.Now().Format("2006-01-02") + "-"
+	for range 10000 {
+		name := prefix + strconv.FormatUint(uint64(rand.Uint32()), 10)
+		err := r.Mkdir(filepath.Join(rel, name), 0o700)
+		if err == nil {
+			return filepath.Join(base, name), nil
+		}
+		if !errors.Is(err, fs.ErrExist) {
+			return "", fmt.Errorf("no session folder in %s: %w", base, err)
+		}
+	}
+	return "", fmt.Errorf("no session folder in %s: every name tried exists", base)
 }
 
 // authRequired is the data of an auth_required error from session/new: which agent, and how it

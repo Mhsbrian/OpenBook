@@ -360,6 +360,119 @@ func TestServeSessionFolderRules(t *testing.T) {
 	}
 }
 
+// TestServeDefaultFolderStaysInRoot: without cwd, the new folder goes under Root/Quire. A Quire
+// that links out of Root is refused before anything is made outside it; one that links to another
+// folder inside Root is followed.
+func TestServeDefaultFolderStaysInRoot(t *testing.T) {
+	fx := newFixture(t, false)
+	ctx := ctxT(t)
+	a, _ := fx.rm.Agent(ctx, "fake", &person{answer: allow})
+	quire := filepath.Join(fx.root, "Quire")
+	outside := t.TempDir()
+	for _, target := range []string{outside, filepath.Join(outside, "missing")} {
+		os.Remove(quire)
+		if err := os.Symlink(target, quire); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := a.NewSession(ctx, "", nil); err == nil {
+			t.Errorf("Quire -> %s: a session was made", target)
+		}
+		if left, _ := os.ReadDir(outside); len(left) != 0 {
+			t.Errorf("Quire -> %s: made %s outside the root", target, left[0].Name())
+		}
+	}
+	inside := filepath.Join(fx.root, "work")
+	if err := os.Mkdir(inside, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	os.Remove(quire)
+	if err := os.Symlink(inside, quire); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := a.NewSession(ctx, "", nil); err != nil {
+		t.Fatalf("Quire -> a folder inside the root: %v", err)
+	}
+	if made, _ := os.ReadDir(inside); len(made) != 1 || !made[0].IsDir() {
+		t.Fatalf("Quire -> a folder inside the root: %v", made)
+	}
+}
+
+// blockedClose is an agent whose Close waits for release.
+type blockedClose struct {
+	fakeAgent
+	entered, release chan struct{}
+	done             atomic.Bool
+}
+
+func (b *blockedClose) Close() error {
+	close(b.entered)
+	<-b.release
+	b.done.Store(true)
+	return nil
+}
+
+// TestServeDisconnectDuringAgentStart: Quire core leaves while an agent is starting for it. Serve
+// returns only once that agent has been stopped.
+func TestServeDisconnectDuringAgentStart(t *testing.T) {
+	started := make(chan struct{})
+	slow := &blockedClose{entered: make(chan struct{}), release: make(chan struct{})}
+	srv := &Server{Version: "test", Root: t.TempDir(),
+		Discover: func(context.Context) []agents.Found {
+			return []agents.Found{{Spec: agents.Spec{ID: "fake", Protocol: agents.ACP}, Supported: true}}
+		},
+		Start: func(_ context.Context, _ agents.Spec, hc harness.Client, _ harness.Options) (harness.Agent, error) {
+			close(started)
+			// Finish starting only once the connection's shutdown has begun.
+			c := hc.(*agentClient).c
+			for deadline := time.Now().Add(5 * time.Second); time.Now().Before(deadline); time.Sleep(time.Millisecond) {
+				c.mu.Lock()
+				closed := c.closed
+				c.mu.Unlock()
+				if closed {
+					return slow, nil
+				}
+			}
+			return nil, errors.New("shutdown never began")
+		},
+	}
+	sr, cw := io.Pipe()
+	cr, sw := io.Pipe()
+	done := make(chan error, 1)
+	go func() { done <- srv.Serve(context.Background(), "test", sr, sw); sw.Close() }()
+	ctx := ctxT(t)
+	rm, err := Connect(ctx, cr, cw, nil, acp.Implementation{Name: "test"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	go func() { _, _ = rm.Agent(ctx, "fake", &person{answer: allow}) }()
+	select {
+	case <-started:
+	case <-time.After(5 * time.Second):
+		t.Fatal("the agent never started")
+	}
+	cw.Close() // Quire core goes away while the agent starts
+	select {
+	case <-slow.entered:
+	case <-time.After(5 * time.Second):
+		t.Fatal("the agent started during the disconnect was never stopped")
+	}
+	select {
+	case <-done:
+		close(slow.release)
+		t.Fatal("Serve returned while the agent was still stopping")
+	case <-time.After(100 * time.Millisecond):
+	}
+	close(slow.release)
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("Serve did not return after the agent stopped")
+	}
+	if !slow.done.Load() {
+		t.Fatal("Serve returned before the agent's Close finished")
+	}
+}
+
 func TestServeAuthRequiredThenAuthenticate(t *testing.T) {
 	fx := newFixture(t, true)
 	ctx := ctxT(t)
