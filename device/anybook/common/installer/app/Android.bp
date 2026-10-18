@@ -65,3 +65,14 @@ prebuilt_etc {
     src: "privapp-permissions-openbook-installer.xml",
     filename_from_src: true,
 }
+
+// The design tokens and shared components (theme, buttons, notices, the brand mark), also compiled into OpenBook setup
+// (device/anybook/common/setup, ANAL-209) so both apps look the same. These files must not use the installer's R.
+filegroup {
+    name: "OpenBookInstallerDesign",
+    srcs: [
+        "src/org/openbook/installer/ui/Art.kt",
+        "src/org/openbook/installer/ui/Components.kt",
+        "src/org/openbook/installer/ui/Theme.kt",
+    ],
+}
