@@ -1,6 +1,6 @@
 # Debugging the installed G14 over the network (adb)
 
-Since 2026-10-18 the G14 runs OpenBook from its own NVMe disk (whole-disk install, build `CP2A.260605.016 eng.builde`, userdebug). From now on, logs and checks come from the build host over the LAN with adb, not from the stick's "save logs" boot. The stick is still the tool for boots that never get as far as Wi-Fi (§6).
+Since 2026-10-18 the G14 runs OpenBook from its own NVMe disk (whole-disk install, build `CP2A.260605.016 eng.builde`, userdebug). Since 23:24Z that day it runs slot B, updated over adb (§7). From now on, logs and checks come from the build host over the LAN with adb, not from the stick's "save logs" boot. The stick is still the tool for boots that never get as far as Wi-Fi (§6).
 
 Tool: `scripts/g14-adb.sh`. Evidence for everything below: `evidence/2026-10-18-g14-installed-adb/` (ANAL-222).
 
@@ -43,6 +43,8 @@ scripts/g14-adb.sh shell                      # interactive shell (adb root firs
 scripts/g14-adb.sh wait 600                   # after a reboot: wait until adb answers and the boot completed
 scripts/g14-adb.sh persist-logs status|on|off
 scripts/g14-adb.sh pair HOST:PORT             # Wireless debugging pairing; asks for the code (only with ro.adb.secure=1)
+scripts/g14-adb.sh state OUT.json             # read-only: build, slot, packages, Settings, counts (keep it on the host)
+scripts/g14-adb.sh ota PKG.zip [--dry-run]    # an A/B image update of the other slot (§7); ota-status, ota-cancel
 ```
 
 Everything runs through a private adb server (`ANDROID_ADB_SERVER_PORT`, default 5222), so other runs' servers and devices are untouched. `find` and the default address only ever match "OpenBook on ..." advertisements.
@@ -90,10 +92,7 @@ The G14's QEMU tests use the serial console, not adb, so they are unaffected. Cu
 
 ## 6. Limits and next steps
 
-- **New builds still need a way onto the laptop.** adb replaces the stick for testing, not for delivery.
-  - The installed system is `anal192e`. Fixes merged since (#100 first-run setup, #101 wallpaper preview) and open ones (#97) are not on it.
-  - Today only a reinstall from a stick delivers them, and it erases the laptop's data.
-  - Proposed (`docs/PLAN.md` §4a, phase 2): an A/B slot update over adb, or an OTA through update_engine with `openbook-bootsync`. It writes the laptop's disk, so it waits for the owner's OK.
+- **New builds reach the laptop over adb since ANAL-223 (§7).** The G14 runs slot B with `openbook-ota-20261018-cand1` since 2026-10-18 23:24Z.
 - **A boot that never reaches Wi-Fi** (black screen, early hang, kernel panic) cannot be reached over adb.
   - If it got as far as logd, its logcat and kernel log are in `/data/misc/logd` and the next good boot's `capture` reads them.
   - A panic leaves nothing until a pstore backend is configured (follow-up).
@@ -104,3 +103,49 @@ The G14's QEMU tests use the serial console, not adb, so they are unaffected. Cu
   - Hypothesis, untested: loading them in the G14 product gives adb over a cable.
 - **Add-on checks over adb:** push and run the graphics, ARM apps and power checks' `run.sh`, and feed their output to the existing reports.
 - **Larger logcat buffers** (Developer options > Logger buffer sizes, or `persist.logd.size`) would keep boot lines in the live buffers. The persisted logs already keep them.
+
+## 7. Updating the installed system (A/B image updates over adb, ANAL-223)
+
+A new build reaches the laptop as a full A/B update. update_engine writes the slot that is not running, and `/data` (apps, settings, files, the PIN) is kept. The running slot stays the fallback until the new one has booted. How it works: `docs/installer.md` §2.5. Results: §13.13 and `evidence/2026-10-18-ota/`.
+
+**Each update writes the laptop's disk** (the other slot, the copy-on-write data in `/data`, the ESP's loader entry), so it needs the owner's go for that device.
+
+```bash
+# on the build host, after the product build (with the target-files-package and otatools-package goals)
+scripts/aosp-docker.sh -d anybook-aosp-build /repo/scripts/aosp-build.sh anybook_g14_x86_64-cp2a-userdebug \
+    droid target-files-package otatools-package && docker wait anybook-aosp-build
+scripts/ota/make-ota.sh openbook-ota-<date>-<x>                 # ~1 min: <data dir>/ota/out/<label>.{zip,json,bootsync}
+scripts/g14-adb.sh state <file>.json                            # optional: what the update must keep, to compare after
+scripts/g14-adb.sh ota <data dir>/ota/out/<label>.zip --dry-run # the checks only
+scripts/g14-adb.sh ota <data dir>/ota/out/<label>.zip           # asks for the laptop's address, then ~1.5 min
+scripts/g14-adb.sh shell reboot                                 # when the laptop is idle; or the owner restarts it
+scripts/g14-adb.sh wait && scripts/g14-adb.sh ota-status        # slot, build, ESP entries, the merge
+```
+
+**What `ota` checks before writing anything:**
+- the package's sha256 and its bootsync binary against `<label>.json`;
+- that it is a full A/B package for `anybook_g14` and not older than the running build;
+- virtual A/B, a whole-disk install, and update_engine idle (no merge pending);
+- free space in `/data`, and AC power or at least 50 % battery.
+
+**During the update:** the laptop stays usable. Progress shows as `DOWNLOADING n%` (the write), then `VERIFYING` and `FINALIZING`. On the G14 the first package (895 MB) took 82 s over Wi-Fi.
+
+**After the reboot:**
+- `ota-status` should show:
+  - the new slot;
+  - `openbook-<slot>.conf (good)`;
+  - `update_engine: UPDATE_STATUS_IDLE` and `Update state: none` (the merge is done, usually within a minute).
+- From the merge on, the old slot is no longer a fallback.
+
+**If the new slot does not start:**
+- It gets 3 tries. Each failed start that ends in a restart counts one: a kernel panic restarts by itself; for a hang, hold the power button for 10 s.
+- After the third, systemd-boot starts the old slot by itself, with `/data` as it was.
+- To choose by hand, hold a key while powering on and pick "OpenBook (17 · slot A/B)".
+- Before rebooting, `ota-cancel` undoes a staged update.
+
+**The first update onto an older image** (one without `openbook-bootsync`, such as `anal192e`) runs the package's own bootsync once as root over adb. This is userdebug only. From then on the image's boot HAL does that step.
+
+**Security:**
+- The image and the payload are signed with AOSP's public test keys, so the signature proves nothing to an attacker.
+- With adb open to the network (§5), anyone on the same Wi-Fi could push an update.
+- Release keys come before any public update, and `ro.adb.secure=1` is still recommended.
