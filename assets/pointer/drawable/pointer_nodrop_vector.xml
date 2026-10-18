@@ -11,15 +11,15 @@
     <!-- outline -->
     <path
         android:pathData="M8.37 7.92 Q8.37 7.18 8.88 7.72 L15.73 14.88 Q16.29 15.47 15.48 15.49 L14.62 15.51 Q13.26 15.54 12.29 15.74 L11.76 15.85 Q11.11 15.99 10.61 16.43 L8.98 17.89 Q8.37 18.43 8.37 17.62 L8.37 7.92 Z M21.73 18.27 C21.73 20.59 19.85 22.47 17.53 22.47 C15.21 22.47 13.33 20.59 13.33 18.27 C13.33 15.95 15.21 14.07 17.53 14.07 C19.85 14.07 21.73 15.95 21.73 18.27 Z"
-        android:fillColor="?android:attr/pointerIconVectorStroke"
-        android:strokeColor="?android:attr/pointerIconVectorStroke"
+        android:fillColor="?attr/openbookPointerStroke"
+        android:strokeColor="?attr/openbookPointerStroke"
         android:strokeWidth="2.2"
         android:strokeLineJoin="round"
         android:strokeLineCap="round" />
     <!-- body -->
     <path
         android:pathData="M8.37 7.92 Q8.37 7.18 8.88 7.72 L15.73 14.88 Q16.29 15.47 15.48 15.49 L14.62 15.51 Q13.26 15.54 12.29 15.74 L11.76 15.85 Q11.11 15.99 10.61 16.43 L8.98 17.89 Q8.37 18.43 8.37 17.62 L8.37 7.92 Z M21.73 18.27 C21.73 20.59 19.85 22.47 17.53 22.47 C15.21 22.47 13.33 20.59 13.33 18.27 C13.33 15.95 15.21 14.07 17.53 14.07 C19.85 14.07 21.73 15.95 21.73 18.27 Z"
-        android:fillColor="?android:attr/pointerIconVectorFill" />
+        android:fillColor="?attr/openbookPointerFill" />
     <!-- badge -->
     <path
         android:pathData="M21.73 18.27 C21.73 20.59 19.85 22.47 17.53 22.47 C15.21 22.47 13.33 20.59 13.33 18.27 C13.33 15.95 15.21 14.07 17.53 14.07 C19.85 14.07 21.73 15.95 21.73 18.27 Z"

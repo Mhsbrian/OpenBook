@@ -11,13 +11,13 @@
     <!-- outline -->
     <path
         android:pathData="M4.33 4.07 Q4.33 3.07 5.02 3.79 L14.27 13.47 Q15.03 14.27 13.93 14.3 L12.77 14.32 Q10.93 14.37 9.62 14.64 L8.91 14.79 Q8.03 14.97 7.36 15.57 L5.15 17.54 Q4.33 18.27 4.33 17.17 L4.33 4.07 Z"
-        android:fillColor="?android:attr/pointerIconVectorStroke"
-        android:strokeColor="?android:attr/pointerIconVectorStroke"
+        android:fillColor="?attr/openbookPointerStroke"
+        android:strokeColor="?attr/openbookPointerStroke"
         android:strokeWidth="2.2"
         android:strokeLineJoin="round"
         android:strokeLineCap="round" />
     <!-- body -->
     <path
         android:pathData="M4.33 4.07 Q4.33 3.07 5.02 3.79 L14.27 13.47 Q15.03 14.27 13.93 14.3 L12.77 14.32 Q10.93 14.37 9.62 14.64 L8.91 14.79 Q8.03 14.97 7.36 15.57 L5.15 17.54 Q4.33 18.27 4.33 17.17 L4.33 4.07 Z"
-        android:fillColor="?android:attr/pointerIconVectorFill" />
+        android:fillColor="?attr/openbookPointerFill" />
 </vector>

@@ -11,13 +11,13 @@
     <!-- outline -->
     <path
         android:pathData="M12 3.6 L12 3.6 C12.55 3.6 13 4.05 13 4.6 L13 17.4 C13 17.95 12.55 18.4 12 18.4 L12 18.4 C11.45 18.4 11 17.95 11 17.4 L11 4.6 C11 4.05 11.45 3.6 12 3.6 Z M9.4 2.6 L14.6 2.6 C15.15 2.6 15.6 3.05 15.6 3.6 L15.6 3.6 C15.6 4.15 15.15 4.6 14.6 4.6 L9.4 4.6 C8.85 4.6 8.4 4.15 8.4 3.6 L8.4 3.6 C8.4 3.05 8.85 2.6 9.4 2.6 Z M9.4 17.4 L14.6 17.4 C15.15 17.4 15.6 17.85 15.6 18.4 L15.6 18.4 C15.6 18.95 15.15 19.4 14.6 19.4 L9.4 19.4 C8.85 19.4 8.4 18.95 8.4 18.4 L8.4 18.4 C8.4 17.85 8.85 17.4 9.4 17.4 Z"
-        android:fillColor="?android:attr/pointerIconVectorStroke"
-        android:strokeColor="?android:attr/pointerIconVectorStroke"
+        android:fillColor="?attr/openbookPointerStroke"
+        android:strokeColor="?attr/openbookPointerStroke"
         android:strokeWidth="2.2"
         android:strokeLineJoin="round"
         android:strokeLineCap="round" />
     <!-- body -->
     <path
         android:pathData="M12 3.6 L12 3.6 C12.55 3.6 13 4.05 13 4.6 L13 17.4 C13 17.95 12.55 18.4 12 18.4 L12 18.4 C11.45 18.4 11 17.95 11 17.4 L11 4.6 C11 4.05 11.45 3.6 12 3.6 Z M9.4 2.6 L14.6 2.6 C15.15 2.6 15.6 3.05 15.6 3.6 L15.6 3.6 C15.6 4.15 15.15 4.6 14.6 4.6 L9.4 4.6 C8.85 4.6 8.4 4.15 8.4 3.6 L8.4 3.6 C8.4 3.05 8.85 2.6 9.4 2.6 Z M9.4 17.4 L14.6 17.4 C15.15 17.4 15.6 17.85 15.6 18.4 L15.6 18.4 C15.6 18.95 15.15 19.4 14.6 19.4 L9.4 19.4 C8.85 19.4 8.4 18.95 8.4 18.4 L8.4 18.4 C8.4 17.85 8.85 17.4 9.4 17.4 Z"
-        android:fillColor="?android:attr/pointerIconVectorFill" />
+        android:fillColor="?attr/openbookPointerFill" />
 </vector>

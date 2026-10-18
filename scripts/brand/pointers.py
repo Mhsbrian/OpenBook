@@ -5,29 +5,34 @@
 pointer_*_vector.xml and pointer_*_vector_icon.xml), drawn from scratch on the same 24 x 24 dp grid.
 
 Each icon is built from simple shapes (rounded polygons, rounded rectangles, circles) in three layers:
-  1. an outline underlay, the shapes stroked 2 x OUTLINE wide in ?attr/pointerIconVectorStroke;
-  2. the body, the same shapes filled with ?attr/pointerIconVectorFill;
+  1. an outline underlay, the shapes stroked 2 x OUTLINE wide in the pointer's stroke colour;
+  2. the body, the same shapes filled with the pointer's fill colour;
   3. details: badges in fixed brand colours with white glyphs, or holes in the stroke colour.
 So the accessibility settings keep working: Settings > Accessibility > Mouse pointer picks the fill (black, green,
-red, pink, blue, purple) and the stroke (white, black, none) through those two theme attributes, and the pointer
-scale setting scales the vector. Android draws the drop shadow itself for vector icons (PointerIcon).
+red, pink, blue, purple) and the stroke (white, black, none), and the pointer scale setting scales the vector.
+Android draws the drop shadow itself for vector icons (PointerIcon).
+
+The colours. Android applies the user's choice as two theme styles, PointerIconVectorStyleFill* and
+PointerIconVectorStyleStroke*, which set the private attributes pointerIconVectorFill and pointerIconVectorStroke
+(PointerIconCache). aapt2 does not let an overlay's XML refer to another package's private attribute (?android:attr/
+... is "private", and ?* is not accepted), but it does accept one as a style item name (*android:...). So the overlay
+also replaces those nine styles: each keeps AOSP's own items, for AOSP's icons we leave alone (wait, touch spots,
+handwriting) and Settings' colour swatches, and adds the same colour under two attributes of the overlay's own,
+openbookPointerFill and openbookPointerStroke, which our vectors use. STYLES holds AOSP 17's colours;
+--check-aosp compares them, and the hotspots, with a tree.
 
 Only the vectors are replaced (pointer_<name>_vector.xml). The hotspots stay in AOSP's pointer_<name>_vector_icon.xml,
-so every design is placed on AOSP's hotspot (HOTSPOTS, read from AOSP 17; --check-aosp compares them with a tree).
+so every design is placed on AOSP's hotspot (HOTSPOTS, read from AOSP 17).
 
-The overlay that installs these is compiled as resource package "android" (device/anybook/common/branding/
-Android.bp explains why): that is the only way aapt2 lets a resource outside framework-res name the private theme
-attributes, so they are written ?android:attr/pointerIconVectorFill, not ?attr/.
-
-Output: assets/pointer/drawable/pointer_<name>_vector.xml; assets/pointer/stable-ids.txt, the overlay's resource IDs
-(type 0x60, which framework-res does not use); and assets/pointer/preview/<name>.svg (black fill, white stroke, the
-hotspot marked) for the contact sheet.
+Output: assets/pointer/drawable/pointer_<name>_vector.xml; assets/pointer/values/{attrs,styles}.xml; and
+assets/pointer/preview/<name>.svg (black fill, white stroke, the hotspot marked) for the contact sheet.
 
 usage: pointers.py [--out DIR] [--check-aosp AOSP_SRC]
 """
 import argparse
 import math
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -37,8 +42,20 @@ OUTLINE = 1.1      # dp outside the body
 BADGE = "#4355B9"  # brand primary
 BADGE_STOP = "#D93F4C"
 WHITE = "#FFFFFF"
-FILL = "?android:attr/pointerIconVectorFill"
-STROKE = "?android:attr/pointerIconVectorStroke"
+FILL = "?attr/openbookPointerFill"
+STROKE = "?attr/openbookPointerStroke"
+# AOSP 17's pointer colour styles (frameworks/base/core/res/res/values/styles.xml): name -> (colour, inverse colour).
+STYLES = {
+    "PointerIconVectorStyleFillBlack": ("Fill", "@android:color/black", "@android:color/white"),
+    "PointerIconVectorStyleFillGreen": ("Fill", "#1AA64A", "#1AA64A"),
+    "PointerIconVectorStyleFillRed": ("Fill", "#F55E57", "#F55E57"),
+    "PointerIconVectorStyleFillPink": ("Fill", "#F94AAB", "#F94AAB"),
+    "PointerIconVectorStyleFillBlue": ("Fill", "#009DC9", "#009DC9"),
+    "PointerIconVectorStyleFillPurple": ("Fill", "#AD72FF", "#AD72FF"),
+    "PointerIconVectorStyleStrokeWhite": ("Stroke", "@android:color/white", "@android:color/black"),
+    "PointerIconVectorStyleStrokeBlack": ("Stroke", "@android:color/black", "@android:color/black"),
+    "PointerIconVectorStyleStrokeNone": ("Stroke", "@android:color/transparent", "@android:color/transparent"),
+}
 # AOSP 17's hotspots (frameworks/base/core/res/res/drawable/pointer_<name>_vector_icon.xml), in dp.
 HOTSPOTS = {
     "arrow": (4.5, 3.5), "context_menu": (4.5, 3.5), "help": (4.5, 3.5), "hand": (9.5, 2.5), "copy": (8.5, 7.5),
@@ -483,7 +500,6 @@ def main():
     ap.add_argument("--check-aosp", metavar="AOSP_SRC", help="compare HOTSPOTS with this tree's icon files")
     a = ap.parse_args()
     if a.check_aosp:
-        import re
         bad = 0
         for name, (hx, hy) in HOTSPOTS.items():
             f = os.path.join(a.check_aosp, "frameworks/base/core/res/res/drawable", f"pointer_{name}_vector_icon.xml")
@@ -493,7 +509,18 @@ def main():
                 print(f"{name}: AOSP {got}, pointers.py {(hx, hy)}")
                 bad += 1
         print(f"hotspots: {len(HOTSPOTS) - bad}/{len(HOTSPOTS)} match")
-        sys.exit(1 if bad else 0)
+        st = open(os.path.join(a.check_aosp, "frameworks/base/core/res/res/values/styles.xml")).read()
+        sbad = 0
+        for name, (kind, col, inv) in STYLES.items():
+            body = re.search(rf'<style name="{name}">(.*?)</style>', st, re.S).group(1)
+            got = dict(re.findall(r'<item name="(\w+)">([^<]+)</item>', body))
+            want = {f"pointerIconVector{kind}": col.replace("@android:", "@"),
+                    f"pointerIconVector{kind}Inverse": inv.replace("@android:", "@")}
+            if got != want:
+                print(f"{name}: AOSP {got}, pointers.py {want}")
+                sbad += 1
+        print(f"styles: {len(STYLES) - sbad}/{len(STYLES)} match")
+        sys.exit(1 if bad or sbad else 0)
     dr = os.path.join(a.out, "drawable")
     pv = os.path.join(a.out, "preview")
     os.makedirs(dr, exist_ok=True)
@@ -507,11 +534,22 @@ def main():
             f.write(vector_xml(icon))
         with open(os.path.join(pv, f"{name}.svg"), "w") as f:
             f.write(svg(icon, hotspot=True))
-    # aapt2 gives resource package "android" the framework's package ID 0x01, so the overlay's own resource IDs are
-    # pinned to a type ID framework-res does not have (0x60): they can never be mistaken for a framework resource.
-    with open(os.path.join(a.out, "stable-ids.txt"), "w") as f:
-        for i, name in enumerate(ICONS):
-            f.write(f"android:drawable/pointer_{name}_vector = 0x0160{i:04x}\n")
+    vd = os.path.join(a.out, "values")
+    os.makedirs(vd, exist_ok=True)
+    with open(os.path.join(vd, "attrs.xml"), "w") as f:
+        f.write(HEADER + "<!-- The pointer's fill and stroke colours, set by styles.xml for our vectors. -->\n<resources>\n"
+                '    <attr name="openbookPointerFill" format="color" />\n'
+                '    <attr name="openbookPointerStroke" format="color" />\n</resources>\n')
+    with open(os.path.join(vd, "styles.xml"), "w") as f:
+        f.write(HEADER + "<!-- AOSP's pointer colour styles, with the same colour under our own attribute too. -->\n"
+                "<resources>\n")
+        for name, (kind, col, inv) in STYLES.items():
+            f.write(f'    <style name="{name}">\n'
+                    f'        <item name="*android:pointerIconVector{kind}">{col}</item>\n'
+                    f'        <item name="*android:pointerIconVector{kind}Inverse">{inv}</item>\n'
+                    f'        <item name="openbookPointer{kind}">{col}</item>\n'
+                    "    </style>\n")
+        f.write("</resources>\n")
     print(f"{len(ICONS)} pointer icons in {dr}")
 
 
