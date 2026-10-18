@@ -342,7 +342,7 @@
     <string name="tip_windows_title">Apps open in windows</string>
     <string name="tip_windows_body">Move, resize and snap them side by side, just like on a desktop.</string>
     <string name="tip_setup_title">Setup comes next</string>
-    <string name="tip_setup_body">After the restart, OpenBook asks for Wi-Fi and a screen lock. It takes a minute.</string>
+    <string name="tip_setup_body">After the restart, OpenBook setup asks for your keyboard, Wi-Fi, time zone and a screen lock. It takes a few minutes.</string>
     <string name="tip_log_title">The stick keeps a log</string>
     <string name="tip_log_body">Every step is written to openbook/logs on the USB stick, so support can see exactly what happened.</string>
 
@@ -371,23 +371,6 @@
     <string name="size_mb"><xliff:g id="n">%1$s</xliff:g> MB</string>
     <string name="size_gb"><xliff:g id="n">%1$s</xliff:g> GB</string>
     <string name="size_tb"><xliff:g id="n">%1$s</xliff:g> TB</string>
-    <!-- OpenBook setup (SetupActivity): the first screens of an installed system. -->
-    <string name="setup_brand">Welcome to\nOpenBook.</string>
-    <string name="setup_brand_sub">Three quick steps, then your laptop is ready.</string>
-    <string name="setup_overline">SETUP · STEP <xliff:g id="number">%1$d</xliff:g> OF <xliff:g id="total">%2$d</xliff:g></string>
-    <string name="setup_title">Let\'s set up your laptop</string>
-    <string name="setup_body">OpenBook asks for no account. Pick your language, connect to Wi-Fi and protect your laptop with a screen lock.</string>
-    <string name="setup_language_label">Language</string>
-    <string name="setup_wifi_title">Connect to Wi-Fi</string>
-    <string name="setup_wifi_body">Choose a network to get apps, updates and the time. You can also do this later in Settings.</string>
-    <string name="setup_wifi_connected">You\'re online. You can pick another network if you like.</string>
-    <string name="setup_wifi_action">Choose a network</string>
-    <string name="setup_lock_title">Protect your laptop</string>
-    <string name="setup_lock_body">A PIN, password or pattern keeps your files private if someone else opens the lid.</string>
-    <string name="setup_lock_action">Set a screen lock</string>
-    <string name="setup_skip_note">Optional: you can skip this and do it later in Settings.</string>
-    <string name="setup_finish">Start using OpenBook</string>
-    <string name="setup_window_title">OpenBook setup</string>
 
     <!-- A Google apps package the user provides (ANAL-211, docs/gapps.md section 5): an advanced, off-by-default step. -->
     <string name="gapps_switch">Install a Google apps package you provide (advanced)</string>
@@ -428,7 +411,6 @@
     <string name="error_gapps_not_confirmed">Confirm the Google apps warning first.</string>
 
     <!-- After install: register the GSF Android ID (ANAL-211). OpenBook setup and Settings › About. -->
-    <string name="setup_brand_sub_gapps">Four quick steps, then your laptop is ready.</string>
     <string name="gapps_reg_window_title">Google apps registration</string>
     <string name="gapps_reg_settings_title">Google apps registration</string>
     <string name="gapps_reg_settings_summary">GSF Android ID and how to register this computer</string>

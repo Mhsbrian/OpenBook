@@ -1,0 +1,5 @@
+10-18 13:39:48.846  2778  2778 I OpenBookSetup: keyboard layout keyboard_layout_english_uk on Cuttlefish Vhost User Keyboard 0
+10-18 13:39:54.527  2778  2778 I OpenBookSetup: keyboard layout keyboard_layout_english_uk on Cuttlefish Vhost User Keyboard 0
+10-18 13:40:36.122  2778  2778 I OpenBookSetup: time zone Europe/London: set
+10-18 13:40:59.531  2778  2778 I OpenBookSetup: screen lock: pin
+10-18 13:41:24.452  2778  2778 I OpenBookSetup: setup complete (finished); provisioned=true

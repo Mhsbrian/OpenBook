@@ -1,0 +1,17 @@
+# AnyBook/anybook_cf_x86_64_pc/anybook_vsoc_x86_64:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+ro.boot.openbook.setup=
+ro.setupwizard.mode=REQUIRED
+ro.boot.openbook.live=
+ro.boot.verifiedbootstate=orange
+persist.sys.locale=
+persist.sys.timezone=GMT
+device_provisioned=1 user_setup_complete=1
+setup wizard activity: No activity found
+## pm path
+org.openbook.setup: package:/system_ext/priv-app/OpenBookSetup/OpenBookSetup.apk
+com.android.provision: none
+## top
+      topResumedActivity=ActivityRecord{209232609 u0 com.android.launcher3/.uioverrides.QuickstepLauncher t8}
+## OpenBookSetup log
+10-18 09:12:40.087  2774  2774 I OpenBookSetup: setup started (locale en-US)
+10-18 09:12:52.427  2774  2774 I OpenBookSetup: setup complete (skipped by the user on welcome); provisioned=true

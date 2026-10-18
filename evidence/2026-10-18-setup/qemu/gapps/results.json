@@ -1,0 +1,152 @@
+{
+ "cases": {
+  "g-cli": [
+   {
+    "check": "every expect step matched",
+    "ok": true,
+    "detail": "60/60 (QEMU exited (0))"
+   },
+   {
+    "check": "SELinux enforcing",
+    "ok": true,
+    "detail": "2769a16]\n[ro.boot.openbook.live]: [1]\n[ro.boot.openbook.loader]: [sdboot]\n[ro.build.fingerprint]: [OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys]\nEnforcing\n"
+   },
+   {
+    "check": "the USB drive with the packages is mounted by vold",
+    "ok": true,
+    "detail": " neg-framework.zip\n-rwxrwx--- 1 root external_storage 268539173 2026-10-18 13:40 openbook-synthetic-gapps-x86_64-37-big.zip\n-rwxrwx--- 1 root external_storage     13829 2026-10-18 13:40 openbook-synthetic-gapps-x86_64-37.zip\npublic:8,16 mounted C5E8-148C\nprivate mounted null\nemulated;0 mounted null\n"
+   },
+   {
+    "check": "gapps-check refuses the package that touches the framework",
+    "ok": true,
+    "detail": "android.maps.jar: touches the framework (framework libraries) (framework)\n{\"ok\":false,\"code\":\"refused\",\"error\":\"1 path cannot be installed\",\"refused\":[{\"path\":\"framework/com.google.android.maps.jar\",\"rule\":\"framework\",\"why\":\"touches the framework (framework libraries)\"}],\"refused_more\":0}\nGNEG-RC=1\n"
+   },
+   {
+    "check": "gapps-check accepts the package (on the live system, from the USB drive)",
+    "ok": true,
+    "detail": "wer-save\":1}}]},\"warnings\":[]}\n\nSHA=8bdbeb0e69b61b2085636b605065c929a6a16910dc646350feedc454b89f4d2d\ntotal 7\ndrwx------ 2 root root u:object_r:openbook_install_data_file:s0  3452 2026-10-18 13:41 files\n-rw------- 1 root root u:object_r:openbook_install_data_file:s0  3495 2026-10-18 13:41 gapps.json\n"
+   },
+   {
+    "check": "staged files labeled openbook_install_data_file",
+    "ok": true,
+    "detail": "wer-save\":1}}]},\"warnings\":[]}\n\nSHA=8bdbeb0e69b61b2085636b605065c929a6a16910dc646350feedc454b89f4d2d\ntotal 7\ndrwx------ 2 root root u:object_r:openbook_install_data_file:s0  3452 2026-10-18 13:41 files\n-rw------- 1 root root u:object_r:openbook_install_data_file:s0  3495 2026-10-18 13:41 gapps.json\n"
+   },
+   {
+    "check": "plan --gapps: product, vbmeta and check_gapps operations",
+    "ok": true,
+    "detail": "['check_source', 'check_gapps', 'recheck', 'wipe_table', 'format', 'zero', 'copy', 'zero', 'copy', 'zero', 'copy', 'zero', 'vbmeta', 'zero', 'zero', 'super', 'product', 'zero', 'file', 'file', 'file', 'file', 'write_table', 'verify', 'activate', 'activate', 'activate', 'activate', 'nvram', 'report']"
+   },
+   {
+    "check": "the install with the package verified",
+    "ok": true,
+    "detail": "None"
+   },
+   {
+    "check": "the report has the root digest and vbmeta digest",
+    "ok": true,
+    "detail": "{'manifest_sha256': '8bdbeb0e69b61b2085636b605065c929a6a16910dc646350feedc454b89f4d2d', 'product': 'product_a', 'product_bytes': 306835456, 'product_sha256': '6992d42cc6cd4562d5796eab3fe29551e8db35c2ff75600ee63ce930179ae734', 'root_digest': '3a52b7acd144925588dcb5f8926a305c181e43988e3d08783f98d66c5811f882', 'super_offset': 1365245952, 'vbmeta_digest': 'db6ca0366eb552e19ea79ec0c9961f35cbe43e60379a0"
+   },
+   {
+    "check": "no SELinux denial involves the installer's daemon, its files or the package's apps",
+    "ok": true,
+    "detail": "[]"
+   }
+  ],
+  "g-installed": [
+   {
+    "check": "every expect step matched",
+    "ok": true,
+    "detail": "196/196 (QEMU exited (0))"
+   },
+   {
+    "check": "SELinux enforcing, orange state, the installed system",
+    "ok": true,
+    "detail": "bmeta.digest]: [db6ca0366eb552e19ea79ec0c9961f35cbe43e60379a07d040e6993d68050a76]\n[ro.boot.vbmeta.hash_alg]: [sha256]\n[ro.boot.vbmeta.invalidate_on_error]: [yes]\n[ro.boot.vbmeta.size]: [4608]\n[ro.boot.verifiedbootstate]: [orange]\n[ro.boot.veritymode]: [enforcing]\n[sys.boot_completed]: [1]\nEnforcing\n"
+   },
+   {
+    "check": "the loader passed the rebuilt vbmeta's digest (bootconfig)",
+    "ok": true,
+    "detail": "bmeta.digest]: [db6ca0366eb552e19ea79ec0c9961f35cbe43e60379a07d040e6993d68050a76]\n[ro.boot.vbmeta.hash_alg]: [sha256]\n[ro.boot.vbmeta.invalidate_on_error]: [yes]\n[ro.boot.vbmeta.size]: [4608]\n[ro.boot.verifiedbootstate]: [orange]\n[ro.boot.veritymode]: [enforcing]\n[sys.boot_completed]: [1]\nEnforcing\n"
+   },
+   {
+    "check": "product is a dm-verity device with the report's root digest",
+    "ok": true,
+    "detail": "== by-uuid\n10-18 13:43:07.473  3701  3701 E dmctl   : dm.cpp:579 DM_TABLE_STATUS failed for by-uuid: No such device or address\nCould not query table status of device \"by-uuid\".\n== product-verity\nTargets in the device-mapper table for product-verity:\n0-594576: verity, 1 254:3 254:3 4096 4096 74322 74322 sha256 3a52b7acd144925588dcb5f8926a305c181e43988e3d08783f98d66c5811f882 a3a829c3172285da889d8cb4"
+   },
+   {
+    "check": "/product is mounted from that device",
+    "ok": true,
+    "detail": " 1 root root  16 2026-10-18 13:42 vendor-verity -> /dev/block/dm-10\nlrwxrwxrwx 1 root root  15 2026-10-18 13:42 vendor_a -> /dev/block/dm-4\nlrwxrwxrwx 1 root root  16 2026-10-18 13:42 vendor_dlkm-verity -> /dev/block/dm-11\nlrwxrwxrwx 1 root root  15 2026-10-18 13:42 vendor_dlkm_a -> /dev/block/dm-5\n"
+   },
+   {
+    "check": "every product file reads back through dm-verity",
+    "ok": true,
+    "detail": " fec_roots 2 fec_blocks 4397 fec_start 4397 restart_on_corruption ignore_zero_blocks'\n[    3.713538] init: [libfs_mgr] Enabling ext4 verity on /dev/block/by-name/metadata\n[    4.137916] fsck.f2fs: Info: superblock features = 3499 :  encrypt extra_attr project_quota quota verity casefold compression\n"
+   },
+   {
+    "check": "the package's files in /product, labeled system_file",
+    "ok": true,
+    "detail": "/product/app/OpenBookTestApp:\ntotal 16\n-rw-r--r-- 1 root root u:object_r:system_file:s0  8530 2026-10-18 13:04 OpenBookTestApp.apk\ndrwxr-xr-x 3 root root u:object_r:system_file:s0    45 2026-10-18 13:04 lib\n\n/product/app/OpenBookTestApp/lib:\ntotal 4\ndrwxr-xr-x 2 root root u:object_r:system_file:s0  52 2026-10-18 13:04 x86_64\n\n/product/app/OpenBookTestApp/lib/x86_64:\ntotal 8\n-rw-r--r-- 1 root root "
+   },
+   {
+    "check": "the three apps installed from /product",
+    "ok": true,
+    "detail": "package:/product/app/OpenBookTestApp/OpenBookTestApp.apk=org.openbook.test.gapps.app\npackage:/product/priv-app/OpenBookTestPriv/OpenBookTestPriv.apk=org.openbook.test.gapps.priv\npackage:/product/priv-app/OpenBookTestGsf/OpenBookTestGsf.apk=com.google.android.gsf\n"
+   },
+   {
+    "check": "the privileged app is PRIVILEGED, on product, x86_64, with WRITE_SECURE_SETTINGS granted",
+    "ok": true,
+    "detail": "    codePath=/product/priv-app/OpenBookTestPriv\n    primaryCpuAbi=x86_64\n    versionName=1.0-anal211-synthetic\n    privateFlags=[ PRIVATE_FLAG_ACTIVITIES_RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION ALLOW_AUDIO_PLAYBACK_CAPTURE PRIVILEGED PRODUCT PRIVATE_FLAG_ALLOW_NATIVE_HEAP_POINTER_TAGGING ]\n    signatures=PackageSignatures{b51db8c version:3, signatures:[f8ea62a5], past signatures:[]}\n    pkgFlags=[ "
+   },
+   {
+    "check": "its runtime permissions are granted by default (default-permissions XML)",
+    "ok": true,
+    "detail": "TER_RESTORE ]\n      android.permission.ACCESS_FINE_LOCATION\n      android.permission.WRITE_SECURE_SETTINGS\n      android.permission.ACCESS_COARSE_LOCATION\n      android.permission.WRITE_SECURE_SETTINGS: granted=true\n        android.permission.ACCESS_FINE_LOCATION: granted=true, flags=[ GRANTED_BY_DEFAULT]\n        android.permission.ACCESS_COARSE_LOCATION: granted=true, flags=[ GRANTED_BY_DEFAULT]\n"
+   },
+   {
+    "check": "the stand-in GSF is a privileged app; the ordinary app is not privileged",
+    "ok": true,
+    "detail": "('    codePath=/product/priv-app/OpenBookTestGsf\\n    primaryCpuAbi=null\\n    versionName=1.0-anal211-synthetic\\n    privateFlags=[ PRIVATE_FLAG_ACTIVITIES_RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION ALLOW_AUDI', '    codePath=/product/app/OpenBookTestApp\\n    primaryCpuAbi=x86_64\\n    versionName=1.0-anal211-synthetic\\n    privateFlags=[ PRIVATE_FLAG_ACTIVITIES_RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION A"
+   },
+   {
+    "check": "SystemConfig read the package's privapp allowlist",
+    "ok": true,
+    "detail": "{android.permission.WRITE_SECURE_SETTINGS}\n{}\n"
+   },
+   {
+    "check": "... its feature",
+    "ok": true,
+    "detail": "feature:org.openbook.test.feature.SYNTHETIC_GAPPS\n"
+   },
+   {
+    "check": "... and its sysconfig (power-save allowlist)",
+    "ok": true,
+    "detail": "system-excidle,org.openbook.test.gapps.priv,10068\nsystem,org.openbook.test.gapps.priv,10068\n"
+   },
+   {
+    "check": "OpenBook setup shows the GSF Android ID (the stand-in's fake one) and the registration steps",
+    "ok": true,
+    "detail": "text=\"OpenBook\"\ntext=\"Setup\"\ntext=\"No account needed. You can change all of this later in Settings.\"\ntext=\"STEP 9 OF 10 \u00b7 REGISTER\"\ntext=\"Register this computer with Google\"\ntext=\"You installed OpenBook synthetic test package (not Google apps). Google Play only works on devices Google knows about, so register this computer. It takes a minute.\"\ntext=\"GSF Android ID\"\ntext=\"3141592653589793238\"\ntext="
+   },
+   {
+    "check": "Settings > About's entry: the activity answers Settings' EXTRA_SETTINGS and is enabled (the package is installed)",
+    "ok": true,
+    "detail": "org.openbook.installer/.GappsRegistrationActivity\n      disabledComponents:\n        org.openbook.installer.InstallLauncher\n      enabledComponents:\n        org.openbook.installer.GappsRegistrationActivity\n\nQueries:\ntext=\"Keyboard\"\ntext=\"English (US)\"\ntext=\"Internet\"\ntext=\"Not connected\"\ntext=\"Time z"
+   },
+   {
+    "check": "tapping About's last row opens the registration page (screenshots g-settings-about-end, g-settings-register)",
+    "ok": true,
+    "detail": "    topResumedActivity=ActivityRecord{171483918 u0 org.openbook.installer/.GappsRegistrationActivity t9}\n"
+   },
+   {
+    "check": "no SELinux denial involves the installer's daemon, its files or the package's apps",
+    "ok": true,
+    "detail": "[]"
+   }
+  ]
+ },
+ "summary": {
+  "passed": 28,
+  "total": 28
+ }
+}

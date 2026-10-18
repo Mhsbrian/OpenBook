@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+-->
+<resources>
+    <!-- The design's surface color (docs/installer-design/index.html), as in the installer -->
+    <color name="window_background">#FFFBF8FF</color>
+</resources>
