@@ -1,0 +1,49 @@
+10-18 11:51:48.427245 10086  3492  7633 D RingtonePlayer: playAsync(uri=file:///product/media/audio/ui/OpenBook_LowBattery.ogg, user=UserHandle{-1})
+10-18 11:51:48.427770 10086  3492  7633 D RingtonePlayer: play uri=file:///product/media/audio/ui/OpenBook_LowBattery.ogg
+10-18 11:51:48.428462 10086  3492 11972 D RingtonePlayer: RemoveFirst
+10-18 11:51:48.428474 10086  3492 11972 D RingtonePlayer: PLAY
+10-18 11:51:48.428486 10086  3492 11972 D RingtonePlayer: startSound()
+10-18 11:51:48.428699 10086  3492 11973 D RingtonePlayer: in run: new looper Looper (Thread-7, tid 146) {45f9892}
+10-18 11:51:48.432195 media  1054  3484 D NuPlayerDriver: NuPlayerDriver(0x73f08ee04bd0) created, clientPid(3492)
+10-18 11:51:48.432400 media  1054  3484 D MediaPlayerService: OMX service is not available
+10-18 11:51:48.442191 media  1054 11976 D GenericSource: FileSource remote
+10-18 11:51:48.445109 10086  3492 11973 D RingtonePlayer: requesting AudioFocus
+10-18 11:51:48.446391 10086  3492 11973 D RingtonePlayer: notification will be delayed by 500ms
+10-18 11:51:48.946966 media  1054 11975 I GenericSource: start
+10-18 11:51:48.946980 10086  3492 11973 D RingtonePlayer: player.start piid:207
+10-18 11:51:48.949045 media  1054 11982 W mediaserver: Failed to create client from default component store!
+10-18 11:51:48.949243 media  1054 11983 D CCodec  : allocate(c2.android.vorbis.decoder)
+10-18 11:51:48.951557 media  1054 11983 I CCodec  : Created component [c2.android.vorbis.decoder] for [c2.android.vorbis.decoder]
+10-18 11:51:48.953337 media  1054 11983 D CCodec  : [c2.android.vorbis.decoder] buffers are bound to CCodec for this session
+10-18 11:51:48.953628 media  1054 11983 D CCodec  : encoding statistics level = 0
+10-18 11:51:48.953640 media  1054 11983 D CCodec  : setup formats input: AMessage(what = 0x00000000) = {
+10-18 11:51:48.953649 media  1054 11983 D CCodec  : setup formats output: AMessage(what = 0x00000000) = {
+10-18 11:51:48.953691 media  1054 11983 E mediaserver: Failed to query component interface for required system resources: 6
+10-18 11:51:48.954025 media  1054 11983 D C2Store : Using DMABUF Heaps
+10-18 11:51:48.954197 media  1054 11983 D CCodecBufferChannel: [c2.android.vorbis.decoder#569] Created input block pool with allocatorID 16 => poolID 17 - OK (0)
+10-18 11:51:48.954412 media  1054 11983 I CCodecBufferChannel: [c2.android.vorbis.decoder#569] Created output block pool with allocatorID 16 => poolID 36 - OK
+10-18 11:51:48.954435 media  1054 11983 D CCodecBufferChannel: [c2.android.vorbis.decoder#569] Configured output block pool ids 36 => OK
+10-18 11:51:48.954690  1046  1056 11987 D SimpleC2Component: Using output block pool with poolID 36 => got 36 - 0
+10-18 11:51:48.956751 media  1054 11981 D AudioSystem: getService: IAudioFlingerService retrieved: 0x73f24ee15930  IAudioFlinger cached: 0x73f0eee1f560
+10-18 11:51:48.956750  1041  1000  1085 D AudioFlinger: onStateChanged: pid:1054  uid:1013  state:unfrozen - no freeze activity
+10-18 11:51:48.957342  1041  1000  1000 D AudioFlinger: Client defaulted notificationFrames to 12254 for frameCount 24508
+10-18 11:51:48.958005 media  1054 11981 E AudioTrack: createTrack_l(0): Could not get control block
+10-18 11:51:48.952000  1041  1000  1000 I auditd  : type=1400 audit(0.0:143): avc:  denied  { read write } for  comm="audioserver" path=2F6D656D66643A4D656D6F72794865617042617365202864656C6574656429 dev="tmpfs" ino=11867 scontext=u:r:mediaserver:s0 tcontext=u:object_r:audioserver_tmpfs:s0 tclass=file permissive=0
+10-18 11:51:48.952000  1041  1000  1000 W audioserver: type=1400 audit(0.0:143): avc:  denied  { read write } for  path=2F6D656D66643A4D656D6F72794865617042617365202864656C6574656429 dev="tmpfs" ino=11867 scontext=u:r:mediaserver:s0 tcontext=u:object_r:audioserver_tmpfs:s0 tclass=file permissive=0
+10-18 11:51:48.952000  logd   774   799 I auditd  : Decoded path for audit(0.0:143): /memfd:MemoryHeapBase (deleted)
+10-18 11:51:48.952000  logd   799   799 I auditd  : Decoded path for audit(0.0:143): /memfd:MemoryHeapBase (deleted)
+10-18 11:51:48.958152 media  1054 11981 E AudioSink: Unable to create audio track
+10-18 11:51:48.958156 media  1054 11981 D AudioTrack: gather(): no metrics gathered, track status=-2147483646
+10-18 11:51:48.958163 media  1054 11981 W NuPlayerRenderer: openAudioSink: non offloaded open failed status: -19
+10-18 11:51:48.958191 media  1054 11982 E NuPlayerDecoder: Renderer reported 0xffffffed when changing audio output format
+10-18 11:51:48.958195 media  1054 11981 W NuPlayerRenderer: onDrainAudioQueue(): audio sink is not ready
+10-18 11:51:48.958220 media  1054 11975 E NuPlayer: received error(0xffffffed) from audio decoder, flushing(0), now shutting down
+10-18 11:51:48.958346 10086  3492  3956 E MediaPlayerNative: error (1, -19)
+10-18 11:51:48.958457 10086  3492 11973 E MediaPlayer: Error (1,-19)
+10-18 11:51:48.958478 media  1054 11988 D CCodec  : hold CodecLooper(1) until release
+10-18 11:51:48.958527 10086  3492 11973 E RingtonePlayer: error 1 (extra=-19) playing notification
+10-18 11:51:48.958541 10086  3492 11973 D RingtonePlayer: onCompletion() abandoning AudioFocus
+10-18 11:51:48.958956 10086  3492 11973 D RingtonePlayer: onCompletion queue size=0
+10-18 11:51:48.958966 10086  3492 11973 D RingtonePlayer: in onCompletion quitting looper Looper (Thread-7, tid 146) {45f9892}
+10-18 11:51:48.958992 10086  3492 11973 I NotificationPlayer: About to release MediaPlayer piid:207 due to onCompletion
+10-18 11:51:48.959015 10086  3492 11973 V MediaPlayer: resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false

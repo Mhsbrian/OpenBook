@@ -112,7 +112,10 @@ It also showed again 0 dropped frames, no storage notice and no lock-screen blac
 
 ## 7. Open items
 
-- **Ringtones and other media sound do not decode** (`anal176t`, §13): `mediaserver`'s NuPlayer cannot create the Vorbis decoder (`Failed to create audio/vorbis decoder`). **Fixed in QEMU by #64** (ANAL-198 follow-up, `docs/kernel.md`). There were three causes: the missing system DMA-BUF heap (now `system_heap.ko`), Codec2 clients defaulting to HIDL without a `hwservicemanager` (`media.c2.hal.selection=aidl`), and Codec2's memfds under SELinux (`mediaswcodec_tmpfs`). On the G14 product `stagefright` now decodes a ringtone in full. On the laptop with the next stick.
+- **Ringtones and other media sound do not decode** (`anal176t`, §13): `mediaserver`'s NuPlayer cannot create the Vorbis decoder (`Failed to create audio/vorbis decoder`). **Fixed in QEMU by #64** (ANAL-198 follow-up, `docs/kernel.md`). There were three causes: the missing system DMA-BUF heap (now `system_heap.ko`), Codec2 clients defaulting to HIDL without a `hwservicemanager` (`media.c2.hal.selection=aidl`), and Codec2's memfds under SELinux (`mediaswcodec_tmpfs`). On the G14 product `stagefright` now decodes a ringtone in full.
+  - **On the laptop (`anal192d`), decoding works,** but playback through MediaPlayer did not. SystemUI's low-battery sound failed with "Could not get control block": under enforcing, `mediaserver` may not map AudioFlinger's memfd (`audioserver_tmpfs`).
+  - **Paths affected:** ringtones, notification sounds, Settings' previews, and apps that use MediaPlayer.
+  - **Fix:** PR #NN (ANAL-198, `docs/kernel.md`), proven in QEMU on the `anal192d` image. On the laptop with the stick that carries it.
 - **A GPU reset restarts the whole UI.** SurfaceFlinger cannot survive a MODE2 reset that loses VRAM, so a GPU hang closes every app (`anal176t` graphics check, §13). The hang came from a dEQP case (ANAL-177); any app that hangs the GPU would do the same.
 - **gfx1150 itself** (H): every claim about RDNA 3.5 waits for the G14 run. The host GPU is RDNA2.
 - **drm_hwcomposer and overlay planes.**
