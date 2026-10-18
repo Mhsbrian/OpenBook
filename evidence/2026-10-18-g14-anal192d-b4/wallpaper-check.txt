@@ -1,0 +1,27 @@
+# scripts/ui/wallpaper-screen-check.py on the G14 screen (live-001/screen-final.png, 2880x1800) against assets/wallpapers/2880x1800/openbook-folio-dark.jpg
+# --scale 1.1006 --offset=-145,-91 --skip 0,0,2880,100 --skip 0,1690,2880,1800 --skip 0,0,1000,450 (status bar, taskbar, clock widget)
+source: mean luminance 0.090, dark pixels 87.5 %
+  AOSP 70 / 5: hints ['dark_theme'] -> never dimmed by default
+  Googlebook 55 / 12: hints ['dark_theme'] -> never dimmed by default
+screen vs source: 66140 samples, mean |difference| 0.43 levels per channel
+  brightness ratio screen/source: median 1.0021, p10 1.0000, p90 1.0124 (1.00: no dim; 0.95: AOSP's 5 % default dim)
+
+# hints only: openbook-folio-light.jpg
+source: mean luminance 0.701, dark pixels 0.0 %
+  AOSP 70 / 5: hints ['dark_text'] -> never dimmed by default
+  Googlebook 55 / 12: hints ['dark_text'] -> never dimmed by default
+
+# hints only: openbook-bloom-dark.jpg
+source: mean luminance 0.111, dark pixels 87.4 %
+  AOSP 70 / 5: hints ['dark_theme'] -> never dimmed by default
+  Googlebook 55 / 12: hints ['dark_theme'] -> never dimmed by default
+
+# hints only: openbook-strata-dark.jpg
+source: mean luminance 0.043, dark pixels 100.0 %
+  AOSP 70 / 5: hints ['dark_theme'] -> never dimmed by default
+  Googlebook 55 / 12: hints ['dark_theme'] -> never dimmed by default
+
+# hints only: openbook-tide-dark.jpg
+source: mean luminance 0.099, dark pixels 97.2 %
+  AOSP 70 / 5: hints ['dark_theme'] -> never dimmed by default
+  Googlebook 55 / 12: hints ['dark_theme'] -> never dimmed by default
