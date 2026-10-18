@@ -131,17 +131,15 @@ def installed():
     s += section("IDLE", "dumpsys deviceidle whitelist | grep -E 'org.openbook.test'", 60)
     s += section("GSERVICES", "content query --uri content://com.google.android.gsf.gservices 2>&1 | head -n 3", 60)
     s += W.send("input keyevent 224; wm dismiss-keyguard", 30)
-    s += W.wait_ui("Language", 180)
-    s += W.tap("Continue", 3)
-    s += W.wait_ui("Connect to Wi-Fi", 60)
-    s += W.tap("Continue", 3)
-    s += W.wait_ui("Protect your laptop", 60)
-    s += W.tap("Continue", 3)
-    s += W.wait_ui("Register this computer with Google", 60)
+    # OpenBook setup (ANAL-209): its pages up to Extras, then the Register page the package adds before Done.
+    s += W.setup_steps("g-setup", shots=False, pages=W.SETUP_PAGES[:-1])
+    s += W.wait_ui(W.SETUP_REGISTER[1], 60)
     s += [{"pause": 4}]
     s += W.shot("g-setup-register")
     s += section("SETUP-UI", "ui; tr '>' '\\n' < /data/local/tmp/ui.xml | grep -oE 'text=\"[^\"]+\"' | head -n 40", 60)
-    s += W.tap("Start using OpenBook", 8)
+    s += W.tapx(W.SETUP_REGISTER[2], 3)
+    s += W.wait_ui("Start using OpenBook", 60)
+    s += W.tapx("Start using OpenBook", 8)
     s += W.shot("g-desktop")
     s += section("AFTER-SETUP", "settings get global device_provisioned; pm list packages -e | grep -c org.openbook.installer; "
                                 "pm dump org.openbook.installer | grep -A2 GappsRegistrationActivity | head -n 6")

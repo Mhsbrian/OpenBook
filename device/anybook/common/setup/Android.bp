@@ -1,0 +1,62 @@
+// Copyright (C) 2026 The OpenBook Authors
+// SPDX-License-Identifier: Apache-2.0
+//
+// OpenBookSetup (ANAL-209, docs/setup.md): OpenBook's first-run flow. It replaces AOSP's Provision, which only sets
+// the provisioned bit. The look comes from the installer: its theme, buttons and brand mark are compiled in from
+// the installer app (:OpenBookInstallerDesign), so both apps share one set of design tokens.
+//
+// tools/compile-check.sh compiles the Kotlin sources against the same static_libs outside Soong.
+
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+android_app {
+    name: "OpenBookSetup",
+    srcs: [
+        "src/**/*.kt",
+        ":OpenBookInstallerDesign",
+    ],
+    resource_dirs: ["res"],
+    manifest: "AndroidManifest.xml",
+    platform_apis: true,
+    certificate: "platform",
+    privileged: true,
+    system_ext_specific: true,
+    // The only setup wizard: PackageManager expects exactly one SETUP_WIZARD activity.
+    overrides: ["Provision"],
+    static_libs: [
+        "androidx.activity_activity",
+        "androidx.activity_activity-compose",
+        "androidx.compose.runtime_runtime",
+        "androidx.compose.ui_ui",
+        "androidx.compose.ui_ui-graphics",
+        "androidx.compose.ui_ui-text",
+        "androidx.compose.ui_ui-unit",
+        "androidx.compose.foundation_foundation",
+        "androidx.compose.foundation_foundation-layout",
+        "androidx.compose.animation_animation",
+        "androidx.compose.material3_material3",
+        "androidx.compose.material_material-icons-core",
+        "androidx.compose.material_material-icons-extended",
+        "androidx.lifecycle_lifecycle-common",
+        "androidx.lifecycle_lifecycle-runtime",
+        "androidx.lifecycle_lifecycle-runtime-compose",
+        "androidx.lifecycle_lifecycle-viewmodel",
+        "kotlinx-coroutines-android",
+        "kotlinx-coroutines-core",
+    ],
+    optimize: {
+        optimize: true,
+        shrink_resources: true,
+    },
+    required: ["privapp_whitelist_org.openbook.setup"],
+}
+
+prebuilt_etc {
+    name: "privapp_whitelist_org.openbook.setup",
+    system_ext_specific: true,
+    sub_dir: "permissions",
+    src: "privapp-permissions-openbook-setup.xml",
+    filename_from_src: true,
+}

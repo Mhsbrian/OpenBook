@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  OpenBook setup (ANAL-209, docs/setup.md): the first-run flow of an OpenBook system. It replaces AOSP's Provision
+  (Android.bp: overrides) and does what Provision does when it finishes. Privileged permissions are listed in
+  privapp-permissions-openbook-setup.xml; the others come from the platform signature or are normal.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.openbook.setup">
+
+    <!-- device_provisioned (Global), user_setup_complete (Secure); the 24-hour clock (System). -->
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <!-- Apply the language and region system-wide (LocalePicker). -->
+    <uses-permission android:name="android.permission.CHANGE_CONFIGURATION" />
+    <!-- The physical keyboard's layout (InputManager). -->
+    <uses-permission android:name="android.permission.SET_KEYBOARD_LAYOUT" />
+    <!-- Time zone and automatic time (TimeManager). -->
+    <uses-permission android:name="android.permission.MANAGE_TIME_AND_ZONE_DETECTION" />
+    <!-- The user's name (UserManager.setUserName). -->
+    <uses-permission android:name="android.permission.MANAGE_USERS" />
+    <!-- The screen lock (LockPatternUtils.setLockCredential). -->
+    <uses-permission android:name="android.permission.ACCESS_KEYGUARD_SECURE_STORAGE" />
+    <!-- Whether the laptop is online. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- A Google apps package the user installed (ANAL-211): the GSF Android ID from Google Services Framework's
+         gservices provider, for the Register page. Defined by GSF itself; without GSF it does not exist. -->
+    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
+
+    <!-- Whether microG is installed (Extras page), and GSF's provider (Register page). -->
+    <queries>
+        <package android:name="com.google.android.gms" />
+        <provider android:authorities="com.google.android.gsf.gservices" />
+    </queries>
+
+    <application
+        android:label="@string/app_name"
+        android:theme="@style/Theme.OpenBookSetup"
+        android:allowBackup="false"
+        android:supportsRtl="true"
+        android:resizeableActivity="true">
+
+        <!-- The home screen until setup is done, above Provision's priority 1 (and the installer's former setup's 3).
+             SETUP_WIZARD makes this the system's setup wizard package, as Provision was. Direct-boot aware like
+             Provision: during the first boot's locked phase only direct-boot-aware home activities can start, and
+             Provision would otherwise take that slot and mark the device provisioned. -->
+        <activity
+            android:name=".SetupActivity"
+            android:directBootAware="true"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTask"
+            android:label="@string/window_title"
+            android:windowSoftInputMode="adjustResize"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenLayout|screenSize|smallestScreenSize|density|uiMode|locale|layoutDirection|fontScale|fontWeightAdjustment|colorMode|touchscreen|mcc|mnc|grammaticalGender">
+            <intent-filter android:priority="5">
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.SETUP_WIZARD" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

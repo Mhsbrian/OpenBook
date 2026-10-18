@@ -45,7 +45,7 @@ The owner's `anal192d` session of 2026-10-18 (`main` `81578c1` + #83). It had a 
 | 2026-10-18 | Wi-Fi | connected (2.4 GHz, −22 dBm, Wi-Fi 6), DHCP, internet; the gateway did not answer ping (H: the access point drops ICMP). `wifi_pno` **yes**: the MT7925 takes scheduled scans | `report.md`, `hwtest-final.txt` |
 | 2026-10-18 | Bluetooth audio under enforcing | **works**: an AAC headset paired, and A2DP streamed four times (26 minutes the longest), with no crash or denial. Reconnect after turning it off and on: not seen | `digest-default-boot.txt` |
 | 2026-10-18 | Browser audio under enforcing | **works**: Chrome and WebView Shell, on the speakers and over A2DP | `digest-default-boot.txt` |
-| 2026-10-18 | UI sound at boot (SoundPool) | the unlock sound's track is created, with no denial (#67) | `digest-default-boot.txt` |
+| 2026-10-18 | UI sound at boot (SoundPool) | **plays**: the track is created with no denial (#67), and the owner heard it | `digest-default-boot.txt` |
 | 2026-10-18 | Notification sound (MediaPlayer) | **failed**: `mediaserver → audioserver_tmpfs` denied, "Could not get control block". Fixed by ANAL-198's #97 (QEMU-tested there; not yet run on the G14) | `digest-default-boot.txt` |
 | 2026-10-18 | Headphone jack | not shown (no plug event) | `digest-default-boot.txt` |
 
