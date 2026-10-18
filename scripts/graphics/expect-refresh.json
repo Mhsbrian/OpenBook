@@ -1,0 +1,94 @@
+[
+{
+"wait": "openbook-live: exec /init",
+"timeout": 240
+},
+{
+"wait": "init: init second stage started",
+"timeout": 180
+},
+{
+"wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+"timeout": 300
+},
+{
+"send": "\n"
+},
+{
+"wait": "console:/ \\$ ",
+"timeout": 120
+},
+{
+"send": "su 0 dmesg -n 1\n"
+},
+{
+"wait": "console:/ \\$ ",
+"timeout": 60
+},
+{
+"send": "i=0; while [ \"$(getprop sys.boot_completed)\" != 1 ] && [ $i -lt 600 ]; do sleep 3; i=$((i+3)); done; echo BOOTDONE=$(getprop sys.boot_completed) uptime=$(cut -d' ' -f1 /proc/uptime)\n"
+},
+{
+"wait": "BOOTDONE=\\S* uptime=[0-9.]+",
+"timeout": 660
+},
+{
+"wait": "console:/ \\$ ",
+"timeout": 30
+},
+{
+"send": "sleep 30\n"
+},
+{
+"wait": "console:/ \\$ ",
+"timeout": 60
+},
+{
+"send": "echo ===CONFIG-BEGIN===; getprop ro.build.fingerprint; cmd overlay list android | grep -i anybook; cmd overlay lookup android android:integer/config_defaultRefreshRate; cmd overlay lookup android android:integer/config_defaultPeakRefreshRate; settings get system peak_refresh_rate; settings get system min_refresh_rate; settings get global low_power; echo ===CONFIG-END===\n"
+},
+{
+"wait": "console:/ \\$ ",
+"timeout": 60
+},
+{
+"send": "echo ===DMD-BEGIN===; dumpsys display | grep -E 'mDefaultRefreshRate|mDefaultPeakRefreshRate|PRIORITY_' | head -n 40; echo ===DMD-END===\n"
+},
+{
+"wait": "console:/ \\$ ",
+"timeout": 60
+},
+{
+"send": "echo ===SF0-BEGIN===; dumpsys SurfaceFlinger --scheduler; echo ===SF0-END===\n"
+},
+{
+"wait": "console:/ \\$ ",
+"timeout": 60
+},
+{
+"shot": "before-scroll"
+},
+{
+"send": "am start -W -a android.settings.SETTINGS >/dev/null 2>&1; sleep 5; echo ===SAMPLES-BEGIN===; for i in 1 2 3 4 5 6; do input swipe 340 1050 340 250 800 & sleep 0.4; dumpsys SurfaceFlinger --scheduler | grep -E 'renderRate='; wait; input swipe 340 250 340 1050 800 & sleep 0.4; dumpsys SurfaceFlinger --scheduler | grep -E 'renderRate='; wait; done; echo ===SAMPLES-END===\n"
+},
+{
+"wait": "===SAMPLES-END===\\r?\\n",
+"timeout": 180
+},
+{
+"wait": "console:/ \\$ ",
+"timeout": 30
+},
+{
+"shot": "after-scroll"
+},
+{
+"send": "echo ===SF1-BEGIN===; dumpsys SurfaceFlinger --scheduler; echo ===SF1-END===\n"
+},
+{
+"wait": "console:/ \\$ ",
+"timeout": 60
+},
+{
+"send": "su 0 sync; su 0 reboot -p\n"
+}
+]
