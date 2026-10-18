@@ -1,0 +1,6 @@
+check	result	detail
+crash buffer empty	PASS	0 lines; 
+no ANR	PASS	am_anr events: 0
+no SystemUI restart	PASS	pid at start 2644, now 2644
+no new SELinux denials	PASS	3 distinct, 0 new
+no denial for Quire (platform_app)	PASS	0

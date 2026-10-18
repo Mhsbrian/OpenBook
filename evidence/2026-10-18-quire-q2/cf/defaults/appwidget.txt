@@ -1,0 +1,24 @@
+Providers:
+  [0] provider ProviderId{uid:10081, app:10081, cmp:ComponentInfo{com.android.calendar/com.android.calendar.widget.CalendarAppWidgetProvider}, profile:UserHandle{0}}
+    min=(28161x46081)   minResize=(28161x28161) updatePeriodMillis=0 resizeMode=3 widgetCategory=3 autoAdvanceViewId=-1 initialLayout=#7f0b000d initialKeyguardLayout=#0   zombie=false
+  [1] provider ProviderId{uid:10083, app:10083, cmp:ComponentInfo{com.android.deskclock/com.android.alarmclock.AnalogAppWidgetProvider}, profile:UserHandle{0}}
+    min=(43521x43521)   minResize=(14081x14081) updatePeriodMillis=0 resizeMode=3 widgetCategory=1 autoAdvanceViewId=-1 initialLayout=#7f0d0023 initialKeyguardLayout=#0   zombie=false
+  [2] provider ProviderId{uid:10083, app:10083, cmp:ComponentInfo{com.android.deskclock/com.android.alarmclock.DigitalAppWidgetProvider}, profile:UserHandle{0}}
+    min=(76801x43521)   minResize=(34817x15105) updatePeriodMillis=0 resizeMode=3 widgetCategory=3 autoAdvanceViewId=-1 initialLayout=#7f0d0046 initialKeyguardLayout=#0   zombie=false
+  [3] provider ProviderId{uid:10084, app:10084, cmp:ComponentInfo{com.android.gallery3d/com.android.gallery3d.gadget.PhotoAppWidgetProvider}, profile:UserHandle{0}}
+    min=(61441x61441)   minResize=(61441x61441) updatePeriodMillis=86400000 resizeMode=0 widgetCategory=1 autoAdvanceViewId=-1 initialLayout=#7f0c0007 initialKeyguardLayout=#0   zombie=false
+  [4] provider ProviderId{uid:10089, app:10089, cmp:ComponentInfo{com.android.messaging/com.android.messaging.widget.BugleWidgetProvider}, profile:UserHandle{0}}
+    min=(64001x46081)   minResize=(28161x28161) updatePeriodMillis=0 resizeMode=3 widgetCategory=3 autoAdvanceViewId=-1 initialLayout=#7f0d0092 initialKeyguardLayout=#0   zombie=false
+  [5] provider ProviderId{uid:10089, app:10089, cmp:ComponentInfo{com.android.messaging/com.android.messaging.widget.WidgetConversationProvider}, profile:UserHandle{0}}
+    min=(46081x46081)   minResize=(28161x28161) updatePeriodMillis=0 resizeMode=3 widgetCategory=3 autoAdvanceViewId=-1 initialLayout=#7f0d0091 initialKeyguardLayout=#0   zombie=false
+  [6] provider ProviderId{uid:10099, app:10099, cmp:ComponentInfo{com.android.systemui/com.android.systemui.people.widget.PeopleSpaceWidgetProvider}, profile:UserHandle{0}}
+    min=(34817x0)   minResize=(15361x12801) updatePeriodMillis=60000 resizeMode=3 widgetCategory=1 autoAdvanceViewId=-1 initialLayout=#7f0d020b initialKeyguardLayout=#0   zombie=false
+ 
+Widgets:
+ 
+Hosts:
+  [0] hostId=HostId{user:0, app:10094, hostId:1024, pkg:com.android.launcher3}
+    callbacks=com.android.internal.appwidget.IAppWidgetHost$Stub$Proxy@439d502
+    widgets.size=0 zombie=false
+ 
+Grants:

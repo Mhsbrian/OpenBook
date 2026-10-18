@@ -115,6 +115,21 @@ Motion principles for the brief: the note is anchored to where the person's atte
   - **`handOverApplications()`** moves the session's tasks to the main display and closes the session (`CLOSE_REASON_SESSION_EMPTY`).
   - The flag `computer_control_access` also turns on safety paths outside the session: a warning when the user launches an app that is being automated, the session notification's no-clear flags, and Settings' "Screen automation" special access page.
 
+### 2.5 What OpenBook changes in AOSP 17 for Quire (Q2, ANAL-216)
+
+The hooks exist, but four of them do not work on a device like OpenBook's out of the box (C, found in Cuttlefish).
+Each change is the smallest that makes the hook work, and none relaxes a safety check:
+
+| Change | Why |
+|---|---|
+| `aosp/patches/frameworks/base/0005`: computer control's allowlists fall back to `/system_ext/etc/computercontrol/` | The allowlists come only from DeviceConfig (server-pushed) or a persisted copy of it, so on a device with no configuration server no agent can ever own a session. The image's own list is read only when both are empty; DeviceConfig still wins. Unit tests added (not run: they need the VirtualDeviceServicesTests suite on a device) |
+| `aosp/patches/frameworks/base/0006`: SystemUI arms the shake detector without a headless system user | It armed only when logout is enabled, which the system user never is. Googlebook runs in headless system user mode; OpenBook's person is user 0. SystemUI unit test updated (not run) |
+| `aosp/patches/frameworks/base/0007`: `ComputerControlSession` creates its accessibility proxy before `initialize()` | AOSP registered the proxy before creating it (an NPE that Binder swallowed), so an agent could never read the apps it automates |
+| `aosp/patches/packages/apps/Launcher3/0002` and a privapp entry: Launcher3 requests `ACCESS_CONTEXTUAL_SEARCH` | Launcher3 starts contextual search for the shake, Meta+A and Meta+G, and was denied every time |
+| `RELEASE_PACKAGE_COMPUTER_CONTROL=true` (`device/anybook/common/desktop/release/flag_values/cp2a/`) | Installs VirtualDeviceManager, which holds the platform's consent dialog. Without it every request that needs consent fails |
+| The flags `computer_control_access`, `computer_control_support_v5`, `enable_contextual_cursor_desktop_entrypoints` | §2.2, §2.4 |
+| The feature `com.google.android.feature.CONTEXTUAL_SEARCH` | Launcher3 checks it (§2.3) |
+
 ## 3. How Multica runs agents, and what Quire does instead
 
 Reviewed from Multica's public README, its CLI's help, and its observable behaviour on this host (`multica` 0.6.3). We read none of Multica's source code and copied none.
