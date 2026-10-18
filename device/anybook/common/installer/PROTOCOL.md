@@ -14,7 +14,8 @@ time; a second connection waits. Requests on one connection are handled in order
 Errors: `{"id": N, "ok": false, "code": "short_code", "error": "Human-readable sentence."}`.
 Codes: `bad_request`, `busy` (an install is running), `no_source` (not booted from an OpenBook stick, or its
 manifest is missing or unreadable), `no_target`, `not_eligible` (see `why`), `plan_changed`, `confirm_mismatch`,
-`power`, `io`, `internal`.
+`power`, `io`, `internal`, `no_addon` (a requested add-on is not catalogued by this image, or the stick does not carry
+all of its files at the catalogued sizes; ANAL-210).
 
 All sizes are bytes (integers). Strings from the engine (model names, details) are not localised; the app
 localises everything it renders from ids and states.
@@ -28,10 +29,16 @@ localises everything it renders from ids and states.
  "efivars":true,
  "power":{"ac":true,"battery_pct":87,"ok":true},
  "logs_on_stick":true,
+ "addons":[{"name":"microg","title":"Google services compatibility (microG)","version":"0.3.17.252432",
+            "bytes":112345874,"on_stick":true,"why":null}],
  "job":null}
 ```
 `source.ok` false (with `why`) means installing is impossible from this boot (e.g. no install data on the stick).
 `power.ok` is the S8 rule: AC connected, or battery at 50 % or more, or no battery at all (desktops, VMs).
+`addons` (ANAL-210): every app add-on this image catalogues (`/system_ext/etc/openbook/addons/<name>.json`), with
+`on_stick` true when the stick's EFI partition holds every catalogued file in `openbook/addons/<name>/` at the
+catalogued size (the sha256 is checked in `apply`'s `check_source`). The wizard offers only add-ons that are on the
+stick, each behind its own switch, off by default. The same list: `openbook-install addons`.
 `battery_pct` is null without a battery. `power` itself is null when the daemon cannot read the power supplies:
 on Android only the health HAL may read them, so the app reads them (BatteryManager) and sends them with `apply`. `job` is null, or the `status` object below while an install runs or
 after it finished.
@@ -98,7 +105,12 @@ the disk: erased with "whole", kept with "alongside", S12).
 
 ## plan (dry run, read-only)
 `{"id":4,"cmd":"plan","target":"nvme-SK_hynix_PVC10_AN0BS4F2A","layout":"whole","locale":"en-US","keyboard":"us","set_default":true}`
-→ `{"id":4,"ok":true,"plan":{...}}`. The target is opened read-only (S5). Fields the app uses:
+→ `{"id":4,"ok":true,"plan":{...}}`. The target is opened read-only (S5). Optional `"addons":["microg"]` (ANAL-210;
+CLI `--addon NAME`): the plan copies each named add-on's catalogued APKs from the stick's `openbook/addons/<name>/`
+to the same path on the new boot partition, where `openbook-addons` installs them on the first start. The request
+then carries `"addons"`, the operations gain `check_addon` (after `check_source`) and the files list them; without
+add-ons the plan is exactly as before. Refused with `no_addon`, or `not_eligible` with `why` `boot_partition_full`.
+Fields the app uses:
 ```json
 {"schema":"openbook-install-plan/1","plan_sha256":"9f2c...","layout":"whole",
  "target":{"by_id":"nvme-...","model":"SK hynix PVC10","size_bytes":1024209543168,"bus":"nvme"},

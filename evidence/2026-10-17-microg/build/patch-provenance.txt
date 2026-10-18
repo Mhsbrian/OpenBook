@@ -1,0 +1,13 @@
+# Provenance of aosp/patches/frameworks/base (ANAL-210), 2026-10-17T23:53:35Z
+## git patch-id --stable: upstream LineageOS commit (github.com/LineageOS/android_frameworks_base, lineage-24.0) vs our patch file
+198fa72864710315a791ca620ffb2f6c823b6054  upstream db20a6b877aae0cd0d4670be8566b28be843a528  ours db20a6b877aae0cd0d4670be8566b28be843a528  IDENTICAL
+03da1783cbaf5ad30abc86ceaafb6fc6a70ea1af  upstream 7daec7f55a07fcad867e3e6c0a0f5c3f18d1ba91  ours 7daec7f55a07fcad867e3e6c0a0f5c3f18d1ba91  IDENTICAL
+## both commits are ancestors of lineage-24.0 (GitHub compare API, behind_by=0)
+198fa72864710315a791ca620ffb2f6c823b6054 status=ahead behind_by=0
+03da1783cbaf5ad30abc86ceaafb6fc6a70ea1af status=ahead behind_by=0
+## authorship kept
+0001-Allow-signature-spoofing-for-microG-Companion-Servic.patch: From: LuK1337 <priv.luk@gmail.com> | Date: Mon, 19 Feb 2024 16:20:04 +0100 | Subject: [PATCH] Allow signature spoofing for microG Companion/Services
+0002-ServiceWatcher-Allow-microG-location-provider-to-be-.patch: From: LuK1337 <priv.luk@gmail.com> | Date: Fri, 21 Aug 2026 11:14:15 +0200 | Subject: [PATCH] ServiceWatcher: Allow microG location provider to be
+0003-OPENBOOK-microG-signature-spoofing-in-user-builds-to.patch: From: OpenBook <noreply@anybook.invalid> | Date: Sat, 17 Oct 2026 12:00:00 +0000 | Subject: [PATCH] OPENBOOK: microG signature spoofing in user builds too
+## applied by scripts/aosp-patches.sh in the Cuttlefish build
+### frameworks/base: base 94b4c163b7df + 3 patches -> HEAD bbd651efbce1

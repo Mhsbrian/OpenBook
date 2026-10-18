@@ -1,0 +1,85 @@
+Location Manager State:
+  User Info:
+    current users: u[0]
+  Location Settings:
+    Location Setting: true
+    Location Allow/Deny Packages:
+  Location Providers:
+    passive provider:
+      service: registered
+      listeners:
+        1000/android[SensorNotificationService]/146CF246 Request[PASSIVE, minUpdateInterval=+30m0s0ms, minUpdateDistance=100000.0, WorkSource{1000 android}]
+      last location=null
+      enabled=true
+      allowed=true
+      identity=1000/android[LocationService]
+      properties=ProviderProperties[powerUsage=Low, accuracy=Fine]
+    fused provider:
+      service: ProviderRequest[OFF]
+      last location=null
+      enabled=true
+      allowed=true
+      identity=10124/com.google.android.gms
+      properties=ProviderProperties[powerUsage=Low, accuracy=Coarse]
+      target service=10124/com.google.android.gms/org.microg.gms.location.provider.FusedLocationProviderService@2
+      connected=true
+    gps provider:
+      service: ProviderRequest[OFF]
+      last location=null
+      enabled=true
+      allowed=true
+      identity=1000/android[GnssService]
+      properties=ProviderProperties[powerUsage=High, accuracy=Fine, requires=satellite, supports=[bearing,speed,altitude]]
+      mStarted=false   (changed +5m32s592ms ago)
+      mBatchingEnabled=true
+      mBatchingStarted=false
+      mBatchSize=10
+      mFixInterval=1000
+      GNSS_KPI_START
+        KPI logging start time: +8s560ms
+        KPI logging end time: +5m32s594ms
+        Number of location reports: 0
+        Number of TTFF reports: 0
+        Number of position accuracy reports: 0
+        Number of CN0 reports: 0
+        Total number of sv status messages processed: 0
+        Total number of L5 sv status messages processed: 0
+        Total number of sv status messages processed, where sv is used in fix: 0
+        Total number of L5 sv status messages processed, where sv is used in fix: 0
+        Number of L5 CN0 reports: 0
+        Used-in-fix constellation types: 
+      GNSS_KPI_END
+      Power Metrics
+        Time on battery (min): 0.0
+        Amount of time (while on battery) Top 4 Avg CN0 > 20.0 dB-Hz (min): 0.0
+        Amount of time (while on battery) Top 4 Avg CN0 <= 20.0 dB-Hz (min): 0.0
+        Energy consumed while on battery (mAh): 0.0
+      Hardware Version: 
+  Historical Aggregate Location Provider Data:
+    passive:
+      1000/android[SensorNotificationService]: min/max interval = passive/passive, total/active/foreground duration = +5m22s863ms/+5m22s862ms/+5m22s862ms, locations = 0
+  Historical Aggregate Gnss Measurement Provider Data:
+  GNSS Manager:
+    Capabilities: [SCHEDULING SATELLITE_BLOCKLIST SATELLITE_PVT ANTENNA_INFO MEASUREMENT_CORRELATION_VECTORS ACCUMULATED_DELTA_RANGE LOS_SATS EXCESS_PATH_LENGTH REFLECTING_PLANE TOTAL_POWER SINGLEBAND_TRACKING_POWER MULTIBAND_TRACKING_POWER SINGLEBAND_ACQUISITION_POWER MULTIBAND_ACQUISITION_POWER OTHER_MODES_POWER signalTypes=[GnssSignalType[Constellation=1, CarrierFrequencyHz=1.57542E9, CodeType=C], GnssSignalType[Constellation=3, CarrierFrequencyHz=1.5980625E9, CodeType=C]]]
+    GNSS Hardware Model Name: Google, Cuttlefish, AIDL v3
+    Status Provider:
+      service: unregistered
+    Measurements Provider:
+      service: unregistered
+      last measurements=null
+    Navigation Message Provider:
+      service: unregistered
+    Antenna Info Provider:
+      Antenna Infos: [GnssAntennaInfo{CarrierFrequencyMHz=1575.4199999999998, PhaseCenterOffset=PhaseCenterOffset{OffsetXMm=1.0 +/-0.1, OffsetYMm=2.0 +/-0.1, OffsetZMm=3.0 +/-0.1}, PhaseCenterVariationCorrections=SphericalCorrections{Corrections=[[1.0, -1.0, 5.0, -2.0, 3.0, -1.0], [-2.0, 3.0, 2.0, 0.0, 1.0, 2.0], [1.0, 3.0, 2.0, -1.0, -3.0, 5.0]], CorrectionUncertainties=[[0.1, 0.2, 0.4, 0.1, 0.2, 0.3], [0.3, 0.2, 0.3, 0.6, 0.1, 0.1], [0.1, 0.1, 0.4, 0.2, 0.5, 0.3]], DeltaTheta=120.0, DeltaPhi=36.0}, SignalGainCorrections=SphericalCorrections{Corrections=[[2.0, -3.0, 1.0, -3.0, 0.0, -4.0], [1.0, 0.0, -4.0, 1.0, 3.0, -2.0], [3.0, -2.0, 0.0, -2.0, 3.0, 0.0]], CorrectionUncertainties=[[0.3, 0.1, 0.2, 0.6, 0.1, 0.3], [0.1, 0.1, 0.5, 0.2, 0.3, 0.1], [0.2, 0.4, 0.2, 0.1, 0.1, 0.2]], DeltaTheta=120.0, DeltaPhi=36.0}}, GnssAntennaInfo{CarrierFrequencyMHz=1176.45, PhaseCenterOffset=PhaseCenterOffset{OffsetXMm=5.0 +/-0.1, OffsetYMm=6.0 +/-0.1, OffsetZMm=7.0 +/-0.1}, PhaseCenterVariationCorrections=null, SignalGainCorrections=null}]
+      service: unregistered
+  Geofence Manager:
+    service: unregistered
+  Event Log:
+    10-17 23:15:37.109: passive provider [u0] enabled
+    10-17 23:15:37.445: gps provider [u0] enabled
+    10-17 23:15:37.593: passive provider [u0] enabled
+    10-17 23:15:37.593: gps provider [u0] enabled
+    10-17 23:15:37.761: fused provider [u0] enabled
+    10-17 23:15:37.764: [u0] visible
+    10-17 23:15:38.611: passive provider +registration 1000/android[SensorNotificationService]/146CF246 -> Request[PASSIVE, minUpdateInterval=+30m0s0ms, minUpdateDistance=100000.0, WorkSource{1000 android}]
+    10-17 23:15:38.612: passive provider request = ProviderRequest[@0]

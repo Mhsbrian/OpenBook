@@ -1,0 +1,8 @@
+# 2026-10-17T23:42:14Z SELinux on anybook-cf-g1 after the microG tests
+Enforcing
+avc denials, all: 6
+naming gms/microG apps: 5
+      3 avc:  denied  { read } for  comm="SentryDeviceInf" name="version" dev="proc" ino=4026532034 scontext=u:r:untrusted_app:s0:c123,c256,c512,c768 tcontext=u:object_r:proc_version:s0 tclass=file permissive=0 app=io.homeassistant.companion.android
+      1 avc:  denied  { write } for  comm="init" name="error_report_end" dev="tracefs" ino=10041 scontext=u:r:init:s0 tcontext=u:object_r:debugfs_bootreceiver_tracing:s0 tclass=dir permissive=0 bug=b/340399580
+      1 avc:  denied  { read } for  comm="SentryDeviceInf" name="version" dev="proc" ino=4026532034 scontext=u:r:untrusted_app:s0:c134,c256,c512,c768 tcontext=u:object_r:proc_version:s0 tclass=file permissive=0 app=io.homeassistant.companion.android
+      1 avc:  denied  { read } for  comm="SentryDeviceInf" name="version" dev="proc" ino=4026532034 scontext=u:r:untrusted_app:s0:c130,c256,c512,c768 tcontext=u:object_r:proc_version:s0 tclass=file permissive=0 app=io.homeassistant.companion.android

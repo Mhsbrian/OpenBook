@@ -1,0 +1,227 @@
+{
+ "reason": "QEMU exited (0)",
+ "seconds": 100.1,
+ "steps_done": 76,
+ "steps": 76,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "init: init second stage started",
+   "t": 5.9
+  },
+  {
+   "step": 1,
+   "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+   "t": 10.9
+  },
+  {
+   "step": 3,
+   "wait": "console:/ \\$ ",
+   "t": 10.9
+  },
+  {
+   "step": 5,
+   "wait": "console:/ # ",
+   "t": 11.0
+  },
+  {
+   "step": 7,
+   "wait": "console:/ # ",
+   "t": 11.3
+  },
+  {
+   "step": 9,
+   "wait": "\\nBOOTDONE=1 uptime=",
+   "t": 31.0
+  },
+  {
+   "step": 10,
+   "wait": "console:/ # ",
+   "t": 31.0
+  },
+  {
+   "step": 12,
+   "wait": "console:/ # ",
+   "t": 32.9
+  },
+  {
+   "step": 14,
+   "wait": "console:/ # ",
+   "t": 33.9
+  },
+  {
+   "step": 16,
+   "wait": "console:/ # ",
+   "t": 34.6
+  },
+  {
+   "step": 18,
+   "wait": "console:/ # ",
+   "t": 37.1
+  },
+  {
+   "step": 20,
+   "wait": "console:/ # ",
+   "t": 38.7
+  },
+  {
+   "step": 22,
+   "wait": "console:/ # ",
+   "t": 41.1
+  },
+  {
+   "step": 24,
+   "wait": "console:/ # ",
+   "t": 42.7
+  },
+  {
+   "step": 26,
+   "wait": "console:/ # ",
+   "t": 44.5
+  },
+  {
+   "step": 28,
+   "wait": "console:/ # ",
+   "t": 48.2
+  },
+  {
+   "step": 30,
+   "wait": "console:/ # ",
+   "t": 48.5
+  },
+  {
+   "step": 32,
+   "wait": "\n===PROPS-END===",
+   "t": 50.0
+  },
+  {
+   "step": 33,
+   "wait": "console:/ # ",
+   "t": 50.0
+  },
+  {
+   "step": 35,
+   "wait": "\n===ADDONS-WAIT-END===",
+   "t": 52.4
+  },
+  {
+   "step": 36,
+   "wait": "console:/ # ",
+   "t": 52.4
+  },
+  {
+   "step": 38,
+   "wait": "\n===ADDONS-END===",
+   "t": 55.1
+  },
+  {
+   "step": 39,
+   "wait": "console:/ # ",
+   "t": 55.1
+  },
+  {
+   "step": 41,
+   "wait": "\n===KMSG-END===",
+   "t": 56.4
+  },
+  {
+   "step": 42,
+   "wait": "console:/ # ",
+   "t": 56.4
+  },
+  {
+   "step": 44,
+   "wait": "\n===PKGS-END===",
+   "t": 57.2
+  },
+  {
+   "step": 45,
+   "wait": "console:/ # ",
+   "t": 57.2
+  },
+  {
+   "step": 47,
+   "wait": "\n===MICROG-END===",
+   "t": 65.9
+  },
+  {
+   "step": 48,
+   "wait": "console:/ # ",
+   "t": 65.9
+  },
+  {
+   "step": 50,
+   "wait": "console:/ # ",
+   "t": 77.6
+  },
+  {
+   "step": 52,
+   "wait": "\n===SELFCHECK-UI-END===",
+   "t": 81.0
+  },
+  {
+   "step": 53,
+   "wait": "console:/ # ",
+   "t": 81.1
+  },
+  {
+   "step": 56,
+   "wait": "@@SNAP\\[",
+   "t": 83.8
+  },
+  {
+   "step": 57,
+   "wait": "console:/ # ",
+   "t": 83.8
+  },
+  {
+   "step": 60,
+   "wait": "console:/ # ",
+   "t": 87.4
+  },
+  {
+   "step": 62,
+   "wait": "\n===SELFCHECK-UI2-END===",
+   "t": 90.9
+  },
+  {
+   "step": 63,
+   "wait": "console:/ # ",
+   "t": 90.9
+  },
+  {
+   "step": 66,
+   "wait": "@@SNAP\\[",
+   "t": 93.6
+  },
+  {
+   "step": 67,
+   "wait": "console:/ # ",
+   "t": 93.6
+  },
+  {
+   "step": 70,
+   "wait": "console:/ # ",
+   "t": 94.7
+  },
+  {
+   "step": 72,
+   "wait": "\n===AVC-END===",
+   "t": 95.9
+  },
+  {
+   "step": 73,
+   "wait": "console:/ # ",
+   "t": 95.9
+  },
+  {
+   "step": 75,
+   "wait": "reboot: Power down|ACPI: PM: Preparing to enter system sleep state S5|Power down",
+   "t": 99.7
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/qemu/g1-addon-qemu-1/blank-usb.img",
+ "nvme": "/home/hive/anybook/installer/qemu/g1-addon-qemu-1/installed.img",
+ "nvme2": null
+}
