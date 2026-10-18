@@ -5,4 +5,9 @@
     <!-- 10 minutes instead of the phone default of 1 minute. After the screen turns off, Android lets the laptop
          sleep (s2idle), which on the first G14 sticks looked like the machine had switched itself off (ANAL-176). -->
     <integer name="def_screen_off_timeout">600000</integer>
+    <!-- No touch sounds (Settings > Sound > Touch sounds, system setting sound_effects_enabled): no click on taps,
+         clicks and key presses in apps (ANAL-206). Googlebook's SettingsProviderDesktopOverlay sets the same.
+         The lock and unlock sounds (def_lockscreen_sounds_enabled) stay on, as on Googlebook; SystemUI's unlock
+         sound at boot is also the G14 checklist's SoundPool probe (docs/g14-audio-net.md). -->
+    <bool name="def_sound_effects_enabled">false</bool>
 </resources>

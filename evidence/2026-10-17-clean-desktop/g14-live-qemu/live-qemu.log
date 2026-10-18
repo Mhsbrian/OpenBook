@@ -1,0 +1,58 @@
+stick s16: 16 GiB, entry vm
+stick logs16: 16 GiB, entry vm-logs
+case first: qemu-run exit 0 ({"reason": "QEMU exited (0)", "seconds": 98.8, "steps_done": 30, "steps": 30, "hits": [{"step": 0, "wait": "openbook-live: live boot: boot_part_uuid=", "t": 9.6)
+case second: qemu-run exit 0 ({"reason": "QEMU exited (0)", "seconds": 25.7, "steps_done": 18, "steps": 18, "hits": [{"step": 0, "wait": "openbook-live: live boot: boot_part_uuid=", "t": 7.8)
+case reset: qemu-run exit 0 ({"reason": "QEMU exited (0)", "seconds": 26.2, "steps_done": 19, "steps": 19, "hits": [{"step": 0, "wait": "openbook-live: live boot: boot_part_uuid=", "t": 8.0)
+case logs: qemu-run exit 0 ({"reason": "QEMU exited (0)", "seconds": 181.5, "steps_done": 4, "steps": 4, "hits": [{"step": 0, "wait": "openbook-live: live boot: boot_part_uuid=", "t": 8.9})
+stick exact: exact GiB, entry vm
+case exact: qemu-run exit 0 ({"reason": "QEMU exited (0)", "seconds": 24.1, "steps_done": 15, "steps": 15, "hits": [{"step": 0, "wait": "openbook-live: live boot: boot_part_uuid=", "t": 8.4)
+stick default16: 16 GiB, entry image default
+case default: qemu-run exit 0 ({"reason": "timeout 400s", "seconds": 402.0, "steps_done": 0, "steps": 0, "hits": [], "qemu_rc": 0, "usb": "/home/hive/anybook/installer/qemu/b5-live-a/default1)
+cases done in 617 s
+# Live image QEMU run: openbook-live-20261017-anal206
+
+40/40 checks passed.
+
+| Case | Check | Result | Detail |
+|---|---|---|---|
+| first | every expect step matched | PASS | 30/30 (QEMU exited (0)) |
+| first | by-name links point at the USB stick only | PASS | 10 links: sda |
+| first | openbook-live-init grew userdata and moved the backup GPT | PASS | grow: GPT backup moved LBA 5801983 -> 33554431; userdata 2097152 -> 29849600 sectors |
+| first | stick GPT valid afterwards, backup at the end (sgdisk -v) | PASS | {"ok": true, "disk_sectors": 33554432, "last_usable": 33554398, "userdata_sectors": 29849600, "userdata_to_end": 2048} |
+| first | /data formatted at the grown size | PASS | df /data 14922752 KiB, userdata 14924800 KiB |
+| first | Android formatted the blank metadata and userdata | PASS | [   10.169136] init: [libfs_mgr] fs_mgr_mount_all(): /dev/block/sda7 is wiped and /metadata ext4 is formattable. Format it.; [   10.170643] init: [libfs_mgr] fs |
+| first | marker file written to /data | PASS | openbook-live-marker-1792281910 |
+| first | sys.boot_completed=1 within 600 s (desktop) | PASS | BOOTDONE=1 at uptime 56.49 s |
+| first | screenshot after the boot wait | PASS |  |
+| first | decoy NVMe disk unchanged after all its boots (sha256) | PASS | d31c84b69e5b329a / d31c84b69e5b329a |
+| first | live-init report on the ESP | PASS | ['live-init-001.json', 'live-init-002.json'] |
+| second | every expect step matched | PASS | 18/18 (QEMU exited (0)) |
+| second | by-name links point at the USB stick only | PASS | 10 links: sda |
+| second | openbook-live-init: nothing to grow | PASS |  |
+| second | marker from the first boot still there | PASS | openbook-live-marker-1792281910 vs openbook-live-marker-1792281910 |
+| reset | every expect step matched | PASS | 19/19 (QEMU exited (0)) |
+| reset | by-name links point at the USB stick only | PASS | 10 links: sda |
+| reset | metadata and userdata zeroed | PASS |  |
+| reset | Android formatted them again | PASS |  |
+| reset | marker gone | PASS |  |
+| reset | reset recorded on the ESP | PASS | ['live-init-001.json', 'live-init-002.json'] |
+| exact | every expect step matched | PASS | 15/15 (QEMU exited (0)) |
+| exact | by-name links point at the USB stick only | PASS | 10 links: sda |
+| exact | openbook-live-init: nothing to grow | PASS |  |
+| exact | /data at the image's userdata size | PASS | df /data 1046528 KiB, userdata 1048576 KiB |
+| exact | stick GPT valid (sgdisk -v) | PASS |  |
+| logs | every expect step matched | PASS | 4/4 (QEMU exited (0)) |
+| logs | Android shut down by itself after saving | PASS | QEMU exited (0) |
+| logs | openbook/logs/live-NNN/ on the ESP | PASS | ['live-001'] |
+| logs | dmesg, logcat, system facts, screenshot and summary saved | PASS | ['collect-final.txt', 'dmesg.txt', 'hwtest-final.txt', 'logcat-final.txt', 'prior-boots.tar.gz', 'prior-boots.txt', 'screen-final.png', 'summary.json'] |
+| logs | summary.json: second stage seen, captures done | PASS | second stage 4.6 s, boot_completed True, 1 capture(s) |
+| logs | dmesg.txt non-empty | PASS | 338632 |
+| logs | logcat saved | PASS | 2601742 |
+| logs | vold leaves the boot stick alone | PASS | not managed: ['8:0'], scanned: [] |
+| logs | screenshot is a PNG | PASS | 402613 |
+| logs | system facts saved | PASS |  |
+| logs | stick GPT valid (sgdisk -v) | PASS |  |
+| default | screenshots of the unchanged default entry | PASS | ['shot-120.png', 'shot-15.png', 'shot-180.png', 'shot-240.png', 'shot-30.png', 'shot-300.png', 'shot-360.png', 'shot-4.png', 'shot-45.png', 'shot-60.png', 'shot |
+| default | openbook-live-init grew userdata on the default entry too | PASS | {"ok": true, "disk_sectors": 33554432, "last_usable": 33554398, "userdata_sectors": 29849600, "userdata_to_end": 2048} |
+| default | live-init report on the ESP | PASS |  |
+

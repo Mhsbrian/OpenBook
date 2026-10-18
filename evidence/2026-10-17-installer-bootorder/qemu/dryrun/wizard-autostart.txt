@@ -1,0 +1,2 @@
+    topResumedActivity=ActivityRecord{156027452 u0 org.openbook.installer/.MainActivity t11}
+  ResumedActivity: ActivityRecord{156027452 u0 org.openbook.installer/.MainActivity t11}
