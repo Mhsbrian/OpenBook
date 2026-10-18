@@ -1,0 +1,2 @@
+ device/anybook/g14/anybook_g14_x86_64.mk | 6 ++++++
+ 1 file changed, 6 insertions(+)

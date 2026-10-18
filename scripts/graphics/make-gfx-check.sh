@@ -61,6 +61,7 @@ echo "image declares $(sed -n 's/.*version="\([0-9]*\)".*/\1/p' "$VKXML") (andro
 python3 "$R/scripts/graphics/mkcaselists.py" "$T/external/deqp/android/cts/main" "$PL/caselists" \
   --angle-expectations "$T/external/angle/android/cts/angle_end2end_tests_expectations.txt"
 cp "$R/scripts/graphics/gfx-run.sh" "$PL/run.sh"
+cp "$R/scripts/ui/blur-check.sh" "$PL/blur-check.sh"   # the blur part (ANAL-203)
 "$R/scripts/graphics/mkskips.sh" "$A/mesa/src/upstream" "$PL/skips"
 
 # 3. licences: dEQP (VK-GL-CTS, Apache-2.0, with glslang, SPIRV-Tools, Amber), ANGLE (BSD-3-Clause), Mesa (MIT),
@@ -80,7 +81,7 @@ OpenBook graphics check payload (ANAL-177): components, licences, sources
 - radv-nonstrict/vulkan.radv.so: Mesa 26.2.5 RADV with OpenBook's patches (mesa/patches/upstream in the OpenBook
   repo), built without android-strict, MIT (mesa-license.rst).
 - bin/deqp-runner: Mesa's deqp-runner 0.23.2, MIT (deqp-runner-LICENSE), https://gitlab.freedesktop.org/mesa/deqp-runner
-- bin/gfx-nsbind, lib/libdeqp_stdout.so, run.sh, caselists/: OpenBook, Apache-2.0 (scripts/graphics in the OpenBook repo).
+- bin/gfx-nsbind, lib/libdeqp_stdout.so, run.sh, blur-check.sh, caselists/: OpenBook, Apache-2.0 (scripts/graphics in the OpenBook repo).
 EOF
 
 # 4. what this payload is

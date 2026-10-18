@@ -1,0 +1,1 @@
+ro.product.build.fingerprint=AnyBook/anybook_cf_x86_64_pc/anybook_vsoc_x86_64:17/CP2A.260605.016/eng.builde:userdebug/test-keys

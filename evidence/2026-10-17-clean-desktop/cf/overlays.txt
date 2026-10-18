@@ -1,0 +1,56 @@
+com.android.uwb.resources
+[x] com.android.uwb.resources.cuttlefish.overlay
+
+com.android.providers.telephony
+--- com.android.providers.telephony.auto_generated_characteristics_rro
+
+com.android.companiondevicemanager
+--- com.android.companiondevicemanager.auto_generated_characteristics_rro
+
+com.android.connectivity.resources
+[x] com.android.connectivity.resources.cuttlefish.overlay
+
+android
+[x] android.auto_generated_rro_vendor__
+[x] android.cuttlefish.overlay
+[x] android.auto_generated_characteristics_rro
+[x] dev.anybook.overlay.desktop.framework
+[ ] com.android.internal.display.cutout.emulation.corner
+[ ] com.android.internal.display.cutout.emulation.double
+[ ] com.android.internal.display.cutout.emulation.hole
+[ ] com.android.internal.display.cutout.emulation.tall
+[ ] com.android.internal.systemui.navbar.threebutton
+[ ] com.android.theme.font.notoserifsource
+[ ] com.android.internal.display.cutout.emulation.waterfall
+[ ] com.android.internal.systemui.navbar.transparent
+[ ] com.android.role.notes.enabled
+[x] com.android.internal.systemui.navbar.gestural
+[x] com.android.systemui:neutral
+[x] com.android.systemui:accent
+[x] com.android.systemui:dynamic
+
+com.android.nfc
+[x] com.android.nfc.cuttlefish.overlay
+
+com.android.launcher3
+[x] dev.anybook.overlay.desktop.launcher
+
+com.android.providers.settings
+[x] com.android.providers.settings.cuttlefish.overlay
+[x] dev.anybook.overlay.desktop.settingsprovider
+
+com.android.wifi.resources
+[x] com.android.wifi.resources.cf
+
+com.android.inputmethod.latin
+[x] dev.anybook.overlay.desktop.latinime
+
+com.android.networkstack.tethering
+[x] com.android.networkstack.tethering.cuttlefishoverlay
+
+com.android.phone
+--- com.android.phone.auto_generated_characteristics_rro
+
+com.android.systemui
+[x] dev.anybook.overlay.desktop.systemui
+
