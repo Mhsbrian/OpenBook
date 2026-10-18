@@ -1,0 +1,4 @@
+# Wallpaper layer in SurfaceFlinger, live-001 collect-final.txt ===SF===
+  Layer [47] Wallpaper BBQ wrapper#47
+    visible reason= buffer=6532645257229 frame=1
+    bounds={-145,-91,1890.1,3024.76} toDisplayTransform={ scale x=1.1006 y=1.1006  tx=-145.0000 ty=-91.0000 }
