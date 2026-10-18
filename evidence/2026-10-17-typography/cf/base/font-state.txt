@@ -1,0 +1,9 @@
+## all four overlay values
+config_headlineFontFamily=
+config_headlineFontFamilyMedium=@17040557 -> sans-serif-medium
+config_bodyFontFamily=sans-serif
+config_bodyFontFamilyMedium=sans-serif-medium
+## fonts_customization.xml sha256 on the device
+sha256sum: /product/etc/fonts_customization.xml: No such file or directory
+sha256sum: /product/fonts/*: No such file or directory
+## named families in the device's font config (dumpsys font, google-sans* and variable-*)

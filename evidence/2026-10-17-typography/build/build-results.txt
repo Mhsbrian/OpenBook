@@ -1,0 +1,26 @@
+# Builds for ANAL-202 (scripts/aosp-docker.sh /repo/scripts/aosp-build.sh TARGET, under the AOSP lane lock).
+# base = c861cf4 (ANAL-201 branch, no fonts); fonts = c91ca38 (this branch before merging main; the build log says
+# -dirty because docs/aosp-desktop.md was uncommitted; device/anybook was exactly c91ca38).
+=== 2026-10-17T23:08:00Z build anybook_cf_x86_64_pc-cp2a-userdebug from base (c861cf4)
+=== 2026-10-17T23:09:25Z m exit 0
+=== 2026-10-18T01:27:54Z build anybook_g14_x86_64-cp2a-userdebug from base (c861cf4)
+=== 2026-10-18T01:30:37Z m exit 0
+=== 2026-10-18T01:30:44Z snapshot g14-base -> /home/hive/anybook/aosp/cf/b1-snap/g14-base
+=== 2026-10-18T01:30:44Z build anybook_cf_x86_64_pc-cp2a-userdebug from OpenBook (0068ef1-dirty)
+error: device/anybook/common/desktop/fonts/Android.bp:61:1: module "openbook_fonts_customization_checked": multiple locations for label "fonts_customization.xml": "device/anybook/common/desktop/fonts/fonts_customization.xml" and "out/soong/.intermediates/device/anybook/common/desktop/fonts/openbook_fonts_customization_checked/gen/fonts_customization.xml" (do you have duplicate srcs entries?)
+=== 2026-10-18T01:31:15Z m exit 1
+=== 2026-10-18T01:31:21Z build anybook_g14_x86_64-cp2a-userdebug from OpenBook (0068ef1-dirty)
+error: device/anybook/common/desktop/fonts/Android.bp:61:1: module "openbook_fonts_customization_checked": multiple locations for label "fonts_customization.xml": "device/anybook/common/desktop/fonts/fonts_customization.xml" and "out/soong/.intermediates/device/anybook/common/desktop/fonts/openbook_fonts_customization_checked/gen/fonts_customization.xml" (do you have duplicate srcs entries?)
+=== 2026-10-18T01:31:43Z m exit 1
+=== 2026-10-18T03:15:05Z build anybook_cf_x86_64_pc-cp2a-userdebug from OpenBook (c91ca38-dirty)
+=== 2026-10-18T03:39:14Z m exit 0
+=== 2026-10-18T03:39:36Z snapshot cf-fonts -> /home/hive/anybook/aosp/cf/b1-snap/cf-fonts
+=== 2026-10-18T03:39:36Z build anybook_g14_x86_64-cp2a-userdebug from OpenBook (c91ca38-dirty)
+=== 2026-10-18T04:10:52Z m exit 0
+=== 2026-10-18T04:11:12Z snapshot g14-fonts -> /home/hive/anybook/aosp/cf/b1-snap/g14-fonts
+
+# The cf base images were snapshotted at 23:09 right after its build (that first run then stopped on a failing ls in
+# its own size report; the images and host package were already copied). The failed fonts builds at 01:31 were
+# a Soong label clash (the genrule's output was named like its src), fixed in c91ca38.
+# AOSP build logs on the host: ~/anybook/logs/aosp/build-20261017T230800Z.log (cf base), build-20261018T012755Z.log (g14 base),
+# build-20261018T031505Z.log (cf fonts), build-20261018T033936Z.log (g14 fonts).

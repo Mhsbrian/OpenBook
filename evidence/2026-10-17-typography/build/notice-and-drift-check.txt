@@ -1,0 +1,29 @@
+# /product/etc/NOTICE.xml.gz of the fonts builds: the files the fonts modules install, and the OFL texts they point to.
+
+## cf-fonts (anybook_vsoc_x86_64)
+<file-name contentId="3b83ef96387f14655fc854ddc3c6bd57" lib="Android">/product/etc/fonts_customization.xml</file-name>
+<file-name contentId="e22088344baa13c7bb0340df36d49e2c" lib="Android">/product/fonts/GoogleSans-Italic-VF.ttf</file-name>
+<file-name contentId="e22088344baa13c7bb0340df36d49e2c" lib="Android">/product/fonts/GoogleSans-VF.ttf</file-name>
+<file-name contentId="cc296642ca0f5561d59c6c20adfa5d69" lib="Android">/product/fonts/GoogleSansFlex-VF.ttf</file-name>
+SIL OFL 1.1 texts: 2 (the GoogleSans files point to the Google Sans Project Authors text, GoogleSansFlex to the Flex one;
+  fonts_customization.xml to Apache-2.0)
+Copyright 2015 The Google Sans Flex Authors (https://github.com/googlefonts/googlesans-flex)
+Copyright 2025 The Google Sans Project Authors (https://github.com/googlefonts/googlesans)
+
+## g14-fonts (anybook_g14)
+<file-name contentId="3b83ef96387f14655fc854ddc3c6bd57" lib="Android">/product/etc/fonts_customization.xml</file-name>
+<file-name contentId="e22088344baa13c7bb0340df36d49e2c" lib="Android">/product/fonts/GoogleSans-Italic-VF.ttf</file-name>
+<file-name contentId="e22088344baa13c7bb0340df36d49e2c" lib="Android">/product/fonts/GoogleSans-VF.ttf</file-name>
+<file-name contentId="cc296642ca0f5561d59c6c20adfa5d69" lib="Android">/product/fonts/GoogleSansFlex-VF.ttf</file-name>
+SIL OFL 1.1 texts: 2 (the GoogleSans files point to the Google Sans Project Authors text, GoogleSansFlex to the Flex one;
+  fonts_customization.xml to Apache-2.0)
+Copyright 2015 The Google Sans Flex Authors (https://github.com/googlefonts/googlesans-flex)
+Copyright 2025 The Google Sans Project Authors (https://github.com/googlefonts/googlesans)
+
+# The drift check as the build ran it (sbox command of openbook_fonts_customization_checked):
+command: "tools/out/bin/openbook-fonts-customization --check device/anybook/common/desktop/fonts/fonts_customization.xml && cp device/anybook/common/desktop/fonts/fonts_customization.xml out/fonts_customization_checked.xml"
+
+# The built tool on the committed XML and on a copy with one opsz changed (57 -> 56):
+committed: exit 0
+drift.xml differs from what fonts-customization.py writes; regenerate it (see the script's docstring)
+drifted: exit 1
