@@ -1,0 +1,17 @@
+[==========] Running 7 tests from 1 test suite.
+[ RUN      ] HardwareStateConverterTest.OneFinger
+[       OK ] HardwareStateConverterTest.OneFinger (0 ms)
+[ RUN      ] HardwareStateConverterTest.TwoFingers
+[       OK ] HardwareStateConverterTest.TwoFingers (0 ms)
+[ RUN      ] HardwareStateConverterTest.OnePalm
+[       OK ] HardwareStateConverterTest.OnePalm (0 ms)
+[ RUN      ] HardwareStateConverterTest.OneFingerTurningIntoAPalmEnableReportPalms
+[       OK ] HardwareStateConverterTest.OneFingerTurningIntoAPalmEnableReportPalms (0 ms)
+[ RUN      ] HardwareStateConverterTest.ButtonPressed
+[       OK ] HardwareStateConverterTest.ButtonPressed (0 ms)
+[ RUN      ] HardwareStateConverterTest.MscTimestamp
+[       OK ] HardwareStateConverterTest.MscTimestamp (0 ms)
+[ RUN      ] HardwareStateConverterTest.MscTimestampKeptForFramesWithoutOne
+[       OK ] HardwareStateConverterTest.MscTimestampKeptForFramesWithoutOne (0 ms)
+[==========] 7 tests from 1 test suite ran. (2 ms total)
+[  PASSED  ] 7 tests.
