@@ -8,11 +8,13 @@
 #
 # Firmware boot entries (efivarfs, S11): nvram-boot boots a copy of the installed disk with EFI/BOOT/BOOTX64.EFI
 # deleted, with the NVRAM the install left (so only OpenBook's Boot#### can start it); alongside installs next to a
-# Windows-like disk whose "Windows Boot Manager" entry is first in BootOrder, then points BootNext at OpenBook's new
-# entry (the test's stand-in for the firmware's boot menu); alongside-boot boots that disk with that NVRAM.
+# Windows-like disk whose "Windows Boot Manager" entry (a stand-in EFI app, efi-standin.c) is first in BootOrder;
+# OpenBook's entry goes last. alongside-default boots that disk with that NVRAM: Windows starts by default, then
+# OpenBook is picked in the firmware's boot menu; alongside-boot boots it again through BootNext.
 #
 # usage: wizard-qemu.sh IMG RUN [CASE...]      default: dryrun install installed console (in that order)
-#        cases also: nvram-boot (after install), alongside, alongside-boot (after alongside)
+#        cases also: nvram-boot (after install), alongside, alongside-default (after alongside), alongside-boot
+#        (after alongside-default)
 set -euo pipefail
 A=${OPENBOOK_HOME:-${ANYBOOK_HOME:-$HOME/anybook}}
 R=$(cd "$(dirname "$0")/../.." && pwd)
@@ -130,7 +132,7 @@ if has alongside; then
   fetch_shots alongside
   "$D" bash -c "sgdisk -v '$Q/win.img'; sgdisk -p '$Q/win.img'" > "$L/alongside/win-gpt.txt" 2>&1 || true
 fi
-if has alongside-boot; then
+if has alongside-default; then
   rm -f "$Q/winboot.img" "$Q/winboot.vars"; truncate -s 64M "$Q/blank-usb.img"
   cp --reflink=auto "$Q/win.img" "$Q/winboot.img"; cp "$Q/alongside.vars" "$Q/winboot.vars"
   "$D" bash -c "set -e; cd '$Q'
@@ -140,6 +142,10 @@ if has alongside-boot; then
     sed -e 's/^title .*/title OpenBook (serial console test)/' -e 's/^sort-key .*/sort-key openbook-0/' \
         -e 's/^options \(.*\)/options \1 console=ttyS0,115200 8250.nr_uarts=1 printk.devkmsg=on/' wa.conf > wopenbook-a-console.conf
     mcopy -o -i \"winboot.img@@\$off\" wopenbook-a-console.conf ::/loader/entries/openbook-a-console.conf"
+  run_case alongside-default 900 --usb "$Q/blank-usb.img" --nvme "$Q/winboot.img" --vars "$Q/winboot.vars" --no-bootindex
+fi
+if has alongside-boot; then  # the same disk and NVRAM, BootNext set by alongside-default's last step
+  [ -f "$Q/winboot.vars" ] || { echo "alongside-boot needs alongside-default's disk and NVRAM in $Q" >&2; exit 1; }
   run_case alongside-boot 600 --usb "$Q/blank-usb.img" --nvme "$Q/winboot.img" --vars "$Q/winboot.vars" --no-bootindex
 fi
 "$D" python3 "$S/wizard-qemu.py" check --run "$L" --disks "$Q" --image "$IMG"

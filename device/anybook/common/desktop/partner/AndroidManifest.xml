@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  OpenBook's partner customization package (ANAL-206): resources only. Launcher3 finds it as the system app with a
+  receiver for com.android.launcher3.action.PARTNER_CUSTOMIZATION (Launcher3 util/Partner.java) and builds a new
+  home screen from res/xml/partner_default_layout.xml. WallpaperPicker2 reads the same package for partner
+  wallpapers (none yet). Only one such package may exist on a device, so later customizations belong here too.
+  Nothing sends the action: the receiver is only a marker, and the signature permission keeps other apps from
+  delivering a broadcast to a package with no code.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="dev.anybook.desktop.partner">
+    <permission
+        android:name="dev.anybook.desktop.partner.permission.SEND_PARTNER_CUSTOMIZATION"
+        android:protectionLevel="signature" />
+    <application android:hasCode="false" android:label="OpenBook partner customization">
+        <receiver
+            android:name=".PartnerCustomization"
+            android:exported="true"
+            android:permission="dev.anybook.desktop.partner.permission.SEND_PARTNER_CUSTOMIZATION">
+            <intent-filter>
+                <action android:name="com.android.launcher3.action.PARTNER_CUSTOMIZATION" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

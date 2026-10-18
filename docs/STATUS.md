@@ -1,10 +1,10 @@
 # Status
 
-## State of the union (2026-10-17, 21:25 UTC)
+## State of the union (2026-10-18, 03:00 UTC)
 
 **Goal:** the Googlebook-style Android 17 desktop on the ASUS ROG Zephyrus G14 (GA403WR: Ryzen AI 9 HX 370, Radeon 890M), installed from a USB stick through a wizard and verified on the laptop. Repo: https://github.com/Mhsbrian/OpenBook.
 
-**Repo hygiene:** PRs #1–#69 are merged and none are open. The 2026-10-17 cleanup left one remote branch, `main`; every other branch was merged or superseded. Two branches with commits never merged are kept as tags: `archive/anal-190-live-image-b` (superseded on `main`) and `archive/anal-178-stick-integration`.
+**Repo hygiene:** PRs #1–#76 are merged and none are open. The 2026-10-17 cleanup left one remote branch, `main`; every other branch was merged or superseded. Two branches with commits never merged are kept as tags: `archive/anal-190-live-image-b` (superseded on `main`) and `archive/anal-178-stick-integration`.
 
 ### What works, and where it has been shown
 
@@ -18,13 +18,13 @@
 | Sleep | s2idle in a VM | **s2idle works, under Android too** (screen timeout → s2idle → key wake, display and Wi-Fi back); **deep sleep (S0i3) never reached.** The power check ruled out the driverless PSP; the SMU points at MPM or the USB4 router (unconfirmed) | `docs/power-input.md` §1.3, §7.6 |
 | Wi-Fi, Bluetooth, audio | Yes (WPA2, iperf3, tone through ALSA and, with the HAL fix, through Android) | **Wi-Fi to the internet** (5 GHz, 160 MHz); **Bluetooth pairs**, A2DP with LDAC; **speakers and mic through ALSA** heard. Through Android the tone was broken (HAL fix in ANAL-179's PR, QEMU only). **Under enforcing (`anal176t`), Bluetooth audio connects without the Bluetooth app aborting**: A2DP Connected, the HAL's A2DP session and outputs open, 0 crashes, so #52's policy fix holds. Sound over Bluetooth and app (browser) sound are still unheard. The only playback tried, ringtone previews, **failed to decode** (`Failed to create audio/vorbis decoder`; missing system DMA-BUF heap suspected). Headphone jack and iperf3 not tested | `evidence/2026-10-17-g14-audio-net/`, `evidence/2026-10-17-g14-desktop/g14-anal176s/`, `g14-anal176t/` |
 | ARM apps (Digitalis, built from source) | 14/16 ARM-only apps; works in enforcing | **The bridge self-check passes on Zen 5** (5/5 verdicts, both sessions). No arm64 app run yet: the ARM apps check is on ANAL-192's stick | `evidence/2026-10-17-digitalis-a17/`, `evidence/2026-10-17-digitalis-g14/` |
-| Installer | **Wizard 25/25, engine 63/63, end to end 79/79; the firmware boot entry (`Boot####`, #68) boots with no fallback path** (SELinux enforcing): whole disk and **alongside a Windows-like disk** (Windows' partitions byte-identical and still booting; OpenBook boots from a firmware boot option); **power cuts at 6 points**, each leaving the old table, a blank disk or a complete install, and each restart completing; reinstall; the installed disk with and without the stick. **Firmware boot entries (since ANAL-191's #68):** the installer creates `Boot####` "OpenBook" itself; OVMF boots it with the fallback path deleted, and alongside leaves Windows' entry and `BootOrder` byte-identical | Live USB boots; the wizard has not run yet | `evidence/2026-10-17-installer-wizard/`, `evidence/2026-10-17-installer-e2e/` |
+| Installer | **Wizard 25/25, engine 65/65, end to end 79/79; the firmware boot entry (`Boot####`, #68) boots with no fallback path** (SELinux enforcing): whole disk and **alongside a Windows-like disk** (Windows' partitions byte-identical and still booting; OpenBook boots from a firmware boot option); **power cuts at 6 points**, each leaving the old table, a blank disk or a complete install, and each restart completing; reinstall; the installed disk with and without the stick. **Firmware boot entries (since ANAL-191's #68):** the installer creates `Boot####` "OpenBook" itself; OVMF boots it with the fallback path deleted, and alongside leaves Windows' entry byte-identical and appends OpenBook to `BootOrder` (owner decision): Windows still starts by default and the firmware's boot menu lists OpenBook | Live USB boots; the wizard has not run yet | `evidence/2026-10-17-installer-wizard/`, `evidence/2026-10-17-installer-e2e/`, `evidence/2026-10-17-installer-bootorder/` |
 
 **What is left on the G14:** S0i3 deep sleep (needs the laptop's own Linux comparison), audible Bluetooth and app audio, the Android audio path with the HAL fix, media decoding on the laptop (it failed on `anal176t`; fixed in QEMU by #64, on `anal198`), the ARM apps check, the installer dry run, and the second graphics run on Vulkan 1.4. All but S0i3 are on `anal198`'s checklist.
 
 ### Running now
 
-- **Nothing is running; waiting on the owner's `anal198` session.** The two follow-ups ANAL-198 found are merged: #67 (ANAL-179: system sounds play under enforcing, QEMU) and #68 (ANAL-191: the installer creates its firmware `Boot####` entry, with an efivarfs SELinux label, QEMU/OVMF). They ride the stick after `anal198`, which ANAL-192 builds once the owner's results are read, so it can also carry that session's fixes.
+- **Running: ANAL-201's beautification and Google-services backlog** (ANAL-202–204, ANAL-206–211: Google Sans, background blur, the flag set, a clean default desktop, brand assets, document fonts, first-run setup, microG, bring-your-own GApps). Nine runs share the host; builds take turns under the AOSP lane lock, and memory is tight (about 8 GB free). Merged since 21:30: #70 (BootOrder: OpenBook appended when not the default, owner decision), #71 (the Googlebook image review and GApps options), #73 (B4: circular icons, no wallpaper dim), #72 (B2: background blur on the G14 product), #75 (B5: a clean default desktop). The owner's `anal198` session hasn't happened yet; the next stick follows it.
 - **ANAL-198 (kernel lane): #64 merged.** It adds the system DMA-BUF heap and fixes two product bugs behind it (Codec2 HAL selection, Codec2 memfds under SELinux), so media decodes in QEMU. It also ships `efivarfs` as a vendor module, with Google's GKI configuration unchanged. Writing variables needed installer SELinux policy: done by ANAL-191 (#68).
 - **The owner's stick is now `openbook-live-20261017-anal198`** (built on the owner's request after #64; `docs/installer.md` §13.11). It comes from `main` `2d90741` and has everything `anal192c` had, plus Vulkan 1.4 (#61), the #64 kernel and media fixes, and ANAL-177's graphics check (sha256 `3b405d08…`). In QEMU: live 40/40, wizard 25/25, installer end to end 78/78, all four add-ons, and the media check. It replaces `anal192c`. The checklist is `anal192c`'s three boots (§13.6) plus a fourth, the graphics check.
 - **After that session:** results go to ANAL-176, ANAL-177, ANAL-178, ANAL-179, ANAL-191 and ANAL-200.
@@ -36,19 +36,13 @@
    Reply "stick attached" on ANAL-192 only; the coordinator routes each issue to its part. Ringtone sound is expected to fail until ANAL-198's heap fix ships on the next stick, along with Vulkan 1.4 and ANAL-177's second graphics run.
    Optional and independent of the stick, for S0i3: on the laptop's own Linux run `sudo python3 scripts/power/linux-s2idle.py --amd-s2idle` (about 5 min; `docs/power-input.md` §7.6) and attach the tarball to ANAL-178.
 2. **Decisions:** none blocks running work.
-   - **New, from ANAL-191:** when an alongside install leaves "Start OpenBook by default" unticked, the `Boot####` entry stays out of `BootOrder`, so OpenBook doesn't appear in the firmware's boot menu. Recommendation: add it at the **end** of `BootOrder`. Windows stays the default, and OpenBook becomes selectable from the boot menu.
    - repo license (Apache-2.0 suggested);
    - upstream reports for the bridge (DigitalisX64; AOSP `Build.CPU_ABI`);
    - amd-pmf (`docs/kernel.md`);
    - Track B (`docs/PLAN.md` §6);
    - installing the Multica daemon on the G14 (ANAL-194).
-   - **New, from ANAL-201:**
-     - ship Google Sans and Google Sans Flex (OFL) under the internal family names `google-sans*`;
-     - carry LineageOS's microG signature-spoofing patch and offer microG as an add-on;
-     - whether the installer should accept a GApps package the user supplies;
-     - which items of the beautification backlog B1–B8 to open (`docs/googlebook-ui.md` §4, `docs/gapps.md` §5).
    - Before any public image: AVB release-key custody, an "OpenBook" trademark check, and Mesa libelf (shipped as a shared library, as recommended).
-3. **Already decided:** the dGPU stays off (`dgpu_disable=1`; HDMI is dark while it is set; NVIDIA work waits until after M4). The installer design follows our recommendation (owner on ANAL-189, 2026-10-16).
+3. **Already decided:** the dGPU stays off (`dgpu_disable=1`; HDMI is dark while it is set; NVIDIA work waits until after M4). The installer design follows our recommendation (owner on ANAL-189, 2026-10-16). Without "Start OpenBook by default", the installer appends OpenBook's `Boot####` to the end of `BootOrder`: the other system stays the default, and OpenBook is in the firmware's boot menu (owner on ANAL-159, 2026-10-17; ANAL-191, #70). ANAL-201's fonts (Google Sans and Google Sans Flex, OFL, internal names `google-sans*`), microG (G1), bring-your-own GApps (G2) and the whole beautification backlog B1–B8, all approved 2026-10-17 as ANAL-202 to ANAL-211.
 
 ### Next step for each open issue
 
@@ -59,12 +53,17 @@
 | ANAL-178 input and power | In review (PR #57, merged) | Lid works; touchpad clock fixed (EventHub, QEMU); the power check ruled out the PSP. Next: S0i3 from the Linux comparison | The laptop's own Linux `linux-s2idle.py --amd-s2idle` run; on ANAL-192's stick: battery saver, touchpad use (`docs/power-input.md` §7.5, §7.6) |
 | ANAL-179 Wi-Fi, Bluetooth, audio | In review (PR #58, merged) | On the G14: Wi-Fi to the internet, Bluetooth A2DP/LDAC, speakers and mic through ALSA. Android's audio path was broken; the codec-paced HAL fixes it in QEMU. Next: the G14 check | ANAL-192's stick: iperf3 server, Bluetooth audio, browser video, headphones |
 | ANAL-200 ARM bridge | In review (PR #56, merged) | Done: bridge verdicts 5/5 on the G14 in both sessions, G14 rows recorded, and the ARM apps check add-on (probe and CoreMark on the laptop, QEMU-tested). Next: read its G14 results | The ARM-apps-check boot on ANAL-192's stick; the upstream-report OK |
-| ANAL-191 installer wizard and engine | In review | The G14 dry run, on the owner's `anal198` stick; the stick after it carries the firmware boot entry (efivarfs policy). Open: `openbook-bootsync`, the text hardware report; an owner decision on alongside installs without consent (append OpenBook at the end of `BootOrder`?) | Owner decision |
+| ANAL-191 installer wizard and engine | In review | The G14 dry run, on the owner's `anal198` stick; the stick after it carries the firmware boot entry (efivarfs policy, #68) and the owner's `BootOrder` decision (OpenBook appended without consent). Open: `openbook-bootsync`, the text hardware report | — |
 | ANAL-192 installer end-to-end tests and the owner's stick | In review | Done in QEMU: the integrated stick `anal192c` (live 40/40, wizard 25/25), the end-to-end matrix 79/79 (`scripts/installer/e2e-qemu.sh`), the user guide and release checklist draft (`docs/INSTALL.md`). Found: an installed OpenBook offers to format a plugged-in installer stick; the wizard calls an installed OpenBook "Linux". Open: the OTA slot switch (needs `openbook-bootsync`) | The owner's run of `docs/installer.md` §13.6; a spare drive named by `/dev/disk/by-id` for §13.7; the release decisions (`docs/INSTALL.md` §9) |
 | ANAL-198 G14 kernel (follow-up) | In review (#64, #65 merged) | Done: `system_heap.ko` and `efivarfs.ko` as vendor modules with Google's GKI configuration unchanged; Codec2 fixes, so a ringtone decodes in QEMU; the owner's stick `anal198`. GPU reset: MES didn't answer and pipe reset is off in 6.18, so a hang means a full reset (`docs/kernel.md`). Next: the G14 check on `anal198` | The owner's `anal198` session |
 | ANAL-193 to ANAL-197 device loop | Backlog | ANAL-194 first: the Multica runtime and test agent on the G14's Linux | Owner installs the daemon |
-| ANAL-201 Googlebook UI and GApps review | In review | Done: inventory of the Googlebook image, the Google APIs Desktop image and ours; why Googlebook looks cleaner, ranked; the GApps options; the Google Sans prototype in Cuttlefish (`docs/googlebook-ui.md`, `docs/gapps.md`). Next: the backlog items the owner picks (B1 fonts, B2 blur, B4 shapes and B5 a clean desktop first; G1 microG) | Owner decisions |
+| ANAL-201 Googlebook UI and GApps review | In progress (PR #71 merged) | Review done (`docs/googlebook-ui.md`, `docs/gapps.md`). All ten follow-ups approved and running in parallel on the shared lane (builds take turns under the lane lock; each issue has its own Cuttlefish ports) | — |
+| ANAL-202 to ANAL-209 beautification B1–B8 | In progress | B1 Google Sans · B2 blur on the G14 · B3 flag set v2 · B4 shapes and wallpaper dim · B5 clean desktop · B6 brand assets · B7 document fonts · B8 first-run setup. G14 checks go to ANAL-192's next stick | — |
+| ANAL-203 B2: background blur on the G14 | In review (PR #72 merged) | Done: the G14 product enables blur (built; Cuttlefish unchanged), and the G14 image blurs in QEMU. Measured in Cuttlefish: SurfaceFlinger blurs the shade's window (radius 34) only with blur on; on a quiet host SystemUI's frames don't change (janky 3.6 vs 4.6 %), RenderEngine spends 2.8–4.0 ms per GPU frame; under heavy host load the shade's janky frames double. The graphics check gets a `blur` part with pass/fail verdicts. Found: Googlebook turns off the full-screen shade blur (`config_supportBlurredWallpaper=false`), for B3. Renderer properties evaluated, not flipped (`docs/graphics-amd.md`) | ANAL-192's stick: the graphics check boot |
 | ANAL-204 B3 desktop flag set v2 | In review (PR @@PR@@) | Done: all 218 Googlebook flags that AOSP 17 declares are triaged (`device/anybook/common/desktop/release/googlebook-triage.tsv`), and 84 are on (value set 79 → 163). Two broke the desktop and stay off: a SystemUI crash on restoring a minimized window, and an empty notification shade with no lock screen. 23 do nothing, because AOSP 17 has no code for them. Shown in Cuttlefish: window box shadows, stepped cascading, QS tooltips, power-menu blur (`docs/googlebook-flags.md`). Next: the G14 check on ANAL-192's stick | ANAL-192's stick; B2 for blur on the G14 |
+| ANAL-205 B4: circular icons, no wallpaper dim | In review (PR #73 merged) | **Done in Cuttlefish:** the framework RRO sets the circle mask, round icons and 0 wallpaper dim; `desktop.mk` sets Googlebook's wallpaper colour thresholds 55 / 12. All apps, the taskbar and Settings now draw circles. A grey wallpaper is no longer dimmed (171 → 180 on screen). A pick in Wallpaper & style still wins in the taskbar. Both products build. Open: the taskbar's all-apps panel ignores a shape pick, on the baseline too (`docs/googlebook-ui.md` §2.4) | G14 check on ANAL-192's stick |
+| ANAL-206 B5: a clean default desktop | In review (PR #75 merged) | Done in Cuttlefish and on the G14 product in QEMU: no search box and no `QuickSearchBox`; taskbar pins Files, Settings, browser, Calendar, Gallery, Camera (only with a camera); touch, keypress and non-forced screenshot sounds off; installer live checks 40/40 (`docs/aosp-desktop.md`, `evidence/2026-10-17-clean-desktop/`). Next: the G14 check on the next stick | The owner's review of the pin list; ANAL-192's next stick |
+| ANAL-210, ANAL-211 Google services | In progress | G1 microG patch and add-on; G2 an installer step for a user-supplied GApps package (synthetic test package only) | — |
 | ANAL-166 performance and parity | Backlog | After the installer: benchmarks, Chrome, the Linux terminal (AVF without pKVM). No sub-issues yet | — |
 | ANAL-186 NVIDIA | Parked | Research is done (ANAL-187); N1–N6 after M4 | — |
 | ANAL-165 Track B (ANAL-182 to ANAL-185) | Parked | Starts only if the owner decides to use Google's image | Owner decision |
@@ -98,6 +97,49 @@
   - `scripts/ui/flag-triage-md.py`.
 - **Deviation:** the six groups were built together in one image, because sibling builds held the shared lane. Each failure was then traced to one flag and confirmed in a rebuild (v3, v4).
 
+### 2026-10-18: a clean default desktop (ANAL-206, backlog B5)
+- **Done** (`docs/aosp-desktop.md`, "The default desktop"):
+  - **No search box.** A Launcher3 RRO empties the hotseat's search slot, which held AOSP's `QuickSearchBox` "Google" bar. The same RRO overrides `QuickSearchBox`, so the app is gone; Settings search, the search key and global search don't need it.
+  - **Taskbar pins** from a Launcher3 partner customization package (`AnyBookDesktopPartnerCustomization`): Files, Settings, the browser (today WebView Shell, the only one we ship), Calendar, Gallery, and Camera, which Camera2 hides on devices without a camera. No desktop icons.
+  - **Quiet:** touch sounds off (`def_sound_effects_enabled`, as Googlebook), LatinIME's keypress sound off (AOSP turns it on at 600 dp and up), the screenshot shutter only when a region requires it (`screenshot_remove_nonforced_sound`, as Googlebook). Lock sounds stay on: they are the G14 checklist's SoundPool probe.
+- **Evidence** (`evidence/2026-10-17-clean-desktop/`): both products build. Cuttlefish on the Radeon 610M: `scripts/ui/desktop-defaults.sh` and `scripts/desktop-capture.sh` pass, with before/after screenshots. The G14 product's live image in QEMU: five pins (no camera), no search box, the installer's entry still there, and `live-qemu.sh` 40/40.
+- **Found:** an RRO value only wins where its configuration is at least as specific as the target's, so the LatinIME overlay repeats its value for `sw600dp` and `sw768dp`. Parallel Cuttlefish containers need `CF_ARGS=--vhost_user_vsock=true`, or `run_cvd` fails with "Can't tombstone server socket".
+- **Not done:** the screenshot flash (no setting exists), and "add new apps to the desktop", which AOSP 17 hard-codes on. Both need patches.
+
+### 2026-10-17: background blur on the G14, measured in Cuttlefish (ANAL-203)
+- **Change (C).** `ro.surface_flinger.supports_background_blur=1` in the G14 product, as on Googlebook. Cuttlefish already had it and is unchanged. AOSP 17 needs nothing else: its blur configs default to on, and WM turns blur off by itself in battery saver and at severe thermal status (`docs/googlebook-ui.md` §2.3).
+- **Cost in Cuttlefish (C)** (Radeon 610M, gfxstream; `scripts/ui/blur-bench.sh`, 6 alternating rounds of 20 shade and 20 Quick Settings cycles):
+  - Blur is applied only when on: one layer, `VRI-NotificationShade`, radius 34.
+  - On a quiet host SystemUI's frames don't change. SurfaceFlinger puts about two thirds of the frames on the GPU, at 2.8–4.0 ms of RenderEngine time each.
+  - Under heavy host load the shade's janky frames double (16.9 vs 8.1 %).
+  - No crash, restart or amdgpu fault.
+- **G14 image (C).** It builds with the property, and in QEMU (SwiftShader) it blurs Quick Settings, only with blur on. On a CPU renderer blur costs SurfaceFlinger about one frame in five while a panel moves.
+- **G14 check (built, not run).** The graphics add-on gets a `blur` part, which runs first and takes about 7 minutes. `gfx_blur` verdicts: blur applied, no GPU hang, frame cost against 120 Hz thresholds.
+- **Found (C).** Googlebook and Google's 37.1 desktop image set SystemUI `config_supportBlurredWallpaper=false`: no full-screen blur behind the shade. Ours blurs the whole desktop behind the small Quick Settings panel. Passed to B3 (ANAL-204) with `blur_on_more_surfaces`.
+- **Renderer properties (C, evaluation only).** Googlebook's `ro.hwui.use_vulkan`, `debug.renderengine.vulkan` and `debug.renderengine.graphite_desktop_optin` move HWUI and RenderEngine from GL on ANGLE onto Vulkan, or Graphite. Our build already enables Graphite's desktop flag, so one property would switch RenderEngine. They stay off: the G14's failing AHardwareBuffer dEQP case is the path both Vulkan backends use (`docs/graphics-amd.md`).
+- **Host note.** Two Cuttlefish VMs on this host need `CF_ARGS=--vhost_user_vsock=true`. Otherwise the second one's modem simulator can't bind its vsock port, and `cvd create` fails.
+
+### 2026-10-18: BootOrder decision, the Googlebook review and B4 merged (ANAL-159)
+- **Merged** #70 (ANAL-191: without consent, OpenBook is appended to `BootOrder`; still `O_EXCL`; QEMU/OVMF: Windows stand-in stays default, OpenBook in the boot menu), #71 (ANAL-201: licensing checked: Google Sans and Google Sans Flex are OFL from google/fonts; no Google binaries committed; GMS user-supplied only; microG optional; no Play Integrity bypass) and #73 (ANAL-205 B4).
+- Deleted the merged branches. #72 (ANAL-203) and ANAL-210's branch stay while their runs are active.
+
+### 2026-10-17: circular icons and no wallpaper dim, as on Googlebook (ANAL-205, backlog B4, PR #73)
+- **Set (C):**
+  - in `AnyBookDesktopFrameworkOverlay`: `config_icon_mask` (a circle path of our own), `config_useRoundIcon=true` and `config_wallpaperDimAmount=0`;
+  - in `desktop.mk`: `persist.wallpapercolors.threshold=55` and `max_dark_area=12`. AOSP 17's `WallpaperColors` reads both.
+  - The CF and G14 products both build with them.
+- **Measured in Cuttlefish against the unchanged base (C)** (`evidence/2026-10-17-shape-wallpaper/`):
+  - `cmd overlay lookup` resolves all three values.
+  - All apps, the taskbar, the Settings homepage and Settings' app list draw circles.
+  - Grey 180 shows as 180 (171 before, AOSP's 5 % dim).
+  - `WallpaperColors` now gives the dark-text hint to a grey of luminance 0.62 and to a white image with 8 % dark pixels.
+  - No crashes.
+- **Icon-shape picker (C):**
+  - Wallpaper & style's Icons → Shape offers five shapes and shows Circle selected, which now matches what the home screen draws. With AOSP's mask it showed Circle while the launcher drew a rounded square.
+  - A user's pick still wins in the taskbar.
+  - The taskbar's all-apps panel keeps the system mask after a pick, in the baseline build too (AOSP Launcher3, cause not traced).
+- **Tools:** `scripts/ui/shape-shots.sh`, `scripts/ui/wallpaper-dim-check.sh`, `scripts/ui/wallpaper-hints.sh`.
+
 ### 2026-10-17: the Googlebook image reviewed, GApps options, and Google Sans on OpenBook in a VM (ANAL-201)
 - **Why Googlebook looks cleaner (C)** (`docs/googlebook-ui.md`):
   - It replaces the platform UI with Google builds: the Pixel Launcher, plus SystemUITitan and SettingsGoogle, both signed with the platform key.
@@ -112,6 +154,18 @@
   - MindTheGapps dropped x86 after Android 13.
 - **Not booted:** Google APIs Desktop 37.1 in emulator 37.2.12. The binder storm between SurfaceFlinger and the ranchu composer is in `gapis-desktop-37.1/boot-failure.txt`.
 - **Tools:** `scripts/gbos-inventory.py`, `scripts/overlay-values.py`, `scripts/aconfig-storage-dump.py` (reads Android 17 flag storage offline), `scripts/ui/`.
+
+### 2026-10-17: without consent, OpenBook goes last in `BootOrder` (ANAL-191, PR #70, owner decision)
+- **Done** (`docs/installer.md` S11, §12.11, §13.7). The owner approved our recommendation:
+  - an install with "Start OpenBook by default" off now appends its new `Boot####` to the end of `BootOrder`, so the other system stays the default and OpenBook is in the firmware's boot menu;
+  - with the box ticked it still goes first; no other entry changes, and every write is read back;
+  - Confirm says "OpenBook is added to this laptop's boot menu; Windows stays the default". Done names the entry and the boot-menu key.
+- **Evidence** (`evidence/2026-10-17-installer-bootorder/`), QEMU/OVMF, enforcing:
+  - engine host tests 65/65; wizard runs 41/41 (`anal191h`);
+  - the Windows-like disk now boots a stand-in EFI app. With the install's NVRAM it still starts by default (`BootCurrent=0007`);
+  - OVMF's boot menu lists OpenBook last, and picking it boots Android (`BootCurrent=0005`). Before this change the menu did not list it;
+  - no denials for init, the daemon or the app.
+- **Next:** the stick after `anal198` carries this; ANAL-192's spare-drive install will be the first real NVRAM write.
 
 ### 2026-10-17: the follow-ups merged; the next stick waits for the owner's results (ANAL-159)
 - **Merged** #67 (ANAL-179: `audioserver` may use apps' memfds, the same rule AOSP gives mediaserver; SoundPool denials 2 → 0 in QEMU) and #68 (ANAL-191: the efivarfs label, mounted on live boots only).
@@ -132,7 +186,7 @@
   - a whole-disk install's entry boots with `EFI/BOOT/BOOTX64.EFI` deleted (`BootCurrent` = the new entry);
   - alongside a Windows-like disk, the "Windows Boot Manager" entry and `BootOrder` are byte-identical, and the new entry boots through `BootNext`;
   - no denials for init, the daemon or the app.
-- **Owner decision:** without consent the alongside entry is not in `BootOrder`, and EDK2 firmware then does not list it in its boot menu. Allow appending OpenBook at the end of `BootOrder`?
+- **Owner decision:** without consent the alongside entry is not in `BootOrder`, and EDK2 firmware then does not list it in its boot menu. Allow appending OpenBook at the end of `BootOrder`? (Approved; see the entry above.)
 - **Next:** the stick after `anal198` carries this; ANAL-192's spare-drive install will be the first real NVRAM write.
 
 ### 2026-10-17: SystemUI's SoundPool sounds under enforcing (ANAL-179)

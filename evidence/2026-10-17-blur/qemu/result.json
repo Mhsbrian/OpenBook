@@ -1,0 +1,112 @@
+{
+ "reason": "QEMU exited (0)",
+ "seconds": 233.4,
+ "steps_done": 39,
+ "steps": 39,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "init: init first stage started",
+   "t": 5.5
+  },
+  {
+   "step": 1,
+   "wait": "init: init second stage started",
+   "t": 7.5
+  },
+  {
+   "step": 2,
+   "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+   "t": 13.7
+  },
+  {
+   "step": 4,
+   "wait": "console:/ \\$ ",
+   "t": 13.7
+  },
+  {
+   "step": 6,
+   "wait": "console:/ \\$ ",
+   "t": 13.9
+  },
+  {
+   "step": 8,
+   "wait": "BOOTDONE=\\S* uptime=[0-9.]+",
+   "t": 40.3
+  },
+  {
+   "step": 9,
+   "wait": "console:/ \\$ ",
+   "t": 40.3
+  },
+  {
+   "step": 11,
+   "wait": "console:/ \\$ ",
+   "t": 70.4
+  },
+  {
+   "step": 13,
+   "wait": "console:/ \\$ ",
+   "t": 94.8
+  },
+  {
+   "step": 15,
+   "wait": "console:/ \\$ ",
+   "t": 99.3
+  },
+  {
+   "step": 17,
+   "wait": "console:/ \\$ ",
+   "t": 107.2
+  },
+  {
+   "step": 20,
+   "wait": "console:/ \\$ ",
+   "t": 116.6
+  },
+  {
+   "step": 23,
+   "wait": "console:/ \\$ ",
+   "t": 119.4
+  },
+  {
+   "step": 25,
+   "wait": "console:/ \\$ ",
+   "t": 119.7
+  },
+  {
+   "step": 27,
+   "wait": "console:/ \\$ ",
+   "t": 159.2
+  },
+  {
+   "step": 29,
+   "wait": "console:/ \\$ ",
+   "t": 159.7
+  },
+  {
+   "step": 31,
+   "wait": "console:/ \\$ ",
+   "t": 220.7
+  },
+  {
+   "step": 33,
+   "wait": "console:/ \\$ ",
+   "t": 222.1
+  },
+  {
+   "step": 35,
+   "wait": "console:/ \\$ ",
+   "t": 223.8
+  },
+  {
+   "step": 37,
+   "wait": "console:/ \\$ ",
+   "t": 231.0
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/qemu/anal203-blur3/disk.img",
+ "nvme": null,
+ "nvme2": null
+}
