@@ -1,10 +1,10 @@
 # Status
 
-## State of the union (2026-10-18, 01:45 UTC)
+## State of the union (2026-10-18, 03:00 UTC)
 
 **Goal:** the Googlebook-style Android 17 desktop on the ASUS ROG Zephyrus G14 (GA403WR: Ryzen AI 9 HX 370, Radeon 890M), installed from a USB stick through a wizard and verified on the laptop. Repo: https://github.com/Mhsbrian/OpenBook.
 
-**Repo hygiene:** PRs #1–#74 are merged except #72 (ANAL-203, its run still active). The 2026-10-17 cleanup left one remote branch, `main`; every other branch was merged or superseded. Two branches with commits never merged are kept as tags: `archive/anal-190-live-image-b` (superseded on `main`) and `archive/anal-178-stick-integration`.
+**Repo hygiene:** PRs #1–#76 are merged and none are open. The 2026-10-17 cleanup left one remote branch, `main`; every other branch was merged or superseded. Two branches with commits never merged are kept as tags: `archive/anal-190-live-image-b` (superseded on `main`) and `archive/anal-178-stick-integration`.
 
 ### What works, and where it has been shown
 
@@ -24,7 +24,7 @@
 
 ### Running now
 
-- **Running: ANAL-201's beautification and Google-services backlog** (ANAL-202–204, ANAL-206–211: Google Sans, background blur, the flag set, a clean default desktop, brand assets, document fonts, first-run setup, microG, bring-your-own GApps). Nine runs share the host; builds take turns under the AOSP lane lock, and memory is tight (about 8 GB free). Merged since 21:30: #70 (BootOrder: OpenBook appended when not the default, owner decision), #71 (the Googlebook image review and GApps options), #73 (B4: circular icons, no wallpaper dim). The owner's `anal198` session hasn't happened yet; the next stick follows it.
+- **Running: ANAL-201's beautification and Google-services backlog** (ANAL-202–204, ANAL-206–211: Google Sans, background blur, the flag set, a clean default desktop, brand assets, document fonts, first-run setup, microG, bring-your-own GApps). Nine runs share the host; builds take turns under the AOSP lane lock, and memory is tight (about 8 GB free). Merged since 21:30: #70 (BootOrder: OpenBook appended when not the default, owner decision), #71 (the Googlebook image review and GApps options), #73 (B4: circular icons, no wallpaper dim), #72 (B2: background blur on the G14 product), #75 (B5: a clean default desktop). The owner's `anal198` session hasn't happened yet; the next stick follows it.
 - **ANAL-198 (kernel lane): #64 merged.** It adds the system DMA-BUF heap and fixes two product bugs behind it (Codec2 HAL selection, Codec2 memfds under SELinux), so media decodes in QEMU. It also ships `efivarfs` as a vendor module, with Google's GKI configuration unchanged. Writing variables needed installer SELinux policy: done by ANAL-191 (#68).
 - **The owner's stick is now `openbook-live-20261017-anal198`** (built on the owner's request after #64; `docs/installer.md` §13.11). It comes from `main` `2d90741` and has everything `anal192c` had, plus Vulkan 1.4 (#61), the #64 kernel and media fixes, and ANAL-177's graphics check (sha256 `3b405d08…`). In QEMU: live 40/40, wizard 25/25, installer end to end 78/78, all four add-ons, and the media check. It replaces `anal192c`. The checklist is `anal192c`'s three boots (§13.6) plus a fourth, the graphics check.
 - **After that session:** results go to ANAL-176, ANAL-177, ANAL-178, ANAL-179, ANAL-191 and ANAL-200.
