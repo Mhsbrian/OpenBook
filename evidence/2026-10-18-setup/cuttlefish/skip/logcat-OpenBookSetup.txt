@@ -1,2 +1,2 @@
-10-18 11:43:20.659  2793  2793 I OpenBookSetup: setup started (locale en-US)
-10-18 11:43:30.725  2793  2793 I OpenBookSetup: setup complete (skipped by the user on welcome); provisioned=true
+10-18 12:45:34.689  2761  2761 I OpenBookSetup: setup started (locale en-US)
+10-18 12:45:50.558  2761  2761 I OpenBookSetup: setup complete (skipped by the user on welcome); provisioned=true

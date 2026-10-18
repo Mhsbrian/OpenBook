@@ -1,8 +1,8 @@
 # ANAL-209 (B8): OpenBook's first-run setup (2026-10-18)
 
 The write-up is `docs/setup.md`. Everything here comes from this branch's builds (userdebug, AOSP test keys).
-- **Final runs:** `cuttlefish/`, `qemu/` and `contact-sheet.png`. They come from `bbfef6b`, the branch merged with `main` at `c52f94a` (B1, B3, B6, B7, G1 included) plus the step-aside fix. The PR adds only docs and evidence on top.
-- **`earlier/`:** the results of the runs that found the bugs in "Found and fixed".
+- **Final runs:** `cuttlefish/`, `qemu/` and `contact-sheet.png`. They come from `24b7787`: the branch merged with `main` at `f49ccd8`, which includes B1, B3, B6, B7, G1 (#80), G2 (#85) and the `anal192d` stick (#86). The PR adds only docs and evidence on top.
+- **`earlier/`:** the results of earlier trees, including the runs that found the bugs in "Found and fixed".
 
 Tools: `scripts/setup/setup-walk.sh` (Cuttlefish), the installer's `scripts/installer/live-qemu.sh` and `wizard-qemu.sh` (QEMU/OVMF, G14 product image).
 
@@ -13,10 +13,11 @@ Tools: `scripts/setup/setup-walk.sh` (Cuttlefish), the installer's `scripts/inst
 | `ceec8ed` (before merging `main`) | `anybook_cf_x86_64_pc` and `anybook_g14_x86_64` (one lane hold, 08:38–09:37 UTC) |
 | `11a652b` (merged) | `anybook_cf_x86_64_pc` (10:05–10:38) |
 | `bbfef6b` (merged + fix) | `anybook_g14_x86_64` and live image `openbook-live-20261018-anal209m` (10:39–11:10), `anybook_cf_x86_64_pc` (11:10–11:39) |
+| **`24b7787`** (merged again, with G2, #86, #87) | **`anybook_cf_x86_64_pc` (12:09–12:38), `anybook_g14_x86_64` and live image `openbook-live-20261018-anal209n` (12:38–13:10)** |
 
 In both products: `/system_ext/priv-app/OpenBookSetup/OpenBookSetup.apk` and `privapp-permissions-openbook-setup.xml`, and no Provision (`installed-files-system_ext.txt`).
 
-## Cuttlefish, final (`bbfef6b`; Radeon 610M, `gfxstream_guest_angle`, 1920×1080 at 160 dpi; each a fresh `cvd create`)
+## Cuttlefish, final (`24b7787`; Radeon 610M, `gfxstream_guest_angle`, 1920×1080 at 160 dpi; each a fresh `cvd create`)
 
 | Run | cvd flags | Checks |
 |---|---|---|
@@ -41,14 +42,17 @@ What each run adds:
 - **`skip`:** the language is unchanged.
 - **`flag`, `default`:** setup never started. It logged `step aside: androidboot.openbook.setup=skip` (`flag`) or `step aside: ro.setupwizard.mode=DISABLED` (`default`).
 
-## QEMU, final (G14 product image `openbook-live-20261018-anal209m`, `bbfef6b`, sha256 in `qemu/*.sha256`)
+## QEMU, final (G14 product image `openbook-live-20261018-anal209n`, `24b7787`, sha256 in `qemu/*.sha256`)
 
 | Run | Result | Files |
 |---|---|---|
 | Installer live checks (`live-qemu.sh`) | **40/40** | `qemu/live-results.json`, `live-SUMMARY.md`; `live-default-shot-120.png`: the install wizard opens by itself (QEMU's display swaps red and blue, `docs/installer.md` §12.7) |
 | The live stick's first boot (case `first`) | Setup steps aside once (`live session`); the system starts Settings' `FallbackHome` itself; **0 `am_crash`** | `qemu/live-first-boot-setup.txt` |
 | Installer wizard (`wizard-qemu.sh`: dryrun, install, installed, console) | **27/27.** The dryrun (the stick's first boot) opens the wizard by itself. On the installed disk, OpenBook setup is the first screen; the driver walks the nine pages, skipping the optional ones; afterwards provisioned, complete, setup off, the launcher on top | `qemu/wizard-results.json`, `wizard-SUMMARY.md`, `qemu/installed-setup/` (half size, 2880×1800 at density 240) |
+| G2's end to end with a synthetic package (`scripts/gapps/gapps-e2e-qemu.sh`: prep, g-cli, g-installed, check) | **g-cli 10/10, g-installed 18/18.** On the installed system, setup has 10 pages. Page 9, "Register this computer with Google", shows the stand-in GSF's ID `3141592653589793238` (hex `2b992ddfa23249d6`) and the steps for `google.com/android/uncertified`. Settings › About's entry still opens the installer's registration page. The other G2 cases (power cuts, the wizard's file picker, verity) don't touch setup and were not rerun | `qemu/gapps/` (`results.json`, `SUMMARY.md`, `setup-register-ui.txt`, `g-setup-register.png`) |
 | SELinux on the installed disk | No denial from setup. Reported (not gated): MediaProvider scanning the test's `/data/local/tmp` files, SystemUI's `bluetooth_lea_prop` read, keystore → Gatekeeper's `ISharedSecret` (all known before) | `qemu/console-avc.txt` |
+
+Earlier trees, for comparison (`earlier/`): `ceec8ed` Cuttlefish 14/14, 7/7, 6/6, 6/6 (no crash check yet), QEMU live 40/40, the wizard's dryrun failing; `bbfef6b` Cuttlefish 15/15, 8/8, 7/7, 7/7, QEMU live 40/40, wizard 27/27.
 
 ## Found and fixed
 
