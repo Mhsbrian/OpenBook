@@ -1,0 +1,36 @@
+feature android.software.virtualization_framework	PASS	
+AVF in the APEX: crosvm, virtmgr, the Terminal app	PASS	VmTerminalApp crosvm virtmgr
+ro.boot.hypervisor.vm.supported=1	PASS	[hypervisor.memory_reclaim.supported]: [1] [ro.boot.hypervisor.protected_vm.supported]: [0] [ro.boot.hypervisor.version]: [cf-crosvm] [ro.boot.hypervisor.vm.supported]: [1]
+/dev/kvm	PASS	crw-rw-rw- 1 root root u:object_r:kvm_device:s0  10, 232 2026-10-18 19:49 /dev/kvm
+KVM on AMD in the guest kernel (kvm_amd, nested)	PASS	svm_cpus=4 nested=1 npt=Y misc=10:232
+Terminal app installed, off by default	PASS	package:/apex/com.android.virt/priv-app/VmTerminalApp@CP2A.260605.016/VmTerminalApp.apk; disabled=True
+agent bridge provider exported with its permission	PASS	
+Quire holds ACCESS_AGENT_BRIDGE	PASS	com.android.virtualization.terminal.permission.ACCESS_AGENT_BRIDGE
+      com.android.virtualization.terminal.permission.ACCESS_AGENT_BRIDGE: granted=true
+Terminal off: Quire says so and names the fallback	PASS	The Linux environment is off. Turn it on in Settings › System › Developer options › Linux development environment. Quire can use the agents on another computer instead, but none is paired.
+status line names each connector	PASS	linux-environment=TERMINAL_OFF paired-computer=NOT_PAIRED
+Android has internet (the VM's Wi-Fi)	PASS	
+image pushed to /sdcard/linux/images.tar.gz	PASS	1 s; 
+before install, Quire reports NOT_INSTALLED	PASS	linux-environment=NOT_INSTALLED paired-computer=NOT_PAIRED
+Terminal installs the local image (Install tapped, or by itself)	PASS	installed by itself, state running
+Linux environment installed and running	PASS	Result: Bundle[{state=running}]; install+start 26 s
+Quire core reached quired in the guest	PASS	agents: connected via linux-environment in 20 ms; quired 0.2.0
+quired lists an agent installed in the guest	PASS	opencode 1.19.3 supported=true
+VM start -> Quire connected to quired (s)	INFO	12.1
+guest boot (systemd)	INFO	no Startup line in the console; kernel 6.12.113+deb13-cloud-amd64
+the Terminal app shows its terminal	PASS	[269,205][1651,884]
+`quired agents` typed in the Terminal app (screenshot)	INFO	terminal-quired-agents.png
+opencode's sign-in methods reach Quire (ACP authMethods)	PASS	[opencode-login:agent:"Login with opencode"]
+a prompt from Quire core is answered by opencode in the guest	FAIL	no answer (300.4 s)
+a caller without ACCESS_AGENT_BRIDGE is refused (shell, uid 2000)	PASS	java.lang.SecurityException: Permission Denial: opening provider com.android.virtualization.terminal.AgentBridgeProvider from (null) (pid=6323, uid=2000) requires com.android.virtualization.terminal.permission.ACCESS_AGE
+Quire's hang-up reaches quired in the guest (the bridge's relay closes both ways)	PASS	
+other guest ports are not offered (4000, the guest agent)	PASS	Error while accessing provider:com.android.virtualization.terminal.agentbridge
+java.io.FileNotFoundException: not offered: /vsock/4000
+	at android.database.DatabaseUtils.readExceptionWithFileNotFoundE
+VM stopped: Quire says so and names the fallback	PASS	The Linux environment isn’t running. Open Terminal to start it. Quire can use the agents on another computer instead, but none is paired.
+crash buffer empty	PASS	0 lines; 
+no ANR	PASS	am_anr events: 0
+no SystemUI restart	PASS	pid at start 2659, now 2659
+no new SELinux denial outside AOSP's AVF and Cuttlefish's known three	PASS	13 distinct, 0 new
+AOSP AVF denials seen (the VM works with them)	INFO	10 lines: scontext=u:r:priv_app_all_virtualizationmanager:s0 tcontext=u:object_r:gpu_device:s0 tclass=chr_file; scontext=u:r:priv_app_all_virtualizationmanager:s0 tcontext=u:r:surfaceflinger:s0 tclass=fd; scontext=u:r:system_server:s0 tcontext=u:r:crosvm_vu_snd:s0 tclass=process
+no denial for the Terminal app's bridge or Quire	PASS	

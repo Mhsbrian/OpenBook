@@ -417,7 +417,7 @@ def main():
     d.run("pull", "/data/local/tmp/q4-logcat.txt", str(d.o / "logcat-all.txt"), timeout=120)
     with open(d.o / "results.tsv", "w") as f:
         for c, r, detail in d.results:
-            f.write(f"{c}\t{r}\t{detail}\n")
+            f.write(f"{c}\t{r}\t{' | '.join(str(detail).split(chr(10)))}\n")
     fails = [c for c, r, _ in d.results if r == "FAIL"]
     passes = sum(1 for _, r, _ in d.results if r == "PASS")
     d.log(f"== {passes} pass, {len(fails)} fail" + (": " + "; ".join(fails) if fails else ""))
