@@ -82,12 +82,12 @@ function settingsWindow(o, H) {
       <div class="nav">
         <div class="search">${ms('search')}Search Settings</div>
         ${navRow('wifi', '#2F6B45', 'Network & internet', 'Wi-Fi, hotspot')}
-        ${navRow('devices', '#565B8C', 'Connected devices', 'Bluetooth, pairing')}
+        ${navRow('devices', '#565B8C', 'Connected devices', 'Bluetooth, pairing', s.page === 'devices')}
         ${navRow('apps', '#72557B', 'Apps', 'Recent apps, default apps')}
         ${navRow('notifications', '#A8364B', 'Notifications', 'Notification history')}
         ${navRow('volume_up', '#5C5E72', 'Sound', 'Volume and vibration')}
         ${navRow('battery_charging_full', '#2F6B45', 'Battery', 'Battery saver, usage', s.page === 'battery')}
-        ${navRow('display_settings', '#565B8C', 'Display', 'Dark theme, font size, brightness', s.page !== 'battery')}
+        ${navRow('display_settings', '#565B8C', 'Display', 'Dark theme, font size, brightness', !s.page || s.page === 'display')}
         ${navRow('palette', '#7A4CE0', 'Wallpaper', 'Home, lock screen')}
       </div>
       <div class="page">
@@ -95,6 +95,10 @@ function settingsWindow(o, H) {
           ${pref('Battery saver', 'Turns off or restricts background activity', sw(s.saver))}
           ${pref('Adaptive battery', 'Extends battery life by limiting rarely used apps', sw(true))}
           ${pref('Battery percentage', 'Show percentage in the status bar', sw(true))}`
+        : s.page === 'devices' ? `<h2>${ms('arrow_back')}Connected devices</h2>
+          ${pref('Bluetooth', s.bt === false ? 'Off' : 'On', sw(s.bt !== false), s.changed === 'bt')}
+          ${pref('Pair new device', 'Make this laptop visible to nearby devices', ms('chevron_right'))}
+          ${pref('Saved devices', 'Headphones, OpenBook Mouse', ms('chevron_right'))}`
         : `<h2>${ms('arrow_back')}Display</h2>
           ${pref('Dark theme', dark ? 'On · Will never turn off automatically' : 'Off · Will never turn on automatically', sw(dark), s.changed === 'dark')}
           ${pref('Brightness level', (s.brightness ?? 80) + '%', slider(s.brightness ?? 80), s.changed === 'brightness')}
@@ -215,15 +219,14 @@ function note(n) {
       ${prompt(n)}
       <div class="mirror-bar"><span class="auto ${m.paused ? 'paused' : ''}"><span class="dot"></span>${m.paused ? 'Paused' : 'Using Settings'}</span><span>${m.title}</span><span class="spacer"></span></div>
       <div class="mirror-view">
-        <div class="desk"></div>${settingsWindow({ settings: m.settings, settingsGeo: { left: 0, top: 0, width: 1280, height: 800 } }, 0).outerHTML}
-        ${m.ghost ? `<span class="ghost" style="left:${m.ghost[0]}px;top:${m.ghost[1]}px">${POINTER}</span>` : ''}
-        ${m.tap ? `<span class="tap" style="left:${m.tap[0]}px;top:${m.tap[1]}px"></span>` : ''}
-        ${m.focus ? `<span class="focus-ring" style="left:${m.focus[0]}px;top:${m.focus[1]}px;width:${m.focus[2]}px;height:${m.focus[3]}px"></span>` : ''}
+        <div class="stage"><div class="desk"></div>${settingsWindow({ settings: m.settings, settingsGeo: { left: 0, top: 0, width: SESSION[0], height: SESSION[1] } }, 0).outerHTML}</div>
+        <div class="overlay"></div>
         ${m.paused ? `<div class="paused-scrim"><span>${ms('pause')}Paused · click in the mirror to act, or Take over</span></div>` : ''}
       </div>
       <div class="mirror-step">${steps(m.steps)}</div>
       <div class="mirror-foot"><span class="status">${m.status}</span>
         <button type="button" class="btn text danger" data-act="stop">Stop</button><button type="button" class="btn tonal" data-act="pause" aria-label="${m.paused ? 'Resume' : 'Pause'}">${ms(m.paused ? 'play_arrow' : 'pause')}${m.paused ? 'Resume' : 'Pause'}</button><button type="button" class="btn filled ${m.focusTake ? 'focus' : ''}" data-act="takeover" aria-label="Take over">${ms('open_in_full')}Take over</button></div>`;
+    el._mirror = m;
     return el;
   }
   body = (n.blocks || []).map(b => {
@@ -263,9 +266,30 @@ function picker(p) {
 }
 const pItem = (id, t, sub, ic, cls, sel, dim) => { const a = AGENTS[id]; return `<div class="it ${sel ? 'sel' : ''} ${dim ? 'dim' : ''}"><span class="av" style="background:${a.col}">${a.ini}</span><div class="w">${t}<small>${sub}</small></div>${ms(ic, cls)}</div>`; };
 
+/* ------------------------------------------------------------------------------------------ mirror geometry */
+// The session display has the reference display's size and density (C): 1920x1200 dp on the G14. The 736 dp view
+// shows all of it at 0.383; while the agent acts on a control, the view zooms 2x (0.767) on a 960x600 dp region
+// around it (spring.expand in the build; a cut in this prototype). Paused shows the full view.
+const SESSION = [1920, 1200], VIEW_W = 736, FULL = VIEW_W / SESSION[0], ZOOM = 2;
+function relTo(el, stage) { let x = 0, y = 0; for (let e = el; e && e !== stage; e = e.offsetParent) { x += e.offsetLeft; y += e.offsetTop; } return { x, y, w: el.offsetWidth, h: el.offsetHeight }; }
+function mirrorLayout(n) {
+  const m = n && n._mirror, view = n && n.querySelector('.mirror-view'); if (!m || !view) return;
+  const stage = view.querySelector('.stage'), ov = view.querySelector('.overlay');
+  const te = m.target ? stage.querySelector(m.target) : null, t = te ? relTo(te, stage) : null;
+  let sc = FULL, ox = 0, oy = 0;
+  if (t && !m.paused) { sc = FULL * ZOOM; const rw = VIEW_W / sc, rh = (VIEW_W * 10 / 16) / sc; ox = Math.max(0, Math.min(SESSION[0] - rw, t.x + t.w / 2 - rw / 2)); oy = Math.max(0, Math.min(SESSION[1] - rh, t.y + t.h / 2 - rh / 2)); }
+  stage.style.transform = `scale(${sc}) translate(${-ox}px, ${-oy}px)`;
+  const mv = (x, y) => [((x - ox) * sc).toFixed(1), ((y - oy) * sc).toFixed(1)];
+  let html = '';
+  const g = m.ghost || (t ? [t.x + t.w * 0.62, t.y + t.h * 0.56] : null);
+  if (g && !m.paused) { const [x, y] = mv(g[0], g[1]); html += `<span class="ghost" style="left:${x}px;top:${y}px">${POINTER}</span>`; if (m.tap) html += `<span class="tap" style="left:${x}px;top:${y}px"></span>`; }
+  if (t && !m.paused) { const [x, y] = mv(t.x, t.y); html += `<span class="focus-ring" style="left:${x}px;top:${y}px;width:${(t.w * sc).toFixed(1)}px;height:${(t.h * sc).toFixed(1)}px"></span>`; }
+  ov.innerHTML = html;
+}
+
 /* ------------------------------------------------------------------------------------------ placement */
 function place(board, el, anchor, opt = {}) {
-  board.appendChild(el);
+  board.appendChild(el); mirrorLayout(el);
   const W = board.clientWidth || 1920, H = board.clientHeight || 1080;
   const w = el.offsetWidth, hh = el.offsetHeight;
   let x, y;
@@ -289,6 +313,13 @@ function pointer(board, [x, y], o = {}) {
   return p;
 }
 function intake(board, geo, region) { const i = h('div', 'intake' + (region ? ' region' : '')); Object.assign(i.style, { left: geo.left + 'px', top: geo.top + 'px', width: geo.width + 'px', height: geo.height + 'px' }); board.appendChild(i); return i; }
+function selToolbar(board, x, y, hover) { // the text toolbar with its overflow open: Ask Quire is a label there, not an iconed item
+  const tb = h('div', 'sel-toolbar', `<span>Copy</span><span>Share</span><span>Select all</span><span class="sep"></span><span class="more">${ms('more_vert')}</span>`);
+  tb.style.left = x + 'px'; tb.style.top = y + 'px'; board.appendChild(tb);
+  const menu = h('div', 'sel-menu', `<span class="q ${hover ? 'hover' : ''}" data-act="ask-selection">Ask Quire</span>`);
+  board.appendChild(menu); menu.style.left = (x + tb.offsetWidth - menu.offsetWidth) + 'px'; menu.style.top = (y + 50) + 'px';   // under the ⋮
+  return [tb, menu];
+}
 function anno(board, x, y, text, cls = '') { const a = h('div', 'anno ' + cls, `<i></i>${text}`); a.style.left = x + 'px'; a.style.top = y + 'px'; board.appendChild(a); }
 
 /* ------------------------------------------------------------------------------------------ sample content */
@@ -328,8 +359,8 @@ S['invoke-taskbar'] = { caption: '<b>Taskbar button.</b> The note rises from the
 S['invoke-voice'] = { caption: '<b>Hold to talk.</b> The halo becomes a mic ring; the mic indicator and privacy dot appear in the status bar (Q7). Words arrive as they are recognised; release sends.',
   build(b, H) { desktop(b, { activeWin: 'settings', mic: true }); intake(b, SETTINGS_GEO(H)); pointer(b, PTR, { halo: 'listening', breathe: true }); place(b, note({ agent: 'claude', intake: { kind: 'window', text: 'Settings · Display' }, listening: { final: 'Make my screen easier to read ', partial: 'at night' } }), { at: PTR }); } };
 
-S['invoke-selection'] = { caption: '<b>Ask Quire on a selection.</b> The floating toolbar gains an Ask Quire item. The selection stays highlighted and becomes a quoted chip; the note opens from the end of the selection.',
-  build(b, H) { desktop(b, { activeWin: 'doc', selection: true, windows: ['settings', 'doc'] }); const tb = h('div', 'sel-toolbar', `<span>Copy</span><span>Share</span><span>Select all</span><span class="sep"></span><span class="q">${LEAF}Ask Quire</span>`); tb.style.left = '184px'; tb.style.top = '306px'; b.appendChild(tb); pointer(b, [498, 324], { halo: true }); place(b, note({ agent: 'claude', intake: { kind: 'selection', text: 'The conference runs Tuesday to Thursday at the Centro de Congressos…' }, composer: { focus: true, placeholder: 'Ask about the selection' }, suggest: [['event', 'Add to calendar'], ['summarize', 'Summarise'], ['translate', 'Translate']], foot: 'Selection from Notes' }), { at: [498, 324] }); } };
+S['invoke-selection'] = { caption: '<b>Ask Quire on a selection.</b> Android lists an <code>ACTION_PROCESS_TEXT</code> handler in the text toolbar’s overflow menu as a plain label, no icon (C). The selection stays highlighted and becomes a quoted chip; the note opens at the pointer, which just chose the item.',
+  build(b, H) { desktop(b, { activeWin: 'doc', selection: true, windows: ['settings', 'doc'] }); selToolbar(b, 184, 306, true); pointer(b, [470, 388], { halo: true }); place(b, note({ agent: 'claude', intake: { kind: 'selection', text: 'The conference runs Tuesday to Thursday at the Centro de Congressos…' }, composer: { focus: true, placeholder: 'Ask about the selection' }, suggest: [['event', 'Add to calendar'], ['summarize', 'Summarise'], ['translate', 'Translate']], foot: 'Selection from Notes' }), { at: [470, 388] }); } };
 
 S['compose'] = { caption: '<b>Composing.</b> The note has settled beside the pointer. Agent chip, intake chip, suggestions for this window, and the field with focus.',
   build(b, H) { desktop(b, { activeWin: 'settings' }); intake(b, SETTINGS_GEO(H)); pointer(b, PTR, { halo: true }); place(b, note({ agent: 'claude', intake: { kind: 'window', text: 'Settings · Display' }, composer: { focus: true, text: 'Make my screen easier to read at ni' }, suggest: [['dark_mode', 'Turn on dark theme'], ['format_size', 'Make text bigger'], ['help', 'Explain this page']], foot: '<kbd>Enter</kbd> send', footRight: '<kbd>Esc</kbd> close' }), { at: PTR }); } };
@@ -355,11 +386,11 @@ S['consent-command'] = { caption: '<b>Consent for a command or a file edit.</b> 
 S['consent-system'] = { caption: '<b>Platform consent for computer control.</b> The system’s own dialog (platform-owned, drawn here only for context) asks before any app is automated. The note waits and says so.',
   build(b, H) { desktop(b, { activeWin: 'settings' }); pointer(b, PTR); place(b, note({ agent: 'claude', intake: { kind: 'window', text: 'Settings' }, you: 'In Settings, find Bluetooth and turn it off', blocks: [{ type: 'steps', list: [{ st: 'done', kind: 'read', t: 'Listing apps' }, { st: 'running', kind: 'app', t: 'Asking to use Settings' }] }, { type: 'result', icon: 'shield', cls: 'warn', msg: 'Waiting for your permission', sub: 'The system is asking whether Claude Code may use Settings.' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Waiting for you', footRight: '<kbd>Esc</kbd> stop' }), { at: PTR }); const d = h('div', 'sysdialog', `<span class="lbl">System dialog (platform)</span>${ms('shield', 'big fill')}<h3>Allow Claude Code to use Settings?</h3><p>Quire will run Settings on a separate screen that you can watch. Claude Code can tap, type and take screenshots there. Secure screens stay hidden, and you can take over at any time.</p><div class="btns"><button type="button" class="btn text">Don’t allow</button><button type="button" class="btn filled">Allow</button></div>`); d.style.left = '750px'; d.style.top = '360px'; b.appendChild(d); } };
 
-S['mirror'] = { caption: '<b>The live mirror.</b> The note expands to 760 dp and shows the session display (<code>InteractiveMirror</code>). The agent’s pointer is drawn in brand blue with a tap ring. Pause, Stop and Take over are always visible.',
-  build(b, H) { desktop(b, { activeWin: 'doc', windows: ['doc'], tbRunning: true }); pointer(b, [1400, 300]); place(b, note({ agent: 'claude', thinking: true, intake: { kind: 'window', text: 'Settings' }, you: 'In Settings, find Bluetooth and turn it off', mirror: { title: 'Connected devices', ghost: [96, 122], tap: [100, 126], focus: [25, 109, 158, 31], settings: { page: 'display' }, steps: [{ st: 'done', kind: 'app', t: 'Opened Settings' }, { st: 'running', kind: 'execute', t: 'Tapping Connected devices' }], status: 'Step 2 of 4 · 11 s' } }), { at: [1400, 300] }); anno(b, 1000, 240, 'automation indicator: the taskbar button breathes while an app is driven', 't'); } };
+S['mirror'] = { caption: '<b>The live mirror.</b> The note expands to 760 dp and shows the session display (<code>InteractiveMirror</code>), which has the reference display’s size (1920×1200 dp on the G14, C): the whole display at 0.383, zoomed 2× on the control the agent acts on. The agent’s pointer is drawn in brand blue with a tap ring. Pause, Stop and Take over are always visible.',
+  build(b, H) { desktop(b, { activeWin: 'doc', windows: ['doc'], tbRunning: true }); pointer(b, [1400, 300]); place(b, note({ agent: 'claude', thinking: true, intake: { kind: 'window', text: 'Settings' }, you: 'In Settings, find Bluetooth and turn it off', mirror: { title: 'Settings', target: '.nav .row:nth-of-type(3)', tap: true, settings: { page: 'display' }, steps: [{ st: 'done', kind: 'app', t: 'Opened Settings' }, { st: 'running', kind: 'execute', t: 'Tapping Connected devices' }], status: 'Step 2 of 4 · 11 s' } }), { at: [1400, 300] }); anno(b, 1000, 240, 'automation indicator: the taskbar button breathes while an app is driven', 't'); anno(b, 1000, 290, 'the view is zoomed 2× on the control the agent acts on; Pause shows the whole session display', 't'); } };
 
-S['mirror-paused'] = { caption: '<b>Paused.</b> The agent’s input stops; the mirror becomes interactive so the person can act inside the session. Resume gives control back. Take over moves the app to their screen.',
-  build(b, H) { desktop(b, { activeWin: 'doc', windows: ['doc'], tbRunning: true }); pointer(b, [1400, 300]); place(b, note({ agent: 'claude', intake: { kind: 'window', text: 'Settings' }, you: 'In Settings, find Bluetooth and turn it off', mirror: { paused: true, title: 'Connected devices', settings: { page: 'display' }, steps: [{ st: 'done', kind: 'app', t: 'Opened Settings' }, { st: 'done', kind: 'execute', t: 'Tapped Connected devices' }, { st: 'pending', kind: 'execute', t: 'Turn off Bluetooth' }], status: 'Paused by you · 14 s', focusTake: true } }), { at: [1400, 300] }); } };
+S['mirror-paused'] = { caption: '<b>Paused.</b> <code>notifyBlocked()</code>: the platform drops the agent’s input, the mirror becomes interactive (it only is while blocked, C), and the view returns to the whole session display. Resume (<code>requestUnblock()</code>) gives control back. Take over moves the app to their screen.',
+  build(b, H) { desktop(b, { activeWin: 'doc', windows: ['doc'], tbRunning: true }); pointer(b, [1400, 300]); place(b, note({ agent: 'claude', intake: { kind: 'window', text: 'Settings' }, you: 'In Settings, find Bluetooth and turn it off', mirror: { paused: true, title: 'Connected devices', settings: { page: 'devices' }, steps: [{ st: 'done', kind: 'app', t: 'Opened Settings' }, { st: 'done', kind: 'execute', t: 'Tapped Connected devices' }, { st: 'pending', kind: 'execute', t: 'Turn off Bluetooth' }], status: 'Paused by you · 14 s', focusTake: true } }), { at: [1400, 300] }); } };
 
 S['done'] = { caption: '<b>Done.</b> The result in one line, the steps folded, and Undo for anything that changed. The note stays until the person closes it; closing folds it into the pointer.',
   build(b, H) { desktop(b, { activeWin: 'settings', settings: { page: 'battery', saver: true } }); pointer(b, PTR); place(b, note({ agent: 'claude', intake: { kind: 'window', text: 'Settings · Display' }, you: 'Turn on Battery saver and lower the brightness', blocks: [{ type: 'steps', folded: true, list: [1, 2, 3, 4] }, { type: 'result', msg: 'Battery saver is on and brightness is at 40%.', sub: 'Changed 2 settings · 8 s' }, { type: 'btns', html: '<button type="button" class="btn tonal">' + ms('undo') + 'Undo both</button><button type="button" class="btn text">Show changes</button>' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Done', footRight: '<kbd>Esc</kbd> close' }), { at: PTR }); } };
@@ -491,7 +522,7 @@ function playInit(theme, size) {
   board.addEventListener('mousedown', e => {
     const t = e.target.closest('[data-act]');
     if (t) { if (t.dataset.act === 'mic') act('mic', t); return; }
-    if (e.target.closest('.note, .tray, .sel-toolbar, .sysdialog, .taskbar')) return;
+    if (e.target.closest('.note, .tray, .sel-toolbar, .sel-menu, .sysdialog, .taskbar')) return;
     if (PLAY.state === 'halo') { cancelHalo(); return; }
     if (PLAY.state !== 'idle' && !PLAY.hidden) { if (PLAY.running) background('click elsewhere'); else closeNote(); }
   });
@@ -502,9 +533,8 @@ function playInit(theme, size) {
     const sel = window.getSelection(); if (PLAY.state !== 'idle' || PLAY.hidden || !sel || sel.isCollapsed || !sel.anchorNode) return;
     const docEl = board.querySelector('.doc .doc-body'); if (!docEl || !docEl.contains(sel.anchorNode)) return;
     const rect = sel.getRangeAt(0).getBoundingClientRect(), r = board.getBoundingClientRect();
-    const tb = h('div', 'sel-toolbar', `<span>Copy</span><span>Share</span><span class="sep"></span><span class="q" data-act="ask-selection">${LEAF}Ask Quire</span>`);
-    tb.style.left = (rect.left - r.left) + 'px'; tb.style.top = (rect.top - r.top - 52) + 'px'; board.appendChild(tb);
-    PLAY.selText = sel.toString().trim().slice(0, 80); PLAY.selEnd = [rect.right - r.left, rect.bottom - r.top]; PLAY.selTb = tb;
+    const [tb, menu] = selToolbar(board, rect.left - r.left, rect.top - r.top - 52, false);
+    PLAY.selText = sel.toString().trim().slice(0, 80); PLAY.selTb = tb; PLAY.selMenu = menu;
   });
 }
 function onTaskbar() {
@@ -591,7 +621,7 @@ function swap(extra, cls) { // re-render the note in place and spring its size; 
   const b = PLAY.board, old = PLAY.note; const n = note(noteState(extra)); if (cls) n.classList.add(cls);
   const ox = old.style.getPropertyValue('--ox'), oy = old.style.getPropertyValue('--oy');
   n.style.left = old.style.left; n.style.top = old.style.top; n.style.setProperty('--ox', ox); n.style.setProperty('--oy', oy);
-  const h0 = old.offsetHeight, w0 = old.offsetWidth; old.replaceWith(n); PLAY.note = n; wire(n);
+  const h0 = old.offsetHeight, w0 = old.offsetWidth; old.replaceWith(n); PLAY.note = n; wire(n); mirrorLayout(n);
   const h1 = n.offsetHeight, w1 = n.offsetWidth;
   // keep the note on screen when it grows
   const W = b.clientWidth, H = b.clientHeight; let x = parseFloat(n.style.left), y = parseFloat(n.style.top);
@@ -691,15 +721,15 @@ function runMirror(you) {
 function mirrorOpen() {
   const you = PLAY.you; PLAY.state = 'mirror';
   const steps = [{ st: 'done', kind: 'app', t: 'Opened Settings' }, { st: 'running', kind: 'execute', t: 'Tapping Connected devices' }, { st: 'pending', kind: 'execute', t: 'Turning off Bluetooth', effect: 'Bluetooth was turned off', where: 'Settings · Connected devices' }];
-  const m = { title: 'Settings', ghost: [300, 240], tap: null, focus: null, settings: { page: 'display' }, steps, status: 'Step 1 of 3' };
+  const m = { title: 'Settings', ghost: [960, 640], tap: false, target: null, settings: { page: 'display' }, steps, status: 'Step 1 of 3' };
   const draw = () => swap({ you, thinking: !m.paused, mirror: m }, 'mirror');
   draw(); PLAY.m = m; PLAY.mDraw = draw;
-  later(() => { m.ghost = [96, 122]; m.tap = [100, 126]; m.focus = [25, 109, 158, 31]; m.status = 'Step 2 of 3'; draw(); }, 1200);
-  later(() => { if (m.paused) return; steps[1].st = 'done'; steps[2].st = 'running'; m.title = 'Connected devices'; m.ghost = [470, 60]; m.tap = null; m.focus = [200, 40, 500, 36]; m.status = 'Step 3 of 3'; draw(); }, 2600);
+  later(() => { m.ghost = null; m.tap = true; m.target = '.nav .row:nth-of-type(3)'; m.status = 'Step 2 of 3'; draw(); }, 1200);
+  later(() => { if (m.paused) return; steps[1].st = 'done'; steps[2].st = 'running'; m.title = 'Connected devices'; m.settings = { page: 'devices' }; m.ghost = null; m.tap = true; m.target = '.page .pref:nth-of-type(1)'; m.status = 'Step 3 of 3'; draw(); }, 2600);
   later(() => { if (m.paused) return; mirrorDone(); }, 4200);
 }
 function mirrorDone() {
-  const m = PLAY.m, steps = m.steps; steps.forEach(s => { if (s.st === 'running') s.st = 'done'; }); m.ghost = null; m.focus = null; m.status = 'Done'; PLAY.running = false; PLAY.state = 'done'; PLAY.m = null;
+  const m = PLAY.m, steps = m.steps; steps.forEach(s => { if (s.st === 'running') s.st = 'done'; }); m.ghost = null; m.target = null; m.status = 'Done'; PLAY.running = false; PLAY.state = 'done'; PLAY.m = null;
   swap({ you: PLAY.you, blocks: [{ type: 'steps', folded: true, list: steps }, { type: 'result', msg: 'Bluetooth is off.', sub: 'Settings was returned to you · 3 steps' }, { type: 'btns', html: '<button type="button" class="btn tonal">' + ms('undo') + 'Turn it back on</button>' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Done', footRight: '<kbd>Esc</kbd> close' });
   focusResult(); trace('run ended', { how: 'end_turn' });
 }
@@ -723,7 +753,7 @@ function act(a, el) {
       swap({ you: PLAY.you, blocks: [{ type: 'steps', folded: true, list: steps }, { type: 'result', icon: 'open_in_full', msg: 'Settings is on your screen now.', sub: 'The agent stopped. ' + (done.length ? done.join('. ') + '.' : 'Bluetooth was not changed yet.') }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Handed over', footRight: '<kbd>Esc</kbd> close' });
       const H = b.clientHeight; const w = settingsWindow({ settings: {} }, H); w.style.opacity = 0; w.style.transition = `opacity ${MOTION.fadeSlow}ms`; b.insertBefore(w, b.querySelector('.taskbar')); requestAnimationFrame(() => w.style.opacity = 1); focusResult(); trace('run ended', { how: 'taken over' }); } break;
     case 'undo': swap({ you: PLAY.you, blocks: [{ type: 'result', icon: 'undo', msg: 'Undone.', sub: 'The settings are back to what they were.' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Undone', footRight: '<kbd>Esc</kbd> close' }); { const sw = b.querySelector('.window.settings'); if (sw) sw.replaceWith(settingsWindow({ settings: {} }, b.clientHeight)); } trace('undone'); break;
-    case 'ask-selection': { const tb = PLAY.selTb; tb && tb.remove(); window.getSelection().removeAllRanges(); invoke({ at: PLAY.selEnd, via: 'selection', selection: PLAY.selText }); break; }
+    case 'ask-selection': { PLAY.selTb && PLAY.selTb.remove(); PLAY.selMenu && PLAY.selMenu.remove(); window.getSelection().removeAllRanges(); invoke({ at: PLAY.ptr.slice(), via: 'selection', selection: PLAY.selText }); break; }
   }
 }
 function startMic() {

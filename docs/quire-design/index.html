@@ -199,7 +199,11 @@ body.play .artboard { zoom: 1; border-radius: 0; box-shadow: none; }
 .sel-toolbar span { height: 32px; padding: 0 14px; border-radius: 16px; display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 500; color: var(--on-surface); }
 .sel-toolbar span.q { background: var(--secondary-container); color: var(--on-secondary-container); }
 .sel-toolbar span.q .leaf { width: 16px; height: 16px; }
-.sel-toolbar .sep { width: 1px; height: 22px; background: var(--outline-variant); margin: 0 4px; }
+.sel-toolbar .sep { width: 1px; height: 22px; padding: 0; border-radius: 0; background: var(--outline-variant); margin: 0 4px; }
+.sel-toolbar span.more { padding: 0 8px; } .sel-toolbar span.more .ms { font-size: 20px; color: var(--on-surface-variant); }
+.sel-menu { position: absolute; z-index: 30; min-width: 176px; padding: 6px; border-radius: 12px; background: var(--surface-high); box-shadow: var(--note-shadow); }
+.sel-menu span { display: flex; align-items: center; height: 40px; padding: 0 14px; border-radius: 8px; font-size: 13.5px; color: var(--on-surface); }
+.sel-menu span.hover { background: var(--surface-highest); }
 
 /* pointer + halo + intake */
 .pointer { position: absolute; width: 24px; height: 24px; z-index: 50; pointer-events: none; filter: drop-shadow(0 1px 1px rgba(0,0,0,.25)); }
@@ -429,7 +433,9 @@ button.ibtn { color: var(--on-surface-variant); }
 .mirror-bar .auto.paused .dot { background: var(--outline); }
 .mirror-bar .spacer { flex: 1; }
 .mirror-view { margin: 0 12px; border-radius: 16px; overflow: hidden; position: relative; aspect-ratio: 16 / 10; background: var(--surface-dim); outline: 1px solid var(--outline-variant); }
-.mirror-view .window { position: absolute; left: 16px; top: 10px; zoom: .55; }
+.mirror-view .stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1200px; transform-origin: 0 0; }   /* the session display, 1920×1200 dp on the G14 */
+.mirror-view .stage .window { left: 0; top: 0; border-radius: 0; box-shadow: none; }
+.mirror-view .overlay { position: absolute; inset: 0; pointer-events: none; }
 .mirror-view .desk { position: absolute; inset: 0; background: var(--wall); opacity: .9; }
 .mirror-view .ghost { position: absolute; z-index: 5; width: 24px; height: 24px; filter: drop-shadow(0 1px 1px rgba(0,0,0,.25)); }
 .mirror-view .ghost svg path:last-of-type { fill: #4355B9; }
