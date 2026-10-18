@@ -119,6 +119,9 @@ class SetupActivity : ComponentActivity() {
 @Composable
 private fun SetupScreens(onDone: () -> Unit) {
     var step by rememberSaveable { mutableIntStateOf(0) }
+    // A Google apps package installed with the system (ANAL-211): its registration is the last step.
+    val gapps = androidx.compose.runtime.remember { GappsInfo.installed() }
+    val last = if (gapps != null) 3 else 2
     BackHandler(enabled = step > 0) { step-- }
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val cs = MaterialTheme.colorScheme
@@ -140,7 +143,7 @@ private fun SetupScreens(onDone: () -> Unit) {
         }
         Column(Modifier.weight(1f).fillMaxHeight().padding(horizontal = 64.dp, vertical = 48.dp)) {
             Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).widthIn(max = 880.dp)) {
-                Text(stringResource(R.string.setup_overline, step + 1, 3), color = cs.primary, fontSize = 14.sp,
+                Text(stringResource(R.string.setup_overline, step + 1, last + 1), color = cs.primary, fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(10.dp))
                 when (step) {
@@ -154,6 +157,7 @@ private fun SetupScreens(onDone: () -> Unit) {
                         action = stringResource(R.string.setup_wifi_action),
                         onAction = { ctx.startActivity(Intent(Settings.ACTION_WIFI_SETTINGS)) },
                     )
+                    3 -> GappsRegistration(gapps!!)
                     else -> SetupAction(
                         title = stringResource(R.string.setup_lock_title),
                         body = stringResource(R.string.setup_lock_body),
@@ -166,7 +170,7 @@ private fun SetupScreens(onDone: () -> Unit) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.End),
                 verticalAlignment = Alignment.CenterVertically) {
                 if (step > 0) TonalButton(stringResource(R.string.action_back), onClick = { step-- })
-                if (step == 2) {
+                if (step == last) {
                     PrimaryButton(stringResource(R.string.setup_finish), onClick = onDone,
                         icon = Icons.AutoMirrored.Rounded.ArrowForward)
                 } else {

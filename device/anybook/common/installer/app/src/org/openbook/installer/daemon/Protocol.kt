@@ -113,6 +113,42 @@ data class PlanPart(
 
 data class Operation(val op: String, val text: String)
 
+/** One app of a Google apps package the user brought (ANAL-211), as gapps_check recorded it. */
+data class GappsApp(
+    val dir: String,
+    val packageName: String,
+    val versionName: String,
+    val versionCode: Long,
+    val privileged: Boolean,
+    val native: String,
+    val signer: String?,
+    val signerSha256: String?,
+)
+
+data class GappsRefusal(val path: String, val rule: String, val why: String)
+
+/** gapps_check's answer: accepted ([ok], [sha256] names it in `plan`), or refused with the reasons per path. */
+data class GappsCheck(
+    val ok: Boolean,
+    val sha256: String?,
+    val file: String,
+    val fileBytes: Long,
+    val name: String?,
+    val version: String?,
+    val packageSha256: String?,
+    val files: Int,
+    val bytes: Long,
+    val apps: List<GappsApp>,
+    val warnings: List<String>,
+    val refused: List<GappsRefusal>,
+    val refusedMore: Int,
+    val code: String?,
+    val error: String?,
+)
+
+/** A plan's package step: what it adds, and product's new size. */
+data class PlanGapps(val name: String, val file: String, val apps: Int, val files: Int, val bytes: Long, val productBytes: Long)
+
 data class BootPlan(val entry: String, val fallbackPath: Boolean, val nvram: String, val setDefault: Boolean)
 
 data class Plan(
@@ -132,6 +168,7 @@ data class Plan(
     val boot: BootPlan,
     val warnings: List<String>,
     val operations: List<Operation>,
+    val gapps: PlanGapps? = null,
 )
 
 data class InstallResult(
@@ -322,6 +359,51 @@ object Parse {
             boot = BootPlan(boot.text("entry"), boot.bool("fallback_path"), boot.text("nvram"), boot.bool("set_default")),
             warnings = p.optJSONArray("warnings").strings(),
             operations = p.optJSONArray("operations").mapObjects { Operation(it.text("op"), it.text("text")) },
+            gapps = p.optJSONObject("gapps")?.let { g ->
+                val pkg = g.optJSONObject("package") ?: JSONObject()
+                PlanGapps(
+                    name = pkg.text("name"),
+                    file = pkg.text("file"),
+                    apps = g.optJSONArray("apps")?.length() ?: 0,
+                    files = g.optInt("files"),
+                    bytes = g.long("bytes"),
+                    productBytes = p.optJSONObject("product")?.long("bytes") ?: 0L,
+                )
+            },
+        )
+    }
+
+    /** gapps_check's final message, accepted or refused (the refusal arrives as `ok: false` with `refused`). */
+    fun gappsCheck(o: JSONObject): GappsCheck {
+        val g = o.optJSONObject("gapps") ?: JSONObject()
+        val pkg = g.optJSONObject("package") ?: JSONObject()
+        return GappsCheck(
+            ok = o.bool("ok"),
+            sha256 = o.str("gapps_sha256"),
+            file = pkg.text("file"),
+            fileBytes = pkg.long("bytes"),
+            name = pkg.str("name"),
+            version = pkg.str("version"),
+            packageSha256 = pkg.str("sha256"),
+            files = g.optJSONArray("files")?.length() ?: 0,
+            bytes = g.long("bytes"),
+            apps = g.optJSONArray("apps").mapObjects {
+                GappsApp(
+                    dir = it.text("dir"),
+                    packageName = it.text("package"),
+                    versionName = it.text("version_name"),
+                    versionCode = it.long("version_code"),
+                    privileged = it.bool("privileged"),
+                    native = it.text("native"),
+                    signer = it.str("signer"),
+                    signerSha256 = it.str("signer_sha256"),
+                )
+            },
+            warnings = o.optJSONArray("warnings").strings(),
+            refused = o.optJSONArray("refused").mapObjects { GappsRefusal(it.text("path"), it.text("rule"), it.text("why")) },
+            refusedMore = o.optInt("refused_more", 0),
+            code = o.str("code"),
+            error = o.str("error"),
         )
     }
 
