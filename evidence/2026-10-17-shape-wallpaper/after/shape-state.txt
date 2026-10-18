@@ -1,0 +1,29 @@
+# AnyBook/anybook_cf_x86_64_pc/anybook_vsoc_x86_64:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+## framework values as resolved (cmd overlay lookup)
+string/config_icon_mask = M50,0 A50,50 0 1,1 50,100 A50,50 0 1,1 50,0 Z
+bool/config_useRoundIcon = true
+dimen/config_wallpaperDimAmount = 0.0
+## enabled overlays targeting android
+[x] android.auto_generated_rro_vendor__
+[x] android.cuttlefish.overlay
+[x] android.auto_generated_characteristics_rro
+[x] dev.anybook.overlay.desktop.framework
+[x] com.android.internal.systemui.navbar.gestural
+[x] com.android.systemui:neutral
+[x] com.android.systemui:accent
+[x] com.android.systemui:dynamic
+## properties
+persist.wallpapercolors.threshold=[55]
+persist.wallpapercolors.max_dark_area=[12]
+## Launcher3 shape options (is_default marks the one the picker shows as selected)
+Row: 0 shape_key=circle, shape_title=Circle, is_default=true
+Row: 1 shape_key=square, shape_title=Square, is_default=false
+Row: 2 shape_key=four_sided_cookie, shape_title=4-sided cookie, is_default=false
+Row: 3 shape_key=seven_sided_cookie, shape_title=7-sided cookie, is_default=false
+Row: 4 shape_key=arch, shape_title=Arch, is_default=false
+## Wallpaper & style (ThemePicker)
+package:com.android.wallpaper
+package:com.android.wallpapercropper
+package:com.android.wallpaperbackup
+package:com.android.wallpaper.livepicker
+## crash buffer

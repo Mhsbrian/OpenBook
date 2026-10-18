@@ -86,6 +86,9 @@ class InstallState {
     var showDetails by mutableStateOf(false)
     var layout by mutableStateOf<String?>(null)
     var targetModel by mutableStateOf<String?>(null)
+
+    /** The one system kept next to OpenBook ("Windows"), for the Done screen's boot entry text. */
+    var keptSystem by mutableStateOf<String?>(null)
     internal var sawEvent = false
 
     fun reset() {
@@ -116,6 +119,7 @@ private object Session {
     var tried = false
     var installLayout: String? = null
     var installModel: String? = null
+    var installKeptSystem: String? = null
 }
 
 class InstallerViewModel(app: Application) : AndroidViewModel(app) {
@@ -273,6 +277,7 @@ class InstallerViewModel(app: Application) : AndroidViewModel(app) {
                 install.restore(job)
                 install.layout = Session.installLayout
                 install.targetModel = Session.installModel
+                install.keptSystem = Session.installKeptSystem
                 step = WizardStep.INSTALL
                 val result = job.result
                 if (job.running || result == null) runStream(null) else finish(result, "attach")
@@ -499,8 +504,10 @@ class InstallerViewModel(app: Application) : AndroidViewModel(app) {
         install.reset()
         install.layout = p.layout
         install.targetModel = p.targetModel
+        install.keptSystem = p.keptSystem
         Session.installLayout = p.layout
         Session.installModel = p.targetModel
+        Session.installKeptSystem = install.keptSystem
         step = WizardStep.INSTALL
         runStream {
             put("plan_sha256", p.sha256)

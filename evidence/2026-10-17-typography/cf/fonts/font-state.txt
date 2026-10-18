@@ -1,0 +1,51 @@
+## all four overlay values
+config_headlineFontFamily=google-sans
+config_headlineFontFamilyMedium=google-sans-medium
+config_bodyFontFamily=google-sans-text
+config_bodyFontFamilyMedium=google-sans-text-medium
+## fonts_customization.xml sha256 on the device
+c40c936bc0b93c8671e608899c9c15914f592416d4c06821a35549404026c0be  /product/etc/fonts_customization.xml
+b6662abd2131cad1b248750149a7f2b644f871ebcc9af7fe4cd1135cd290b6d1  /product/fonts/GoogleSans-Italic-VF.ttf
+d0a87d835a944b8b40d0e82a5651bb59ab97b936a2aeed5946eb57e7b2a3a90a  /product/fonts/GoogleSans-VF.ttf
+a9ac770798857d5e8ac593ced42b22e40a7c08cec98319f92b0eccc2783a77ba  /product/fonts/GoogleSansFlex-VF.ttf
+## named families in the device's font config (dumpsys font, google-sans* and variable-*)
+Named Family (google-sans)
+Named Family (google-sans-bold)
+Named Family (google-sans-clock)
+Named Family (google-sans-flex)
+Named Family (google-sans-flex-clock)
+Named Family (google-sans-medium)
+Named Family (google-sans-text)
+Named Family (google-sans-text-bold)
+Named Family (google-sans-text-italic)
+Named Family (google-sans-text-medium)
+Named Family (variable-body-large)
+Named Family (variable-body-large-emphasized)
+Named Family (variable-body-medium)
+Named Family (variable-body-medium-emphasized)
+Named Family (variable-body-small)
+Named Family (variable-body-small-emphasized)
+Named Family (variable-display-large)
+Named Family (variable-display-large-emphasized)
+Named Family (variable-display-medium)
+Named Family (variable-display-medium-emphasized)
+Named Family (variable-display-small)
+Named Family (variable-display-small-emphasized)
+Named Family (variable-headline-large)
+Named Family (variable-headline-large-emphasized)
+Named Family (variable-headline-medium)
+Named Family (variable-headline-medium-emphasized)
+Named Family (variable-headline-small)
+Named Family (variable-headline-small-emphasized)
+Named Family (variable-label-large)
+Named Family (variable-label-large-emphasized)
+Named Family (variable-label-medium)
+Named Family (variable-label-medium-emphasized)
+Named Family (variable-label-small)
+Named Family (variable-label-small-emphasized)
+Named Family (variable-title-large)
+Named Family (variable-title-large-emphasized)
+Named Family (variable-title-medium)
+Named Family (variable-title-medium-emphasized)
+Named Family (variable-title-small)
+Named Family (variable-title-small-emphasized)

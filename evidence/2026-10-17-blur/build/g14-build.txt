@@ -1,0 +1,12 @@
+=== 2026-10-18T01:38:03Z lane lock taken
+=== 2026-10-18T01:38:03Z target anybook_g14_x86_64-cp2a-userdebug goals droid -j24 on 32 CPUs
+=== 2026-10-18T01:38:03Z synced device/anybook from /repo (AnyBook ddfec87)
+=== 2026-10-18T01:38:06Z vendor/anybook/mesa: upstream mesa-26.2.5 ddaf85e353442d9d7f192fdcf1823e652e3f2ee3 (26.2.5)
+=== 2026-10-18T01:38:06Z m -j24 droid
+============================================
+============================================
+============================================
+============================================
+=== 2026-10-18T01:43:44Z m exit 0
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 5:37.89
+=== 2026-10-18T01:44:23Z image done; releasing lane lock

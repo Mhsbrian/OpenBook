@@ -1,0 +1,16 @@
+--------- beginning of main
+10-18 07:07:43.926   749   777 D BootAnimation: Playing files = /product/media/bootanimation.zip/part1, Requested repeat = 0, playUntilComplete = false
+10-18 07:07:44.674   749   777 D BootAnimation: Playing files = /product/media/bootanimation.zip/part2, Requested repeat = 1, playUntilComplete = true
+10-18 07:07:45.084   749   777 D BootAnimation: BootAnimationShownTiming End time: 16311ms
+10-18 07:07:45.171   749   777 D BootAnimation: BootAnimationStopTiming start time: 16397ms
+10-18 07:08:03.905  3928  3928 D BootAnimation: BootAnimationStartTiming start time: 35131ms
+10-18 07:08:03.905  3928  3928 D BootAnimation: BootAnimationPreloadTiming start time: 35131ms
+10-18 07:08:03.905  3928  3928 D BootAnimation: /product/media/bootanimation.zip is loaded successfully
+10-18 07:08:03.906  3928  3928 D BootAnimation: BootAnimationPreloadTiming stop time: 35132ms
+10-18 07:08:03.968  3928  3930 D BootAnimation: Playing files = /product/media/bootanimation.zip/part0, Requested repeat = 1, playUntilComplete = true
+10-18 07:08:05.372  3928  3930 D BootAnimation: Playing files = /product/media/bootanimation.zip/part1, Requested repeat = 0, playUntilComplete = false
+10-18 07:08:07.379  3928  3930 D BootAnimation: Playing files = /product/media/bootanimation.zip/part1, Requested repeat = 0, playUntilComplete = false
+10-18 07:08:09.384  3928  3930 D BootAnimation: Playing files = /product/media/bootanimation.zip/part1, Requested repeat = 0, playUntilComplete = false
+10-18 07:08:09.919  3928  3930 D BootAnimation: Playing files = /product/media/bootanimation.zip/part2, Requested repeat = 1, playUntilComplete = true
+10-18 07:08:10.324  3928  3930 D BootAnimation: BootAnimationShownTiming End time: 41550ms
+10-18 07:08:10.357  3928  3928 D BootAnimation: BootAnimationStopTiming start time: 41583ms

@@ -1,0 +1,19 @@
+-rw-r--r-- 1 hive hive  258573 Oct 18 03:08 product/media/audio/alarms/OpenBook_FirstLight.ogg
+-rw-r--r-- 1 hive hive   20542 Oct 18 03:08 product/media/audio/notifications/OpenBook_Spark.ogg
+-rw-r--r-- 1 hive hive   95513 Oct 18 03:08 product/media/audio/ringtones/OpenBook_Pages.ogg
+-rw-r--r-- 1 hive hive   14711 Oct 18 03:08 product/media/audio/ui/OpenBook_ChargingStarted.ogg
+-rw-r--r-- 1 hive hive    7894 Oct 18 03:08 product/media/audio/ui/OpenBook_Lock.ogg
+-rw-r--r-- 1 hive hive   13987 Oct 18 03:08 product/media/audio/ui/OpenBook_LowBattery.ogg
+-rw-r--r-- 1 hive hive    7608 Oct 18 03:08 product/media/audio/ui/OpenBook_Trusted.ogg
+-rw-r--r-- 1 hive hive    7861 Oct 18 03:08 product/media/audio/ui/OpenBook_Unlock.ogg
+-rw-r--r-- 1 hive hive 1510395 Oct 18 03:08 product/media/bootanimation.zip
+-rw-r--r-- 1 hive hive  623058 Oct 18 03:08 product/overlay/AnyBookDesktopFrameworkOverlay.apk
+-rw-r--r-- 1 hive hive   26507 Oct 18 03:08 product/overlay/OpenBookPointerOverlay.apk
+-rw-r--r-- 1 hive hive    8351 Oct 18 03:08 product/overlay/OpenBookSoundsSettingsProviderOverlay.apk
+-rw-r--r-- 1 hive hive 2017167 Oct 18 03:08 product/app/AnyBookDesktopPartnerCustomization/AnyBookDesktopPartnerCustomization.apk
+
+product/app/AnyBookDesktopPartnerCustomization:
+total 1972
+drwxr-xr-x 1 hive hive      76 Oct 18 03:08 .
+drwxr-xr-x 1 hive hive     254 Oct 18 02:10 ..
+-rw-r--r-- 1 hive hive 2017167 Oct 18 03:08 AnyBookDesktopPartnerCustomization.apk

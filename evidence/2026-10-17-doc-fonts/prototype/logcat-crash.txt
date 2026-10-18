@@ -1,0 +1,36 @@
+--------- beginning of crash
+10-18 02:30:02.046  3493  3493 E AndroidRuntime: FATAL EXCEPTION: main
+10-18 02:30:02.046  3493  3493 E AndroidRuntime: PID: 3493
+10-18 02:30:02.046  3493  3493 E AndroidRuntime: java.lang.IllegalStateException: The Typeface is not fully initialized.
+10-18 02:30:02.046  3493  3493 E AndroidRuntime: 	at android.graphics.Typeface.getNativeInstance(Typeface.java:229)
+10-18 02:30:02.046  3493  3493 E AndroidRuntime: 	at android.graphics.Typeface.createWeightStyle(Typeface.java:1098)
+10-18 02:30:02.046  3493  3493 E AndroidRuntime: 	at android.graphics.Typeface.create(Typeface.java:1089)
+10-18 02:30:02.046  3493  3493 E AndroidRuntime: 	at TypefaceProbe.main(TypefaceProbe.java:14)
+10-18 02:30:02.046  3493  3493 E AndroidRuntime: 	at com.android.internal.os.RuntimeInit.nativeFinishInit(Native Method)
+10-18 02:30:02.046  3493  3493 E AndroidRuntime: 	at com.android.internal.os.RuntimeInit.main(RuntimeInit.java:367)
+10-18 02:30:02.054  3493  3493 E AndroidRuntime: Couldn't report crash. Here's the crash:
+10-18 02:30:02.054  3493  3493 E AndroidRuntime: java.lang.IllegalStateException: The Typeface is not fully initialized.
+10-18 02:30:02.054  3493  3493 E AndroidRuntime: 	at android.graphics.Typeface.getNativeInstance(Typeface.java:229)
+10-18 02:30:02.054  3493  3493 E AndroidRuntime: 	at android.graphics.Typeface.createWeightStyle(Typeface.java:1098)
+10-18 02:30:02.054  3493  3493 E AndroidRuntime: 	at android.graphics.Typeface.create(Typeface.java:1089)
+10-18 02:30:02.054  3493  3493 E AndroidRuntime: 	at TypefaceProbe.main(TypefaceProbe.java:14)
+10-18 02:30:02.054  3493  3493 E AndroidRuntime: 	at com.android.internal.os.RuntimeInit.nativeFinishInit(Native Method)
+10-18 02:30:02.054  3493  3493 E AndroidRuntime: 	at com.android.internal.os.RuntimeInit.main(RuntimeInit.java:367)
+10-18 02:30:02.055  3493  3493 E AndroidRuntime: Error reporting crash. Here's the error:
+10-18 02:30:02.055  3493  3493 E AndroidRuntime: java.lang.RuntimeException: Bad file descriptor
+10-18 02:30:02.055  3493  3493 E AndroidRuntime: 	at android.os.BinderProxy.transactNative(Native Method)
+10-18 02:30:02.055  3493  3493 E AndroidRuntime: 	at android.os.BinderProxy.transact(BinderProxy.java:626)
+10-18 02:30:02.055  3493  3493 E AndroidRuntime: 	at android.os.IServiceManager$Stub$Proxy.checkService2(IServiceManager.java:589)
+10-18 02:30:02.055  3493  3493 E AndroidRuntime: 	at android.os.ServiceManagerProxy.checkService2(ServiceManagerNative.java:81)
+10-18 02:30:02.055  3493  3493 E AndroidRuntime: 	at android.os.ServiceManagerProxy.getService2(ServiceManagerNative.java:70)
+10-18 02:30:02.055  3493  3493 E AndroidRuntime: 	at android.os.ServiceManager.rawGetService(ServiceManager.java:394)
+10-18 02:30:02.055  3493  3493 E AndroidRuntime: 	at android.os.ServiceManager.getService(ServiceManager.java:156)
+10-18 02:30:02.055  3493  3493 E AndroidRuntime: 	at android.app.ActivityManager$4.create(ActivityManager.java:6118)
+10-18 02:30:02.055  3493  3493 E AndroidRuntime: 	at android.app.ActivityManager$4.create(ActivityManager.java:6115)
+10-18 02:30:02.055  3493  3493 E AndroidRuntime: 	at android.util.Singleton.maybeCreate(Singleton.java:55)
+10-18 02:30:02.055  3493  3493 E AndroidRuntime: 	at android.util.Singleton.get(Singleton.java:46)
+10-18 02:30:02.055  3493  3493 E AndroidRuntime: 	at android.app.ActivityManager.getService(ActivityManager.java:6106)
+10-18 02:30:02.055  3493  3493 E AndroidRuntime: 	at com.android.internal.os.RuntimeInit$KillApplicationHandler.uncaughtException(RuntimeInit.java:166)
+10-18 02:30:02.055  3493  3493 E AndroidRuntime: 	at java.lang.ThreadGroup.uncaughtException(ThreadGroup.java:1098)
+10-18 02:30:02.055  3493  3493 E AndroidRuntime: 	at java.lang.ThreadGroup.uncaughtException(ThreadGroup.java:1093)
+10-18 02:30:02.055  3493  3493 E AndroidRuntime: 	at java.lang.Thread.dispatchUncaughtException(Thread.java:3387)

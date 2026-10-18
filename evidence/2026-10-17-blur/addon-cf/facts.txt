@@ -1,0 +1,31 @@
+date: 2026-10-17T23:41:25Z
+uptime: 1929.95 6369.70
+classpath: BOOTCLASSPATH has 52 jars
+ro.build.fingerprint=AnyBook/anybook_cf_x86_64_pc/anybook_vsoc_x86_64:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+ro.product.model=AnyBook Cuttlefish x86_64 desktop
+ro.boot.selinux=
+ro.boot.openbook.live=
+vendor.anybook.gpu.hal=virtio
+vendor.anybook.gpu.pci_id=1af4:1050
+vendor.anybook.gpu.driver=virtio-pci
+ro.hardware.egl=angle
+ro.hardware.vulkan=ranchu
+ro.hardware.gralloc=minigbm
+ro.hardware.hwcomposer=ranchu
+persist.graphics.egl=
+ro.opengles.version=196609
+ro.vendor.api_level=202604
+ro.board.first_api_level=
+kernel: Linux localhost 6.12.74-android16-6-g3ec022196c4e-ab15076761 #1 SMP PREEMPT Tue Mar 24 05:36:21 UTC 2026 x86_64 Toybox
+cpu:  AMD Ryzen 9 7950X 16-Core Processor, 4 CPUs; MemTotal:        8112140 kB
+card0: 0x1af4 0x1050 0x01 0x1af4 0x1050 driver=virtio-pci
+64ca20e147f6b2bf9d694ee1425a4402e733c5df8b09ffb7db29afe142e18e3e  /vendor/lib64/hw/vulkan.radv.so
+e764c8971b6b8ab2fb1fee717e026ec7a05cd69c822c037ff4a84f42b25a207e  /vendor/lib64/libgallium_dri.so
+bedba7a813b25856a2e45010bc66effb3f3cdcedfd877bc45141ddcb3283632d  /vendor/lib64/egl/libEGL_mesa.so
+20c3d6b6e65ebf6af2591e184020d66566c103b2b3bb5c8b873951ddf843dffe  /system/lib64/libEGL_angle.so
+e8271f38af37e1dfeccd9636cc432c4db5f71f759128b3da6b80a61b696d00c0  /system/lib64/libGLESv2_angle.so
+power:  AC powered: true level: 85 Capacity level: -1 
+keyguard:  isKeyguardShowing=false 
+amdgpu events before: 0
+payload: 
+amdgpu events after: 0

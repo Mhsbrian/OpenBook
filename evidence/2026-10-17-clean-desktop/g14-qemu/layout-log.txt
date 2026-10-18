@@ -1,0 +1,33 @@
+10-18 02:45:23.132  2750  2750 W LoaderTask: stopLocked: Loader [addCallbacksAndLoad] stopping be caller: addCallbacksAndLoad
+10-18 02:45:23.152  2750  2792 D LoaderTask: loadWorkspace: loading default favorites if necessary
+10-18 02:45:23.197  2750  2792 W DefaultLayoutParser: No preference or single system activity found for Intent { act=android.intent.action.MAIN cat=[android.intent.category.APP_FILES] }
+10-18 02:45:23.240  2750  2792 W DefaultLayoutParser: No preference or single system activity found for Intent { act=android.intent.action.MAIN cat=[android.intent.category.APP_BROWSER] }
+10-18 02:45:23.268  2750  2792 D LoaderTask: loadWorkspace: Packages with active install/update sessions: []
+10-18 02:45:23.272  2750  2792 D LoaderTask: No pinned shortcuts found for user UserHandle{0}
+10-18 02:45:23.273  2750  2792 W LoaderTask: loadWorkspaceImpl: Loader stopped, skipping item processing
+10-18 02:45:23.273  2750  2792 D LoaderTask: loadWorkspace finished
+10-18 02:45:23.273  2750  2792 W LoaderTask: LoaderTask cancelled
+10-18 02:45:23.276  2750  2792 D LoaderTask: loadWorkspace: loading default favorites if necessary
+10-18 02:45:23.277  2750  2792 D LoaderTask: loadWorkspace: Packages with active install/update sessions: []
+10-18 02:45:23.277  2750  2792 D LoaderTask: No pinned shortcuts found for user UserHandle{0}
+10-18 02:45:23.391  2750  2792 D LoaderTask: loadWorkspace finished
+10-18 02:45:23.392  2750  2792 D LoaderTask: sanitizeData finished
+10-18 02:45:23.393  2750  2792 D LoaderTask: bindWorkspace finished
+10-18 02:45:23.397  2750  2792 D LoaderTask: Sending first screen broadcast with shouldAttachArchivingExtras=false
+10-18 02:45:23.398  2750  2792 D LoaderTask: step 1 loading workspace complete
+10-18 02:45:23.497  2750  2792 D LoaderTask: loadAllApps finished
+10-18 02:45:23.497  2750  2792 D LoaderTask: bindAllApps finished
+10-18 02:45:23.497  2750  2792 D LoaderTask: update AllApps icon cache finished
+10-18 02:45:23.497  2750  2792 D LoaderTask: saving all shortcuts in icon cache
+10-18 02:45:23.497  2750  2792 D LoaderTask: step 2 loading AllApps complete
+10-18 02:45:23.498  2750  2792 D LoaderTask: loadDeepShortcuts finished
+10-18 02:45:23.498  2750  2792 D LoaderTask: saving deep shortcuts in icon cache
+10-18 02:45:23.498  2750  2792 D LoaderTask: step 3 loading all shortcuts complete
+10-18 02:45:23.653  2750  2792 D LoaderTask: load widgets finished
+10-18 02:45:23.657  2750  2792 D LoaderTask: bindWidgets finished
+10-18 02:45:23.657  2750  2792 D LoaderTask: saving all widgets in icon cache
+10-18 02:45:23.657  2750  2792 D LoaderTask: finish icon update
+10-18 02:45:25.795   707   752 I am_proc_start: [0,3438,10070,com.android.camera2,broadcast,{com.android.camera2/com.android.camera.SetActivitiesCameraReceiver}]
+10-18 02:45:25.795   707   752 I ActivityManager: Start proc 3438:com.android.camera2/u0a70 for broadcast {com.android.camera2/com.android.camera.SetActivitiesCameraReceiver}
+10-18 02:45:25.918  3438  3438 W CAM_Log : Tag SetActivitiesCameraReceiver is 8 chars longer than limit.
+10-18 02:45:25.918  3438  3438 I CAM_SetActivitiesCamera: component state is 2

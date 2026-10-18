@@ -215,7 +215,7 @@ scripts/installer/engine-test.sh ~/anybook/installer/out/<label>.img <run>    # 
 scripts/installer/wizard-qemu.sh ~/anybook/installer/out/<label>.img <run>    # dryrun, install, installed, console in QEMU
 ```
 - `engine-test.sh` builds the engine with gcc in the installer container and runs it on a fixture sysfs with image files. It covers refusals, a whole-disk install and an install alongside a Windows-like disk, checked with `sgdisk`, `fsck.fat`, mtools and `lpdump`.
-- `wizard-qemu.sh` drives the app with `uiautomator` and `input` over the serial console. Extra cases for firmware boot entries: `nvram-boot` (after `install`), `alongside` and `alongside-boot` (`docs/installer.md` §12.11). It saves Android's screenshots to the stick's ESP (`openbook/shots/`), installs to a blank 64 GiB virtual NVMe disk, and boots that disk alone.
+- `wizard-qemu.sh` drives the app with `uiautomator` and `input` over the serial console. Extra cases for firmware boot entries: `nvram-boot` (after `install`), then `alongside`, `alongside-default` and `alongside-boot` in that order (`docs/installer.md` §12.11). The Windows-like disk's boot manager is a small EFI app (`scripts/installer/efi-standin.c`) built with AOSP's prebuilt clang and lld (`OPENBOOK_EFI_CLANG` to override). It saves Android's screenshots to the stick's ESP (`openbook/shots/`), installs to a blank 64 GiB virtual NVMe disk, and boots that disk alone.
 - Results go to `~/anybook/logs/installer/<run>/` (`results.json`, `SUMMARY.md`). Details: `docs/installer.md` §12.
 
 ## M8: installer end to end and the integrated owner stick (ANAL-192)
@@ -230,7 +230,7 @@ python3 scripts/installer/e2e-qemu.py avc OUT <logcat.gz and sections/avc.txt fi
 
 ## Google services compatibility: the microG add-on (ANAL-210)
 
-The framework patch (`aosp/patches/frameworks/base/0001`–`0003`) is applied by `scripts/aosp-patches.sh` in every build. `openbook-addons` and its catalogue (`device/anybook/common/addons/`) are part of the PC products. The APKs are microG's own release files, fetched and checked here, never committed.
+The framework patch (`aosp/patches/frameworks/base/0002`–`0004`; `0001` is B7's fonts.xml) is applied by `scripts/aosp-patches.sh` in every build. `openbook-addons` and its catalogue (`device/anybook/common/addons/`) are part of the PC products. The APKs are microG's own release files, fetched and checked here, never committed.
 
 ```bash
 scripts/microg/fetch.sh                        # microG's APKs -> ~/anybook/dl/microg/<version>/ (sha256, size, OpenPGP, signing cert, package)
@@ -333,3 +333,18 @@ scripts/graphics/make-gfx-check.sh openbook-gfxcheck-20261017           # add-on
 scripts/graphics/gfx-qemu.sh openbook-gfxcheck-20261017 quick1          # QEMU: the add-on end to end, 40 cases per list
 ```
 Owner steps (add the check to the stick, run it, read the results): `docs/graphics-amd.md`, "dEQP and CTS on the G14".
+
+## Document fonts: metric-compatible stand-ins for Windows fonts (ANAL-208)
+```bash
+# The fonts are committed (device/anybook/common/desktop/fonts/documents/, README.md has sources and sha256).
+# After changing DOCS in scripts/ui/fonts-customization.py, regenerate both configs:
+scripts/ui/fonts-customization.py > device/anybook/common/desktop/fonts/fonts_customization.xml   # framework
+scripts/ui/fonts-legacy-patch.sh          # aosp/patches/frameworks/base: /system/etc/fonts.xml, for WebView
+# Check in Cuttlefish (B7's ports), then compare with the fonts' own metrics:
+scripts/ui/doc-fonts-check.sh 127.0.0.1:16537 OUT          # WebView: report.json, screen.png, cmd font dump
+scripts/ui/doc-fonts-typeface.sh 127.0.0.1:16537 OUT/typeface.tsv   # the framework: Typeface + Paint
+scripts/ui/doc-fonts-metrics.py --fonttools ~/anybook/aosp/src/external/fonttools/Lib --afm AFMDIR \
+  --font arimo=.../Arimo-VF.ttf ... --report LABEL=OUT/report.json --typeface LABEL=OUT/typeface.tsv
+```
+- `aosp-build.sh` applies the `frameworks/base` patch (legacy `fonts.xml` only; the framework reads `font_fallback.xml`).
+- Details: `docs/googlebook-ui.md` §2.1.1; evidence `evidence/2026-10-17-doc-fonts/`.

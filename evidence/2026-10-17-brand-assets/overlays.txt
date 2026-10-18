@@ -1,0 +1,43 @@
+-rw-r--r-- 1 root root 1510395 2026-10-18 06:39 /product/media/bootanimation.zip
+-rw-r--r-- 1 root root 258573 2026-10-18 06:39 /product/media/audio/alarms/OpenBook_FirstLight.ogg
+-rw-r--r-- 1 root root  20542 2026-10-18 06:39 /product/media/audio/notifications/OpenBook_Spark.ogg
+-rw-r--r-- 1 root root  95513 2026-10-18 06:39 /product/media/audio/ringtones/OpenBook_Pages.ogg
+-rw-r--r-- 1 root root  14711 2026-10-18 06:39 /product/media/audio/ui/OpenBook_ChargingStarted.ogg
+-rw-r--r-- 1 root root   7894 2026-10-18 06:39 /product/media/audio/ui/OpenBook_Lock.ogg
+-rw-r--r-- 1 root root  13987 2026-10-18 06:39 /product/media/audio/ui/OpenBook_LowBattery.ogg
+-rw-r--r-- 1 root root   7608 2026-10-18 06:39 /product/media/audio/ui/OpenBook_Trusted.ogg
+-rw-r--r-- 1 root root   7861 2026-10-18 06:39 /product/media/audio/ui/OpenBook_Unlock.ogg
+android
+[x] android.auto_generated_rro_vendor__
+[x] android.cuttlefish.overlay
+[x] android.auto_generated_characteristics_rro
+[x] dev.anybook.overlay.desktop.framework
+[x] dev.anybook.overlay.pointer
+[ ] com.android.internal.display.cutout.emulation.corner
+[ ] com.android.internal.display.cutout.emulation.double
+[ ] com.android.internal.display.cutout.emulation.hole
+[ ] com.android.internal.display.cutout.emulation.tall
+[ ] com.android.internal.systemui.navbar.threebutton
+[ ] com.android.theme.font.notoserifsource
+[ ] com.android.internal.display.cutout.emulation.waterfall
+[ ] com.android.internal.systemui.navbar.transparent
+[ ] com.android.role.notes.enabled
+[x] com.android.internal.systemui.navbar.gestural
+[x] com.android.systemui:neutral
+[x] com.android.systemui:accent
+[x] com.android.systemui:dynamic
+com.android.providers.settings
+[x] com.android.providers.settings.cuttlefish.overlay
+[x] dev.anybook.overlay.desktop.settingsprovider
+[x] dev.anybook.overlay.sounds.settingsprovider
+lookup android:drawable/default_wallpaper: res/drawable-sw720dp-nodpi-v13/default_wallpaper.jpg
+lookup android:drawable/pointer_arrow_vector: res/drawable/pointer_arrow_vector.xml
+lookup android:drawable/pointer_hand_vector: res/drawable/pointer_hand_vector.xml
+package:/product/overlay/OpenBookPointerOverlay.apk=dev.anybook.overlay.pointer
+package:/product/overlay/AnyBookDesktopLatinIMEOverlay.apk=dev.anybook.overlay.desktop.latinime
+package:/product/overlay/AnyBookDesktopLauncherOverlay.apk=dev.anybook.overlay.desktop.launcher
+package:/product/overlay/AnyBookDesktopFrameworkOverlay.apk=dev.anybook.overlay.desktop.framework
+package:/product/overlay/OpenBookSoundsSettingsProviderOverlay.apk=dev.anybook.overlay.sounds.settingsprovider
+package:/product/overlay/AnyBookDesktopSystemUIOverlay.apk=dev.anybook.overlay.desktop.systemui
+package:/product/app/AnyBookDesktopPartnerCustomization/AnyBookDesktopPartnerCustomization.apk=dev.anybook.desktop.partner
+package:/product/overlay/AnyBookDesktopSettingsProviderOverlay.apk=dev.anybook.overlay.desktop.settingsprovider

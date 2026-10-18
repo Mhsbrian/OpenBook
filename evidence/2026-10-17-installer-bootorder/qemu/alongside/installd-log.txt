@@ -1,0 +1,117 @@
+21:44:06 openbook-installd ready (live=1, SELinux enforcing, boot_part_uuid 4d2cd19b-d1cf-59f6-96ae-72611e947cf8)
+21:44:07 client connected: pid 2792 uid 10079
+21:45:40 plan 400274a785db2754: whole on nvme-QEMU_NVMe_Ctrl_internal0 (dry run, read-only)
+21:45:40 {"plan_sha256":"400274a785db2754869901d1a839219334edb49ab1caa1799588241ae471e61d","created":"2026-10-17T21:45:40Z","schema":"openbook-install-plan/1","engine":"1","layout":"whole","request":{"target":"nvme-QEMU_NVMe_Ctrl_internal0","layout":"whole","locale":"en-US","keyboard":"us","set_default":true},"seeds":{"disk_guid":"d3e00d62-5971-4048-927f-03c0cf10798e","serialno":"05EC9D720B5E4E39","part_guids":["fad0f578-4f92-401a-ad74-1f908947db26","9d19452c-556c-4b1d-ba12-c9468020c3be","0fba9565-cd43-4f34-9906-288150226f1e","857baf65-43b7-430d-97c9-3d60e4055dbd","03a95c9a-c17b-472d-b151-00e9b22571af","bc132b22-e97d-4994-8eb3-61fa5312da61","9ac45910-8644-4d42-9640-8dbc3ba20571","5ba55317-1ff8-495a-9d84-1ca8d6d99ac6","89dca03e-9cb8-4a3b-b158-3adac7678312","323c8071-b69f-4b18-8a9b-31cd47092904","a4af829d-c91b-4ddf-8b84-78dd755a2a5f","3ca221be-1441-414d-bff4-6356dae41c24","df347d97-720d-479f-9b3e-0d8396bd6111"]},"source":{"disk":"usb-QEMU_QEMU_HARDDISK_1-0000:00:01.0-1-0:0","label":"openbook-live-20261017-anal191h","fingerprint":"OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys","manifest_sha256":"8a06291d23c61fd71335f36478582330252add70f1986e43f104902de3118477"},"target":{"by_id":"nvme-QEMU_NVMe_Ctrl_internal0","name":"nvme0n1","model":"QEMU NVMe Ctrl","serial":"internal0","wwn":"nvme.1b36-696e7465726e616c30-51454d55204e564d65204374726c-00000001","size_bytes":68719476736,"sector_size":512,"bus":"nvme","external":false,"table":"none","table_sha256":"5647f05ec18958947d32874eeb788fa396a05d0bab7c1b71f112ceb7e9b31eee"},"confirm_text":"QEMU NVMe Ctrl","erases":[],"keeps":[],"before":[{"kind":"free","bytes":68719476736,"label":""}],"after":[{"kind":"openbook","bytes":68719476736,"label":"OpenBook"}],"partitions":[{"index":1,"name":"EFI","type_guid":"c12a7328-f81f-11d2-ba4b-00a0c93ec93b","partuuid":"fad0f578-4f92-401a-ad74-1f908947db26","start":1048576,"bytes":536870912,"content":"fat32"},{"index":2,"name":"misc","type_guid":"0fc63daf-8483-4772-8e79-3d69d8477de4","partuuid":"9d19452c-556c-
+21:46:32 openbook-installd ready (live=1, SELinux enforcing, boot_part_uuid 4d2cd19b-d1cf-59f6-96ae-72611e947cf8)
+21:46:34 client connected: pid 1995 uid 10079
+21:48:04 plan 93de5e4c9535fde8: whole on nvme-QEMU_NVMe_Ctrl_internal0 (dry run, read-only)
+21:48:04 {"plan_sha256":"93de5e4c9535fde80c5e78080fea07d3917d986601b1f217787d39c12b228e07","created":"2026-10-17T21:48:04Z","schema":"openbook-install-plan/1","engine":"1","layout":"whole","request":{"target":"nvme-QEMU_NVMe_Ctrl_internal0","layout":"whole","locale":"en-US","keyboard":"us","set_default":true},"seeds":{"disk_guid":"98320c13-b979-4291-bdcf-267ef1f616a4","serialno":"259CF04933EB5E40","part_guids":["183f2e25-d4fa-454b-a9ff-1fb6e732cdcb","1f83824f-80a0-4085-8c8b-77b71fd06907","5576144a-cff4-4a59-9561-17d31308190e","93215798-a18f-41d7-88e3-85325c58d174","91b779a5-d3fe-4974-8576-f74b777ad772","0199efe8-98f9-4ef2-a899-a7e098f6dc6a","ef039516-f2ca-4e56-8ce9-bf32e70d0aaa","e65e1dbc-d6ca-421d-8539-6a6be5736d50","c3e1ebfa-bec1-47ef-abab-b0159c6b3cd2","7861f528-6447-41fb-ba85-a0b9b8bc1a9c","aabaf51c-f524-42c9-b846-eba0aca4909b","2f675391-d256-41f9-a19e-0b17168d5329","b8809f61-2ab1-4442-b292-792ef92dc2e4"]},"source":{"disk":"usb-QEMU_QEMU_HARDDISK_1-0000:00:01.0-1-0:0","label":"openbook-live-20261017-anal191h","fingerprint":"OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys","manifest_sha256":"8a06291d23c61fd71335f36478582330252add70f1986e43f104902de3118477"},"target":{"by_id":"nvme-QEMU_NVMe_Ctrl_internal0","name":"nvme0n1","model":"QEMU NVMe Ctrl","serial":"internal0","wwn":"nvme.1b36-696e7465726e616c30-51454d55204e564d65204374726c-00000001","size_bytes":68719476736,"sector_size":512,"bus":"nvme","external":false,"table":"none","table_sha256":"5647f05ec18958947d32874eeb788fa396a05d0bab7c1b71f112ceb7e9b31eee"},"confirm_text":"QEMU NVMe Ctrl","erases":[],"keeps":[],"before":[{"kind":"free","bytes":68719476736,"label":""}],"after":[{"kind":"openbook","bytes":68719476736,"label":"OpenBook"}],"partitions":[{"index":1,"name":"EFI","type_guid":"c12a7328-f81f-11d2-ba4b-00a0c93ec93b","partuuid":"183f2e25-d4fa-454b-a9ff-1fb6e732cdcb","start":1048576,"bytes":536870912,"content":"fat32"},{"index":2,"name":"misc","type_guid":"0fc63daf-8483-4772-8e79-3d69d8477de4","partuuid":"1f83824f-80a0-
+21:48:40 install 2625 started: plan 93de5e4c9535fde8, whole on nvme-QEMU_NVMe_Ctrl_internal0
+21:48:40 openbook-install 1: apply whole on nvme-QEMU_NVMe_Ctrl_internal0 (openbook-live-20261017-anal191h), SELinux enforcing
+21:48:40 plan 93de5e4c9535fde80c5e78080fea07d3917d986601b1f217787d39c12b228e07: 13 partitions, 1524592283 bytes to write, target nvme-QEMU_NVMe_Ctrl_internal0 (QEMU NVMe Ctrl, 68719476736 bytes)
+21:48:40 step check_source: running
+21:48:41 source boot_a: 67108864 bytes, sha256 ok
+21:48:41 source init_boot_a: 8388608 bytes, sha256 ok
+21:48:41 source vendor_boot_a: 67108864 bytes, sha256 ok
+21:48:41 source vbmeta_a: 65536 bytes, sha256 ok
+21:48:46 source super: 1411383296 bytes, sha256 ok
+21:48:47 step check_source: done
+21:48:47 step prepare_disk: running
+21:48:47 wiping the partition table of nvme-QEMU_NVMe_Ctrl_internal0
+21:48:47 step prepare_disk: done
+21:48:47 step boot_images: running
+21:48:47 copied boot_a -> partition 3 "boot_a" (67108864 bytes)
+21:48:47 copied init_boot_a -> partition 5 "init_boot_a" (8388608 bytes)
+21:48:47 copied vendor_boot_a -> partition 7 "vendor_boot_a" (67108864 bytes)
+21:48:47 copied vbmeta_a -> partition 9 "vbmeta_a" (65536 bytes)
+21:48:47 step boot_images: done
+21:48:47 step system: running
+21:48:50 super: system_a, 695439360 bytes at 1048576
+21:48:50 super: system_b, 4677632 bytes at 697303040
+21:48:50 super: system_ext_a, 127455232 bytes at 702545920
+21:48:52 super: product_a, 292503552 bytes at 830472192
+21:48:52 super: vendor_a, 148406272 bytes at 1123024896
+21:48:52 super: vendor_dlkm_a, 53424128 bytes at 1271922688
+21:48:52 super: system_dlkm_a, 18165760 bytes at 1325400064
+21:48:52 super: metadata for 12884901888 bytes written
+21:48:52 step system: done
+21:48:52 step boot_entry: running
+21:48:52 wrote openbook/a/kernel (26858496 bytes)
+21:48:52 wrote openbook/a/vendor_ramdisk.img (128064 bytes)
+21:48:52 wrote openbook/a/ramdisk.img (3005944 bytes)
+21:48:52 wrote openbook/a/bootconfig.img (796 bytes)
+21:48:52 partition table written: 13 partitions
+21:48:52 step boot_entry: done
+21:48:52 step verify: running
+21:48:58 verified 29 partitions and files
+21:48:58 wrote loader/entries/openbook-a.conf (255 bytes)
+21:48:58 wrote loader/loader.conf (72 bytes)
+21:48:58 wrote EFI/OpenBook/systemd-bootx64.efi (160256 bytes)
+21:48:58 wrote EFI/BOOT/BOOTX64.EFI (160256 bytes)
+21:48:58 the kernel re-read the partition table
+21:48:58 nvram: created Boot0005 "OpenBook" -> HD(1, GPT, 183f2e25-d4fa-454b-a9ff-1fb6e732cdcb)/\EFI\OpenBook\systemd-bootx64.efi; BootOrder first
+21:48:58 step verify: done
+21:48:58 step report: running
+21:48:58 step report: done
+21:48:58 install process 2625 ended: ok
+21:50:26 openbook-installd ready (live=1, SELinux enforcing, boot_part_uuid 4d2cd19b-d1cf-59f6-96ae-72611e947cf8)
+21:50:28 client connected: pid 2003 uid 10079
+21:51:48 plan 2e390b083a03481a: alongside on nvme-QEMU_NVMe_Ctrl_internal0 (dry run, read-only)
+21:51:48 {"plan_sha256":"2e390b083a03481ab509c0c9a740d69f09783afa69926a0d79df8b914688f8f4","created":"2026-10-17T21:51:48Z","schema":"openbook-install-plan/1","engine":"1","layout":"alongside","request":{"target":"nvme-QEMU_NVMe_Ctrl_internal0","layout":"alongside","locale":"en-US","keyboard":"us","set_default":false},"seeds":{"disk_guid":"8444cd0d-f2ff-4165-abff-6b32d6a19542","serialno":"4F88DCD42D399EF5","part_guids":["7de5327e-bffd-4b33-8767-488e08b00c45","4dfd5ae2-c577-40da-bcf2-c1c193f32a69","f73d534a-bd19-4405-83f3-b04f64e48161","b9d89394-8f0f-413e-9878-cb387166ea6e","6f8fc804-1ccb-4503-bcc3-0d8838f8c5e7","de51afc2-982f-46bd-b696-f0c1b83473d2","bad5c7fd-0071-4654-87dc-b4983bdb1f82","909ad656-6c24-4b81-ab0b-5234b7b65c87","43f39b17-7b86-441c-acba-61c7d53e34df","dc7afcf8-c61c-472f-8b1e-fdbb5346a30d","d8b54fc7-c35f-4130-a866-685eb9aa4e32","8109ed49-2e5f-43aa-b6db-4f2e95acdd66","a4ac43ad-0876-4e84-9c69-a10e110daedf"]},"source":{"disk":"usb-QEMU_QEMU_HARDDISK_1-0000:00:01.0-1-0:0","label":"openbook-live-20261017-anal191h","fingerprint":"OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys","manifest_sha256":"8a06291d23c61fd71335f36478582330252add70f1986e43f104902de3118477"},"target":{"by_id":"nvme-QEMU_NVMe_Ctrl_internal0","name":"nvme0n1","model":"QEMU NVMe Ctrl","serial":"internal0","wwn":"nvme.1b36-696e7465726e616c30-51454d55204e564d65204374726c-00000001","size_bytes":322122547200,"sector_size":512,"bus":"nvme","external":false,"table":"gpt","table_sha256":"660a839a69d8c89ebbff70deb6427c30ec7d20325a4402b45ebd168876917f8b"},"confirm_text":"QEMU NVMe Ctrl","keeps":[{"index":1,"name":"EFI system partition","type":"esp","fs":"vfat","label":"SYSTEM","os":"","bytes":272629760,"encrypted":false},{"index":2,"name":"Microsoft reserved partition","type":"msreserved","fs":"","label":"","os":"","bytes":16777216,"encrypted":false},{"index":3,"name":"Basic data partition","type":"msdata","fs":"ntfs","label":"","os":"Windows","bytes":214748364800,"encrypted":false},{"index":4,"name":"","type":"ms
+21:55:03 openbook-installd ready (live=1, SELinux enforcing, boot_part_uuid 4d2cd19b-d1cf-59f6-96ae-72611e947cf8)
+21:55:05 client connected: pid 1961 uid 10079
+21:56:24 plan d9f905ceac759678: alongside on nvme-QEMU_NVMe_Ctrl_internal0 (dry run, read-only)
+21:56:24 {"plan_sha256":"d9f905ceac759678e42f0f8c5fcbd05cfa90540ab4ae4adb965fdc72907b5cf1","created":"2026-10-17T21:56:24Z","schema":"openbook-install-plan/1","engine":"1","layout":"alongside","request":{"target":"nvme-QEMU_NVMe_Ctrl_internal0","layout":"alongside","locale":"en-US","keyboard":"us","set_default":false},"seeds":{"disk_guid":"e283f789-0f77-47f7-a12d-e12aa5304dc3","serialno":"1097AF7CCF569F6D","part_guids":["782d3ef5-0178-4f02-9baf-f54b4eddada1","cb531bcb-1bef-40d0-b73c-da1b501f4db1","9d278959-8f9e-4642-b076-b10ff5104d02","700ed2af-e838-499a-b36d-eb5defc0c5d2","dea2dbd9-1521-42ab-aef2-6915e9451d1e","9ff7beca-6835-48bc-afe6-2d06dacb886f","c7d33fcf-44b5-4b97-9b69-d6f22a77eb33","7285cb3c-0154-426f-b7cb-2fec4f25d71f","5091bc73-bd9c-40de-a32f-7219a97208bf","97a6c856-1ab4-4190-a346-17379dcf8458","0908f939-540a-4587-b6d4-a4109bc4eb32","b142a79c-1fcb-4e22-9ee6-59423867eee8","fc6171a7-f79f-4f34-89f0-cb74803f29aa"]},"source":{"disk":"usb-QEMU_QEMU_HARDDISK_1-0000:00:01.0-1-0:0","label":"openbook-live-20261017-anal191h","fingerprint":"OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys","manifest_sha256":"8a06291d23c61fd71335f36478582330252add70f1986e43f104902de3118477"},"target":{"by_id":"nvme-QEMU_NVMe_Ctrl_internal0","name":"nvme0n1","model":"QEMU NVMe Ctrl","serial":"internal0","wwn":"nvme.1b36-696e7465726e616c30-51454d55204e564d65204374726c-00000001","size_bytes":322122547200,"sector_size":512,"bus":"nvme","external":false,"table":"gpt","table_sha256":"660a839a69d8c89ebbff70deb6427c30ec7d20325a4402b45ebd168876917f8b"},"confirm_text":"QEMU NVMe Ctrl","keeps":[{"index":1,"name":"EFI system partition","type":"esp","fs":"vfat","label":"SYSTEM","os":"","bytes":272629760,"encrypted":false},{"index":2,"name":"Microsoft reserved partition","type":"msreserved","fs":"","label":"","os":"","bytes":16777216,"encrypted":false},{"index":3,"name":"Basic data partition","type":"msdata","fs":"ntfs","label":"","os":"Windows","bytes":214748364800,"encrypted":false},{"index":4,"name":"","type":"ms
+21:58:20 openbook-installd ready (live=1, SELinux enforcing, boot_part_uuid 4d2cd19b-d1cf-59f6-96ae-72611e947cf8)
+21:58:22 client connected: pid 1949 uid 10079
+21:59:42 plan 718cbac70a9222d4: alongside on nvme-QEMU_NVMe_Ctrl_internal0 (dry run, read-only)
+21:59:42 {"plan_sha256":"718cbac70a9222d44c0542ba92fedd8eb846bd3b20ff2d417307633fda6a9208","created":"2026-10-17T21:59:42Z","schema":"openbook-install-plan/1","engine":"1","layout":"alongside","request":{"target":"nvme-QEMU_NVMe_Ctrl_internal0","layout":"alongside","locale":"en-US","keyboard":"us","set_default":false},"seeds":{"disk_guid":"544190c4-fe91-43cc-bbfb-6586a25e1e00","serialno":"EDA832059D5037C5","part_guids":["1b6c05f5-a2be-48cf-9711-289510506533","f8953fd4-1422-46cb-9962-0c461a862ec0","786cd5a5-a6ea-4a72-9d33-4a04199a9d47","cb6f7fbf-6056-461c-bb10-d584bd65a4a4","8772e75d-69d0-457b-a4e2-467abb04bf56","0bcc014d-a314-4180-8f53-4b6a04baf080","5e8e324c-28a1-4891-b69f-3477c507da16","093630db-fe08-4980-b363-3d80843fa86e","78515760-3211-4aad-a950-b69af78ce7e8","7a1120b9-6daf-49e7-92cc-f92c4bbe5bfa","25be6150-26f0-4d71-832d-664ee883dddd","60565f8b-2088-40b6-afb5-80339a948341","91b2bd78-6d74-4fd2-9e5f-f7f433d98493"]},"source":{"disk":"usb-QEMU_QEMU_HARDDISK_1-0000:00:01.0-1-0:0","label":"openbook-live-20261017-anal191h","fingerprint":"OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys","manifest_sha256":"8a06291d23c61fd71335f36478582330252add70f1986e43f104902de3118477"},"target":{"by_id":"nvme-QEMU_NVMe_Ctrl_internal0","name":"nvme0n1","model":"QEMU NVMe Ctrl","serial":"internal0","wwn":"nvme.1b36-696e7465726e616c30-51454d55204e564d65204374726c-00000001","size_bytes":322122547200,"sector_size":512,"bus":"nvme","external":false,"table":"gpt","table_sha256":"660a839a69d8c89ebbff70deb6427c30ec7d20325a4402b45ebd168876917f8b"},"confirm_text":"QEMU NVMe Ctrl","keeps":[{"index":1,"name":"EFI system partition","type":"esp","fs":"vfat","label":"SYSTEM","os":"","bytes":272629760,"encrypted":false},{"index":2,"name":"Microsoft reserved partition","type":"msreserved","fs":"","label":"","os":"","bytes":16777216,"encrypted":false},{"index":3,"name":"Basic data partition","type":"msdata","fs":"ntfs","label":"","os":"Windows","bytes":214748364800,"encrypted":false},{"index":4,"name":"","type":"ms
+22:00:53 openbook-installd ready (live=1, SELinux enforcing, boot_part_uuid 4d2cd19b-d1cf-59f6-96ae-72611e947cf8)
+22:00:56 client connected: pid 1951 uid 10079
+22:02:15 plan 89dee32a586a5819: alongside on nvme-QEMU_NVMe_Ctrl_internal0 (dry run, read-only)
+22:02:15 {"plan_sha256":"89dee32a586a581947e9752e84cdeda63e203571b416b17d4fc3222fc3658596","created":"2026-10-17T22:02:15Z","schema":"openbook-install-plan/1","engine":"1","layout":"alongside","request":{"target":"nvme-QEMU_NVMe_Ctrl_internal0","layout":"alongside","locale":"en-US","keyboard":"us","set_default":false},"seeds":{"disk_guid":"e970c008-d754-4e4d-a054-eba17f70a30a","serialno":"8C221093A7EE1808","part_guids":["ee21d3d6-0df3-4df1-833d-2af63e26c7e6","765ca50d-c9c8-498f-9b27-8fafc982a911","4d655a68-055c-49fc-bcb1-8312bb2fe48b","694c6d5e-b809-4e85-b70d-8cdb5a9a0958","6d40eb36-b793-41c3-ac1f-e4bdb9103172","07a186b0-4bc3-4656-81c2-d44d6318f2cb","8afd50c0-9a53-444c-a9fc-576a80be16a7","ce529f24-2a32-402e-8963-2745c36699f8","df844161-d043-485f-affc-5dd6ae9202e3","b7ea668b-fef7-42df-9fd6-278e1948c011","c279629f-be77-43fa-83bb-aea590232419","f217043a-1de5-4720-add4-5366e4b7f5e3","e86eb7b3-b53c-41d4-87bd-c3e6747f5513"]},"source":{"disk":"usb-QEMU_QEMU_HARDDISK_1-0000:00:01.0-1-0:0","label":"openbook-live-20261017-anal191h","fingerprint":"OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys","manifest_sha256":"8a06291d23c61fd71335f36478582330252add70f1986e43f104902de3118477"},"target":{"by_id":"nvme-QEMU_NVMe_Ctrl_internal0","name":"nvme0n1","model":"QEMU NVMe Ctrl","serial":"internal0","wwn":"nvme.1b36-696e7465726e616c30-51454d55204e564d65204374726c-00000001","size_bytes":322122547200,"sector_size":512,"bus":"nvme","external":false,"table":"gpt","table_sha256":"f179ff8015668bf90dfd900bc7ccbbef86b8fd0101b67b1725e2c0624864a783"},"confirm_text":"QEMU NVMe Ctrl","keeps":[{"index":1,"name":"EFI system partition","type":"esp","fs":"vfat","label":"SYSTEM","os":"","bytes":272629760,"encrypted":false},{"index":2,"name":"Microsoft reserved partition","type":"msreserved","fs":"","label":"","os":"","bytes":16777216,"encrypted":false},{"index":3,"name":"Basic data partition","type":"msdata","fs":"ntfs","label":"","os":"Windows","bytes":214748364800,"encrypted":false},{"index":4,"name":"","type":"ms
+22:02:51 install 2529 started: plan 89dee32a586a5819, alongside on nvme-QEMU_NVMe_Ctrl_internal0
+22:02:51 openbook-install 1: apply alongside on nvme-QEMU_NVMe_Ctrl_internal0 (openbook-live-20261017-anal191h), SELinux enforcing
+22:02:51 plan 89dee32a586a581947e9752e84cdeda63e203571b416b17d4fc3222fc3658596: 13 partitions, 1524431959 bytes to write, target nvme-QEMU_NVMe_Ctrl_internal0 (QEMU NVMe Ctrl, 322122547200 bytes)
+22:02:51 step check_source: running
+22:02:52 source boot_a: 67108864 bytes, sha256 ok
+22:02:52 source init_boot_a: 8388608 bytes, sha256 ok
+22:02:52 source vendor_boot_a: 67108864 bytes, sha256 ok
+22:02:52 source vbmeta_a: 65536 bytes, sha256 ok
+22:03:00 source super: 1411383296 bytes, sha256 ok
+22:03:01 step check_source: done
+22:03:01 step prepare_disk: running
+22:03:01 step prepare_disk: done
+22:03:01 step boot_images: running
+22:03:01 copied boot_a -> partition 7 "boot_a" (67108864 bytes)
+22:03:01 copied init_boot_a -> partition 9 "init_boot_a" (8388608 bytes)
+22:03:02 copied vendor_boot_a -> partition 11 "vendor_boot_a" (67108864 bytes)
+22:03:02 copied vbmeta_a -> partition 13 "vbmeta_a" (65536 bytes)
+22:03:02 step boot_images: done
+22:03:02 step system: running
+22:03:06 super: system_a, 695439360 bytes at 1048576
+22:03:06 super: system_b, 4677632 bytes at 697303040
+22:03:07 super: system_ext_a, 127455232 bytes at 702545920
+22:03:09 super: product_a, 292503552 bytes at 830472192
+22:03:09 super: vendor_a, 148406272 bytes at 1123024896
+22:03:10 super: vendor_dlkm_a, 53424128 bytes at 1271922688
+22:03:10 super: system_dlkm_a, 18165760 bytes at 1325400064
+22:03:10 super: metadata for 12884901888 bytes written
+22:03:10 step system: done
+22:03:10 step boot_entry: running
+22:03:10 wrote openbook/a/kernel (26858496 bytes)
+22:03:10 wrote openbook/a/vendor_ramdisk.img (128064 bytes)
+22:03:10 wrote openbook/a/ramdisk.img (3005944 bytes)
+22:03:10 wrote openbook/a/bootconfig.img (800 bytes)
+22:03:10 partition table extended: 13 partitions
+22:03:10 step boot_entry: done
+22:03:10 step verify: running
+22:03:16 verified 29 partitions and files
+22:03:16 wrote loader/entries/openbook-a.conf (255 bytes)
+22:03:16 wrote existing ESP: EFI/OpenBook/systemd-bootx64.efi (160256 bytes)
+22:03:16 the kernel re-read the partition table
+22:03:16 nvram: created Boot0005 "OpenBook" -> HD(1, GPT, 7231e5c3-0b0b-460e-be98-244793c37e38)/\EFI\OpenBook\systemd-bootx64.efi; BootOrder last
+22:03:16 step verify: done
+22:03:16 step report: running
+22:03:16 step report: done
+22:03:16 install process 2529 ended: ok
