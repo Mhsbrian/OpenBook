@@ -127,14 +127,20 @@ object SetupSystem {
 
     // ---------------------------------------------------------------------------------------------- keyboard
 
-    data class KeyboardLayoutChoice(val descriptor: String, val name: String, val label: String, val locales: List<Locale>)
+    data class KeyboardLayoutChoice(
+        val descriptor: String,
+        val name: String,
+        val label: String,
+        val locales: List<Locale>,
+        val type: String,
+    )
 
     /** The keyboard layouts installed on the system (AOSP's InputDevices package: 57 in Android 17). */
     fun keyboardLayouts(context: Context): List<KeyboardLayoutChoice> {
         val im = context.getSystemService(InputManager::class.java) ?: return emptyList()
         return im.keyboardLayouts.map { l ->
             val locales = l.locales.let { list -> (0 until list.size()).map { list.get(it) } }
-            KeyboardLayoutChoice(l.descriptor, l.descriptor.substringAfterLast('/'), l.label, locales)
+            KeyboardLayoutChoice(l.descriptor, l.descriptor.substringAfterLast('/'), l.label, locales, l.layoutType.orEmpty())
         }.sortedBy { it.label }
     }
 
@@ -212,11 +218,15 @@ object SetupSystem {
             ?: return TimeSettings(false, false, false, false, false)
         val t = tm.timeCapabilitiesAndConfig
         val z = tm.timeZoneCapabilitiesAndConfig
+        // The settings say "automatic" even where nothing can detect (Android's default): a PC has no telephony and
+        // no location time zone provider. Only a possessed capability makes the setting real.
+        val canAutoTime = t.capabilities.configureAutoDetectionEnabledCapability == Capabilities.CAPABILITY_POSSESSED
+        val canAutoZone = z.capabilities.configureAutoDetectionEnabledCapability == Capabilities.CAPABILITY_POSSESSED
         return TimeSettings(
-            canAutoTime = t.capabilities.configureAutoDetectionEnabledCapability == Capabilities.CAPABILITY_POSSESSED,
-            autoTime = t.configuration.isAutoDetectionEnabled,
-            canAutoZone = z.capabilities.configureAutoDetectionEnabledCapability == Capabilities.CAPABILITY_POSSESSED,
-            autoZone = z.configuration.isAutoDetectionEnabled,
+            canAutoTime = canAutoTime,
+            autoTime = canAutoTime && t.configuration.isAutoDetectionEnabled,
+            canAutoZone = canAutoZone,
+            autoZone = canAutoZone && z.configuration.isAutoDetectionEnabled,
             canSetZone = z.capabilities.setManualTimeZoneCapability == Capabilities.CAPABILITY_POSSESSED,
         )
     }

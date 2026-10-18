@@ -10,6 +10,8 @@ import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import java.util.Locale
 import org.openbook.installer.ui.OpenBookTheme
 import org.openbook.setup.ui.SetupApp
@@ -35,12 +37,18 @@ class SetupActivity : ComponentActivity() {
         }
         // The installer's language choice (androidboot.openbook.locale) is the starting point.
         val preset = android.os.SystemProperties.get(SetupSystem.PROP_LOCALE, "")
-        if (preset.isNotEmpty() && Locale.getDefault().toLanguageTag() != preset) {
+        if (savedInstanceState == null && preset.isNotEmpty() && Locale.getDefault().toLanguageTag() != preset) {
             SetupSystem.applyLocale(Locale.forLanguageTag(preset))
         }
-        Log.i(SetupSystem.TAG, "setup started (locale ${Locale.getDefault().toLanguageTag()})")
         enableEdgeToEdge()
-        model = SetupModel(this)
+        // The model outlives a relaunch: the framework restarts the activity once right after the first boot (an
+        // asset change), and the user's progress must survive any later one too.
+        val holder = ViewModelProvider(this, object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T = Holder(SetupModel(applicationContext)) as T
+        })[Holder::class.java]
+        model = holder.model
+        if (savedInstanceState == null) Log.i(SetupSystem.TAG, "setup started (locale ${Locale.getDefault().toLanguageTag()})")
         setContent {
             OpenBookTheme {
                 SetupApp(
@@ -60,6 +68,8 @@ class SetupActivity : ComponentActivity() {
         }
         return super.dispatchKeyEvent(event)
     }
+
+    class Holder(val model: SetupModel) : ViewModel()
 
     /** What Provision does, then this activity leaves the home list for good and the launcher takes over. */
     private fun finishSetup(why: String) {
