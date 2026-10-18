@@ -1,85 +1,83 @@
-10-18 11:12:01.277  2697  2697 I OpenBookSetup: setup complete (step aside: live session); provisioned=true
-10-18 11:12:01.304   742  2565 I wm_create_activity: [0,108209316,3,com.android.settings/.FallbackHome,android.intent.action.MAIN,NULL,NULL,276824320]
-10-18 11:12:01.305   742  2565 V ActivityTaskManager: TaskLaunchParamsModifier: phase=3 task=Task{9697fd3 #3 type=home A=1000:com.android.settings.FallbackHome nonResizable} activity=ActivityRecord{108209316 u0 com.android.settings/.FallbackHome t-1} display-area-token-from-option=DefaultTaskDisplay
-10-18 11:12:01.305   742  2565 I ActivityTaskManager: START u0 {act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10000100 cmp=com.android.settings/.FallbackHome (has extras)} with LAUNCH_MULTIPLE from uid 0 (BAL_ALLOW_ALLOWLISTED_UID) result code=0
-10-18 11:12:01.390   742   816 I am_proc_start: [0,2773,1000,com.android.settings,top-activity,{com.android.settings/com.android.settings.FallbackHome}]
-10-18 11:12:01.390   742   816 I ActivityManager: Start proc 2773:com.android.settings/1000 for top-activity {com.android.settings/com.android.settings.FallbackHome}
-10-18 11:12:01.677   742  2565 I wm_restart_activity: [0,108209316,3,com.android.settings/.FallbackHome]
-10-18 11:12:01.677   742  2565 I wm_set_resumed_activity: [0,com.android.settings/.FallbackHome,realStartActivityLocked - onActivityStateChanged]
-10-18 11:12:01.732  2773  2773 D FallbackHome: User not yet unlocked
-10-18 11:12:01.732  2773  2773 I wm_on_create_called: [108209316,com.android.settings.FallbackHome,performCreate,44]
-10-18 11:12:01.806  2773  2773 I wm_on_start_called: [108209316,com.android.settings.FallbackHome,handleStartActivity,0]
-10-18 11:12:01.816  2773  2773 I wm_on_resume_called: [108209316,com.android.settings.FallbackHome,RESUME_ACTIVITY,6]
-10-18 11:12:01.867   742  2739 E TransitionChain:    ChangeInfo{bf9a40 container=Task{9697fd3 #3 type=home A=1000:com.android.settings.FallbackHome nonResizable} flags=0x0}
-10-18 11:12:01.867   742  2739 E TransitionChain:    ChangeInfo{bf9a40 container=Task{9697fd3 #3 type=home A=1000:com.android.settings.FallbackHome nonResizable} flags=0x0}
-10-18 11:12:01.874  2773  2773 I wm_on_top_resumed_gained_called: [108209316,com.android.settings.FallbackHome,topStateChangedWhenResumed]
-10-18 11:12:01.882  2773  2773 D VRI[FallbackHome]: WindowInsets changed: 1920x1200 
-10-18 11:12:01.882   742  2636 D CoreBackPreview: Window{871142b u0 com.android.settings/com.android.settings.FallbackHome}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@1a9bdc9, mPriority=-1, mIsAnimationCallback=false, mOverrideBehavior
-10-18 11:12:01.883   742  2739 D WindowManager: setClientSurface Surface(name=VRI-com.android.settings/com.android.settings.FallbackHome#50)/@0xf8f3cce for 871142b com.android.settings/com.android.settings.FallbackHome
-10-18 11:12:01.884   742   810 I input_focus: [Focus request 871142b com.android.settings/com.android.settings.FallbackHome,reason=UpdateInputWindows]
-10-18 11:12:01.884  2773  2773 I Surface : Creating surface for consumer VRI[FallbackHome]#0(BLAST Consumer)0 with slotExpansion=1 for 64 slots
-10-18 11:12:01.885  2773  2773 I viewroot_draw_event: [VRI[FallbackHome]4648f19,applyTransactionOnDraw applyImmediately]
-10-18 11:12:02.168   742   810 I wm_wallpaper_surface: [0,1,Window{871142b u0 com.android.settings/com.android.settings.FallbackHome}]
-10-18 11:12:02.169  2773  2773 I viewroot_draw_event: [VRI[FallbackHome]4648f19,reportDrawFinished seqId=1]
-10-18 11:12:02.172   742   806 I sysui_multi_action: [319,292,322,883,325,34,757,761,758,7,759,3,806,com.android.settings,871,com.android.settings.FallbackHome,905,0,945,144,1320,4,1321,23]
-10-18 11:12:02.172   742   806 I wm_activity_launch_time: [0,108209316,com.android.settings/.FallbackHome,883]
-10-18 11:12:02.172   742   806 I ActivityTaskManager: Displayed com.android.settings/.FallbackHome for user 0: +883ms
-10-18 11:12:02.175   742   806 V WindowManager:         {WCT{RemoteToken{b28fb48 Task{9697fd3 #3 type=home A=1000:com.android.settings.FallbackHome nonResizable}}} m=CHANGE f=SHOW_WALLPAPER leash=Surface(name=Task=3#39)/@0xe8f813a sb=Rect(0, 0 - 1920, 1200) eb=Rect(0, 0 - 1920, 1200) epz=Point(1920,
-10-18 11:12:03.635   742  2565 I wm_pause_activity: [0,108209316,com.android.settings/.FallbackHome,userLeaving=false,sleep]
-10-18 11:12:03.637   742  2565 I wm_add_to_stopping: [0,108209316,com.android.settings/.FallbackHome,makeInvisible]
-10-18 11:12:03.643  2773  2773 D VRI[FallbackHome]: WindowInsets changed: navigationBars:[0,0,0,32] mandatorySystemGestures:[0,0,0,32] 
-10-18 11:12:03.650  2773  2773 I wm_on_top_resumed_lost_called: [108209316,com.android.settings.FallbackHome,topStateChangedWhenResumed]
-10-18 11:12:03.650  2773  2773 I wm_on_paused_called: [108209316,com.android.settings.FallbackHome,performPause,0]
-10-18 11:12:03.658  2773  2773 D VRI[FallbackHome]: visibilityChanged oldVisibility=true newVisibility=false
-10-18 11:12:03.659   742   809 I wm_stop_activity: [0,108209316,com.android.settings/.FallbackHome]
-10-18 11:12:03.671   742   810 I wm_wallpaper_surface: [0,0,Window{871142b u0 com.android.settings/com.android.settings.FallbackHome}]
-10-18 11:12:03.675  2773  2773 I viewroot_draw_event: [VRI[FallbackHome]4648f19,Not drawing due to not visible. Reason=!mAppVisible && !mForceDecorViewVisibility]
-10-18 11:12:03.676  2773  2773 I wm_on_stop_called: [108209316,com.android.settings.FallbackHome,STOP_ACTIVITY_ITEM,0]
-10-18 11:12:03.805   742   797 I wm_set_resumed_activity: [0,com.android.settings/.FallbackHome,resumeTopActivity - onActivityStateChanged]
-10-18 11:12:03.806   742   797 I wm_resume_activity: [0,108209316,3,com.android.settings/.FallbackHome]
-10-18 11:12:03.810  2773  2773 I wm_on_restart_called: [108209316,com.android.settings.FallbackHome,performRestart,0]
-10-18 11:12:03.810  2773  2773 I wm_on_start_called: [108209316,com.android.settings.FallbackHome,handleStartActivity,0]
-10-18 11:12:03.811  2773  2773 I wm_on_resume_called: [108209316,com.android.settings.FallbackHome,RESUME_ACTIVITY,0]
-10-18 11:12:03.811  2773  2773 I wm_on_top_resumed_gained_called: [108209316,com.android.settings.FallbackHome,topWhenResuming]
-10-18 11:12:03.813  2773  2773 I Surface : Creating surface for consumer VRI[FallbackHome]#1(BLAST Consumer)1 with slotExpansion=1 for 64 slots
-10-18 11:12:03.813  2773  2773 I viewroot_draw_event: [VRI[FallbackHome]4648f19,applyTransactionOnDraw applyImmediately]
-10-18 11:12:03.814  2773  2773 I viewroot_draw_event: [VRI[FallbackHome]4648f19,Start draw after previous draw not visible]
-10-18 11:12:03.831   742  2897 D WindowManager: setClientSurface Surface(name=VRI-com.android.settings/com.android.settings.FallbackHome#84)/@0x28e11b2 for 871142b com.android.settings/com.android.settings.FallbackHome
-10-18 11:12:03.839   742   810 I input_focus: [Focus request 871142b com.android.settings/com.android.settings.FallbackHome,reason=UpdateInputWindows]
-10-18 11:12:03.840   742   810 I wm_wallpaper_surface: [0,1,Window{871142b u0 com.android.settings/com.android.settings.FallbackHome}]
-10-18 11:12:04.063  2773  2773 I viewroot_draw_event: [VRI[FallbackHome]4648f19,reportDrawFinished seqId=1]
-10-18 11:12:04.078   742   806 V AppCompatResourceOverlayPolicy: doResourceOverlayChangesAffectActivity: result: true componentName: ComponentInfo{com.android.settings/com.android.settings.FallbackHome} overlayPathsAdded: {/data/resource-cache/com.android.systemui-accent-wA41.frro, /data/resource-ca
-10-18 11:12:04.079   742   806 I wm_relaunch_resume_activity: [0,108209316,3,com.android.settings/.FallbackHome,80000000]
-10-18 11:12:04.090  2773  2773 D VRI[FallbackHome]: WindowInsets changed: statusBars:[0,24,0,0] mandatorySystemGestures:[0,24,0,32] 
-10-18 11:12:04.093  2773  2773 I viewroot_draw_event: [VRI[FallbackHome]4648f19,reportDrawFinished seqId=2]
-10-18 11:12:04.094  2773  2773 I wm_on_top_resumed_lost_called: [108209316,com.android.settings.FallbackHome,pausing]
-10-18 11:12:04.094  2773  2773 I wm_on_paused_called: [108209316,com.android.settings.FallbackHome,performPause,0]
-10-18 11:12:04.094  2773  2773 I wm_on_stop_called: [108209316,com.android.settings.FallbackHome,handleRelaunchActivity,0]
-10-18 11:12:04.095  2773  2773 I wm_on_destroy_called: [108209316,com.android.settings.FallbackHome,performDestroy,0]
-10-18 11:12:04.099   742  2190 D CoreBackPreview: Window{871142b u0 com.android.settings/com.android.settings.FallbackHome}: Setting back callback null
-10-18 11:12:04.117  2773  2773 D FallbackHome: User not yet unlocked
-10-18 11:12:04.117  2773  2773 I wm_on_create_called: [108209316,com.android.settings.FallbackHome,performCreate,2]
-10-18 11:12:04.124  2773  2773 I wm_on_start_called: [108209316,com.android.settings.FallbackHome,handleStartActivity,0]
-10-18 11:12:04.124  2773  2773 I wm_on_resume_called: [108209316,com.android.settings.FallbackHome,RESUME_ACTIVITY,0]
-10-18 11:12:04.124  2773  2773 I wm_on_top_resumed_gained_called: [108209316,com.android.settings.FallbackHome,topWhenResuming]
-10-18 11:12:04.134   742  2739 D CoreBackPreview: Window{8d02908 u0 com.android.settings/com.android.settings.FallbackHome}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@eb3c823, mPriority=-1, mIsAnimationCallback=false, mOverrideBehavior
-10-18 11:12:04.134  2773  2773 D VRI[FallbackHome]: WindowInsets changed: 1920x1200 statusBars:[0,24,0,0] navigationBars:[0,0,0,32] mandatorySystemGestures:[0,24,0,32] 
-10-18 11:12:04.137   742   797 D WindowManager: setClientSurface Surface(name=VRI-com.android.settings/com.android.settings.FallbackHome#88)/@0xb70c37f for 8d02908 com.android.settings/com.android.settings.FallbackHome
-10-18 11:12:04.141  2773  2773 I Surface : Creating surface for consumer VRI[FallbackHome]#2(BLAST Consumer)2 with slotExpansion=1 for 64 slots
-10-18 11:12:04.141  2773  2773 I viewroot_draw_event: [VRI[FallbackHome]6ac1b20,applyTransactionOnDraw applyImmediately]
-10-18 11:12:04.143   742   810 I input_focus: [Focus request 8d02908 com.android.settings/com.android.settings.FallbackHome,reason=UpdateInputWindows]
-10-18 11:12:04.264  2773  2773 I viewroot_draw_event: [VRI[FallbackHome]6ac1b20,reportDrawFinished seqId=1]
-10-18 11:12:04.264   742  2739 I WindowManager: finishDrawing of relaunch: Window{8d02908 u0 com.android.settings/com.android.settings.FallbackHome} 185ms
-10-18 11:12:04.606  2773  2773 D FallbackHome: User unlocked and real home found; let's go!
-10-18 11:12:04.608   742   797 I wm_finish_activity: [0,108209316,3,com.android.settings/.FallbackHome,app-request]
-10-18 11:12:04.610  2566  2658 V WindowManagerShell: Transition requested (#7): android.os.BinderProxy@258f2c4 TransitionRequestInfo { type = CLOSE, triggerTask = TaskInfo{userId=0 taskId=3 effectiveUid=1000 displayId=0 isRunning=false baseIntent=Intent { act=android.intent.action.MAIN cat=[android.
-10-18 11:12:04.610   742   797 I wm_pause_activity: [0,108209316,com.android.settings/.FallbackHome,userLeaving=false,finish]
-10-18 11:12:04.613  2773  2773 I wm_on_top_resumed_lost_called: [108209316,com.android.settings.FallbackHome,topStateChangedWhenResumed]
-10-18 11:12:04.614  2773  2773 I wm_on_paused_called: [108209316,com.android.settings.FallbackHome,performPause,0]
-10-18 11:12:05.182   742   806 V WindowManager: Sent Transition (#7) createdAt=10-18 11:12:04.608 via request=TransitionRequestInfo { type = CLOSE, triggerTask = TaskInfo{userId=0 taskId=3 effectiveUid=1000 displayId=0 isRunning=false baseIntent=Intent { act=android.intent.action.MAIN cat=[android.i
-10-18 11:12:05.182   742   806 V WindowManager:         {WCT{RemoteToken{b28fb48 Task{9697fd3 #3 type=home A=1000:com.android.settings.FallbackHome nonResizable}}} m=CLOSE f=SHOW_WALLPAPER|FLAG_CHANGED_INTERACTIVE leash=Surface(name=Task=3#39)/@0xe8f813a sb=Rect(0, 0 - 1920, 1200) eb=Rect(0, 0 - 192
-10-18 11:12:05.184   742   809 I wm_destroy_activity: [0,108209316,3,com.android.settings/.FallbackHome,finish-transit]
-10-18 11:12:05.192  2773  2773 I wm_on_stop_called: [108209316,com.android.settings.FallbackHome,LIFECYCLER_STOP_ACTIVITY,0]
-10-18 11:12:05.225  2773  2773 I wm_on_destroy_called: [108209316,com.android.settings.FallbackHome,performDestroy,33]
-10-18 11:12:05.226   742  2816 D CoreBackPreview: Window{8d02908 u0 com.android.settings/com.android.settings.FallbackHome}: Setting back callback null
-10-18 11:12:05.708   742   796 I wm_task_removed: [3,1,0,removeChild, last child = ActivityRecord{108209316 u0 com.android.settings/.FallbackHome t-1 f}} in Task{9697fd3 #3 type=home A=1000:com.android.settings.FallbackHome nonResizable}]
+10-18 13:11:07.578  2684  2684 I OpenBookSetup: setup complete (step aside: live session); provisioned=true
+10-18 13:11:07.669   735  2623 I wm_create_activity: [0,143254264,3,com.android.settings/.FallbackHome,android.intent.action.MAIN,NULL,NULL,276824320]
+10-18 13:11:07.669   735  2623 V ActivityTaskManager: TaskLaunchParamsModifier: phase=3 task=Task{f636a4 #3 type=home A=1000:com.android.settings.FallbackHome nonResizable} activity=ActivityRecord{143254264 u0 com.android.settings/.FallbackHome t-1} display-area-token-from-option=DefaultTaskDisplayA
+10-18 13:11:07.669   735  2623 I ActivityTaskManager: START u0 {act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10000100 cmp=com.android.settings/.FallbackHome (has extras)} with LAUNCH_MULTIPLE from uid 0 (BAL_ALLOW_ALLOWLISTED_UID) result code=0
+10-18 13:11:07.683   735   799 I am_proc_start: [0,2773,1000,com.android.settings,top-activity,{com.android.settings/com.android.settings.FallbackHome}]
+10-18 13:11:07.683   735   799 I ActivityManager: Start proc 2773:com.android.settings/1000 for top-activity {com.android.settings/com.android.settings.FallbackHome}
+10-18 13:11:07.877   735  2732 I wm_restart_activity: [0,143254264,3,com.android.settings/.FallbackHome]
+10-18 13:11:07.878   735  2732 I wm_set_resumed_activity: [0,com.android.settings/.FallbackHome,realStartActivityLocked - onActivityStateChanged]
+10-18 13:11:07.914  2773  2773 D FallbackHome: User not yet unlocked
+10-18 13:11:07.915  2773  2773 I wm_on_create_called: [143254264,com.android.settings.FallbackHome,performCreate,13]
+10-18 13:11:07.922  2773  2773 I wm_on_start_called: [143254264,com.android.settings.FallbackHome,handleStartActivity,0]
+10-18 13:11:07.926  2773  2773 I wm_on_resume_called: [143254264,com.android.settings.FallbackHome,RESUME_ACTIVITY,3]
+10-18 13:11:08.063  2773  2773 I wm_on_top_resumed_gained_called: [143254264,com.android.settings.FallbackHome,topStateChangedWhenResumed]
+10-18 13:11:08.064  2773  2773 D VRI[FallbackHome]: WindowInsets changed: 1920x1200 
+10-18 13:11:08.064   735  2623 D CoreBackPreview: Window{3e355b5 u0 com.android.settings/com.android.settings.FallbackHome}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@e27f852, mPriority=-1, mIsAnimationCallback=false, mOverrideBehavior
+10-18 13:11:08.065   735   775 D WindowManager: setClientSurface Surface(name=VRI-com.android.settings/com.android.settings.FallbackHome#47)/@0x619e723 for 3e355b5 com.android.settings/com.android.settings.FallbackHome
+10-18 13:11:08.066   735   793 I input_focus: [Focus request 3e355b5 com.android.settings/com.android.settings.FallbackHome,reason=UpdateInputWindows]
+10-18 13:11:08.067  2773  2773 I Surface : Creating surface for consumer VRI[FallbackHome]#0(BLAST Consumer)0 with slotExpansion=1 for 64 slots
+10-18 13:11:08.067  2773  2773 I viewroot_draw_event: [VRI[FallbackHome]1434865,applyTransactionOnDraw applyImmediately]
+10-18 13:11:08.167   735   793 I wm_wallpaper_surface: [0,1,Window{3e355b5 u0 com.android.settings/com.android.settings.FallbackHome}]
+10-18 13:11:08.303  2773  2773 I viewroot_draw_event: [VRI[FallbackHome]1434865,reportDrawFinished seqId=1]
+10-18 13:11:08.316   735   789 I sysui_multi_action: [319,709,322,697,325,33,757,761,758,7,759,2,806,com.android.settings,871,com.android.settings.FallbackHome,905,0,945,104,1320,4,1321,23]
+10-18 13:11:08.318   735   789 I wm_activity_launch_time: [0,143254264,com.android.settings/.FallbackHome,697]
+10-18 13:11:08.318   735   789 I ActivityTaskManager: Displayed com.android.settings/.FallbackHome for user 0: +697ms
+10-18 13:11:09.039   735  2790 I wm_pause_activity: [0,143254264,com.android.settings/.FallbackHome,userLeaving=false,sleep]
+10-18 13:11:09.040  2773  2773 I wm_on_top_resumed_lost_called: [143254264,com.android.settings.FallbackHome,topStateChangedWhenResumed]
+10-18 13:11:09.040   735  2790 I wm_add_to_stopping: [0,143254264,com.android.settings/.FallbackHome,makeInvisible]
+10-18 13:11:09.041  2773  2773 I wm_on_paused_called: [143254264,com.android.settings.FallbackHome,performPause,0]
+10-18 13:11:09.047   735  2790 E TransitionChain:    ChangeInfo{bbabd2e container=Task{f636a4 #3 type=home A=1000:com.android.settings.FallbackHome nonResizable} flags=0x0}
+10-18 13:11:09.047   735  2790 E TransitionChain:    ChangeInfo{46fb165 container=ActivityRecord{143254264 u0 com.android.settings/.FallbackHome t3} flags=0x0}
+10-18 13:11:09.047   735  2790 E TransitionChain:    ChangeInfo{bbabd2e container=Task{f636a4 #3 type=home A=1000:com.android.settings.FallbackHome nonResizable} flags=0x0}
+10-18 13:11:09.047   735  2790 E TransitionChain:    ChangeInfo{46fb165 container=ActivityRecord{143254264 u0 com.android.settings/.FallbackHome t3} flags=0x0}
+10-18 13:11:09.061  2773  2773 D VRI[FallbackHome]: visibilityChanged oldVisibility=true newVisibility=false
+10-18 13:11:09.061   735   792 I wm_stop_activity: [0,143254264,com.android.settings/.FallbackHome]
+10-18 13:11:09.195   735   793 I wm_wallpaper_surface: [0,0,Window{3e355b5 u0 com.android.settings/com.android.settings.FallbackHome}]
+10-18 13:11:09.197  2773  2773 I viewroot_draw_event: [VRI[FallbackHome]1434865,Not drawing due to not visible. Reason=!mAppVisible && !mForceDecorViewVisibility]
+10-18 13:11:09.197  2773  2773 I wm_on_stop_called: [143254264,com.android.settings.FallbackHome,STOP_ACTIVITY_ITEM,0]
+10-18 13:11:09.241   735  2790 I wm_set_resumed_activity: [0,com.android.settings/.FallbackHome,resumeTopActivity - onActivityStateChanged]
+10-18 13:11:09.242   735  2790 I wm_resume_activity: [0,143254264,3,com.android.settings/.FallbackHome]
+10-18 13:11:09.243  2773  2773 I wm_on_restart_called: [143254264,com.android.settings.FallbackHome,performRestart,0]
+10-18 13:11:09.243  2773  2773 I wm_on_start_called: [143254264,com.android.settings.FallbackHome,handleStartActivity,0]
+10-18 13:11:09.243  2773  2773 I wm_on_resume_called: [143254264,com.android.settings.FallbackHome,RESUME_ACTIVITY,0]
+10-18 13:11:09.243  2773  2773 I wm_on_top_resumed_gained_called: [143254264,com.android.settings.FallbackHome,topWhenResuming]
+10-18 13:11:09.337  2773  2773 I Surface : Creating surface for consumer VRI[FallbackHome]#1(BLAST Consumer)1 with slotExpansion=1 for 64 slots
+10-18 13:11:09.337  2773  2773 I viewroot_draw_event: [VRI[FallbackHome]1434865,applyTransactionOnDraw applyImmediately]
+10-18 13:11:09.337  2773  2773 I viewroot_draw_event: [VRI[FallbackHome]1434865,Start draw after previous draw not visible]
+10-18 13:11:09.337   735  2174 D WindowManager: setClientSurface Surface(name=VRI-com.android.settings/com.android.settings.FallbackHome#79)/@0xb67cb25 for 3e355b5 com.android.settings/com.android.settings.FallbackHome
+10-18 13:11:09.340   735   793 I input_focus: [Focus request 3e355b5 com.android.settings/com.android.settings.FallbackHome,reason=UpdateInputWindows]
+10-18 13:11:09.360   735   789 V AppCompatResourceOverlayPolicy: doResourceOverlayChangesAffectActivity: result: true componentName: ComponentInfo{com.android.settings/com.android.settings.FallbackHome} overlayPathsAdded: {/data/resource-cache/com.android.systemui-dynamic-Z2MP.frro, /data/resource-c
+10-18 13:11:09.360   735   789 I wm_relaunch_resume_activity: [0,143254264,3,com.android.settings/.FallbackHome,80000000]
+10-18 13:11:09.375   735   793 I wm_wallpaper_surface: [0,1,Window{3e355b5 u0 com.android.settings/com.android.settings.FallbackHome}]
+10-18 13:11:09.491  2773  2773 I viewroot_draw_event: [VRI[FallbackHome]1434865,reportDrawFinished seqId=1]
+10-18 13:11:09.519  2773  2773 I wm_on_top_resumed_lost_called: [143254264,com.android.settings.FallbackHome,pausing]
+10-18 13:11:09.519  2773  2773 I wm_on_paused_called: [143254264,com.android.settings.FallbackHome,performPause,0]
+10-18 13:11:09.520  2773  2773 I wm_on_stop_called: [143254264,com.android.settings.FallbackHome,handleRelaunchActivity,0]
+10-18 13:11:09.520   735  2737 D CoreBackPreview: Window{3e355b5 u0 com.android.settings/com.android.settings.FallbackHome}: Setting back callback null
+10-18 13:11:09.520  2773  2773 I wm_on_destroy_called: [143254264,com.android.settings.FallbackHome,performDestroy,0]
+10-18 13:11:09.527  2773  2773 D FallbackHome: User not yet unlocked
+10-18 13:11:09.527  2773  2773 I wm_on_create_called: [143254264,com.android.settings.FallbackHome,performCreate,1]
+10-18 13:11:09.527  2773  2773 I wm_on_start_called: [143254264,com.android.settings.FallbackHome,handleStartActivity,0]
+10-18 13:11:09.527  2773  2773 I wm_on_resume_called: [143254264,com.android.settings.FallbackHome,RESUME_ACTIVITY,0]
+10-18 13:11:09.527  2773  2773 I wm_on_top_resumed_gained_called: [143254264,com.android.settings.FallbackHome,topWhenResuming]
+10-18 13:11:09.535  2773  2773 D VRI[FallbackHome]: WindowInsets changed: 1920x1200 statusBars:[0,24,0,0] navigationBars:[0,0,0,32] mandatorySystemGestures:[0,24,0,32] 
+10-18 13:11:09.537   735  2669 D WindowManager: setClientSurface Surface(name=VRI-com.android.settings/com.android.settings.FallbackHome#86)/@0xde9cdd9 for f16e452 com.android.settings/com.android.settings.FallbackHome
+10-18 13:11:09.537   735   793 I input_focus: [Focus request f16e452 com.android.settings/com.android.settings.FallbackHome,reason=UpdateInputWindows]
+10-18 13:11:09.537   735  2174 D CoreBackPreview: Window{f16e452 u0 com.android.settings/com.android.settings.FallbackHome}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@8beabaa, mPriority=-1, mIsAnimationCallback=false, mOverrideBehavior
+10-18 13:11:09.538  2773  2773 I Surface : Creating surface for consumer VRI[FallbackHome]#2(BLAST Consumer)2 with slotExpansion=1 for 64 slots
+10-18 13:11:09.539  2773  2773 I viewroot_draw_event: [VRI[FallbackHome]8876c9a,applyTransactionOnDraw applyImmediately]
+10-18 13:11:09.626  2773  2773 I viewroot_draw_event: [VRI[FallbackHome]8876c9a,reportDrawFinished seqId=1]
+10-18 13:11:09.626   735  2175 I WindowManager: finishDrawing of relaunch: Window{f16e452 u0 com.android.settings/com.android.settings.FallbackHome} 262ms
+10-18 13:11:09.935  2773  2773 D FallbackHome: User unlocked and real home found; let's go!
+10-18 13:11:09.940   735   775 I wm_finish_activity: [0,143254264,3,com.android.settings/.FallbackHome,app-request]
+10-18 13:11:09.941  2542  2589 V WindowManagerShell: Transition requested (#7): android.os.BinderProxy@b060747 TransitionRequestInfo { type = CLOSE, triggerTask = TaskInfo{userId=0 taskId=3 effectiveUid=1000 displayId=0 isRunning=false baseIntent=Intent { act=android.intent.action.MAIN cat=[android.
+10-18 13:11:09.942   735   775 I wm_pause_activity: [0,143254264,com.android.settings/.FallbackHome,userLeaving=false,finish]
+10-18 13:11:09.943  2773  2773 I wm_on_top_resumed_lost_called: [143254264,com.android.settings.FallbackHome,topStateChangedWhenResumed]
+10-18 13:11:09.943  2773  2773 I wm_on_paused_called: [143254264,com.android.settings.FallbackHome,performPause,0]
+10-18 13:11:10.340   735   789 V WindowManager: Sent Transition (#7) createdAt=10-18 13:11:09.940 via request=TransitionRequestInfo { type = CLOSE, triggerTask = TaskInfo{userId=0 taskId=3 effectiveUid=1000 displayId=0 isRunning=false baseIntent=Intent { act=android.intent.action.MAIN cat=[android.i
+10-18 13:11:10.341   735   789 V WindowManager:         {WCT{RemoteToken{a306181 Task{f636a4 #3 type=home A=1000:com.android.settings.FallbackHome nonResizable}}} m=CLOSE f=SHOW_WALLPAPER|FLAG_CHANGED_INTERACTIVE leash=Surface(name=Task=3#39)/@0x3b22a05 sb=Rect(0, 0 - 1920, 1200) eb=Rect(0, 0 - 1920
+10-18 13:11:10.341   735   792 I wm_destroy_activity: [0,143254264,3,com.android.settings/.FallbackHome,finish-transit]
+10-18 13:11:10.342  2773  2773 I wm_on_stop_called: [143254264,com.android.settings.FallbackHome,LIFECYCLER_STOP_ACTIVITY,1]
+10-18 13:11:10.344  2773  2773 I wm_on_destroy_called: [143254264,com.android.settings.FallbackHome,performDestroy,1]
+10-18 13:11:10.375   735  2623 D CoreBackPreview: Window{f16e452 u0 com.android.settings/com.android.settings.FallbackHome EXITING}: Setting back callback null
+10-18 13:11:10.711   735  2732 I wm_task_removed: [3,1,0,removeChild, last child = ActivityRecord{143254264 u0 com.android.settings/.FallbackHome t-1 f}} in Task{f636a4 #3 type=home A=1000:com.android.settings.FallbackHome nonResizable}]

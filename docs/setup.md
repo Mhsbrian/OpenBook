@@ -25,7 +25,13 @@ Backlog item B8 of ANAL-201 (`docs/googlebook-ui.md` §2.5, §4).
   - `androidboot.openbook.setup=skip`: the flag for unattended runs on an installed system;
   - `ro.setupwizard.mode=DISABLED`: AOSP's setup-wizard switch. **Cuttlefish sets it by default** (cvd `--setupwizard_mode`, default `DISABLED`), so every existing Cuttlefish run lands on the desktop as before.
 
-**Results (§5):** Cuttlefish: every page 15/15, Skip 8/8, the flag 7/7, Cuttlefish's default 7/7. QEMU, G14 product image: installer live checks 40/40, the wizard (including setup on the installed disk) 27/27. Not run on the G14 yet.
+**Results (§5):**
+- **Cuttlefish:** every page 15/15, Skip 8/8, the flag 7/7, Cuttlefish's default 7/7.
+- **QEMU, G14 product image:**
+  - installer live checks 40/40;
+  - the wizard 27/27, including setup on the installed disk;
+  - G2's installed system with a synthetic package 18/18, including setup's Register page.
+- **Not run on the G14 yet.**
 
 ## 1. The mechanism, and why
 
@@ -86,7 +92,7 @@ The flag is a bootconfig value like the installer's other `androidboot.openbook.
 
 ## 5. Results
 
-Evidence: `evidence/2026-10-18-setup/` (`SUMMARY.md` lists every file). Final runs are from `bbfef6b`: this branch merged with `main` at `c52f94a` (B1, B3, B6, B7, G1), userdebug, AOSP test keys.
+Evidence: `evidence/2026-10-18-setup/` (`SUMMARY.md` lists every file). Final runs are from `24b7787`: this branch merged with `main` at `f49ccd8` (B1, B3, B6, B7, G1, G2), userdebug, AOSP test keys.
 
 **Builds (C).** `anybook_cf_x86_64_pc-cp2a-userdebug` and `anybook_g14_x86_64-cp2a-userdebug` both build, before and after merging `main`. In both, `/system_ext/priv-app/OpenBookSetup/OpenBookSetup.apk` and its permission file are installed and Provision is not (`installed-files-system_ext.txt`).
 
@@ -108,13 +114,15 @@ The `walk` run:
   - the keyboard layout is stored for the VM's keyboard under LatinIME's subtype (`input-manager-state.xml`: `keyboard_layout_english_uk`).
 - `dumpsys package` lists `Setup Wizard: org.openbook.setup`.
 
-**Installer, QEMU** (G14 product image `openbook-live-20261018-anal209m`):
+**Installer, QEMU** (G14 product image `openbook-live-20261018-anal209n`):
 - **Live checks (`live-qemu.sh`): 40/40**, the same count as `main`'s images.
   - On live sessions setup steps aside, and the install wizard opens by itself (`qemu/live-default-shot-120.png`).
   - On the stick's first boot, setup logs `step aside: live session` and the system starts Settings' `FallbackHome` itself; no crash.
 - **Wizard (`wizard-qemu.sh`, dryrun, install, installed, console): 27/27.**
   - On the installed disk, OpenBook setup is the first screen. The driver walks the nine pages (`qemu/installed-setup/`), then the launcher is on top and setup is off.
   - No SELinux denial from setup.
+- **G2's end to end with a synthetic package** (`scripts/gapps/gapps-e2e-qemu.sh` prep, g-cli, g-installed, check): **g-cli 10/10, g-installed 18/18.**
+  - With the user's own package installed, setup has ten pages. "Register this computer with Google" (step 9 of 10) shows the stand-in GSF's ID `3141592653589793238` and the registration steps (`qemu/gapps/`).
 
 **Found and fixed on the way (C):**
 - **A crash when setup stepped aside while the user was still locked:** a live stick's first boot, and Cuttlefish's default boot.
@@ -134,7 +142,7 @@ The `walk` run:
 - **A keyboard plugged in after setup** gets Android's automatic layout (by the input method's language), not setup's choice.
 - **Fonts:** setup and the installer draw with Compose's default family (Roboto). B1's `google-sans` families apply to the platform UI, not to these two apps yet.
 - **The network page online:** this Cuttlefish VM had no network (`Active default network: none`), so only "Not connected" was shown. The online state is the same callback; check it on the G14 (Wi-Fi) or in a VM with networking.
-- **The GSF registration note** on the Extras page (G2) is untested: no OpenBook image contains Google Services Framework.
+- **The Register page with real Google apps:** tested only with G2's synthetic package and its stand-in GSF.
 - **The G14:** not run on the laptop. The steps are on ANAL-192's next stick checklist.
 
 ## Reproduce

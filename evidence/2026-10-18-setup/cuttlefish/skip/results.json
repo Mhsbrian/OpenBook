@@ -7,7 +7,7 @@
   {
    "check": "setup is the first screen",
    "ok": true,
-   "detail": "      topResumedActivity=ActivityRecord{50867869 u0 org.openbook.setup/.SetupActivity t2} "
+   "detail": "      topResumedActivity=ActivityRecord{37867963 u0 org.openbook.setup/.SetupActivity t2} "
   },
   {
    "check": "device_provisioned=1 and user_setup_complete=1",
@@ -27,7 +27,7 @@
   {
    "check": "the launcher is on top",
    "ok": true,
-   "detail": "      topResumedActivity=ActivityRecord{168917481 u0 com.android.launcher3/.uioverrides.QuickstepLauncher t8} "
+   "detail": "      topResumedActivity=ActivityRecord{4822736 u0 com.android.launcher3/.uioverrides.QuickstepLauncher t8} "
   },
   {
    "check": "setup never crashed (am_crash, am_anr)",
@@ -42,7 +42,7 @@
   {
    "check": "setup logged the skip",
    "ok": true,
-   "detail": "10-18 11:43:30.725  2793  2793 I OpenBookSetup: setup complete (skipped by the user on welcome); provisioned=true "
+   "detail": "10-18 12:45:50.558  2761  2761 I OpenBookSetup: setup complete (skipped by the user on welcome); provisioned=true "
   }
  ]
 }
