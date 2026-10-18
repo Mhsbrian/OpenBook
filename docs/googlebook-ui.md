@@ -140,6 +140,28 @@ Corner radii already match. The visible differences are the icon shape and the w
 - **Boot animation:** Googlebook ships `system/media/bootanimation.zip`; we have none.
 - **Setup:** Googlebook runs Google's setup wizard (`setupwizard.theme=glif_expressive`); we run AOSP Provision.
 
+**Done in ANAL-207 (B6): OpenBook's own wallpapers, boot animation, sounds and pointer** (`assets/README.md`; evidence `evidence/2026-10-17-brand-assets/`). Everything is drawn or synthesised by `scripts/brand/` from the brand palette and mark, CC-BY-4.0. No Google art, sample or font was copied or traced; Googlebook's own assets were not opened.
+- **Wallpapers:** four designs, each light and dark, at 2880×1800 and 1920×1080: Folio (pages fanning out of the spine), Bloom, Strata and Tide.
+  - The default, Folio light, is `default_wallpaper` in `AnyBookDesktopFrameworkOverlay`. AOSP has `nodpi`, `sw600dp` and `sw720dp` variants and the more specific one wins, so we override all three. The G14's 1200 dp wide screen uses `sw720dp`.
+  - The set of eight is an "OpenBook" collection in Wallpaper & style. WallpaperPicker2 reads `res/xml/wallpapers.xml` from the partner customization package (ANAL-206's `AnyBookDesktopPartnerCustomization`; only one such package may exist).
+  - Dynamic colour: `scripts/brand/monet.py` ports `WallpaperColors.fromBitmap` and `ColorScheme.getSeedColors` and predicts each wallpaper's seed and TonalSpot palette (`assets/wallpapers/monet.json`). The device's values are in the evidence.
+- **Boot animation:** `/product/media/bootanimation.zip`, 480×480 at 30 fps on the brand's dark surface `#121318`. The pages unfold and the spark lights (`part0`, always played), the spark breathes until boot completes (`part1`), then the mark fades (`part2`).
+- **Sounds:** one synthesised glass-mallet voice and one motif. Ringtone "Open Pages", notification "Spark", alarm "First Light", and the lock, unlock, trusted, low-battery and charging sounds.
+  - `ro.config.*` sets the defaults; `OpenBookSoundsSettingsProviderOverlay` sets the UI sound paths. AOSP's sounds stay selectable.
+  - Click and keypress sounds stay off (ANAL-206).
+- **Pointer:** 20 of AOSP 17's vector pointer shapes are redrawn on AOSP's grid and hotspots. Not replaced: the wait spinner, touch spots and the handwriting pointer.
+  - **How the colours work.** The accessibility fill (6 colours), stroke (white, black, none) and size settings still apply.
+  - **Why the overlay replaces the nine colour styles.** Android applies the user's choice as the styles `PointerIconVectorStyleFill*` / `Stroke*`, which set private framework attributes. aapt2 lets no other package's XML refer to those attributes. It does accept them as style item names (`*android:pointerIconVectorFill`). So `OpenBookPointerOverlay` also replaces the nine styles: each keeps AOSP's items and adds the same colour under the overlay's own `openbookPointerFill` / `openbookPointerStroke`, which our vectors use.
+  - **A first attempt that failed (C).** We compiled the overlay as resource package `android`, so that it could name the private attributes directly. The overlay was enabled, but Android ignored its values, and the framework kept loading AOSP's path data. aapt2 forces that package to ID 0x01, and Android treats 0x01 IDs in a dynamically loaded overlay as the framework's own (`DynamicRefTable`). Evidence: `pretest/`.
+- **Measured in Cuttlefish** (the B6 build, `anybook-cf-b6`, 2026-10-18; 8/8 scripted checks, C):
+  - **Boot animation:** it plays from `/product/media/bootanimation.zip` during boot (12 s, 28 frames captured), and on replay all three parts show.
+  - **Default wallpaper:** a fresh `/data` shows Folio light, in both themes.
+  - **Picker:** Wallpaper & style lists the OpenBook collection with all eight.
+  - **Dynamic colour:** each wallpaper gives its own seed. The primary colour matches `monet.py` within 3 RGB units for 7 of 8 (Bloom light: 7).
+  - **Pointer:** the framework's own loader draws our 20 shapes in all 6 fills and 3 strokes. A virtual mouse shows our arrow on screen; `skipScreenshot` is false in this build, so screencap includes it.
+  - **Sounds:** the ringtone, notification and alarm settings point to Open Pages, Spark and First Light. MediaProvider indexed all 8.
+- **Not covered:** the G14 (ANAL-192's stick), and listening to the sounds by ear.
+
 ### 2.6 Desktop clutter (C for OpenBook, R for Googlebook)
 
 - **OpenBook before ANAL-206 (C):** the default desktop showed AOSP's legacy `QuickSearchBox` widget, a dark "Google" bar across the bottom (`fonts-prototype/before-settings.png`). It is Launcher3's hotseat search box, and Google's AOSP Desktop emulator image shows the same bar. The taskbar held Launcher3's tablet defaults: Calendar, Gallery, WebView Shell, Camera.
@@ -202,7 +224,7 @@ The owner approved every item on 2026-10-17. Each one is a sub-issue of ANAL-201
 | B3 | ANAL-204 | **Flag set v2.** Evaluate the 128 UI flags AOSP 17 declares, in groups. Start with box shadows, blur on more surfaces, resizing (`perfect_edge`, no-resize cursor, fluid resizing) and taskbar clicks. `scripts/desktop-flags.py` already writes the value set | medium | — |
 | B4 | ANAL-205 | **Shape and wallpaper values:** circular icon mask, round icons, wallpaper dim 0, wallpaper colour thresholds | small | — |
 | B5 | ANAL-206 | **A clean default desktop:** remove the QuickSearchBox widget and the app, set taskbar pins (Files, Settings, browser), quiet sounds. **Done in ANAL-206** (§2.6); the owner can change the pin list in review | small | Pins proposed in the PR; the owner reviews |
-| B6 | ANAL-207 | **Brand assets:** wallpapers (our own or CC0/CC-BY, not bulk Unsplash), a sound set with click sounds off by default, a boot animation, a pointer theme. Based on the brand mark in `assets/brand/` | medium | Owner reviews the visuals in the PR |
+| B6 | ANAL-207 | **Brand assets:** wallpapers (our own or CC0/CC-BY, not bulk Unsplash), a sound set with click sounds off by default, a boot animation, a pointer theme. Based on the brand mark in `assets/brand/`. **Done in Cuttlefish (§2.5); the G14 check is on ANAL-192's stick** | medium | Owner reviews the visuals in the PR (contact sheet) |
 | B7 | ANAL-208 | **Document fonts:** the 42 OFL metric-compatible fonts, for web and Office fidelity | small | — |
 | B8 | ANAL-209 | **Setup:** a first-run flow in our style, after the installer | medium | Coordinate with ANAL-191 (installer) |
 

@@ -1,0 +1,29 @@
+PointerChoreographer:
+  Show Touches Enabled: false
+  DisplaysWithShowTouchesForceEnabled: {}
+  Stylus PointerIcon Enabled: true
+  Accessibility Pointer Motion Filter Enabled: false
+  MousePointerControllers:
+  0 :     PointerController:
+      Presentation: POINTER
+      Pointer Display ID: 0
+      Viewports:
+        DisplayViewport[id=0]
+          Width=1920, Height=1080
+          Transform (ROT_0) (IDENTITY)
+      Spot Controllers:
+      Cursor Controller:
+          MouseCursorController:
+            viewport: Viewport INTERNAL: displayId=0, uniqueId=local:4619827353912518656, port=0, orientation=0, densityDpi=160 xDpi=160.000000, yDpi=160.000000, logicalFrame=[0, 0, 1920, 1080], physicalFrame=[0, 0, 1920, 1080], deviceSize=[1920, 1080], isActive=[1]
+            stylusHoverMode: false
+            pointerFadeDirection: 0
+            updatePointerIcon: false
+            resourcesLoaded: true
+            requestedPointerType: 1
+            resolvedPointerType: 1000
+            skipScreenshot: false
+            animating: false
+  TouchPointerControllers:
+  StylusPointerControllers:
+  DrawingTabletControllers:
+  DisplayTopologyGraph:
