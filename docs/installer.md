@@ -1178,7 +1178,7 @@ On the installer's harness: `e2e-qemu.sh`'s prep (the 16 GiB stick copy with a s
 Total **79/79** on `anal211b`. An earlier round on `anal211a` (`98a3673`, before the latest `main`) gave the same results except one real finding: `openbook_installd` was denied reading `ro.control_privapp_permissions` (`packagemanager_config_prop`), so the plan's warning could be wrong on an image that sets it. Fixed with `get_prop`; round 2 has no such denial (`evidence/…/qemu-a/`).
 
 ### 15.6 Findings
-1. **ANAL-210's `openbook-addons` is denied `write` to `/dev/kmsg_debug`** in every boot here, live and installed. That's not this step: passed to ANAL-210.
+1. **Seen only in round 1:** ANAL-210's `openbook-addons` was denied `write` to `/dev/kmsg_debug` with its pre-merge branch. It's gone with #80 as merged (round 2 has no such denial).
 2. **Fixed:** the daemon couldn't read `ro.control_privapp_permissions` (round 1, above).
 3. **After OpenBook setup, `uiautomator dump` keeps returning the finished setup window** even with Settings on screen. The test taps About's last row by position and checks the activity on top. This is the harness's view, not the app's: the screenshots show the right screens.
 4. **DocumentsUI opens on "Recent"** with its roots folded on this window size; the USB drive is one tap away ("Show roots").
