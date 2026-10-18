@@ -1,0 +1,5 @@
+q2-check stopped 1792353702.024
+10-18 20:01:41.861 I/Quire   ( 3150): lab: dev.openbook.quire.lab.AGENTS_DISCONNECT
+10-18 20:01:42.909 I/Quire   ( 3150): lab: dev.openbook.quire.lab.AGENTS_LIST
+10-18 20:01:42.911 I/Quire   ( 3150): agents: status linux-environment=STOPPED paired-computer=NOT_PAIRED
+10-18 20:01:42.911 W/Quire   ( 3150): agents: unavailable: The Linux environment isn’t running. Open Terminal to start it. Quire can use the agents on another computer instead, but none is paired.
