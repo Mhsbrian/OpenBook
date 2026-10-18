@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 1: box shadows on picture-in-picture windows
+flag_value {
+  package: "com.android.wm.shell"
+  name: "enable_pip_box_shadows_v2"
+  state: ENABLED
+  permission: READ_ONLY
+}

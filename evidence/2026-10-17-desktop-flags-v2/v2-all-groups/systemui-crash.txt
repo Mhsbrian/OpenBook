@@ -1,0 +1,22 @@
+--------- beginning of crash
+10-18 00:36:25.793  1069  1136 E AndroidRuntime: FATAL EXCEPTION: wmshell.main
+10-18 00:36:25.793  1069  1136 E AndroidRuntime: Process: com.android.systemui, PID: 1069
+10-18 00:36:25.793  1069  1136 E AndroidRuntime: java.lang.IllegalStateException: Expected non-null decoration container surface
+10-18 00:36:25.793  1069  1136 E AndroidRuntime: 	at okio.Buffer$$ExternalSyntheticBUOutline0.m$1(go/retraceme bea1a08b8c447ba32f5a266514cd0d1a8fe38ddb364d3c1c3ff236ba1360bb3a:2)
+10-18 00:36:25.793  1069  1136 E AndroidRuntime: 	at com.android.wm.shell.windowdecor.DefaultWindowDecoration.updateDragResizeListenerIfNeeded(go/retraceme bea1a08b8c447ba32f5a266514cd0d1a8fe38ddb364d3c1c3ff236ba1360bb3a:172)
+10-18 00:36:25.793  1069  1136 E AndroidRuntime: 	at com.android.wm.shell.windowdecor.DefaultWindowDecoration.relayout(go/retraceme bea1a08b8c447ba32f5a266514cd0d1a8fe38ddb364d3c1c3ff236ba1360bb3a:291)
+10-18 00:36:25.793  1069  1136 E AndroidRuntime: 	at com.android.wm.shell.windowdecor.DefaultWindowDecoration.relayout(go/retraceme bea1a08b8c447ba32f5a266514cd0d1a8fe38ddb364d3c1c3ff236ba1360bb3a:363)
+10-18 00:36:25.793  1069  1136 E AndroidRuntime: 	at com.android.wm.shell.windowdecor.WindowDecorationWrapper.relayout(go/retraceme bea1a08b8c447ba32f5a266514cd0d1a8fe38ddb364d3c1c3ff236ba1360bb3a:68)
+10-18 00:36:25.793  1069  1136 E AndroidRuntime: 	at com.android.wm.shell.windowdecor.DesktopModeWindowDecorViewModel.onTaskInfoChanged(go/retraceme bea1a08b8c447ba32f5a266514cd0d1a8fe38ddb364d3c1c3ff236ba1360bb3a:49)
+10-18 00:36:25.793  1069  1136 E AndroidRuntime: 	at com.android.wm.shell.windowdecor.DesktopModeWindowDecorViewModel$$ExternalSyntheticLambda9.invoke(go/retraceme bea1a08b8c447ba32f5a266514cd0d1a8fe38ddb364d3c1c3ff236ba1360bb3a:15)
+10-18 00:36:25.793  1069  1136 E AndroidRuntime: 	at com.android.wm.shell.desktopmode.multidesks.RootTaskDesksOrganizer.onTaskInfoChanged(go/retraceme bea1a08b8c447ba32f5a266514cd0d1a8fe38ddb364d3c1c3ff236ba1360bb3a:423)
+10-18 00:36:25.793  1069  1136 E AndroidRuntime: 	at com.android.wm.shell.ShellTaskOrganizer.onTaskInfoChanged(go/retraceme bea1a08b8c447ba32f5a266514cd0d1a8fe38ddb364d3c1c3ff236ba1360bb3a:104)
+10-18 00:36:25.793  1069  1136 E AndroidRuntime: 	at android.window.TaskOrganizer$1.lambda$onTaskInfoChanged$6(TaskOrganizer.java:409)
+10-18 00:36:25.793  1069  1136 E AndroidRuntime: 	at android.window.TaskOrganizer$1.$r8$lambda$ymyF3xZeY830CRyp4eBo81WJpe0(TaskOrganizer.java:0)
+10-18 00:36:25.793  1069  1136 E AndroidRuntime: 	at android.window.TaskOrganizer$1$$ExternalSyntheticLambda4.run(D8$$SyntheticClass:0)
+10-18 00:36:25.793  1069  1136 E AndroidRuntime: 	at android.os.Handler.handleCallback(Handler.java:1095)
+10-18 00:36:25.793  1069  1136 E AndroidRuntime: 	at android.os.Handler.dispatchMessageImpl(Handler.java:135)
+10-18 00:36:25.793  1069  1136 E AndroidRuntime: 	at android.os.Handler.dispatchMessage(Handler.java:125)
+10-18 00:36:25.793  1069  1136 E AndroidRuntime: 	at android.os.Looper.loopOnce(Looper.java:296)
+10-18 00:36:25.793  1069  1136 E AndroidRuntime: 	at android.os.Looper.loop(Looper.java:397)
+10-18 00:36:25.793  1069  1136 E AndroidRuntime: 	at android.os.HandlerThread.run(HandlerThread.java:139)
