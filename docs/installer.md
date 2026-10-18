@@ -839,6 +839,24 @@ Status as of 2026-10-17, 22:10 UTC. Evidence: `evidence/2026-10-17-installer-nvr
 
 **Not shown:** the G14's firmware with these entries, including whether its menu lists `BootOrder` only, like EDK2's. ANAL-192's spare-drive install will be the first real NVRAM write, and the NVRAM write is one more reason that step needs the owner's go-ahead.
 
+### 12.12 On the G14: the owner's `anal192d` session (2026-10-18)
+
+Evidence: `evidence/2026-10-18-g14-installer/SUMMARY.md` (filtered extracts of the host copy `stick-20261018T123221Z`). There are no photos yet and no hardware report.
+- **The wizard opened by itself** on the stick's first boot (11:01:06). The installer's setup screen stepped aside without a crash.
+- **The firmware side was ready:** `efivarfs.ko` loaded and efivarfs mounted, with no denial. The G14's own boot entries were not recorded; "save logs" now collects them.
+- **An install of the internal NVMe was requested at 11:04:29**, after "Install OpenBook" was reopened from All Apps. **The engine refused it before writing anything.**
+  - **No install report** reached the stick. Any install that passes the early checks writes one.
+  - **The internal NVMe's table is unchanged:** p1 2 GiB + p2 952 GiB, as in every session since 2026-10-16.
+  - **Most likely S8** (H): the laptop was on battery at 41 %. The wizard only enables Install after the typed name matches, and the plan had not changed.
+  - On mains power that install would have erased the internal NVMe. The checklist said to stop at the Disk screen.
+- **Two denials that only real hardware shows:**
+  - The daemon reading the power supplies (`sysfs_batteryinfo`). **Fixed:** `openbook_installd` may now read them, so S8 uses its own reading.
+  - The hardware check listing `/vendor/firmware`. Policy can't allow it (a `system_ext` domain and a vendor type). The speaker-tuning check then stays silent, by design.
+- **"Save logs" now collects the installer** (`scripts/installer/live-init.c`, section `INSTALLER`):
+  - the daemon's log, with disk serial numbers, EUI and WWN masked;
+  - `openbook-install nvram`.
+  - `report.md` gains `installer_nvram` (the firmware's entries and `BootOrder`) and `installer_log` (dry runs, installs, refusals).
+
 ## 13. End to end, and the owner's integrated stick (ANAL-192)
 
 Status as of 2026-10-17, 17:10 UTC. Evidence: `evidence/2026-10-17-installer-e2e/`, starting with `SUMMARY.md`. Everything here ran in QEMU/KVM + OVMF on image files, SELinux enforcing. **Nothing has run on the G14 yet** (§13.6).
