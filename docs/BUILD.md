@@ -215,7 +215,7 @@ scripts/installer/engine-test.sh ~/anybook/installer/out/<label>.img <run>    # 
 scripts/installer/wizard-qemu.sh ~/anybook/installer/out/<label>.img <run>    # dryrun, install, installed, console in QEMU
 ```
 - `engine-test.sh` builds the engine with gcc in the installer container and runs it on a fixture sysfs with image files. It covers refusals, a whole-disk install and an install alongside a Windows-like disk, checked with `sgdisk`, `fsck.fat`, mtools and `lpdump`.
-- `wizard-qemu.sh` drives the app with `uiautomator` and `input` over the serial console. Extra cases for firmware boot entries: `nvram-boot` (after `install`), `alongside` and `alongside-boot` (`docs/installer.md` §12.11). It saves Android's screenshots to the stick's ESP (`openbook/shots/`), installs to a blank 64 GiB virtual NVMe disk, and boots that disk alone.
+- `wizard-qemu.sh` drives the app with `uiautomator` and `input` over the serial console. Extra cases for firmware boot entries: `nvram-boot` (after `install`), then `alongside`, `alongside-default` and `alongside-boot` in that order (`docs/installer.md` §12.11). The Windows-like disk's boot manager is a small EFI app (`scripts/installer/efi-standin.c`) built with AOSP's prebuilt clang and lld (`OPENBOOK_EFI_CLANG` to override). It saves Android's screenshots to the stick's ESP (`openbook/shots/`), installs to a blank 64 GiB virtual NVMe disk, and boots that disk alone.
 - Results go to `~/anybook/logs/installer/<run>/` (`results.json`, `SUMMARY.md`). Details: `docs/installer.md` §12.
 
 ## M8: installer end to end and the integrated owner stick (ANAL-192)

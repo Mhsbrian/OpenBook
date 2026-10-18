@@ -119,17 +119,61 @@ The OFL lets us ship both families unmodified with `OFL.txt`. Google's `TRADEMAR
 
 ### 2.4 Shape, icons and wallpaper (C)
 
-| Value | Googlebook | AOSP 17 / OpenBook |
-|---|---|---|
-| `config_icon_mask` | circle | rounded square (8 % radius) |
-| `config_useRoundIcon` | true | false |
-| `config_wallpaperDimAmount` | 0 | 0.05 |
-| `config_dialogCornerRadius`, `config_bottomDialogCornerRadius`, `config_buttonCornerRadius`, `config_progressBarCornerRadius` | 28, 16, 4, 1000 dp | same |
-| `persist.wallpapercolors.threshold` / `max_dark_area` | 55 / 12 | unset |
-| SystemUI `config_supportBlurredWallpaper`, `config_wallpaperZoomEnabled` | false, false | AOSP defaults |
-| Pixel Launcher desktop overlay | taskbar all-apps button 48 dp persistent / 57 dp transient, `reduce_workspace_blur_usage=true`, Material colour roles for the taskbar | AOSP Launcher3 defaults |
+| Value | Googlebook | AOSP 17 | OpenBook since ANAL-205 |
+|---|---|---|---|
+| `config_icon_mask` | circle | rounded square (8 % radius) | **circle** (our own two-arc path) |
+| `config_useRoundIcon` | true | false | **true** |
+| `config_wallpaperDimAmount` | 0 | 0.05 | **0** |
+| `config_dialogCornerRadius`, `config_bottomDialogCornerRadius`, `config_buttonCornerRadius`, `config_progressBarCornerRadius` | 28, 16, 4, 1000 dp | same | same |
+| `persist.wallpapercolors.threshold` / `max_dark_area` | 55 / 12 | unset (code defaults 70 / 5) | **55 / 12** |
+| SystemUI `config_supportBlurredWallpaper`, `config_wallpaperZoomEnabled` | false, false | AOSP defaults | AOSP defaults |
+| Pixel Launcher desktop overlay | taskbar all-apps button 48 dp persistent / 57 dp transient, `reduce_workspace_blur_usage=true`, Material colour roles for the taskbar | AOSP Launcher3 defaults | AOSP Launcher3 defaults |
 
-Corner radii already match. The visible differences are the icon shape and the wallpaper treatment. Googlebook ships its own wallpaper set (`DesktopWallpapers`, `DefaultWallpaperOverlayRuby`) plus AI, adaptive and cinematic wallpaper apps. Our default is AOSP's stock wallpaper.
+Corner radii already match. Googlebook ships its own wallpaper set (`DesktopWallpapers`, `DefaultWallpaperOverlayRuby`) plus AI, adaptive and cinematic wallpaper apps. Our default is still AOSP's stock wallpaper (B6).
+
+**Done in ANAL-205** (evidence: `evidence/2026-10-17-shape-wallpaper/`):
+- **Where the values are set.**
+  - The three framework values are in `AnyBookDesktopFrameworkOverlay` (`device/anybook/common/desktop/overlays/framework/res/values/config.xml`).
+  - The two properties are in `desktop.mk` (`PRODUCT_PRODUCT_PROPERTIES`, so `/product/etc/build.prop`, where Googlebook has them too).
+  - Both products inherit them.
+  - The circle is `M50,0 A50,50 0 1,1 50,100 A50,50 0 1,1 50,0 Z`, written by us. Googlebook and Google's desktop emulator image use a cubic-Bézier circle.
+- **What reads each value in AOSP 17** (`android17-release`, read 2026-10-17):
+  - **`config_icon_mask`:**
+    - `AdaptiveIconDrawable` reads it, so it shapes app icons drawn in Settings' app lists, SystemUI and bubbles.
+    - SettingsLib's `AdaptiveIconShapeDrawable` and `AdaptiveOutlineDrawable` read it, so it shapes the Settings homepage icons as well.
+    - Launcher3's `ThemeManager.parseIconState()` uses it whenever the user hasn't picked a shape.
+  - **`config_useRoundIcon`:** PackageManager reads it (`ParsingPackageUtils.readConfigUseRoundIcon`) and then hands out `android:roundIcon` instead of `android:icon`.
+    - Only 3 of the 96 APKs in our image declare a round icon: CredentialManager, DeviceDiagnostics and ThreadNetworkDemoApp.
+    - So this mostly matters for third-party apps, which usually ship one.
+  - **`config_wallpaperDimAmount`:** read only by `WallpaperService.Engine`.
+    - It is a minimum dim, applied to a wallpaper whose colours carry neither the dark-text nor the dark-theme hint.
+  - **`persist.wallpapercolors.threshold` / `max_dark_area`:** read once per process into static fields of `android.app.WallpaperColors` (`BRIGHT_IMAGE_MEAN_LUMINANCE`, `MAX_DARK_AREA`).
+    - Together they decide `HINT_SUPPORTS_DARK_TEXT`, which picks Launcher3's DarkText theme and SystemUI's lock screen colours.
+    - Their SELinux context is `default_prop`, which every `coredomain` process may read, apps included.
+- **Measured in Cuttlefish**, `anybook_cf_x86_64_pc`, base `c861cf4` against B4, on the same day and with the same scripts:
+  - **Resolved values:** `cmd overlay lookup` resolves the circle path, `true` and `0.0`. `getprop` shows 55 and 12.
+  - **Icons:** all apps, the taskbar, the Settings homepage and Settings' app list all draw circles (`compare-*.png`).
+  - **Wallpaper dim:** a flat grey wallpaper (180) showed on screen as 171 before (×0.95, AOSP's 5 % default dim) and 180 after. Grey 206 showed as 195 before and 206 after (`scripts/ui/wallpaper-dim-check.sh`).
+  - **Colour hints:** `WallpaperColors.fromBitmap()` on the device now gives the dark-text hint to:
+    - a grey of luminance 0.62;
+    - a white image with 8 % dark pixels.
+
+    Before, it gave neither one the hint. A white image with 15 % dark pixels gets no hint in either build (`scripts/ui/wallpaper-hints.sh`).
+  - **Crashes:** the crash buffer was empty after each check.
+- **The icon-shape picker (Wallpaper & style → Home screen → Icons → Shape).**
+  - **How it works:**
+    - It is Launcher3's `grid_control` provider, behind `com.android.launcher3.enable_launcher_icon_shapes`, which is on in cp2a. It offers Circle, Square, 4-sided cookie, 7-sided cookie and Arch.
+    - The user's pick is stored in the Launcher pref `icon_shape_model`, and on the home screen it beats `config_icon_mask`.
+    - With nothing picked, the picker marks the first option, Circle, as selected.
+  - **What AOSP's default did:** the picker said Circle while the launcher drew the rounded square. The circle mask removes that mismatch.
+  - **What we checked, through the provider as the picker uses it:**
+    - Picking Square turns the taskbar's icons square, so the user's choice still wins.
+    - Clearing the pick brings the circles back.
+    - Settings and SystemUI keep the system mask whatever the pick, which is AOSP's design.
+  - **Open (AOSP behaviour, not caused by B4).** The taskbar's all-apps panel keeps drawing the system mask after a pick, even after Launcher restarts. The baseline build behaves the same way: the pixel diff is 0 with its rounded-square mask. **HYPOTHESIS:** that panel's icons don't follow `ThemeManager`'s shape the way the taskbar's do. The cause hasn't been traced.
+- **Not checked yet:**
+  - the lock screen, which is off by default on our desktop (`config_disableLockscreenByDefault`);
+  - the G14 itself. The checks go on ANAL-192's stick checklist.
 
 ### 2.5 Pointer, sounds, boot animation, setup (C)
 
@@ -191,23 +235,25 @@ AOSP 17 keeps the hooks (contextual-search shake gesture, the Ambient Cue UI, Sm
 - Upstream Google Sans Flex has no GRAD axis, so our `variable-*` families leave it out.
 - The clock families map to Google Sans Flex.
 
-## 4. Proposed beautification backlog (alpha → beta)
+## 4. Beautification backlog (alpha → beta)
 
-| # | Item | Size | Needs |
-|---|---|---|---|
-| B1 | **Fonts in the product.** `PRODUCT_COPY_FILES` for the three OFL fonts and `OFL.txt`, the generated `fonts_customization.xml`, and the four values in `AnyBookDesktopFrameworkOverlay`. Then the desktop capture in Cuttlefish and the G14 checklist | small | Owner OK on the trademark reading |
-| B2 | **Blur on the G14.** `ro.surface_flinger.supports_background_blur=1`; check frame times on the 890M | small | — |
-| B3 | **Flag set v2.** Evaluate the 128 UI flags AOSP 17 declares, in groups. Start with box shadows, blur on more surfaces, resizing (`perfect_edge`, no-resize cursor, fluid resizing) and taskbar clicks. `scripts/desktop-flags.py` already writes the value set | medium | — |
-| B4 | **Shape and wallpaper values:** circular icon mask, round icons, wallpaper dim 0, wallpaper colour thresholds | small | — |
-| B5 | **A clean default desktop:** remove the QuickSearchBox widget and the app, set taskbar pins (Files, Settings, browser), quiet sounds. **Done in ANAL-206** (§2.6); the owner can change the pin list in review | small | — |
-| B6 | **Brand assets:** wallpapers (our own or CC0/CC-BY, not bulk Unsplash), a sound set with click sounds off by default, a boot animation, a pointer theme. Based on the brand mark in `assets/brand/` | medium | Owner design input |
-| B7 | **Document fonts:** the 42 OFL metric-compatible fonts, for web and Office fidelity | small | — |
-| B8 | **Setup:** a first-run flow in our style, after the installer | medium | After M8 |
+The owner approved every item on 2026-10-17. Each one is a sub-issue of ANAL-201, and all are being worked in parallel.
 
-## Owner decisions
+| # | Issue | Item | Size | Needs |
+|---|---|---|---|---|
+| B1 | ANAL-202 | **Fonts in the product.** `PRODUCT_COPY_FILES` for the three OFL fonts and `OFL.txt`, the generated `fonts_customization.xml`, and the four values in `AnyBookDesktopFrameworkOverlay`. Then the desktop capture in Cuttlefish and the G14 checklist | small | — (approved) |
+| B2 | ANAL-203 | **Blur on the G14.** `ro.surface_flinger.supports_background_blur=1`; check frame times on the 890M | small | — |
+| B3 | ANAL-204 | **Flag set v2.** Evaluate the 128 UI flags AOSP 17 declares, in groups. Start with box shadows, blur on more surfaces, resizing (`perfect_edge`, no-resize cursor, fluid resizing) and taskbar clicks. `scripts/desktop-flags.py` already writes the value set | medium | — |
+| B4 | ANAL-205 | **Shape and wallpaper values:** circular icon mask, round icons, wallpaper dim 0, wallpaper colour thresholds. **Done in Cuttlefish (§2.4); the G14 check is on ANAL-192's stick** | small | — |
+| B5 | ANAL-206 | **A clean default desktop:** remove the QuickSearchBox widget and the app, set taskbar pins (Files, Settings, browser), quiet sounds. **Done in Cuttlefish and on the G14 product in QEMU (§2.6); the G14 check is on ANAL-192's stick** | small | Pins proposed in the PR; the owner reviews |
+| B6 | ANAL-207 | **Brand assets:** wallpapers (our own or CC0/CC-BY, not bulk Unsplash), a sound set with click sounds off by default, a boot animation, a pointer theme. Based on the brand mark in `assets/brand/` | medium | Owner reviews the visuals in the PR |
+| B7 | ANAL-208 | **Document fonts:** the 42 OFL metric-compatible fonts, for web and Office fidelity | small | — |
+| B8 | ANAL-209 | **Setup:** a first-run flow in our style, after the installer | medium | Coordinate with ANAL-191 (installer) |
 
-1. **Fonts:** ship Google Sans and Google Sans Flex (OFL) under the internal family names `google-sans*`, never in OpenBook branding. Recommendation: yes.
-2. **Backlog:** which of B1–B8 to open as issues. Recommendation: B1, B2, B4 and B5 first; together they are about a day of work plus G14 checks.
+## Owner decisions (2026-10-17)
+
+1. **Fonts:** approved. We ship Google Sans and Google Sans Flex (OFL) under the internal family names `google-sans*`, never in OpenBook branding.
+2. **Backlog:** all of B1–B8 approved and opened as ANAL-202 to ANAL-209.
 
 ## Reproduce
 

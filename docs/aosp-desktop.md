@@ -102,9 +102,12 @@ A bare-metal product (ANAL-176 onward) inherits `device/anybook/common/desktop/d
 | `config_lockPatternVisibleDefault` | false | false | |
 | `config_lockPinEnhancedPrivacyDefault` | true | true | |
 | `config_magnification_keep_zoom_level_when_context_changed`, `config_magnification_magnify_keyboard_default` | true | true | |
+| `config_icon_mask` | circle, our own path (`M50,0 A50,50 0 1,1 50,100 A50,50 0 1,1 50,0 Z`) | circle (a cubic-Bézier path); Googlebook the same | Googlebook's icon shape (ANAL-205, [`googlebook-ui.md`](googlebook-ui.md) §2.4). A shape the user picks in Wallpaper & style still wins in Launcher3 |
+| `config_useRoundIcon` | true | true; Googlebook the same | PackageManager hands out `android:roundIcon` where an app has one (ANAL-205) |
+| `config_wallpaperDimAmount` | 0 | AOSP default 0.05; Googlebook 0 | no 5 % default dim on wallpapers that support neither dark text nor a dark theme (ANAL-205) |
 
 These reference values were left out:
-- **Look and feel:** `config_useRoundIcon=true`, `config_icon_mask` (circle), `config_buttonTextAllCaps=false`.
+- **Look and feel:** `config_buttonTextAllCaps=false`. (The circle mask and round icons were left out at first; ANAL-205 added them, to match Googlebook.)
 - **Emulator-specific:** `config_defaultNightMode=1` and `config_minimumScreenOffTimeout=2147483647`.
 - **Same as the AOSP default already:** the corner radii and `config_secondaryHomePackage`.
 
@@ -128,6 +131,7 @@ These reference values were left out:
 |---|---|---|
 | `PRODUCT_CHARACTERISTICS := desktop` (`ro.build.characteristics=desktop`) | desktop.mk | same. Selects `product="desktop"` strings; Soong also generates the four `*__desktop__auto_generated_characteristics_rro.apk` the reference has |
 | `large_screen_common.mk`: `persist.wm.extensions.enabled=true`, `persist.wm.extensions.activity_embedding_guard_with_android_15=false`, `persist.settings.large_screen_opt.enabled=true` | desktop.mk | same three props |
+| `persist.wallpapercolors.threshold=55`, `persist.wallpapercolors.max_dark_area=12` (ANAL-205) | desktop.mk | unset (AOSP defaults 70 and 5); Googlebook sets 55 and 12 in `/product/etc/build.prop` |
 | `persist.wm.debug.force_desktop_first_on_default_display_for_testing=true` | cuttlefish product only | same |
 | `/product/etc/display_settings.xml`: `port:0 windowingMode=5 ignoreOrientationRequest=true` | cuttlefish product only | `/vendor/etc/display_settings.xml`: `local:<id> windowingMode=5 ignoreOrientationRequest=true` |
 
