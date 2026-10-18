@@ -71,7 +71,7 @@
 | ANAL-209 B8: first-run setup | In review (PR #100) | **Done in Cuttlefish and on the G14 product in QEMU** (`docs/setup.md`): `OpenBookSetup` replaces Provision and the installer's interim setup in both products. Nine pages in the installer's style, no account: welcome, language and region, keyboard layout, internet, date and time, name and screen lock, the not-certified notice, extras (microG, Google apps you provide), done. Cuttlefish 15/15 (every page: en-GB, Europe/London, 24-hour clock, name, PIN, keyboard layout), Skip 8/8, flag 7/7. It steps aside on live sessions, with `androidboot.openbook.setup=skip` and with Cuttlefish's default `ro.setupwizard.mode=DISABLED`, so unattended runs are unchanged. Installer live checks 40/40, wizard 27/27 and G2's installed system 18/18 (QEMU, G14 product; with a user's Google apps package, setup adds G2's Register page). Found and fixed: a crash when stepping aside on a live stick's first boot (the wizard never came up in the dryrun) | ANAL-192's stick (the installed system's first boot) |
 | ANAL-210 microG (G1) | In review (PR #80) | Done in VMs: the patch in every image; the add-on on the stick, offered by the installer off by default, installed as normal apps on the first start. Cuttlefish: self-check 18/18, negative test, push tokens; QEMU: live and installed disk. Next: the rebuilt image's QEMU rerun (one denial removed), then the G14 | ANAL-192's next stick, after the PR merges |
 | ANAL-211 bring-your-own GApps (G2) | In review (PR) | Done in QEMU: the advanced installer step, the package check (LiteGapps layout; framework, init, SELinux, ARM-only and platform-UID content refused), the rebuilt `product` with a new dm-verity hashtree, super metadata and unsigned vbmeta, the GSF ID screens; host 89/89, QEMU 79/79 (`docs/installer.md` §15). Next: the G14 dry run on ANAL-192's next stick | The owner's call on enforcing the privileged-permission allowlist, and on what an OTA does to a user's package |
-| ANAL-212 120 Hz on the G14 | In review (PR) | **Cause found and fixed:** the panel always ran at 120 Hz, but AOSP's `config_defaultRefreshRate` (60) capped the render rate at 60 (the G14 dumps: primary render range [0, 60]; 60 Hz most of the time). The desktop RRO now sets Googlebook's values (0 and 1000). QEMU: Settings scrolls at 75 instead of 37.5 frames a second (`evidence/2026-10-18-refresh-rate/`); `live-report.py` gains a `refresh_rate` verdict. Next: the G14 check; VRR (drm_hwcomposer has none) as its own issue | The next stick |
+| ANAL-212 120 Hz on the G14 | In review (PR) | **Both causes fixed; the second shown on the laptop.** 1. AOSP's `config_defaultRefreshRate` (60) capped the render rate (#88, in `anal192e`). 2. drm_hwcomposer set a new CTM blob every frame, so every flip was a full DC update that landed a vblank late (60 fps on a 120 Hz scanout). Patched composer on the G14: 8 ms present intervals 959/959, 0 missed (16 ms and 490 missed before). It runs until the next reboot. Next: ship the patch in the next image or network update; VRR as its own issue | A network update or reinstall to keep it |
 | ANAL-166 performance and parity | Backlog | After the installer: benchmarks, Chrome, the Linux terminal (AVF without pKVM). No sub-issues yet | — |
 | ANAL-186 NVIDIA | Parked | Research is done (ANAL-187); N1–N6 after M4 | — |
 | ANAL-165 Track B (ANAL-182 to ANAL-185) | Parked | Starts only if the owner decides to use Google's image | Owner decision |
@@ -89,6 +89,24 @@
 **Build host:** one AOSP build at a time (`flock ~/anybook/aosp/.lane.lock`, taken by `scripts/aosp-docker.sh`), because builds peak at about 50 GB of the 61 GB RAM. Builds and images are in `docs/BUILD.md`; the live image and the owner checklists are in `docs/installer.md` §11.
 
 ## History
+
+### 2026-10-18: still 60 fps on screen with 120 Hz selected: the composer's CTM (ANAL-212)
+- **On the installed G14 over adb:**
+  - SurfaceFlinger draws at 120 Hz (#88 works), but it presents every 16.7 ms: 470 of 478 intervals, and 477 of 480
+    frames missed, with RenderEngine at 3 ms.
+  - Every flip is a full DC update: `commit_planes_for_stream`, never `_fast`. It waits through a vblank and
+    latches one vblank late.
+  - The trigger is a new CTM blob from drm_hwcomposer on every commit. amdgpu turns that into a plane reset
+    (`should_reset_plane`, `color_mgmt_changed`).
+- **Fix:** `aosp/patches/external/drm_hwcomposer/0001`, which sends the CTM only when it changes.
+- **Shown on the laptop:** the patched composer ran through a tmpfs bind mount (no partition written). Settings
+  scrolling went from 16 ms present intervals and 490 missed frames to 8 ms × 959 and 0 missed. DC update types
+  went from full 91 to fast 181.
+- **Incident:** one unplanned reboot at 17:48Z, while the first version of the swap script bound the binary from
+  `nosuid` `/data`. The laptop came back by itself on the installed binary.
+- **State:** the patched composer stays active until the next reboot.
+- **Tools:** `scripts/graphics/g14-flip-check.sh` and `g14-composer-swap.sh`.
+- **Evidence:** `evidence/2026-10-18-refresh-rate/g14-installed/`.
 
 ### 2026-10-18: B6 on the G14, from the owner's `anal192d` session; a wallpaper-preview crash fixed (ANAL-207)
 - **Boot animation (C).** It played from our zip in both boots: `part0` in 1.41 s (42 frames, 30 fps), `part1` looping, and a 0.40 s fade.

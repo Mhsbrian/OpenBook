@@ -1,0 +1,18 @@
+# drm.debug=0x10 (atomic) for one swipe in Settings (2026-10-18 16:5xZ): message counts
+     80 amdgpu N:N:N.N: [drm:drm_atomic_add_encoder_bridges] Adding all bridges for [encoder:N:TMDS-N] to X
+     40 [drm:dm_update_plane_state [amdgpu]] Enabling DRM plane: N on DRM crtc N
+     40 [drm:dm_update_plane_state [amdgpu]] Disabling DRM plane: N on DRM crtc N
+     40 amdgpu N:N:N.N: [drm:drm_atomic_state_init] Allocated atomic state X
+     40 amdgpu N:N:N.N: [drm:drm_atomic_set_property] Set [FB:N] for [PLANE:N:plane-N] state X
+     40 amdgpu N:N:N.N: [drm:drm_atomic_nonblocking_commit] committing X nonblocking
+     40 amdgpu N:N:N.N: [drm:drm_atomic_helper_check_modeset] Updating routing for [CONNECTOR:N:eDP-N]
+     40 amdgpu N:N:N.N: [drm:drm_atomic_helper_check_modeset] [CONNECTOR:N:eDP-N] keeps [ENCODER:N:TMDS-N], now on [CRTC:N:crtc-N]
+     40 amdgpu N:N:N.N: [drm:drm_atomic_get_private_obj_state] Added new private object X state X to X
+     40 amdgpu N:N:N.N: [drm:drm_atomic_get_plane_state.cold] Added [CRTC:N:crtc-N] X state to X
+     40 amdgpu N:N:N.N: [drm:drm_atomic_get_plane_state] Added [PLANE:N:plane-N] X state to X
+     40 amdgpu N:N:N.N: [drm:drm_atomic_get_connector_state] Added [CONNECTOR:N:eDP-N] X state to X
+     40 amdgpu N:N:N.N: [drm:drm_atomic_check_only] checking X
+     40 amdgpu N:N:N.N: [drm:drm_atomic_add_affected_planes] Adding all current planes for [CRTC:N:crtc-N] to X
+     40 amdgpu N:N:N.N: [drm:drm_atomic_add_affected_connectors] Adding all current connectors for [CRTC:N:crtc-N] to X
+     39 amdgpu N:N:N.N: [drm:__drm_atomic_state_free] Freeing atomic state X
+     39 amdgpu N:N:N.N: [drm:drm_atomic_state_default_clear] Clearing atomic state X
