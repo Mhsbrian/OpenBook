@@ -428,6 +428,7 @@
     <string name="error_gapps_not_confirmed">Confirm the Google apps warning first.</string>
 
     <!-- After install: register the GSF Android ID (ANAL-211). OpenBook setup and Settings › About. -->
+    <string name="setup_brand_sub_gapps">Four quick steps, then your laptop is ready.</string>
     <string name="gapps_reg_window_title">Google apps registration</string>
     <string name="gapps_reg_settings_title">Google apps registration</string>
     <string name="gapps_reg_settings_summary">GSF Android ID and how to register this computer</string>

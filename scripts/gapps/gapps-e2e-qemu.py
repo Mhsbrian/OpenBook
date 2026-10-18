@@ -47,14 +47,20 @@ EGT = _load("engine_gapps_test", os.path.join(HERE, "engine-gapps-test.py"))
 W, section, poweroff, apply_cmd, TARGET, PROMPT = E2E.W, E2E.section, E2E.poweroff, E2E.apply_cmd, E2E.TARGET, E2E.PROMPT
 REF = "openbook-synthetic-gapps-x86_64-37"
 # Where each g-cut-N stops the install (the engine's --events lines; see e2e-qemu.py's CUTS for the base install).
+# The cuts install the large package (a 256 MiB app), so its check and the product build take seconds and a cut
+# lands inside them; the stick's last source hash is followed by the ESP files and the staged package's check.
 CUTS = {
-    1: (r"gapps: \d+ staged files match the package check", 0),  # the package checked, nothing written yet
-    2: (r"product: building product_a", 0.3),                     # in the middle of the new product
+    1: (r"source super: \d+ bytes, sha256 ok", 0.3),             # checking the staged package: nothing written
+    2: (r"product: building product_a", 1.0),                     # in the middle of the new product
     3: (r"product: \d+ bytes \(image", 0),                        # product built; super's metadata not written
     4: (r"vbmeta_a: rebuilt vbmeta", 0),                          # vbmeta_a written; the GPT not yet
     5: (r'"step":"verify","state":"running"', 0.5),               # the new table written, not activated
 }
 EXPECTED_STATE = {1: "old-table", 2: "blank", 3: "blank", 4: "blank", 5: "new-not-activated"}
+BIG = f"{REF}-big"
+# SELinux denials this step could cause: the installer's daemon and its files, the wizard (org.openbook.installer),
+# and the package's apps. Others (AOSP's, the test shell's, other add-ons') are listed in sections/avc.txt.
+MINE = re.compile(r"openbook_installd|openbook_install_data_file|org\.openbook\.(installer|test)|com\.google\.android\.gsf")
 # Any package's UI nodes (the installer's helpers only look at the installer's own).
 HELPERS_ANY = r"""
 bnda() { ui; tr '>' '\n' < /data/local/tmp/ui.xml | grep -F -e "text=\"$1" -e "content-desc=\"$1" | head -n 1 | sed -n 's/.*bounds="\[\([0-9]*\),\([0-9]*\)\]\[\([0-9]*\),\([0-9]*\)\]".*/\1 \2 \3 \4/p'; }
@@ -86,13 +92,14 @@ def live():
     s += section("PROPS", "getprop | grep -E 'ro.boot.(openbook|selinux|boot_part_uuid)|ro.build.fingerprint|ro.control_privapp'; getenforce")
     s += section("USB", f"for i in $(seq 60); do PKG=$(ls /mnt/media_rw/*/{REF}.zip 2>/dev/null | head -n 1); "
                         "[ -n \"$PKG\" ] && break; sleep 2; done; export PKG; export NEG=$(dirname $PKG)/neg-framework.zip; "
+                        f"export BIG=$(dirname $PKG)/{BIG}.zip; "
                         "echo PKG=$PKG; ls -l $(dirname $PKG); sm list-volumes all", 180)
     return s
 
 
-def cli_check():
+def cli_check(pkg="$PKG"):
     s = section("GNEG", "openbook-install gapps-check --package $NEG; echo GNEG-RC=$?", 180)
-    s += section("GCHECK", "openbook-install gapps-check --package $PKG > /data/local/tmp/gcheck.json; echo GCHECK-RC=$?; "
+    s += section("GCHECK", f"openbook-install gapps-check --package {pkg} > /data/local/tmp/gcheck.json; echo GCHECK-RC=$?; "
                            "cat /data/local/tmp/gcheck.json; echo; export SHA=$(grep -o '\"gapps_sha256\":\"[0-9a-f]*\"' "
                            "/data/local/tmp/gcheck.json | cut -d'\"' -f4); echo SHA=$SHA; "
                            "ls -lZ /data/misc/openbook_install/gapps/*/ | head -n 20", 300)
@@ -139,13 +146,21 @@ def installed():
     s += section("AFTER-SETUP", "settings get global device_provisioned; pm list packages -e | grep -c org.openbook.installer; "
                                 "pm dump org.openbook.installer | grep -A2 GappsRegistrationActivity | head -n 6")
     s += W.send("am start -n com.android.settings/.Settings\\$MyDeviceInfoActivity", 30)
-    s += waita("Google apps registration", 60)
-    s += [{"pause": 3}]
-    s += W.shot("g-settings-about")
-    s += tapa("Google apps registration", 4)
-    s += waita("GSF Android ID", 60)
+    s += [{"pause": 5}]
+    s += W.shot("g-settings-about-top")
+    # An injected entry without an order goes to the end of About's long list: scroll until it is on screen.
+    s += W.send("for i in 1 2 3 4 5 6; do input swipe 1440 1500 1440 300 200; sleep 0.5; done", 60)
+    s += section("SETTINGS-DIAG", "cmd package query-activities --components -a com.android.settings.action.EXTRA_SETTINGS | "
+                                  "grep -i openbook; pm dump org.openbook.installer | grep -E -A3 'enabledComponents|disabledComponents'; "
+                                  "ui; tr '>' '\\n' < /data/local/tmp/ui.xml | grep -oE 'text=\"[^\"]+\"' | tail -n 12; "
+                                  "logcat -d | grep -iE 'TileUtils|GappsRegistration|DashboardFragment' | tail -n 10", 120)
+    s += W.shot("g-settings-about-end")
+    # After setup, uiautomator keeps dumping the finished setup window here, so the entry is tapped where About's
+    # last row is on this 2880x1800 screen (the screenshot above shows it), and the page is checked by what is on top.
+    s += W.send("input tap 400 1690", 30)
+    s += [{"pause": 5}]
+    s += section("REG-TOP", "dumpsys activity activities | grep -E 'topResumedActivity' | head -n 1", 60)
     s += W.shot("g-settings-register")
-    s += section("REG-UI", "ui; tr '>' '\\n' < /data/local/tmp/ui.xml | grep -oE 'text=\"[^\"]+\"' | head -n 40", 60)
     s += section("AVC", "logcat -d -b all | grep -E 'avc: +denied' | head -n 200", 120)
     s += poweroff()
     return s
@@ -154,7 +169,7 @@ def installed():
 def expect(case):
     if case.startswith("g-cut-"):
         n = int(case.split("-")[2])
-        s = live() + cli_check()
+        s = live() + cli_check("$BIG")
         ev, delay = CUTS[n]
         s += [{"send": apply_cmd("/data/local/tmp/plan.json") + "\n"}, {"wait": ev, "timeout": 900}]
         if delay:
@@ -182,10 +197,14 @@ def expect(case):
         s += W.tap("Continue", 4)
         s += W.wait_ui("Add a Google apps package", 60)
         s += W.shot("g4b-package-page")
-        s += W.tap("Choose a package", 6)
-        s += waita("GAPPSUSB", 60)
-        s += section("PICKER-UI", "ui; tr '>' '\\n' < /data/local/tmp/ui.xml | grep -oE '(text|package)=\"[^\"]+\"' | sort | uniq -c | head -n 60", 60)
+        s += W.tap("Choose a package", 8)
+        s += section("PICKER-UI", "dumpsys activity activities | grep -E 'topResumedActivity|ResumedActivity' | head -n 3; "
+                                  "ui; tr '>' '\\n' < /data/local/tmp/ui.xml | grep -oE '(text|content-desc|package)=\"[^\"]+\"' "
+                                  "| sort | uniq -c | head -n 80", 60)
         s += W.shot("g4b-picker")
+        # The USB drive's root: its volume label, or (if the roots pane is folded) after opening the roots list.
+        s += W.send("waita 'GAPPSUSB' 20 || { tapa 'Show roots' || tapa 'Open navigation drawer'; sleep 3; }", 90)
+        s += waita("GAPPSUSB", 60)
         s += tapa("GAPPSUSB", 5)
         s += waita(f"{REF}.zip", 60)
         s += W.shot("g4b-picker-usb")
@@ -219,6 +238,7 @@ def expect(case):
         s += section("VERITY", "for d in /dev/block/mapper/*; do echo \"== ${d##*/}\"; dmctl table ${d##*/} 2>&1 | head -n 3; done; getenforce", 60)
         s += section("READ-GOOD", "cat /product/priv-app/OpenBookTestGsf/OpenBookTestGsf.apk > /dev/null; echo GOOD-RC=$?", 60)
         # Reading the corrupted file: dm-verity fails the read (and, in enforcing mode, restarts the system).
+        s += W.send("dmesg -n 7", 30)  # the kernel's verity error on the serial console (the boot set it to 1)
         s += [{"send": "echo ===READ-BAD-BEGIN===; cat /product/app/OpenBookTestApp/lib/x86_64/libobgapps.so > /dev/null; "
                        "echo BAD-RC=$?; dmesg | grep -iE 'verity' | tail -n 5; echo ===READ-BAD-END===\n"},
               {"wait": r"device-mapper: verity|BAD-RC=", "timeout": 120}, {"pause": 10}]
@@ -298,7 +318,7 @@ def check(a):
             neg and not neg[-1].get("ok") and any(x.get("rule") == "framework" for x in neg[-1].get("refused", [])) and
             "GNEG-RC=1" in sec.get("GNEG", ""), sec.get("GNEG", "")[-300:])
         gc = [x for x in E2E.json_lines(sec.get("GCHECK", "")) if "gapps_sha256" in x]
-        chk(case, "gapps-check accepts the reference package (on the live system, from the USB drive)",
+        chk(case, "gapps-check accepts the package (on the live system, from the USB drive)",
             gc and gc[-1].get("ok") and "GCHECK-RC=0" in sec.get("GCHECK", ""), sec.get("GCHECK", "")[-300:])
         chk(case, "staged files labeled openbook_install_data_file",
             "u:object_r:openbook_install_data_file:s0" in sec.get("GCHECK", ""), sec.get("GCHECK", "")[-300:])
@@ -348,8 +368,8 @@ def check(a):
         chk(c, "the install with the package verified", ok, (rep[-1].get("error") if rep else "no report"))
         g = rep[-1].get("gapps", {}) if rep else {}
         chk(c, "the report has the root digest and vbmeta digest", g.get("root_digest") and g.get("vbmeta_digest"), g)
-        avc = [l for l in sec.get("AVC", "").splitlines() if "avc:" in l and re.search(r"openbook", l)]
-        chk(c, "no SELinux denial involves an OpenBook type", not avc, avc[:3])
+        avc = [l for l in sec.get("AVC", "").splitlines() if "avc:" in l and MINE.search(l)]
+        chk(c, "no SELinux denial involves the installer's daemon, its files or the package's apps", not avc, avc[:3])
         if ok:
             json.dump(rep[-1], open(f"{R}/{c}/report.json", "w"), indent=1)
     rep = None
@@ -369,7 +389,7 @@ def check(a):
             g.get("vbmeta_digest") and f"[ro.boot.vbmeta.digest]: [{g.get('vbmeta_digest')}]" in props, props[-300:])
         ver = sec.get("VERITY", "")
         chk(c, "product is a dm-verity device with the report's root digest", g.get("root_digest") and
-            re.search(r"verity .*" + g.get("root_digest", "-"), ver), ver[:500])
+            re.search(r"verity, .*" + g.get("root_digest", "-"), ver), ver[:500])
         chk(c, "/product is mounted from that device", re.search(r"/dev/block/dm-\d+ /product erofs ro", ver), ver[-300:])
         chk(c, "every product file reads back through dm-verity", "READ-RC=0" in sec.get("READALL", ""),
             sec.get("READALL", "")[-300:])
@@ -400,15 +420,21 @@ def check(a):
         chk(c, "OpenBook setup shows the GSF Android ID (the stand-in's fake one) and the registration steps",
             "3141592653589793238" in sec.get("SETUP-UI", "") and "google.com/android/uncertified" in sec.get("SETUP-UI", ""),
             sec.get("SETUP-UI", "")[:400])
-        chk(c, "Settings > About has the registration entry, and it shows the ID",
-            "3141592653589793238" in sec.get("REG-UI", ""), sec.get("REG-UI", "")[:300])
-        avc = [l for l in sec.get("AVC", "").splitlines() if "avc:" in l and re.search(r"openbook|gsf|test\.gapps", l)]
-        chk(c, "no SELinux denial involves OpenBook or the package's apps", not avc, avc[:3])
+        sd = sec.get("SETTINGS-DIAG", "")
+        chk(c, "Settings > About's entry: the activity answers Settings' EXTRA_SETTINGS and is enabled (the package is installed)",
+            "org.openbook.installer/.GappsRegistrationActivity" in sd and
+            re.search(r"enabledComponents:\s*\n\s*org.openbook.installer.GappsRegistrationActivity", sd), sd[:300])
+        chk(c, "tapping About's last row opens the registration page (screenshots g-settings-about-end, g-settings-register)",
+            "org.openbook.installer/.GappsRegistrationActivity" in sec.get("REG-TOP", ""), sec.get("REG-TOP", ""))
+        avc = [l for l in sec.get("AVC", "").splitlines() if "avc:" in l and MINE.search(l)]
+        chk(c, "no SELinux denial involves the installer's daemon, its files or the package's apps", not avc, avc[:3])
     r, t, sec = load("g-verity")
     if r:
         c = "g-verity"
         chk(c, "an intact package file reads", "GOOD-RC=0" in sec.get("READ-GOOD", ""), sec.get("READ-GOOD", ""))
         m = re.search(r"device-mapper: verity: (\S+): data block (\d+) is corrupted", t)
+        chk(c, "the read never completed: the system restarted (restart_on_corruption)", not re.search(r"\nBAD-RC=\d", t) and
+            r["reason"].startswith("QEMU exited"), r["reason"])
         cj = json.load(open(f"{R}/g-verity/corrupted.json")) if os.path.exists(f"{R}/g-verity/corrupted.json") else {}
         chk(c, "reading the corrupted package file trips dm-verity on product, at the corrupted block",
             m and cj and int(m.group(2)) == cj.get("blkaddr"), (m.group(0) if m else t[-400:], cj))
