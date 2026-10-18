@@ -1,0 +1,74 @@
+{
+ "app/OpenBookTestApp/OpenBookTestApp.apk": [
+  "0o100644",
+  0,
+  0,
+  "u:object_r:system_file:s0"
+ ],
+ "app/OpenBookTestApp/lib/x86_64/libobgapps.so": [
+  "0o100644",
+  0,
+  0,
+  "u:object_r:system_file:s0"
+ ],
+ "etc/default-permissions/default-permissions-openbook-synthetic.xml": [
+  "0o100644",
+  0,
+  0,
+  "u:object_r:system_file:s0"
+ ],
+ "etc/permissions/privapp-permissions-openbook-synthetic.xml": [
+  "0o100644",
+  0,
+  0,
+  "u:object_r:system_file:s0"
+ ],
+ "etc/sysconfig/openbook-synthetic-sysconfig.xml": [
+  "0o100644",
+  0,
+  0,
+  "u:object_r:system_file:s0"
+ ],
+ "priv-app/OpenBookTestGsf/OpenBookTestGsf.apk": [
+  "0o100644",
+  0,
+  0,
+  "u:object_r:system_file:s0"
+ ],
+ "priv-app/OpenBookTestPriv/OpenBookTestPriv.apk": [
+  "0o100644",
+  0,
+  0,
+  "u:object_r:system_file:s0"
+ ],
+ "etc/openbook/gapps-manifest.json": [
+  "0o100644",
+  0,
+  0,
+  "u:object_r:system_file:s0"
+ ],
+ "priv-app/OpenBookTestPriv": [
+  "0o40755",
+  0,
+  0,
+  "u:object_r:system_file:s0"
+ ],
+ "app/OpenBookTestApp/lib": [
+  "0o40755",
+  0,
+  0,
+  "u:object_r:system_file:s0"
+ ],
+ "etc/default-permissions": [
+  "0o40755",
+  0,
+  0,
+  "u:object_r:system_file:s0"
+ ],
+ "etc/openbook": [
+  "0o40755",
+  0,
+  0,
+  "u:object_r:system_file:s0"
+ ]
+}
