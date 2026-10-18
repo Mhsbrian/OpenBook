@@ -18,7 +18,7 @@
 | Sleep | s2idle in a VM | **s2idle works, under Android too** (screen timeout → s2idle → key wake, display and Wi-Fi back); **deep sleep (S0i3) never reached.** The power check ruled out the driverless PSP; the SMU points at MPM or the USB4 router (unconfirmed) | `docs/power-input.md` §1.3, §7.6 |
 | Wi-Fi, Bluetooth, audio | Yes (WPA2, iperf3, tone through ALSA and, with the HAL fix, through Android) | **Wi-Fi to the internet** (5 GHz, 160 MHz); **Bluetooth pairs**, A2DP with LDAC; **speakers and mic through ALSA** heard. Through Android the tone was broken (HAL fix in ANAL-179's PR, QEMU only). **Under enforcing (`anal176t`), Bluetooth audio connects without the Bluetooth app aborting**: A2DP Connected, the HAL's A2DP session and outputs open, 0 crashes, so #52's policy fix holds. Sound over Bluetooth and app (browser) sound are still unheard. The only playback tried, ringtone previews, **failed to decode** (`Failed to create audio/vorbis decoder`; missing system DMA-BUF heap suspected). Headphone jack and iperf3 not tested | `evidence/2026-10-17-g14-audio-net/`, `evidence/2026-10-17-g14-desktop/g14-anal176s/`, `g14-anal176t/` |
 | ARM apps (Digitalis, built from source) | 14/16 ARM-only apps; works in enforcing | **The bridge self-check passes on Zen 5** (5/5 verdicts, both sessions). No arm64 app run yet: the ARM apps check is on ANAL-192's stick | `evidence/2026-10-17-digitalis-a17/`, `evidence/2026-10-17-digitalis-g14/` |
-| Installer | **Wizard 25/25, engine 63/63, end to end 79/79; the firmware boot entry (`Boot####`, #68) boots with no fallback path** (SELinux enforcing): whole disk and **alongside a Windows-like disk** (Windows' partitions byte-identical and still booting; OpenBook boots from a firmware boot option); **power cuts at 6 points**, each leaving the old table, a blank disk or a complete install, and each restart completing; reinstall; the installed disk with and without the stick. **Firmware boot entries (since ANAL-191's #68):** the installer creates `Boot####` "OpenBook" itself; OVMF boots it with the fallback path deleted, and alongside leaves Windows' entry and `BootOrder` byte-identical | Live USB boots; the wizard has not run yet | `evidence/2026-10-17-installer-wizard/`, `evidence/2026-10-17-installer-e2e/` |
+| Installer | **Wizard 25/25, engine 65/65, end to end 79/79; the firmware boot entry (`Boot####`, #68) boots with no fallback path** (SELinux enforcing): whole disk and **alongside a Windows-like disk** (Windows' partitions byte-identical and still booting; OpenBook boots from a firmware boot option); **power cuts at 6 points**, each leaving the old table, a blank disk or a complete install, and each restart completing; reinstall; the installed disk with and without the stick. **Firmware boot entries (since ANAL-191's #68):** the installer creates `Boot####` "OpenBook" itself; OVMF boots it with the fallback path deleted, and alongside leaves Windows' entry byte-identical and appends OpenBook to `BootOrder` (owner decision): Windows still starts by default and the firmware's boot menu lists OpenBook | Live USB boots; the wizard has not run yet | `evidence/2026-10-17-installer-wizard/`, `evidence/2026-10-17-installer-e2e/`, `evidence/2026-10-17-installer-bootorder/` |
 
 **What is left on the G14:** S0i3 deep sleep (needs the laptop's own Linux comparison), audible Bluetooth and app audio, the Android audio path with the HAL fix, media decoding on the laptop (it failed on `anal176t`; fixed in QEMU by #64, on `anal198`), the ARM apps check, the installer dry run, and the second graphics run on Vulkan 1.4. All but S0i3 are on `anal198`'s checklist.
 
@@ -36,14 +36,13 @@
    Reply "stick attached" on ANAL-192 only; the coordinator routes each issue to its part. Ringtone sound is expected to fail until ANAL-198's heap fix ships on the next stick, along with Vulkan 1.4 and ANAL-177's second graphics run.
    Optional and independent of the stick, for S0i3: on the laptop's own Linux run `sudo python3 scripts/power/linux-s2idle.py --amd-s2idle` (about 5 min; `docs/power-input.md` §7.6) and attach the tarball to ANAL-178.
 2. **Decisions:** none blocks running work.
-   - **New, from ANAL-191:** when an alongside install leaves "Start OpenBook by default" unticked, the `Boot####` entry stays out of `BootOrder`, so OpenBook doesn't appear in the firmware's boot menu. Recommendation: add it at the **end** of `BootOrder`. Windows stays the default, and OpenBook becomes selectable from the boot menu.
    - repo license (Apache-2.0 suggested);
    - upstream reports for the bridge (DigitalisX64; AOSP `Build.CPU_ABI`);
    - amd-pmf (`docs/kernel.md`);
    - Track B (`docs/PLAN.md` §6);
    - installing the Multica daemon on the G14 (ANAL-194).
    - Before any public image: AVB release-key custody, an "OpenBook" trademark check, and Mesa libelf (shipped as a shared library, as recommended).
-3. **Already decided:** ANAL-201's fonts (Google Sans and Google Sans Flex, OFL, internal names `google-sans*`), microG (G1), bring-your-own GApps (G2) and the whole beautification backlog B1–B8, all approved 2026-10-17 as ANAL-202 to ANAL-211. The dGPU stays off (`dgpu_disable=1`; HDMI is dark while it is set; NVIDIA work waits until after M4). The installer design follows our recommendation (owner on ANAL-189, 2026-10-16).
+3. **Already decided:** the dGPU stays off (`dgpu_disable=1`; HDMI is dark while it is set; NVIDIA work waits until after M4). The installer design follows our recommendation (owner on ANAL-189, 2026-10-16). Without "Start OpenBook by default", the installer appends OpenBook's `Boot####` to the end of `BootOrder`: the other system stays the default, and OpenBook is in the firmware's boot menu (owner on ANAL-159, 2026-10-17; ANAL-191, #70). ANAL-201's fonts (Google Sans and Google Sans Flex, OFL, internal names `google-sans*`), microG (G1), bring-your-own GApps (G2) and the whole beautification backlog B1–B8, all approved 2026-10-17 as ANAL-202 to ANAL-211.
 
 ### Next step for each open issue
 
@@ -54,7 +53,7 @@
 | ANAL-178 input and power | In review (PR #57, merged) | Lid works; touchpad clock fixed (EventHub, QEMU); the power check ruled out the PSP. Next: S0i3 from the Linux comparison | The laptop's own Linux `linux-s2idle.py --amd-s2idle` run; on ANAL-192's stick: battery saver, touchpad use (`docs/power-input.md` §7.5, §7.6) |
 | ANAL-179 Wi-Fi, Bluetooth, audio | In review (PR #58, merged) | On the G14: Wi-Fi to the internet, Bluetooth A2DP/LDAC, speakers and mic through ALSA. Android's audio path was broken; the codec-paced HAL fixes it in QEMU. Next: the G14 check | ANAL-192's stick: iperf3 server, Bluetooth audio, browser video, headphones |
 | ANAL-200 ARM bridge | In review (PR #56, merged) | Done: bridge verdicts 5/5 on the G14 in both sessions, G14 rows recorded, and the ARM apps check add-on (probe and CoreMark on the laptop, QEMU-tested). Next: read its G14 results | The ARM-apps-check boot on ANAL-192's stick; the upstream-report OK |
-| ANAL-191 installer wizard and engine | In review | The G14 dry run, on the owner's `anal198` stick; the stick after it carries the firmware boot entry (efivarfs policy). Open: `openbook-bootsync`, the text hardware report; an owner decision on alongside installs without consent (append OpenBook at the end of `BootOrder`?) | Owner decision |
+| ANAL-191 installer wizard and engine | In review | The G14 dry run, on the owner's `anal198` stick; the stick after it carries the firmware boot entry (efivarfs policy, #68) and the owner's `BootOrder` decision (OpenBook appended without consent). Open: `openbook-bootsync`, the text hardware report | — |
 | ANAL-192 installer end-to-end tests and the owner's stick | In review | Done in QEMU: the integrated stick `anal192c` (live 40/40, wizard 25/25), the end-to-end matrix 79/79 (`scripts/installer/e2e-qemu.sh`), the user guide and release checklist draft (`docs/INSTALL.md`). Found: an installed OpenBook offers to format a plugged-in installer stick; the wizard calls an installed OpenBook "Linux". Open: the OTA slot switch (needs `openbook-bootsync`) | The owner's run of `docs/installer.md` §13.6; a spare drive named by `/dev/disk/by-id` for §13.7; the release decisions (`docs/INSTALL.md` §9) |
 | ANAL-198 G14 kernel (follow-up) | In review (#64, #65 merged) | Done: `system_heap.ko` and `efivarfs.ko` as vendor modules with Google's GKI configuration unchanged; Codec2 fixes, so a ringtone decodes in QEMU; the owner's stick `anal198`. GPU reset: MES didn't answer and pipe reset is off in 6.18, so a hang means a full reset (`docs/kernel.md`). Next: the G14 check on `anal198` | The owner's `anal198` session |
 | ANAL-193 to ANAL-197 device loop | Backlog | ANAL-194 first: the Multica runtime and test agent on the G14's Linux | Owner installs the daemon |
@@ -112,6 +111,18 @@
 - **Not booted:** Google APIs Desktop 37.1 in emulator 37.2.12. The binder storm between SurfaceFlinger and the ranchu composer is in `gapis-desktop-37.1/boot-failure.txt`.
 - **Tools:** `scripts/gbos-inventory.py`, `scripts/overlay-values.py`, `scripts/aconfig-storage-dump.py` (reads Android 17 flag storage offline), `scripts/ui/`.
 
+### 2026-10-17: without consent, OpenBook goes last in `BootOrder` (ANAL-191, PR #70, owner decision)
+- **Done** (`docs/installer.md` S11, §12.11, §13.7). The owner approved our recommendation:
+  - an install with "Start OpenBook by default" off now appends its new `Boot####` to the end of `BootOrder`, so the other system stays the default and OpenBook is in the firmware's boot menu;
+  - with the box ticked it still goes first; no other entry changes, and every write is read back;
+  - Confirm says "OpenBook is added to this laptop's boot menu; Windows stays the default". Done names the entry and the boot-menu key.
+- **Evidence** (`evidence/2026-10-17-installer-bootorder/`), QEMU/OVMF, enforcing:
+  - engine host tests 65/65; wizard runs 41/41 (`anal191h`);
+  - the Windows-like disk now boots a stand-in EFI app. With the install's NVRAM it still starts by default (`BootCurrent=0007`);
+  - OVMF's boot menu lists OpenBook last, and picking it boots Android (`BootCurrent=0005`). Before this change the menu did not list it;
+  - no denials for init, the daemon or the app.
+- **Next:** the stick after `anal198` carries this; ANAL-192's spare-drive install will be the first real NVRAM write.
+
 ### 2026-10-17: the follow-ups merged; the next stick waits for the owner's results (ANAL-159)
 - **Merged** #67 (ANAL-179: `audioserver` may use apps' memfds, the same rule AOSP gives mediaserver; SoundPool denials 2 → 0 in QEMU) and #68 (ANAL-191: the efivarfs label, mounted on live boots only).
   - The engine creates a new `Boot####` with `O_EXCL`, so it can't overwrite another OS's entry.
@@ -131,7 +142,7 @@
   - a whole-disk install's entry boots with `EFI/BOOT/BOOTX64.EFI` deleted (`BootCurrent` = the new entry);
   - alongside a Windows-like disk, the "Windows Boot Manager" entry and `BootOrder` are byte-identical, and the new entry boots through `BootNext`;
   - no denials for init, the daemon or the app.
-- **Owner decision:** without consent the alongside entry is not in `BootOrder`, and EDK2 firmware then does not list it in its boot menu. Allow appending OpenBook at the end of `BootOrder`?
+- **Owner decision:** without consent the alongside entry is not in `BootOrder`, and EDK2 firmware then does not list it in its boot menu. Allow appending OpenBook at the end of `BootOrder`? (Approved; see the entry above.)
 - **Next:** the stick after `anal198` carries this; ANAL-192's spare-drive install will be the first real NVRAM write.
 
 ### 2026-10-17: SystemUI's SoundPool sounds under enforcing (ANAL-179)
