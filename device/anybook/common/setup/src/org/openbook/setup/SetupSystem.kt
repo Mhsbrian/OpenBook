@@ -277,15 +277,23 @@ object SetupSystem {
         val ids = android.icu.util.TimeZone.getAvailableIDs(
             android.icu.util.TimeZone.SystemTimeZoneType.CANONICAL_LOCATION, region, null,
         )
-        return ids.map { id ->
-            val tz = android.icu.util.TimeZone.getTimeZone(id)
-            Zone(
-                id = id,
-                city = names.getExemplarLocationName(id) ?: id.substringAfterLast('/').replace('_', ' '),
-                name = tz.getDisplayName(false, android.icu.util.TimeZone.LONG_GENERIC, display),
-                offsetMillis = tz.getOffset(now),
-            )
-        }.sortedWith(compareBy({ it.offsetMillis }, { it.city }))
+        return ids.map { zone(it, display, names, now) }.sortedWith(compareBy({ it.offsetMillis }, { it.city }))
+    }
+
+    /** One time zone as the zone lists show it: city, generic name ("United Kingdom Time"), offset now. */
+    fun zone(
+        id: String,
+        display: Locale,
+        names: TimeZoneNames = TimeZoneNames.getInstance(ULocale.forLocale(display)),
+        now: Long = System.currentTimeMillis(),
+    ): Zone {
+        val tz = android.icu.util.TimeZone.getTimeZone(id)
+        return Zone(
+            id = id,
+            city = names.getExemplarLocationName(id) ?: id.substringAfterLast('/').replace('_', ' '),
+            name = tz.getDisplayName(false, android.icu.util.TimeZone.LONG_GENERIC, display),
+            offsetMillis = tz.getOffset(now),
+        )
     }
 
     // ---------------------------------------------------------------------------------------------- you
