@@ -1,0 +1,36 @@
+10:45:17 start: parts [blur vk vk14 gles-angle gles-mesa egl angle], jobs 4 of 8 CPUs, gpu hal [virtio], quick [1]
+10:45:17 blur: start
+blur-check: round 2, blur off
+blur-check: done, disable_window_blurs back to [null]
+10:46:03 blur: done, exit 0, 46 s, 0 new amdgpu fault/reset line(s)
+10:46:03 vk: start
+Slowest tests:
+  dEQP-VK.api.buffer.suballocation.storage.index.vertex.create.zero (0.00s)
+  dEQP-VK.api.buffer.suballocation.storage.vertex.create.zero (0.00s)
+  dEQP-VK.api.buffer.suballocation.storage_texel.index.create.zero (0.00s)
+  dEQP-VK.api.buffer.dedicated_alloc.transfer_src.transfer_dst.uniform_texel.index.vertex.indirect.create.zero (0.00s)
+  dEQP-VK.api.buffer.suballocation.storage.create.zero (0.00s)
+10:46:04 vk: done, exit 0, 0 s, 0 new amdgpu fault/reset line(s)
+10:46:04 vk14: skipped: no second RADV in the payload (the image's reports Vulkan 1.4)
+10:46:04 gles-angle: start
+Slowest tests:
+  dEQP-GLES2.functional.buffer.write.basic.array_dynamic_draw (0.13s)
+  dEQP-GLES2.functional.buffer.write.basic.element_array_stream_draw (0.12s)
+  dEQP-GLES2.functional.buffer.write.basic.array_stream_draw (0.12s)
+  dEQP-GLES2.functional.buffer.write.basic.array_static_draw (0.09s)
+  dEQP-GLES2.functional.buffer.write.basic_subdata.element_array_static_draw (0.06s)
+10:46:06 gles-angle: done, exit 0, 2 s, 0 new amdgpu fault/reset line(s)
+10:46:06 gles-mesa: skipped: needs the AMD GPU (hal=virtio)
+10:46:06 egl: start
+Success
+instrument 0: exit 0, 40 begun, 40 ended, 0 left
+10:46:39 egl: done, exit 0, 33 s, 0 new amdgpu fault/reset line(s)
+10:46:39 angle: start
+Success
+round 0: exit 0, 23285 started, 0 of 40 PASS tests left, output.json yes
+OK (1 test)
+
+
+INSTRUMENTATION_CODE: -1
+10:46:54 angle: done, exit 0, 11 s, 0 new amdgpu fault/reset line(s)
+10:46:54 finished

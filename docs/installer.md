@@ -1056,6 +1056,126 @@ Built on the owner's request after PR #64 merged; it replaces `anal192c`. Eviden
   ```
 - **On the G14:** boots 1–3 as in §13.6. In boot 1, step 6 (a ringtone preview) should now play. Then **boot 4, "OpenBook graphics check"**: about 30 minutes, AC power, lid open, no screen-lock PIN; it powers off by itself (`docs/graphics-amd.md`, owner checklist steps 4–6). Then plug the stick into the build host and reply "stick attached".
 
+### 13.12 The next stick: `openbook-live-20261018-anal192d` (2026-10-18)
+Built on the coordinator's request (2026-10-18 07:55Z). It replaces `anal198`, which was written to the owner's stick at 20:25Z on 2026-10-17 and never booted. Evidence: `evidence/2026-10-18-stick-anal192d/SUMMARY.md`. Everything ran in QEMU/KVM + OVMF on image files, SELinux enforcing. **Nothing has run on the G14 yet.**
+
+- **Built from `main` `81578c1` plus PR #83's one commit,** as `7d9bc0a`. Its tree equals today's `main` (`13a020c`) apart from `docs/STATUS.md`.
+  - PR #83 was found by this build: since #81, a clean checkout of `main` could not build either product, because `.gitignore`'s `*.zip` kept B6's boot-animation link out of the commit.
+  - The product build, its dEQP and ANGLE test modules, the `PRODUCT_OUT` snapshot and the graphics add-on all ran in one lane-lock hold. The build took 21 min 57 s, with a 51.4 GB memory peak.
+- **New since `anal198`:**
+  - #67, system sounds under enforcing (SoundPool);
+  - #68, the installer's firmware `Boot####` entry;
+  - #70, OpenBook appended to `BootOrder` without consent;
+  - ANAL-201's B1–B7:
+    - B1 Google Sans (#77);
+    - B2 background blur (#72): `ro.surface_flinger.supports_background_blur=1`;
+    - B3 desktop flag set v2 (#79);
+    - B4 circular icons and no wallpaper dim (#73);
+    - B5 a clean default desktop (#75);
+    - B6 OpenBook's wallpapers, boot animation, sounds and pointer (#81);
+    - B7 document fonts (#78);
+  - #80, microG's system part: the signature-spoofing patch and `openbook-addons`.
+- **Carried over:** Vulkan 1.4 (declared `4210688`), and the #64 kernel `6.18.21-android17-5-gfbfdd65b0fd1`.
+- **Add-ons:**
+  - the power check `openbook-powercheck-anal178-c`;
+  - the ARM apps check (`anal192c`'s add-on; its builder is unchanged);
+  - **the graphics check `openbook-gfxcheck-anal192d`**, 82 MB, built from this product's test modules. Its `blur` part (#72) runs first, and `vk14` skips itself because the image ships Vulkan 1.4.
+- **Not on it: the microG add-on** (ANAL-210, 108 MB). It does not fit on the ESP next to the graphics check (ANAL-210's own note), and the graphics check is this round's priority. The applier can put it on the stick in place after the graphics boot.
+- **sha256** `db2a820354c0f78d697e8813ffa280a23daf1e4954a8840e2d91829847192fbb`, and `65d6eb03…` before the add-ons.
+
+| Run on `anal192d` | Result |
+|---|---|
+| Live stick matrix (`live-qemu.sh`) | **40/40.** First boot `boot_completed` at 29.3 s, while two other AOSP builds ran on the host (load 60–93 on 32 cores); `anal198` had 18 s on a quieter host, so this is not a regression measurement. The boot animation (B6) is on screen at 30 s (`screens/1-…`) |
+| Wizard (`wizard-qemu.sh`: dry run, install, installed, console, nvram-boot, alongside, alongside-default, alongside-boot) | **51/51.** With #68/#70, the alongside install adds one `OpenBook` entry at the end of `BootOrder`. Windows (a stand-in) stays the default, the firmware's menu lists OpenBook, and picking it boots Android from the new partitions |
+| End to end (`e2e-qemu.sh`) | **79/79.** The cuts leave the old table, blank, blank, new not activated (twice), then complete. The installed-system stick notice (§13.5, 1) is still there |
+| Graphics check (`gfx-qemu.sh`, quick, SwiftShader) | 6/6 steps. `blur` done in 46 s, both rounds (on, off); `vk`, `gles-angle`, `egl` and `angle` exit 0; `vk14` and `gles-mesa` skip as designed |
+| ARM apps check (`bridge-qemu.sh`) | Every verdict passes. Probe x86_64 18/0, arm64 18/2 (the known groups). CoreMark ratios 0.36/0.37 on the loaded host |
+| Power check (`power-check-qemu.sh vm`, `real`) | 14/14 and 10/10 steps |
+| SELinux denials | **None involve an OpenBook type.** 264 records in the same 10 AOSP/test-shell groups as before; no SoundPool denial |
+| `write-stick.sh --dry-run` to the owner's SanDisk Ultra | passes; nothing written |
+
+**Lane note (08:12–08:36Z).** An earlier run's interrupted `installer-image.sh` left two orphans: a `tee` that had inherited the lane-lock file descriptor, and a `flock -w 7200` that waited for the same lock. They held the AOSP lane with nothing running. That image had already been rebuilt successfully a minute later, so the orphans were stopped by PID. To diagnose: `/proc/locks` names the pid that took the lock; then scan `/proc/*/fd` for open descriptors of `.lane.lock`. Run `installer-image.sh` inside an outer `flock` only with `OPENBOOK_LANE_LOCK_HELD=1`, and stop such a chain by its process group.
+
+**Write it** (on the build host; it backs up the stick's reports, then erases it):
+```bash
+cd ~/anybook/repo && OPENBOOK_WRITE_CONFIRM=/dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0 \
+  scripts/installer/write-stick.sh ~/anybook/installer/out/openbook-live-20261018-anal192d.img \
+  /dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0
+```
+
+**The owner's checklist** (mains power, lid open, power on holding **Esc**, pick the stick). Nothing here writes to the laptop's disks.
+
+**Boot 1: "OpenBook"** (about 45 minutes)
+1. **Film the boot from power-on** (B6). After the firmware logo you should see the OpenBook mark on near-black: its pages unfold and a pink spark pulses.
+2. **Installer dry run** (ANAL-191). The installer opens by itself:
+   - Language → Continue;
+   - Hardware check → **Save report to USB** → Continue;
+   - **Install OpenBook** → Continue;
+   - Disk: the internal NVMe, then **View the plan**. Photograph both;
+   - **Back** → **Try OpenBook**. Never press Continue on the Disk screen.
+3. **The new look.** Photograph each; it takes about 10 minutes:
+   - **Desktop** (B5, B6):
+     - the pale lavender "Folio" wallpaper;
+     - no search bar above the taskbar;
+     - taskbar pins Files, Settings, WebView Browser Tester, Calendar and Gallery, and no Camera.
+   - **All Apps** (B4, B5): every icon is a circle; there is no "Search" app; "Install OpenBook" is there. Press **Esc** with All Apps open: the launcher should stay (ANAL-176).
+   - **Settings** (B1, B4): the text is in Google Sans (rounder letters), nothing is cut off, and the homepage icons sit in circles.
+   - **Windows** (B3):
+     - open Settings and Files: each has a soft shadow;
+     - open Calendar: it opens a step down and to the right;
+     - minimize a window, then click its taskbar icon: it comes back, and the taskbar doesn't flash.
+   - **Quick Settings** (the status icons, top right; B2, B3):
+     - the desktop behind it looks frosted, not just darker;
+     - hovering the Wi-Fi tile shows a tooltip;
+     - the notification panel lists notifications, not an empty grey box;
+     - the power button there opens a panel over a blurred desktop.
+   - **Optional, document fonts** (B7): in the browser, open the `data:` line from ANAL-208's comment on this issue. You should see three different fonts.
+4. **Wi-Fi** (ANAL-179): connect.
+5. **Bluetooth headphones** (ANAL-176, ANAL-179): play music, turn them off and on, play again.
+6. **Browser video with sound,** on the speakers and over Bluetooth.
+7. **Wired headphones:** plug them in while sound plays, then unplug them.
+8. **Settings → Sound** (B5, B6, ANAL-198):
+   - preview the ringtone **Open Pages**, the notification **Spark** and the alarm **First Light**; they should be audible from both speakers. Say if any is too loud, too quiet or unpleasant;
+   - Touch sounds should be off.
+9. **Use it for 10+ minutes.** Note any stutter with the time.
+10. **Battery Saver on** (ANAL-178): confirm the dialog. Blur should go away (B2).
+11. Power off from the menu.
+
+**Boot 2: "OpenBook - save logs to this USB stick"** (about 12 minutes; powers off by itself). Use the touchpad for 20 s as soon as the desktop appears (ANAL-178), then leave the laptop in a quiet room (ANAL-179: `audio_android_clean`, `wifi_pno`).
+
+**Boot 3: "OpenBook ARM apps check"** (about 10 minutes; powers off by itself; ANAL-200).
+
+**Boot 4: "OpenBook graphics check"** (about 40 minutes; no screen-lock PIN; powers off by itself; ANAL-177, ANAL-203). The `blur` part runs first, about 7 minutes: the shade and Quick Settings open and close by themselves 80 times. Then come dEQP and ANGLE.
+
+**Optional:**
+- an iperf3 server address in `openbook/hwtest.conf` before boot 2 (§13.6);
+- on the laptop's own Linux, `sudo python3 scripts/power/linux-s2idle.py --amd-s2idle` (ANAL-178).
+
+Then plug the stick into the build host and reply **"stick attached" on ANAL-192**, with the photos and the film.
+
+**Routing "stick attached"** (this issue's description, and ANAL-198's routing):
+1. Copy the stick read-only (`read-stick-logs.sh` → `~/anybook/installer/g14/stick-<UTC>/`); never touch the stick again.
+2. Read this issue's part: the installer dry run, the plan photos, `hwcheck-live-NNN.json`.
+3. Wake each issue with results (`multica issue wakeup create … --kind at --after 1m`), naming the host copy and which `live-NNN` is which boot. Each reads the host copy only.
+
+| Issue | What it reads |
+|---|---|
+| ANAL-176 | desktop, stutter, Esc, Bluetooth and browser audio; tombstones and denials of boot 1 |
+| ANAL-177 | boot 4's `addon-gfx/` (dEQP on Vulkan 1.4, GLES, EGL, ANGLE end2end) |
+| ANAL-178 | touchpad (`touchpad_clock`), Battery Saver (`epp_modes`), the power facts |
+| ANAL-179 | Wi-Fi, Bluetooth audio, headphones, `audio_android_clean`, `wifi_pno`, the SoundPool sound at boot (0.5 s `OpenBook_Unlock.ogg`) |
+| ANAL-198 | `/dev/dma_heap/system`, the ringtone decode, efivarfs, `amdgpu_firmware_info` |
+| ANAL-200 | boot 3's `addon-bridge*` |
+| ANAL-202 (B1) | the Settings, Quick Settings and All Apps photos |
+| ANAL-203 (B2) | boot 4's `addon-gfx/blur/` and the `gfx_blur` verdict; the Quick Settings photo |
+| ANAL-204 (B3) | the window, menu and notification photos; `logcat -b crash` |
+| ANAL-205 (B4) | the All Apps and Settings photos |
+| ANAL-206 (B5) | the desktop photo; boot 2's `CAM_SetActivitiesCamera` and no `quicksearchbox` |
+| ANAL-207 (B6) | the film, wallpaper and Sound photos |
+| ANAL-208 (B7) | the browser photo, if taken |
+
+4. Then wake ANAL-159 (the coordinator) to merge the routed issues' PRs.
+
 ## 14. App add-ons: microG (ANAL-210)
 
 Status as of 2026-10-17. Design, security trade-off and results: `docs/gapps.md` §6. Evidence: `evidence/2026-10-17-microg/`.
