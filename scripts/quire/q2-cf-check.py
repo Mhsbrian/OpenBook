@@ -183,8 +183,10 @@ class Mouse:
         self.send({"id": 1, "command": "inject",
                    "events": ["EV_REL", "REL_X", dx, "EV_REL", "REL_Y", dy, "EV_SYN", "SYN_REPORT", 0]})
 
-    def shake(self, amplitude=12, strokes=10, interval=0.035):
-        """Side to side inside SystemUI's 100 dp box, 10 direction changes in about 350 ms (it needs 3 in 500 ms)."""
+    def shake(self, amplitude=15, strokes=8, interval=0.05):
+        """Side to side inside SystemUI's 100 dp box: 7 direction changes in about 400 ms (it needs 3 within 500 ms).
+        The strokes are spaced here, not with uinput's "delay" command: that one only spaces the event timestamps,
+        and the input pipeline then batches the moves into one frame."""
         for i in range(strokes):
             self.move(amplitude if i % 2 == 0 else -amplitude, 0)
             time.sleep(interval)
@@ -306,9 +308,18 @@ def invoke(d):
             time.sleep(0.05)
         time.sleep(3.5)  # SystemUI's shake cooldown is 3 s
         tag = d.mark(name)
+        pattern = (r"invocation: trigger=(\S+) entrypoint=(-?\d+)\((\w+)\) visible=(\[.*?\]|withheld) "
+                   r"flagSecureFound=(\S+) screenshot=(\S+)")
         act()
-        m = d.wait_log(r"invocation: trigger=(\S+) entrypoint=(-?\d+)\((\w+)\) visible=(\[.*?\]|withheld) "
-                       r"flagSecureFound=(\S+) screenshot=(\S+)", 20, since=tag)
+        m = d.wait_log(pattern, 8 if name == "shake" else 20, since=tag)
+        # A person shakes again when nothing happens; so does the check, twice, past the 3 s cooldown.
+        for attempt in (2, 3):
+            if m or name != "shake":
+                break
+            d.log(f"shake: no invocation yet, attempt {attempt}")
+            time.sleep(3.5)
+            act()
+            m = d.wait_log(pattern, 8, since=tag)
         if not m:
             d.result(f"{name}: Quire's note opened", False, "no invocation logged in 20 s")
             d.write(f"invoke-{name}-log.txt", d.quire_log())
