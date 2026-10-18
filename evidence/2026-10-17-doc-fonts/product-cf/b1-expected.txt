@@ -1,0 +1,5 @@
+google-sans 400 (GoogleSans opsz 18 wght 400)                2570.200  1698.000
+google-sans 700 (GoogleSans opsz 18 wght 700)                2730.900  1819.500
+google-sans-text 400 (opsz 17 wght 400)                      2593.200  1734.500
+google-sans-flex 400 (Flex wght 400)                         2569.400  1716.400
+variable-body-medium 400 (Flex wght 400 wdth 100 opsz 14)    2700.000  1800.800

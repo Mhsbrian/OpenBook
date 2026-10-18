@@ -1,0 +1,11 @@
+Successfully disabled verity
+Using overlayfs for /system
+Using overlayfs for /odm
+Using overlayfs for /product
+Using overlayfs for /system_ext
+Using overlayfs for /vendor
+Using overlayfs for /vendor_dlkm
+Using overlayfs for /odm_dlkm
+Using overlayfs for /system_dlkm
+Verity disabled; overlayfs enabled.
+Now reboot your device for settings to take effect

@@ -1,0 +1,4 @@
+config_headlineFontFamily: google-sans
+config_headlineFontFamilyMedium: google-sans-medium
+config_bodyFontFamily: google-sans-text
+config_bodyFontFamilyMedium: google-sans-text-medium
