@@ -123,8 +123,11 @@ class ComputerControl(private val context: Context) {
                             )
                             .toBundle(),
                     )
-                } catch (e: IntentSender.SendIntentException) {
-                    report("pending: could not open the consent dialog: ${e.message}")
+                } catch (e: Exception) {
+                    // SendIntentException, or ActivityNotFoundException when the image lacks the platform's
+                    // consent app (VirtualDeviceManager, RELEASE_PACKAGE_COMPUTER_CONTROL).
+                    pendingLaunch = null
+                    report("pending: could not open the consent dialog: ${e.javaClass.simpleName}: ${e.message}")
                 }
             }
 

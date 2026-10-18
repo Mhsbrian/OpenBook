@@ -1,33 +1,5 @@
 check	result	detail
-Quire installed in system_ext priv-app	PASS	package:/system_ext/priv-app/OpenBookQuire/OpenBookQuire.apk
-permission ACCESS_COMPUTER_CONTROL	PASS	granted
-permission ACCESS_CONTEXTUAL_SEARCH	PASS	granted
-permission POST_NOTIFICATIONS	PASS	granted
-privileged flag	PASS	pkgFlags/privateFlags include PRIVILEGED
-assistant role holder	PASS	dev.openbook.quire
-voice interaction service	PASS	dev.openbook.quire/.assist.QuireVoiceInteractionService
-voice recognition service	INFO	dev.openbook.quire/.assist.QuireRecognitionService
-contextual search feature	PASS	declared
-framework overlay enabled	PASS	[x] dev.openbook.overlay.quire.framework
-config_defaultContextualSearchPackageName	PASS	dev.openbook.quire
-config_defaultAssistant	PASS	dev.openbook.quire
-flag computer_control_access	PASS	enabled - default
-flag computer_control_support_v5	PASS	enabled - default
-flag enable_contextual_cursor_desktop_entrypoints	PASS	enabled - default
-flag enable_contextual_search_desktop_entrypoints	PASS	enabled - default
-flag computer_control_managed_profiles	PASS	enabled - default
-flag computer_control_role_assistant_requirement	PASS	enabled - default
-DeviceConfig computer_control (expected empty)	PASS	(empty)
-allowlists from the factory files	PASS	allowed_session_owner_apps, allowed_automatable_apps
-shake: probe window visible and FLAG_SECURE	PASS	frame=(329, 167, 1711, 944) secure=True
-shake: Quire's note opened	FAIL	no invocation logged in 20 s
-meta_space: probe window visible and FLAG_SECURE	PASS	frame=(329, 167, 1711, 944) secure=True
-meta_space: Quire's note opened	PASS	trigger=assistant_shortcut entrypoint=11(KEYBOARD_SHORTCUT)
-meta_space: visible packages	PASS	[dev.openbook.quire.secureprobe, com.android.settings, com.android.settings, com.android.launcher3]
-meta_space: secure window reported	PASS	flagSecureFound=true
-meta_space: screenshot saved, secure window left out	PASS	1920x1080, 0 probe-coloured pixels
-assist_key: probe window visible and FLAG_SECURE	PASS	frame=(329, 167, 1711, 944) secure=True
-assist_key: Quire's note opened	PASS	trigger=assist_key entrypoint=11(KEYBOARD_SHORTCUT)
-assist_key: visible packages	PASS	[dev.openbook.quire.secureprobe, com.android.settings, com.android.settings, com.android.launcher3]
-assist_key: secure window reported	PASS	flagSecureFound=true
-assist_key: screenshot saved, secure window left out	PASS	1920x1080, 0 probe-coloured pixels
+Dark theme off before	PASS	Night mode: no
+consent asked (session pending)	PASS	cc: pending
+platform consent dialog, 'Only this time'	FAIL	no consent dialog
+session created	FAIL	not created
