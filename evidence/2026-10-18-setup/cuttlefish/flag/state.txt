@@ -11,7 +11,6 @@ setup wizard activity: No activity found
 org.openbook.setup: package:/system_ext/priv-app/OpenBookSetup/OpenBookSetup.apk
 com.android.provision: none
 ## top
-      topResumedActivity=ActivityRecord{146079584 u0 com.android.launcher3/.uioverrides.QuickstepLauncher t8}
+      topResumedActivity=ActivityRecord{247634280 u0 com.android.launcher3/.uioverrides.QuickstepLauncher t9}
 ## OpenBookSetup log
-10-18 09:13:46.217  2768  2768 I OpenBookSetup: setup complete (step aside: androidboot.openbook.setup=skip); provisioned=true
-10-18 09:13:46.536  2824  2824 I OpenBookSetup: setup complete (step aside: androidboot.openbook.setup=skip); provisioned=true
+10-18 11:40:56.564  2778  2778 I OpenBookSetup: setup complete (step aside: androidboot.openbook.setup=skip); provisioned=true

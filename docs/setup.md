@@ -23,7 +23,7 @@ Backlog item B8 of ANAL-201 (`docs/googlebook-ui.md` §2.5, §4).
   - `androidboot.openbook.setup=skip`: the flag for unattended runs on an installed system;
   - `ro.setupwizard.mode=DISABLED`: AOSP's setup-wizard switch. **Cuttlefish sets it by default** (cvd `--setupwizard_mode`, default `DISABLED`), so every existing Cuttlefish run lands on the desktop as before.
 
-Results: see §5.
+**Results (§5):** Cuttlefish: every page 15/15, Skip 8/8, the flag 7/7, Cuttlefish's default 7/7. QEMU, G14 product image: installer live checks 40/40, the wizard (including setup on the installed disk) 27/27. Not run on the G14 yet.
 
 ## 1. The mechanism, and why
 
@@ -83,13 +83,55 @@ The flag is a bootconfig value like the installer's other `androidboot.openbook.
 
 ## 5. Results
 
-To be filled in from the runs in `evidence/2026-10-18-setup/`.
+Evidence: `evidence/2026-10-18-setup/` (`SUMMARY.md` lists every file). Final runs are from `bbfef6b`: this branch merged with `main` at `c52f94a` (B1, B3, B6, B7, G1), userdebug, AOSP test keys.
+
+**Builds (C).** `anybook_cf_x86_64_pc-cp2a-userdebug` and `anybook_g14_x86_64-cp2a-userdebug` both build, before and after merging `main`. In both, `/system_ext/priv-app/OpenBookSetup/OpenBookSetup.apk` and its permission file are installed and Provision is not (`installed-files-system_ext.txt`).
+
+**Cuttlefish** (Radeon 610M, `gfxstream_guest_angle`, 1920×1080 at 160 dpi, a fresh `cvd create` each; `scripts/setup/setup-walk.sh`). Every run checks that both settings end at 1, that setup has left the home list, that Provision is not installed, that the launcher is on top and that setup never crashed (`am_crash`, `am_anr`).
+
+| Run | cvd flags | Result |
+|---|---|---|
+| Every page (`walk`) | `--setupwizard_mode=REQUIRED` | **15/15.** See below |
+| Skip (`skip`) | `--setupwizard_mode=REQUIRED` | **8/8.** "Skip setup" on the first page; the language unchanged |
+| The automated-run flag (`absent`) | `--setupwizard_mode=REQUIRED --extra_bootconfig_args=androidboot.openbook.setup=skip` | **7/7.** Setup never draws; it logs `setup complete (step aside: androidboot.openbook.setup=skip)` |
+| Cuttlefish's default (`absent`) | none | **7/7.** `step aside: ro.setupwizard.mode=DISABLED`. Every existing Cuttlefish run behaves as before |
+
+The `walk` run:
+- Setup is the first screen. One screenshot per page: `cuttlefish/walk/1-welcome.png` … `9-done.png`, `10-desktop.png`, and `contact-sheet.png`.
+- "Choose a network" opens Settings' Wi-Fi page, and Back returns.
+- Afterwards:
+  - `persist.sys.locale=en-GB`, `persist.sys.timezone=Europe/London`, `time_12_24=24`;
+  - the user is "OpenBook Tester", and `cmd lock_settings verify --old 2468` verifies the PIN;
+  - the keyboard layout is stored for the VM's keyboard under LatinIME's subtype (`input-manager-state.xml`: `keyboard_layout_english_uk`).
+- `dumpsys package` lists `Setup Wizard: org.openbook.setup`.
+
+**Installer, QEMU** (G14 product image `openbook-live-20261018-anal209m`):
+- **Live checks (`live-qemu.sh`): 40/40**, the same count as `main`'s images.
+  - On live sessions setup steps aside, and the install wizard opens by itself (`qemu/live-default-shot-120.png`).
+  - On the stick's first boot, setup logs `step aside: live session` and the system starts Settings' `FallbackHome` itself; no crash.
+- **Wizard (`wizard-qemu.sh`, dryrun, install, installed, console): 27/27.**
+  - On the installed disk, OpenBook setup is the first screen. The driver walks the nine pages (`qemu/installed-setup/`), then the launcher is on top and setup is off.
+  - No SELinux denial from setup.
+
+**Found and fixed on the way (C):**
+- **A crash when setup stepped aside while the user was still locked:** a live stick's first boot, and Cuttlefish's default boot.
+  - Setup started home itself. Before the user is unlocked, home resolves to Settings' `FallbackHome`, which needs `DEVICE_POWER`: a `SecurityException` and two `am_crash`.
+  - In the wizard's dryrun the install wizard then never came up.
+  - Setup now starts home only once the user is unlocked and never lets that throw, like Provision, which never starts home at all.
+  - The first Cuttlefish flag and default runs had passed because the system went home anyway. `setup-walk.sh` now fails on any crash.
+- **The time zone list was locked on Cuttlefish.** Android keeps "automatic time zone" on as a setting even where nothing can detect one: no telephony, no location provider (`cmd time_zone_detector dump`, capability 10, not supported). The page now follows the capability, not the setting.
+- **The framework restarts the activity once right after the first boot.** `wm_on_create_called`, `wm_on_destroy_called`, `wm_on_create_called` within 0.9 s, before any input; an asset change, as it would be for Provision. The state now lives in a ViewModel, so a restart never loses the user's choices.
+- **Colemak and Dvorak were suggested** for English (US). Alternative arrangements are no longer suggested; they stay in the list.
+- **The Done page used the standard-time name** ("Greenwich Mean Time" during British Summer Time). It now names the zone as the time page does.
 
 ## 6. Not done, and limits
 
 - **Translations:** English only, as in the installer.
 - **Wi-Fi in the page itself:** the page hands over to Settings' Wi-Fi list. An in-page network list would need location access for scan results.
 - **A keyboard plugged in after setup** gets Android's automatic layout (by the input method's language), not setup's choice.
+- **Fonts:** setup and the installer draw with Compose's default family (Roboto). B1's `google-sans` families apply to the platform UI, not to these two apps yet.
+- **The network page online:** this Cuttlefish VM had no network (`Active default network: none`), so only "Not connected" was shown. The online state is the same callback; check it on the G14 (Wi-Fi) or in a VM with networking.
+- **The GSF registration note** on the Extras page (G2) is untested: no OpenBook image contains Google Services Framework.
 - **The G14:** not run on the laptop. The steps are on ANAL-192's next stick checklist.
 
 ## Reproduce
@@ -110,4 +152,10 @@ CF_ARGS="--vhost_user_vsock=true --setupwizard_mode=REQUIRED --extra_bootconfig_
 scripts/setup/setup-walk.sh 127.0.0.1:16538 OUT/flag absent
 # Cuttlefish's default (DISABLED)
 CF_ARGS="--vhost_user_vsock=true" scripts/cf-boot.sh up; scripts/setup/setup-walk.sh 127.0.0.1:16538 OUT/default absent
+scripts/cf-boot.sh down
+# G14 product: build, then the live image, in the same lane-lock hold; the installer's QEMU checks after it
+flock ~/anybook/aosp/.lane.lock bash -c 'AOSP_JOBS=24 scripts/aosp-docker.sh /repo/scripts/aosp-build.sh anybook_g14_x86_64-cp2a-userdebug &&
+  OPENBOOK_LANE_LOCK_HELD=1 scripts/installer-image.sh --label openbook-live-<date>-anal209 --menu-timeout 10 --no-xz'
+scripts/installer/live-qemu.sh ~/anybook/installer/out/openbook-live-<date>-anal209.img <run>      # 40 checks
+scripts/installer/wizard-qemu.sh ~/anybook/installer/out/openbook-live-<date>-anal209.img <run>    # 27 checks (dryrun, install, installed, console)
 ```

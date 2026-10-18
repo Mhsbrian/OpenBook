@@ -1,9 +1,9 @@
-=== 2026-10-18T09:14:26Z stage /home/hive/anybook/aosp/cf/b8-out2/target/product/anybook_vsoc_x86_64 -> /home/hive/anybook/aosp/cf/b8 (top-level files, reflink)
-=== 2026-10-18T09:14:26Z up: anybook-cuttlefish, host GPU: amd /dev/dri/renderD129
-cvd(348)  I 10-18 09:14:29   348   348 main.cc:137] version: 1.57.0 | VCS: 9bb9c72329cedcb436bb75afc05c24d73fbcdf5d
+=== 2026-10-18T11:41:31Z stage /home/hive/anybook/aosp/cf/b8-out4/target/product/anybook_vsoc_x86_64 -> /home/hive/anybook/aosp/cf/b8 (top-level files, reflink)
+=== 2026-10-18T11:41:32Z up: anybook-cuttlefish, host GPU: amd /dev/dri/renderD129
+cvd(411)  I 10-18 11:41:33   411   411 main.cc:137] version: 1.57.0 | VCS: 9bb9c72329cedcb436bb75afc05c24d73fbcdf5d
 version: 1.57.0
 VCS: 9bb9c72329cedcb436bb75afc05c24d73fbcdf5d
-=== 2026-10-18T09:14:29Z unpack cvd-host_package.tar.gz -> /root/cvd-host
-=== 2026-10-18T09:14:41Z host tools: packaged
-=== 2026-10-18T09:14:41Z cvd create --host_path=/root/cvd-host --product_path=/cf/product --x_res=1920 --y_res=1080 --dpi=160 --gpu_mode=gfxstream_guest_angle --cpus=4 --memory_mb=8192 --report_anonymous_usage_stats=n --vhost_user_vsock=true
-=== 2026-10-18T09:15:18Z cvd create exit 0 after 37 s
+=== 2026-10-18T11:41:33Z unpack cvd-host_package.tar.gz -> /root/cvd-host
+=== 2026-10-18T11:41:41Z host tools: packaged
+=== 2026-10-18T11:41:41Z cvd create --host_path=/root/cvd-host --product_path=/cf/product --x_res=1920 --y_res=1080 --dpi=160 --gpu_mode=gfxstream_guest_angle --cpus=4 --memory_mb=8192 --report_anonymous_usage_stats=n --vhost_user_vsock=true
+=== 2026-10-18T11:42:06Z cvd create exit 0 after 25 s

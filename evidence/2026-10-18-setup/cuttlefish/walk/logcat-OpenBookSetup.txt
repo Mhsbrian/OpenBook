@@ -1,5 +1,5 @@
-10-18 10:09:18.558  2777  2777 I OpenBookSetup: keyboard layout keyboard_layout_english_uk on Cuttlefish Vhost User Keyboard 0
-10-18 10:09:24.326  2777  2777 I OpenBookSetup: keyboard layout keyboard_layout_english_uk on Cuttlefish Vhost User Keyboard 0
-10-18 10:10:06.302  2777  2777 I OpenBookSetup: time zone Europe/London: set
-10-18 10:10:29.554  2777  2777 I OpenBookSetup: screen lock: pin
-10-18 10:10:54.143  2777  2777 I OpenBookSetup: setup complete (finished); provisioned=true
+10-18 12:45:22.508  2760  2760 I OpenBookSetup: keyboard layout keyboard_layout_english_uk on Cuttlefish Vhost User Keyboard 0
+10-18 12:45:28.538  2760  2760 I OpenBookSetup: keyboard layout keyboard_layout_english_uk on Cuttlefish Vhost User Keyboard 0
+10-18 12:46:11.956  2760  2760 I OpenBookSetup: time zone Europe/London: set
+10-18 12:46:35.495  2760  2760 I OpenBookSetup: screen lock: pin
+10-18 12:47:00.655  2760  2760 I OpenBookSetup: setup complete (finished); provisioned=true
