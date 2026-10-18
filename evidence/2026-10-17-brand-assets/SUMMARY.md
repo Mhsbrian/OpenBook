@@ -11,7 +11,7 @@ All assets are ours: drawn or synthesised by `scripts/brand/` from the brand pal
 
 | Check | Result | Files |
 |---|---|---|
-| Generators reproduce `assets/` from a clean checkout | `render-brand-assets.sh --check` in a fresh clone: **OK**, every wallpaper, the Monet file, 41 pointer files, 115 boot-animation entries, 11 previews and 8 sounds | `check/render-check.log` |
+| Generators reproduce `assets/` from a clean checkout | `render-brand-assets.sh --check` in a fresh clone of `4ed9a41`: **OK**. 24 wallpaper files (with thumbnails), the Monet file, 42 pointer files, 115 boot-animation entries, 11 previews and 8 sounds | `check/render-check.log` |
 | Installed in **both products** | CF and G14: `/product/media/bootanimation.zip`, 8 `OpenBook_*.ogg` in `/product/media/audio/*`, `ro.config.{ringtone,notification_sound,alarm_alert}` in `product/etc/build.prop` (AOSP's optional values dropped by the build), `OpenBookPointerOverlay`, `OpenBookSoundsSettingsProviderOverlay`, `default_wallpaper` (nodpi, sw600dp, sw720dp) in `AnyBookDesktopFrameworkOverlay`, 8 wallpapers + 8 thumbnails + `xml/wallpapers.xml` in `AnyBookDesktopPartnerCustomization` | `build/cf/`, `build/g14/` |
 | **Boot animation** during boot | Played from `/product/media/bootanimation.zip`: 12.1 s, 28 screencaps; logcat shows part1 looping, then part2 | `boot/boot-frames.jpg`, `boot/boot-frame-crop.png`, `boot/boot-screenrecord.mp4`, `boot/bootanimation-logcat.txt` |
 | Boot animation replayed on the desktop | `start bootanim`, then `service.bootanim.exit=1`: all three parts, the pages unfolding, the spark breathing, the fade | `boot/replay.mp4`, `boot/replay-frames.jpg` |

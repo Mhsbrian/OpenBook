@@ -1,0 +1,10 @@
+# scripts/brand/render-brand-assets.sh --check in a fresh clone of 4ed9a41, 2026-10-18T07:17:49Z
+# uncommitted files in the clone: 0
+20 pointer icons in <tmp>/pointer/drawable
+wallpapers: 24 files compared
+monet: 1 files compared
+pointer: 42 files compared
+bootanimation: 115 files compared
+bootanimation preview: 11 files compared
+sounds: 8 files compared
+check-brand-assets: OK
