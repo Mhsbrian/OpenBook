@@ -57,7 +57,7 @@ def boot(snapdev=None):
                                 "echo svc=[$(getprop init.svc.openbook_addons)] after=${i}s", 300)
     s += section("ADDONS", "cat /data/misc/openbook_addons/addons.log; echo; echo LAST-RUN; cat /data/misc/openbook_addons/last-run.json; "
                            "echo; echo STATE; cat /data/misc/openbook_addons/microg.json 2>&1; echo; ls -lZ /data/misc/openbook_addons")
-    s += section("KMSG", "dmesg | grep -E 'openbook_addons|openbook-addons|microg:' | tail -n 30")
+    s += section("KMSG", "dmesg | grep -E 'openbook_addons|openbook-addons' | grep -v 'avc: ' | tail -n 30")
     s += section("PKGS", "pm list packages | sort")
     return s
 
@@ -70,13 +70,11 @@ def wizard_disk(addon):
     s += W.wait_ui("STEP 2 OF 7", 120) + W.tap("Continue", 4)
     s += W.wait_ui("STEP 3 OF 7", 60) + W.tap("Install OpenBook", 2) + W.tap("Continue", 4)
     s += W.wait_ui("STEP 4 OF 7", 90) + [{"pause": 5}]
-    s += section("WIZARD-DISK", "ui; tr '>' '\\n' < /data/local/tmp/ui.xml | grep -F 'package=\"org.openbook.installer\"' | "
-                                "grep -E 'checkable=\"true\"|Google services compatibility' | sed -E 's/ (bounds|index|resource-id|class|package|content-desc|clickable|enabled|focusable|focused|scrollable|long-clickable|password|selected)=\"[^\"]*\"//g'", 60)
+    s += section("WIZARD-DISK", "ui; cat /data/local/tmp/ui.xml; echo", 60)
     s += W.shot("wizard-disk")
     if addon:
         s += W.tap("Google services compatibility (microG)", 3)
-        s += section("WIZARD-SWITCH", "ui; tr '>' '\\n' < /data/local/tmp/ui.xml | grep -F 'Google services compatibility' | "
-                                      "grep -oE ' checkable=\"[a-z]+\" checked=\"[a-z]+\"'", 60)
+        s += section("WIZARD-SWITCH", "ui; cat /data/local/tmp/ui.xml; echo", 60)
         s += W.tap("View the plan", 8)
         s += W.wait_ui("Check the add-on", 90)
         s += W.shot("wizard-plan-addon")
@@ -101,6 +99,9 @@ def microg_checks():
     s += W.send("am start -W -n 'com.google.android.gms/org.microg.gms.ui.SelfCheckFragment$AsActivity' >/dev/null; sleep 10", 60)
     s += section("SELFCHECK-UI", "ui; cat /data/local/tmp/ui.xml; echo", 60)
     s += W.shot("selfcheck")
+    s += W.send("input swipe 900 1000 900 200 400; sleep 2", 30)  # the rest of the list
+    s += section("SELFCHECK-UI2", "ui; cat /data/local/tmp/ui.xml; echo", 60)
+    s += W.shot("selfcheck-2")
     s += W.send("input keyevent 111; am force-stop com.google.android.gms", 30)
     return s
 
@@ -158,6 +159,23 @@ def selfcheck(xml):
     return items
 
 
+def switch_state(xml_text, label="Google services compatibility (microG)"):
+    """The checked state of the checkable node (Compose's toggleable row) whose subtree shows LABEL: True/False, or
+    None when no such node is on the screen."""
+    import xml.etree.ElementTree as ET
+    a, b = xml_text.find("<?xml"), xml_text.rfind("</hierarchy>")
+    if a < 0 or b < 0:
+        return None
+    try:
+        root = ET.fromstring(xml_text[a:b + len("</hierarchy>")])
+    except ET.ParseError:
+        return None
+    for n in root.iter("node"):
+        if n.get("checkable") == "true" and any((d.get("text") or "").startswith(label) for d in n.iter("node")):
+            return n.get("checked") == "true"
+    return None
+
+
 def avc_ours(text):
     return [l for l in text.splitlines() if re.search(r"avc: +denied", l) and re.search(r"openbook", l)]
 
@@ -191,7 +209,8 @@ def check(run):
         chk("addon-logs", "... with openbook-addons' state and microG's three packages",
             '"result":"installed"' in sec and all(re.search(rf"package:{re.escape(p)} versionCode:", sec) for p in PKGS), sec[-400:])
         chk("addon-logs", "... and microG as the network provider, coordinates redacted",
-            re.search(r"network provider:\s*\n\s*identity=\d+/com.google.android.gms", sec) and not re.search(r"Location\[\w+ -?\d+\.\d+,", sec), sec[-400:])
+            re.search(r"network provider:\s*\n(\s*last location=.*\n)?\s*identity=\d+/com.google.android.gms", sec)
+            and not re.search(r"Location\[\w+ -?\d+\.\d+,", sec), sec[-400:])
     for case in ("plain", "main", "addon", "addon-2", "install", "installed"):
         r, sec = load(case)
         if r is None:
@@ -207,7 +226,8 @@ def check(run):
             chk(case, "openbook-addons ran and found no add-on", "microg: not on the boot disk" in log and
                 '"result":"absent"' in log, log[-300:])
             wd = sec.get("WIZARD-DISK", "")
-            chk(case, "the wizard's disk screen has no add-on switch", "Google services compatibility" not in wd, wd[-300:])
+            chk(case, "the wizard's disk screen has no add-on switch",
+                "<hierarchy" in wd and "Google services compatibility" not in wd, wd[-300:])
             chk(case, "no microG package", not any(f"package:{p}" in pk[case] for p in PKGS), pk[case])
         if case in ("addon", "installed"):
             chk(case, "openbook-addons installed the add-on", '"result":"installed"' in log and "microg 0.3.17.252432: done" in log,
@@ -225,10 +245,11 @@ def check(run):
             launch = m.split("LAUNCHER")[-1]
             chk(case, "microG Services has a launcher entry", "com.google.android.gms/" in launch, launch[-300:])
             res[-1]["detail"] = launch.strip().replace("\n", "; ")[:300]
-            items = selfcheck(sec.get("SELFCHECK-UI", ""))
-            chk(case, f"microG self-check: all green ({sum(ok for _, ok in items)}/{len(items)} on the first screen)",
+            items = list(dict(selfcheck(sec.get("SELFCHECK-UI", "")) + selfcheck(sec.get("SELFCHECK-UI2", ""))).items())
+            chk(case, f"microG self-check: all green ({sum(ok for _, ok in items)}/{len(items)})",
                 items and all(ok for _, ok in items), [t for t, ok in items if not ok] or "no items")
-            chk(case, "openbook-addons' lines in the kernel log", "microg" in sec.get("KMSG", ""), sec.get("KMSG", "")[-200:])
+            chk(case, "init started openbook_addons after boot_completed", "starting service 'openbook_addons'" in sec.get("KMSG", ""),
+                sec.get("KMSG", "")[-200:])
         if case == "addon-2":
             chk(case, "second boot: nothing reinstalled (already installed)", '"result":"already_installed"' in log, log[-300:])
             loc = sec.get("LOCATION", "")
@@ -237,11 +258,9 @@ def check(run):
             chk(case, "microG is the fused location provider", re.search(r"fused provider:\s*\n\s*identity=\d+/com.google.android.gms", loc), loc)
         if case == "install":
             wd = sec.get("WIZARD-DISK", "")
-            row = [l for l in wd.splitlines() if "Google services compatibility (microG)" in l]
-            chk(case, "the wizard's disk screen shows the microG switch, off",
-                row and 'checkable="true"' in row[0] and 'checked="false"' in row[0], wd[-400:])
+            chk(case, "the wizard's disk screen shows the microG switch, off", switch_state(wd) is False, switch_state(wd))
             sw = sec.get("WIZARD-SWITCH", "")
-            chk(case, "tapping it turns it on", 'checkable="true" checked="true"' in sw, sw[-200:])
+            chk(case, "tapping it turns it on", switch_state(sw) is True, switch_state(sw))
             # The expect script waited for "Check the add-on" in the plan dialog; a miss stops the run early.
             chk(case, "\"View the plan\" then lists the add-on check", "WIZARD-SWITCH" in sec and "ADDON-LIST" in sec, "")
             a = sec.get("ADDON-LIST", "")
