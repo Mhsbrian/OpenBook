@@ -1,0 +1,33 @@
+# Crash buffer, all three boots. Boot A: one entry; boots B and C: empty (their logcat-final has no crash section).
+# Dropbox (boot A): system_app_crash 1, SYSTEM_TOMBSTONE 0, anr 0; tombstones/ and anr/ are empty.
+
+--------- beginning of crash
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: FATAL EXCEPTION: main
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: Process: com.android.wallpaper, PID: 5315
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: java.lang.NullPointerException: Parameter specified as non-null is null: method com.android.wallpaper.picker.preview.ui.WallpaperPreviewActivity$requestFullscreen$1.onResult, parameter result
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at com.android.wallpaper.picker.preview.ui.WallpaperPreviewActivity$requestFullscreen$1.onResult(WallpaperPreviewActivity.kt:3)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at com.android.wallpaper.picker.preview.ui.WallpaperPreviewActivity$requestFullscreen$1.onResult(WallpaperPreviewActivity.kt:276)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at android.app.FullscreenRequestHandler.notifyFullscreenRequestResult(FullscreenRequestHandler.java:159)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at android.app.FullscreenRequestHandler.-$$Nest$mnotifyFullscreenRequestResult(FullscreenRequestHandler.java:0)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at android.app.FullscreenRequestHandler$2.lambda$sendResult$0(FullscreenRequestHandler.java:125)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at android.app.FullscreenRequestHandler$2.$r8$lambda$TMWbPANMeXVqq8rzRe6zLpNf8ZM(FullscreenRequestHandler.java:0)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at android.app.FullscreenRequestHandler$2$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at android.os.Handler.handleCallback(Handler.java:1095)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at android.os.Handler.dispatchMessageImpl(Handler.java:135)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at android.os.Handler.dispatchMessage(Handler.java:125)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at android.os.Looper.loopOnce(Looper.java:296)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at android.os.Looper.loop(Looper.java:397)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at android.app.ActivityThread.main(ActivityThread.java:9523)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at java.lang.reflect.Method.invoke(Native Method)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:575)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:939)
+--------- switch to main
+
+## What the owner had just opened (wm_on_resume_called, boot A)
+10-18 11:04:57.045428  1000  5260  5260 I wm_on_resume_called: [250956190,com.android.internal.app.ResolverActivity,RESUME_ACTIVITY,0]
+10-18 11:05:01.349610 10082  3803  3803 I wm_on_resume_called: [152604802,com.android.launcher3.uioverrides.QuickstepLauncher,RESUME_ACTIVITY,0]
+10-18 11:05:01.546864  1000  3709  3709 I wm_on_resume_called: [240876675,com.android.settings.homepage.DeepLinkHomepageActivity,RESUME_ACTIVITY,1]
+10-18 11:05:01.574113 10087  5315  5315 I wm_on_resume_called: [64806825,com.android.wallpaper.picker.customization.ui.CustomizationPickerActivity,RESUME_ACTIVITY,1]
+10-18 11:05:03.565758 10087  5315  5315 I wm_on_resume_called: [64806825,com.android.wallpaper.picker.customization.ui.CustomizationPickerActivity,ACTIVITY_RESULT,0]
+10-18 11:05:03.597068 10087  5315  5315 I wm_on_resume_called: [241071949,com.android.wallpaper.picker.preview.ui.WallpaperPreviewActivity,RESUME_ACTIVITY,0]
+10-18 11:05:07.155692 10082  3803  3803 I wm_on_resume_called: [152604802,com.android.launcher3.uioverrides.QuickstepLauncher,RESUME_ACTIVITY,0]
