@@ -33,3 +33,9 @@
 10:50:18 PASS assist_key: secure window reported: flagSecureFound=true
 10:50:20 PASS assist_key: screenshot saved, secure window left out: 1920x1080, 0 probe-coloured pixels
 10:50:22 == 30 PASS, 1 FAIL, 1 INFO
+10:54:11 == control
+10:54:13 PASS Dark theme off before: Night mode: no
+10:54:14 PASS consent asked (session pending): cc: pending
+10:54:37 FAIL platform consent dialog, 'Only this time': no consent dialog
+10:54:57 FAIL session created: not created
+10:54:57 == 2 PASS, 2 FAIL, 0 INFO
