@@ -290,9 +290,16 @@ Corner radii already match. Googlebook ships its own wallpaper set (`DesktopWall
     - Clearing the pick brings the circles back.
     - Settings and SystemUI keep the system mask whatever the pick, which is AOSP's design.
   - **Open (AOSP behaviour, not caused by B4).** The taskbar's all-apps panel keeps drawing the system mask after a pick, even after Launcher restarts. The baseline build behaves the same way: the pixel diff is 0 with its rounded-square mask. **HYPOTHESIS:** that panel's icons don't follow `ThemeManager`'s shape the way the taskbar's do. The cause hasn't been traced.
+- **On the G14** (the owner's `anal192d` session, 2026-10-18, from the logs; photos pending; `evidence/2026-10-18-g14-anal192d-b4/`):
+  - **Properties:** `getprop` shows 55 and 12.
+  - **Icons:** every taskbar icon is a circle in the laptop's own screen captures.
+  - **No crash** from B4.
+  - **Dim:** the wallpaper on screen matches its file (B6's Folio dark) pixel for pixel, ratio 1.002. That proves nothing about the dim, though: every B6 wallpaper carries a dark-theme or dark-text hint, so neither AOSP's 0.05 nor our 0 would dim it.
+  - **Folio light, the default:** it sits at a mean luminance of about 0.701, just above AOSP's 0.70 dark-text threshold. B4's 55 leaves a wide margin.
+  - **Found, not caused by B4:** Wallpaper & style crashes when a full wallpaper preview is opened from a desktop window. In AOSP's `WallpaperPreviewActivity`, the `onResult(result: Void)` callback is non-null in Kotlin, but the framework passes `null` on success. The fix is `Void?` (reported on ANAL-192).
 - **Not checked yet:**
   - the lock screen, which is off by default on our desktop (`config_disableLockscreenByDefault`);
-  - the G14 itself. The checks go on ANAL-192's stick checklist.
+  - on the G14: All Apps, Settings and the Shape picker (the owner's photos), and `cmd overlay lookup` (the live collector doesn't record overlay values).
 
 ### 2.5 Pointer, sounds, boot animation, setup (C)
 

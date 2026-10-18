@@ -1,0 +1,117 @@
+{
+ "schema": "openbook-bridge-report/1",
+ "dir": "/home/hive/anybook/digitalis/work/g14d/live-002",
+ "fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
+ "model": "OpenBook on ROG Zephyrus G14 (GA403WR)",
+ "cpu": "AMD Ryzen AI 9 HX 370 w/ Radeon 890M, 24 CPUs; MemTotal: 31934680 kB",
+ "cpu_flags": "fma movbe bmi1 avx2 bmi2 avx512f adx sha_ni vaes ",
+ "cpufreq": "driver=amd-pstate-epp governor=powersave epp=balance_performance max_khz=5157895 amd_pstate=active",
+ "platform_profile": "balanced",
+ "power": " AC powered: true level: 16 Capacity level: 3 ",
+ "selinux": "permissive",
+ "addon": {
+  "name": "bridge",
+  "rc": 0,
+  "seconds": 520.1,
+  "timeout_s": 1800,
+  "out_rc": 0,
+  "out_bytes": 81408
+ },
+ "verdicts": {
+  "addon_ran": true,
+  "bridge_check": true,
+  "probe_x86_64": true,
+  "probe_arm64": true,
+  "coremark_valid": true
+ },
+ "bridge_check": [
+  {
+   "test": "bridge-exec",
+   "ok": true,
+   "abi": "arm64-v8a",
+   "uname_machine": "aarch64",
+   "hwcap": "0x9fb"
+  },
+  {
+   "test": "bridge-id-registers",
+   "ok": true,
+   "sigill": 0,
+   "first_sigill": -1,
+   "midr": "0x410fd034",
+   "isar0": "0x211120",
+   "pfr0": "0x11",
+   "hwcap_cpuid": true
+  },
+  {
+   "test": "bridge-fp-estimates",
+   "ok": true,
+   "cases": 6900,
+   "bad": 0,
+   "first_bad": ""
+  },
+  {
+   "test": "bridge-int-simd",
+   "ok": true,
+   "crc32": true,
+   "neon_fma": true
+  }
+ ],
+ "probe": {
+  "x86_64": {
+   "done": {
+    "pass": 18,
+    "fail": 0,
+    "skip": 2
+   },
+   "fail": {},
+   "skip": [
+    "neon",
+    "isa"
+   ],
+   "summary": {
+    "abi": "x86_64",
+    "primary_cpu_abi": "x86_64",
+    "pid": "3036",
+    "bridge_maps": "4",
+    "finished": "yes",
+    "secs": "3.28"
+   },
+   "start": "pkg=dev.anybook.probe.x86_64 mode=tests abis=x86_64,arm64-v8a cpu_abi=x86_64 os.arch=x86_64 sdk=37"
+  },
+  "arm64": {
+   "done": {
+    "pass": 18,
+    "fail": 2,
+    "skip": 0
+   },
+   "fail": {
+    "isa": "checks=32 failed=nan_snan_priority,default_nan_positive nan=[7fc0000a 7fc0000a ffc00000 7fc0000b] fmax(qNaN,1)=7fc0000a fmaxnm(qNaN,1)=3f800000 fmin(+0,-0)=80000000 fmin(-0,+0)=80000000 cntfrq=19200000 cnt/wall=0.999 ctr_el0=0x8444c004(sig0) dczid=0x10(sig0) midr=0x410fd034(sig0) isar0=0x211120(sig0",
+    "signals": "checks=13 failed=sigill_si_code_kernel sigill_signo=4 sigill_code=-1 alarm_on_this_thread=0 ms=235"
+   },
+   "skip": [],
+   "summary": {
+    "abi": "arm64",
+    "primary_cpu_abi": "arm64-v8a",
+    "pid": "3297",
+    "bridge_maps": "4",
+    "finished": "yes",
+    "secs": "3.39"
+   },
+   "start": "pkg=dev.anybook.probe.arm64 mode=tests abis=x86_64,arm64-v8a cpu_abi=arm64-v8a os.arch=aarch64 sdk=37"
+  }
+ },
+ "probe_arm64_unexpected_fails": [],
+ "coremark": {
+  "median_iter_per_sec": {
+   "exe x86_64": 27723.9,
+   "exe arm64-v8a": 10012.2,
+   "apk x86_64": 28204.8,
+   "apk arm64-v8a": 9902.3
+  },
+  "ratio": {
+   "exe": 0.361,
+   "apk": 0.351
+  },
+  "valid": true
+ }
+}
