@@ -61,7 +61,7 @@ struct layout {
     const struct part_info *shared_esp;
     char boot_part_uuid[37];
     int nfiles;
-    struct efile f[16];
+    struct efile f[16 + ADDON_MAX * ADDON_MAX_FILES];
     uint64_t super_bytes;
     uint8_t *super_meta;  // the stick's super metadata for the installed size (check_source)
     uint32_t super_meta_len;
@@ -388,6 +388,37 @@ static int compute_layout(const struct plan_req *r, struct disk *d, int n, struc
         snprintf(why, wl, "install data: missing loader file hashes");
         return -1;
     }
+    // Add-ons the user ticked (ANAL-210, addon.c): exactly the catalogued APKs, from the stick's
+    // openbook/addons/<name>/ to the same path on the new boot partition, pinned by this image's catalogue.
+    for (int k = 0; k < r->naddons; k++) {
+        char aw[300];
+        struct jv *cat = addon_catalog(r->addons[k], aw, sizeof aw);
+        if (!cat || !addon_on_stick(src, cat, aw, sizeof aw)) {
+            json_free(cat);
+            *code = "no_addon";
+            snprintf(why, wl, "%s", aw);
+            return -1;
+        }
+        struct jv *files = jget(cat, "files");
+        for (int i = 0; i < files->len && L->nfiles < (int)ARRAY_LEN(L->f); i++) {
+            struct efile *f = &L->f[L->nfiles++];
+            snprintf(f->path, sizeof f->path, "openbook/addons/%s/%s", r->addons[k], jstr(files->items[i], "file"));
+            memcpy(f->src, f->path, sizeof f->src);
+            f->bytes = (uint32_t)jnum(files->items[i], "bytes", 0);
+            snprintf(f->sha256, sizeof f->sha256, "%s", jstr(files->items[i], "sha256"));
+        }
+        json_free(cat);
+    }
+    if (r->naddons) {
+        uint64_t fb = 0;
+        for (int i = 0; i < L->nfiles; i++)
+            if (!L->f[i].shared) fb += L->f[i].bytes;
+        if (fb + 32 * MiB > L->p[L->boot].bytes) {
+            *code = "not_eligible";
+            snprintf(why, wl, "boot_partition_full");
+            return -1;
+        }
+    }
     // Amounts, for progress and the estimate.
     for (int i = 0; i < L->nparts; i++) {
         struct lpart *p = &L->p[i];
@@ -506,6 +537,21 @@ static void mib_str(uint64_t b, char *o, size_t n) {
     else snprintf(o, n, "%.1f MiB", b / (double)MiB);
 }
 
+// One operation per ticked add-on (ANAL-210): its files are checked against this image's catalogue, not the stick's.
+static void addon_ops(struct layout *L, struct jw *w) {
+    for (int k = 0; k < L->r->naddons; k++) {
+        char why[300], sz[32];
+        struct jv *cat = addon_catalog(L->r->addons[k], why, sizeof why);
+        if (!cat) continue;
+        mib_str(addon_bytes(cat), sz, sizeof sz);
+        op(w, "check_addon", "Check the add-on \"%s\" %s (%d files, %s) in openbook/addons/%s/ on the stick against "
+                             "this image's sha256 pins; it is copied to the same place and installed on first start",
+           jstr(cat, "title") ? jstr(cat, "title") : L->r->addons[k], jstr(cat, "version") ? jstr(cat, "version") : "",
+           jget(cat, "files")->len, sz, L->r->addons[k]);
+        json_free(cat);
+    }
+}
+
 static void plan_core(struct layout *L, struct jw *w) {
     const struct disk *t = L->t;
     char a[32], b[32];
@@ -519,6 +565,11 @@ static void plan_core(struct layout *L, struct jw *w) {
     jw_str(w, "locale", L->r->locale);
     jw_str(w, "keyboard", L->r->keyboard);
     jw_bool(w, "set_default", L->r->set_default);
+    if (L->r->naddons) {  // only then: a plan without add-ons is byte for byte what it was before they existed
+        jw_arr(w, "addons");
+        for (int k = 0; k < L->r->naddons; k++) jw_str(w, NULL, L->r->addons[k]);
+        jw_enda(w);
+    }
     jw_endo(w);
     jw_obj(w, "seeds");
     jw_str(w, "disk_guid", L->r->disk_guid);
@@ -622,6 +673,7 @@ static void plan_core(struct layout *L, struct jw *w) {
     if (L->whole) {
         op(w, "check_source", "Check the stick's partitions and boot files against its manifest (%s)",
            L->src->label);
+        addon_ops(L, w);
         op(w, "recheck", "Re-check the disk's identity (serial %s, %llu bytes) and partition table (sha256 %.16s)",
            t->serial, (unsigned long long)t->size, t->table_sha256);
         op(w, "wipe_table", "Erase the partition table: the first and last MiB of %s (protective MBR, primary and "
@@ -629,6 +681,7 @@ static void plan_core(struct layout *L, struct jw *w) {
     } else {
         op(w, "check_source", "Check the stick's partitions and boot files against its manifest (%s)",
            L->src->label);
+        addon_ops(L, w);
         op(w, "recheck", "Re-check the disk's identity (serial %s, %llu bytes) and partition table (sha256 %.16s)",
            t->serial, (unsigned long long)t->size, t->table_sha256);
         mib_str(t->largest.bytes, a, sizeof a);
@@ -721,6 +774,17 @@ int plan_build(const struct plan_req *r, struct disk *d, int n, struct source *s
     return 0;
 }
 
+int plan_req_add_addon(struct plan_req *r, const char *name) {
+    size_t l = name ? strlen(name) : 0;
+    if (!l || l >= sizeof r->addons[0] || r->naddons >= ADDON_MAX) return -1;
+    for (const char *p = name; *p; p++)
+        if (!islower((unsigned char)*p) && !isdigit((unsigned char)*p) && *p != '_' && *p != '-') return -1;
+    for (int k = 0; k < r->naddons; k++)
+        if (!strcmp(r->addons[k], name)) return -1;
+    snprintf(r->addons[r->naddons++], sizeof r->addons[0], "%s", name);
+    return 0;
+}
+
 int plan_req_from_json(const struct jv *plan, struct plan_req *r) {
     memset(r, 0, sizeof *r);
     struct jv *q = jget(plan, "request"), *s = jget(plan, "seeds");
@@ -730,6 +794,9 @@ int plan_req_from_json(const struct jv *plan, struct plan_req *r) {
     snprintf(r->locale, sizeof r->locale, "%s", jstr(q, "locale") ? jstr(q, "locale") : "");
     snprintf(r->keyboard, sizeof r->keyboard, "%s", jstr(q, "keyboard") ? jstr(q, "keyboard") : "");
     r->set_default = jbool(q, "set_default", 0);
+    struct jv *ad = jget(q, "addons");
+    for (int i = 0; ad && ad->t == J_ARR && i < ad->len; i++)
+        if (ad->items[i]->t != J_STR || plan_req_add_addon(r, ad->items[i]->s)) return -1;
     snprintf(r->disk_guid, sizeof r->disk_guid, "%s", jstr(s, "disk_guid") ? jstr(s, "disk_guid") : "");
     snprintf(r->serialno, sizeof r->serialno, "%s", jstr(s, "serialno") ? jstr(s, "serialno") : "");
     struct jv *g = jget(s, "part_guids");

@@ -230,6 +230,9 @@
     <string name="layout_set_default">Start OpenBook by default</string>
     <string name="layout_set_default_detail">Puts OpenBook first in this laptop\'s firmware boot order. If off, OpenBook is added to the boot menu and your other system stays the default.</string>
     <string name="after_installing">After installing</string>
+    <string name="addon_microg">Google services compatibility (microG)</string>
+    <string name="addon_microg_detail">Installs microG (<xliff:g id="size">%1$s</xliff:g>) on the first start, as normal apps you can uninstall. Some apps that need Google services then work. It is not Google software: no Play Protect certification, and apps that check Play Integrity still won\'t work.</string>
+    <string name="addon_detail">Version <xliff:g id="version">%1$s</xliff:g>, <xliff:g id="size">%2$s</xliff:g>, installed as normal apps on the first start.</string>
     <string name="os_and"><xliff:g id="first">%1$s</xliff:g> and <xliff:g id="last">%2$s</xliff:g></string>
     <string name="explainer_keep_title">Want to keep <xliff:g id="systems">%1$s</xliff:g>?</string>
     <string name="explainer_keep_body">Choose Install alongside. OpenBook uses the <xliff:g id="size">%1$s</xliff:g> of free space and adds itself to the boot menu; nothing else is touched.</string>

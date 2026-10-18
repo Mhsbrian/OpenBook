@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2026 The OpenBook Authors. SPDX-License-Identifier: Apache-2.0 -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="org.openbook.test.sigcheck">
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <queries>
+        <package android:name="com.google.android.gms" />
+        <package android:name="com.android.vending" />
+        <package android:name="com.google.android.gsf" />
+    </queries>
+    <application android:label="OpenBook signature check" android:debuggable="false">
+        <activity android:name=".Main" android:exported="true" android:excludeFromRecents="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+        <activity android:name=".Loc" android:exported="true" android:excludeFromRecents="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+    </application>
+</manifest>

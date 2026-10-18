@@ -1,0 +1,22 @@
+# 2026-10-17T23:34:04Z one getCurrentLocation per provider, 30 s each (OpenBookLocCheck, coordinates rounded to 0.01 deg), microG installed, location on
+## 1. microG's defaults: online Wi-Fi/cell lookup off
+{"network":{"exists":true,"enabled":true,"ms":30003,"fix":null},"fused":{"exists":true,"enabled":true,"fix":"timeout after 30 s"},"gps":{"exists":true,"enabled":true,"ms":41,"fix":{"provider":"gps","lat":37.42,"lon":-122.08,"accuracy_m":5}}}
+## 2. online lookup on (ProvisionService wifi_ichnaea/cell_ichnaea = the switches in microG's location settings)
+{"network":{"exists":true,"enabled":true,"fix":"timeout after 30 s"},"fused":{"exists":true,"enabled":true,"fix":"timeout after 30 s"},"gps":{"exists":true,"enabled":true,"ms":32,"fix":{"provider":"gps","lat":37.42,"lon":-122.08,"accuracy_m":5}}}
+## providers (dumpsys location)
+    network provider:
+      identity=10138/com.google.android.gms
+      target service=10138/com.google.android.gms/org.microg.gms.location.provider.NetworkLocationProviderService@2
+    fused provider:
+      identity=10138/com.google.android.gms
+      target service=10138/com.google.android.gms/org.microg.gms.location.provider.FusedLocationProviderService@2
+    gps provider:
+      identity=1000/android[GnssService]
+## 3. high-accuracy requests (LocationRequest quality 100), online lookup on
+{"network":{"exists":true,"enabled":true,"ms":30004,"fix":null},"fused":{"exists":true,"enabled":true,"ms":300,"fix":{"provider":"fused","lat":37.42,"lon":-122.08,"accuracy_m":5}},"gps":{"exists":true,"enabled":true,"ms":95,"fix":{"provider":"gps","lat":37.42,"lon":-122.08,"accuracy_m":5}}}
+## 4. balanced requests (quality 102)
+{"network":{"exists":true,"enabled":true,"ms":30001,"fix":null},"fused":{"exists":true,"enabled":true,"ms":30001,"fix":null},"gps":{"exists":true,"enabled":true,"ms":61,"fix":{"provider":"gps","lat":37.42,"lon":-122.08,"accuracy_m":5}}}
+## 5. microG disabled (pm disable com.google.android.gms): the AOSP fused provider again, high accuracy
+      identity=1000/com.android.location.fused
+{"network":{"exists":true,"enabled":true,"ms":4556,"fix":null},"fused":{"exists":true,"enabled":true,"ms":152,"fix":{"provider":"gps","lat":37.42,"lon":-122.08,"accuracy_m":5}},"gps":{"exists":true,"enabled":true,"ms":150,"fix":{"provider":"gps","lat":37.42,"lon":-122.08,"accuracy_m":5}}}
+      identity=10138/com.google.android.gms

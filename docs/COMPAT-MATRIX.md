@@ -18,6 +18,8 @@
 | 2026-10-17 | **G14 run, arm64 bridge (ANAL-200):** the owner's `openbook-live-20261017-anal178c` and `-anal176s` sticks, default (enforcing) boot then "save logs" | **ASUS GA403WR, Ryzen AI 9 HX 370 (Zen 5)**, bare metal from USB | **The bridge works on real Zen 5:** all five `bridge_*` verdicts pass in both sessions. That covers config, arm64 exec, 9 ID registers without SIGILL, 6,900 `FRECPE`/`FRSQRTE` cases with 0 wrong, and CRC32/NEON. No bridge-related denial in the enforcing boots. No arm64 app was opened; the probe and CoreMark are on ANAL-192's stick (the ARM apps check add-on) | `evidence/2026-10-17-digitalis-g14/` |
 | 2026-10-17 | `openbook-live-20261017-anal176s` + the ARM apps check add-on (`openbook-bridgecheck-20261017`, ANAL-200) | QEMU 11.1.2, KVM `-cpu host` (Ryzen 9 7950X), q35 + OVMF from USB | **The add-on works:** it ran in 375 s and all five verdicts pass. Probe x86_64 18/0, arm64 18/2 (`isa`, `signals`); CoreMark 0.362 / 0.372; nothing left installed. A VM, not the G14 | `evidence/2026-10-17-digitalis-g14/qemu-addon/` |
 | 2026-10-17 | Our build: `main` + ANAL-179's SoundPool rule (`anal179-sp-a`) | QEMU 11.1.2, KVM, q35 + OVMF from USB; ICH9 HDA recorded to WAV; SELinux enforcing | **SystemUI's unlock sound plays:** 0 SoundPool denials, and two sounds at the codec (boot and unlock). On `main` there were 2 denials and nothing at the codec. G14: next stick | `evidence/2026-10-17-soundpool/` |
+| 2026-10-17 | Our build: `anybook_cf_x86_64_pc-cp2a-userdebug` with the microG patch, microG 0.3.17.252432 installed by `openbook-addons` (ANAL-210) | Cuttlefish (cvd 1.57.0) in Docker, KVM, Ryzen 9 7950X, `guest_swiftshader`, Wi-Fi to the internet | **microG works:** self-check 18/18; signature spoofing only for microG's certificate (a fake `com.google.android.gms` keeps its own); device registration and push connected; FCM tokens for 3 Play-services apps; microG is the network and fused provider | `evidence/2026-10-17-microg/` |
+| 2026-10-18 | Our build: `openbook-live-anal210-g1a` (G14 product) with the microG add-on on the stick (ANAL-210) | QEMU 11.1.2, KVM, q35 + OVMF from USB, SELinux enforcing | **The add-on works in the VM:** installed 7 s after boot on the live stick and on an installed disk's first start, self-check 18/18; the wizard offers it off by default; without it, the same 140 packages as `main`'s image. One denial per boot from `stdio_to_kmsg`, removed (rerun pending). G14 untested | `evidence/2026-10-17-microg/qemu-g1a/` |
 
 ## Audio, Wi-Fi and Bluetooth on the G14
 
@@ -90,6 +92,29 @@ CoreMark, translated arm64 / native x86_64 (600k iterations, 3 interleaved round
 | Digitalis A17, **on the G14** (Ryzen AI 9 HX 370) | — | — | pending: the ARM apps check on ANAL-192's stick |
 
 In the same VM, Digitalis runs at about 65% of libndk_translation's speed. The higher figure on our build is a different VM. HYPOTHESIS: Cuttlefish passes AVX2, BMI and FMA to the guest and the emulator does not.
+
+## Apps that use Google Play services (microG add-on, ANAL-210)
+
+**None of the apps above needs Play services.** They are all F-Droid builds, which leave Google's libraries out. To test microG we added four open-source apps whose official builds use Play services (FCM push, Play location). Each is its own release APK from GitHub, pinned by sha256 in `scripts/microg/gms-apps.tsv`, downloaded locally and never committed.
+
+**How they ran:**
+- `scripts/microg/gms-apps.sh`, in our `anybook_cf_x86_64_pc` build in Cuttlefish, SELinux enforcing, with internet over the VM's Wi-Fi, on 2026-10-17.
+- Each app was installed fresh, launched, and checked 15 s later.
+- "With microG": microG 0.3.17.252432 installed by `openbook-addons`, with device registration and push turned on in microG.
+- "Without": the same VM after uninstalling microG.
+- Logs are redacted (`scripts/microg/redact.sh`). Evidence: `evidence/2026-10-17-microg/cf-gms-apps/`.
+
+| App (official build) | Without microG | With microG | Notes |
+|---|---|---|---|
+| Home Assistant 2026.8.4 (`full`) | Runs; Play services missing; no push | **Runs; FCM token issued** | Logs "Play services out of date: requires 261200000, found 252432034" for one internal API, yet registers. First screen: "Connect to my Home Assistant server" |
+| Bitwarden 2026.10.0 (standard) | Runs; Play services missing; no push | **Runs; FCM token issued** | Same version note. The window is black in screenshots: Bitwarden blocks screen capture |
+| Nextcloud 35.0.1 (`gplay`) | Runs; Play services missing; no push | **Runs; FCM token issued** | Same version note. First screen: log in / sign up |
+| Molly 8.19.2-4 (FCM build) | Runs; no complaint | Runs; no complaint; no registration yet | Registers for push only after phone-number sign-up, which we did not do |
+
+**Result:**
+- 4/4 apps start with microG and 4/4 without, with 0 crashes and 0 ANRs.
+- With microG, 3/4 got a push token from Google at first launch. Without it, none did.
+- Delivering a message needs each app's own server, so it is not tested.
 
 ## Graphics drivers
 
