@@ -12,6 +12,9 @@ PRODUCT_CHARACTERISTICS := desktop
 # two-pane Settings layout (persist.settings.large_screen_opt.enabled), as in the reference image.
 $(call inherit-product, $(SRC_TARGET_DIR)/product/large_screen_common.mk)
 
+# OpenBook setup, the first-run flow, in place of AOSP's Provision (ANAL-209, docs/setup.md).
+$(call inherit-product, device/anybook/common/setup/setup.mk)
+
 # OpenBook's boot animation, sounds and pointer theme (ANAL-207). The default wallpaper is in the framework overlay
 # below (res/drawable-*nodpi/default_wallpaper.jpg).
 $(call inherit-product, device/anybook/common/branding/branding.mk)

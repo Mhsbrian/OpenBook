@@ -88,8 +88,6 @@ fun reasonSentence(detail: String): String? = when (detail) {
     else -> null
 }
 
-enum class Tone { OK, WARN, OFF, INFO, ERROR }
-
 data class StateChip(val label: String, val tone: Tone)
 
 @Composable
