@@ -42,13 +42,8 @@
    - amd-pmf (`docs/kernel.md`);
    - Track B (`docs/PLAN.md` §6);
    - installing the Multica daemon on the G14 (ANAL-194).
-   - **New, from ANAL-201:**
-     - ship Google Sans and Google Sans Flex (OFL) under the internal family names `google-sans*`;
-     - carry LineageOS's microG signature-spoofing patch and offer microG as an add-on;
-     - whether the installer should accept a GApps package the user supplies;
-     - which items of the beautification backlog B1–B8 to open (`docs/googlebook-ui.md` §4, `docs/gapps.md` §5).
    - Before any public image: AVB release-key custody, an "OpenBook" trademark check, and Mesa libelf (shipped as a shared library, as recommended).
-3. **Already decided:** the dGPU stays off (`dgpu_disable=1`; HDMI is dark while it is set; NVIDIA work waits until after M4). The installer design follows our recommendation (owner on ANAL-189, 2026-10-16).
+3. **Already decided:** ANAL-201's fonts (Google Sans and Google Sans Flex, OFL, internal names `google-sans*`), microG (G1), bring-your-own GApps (G2) and the whole beautification backlog B1–B8, all approved 2026-10-17 as ANAL-202 to ANAL-211. The dGPU stays off (`dgpu_disable=1`; HDMI is dark while it is set; NVIDIA work waits until after M4). The installer design follows our recommendation (owner on ANAL-189, 2026-10-16).
 
 ### Next step for each open issue
 
@@ -63,7 +58,9 @@
 | ANAL-192 installer end-to-end tests and the owner's stick | In review | Done in QEMU: the integrated stick `anal192c` (live 40/40, wizard 25/25), the end-to-end matrix 79/79 (`scripts/installer/e2e-qemu.sh`), the user guide and release checklist draft (`docs/INSTALL.md`). Found: an installed OpenBook offers to format a plugged-in installer stick; the wizard calls an installed OpenBook "Linux". Open: the OTA slot switch (needs `openbook-bootsync`) | The owner's run of `docs/installer.md` §13.6; a spare drive named by `/dev/disk/by-id` for §13.7; the release decisions (`docs/INSTALL.md` §9) |
 | ANAL-198 G14 kernel (follow-up) | In review (#64, #65 merged) | Done: `system_heap.ko` and `efivarfs.ko` as vendor modules with Google's GKI configuration unchanged; Codec2 fixes, so a ringtone decodes in QEMU; the owner's stick `anal198`. GPU reset: MES didn't answer and pipe reset is off in 6.18, so a hang means a full reset (`docs/kernel.md`). Next: the G14 check on `anal198` | The owner's `anal198` session |
 | ANAL-193 to ANAL-197 device loop | Backlog | ANAL-194 first: the Multica runtime and test agent on the G14's Linux | Owner installs the daemon |
-| ANAL-201 Googlebook UI and GApps review | In review | Done: inventory of the Googlebook image, the Google APIs Desktop image and ours; why Googlebook looks cleaner, ranked; the GApps options; the Google Sans prototype in Cuttlefish (`docs/googlebook-ui.md`, `docs/gapps.md`). Next: the backlog items the owner picks (B1 fonts, B2 blur, B4 shapes and B5 a clean desktop first; G1 microG) | Owner decisions |
+| ANAL-201 Googlebook UI and GApps review | In progress (PR #71) | Review done (`docs/googlebook-ui.md`, `docs/gapps.md`). All ten follow-ups approved and running in parallel on the shared lane (builds take turns under the lane lock; each issue has its own Cuttlefish ports) | — |
+| ANAL-202 to ANAL-209 beautification B1–B8 | In progress | B1 Google Sans · B2 blur on the G14 · B3 flag set v2 · B4 shapes and wallpaper dim · B5 clean desktop · B6 brand assets · B7 document fonts · B8 first-run setup. G14 checks go to ANAL-192's next stick | — |
+| ANAL-210, ANAL-211 Google services | In progress | G1 microG patch and add-on; G2 an installer step for a user-supplied GApps package (synthetic test package only) | — |
 | ANAL-166 performance and parity | Backlog | After the installer: benchmarks, Chrome, the Linux terminal (AVF without pKVM). No sub-issues yet | — |
 | ANAL-186 NVIDIA | Parked | Research is done (ANAL-187); N1–N6 after M4 | — |
 | ANAL-165 Track B (ANAL-182 to ANAL-185) | Parked | Starts only if the owner decides to use Google's image | Owner decision |
