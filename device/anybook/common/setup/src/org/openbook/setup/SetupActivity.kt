@@ -5,6 +5,7 @@ package org.openbook.setup
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.UserManager
 import android.util.Log
 import android.view.KeyEvent
 import androidx.activity.ComponentActivity
@@ -71,12 +72,23 @@ class SetupActivity : ComponentActivity() {
 
     class Holder(val model: SetupModel) : ViewModel()
 
-    /** What Provision does, then this activity leaves the home list for good and the launcher takes over. */
+    /**
+     * What Provision does, then this activity leaves the home list for good and the launcher takes over. While the
+     * user is still locked (a live stick's first boot steps aside that early) the only other home is Settings'
+     * FallbackHome, which can't be started from here: then finishing is enough, the system starts it, and the
+     * launcher once the user is unlocked. Provision never starts home itself.
+     */
     private fun finishSetup(why: String) {
         val ok = SetupSystem.markComplete(this)
         Log.i(SetupSystem.TAG, "setup complete ($why); provisioned=$ok")
         SetupSystem.disable(this, SetupActivity::class.java)
-        startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        if (getSystemService(UserManager::class.java)?.isUserUnlocked != false) {
+            try {
+                startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            } catch (e: RuntimeException) {
+                Log.w(SetupSystem.TAG, "could not start home; the system will", e)
+            }
+        }
         finish()
     }
 }
