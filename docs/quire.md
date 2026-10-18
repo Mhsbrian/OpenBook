@@ -1,6 +1,6 @@
 # Quire: the agent layer of OpenBook (ANAL-214)
 
-As of 2026-10-18. Labels: **C** = confirmed (we read it in a primary source or in our AOSP 17 tree, or ran it ourselves), **R** = reported (press or third party), **HYPOTHESIS** = not yet tested. Evidence for what is built is in [`evidence/2026-10-18-quire/`](../evidence/2026-10-18-quire/).
+As of 2026-10-18. Labels: **C** = confirmed (we read it in a primary source or in our AOSP 17 tree, or ran it ourselves), **R** = reported (press or third party), **HYPOTHESIS** = not yet tested. Evidence for what is built is in [`evidence/2026-10-18-quire/`](../evidence/2026-10-18-quire/) (Q1) and [`evidence/2026-10-18-quire-q2/`](../evidence/2026-10-18-quire-q2/) (Q2).
 
 ## Summary
 
@@ -8,6 +8,7 @@ As of 2026-10-18. Labels: **C** = confirmed (we read it in a primary source or i
 - **Googlebook does one agent, Gemini, with Google's closed apps** (Magic Pointer, Create your Widget). Quire does any agent, in the open. **AOSP 17 already contains the platform hooks Googlebook uses**, under Apache-2.0: the pointer-shake gesture, contextual search, the assistant role and **computer control**, a framework API that lets an agent operate apps on a virtual display with consent and hand-over (§2). Quire plugs into those hooks rather than hacking around them.
 - **Two open protocols, no lock-in.** Agents talk to Quire over **ACP** (Agent Client Protocol, Apache-2.0, v1), the protocol Zed and others use for editors. Quire gives its OS tools to agents over **MCP** (Model Context Protocol). An agent that speaks ACP works with Quire with no Quire-specific code. For agents that don't, `quired` adapts them.
 - **Built today: `quired`, the harness host.** It finds the agent CLIs on a machine, runs them, and gives every one of them the same ACP interface. On this host it opened real ACP sessions with opencode, Copilot and omp. Through its Claude Code adapter it ran real turns in which the person's "allow" or "deny" decided whether a file was written. It has 17 unit tests that pass with the race detector (§6).
+- **Built in Q2: Quire core in the image, and the AOSP 17 hooks working** (§2.5, §2.6). In Cuttlefish, a pointer shake, Meta+Space and the assist key each open Quire with a screenshot that leaves secure windows out and the list of visible apps. Quire asks for a computer-control session on Settings; the platform's own consent dialog appears; Settings runs on a separate display that Quire mirrors; a tap through the session turns Dark theme on; "take over" moves Settings to the person's screen. A denied consent, the lock screen and a secure window each stop it. Getting there took four small AOSP patches, all fixes or device configuration rather than relaxed checks.
 - **How we learned from Multica (reviewed, not copied).** Multica's daemon detects agent CLIs and drives each through its own output format. Its licence adds conditions on commercial embedding. Quire takes the idea of detecting and running the agents a person has, and builds it on open protocols with its own code. No Multica code is used (§3).
 
 ## 1. The experience
@@ -129,6 +130,29 @@ Each change is the smallest that makes the hook work, and none relaxes a safety 
 | `RELEASE_PACKAGE_COMPUTER_CONTROL=true` (`device/anybook/common/desktop/release/flag_values/cp2a/`) | Installs VirtualDeviceManager, which holds the platform's consent dialog. Without it every request that needs consent fails |
 | The flags `computer_control_access`, `computer_control_support_v5`, `enable_contextual_cursor_desktop_entrypoints` | §2.2, §2.4 |
 | The feature `com.google.android.feature.CONTEXTUAL_SEARCH` | Launcher3 checks it (§2.3) |
+
+### 2.6 Q2 in Cuttlefish: what held (C)
+
+Cuttlefish on the AMD lane, `anybook_cf_x86_64_pc`, second Q2 image; evidence in
+[`evidence/2026-10-18-quire-q2/`](../evidence/2026-10-18-quire-q2/) (`SUMMARY.md`). `scripts/quire/q2-cf-check.py`: 63
+pass, 0 fail.
+
+- **Invocation.** The pointer shake (a virtual USB mouse), Meta+Space and the assist key each open Quire's note. The
+  shake arrives as `ENTRYPOINT_SYSTEM_ACTION` through SystemUI and Launcher3; the two keys arrive through Quire's
+  assistant session as `ENTRYPOINT_KEYBOARD_SHORTCUT`, with Quire's trigger `assistant_shortcut` or `assist_key`. Each
+  carries the visible packages (Settings, the secure test window's app, Launcher3), `EXTRA_FLAG_SECURE_FOUND=true`, and
+  a 1920×1080 screenshot in which the secure window is black.
+- **Computer control.** A version 5 session for Settings: the platform's consent dialog ("Allow Quire to use screen
+  automation?"), Settings' Dark theme page on the session display, Quire's mirror of it, the undismissable "Quire is
+  using Settings" notification, two session screenshots, a tap found through the session's accessibility tree that
+  turned Dark theme on, and `handOverApplications()` moving Settings to the main display and closing the session.
+- **Refusals,** each from the platform: "Don't allow" → `ERROR_PERMISSION_DENIED`; the lock screen →
+  `ERROR_DEVICE_LOCKED`; a secure window on the session display → `BLOCK_REASON_SECURE_CONTENT`, after which the
+  platform refuses Quire's tap and the mirror goes black; an app outside the allowlist → `IllegalArgumentException`.
+- **No regression:** the desktop defaults check 16/16, the desktop capture as before, no crash, ANR or SystemUI restart
+  in the whole session, and only the three SELinux denials Cuttlefish always has. Quire needed no SELinux policy: it
+  runs as `platform_app`, and every service it uses is an `app_api_service`.
+- **Not yet:** the G14 (no boot of this image on the laptop); the new unit tests in the patches (not run).
 
 ## 3. How Multica runs agents, and what Quire does instead
 
@@ -253,7 +277,7 @@ Each one is a sub-issue of ANAL-214 with its own acceptance checks. "G14" means 
 | # | Milestone | Owner | Done when |
 |---|---|---|---|
 | Q1 | **`quired` harness host** (ANAL-214) | Porter | Built and checked on this host (§6), this PR |
-| Q2 | **Platform hooks in the image** (ANAL-216). Quire core skeleton as a privileged system app: `ROLE_ASSISTANT`, contextual search package, `ACCESS_COMPUTER_CONTROL` allowlist, the shake flag and the computer-control flags in OpenBook's flag set | Porter | In Cuttlefish: a shake and Meta+Space open Quire with a screenshot and the visible packages; a computer-control session on Settings shows in an `InteractiveMirror`; no new SELinux denials; the release flags diff reviewed |
+| Q2 | **Platform hooks in the image** (ANAL-216). Quire core skeleton as a privileged system app: `ROLE_ASSISTANT`, contextual search package, `ACCESS_COMPUTER_CONTROL` allowlist, the shake flag and the computer-control flags in OpenBook's flag set | Porter | In Cuttlefish: a shake and Meta+Space open Quire with a screenshot and the visible packages; a computer-control session on Settings shows in an `InteractiveMirror`; no new SELinux denials; the release flags diff reviewed. **Done in Cuttlefish (§2.6)** |
 | Q3 | **Interaction and motion design** (ANAL-215) | Atelier | Invocation, the note's states (asking, streaming, steps, consent, mirror, done, error), motion specs and a clickable prototype; the visual language matches OpenBook's look |
 | Q4 | **The Linux environment and `quired serve`** (ANAL-218). AVF Terminal in OpenBook, KVM on AMD, `quired` in the Debian guest, ACP over vsock to the core, pairing for a second computer | Porter | An agent installed in the Linux environment answers a prompt from Quire core in Cuttlefish, then on the G14 |
 | Q5 | **The surface** (ANAL-219). The note, steps, consent and mirror, built to Q3's spec | Porter with Atelier | Q3's states, in a recorded Cuttlefish session; 60 fps on the G14; works with TalkBack and keyboard only |
@@ -265,12 +289,18 @@ The order is Q1, then Q2 and Q3 in parallel, then Q4 and Q5, then Q6 and Q7. Q8 
 
 ## 8. Risks and open questions
 
-1. **Computer control is `@hide` and partly flagged off in cp2a** (C). Turning on `computer_control_access` and `_support_v5` may pull in code paths Google tested only on its own builds. Q2 checks this in Cuttlefish before anything else depends on it.
-2. **The AVF Terminal on AMD** (HYPOTHESIS). It needs KVM in our GKI build plus the Terminal's x86_64 Debian image. If it can't run, `quired` runs on a paired computer and Quire uses cloud connectors on the laptop.
-3. **Agent CLIs change often.** The catalog records the version each entry was checked against, and adapters are only needed for agents without ACP. The industry is moving to ACP: 6 of the 11 CLIs on this host have it.
-4. **Sign-in.** Cursor and Kimi need an ACP `authenticate` step on this host. Quire will show each agent's `authMethods` in its connect screen.
-5. **The shake gesture is "early"** (its own TODO). We may tune the threshold for touchpads.
-6. **Naming:** "Quire" needs the same trademark check as "OpenBook" before any public image (`docs/STATUS.md`).
+1. **Computer control is `@hide` and partly flagged off in cp2a** (C). Q2 turned on `computer_control_access` and `_support_v5` and checked them in Cuttlefish (§2.6). **What held:** sessions, consent, the lock-screen and secure-content refusals, the mirror, screenshots, taps and hand-over, with no crash or new denial. **What didn't, out of the box:** the allowlists need a configuration server, the consent dialog is not installed, and the session's accessibility tree never worked (an AOSP bug). Each is fixed in §2.5. Still open:
+   - **An app that is already running on the person's display has no accessibility tree in the session** (C: 0 windows in four tries, 2 windows whenever Settings started fresh on the session display). Cause: HYPOTHESIS, the running process is not tied to the virtual device's accessibility clients. Quire's checks start the app fresh; Q6 must handle it (start the target fresh, or work from screenshots) and we should report it upstream.
+   - **Consent is for the agent as a whole.** Without `computer_control_per_app_consent` (`trunk_staging` only) "Always allow" lets Quire automate every allowlisted app. Today the allowlist is Settings only; turn per-app consent on before Q6 widens it.
+   - **Release keys.** The session owner allowlist pins Quire's certificate, today AOSP's test platform key. An image signed with release keys needs its own digest in `session_owner_allowlist.txt`, or computer control stays off (it fails closed).
+   - **Debuggable builds keep the last five invocation screenshots and session screenshots** in Quire's private storage, as Q2 evidence. User builds keep none. Q5 replaces this.
+2. **The pointer shake and Meta+A/Meta+G were dead in AOSP 17 on a device like ours** (C): Launcher3 lacked `ACCESS_CONTEXTUAL_SEARCH`, and SystemUI armed the shake only for users who can log out (headless system user mode, which Googlebook runs and OpenBook does not). Both are patched (§2.5); the patches are small enough to send upstream.
+3. **The AVF Terminal on AMD** (HYPOTHESIS). It needs KVM in our GKI build plus the Terminal's x86_64 Debian image. If it can't run, `quired` runs on a paired computer and Quire uses cloud connectors on the laptop.
+4. **Agent CLIs change often.** The catalog records the version each entry was checked against, and adapters are only needed for agents without ACP. The industry is moving to ACP: 6 of the 11 CLIs on this host have it.
+5. **Sign-in.** Cursor and Kimi need an ACP `authenticate` step on this host. Quire will show each agent's `authMethods` in its connect screen.
+6. **The shake gesture is "early"** (its own TODO). We may tune the threshold for touchpads. In Cuttlefish a mouse shake of 8 strokes, 15 counts each, 50 ms apart, fires it on the first try.
+7. **Contextual search also hands Quire a `MediaProjection`** (§2.3). Quire never uses it; a review should confirm it is never started.
+8. **Naming:** "Quire" needs the same trademark check as "OpenBook" before any public image (`docs/STATUS.md`).
 
 ## Sources
 
