@@ -7,9 +7,12 @@ Subject: [PATCH] OPENBOOK: TerminalApp: an agent bridge for the system's agent
 AgentBridgeProvider lets a caller holding ACCESS_AGENT_BRIDGE
 (signature|privileged), on OpenBook Quire core, reach the guest's
 quired on vsock port 7690 while the Linux environment runs. Only the
-VM's owner may have a vsock to it, so the provider asks virtmgr for the
-connection (VirtualMachine.connectVsock) and relays it to one end of a
-socket pair. Other guest ports (ttyd, the guest agent) are not offered.
+VM's owner may have a vsock to it, so the provider connects to the guest
+itself, as AndroidToVmBridge does for ttyd, and relays the connection to
+one end of a socket pair. (A socket from virtmgr's connectVsock may only
+be read and written by the owner, and passing on the caller's half-close
+needs shutdown.) Other guest ports (ttyd, the guest agent) are not
+offered.
 
 Also: Cuttlefish products not named vsoc_* get the emulator boot
 timeout, found by ro.boot.hypervisor.version (cf-crosvm, cf-qemu); the
@@ -17,10 +20,10 @@ Debian guest runs under nested KVM there.
 
 OpenBook ANAL-218 (Quire Q4).
 ---
- android/TerminalApp/AndroidManifest.xml       |  10 ++
- .../terminal/AgentBridgeProvider.kt           | 166 ++++++++++++++++++
+ android/TerminalApp/AndroidManifest.xml       |  10 +
+ .../terminal/AgentBridgeProvider.kt           | 175 ++++++++++++++++++
  .../terminal/new2/core/VmController.kt        |   6 +-
- 3 files changed, 181 insertions(+), 1 deletion(-)
+ 3 files changed, 190 insertions(+), 1 deletion(-)
  create mode 100644 android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt
 
 diff --git a/android/TerminalApp/AndroidManifest.xml b/android/TerminalApp/AndroidManifest.xml
@@ -53,10 +56,10 @@ index 022dd2d04..d1d564f5c 100644
              <intent-filter>
 diff --git a/android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt b/android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt
 new file mode 100644
-index 000000000..74798ebbe
+index 000000000..702a1f196
 --- /dev/null
 +++ b/android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt
-@@ -0,0 +1,166 @@
+@@ -0,0 +1,175 @@
 +/*
 + * Copyright (C) 2026 The OpenBook Authors
 + *
@@ -83,6 +86,7 @@ index 000000000..74798ebbe
 +import android.system.ErrnoException
 +import android.system.Os
 +import android.system.OsConstants
++import android.system.VmSocketAddress
 +import android.util.Log
 +import com.android.system.virtualmachine.flags.Flags
 +import com.android.virtualization.terminal.new2.core.VmController
@@ -98,11 +102,13 @@ index 000000000..74798ebbe
 + * OpenBook: lets the system's agent host (Quire core) reach one service in the Linux environment
 + * while it runs: the guest's `quired serve` on vsock port 7690.
 + *
-+ * Only a VM's owner can have a vsock to it, so this process asks virtmgr for the connection
-+ * ([android.system.virtualmachine.VirtualMachine.connectVsock]) and relays it to one end of a
-+ * socket pair; the caller gets the other end. Callers need [PERMISSION]
-+ * (signature|privileged), and only the ports in [PORTS] are offered: ttyd and the guest agent stay
-+ * private to this app.
++ * Only a VM's owner can have a vsock to it, so this process connects to the guest, as
++ * [AndroidToVmBridge] does for ttyd, and relays the connection to one end of a socket pair; the
++ * caller gets the other end. Its own socket, not one from virtmgr
++ * ([android.system.virtualmachine.VirtualMachine.connectVsock]): AVF's policy lets the VM owner only
++ * read and write those, and passing on a half-close (the caller is done) needs shutdown. Callers need
++ * [PERMISSION] (signature|privileged), and only the ports in [PORTS] are offered: ttyd and the guest
++ * agent stay private to this app.
 + *
 + * - `openFile(content://com.android.virtualization.terminal.agentbridge/vsock/7690, "rw")`
 + * - `call("status")` returns `state` (not_installed, stopped, starting, running, error) and,
@@ -156,7 +162,13 @@ index 000000000..74798ebbe
 +        }
 +        val vsock =
 +            try {
-+                vm.connectVsock(port)
++                val fd = Os.socket(OsConstants.AF_VSOCK, OsConstants.SOCK_STREAM or OsConstants.SOCK_CLOEXEC, 0)
++                try {
++                    Os.connect(fd, VmSocketAddress(port.toInt(), vm.cid))
++                    ParcelFileDescriptor.dup(fd)
++                } finally {
++                    Os.close(fd)
++                }
 +            } catch (e: Exception) {
 +                throw FileNotFoundException("no answer on vsock port $port: ${e.message}")
 +            }

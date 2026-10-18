@@ -42,6 +42,14 @@ PERMISSION = "com.android.virtualization.terminal.permission.ACCESS_AGENT_BRIDGE
 QUIRE = q2.QUIRE
 
 
+def _run_bytes(self, *args, timeout=120):
+    import subprocess
+    return subprocess.run([self.adb, "-s", self.s, *args], capture_output=True, timeout=timeout).stdout
+
+
+q2.Dev.run_bytes = _run_bytes
+
+
 def bridge_status(d):
     out = d.sh(f"content call --uri {BRIDGE} --method status 2>&1")
     m = re.search(r"state=(\w+)", out)
@@ -179,8 +187,16 @@ def guest(d):
              conn.group(0) if conn else ("an open connection, reused" if listed else "never connected"))
     d.result("quired lists an agent installed in the guest", any(s == "true" for _, _, s in listed),
              ", ".join(f"{a} {v} supported={s}" for a, v, s in listed))
-    d.result("VM start -> quired answering (s)", None, f"{time.time() - started:.1f}")
-    console = d.sh(f"cat /data/data/{TERMINAL}/files/*.log/*console* /data/data/{TERMINAL}/files/*.log/* 2>/dev/null | head -c 2000000")
+    # From crosvm starting the VM (virtmgr's log) to Quire's first connection to quired (Quire's log). Quire retries
+    # every few seconds, so this is an upper bound.
+    lc = d.sh("logcat -d -v epoch | grep -E 'Non-protected virtual machine \"debian\".* started|agents: connected via' ")
+    vm_t = re.search(r"^\s*([\d.]+).*virtual machine \"debian\".* started", lc, re.M)
+    q_t = re.search(r"^\s*([\d.]+).*agents: connected via", lc, re.M)
+    d.write("vm-start-and-connect.txt", lc)
+    d.result("VM start -> Quire connected to quired (s)", None,
+             f"{float(q_t.group(1)) - float(vm_t.group(1)):.1f}" if vm_t and q_t else "timestamps not found")
+    raw = d.run_bytes("exec-out", f"cat /data/data/{TERMINAL}/files/debian.log/*.txt")
+    console = raw.decode("utf-8", errors="replace")
     d.write("guest-console.log", console)
     boot = re.search(r"Startup finished in .*", console)
     kern = re.search(r"Linux version (\S+)", console)
@@ -255,6 +271,18 @@ def refuse(d):
     d.write("refuse-shell-uid.txt", out)
     d.result("a caller without ACCESS_AGENT_BRIDGE is refused (shell, uid 2000)",
              shell_grant == "0" and "Permission Denial" in out and PERMISSION in out, out.strip().splitlines()[-1][:220])
+    # Quire hangs up: its half-close must reach quired in the guest, which then closes, so the bridge's relay ends
+    # both ways ("#N: closed").
+    before = d.sh("logcat -d -s AgentBridge:I | grep -c ': closed'").strip()
+    d.lab("AGENTS_DISCONNECT")
+    closed = False
+    for _ in range(20):
+        if d.sh("logcat -d -s AgentBridge:I | grep -c ': closed'").strip() != before:
+            closed = True
+            break
+        time.sleep(1)
+    d.write("bridge-log.txt", d.sh("logcat -d -v time -s AgentBridge:I"))
+    d.result("Quire's hang-up reaches quired in the guest (the bridge's relay closes both ways)", closed, "")
     out = d.sh(f"content read --uri {BRIDGE}/vsock/4000 2>&1 | head -3")
     d.result("other guest ports are not offered (4000, the guest agent)", "not offered" in out or "FileNotFound" in out,
              out.strip()[:200])
@@ -310,6 +338,32 @@ def nokvm(d, image):
     d.screencap("nokvm-quire.png")
 
 
+# AOSP's own AVF on this product, seen with the Terminal app's VM; none involves OpenBook code, and the VM works.
+AVF_DENIALS = [
+    "scontext=u:r:priv_app_all_virtualizationmanager:s0 tcontext=u:r:surfaceflinger:s0 tclass=fd",
+    "scontext=u:r:priv_app_all_virtualizationmanager:s0 tcontext=u:object_r:gpu_device:s0 tclass=chr_file",
+    "scontext=u:r:priv_app_all_virtualizationmanager:s0 tcontext=u:object_r:fuse:s0 tclass=file",
+    "scontext=u:r:system_server:s0 tcontext=u:r:crosvm_vu_snd:s0 tclass=process",
+]
+
+
+def health(d, sysui_pid):
+    q2.health(d, sysui_pid)
+    # q2's denial count knows only Cuttlefish's baseline; it is replaced by the one below, which also knows AVF's.
+    d.results = [r for r in d.results if r[0] != "no new SELinux denials"]
+    text = re.sub(r":c\d+(,c\d+)*", "", (d.o / "selinux-denials.txt").read_text())
+    lines = [l for l in text.splitlines() if l.strip()]
+    avf = [l for l in lines if any(k in l for k in AVF_DENIALS)]
+    other = [l for l in lines if l not in avf and not any(k in l for k in q2.KNOWN_DENIALS)]
+    d.result("no new SELinux denial outside AOSP's AVF (and Cuttlefish's known three)", not other,
+             f"{len(other)}" + (": " + " | ".join(o.strip()[:160] for o in other[:4]) if other else ""))
+    d.result("AOSP AVF denials seen (the VM works with them)", None, f"{len(avf)} distinct: " +
+             "; ".join(sorted({re.search(r"scontext=\S+ tcontext=\S+ tclass=\S+", a).group(0) for a in avf
+                               if re.search(r"scontext=\S+ tcontext=\S+ tclass=\S+", a)})))
+    ours = [l for l in lines if "vmlauncher_app" in l or "platform_app" in l]
+    d.result("no denial for the Terminal app's bridge or Quire", not ours, " | ".join(o.strip()[:160] for o in ours[:3]))
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("serial")
@@ -349,7 +403,7 @@ def main():
         elif s == "nokvm":
             nokvm(d, a.image)
         elif s == "health":
-            q2.health(d, sysui_pid)
+            health(d, sysui_pid)
     d.sh("logcat -d -v time -b all > /data/local/tmp/q4-logcat.txt")
     d.run("pull", "/data/local/tmp/q4-logcat.txt", str(d.o / "logcat-all.txt"), timeout=120)
     with open(d.o / "results.tsv", "w") as f:
