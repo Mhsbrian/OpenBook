@@ -603,7 +603,7 @@ Evidence is in `evidence/2026-10-17-kernel-g14-r2/`, starting with `SUMMARY.md`.
   3. Userspace: SurfaceFlinger and SystemUI survive context loss instead of aborting on `EGL_CONTEXT_LOST`. That is the only lever that limits a full reset to the guilty app.
   4. Capture `/sys/kernel/debug/dri/0/amdgpu_firmware_info`. The MES version is not in the file header in a form we could read.
      - **Not captured on `anal192d`.** The graphics check did not run, and nothing else read debugfs: Android does not mount it.
-     - **From PR #NN, "save logs" collects it.** The `GPUFW` section of `collect-final.txt` mounts debugfs and reads it; `DMAHEAP` lists `/dev/dma_heap`.
+     - **From PR #97, "save logs" collects it.** The `GPUFW` section of `collect-final.txt` mounts debugfs and reads it; `DMAHEAP` lists `/dev/dma_heap`.
      - **Already in dmesg:** DMUB `0x09005700`, and VCN ENC 1.24 / DEC 9 rev 34.
 - **Exposure:** the hang came under Vulkan 1.1 with 12 concurrent dEQP clients, and Vulkan 1.4, which ships now, ran the same cases clean.
 
