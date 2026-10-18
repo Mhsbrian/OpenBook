@@ -10,6 +10,8 @@
 //                            all 6 fills x 3 strokes; writes PNGs and prints type, style, size and hotspot.
 //   palette                  print the dynamic colours apps see now (android.R.color.system_*).
 //   set-wallpaper FILE       set FILE as the home and lock screen wallpaper (WallpaperManager.setStream).
+//   resinfo TYPE/NAME        which value a framework resource resolves to here (overlays included): its ID, and for
+//                            an XML drawable the first pathData, for a bool or string the value.
 // Screencap does not draw the pointer, so `pointers` is how the theme is seen on a device: the bitmaps come from the
 // same framework code and the same resources (our overlay) as the real pointer.
 import android.app.WallpaperManager;
@@ -67,6 +69,9 @@ public class BrandProbe {
                 break;
             case "palette":
                 palette(ctx);
+                break;
+            case "resinfo":
+                resinfo(ctx, args[1]);
                 break;
             case "set-wallpaper":
                 try (InputStream in = new FileInputStream(args[1])) {
@@ -131,6 +136,28 @@ public class BrandProbe {
                     System.out.printf("%s\t%s\t%s\t%d\t%d\t%.1f\t%.1f\t%d\t%08x\t%s%n", t.getKey(), FILLS[f],
                             STROKES[s], b.getWidth(), b.getHeight(), hx.getFloat(icon), hy.getFloat(icon), opaque,
                             b.getPixel(b.getWidth() / 2, b.getHeight() / 2), name);
+                }
+            }
+        }
+    }
+
+    static void resinfo(Context ctx, String typeName) throws Exception {
+        Resources r = ctx.getResources();
+        String[] tn = typeName.split("/");
+        int id = r.getIdentifier(tn[1], tn[0], "android");
+        System.out.printf("%s id 0x%08x%n", typeName, id);
+        if (tn[0].equals("bool")) {
+            System.out.println("value " + r.getBoolean(id));
+        } else if (tn[0].equals("string")) {
+            System.out.println("value " + r.getString(id));
+        } else if (tn[0].equals("drawable")) {
+            android.content.res.XmlResourceParser x = r.getXml(id);
+            int ev;
+            while ((ev = x.next()) != org.xmlpull.v1.XmlPullParser.END_DOCUMENT) {
+                if (ev == org.xmlpull.v1.XmlPullParser.START_TAG && x.getName().equals("path")) {
+                    String d = x.getAttributeValue("http://schemas.android.com/apk/res/android", "pathData");
+                    System.out.println("first pathData " + (d.length() > 60 ? d.substring(0, 60) + "..." : d));
+                    break;
                 }
             }
         }

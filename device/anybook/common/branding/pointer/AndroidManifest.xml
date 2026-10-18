@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  Copyright (C) 2026 The OpenBook Authors. SPDX-License-Identifier: Apache-2.0
-  package="android" is deliberate: it is the resource package aapt2 compiles this overlay as, so that its vectors can
-  name the framework's private pointer attributes. Android.bp renames the manifest to dev.anybook.overlay.pointer.
--->
+<!-- Copyright (C) 2026 The OpenBook Authors. SPDX-License-Identifier: Apache-2.0 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="android">
+    package="dev.anybook.overlay.pointer">
     <application android:hasCode="false" />
     <overlay android:targetPackage="android" android:isStatic="true" android:priority="11" />
 </manifest>
