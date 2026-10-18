@@ -89,6 +89,16 @@
 
 ## History
 
+### 2026-10-18: audio, Wi-Fi and Bluetooth on `anal192d` (ANAL-179)
+- **Shown on the G14:**
+  - `audio_android_clean` yes: the codec-paced HAL plays and records through Android with no gaps;
+  - `wifi_pno` yes: the MT7925 takes scheduled scans;
+  - Bluetooth audio (AAC, 26 minutes of streaming) and browser audio work under enforcing;
+  - the SoundPool unlock sound's track is created at boot, with no denial (#67).
+- **Found:** MediaPlayer fails under enforcing (`mediaserver → audioserver_tmpfs`). ANAL-198's #97 fixes it.
+- **Not shown:** the headphone jack (no plug event), the headset reconnecting, iperf3. The gateway did not answer ping, although the internet check passed (H: that access point drops ICMP).
+- **Evidence:** `evidence/2026-10-18-g14-anal192d-audio-net/`; `docs/g14-audio-net.md` §11.
+
 ### 2026-10-18: blur on the G14, from the owner's `anal192d` session (ANAL-203)
 - **Drawn on the laptop (C).** SurfaceFlinger: `Threaded RenderEngine with SkiaGL Backend (Ganesh)`, `Background Blurs Enabled (Kawase dual-filtering V2 algorithm)`. In about an hour of normal use, SystemUI blurred the desktop behind the shade at 51 px, in each of 9 openings. That is the full-screen case: `config_supportBlurredWallpaper` is still on.
 - **Stable (C).**
