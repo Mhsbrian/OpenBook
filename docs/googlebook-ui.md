@@ -108,6 +108,7 @@ The OFL lets us ship both families unmodified with `OFL.txt`. Google's `TRADEMAR
   - Launcher3: `enable_taskbar_icon_desktop_clicks` (click to minimize), `expandable_long_press_menu`, `fallback_reveal_animation`; `com.android.systemui.shared.enable_recents_in_taskbar`.
   - SystemUI: `enable_qs_tile_tooltips`, `hun_timer_pause_on_hover`, `notification_animated_action_style_2026`, `default_hun_expansion`.
 - **Risk (HYPOTHESIS).** Some of these flags may guard code that is incomplete in the June 2026 AOSP snapshot. Turn them on in small groups, with the desktop capture and the G14 checks.
+- **Done in ANAL-204 (B3), see [`googlebook-flags.md`](googlebook-flags.md):** all 218 triaged and 85 enabled. Five of the visible flags above do nothing in AOSP 17: `perfect_edge`, `enable_taskbar_icon_desktop_clicks`, `enable_desktop_taskbar_in_fullscreen_mode`, `notification_animated_action_style_2026` and `appheader_launch_color_bugfix` have no reader in our tree. `enable_no_resize_cursor` is read, but nothing acts on its result. Two flags broke the desktop and stay off.
 
 ### 2.3 Blur and surface effects (C)
 

@@ -64,6 +64,7 @@
 | ANAL-198 G14 kernel (follow-up) | In review (#64, #65 merged) | Done: `system_heap.ko` and `efivarfs.ko` as vendor modules with Google's GKI configuration unchanged; Codec2 fixes, so a ringtone decodes in QEMU; the owner's stick `anal198`. GPU reset: MES didn't answer and pipe reset is off in 6.18, so a hang means a full reset (`docs/kernel.md`). Next: the G14 check on `anal198` | The owner's `anal198` session |
 | ANAL-193 to ANAL-197 device loop | Backlog | ANAL-194 first: the Multica runtime and test agent on the G14's Linux | Owner installs the daemon |
 | ANAL-201 Googlebook UI and GApps review | In review | Done: inventory of the Googlebook image, the Google APIs Desktop image and ours; why Googlebook looks cleaner, ranked; the GApps options; the Google Sans prototype in Cuttlefish (`docs/googlebook-ui.md`, `docs/gapps.md`). Next: the backlog items the owner picks (B1 fonts, B2 blur, B4 shapes and B5 a clean desktop first; G1 microG) | Owner decisions |
+| ANAL-204 B3 desktop flag set v2 | In review (PR @@PR@@) | Done: all 218 Googlebook flags that AOSP 17 declares are triaged (`device/anybook/common/desktop/release/googlebook-triage.tsv`), and 84 are on (value set 79 → 163). Two broke the desktop and stay off: a SystemUI crash on restoring a minimized window, and an empty notification shade with no lock screen. 24 do nothing, because AOSP 17 has no code for them. Shown in Cuttlefish: window box shadows, stepped cascading, QS tooltips, power-menu blur (`docs/googlebook-flags.md`). Next: the G14 check on ANAL-192's stick | ANAL-192's stick; B2 for blur on the G14 |
 | ANAL-166 performance and parity | Backlog | After the installer: benchmarks, Chrome, the Linux terminal (AVF without pKVM). No sub-issues yet | — |
 | ANAL-186 NVIDIA | Parked | Research is done (ANAL-187); N1–N6 after M4 | — |
 | ANAL-165 Track B (ANAL-182 to ANAL-185) | Parked | Starts only if the owner decides to use Google's image | Owner decision |
@@ -81,6 +82,21 @@
 **Build host:** one AOSP build at a time (`flock ~/anybook/aosp/.lane.lock`, taken by `scripts/aosp-docker.sh`), because builds peak at about 50 GB of the 61 GB RAM. Builds and images are in `docs/BUILD.md`; the live image and the owner checklists are in `docs/installer.md` §11.
 
 ## History
+
+### 2026-10-18: desktop flag set v2, 84 Googlebook flags on (ANAL-204)
+- **Triage (C).** Googlebook enables 218 flags that AOSP 17 declares and our build leaves off. Each now has a category, a decision and a reason (`device/anybook/common/desktop/release/googlebook-triage.tsv`): 84 enabled in six groups, 43 deferred, 89 skipped, 2 dropped.
+  - 24 have no reader in our tree, so they do nothing. Among them are `perfect_edge` and `enable_taskbar_icon_desktop_clicks`.
+  - Googlebook runs in headless system user mode (`ro.fw.mu.headless_system_user=true`); OpenBook doesn't, so the `hsu_*` flags are skipped.
+- **Dropped after testing (C, Cuttlefish):**
+  - `enable_add_window_decoration_to_all_tasks` crashed SystemUI when a minimized window was restored from the taskbar.
+  - `start_on_gone_scene_if_no_lockscreen` emptied the notification shade. With OpenBook's disabled lock screen, SystemUI starts on Gone, and the keyguard section that binds the notification stack never runs. Setting a PIN on the same image brings the rows back.
+- **Visible (C):** box shadows and a 1 px border on desktop windows, 60 px stepped cascading, the windowing pill in the maximize menu, QS tile tooltips, power-menu blur, and the Cast tile over Ethernet.
+- **Tools:**
+  - `scripts/desktop-flags.py --list` (the value set from the triage);
+  - `scripts/ui/flag-facts.py` (declarations and readers);
+  - `scripts/ui/flag-checks.py` (desktop checks driven by a virtual uinput mouse);
+  - `scripts/ui/flag-triage-md.py`.
+- **Deviation:** the six groups were built together in one image, because sibling builds held the shared lane. Each failure was then traced to one flag and confirmed in a rebuild (v3, v4).
 
 ### 2026-10-17: the Googlebook image reviewed, GApps options, and Google Sans on OpenBook in a VM (ANAL-201)
 - **Why Googlebook looks cleaner (C)** (`docs/googlebook-ui.md`):
