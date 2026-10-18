@@ -1,0 +1,21 @@
+system ringtone = content://media/internal/audio/media/159?title=Open%20Pages&canonical=1
+system notification_sound = content://media/internal/audio/media/67?title=Spark&canonical=1
+system alarm_alert = content://media/internal/audio/media/18?title=First%20Light&canonical=1
+global lock_sound = /product/media/audio/ui/OpenBook_Lock.ogg
+global unlock_sound = /product/media/audio/ui/OpenBook_Unlock.ogg
+global trusted_sound = /product/media/audio/ui/OpenBook_Trusted.ogg
+global low_battery_sound = /product/media/audio/ui/OpenBook_LowBattery.ogg
+global charging_started_sound = /product/media/audio/ui/OpenBook_ChargingStarted.ogg
+global wireless_charging_started_sound = /product/media/audio/ui/OpenBook_ChargingStarted.ogg
+system sound_effects_enabled = 0
+ro.config.ringtone = OpenBook_Pages.ogg
+ro.config.notification_sound = OpenBook_Spark.ogg
+ro.config.alarm_alert = OpenBook_FirstLight.ogg
+Row: 0 _id=18, _display_name=OpenBook_FirstLight.ogg, title=First Light, duration=17198, is_ringtone=0, is_notification=0, is_alarm=1
+Row: 1 _id=67, _display_name=OpenBook_Spark.ogg, title=Spark, duration=1937, is_ringtone=0, is_notification=1, is_alarm=0
+Row: 2 _id=159, _display_name=OpenBook_Pages.ogg, title=Open Pages, duration=5931, is_ringtone=1, is_notification=0, is_alarm=0
+Row: 3 _id=215, _display_name=OpenBook_ChargingStarted.ogg, title=Charging started, duration=1170, is_ringtone=0, is_notification=0, is_alarm=0
+Row: 4 _id=216, _display_name=OpenBook_Lock.ogg, title=Lock, duration=500, is_ringtone=0, is_notification=0, is_alarm=0
+Row: 5 _id=217, _display_name=OpenBook_LowBattery.ogg, title=Low battery, duration=1446, is_ringtone=0, is_notification=0, is_alarm=0
+Row: 6 _id=218, _display_name=OpenBook_Trusted.ogg, title=Trusted, duration=483, is_ringtone=0, is_notification=0, is_alarm=0
+Row: 7 _id=219, _display_name=OpenBook_Unlock.ogg, title=Unlock, duration=500, is_ringtone=0, is_notification=0, is_alarm=0

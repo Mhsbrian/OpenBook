@@ -1,0 +1,11 @@
+# BrandProbe resinfo with the first OpenBookPointerOverlay (resource package "android", ID 0x01, stable IDs type 0x60),
+# side-loaded on anybook-cf-b6 (base snapshot b7-base, 2026-10-18T03:20Z). cmd overlay list android: [x] dev.anybook.overlay.pointer
+bool/config_canInternalDisplayHostDesktops id 0x0111006e
+value true
+drawable/pointer_arrow_vector id 0x0108079d
+first pathData M16.34 11.18 6.77 4.02a1.78 1.78 0 0 0-1.88-.17c-.63.31-1 .9...
+drawable/pointer_hand_vector id 0x010807c7
+first pathData M20.492 15.197v-4.198A1.995 1.995 0 0 0 18.5 9.001c-.413 0-....
+# Both pathData values are AOSP's, not ours (ours starts "M4.33 4.07 Q4.33 3.07"): the overlay is enabled but its
+# values are never used. The idmap maps all 20 (idmap2 dump), but overlays load as dynamic packages and
+# DynamicRefTable treats package 0x01 IDs as the framework's own, so FindEntry(0x0160xxxx) looks in framework-res.
