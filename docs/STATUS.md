@@ -64,6 +64,7 @@
 | ANAL-198 G14 kernel (follow-up) | In review (#64, #65 merged) | Done: `system_heap.ko` and `efivarfs.ko` as vendor modules with Google's GKI configuration unchanged; Codec2 fixes, so a ringtone decodes in QEMU; the owner's stick `anal198`. GPU reset: MES didn't answer and pipe reset is off in 6.18, so a hang means a full reset (`docs/kernel.md`). Next: the G14 check on `anal198` | The owner's `anal198` session |
 | ANAL-193 to ANAL-197 device loop | Backlog | ANAL-194 first: the Multica runtime and test agent on the G14's Linux | Owner installs the daemon |
 | ANAL-201 Googlebook UI and GApps review | In review | Done: inventory of the Googlebook image, the Google APIs Desktop image and ours; why Googlebook looks cleaner, ranked; the GApps options; the Google Sans prototype in Cuttlefish (`docs/googlebook-ui.md`, `docs/gapps.md`). Next: the backlog items the owner picks (B1 fonts, B2 blur, B4 shapes and B5 a clean desktop first; G1 microG) | Owner decisions |
+| ANAL-206 B5: a clean default desktop | In review | Done in Cuttlefish and on the G14 product in QEMU: no search box and no `QuickSearchBox`; taskbar pins Files, Settings, browser, Calendar, Gallery, Camera (only with a camera); touch, keypress and non-forced screenshot sounds off; installer live checks 40/40 (`docs/aosp-desktop.md`, `evidence/2026-10-17-clean-desktop/`). Next: the G14 check on the next stick | The owner's review of the pin list; ANAL-192's next stick |
 | ANAL-166 performance and parity | Backlog | After the installer: benchmarks, Chrome, the Linux terminal (AVF without pKVM). No sub-issues yet | — |
 | ANAL-186 NVIDIA | Parked | Research is done (ANAL-187); N1–N6 after M4 | — |
 | ANAL-165 Track B (ANAL-182 to ANAL-185) | Parked | Starts only if the owner decides to use Google's image | Owner decision |
@@ -81,6 +82,15 @@
 **Build host:** one AOSP build at a time (`flock ~/anybook/aosp/.lane.lock`, taken by `scripts/aosp-docker.sh`), because builds peak at about 50 GB of the 61 GB RAM. Builds and images are in `docs/BUILD.md`; the live image and the owner checklists are in `docs/installer.md` §11.
 
 ## History
+
+### 2026-10-18: a clean default desktop (ANAL-206, backlog B5)
+- **Done** (`docs/aosp-desktop.md`, "The default desktop"):
+  - **No search box.** A Launcher3 RRO empties the hotseat's search slot, which held AOSP's `QuickSearchBox` "Google" bar. The same RRO overrides `QuickSearchBox`, so the app is gone; Settings search, the search key and global search don't need it.
+  - **Taskbar pins** from a Launcher3 partner customization package (`AnyBookDesktopPartnerCustomization`): Files, Settings, the browser (today WebView Shell, the only one we ship), Calendar, Gallery, and Camera, which Camera2 hides on devices without a camera. No desktop icons.
+  - **Quiet:** touch sounds off (`def_sound_effects_enabled`, as Googlebook), LatinIME's keypress sound off (AOSP turns it on at 600 dp and up), the screenshot shutter only when a region requires it (`screenshot_remove_nonforced_sound`, as Googlebook). Lock sounds stay on: they are the G14 checklist's SoundPool probe.
+- **Evidence** (`evidence/2026-10-17-clean-desktop/`): both products build. Cuttlefish on the Radeon 610M: `scripts/ui/desktop-defaults.sh` and `scripts/desktop-capture.sh` pass, with before/after screenshots. The G14 product's live image in QEMU: five pins (no camera), no search box, the installer's entry still there, and `live-qemu.sh` 40/40.
+- **Found:** an RRO value only wins where its configuration is at least as specific as the target's, so the LatinIME overlay repeats its value for `sw600dp` and `sw768dp`. Parallel Cuttlefish containers need `CF_ARGS=--vhost_user_vsock=true`, or `run_cvd` fails with "Can't tombstone server socket".
+- **Not done:** the screenshot flash (no setting exists), and "add new apps to the desktop", which AOSP 17 hard-codes on. Both need patches.
 
 ### 2026-10-17: the Googlebook image reviewed, GApps options, and Google Sans on OpenBook in a VM (ANAL-201)
 - **Why Googlebook looks cleaner (C)** (`docs/googlebook-ui.md`):

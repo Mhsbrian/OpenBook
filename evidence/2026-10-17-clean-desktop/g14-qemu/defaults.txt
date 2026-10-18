@@ -1,0 +1,19 @@
+===DEFAULTS-BEGIN===
+qsb_path=[]
+global_search=0
+partner= dev.anybook.desktop.partner/.PartnerCustomization
+sound_effects_enabled=0
+lockscreen_sounds_enabled=1
+latin_config_default_sound_enabled=false
+flag=com.android.systemui.screenshot_remove_nonforced_sound enabled - default read-only system
+camera_features=0
+camera_launcher_entries=0
+qsb_widget_lines=0
+shownHotseatItems=[com.android.documentsui, com.android.settings, org.chromium.webview_shell, com.android.calendar, com.android.gallery3d]
+[x] dev.anybook.overlay.desktop.framework
+[x] dev.anybook.overlay.desktop.launcher
+[x] dev.anybook.overlay.desktop.settingsprovider
+[x] dev.anybook.overlay.desktop.latinime
+[x] dev.anybook.overlay.desktop.systemui
+crash_lines=0
+===DEFAULTS-END===

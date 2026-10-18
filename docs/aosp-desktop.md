@@ -307,6 +307,7 @@ Both images were captured with the same script at 1920×1080, 160 dpi. Windowing
 | Wi-Fi | `wifi_on=1`; Wi-Fi icon in the status bar | `wifi_on=0` | Cuttlefish Wi-Fi not turned on; not investigated |
 | Kernel | 6.12.58 android16-6.12 (emulator `kernel-ranchu`) | 6.12.74 android16-6.12 (Cuttlefish prebuilt GKI) | ANAL-171/172 bring android17-6.18 |
 | Display identity | `display_settings.xml` keyed by unique id `local:4619827259835644672` | keyed by `port:0` | same effect: freeform, ignoring orientation requests |
+| Home and sounds | `QuickSearchBox` "Google" bar above the taskbar; taskbar pins from Launcher3's `default_workspace_6x5.xml`; touch sounds on | no search box and no `QuickSearchBox`; partner-layout pins (Files, Settings, browser, Calendar, Gallery, Camera); touch, keypress and non-forced screenshot sounds off | ours, after Googlebook (ANAL-206) |
 | Name | "Android Desktop" | "AnyBook Cuttlefish x86_64 desktop" (`PRODUCT_MODEL`; still the old name, see the README) | ours |
 
 ## Open items
