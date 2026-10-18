@@ -116,12 +116,29 @@ type AgentCapabilities struct {
 	LoadSession        bool               `json:"loadSession"`
 	PromptCapabilities PromptCapabilities `json:"promptCapabilities"`
 	McpCapabilities    McpCapabilities    `json:"mcpCapabilities"`
+	// Meta advertises extensions, as ACP's extensibility rules ask (quired serve puts its
+	// "_quire/..." methods here).
+	Meta json.RawMessage `json:"_meta,omitempty"`
 }
 
+// AuthMethod is one way to sign in to an agent. Type "" means "agent": the client calls
+// authenticate with ID. Type "terminal" means the agent's own program must be run interactively
+// with Args and Env; it is never passed to authenticate.
 type AuthMethod struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description,omitempty"`
+	ID          string            `json:"id"`
+	Name        string            `json:"name"`
+	Description string            `json:"description,omitempty"`
+	Type        string            `json:"type,omitempty"`
+	Args        []string          `json:"args,omitempty"`
+	Env         map[string]string `json:"env,omitempty"`
+}
+
+// AuthTerminal is the AuthMethod type that runs the agent's program interactively.
+const AuthTerminal = "terminal"
+
+type AuthenticateRequest struct {
+	MethodID string          `json:"methodId"`
+	Meta     json.RawMessage `json:"_meta,omitempty"`
 }
 
 type InitializeResponse struct {
@@ -146,8 +163,9 @@ type McpServer struct {
 }
 
 type NewSessionRequest struct {
-	Cwd        string      `json:"cwd"`
-	McpServers []McpServer `json:"mcpServers"`
+	Cwd        string          `json:"cwd"`
+	McpServers []McpServer     `json:"mcpServers"`
+	Meta       json.RawMessage `json:"_meta,omitempty"`
 }
 
 type NewSessionResponse struct {

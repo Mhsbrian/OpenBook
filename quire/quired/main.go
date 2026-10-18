@@ -28,16 +28,17 @@ import (
 	"github.com/Mhsbrian/OpenBook/quire/quired/internal/harness"
 )
 
-const version = "0.1.0"
+const version = "0.2.0"
 
 var clientInfo = acp.Implementation{Name: "quired", Title: "Quire harness host (OpenBook)", Version: version}
 
 const usageText = `quired: Quire's harness host. Runs coding agents and speaks ACP with them.
 
 Usage:
-  quired agents [--json]                       list the agents installed here
+  quired agents [--json] [--connect ADDR]      list the agents installed here (or where ADDR serves)
   quired probe [--json] (--all | AGENT...)     start agents and open a session, without prompting
   quired run [flags] AGENT PROMPT...           run one turn (PROMPT "-" reads stdin)
+  quired serve [serve flags]                   serve Quire core over ACP (vsock by default)
   quired version
 
 run flags:
@@ -47,6 +48,17 @@ run flags:
   --fs               serve file reads and writes to ACP agents, confined to --cwd (default true)
   --agent-arg ARG    pass ARG to the agent's command line (repeatable), e.g. --agent-arg=--model --agent-arg=haiku
   --timeout DUR      cancel the turn after DUR (default: none)
+  --connect ADDR     run the turn through a quired serve at ADDR instead of here
+
+serve flags:
+  --vsock PORT       listen on this vsock port, for Android (default 7690)
+  --unix PATH        listen on a unix socket instead (0600; same-user peers only)
+  --stdio            serve one client on stdin/stdout instead
+  --root DIR         sessions' folders live inside DIR (default: $HOME)
+  --any-cid          accept vsock peers other than the host (testing only)
+  --max-conns N      at most N clients at once (default 4)
+
+ADDR is vsock:CID:PORT or unix:PATH.
 `
 
 func main() {
@@ -65,6 +77,8 @@ func main() {
 		err = cmdProbe(ctx, os.Args[2:])
 	case "run":
 		err = cmdRun(ctx, os.Args[2:])
+	case "serve":
+		err = cmdServe(ctx, os.Args[2:])
 	case "permission-mcp": // started by the Claude Code adapter, not by people
 		err = cmdPermissionMCP(os.Args[2:])
 	case "version", "--version":
@@ -84,8 +98,12 @@ func main() {
 func cmdAgents(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("agents", flag.ContinueOnError)
 	asJSON := fs.Bool("json", false, "print JSON")
+	connect := fs.String("connect", "", "list the agents of the quired serve at ADDR")
 	if err := fs.Parse(args); err != nil {
 		return err
+	}
+	if *connect != "" {
+		return remoteAgents(ctx, *connect, *asJSON)
 	}
 	found := agents.Discover(ctx, agents.HostEnv)
 	if *asJSON {
@@ -218,6 +236,7 @@ func cmdRun(ctx context.Context, args []string) error {
 	asJSON := fs.Bool("json", false, "NDJSON output")
 	fsOn := fs.Bool("fs", true, "serve file access to ACP agents")
 	timeout := fs.Duration("timeout", 0, "cancel the turn after this long")
+	connect := fs.String("connect", "", "run through the quired serve at ADDR")
 	var agentArgs multiFlag
 	fs.Var(&agentArgs, "agent-arg", "extra agent argument (repeatable)")
 	if err := fs.Parse(args); err != nil {
@@ -231,19 +250,6 @@ func cmdRun(ctx context.Context, args []string) error {
 	default:
 		return fmt.Errorf("run: --approve must be ask, read, all or none, not %q", *approve)
 	}
-	spec, ok := agents.Lookup(fs.Arg(0))
-	if !ok {
-		return fmt.Errorf("run: unknown agent %q (see quired agents)", fs.Arg(0))
-	}
-	var f *agents.Found
-	for _, x := range agents.Discover(ctx, agents.HostEnv) {
-		if x.ID == spec.ID {
-			f = &x
-		}
-	}
-	if f == nil {
-		return fmt.Errorf("run: %s is not installed here", spec.ID)
-	}
 	prompt := strings.Join(fs.Args()[1:], " ")
 	if prompt == "-" {
 		b, err := io.ReadAll(os.Stdin)
@@ -252,30 +258,61 @@ func cmdRun(ctx context.Context, args []string) error {
 		}
 		prompt = string(b)
 	}
-	dir := *cwd
-	if dir == "" {
-		d, err := os.MkdirTemp("", "quire-session-")
+	client := newTermClient(os.Stdout, os.Stderr, *asJSON, *approve)
+	var a harness.Agent
+	var name, dir string
+	if *connect != "" {
+		// The serving side picks the folder unless --cwd names one there, and starts the agent
+		// with its own catalog; --fs and --agent-arg are its decisions too.
+		rm, err := dialRemote(ctx, *connect)
 		if err != nil {
 			return err
 		}
-		dir = d
-	}
-	dir, err := absDir(dir)
-	if err != nil {
-		return err
-	}
-
-	client := newTermClient(os.Stdout, os.Stderr, *asJSON, *approve)
-	a, err := harness.Start(ctx, f.Spec, client, harness.Options{Path: f.Path, Version: f.Version, ClientInfo: clientInfo, FS: *fsOn, Args: agentArgs})
-	if err != nil {
-		return err
+		defer rm.Close()
+		if a, err = rm.Agent(ctx, fs.Arg(0), client); err != nil {
+			return err
+		}
+		name, dir = fs.Arg(0)+" via "+*connect, *cwd
+	} else {
+		spec, ok := agents.Lookup(fs.Arg(0))
+		if !ok {
+			return fmt.Errorf("run: unknown agent %q (see quired agents)", fs.Arg(0))
+		}
+		var f *agents.Found
+		for _, x := range agents.Discover(ctx, agents.HostEnv) {
+			if x.ID == spec.ID {
+				f = &x
+			}
+		}
+		if f == nil {
+			return fmt.Errorf("run: %s is not installed here", spec.ID)
+		}
+		dir = *cwd
+		if dir == "" {
+			d, err := os.MkdirTemp("", "quire-session-")
+			if err != nil {
+				return err
+			}
+			dir = d
+		}
+		var err error
+		if dir, err = absDir(dir); err != nil {
+			return err
+		}
+		if a, err = harness.Start(ctx, f.Spec, client, harness.Options{Path: f.Path, Version: f.Version, ClientInfo: clientInfo, FS: *fsOn, Args: agentArgs}); err != nil {
+			return err
+		}
+		name = f.Name
 	}
 	defer a.Close()
 	sid, err := a.NewSession(ctx, dir, nil)
 	if err != nil {
 		return err
 	}
-	client.note("%s · session %s · folder %s", f.Name, sid, dir)
+	if dir == "" {
+		dir = "(chosen by the server)"
+	}
+	client.note("%s · session %s · folder %s", name, sid, dir)
 
 	tctx := ctx
 	if *timeout > 0 {
