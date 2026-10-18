@@ -1,0 +1,83 @@
+{
+ "schema": "openbook-setup-walk/1",
+ "mode": "walk",
+ "passed": 15,
+ "total": 15,
+ "checks": [
+  {
+   "check": "setup is the first screen",
+   "ok": true,
+   "detail": "      topResumedActivity=ActivityRecord{168292619 u0 org.openbook.setup/.SetupActivity t2} "
+  },
+  {
+   "check": "Choose a network opens Wi-Fi settings",
+   "ok": true,
+   "detail": "    topResumedActivity=ActivityRecord{242976512 u0 com.android.settings/.Settings$WifiSettingsActivity t8} "
+  },
+  {
+   "check": "device_provisioned=1 and user_setup_complete=1",
+   "ok": true,
+   "detail": "device_provisioned=1 user_setup_complete=1 "
+  },
+  {
+   "check": "setup is no longer a home activity",
+   "ok": true,
+   "detail": "home entries of org.openbook.setup: 0 "
+  },
+  {
+   "check": "OpenBookSetup installed, Provision not (overridden)",
+   "ok": true,
+   "detail": "setup: package:/system_ext/priv-app/OpenBookSetup/OpenBookSetup.apk; provision: none "
+  },
+  {
+   "check": "the launcher is on top",
+   "ok": true,
+   "detail": "      topResumedActivity=ActivityRecord{184050497 u0 com.android.launcher3/.uioverrides.QuickstepLauncher t9} "
+  },
+  {
+   "check": "setup never crashed (am_crash, am_anr)",
+   "ok": true,
+   "detail": "none "
+  },
+  {
+   "check": "language and region applied (en-GB)",
+   "ok": true,
+   "detail": "persist.sys.locale=en-GB "
+  },
+  {
+   "check": "time zone from the region (Europe/London)",
+   "ok": true,
+   "detail": "persist.sys.timezone=Europe/London "
+  },
+  {
+   "check": "24-hour clock",
+   "ok": true,
+   "detail": "time_12_24=24 "
+  },
+  {
+   "check": "user name set",
+   "ok": true,
+   "detail": " UserInfo{0:OpenBook Tester:4c13} running "
+  },
+  {
+   "check": "PIN set (lock_settings verify)",
+   "ok": true,
+   "detail": "Lock credential verified successfully "
+  },
+  {
+   "check": "keyboard layout English (UK) set on the keyboards (reported)",
+   "ok": true,
+   "detail": "10-18 13:39:48.846  2778  2778 I OpenBookSetup: keyboard layout keyboard_layout_english_uk on Cuttlefish Vhost User Keyboard 0; dumpsys input lines with english_uk: 0 "
+  },
+  {
+   "check": "all ten screenshots",
+   "ok": true,
+   "detail": "11 png files "
+  },
+  {
+   "check": "setup logged its end",
+   "ok": true,
+   "detail": "10-18 13:41:24.452  2778  2778 I OpenBookSetup: setup complete (finished); provisioned=true "
+  }
+ ]
+}

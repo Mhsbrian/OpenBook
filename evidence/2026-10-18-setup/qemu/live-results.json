@@ -1,0 +1,665 @@
+{
+ "image": "openbook-live-20261018-anal209n.img",
+ "label": "openbook-live-20261018-anal209n",
+ "cases": {
+  "first": {
+   "result": {
+    "reason": "QEMU exited (0)",
+    "seconds": 78.8,
+    "steps_done": 30,
+    "steps": 30,
+    "hits": [
+     {
+      "step": 0,
+      "wait": "openbook-live: live boot: boot_part_uuid=",
+      "t": 9.7
+     },
+     {
+      "step": 1,
+      "wait": "openbook-live: grow: GPT backup moved",
+      "t": 11.3
+     },
+     {
+      "step": 2,
+      "wait": "openbook-live: exec /init",
+      "t": 11.3
+     },
+     {
+      "step": 3,
+      "wait": "init: init first stage started",
+      "t": 11.3
+     },
+     {
+      "step": 4,
+      "wait": "init: init second stage started",
+      "t": 12.0
+     },
+     {
+      "step": 5,
+      "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+      "t": 18.0
+     },
+     {
+      "step": 7,
+      "wait": "console:/ \\$ ",
+      "t": 18.0
+     },
+     {
+      "step": 9,
+      "wait": "console:/ \\$ ",
+      "t": 18.2
+     },
+     {
+      "step": 11,
+      "wait": "console:/ \\$ ",
+      "t": 19.8
+     },
+     {
+      "step": 13,
+      "wait": "console:/ \\$ ",
+      "t": 22.2
+     },
+     {
+      "step": 15,
+      "wait": "\nMARKER=openbook-live-marker-\\d+",
+      "t": 24.2
+     },
+     {
+      "step": 16,
+      "wait": "console:/ \\$ ",
+      "t": 24.2
+     },
+     {
+      "step": 18,
+      "wait": "BOOTDONE=\\S* uptime=[0-9.]+",
+      "t": 44.4
+     },
+     {
+      "step": 19,
+      "wait": "console:/ \\$ ",
+      "t": 44.4
+     },
+     {
+      "step": 21,
+      "wait": "console:/ \\$ ",
+      "t": 64.5
+     },
+     {
+      "step": 24,
+      "wait": "console:/ \\$ ",
+      "t": 68.4
+     },
+     {
+      "step": 26,
+      "wait": "console:/ \\$ ",
+      "t": 70.0
+     },
+     {
+      "step": 28,
+      "wait": "console:/ \\$ ",
+      "t": 76.3
+     }
+    ],
+    "qemu_rc": 0,
+    "usb": "/home/hive/anybook/installer/qemu/b8-live-n/s16.img",
+    "nvme": "/home/hive/anybook/installer/qemu/b8-live-n/decoy.img",
+    "nvme2": null
+   },
+   "checks": [
+    {
+     "check": "every expect step matched",
+     "ok": true,
+     "detail": "30/30 (QEMU exited (0))"
+    },
+    {
+     "check": "by-name links point at the USB stick only",
+     "ok": true,
+     "detail": "10 links: sda"
+    },
+    {
+     "check": "openbook-live-init grew userdata and moved the backup GPT",
+     "ok": true,
+     "detail": "grow: GPT backup moved LBA 5842943 -> 33554431; userdata 2097152 -> 29808640 sectors"
+    },
+    {
+     "check": "stick GPT valid afterwards, backup at the end (sgdisk -v)",
+     "ok": true,
+     "detail": "{\"ok\": true, \"disk_sectors\": 33554432, \"last_usable\": 33554398, \"userdata_sectors\": 29808640, \"userdata_to_end\": 2048}"
+    },
+    {
+     "check": "/data formatted at the grown size",
+     "ok": true,
+     "detail": "df /data 14902272 KiB, userdata 14904320 KiB"
+    },
+    {
+     "check": "Android formatted the blank metadata and userdata",
+     "ok": true,
+     "detail": "[    8.976229] init: [libfs_mgr] fs_mgr_mount_all(): /dev/block/sda7 is wiped and /metadata ext4 is formattable. Format it.; [    8.977866] init: [libfs_mgr] fs_mgr_do_format: Format /dev/block/by-name/metadata as 'ext4'; [    9.639009] init: [libfs_mgr] fs_mgr_mount_all(): /dev/block/sda9 is wiped "
+    },
+    {
+     "check": "marker file written to /data",
+     "ok": true,
+     "detail": "openbook-live-marker-1792329049"
+    },
+    {
+     "check": "sys.boot_completed=1 within 600 s (desktop)",
+     "ok": true,
+     "detail": "BOOTDONE=1 at uptime 36.43 s"
+    },
+    {
+     "check": "screenshot after the boot wait",
+     "ok": true,
+     "detail": ""
+    },
+    {
+     "check": "decoy NVMe disk unchanged after all its boots (sha256)",
+     "ok": true,
+     "detail": "41909fe901edfa03 / 41909fe901edfa03"
+    },
+    {
+     "check": "live-init report on the ESP",
+     "ok": true,
+     "detail": "['live-init-001.json', 'live-init-002.json']"
+    }
+   ],
+   "live_init": {
+    "action": "grow",
+    "detail": "",
+    "disk": "sda",
+    "disk_sectors": 33554432,
+    "gpt_backup_lba_before": 5842943,
+    "gpt_backup_lba_after": 33554431,
+    "userdata_sectors_before": 2097152,
+    "userdata_sectors_after": 29808640,
+    "userdata_blank": true,
+    "reset": false
+   }
+  },
+  "second": {
+   "result": {
+    "reason": "QEMU exited (0)",
+    "seconds": 15.4,
+    "steps_done": 18,
+    "steps": 18,
+    "hits": [
+     {
+      "step": 0,
+      "wait": "openbook-live: live boot: boot_part_uuid=",
+      "t": 4.9
+     },
+     {
+      "step": 1,
+      "wait": "openbook-live: grow: nothing to do",
+      "t": 6.4
+     },
+     {
+      "step": 2,
+      "wait": "openbook-live: exec /init",
+      "t": 6.4
+     },
+     {
+      "step": 3,
+      "wait": "init: init first stage started",
+      "t": 6.4
+     },
+     {
+      "step": 4,
+      "wait": "init: init second stage started",
+      "t": 6.7
+     },
+     {
+      "step": 5,
+      "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+      "t": 9.4
+     },
+     {
+      "step": 7,
+      "wait": "console:/ \\$ ",
+      "t": 9.4
+     },
+     {
+      "step": 9,
+      "wait": "console:/ \\$ ",
+      "t": 9.6
+     },
+     {
+      "step": 11,
+      "wait": "console:/ \\$ ",
+      "t": 11.1
+     },
+     {
+      "step": 13,
+      "wait": "console:/ \\$ ",
+      "t": 13.4
+     },
+     {
+      "step": 15,
+      "wait": "\nMARKER=openbook-live-marker-\\d+",
+      "t": 14.3
+     },
+     {
+      "step": 16,
+      "wait": "console:/ \\$ ",
+      "t": 14.3
+     }
+    ],
+    "qemu_rc": 0,
+    "usb": "/home/hive/anybook/installer/qemu/b8-live-n/s16.img",
+    "nvme": "/home/hive/anybook/installer/qemu/b8-live-n/decoy.img",
+    "nvme2": null
+   },
+   "checks": [
+    {
+     "check": "every expect step matched",
+     "ok": true,
+     "detail": "18/18 (QEMU exited (0))"
+    },
+    {
+     "check": "by-name links point at the USB stick only",
+     "ok": true,
+     "detail": "10 links: sda"
+    },
+    {
+     "check": "openbook-live-init: nothing to grow",
+     "ok": true,
+     "detail": ""
+    },
+    {
+     "check": "marker from the first boot still there",
+     "ok": true,
+     "detail": "openbook-live-marker-1792329049 vs openbook-live-marker-1792329049"
+    }
+   ]
+  },
+  "reset": {
+   "result": {
+    "reason": "QEMU exited (0)",
+    "seconds": 15.0,
+    "steps_done": 19,
+    "steps": 19,
+    "hits": [
+     {
+      "step": 0,
+      "wait": "openbook-live: live boot: boot_part_uuid=",
+      "t": 4.2
+     },
+     {
+      "step": 1,
+      "wait": "openbook-live: reset: zeroed the first 1024 KiB of metadata",
+      "t": 5.7
+     },
+     {
+      "step": 2,
+      "wait": "openbook-live: reset: zeroed the first 1024 KiB of userdata",
+      "t": 5.7
+     },
+     {
+      "step": 3,
+      "wait": "openbook-live: exec /init",
+      "t": 5.8
+     },
+     {
+      "step": 4,
+      "wait": "init: init first stage started",
+      "t": 5.8
+     },
+     {
+      "step": 5,
+      "wait": "init: init second stage started",
+      "t": 5.9
+     },
+     {
+      "step": 6,
+      "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+      "t": 8.1
+     },
+     {
+      "step": 8,
+      "wait": "console:/ \\$ ",
+      "t": 8.1
+     },
+     {
+      "step": 10,
+      "wait": "console:/ \\$ ",
+      "t": 8.3
+     },
+     {
+      "step": 12,
+      "wait": "console:/ \\$ ",
+      "t": 9.7
+     },
+     {
+      "step": 14,
+      "wait": "console:/ \\$ ",
+      "t": 12.2
+     },
+     {
+      "step": 16,
+      "wait": "\nMARKER=absent",
+      "t": 13.1
+     },
+     {
+      "step": 17,
+      "wait": "console:/ \\$ ",
+      "t": 13.1
+     }
+    ],
+    "qemu_rc": 0,
+    "usb": "/home/hive/anybook/installer/qemu/b8-live-n/s16.img",
+    "nvme": "/home/hive/anybook/installer/qemu/b8-live-n/decoy.img",
+    "nvme2": null
+   },
+   "checks": [
+    {
+     "check": "every expect step matched",
+     "ok": true,
+     "detail": "19/19 (QEMU exited (0))"
+    },
+    {
+     "check": "by-name links point at the USB stick only",
+     "ok": true,
+     "detail": "10 links: sda"
+    },
+    {
+     "check": "metadata and userdata zeroed",
+     "ok": true,
+     "detail": ""
+    },
+    {
+     "check": "Android formatted them again",
+     "ok": true,
+     "detail": ""
+    },
+    {
+     "check": "marker gone",
+     "ok": true,
+     "detail": ""
+    },
+    {
+     "check": "reset recorded on the ESP",
+     "ok": true,
+     "detail": "['live-init-001.json', 'live-init-002.json']"
+    }
+   ]
+  },
+  "exact": {
+   "result": {
+    "reason": "QEMU exited (0)",
+    "seconds": 26.0,
+    "steps_done": 15,
+    "steps": 15,
+    "hits": [
+     {
+      "step": 0,
+      "wait": "openbook-live: live boot: boot_part_uuid=",
+      "t": 11.8
+     },
+     {
+      "step": 1,
+      "wait": "openbook-live: grow: nothing to do",
+      "t": 13.5
+     },
+     {
+      "step": 2,
+      "wait": "openbook-live: exec /init",
+      "t": 13.5
+     },
+     {
+      "step": 3,
+      "wait": "init: init first stage started",
+      "t": 13.5
+     },
+     {
+      "step": 4,
+      "wait": "init: init second stage started",
+      "t": 14.3
+     },
+     {
+      "step": 5,
+      "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+      "t": 21.1
+     },
+     {
+      "step": 7,
+      "wait": "console:/ \\$ ",
+      "t": 21.1
+     },
+     {
+      "step": 9,
+      "wait": "console:/ \\$ ",
+      "t": 21.3
+     },
+     {
+      "step": 11,
+      "wait": "console:/ \\$ ",
+      "t": 22.8
+     },
+     {
+      "step": 13,
+      "wait": "console:/ \\$ ",
+      "t": 25.1
+     }
+    ],
+    "qemu_rc": 0,
+    "usb": "/home/hive/anybook/installer/qemu/b8-live-n/exact.img",
+    "nvme": null,
+    "nvme2": null
+   },
+   "checks": [
+    {
+     "check": "every expect step matched",
+     "ok": true,
+     "detail": "15/15 (QEMU exited (0))"
+    },
+    {
+     "check": "by-name links point at the USB stick only",
+     "ok": true,
+     "detail": "10 links: sda"
+    },
+    {
+     "check": "openbook-live-init: nothing to grow",
+     "ok": true,
+     "detail": ""
+    },
+    {
+     "check": "/data at the image's userdata size",
+     "ok": true,
+     "detail": "df /data 1046528 KiB, userdata 1048576 KiB"
+    },
+    {
+     "check": "stick GPT valid (sgdisk -v)",
+     "ok": true,
+     "detail": ""
+    }
+   ]
+  },
+  "logs": {
+   "result": {
+    "reason": "QEMU exited (0)",
+    "seconds": 170.5,
+    "steps_done": 4,
+    "steps": 4,
+    "hits": [
+     {
+      "step": 0,
+      "wait": "openbook-live: live boot: boot_part_uuid=",
+      "t": 6.6
+     },
+     {
+      "step": 1,
+      "wait": "openbook-live: logs: saving to openbook/logs/live-\\d+",
+      "t": 8.2
+     },
+     {
+      "step": 2,
+      "wait": "openbook-live: logs: (no second stage|Android second stage seen)",
+      "t": 9.4
+     },
+     {
+      "step": 3,
+      "wait": "openbook-live: logs: done: ",
+      "t": 165.2
+     }
+    ],
+    "qemu_rc": 0,
+    "usb": "/home/hive/anybook/installer/qemu/b8-live-n/logs16.img",
+    "nvme": null,
+    "nvme2": null
+   },
+   "checks": [
+    {
+     "check": "every expect step matched",
+     "ok": true,
+     "detail": "4/4 (QEMU exited (0))"
+    },
+    {
+     "check": "Android shut down by itself after saving",
+     "ok": true,
+     "detail": "QEMU exited (0)"
+    },
+    {
+     "check": "openbook/logs/live-NNN/ on the ESP",
+     "ok": true,
+     "detail": "['live-001']"
+    },
+    {
+     "check": "dmesg, logcat, system facts, screenshot and summary saved",
+     "ok": true,
+     "detail": "['collect-final.txt', 'dmesg.txt', 'hwtest-final.txt', 'logcat-final.txt', 'prior-boots.tar.gz', 'prior-boots.txt', 'screen-final.png', 'summary.json']"
+    },
+    {
+     "check": "summary.json: second stage seen, captures done",
+     "ok": true,
+     "detail": "second stage 4.5 s, boot_completed True, 1 capture(s)"
+    },
+    {
+     "check": "dmesg.txt non-empty",
+     "ok": true,
+     "detail": "330848"
+    },
+    {
+     "check": "logcat saved",
+     "ok": true,
+     "detail": "2638856"
+    },
+    {
+     "check": "vold leaves the boot stick alone",
+     "ok": true,
+     "detail": "not managed: ['8:0'], scanned: []"
+    },
+    {
+     "check": "screenshot is a PNG",
+     "ok": true,
+     "detail": "402588"
+    },
+    {
+     "check": "system facts saved",
+     "ok": true,
+     "detail": ""
+    },
+    {
+     "check": "stick GPT valid (sgdisk -v)",
+     "ok": true,
+     "detail": ""
+    }
+   ],
+   "summary": {
+    "schema": "openbook-live-logs/1",
+    "dir": "openbook/logs/live-001",
+    "uptime_s": 160.0,
+    "second_stage_s": 4.5,
+    "boot_completed": true,
+    "boot_completed_s": 40.4,
+    "dmesg_bytes": 330748,
+    "after": "poweroff",
+    "prior_boots_rc": 0,
+    "prior_boots_bytes": 558508,
+    "prior_boots_capped": false,
+    "live_init": {
+     "action": "grow",
+     "detail": "",
+     "disk": "sda",
+     "disk_sectors": 33554432,
+     "gpt_backup_lba_before": 5842943,
+     "gpt_backup_lba_after": 33554431,
+     "userdata_sectors_before": 2097152,
+     "userdata_sectors_after": 29808640,
+     "userdata_blank": true,
+     "reset": false
+    },
+    "captures": [
+     {
+      "phase": "final",
+      "uptime_s": 85.6,
+      "collect_rc": 0,
+      "logcat_rc": 0,
+      "screencap_rc": 0,
+      "hwtest_rc": 0
+     }
+    ],
+    "props": {
+     "sys.boot_completed": "1",
+     "dev.bootcomplete": "1",
+     "ro.build.fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
+     "ro.product.model": "OpenBook on ROG Zephyrus G14 (GA403WR)",
+     "ro.boot.openbook.live": "1",
+     "ro.boot.openbook.logs": "1",
+     "ro.boot.slot_suffix": "_a",
+     "ro.boot.verifiedbootstate": "orange",
+     "ro.boot.selinux": "permissive",
+     "ro.boot.hardware": "openbook",
+     "vendor.anybook.gpu.hal": "virtio",
+     "ro.hardware.egl": "angle",
+     "ro.hardware.vulkan": "pastel",
+     "ro.hardware.gralloc": "minigbm",
+     "ro.hardware.hwcomposer": "drm",
+     "ro.sf.lcd_density": "160",
+     "init.svc.surfaceflinger": "running",
+     "init.svc.zygote": "running",
+     "init.svc.bootanim": "stopped",
+     "init.svc.vendor.openbook.dlkm": "stopped",
+     "init.svc.vendor.openbook.dgpu-pm": "stopped",
+     "init.svc.wpa_supplicant": "",
+     "wifi.interface": "",
+     "ro.crypto.state": "encrypted",
+     "ro.crypto.type": "file",
+     "sys.system_server.start_count": "1",
+     "ro.boottime.init": "3477309540",
+     "init.svc.openbook_addons": "stopped"
+    }
+   }
+  },
+  "default": {
+   "result": {
+    "reason": "timeout 400s",
+    "seconds": 401.7,
+    "steps_done": 0,
+    "steps": 0,
+    "hits": [],
+    "qemu_rc": 0,
+    "usb": "/home/hive/anybook/installer/qemu/b8-live-n/default16.img",
+    "nvme": null,
+    "nvme2": null
+   },
+   "checks": [
+    {
+     "check": "screenshots of the unchanged default entry",
+     "ok": true,
+     "detail": "['shot-120.png', 'shot-15.png', 'shot-180.png', 'shot-240.png', 'shot-30.png', 'shot-300.png', 'shot-360.png', 'shot-4.png', 'shot-45.png', 'shot-60.png', 'shot-90.png']"
+    },
+    {
+     "check": "openbook-live-init grew userdata on the default entry too",
+     "ok": true,
+     "detail": "{\"ok\": true, \"disk_sectors\": 33554432, \"last_usable\": 33554398, \"userdata_sectors\": 29808640, \"userdata_to_end\": 2048}"
+    },
+    {
+     "check": "live-init report on the ESP",
+     "ok": true,
+     "detail": ""
+    }
+   ]
+  }
+ },
+ "passed": 40,
+ "total": 40
+}
