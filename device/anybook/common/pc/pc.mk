@@ -30,6 +30,10 @@ $(call inherit-product, device/anybook/common/installer/installer.mk)
 # Optional app add-ons from the boot disk, such as microG; without one on the disk nothing changes (ANAL-210).
 $(call inherit-product, device/anybook/common/addons/addons.mk)
 
+# A/B updates with systemd-boot: the boot control HAL keeps the ESP's loader entries in step with the slots
+# (openbook-bootsync, ANAL-223). It replaces AOSP's com.android.hardware.boot.
+$(call inherit-product, device/anybook/common/bootsync/bootsync.mk)
+
 PRODUCT_SHIPPING_API_LEVEL := 37
 PRODUCT_USE_DYNAMIC_PARTITIONS := true
 PRODUCT_SET_DEBUGFS_RESTRICTIONS := true
@@ -90,7 +94,6 @@ $(call inherit-product, device/anybook/common/native-bridge/native-bridge.mk)
 # AOSP examples' fixed values. docs/g14-product.md has the table.
 PRODUCT_PACKAGES += \
     android.hardware.health-service.openbook \
-    com.android.hardware.boot \
     com.android.hardware.authsecret \
     com.android.hardware.dumpstate \
     com.android.hardware.memtrack \

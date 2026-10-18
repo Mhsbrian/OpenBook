@@ -1,0 +1,17 @@
+# openbook-bootsync (device/anybook/common/bootsync, ANAL-223): exports a slot's boot images to the ESP and edits
+# systemd-boot's entries and loader.conf there. Started by the boot control HAL only; reads the boot partitions,
+# writes nothing but the ESP, which it opens O_EXCL and writes at its offsets (no mount).
+type openbook_bootsync, domain;
+type openbook_bootsync_exec, exec_type, vendor_file_type, file_type;
+type openbook_esp_block_device, dev_type;
+
+domain_auto_trans(hal_bootctl_default, openbook_bootsync_exec, openbook_bootsync)
+# Its stdout (JSON) and stderr (log) are pipes to the HAL.
+allow openbook_bootsync hal_bootctl_default:fd use;
+allow openbook_bootsync hal_bootctl_default:fifo_file { getattr write };
+
+allow openbook_bootsync block_device:dir r_dir_perms;
+allow openbook_bootsync block_device:lnk_file r_file_perms;
+# boot, init_boot, vendor_boot and vbmeta of both slots, read only.
+allow openbook_bootsync boot_block_device:blk_file r_file_perms;
+allow openbook_bootsync openbook_esp_block_device:blk_file rw_file_perms;

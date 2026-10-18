@@ -181,6 +181,12 @@ int fat_mkdirs(struct fat *f, const char *path);
 int fat_list(struct fat *f, const char *dir, void (*cb)(const char *name, int is_dir, uint32_t size, void *arg),
              void *arg);
 int fat_probe(int fd, uint64_t off, uint64_t size, char *label, size_t labellen);  // 12/16/32 or 0
+// Crash-ordered changes for a volume a boot loader reads (openbook-bootsync): the new data and its FAT chain first,
+// then the directory entry, then the old chain is freed, with an fsync between each.
+int fat_replace(struct fat *f, const char *path, const void *data, uint32_t len);  // creates parent dirs
+int fat_rename(struct fat *f, const char *path, const char *new_name);              // in the same directory
+int fat_unlink(struct fat *f, const char *path);
+uint64_t fat_free_bytes(struct fat *f);
 
 // ------------------------------------------------------------------ disks
 struct part_info {
