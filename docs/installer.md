@@ -998,7 +998,7 @@ The install goes onto a **spare drive only**: an external USB/Thunderbolt SSD, o
    - photograph each.
 4. Plug the stick into the build host: the install report and log are in `openbook/logs/install-*.{json,log}`. For an external drive, attach it too: its ESP carries the same report.
 
-The installed system has no "save logs" entry. Its logs need the device agent (ANAL-197) or a later debug entry.
+The installed system has no "save logs" entry. Since ANAL-222 its logs come over the network instead: `scripts/g14-adb.sh capture` saves the same files from the running system in about 35 s (`docs/adb-debug.md`).
 
 ### 13.8 Unattended runs (the device agent, ANAL-193)
 The matrix is the agent's procedure. `e2e-qemu.sh IMG RUN all` runs every case in QEMU and writes `results.json`. On the laptop, the same engine commands run from a root shell on the live stick:
