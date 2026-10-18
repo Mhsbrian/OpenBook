@@ -180,15 +180,22 @@ Corner radii already match. Googlebook ships its own wallpaper set (`DesktopWall
 - **Pointer:**
   - Googlebook replaces 10 framework pointer shapes (20 drawables, each with an icon variant) with its own vector set in `FrameworkDesktopOverlay`, and adds 4 no-resize cursors in SystemUI.
   - We can't copy that art. AOSP 17 has vector pointer icons with fill and stroke styles, which we can theme with our own design.
-- **Sounds:** Googlebook uses Google's set (`Soft_Mallets.ogg`, `Oxygen.ogg`, `product/media/audio/{ui,notifications,ringtones,alarms}`). We use AOSP's (`OnTheHunt.ogg`, `Alarm_Classic.ogg`). The 9to5Google review called Googlebook's default click sounds "very annoying", so OpenBook should turn them off by default.
+- **Sounds:** Googlebook uses Google's set (`Soft_Mallets.ogg`, `Oxygen.ogg`, `product/media/audio/{ui,notifications,ringtones,alarms}`). We use AOSP's (`OnTheHunt.ogg`, `Alarm_Classic.ogg`). The 9to5Google review called Googlebook's default click sounds "very annoying". Googlebook's own `SettingsProviderDesktopOverlay` already sets `def_sound_effects_enabled=false` (C). OpenBook now does the same (§2.6).
 - **Boot animation:** Googlebook ships `system/media/bootanimation.zip`; we have none.
 - **Setup:** Googlebook runs Google's setup wizard (`setupwizard.theme=glif_expressive`); we run AOSP Provision.
 
 ### 2.6 Desktop clutter (C for OpenBook, R for Googlebook)
 
-- **OpenBook (C):** our default desktop shows AOSP's legacy `QuickSearchBox` widget, a dark "Google" bar across the bottom (`fonts-prototype/before-settings.png`).
+- **OpenBook before ANAL-206 (C):** the default desktop showed AOSP's legacy `QuickSearchBox` widget, a dark "Google" bar across the bottom (`fonts-prototype/before-settings.png`). It is Launcher3's hotseat search box, and Google's AOSP Desktop emulator image shows the same bar. The taskbar held Launcher3's tablet defaults: Calendar, Gallery, WebView Shell, Camera.
 - **Googlebook (R):** reviewers describe its launcher as the Pixel Launcher's search, opened from the G key (9to5Google review, 2026-10-12).
-- **Next:** remove the widget from the default workspace, and drop `QuickSearchBox` from the product.
+- **Googlebook (C, from its overlays and flags):** touch sounds off by default (`SettingsProviderDesktopOverlay`), the screenshot shutter sound only when forced (`com.android.systemui.screenshot_remove_nonforced_sound`), and new apps not added to the desktop (`NexusLauncherOverlayDesktop`: `pref_add_icon_to_home_default=false`).
+- **OpenBook since ANAL-206 (C, Cuttlefish and the G14 product in QEMU; `evidence/2026-10-17-clean-desktop/`):**
+  - no search box: a Launcher3 RRO empties the hotseat's search slot, and `QuickSearchBox` is no longer installed;
+  - taskbar pins from a partner customization package: Files, Settings, the browser, Calendar, Gallery, and Camera where a camera exists;
+  - touch sounds, the on-screen keyboard's keypress sound and the non-forced screenshot sound are off.
+
+  The mechanisms, what depended on `QuickSearchBox`, and what was left alone are in [`aosp-desktop.md`](aosp-desktop.md#the-default-desktop-no-search-box-taskbar-pins-quiet-sounds-anal-206).
+- **Still different:** AOSP 17's Launcher3 adds every newly installed app to the desktop, and the setting's default can't be changed without a Launcher3 patch. The screenshot still flashes; no setting exists for it.
 
 ### 2.7 Out of reach
 
@@ -238,7 +245,7 @@ The owner approved every item on 2026-10-17. Each one is a sub-issue of ANAL-201
 | B2 | ANAL-203 | **Blur on the G14.** `ro.surface_flinger.supports_background_blur=1`; check frame times on the 890M | small | — |
 | B3 | ANAL-204 | **Flag set v2.** Evaluate the 128 UI flags AOSP 17 declares, in groups. Start with box shadows, blur on more surfaces, resizing (`perfect_edge`, no-resize cursor, fluid resizing) and taskbar clicks. `scripts/desktop-flags.py` already writes the value set | medium | — |
 | B4 | ANAL-205 | **Shape and wallpaper values:** circular icon mask, round icons, wallpaper dim 0, wallpaper colour thresholds. **Done in Cuttlefish (§2.4); the G14 check is on ANAL-192's stick** | small | — |
-| B5 | ANAL-206 | **A clean default desktop:** remove the QuickSearchBox widget and the app, set taskbar pins (Files, Settings, browser) | small | Pins proposed in the PR; the owner reviews |
+| B5 | ANAL-206 | **A clean default desktop:** remove the QuickSearchBox widget and the app, set taskbar pins (Files, Settings, browser), quiet sounds. **Done in Cuttlefish and on the G14 product in QEMU (§2.6); the G14 check is on ANAL-192's stick** | small | Pins proposed in the PR; the owner reviews |
 | B6 | ANAL-207 | **Brand assets:** wallpapers (our own or CC0/CC-BY, not bulk Unsplash), a sound set with click sounds off by default, a boot animation, a pointer theme. Based on the brand mark in `assets/brand/` | medium | Owner reviews the visuals in the PR |
 | B7 | ANAL-208 | **Document fonts:** the 42 OFL metric-compatible fonts, for web and Office fidelity | small | — |
 | B8 | ANAL-209 | **Setup:** a first-run flow in our style, after the installer | medium | Coordinate with ANAL-191 (installer) |
