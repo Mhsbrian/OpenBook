@@ -1,0 +1,5 @@
+10:08:27 gapps: checking neg-framework.zip (13903 bytes) for x86_64, SDK 37
+10:08:27 gapps: refused neg-framework.zip (refused): 1 path cannot be installed
+10:08:27 gapps:   framework/com.google.android.maps.jar: touches the framework (framework libraries) (framework)
+{"ok":false,"code":"refused","error":"1 path cannot be installed","refused":[{"path":"framework/com.google.android.maps.jar","rule":"framework","why":"touches the framework (framework libraries)"}],"refused_more":0}
+GNEG-RC=1

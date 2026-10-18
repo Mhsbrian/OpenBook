@@ -6,12 +6,19 @@ package {
 }
 
 // openbook-install: the install engine and, as `openbook-install daemon`, openbook-installd for the wizard app
-// (docs/installer.md section 3.5, PROTOCOL.md). Plain C with libc only: the same sources are tested on the host
-// (scripts/installer/engine-test.sh). The daemon starts on live boots only (openbook-installd.rc).
+// (docs/installer.md section 3.5, PROTOCOL.md). Plain C: the same sources are tested on the host
+// (scripts/installer/engine-test.sh, scripts/gapps/engine-gapps-test.sh). The daemon starts on live boots only
+// (openbook-installd.rc). The bring-your-own GApps step (ANAL-211) reads zip, xz and brotli: zlib, the LZMA SDK's xz
+// decoder and brotli's decoder (visible to this package through aosp/patches/external/brotli).
 cc_binary {
     name: "openbook-install",
     system_ext_specific: true,
     srcs: ["engine/*.c"],
+    shared_libs: ["libz"],
+    static_libs: [
+        "liblzma",
+        "libbrotli",
+    ],
     cflags: [
         "-Wall",
         "-Werror",

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2026 The OpenBook Authors. SPDX-License-Identifier: Apache-2.0
+     ANAL-211 synthetic test package: an app the size of a real one (a 256 MiB incompressible asset, seeded), for
+     the installer's streaming, product rebuild and dm-verity hashtree at a realistic scale. No code. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="org.openbook.test.gapps.big">
+    <application android:label="OpenBook synthetic large app (test)" android:hasCode="false" />
+</manifest>

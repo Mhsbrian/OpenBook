@@ -1,0 +1,82 @@
+{
+ "reason": "QEMU exited (0)",
+ "seconds": 50.7,
+ "steps_done": 23,
+ "steps": 24,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "init: init second stage started",
+   "t": 10.3
+  },
+  {
+   "step": 1,
+   "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+   "t": 16.6
+  },
+  {
+   "step": 3,
+   "wait": "console:/ \\$ ",
+   "t": 16.6
+  },
+  {
+   "step": 5,
+   "wait": "console:/ # ",
+   "t": 16.7
+  },
+  {
+   "step": 7,
+   "wait": "console:/ # ",
+   "t": 17.0
+  },
+  {
+   "step": 9,
+   "wait": "\\nBOOTDONE=1 uptime=",
+   "t": 43.2
+  },
+  {
+   "step": 10,
+   "wait": "console:/ # ",
+   "t": 43.2
+  },
+  {
+   "step": 12,
+   "wait": "console:/ # ",
+   "t": 44.9
+  },
+  {
+   "step": 14,
+   "wait": "\n===VERITY-END===",
+   "t": 46.7
+  },
+  {
+   "step": 15,
+   "wait": "console:/ # ",
+   "t": 46.7
+  },
+  {
+   "step": 17,
+   "wait": "\n===READ-GOOD-END===",
+   "t": 48.2
+  },
+  {
+   "step": 18,
+   "wait": "console:/ # ",
+   "t": 48.2
+  },
+  {
+   "step": 20,
+   "wait": "console:/ # ",
+   "t": 48.3
+  },
+  {
+   "step": 22,
+   "wait": "device-mapper: verity|BAD-RC=",
+   "t": 50.1
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/qemu/anal211-e2e-b/blank-usb.img",
+ "nvme": "/home/hive/anybook/installer/qemu/anal211-e2e-b/verity.img",
+ "nvme2": null
+}

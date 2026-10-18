@@ -1212,3 +1212,116 @@ Then plug the stick into the build host and reply **"stick attached" on ANAL-192
 | ANAL-208 (B7) | the browser photo, if taken |
 
 4. Then wake ANAL-159 (the coordinator) to merge the routed issues' PRs.
+
+## 15. A Google apps package the user brings (ANAL-211, G2)
+
+Status as of 2026-10-18. Evidence: `evidence/2026-10-18-byo-gapps/`, starting with `SUMMARY.md`. Host tests on image files, then QEMU/KVM + OVMF, SELinux enforcing. **Nothing has run on the G14** (§15.7). Only synthetic packages were used: OpenBook's own dummy APKs and XMLs in LiteGapps' layout (`scripts/gapps/`). No Google package was downloaded, and none is committed. Why, and what users should expect: `docs/gapps.md` §4, §5.
+
+### 15.1 What the user sees
+- **Disk screen (step 4):** under the layout choice (and ANAL-210's add-ons), a switch, off by default: "Install a Google apps package you provide (advanced)". With it on, Continue opens the package page. The page belongs to step 4, so the rail keeps its seven steps; Back returns to the disk.
+- **The package page** (`ui/GappsScreen.kt`):
+  - "Choose a package…" opens the system file picker (DocumentsUI). It lists this stick's storage (the live session's internal storage lives on the stick) and any USB drive.
+  - The app streams the file to the daemon (`gapps_check`, `PROTOCOL.md`) and shows the bytes read, then "Checking every file…".
+  - **Accepted:** the package's name, version, file, size and sha256, then every app with its package name, version, "privileged system app" or "system app", native code, and signer (name and certificate SHA-256).
+  - **Refused:** the reason, and up to 12 paths, each with why.
+  - **Before you continue:** not Play Protect certified (register the GSF Android ID at `google.com/android/uncertified`; OpenBook shows the ID); no Play Integrity device verdict (Google Wallet tap to pay, Netflix from Google Play and many banking apps may not work); the apps live in the read-only `product` partition, checked by dm-verity, and only a reinstall removes them; OpenBook doesn't work around any of this.
+  - Continue only works once the user ticks "I understand. Install this package." The engine refuses a package step without that confirmation (`gapps_not_confirmed`).
+- **Confirm screen:** "Also installs <name>: N apps, size, into the new system", and the plan's warnings: `gapps_uncertified`, and `privapp_allowlist_not_enforced` (§15.6).
+- **After the install:** OpenBook setup gets a fourth step, "Register this computer with Google". It shows the GSF Android ID (decimal and hexadecimal, with a copy button), read from GSF's `gservices` provider, or "No ID yet" until GSF has been online. The same page stays available as **Settings › About › Google apps registration**: an injected Settings entry (category `com.android.settings.category.ia.my_device_info`), enabled at boot only when `/product/etc/openbook/gapps-manifest.json` exists.
+
+### 15.2 The check (`engine/gapps.c`, `zipr.c`, `apk.c`)
+`openbook-install gapps-check --package FILE`, or the daemon's `gapps_check`. The input is untrusted:
+- **Container.** A zip (stored or deflate, zip64 sizes; encrypted entries refused; each entry's CRC-32 and declared size enforced). The payload is `files/files.tar.br`, `.xz` or `.tar`, decoded as a stream: brotli (`libbrotli`), the LZMA SDK's xz (`liblzma`), and a tar reader (ustar, GNU long names, pax `path`/`size`).
+- **Layout.** LiteGapps' layout, read from its MIT build scripts (`docs/gapps.md` §5). `module.prop`'s `litegapps_arch` and `litegapps_sdk` must say x86_64 and this image's SDK (`ro.build.version.sdk`, 37).
+- **Paths.** Only these are accepted below `x86_64/37/system/product/`; everything else is refused with a rule, path by path:
+
+| Accepted | Refused (rule) |
+|---|---|
+| `priv-app/<D>/<name>.apk`, `app/<D>/<name>.apk` | other ABIs `lib/arm64-v8a/…` (`native_abi`); precompiled `oat/` (`preopted`); anything else in an app directory |
+| `priv-app/<D>/lib/x86_64/*.so`, `app/<D>/lib/x86_64/*.so` (ELF64 x86-64) | `framework/`, `overlay/`, `apex/`, `etc/vintf`, `etc/security`, `build.prop` (`framework`); `etc/init/`, `bin/` (`init`); `etc/selinux/` (`selinux`); `lib/`, `lib64/` (`native_lib`) |
+| `etc/permissions/*.xml`, `etc/sysconfig/*.xml`, `etc/default-permissions/*.xml` | other partitions: `system/system_ext`, `vendor` (`outside_product`); other SDKs and architectures (`wrong_sdk`, `wrong_arch`); `..`, absolute and odd names (`unsafe_path`); links, devices (`link`, `special_file`) |
+
+- **XML.** Checked element by element, with an allowlist per directory. `privapp-permissions`, `feature`, the power-save, data-saver, user-type and app-link lists, and similar are accepted. These are refused: `library` and the other shared-library elements, `split-permission`, `assign-permission`, top-level `permission`/`group` (Linux group mappings), `unavailable-feature`, `oem-permissions`, DOCTYPE/entities, and anything unknown.
+- **APKs** (the binary manifest and the signing block):
+  - must be signed (v3.1, v3, v2 or v1);
+  - must not claim `android.uid.*`;
+  - must not need a newer SDK;
+  - must not repeat a package;
+  - one base APK per directory, plus splits of it;
+  - native code must include x86_64, every `lib/x86_64/*.so` ELF64 x86-64. Other ABIs in a multi-ABI APK are listed (`multi_abi`) and never loaded: this image's ABIs are `x86_64,arm64-v8a`, 64-bit only.
+  - The signature itself is not verified here; PackageManager does that when it scans the app.
+- **Staging.** Accepted files go to `/data/misc/openbook_install/gapps/<sha256 of the manifest>/`, on the stick's userdata. One staged package at a time: a new check removes the old one, and a refused one leaves nothing. The manifest, `openbook-gapps/1`, records the package (file, size, sha256, `module.prop`), every file (path, size, sha256), and every app (package, version, SDK levels, ABIs, signing scheme, signer DN and SHA-256). It is the install manifest: `plan` names it by sha256, and the new system keeps it as `/product/etc/openbook/gapps-manifest.json`.
+
+### 15.3 The new product (`engine/product.c`, `erofs.c`, `avb.c`, `lp.c`)
+- **Plan** (`plan --gapps SHA256`):
+  - reads the stick's `vbmeta_a` (checked against its manifest), product's AVB footer and footer vbmeta, and the installed super's metadata (`openbook/install/super-metadata.img`);
+  - merge-plans the EROFS image and refuses a package that would add a path the image already has (`gapps_clash`);
+  - sizes the new partition and finds its place in super.
+- **EROFS without a rebuild.** The stick's product blocks are kept byte for byte, so its LZ4 files are never re-encoded.
+  - The new files' data, the new and changed directories and the new inodes go after the last block the old hashtree covered.
+  - Directories that gain entries are rewritten in place as flat directories pointing at their new blocks.
+  - The superblock gets its new block and inode counts and CRC-32C.
+  - New inodes are extended, owned by root, 0644/0755, with the image's build time. They carry the xattrs of the nearest existing directory above them: the same SELinux label (`u:object_r:system_file:s0`, which `plat_file_contexts` gives `/(product|system/product)(/.*)?`) and the same xattr name filter.
+- **dm-verity.** A new hashtree is built as avbtool lays it out: SHA-256, 4 KiB blocks, the stick's salt, top level first. The partition's own unsigned vbmeta and the AVB footer follow it. **No FEC:** the stick's product has 2 FEC roots, the rebuilt one none. FEC corrects errors; dm-verity still detects every changed block.
+- **super.** `product_a` moves to one new extent after every allocated one, 1 MiB aligned. It must fit its group's maximum size. All six metadata copies get the new metadata with fresh checksums. Every other partition stays at its offset, byte-identical to the stick's.
+- **vbmeta_a and the bootconfig.** `vbmeta_a` becomes the stick's vbmeta with product's hashtree descriptor replaced, **unsigned** (`AVB_ALGORITHM_TYPE_NONE`); every other descriptor is unchanged. The new boot entry's `androidboot.vbmeta.digest` and `.size` are this image's. OpenBook boots in the orange state anyway (§2.1): first-stage init allows the verification error, checks the digest, and sets up dm-verity from the new descriptor.
+- **Where it runs (S9).** All of it happens in the `system` step, after `check_source` has verified every staged file against the manifest and before the GPT is written. So a power cut leaves the states the installer already guarantees: the old table, or a blank disk, or a new table that isn't activated.
+  - Every input is re-hashed as it is read: the stick's product extent against the manifest, every staged file against the check.
+  - The rebuilt `product_a`, the super metadata and `vbmeta_a` are read back and compared before activation.
+- **Plan and report.** Only a plan with a package has `request.gapps`, the `gapps` and `product` sections, the operations `check_gapps`, `product` and `vbmeta`, and `bootconfig.img` marked `after_product`. The report adds the root digest, the vbmeta digest and the product's sha256. **Without the step, installs are byte-identical to `main`'s** (§15.4).
+
+### 15.4 Host tests (`scripts/gapps/engine-gapps-test.sh`, C)
+Run on `openbook-live-20261018-anal211a`, engine `66b6a65` (this branch merged with `main` `81578c1`): **89/89**.
+
+| Case | Checks |
+|---|---|
+| `check` | 43: the reference package as brotli, xz and plain tar is accepted, with its 7 files' sha256, 3 apps, versions, SDK levels and signer exactly as `aapt2` and `apksigner` report them; 26 negative packages, each refused with its rule (ARM-only APK, ARM library directory, an aarch64 `.so` under `lib/x86_64`, `framework/`, `overlay/`, `etc/init`, `etc/selinux`, `lib64/`, `system_ext`, `vendor`, SDK 36 in `module.prop` or only in the tree, arm64, `..`, a symlink, `<library>`, `<assign-permission>`, `<permission><group>`, DOCTYPE, an unknown element, unsigned, `android.uid.system`, a corrupt payload, not a zip, not LiteGapps' layout, empty); a refused package leaves nothing staged |
+| `same-install` | 7: a plan without the step has no package key, section, operation or file; `main`'s engine accepts it (same plan sha256) and installs it; the two disks have identical partition tables and partitions, and identical EFI files except the install logs |
+| `plan-gapps` | 9: the operations, request, product and package sections, the warnings, `bootconfig.img` after product, `vbmeta_a` rebuilt; the target only read |
+| `refuse-*` | 5: an unknown package (`no_gapps`), a file the image has (`gapps_clash`), no confirmation (`gapps_not_confirmed`), a staged APK changed after the plan (fails in `check_source`, target untouched) |
+| `apply-gapps` | 17: the install verifies. Then, from outside the engine: `lpdump` shows `product_a` moved and the others in place; `avbtool info_image`/`verify_image` show product's footer and descriptor (no FEC) and recompute its hashtree correctly; `avbtool add_hashtree_footer` over the same image and salt gives the same root digest and tree bytes; `fsck.erofs --extract` shows all 314 stick files unchanged and exactly the 7 package files plus the manifest added; the new inodes are root-owned, 0644/0755, labelled `system_file`; `vbmeta_a` is unsigned with only product's descriptor changed; `avbtool calculate_vbmeta_digest` equals the bootconfig's digest; every other logical partition is byte-identical to the stick's |
+| `alongside-gapps` | 4: next to a Windows-like disk: the plan puts everything in the free space and rebuilds product; the install verifies; MSR, NTFS and recovery byte-identical (S7); `avbtool verify_image` passes on the rebuilt product |
+| `scale` | 4: a package with a 256 MiB app (seeded random, incompressible): check 1.5 s, install 15.8 s on image files (2.4 s and 24.8 s in a run on a busier host); `avbtool verify_image` passes on the 533 MiB product; the app reads back byte for byte |
+
+The installer's own host tests pass with this engine too: `engine-test.sh` 63/63, ANAL-210's `engine-addon-test.sh` 19/19.
+
+### 15.5 End to end in QEMU (`scripts/gapps/gapps-e2e-qemu.sh`, C)
+On the installer's harness: `e2e-qemu.sh`'s prep (the 16 GiB stick copy with a serial console, the Windows-like 128 GiB disk), `e2e-qemu.py`'s disk inspection and `qemu-run.py`. A second USB drive (FAT32 `GAPPSUSB`) carries the synthetic packages: the reference one, a 256 MiB one for the power cuts, and one that touches the framework. The live boots are enforcing. Image `openbook-live-20261018-anal211b`: the G14 product from this branch at `66b6a65` (`main` `81578c1`, with ANAL-210's microG and #83's boot-animation link), sha256 `7b77b5a9…`.
+
+| Case | Result |
+|---|---|
+| `g-cut-1` … `g-cut-5` | In every live boot, `gapps-check` refuses the framework package and accepts the 256 MiB one from the USB drive (vold's mount). The staged files are labelled `openbook_install_data_file`, and `plan --gapps` lists `check_gapps`, `product` and `vbmeta`. Then the unattended install, cut by `quit` on QEMU's monitor. **States afterwards:** cut 1 (checking the staged package) **old table**, Windows-like partitions unchanged; cut 2 (inside the 533 MiB product build) **blank**; cut 3 (product built, super's metadata not yet) **blank**; cut 4 (`vbmeta_a` rewritten, GPT not yet) **blank**; cut 5 (read-back running) **new table, not activated**. Every cut restarts on the previous cut's disk. 46/46 |
+| `g-ui` | **The wizard end to end:**<br>• the disk screen with the switch off, then on;<br>• the package page;<br>• "Choose a package…" opens DocumentsUI on Recent; "Show roots", then `GAPPSUSB`, then the zip;<br>• the app streams it and the daemon checks it (`gapps: accepted`);<br>• the card lists the 3 apps with their signer and certificate SHA-256; the warning and the ticked box;<br>• Confirm shows "Also installs …: 3 apps" and both warnings;<br>• the typed name, then "Erase and install", then **"OpenBook is installed"**.<br>The report: verified, root digest `7860cb4a…`, vbmeta digest `82207cbb…`, 73 s. The product build itself takes 3 s (5 s for the 256 MiB package); most of the `system` step is the final `fsync` of 1.6 GB to the image file on the loaded host. No denial involves the installer, its files or the package's apps. 12/12 |
+| `g-installed` | The installed disk alone (a serial-console copy), fresh NVRAM:<br>• enforcing; `ro.boot.verifiedbootstate` orange; `ro.boot.vbmeta.digest` = the report's;<br>• **`product-verity` is a dm-verity target with the report's root digest** and the stick's salt (no FEC); `partition.product.verified=2`; every product file reads back through it;<br>• `pm list packages -f` shows the three apps from `/product`; the privileged app is `PRIVILEGED PRODUCT`, `x86_64`, with `WRITE_SECURE_SETTINGS` granted and both location permissions `GRANTED_BY_DEFAULT`; the stand-in GSF is privileged, the ordinary app is not;<br>• `pm get-privapp-permissions` shows the package's allowlist, `pm list features` its feature, `deviceidle whitelist` its power-save entry;<br>• **OpenBook setup's step 4 shows the GSF Android ID** (the stand-in's fake `3141592653589793238`, hex `2b992ddfa23249d6`) and the registration steps ("Four quick steps" on its brand panel);<br>• **Settings › About lists "Google apps registration"** (the last row), and tapping it opens the same page.<br>No denial involves the installer, its files or the package's apps. 18/18 |
+| `g-verity` | A copy of the installed disk with one byte flipped in `app/OpenBookTestApp/lib/x86_64/libobgapps.so`, a block the rebuild appended (block 74292). An intact package file reads. Reading the flipped one: **`device-mapper: verity: 254:3: data block 74292 is corrupted`**, then `Restarting system with command 'dm-verity device corrupted'`. 3/3 |
+
+Total **79/79** on `anal211b`. An earlier round on `anal211a` (`98a3673`, before the latest `main`) gave the same results except one real finding: `openbook_installd` was denied reading `ro.control_privapp_permissions` (`packagemanager_config_prop`), so the plan's warning could be wrong on an image that sets it. Fixed with `get_prop`; round 2 has no such denial (`evidence/…/qemu-a/`).
+
+### 15.6 Findings
+1. **Seen only in round 1:** ANAL-210's `openbook-addons` was denied `write` to `/dev/kmsg_debug` with its pre-merge branch. It's gone with #80 as merged (round 2 has no such denial).
+2. **Fixed:** the daemon couldn't read `ro.control_privapp_permissions` (round 1, above).
+3. **After OpenBook setup, `uiautomator dump` keeps returning the finished setup window** even with Settings on screen. The test taps About's last row by position and checks the activity on top. This is the harness's view, not the app's: the screenshots show the right screens.
+4. **DocumentsUI opens on "Recent"** with its roots folded on this window size; the USB drive is one tap away ("Show roots").
+5. **OpenBook images don't enforce the privileged-permission allowlist** (`ro.control_privapp_permissions` unset): `docs/gapps.md` §5.
+
+### 15.7 What these runs do not show, and open items
+- **No G14 and no real package.** Only OpenBook's synthetic packages were used. A real LiteGapps package may hold paths the check refuses (`framework/` jars for Maps, overlays, `lib64/`); the check then lists them and installs nothing (HYPOTHESIS: we have not opened one). The owner can try one locally; nothing from it may be committed.
+- **Removal and updates.** Only a reinstall removes the package. A future OTA (`openbook-bootsync`, not built) writes the stock `product_b`, so the package would be gone after an update (H). That needs a decision before OTAs exist.
+- **The vbmeta is unsigned.** That's fine in the orange state OpenBook boots in. A locked boot (GBL with a locked state, a release key) would refuse it.
+- **No FEC on the rebuilt product.**
+- **The package's apps aren't checked against the image's own packages** (a package that ships a newer `com.android.*` app); PackageManager decides then.
+- **The check parses untrusted archives inside a root daemon.** Every length is bounded and checked, and decompressed sizes are limited, but there's no fuzzing yet. Next: fuzz `gapps-check` with the 27 packages as seeds.
+
+### 15.8 On the G14 (for ANAL-192's next stick)
+Bare-metal steps are on ANAL-192: a dry run from the live stick (no write), and the install only onto the spare drive the owner names (§13.7).
+
+### 15.9 Reproduce
+```bash
+scripts/gapps/build-synthetic-apks.sh                       # the synthetic APKs (anybook-ndk container, throwaway key)
+scripts/installer/inst-docker.sh python3 "$PWD"/scripts/gapps/make-synthetic.py --apks ~/anybook/gapps/out/apks \
+  --etc "$PWD"/scripts/gapps/testapps/etc --out ~/anybook/installer/gapps/packages
+scripts/gapps/engine-gapps-test.sh IMG RUN                   # host tests, about 3 min
+scripts/gapps/gapps-e2e-qemu.sh IMG RUN prep g-cut-1 g-cut-2 g-cut-3 g-cut-4 g-cut-5   # about 7 min
+scripts/gapps/gapps-e2e-qemu.sh IMG RUN g-ui g-installed g-verity check                # about 12 min
+scripts/gapps/collect-evidence.sh RUN evidence/<date>-byo-gapps/<dir>
+```
