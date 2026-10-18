@@ -1,10 +1,10 @@
 # Status
 
-## State of the union (2026-10-17, 21:25 UTC)
+## State of the union (2026-10-18, 01:45 UTC)
 
 **Goal:** the Googlebook-style Android 17 desktop on the ASUS ROG Zephyrus G14 (GA403WR: Ryzen AI 9 HX 370, Radeon 890M), installed from a USB stick through a wizard and verified on the laptop. Repo: https://github.com/Mhsbrian/OpenBook.
 
-**Repo hygiene:** PRs #1–#69 are merged and none are open. The 2026-10-17 cleanup left one remote branch, `main`; every other branch was merged or superseded. Two branches with commits never merged are kept as tags: `archive/anal-190-live-image-b` (superseded on `main`) and `archive/anal-178-stick-integration`.
+**Repo hygiene:** PRs #1–#74 are merged except #72 (ANAL-203, its run still active). The 2026-10-17 cleanup left one remote branch, `main`; every other branch was merged or superseded. Two branches with commits never merged are kept as tags: `archive/anal-190-live-image-b` (superseded on `main`) and `archive/anal-178-stick-integration`.
 
 ### What works, and where it has been shown
 
@@ -24,7 +24,7 @@
 
 ### Running now
 
-- **Nothing is running; waiting on the owner's `anal198` session.** The two follow-ups ANAL-198 found are merged: #67 (ANAL-179: system sounds play under enforcing, QEMU) and #68 (ANAL-191: the installer creates its firmware `Boot####` entry, with an efivarfs SELinux label, QEMU/OVMF). They ride the stick after `anal198`, which ANAL-192 builds once the owner's results are read, so it can also carry that session's fixes.
+- **Running: ANAL-201's beautification and Google-services backlog** (ANAL-202–204, ANAL-206–211: Google Sans, background blur, the flag set, a clean default desktop, brand assets, document fonts, first-run setup, microG, bring-your-own GApps). Nine runs share the host; builds take turns under the AOSP lane lock, and memory is tight (about 8 GB free). Merged since 21:30: #70 (BootOrder: OpenBook appended when not the default, owner decision), #71 (the Googlebook image review and GApps options), #73 (B4: circular icons, no wallpaper dim). The owner's `anal198` session hasn't happened yet; the next stick follows it.
 - **ANAL-198 (kernel lane): #64 merged.** It adds the system DMA-BUF heap and fixes two product bugs behind it (Codec2 HAL selection, Codec2 memfds under SELinux), so media decodes in QEMU. It also ships `efivarfs` as a vendor module, with Google's GKI configuration unchanged. Writing variables needed installer SELinux policy: done by ANAL-191 (#68).
 - **The owner's stick is now `openbook-live-20261017-anal198`** (built on the owner's request after #64; `docs/installer.md` §13.11). It comes from `main` `2d90741` and has everything `anal192c` had, plus Vulkan 1.4 (#61), the #64 kernel and media fixes, and ANAL-177's graphics check (sha256 `3b405d08…`). In QEMU: live 40/40, wizard 25/25, installer end to end 78/78, all four add-ons, and the media check. It replaces `anal192c`. The checklist is `anal192c`'s three boots (§13.6) plus a fourth, the graphics check.
 - **After that session:** results go to ANAL-176, ANAL-177, ANAL-178, ANAL-179, ANAL-191 and ANAL-200.
@@ -78,6 +78,10 @@
 **Build host:** one AOSP build at a time (`flock ~/anybook/aosp/.lane.lock`, taken by `scripts/aosp-docker.sh`), because builds peak at about 50 GB of the 61 GB RAM. Builds and images are in `docs/BUILD.md`; the live image and the owner checklists are in `docs/installer.md` §11.
 
 ## History
+
+### 2026-10-18: BootOrder decision, the Googlebook review and B4 merged (ANAL-159)
+- **Merged** #70 (ANAL-191: without consent, OpenBook is appended to `BootOrder`; still `O_EXCL`; QEMU/OVMF: Windows stand-in stays default, OpenBook in the boot menu), #71 (ANAL-201: licensing checked: Google Sans and Google Sans Flex are OFL from google/fonts; no Google binaries committed; GMS user-supplied only; microG optional; no Play Integrity bypass) and #73 (ANAL-205 B4).
+- Deleted the merged branches. #72 (ANAL-203) and ANAL-210's branch stay while their runs are active.
 
 ### 2026-10-17: circular icons and no wallpaper dim, as on Googlebook (ANAL-205, backlog B4, PR #73)
 - **Set (C):**
