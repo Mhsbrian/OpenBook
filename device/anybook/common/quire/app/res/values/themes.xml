@@ -8,13 +8,4 @@
         <item name="android:windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
     </style>
-
-    <!-- The invocation note: a floating card over whatever was on screen, closed by a click outside it. Light here,
-         dark in values-night (the platform has no public DayNight dialog theme). -->
-    <style name="Theme.Quire.Note" parent="@android:style/Theme.DeviceDefault.Light.Dialog">
-        <item name="android:windowNoTitle">true</item>
-        <item name="android:windowCloseOnTouchOutside">true</item>
-        <item name="android:windowMinWidthMajor">40%</item>
-        <item name="android:windowMinWidthMinor">60%</item>
-    </style>
 </resources>
