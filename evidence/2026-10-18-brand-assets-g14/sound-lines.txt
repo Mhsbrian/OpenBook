@@ -1,0 +1,21 @@
+# ro.config.* on the G14 (live-001/collect-final.txt, getprop)
+[ro.config.alarm_alert]: [OpenBook_FirstLight.ogg]
+[ro.config.notification_sound]: [OpenBook_Spark.ogg]
+[ro.config.ringtone]: [OpenBook_Pages.ogg]
+
+# Boot A, first boot of this /data: RingtoneManager caches the three defaults (MediaProvider opens them for uid 1000)
+10-18 11:01:08.165484 10102  4071  4294 I MediaProvider: Open with lower FS for /product/media/audio/ringtones/OpenBook_Pages.ogg. Uid: 1000
+10-18 11:01:08.181453 10102  4071  4294 I MediaProvider: Open with lower FS for /product/media/audio/notifications/OpenBook_Spark.ogg. Uid: 1000
+10-18 11:01:08.185181 10102  4071  4294 I MediaProvider: Open with lower FS for /product/media/audio/alarms/OpenBook_FirstLight.ogg. Uid: 1000
+
+# Boot A: SystemUI's unlock sound at keyguard dismissal (pid 3492 = com.android.systemui), and the HAL output stream
+10-18 11:01:04.193035 10086  3492  3492 D KeyguardUnlock: playCannedUnlockAnimation
+10-18 11:01:04.352598  1041  1000  1103 D AudioFlinger: onStateChanged: pid:3492  uid:10086  state:unfrozen - no freeze activity
+10-18 11:01:04.353131  1041  1000  1103 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+10-18 11:01:04.355019  1041   995  1111 D AHAL_Stream: cycle: received command Command{start: Void{}} in writer
+10-18 11:01:08.340635  1041   995  1111 D AHAL_Stream: cycle: received command Command{pause: Void{}} in writer
+10-18 11:01:08.340789  1041   995  1111 D AHAL_Stream: cycle: received command Command{standby: Void{}} in writer
+
+# Boot A: SoundPool failure markers (docs/g14-audio-net.md): appdomain_tmpfs denials, 'could not create track'
+appdomain_tmpfs lines: 0
+could-not-create-track lines: 0
