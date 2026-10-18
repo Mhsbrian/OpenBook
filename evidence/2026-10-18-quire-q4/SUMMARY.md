@@ -25,6 +25,7 @@
 | Cuttlefish: guest boot, first boot with cloud-init (`systemd-analyze`) | 12.6 s (1.84 s kernel + 10.78 s userspace); 11.5–13.0 s across runs | `cf/terminal-quired-agents.png` |
 | Cuttlefish: crosvm start to Quire's first connection to `quired` | 12.0–15.7 s across runs; Quire retries every few seconds, so this is an upper bound | `cf/vm-start-and-connect.txt` |
 | Cuttlefish: prompt from Quire core, answered | 3.0–9.5 s on the free model (one exception below) | `cf/prompt-quire.txt` |
+| G14 product (`anybook_g14_x86_64` cp2a userdebug, repo `6a22211` plus docs) | builds (31 min 37 s): `com.android.virt.apex` 64 MB (1.4 MB with AVF compiled out), `features_com.android.virt.xml`, `init.openbook.rc` with the KVM check and its triggers, SELinux compiled. Not booted | `~/anybook/logs/aosp`, build of 2026-10-18T20:06Z |
 
 ## Runs on the final image (`fc9c34b`, repo head `6a22211` adds only check-script changes)
 
