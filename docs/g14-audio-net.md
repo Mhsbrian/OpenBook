@@ -14,6 +14,7 @@ Status as of 2026-10-17. Goal: speakers, microphone, headphone jack, Wi-Fi and B
 | Tests | `openbook-hwtest` in the save-logs entry, verdicts in `live-report.py`; `openbook_audio_logic_test` 8/8, `openbook_hals_test` 15/15 on the host |
 | Stick image | `openbook-live-20261017-audionet3` (this branch + ANAL-176's desktop4 + `main`, branch `anal-179/stick-integration` `7953651`): ANAL-190's QEMU matrix **39/39**; its save-logs case ran `openbook-hwtest` and `live-report.py` gave the new verdicts (`evidence/.../live-audionet3/`) |
 | On the G14 (2026-10-17, two sessions, §10) | **Wi-Fi:** MT7925 on 5 GHz (160 MHz, −37 dBm), DHCP, gateway ping 0 % loss, internet validated (C). **Bluetooth:** paired, A2DP with LDAC 96 kHz (C); under enforcing the Bluetooth app aborted when A2DP started (a denial PR #52 fixes). **Audio:** card 2 `ALC285 Analog` set up, both CS35L56 amplifiers tuned, loopback through ALSA heard cleanly (C); through Android heard but broken (24 of 30 slices), now fixed by the codec-paced HAL (§5, QEMU). **Not tested:** iperf3 (no server configured), the headphone jack (nothing plugged in) |
+| On the G14, `anal192d` (2026-10-18, §11) | **`audio_android_clean` yes** (the codec-paced HAL works on the G14), **`wifi_pno` yes**. Bluetooth audio (AAC, 26 min streaming) and browser audio work under enforcing, and the unlock sound's track is created at boot. **MediaPlayer sounds failed** under enforcing (`mediaserver → audioserver_tmpfs`; ANAL-198's #97 adds the rule). Not shown: the headphone jack, iperf3 |
 
 ## 2. What the G14 has (from its inventory and the first live boot)
 
@@ -148,7 +149,7 @@ Evidence: `evidence/2026-10-17-g14-audio-net/qemu-*` (results, the guest's secti
 
 ## 9. Open items
 
-- **Still to show on the G14** (§10.4): iperf3 throughput; Android playback and capture without gaps on the patched HAL; Bluetooth audio and app audio under enforcing (PR #52's rules); the headphone jack switching; `wifi_pno`. Shown already (§10): MT7925 scan, connect, DHCP and internet; `btmtk` with the HCI user channel and A2DP; the CS35L56 amplifiers; the built-in mics through ALSA.
+- **Still to show on the G14** (§11): iperf3 throughput; the headphone jack switching; the Bluetooth headset reconnecting; MediaPlayer sounds with #97's `mediaserver` rule. Shown on `anal192d` (§11): `audio_android_clean`, `wifi_pno`, Bluetooth audio and app audio under enforcing. Shown already (§10): MT7925 scan, connect, DHCP and internet; `btmtk` with the HCI user channel and A2DP; the CS35L56 amplifiers; the built-in mics through ALSA.
 - **Audio through the HAL dropped and padded buffers**, in the VM (runs c–i: 1.65 s of a 2 s tone, about 24 of its 50 ms windows glitched) and on the G14 (§10.2). Patch 0002 makes the codec's clock pace the stream (§5). In QEMU, the AAudio tone and AOSP's pacing ran in the same boot (runs l–n). With the patch, the tone reaches the codec whole: 2.05 s, 2 glitched windows, against 1.65–1.70 s and 22–23 with AOSP's pacing. Capture is no longer padded: 0 insertions, against 7 plus 1 skipped transfer, which are the G14's numbers. On the G14: `audio_android_clean`, on the next stick.
 - **Headphone jack:** WiredAccessoryManager warns "Both input event and extcon are used for audio jack" (H: harmless, since there is no extcon jack on this kernel). Not plugged yet.
 - **Wi-Fi at suspend:** with no WoWLAN, every s2idle disconnects Wi-Fi, and the framework reconnects after resume (§3, H). A wake-on-WLAN setup would need a vendor HAL or our own nl80211 call.
@@ -259,7 +260,43 @@ PR #52 is merged, and ANAL-192 builds one integrated image from `main`. That ima
 
 The Bluetooth device can stay paired. The loopback no longer follows the default route, and `audio_routes` reports `a2dp_connected`.
 
-## 11. Sources (accessed 2026-10-16/17)
+## 11. On the G14: the `anal192d` session (2026-10-18)
+
+I read the stick `openbook-live-20261018-anal192d` (`main` `81578c1` + #83) from its host copy, read-only, and redacted it. The evidence is in `evidence/2026-10-18-g14-anal192d-audio-net/`:
+- `report.md`: the save-logs boot's verdicts;
+- `hwtest-final.txt`;
+- `digest-default-boot.txt`: Wi-Fi, Bluetooth, audio, jack and denial lines from the default boot's persisted logcat.
+
+The session ran about 11:00–12:15Z: a default "OpenBook" boot (SELinux enforcing, 11:00:41–11:59Z), then "save logs" and the ARM apps check. All C unless marked.
+
+| Check (§10.4) | Result |
+|---|---|
+| Android playback and capture without gaps | **`audio_android_clean` yes**: the loopback through AAudio was heard, with 0 of 30 slices glitched and no HAL padding, drops or skips (`out_device` 2 / `in_device` 5). The default boot's hour of speaker and browser playback logged no HAL padding, drops or ALSA errors either. Patch 0002 holds on the G14 |
+| PNO on the MT7925 | **`wifi_pno` yes**: "Start PNO scan succeeded", and the framework logged "PNO scan started successfully". The screen never went off while Wi-Fi was disconnected, so the framework's own screen-off use is still to be seen |
+| Wi-Fi | connected at 11:02:29 to a 2.4 GHz network (2437 MHz, −22 dBm, Wi-Fi 6, two streams, 286.7 Mbit/s link rate), DHCP, internet validated; no disconnect all session. **`wifi_gateway_ping` NO** (100 % loss), while `wifi_internet` is yes. H: this access point does not answer ICMP echo; it is not an OpenBook fault |
+| Wi-Fi throughput | not run: no iperf3 server configured |
+| Bluetooth audio under enforcing | **works**. Bluetooth was off from 11:02 to 11:27 (SystemUI's tile). Then an AAC headset paired at 11:27:11 and A2DP connected at 44.1 kHz. It streamed four times, from 11:27:39 to 11:56:07, the longest stretch 26 minutes, with `BTAudioSessionAidl ... SUCCESS` each time. There was no tombstone, no Bluetooth or audio-HAL denial, and no A2DP underflow or drop |
+| Bluetooth reconnect after turning the headphones off and on | **not seen**: the headphones dropped the link at 11:56:34 (`REMOTE_USER_TERMINATED_CONNECTION`), and nothing reconnected in the 2.5 minutes before power-off |
+| App audio under enforcing | **works**: Chrome (18 media focus requests, 11:18–11:56) and WebView Shell played to the speakers and then over A2DP, with no `audioserver_tmpfs` denial and no track failure |
+| UI sounds (SoundPool) | **the unlock sound's track was created** at boot: AudioFlinger `createTrack_l` 50 ms after `keyguardDone`, the same line as in QEMU (§5), with no denial and no error (#67 holds). Whether it was audible is for the owner |
+| Notification and other MediaPlayer sounds | **failed**: SystemUI's low-battery sound (`OpenBook_LowBattery.ogg`, 11:51:48) got "AudioTrack: createTrack_l(0): Could not get control block". Below |
+| Headphone jack | **not shown**: every `ACTION_HEADSET_PLUG` says "plugged in: false". The codec's jack input device is there (`audio_routes`: 1 headphone and 2 mic jacks). Either nothing was plugged in, or detection failed; the owner's notes will tell |
+
+**New: MediaPlayer under enforcing (ANAL-198 fixes it in PR #97).**
+- MediaPlayer plays in `mediaserver` (NuPlayer), whose AudioSink is an AudioTrack. AudioFlinger hands it the track's control block, a memfd labelled `audioserver_tmpfs`.
+- `mediaserver → audioserver_tmpfs:file { read write }` was denied. The binder transfer failed (`BR_FAILED_REPLY ... Operation not permitted`), and the sound never played.
+- AOSP grants this as `mediaserver audioserver:memfd_file`, which needs `memfd_class`. AOSP 17's tmpfs-form rules cover only apps' memfds.
+- #97 adds `allow mediaserver audioserver_tmpfs:file { getattr map read write }` (`sepolicy/system_ext/mediaserver.te`). Both domains are `s0`, so MLS is not involved.
+- Notification sounds, ringtone previews and every app's MediaPlayer use this path.
+- ANAL-198 showed it in QEMU on the `anal192d` image: without the rule both a notification sound and the low-battery sound fail, and with it both play. Android mutes notification sounds for the first 120 s after boot, so such a test has to wait.
+
+**For the next stick** (`anal192e` or later):
+- the headphone jack, with a note of what was heard;
+- the headphones turned off and on again, then played;
+- a notification sound and a ringtone preview (Settings → Sound), with #97 on the stick;
+- iperf3 (`hwtest.conf`).
+
+## 12. Sources (accessed 2026-10-16/18)
 
 - AOSP 17 (`android17-release`, tree in `~/anybook/aosp/src`): `frameworks/opt/net/wifi/libwifi_hal/Android.bp` (`desktop` → `libwifi-hal-desktop`), `packages/modules/Wifi/service/.../WifiNative.java` and `WifiInjector.java` (no-HAL mode, wificond migration), `build/release/flag_values/cp2a/RELEASE_DISABLE_WIFICOND.textproto`, `external/wpa_supplicant_8` (`board_config_wpa_supplicant.mk`, `driver_nl80211.c`), `external/wireless-regdb`, `hardware/interfaces/audio/aidl/default` (`primary/StreamPrimary.cpp`, `alsa/Mixer.cpp`, `XsdcConversion.cpp`), `hardware/interfaces/bluetooth/aidl/default` (`BluetoothHci.cpp`, `net_bluetooth_mgmt.cpp`), `device/google/cuttlefish` (Wi-Fi and Bluetooth configuration), `device/generic/goldfish/wifi`, `system/sepolicy`.
 - android.googlesource.com project list (2026-10-16): no `device/google/desktop`.
