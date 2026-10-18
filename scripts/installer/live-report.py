@@ -8,6 +8,8 @@ use the same file (docs/installer.md section 11).
 
   --expect g14   verdicts for the GA403WR: amdgpu HAL, eDP panel, Wi-Fi, touchpad, keyboard, dGPU in D3cold
   --expect vm    verdicts for QEMU: virtio-gpu HAL, a connected virtual display (no Wi-Fi, touchpad or dGPU)
+Either way, refresh_rate (ANAL-212): the display runs its fastest mode, and DisplayManager lets SurfaceFlinger draw
+that fast.
 Either way, hwtest-final.txt (openbook-hwtest, ANAL-179: its "HWTEST {json}" lines) adds the Wi-Fi, Bluetooth and
 audio verdicts: regulatory database, scan, connection, DHCP, internet, iperf3, Bluetooth on and paired, the
 built-in sound card, the speaker-to-microphone loopback directly on ALSA and through Android (and whether the HAL
@@ -100,6 +102,31 @@ def touchpad_clock(text):
             "median_frame_interval_ms": round(gaps[len(gaps) // 2] * 1000, 2) if gaps else None}
 
 
+def refresh_rate(text):
+    """dumpsys SurfaceFlinger's pacesetter block (ANAL-212): is the panel scanned out at its fastest mode, and may
+    SurfaceFlinger draw that fast? DisplayManager's primary render range was [0, 60] with AOSP's
+    config_defaultRefreshRate (the G14's 120 Hz panel drew at 60). Returns (ok, facts); ok is None without a dump."""
+    act = re.search(r"activeMode=\{[^}]*resolution=(\S+), vsyncRate=([\d.]+) Hz", text)
+    pol = re.search(r"primaryRanges=\{physical=\[\S+ Hz, (\S+) Hz\], render=\[\S+ Hz, (\S+) Hz\]\}", text)
+    # The fastest mode at the active resolution (a VM's display lists other sizes at other rates too).
+    modes = [float(x) for x in re.findall(r"^\s+\{id=\d+, hwcId=\d+, resolution=%s, vsyncRate=([\d.]+) Hz"
+                                          % re.escape(act.group(1)), text, re.M)] if act else []
+    if not (modes and act and pol):
+        return None, {"note": "no SurfaceFlinger pacesetter dump"}
+    top, active, render_max = max(modes), float(act.group(2)), float(pol.group(2))
+
+    def secs(t):  # "0d00:01:16.029"
+        m = re.fullmatch(r"(\d+)d(\d+):(\d+):([\d.]+)", t)
+        return round(int(m[1]) * 86400 + int(m[2]) * 3600 + int(m[3]) * 60 + float(m[4]), 1) if m else None
+    rr = re.search(r"renderRate=([\d.]+) Hz", text)
+    cap = lambda x: "none" if x > 1e6 else x  # inf, or FLT_MAX before DisplayManager sent its policy
+    return (abs(active - top) < 0.5 and render_max >= top - 0.5), {
+        "resolution": act.group(1), "active_hz": active, "fastest_mode_hz": top,
+        "primary_render_max_hz": cap(render_max),
+        "primary_physical_max_hz": cap(float(pol.group(1))), "render_hz_now": float(rr.group(1)) if rr else None,
+        "seconds_by_render_hz": {k: secs(t) for k, t in re.findall(r"^([\d.]+) Hz: (\S+)$", text, re.M)}}
+
+
 MAC = re.compile(r"\b(?!00:00:00:00:00:00|ff:ff:ff:ff:ff:ff)([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}\b")
 # Kernel ("SerialNumber: "), lsusb, /dev/disk/by-id names, and Android's UsbHostManager
 # ("mfg/product/ver/serial SanDisk/Ultra/1.00/<serial>").
@@ -150,6 +177,8 @@ def main():
     verdict("display", bool(connected and any(want_conn in c[0] for c in connected) and sf == "running"),
             connectors=[" ".join(c) for c in conns], surfaceflinger=sf,
             screenshot=os.path.exists(f"{d}/screen-{phase}.png") and os.path.getsize(f"{d}/screen-{phase}.png") > 0)
+    rr_ok, rr_facts = refresh_rate(sec.get("SF", ""))
+    verdict("refresh_rate", rr_ok, **rr_facts)
     hal = props.get("vendor.anybook.gpu.hal")
     verdict("gpu_hal", hal == ("amdgpu" if a.expect == "g14" else "virtio"), hal=hal, egl=props.get("ro.hardware.egl"),
             vulkan=props.get("ro.hardware.vulkan"), gralloc=props.get("ro.hardware.gralloc"),
