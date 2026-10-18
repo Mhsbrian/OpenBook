@@ -120,7 +120,7 @@
   - `audio_android_clean` yes: the codec-paced HAL plays and records through Android with no gaps;
   - `wifi_pno` yes: the MT7925 takes scheduled scans;
   - Bluetooth audio (AAC, 26 minutes of streaming) and browser audio work under enforcing;
-  - the SoundPool unlock sound's track is created at boot, with no denial (#67).
+  - the SoundPool unlock sound plays at boot, with no denial (#67); the owner heard it.
 - **Found:** MediaPlayer fails under enforcing (`mediaserver → audioserver_tmpfs`). ANAL-198's #97 fixes it.
 - **Not shown:** the headphone jack (no plug event), the headset reconnecting, iperf3. The gateway did not answer ping, although the internet check passed (H: that access point drops ICMP).
 - **Evidence:** `evidence/2026-10-18-g14-anal192d-audio-net/`; `docs/g14-audio-net.md` §11.
