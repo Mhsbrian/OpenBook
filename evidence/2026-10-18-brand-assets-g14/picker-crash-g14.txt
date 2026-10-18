@@ -1,0 +1,19 @@
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: FATAL EXCEPTION: main
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: Process: com.android.wallpaper, PID: 5315
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: java.lang.NullPointerException: Parameter specified as non-null is null: method com.android.wallpaper.picker.preview.ui.WallpaperPreviewActivity$requestFullscreen$1.onResult, parameter result
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at com.android.wallpaper.picker.preview.ui.WallpaperPreviewActivity$requestFullscreen$1.onResult(WallpaperPreviewActivity.kt:3)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at com.android.wallpaper.picker.preview.ui.WallpaperPreviewActivity$requestFullscreen$1.onResult(WallpaperPreviewActivity.kt:276)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at android.app.FullscreenRequestHandler.notifyFullscreenRequestResult(FullscreenRequestHandler.java:159)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at android.app.FullscreenRequestHandler.-$$Nest$mnotifyFullscreenRequestResult(FullscreenRequestHandler.java:0)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at android.app.FullscreenRequestHandler$2.lambda$sendResult$0(FullscreenRequestHandler.java:125)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at android.app.FullscreenRequestHandler$2.$r8$lambda$TMWbPANMeXVqq8rzRe6zLpNf8ZM(FullscreenRequestHandler.java:0)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at android.app.FullscreenRequestHandler$2$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at android.os.Handler.handleCallback(Handler.java:1095)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at android.os.Handler.dispatchMessageImpl(Handler.java:135)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at android.os.Handler.dispatchMessage(Handler.java:125)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at android.os.Looper.loopOnce(Looper.java:296)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at android.os.Looper.loop(Looper.java:397)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at android.app.ActivityThread.main(ActivityThread.java:9523)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at java.lang.reflect.Method.invoke(Native Method)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:575)
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:939)
