@@ -358,6 +358,6 @@ scripts/quire/q2-cf-check.py SERIAL OUT --probe QuireSecureProbe.apk   # invocat
 ```
 - Quire is in both products through `desktop.mk` (`device/anybook/common/quire/quire.mk`).
 - It needs, besides its module: frameworks/base patches `0005`–`0007` and Launcher3 `0002` (`aosp-build.sh` applies them),
-  three aconfig flags in `release/openbook/cp2a/`, and the build flag `RELEASE_PACKAGE_COMPUTER_CONTROL`
+  four aconfig flags in `release/openbook/cp2a/`, and the build flag `RELEASE_PACKAGE_COMPUTER_CONTROL`
   (`release/flag_values/cp2a/`). Why: `docs/quire.md` §2.5.
 - `q2-cf-check.py` drives Quire through its root-only `LabActivity` alias, so it needs a userdebug build and `adb root`.
