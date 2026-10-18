@@ -28,7 +28,7 @@ Google apps and how to install them are covered in [`gapps.md`](gapps.md). Evide
     - the 30 Material 3 Expressive `variable-*` families.
   - Googlebook defines all 40 families on top of Google Sans and Google Sans Flex.
   - **Both fonts are SIL OFL 1.1 in `github.com/google/fonts`.**
-  - In a VM, our prototype puts them on the OpenBook desktop without rebuilding the image (§3).
+  - Both OpenBook desktop products ship them since ANAL-202 (§3.1). The G14 check is still to run.
 - **Other gaps we can close:**
   - **Background blur.** Googlebook enables it. The G14 product does now too (ANAL-203, §2.3); the laptop check is still to run.
   - **Window shadows, cursor fixes and other polish.** These sit behind flags AOSP 17 already declares.
@@ -90,9 +90,9 @@ Signers are listed in `inventory/googlebook-ruby-signers.txt`, and the GMS APEX 
 | Google Sans Clock, Google Sans Flex Clock | proprietary | none. We substitute Google Sans Flex |
 | 42 extra system fonts: metric-compatible document fonts (Arimo, Tinos, Cousine, Tachyonic, Velarium, Geotic, Tisane, Gaumond, Trophis, Codecs, Comedic Sans, Whendings, Archivo, Gelasio, Comic Relief …) | OFL 1.1 (`github.com/googlefonts/*`) | Same projects. They render web pages and Office documents with correct metrics |
 
-The OFL lets us ship both families unmodified with `OFL.txt`. Google's `TRADEMARKS.md` forbids using "Google" or "Google Sans" in our product name, and implying affiliation. Our use of `google-sans` as an internal font-family identifier refers to the original font. **The owner should confirm that reading** (see Owner decisions).
+The OFL lets us ship both families unmodified with `OFL.txt`. Google's `TRADEMARKS.md` forbids using "Google" or "Google Sans" in our product name, and implying affiliation. Our use of `google-sans` as an internal font-family identifier refers to the original font. The owner approved that reading on 2026-10-17 (see Owner decisions).
 
-**Result:** the prototype in §3.
+**Result:** the prototype in §3, then the product (§3.1, ANAL-202).
 
 ### 2.2 Google's SystemUI, Launcher and newer framework code (C)
 
@@ -288,9 +288,33 @@ AOSP 17 keeps the hooks (contextual-search shake gesture, the Ambient Cue UI, Sm
 
 **Limits:**
 - Prototype only: test-key RRO, a userdebug VM, files pushed at runtime.
-- The product build, the G14 and a font-rendering performance check are still to do.
+- ANAL-202 did the product build and the performance check (§3.1). The G14 is still to do.
 - Upstream Google Sans Flex has no GRAD axis, so our `variable-*` families leave it out.
 - The clock families map to Google Sans Flex.
+
+### 3.1 In the product (ANAL-202)
+
+**What ships** (C; `device/anybook/common/desktop/fonts/`, installed by `desktop.mk`, so both `anybook_cf_x86_64_pc` and `anybook_g14_x86_64` get it):
+- **The fonts.** The three files from google/fonts `47d54ca1`, byte for byte, as `prebuilt_font` modules in `/product/fonts`. Their sha256 are in the directory's `README.md`.
+  - They are named `GoogleSans-VF.ttf`, `GoogleSans-Italic-VF.ttf` and `GoogleSansFlex-VF.ttf`, because Soong reads the `[` in upstream's names (`GoogleSans[GRAD,opsz,wght].ttf`) as a glob.
+  - `OFL.txt` and `TRADEMARKS.md` sit next to them.
+- **Licence metadata.** Each family has its own `license` module (`SPDX-license-identifier-OFL-1.1`), pointing to its own `OFL.txt`, since the two copyright lines differ. Both texts reach `/product/etc/NOTICE.xml.gz`.
+- **The font config.** `/product/etc/fonts_customization.xml` is the committed output of `scripts/ui/fonts-customization.py` (40 families).
+  - The build runs the generator with `--check` on the committed file (a `python_binary_host` and a `genrule`), and installs it only if the two match. If someone edits one without the other, the build fails.
+- **Framework values.** `AnyBookDesktopFrameworkOverlay` sets the four `config_*FontFamily` values Googlebook uses (table in [`aosp-desktop.md`](aosp-desktop.md)).
+
+**Measured in Cuttlefish** (C; `evidence/2026-10-17-typography/`; base `c861cf4` against the fonts build, both products built; Radeon 610M, `gfxstream_guest_angle`):
+- **Fonts loaded.** The device's font manager lists all 40 families, and the four overlay values resolve to `google-sans`, `google-sans-medium`, `google-sans-text` and `google-sans-text-medium`.
+- **What changes on screen.** Settings, window captions, Quick Settings, notifications, all apps and Files render in Google Sans.
+  - Settings' rows grow by about a quarter (roughly 75 → 94 px at 160 dpi), because Google Sans has taller line metrics than Roboto.
+- **Desktop unchanged.** `scripts/desktop-capture.sh` still shows freeform windows with captions and the taskbar.
+- **No crashes or new denials.** The crash buffer was empty in every run, and the same three SELinux denial kinds (all Cuttlefish's own) appear with and without the fonts.
+- **Size.** `product.img` grows by 9.24 MiB in both products. The files are 13.98 MB; EROFS compresses them. No other image changes.
+- **Settings scroll** (`scripts/cf-gfx-bench.sh`, three alternating base/fonts pairs on a busy host):
+  - janky frames 1.35 % with the fonts against 4.32 % without; median p90 15 ms against 20 ms. The fonts build was better in every pair.
+  - **HYPOTHESIS:** the taller rows mean each swipe binds fewer new rows. So this shows no regression, not a faster font.
+
+**Not checked yet:** the G14 (the check is on ANAL-192's stick checklist), and non-Latin text.
 
 ## 4. Beautification backlog (alpha → beta)
 
@@ -298,7 +322,7 @@ The owner approved every item on 2026-10-17. Each one is a sub-issue of ANAL-201
 
 | # | Issue | Item | Size | Needs |
 |---|---|---|---|---|
-| B1 | ANAL-202 | **Fonts in the product.** `PRODUCT_COPY_FILES` for the three OFL fonts and `OFL.txt`, the generated `fonts_customization.xml`, and the four values in `AnyBookDesktopFrameworkOverlay`. Then the desktop capture in Cuttlefish and the G14 checklist | small | — (approved) |
+| B1 | ANAL-202 | **Fonts in the product:** the three OFL fonts with `OFL.txt` (prebuilt modules with licence metadata), the generated `fonts_customization.xml`, and the four values in `AnyBookDesktopFrameworkOverlay`. Then the desktop capture in Cuttlefish and the G14 checklist. **Done in both products (ANAL-202); measured in Cuttlefish (§3.1); the G14 check is on ANAL-192's stick** | small | — (approved) |
 | B2 | ANAL-203 | **Blur on the G14.** `ro.surface_flinger.supports_background_blur=1`; check frame times on the 890M. **Done in the product (ANAL-203); measured in Cuttlefish; the G14 check is on ANAL-192's stick** (§2.3) | small | — |
 | B3 | ANAL-204 | **Flag set v2.** Evaluate the 128 UI flags AOSP 17 declares, in groups. Start with box shadows, blur on more surfaces, resizing (`perfect_edge`, no-resize cursor, fluid resizing) and taskbar clicks. `scripts/desktop-flags.py` already writes the value set | medium | — |
 | B4 | ANAL-205 | **Shape and wallpaper values:** circular icon mask, round icons, wallpaper dim 0, wallpaper colour thresholds. **Done in Cuttlefish (§2.4); the G14 check is on ANAL-192's stick** | small | — |

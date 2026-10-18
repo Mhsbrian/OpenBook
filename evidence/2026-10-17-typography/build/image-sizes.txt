@@ -1,0 +1,21 @@
+# Image sizes in bytes (stat -c %s), base (c861cf4, no fonts) vs fonts (c91ca38). Only product changes.
+product    image                    base          fonts        delta
+cf         product.img         292929536      302620672      9691136
+cf         super.img          1637614144     1647264320      9650176
+cf         system.img          905953280      905953280            0
+cf         system_ext.img      141791232      141791232            0
+cf         vendor.img          290975744      290975744            0
+g14        product.img         292503552      302182400      9678848
+g14        super.img          1333967496     1343613576      9646080
+g14        system.img          695439360      695439360            0
+g14        system_ext.img      127451136      127451136            0
+g14        vendor.img          148406272      148406272            0
+
+# The payload: /product/fonts (3 files) and /product/etc/fonts_customization.xml
+## product/fonts
+total 13644
+-rw-r--r-- 1 hive hive 3910784 Oct 17 23:42 GoogleSansFlex-VF.ttf
+-rw-r--r-- 1 hive hive 5079424 Oct 17 23:42 GoogleSans-Italic-VF.ttf
+-rw-r--r-- 1 hive hive 4974940 Oct 17 23:42 GoogleSans-VF.ttf
+## product/etc/fonts_customization.xml
+-rw-r--r-- 1 hive hive 18195 Oct 17 23:42 product/etc/fonts_customization.xml
