@@ -163,7 +163,7 @@ Googlebook enables 218 more flags that our tree declares. ANAL-204 triaged all o
 - **Two flags break AOSP 17's desktop and stay off (C):**
   - `enable_add_window_decoration_to_all_tasks`: SystemUI crashes when a minimized window is restored from the taskbar.
   - `start_on_gone_scene_if_no_lockscreen`: the notification shade is empty. Our framework overlay disables the lock screen, so SystemUI would start on the Gone scene, and the keyguard section that binds the notification stack never runs.
-- **24 do nothing:** nothing in our tree reads them, e.g. `perfect_edge` and `enable_taskbar_icon_desktop_clicks`.
+- **23 do nothing:** nothing in our tree reads them, e.g. `perfect_edge` and `enable_taskbar_icon_desktop_clicks`.
 - **Visible on the desktop (C, Cuttlefish):** box shadows and a 1 px border on windows, stepped cascading, the windowing pill inside the maximize menu, QS tile tooltips, power-menu blur, and a Cast tile that works over Ethernet.
 - Evidence: `evidence/2026-10-17-desktop-flags-v2/`. The G14 checks are on ANAL-192.
 
