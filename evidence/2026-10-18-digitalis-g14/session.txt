@@ -1,0 +1,22 @@
+# The owner's anal192d session (2026-10-18, about 11:00-12:15Z), host copy stick-20261018T123221Z, read-only (ANAL-200).
+image: openbook-live-20261018-anal192d
+add-on payload: "name": "openbook-bridgecheck-anal192c", "repo_commit": "3908b1411f1ffde3577bb277bde92f65fa85cda3"
+boots: live-001/prior = default (enforcing) boot(s); live-001 = save logs; live-002 = OpenBook ARM apps check
+
+## default (enforcing) boot, persisted logcat (live-001/prior)
+zygote started with -XX:NativeBridge=libberberis_arm64.so: 2 time(s) (the persisted logcat also covers the save-logs boot)
+enforcing denials (permissive=0): 229; naming binfmt, berberis, a native-bridge path or mounton: 0
+berberis lines by process (the self-check runs as root in the save-logs boot; an arm64 app process would log its own trans# lines):
+     67    root 2976
+apps brought to the foreground (top-activity):
+      1 app.pwhs.blockads/u0a118
+      1 com.android.chrome/u0a117
+      3 com.android.documentsui/u0a31
+      1 com.android.gallery3d/u0a74
+      1 com.android.packageinstaller/u0a39
+      2 com.android.settings/1000
+      2 com.android.wallpaper/u0a87
+      4 com.aurora.store/u0a116
+      3 org.chromium.webview_shell/u0a70
+      1 org.openbook.installer/u0a83
+      2 system:ui/1000
