@@ -1056,3 +1056,40 @@ Built on the owner's request after PR #64 merged; it replaces `anal192c`. Eviden
     /dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0
   ```
 - **On the G14:** boots 1–3 as in §13.6. In boot 1, step 6 (a ringtone preview) should now play. Then **boot 4, "OpenBook graphics check"**: about 30 minutes, AC power, lid open, no screen-lock PIN; it powers off by itself (`docs/graphics-amd.md`, owner checklist steps 4–6). Then plug the stick into the build host and reply "stick attached".
+
+## 14. App add-ons: microG (ANAL-210)
+
+Status as of 2026-10-17. Design, security trade-off and results: `docs/gapps.md` §6. Evidence: `evidence/2026-10-17-microg/`.
+
+### 14.1 What the image and the installer do
+- **The catalogue is part of the image.**
+  - `device/anybook/common/addons/<name>.json` installs to `/system_ext/etc/openbook/addons/`. It lists an add-on's APKs with their package, versionCode, sha256 and size, and what to grant.
+  - The APKs travel on the boot disk's EFI partition, in `openbook/addons/<name>/`. The image has none.
+  - Today the catalogue has one add-on, microG (112 MB).
+- **`openbook-addons`** (PC products, init, once per boot after `sys.boot_completed`, SELinux domain `openbook_addons`):
+  - It finds the partition `androidboot.boot_part_uuid` names. That is the stick's ESP in a live session, and the new disk's ESP or XBOOTLDR on an installed system.
+  - It reads that partition through the whole-disk node at the partition's offset, as the engine reads the stick, and never writes it.
+  - It installs a present add-on whose files all match the pins, as normal apps through PackageManager.
+  - It records the result in `/data/misc/openbook_addons/`.
+  - Without an add-on, it logs one line and stops.
+- **The stick:** `scripts/microg/add-to-image.sh IMG ADDON_DIR` works on image files only. It refuses a block device, writes only `openbook/addons/microg/`, checks that there is room and reads every file back. `--remove` takes it off.
+- **The engine** (`engine/addon.c`; PROTOCOL.md):
+  - `hello` and `openbook-install addons` list the catalogued add-ons with `on_stick`.
+  - A plan request may name add-ons. The plan then gains a `check_addon` operation and one file per APK on the new boot partition.
+  - `check_source` reads the APKs from the stick and compares them with the image's pins before anything is written. `verify` reads them back from the new disk.
+  - **A plan without add-ons is byte for byte what it was before**: `main`'s engine accepts it, because its own recomputation gives the same `plan_sha256`.
+- **The wizard:** on the disk screen, one switch per add-on the stick carries: "Google services compatibility (microG)", with its size and what it is. **It is off by default.** The plan key includes the ticked add-ons, so changing the switch makes a new plan.
+
+### 14.2 Tests
+| Test | Result | Evidence (`evidence/2026-10-17-microg/`) |
+|---|---|---|
+| `openbook-addons` on the host (`scripts/microg/addons-test.sh`): GPT/FAT image fixtures, a fake `cmd` | 37/37 | `host/addons-test/` |
+| The engine's add-on path on the host (`scripts/microg/engine-addon-test.sh`): inventory, the plan without add-ons against `main`'s engine, a plan and install with the add-on read back with mtools, refusals (not on the stick, no catalogue, a corrupted APK: refused in `check_source`, target unchanged) | 19/19 | `host/engine-addon-test/` |
+| The ANAL-191 engine suite (`scripts/installer/engine-test.sh`) on this branch | 63/63 | `host/engine-regress/` |
+| The wizard app (`app/tools/compile-check.sh`) | compiles, 0 warnings | — |
+| G14 image in QEMU (`scripts/microg/addon-qemu.sh`): live without and with the add-on, a second boot, the image from `main`, an install with the add-on ticked and that disk's first start | image `g1a`: the add-on installs under enforcing on the live stick and on an installed disk's first start (self-check 18/18), the wizard's switch off by default, the plain stick has the same 140 packages as `main`'s image. One denial per boot from `stdio_to_kmsg`, removed in `f7df42d` (rerun pending the build lane) | `qemu-g1a/` |
+
+### 14.3 Not done
+- The wizard switch has not been clicked through in QEMU; the install case drives the engine's CLI from the serial console, as the e2e matrix does.
+- No power-cut case for the add-on files. They are written in `boot_entry` like the other boot files, before the table and before verification, so the existing guarantees cover them (HYPOTHESIS until a cut lands in them).
+- The G14: the owner's checklist is on ANAL-192.

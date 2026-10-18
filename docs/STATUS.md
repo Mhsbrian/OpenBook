@@ -18,6 +18,7 @@
 | Sleep | s2idle in a VM | **s2idle works, under Android too** (screen timeout → s2idle → key wake, display and Wi-Fi back); **deep sleep (S0i3) never reached.** The power check ruled out the driverless PSP; the SMU points at MPM or the USB4 router (unconfirmed) | `docs/power-input.md` §1.3, §7.6 |
 | Wi-Fi, Bluetooth, audio | Yes (WPA2, iperf3, tone through ALSA and, with the HAL fix, through Android) | **Wi-Fi to the internet** (5 GHz, 160 MHz); **Bluetooth pairs**, A2DP with LDAC; **speakers and mic through ALSA** heard. Through Android the tone was broken (HAL fix in ANAL-179's PR, QEMU only). **Under enforcing (`anal176t`), Bluetooth audio connects without the Bluetooth app aborting**: A2DP Connected, the HAL's A2DP session and outputs open, 0 crashes, so #52's policy fix holds. Sound over Bluetooth and app (browser) sound are still unheard. The only playback tried, ringtone previews, **failed to decode** (`Failed to create audio/vorbis decoder`; missing system DMA-BUF heap suspected). Headphone jack and iperf3 not tested | `evidence/2026-10-17-g14-audio-net/`, `evidence/2026-10-17-g14-desktop/g14-anal176s/`, `g14-anal176t/` |
 | ARM apps (Digitalis, built from source) | 14/16 ARM-only apps; works in enforcing | **The bridge self-check passes on Zen 5** (5/5 verdicts, both sessions). No arm64 app run yet: the ARM apps check is on ANAL-192's stick | `evidence/2026-10-17-digitalis-a17/`, `evidence/2026-10-17-digitalis-g14/` |
+| Google services compatibility (microG add-on, ANAL-210) | **Cuttlefish: microG's self-check 18/18 green**, signature spoofing only for microG's certificate (negative test passes), device registration, push tokens for 3 Play-services apps, microG as location provider. QEMU, G14 image `g1a`: the add-on installs under enforcing on the live stick and on an installed disk's first start (self-check 18/18), the wizard's switch off by default, the plain stick has the same 140 packages as `main`'s image. One denial per boot from `stdio_to_kmsg`, removed in `f7df42d` (rerun pending the build lane) | Not yet | `evidence/2026-10-17-microg/` |
 | Installer | **Wizard 25/25, engine 63/63, end to end 79/79; the firmware boot entry (`Boot####`, #68) boots with no fallback path** (SELinux enforcing): whole disk and **alongside a Windows-like disk** (Windows' partitions byte-identical and still booting; OpenBook boots from a firmware boot option); **power cuts at 6 points**, each leaving the old table, a blank disk or a complete install, and each restart completing; reinstall; the installed disk with and without the stick. **Firmware boot entries (since ANAL-191's #68):** the installer creates `Boot####` "OpenBook" itself; OVMF boots it with the fallback path deleted, and alongside leaves Windows' entry and `BootOrder` byte-identical | Live USB boots; the wizard has not run yet | `evidence/2026-10-17-installer-wizard/`, `evidence/2026-10-17-installer-e2e/` |
 
 **What is left on the G14:** S0i3 deep sleep (needs the laptop's own Linux comparison), audible Bluetooth and app audio, the Android audio path with the HAL fix, media decoding on the laptop (it failed on `anal176t`; fixed in QEMU by #64, on `anal198`), the ARM apps check, the installer dry run, and the second graphics run on Vulkan 1.4. All but S0i3 are on `anal198`'s checklist.
@@ -60,7 +61,8 @@
 | ANAL-193 to ANAL-197 device loop | Backlog | ANAL-194 first: the Multica runtime and test agent on the G14's Linux | Owner installs the daemon |
 | ANAL-201 Googlebook UI and GApps review | In progress (PR #71) | Review done (`docs/googlebook-ui.md`, `docs/gapps.md`). All ten follow-ups approved and running in parallel on the shared lane (builds take turns under the lane lock; each issue has its own Cuttlefish ports) | — |
 | ANAL-202 to ANAL-209 beautification B1–B8 | In progress | B1 Google Sans · B2 blur on the G14 · B3 flag set v2 · B4 shapes and wallpaper dim · B5 clean desktop · B6 brand assets · B7 document fonts · B8 first-run setup. G14 checks go to ANAL-192's next stick | — |
-| ANAL-210, ANAL-211 Google services | In progress | G1 microG patch and add-on; G2 an installer step for a user-supplied GApps package (synthetic test package only) | — |
+| ANAL-210 microG (G1) | In review (PR to follow) | Done in VMs: the patch in every image; the add-on on the stick, offered by the installer off by default, installed as normal apps on the first start. Cuttlefish: self-check 18/18, negative test, push tokens; QEMU: live and installed disk. Next: the rebuilt image's QEMU rerun (one denial removed), then the G14 | ANAL-192's next stick, after the PR merges |
+| ANAL-211 bring-your-own GApps (G2) | Queued | An installer step for a user-supplied GApps package (synthetic test package only); builds on ANAL-210's engine add-on fields | — |
 | ANAL-166 performance and parity | Backlog | After the installer: benchmarks, Chrome, the Linux terminal (AVF without pKVM). No sub-issues yet | — |
 | ANAL-186 NVIDIA | Parked | Research is done (ANAL-187); N1–N6 after M4 | — |
 | ANAL-165 Track B (ANAL-182 to ANAL-185) | Parked | Starts only if the owner decides to use Google's image | Owner decision |
@@ -78,6 +80,25 @@
 **Build host:** one AOSP build at a time (`flock ~/anybook/aosp/.lane.lock`, taken by `scripts/aosp-docker.sh`), because builds peak at about 50 GB of the 61 GB RAM. Builds and images are in `docs/BUILD.md`; the live image and the owner checklists are in `docs/installer.md` §11.
 
 ## History
+
+### 2026-10-17: microG as an optional add-on (ANAL-210)
+- **The framework patch is in every image.**
+  - LineageOS `198fa72864` (signature spoofing for microG) and `03da1783cb` (microG's location provider in /data), cherry-picked unchanged from `lineage-24.0`.
+  - Our own `0003` drops their debuggable-only condition.
+  - They apply to our `CP2A.260605` pin, and both products build.
+- **The add-on:** microG's signed release APKs, unchanged: GmsCore 0.3.17.252432, Companion and the Services Framework Proxy.
+  - They come on the stick (`scripts/microg/add-to-image.sh`).
+  - The installer's disk screen offers them, **off by default**.
+  - `openbook-addons` installs them as normal apps on the first start, after checking each against the sha256 the image pins.
+  - Without the add-on nothing changes: a plan without it is byte for byte the old one, and the live boot logs one line (`docs/gapps.md` §6, `docs/installer.md` §14).
+- **Cuttlefish (C):**
+  - microG's self-check **18/18 green**.
+  - **Negative test passes:** a `com.google.android.gms` signed with another key keeps its own certificate.
+  - Device registration and push connect to Google. Home Assistant, Bitwarden and Nextcloud get FCM tokens; their official builds start with and without microG (`docs/COMPAT-MATRIX.md`).
+  - After one restart, microG is the network and fused location provider. In the VM it has no network fix: synthetic Wi-Fi, online lookup opt-in.
+- **Host tests:** `openbook-addons` 37/37, the installer's add-on path 19/19, the ANAL-191 engine suite 63/63.
+- **QEMU (G14 image):** Image `g1a`: the add-on installs under enforcing on the live stick and on an installed disk's first start (self-check 18/18), the wizard's switch off by default, the plain stick has the same 140 packages as `main`'s image. One denial per boot from `stdio_to_kmsg`, removed in `f7df42d` (rerun pending the build lane).
+- **Not on the G14 yet:** the checklist is on ANAL-192.
 
 ### 2026-10-17: the Googlebook image reviewed, GApps options, and Google Sans on OpenBook in a VM (ANAL-201)
 - **Why Googlebook looks cleaner (C)** (`docs/googlebook-ui.md`):
