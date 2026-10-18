@@ -1,0 +1,254 @@
+partition	file	family	version	licence	in_openbook_g14
+system	AndroidClock.ttf	AndroidClock	Version 1.00000; 2012	Apache-2.0	yes
+system	ArchivoBlack-Regular.ttf	Archivo Black	Version 1.006	OFL-1.1	no
+system	ArchivoNarrow-Italic.ttf	Archivo Narrow	Version 3.002	OFL-1.1	no
+system	ArchivoNarrow-Regular.ttf	Archivo Narrow	Version 3.002	OFL-1.1	no
+system	Arimo-Italic.ttf	Arimo	Version 1.341	OFL-1.1	no
+system	Arimo-Regular.ttf	Arimo	Version 1.341	OFL-1.1	no
+system	Arvos-Italic.ttf	Arvos Italic	Version 0.001	OFL-1.1	no
+system	Arvos-Regular.ttf	Arvos	Version 0.001	OFL-1.1	no
+system	ArvosBlack-Italic.ttf	Arvos Black	Version 0.002; ttfautohint (v1	OFL-1.1	no
+system	ArvosBlack-Regular.ttf	Arvos Black	Version 0.020; ttfautohint (v1	OFL-1.1	no
+system	ArvosNarrow-Italic.ttf	Arvos Narrow	Version 0.001	OFL-1.1	no
+system	ArvosNarrow-Regular.ttf	Arvos Narrow	Version 0.001	OFL-1.1	no
+system	CarroisGothicSC-Regular.ttf	Carrois Gothic SC	Version 1.002	OFL-1.1	yes
+system	Codecs-Italic.ttf	Codecs Italic	Version 0.001	OFL-1.1	no
+system	Codecs-Regular.ttf	Codecs	Version 0.001	OFL-1.1	no
+system	ComedicSans-Italic.ttf	Comedic Sans	Version 0.001	OFL-1.1	no
+system	ComedicSans-Regular.ttf	Comedic Sans	Version 0.001	OFL-1.1	no
+system	ComicRelief-Bold.ttf	Comic Relief	Version 1.200; ttfautohint (v1	OFL-1.1	no
+system	ComicRelief-Regular.ttf	Comic Relief	Version 1.200; ttfautohint (v1	OFL-1.1	no
+system	ComingSoon.ttf	Coming Soon	Version 1.002	Apache-2.0	yes
+system	Cousine-Bold.ttf	Cousine	Version 1.241; ttfautohint (v1	OFL-1.1	no
+system	Cousine-BoldItalic.ttf	Cousine	Version 1.241; ttfautohint (v1	OFL-1.1	no
+system	Cousine-Italic.ttf	Cousine	Version 1.241; ttfautohint (v1	OFL-1.1	no
+system	Cousine-Regular.ttf	Cousine	Version 1.241; ttfautohint (v1	OFL-1.1	no
+system	CutiveMono.ttf	Cutive Mono	Version 1.100	OFL-1.1	yes
+system	DancingScript-Regular.ttf	Dancing Script	Version 2.001	OFL-1.1	yes
+system	DroidSansMono.ttf	Droid Sans Mono	Version 1.00 build 113	Apache-2.0	yes
+system	Gaumond-Italic.ttf	Gaumond	Version 0.002;Glyphs 3.5 (3526	OFL-1.1	no
+system	Gaumond-Regular.ttf	Gaumond	Version 0.004	OFL-1.1	no
+system	Gelasio-Italic.ttf	Gelasio	Version 1.008	OFL-1.1	no
+system	Gelasio-Regular.ttf	Gelasio	Version 1.008	OFL-1.1	no
+system	Geotic-Italic.ttf	Geotic	Version 0.008	OFL-1.1	no
+system	Geotic-Regular.ttf	Geotic	Version 0.008	OFL-1.1	no
+system	NotoColorEmoji.ttf	Noto Color Emoji	Version 3.052;GOOG;noto-emoji:	(no licence string)	yes
+system	NotoColorEmojiFlags.ttf	Noto Color Emoji Flags	Version 3.052;GOOG;noto-emoji:	(no licence string)	yes
+system	NotoNaskhArabic-Bold.ttf	Noto Naskh Arabic	Version 1.07 uh	OFL-1.1	yes
+system	NotoNaskhArabic-Regular.ttf	Noto Naskh Arabic	Version 1.08 uh	OFL-1.1	yes
+system	NotoNaskhArabicUI-Bold.ttf	Noto Naskh Arabic UI	Version 1.08 uh	OFL-1.1	yes
+system	NotoNaskhArabicUI-Regular.ttf	Noto Naskh Arabic UI	Version 1.08 uh	OFL-1.1	yes
+system	NotoSansAdlam-VF.ttf	Noto Sans Adlam	Version 3.000	OFL-1.1	yes
+system	NotoSansAhom-Regular.otf	Noto Sans Ahom	Version 2.000	OFL-1.1	yes
+system	NotoSansAnatolianHieroglyphs-Regular.otf	Noto Sans AnatoHiero	Version 2.000	OFL-1.1	yes
+system	NotoSansArmenian-VF.ttf	Noto Sans Armenian	Version 2.008	OFL-1.1	yes
+system	NotoSansAvestan-Regular.ttf	Noto Sans Avestan	Version 1.04 uh	OFL-1.1	yes
+system	NotoSansBalinese-Regular.ttf	Noto Sans Balinese	Version 1.03 uh	OFL-1.1	yes
+system	NotoSansBamum-Regular.ttf	Noto Sans Bamum	Version 1.03 uh	OFL-1.1	yes
+system	NotoSansBassaVah-Regular.otf	Noto Sans Bassa Vah	Version 2.000	OFL-1.1	yes
+system	NotoSansBatak-Regular.ttf	Noto Sans Batak	Version 1.05 uh	OFL-1.1	yes
+system	NotoSansBengali-VF.ttf	Noto Sans Bengali	Version 2.001	OFL-1.1	yes
+system	NotoSansBengaliUI-VF.ttf	Noto Sans Bengali UI	Version 2.001	OFL-1.1	yes
+system	NotoSansBhaiksuki-Regular.otf	Noto Sans Bhaiksuki	Version 1.900	OFL-1.1	yes
+system	NotoSansBrahmi-Regular.ttf	Noto Sans Brahmi	Version 1.03 uh	OFL-1.1	yes
+system	NotoSansBuginese-Regular.ttf	Noto Sans Buginese	Version 1.05 uh	OFL-1.1	yes
+system	NotoSansBuhid-Regular.ttf	Noto Sans Buhid	Version 1.03 uh	OFL-1.1	yes
+system	NotoSansCJK-Regular.ttc			(no licence string)	yes
+system	NotoSansCanadianAboriginal-Regular.ttf	Noto Sans CanAborig	Version 2.001	OFL-1.1	yes
+system	NotoSansCarian-Regular.ttf	Noto Sans Carian	Version 1.05 uh	OFL-1.1	yes
+system	NotoSansChakma-Regular.otf	Noto Sans Chakma	Version 2.001	OFL-1.1	yes
+system	NotoSansCham-Bold.ttf	Noto Sans Cham	Version 1.02 uh	OFL-1.1	yes
+system	NotoSansCham-Regular.ttf	Noto Sans Cham	Version 1.02 uh	OFL-1.1	yes
+system	NotoSansCherokee-Regular.ttf	Noto Sans Cherokee	Version 2.000	OFL-1.1	yes
+system	NotoSansCoptic-Regular.ttf	Noto Sans Coptic	Version 1.03 uh	OFL-1.1	yes
+system	NotoSansCuneiform-Regular.ttf	Noto Sans Cuneiform	Version 1.05 uh	OFL-1.1	yes
+system	NotoSansCypriot-Regular.ttf	Noto Sans Cypriot	Version 1.03 uh	OFL-1.1	yes
+system	NotoSansDeseret-Regular.ttf	Noto Sans Deseret	Version 1.02 uh	OFL-1.1	yes
+system	NotoSansDevanagari-VF.ttf	Noto Sans Devanagari	Version 2.006	OFL-1.1	yes
+system	NotoSansDevanagariUI-VF.ttf	Noto Sans Devanagari UI	Version 2.000	OFL-1.1	yes
+system	NotoSansEgyptianHieroglyphs-Regular.ttf	Noto Sans Egyptian Hieroglyphs	Version 1.04 uh	OFL-1.1	yes
+system	NotoSansElbasan-Regular.otf	Noto Sans Elbasan	Version 2.000	OFL-1.1	yes
+system	NotoSansEthiopic-VF.ttf	Noto Sans Ethiopic	Version 2.102	OFL-1.1	yes
+system	NotoSansGeorgian-VF.ttf	Noto Sans Georgian	Version 2.001	OFL-1.1	yes
+system	NotoSansGlagolitic-Regular.ttf	Noto Sans Glagolitic	Version 1.04 uh	OFL-1.1	yes
+system	NotoSansGothic-Regular.ttf	Noto Sans Gothic	Version 1.03 uh	OFL-1.1	yes
+system	NotoSansGrantha-Regular.ttf	Noto Sans Grantha	Version 2.001	OFL-1.1	yes
+system	NotoSansGujarati-Bold.ttf	Noto Sans Gujarati	Version 1.03 uh	OFL-1.1	yes
+system	NotoSansGujarati-Regular.ttf	Noto Sans Gujarati	Version 2.106	OFL-1.1	yes
+system	NotoSansGujaratiUI-Bold.ttf	Noto Sans Gujarati UI	Version 1.03 uh	OFL-1.1	yes
+system	NotoSansGujaratiUI-Regular.ttf	Noto Sans Gujarati UI	Version 1.03 uh	OFL-1.1	yes
+system	NotoSansGunjalaGondi-Regular.otf	Noto Sans Gunjala Gondi	Version 1.001	OFL-1.1	yes
+system	NotoSansGurmukhi-VF.ttf	Noto Sans Gurmukhi	Version 2.004	OFL-1.1	yes
+system	NotoSansGurmukhiUI-VF.ttf	Noto Sans Gurmukhi UI	Version 2.001	OFL-1.1	yes
+system	NotoSansHanifiRohingya-Regular.otf	Noto Sans HanifiRohg	Version 2.002	(no licence string)	yes
+system	NotoSansHanunoo-Regular.ttf	Noto Sans Hanunoo	Version 1.04 uh	OFL-1.1	yes
+system	NotoSansHatran-Regular.otf	Noto Sans Hatran	Version 2.000	OFL-1.1	yes
+system	NotoSansHebrew-Bold.ttf	Noto Sans Hebrew	Version 3.001; ttfautohint (v1	OFL-1.1	yes
+system	NotoSansHebrew-Regular.ttf	Noto Sans Hebrew	Version 3.001; ttfautohint (v1	OFL-1.1	yes
+system	NotoSansImperialAramaic-Regular.ttf	Noto Sans Imperial Aramaic	Version 1.03 uh	OFL-1.1	yes
+system	NotoSansInscriptionalPahlavi-Regular.ttf	Noto Sans Inscriptional Pahlavi	Version 1.02 uh	OFL-1.1	yes
+system	NotoSansInscriptionalParthian-Regular.ttf	Noto Sans Inscriptional Parthian	Version 1.03 uh	OFL-1.1	yes
+system	NotoSansJavanese-Regular.otf	Noto Sans Javanese	Version 2.000	OFL-1.1	yes
+system	NotoSansKaithi-Regular.ttf	Noto Sans Kaithi	Version 1.05 uh	OFL-1.1	yes
+system	NotoSansKannada-VF.ttf	Noto Sans Kannada	Version 2.006	OFL-1.1	yes
+system	NotoSansKannadaUI-VF.ttf	Noto Sans Kannada UI	Version 2.003	OFL-1.1	yes
+system	NotoSansKayahLi-Regular.ttf	Noto Sans Kayah Li	Version 1.02 uh	OFL-1.1	yes
+system	NotoSansKharoshthi-Regular.ttf	Noto Sans Kharoshthi	Version 1.03 uh	OFL-1.1	yes
+system	NotoSansKhmer-VF.ttf	Noto Sans Khmer	Version 2.004	OFL-1.1	yes
+system	NotoSansKhmerUI-Bold.ttf	Noto Sans Khmer UI	Version 1.04 uh	OFL-1.1	yes
+system	NotoSansKhmerUI-Regular.ttf	Noto Sans Khmer UI	Version 1.04 uh	OFL-1.1	yes
+system	NotoSansKhojki-Regular.otf	Noto Sans Khojki	Version 2.001	OFL-1.1	yes
+system	NotoSansLao-Bold.ttf	Noto Sans Lao	Version 2.001	OFL-1.1	yes
+system	NotoSansLao-Regular.ttf	Noto Sans Lao	Version 2.003	OFL-1.1	yes
+system	NotoSansLaoUI-Bold.ttf	Noto Sans Lao UI	Version 1.03 uh	OFL-1.1	yes
+system	NotoSansLaoUI-Regular.ttf	Noto Sans Lao UI	Version 1.03 uh	OFL-1.1	yes
+system	NotoSansLepcha-Regular.ttf	Noto Sans Lepcha	Version 1.03 uh	OFL-1.1	yes
+system	NotoSansLimbu-Regular.ttf	Noto Sans Limbu	Version 1.05 uh	OFL-1.1	yes
+system	NotoSansLinearA-Regular.otf	Noto Sans Linear A	Version 2.000	OFL-1.1	yes
+system	NotoSansLinearB-Regular.ttf	Noto Sans Linear B	Version 1.04 uh	OFL-1.1	yes
+system	NotoSansLisu-Regular.ttf	Noto Sans Lisu	Version 1.03 uh	OFL-1.1	yes
+system	NotoSansLycian-Regular.ttf	Noto Sans Lycian	Version 1.04 uh	OFL-1.1	yes
+system	NotoSansLydian-Regular.ttf	Noto Sans Lydian	Version 1.03 uh	OFL-1.1	yes
+system	NotoSansMalayalam-VF.ttf	Noto Sans Malayalam	Version 2.104	OFL-1.1	yes
+system	NotoSansMalayalamUI-VF.ttf	Noto Sans Malayalam UI	Version 2.104	OFL-1.1	yes
+system	NotoSansMandaic-Regular.ttf	Noto Sans Mandaic	Version 1.02 uh	OFL-1.1	yes
+system	NotoSansManichaean-Regular.otf	Noto Sans Manichaean	Version 2.000	OFL-1.1	yes
+system	NotoSansMarchen-Regular.otf	Noto Sans Marchen	Version 2.000	OFL-1.1	yes
+system	NotoSansMasaramGondi-Regular.otf	Noto Sans Masaram Gondi	Version 1.002	OFL-1.1	yes
+system	NotoSansMedefaidrin-VF.ttf	Noto Sans Medefaidrin	Version 1.001	OFL-1.1	yes
+system	NotoSansMeeteiMayek-Regular.ttf	Noto Sans Meetei Mayek	Version 1.04 uh	OFL-1.1	yes
+system	NotoSansMeroitic-Regular.otf	Noto Sans Meroitic	Version 2.000	OFL-1.1	yes
+system	NotoSansMiao-Regular.otf	Noto Sans Miao	Version 2.001	OFL-1.1	yes
+system	NotoSansModi-Regular.ttf	Noto Sans Modi	Version 2.000	OFL-1.1	yes
+system	NotoSansMongolian-Regular.ttf	Noto Sans Mongolian	Version 1.04 uh	OFL-1.1	yes
+system	NotoSansMro-Regular.otf	Noto Sans Mro	Version 2.000	OFL-1.1	yes
+system	NotoSansMultani-Regular.otf	Noto Sans Multani	Version 2.000	OFL-1.1	yes
+system	NotoSansMyanmar-Bold.otf	Noto Sans Myanmar	Version 2.001	OFL-1.1	yes
+system	NotoSansMyanmar-Medium.otf	Noto Sans Myanmar Med	Version 2.001	OFL-1.1	yes
+system	NotoSansMyanmar-Regular.otf	Noto Sans Myanmar	Version 2.001	OFL-1.1	yes
+system	NotoSansMyanmarUI-Bold.otf	Noto Sans Myanmar UI	Version 2.000	OFL-1.1	yes
+system	NotoSansMyanmarUI-Medium.otf	Noto Sans Myanmar UI Medium	Version 2.000	OFL-1.1	yes
+system	NotoSansMyanmarUI-Regular.otf	Noto Sans Myanmar UI	Version 2.000	OFL-1.1	yes
+system	NotoSansNKo-Regular.ttf	Noto Sans NKo	Version 1.02 uh	OFL-1.1	yes
+system	NotoSansNabataean-Regular.otf	Noto Sans Nabataean	Version 2.000	OFL-1.1	yes
+system	NotoSansNewTaiLue-Regular.ttf	Noto Sans New Tai Lue	Version 1.05 uh	OFL-1.1	yes
+system	NotoSansNewa-Regular.otf	Noto Sans Newa	Version 2.000	OFL-1.1	yes
+system	NotoSansOgham-Regular.ttf	Noto Sans Ogham	Version 1.04 uh	OFL-1.1	yes
+system	NotoSansOlChiki-Regular.ttf	Noto Sans Ol Chiki	Version 1.03 uh	OFL-1.1	yes
+system	NotoSansOldItalic-Regular.ttf	Noto Sans Old Italic	Version 1.02 uh	OFL-1.1	yes
+system	NotoSansOldNorthArabian-Regular.otf	Noto Sans OldNorArab	Version 2.000	OFL-1.1	yes
+system	NotoSansOldPermic-Regular.otf	Noto Sans Old Permic	Version 2.000	OFL-1.1	yes
+system	NotoSansOldPersian-Regular.ttf	Noto Sans Old Persian	Version 1.04 uh	OFL-1.1	yes
+system	NotoSansOldSouthArabian-Regular.ttf	Noto Sans Old South Arabian	Version 1.03 uh	OFL-1.1	yes
+system	NotoSansOldTurkic-Regular.ttf	Noto Sans Old Turkic	Version 1.02 uh	OFL-1.1	yes
+system	NotoSansOriya-Bold.ttf	Noto Sans Oriya	Version 1.01 uh	OFL-1.1	yes
+system	NotoSansOriya-Regular.ttf	Noto Sans Oriya	Version 1.01 uh	OFL-1.1	yes
+system	NotoSansOriyaUI-Bold.ttf	Noto Sans Oriya UI	Version 1.01 uh	OFL-1.1	yes
+system	NotoSansOriyaUI-Regular.ttf	Noto Sans Oriya UI	Version 1.01 uh	OFL-1.1	yes
+system	NotoSansOsage-Regular.ttf	Noto Sans Osage	Version 2.000;GOOG;noto-source	OFL-1.1	yes
+system	NotoSansOsmanya-Regular.ttf	Noto Sans Osmanya	Version 1.03 uh	OFL-1.1	yes
+system	NotoSansPahawhHmong-Regular.otf	Noto Sans Pahawh Hmong	Version 2.000	OFL-1.1	yes
+system	NotoSansPalmyrene-Regular.otf	Noto Sans Palmyrene	Version 2.000	OFL-1.1	yes
+system	NotoSansPauCinHau-Regular.otf	Noto Sans PauCinHau	Version 2.000	OFL-1.1	yes
+system	NotoSansPhagsPa-Regular.ttf	Noto Sans Phags Pa	Version 1.03 uh	OFL-1.1	yes
+system	NotoSansPhoenician-Regular.ttf	Noto Sans Phoenician	Version 1.04 uh	OFL-1.1	yes
+system	NotoSansRejang-Regular.ttf	Noto Sans Rejang	Version 1.05 uh	OFL-1.1	yes
+system	NotoSansRunic-Regular.ttf	Noto Sans Runic	Version 1.02 uh	OFL-1.1	yes
+system	NotoSansSamaritan-Regular.ttf	Noto Sans Samaritan	Version 1.03 uh	OFL-1.1	yes
+system	NotoSansSaurashtra-Regular.ttf	Noto Sans Saurashtra	Version 1.04 uh	OFL-1.1	yes
+system	NotoSansSharada-Regular.otf	Noto Sans Sharada	Version 2.000	OFL-1.1	yes
+system	NotoSansShavian-Regular.ttf	Noto Sans Shavian	Version 1.03 uh	OFL-1.1	yes
+system	NotoSansSinhala-VF.ttf	Noto Sans Sinhala	Version 2.006	OFL-1.1	yes
+system	NotoSansSinhalaUI-VF.ttf	Noto Sans Sinhala UI	Version 2.001	OFL-1.1	yes
+system	NotoSansSoraSompeng-Regular.otf	Noto Sans SoraSomp	Version 2.000	OFL-1.1	yes
+system	NotoSansSoyombo-VF.ttf	Noto Sans Soyombo	Version 2.000	OFL-1.1	yes
+system	NotoSansSundanese-Regular.ttf	Noto Sans Sundanese	Version 1.05 uh	OFL-1.1	yes
+system	NotoSansSylotiNagri-Regular.ttf	Noto Sans Syloti Nagri	Version 1.04 uh	OFL-1.1	yes
+system	NotoSansSymbols-Regular-Subsetted.ttf	Noto Sans Symbols	Version 1.09 uh	OFL-1.1	yes
+system	NotoSansSymbols-Regular-Subsetted2.ttf	Noto Sans Symbols	Version 1.09 uh	OFL-1.1	yes
+system	NotoSansSyriacEastern-Regular.ttf	Noto Sans Syriac Eastern	Version 1.04 uh	OFL-1.1	yes
+system	NotoSansSyriacEstrangela-Regular.ttf	Noto Sans Syriac Estrangela	Version 1.04 uh	OFL-1.1	yes
+system	NotoSansSyriacWestern-Regular.ttf	Noto Sans Syriac Western	Version 1.04 uh	OFL-1.1	yes
+system	NotoSansTagalog-Regular.ttf	Noto Sans Tagalog	Version 1.03 uh	OFL-1.1	yes
+system	NotoSansTagbanwa-Regular.ttf	Noto Sans Tagbanwa	Version 1.04 uh	OFL-1.1	yes
+system	NotoSansTaiLe-Regular.ttf	Noto Sans Tai Le	Version 1.04 uh	OFL-1.1	yes
+system	NotoSansTaiTham-Regular.ttf	Noto Sans Tai Tham	Version 1.04 uh	OFL-1.1	yes
+system	NotoSansTaiViet-Regular.ttf	Noto Sans Tai Viet	Version 1.03 uh	OFL-1.1	yes
+system	NotoSansTakri-VF.ttf	Noto Sans Takri	Version 2.002	OFL-1.1	yes
+system	NotoSansTamil-VF.ttf	Noto Sans Tamil	Version 2.004	OFL-1.1	yes
+system	NotoSansTamilUI-VF.ttf	Noto Sans Tamil UI	Version 2.003	OFL-1.1	yes
+system	NotoSansTelugu-VF.ttf	Noto Sans Telugu	Version 2.005	OFL-1.1	yes
+system	NotoSansTeluguUI-VF.ttf	Noto Sans Telugu UI	Version 2.004	OFL-1.1	yes
+system	NotoSansThaana-Bold.ttf	Noto Sans Thaana	Version 1.02 uh	OFL-1.1	yes
+system	NotoSansThaana-Regular.ttf	Noto Sans Thaana	Version 1.02 uh	OFL-1.1	yes
+system	NotoSansThai-Bold.ttf	Noto Sans Thai	Version 1.04 uh	OFL-1.1	yes
+system	NotoSansThai-Regular.ttf	Noto Sans Thai	Version 1.04 uh	OFL-1.1	yes
+system	NotoSansThaiUI-Bold.ttf	Noto Sans Thai UI	Version 1.04 uh	OFL-1.1	yes
+system	NotoSansThaiUI-Regular.ttf	Noto Sans Thai UI	Version 1.04 uh	OFL-1.1	yes
+system	NotoSansTifinagh-Regular.otf	Noto Sans Tifinagh	Version 2.002	OFL-1.1	yes
+system	NotoSansUgaritic-Regular.ttf	Noto Sans Ugaritic	Version 1.02 uh	OFL-1.1	yes
+system	NotoSansVai-Regular.ttf	Noto Sans Vai	Version 1.02 uh	OFL-1.1	yes
+system	NotoSansWancho-Regular.otf	Noto Sans Wancho	Version 2.000	OFL-1.1	yes
+system	NotoSansWarangCiti-Regular.otf	Noto Sans WarangCiti	Version 3.000	OFL-1.1	yes
+system	NotoSansYi-Regular.ttf	Noto Sans Yi	Version 1.02 uh	OFL-1.1	yes
+system	NotoSerif-Bold.ttf	Noto Serif	Version 1.07 uh	OFL-1.1	yes
+system	NotoSerif-BoldItalic.ttf	Noto Serif	Version 1.07 uh	OFL-1.1	yes
+system	NotoSerif-Italic.ttf	Noto Serif	Version 1.07 uh	OFL-1.1	yes
+system	NotoSerif-Regular.ttf	Noto Serif	Version 1.07 uh	OFL-1.1	yes
+system	NotoSerifArmenian-VF.ttf	Noto Serif Armenian	Version 2.008	OFL-1.1	yes
+system	NotoSerifBengali-VF.ttf	Noto Serif Bengali	Version 2.001	OFL-1.1	yes
+system	NotoSerifCJK-Regular.ttc			(no licence string)	yes
+system	NotoSerifDevanagari-VF.ttf	Noto Serif Devanagari	Version 2.006	OFL-1.1	yes
+system	NotoSerifDogra-Regular.ttf	Noto Serif Dogra	Version 1.004	OFL-1.1	yes
+system	NotoSerifEthiopic-VF.ttf	Noto Serif Ethiopic	Version 2.102	OFL-1.1	yes
+system	NotoSerifGeorgian-VF.ttf	Noto Serif Georgian	Version 2.001	OFL-1.1	yes
+system	NotoSerifGujarati-VF.ttf	Noto Serif Gujarati	Version 2.106	OFL-1.1	yes
+system	NotoSerifGurmukhi-VF.ttf	Noto Serif Gurmukhi	Version 2.004	OFL-1.1	yes
+system	NotoSerifHebrew-Bold.ttf	Noto Serif Hebrew	Version 2.002	OFL-1.1	yes
+system	NotoSerifHebrew-Regular.ttf	Noto Serif Hebrew	Version 2.004	OFL-1.1	yes
+system	NotoSerifHentaigana.ttf	Noto Serif Hentaigana ExtraLight	Version 1.000	OFL-1.1	yes
+system	NotoSerifKannada-VF.ttf	Noto Serif Kannada	Version 2.005	OFL-1.1	yes
+system	NotoSerifKhmer-Bold.otf	Noto Serif Khmer	Version 2.001	OFL-1.1	yes
+system	NotoSerifKhmer-Regular.ttf	Noto Serif Khmer	Version 2.004	OFL-1.1	yes
+system	NotoSerifLao-Bold.ttf	Noto Serif Lao	Version 2.000	OFL-1.1	yes
+system	NotoSerifLao-Regular.ttf	Noto Serif Lao	Version 2.003	OFL-1.1	yes
+system	NotoSerifMalayalam-VF.ttf	Noto Serif Malayalam	Version 2.104	OFL-1.1	yes
+system	NotoSerifMyanmar-Bold.otf	Noto Serif Myanmar	Version 2.001	OFL-1.1	yes
+system	NotoSerifMyanmar-Regular.otf	Noto Serif Myanmar	Version 2.001	OFL-1.1	yes
+system	NotoSerifNyiakengPuachueHmong-VF.ttf	Noto Serif Hmong Nyiakeng	Version 1.000	OFL-1.1	yes
+system	NotoSerifSinhala-VF.ttf	Noto Serif Sinhala	Version 2.007	OFL-1.1	yes
+system	NotoSerifTamil-VF.ttf	Noto Serif Tamil	Version 2.004	OFL-1.1	yes
+system	NotoSerifTelugu-VF.ttf	Noto Serif Telugu	Version 2.005	OFL-1.1	yes
+system	NotoSerifThai-Bold.ttf	Noto Serif Thai	Version 2.000	OFL-1.1	yes
+system	NotoSerifThai-Regular.ttf	Noto Serif Thai	Version 2.002	OFL-1.1	yes
+system	NotoSerifTibetan-VF.ttf	Noto Serif Tibetan	Version 2.001	OFL-1.1	yes
+system	NotoSerifYezidi-VF.ttf	Noto Serif Yezidi	Version 1.000	OFL-1.1	yes
+system	Roboto-Regular.ttf	Roboto	Version 3.015; 2026	OFL-1.1	yes
+system	RobotoFlex-Regular.ttf	Roboto Flex	Version 3.000	OFL-1.1	yes
+system	RobotoStatic-Regular.ttf	RobotoStatic	Version 2.138; 2017	Apache-2.0	yes
+system	SourceSansPro-Bold.ttf	Source Sans Pro	Version 2.021;PS 2.000;hotconv	OFL-1.1	yes
+system	SourceSansPro-BoldItalic.ttf	Source Sans Pro	Version 1.076;PS 2.000;hotconv	OFL-1.1	yes
+system	SourceSansPro-Italic.ttf	Source Sans Pro	Version 1.076;PS 2.000;hotconv	OFL-1.1	yes
+system	SourceSansPro-Regular.ttf	Source Sans Pro	Version 2.021;PS 2.000;hotconv	OFL-1.1	yes
+system	SourceSansPro-SemiBold.ttf	Source Sans Pro SemiBold	Version 2.021;PS 2.000;hotconv	OFL-1.1	yes
+system	SourceSansPro-SemiBoldItalic.ttf	Source Sans Pro SemiBold	Version 1.076;PS 2.000;hotconv	OFL-1.1	yes
+system	Tachyonic-Regular.ttf	Tachyonic	Version 0.002	OFL-1.1	no
+system	Tinos-Bold.ttf	Tinos	Version 1.340; ttfautohint (v1	OFL-1.1	no
+system	Tinos-BoldItalic.ttf	Tinos	Version 1.340; ttfautohint (v1	OFL-1.1	no
+system	Tinos-Italic.ttf	Tinos	Version 1.340; ttfautohint (v1	OFL-1.1	no
+system	Tinos-Regular.ttf	Tinos	Version 1.340; ttfautohint (v1	OFL-1.1	no
+system	Tisane-Italic.ttf	Tisane	Version 0.001	OFL-1.1	no
+system	Tisane-Regular.ttf	Tisane	Version 0.001	OFL-1.1	no
+system	Trophis-Italic.ttf	Trophis	Version 0.003	OFL-1.1	no
+system	Trophis-Regular.ttf	Trophis	Version 0.003	OFL-1.1	no
+system	Velarium-Italic.ttf	Velarium	Version 0.002	OFL-1.1	no
+system	Velarium-Regular.ttf	Velarium	Version 0.002	OFL-1.1	no
+system	Whendings1.ttf	Whendings 1	Version 1.001; ttfautohint (v1	OFL-1.1	no
+system	Whendings2.ttf	Whendings 2	Version 1.001; ttfautohint (v1	OFL-1.1	no
+system	Whendings3.ttf	Whendings 3	Version 1.001; ttfautohint (v1	OFL-1.1	no
+system	Whendings4.ttf	Whendings 4	Version 1.001; ttfautohint (v1	OFL-1.1	no
+product	GoogleSans-Italic.ttf	Google Sans	Version 10.001;[06685905];Andr	proprietary	no
+product	GoogleSans-Regular.ttf	Google Sans	Version 10.001;[06685905];Andr	proprietary	no
+product	GoogleSansClock-Regular.ttf	Google Sans Clock	Version 2.001	proprietary	no
+product	GoogleSansFlex-Regular.ttf	Google Sans Flex	Version 4.001;[ce99e77f6]	OFL-1.1	no
+product	GoogleSansFlexClock-Regular.ttf	Google Sans Flex Clock	Version 2.000	proprietary	no

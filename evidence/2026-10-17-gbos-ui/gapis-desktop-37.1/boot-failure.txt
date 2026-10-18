@@ -1,0 +1,23 @@
+# Google APIs Desktop (Preview) 37.1 (x86_64-37.1_r01.zip, sha1 7d2d46bee15214a5e4320df2ed602773dc3fd190, build desktop_generic-userdebug 17 CLE3.260929.004 16489338)
+# Emulator 37.2.12, headless, -gpu swiftshader_indirect, 4 vCPU, 8 GiB, 1920x1080@160 dpi, KVM on Ryzen 9 7950X (scripts/desktop-ref-emulator.sh, REF_API=37.1)
+# Result: no sys.boot_completed after 11 min; run stopped. Not pursued further.
+## boot progress
+10-17 17:55:42.187   455   455 I boot_progress_start: 6598
+10-17 17:55:42.775   455   455 I boot_progress_preload_start: 7186
+10-17 17:55:43.216   455   455 I boot_progress_preload_end: 7627
+10-17 17:55:43.499   659   659 I boot_progress_system_run: 7910
+10-17 17:55:43.638   659   659 I boot_progress_pms_start: 8049
+10-17 17:55:43.651   659   659 I boot_progress_pms_system_scan_start: 8062
+10-17 17:55:44.576   659   659 I boot_progress_pms_data_scan_start: 8987
+10-17 17:55:44.579   659   659 I boot_progress_pms_scan_end: 8989
+10-17 17:55:44.661   659   659 I boot_progress_pms_ready: 9072
+## counts in the 'all' buffer at stop
+ActivityManager 'binder error: kill 509 Async binder space running out while frozen': 27165
+composer (473) BR_FAILED_REPLY 'Binder buffer full': 13955
+pid 473 = android.hardware.graphics.composer3-service.ranchu, pid 509 = surfaceflinger (ps at 11 min)
+## first lines of the loop
+10-17 17:59:54.204   659   696 I ActivityManager: binder error: kill 509 Async binder space running out while frozen
+10-17 17:59:54.219   659   696 I ActivityManager: binder error: kill 509 Async binder space running out while frozen
+10-17 17:59:54.236   659   696 I ActivityManager: binder error: kill 509 Async binder space running out while frozen
+10-17 17:59:54.253   659   696 I ActivityManager: binder error: kill 509 Async binder space running out while frozen
+## guest load at 11 min: 'load average: 1189.14, 778.81, 370.09'; system_server 100% CPU
