@@ -1,0 +1,105 @@
+# anal192d, default "OpenBook" boot (SELinux enforcing), 2026-10-18 11:00:41-11:59Z: Wi-Fi, Bluetooth and audio lines
+# From live-001/prior/misc/logd (persisted logcat), redacted: MAC and Bluetooth addresses, IPv4, network names and IDs.
+
+## Denials (permissive=0 = enforcing), all domains, grouped (each event is logged twice: auditd and the process)
+    130 permissive=0 { setattr } isolated_app app_data_file file
+     52 permissive=0 { read } openbook_installd sysfs_batteryinfo file
+     32 permissive=0 { read } platform_app bluetooth_lea_prop file
+      6 permissive=0 { find } isolated_app content_capture_service service_manager
+      4 permissive=1 { read } kernel rootfs chr_file
+      2 permissive=1 { write } kernel rootfs chr_file
+      2 permissive=1 { search } kernel init dir
+      2 permissive=1 { read } kernel init file
+      2 permissive=1 { open } kernel init file
+      2 permissive=0 { search } openbook_installd openbook_vendor_fw_file dir
+      2 permissive=0 { read write } mediaserver audioserver_tmpfs file
+      2 permissive=0 { read } system_server wifi_hal_prop file
+      2 permissive=0 { read } platform_app bluetooth_finder_prop file
+      1 permissive=0 { find } keystore hal_gatekeeper_service service_manager
+
+## Audio: the unlock sound at boot (SoundPool) and the track AudioFlinger created for it
+10-18 11:01:04.303215 10086 3492 3492 D KeyguardViewMediator: keyguardDone: 0
+10-18 11:01:04.353131 1041 1000 1103 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+
+## Audio: SystemUI's low-battery sound through MediaPlayer in mediaserver (the one MediaPlayer sound of the session)
+10-18 11:51:48.427245 10086 3492 7633 D RingtonePlayer: playAsync(uri=file:///product/media/audio/ui/OpenBook_LowBattery.ogg, user=UserHandle{-1})
+10-18 11:51:48.427770 10086 3492 7633 D RingtonePlayer: play uri=file:///product/media/audio/ui/OpenBook_LowBattery.ogg
+10-18 11:51:48.432195 media 1054 3484 D NuPlayerDriver: NuPlayerDriver(0x73f08ee04bd0) created, clientPid(3492)
+10-18 11:51:48.946980 10086 3492 11973 D RingtonePlayer: player.start piid:207
+10-18 11:51:48.957999 media 1054 11981 E libbinder.IPCThreadState: Binder transaction failure. id: 1868846, cmd: BR_FAILED_REPLY (29201), error: -1 (Operation not permitted)
+10-18 11:51:48.958005 media 1054 11981 E AudioTrack: createTrack_l(0): Could not get control block
+10-18 11:51:48.952000 1041 1000 1000 I auditd : type=1400 audit(0.0:143): avc: denied { read write } for comm="audioserver" path=2F6D656D66643A4D656D6F72794865617042617365202864656C6574656429 dev="tmpfs" ino=11867 scontext=u:r:mediaserver:s0 tcontext=u:object_
+10-18 11:51:48.958152 media 1054 11981 E AudioSink: Unable to create audio track
+10-18 11:51:48.958220 media 1054 11975 E NuPlayer: received error(0xffffffed) from audio decoder, flushing(0), now shutting down
+10-18 11:51:48.958457 10086 3492 11973 E MediaPlayer: Error (1,-19)
+10-18 11:51:48.958527 10086 3492 11973 E RingtonePlayer: error 1 (extra=-19) playing notification
+
+## Audio: HAL warnings over the whole boot
+0 inserting [0-9]* frames of silence
+0 dropping [0-9]* frames
+0 skipping transfer
+0 Error writing into ALSA
+0 Error reading from ALSA
+
+## Audio: media audio focus requests (apps that played), per package
+     18 USAGE_MEDIA/CONTENT_TYPE_UNKNOWN com.android.chrome
+      1 USAGE_MEDIA/CONTENT_TYPE_UNKNOWN org.chromium.webview_shell
+      1 USAGE_NOTIFICATION_EVENT/CONTENT_TYPE_SONIFICATION com.android.systemui
+
+## Headphone jack
+10-18 11:00:59.962672 1000 1220 1220 D SystemServerTiming: StartWiredAccessoryManager
+10-18 11:00:59.962871 1000 1220 1220 W WiredAccessoryManager: This kernel does not have usb audio support
+10-18 11:00:59.962898 1000 1220 1220 W WiredAccessoryManager: This kernel does not have HDMI audio support
+10-18 11:00:59.962907 1000 1220 1220 V SystemServerTiming: StartWiredAccessoryManager took to complete: 1ms
+10-18 11:01:03.652272 1000 1220 1220 W WiredAccessoryManager: Both input event and extcon are used for audio jack, please just choose one.
+10-18 11:01:03.742865 1000 1220 1220 I Telecom : WiredHeadsetManager: ACTION_HEADSET_PLUG event, plugged in: false, : WHC.oADA@AAI❗
+10-18 11:27:13.096765 1000 1220 1220 I Telecom : WiredHeadsetManager: ACTION_HEADSET_PLUG event, plugged in: false, : WHC.oADA@AF4❗
+10-18 11:56:34.249333 1000 1220 1220 I Telecom : WiredHeadsetManager: ACTION_HEADSET_PLUG event, plugged in: false, : WHC.oADR@AL8❗
+
+## Wi-Fi
+10-18 11:01:04.518753 1000 1220 3397 D WifiLockManager: handleScreenStateChanged: screenOn = true
+10-18 11:01:04.518801 1000 1220 3397 V WifiConnectivityManager: handleScreenStateChanged: screenOn=true
+10-18 11:02:18.996068 1000 1220 3397 I WifiCountryCode: Receive onDriverCountryCodeChanged 00
+10-18 11:02:28.729667 wifi 5018 5018 I wpa_supplicant: wlan0: SME: Trying to authenticate with xx:xx:xx:xx:xx:xx (SSID=<ssid> freq=2437 MHz)
+10-18 11:02:29.246132 1000 1220 3397 I WifiCountryCode: Receive onDriverCountryCodeChanged US
+10-18 11:02:29.332286 wifi 5018 5018 I wpa_supplicant: wlan0: CTRL-EVENT-CONNECTED - Connection to xx:xx:xx:xx:xx:xx completed [id=0 id_str=[redacted]]
+10-18 11:02:30.279349 1073 3576 5112 D NetworkMonitor/100: PROBE_HTTP http://connectivitycheck.gstatic.com/generate_204 time=24ms ret=204 request={Connection=[close], User-Agent=[Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.
+10-18 11:02:30.303674 1073 3576 5111 D NetworkMonitor/100: PROBE_HTTPS https://www.google.com/generate_204 time=63ms ret=204 request={Connection=[close], User-Agent=[Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.32 Saf
+
+## Bluetooth: state, pairing, A2DP
+10-18 11:01:04.516432 1000 1220 2725 D BluetoothSystemServer: BluetoothManagerService: MESSAGE_BLUETOOTH_STATE_CHANGE: prevState=BLE_TURNING_ON newState=BLE_ON
+10-18 11:01:04.541810 1000 1220 2725 D BluetoothSystemServer: BluetoothManagerService: MESSAGE_BLUETOOTH_STATE_CHANGE: prevState=TURNING_ON newState=ON
+10-18 11:02:21.024880 1000 1220 2725 D BluetoothSystemServer: BluetoothManagerService: disable(com.android.systemui, true): mAdapter=[Binder=93004725, createdAt=10-18 11:01:03.676] mEnable=true mBleAppManager={} isBinding=false mState=ON
+10-18 11:02:21.030643 1000 1220 2725 D BluetoothSystemServer: BluetoothManagerService: MESSAGE_BLUETOOTH_STATE_CHANGE: prevState=TURNING_OFF newState=BLE_TURNING_OFF
+10-18 11:02:21.232872 1000 1220 2725 D BluetoothSystemServer: BluetoothManagerService: MESSAGE_BLUETOOTH_STATE_CHANGE: prevState=BLE_TURNING_OFF newState=OFF
+10-18 11:27:01.461349 1000 1220 2725 D BluetoothSystemServer: BluetoothManagerService: enable(com.android.systemui): mAdapter=null isBinding=false mState=OFF
+10-18 11:27:02.014221 1000 1220 2725 D BluetoothSystemServer: BluetoothManagerService: MESSAGE_BLUETOOTH_STATE_CHANGE: prevState=BLE_TURNING_ON newState=BLE_ON
+10-18 11:27:02.026762 1000 1220 2725 D BluetoothSystemServer: BluetoothManagerService: MESSAGE_BLUETOOTH_STATE_CHANGE: prevState=TURNING_ON newState=ON
+10-18 11:27:11.575768 1002 10775 10805 I BluetoothBondStateMachine: bondStateChangeCallback: Status: 0 Address: xx:xx:xx:xx:xx:xx Transport: 1 newState: BOND_BONDED pairingAlgorithm: 3 hciReason: 0
+10-18 11:27:12.130787 1002 10775 10775 I A2dpStateMachine: Enter Disconnected(xx:xx:xx:xx:xx:xx): -2
+10-18 11:27:12.804997 1002 10775 10796 I bluetooth-a2dp: system/btif/co/bta_av_co.cc:984 ReportSourceCodecState: peer xx:xx:xx:xx:xx:xx codec_config=codec: AAC priority: 2001 sample_rate: 44100 bits_per_sample: 16 channel_mode: STEREO codec_specific_1: 0 codec
+10-18 11:27:12.901515 1002 10775 10775 I A2dpStateMachine: Enter Connected(xx:xx:xx:xx:xx:xx): CONNECTION_STATE_CHANGED
+10-18 11:27:12.918445 1002 10775 10796 I bluetooth-a2dp: system/btif/co/bta_av_co.cc:984 ReportSourceCodecState: peer xx:xx:xx:xx:xx:xx codec_config=codec: AAC priority: 2001 sample_rate: 44100 bits_per_sample: 16 channel_mode: STEREO codec_specific_1: 0 codec
+10-18 11:27:13.002243 1041 1000 1000 I AudioFlinger: openOutput() this 0x7d4db94083c0, module 26 Device AUDIO_DEVICE_OUT_BLUETOOTH_A2DP, @:SUPPRESSED, SamplingRate 44100, Format 0x000001, Channels 0x3, flags 0
+10-18 11:27:39.304234 1002 10775 10796 I bluetooth-a2dp: system/btif/src/btif_a2dp.cc:55 btif_a2dp_on_started: ## ON A2DP STARTED ## peer xx:xx:xx:xx:xx:xx p_av_start:0x71fb65c3c810
+10-18 11:27:39.304367 1041 995 995 I BTAudioSessionAidl: ReportControlStatus - status=SUCCESS for SessionType=A2DP_SOFTWARE_ENCODING_DATAPATH, bluetooth_audio=0x0100 started
+10-18 11:27:53.292435 1002 10775 10796 I bluetooth-a2dp: system/btif/src/btif_a2dp.cc:114 btif_a2dp_on_suspended: ## ON A2DP SUSPENDED ## p_av_suspend=0x71fb65c483f0
+10-18 11:27:53.292836 1041 995 995 I BTAudioSessionAidl: ReportControlStatus - status=SUCCESS for SessionType=A2DP_SOFTWARE_ENCODING_DATAPATH, bluetooth_audio=0x0100 suspended
+10-18 11:27:54.976851 1002 10775 10796 I bluetooth-a2dp: system/btif/src/btif_a2dp.cc:55 btif_a2dp_on_started: ## ON A2DP STARTED ## peer xx:xx:xx:xx:xx:xx p_av_start:0x71fb65c15a20
+10-18 11:27:54.977120 1041 995 995 I BTAudioSessionAidl: ReportControlStatus - status=SUCCESS for SessionType=A2DP_SOFTWARE_ENCODING_DATAPATH, bluetooth_audio=0x0100 started
+10-18 11:28:28.756373 1002 10775 10796 I bluetooth-a2dp: system/btif/src/btif_a2dp.cc:114 btif_a2dp_on_suspended: ## ON A2DP SUSPENDED ## p_av_suspend=0x71fb65c15a20
+10-18 11:28:28.756623 1041 995 995 I BTAudioSessionAidl: ReportControlStatus - status=SUCCESS for SessionType=A2DP_SOFTWARE_ENCODING_DATAPATH, bluetooth_audio=0x0100 suspended
+10-18 11:28:33.152230 1002 10775 10796 I bluetooth-a2dp: system/btif/src/btif_a2dp.cc:55 btif_a2dp_on_started: ## ON A2DP STARTED ## peer xx:xx:xx:xx:xx:xx p_av_start:0x71fb65c3eac0
+10-18 11:28:33.152378 1041 995 995 I BTAudioSessionAidl: ReportControlStatus - status=SUCCESS for SessionType=A2DP_SOFTWARE_ENCODING_DATAPATH, bluetooth_audio=0x0100 started
+10-18 11:54:19.844288 1002 10775 10796 I bluetooth-a2dp: system/btif/src/btif_a2dp.cc:114 btif_a2dp_on_suspended: ## ON A2DP SUSPENDED ## p_av_suspend=0x71fb65c4a310
+10-18 11:54:19.844597 1041 995 995 I BTAudioSessionAidl: ReportControlStatus - status=SUCCESS for SessionType=A2DP_SOFTWARE_ENCODING_DATAPATH, bluetooth_audio=0x0100 suspended
+10-18 11:55:13.212574 1002 10775 10796 I bluetooth-a2dp: system/btif/src/btif_a2dp.cc:55 btif_a2dp_on_started: ## ON A2DP STARTED ## peer xx:xx:xx:xx:xx:xx p_av_start:0x71fb65c334e0
+10-18 11:55:13.212695 1041 995 995 I BTAudioSessionAidl: ReportControlStatus - status=SUCCESS for SessionType=A2DP_SOFTWARE_ENCODING_DATAPATH, bluetooth_audio=0x0100 started
+10-18 11:56:07.896166 1002 10775 10796 I bluetooth-a2dp: system/btif/src/btif_a2dp.cc:114 btif_a2dp_on_suspended: ## ON A2DP SUSPENDED ## p_av_suspend=0x71fb65c4dd00
+10-18 11:56:07.896347 1041 995 995 I BTAudioSessionAidl: ReportControlStatus - status=SUCCESS for SessionType=A2DP_SOFTWARE_ENCODING_DATAPATH, bluetooth_audio=0x0100 suspended
+10-18 11:56:34.239762 1002 10775 10775 I A2dpStateMachine: Enter Disconnected(xx:xx:xx:xx:xx:xx): CONNECTION_STATE_CHANGED
+10-18 11:59:04.525512 1000 1220 2725 D BluetoothSystemServer: BluetoothManagerService: MESSAGE_BLUETOOTH_STATE_CHANGE: prevState=TURNING_OFF newState=BLE_TURNING_OFF
+10-18 11:59:04.728754 1000 1220 2725 D BluetoothSystemServer: BluetoothManagerService: MESSAGE_BLUETOOTH_STATE_CHANGE: prevState=BLE_TURNING_OFF newState=OFF
+
+## Bluetooth: A2DP source warnings (underflow, drops)
+0 lines
