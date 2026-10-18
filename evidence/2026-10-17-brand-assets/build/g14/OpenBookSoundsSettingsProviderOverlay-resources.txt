@@ -1,0 +1,18 @@
+package: name='dev.anybook.overlay.sounds.settingsprovider' versionCode='37' versionName='17' platformBuildVersionName='17' platformBuildVersionCode='37' compileSdkVersion='37' compileSdkVersionCodename='17'
+minSdkVersion:'37'
+targetSdkVersion:'37'
+Binary APK
+Package name=dev.anybook.overlay.sounds.settingsprovider id=7f
+  type string id=01 entryCount=6
+    resource 0x7f010000 string/def_charging_started_sound
+      () "/product/media/audio/ui/OpenBook_ChargingStarted.ogg"
+    resource 0x7f010001 string/def_lock_sound
+      () "/product/media/audio/ui/OpenBook_Lock.ogg"
+    resource 0x7f010002 string/def_low_battery_sound
+      () "/product/media/audio/ui/OpenBook_LowBattery.ogg"
+    resource 0x7f010003 string/def_trusted_sound
+      () "/product/media/audio/ui/OpenBook_Trusted.ogg"
+    resource 0x7f010004 string/def_unlock_sound
+      () "/product/media/audio/ui/OpenBook_Unlock.ogg"
+    resource 0x7f010005 string/def_wireless_charging_started_sound
+      () "/product/media/audio/ui/OpenBook_ChargingStarted.ogg"

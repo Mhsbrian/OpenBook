@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 1: box shadows on freeform windows (WM Shell window decoration)
+flag_value {
+  package: "com.android.window.flags"
+  name: "enable_freeform_box_shadows_v2"
+  state: ENABLED
+  permission: READ_ONLY
+}

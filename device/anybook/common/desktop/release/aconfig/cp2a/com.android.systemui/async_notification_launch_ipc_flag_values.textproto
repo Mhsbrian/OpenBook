@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 5: notification clicks do their binder calls off the main thread
+flag_value {
+  package: "com.android.systemui"
+  name: "async_notification_launch_ipc"
+  state: ENABLED
+  permission: READ_ONLY
+}

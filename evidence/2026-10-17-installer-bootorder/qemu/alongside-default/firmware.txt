@@ -1,0 +1,15 @@
+# Serial console before Android: the Windows stand-in (efi-standin.c), then OVMF's boot menu (escape codes removed)
+OPENBOOK-TEST windows-standin started: BootCurrent=0007 BootOrder=0007,0002,0003,0000,0001,0004,0005
+OPENBOOK-TEST windows-standin: returning to the firmware
+
+# Boot menu
+Please select boot device:
+Windows Boot Manager
+UEFI QEMU QEMU USB HARDDRIVE 1-0000:00:01.0-1
+UEFI QEMU NVMe Ctrl internal0 1
+EFI Firmware Setup
+EFI Internal Shell
+OpenBook
+↑ and ↓ to move selection
+ENTER to select boot device
+ESC to exit

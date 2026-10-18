@@ -1,0 +1,12 @@
+package: name='dev.anybook.overlay.desktop.framework' versionCode='37' versionName='17' platformBuildVersionName='17' platformBuildVersionCode='37' compileSdkVersion='37' compileSdkVersionCodename='17'
+minSdkVersion:'37'
+targetSdkVersion:'37'
+Binary APK
+Package name=dev.anybook.overlay.desktop.framework id=7f
+--
+      () true
+  type drawable id=03 entryCount=1
+    resource 0x7f030000 drawable/default_wallpaper
+      (nodpi) (file) res/drawable-nodpi-v4/default_wallpaper.jpg
+      (sw600dp-nodpi) (file) res/drawable-sw600dp-nodpi-v13/default_wallpaper.jpg
+      (sw720dp-nodpi) (file) res/drawable-sw720dp-nodpi-v13/default_wallpaper.jpg

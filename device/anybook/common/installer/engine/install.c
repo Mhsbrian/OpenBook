@@ -656,7 +656,7 @@ static void plan_core(struct layout *L, struct jw *w) {
     jw_str(w, "entry", "loader/entries/openbook-a.conf");
     jw_bool(w, "fallback_path", !L->shared_esp);
     jw_str(w, "nvram", E.efivars ? "planned" : "unavailable");
-    jw_str(w, "boot_order", !E.efivars ? "unchanged" : L->r->set_default ? "first" : "unchanged");
+    jw_str(w, "boot_order", !E.efivars ? "unchanged" : L->r->set_default ? "first" : "last");
     jw_bool(w, "set_default", L->r->set_default);
     jw_endo(w);
     uint64_t verify = L->write_bytes;
@@ -665,7 +665,6 @@ static void plan_core(struct layout *L, struct jw *w) {
     jw_int(w, "estimated_seconds", (long long)((L->source_bytes + L->write_bytes + verify) / (120.0 * 1e6)) + 10);
     jw_arr(w, "warnings");
     if (!E.efivars) jw_str(w, NULL, "nvram_unavailable");
-    else if (!L->r->set_default) jw_str(w, NULL, "boot_order_unchanged");
     if (t->external) jw_str(w, NULL, "external");
     if (t->encrypted) jw_str(w, NULL, L->whole ? "encrypted_erased" : "encrypted_kept");
     jw_enda(w);
@@ -745,7 +744,8 @@ static void plan_core(struct layout *L, struct jw *w) {
         op(w, "nvram", "After verification: add one firmware boot entry, a free Boot####, \"OpenBook\" -> "
                        "HD(%u, GPT, %s)/\\EFI\\OpenBook\\systemd-bootx64.efi; %s",
            li, lu, L->r->set_default ? "put it first in BootOrder, keeping the other entries in their order"
-                                     : "BootOrder unchanged (no consent to change the boot order)");
+                                     : "add it at the end of BootOrder, so the system that starts now stays the "
+                                       "default (no consent to change it)");
     } else
         op(w, "nvram", "No firmware boot entry: this kernel has no efivarfs (docs/installer.md decision 6)%s",
            L->shared_esp ? "; pick OpenBook from the firmware's boot menu or add an entry in its setup"
@@ -1428,7 +1428,7 @@ out_json:;
         char nb[16];
         snprintf(nb, sizeof nb, "Boot%04X", nv_res.num);
         jw_str(&w, "nvram_entry", nv_res.created ? nb : NULL);
-        jw_str(&w, "boot_order", nv_res.order ? nv_res.order : "unchanged");
+        jw_str(&w, "boot_order", nv_res.order ? nv_res.order : "unchanged");  // unchanged: no entry was created
         jw_str(&w, "nvram_error", nv_res.why[0] ? nv_res.why : NULL);
     }
     jw_bool(&w, "fallback_path", have_layout && !L.shared_esp && verified_ok);

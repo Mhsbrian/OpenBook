@@ -1,0 +1,1 @@
+avc denials in logcat: 0

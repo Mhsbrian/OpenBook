@@ -1,0 +1,19 @@
+# ANAL-205 builds, one hold of the AOSP lane lock (scripts/aosp-docker.sh + scripts/aosp-build.sh, -j24)
+## build-20261018T003319Z.log
+=== 2026-10-18T00:33:19Z target anybook_cf_x86_64_pc-cp2a-userdebug goals droid -j24 on 32 CPUs
+=== 2026-10-18T00:33:19Z synced device/anybook from /repo (AnyBook c861cf4)
+=== 2026-10-18T00:55:23Z m exit 0
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 22:01.85
+	Maximum resident set size (kbytes): 47802288
+## build-20261018T005545Z.log
+=== 2026-10-18T00:55:45Z target anybook_cf_x86_64_pc-cp2a-userdebug goals droid -j24 on 32 CPUs
+=== 2026-10-18T00:55:45Z synced device/anybook from /repo (AnyBook fdd811f-dirty)
+=== 2026-10-18T00:57:31Z m exit 0
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:43.78
+	Maximum resident set size (kbytes): 24394760
+## build-20261018T005739Z.log
+=== 2026-10-18T00:57:39Z target anybook_g14_x86_64-cp2a-userdebug goals droid -j24 on 32 CPUs
+=== 2026-10-18T00:57:39Z synced device/anybook from /repo (AnyBook fdd811f-dirty)
+=== 2026-10-18T01:27:34Z m exit 0
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 29:52.39
+	Maximum resident set size (kbytes): 46017272

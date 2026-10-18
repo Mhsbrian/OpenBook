@@ -297,11 +297,11 @@ void drop_cache(int fd);
 struct nvram_result {
     int created;        // the Boot#### variable exists and reads back as written
     int num;            // its number, -1 if none
-    const char *order;  // "first", "unchanged" or "failed"
+    const char *order;  // where it went in BootOrder: "first", "last" or "failed"; NULL if not created
     char why[200];
 };
-// Create one Boot#### entry: desc -> HD(partnum, start_lba, size_lba, guid)/path. set_first: put it first in
-// BootOrder (the user's consent, S11); otherwise BootOrder is left alone.
+// Create one Boot#### entry: desc -> HD(partnum, start_lba, size_lba, guid)/path, and add it to BootOrder: first with
+// the user's consent (set_first, S11), otherwise last. No other variable or entry changes.
 int nvram_add_entry(const char *desc, uint32_t partnum, uint64_t start_lba, uint64_t size_lba, const uint8_t guid[16],
                     const char *path, int set_first, struct nvram_result *res);
 void nvram_json(struct jw *w);  // "nvram": BootOrder, BootCurrent and every Boot#### entry, read-only

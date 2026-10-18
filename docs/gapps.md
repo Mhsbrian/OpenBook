@@ -130,9 +130,9 @@ Status as of 2026-10-17. Evidence: `evidence/2026-10-17-microg/`, starting with 
 ### 6.1 What ships
 
 **In every image (both products): the framework patch**, `aosp/patches/frameworks/base/`:
-- `0001` LineageOS `198fa72864` "Allow signature spoofing for microG Companion/Services" and `0002` `03da1783cb` "ServiceWatcher: Allow microG location provider to be installed in /data". Both are cherry-picked from `lineage-24.0` unchanged, with their authors, dates and Apache-2.0 headers. A trailer names the source commit.
-- `0003` OpenBook: drops the `isDebuggable()` condition, so user builds behave as userdebug ones. We wrote it ourselves: lineageos4microg's equivalent four-line patch is GPL-3.0.
-- All three apply to our pin `94b4c163` with `scripts/aosp-patches.sh`. Both products build.
+- `0002` LineageOS `198fa72864` "Allow signature spoofing for microG Companion/Services" and `0003` `03da1783cb` "ServiceWatcher: Allow microG location provider to be installed in /data". Both are cherry-picked from `lineage-24.0` unchanged, with their authors, dates and Apache-2.0 headers. A trailer names the source commit.
+- `0004` OpenBook: drops the `isDebuggable()` condition, so user builds behave as userdebug ones. We wrote it ourselves: lineageos4microg's equivalent four-line patch is GPL-3.0.
+- All three apply to our pin `94b4c163` with `scripts/aosp-patches.sh`, after B7's `0001` (fonts.xml) since `main` merged it. Both products build.
 
 **In the PC product (the G14): `openbook-addons` and its catalogue.**
 - `device/anybook/common/addons/`: a small C service and `/system_ext/etc/openbook/addons/microg.json`.

@@ -113,7 +113,14 @@ data class PlanPart(
 
 data class Operation(val op: String, val text: String)
 
-data class BootPlan(val entry: String, val fallbackPath: Boolean, val nvram: String, val setDefault: Boolean)
+data class BootPlan(
+    val entry: String,
+    val fallbackPath: Boolean,
+    val nvram: String,
+    /** `first` (set_default), `last` (OpenBook in the boot menu, the default unchanged) or `unchanged` (no efivarfs). */
+    val bootOrder: String,
+    val setDefault: Boolean,
+)
 
 data class Plan(
     val sha256: String,
@@ -132,7 +139,10 @@ data class Plan(
     val boot: BootPlan,
     val warnings: List<String>,
     val operations: List<Operation>,
-)
+) {
+    /** The one system kept next to OpenBook ("Windows"); null when there is none, or several. */
+    val keptSystem: String? get() = keeps.map { it.os }.filter { it.isNotEmpty() }.distinct().singleOrNull()
+}
 
 data class InstallResult(
     val ok: Boolean,
@@ -319,7 +329,13 @@ object Parse {
             after = segments(p.optJSONArray("after")),
             bytesToWrite = p.long("bytes_to_write"),
             estimatedSeconds = p.intOrNull("estimated_seconds") ?: 0,
-            boot = BootPlan(boot.text("entry"), boot.bool("fallback_path"), boot.text("nvram"), boot.bool("set_default")),
+            boot = BootPlan(
+                boot.text("entry"),
+                boot.bool("fallback_path"),
+                boot.text("nvram"),
+                boot.text("boot_order"),
+                boot.bool("set_default"),
+            ),
             warnings = p.optJSONArray("warnings").strings(),
             operations = p.optJSONArray("operations").mapObjects { Operation(it.text("op"), it.text("text")) },
         )

@@ -113,7 +113,7 @@
 | 🚧 | **M6** ARM app compatibility | Our build ships the open Digitalis bridge, built from source: 14 of 16 ARM-only test apps run in a VM, up from 13 with Google's translator. Its self-check passes on the G14's Zen 5; ARM apps on the laptop are next |
 | 🚧 | **M8** USB installer | The live USB boots on the G14. In a VM the installer passes 79/79 end-to-end checks: a whole disk; alongside Windows with Windows untouched; power cuts at six points; reinstall. It also creates its own firmware boot entry. The G14 dry run is next ([`docs/INSTALL.md`](docs/INSTALL.md)) |
 | 🚧 | **M5** Desktop, input and power on the laptop | On the G14: desktop, touchpad, keyboard, Wi-Fi with internet, Bluetooth pairing, battery health and lid sleep/wake all work, with no dropped frames. Deep sleep (S0i3) is under investigation |
-| ⏳ | **M7** Performance and parity | Later |
+| 🚧 | **M7** Performance and parity | **The Googlebook look, in a VM:** Google Sans, circular icons, background blur, a clean desktop, Googlebook's desktop feature flags, and OpenBook's own wallpapers, boot animation, sounds and pointer. On the next G14 stick. Benchmarks later |
 
 > [!TIP]
 > **Milestone, 2026-10-17: the Android desktop on real hardware.** Our Android 17 build boots from a live USB stick to the desktop on the G14's own panel, **with SELinux enforcing**, in 28 s. Wi-Fi reached the internet, Bluetooth paired, and the touchpad and keyboard worked ([screenshot above](#running-today-on-the-g14)). A follow-up stick brought dropped frames from 151 to 0. [Read the report →](evidence/2026-10-17-g14-desktop/g14-anal176s/SUMMARY.md)

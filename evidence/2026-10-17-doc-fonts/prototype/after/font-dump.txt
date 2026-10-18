@@ -1,0 +1,628 @@
+Named Family List
+  Named Family (sans-serif)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /system/fonts/Roboto-Regular.ttf, axes = 'wdth' 100.0, rev=3.015
+  Named Family (sans-serif-smallcaps)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /system/fonts/CarroisGothicSC-Regular.ttf, rev=1.002
+  Named Family (casual)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /system/fonts/ComingSoon.ttf, rev=1.002
+  Named Family (serif-monospace)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /system/fonts/CutiveMono.ttf, rev=1.100
+  Named Family (cursive)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /system/fonts/DancingScript-Regular.ttf, rev=2.001
+  Named Family (sans-serif-condensed)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /system/fonts/Roboto-Regular.ttf, axes = 'wdth' 75.0, rev=3.015
+  Named Family (roboto)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /system/fonts/Roboto-Regular.ttf, axes = 'wdth' 100.0, rev=3.015
+  Named Family (roboto-flex)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /system/fonts/RobotoFlex-Regular.ttf, axes = 'wdth' 100.0, rev=3.000
+  Named Family (source-sans-pro)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /system/fonts/SourceSansPro-Regular.ttf, rev=2.021
+      style = FontStyle { weight=400, slant=1}, path = /system/fonts/SourceSansPro-Italic.ttf, rev=1.076
+      style = FontStyle { weight=600, slant=0}, path = /system/fonts/SourceSansPro-SemiBold.ttf, rev=2.021
+      style = FontStyle { weight=600, slant=1}, path = /system/fonts/SourceSansPro-SemiBoldItalic.ttf, rev=1.076
+      style = FontStyle { weight=700, slant=0}, path = /system/fonts/SourceSansPro-Bold.ttf, rev=2.021
+      style = FontStyle { weight=700, slant=1}, path = /system/fonts/SourceSansPro-BoldItalic.ttf, rev=1.076
+  Named Family (serif)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSerif-Regular.ttf, rev=1.070
+      style = FontStyle { weight=700, slant=0}, path = /system/fonts/NotoSerif-Bold.ttf, rev=1.070
+      style = FontStyle { weight=400, slant=1}, path = /system/fonts/NotoSerif-Italic.ttf, rev=1.070
+      style = FontStyle { weight=700, slant=1}, path = /system/fonts/NotoSerif-BoldItalic.ttf, rev=1.070
+  Named Family (monospace)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /system/fonts/DroidSansMono.ttf, rev=1.000
+  Named Family (variable-display-small)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 400.0,'wdth' 100.0,'opsz' 36.0, rev=5.000
+  Named Family (google-sans-bold)
+    Family
+      style = FontStyle { weight=700, slant=0}, path = /product/fonts/GoogleSans-VF.ttf, axes = 'opsz' 18.0,'wght' 700.0, rev=14.000
+  Named Family (variable-headline-large)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 400.0,'wdth' 100.0,'opsz' 32.0, rev=5.000
+  Named Family (google-sans-text-medium)
+    Family
+      style = FontStyle { weight=500, slant=0}, path = /product/fonts/GoogleSans-VF.ttf, axes = 'opsz' 17.0,'wght' 500.0, rev=14.000
+      style = FontStyle { weight=700, slant=0}, path = /product/fonts/GoogleSans-VF.ttf, axes = 'opsz' 17.0,'wght' 700.0, rev=14.000
+  Named Family (comic-relief)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /product/fonts/ComicRelief-Regular.ttf, rev=1.200
+      style = FontStyle { weight=700, slant=0}, path = /product/fonts/ComicRelief-Bold.ttf, rev=1.200
+  Named Family (variable-label-small)
+    Family
+      style = FontStyle { weight=500, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 500.0,'wdth' 100.0,'opsz' 11.0, rev=5.000
+  Named Family (variable-body-small)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 400.0,'wdth' 100.0,'opsz' 12.0, rev=5.000
+  Named Family (variable-label-medium-emphasized)
+    Family
+      style = FontStyle { weight=600, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 600.0,'wdth' 100.0,'ROND' 100.0,'opsz' 12.0, rev=5.000
+  Named Family (variable-body-medium-emphasized)
+    Family
+      style = FontStyle { weight=500, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 500.0,'wdth' 100.0,'ROND' 100.0,'opsz' 14.0, rev=5.000
+  Named Family (google-sans-text-bold)
+    Family
+      style = FontStyle { weight=700, slant=0}, path = /product/fonts/GoogleSans-VF.ttf, axes = 'opsz' 17.0,'wght' 700.0, rev=14.000
+  Named Family (google-sans-text-italic)
+    Family
+      style = FontStyle { weight=400, slant=1}, path = /product/fonts/GoogleSans-Italic-VF.ttf, axes = 'opsz' 17.0,'wght' 400.0, rev=14.000
+      style = FontStyle { weight=500, slant=1}, path = /product/fonts/GoogleSans-Italic-VF.ttf, axes = 'opsz' 17.0,'wght' 500.0, rev=14.000
+      style = FontStyle { weight=700, slant=1}, path = /product/fonts/GoogleSans-Italic-VF.ttf, axes = 'opsz' 17.0,'wght' 700.0, rev=14.000
+  Named Family (cousine)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /product/fonts/Cousine-Regular.ttf, rev=1.241
+      style = FontStyle { weight=700, slant=0}, path = /product/fonts/Cousine-Bold.ttf, rev=1.241
+      style = FontStyle { weight=400, slant=1}, path = /product/fonts/Cousine-Italic.ttf, rev=1.241
+      style = FontStyle { weight=700, slant=1}, path = /product/fonts/Cousine-BoldItalic.ttf, rev=1.241
+  Named Family (variable-display-medium)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 400.0,'wdth' 100.0,'opsz' 45.0, rev=5.000
+  Named Family (variable-headline-large-emphasized)
+    Family
+      style = FontStyle { weight=500, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 500.0,'wdth' 100.0,'ROND' 100.0,'opsz' 32.0, rev=5.000
+  Named Family (variable-headline-medium-emphasized)
+    Family
+      style = FontStyle { weight=500, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 500.0,'wdth' 100.0,'ROND' 100.0,'opsz' 28.0, rev=5.000
+  Named Family (variable-headline-small-emphasized)
+    Family
+      style = FontStyle { weight=500, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 500.0,'wdth' 100.0,'ROND' 100.0,'opsz' 24.0, rev=5.000
+  Named Family (variable-title-small-emphasized)
+    Family
+      style = FontStyle { weight=600, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 600.0,'wdth' 100.0,'ROND' 100.0,'opsz' 14.0, rev=5.000
+  Named Family (variable-display-large)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 400.0,'wdth' 100.0,'opsz' 57.0, rev=5.000
+  Named Family (variable-display-medium-emphasized)
+    Family
+      style = FontStyle { weight=500, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 500.0,'wdth' 100.0,'ROND' 100.0,'opsz' 45.0, rev=5.000
+  Named Family (variable-body-small-emphasized)
+    Family
+      style = FontStyle { weight=500, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 500.0,'wdth' 100.0,'ROND' 100.0,'opsz' 12.0, rev=5.000
+  Named Family (variable-label-large-emphasized)
+    Family
+      style = FontStyle { weight=600, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 600.0,'wdth' 100.0,'ROND' 100.0,'opsz' 14.0, rev=5.000
+  Named Family (variable-label-medium)
+    Family
+      style = FontStyle { weight=500, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 500.0,'wdth' 100.0,'opsz' 12.0, rev=5.000
+  Named Family (variable-body-large)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 400.0,'wdth' 100.0,'opsz' 16.0, rev=5.000
+  Named Family (variable-headline-small)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 400.0,'wdth' 100.0,'opsz' 24.0, rev=5.000
+  Named Family (variable-display-small-emphasized)
+    Family
+      style = FontStyle { weight=500, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 500.0,'wdth' 100.0,'ROND' 100.0,'opsz' 36.0, rev=5.000
+  Named Family (google-sans-text)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /product/fonts/GoogleSans-VF.ttf, axes = 'opsz' 17.0,'wght' 400.0, rev=14.000
+      style = FontStyle { weight=500, slant=0}, path = /product/fonts/GoogleSans-VF.ttf, axes = 'opsz' 17.0,'wght' 500.0, rev=14.000
+      style = FontStyle { weight=600, slant=0}, path = /product/fonts/GoogleSans-VF.ttf, axes = 'opsz' 17.0,'wght' 600.0, rev=14.000
+      style = FontStyle { weight=700, slant=0}, path = /product/fonts/GoogleSans-VF.ttf, axes = 'opsz' 17.0,'wght' 700.0, rev=14.000
+      style = FontStyle { weight=400, slant=1}, path = /product/fonts/GoogleSans-Italic-VF.ttf, axes = 'opsz' 17.0,'wght' 400.0, rev=14.000
+      style = FontStyle { weight=500, slant=1}, path = /product/fonts/GoogleSans-Italic-VF.ttf, axes = 'opsz' 17.0,'wght' 500.0, rev=14.000
+      style = FontStyle { weight=600, slant=1}, path = /product/fonts/GoogleSans-Italic-VF.ttf, axes = 'opsz' 17.0,'wght' 600.0, rev=14.000
+      style = FontStyle { weight=700, slant=1}, path = /product/fonts/GoogleSans-Italic-VF.ttf, axes = 'opsz' 17.0,'wght' 700.0, rev=14.000
+  Named Family (archivo-black)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /product/fonts/ArchivoBlack-Regular.ttf, rev=1.006
+  Named Family (google-sans-medium)
+    Family
+      style = FontStyle { weight=500, slant=0}, path = /product/fonts/GoogleSans-VF.ttf, axes = 'opsz' 18.0,'wght' 500.0, rev=14.000
+      style = FontStyle { weight=700, slant=0}, path = /product/fonts/GoogleSans-VF.ttf, axes = 'opsz' 18.0,'wght' 700.0, rev=14.000
+  Named Family (google-sans-flex-clock)
+    Family
+      style = FontStyle { weight=100, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 100.0, rev=5.000
+      style = FontStyle { weight=200, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 200.0, rev=5.000
+      style = FontStyle { weight=300, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 300.0, rev=5.000
+      style = FontStyle { weight=400, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 400.0, rev=5.000
+      style = FontStyle { weight=500, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 500.0, rev=5.000
+      style = FontStyle { weight=600, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 600.0, rev=5.000
+      style = FontStyle { weight=700, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 700.0, rev=5.000
+      style = FontStyle { weight=800, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 800.0, rev=5.000
+      style = FontStyle { weight=900, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 900.0, rev=5.000
+  Named Family (tinos)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /product/fonts/Tinos-Regular.ttf, rev=1.340
+      style = FontStyle { weight=700, slant=0}, path = /product/fonts/Tinos-Bold.ttf, rev=1.340
+      style = FontStyle { weight=400, slant=1}, path = /product/fonts/Tinos-Italic.ttf, rev=1.340
+      style = FontStyle { weight=700, slant=1}, path = /product/fonts/Tinos-BoldItalic.ttf, rev=1.340
+  Named Family (variable-label-small-emphasized)
+    Family
+      style = FontStyle { weight=600, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 600.0,'wdth' 100.0,'ROND' 100.0,'opsz' 11.0, rev=5.000
+  Named Family (google-sans)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /product/fonts/GoogleSans-VF.ttf, axes = 'opsz' 18.0,'wght' 400.0, rev=14.000
+      style = FontStyle { weight=500, slant=0}, path = /product/fonts/GoogleSans-VF.ttf, axes = 'opsz' 18.0,'wght' 500.0, rev=14.000
+      style = FontStyle { weight=600, slant=0}, path = /product/fonts/GoogleSans-VF.ttf, axes = 'opsz' 18.0,'wght' 600.0, rev=14.000
+      style = FontStyle { weight=700, slant=0}, path = /product/fonts/GoogleSans-VF.ttf, axes = 'opsz' 18.0,'wght' 700.0, rev=14.000
+      style = FontStyle { weight=400, slant=1}, path = /product/fonts/GoogleSans-Italic-VF.ttf, axes = 'opsz' 18.0,'wght' 400.0, rev=14.000
+      style = FontStyle { weight=500, slant=1}, path = /product/fonts/GoogleSans-Italic-VF.ttf, axes = 'opsz' 18.0,'wght' 500.0, rev=14.000
+      style = FontStyle { weight=600, slant=1}, path = /product/fonts/GoogleSans-Italic-VF.ttf, axes = 'opsz' 18.0,'wght' 600.0, rev=14.000
+      style = FontStyle { weight=700, slant=1}, path = /product/fonts/GoogleSans-Italic-VF.ttf, axes = 'opsz' 18.0,'wght' 700.0, rev=14.000
+  Named Family (variable-body-large-emphasized)
+    Family
+      style = FontStyle { weight=500, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 500.0,'wdth' 100.0,'ROND' 100.0,'opsz' 16.0, rev=5.000
+  Named Family (variable-title-medium)
+    Family
+      style = FontStyle { weight=500, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 500.0,'wdth' 100.0,'opsz' 16.0, rev=5.000
+  Named Family (variable-title-medium-emphasized)
+    Family
+      style = FontStyle { weight=600, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 600.0,'wdth' 100.0,'ROND' 100.0,'opsz' 16.0, rev=5.000
+  Named Family (google-sans-flex)
+    Family
+      style = FontStyle { weight=100, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 100.0, rev=5.000
+      style = FontStyle { weight=200, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 200.0, rev=5.000
+      style = FontStyle { weight=300, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 300.0, rev=5.000
+      style = FontStyle { weight=400, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 400.0, rev=5.000
+      style = FontStyle { weight=500, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 500.0, rev=5.000
+      style = FontStyle { weight=600, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 600.0, rev=5.000
+      style = FontStyle { weight=700, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 700.0, rev=5.000
+      style = FontStyle { weight=800, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 800.0, rev=5.000
+      style = FontStyle { weight=900, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 900.0, rev=5.000
+      style = FontStyle { weight=100, slant=1}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 100.0,'slnt' -10.0, rev=5.000
+      style = FontStyle { weight=200, slant=1}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 200.0,'slnt' -10.0, rev=5.000
+      style = FontStyle { weight=300, slant=1}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 300.0,'slnt' -10.0, rev=5.000
+      style = FontStyle { weight=400, slant=1}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 400.0,'slnt' -10.0, rev=5.000
+      style = FontStyle { weight=500, slant=1}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 500.0,'slnt' -10.0, rev=5.000
+      style = FontStyle { weight=600, slant=1}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 600.0,'slnt' -10.0, rev=5.000
+      style = FontStyle { weight=700, slant=1}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 700.0,'slnt' -10.0, rev=5.000
+      style = FontStyle { weight=800, slant=1}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 800.0,'slnt' -10.0, rev=5.000
+      style = FontStyle { weight=900, slant=1}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 900.0,'slnt' -10.0, rev=5.000
+  Named Family (variable-title-small)
+    Family
+      style = FontStyle { weight=500, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 500.0,'wdth' 100.0,'opsz' 14.0, rev=5.000
+  Named Family (arimo)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /product/fonts/Arimo-VF.ttf, axes = 'wght' 400.0, rev=1.341
+      style = FontStyle { weight=500, slant=0}, path = /product/fonts/Arimo-VF.ttf, axes = 'wght' 500.0, rev=1.341
+      style = FontStyle { weight=600, slant=0}, path = /product/fonts/Arimo-VF.ttf, axes = 'wght' 600.0, rev=1.341
+      style = FontStyle { weight=700, slant=0}, path = /product/fonts/Arimo-VF.ttf, axes = 'wght' 700.0, rev=1.341
+      style = FontStyle { weight=400, slant=1}, path = /product/fonts/Arimo-Italic-VF.ttf, axes = 'wght' 400.0, rev=1.341
+      style = FontStyle { weight=500, slant=1}, path = /product/fonts/Arimo-Italic-VF.ttf, axes = 'wght' 500.0, rev=1.341
+      style = FontStyle { weight=600, slant=1}, path = /product/fonts/Arimo-Italic-VF.ttf, axes = 'wght' 600.0, rev=1.341
+      style = FontStyle { weight=700, slant=1}, path = /product/fonts/Arimo-Italic-VF.ttf, axes = 'wght' 700.0, rev=1.341
+  Named Family (variable-headline-medium)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 400.0,'wdth' 100.0,'opsz' 28.0, rev=5.000
+  Named Family (google-sans-clock)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 400.0, rev=5.000
+      style = FontStyle { weight=500, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 500.0, rev=5.000
+      style = FontStyle { weight=700, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 700.0, rev=5.000
+  Named Family (archivo-narrow)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /product/fonts/ArchivoNarrow-VF.ttf, axes = 'wght' 400.0, rev=3.002
+      style = FontStyle { weight=500, slant=0}, path = /product/fonts/ArchivoNarrow-VF.ttf, axes = 'wght' 500.0, rev=3.002
+      style = FontStyle { weight=600, slant=0}, path = /product/fonts/ArchivoNarrow-VF.ttf, axes = 'wght' 600.0, rev=3.002
+      style = FontStyle { weight=700, slant=0}, path = /product/fonts/ArchivoNarrow-VF.ttf, axes = 'wght' 700.0, rev=3.002
+      style = FontStyle { weight=400, slant=1}, path = /product/fonts/ArchivoNarrow-Italic-VF.ttf, axes = 'wght' 400.0, rev=3.002
+      style = FontStyle { weight=500, slant=1}, path = /product/fonts/ArchivoNarrow-Italic-VF.ttf, axes = 'wght' 500.0, rev=3.002
+      style = FontStyle { weight=600, slant=1}, path = /product/fonts/ArchivoNarrow-Italic-VF.ttf, axes = 'wght' 600.0, rev=3.002
+      style = FontStyle { weight=700, slant=1}, path = /product/fonts/ArchivoNarrow-Italic-VF.ttf, axes = 'wght' 700.0, rev=3.002
+  Named Family (variable-display-large-emphasized)
+    Family
+      style = FontStyle { weight=500, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 500.0,'wdth' 100.0,'ROND' 100.0,'opsz' 57.0, rev=5.000
+  Named Family (gelasio)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /product/fonts/Gelasio-VF.ttf, axes = 'wght' 400.0, rev=1.008
+      style = FontStyle { weight=500, slant=0}, path = /product/fonts/Gelasio-VF.ttf, axes = 'wght' 500.0, rev=1.008
+      style = FontStyle { weight=600, slant=0}, path = /product/fonts/Gelasio-VF.ttf, axes = 'wght' 600.0, rev=1.008
+      style = FontStyle { weight=700, slant=0}, path = /product/fonts/Gelasio-VF.ttf, axes = 'wght' 700.0, rev=1.008
+      style = FontStyle { weight=400, slant=1}, path = /product/fonts/Gelasio-Italic-VF.ttf, axes = 'wght' 400.0, rev=1.008
+      style = FontStyle { weight=500, slant=1}, path = /product/fonts/Gelasio-Italic-VF.ttf, axes = 'wght' 500.0, rev=1.008
+      style = FontStyle { weight=600, slant=1}, path = /product/fonts/Gelasio-Italic-VF.ttf, axes = 'wght' 600.0, rev=1.008
+      style = FontStyle { weight=700, slant=1}, path = /product/fonts/Gelasio-Italic-VF.ttf, axes = 'wght' 700.0, rev=1.008
+  Named Family (variable-title-large)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 400.0,'wdth' 100.0,'opsz' 22.0, rev=5.000
+  Named Family (variable-title-large-emphasized)
+    Family
+      style = FontStyle { weight=500, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 500.0,'wdth' 100.0,'ROND' 100.0,'opsz' 22.0, rev=5.000
+  Named Family (variable-label-large)
+    Family
+      style = FontStyle { weight=500, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 500.0,'wdth' 100.0,'opsz' 14.0, rev=5.000
+  Named Family (variable-body-medium)
+    Family
+      style = FontStyle { weight=400, slant=0}, path = /product/fonts/GoogleSansFlex-VF.ttf, axes = 'wght' 400.0,'wdth' 100.0,'opsz' 14.0, rev=5.000
+Dump Fallback Families
+  Fallback Family [0]: lang=""
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/Roboto-Regular.ttf, axes = 'wdth' 100.0, rev=3.015
+  Fallback Family [1]: lang="und-Arab", variant=Elegant
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoNaskhArabic-Regular.ttf, rev=1.080
+    style = FontStyle { weight=700, slant=0}, path = /system/fonts/NotoNaskhArabic-Bold.ttf, rev=1.070
+  Fallback Family [2]: lang="und-Arab", variant=Compact
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoNaskhArabicUI-Regular.ttf, rev=1.080
+    style = FontStyle { weight=700, slant=0}, path = /system/fonts/NotoNaskhArabicUI-Bold.ttf, rev=1.080
+  Fallback Family [3]: lang="und-Ethi"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansEthiopic-VF.ttf, rev=2.102
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSerifEthiopic-VF.ttf, fallback = serif, rev=2.102
+  Fallback Family [4]: lang="und-Hebr"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansHebrew-Regular.ttf, rev=3.001
+    style = FontStyle { weight=700, slant=0}, path = /system/fonts/NotoSansHebrew-Bold.ttf, rev=3.001
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSerifHebrew-Regular.ttf, fallback = serif, rev=2.004
+  Fallback Family [5]: lang="und-Thai", variant=Elegant
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansThai-Regular.ttf, rev=1.040
+    style = FontStyle { weight=700, slant=0}, path = /system/fonts/NotoSansThai-Bold.ttf, rev=1.040
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSerifThai-Regular.ttf, fallback = serif, rev=2.002
+  Fallback Family [6]: lang="und-Thai", variant=Compact
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansThaiUI-Regular.ttf, rev=1.040
+    style = FontStyle { weight=700, slant=0}, path = /system/fonts/NotoSansThaiUI-Bold.ttf, rev=1.040
+  Fallback Family [7]: lang="und-Armn"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansArmenian-VF.ttf, rev=2.008
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSerifArmenian-VF.ttf, fallback = serif, rev=2.008
+  Fallback Family [8]: lang="und-Geor,und-Geok"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansGeorgian-VF.ttf, rev=2.001
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSerifGeorgian-VF.ttf, fallback = serif, rev=2.001
+  Fallback Family [9]: lang="und-Deva", variant=Elegant
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansDevanagari-VF.ttf, rev=2.006
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSerifDevanagari-VF.ttf, fallback = serif, rev=2.006
+  Fallback Family [10]: lang="und-Deva", variant=Compact
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansDevanagariUI-VF.ttf, rev=2.000
+  Fallback Family [11]: lang="und-Gujr", variant=Elegant
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansGujarati-Regular.ttf, rev=2.106
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSerifGujarati-VF.ttf, fallback = serif, rev=2.106
+  Fallback Family [12]: lang="und-Gujr", variant=Compact
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansGujaratiUI-Regular.ttf, rev=1.030
+    style = FontStyle { weight=700, slant=0}, path = /system/fonts/NotoSansGujaratiUI-Bold.ttf, rev=1.030
+  Fallback Family [13]: lang="und-Guru", variant=Elegant
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansGurmukhi-VF.ttf, rev=2.004
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSerifGurmukhi-VF.ttf, fallback = serif, rev=2.004
+  Fallback Family [14]: lang="und-Guru", variant=Compact
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansGurmukhiUI-VF.ttf, rev=2.001
+  Fallback Family [15]: lang="und-Taml", variant=Elegant
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansTamil-VF.ttf, rev=2.004
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSerifTamil-VF.ttf, fallback = serif, rev=2.004
+  Fallback Family [16]: lang="und-Taml", variant=Compact
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansTamilUI-VF.ttf, rev=2.003
+  Fallback Family [17]: lang="und-Mlym", variant=Elegant
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansMalayalam-VF.ttf, rev=2.104
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSerifMalayalam-VF.ttf, fallback = serif, rev=2.104
+  Fallback Family [18]: lang="und-Mlym", variant=Compact
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansMalayalamUI-VF.ttf, rev=2.104
+  Fallback Family [19]: lang="und-Beng", variant=Elegant
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansBengali-VF.ttf, rev=2.001
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSerifBengali-VF.ttf, fallback = serif, rev=2.001
+  Fallback Family [20]: lang="und-Beng", variant=Compact
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansBengaliUI-VF.ttf, rev=2.001
+  Fallback Family [21]: lang="und-Telu", variant=Elegant
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansTelugu-VF.ttf, rev=2.005
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSerifTelugu-VF.ttf, fallback = serif, rev=2.005
+  Fallback Family [22]: lang="und-Telu", variant=Compact
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansTeluguUI-VF.ttf, rev=2.004
+  Fallback Family [23]: lang="und-Knda", variant=Elegant
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansKannada-VF.ttf, rev=2.006
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSerifKannada-VF.ttf, fallback = serif, rev=2.005
+  Fallback Family [24]: lang="und-Knda", variant=Compact
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansKannadaUI-VF.ttf, rev=2.003
+  Fallback Family [25]: lang="und-Orya", variant=Elegant
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansOriya-Regular.ttf, rev=1.010
+    style = FontStyle { weight=700, slant=0}, path = /system/fonts/NotoSansOriya-Bold.ttf, rev=1.010
+  Fallback Family [26]: lang="und-Orya", variant=Compact
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansOriyaUI-Regular.ttf, rev=1.010
+    style = FontStyle { weight=700, slant=0}, path = /system/fonts/NotoSansOriyaUI-Bold.ttf, rev=1.010
+  Fallback Family [27]: lang="und-Sinh", variant=Elegant
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansSinhala-VF.ttf, rev=2.006
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSerifSinhala-VF.ttf, fallback = serif, rev=2.007
+  Fallback Family [28]: lang="und-Sinh", variant=Compact
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansSinhalaUI-VF.ttf, rev=2.001
+  Fallback Family [29]: lang="und-Khmr", variant=Elegant
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansKhmer-VF.ttf, axes = 'wdth' 100.0, rev=2.004
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSerifKhmer-Regular.ttf, fallback = serif, rev=2.004
+  Fallback Family [30]: lang="und-Khmr", variant=Compact
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansKhmerUI-Regular.ttf, rev=1.040
+    style = FontStyle { weight=700, slant=0}, path = /system/fonts/NotoSansKhmerUI-Bold.ttf, rev=1.040
+  Fallback Family [31]: lang="und-Laoo", variant=Elegant
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansLao-Regular.ttf, rev=2.003
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSerifLao-Regular.ttf, fallback = serif, rev=2.003
+  Fallback Family [32]: lang="und-Laoo", variant=Compact
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansLaoUI-Regular.ttf, rev=1.030
+    style = FontStyle { weight=700, slant=0}, path = /system/fonts/NotoSansLaoUI-Bold.ttf, rev=1.030
+  Fallback Family [33]: lang="und-Mymr", variant=Elegant
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansMyanmar-Regular.otf, rev=2.001
+    style = FontStyle { weight=500, slant=0}, path = /system/fonts/NotoSansMyanmar-Medium.otf, rev=2.001
+    style = FontStyle { weight=700, slant=0}, path = /system/fonts/NotoSansMyanmar-Bold.otf, rev=2.001
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSerifMyanmar-Regular.otf, fallback = serif, rev=2.001
+    style = FontStyle { weight=700, slant=0}, path = /system/fonts/NotoSerifMyanmar-Bold.otf, fallback = serif, rev=2.001
+  Fallback Family [34]: lang="und-Mymr", variant=Compact
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansMyanmarUI-Regular.otf, rev=2.000
+    style = FontStyle { weight=500, slant=0}, path = /system/fonts/NotoSansMyanmarUI-Medium.otf, rev=2.000
+    style = FontStyle { weight=700, slant=0}, path = /system/fonts/NotoSansMyanmarUI-Bold.otf, rev=2.000
+  Fallback Family [35]: lang="und-Thaa"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansThaana-Regular.ttf, rev=1.020
+    style = FontStyle { weight=700, slant=0}, path = /system/fonts/NotoSansThaana-Bold.ttf, rev=1.020
+  Fallback Family [36]: lang="und-Cham"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansCham-Regular.ttf, rev=1.020
+    style = FontStyle { weight=700, slant=0}, path = /system/fonts/NotoSansCham-Bold.ttf, rev=1.020
+  Fallback Family [37]: lang="und-Ahom"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansAhom-Regular.otf, rev=2.000
+  Fallback Family [38]: lang="und-Adlm"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansAdlam-VF.ttf, rev=3.000
+  Fallback Family [39]: lang="und-Avst"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansAvestan-Regular.ttf, rev=1.040
+  Fallback Family [40]: lang="und-Bali"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansBalinese-Regular.ttf, rev=1.030
+  Fallback Family [41]: lang="und-Bamu"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansBamum-Regular.ttf, rev=1.030
+  Fallback Family [42]: lang="und-Batk"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansBatak-Regular.ttf, rev=1.050
+  Fallback Family [43]: lang="und-Brah"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansBrahmi-Regular.ttf, rev=1.030
+  Fallback Family [44]: lang="und-Bugi"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansBuginese-Regular.ttf, rev=1.050
+  Fallback Family [45]: lang="und-Buhd"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansBuhid-Regular.ttf, rev=1.030
+  Fallback Family [46]: lang="und-Cans"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansCanadianAboriginal-Regular.ttf, rev=2.001
+  Fallback Family [47]: lang="und-Cari"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansCarian-Regular.ttf, rev=1.050
+  Fallback Family [48]: lang="und-Cakm"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansChakma-Regular.otf, rev=2.001
+  Fallback Family [49]: lang="und-Cher"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansCherokee-Regular.ttf, rev=2.000
+  Fallback Family [50]: lang="und-Copt"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansCoptic-Regular.ttf, rev=1.030
+  Fallback Family [51]: lang="und-Xsux"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansCuneiform-Regular.ttf, rev=1.050
+  Fallback Family [52]: lang="und-Cprt"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansCypriot-Regular.ttf, rev=1.030
+  Fallback Family [53]: lang="und-Dsrt"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansDeseret-Regular.ttf, rev=1.020
+  Fallback Family [54]: lang="und-Egyp"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansEgyptianHieroglyphs-Regular.ttf, rev=1.040
+  Fallback Family [55]: lang="und-Elba"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansElbasan-Regular.otf, rev=2.000
+  Fallback Family [56]: lang="und-Glag"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansGlagolitic-Regular.ttf, rev=1.040
+  Fallback Family [57]: lang="und-Goth"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansGothic-Regular.ttf, rev=1.030
+  Fallback Family [58]: lang="und-Hano"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansHanunoo-Regular.ttf, rev=1.040
+  Fallback Family [59]: lang="und-Armi"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansImperialAramaic-Regular.ttf, rev=1.030
+  Fallback Family [60]: lang="und-Phli"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansInscriptionalPahlavi-Regular.ttf, rev=1.020
+  Fallback Family [61]: lang="und-Prti"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansInscriptionalParthian-Regular.ttf, rev=1.030
+  Fallback Family [62]: lang="und-Java"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansJavanese-Regular.otf, rev=2.000
+  Fallback Family [63]: lang="und-Kthi"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansKaithi-Regular.ttf, rev=1.050
+  Fallback Family [64]: lang="und-Kali"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansKayahLi-Regular.ttf, rev=1.020
+  Fallback Family [65]: lang="und-Khar"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansKharoshthi-Regular.ttf, rev=1.030
+  Fallback Family [66]: lang="und-Lepc"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansLepcha-Regular.ttf, rev=1.030
+  Fallback Family [67]: lang="und-Limb"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansLimbu-Regular.ttf, rev=1.050
+  Fallback Family [68]: lang="und-Linb"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansLinearB-Regular.ttf, rev=1.040
+  Fallback Family [69]: lang="und-Lisu"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansLisu-Regular.ttf, rev=1.030
+  Fallback Family [70]: lang="und-Lyci"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansLycian-Regular.ttf, rev=1.040
+  Fallback Family [71]: lang="und-Lydi"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansLydian-Regular.ttf, rev=1.030
+  Fallback Family [72]: lang="und-Mand"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansMandaic-Regular.ttf, rev=1.020
+  Fallback Family [73]: lang="und-Mtei"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansMeeteiMayek-Regular.ttf, rev=1.040
+  Fallback Family [74]: lang="und-Talu"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansNewTaiLue-Regular.ttf, rev=1.050
+  Fallback Family [75]: lang="und-Nkoo"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansNKo-Regular.ttf, rev=1.020
+  Fallback Family [76]: lang="und-Ogam"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansOgham-Regular.ttf, rev=1.040
+  Fallback Family [77]: lang="und-Olck"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansOlChiki-Regular.ttf, rev=1.030
+  Fallback Family [78]: lang="und-Ital"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansOldItalic-Regular.ttf, rev=1.020
+  Fallback Family [79]: lang="und-Xpeo"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansOldPersian-Regular.ttf, rev=1.040
+  Fallback Family [80]: lang="und-Sarb"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansOldSouthArabian-Regular.ttf, rev=1.030
+  Fallback Family [81]: lang="und-Orkh"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansOldTurkic-Regular.ttf, rev=1.020
+  Fallback Family [82]: lang="und-Osge"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansOsage-Regular.ttf, rev=2.000
+  Fallback Family [83]: lang="und-Osma"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansOsmanya-Regular.ttf, rev=1.030
+  Fallback Family [84]: lang="und-Phnx"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansPhoenician-Regular.ttf, rev=1.040
+  Fallback Family [85]: lang="und-Rjng"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansRejang-Regular.ttf, rev=1.050
+  Fallback Family [86]: lang="und-Runr"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansRunic-Regular.ttf, rev=1.020
+  Fallback Family [87]: lang="und-Samr"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansSamaritan-Regular.ttf, rev=1.030
+  Fallback Family [88]: lang="und-Saur"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansSaurashtra-Regular.ttf, rev=1.040
+  Fallback Family [89]: lang="und-Shaw"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansShavian-Regular.ttf, rev=1.030
+  Fallback Family [90]: lang="und-Sund"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansSundanese-Regular.ttf, rev=1.050
+  Fallback Family [91]: lang="und-Sylo"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansSylotiNagri-Regular.ttf, rev=1.040
+  Fallback Family [92]: lang="und-Syre"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansSyriacEstrangela-Regular.ttf, rev=1.040
+  Fallback Family [93]: lang="und-Syrn"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansSyriacEastern-Regular.ttf, rev=1.040
+  Fallback Family [94]: lang="und-Syrj"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansSyriacWestern-Regular.ttf, rev=1.040
+  Fallback Family [95]: lang="und-Tglg"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansTagalog-Regular.ttf, rev=1.030
+  Fallback Family [96]: lang="und-Tagb"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansTagbanwa-Regular.ttf, rev=1.040
+  Fallback Family [97]: lang="und-Lana"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansTaiTham-Regular.ttf, rev=1.040
+  Fallback Family [98]: lang="und-Tavt"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansTaiViet-Regular.ttf, rev=1.030
+  Fallback Family [99]: lang="und-Tibt"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSerifTibetan-VF.ttf, rev=2.001
+  Fallback Family [100]: lang="und-Tfng"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansTifinagh-Regular.otf, rev=2.002
+  Fallback Family [101]: lang="und-Ugar"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansUgaritic-Regular.ttf, rev=1.020
+  Fallback Family [102]: lang="und-Vaii"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansVai-Regular.ttf, rev=1.020
+  Fallback Family [103]: lang=""
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansSymbols-Regular-Subsetted.ttf, rev=1.090
+  Fallback Family [104]: lang="zh-Hans"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansCJK-Regular.ttc, index = 2, rev=2.004
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSerifCJK-Regular.ttc, index = 2, fallback = serif, rev=2.002
+  Fallback Family [105]: lang="zh-Hant,zh-Bopo"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansCJK-Regular.ttc, index = 3, rev=2.004
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSerifCJK-Regular.ttc, index = 3, fallback = serif, rev=2.002
+  Fallback Family [106]: lang="ja"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansCJK-Regular.ttc, rev=2.004
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSerifCJK-Regular.ttc, fallback = serif, rev=2.002
+  Fallback Family [107]: lang="ja"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSerifHentaigana.ttf, axes = 'wght' 400.0, rev=1.000
+  Fallback Family [108]: lang="ko"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansCJK-Regular.ttc, index = 1, rev=2.004
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSerifCJK-Regular.ttc, index = 1, fallback = serif, rev=2.002
+  Fallback Family [109]: lang="und-Zsye"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoColorEmoji.ttf, rev=2.051
+  Fallback Family [110]: lang="und-Zsye"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoColorEmojiFlags.ttf, rev=2.048
+  Fallback Family [111]: lang="und-Zsym"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansSymbols-Regular-Subsetted2.ttf, rev=1.090
+  Fallback Family [112]: lang="und-Tale"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansTaiLe-Regular.ttf, rev=1.040
+  Fallback Family [113]: lang="und-Yiii"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansYi-Regular.ttf, rev=1.020
+  Fallback Family [114]: lang="und-Mong"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansMongolian-Regular.ttf, rev=1.040
+  Fallback Family [115]: lang="und-Phag"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansPhagsPa-Regular.ttf, rev=1.030
+  Fallback Family [116]: lang="und-Hluw"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansAnatolianHieroglyphs-Regular.otf, rev=2.000
+  Fallback Family [117]: lang="und-Bass"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansBassaVah-Regular.otf, rev=2.000
+  Fallback Family [118]: lang="und-Bhks"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansBhaiksuki-Regular.otf, rev=1.900
+  Fallback Family [119]: lang="und-Hatr"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansHatran-Regular.otf, rev=2.000
+  Fallback Family [120]: lang="und-Lina"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansLinearA-Regular.otf, rev=2.000
+  Fallback Family [121]: lang="und-Mani"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansManichaean-Regular.otf, rev=2.000
+  Fallback Family [122]: lang="und-Marc"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansMarchen-Regular.otf, rev=2.000
+  Fallback Family [123]: lang="und-Merc"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansMeroitic-Regular.otf, rev=2.000
+  Fallback Family [124]: lang="und-Plrd"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansMiao-Regular.otf, rev=2.001
+  Fallback Family [125]: lang="und-Mroo"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansMro-Regular.otf, rev=2.000
+  Fallback Family [126]: lang="und-Mult"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansMultani-Regular.otf, rev=2.000
+  Fallback Family [127]: lang="und-Nbat"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansNabataean-Regular.otf, rev=2.000
+  Fallback Family [128]: lang="und-Newa"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansNewa-Regular.otf, rev=2.000
+  Fallback Family [129]: lang="und-Narb"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansOldNorthArabian-Regular.otf, rev=2.000
+  Fallback Family [130]: lang="und-Perm"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansOldPermic-Regular.otf, rev=2.000
+  Fallback Family [131]: lang="und-Hmng"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansPahawhHmong-Regular.otf, rev=2.000
+  Fallback Family [132]: lang="und-Palm"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansPalmyrene-Regular.otf, rev=2.000
+  Fallback Family [133]: lang="und-Pauc"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansPauCinHau-Regular.otf, rev=2.000
+  Fallback Family [134]: lang="und-Shrd"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansSharada-Regular.otf, rev=2.000
+  Fallback Family [135]: lang="und-Sora"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansSoraSompeng-Regular.otf, rev=2.000
+  Fallback Family [136]: lang="und-Gong"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansGunjalaGondi-Regular.otf, rev=1.001
+  Fallback Family [137]: lang="und-Rohg"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansHanifiRohingya-Regular.otf, rev=2.002
+  Fallback Family [138]: lang="und-Khoj"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansKhojki-Regular.otf, rev=2.001
+  Fallback Family [139]: lang="und-Gonm"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansMasaramGondi-Regular.otf, rev=1.002
+  Fallback Family [140]: lang="und-Wcho"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansWancho-Regular.otf, rev=2.000
+  Fallback Family [141]: lang="und-Wara"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansWarangCiti-Regular.otf, rev=3.000
+  Fallback Family [142]: lang="und-Gran"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansGrantha-Regular.ttf, rev=2.001
+  Fallback Family [143]: lang="und-Modi"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansModi-Regular.ttf, rev=2.000
+  Fallback Family [144]: lang="und-Dogr"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSerifDogra-Regular.ttf, rev=1.004
+  Fallback Family [145]: lang="und-Medf"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansMedefaidrin-VF.ttf, rev=1.001
+  Fallback Family [146]: lang="und-Soyo"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansSoyombo-VF.ttf, rev=2.000
+  Fallback Family [147]: lang="und-Takr"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSansTakri-VF.ttf, rev=2.002
+  Fallback Family [148]: lang="und-Hmnp"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSerifNyiakengPuachueHmong-VF.ttf, rev=1.000
+  Fallback Family [149]: lang="und-Yezi"
+    style = FontStyle { weight=400, slant=0}, path = /system/fonts/NotoSerifYezidi-VF.ttf, rev=1.000
+Dump Family Aliases
+  alias = arial, reference = arimo, width = 400
+  alias = times new roman, reference = tinos, width = 400
+  alias = courier new, reference = cousine, width = 400
+  alias = georgia, reference = gelasio, width = 400
+  alias = comic sans ms, reference = comic-relief, width = 400
+  alias = comic relief, reference = comic-relief, width = 400
+  alias = archivo black, reference = archivo-black, width = 400
+  alias = archivo narrow, reference = archivo-narrow, width = 400
+  alias = arial, reference = sans-serif, width = 400
+  alias = helvetica, reference = sans-serif, width = 400
+  alias = tahoma, reference = sans-serif, width = 400
+  alias = verdana, reference = sans-serif, width = 400
+  alias = sans-serif-black, reference = sans-serif, width = 900
+  alias = sans-serif-light, reference = sans-serif, width = 300
+  alias = sans-serif-medium, reference = sans-serif, width = 500
+  alias = sans-serif-thin, reference = sans-serif, width = 100
+  alias = sans-serif-condensed-light, reference = sans-serif-condensed, width = 300
+  alias = sans-serif-condensed-medium, reference = sans-serif-condensed, width = 500
+  alias = ITC Stone Serif, reference = serif, width = 400
+  alias = baskerville, reference = serif, width = 400
+  alias = fantasy, reference = serif, width = 400
+  alias = georgia, reference = serif, width = 400
+  alias = goudy, reference = serif, width = 400
+  alias = palatino, reference = serif, width = 400
+  alias = times new roman, reference = serif, width = 400
+  alias = times, reference = serif, width = 400
+  alias = serif-bold, reference = serif, width = 700
+  alias = monaco, reference = monospace, width = 400
+  alias = sans-serif-monospace, reference = monospace, width = 400
+  alias = courier new, reference = serif-monospace, width = 400
+  alias = courier, reference = serif-monospace, width = 400
+  alias = source-sans-pro-semi-bold, reference = source-sans-pro, width = 600

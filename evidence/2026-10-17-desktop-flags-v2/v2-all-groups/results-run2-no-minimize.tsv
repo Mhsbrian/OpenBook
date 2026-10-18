@@ -1,0 +1,20 @@
+check	result	detail
+flag state	INFO	group 1: 6/6 enabled; group 2: 2/2 enabled; group 3: 15/15 enabled; group 4: 16/16 enabled; group 5: 42/42 enabled; group 6: 6/6 enabled
+window shadows (SurfaceFlinger)	INFO	'boxShadow' mentions: 20, layers with shadowRadius>0: 0
+windows: start	INFO	task #10 com.android.documentsui mode=freeform bounds=(329, 167, 1711, 944)
+focus (click into the window)	PASS	mCurrentFocus=com.android.documentsui
+move (caption drag)	PASS	bounds (329, 167, 1711, 944) -> (177, 87, 1559, 864)
+resize (corner drag)	PASS	bounds (177, 87, 1559, 864) -> (177, 87, 1681, 945)
+no-resize cursor (drag below minimum size)	INFO	resolvedPointerType while held: 1017 (1000 = arrow); bounds after: (177, 87, 573, 470)
+maximize (Meta+=)	PASS	bounds (177, 87, 573, 470) -> (0, 24, 1920, 1024)
+restore (Meta+= again)	PASS	bounds -> (177, 87, 573, 470)
+maximize (caption button)	PASS	bounds -> (0, 24, 1920, 1024)
+restore (caption double click)	INFO	bounds -> (177, 87, 573, 470)
+new window placement (cascade)	INFO	#12 com.android.deskclock freeform (329, 167, 1711, 944); #11 android.task.calendar freeform (269, 107, 1651, 884)
+QS tile hover (tooltip)	INFO	tile Wi-Fi,null (1542, 200, 1586, 244); tooltip-like nodes: 0
+notification hover	INFO	no notification row in the shade dump
+power menu blur	INFO	layers with a blur radius: 0
+volume dialog blur	INFO	layers with a blur radius: 0
+crash buffer	PASS	0 lines; 
+ANRs	PASS	am_anr events: 0
+SELinux denials	INFO	4 distinct

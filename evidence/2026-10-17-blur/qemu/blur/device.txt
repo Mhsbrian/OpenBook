@@ -1,0 +1,35 @@
+date: 2026-10-18T01:55:31Z
+uptime: 156.30
+fingerprint: OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+ro.product.model=OpenBook on ROG Zephyrus G14 (GA403WR)
+vendor.anybook.gpu.hal=virtio
+ro.hardware.egl=angle
+ro.hardware.vulkan=pastel
+ro.surface_flinger.supports_background_blur=1
+ro.config.low_ram=
+ro.config.avoid_gfx_accel=
+persist.sysui.disableBlur=
+debug.renderengine.backend=
+debug.renderengine.vulkan=
+debug.renderengine.graphite_desktop_optin=
+debug.renderengine.blur_algorithm=
+ro.hwui.use_vulkan=
+debug.hwui.renderer=
+disable_window_blurs (as found): 0
+power save: 0; thermal: Thermal Status: 0
+GLES: Google Inc. (Google), ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 16.0.0) (0x0000C0DE)), SwiftShader driver-5.0.0), OpenGL ES 3.1 (ANGLE 2.1 git hash: 8d8796935e4faeaf19e67ac0a5949e71a5252e7f)
+RenderEngine supports protected context: 0
+RenderEngine is in protected context: 0
+RenderEngine shaders cached since last dump/primeCache: 0
+RenderEngine chosen blur algorithm: KawaseDualFilterV2
+renderFrameRate 37.499252
+mActiveSfDisplayMode=DisplayMode{id=0, width=1920, height=1200, xDpi=100.13963, yDpi=100.26316
+renderFrameRate 37.499252
+SystemUI BlurUtils:
+      minBlurRadius: 1.0
+      maxBlurRadius: 34.0
+      supportsBlursOnWindows: true
+      CROSS_WINDOW_BLUR_SUPPORTED: true
+      isHighEndGfx: true
+amdgpu events: 0
+surfaceflinger=592 systemui=2641 system_server=757 system_server_starts=1

@@ -1,0 +1,23 @@
+{"ok":true,"nvram":{"available":true,"dir":"/sys/firmware/efi/efivars","boot_order":["0007","0002","0003","0000","0001","0004","0005"],"boot_current":"0005","boot_next":null,"entries":[{"num":"0005","description":"OpenBook","active":true,"partition":1,"partuuid":"7231e5c3-0b0b-460e-be98-244793c37e38","path":"\\EFI\\OpenBook\\systemd-bootx64.efi"},{"num":"0007","description":"Windows Boot Manager","active":true,"partition":1,"partuuid":"7231e5c3-0b0b-460e-be98-244793c37e38","path":"\\EFI\\Microsoft\\Boot\\bootmgfw.efi"},{"num":"0004","description":"EFI Internal Shell","active":true,"path":""},{"num":"0003","description":"UEFI QEMU NVMe Ctrl internal0 1","active":true,"path":""},{"num":"0002","description":"UEFI QEMU QEMU USB HARDDRIVE 1-0000:00:01.0-1","active":true,"path":""},{"num":"0001","description":"EFI Firmware Setup","active":true,"path":""},{"num":"0000","description":"BootManagerMenuApp","active":true,"path":""}]}}
+alongside
+
+Enforcing
+total 0
+lrwxrwxrwx 1 root root 20 2026-10-17 22:05 Basic_data_partition -> /dev/block/nvme0n1p3
+lrwxrwxrwx 1 root root 20 2026-10-17 22:05 EFI_system_partition -> /dev/block/nvme0n1p1
+lrwxrwxrwx 1 root root 20 2026-10-17 22:05 Microsoft_reserved_partition -> /dev/block/nvme0n1p2
+lrwxrwxrwx 1 root root 20 2026-10-17 22:05 boot_a -> /dev/block/nvme0n1p7
+lrwxrwxrwx 1 root root 20 2026-10-17 22:05 boot_b -> /dev/block/nvme0n1p8
+lrwxrwxrwx 1 root root 20 2026-10-17 22:05 init_boot_a -> /dev/block/nvme0n1p9
+lrwxrwxrwx 1 root root 21 2026-10-17 22:05 init_boot_b -> /dev/block/nvme0n1p10
+lrwxrwxrwx 1 root root 21 2026-10-17 22:05 metadata -> /dev/block/nvme0n1p15
+lrwxrwxrwx 1 root root 20 2026-10-17 22:05 misc -> /dev/block/nvme0n1p6
+lrwxrwxrwx 1 root root 18 2026-10-17 22:05 nvme0n1 -> /dev/block/nvme0n1
+lrwxrwxrwx 1 root root 20 2026-10-17 22:05 nvme0n1p4 -> /dev/block/nvme0n1p4
+lrwxrwxrwx 1 root root 21 2026-10-17 22:05 super -> /dev/block/nvme0n1p16
+lrwxrwxrwx 1 root root 21 2026-10-17 22:05 userdata -> /dev/block/nvme0n1p17
+lrwxrwxrwx 1 root root 21 2026-10-17 22:05 vbmeta_a -> /dev/block/nvme0n1p13
+lrwxrwxrwx 1 root root 21 2026-10-17 22:05 vbmeta_b -> /dev/block/nvme0n1p14
+lrwxrwxrwx 1 root root 21 2026-10-17 22:05 vendor_boot_a -> /dev/block/nvme0n1p11
+lrwxrwxrwx 1 root root 21 2026-10-17 22:05 vendor_boot_b -> /dev/block/nvme0n1p12
+lrwxrwxrwx 1 root root 20 2026-10-17 22:05 xbootldr -> /dev/block/nvme0n1p5
