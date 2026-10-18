@@ -75,8 +75,8 @@ def wizard_disk(addon):
     if addon:
         s += W.tap("Google services compatibility (microG)", 3)
         s += section("WIZARD-SWITCH", "ui; cat /data/local/tmp/ui.xml; echo", 60)
-        s += W.tap("View the plan", 8)
-        s += W.wait_ui("2. Check the add-on", 90)  # the dialog numbers the operations; check_addon is the second
+        s += W.tap("View the plan", 12)
+        s += section("WIZARD-PLAN", "ui; cat /data/local/tmp/ui.xml; echo", 60)
         s += W.shot("wizard-plan-addon")
     s += [{"send": "input keyevent 111\n"}, {"wait": PROMPT, "timeout": 30}, {"pause": 2}]
     return s
@@ -261,8 +261,10 @@ def check(run):
             chk(case, "the wizard's disk screen shows the microG switch, off", switch_state(wd) is False, switch_state(wd))
             sw = sec.get("WIZARD-SWITCH", "")
             chk(case, "tapping it turns it on", switch_state(sw) is True, switch_state(sw))
-            # The expect script waited for "Check the add-on" in the plan dialog; a miss stops the run early.
-            chk(case, "\"View the plan\" then lists the add-on check", "WIZARD-SWITCH" in sec and "ADDON-LIST" in sec, "")
+            # uiautomator writes the operation's inner quotes unescaped, so look for the text, not the attribute.
+            wp = sec.get("WIZARD-PLAN", "")
+            chk(case, "\"View the plan\" then lists the add-on check",
+                re.search(r"2\. Check the add-on .Google services compatibility \(microG\). 0\.3\.17\.252432", wp), wp[-300:])
             a = sec.get("ADDON-LIST", "")
             chk(case, "the stick carries the add-on (openbook-install addons)", '"on_stick":true' in a, a[-300:])
             p = sec.get("PLAN", "")
