@@ -1,0 +1,6 @@
+{"id":1,"command":"register","name":"OpenBook test mouse","vid":4660,"pid":22136,"bus":"usb","configuration":[{"type":"UI_SET_EVBIT","data":["EV_KEY","EV_REL"]},{"type":"UI_SET_KEYBIT","data":["BTN_LEFT","BTN_RIGHT","BTN_MIDDLE"]},{"type":"UI_SET_RELBIT","data":["REL_X","REL_Y","REL_WHEEL"]}]}
+{"id":1,"command":"delay","duration":1500}
+{"id":1,"command":"inject","events":["EV_REL","REL_X",40,"EV_REL","REL_Y",30,"EV_SYN","SYN_REPORT",0]}
+{"id":1,"command":"delay","duration":100}
+{"id":1,"command":"inject","events":["EV_REL","REL_X",300,"EV_REL","REL_Y",200,"EV_SYN","SYN_REPORT",0]}
+{"id":1,"command":"delay","duration":12000}

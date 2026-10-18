@@ -11,6 +11,8 @@
 //   - not there: nothing happens, the system is exactly as without add-ons;
 //   - there, and /data/misc/openbook_addons/<name>.json says this version is installed: nothing happens (an app the
 //     user uninstalled stays uninstalled);
+//   - there, and an earlier version is installed: the packages still installed are upgraded; a removed one stays
+//     removed, and no permission is granted again;
 //   - there and new: every file is read and checked against the image's sha256 first; one mismatch refuses the whole
 //     add-on. Then each package is installed as a normal app in /data through PackageManager (`cmd package`
 //     install-create/-write/-commit, the bytes streamed over a pipe), unless the same or a newer version is already
@@ -371,8 +373,10 @@ static int addon_run(const struct jv *cat, struct esp *e, int dry_run, struct jw
         return R_ABSENT;
     }
     struct jv *st = state_read(name);
-    if (st && !g_force && jstr(st, "result") && !strcmp(jstr(st, "result"), "installed") && jstr(st, "version") &&
-        !strcmp(jstr(st, "version"), version)) {
+    // An earlier version of this add-on was installed here: this run only upgrades what is still installed. A package
+    // the user removed stays removed, and permissions the user changed stay as they are.
+    int prev = st && !g_force && jstr(st, "result") && !strcmp(jstr(st, "result"), "installed");
+    if (prev && jstr(st, "version") && !strcmp(jstr(st, "version"), version)) {
         LOG("%s %s: installed on %s already; nothing to do (uninstalled apps stay uninstalled)", name, version,
             jstr(st, "at") ? jstr(st, "at") : "?");
         json_free(st);
@@ -419,6 +423,11 @@ static int addon_run(const struct jv *cat, struct esp *e, int dry_run, struct jw
         if (have < 0) {
             snprintf(why, sizeof why, "PackageManager did not answer for %s", fs[i].package);
             result = R_FAILED;
+        } else if (prev && have == 0) {
+            LOG("%s: %s was removed by the user after an earlier version: not reinstalled", name, fs[i].package);
+            jw_str(w, "action", "removed_by_user");
+            jw_endo(w);
+            continue;
         } else if (have >= fs[i].version_code) {
             LOG("%s: %s %lld is installed (the add-on has %lld): kept", name, fs[i].package, have, fs[i].version_code);
             jw_str(w, "action", "kept");
@@ -434,8 +443,9 @@ static int addon_run(const struct jv *cat, struct esp *e, int dry_run, struct jw
                 jw_str(w, "action", "installed");
             }
         }
-        // Permissions, app-ops and the battery exemption, also for a package that was kept: the catalogue's defaults.
-        if (result == R_INSTALLED && !dry_run) {
+        // Permissions, app-ops and the battery exemption: the catalogue's defaults, on the add-on's first run only (also
+        // for a package that was already there). An upgrade keeps what the user has.
+        if (result == R_INSTALLED && !dry_run && !prev) {
             char out[2048];
             jw_arr(w, "grant");
             for (int k = 0; fs[i].grant && fs[i].grant->t == J_ARR && k < fs[i].grant->len; k++) {

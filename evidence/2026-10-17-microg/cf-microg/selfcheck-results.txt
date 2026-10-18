@@ -1,0 +1,20 @@
+# 2026-10-17T23:20:53Z microG self-check (org.microg.gms.ui.SelfCheckFragment$AsActivity), read from uiautomator dumps: label and checkbox state
+PASS System spoofs signature:
+PASS microG Services installed:
+PASS microG Services has correct signature:
+PASS microG Companion / Play Store installed:
+PASS microG Companion / Play Store has correct signature:
+PASS microG Services Framework installed:
+PASS Permission to access approximate location only in the foreground:
+PASS Permission to access precise location only in the foreground:
+PASS Permission to access location in the background:
+PASS Permission to read the contents of your shared storage:
+PASS Permission to modify or delete the contents of your shared storage:
+PASS Permission to find accounts on the device:
+PASS Permission to show notifications:
+PASS Permission to read phone status and identity:
+PASS Permission to receive text messages (SMS):
+PASS Permission to This app can appear on top of other apps:
+PASS Permission to interact with work profile:
+PASS Battery optimizations ignored:
+18/18 green

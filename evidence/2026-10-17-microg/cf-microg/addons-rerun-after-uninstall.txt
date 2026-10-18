@@ -1,0 +1,6 @@
+# 2026-10-17T23:30:15Z after the user uninstalled microG's three apps: openbook-addons run again (no --force)
+23:30:14 openbook-addons run: 1 catalogued add-on(s) in catalog; source src
+23:30:14 microg 0.3.17.252432: installed on 2026-10-17T23:19:31Z already; nothing to do (uninstalled apps stay uninstalled)
+{"schema":"openbook-addons/1","boot_part_uuid":null,"source":"src","addons":[{"name":"microg","version":"0.3.17.252432","result":"already_installed"}]}
+exit=0
+0

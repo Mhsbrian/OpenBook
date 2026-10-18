@@ -1,0 +1,6 @@
+# Python packages for scripts/brand/*.py (render-brand-assets.sh installs them into a venv in the host data dir).
+# Pinned: the generators are deterministic for a given numpy/Pillow, and check-brand-assets.py compares outputs.
+numpy==2.5.4
+pillow==13.0.0
+# Material Color Utilities port (MIT), for monet.py's dynamic colour prediction only.
+materialyoucolor==3.0.4
