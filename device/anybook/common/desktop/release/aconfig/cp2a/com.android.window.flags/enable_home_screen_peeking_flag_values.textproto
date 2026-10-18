@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 3: peek at the home screen behind desktop windows (action corner, WM Shell)
+flag_value {
+  package: "com.android.window.flags"
+  name: "enable_home_screen_peeking"
+  state: ENABLED
+  permission: READ_ONLY
+}

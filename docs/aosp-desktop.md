@@ -72,8 +72,9 @@ device/anybook/
     overlays/launcher/                     Launcher3: no search box in the hotseat (ANAL-206)
     overlays/latinime/                     on-screen keyboard: no keypress sound (ANAL-206)
     partner/                               Launcher3 partner customization: first home screen, taskbar pins (ANAL-206)
-    release/                               aconfig value set "aconfig_value_set-anybook_desktop-cp2a" (79 flags) and
-                                           OpenBook's own picks, release/openbook/ (1 flag)
+    release/                               aconfig value set "aconfig_value_set-anybook_desktop-cp2a" (163 flags: 79 from
+                                           the reference image, 84 from ANAL-204) and OpenBook's own picks,
+                                           release/openbook/ (1 flag)
   cuttlefish/
     anybook_cf_x86_64_pc.mk                aosp_cf_x86_64_pc + desktop.mk + the VM-only pieces below
     display_settings.xml                   port:0 windowingMode=5 ignoreOrientationRequest=true (-> /product/etc)
@@ -102,9 +103,12 @@ A bare-metal product (ANAL-176 onward) inherits `device/anybook/common/desktop/d
 | `config_lockPatternVisibleDefault` | false | false | |
 | `config_lockPinEnhancedPrivacyDefault` | true | true | |
 | `config_magnification_keep_zoom_level_when_context_changed`, `config_magnification_magnify_keyboard_default` | true | true | |
+| `config_icon_mask` | circle, our own path (`M50,0 A50,50 0 1,1 50,100 A50,50 0 1,1 50,0 Z`) | circle (a cubic-Bézier path); Googlebook the same | Googlebook's icon shape (ANAL-205, [`googlebook-ui.md`](googlebook-ui.md) §2.4). A shape the user picks in Wallpaper & style still wins in Launcher3 |
+| `config_useRoundIcon` | true | true; Googlebook the same | PackageManager hands out `android:roundIcon` where an app has one (ANAL-205) |
+| `config_wallpaperDimAmount` | 0 | AOSP default 0.05; Googlebook 0 | no 5 % default dim on wallpapers that support neither dark text nor a dark theme (ANAL-205) |
 
 These reference values were left out:
-- **Look and feel:** `config_useRoundIcon=true`, `config_icon_mask` (circle), `config_buttonTextAllCaps=false`.
+- **Look and feel:** `config_buttonTextAllCaps=false`. (The circle mask and round icons were left out at first; ANAL-205 added them, to match Googlebook.)
 - **Emulator-specific:** `config_defaultNightMode=1` and `config_minimumScreenOffTimeout=2147483647`.
 - **Same as the AOSP default already:** the corner radii and `config_secondaryHomePackage`.
 
@@ -128,6 +132,7 @@ These reference values were left out:
 |---|---|---|
 | `PRODUCT_CHARACTERISTICS := desktop` (`ro.build.characteristics=desktop`) | desktop.mk | same. Selects `product="desktop"` strings; Soong also generates the four `*__desktop__auto_generated_characteristics_rro.apk` the reference has |
 | `large_screen_common.mk`: `persist.wm.extensions.enabled=true`, `persist.wm.extensions.activity_embedding_guard_with_android_15=false`, `persist.settings.large_screen_opt.enabled=true` | desktop.mk | same three props |
+| `persist.wallpapercolors.threshold=55`, `persist.wallpapercolors.max_dark_area=12` (ANAL-205) | desktop.mk | unset (AOSP defaults 70 and 5); Googlebook sets 55 and 12 in `/product/etc/build.prop` |
 | `persist.wm.debug.force_desktop_first_on_default_display_for_testing=true` | cuttlefish product only | same |
 | `/product/etc/display_settings.xml`: `port:0 windowingMode=5 ignoreOrientationRequest=true` | cuttlefish product only | `/vendor/etc/display_settings.xml`: `local:<id> windowingMode=5 ignoreOrientationRequest=true` |
 
@@ -196,6 +201,18 @@ Google's desktop build turns on more flags than cp2a does. These are UI flags, n
 - Windowing and the taskbar were the same before and after.
 
 **Risk (HYPOTHESIS).** Google ships these 79 flags on Android 17. We have no regression tests for them, beyond the boot, the desktop capture and the benchmark below.
+
+#### Flag set v2: the Googlebook flags (ANAL-204)
+
+Googlebook enables 218 more flags that our tree declares. ANAL-204 triaged all of them and enabled **84**, in six groups, in the same value set. Details are in [`googlebook-flags.md`](googlebook-flags.md); the record is `device/anybook/common/desktop/release/googlebook-triage.tsv`.
+
+- `scripts/desktop-flags.py --list <triage.tsv> [--groups ...]` writes them. Each value file's first line names its source, so `--list` and the diff mode above each regenerate only their own files.
+- **Two flags break AOSP 17's desktop and stay off (C):**
+  - `enable_add_window_decoration_to_all_tasks`: SystemUI crashes when a minimized window is restored from the taskbar.
+  - `start_on_gone_scene_if_no_lockscreen`: the notification shade is empty. Our framework overlay disables the lock screen, so SystemUI would start on the Gone scene, and the keyguard section that binds the notification stack never runs.
+- **23 do nothing:** nothing in our tree reads them, e.g. `perfect_edge` and `enable_taskbar_icon_desktop_clicks`.
+- **Visible on the desktop (C, Cuttlefish):** box shadows and a 1 px border on windows, stepped cascading, the windowing pill inside the maximize menu, QS tile tooltips, power-menu blur, and a Cast tile that works over Ethernet.
+- Evidence: `evidence/2026-10-17-desktop-flags-v2/`. The G14 checks are on ANAL-192.
 
 ## Cuttlefish GPU modes on this host
 
@@ -307,6 +324,7 @@ Both images were captured with the same script at 1920×1080, 160 dpi. Windowing
 | Wi-Fi | `wifi_on=1`; Wi-Fi icon in the status bar | `wifi_on=0` | Cuttlefish Wi-Fi not turned on; not investigated |
 | Kernel | 6.12.58 android16-6.12 (emulator `kernel-ranchu`) | 6.12.74 android16-6.12 (Cuttlefish prebuilt GKI) | ANAL-171/172 bring android17-6.18 |
 | Display identity | `display_settings.xml` keyed by unique id `local:4619827259835644672` | keyed by `port:0` | same effect: freeform, ignoring orientation requests |
+| Home and sounds | `QuickSearchBox` "Google" bar above the taskbar; taskbar pins from Launcher3's `default_workspace_6x5.xml`; touch sounds on | no search box and no `QuickSearchBox`; partner-layout pins (Files, Settings, browser, Calendar, Gallery, Camera); touch, keypress and non-forced screenshot sounds off | ours, after Googlebook (ANAL-206) |
 | Name | "Android Desktop" | "AnyBook Cuttlefish x86_64 desktop" (`PRODUCT_MODEL`; still the old name, see the README) | ours |
 
 ## Open items

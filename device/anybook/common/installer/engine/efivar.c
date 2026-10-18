@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 // UEFI boot entries through efivarfs (docs/installer.md S11): read the Boot#### variables and BootOrder, and create
-// one Boot#### entry ("OpenBook" -> HD(partition)/\EFI\OpenBook\systemd-bootx64.efi). BootOrder changes only when
-// the user agreed (set_default): then OpenBook goes first and every other entry keeps its order. Nothing else is
-// written: no other Boot#### entry, no BootNext, no Secure Boot or firmware setting.
+// one Boot#### entry ("OpenBook" -> HD(partition)/\EFI\OpenBook\systemd-bootx64.efi) and add it to BootOrder: at
+// the end, so the system that starts now stays the default and OpenBook is in the firmware's boot menu, or first
+// only when the user agreed (set_default; owner decision 2026-10-17). Every other entry keeps its place. Nothing else
+// is written: no other Boot#### entry, no BootNext, no Secure Boot or firmware setting.
 //
 // efivarfs file format: a 4-byte little-endian attribute word, then the variable's data; each write() replaces the
 // whole variable. Boot#### and BootOrder live under the EFI global variable GUID, which efivarfs leaves removable
@@ -196,13 +197,20 @@ static int list_boot(struct load_option *out, int max) {
     return n;
 }
 
+// BootOrder's entries; 0 if there is none. -1 if it can't be read whole (an odd length, or more than max entries):
+// the caller must then not write it, since writing back a shortened list would drop entries.
 static int read_order(uint16_t *order, int max) {
     uint32_t attr;
     uint8_t *data;
     size_t len;
     if (read_var("BootOrder", &attr, &data, &len)) return errno == ENOENT ? 0 : -1;
+    if (len % 2 || len / 2 > (size_t)max) {
+        free(data);
+        errno = len % 2 ? EINVAL : E2BIG;
+        return -1;
+    }
     int n = 0;
-    for (size_t i = 0; i + 1 < len && n < max; i += 2) memcpy(&order[n++], data + i, 2);
+    for (size_t i = 0; i < len; i += 2) memcpy(&order[n++], data + i, 2);
     free(data);
     return n;
 }
@@ -212,8 +220,8 @@ void nvram_json(struct jw *w) {
     jw_bool(w, "available", E.efivars);
     jw_str(w, "dir", E.efivars_dir);
     if (E.efivars) {
-        uint16_t order[64];
-        int no = read_order(order, 64);
+        uint16_t order[256];
+        int no = read_order(order, 256);
         jw_arr(w, "boot_order");
         for (int i = 0; i < no; i++) {
             char s[8];
@@ -274,27 +282,40 @@ int nvram_add_entry(const char *desc, uint32_t partnum, uint64_t start_lba, uint
         snprintf(res->why, sizeof res->why, "no efivarfs");
         return -1;
     }
-    struct load_option lo[128];
-    int n = list_boot(lo, 128);
+    struct load_option lo[256];
+    int n = list_boot(lo, 256);
     if (n < 0) {
         snprintf(res->why, sizeof res->why, "cannot list %s: %s", E.efivars_dir, strerror(errno));
         return -1;
     }
-    // The lowest free number.
-    int num = -1;
-    for (int c = 0; c <= 0xFFFF && num < 0; c++) {
-        int used = 0;
-        for (int i = 0; i < n; i++)
-            if (lo[i].num == c) used = 1;
-        if (!used) num = c;
+    // BootOrder first: if it can't be read whole, nothing is written.
+    uint16_t order[256], neworder[257];
+    int no = read_order(order, 256);
+    if (no < 0) {
+        snprintf(res->why, sizeof res->why, "cannot read BootOrder: %s", strerror(errno));
+        return -1;
     }
     uint8_t opt[2048];
     size_t len = make_load_option(opt, desc, partnum, start_lba, size_lba, guid, path);
-    char name[16];
-    snprintf(name, sizeof name, "Boot%04X", num);
     uint32_t attr = EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS;
-    if (write_var(name, attr, opt, len, 1)) {
-        snprintf(res->why, sizeof res->why, "creating %s: %s", name, strerror(errno));
+    // The lowest number that is neither a Boot#### variable nor in BootOrder (a stale reference stays as it is).
+    // O_EXCL: an existing variable is never overwritten; one we couldn't list makes us try the next number.
+    char name[16];
+    int num = -1;
+    for (int c = 0; c <= 0xFFFF && num < 0; c++) {
+        int used = 0;
+        for (int i = 0; i < n && !used; i++) used = lo[i].num == c;
+        for (int i = 0; i < no && !used; i++) used = order[i] == c;
+        if (used) continue;
+        snprintf(name, sizeof name, "Boot%04X", c);
+        if (!write_var(name, attr, opt, len, 1)) num = c;
+        else if (errno != EEXIST) {
+            snprintf(res->why, sizeof res->why, "creating %s: %s", name, strerror(errno));
+            return -1;
+        }
+    }
+    if (num < 0) {
+        snprintf(res->why, sizeof res->why, "no free Boot#### number");
         return -1;
     }
     res->num = num;
@@ -309,21 +330,11 @@ int nvram_add_entry(const char *desc, uint32_t partnum, uint64_t start_lba, uint
     }
     free(rdata);
     res->created = 1;
-    if (!set_first) {
-        res->order = "unchanged";
-        return 0;
-    }
-    uint16_t order[256], neworder[257];
-    int no = read_order(order, 256);
-    if (no < 0) {
-        snprintf(res->why, sizeof res->why, "cannot read BootOrder: %s", strerror(errno));
-        res->order = "failed";
-        return -1;
-    }
+    // BootOrder: OpenBook first with consent (S11), else last; the other entries keep their order. Created if absent.
     int k = 0;
-    neworder[k++] = num;
-    for (int i = 0; i < no; i++)
-        if (order[i] != num) neworder[k++] = order[i];
+    if (set_first) neworder[k++] = num;
+    for (int i = 0; i < no; i++) neworder[k++] = order[i];
+    if (!set_first) neworder[k++] = num;
     if (write_var("BootOrder", attr, neworder, k * 2, 0) && (errno != ENOENT || write_var("BootOrder", attr, neworder, k * 2, 1))) {
         snprintf(res->why, sizeof res->why, "writing BootOrder: %s", strerror(errno));
         res->order = "failed";
@@ -336,6 +347,6 @@ int nvram_add_entry(const char *desc, uint32_t partnum, uint64_t start_lba, uint
         res->order = "failed";
         return -1;
     }
-    res->order = "first";
+    res->order = set_first ? "first" : "last";
     return 0;
 }

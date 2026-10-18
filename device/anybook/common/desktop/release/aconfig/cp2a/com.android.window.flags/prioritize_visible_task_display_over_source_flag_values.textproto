@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 5: launch display follows the visible task
+flag_value {
+  package: "com.android.window.flags"
+  name: "prioritize_visible_task_display_over_source"
+  state: ENABLED
+  permission: READ_ONLY
+}

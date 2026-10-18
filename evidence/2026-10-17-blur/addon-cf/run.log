@@ -1,0 +1,9 @@
+23:41:25 start: parts [blur vk], jobs 2 of 4 CPUs, gpu hal [virtio], quick [1]
+23:41:26 blur: start
+blur-check: round 2, blur off
+blur-check: done, disable_window_blurs back to [1]
+23:42:13 blur: done, exit 0, 47 s, 0 new amdgpu fault/reset line(s)
+23:42:13 vk: start
+/data/local/tmp/openbook-gfx/run.sh[293]: cd: /data/local/tmp/openbook-gfx/data: No such file or directory
+23:42:13 vk: done, exit 2, 0 s, 0 new amdgpu fault/reset line(s)
+23:42:13 finished
