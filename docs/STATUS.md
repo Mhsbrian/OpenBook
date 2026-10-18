@@ -60,6 +60,7 @@
 | ANAL-193 to ANAL-197 device loop | Backlog | ANAL-194 first: the Multica runtime and test agent on the G14's Linux | Owner installs the daemon |
 | ANAL-201 Googlebook UI and GApps review | In progress (PR #71) | Review done (`docs/googlebook-ui.md`, `docs/gapps.md`). All ten follow-ups approved and running in parallel on the shared lane (builds take turns under the lane lock; each issue has its own Cuttlefish ports) | — |
 | ANAL-202 to ANAL-209 beautification B1–B8 | In progress | B1 Google Sans · B2 blur on the G14 · B3 flag set v2 · B4 shapes and wallpaper dim · B5 clean desktop · B6 brand assets · B7 document fonts · B8 first-run setup. G14 checks go to ANAL-192's next stick | — |
+| ANAL-205 B4: circular icons, no wallpaper dim | In review (PR __PR__) | **Done in Cuttlefish:** the framework RRO sets the circle mask, round icons and 0 wallpaper dim; `desktop.mk` sets Googlebook's wallpaper colour thresholds 55 / 12. All apps, the taskbar and Settings now draw circles. A grey wallpaper is no longer dimmed (171 → 180 on screen). A pick in Wallpaper & style still wins in the taskbar. Both products build. Open: the taskbar's all-apps panel ignores a shape pick, on the baseline too (`docs/googlebook-ui.md` §2.4) | G14 check on ANAL-192's stick |
 | ANAL-210, ANAL-211 Google services | In progress | G1 microG patch and add-on; G2 an installer step for a user-supplied GApps package (synthetic test package only) | — |
 | ANAL-166 performance and parity | Backlog | After the installer: benchmarks, Chrome, the Linux terminal (AVF without pKVM). No sub-issues yet | — |
 | ANAL-186 NVIDIA | Parked | Research is done (ANAL-187); N1–N6 after M4 | — |
@@ -78,6 +79,23 @@
 **Build host:** one AOSP build at a time (`flock ~/anybook/aosp/.lane.lock`, taken by `scripts/aosp-docker.sh`), because builds peak at about 50 GB of the 61 GB RAM. Builds and images are in `docs/BUILD.md`; the live image and the owner checklists are in `docs/installer.md` §11.
 
 ## History
+
+### 2026-10-17: circular icons and no wallpaper dim, as on Googlebook (ANAL-205, backlog B4)
+- **Set (C):**
+  - in `AnyBookDesktopFrameworkOverlay`: `config_icon_mask` (a circle path of our own), `config_useRoundIcon=true` and `config_wallpaperDimAmount=0`;
+  - in `desktop.mk`: `persist.wallpapercolors.threshold=55` and `max_dark_area=12`. AOSP 17's `WallpaperColors` reads both.
+  - The CF and G14 products both build with them.
+- **Measured in Cuttlefish against the unchanged base (C)** (`evidence/2026-10-17-shape-wallpaper/`):
+  - `cmd overlay lookup` resolves all three values.
+  - All apps, the taskbar, the Settings homepage and Settings' app list draw circles.
+  - Grey 180 shows as 180 (171 before, AOSP's 5 % dim).
+  - `WallpaperColors` now gives the dark-text hint to a grey of luminance 0.62 and to a white image with 8 % dark pixels.
+  - No crashes.
+- **Icon-shape picker (C):**
+  - Wallpaper & style's Icons → Shape offers five shapes and shows Circle selected, which now matches what the home screen draws. With AOSP's mask it showed Circle while the launcher drew a rounded square.
+  - A user's pick still wins in the taskbar.
+  - The taskbar's all-apps panel keeps the system mask after a pick, in the baseline build too (AOSP Launcher3, cause not traced).
+- **Tools:** `scripts/ui/shape-shots.sh`, `scripts/ui/wallpaper-dim-check.sh`, `scripts/ui/wallpaper-hints.sh`.
 
 ### 2026-10-17: the Googlebook image reviewed, GApps options, and Google Sans on OpenBook in a VM (ANAL-201)
 - **Why Googlebook looks cleaner (C)** (`docs/googlebook-ui.md`):
