@@ -185,8 +185,9 @@ Evidence: `v3/shade-root-cause.txt`, `v2-all-groups/cmp-shade-baseline-vs-v2.png
 ## Reproduce
 
 ```bash
-# Facts and the triage table (the decisions are hand-written; the TSV is the record)
+# Facts and the triage table (the decisions are hand-written in scripts/ui/flag-triage.py; the TSV is the record)
 scripts/ui/flag-facts.py evidence/2026-10-17-gbos-ui/flags/googlebook-on-openbook-off.tsv ~/anybook/aosp/src > facts.tsv
+scripts/ui/flag-triage.py facts.tsv > device/anybook/common/desktop/release/googlebook-triage.tsv
 scripts/ui/flag-triage-md.py device/anybook/common/desktop/release/googlebook-triage.tsv
 # Value set: every enabled group (what is committed), or --groups to bisect
 scripts/desktop-flags.py --list device/anybook/common/desktop/release/googlebook-triage.tsv ~/anybook/aosp/src \
