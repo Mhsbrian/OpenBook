@@ -1,0 +1,35 @@
+date: 2026-10-17T23:41:29Z
+uptime: 1934.08
+fingerprint: AnyBook/anybook_cf_x86_64_pc/anybook_vsoc_x86_64:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+ro.product.model=AnyBook Cuttlefish x86_64 desktop
+vendor.anybook.gpu.hal=virtio
+ro.hardware.egl=angle
+ro.hardware.vulkan=ranchu
+ro.surface_flinger.supports_background_blur=1
+ro.config.low_ram=
+ro.config.avoid_gfx_accel=
+persist.sysui.disableBlur=
+debug.renderengine.backend=
+debug.renderengine.vulkan=
+debug.renderengine.graphite_desktop_optin=
+debug.renderengine.blur_algorithm=
+ro.hwui.use_vulkan=
+debug.hwui.renderer=skiavk
+disable_window_blurs (as found): 1
+power save: 0; thermal: Thermal Status: 0
+GLES: Google Inc. (AMD), ANGLE (AMD, Vulkan 1.4.305 (Virtio-GPU GFXStream (AMD Radeon Graphics (RADV RAPHAEL_MENDOCINO)) (0x0000164E)), AMD-26.0.99), OpenGL ES 3.2 (ANGLE 2.1 git hash: 8d8796935e4faeaf19e67ac0a5949e71a5252e7f)
+RenderEngine supports protected context: 0
+RenderEngine is in protected context: 0
+RenderEngine shaders cached since last dump/primeCache: 0
+RenderEngine chosen blur algorithm: KawaseDualFilterV2
+renderFrameRate 60.000004
+mActiveSfDisplayMode=DisplayMode{id=0, width=1920, height=1080, xDpi=160.0, yDpi=160.0
+renderFrameRate 60.000004
+SystemUI BlurUtils:
+      minBlurRadius: 1.0
+      maxBlurRadius: 34.0
+      supportsBlursOnWindows: false
+      CROSS_WINDOW_BLUR_SUPPORTED: true
+      isHighEndGfx: true
+amdgpu events: 0
+surfaceflinger=673 systemui=2640 system_server=816 system_server_starts=1

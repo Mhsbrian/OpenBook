@@ -1,0 +1,108 @@
+Applications Graphics Acceleration Info:
+Uptime: 1421424 Realtime: 1421424
+
+** Graphics info for pid 2640 [com.android.systemui] **
+
+Stats since: 1371664731332ns
+Total frames rendered: 1577
+Janky frames: 187 (11.86%)
+Janky frames (legacy): 530 (33.61%)
+50th percentile: 13ms
+90th percentile: 31ms
+95th percentile: 44ms
+99th percentile: 69ms
+Number Missed Vsync: 26
+Number High input latency: 2036
+Number Slow UI thread: 141
+Number Slow bitmap uploads: 0
+Number Slow issue draw commands: 99
+Number Frame deadline missed: 187
+Number Frame deadline missed (legacy): 175
+HISTOGRAM: 5ms=90 6ms=44 7ms=72 8ms=70 9ms=59 10ms=77 11ms=100 12ms=144 13ms=138 14ms=116 15ms=86 16ms=66 17ms=37 18ms=46 19ms=45 20ms=39 21ms=17 22ms=29 23ms=26 24ms=22 25ms=22 26ms=13 27ms=13 28ms=10 29ms=19 30ms=16 31ms=10 32ms=20 34ms=19 36ms=10 38ms=7 40ms=6 42ms=7 44ms=12 46ms=6 48ms=20 53ms=11 57ms=6 61ms=3 65ms=8 69ms=2 73ms=5 77ms=2 81ms=1 85ms=1 89ms=1 93ms=0 97ms=1 101ms=1 105ms=1 109ms=0 113ms=0 117ms=0 121ms=1 125ms=0 129ms=0 133ms=0 150ms=0 200ms=0 250ms=0 300ms=0 350ms=0 400ms=0 450ms=0 500ms=0 550ms=0 600ms=0 650ms=0 700ms=0 750ms=0 800ms=0 850ms=0 900ms=0 950ms=0 1000ms=0 1050ms=0 1100ms=0 1150ms=0 1200ms=0 1250ms=0 1300ms=0 1350ms=0 1400ms=0 1450ms=0 1500ms=0 1550ms=0 1600ms=0 1650ms=0 1700ms=0 1750ms=0 1800ms=0 1850ms=0 1900ms=0 1950ms=0 2000ms=0 2050ms=0 2100ms=0 2150ms=0 2200ms=0 2250ms=0 2300ms=0 2350ms=0 2400ms=0 2450ms=0 2500ms=0 2550ms=0 2600ms=0 2650ms=0 2700ms=0 2750ms=0 2800ms=0 2850ms=0 2900ms=0 2950ms=0 3000ms=0 3050ms=0 3100ms=0 3150ms=0 3200ms=0 3250ms=0 3300ms=0 3350ms=0 3400ms=0 3450ms=0 3500ms=0 3550ms=0 3600ms=0 3650ms=0 3700ms=0 3750ms=0 3800ms=0 3850ms=0 3900ms=0 3950ms=0 4000ms=0 4050ms=0 4100ms=0 4150ms=0 4200ms=0 4250ms=0 4300ms=0 4350ms=0 4400ms=0 4450ms=0 4500ms=0 4550ms=0 4600ms=0 4650ms=0 4700ms=0 4750ms=0 4800ms=0 4850ms=0 4900ms=0 4950ms=0
+50th gpu percentile: 1ms
+90th gpu percentile: 1ms
+95th gpu percentile: 1ms
+99th gpu percentile: 2ms
+GPU HISTOGRAM: 1ms=1549 2ms=16 3ms=7 4ms=2 5ms=1 6ms=0 7ms=1 8ms=0 9ms=1 10ms=0 11ms=0 12ms=0 13ms=0 14ms=0 15ms=0 16ms=0 17ms=0 18ms=0 19ms=0 20ms=0 21ms=0 22ms=0 23ms=0 24ms=0 25ms=0 4950ms=0
+
+Pipeline=Skia (Vulkan)
+Memory policy:
+  Max surface area: 5184000
+  Max resource usage: 248.83MB (x48)
+  Background retention: 50% (altUiHidden = true)
+  IsSystemOrPersistent
+  GPU Context timeout: 10
+Contexts: 6 (stopped = 5)
+CPU Caches:
+  Glyph Cache: 34.73 KB (1 entry)
+  Glyph Count: 23 
+Total CPU memory usage:
+  35565 bytes, 34.73 KB (0.00 bytes is purgeable)
+GPU Caches:
+  Other:
+    Other: 1.47 KB (1 entry)
+    Buffer Object: 2.50 KB (4 entries)
+    StencilAttachment: 256.00 KB (1 entry)
+  Image:
+    Surface: 21.81 KB (10 entries)
+  Scratch:
+    Buffer Object: 274.75 KB (19 entries)
+    Surface: 2.92 MB (31 entries)
+Total GPU memory usage:
+  3629606 bytes, 3.46 MB (340.19 KB is purgeable)
+Pipeline Cache: inactive
+GraphicBufferAllocator buffers:
+            Handle |         Size |     W (Stride) x H | Layers |   Format |      Usage | Requestor
+    0x7963e0216fd0 |   180.00 KiB | 1920 (1920) x   24 |      1 |        1 | 0x     b00 | VRI[StatusBar]#1(BLAST Consumer)1
+    0x7963e0217ef0 |   180.00 KiB | 1920 (1920) x   24 |      1 |        1 | 0x     b00 | VRI[StatusBar]#1(BLAST Consumer)1
+    0x7963e0218940 |   180.00 KiB | 1920 (1920) x   24 |      1 |        1 | 0x     b00 | VRI[StatusBar]#1(BLAST Consumer)1
+    0x7963e0226ee0 | 20250.00 KiB | 2160 (2160) x 2400 |      1 |        1 | 0x     b00 | Wallpaper#0(BLAST Consumer)0
+    0x7963e027ed80 |     4.00 KiB |   32 (  32) x   32 |      1 |        1 | 0x     100 | AHardwareBuffer pid [2640]
+    0x7963e0281fb0 |     4.00 KiB |   32 (  32) x   32 |      1 |        1 | 0x     100 | AHardwareBuffer pid [2640]
+    0x7963e02c3400 |    36.00 KiB |   96 (  96) x   96 |      1 |        1 | 0x     b00 | ImageReader-96x96f1u2816m2-2640-1
+    0x7963e02c34b0 |     2.25 KiB |   24 (  24) x   24 |      1 |        1 | 0x     b00 | ImageReader-24x24f1u2816m2-2640-0
+Total allocated by GraphicBufferAllocator (estimate): 20836.25 KB
+Imported gralloc buffers:
++ name:ImageReader-96x96f1u2816m2-2640-1, id:71, size:47.11KiB, w/h:96x96, usage: 0xb00, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x8810000, compressed: false
++ name:VRI[StatusBar]#1(BLAST Consumer)1, id:20, size:191.11KiB, w/h:1920x24, usage: 0xb00, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x8810000, compressed: false
++ name:AHardwareBuffer pid [2640], id:36, size:15.11KiB, w/h:32x32, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:Wallpaper#0(BLAST Consumer)0, id:12, size:20261.11KiB, w/h:2160x2400, usage: 0xb00, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x8810000, compressed: false
++ name:AHardwareBuffer pid [2640], id:35, size:15.11KiB, w/h:32x32, usage: 0x100, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x0, compressed: false
++ name:ImageReader-24x24f1u2816m2-2640-0, id:67, size:13.36KiB, w/h:24x24, usage: 0xb00, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x8810000, compressed: false
++ name:VRI[StatusBar]#1(BLAST Consumer)1, id:21, size:191.11KiB, w/h:1920x24, usage: 0xb00, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x8810000, compressed: false
++ name:VRI[StatusBar]#1(BLAST Consumer)1, id:18, size:191.11KiB, w/h:1920x24, usage: 0xb00, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x8810000, compressed: false
+Total imported by gralloc: 20925.09KiB
+
+Profile data in ms:
+
+	ScreenDecorOverlay/android.view.ViewRootImpl@606cf8a (visibility=4)
+	ScreenDecorOverlayBottom/android.view.ViewRootImpl@7ab2ead (visibility=4)
+	ShellDropTarget/android.view.ViewRootImpl@69b2287 (visibility=4)
+	DisplayBackGestureHandler 0/android.view.ViewRootImpl@ab235f (visibility=8)
+	StatusBar/android.view.ViewRootImpl@5343a76 (visibility=0)
+	NotificationShade/android.view.ViewRootImpl@fc26fed (visibility=4)
+View hierarchy:
+
+  ScreenDecorOverlay/android.view.ViewRootImpl@606cf8a
+  5 views, 6.52 kB of render nodes
+
+  ScreenDecorOverlayBottom/android.view.ViewRootImpl@7ab2ead
+  5 views, 6.52 kB of render nodes
+
+  ShellDropTarget/android.view.ViewRootImpl@69b2287
+  8 views, 10.44 kB of render nodes
+
+  DisplayBackGestureHandler 0/android.view.ViewRootImpl@ab235f
+  1 views, 1.30 kB of render nodes
+
+  StatusBar/android.view.ViewRootImpl@5343a76
+  33 views, 46.76 kB of render nodes
+
+  NotificationShade/android.view.ViewRootImpl@fc26fed
+  369 views, 494.48 kB of render nodes
+
+
+Total ViewRootImpl   : 6
+Total attached Views : 421
+Total RenderNode     : 566.02 kB (used) / 594.16 kB (capacity)
+

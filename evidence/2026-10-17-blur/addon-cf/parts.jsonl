@@ -1,0 +1,2 @@
+{"part": "blur", "rc": 0, "seconds": 47, "jobs": 2, "amdgpu_events": 0, "quick": 1}
+{"part": "vk", "rc": 2, "seconds": 0, "jobs": 2, "amdgpu_events": 0, "quick": 1}
