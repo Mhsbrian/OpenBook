@@ -16,6 +16,7 @@
 | 2026-10-17 | Our build with ANAL-179's G14 fixes (`anal179-g14r-c`: audio HAL patch 0002, PNO, hwtest) | QEMU 11.1.2, KVM, q35 + OVMF from USB; ICH9 HDA (WAV or silent backend); 2× `mac80211_hwsim` | **The AAudio tone reaches the codec whole:** 2.05 s with 2 glitched windows, against 1.65–1.70 s and 22–23 with AOSP's pacing in the same boot. **Capture padding 0, against 7.** Wi-Fi iperf3 681–755 / 702–732 Mbit/s. The PNO path reaches the driver, which hwsim refuses. G14: next stick | `evidence/2026-10-17-g14-audio-net/qemu-l/`, `qemu-m/`, `qemu-n/` |
 | 2026-10-17 | Our build: `openbook-live-20261017-anal178c` (`main` at `ea3c25e`), then `anal176s` (+ PR #52) | **ASUS GA403WR (G14), bare metal**, from USB; owner's runs | **The default entry, SELinux enforcing, reaches the desktop:** 28 s (`anal178c`) and 29 s (`anal176s`), no app crashed. Wi-Fi on 5 GHz with internet, Bluetooth pairing, the browser. `anal176s`: 0 dropped frames (151 before), no storage notice for the stick, no lock-screen blackout. Bluetooth audio and app sound were denied by SELinux; the fix is in `anal176t` (QEMU 40/40), not yet run on the G14 | `evidence/2026-10-17-g14-desktop/g14-anal178c/`, `g14-anal176s/`, `anal176t/` |
 | 2026-10-17 | **G14 run, arm64 bridge (ANAL-200):** the owner's `openbook-live-20261017-anal178c` and `-anal176s` sticks, default (enforcing) boot then "save logs" | **ASUS GA403WR, Ryzen AI 9 HX 370 (Zen 5)**, bare metal from USB | **The bridge works on real Zen 5:** all five `bridge_*` verdicts pass in both sessions. That covers config, arm64 exec, 9 ID registers without SIGILL, 6,900 `FRECPE`/`FRSQRTE` cases with 0 wrong, and CRC32/NEON. No bridge-related denial in the enforcing boots. No arm64 app was opened; the probe and CoreMark are on ANAL-192's stick (the ARM apps check add-on) | `evidence/2026-10-17-digitalis-g14/` |
+| 2026-10-18 | **G14 run, ARM apps check (ANAL-200):** the owner's `openbook-live-20261018-anal192d`, "OpenBook ARM apps check" entry | **ASUS GA403WR, Ryzen AI 9 HX 370 (Zen 5)**, bare metal from USB | **arm64 apps run on the G14:** all 5 add-on verdicts pass. The arm64 probe passes 18/20 groups, failing only the known `isa` and `signals`; the x86_64 control passes 18/0. CoreMark arm64/native 0.361 exe, 0.351 app. The owner's own apps in the enforcing boot were all x86_64 | `evidence/2026-10-18-digitalis-g14/` |
 | 2026-10-17 | `openbook-live-20261017-anal176s` + the ARM apps check add-on (`openbook-bridgecheck-20261017`, ANAL-200) | QEMU 11.1.2, KVM `-cpu host` (Ryzen 9 7950X), q35 + OVMF from USB | **The add-on works:** it ran in 375 s and all five verdicts pass. Probe x86_64 18/0, arm64 18/2 (`isa`, `signals`); CoreMark 0.362 / 0.372; nothing left installed. A VM, not the G14 | `evidence/2026-10-17-digitalis-g14/qemu-addon/` |
 | 2026-10-17 | Our build: `main` + ANAL-179's SoundPool rule (`anal179-sp-a`) | QEMU 11.1.2, KVM, q35 + OVMF from USB; ICH9 HDA recorded to WAV; SELinux enforcing | **SystemUI's unlock sound plays:** 0 SoundPool denials, and two sounds at the codec (boot and unlock). On `main` there were 2 denials and nothing at the codec. G14: next stick | `evidence/2026-10-17-soundpool/` |
 | 2026-10-17 | Our build: `anybook_cf_x86_64_pc-cp2a-userdebug` with the microG patch, microG 0.3.17.252432 installed by `openbook-addons` (ANAL-210) | Cuttlefish (cvd 1.57.0) in Docker, KVM, Ryzen 9 7950X, `guest_swiftshader`, Wi-Fi to the internet | **microG works:** self-check 18/18; signature spoofing only for microG's certificate (a fake `com.google.android.gms` keeps its own); device registration and push connected; FCM tokens for 3 Play-services apps; microG is the network and fused provider | `evidence/2026-10-17-microg/` |
@@ -34,6 +35,19 @@ The owner's two sessions of 2026-10-17 on the **ASUS GA403WR** (Ryzen AI 9 HX 37
 | 2026-10-17 | Speakers → built-in mic through Android (AAudio) | same, AOSP's example HAL | **heard, broken**: 24 of 30 slices glitched; the HAL padded the capture with silence 7 times. Fixed by AOSP patch 0002 (QEMU-tested, not yet run on the G14) | not heard: the tone went to the paired Bluetooth device (the test now names its ports) | `report.md`, `digest.txt` |
 | 2026-10-17 | App audio under enforcing | — | — | **no sound from the browser**: `untrusted_app_29 → audioserver_tmpfs` denied (fixed in PR #52, not yet run on the G14) | `evidence/2026-10-17-g14-desktop/` (PR #52) |
 | 2026-10-17 | Headphone jack | ALC285 pin `0x21`, HDA jack input device | not tested (nothing plugged in) | not tested | `digest.txt` |
+
+
+The owner's `anal192d` session of 2026-10-18 (`main` `81578c1` + #83). It had a default boot (enforcing, an hour) and "save logs"; details in `docs/g14-audio-net.md` §11.
+
+| Date | Function | `anal192d` | Evidence (`evidence/2026-10-18-g14-anal192d-audio-net/`) |
+|---|---|---|---|
+| 2026-10-18 | Speaker → mic through Android (AAudio) | **`audio_android_clean` yes**: heard, 0 of 30 slices glitched, no HAL padding (patch 0002) | `report.md` |
+| 2026-10-18 | Wi-Fi | connected (2.4 GHz, −22 dBm, Wi-Fi 6), DHCP, internet; the gateway did not answer ping (H: the access point drops ICMP). `wifi_pno` **yes**: the MT7925 takes scheduled scans | `report.md`, `hwtest-final.txt` |
+| 2026-10-18 | Bluetooth audio under enforcing | **works**: an AAC headset paired, and A2DP streamed four times (26 minutes the longest), with no crash or denial. Reconnect after turning it off and on: not seen | `digest-default-boot.txt` |
+| 2026-10-18 | Browser audio under enforcing | **works**: Chrome and WebView Shell, on the speakers and over A2DP | `digest-default-boot.txt` |
+| 2026-10-18 | UI sound at boot (SoundPool) | the unlock sound's track is created, with no denial (#67) | `digest-default-boot.txt` |
+| 2026-10-18 | Notification sound (MediaPlayer) | **failed**: `mediaserver → audioserver_tmpfs` denied, "Could not get control block". Fixed by ANAL-198's #97 (QEMU-tested there; not yet run on the G14) | `digest-default-boot.txt` |
+| 2026-10-18 | Headphone jack | not shown (no plug event) | `digest-default-boot.txt` |
 
 ## ARM-only APKs
 
@@ -89,7 +103,7 @@ CoreMark, translated arm64 / native x86_64 (600k iterations, 3 interleaved round
 | Digitalis A17 as an overlay, Google's image, emulator | 0.300 | 0.298 | `emulator-overlay/bench/` |
 | libndk_translation, Google's image, emulator | 0.457 | 0.456 | `bench-ndk/` |
 | Digitalis A17, G14 image, QEMU/KVM on the 7950X (the ARM apps check add-on; busy host) | 0.362 | 0.372 | `../2026-10-17-digitalis-g14/qemu-addon/` |
-| Digitalis A17, **on the G14** (Ryzen AI 9 HX 370) | — | — | pending: the ARM apps check on ANAL-192's stick |
+| Digitalis A17, **on the G14** (bare metal, Ryzen AI 9 HX 370; "balanced", on mains; 2026-10-18) | **0.361** (10,012 / 27,724 it/s) | **0.351** (9,902 / 28,205) | `../2026-10-18-digitalis-g14/` |
 
 In the same VM, Digitalis runs at about 65% of libndk_translation's speed. The higher figure on our build is a different VM. HYPOTHESIS: Cuttlefish passes AVX2, BMI and FMA to the guest and the emulator does not.
 
