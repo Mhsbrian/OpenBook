@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  No search box above the taskbar (ANAL-206). Launcher3 always puts this view in the hotseat (QsbWidgetFactory)
+  and fills it with the search engine's widget: AOSP's QuickSearchBox "Google" bar, or, with no search app, a
+  "Search" button that opens a blank browser page. Googlebook has neither; search opens from All Apps.
+  An empty view is what Launcher3 itself uses where it wants no search box (NoOpQsbFactory, the taskbar's boot
+  context). Launcher3 keeps a reference to the view and never looks it up by id.
+  Original: packages/apps/Launcher3/res/layout/qsb_container_hotseat.xml.
+-->
+<View xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:importantForAccessibility="no" />

@@ -60,6 +60,7 @@
 | ANAL-201 Googlebook UI and GApps review | In progress (PR #71) | Review done (`docs/googlebook-ui.md`, `docs/gapps.md`). All ten follow-ups approved and running in parallel on the shared lane (builds take turns under the lane lock; each issue has its own Cuttlefish ports) | — |
 | ANAL-202 to ANAL-209 beautification B1–B8 | In progress | B1 Google Sans · B2 blur on the G14 · B3 flag set v2 · B4 shapes and wallpaper dim · B5 clean desktop · B6 brand assets · B7 document fonts · B8 first-run setup. G14 checks go to ANAL-192's next stick | — |
 | ANAL-205 B4: circular icons, no wallpaper dim | In review (PR #73) | **Done in Cuttlefish:** the framework RRO sets the circle mask, round icons and 0 wallpaper dim; `desktop.mk` sets Googlebook's wallpaper colour thresholds 55 / 12. All apps, the taskbar and Settings now draw circles. A grey wallpaper is no longer dimmed (171 → 180 on screen). A pick in Wallpaper & style still wins in the taskbar. Both products build. Open: the taskbar's all-apps panel ignores a shape pick, on the baseline too (`docs/googlebook-ui.md` §2.4) | G14 check on ANAL-192's stick |
+| ANAL-206 B5: a clean default desktop | In review (PR #75) | Done in Cuttlefish and on the G14 product in QEMU: no search box and no `QuickSearchBox`; taskbar pins Files, Settings, browser, Calendar, Gallery, Camera (only with a camera); touch, keypress and non-forced screenshot sounds off; installer live checks 40/40 (`docs/aosp-desktop.md`, `evidence/2026-10-17-clean-desktop/`). Next: the G14 check on the next stick | The owner's review of the pin list; ANAL-192's next stick |
 | ANAL-210, ANAL-211 Google services | In progress | G1 microG patch and add-on; G2 an installer step for a user-supplied GApps package (synthetic test package only) | — |
 | ANAL-166 performance and parity | Backlog | After the installer: benchmarks, Chrome, the Linux terminal (AVF without pKVM). No sub-issues yet | — |
 | ANAL-186 NVIDIA | Parked | Research is done (ANAL-187); N1–N6 after M4 | — |
@@ -78,6 +79,15 @@
 **Build host:** one AOSP build at a time (`flock ~/anybook/aosp/.lane.lock`, taken by `scripts/aosp-docker.sh`), because builds peak at about 50 GB of the 61 GB RAM. Builds and images are in `docs/BUILD.md`; the live image and the owner checklists are in `docs/installer.md` §11.
 
 ## History
+
+### 2026-10-18: a clean default desktop (ANAL-206, backlog B5)
+- **Done** (`docs/aosp-desktop.md`, "The default desktop"):
+  - **No search box.** A Launcher3 RRO empties the hotseat's search slot, which held AOSP's `QuickSearchBox` "Google" bar. The same RRO overrides `QuickSearchBox`, so the app is gone; Settings search, the search key and global search don't need it.
+  - **Taskbar pins** from a Launcher3 partner customization package (`AnyBookDesktopPartnerCustomization`): Files, Settings, the browser (today WebView Shell, the only one we ship), Calendar, Gallery, and Camera, which Camera2 hides on devices without a camera. No desktop icons.
+  - **Quiet:** touch sounds off (`def_sound_effects_enabled`, as Googlebook), LatinIME's keypress sound off (AOSP turns it on at 600 dp and up), the screenshot shutter only when a region requires it (`screenshot_remove_nonforced_sound`, as Googlebook). Lock sounds stay on: they are the G14 checklist's SoundPool probe.
+- **Evidence** (`evidence/2026-10-17-clean-desktop/`): both products build. Cuttlefish on the Radeon 610M: `scripts/ui/desktop-defaults.sh` and `scripts/desktop-capture.sh` pass, with before/after screenshots. The G14 product's live image in QEMU: five pins (no camera), no search box, the installer's entry still there, and `live-qemu.sh` 40/40.
+- **Found:** an RRO value only wins where its configuration is at least as specific as the target's, so the LatinIME overlay repeats its value for `sw600dp` and `sw768dp`. Parallel Cuttlefish containers need `CF_ARGS=--vhost_user_vsock=true`, or `run_cvd` fails with "Can't tombstone server socket".
+- **Not done:** the screenshot flash (no setting exists), and "add new apps to the desktop", which AOSP 17 hard-codes on. Both need patches.
 
 ### 2026-10-18: BootOrder decision, the Googlebook review and B4 merged (ANAL-159)
 - **Merged** #70 (ANAL-191: without consent, OpenBook is appended to `BootOrder`; still `O_EXCL`; QEMU/OVMF: Windows stand-in stays default, OpenBook in the boot menu), #71 (ANAL-201: licensing checked: Google Sans and Google Sans Flex are OFL from google/fonts; no Google binaries committed; GMS user-supplied only; microG optional; no Play Integrity bypass) and #73 (ANAL-205 B4).

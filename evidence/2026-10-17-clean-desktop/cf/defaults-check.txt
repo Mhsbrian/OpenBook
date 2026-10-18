@@ -1,0 +1,18 @@
+# AnyBook/anybook_cf_x86_64_pc/anybook_vsoc_x86_64:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+PASS QuickSearchBox not installed (pm path: '')
+PASS no global search activity (0)
+PASS no QuickSearchBox widget bound (dumpsys appwidget: 0 lines)
+PASS Home has no search widget or Search button (uiautomator: 0 nodes)
+PASS overlay dev.anybook.overlay.desktop.launcher enabled
+PASS overlay dev.anybook.overlay.desktop.latinime enabled
+PASS overlay dev.anybook.overlay.desktop.settingsprovider enabled
+PASS partner customization package found (dev.anybook.desktop.partner/.PartnerCustomization)
+PASS taskbar pins [com.android.documentsui, com.android.settings, org.chromium.webview_shell, com.android.calendar, com.android.gallery3d, com.android.camera2] (want [com.android.documentsui, com.android.settings, org.chromium.webview_shell, com.android.calendar, com.android.gallery3d, com.android.camera2]; camera features: 2)
+PASS touch sounds off (system sound_effects_enabled=0)
+PASS lock sounds unchanged (system lockscreen_sounds_enabled=1)
+PASS on-screen keyboard keypress sound default off (LatinIME config_default_sound_enabled=false)
+PASS screenshot shutter sound only when forced (com.android.systemui.screenshot_remove_nonforced_sound=enabled)
+PASS screenshot taken (/sdcard/Pictures/Screenshots: 0 -> 1 files)
+PASS no SystemUI MediaPlayer after a screenshot (uid 10093: 0)
+PASS crash buffer empty (0 lines)
+0 failed

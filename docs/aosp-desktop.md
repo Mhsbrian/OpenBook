@@ -63,11 +63,17 @@ Everything is in a device tree inside this repo. `scripts/aosp-build.sh` copies 
 device/anybook/
   AndroidProducts.mk                       lunch anybook_cf_x86_64_pc-cp2a-userdebug
   common/desktop/                          reusable by any OpenBook product (VM or bare metal)
-    desktop.mk                             characteristics, large_screen_common, the two RROs, release config map
-    Android.bp                             AnyBookDesktopFrameworkOverlay, AnyBookDesktopSystemUIOverlay (/product)
+    desktop.mk                             characteristics, large_screen_common, the RROs, release config map
+    Android.bp                             AnyBookDesktop{Framework,SettingsProvider,SystemUI,Launcher,LatinIME}Overlay,
+                                           AnyBookDesktopPartnerCustomization (all /product)
     overlays/framework/res/values/config.xml
     overlays/systemui/res/values/config.xml
-    release/                               aconfig value set "aconfig_value_set-anybook_desktop-cp2a" (79 flags)
+    overlays/settingsprovider/             first-boot settings: screen off after 10 min, no touch sounds
+    overlays/launcher/                     Launcher3: no search box in the hotseat (ANAL-206)
+    overlays/latinime/                     on-screen keyboard: no keypress sound (ANAL-206)
+    partner/                               Launcher3 partner customization: first home screen, taskbar pins (ANAL-206)
+    release/                               aconfig value set "aconfig_value_set-anybook_desktop-cp2a" (79 flags) and
+                                           OpenBook's own picks, release/openbook/ (1 flag)
   cuttlefish/
     anybook_cf_x86_64_pc.mk                aosp_cf_x86_64_pc + desktop.mk + the VM-only pieces below
     display_settings.xml                   port:0 windowingMode=5 ignoreOrientationRequest=true (-> /product/etc)
@@ -128,6 +134,42 @@ These reference values were left out:
 | `persist.wallpapercolors.threshold=55`, `persist.wallpapercolors.max_dark_area=12` (ANAL-205) | desktop.mk | unset (AOSP defaults 70 and 5); Googlebook sets 55 and 12 in `/product/etc/build.prop` |
 | `persist.wm.debug.force_desktop_first_on_default_display_for_testing=true` | cuttlefish product only | same |
 | `/product/etc/display_settings.xml`: `port:0 windowingMode=5 ignoreOrientationRequest=true` | cuttlefish product only | `/vendor/etc/display_settings.xml`: `local:<id> windowingMode=5 ignoreOrientationRequest=true` |
+
+### The default desktop: no search box, taskbar pins, quiet sounds (ANAL-206)
+
+AOSP's Launcher3 puts a search box in the hotseat, above the taskbar. It hosts the search engine's widget: on our build AOSP's `QuickSearchBox`, a dark "Google" bar (Google's AOSP Desktop emulator image shows the same bar). Googlebook has no search box on its desktop. Its search opens from the launcher (`docs/googlebook-ui.md` §2.6).
+
+**What we changed and why it works this way** (read in the AOSP 17 tree, `android17-release`):
+
+| Change | Where | Mechanism |
+|---|---|---|
+| **No search box.** The hotseat's search slot is an empty view | `AnyBookDesktopLauncherOverlay` (`dev.anybook.overlay.desktop.launcher`, target `com.android.launcher3`): `layout/qsb_container_hotseat` | Launcher3 always creates this view (`qsb/QsbWidgetFactory.kt`), and there is no config to hide it. Without a search app it shows a "Search" button that opens a blank browser page (`OseWidgetView.getErrorView`). An empty view is what Launcher3 uses itself where it wants none (`NoOpQsbFactory`); it is only ever referenced, never looked up by id. An RRO needs no Launcher3 patch |
+| **No `QuickSearchBox` app** | the same RRO: `overrides: ["QuickSearchBox"]` | `handheld_product.mk` adds it, and inherited `PRODUCT_PACKAGES` can't be filtered out; a module that overrides it keeps it from being installed, in Soong-only (Cuttlefish) and Make (G14) builds alike |
+| **Taskbar pins** Files, Settings, browser, Calendar, Gallery, Camera; no desktop icons | `AnyBookDesktopPartnerCustomization` (`dev.anybook.desktop.partner`): `res/xml/partner_default_layout.xml` | Launcher3 builds a new home screen from, in order: a layout set through `launcher3.layout.provider`, a Play auto-install package, **a system app with a receiver for `com.android.launcher3.action.PARTNER_CUSTOMIZATION`**, then its own `default_workspace_6x5.xml` (`model/LayoutParserFactory.kt`, `ModelDbController.loadDefaultFavoritesIfNecessary`). On a desktop the taskbar shows the hotseat. The partner layout doesn't depend on which grid Launcher3 picks |
+| **No touch sounds** | `AnyBookDesktopSettingsProviderOverlay`: `def_sound_effects_enabled=false` | The value Googlebook's `SettingsProviderDesktopOverlay` sets. Applied when `/data` is created |
+| **No keypress sound** in the on-screen keyboard | `AnyBookDesktopLatinIMEOverlay`: `config_default_sound_enabled=false` | AOSP LatinIME turns it on for screens of 600 dp and up (`values-sw600dp`, `values-sw768dp`), i.e. every desktop. It plays through `AudioManager.playSoundEffect(type, volume)`, which ignores the Touch sounds setting |
+| **No screenshot shutter sound** unless a region requires it | `release/openbook/cp2a/`: `com.android.systemui.screenshot_remove_nonforced_sound` (ENABLED, READ_ONLY) | Googlebook enables this flag; the reference emulator image doesn't, so `scripts/desktop-flags.py` would never add it. It lives in a second, hand-kept value set because the script rewrites `release/aconfig/` |
+
+**Pins in detail** (`partner/res/xml/partner_default_layout.xml`):
+- **Files:** DocumentsUI's launcher entry has `APP_FILES` but no `DEFAULT` category, so a `<resolve>` by category alone misses it; the component `com.android.documentsui/.LauncherActivity` is the fallback.
+- **Browser:** whatever handles `APP_BROWSER` or `http` when Launcher3 creates its database. OpenBook ships no browser yet, so on a fresh `/data` that is AOSP's WebView Shell ("WebView Browser Tester"), as before.
+- **Camera:** Camera2's `SetActivitiesCameraReceiver` disables its launcher entry at every boot when the device has no `android.hardware.camera{,.front,.external}` feature, and Launcher3 drops pins for disabled components. So the pin only stays where a camera exists.
+- The layout is read once, when Launcher3 creates its database (new `/data` or cleared Launcher data). Existing installs keep their pins.
+
+**What depends on `QuickSearchBox`** (checked before removing it):
+- **Global search** (`android.search.action.GLOBAL_SEARCH`): `SearchManager.startGlobalSearch` logs "No global search activity found" and returns. `DefaultPermissionGrantPolicy` skips the grant.
+- **Launcher3's search box fallback:** covered by the empty view above.
+- **Settings search** goes to SettingsIntelligence (`com.android.settings.action.SETTINGS_SEARCH`), not to `QuickSearchBox`.
+- **The search key** (`KEYCODE_SEARCH`) starts `config_searchKeyTargetActivity` or `ACTION_WEB_SEARCH`; with no handler `PhoneWindowManager` logs "Not launching app" and carries on.
+- The All Apps search in Launcher3 is its own and stays.
+- Only two sysconfig allowlists in `build/make` name the package.
+
+**Left as they are:**
+- **Lock and unlock sounds** (`lockscreen_sounds_enabled`). Googlebook keeps them on, and SystemUI's unlock sound at boot is the G14 checklist's SoundPool probe (`docs/g14-audio-net.md`).
+- **Charging, power and dock sounds:** the AOSP defaults, as on Googlebook.
+- **The screenshot flash.** No setting exists: `ScreenshotController` always flashes for a full-screen capture. Only a SystemUI patch could remove it.
+- **New apps added to the desktop.** Googlebook's launcher defaults "Add new apps to Home screen" to off (`pref_add_icon_to_home_default=false`). AOSP 17 hard-codes it to on (`DefaultsValueProvider.addIconToHome`), so turning it off needs a Launcher3 patch. Not done here.
+- **`desktop_form_factor`.** Googlebook's launcher overlay sets this Launcher3 bool to true. In AOSP 17 it gates two flags our value set already enables, `enable_mouse_interaction_changes` and `enable_cursor_driven_workflows` (`Utilities.shouldEnable*`), so both have no effect on OpenBook today. It belongs with the flag work (B3).
 
 ### aconfig flags
 
@@ -269,6 +311,7 @@ Both images were captured with the same script at 1920×1080, 160 dpi. Windowing
 | Wi-Fi | `wifi_on=1`; Wi-Fi icon in the status bar | `wifi_on=0` | Cuttlefish Wi-Fi not turned on; not investigated |
 | Kernel | 6.12.58 android16-6.12 (emulator `kernel-ranchu`) | 6.12.74 android16-6.12 (Cuttlefish prebuilt GKI) | ANAL-171/172 bring android17-6.18 |
 | Display identity | `display_settings.xml` keyed by unique id `local:4619827259835644672` | keyed by `port:0` | same effect: freeform, ignoring orientation requests |
+| Home and sounds | `QuickSearchBox` "Google" bar above the taskbar; taskbar pins from Launcher3's `default_workspace_6x5.xml`; touch sounds on | no search box and no `QuickSearchBox`; partner-layout pins (Files, Settings, browser, Calendar, Gallery, Camera); touch, keypress and non-forced screenshot sounds off | ours, after Googlebook (ANAL-206) |
 | Name | "Android Desktop" | "AnyBook Cuttlefish x86_64 desktop" (`PRODUCT_MODEL`; still the old name, see the README) | ours |
 
 ## Open items
