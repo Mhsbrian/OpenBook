@@ -1,0 +1,57 @@
+// Copyright (C) 2026 The OpenBook Authors
+// SPDX-License-Identifier: Apache-2.0
+//
+// OpenBook's own look and sound (ANAL-207): the pointer theme and the UI sounds' defaults. The art itself (and its
+// generators) lives in assets/ at the top of the repo; the files here are links to it, which aosp-build.sh copies
+// into the tree. branding.mk installs the boot animation and the sound files; the default wallpaper is in
+// AnyBookDesktopFrameworkOverlay and the wallpaper set in AnyBookDesktopPartnerCustomization (../desktop).
+
+package {
+    default_applicable_licenses: ["device_anybook_branding_license"],
+}
+
+// The art: CC-BY-4.0 (assets/LICENSE). This file and the overlays' XML wiring: Apache-2.0.
+license {
+    name: "device_anybook_branding_license",
+    visibility: [":__subpackages__"],
+    license_kinds: [
+        "SPDX-license-identifier-Apache-2.0",
+        "SPDX-license-identifier-CC-BY-4.0",
+    ],
+    license_text: ["LICENSE"],
+}
+
+// OpenBook's pointer shapes on Android 17's vector pointer icons (scripts/brand/pointers.py). They keep the
+// accessibility fill and stroke styles: each shape is filled with the private theme attribute
+// pointerIconVectorFill and outlined with pointerIconVectorStroke, which Settings > Accessibility > Mouse sets.
+//
+// aapt2 lets only resources of package "android" name private framework attributes (?android:attr/... from any other
+// package is "is private", and ?* is not accepted for attributes). So this overlay is compiled as resource package
+// "android", and package_name renames only its manifest (aapt2 --rename-manifest-package): the APK is
+// dev.anybook.overlay.pointer, and its compiled XML holds the framework's attribute IDs (?0x0112...). aapt2 gives
+// package "android" the ID 0x01, so the overlay's own resources are pinned to type 0x60 (stable-ids.txt), which
+// framework-res does not use. The overlay replaces only the vectors (pointer_*_vector), never the pointer-icon
+// files that hold the hotspots, so it makes no reference to its own resources.
+runtime_resource_overlay {
+    name: "OpenBookPointerOverlay",
+    manifest: "pointer/AndroidManifest.xml",
+    resource_dirs: ["pointer/res"],
+    package_name: "dev.anybook.overlay.pointer",
+    aaptflags: [
+        "--stable-ids",
+        "device/anybook/common/branding/pointer/stable-ids.txt",
+    ],
+    product_specific: true,
+    // No sdk_version: the overlay links against framework-res itself, which holds the private attributes.
+}
+
+// The UI sounds Android plays on a laptop (lock, unlock, trusted device, low battery, charging) point at
+// OpenBook's set in /product/media/audio/ui. Read when the settings database is created (first boot).
+// Whether touch, lock and charging sounds play at all is AnyBookDesktopSettingsProviderOverlay's (ANAL-206).
+runtime_resource_overlay {
+    name: "OpenBookSoundsSettingsProviderOverlay",
+    manifest: "sounds/AndroidManifest.xml",
+    resource_dirs: ["sounds/res"],
+    product_specific: true,
+    sdk_version: "current",
+}
