@@ -251,7 +251,9 @@ func TestServePermissionRelayAndRefusals(t *testing.T) {
 		{"allowed", allow, "outcome=y"},
 		{"denied", func(acp.RequestPermissionRequest) acp.RequestPermissionResponse { return acp.Selected("n") }, "outcome=n"},
 		// An answer that isn't one of the agent's options is refused, not passed on.
-		{"forged option", func(acp.RequestPermissionRequest) acp.RequestPermissionResponse { return acp.Selected("allow_everything") }, "outcome=n"},
+		{"forged option", func(acp.RequestPermissionRequest) acp.RequestPermissionResponse {
+			return acp.Selected("allow_everything")
+		}, "outcome=n"},
 		{"cancelled", func(acp.RequestPermissionRequest) acp.RequestPermissionResponse { return acp.Cancelled() }, "outcome=cancelled"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -373,6 +375,9 @@ func TestServeAuthRequiredThenAuthenticate(t *testing.T) {
 	var data authRequired
 	if json.Unmarshal(re.Data, &data) != nil || data.Agent != "fake" || len(data.AuthMethods) != 2 {
 		t.Fatalf("auth_required data = %s", re.Data)
+	}
+	if left, _ := filepath.Glob(filepath.Join(fx.root, "Quire", "*")); len(left) != 0 {
+		t.Fatalf("a failed session/new left its folder: %v", left)
 	}
 	if err := a.Authenticate(ctx, "nope"); err == nil {
 		t.Fatal("an unknown method was accepted")

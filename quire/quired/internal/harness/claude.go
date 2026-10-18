@@ -60,13 +60,13 @@ func (c *claudeAgent) Info() acp.InitializeResponse {
 }
 
 func (c *claudeAgent) Diagnostics() string { return c.stderr.String() }
+func (c *claudeAgent) Close() error        { return nil } // nothing runs between prompts
 
 // Authenticate: Claude Code keeps its own sign-in (`claude` then /login, in a terminal), so the
 // adapter offers no ACP methods.
 func (c *claudeAgent) Authenticate(context.Context, string) error {
 	return acp.Errorf(acp.CodeInvalidParams, "Claude Code signs in from a terminal: run claude, then /login")
 }
-func (c *claudeAgent) Close() error        { return nil } // nothing runs between prompts
 
 func (c *claudeAgent) NewSession(_ context.Context, cwd string, mcp []acp.McpServer) (string, error) {
 	if !filepath.IsAbs(cwd) {
