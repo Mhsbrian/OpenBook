@@ -62,7 +62,7 @@ genrule {
     name: "openbook_fonts_customization_checked",
     tools: ["openbook-fonts-customization"],
     srcs: ["fonts_customization.xml"],
-    out: ["fonts_customization.xml"],
+    out: ["fonts_customization_checked.xml"],
     cmd: "$(location openbook-fonts-customization) --check $(in) && cp $(in) $(out)",
 }
 
