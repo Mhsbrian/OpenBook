@@ -1,0 +1,18 @@
+SOME FAIL
+Answer text on the note                          light 10.1:1 pass (black) dark 7.3:1 pass (white) target 4.5:1 (worst backdrop)
+Secondary text on the note                       light 5.1:1 pass (black) dark 4.0:1 FAIL (white) target 4.5:1 (worst backdrop)
+Secondary text on a card                         light 5.5:1 pass     dark 7.6:1 pass     target 4.5:1
+Secondary text on a card (dark uses surface-high) light 5.2:1 pass     dark 7.1:1 pass     target 4.5:1
+Filled button: Allow                             light 6.1:1 pass     dark 6.1:1 pass     target 4.5:1
+Tonal button: Allow for this session (allow_always) light 6.1:1 pass     dark 6.1:1 pass     target 4.5:1
+Text button: Don’t allow                         light 5.1:1 pass (black) dark 5.4:1 pass (white) target 4.5:1 (worst backdrop)
+New value pill                                   light 6.1:1 pass     dark 6.1:1 pass     target 4.5:1
+Mic indicator                                    light 9.6:1 pass     dark 7.7:1 pass     target 4.5:1
+Automation chip (Using Settings)                 light 6.1:1 pass     dark 6.1:1 pass     target 4.5:1
+Halo label, Jump pill                            light 15.3:1 pass    dark 12.1:1 pass    target 4.5:1
+Danger text: Stop                                light 5.1:1 pass (black) dark 3.4:1 FAIL (white) target 4.5:1 (worst backdrop)
+Intake chip                                      light 6.1:1 pass     dark 6.1:1 pass     target 4.5:1
+Done check (icon, non-text)                      light 5.0:1 pass (black) dark 5.5:1 pass (white) target 3.0:1 (worst backdrop)
+Focus ring (non-text)                            light 5.1:1 pass (black) dark 5.4:1 pass (white) target 3.0:1 (worst backdrop)
+Pending-step outline (non-text)                  light 5.1:1 pass (black) dark 4.0:1 pass (white) target 3.0:1 (worst backdrop)
+Field outline on focus (non-text)                light 5.5:1 pass     dark 10.2:1 pass    target 3.0:1

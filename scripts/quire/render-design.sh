@@ -27,7 +27,7 @@ ln -sfn "$F" "$D/fonts"
 SCREENS=("$@")
 if [ ${#SCREENS[@]} -eq 0 ]; then
   SCREENS=(idle invoke-shake invoke-key invoke-secure invoke-taskbar invoke-voice invoke-selection compose agent-picker streaming steps plan
-           consent consent-command consent-system mirror mirror-paused done error signin background settings-help long-output
+           consent consent-command consent-system mirror mirror-paused done stopped error signin background settings-help long-output
            code images no-agent offline)
 fi
 
@@ -56,4 +56,4 @@ case $SIZES in
   *) echo "usage: $0 [fhd|g14|all] [SCREEN...]" >&2; exit 2 ;;
 esac
 # gallery contact sheet (light + dark, every state), at 1x
-[ ${#SCREENS[@]} -ge 20 ] && shot "$D/png/gallery.png" "?size=fhd" 2000 17000 0.5 || true
+[ ${#SCREENS[@]} -ge 20 ] && shot "$D/png/gallery.png" "?size=fhd" 2000 17700 0.5 || true

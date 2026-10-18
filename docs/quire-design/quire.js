@@ -20,7 +20,7 @@ const MOTION = {
 /* ------------------------------------------------------------------------------------------ helpers */
 const qs = new URLSearchParams(location.search);
 const h = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
-const ms = (name, cls = '') => `<span class="ms ${cls}">${name}</span>`;
+const ms = (name, cls = '') => `<span class="ms ${cls}" aria-hidden="true">${name}</span>`;
 const LEAF = `<svg class="leaf" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 3H14l6 6v8.5A3.5 3.5 0 0 1 16.5 21h-9A3.5 3.5 0 0 1 4 17.5v-11A3.5 3.5 0 0 1 7.5 3Z" fill="url(#leafA)"/><path d="M14 3v4.5A1.5 1.5 0 0 0 15.5 9H20Z" fill="url(#leafB)"/></svg>`;
 const leaf = (cls = '') => `<span class="leaf-wrap ${cls}">${LEAF}</span>`;
 const POINTER = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.33 4.07 Q4.33 3.07 5.02 3.79 L14.27 13.47 Q15.03 14.27 13.93 14.3 L12.77 14.32 Q10.93 14.37 9.62 14.64 L8.91 14.79 Q8.03 14.97 7.36 15.57 L5.15 17.54 Q4.33 18.27 4.33 17.17 L4.33 4.07 Z" fill="#fff" stroke="#fff" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/><path d="M4.33 4.07 Q4.33 3.07 5.02 3.79 L14.27 13.47 Q15.03 14.27 13.93 14.3 L12.77 14.32 Q10.93 14.37 9.62 14.64 L8.91 14.79 Q8.03 14.97 7.36 15.57 L5.15 17.54 Q4.33 18.27 4.33 17.17 L4.33 4.07 Z" fill="#000"/></svg>`;
@@ -57,7 +57,7 @@ function desktop(board, o) {
   // taskbar
   const tb = h('div', 'taskbar');
   tb.innerHTML = `<div class="tb-btn">${ms('apps')}</div>
-    <div class="tb-btn tb-quire ${o.tbRunning ? 'running' : ''}" data-role="quire" title="Quire">${leaf()}${o.tbRing != null ? ring(o.tbRing) : ''}${o.tbBadge ? `<span class="badge">${o.tbBadge}</span>` : ''}</div>
+    <button type="button" class="tb-btn tb-quire ${o.tbRunning ? 'running' : ''}" data-role="quire" title="Quire" aria-label="Quire">${leaf()}${o.tbRing != null ? ring(o.tbRing) : ''}${o.tbBadge ? `<span class="badge">${o.tbBadge}</span>` : ''}</button>
     <div class="tb-divider"></div>
     <div class="tb-btn app ${wins.includes('doc') ? 'active' : ''}" style="background:#FBF8FE;color:#565B8C">${ms('description', 'fill')}</div>
     <div class="tb-btn app" style="background:#FBF8FE;color:#2F6B45">${ms('folder', 'fill')}</div>
@@ -135,8 +135,8 @@ function agentChip(id, opts = {}) {
 }
 function head(n) {
   return `<div class="n-head">${leaf(n.thinking ? 'thinking' : '')}${agentChip(n.agent || 'claude', { open: n.picker, where: n.where })}<span class="spacer"></span>
-    ${n.running ? `<div class="ibtn" title="Keep running in the background">${ms('open_in_new_down')}</div>` : ''}
-    <div class="ibtn ${n.focusClose ? 'focus' : ''}" title="Close (Esc)">${ms('close')}</div></div>`;
+    ${n.running ? `<button type="button" class="ibtn" data-role="background" title="Hide · keeps running (Meta+Space)" aria-label="Hide the note; the task keeps running">${ms('open_in_new_down')}</button>` : ''}
+    <button type="button" class="ibtn ${n.focusClose ? 'focus' : ''}" data-role="close" title="${n.running ? 'Hide · keeps running' : 'Close (Esc)'}" aria-label="${n.running ? 'Hide the note; the task keeps running' : 'Close'}">${ms('close')}</button></div>`;
 }
 function intakeChip(i) {
   if (!i) return '';
@@ -163,14 +163,29 @@ function change(c, mode) {
   return `<div class="change"><span class="k">${c.k}</span><span class="w">${c.w}</span>
     <span class="v"><span class="old">${c.old}</span>${ms('arrow_forward')}<span class="new">${c.nu}</span>${mode === 'undo' ? `<span class="undo" title="Undo">${ms('undo')}</span>` : ''}</span></div>`;
 }
+// ACP `session/request_permission`: the agent supplies `options[]` with its own `optionId`, `name` and `kind`.
+// The card shows the agent's names, orders reject kinds first, styles by kind, and returns the chosen optionId.
+// ACP gives `allow_always` no defined lifetime, so the label is the agent's own wording, never Quire's "for this task".
+// The default sample is what quired's Claude Code adapter sends today (harness/claude.go).
+const OPTIONS_CLAUDE = [
+  { optionId: 'deny',   name: 'Don’t allow',            kind: 'reject_once' },
+  { optionId: 'always', name: 'Allow for this session', kind: 'allow_always' },
+  { optionId: 'allow',  name: 'Allow',                  kind: 'allow_once' },
+];
+const KIND_ORDER = { reject_always: 0, reject_once: 1, allow_always: 2, allow_once: 3 };
+const KIND_STYLE = { reject_always: 'text', reject_once: 'text', allow_always: 'tonal', allow_once: 'filled' };
+function optionButtons(c) {
+  const opts = (c.options || OPTIONS_CLAUDE).slice().sort((a, b) => (KIND_ORDER[a.kind] ?? 9) - (KIND_ORDER[b.kind] ?? 9));
+  return opts.map(o => `<button type="button" class="btn ${KIND_STYLE[o.kind] || 'text'} ${c.focus === o.optionId ? 'focus' : ''}" data-option="${o.optionId}" data-kind="${o.kind}">${o.name}</button>`).join('');
+}
 function consent(c) {
-  return `<div class="card consent ${c.focusCard ? 'focus' : ''}" role="group" aria-label="Permission">
+  return `<div class="card consent ${c.focusCard ? 'focus' : ''}" role="group" aria-label="Permission" tabindex="-1">
     <div class="ct">${ms('shield', 'fill')}${c.title}<span class="meta">${c.meta || ''}</span></div>
     ${c.changes ? c.changes.map(x => change(x)).join('') : ''}
     ${c.cmd ? `<div class="cmd">${c.cmd}</div>` : ''}
     ${c.diff ? `<div class="diff">${c.diff.map(l => `<div class="${l[0]}">${l[1]}</div>`).join('')}</div>` : ''}
     ${c.why ? `<div class="consent-why">${c.why}</div>` : ''}
-    <div class="btns end"><span class="btn text ${c.focus === 'deny' ? 'focus' : ''}">Don’t allow</span><span class="btn tonal ${c.focus === 'task' ? 'focus' : ''}">Allow for this task</span><span class="btn filled ${c.focus === 'allow' ? 'focus' : ''}">Allow</span></div>
+    <div class="btns end">${optionButtons(c)}</div>
   </div>`;
 }
 function composer(c = {}) {
@@ -196,7 +211,7 @@ function note(n) {
   }
   if (n.mirror) {
     const m = n.mirror;
-    el.innerHTML = `<div class="n-head">${leaf(n.thinking ? 'thinking' : '')}${agentChip(n.agent || 'claude')}<span class="spacer"></span><div class="ibtn" title="Keep running in the background">${ms('open_in_new_down')}</div><div class="ibtn" title="Close">${ms('close')}</div></div>
+    el.innerHTML = `<div class="n-head">${leaf(n.thinking ? 'thinking' : '')}${agentChip(n.agent || 'claude')}<span class="spacer"></span><button type="button" class="ibtn" data-role="background" title="Hide · keeps running (Meta+Space)" aria-label="Hide the note; the task keeps running">${ms('open_in_new_down')}</button><button type="button" class="ibtn" data-role="close" title="Hide · keeps running" aria-label="Hide the note; the task keeps running">${ms('close')}</button></div>
       ${prompt(n)}
       <div class="mirror-bar"><span class="auto ${m.paused ? 'paused' : ''}"><span class="dot"></span>${m.paused ? 'Paused' : 'Using Settings'}</span><span>${m.title}</span><span class="spacer"></span></div>
       <div class="mirror-view">
@@ -208,7 +223,7 @@ function note(n) {
       </div>
       <div class="mirror-step">${steps(m.steps)}</div>
       <div class="mirror-foot"><span class="status">${m.status}</span>
-        <span class="btn text danger">Stop</span><span class="btn tonal">${ms(m.paused ? 'play_arrow' : 'pause')}${m.paused ? 'Resume' : 'Pause'}</span><span class="btn filled ${m.focusTake ? 'focus' : ''}">${ms('open_in_full')}Take over</span></div>`;
+        <button type="button" class="btn text danger" data-act="stop">Stop</button><button type="button" class="btn tonal" data-act="pause" aria-label="${m.paused ? 'Resume' : 'Pause'}">${ms(m.paused ? 'play_arrow' : 'pause')}${m.paused ? 'Resume' : 'Pause'}</button><button type="button" class="btn filled ${m.focusTake ? 'focus' : ''}" data-act="takeover" aria-label="Take over">${ms('open_in_full')}Take over</button></div>`;
     return el;
   }
   body = (n.blocks || []).map(b => {
@@ -224,7 +239,7 @@ function note(n) {
       case 'auth': return `<div class="card"><div class="ct">${ms('key', 'fill')}${b.title}</div><div class="consent-why">${b.msg}</div><div class="auth-list">${b.methods.map(m => `<div class="row">${ms(m.ic)}${m.t}<small>${m.sub || ''}</small></div>`).join('')}</div></div>`;
       case 'agents': return `<div class="card"><div class="ct">${ms('hub')}${b.title}</div><div class="consent-why">${b.msg}</div><div class="auth-list">${b.list.map(m => `<div class="row"><span class="av" style="width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;color:#fff;background:${m.col}">${m.ini}</span>${m.t}<small>${m.sub || ''}</small></div>`).join('')}</div>${b.foot || ''}</div>`;
       case 'btns': return `<div class="btns ${b.end ? 'end' : ''}">${b.html}</div>`;
-      case 'code': return `<div class="codeblock"><div class="bar">${b.lang}<span class="ibtn" title="Copy">${ms('content_copy')}</span></div><pre>${b.src}</pre></div>`;
+      case 'code': return `<div class="codeblock"><div class="bar">${b.lang}<button type="button" class="ibtn" title="Copy" aria-label="Copy code">${ms('content_copy')}</button></div><pre>${b.src}</pre></div>`;
       case 'image': return `<div class="img" style="height:${b.h || 180}px">${b.html || ''}<span class="expand">${ms('open_in_full')}</span><span class="cap">${ms('image')}${b.cap}</span></div>`;
       case 'jump': return `<div class="jump"><span>${ms('arrow_downward')}Jump to latest</span></div>`;
       case 'html': return b.html;
@@ -280,8 +295,8 @@ function anno(board, x, y, text, cls = '') { const a = h('div', 'anno ' + cls, `
 const STEPS_BATTERY = [
   { st: 'done', kind: 'read', t: 'Reading Display settings' },
   { st: 'done', kind: 'read', t: 'Reading Battery settings' },
-  { st: 'running', kind: 'setting', t: 'Turning on Battery saver' },
-  { st: 'pending', kind: 'setting', t: 'Lowering brightness to 40%' },
+  { st: 'running', kind: 'setting', t: 'Turning on Battery saver', effect: 'Battery saver was turned on', where: 'Settings · Battery' },
+  { st: 'pending', kind: 'setting', t: 'Lowering brightness to 40%', effect: 'Brightness was lowered to 40%', where: 'Settings · Display' },
 ];
 const ANSWER_ADAPTIVE = `<p><b>Adaptive brightness</b> uses the light sensor to set the screen's brightness for the room you are in, and learns from the adjustments you make.</p><p>On this laptop it is on. It will not change the brightness while Battery saver is active, which is why the slider`;
 const CODE_RENAME = `<span class="c"># Rename photos in ~/Pictures/Lisbon by the date they were taken</span>
@@ -331,14 +346,14 @@ S['steps'] = { caption: '<b>Steps ticking.</b> Each tool call is a line with its
 S['plan'] = { caption: '<b>A plan.</b> An ACP <code>plan</code> update becomes a numbered checklist that updates in place. Priority shows only when the agent sets it. Showing a plan needs no consent.',
   build(b, H) { desktop(b, { activeWin: 'settings' }); pointer(b, PTR); place(b, note({ agent: 'claude', thinking: true, intake: { kind: 'window', text: 'Settings · Display' }, you: 'Set this laptop up for my talk tomorrow', blocks: [{ type: 'plan', entries: [{ st: 'done', t: 'Check the HDMI output and mirror mode' }, { st: 'active', t: 'Turn off notifications during the talk', pri: 'high' }, { st: 'pending', t: 'Set screen timeout to 30 minutes' }, { st: 'pending', t: 'Open the slides in a new window' }] }, { type: 'steps', list: [{ st: 'done', kind: 'read', t: 'Reading Display settings' }, { st: 'running', kind: 'read', t: 'Reading Notification settings' }] }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Working · 9 s', footRight: '<kbd>Esc</kbd> stop' }), { at: PTR }); } };
 
-S['consent'] = { caption: '<b>Inline consent.</b> The step stops and the card names exactly what will change. Focus lands on the card; the first Tab stop is Don’t allow. Maps to ACP <code>session/request_permission</code>.',
+S['consent'] = { caption: '<b>Inline consent.</b> The step stops and the card names exactly what will change. Focus lands on the card; the first Tab stop is the agent’s reject option. The buttons are ACP <code>session/request_permission</code> options, labelled by the agent.',
   build(b, H) { desktop(b, { activeWin: 'settings', settings: { page: 'battery', saver: false } }); pointer(b, PTR); place(b, note({ agent: 'claude', intake: { kind: 'window', text: 'Settings · Display' }, you: 'Turn on Battery saver and lower the brightness', blocks: [{ type: 'steps', list: [STEPS_BATTERY[0], STEPS_BATTERY[1]] }, { type: 'consent', title: 'Change 2 settings', meta: 'Settings tool', focusCard: true, changes: [{ k: 'Battery saver', w: 'Settings · Battery', old: 'Off', nu: 'On' }, { k: 'Brightness level', w: 'Settings · Display', old: '80%', nu: '40%' }], why: 'You can undo this from the note or from the Quire button.' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Waiting for you', footRight: '<kbd>Esc</kbd> stop' }), { at: PTR }); } };
 
-S['consent-command'] = { caption: '<b>Consent for a command or a file edit.</b> The same card shows the command, or a diff, instead of settings rows. Allow for this task maps to <code>allow_always</code> scoped to the session.',
+S['consent-command'] = { caption: '<b>Consent for a command or a file edit.</b> The same card shows the command, or a diff, instead of settings rows. The buttons are the agent’s own options (<code>options[].name</code>); their scope is whatever the agent enforces.',
   build(b, H) { desktop(b, { activeWin: 'doc' }); pointer(b, [700, 520]); place(b, note({ agent: 'claude', cls: 'wide', intake: { kind: 'selection', text: 'Things to pack: the HDMI adapter…' }, you: 'Turn this into a checklist file in my Documents', blocks: [{ type: 'steps', list: [{ st: 'done', kind: 'read', t: 'Reading the selection' }] }, { type: 'consent', title: 'Write a file', meta: 'Documents/Lisbon-packing.md', focus: 'deny', diff: [['', '# Lisbon packing list'], ['add', '+ [ ] HDMI adapter'], ['add', '+ [ ] Second laptop charger'], ['add', '+ [ ] Walking shoes'], ['add', '+ [ ] Light jacket for the evenings']], why: 'Creates a new file. Nothing else in Documents changes.' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Waiting for you', footRight: '<kbd>Esc</kbd> stop' }), { at: [700, 520] }); } };
 
 S['consent-system'] = { caption: '<b>Platform consent for computer control.</b> The system’s own dialog (platform-owned, drawn here only for context) asks before any app is automated. The note waits and says so.',
-  build(b, H) { desktop(b, { activeWin: 'settings' }); pointer(b, PTR); place(b, note({ agent: 'claude', intake: { kind: 'window', text: 'Settings' }, you: 'In Settings, find Bluetooth and turn it off', blocks: [{ type: 'steps', list: [{ st: 'done', kind: 'read', t: 'Listing apps' }, { st: 'running', kind: 'app', t: 'Asking to use Settings' }] }, { type: 'result', icon: 'shield', cls: 'warn', msg: 'Waiting for your permission', sub: 'The system is asking whether Claude Code may use Settings.' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Waiting for you', footRight: '<kbd>Esc</kbd> stop' }), { at: PTR }); const d = h('div', 'sysdialog', `<span class="lbl">System dialog (platform)</span>${ms('shield', 'big fill')}<h3>Allow Claude Code to use Settings?</h3><p>Quire will run Settings on a separate screen that you can watch. Claude Code can tap, type and take screenshots there. Secure screens stay hidden, and you can take over at any time.</p><div class="btns"><span class="btn text">Don’t allow</span><span class="btn filled">Allow</span></div>`); d.style.left = '750px'; d.style.top = '360px'; b.appendChild(d); } };
+  build(b, H) { desktop(b, { activeWin: 'settings' }); pointer(b, PTR); place(b, note({ agent: 'claude', intake: { kind: 'window', text: 'Settings' }, you: 'In Settings, find Bluetooth and turn it off', blocks: [{ type: 'steps', list: [{ st: 'done', kind: 'read', t: 'Listing apps' }, { st: 'running', kind: 'app', t: 'Asking to use Settings' }] }, { type: 'result', icon: 'shield', cls: 'warn', msg: 'Waiting for your permission', sub: 'The system is asking whether Claude Code may use Settings.' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Waiting for you', footRight: '<kbd>Esc</kbd> stop' }), { at: PTR }); const d = h('div', 'sysdialog', `<span class="lbl">System dialog (platform)</span>${ms('shield', 'big fill')}<h3>Allow Claude Code to use Settings?</h3><p>Quire will run Settings on a separate screen that you can watch. Claude Code can tap, type and take screenshots there. Secure screens stay hidden, and you can take over at any time.</p><div class="btns"><button type="button" class="btn text">Don’t allow</button><button type="button" class="btn filled">Allow</button></div>`); d.style.left = '750px'; d.style.top = '360px'; b.appendChild(d); } };
 
 S['mirror'] = { caption: '<b>The live mirror.</b> The note expands to 760 dp and shows the session display (<code>InteractiveMirror</code>). The agent’s pointer is drawn in brand blue with a tap ring. Pause, Stop and Take over are always visible.',
   build(b, H) { desktop(b, { activeWin: 'doc', windows: ['doc'], tbRunning: true }); pointer(b, [1400, 300]); place(b, note({ agent: 'claude', thinking: true, intake: { kind: 'window', text: 'Settings' }, you: 'In Settings, find Bluetooth and turn it off', mirror: { title: 'Connected devices', ghost: [96, 122], tap: [100, 126], focus: [25, 109, 158, 31], settings: { page: 'display' }, steps: [{ st: 'done', kind: 'app', t: 'Opened Settings' }, { st: 'running', kind: 'execute', t: 'Tapping Connected devices' }], status: 'Step 2 of 4 · 11 s' } }), { at: [1400, 300] }); anno(b, 1000, 240, 'automation indicator: the taskbar button breathes while an app is driven', 't'); } };
@@ -347,40 +362,43 @@ S['mirror-paused'] = { caption: '<b>Paused.</b> The agent’s input stops; the m
   build(b, H) { desktop(b, { activeWin: 'doc', windows: ['doc'], tbRunning: true }); pointer(b, [1400, 300]); place(b, note({ agent: 'claude', intake: { kind: 'window', text: 'Settings' }, you: 'In Settings, find Bluetooth and turn it off', mirror: { paused: true, title: 'Connected devices', settings: { page: 'display' }, steps: [{ st: 'done', kind: 'app', t: 'Opened Settings' }, { st: 'done', kind: 'execute', t: 'Tapped Connected devices' }, { st: 'pending', kind: 'execute', t: 'Turn off Bluetooth' }], status: 'Paused by you · 14 s', focusTake: true } }), { at: [1400, 300] }); } };
 
 S['done'] = { caption: '<b>Done.</b> The result in one line, the steps folded, and Undo for anything that changed. The note stays until the person closes it; closing folds it into the pointer.',
-  build(b, H) { desktop(b, { activeWin: 'settings', settings: { page: 'battery', saver: true } }); pointer(b, PTR); place(b, note({ agent: 'claude', intake: { kind: 'window', text: 'Settings · Display' }, you: 'Turn on Battery saver and lower the brightness', blocks: [{ type: 'steps', folded: true, list: [1, 2, 3, 4] }, { type: 'result', msg: 'Battery saver is on and brightness is at 40%.', sub: 'Changed 2 settings · 8 s' }, { type: 'btns', html: '<span class="btn tonal">' + ms('undo') + 'Undo both</span><span class="btn text">Show changes</span>' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Done', footRight: '<kbd>Esc</kbd> close' }), { at: PTR }); } };
+  build(b, H) { desktop(b, { activeWin: 'settings', settings: { page: 'battery', saver: true } }); pointer(b, PTR); place(b, note({ agent: 'claude', intake: { kind: 'window', text: 'Settings · Display' }, you: 'Turn on Battery saver and lower the brightness', blocks: [{ type: 'steps', folded: true, list: [1, 2, 3, 4] }, { type: 'result', msg: 'Battery saver is on and brightness is at 40%.', sub: 'Changed 2 settings · 8 s' }, { type: 'btns', html: '<button type="button" class="btn tonal">' + ms('undo') + 'Undo both</button><button type="button" class="btn text">Show changes</button>' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Done', footRight: '<kbd>Esc</kbd> close' }), { at: PTR }); } };
+
+S['stopped'] = { caption: '<b>Stopped by the person.</b> Esc or Stop cancels the run and answers any open permission request as cancelled. The card says what was done before the stop, what was interrupted, and what to check. Hiding the note (Meta+Space, the Hide button) is a different action: the task keeps running behind the taskbar button.',
+  build(b, H) { desktop(b, { activeWin: 'settings', settings: { page: 'battery', saver: true } }); pointer(b, PTR); place(b, note({ agent: 'claude', intake: { kind: 'window', text: 'Settings · Display' }, you: 'Turn on Battery saver and lower the brightness', blocks: [{ type: 'steps', list: [STEPS_BATTERY[0], STEPS_BATTERY[1], { st: 'done', kind: 'setting', t: 'Turning on Battery saver' }, { st: 'failed', kind: 'setting', t: 'Lowering brightness to 40%' }] }, { type: 'result', icon: 'stop_circle', cls: 'warn', msg: 'Stopped after 3 of 4 steps.', sub: 'Battery saver was turned on. Lowering brightness to 40% was interrupted and may be partly applied; check Settings · Display.' }, { type: 'btns', html: '<button type="button" class="btn tonal">' + ms('undo') + 'Undo</button><button type="button" class="btn text">Show changes</button>' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Stopped', footRight: '<kbd>Esc</kbd> close' }), { at: PTR }); } };
 
 S['error'] = { caption: '<b>Error.</b> What stopped, in a sentence, with details behind a disclosure and a retry. Stop reasons other than <code>end_turn</code> (refusal, max tokens, cancelled) use the same card.',
-  build(b, H) { desktop(b, { activeWin: 'settings' }); pointer(b, PTR); place(b, note({ agent: 'claude', intake: { kind: 'window', text: 'Settings · Display' }, you: 'Turn on Battery saver and lower the brightness', blocks: [{ type: 'steps', list: [STEPS_BATTERY[0], { st: 'failed', kind: 'read', t: 'Reading Battery settings' }] }, { type: 'error', title: 'Claude Code stopped', meta: '7 s', msg: 'The agent closed the connection before finishing. Nothing was changed.', details: 'quired: agent exited with status 1\nstderr: Error: fetch failed (ECONNRESET)', btns: '<span class="btn text">Show log</span><span class="btn tonal">' + ms('refresh') + 'Try again</span>' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Stopped', footRight: '<kbd>Esc</kbd> close' }), { at: PTR }); } };
+  build(b, H) { desktop(b, { activeWin: 'settings' }); pointer(b, PTR); place(b, note({ agent: 'claude', intake: { kind: 'window', text: 'Settings · Display' }, you: 'Turn on Battery saver and lower the brightness', blocks: [{ type: 'steps', list: [STEPS_BATTERY[0], { st: 'failed', kind: 'read', t: 'Reading Battery settings' }] }, { type: 'error', title: 'Claude Code stopped', meta: '7 s', msg: 'The agent closed the connection before finishing. Nothing was changed.', details: 'quired: agent exited with status 1\nstderr: Error: fetch failed (ECONNRESET)', btns: '<button type="button" class="btn text">Show log</button><button type="button" class="btn tonal">' + ms('refresh') + 'Try again</button>' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Stopped', footRight: '<kbd>Esc</kbd> close' }), { at: PTR }); } };
 
 S['signin'] = { caption: '<b>Agent not signed in.</b> ACP <code>authenticate</code> with the agent’s <code>authMethods</code>. Sign-in happens in the agent’s own flow; Quire never handles the secret.',
-  build(b, H) { desktop(b, { activeWin: 'settings' }); pointer(b, PTR); place(b, note({ agent: 'cursor', intake: { kind: 'window', text: 'Settings · Display' }, you: 'Make my screen easier to read at night', blocks: [{ type: 'auth', title: 'Cursor needs to sign in', msg: 'Choose how to sign in. It opens in the Linux environment and comes back here when it’s done.', methods: [{ ic: 'open_in_browser', t: 'Sign in with the browser', sub: 'cursor login' }, { ic: 'key', t: 'Use an API key', sub: 'stays in Cursor' }] }, { type: 'btns', end: true, html: '<span class="btn text">Use Claude Code instead</span><span class="btn filled">Sign in</span>' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Not signed in', footRight: '<kbd>Esc</kbd> close' }), { at: PTR }); } };
+  build(b, H) { desktop(b, { activeWin: 'settings' }); pointer(b, PTR); place(b, note({ agent: 'cursor', intake: { kind: 'window', text: 'Settings · Display' }, you: 'Make my screen easier to read at night', blocks: [{ type: 'auth', title: 'Cursor needs to sign in', msg: 'Choose how to sign in. It opens in the Linux environment and comes back here when it’s done.', methods: [{ ic: 'open_in_browser', t: 'Sign in with the browser', sub: 'cursor login' }, { ic: 'key', t: 'Use an API key', sub: 'stays in Cursor' }] }, { type: 'btns', end: true, html: '<button type="button" class="btn text">Use Claude Code instead</button><button type="button" class="btn filled">Sign in</button>' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Not signed in', footRight: '<kbd>Esc</kbd> close' }), { at: PTR }); } };
 
 S['background'] = { caption: '<b>Running in the background.</b> The note folded into the taskbar button, which shows progress and a count. The tray lists running and finished tasks; one needs an answer.',
   build(b, H) { desktop(b, { activeWin: 'doc', tbRing: 0.6, tbBadge: '2', tbRunning: true }); pointer(b, [960, H - 38]); const t = h('div', 'tray', `<div class="hd">${LEAF}Quire<span class="spacer"></span><div class="ibtn">${ms('settings')}</div></div>
     <div class="task"><span class="st ask">${ms('shield', 'fill')}</span><div class="w"><b>Turn on Battery saver and lower the brightness</b><small>Needs your answer · Change 2 settings</small></div><span class="agent-mini">Claude Code</span>${ms('chevron_right', 'chev')}</div>
     <div class="task"><span class="st run"></span><div class="w"><b>Rename the photos in Lisbon by date</b><small>Step 3 of 5 · 48 s</small></div><span class="agent-mini">opencode</span>${ms('chevron_right', 'chev')}</div>
     <div class="task"><span class="st ok">${ms('check_circle', 'fill')}</span><div class="w"><b>Set this laptop up for my talk tomorrow</b><small>Done 4 min ago · 3 changes, undo available</small></div><span class="agent-mini">Claude Code</span>${ms('chevron_right', 'chev')}</div>
-    <div class="foot"><span class="btn tonal">${ms('add')}New</span><span class="btn text">History</span></div>`); place(b, t, { from: 'taskbar' }, { dx: -58 }); } };
+    <div class="foot"><button type="button" class="btn tonal">${ms('add')}New</button><button type="button" class="btn text">History</button></div>`); place(b, t, { from: 'taskbar' }, { dx: -58 }); } };
 
 S['settings-help'] = { caption: '<b>Settings help.</b> Current versus new values before Allow; after Allow the same rows show the applied values with per-row undo and Undo all. The changed rows are outlined in Settings.',
-  build(b, H) { desktop(b, { activeWin: 'settings', settings: { dark: true, night: true, font: true, changed: 'night' } }); pointer(b, PTR); place(b, note({ agent: 'claude', intake: { kind: 'window', text: 'Settings · Display' }, you: 'Make my screen easier to read at night', blocks: [{ type: 'steps', folded: true, list: [1, 2, 3] }, { type: 'changes', title: 'Changed 3 settings', meta: 'just now', mode: 'undo', list: [{ k: 'Dark theme', w: 'Settings · Display', old: 'Off', nu: 'On' }, { k: 'Night Light', w: 'Settings · Display', old: 'Off', nu: 'Sunset to sunrise' }, { k: 'Text size', w: 'Display size and text', old: 'Default', nu: 'Large' }], foot: `<div class="btns end"><span class="btn text">${ms('undo')}Undo all</span></div>` }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Done · undo stays available for 24 h from the Quire button', footRight: '<kbd>Esc</kbd> close' }), { at: PTR }); } };
+  build(b, H) { desktop(b, { activeWin: 'settings', settings: { dark: true, night: true, font: true, changed: 'night' } }); pointer(b, PTR); place(b, note({ agent: 'claude', intake: { kind: 'window', text: 'Settings · Display' }, you: 'Make my screen easier to read at night', blocks: [{ type: 'steps', folded: true, list: [1, 2, 3] }, { type: 'changes', title: 'Changed 3 settings', meta: 'just now', mode: 'undo', list: [{ k: 'Dark theme', w: 'Settings · Display', old: 'Off', nu: 'On' }, { k: 'Night Light', w: 'Settings · Display', old: 'Off', nu: 'Sunset to sunrise' }, { k: 'Text size', w: 'Display size and text', old: 'Default', nu: 'Large' }], foot: `<div class="btns end"><button type="button" class="btn text">${ms('undo')}Undo all</button></div>` }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Done · undo stays available for 24 h from the Quire button', footRight: '<kbd>Esc</kbd> close' }), { at: PTR }); } };
 
 S['long-output'] = { caption: '<b>Long output.</b> The note caps at 60 % of the screen height and scrolls inside. A Jump to latest pill appears when the person scrolls up while text streams; Open as a document moves it to a window.',
-  build(b, H) { desktop(b, { activeWin: 'doc' }); pointer(b, [700, 300]); const paras = ['<p><b>Summary of the trip notes</b></p>', '<p>Travel is settled: flights on the 14th at 07:40 and an apartment in Alfama with check-in from 15:00. The walk from Santa Apolónia is about ten minutes.</p>', '<p>The conference runs Tuesday to Thursday. Registration opens at 08:30 on Tuesday and the keynote is at 09:15; badges can also be collected on Monday afternoon.</p>', '<p>Two things are still open: the dinner with the Porto team, and whether Thursday’s workshop needs its own ticket.</p>', '<p>Packing: HDMI adapter, a second charger, walking shoes and a light jacket. The forecast is 18 °C and mostly dry.</p>', '<p>Suggested next steps:</p><ul><li>Confirm the Porto dinner by Friday.</li><li>Email the organisers about the workshop ticket.</li><li>Check the Belém tram times for Thursday afternoon.</li></ul>', '<p>If you want, I can add the registration and keynote to your calendar and draft the email'].join(''); place(b, note({ agent: 'claude', cls: 'wide', scroll: true, intake: { kind: 'window', text: 'Notes · Trip planning' }, you: 'Summarise this document and suggest next steps', blocks: [{ type: 'answer', html: paras, caret: true }, { type: 'jump' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Answering · 4 s', footRight: '<span class="btn text" style="height:24px;padding:0 8px;font-size:12px">' + ms('open_in_new') + 'Open as a document</span>' }), { at: [700, 300] }); b.querySelector('.note .scroll').scrollTop = 40; } };
+  build(b, H) { desktop(b, { activeWin: 'doc' }); pointer(b, [700, 300]); const paras = ['<p><b>Summary of the trip notes</b></p>', '<p>Travel is settled: flights on the 14th at 07:40 and an apartment in Alfama with check-in from 15:00. The walk from Santa Apolónia is about ten minutes.</p>', '<p>The conference runs Tuesday to Thursday. Registration opens at 08:30 on Tuesday and the keynote is at 09:15; badges can also be collected on Monday afternoon.</p>', '<p>Two things are still open: the dinner with the Porto team, and whether Thursday’s workshop needs its own ticket.</p>', '<p>Packing: HDMI adapter, a second charger, walking shoes and a light jacket. The forecast is 18 °C and mostly dry.</p>', '<p>Suggested next steps:</p><ul><li>Confirm the Porto dinner by Friday.</li><li>Email the organisers about the workshop ticket.</li><li>Check the Belém tram times for Thursday afternoon.</li></ul>', '<p>If you want, I can add the registration and keynote to your calendar and draft the email'].join(''); place(b, note({ agent: 'claude', cls: 'wide', scroll: true, intake: { kind: 'window', text: 'Notes · Trip planning' }, you: 'Summarise this document and suggest next steps', blocks: [{ type: 'answer', html: paras, caret: true }, { type: 'jump' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Answering · 4 s', footRight: '<button type="button" class="btn text" style="height:24px;padding:0 8px;font-size:12px">' + ms('open_in_new') + 'Open as a document</button>' }), { at: [700, 300] }); b.querySelector('.note .scroll').scrollTop = 40; } };
 
 S['code'] = { caption: '<b>Code.</b> Google Sans Code at 12.5/18 in a block with the language and a copy button. The note widens to 440 dp when a block arrives. Running it would be a consent step.',
-  build(b, H) { desktop(b, { activeWin: 'doc' }); pointer(b, [700, 300]); place(b, note({ agent: 'opencode', cls: 'wide', intake: { kind: 'window', text: 'Files · Lisbon' }, you: 'Write a script that renames these photos by the date they were taken', blocks: [{ type: 'answer', html: '<p>This uses the date in each photo’s metadata and keeps the originals if a name already exists:</p>' }, { type: 'code', lang: 'bash', src: CODE_RENAME }, { type: 'btns', html: '<span class="btn tonal">' + ms('play_arrow') + 'Run it</span><span class="btn text">' + ms('save') + 'Save as file</span>' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Done', footRight: '<kbd>Esc</kbd> close' }), { at: [700, 300] }); } };
+  build(b, H) { desktop(b, { activeWin: 'doc' }); pointer(b, [700, 300]); place(b, note({ agent: 'opencode', cls: 'wide', intake: { kind: 'window', text: 'Files · Lisbon' }, you: 'Write a script that renames these photos by the date they were taken', blocks: [{ type: 'answer', html: '<p>This uses the date in each photo’s metadata and keeps the originals if a name already exists:</p>' }, { type: 'code', lang: 'bash', src: CODE_RENAME }, { type: 'btns', html: '<button type="button" class="btn tonal">' + ms('play_arrow') + 'Run it</button><button type="button" class="btn text">' + ms('save') + 'Save as file</button>' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Done', footRight: '<kbd>Esc</kbd> close' }), { at: [700, 300] }); } };
 
 S['images'] = { caption: '<b>Images.</b> An image the agent returns, or one the person took in, shows as a thumbnail with a caption and expands in place. A pointer region intake is cropped to the region, never the whole screen.',
   build(b, H) { desktop(b, { activeWin: 'doc', windows: ['settings', 'doc'] }); intake(b, { left: 172, top: 344, width: 560, height: 210 }, true); pointer(b, [726, 548], { halo: true }); place(b, note({ agent: 'claude', intake: { kind: 'region', text: 'Region · Notes' }, you: 'What’s the schedule here, as a table?', blocks: [{ type: 'image', h: 150, cap: 'Region you pointed at · 560×210', html: '<div style="position:absolute;inset:0;padding:14px 18px;font-size:11px;line-height:16px;color:var(--on-surface-variant);overflow:hidden"><div style="width:70%;height:8px;background:var(--outline-variant);border-radius:4px;margin:6px 0"></div><div style="width:90%;height:8px;background:var(--outline-variant);border-radius:4px;margin:6px 0"></div><div style="width:85%;height:8px;background:var(--outline-variant);border-radius:4px;margin:6px 0"></div><div style="width:60%;height:8px;background:var(--outline-variant);border-radius:4px;margin:6px 0"></div><div style="width:88%;height:8px;background:var(--outline-variant);border-radius:4px;margin:6px 0"></div></div>' }, { type: 'answer', html: '<p>From the region you pointed at:</p><table style="border-collapse:collapse;width:100%;font-size:13px"><tr><td style="padding:4px 0;color:var(--on-surface-variant)">Mon</td><td>Badge collection, afternoon</td></tr><tr><td style="padding:4px 0;color:var(--on-surface-variant)">Tue</td><td>Registration 08:30 · Keynote 09:15</td></tr><tr><td style="padding:4px 0;color:var(--on-surface-variant)">Wed–Thu</td><td>Conference sessions</td></tr></table>' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Done', footRight: '<kbd>Esc</kbd> close' }), { at: [726, 548] }); } };
 
 S['no-agent'] = { caption: '<b>No agent connected.</b> First run. Quire lists the agents it found (<code>quired agents</code>) and offers to pair a computer. Nothing is connected until the person chooses.',
-  build(b, H) { desktop(b, { activeWin: 'settings' }); pointer(b, PTR, { halo: true }); place(b, note({ agent: 'claude', where: 'not connected', intake: { kind: 'window', text: 'Settings · Display' }, blocks: [{ type: 'agents', title: 'Connect an agent', msg: 'Quire works with the agents you already have. These are installed in your Linux environment:', list: [{ ini: 'CC', col: '#5B5D72', t: 'Claude Code', sub: 'v2.1 · signed in' }, { ini: 'oc', col: '#72557B', t: 'opencode', sub: 'v1.4 · signed in' }, { ini: 'Cu', col: '#5E5E68', t: 'Cursor', sub: 'needs sign-in' }], foot: `<div class="btns end"><span class="btn text">${ms('computer')}Pair a computer</span><span class="btn filled">Connect Claude Code</span></div>` }], composer: false, foot: 'Nothing is sent until you connect an agent', footRight: '<kbd>Esc</kbd> close' }), { at: PTR }); } };
+  build(b, H) { desktop(b, { activeWin: 'settings' }); pointer(b, PTR, { halo: true }); place(b, note({ agent: 'claude', where: 'not connected', intake: { kind: 'window', text: 'Settings · Display' }, blocks: [{ type: 'agents', title: 'Connect an agent', msg: 'Quire works with the agents you already have. These are installed in your Linux environment:', list: [{ ini: 'CC', col: '#5B5D72', t: 'Claude Code', sub: 'v2.1 · signed in' }, { ini: 'oc', col: '#72557B', t: 'opencode', sub: 'v1.4 · signed in' }, { ini: 'Cu', col: '#5E5E68', t: 'Cursor', sub: 'needs sign-in' }], foot: `<div class="btns end"><button type="button" class="btn text">${ms('computer')}Pair a computer</button><button type="button" class="btn filled">Connect Claude Code</button></div>` }], composer: false, foot: 'Nothing is sent until you connect an agent', footRight: '<kbd>Esc</kbd> close' }), { at: PTR }); } };
 
 S['offline'] = { caption: '<b>Offline.</b> A paired computer or a cloud agent is unreachable. The note says which, keeps the prompt, and offers a local agent. Local agents are unaffected.',
-  build(b, H) { desktop(b, { activeWin: 'settings' }); pointer(b, PTR); place(b, note({ agent: 'codex', intake: { kind: 'window', text: 'Settings · Display' }, you: 'Make my screen easier to read at night', blocks: [{ type: 'result', icon: 'cloud_off', cls: 'warn', msg: 'Brian’s desk can’t be reached', sub: 'No connection to the paired computer. Your prompt is kept.' }, { type: 'btns', end: true, html: '<span class="btn text">' + ms('refresh') + 'Retry</span><span class="btn tonal">Use Claude Code on this laptop</span>' }], composer: { text: 'Make my screen easier to read at night' }, foot: 'Offline', footRight: '<kbd>Esc</kbd> close' }), { at: PTR }); } };
+  build(b, H) { desktop(b, { activeWin: 'settings' }); pointer(b, PTR); place(b, note({ agent: 'codex', intake: { kind: 'window', text: 'Settings · Display' }, you: 'Make my screen easier to read at night', blocks: [{ type: 'result', icon: 'cloud_off', cls: 'warn', msg: 'Brian’s desk can’t be reached', sub: 'No connection to the paired computer. Your prompt is kept.' }, { type: 'btns', end: true, html: '<button type="button" class="btn text">' + ms('refresh') + 'Retry</button><button type="button" class="btn tonal">Use Claude Code on this laptop</button>' }], composer: { text: 'Make my screen easier to read at night' }, foot: 'Offline', footRight: '<kbd>Esc</kbd> close' }), { at: PTR }); } };
 
-const ORDER = ['idle', 'invoke-shake', 'invoke-key', 'invoke-secure', 'invoke-taskbar', 'invoke-voice', 'invoke-selection', 'compose', 'agent-picker', 'streaming', 'steps', 'plan', 'consent', 'consent-command', 'consent-system', 'mirror', 'mirror-paused', 'done', 'error', 'signin', 'background', 'settings-help', 'long-output', 'code', 'images', 'no-agent', 'offline'];
+const ORDER = ['idle', 'invoke-shake', 'invoke-key', 'invoke-secure', 'invoke-taskbar', 'invoke-voice', 'invoke-selection', 'compose', 'agent-picker', 'streaming', 'steps', 'plan', 'consent', 'consent-command', 'consent-system', 'mirror', 'mirror-paused', 'done', 'stopped', 'error', 'signin', 'background', 'settings-help', 'long-output', 'code', 'images', 'no-agent', 'offline'];
 
 /* ------------------------------------------------------------------------------------------ gallery / single */
 function makeBoard(id, theme, size, frozen = true) {
@@ -419,9 +437,16 @@ function spring(opts) { // {from,to,stiffness,damping,velocity,onUpdate,onEnd}
 }
 
 /* ------------------------------------------------------------------------------------------ play mode */
-const PLAY = { reduce: false, board: null, state: 'idle', note: null, ptr: [960, 540], halo: null, intakeEl: null, timers: [], anchor: null, running: false, agent: 'claude' };
+// States: idle · halo · compose · listening · working · consent · sysconsent · mirror · done.
+// `running` is true from send until the run ends. `hidden` is true while the note is folded behind the taskbar
+// button with the task still running (backgrounded); it is never true for a stopped task.
+// Esc never hides a running task: it stops it (and answers an open permission request as cancelled).
+// Hiding is a separate action: the header's Hide button, Meta+Space, the taskbar button, or a click elsewhere.
+const PLAY = { reduce: false, board: null, state: 'idle', note: null, ptr: [960, 540], halo: null, intakeEl: null, timers: [], anchor: null, running: false, hidden: false, agent: 'claude', last: null, lastCls: '', trace: [] };
 function clearTimers() { PLAY.timers.forEach(clearTimeout); PLAY.timers = []; }
 function later(fn, t) { const id = setTimeout(fn, PLAY.reduce ? 0 : t); PLAY.timers.push(id); return id; }
+function trace(ev, data) { const e = Object.assign({ t: Math.round(performance.now()), ev, state: PLAY.state, running: PLAY.running, hidden: PLAY.hidden }, data || {}); PLAY.trace.push(e); console.log('quire:' + JSON.stringify(e)); }
+window.QUIRE_PLAY = PLAY;
 
 function playInit(theme, size) {
   document.body.classList.add('play');
@@ -431,10 +456,10 @@ function playInit(theme, size) {
   PLAY.board = board;
   const H = size === 'g14' ? 1200 : 1080;
   const tb = desktop(board, { activeWin: 'settings' });
-  board.querySelector('.taskbar .tb-quire').addEventListener('click', e => { e.stopPropagation(); if (PLAY.state === 'idle') invoke({ from: 'taskbar' }); else fold('taskbar'); });
+  board.querySelector('.taskbar .tb-quire').addEventListener('click', e => { e.stopPropagation(); onTaskbar(); });
   const p = pointer(board, PLAY.ptr); PLAY.ptrEl = p;
   board.style.cursor = 'none';
-  const hud = h('div', 'hud', `<label><input type="checkbox" id="reduce"> Remove animations</label><span class="k">shake · Meta/Alt+Space · click the leaf · hold the mic · select text · Esc</span>`);
+  const hud = h('div', 'hud', `<label><input type="checkbox" id="reduce"> Remove animations</label><span class="k">shake · Meta/Alt+Space · click the leaf · hold the mic · select text · Esc stops · Meta+Space hides</span>`);
   document.body.appendChild(hud);
   hud.querySelector('#reduce').addEventListener('change', e => { PLAY.reduce = e.target.checked; board.classList.toggle('frozen', PLAY.reduce); });
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) { PLAY.reduce = true; hud.querySelector('#reduce').checked = true; board.classList.add('frozen'); }
@@ -446,32 +471,35 @@ function playInit(theme, size) {
     PLAY.ptr = [x, y]; p.style.left = x + 'px'; p.style.top = y + 'px';
     if (PLAY.halo && PLAY.state === 'halo') { PLAY.halo.style.left = (x + 4) + 'px'; PLAY.halo.style.top = (y + 3) + 'px'; }
     const now = performance.now(); hist.push({ x, t: now }); while (hist.length && now - hist[0].t > 450) hist.shift();
-    if (PLAY.state !== 'idle' || hist.length < 6) return;
+    if (PLAY.state !== 'idle' || PLAY.hidden || hist.length < 6) return;
     let rev = 0, min = 1e9, max = -1e9;
     for (let i = 2; i < hist.length; i++) { const a = hist[i - 1].x - hist[i - 2].x, b = hist[i].x - hist[i - 1].x; if (a * b < 0 && Math.abs(b) > 3) rev++; }
     for (const q of hist) { min = Math.min(min, q.x); max = Math.max(max, q.x); }
     if (rev >= 3 && max - min > 60) { hist.length = 0; invoke({ at: PLAY.ptr.slice(), via: 'shake' }); }
   });
   document.addEventListener('keydown', e => {
-    if ((e.metaKey || e.altKey || e.ctrlKey) && e.code === 'Space') { e.preventDefault(); if (PLAY.state === 'idle') invoke({ at: PLAY.ptr.slice(), via: 'key' }); return; }
-    if (e.key === 'Escape') { e.preventDefault(); if (PLAY.state === 'halo') cancelHalo(); else if (PLAY.state !== 'idle') fold(PLAY.running ? 'taskbar' : 'pointer'); return; }
-    if (PLAY.state === 'compose' && PLAY.field) {
+    if ((e.metaKey || e.altKey || e.ctrlKey) && e.code === 'Space') { e.preventDefault(); onAssistKey(); return; }
+    if (e.key === 'Escape') { e.preventDefault(); onEscape(); return; }
+    if (PLAY.state === 'compose' && PLAY.field && !PLAY.hidden) {
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); return; }
       if (e.key === 'Backspace') { PLAY.text = PLAY.text.slice(0, -1); drawField(); return; }
       if (e.key.length === 1 && !e.metaKey && !e.ctrlKey && !e.altKey) { PLAY.text += e.key; drawField(); }
     }
   });
+  // Mouse: the mic is press-and-hold (mousedown/mouseup); everything else activates on click, so a focused
+  // button's Enter or Space (which fire click) takes the same path as the mouse.
   board.addEventListener('mousedown', e => {
     const t = e.target.closest('[data-act]');
-    if (t) { act(t.dataset.act, t); return; }
-    if (e.target.closest('.note, .tray, .sel-toolbar')) return;
+    if (t) { if (t.dataset.act === 'mic') act('mic', t); return; }
+    if (e.target.closest('.note, .tray, .sel-toolbar, .sysdialog, .taskbar')) return;
     if (PLAY.state === 'halo') { cancelHalo(); return; }
-    if (PLAY.state !== 'idle' && PLAY.state !== 'halo') { fold(PLAY.running ? 'taskbar' : 'pointer'); return; }
+    if (PLAY.state !== 'idle' && !PLAY.hidden) { if (PLAY.running) background('click elsewhere'); else closeNote(); }
   });
+  board.addEventListener('click', e => { const t = e.target.closest('[data-act]'); if (t && t.dataset.act !== 'mic') act(t.dataset.act, t); });
   board.addEventListener('mouseup', () => { if (PLAY.state === 'listening') releaseMic(); });
   // text selection in the doc → floating toolbar
   board.addEventListener('mouseup', e => {
-    const sel = window.getSelection(); if (PLAY.state !== 'idle' || !sel || sel.isCollapsed || !sel.anchorNode) return;
+    const sel = window.getSelection(); if (PLAY.state !== 'idle' || PLAY.hidden || !sel || sel.isCollapsed || !sel.anchorNode) return;
     const docEl = board.querySelector('.doc .doc-body'); if (!docEl || !docEl.contains(sel.anchorNode)) return;
     const rect = sel.getRangeAt(0).getBoundingClientRect(), r = board.getBoundingClientRect();
     const tb = h('div', 'sel-toolbar', `<span>Copy</span><span>Share</span><span class="sep"></span><span class="q" data-act="ask-selection">${LEAF}Ask Quire</span>`);
@@ -479,10 +507,32 @@ function playInit(theme, size) {
     PLAY.selText = sel.toString().trim().slice(0, 80); PLAY.selEnd = [rect.right - r.left, rect.bottom - r.top]; PLAY.selTb = tb;
   });
 }
-function cancelHalo() { clearTimers(); PLAY.halo && PLAY.halo.remove(); PLAY.halo = null; PLAY.intakeEl && PLAY.intakeEl.remove(); PLAY.intakeEl = null; PLAY.label && PLAY.label.remove(); PLAY.label = null; PLAY.state = 'idle'; }
+function onTaskbar() {
+  if (PLAY.hidden) return reopen();
+  if (PLAY.state === 'idle') return invoke({ from: 'taskbar' });
+  if (PLAY.running) return background('taskbar button');
+  closeNote();
+}
+function onAssistKey() {
+  if (PLAY.hidden) return reopen();
+  if (PLAY.state === 'idle') return invoke({ at: PLAY.ptr.slice(), via: 'key' });
+  if (PLAY.running) return background('Meta+Space');
+}
+function onEscape() {
+  if (PLAY.hidden) return;                       // the note is away; Esc belongs to whatever has focus
+  switch (PLAY.state) {
+    case 'idle': return;
+    case 'halo': return cancelHalo();
+    case 'listening': return cancelMic();
+    case 'compose': if (PLAY.note && PLAY.note.querySelector('.picker')) return act('picker'); return closeNote();
+    case 'done': return closeNote();
+    default: return stopRun('Esc');            // working · consent · sysconsent · mirror
+  }
+}
+function cancelHalo() { clearTimers(); PLAY.halo && PLAY.halo.remove(); PLAY.halo = null; PLAY.intakeEl && PLAY.intakeEl.remove(); PLAY.intakeEl = null; PLAY.label && PLAY.label.remove(); PLAY.label = null; PLAY.state = 'idle'; trace('halo cancelled'); }
 
 function invoke(anchor) {
-  const b = PLAY.board; PLAY.anchor = anchor; PLAY.state = 'halo'; PLAY.text = '';
+  const b = PLAY.board; PLAY.anchor = anchor; PLAY.state = 'halo'; PLAY.text = ''; PLAY.last = null; PLAY.lastCls = '';
   if (anchor.at) {
     const [x, y] = anchor.at;
     const ha = h('div', 'halo'); ha.style.left = (x + 4) + 'px'; ha.style.top = (y + 3) + 'px'; ha.style.transform = 'scale(0)'; b.appendChild(ha); PLAY.halo = ha;
@@ -496,33 +546,48 @@ function invoke(anchor) {
   } else { PLAY.intakeName = null; openNote(anchor); }
 }
 function noteState(extra = {}) {
-  const base = { agent: PLAY.agent, intake: PLAY.intakeName ? { kind: 'window', text: PLAY.intakeName } : (PLAY.anchor && PLAY.anchor.selection ? { kind: 'selection', text: PLAY.anchor.selection } : { kind: 'none' }), foot: '<kbd>Enter</kbd> send · hold ' + ms('mic') + ' to talk', footRight: '<kbd>Esc</kbd> close' };
+  const base = { agent: PLAY.agent, running: PLAY.running, intake: PLAY.intakeName ? { kind: 'window', text: PLAY.intakeName } : (PLAY.anchor && PLAY.anchor.selection ? { kind: 'selection', text: PLAY.anchor.selection } : { kind: 'none' }), foot: '<kbd>Enter</kbd> send · hold ' + ms('mic') + ' to talk', footRight: '<kbd>Esc</kbd> close' };
   return Object.assign(base, extra);
+}
+function unfold(n) { // the note out of its anchor: fade + spring.unfold on scale
+  n.style.opacity = 0; n.style.transform = 'scale(.2)';
+  requestAnimationFrame(() => { n.style.transition = `opacity ${MOTION.fade}ms ${MOTION.easing.standard}`; n.style.opacity = 1; });
+  spring({ from: 0.2, to: 1, ...MOTION.spring.unfold, onUpdate: v => n.style.transform = `scale(${v})`, onEnd: () => { n.style.transform = ''; } });
 }
 function openNote(anchor) {
   const b = PLAY.board; PLAY.state = 'compose';
   PLAY.label && (PLAY.label.style.opacity = 0, later(() => PLAY.label && PLAY.label.remove(), MOTION.fade));
   const n = note(noteState({ composer: { focus: true }, suggest: PLAY.intakeName === 'Settings · Display' ? [['dark_mode', 'Turn on dark theme'], ['format_size', 'Make text bigger'], ['battery_saver', 'Turn on Battery saver']] : [['tune', 'Change a setting'], ['summarize', 'Summarise this'], ['help', 'What can you do here?']] }));
-  const geo = place(b, n, anchor); PLAY.note = n; PLAY.geo = geo; wire(n);
-  n.style.opacity = 0; n.style.transform = 'scale(.2)';
-  requestAnimationFrame(() => { n.style.transition = `opacity ${MOTION.fade}ms ${MOTION.easing.standard}`; n.style.opacity = 1; });
-  spring({ from: 0.2, to: 1, ...MOTION.spring.unfold, onUpdate: v => n.style.transform = `scale(${v})`, onEnd: () => { n.style.transform = ''; } });
+  const geo = place(b, n, anchor); PLAY.note = n; PLAY.geo = geo; wire(n); unfold(n);
   if (PLAY.halo) { const ha = PLAY.halo; later(() => { ha.style.transition = `opacity ${MOTION.fadeSlow}ms`; ha.style.opacity = 0; later(() => ha.remove(), MOTION.fadeSlow); }, 240); PLAY.halo = null; }
+  trace('note opened', { via: anchor.via || anchor.from });
 }
 function wire(n) {
   n.querySelectorAll('.suggest span').forEach(s => { s.dataset.act = 'suggest'; });
-  const close = n.querySelector('.n-head .ibtn[title^="Close"]'); if (close) close.dataset.act = 'close';
-  const bg = n.querySelector('.n-head .ibtn[title^="Keep"]'); if (bg) bg.dataset.act = 'background';
+  n.querySelectorAll('[data-role="close"]').forEach(e => e.dataset.act = 'close');
+  n.querySelectorAll('[data-role="background"]').forEach(e => e.dataset.act = 'background');
   const mic = n.querySelector('.mic'); if (mic) { mic.dataset.act = 'mic'; }
   const send = n.querySelector('.send'); if (send) send.dataset.act = 'send';
   const agent = n.querySelector('[data-role="agent"]'); if (agent) agent.dataset.act = 'picker';
-  n.querySelectorAll('.btn').forEach(bt => { const t = bt.textContent.trim(); if (/^Allow$/.test(t)) bt.dataset.act = 'allow'; if (/^Allow for this task$/.test(t)) bt.dataset.act = 'allow'; if (/^Don.t allow$/.test(t)) bt.dataset.act = 'deny'; if (/Take over/.test(t)) bt.dataset.act = 'takeover'; if (/^Pause|Resume/.test(t)) bt.dataset.act = 'pause'; if (/^Stop$/.test(t)) bt.dataset.act = 'stop'; if (/Undo/.test(t)) bt.dataset.act = 'undo'; if (/Try again/.test(t)) bt.dataset.act = 'retry'; });
+  n.querySelectorAll('.btn').forEach(bt => {
+    const t = bt.textContent.trim(), k = bt.dataset.kind;
+    if (k) { bt.dataset.act = /^allow/.test(k) ? 'allow' : 'deny'; return; }   // consent options, by ACP kind
+    if (bt.dataset.act) return;                                                   // mirror controls carry data-act in their markup
+    if (/Undo|Turn it back on/.test(t)) bt.dataset.act = 'undo'; if (/Try again/.test(t)) bt.dataset.act = 'retry';
+  });
   n.querySelectorAll('.picker .it').forEach((it, i) => { it.dataset.act = 'pick'; it.dataset.agent = ['claude', 'opencode', 'cursor', 'codex', 'add'][i]; });
   PLAY.field = n.querySelector('.field .text');
 }
 function drawField() { if (!PLAY.field) return; PLAY.field.className = 'text' + (PLAY.text ? '' : ' ph'); PLAY.field.innerHTML = (PLAY.text || 'Ask Quire') + '<span class="caret"></span>'; const s = PLAY.note.querySelector('.send'); s && s.classList.toggle('disabled', !PLAY.text); }
+// focus: the consent card when it arrives (its first Tab stop is the agent's reject option); Resume when paused;
+// the result's first button when a run ends (§6.2)
+function focusConsent() { const c = PLAY.note && PLAY.note.querySelector('.card.consent'); if (c) { c.focus(); trace('focus', { on: 'consent card' }); } }
+function focusAct(a) { const b = PLAY.note && PLAY.note.querySelector(`[data-act="${a}"]`); if (b) { b.focus(); trace('focus', { on: a }); } }
+function focusResult() { const b = PLAY.note && PLAY.note.querySelector('.n-body .btns .btn'); if (b) { b.focus(); trace('focus', { on: b.textContent.trim() }); } }
 
-function swap(extra, cls) { // re-render the note in place and spring its size
+function swap(extra, cls) { // re-render the note in place and spring its size; while hidden, only remember the state
+  PLAY.last = extra; PLAY.lastCls = cls || (extra.mirror ? 'mirror' : extra.listening ? 'listening' : '');
+  if (PLAY.hidden || !PLAY.note) { tbIndicator(); return null; }
   const b = PLAY.board, old = PLAY.note; const n = note(noteState(extra)); if (cls) n.classList.add(cls);
   const ox = old.style.getPropertyValue('--ox'), oy = old.style.getPropertyValue('--oy');
   n.style.left = old.style.left; n.style.top = old.style.top; n.style.setProperty('--ox', ox); n.style.setProperty('--oy', oy);
@@ -533,11 +598,24 @@ function swap(extra, cls) { // re-render the note in place and spring its size
   if (x + w1 > W - 24) x = Math.max(24, W - 24 - w1); if (y + h1 > H - 80) y = Math.max(40, H - 80 - h1);
   n.style.left = x + 'px'; n.style.top = y + 'px';
   if (h0 !== h1 || w0 !== w1) { const sp = w1 !== w0 ? MOTION.spring.expand : MOTION.spring.settle; n.style.overflow = 'hidden'; spring({ from: 0, to: 1, ...sp, onUpdate: v => { n.style.height = (h0 + (h1 - h0) * v) + 'px'; n.style.width = (w0 + (w1 - w0) * v) + 'px'; }, onEnd: () => { n.style.height = ''; n.style.width = ''; n.style.overflow = ''; } }); }
+  tbIndicator();
   return n;
+}
+// The taskbar button: breathes while an app is driven (mirror) or while a hidden task runs; a ring shows a hidden
+// task's progress; a badge counts hidden tasks that need an answer. Nothing shows for a stopped or finished task.
+function tbIndicator() {
+  const tb = PLAY.board.querySelector('.taskbar .tb-quire'); tb.querySelectorAll('.badge, .ring').forEach(e => e.remove());
+  const needs = PLAY.state === 'consent' || PLAY.state === 'sysconsent';
+  tb.classList.toggle('running', PLAY.running && (PLAY.state === 'mirror' || PLAY.hidden));
+  if (!PLAY.hidden || !PLAY.running) { tb.setAttribute('aria-label', 'Quire'); return; }
+  if (needs) { tb.insertAdjacentHTML('beforeend', '<span class="badge">1</span>'); tb.setAttribute('aria-label', 'Quire, 1 task running, 1 needs your answer'); return; }
+  const steps = PLAY.m ? PLAY.m.steps : (PLAY.last && (PLAY.last.blocks || []).filter(b => b.type === 'steps').map(b => b.list)[0]);
+  if (steps && steps.length) tb.insertAdjacentHTML('beforeend', ring(steps.filter(s => s.st === 'done').length / steps.length));
+  tb.setAttribute('aria-label', 'Quire, 1 task running');
 }
 function send() {
   const t = PLAY.text.trim(); if (!t) return;
-  PLAY.state = 'working'; PLAY.running = true; const you = t; PLAY.you = you;
+  PLAY.state = 'working'; PLAY.running = true; const you = t; PLAY.you = you; trace('send', { you });
   const lower = t.toLowerCase();
   if (/bluetooth|in settings|find/.test(lower)) return runMirror(you);
   if (/battery|bright|night|read|dark|text|bigger|setting/.test(lower)) return runSettings(you);
@@ -546,7 +624,7 @@ function send() {
 function runAnswer(you) {
   swap({ you, thinking: true, blocks: [{ type: 'thought', t: 'Thinking' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Answering', footRight: '<kbd>Esc</kbd> stop' });
   const words = ANSWER_ADAPTIVE.replace(/<[^>]+>/g, '').split(' '); let i = 0;
-  later(function tick() { i = Math.min(words.length, i + 3); swap({ you, thinking: i < words.length, blocks: [{ type: 'answer', html: '<p>' + words.slice(0, i).join(' ') + '</p>', caret: i < words.length }], composer: { placeholder: 'Ask a follow-up' }, foot: i < words.length ? 'Answering' : 'Done', footRight: '<kbd>Esc</kbd> ' + (i < words.length ? 'stop' : 'close') }); if (i < words.length) later(tick, 90); else { PLAY.running = false; PLAY.state = 'done'; } }, 700);
+  later(function tick() { i = Math.min(words.length, i + 3); const end = i >= words.length; if (end) { PLAY.running = false; PLAY.state = 'done'; } swap({ you, thinking: !end, blocks: [{ type: 'answer', html: '<p>' + words.slice(0, i).join(' ') + '</p>', caret: !end }], composer: { placeholder: 'Ask a follow-up' }, foot: end ? 'Done' : 'Answering', footRight: '<kbd>Esc</kbd> ' + (end ? 'close' : 'stop') }); if (!end) later(tick, 90); else trace('run ended', { how: 'end_turn' }); }, 700);
 }
 function runSettings(you) {
   const list = STEPS_BATTERY.map(s => ({ ...s, st: 'pending' }));
@@ -555,55 +633,96 @@ function runSettings(you) {
   later(() => { list[0].st = 'running'; draw(); }, 500);
   later(() => { list[0].st = 'done'; list[1].st = 'running'; draw(); }, 1400);
   later(() => { list[1].st = 'done'; draw(); }, 2200);
-  later(() => { PLAY.state = 'consent'; swap({ you, blocks: [{ type: 'steps', list: list.slice(0, 2) }, { type: 'consent', title: 'Change 2 settings', meta: 'Settings tool', focusCard: true, changes: [{ k: 'Battery saver', w: 'Settings · Battery', old: 'Off', nu: 'On' }, { k: 'Brightness level', w: 'Settings · Display', old: '80%', nu: '40%' }], why: 'You can undo this from the note or from the Quire button.' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Waiting for you', footRight: '<kbd>Esc</kbd> stop' }); PLAY.pending = { list, you }; }, 2700);
+  later(() => { PLAY.state = 'consent'; PLAY.pending = { list, you, options: OPTIONS_CLAUDE }; trace('request_permission', { options: OPTIONS_CLAUDE.map(o => o.optionId) });
+    swap({ you, blocks: [{ type: 'steps', list: list.slice(0, 2) }, { type: 'consent', title: 'Change 2 settings', meta: 'Settings tool', options: OPTIONS_CLAUDE, changes: [{ k: 'Battery saver', w: 'Settings · Battery', old: 'Off', nu: 'On' }, { k: 'Brightness level', w: 'Settings · Display', old: '80%', nu: '40%' }], why: 'You can undo this from the note or from the Quire button.' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Waiting for you', footRight: '<kbd>Esc</kbd> stop' });
+    focusConsent(); }, 2700);
 }
-function afterAllow() {
-  const { list, you } = PLAY.pending; PLAY.state = 'working';
+function answerPermission(outcome, optionId) { // what goes back on the wire: {outcome:'selected', optionId} or {outcome:'cancelled'}
+  trace('request_permission answered', optionId ? { outcome, optionId } : { outcome }); PLAY.pending = null;
+}
+function afterAllow(optionId) {
+  const { list, you } = PLAY.pending; answerPermission('selected', optionId); PLAY.state = 'working';
   const draw = () => swap({ you, thinking: true, blocks: [{ type: 'steps', list }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Working', footRight: '<kbd>Esc</kbd> stop' });
   list[2].st = 'running'; draw();
-  later(() => { list[2].st = 'done'; list[3].st = 'running'; draw(); const sw = PLAY.board.querySelector('.settings .pref .sw'); }, 900);
+  later(() => { list[2].st = 'done'; list[3].st = 'running'; draw(); const sw = PLAY.board.querySelector('.window.settings'); if (sw) sw.replaceWith(settingsWindow({ settings: { page: 'battery', saver: true } }, PLAY.board.clientHeight)); }, 900);
   later(() => { list[3].st = 'done'; PLAY.running = false; PLAY.state = 'done'; const sw = PLAY.board.querySelector('.window.settings'); if (sw) { sw.replaceWith(settingsWindow({ settings: { brightness: 40, changed: 'brightness' } }, PLAY.board.clientHeight)); }
-    swap({ you, blocks: [{ type: 'steps', folded: true, list }, { type: 'result', msg: 'Battery saver is on and brightness is at 40%.', sub: 'Changed 2 settings' }, { type: 'btns', html: '<span class="btn tonal">' + ms('undo') + 'Undo both</span><span class="btn text">Show changes</span>' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Done', footRight: '<kbd>Esc</kbd> close' }); }, 1900);
+    swap({ you, blocks: [{ type: 'steps', folded: true, list }, { type: 'result', msg: 'Battery saver is on and brightness is at 40%.', sub: 'Changed 2 settings' }, { type: 'btns', html: '<button type="button" class="btn tonal">' + ms('undo') + 'Undo both</button><button type="button" class="btn text">Show changes</button>' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Done', footRight: '<kbd>Esc</kbd> close' }); focusResult(); trace('run ended', { how: 'end_turn' }); }, 1900);
 }
-function afterDeny() {
-  const { list, you } = PLAY.pending; PLAY.running = false; PLAY.state = 'done';
+function afterDeny(optionId) {
+  const { list, you } = PLAY.pending; answerPermission('selected', optionId); PLAY.running = false; PLAY.state = 'done';
   swap({ you, blocks: [{ type: 'steps', list: list.slice(0, 2) }, { type: 'result', icon: 'block', cls: 'warn', msg: 'Nothing was changed.', sub: 'You didn’t allow the change. The agent stopped.' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Stopped', footRight: '<kbd>Esc</kbd> close' });
+  focusResult(); trace('run ended', { how: 'denied' });
+}
+// Honest copy for a stop: what was done, what was interrupted (and may be partly applied), what to check.
+function stopCopy(st, steps) {
+  if (st === 'consent') return { msg: 'Stopped.', sub: 'You stopped the task before answering. The agent was told the request was cancelled. Nothing was changed.' };
+  if (st === 'sysconsent') return { msg: 'Stopped.', sub: 'Settings was not opened. Nothing was changed.' };
+  if (!steps) return { msg: 'Stopped.', sub: 'The answer was cut off. Nothing was changed.' };
+  const done = steps.filter(s => s.st === 'done' && s.effect).map(s => s.effect), cut = steps.find(s => s.st === 'running');
+  const n = steps.filter(s => s.st === 'done').length, parts = [];
+  if (st === 'mirror') parts.push('Settings was closed.');
+  if (done.length) parts.push(done.join('. ') + '.');
+  if (cut && cut.effect) parts.push(`${cut.t} was interrupted and may be partly applied; check ${cut.where || 'Settings'}.`);
+  else if (cut) parts.push(`${cut.t} was interrupted.`);
+  if (!done.length && !(cut && cut.effect)) parts.push('Nothing was changed.');
+  return { msg: `Stopped after ${n} of ${steps.length} steps.`, sub: parts.join(' '), undo: done.length > 0 };
+}
+function stopRun(how) { // Esc or Stop: cancel the run. Not hiding; the task ends here.
+  const b = PLAY.board, st = PLAY.state; clearTimers();
+  PLAY.sys && PLAY.sys.remove(); PLAY.sys = null;
+  if (st === 'consent' && PLAY.pending) answerPermission('cancelled');
+  const steps = st === 'mirror' && PLAY.m ? PLAY.m.steps : (PLAY.pending ? PLAY.pending.list : (PLAY.steps || ((PLAY.last && PLAY.last.blocks || []).filter(x => x.type === 'steps').map(x => x.list)[0])));
+  const copy = stopCopy(st, steps);
+  const shown = steps ? steps.filter(s => s.st !== 'pending').map(s => s.st === 'running' ? { ...s, st: 'failed' } : s) : null;
+  const prior = (PLAY.last && PLAY.last.blocks || []).filter(x => x.type === 'answer' || x.type === 'plan').map(x => x.type === 'answer' ? { ...x, caret: false } : x);
+  PLAY.running = false; PLAY.state = 'done'; PLAY.m = null; PLAY.pending = null; PLAY.steps = null;
+  swap({ you: PLAY.you, blocks: [...prior, ...(shown ? [{ type: 'steps', list: shown }] : []), { type: 'result', icon: 'stop_circle', cls: 'warn', msg: copy.msg, sub: copy.sub }, ...(copy.undo ? [{ type: 'btns', html: '<button type="button" class="btn tonal">' + ms('undo') + 'Undo</button><button type="button" class="btn text">Show changes</button>' }] : [])], composer: { placeholder: 'Ask a follow-up' }, foot: 'Stopped', footRight: '<kbd>Esc</kbd> close' });
+  focusResult(); trace('run ended', { how: 'cancelled by ' + how, from: st });
 }
 function runMirror(you) {
   const list = [{ st: 'running', kind: 'read', t: 'Listing apps' }, { st: 'pending', kind: 'app', t: 'Asking to use Settings' }];
   swap({ you, thinking: true, blocks: [{ type: 'steps', list }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Working', footRight: '<kbd>Esc</kbd> stop' });
-  later(() => { list[0].st = 'done'; list[1].st = 'running'; swap({ you, thinking: true, blocks: [{ type: 'steps', list }, { type: 'result', icon: 'shield', cls: 'warn', msg: 'Waiting for your permission', sub: 'The system is asking whether Claude Code may use Settings.' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Waiting for you', footRight: '<kbd>Esc</kbd> stop' });
-    const d = h('div', 'sysdialog', `<span class="lbl">System dialog (platform)</span>${ms('shield', 'big fill')}<h3>Allow Claude Code to use Settings?</h3><p>Quire will run Settings on a separate screen that you can watch. Claude Code can tap, type and take screenshots there. Secure screens stay hidden, and you can take over at any time.</p><div class="btns"><span class="btn text" data-act="sys-deny">Don’t allow</span><span class="btn filled" data-act="sys-allow">Allow</span></div>`);
-    const b = PLAY.board; d.style.left = (b.clientWidth / 2 - 210) + 'px'; d.style.top = (b.clientHeight / 2 - 140) + 'px'; d.style.opacity = 0; d.style.transition = `opacity ${MOTION.fadeSlow}ms`; b.appendChild(d); requestAnimationFrame(() => d.style.opacity = 1); PLAY.sys = d; PLAY.you = you; PLAY.state = 'sysconsent'; }, 900);
+  later(() => { list[0].st = 'done'; list[1].st = 'running'; PLAY.state = 'sysconsent'; PLAY.you = you; swap({ you, thinking: true, blocks: [{ type: 'steps', list }, { type: 'result', icon: 'shield', cls: 'warn', msg: 'Waiting for your permission', sub: 'The system is asking whether Claude Code may use Settings.' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Waiting for you', footRight: '<kbd>Esc</kbd> stop' });
+    const d = h('div', 'sysdialog', `<span class="lbl">System dialog (platform)</span>${ms('shield', 'big fill')}<h3>Allow Claude Code to use Settings?</h3><p>Quire will run Settings on a separate screen that you can watch. Claude Code can tap, type and take screenshots there. Secure screens stay hidden, and you can take over at any time.</p><div class="btns"><button type="button" class="btn text" data-act="sys-deny">Don’t allow</button><button type="button" class="btn filled" data-act="sys-allow">Allow</button></div>`);
+    d.setAttribute('role', 'dialog'); d.setAttribute('aria-label', 'Allow Claude Code to use Settings?');
+    const b = PLAY.board; d.style.left = (b.clientWidth / 2 - 210) + 'px'; d.style.top = (b.clientHeight / 2 - 140) + 'px'; d.style.opacity = 0; d.style.transition = `opacity ${MOTION.fadeSlow}ms`; b.appendChild(d); requestAnimationFrame(() => d.style.opacity = 1); PLAY.sys = d;
+    d.querySelector('[data-act="sys-deny"]').focus(); trace('platform consent shown'); }, 900);
 }
 function mirrorOpen() {
-  const you = PLAY.you; PLAY.state = 'mirror'; PLAY.board.querySelector('.taskbar .tb-quire').classList.add('running');
-  const steps = [{ st: 'done', kind: 'app', t: 'Opened Settings' }, { st: 'running', kind: 'execute', t: 'Tapping Connected devices' }, { st: 'pending', kind: 'execute', t: 'Turn off Bluetooth' }];
+  const you = PLAY.you; PLAY.state = 'mirror';
+  const steps = [{ st: 'done', kind: 'app', t: 'Opened Settings' }, { st: 'running', kind: 'execute', t: 'Tapping Connected devices' }, { st: 'pending', kind: 'execute', t: 'Turning off Bluetooth', effect: 'Bluetooth was turned off', where: 'Settings · Connected devices' }];
   const m = { title: 'Settings', ghost: [300, 240], tap: null, focus: null, settings: { page: 'display' }, steps, status: 'Step 1 of 3' };
   const draw = () => swap({ you, thinking: !m.paused, mirror: m }, 'mirror');
   draw(); PLAY.m = m; PLAY.mDraw = draw;
   later(() => { m.ghost = [96, 122]; m.tap = [100, 126]; m.focus = [25, 109, 158, 31]; m.status = 'Step 2 of 3'; draw(); }, 1200);
   later(() => { if (m.paused) return; steps[1].st = 'done'; steps[2].st = 'running'; m.title = 'Connected devices'; m.ghost = [470, 60]; m.tap = null; m.focus = [200, 40, 500, 36]; m.status = 'Step 3 of 3'; draw(); }, 2600);
-  later(() => { if (m.paused) return; steps[2].st = 'done'; m.ghost = null; m.focus = null; m.status = 'Done'; PLAY.running = false; PLAY.state = 'done'; PLAY.board.querySelector('.taskbar .tb-quire').classList.remove('running');
-    swap({ you, blocks: [{ type: 'steps', folded: true, list: steps }, { type: 'result', msg: 'Bluetooth is off.', sub: 'Settings was returned to you · 3 steps' }, { type: 'btns', html: '<span class="btn tonal">' + ms('undo') + 'Turn it back on</span>' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Done', footRight: '<kbd>Esc</kbd> close' }); }, 4200);
+  later(() => { if (m.paused) return; mirrorDone(); }, 4200);
+}
+function mirrorDone() {
+  const m = PLAY.m, steps = m.steps; steps.forEach(s => { if (s.st === 'running') s.st = 'done'; }); m.ghost = null; m.focus = null; m.status = 'Done'; PLAY.running = false; PLAY.state = 'done'; PLAY.m = null;
+  swap({ you: PLAY.you, blocks: [{ type: 'steps', folded: true, list: steps }, { type: 'result', msg: 'Bluetooth is off.', sub: 'Settings was returned to you · 3 steps' }, { type: 'btns', html: '<button type="button" class="btn tonal">' + ms('undo') + 'Turn it back on</button>' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Done', footRight: '<kbd>Esc</kbd> close' });
+  focusResult(); trace('run ended', { how: 'end_turn' });
 }
 function act(a, el) {
   const b = PLAY.board;
   switch (a) {
-    case 'close': fold(PLAY.running ? 'taskbar' : 'pointer'); break;
-    case 'background': fold('taskbar'); break;
+    case 'close': if (PLAY.running) background('hide button'); else closeNote(); break;
+    case 'background': background('hide button'); break;
     case 'suggest': PLAY.text = el.textContent.trim(); drawField(); send(); break;
     case 'send': send(); break;
     case 'mic': if (PLAY.state === 'compose') startMic(); break;
     case 'picker': { const open = !!PLAY.note.querySelector('.picker'); swap({ composer: { text: PLAY.text, focus: !open }, picker: open ? null : { sel: PLAY.agent }, suggest: null }); break; }
     case 'pick': if (el.dataset.agent && el.dataset.agent !== 'add') PLAY.agent = el.dataset.agent; swap({ composer: { text: PLAY.text, focus: true } }); break;
-    case 'allow': if (PLAY.state === 'consent') afterAllow(); break;
-    case 'deny': if (PLAY.state === 'consent') afterDeny(); break;
-    case 'sys-allow': PLAY.sys.remove(); mirrorOpen(); break;
-    case 'sys-deny': PLAY.sys.remove(); PLAY.running = false; PLAY.state = 'done'; swap({ you: PLAY.you, blocks: [{ type: 'result', icon: 'block', cls: 'warn', msg: 'Settings was not opened.', sub: 'You didn’t allow computer control. The agent stopped.' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Stopped', footRight: '<kbd>Esc</kbd> close' }); break;
-    case 'pause': if (PLAY.m) { PLAY.m.paused = !PLAY.m.paused; PLAY.m.status = PLAY.m.paused ? 'Paused by you' : 'Resuming'; PLAY.mDraw(); if (!PLAY.m.paused) { later(() => { const m = PLAY.m, steps = m.steps; steps.forEach(s => { if (s.st === 'running') s.st = 'done'; }); m.ghost = null; m.focus = null; m.status = 'Done'; PLAY.running = false; PLAY.state = 'done'; b.querySelector('.taskbar .tb-quire').classList.remove('running'); swap({ you: PLAY.you, blocks: [{ type: 'steps', folded: true, list: steps }, { type: 'result', msg: 'Bluetooth is off.', sub: 'Settings was returned to you' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Done', footRight: '<kbd>Esc</kbd> close' }); }, 1500); } } break;
-    case 'takeover': case 'stop': if (PLAY.m) { clearTimers(); PLAY.running = false; PLAY.state = 'done'; b.querySelector('.taskbar .tb-quire').classList.remove('running'); const took = a === 'takeover'; swap({ you: PLAY.you, blocks: [{ type: 'steps', folded: true, list: PLAY.m.steps }, { type: 'result', icon: took ? 'open_in_full' : 'stop_circle', cls: took ? '' : 'warn', msg: took ? 'Settings is on your screen now.' : 'Stopped.', sub: took ? 'The agent stopped. Bluetooth was not changed yet.' : 'Settings was closed. Nothing was changed.' }], composer: { placeholder: 'Ask a follow-up' }, foot: took ? 'Handed over' : 'Stopped', footRight: '<kbd>Esc</kbd> close' }); if (took) { const H = b.clientHeight; const w = settingsWindow({ settings: {} }, H); w.style.opacity = 0; w.style.transition = `opacity ${MOTION.fadeSlow}ms`; b.insertBefore(w, b.querySelector('.taskbar')); requestAnimationFrame(() => w.style.opacity = 1); } } break;
-    case 'undo': swap({ you: PLAY.you, blocks: [{ type: 'result', icon: 'undo', msg: 'Undone.', sub: 'The settings are back to what they were.' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Undone', footRight: '<kbd>Esc</kbd> close' }); { const sw = b.querySelector('.window.settings'); if (sw) sw.replaceWith(settingsWindow({ settings: {} }, b.clientHeight)); } break;
+    case 'allow': if (PLAY.state === 'consent') afterAllow(el.dataset.option); break;
+    case 'deny': if (PLAY.state === 'consent') afterDeny(el.dataset.option); break;
+    case 'sys-allow': PLAY.sys.remove(); PLAY.sys = null; trace('platform consent', { outcome: 'allowed' }); mirrorOpen(); break;
+    case 'sys-deny': PLAY.sys.remove(); PLAY.sys = null; PLAY.running = false; PLAY.state = 'done'; trace('platform consent', { outcome: 'denied' }); swap({ you: PLAY.you, blocks: [{ type: 'result', icon: 'block', cls: 'warn', msg: 'Settings was not opened.', sub: 'You didn’t allow computer control. The agent stopped.' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Stopped', footRight: '<kbd>Esc</kbd> close' }); break;
+    case 'pause': if (PLAY.m) { PLAY.m.paused = !PLAY.m.paused; PLAY.m.status = PLAY.m.paused ? 'Paused by you' : 'Resuming'; PLAY.mDraw(); trace(PLAY.m.paused ? 'paused' : 'resumed'); if (PLAY.m.paused) focusAct('pause'); else later(() => { if (PLAY.m) mirrorDone(); }, 1500); } break;
+    case 'stop': if (PLAY.m) stopRun('Stop button'); break;
+    case 'takeover': if (PLAY.m) { clearTimers(); const steps = PLAY.m.steps, done = steps.filter(s => s.st === 'done' && s.effect).map(s => s.effect); PLAY.running = false; PLAY.state = 'done'; PLAY.m = null;
+      swap({ you: PLAY.you, blocks: [{ type: 'steps', folded: true, list: steps }, { type: 'result', icon: 'open_in_full', msg: 'Settings is on your screen now.', sub: 'The agent stopped. ' + (done.length ? done.join('. ') + '.' : 'Bluetooth was not changed yet.') }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Handed over', footRight: '<kbd>Esc</kbd> close' });
+      const H = b.clientHeight; const w = settingsWindow({ settings: {} }, H); w.style.opacity = 0; w.style.transition = `opacity ${MOTION.fadeSlow}ms`; b.insertBefore(w, b.querySelector('.taskbar')); requestAnimationFrame(() => w.style.opacity = 1); focusResult(); trace('run ended', { how: 'taken over' }); } break;
+    case 'undo': swap({ you: PLAY.you, blocks: [{ type: 'result', icon: 'undo', msg: 'Undone.', sub: 'The settings are back to what they were.' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Undone', footRight: '<kbd>Esc</kbd> close' }); { const sw = b.querySelector('.window.settings'); if (sw) sw.replaceWith(settingsWindow({ settings: {} }, b.clientHeight)); } trace('undone'); break;
     case 'ask-selection': { const tb = PLAY.selTb; tb && tb.remove(); window.getSelection().removeAllRanges(); invoke({ at: PLAY.selEnd, via: 'selection', selection: PLAY.selText }); break; }
   }
 }
@@ -620,12 +739,31 @@ function releaseMic() {
   PLAY.text = PLAY.micWords.slice(0, Math.max(1, PLAY.micI)).join(' '); PLAY.state = 'compose';
   swap({ composer: { text: PLAY.text, focus: true }, spoken: true }); send();
 }
-function fold(to) {
-  const b = PLAY.board, n = PLAY.note; if (!n) { PLAY.state = 'idle'; return; }
-  clearTimers(); PLAY.sys && PLAY.sys.remove(); PLAY.intakeEl && PLAY.intakeEl.remove(); PLAY.intakeEl = null;
-  if (to === 'taskbar') { const tb = b.querySelector('.taskbar .tb-quire'); const r = tb.getBoundingClientRect(), rb = b.getBoundingClientRect(); const tx = r.left - rb.left + 22 - (parseFloat(n.style.left) + n.offsetWidth / 2), ty = r.top - rb.top + 22 - (parseFloat(n.style.top) + n.offsetHeight / 2); n.style.transformOrigin = '50% 50%'; spring({ from: 0, to: 1, ...MOTION.spring.fold, onUpdate: v => { n.style.transform = `translate(${tx * v}px, ${ty * v}px) scale(${1 - 0.9 * v})`; n.style.opacity = 1 - v * 0.9; }, onEnd: () => { n.remove(); if (PLAY.running) { tb.classList.add('running'); tb.insertAdjacentHTML('beforeend', '<span class="badge">1</span>'); } } }); }
-  else { spring({ from: 1, to: 0.2, ...MOTION.spring.fold, onUpdate: v => { n.style.transform = `scale(${v})`; n.style.opacity = (v - 0.2) / 0.8; }, onEnd: () => n.remove() }); }
-  PLAY.note = null; PLAY.state = 'idle'; PLAY.m = null; PLAY.pending = null; PLAY.text = '';
+function cancelMic() { // Esc while holding: nothing is sent; back to composing with what was there before
+  clearTimers(); PLAY.board.querySelectorAll('.priv-dot, .mic-indicator').forEach(e => e.remove()); PLAY.state = 'compose';
+  swap({ composer: { text: PLAY.text, focus: true } }); trace('listening cancelled');
+}
+function foldAnim(n, to, onDone) { // the note into the pointer (scale to its origin) or into the taskbar button
+  const b = PLAY.board;
+  if (to === 'taskbar') { const tb = b.querySelector('.taskbar .tb-quire'); const r = tb.getBoundingClientRect(), rb = b.getBoundingClientRect(); const tx = r.left - rb.left + 22 - (parseFloat(n.style.left) + n.offsetWidth / 2), ty = r.top - rb.top + 22 - (parseFloat(n.style.top) + n.offsetHeight / 2); n.style.transformOrigin = '50% 50%'; spring({ from: 0, to: 1, ...MOTION.spring.fold, onUpdate: v => { n.style.transform = `translate(${tx * v}px, ${ty * v}px) scale(${1 - 0.9 * v})`; n.style.opacity = 1 - v * 0.9; }, onEnd: () => { n.remove(); onDone && onDone(); } }); }
+  else { spring({ from: 1, to: 0.2, ...MOTION.spring.fold, onUpdate: v => { n.style.transform = `scale(${v})`; n.style.opacity = (v - 0.2) / 0.8; }, onEnd: () => { n.remove(); onDone && onDone(); } }); }
+}
+function closeNote() { // only for a note with no task running (compose, done, stopped)
+  const n = PLAY.note; clearTimers(); PLAY.sys && PLAY.sys.remove(); PLAY.sys = null; PLAY.intakeEl && PLAY.intakeEl.remove(); PLAY.intakeEl = null;
+  if (n) foldAnim(n, 'pointer');
+  PLAY.note = null; PLAY.state = 'idle'; PLAY.running = false; PLAY.hidden = false; PLAY.m = null; PLAY.pending = null; PLAY.text = ''; PLAY.last = null; PLAY.lastCls = '';
+  tbIndicator(); trace('note closed');
+}
+function background(how) { // hide a running task behind the taskbar button; it keeps running and can be reopened
+  if (!PLAY.running || PLAY.hidden || !PLAY.note) return;
+  const n = PLAY.note; PLAY.hidden = true; PLAY.note = null; PLAY.intakeEl && PLAY.intakeEl.remove(); PLAY.intakeEl = null;
+  foldAnim(n, 'taskbar'); tbIndicator(); trace('hidden', { how });
+}
+function reopen() { // the hidden task's note, at the taskbar anchor, in its current state
+  if (!PLAY.hidden) return; PLAY.hidden = false;
+  const n = note(noteState(PLAY.last || {})); if (PLAY.lastCls) n.classList.add(PLAY.lastCls);
+  PLAY.anchor = { from: 'taskbar' }; place(PLAY.board, n, PLAY.anchor); PLAY.note = n; wire(n); unfold(n); tbIndicator();
+  trace('reopened'); if (PLAY.state === 'consent') focusConsent(); else if (PLAY.state === 'done') focusResult();
 }
 
 /* ------------------------------------------------------------------------------------------ boot */

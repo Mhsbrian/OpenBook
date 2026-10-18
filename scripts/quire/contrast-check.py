@@ -2,14 +2,18 @@
 """Check WCAG contrast for the colour pairs the Quire note uses, in both themes (ANAL-215).
 
 Reads the tokens from docs/quire-design/index.html so the table in docs/quire-design.md §4 cannot drift from the
-prototype. Translucent surfaces (the note's background) are checked at their worst backdrop: dark text over the note
-composited on black, light text over the note composited on white.
+prototype. A translucent surface (the note's background) is composited over both black and white, and the pair is
+scored at whichever gives the lower ratio. That bounds every real backdrop under the blur. (An earlier version picked
+one backdrop from the foreground's luminance and chose black for mid-luminance dark-theme text, which reported
+8.0:1 for a pair that is 4.0:1 over white. ANAL-217 review.)
 
-usage: contrast-check.py [--md]      exit 1 if any pair misses its target
+usage: contrast-check.py [--md] [--html PATH]      exit 1 if any pair misses its target
+       --html PATH checks another copy of the prototype (e.g. `git show <rev>:docs/quire-design/index.html`)
 """
 import re, sys
 
 HTML = __import__('pathlib').Path(__file__).resolve().parents[2] / 'docs/quire-design/index.html'
+if '--html' in sys.argv: HTML = __import__('pathlib').Path(sys.argv[sys.argv.index('--html') + 1])
 css = HTML.read_text()
 
 def block(selector):
@@ -43,7 +47,7 @@ PAIRS = [
     ('Secondary text on a card', 'on-surface-variant', 'surface-container', 4.5, ''),
     ('Secondary text on a card (dark uses surface-high)', 'on-surface-variant', 'surface-high', 4.5, ''),
     ('Filled button: Allow', 'on-primary', 'primary', 4.5, ''),
-    ('Tonal button: Allow for this task', 'on-secondary-container', 'secondary-container', 4.5, ''),
+    ('Tonal button: Allow for this session (allow_always)', 'on-secondary-container', 'secondary-container', 4.5, ''),
     ('Text button: Don’t allow', 'primary', 'note-bg', 4.5, 'worst backdrop'),
     ('New value pill', 'on-primary-container', 'primary-container', 4.5, ''),
     ('Mic indicator', 'on-success-container', 'success-container', 4.5, ''),
@@ -57,18 +61,19 @@ PAIRS = [
     ('Field outline on focus (non-text)', 'primary', 'surface-container', 3.0, ''),
 ]
 
-def resolve(theme, fg_t, bg_t):
+def worst(theme, fg_t, bg_t):
+    """The pair's ratio at its worst backdrop: the minimum over black and white behind a translucent background."""
     tk = T[theme]; fg = rgb(tk[fg_t]); bg = rgb(tk[bg_t])
-    if bg[3] < 1:  # translucent: worst case backdrop for this text colour
-        bg = over(bg, BLACK if lum(fg) < 0.5 else WHITE)
-    return fg, bg
+    if bg[3] >= 1:
+        return ratio(fg, bg), None
+    return min((ratio(fg, over(bg, bd)), name) for bd, name in ((BLACK, 'black'), (WHITE, 'white')))
 
 rows, ok = [], True
 for label, fg_t, bg_t, target, note in PAIRS:
     cells = [label]
     for theme in ('light', 'dark'):
-        fg, bg = resolve(theme, fg_t, bg_t); r = ratio(fg, bg); passed = r >= target; ok &= passed
-        cells.append(f'{r:.1f}:1 {"pass" if passed else "FAIL"}')
+        r, backdrop = worst(theme, fg_t, bg_t); passed = r >= target; ok &= passed
+        cells.append(f'{r:.1f}:1 {"pass" if passed else "FAIL"}' + (f' ({backdrop})' if backdrop and '--md' not in sys.argv else ''))
     cells.append(f'{target:.1f}:1' + (f' ({note})' if note else ''))
     rows.append(cells)
 
