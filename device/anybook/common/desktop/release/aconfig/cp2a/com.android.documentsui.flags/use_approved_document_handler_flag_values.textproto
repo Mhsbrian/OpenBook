@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 3: Files: opens documents with an approved handler app; needs use_material3
+flag_value {
+  package: "com.android.documentsui.flags"
+  name: "use_approved_document_handler"
+  state: ENABLED
+  permission: READ_ONLY
+}

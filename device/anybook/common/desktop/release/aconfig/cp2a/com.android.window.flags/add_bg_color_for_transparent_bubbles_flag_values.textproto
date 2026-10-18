@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 5: bubbles get a background colour (no transparent layers)
+flag_value {
+  package: "com.android.window.flags"
+  name: "add_bg_color_for_transparent_bubbles"
+  state: ENABLED
+  permission: READ_ONLY
+}
