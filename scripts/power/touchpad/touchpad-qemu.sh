@@ -49,6 +49,8 @@ steps = [{"wait": "init: init second stage started", "timeout": 300}, {"send": "
                   f"{mark('WAIT')}\n"}, {"wait": "\n===TP-WAIT===", "timeout": 120}, p,
          {"send": f"sleep 30; {mark('ELAN')}; su 0 cat {T}/tp-elan.txt; {mark('COUNTS')}; "
                   "echo clock_changed_backwards=$(su 0 logcat -d -b all | grep -c 'Clock changed backwards'); "
+                  "su 0 logcat -d -b all -v monotonic | grep -B 6 -A 1 'Clock changed backwards' | "
+                  "grep -E 'Clock changed|EventHub|InputReader|Gestures|Touchpad|input' | head -n 40; "
                   f"{mark('B64BEGIN')}; su 0 sh -c 'gzip -c {T}/tp-events.txt | base64'; {mark('B64END')}\n"},
          {"wait": "\n===TP-B64END===", "timeout": 300}, p, {"send": "su 0 reboot -p\n"}]
 json.dump(steps, open(sys.argv[1], "w"), indent=1)
