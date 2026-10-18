@@ -1,0 +1,26 @@
+openbook-live: logs: saving to openbook/logs/live-001 on the stick's ESP; add-on bridge
+openbook-live: logs: sys.boot_completed=1 at 60 s
+openbook-live: addon bridge: unpacking openbook/bridge/payload
+openbook-live: addon bridge: running run.sh (timeout 1800 s)
+openbook-bridge: start: parts [check probe bench], CoreMark 3 round(s) of 600000 iterations
+openbook-bridge: check: exit 0, 4 check(s) ok
+openbook-bridge: probe x86_64: install: Success
+openbook-bridge: probe x86_64: PROBE_DONE pass=18 fail=0 skip=2, primary ABI x86_64, bridge maps 4
+openbook-bridge: probe arm64: install: Success
+openbook-bridge: probe arm64: PROBE_DONE pass=18 fail=2 skip=0, primary ABI arm64-v8a, bridge maps 4
+openbook-bridge: bench exe x86_64 round 1: 28114.896209 it/s in 21.341000 s valid=yes
+openbook-bridge: bench apk x86_64 round 1: 26552.197194 it/s in 22.597000 s valid=yes
+openbook-bridge: bench exe arm64-v8a round 1: 10086.576448 it/s in 59.485000 s valid=yes
+openbook-bridge: bench apk arm64-v8a round 1: 9879.795818 it/s in 60.730000 s valid=yes
+openbook-bridge: bench exe x86_64 round 2: 28231.308521 it/s in 21.253000 s valid=yes
+openbook-bridge: bench apk x86_64 round 2: 26647.717179 it/s in 22.516000 s valid=yes
+openbook-bridge: bench exe arm64-v8a round 2: 9779.472886 it/s in 61.353000 s valid=yes
+openbook-bridge: bench apk arm64-v8a round 2: 9982.198413 it/s in 60.107000 s valid=yes
+openbook-bridge: bench exe x86_64 round 3: 30171.980288 it/s in 19.886000 s valid=yes
+openbook-bridge: bench apk x86_64 round 3: 27283.888864 it/s in 21.991000 s valid=yes
+openbook-bridge: bench exe arm64-v8a round 3: 10355.718946 it/s in 57.939000 s valid=yes
+openbook-bridge: bench apk arm64-v8a round 3: 9984.191696 it/s in 60.095000 s valid=yes
+openbook-bridge: done: 626.62 s uptime
+openbook-live: addon bridge: run.sh exit 0 after 521 s
+openbook-live: addon bridge: results 74240 bytes (rc 0)
+openbook-live: logs: done: openbook/logs/live-001 (dmesg 393006 bytes, 1 capture(s))

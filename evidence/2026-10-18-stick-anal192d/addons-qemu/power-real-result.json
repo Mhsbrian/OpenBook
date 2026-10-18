@@ -1,0 +1,62 @@
+{
+ "reason": "QEMU exited (0)",
+ "seconds": 116.2,
+ "steps_done": 10,
+ "steps": 10,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "hwcheck: OpenBook hardware check v7",
+   "t": 5.5
+  },
+  {
+   "step": 1,
+   "wait": "sleep: RTC alarm in \\d+ s; suspending",
+   "t": 19.3
+  },
+  {
+   "step": 2,
+   "wait": "sleep\\[0\\]: (REACHED|did NOT|S0i3 unknown)",
+   "t": 39.0
+  },
+  {
+   "step": 3,
+   "wait": "sleep: RTC alarm in \\d+ s; suspending",
+   "t": 42.1
+  },
+  {
+   "step": 4,
+   "wait": "sleep\\[1\\]: (REACHED|did NOT|S0i3 unknown)",
+   "t": 62.0
+  },
+  {
+   "step": 5,
+   "wait": "sleep: RTC alarm in \\d+ s; suspending",
+   "t": 65.1
+  },
+  {
+   "step": 6,
+   "wait": "sleep\\[2\\]: (REACHED|did NOT|S0i3 unknown)",
+   "t": 85.0
+  },
+  {
+   "step": 7,
+   "wait": "sleep: RTC alarm in \\d+ s; suspending",
+   "t": 93.1
+  },
+  {
+   "step": 8,
+   "wait": "sleep\\[3\\]: (REACHED|did NOT|S0i3 unknown)",
+   "t": 113.0
+  },
+  {
+   "step": 9,
+   "wait": "hwcheck: report saved; powering off",
+   "t": 116.1
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/powercheck/openbook-powercheck-anal178-c/qemu-real/stick.img",
+ "nvme": null,
+ "nvme2": null
+}
