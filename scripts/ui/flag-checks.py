@@ -481,9 +481,18 @@ def check_notifications(d, m):
 
 
 def sf_blur_layers(d, name):
+    """Names of the layers SurfaceFlinger blurs behind (backgroundBlurRadius > 0)."""
     sf = d.sh("dumpsys SurfaceFlinger")
     (d.o / name).write_text(sf)
-    return len(re.findall(r"backgroundBlurRadius=([1-9]\d*)", sf))
+    layers, cur = set(), None
+    for line in sf.splitlines():
+        m = re.match(r"\s*Layer \[\d+\] (.+?)#\d+", line)
+        if m:
+            cur = m.group(1)
+        r = re.search(r"backgroundBlurRadius=([1-9]\d*)", line)
+        if r and cur:
+            layers.add(f"{cur} ({r.group(1)})")
+    return ", ".join(sorted(layers)) or "none"
 
 
 def check_blur(d, m):
@@ -495,7 +504,7 @@ def check_blur(d, m):
         m.click(*center(power["rect"]))
         time.sleep(2)
         d.shot("power-menu")
-        d.result("power menu blur", None, f"layers with backgroundBlurRadius>0: {sf_blur_layers(d, 'sf-power-menu.txt')}")
+        d.result("power menu blur", None, f"blurred layers: {sf_blur_layers(d, 'sf-power-menu.txt')}")
         d.key("KEYCODE_ESCAPE")
         time.sleep(1)
     else:
@@ -505,7 +514,7 @@ def check_blur(d, m):
     d.key("KEYCODE_VOLUME_UP")
     time.sleep(1)
     d.shot("volume-dialog")
-    d.result("volume dialog blur", None, f"layers with backgroundBlurRadius>0: {sf_blur_layers(d, 'sf-volume.txt')}")
+    d.result("volume dialog blur", None, f"blurred layers: {sf_blur_layers(d, 'sf-volume.txt')}")
     d.key("KEYCODE_VOLUME_DOWN")
     time.sleep(3)
 
