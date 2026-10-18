@@ -1,0 +1,1 @@
+10-18 12:43:55.225  2753  2753 I OpenBookSetup: setup complete (step aside: ro.setupwizard.mode=DISABLED); provisioned=true

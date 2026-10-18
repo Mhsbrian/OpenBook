@@ -20,8 +20,6 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.START_ACTIVITIES_FROM_BACKGROUND" />
     <uses-permission android:name="android.permission.ACCESS_KEYGUARD_SECURE_STORAGE" />
-    <!-- OpenBook setup: whether Wi-Fi is already connected. -->
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- A Google apps package the user installed (ANAL-211): read the GSF Android ID from Google Services Framework's
          gservices provider, for its registration at google.com/android/uncertified. Defined by GSF itself; without
          GSF the permission and the provider simply do not exist. -->
@@ -71,24 +69,6 @@
             </intent-filter>
         </activity-alias>
 
-        <!-- OpenBook setup on an installed system's first boot: a home screen above Provision (priority 1) until it
-             finishes, then it turns itself off. Direct-boot aware like Provision, which otherwise takes the home screen
-             while the user is still locked during the first boot and marks the device provisioned. On the live stick
-             it steps aside at once. -->
-        <activity
-            android:name=".SetupActivity"
-            android:directBootAware="true"
-            android:exported="true"
-            android:excludeFromRecents="true"
-            android:launchMode="singleTask"
-            android:label="@string/setup_window_title"
-            android:windowSoftInputMode="adjustResize">
-            <intent-filter android:priority="3">
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.HOME" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
         <!-- Settings › About › Google apps registration (ANAL-211): only on a system installed with the user's own
              Google apps package (BootReceiver enables it then). An injected Settings tile, as system apps add them. -->
         <activity

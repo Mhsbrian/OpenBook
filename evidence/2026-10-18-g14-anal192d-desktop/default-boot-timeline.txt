@@ -1,0 +1,14 @@
+10-18 11:00:33.723831  root     0     0 I         : Linux version 6.18.21-android17-5-gfbfdd65b0fd1 (kleaf@build-host) (Android (15323222, +pgo, +bolt, +lto, +mlgo, based on r584948c) clang version 22.0.1 (https://androi
+10-18 11:00:34.532696  root     1     1 I openbook-live: live boot: boot_part_uuid=03115059-ea72-5bc2-bbd3-fe0fbbdaa893 reset=0 logs=0
+10-18 11:00:36.744000  logd   774   774 I auditd  : type=1404 audit(0.0:3): enforcing=1 old_enforcing=0 auid=4294967295 ses=4294967295 enabled=1 old-enabled=1 lsm=selinux res=1
+10-18 11:00:41.565342  root   845   856 I vold    : Not managing disk 8:0, which holds the running system's partitions
+10-18 11:01:03.638706  1000  1220  1312 I boot_progress_enable_screen: 29914
+10-18 11:01:03.684376  1000  1220  1319 I ActivityManager: Start proc 3803:com.android.launcher3/u0a82 for bound-service {com.android.launcher3/com.android.quickstep.TouchInteractionService}
+10-18 11:01:03.933071  1000  1220  3626 I wm_set_keyguard_shown: [0,1,0,0,0,setKeyguardShown]
+10-18 11:01:04.082714  1000  1220  1303 I wm_set_keyguard_shown: [0,1,0,1,0,keyguardGoingAway]
+10-18 11:01:04.084760  1000  1220  1303 I wm_set_keyguard_shown: [0,0,0,1,0,setKeyguardShown]
+10-18 11:01:04.411778  1000  1011  3954 I sf_stop_bootanim: 30687
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: FATAL EXCEPTION: main
+10-18 11:05:07.131606 10087  5315  5315 E AndroidRuntime: Process: com.android.wallpaper, PID: 5315
+10-18 11:27:12.901515  1002 10775 10775 I A2dpStateMachine: Enter Connected(XX:XX:XX:XX:XX:XX): CONNECTION_STATE_CHANGED
+10-18 11:59:04.548977  1000  1220 12406 I ShutdownThread: Shutting down activity manager...

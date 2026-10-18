@@ -32,10 +32,11 @@ steps = [
              "echo BOOTDONE=$(getprop sys.boot_completed) uptime=$(cut -d' ' -f1 /proc/uptime)\n"},
     {"wait": "BOOTDONE=\\S* uptime=[0-9.]+", "timeout": 960}, {"wait": P, "timeout": 30},
     *cmd("sleep 30", 90),
-    # A fresh image boots into OpenBook setup, where the shade and Quick Settings are disabled. Finish it the way
-    # SetupActivity does (the provisioned bits, then the activity leaves the home list), and go home.
+    # A fresh image boots into OpenBook setup (org.openbook.setup, docs/setup.md), where the shade and Quick Settings
+    # are disabled. Finish it the way setup does (the provisioned bits, then the activity leaves the home list), and go
+    # home. (A boot entry with androidboot.openbook.setup=skip would skip it altogether.)
     *cmd("su 0 settings put global device_provisioned 1; su 0 settings put secure user_setup_complete 1; "
-         "su 0 pm disable org.openbook.installer/.SetupActivity; "
+         "su 0 pm disable org.openbook.setup/.SetupActivity; "
          "su 0 am start -a android.intent.action.MAIN -c android.intent.category.HOME; sleep 10; "
          "su 0 am start -a android.intent.action.MAIN -c android.intent.category.HOME; sleep 10; "
          "su 0 dumpsys activity activities | grep -m2 -E 'ResumedActivity|topResumedActivity'", 120),

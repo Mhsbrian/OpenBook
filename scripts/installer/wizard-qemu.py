@@ -42,14 +42,15 @@ import subprocess
 import sys
 
 PROMPT = r"console:/ # "
-# Shell helpers typed into the root shell: tap a node by its text or content description (prefix), wait for one.
+# Shell helpers typed into the root shell: tap a node by its text or content description (prefix), wait for one. They
+# look at OpenBook's own apps only: the installer (org.openbook.installer) and setup (org.openbook.setup).
 # uiautomator quotes an attribute with ' when its value contains a double quote.
 HELPERS = r"""
 while read -r k n v; do [ "$k" = export ] && export "$n=$v"; done < /data/system/environ/classpath
 ui() { uiautomator dump /data/local/tmp/ui.xml >/dev/null 2>&1; }
-bnd() { ui; tr '>' '\n' < /data/local/tmp/ui.xml | grep -F 'package="org.openbook.installer"' | grep -F -e "text=\"$1" -e "text='$1" -e "content-desc=\"$1" | head -n 1 | sed -n 's/.*bounds="\[\([0-9]*\),\([0-9]*\)\]\[\([0-9]*\),\([0-9]*\)\]".*/\1 \2 \3 \4/p'; }
+bnd() { ui; tr '>' '\n' < /data/local/tmp/ui.xml | grep -E 'package="org\.openbook\.(installer|setup)"' | grep -F -e "text=\"$1" -e "text='$1" -e "content-desc=\"$1" | head -n 1 | sed -n 's/.*bounds="\[\([0-9]*\),\([0-9]*\)\]\[\([0-9]*\),\([0-9]*\)\]".*/\1 \2 \3 \4/p'; }
 tap() { b=$(bnd "$1"); if [ -z "$b" ]; then echo "@@NOTFOUND[$1]@@"; return 1; fi; set -- $b; input tap $(( ($1+$3)/2 )) $(( ($2+$4)/2 )); echo "@@TAPPED@@"; }
-bndx() { ui; tr '>' '\n' < /data/local/tmp/ui.xml | grep -F 'package="org.openbook.installer"' | grep -F -e "text=\"$1\"" -e "text='$1'" | head -n 1 | sed -n 's/.*bounds="\[\([0-9]*\),\([0-9]*\)\]\[\([0-9]*\),\([0-9]*\)\]".*/\1 \2 \3 \4/p'; }
+bndx() { ui; tr '>' '\n' < /data/local/tmp/ui.xml | grep -E 'package="org\.openbook\.(installer|setup)"' | grep -F -e "text=\"$1\"" -e "text='$1'" | head -n 1 | sed -n 's/.*bounds="\[\([0-9]*\),\([0-9]*\)\]\[\([0-9]*\),\([0-9]*\)\]".*/\1 \2 \3 \4/p'; }
 tapx() { b=$(bndx "$1"); if [ -z "$b" ]; then echo "@@NOTFOUND[$1]@@"; return 1; fi; set -- $b; input tap $(( ($1+$3)/2 )) $(( ($2+$4)/2 )); echo "@@TAPPED@@"; }
 waitfor() { i=0; while [ $i -lt ${2:-90} ]; do b=$(bnd "$1"); if [ -n "$b" ]; then echo "@@SEEN[$1]@@"; return 0; fi; sleep 2; i=$((i+2)); done; echo "@@TIMEOUT[$1]@@"; return 1; }
 snap() { screencap -p /data/local/tmp/snap.png && sync && echo 3 > /proc/sys/vm/drop_caches && mkdir -p /mnt/obesp && mount -t vfat ${SNAPDEV:-/dev/block/sda1} /mnt/obesp && mkdir -p /mnt/obesp/openbook/shots && cp /data/local/tmp/snap.png "/mnt/obesp/openbook/shots/$1.png"; sync; umount /mnt/obesp; echo 3 > /proc/sys/vm/drop_caches; echo "@@SNAP[$1]@@"; }
@@ -185,6 +186,35 @@ def mkwin(out):
     guid = re.search(r"unique GUID: (\S+)", subprocess.run(["sgdisk", "-i", "1", out], capture_output=True,
                                                            text=True).stdout).group(1).lower()
     print(json.dumps({"esp_guid": guid, "esp_start": 2048, "esp_sectors": 260 * 2048}))
+
+
+# OpenBook setup (ANAL-209, docs/setup.md) on an installed system's first boot: each page's heading (or, where the
+# heading has an apostrophe, another text of the page) and the button that leaves it. Optional pages are skipped, so
+# no screen lock is set and the defaults stay. A system installed with a Google apps package of the user's (ANAL-211)
+# has one more page, "Register this computer with Google", before Done (SETUP_REGISTER).
+SETUP_PAGES = [
+    ("welcome", "Get started", "Get started"),
+    ("language", "Language and region", "Continue"),
+    ("keyboard", "Keyboard layout", "Continue"),
+    ("network", "Connect to the internet", "Skip"),
+    ("time", "Date and time", "Continue"),
+    ("account", "About you", "Skip"),
+    ("notice", "Some apps may not work", "Continue"),
+    ("extras", "Optional extras", "Skip"),
+    ("done", "Start using OpenBook", "Start using OpenBook"),
+]
+SETUP_REGISTER = ("register", "Register this computer with Google", "Continue")
+
+
+def setup_steps(prefix, shots=True, first_timeout=180, pages=None):
+    pages = SETUP_PAGES if pages is None else pages
+    s = []
+    for i, (name, seen, button) in enumerate(pages):
+        s += wait_ui(seen, first_timeout if i == 0 else 60)
+        if shots:
+            s += shot(f"{prefix}-{i + 1}-{name}")
+        s += tapx(button, 8 if name == "done" else 3)
+    return s
 
 
 def helpers():
@@ -331,17 +361,9 @@ def expect(case, target, model, win=None):
         s += send("export SNAPDEV=/dev/block/nvme0n1p1", 30)
         s += section("INSTALLED", "getprop | grep -E 'ro.boot.(openbook|selinux|boot_part_uuid|serialno|slot_suffix|verifiedbootstate)|init.svc.openbook|ro.build.fingerprint|sys.boot_completed'; getenforce; ls -l /dev/block/by-name; cat /proc/partitions; df -k /data /metadata")
         s += section("INSTALLER-STATE", "pm query-activities -a android.intent.action.MAIN -c android.intent.category.LAUNCHER | grep -c org.openbook.installer; echo daemon=[$(getprop init.svc.openbook_installd)]; settings get global device_provisioned; dumpsys activity activities | grep -E 'topResumedActivity' | head -n 2")
-        # OpenBook setup: the first screen of the installed system (SetupActivity), then through it to the desktop.
+        # OpenBook setup: the first screen of the installed system (org.openbook.setup), then through it to the desktop.
         s += send("input keyevent 224; wm dismiss-keyguard", 30)
-        s += wait_ui("Language", 120)
-        s += shot("8-setup-language")
-        s += tap("Continue", 3)
-        s += wait_ui("Connect to Wi-Fi", 60)
-        s += shot("8-setup-wifi")
-        s += tap("Continue", 3)
-        s += wait_ui("Protect your laptop", 60)
-        s += shot("8-setup-lock")
-        s += tap("Start using OpenBook", 8)
+        s += setup_steps("8-setup")
         s += shot("9-desktop")
         s += section("AFTER-SETUP", "settings get global device_provisioned; settings get secure user_setup_complete; pm query-activities -a android.intent.action.MAIN -c android.intent.category.HOME | grep -c SetupActivity; dumpsys activity activities | grep -E 'topResumedActivity' | head -n 1")
         s += section("AVC", "logcat -d -b all | grep -E 'avc: +denied' | head -n 200", 120)
@@ -556,13 +578,14 @@ def check(a):
         chk("console", "installer launcher entry off and daemon never started on the installed system",
             lines and lines[0].strip() == "0" and "daemon=[]" in st, lines[:2])
         chk("console", "first screen of the installed system is OpenBook setup",
-            "org.openbook.installer/.SetupActivity" in st, st[-200:])
+            "org.openbook.setup/.SetupActivity" in st, st[-200:])
         aft = sec.get("AFTER-SETUP", "").strip().splitlines()
         chk("console", "after setup: provisioned, setup complete, setup off, the launcher on top",
             len(aft) >= 4 and aft[0].strip() == "1" and aft[1].strip() == "1" and aft[2].strip() == "0" and
             "launcher" in aft[3].lower(), aft)
         chk("console", "setup screens captured", all(any(x.startswith(f"shot-{p}") for x in shots_of("console"))
-                                                    for p in ("8-setup-language", "8-setup-wifi", "8-setup-lock", "9-desktop")),
+                                                    for p in [f"8-setup-{i + 1}-{n}" for i, (n, _, _) in
+                                                              enumerate(SETUP_PAGES)] + ["9-desktop"]),
             shots_of("console"))
         avc = [l for l in sec.get("AVC", "").splitlines() if "denied" in l]
         res["console_avc"] = avc[:50]
