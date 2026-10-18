@@ -53,7 +53,9 @@ result "CPU svm flag (cores)" INFO "$svm"
 [ -e /sys/devices/virtual/misc/kvm/dev ]; check "KVM registered its device" $? "$(cat /sys/devices/virtual/misc/kvm/dev 2>/dev/null)"
 ls -l /dev/kvm > "$OUT/dev-kvm.txt" 2>&1; check "/dev/kvm" $? "$(cat "$OUT/dev-kvm.txt")"
 dmesg | grep -i -E 'kvm|svm' > "$OUT/kernel-kvm.txt" 2>&1
-grep -q -i 'kvm_amd' "$OUT/kernel-kvm.txt"; check "kvm_amd in the kernel log" $? "$(head -n 2 "$OUT/kernel-kvm.txt" | tr '\n' ' ')"
+# kvm_amd is built in: its parameters exist once it initialised (the kernel log may have wrapped by now).
+km="nested=$(cat /sys/module/kvm_amd/parameters/nested 2>/dev/null) npt=$(cat /sys/module/kvm_amd/parameters/npt 2>/dev/null)"
+[ -e /sys/module/kvm_amd/parameters/npt ]; check "kvm_amd loaded" $? "$km; log: $(head -n 2 "$OUT/kernel-kvm.txt" | tr '\n' ' ')"
 getprop | grep -E 'hypervisor|openbook.kvm' > "$OUT/props.txt"
 result "properties" INFO "$(tr '\n' ' ' < "$OUT/props.txt")"
 kvm=0; [ "$(getprop ro.boot.hypervisor.vm.supported)" = 1 ] && kvm=1
@@ -128,7 +130,22 @@ qc=$(logcat -d -v epoch | grep -m1 'agents: connected via' | awk '{print $1}')
 took=$(awk -v a="$vm" -v b="$qc" 'BEGIN { if (a != "" && b != "") printf "%.1f", b - a; else print "?" }')
 result "VM start -> Quire connected to quired (s)" INFO "$took"
 cat /data/data/$T/files/*.log/* > "$OUT/guest-console.log" 2>/dev/null
-result "guest boot (systemd)" INFO "$(grep -o 'Startup finished in .*' "$OUT/guest-console.log" | head -n 1)"
+
+log "== terminal"
+# The guest's own view, in the Terminal app: quired agents, and systemd-analyze for the boot time.
+am start -n $T/.LauncherActivity > /dev/null 2>&1
+sleep 5
+uiautomator dump /data/local/tmp/q4-ui.xml > /dev/null 2>&1
+b=$(tr '>' '\n' < /data/local/tmp/q4-ui.xml | grep 'class="android.webkit.WebView"' | sed -n 's/.*bounds="\[\([0-9]*\),\([0-9]*\)\]\[\([0-9]*\),\([0-9]*\)\]".*/\1 \2 \3 \4/p' | head -n 1)
+if [ -n "$b" ]; then
+  set -- $b
+  input tap $((($1 + $3) / 2)) $((($2 + $4) / 2)); sleep 3
+  input text 'clear;quired%sagents;systemd-analyze'; input keyevent 66; sleep 6
+  screencap -p "$OUT/terminal.png"
+  result "quired agents and systemd-analyze in the Terminal app (screenshot)" INFO "terminal.png"
+else
+  result "quired agents and systemd-analyze in the Terminal app (screenshot)" FAIL "no terminal on screen"
+fi
 
 log "== prompt"
 tag=$(mark prompt)
