@@ -437,3 +437,49 @@ The owner ran this once (2026-10-17, on `anal176t`). The next run is on ANAL-192
 6. `dEQP-VK.wsi.*` is not covered by this check. A window-backed Vulkan run would need the dEQP app with the Vulkan lists, which is slow: one process.
 7. Strict mode's `format_properties` video bits reproduce on the G14 (gfx1150) as on the 610M. A possible Mesa issue under android-strict, moot with 1.4. Report upstream only with the owner's OK (outward-facing).
 8. These are subsets of the CTS lists, not a CTS run: no tradefed and no `CtsDeqpTestCases` module. A full CTS needs a host-driven run over adb, which the live stick does not offer yet.
+
+## Background blur and the renderer properties (ANAL-203)
+
+As of 2026-10-17. Evidence is in `evidence/2026-10-17-blur/`; the UI side is in `googlebook-ui.md` §2.3.
+
+### Who draws what
+
+| | OpenBook G14 (`anybook_g14_x86_64`) | OpenBook Cuttlefish (`anybook_cf_x86_64_pc`, `gfxstream_guest_angle`) | Googlebook (`ruby`) |
+|---|---|---|---|
+| SurfaceFlinger's RenderEngine | **SkiaGL**, threaded, on ANGLE → Vulkan → RADV (C: `SkiaGLRenderEngine::create` in the G14's `g14-desktop2` crash backtrace) | SkiaGL on ANGLE → gfxstream → the host's RADV (C) | Skia **Graphite** on Vulkan (inferred from its properties and flags, below; not observed running) |
+| HWUI (apps, SystemUI, Launcher) | **SkiaGL** (`ro.hwui.use_vulkan` unset) on ANGLE | **SkiaVk**: Cuttlefish's launcher sets `debug.hwui.renderer=skiavk` for gfxstream | SkiaVk (`ro.hwui.use_vulkan=true`) |
+| Background blur | **on, since this change** | on (inherited from `device/google/cuttlefish`) | on |
+| Blur algorithm | `KawaseDualFilterV2`, AOSP 17's default (`debug.renderengine.blur_algorithm` unset) | the same (C: `RenderEngine chosen blur algorithm`) | not read |
+
+The blur itself is drawn by RenderEngine, on the GPU, when SurfaceFlinger composes a frame that has a blurred layer. A blurred layer forces GPU composition for that frame. In Cuttlefish, SurfaceFlinger composed none of the shade's frames on the GPU with blur off and about two thirds with it on (the composer HAL handles the rest); on the G14, drm_hwcomposer uses only the primary plane (`ro.vendor.hwc.use_overlay_planes=false`), so SurfaceFlinger composes most frames on the GPU anyway and blur adds only its own passes. HYPOTHESIS until the G14 run below.
+
+### What the three Googlebook properties do in AOSP 17 (C, read from the source)
+
+| Property | What it does | Our G14 today |
+|---|---|---|
+| `ro.hwui.use_vulkan=true` | HWUI's default pipeline in every app process becomes SkiaVulkan (`frameworks/base/libs/hwui/Properties.cpp`, `peekRenderPipelineType`). `debug.hwui.renderer=skiagl\|skiavk` overrides it | unset: SkiaGL, i.e. GLES through ANGLE on RADV |
+| `debug.renderengine.vulkan=true` | Debug override of the read-only aconfig flag `com.android.graphics.surfaceflinger.flags.vulkan_renderengine` (`FlagManager`): RenderEngine on Skia Ganesh over Vulkan, if `RenderEngine::canSupport(Vk)` can create a Vulkan device when SurfaceFlinger starts; GL otherwise | flag off, property unset: GL |
+| `debug.renderengine.graphite_desktop_optin=true` | RenderEngine on Skia **Graphite** over Vulkan, when the flag `graphite_renderengine_desktop_rollout` is also on (`SurfaceFlinger.cpp`, `shouldUseGraphiteIfSupported`). Graphite implies Vulkan | **the flag is already on in our build**, as in Googlebook's, and AOSP 17 compiles Graphite into `librenderengine` unconditionally, so this one property would switch our RenderEngine to Graphite |
+
+- `debug.renderengine.backend` (`skiagl`, `skiaglthreaded`, `skiavk`, `skiavkthreaded`) overrides all of them.
+- SurfaceFlinger reads them once at start, and HWUI once per process. A trial on a userdebug build needs `setprop`, then `stop; start`.
+
+### Why they stay off for now (ANAL-177 context)
+
+- On the G14 every path ends on RADV anyway: today through ANGLE (GLES on Vulkan), after a switch directly. Switching removes the ANGLE layer, but moves SurfaceFlinger and every app onto RADV paths that dEQP flagged:
+  - **`dEQP-VK.draw.renderpass.ahb.triangle_list` fails on the 890M** under both Vulkan builds (the failures table above). It renders into an AHardwareBuffer, which is what HWUI's and RenderEngine's Vulkan backends do with every gralloc buffer. HYPOTHESIS: either switch would draw wrong pixels on the G14 until that case passes.
+  - A GPU hang is a full GPU reset that restarts the UI (open item 3 above). More direct Vulkan use in SurfaceFlinger widens that exposure.
+- **Evidence to collect before flipping any of them,** one at a time, RenderEngine before HWUI (HWUI touches every app):
+  1. the AHB case passes on the G14, plus `dEQP-VK.wsi.*` (not covered yet; open item 6);
+  2. a desktop soak on the G14 with the property set by hand (`setprop`, `stop; start`): the blur check below plus Settings scrolling for an hour, with 0 amdgpu fault or reset lines;
+  3. frame stats against the GL path, with the same check.
+
+### The blur part of the graphics check (G14, unattended)
+
+The graphics add-on (`scripts/graphics/gfx-run.sh`) now starts with a `blur` part when the image enables blur. It runs `scripts/ui/blur-check.sh` from the payload, about 7 minutes. The part:
+- opens and closes the notification shade and Quick Settings 20 times each, with blur on, off, on and off;
+- records SystemUI's `dumpsys gfxinfo` and SurfaceFlinger's TimeStats for each set;
+- records the layers SurfaceFlinger blurs behind the open panel, and takes four screenshots;
+- counts amdgpu fault and reset lines, and watches the PIDs of SurfaceFlinger, SystemUI and system_server.
+
+`gfx-report.py` passes the part to `scripts/ui/blur-report.py`, and `live-report.py` turns it into the `gfx_blur` verdict. The thresholds are in `googlebook-ui.md` §2.3.

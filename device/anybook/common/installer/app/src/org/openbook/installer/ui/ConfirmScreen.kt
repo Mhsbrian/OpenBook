@@ -126,6 +126,11 @@ fun ConfirmScreen(vm: InstallerViewModel, rail: RailModel) {
                 modifier = Modifier.padding(bottom = 10.dp).fillMaxWidth(),
             ) { Text(planWarningSentence(w, alongside = !whole), style = Ob.type.body) }
         }
+        if (plan.boot.nvram == "planned" && plan.boot.bootOrder == "last") {
+            Notice(icon = Icons.Rounded.Info, modifier = Modifier.padding(bottom = 10.dp).fillMaxWidth()) {
+                Text(bootOrderLastSentence(plan.keptSystem), style = Ob.type.body)
+            }
+        }
         Spacer(Modifier.height(6.dp))
         ConfirmField(vm, plan)
     }

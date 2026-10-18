@@ -1,0 +1,8 @@
+# AnyBook/anybook_cf_x86_64_pc/anybook_vsoc_x86_64:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+persist.wallpapercolors.threshold=[55]
+persist.wallpapercolors.max_dark_area=[12]
+white grey=255 dark_rows=0% hints=5 dark_text=true dark_theme=false
+grey-L62 grey=206 dark_rows=0% hints=5 dark_text=true dark_theme=false
+white-8pc-dark grey=255 dark_rows=8% hints=5 dark_text=true dark_theme=false
+white-15pc-dark grey=255 dark_rows=15% hints=4 dark_text=false dark_theme=false
+black grey=0 dark_rows=0% hints=6 dark_text=false dark_theme=true

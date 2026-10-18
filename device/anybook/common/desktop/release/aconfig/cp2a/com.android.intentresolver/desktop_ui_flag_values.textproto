@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 3: desktop layout for the share sheet (Chooser)
+flag_value {
+  package: "com.android.intentresolver"
+  name: "desktop_ui"
+  state: ENABLED
+  permission: READ_ONLY
+}

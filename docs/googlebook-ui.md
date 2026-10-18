@@ -30,7 +30,7 @@ Google apps and how to install them are covered in [`gapps.md`](gapps.md). Evide
   - **Both fonts are SIL OFL 1.1 in `github.com/google/fonts`.**
   - In a VM, our prototype puts them on the OpenBook desktop without rebuilding the image (§3).
 - **Other gaps we can close:**
-  - **Background blur.** The G14 product doesn't enable it; Googlebook does.
+  - **Background blur.** Googlebook enables it. The G14 product does now too (ANAL-203, §2.3); the laptop check is still to run.
   - **Window shadows, cursor fixes and other polish.** These sit behind flags AOSP 17 already declares.
   - **Circular icons** and **0 % wallpaper dim**.
   - **A tidy default desktop.** Today it carries AOSP's old search widget.
@@ -108,43 +108,152 @@ The OFL lets us ship both families unmodified with `OFL.txt`. Google's `TRADEMAR
   - Launcher3: `enable_taskbar_icon_desktop_clicks` (click to minimize), `expandable_long_press_menu`, `fallback_reveal_animation`; `com.android.systemui.shared.enable_recents_in_taskbar`.
   - SystemUI: `enable_qs_tile_tooltips`, `hun_timer_pause_on_hover`, `notification_animated_action_style_2026`, `default_hun_expansion`.
 - **Risk (HYPOTHESIS).** Some of these flags may guard code that is incomplete in the June 2026 AOSP snapshot. Turn them on in small groups, with the desktop capture and the G14 checks.
+- **Done in ANAL-204 (B3), see [`googlebook-flags.md`](googlebook-flags.md):** all 218 triaged and 85 enabled. Five of the visible flags above do nothing in AOSP 17: `perfect_edge`, `enable_taskbar_icon_desktop_clicks`, `enable_desktop_taskbar_in_fullscreen_mode`, `notification_animated_action_style_2026` and `appheader_launch_color_bugfix` have no reader in our tree. `enable_no_resize_cursor` is read, but nothing acts on its result. Two flags broke the desktop and stay off.
 
 ### 2.3 Blur and surface effects (C)
 
 - **Googlebook:** `ro.surface_flinger.supports_background_blur=1`. Its framework overlay also sets `config_enableSurfaceShadow=true`, a config AOSP 17's framework doesn't have.
-- **OpenBook:**
-  - The Cuttlefish product inherits blur from `device/google/cuttlefish/shared/device.mk`. The prototype screenshots show the blurred Quick Settings panel.
-  - **The G14 product doesn't set the property, so OpenBook on the laptop has no blur at all** (`inventory/openbook-g14-ui-props.txt`).
-- **Next:** set it in `device/anybook/g14`, then measure frame times on the 890M with the scroll benchmark and `dumpsys gfxinfo`.
+- **OpenBook, since ANAL-203:**
+  - The G14 product sets the property too (`device/anybook/g14/anybook_g14_x86_64.mk`). Before, OpenBook on the laptop had no blur at all (`inventory/openbook-g14-ui-props.txt`).
+  - The Cuttlefish product is unchanged: it inherits the property from `device/google/cuttlefish/shared/device.mk`.
+  - Evidence is in `evidence/2026-10-17-blur/`.
+
+**What AOSP 17 needs alongside the property** (C, read from the source; nothing else to set in our tree):
+- **Framework configs.** `config_enableAppLaunchBlur` (Launcher3's app-launch blur) and `config_enableBlurExpansion` (blur on more surfaces, with B3's flags) default to `true` in AOSP 17. Googlebook doesn't override them, and neither do we.
+- **SystemUI and Launcher3** blur only when `ActivityManager.isHighEndGfx()` holds (not low-RAM, no `ro.config.avoid_gfx_accel`) and `persist.sysui.disableBlur` is unset. All of that holds on the G14.
+- **WM's `BlurController` turns blur off by itself:**
+  - in battery saver;
+  - at thermal status SEVERE or above;
+  - in tunnel mode;
+  - when `Settings.Global.disable_window_blurs` is 1 (`wm disable-blur 1`; Developer options).
+
+  The switch reaches SystemUI and Launcher3 without a restart; in our runs it took effect before the next panel opened.
+- **Flags already on in our build:** SystemUI's `notification_shade_blur` and Launcher3's `app_launch_blur`. `blur_on_more_surfaces` is B3 (ANAL-204).
+- **Who draws it:** SurfaceFlinger's RenderEngine, on the GPU, with `KawaseDualFilterV2`. On the G14 that is SkiaGL on ANGLE on RADV (`graphics-amd.md`, "Background blur and the renderer properties").
+
+**Found while measuring: Googlebook blurs less than we now do (C).** Both Googlebook's SystemUI desktop overlay and Google's 37.1 desktop emulator image set SystemUI's `config_supportBlurredWallpaper=false`. In AOSP 17 that stops `NotificationShadeDepthController` from blurring (and zooming) everything behind the shade. Without it, as on our builds, opening the small Quick Settings panel in the top-right corner blurs the whole desktop, at radius 34 px in Cuttlefish (`evidence/2026-10-17-blur/cf/screens/cmp-qs-on-off.png`). Googlebook's panels instead blur only behind themselves, which is what B3's `blur_on_more_surfaces` turns on. **Recommendation for B3:** take `config_supportBlurredWallpaper=false` together with those flags, and measure both with the same tool. Until then the G14 gets the full-screen blur, the heaviest case.
+
+**Cost in Cuttlefish** (C; Radeon 610M, `gfxstream_guest_angle`, 1920×1080 at 60 Hz; `scripts/ui/blur-bench.sh`):
+- **Method.** 20 openings and closings each of the shade and of Quick Settings, then a Settings scroll with the shade closed as a control. Six rounds alternate blur on and off (on, off, on, off, on, off), switched with `wm disable-blur`.
+- **Host load.** The shared host's load went from 14 to 92 (32 threads) while siblings built, so each on round is compared with the off round next to it.
+
+| Pair (host load) | Scenario | SystemUI janky % on / off | p90 ms on / off | SF frame time avg ms on / off | RenderEngine ms per GPU frame (on) | SF missed % on / off |
+|---|---|---|---|---|---|---|
+| r1/r2 (14–27, quiet) | shade | 3.6 / 4.6 | 16 / 19 | 4.2 / 3.3 | 4.0 | 0 / 0.3 |
+| r1/r2 (14–27, quiet) | Quick Settings | 0.8 / 0.9 | 8 / 8 | 2.7 / 2.2 | 2.8 | 0 / 0 |
+| r5/r6 (85–92, loaded) | shade | 16.9 / 8.1 | 40 / 25 | 6.3 / 4.2 | 6.1 | 1.3 / 0 |
+| r5/r6 (85–92, loaded) | Quick Settings | 19.2 / 12.2 | 46 / 32 | 5.5 / 4.3 | 5.4 | 0.2 / 0 |
+
+- **Blur is applied, and only when on.** With blur on, SurfaceFlinger blurs one layer, `VRI-NotificationShade`, at radius 34. With blur off it blurs none, and no layer stayed blurred with the panels closed.
+- **On a quiet host it costs SystemUI nothing measurable.** It costs SurfaceFlinger 2.8–4.0 ms of RenderEngine time per frame. Those frames go to the GPU: about 1,100 of each set's 1,600–1,800 frames with blur on, and none with it off, because Cuttlefish's composer handles them otherwise.
+- **Under heavy host load the shade with blur doubles its janky frames.** In Cuttlefish, gfxstream's renderer runs on the host's CPU threads.
+- **The control (Settings scroll) shows no blur effect.**
+- **No crash, restart or amdgpu fault line,** in the guest or on the host.
+- The first run had one off round in which the shade stayed blurred (`cf-first-run/`). It didn't recur in a manual test or in the second run. That run checks for it before every round.
+
+**The G14 product's image in QEMU** (C; `scripts/ui/blur-qemu.sh`; virtio-gpu, so SwiftShader, a CPU renderer):
+- The build carries the property (`vendor/build.prop`). In QEMU, SystemUI reports `supportsBlursOnWindows: true`.
+- After OpenBook setup is finished, Quick Settings with blur on draws `backgroundBlurRadius=34` behind it, and with blur off nothing (`evidence/2026-10-17-blur/qemu/cmp-qs-on-off.png`).
+- `blur-check.sh`, typed in over the serial console, ran both rounds: blur applied, no hang or restart.
+- On SwiftShader blur is expensive: RenderEngine +7.3–7.8 ms per frame, and SurfaceFlinger misses 18–22 % of the frames while a panel moves, against 1.5–2.4 % without blur.
+- That doesn't apply to the G14's GPU, but it does to the image's VM fallback. If QEMU-based UI tests of the G14 image get slower or flaky, gate blur on the GPU probe. That needs the property set by init on `hal=amdgpu` instead of in `vendor/build.prop`; HYPOTHESIS, untested, and the SELinux side is to check.
+
+**What this predicts for the G14 (HYPOTHESIS):**
+- the 890M has far more GPU than the 610M, and no gfxstream layer;
+- the G14 draws 2.5× the pixels, at 2880×1800;
+- drm_hwcomposer already sends most frames to the GPU (overlay planes are off), so blur adds only its own passes.
+
+Only the G14 run can say.
+
+**G14 check** (pass/fail; `scripts/ui/blur-report.py`). The graphics check's new `blur` part runs it unattended (`graphics-amd.md`), with blur on, off, on and off:
+
+| Verdict | Pass when |
+|---|---|
+| `blur_applied` | With blur on, SurfaceFlinger blurs a layer behind the open shade and Quick Settings, and SystemUI reports `supportsBlursOnWindows: true`. With blur off, no layer is blurred. No layer is blurred with the panels closed |
+| `no_gpu_hang` | No new amdgpu ring time-out, reset or page-fault line, and SurfaceFlinger, SystemUI and system_server keep their PIDs |
+| `frame_cost` | For the shade and Quick Settings, with blur on: SystemUI janky frames ≤ 10 % and ≤ off + 5 points (paired); SurfaceFlinger missed frames ≤ off + 2 % of frames; RenderEngine time per GPU-composed frame ≤ 6 ms on average, and its p90 ≤ 8 ms (one 120 Hz refresh is 8.3 ms) |
+
+Plus the owner's eye: in a normal session the desktop behind Quick Settings is blurred, not just dimmed.
 
 ### 2.4 Shape, icons and wallpaper (C)
 
-| Value | Googlebook | AOSP 17 / OpenBook |
-|---|---|---|
-| `config_icon_mask` | circle | rounded square (8 % radius) |
-| `config_useRoundIcon` | true | false |
-| `config_wallpaperDimAmount` | 0 | 0.05 |
-| `config_dialogCornerRadius`, `config_bottomDialogCornerRadius`, `config_buttonCornerRadius`, `config_progressBarCornerRadius` | 28, 16, 4, 1000 dp | same |
-| `persist.wallpapercolors.threshold` / `max_dark_area` | 55 / 12 | unset |
-| SystemUI `config_supportBlurredWallpaper`, `config_wallpaperZoomEnabled` | false, false | AOSP defaults |
-| Pixel Launcher desktop overlay | taskbar all-apps button 48 dp persistent / 57 dp transient, `reduce_workspace_blur_usage=true`, Material colour roles for the taskbar | AOSP Launcher3 defaults |
+| Value | Googlebook | AOSP 17 | OpenBook since ANAL-205 |
+|---|---|---|---|
+| `config_icon_mask` | circle | rounded square (8 % radius) | **circle** (our own two-arc path) |
+| `config_useRoundIcon` | true | false | **true** |
+| `config_wallpaperDimAmount` | 0 | 0.05 | **0** |
+| `config_dialogCornerRadius`, `config_bottomDialogCornerRadius`, `config_buttonCornerRadius`, `config_progressBarCornerRadius` | 28, 16, 4, 1000 dp | same | same |
+| `persist.wallpapercolors.threshold` / `max_dark_area` | 55 / 12 | unset (code defaults 70 / 5) | **55 / 12** |
+| SystemUI `config_supportBlurredWallpaper`, `config_wallpaperZoomEnabled` | false, false | AOSP defaults | AOSP defaults |
+| Pixel Launcher desktop overlay | taskbar all-apps button 48 dp persistent / 57 dp transient, `reduce_workspace_blur_usage=true`, Material colour roles for the taskbar | AOSP Launcher3 defaults | AOSP Launcher3 defaults |
 
-Corner radii already match. The visible differences are the icon shape and the wallpaper treatment. Googlebook ships its own wallpaper set (`DesktopWallpapers`, `DefaultWallpaperOverlayRuby`) plus AI, adaptive and cinematic wallpaper apps. Our default is AOSP's stock wallpaper.
+Corner radii already match. Googlebook ships its own wallpaper set (`DesktopWallpapers`, `DefaultWallpaperOverlayRuby`) plus AI, adaptive and cinematic wallpaper apps. Our default is still AOSP's stock wallpaper (B6).
+
+**Done in ANAL-205** (evidence: `evidence/2026-10-17-shape-wallpaper/`):
+- **Where the values are set.**
+  - The three framework values are in `AnyBookDesktopFrameworkOverlay` (`device/anybook/common/desktop/overlays/framework/res/values/config.xml`).
+  - The two properties are in `desktop.mk` (`PRODUCT_PRODUCT_PROPERTIES`, so `/product/etc/build.prop`, where Googlebook has them too).
+  - Both products inherit them.
+  - The circle is `M50,0 A50,50 0 1,1 50,100 A50,50 0 1,1 50,0 Z`, written by us. Googlebook and Google's desktop emulator image use a cubic-Bézier circle.
+- **What reads each value in AOSP 17** (`android17-release`, read 2026-10-17):
+  - **`config_icon_mask`:**
+    - `AdaptiveIconDrawable` reads it, so it shapes app icons drawn in Settings' app lists, SystemUI and bubbles.
+    - SettingsLib's `AdaptiveIconShapeDrawable` and `AdaptiveOutlineDrawable` read it, so it shapes the Settings homepage icons as well.
+    - Launcher3's `ThemeManager.parseIconState()` uses it whenever the user hasn't picked a shape.
+  - **`config_useRoundIcon`:** PackageManager reads it (`ParsingPackageUtils.readConfigUseRoundIcon`) and then hands out `android:roundIcon` instead of `android:icon`.
+    - Only 3 of the 96 APKs in our image declare a round icon: CredentialManager, DeviceDiagnostics and ThreadNetworkDemoApp.
+    - So this mostly matters for third-party apps, which usually ship one.
+  - **`config_wallpaperDimAmount`:** read only by `WallpaperService.Engine`.
+    - It is a minimum dim, applied to a wallpaper whose colours carry neither the dark-text nor the dark-theme hint.
+  - **`persist.wallpapercolors.threshold` / `max_dark_area`:** read once per process into static fields of `android.app.WallpaperColors` (`BRIGHT_IMAGE_MEAN_LUMINANCE`, `MAX_DARK_AREA`).
+    - Together they decide `HINT_SUPPORTS_DARK_TEXT`, which picks Launcher3's DarkText theme and SystemUI's lock screen colours.
+    - Their SELinux context is `default_prop`, which every `coredomain` process may read, apps included.
+- **Measured in Cuttlefish**, `anybook_cf_x86_64_pc`, base `c861cf4` against B4, on the same day and with the same scripts:
+  - **Resolved values:** `cmd overlay lookup` resolves the circle path, `true` and `0.0`. `getprop` shows 55 and 12.
+  - **Icons:** all apps, the taskbar, the Settings homepage and Settings' app list all draw circles (`compare-*.png`).
+  - **Wallpaper dim:** a flat grey wallpaper (180) showed on screen as 171 before (×0.95, AOSP's 5 % default dim) and 180 after. Grey 206 showed as 195 before and 206 after (`scripts/ui/wallpaper-dim-check.sh`).
+  - **Colour hints:** `WallpaperColors.fromBitmap()` on the device now gives the dark-text hint to:
+    - a grey of luminance 0.62;
+    - a white image with 8 % dark pixels.
+
+    Before, it gave neither one the hint. A white image with 15 % dark pixels gets no hint in either build (`scripts/ui/wallpaper-hints.sh`).
+  - **Crashes:** the crash buffer was empty after each check.
+- **The icon-shape picker (Wallpaper & style → Home screen → Icons → Shape).**
+  - **How it works:**
+    - It is Launcher3's `grid_control` provider, behind `com.android.launcher3.enable_launcher_icon_shapes`, which is on in cp2a. It offers Circle, Square, 4-sided cookie, 7-sided cookie and Arch.
+    - The user's pick is stored in the Launcher pref `icon_shape_model`, and on the home screen it beats `config_icon_mask`.
+    - With nothing picked, the picker marks the first option, Circle, as selected.
+  - **What AOSP's default did:** the picker said Circle while the launcher drew the rounded square. The circle mask removes that mismatch.
+  - **What we checked, through the provider as the picker uses it:**
+    - Picking Square turns the taskbar's icons square, so the user's choice still wins.
+    - Clearing the pick brings the circles back.
+    - Settings and SystemUI keep the system mask whatever the pick, which is AOSP's design.
+  - **Open (AOSP behaviour, not caused by B4).** The taskbar's all-apps panel keeps drawing the system mask after a pick, even after Launcher restarts. The baseline build behaves the same way: the pixel diff is 0 with its rounded-square mask. **HYPOTHESIS:** that panel's icons don't follow `ThemeManager`'s shape the way the taskbar's do. The cause hasn't been traced.
+- **Not checked yet:**
+  - the lock screen, which is off by default on our desktop (`config_disableLockscreenByDefault`);
+  - the G14 itself. The checks go on ANAL-192's stick checklist.
 
 ### 2.5 Pointer, sounds, boot animation, setup (C)
 
 - **Pointer:**
   - Googlebook replaces 10 framework pointer shapes (20 drawables, each with an icon variant) with its own vector set in `FrameworkDesktopOverlay`, and adds 4 no-resize cursors in SystemUI.
   - We can't copy that art. AOSP 17 has vector pointer icons with fill and stroke styles, which we can theme with our own design.
-- **Sounds:** Googlebook uses Google's set (`Soft_Mallets.ogg`, `Oxygen.ogg`, `product/media/audio/{ui,notifications,ringtones,alarms}`). We use AOSP's (`OnTheHunt.ogg`, `Alarm_Classic.ogg`). The 9to5Google review called Googlebook's default click sounds "very annoying", so OpenBook should turn them off by default.
+- **Sounds:** Googlebook uses Google's set (`Soft_Mallets.ogg`, `Oxygen.ogg`, `product/media/audio/{ui,notifications,ringtones,alarms}`). We use AOSP's (`OnTheHunt.ogg`, `Alarm_Classic.ogg`). The 9to5Google review called Googlebook's default click sounds "very annoying". Googlebook's own `SettingsProviderDesktopOverlay` already sets `def_sound_effects_enabled=false` (C). OpenBook now does the same (§2.6).
 - **Boot animation:** Googlebook ships `system/media/bootanimation.zip`; we have none.
 - **Setup:** Googlebook runs Google's setup wizard (`setupwizard.theme=glif_expressive`); we run AOSP Provision.
 
 ### 2.6 Desktop clutter (C for OpenBook, R for Googlebook)
 
-- **OpenBook (C):** our default desktop shows AOSP's legacy `QuickSearchBox` widget, a dark "Google" bar across the bottom (`fonts-prototype/before-settings.png`).
+- **OpenBook before ANAL-206 (C):** the default desktop showed AOSP's legacy `QuickSearchBox` widget, a dark "Google" bar across the bottom (`fonts-prototype/before-settings.png`). It is Launcher3's hotseat search box, and Google's AOSP Desktop emulator image shows the same bar. The taskbar held Launcher3's tablet defaults: Calendar, Gallery, WebView Shell, Camera.
 - **Googlebook (R):** reviewers describe its launcher as the Pixel Launcher's search, opened from the G key (9to5Google review, 2026-10-12).
-- **Next:** remove the widget from the default workspace, and drop `QuickSearchBox` from the product.
+- **Googlebook (C, from its overlays and flags):** touch sounds off by default (`SettingsProviderDesktopOverlay`), the screenshot shutter sound only when forced (`com.android.systemui.screenshot_remove_nonforced_sound`), and new apps not added to the desktop (`NexusLauncherOverlayDesktop`: `pref_add_icon_to_home_default=false`).
+- **OpenBook since ANAL-206 (C, Cuttlefish and the G14 product in QEMU; `evidence/2026-10-17-clean-desktop/`):**
+  - no search box: a Launcher3 RRO empties the hotseat's search slot, and `QuickSearchBox` is no longer installed;
+  - taskbar pins from a partner customization package: Files, Settings, the browser, Calendar, Gallery, and Camera where a camera exists;
+  - touch sounds, the on-screen keyboard's keypress sound and the non-forced screenshot sound are off.
+
+  The mechanisms, what depended on `QuickSearchBox`, and what was left alone are in [`aosp-desktop.md`](aosp-desktop.md#the-default-desktop-no-search-box-taskbar-pins-quiet-sounds-anal-206).
+- **Still different:** AOSP 17's Launcher3 adds every newly installed app to the desktop, and the setting's default can't be changed without a Launcher3 patch. The screenshot still flashes; no setting exists for it.
 
 ### 2.7 Out of reach
 
@@ -191,10 +300,10 @@ The owner approved every item on 2026-10-17. Each one is a sub-issue of ANAL-201
 | # | Issue | Item | Size | Needs |
 |---|---|---|---|---|
 | B1 | ANAL-202 | **Fonts in the product.** `PRODUCT_COPY_FILES` for the three OFL fonts and `OFL.txt`, the generated `fonts_customization.xml`, and the four values in `AnyBookDesktopFrameworkOverlay`. Then the desktop capture in Cuttlefish and the G14 checklist | small | — (approved) |
-| B2 | ANAL-203 | **Blur on the G14.** `ro.surface_flinger.supports_background_blur=1`; check frame times on the 890M | small | — |
+| B2 | ANAL-203 | **Blur on the G14.** `ro.surface_flinger.supports_background_blur=1`; check frame times on the 890M. **Done in the product (ANAL-203); measured in Cuttlefish; the G14 check is on ANAL-192's stick** (§2.3) | small | — |
 | B3 | ANAL-204 | **Flag set v2.** Evaluate the 128 UI flags AOSP 17 declares, in groups. Start with box shadows, blur on more surfaces, resizing (`perfect_edge`, no-resize cursor, fluid resizing) and taskbar clicks. `scripts/desktop-flags.py` already writes the value set | medium | — |
-| B4 | ANAL-205 | **Shape and wallpaper values:** circular icon mask, round icons, wallpaper dim 0, wallpaper colour thresholds | small | — |
-| B5 | ANAL-206 | **A clean default desktop:** remove the QuickSearchBox widget and the app, set taskbar pins (Files, Settings, browser) | small | Pins proposed in the PR; the owner reviews |
+| B4 | ANAL-205 | **Shape and wallpaper values:** circular icon mask, round icons, wallpaper dim 0, wallpaper colour thresholds. **Done in Cuttlefish (§2.4); the G14 check is on ANAL-192's stick** | small | — |
+| B5 | ANAL-206 | **A clean default desktop:** remove the QuickSearchBox widget and the app, set taskbar pins (Files, Settings, browser), quiet sounds. **Done in Cuttlefish and on the G14 product in QEMU (§2.6); the G14 check is on ANAL-192's stick** | small | Pins proposed in the PR; the owner reviews |
 | B6 | ANAL-207 | **Brand assets:** wallpapers (our own or CC0/CC-BY, not bulk Unsplash), a sound set with click sounds off by default, a boot animation, a pointer theme. Based on the brand mark in `assets/brand/` | medium | Owner reviews the visuals in the PR |
 | B7 | ANAL-208 | **Document fonts:** the 42 OFL metric-compatible fonts, for web and Office fidelity | small | — |
 | B8 | ANAL-209 | **Setup:** a first-run flow in our style, after the installer | medium | Coordinate with ANAL-191 (installer) |
