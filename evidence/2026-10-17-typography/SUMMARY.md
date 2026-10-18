@@ -6,6 +6,7 @@ The write-up is in `docs/googlebook-ui.md` §2.1 and §3.1. The framework values
 - **Base:** `c861cf4` (ANAL-201's branch, no fonts).
 - **Fonts:** `c91ca38` (this branch before it merged `main`). The build logs say `-dirty` because a doc was uncommitted; `device/anybook` was exactly `c91ca38`.
 - **Products:** `anybook_cf_x86_64_pc-cp2a-userdebug` and `anybook_g14_x86_64-cp2a-userdebug`, base and fonts, so four builds. The fonts builds exited 0 for both products.
+- **Merged tree:** `d5b12fa`, this branch after merging `main` (B2, B4 and B5 in). Both products built again (`m exit 0`), and the Cuttlefish image was booted once more (`merged/`).
 - **Cuttlefish:** AMD Radeon 610M (`CF_GPU=amd`, `gfxstream_guest_angle`), 1920x1080 at 160 dpi, VM `anybook-cf-b1`. Each build booted from a reflink snapshot of its own images.
 
 ## Results
@@ -44,10 +45,18 @@ Three alternating pairs (base, fonts, base, fonts, base, fonts), because the sha
 - **This is not a pure text-rendering cost.** Google Sans has taller line metrics than Roboto, so Settings' rows are about a quarter taller: roughly 75 → 94 px at 160 dpi (`cf/cmp-settings.png`). The same swipe then brings fewer new rows on screen. **HYPOTHESIS:** that, not the font, explains the lower jank. Per-glyph cost wasn't isolated.
 - HWUI's GPU time per frame was 1 ms (p50 and p90) in every round of both builds.
 
+### The merged tree (`merged/`)
+
+`d5b12fa` in Cuttlefish, on a quiet host (load 9):
+- **Fonts:** the same: the fonts' sha256 on the device match upstream, all 40 families load, and the four values resolve.
+- **Desktop:** two freeform windows with captions, and the taskbar. B4's circular icons and B5's taskbar without the search bar show alongside Google Sans (`merged/desktop-windows.png`).
+- **Health:** crash buffer empty; the same three SELinux denial kinds as before.
+- **Settings scroll, 2 rounds:** 0 janky frames, p90 5–6 ms. That is a quiet-host data point, not a comparison.
+- **Size:** `product.img` is 302,100,480 B (cf) and 301,666,304 B (G14).
+
 ## Not covered
 
 - **The G14.** The check is posted on ANAL-192 for the next stick's checklist.
-- **The merged tree** (this branch after merging `main` with B2, B4 and B5): see the PR for its build result.
 - **Non-Latin text.** Only English UI text was looked at.
 
 ## Reproduce

@@ -314,6 +314,8 @@ AOSP 17 keeps the hooks (contextual-search shake gesture, the Ambient Cue UI, Sm
   - janky frames 1.35 % with the fonts against 4.32 % without; median p90 15 ms against 20 ms. The fonts build was better in every pair.
   - **HYPOTHESIS:** the taller rows mean each swipe binds fewer new rows. So this shows no regression, not a faster font.
 
+- **With B2, B4 and B5.** After merging them, both products build again. In Cuttlefish that image shows Google Sans together with the circular icons and the taskbar without the search bar, with the same health results (`merged/`).
+
 **Not checked yet:** the G14 (the check is on ANAL-192's stick checklist), and non-Latin text.
 
 ## 4. Beautification backlog (alpha → beta)
