@@ -1,0 +1,43 @@
+138:    <alias name="tahoma" to="sans-serif" />
+139:    <alias name="verdana" to="sans-serif" />
+289:         /product/fonts; paths here are relative to /system/fonts. The framework reads the same families
+293:        <font weight="400" style="normal">../../product/fonts/Arimo-VF.ttf
+296:        <font weight="500" style="normal">../../product/fonts/Arimo-VF.ttf
+299:        <font weight="600" style="normal">../../product/fonts/Arimo-VF.ttf
+302:        <font weight="700" style="normal">../../product/fonts/Arimo-VF.ttf
+305:        <font weight="400" style="italic">../../product/fonts/Arimo-Italic-VF.ttf
+308:        <font weight="500" style="italic">../../product/fonts/Arimo-Italic-VF.ttf
+311:        <font weight="600" style="italic">../../product/fonts/Arimo-Italic-VF.ttf
+314:        <font weight="700" style="italic">../../product/fonts/Arimo-Italic-VF.ttf
+318:    <alias name="arial" to="arimo" />
+320:        <font weight="400" style="normal">../../product/fonts/Tinos-Regular.ttf</font>
+321:        <font weight="700" style="normal">../../product/fonts/Tinos-Bold.ttf</font>
+322:        <font weight="400" style="italic">../../product/fonts/Tinos-Italic.ttf</font>
+323:        <font weight="700" style="italic">../../product/fonts/Tinos-BoldItalic.ttf</font>
+325:    <alias name="times new roman" to="tinos" />
+327:        <font weight="400" style="normal">../../product/fonts/Cousine-Regular.ttf</font>
+328:        <font weight="700" style="normal">../../product/fonts/Cousine-Bold.ttf</font>
+329:        <font weight="400" style="italic">../../product/fonts/Cousine-Italic.ttf</font>
+330:        <font weight="700" style="italic">../../product/fonts/Cousine-BoldItalic.ttf</font>
+332:    <alias name="courier new" to="cousine" />
+334:        <font weight="400" style="normal">../../product/fonts/Gelasio-VF.ttf
+337:        <font weight="500" style="normal">../../product/fonts/Gelasio-VF.ttf
+340:        <font weight="600" style="normal">../../product/fonts/Gelasio-VF.ttf
+343:        <font weight="700" style="normal">../../product/fonts/Gelasio-VF.ttf
+346:        <font weight="400" style="italic">../../product/fonts/Gelasio-Italic-VF.ttf
+349:        <font weight="500" style="italic">../../product/fonts/Gelasio-Italic-VF.ttf
+352:        <font weight="600" style="italic">../../product/fonts/Gelasio-Italic-VF.ttf
+355:        <font weight="700" style="italic">../../product/fonts/Gelasio-Italic-VF.ttf
+359:    <alias name="georgia" to="gelasio" />
+361:        <font weight="400" style="normal">../../product/fonts/ComicRelief-Regular.ttf</font>
+362:        <font weight="700" style="normal">../../product/fonts/ComicRelief-Bold.ttf</font>
+364:    <alias name="comic sans ms" to="comic-relief" />
+367:        <font weight="400" style="normal">../../product/fonts/ArchivoBlack-Regular.ttf</font>
+371:        <font weight="400" style="normal">../../product/fonts/ArchivoNarrow-VF.ttf
+374:        <font weight="500" style="normal">../../product/fonts/ArchivoNarrow-VF.ttf
+377:        <font weight="600" style="normal">../../product/fonts/ArchivoNarrow-VF.ttf
+380:        <font weight="700" style="normal">../../product/fonts/ArchivoNarrow-VF.ttf
+383:        <font weight="400" style="italic">../../product/fonts/ArchivoNarrow-Italic-VF.ttf
+386:        <font weight="500" style="italic">../../product/fonts/ArchivoNarrow-Italic-VF.ttf
+389:        <font weight="600" style="italic">../../product/fonts/ArchivoNarrow-Italic-VF.ttf
+392:        <font weight="700" style="italic">../../product/fonts/ArchivoNarrow-Italic-VF.ttf
