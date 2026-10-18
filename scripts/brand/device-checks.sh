@@ -17,6 +17,15 @@ JAR=${BRAND_PROBE_JAR:-$HOME/anybook/b6/brand-probe.jar}
 [ -s "$JAR" ] || "$R/scripts/brand/probe/build.sh" "$JAR" >/dev/null
 a push "$JAR" /data/local/tmp/brand-probe.jar >/dev/null
 probe(){ a shell CLASSPATH=/data/local/tmp/brand-probe.jar app_process /system/bin BrandProbe "$@" | tr -d '\r'; }
+# WallpaperManagerService checks that the caller's package belongs to its uid: root has no package, system has "android"
+setwp(){ a shell "su 1000 sh -c 'CLASSPATH=/data/local/tmp/brand-probe.jar app_process /system/bin BrandProbe set-wallpaper $1'" |
+         tr -d '\r'; }
+# The dynamic colours as apps see them now: SystemUI's fabricated overlays, which only system_server's lookup includes
+# (app_process, BrandProbe's palette, loads only the static overlays).
+COLORS="system_accent1_600 system_primary_light system_secondary_light system_tertiary_light \
+  system_primary_container_light system_surface_container_light system_on_surface_light system_primary_dark \
+  system_secondary_dark system_tertiary_dark system_primary_container_dark system_surface_container_dark"
+live(){ for c in $COLORS; do printf '%s\t%s\n' "$c" "$(sh_ cmd overlay lookup android android:color/$c | grep -o '#ff[0-9a-f]*' | sed 's/#ff/#/')"; done; }
 seed(){ a shell dumpsys activity service com.android.systemui/.SystemUIService 2>/dev/null | tr -d '\r' |
         sed -n 's/.*mMainWallpaperColor=\([0-9a-f]*\).*/\1/p' | tail -1; }
 
@@ -34,42 +43,45 @@ check "default_wallpaper resolves to the overlay" \
 
 # --- the default wallpaper, light and dark, and the dynamic colour each gives
 sh_ cmd uimode night no >/dev/null; sleep 5
-shot desktop-light; probe palette > "$OUT/palette-default-light.tsv"
+shot desktop-light; live > "$OUT/palette-default.tsv"
 echo "default seed (SystemUI mMainWallpaperColor): $(seed)" >> "$LOG"
 sh_ cmd uimode night yes >/dev/null; sleep 5
-shot desktop-dark; probe palette > "$OUT/palette-default-dark.tsv"
+shot desktop-dark
 sh_ cmd uimode night no >/dev/null; sleep 3
 a shell dumpsys activity service com.android.systemui/.SystemUIService 2>/dev/null | tr -d '\r' |
   grep -E "mSystemColors=|mMainWallpaperColor=|mColorScheme=|mThemeStyle=" > "$OUT/theme-default.txt"
 
 # --- each wallpaper of the set: set it as the picker would (the 2880x1800 image), record the seed and the
 # palette SystemUI derives, take the desktop
-printf 'wallpaper\tseed_device\tsystem_accent1_600\tsystem_primary_light\tsystem_primary_dark\tsystem_surface_light\tsystem_surface_dark\n' \
-  > "$OUT/monet-device.tsv"
+printf 'wallpaper\tseed_device\t%s\n' "$(echo $COLORS | tr ' ' '\t')" > "$OUT/monet-device.tsv"
 for f in "$R"/assets/wallpapers/2880x1800/*.jpg; do
   n=$(basename "$f" .jpg)
   a push "$f" /data/local/tmp/wp.jpg >/dev/null
-  probe set-wallpaper /data/local/tmp/wp.jpg >> "$LOG"
+  setwp /data/local/tmp/wp.jpg >> "$LOG"
   sleep 6
   shot "wallpaper-$n"
-  p=$(probe palette); sd=$(seed)
-  col(){ echo "$p" | awk -v k="$1" '$1 == k { print $2 }'; }
-  printf '%s\t#%s\t%s\t%s\t%s\t%s\t%s\n' "$n" "${sd: -6}" "$(col system_accent1_600)" "$(col system_primary_light)" \
-    "$(col system_primary_dark)" "$(col system_surface_light)" "$(col system_surface_dark)" >> "$OUT/monet-device.tsv"
+  sd=$(seed)
+  printf '%s\t#%s\t%s\n' "$n" "${sd: -6}" "$(live | cut -f2 | tr '\n' '\t' | sed 's/\t$//')" >> "$OUT/monet-device.tsv"
 done
 a push "$R/assets/wallpapers/2880x1800/openbook-folio-light.jpg" /data/local/tmp/wp.jpg >/dev/null
-probe set-wallpaper /data/local/tmp/wp.jpg >> "$LOG"; sleep 4
+setwp /data/local/tmp/wp.jpg >> "$LOG"; sleep 4
 
-# --- the wallpaper picker lists the OpenBook category
+# --- the wallpaper picker lists the OpenBook category: Wallpaper & style -> Wallpapers -> Collections -> OpenBook
+ui(){ a shell uiautomator dump /data/local/tmp/ui.xml >/dev/null 2>&1; a pull /data/local/tmp/ui.xml "$OUT/$1.xml" >/dev/null 2>&1; }
+tap_text(){ # file text: tap the centre of the first node with that text
+  local b; b=$(grep -o "text=\"$2\"[^>]*bounds=\"[^\"]*\"" "$OUT/$1.xml" 2>/dev/null | grep -o 'bounds="[^"]*"' | head -1)
+  [ -n "$b" ] || return 1
+  set -- $(echo "$b" | tr -dc '0-9,[]' | tr '[],' '   ')
+  sh_ input tap $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 ))
+}
 sh_ am start -W -a android.intent.action.SET_WALLPAPER -p com.android.wallpaper >> "$LOG" 2>&1; sleep 6
-shot picker-home
-a shell uiautomator dump /data/local/tmp/ui.xml >/dev/null 2>&1; a pull /data/local/tmp/ui.xml "$OUT/picker-home.xml" >/dev/null 2>&1
-log "picker shows 'OpenBook': $(grep -o 'text="OpenBook"' "$OUT/picker-home.xml" 2>/dev/null | head -1)"
-xy=$(grep -o 'text="OpenBook"[^>]*bounds="\[[0-9]*,[0-9]*\]\[[0-9]*,[0-9]*\]"' "$OUT/picker-home.xml" 2>/dev/null |
-     sed 's/.*bounds="\[\([0-9]*\),\([0-9]*\)\]\[\([0-9]*\),\([0-9]*\)\]"/\1 \2 \3 \4/' | head -1)
-if [ -n "$xy" ]; then
-  set -- $xy; sh_ input tap $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 )); sleep 4; shot picker-openbook
-  a shell uiautomator dump /data/local/tmp/ui.xml >/dev/null 2>&1; a pull /data/local/tmp/ui.xml "$OUT/picker-openbook.xml" >/dev/null 2>&1
+shot picker-home; ui picker-home
+tap_text picker-home Wallpapers && sleep 5
+shot picker-collections; ui picker-collections
+check "picker lists the OpenBook collection" "$(grep -c 'text="OpenBook"' "$OUT/picker-collections.xml")" 1
+if tap_text picker-collections OpenBook; then
+  sleep 5; shot picker-openbook; ui picker-openbook
+  log "OpenBook collection shows: $(grep -o 'content-desc="[^"]*"' "$OUT/picker-openbook.xml" | sort -u | tr '\n' ' ')"
 fi
 sh_ input keyevent KEYCODE_HOME; sleep 2
 
