@@ -72,6 +72,7 @@ struct sha256 {
 };
 void sha256_init(struct sha256 *c);
 void sha256_update(struct sha256 *c, const void *data, size_t n);
+void sha256_final(struct sha256 *c, uint8_t out[32]);
 void sha256_final_hex(struct sha256 *c, char out[65]);
 void sha256_hex(const void *data, size_t n, char out[65]);
 uint32_t crc32_buf(uint32_t crc, const void *data, size_t n);  // crc starts at 0
@@ -255,6 +256,111 @@ int addon_on_stick(struct source *s, const struct jv *cat, char *why, size_t wl)
 uint64_t addon_bytes(const struct jv *cat);
 void addons_json(struct jw *w, const char *key, struct source *s);  // every catalogued add-on, and if the stick has it
 
+// ------------------------------------------------------------------ bring your own Google apps (ANAL-211)
+#define GAPPS_SDK 37  // the SDK of the images this engine ships in; ro.build.version.sdk wins when it is set
+// gapps.c: check a package the user supplied (LiteGapps layout) and stage what it may install below
+// /data/misc/openbook_install/gapps/<manifest sha256>/ with its install manifest gapps.json. Fills w (an open
+// object) with the result; 0 if accepted (manifest_sha set).
+int gapps_check(const char *path, const char *display_name, struct jw *w, char manifest_sha[65]);
+// The staged package by its manifest's sha256 (checked): the parsed manifest, its directory, and its exact text.
+struct jv *gapps_load(const char *sha, char *dir, size_t dl, char **text, size_t *tlen, char *why, size_t wl);
+
+// avb.c: vbmeta images, dm-verity hashtrees (avbtool's layout) and AVB footers.
+struct avb_ht {
+    uint32_t dm_verity_version, data_block_size, hash_block_size, fec_num_roots, flags;
+    uint64_t image_size, tree_offset, tree_size, fec_offset, fec_size;
+    char hash_alg[33];
+    char partition[64];
+    uint8_t salt[256], root[64];
+    uint32_t salt_len, root_len;
+    size_t desc_off, desc_len;  // where the descriptor is in the vbmeta image
+};
+size_t avb_vbmeta_size(const uint8_t *vb, size_t n);  // header + authentication + auxiliary blocks; 0 if invalid
+int avb_find_hashtree(const uint8_t *vb, size_t n, const char *partition, struct avb_ht *ht);
+// A copy of the vbmeta image with partition nht->partition's hashtree descriptor replaced by nht, unsigned.
+int avb_rebuild_unsigned(const uint8_t *vb, size_t n, const struct avb_ht *nht, uint8_t **out, size_t *olen);
+int avb_patch_footer_vbmeta(uint8_t *vb, size_t n, const struct avb_ht *nht);  // a partition's own (unsigned) vbmeta
+int avb_read_footer(const uint8_t f[64], uint64_t *orig, uint64_t *vbmeta_off, uint64_t *vbmeta_size);
+void avb_footer(uint8_t f[64], uint64_t orig, uint64_t vbmeta_off, uint64_t vbmeta_size);
+uint64_t avb_tree_size(uint64_t image_size, uint32_t block_size);
+struct ht_builder {
+    uint32_t bs;
+    uint8_t salt[256];
+    size_t salt_len;
+    uint64_t blocks, done, tree_size;
+    int nlevels;
+    uint64_t level_size[16], level_off[16];
+    uint8_t *tree;
+};
+int ht_init(struct ht_builder *h, uint64_t image_size, uint32_t bs, const uint8_t *salt, size_t salt_len);
+int ht_add_block(struct ht_builder *h, const uint8_t *block);  // every data block, in order
+int ht_finish(struct ht_builder *h, uint8_t root[32]);
+void ht_free(struct ht_builder *h);
+
+// lp.c: super's metadata with one partition moved to a single new extent of new_bytes after all the others.
+int lp_relocate(const uint8_t *meta, size_t len, const char *part, uint64_t new_bytes, uint8_t **out,
+                uint64_t *old_off, uint64_t *new_off, char *why, size_t wl);
+
+// erofs.c: add files to an existing EROFS image, keeping its blocks.
+struct emfile {
+    const char *rel;  // below the image's root
+    uint64_t bytes;
+};
+struct erofs_merge;
+int erofs_merge_plan(int fd, uint64_t off, uint64_t image_bytes, const struct emfile *files, int nfiles,
+                     struct erofs_merge **out, char *why, size_t wl);
+uint64_t erofs_merge_bytes(const struct erofs_merge *m);
+uint64_t erofs_merge_orig_bytes(const struct erofs_merge *m);
+int erofs_merge_new_inodes(const struct erofs_merge *m);
+int erofs_merge_rewritten_dirs(const struct erofs_merge *m);
+// Streams the new image in order through emit (whole blocks); data supplies file f's bytes at pos.
+int erofs_merge_write(struct erofs_merge *m, int fd, uint64_t off, struct sha256 *src_hash,
+                      int (*data)(void *arg, int file, uint64_t pos, uint8_t *buf, size_t n),
+                      int (*emit)(void *arg, const uint8_t *buf, size_t n), void *arg);
+void erofs_merge_free(struct erofs_merge *m);
+
+// product.c: the new product partition, vbmeta and super metadata for a plan with a package.
+struct gp_stage {
+    char path[800];
+    char sha256[65];
+};
+struct gapps_product {
+    char sha[65], dir[700];
+    struct jv *manifest;
+    char *mtext;
+    size_t mlen;
+    char part[40];                      // product_a
+    uint64_t src_off, src_bytes;        // the extent on the stick (absolute offset on the stick)
+    char src_sha[65];
+    uint64_t old_dst, old_dst_meta, new_dst, dst_abs;  // in the installed super; dst_abs on the target
+    uint8_t *vbmeta_src;
+    size_t vbmeta_src_len;
+    uint8_t *footer_vb;
+    size_t footer_vb_len;
+    struct avb_ht ht_old, ht_new;
+    int nfiles;  // the package's files + gapps-manifest.json
+    struct emfile *files;
+    struct gp_stage *stage;
+    uint64_t gapps_bytes;
+    struct erofs_merge *em;
+    uint64_t image_bytes, tree_bytes, vbmeta_off, part_bytes;
+    uint8_t *lp;
+    uint32_t lp_len;
+    char lp_sha[65];
+    // after gp_build
+    char part_sha[65], root_hex[65], vbmeta_digest[65];
+    uint8_t *vbmeta_new;
+    size_t vbmeta_new_len;
+};
+int gp_plan(struct gapps_product *g, const char *sha, struct source *src, const struct jv *inst, const uint8_t *meta,
+            uint32_t meta_len, const char **code, char *why, size_t wl);
+int gp_verify_staged(struct gapps_product *g, void (*progress)(uint64_t), char *err, size_t el);
+int gp_build(struct gapps_product *g, int src_fd, int dst_fd, uint64_t super_start, void (*progress)(uint64_t),
+             char *err, size_t el);
+uint8_t *gp_vbmeta_partition(const struct gapps_product *g, size_t *len);
+void gp_json(struct jw *w, const struct gapps_product *g);
+void gp_free(struct gapps_product *g);
+
 // ------------------------------------------------------------------ hardware check
 void hwinfo_json(struct jw *w, struct disk *d, int n);
 
@@ -267,6 +373,8 @@ struct plan_req {
     int set_default;
     char addons[ADDON_MAX][32];  // add-ons the user ticked (ANAL-210); none: the plan is as before add-ons existed
     int naddons;
+    char gapps[65];  // a checked Google apps package (ANAL-211), by its manifest's sha256; "": as before
+    int gapps_confirmed;  // the user confirmed the uncertified-device warning (the app; the CLI's --gapps implies it)
     // seeds: random per plan, kept by apply so the plan can be re-computed exactly
     char disk_guid[37];
     char serialno[17];

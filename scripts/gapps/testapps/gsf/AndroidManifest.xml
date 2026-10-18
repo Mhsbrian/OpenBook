@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2026 The OpenBook Authors. SPDX-License-Identifier: Apache-2.0
+     ANAL-211 synthetic test package, not Google software: a stand-in for Google Services Framework that answers the
+     one query OpenBook setup makes (content://com.google.android.gsf.gservices, key android_id) with a fixed fake ID,
+     so the GSF Android ID screen can be tested without any Google package. Never shipped. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.google.android.gsf">
+    <permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES"
+        android:protectionLevel="normal" />
+    <application android:label="OpenBook synthetic GSF (test)" android:hasCode="true">
+        <provider android:name="org.openbook.test.gsf.Gservices"
+            android:authorities="com.google.android.gsf.gservices"
+            android:exported="true"
+            android:readPermission="com.google.android.providers.gsf.permission.READ_GSERVICES" />
+    </application>
+</manifest>
