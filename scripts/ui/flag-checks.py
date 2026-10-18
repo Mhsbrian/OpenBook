@@ -33,6 +33,7 @@ class Dev:
         self.s, self.o, self.n = serial, Path(out), 0
         self.o.mkdir(parents=True, exist_ok=True)
         self.results = []
+        self.skip = set()
 
     def run(self, *args, timeout=120, text=True):
         return subprocess.run([self.adb, "-s", self.s, *args], capture_output=True, text=text, timeout=timeout)
@@ -372,6 +373,8 @@ def check_windows(d, m):
         time.sleep(1.5)
     t8 = task_for(d, pkg, tid=tid, until=lambda t: 0 < width(t) < 1900)
     d.result("restore (caption double click)", None, f"bounds -> {t8 and t8['bounds']}")
+    if "minimize" in d.skip:
+        return
     # Minimize with the caption button; the taskbar icon brings it back.
     l, top, r, b = t8["bounds"]
     m.click(r - BTN_MIN, top + CAPTION_Y)
@@ -452,12 +455,11 @@ def check_shade(d, m):
 def check_notifications(d, m):
     """Hover and right-click a notification in the shade (inline_notification_settings_access opens its
     settings on a context click; notification_add_x_on_hover_to_dismiss, on since ANAL-169, shows an X)."""
-    d.sh("cmd notification post -t 'B3 hover test' b3hover 'A notification to hover and right-click' >/dev/null")
+    # As the shell user: with adbd running as root the post comes from uid 0 and NotificationService drops it.
+    d.sh("su shell cmd notification post -t 'B3 hover test' b3hover 'A notification to hover and right-click' >/dev/null")
     d.sh("cmd statusbar expand-notifications")
     time.sleep(2)
-    # `cmd notification post` notifications don't show on this image; Cuttlefish always has Settings'
-    # "Issue with Virtual SD card" notification, which serves as well.
-    row = find(ui_nodes(d, "ui-shade.xml"), **{"package": "systemui", "text": "B3 hover test|Issue with|Tap to fix"})
+    row = find(ui_nodes(d, "ui-shade.xml"), **{"package": "systemui", "text": "B3 hover test"})
     if not row:
         d.result("notification hover", None, "no notification row in the shade dump")
         d.shot("shade-notification")
@@ -474,27 +476,36 @@ def check_notifications(d, m):
                 if re.search(r"Turn off notifications|Settings|Default|Silent|Done", n.get("text", "")) and "systemui" in n.get("package", "")]
         d.result("notification right click (inline settings)", None, f"settings-like nodes after right click: {len(guts)}")
         d.key("KEYCODE_ESCAPE")
-    d.sh("cmd notification cancel b3hover 2020 >/dev/null 2>&1; service call notification 1 >/dev/null 2>&1")
     d.sh("cmd statusbar collapse")
     time.sleep(1)
 
 
-def check_blur(d):
-    d.sh("input keyevent --longpress KEYCODE_POWER")
-    time.sleep(2)
-    d.shot("power-menu")
+def sf_blur_layers(d, name):
     sf = d.sh("dumpsys SurfaceFlinger")
-    (d.o / "sf-power-menu.txt").write_text(sf)
-    blur = len(re.findall(r"(?:backgroundBlurRadius|blurRadius)=([1-9]\d*)", sf))
-    d.result("power menu blur", None, f"layers with a blur radius: {blur}")
-    d.key("KEYCODE_BACK")
+    (d.o / name).write_text(sf)
+    return len(re.findall(r"backgroundBlurRadius=([1-9]\d*)", sf))
+
+
+def check_blur(d, m):
+    """Power menu (from the Quick Settings power button) and volume dialog: blur_on_more_surfaces."""
+    d.sh("cmd statusbar expand-settings")
+    time.sleep(2)
+    power = find(ui_nodes(d, "ui-qs-power.xml"), **{"package": "systemui", "content-desc": "^Power"})
+    if power:
+        m.click(*center(power["rect"]))
+        time.sleep(2)
+        d.shot("power-menu")
+        d.result("power menu blur", None, f"layers with backgroundBlurRadius>0: {sf_blur_layers(d, 'sf-power-menu.txt')}")
+        d.key("KEYCODE_ESCAPE")
+        time.sleep(1)
+    else:
+        d.result("power menu blur", None, "no power button in the Quick Settings dump")
+    d.sh("cmd statusbar collapse")
     time.sleep(1)
     d.key("KEYCODE_VOLUME_UP")
     time.sleep(1)
     d.shot("volume-dialog")
-    sf = d.sh("dumpsys SurfaceFlinger")
-    blur = len(re.findall(r"(?:backgroundBlurRadius|blurRadius)=([1-9]\d*)", sf))
-    d.result("volume dialog blur", None, f"layers with a blur radius: {blur}")
+    d.result("volume dialog blur", None, f"layers with backgroundBlurRadius>0: {sf_blur_layers(d, 'sf-volume.txt')}")
     d.key("KEYCODE_VOLUME_DOWN")
     time.sleep(3)
 
@@ -515,7 +526,7 @@ def check_health(d):
     anr = d.sh("ls -l /data/anr 2>&1")
     tomb = d.sh("ls -l /data/tombstones 2>&1")
     (d.o / "anr-tombstones.txt").write_text(f"/data/anr:\n{anr}\n/data/tombstones:\n{tomb}\n")
-    denials = d.sh("logcat -d -b all | grep 'avc:  denied' | sed -E 's/.*avc:  denied/avc: denied/; s/ pid=[0-9]+//; s/ ino=[0-9]+//' | sort | uniq -c | sort -rn")
+    denials = d.sh("logcat -d -b all | grep 'avc:  denied' | grep -v 'service requested' | sed -E 's/.*avc:  denied/avc: denied/; s/ pid=[0-9]+//; s/ ino=[0-9]+//' | sort | uniq -c | sort -rn")
     (d.o / "selinux-denials.txt").write_text(denials)
     fatal = re.findall(r"FATAL EXCEPTION|Process: [\w.:]+|signal \d+ \(SIG\w+\)", crash)
     n_anr = len(re.findall(r"am_anr", events))
@@ -546,14 +557,14 @@ def main():
     ap.add_argument("--reset", action="store_true")
     ap.add_argument("--triage", default=str(Path(__file__).resolve().parents[2] /
                                            "device/anybook/common/desktop/release/googlebook-triage.tsv"))
-    ap.add_argument("--skip", default="", help="comma-separated: windows,cascade,shade,notifications,blur")
+    ap.add_argument("--skip", default="", help="comma-separated: windows,minimize,cascade,shade,notifications,blur")
     a = ap.parse_args()
     if a.reset:
         ok = reset(Dev(a.serial, Path.home() / ".cache/flag-checks"))
         print("reset: boot completed" if ok else "reset: no boot", flush=True)
         raise SystemExit(0 if ok else 1)
     d = Dev(a.serial, a.out)
-    skip = set(a.skip.split(","))
+    skip = d.skip = set(a.skip.split(","))
     d.log(d.sh("getprop ro.build.fingerprint").strip())
     d.sh("settings put system pointer_location 0; input keyevent KEYCODE_WAKEUP; wm dismiss-keyguard")
     check_flags(d, a.triage)
@@ -569,7 +580,7 @@ def main():
         if "notifications" not in skip:
             check_notifications(d, m)
         if "blur" not in skip:
-            check_blur(d)
+            check_blur(d, m)
     finally:
         m.close()
     d.save("wmshell.txt", "dumpsys activity service SystemUIService WMShell")
