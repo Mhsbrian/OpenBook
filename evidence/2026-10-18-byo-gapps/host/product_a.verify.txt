@@ -1,0 +1,3 @@
+Verifying image /home/hive/anybook/installer/work/anal211-host-3/gapps/out/product.img using embedded public key
+vbmeta: Successfully verified footer and NONE vbmeta struct in /home/hive/anybook/installer/work/anal211-host-3/gapps/out/product.img
+product: Successfully verified sha256 hashtree of /home/hive/anybook/installer/work/anal211-host-3/gapps/out/product.img for image of 286564352 bytes
