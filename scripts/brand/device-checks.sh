@@ -66,7 +66,7 @@ done
 a push "$R/assets/wallpapers/2880x1800/openbook-folio-light.jpg" /data/local/tmp/wp.jpg >/dev/null
 setwp /data/local/tmp/wp.jpg >> "$LOG"; sleep 4
 
-# --- the wallpaper picker lists the OpenBook category: Wallpaper & style -> Wallpapers -> Collections -> OpenBook
+# --- the wallpaper picker lists the OpenBook category: Wallpaper & style -> (More) wallpapers -> Collections -> OpenBook
 ui(){ a shell uiautomator dump /data/local/tmp/ui.xml >/dev/null 2>&1; a pull /data/local/tmp/ui.xml "$OUT/$1.xml" >/dev/null 2>&1; }
 tap_text(){ # file text: tap the centre of the first node with that text
   local b; b=$(grep -o "text=\"$2\"[^>]*bounds=\"[^\"]*\"" "$OUT/$1.xml" 2>/dev/null | grep -o 'bounds="[^"]*"' | head -1)
@@ -76,7 +76,8 @@ tap_text(){ # file text: tap the centre of the first node with that text
 }
 sh_ am start -W -a android.intent.action.SET_WALLPAPER -p com.android.wallpaper >> "$LOG" 2>&1; sleep 6
 shot picker-home; ui picker-home
-tap_text picker-home Wallpapers && sleep 5
+# the button is "More wallpapers" when the home page shows a wallpaper carousel, "Wallpapers" otherwise
+{ tap_text picker-home "More wallpapers" || tap_text picker-home Wallpapers; } && sleep 5
 shot picker-collections; ui picker-collections
 check "picker lists the OpenBook collection" "$(grep -c 'text="OpenBook"' "$OUT/picker-collections.xml")" 1
 if tap_text picker-collections OpenBook; then
@@ -98,8 +99,8 @@ a shell dumpsys input > "$OUT/input.txt" 2>&1
            wireless_charging_started_sound; do echo "global $k = $(sh_ settings get global $k)"; done
   for k in sound_effects_enabled; do echo "system $k = $(sh_ settings get system $k)"; done
   for k in ro.config.ringtone ro.config.notification_sound ro.config.alarm_alert; do echo "$k = $(sh_ getprop $k)"; done
-  sh_ content query --uri content://media/internal/audio/media \
-    --projection _id:_display_name:title:duration:is_ringtone:is_notification:is_alarm --where "_display_name LIKE 'OpenBook%'"
+  sh_ "content query --uri content://media/internal/audio/media \
+    --projection _id:_display_name:title:duration:is_ringtone:is_notification:is_alarm --where \"_display_name LIKE 'OpenBook%'\""
 } > "$OUT/sounds.txt" 2>&1
 check "ringtone default" "$(sh_ getprop ro.config.ringtone)" OpenBook_Pages.ogg
 check "lock sound" "$(sh_ settings get global lock_sound)" /product/media/audio/ui/OpenBook_Lock.ogg

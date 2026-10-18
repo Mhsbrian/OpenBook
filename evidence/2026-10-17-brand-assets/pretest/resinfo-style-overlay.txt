@@ -1,0 +1,6 @@
+drawable/pointer_arrow_vector id 0x0108079d
+first pathData M4.33 4.07 Q4.33 3.07 5.02 3.79 L14.27 13.47 Q15.03 14.27 13...
+drawable/pointer_hand_vector id 0x010807c7
+first pathData M10 10.3 L14.2 10.3 C16.19 10.3 17.8 11.91 17.8 13.9 L17.8 1...
+bool/config_canInternalDisplayHostDesktops id 0x0111006e
+value true
