@@ -24,3 +24,12 @@ error: device/anybook/common/desktop/fonts/Android.bp:61:1: module "openbook_fon
 # a Soong label clash (the genrule's output was named like its src), fixed in c91ca38.
 # AOSP build logs on the host: ~/anybook/logs/aosp/build-20261017T230800Z.log (cf base), build-20261018T012755Z.log (g14 base),
 # build-20261018T031505Z.log (cf fonts), build-20261018T033936Z.log (g14 fonts).
+
+# Merged tree: this branch after merging main (#71-#76: B2, B4, B5), d5b12fa, clean.
+=== 2026-10-18T05:45:42Z build anybook_cf_x86_64_pc-cp2a-userdebug from OpenBook (d5b12fa)
+=== 2026-10-18T06:07:36Z m exit 0
+=== 2026-10-18T06:07:57Z snapshot cf-merged -> /home/hive/anybook/aosp/cf/b1-snap/cf-merged
+=== 2026-10-18T06:07:57Z build anybook_g14_x86_64-cp2a-userdebug from OpenBook (d5b12fa)
+=== 2026-10-18T06:36:54Z m exit 0
+=== 2026-10-18T06:37:16Z snapshot g14-merged -> /home/hive/anybook/aosp/cf/b1-snap/g14-merged
+# Logs: ~/anybook/logs/aosp/build-20261018T054542Z.log (cf), build-20261018T060757Z.log (g14).
