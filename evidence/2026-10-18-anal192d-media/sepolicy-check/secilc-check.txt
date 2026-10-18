@@ -1,0 +1,10 @@
+secilc (AOSP host build) without -N, i.e. with the 5,647 neverallow rules of plat_sepolicy.cil checked
+args: system/selinux/plat_sepolicy.cil -m -M true -G -c 30 system/selinux/mapping/202604.cil -f /dev/null system_ext/selinux/system_ext_sepolicy.cil system_ext/selinux/mapping/202604.cil product/selinux/product_sepolicy.cil product/selinux/mapping/202604.cil vendor/selinux/plat_pub_versioned.cil vendor/selinux/vendor_sepolicy.cil system/selinux/plat_sepolicy_genfs_202604.cil
+== baseline: the G14 product's installed CILs
+rc=0 45 s 859607 bytes
+== with fix.cil: (allow mediaserver audioserver_tmpfs (file (getattr map read write)))
+rc=0 44 s 859619 bytes
+== negative control (must fail): (allow mediaserver system_file (file (execute_no_trans)))
+neverallow check failed at system/selinux/plat_sepolicy.cil:51083 from system/sepolicy/private/mediaserver.te:195
+  (neverallow mediaserver file_type (file (execute_no_trans)))
+rc=255
