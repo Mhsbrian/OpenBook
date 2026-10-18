@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 # Smoke test of background blur on the G14 product's disk image in QEMU (ANAL-203): scripts/g14-qemu.sh boots a copy of
 # the image (virtio-gpu, so SwiftShader Vulkan under ANGLE: a CPU renderer, whose timings say nothing about the G14).
-# From the serial console it records what decides blur (the property, SystemUI's BlurUtils, SurfaceFlinger's
+# It first finishes OpenBook setup (a fresh image starts in it, with the shade disabled). From the serial console it
+# records what decides blur (the property, SystemUI's BlurUtils, SurfaceFlinger's
 # renderer), takes QEMU screenshots of Quick Settings with blur on and off, types scripts/ui/blur-check.sh into the
 # guest (gzip + base64) and runs one short round per state, then brings its output back over the serial port.
 #
@@ -31,6 +32,13 @@ steps = [
              "echo BOOTDONE=$(getprop sys.boot_completed) uptime=$(cut -d' ' -f1 /proc/uptime)\n"},
     {"wait": "BOOTDONE=\\S* uptime=[0-9.]+", "timeout": 960}, {"wait": P, "timeout": 30},
     *cmd("sleep 30", 90),
+    # A fresh image boots into OpenBook setup, where the shade and Quick Settings are disabled. Finish it the way
+    # SetupActivity does (the provisioned bits, then the activity leaves the home list), and go home.
+    *cmd("su 0 settings put global device_provisioned 1; su 0 settings put secure user_setup_complete 1; "
+         "su 0 pm disable org.openbook.installer/.SetupActivity; "
+         "su 0 am start -a android.intent.action.MAIN -c android.intent.category.HOME; sleep 10; "
+         "su 0 am start -a android.intent.action.MAIN -c android.intent.category.HOME; sleep 10; "
+         "su 0 dumpsys activity activities | grep -m2 -E 'ResumedActivity|topResumedActivity'", 120),
     *cmd("echo ===BLURFACTS-BEGIN===; for p in ro.surface_flinger.supports_background_blur vendor.anybook.gpu.hal "
          "ro.hardware.egl ro.hardware.vulkan ro.hwui.use_vulkan debug.renderengine.backend; do echo $p=$(getprop $p); "
          "done; su 0 dumpsys activity service com.android.systemui/.SystemUIService BlurUtils | grep -E "
@@ -45,6 +53,8 @@ steps = [
     {"shot": "qs-blur-off"},
     *cmd("echo ===QSLAYERS-OFF-BEGIN===; su 0 dumpsys SurfaceFlinger | grep -E 'backgroundBlurRadius=|blurRegions'; "
          "echo ===QSLAYERS-OFF-END===; su 0 cmd statusbar collapse; su 0 settings put global disable_window_blurs 0"),
+    # mksh keeps a here-document in a temp file, in TMPDIR (default /data/local, which the shell user can't write).
+    *cmd("export TMPDIR=/data/local/tmp"),
     {"send": "su 0 sh -c 'base64 -d | gzip -d > /data/local/tmp/blur-check.sh' <<'EOF'\n" + b64 + "EOF\n"},
     {"wait": P, "timeout": 120},
     *cmd("su 0 sha256sum /data/local/tmp/blur-check.sh"),
@@ -64,9 +74,9 @@ set +e
 rc=$?
 set -e
 L=$A/logs/installer/$RUN; O=$(ls -d "$L"/boot* | sort -V | tail -n 1)
-if [ -s "$O/sections/BLUROUT.txt" ]; then
+if [ -s "$O/sections/blurout.txt" ]; then   # serial-extract.py names sections in lower case
   rm -rf "$O/blur"; mkdir -p "$O/blur"
-  tr -d ' \r' < "$O/sections/BLUROUT.txt" | base64 -d | tar -xzf - -C "$O/blur" && echo "blur-check output: $O/blur"
+  tr -d ' \r' < "$O/sections/blurout.txt" | base64 -d | tar -xzf - -C "$O/blur" && echo "blur-check output: $O/blur"
 fi
 echo "run: $O (g14-qemu.sh exit $rc)"
 exit $rc

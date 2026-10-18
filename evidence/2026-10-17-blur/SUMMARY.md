@@ -17,8 +17,9 @@ The write-ups are `docs/googlebook-ui.md` §2.3 (what blur needs, the cost, the 
 | First Cuttlefish run | One off round in which the shade stayed blurred (round 2), plus a Settings scroll with no frames (Settings' first start). Neither was reproduced by hand; the second run checks for both before every round | `cf-first-run/` |
 | The graphics check's new `blur` part, in Cuttlefish | `GFX_PARTS='blur vk' GFX_QUICK=1 run.sh`: the blur part ran in 47 s, wrote `parts.jsonl`, put `disable_window_blurs` back as it found it, and `gfx-report.py` reported it (the `vk` part failed only because no dEQP payload was pushed) | `addon-cf/` |
 | `live-report.py` on the owner's `anal176t` run | Same verdicts as before the change, plus `gfx_blur`: not in this run | (checked on a scratch copy) |
-| G14 product build | PENDING | `build/g14-build-props.txt` |
-| G14 image in QEMU | PENDING | `qemu/` |
+| **G14 product build** | `anybook_g14_x86_64-cp2a-userdebug` from `ddfec87`, exit 0, 5 min 38 s. `vendor/build.prop`: `ro.surface_flinger.supports_background_blur=1`. Disk image `openbook-g14-anal203.img` (sha256 `957046a4…`) made under the same lane lock | `build/g14-build-props.txt`, `build/g14-build.txt`, `build/openbook-g14-anal203.img.*` |
+| **G14 image in QEMU** (SwiftShader) | Boot 36 s. After finishing OpenBook setup (a fresh image starts in it, with the shade disabled), Quick Settings with blur on: `backgroundBlurRadius=34`; with blur off: none. SystemUI `supportsBlursOnWindows: true`. `blur-check.sh` (sha256 matches the repo's) ran both rounds: blur applied, no restart. Cost on a CPU renderer: RenderEngine +7.3–7.8 ms per frame, SurfaceFlinger missed frames 18–22 % vs 1.5–2.4 % without blur. Crash buffer empty. 4 AVC denials, none from SurfaceFlinger or the blur path: keystore→gatekeeper, SystemUI's `bluetooth_lea_prop`, and the test's own shell reading `vendor.anybook.gpu.hal` | `qemu/` |
+| First QEMU run | The image was still in OpenBook setup, so Quick Settings didn't open. Also, mksh couldn't create the heredoc's temp file in `/data/local` as the shell user. `blur-qemu.sh` now finishes setup first and sets `TMPDIR` | (not kept) |
 
 The Cuttlefish verdicts in `cf/summary.md` use the G14 thresholds and fail `frame_cost` under the host's load, as expected for a 2-CU GPU behind gfxstream on a busy host. They pass on the quiet pair.
 
