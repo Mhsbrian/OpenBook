@@ -14,10 +14,12 @@ import (
 	"github.com/Mhsbrian/OpenBook/quire/quired/internal/agents"
 )
 
-// How long an agent gets to start and answer initialize, and to stop after a cancel.
+// How long an agent gets to start and answer initialize, to stop after a cancel, and to exit
+// once told to (stdin closed, then SIGTERM) before it is killed.
 var (
 	initTimeout   = 60 * time.Second
 	cancelTimeout = 15 * time.Second
+	exitGrace     = 3 * time.Second
 )
 
 type acpAgent struct {
@@ -66,6 +68,11 @@ func startACP(ctx context.Context, spec agents.Spec, client Client, opts Options
 		a.Close()
 		return nil, a.wrap("initialize", err)
 	}
+	// ACP: the agent answers with the version it chose; a client that doesn't support it closes.
+	if a.info.ProtocolVersion != acp.ProtocolVersion {
+		a.Close()
+		return nil, fmt.Errorf("initialize: %s chose ACP protocol version %d; quired supports %d", spec.ID, a.info.ProtocolVersion, acp.ProtocolVersion)
+	}
 	return a, nil
 }
 
@@ -108,28 +115,40 @@ func (a *acpAgent) Prompt(ctx context.Context, sessionID string, prompt []acp.Co
 	case <-ctx.Done():
 	}
 	// ACP: the client sends session/cancel and the agent ends the turn with stopReason "cancelled".
-	_ = a.conn.Notify(acp.MethodCancel, acp.CancelNotification{SessionID: sessionID})
+	// One deadline covers both sending the cancel (the agent may have stopped reading) and the
+	// agent stopping; past it the agent is stopped, so nothing it started keeps running unseen.
+	cctx, ccancel := context.WithTimeout(context.Background(), cancelTimeout)
+	defer ccancel()
+	_ = a.conn.Notify(cctx, acp.MethodCancel, acp.CancelNotification{SessionID: sessionID})
 	select {
 	case r := <-done:
 		if r.err != nil {
 			return acp.StopCancelled, a.wrap("session/prompt", r.err)
 		}
 		return acp.StopCancelled, nil
-	case <-time.After(cancelTimeout):
-		return acp.StopCancelled, fmt.Errorf("agent did not stop within %s of session/cancel", cancelTimeout)
+	case <-cctx.Done():
+		a.terminate()
+		return acp.StopCancelled, fmt.Errorf("agent did not stop within %s of session/cancel, so quired stopped it", cancelTimeout)
 	}
 }
 
 // Close ends the agent: ACP agents exit when stdin closes, and the process group is stopped
-// if this one doesn't within a few seconds.
+// if this one doesn't within a few seconds. Closing stdin also frees a write it was refusing to read.
 func (a *acpAgent) Close() error {
 	_ = a.stdin.Close()
 	select {
 	case <-a.waited:
-	case <-time.After(3 * time.Second):
-		stop(a.cmd, a.waited, 5*time.Second)
+	case <-time.After(exitGrace):
+		stop(a.cmd, a.waited, exitGrace)
 	}
 	return nil
+}
+
+// terminate stops an agent that has already had its grace: SIGTERM to its process group at once,
+// SIGKILL if that is ignored, and it returns only once the process has been reaped.
+func (a *acpAgent) terminate() {
+	_ = a.stdin.Close()
+	stop(a.cmd, a.waited, exitGrace)
 }
 
 func (a *acpAgent) notify(method string, params json.RawMessage) {

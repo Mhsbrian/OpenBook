@@ -1,3 +1,3 @@
 module github.com/Mhsbrian/OpenBook/quire/quired
 
-go 1.24
+go 1.25

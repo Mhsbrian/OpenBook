@@ -4,10 +4,10 @@ As of 2026-10-18. Labels: **C** = confirmed (we read it in a primary source or i
 
 ## Summary
 
-- **Quire connects OpenBook to the AI agents a person already has.** That includes Claude Code, Codex, Copilot, Cursor, Gemini CLI, Grok, opencode and Kimi, and any agent that speaks the open Agent Client Protocol. A person calls it from anywhere: shake the pointer, press a key, hold the mic key and talk. A note flies out from the pointer, the agent works in it in plain sight, and the note folds away when the work is done. The agent can drive the system: change a setting, open an app, carry out a task in an app. It does that only with the person's consent, on a separate display they can watch, and they can take control at any moment.
-- **Googlebook does one agent, Gemini, with Google's closed apps** (Magic Pointer, Create your Widget). Quire does any agent, in the open. **AOSP 17 already contains the platform hooks Googlebook uses**, under Apache-2.0: the pointer-shake gesture, contextual search, the assistant role and **computer control**, a framework API that lets an agent operate apps on a virtual display with consent and hand-over (§2). Quire plugs into those hooks rather than hacking around them.
+- **Quire connects OpenBook to the AI agents a person already has.** That includes Claude Code, Codex, Copilot, Cursor, Gemini CLI, Grok, opencode and Kimi, and any agent that speaks the open Agent Client Protocol. A person calls it from anywhere: shake the pointer, press a key, hold the mic key and talk. A note flies out from the pointer, the agent works in it in plain sight, and the note folds away when the work is done. The agent can drive the system: change a setting, open an app, carry out a task in an app. The design requires that it does so only with the person's consent, on a separate display they can watch, and that they can take control at any moment. Q1 does not enforce that yet; §5 says what it does enforce.
+- **Googlebook's announced agent features run on Gemini, with Google's closed apps** (Magic Pointer, Create your Widget). Google's post does not say whether other agents can be used (unverified). Quire does any agent, in the open. **AOSP 17 contains platform hooks that fit those features**, under Apache-2.0: the pointer-shake gesture, contextual search, the assistant role and **computer control**, a framework API that lets an agent operate apps on a virtual display with consent and hand-over (§2). Whether Googlebook's shipping image uses these exact hooks is unverified. Quire plugs into them rather than hacking around them.
 - **Two open protocols, no lock-in.** Agents talk to Quire over **ACP** (Agent Client Protocol, Apache-2.0, v1), the protocol Zed and others use for editors. Quire gives its OS tools to agents over **MCP** (Model Context Protocol). An agent that speaks ACP works with Quire with no Quire-specific code. For agents that don't, `quired` adapts them.
-- **Built today: `quired`, the harness host.** It finds the agent CLIs on a machine, runs them, and gives every one of them the same ACP interface. On this host it opened real ACP sessions with opencode, Copilot and omp. Through its Claude Code adapter it ran real turns in which the person's "allow" or "deny" decided whether a file was written. It has 17 unit tests that pass with the race detector (§6).
+- **Built today: `quired`, the harness host for trusted local agents.** It finds the agent CLIs on a machine, runs them, and gives every one of them the same ACP interface. On this host it opened real ACP sessions with opencode, Copilot and omp. Through its Claude Code adapter it ran real turns in which the person's "allow" or "deny" decided whether a file was written. It has 22 unit tests that pass with the race detector, including regressions for the faults the ANAL-217 review found (§6).
 - **How we learned from Multica (reviewed, not copied).** Multica's daemon detects agent CLIs and drives each through its own output format. Its licence adds conditions on commercial embedding. Quire takes the idea of detecting and running the agents a person has, and builds it on open protocols with its own code. No Multica code is used (§3).
 
 ## 1. The experience
@@ -64,7 +64,7 @@ Motion principles for the brief: the note is anchored to where the person's atte
   - `EXTRA_ENTRYPOINT`;
   - a token.
 
-  The overlay value is empty in AOSP, so **Quire can be the contextual search app** by setting one string.
+  The overlay value is empty in AOSP. Setting it to Quire is necessary but not enough: the package needs an activity that resolves `ACTION_LAUNCH_CONTEXTUAL_SEARCH` (`ContextualSearchManagerService.getResolvedLaunchIntent`), and the extras are conditional. The screenshot comes only when the capture worked and assist data is allowed, and the audio extra only with `Flags.includeAudioPlayingStatus()`.
 - The assistant role (`ROLE_ASSISTANT`, a `VoiceInteractionService`) gives the assist key, long-press gestures and voice. Computer control requires the agent to hold it (`computer_control_role_assistant_requirement`, enabled in cp2a).
 
 ### 2.4 Computer control (C)
@@ -84,11 +84,16 @@ Motion principles for the brief: the note is anchored to where the person's atte
 - `InteractiveMirror` gives the controlling app a surface mirroring the session display, which can be made interactive. That is the live view in §1.4.
 - **Consent:**
   - `RequestComputerControlAccessActivity` in `frameworks/base/packages/VirtualDeviceManager` asks the user;
-  - a per-agent list of automatable apps is kept (`MANAGE_COMPUTER_CONTROL_CONSENT`, signature);
+  - per-app consent, where the person approves each target app for each agent (`MANAGE_COMPUTER_CONTROL_CONSENT`, signature), exists only behind `computer_control_per_app_consent`, which is enabled in `trunk_staging` and **not in cp2a**;
   - a notification shows while automation runs.
-- **Permission:** `ACCESS_COMPUTER_CONTROL` is `internal|privileged`. OpenBook builds its own image, so Quire can be a privileged system app with an allowlist entry.
+- **Who may create a session** (`ComputerControlAllowlistController.isPackageAllowedToCreateSession`, frameworks/base `8f5dedd3edc3`):
+  - `ACCESS_COMPUTER_CONTROL` (`internal|privileged`) and `POST_NOTIFICATIONS`;
+  - the assistant role, while `_role_assistant_requirement` is on;
+  - an entry in the session-owner allowlist that matches the package name **and its signing certificate** (`session_owner_allowlist.txt`, or the `allowed_session_owner_apps` DeviceConfig key).
+
+  OpenBook builds its own image, so Quire can be a privileged system app with that allowlist entry. Debuggable builds also have a "super agent" list that skips all of these checks. A session that works that way is not evidence that the ordinary path is safe.
 - **Flags:**
-  - `computer_control_access` and `computer_control_support_v5` are **not enabled in cp2a**, our release config. They are enabled in `trunk_staging`.
+  - `computer_control_access`, `computer_control_support_v5` and `computer_control_per_app_consent` are **not enabled in cp2a**, our release config. They are enabled in `trunk_staging`.
   - `computer_control_consent`, `_activity_policy_strict`, `_role_assistant_requirement`, `_user_restriction` and `_managed_profiles` are enabled in cp2a.
   - Launcher3's `enable_app_automation_indicator` is enabled.
   - Turning the rest on is part of Q2 (§7).
@@ -104,7 +109,7 @@ Reviewed from Multica's public README, its CLI's help, and its observable behavi
 | How it talks to agents | Each provider's own headless mode and output format | **ACP** wherever the agent has it. Today that is opencode, Copilot, Cursor, Kimi, Hermes and omp, and Gemini CLI by its docs. Adapters exist only for agents without ACP: Claude Code today; Codex, Grok and Antigravity planned |
 | What drives the work | Issues and comments on a server | The person, live: a gesture, a key or their voice, on their own laptop |
 | Tools the agent gets | The `multica` CLI, through a task token | OpenBook's OS tools as an **MCP server** (settings, apps, windows, computer control), passed in ACP `session/new` |
-| Permissions | The agent's own setting; Multica runs agents unattended | Every agent tool call that needs consent becomes an ACP `session/request_permission`, which the note shows inline. For Claude Code, `quired` serves Claude's `--permission-prompt-tool` over MCP and forwards each question (§6) |
+| Permissions | The agent's own setting; Multica runs agents unattended | The agent asks when its own policy says to: ACP makes `session/request_permission` optional, and the note shows each request inline. For Claude Code, `quired` serves Claude's `--permission-prompt-tool` over MCP and forwards each question Claude's settings send it (§6). OS tools will be authorized by Quire core on every call, whatever the agent asks (§5.3) |
 | Licence | Multica License: Apache-2.0 text plus extra conditions on hosted services, commercial embedding and branding | OpenBook's own code. ACP and its SDKs are Apache-2.0. We don't use Multica code, which also keeps the embedding conditions out of the picture |
 
 ## 4. Architecture
@@ -138,11 +143,11 @@ flowchart LR
   - keeps the audit log of every change it made, with undo where possible.
   - It is an ACP **client**, so it can talk to any ACP agent anywhere.
 - **Quire surface:** the note, the mirror and the inline consent, drawn above apps in SystemUI's or Launcher3's layer. Atelier designs it (ANAL-215).
-- **OS tools:** an MCP server the core passes to every agent in `session/new`, in three tiers.
-  - **Observe:** read settings, list apps and windows, read the selection, take a screenshot of non-secure windows.
+- **OS tools** (not built, Q6): an MCP server the core passes to every agent in `session/new`, in three tiers. The tiers are design requirements, enforced by the core on every call whatever the agent asks or claims (§5.3).
+  - **Observe:** read settings, list apps and windows, read the selection, take a screenshot of non-secure windows. Observe is not harmless: these can show messages, names and documents, so each one has a scope and a destination (§5.3).
   - **Act, with consent each time or for the task:** change a setting from an allowlist; open, move or close windows; start a computer-control session for named apps.
-  - **Never:** read secure windows; touch other apps' data; change security settings (lock screen, verified boot, developer options); install apps; send messages or make payments without the person doing it.
-- **`quired`:** finds and runs the agent CLIs, adapts the ones without ACP, and confines file access to the session's folder. It runs where the agents can run. Agent CLIs are Linux (glibc) programs, so on the laptop that means the **Linux environment**: AOSP 17's AVF Terminal, whose Debian guest is built for x86_64 too (`packages/modules/Virtualization/build/debian/`, `TerminalApp` has `assets-x86_64`; C). OpenBook doesn't ship AVF yet, and the G14 kernel needs KVM on AMD for it. HYPOTHESIS until Q4.
+  - **Never:** read secure windows; touch other apps' data; change security settings (lock screen, verified boot, developer options); install apps; send messages or make payments without the person doing it. The core refuses these tools outright. Computer control needs more than that, because a session on an approved app can tap anything in it (§5.3).
+- **`quired`:** finds and runs the agent CLIs, adapts the ones without ACP, and confines the ACP file reads and writes it serves to the session's folder. It is not a sandbox: agents run as the person's user (§5.2). It runs where the agents can run. Agent CLIs are Linux (glibc) programs, so on the laptop that means the **Linux environment**: AOSP 17's AVF Terminal, whose Debian guest is built for x86_64 too (`packages/modules/Virtualization/build/debian/`, `TerminalApp` has `assets-x86_64`; C). OpenBook doesn't ship AVF yet, and the G14 kernel needs KVM on AMD for it. HYPOTHESIS until Q4.
 - **Connectors**, in order:
   1. local ACP agents through `quired`;
   2. a paired computer's `quired`, for people whose agents live on another machine;
@@ -150,18 +155,44 @@ flowchart LR
 
 ## 5. Security and privacy
 
-- **Everything is opt-in:** no agent is connected until the person connects it, and every agent is shown by name in every note.
-- **No secrets pass through Quire.**
-  - Agents keep their own sign-in.
-  - `quired` passes the environment through and never logs it.
-  - Evidence is redacted of home paths.
-  - Cloud keys stay in the core, in Android Keystore.
-- **Consent is enforced by the system, not requested of the agent:**
-  - every tool call that changes something goes through `session/request_permission` (ACP) or Claude's permission tool;
-  - computer control adds the platform's own consent dialog and a running notification.
+Q1 is a harness for **trusted local agents**. This section separates what Q1 enforces from what it does not, and from what later milestones must enforce before they ship.
+
+### 5.1 What Q1 enforces (C, tested, §6)
+
+- **Mediated file access stays in the session's folder.** When `quired` serves ACP `fs/read_text_file` and `fs/write_text_file`, every open and create goes through a handle on that folder (Go's `os.Root`), and so does creating parent folders. `..`, symlinks (dangling ones included) and a component swapped after the check cannot lead outside it. Only regular files are read or written.
+- **Questions an agent asks reach the person, and fail closed.** `session/request_permission` and Claude's permission tool go to the person. The answer is "deny" or "cancelled" when nobody can be asked (no terminal), when the turn is cancelled, and when the bridge can't be reached.
+- **Cancel is bounded.** Sending `session/cancel` and waiting for the agent to stop share one deadline, so an agent that stops reading can't stall it. An agent that hasn't stopped by then is stopped with its process group (SIGTERM, then SIGKILL) and reaped.
+- **The permission bridge is private:** a 0600 socket in a 0700 folder. Ending the turn closes every connection on it, half-sent ones included.
+
+### 5.2 What Q1 does not enforce
+
+- **Agents run with the person's full access.** Agent CLIs run as the person's user, with `quired`'s environment and the person's files, commands and network. They can use all of that without asking `quired`.
+- **Asking is the agent's choice.** In ACP v1 the agent MAY call `session/request_permission` before a tool call; nothing requires it. `quired` serves `fs/write_text_file` without asking the person, because the agent's own policy is what asks. In the ANAL-217 review a synthetic agent wrote a file with no question asked.
+- **Claude's bridge sees only what Claude sends it.** A tool that Claude Code's own settings already allow runs without a question.
+
+### 5.3 Requirements before Quire acts on the system (design, Q2–Q6)
+
+- **Opt-in:** no agent is connected until the person connects it, and every note names the agent answering.
+- **The broker authorizes every privileged call.** Quire core checks each OS-tool call against the person's grants when it is made, independent of the agent. An agent cannot grant itself anything. "Allow for this task" covers one tool for one task. Deny, cancel, a timeout and an unreachable person all mean no.
+- **The never tier is enforced by mechanism, not by asking.** Refusing never-tier tools is not enough. In a computer-control session the agent injects arbitrary input into an approved app, so in a mail app it could send, in a wallet pay, and in Settings change security options. So, before Q6 ships computer control:
+  - an app where the agent could send, pay or change security settings is not a target until Quire can recognise those steps and hand them to the person (`handOverApplications()`);
+  - targets come from a Quire allowlist, and the platform's strict activity policy keeps sessions to them;
+  - Q6 tests deny, cancel and each never-tier operation at the broker, and each must fail.
+- **Observe is disclosure.** Screenshots, the selection and window lists can contain messages, names and documents. Each disclosure has an explicit scope (the window or region the person invoked Quire on) and destination (the named agent, and whether it runs locally or in the cloud). Both are shown to the person before anything is sent.
 - **Secure content stays dark.** Windows with `FLAG_SECURE` are excluded from screenshots, and computer-control sessions block on them (platform behaviour, §2.4).
-- **File access is confined.** When `quired` serves ACP file reads and writes, it refuses paths outside the session's folder, including through symlinks (tested, §6).
-- **What we will not do:** bypass Play Integrity, DRM or licence checks; use Google's Gemini apps or Magic Pointer code; send screen contents anywhere the person didn't choose.
+
+### 5.4 Credentials and logs
+
+- `quired` does not store, ask for or proxy agent credentials. Agents keep their own sign-in.
+- `quired` is not a secret boundary:
+  - It passes its whole environment to agents, so API keys in that environment reach them.
+  - It relays raw tool inputs, message text, tool output and the agent's stderr to the client. `quired run --json` output and the evidence files keep them verbatim, so a secret an agent reads or prints can end up there.
+- `quired` never logs its own environment. Evidence is redacted of home paths only, which is not secret redaction. Evidence is therefore scanned for common credential patterns before it is committed (a bounded check, not proof).
+- Cloud keys for the direct connectors will stay in the core, in Android Keystore (design, Q4 and later).
+
+### 5.5 What we will not do
+
+Bypass Play Integrity, DRM or licence checks; use Google's Gemini apps or Magic Pointer code; send screen contents anywhere the person didn't choose.
 
 ## 6. Built: `quired` 0.1 (Q1)
 
@@ -177,12 +208,14 @@ quired run [flags] AGENT PROMPT...           run one turn (--approve ask|read|al
   - Notifications arrive in order.
   - Requests run concurrently, so a person can take their time on a permission prompt.
   - It has no line-length limit and survives non-JSON output.
+  - One goroutine does the writing, and every send waits for it with a context. A peer that stops reading can't hold a caller past its deadline, and closing the pipe ends the connection and fails pending calls.
   - Method names and enums were checked against the ACP SDK inside Cursor Agent 2026.10.14 and against the spec repository.
 - **`internal/agents`:** a catalog of 12 agents, each with the CLI version we last checked and its protocol, and discovery.
 - **`internal/harness`:**
   - `acpagent.go` runs an ACP agent as a subprocess in its own process group. It:
-    - serves `session/request_permission`, `fs/read_text_file` and `fs/write_text_file` (confined);
-    - cancels with `session/cancel`, and answers any open permission request "cancelled", as ACP requires;
+    - refuses an agent that chooses an ACP version other than 1;
+    - serves `session/request_permission`, and serves `fs/read_text_file` and `fs/write_text_file` confined through `os.Root` (§5.1);
+    - cancels with `session/cancel`, and answers any open permission request "cancelled", as ACP requires. Sending the cancel and the agent stopping share one 15 s deadline. Past it, the agent's process group gets SIGTERM, then SIGKILL 3 s later, and is reaped;
     - reports the agent's stderr when it fails.
   - `claude.go` adapts Claude Code's `-p --output-format stream-json --include-partial-messages` to ACP updates:
     - text and thinking deltas become message chunks;
@@ -190,18 +223,18 @@ quired run [flags] AGENT PROMPT...           run one turn (--approve ask|read|al
     - `TodoWrite` becomes an ACP `plan`;
     - a new message starts a new paragraph;
     - each session uses `--session-id` on the first turn and `--resume` after that.
-  - Permissions use Claude's `--permission-prompt-tool`. `quired permission-mcp` is a one-tool MCP server on stdio that forwards each question to the running `quired` over a private unix socket (in a 0700 folder). "Allow for this session" is remembered per tool.
+  - Permissions use Claude's `--permission-prompt-tool`. `quired permission-mcp` is a one-tool MCP server on stdio that forwards each question to the running `quired` over a private unix socket (0600, in a 0700 folder). Ending the turn closes every connection on the socket, and the MCP side gives up when Claude Code goes away; either way the answer is "deny". "Allow for this session" is remembered per tool.
 
-**Results on this host (C), Arch Linux, 2026-10-18** (`evidence/2026-10-18-quire/`):
+**Results on this host (C), Arch Linux, 2026-10-18** (`evidence/2026-10-18-quire/`, regenerated on the revised code after the ANAL-217 review):
 
 | Check | Result |
 |---|---|
-| Unit tests (`go test -race`) | **17/17 pass.** They cover the protocol, discovery, the ACP agent and the Claude adapter. The fake ACP agent and fake Claude Code are the test binary itself; the fake Claude really starts `quired permission-mcp` and calls it over MCP. One test replays a real Claude Code 2.1.301 stream |
+| Unit tests (`go test -race`) | **22/22 pass.** They cover the protocol, discovery, the ACP agent and the Claude adapter. The fake ACP agent and fake Claude Code are the test binary itself; the fake Claude really starts `quired permission-mcp` and calls it over MCP. One test replays a real Claude Code 2.1.301 stream. Regressions for the ANAL-217 review: writes through dangling symlinks, symlinked folders, `..` links and FIFOs; a symlinked session folder; a peer that stops reading; an agent that ignores `session/cancel`, and one that stops reading and ignores SIGTERM; half-sent and unanswered bridge questions; an unsupported ACP version |
 | `quired agents` | 11 of the 12 catalog agents installed. **7 run through quired:** Claude Code (adapter), and opencode, Copilot, Cursor, Kimi, Hermes and omp (ACP). 4 are not yet supported, each with the reason: Grok (no ACP server), Codex (its own app-server protocol), Antigravity (stream-json, adapter planned) and Pi (nothing machine-readable) |
-| `quired probe --all` (ACP `initialize` + `session/new`, no prompt, no cost) | **opencode, Copilot and omp:** a real ACP v1 session each, in 1.3–2.4 s. **Cursor and Kimi:** `-32000 Authentication required`, because they are not signed in for ACP on this host. **Hermes:** `-32603`, with no model provider configured (its stderr says so). Claude goes through the adapter, so its row only shows the session it created |
-| `quired run claude --approve all` (haiku) | Claude chose `Bash printf … > hello.txt`. The permission bridge asked and was allowed, and **hello.txt = "Hello from Quire"**. `end_turn` in 6.0 s |
-| `quired run claude --approve none` | Bash was denied, then Write was denied. **No file was written.** Claude stopped, said why, and "didn't try any other way to write it". `end_turn` in 12.2 s |
-| `quired run opencode --approve read` | "QUIRE OK" over native ACP, `end_turn` in 8.9 s (3.1 s in an earlier run). The stream had thoughts, available commands and a usage update |
+| `quired probe --all` (ACP `initialize` + `session/new`, no prompt, no cost) | **opencode, Copilot and omp:** a real ACP v1 session each, in 1.7–2.4 s. **Cursor and Kimi:** `-32000 Authentication required`, because they are not signed in for ACP on this host. **Hermes:** `-32603`, with no model provider configured (its stderr says so). Claude goes through the adapter, so its row only shows the session it created |
+| `quired run claude --approve all` (haiku) | Claude chose `Bash printf … > hello.txt`. The permission bridge asked and was allowed, and **hello.txt = "Hello from Quire"**. `end_turn` in 5.2 s |
+| `quired run claude --approve none` | Bash was denied, then Write was denied. **No file was written.** Claude stopped and said both tools were refused. `end_turn` in 9.3 s |
+| `quired run opencode --approve read` | "QUIRE OK" over native ACP, `end_turn` in 2.0 s (8.9 s and 3.1 s in earlier runs) |
 
 **Not done yet:**
 
@@ -217,11 +250,11 @@ Each one is a sub-issue of ANAL-214 with its own acceptance checks. "G14" means 
 | # | Milestone | Owner | Done when |
 |---|---|---|---|
 | Q1 | **`quired` harness host** (ANAL-214) | Porter | Built and checked on this host (§6), this PR |
-| Q2 | **Platform hooks in the image** (ANAL-216). Quire core skeleton as a privileged system app: `ROLE_ASSISTANT`, contextual search package, `ACCESS_COMPUTER_CONTROL` allowlist, the shake flag and the computer-control flags in OpenBook's flag set | Porter | In Cuttlefish: a shake and Meta+Space open Quire with a screenshot and the visible packages; a computer-control session on Settings shows in an `InteractiveMirror`; no new SELinux denials; the release flags diff reviewed |
+| Q2 | **Platform hooks in the image** (ANAL-216). Quire core skeleton as a privileged system app: `ROLE_ASSISTANT`, contextual search package, `ACCESS_COMPUTER_CONTROL` allowlist, the shake flag and the computer-control flags in OpenBook's flag set | Porter | In Cuttlefish: a shake and Meta+Space open Quire with a screenshot and the visible packages; a computer-control session on Settings shows in an `InteractiveMirror`; with per-app consent on, through the ordinary allowlist path (not a debug super agent): fresh consent, a second unapproved app, denial, secure content, lock and take-over; no new SELinux denials; the release flags diff reviewed |
 | Q3 | **Interaction and motion design** (ANAL-215) | Atelier | Invocation, the note's states (asking, streaming, steps, consent, mirror, done, error), motion specs and a clickable prototype; the visual language matches OpenBook's look |
 | Q4 | **The Linux environment and `quired serve`** (ANAL-218). AVF Terminal in OpenBook, KVM on AMD, `quired` in the Debian guest, ACP over vsock to the core, pairing for a second computer | Porter | An agent installed in the Linux environment answers a prompt from Quire core in Cuttlefish, then on the G14 |
 | Q5 | **The surface** (ANAL-219). The note, steps, consent and mirror, built to Q3's spec | Porter with Atelier | Q3's states, in a recorded Cuttlefish session; 60 fps on the G14; works with TalkBack and keyboard only |
-| Q6 | **OS tools over MCP** (ANAL-220). Settings (allowlisted, with undo), apps and windows, computer control | Porter | A scripted matrix: "turn on dark theme", "make text bigger", "open Files and show Downloads", each with the right consent, plus refusals for the never-tier |
+| Q6 | **OS tools over MCP** (ANAL-220). Settings (allowlisted, with undo), apps and windows, computer control | Porter | A scripted matrix: "turn on dark theme", "make text bigger", "open Files and show Downloads", each with the right consent, plus deny, cancel and never-tier refusals tested at the broker (§5.3) |
 | Q7 | **Voice** (ANAL-221). Hold to talk, on-device speech-to-text (open models only), and the note reading back | Porter | Works offline on the G14; the mic indicator is always shown |
 | Q8 | **Review and verification** (ANAL-217) | Checker | A security and privacy review of each PR against §5, and the G14 checklist results recorded |
 
@@ -229,17 +262,21 @@ The order is Q1, then Q2 and Q3 in parallel, then Q4 and Q5, then Q6 and Q7. Q8 
 
 ## 8. Risks and open questions
 
-1. **Computer control is `@hide` and partly flagged off in cp2a** (C). Turning on `computer_control_access` and `_support_v5` may pull in code paths Google tested only on its own builds. Q2 checks this in Cuttlefish before anything else depends on it.
-2. **The AVF Terminal on AMD** (HYPOTHESIS). It needs KVM in our GKI build plus the Terminal's x86_64 Debian image. If it can't run, `quired` runs on a paired computer and Quire uses cloud connectors on the laptop.
-3. **Agent CLIs change often.** The catalog records the version each entry was checked against, and adapters are only needed for agents without ACP. The industry is moving to ACP: 6 of the 11 CLIs on this host have it.
-4. **Sign-in.** Cursor and Kimi need an ACP `authenticate` step on this host. Quire will show each agent's `authMethods` in its connect screen.
-5. **The shake gesture is "early"** (its own TODO). We may tune the threshold for touchpads.
-6. **Naming:** "Quire" needs the same trademark check as "OpenBook" before any public image (`docs/STATUS.md`).
+In the order the ANAL-217 review ranked them.
+
+1. **Policy enforcement and confinement.** Q1's file confinement, cancel bounds and bridge shutdown are fixed and tested (§5.1, §6). The rest is design (§5.3): authorization at the broker on every call, constraints on computer control for the never tier, and scoped disclosure for Observe. No OS tool ships without deny, cancel and never-tier tests at the broker.
+2. **Computer control is `@hide` and partly flagged off in cp2a** (C). `computer_control_access`, `_support_v5` and `_per_app_consent` are on only in `trunk_staging`. Turning them on may pull in code paths Google tested only on its own builds. Q2 checks this in Cuttlefish, through the ordinary allowlist path, before anything else depends on it.
+3. **AVF on AMD** (HYPOTHESIS). The Terminal's x86_64 assets and Debian build exist at Virtualization `22f1c9ee92b1`, and our kernel's x86 `gki_defconfig` (`fbfdd65b0fd1`) has `CONFIG_KVM=y` and `CONFIG_KVM_AMD=y`. That is configuration, not a running device. Q4 must show the built kernel's config, `/dev/kvm` access under SELinux, crosvm booting the non-protected Debian guest, and vsock, first in Cuttlefish and then on the G14 (GA403WR, Ryzen AI 9 HX 370). If it can't run, `quired` would run on a paired computer and Quire would use cloud connectors; that fallback isn't built.
+4. **Protocol compatibility and sign-in.** `quired` refuses ACP versions other than 1. Cursor and Kimi need an ACP `authenticate` step on this host; Quire will show each agent's `authMethods` in its connect screen.
+5. **Agent CLIs change often.** The catalog records the version each entry was checked against, and adapters are only needed for agents without ACP. The industry is moving to ACP: 6 of the 11 CLIs on this host have it.
+6. **The shake gesture is "early"** (its own TODO). We may tune the threshold for touchpads.
+7. **Naming:** "Quire" needs the same trademark check as "OpenBook" before any public image (`docs/STATUS.md`).
 
 ## Sources
 
 - Google, "Introducing Googlebook, designed for Gemini Intelligence", 2026-05-12: https://blog.google/products-and-platforms/platforms/android/meet-googlebook/
-- Agent Client Protocol, spec and SDKs (Apache-2.0, protocol version 1): https://github.com/agentclientprotocol/agent-client-protocol · https://agentclientprotocol.com
+- Agent Client Protocol, spec and SDKs (Apache-2.0, protocol version 1): https://github.com/agentclientprotocol/agent-client-protocol · https://agentclientprotocol.com. Permission requests are optional for the agent ("the Agent MAY request permission"), and cancel obligations: https://agentclientprotocol.com/protocol/v1/prompt-turn. Version negotiation: https://agentclientprotocol.com/protocol/v1/initialization. Both accessed 2026-10-18.
 - Multica README and licence: https://github.com/multica-ai/multica
-- AOSP 17 (`android-latest-release`, our pinned tree; paths as cited above): `frameworks/base/core/java/android/companion/virtual/computercontrol/`, `frameworks/base/packages/SystemUI/src/com/android/systemui/contextualcursor/`, `frameworks/base/core/java/android/app/contextualsearch/ContextualSearchManager.java`, `frameworks/base/packages/VirtualDeviceManager/`, `build/release/aconfig/{cp2a,trunk_staging}/`, `packages/modules/Virtualization/`
+- Kernel: `common` at `fbfdd65b0fd1`, `arch/x86/configs/gki_defconfig`.
+- AOSP 17 (`android-latest-release`, our pinned tree: frameworks/base `8f5dedd3edc3`, Virtualization `22f1c9ee92b1`; paths as cited above): `frameworks/base/core/java/android/companion/virtual/computercontrol/`, `frameworks/base/packages/SystemUI/src/com/android/systemui/contextualcursor/`, `frameworks/base/core/java/android/app/contextualsearch/ContextualSearchManager.java`, `frameworks/base/services/contextualsearch/`, `frameworks/base/services/companion/java/com/android/server/companion/virtual/computercontrol/ComputerControlAllowlistController.java`, `frameworks/base/packages/VirtualDeviceManager/`, `build/release/aconfig/{cp2a,trunk_staging}/`, `packages/modules/Virtualization/`
 - Rambler: secondary report of Google's 2026-09-21 post (R): https://letsdatascience.com/news/google-details-magic-pointer-and-rambler-features-for-google-978edf8d

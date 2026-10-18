@@ -1,5 +1,8 @@
-{"quired":"note","text":"opencode · session ses_eb0ec2487ffeUR2rcAaRg3dyB8 · folder $TMP/acp"}
-{"jsonrpc":"2.0","method":"session/update","params":{"sessionId":"ses_eb0ec2487ffeUR2rcAaRg3dyB8","update":{"sessionUpdate":"available_commands_update","availableCommands":[{"name":"init","description":"guided AGENTS.md setup"},{"name":"review","description":"review changes [commit|branch|pr], defaults to uncommitted"},{"name":"compact","description":"Compact the session"}]}}}
-{"jsonrpc":"2.0","method":"session/update","params":{"sessionId":"ses_eb0ec2487ffeUR2rcAaRg3dyB8","update":{"sessionUpdate":"agent_message_chunk","messageId":"msg_14f13dbd0001MthsBrC9jkF2YW","content":{"type":"text","text":"QUIRE OK"}}}}
-{"jsonrpc":"2.0","method":"session/update","params":{"sessionId":"ses_eb0ec2487ffeUR2rcAaRg3dyB8","update":{"sessionUpdate":"usage_update","used":7151,"size":200000,"cost":{"amount":0,"currency":"USD"}}}}
-{"ms":8936,"quired":"result","stopReason":"end_turn"}
+{"quired":"note","text":"opencode · session ses_eb0cd09e9ffe7g9iLVEGXsInVt · folder $TMP/acp"}
+{"jsonrpc":"2.0","method":"session/update","params":{"sessionId":"ses_eb0cd09e9ffe7g9iLVEGXsInVt","update":{"sessionUpdate":"available_commands_update","availableCommands":[{"name":"init","description":"guided AGENTS.md setup"},{"name":"review","description":"review changes [commit|branch|pr], defaults to uncommitted"},{"name":"compact","description":"Compact the session"}]}}}
+{"jsonrpc":"2.0","method":"session/update","params":{"sessionId":"ses_eb0cd09e9ffe7g9iLVEGXsInVt","update":{"sessionUpdate":"agent_thought_chunk","messageId":"msg_14f32f6f8001kIWv9h56yC25U4:reasoning:0","content":{"type":"text","text":"The user asks to reply with exactly"}}}}
+{"jsonrpc":"2.0","method":"session/update","params":{"sessionId":"ses_eb0cd09e9ffe7g9iLVEGXsInVt","update":{"sessionUpdate":"agent_thought_chunk","messageId":"msg_14f32f6f8001kIWv9h56yC25U4:reasoning:0","content":{"type":"text","text":" \"QUIRE OK\". I should output"}}}}
+{"jsonrpc":"2.0","method":"session/update","params":{"sessionId":"ses_eb0cd09e9ffe7g9iLVEGXsInVt","update":{"sessionUpdate":"agent_thought_chunk","messageId":"msg_14f32f6f8001kIWv9h56yC25U4:reasoning:0","content":{"type":"text","text":" exactly that."}}}}
+{"jsonrpc":"2.0","method":"session/update","params":{"sessionId":"ses_eb0cd09e9ffe7g9iLVEGXsInVt","update":{"sessionUpdate":"agent_message_chunk","messageId":"msg_14f32f6f8001kIWv9h56yC25U4","content":{"type":"text","text":"QUIRE OK"}}}}
+{"jsonrpc":"2.0","method":"session/update","params":{"sessionId":"ses_eb0cd09e9ffe7g9iLVEGXsInVt","update":{"sessionUpdate":"usage_update","used":8103,"size":200000,"cost":{"amount":0,"currency":"USD"}}}}
+{"ms":2000,"quired":"result","stopReason":"end_turn"}
