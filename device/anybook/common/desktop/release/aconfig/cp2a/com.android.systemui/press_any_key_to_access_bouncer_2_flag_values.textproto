@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 3: on the lock screen any key opens the bouncer (keyboard laptops)
+flag_value {
+  package: "com.android.systemui"
+  name: "press_any_key_to_access_bouncer_2"
+  state: ENABLED
+  permission: READ_ONLY
+}

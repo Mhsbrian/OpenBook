@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 5: touch exploration hover exit
+flag_value {
+  package: "com.android.server.accessibility"
+  name: "send_hover_exit_on_gesture_interruption"
+  state: ENABLED
+  permission: READ_ONLY
+}

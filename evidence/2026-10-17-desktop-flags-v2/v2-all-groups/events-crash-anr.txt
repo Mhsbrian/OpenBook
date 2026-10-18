@@ -1,0 +1,2 @@
+10-18 00:36:25.804   818  1045 I am_crash: [1069,0,com.android.systemui,818462221,java.lang.IllegalStateException,Expected non-null decoration container surface,go/retraceme bea1a08b8c447ba32f5a266514cd0d1a8fe38ddb364d3c1c3ff236ba1360bb3a,2,0]
+10-18 00:36:25.907   818   836 I am_proc_died: [0,1069,com.android.systemui,-800,0]

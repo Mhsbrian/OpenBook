@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 1: drag-move/resize ignores events from a second input device
+flag_value {
+  package: "com.android.window.flags"
+  name: "filter_events_from_irrelevant_devices_in_drag_move_resize"
+  state: ENABLED
+  permission: READ_ONLY
+}

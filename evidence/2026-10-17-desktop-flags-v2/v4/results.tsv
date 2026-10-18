@@ -1,0 +1,26 @@
+check	result	detail
+flag state	INFO	group 1: 6/6 enabled; group 2: 2/2 enabled; group 3: 13/13 enabled; group 4: 16/16 enabled; group 5: 42/42 enabled; group 6: 5/5 enabled
+window shadows (SurfaceFlinger)	INFO	'boxShadow' mentions: 20, layers with shadowRadius>0: 0
+windows: start	INFO	task #10 com.android.documentsui mode=freeform bounds=(329, 167, 1711, 944)
+focus (click into the window)	PASS	mCurrentFocus=com.android.documentsui
+move (caption drag)	PASS	bounds (329, 167, 1711, 944) -> (177, 88, 1559, 865)
+resize (corner drag)	PASS	bounds (177, 88, 1559, 865) -> (177, 88, 1681, 947)
+no-resize cursor (drag below minimum size)	INFO	resolvedPointerType while held: 1017 (1000 = arrow); bounds after: (177, 88, 573, 539)
+maximize (Meta+=)	PASS	bounds (177, 88, 573, 539) -> (0, 24, 1920, 1024)
+restore (Meta+= again)	PASS	bounds -> (177, 88, 573, 539)
+maximize (caption button)	PASS	bounds -> (0, 24, 1920, 1024)
+restore (caption double click)	INFO	bounds -> (177, 88, 573, 539)
+minimize (caption button)	PASS	task visible=False
+taskbar click restores the minimized window	PASS	icon (1144, 1028, 1192, 1076), task visible=True
+taskbar click on the focused window	INFO	task visible=True; Files tasks: #10
+taskbar icon menu (right click)	INFO	screenshot
+minimize (Meta+-)	PASS	task visible=False; focus was com.android.settings; Files tasks: #10 (hidden)
+new window placement (cascade)	INFO	#12 com.android.deskclock freeform (329, 167, 1711, 944); #11 android.task.calendar freeform (269, 107, 1651, 884)
+QS tile hover (tooltip)	INFO	tile Wi-Fi,null (1542, 200, 1586, 244); tooltip-like nodes: 0
+notification hover	INFO	row (1608, 78, 1864, 97): screenshot
+notification right click (inline settings)	INFO	settings-like nodes after right click: 0
+power menu blur	INFO	blurred layers: Dim Layer for - Display 0 name="Built-in Screen" (34), VRI-NotificationShade (34)
+volume dialog blur	INFO	blurred layers: none
+crash buffer	PASS	0 lines; 
+ANRs	PASS	am_anr events: 0
+SELinux denials	INFO	3 distinct (bootanim gpu_service, init tracefs, gceservice zygote_config_prop)

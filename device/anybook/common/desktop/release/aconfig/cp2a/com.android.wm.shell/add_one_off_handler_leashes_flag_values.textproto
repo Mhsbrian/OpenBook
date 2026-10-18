@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 6: one-off transition handlers get their own leashes
+flag_value {
+  package: "com.android.wm.shell"
+  name: "add_one_off_handler_leashes"
+  state: ENABLED
+  permission: READ_ONLY
+}
