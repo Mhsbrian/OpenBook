@@ -54,6 +54,8 @@ Three alternating pairs (base, fonts, base, fonts, base, fonts), because the sha
 - **Settings scroll, 2 rounds:** 0 janky frames, p90 5–6 ms. That is a quiet-host data point, not a comparison.
 - **Size:** `product.img` is 302,100,480 B (cf) and 301,666,304 B (G14).
 
+After this, `main` gained #79 (B3, the desktop flag set v2) and was merged again. #79 changes only `release/` aconfig files, none of B1's, and that combination was not rebuilt.
+
 ## Not covered
 
 - **The G14.** The check is posted on ANAL-192 for the next stick's checklist.
