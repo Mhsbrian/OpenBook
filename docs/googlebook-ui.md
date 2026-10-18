@@ -142,6 +142,8 @@ Bold matches the same way. Both products build, B1's 40 families still load and 
 
 **Size:** 5,313,524 bytes of fonts in `/product/fonts`, plus 4,466 bytes in `fonts_customization.xml` and 5,309 bytes in `fonts.xml`. In the images: `product.img` +3,948,544 bytes (the partition is compressed) and `system.img` +4,096, measured on the Cuttlefish product against B1's own build (`evidence/2026-10-17-doc-fonts/build/image-sizes.md`).
 
+**On the G14** (C, `evidence/2026-10-18-g14-anal192d-b7/`). The owner's `anal192d` stick carries B7 byte for byte. The zygote loads its `fonts.xml` at every boot with no warning. No boot has a font error or a font-related denial. The browser ran for about 9 minutes on real pages under enforcing with no crash. Which font the pages drew needs the photo.
+
 **Open:**
 - Verdana and Tahoma wait for Google to publish Velarium and Tachyonic (and the other 11). Any other stand-in would need the owner's approval.
 - Helvetica, Times and Courier still map to Roboto, Noto Serif and Cutive Mono. Blink treats Arial↔Helvetica, Times↔Times New Roman and Courier↔Courier New as interchangeable (`alternate_font_family.h`), and the AFM check above shows the widths agree. Moving those three aliases is a small follow-up, but it goes beyond what the upstreams claim, so it needs an owner decision.
@@ -418,7 +420,7 @@ The owner approved every item on 2026-10-17. Each one is a sub-issue of ANAL-201
 | B4 | ANAL-205 | **Shape and wallpaper values:** circular icon mask, round icons, wallpaper dim 0, wallpaper colour thresholds. **Done in Cuttlefish (§2.4); the G14 check is on ANAL-192's stick** | small | — |
 | B5 | ANAL-206 | **A clean default desktop:** remove the QuickSearchBox widget and the app, set taskbar pins (Files, Settings, browser), quiet sounds. **Done in Cuttlefish and on the G14 product in QEMU (§2.6); the G14 check is on ANAL-192's stick** | small | Pins proposed in the PR; the owner reviews |
 | B6 | ANAL-207 | **Brand assets:** wallpapers (our own or CC0/CC-BY, not bulk Unsplash), a sound set with click sounds off by default, a boot animation, a pointer theme. Based on the brand mark in `assets/brand/`. **Done in Cuttlefish (§2.5); the G14 check is on ANAL-192's stick** | medium | Owner reviews the visuals in the PR (contact sheet) |
-| B7 | ANAL-208 | **Document fonts:** the metric-compatible fonts, for web and Office fidelity. Done for the 7 public families (17 of the 42 files; §2.1.1): Arial, Times New Roman, Courier New, Georgia and Comic Sans MS render in them, in WebView and the framework (Cuttlefish). G14 check on the next stick | small | The other 13 families wait for Google to publish them |
+| B7 | ANAL-208 | **Document fonts:** the metric-compatible fonts, for web and Office fidelity. Done for the 7 public families (17 of the 42 files; §2.1.1): Arial, Times New Roman, Courier New, Georgia and Comic Sans MS render in them, in WebView and the framework (Cuttlefish). G14 `anal192d`: in the image, no font errors, browser used without a crash; the photo is still to do | small | The other 13 families wait for Google to publish them |
 | B8 | ANAL-209 | **Setup:** a first-run flow in our style, after the installer | medium | Coordinate with ANAL-191 (installer) |
 
 ## Owner decisions (2026-10-17)
