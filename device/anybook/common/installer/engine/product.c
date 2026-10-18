@@ -259,6 +259,8 @@ int gp_build(struct gapps_product *g, int src_fd, int dst_fd, uint64_t super_sta
     struct gp_io io = {.g = g, .dst = dst_fd, .progress = progress, .cur = -1, .cur_fd = -1};
     g->dst_abs = super_start + g->new_dst;
     int rc = -1;
+    LOG("product: building %s (%llu bytes) at %llu in super: the stick's image and %d files", g->part,
+        (unsigned long long)g->part_bytes, (unsigned long long)g->new_dst, g->nfiles);
     uint8_t *blk = calloc(1, BS);
     sha256_init(&io.part);
     if (ht_init(&io.ht, g->image_bytes, BS, g->ht_old.salt, g->ht_old.salt_len)) {

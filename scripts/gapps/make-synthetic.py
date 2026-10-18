@@ -10,6 +10,7 @@ Writes to OUT:
   openbook-synthetic-gapps-x86_64-37.zip       the reference package (brotli, GNU tar)
   openbook-synthetic-gapps-x86_64-37-xz.zip    the same files, xz and a pax tar
   openbook-synthetic-gapps-x86_64-37-tar.zip   the same files, an uncompressed ustar tar
+  openbook-synthetic-gapps-x86_64-37-big.zip   the reference package plus a 256 MiB app (for scale)
   neg-<case>.zip                               one defect each; EXPECTED.json lists the rule the check must report
   SHA256SUMS
 Deterministic: fixed times, owners and order.
@@ -130,6 +131,9 @@ def main():
     package("openbook-synthetic-gapps-x86_64-37")
     package("openbook-synthetic-gapps-x86_64-37-xz", kind="xz", fmt=tarfile.PAX_FORMAT)
     package("openbook-synthetic-gapps-x86_64-37-tar", kind="tar", fmt=tarfile.USTAR_FORMAT)
+    if os.path.exists(f"{a.apks}/OpenBookTestBig.apk"):  # for scale: the reference package plus a 256 MiB app
+        package("openbook-synthetic-gapps-x86_64-37-big", full + [(f"{PREFIX}/priv-app/OpenBookTestBig/OpenBookTestBig.apk",
+                                                                    open(f"{a.apks}/OpenBookTestBig.apk", "rb").read())])
 
     rd = lambda p: open(f"{a.apks}/{p}", "rb").read()
     add = lambda rel, data: full + [(f"{PREFIX}/{rel}", data)]
