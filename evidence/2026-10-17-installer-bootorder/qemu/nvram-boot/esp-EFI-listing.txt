@@ -1,0 +1,3 @@
+::/EFI/OpenBook/
+::/EFI/BOOT/
+::/EFI/OpenBook/systemd-bootx64.efi

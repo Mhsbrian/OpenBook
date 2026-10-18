@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 3: taskbar shows recent apps instead of hotseat predictions
+flag_value {
+  package: "com.android.systemui.shared"
+  name: "enable_recents_in_taskbar"
+  state: ENABLED
+  permission: READ_ONLY
+}

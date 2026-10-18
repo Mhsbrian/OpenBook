@@ -1,0 +1,17 @@
+# AnyBook/anybook_cf_x86_64_pc/anybook_vsoc_x86_64:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+ro.surface_flinger.supports_background_blur=1
+## /product/etc/fonts_customization.xml families
+
+## /product/fonts
+## enabled overlays targeting android
+[x] android.auto_generated_rro_vendor__
+[x] android.cuttlefish.overlay
+[x] android.auto_generated_characteristics_rro
+[x] dev.anybook.overlay.desktop.framework
+[x] com.android.internal.systemui.navbar.gestural
+[x] com.android.systemui:neutral
+[x] com.android.systemui:accent
+[x] com.android.systemui:dynamic
+## config_headlineFontFamily / config_bodyFontFamily as resolved
+
+sans-serif

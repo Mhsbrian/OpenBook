@@ -145,7 +145,6 @@ fun planWarningSentence(code: String, alongside: Boolean): String = when (code) 
     } else {
         stringResource(R.string.plan_warning_nvram_whole)
     }
-    "boot_order_unchanged" -> stringResource(R.string.plan_warning_boot_order_unchanged)
     "external" -> stringResource(R.string.plan_warning_external)
     "encrypted_kept" -> stringResource(R.string.plan_warning_encrypted_kept)
     "encrypted_erased" -> stringResource(R.string.plan_warning_encrypted_erased)
@@ -230,4 +229,12 @@ fun etaText(seconds: Int): String {
     if (seconds < 60) return stringResource(R.string.duration_under_minute)
     val minutes = (seconds + 59) / 60
     return pluralStringResource(R.plurals.duration_minutes, minutes, minutes)
+}
+
+/** Without "Start OpenBook by default": OpenBook goes last in the firmware's boot order (owner decision 2026-10-17). */
+@Composable
+fun bootOrderLastSentence(system: String?): String = if (system != null) {
+    stringResource(R.string.plan_boot_order_last_named, system)
+} else {
+    stringResource(R.string.plan_boot_order_last)
 }

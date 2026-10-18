@@ -1,0 +1,7 @@
+# AnyBook/anybook_cf_x86_64_pc/anybook_vsoc_x86_64:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+config_wallpaperDimAmount = 0.0
+grey=180 screen=180 (min 180, max 180) (0.95 x grey = 171.0)
+## crash buffer, grey 180
+grey=206 screen=206 (min 206, max 206) (0.95 x grey = 195.7)
+## crash buffer, grey 206
+## crash buffer since the last framework start

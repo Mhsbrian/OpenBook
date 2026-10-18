@@ -1,0 +1,139 @@
+[
+ {
+  "wait": "init: init first stage started",
+  "timeout": 120
+ },
+ {
+  "wait": "init: init second stage started",
+  "timeout": 120
+ },
+ {
+  "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+  "timeout": 300
+ },
+ {
+  "send": "\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 120
+ },
+ {
+  "send": "su 0 dmesg -n 1\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "i=0; while [ \"$(getprop sys.boot_completed)\" != 1 ] && [ $i -lt 900 ]; do sleep 3; i=$((i+3)); done; echo BOOTDONE=$(getprop sys.boot_completed) uptime=$(cut -d' ' -f1 /proc/uptime)\n"
+ },
+ {
+  "wait": "BOOTDONE=\\S* uptime=[0-9.]+",
+  "timeout": 960
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "sleep 30\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 90
+ },
+ {
+  "send": "su 0 settings put global device_provisioned 1; su 0 settings put secure user_setup_complete 1; su 0 pm disable org.openbook.installer/.SetupActivity; su 0 am start -a android.intent.action.MAIN -c android.intent.category.HOME; sleep 10; su 0 am start -a android.intent.action.MAIN -c android.intent.category.HOME; sleep 10; su 0 dumpsys activity activities | grep -m2 -E 'ResumedActivity|topResumedActivity'\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 120
+ },
+ {
+  "send": "echo ===BLURFACTS-BEGIN===; for p in ro.surface_flinger.supports_background_blur vendor.anybook.gpu.hal ro.hardware.egl ro.hardware.vulkan ro.hwui.use_vulkan debug.renderengine.backend; do echo $p=$(getprop $p); done; su 0 dumpsys activity service com.android.systemui/.SystemUIService BlurUtils | grep -E 'Radius|supports|CROSS|HighEnd'; su 0 dumpsys SurfaceFlinger | grep -E '^GLES: |RenderEngine'; echo ===BLURFACTS-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 120
+ },
+ {
+  "send": "su 0 input keyevent KEYCODE_WAKEUP; su 0 wm dismiss-keyguard; su 0 settings put global disable_window_blurs 0; sleep 2; su 0 cmd statusbar expand-settings; sleep 4; echo QS-ON\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "shot": "qs-blur-on"
+ },
+ {
+  "send": "echo ===QSLAYERS-ON-BEGIN===; su 0 dumpsys SurfaceFlinger | grep -E 'backgroundBlurRadius=|blurRegions'; echo ===QSLAYERS-ON-END===; su 0 cmd statusbar collapse; su 0 settings put global disable_window_blurs 1; sleep 2; su 0 cmd statusbar expand-settings; sleep 4; echo QS-OFF\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "shot": "qs-blur-off"
+ },
+ {
+  "send": "echo ===QSLAYERS-OFF-BEGIN===; su 0 dumpsys SurfaceFlinger | grep -E 'backgroundBlurRadius=|blurRegions'; echo ===QSLAYERS-OFF-END===; su 0 cmd statusbar collapse; su 0 settings put global disable_window_blurs 0\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "export TMPDIR=/data/local/tmp\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "su 0 sh -c 'base64 -d | gzip -d > /data/local/tmp/blur-check.sh' <<'EOF'\n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\nEOF\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 120
+ },
+ {
+  "send": "su 0 sha256sum /data/local/tmp/blur-check.sh\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "su 0 env BLUR_SHOTS=0 BLUR_CYCLES=5 sh /data/local/tmp/blur-check.sh /data/local/tmp/blur-out on off; echo BLURCHECK-EXIT=$?\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 1800
+ },
+ {
+  "send": "echo ===BLUROUT-BEGIN===; su 0 tar -C /data/local/tmp/blur-out -czf - . | base64; echo ===BLUROUT-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 300
+ },
+ {
+  "send": "echo ===CRASH-BEGIN===; su 0 logcat -d -b crash | tail -n 60; echo ===CRASH-END===; echo ===AVC-BEGIN===; su 0 dmesg | grep -c 'avc:  denied'; echo ===AVC-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 120
+ },
+ {
+  "send": "echo ===LOGCAT-BEGIN===; su 0 logcat -d -b all | gzip | base64; echo ===LOGCAT-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 300
+ },
+ {
+  "send": "su 0 sync; su 0 reboot -p\n"
+ }
+]
