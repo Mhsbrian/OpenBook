@@ -268,7 +268,7 @@
    {
     "check": "request names the package and its confirmation",
     "ok": true,
-    "detail": "{'target': 'nvme-QEMU_NVMe_Ctrl_internal0', 'layout': 'whole', 'locale': 'en-US', 'keyboard': '', 'set_default': False, 'gapps': 'd947f2e6b4b4f69c991c376e20b6705d8136e7de0e2fb9289cc84cb8855555dd', 'gapps_confirmed': True}"
+    "detail": "{'target': 'nvme-QEMU_NVMe_Ctrl_internal0', 'layout': 'whole', 'locale': 'en-US', 'keyboard': '', 'set_default': False, 'gapps': 'd61967eb5e45f1d707732aa4b4907e00be5b730a82d48fb154ace48647ed89cf', 'gapps_confirmed': True}"
    },
    {
     "check": "product section: product_a grows and moves; no FEC; unsigned vbmeta",
@@ -293,7 +293,7 @@
    {
     "check": "vbmeta_a: rebuilt",
     "ok": true,
-    "detail": "[{'index': 9, 'name': 'vbmeta_a', 'type_guid': '0fc63daf-8483-4772-8e79-3d69d8477de4', 'partuuid': '2860409d-3bcc-481f-9022-e1d47638ef34', 'start': 827326464, 'bytes': 1048576, 'content': 'vbmeta_rebuilt', 'source': 'vbmeta_a', 'source_bytes': 65536, 'sha256': 'c54f8ba71e0c4dc2567f998545a66b08572afe"
+    "detail": "[{'index': 9, 'name': 'vbmeta_a', 'type_guid': '0fc63daf-8483-4772-8e79-3d69d8477de4', 'partuuid': 'b59146a8-9e36-4936-8140-864831f74a2b', 'start': 827326464, 'bytes': 1048576, 'content': 'vbmeta_rebuilt', 'source': 'vbmeta_a', 'source_bytes': 65536, 'sha256': 'c54f8ba71e0c4dc2567f998545a66b08572afe"
    },
    {
     "check": "the target was only read",
@@ -343,7 +343,7 @@
    {
     "check": "report: root digest, vbmeta digest, product sha256",
     "ok": true,
-    "detail": "{'manifest_sha256': 'd947f2e6b4b4f69c991c376e20b6705d8136e7de0e2fb9289cc84cb8855555dd', 'product': 'product_a', 'product_bytes': 288837632, 'product_sha256': '0daaad3e530c3b7fe31d4d8fe2d436765af04752d30d40f5d117e01b52e4be57', 'root_digest': 'a116f1468bcf03cca1848a3acdeeb9040a065dfced79fbf2123ef90c7d"
+    "detail": "{'manifest_sha256': 'd61967eb5e45f1d707732aa4b4907e00be5b730a82d48fb154ace48647ed89cf', 'product': 'product_a', 'product_bytes': 288837632, 'product_sha256': '81c8e4a1560313e47c8559f7632c4b9067e3d8634518b0b9646619c6686c4058', 'root_digest': '7f25845f8304903e557b48a9771edfe23a4c0c7ba9083f6e71695ff4b6"
    },
    {
     "check": "verified items include the rebuilt product and vbmeta_a",
@@ -358,17 +358,17 @@
    {
     "check": "product_a: AVB footer, hashtree descriptor for the new image, no FEC",
     "ok": true,
-    "detail": "{'Image Size': '286564352 bytes', 'FEC num roots': '0', 'Root Digest': 'a116f1468bcf03cca1848a3acdeeb9040a065dfced79fbf2123ef90c7d0d8db6'}"
+    "detail": "{'Image Size': '286564352 bytes', 'FEC num roots': '0', 'Root Digest': '7f25845f8304903e557b48a9771edfe23a4c0c7ba9083f6e71695ff4b64410e1'}"
    },
    {
     "check": "avbtool verify_image recomputes product's hashtree and finds it correct",
     "ok": true,
-    "detail": "dded public key\nvbmeta: Successfully verified footer and NONE vbmeta struct in /home/hive/anybook/installer/work/anal211-host-3/gapps/out/product.img\nproduct: Successfully verified sha256 hashtree of /home/hive/anybook/installer/work/anal211-host-3/gapps/out/product.img for image of 286564352 bytes\n"
+    "detail": "dded public key\nvbmeta: Successfully verified footer and NONE vbmeta struct in /home/hive/anybook/installer/work/anal211-host-4/gapps/out/product.img\nproduct: Successfully verified sha256 hashtree of /home/hive/anybook/installer/work/anal211-host-4/gapps/out/product.img for image of 286564352 bytes\n"
    },
    {
     "check": "avbtool add_hashtree_footer over the same image and salt: same root digest and hashtree bytes",
     "ok": true,
-    "detail": "('', 'a116f1468bcf03cca1848a3acdeeb9040a065dfced79fbf2123ef90c7d0d8db6', 'a116f1468bcf03cca1848a3acdeeb9040a065dfced79fbf2123ef90c7d0d8db6')"
+    "detail": "('', '7f25845f8304903e557b48a9771edfe23a4c0c7ba9083f6e71695ff4b64410e1', '7f25845f8304903e557b48a9771edfe23a4c0c7ba9083f6e71695ff4b64410e1')"
    },
    {
     "check": "fsck.erofs extracts stick-product_a.img without errors",
@@ -403,12 +403,12 @@
    {
     "check": "vbmeta_a: unsigned; product's descriptor is the footer's; every other descriptor as on the stick",
     "ok": true,
-    "detail": "a116f1468bcf03cca1848a3acdeeb9040a065dfced79fbf2123ef90c7d0d8db6"
+    "detail": "7f25845f8304903e557b48a9771edfe23a4c0c7ba9083f6e71695ff4b64410e1"
    },
    {
     "check": "bootconfig: androidboot.vbmeta.digest = avbtool calculate_vbmeta_digest, size = the image's",
     "ok": true,
-    "detail": "('0dcf7df2fca42751daae2ccf329b74d6d29252ee6d9878726b7cc91894b1c88c', ['androidboot.vbmeta.avb_version = 1.3', 'androidboot.vbmeta.device_state = unlocked', 'androidboot.vbmeta.digest = 0dcf7df2fca42751daae2ccf329b74d6d29252ee6d9878726b7cc91894b1c88c', 'androidboot.vbmeta.hash_alg = sha256', 'android"
+    "detail": "('45a9aeff2fe21a04a113d8c8d64a936df47638c87316f42090a98542a45b13e2', ['androidboot.vbmeta.avb_version = 1.3', 'androidboot.vbmeta.device_state = unlocked', 'androidboot.vbmeta.digest = 45a9aeff2fe21a04a113d8c8d64a936df47638c87316f42090a98542a45b13e2', 'androidboot.vbmeta.hash_alg = sha256', 'android"
    },
    {
     "check": "bootconfig: the same keys as without the package",
@@ -421,21 +421,43 @@
     "detail": "[('system_a', True), ('system_b', True), ('system_ext_a', True), ('vendor_a', True), ('vendor_dlkm_a', True), ('system_dlkm_a', True)]"
    }
   ],
-  "scale": [
+  "alongside-gapps": [
    {
-    "check": "a 256 MiB package with a 256 MiB app: accepted (2.2 s)",
+    "check": "an alongside plan with the package: in the free space, product rebuilt",
     "ok": true,
     "detail": "None"
    },
    {
-    "check": "its install verifies (25.8 s; steps {'check_source': 7.2, 'prepare_disk': 0.0, 'boot_images': 0.6, 'system': 10.4, 'boot_entry': 0.0, 'verify': 7.5, 'report': 0.0})",
+    "check": "the install verifies",
+    "ok": true,
+    "detail": "None"
+   },
+   {
+    "check": "MSR, NTFS and recovery byte-identical (S7)",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "avbtool verify_image passes on its rebuilt product",
+    "ok": true,
+    "detail": "staller/work/anal211-host-4/alongside/product.img\nproduct: Successfully verified sha256 hashtree of /home/hive/anybook/installer/work/anal211-host-4/alongside/product.img for image of 286564352 bytes\n"
+   }
+  ],
+  "scale": [
+   {
+    "check": "a 256 MiB package with a 256 MiB app: accepted (2.5 s)",
+    "ok": true,
+    "detail": "None"
+   },
+   {
+    "check": "its install verifies (25.9 s; steps {'check_source': 7.5, 'prepare_disk': 0.0, 'boot_images': 0.6, 'system': 10.8, 'boot_entry': 0.0, 'verify': 6.9, 'report': 0.0})",
     "ok": true,
     "detail": "None"
    },
    {
     "check": "avbtool verify_image: the 533 MiB product's hashtree is correct",
     "ok": true,
-    "detail": "e/anybook/installer/work/anal211-host-3/big/product.img\nproduct: Successfully verified sha256 hashtree of /home/hive/anybook/installer/work/anal211-host-3/big/product.img for image of 555020288 bytes\n"
+    "detail": "e/anybook/installer/work/anal211-host-4/big/product.img\nproduct: Successfully verified sha256 hashtree of /home/hive/anybook/installer/work/anal211-host-4/big/product.img for image of 555020288 bytes\n"
    },
    {
     "check": "the 256 MiB app reads back from the image byte for byte",
@@ -446,15 +468,15 @@
  },
  "scale": {
   "package_bytes": 268539167,
-  "check_s": 2.2,
-  "apply_s": 25.8,
+  "check_s": 2.5,
+  "apply_s": 25.9,
   "steps_s": {
-   "check_source": 7.2,
+   "check_source": 7.5,
    "prepare_disk": 0.0,
    "boot_images": 0.6,
-   "system": 10.4,
+   "system": 10.8,
    "boot_entry": 0.0,
-   "verify": 7.5,
+   "verify": 6.9,
    "report": 0.0
   },
   "product_bytes": 559407104,
@@ -462,7 +484,7 @@
   "hashtree_bytes": 4378624
  },
  "summary": {
-  "passed": 85,
-  "total": 85
+  "passed": 89,
+  "total": 89
  }
 }

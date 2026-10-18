@@ -24,6 +24,8 @@ are used; no Google software.
                  vbmeta_a: unsigned, product's descriptor = the footer's, every other descriptor as on the stick,
                  avbtool calculate_vbmeta_digest = the bootconfig's androidboot.vbmeta.digest, size likewise;
                  every other logical partition byte-identical to the stick's
+  alongside-gapps  an alongside install with the package next to a Windows-like disk: verifies; MSR, NTFS and
+                 recovery byte-identical; avbtool verify_image on the rebuilt product
   scale          a package with a 256 MiB app: check, install and avbtool verify_image, with timings
   refuse-*       an unknown package sha256 (no_gapps), a package that adds a file the image has (gapps_clash), an
                  unconfirmed step (gapps_not_confirmed), and a staged file changed after the plan (apply fails in
@@ -511,6 +513,55 @@ def main():
         diff.append((n, sha_file(t3, e["bytes"], sp["start"] + e["dst"]) == e["sha256"]))
     check("apply-gapps", "every other logical partition is byte-identical to the stick's", all(x for _, x in diff), diff)
     json.dump(res, open(f"{w}/report.json", "w"), indent=1)
+
+    # ---------------------------------------------------------------- alongside a Windows-like disk, with the package
+    wdisk = blank(f"{run}/target-windows.img", 300)
+    wd = f"{run}/alongside"
+    os.makedirs(wd, exist_ok=True)
+    wes = f"{wd}/win-esp.img"
+    if os.path.exists(wes):
+        os.remove(wes)
+    sh("mkfs.fat", "-F", "32", "-n", "SYSTEM", "-C", wes, str(260 * 1024))
+    for d in ("::/EFI", "::/EFI/Microsoft", "::/EFI/Microsoft/Boot", "::/EFI/BOOT"):
+        sh("mmd", "-i", wes, d)
+    open(f"{wd}/bootmgfw.efi", "wb").write(os.urandom(150000))
+    sh("mcopy", "-i", wes, f"{wd}/bootmgfw.efi", "::/EFI/Microsoft/Boot/bootmgfw.efi")
+    sh("mcopy", "-i", wes, f"{wd}/bootmgfw.efi", "::/EFI/BOOT/BOOTX64.EFI")
+    sh("sgdisk", "-n", "1:2048:+260M", "-t", "1:ef00", "-c", "1:EFI system partition",
+       "-n", "2:0:+16M", "-t", "2:0c01", "-c", "2:Microsoft reserved partition",
+       "-n", "3:0:+200G", "-t", "3:0700", "-c", "3:Basic data partition",
+       "-n", "4:0:+800M", "-t", "4:2700", "-c", "4:", wdisk)
+    with open(wdisk, "r+b") as f:
+        f.seek(2048 * 512)
+        f.write(open(wes, "rb").read())
+    pw = sh("sgdisk", "-p", wdisk).stdout
+    rows = [(int(m.group(1)), int(m.group(2)), int(m.group(3))) for m in re.finditer(r"^\s+(\d+)\s+(\d+)\s+(\d+)", pw, re.M)]
+    with open(wdisk, "r+b") as f:
+        f.seek(rows[2][1] * 512 + 3)
+        f.write(b"NTFS    ")
+    wbefore = {i: content_digest(wdisk, st * 512, (en - st + 1) * 512) for i, st, en in rows}
+    Ea = engine(a.engine, "alongside", wdisk, serial="win0")
+    rc, j, _ = Ea.run("gapps-check", "--package", f"{a.packages}/{REF}.zip")
+    asha = j.get("gapps_sha256", "")
+    pa = f"{wd}/plan.json"
+    rc, j, _ = Ea.run("plan", "--target", "nvme-QEMU_NVMe_Ctrl_win0", "--layout", "alongside", "--gapps", asha, "--out", pa)
+    check("alongside-gapps", "an alongside plan with the package: in the free space, product rebuilt",
+          rc == 0 and j["partitions"][0]["name"] == "xbootldr" and j.get("product", {}).get("partition") == "product_a",
+          j.get("error"))
+    pra = j.get("product", {})
+    rc, j, _ = Ea.run("apply", "--plan", pa, "--confirm-disk", "/dev/disk/by-id/nvme-QEMU_NVMe_Ctrl_win0",
+                      env={"OPENBOOK_INSTALL_ERASE": "/dev/disk/by-id/nvme-QEMU_NVMe_Ctrl_win0", **SDK_ENV})
+    check("alongside-gapps", "the install verifies", rc == 0 and j.get("ok") and j.get("verified"), j.get("error"))
+    wafter = {i: content_digest(wdisk, st * 512, (en - st + 1) * 512) for i, st, en in rows}
+    check("alongside-gapps", "MSR, NTFS and recovery byte-identical (S7)", all(wafter[i] == wbefore[i] for i in (2, 3, 4)))
+    spa = next(p for p in json.load(open(pa))["partitions"] if p["name"] == "super")
+    aimg = f"{wd}/product.img"
+    extract(wdisk, spa["start"] + pra.get("super_offset", 0), pra.get("bytes", 0), aimg)
+    vi = sh(f"{HOST}/avbtool", "verify_image", "--image", aimg)
+    check("alongside-gapps", "avbtool verify_image passes on its rebuilt product",
+          vi.returncode == 0 and "Successfully verified sha256 hashtree" in vi.stdout + vi.stderr, (vi.stdout + vi.stderr)[-200:])
+    os.remove(aimg)
+    os.remove(wdisk)
 
     # ---------------------------------------------------------------- scale: a 256 MiB app
     big = f"{a.packages}/{REF}-big.zip"
