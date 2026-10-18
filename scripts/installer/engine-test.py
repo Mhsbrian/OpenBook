@@ -73,8 +73,9 @@ def write_sys(root, rel, value):
     open(p, "w").write(f"{value}\n")
 
 
-def make_root(run, name, stick_img, target_img, target_serial="internal0", mounted_target=False):
-    """A fixture root: sysfs for a USB stick (sda) and an NVMe disk (nvme0n1); /dev/block links to the images."""
+def make_root(run, name, stick_img, target_img, target_serial="internal0", mounted_target=False, power=None):
+    """A fixture root: sysfs for a USB stick (sda) and an NVMe disk (nvme0n1); /dev/block links to the images.
+    power: {supply: {attribute: value}} under /sys/class/power_supply (none by default, like a VM)."""
     root = f"{run}/roots/{name}"
     shutil.rmtree(root, ignore_errors=True)
     usb = "sys/devices/pci0000:00/0000:00:14.0/usb3/3-1"
@@ -115,6 +116,9 @@ def make_root(run, name, stick_img, target_img, target_serial="internal0", mount
     os.symlink(os.path.abspath(target_img), f"{root}/dev/block/nvme0n1")
     write_sys(root, "proc/self/mounts", "/dev/block/dm-5 /data f2fs rw 0 0\n/dev/block/sda7 /metadata ext4 rw 0 0")
     write_sys(root, "proc/swaps", "Filename Type Size Used Priority")
+    for n, attrs in (power or {}).items():
+        for k, v in attrs.items():
+            write_sys(root, f"sys/class/power_supply/{n}/{k}", v)
     return root
 
 
@@ -323,6 +327,33 @@ def main():
     check("refuse-changed", "the disk changed after the plan: refused (plan_changed, S4)",
           rc != 0 and j.get("code") == "plan_changed", j.get("code"))
     check("refuse-changed", "target unchanged", sha_file(changed) == ch_before)
+    # S8, power: on battery below 50 % with the charger off (the G14 in anal192d), and supplies the engine can't read
+    # (SELinux lets only the health HAL read them) with no reading given: both refused before anything is written.
+    for name, supplies, unreadable, what in (
+            ("battery-41", {"ACAD": {"type": "Mains", "online": 0},
+                            "BAT1": {"type": "Battery", "scope": "System", "capacity": 41}}, False,
+             "on battery at 41 %, charger off: refused (power, S8)"),
+            ("unreadable", {"ACAD": {"type": "Mains", "online": 1},
+                            "BAT1": {"type": "Battery", "capacity": 80}}, True,
+             "power supplies unreadable and no reading given: refused (power; S8 fails closed)")):
+        tp = blank(f"power-{name}", 64)
+        rp = make_root(run, f"power-{name}", stick, tp, target_serial=f"pw{name[:3]}", power=supplies)
+        if unreadable:
+            for n in supplies:
+                os.chmod(f"{rp}/sys/class/power_supply/{n}/type", 0)
+        Ep = Engine(a.engine, rp, uuid, f"{run}/refuse-power-{name}")
+        pp = f"{run}/refuse-power-{name}/plan.json"
+        by = f"nvme-QEMU_NVMe_Ctrl_pw{name[:3]}"
+        Ep.run("plan", "--target", by, "--layout", "whole", "--out", pp)
+        tp_before = sha_file(tp)
+        rc, j, _ = Ep.run("apply", "--plan", pp, "--confirm-disk", f"/dev/disk/by-id/{by}",
+                          env={"OPENBOOK_INSTALL_ERASE": f"/dev/disk/by-id/{by}"})
+        check(f"refuse-power-{name}", what, rc != 0 and j.get("code") == "power", [j.get("code"), j.get("error")])
+        check(f"refuse-power-{name}", "target unchanged", sha_file(tp) == tp_before)
+        if unreadable:
+            for n in supplies:
+                os.chmod(f"{rp}/sys/class/power_supply/{n}/type", 0o644)
+        os.remove(tp)
     # a corrupted stick (S10)
     bad = f"{run}/stick-bad.img"
     shutil.copyfile(stick, bad)

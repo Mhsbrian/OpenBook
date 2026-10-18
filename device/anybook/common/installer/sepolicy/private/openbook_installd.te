@@ -42,10 +42,11 @@ allow openbook_installd sysfs_gpu:file r_file_perms;
 allow openbook_installd sysfs_devices_system_cpu:file r_file_perms;
 allow openbook_installd sysfs_power:file r_file_perms;
 allow openbook_installd sysfs_mem_sleep:file r_file_perms;
-# The power supplies (S8: mains or a battery at 50 % or more), /sys/class/power_supply/*/{type,scope,capacity,online}.
-# A VM has none, so only the G14 showed the denial (anal192d): the daemon could not read them itself and relied on the
-# power reading the app sends with each install.
-allow openbook_installd sysfs_batteryinfo:file r_file_perms;
+# The power supplies (S8): only the health HAL may read sysfs_batteryinfo (a neverallow in AOSP's domain.te), so the
+# app reads them (BatteryManager) and sends them with apply; without that reading the engine refuses (PROTOCOL.md).
+# The engine still tries, for the CLI as root; that try is expected to fail here, and a VM has no power supply, so only
+# the G14 showed it (anal192d: four denials per request).
+dontaudit openbook_installd sysfs_batteryinfo:file { open read };
 # The hardware check probes GPU IDs that are labeled only for the iGPU; elsewhere (VMs) it falls back to the driver
 # name. Those reads are expected to fail.
 dontaudit openbook_installd sysfs:file { open read };
