@@ -1,0 +1,14 @@
+== base.policy (859607 bytes)
+appdomain may read/write/map audioserver_tmpfs: yes
+mediaserver may read/write/map audioserver_tmpfs: no
+system_server may read/write/map audioserver_tmpfs: no
+cameraserver may read/write/map audioserver_tmpfs: no
+mediaextractor may read/write/map audioserver_tmpfs: no
+audioserver may read/write/map audioserver_tmpfs: yes
+== fix.policy (859619 bytes)
+appdomain may read/write/map audioserver_tmpfs: yes
+mediaserver may read/write/map audioserver_tmpfs: yes
+system_server may read/write/map audioserver_tmpfs: no
+cameraserver may read/write/map audioserver_tmpfs: no
+mediaextractor may read/write/map audioserver_tmpfs: no
+audioserver may read/write/map audioserver_tmpfs: yes
