@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Quire Q5 checks (ANAL-219) on a booted userdebug OpenBook device, normally Cuttlefish.
 
-usage: q5-cf-check.py SERIAL OUTDIR [--design DIR] [--only SECTION,...] [--themes light,dark]
+usage: q5-cf-check.py SERIAL OUTDIR [--design DIR] [--only SECTION,...] [--themes light,dark] [--desk apps|none]
 
 Records every state of the note in docs/quire-design.md §3.2 in light and dark, each next to its Q3 render, and checks
 what can be checked from the outside. Sections, in order:
@@ -262,7 +262,20 @@ def clean(d):
     time.sleep(0.8)
 
 
+# --desk none: no app window behind the note. Settings and Files hide overlays on every page, and since ANAL-219's
+# safety round the note is an ordinary overlay, so it does not show over them.
+DESK = "apps"
+
+
 def desk(d, which):
+    if DESK == "none":
+        for pkg in (SETTINGS, "com.android.documentsui"):
+            for tid in re.findall(r"Task\{\w+ #(\d+) type=standard (?:A=\d+:" + re.escape(pkg) + r" |I=" +
+                                  re.escape(pkg) + r"/)", d.sh("dumpsys activity activities | grep -F 'Task{'")):
+                d.sh(f"am stack remove {tid}")
+        d.sh("input keyevent KEYCODE_HOME")
+        time.sleep(1.2)
+        return
     # One window of each, as in the renders: a fresh start closes the previous one.
     if which == "settings":
         d.sh(f"am force-stop {SETTINGS}; am start -W -a android.settings.DISPLAY_SETTINGS >/dev/null")
@@ -1036,7 +1049,11 @@ def main():
     ap.add_argument("--only", default="states,keyboard,a11y,motion,frames,video,contrast,health")
     ap.add_argument("--themes", default="light,dark")
     ap.add_argument("--states", help="only these state recipes (comma-separated), e.g. control,stopped")
+    ap.add_argument("--desk", default="apps", choices=["apps", "none"],
+                    help="what is behind the note: Settings and Files as in the renders, or nothing (they hide overlays)")
     args = ap.parse_args()
+    global DESK
+    DESK = args.desk
     d = Dev(args.serial, args.out)
     d.run("root")
     time.sleep(2)
