@@ -56,18 +56,29 @@ PROPERTIES = (
     "ro.boot.boot_part_uuid", "ro.boot.openbook.live", "ro.boot.openbook.ruby_logs",
     "ro.boot.verifiedbootstate", "ro.boot.veritymode", "sys.boot_completed",
     "init.svc.ruby-wifi-platform", "init.svc.audioserver", "init.svc.wifi_mainline_supplicant",
+    "init.svc.vendor.openbook.zram", "init.svc.mmd_setup", "init.svc.mmd",
+    "mmd.zram.enabled", "mmd.setup_complete",
 )
 
 
 def commands():
     yield "identity", "id; getenforce; cat /proc/uptime /proc/sys/kernel/random/boot_id"
     yield "properties", "; ".join(f'echo "{p}=$(getprop {p})"' for p in PROPERTIES)
-    yield "boot", "cat /proc/cmdline /proc/bootconfig"
-    yield "storage", "cat /proc/mounts /proc/partitions; ls -l /dev/block/by-name; df -h"
+    # User builds deny some procfs reads. Keep independent operations separate
+    # so a denied bootconfig/partitions read cannot suppress other evidence.
+    for name, path in (("cmdline", "/proc/cmdline"), ("bootconfig", "/proc/bootconfig"),
+                       ("mounts", "/proc/mounts"), ("partitions", "/proc/partitions"),
+                       ("modules", "/proc/modules"), ("memory", "/proc/meminfo"),
+                       ("swaps", "/proc/swaps"), ("io-pressure", "/proc/pressure/io")):
+        yield name, "cat " + path
+    yield "block-links", "ls -l /dev/block/by-name"
+    yield "disk-space", "df -h"
     yield "logcat", "timeout 20 logcat -d -b all -v threadtime"
     yield "kernel-logcat", "timeout 20 logcat -d -b kernel -v threadtime"
     yield "dmesg", "timeout 10 dmesg"
-    yield "alsa", "cat /proc/asound/cards /proc/asound/pcm; ls -l /dev/snd"
+    yield "alsa-cards", "cat /proc/asound/cards"
+    yield "alsa-pcm", "cat /proc/asound/pcm"
+    yield "sound-devices", "ls -l /dev/snd"
     yield "wifi-status", "timeout 15 cmd wifi status"
     yield "overlays", "timeout 15 cmd overlay list --user 0"
     for name in ("config_wifiMainlineSupplicantEnabled", "config_wifi_connected_mac_randomization_supported",

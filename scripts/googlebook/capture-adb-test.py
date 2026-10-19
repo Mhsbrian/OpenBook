@@ -82,6 +82,23 @@ echo captured
             self.assertEqual(len(report["commands"]), len(list(capture.commands())) + 1)
             self.assertFalse((out / "manifest.tmp").exists())
 
+    def test_denied_procfs_does_not_suppress_storage_or_memory(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); out = root / "capture"; adb = root / "fake-adb"
+            adb.write_text('''#!/bin/sh
+if [ "$5" = get-state ]; then echo device; exit 0; fi
+case "$6" in
+  *bootconfig*|*partitions*|*swaps*) echo 'Permission denied' >&2; exit 1;;
+esac
+echo available
+''')
+            adb.chmod(0o700)
+            self.assertEqual(capture.collect(adb, "192.0.2.1:5555", 5222, out), 1)
+            report = json.loads((out / "manifest.json").read_text())
+            for name in ("cmdline", "mounts", "block-links", "disk-space", "memory", "modules"):
+                self.assertEqual((out / f"{name}.txt").read_text(), "available\n")
+            self.assertTrue({"bootconfig", "partitions", "swaps"}.issubset(report["failed_sections"]))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -156,6 +156,8 @@ def prepare(a):
                "$KERNEL": a.kernel, "$REPO": HERE.parents[1], "$OUT": a.audit}
     if "$RUBY/fs/vendor_a/etc/ueventd.rc" not in report["input_inventory"]:
         raise ValueError("Rerun the audit to include Ruby's TPM ownership configuration")
+    if "$REPO/device/anybook/common/pc/init.openbook.zram.rc" not in report["input_inventory"]:
+        raise ValueError("Rerun the audit to include the GKI zram module loader")
     if not report["cases"]["hybrid-reduced"].get("service_contexts", {}).get("passed"):
         raise ValueError("Rerun the audit to validate retained framework service labels")
     for name, expected in report["input_inventory"].items():
@@ -167,6 +169,8 @@ def prepare(a):
     # capabilities and labels; host copy ownership is not used as image metadata.
     vendor = w / "vendor"
     shutil.copytree(a.product / "vendor", vendor, symlinks=True)
+    # Also supports an existing PRODUCT_OUT predating this PC init fragment.
+    shutil.copyfile(audit.ZRAM_INIT, vendor / "etc/init/init.openbook.zram.rc")
     wifi = wifi_overlay(a, w, vendor)
     # The retained Ruby framework runs gscd as hsm. Preserve its reviewed device
     # ownership contract on the existing OpenBook TPM/CRB modules; no policy bypass.
@@ -365,6 +369,7 @@ done
               "kernel_sha256": audit.sha(a.kernel / "bzImage"), "module_variant": a.variant,
               "vendor_cmdline": vendor_cmdline,
               "wifi_overlay": wifi,
+              "zram_init_sha256": audit.sha(audit.ZRAM_INIT),
               "bootconfig": params, "gpt": g.table(),
               "avb": "local test-key root, unlocked/orange; retained Google logical image descriptors",
               "usb_logger_sha256": audit.sha(vendor / "bin/ruby-usb-log"),

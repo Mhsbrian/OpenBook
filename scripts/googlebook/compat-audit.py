@@ -26,6 +26,7 @@ REPO = Path(__file__).resolve().parents[2]
 POLICY_PROFILE = REPO / "config/image-bases/ruby-vendor-policy.json"
 PROBE_POLICY = REPO / "config/image-bases/ruby-probe.cil"
 SERVICE_PROFILE = REPO / "config/image-bases/ruby-framework-services.txt"
+ZRAM_INIT = REPO / "device/anybook/common/pc/init.openbook.zram.rc"
 PARTS = ("system", "system_ext", "product", "vendor", "odm")
 
 
@@ -135,7 +136,7 @@ class Audit:
                 "command": [self.clean(str(v)) for v in cmd], "log": str(log.relative_to(self.a.out))}
 
     def inventory(self, trees):
-        files = {POLICY_PROFILE, PROBE_POLICY, SERVICE_PROFILE}
+        files = {POLICY_PROFILE, PROBE_POLICY, SERVICE_PROFILE, ZRAM_INIT}
         for maps in trees:
             for root in maps.values():
                 files.update(p for sub in ("etc/vintf", "etc/selinux", "apex")
