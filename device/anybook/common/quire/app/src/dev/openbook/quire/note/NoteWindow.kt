@@ -167,6 +167,12 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
             x = d.left
             y = d.top
             if (systemFor(t)) privateFlags = privateFlags or WindowManager.LayoutParams.PRIVATE_FLAG_SYSTEM_APPLICATION_OVERLAY
+            // A trusted overlay (INTERNAL_SYSTEM_WINDOW): the window covers the display and never moves, and the clicks
+            // beside the card still reach the windows below (input's untrusted-occlusion rule doesn't apply). Moving
+            // and resizing a small window made the note jump: for a frame the system showed the new content at the old
+            // position (ANAL-220). Hiding for windows that hide overlays is unchanged: that rule is about system
+            // application overlays, not trusted ones.
+            setTrustedOverlay()
             softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING
             layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
             fitInsetsTypes = 0
@@ -416,7 +422,8 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
         override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
             // Children measure against the display, not against the window, which is only as big as the card was.
             val d = displayBounds()
-            card.maxHeight = if (card.widthDp == NoteCard.MIRROR_WIDTH) Int.MAX_VALUE else (d.height() * MAX_HEIGHT).toInt()
+            // The mirror may use most of the display, never more: the note always fits on screen (ANAL-220).
+            card.maxHeight = (d.height() * if (card.widthDp == NoteCard.MIRROR_WIDTH) MAX_MIRROR_HEIGHT else MAX_HEIGHT).toInt()
             card.measure(MeasureSpec.makeMeasureSpec(d.width(), MeasureSpec.AT_MOST),
                 MeasureSpec.makeMeasureSpec(d.height(), MeasureSpec.AT_MOST))
             pickerView?.measure(MeasureSpec.makeMeasureSpec(dpi(300f), MeasureSpec.EXACTLY),
@@ -469,6 +476,8 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
          */
         private fun neededFrame(): Rect {
             val d = displayBounds()
+            // A trusted overlay keeps the display-wide window it was added with.
+            if (TRUSTED) return Rect(d)
             if (folding && foldIntoTaskbar) return Rect(d)
             val r = RectF(target)
             r.union(shown)
@@ -739,6 +748,7 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
 
         /** The note is never taller than 60 % of the display (§3.1); the mirror is the one exception. */
         private const val MAX_HEIGHT = 0.6f
+        private const val MAX_MIRROR_HEIGHT = 0.92f
 
         /** The scale the note unfolds from and folds to (§5.2). */
         private const val FOLDED = 0.2f
@@ -746,6 +756,9 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
         /** After the first frame is committed, how long until WM has shown the surface. */
         private const val VISIBLE_SETTLE_MS = 150L
         private const val APPEAR_FALLBACK_MS = 120L
+
+        /** The note's window is a trusted overlay and never moves (see [show]). */
+        private const val TRUSTED = true
 
         /** Room around the card for its shadow, inside the window (dp). */
         private const val FRAME_MARGIN = 32f

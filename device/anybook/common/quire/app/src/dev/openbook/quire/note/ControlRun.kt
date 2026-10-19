@@ -76,6 +76,47 @@ class ControlRun(
     private var held: (() -> Unit)? = null
     private var heldFail: ((String) -> Unit)? = null
 
+    /**
+     * Agent mode: Android's own prompt on the person's screen (installing an app, a permission), by its app's name. The
+     * app being driven may start one; it opens on the person's display, not in the mirror. While it shows, the note
+     * steps aside so it can be answered, and the agent's next step waits for the answer (ANAL-220: an agent tapped
+     * Install a hundred times under a prompt nobody could see).
+     */
+    var prompt: String? = null
+        private set
+
+    /** The prompt the person answered since the agent last read the app, for the agent to hear of it once. */
+    var answeredPrompt: String? = null
+
+    private val promptWatch = object : Runnable {
+        override fun run() {
+            if (!live) return
+            checkPrompt()
+            handler.postDelayed(this, PROMPT_POLL_MS)
+        }
+    }
+
+    private fun checkPrompt() {
+        val m = mirror ?: return
+        val shown = runCatching { dev.openbook.quire.tools.LiveContext.windows(context) }.getOrDefault(emptyList())
+            .firstOrNull { it.pkg in PROMPTS }
+        if (shown != null && prompt == null) {
+            prompt = shown.app
+            m.status = context.getString(R.string.q_cc_prompt, shown.app)
+            window.platformDialog = true
+            Log.i(TAG, "note: control run waits for the person's answer in ${shown.pkg}")
+            task.controlPhase(Task.Phase.MIRROR)
+        } else if (shown == null && prompt != null) {
+            answeredPrompt = prompt
+            prompt = null
+            m.status = ""
+            window.platformDialog = false
+            Log.i(TAG, "note: control run: the person answered the prompt")
+            task.controlPhase(Task.Phase.MIRROR)
+            if (!m.paused && m.blockedReason == null) release()
+        }
+    }
+
     fun start(prompt: String) {
         if (agentMode) task.attachControl(this) else task.beginControl(prompt, this)
         control.events = this
@@ -155,6 +196,7 @@ class ControlRun(
             if (agentMode) {
                 ready?.invoke(null)
                 ready = null
+                handler.postDelayed(promptWatch, PROMPT_POLL_MS)
             } else {
                 next()
             }
@@ -380,6 +422,8 @@ class ControlRun(
         window.sessionChanged()
         ConsentWait.close()
         Log.i(TAG, "note: control run ended stopped=$stopped agent=$agentMode: $msg")
+        handler.removeCallbacks(promptWatch)
+        prompt = null
         if (agentMode) {
             endedBecause = listOfNotNull(msg, sub).joinToString(" ")
             ready?.invoke(endedBecause)
@@ -414,8 +458,9 @@ class ControlRun(
             done(endedBecause ?: "Computer control isn't running; start it with control_start.")
             return
         }
-        if (m.paused || m.blockedReason != null) {
-            // Held until Resume, or until the session unblocks; replaced if the agent sends another.
+        if (m.paused || m.blockedReason != null || prompt != null) {
+            // Held until Resume, until the session unblocks, or until the person answers Android's prompt; replaced if
+            // the agent sends another.
             heldFail?.invoke("Replaced by a newer step while the person had paused.")
             held = { agentStep(title, kind, act, done) }
             heldFail = done
@@ -495,6 +540,11 @@ class ControlRun(
 
     companion object {
         private val PACKAGE_OF = mapOf("Settings" to "com.android.settings")
+        private const val PROMPT_POLL_MS = 700L
+
+        /** Android's own prompts the person answers: installing an app, granting a permission. */
+        private val PROMPTS = setOf("com.android.packageinstaller", "com.google.android.packageinstaller",
+            "com.android.permissioncontroller", "com.google.android.permissioncontroller")
         private const val OPEN_SETTLE_MS = 1500L
         private const val AIM_MS = 700L
         private const val AFTER_TAP_MS = 600L

@@ -22,6 +22,10 @@
          driven app hides overlays; see note/NoteWindow.kt. -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.SYSTEM_APPLICATION_OVERLAY" />
+    <!-- ANAL-220: the note's window is a trusted overlay (signature): it covers the display without blocking the clicks
+         that pass through it beside the card, so it never has to move or resize, which made the note jump. It still
+         hides like any ordinary overlay when a window asks the system to hide overlays. -->
+    <uses-permission android:name="android.permission.INTERNAL_SYSTEM_WINDOW" />
     <!-- Agents are reached over sockets: loopback on debuggable builds today (note/LabReceiver.kt), vsock and paired
          computers later (Q4). -->
     <uses-permission android:name="android.permission.INTERNET" />
