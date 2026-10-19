@@ -1,5 +1,12 @@
 # Hardware
 
+The owner subsequently reported a black screen after selecting the experimental
+Googlebook USB entry. Inspection found initialized Android metadata but no saved
+ESP reports, bootstat entries or watchdog files. The original candidate only
+logged to a VM serial console. Its used disk extent was backed up privately for
+investigation. Persistent USB diagnostics are described in
+`docs/googlebook-live.md`; a VM capture is not proof of a physical Radeon fix.
+
 On 2026-10-19, the owner attached the previously identified 62 GB SanDisk Ultra
 and requested the experimental Googlebook image. The guarded write and full
 12.8 GB readback passed, then the stick was powered off. This verifies the

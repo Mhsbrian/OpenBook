@@ -2,6 +2,15 @@
 
 ## Ruby live-image research lane (ANAL-228, 2026-10-19)
 
+The black-screen follow-up adds persistent USB capture while retaining enforcing
+SELinux. `hybrid-probe.py` builds the static logger and validates its policy and
+vendor image labels; `live-image.py` adds normal, Mesa GL and VM logging entries.
+Use `run-probe.py --uefi-usb --usb-logs --usb-log-entry logs` to exercise the
+actual hardware-facing menu entry and extract logs from the private VM disk.
+The original input and synthetic internal disk must remain unchanged. For a
+full ten-minute capture, allow a longer observation window (for example 760 s).
+See `docs/googlebook-live.md` for operation and capture limits.
+
 See `docs/googlebook-live.md` for the isolated patched-QEMU build, native versus
 emulated arithmetic checks, bare-metal probe packaging, and UEFI/USB tests with
 a synthetic internal disk. The output is a local research image, not an

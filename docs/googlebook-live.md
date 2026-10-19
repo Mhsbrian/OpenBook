@@ -5,6 +5,56 @@ packager and an instruction-emulation lane. These are local research artifacts;
 the installer Googlebook option remains unavailable. Generated images contain
 retained recovery material and must stay local.
 
+## Black-screen capture on the USB
+
+The owner reported a black screen after selecting the original live entry.
+That candidate (`5b21c939…`) only had VM serial diagnostics; it did **not** save
+logs to its ESP. Inspection found no saved reports. Its metadata partition was
+initialized, but its bootstat and watchdog directories were empty. That is
+evidence of Android initialization, not a diagnosis or successful desktop boot.
+The complete used image extent was preserved privately before replacement.
+
+The new **Googlebook - save detailed logs to USB (10 minutes)** entry runs a
+static PID 1 helper before Android, saving `early.txt` and `early-kernel.txt`.
+An early-init vendor service then streams kernel records, and an Android shell
+service supplies all logcat buffers plus repeated properties, processes,
+mounts, memory, SurfaceFlinger, display, window, activity and power snapshots.
+No desktop interaction or network connection is needed. The alternate
+**Googlebook - Mesa GL, save detailed logs to USB** entry changes the EGL path
+and captures the same evidence. Neither entry changes the installed laptop.
+
+Select the normal save-logs entry first, leave it running for **12 minutes**
+even if the screen stays black, then shut down and return the stick to the
+build host. It does not power off automatically. Files are on the readable FAT
+partition under `openbook/logs/ruby-<boot-id>/`; `complete.txt` marks the end of
+the timed capture and records any unsaved bytes or failed write attempts.
+Early shutdown can leave an incomplete session. Keep each session together;
+raw diagnostics can include device identifiers and should not be published
+without review.
+
+The helper selects exactly one physical bootconfig PARTUUID, requires the EFI
+partition on USB and the research-image marker, and opens only that partition.
+It uses the existing crash-ordered FAT writer with short exclusive opens,
+flushing chunks every five seconds. It never mounts the ESP, edits partitions,
+grows or resets userdata, writes firmware variables, or prunes previous logs.
+Sessions are capped at 48 MiB including the early-checkpoint allowance, with
+32 MiB of free ESP space reserved. SELinux, neverallow checks and dm-verity stay
+enforcing. The sink has its own vendor domain; diagnostic commands retain
+shell-user permissions. The old permissive AOSP live logger is not reused.
+
+An early checkpoint alone means the Android collector did not run successfully;
+failure between that checkpoint and early-init can escape continuous capture.
+No session can mean failure before PID 1, missing USB enumeration, insufficient
+space or another logging failure. These files cannot capture firmware failures
+before the kernel starts. Logs establish a boot stage and failure evidence;
+they do not by themselves prove the desktop works.
+
+Implementation follows the device-specific domain and file-label model in
+[AOSP's SELinux implementation guide](https://source.android.com/docs/security/features/selinux/implement)
+(checked 2026-10-19). Native policy and file-context checks remain mandatory.
+The vendor packer retains applicable original platform defaults, including
+`vendor_apex_file`, and checks critical labels to prevent an early APEX failure.
+
 ## Execution baseline
 
 The 7950X cannot execute Ruby's VEX AVX-VNNI instructions. A separate container
@@ -38,7 +88,8 @@ allow is added for these services.
 `live-image.py` takes a newly built **bare-metal** probe and creates a new regular
 disk file. It verifies the six logical image hashes, kernel hash and AVB digest
 against the probe recipe, then reads back every populated GPT partition. Its
-ESP contains systemd-boot, a normal entry and a serial diagnostic entry. The
+ESP contains systemd-boot, normal and serial entries, and persistent logging
+entries for normal graphics, Mesa GL, and VM serial diagnostics. The
 normal entry is named `openbook-a.conf`, as required by the existing OpenBook
 boot-control helper when Android marks slot A successful.
 
@@ -52,7 +103,10 @@ The research manifest uses its own schema and records `installable: false`.
 Only its menu default changes to the shipped serial entry. It attaches a
 separate writable synthetic NVMe with identical Android partition names and
 different UUIDs. Original input, test image and decoy hashes are checked after
-the run. Guest writes to the USB use QEMU's disposable snapshot. No physical
+the run. Guest writes to the USB normally use QEMU's disposable snapshot. With
+`--usb-logs`, the harness selects the shipped serial+USB entry and retains writes
+in its private copy, then extracts saved files after QEMU stops. The source
+image and internal decoy must still remain unchanged. No physical
 disk or host firmware variables enter the container, and the guest has no
 network. USB keyboard and tablet match the existing OpenBook VM setup.
 `--wake-display` records the screen before and after a wake key, so an idle
@@ -89,6 +143,8 @@ scripts/installer/inst-docker.sh bash "$REPO/scripts/googlebook/build-tcg.sh" \
 
 python3 scripts/googlebook/compat-test.py -v
 python3 scripts/googlebook/live-test.py -v
+scripts/installer/inst-docker.sh bash "$REPO/scripts/googlebook/usb-log-test.sh" \
+  "$DATA/installer/work/ruby-log-unit-new"
 python3 scripts/googlebook/compat-audit.py \
   --ruby "$RUBY" --product "$PRODUCT" --kernel "$KERNEL" --tools "$TOOLS" \
   --out "$AUDIT"
@@ -102,6 +158,12 @@ scripts/installer/inst-docker.sh python3 "$REPO/scripts/googlebook/run-probe.py"
   --input "$LIVE" --out "$RUN" --uefi-usb --accel tcg --tpm --wake-display --timeout 480 \
   --qemu "$DATA/installer/work/ruby-tcg/build/qemu-system-x86_64"
 ```
+
+For persistent capture, add `--usb-logs --usb-log-entry logs` and use a fresh
+run directory with `--timeout 760`. This exercises the physical save-logs entry
+without relying on a serial console. `--usb-log-entry safe-logs` tests the Mesa
+GL alternative. Inspect the extracted session, including `complete.txt`, and
+the recorded runtime failures; harness completion is not desktop qualification.
 
 The native arithmetic oracle requires GFNI, VPCLMULQDQ and AVX512-VNNI/VL.
 The 7950X has these; do not run that oracle on a host missing them. For the KVM
