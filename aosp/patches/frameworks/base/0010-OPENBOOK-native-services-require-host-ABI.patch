@@ -62,15 +62,27 @@ diff --git a/core/java/android/os/NativeZygoteProcess.java b/core/java/android/o
 diff --git a/services/core/java/com/android/server/am/ActiveServices.java b/services/core/java/com/android/server/am/ActiveServices.java
 --- a/services/core/java/com/android/server/am/ActiveServices.java
 +++ b/services/core/java/com/android/server/am/ActiveServices.java
-@@ -210,6 +210,7 @@
+@@ -208,6 +208,7 @@
+ import android.os.IBinder;
+ import android.os.Looper;
  import android.os.Message;
++import android.os.NativeZygoteProcess;
  import android.os.PowerExemptionManager;
  import android.os.PowerExemptionManager.ReasonCode;
-+import android.os.NativeZygoteProcess;
  import android.os.Process;
- import android.os.RemoteCallback;
- import android.os.RemoteCallbackList;
-@@ -5475,6 +5476,17 @@
+@@ -5240,6 +5241,11 @@
+                           ": not found");
+                     return null;
+                 }
++                // Check before constructing/inserting a ServiceRecord: failed binds must
++                // not accumulate records or prewarm a zygote that cannot load the library.
++                if (!isNativeServiceAbiSupported(sInfo)) {
++                    return null;
++                }
+                 if (instanceName != null
+                         && (sInfo.flags & ServiceInfo.FLAG_ISOLATED_PROCESS) == 0
+                         && !isSdkSandboxService) {
+@@ -5475,10 +5481,31 @@
                  }
              }
  
@@ -78,13 +90,27 @@ diff --git a/services/core/java/com/android/server/am/ActiveServices.java b/serv
 +            // Apps such as Chromium can then bind their managed-service fallback, whose
 +            // JNI libraries use NativeBridge. Do not try to instantiate a native-only
 +            // service as a Java Service: it need not contain that class.
-+            if (r.mIsNativeIsolated
-+                    && !NativeZygoteProcess.isAbiSupported(r.appInfo.primaryCpuAbi)) {
-+                Slog.w(TAG_SERVICE, "Native-only service unavailable for ABI "
-+                        + r.appInfo.primaryCpuAbi + ": " + r.shortInstanceName);
++            if (!isNativeServiceAbiSupported(r.serviceInfo)) {
 +                return null;
 +            }
 +
              r.appInfo.seInfo += generateAdditionalSeInfoFromService(service, r);
              return new ServiceLookupResult(r, resolution.getAlias());
          }
+         return null;
++    }
++
++    private static boolean isNativeServiceAbiSupported(ServiceInfo serviceInfo) {
++        final int nativeIsolated = ServiceInfo.FLAG_NATIVE_SERVICE
++                | ServiceInfo.FLAG_ISOLATED_PROCESS;
++        if (android.os.Flags.nativeFrameworkPrototype()
++                && (serviceInfo.flags & nativeIsolated) == nativeIsolated
++                && !NativeZygoteProcess.isAbiSupported(serviceInfo.applicationInfo.primaryCpuAbi)) {
++            Slog.w(TAG_SERVICE, "Native-only service unavailable for ABI "
++                    + serviceInfo.applicationInfo.primaryCpuAbi + ": " + serviceInfo.name);
++            return false;
++        }
++        return true;
+     }
+ 
+     private int getAllowMode(Intent service, @Nullable String callingPackage) {
