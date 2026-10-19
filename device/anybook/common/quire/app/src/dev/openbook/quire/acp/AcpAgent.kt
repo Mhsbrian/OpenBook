@@ -21,12 +21,42 @@ import java.net.InetSocketAddress
 import java.net.Socket
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 import org.json.JSONArray
 import org.json.JSONObject
 
-/** An open byte stream to an ACP agent. */
-class Link(val input: InputStream, val output: OutputStream, private val onClose: Closeable) : Closeable {
-    override fun close() = onClose.close()
+/**
+ * An open byte stream to an ACP agent, owned by the [AcpConnection] that reads it. [shutdown] ends reading and writing
+ * from any thread, so a read blocked on the stream returns; [close] shuts it down and releases it. Both run once, however
+ * often they are called.
+ */
+class Link(
+    val input: InputStream,
+    val output: OutputStream,
+    private val onShutdown: () -> Unit,
+    private val onRelease: Closeable,
+) : Closeable {
+    private val down = AtomicBoolean(false)
+    private val released = AtomicBoolean(false)
+
+    fun shutdown() {
+        if (!down.compareAndSet(false, true)) return
+        try {
+            onShutdown()
+        } catch (e: Exception) {
+            // Already gone.
+        }
+    }
+
+    override fun close() {
+        shutdown()
+        if (!released.compareAndSet(false, true)) return
+        try {
+            onRelease.close()
+        } catch (e: IOException) {
+            // Already gone.
+        }
+    }
 }
 
 /**
@@ -66,7 +96,8 @@ data class Endpoint(
         val socket = Socket()
         socket.connect(InetSocketAddress(host, parts[2].toInt()), CONNECT_TIMEOUT_MS)
         socket.tcpNoDelay = true
-        return Link(socket.getInputStream(), socket.getOutputStream(), socket)
+        // Closing a Java socket from another thread ends a read blocked on it.
+        return Link(socket.getInputStream(), socket.getOutputStream(), { socket.close() }, socket)
     }
 
     /** A stream to quired in the Linux environment; when it can't be used, the error says why (Connectors). */
@@ -74,14 +105,14 @@ data class Endpoint(
         val status = Connectors.LinuxEnvironment.status(context)
         if (status.state != Connectors.State.READY) throw IOException(status.describe(context))
         val pfd = Connectors.LinuxEnvironment.connect(context)
-        return Link(FileInputStream(pfd.fileDescriptor), FileOutputStream(pfd.fileDescriptor), Closeable {
-            // quired sees EOF and stops the agent it started for this connection (agents/AgentHost.kt).
+        // These streams don't own the descriptor, and closing them doesn't end a read blocked on it: shutdown(2)
+        // does. quired then sees EOF and stops the agent it started for this connection (agents/AgentHost.kt).
+        return Link(FileInputStream(pfd.fileDescriptor), FileOutputStream(pfd.fileDescriptor), {
             try {
                 Os.shutdown(pfd.fileDescriptor, OsConstants.SHUT_RDWR)
             } catch (_: ErrnoException) {
             }
-            pfd.close()
-        })
+        }, pfd)
     }
 
     companion object {
@@ -122,7 +153,6 @@ class AcpAgent(
     }
 
     private val io = Executors.newSingleThreadExecutor { r -> Thread(r, "acp-open-${endpoint.id}") }
-    private var link: Link? = null
     private var connection: AcpConnection? = null
 
     @Volatile var info: AgentInfo? = null
@@ -141,8 +171,8 @@ class AcpAgent(
                 main.execute { done(Result.failure(e)) }
                 return@execute
             }
-            val c = AcpConnection(opened.input, opened.output, handler, endpoint.id)
-            link = opened
+            // The connection owns the link: it shuts it down on close and releases it once its reader is done.
+            val c = AcpConnection(opened.input, opened.output, handler, endpoint.id, opened)
             connection = c
             c.start()
             val params = JSONObject()
@@ -230,12 +260,6 @@ class AcpAgent(
     fun close() {
         connection?.close()
         connection = null
-        try {
-            link?.close()
-        } catch (e: IOException) {
-            // Already gone.
-        }
-        link = null
     }
 
     private val handler = object : AcpConnection.Handler {

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 """Quire in the OTA rehearsal VM (ANAL-225), before the G14: boots a copy of a saved disk state of an ota-qemu.py run
-(default after-ba: the update the laptop gets, applied over adb from the laptop's own state), puts the Linux
+(default after-ba: the update the laptop gets, applied over adb from the laptop's own state), runs the Linux-environment
+adapter's regression on its Android runtime (device/anybook/common/quire/tools/bridge-test.sh), puts the Linux
 environment's Debian image on it over adb the way the laptop gets it (scripts/quire/linux-env-adb.sh check: the
 person's steps, the guest, an agent's answer to Quire core), then runs scripts/quire/g14-quire-check.py. The Debian
 guest runs under nested KVM (the VM has -cpu host).
@@ -59,6 +60,9 @@ def main():
         unlocked, how = oq.unlock(adb)
         oq.log(f"quire: slot {slot}, unlocked={unlocked} ({how})")
         serial = f"127.0.0.1:{port}"
+        rc["bridge"] = script([f"{oq.R}/device/anybook/common/quire/tools/bridge-test.sh", serial, f"{out}/bridge"],
+                              f"{out}/bridge-test.log", 900)
+        oq.log(f"quire: bridge-test.sh exit {rc['bridge']}")
         rc["linux-env"] = script([f"{oq.R}/scripts/quire/linux-env-adb.sh", "-s", serial, "check", a.image,
                                   f"{out}/linux-env"], f"{out}/linux-env-adb.log", 2400)
         oq.log(f"quire: linux-env-adb.sh check exit {rc['linux-env']}")

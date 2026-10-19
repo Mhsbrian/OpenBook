@@ -9,18 +9,24 @@ usage: g14-quire-check.py SERIAL OUTDIR [--only SECTION,...] [--prompt TEXT] [--
 Sections, in order:
   facts    Quire is the assistant and a privileged system app; AVF and KVM (ro.boot.hypervisor.vm.supported); the
            Terminal app and its agent bridge; the Linux environment's state as Quire core sees it.
-  invoke   With Settings on screen: a pointer shake (a virtual USB mouse made with `uinput`) and Meta+Space each open
-           the note, anchored at the pointer. Esc closes it.
-  agent    Meta+Space; the note lists the agents quired reports in the Linux environment; the person's steps: "Connect
-           <agent>" (skipped when one is connected already), type PROMPT, Enter; the answer streams into the note and
-           must contain EXPECT. Needs the Linux environment running (scripts/quire/linux-env-adb.sh check).
+  invoke   On the desktop (Home: a surface that lets the note show): a pointer shake (a virtual USB mouse made with
+           `uinput`) and Meta+Space each open the note, which must be on screen (the window titled "Quire",
+           isOnScreen) and beside the pointer (its frame within reach of the pointer's position from dumpsys input).
+           Esc closes it. Then with Settings in front, Meta+Space: the note is made but hidden, because Settings hides
+           other apps' overlays. That is the reviewed behaviour (docs/quire.md §8 item 10), reported, not failed.
+  agent    On the desktop, Meta+Space; the note lists the agents quired reports in the Linux environment; the person's
+           steps: "Connect <agent>" (skipped when one is connected already), PROMPT typed with `input text`, Enter; the
+           answer streams into the note and must contain EXPECT. Needs the Linux environment running
+           (scripts/quire/linux-env-adb.sh check). Nothing is sent another way: if typing doesn't reach the note, the
+           section fails there.
   control  The computer-control demo on Settings: the platform's consent dialog, "Only this time", the live mirror,
            taps on Display and Dark theme through the session (it opens the page and changes nothing), then Stop.
   health   Since this run started: crashes and ANRs of Quire, SystemUI and the Terminal app; tombstones; SELinux
            denials naming Quire, the Terminal app, crosvm or virtualization.
 
-Changes nothing the person set: no app is installed, no setting is changed, the demo only opens pages. Screen-driving:
-run it only while nobody uses the device. Commands that are not a person's (the control demo's plan, the check's
+Changes nothing the person set: no app is installed, no setting is changed, the demo only opens pages. Home brings the
+desktop forward, so open windows go to the taskbar, where they stay. Screen-driving: run it only while nobody uses the
+device. Commands that are not a person's (the control demo's plan, the check's
 markers) go through Quire's lab receiver, which only root reaches on a debuggable build, so adbd is made root and put
 back to unroot at the end if it was not root before.
 Writes OUTDIR/results.tsv (check, PASS/FAIL/INFO, detail), OUTDIR/checks.log, screenshots and UI dumps.
@@ -48,6 +54,11 @@ CONTROL_LAB = f"{QUIRE}/.control.LabActivity"
 TAPS = [["Display", "Tapping Display", "Opened Display"],
         ["Dark theme", "Tapping Dark theme", "Opened Dark theme"]]
 POINTER_RE = r"note: shown task (\d+) phase=(\w+) anchor=(\w+)"
+# The note's window title (note/NoteWindow.kt); the tray and the consent card have their own.
+NOTE_TITLE = "Quire"
+# How far the note's frame may be from the pointer and still be "beside" it, in pixels (it opens next to the pointer,
+# flipped or shifted to stay on screen).
+NEAR_PX = 400
 
 
 class Dev(q2.Dev):
@@ -89,19 +100,27 @@ class Dev(q2.Dev):
         return None
 
     def pointer(self):
-        """The mouse pointer's position in display pixels, from dumpsys input (PointerController)."""
-        m = re.search(r"Position:\s*\(?\s*([\d.]+),\s*([\d.]+)", self.sh("dumpsys input | grep -A12 -i 'PointerController'"))
-        return (float(m.group(1)), float(m.group(2))) if m else None
+        """The mouse pointer's position in display pixels, from dumpsys input's pointer controller, or None."""
+        dump = self.sh("dumpsys input")
+        self.write("dumpsys-input-pointer.txt", "\n".join(l for l in dump.splitlines()
+                                                         if re.search(r"(?i)pointer|position|cursor", l))[:20000])
+        for rx in (r"(?i)cursor position[:=]\s*\(?\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)",
+                   r"(?i)\bposition[:=]\s*\(?\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)",
+                   r"(?i)pointerX[:=]\s*(-?[\d.]+)\W+pointerY[:=]\s*(-?[\d.]+)"):
+            m = re.search(rx, dump)
+            if m:
+                return float(m.group(1)), float(m.group(2))
+        return None
 
-    def note_frame(self):
-        """The note window's frame on screen, from dumpsys window (Quire's overlay)."""
+    def note_window(self):
+        """The note's window from dumpsys window: (frame, on screen), or None when there is none."""
         dump = self.sh("dumpsys window windows")
+        self.write("dumpsys-window-last.txt", dump)
         for block in dump.split("Window #")[1:]:
-            if QUIRE in block.splitlines()[0]:
-                m = re.search(r"mFrame=\[(\d+),(\d+)\]\[(\d+),(\d+)\]", block) or \
-                    re.search(r"frame=\[(\d+),(\d+)\]\[(\d+),(\d+)\]", block)
-                if m:
-                    return tuple(map(int, m.groups()))
+            if not re.match(r"\d+ Window\{\w+ u\d+ " + re.escape(NOTE_TITLE) + r"\}:", block):
+                continue
+            m = re.search(r"Frames:.*? frame=\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]", block)
+            return (tuple(map(int, m.groups())) if m else None), "isOnScreen=true" in block
         return None
 
 
@@ -110,12 +129,28 @@ def settings_on_screen(d):
     time.sleep(2)
 
 
+def desktop(d):
+    d.sh("input keyevent KEYCODE_HOME")
+    time.sleep(1.5)
+
+
 def close_note(d):
     d.sh("input keyevent KEYCODE_ESCAPE")
     time.sleep(1.5)
-    if d.note_frame() is not None:
+    w = d.note_window()
+    if w is not None and w[1]:
         d.note("CLOSE")
         time.sleep(1)
+
+
+def beside(ptr, frame):
+    """Whether the frame is within NEAR_PX of the pointer, and the distance; None when either is unknown."""
+    if not ptr or not frame:
+        return None, None
+    dx = max(frame[0] - ptr[0], 0, ptr[0] - frame[2])
+    dy = max(frame[1] - ptr[1], 0, ptr[1] - frame[3])
+    dist = (dx * dx + dy * dy) ** 0.5
+    return dist <= NEAR_PX, dist
 
 
 def facts(d):
@@ -147,8 +182,8 @@ def invoke(d):
              ("meta_space", "assistant_shortcut",
               lambda: d.sh("input keycombination KEYCODE_META_LEFT KEYCODE_SPACE"))]
     for name, trigger, act in cases:
-        settings_on_screen(d)
-        for _ in range(3):  # the pointer rests over Settings, as a person's would
+        desktop(d)
+        for _ in range(3):  # the pointer moves a little, as a person's does before shaking
             mouse.move(-15, -10)
             time.sleep(0.05)
         time.sleep(3.5)  # SystemUI's shake cooldown is 3 s
@@ -164,32 +199,50 @@ def invoke(d):
             m = d.wait_log(r"invocation: trigger=(\S+)", 8, since=tag)
         shown = d.wait_log(POINTER_RE, 10, since=tag)
         time.sleep(1.2)
-        ptr, frame = d.pointer(), d.note_frame()
+        ptr, w = d.pointer(), d.note_window()
+        frame, on_screen = w if w else (None, False)
         d.screencap(f"invoke-{name}.png")
         d.write(f"invoke-{name}-ui.xml", d.ui())
-        d.result(f"{name}: Quire's note opened", bool(m) and m.group(1) == trigger and bool(shown),
+        d.result(f"{name}: Quire's note opened and is on screen",
+                 bool(m) and m.group(1) == trigger and bool(shown) and on_screen,
                  (f"trigger={m.group(1)}" if m else "no invocation logged") +
-                 (f"; shown task {shown.group(1)} phase={shown.group(2)}" if shown else "; note not shown"))
-        near = None
-        if ptr and frame:
-            dx = max(frame[0] - ptr[0], 0, ptr[0] - frame[2])
-            dy = max(frame[1] - ptr[1], 0, ptr[1] - frame[3])
-            near = (dx * dx + dy * dy) ** 0.5 < 400
-        d.result(f"{name}: the note beside the pointer", bool(shown) and shown.group(3) == "Pointer" and near is not False,
-                 f"anchor={shown.group(3) if shown else '-'} pointer={ptr} note frame={frame}")
+                 (f"; shown task {shown.group(1)} phase={shown.group(2)}" if shown else "; note not shown") +
+                 f"; window '{NOTE_TITLE}' {'on screen' if on_screen else 'not on screen' if w else 'absent'}")
+        near, dist = beside(ptr, frame)
+        d.result(f"{name}: the note beside the pointer",
+                 bool(shown) and shown.group(3) == "Pointer" and on_screen and near is True,
+                 f"anchor={shown.group(3) if shown else '-'} pointer={ptr} note frame={frame}" +
+                 (f" distance={dist:.0f}px (limit {NEAR_PX})" if dist is not None else " (geometry unknown)"))
         close_note(d)
     mouse.close()
+    # The reviewed behaviour over Settings: the note is made, and hidden while Settings is in front.
+    settings_on_screen(d)
+    tag = d.mark("over-settings")
+    d.sh("input keycombination KEYCODE_META_LEFT KEYCODE_SPACE")
+    shown = d.wait_log(POINTER_RE, 20, since=tag)
+    time.sleep(1.2)
+    w = d.note_window()
+    hidden = "mIsForceHiddenNonSystemOverlayWindow=true" in d.sh(
+        f"dumpsys window windows | grep -A400 'Window{{[0-9a-f]* u0 {NOTE_TITLE}}}' | head -400")
+    d.screencap("invoke-over-settings.png")
+    d.result("over Settings: the note is made and hidden (Settings hides overlays; reviewed behaviour)", None,
+             (f"shown task {shown.group(1)}" if shown else "no note logged") +
+             f"; on screen={bool(w and w[1])}; force-hidden={hidden}")
+    close_note(d)
+    d.note("CLOSE")
     d.sh(f"am force-stop {SETTINGS}")
 
 
 def agent(d, prompt, expect):
     d.log("== agent")
-    settings_on_screen(d)
+    desktop(d)
     tag = d.mark("agent")
     d.sh("input keycombination KEYCODE_META_LEFT KEYCODE_SPACE")
     shown = d.wait_log(POINTER_RE, 20, since=tag)
-    if not shown:
-        d.result("agent: the note opened", False, "not shown in 20 s")
+    time.sleep(1)
+    w = d.note_window()
+    if not shown or not (w and w[1]):
+        d.result("agent: the note is on screen", False, ("shown" if shown else "not shown") + f"; window {w}")
         return
     task = shown.group(1)
     found = d.wait_log(r"acp: found in the Linux environment: (.*)", 20, since=tag)
@@ -204,6 +257,7 @@ def agent(d, prompt, expect):
         return
     if shown.group(2) == "NO_AGENT":
         d.screencap("agent-connect.png")
+        d.write("agent-connect-ui.xml", d.ui())
         tapped = d.tap_text("Connect ", prefix=True)
         d.result("agent: the person connects it in the note", bool(tapped), tapped or "no Connect button")
         if not tapped:
@@ -214,16 +268,18 @@ def agent(d, prompt, expect):
     d.sh("input text '" + prompt.replace(" ", "%s").replace("'", "") + "'")
     time.sleep(0.8)
     d.sh("input keyevent KEYCODE_ENTER")
-    sent = d.wait_log(rf"note: task {task} prompt \((\d+) blocks\)", 8, since=tag)
-    how = "typed, Enter"
+    sent = d.wait_log(rf"note: task {task} prompt \((\d+) blocks\)", 10, since=tag)
+    d.result("agent: the typed prompt was sent (input text, Enter)", bool(sent),
+             f"{sent.group(1)} content blocks" if sent else "no prompt from the note in 10 s")
     if not sent:
-        d.note("SEND", text=prompt)
-        how = "lab SEND (typing did not reach the field)"
-        sent = d.wait_log(rf"note: task {task} prompt \((\d+) blocks\)", 8, since=tag)
+        d.screencap("agent-not-sent.png")
+        d.write("agent-log.txt", d.since(tag))
+        close_note(d)
+        return
     session = d.wait_log(rf"note: task {task} session (\S+) with (\S+)", 60, since=tag)
     d.result("agent: the prompt went to the agent in the Linux environment",
-             bool(sent and session) and session.group(2).startswith("linux:"),
-             how + (f"; session {session.group(1)} with {session.group(2)}" if session else "; no session"))
+             bool(session) and session.group(2).startswith("linux:"),
+             f"session {session.group(1)} with {session.group(2)}" if session else "no session")
     t0 = time.time()
     end = d.wait_log(rf"note: task {task} ended stopReason=(\w+)", 240, since=tag)
     secs = time.time() - t0
@@ -238,7 +294,6 @@ def agent(d, prompt, expect):
              f"; '{expect}' {'shown' if expect in texts else 'not shown'}")
     d.write("agent-log.txt", d.since(tag))
     close_note(d)
-    d.sh(f"am force-stop {SETTINGS}")
 
 
 def control(d):
