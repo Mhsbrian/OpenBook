@@ -14,26 +14,30 @@ no feedback layer and passes contextual search no position: the shake calls
 invokeContextualSearch(ENTRYPOINT_SYSTEM_ACTION, config = null).
 
 - The shake detector remembers the last pointer position (QuirePointer).
-- On a shake, SystemUI finds the topmost visible task under the pointer and
+- On a shake, SystemUI finds the topmost visible app task under the pointer
+  (never the home task, which spans the display beneath every window) and
   passes a ContextualSearchConfig with the display, the task's bounds as
-  sourceBounds and the pointer's position in intentExtras, which
-  ContextualSearchManagerService copies onto the launch intent; then it shows
+  sourceBounds, and in intentExtras the pointer's position, the task's
+  package and the time the bounds were read, which
+  ContextualSearchManagerService copies onto the launch intent. Over the
+  desktop there are no bounds and Quire takes in nothing. Then it shows
   the halo (QuireHalo): a 32 dp conic ring that blooms with a spring, the
   intake outline and a label, gone 600 ms later. It is a trusted, untouchable,
   unfocusable overlay; with Remove animations nothing moves.
-- AssistManager.startAssist adds the same position and bounds to the
-  assistant's args, with the halo, when the assistant is Quire and the
-  pointer moved in the last 10 s (Meta+Space, the assist key).
+- AssistManager.startAssist adds the same position, bounds, package and
+  time to the assistant's args, with the halo, when the assistant is Quire
+  and the pointer moved in the last 10 s (Meta+Space, the assist key).
+  Otherwise it adds nothing, and Quire takes in nothing.
 
 Nothing changes for other contextual search apps or assistants beyond the
 extra launch extras, which use Quire's own keys.
 ---
  .../systemui/assist/AssistManager.java        |  10 +
- .../systemui/contextualcursor/QuirePointer.kt | 127 +++++++
+ .../systemui/contextualcursor/QuirePointer.kt | 151 +++++++
  .../interactor/ContextualCursorInteractor.kt  |  32 +-
  .../interactor/GestureDetectionInteractor.kt  |   3 +
  .../systemui/contextualcursor/ui/QuireHalo.kt | 323 ++++++++++++++++++
- 5 files changed, 491 insertions(+), 4 deletions(-)
+ 5 files changed, 515 insertions(+), 4 deletions(-)
  create mode 100644 packages/SystemUI/src/com/android/systemui/contextualcursor/QuirePointer.kt
  create mode 100644 packages/SystemUI/src/com/android/systemui/contextualcursor/ui/QuireHalo.kt
 
@@ -74,10 +78,10 @@ index 515a652d0054..b88ee140b206 100644
                  /* isInvocationComplete = */ true,
 diff --git a/packages/SystemUI/src/com/android/systemui/contextualcursor/QuirePointer.kt b/packages/SystemUI/src/com/android/systemui/contextualcursor/QuirePointer.kt
 new file mode 100644
-index 000000000000..3066f0e8cbc3
+index 000000000000..8889e86d6ffd
 --- /dev/null
 +++ b/packages/SystemUI/src/com/android/systemui/contextualcursor/QuirePointer.kt
-@@ -0,0 +1,127 @@
+@@ -0,0 +1,151 @@
 +/*
 + * Copyright (C) 2026 The OpenBook Authors
 + *
@@ -113,6 +117,9 @@ index 000000000000..3066f0e8cbc3
 + * SystemUI already follows the pointer for the shake; it hands the contextual search app the pointer's position in the
 + * launch extras and the window's bounds as `sourceBounds`, so Quire's note opens at the pointer and takes in that window.
 + * Meta+Space and the assist key use the same position when the pointer moved in the last 10 s (§2: "the 10 s rule").
++ * With the bounds go the window's package, so Quire names the window it crops to (not the topmost visible app), and the
++ * time they were read, so Quire can refuse bounds that are too old to match the screenshot. Without a recent pointer, or
++ * over the desktop, SystemUI sends no bounds and Quire takes in nothing.
 + */
 +object QuirePointer {
 +    private const val TAG = "QuirePointer"
@@ -123,6 +130,10 @@ index 000000000000..3066f0e8cbc3
 +
 +    /** The window's bounds, for the assistant session to pass on as `sourceBounds`. */
 +    const val EXTRA_SOURCE_BOUNDS = "dev.openbook.quire.extra.SOURCE_BOUNDS"
++
++    /** The package of the window in the bounds, and when the bounds were read (elapsedRealtime, ms). */
++    const val EXTRA_SOURCE_PACKAGE = "dev.openbook.quire.extra.SOURCE_PACKAGE"
++    const val EXTRA_SOURCE_TIME = "dev.openbook.quire.extra.SOURCE_TIME"
 +
 +    /** How long a pointer stays "where the person is looking" for the keys. */
 +    const val RECENT_MS = 10_000L
@@ -147,7 +158,10 @@ index 000000000000..3066f0e8cbc3
 +
 +    fun current(): CursorPosition? = last
 +
-+    /** The bounds and package of the topmost visible task under [p], or null over the desktop. */
++    /**
++     * The bounds and package of the topmost visible app task under [p], or null over the desktop: the home task spans
++     * the display beneath every window, so it is never "the window under the pointer".
++     */
 +    fun taskAt(p: CursorPosition): Pair<Rect, String?>? =
 +        try {
 +            ActivityTaskManager.getInstance()
@@ -155,6 +169,8 @@ index 000000000000..3066f0e8cbc3
 +                .firstOrNull { t ->
 +                    val mode = t.configuration.windowConfiguration.windowingMode
 +                    t.isVisible &&
++                        t.configuration.windowConfiguration.activityType ==
++                            WindowConfiguration.ACTIVITY_TYPE_STANDARD &&
 +                        t.displayId == p.displayId &&
 +                        (mode == WindowConfiguration.WINDOWING_MODE_FREEFORM ||
 +                            mode == WindowConfiguration.WINDOWING_MODE_FULLSCREEN ||
@@ -165,12 +181,16 @@ index 000000000000..3066f0e8cbc3
 +                    Rect(it.configuration.windowConfiguration.bounds) to
 +                        (it.topActivity ?: it.baseActivity)?.packageName
 +                }
++                ?.takeIf { it.second != null }
 +        } catch (e: RuntimeException) {
 +            Log.w(TAG, "no task list", e)
 +            null
 +        }
 +
-+    /** The contextual search config for a call at [p]: its display, the window's bounds, the pointer. */
++    /**
++     * The contextual search config for a call at [p]: its display, the pointer, and the window under it (bounds,
++     * package, when they were read), or no window at all over the desktop.
++     */
 +    fun config(p: CursorPosition, target: Pair<Rect, String?>?): ContextualSearchConfig =
 +        ContextualSearchConfig.Builder()
 +            .setDisplayId(p.displayId)
@@ -179,9 +199,16 @@ index 000000000000..3066f0e8cbc3
 +                Bundle().apply {
 +                    putFloat(EXTRA_POINTER_X, p.x)
 +                    putFloat(EXTRA_POINTER_Y, p.y)
++                    putSource(this, target)
 +                }
 +            )
 +            .build()
++
++    private fun putSource(b: Bundle, target: Pair<Rect, String?>?) {
++        target ?: return
++        b.putString(EXTRA_SOURCE_PACKAGE, target.second)
++        b.putLong(EXTRA_SOURCE_TIME, SystemClock.elapsedRealtime())
++    }
 +
 +    /** Puts the pointer and the window's bounds into the assistant's args, when the pointer moved recently. */
 +    fun addTo(context: Context, args: Bundle, label: String) {
@@ -190,6 +217,7 @@ index 000000000000..3066f0e8cbc3
 +        args.putFloat(EXTRA_POINTER_X, p.x)
 +        args.putFloat(EXTRA_POINTER_Y, p.y)
 +        target?.let { args.putParcelable(EXTRA_SOURCE_BOUNDS, it.first) }
++        putSource(args, target)
 +        halo?.show(p.displayId, p.x, p.y, target?.first, label, appName(context, target?.second))
 +    }
 +
