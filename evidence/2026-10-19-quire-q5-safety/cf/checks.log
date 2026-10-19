@@ -1,66 +1,74 @@
-22:11:04 q5-safety-check on 127.0.0.1:16229: AnyBook/anybook_cf_x86_64_pc/anybook_vsoc_x86_64:17/CP2A.260605.016/eng.builde:userdebug/test-keys
-22:11:05 Quire versionCode=37 minSdk=37 targetSdk=37
-22:11:05 probe: Success
-22:11:07 == overlay
-22:11:14 PASS overlay: the note under a window that hides overlays: Quire window (455, 243, 920, 545) forceHidden=True onScreen=False (probe (269, 107, 1651, 884))
-22:11:15 PASS overlay: a tap where the card would be reaches the protected window: tap 687,394 -> probe touches [('687', '394', '0x0')]
-22:11:18 PASS overlay: the tray under a window that hides overlays: Quire tray forceHidden=True onScreen=False
-22:11:22 PASS overlay: the note shows again once that window is gone: onScreen=True forceHidden=False
-22:11:30 PASS overlay: the note's window is the card and its shadow, not the display: window (455, 243, 920, 545), card (487, 275, 887, 512), largest margin 33 px (display 1920x1080)
-22:11:31 PASS overlay: a click beside the card reaches the app below (1040,283): probe touches [('1040', '283', '0x2')]; untrusted-touch log absent
-22:11:34 PASS overlay: a click beside the card reaches the app below (309,665): probe touches [('309', '665', '0x2')]; untrusted-touch log absent
-22:11:37 == consent (1920x1080)
-22:11:45 PASS consent 1920x1080: Quire asked from its waiting activity, with Settings hiding overlays: consent: waiting activity on screen
-22:11:45 PASS consent 1920x1080: nothing of Quire's on screen over the dialog: dialog (528, 305, 1392, 743); Quire windows above it on screen: []
-22:11:45 PASS consent 1920x1080: the waiting activity is beneath the dialog: waiting activity z=11, dialog z=9; note on screen=False
-22:11:47 PASS consent 1920x1080: Only this time creates the session (Quire was on screen for the platform): cc: created: display 1920x1080
-22:11:50 PASS consent 1920x1080: while the session runs, the mirror and Stop are on screen: note (590, 233, 1415, 1041) onScreen=True system=True; windows hiding overlays present=True
-22:11:50 PASS consent 1920x1080: the waiting activity is gone once the session exists: gone=True
-22:11:50 PASS consent 1920x1080: Stop on the screen ends the run; the note is ordinary again: tapped Stop at 1106,960,1155,996; note: control run ended stopped=true · ordinary
-22:11:52 == consent (1280x800)
-22:12:03 PASS consent 1280x800: Quire asked from its waiting activity, with Settings hiding overlays: consent: waiting activity on screen
-22:12:03 PASS consent 1280x800: nothing of Quire's on screen over the dialog: dialog (350, 148, 930, 620); Quire windows above it on screen: []
-22:12:03 PASS consent 1280x800: the waiting activity is beneath the dialog: waiting activity z=11, dialog z=9; note on screen=False
-22:12:05 PASS consent 1280x800: Only this time creates the session (Quire was on screen for the platform): cc: created: display 1280x800
-22:12:08 PASS consent 1280x800: while the session runs, the mirror and Stop are on screen: note (90, 0, 915, 800) onScreen=True system=True; windows hiding overlays present=True
-22:12:08 PASS consent 1280x800: the waiting activity is gone once the session exists: gone=True
-22:12:09 PASS consent 1280x800: Stop on the screen ends the run; the note is ordinary again: tapped Stop at 606,719,655,755; note: control run ended stopped=true · ordinary
-22:12:14 == consent (1920x1080)
-22:12:22 PASS consent 1920x1080: Quire asked from its waiting activity, with Settings hiding overlays: consent: waiting activity on screen
-22:12:22 PASS consent 1920x1080: nothing of Quire's on screen over the dialog: dialog (528, 305, 1392, 743); Quire windows above it on screen: []
-22:12:22 PASS consent 1920x1080: the waiting activity is beneath the dialog: waiting activity z=11, dialog z=9; note on screen=False
-22:12:25 PASS consent 1920x1080: Don't allow is refused and leaves no waiting activity: cc: creation failed: error=3(PERMISSION_DENIED) dialogShown=true; waiting activity gone=True
-22:12:27 == agents (two agents, both 'session-1')
-22:12:32 PASS agents: Agent A runs a task in its session-1: task 9
-22:12:33 PASS agents: Agent B runs a task in its session-1: task 10
-22:12:35 PASS agents: A's request reaches A's task only: note: task 9 permission for A-only options=[deny, allow] from peerA session session-1
-22:12:35 PASS agents: B's request reaches B's task only: note: task 10 permission for B-only options=[deny, allow] from peerB session session-1
-22:12:40 PASS agents: A's card is shown under Agent A: Agent: Agent A on this laptop. Change.; Agent A; Hold this task open (Agent A); Agent A asks: Run the A script. Buttons: Deny A, Allow A.; Agent A runs this on this laptop.
-22:12:40 PASS agents: Esc answers A 'cancelled' and cancels A's session only: A got {'outcome': {'outcome': 'cancelled'}} and session/cancel; B got []
-22:12:45 PASS agents: B's card is shown under Agent B: Agent: Agent B on this laptop. Change.; Agent B; Hold this task open (Agent B); Agent B asks: Run the B script. Buttons: Deny B, Allow B.; Agent B runs this on this laptop.
-22:12:48 PASS agents: Allow on B's card answers B only: B got {'outcome': {'outcome': 'selected', 'optionId': 'allow'}}; A got []
-22:12:51 PASS agents: A's disconnect fails only A's running task: acp: peerA closed, 1 session; A2 ('ERROR', 'false'); B ('WORKING', 'true')
-22:12:54 PASS agents: B's run goes on and finishes after A left: note: task 10 ended stopReason=end_turn
-22:12:57 == intake
-22:13:16 PASS intake: Meta+Space, pointer still 11 s: nothing taken in: note: invocation anchor=taskbar bounds=null intake=None reason=no-pointer source=null age=none crop=none; the agent got 1 blocks, 0 images, window text False
-22:13:16 PASS intake: Meta+Space, pointer still 11 s: the reason: note: invocation anchor=taskbar bounds=null intake=None reason=no-pointer source=null age=none crop=none
-22:13:19 placed dev.openbook.quire.secureprobe (task 23) at (1000, 120, 1880, 900)
-22:13:23 PASS intake: Meta+Space over the desktop: nothing taken in: note: invocation anchor=pointer 204.1748,510.37598 bounds=null intake=None reason=no-bounds source=null age=none crop=none; the agent got 1 blocks, 0 images, window text False
-22:13:28 placed com.android.documentsui (task 26) at (40, 120, 960, 900)
-22:13:32 PASS intake: Meta+Space over the probe: the window under the pointer, named after it: note: invocation anchor=pointer 1430.0605,367.49902 bounds=Rect(1000, 120 - 1880, 900) intake=Window reason=window source=dev.openbook.quire.secureprobe age=88ms crop=880x780; image (880, 780), named True, mean difference from the screen 0.2/255 (Files on top at (40, 120, 960, 900))
-22:13:35 PASS intake: the shake over the probe: the window under the pointer, named after it: note: invocation anchor=pointer 1451.4971,371.58203 bounds=Rect(1000, 120 - 1880, 900) intake=Window reason=window source=dev.openbook.quire.secureprobe age=92ms crop=880x780; image (880, 780), named True, mean difference from the screen 0.2/255 (Files on top at (40, 120, 960, 900))
-22:13:43 PASS intake: lab: no pointer: nothing taken in: note: invocation anchor=taskbar bounds=Rect(600, 300 - 1400, 900) intake=None reason=no-pointer source=com.android.settings age=104ms crop=none; the agent got 1 blocks, 0 images, window text False
-22:13:45 PASS intake: lab: no bounds: nothing taken in: note: invocation anchor=pointer 800.0,400.0 bounds=null intake=None reason=no-bounds source=com.android.settings age=103ms crop=none; the agent got 1 blocks, 0 images, window text False
-22:13:47 PASS intake: lab: empty bounds: nothing taken in: note: invocation anchor=pointer 800.0,400.0 bounds=Rect(800, 300 - 800, 900) intake=None reason=empty-bounds source=com.android.settings age=102ms crop=none; the agent got 1 blocks, 0 images, window text False
-22:13:50 PASS intake: lab: inverted bounds: nothing taken in: note: invocation anchor=pointer 800.0,400.0 bounds=Rect(1400, 900 - 600, 300) intake=None reason=empty-bounds source=com.android.settings age=100ms crop=none; the agent got 1 blocks, 0 images, window text False
-22:13:52 PASS intake: lab: pointer outside the bounds: nothing taken in: note: invocation anchor=pointer 100.0,1000.0 bounds=Rect(600, 300 - 1400, 900) intake=None reason=pointer-outside-bounds source=com.android.settings age=100ms crop=none; the agent got 1 blocks, 0 images, window text False
-22:13:54 PASS intake: lab: bounds off the display: nothing taken in: note: invocation anchor=pointer 2100.0,200.0 bounds=Rect(2000, 100 - 2600, 600) intake=None reason=bounds-off-screen source=com.android.settings age=101ms crop=none; the agent got 1 blocks, 0 images, window text False
-22:13:56 PASS intake: lab: no package: nothing taken in: note: invocation anchor=pointer 800.0,400.0 bounds=Rect(600, 300 - 1400, 900) intake=None reason=no-source-package source=null age=102ms crop=none; the agent got 1 blocks, 0 images, window text False
-22:13:59 PASS intake: lab: the desktop package: nothing taken in: note: invocation anchor=pointer 800.0,400.0 bounds=Rect(600, 300 - 1400, 900) intake=None reason=desktop source=com.android.launcher3 age=100ms crop=none; the agent got 1 blocks, 0 images, window text False
-22:14:01 PASS intake: lab: no time: nothing taken in: note: invocation anchor=pointer 800.0,400.0 bounds=Rect(600, 300 - 1400, 900) intake=None reason=no-source-time source=com.android.settings age=none crop=none; the agent got 1 blocks, 0 images, window text False
-22:14:03 PASS intake: lab: stale bounds (4 s): nothing taken in: note: invocation anchor=pointer 800.0,400.0 bounds=Rect(600, 300 - 1400, 900) intake=None reason=stale-bounds source=com.android.settings age=4002ms crop=none; the agent got 1 blocks, 0 images, window text False
-22:14:06 PASS intake: lab: bounds from the future: nothing taken in: note: invocation anchor=pointer 800.0,400.0 bounds=Rect(600, 300 - 1400, 900) intake=None reason=stale-bounds source=com.android.settings age=-500ms crop=none; the agent got 1 blocks, 0 images, window text False
-22:14:08 PASS intake: lab: a package not on screen: nothing taken in: note: invocation anchor=pointer 800.0,400.0 bounds=Rect(600, 300 - 1400, 900) intake=None reason=source-not-visible source=com.android.settings age=100ms crop=none; the agent got 1 blocks, 0 images, window text False
-22:14:10 PASS intake: lab: the secure flag, no bounds: nothing taken in: note: invocation anchor=pointer 800.0,400.0 bounds=null intake=Secure reason=no-bounds source=com.android.settings age=100ms crop=none; the agent got 1 blocks, 0 images, window text False
-22:14:12 PASS intake: lab: a valid call takes in exactly the bounds, named after the package: note: invocation anchor=pointer 800.0,400.0 bounds=Rect(600, 300 - 1400, 900) intake=Window reason=window source=com.android.settings age=103ms crop=800x600; image (800, 600); corners (red, green) [(78.3, 70.3), (184.0, 212.0)] against [(80, 71), (186, 212)]
-22:14:18 == 54 PASS, 0 FAIL, 0 INFO
+22:40:39 q5-safety-check on 127.0.0.1:16229: AnyBook/anybook_cf_x86_64_pc/anybook_vsoc_x86_64:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+22:40:39 Quire versionCode=37 minSdk=37 targetSdk=37
+22:40:39 probe: Success
+22:40:41 == overlay
+22:40:48 PASS overlay: the note under a window that hides overlays: Quire window (455, 243, 920, 545) forceHidden=True onScreen=False (probe (269, 107, 1651, 884))
+22:40:49 PASS overlay: a tap where the card would be reaches the protected window: tap 687,394 -> probe touches [('687', '394', '0x0')]
+22:40:52 PASS overlay: the tray under a window that hides overlays: Quire tray forceHidden=True onScreen=False
+22:40:56 PASS overlay: the note shows again once that window is gone: onScreen=True forceHidden=False
+22:41:04 PASS overlay: the note's window is the card and its shadow, not the display: window (455, 243, 920, 545), card (487, 275, 887, 512), largest margin 33 px (display 1920x1080)
+22:41:05 PASS overlay: a click beside the card reaches the app below (1040,283): probe touches [('1040', '283', '0x2')]; untrusted-touch log absent
+22:41:08 PASS overlay: a click beside the card reaches the app below (309,665): probe touches [('309', '665', '0x2')]; untrusted-touch log absent
+22:41:12 == consent (1920x1080)
+22:41:19 PASS consent 1920x1080: Quire asked from its waiting activity, with Settings hiding overlays: consent: waiting activity on screen
+22:41:19 PASS consent 1920x1080: nothing of Quire's on screen over the dialog: dialog (528, 305, 1392, 743); Quire windows above it on screen: []
+22:41:19 PASS consent 1920x1080: the waiting activity is beneath the dialog: waiting activity z=11, dialog z=9; note on screen=False
+22:41:21 PASS consent 1920x1080: Only this time creates the session (Quire was on screen for the platform): cc: created: display 1920x1080
+22:41:24 PASS consent 1920x1080: while the session runs, the mirror and Stop are on screen: note (590, 233, 1415, 1041) onScreen=True system=True; windows hiding overlays present=True
+22:41:24 PASS consent 1920x1080: the waiting activity is gone once the session exists: gone=True
+22:41:25 PASS consent 1920x1080: Stop on the screen ends the run; the note is ordinary again: tapped Stop at 1106,960,1155,996; note: control run ended stopped=true · ordinary
+22:41:27 == consent (1280x800)
+22:41:37 PASS consent 1280x800: Quire asked from its waiting activity, with Settings hiding overlays: consent: waiting activity on screen
+22:41:37 PASS consent 1280x800: nothing of Quire's on screen over the dialog: dialog (350, 148, 930, 620); Quire windows above it on screen: []
+22:41:37 PASS consent 1280x800: the waiting activity is beneath the dialog: waiting activity z=11, dialog z=9; note on screen=False
+22:41:39 PASS consent 1280x800: Only this time creates the session (Quire was on screen for the platform): cc: created: display 1280x800
+22:41:42 PASS consent 1280x800: while the session runs, the mirror and Stop are on screen: note (90, 0, 915, 800) onScreen=True system=True; windows hiding overlays present=True
+22:41:42 PASS consent 1280x800: the waiting activity is gone once the session exists: gone=True
+22:41:43 PASS consent 1280x800: Stop on the screen ends the run; the note is ordinary again: tapped Stop at 606,719,655,755; note: control run ended stopped=true · ordinary
+22:41:48 == consent (1920x1080)
+22:41:55 PASS consent 1920x1080: Quire asked from its waiting activity, with Settings hiding overlays: consent: waiting activity on screen
+22:41:55 PASS consent 1920x1080: nothing of Quire's on screen over the dialog: dialog (528, 305, 1392, 743); Quire windows above it on screen: []
+22:41:55 PASS consent 1920x1080: the waiting activity is beneath the dialog: waiting activity z=11, dialog z=9; note on screen=False
+22:41:59 PASS consent 1920x1080: Don't allow is refused and leaves no waiting activity: cc: creation failed: error=3(PERMISSION_DENIED) dialogShown=true; waiting activity gone=True
+22:42:01 == owner (the overlay exemption belongs to the session's own task)
+22:42:11 PASS owner: the session's own task keeps its mirror and Stop over a protected window: task 9: system=True onScreen=True
+22:42:14 PASS owner: a new note while the session's task runs hidden is ordinary (1): shown task 10 (session task 9 hidden and running: True); system=False forceHidden=True onScreen=False
+22:42:16 PASS owner: reopening the session's task brings its mirror back (1): system=True onScreen=True
+22:42:18 PASS owner: a new note while the session's task runs hidden is ordinary (2): shown task 11 (session task 9 hidden and running: True); system=False forceHidden=True onScreen=False
+22:42:20 PASS owner: reopening the session's task brings its mirror back (2): system=True onScreen=True
+22:42:23 PASS owner: after Stop, the task's own note is ordinary and hides under the protected window: note: control run ended stopped=true; system=False forceHidden=True onScreen=False
+22:42:25 == agents (two agents, both 'session-1')
+22:42:29 PASS agents: Agent A runs a task in its session-1: task 12
+22:42:31 PASS agents: Agent B runs a task in its session-1: task 13
+22:42:32 PASS agents: A's request reaches A's task only: note: task 12 permission for A-only options=[deny, allow] from peerA session session-1
+22:42:32 PASS agents: B's request reaches B's task only: note: task 13 permission for B-only options=[deny, allow] from peerB session session-1
+22:42:39 PASS agents: A's card is shown under Agent A: Agent: Agent A on this laptop. Change.; Agent A; Hold this task open (Agent A); Agent A asks: Run the A script. Buttons: Deny A, Allow A.; Agent A runs this on this laptop.
+22:42:40 PASS agents: Esc answers A 'cancelled' and cancels A's session only: A got {'outcome': {'outcome': 'cancelled'}} and session/cancel; B got []
+22:42:44 PASS agents: B's card is shown under Agent B: Agent: Agent B on this laptop. Change.; Agent B; Hold this task open (Agent B); Agent B asks: Run the B script. Buttons: Deny B, Allow B.; Agent B runs this on this laptop.
+22:42:48 PASS agents: Allow on B's card answers B only: B got {'outcome': {'outcome': 'selected', 'optionId': 'allow'}}; A got []
+22:42:50 PASS agents: A's disconnect fails only A's running task: acp: peerA closed, 1 session; A2 ('ERROR', 'false'); B ('WORKING', 'true')
+22:42:54 PASS agents: B's run goes on and finishes after A left: note: task 13 ended stopReason=end_turn
+22:42:56 == intake
+22:43:15 PASS intake: Meta+Space, pointer still 11 s: nothing taken in: note: invocation anchor=taskbar bounds=null intake=None reason=no-pointer source=null age=none crop=none; the agent got 1 blocks, 0 images, window text False
+22:43:15 PASS intake: Meta+Space, pointer still 11 s: the reason: note: invocation anchor=taskbar bounds=null intake=None reason=no-pointer source=null age=none crop=none
+22:43:18 placed dev.openbook.quire.secureprobe (task 27) at (1000, 120, 1880, 900)
+22:43:22 PASS intake: Meta+Space over the desktop: nothing taken in: note: invocation anchor=pointer 213.22852,534.5303 bounds=null intake=None reason=no-bounds source=null age=none crop=none; the agent got 1 blocks, 0 images, window text False
+22:43:27 placed com.android.documentsui (task 30) at (40, 120, 960, 900)
+22:43:28 intake scene: topmost app window at (1440, 510): dev.openbook.quire.secureprobe/dev.openbook.quire.secureprobe.ProtectedActivity
+22:43:32 PASS intake: Meta+Space over the probe: the window under the pointer, named after it: note: invocation anchor=pointer 1430.0605,367.49902 bounds=Rect(1000, 120 - 1880, 900) intake=Window reason=window source=dev.openbook.quire.secureprobe age=99ms crop=880x780; image (880, 780), named True, mean difference from the screen 0.2/255 (Files on top at (40, 120, 960, 900))
+22:43:35 PASS intake: the shake over the probe: the window under the pointer, named after it: note: invocation anchor=pointer 1451.4971,371.58203 bounds=Rect(1000, 120 - 1880, 900) intake=Window reason=window source=dev.openbook.quire.secureprobe age=92ms crop=880x780; image (880, 780), named True, mean difference from the screen 0.2/255 (Files on top at (40, 120, 960, 900))
+22:43:42 PASS intake: lab: no pointer: nothing taken in: note: invocation anchor=taskbar bounds=Rect(600, 300 - 1400, 900) intake=None reason=no-pointer source=com.android.settings age=100ms crop=none; the agent got 1 blocks, 0 images, window text False
+22:43:45 PASS intake: lab: no bounds: nothing taken in: note: invocation anchor=pointer 800.0,400.0 bounds=null intake=None reason=no-bounds source=com.android.settings age=100ms crop=none; the agent got 1 blocks, 0 images, window text False
+22:43:47 PASS intake: lab: empty bounds: nothing taken in: note: invocation anchor=pointer 800.0,400.0 bounds=Rect(800, 300 - 800, 900) intake=None reason=empty-bounds source=com.android.settings age=100ms crop=none; the agent got 1 blocks, 0 images, window text False
+22:43:49 PASS intake: lab: inverted bounds: nothing taken in: note: invocation anchor=pointer 800.0,400.0 bounds=Rect(1400, 900 - 600, 300) intake=None reason=empty-bounds source=com.android.settings age=100ms crop=none; the agent got 1 blocks, 0 images, window text False
+22:43:51 PASS intake: lab: pointer outside the bounds: nothing taken in: note: invocation anchor=pointer 100.0,1000.0 bounds=Rect(600, 300 - 1400, 900) intake=None reason=pointer-outside-bounds source=com.android.settings age=100ms crop=none; the agent got 1 blocks, 0 images, window text False
+22:43:53 PASS intake: lab: bounds off the display: nothing taken in: note: invocation anchor=pointer 2100.0,200.0 bounds=Rect(2000, 100 - 2600, 600) intake=None reason=bounds-off-screen source=com.android.settings age=100ms crop=none; the agent got 1 blocks, 0 images, window text False
+22:43:56 PASS intake: lab: no package: nothing taken in: note: invocation anchor=pointer 800.0,400.0 bounds=Rect(600, 300 - 1400, 900) intake=None reason=no-source-package source=null age=100ms crop=none; the agent got 1 blocks, 0 images, window text False
+22:43:58 PASS intake: lab: the desktop package: nothing taken in: note: invocation anchor=pointer 800.0,400.0 bounds=Rect(600, 300 - 1400, 900) intake=None reason=desktop source=com.android.launcher3 age=100ms crop=none; the agent got 1 blocks, 0 images, window text False
+22:44:00 PASS intake: lab: no time: nothing taken in: note: invocation anchor=pointer 800.0,400.0 bounds=Rect(600, 300 - 1400, 900) intake=None reason=no-source-time source=com.android.settings age=none crop=none; the agent got 1 blocks, 0 images, window text False
+22:44:02 PASS intake: lab: stale bounds (4 s): nothing taken in: note: invocation anchor=pointer 800.0,400.0 bounds=Rect(600, 300 - 1400, 900) intake=None reason=stale-bounds source=com.android.settings age=4000ms crop=none; the agent got 1 blocks, 0 images, window text False
+22:44:04 PASS intake: lab: bounds from the future: nothing taken in: note: invocation anchor=pointer 800.0,400.0 bounds=Rect(600, 300 - 1400, 900) intake=None reason=stale-bounds source=com.android.settings age=-500ms crop=none; the agent got 1 blocks, 0 images, window text False
+22:44:06 PASS intake: lab: a package not on screen: nothing taken in: note: invocation anchor=pointer 800.0,400.0 bounds=Rect(600, 300 - 1400, 900) intake=None reason=source-not-visible source=com.android.settings age=105ms crop=none; the agent got 1 blocks, 0 images, window text False
+22:44:09 PASS intake: lab: the secure flag, no bounds: nothing taken in: note: invocation anchor=pointer 800.0,400.0 bounds=null intake=Secure reason=no-bounds source=com.android.settings age=100ms crop=none; the agent got 1 blocks, 0 images, window text False
+22:44:11 PASS intake: lab: a valid call takes in exactly the bounds, named after the package: note: invocation anchor=pointer 800.0,400.0 bounds=Rect(600, 300 - 1400, 900) intake=Window reason=window source=com.android.settings age=100ms crop=800x600; image (800, 600); corners (red, green) [(78.3, 70.3), (184.0, 212.0)] against [(80, 71), (186, 212)]
+22:44:17 == 60 PASS, 0 FAIL, 0 INFO
