@@ -1,0 +1,47 @@
+{
+ "schema": "openbook-ota/1",
+ "label": "openbook-ota-20261019-quire1",
+ "tree": "7abe7f8: #112 25b899f + #109 3a81419 + #106 10bd84a + #104 d15c25c (= the G14's cand1 image) + #108 dd56681 + #110 52a3bc2 + #111 72ee925 + the note/Linux-environment glue (ANAL-225, PR #113)",
+ "test_only_broken_boot": false,
+ "fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
+ "build_date_utc": 1792381032,
+ "device": "anybook_g14",
+ "bytes": 994429718,
+ "sha256": "27bba0e64d4037f2684775a9c3afa7b8bfc02d5cbbe181c5a4ee1b0cf6e91202",
+ "vbmeta_digest": "1cfbc5cd234abc8dc87c34a76583d1b2e886c4922236ad64a2cf54b2c056d527",
+ "vbmeta_size": 6144,
+ "payload_properties": [
+  "FILE_HASH=8eCKpWDrHJskj5lQ3Jn+uWegH0ByhakUP0SpjM7wncE=",
+  "FILE_SIZE=994422115",
+  "METADATA_HASH=p4D2O2QEtvTTrru1dg27M8eK6Dekhqb+7lqAlbipQik=",
+  "METADATA_SIZE=44737"
+ ],
+ "partitions": [
+  "boot",
+  "init_boot",
+  "product",
+  "super_empty",
+  "system",
+  "system_dlkm",
+  "system_ext",
+  "system_other",
+  "userdata",
+  "vbmeta",
+  "vendor",
+  "vendor_boot",
+  "vendor_dlkm"
+ ],
+ "bootsync_sha256": "e3019926318877e95798de0b81343109e93c08daf1ba83d2aac9b4e4bb5bd656",
+ "metadata": {
+  "ota-property-files": "payload_metadata.bin:4111:45004,payload.bin:4111:994422115,payload_properties.txt:994426284:154,apex_info.pb:1956:1491,care_map.pb:3494:570,metadata:69:688,metadata.pb:825:1083                      ",
+  "ota-required-cache": "0",
+  "ota-streaming-property-files": "payload.bin:4111:994422115,payload_properties.txt:994426284:154,apex_info.pb:1956:1491,care_map.pb:3494:570,metadata:69:688,metadata.pb:825:1083                        ",
+  "ota-type": "AB",
+  "post-build": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
+  "post-build-incremental": "eng.builde",
+  "post-sdk-level": "37",
+  "post-security-patch-level": "2026-06-05",
+  "post-timestamp": "1792381032",
+  "pre-device": "anybook_g14"
+ }
+}

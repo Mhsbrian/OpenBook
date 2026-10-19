@@ -3,7 +3,7 @@
 # OpenBook PC boot-time sysfs setup, run by init as root (init.openbook.rc). Android mksh + toybox; also runs under
 # bash/dash for the fixture test (scripts/openbook-pc-setup-test.sh).
 #
-# usage: openbook-pc-setup dgpu-pm | perms
+# usage: openbook-pc-setup dgpu-pm | perms | kvm
 #   dgpu-pm  An NVIDIA dGPU (10de) is enumerated but no driver drives its display function, which is the
 #            OpenBook default (docs/nvidia.md). The PCI core keeps an unbound device in D0, and snd_hda_intel
 #            holds the HDMI-audio function awake: without vga_switcheroo it never runtime-suspends. So:
@@ -14,6 +14,10 @@
 #            firmware. Does nothing without an NVIDIA function, or when a driver (nouveau, later) binds the GPU.
 #   perms    Hand amd-pstate's energy_performance_preference to the power HAL (user system). cpufreq policies send
 #            no uevents, so ueventd.rc cannot do it.
+#   kvm      Set vendor.openbook.kvm to 1 if KVM registered its device, else 0 (ANAL-218). KVM_AMD is built in, so
+#            that happens exactly when the firmware has SVM on. init.openbook.rc turns 1 into the
+#            ro.boot.hypervisor.* properties AVF reads, so the Linux environment is offered only where it can run.
+#            It reads sysfs: only crosvm and ueventd may even stat /dev/kvm.
 # Testing: OPENBOOK_SYSFS_ROOT=<dir> works on <dir>/sys instead of /sys.
 set -u
 SYS=${OPENBOOK_SYSFS_ROOT:-}/sys
@@ -79,8 +83,18 @@ perms() {
   return 0
 }
 
+kvm() {
+  if [ -e "$SYS/devices/virtual/misc/kvm/dev" ]; then
+    v=1; log "KVM is available ($(rd "$SYS/devices/virtual/misc/kvm/dev")): AVF can run the Linux environment"
+  else
+    v=0; log "no KVM device (is SVM off in the firmware?): no Linux environment"
+  fi
+  ${OPENBOOK_SETPROP:-setprop} vendor.openbook.kvm $v
+}
+
 case ${1:-} in
   dgpu-pm) dgpu_pm ;;
   perms) perms ;;
-  *) echo "usage: openbook-pc-setup dgpu-pm|perms" >&2; exit 2 ;;
+  kvm) kvm ;;
+  *) echo "usage: openbook-pc-setup dgpu-pm|perms|kvm" >&2; exit 2 ;;
 esac

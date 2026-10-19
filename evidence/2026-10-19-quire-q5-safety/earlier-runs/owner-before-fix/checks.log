@@ -1,0 +1,10 @@
+22:21:12 q5-safety-check on 127.0.0.1:16229: AnyBook/anybook_cf_x86_64_pc/anybook_vsoc_x86_64:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+22:21:12 Quire versionCode=37 minSdk=37 targetSdk=37
+22:21:14 == owner (the overlay exemption belongs to the session's own task)
+22:21:23 PASS owner: the session's own task keeps its mirror and Stop over a protected window: task 2: system=True onScreen=True
+22:21:26 FAIL owner: a new note while the session's task runs hidden is ordinary (1): shown task 3 (session task 2 hidden and running: True); system=True forceHidden=False onScreen=True
+22:21:27 PASS owner: reopening the session's task brings its mirror back (1): system=True onScreen=True
+22:21:30 FAIL owner: a new note while the session's task runs hidden is ordinary (2): shown task 4 (session task 2 hidden and running: True); system=True forceHidden=False onScreen=True
+22:21:32 PASS owner: reopening the session's task brings its mirror back (2): system=True onScreen=True
+22:21:35 PASS owner: after Stop, the task's own note is ordinary and hides under the protected window: note: control run ended stopped=true; system=False forceHidden=True onScreen=False
+22:21:39 == 4 PASS, 2 FAIL, 0 INFO

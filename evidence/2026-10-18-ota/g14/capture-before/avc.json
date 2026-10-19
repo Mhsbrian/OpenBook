@@ -1,0 +1,223 @@
+{
+ "schema": "openbook-avc-summary/1",
+ "dir": "capture-before",
+ "dmesg": {
+  "android": 73,
+  "helper": 16
+ },
+ "logcat": {
+  "android": 79,
+  "helper": 24
+ },
+ "dmesg_lines": 73,
+ "tuples": 14,
+ "tuples_without_flags_health_check": 14,
+ "denials": [
+  {
+   "scontext": "keystore",
+   "tcontext": "hal_gatekeeper_service",
+   "tclass": "service_manager",
+   "perms": [
+    "find"
+   ],
+   "paths": [],
+   "in": [
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "native_app_zygote",
+   "tcontext": "logdr_socket",
+   "tclass": "sock_file",
+   "perms": [
+    "write"
+   ],
+   "paths": [
+    "logdr"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "native_app_zygote",
+   "tcontext": "misctrl_prop",
+   "tclass": "file",
+   "perms": [
+    "read"
+   ],
+   "paths": [
+    "u:object_r:misctrl_prop:s0"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "native_app_zygote",
+   "tcontext": "tombstoned_crash_socket",
+   "tclass": "sock_file",
+   "perms": [
+    "write"
+   ],
+   "paths": [
+    "tombstoned_crash"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "native_app_zygote",
+   "tcontext": "zygote_next_exec",
+   "tclass": "file",
+   "perms": [
+    "open"
+   ],
+   "paths": [
+    "/system/bin/zygote_next"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "platform_app",
+   "tcontext": "bluetooth_lea_prop",
+   "tclass": "file",
+   "perms": [
+    "read"
+   ],
+   "paths": [
+    "u:object_r:bluetooth_lea_prop:s0"
+   ],
+   "in": [
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "system_server",
+   "tcontext": "wifi_hal_prop",
+   "tclass": "file",
+   "perms": [
+    "read"
+   ],
+   "paths": [
+    "u:object_r:wifi_hal_prop:s0"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "untrusted_app",
+   "tcontext": "proc_loadavg",
+   "tclass": "file",
+   "perms": [
+    "read"
+   ],
+   "paths": [
+    "loadavg"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "untrusted_app",
+   "tcontext": "proc_version",
+   "tclass": "file",
+   "perms": [
+    "read"
+   ],
+   "paths": [
+    "version"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "untrusted_app_34",
+   "tcontext": "proc",
+   "tclass": "file",
+   "perms": [
+    "read"
+   ],
+   "paths": [
+    "devices"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "untrusted_app_34",
+   "tcontext": "proc_tty_drivers",
+   "tclass": "file",
+   "perms": [
+    "read"
+   ],
+   "paths": [
+    "drivers"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "untrusted_app_34",
+   "tcontext": "qemu_hw_prop",
+   "tclass": "file",
+   "perms": [
+    "read"
+   ],
+   "paths": [
+    "u:object_r:qemu_hw_prop:s0"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "untrusted_app_34",
+   "tcontext": "qemu_sf_lcd_density_prop",
+   "tclass": "file",
+   "perms": [
+    "read"
+   ],
+   "paths": [
+    "u:object_r:qemu_sf_lcd_density_prop:s0"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "untrusted_app_34",
+   "tcontext": "serialno_prop",
+   "tclass": "file",
+   "perms": [
+    "read"
+   ],
+   "paths": [
+    "u:object_r:serialno_prop:s0"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  }
+ ]
+}

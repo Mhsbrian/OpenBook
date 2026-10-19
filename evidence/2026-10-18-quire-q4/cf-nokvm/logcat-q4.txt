@@ -1,0 +1,71 @@
+10-18 19:36:47.926 I/DMI     (    0): ChromiumOS crosvm, BIOS 0
+10-18 19:38:08.400 I/am_proc_start(  826): [0,3138,10095,dev.openbook.quire,bound-service,{dev.openbook.quire/dev.openbook.quire.assist.QuireVoiceInteractionService}]
+10-18 19:38:08.400 I/ActivityManager(  826): Start proc 3138:dev.openbook.quire/u0a95 for bound-service {dev.openbook.quire/dev.openbook.quire.assist.QuireVoiceInteractionService}
+10-18 19:38:08.430 D/nativeloader( 3138): Configuring clns-shared-9 for other apk /system_ext/priv-app/OpenBookQuire/OpenBookQuire.apk. target_sdk_version=37, uses_libraries=, library_path=/system_ext/priv-app/OpenBookQuire/lib/x86_64:/system/lib64, permitted_path=/data:/mnt/expand:/data/user/0/dev.openbook.quire:/system_ext/priv-app/OpenBookQuire:/system/lib64
+10-18 19:38:08.463 I/Quire   ( 3138): assistant: ready
+10-18 19:38:08.807 D/AlphabeticIndexCompat( 2965): computeSectionName: cs: Quire sectionName: Q
+10-18 19:38:08.808 D/AlphabeticalAppsList( 2965): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 19:38:08.809 D/AlphabeticalAppsList( 2965): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 19:38:16.855 D/AlphabeticalAppsList( 2965): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 19:38:16.856 D/AlphabeticalAppsList( 2965): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 19:38:16.897 D/AlphabeticalAppsList( 2965): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 19:38:16.897 D/AlphabeticalAppsList( 2965): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 19:38:16.914 D/AlphabeticalAppsList( 2965): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 19:38:16.914 D/AlphabeticalAppsList( 2965): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 19:38:16.927 D/AlphabeticalAppsList( 2965): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 19:38:16.928 D/AlphabeticalAppsList( 2965): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 19:38:16.934 D/AlphabeticalAppsList( 2965): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 19:38:16.934 D/AlphabeticalAppsList( 2965): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 19:38:16.973 D/AlphabeticalAppsList( 2965): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 19:38:16.973 D/AlphabeticalAppsList( 2965): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 19:38:28.597 D/AlphabeticalAppsList( 2965): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 19:38:28.598 D/AlphabeticalAppsList( 2965): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 19:38:34.144 D/VmController( 3799): State changed from Ready to Starting
+10-18 19:38:34.148 D/VmController( 3799): rootfs apparent size=3085959168, physical size=3088994304, expectedSize=16320036864
+10-18 19:38:34.156 I/auditd  ( 3945): type=1400 audit(0.0:193): avc:  denied  { use } for  comm="virtmgr" path="socket:[35286]" dev="sockfs" ino=35286 scontext=u:r:priv_app_all_virtualizationmanager:s0:c130,c256,c512,c768 tcontext=u:r:surfaceflinger:s0 tclass=fd permissive=0 app=com.android.virtualization.terminal
+10-18 19:38:34.156 W/virtmgr ( 3945): type=1400 audit(0.0:193): avc:  denied  { use } for  path="socket:[35286]" dev="sockfs" ino=35286 scontext=u:r:priv_app_all_virtualizationmanager:s0:c130,c256,c512,c768 tcontext=u:r:surfaceflinger:s0 tclass=fd permissive=0 app=com.android.virtualization.terminal
+10-18 19:38:34.156 I/auditd  ( 3945): type=1400 audit(0.0:193): avc:  denied  { use } for  comm="virtmgr" path="socket:[35287]" dev="sockfs" ino=35287 scontext=u:r:priv_app_all_virtualizationmanager:s0:c130,c256,c512,c768 tcontext=u:r:surfaceflinger:s0 tclass=fd permissive=0 app=com.android.virtualization.terminal
+10-18 19:38:34.156 W/virtmgr ( 3945): type=1400 audit(0.0:193): avc:  denied  { use } for  path="socket:[35287]" dev="sockfs" ino=35287 scontext=u:r:priv_app_all_virtualizationmanager:s0:c130,c256,c512,c768 tcontext=u:r:surfaceflinger:s0 tclass=fd permissive=0 app=com.android.virtualization.terminal
+10-18 19:38:34.156 I/auditd  ( 3945): type=1400 audit(0.0:193): avc:  denied  { read write } for  comm="virtmgr" path="/dev/dri/renderD128" dev="tmpfs" ino=1078 scontext=u:r:priv_app_all_virtualizationmanager:s0:c130,c256,c512,c768 tcontext=u:object_r:gpu_device:s0 tclass=chr_file permissive=0 app=com.android.virtualization.terminal
+10-18 19:38:34.156 W/virtmgr ( 3945): type=1400 audit(0.0:193): avc:  denied  { read write } for  path="/dev/dri/renderD128" dev="tmpfs" ino=1078 scontext=u:r:priv_app_all_virtualizationmanager:s0:c130,c256,c512,c768 tcontext=u:object_r:gpu_device:s0 tclass=chr_file permissive=0 app=com.android.virtualization.terminal
+10-18 19:38:34.156 I/auditd  ( 3945): type=1400 audit(0.0:193): avc:  denied  { read write } for  comm="virtmgr" path="/dev/dri/renderD128" dev="tmpfs" ino=1078 scontext=u:r:priv_app_all_virtualizationmanager:s0:c130,c256,c512,c768 tcontext=u:object_r:gpu_device:s0 tclass=chr_file permissive=0 app=com.android.virtualization.terminal
+10-18 19:38:34.156 W/virtmgr ( 3945): type=1400 audit(0.0:193): avc:  denied  { read write } for  path="/dev/dri/renderD128" dev="tmpfs" ino=1078 scontext=u:r:priv_app_all_virtualizationmanager:s0:c130,c256,c512,c768 tcontext=u:object_r:gpu_device:s0 tclass=chr_file permissive=0 app=com.android.virtualization.terminal
+10-18 19:38:34.156 I/auditd  ( 3945): type=1400 audit(0.0:193): avc:  denied  { read } for  comm="virtmgr" path="/storage/emulated/0/linux/images.tar.gz" dev="fuse" ino=3476 scontext=u:r:priv_app_all_virtualizationmanager:s0:c130,c256,c512,c768 tcontext=u:object_r:fuse:s0 tclass=file permissive=0 app=com.android.virtualization.terminal
+10-18 19:38:34.156 W/virtmgr ( 3945): type=1400 audit(0.0:193): avc:  denied  { read } for  path="/storage/emulated/0/linux/images.tar.gz" dev="fuse" ino=3476 scontext=u:r:priv_app_all_virtualizationmanager:s0:c130,c256,c512,c768 tcontext=u:object_r:fuse:s0 tclass=file permissive=0 app=com.android.virtualization.terminal
+10-18 19:38:34.156 I/auditd  ( 3945): type=1400 audit(0.0:193): avc:  denied  { use } for  comm="virtmgr" path="socket:[35297]" dev="sockfs" ino=35297 scontext=u:r:priv_app_all_virtualizationmanager:s0:c130,c256,c512,c768 tcontext=u:r:surfaceflinger:s0 tclass=fd permissive=0 app=com.android.virtualization.terminal
+10-18 19:38:34.156 W/virtmgr ( 3945): type=1400 audit(0.0:193): avc:  denied  { use } for  path="socket:[35297]" dev="sockfs" ino=35297 scontext=u:r:priv_app_all_virtualizationmanager:s0:c130,c256,c512,c768 tcontext=u:r:surfaceflinger:s0 tclass=fd permissive=0 app=com.android.virtualization.terminal
+10-18 19:38:34.156 I/auditd  ( 3945): type=1400 audit(0.0:193): avc:  denied  { use } for  comm="virtmgr" path="socket:[35298]" dev="sockfs" ino=35298 scontext=u:r:priv_app_all_virtualizationmanager:s0:c130,c256,c512,c768 tcontext=u:r:surfaceflinger:s0 tclass=fd permissive=0 app=com.android.virtualization.terminal
+10-18 19:38:34.156 W/virtmgr ( 3945): type=1400 audit(0.0:193): avc:  denied  { use } for  path="socket:[35298]" dev="sockfs" ino=35298 scontext=u:r:priv_app_all_virtualizationmanager:s0:c130,c256,c512,c768 tcontext=u:r:surfaceflinger:s0 tclass=fd permissive=0 app=com.android.virtualization.terminal
+10-18 19:38:34.199 I/virtmgr ( 3945): virtualizationmanager: Started VirtualizationService RpcServer. Ready to accept connections
+10-18 19:38:34.210 W/virtmgr ( 3945): virtualizationmanager::virtualmachine: can't read_link '/proc/3799/exe': Os { code: 2, kind: NotFound, message: "No such file or directory" }; regarding as system
+10-18 19:38:34.210 I/virtmgr ( 3945): virtualizationmanager::virtualmachine: callers secontext: u:r:vmlauncher_app:s0:c130,c256,c512,c768
+10-18 19:38:34.211 W/virtmgr ( 3945): virtualizationmanager::virtualmachine: VM reference DT doesn't exist in host DT
+10-18 19:38:34.211 I/virtmgr ( 3945): virtualizationmanager::debug_config: Debug policy ignored for non-Microdroid VM
+10-18 19:38:34.211 W/virtmgr ( 3945): virtualizationmanager::virtualmachine: unknown partition for '/data/data/com.android.virtualization.terminal/files/linux/root_part'
+10-18 19:38:34.211 W/virtmgr ( 3945): virtualizationmanager::virtualmachine: unknown partition for '/data/data/com.android.virtualization.terminal/files/linux/cidata.iso'
+10-18 19:38:34.211 W/virtmgr ( 3945): virtualizationmanager::virtualmachine: unknown partition for '/data/data/com.android.virtualization.terminal/files/linux/vmlinuz'
+10-18 19:38:34.211 W/virtmgr ( 3945): virtualizationmanager::virtualmachine: unknown partition for '/data/data/com.android.virtualization.terminal/files/linux/initrd.img'
+10-18 19:38:34.242 I/virtmgr ( 3945): virtualizationmanager::crosvm: Non-protected virtual machine "debian" (owner: u0_a130, cid: 2048) created
+10-18 19:38:34.243 I/virtmgr ( 3945): virtualizationmanager::atom: Writing VmCreationRequested atom into statsd.
+10-18 19:38:34.245 I/virtmgr ( 3945): virtualizationmanager::crosvm: Running crosvm with args: ["device", "fs", "--socket-path=/data/misc/virtualizationservice/2048/android", "--tag=android", "--shared-dir=/storage/emulated/0", "--cfg", "ugid_map='1000 100 10130 10130 7 /; 0 0 0 0 511 /Android'", "--disable-sandbox", "--skip-pivot-root=true"]
+10-18 19:38:34.249 I/virtmgr ( 3945): virtualizationmanager::crosvm: Spawned virtiofs crosvm_vu_fs(3973)
+10-18 19:38:34.249 I/virtmgr ( 3945): virtualizationmanager::crosvm: Running crosvm with args: ["device", "snd", "--socket-path=/data/misc/virtualizationservice/2048/vhost_user_snd", "--config", "backend=aaudio,num_input_devices=1,num_output_devices=1"]
+10-18 19:38:34.251 I/virtmgr ( 3945): virtualizationmanager::crosvm: Spawned virtiosnd crosvm_vu_snd(3975)
+10-18 19:38:34.352 I/virtmgr ( 3945): virtualizationmanager::crosvm: Running crosvm with args: ["--extended-status", "--log-level", "debug,disk=warn", "run", "--disable-sandbox", "--cid", "2048", "--name", "crosvm_debian", "/proc/self/fd/38 (/data/data/com.android.virtualization.terminal/files/linux/vmlinuz)", "--params", "transparent_hugepage=always root=/dev/vda1 ds=nocloud arm64.nompam 8250.nr_uarts=4 console=ttyS0 debian_server_port=0", "--params", "hostname=debian", "--initrd", "/proc/self/fd/39 (/data/data/com.android.virtualization.terminal/files/linux/initrd.img)", "--host-cpu-topology", "--mem", "1024", "--force-disable-readonly-mem", "--hugepages", "--params", "coherent_pool=4096", "--balloon-page-reporting", "--serial=type=file,path=/proc/self/fd/40 (pipe:[37697]),input=/proc/self/fd/41 (/dev/ptmx),hardware=serial,num=1", "--serial=type=file,path=/proc/self/fd/40 (pipe:[37697]),hardware=virtio-console,num=1,max-queue-sizes=[2,32]", "--serial=type=file,path=/proc/self/fd/42 (pipe:[37696]),hardware=virtio-console,num=3,max-queue-sizes=[2,32]", "--serial=type=file,path=/proc/self/fd/44 (pipe:[38722]),hardware=serial,num=2", "--serial=type=sink,hardware=virtio-console,num=2,max-queue-sizes=[2,32]", "--block", "path=/proc/self/fd/50 (/data/misc/virtualizationservice/2048/composite-0.img),ro=false,lock=false", "--block", "path=/proc/self/fd/46 (/data/data/com.android.virtualization.terminal/files/linux/cidata.iso),ro=true,lock=false", "--android-display-service=debian", "--gpu=backend=2d,displays=[[mode=windowed[1280,720],dpi=[160,160],refresh-rate=60]]", "--input", "multi-touch[path=/proc/self/fd/51 (socket:[37699]),width=1280,height=720]", "--input", "keyboard[path=/proc/self/fd/52 (socket:[37701])]", "--input", "mouse[path=/proc/self/fd/53 (socket:[37703])]", "--input", "multi-touch-trackpad[path=/proc/self/fd/54 (socket:[37705]),width=3000,height=3000]", "--no-usb", "--net", "tap-fd=55", "--socket", "/proc/self/fd/16 (socket:[38752])", "--device-tree-overlay", "/proc/self/fd/35 (/data/misc/virtualizationservice/2048/vm_dt_overlay.dtbo)", "--vhost-user", "fs,socket=/data/misc/virtualizationservice/2048/android", "--vhost-user", "sound,socket=/data/misc/virtualizationservice/2048/vhost_user_snd"]
+10-18 19:38:34.353 I/virtmgr ( 3945): virtualizationmanager::crosvm: Non-protected virtual machine "debian" (owner: u0_a130, cid: 2048) started
+10-18 19:38:34.371 I/VmController( 3799): Connect to ttyd using vsock
+10-18 19:38:34.372 D/VmController( 3799): localhost is running with port=35593
+10-18 19:38:34.372 D/VmController( 3799): State changed from Starting to Running(terminalAddress=TerminalAddress(ipAddress=localhost, port=35593, key=<redacted>))
+10-18 19:38:34.375 E/crosvm  ( 3990): exiting with error 1: no enabled hypervisor
+10-18 19:38:34.378 W/virtmgr ( 3945): virtualizationmanager::crosvm: Failed to get guest CPU time: zero value is measured on elapsed CPU guest_time
+10-18 19:38:34.379 W/virtmgr ( 3945): virtualizationmanager::crosvm: Failed to get guest RSS: can't find VmHWM in the status file
+10-18 19:38:34.379 I/virtmgr ( 3945): virtualizationmanager::crosvm: crosvm(3990) exited with status exit status: 1
+10-18 19:40:19.947 I/adbd    ( 3733): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:log -t Quire -p i 'q2-check nokvm 1792352419.913''
+10-18 19:40:19.959 I/Quire   ( 4638): q2-check nokvm 1792352419.913
+10-18 19:40:20.039 I/adbd    ( 3733): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 19:40:20.057 I/Quire   ( 3138): lab: dev.openbook.quire.lab.AGENTS_LIST
+10-18 19:40:20.070 I/Quire   ( 3138): agents: status linux-environment=ERROR(the VM is not running: its crosvm exited (no KVM?)) paired-computer=NOT_PAIRED
+10-18 19:40:20.070 W/Quire   ( 3138): agents: unavailable: The Linux environment couldn’t be reached. (the VM is not running: its crosvm exited (no KVM?)) Quire can use the agents on another computer instead, but none is paired.
+10-18 19:40:20.141 I/adbd    ( 3733): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 19:40:20.226 I/Quire   ( 3138): lab: dev.openbook.quire.lab.AGENTS_STATUS
+10-18 19:40:20.229 I/Quire   ( 3138): agents: status linux-environment=ERROR(the VM is not running: its crosvm exited (no KVM?)) paired-computer=NOT_PAIRED

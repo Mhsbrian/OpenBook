@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  Privileged permissions of Quire (system_ext priv-app, platform certificate). ACCESS_COMPUTER_CONTROL is
+  internal|privileged, so only this entry grants it. ACCESS_CONTEXTUAL_SEARCH is signature|privileged and also comes
+  from the platform signature; it is listed so the list is complete. ACCESS_AGENT_BRIDGE (signature|privileged, from the
+  Terminal app in AVF's APEX) lets Quire reach quired in the Linux environment (ANAL-218). The rest are Q6's OS tools
+  (ANAL-220, AndroidManifest.xml): the privileged ones its tools use, listed so the list is complete; the platform
+  certificate grants them as well.
+-->
+<permissions>
+    <privapp-permissions package="dev.openbook.quire">
+        <permission name="android.permission.ACCESS_COMPUTER_CONTROL" />
+        <permission name="android.permission.ACCESS_CONTEXTUAL_SEARCH" />
+        <permission name="com.android.virtualization.terminal.permission.ACCESS_AGENT_BRIDGE" />
+        <permission name="android.permission.CHANGE_DEVICE_IDLE_TEMP_WHITELIST" />
+        <permission name="android.permission.CHANGE_COMPONENT_ENABLED_STATE" />
+        <permission name="android.permission.START_ACTIVITIES_FROM_BACKGROUND" />
+        <permission name="android.permission.REAL_GET_TASKS" />
+        <permission name="android.permission.WRITE_SECURE_SETTINGS" />
+        <permission name="android.permission.MODIFY_DAY_NIGHT_MODE" />
+        <permission name="android.permission.POWER_SAVER" />
+        <permission name="android.permission.CONTROL_DISPLAY_COLOR_TRANSFORMS" />
+        <permission name="android.permission.BLUETOOTH_PRIVILEGED" />
+        <permission name="android.permission.MEDIA_CONTENT_CONTROL" />
+    </privapp-permissions>
+</permissions>

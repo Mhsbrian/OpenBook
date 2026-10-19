@@ -1,0 +1,21 @@
+check	result	detail
+Quire installed as a privileged system app	PASS	codePath=/system_ext/priv-app/OpenBookQuire versionName=17 privateFlags=[ PRIVATE_FLAG_ACTIVITIES_RESIZE_MODE_RESIZEABLE ALLOW_AUDIO_PLAYBACK_CAPTURE PRIVILEGED SYSTEM_EXT PRIVATE_FLAG_ALLOW_NATIVE_HE
+Quire holds the assistant role	PASS	dev.openbook.quire
+AVF in the image and KVM on (ro.boot.hypervisor.vm.supported)	PASS	feature=1 vm.supported=1 vendor.openbook.kvm=1
+the Terminal app and its agent bridge	PASS	package:com.android.virtualization.terminal [com.android.virtualization.terminal.agentbridge]: User 0: ceDataInode=53478 deDataInode=53226 pccCeDataInode=0 pccDeDataInode=0 installed=true hidden=false
+the Linux environment as Quire core sees it	INFO	linux-environment=READY paired-computer=NOT_PAIRED
+shake: Quire's note opened and is on screen	PASS	trigger=system_action; shown task 1 phase=NO_AGENT; window 'Quire' on screen
+shake: the note beside the pointer	PASS	anchor=Pointer pointer=(654.029, 1120.38) note card=(727, 1165, 1285, 1624) distance=86px (limit 400)
+meta_space: Quire's note opened and is on screen	PASS	trigger=assistant_shortcut; shown task 2 phase=NO_AGENT; window 'Quire' on screen
+meta_space: the note beside the pointer	PASS	anchor=Pointer pointer=(510.933, 1024.98) note card=(561, 1069, 1119, 1528) distance=67px (limit 400)
+over Settings: the note is made and hidden (Settings hides overlays; reviewed behaviour)	INFO	shown task 3; on screen=False; force-hidden=True
+agent: the note lists the Linux environment's agents	PASS	linux:opencode connected=false
+agent: the person connects it in the note	PASS	Connect opencode
+agent: the typed prompt was sent (input text, Enter)	PASS	1 content blocks
+agent: the prompt went to the agent in the Linux environment	PASS	session opencode-1 with linux:opencode
+agent: an answer in the note	PASS	stopReason=end_turn after 5.3 s; 'QUIRE OK' shown
+control: the platform's consent dialog	PASS	cc: pending
+control: consent given (Only this time)	FAIL	no 'Only this time' button
+no crash of Quire, SystemUI or the Terminal app	PASS	0 lines
+no ANR or crash event for them	PASS	0 events
+no SELinux denial for Quire or the Linux environment	FAIL	7 distinct since start, 2 ours: 4 avc: denied  { setsched } for  scontext=u:r:system_server:s0 tcontext=u:r:crosvm_vu_snd:s0:c129,c256,c512,c768 tclass=process permissive=0 | 4 avc: denied  { setsched } for  comm="OomAdjuster" scontext=u:r:system_server:s0 tcontext=u:r:crosvm_vu_snd:s0:c129,c256,c512,c768 tclass=process permissive=0

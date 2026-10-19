@@ -1,0 +1,26 @@
+# ps (boot at 16:57:03 UTC)
+  PID STIME     ELAPSED NAME                       
+ 2658 16:56:53    03:40 com.android.systemui
+ 2935 16:56:54    03:39 com.android.launcher3
+ 3129 16:56:57    03:36 dev.openbook.quire
+ 3869 16:57:31    03:02 com.android.systemui:screenshot
+# events buffer since boot
+10-18 16:56:54.176   817   862 I am_proc_start: [0,2658,10099,com.android.systemui,bound-service,{com.android.systemui/com.android.systemui.wallpapers.GradientColorWallpaper}]
+10-18 16:56:57.948   817   862 I am_proc_start: [0,3129,10095,dev.openbook.quire,bound-service,{dev.openbook.quire/dev.openbook.quire.assist.QuireVoiceInteractionService}]
+10-18 16:57:31.908   817   862 I am_proc_start: [0,3869,10099,com.android.systemui:screenshot,bound-service,{com.android.systemui/com.android.systemui.screenshot.TakeScreenshotService}]
+10-18 16:57:54.529   817   862 I am_proc_start: [0,4093,10130,dev.openbook.quire.secureprobe,top-activity,{dev.openbook.quire.secureprobe/dev.openbook.quire.secureprobe.SecureActivity}]
+10-18 16:59:30.713   817   862 I am_proc_start: [0,5054,10130,dev.openbook.quire.secureprobe,activity,{dev.openbook.quire.secureprobe/dev.openbook.quire.secureprobe.SecureActivity}]
+--------- beginning of events
+10-18 16:56:37.924   398   398 I auditd  : type=2000 audit(0.0:1): state=initialized audit_enabled=1 res=1
+# crash buffer
+0
+# kernel log: avc denials since boot
+      1 avc: denied  { find } for uid=1003 name=gpu scontext=u:r:bootanim:s0 tcontext=u:object_r:gpu_service:s0 tclass=service_manager permissive=0
+      1 avc: denied  { read } for  comm=".gce.gceservice" name="u:object_r:zygote_config_prop:s0" dev="tmpfs" scontext=u:r:gceservice:s0:c73,c256,c512,c768 tcontext=u:object_r:zygote_config_prop:s0 tclass=file permissive=0 app=com.android.google.gce.gceservice
+      1 avc: denied  { write } for  comm="init" name="error_report_end" dev="tracefs" scontext=u:r:init:s0 tcontext=u:object_r:debugfs_bootreceiver_tracing:s0 tclass=dir permissive=0 bug=b/340399580
+# tombstones / anr
+/data/anr:
+total 0
+
+/data/tombstones:
+total 0

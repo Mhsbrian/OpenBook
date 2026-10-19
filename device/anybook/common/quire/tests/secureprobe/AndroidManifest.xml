@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  Test helper for scripts/quire/q2-cf-check.sh and q5-safety-check.py, never in an image: one launchable window marked
+  FLAG_SECURE, and one that hides other apps' overlays (ProtectedActivity).
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="dev.openbook.quire.secureprobe">
+    <!-- Window.setHideOverlayWindows (a normal permission). -->
+    <uses-permission android:name="android.permission.HIDE_OVERLAY_WINDOWS" />
+    <application android:label="Quire secure probe">
+        <activity
+            android:name=".SecureActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ProtectedActivity"
+            android:exported="true"
+            android:label="Quire protected probe" />
+    </application>
+</manifest>

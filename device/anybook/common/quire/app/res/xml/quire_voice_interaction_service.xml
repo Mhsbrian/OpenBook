@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  The assistant role needs a session service, a recognition service and supportsAssist (AssistantRoleBehavior).
+  Q6 (ANAL-220): an agent's read_screen and take_screenshot use the assist structure, with its screen content, and the
+  assist screenshot. AOSP 17 removes those from a session unless the assistant declares them (and the person allows
+  "Use text from screen", tools/ScreenConsentActivity.kt).
+-->
+<voice-interaction-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:sessionService="dev.openbook.quire.assist.QuireSessionService"
+    android:recognitionService="dev.openbook.quire.assist.QuireRecognitionService"
+    android:supportsAssist="true"
+    android:supportsLaunchVoiceAssistFromKeyguard="false"
+    android:supportsLocalInteraction="false"
+    android:usesAssistData="true"
+    android:usesAssistScreenshots="true"
+    android:usesAssistStructureScreenContent="true" />

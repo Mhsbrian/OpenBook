@@ -1,0 +1,7 @@
+# Refresh rate in QEMU: refresh-20261018-anal192e
+
+| Check | Verdict | Facts |
+|---|---|---|
+| config | yes | {"fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys", "values": {"config_defaultRefreshRate": "0", "config_defaultPeakRefreshRate": "1000"}, "overlays": ["[x] dev.anybook.overlay.desktop.framework", "[x] dev.anybook.overlay.pointer"], "dmd": ["mDefaultRefreshRate: 0.0", "mDefaultPeakRefreshRate: 1000.0", "PRIORITY_USER_SETTING_PEAK_RENDER_FRAM |
+| policy | yes | {"resolution": "1920x1200", "active_hz": 75.0, "fastest_mode_hz": 75.0, "primary_render_max_hz": 1000.0, "primary_physical_max_hz": 1000.0, "render_hz_now": 75.0, "seconds_by_render_hz": {"75.00": 86.4}} |
+| scroll | yes | {"samples_hz": [75.0, 75.0, 75.0, 75.0, 75.0, 75.0, 75.0, 75.0, 75.0, 75.0, 75.0, 75.0], "most_common_hz": 75.0, "seconds_by_render_hz_during": {"75.00": 22.4}} |

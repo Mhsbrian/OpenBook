@@ -1,0 +1,2 @@
+--------- beginning of system
+10-18 16:59:34.465   817  2921 W ComputerControlSession: Computer control interaction blocked since session is not active: tap

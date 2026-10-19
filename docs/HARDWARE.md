@@ -1,5 +1,13 @@
 # Hardware
 
+## G14 touchpad measurement (2026-10-19, ANAL-226)
+
+On `20261019.photos1` slot A: ELAN `04f3:3315`, five slots, X 0–3905,
+Y 0–2382, resolution 31 units/mm, palm tool type but no pressure/size axes.
+Tap dragging is already enabled in both Settings and the gesture library;
+drag lock is off. The reported failure still needs a labeled reproduction.
+See `docs/touchpad-behavior.md` and `evidence/2026-10-19-touchpad-behavior/`.
+
 ## Dev and build host (confirmed 2026-10-15)
 
 | Item | Value |
@@ -71,6 +79,7 @@ It writes `anybook-hw-<board>-<date>.tar.gz`, with serials, UUIDs and MAC addres
 4. **Fan and power tuning:** mainline `asus-armoury` has a power-limit table for the GA403WR (6.19+). The 6.18 kernel has the older `asus-wmi` `ppt_*` attributes.
 5. **Suspend and panel power saving:** on the laptop's own Linux 7.2, 4 s2idle cycles completed with no amd_pmc errors, and amdgpu kept PSR off for the panel. One `WARNING` in `dc_dmub_srv_apply_idle_power_optimizations` (`dc_dmub_srv.c:1710`) appeared after about 23 hours. All of this is untested on our 6.18; if the display hangs on idle there, turning off DCN idle power states is the first thing to try (hypothesis).
 6. **Safety:** first bring-up boots from USB only. Nothing on the internal NVMe or the firmware gets flashed, repartitioned or wiped without explicit confirmation that names the device.
+7. **No USB device mode.** `/sys/class/udc` is empty and all USB controllers are xHCI hosts; the USB4 router (`67:00.5`) has no driver in our kernel. adb therefore runs over IP only (tcp:5555, Wireless debugging); a USB cable to the build host carries nothing. A USB-Ethernet adapter would need the GKI's `r8152`/`ax88179_178a`/`cdc_ether` modules loaded at boot (they ship in `system_dlkm` but are not loaded). `docs/adb-debug.md` (ANAL-222).
 
 ## Other candidate devices
 - Zen 4 laptops (Ryzen 7040/8040, Radeon 780M), as a secondary target.
@@ -89,5 +98,16 @@ It writes `anybook-hw-<board>-<date>.tar.gz`, with serials, UUIDs and MAC addres
 | NPU | amdxdna (XDNA 2) | — | Module built (ANAL-171); binds on the G14 (`accel0`, ANAL-189 hardware check); userspace later |
 | dGPU | nouveau / NVK (RTX 50 Laptop, GB20x) | — | Later: research track N1–N6 in `docs/nvidia.md`. Kept off with `dgpu_disable=1` (ANAL-176 default) |
 | Platform | asus-wmi, asus-armoury, hid-asus | — | asus-wmi/hid-asus built (ANAL-171). 6.18 asus-wmi has `dgpu_disable` and `gpu_mux_mode`; asus-armoury (6.19) not needed for bring-up |
+| Virtualization (the Linux environment) | kvm_amd, vhost_vsock, tun (all built in: `KVM_AMD=y`, `VHOST_VSOCK=y`, `TUN=y` in the G14 kernel's `dot_config`) | AVF: crosvm, virtmgr, the Terminal app and its Debian guest (ANAL-218) | In both images since Q4. `openbook-pc-setup kvm` sets AVF's `ro.boot.hypervisor.*` properties only when KVM registered its device, so the firmware's SVM switch decides whether the Linux environment is offered. **Untested on the G14**: the check (`scripts/quire/q4-device-check.sh`) records `/dev/kvm`, `kvm_amd` and the guest's boot time |
 | IOMMU | amd_iommu | — | `AMD_IOMMU=y` in OpenBook GKI; starts with interrupt remapping on QEMU's emulated AMD-Vi (ANAL-171) |
 | Boot | UEFI, GPT; EFI loader with bootconfig | AVB orange | systemd-boot, GRUB and GBL boot our kernel and userspace from a USB GPT image in QEMU/OVMF. **On the G14:** systemd-boot boots our kernel from USB with Secure Boot off, and Android's first and second stage ran from the stick (ANAL-189 hardware check) |
+
+## G14 YV12 video import (2026-10-19, ANAL-210)
+
+The Radeon 890M on `20261019.quire9` reproducibly rejects YV12 EGLImage imports.
+Photos triggered three SurfaceFlinger aborts with 384×640 YV12 frames. Mesa
+patch 0005 supplies the missing RADV format mapping; on this G14, an isolated
+headless process passes import and colour readback for RGB, YV12 and flexible
+YUV420 at five sizes (15/15), without restarting the desktop. This is a driver
+format defect, not evidence of failing hardware. System deployment and the
+Photos app check are tracked in `evidence/2026-10-19-photos-yv12/SUMMARY.md`.

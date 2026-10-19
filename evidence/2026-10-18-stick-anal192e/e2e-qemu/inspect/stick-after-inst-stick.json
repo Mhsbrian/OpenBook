@@ -1,0 +1,199 @@
+{
+ "disk": "stick.img",
+ "mbr": "protective",
+ "primary_valid": true,
+ "backup_valid": true,
+ "table_from": "primary",
+ "disk_guid": "E8569336-1359-5E87-BCB9-926FA054FC3A",
+ "partitions": [
+  {
+   "index": 1,
+   "type": "C12A7328-F81F-11D2-BA4B-00A0C93EC93B",
+   "uuid": "DA3C6283-F532-50BE-931E-40563B217A1E",
+   "first": 2048,
+   "last": 526335,
+   "name": "EFI",
+   "bytes": 268435456,
+   "digest": "7139c60e2ad42fd5dbfa0bb89982873bee3feab5c9624f1b2236f2adde42bd1e",
+   "head_blank": false
+  },
+  {
+   "index": 2,
+   "type": "0FC63DAF-8483-4772-8E79-3D69D8477DE4",
+   "uuid": "BC231D4B-50E8-5272-9BCB-D5BF5C585E36",
+   "first": 526336,
+   "last": 534527,
+   "name": "misc",
+   "bytes": 4194304,
+   "digest": "42b87054044896fa76ed52b2729b38d11a9144b7498676e80b684995ab3c58b7",
+   "head_blank": false
+  },
+  {
+   "index": 3,
+   "type": "0FC63DAF-8483-4772-8E79-3D69D8477DE4",
+   "uuid": "5AAB6E73-0CCE-5C69-80DE-83DAA1B92A99",
+   "first": 534528,
+   "last": 665599,
+   "name": "boot_a",
+   "bytes": 67108864,
+   "digest": "c3dddc505cfb9af4cfbd792aa7a2c79648b3a4cd4b462d75d0162da5b84cbea2",
+   "head_blank": false
+  },
+  {
+   "index": 4,
+   "type": "0FC63DAF-8483-4772-8E79-3D69D8477DE4",
+   "uuid": "9FCA4832-B513-5572-8135-D4DF0D790B9E",
+   "first": 665600,
+   "last": 681983,
+   "name": "init_boot_a",
+   "bytes": 8388608,
+   "digest": "94d82a6246641358905422865bd793dae8b0efe1fc7078ffd831aec9b9241ba7",
+   "head_blank": false
+  },
+  {
+   "index": 5,
+   "type": "0FC63DAF-8483-4772-8E79-3D69D8477DE4",
+   "uuid": "7A618F05-8A52-59B5-8DCC-09D8C3BCB01B",
+   "first": 681984,
+   "last": 813055,
+   "name": "vendor_boot_a",
+   "bytes": 67108864,
+   "digest": "92e43e2b8a128e911fb881da8856d4a26a9dc23c76617bf8e8d583e0ed4f5d7a",
+   "head_blank": false
+  },
+  {
+   "index": 6,
+   "type": "0FC63DAF-8483-4772-8E79-3D69D8477DE4",
+   "uuid": "7AEBC08B-9F86-56B1-91CB-617725B9ABA3",
+   "first": 813056,
+   "last": 815103,
+   "name": "vbmeta_a",
+   "bytes": 1048576,
+   "digest": "5b8b89096ad4b9453720e18aa0db6c26235bab435d30d71e82891dfc1f96eaef",
+   "head_blank": false
+  },
+  {
+   "index": 7,
+   "type": "0FC63DAF-8483-4772-8E79-3D69D8477DE4",
+   "uuid": "5950E771-5E21-5D26-A58C-9D992602B0CF",
+   "first": 815104,
+   "last": 946175,
+   "name": "metadata",
+   "bytes": 67108864,
+   "digest": "d5d7830a9485575c568cb77420214e22c9c6a4289b967c20a9accde4ae137683",
+   "head_blank": false
+  },
+  {
+   "index": 8,
+   "type": "0FC63DAF-8483-4772-8E79-3D69D8477DE4",
+   "uuid": "D4D4D9AA-32BA-5FF0-86C8-DEFA8EE464BE",
+   "first": 946176,
+   "last": 3739647,
+   "name": "super",
+   "bytes": 1430257664,
+   "digest": "16edca738fade2d94ad495b4b46f9ab8265453e95a34ad7ec8d5dae4440e204e",
+   "head_blank": false
+  },
+  {
+   "index": 9,
+   "type": "0FC63DAF-8483-4772-8E79-3D69D8477DE4",
+   "uuid": "9C5F9870-C9CB-51A1-B97C-BDE3BB41A239",
+   "first": 3739648,
+   "last": 33552383,
+   "name": "userdata",
+   "bytes": 15264120832,
+   "digest": "36d1bc4411071df66c6f7fe505b4e98abae0f942820495344a32739d3d456e5a",
+   "head_blank": false
+  }
+ ],
+ "fat": {
+  "EFI": {
+   "files": [
+    "EFI/BOOT/BOOTX64.EFI",
+    "LICENSES/Apache-2.0.txt",
+    "LICENSES/GPL-2.0-only.txt",
+    "LICENSES/LGPL-2.1-or-later.txt",
+    "LICENSES/README.txt",
+    "LICENSES/firmware/FILES.tsv",
+    "LICENSES/firmware/LICENCE.mediatek",
+    "LICENSES/firmware/LICENCE.rtlwifi_firmware.txt",
+    "LICENSES/firmware/LICENSE.amdgpu",
+    "LICENSES/firmware/LICENSE.amdnpu",
+    "LICENSES/firmware/LICENSE.cirrus",
+    "LICENSES/firmware/LICENSE.wireless-regdb",
+    "loader/entries/openbook-bridge.conf",
+    "loader/entries/openbook-check-hw.conf",
+    "loader/entries/openbook-check-s0i3-long.conf",
+    "loader/entries/openbook-check-s0i3.conf",
+    "loader/entries/openbook-gfx.conf",
+    "loader/entries/openbook-live.conf",
+    "loader/entries/openbook-logs.conf",
+    "loader/entries/openbook-reset.conf",
+    "loader/entries/openbook-safe-logs.conf",
+    "loader/entries/openbook-safe.conf",
+    "loader/entries/openbook-vm.conf",
+    "loader/entries/openbook-vm240.conf",
+    "loader/loader.conf",
+    "loader/random-seed",
+    "openbook/MANIFEST.json",
+    "openbook/PROVENANCE.txt",
+    "openbook/README.txt",
+    "openbook/a/bootconfig-live.img",
+    "openbook/a/bootconfig-logs.img",
+    "openbook/a/bootconfig-reset.img",
+    "openbook/a/bootconfig-safe-logs.img",
+    "openbook/a/bootconfig-safe.img",
+    "openbook/a/bootconfig-vm.img",
+    "openbook/a/bootconfig-vm240.img",
+    "openbook/a/kernel",
+    "openbook/a/live.img",
+    "openbook/a/ramdisk.img",
+    "openbook/a/vendor_ramdisk.img",
+    "openbook/bridge/README-bridge-check.txt",
+    "openbook/bridge/payload",
+    "openbook/check/README-power-check.txt",
+    "openbook/check/hwcheck.img",
+    "openbook/check/kernel",
+    "openbook/gfx/README-graphics-check.txt",
+    "openbook/gfx/gfx-init.img",
+    "openbook/gfx/payload",
+    "openbook/install/super-metadata.img",
+    "openbook/logs/install-20261018T143033Z.json",
+    "openbook/logs/install-20261018T143033Z.log",
+    "openbook/logs/install-20261018T144808Z.json",
+    "openbook/logs/install-20261018T144808Z.log",
+    "openbook/logs/live-init-001.json"
+   ],
+   "fsck": {
+    "rc": 0,
+    "out": [
+     "fsck.fat 4.2 (2021-01-31)",
+     "/home/hive/anybook/logs/installer/e2e-anal192e/inspect/stick-after-inst-stick.json.tmp: 68 files, 393765/516190 clusters"
+    ]
+   },
+   "sha256": {
+    "EFI/BOOT/BOOTX64.EFI": "15826b474fe9a4de16322e469edac3475dc061084d260082496a6d74ce894ed1",
+    "loader/entries/openbook-bridge.conf": "12fa0a32d33675e4f483bf65bac56b6f2dce69be3a61a08c749ea0fd876accf9",
+    "loader/entries/openbook-check-hw.conf": "fcd636d8c27063ec57ccb15ccbea41f59a9b6ab804553819ce7480b26cb896c8",
+    "loader/entries/openbook-check-s0i3-long.conf": "b9a75985fc97a2b8d1dbc3e2437308e57bab6c1804ced5547a6e0889aa2206d0",
+    "loader/entries/openbook-check-s0i3.conf": "9b60270a7927596216403618f4156e5a303f7b83ebe9a7c97388ca8ac410d07f",
+    "loader/entries/openbook-gfx.conf": "b28e034ce7fb72d0aa604f82299bcd6b6c6e2597f02c580e11d908dc0031d869",
+    "loader/entries/openbook-live.conf": "1ffca17f3e2d3437ad7a0266b7d04a5f71dbf19327c7b0a4b932268cd5a023da",
+    "loader/entries/openbook-logs.conf": "b8dcad72d3f5edb3e86e2fad705bc936dc44bd7e3ddf56f192ed18dfa75df731",
+    "loader/entries/openbook-reset.conf": "6dcd74bd38cdfdcaac6d165c7f8c791d31a3de2437a5c832199da1eac73b9682",
+    "loader/entries/openbook-safe-logs.conf": "c5b689488247b753fe99866da576ef73db0cd8e9cee4ca7e781cdecba5018174",
+    "loader/entries/openbook-safe.conf": "d4b2796e5454d5f8b21d71f4a8239f1e9e79ba9944b334d8ef6088c9e2ac7a5e",
+    "loader/entries/openbook-vm.conf": "37ae61c36b15c29b0dedb228a059676b7146cdcc2c255be70e2a33fd150a3638",
+    "loader/entries/openbook-vm240.conf": "c4c163952ab77dfe62d605ac2261a2e2b6d0b0626b1392e2a070d8b1cc3bb1a1",
+    "loader/loader.conf": "4d66e02c9f1fdb0af14c36f8e6a1b51ba53fe43b258f5c7802a5f2b2163a3f30"
+   }
+  }
+ },
+ "fallback": [
+  "EFI"
+ ],
+ "openbook_entry": [
+  "EFI"
+ ],
+ "state": "other-table"
+}

@@ -1,0 +1,27 @@
+$ /home/hive/anybook/ota/quire1/device/anybook/common/quire/tools/bridge-test.sh 127.0.0.1:45513 /home/hive/anybook/logs/installer/ota/r2/quire-from-after-ba/bridge
+/home/hive/anybook/logs/installer/ota/r2/quire-from-after-ba/bridge/bridge-dex.jar: 1 file pushed, 0 skipped. 1097.8 MB/s (1680872 bytes in 0.001s)
+PASS discovery adds entry
+PASS discovery does not connect or choose default
+PASS rediscovery preserves explicit choice and entry identity
+PASS agent metadata comes from describe
+PASS no filesystem or terminal capability
+PASS describe names selected agent
+PASS no prompt or session before explicit request
+PASS newSession response decoded
+PASS newSession routes alpha with server-created cwd
+PASS authenticate routes alpha
+PASS cancel retains session id
+PASS idle bridge close returns within 1.5 seconds
+PASS shutdown releases blocked close
+PASS rejects server version
+PASS bad server version never starts agent
+PASS a rejected connect (server version) releases the bridge descriptor
+PASS rejects agent version
+PASS a rejected connect (agent version) releases the bridge descriptor
+PASS rejects describe error
+PASS a rejected connect (describe error) releases the bridge descriptor
+PASS remote EOF notifies the client
+peer ended: InterruptedIOException
+PASS remote EOF closes the owned bridge descriptor
+PASS stopped environment fails before opening and explains why
+RESULT 23 passed, 0 failed

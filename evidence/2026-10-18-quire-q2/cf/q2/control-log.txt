@@ -1,0 +1,97 @@
+--------- beginning of main
+10-18 16:58:01.542 I/Quire   ( 4132): q2-check shake 1792342681.643
+10-18 16:58:01.935 I/Quire   ( 3129): invocation: trigger=system_action entrypoint=9(SYSTEM_ACTION) visible=[dev.openbook.quire.secureprobe, com.android.settings, com.android.settings, com.android.launcher3] flagSecureFound=true screenshot=1920x1080 token=true audioPlaying=n/a managedProfileVisible=false caller=com.android.launcher3 mediaProjectionOffered=true
+10-18 16:58:02.089 I/Quire   ( 3129): invocation: saved /data/user/0/dev.openbook.quire/files/invocations/20261018-165801-934-system_action.json
+10-18 16:58:14.357 I/Quire   ( 4197): q2-check meta_space 1792342694.462
+10-18 16:58:14.415 I/Quire   ( 3129): assistant: session shown trigger=assistant_shortcut invocationType=0 keyboardHint=true display=0 showFlags=0x4
+10-18 16:58:14.415 I/Quire   ( 3129): assistant: started contextual search trigger=assistant_shortcut
+10-18 16:58:14.504 I/Quire   ( 3129): invocation: trigger=assistant_shortcut entrypoint=11(KEYBOARD_SHORTCUT) visible=[dev.openbook.quire.secureprobe, com.android.settings, com.android.settings, com.android.launcher3] flagSecureFound=true screenshot=1920x1080 token=true audioPlaying=n/a managedProfileVisible=false caller=dev.openbook.quire mediaProjectionOffered=true
+10-18 16:58:14.639 I/Quire   ( 3129): invocation: saved /data/user/0/dev.openbook.quire/files/invocations/20261018-165814-504-assistant_shortcut.json
+10-18 16:58:27.746 I/Quire   ( 4256): q2-check assist_key 1792342707.842
+10-18 16:58:27.821 I/Quire   ( 3129): assistant: session shown trigger=assist_key invocationType=7 keyboardHint=false display=0 showFlags=0x4
+10-18 16:58:27.821 I/Quire   ( 3129): assistant: started contextual search trigger=assist_key
+10-18 16:58:27.960 I/Quire   ( 3129): invocation: trigger=assist_key entrypoint=11(KEYBOARD_SHORTCUT) visible=[dev.openbook.quire.secureprobe, com.android.settings, com.android.settings, com.android.launcher3] flagSecureFound=true screenshot=1920x1080 token=true audioPlaying=n/a managedProfileVisible=false caller=dev.openbook.quire mediaProjectionOffered=true
+10-18 16:58:28.197 I/Quire   ( 3129): invocation: saved /data/user/0/dev.openbook.quire/files/invocations/20261018-165827-960-assist_key.json
+10-18 16:58:35.288 I/Quire   ( 4326): q2-check control 1792342715.385
+10-18 16:58:35.362 I/Quire   ( 3129): lab: dev.openbook.quire.lab.REQUEST
+10-18 16:58:35.375 I/Quire   ( 3129): cc: request name=quire-1792342715363 targets=[com.android.settings] version=5
+10-18 16:58:35.392 I/Quire   ( 3129): cc: pending: the platform asks for consent
+10-18 16:58:38.320 I/Quire   ( 3129): cc: created: display 1920x1080
+10-18 16:58:38.337 I/Quire   ( 3129): cc: launch: com.android.settings/.Settings$DarkThemeSettingsActivity
+10-18 16:58:38.337 I/Quire   ( 3129): cc: lifecycle: active
+10-18 16:58:38.365 I/Quire   ( 3129): cc: mirror created
+10-18 16:58:45.190 I/Quire   ( 4499): q2-check screenshot-before 1792342725.283
+10-18 16:58:45.258 I/Quire   ( 3129): lab: dev.openbook.quire.lab.SCREENSHOT
+10-18 16:58:45.405 I/Quire   ( 3129): cc: screenshot: 1920x1080 saved /data/user/0/dev.openbook.quire/files/control/20261018-165845-332-session.png
+10-18 16:58:46.134 I/Quire   ( 3129): lab: dev.openbook.quire.lab.WINDOWS
+10-18 16:58:46.135 I/Quire   ( 3129): cc: windows: 2
+10-18 16:58:46.135 I/Quire   ( 3129): cc: window "Dark theme" display=2
+10-18 16:58:46.142 I/Quire   ( 3129): cc:             "Dark theme" android.widget.FrameLayout checkable=false checked=n/a bounds=Rect(698, 0 - 1920, 64)
+10-18 16:58:46.142 I/Quire   ( 3129): cc:                 "Navigate up" android.widget.ImageButton checkable=false checked=n/a bounds=Rect(714, 0 - 770, 64)
+10-18 16:58:46.142 I/Quire   ( 3129): cc:                 "Dark theme" android.widget.TextView checkable=false checked=n/a bounds=Rect(786, 18 - 786, 46)
+10-18 16:58:46.147 I/Quire   ( 3129): cc:                                 "Use dark theme" android.widget.TextView checkable=false checked=n/a bounds=Rect(746, 176 - 870, 201)
+10-18 16:58:46.148 I/Quire   ( 3129): cc:                               "null" android.widget.Switch checkable=true checked=false bounds=Rect(1832, 165 - 1884, 213)
+10-18 16:58:46.148 I/Quire   ( 3129): cc:                           "Options" android.widget.TextView checkable=false checked=n/a bounds=Rect(722, 267 - 1904, 302)
+10-18 16:58:46.148 I/Quire   ( 3129): cc:                           "null" android.widget.RadioButton checkable=true checked=true bounds=Rect(734, 340 - 766, 375)
+10-18 16:58:46.148 I/Quire   ( 3129): cc:                           "Standard" android.widget.TextView checkable=false checked=n/a bounds=Rect(782, 328 - 852, 353)
+10-18 16:58:46.148 I/Quire   ( 3129): cc:                             "Turns on dark theme for your device and apps that support dark theme" android.widget.TextView checkable=false checked=n/a bounds=Rect(782, 353 - 1872, 388)
+10-18 16:58:46.148 I/Quire   ( 3129): cc:                           "null" android.widget.RadioButton checkable=true checked=false bounds=Rect(734, 434 - 766, 469)
+10-18 16:58:46.148 I/Quire   ( 3129): cc:                           "Expanded" android.widget.TextView checkable=false checked=n/a bounds=Rect(782, 422 - 857, 447)
+10-18 16:58:46.148 I/Quire   ( 3129): cc:                             "Automatically applies dark theme to most apps that don't support it, helping to improve accessibility" android.widget.TextView checkable=false checked=n/a bounds=Rect(782, 447 - 1769, 482)
+10-18 16:58:46.148 I/Quire   ( 3129): cc:                           "Expanded dark theme settings" android.widget.ImageView checkable=false checked=n/a bounds=Rect(1840, 406 - 1888, 498)
+10-18 16:58:46.148 I/Quire   ( 3129): cc:                           "Timing" android.widget.TextView checkable=false checked=n/a bounds=Rect(722, 524 - 1904, 559)
+10-18 16:58:46.148 I/Quire   ( 3129): cc:                             "Schedule" android.widget.TextView checkable=false checked=n/a bounds=Rect(730, 585 - 800, 610)
+10-18 16:58:46.148 I/Quire   ( 3129): cc:                             "None" android.widget.TextView checkable=false checked=n/a bounds=Rect(730, 610 - 765, 632)
+10-18 16:58:46.148 I/Quire   ( 3129): cc:                           "If you experience issues with the expanded option, use the standard option." android.widget.TextView checkable=false checked=n/a bounds=Rect(722, 690 - 1206, 733)
+10-18 16:58:46.148 I/Quire   ( 3129): cc:                           "Modes can also turn on dark theme." android.widget.TextView checkable=false checked=n/a bounds=Rect(722, 735 - 954, 778)
+10-18 16:58:46.150 I/Quire   ( 3129): cc:                           "Modes settings" android.widget.TextView checkable=false checked=n/a bounds=Rect(722, 778 - 821, 823)
+10-18 16:58:46.150 I/Quire   ( 3129): cc: window "Settings" display=2
+10-18 16:58:46.165 I/Quire   ( 3129): cc:                   "Search Settings" android.widget.TextView checkable=false checked=n/a bounds=Rect(72, 19 - 219, 69)
+10-18 16:58:46.170 I/Quire   ( 3129): cc:                           "Network & internet" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 124 - 236, 149)
+10-18 16:58:46.170 I/Quire   ( 3129): cc:                           "Wi‑Fi, hotspot" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 149 - 174, 184)
+10-18 16:58:46.170 I/Quire   ( 3129): cc:                           "Connected devices" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 218 - 231, 243)
+10-18 16:58:46.170 I/Quire   ( 3129): cc:                           "Bluetooth, pairing" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 243 - 197, 278)
+10-18 16:58:46.174 I/Quire   ( 3129): cc:                           "Apps" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 326 - 123, 351)
+10-18 16:58:46.175 I/Quire   ( 3129): cc:                           "Recent apps, default apps" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 351 - 252, 386)
+10-18 16:58:46.177 I/Quire   ( 3129): cc:                           "Notifications" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 420 - 182, 445)
+10-18 16:58:46.178 I/Quire   ( 3129): cc:                           "Notification history, conversations" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 445 - 301, 480)
+10-18 16:58:46.181 I/Quire   ( 3129): cc:                           "Sound" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 514 - 133, 539)
+10-18 16:58:46.181 I/Quire   ( 3129): cc:                           "Volume and vibration" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 539 - 218, 574)
+10-18 16:58:46.183 I/Quire   ( 3129): cc:                           "Modes" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 608 - 136, 633)
+10-18 16:58:46.183 I/Quire   ( 3129): cc:                           "Do Not Disturb, Sleeping" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 633 - 241, 668)
+10-18 16:58:46.185 I/Quire   ( 3129): cc:                           "Display" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 702 - 140, 727)
+10-18 16:58:46.185 I/Quire   ( 3129): cc:                           "Dark theme, font size, brightness" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 727 - 296, 762)
+10-18 16:58:46.186 I/Quire   ( 3129): cc:                           "Wallpaper" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 796 - 162, 821)
+10-18 16:58:46.186 I/Quire   ( 3129): cc:                           "Home, lock screen" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 821 - 204, 856)
+10-18 16:58:46.189 I/Quire   ( 3129): cc:                           "Storage" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 904 - 144, 929)
+10-18 16:58:46.189 I/Quire   ( 3129): cc:                           "48% used - 8.18 GB free" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 929 - 240, 964)
+10-18 16:58:46.191 I/Quire   ( 3129): cc:                           "Battery" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 998 - 140, 1023)
+10-18 16:58:46.191 I/Quire   ( 3129): cc:                           "85% - Charging slowly" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 1023 - 226, 1058)
+10-18 16:58:46.196 I/Quire   ( 3129): cc:                           "System" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 1092 - 140, 1080)
+10-18 16:58:46.197 I/Quire   ( 3129): cc:                           "Languages, gestures, time" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 1117 - 255, 1080)
+10-18 16:58:46.199 I/Quire   ( 3129): cc:                           "About device" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 1186 - 185, 1080)
+10-18 16:58:46.199 I/Quire   ( 3129): cc:                           "AnyBook Cuttlefish x86_64 desktop" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 1211 - 310, 1080)
+10-18 16:58:46.201 I/Quire   ( 3129): cc:                           "Security & privacy" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 1294 - 223, 1080)
+10-18 16:58:46.201 I/Quire   ( 3129): cc:                           "App security, device lock, permissions" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 1319 - 327, 1080)
+10-18 16:58:46.202 I/Quire   ( 3129): cc:                           "Location" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 1388 - 151, 1080)
+10-18 16:58:46.202 I/Quire   ( 3129): cc:                           "On / 1 app has access to location" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 1413 - 298, 1080)
+10-18 16:58:46.204 I/Quire   ( 3129): cc:                           "Passwords & passkeys" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 1482 - 255, 1080)
+10-18 16:58:46.204 I/Quire   ( 3129): cc:                           "Suggestions for sign-in & autofill" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 1507 - 291, 1080)
+10-18 16:58:46.206 I/Quire   ( 3129): cc:                           "Accounts and backup" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 1576 - 251, 1080)
+10-18 16:58:46.206 I/Quire   ( 3129): cc:                           "Back up data, copy data from another device" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 1601 - 373, 1080)
+10-18 16:58:46.208 I/Quire   ( 3129): cc:                           "Safety & emergency" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 1670 - 237, 1080)
+10-18 16:58:46.208 I/Quire   ( 3129): cc:                           "Emergency SOS, medical info, alerts" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 1695 - 316, 1080)
+10-18 16:58:46.210 I/Quire   ( 3129): cc:                           "Accessibility" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 1778 - 179, 1080)
+10-18 16:58:46.210 I/Quire   ( 3129): cc:                           "Display, interaction, audio" android.widget.TextView checkable=false checked=n/a bounds=Rect(84, 1803 - 249, 1080)
+10-18 16:58:48.169 I/Quire   ( 4519): q2-check tap 1792342728.268
+10-18 16:58:48.235 I/Quire   ( 3129): lab: dev.openbook.quire.lab.TAP
+10-18 16:58:48.237 I/Quire   ( 3129): cc: tap target: "Use Dark theme" checked=n/a bounds=Rect(714, 137 - 1904, 241)
+10-18 16:58:48.239 I/Quire   ( 3129): cc: tap: 1309,189
+10-18 16:58:48.495 I/Quire   ( 3129): cc: mirror created
+10-18 16:58:49.662 I/Quire   ( 4548): q2-check screenshot-after 1792342729.756
+10-18 16:58:49.724 I/Quire   ( 3129): lab: dev.openbook.quire.lab.SCREENSHOT
+10-18 16:58:49.875 I/Quire   ( 3129): cc: screenshot: 1920x1080 saved /data/user/0/dev.openbook.quire/files/control/20261018-165849-777-session.png
+10-18 16:58:51.157 I/Quire   ( 4567): q2-check handover 1792342731.257
+10-18 16:58:51.230 I/Quire   ( 3129): lab: dev.openbook.quire.lab.HAND_OVER
+10-18 16:58:51.261 I/Quire   ( 3129): cc: hand over: done
+10-18 16:58:51.460 I/Quire   ( 3129): cc: lifecycle: closed reason=4(SESSION_EMPTY)

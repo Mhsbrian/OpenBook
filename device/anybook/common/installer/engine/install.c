@@ -1187,7 +1187,10 @@ int apply_run(const struct plan_req *r, const char *expect_sha, const char *type
             L.pw = g_power_override;
             LOG("power from the app: AC %s, battery %d %%", L.pw.ac ? "on" : "off", L.pw.battery_pct);
         } else {
-            LOG("power supplies unreadable and none given: the power rule (S8) is not checked");
+            // Fail closed: under SELinux only the health HAL reads the supplies; the app sends BatteryManager's view.
+            code = "power";
+            snprintf(err, sizeof err, "the battery and the charger can't be read, and no reading was given (S8)");
+            goto fail_early;
         }
     }
     if (!L.pw.ok) {

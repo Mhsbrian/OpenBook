@@ -1,0 +1,7 @@
+UPDATE_STATUS_IDLE
+10-18 23:13:09.454  1130  1130 D PermissionStorageTimeChangeReceiver: realtimeSnapshot set to 11479
+10-18 23:13:17.291  1130  1130 D PermissionStorageTimeChangeReceiver: systemTimeSnapshot set to 1792365197291
+10-18 23:13:17.291  1130  1130 D PermissionStorageTimeChangeReceiver: realtimeSnapshot set to 19317
+10-18 23:13:17.566  1226  1247 D QuickstepModelDelegate: Successfully registered for launcher snapshot logging!
+10-18 23:13:12.815  1770  1770 I apexd   : destroyCeSnapshotsNotSpecified() received by ApexService user_id : 0 retain_rollback_ids : []
+10-18 23:13:21.571  1418  1418 I adbd    : adbd service requested 'shell,v2,TERM=xterm-kitty,raw:timeout 10 update_engine_client --follow 2>&1 | grep -o 'UPDATE_STATUS_[A-Z_]*' | tail -n 1; logcat -d -b all | grep -iE 'rollback|Cancel|snapshot' | grep -iE 'update_engine|snapshot|init' | tail -n 6'

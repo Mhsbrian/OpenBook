@@ -1,0 +1,5 @@
+10-19 05:17:51.064   578   578 I update_engine: [INFO:delta_performer.cc(120)] Resuming after 290/753 operations (38%), 399769764/994421843 bytes downloaded (40%), overall progress 39%
+10-19 05:17:51.064   578   578 I update_engine: [INFO:vabc_partition_writer.cc(238)] Resuming update on partition `system` op index 106
+10-19 05:17:52.099   578   578 I update_engine: [INFO:libcurl_http_fetcher.cc(134)] Starting/Resuming transfer
+10-19 05:18:20.623   578   578 I update_engine: type: resume
+10-19 05:18:39.508  1393  1393 I adbd    : adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -b all | grep -iE 'resum|Resuming|interrupted|previous update' | grep -i update_engine | tail -n 5'

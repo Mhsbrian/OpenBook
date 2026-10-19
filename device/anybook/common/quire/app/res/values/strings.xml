@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  Q2's strings: Quire's own window for computer control, and the session's notification. The note's words are in
+  strings_note.xml (ANAL-219).
+-->
+<resources>
+    <string name="app_name">Quire</string>
+    <!-- The label Android shows in the text toolbar's overflow menu (docs/quire-design.md §2). -->
+    <string name="ask_quire">Ask Quire</string>
+
+    <!-- Computer control. -->
+    <string name="control_heading">Computer control</string>
+    <string name="control_open_settings">Let Quire open Settings</string>
+    <string name="control_tap_toggle">Tap “Use Dark theme”</string>
+    <string name="control_hand_over">Take over</string>
+    <string name="control_stop">Stop</string>
+    <string name="control_idle">No session.</string>
+    <string name="control_last_invocation">Last call: %1$s</string>
+    <string name="control_no_invocation">Quire hasn’t been called yet.</string>
+
+    <!-- The session's running notification (posted by the platform for Quire). -->
+    <string name="channel_automation">Quire using apps</string>
+    <string name="notification_using">Quire is using %1$s</string>
+    <string name="notification_using_text">It runs on a separate display. Open Quire to watch, take over or stop.</string>
+
+    <!-- Agents (Q4, ANAL-218): where they run, and why Quire can't reach them. Q5's note replaces this window. -->
+    <string name="agents_heading">Agents</string>
+    <string name="agents_list_button">Find agents</string>
+    <string name="agents_send">Ask</string>
+    <string name="agents_prompt_hint">Ask an agent…</string>
+    <string name="agents_list">Agents in the %1$s: %2$s</string>
+    <string name="agents_where_linux">Linux environment</string>
+    <string name="agents_where_paired">paired computer</string>
+    <string name="agents_ready">Ready.</string>
+    <string name="agents_no_avf">This build of OpenBook has no Linux environment.</string>
+    <string name="agents_no_kvm">This laptop can’t run the Linux environment: it has no hardware virtualization (KVM), or it is turned off in the firmware settings.</string>
+    <string name="agents_terminal_off">The Linux environment is off. Turn it on in Settings › System › Developer options › Linux development environment.</string>
+    <string name="agents_not_installed">The Linux environment isn’t set up yet. Open Terminal to install it.</string>
+    <string name="agents_installing">The Linux environment is being installed. This takes a few minutes the first time.</string>
+    <string name="agents_stopped">The Linux environment didn’t start. Open Terminal to see why.</string>
+    <string name="agents_starting">The Linux environment is starting.</string>
+    <string name="agents_error">The Linux environment couldn’t be reached.</string>
+    <string name="agents_not_paired">Quire can use the agents on another computer instead, but none is paired.</string>
+    <string name="agents_permission_title">Allow %1$s?</string>
+</resources>

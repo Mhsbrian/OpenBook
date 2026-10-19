@@ -1,0 +1,21 @@
+# The previous boot (installed 15:39Z, rebooted by the owner 16:02Z): what the Developer options switches did to
+# adbd while the build host was connected. Transcribed from `adb shell logcat -d -b all` read at 15:58Z; that boot's
+# logcat was not persisted (see 15:56:51 below), so this is the only copy. Network names and addresses removed.
+10-18 15:48:34.021  1084  1267 D AdbService: setAdbEnabled(true), mIsAdbUsbEnabled=true, mIsAdbWifiEnabled=false, transportType=1   <- owner: Wireless debugging on
+10-18 15:54:04.528     1     1 I init    : Service 'adbd' (pid 959) exited with status 0                                             <- build host: adb root
+10-18 15:54:04.528     1     1 I init    : starting service 'adbd'...
+10-18 15:55:03.680  1084  1267 D AdbService: setAdbEnabled(false), mIsAdbUsbEnabled=true, mIsAdbWifiEnabled=true, transportType=0  <- owner: USB debugging off
+10-18 15:55:03.715     1     1 I init    : Service 'adbd' (pid 8967) received SIGKILL
+10-18 15:55:04.788  1084  1267 D AdbService: setAdbEnabled(false), mIsAdbUsbEnabled=false, mIsAdbWifiEnabled=true, transportType=1 <- Wireless debugging follows it off
+10-18 15:55:21.259  1084  1267 D AdbService: setAdbEnabled(true), mIsAdbUsbEnabled=false, mIsAdbWifiEnabled=false, transportType=1 <- owner: Wireless debugging on
+10-18 15:55:21.262     1     1 I init    : starting service 'adbd'...
+10-18 15:56:18.875  1084  1267 D AdbService: setAdbEnabled(false), mIsAdbUsbEnabled=false, mIsAdbWifiEnabled=true, transportType=1 <- owner: Wireless debugging off
+10-18 15:56:18.881     1     1 I init    : Service 'adbd' (pid 9045) received SIGKILL
+10-18 15:56:20.585  1084  1267 D AdbService: setAdbEnabled(true), mIsAdbUsbEnabled=false, mIsAdbWifiEnabled=false, transportType=1 <- owner: Wireless debugging on
+10-18 15:56:20.588     1     1 I init    : starting service 'adbd'...
+10-18 15:56:22.275  9105  9105 I adbd    : authentication not required                                                            <- USB debugging off, Wireless debugging on: tcp:5555 still open, no authorization
+10-18 15:56:26.392  1084  1267 I AdbDebuggingManager: updateUIPairCode: [redacted]                                                <- owner: "Pair device with pairing code" opened
+10-18 15:56:47.313  8523  8597 W SQLiteLog: (28) double-quoted string literal: "select_logpersist"
+10-18 15:56:51.030     1     1 I init    : processing action (logd.logpersistd=clear && logd.logpersistd.enable=true) from (/system/etc/init/logcatd.rc:38)
+                                                                                                                                   <- Developer options "Store logger data persistently" set to Off: logcatd stopped and /data/misc/logd cleared
+# Each adbd stop or restart left the build host's transport "offline" until `adb disconnect` + `adb connect`.

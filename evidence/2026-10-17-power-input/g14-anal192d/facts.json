@@ -1,0 +1,104 @@
+{
+ "live-001": {
+  "BAT": [
+   "BAT1 status=Discharging",
+   "BAT1 capacity=15",
+   "BAT1 current_now=850000",
+   "BAT1 voltage_now=14437000",
+   "BAT1 charge_now=607000",
+   "BAT1 charge_full=4063000",
+   "BAT1 charge_full_design=4580000",
+   "BAT1 cycle_count=0",
+   "BAT1 charge_control_end_threshold=100"
+  ],
+  "SUPPLY": [
+   "ACAD: Mains  ",
+   "BAT1: Battery Discharging 15",
+   "ucsi-source-psy-USBC000:001: USB  ",
+   "ucsi-source-psy-USBC000:002: USB"
+  ],
+  "SUSPEND": [
+   "success=0",
+   "fail=0",
+   "last_hw_sleep=0",
+   "total_hw_sleep=0",
+   "max_hw_sleep=18446744073709551615",
+   "last_failed_dev=",
+   "last_failed_errno=0"
+  ],
+  "POWER": [
+   "freeze mem disk",
+   "[s2idle]",
+   "active",
+   "amd-pstate-epp",
+   "balance_performance"
+  ],
+  "EPP": [
+   "24 balance_performance"
+  ],
+  "SENSORS": [
+   "thermal_zone0 acpitz 43000",
+   "thermal_zone1 acpitz 20000",
+   "hwmon0 acpi_fan ",
+   "hwmon1 k10temp 43375",
+   "hwmon2 asus ",
+   "hwmon3 asus_custom_fan_curve ",
+   "hwmon4 amdgpu 40000",
+   "hwmon5 mt7925_phy0 40000"
+  ],
+  "BACKLIGHT": [
+   "amdgpu_bl0 202693/399000"
+  ]
+ },
+ "live-002": {
+  "BAT": [
+   "BAT1 status=Charging",
+   "BAT1 capacity=19",
+   "BAT1 current_now=806000",
+   "BAT1 voltage_now=15150000",
+   "BAT1 charge_now=773000",
+   "BAT1 charge_full=4023000",
+   "BAT1 charge_full_design=4580000",
+   "BAT1 cycle_count=0",
+   "BAT1 charge_control_end_threshold=100"
+  ],
+  "SUPPLY": [
+   "ACAD: Mains  ",
+   "BAT1: Battery Charging 19",
+   "ucsi-source-psy-USBC000:001: USB  ",
+   "ucsi-source-psy-USBC000:002: USB"
+  ],
+  "SUSPEND": [
+   "success=0",
+   "fail=0",
+   "last_hw_sleep=0",
+   "total_hw_sleep=0",
+   "max_hw_sleep=18446744073709551615",
+   "last_failed_dev=",
+   "last_failed_errno=0"
+  ],
+  "POWER": [
+   "freeze mem disk",
+   "[s2idle]",
+   "active",
+   "amd-pstate-epp",
+   "balance_performance"
+  ],
+  "EPP": [
+   "24 balance_performance"
+  ],
+  "SENSORS": [
+   "thermal_zone0 acpitz 43000",
+   "thermal_zone1 acpitz 20000",
+   "hwmon0 acpi_fan ",
+   "hwmon1 k10temp 44000",
+   "hwmon2 asus ",
+   "hwmon3 asus_custom_fan_curve ",
+   "hwmon4 amdgpu 41000",
+   "hwmon5 mt7925_phy0 40000"
+  ],
+  "BACKLIGHT": [
+   "amdgpu_bl0 202693/399000"
+  ]
+ }
+}

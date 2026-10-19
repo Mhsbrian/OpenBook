@@ -77,14 +77,17 @@ def touchpad_clock(text):
     its time base from it, and "Clock changed backwards" means that base jumped back (ANAL-178). The cause on the G14:
     the kernel's autorepeat of BTN_TOOL_FINGER (the touchpad has EV_REP), in frames without MSC_TIMESTAMP; Android
     turns kernel repeat off for touchpads with aosp/patches/frameworks/native."""
-    frames, msc = [], None
-    for m in re.finditer(r"\[\s*([\d.]+)\]\s+(?:\S+: )?(EV_\w+)\s+(\S+)\s+([0-9a-f]+)", text):
-        t, typ, code, val = float(m.group(1)), m.group(2), m.group(3), int(m.group(4), 16)
+    frames, msc, input_seen = [], None, False
+    for m in re.finditer(r"\[\s*([\d.]+)\]\s+(?:\S+: )?(EV_\w+)\s+(\S+)\s+(\S+)", text):
+        t, typ, code, val = float(m.group(1)), m.group(2), m.group(3), m.group(4)
         if typ == "EV_MSC" and code == "MSC_TIMESTAMP":
-            msc = val
-        elif typ == "EV_SYN" and code == "SYN_REPORT":
-            frames.append((t, msc))
-            msc = None
+            msc = int(val, 16)
+        if typ == "EV_SYN" and code == "SYN_REPORT":
+            if input_seen:  # not a frame of EV_REP alone (EventHub setting the repeat rate)
+                frames.append((t, msc))
+            msc, input_seen = None, False
+        elif typ != "EV_REP":
+            input_seen = True
     if len(frames) < 10:
         return None
     with_msc = [(t, m) for t, m in frames if m is not None]
@@ -133,11 +136,29 @@ MAC = re.compile(r"\b(?!00:00:00:00:00:00|ff:ff:ff:ff:ff:ff)([0-9a-fA-F]{2}:){5}
 SERIAL = re.compile(r"(SerialNumber: |iSerial\s+\d+\s+|usb-[A-Za-z0-9_]+_|mfg/product/ver/serial [^/\s]*/[^/\s]*/[^/\s]*/)"
                     r"([A-Za-z0-9]{6,})")
 SSID = re.compile(r'(\b(?:SSID|ssid)\b[\s:=]*)("[^"]*"|[^\s,}"]+)')
+# Wireless debugging's six-digit pairing code, which AdbDebuggingManager logs while the pairing dialog is open
+# (ANAL-222: the installed G14's logcat).
+PAIRCODE = re.compile(r"(updateUIPairCode: |[Pp]airing code[:= ]+)(\d{6})\b")
 
 
-def redact(text):
+# Wi-Fi network names, learned from the logs themselves so every other spelling is masked too: the installed
+# system's Wi-Fi logs also name networks bare, its own and the neighbours' it scanned ("summary=NAME",
+# WifiPickerTracker's "[StandardWifiEntry][NAME]", WifiNetworkSelector's "NAME:<bssid>(5GHz)"; ANAL-222).
+SSID_NAME = re.compile(r'\b(?:SSID|ssid)\b[\s:=]*"([^"]{2,32})"|Wifi is connected to "([^"]{2,32})"|'
+                       r"\[\w*WifiEntry\]\[([^\]\n]{2,32})\]|(?:: | / )([^/:\n]{2,32}):[0-9a-fA-F]{2}(?::[0-9a-fA-F]{2}){5}\(")
+
+
+def ssid_names(text):
+    return {n for m in SSID_NAME.finditer(text) for n in m.groups() if n and n not in ("<unknown ssid>", "[redacted]")}
+
+
+def redact(text, names=()):
+    names = set(names) | ssid_names(text)
     text = MAC.sub("xx:xx:xx:xx:xx:xx", text)
     text = SERIAL.sub(lambda m: m.group(1) + "[redacted]", text)
+    text = PAIRCODE.sub(lambda m: m.group(1) + "[redacted]", text)
+    for n in sorted(names, key=len, reverse=True):
+        text = re.sub(r"(?<![\w-])" + re.escape(n) + r"(?![\w-])", "[redacted]", text)
     return SSID.sub(lambda m: m.group(1) + ('"[redacted]"' if m.group(2).startswith('"') else "[redacted]"), text)
 
 
@@ -191,6 +212,26 @@ def main():
             data_kib=int(m.group(1)) if m else None, used_kib=int(m.group(2)) if m else None,
             byname_targets=sorted({os.path.basename(t).rstrip("0123456789")
                                    for t in re.findall(r"-> (/dev/block/\S+)", sec.get("BYNAME", ""))}))
+    # The installer (ANAL-191): the daemon's log (its requests: dry runs, installs and refusals) and the firmware's
+    # boot entries, read-only. Older sticks have no INSTALLER section: no verdict.
+    if "INSTALLER" in sec:
+        ins = sec["INSTALLER"]
+        nv = {}
+        for line in ins.splitlines():
+            if line.startswith("{") and '"nvram"' in line:
+                try:
+                    nv = json.loads(line)["nvram"]
+                except (ValueError, KeyError):
+                    pass
+        verdict("installer_nvram", bool(nv.get("available")) if nv else None, boot_order=nv.get("boot_order"),
+                boot_current=nv.get("boot_current"),
+                entries=[f"{e.get('num')} {e.get('description')}" for e in nv.get("entries", [])])
+        log = [l for l in ins.splitlines() if re.match(r"^\d\d:\d\d:\d\d ", l)]
+        verdict("installer_log", None if not log else not any(" FAILED in " in l for l in log),
+                dry_runs=sum("(dry run, read-only)" in l for l in log),
+                installs=sum(bool(re.search(r" install \d+ started:", l)) for l in log),
+                refused=[l[9:200] for l in log if " refused (" in l][-3:],
+                ended=[l[9:120] for l in log if re.search(r"install process \d+ ended", l)][-3:])
     if a.expect == "g14":
         net = sec.get("NET", "")
         verdict("wifi", "wlan0" in net if net else None, interface="wlan0" in net,
@@ -391,6 +432,10 @@ def main():
     print("\n".join(lines))
     if a.redact:
         os.makedirs(a.redact, exist_ok=True)
+        names = set()
+        for f in sorted(os.listdir(d)):
+            if f.endswith((".txt", ".json", ".md")) and os.path.isfile(f"{d}/{f}"):
+                names |= ssid_names(open(f"{d}/{f}", errors="replace").read())
         for f in sorted(os.listdir(d)):
             src, dst = f"{d}/{f}", f"{a.redact}/{f}"
             # Earlier boots' logs (prior-boots.tar.gz, unpacked into prior/ by read-stick-logs.sh) are not masked
@@ -398,7 +443,7 @@ def main():
             if os.path.isdir(src) or f.endswith(".tar.gz"):
                 print(f"not copied to {a.redact}: {f} (use --redact-file on single files)", file=sys.stderr)
             elif f.endswith((".txt", ".json", ".md")):
-                open(dst, "w").write(redact(open(src, errors="replace").read()))
+                open(dst, "w").write(redact(open(src, errors="replace").read(), names))
             else:
                 shutil.copy(src, dst)
 

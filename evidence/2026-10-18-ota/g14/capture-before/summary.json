@@ -1,0 +1,46 @@
+{
+ "schema": "openbook-live-logs/1",
+ "source": "adb",
+ "serial": "192.168.50.11:5555",
+ "dir": "capture-before",
+ "uptime_s": 3379.14,
+ "second_stage_s": 0.706229,
+ "boot_completed": true,
+ "boot_completed_s": 6.695,
+ "desktop_s": 7.716,
+ "captures": [
+  {
+   "phase": "final"
+  }
+ ],
+ "props": {
+  "sys.boot_completed": "1",
+  "dev.bootcomplete": "1",
+  "ro.build.fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
+  "ro.product.model": "OpenBook on ROG Zephyrus G14 (GA403WR)",
+  "ro.boot.openbook.live": "",
+  "ro.boot.openbook.logs": "",
+  "ro.boot.slot_suffix": "_a",
+  "ro.boot.verifiedbootstate": "orange",
+  "ro.boot.selinux": "",
+  "ro.boot.hardware": "openbook",
+  "vendor.anybook.gpu.hal": "amdgpu",
+  "ro.hardware.egl": "angle",
+  "ro.hardware.vulkan": "radv",
+  "ro.hardware.gralloc": "minigbm",
+  "ro.hardware.hwcomposer": "drm",
+  "ro.sf.lcd_density": "240",
+  "init.svc.surfaceflinger": "running",
+  "init.svc.zygote": "running",
+  "init.svc.bootanim": "stopped",
+  "init.svc.vendor.openbook.dlkm": "stopped",
+  "init.svc.vendor.openbook.dgpu-pm": "stopped",
+  "init.svc.wpa_supplicant": "running",
+  "wifi.interface": "",
+  "ro.crypto.state": "encrypted",
+  "ro.crypto.type": "file",
+  "sys.system_server.start_count": "1",
+  "ro.boottime.init": "634268850",
+  "init.svc.openbook_addons": "stopped"
+ }
+}

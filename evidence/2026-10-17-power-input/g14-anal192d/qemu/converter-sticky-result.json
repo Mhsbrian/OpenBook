@@ -1,0 +1,23 @@
+{
+ "image": "openbook-live-20261018-anal178-converter-test.img",
+ "mode": "sticky",
+ "elan_uhid": [
+  "elan-uhid: done: 2008 reports, 3 GET_REPORT and 6 SET_REPORT answered"
+ ],
+ "touchpad_node": "/dev/input/event5",
+ "ev_bits": "10001b",
+ "ev_rep": true,
+ "classes": "TOUCH | TOUCH_MT | TOUCHPAD",
+ "repeat_frames": 0,
+ "clock_changed_backwards": 0,
+ "touchpad_clock": {
+  "ok": false,
+  "frames": 2012,
+  "frames_with_msc": 2008,
+  "repeat_frames": 0,
+  "msc_backward_steps": 3,
+  "msc_backward_within_1s": 0,
+  "median_msc_per_event_second": 1.026,
+  "median_frame_interval_ms": 4.0
+ }
+}

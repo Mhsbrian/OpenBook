@@ -1,0 +1,29 @@
+# quired in OpenBook's Linux environment (the AVF Terminal's Debian guest).
+# It serves the agents installed here to Quire core on Android, over vsock port 7690, and accepts
+# only the host (Android) as a peer. See docs/quire.md §4.
+[Unit]
+Description=Quire harness host (quired serve)
+Documentation=https://github.com/Mhsbrian/OpenBook/blob/main/docs/quire.md
+# The droid user is made by cloud-init's users module on the first boot, in its network stage
+# (cloud-init-network.service; cloud-init.service before cloud-init 24.3). Not cloud-final: that
+# one runs after multi-user.target, so ordering after it would be a cycle.
+After=cloud-init-network.service cloud-init.service
+ConditionPathIsDirectory=/home/droid
+ConditionVirtualization=vm
+
+[Service]
+Type=simple
+User=droid
+Group=users
+WorkingDirectory=/home/droid
+Environment=HOME=/home/droid
+Environment=USER=droid
+# Where agent CLIs install themselves: npm and pipx (~/.local/bin), opencode's installer, /usr/local.
+Environment=PATH=/home/droid/.local/bin:/home/droid/.opencode/bin:/home/droid/.npm-global/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/usr/bin/quired serve --vsock 7690 --root /home/droid
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,55 @@
+{
+ "case": "cut-from-after-ba",
+ "checks": [
+  {
+   "check": "power cut while update_engine writes slot b",
+   "ok": true,
+   "detail": "at progress 40"
+  },
+  {
+   "check": "after the cut slot a boots, the build it ran before, /data intact",
+   "ok": true,
+   "detail": "{}"
+  },
+  {
+   "check": "the update re-run completes and verifies",
+   "ok": true,
+   "detail": "0.1:34959 wait && g14-adb.sh -a 127.0.0.1:34959 ota-status\n  Not yet:    g14-adb.sh -a 127.0.0.1:34959 ota-cancel        (before rebooting: slot a stays, as if nothing happened)\nIf slot b does not come up: it gets 3 tries. Hold the power button 10 s to force each restart; after the third\nfailed start systemd-boot starts slot a again by itself, with /data as it was. To pick a slot by hand: hold a key\nwhile powering on and choose \"OpenBook (17 \u00b7 slot A)\". Slot b counts as good once Android has booted it\n(markBootSuccessful); from then on update_engine merges, and slot a is no longer a fallback.\n"
+  },
+  {
+   "check": "slot b boots",
+   "ok": true,
+   "detail": "b"
+  },
+  {
+   "check": "after the re-run: the PIN unlocks the user's storage",
+   "ok": true,
+   "detail": "Lock credential verified successfully"
+  },
+  {
+   "check": "after the re-run: slot b runs the package's build (vbmeta digest, build date)",
+   "ok": true,
+   "detail": "{'SLOT': '_b', 'VBMETA': '4aa4ffa21882d186bad6fecba48cc9128568a4e1d9b46b842314b04dda8c195d', 'DATE': '1792411246'}"
+  },
+  {
+   "check": "after the re-run: /data intact: the setting, the 4 MiB file, the app, the serial number, provisioned",
+   "ok": true,
+   "detail": "{}"
+  },
+  {
+   "check": "after the re-run: no setup screen after the update (OpenBookSetup steps aside on a provisioned system)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "after the re-run: SELinux enforcing; the OpenBook boot HAL runs",
+   "ok": true,
+   "detail": "running/"
+  },
+  {
+   "check": "the merge completes",
+   "ok": true,
+   "detail": "10-19 12:15:46.189   678   678 I update_engine: [INFO:cleanup_previous_update_action.cc(342)] Merge finished with state MergeCompleted.\nUpdate state: none"
+  }
+ ]
+}

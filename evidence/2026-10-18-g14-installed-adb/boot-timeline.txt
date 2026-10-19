@@ -1,0 +1,26 @@
+# Boot timeline of the installed G14's boot at 16:02:09Z (owner's reboot), from the adb capture's logcat and kernel log (masked)
+[    0.695310] init: init second stage started!
+10-18 16:02:14.362   902   902 I boot_progress_start: 4453
+10-18 16:02:14.530   902   902 I boot_progress_preload_start: 4621
+10-18 16:02:14.826   902   902 I boot_progress_preload_end: 4917
+10-18 16:02:14.969  1037  1037 I boot_progress_system_run: 5061
+10-18 16:02:15.677  1037  1037 I boot_progress_pms_start: 5768
+10-18 16:02:15.736  1037  1037 I boot_progress_pms_system_scan_start: 5827
+10-18 16:02:15.837  1037  1037 I boot_progress_pms_data_scan_start: 5928
+10-18 16:02:15.856  1037  1037 I boot_progress_pms_scan_end: 5947
+10-18 16:02:15.900  1037  1037 I boot_progress_pms_ready: 5991
+10-18 16:02:16.308  1037  1037 I boot_progress_ams_ready: 6399
+10-18 16:02:16.594  1037  1068 I boot_progress_enable_screen: 6685
+10-18 16:02:17.635   935  1130 I sf_stop_bootanim: 7726
+10-18 16:02:17.635  1037  1068 I wm_boot_animation_done: 7726
+10-18 16:04:04.789   941   941 I adbd    : authentication not required
+10-18 16:04:05.080  2857  2857 I adbd    : authentication not required
+
+# Not in the capture: the main buffer had rotated by 16:04:25Z (256 KiB rings). Transcribed from a live
+# `adb shell logcat -d -b all` read at 16:02:4xZ in the same boot (masked):
+10-18 16:02:16.358  1037  1037 D AdbService: systemReady
+10-18 16:02:20.903  1335  1335 I wpa_supplicant: wlan0: CTRL-EVENT-CONNECTED - Connection to xx:xx:xx:xx:xx:xx completed
+# The build host's first `adb connect 192.168.50.11:5555` after the reboot answered with the device clock at
+# 16:02:22Z ("up 0 min"); boot_progress_start 4453 ms at 16:02:14.362 puts the kernel start at 16:02:09.9Z, so:
+#   init second stage 0.7 s, zygote 4.5 s, screen on 6.7 s, desktop (sf_stop_bootanim) 7.7 s,
+#   Wi-Fi connected 11.0 s (before anyone unlocked), adb answering by about 12 s.
