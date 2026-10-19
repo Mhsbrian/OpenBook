@@ -1,0 +1,253 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: OpenBook <noreply@anybook.invalid>
+Date: Sun, 18 Oct 2026 12:00:00 +0000
+Subject: [PATCH] OPENBOOK: computer control: the device's own allowlists as a
+ fallback
+
+ComputerControlAllowlistController takes its session owner allowlist and
+its automatable app allow and deny lists from DeviceConfig
+(computer_control/allowed_session_owner_apps, allowed_automatable_apps,
+blocked_automatable_apps), and persists the last valid value under
+/data/system/computercontrol/. A device that gets no server configuration
+has neither, so no agent can ever own a session.
+
+Read a third source when both are empty: the device's own list in
+/system_ext/etc/computercontrol/, under the same file names as the
+persisted ones. Same syntax as the DeviceConfig value; entries may also
+be separated by newlines, whitespace is ignored and lines starting with
+'#' are comments. The factory value is never persisted, so DeviceConfig
+still wins as soon as it has a value, and a persisted value still wins
+over it.
+
+Nothing else changes: the caller still needs ACCESS_COMPUTER_CONTROL,
+POST_NOTIFICATIONS and the assistant role, entries are still pinned to a
+signing certificate (or PREINSTALLED for automatable apps), and consent,
+the lock screen and secure windows are checked as before.
+
+OpenBook uses it to allow its privileged assistant, Quire, and the apps
+it may automate (ANAL-216).
+---
+ .../ComputerControlAllowlistController.java   | 82 +++++++++++++++++--
+ ...omputerControlAllowlistControllerTest.java | 66 +++++++++++++++
+ 2 files changed, 143 insertions(+), 5 deletions(-)
+
+diff --git a/services/companion/java/com/android/server/companion/virtual/computercontrol/ComputerControlAllowlistController.java b/services/companion/java/com/android/server/companion/virtual/computercontrol/ComputerControlAllowlistController.java
+index 67dee3c467c3..6c820ce0fea5 100644
+--- a/services/companion/java/com/android/server/companion/virtual/computercontrol/ComputerControlAllowlistController.java
++++ b/services/companion/java/com/android/server/companion/virtual/computercontrol/ComputerControlAllowlistController.java
+@@ -81,6 +81,9 @@ final class ComputerControlAllowlistController implements DeviceConfig.OnPropert
+     private static final String AUTOMATABLE_APP_ALLOWLIST_FILE_NAME =
+             "automatable_app_allowlist.txt";
+     private static final String AUTOMATABLE_APP_DENYLIST_FILE_NAME = "automatable_app_denylist.txt";
++    // OPENBOOK: the device's own lists, in /system_ext/etc/computercontrol/ under the same file names. Used when
++    // DeviceConfig has no value and nothing was persisted, i.e. on a device that gets no server configuration.
++    private static final String FACTORY_DIR = "etc/" + COMPUTER_CONTROL_DIR;
+     @VisibleForTesting
+     static final String COMPUTER_CONTROL_NAMESPACE = "computer_control";
+     @VisibleForTesting
+@@ -116,7 +119,8 @@ final class ComputerControlAllowlistController implements DeviceConfig.OnPropert
+                 new File(new File(Environment.getDataSystemDirectory(), COMPUTER_CONTROL_DIR),
+                         AUTOMATABLE_APP_DENYLIST_FILE_NAME),
+                 LocalServices.getService(PermissionManagerServiceInterface.class),
+-                new ComputerControlDataStore(), Build.isDebuggable());
++                new ComputerControlDataStore(), Build.isDebuggable(),
++                new File(Environment.getSystemExtDirectory(), FACTORY_DIR));
+     }
+ 
+     @VisibleForTesting
+@@ -126,14 +130,30 @@ final class ComputerControlAllowlistController implements DeviceConfig.OnPropert
+             @NonNull PermissionManagerServiceInterface permissionManager,
+             @NonNull ComputerControlDataStore dataStore,
+             boolean buildIsDebuggable) {
++        this(context, executor, agentAllowlistFile, automatableAppsAllowlistFile,
++                automatableAppsDenylistFile, permissionManager, dataStore, buildIsDebuggable,
++                /* factoryDir= */ null);
++    }
++
++    @VisibleForTesting
++    ComputerControlAllowlistController(@NonNull Context context, @NonNull Executor executor,
++            @NonNull File agentAllowlistFile, @NonNull File automatableAppsAllowlistFile,
++            @NonNull File automatableAppsDenylistFile,
++            @NonNull PermissionManagerServiceInterface permissionManager,
++            @NonNull ComputerControlDataStore dataStore,
++            boolean buildIsDebuggable,
++            @Nullable File factoryDir) {
+         mContext = context;
+         mBackgroundExecutor = executor;
+         mSessionOwnerAllowlist = new DeviceConfigRemoteList(agentAllowlistFile,
+-                COMPUTER_CONTROL_SESSION_OWNER_ALLOWLIST_KEY);
++                COMPUTER_CONTROL_SESSION_OWNER_ALLOWLIST_KEY,
++                factoryFile(factoryDir, SESSION_OWNER_ALLOWLIST_FILE_NAME));
+         mAutomatableAppAllowlist = new DeviceConfigRemoteList(automatableAppsAllowlistFile,
+-                COMPUTER_CONTROL_AUTOMATABLE_APP_ALLOWLIST_KEY);
++                COMPUTER_CONTROL_AUTOMATABLE_APP_ALLOWLIST_KEY,
++                factoryFile(factoryDir, AUTOMATABLE_APP_ALLOWLIST_FILE_NAME));
+         mAutomatableAppDenylist = new DeviceConfigRemoteList(automatableAppsDenylistFile,
+-                COMPUTER_CONTROL_AUTOMATABLE_APP_DENYLIST_KEY);
++                COMPUTER_CONTROL_AUTOMATABLE_APP_DENYLIST_KEY,
++                factoryFile(factoryDir, AUTOMATABLE_APP_DENYLIST_FILE_NAME));
+         mPermissionManager = permissionManager;
+         mBuildIsDebuggable = buildIsDebuggable;
+         mDataStore = dataStore;
+@@ -151,6 +171,11 @@ final class ComputerControlAllowlistController implements DeviceConfig.OnPropert
+         }
+     }
+ 
++    @Nullable
++    private static File factoryFile(@Nullable File factoryDir, @NonNull String name) {
++        return factoryDir != null ? new File(factoryDir, name) : null;
++    }
++
+     void monitor() {
+         mAutomatableAppAllowlist.monitor();
+         mSessionOwnerAllowlist.monitor();
+@@ -815,10 +840,14 @@ final class ComputerControlAllowlistController implements DeviceConfig.OnPropert
+     private static final class DeviceConfigRemoteList extends SignedPackageList {
+         private final ValueStorage mStorage;
+         private final String mDeviceConfigKey;
++        @Nullable
++        private final File mFactoryFile;
+ 
+-        DeviceConfigRemoteList(@NonNull File file, @NonNull String deviceConfigKey) {
++        DeviceConfigRemoteList(@NonNull File file, @NonNull String deviceConfigKey,
++                @Nullable File factoryFile) {
+             mStorage = new ValueStorage(file);
+             mDeviceConfigKey = deviceConfigKey;
++            mFactoryFile = factoryFile;
+         }
+ 
+         @Override
+@@ -845,6 +874,16 @@ final class ComputerControlAllowlistController implements DeviceConfig.OnPropert
+             // Read last persisted value, if we didn't find a valid value in DeviceConfig.
+             final SignedPackages storedSignedPackages = mStorage.readPersistedValue();
+             if (storedSignedPackages == null) {
++                // OPENBOOK: nothing from DeviceConfig and nothing persisted, so use the device's own
++                // list, if it ships one. It is never persisted: DeviceConfig still wins once it has
++                // a value.
++                final SignedPackages factorySignedPackages = readFactoryValue();
++                if (factorySignedPackages != null) {
++                    Slog.i(TAG, "Using factory value " + factorySignedPackages + " from "
++                            + mFactoryFile + " for key " + mDeviceConfigKey);
++                    setSignedPackages(factorySignedPackages);
++                    return;
++                }
+                 Slog.w(TAG, "No persisted value found for key " + mDeviceConfigKey);
+                 return;
+             }
+@@ -855,6 +894,39 @@ final class ComputerControlAllowlistController implements DeviceConfig.OnPropert
+             setSignedPackages(storedSignedPackages);
+         }
+ 
++        /**
++         * OPENBOOK: reads the device's own list. Same syntax as the DeviceConfig value, except
++         * that entries may also be separated by newlines, whitespace is ignored and lines
++         * starting with '#' are comments.
++         */
++        @Nullable
++        private SignedPackages readFactoryValue() {
++            if (mFactoryFile == null || !mFactoryFile.isFile()) {
++                return null;
++            }
++            try {
++                final String text = new String(
++                        java.nio.file.Files.readAllBytes(mFactoryFile.toPath()),
++                        StandardCharsets.UTF_8);
++                final List<String> entries = new ArrayList<>();
++                for (String line : text.split("\n")) {
++                    final String trimmed = line.trim();
++                    if (trimmed.isEmpty() || trimmed.startsWith("#")) {
++                        continue;
++                    }
++                    for (String entry : trimmed.split(SIGNED_PACKAGE_SEPARATOR)) {
++                        if (!entry.trim().isEmpty()) {
++                            entries.add(entry.trim());
++                        }
++                    }
++                }
++                return parseList(String.join(SIGNED_PACKAGE_SEPARATOR, entries));
++            } catch (Exception e) {
++                Slog.e(TAG, "Failed to read factory value from " + mFactoryFile, e);
++                return null;
++            }
++        }
++
+         @SuppressLint("MissingPermission")
+         @Nullable
+         private Pair<String, SignedPackages> readDeviceConfig() {
+diff --git a/tests/VirtualDeviceTests/services/src/com/android/server/companion/virtual/computercontrol/ComputerControlAllowlistControllerTest.java b/tests/VirtualDeviceTests/services/src/com/android/server/companion/virtual/computercontrol/ComputerControlAllowlistControllerTest.java
+index 99bb005161c6..96ca3773b9da 100644
+--- a/tests/VirtualDeviceTests/services/src/com/android/server/companion/virtual/computercontrol/ComputerControlAllowlistControllerTest.java
++++ b/tests/VirtualDeviceTests/services/src/com/android/server/companion/virtual/computercontrol/ComputerControlAllowlistControllerTest.java
+@@ -1153,6 +1153,72 @@ public class ComputerControlAllowlistControllerTest {
+         assertEquals(0, writtenData.size());
+     }
+ 
++    @Test
++    public void factoryAllowlists_usedWithoutDeviceConfigOrPersistedValue() throws Exception {
++        final Signature signature = generateSignature((byte) 11);
++        final String certificateDigest = preparePackage(AGENT_PACKAGE, signature);
++        when(mPackageManager.getPackageUidAsUser(eq(AGENT_PACKAGE), anyInt()))
++                .thenReturn(Process.myUid());
++        final String targetPackage = "com.hello.target";
++        preparePackage(targetPackage, generateSignature((byte) 12), /* preinstalled= */ true,
++                /* testOnly= */ false);
++        final File factoryDir = writeFactoryAllowlists(
++                "# the device's agent\n" + AGENT_PACKAGE + ":" + certificateDigest + "\n",
++                " " + targetPackage + ":PREINSTALLED ,\n\n");
++
++        DeviceConfig.removeOnPropertiesChangedListener(mAllowlistController);
++        createAllowlistController(/* buildIsDebuggable= */ false, factoryDir);
++
++        assertTrue(mAllowlistController.isPackageAllowedToCreateSession(
++                AGENT_PACKAGE, mPackageManager, USER_HANDLE,
++                VirtualDeviceManager.COMPUTER_CONTROL_VERSION));
++        assertTrue(mAllowlistController.isPackageAutomatable(
++                targetPackage, AGENT_PACKAGE, mPackageManager));
++        // The factory value is not persisted.
++        assertFalse(mSessionOwnerAllowlistFile.exists());
++    }
++
++    @Test
++    public void deviceConfigValue_winsOverFactoryAllowlist() throws Exception {
++        final Signature signature = generateSignature((byte) 13);
++        final String certificateDigest = preparePackage(AGENT_PACKAGE, signature);
++        when(mPackageManager.getPackageUidAsUser(eq(AGENT_PACKAGE), anyInt()))
++                .thenReturn(Process.myUid());
++        final File factoryDir = writeFactoryAllowlists(
++                AGENT_PACKAGE + ":" + certificateDigest, "");
++
++        DeviceConfig.removeOnPropertiesChangedListener(mAllowlistController);
++        createAllowlistController(/* buildIsDebuggable= */ false, factoryDir);
++        assertTrue(mAllowlistController.isPackageAllowedToCreateSession(
++                AGENT_PACKAGE, mPackageManager, USER_HANDLE,
++                VirtualDeviceManager.COMPUTER_CONTROL_VERSION));
++
++        mDeviceConfigWriter.writeValue(COMPUTER_CONTROL_SESSION_OWNER_ALLOWLIST_KEY, "");
++        SystemClock.sleep(TIMEOUT_MILLIS);
++
++        assertFalse(mAllowlistController.isPackageAllowedToCreateSession(
++                AGENT_PACKAGE, mPackageManager, USER_HANDLE,
++                VirtualDeviceManager.COMPUTER_CONTROL_VERSION));
++    }
++
++    private File writeFactoryAllowlists(@NonNull String sessionOwners,
++            @NonNull String automatableApps) throws Exception {
++        final File dir = new File(mSessionOwnerAllowlistFile.getParentFile(), "factory");
++        dir.mkdirs();
++        Files.writeString(new File(dir, "session_owner_allowlist.txt").toPath(), sessionOwners);
++        Files.writeString(new File(dir, "automatable_app_allowlist.txt").toPath(),
++                automatableApps);
++        return dir;
++    }
++
++    private void createAllowlistController(boolean buildIsDebuggable, @NonNull File factoryDir) {
++        mAllowlistController = new ComputerControlAllowlistController(mSpyContext,
++                MoreExecutors.directExecutor(), mSessionOwnerAllowlistFile,
++                mAutomatableAppAllowlistFile, mAutomatableAppDenylistFile, mPermissionManager,
++                mDataStore, buildIsDebuggable, factoryDir);
++        mAllowlistController.initialize();
++    }
++
+     private void createAllowlistController(boolean buildIsDebuggable) {
+         mAllowlistController = new ComputerControlAllowlistController(mSpyContext,
+                 MoreExecutors.directExecutor(), mSessionOwnerAllowlistFile,

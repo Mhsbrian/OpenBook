@@ -361,3 +361,16 @@ scripts/ui/doc-fonts-metrics.py --fonttools ~/anybook/aosp/src/external/fonttool
 ```
 - `aosp-build.sh` applies the `frameworks/base` patch (legacy `fonts.xml` only; the framework reads `font_fallback.xml`).
 - Details: `docs/googlebook-ui.md` §2.1.1; evidence `evidence/2026-10-17-doc-fonts/`.
+
+## Quire core: the agent layer's platform hooks (ANAL-216)
+```bash
+device/anybook/common/quire/tools/compile-check.sh   # Quire and its test helper, with the in-tree kotlinc (no Soong)
+# Build the Cuttlefish product plus the test helper under the lane lock, snapshot it, boot it on the AMD lane:
+#   evidence/2026-10-18-quire-q2/SUMMARY.md, "Reproduce"
+scripts/quire/q2-cf-check.py SERIAL OUT --probe QuireSecureProbe.apk   # invocation, computer control, refusals, health
+```
+- Quire is in both products through `desktop.mk` (`device/anybook/common/quire/quire.mk`).
+- It needs, besides its module: frameworks/base patches `0005`–`0007` and Launcher3 `0002` (`aosp-build.sh` applies them),
+  four aconfig flags in `release/openbook/cp2a/`, and the build flag `RELEASE_PACKAGE_COMPUTER_CONTROL`
+  (`release/flag_values/cp2a/`). Why: `docs/quire.md` §2.5.
+- `q2-cf-check.py` drives Quire through its root-only `LabActivity` alias, so it needs a userdebug build and `adb root`.

@@ -1,0 +1,11 @@
+check	result	detail
+deny: consent dialog, 'Don't allow'	PASS	Allow Quire to use screen automation?
+deny: session refused	PASS	cc: creation failed: error=3(PERMISSION_DENIED)
+lock screen: session refused	PASS	cc: creation failed: error=2(DEVICE_LOCKED)
+app outside the allowlist refused	PASS	IllegalArgumentException: Invalid target package for ComputerControl: com.android.calendar
+secure: consent given	PASS	Allow Quire to use screen automation?
+secure: session created for the probe	PASS	created
+secure: session blocked on the secure window	PASS	cc: lifecycle: blocked reason=1(SECURE_CONTENT) package=dev.openbook.quire.secureprobe
+secure: input refused while blocked	PASS	10-18 16:03:06.383   814  2702 W ComputerControlSession: Computer control interaction blocked since session is not active: tap
+secure: session closed	PASS	cc: lifecycle: closed reason=1(CALLER_INITIATED)
+allowlist restored (probe refused again)	PASS	IllegalArgumentException: Invalid target package for ComputerControl: dev.openbook.quire.secureprobe

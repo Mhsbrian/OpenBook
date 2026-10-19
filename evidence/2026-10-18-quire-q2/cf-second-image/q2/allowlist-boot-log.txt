@@ -1,0 +1,13 @@
+10-18 15:56:06.799   814   814 V ComputerControlAllowlistController: Initialize called, updating allowlists and adding DeviceConfig listener
+10-18 15:56:06.800   814   845 V ComputerControlAllowlistController: Read value from DeviceConfig: null for key allowed_session_owner_apps
+10-18 15:56:06.800   814   845 W ComputerControlAllowlistController: Allowlist file does not exist.
+10-18 15:56:06.804   814   845 V ComputerControlAllowlistController: Parsed signed package : dev.openbook.quire:C8A2E9BCCF597C2FB6DC66BEE293FC13F2FC47EC77BC6B2B0D52C11F51192AB8
+10-18 15:56:06.804   814   845 I ComputerControlAllowlistController: Using factory value SignedPackages{mSignedPackages=[dev.openbook.quire:C8A2E9BCCF597C2FB6DC66BEE293FC13F2FC47EC77BC6B2B0D52C11F51192AB8], mIncludeEverything=false} from /system_ext/etc/computercontrol/session_owner_allowlist.txt for key allowed_session_owner_apps
+10-18 15:56:06.804   814   845 V ComputerControlAllowlistController: Read value from DeviceConfig: null for key allowed_automatable_apps
+10-18 15:56:06.804   814   845 W ComputerControlAllowlistController: Allowlist file does not exist.
+10-18 15:56:06.805   814   845 V ComputerControlAllowlistController: Parsed signed package : com.android.settings:PREINSTALLED
+10-18 15:56:06.805   814   845 I ComputerControlAllowlistController: Using factory value SignedPackages{mSignedPackages=[com.android.settings:PREINSTALLED], mIncludeEverything=false} from /system_ext/etc/computercontrol/automatable_app_allowlist.txt for key allowed_automatable_apps
+10-18 15:56:06.805   814   845 V ComputerControlAllowlistController: Read value from DeviceConfig: null for key blocked_automatable_apps
+10-18 15:56:06.805   814   845 W ComputerControlAllowlistController: Allowlist file does not exist.
+10-18 15:56:06.806   814   845 W ComputerControlAllowlistController: No persisted value found for key blocked_automatable_apps
+10-18 15:56:59.288  3725  3725 I adbd    : adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -b all | grep ComputerControlAllowlistController'

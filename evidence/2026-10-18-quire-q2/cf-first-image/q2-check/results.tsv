@@ -1,0 +1,5 @@
+check	result	detail
+Dark theme off before	PASS	Night mode: no
+consent asked (session pending)	PASS	cc: pending
+platform consent dialog, 'Only this time'	FAIL	no consent dialog
+session created	FAIL	not created
