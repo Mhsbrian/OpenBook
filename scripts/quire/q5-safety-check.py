@@ -154,6 +154,17 @@ def probe_touches(d, tag):
                       d.sh(f"logcat -d -v time -s QuireProtectedProbe:I Quire:I | sed -n '/{tag}/,$p'"))
 
 
+def quire_dump(d, path, tries=6):
+    """A UI dump that has Quire's nodes in it: a dump fails (empty) while the note's footer ticks, so it is tried again."""
+    xml = ""
+    for _ in range(tries):
+        xml = d.ui(path)
+        if q5.quire_texts(d, xml):
+            break
+        time.sleep(0.7)
+    return xml
+
+
 def tap_quire_text(d, text, timeout=8):
     """Taps the node in Quire's windows whose text or label is [text]."""
     end = time.time() + timeout
@@ -318,7 +329,7 @@ def overlay(d):
     note = win(ws, "Quire")
     d.screencap("overlay/frame.png")
     frame_bounds = note and note["frame"] and "[%d,%d][%d,%d]" % note["frame"]
-    cards = [n for n in d.nodes(d.ui("overlay/frame.xml")) if n.get("package") == QUIRE and
+    cards = [n for n in d.nodes(quire_dump(d, "overlay/frame.xml")) if n.get("package") == QUIRE and
              n.get("bounds") != frame_bounds]
     if not note or not note["frame"] or not cards:
         d.result("overlay: the note's window is the card", False, "no note window or no card in the UI dump")
@@ -487,7 +498,7 @@ def agents(d):
         time.sleep(0.8)
         d.lab("REOPEN", task=ta)
         time.sleep(1.2)
-        xml = d.ui("agents/a-consent.xml")
+        xml = quire_dump(d, "agents/a-consent.xml")
         d.screencap("agents/a-consent.png")
         texts = q5.quire_texts(d, xml)
         d.result("agents: A's card is shown under Agent A", any("Agent A runs this" in t for t in texts) and
@@ -507,7 +518,7 @@ def agents(d):
         # B's card, under B's name; Allow answers B only.
         d.lab("REOPEN", task=tb)
         time.sleep(1.2)
-        xml = d.ui("agents/b-consent.xml")
+        xml = quire_dump(d, "agents/b-consent.xml")
         d.screencap("agents/b-consent.png")
         texts = q5.quire_texts(d, xml)
         d.result("agents: B's card is shown under Agent B", any("Agent B runs this" in t for t in texts) and
@@ -546,7 +557,7 @@ def agents(d):
         done = d.wait_log(rf"note: task {tb} ended stopReason=end_turn", mark)
         d.lab("REOPEN", task=tb)
         time.sleep(1.2)
-        xml = d.ui("agents/b-after.xml")
+        xml = quire_dump(d, "agents/b-after.xml")
         d.screencap("agents/b-after.png")
         d.result("agents: B's run goes on and finishes after A left", bool(done) and
                  q5.has_text(d, xml, "B is still here after A left."), done.group(0) if done else "not ended")
