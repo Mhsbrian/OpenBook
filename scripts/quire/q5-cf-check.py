@@ -526,8 +526,16 @@ def states(d, agents, theme, design, only=None):
             if n.get("package") == QUIRE and (n.get("content-desc") or "").startswith("Agent:"):
                 chip = list(map(int, re.findall(r"\d+", n.get("bounds"))))
         left = chip is not None and chip[2] < 1400
-        cap("mirror-takeover", "handOverApplications(); the note keeps the side it flipped to", bool(h) and left,
-            (h.group(0) if h else "not handed over") + f"; agent chip {chip} (the hotspot is at x=1400)")
+        # Settings now on the person's display hides overlays, and after the run the note is an ordinary overlay again
+        # (ANAL-219's safety round): the note is then hidden behind Settings, which is reported, not failed.
+        dump = d.sh("dumpsys window windows")
+        hidden = chip is None and "mIsForceHiddenNonSystemOverlayWindow=true" in dump and \
+            SETTINGS in dump.split("Hiding System Alert Windows")[-1][:2000]
+        cap("mirror-takeover", "handOverApplications(); the note keeps the side it flipped to",
+            None if hidden and h else (bool(h) and left),
+            (h.group(0) if h else "not handed over") + (
+                "; the note is hidden: Settings, now on this display, hides overlays" if hidden else
+                f"; agent chip {chip} (the hotspot is at x=1400)"))
         d.sh(f"am force-stop {SETTINGS}")
 
     def stopped(tag):
