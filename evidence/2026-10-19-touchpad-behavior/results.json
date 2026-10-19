@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-19",
+  "device": "G14 GA403WR, ELAN 04f3:3315",
+  "build": "20261019.photos1",
+  "slot": "_a",
+  "image_tree": "d3e04fd",
+  "library_commit": "6c2310952338e9f094a1aeb6a83f7356ff5d6042",
+  "library_dirty": false,
+  "capture": "unlabeled passive touchpad-only recording; no keyboard",
+  "capture_sha256": "0b144ca861eb5dc57779b1aa5f041b25f987859ac7bc7e610b1b0dec2d40a405",
+  "frames": 6439,
+  "synchronized_seconds": 44.733253,
+  "contact_count_histogram": {
+    "0": 52,
+    "1": 5931,
+    "2": 456
+  },
+  "palm_frames": 142,
+  "physical_button_frames": 690,
+  "offline_gesture_type_histogram": {
+    "1": 3529,
+    "3": 31,
+    "4": 75
+  },
+  "synthetic_checks": {
+    "passed": 8,
+    "failed": 0
+  },
+  "physical_failure_reproduced": false,
+  "libinput_runtime_compared": false,
+  "runtime_changes": false,
+  "image_built": false,
+  "ota_staged": false,
+  "limitations": [
+    "unlabeled capture cannot establish intended finger count",
+    "default library acceleration rather than Android curves",
+    "no app dispatch or keyboard suppression notifications",
+    "synthetic controls do not certify physical behavior"
+  ]
+}

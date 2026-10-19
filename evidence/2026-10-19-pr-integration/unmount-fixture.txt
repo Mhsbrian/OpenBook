@@ -1,0 +1,6 @@
+PASS only this build's automounts selected (4 of 12 mounted loop devices)
+PASS another work folder selects nothing
+PASS WORKDIR '' refused
+PASS WORKDIR 'relative' refused
+PASS WORKDIR '/' refused
+0 failure(s)

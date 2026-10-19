@@ -1,0 +1,18 @@
+ALL PASS
+glass alpha 0.80
+openbook-bloom-dark        light closest: Stop pill, Delete 4.58:1 (target 4.5) fails: none
+openbook-bloom-dark        dark  closest: Stop pill, Delete 4.55:1 (target 4.5) fails: none
+openbook-bloom-light       light closest: Stop pill, Delete 4.58:1 (target 4.5) fails: none
+openbook-bloom-light       dark  closest: Stop pill, Delete 4.55:1 (target 4.5) fails: none
+openbook-folio-dark        light closest: Stop pill, Delete 4.58:1 (target 4.5) fails: none
+openbook-folio-dark        dark  closest: Stop pill, Delete 4.55:1 (target 4.5) fails: none
+openbook-folio-light       light closest: Stop pill, Delete 4.58:1 (target 4.5) fails: none
+openbook-folio-light       dark  closest: Stop pill, Delete 4.55:1 (target 4.5) fails: none
+openbook-strata-dark       light closest: Stop pill, Delete 4.58:1 (target 4.5) fails: none
+openbook-strata-dark       dark  closest: Stop pill, Delete 4.55:1 (target 4.5) fails: none
+openbook-strata-light      light closest: Stop pill, Delete 4.58:1 (target 4.5) fails: none
+openbook-strata-light      dark  closest: Stop pill, Delete 4.55:1 (target 4.5) fails: none
+openbook-tide-dark         light closest: Stop pill, Delete 4.54:1 (target 4.5) fails: none
+openbook-tide-dark         dark  closest: Stop pill, Delete 4.55:1 (target 4.5) fails: none
+openbook-tide-light        light closest: Stop pill, Delete 4.54:1 (target 4.5) fails: none
+openbook-tide-light        dark  closest: Stop pill, Delete 4.55:1 (target 4.5) fails: none
