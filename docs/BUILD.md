@@ -374,3 +374,26 @@ scripts/quire/q2-cf-check.py SERIAL OUT --probe QuireSecureProbe.apk   # invocat
   four aconfig flags in `release/openbook/cp2a/`, and the build flag `RELEASE_PACKAGE_COMPUTER_CONTROL`
   (`release/flag_values/cp2a/`). Why: `docs/quire.md` §2.5.
 - `q2-cf-check.py` drives Quire through its root-only `LabActivity` alias, so it needs a userdebug build and `adb root`.
+
+### Quire's surface, the note (ANAL-219)
+```bash
+# Iterate on Quire without the AOSP lane: build the APK outside Soong (platform test key) and install it over the image's.
+device/anybook/common/quire/tools/build-apk.sh                       # -> /tmp/quire-dev-apk/OpenBookQuire.apk
+adb -s SERIAL install -r -d /tmp/quire-dev-apk/OpenBookQuire.apk
+# The checks: every design state in light and dark next to Q3's renders, keyboard, labels, Remove animations, frames,
+# health. They start scripts/quire/q5-acp-agent.py (scripted ACP agents) on this host and `adb reverse` to them.
+scripts/quire/q5-cf-check.py SERIAL OUT --design PATH/TO/docs/quire-design     # PR #98's renders
+scripts/quire/q5-cf-check.py SERIAL OUT --only states --themes dark --states control,stopped   # a subset
+scripts/quire/q5-cf-check.py SERIAL OUT --desk none ...          # nothing behind the note (Settings and Files hide it)
+# The safety regressions (ANAL-219, the Checker's three findings): protected windows, the consent dialog at 1920x1080 and
+# 1280x800, two agents with colliding session IDs, the payload an agent receives. Needs the image's QuireSecureProbe.apk.
+scripts/quire/q5-safety-check.py SERIAL OUT --probe QuireSecureProbe.apk
+# Host tests for the parts with no Android types (SessionRoutes, IntakePolicy): the tree's kotlinc and JDK, no device.
+device/anybook/common/quire/tools/unit-test.sh
+# Icons: cut Material Symbols to the note's set (fonts/README.md)
+device/anybook/common/quire/tools/subset-icons.py MaterialSymbolsRounded.ttf \
+  device/anybook/common/quire/app/res/font/quire_symbols.ttf device/anybook/common/quire/app/src/dev/openbook/quire/note/Icons.kt
+```
+- The image build is unchanged (`droid`, Quire is in `desktop.mk`). The halo and the pointer for contextual search are
+  frameworks/base `0008` (SystemUI), which `aosp-build.sh` applies with the others.
+- The note's lab commands (`note/LabReceiver.kt`) work on debuggable builds only, from root or the system.

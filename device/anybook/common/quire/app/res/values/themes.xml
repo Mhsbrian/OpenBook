@@ -7,14 +7,18 @@
     <style name="Theme.Quire" parent="@android:style/Theme.DeviceDefault.DayNight">
         <item name="android:windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
+        <!-- The note draws its own keyboard focus ring (docs/quire-design.md §4.2); no grey default highlight. -->
+        <item name="android:defaultFocusHighlightEnabled">false</item>
     </style>
 
-    <!-- The invocation note: a floating card over whatever was on screen, closed by a click outside it. Light here,
-         dark in values-night (the platform has no public DayNight dialog theme). -->
-    <style name="Theme.Quire.Note" parent="@android:style/Theme.DeviceDefault.Light.Dialog">
-        <item name="android:windowNoTitle">true</item>
-        <item name="android:windowCloseOnTouchOutside">true</item>
-        <item name="android:windowMinWidthMajor">40%</item>
-        <item name="android:windowMinWidthMinor">60%</item>
+    <!-- ConsentWaitActivity: transparent, no animation, no system bars of its own; its window is inert (no touch, no
+         focus) and only shows Quire's waiting card beneath the platform's consent dialog. -->
+    <style name="Theme.Quire.ConsentWait" parent="@android:style/Theme.Translucent.NoTitleBar">
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:windowDisablePreview">true</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">always</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:defaultFocusHighlightEnabled">false</item>
     </style>
 </resources>

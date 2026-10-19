@@ -104,6 +104,9 @@ data class Invocation(
 
 /** Logs invocations and, on debuggable builds, keeps the last few on disk (Quire's files/invocations/). */
 object Invocations {
+    /** The last intake screenshot, cropped, kept in memory only (for the note's thumbnail and the lab's OPEN). */
+    @Volatile var lastShot: Bitmap? = null
+
     private const val PREFS = "invocations"
     private const val KEY_LAST = "last"
 

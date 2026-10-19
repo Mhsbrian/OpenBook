@@ -1,0 +1,99 @@
+21:19:13 == states (light)
+21:19:21 INFO light: idle: the desktop with no note; the taskbar's Quire button is Launcher3's (not built)
+21:19:32 PASS light: invoke-key (Meta+Space, the real path): note: invocation anchor=pointer 715.0078,376.67188 bounds=null intake=None
+21:19:41 PASS light: invoke-shake (the pointer shake, the real path): note: invocation anchor=pointer 566.9912,233.75977 bounds=null intake=None
+21:19:49 PASS light: invoke-secure: 
+21:19:56 PASS light: invoke-taskbar: 
+21:20:03 INFO light: invoke-voice: the listening card from the lab; speech to text and the mic indicator are Q7
+21:20:10 PASS light: invoke-selection (ACTION_PROCESS_TEXT): note: ask on a selection (68 chars)
+21:20:18 PASS light: compose: 
+21:20:25 INFO light: agent-picker: claude (connected), cursor (needs sign-in once tried), codex (paired)
+21:20:44 PASS light: streaming (agent_thought_chunk, agent_message_chunk): 
+21:21:04 PASS light: steps (tool_call, tool_call_update): 
+21:21:10 PASS light: done (stopReason end_turn; the footer says Done and the time): footer Done · 15 s; Undo appears only for broker changes (Q6)
+21:21:28 PASS light: plan (plan entries): 
+21:21:37 INFO light: consent (the broker's card, Quire's options): raised from the lab: Q6's broker raises it for real; the agent-own consent is consent-command
+21:21:43 INFO light: settings-help (the change list after Allow): rows from the lab; applying and undoing the settings is Q6's change log
+21:21:52 PASS light: consent-command (session/request_permission with a diff): permission for c2 options=[deny, always, allow]
+21:21:55 PASS light: consent-command answered: answered allow
+21:22:03 PASS light: consent-system (onSessionPending, the platform's dialog): the platform's dialog above Quire's waiting activity and its card; the note steps aside
+21:22:17 PASS light: mirror (InteractiveMirror, 2x zoom, agent pointer): cc: created: display 1920x1080; first tap 349,732; aiming at Dark theme Rect(698,
+21:22:30 PASS light: mirror-paused (notifyBlocked()): cc: lifecycle: blocked reason=3(CALLER_INITIATED)
+21:22:30 PASS light: mirror-paused holds the agent's input: no tap on the paused control
+21:22:36 INFO light: mirror-takeover (handOverApplications(); the note keeps the side it flipped to): cc: lifecycle: closed reason=4(SESSION_EMPTY); the note is hidden: Settings, now on this display, hides overlays
+21:22:48 PASS light: stopped (Esc: session/cancel; only the interrupted command may be partly applied): ended stopReason=cancelled
+21:22:59 PASS light: error (the agent's connection drops mid-turn; an interrupted read changed nothing): acp: claude closed
+21:23:09 PASS light: signin (session/new -32000, authMethods): 
+21:23:31 PASS light: background (hidden tasks and the tray): the tray is Quire's; the taskbar ring and badge are Launcher3's (not built)
+21:23:45 PASS light: long-output (wide, 60 % cap, scrolled up: Jump to latest and Save as a file): jump pill shown; note: save as a file offered (width 480 dp)
+21:23:46 PASS light: long-output Ctrl+End jumps to the latest: pill gone
+21:23:56 PASS light: long-output Save as a file (Storage Access Framework): Download/: Quire answer.md; first line: **Summary of the trip notes**
+21:24:06 PASS light: code (fenced code in message chunks, Save as file under the block): 
+21:24:14 PASS light: code Save as file (Storage Access Framework): Download/: script.sh; first line: # Rename photos in ~/Pictures/Lisbon by the date they were taken
+21:24:25 PASS light: images (an image ContentBlock over ACP): the agent sends the region it was given back
+21:24:31 PASS light: no-agent (nothing connected until the person chooses): 
+21:24:42 PASS light: offline (a paired computer unreachable): cannot reach tcp:127.0.0.1:7099
+21:24:44 == states (dark)
+21:24:51 INFO dark: idle: the desktop with no note; the taskbar's Quire button is Launcher3's (not built)
+21:25:02 PASS dark: invoke-key (Meta+Space, the real path): note: invocation anchor=pointer 715.0078,376.67188 bounds=null intake=None
+21:25:12 PASS dark: invoke-shake (the pointer shake, the real path): note: invocation anchor=pointer 566.9912,233.75977 bounds=null intake=None
+21:25:19 PASS dark: invoke-secure: 
+21:25:26 PASS dark: invoke-taskbar: 
+21:25:33 INFO dark: invoke-voice: the listening card from the lab; speech to text and the mic indicator are Q7
+21:25:40 PASS dark: invoke-selection (ACTION_PROCESS_TEXT): note: ask on a selection (68 chars)
+21:25:48 PASS dark: compose: 
+21:25:55 INFO dark: agent-picker: claude (connected), cursor (needs sign-in once tried), codex (paired)
+21:26:14 PASS dark: streaming (agent_thought_chunk, agent_message_chunk): 
+21:26:34 PASS dark: steps (tool_call, tool_call_update): 
+21:26:40 PASS dark: done (stopReason end_turn; the footer says Done and the time): footer Done · 15 s; Undo appears only for broker changes (Q6)
+21:26:58 PASS dark: plan (plan entries): 
+21:27:08 INFO dark: consent (the broker's card, Quire's options): raised from the lab: Q6's broker raises it for real; the agent-own consent is consent-command
+21:27:15 INFO dark: settings-help (the change list after Allow): rows from the lab; applying and undoing the settings is Q6's change log
+21:27:23 PASS dark: consent-command (session/request_permission with a diff): permission for c2 options=[deny, always, allow]
+21:27:26 PASS dark: consent-command answered: answered allow
+21:27:34 PASS dark: consent-system (onSessionPending, the platform's dialog): the platform's dialog above Quire's waiting activity and its card; the note steps aside
+21:27:48 PASS dark: mirror (InteractiveMirror, 2x zoom, agent pointer): cc: created: display 1920x1080; first tap 349,732; aiming at Dark theme Rect(698,
+21:28:01 PASS dark: mirror-paused (notifyBlocked()): cc: lifecycle: blocked reason=3(CALLER_INITIATED)
+21:28:01 PASS dark: mirror-paused holds the agent's input: no tap on the paused control
+21:28:07 INFO dark: mirror-takeover (handOverApplications(); the note keeps the side it flipped to): cc: lifecycle: closed reason=4(SESSION_EMPTY); the note is hidden: Settings, now on this display, hides overlays
+21:28:19 PASS dark: stopped (Esc: session/cancel; only the interrupted command may be partly applied): ended stopReason=cancelled
+21:28:30 PASS dark: error (the agent's connection drops mid-turn; an interrupted read changed nothing): acp: claude closed
+21:28:40 PASS dark: signin (session/new -32000, authMethods): 
+21:29:02 PASS dark: background (hidden tasks and the tray): the tray is Quire's; the taskbar ring and badge are Launcher3's (not built)
+21:29:15 PASS dark: long-output (wide, 60 % cap, scrolled up: Jump to latest and Save as a file): jump pill shown; note: save as a file offered (width 480 dp)
+21:29:16 PASS dark: long-output Ctrl+End jumps to the latest: pill gone
+21:29:26 PASS dark: long-output Save as a file (Storage Access Framework): Download/: Quire answer.md; first line: **Summary of the trip notes**
+21:29:36 PASS dark: code (fenced code in message chunks, Save as file under the block): 
+21:29:45 PASS dark: code Save as file (Storage Access Framework): Download/: script.sh; first line: # Rename photos in ~/Pictures/Lisbon by the date they were taken
+21:29:55 PASS dark: images (an image ContentBlock over ACP): the agent sends the region it was given back
+21:30:02 PASS dark: no-agent (nothing connected until the person chooses): 
+21:30:12 PASS dark: offline (a paired computer unreachable): cannot reach tcp:127.0.0.1:7099
+21:30:14 == keyboard
+21:30:21 PASS keyboard: focus on open: 'Ask Quire' android.widget.EditText
+21:30:25 PASS keyboard: focus on the consent card when it arrives: 'Claude Code asks: Write Documents/Lisbon-packing.md. Buttons: Don’t allow, Allow for this session, Allow.' android.widget.LinearLayout
+21:30:41 PASS keyboard: Tab order on the card, reject first: ['Don’t allow', 'Allow for this session', 'Allow']
+21:30:48 PASS keyboard: Shift+Tab back to the reject option: Don’t allow
+21:30:49 PASS keyboard: Enter answers with the focused option: answered deny
+21:30:50 PASS keyboard: Esc closes a finished note: note: closed task
+21:30:53 PASS keyboard: Esc at consent answers cancelled and stops: answered cancelled; ended stopReason=cancelled
+21:30:58 PASS keyboard: Esc mid-run stops and doesn't hide: ended stopReason=cancelled
+21:31:05 PASS keyboard: Meta+Space hides a running task and brings it back: note: hid task 83 running=true; note: reopened task 83 running=true
+21:31:08 == a11y
+21:31:08 PASS a11y: every focusable or clickable control in the note has a label: 109 controls in 27 dumps
+21:31:08 INFO a11y: TalkBack itself: TalkBack is not in AOSP; the labels, roles and live regions are checked from the dumps; the TalkBack walkthrough is for the G14 with TalkBack installed
+21:31:08 == motion
+21:31:12 PASS motion: Remove animations cuts the unfold and the fold: note: unfold animated=false; note: fold into=anchor animated=false
+21:31:14 PASS motion: with animations on the note unfolds with spring.unfold: note: unfold animated=true
+21:31:16 == frames
+21:31:58 INFO frames: Quire's frames over open, stream, consent and fold (Cuttlefish): total 1192, janky 0 (0.00%), p90 5 ms, p99 6 ms; the acceptance measurement is the G14's
+21:31:58 == video
+21:32:17 PASS video: shake, halo, note at the pointer, a turn, fold: invoke-stream-fold.mp4; note: invocation anchor=pointer
+21:32:30 PASS video: consent by keyboard, Allow: consent.mp4; answered allow
+21:32:53 PASS video: platform consent, the mirror zooming on each control, pause, take over: mirror.mp4
+21:32:54 == health
+21:32:54 PASS health: no Quire crash: crash buffer clean of Quire
+21:32:54 FAIL health: no ANR: ['10-19 01:17:10.464   818  5408 I am_anr  : [0,2942,com.android.launcher3,885767749,Input dispatching timed out (Application does not have a focused window).]']
+21:32:54 PASS health: SystemUI did not restart: SystemUI starts since the log began: ['2640'], running: 2640
+21:32:54 PASS health: no SELinux denial for Quire (platform_app): none
+21:32:54 PASS health: no new SELinux denials: 6 denials, new: []
+21:32:54 == 75 PASS, 1 FAIL, 14 INFO
