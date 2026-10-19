@@ -10,6 +10,8 @@ import android.util.Log
 import android.view.View
 import dev.openbook.quire.Quire.TAG
 import dev.openbook.quire.QuireApplication
+import dev.openbook.quire.R
+import dev.openbook.quire.acp.Endpoint
 
 /**
  * Quire's surface (docs/quire-design.md): the note and the tasks behind it. Every way of calling Quire ends in
@@ -29,6 +31,8 @@ class QuireSurface(private val app: QuireApplication) : Task.Host, NoteWindow.Ca
     val tasks = mutableListOf<Task>()
 
     private var night = app.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK
+
+    private var discovering = false
 
     init {
         app.registerComponentCallbacks(this)
@@ -57,6 +61,7 @@ class QuireSurface(private val app: QuireApplication) : Task.Host, NoteWindow.Ca
      * a selection while the note is up is a new question: the shown task is hidden (or closed when idle) first.
      */
     fun invoke(trigger: String, anchor: Anchor, intake: Intake?) {
+        discover()
         val shown = window.task
         if (shown != null) {
             Log.i(TAG, "note: invoked ($trigger) while task ${shown.id} is shown")
@@ -85,6 +90,31 @@ class QuireSurface(private val app: QuireApplication) : Task.Host, NoteWindow.Ca
         Log.i(TAG, "note: task ${t.id} for $trigger, agent=${t.agent?.endpoint?.id ?: "none"} " +
             "intake=${intake?.javaClass?.simpleName ?: "none"}")
         window.show(t, Task.Focus.FIELD)
+    }
+
+    /**
+     * Asks quired in the Linux environment which agents it has (Q4, agents/Agents.kt) and lists the new ones. Off the
+     * main thread; a note still asking for an agent shows them when the answer comes. A Linux environment that is off
+     * or stopped is not an error here: the agents already listed stay, and connecting one says what is missing.
+     */
+    private fun discover() {
+        if (discovering) return
+        discovering = true
+        app.agentWork.execute {
+            val found = try {
+                app.agents.agents().filter { it.supported }.map {
+                    Endpoint(id = Endpoint.LINUX + it.id, name = it.name, where = app.getString(R.string.q_where_linux),
+                        address = Endpoint.LINUX + it.id, cwd = "", local = true)
+                }
+            } catch (e: Exception) {
+                Log.i(TAG, "note: no agents from the Linux environment: ${e.javaClass.simpleName}")
+                null
+            }
+            handler.post {
+                discovering = false
+                if (found != null && agents.foundInLinux(found)) window.task?.agentsChanged()
+            }
+        }
     }
 
     /** The tray of tasks above the taskbar (§3.5). */

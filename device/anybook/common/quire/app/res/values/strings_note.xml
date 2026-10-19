@@ -167,6 +167,8 @@
     <!-- The agent picker (§3.2 Choosing the agent). -->
     <string name="q_picker">Choose an agent</string>
     <string name="q_picker_local">On this laptop</string>
+    <!-- After an agent's name: it runs in the laptop's Linux environment (ANAL-218). -->
+    <string name="q_where_linux">in the Linux environment</string>
     <string name="q_picker_paired">Paired computers</string>
     <string name="q_picker_connect">Connect an agent</string>
     <string name="q_picker_connect_sub">or pair a computer</string>

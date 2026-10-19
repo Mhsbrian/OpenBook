@@ -764,6 +764,14 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
         }
     }
 
+    /** Quire found more agents: a note still asking for one lists them again. */
+    fun agentsChanged() {
+        if (phase != Phase.NO_AGENT || running) return
+        blocks.clear()
+        showAgents()
+        host.changed(this)
+    }
+
     /** No agent is connected: list what Quire found (§3.2 No agent connected). Nothing is sent before a choice. */
     private fun showAgents() {
         phase = Phase.NO_AGENT
