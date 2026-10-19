@@ -191,6 +191,26 @@ def main():
             data_kib=int(m.group(1)) if m else None, used_kib=int(m.group(2)) if m else None,
             byname_targets=sorted({os.path.basename(t).rstrip("0123456789")
                                    for t in re.findall(r"-> (/dev/block/\S+)", sec.get("BYNAME", ""))}))
+    # The installer (ANAL-191): the daemon's log (its requests: dry runs, installs and refusals) and the firmware's
+    # boot entries, read-only. Older sticks have no INSTALLER section: no verdict.
+    if "INSTALLER" in sec:
+        ins = sec["INSTALLER"]
+        nv = {}
+        for line in ins.splitlines():
+            if line.startswith("{") and '"nvram"' in line:
+                try:
+                    nv = json.loads(line)["nvram"]
+                except (ValueError, KeyError):
+                    pass
+        verdict("installer_nvram", bool(nv.get("available")) if nv else None, boot_order=nv.get("boot_order"),
+                boot_current=nv.get("boot_current"),
+                entries=[f"{e.get('num')} {e.get('description')}" for e in nv.get("entries", [])])
+        log = [l for l in ins.splitlines() if re.match(r"^\d\d:\d\d:\d\d ", l)]
+        verdict("installer_log", None if not log else not any(" FAILED in " in l for l in log),
+                dry_runs=sum("(dry run, read-only)" in l for l in log),
+                installs=sum(bool(re.search(r" install \d+ started:", l)) for l in log),
+                refused=[l[9:200] for l in log if " refused (" in l][-3:],
+                ended=[l[9:120] for l in log if re.search(r"install process \d+ ended", l)][-3:])
     if a.expect == "g14":
         net = sec.get("NET", "")
         verdict("wifi", "wlan0" in net if net else None, interface="wlan0" in net,
