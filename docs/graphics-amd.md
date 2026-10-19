@@ -618,3 +618,18 @@ test only, not as the fix.
      with the experimental `amdgpu.freesync_video=1`) needs a front-porch stretch.
    - HYPOTHESIS, from reading `amdgpu_dm.c` (not measured): switching 120 → 60 is a full modeset with a visible
      blank.
+
+## YV12 frames restarting the desktop (2026-10-19, ANAL-210)
+
+On the G14's `quire9` image, Photos exposes a missing YV12 mapping in RADV's
+Android hardware-buffer properties. ANGLE rejects the EGLImage with 0x300c;
+SurfaceFlinger aborts in `GaneshBackendTexture`. This restarts the Android UI.
+The same failure reproduces with synthetic buffers without Photos or microG.
+
+`mesa/patches/upstream/0005-*` maps YV12 to Vulkan's three-plane 4:2:0 format.
+The existing Mesa layout importer swaps U/V offsets and preserves gralloc
+strides. The G14 passes 15/15 headless import-and-colour checks with the patch
+loaded only in a private mount namespace. No renderer switch, weakened fatal
+check, app data reset, or account change is required. See
+`evidence/2026-10-19-photos-yv12/SUMMARY.md` for crash excerpts and update state,
+and `docs/BUILD.md` for the reproducer. Full Photos use still needs an app check.

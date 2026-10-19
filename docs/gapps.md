@@ -285,6 +285,17 @@ ADB="adb -s …" scripts/microg/gms-apps.sh LABEL OUTDIR       # Play-services a
 2. **G2 (bring your own GApps):** approved. It is ANAL-211, worked in parallel with G1, behind an "advanced" step that the user must confirm. Its tests use a synthetic package only.
 3. **Track B (Google's whole image, `docs/PLAN.md` §6)** is unchanged by this. It remains the only way to get the real Googlebook launcher and apps, and it stays parked until you decide.
 
+## Google Photos restart report (2026-10-19, ANAL-210)
+
+After the owner signed into microG, opening Photos triggered SurfaceFlinger
+crashes on the G14. The captured failures are YV12 video-frame imports, and
+reproduce without any Google app or service. Mesa patch 0005 fixes the missing
+RADV mapping; 15/15 synthetic import and colour checks pass on the G14 with
+the patched driver isolated to the test process. This is not a reason to clear
+Photos data or remove the account. Full Photos compatibility after the system
+update is not yet established. Evidence and deployment state:
+`evidence/2026-10-19-photos-yv12/SUMMARY.md`.
+
 ## Sources
 
 The research tables carry URLs and dates. Primary sources:

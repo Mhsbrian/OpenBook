@@ -1,5 +1,12 @@
 # Status
 
+## 2026-10-19: Photos-triggered display restart (ANAL-210)
+
+Confirmed three SurfaceFlinger aborts on the G14's `quire9` build: missing RADV
+YV12 hardware-buffer mapping. Mesa patch 0005 passes 15/15 headless imports
+and pixel checks on the Radeon 890M. The OS update is being rehearsed; Photos
+app verification remains pending. Evidence: `evidence/2026-10-19-photos-yv12/`.
+
 ## State of the union (2026-10-18, 11:55 UTC)
 
 **Goal:** the Googlebook-style Android 17 desktop on the ASUS ROG Zephyrus G14 (GA403WR: Ryzen AI 9 HX 370, Radeon 890M), installed from a USB stick through a wizard and verified on the laptop. Repo: https://github.com/Mhsbrian/OpenBook.
