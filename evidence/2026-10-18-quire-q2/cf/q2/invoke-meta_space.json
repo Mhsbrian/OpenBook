@@ -1,0 +1,21 @@
+{
+  "time": 1792342694504,
+  "trigger": "assistant_shortcut",
+  "entrypoint": 11,
+  "entrypointName": "KEYBOARD_SHORTCUT",
+  "visiblePackages": [
+    "dev.openbook.quire.secureprobe",
+    "com.android.settings",
+    "com.android.settings",
+    "com.android.launcher3"
+  ],
+  "flagSecureFound": true,
+  "audioPlaying": null,
+  "managedProfileVisible": false,
+  "token": true,
+  "callingPackage": "dev.openbook.quire",
+  "mediaProjectionOffered": true,
+  "screenshot": "20261018-165814-504-assistant_shortcut.png",
+  "width": 1920,
+  "height": 1080
+}

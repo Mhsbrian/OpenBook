@@ -1,0 +1,5 @@
+--------- beginning of main
+10-18 16:56:58.087 I/Quire   ( 3129): assistant: ready
+10-18 16:58:01.542 I/Quire   ( 4132): q2-check shake 1792342681.643
+10-18 16:58:01.935 I/Quire   ( 3129): invocation: trigger=system_action entrypoint=9(SYSTEM_ACTION) visible=[dev.openbook.quire.secureprobe, com.android.settings, com.android.settings, com.android.launcher3] flagSecureFound=true screenshot=1920x1080 token=true audioPlaying=n/a managedProfileVisible=false caller=com.android.launcher3 mediaProjectionOffered=true
+10-18 16:58:02.089 I/Quire   ( 3129): invocation: saved /data/user/0/dev.openbook.quire/files/invocations/20261018-165801-934-system_action.json

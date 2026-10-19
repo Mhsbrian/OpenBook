@@ -1,0 +1,6 @@
+--------- beginning of main
+10-18 14:54:13.917 I/Quire   ( 4549): q2-check control 1792335253.612
+10-18 14:54:14.092 I/Quire   ( 3112): lab: dev.openbook.quire.lab.REQUEST
+10-18 14:54:14.133 I/Quire   ( 3112): cc: request name=quire-1792335254102 targets=[com.android.settings] version=5
+10-18 14:54:14.181 I/Quire   ( 3112): cc: pending: the platform asks for consent
+10-18 14:54:15.514 I/Quire   ( 4583): assistant: ready

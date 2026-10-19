@@ -1,0 +1,13 @@
+--------- beginning of main
+10-18 14:48:26.182 I/Quire   ( 3112): assistant: ready
+10-18 14:49:33.818 I/Quire   ( 4104): q2-check shake 1792334973.531
+10-18 14:50:03.624 I/Quire   ( 4245): q2-check meta_space 1792335003.331
+10-18 14:50:03.687 I/Quire   ( 3112): assistant: session shown trigger=assistant_shortcut invocationType=0 keyboardHint=true display=0 showFlags=0x4
+10-18 14:50:03.688 I/Quire   ( 3112): assistant: started contextual search trigger=assistant_shortcut
+10-18 14:50:03.873 I/Quire   ( 3112): invocation: trigger=assistant_shortcut entrypoint=11(KEYBOARD_SHORTCUT) visible=[dev.openbook.quire.secureprobe, com.android.settings, com.android.settings, com.android.launcher3] flagSecureFound=true screenshot=1920x1080 token=true audioPlaying=n/a managedProfileVisible=false caller=dev.openbook.quire mediaProjectionOffered=true
+10-18 14:50:04.075 I/Quire   ( 3112): invocation: saved /data/user/0/dev.openbook.quire/files/invocations/20261018-145003-869-assistant_shortcut.json
+10-18 14:50:17.660 I/Quire   ( 4324): q2-check assist_key 1792335017.358
+10-18 14:50:17.735 I/Quire   ( 3112): assistant: session shown trigger=assist_key invocationType=7 keyboardHint=false display=0 showFlags=0x4
+10-18 14:50:17.736 I/Quire   ( 3112): assistant: started contextual search trigger=assist_key
+10-18 14:50:17.921 I/Quire   ( 3112): invocation: trigger=assist_key entrypoint=11(KEYBOARD_SHORTCUT) visible=[dev.openbook.quire.secureprobe, com.android.settings, com.android.settings, com.android.launcher3] flagSecureFound=true screenshot=1920x1080 token=true audioPlaying=n/a managedProfileVisible=false caller=dev.openbook.quire mediaProjectionOffered=true
+10-18 14:50:18.190 I/Quire   ( 3112): invocation: saved /data/user/0/dev.openbook.quire/files/invocations/20261018-145017-921-assist_key.json

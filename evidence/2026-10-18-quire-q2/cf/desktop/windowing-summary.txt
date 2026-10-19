@@ -1,0 +1,34 @@
+# AnyBook/anybook_cf_x86_64_pc/anybook_vsoc_x86_64:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+## Tasks (dumpsys activity activities)
+  * Task{cbf8f3d #7 name=Desk type=standard U=0 visible=true visibleRequested=true mode=freeform translucent=true sz=3}
+    * Task{be84c10 #26 type=standard I=com.android.documentsui/.files.FilesActivity U=0 rootTaskId=7 visible=true visibleRequested=true mode=freeform translucent=false sz=1}
+    * Task{d430cb #25 type=standard A=1000:com.android.settings.root U=0 rootTaskId=7 visible=true visibleRequested=true mode=freeform translucent=false sz=2}
+    * Task{7c51c54 #15 type=standard A=10095:dev.openbook.quire U=0 rootTaskId=7 visible=true visibleRequested=true mode=freeform translucent=false sz=1}
+  * Task{508ef11 #1 type=home U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+    * Task{f3755b5 #9 type=home I=com.android.launcher3/.uioverrides.QuickstepLauncher U=0 rootTaskId=1 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+  * Task{6474466 #4 name=SplitRoot type=undefined U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=2}
+    * Task{ac88054 #6 name=side type=undefined U=0 rootTaskId=4 visible=false visibleRequested=false mode=multi-window translucent=true sz=0}
+    * Task{1363a7 #5 name=main type=undefined U=0 rootTaskId=4 visible=false visibleRequested=false mode=multi-window translucent=true sz=0}
+  * Task{717e47d #8 name=MinimizedDesk_7 type=undefined U=0 visible=false visibleRequested=false mode=freeform translucent=true sz=0}
+  * Task{e41257d #20 type=standard A=1000:com.android.settings U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=2}
+  * Task{713288b #21 type=standard A=1000:com.android.settings U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=2}
+      * Task{cbf8f3d #7 name=Desk type=standard U=0 visible=true visibleRequested=true mode=freeform translucent=true sz=3}
+        * Task{be84c10 #26 type=standard I=com.android.documentsui/.files.FilesActivity U=0 rootTaskId=7 visible=true visibleRequested=true mode=freeform translucent=false sz=1}
+        * Task{d430cb #25 type=standard A=1000:com.android.settings.root U=0 rootTaskId=7 visible=true visibleRequested=true mode=freeform translucent=false sz=2}
+        * Task{7c51c54 #15 type=standard A=10095:dev.openbook.quire U=0 rootTaskId=7 visible=true visibleRequested=true mode=freeform translucent=false sz=1}
+      * Task{508ef11 #1 type=home U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+        * Task{f3755b5 #9 type=home I=com.android.launcher3/.uioverrides.QuickstepLauncher U=0 rootTaskId=1 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+      * Task{6474466 #4 name=SplitRoot type=undefined U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=2}
+        * Task{ac88054 #6 name=side type=undefined U=0 rootTaskId=4 visible=false visibleRequested=false mode=multi-window translucent=true sz=0}
+        * Task{1363a7 #5 name=main type=undefined U=0 rootTaskId=4 visible=false visibleRequested=false mode=multi-window translucent=true sz=0}
+      * Task{717e47d #8 name=MinimizedDesk_7 type=undefined U=0 visible=false visibleRequested=false mode=freeform translucent=true sz=0}
+      * Task{e41257d #20 type=standard A=1000:com.android.settings U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=2}
+      * Task{713288b #21 type=standard A=1000:com.android.settings U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=2}
+## windowing modes of activities (count)
+     10 mWindowingMode=freeform
+     11 mWindowingMode=fullscreen
+      4 mWindowingMode=undefined
+## display windowing mode (dumpsys window displays)
+  overrideConfig={0.0 ?mcc0mnc ?localeList ?layoutDir sw1080dp w1920dp h1080dp 160dpi xlrg long compactNeeded land ?uimode ?night -touch qwerty/v/v -nav/h winConfig={ mBounds=Rect(0, 0 - 1920, 1080) mAppBounds=Rect(0, 0 - 1920, 1080) mMaxBounds=Rect(0, 0 - 1920, 1080) mDisplayRotation=ROTATION_0 mWindowingMode=fullscreen mActivityType=undefined mAlwaysOnTop=undefined mRotation=ROTATION_0} ?fontWeightAdjustment}
+      overrideConfig={0.0 ?mcc0mnc ?localeList ?layoutDir ?swdp ?wdp ?hdp ?density ?lsize ?long ?round ?ldr ?wideColorGamut ?orien ?uimode ?night ?touch ?keyb/?/? ?nav/? winConfig={ mBounds=Rect(0, 0 - 0, 0) mAppBounds=null mMaxBounds=Rect(0, 0 - 0, 0) mDisplayRotation=undefined mWindowingMode=fullscreen mActivityType=undefined mAlwaysOnTop=undefined mRotation=undefined} ?fontWeightAdjustment}
+    SettingsEntry{mWindowingMode=0, mUserRotationMode=null, mUserRotation=null, mForcedWidth=0, mForcedHeight=0, mForcedDensity=0, mForcedDensityRatio=0.0, mForcedScalingMode=null, mRemoveContentMode=0, mShouldShowWithInsecureKeyguard=null, mShouldShowSystemDecors=null, mIsHomeSupported=null, mShouldShowIme=2, mFixedToUserRotation=null, mIgnoreOrientationRequest=null, mIgnoreDisplayCutout=null, mDontMoveToTop=null, mForceAppsUniversalResizable=true, mCanStealTopFocus=false}
