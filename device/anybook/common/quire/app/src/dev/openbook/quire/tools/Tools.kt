@@ -86,6 +86,12 @@ interface CallNote {
      */
     fun platformDialog(up: Boolean)
 
+    /**
+     * Keeps the note on screen, over apps that hide overlays, while Quire reads the screen: the platform lets its
+     * assistant read the screen only while the assistant is visible, and the person sees Quire while it reads.
+     */
+    fun onScreen(on: Boolean)
+
     /** True once the call no longer matters: the person stopped the task, or the turn ended. */
     val cancelled: Boolean
 

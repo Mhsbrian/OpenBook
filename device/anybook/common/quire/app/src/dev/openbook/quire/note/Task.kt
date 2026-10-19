@@ -1082,6 +1082,15 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
 
     override fun toolPlatformDialog(up: Boolean) = host.platformDialog(this, up)
 
+    /** Q6: true while a screen read needs the note on screen (NoteWindow.systemFor). */
+    var heldOnScreen = false
+        private set
+
+    override fun toolOnScreen(on: Boolean) {
+        heldOnScreen = on
+        host.changed(this)
+    }
+
     override fun toolRetitle(step: Any, title: String) {
         val s = step as Step
         s.title = title
