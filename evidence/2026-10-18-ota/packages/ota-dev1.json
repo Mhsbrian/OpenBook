@@ -1,0 +1,47 @@
+{
+ "schema": "openbook-ota/1",
+ "label": "ota-dev1",
+ "tree": "0157eee (agent/googlebook-amd-porter/536e232c9126: main 2594cd3 + #107 + bootsync)",
+ "test_only_broken_boot": false,
+ "fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
+ "build_date_utc": 1792360890,
+ "device": "anybook_g14",
+ "bytes": 937903707,
+ "sha256": "36ca9d4a76e09963ada99621970ca08f10ab7c2d923dfeb5c8e2a218b875e3c3",
+ "vbmeta_digest": "5f519de6e2182ce253a035f0c779a3faa83d4b413dd0bcb920b5639cb4a36a38",
+ "vbmeta_size": 6144,
+ "payload_properties": [
+  "FILE_HASH=ATaFsNNv1Hvtq9ZwyZqVwPgUuUtgrbkILcOYOpVSFg0=",
+  "FILE_SIZE=937896132",
+  "METADATA_HASH=QeydwM7u4J2Kt4J+G1IZGoNpOSFjs6FjSFSqm3ZmTW0=",
+  "METADATA_SIZE=42715"
+ ],
+ "partitions": [
+  "boot",
+  "init_boot",
+  "product",
+  "super_empty",
+  "system",
+  "system_dlkm",
+  "system_ext",
+  "system_other",
+  "userdata",
+  "vbmeta",
+  "vendor",
+  "vendor_boot",
+  "vendor_dlkm"
+ ],
+ "bootsync_sha256": "e3019926318877e95798de0b81343109e93c08daf1ba83d2aac9b4e4bb5bd656",
+ "metadata": {
+  "ota-property-files": "payload_metadata.bin:4083:42982,payload.bin:4083:937896132,payload_properties.txt:937900273:154,apex_info.pb:1956:1463,care_map.pb:3466:570,metadata:69:688,metadata.pb:825:1083                      ",
+  "ota-required-cache": "0",
+  "ota-streaming-property-files": "payload.bin:4083:937896132,payload_properties.txt:937900273:154,apex_info.pb:1956:1463,care_map.pb:3466:570,metadata:69:688,metadata.pb:825:1083                        ",
+  "ota-type": "AB",
+  "post-build": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
+  "post-build-incremental": "eng.builde",
+  "post-sdk-level": "37",
+  "post-security-patch-level": "2026-06-05",
+  "post-timestamp": "1792360890",
+  "pre-device": "anybook_g14"
+ }
+}

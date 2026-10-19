@@ -1,0 +1,59 @@
+// Copyright (C) 2026 The OpenBook Authors
+// SPDX-License-Identifier: Apache-2.0
+
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+// openbook-bootsync (bootsync.c, docs/installer.md section 2.5): systemd-boot's copy of the boot images on the ESP,
+// kept in step with the A/B slots. Plain C on the install engine's GPT, FAT, JSON and SHA-256 code, so the same
+// sources run in the host tests (scripts/ota/bootsync-test.sh). In vendor, next to the boot control HAL that runs it.
+cc_binary {
+    name: "openbook-bootsync",
+    vendor: true,
+    srcs: [
+        "bootsync.c",
+        ":openbook-install-engine-lib",
+    ],
+    include_dirs: ["device/anybook/common/installer/engine"],
+    cflags: [
+        "-Wall",
+        "-Werror",
+        "-Wno-unused-parameter",
+        "-Wno-sign-compare",
+        "-Wno-missing-field-initializers",
+    ],
+}
+
+// The boot control HAL: AOSP's AIDL default service (libboot_control on misc) plus the calls into
+// openbook-bootsync. Replaces com.android.hardware.boot in the PC product.
+cc_binary {
+    name: "android.hardware.boot-service.openbook",
+    defaults: ["libboot_control_defaults"],
+    relative_install_path: "hw",
+    vendor: true,
+    srcs: [
+        "hal/BootControl.cpp",
+        "hal/main.cpp",
+    ],
+    stl: "c++_static",
+    shared_libs: [
+        "libbinder_ndk",
+        "liblog",
+    ],
+    static_libs: [
+        "android.hardware.boot@1.1",
+        "android.hardware.boot-V1-ndk",
+        "libbase",
+        "libboot_control",
+    ],
+    init_rc: ["hal/android.hardware.boot-service.openbook.rc"],
+    vintf_fragment_modules: ["android.hardware.boot-service.openbook.xml"],
+    required: ["openbook-bootsync"],
+}
+
+vintf_fragment {
+    name: "android.hardware.boot-service.openbook.xml",
+    src: "hal/android.hardware.boot-service.openbook.xml",
+    vendor: true,
+}
