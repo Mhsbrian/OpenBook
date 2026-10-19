@@ -66,6 +66,12 @@ def main():
         rc["linux-env"] = script([f"{oq.R}/scripts/quire/linux-env-adb.sh", "-s", serial, "check", a.image,
                                   f"{out}/linux-env"], f"{out}/linux-env-adb.log", 2400)
         oq.log(f"quire: linux-env-adb.sh check exit {rc['linux-env']}")
+        # The Linux environment's check takes minutes; the VM's screen locks meanwhile. Unlock it again (the
+        # rehearsal's own PIN) and keep it on for the screen checks, which never unlock by themselves.
+        adb.connect()
+        unlocked, how = oq.unlock(adb)
+        adb.sh("svc power stayon true")
+        oq.log(f"quire: unlocked again={unlocked}")
         rc["quire"] = script([sys.executable, f"{oq.R}/scripts/quire/g14-quire-check.py", serial, f"{out}/quire",
                               "--only", a.only], f"{out}/g14-quire-check.log", 1800)
         oq.log(f"quire: g14-quire-check.py exit {rc['quire']}")
