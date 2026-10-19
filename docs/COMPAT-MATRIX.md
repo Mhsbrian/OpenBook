@@ -5,13 +5,14 @@
 | Check | Observed result | Limit |
 |---|---|---|
 | Patched QEMU TCG instruction lane | The faulting VEX VPDPWSSD executes; 10,000-iteration GFNI/VPCLMUL and VNNI digests match native arithmetic oracles | Emulation research; native Zen 4 still faults |
-| UEFI, emulated USB, synthetic internal NVMe | Enforcing boot reaches `sys.boot_completed=1`; boot-control marks slot A good; original image, guest backing file and internal decoy hashes remain unchanged | Eight-minute VM observation; no physical USB write or G14 result |
+| UEFI, emulated USB, synthetic internal NVMe | Enforcing boot reaches `sys.boot_completed=1`; boot-control marks slot A good; original image, guest backing file and internal decoy hashes remain unchanged | Eight-minute VM observation; physical-medium verification is separate below |
 | Native VINTF, strict SELinux, service-context validation | Both stock baselines and adapted hybrid pass; 395 inventoried inputs unchanged | Seven vendor-private desktop service labels rejected; further integration needed |
 | Graphical setup and input | Googlebook boot animation and welcome screen render; pointer input opens the screen-reader prompt and Escape dismisses it | No completed setup, usable launcher or physical AMD GPU result |
 | Longer runtime stability | Final 495.4-second observation catches `system_server` SIGSEGV/SEGV_ACCERR and a zygote restart; `mmd_setup` aborts on missing zram | Fails stability; RenderThread `execmem` denials implicate the VM SwiftShader fallback, with full trace still needed |
-| Physical 62 GB SanDisk Ultra | No USB block device attached to the build host during this run | Stick has not been updated |
+| Physical 62 GB SanDisk Ultra, subsequent owner-requested trial | 12,766,412,800-byte write and full SHA-256 readback match the VM-tested candidate; three old reports backed up; powered off | Physical G14 boot still untested; known VM stability failures remain |
 
-Evidence: `evidence/2026-10-19-googlebook-live/`; reproduction:
+Evidence: `evidence/2026-10-19-googlebook-live/` and
+`evidence/2026-10-19-googlebook-usb/`; reproduction:
 `docs/googlebook-live.md`. Neither this prototype nor its successful boot marker
 enables the Googlebook installer option.
 
