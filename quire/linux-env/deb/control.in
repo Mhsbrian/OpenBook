@@ -1,0 +1,11 @@
+Package: quired
+Version: @VERSION@
+Architecture: @ARCH@
+Maintainer: OpenBook project <quired@openbook.invalid>
+Section: utils
+Priority: optional
+Homepage: https://github.com/Mhsbrian/OpenBook
+Description: Quire harness host for OpenBook
+ Finds the AI coding agents installed in this Linux environment and serves
+ them to Quire, OpenBook's agent layer, over the Agent Client Protocol on
+ vsock port 7690. Only the Android host may connect.

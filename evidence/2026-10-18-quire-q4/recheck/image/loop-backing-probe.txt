@@ -1,0 +1,8 @@
+# Which backing_file path the host reads for a loop device a container attached (2026-10-19T00:08:16Z).
+# root_part: in a host folder mounted at the same path in the container (what build.sh -W does).
+# disk.raw: in the container's own /tmp (what AOSP's builder does without -W).
+container: loop0 ~/multica_workspaces/analtechnic-b248a69dce69/anal-218-ca23e99f36cf/workdir/scratch/loopprobe/root_part
+container: loop1 /tmp/tmp.Ab12/disk.raw
+host:      loop0 ~/multica_workspaces/analtechnic-b248a69dce69/anal-218-ca23e99f36cf/workdir/scratch/loopprobe/root_part
+host:      loop1 /tmp/tmp.Ab12/disk.raw
+after: 2 loop nodes, attached: 0

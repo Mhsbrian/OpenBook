@@ -1,0 +1,219 @@
+10-18 19:58:57.921 I/DMI     (    0): ChromiumOS crosvm, BIOS 0
+10-18 20:00:05.740 I/auditd  (    1): type=1400 audit(0.0:188): avc:  denied  { write } for  comm="init" name="error_report_end" dev="tracefs" ino=10240 scontext=u:r:init:s0 tcontext=u:object_r:debugfs_bootreceiver_tracing:s0 tclass=dir permissive=0 bug=b/340399580
+10-18 20:00:06.211 I/auditd  (  401): avc:  denied  { find } for pid=795 uid=1003 name=gpu scontext=u:r:bootanim:s0 tcontext=u:object_r:gpu_service:s0 tclass=service_manager permissive=0
+10-18 20:00:06.218 E/SELinux (    0): avc:  denied  { find } for pid=795 uid=1003 name=gpu scontext=u:r:bootanim:s0 tcontext=u:object_r:gpu_service:s0 tclass=service_manager permissive=0
+10-18 20:00:10.950 D/SystemServerTiming(  827): OnBootPhase_550_com.android.server.pm.Installer
+10-18 20:00:10.950 V/SystemServerTiming(  827): OnBootPhase_550_com.android.server.pm.Installer took to complete: 0ms
+10-18 20:00:10.952 D/SystemServerTiming(  827): OnBootPhase_550_com.android.server.pm.PackageInstallerService$Lifecycle
+10-18 20:00:10.952 V/SystemServerTiming(  827): OnBootPhase_550_com.android.server.pm.PackageInstallerService$Lifecycle took to complete: 0ms
+10-18 20:00:11.033 D/SystemServerTiming(  827): OnBootPhase_600_com.android.server.pm.Installer
+10-18 20:00:11.033 V/SystemServerTiming(  827): OnBootPhase_600_com.android.server.pm.Installer took to complete: 0ms
+10-18 20:00:11.033 D/SystemServerTiming(  827): OnBootPhase_600_com.android.server.pm.PackageInstallerService$Lifecycle
+10-18 20:00:11.033 V/SystemServerTiming(  827): OnBootPhase_600_com.android.server.pm.PackageInstallerService$Lifecycle took to complete: 0ms
+10-18 20:00:11.071 D/SystemServerTimingAsync(  827): ssm.onStartUser-0_com.android.server.pm.Installer
+10-18 20:00:11.071 V/SystemServerTimingAsync(  827): ssm.onStartUser-0_com.android.server.pm.Installer took to complete: 0ms
+10-18 20:00:11.071 D/SystemServerTimingAsync(  827): ssm.onStartUser-0_com.android.server.pm.PackageInstallerService$Lifecycle
+10-18 20:00:11.071 V/SystemServerTimingAsync(  827): ssm.onStartUser-0_com.android.server.pm.PackageInstallerService$Lifecycle took to complete: 0ms
+10-18 20:00:12.388 D/ActivityManagerTiming(  827): OnBootPhase_1000_com.android.server.pm.Installer
+10-18 20:00:12.388 V/ActivityManagerTiming(  827): OnBootPhase_1000_com.android.server.pm.Installer took to complete: 0ms
+10-18 20:00:12.395 D/ActivityManagerTiming(  827): OnBootPhase_1000_com.android.server.pm.PackageInstallerService$Lifecycle
+10-18 20:00:12.395 V/ActivityManagerTiming(  827): OnBootPhase_1000_com.android.server.pm.PackageInstallerService$Lifecycle took to complete: 0ms
+10-18 20:00:12.521 D/SystemServerTimingAsync(  827): ssm.onUnlockingUser-0_com.android.server.pm.Installer
+10-18 20:00:12.521 V/SystemServerTimingAsync(  827): ssm.onUnlockingUser-0_com.android.server.pm.Installer took to complete: 0ms
+10-18 20:00:12.521 D/SystemServerTimingAsync(  827): ssm.onUnlockingUser-0_com.android.server.pm.PackageInstallerService$Lifecycle
+10-18 20:00:12.521 V/SystemServerTimingAsync(  827): ssm.onUnlockingUser-0_com.android.server.pm.PackageInstallerService$Lifecycle took to complete: 0ms
+10-18 20:00:12.560 I/am_proc_start(  827): [0,3150,10095,dev.openbook.quire,bound-service,{dev.openbook.quire/dev.openbook.quire.assist.QuireVoiceInteractionService}]
+10-18 20:00:12.560 I/ActivityManager(  827): Start proc 3150:dev.openbook.quire/u0a95 for bound-service {dev.openbook.quire/dev.openbook.quire.assist.QuireVoiceInteractionService}
+10-18 20:00:13.240 D/SystemServerTimingAsync(  827): ssm.onUnlockedUser-0_com.android.server.pm.Installer
+10-18 20:00:13.240 V/SystemServerTimingAsync(  827): ssm.onUnlockedUser-0_com.android.server.pm.Installer took to complete: 0ms
+10-18 20:00:13.241 D/SystemServerTimingAsync(  827): ssm.onUnlockedUser-0_com.android.server.pm.PackageInstallerService$Lifecycle
+10-18 20:00:13.241 V/SystemServerTimingAsync(  827): ssm.onUnlockedUser-0_com.android.server.pm.PackageInstallerService$Lifecycle took to complete: 0ms
+10-18 20:00:13.360 I/auditd  ( 3455): type=1400 audit(0.0:192): avc:  denied  { read } for  comm=".gce.gceservice" name="u:object_r:zygote_config_prop:s0" dev="tmpfs" ino=498 scontext=u:r:gceservice:s0:c73,c256,c512,c768 tcontext=u:object_r:zygote_config_prop:s0 tclass=file permissive=0 app=com.android.google.gce.gceservice
+10-18 20:00:13.360 W/.gce.gceservice( 3455): type=1400 audit(0.0:192): avc:  denied  { read } for  name="u:object_r:zygote_config_prop:s0" dev="tmpfs" ino=498 scontext=u:r:gceservice:s0:c73,c256,c512,c768 tcontext=u:object_r:zygote_config_prop:s0 tclass=file permissive=0 app=com.android.google.gce.gceservice
+10-18 20:00:13.757 D/nativeloader( 3663): Configuring clns-shared-9 for other apk /system/priv-app/PackageInstaller/PackageInstaller.apk. target_sdk_version=37, uses_libraries=, library_path=/system/priv-app/PackageInstaller/lib/x86_64:/system/lib64, permitted_path=/data:/mnt/expand:/data/user_de/0/com.android.packageinstaller:/system/priv-app/PackageInstaller:/system/lib64
+10-18 20:00:18.250 D/SystemServerTimingAsync(  827): ssm.onCompletedEventUser-0_{|Unlocked|}_com.android.server.pm.Installer
+10-18 20:00:18.250 V/SystemServerTimingAsync(  827): ssm.onCompletedEventUser-0_{|Unlocked|}_com.android.server.pm.Installer took to complete: 0ms
+10-18 20:00:18.250 D/SystemServerTimingAsync(  827): ssm.onCompletedEventUser-0_{|Unlocked|}_com.android.server.pm.PackageInstallerService$Lifecycle
+10-18 20:00:18.250 V/SystemServerTimingAsync(  827): ssm.onCompletedEventUser-0_{|Unlocked|}_com.android.server.pm.PackageInstallerService$Lifecycle took to complete: 0ms
+10-18 20:00:21.132 D/AlphabeticalAppsList( 2950): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 20:00:21.132 D/AlphabeticalAppsList( 2950): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 20:00:21.176 D/AlphabeticalAppsList( 2950): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 20:00:21.176 D/AlphabeticalAppsList( 2950): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 20:00:21.207 D/AlphabeticalAppsList( 2950): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 20:00:21.208 D/AlphabeticalAppsList( 2950): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 20:00:21.234 D/AlphabeticalAppsList( 2950): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 20:00:21.234 D/AlphabeticalAppsList( 2950): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 20:00:21.309 I/artd    ( 2381): GetBestInfo: odex in dalvik-cache (/data/dalvik-cache/x86_64/system_ext@priv-app@OpenBookQuire@OpenBookQuire.apk@classes.dex) is kOatUpToDate with filter 'verify' executable 'false'
+10-18 20:00:21.385 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:log -t Quire -p i 'q2-check off 1792353621.613''
+10-18 20:00:21.394 I/Quire   ( 3837): q2-check off 1792353621.613
+10-18 20:00:21.467 I/Quire   ( 3150): lab: dev.openbook.quire.lab.AGENTS_LIST
+10-18 20:00:21.472 I/Quire   ( 3150): agents: status linux-environment=TERMINAL_OFF paired-computer=NOT_PAIRED
+10-18 20:00:21.472 W/Quire   ( 3150): agents: unavailable: The Linux environment is off. Turn it on in Settings › System › Developer options › Linux development environment. Quire can use the agents on another computer instead, but none is paired.
+10-18 20:00:21.472 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:00:21.524 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:00:27.877 D/AlphabeticalAppsList( 2950): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 20:00:27.877 D/AlphabeticalAppsList( 2950): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 20:00:29.368 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:log -t Quire -p i 'q2-check not-installed 1792353629.596''
+10-18 20:00:29.377 I/Quire   ( 4051): q2-check not-installed 1792353629.596
+10-18 20:00:29.426 I/Quire   ( 3150): lab: dev.openbook.quire.lab.AGENTS_STATUS
+10-18 20:00:29.433 I/am_proc_start(  827): [0,4057,10126,com.android.virtualization.terminal,content provider,{com.android.virtualization.terminal/com.android.virtualization.terminal.AgentBridgeProvider}]
+10-18 20:00:29.433 I/ActivityManager(  827): Start proc 4057:com.android.virtualization.terminal/u0a126 for content provider {com.android.virtualization.terminal/com.android.virtualization.terminal.AgentBridgeProvider}
+10-18 20:00:29.457 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:00:29.532 D/Installer( 4057): update network state. wificonnected=false networkconnected=false networkmetered=false
+10-18 20:00:29.532 I/Quire   ( 3150): agents: status linux-environment=NOT_INSTALLED paired-computer=NOT_PAIRED
+10-18 20:00:29.533 D/Installer( 4057): update network state. wificonnected=true networkconnected=true networkmetered=false
+10-18 20:00:29.534 D/Installer( 4057): State changed from Checking to NotInstalled(totalSizeBytes=776040680)
+10-18 20:00:30.009 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:00:30.121 D/Installer( 4057): State changed from NotInstalled(totalSizeBytes=776040680) to Installing(totalBytes=0, progress=kotlinx.coroutines.flow.ReadonlyStateFlow@332d4a9, onWifi=true)
+10-18 20:00:30.123 D/Installer( 4057): State changed from Installing(totalBytes=0, progress=kotlinx.coroutines.flow.ReadonlyStateFlow@332d4a9, onWifi=true) to Installing(totalBytes=776040680, progress=kotlinx.coroutines.flow.ReadonlyStateFlow@42b8ade, onWifi=true)
+10-18 20:00:30.695 D/Installer( 4057): update network state. wificonnected=true networkconnected=true networkmetered=false
+10-18 20:00:32.776 D/AlphabeticalAppsList( 2950): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 20:00:32.778 D/AlphabeticalAppsList( 2950): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 20:00:33.700 D/Installer( 4057): update network state. wificonnected=true networkconnected=true networkmetered=false
+10-18 20:00:36.703 D/Installer( 4057): update network state. wificonnected=true networkconnected=true networkmetered=false
+10-18 20:00:39.707 D/Installer( 4057): update network state. wificonnected=true networkconnected=true networkmetered=false
+10-18 20:00:45.664 D/Installer( 4057): State changed from Installing(totalBytes=776040680, progress=kotlinx.coroutines.flow.ReadonlyStateFlow@42b8ade, onWifi=true) to Installed
+10-18 20:00:45.665 D/VmController( 4057): State changed from Ready to Starting
+10-18 20:00:45.670 D/VmController( 4057): rootfs apparent size=3085959168, physical size=3088994304, expectedSize=16320036864
+10-18 20:00:45.676 I/auditd  ( 4242): type=1400 audit(0.0:201): avc:  denied  { read write } for  comm="virtmgr" path="/dev/dri/renderD128" dev="tmpfs" ino=1068 scontext=u:r:priv_app_all_virtualizationmanager:s0:c126,c256,c512,c768 tcontext=u:object_r:gpu_device:s0 tclass=chr_file permissive=0 app=com.android.virtualization.terminal
+10-18 20:00:45.676 W/virtmgr ( 4242): type=1400 audit(0.0:201): avc:  denied  { read write } for  path="/dev/dri/renderD128" dev="tmpfs" ino=1068 scontext=u:r:priv_app_all_virtualizationmanager:s0:c126,c256,c512,c768 tcontext=u:object_r:gpu_device:s0 tclass=chr_file permissive=0 app=com.android.virtualization.terminal
+10-18 20:00:45.676 I/auditd  ( 4242): type=1400 audit(0.0:201): avc:  denied  { use } for  comm="virtmgr" path="socket:[38226]" dev="sockfs" ino=38226 scontext=u:r:priv_app_all_virtualizationmanager:s0:c126,c256,c512,c768 tcontext=u:r:surfaceflinger:s0 tclass=fd permissive=0 app=com.android.virtualization.terminal
+10-18 20:00:45.676 W/virtmgr ( 4242): type=1400 audit(0.0:201): avc:  denied  { use } for  path="socket:[38226]" dev="sockfs" ino=38226 scontext=u:r:priv_app_all_virtualizationmanager:s0:c126,c256,c512,c768 tcontext=u:r:surfaceflinger:s0 tclass=fd permissive=0 app=com.android.virtualization.terminal
+10-18 20:00:45.676 I/auditd  ( 4242): type=1400 audit(0.0:201): avc:  denied  { use } for  comm="virtmgr" path="socket:[38227]" dev="sockfs" ino=38227 scontext=u:r:priv_app_all_virtualizationmanager:s0:c126,c256,c512,c768 tcontext=u:r:surfaceflinger:s0 tclass=fd permissive=0 app=com.android.virtualization.terminal
+10-18 20:00:45.676 W/virtmgr ( 4242): type=1400 audit(0.0:201): avc:  denied  { use } for  path="socket:[38227]" dev="sockfs" ino=38227 scontext=u:r:priv_app_all_virtualizationmanager:s0:c126,c256,c512,c768 tcontext=u:r:surfaceflinger:s0 tclass=fd permissive=0 app=com.android.virtualization.terminal
+10-18 20:00:45.676 I/auditd  ( 4242): type=1400 audit(0.0:201): avc:  denied  { use } for  comm="virtmgr" path="socket:[39990]" dev="sockfs" ino=39990 scontext=u:r:priv_app_all_virtualizationmanager:s0:c126,c256,c512,c768 tcontext=u:r:surfaceflinger:s0 tclass=fd permissive=0 app=com.android.virtualization.terminal
+10-18 20:00:45.676 W/virtmgr ( 4242): type=1400 audit(0.0:201): avc:  denied  { use } for  path="socket:[39990]" dev="sockfs" ino=39990 scontext=u:r:priv_app_all_virtualizationmanager:s0:c126,c256,c512,c768 tcontext=u:r:surfaceflinger:s0 tclass=fd permissive=0 app=com.android.virtualization.terminal
+10-18 20:00:45.676 I/auditd  ( 4242): type=1400 audit(0.0:201): avc:  denied  { use } for  comm="virtmgr" path="socket:[39991]" dev="sockfs" ino=39991 scontext=u:r:priv_app_all_virtualizationmanager:s0:c126,c256,c512,c768 tcontext=u:r:surfaceflinger:s0 tclass=fd permissive=0 app=com.android.virtualization.terminal
+10-18 20:00:45.676 W/virtmgr ( 4242): type=1400 audit(0.0:201): avc:  denied  { use } for  path="socket:[39991]" dev="sockfs" ino=39991 scontext=u:r:priv_app_all_virtualizationmanager:s0:c126,c256,c512,c768 tcontext=u:r:surfaceflinger:s0 tclass=fd permissive=0 app=com.android.virtualization.terminal
+10-18 20:00:45.714 D/Installer( 4057): update network state. wificonnected=true networkconnected=true networkmetered=false
+10-18 20:00:45.718 I/virtmgr ( 4242): virtualizationmanager: Started VirtualizationService RpcServer. Ready to accept connections
+10-18 20:00:45.728 W/virtmgr ( 4242): virtualizationmanager::virtualmachine: can't read_link '/proc/4057/exe': Os { code: 2, kind: NotFound, message: "No such file or directory" }; regarding as system
+10-18 20:00:45.728 I/virtmgr ( 4242): virtualizationmanager::virtualmachine: callers secontext: u:r:vmlauncher_app:s0:c126,c256,c512,c768
+10-18 20:00:45.729 W/virtmgr ( 4242): virtualizationmanager::virtualmachine: VM reference DT doesn't exist in host DT
+10-18 20:00:45.729 I/virtmgr ( 4242): virtualizationmanager::debug_config: Debug policy ignored for non-Microdroid VM
+10-18 20:00:45.729 W/virtmgr ( 4242): virtualizationmanager::virtualmachine: unknown partition for '/data/data/com.android.virtualization.terminal/files/linux/root_part'
+10-18 20:00:45.729 W/virtmgr ( 4242): virtualizationmanager::virtualmachine: unknown partition for '/data/data/com.android.virtualization.terminal/files/linux/cidata.iso'
+10-18 20:00:45.730 W/virtmgr ( 4242): virtualizationmanager::virtualmachine: unknown partition for '/data/data/com.android.virtualization.terminal/files/linux/vmlinuz'
+10-18 20:00:45.730 W/virtmgr ( 4242): virtualizationmanager::virtualmachine: unknown partition for '/data/data/com.android.virtualization.terminal/files/linux/initrd.img'
+10-18 20:00:45.741 I/virtmgr ( 4242): virtualizationmanager::crosvm: Non-protected virtual machine "debian" (owner: u0_a126, cid: 2048) created
+10-18 20:00:45.741 I/virtmgr ( 4242): virtualizationmanager::atom: Writing VmCreationRequested atom into statsd.
+10-18 20:00:45.744 I/virtmgr ( 4242): virtualizationmanager::crosvm: Running crosvm with args: ["device", "fs", "--socket-path=/data/misc/virtualizationservice/2048/android", "--tag=android", "--shared-dir=/storage/emulated/0", "--cfg", "ugid_map='1000 100 10126 10126 7 /; 0 0 0 0 511 /Android'", "--disable-sandbox", "--skip-pivot-root=true"]
+10-18 20:00:45.745 I/virtmgr ( 4242): virtualizationmanager::crosvm: Spawned virtiofs crosvm_vu_fs(4267)
+10-18 20:00:45.746 I/virtmgr ( 4242): virtualizationmanager::crosvm: Running crosvm with args: ["device", "snd", "--socket-path=/data/misc/virtualizationservice/2048/vhost_user_snd", "--config", "backend=aaudio,num_input_devices=1,num_output_devices=1"]
+10-18 20:00:45.747 I/virtmgr ( 4242): virtualizationmanager::crosvm: Spawned virtiosnd crosvm_vu_snd(4269)
+10-18 20:00:45.848 I/virtmgr ( 4242): virtualizationmanager::crosvm: Running crosvm with args: ["--extended-status", "--log-level", "debug,disk=warn", "run", "--disable-sandbox", "--cid", "2048", "--name", "crosvm_debian", "/proc/self/fd/38 (/data/data/com.android.virtualization.terminal/files/linux/vmlinuz)", "--params", "transparent_hugepage=always root=/dev/vda1 ds=nocloud arm64.nompam 8250.nr_uarts=4 console=ttyS0 debian_server_port=0", "--params", "hostname=debian", "--initrd", "/proc/self/fd/39 (/data/data/com.android.virtualization.terminal/files/linux/initrd.img)", "--host-cpu-topology", "--mem", "1024", "--force-disable-readonly-mem", "--hugepages", "--params", "coherent_pool=4096", "--balloon-page-reporting", "--serial=type=file,path=/proc/self/fd/40 (pipe:[38673]),input=/proc/self/fd/41 (/dev/ptmx),hardware=serial,num=1", "--serial=type=file,path=/proc/self/fd/40 (pipe:[38673]),hardware=virtio-console,num=1,max-queue-sizes=[2,32]", "--serial=type=file,path=/proc/self/fd/42 (pipe:[38672]),hardware=virtio-console,num=3,max-queue-sizes=[2,32]", "--serial=type=file,path=/proc/self/fd/44 (pipe:[39789]),hardware=serial,num=2", "--serial=type=sink,hardware=virtio-console,num=2,max-queue-sizes=[2,32]", "--block", "path=/proc/self/fd/50 (/data/misc/virtualizationservice/2048/composite-0.img),ro=false,lock=false", "--block", "path=/proc/self/fd/46 (/data/data/com.android.virtualization.terminal/files/linux/cidata.iso),ro=true,lock=false", "--android-display-service=debian", "--gpu=backend=2d,displays=[[mode=windowed[1280,720],dpi=[160,160],refresh-rate=60]]", "--input", "multi-touch[path=/proc/self/fd/51 (socket:[38675]),width=1280,height=720]", "--input", "keyboard[path=/proc/self/fd/52 (socket:[38677])]", "--input", "mouse[path=/proc/self/fd/53 (socket:[38679])]", "--input", "multi-touch-trackpad[path=/proc/self/fd/54 (socket:[38681]),width=3000,height=3000]", "--no-usb", "--net", "tap-fd=55", "--socket", "/proc/self/fd/16 (socket:[39798])", "--device-tree-overlay", "/proc/self/fd/35 (/data/misc/virtualizationservice/2048/vm_dt_overlay.dtbo)", "--vhost-user", "fs,socket=/data/misc/virtualizationservice/2048/android", "--vhost-user", "sound,socket=/data/misc/virtualizationservice/2048/vhost_user_snd"]
+10-18 20:00:45.849 I/virtmgr ( 4242): virtualizationmanager::crosvm: Non-protected virtual machine "debian" (owner: u0_a126, cid: 2048) started
+10-18 20:00:45.863 I/VmController( 4057): Connect to ttyd using vsock
+10-18 20:00:45.865 I/AndroidToVmBridge( 4057): Bridge started on 127.0.0.1:45543 (Target VM: 2048:7681)
+10-18 20:00:45.865 D/VmController( 4057): localhost is running with port=45543
+10-18 20:00:45.866 D/VmController( 4057): State changed from Starting to Running(terminalAddress=TerminalAddress(ipAddress=localhost, port=45543, key=<redacted>))
+10-18 20:00:45.872 D/crosvm  ( 4275): creating hypervisor: Kvm { device: Some("/dev/kvm") }
+10-18 20:00:45.873 D/crosvm  ( 4275): 0x0000000000000000-0x000000000009ffff GuestMemoryRegion
+10-18 20:00:45.873 D/crosvm  ( 4275): 0x00000000000a0000-0x00000000000fffff ReservedMemory
+10-18 20:00:45.873 D/crosvm  ( 4275): 0x0000000000100000-0x000000003fffffff GuestMemoryRegion
+10-18 20:00:45.887 I/crosvm  ( 4275): Trying to attach block device: /proc/self/fd/50
+10-18 20:00:45.887 I/crosvm  ( 4275): Trying to attach block device: /proc/self/fd/46
+10-18 20:00:45.898 D/crosvm  ( 4275): 0x0000000000000000-0x000000000009ffff GuestMemoryRegion
+10-18 20:00:45.898 D/crosvm  ( 4275): 0x00000000000a0000-0x00000000000fffff ReservedMemory
+10-18 20:00:45.898 D/crosvm  ( 4275): 0x0000000000100000-0x000000003fffffff GuestMemoryRegion
+10-18 20:00:45.899 E/crosvm  ( 4275): netlink generic socket creation error: Permission denied (os error 13)
+10-18 20:00:45.899 E/crosvm  ( 4275): Did not find group_id corresponding to acpi_mc_group
+10-18 20:00:45.900 D/crosvm  ( 4275): setup_header file offset range: 0x01f1..0x026c
+10-18 20:00:45.900 D/crosvm  ( 4275): loading 1472 extra bytes appended to bzImage
+10-18 20:00:45.906 I/crosvm  ( 4275): Loaded bzImage kernel
+10-18 20:00:45.906 D/crosvm  ( 4275): kernel_max_cmdline_len=2047
+10-18 20:00:48.720 D/Installer( 4057): update network state. wificonnected=true networkconnected=true networkmetered=false
+10-18 20:00:56.209 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:log -t Quire -p i 'q2-check list-0 1792353656.430''
+10-18 20:00:56.230 I/Quire   ( 4479): q2-check list-0 1792353656.430
+10-18 20:00:56.278 I/Quire   ( 3150): lab: dev.openbook.quire.lab.AGENTS_LIST
+10-18 20:00:56.279 I/Quire   ( 3150): agents: status linux-environment=READY paired-computer=NOT_PAIRED
+10-18 20:00:56.280 W/Quire   ( 3150): agents: unavailable: The Linux environment couldn’t be reached. (no answer on vsock port 7690: connect failed: ECONNRESET (Connection reset by peer)) Quire can use the agents on another computer instead, but none is paired.
+10-18 20:00:56.309 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:00:59.380 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:log -t Quire -p i 'q2-check list-1 1792353659.608''
+10-18 20:00:59.391 I/Quire   ( 4491): q2-check list-1 1792353659.608
+10-18 20:00:59.443 I/Quire   ( 3150): lab: dev.openbook.quire.lab.AGENTS_LIST
+10-18 20:00:59.444 I/Quire   ( 3150): agents: status linux-environment=READY paired-computer=NOT_PAIRED
+10-18 20:00:59.445 I/AgentBridge( 4057): #1: dev.openbook.quire connected to vsock port 7690
+10-18 20:00:59.447 I/Quire   ( 3150): agents: connected via linux-environment in 3 ms; quired 0.2.0
+10-18 20:00:59.469 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:00:59.587 I/virtmgr ( 4242): virtualizationmanager::virtualmachine: VM with CID 2048 has registered guest agent
+10-18 20:00:59.588 I/virtmgr ( 4242): virtualizationmanager::crosvm: VM with CID 2048 has registered a guest agent
+10-18 20:00:59.588 D/VmController( 4057): Guest agent registered. Imply AIDL connection
+10-18 20:00:59.604 D/VmController( 4057): Guest agent ready
+10-18 20:01:00.032 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:00.618 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:01.164 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:01.734 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:02.311 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:02.700 I/Quire   ( 3150): agents: agent opencode version="1.19.3" supported=true
+10-18 20:01:02.863 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:02.904 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:03.739 D/Installer( 4057): update network state. wificonnected=true networkconnected=true networkmetered=false
+10-18 20:01:04.908 D/AndroidToVmBridge( 4057): Pipe [Client->VM] closed: Socket closed
+10-18 20:01:09.627 D/AlphabeticalAppsList( 2950): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 20:01:09.628 D/AlphabeticalAppsList( 2950): addAppsWithSections: adding sectionName: Q with appInfoTitle: Quire
+10-18 20:01:22.045 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:log -t Quire -p i 'q2-check describe 1792353682.273''
+10-18 20:01:22.054 I/Quire   ( 4612): q2-check describe 1792353682.273
+10-18 20:01:22.112 I/Quire   ( 3150): lab: dev.openbook.quire.lab.AGENTS_DESCRIBE
+10-18 20:01:22.134 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:22.688 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:23.231 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:23.783 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:24.348 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:24.788 D/Installer( 4057): update network state. wificonnected=true networkconnected=true networkmetered=false
+10-18 20:01:24.910 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:25.473 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:26.045 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:26.619 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:27.212 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:27.747 D/Installer( 4057): update network state. wificonnected=true networkconnected=true networkmetered=false
+10-18 20:01:27.770 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:28.317 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:28.879 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:29.434 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:29.524 I/Quire   ( 3150): agents: auth opencode [opencode-login:agent:"Login with opencode"]
+10-18 20:01:29.976 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:30.034 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:log -t Quire -p i 'q2-check prompt 1792353690.263''
+10-18 20:01:30.047 I/Quire   ( 4667): q2-check prompt 1792353690.263
+10-18 20:01:30.098 I/Quire   ( 3150): lab: dev.openbook.quire.lab.AGENTS_PROMPT
+10-18 20:01:30.122 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:30.668 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:30.793 D/Installer( 4057): update network state. wificonnected=true networkconnected=true networkmetered=false
+10-18 20:01:31.260 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:31.296 I/crosvm  ( 4275): Ignoring unsupported bits: 80
+10-18 20:01:31.823 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:32.371 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:32.929 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:33.309 I/Quire   ( 3150): agents: session opencode-1 agent=opencode folder=/home/droid/Quire/2026-10-18-2823535451
+10-18 20:01:33.478 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:34.028 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:34.600 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:35.160 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:35.744 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:36.293 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:36.356 I/Quire   ( 3150): agents: answer opencode-1 stop=end_turn ms=3047 text="QUIRE OK"
+10-18 20:01:36.844 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:36.906 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:37.556 W/ContentProviderHelper(  827): Permission Denial: opening provider com.android.virtualization.terminal.AgentBridgeProvider from (null) (pid=4728, uid=2000) requires com.android.virtualization.terminal.permission.ACCESS_AGENT_BRIDGE or com.android.virtualization.terminal.permission.ACCESS_AGENT_BRIDGE
+10-18 20:01:38.375 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -s AgentBridge:I | grep -c ': closed''
+10-18 20:01:38.472 I/Quire   ( 3150): lab: dev.openbook.quire.lab.AGENTS_DISCONNECT
+10-18 20:01:38.472 I/Quire   ( 3150): agents: connection to quired closed
+10-18 20:01:38.495 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -s AgentBridge:I | grep -c ': closed''
+10-18 20:01:38.552 I/AgentBridge( 4057): #1: closed
+10-18 20:01:39.580 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -s AgentBridge:I | grep -c ': closed''
+10-18 20:01:39.624 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s AgentBridge:I'
+10-18 20:01:39.872 I/auditd  (  827): type=1400 audit(0.0:212): avc:  denied  { setsched } for  comm="OomAdjuster" scontext=u:r:system_server:s0 tcontext=u:r:crosvm_vu_snd:s0:c126,c256,c512,c768 tclass=process permissive=0
+10-18 20:01:39.872 W/OomAdjuster(  827): type=1400 audit(0.0:212): avc:  denied  { setsched } for  scontext=u:r:system_server:s0 tcontext=u:r:crosvm_vu_snd:s0:c126,c256,c512,c768 tclass=process permissive=0
+10-18 20:01:40.697 D/VmController( 4057): State changed from Running(terminalAddress=TerminalAddress(ipAddress=localhost, port=45543, key=<redacted>)) to Stopping
+10-18 20:01:40.698 I/virtmgr ( 4242): virtualizationmanager::crosvm: Asking VM (name: debian, cid: 2048) to shut down
+10-18 20:01:40.976 I/auditd  (  827): type=1400 audit(0.0:213): avc:  denied  { setsched } for  comm="OomAdjuster" scontext=u:r:system_server:s0 tcontext=u:r:crosvm_vu_snd:s0:c126,c256,c512,c768 tclass=process permissive=0
+10-18 20:01:40.976 W/OomAdjuster(  827): type=1400 audit(0.0:213): avc:  denied  { setsched } for  scontext=u:r:system_server:s0 tcontext=u:r:crosvm_vu_snd:s0:c126,c256,c512,c768 tclass=process permissive=0
+10-18 20:01:41.795 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:log -t Quire -p i 'q2-check stopped 1792353702.024''
+10-18 20:01:41.806 I/Quire   ( 4791): q2-check stopped 1792353702.024
+10-18 20:01:41.861 I/Quire   ( 3150): lab: dev.openbook.quire.lab.AGENTS_DISCONNECT
+10-18 20:01:42.909 I/Quire   ( 3150): lab: dev.openbook.quire.lab.AGENTS_LIST
+10-18 20:01:42.911 I/Quire   ( 3150): agents: status linux-environment=STOPPED paired-computer=NOT_PAIRED
+10-18 20:01:42.911 W/Quire   ( 3150): agents: unavailable: The Linux environment isn’t running. Open Terminal to start it. Quire can use the agents on another computer instead, but none is paired.
+10-18 20:01:42.930 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:42.980 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v time -s Quire:I'
+10-18 20:01:43.219 I/adbd    ( 3747): adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -b all | grep 'avc:  denied' | grep -v 'service requested' | sed -E 's/.*avc:  denied/avc: denied/; s/ pid=[0-9]+//; s/ ino=[0-9]+//' | sort | uniq -c | sort -rn'

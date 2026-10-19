@@ -35,6 +35,9 @@ type Client interface {
 // Agent is a running agent process, seen through ACP.
 type Agent interface {
 	Info() acp.InitializeResponse
+	// Authenticate signs in with one of Info().AuthMethods (ACP authenticate). Terminal methods
+	// are run by the person in a terminal, never through this call.
+	Authenticate(ctx context.Context, methodID string) error
 	NewSession(ctx context.Context, cwd string, mcp []acp.McpServer) (string, error)
 	// Prompt runs one turn and returns its stop reason. Cancelling ctx cancels the turn, and
 	// Prompt then returns acp.StopCancelled once the agent has stopped. An agent that doesn't

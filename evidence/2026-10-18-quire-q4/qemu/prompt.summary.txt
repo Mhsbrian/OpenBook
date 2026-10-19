@@ -1,0 +1,2 @@
+answer: 'QUIRE OK'
+stop: ('end_turn', None)

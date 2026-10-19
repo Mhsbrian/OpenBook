@@ -1,0 +1,3 @@
+--------- beginning of main
+10-18 20:00:59.445 I/AgentBridge( 4057): #1: dev.openbook.quire connected to vsock port 7690
+10-18 20:01:38.552 I/AgentBridge( 4057): #1: closed

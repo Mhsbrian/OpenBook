@@ -1,0 +1,3 @@
+guest: Linux version 6.12.113+deb13-cloud-amd64
+qemu start -> quired answering on vsock: 6.0 s
+prompt through vsock (opencode): exit 0 in 3.3 s
