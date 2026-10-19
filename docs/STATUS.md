@@ -26,6 +26,7 @@
 
 ### Running now
 
+- **ANAL-214 Quire, the agent layer (new epic):** design in `docs/quire.md`; Q1 `quired` built and checked on the build host (§6 there), revised for the ANAL-217 review (file confinement, bounded cancel, bridge shutdown, a narrowed security contract). Q2 platform hooks (ANAL-216), Q3 design (ANAL-215, Atelier) and the review track (ANAL-217, Checker) start now; Q4–Q7 (ANAL-218–221) follow. PR #94.
 - **Running:** only ANAL-209 (B8 first-run setup). ANAL-201's other ten items are merged: B1–B7 (#77, #72, #79, #73, #75, #81, #78), G1 microG (#80) and G2 bring-your-own GApps (#85). **The owner's stick is `openbook-live-20261018-anal192d`** (#86, built from `main`, with all of B1–B7 and #67/#68/#70/#80): live 40/40, wizard 51/51, end to end 79/79. The write command and the checklist are in ANAL-192's comments of 2026-10-18 10:56–10:57; results are routed from ANAL-192.
 - **ANAL-198 (kernel lane): #64 merged.** It adds the system DMA-BUF heap and fixes two product bugs behind it (Codec2 HAL selection, Codec2 memfds under SELinux), so media decodes in QEMU. It also ships `efivarfs` as a vendor module, with Google's GKI configuration unchanged. Writing variables needed installer SELinux policy: done by ANAL-191 (#68). **On the G14 (`anal192d`), the heap and decoding held**, but under enforcing MediaPlayer could not play: `mediaserver` lacked the tmpfs form of AOSP's `audioserver:memfd_file` rule. PR #97 adds it. It is proven in QEMU on the `anal192d` image, and the policy compiles with all neverallows checked.
 - **The owner's stick is now `openbook-live-20261018-anal192d`** (`docs/installer.md` §13.12; sha256 `db2a8203…`). It is `main` `81578c1` plus #83, the same tree as `main` `13a020c`. It has everything `anal198` had, plus #67, #68, #70, B1–B7 and #80's system part, and the power, ARM apps and graphics checks (with `blur`). The microG add-on doesn't fit next to the graphics check. In QEMU: live 40/40, wizard 51/51 (with the firmware-entry cases), end to end 79/79, the three add-on tests, and no OpenBook denial. The checklist is `anal198`'s four boots plus a look at the new visuals in boot 1.
@@ -140,6 +141,20 @@
 - **Tested:** idmap2 maps both values. QEMU, same harness (`scripts/graphics/refresh-qemu.sh`, 75 Hz virtual display): render range [0, 60] → [0, 1000], Settings scrolling at 37.5 → 75 frames a second (12 of 12 samples each; `evidence/2026-10-18-refresh-rate/`). New `refresh_rate` verdict in `live-report.py`: NO on all four enforcing G14 sessions so far.
 - **G14 baseline (`anal192d`, before the fix):** render range [0, 60] in both captured boots; the owner's hour-long default boot drew at 60 for 99.7 % of its screen-on time (`evidence/2026-10-18-refresh-rate/g14-anal192d-baseline.md`).
 - **Not done:** the G14 with the fix (`anal192e`); VRR (the panel does 48–120 Hz, drm_hwcomposer exposes none); thermal refresh limits (needs a display config for the panel); the idle timer.
+
+### 2026-10-18: Quire, connecting OpenBook to the person's own AI agents (ANAL-214, Q1)
+- **Design** (`docs/quire.md`):
+  - Quire plugs into hooks AOSP 17 already has: the pointer-shake gesture, contextual search, the assistant role and computer control (agents operate apps on a virtual display, with consent and hand-over).
+  - Agents connect over ACP. OS tools reach agents over MCP.
+  - Multica was reviewed, not copied.
+- **Built:** `quired`, the harness host (`quire/quired/`, Go, standard library only).
+  - It finds 11 agent CLIs on the build host and runs 7: Claude Code through an adapter, the rest over ACP.
+  - Unit tests: 22/22 with the race detector, including regressions for the ANAL-217 review's findings.
+  - Security contract (§5 there): Q1 is a harness for trusted local agents. It confines the ACP file operations it serves and makes the questions an agent asks fail closed. It does not stop an agent acting without asking. Authorization at the OS-tool broker, and never-tier limits on computer control, are requirements for Q2–Q6.
+  - Live (`evidence/2026-10-18-quire/`): real ACP sessions with opencode, Copilot and omp; Cursor and Kimi need sign-in; Hermes has no provider.
+  - Claude Code wrote a file only when the person allowed it, through `quired`'s permission bridge.
+  - opencode answered over native ACP.
+- **Next:** Q2 platform hooks in Cuttlefish, Q3 interaction design (Atelier), Checker's review.
 
 ### 2026-10-18: bring your own Google apps package (ANAL-211, G2)
 - **Built** (`docs/installer.md` §15, `docs/gapps.md` §5): an advanced, off-by-default step after the disk choice.
