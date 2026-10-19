@@ -1,0 +1,105 @@
+11:56:58 == facts
+11:56:58 PASS Quire installed in system_ext priv-app: package:/system_ext/priv-app/OpenBookQuire/OpenBookQuire.apk
+11:56:58 PASS permission ACCESS_COMPUTER_CONTROL: granted
+11:56:58 PASS permission ACCESS_CONTEXTUAL_SEARCH: granted
+11:56:58 PASS permission POST_NOTIFICATIONS: granted
+11:56:58 PASS privileged flag: pkgFlags/privateFlags include PRIVILEGED
+11:56:58 PASS assistant role holder: dev.openbook.quire
+11:56:58 PASS voice interaction service: dev.openbook.quire/.assist.QuireVoiceInteractionService
+11:56:58 INFO voice recognition service: dev.openbook.quire/.assist.QuireRecognitionService
+11:56:59 PASS contextual search feature: declared
+11:56:59 PASS framework overlay enabled: [x] dev.openbook.overlay.quire.framework
+11:56:59 PASS config_defaultContextualSearchPackageName: dev.openbook.quire
+11:56:59 PASS config_defaultAssistant: dev.openbook.quire
+11:56:59 PASS flag computer_control_access: enabled - default
+11:56:59 PASS flag computer_control_support_v5: enabled - default
+11:56:59 PASS flag enable_contextual_cursor_desktop_entrypoints: enabled - default
+11:56:59 PASS flag enable_contextual_search_desktop_entrypoints: enabled - default
+11:56:59 PASS flag computer_control_managed_profiles: enabled - default
+11:56:59 PASS flag computer_control_role_assistant_requirement: enabled - default
+11:56:59 PASS DeviceConfig computer_control (expected empty): (empty)
+11:56:59 PASS allowlists from the factory files: allowed_session_owner_apps, allowed_automatable_apps
+11:56:59 == invoke
+11:57:07 PASS shake: probe window visible and FLAG_SECURE: frame=(329, 167, 1711, 944) secure=True
+11:57:11 PASS shake: Quire's note opened: trigger=system_action entrypoint=9(SYSTEM_ACTION)
+11:57:11 PASS shake: visible packages: [dev.openbook.quire.secureprobe, com.android.settings, com.android.settings, com.android.launcher3]
+11:57:11 PASS shake: secure window reported: flagSecureFound=true
+11:57:13 PASS shake: screenshot saved, secure window left out: 1920x1080, 0 probe-coloured pixels
+11:57:19 PASS meta_space: probe window visible and FLAG_SECURE: frame=(329, 167, 1711, 944) secure=True
+11:57:24 PASS meta_space: Quire's note opened: trigger=assistant_shortcut entrypoint=11(KEYBOARD_SHORTCUT)
+11:57:24 PASS meta_space: visible packages: [dev.openbook.quire.secureprobe, com.android.settings, com.android.settings, com.android.launcher3]
+11:57:24 PASS meta_space: secure window reported: flagSecureFound=true
+11:57:26 PASS meta_space: screenshot saved, secure window left out: 1920x1080, 0 probe-coloured pixels
+11:57:33 PASS assist_key: probe window visible and FLAG_SECURE: frame=(329, 167, 1711, 944) secure=True
+11:57:37 PASS assist_key: Quire's note opened: trigger=assist_key entrypoint=11(KEYBOARD_SHORTCUT)
+11:57:37 PASS assist_key: visible packages: [dev.openbook.quire.secureprobe, com.android.settings, com.android.settings, com.android.launcher3]
+11:57:37 PASS assist_key: secure window reported: flagSecureFound=true
+11:57:39 PASS assist_key: screenshot saved, secure window left out: 1920x1080, 0 probe-coloured pixels
+11:57:42 == 34 PASS, 0 FAIL, 1 INFO
+11:57:51 == control
+11:57:53 PASS Dark theme off before: Night mode: no
+11:57:53 PASS consent asked (session pending): cc: pending
+11:57:56 PASS platform consent dialog, 'Only this time': Allow Quire to use screen automation?
+11:57:57 PASS session created: cc: created: display 1920x1080
+11:57:57 PASS session active: lifecycle: active
+11:57:57 PASS Dark theme page launched through the session: com.android.settings/.Settings$DarkThemeSettingsActivity
+11:58:01 PASS Settings runs on the session display: display #2
+11:58:01 PASS Quire's mirror: cc: mirror created
+11:58:04 PASS session screenshot: cc: screenshot: 1920x1080 saved /data/user/0/dev.openbook.quire/files/control/20261018-155804-307-session.png
+11:58:27 FAIL tap through the session: no target / no tap
+11:58:37 FAIL the tap turned Dark theme on: Night mode: no
+11:58:39 PASS handOverApplications(): cc: hand over: done
+11:58:39 PASS session closed after hand over: cc: lifecycle: closed reason=4(SESSION_EMPTY)
+11:58:42 PASS Settings moved to the main display: display #0
+11:58:43 == 12 PASS, 2 FAIL, 0 INFO
+11:59:40 == control
+11:59:42 PASS Dark theme off before: Night mode: no
+11:59:42 PASS consent asked (session pending): cc: pending
+11:59:46 PASS platform consent dialog, 'Only this time': Allow Quire to use screen automation?
+11:59:46 PASS session created: cc: created: display 1920x1080
+11:59:46 PASS session active: lifecycle: active
+11:59:46 PASS Dark theme page launched through the session: com.android.settings/.Settings$DarkThemeSettingsActivity
+11:59:49 PASS Settings runs on the session display: display #3
+11:59:49 PASS Quire's mirror: cc: mirror created
+11:59:53 PASS session screenshot: cc: screenshot: 1920x1080 saved /data/user/0/dev.openbook.quire/files/control/20261018-155952-545-session.png
+12:00:16 FAIL tap through the session: no target / no tap
+12:00:26 FAIL the tap turned Dark theme on: Night mode: no
+12:00:28 PASS handOverApplications(): cc: hand over: done
+12:00:28 PASS session closed after hand over: cc: lifecycle: closed reason=4(SESSION_EMPTY)
+12:00:31 PASS Settings moved to the main display: display #0
+12:00:32 == 12 PASS, 2 FAIL, 0 INFO
+12:02:05 == control
+12:02:07 PASS Dark theme off before: Night mode: no
+12:02:07 PASS consent asked (session pending): cc: pending
+12:02:10 PASS platform consent dialog, 'Only this time': Allow Quire to use screen automation?
+12:02:11 PASS session created: cc: created: display 1920x1080
+12:02:11 PASS session active: lifecycle: active
+12:02:11 PASS Dark theme page launched through the session: com.android.settings/.Settings$DarkThemeSettingsActivity
+12:02:14 PASS Settings runs on the session display: display #7
+12:02:14 PASS Quire's mirror: cc: mirror created
+12:02:17 PASS session screenshot: cc: screenshot: 1920x1080 saved /data/user/0/dev.openbook.quire/files/control/20261018-160217-232-session.png
+12:02:20 PASS tap through the session: cc: tap target: "Use Dark theme" checked=n/a bounds=Rect(714, 137 - 1904, 241) / cc: tap: 1309,189
+12:02:21 PASS the tap turned Dark theme on: Night mode: yes
+12:02:24 PASS handOverApplications(): cc: hand over: done
+12:02:24 PASS session closed after hand over: cc: lifecycle: closed reason=4(SESSION_EMPTY)
+12:02:27 PASS Settings moved to the main display: display #0
+12:02:27 == 14 PASS, 0 FAIL, 0 INFO
+12:02:40 == refuse
+12:02:46 PASS deny: consent dialog, 'Don't allow': Allow Quire to use screen automation?
+12:02:46 PASS deny: session refused: cc: creation failed: error=3(PERMISSION_DENIED)
+12:02:53 PASS lock screen: session refused: cc: creation failed: error=2(DEVICE_LOCKED)
+12:02:57 PASS app outside the allowlist refused: IllegalArgumentException: Invalid target package for ComputerControl: com.android.calendar
+12:03:03 PASS secure: consent given: Allow Quire to use screen automation?
+12:03:03 PASS secure: session created for the probe: created
+12:03:03 PASS secure: session blocked on the secure window: cc: lifecycle: blocked reason=1(SECURE_CONTENT) package=dev.openbook.quire.secureprobe
+12:03:08 PASS secure: input refused while blocked: 10-18 16:03:06.383   814  2702 W ComputerControlSession: Computer control interaction blocked since session is not active: tap
+12:03:12 PASS secure: session closed: cc: lifecycle: closed reason=1(CALLER_INITIATED)
+12:03:14 PASS allowlist restored (probe refused again): IllegalArgumentException: Invalid target package for ComputerControl: dev.openbook.quire.secureprobe
+12:03:14 == 10 PASS, 0 FAIL, 0 INFO
+12:04:05 == health
+12:04:05 PASS crash buffer empty: 0 lines; 
+12:04:05 PASS no ANR: am_anr events: 0
+12:04:05 PASS no SystemUI restart: pid at start 2644, now 2644
+12:04:05 PASS no new SELinux denials: 3 distinct, 0 new
+12:04:05 PASS no denial for Quire (platform_app): 0
+12:04:05 == 5 PASS, 0 FAIL, 0 INFO

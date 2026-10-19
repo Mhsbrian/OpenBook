@@ -1,0 +1,9 @@
+Number of active virtual devices: 0
+Created virtual devices: 
+
+ComputerControlSessionProcessor: 
+    Computer Control Version: 5
+    Maximum Concurrent Sessions: 1
+    Active computer control sessions: 
+
+VirtualDevice Log:

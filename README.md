@@ -215,6 +215,7 @@ The full, tested steps, including the kernel, the hardware-check stick and the i
 | **Kernel and graphics** | [`kernel`](docs/kernel.md) · [`mesa`](docs/mesa.md) · [`graphics-amd`](docs/graphics-amd.md) |
 | **ARM apps** | [`COMPAT-MATRIX`](docs/COMPAT-MATRIX.md) · [`compat-harness`](docs/compat-harness.md) · [`digitalis`](docs/digitalis.md) |
 | **Installer** | [`installer`](docs/installer.md) · [design gallery](docs/installer-design/png/gallery.png) |
+| **Agents (Quire)** | [`quire`](docs/quire.md) · [`quired`](quire/quired/) |
 
 <details>
 <summary><b>Repository layout</b></summary>
@@ -227,6 +228,7 @@ manifests/        pinned repo manifests
 scripts/          build, boot, test, inventory and installer tools
 tools/            toolbox Dockerfiles
 assets/           brand mark, README art and its sources
+quire/quired/     Quire's harness host: runs the person's coding agents over ACP
 docs/             plan, status, research and topic docs
 evidence/         logs, screenshots and reports for every milestone
 ```

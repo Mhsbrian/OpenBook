@@ -1,0 +1,11 @@
+# Copyright (C) 2026 The OpenBook Authors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Agents that may own a computer-control session on OpenBook: package:SHA-256 of its signing certificate (upper-case
+# hex, as SigningDetails computes it). Read by system_server only while DeviceConfig computer_control/
+# allowed_session_owner_apps is unset and nothing is persisted (aosp/patches/frameworks/base/0005).
+#
+# Quire is signed with the platform key. This digest is AOSP's test platform key
+# (build/make/target/product/security/platform.x509.pem), which every OpenBook image uses today. An image signed with
+# release keys needs its own platform digest here, or computer control stays off (docs/quire.md §8).
+dev.openbook.quire:C8A2E9BCCF597C2FB6DC66BEE293FC13F2FC47EC77BC6B2B0D52C11F51192AB8
