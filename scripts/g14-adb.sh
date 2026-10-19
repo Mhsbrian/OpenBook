@@ -338,7 +338,7 @@ ota)
   T=$(mktemp -d); trap 'rm -rf "$T"' EXIT
   # ---- the package: its manifest (make-ota.sh) against the zip itself
   python3 - "$PKG" "$MAN" "$BS" > "$T/pkg.env" <<'PYEOF'
-import hashlib, json, sys, zipfile
+import hashlib, json, shlex, sys, zipfile
 pkg, man, bs = sys.argv[1:4]
 m = json.load(open(man))
 h = hashlib.sha256()
@@ -358,7 +358,7 @@ for k, v in (("PKG_DEVICE", meta.get("pre-device", "")), ("PKG_FP", meta.get("po
              ("PKG_TS", meta.get("post-timestamp", "0")), ("PKG_VBMETA", m.get("vbmeta_digest", "")),
              ("PKG_LABEL", m.get("label", "")), ("PKG_TREE", m.get("tree", "")),
              ("PKG_BYTES", str(m.get("bytes", 0))), ("PKG_PROBLEMS", "; ".join(problems))):
-    print(f"{k}='{v}'")
+    print(f"{k}={shlex.quote(v)}")  # sourced below: a quote in the manifest's tree must stay text
 PYEOF
   . "$T/pkg.env"
   # ---- the device
