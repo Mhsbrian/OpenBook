@@ -11,6 +11,27 @@ For the G14 after ANAL-225's update (`openbook-ota-20261019-quire2`). How it wor
 - Over **Settings, Files and the permission screens** the note stays hidden: those screens hide floating windows on
   top of them. Whether Quire should move into the assistant's own window so it shows there too is still your call.
 
+## Ask it to do things (since ANAL-220)
+
+Say it the way you would to a person. The agent knows it is Quire on this laptop, and does it:
+
+- "open Chrome and go to Fox News", "open Files and show my Downloads", "open Calculator"
+- "turn on dark theme", "make the text bigger", "turn on Battery Saver", "turn the volume down", "turn off Bluetooth"
+- "what's on my screen?", "summarise this page"
+- "in Settings, find Bluetooth and turn it off": the app opens in the note's live view, where you can Pause, Take
+  over or Stop.
+- "move this window to the left", "close Calculator", "what's on my clipboard?", "pause the music"
+
+**What asks you first:** anything destructive. The note shows exactly what will happen, with **Allow** and
+**Don't allow**: deleting or replacing a file, developer and adb settings, and in an app any button that deletes,
+uninstalls, sends, pays or buys. Don't allow means nothing happens.
+
+**Undo:** every setting Quire changes is listed in the note with an undo button; or say "undo that".
+
+**The first time** the agent reads your screen, the laptop asks "Allow Quire to use screen and app data?"; and the
+first time it works in an app, it asks whether Quire may use screen automation there. Battery Saver can't turn on while
+the laptop is plugged in.
+
 ## Pick or add an agent
 
 - **The first time**, the note says "Connect an agent" and lists what it found in the Linux environment, such as

@@ -143,7 +143,10 @@ class ComputerControl(private val context: Context) {
             // allowlist), IllegalStateException (computer control is off in this build), and so on.
             pendingLaunch = null
             report("request refused by the platform: ${e.javaClass.simpleName}: ${e.message}")
-            events?.onRefused("${e.javaClass.simpleName}: ${e.message}")
+            events?.onRefused(if (e is IllegalArgumentException && e.message?.contains("target package") == true)
+                "The laptop doesn't allow screen automation of this app (it guards security, or has no window of its " +
+                    "own). Don't try again: open it for the person with open_app, and tell them what to do in it."
+            else "${e.javaClass.simpleName}: ${e.message}")
         }
     }
 
@@ -273,6 +276,20 @@ class ComputerControl(private val context: Context) {
         }, null)
     }
 
+    /** A screenshot of the session display for an agent (Q6); null when refused (a protected screen) or no session. */
+    fun capture(done: (Bitmap?) -> Unit) {
+        val s = session ?: return done(null)
+        val io = (context.applicationContext as QuireApplication).io
+        s.requestScreenshot(io, object : OutcomeReceiver<Image, ComputerControlSession.ScreenshotException> {
+            override fun onResult(image: Image) = done(image.use { toBitmap(it) })
+
+            override fun onError(error: ComputerControlSession.ScreenshotException) {
+                report("screenshot refused: error=${error.errorCode}")
+                done(null)
+            }
+        }, null)
+    }
+
     /** Taps the session display at ([x], [y]), in its own pixels. */
     fun tap(x: Int, y: Int) {
         val s = session ?: return report("tap refused by Quire: no session")
@@ -368,6 +385,10 @@ class ComputerControl(private val context: Context) {
     var windowsUnavailable = false
         private set
 
+    /** The label of the control [find] matched last, with its children's text, for the broker's checks (Q6). */
+    var foundLabel: String = ""
+        private set
+
     /** The on-screen bounds of the first node whose text contains [text], and of its clickable ancestor. */
     fun find(text: String): Rect? {
         val s = session ?: return null
@@ -384,10 +405,154 @@ class ComputerControl(private val context: Context) {
         val matches = windows.flatMap { window ->
             window.root?.findAccessibilityNodeInfosByText(text)?.filter { it.isVisibleToUser }.orEmpty()
         }
+        titles = windows.mapNotNull { it.title?.toString() }
         val node = matches.firstOrNull { it.text?.toString()?.equals(text, ignoreCase = true) == true }
             ?: matches.firstOrNull() ?: return null
         val target = clickableAncestor(node) ?: node
+        foundLabel = labelOf(target).ifEmpty { text }
         return Rect().also { target.getBoundsInScreen(it) }
+    }
+
+    /** A node's own text and its children's, as a person reads the control. */
+    private fun labelOf(node: AccessibilityNodeInfo, depth: Int = 0): String {
+        if (depth > 3) return ""
+        val own = (node.text ?: node.contentDescription)?.toString().orEmpty()
+        val kids = (0 until node.childCount).mapNotNull { node.getChild(it)?.let { c -> labelOf(c, depth + 1) } }
+            .filter { it.isNotEmpty() }
+        return (listOf(own) + kids).filter { it.isNotEmpty() }.joinToString(" ").take(300)
+    }
+
+    /** Types [text] into the session's focused field (Q6). Refuses a password field: Quire never types passwords. */
+    fun type(text: String, replace: Boolean, submit: Boolean): String? {
+        val s = session ?: return "no session"
+        val focused = focusedInput()
+        if (focused?.isPassword == true) {
+            report("type refused by Quire: a password field")
+            return "That field is a password field; Quire never types passwords. The person types it (Take over)."
+        }
+        return try {
+            s.insertText(text, replace, submit)
+            report("type: ${text.length} chars replace=$replace submit=$submit")
+            null
+        } catch (e: RuntimeException) {
+            report("type failed: ${e.javaClass.simpleName}: ${e.message}")
+            "typing failed: ${e.message}"
+        }
+    }
+
+    /** Swipes on the session display, in its pixels. */
+    fun swipe(fromX: Int, fromY: Int, toX: Int, toY: Int) {
+        val s = session ?: return report("swipe refused by Quire: no session")
+        try {
+            s.swipe(fromX, fromY, toX, toY)
+            report("swipe: $fromX,$fromY -> $toX,$toY")
+        } catch (e: RuntimeException) {
+            report("swipe failed: ${e.javaClass.simpleName}: ${e.message}")
+        }
+    }
+
+    fun back() {
+        val s = session ?: return report("back refused by Quire: no session")
+        try {
+            s.performAction(ComputerControlSession.ACTION_GO_BACK)
+            report("back")
+        } catch (e: RuntimeException) {
+            report("back failed: ${e.javaClass.simpleName}: ${e.message}")
+        }
+    }
+
+    private fun focusedInput(): AccessibilityNodeInfo? = try {
+        session?.accessibilityWindows?.firstNotNullOfOrNull { it.root?.findFocus(AccessibilityNodeInfo.FOCUS_INPUT) }
+    } catch (e: RuntimeException) {
+        null
+    }
+
+    /** One control on the session display, as [read] numbered it. */
+    data class Node(val n: Int, val label: String, val kind: String, val bounds: Rect, val clickable: Boolean,
+        val checked: Boolean?, val password: Boolean)
+
+    /** The controls of the last [read], by number. */
+    var nodes: List<Node> = emptyList()
+        private set
+
+    /** The session's window titles, from the last [read] or [find]. */
+    var titles: List<String> = emptyList()
+        private set
+
+    /**
+     * The session display's text and controls, numbered for taps, as an agent reads them (Q6, control_read). Null when
+     * the platform gives no accessibility windows (blocked, or the AOSP bug after a pause, docs/quire.md §8).
+     */
+    fun read(): String? {
+        val s = session ?: return null
+        val windows = try {
+            s.accessibilityWindows.also { windowsUnavailable = false }
+        } catch (e: RuntimeException) {
+            windowsUnavailable = true
+            report("windows unavailable: ${e.javaClass.simpleName}: ${e.message}")
+            return null
+        }
+        val out = StringBuilder()
+        val found = ArrayList<Node>()
+        titles = windows.mapNotNull { it.title?.toString() }
+        for (w in windows) {
+            out.append("window: ").append(w.title ?: "(untitled)").append('\n')
+            w.root?.let { readNode(it, 1, out, found) }
+        }
+        nodes = found
+        report("read: ${windows.size} windows, ${found.size} controls")
+        return out.toString()
+    }
+
+    /**
+     * One node of [read]. A control without a label of its own (a Settings row, a list item) is labelled with its
+     * children's text, which is then not repeated below it; controls inside it are still listed.
+     */
+    private fun readNode(node: AccessibilityNodeInfo, depth: Int, out: StringBuilder, found: MutableList<Node>,
+        absorbed: Boolean = false) {
+        if (depth > 40 || out.length > 16_000 || !node.isVisibleToUser) return
+        val own = (node.text ?: node.contentDescription ?: node.hintText)?.toString()?.trim()?.takeIf { it.isNotEmpty() }
+        val actionable = node.isClickable || node.isCheckable || node.isEditable || node.isScrollable
+        var absorbs = absorbed
+        var printed = false
+        if (actionable || (own != null && !absorbed)) {
+            val bounds = Rect().also { node.getBoundsInScreen(it) }
+            val kind = when {
+                node.isEditable -> "field"
+                node.isCheckable -> "switch"
+                node.isScrollable -> "list"
+                node.isClickable -> "button"
+                else -> "text"
+            }
+            val checked = if (node.isCheckable) node.checked == AccessibilityNodeInfo.CHECKED_STATE_TRUE else null
+            val fromKids = if (own == null && (node.isClickable || node.isCheckable)) {
+                labelOf(node).trim().takeIf { it.isNotEmpty() }?.let {
+                    absorbs = true
+                    it.replace(Regex("\\s+"), " ").take(160)
+                }
+            } else null
+            val text = when {
+                node.isPassword -> "(password field)"
+                own != null -> own.take(200)
+                fromKids != null -> fromKids
+                kind == "list" -> "(list)"
+                else -> "(unlabelled)"
+            }
+            out.append("  ".repeat(depth.coerceAtMost(10)))
+            if (actionable) {
+                val n = found.size + 1
+                found += Node(n, text, kind, bounds, node.isClickable || node.isCheckable, checked, node.isPassword)
+                out.append('[').append(n).append("] ").append(kind).append(' ')
+            }
+            out.append(text)
+            if (checked != null) out.append(if (checked) " (on)" else " (off)")
+            if (!node.isEnabled) out.append(" (disabled)")
+            out.append('\n')
+            printed = true
+        }
+        for (i in 0 until node.childCount) {
+            node.getChild(i)?.let { readNode(it, if (printed) depth + 1 else depth, out, found, absorbs) }
+        }
     }
 
     /** Moves the session's apps to the person's display; the platform then closes the session. */

@@ -54,11 +54,16 @@ import dev.openbook.quire.ui.rounded
  * While the platform's consent dialog is up the note steps aside ([platformDialog]): Quire's [ConsentWaitActivity],
  * beneath the dialog, keeps Quire visible for the platform's check after Allow.
  *
- * The one exception is the task that owns a live computer-control session, while it is the task shown
- * ([systemFor]): its mirror with Pause, Take over and Stop must stay in view while the agent acts, and the app it drives
- * may hide overlays (Settings does, even on the session display), so the note is then a system application overlay
- * (SYSTEM_APPLICATION_OVERLAY, which Quire holds as a platform app). Any other task shown in the window, also while the
- * session's own task is hidden, is an ordinary overlay; so is the session's task once its run ends.
+ * Two exceptions, each only while that task is the one shown ([systemFor]), make the note a system application overlay
+ * (SYSTEM_APPLICATION_OVERLAY, which Quire holds as a platform app):
+ * - the task that owns a live computer-control session: its mirror with Pause, Take over and Stop must stay in view
+ *   while the agent acts, and the app it drives may hide overlays (Settings does, even on the session display);
+ * - Q6 (ANAL-220): a task waiting for the person's answer, a consent card. An agent opens Files or Settings for the
+ *   person and then asks before deleting something; a question nobody can see would hold the request, or invite an
+ *   answer given blind. The card names exactly what would happen. Once it is answered, the task is ordinary again;
+ * - Q6: a task whose agent reads the screen, for the moment of the read: the platform gives its assistant the screen
+ *   only while the assistant is visible, and the person should see Quire while it reads.
+ * Any other task shown in the window, also while the session's own task is hidden, is an ordinary overlay.
  */
 class NoteWindow(private val context: Context, private val surface: Callbacks) {
     interface Callbacks : NoteCard.Actions {
@@ -99,19 +104,20 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
      * Only the task that owns a live computer-control session gets a system application overlay; every other task,
      * whatever runs elsewhere, is an ordinary one. Decided per task, each time a task is shown.
      */
-    private fun systemFor(t: Task) = t.control?.sessionLive == true
+    private fun systemFor(t: Task) = t.control?.sessionLive == true || t.needsAnswer || t.heldOnScreen
 
     /**
-     * A task's computer-control session started or ended (ControlRun). The window manager decides whether to hide a
-     * window only when it is added, so when the shown task's kind changes, the window is added again in the other
-     * kind. A hidden task's session changes nothing here; it is decided when that task is shown again.
+     * A task's computer-control session started or ended (ControlRun), or its consent card came or went (Q6). The window
+     * manager decides whether to hide a window only when it is added, so when the shown task's kind changes, the window
+     * is added again in the other kind. A hidden task's changes change nothing here; it is decided when that task is
+     * shown again.
      */
-    fun sessionChanged() {
+    fun sessionChanged(focus: Task.Focus = Task.Focus.KEEP) {
         val t = task ?: return
         if (systemFor(t) == systemWindow) return
         closePicker()
         remove()
-        show(t, Task.Focus.KEEP, animate = false)
+        show(t, focus, animate = false)
     }
 
     /**
@@ -161,6 +167,12 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
             x = d.left
             y = d.top
             if (systemFor(t)) privateFlags = privateFlags or WindowManager.LayoutParams.PRIVATE_FLAG_SYSTEM_APPLICATION_OVERLAY
+            // A trusted overlay (INTERNAL_SYSTEM_WINDOW): the window covers the display and never moves, and the clicks
+            // beside the card still reach the windows below (input's untrusted-occlusion rule doesn't apply). Moving
+            // and resizing a small window made the note jump: for a frame the system showed the new content at the old
+            // position (ANAL-220). Hiding for windows that hide overlays is unchanged: that rule is about system
+            // application overlays, not trusted ones.
+            setTrustedOverlay()
             softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING
             layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
             fitInsetsTypes = 0
@@ -181,11 +193,34 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
         if (animate) {
             r.unfold { c.focus(focus) }
         } else {
+            // Added again in place (a change of overlay kind, a new theme): the window starts display-wide and takes
+            // its frame a moment later, so the note stays invisible until then rather than jump into place.
+            r.alpha = 0f
+            r.appearWhenFramed()
             c.post { c.focus(focus) }
         }
     }
 
     /** Draws the note again in the current theme, in place (light and dark follow the system, §4.3). */
+    /**
+     * Glass or paper (docs/quire-design.md §4.5): when the platform turns window blur off (battery saver, thermal,
+     * Developer options) or back on, the note re-draws its surface with the same layout.
+     */
+    private var glass = Palette.glassOn(context)
+
+    init {
+        try {
+            wm.addCrossWindowBlurEnabledListener(context.mainExecutor) { on ->
+                if (on == glass) return@addCrossWindowBlurEnabledListener
+                glass = on
+                android.util.Log.i(dev.openbook.quire.Quire.TAG, "note: window blur ${if (on) "on" else "off"}")
+                retheme()
+            }
+        } catch (e: RuntimeException) {
+            // No blur on this device: the note stays paper.
+        }
+    }
+
     fun retheme() {
         val t = task ?: return
         closePicker()
@@ -387,7 +422,8 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
         override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
             // Children measure against the display, not against the window, which is only as big as the card was.
             val d = displayBounds()
-            card.maxHeight = if (card.widthDp == NoteCard.MIRROR_WIDTH) Int.MAX_VALUE else (d.height() * MAX_HEIGHT).toInt()
+            // The mirror may use most of the display, never more: the note always fits on screen (ANAL-220).
+            card.maxHeight = (d.height() * if (card.widthDp == NoteCard.MIRROR_WIDTH) MAX_MIRROR_HEIGHT else MAX_HEIGHT).toInt()
             card.measure(MeasureSpec.makeMeasureSpec(d.width(), MeasureSpec.AT_MOST),
                 MeasureSpec.makeMeasureSpec(d.height(), MeasureSpec.AT_MOST))
             pickerView?.measure(MeasureSpec.makeMeasureSpec(dpi(300f), MeasureSpec.EXACTLY),
@@ -440,6 +476,8 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
          */
         private fun neededFrame(): Rect {
             val d = displayBounds()
+            // A trusted overlay keeps the display-wide window it was added with.
+            if (TRUSTED) return Rect(d)
             if (folding && foldIntoTaskbar) return Rect(d)
             val r = RectF(target)
             r.union(shown)
@@ -493,6 +531,26 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
             lp.height = want.height()
             scrollTo(want.left, want.top)
             wm.updateViewLayout(this, lp)
+            if (appearing) {
+                // The window manager applies a new frame with the window's next buffer: two frames later the note is
+                // where it belongs.
+                appearing = false
+                postOnAnimation { postOnAnimation { alpha = 1f } }
+            }
+        }
+
+        /** Set by [appearWhenFramed]: the note shows once its window has taken its frame. */
+        private var appearing = false
+
+        fun appearWhenFramed() {
+            appearing = true
+            // A window that needs no new frame never passes through applyFrame's update; show it anyway.
+            postDelayed({
+                if (appearing) {
+                    appearing = false
+                    alpha = 1f
+                }
+            }, APPEAR_FALLBACK_MS)
         }
 
         /** §3.1 Placement: beside the pointer (flipping at the right edge, kept above the taskbar), or above the button. */
@@ -690,12 +748,17 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
 
         /** The note is never taller than 60 % of the display (§3.1); the mirror is the one exception. */
         private const val MAX_HEIGHT = 0.6f
+        private const val MAX_MIRROR_HEIGHT = 0.92f
 
         /** The scale the note unfolds from and folds to (§5.2). */
         private const val FOLDED = 0.2f
 
         /** After the first frame is committed, how long until WM has shown the surface. */
         private const val VISIBLE_SETTLE_MS = 150L
+        private const val APPEAR_FALLBACK_MS = 120L
+
+        /** The note's window is a trusted overlay and never moves (see [show]). */
+        private const val TRUSTED = true
 
         /** Room around the card for its shadow, inside the window (dp). */
         private const val FRAME_MARGIN = 32f
