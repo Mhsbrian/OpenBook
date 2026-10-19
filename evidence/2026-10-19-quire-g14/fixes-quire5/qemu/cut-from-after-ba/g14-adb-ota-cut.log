@@ -1,0 +1,57 @@
+OTA of 127.0.0.1:34959 with /home/hive/anybook/ota/out/openbook-ota-20261019-quire5.zip, 2026-10-19T12:13:24Z; log: /home/hive/anybook/installer/g14/ota-20261019T121324Z/ota.log
+
+device    127.0.0.1:34959: OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.quire2:userdebug/test-keys
+          slot a, vbmeta 1d2d8f5e5d68b622610a046ac66bfd47eaef75c970c44a3d2684e71d8fbfc596, installed=whole, virtual A/B true
+package   openbook-ota-20261019-quire5 (994 MB): OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.quire5:userdebug/test-keys
+          tree eb43243: quire2 (afb905e) + ANAL-225 fixes (1b0599a, dcaa459, eb43243): shake needs real strokes (frameworks/base 0009), the note ignores touchpad gestures outside, the Terminal bridge starts the Linux environment (Virtualization 0002), Quire starts it (waits out the start's publication lag), retries quired, offers Set up; BUILD_NUMBER 20261019.quire5, vbmeta 4aa4ffa21882d186bad6fecba48cc9128568a4e1d9b46b842314b04dda8c195d
+update    slot a -> slot b; /data and slot a are kept; slot a stays the fallback until slot b boots
+bootsync  on the device: the boot HAL moves the loader entry
+checks    passed
+
+== update_engine writes slot b (DOWNLOADING: the write, then VERIFYING, FINALIZING)
+[   0s] UPDATE_STATUS_IDLE 0%
+[   0s] UPDATE_STATUS_UPDATE_AVAILABLE 0%
+[   0s] UPDATE_STATUS_CLEANUP_PREVIOUS_UPDATE 0%
+[   0s] UPDATE_STATUS_DOWNLOADING 0%
+[   2s] UPDATE_STATUS_DOWNLOADING 1%
+[   3s] UPDATE_STATUS_DOWNLOADING 2%
+[   3s] UPDATE_STATUS_DOWNLOADING 3%
+[   3s] UPDATE_STATUS_DOWNLOADING 4%
+[   4s] UPDATE_STATUS_DOWNLOADING 5%
+[   4s] UPDATE_STATUS_DOWNLOADING 6%
+[   5s] UPDATE_STATUS_DOWNLOADING 7%
+[   5s] UPDATE_STATUS_DOWNLOADING 8%
+[   6s] UPDATE_STATUS_DOWNLOADING 9%
+[   6s] UPDATE_STATUS_DOWNLOADING 10%
+[   7s] UPDATE_STATUS_DOWNLOADING 11%
+[   7s] UPDATE_STATUS_DOWNLOADING 12%
+[   8s] UPDATE_STATUS_DOWNLOADING 13%
+[   8s] UPDATE_STATUS_DOWNLOADING 14%
+[   9s] UPDATE_STATUS_DOWNLOADING 15%
+[   9s] UPDATE_STATUS_DOWNLOADING 16%
+[  10s] UPDATE_STATUS_DOWNLOADING 17%
+[  10s] UPDATE_STATUS_DOWNLOADING 18%
+[  11s] UPDATE_STATUS_DOWNLOADING 19%
+[  11s] UPDATE_STATUS_DOWNLOADING 20%
+[  12s] UPDATE_STATUS_DOWNLOADING 21%
+[  12s] UPDATE_STATUS_DOWNLOADING 22%
+[  13s] UPDATE_STATUS_DOWNLOADING 23%
+[  13s] UPDATE_STATUS_DOWNLOADING 24%
+[  14s] UPDATE_STATUS_DOWNLOADING 25%
+[  14s] UPDATE_STATUS_DOWNLOADING 26%
+[  15s] UPDATE_STATUS_DOWNLOADING 27%
+[  15s] UPDATE_STATUS_DOWNLOADING 28%
+[  16s] UPDATE_STATUS_DOWNLOADING 29%
+[  16s] UPDATE_STATUS_DOWNLOADING 30%
+[  17s] UPDATE_STATUS_DOWNLOADING 31%
+[  17s] UPDATE_STATUS_DOWNLOADING 32%
+[  18s] UPDATE_STATUS_DOWNLOADING 33%
+[  18s] UPDATE_STATUS_DOWNLOADING 34%
+[  18s] UPDATE_STATUS_DOWNLOADING 35%
+[  19s] UPDATE_STATUS_DOWNLOADING 36%
+[  19s] UPDATE_STATUS_DOWNLOADING 37%
+[  20s] UPDATE_STATUS_DOWNLOADING 38%
+[  20s] UPDATE_STATUS_DOWNLOADING 39%
+[  21s] UPDATE_STATUS_DOWNLOADING 40%
+[  21s] adb: error: device offline
+127.0.0.1:34959: connection refused: is USB debugging on (Settings > System > Developer options)?

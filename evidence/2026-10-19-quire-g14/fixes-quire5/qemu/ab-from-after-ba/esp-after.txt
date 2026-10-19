@@ -1,0 +1,22 @@
+::/loader/entries/
+::/loader/loader.conf
+::/loader/random-seed
+::/loader/entries/openbook-b.conf
+::/openbook/a/
+::/openbook/logs/
+::/openbook/b/
+::/openbook/a/kernel
+::/openbook/a/vendor_ramdisk.img
+::/openbook/a/ramdisk.img
+::/openbook/a/bootconfig.img
+::/openbook/logs/install-20261018T221200Z.json
+::/openbook/logs/install-20261018T221200Z.log
+::/openbook/b/kernel
+::/openbook/b/vendor_ramdisk.img
+::/openbook/b/ramdisk.img
+::/openbook/b/bootconfig.img
+---
+timeout menu-hidden
+console-mode keep
+editor no
+default openbook-b.conf

@@ -1,0 +1,5 @@
+$ /home/hive/anybook/ota/quire1/scripts/quire/linux-env-adb.sh -s 127.0.0.1:35675 push /home/hive/anybook/quire/linux-env/out-q4fix3/images.tar.gz
+pushing images.tar.gz (783 MiB) to 127.0.0.1:35675:/sdcard/linux/images.tar.gz
+/home/hive/anybook/quire/linux-env/out-q4fix3/images.tar.gz: 1 file pushed, 0 skipped. 34.2 MB/s (821177609 bytes in 22.891s)
+/sdcard/linux/images.tar.gz: sha256 1e0efa0fe6de8fbd2e031d9c6738ad17f690aa89d1c9eda9a0486cf96f3aad20 matches
+next, the person's steps: Settings > System > Developer options > Linux development environment on, then Terminal > Install

@@ -1,0 +1,47 @@
+{
+ "schema": "openbook-ota/1",
+ "label": "openbook-ota-20261019-quire5-broken",
+ "tree": "eb43243: quire2 (afb905e) + ANAL-225 fixes (1b0599a, dcaa459, eb43243): shake needs real strokes (frameworks/base 0009), the note ignores touchpad gestures outside, the Terminal bridge starts the Linux environment (Virtualization 0002), Quire starts it (waits out the start's publication lag), retries quired, offers Set up; BUILD_NUMBER 20261019.quire5 + test-only: vendor_boot rdinit missing",
+ "test_only_broken_boot": true,
+ "fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.quire5:userdebug/test-keys",
+ "build_date_utc": 1792411246,
+ "device": "anybook_g14",
+ "bytes": 994435681,
+ "sha256": "9434be4c5e4a530433d42dc36488bf2c282c647932931736e3912a5cdacfdbe1",
+ "vbmeta_digest": "e0900260c8081bfcbfd069334814ebd0a6fae5c4be1b254216fdec3bbd018b7f",
+ "vbmeta_size": 6144,
+ "payload_properties": [
+  "FILE_HASH=FDdOa57U2FJjxuO5K/bf9XvC+qC4leTxou4SC5ofr7Y=",
+  "FILE_SIZE=994428027",
+  "METADATA_HASH=LS12YoGYbw2mZbEmKtNSY+Pw8v1lYBm9RlEOyso5QVc=",
+  "METADATA_SIZE=44737"
+ ],
+ "partitions": [
+  "boot",
+  "init_boot",
+  "product",
+  "super_empty",
+  "system",
+  "system_dlkm",
+  "system_ext",
+  "system_other",
+  "userdata",
+  "vbmeta",
+  "vendor",
+  "vendor_boot",
+  "vendor_dlkm"
+ ],
+ "bootsync_sha256": "e3019926318877e95798de0b81343109e93c08daf1ba83d2aac9b4e4bb5bd656",
+ "metadata": {
+  "ota-property-files": "payload_metadata.bin:4162:45004,payload.bin:4162:994428027,payload_properties.txt:994432247:154,apex_info.pb:1992:1491,care_map.pb:3530:585,metadata:69:698,metadata.pb:835:1109                      ",
+  "ota-required-cache": "0",
+  "ota-streaming-property-files": "payload.bin:4162:994428027,payload_properties.txt:994432247:154,apex_info.pb:1992:1491,care_map.pb:3530:585,metadata:69:698,metadata.pb:835:1109                        ",
+  "ota-type": "AB",
+  "post-build": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.quire5:userdebug/test-keys",
+  "post-build-incremental": "20261019.quire5",
+  "post-sdk-level": "37",
+  "post-security-patch-level": "2026-06-05",
+  "post-timestamp": "1792411246",
+  "pre-device": "anybook_g14"
+ }
+}
