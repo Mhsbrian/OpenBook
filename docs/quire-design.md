@@ -1,410 +1,525 @@
-# Quire: interaction and motion design (ANAL-215)
+# Quire: the note, glass and ink (ANAL-227, revising ANAL-215)
 
-As of 2026-10-18. This is the design for Q3 of the Quire epic (ANAL-214): how a person calls Quire, works with an agent in the note, gives consent, watches the agent drive the system, and sees the result. It is the spec Q5 (ANAL-219) builds to. The brief is `docs/quire.md` §1; the platform facts it relies on are `docs/quire.md` §2, §4 and §6.
+As of 2026-10-19. This is the design for Quire's note: how a person calls Quire, works with an agent in the note, watches the agent act, is asked before anything destructive, and sees the result. It revises Q3 (ANAL-215, 2026-10-18) after the owner used the Q5 build on the G14 and set the direction on ANAL-225: the note must be clear, glassy and holographic, feel like a tangible pen on paper, and be effortless. Everything Q3 got right stays: the states, the keyboard paths, TalkBack, honest copy after a stop, the platform's own consent for computer control. What changes is the material, the motion, how much is on screen in the first moment, and the consent model, which follows Q6 (ANAL-220): the agent reads and acts freely and asks only before a destructive action.
 
-Labels: **C** = confirmed (read in a primary source or in `docs/quire.md`'s confirmed sections, or measured here), **HYPOTHESIS** = a design assumption the Porter checks (§7 lists them all).
+The brief is `docs/quire.md` §1; the platform facts the design relies on are `docs/quire.md` §2, §4 and §6, and Q3's mapping in §9 here.
 
-- **Prototype:** [`quire-design/index.html`](quire-design/index.html). Open it for the gallery; add `?play=1` for the clickable version (shake the pointer, press Meta+Space, click the taskbar button, hold the mic, select text; Esc stops a run or closes an idle note; Meta+Space or the Hide button hides a running task behind the taskbar button; the HUD toggles Remove animations).
-- **Renders:** [`quire-design/png/`](quire-design/png/) (1920×1080, PNG, plus `gallery.png` with every state) and [`quire-design/g14/`](quire-design/g14/) (2880×1800, the G14 panel at 240 dpi, so 1920×1200 dp at 1.5×; JPEG q92 4:4:4, 22 MB, because the same set as PNG weighs 35 MB). Every state, light and dark. `scripts/quire/render-design.sh` regenerates them; `G14_PNG=1` keeps the G14 set as PNG.
-- **Contrast:** `scripts/quire/contrast-check.py` reads the tokens from the prototype and checks every pair in §4.5 at its worst backdrop (black and white behind the translucent note; the lower ratio counts).
+Labels: **C** = confirmed (read in a primary source, in `docs/quire.md`'s confirmed sections, or measured here), **HYPOTHESIS** = a design assumption the Porter checks (§9 and §10 list them).
 
-Every value on the screens is sample data. The desktop, the Settings window and the Notes window are stand-ins drawn in Google Sans with OpenBook's circle icons and corner radii, so the note can be judged against the real look.
+- **Prototype:** [`quire-design/index.html`](quire-design/index.html). Open it for the gallery; add `?play=1` for the clickable version (shake the pointer, press Meta+Space, click the taskbar button, hold the mic, select text; type "open chrome and go to fox news", "turn on dark theme", "delete the newest file in downloads" or "in settings, find bluetooth and turn it off" to see the Q6 paths; Esc stops a run or closes an idle note; the HUD toggles Remove animations and Blur off). `?wall=bloom|strata|tide` puts another wallpaper behind the glass; `?glass=0` renders the platform's blur-off fallback.
+- **Renders:** [`quire-design/png/`](quire-design/png/) (1920×1080, PNG, plus `gallery.png` with every state and `wallpapers.png` with the note over all eight OpenBook wallpapers) and [`quire-design/g14/`](quire-design/g14/) (2880×1800, the G14 panel at 240 dpi, so 1920×1200 dp at 1.5×; JPEG q92 4:4:4). Every state, light and dark. `scripts/quire/render-design.sh` regenerates them.
+- **Contrast:** `scripts/quire/contrast-check.py` reads the tokens from the prototype and checks every pair in §7.4 through its whole stack (paper over glass over the backdrop) at the worst backdrop; `scripts/quire/q7-contrast.py` does the same on the system's own roles for all eight wallpapers, light and dark. Both pass at the glass's 80 % (§7.4).
+
+Every value on the screens is sample data. The desktop, Settings, Chrome and Notes are stand-ins drawn in Google Sans with OpenBook's circle icons and corner radii, so the note can be judged against the real look.
 
 ## Summary
 
-- **The note is a leaf.** A quire is a gathering of folded pages; OpenBook's mark is two pages and a spark. Quire's note is one small page that unfolds from the pointer and folds back into it. Its glyph is a page with a folded corner, drawn in the brand gradient. That is the only brand colour in the design; everything else is the device's dynamic colour, so the note matches the wallpaper like the rest of the system. No sparkle, no glow bar, no four-point star: nothing borrowed from Gemini or Magic Pointer.
-- **Anchored to attention.** The note opens where the person is looking: at the pointer after a shake or a key, at the end of a selection, above the taskbar button. It never opens in a corner. It stays beside the pointer and is never larger than 60 % of the screen height.
-- **Consent is a card in the flow, not a dialog over it.** The step stops, the card names exactly what will change (old value → new value, the command, or the diff), and offers the agent's own options as buttons: ACP's `session/request_permission` carries the option names, and Quire shows them as given (for Claude Code through `quired` today: Don't allow, Allow for this session, Allow). The first Tab stop is the reject option. Esc stops the run and answers the request as cancelled; hiding the note is a different action that keeps the task running.
-- **The mirror is the note, grown.** When an agent drives an app, the same note expands to 760 dp and shows the session display with the agent's pointer drawn on it. Pause, Stop and Take over are always visible.
-- **Motion is springs, not easing**, and every spring is a token with a stiffness and a damping ratio that Compose and `SpringAnimation` take as they are. With Remove animations, every spatial change becomes a cut and every loop becomes a still.
-- **Contrast is measured, not assumed.** Every text pair meets 4.5:1 and every non-text pair 3:1, in light and dark, at the note's worst backdrop, which the check now takes as the lower of black and white behind the note. Both notes are 92 % opaque: the light note failed at 84 % over black, and the dark note failed at 80 % over white (secondary text 4.0:1, Stop 3.4:1).
+- **Glass.** The note is the system's background blur at the shade's radius (34 dp) under the note's own colour at 80 %, lit from the top-left, with a 1.5 dp holographic rim in the brand's hues and a deep soft shadow. It is a pane of glass laid on the desktop; what is behind it shows through as colour. Cards inside are sheets of paper on the glass. Text is ink.
+- **A pen on paper.** The sheet unrolls from the pen tip. The person's words are written in ink and the pen rules a line under them. The agent's words arrive as ink, word by word. Each tool call is a mark: an ink dot while it runs, a tick drawn as a stroke when it is done. The rim's light turns slowly while the agent works and stands still when it is done. Closing rolls the sheet back into the pen.
+- **Effortless.** The first moment is two things: one field with focus, and one quiet line under it that names the agent, what was taken in, and how to leave. No header, no chips, no suggestions, no buttons. Q3's first moment had eleven interactive things on screen; this has four. The agent acts without asking, each change carrying its own Undo; the only question is before a destructive action.
+- **Measured, with fallbacks.** The blur is the platform's; ANAL-203 measured its cost (§4.5). When the platform turns blur off (battery saver, thermal, Developer options) the note becomes near-opaque paper with the same layout, and every loop stops. Contrast is scored through the translucent stack at the worst backdrop and passes on all eight wallpapers at 80 %; alpha is the one knob.
 
 ## 1. The idea
 
-The person is in the middle of something. Quire must arrive without asking them to look elsewhere, show what it understood, work in plain sight, ask before it changes anything, and leave without a trace. So:
+The person is in the middle of something. Quire must arrive without asking them to look elsewhere, show what it understood, work in plain sight, ask only when it must, and leave without a trace. So:
 
-- **One surface, the note.** Composing, streaming, steps, plans, consent, the mirror, the result and the settings undo list are states of one card, not separate panels. The card reflows between them with one spring.
-- **Three things always visible in the note:** which agent is answering, what Quire took in, and how to stop. The agent chip and the intake chip sit in the header; the footer always names what Esc does.
+- **One sheet, the note.** Composing, streaming, steps, plans, the destructive question, the mirror, the result and the undo list are states of one pane of glass, not separate panels. The sheet reflows between them with one spring.
+- **Three things always on the quiet line:** which agent is answering, what Quire took in, and how to leave. It is the last line of the note in every state. There is no header.
+- **The pen.** The note is a sheet that the pen draws out, writes on, marks, and rolls away. Every motion is a thing the pen does; nothing moves for decoration.
 - **Nothing happens off screen.** Steps tick in the note. The mirror is in the note. Background work lives behind the taskbar button, with a ring for progress and a count.
-- **The system's own consent stays the system's.** Computer control shows the platform's consent dialog (`RequestComputerControlAccessActivity`, C): the platform hands Quire an `IntentSender` and Quire launches it (C). Quire does not draw it, and the note says it is waiting for it.
+- **Ask only before harm.** Q6's rule: the agent reads, reviews and changes the laptop through Quire's tools without asking; every change carries its own Undo. The one card that asks is for a destructive action (delete, uninstall, clear data, send, pay, the lock screen, accounts, adb). The platform's own consent for computer control stays the platform's (§3.3).
 
 ## 2. Invocation
 
-What the person does, what appears in the first 100 ms, where the note anchors, and what Quire takes in.
+What the person does, what appears in the first 100 ms, where the note anchors, and what Quire takes in. Unchanged from Q3 except the note's arrival (§5.2).
 
 | Entry | First 100 ms | Anchor | Intake | Screen |
 |---|---|---|---|---|
-| **Shake** the pointer (contextual cursor gesture, C; Meta+G reaches the same path, C) | The **halo** blooms around the hotspot: a 32 dp ring, 2 dp, brand conic gradient, 0 → 1 with `spring.tick` (full size in ≈ 90 ms). The window under the pointer gets the **intake outline**. Label "Ask Quire" fades in beside it (120 ms). The halo is new SystemUI code: the gesture detector has no UI layer and reports no position, so Q5 adds an overlay fed by `MultiDisplayCursorPositionInteractor`'s last position (C, §7). | The hotspot, 18 dp right and below | The window under the pointer: its name, the display screenshot cropped to the bounds SystemUI puts in `sourceBounds`, and the selection if it has one | `invoke-shake` |
-| **Meta+Space**, the assist key, the Copilot key (`KEY_GESTURE_TYPE_LAUNCH_ASSISTANT` → the assistant role's voice-interaction session, C; not contextual search) | Same halo at the pointer if it moved in the last 10 s, with the label "Quire Meta Space". If the pointer has been still longer than that, or is off screen, the note rises from the taskbar button instead. SystemUI is on this path (`AssistManager.startAssist`) and has the cursor positions, so the 10 s rule lives there (C). An app allowed to capture system keys can take the shortcut first (C). | As above, or the taskbar button | The focused window, from the assist data: `AssistStructure` plus the assist screenshot, gated by the assist-data settings (C). The window's bounds come from the structure's window nodes. ⚑ Q2 decides whether the keys keep this path or are routed to `KEY_GESTURE_TYPE_LAUNCH_CONTEXTUAL_SEARCH`, so that there is one intake path. | `invoke-key` |
-| **Taskbar button** | The leaf glyph scales 1 → 0.9 → 1 (`spring.tick`) and the note rises from it. No halo. | Centred on the button, 12 dp above the taskbar | Nothing. The chip offers "Add what's on screen". | `invoke-taskbar` |
-| **Hold to talk** (the mic key, or hold the assist key; Q7) | The halo appears as a 40 dp **mic ring** that breathes; the mic indicator and the privacy dot show in the status bar. The note opens as the listening card with the live transcript. Release sends. | The pointer | The focused window | `invoke-voice` |
-| **Ask Quire on a selection** (`ACTION_PROCESS_TEXT`, C) | Android lists the handler in the text toolbar's **overflow menu as a plain label**, "Ask Quire", with no icon (`SHOW_AS_ACTION_NEVER`, C); TalkBack offers it as an accessibility action (C). The selection keeps its highlight; the halo appears at the pointer when the item is chosen. | The pointer, which just chose the item: the intent carries no geometry (C) | The selected text as a quoted chip (`EXTRA_PROCESS_TEXT`), plus the window name from `getCallingPackage()` (C). Only where the text view's context can `startActivityForResult`; WebView and Compose text are unverified (⚑ Q5 tests real apps). | `invoke-selection` |
-| Any entry over a **secure window** (`EXTRA_FLAG_SECURE_FOUND`, C) | The halo answers as usual. | The pointer | Nothing. The chip reads "Secure window · not taken in" with a lock. | `invoke-secure` |
+| **Shake** the pointer (contextual cursor gesture, C; Meta+G reaches the same path, C) | The **halo** blooms around the hotspot: a 32 dp ring, 2 dp, brand conic gradient, 0 → 1 with `spring.tick` (full size in ≈ 90 ms). The window under the pointer gets the **intake outline**. Label "Ask Quire" fades in beside it (120 ms). Then the sheet unrolls from the hotspot (§5.2). | The hotspot, 18 dp right and below | The window under the pointer: its name, the display screenshot cropped to `sourceBounds`, and the selection if it has one | `invoke-shake`, `open` |
+| **Meta+Space**, the assist key, the Copilot key (`KEY_GESTURE_TYPE_LAUNCH_ASSISTANT` → the assistant role's voice-interaction session, C) | Same halo at the pointer if it moved in the last 10 s, with the label "Quire Meta Space". If the pointer has been still longer than that, or is off screen, the sheet rises from the taskbar button instead. | As above, or the taskbar button | The focused window, from the assist data (C) | `invoke-key` |
+| **Taskbar button** | The leaf glyph scales 1 → 0.9 → 1 (`spring.tick`) and the sheet unrolls upward from it. No halo. | Centred on the button, 12 dp above the taskbar | Nothing. The quiet line offers "Add what's on screen". | `invoke-taskbar` |
+| **Hold to talk** (the mic key, or hold the assist key; Q7) | The halo appears as a 40 dp **mic ring** that breathes; the mic indicator and the privacy dot show in the status bar. The note opens as the listening sheet with the live transcript in ink. Release sends. | The pointer | The focused window | `invoke-voice` |
+| **Ask Quire on a selection** (`ACTION_PROCESS_TEXT`, C) | Android lists the handler in the text toolbar's overflow as a plain label (C). The selection keeps its highlight; the halo appears at the pointer when the item is chosen. | The pointer | The selected text, quoted on the quiet line, plus the window name from `getCallingPackage()` (C) | `invoke-selection` |
+| Any entry over a **secure window** (`EXTRA_FLAG_SECURE_FOUND`, C) | The halo answers as usual. | The pointer | Nothing. The quiet line reads "Secure window · nothing taken in" with a lock. | `invoke-secure` |
 
-Rules:
-
-- **The halo tracks the pointer** until the note opens. If the pointer leaves the window it was over, the intake outline moves with it. Esc or a click elsewhere cancels the halo with a 200 ms fade and nothing else happens.
-- **The intake outline** is a 2 dp stroke in `primary` at 55 % with a 10 dp glow at 18 %, following the window's corner radius. For a pointer region (an image, a table) it is a 12 dp-radius rectangle around the region.
-- **The intake chip** in the note always says what was taken in: "Settings · Display" with a 32×20 dp thumbnail, "Region · Notes", the quoted selection, or the lock. Its close button drops the intake before sending.
-- **The halo is drawn by SystemUI** above all windows, so it appears even when the app under the pointer is slow. It is new code: the contextual cursor has no feedback layer today (C).
-- **The intake's bounds come from SystemUI.** `EXTRA_SCREENSHOT` is the whole display with no pointer or bounds (C). SystemUI already knows the task under the pointer to draw the outline; it puts that task's bounds in `ContextualSearchConfig.sourceBounds` and the pointer position in `intentExtras`, which the service copies onto the launch intent (C). Quire crops the screenshot to `sourceBounds`. The OS tools' "list windows" is not used for this: it runs in the core, after the fact, and races the pointer.
-- **Quire must be force-queryable** (`android:forceQueryable="true"` as a system app, or `config_forceQueryablePackages`), or apps targeting API 30+ without a `<queries>` entry will not list Ask Quire in their toolbar (C).
+Rules (unchanged from Q3): the halo tracks the pointer until the note opens; Esc or a click elsewhere cancels it with a 200 ms fade. The intake outline is a 2 dp stroke in `primary` at 55 % with a 10 dp glow at 18 %. The halo and the outline are drawn by SystemUI above all windows; the intake's bounds come from SystemUI (`ContextualSearchConfig.sourceBounds`, C). Quire must be force-queryable (C).
 
 ## 3. The note
 
 ### 3.1 Anatomy and geometry
 
+The first moment, and the note once it has grown:
+
 ```text
-┌─ header ───────────────────────────────────────────────┐  12 dp top, 16 left, 12 right
-│ [leaf 22] [CC Claude Code · on this laptop ▾]   [⤓] [✕] │
-│ [intake chip]                                           │  prompt block: 10 dp top
-│ The person's prompt (15/22, 500)                        │
-├─ body (scrolls) ────────────────────────────────────────┤  8 dp top, 16 sides, 10 dp between blocks
-│ thought · answer · steps · plan · consent · changes ·   │
-│ result · error · auth · code · image                    │
-├─ suggestions (optional) ────────────────────────────────┤
-│ (chip) (chip) (chip)                                    │
-├─ composer ──────────────────────────────────────────────┤  8 dp top, 12 left, 10 right/bottom
-│ [ field 40 dp ..................... ] [mic 40] [send 40]│
-│ footer: Working · 6 s                        Esc stop   │  12/16, on-surface-variant
-└─────────────────────────────────────────────────────────┘
+┌─ the first moment ──────────────────────────────────┐  width 400 dp, height 88 dp
+│ ( [leaf] Ask Quire|                      [mic] [↑] ) │  the field: 44 dp, radius 22, paper on glass
+│ [CC Claude Code] · [▭ Settings · Display]      Esc close ✕ │  the quiet line: 12/16, 24 dp tall
+└──────────────────────────────────────────────────────┘
+
+┌─ grown ─────────────────────────────────────────────┐  14 dp top, 16 sides
+│ Turn on dark theme                                   │  the prompt in ink, 15/22, 500
+│ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━│  the rule: 1.5 dp primary, fading to the right
+├─ body (scrolls) ─────────────────────────────────────┤  10 dp top, 10 dp between blocks
+│ ✓  ◉ Reading Display settings                        │  steps: 28 dp rows
+│ ✓  ⚙ Settings: Dark theme on            [↶ Undo]     │  a change carries its undo, on paper
+│ ◉  Dark theme is on.                                 │  result
+│    Changed 1 setting · 2 s                           │
+├─ composer ───────────────────────────────────────────┤  8 dp top, 10 sides
+│ ( [leaf] Ask a follow-up                 [mic] [↑] ) │
+│ [CC Claude Code] · [▭ Settings]      Done  Esc close ✕ │  the quiet line
+└──────────────────────────────────────────────────────┘
 ```
 
 | Property | Value |
 |---|---|
 | Width | 400 dp. **Wide** 480 dp when a code block or a long answer arrives. **Mirror** 760 dp. |
-| Max height | 60 % of the display height; the body scrolls, header and composer stay. The mirror is the one exception: 748 dp tall (§3.4), 62 % of the G14's 1200 dp and 69 % of a 1080 dp display. |
-| Corner radius | 28 dp (`config_dialogCornerRadius`, C). Cards inside: 16 dp. Chips and buttons: pill. Field: 20 dp. |
-| Surface | `note-bg`: `surface` at 92 % (light), `surfaceContainer` at 92 % (dark), over the system's background blur at the same radius SystemUI's shade uses (34 dp, C). 1 dp outline `outlineVariant` at 50 %. Shadow 0 12 32 at 18 % of `#1B1B21` (light), 50 % black (dark). |
-| Placement from the pointer | hotspot + (18, 18) dp. Flips to the left of the hotspot when it would come within 24 dp of the right edge. Moves up to stay 16 dp above the taskbar; the transform origin stays on the hotspot so the unfold still comes from the pointer. |
-| Placement from the taskbar | Centred on the Quire button, 12 dp above the taskbar. Transform origin: bottom centre. |
-| Layer | Above app windows, below the system dialogs, the status bar and the mic indicator. **Owned by Quire core, not SystemUI:** the platform refuses to create a computer-control session unless the owner's uid has a visible non-toast window (C, §8), and the core is the session owner, so the note (at least while a session exists) is a window of Quire's uid (`TYPE_APPLICATION_OVERLAY` as a privileged app; Q5 confirms the type). The halo and the intake outline stay in SystemUI. |
+| Height | The first moment is 88 dp. Max 60 % of the display height; the body scrolls, the prompt, composer and quiet line stay. The mirror is the one exception: 748 dp tall (§3.4). |
+| Corner radius | 28 dp (`config_dialogCornerRadius`, C). Paper inside: 16 dp. The field: 22 dp. Pills and buttons: pill. |
+| Surface | **Glass** (§4.1): the system's background blur at 34 dp under `surface` at 80 % (light) or `surfaceContainer` at 80 % (dark); a 1 dp specular line inside the top edge; the holographic rim; a bloom from the top-left; shadow 0 24 48 at 22 % of `#1B1B21` (light) or 55 % black (dark). |
+| Placement from the pointer | hotspot + (18, 18) dp. Flips to the left of the hotspot when it would come within 24 dp of the right edge. Moves up to stay 16 dp above the taskbar; the transform origin stays on the hotspot, so the sheet still unrolls from the pen. |
+| Placement from the taskbar | Centred on the Quire button, 12 dp above the taskbar. Transform origin: bottom centre; the sheet unrolls upward. |
+| Layer | Above app windows, below the system dialogs, the status bar and the mic indicator. Owned by Quire core (`TYPE_APPLICATION_OVERLAY` as a privileged app, C: Q5 built it so). The halo and the intake outline stay in SystemUI. |
 
 ### 3.2 States
 
-Each state is one screen in the prototype, in light and dark, at both sizes. The last column is what drives it; §7 is the full mapping with the open questions.
+Each state is one screen in the prototype, in light and dark, at both sizes. New since Q3 are marked **Q6** or **Q7**; §9 maps each to what drives it.
 
 | State | What the note shows | Driven by | Screen |
 |---|---|---|---|
-| **Composing** | Agent chip, intake chip, three suggestion chips for the window under the pointer, the field with focus, footer "Enter send · Esc close". The field grows to 4 lines, then scrolls. | Local; the suggestions come from the intake (window name, selection) | `compose` |
-| **Listening** | Seven level bars (`primary`), the transcript with the recognised part in `on-surface` and the partial in `on-surface-variant`, footer "Listening · release to send · Esc cancel". | Q7's speech to text, partial and final results | `invoke-voice` |
-| **Choosing the agent** | The chip opens a list grouped by where agents run: On this laptop, Paired computers, with each agent's sign-in state and "Connect an agent · or pair a computer" at the end. The last used agent is preselected. | `quired agents` and each agent's `initialize` → `authMethods` (C) | `agent-picker` |
-| **Streaming** | The leaf breathes. Thought chunks collapse to one line, "Thinking…", that is replaced by the answer as soon as the first message chunk arrives. Message chunks append with a caret; no per-character animation. Footer "Answering · 2 s · Esc stop". | `session/update`: `agent_thought_chunk`, `agent_message_chunk` (C) | `streaming` |
-| **Steps ticking** | One line per tool call: a status mark, a kind icon, the title. Pending: a hollow ring in `on-surface-variant`. Running: a 12 dp spinner. Done: a filled check in `success`, popping in with `spring.tick`. Failed: a filled cross in `error`, line text in `error`. The title is the agent's `title` ("Reading Wi-Fi settings"). | `tool_call`, `tool_call_update` with `kind` and `status` (C) | `steps` |
-| **Plan** | A card "Plan · 1 of 4" with a numbered list; done entries get a check and a strike; the active entry's number fills with `primary`; a priority label shows only when the agent sets one. Updates in place. No consent needed to show a plan. | `plan` with `entries[].status` and `priority` (C) | `plan` |
-| **Consent, settings** | The step stops. A card outlined 1.5 dp in `primary`: shield icon, "Change 2 settings", the tool's name at the right, one row per change (name, where it lives, old → new as a pill), a sentence on undo, and one button per option the agent sent, labelled with the agent's own `name` (§3.3). | `session/request_permission` with `options[]` (C). The rows come from the OS settings tool's request (Q6). | `consent` |
-| **Consent, command or file** | The same card with the command in a monospace chip, or a diff with added lines tinted `success-container` and removed lines `error-container`. | Same; `tool_call.content` of type `diff` or the command title (C) | `consent-command` |
-| **Consent, computer control** | The platform's own dialog appears (not Quire's; Quire launches the `IntentSender` the platform hands it, C). The note shows "Asking to use Settings" as a running step and a result line "Waiting for your permission". Refused: "Settings was not opened. You didn't allow computer control.", only when the dialog was shown and refused (§3.3 rule 5). | `onSessionPending` → `RequestComputerControlAccessActivity` (C) | `consent-system` |
-| **Live mirror** | The note expands to 760 dp: an automation chip ("Using Settings", `tertiary-container`), the page title, the mirror (16:10, 16 dp radius) showing the session display, zoomed 2× on the control the agent acts on (§3.4), with the agent's pointer in brand blue, a 36 dp tap ring and a focus ring on that control, the current steps under it, and Stop · Pause · Take over. The taskbar's Quire button breathes while this runs. | `InteractiveMirror` (C); the pointer and the highlights are drawn by Quire core, which is the only holder of the `ComputerControlSession` and injects every tap itself (C); the target control from `getAccessibilityWindows()` (C) | `mirror` |
-| **Mirror, paused** | The automation chip turns grey, "Paused". The view returns to the whole session display. A scrim over the mirror says "Paused · click in the mirror to act, or Take over". The mirror becomes interactive. Resume replaces Pause. | `notifyBlocked()` (the platform drops agent input and allows mirror interaction only while blocked, C) plus `setInteractive(true)`; Resume is `requestUnblock()`. The broker also holds the agent's input calls while paused, so a dropped tap never shows as a completed step. | `mirror-paused` |
-| **Done** | The steps fold into one chip ("4 steps ✓", expandable), one sentence of result, a sub-line with the count of changes and the time, and buttons: Undo, Show changes. The note stays until the person closes it; closing folds it into the pointer. | `session/prompt` returns `stopReason: end_turn` (C) | `done` |
-| **Stopped** | After Esc or Stop. The steps stay in the list with the interrupted one marked; a result row "Stopped after 3 of 4 steps." and a sub-line that says what was done (with Undo), what was interrupted and may be partly applied, and where to check (§3.3 rule 6). The task is over: no badge, no ring, no pending request. | `session/cancel`; a pending `request_permission` answered `cancelled`; `stopReason: cancelled` (C) | `stopped` |
-| **Error** | A card with the error icon: what stopped, in one sentence; details behind a disclosure; Show log · Try again. The failed step stays in the list. | `stopReason` of `refusal`, `max_tokens`, `max_turn_requests`, `cancelled`; or `quired` reporting the agent's exit and stderr (C) | `error` |
-| **Agent not signed in** | A card with the key icon: "Cursor needs to sign in", the agent's methods as rows, and Use Claude Code instead · Sign in. Sign-in happens in the agent's own flow. | `authenticate` with `authMethods`; error `-32000` (C) | `signin` |
-| **Hidden, running in the background** | The person hid the note (the Hide button, Meta+Space, the taskbar button, or a click elsewhere while a task runs; never Esc). The note folds into the taskbar button. The button shows a progress ring and a count. Clicking it opens a tray: one row per task with status (needs your answer, running, done), the prompt, the agent, and New · History. A row opens that task's note. | Quire core's session list; a pending `request_permission` marks "needs your answer" | `background` |
-| **Settings help** | Before Allow, the consent card lists each setting old → new. After Allow, a card "Changed 3 settings · just now" with the same rows, each with its own undo, and Undo all. The changed rows are outlined in the Settings window. | The settings tool's change log with undo (Q6) | `settings-help` |
-| **Long output** | The note widens to 480 dp, the body scrolls, and a "Jump to latest" pill appears when the person scrolls up while text is still arriving. The footer offers "Save as a file". | Message chunks; the text is saved through the Storage Access Framework (DocumentsUI, C) and kept in Quire's History. AOSP has no Notes app and OpenBook ships none (C). | `long-output` |
-| **Code** | A block in Google Sans Code 12.5/18 on `inverse-surface` (light) or `surfaceContainerLowest` (dark), with the language and a copy button. Run it · Save as file. Running it would be a consent step. | Message chunks with fenced code; `tool_call.content` of type `content` | `code` |
-| **Images** | A thumbnail with a caption and an expand button; it grows in place to the note's width. A pointer region intake is cropped to the region, never the whole screen. | `ContentBlock` of type `image` (C); the screenshot from `EXTRA_SCREENSHOT` cropped by Quire | `images` |
-| **No agent connected** | The agent chip reads "not connected". A card lists the agents found and their state, with Pair a computer · Connect Claude Code. No composer: there is nobody to send to. | `quired agents` (C) | `no-agent` |
-| **Offline** | For a paired computer or a cloud agent: "Brian's desk can't be reached", the prompt kept in the field, Retry · Use Claude Code on this laptop. Local agents are unaffected and show nothing. | Quire core's connector state | `offline` |
+| **The first moment** (Q7) | The field with focus and the leaf in it; the quiet line: agent, intake, Esc close, ×. Nothing else. | Local | `open`, `invoke-taskbar`, `invoke-secure`, `invoke-selection` |
+| **Composing** | Typed letters appear at once (typing is the person's own act; no latency is added). The field grows to 4 lines, then scrolls. The quiet line reads "Enter send". | Local | `compose` |
+| **Listening** | Seven level bars in `primary`, the transcript in ink with the partial word in soft ink, the quiet line "Listening · release to send · Esc cancel". | Q7's speech to text | `invoke-voice` |
+| **Choosing the agent** | The agent's name on the quiet line opens a glass list above it, grouped by where agents run, each with its sign-in state. The last used agent is preselected. | `quired agents`, `initialize` → `authMethods` (C) | `agent-picker` |
+| **Streaming** | The prompt in ink under the rule. "Thinking…" with the breathing leaf until the first message chunk; then the answer arrives as ink, word by word (§5.2). The rim's light turns. Quiet line "Answering · 2 s · Esc stop". | `agent_thought_chunk`, `agent_message_chunk` (C) | `streaming` |
+| **Tool steps** (Q6) | One line per tool call: a mark, a kind icon, the title with the value in medium weight ("Going to **foxnews.com**"). Running: the ink dot. Done: a tick drawn as a stroke in `success`. Failed: a cross in `error`. No card, no question. | `tool_call`, `tool_call_update` with `kind`, `status`, `title` (C); Quire's tools report the value | `steps` |
+| **A change, with its undo** (Q6) | A step that changed a setting ("Settings: Dark theme **on**") carries an Undo pill on paper at its right. Undo turns the pill into "Undone" and strikes the step. The result line sums it up: "Dark theme is on. · Changed 1 setting · 2 s". | The settings tool's change log (Q6) | `setting-undo` |
+| **Plan** | A paper card "Plan · 1 of 4" with a numbered list; done entries get a check and a strike; the active entry's number fills with `primary`. | `plan` with `entries[].status` and `priority` (C) | `plan` |
+| **The destructive question** (Q6) | The run stops. A paper card rimmed in `error` at 70 %: the delete icon, "Delete this file?", the file on its own row (icon, name, where · size · when), one sentence on what happens and whether it can be undone, and two buttons: **Delete** on `errorContainer`, **Keep it** filled in `primary`. Keep is the default focus. | Quire's broker, before a destructive tool call (Q6); options are Quire's own | `confirm-destructive` |
+| **An agent's own request** | ACP agents may still ask before their own actions (a file write, a command). The same paper card as Q3 with the diff or the command and the agent's own options, labelled by the agent (§3.3 rule 3). Quire's tools never raise this card for a non-destructive action. | `session/request_permission` with `options[]` (C) | `consent-command` |
+| **Consent, computer control** | The platform's own dialog appears (not Quire's, C). The note shows "Asking to use Settings" as a running step and "Waiting for your permission". | `onSessionPending` → `RequestComputerControlAccessActivity` (C) | `consent-system` |
+| **Live mirror** | The note expands to 760 dp. The session display shows as a pane set into the glass (16:10, 16 dp radius, an inner shadow), zoomed 2× on the control the agent acts on, with the agent's pointer in brand blue and a tap ring. Under it the steps, then Stop (on `errorContainer`) · Pause (paper) · Take over (filled), then the quiet line. | `InteractiveMirror` (C); pointer and highlights drawn by Quire core (C) | `mirror` |
+| **Mirror, paused** | The automation chip turns grey, "Paused"; the view returns to the whole display; a scrim says "Paused · click in the mirror to act, or Take over"; Resume replaces Pause. | `notifyBlocked()` + `setInteractive(true)`; `requestUnblock()` (C) | `mirror-paused` |
+| **Done** | The steps fold into one chip on paper ("4 steps ✓"), one sentence of result, a sub-line with the count of changes and the time, and Undo on paper. The note stays until the person closes it; closing rolls the sheet into the pen. | `stopReason: end_turn` (C) | `done` |
+| **Stopped** | After Esc or Stop. The steps stay with the interrupted one marked; "Stopped after 3 of 4 steps." and the honest sub-line (§3.3 rule 6); each confirmed change keeps its Undo. | `session/cancel`; `stopReason: cancelled` (C) | `stopped` |
+| **Error** | A paper card rimmed in `error` at 50 %: what stopped, details behind a disclosure, Show log · Try again (paper). | `stopReason` of `refusal`, `max_tokens`, `max_turn_requests`; `quired`'s exit report (C) | `error` |
+| **Agent not signed in** | A paper card with the key icon, the agent's methods as rows, Use Claude Code instead · Sign in. | `authenticate` with `authMethods`; error `-32000` (C) | `signin` |
+| **Hidden, running in the background** | The sheet rolls into the taskbar button. The button shows a progress ring and a count. The tray, in the same glass, lists tasks: needs your answer, running (the ink dot), done. | Quire core's session list | `background` |
+| **Several settings changed** | A paper card "Changed 3 settings · just now" with old → new rows, each with its own undo, and Undo all. The changed rows are outlined in Settings. | The settings tool's change log (Q6) | `settings-help` |
+| **Long output** | The note widens to 480 dp, the body scrolls, "Jump to latest" appears when the person scrolls up while text arrives; "Open as a document" on the quiet line. | Message chunks; the Storage Access Framework (C) | `long-output` |
+| **Code** | A block in Google Sans Code 12.5/18 on `inverseSurface` (light) or black at 55 % on the glass (dark), with the language and a copy button. | Message chunks with fenced code | `code` |
+| **Images** | A thumbnail on paper with a caption and an expand button; a region intake is cropped to the region. | `ContentBlock` of type `image` (C) | `images` |
+| **No agent connected** | The quiet line reads "not connected". A paper card lists the agents found with Pair a computer · Connect Claude Code. No field: there is nobody to send to. | `quired agents` (C) | `no-agent` |
+| **Offline** | "Brian's desk can't be reached", the prompt kept in the field, Retry · Use Claude Code on this laptop. | Quire core's connector state | `offline` |
+| **Blur off** (Q7) | The same layout as paper at 96 %, no bloom, the rim at 60 % of its opacity, the shadow kept. No loop runs. | `WindowManager.isCrossWindowBlurEnabled()` false (§4.5) | `glass-off` |
 
 ### 3.3 Consent rules
 
-1. **Every mediated change goes through a card.** This is the contract for the OS tools Q2–Q6 put behind Quire's broker (settings, apps, windows, computer control): the broker refuses a privileged call until the card is answered, unless the person gave standing permission for that tool in Quire's settings. It is not a guarantee about an arbitrary ACP agent's own actions: ACP leaves it to the agent whether to ask, and Q1 is a harness for trusted local agents (`docs/quire.md` §5). The card always names the thing that changes, never only the tool.
-2. **The buttons are the agent's options.** `session/request_permission` carries `options[]`, each with an `optionId`, a `name` and a `kind` hint (`allow_once`, `allow_always`, `reject_once`, `reject_always`). Quire renders one button per option with the agent's `name` as its label, orders reject kinds first and the `allow_once` last, styles by kind (text, tonal, filled), and returns the chosen `optionId`. ACP defines no lifetime for `allow_always`, so Quire never relabels it: Claude Code through `quired` offers "Allow for this session" and keeps that memory itself (C); another agent may offer "Always allow" and remember it for as long as it chooses. A `reject_always` option, when offered, goes in the card's overflow so a mistaken click cannot reach it. **Cards have two sources.** For the agent's own actions (files, commands) the card is the agent's `request_permission`, with the agent's options. For an OS tool (settings, apps, windows, computer control) the card is **the broker's own**, raised while it holds the MCP `tools/call`, with Quire's options (C): Don't allow · Allow for this task · Allow, where "Allow for this task" is enforced by the broker for that task only. One call must raise one card: `quired` pre-allows Quire's own tools for Claude Code so its adapter does not ask first (C, Porter's follow-up PR); ⚑ native ACP agents may still ask before calling an MCP tool, which Q6 handles agent by agent.
-3. **Focus lands on the card**, which TalkBack reads in full. Tab then moves through the options in the order shown, the reject option first. Enter or Space activates only the focused button. There is no single-key shortcut.
-4. **Esc while a card is open stops the run.** The pending request is answered with `outcome: cancelled`, as ACP requires (C), `session/cancel` is sent, and the note shows Stopped (§3.2). Esc never hides a running task; hiding is the Hide button, Meta+Space, the taskbar button, or a click elsewhere, and leaves the request pending behind the taskbar badge. A second Esc on a stopped note closes it; it never does anything destructive.
-5. **Platform consent stays platform.** For computer control, Quire launches the platform's dialog from the `IntentSender` it receives in `onSessionPending` (C); it appears over everything and the note waits. The copy follows the actual outcome: "Settings was not opened. You didn't allow computer control." only when the dialog was shown and refused. The platform reports `ERROR_PERMISSION_DENIED` for a refusal, a missing app-op, the visible-window check and cross-device authorisation alike (C), so without a shown dialog the note says "Settings couldn't be opened for Claude Code." with the reason behind the details disclosure. `ERROR_DEVICE_LOCKED`: "Unlock the laptop, then try again." `ERROR_SESSION_LIMIT_REACHED`: "Another app is already being driven. Stop it first." A session closes when Quire or the person closes it, after the platform's 60-minute limit, or when its display is empty (C); the note says which.
-6. **Copy after a stop or an error is honest about effects.** It distinguishes three things: what is confirmed changed (listed, each with undo), what is confirmed unchanged ("Nothing was changed."), and steps that were interrupted, whose effect is unknown ("Lowering brightness to 40% was interrupted and may be partly applied; check Settings · Display."). Cancellation is not rollback: a stopped run never claims to have undone anything, and Undo is offered only for the confirmed changes. The card can only list changes made through Quire's tools, which the broker executes and so knows exactly (C); the agent's own file and command actions are not tracked, and the copy says so: "Files and commands the agent ran itself are not listed." A settings write is one call, so it is either done or not; "interrupted, effect unknown" is mostly computer-control input, whose effects inside the app the broker cannot see (C).
+Q3's rules 3 to 6 stand; rules 1 and 2 follow Q6.
+
+1. **Act, then show; ask only before harm.** Quire's tools (settings, apps and the web, the screen, files, windows, clipboard, media) run without a card. Every call is a step; every change is a step with its own Undo. The broker raises a card only for the destructive tier Q6 defines: deleting files, uninstalling or disabling apps, clearing app data, factory reset, sending messages or email, purchases, changing the screen lock, accounts, adb or developer settings. The card names exactly the thing (the file, the app, the recipient) and what happens, never only the tool.
+2. **The destructive card is Quire's own.** Two options, Quire's wording: the destructive verb ("Delete", "Uninstall", "Send") on `errorContainer`, and the safe one ("Keep it", "Keep the app", "Don't send") filled in `primary`. The safe option takes focus; Enter on the card does nothing until a button is focused. There is no "always allow" for a destructive action.
+3. **An agent's own request keeps the agent's options.** `session/request_permission` carries `options[]` with the agent's `optionId`, `name` and `kind`; Quire renders them as the agent named them, reject kinds first, `allow_once` last, styled by kind (text, tonal, filled), and returns the chosen `optionId` (C). `quired` pre-allows Quire's own tools for Claude Code so one call raises one card (C); ⚑ native ACP agents may still ask before calling a Quire tool; Q6 handles that agent by agent.
+4. **Focus lands on the card**, which TalkBack reads in full. Tab then moves through the options in the order shown. Enter or Space activates only the focused button. There is no single-key shortcut.
+5. **Esc while a card is open stops the run.** The pending request is answered with `outcome: cancelled` (C), `session/cancel` is sent, and the note shows Stopped. For the destructive card, Esc deletes nothing. Esc never hides a running task; hiding is the × on the quiet line, Meta+Space, the taskbar button, or a click elsewhere.
+6. **Platform consent stays platform**, with Q3's copy for `ERROR_PERMISSION_DENIED`, `ERROR_DEVICE_LOCKED` and `ERROR_SESSION_LIMIT_REACHED` (C).
+7. **Copy after a stop or an error is honest about effects** (Q3 rule 6, unchanged): what is confirmed changed (each with Undo), what is confirmed unchanged, and what was interrupted and may be partly applied, with where to check. Cancellation is not rollback.
 
 ### 3.4 The mirror
 
-- **The session display is the reference display:** `createSessionDisplayConfig` gives it the reference display's size and density in natural orientation, and `ComputerControlSessionParams` has no size setting (C). On the G14 that is 1920×1200 dp at 240 dpi. The 736×460 dp 16:10 view in the 760 dp note shows the whole display at 0.383 (text at 0.57 physical pixels per dp is not readable), so **the view zooms**: while the agent acts on a control, the view shows a 960×600 dp region around that control at 0.767 (2×), moving between regions with `spring.expand`; between steps and while paused it returns to the whole display. The agent's target control is known from `getAccessibilityWindows()` (C). On a 16:9 reference display the view letterboxes. The mirror note measures 748 dp tall in the prototype: 62 % of the G14's 1200 dp and 69 % of a 1080 dp display; it is the one state exempt from the 60 % bound (§3.1). The alternative, patching the framework for a smaller session display, is Q2's to decide; the design does not depend on it.
-- **The agent's pointer** is OpenBook's arrow with the body in brand blue `#4355B9`, so it is never mistaken for the person's own. A tap draws a 36 dp ring in `primary` that fades in 200 ms. The control the agent is about to use gets a 2 dp focus ring. Quire core draws these from the input it injects itself: it is the only holder of the `ComputerControlSession` (`tap`, `swipe`, `longPress`, `insertText`, `performAction`, `requestScreenshot`), and agents in the Linux environment reach them only through Quire's MCP tools (C).
-- **Pause** is the platform's block: `notifyBlocked()` moves the session to Blocked, the platform drops agent input without an error, and the interactive mirror accepts the person's input only while blocked (C). So Pause = `notifyBlocked()` + `setInteractive(true)`, and **Resume** = `requestUnblock()`. The broker holds the agent's input calls while paused, so a dropped tap never shows as a completed step. **Take over** calls `handOverApplications()` (C): the app moves to the person's display, the session ends, the note folds to Done with "Settings is on your screen now". **Stop** closes the session and the app.
-- The **automation indicator** is two things: the taskbar's Quire button breathing, and the platform's own indicator on the automated app (`enable_app_automation_indicator`, C). Only the first is drawn here; the second is the platform's.
-- **Secure content and biometric prompts block the session; they do not close it** (`BLOCK_REASON_SECURE_CONTENT`, `BLOCK_REASON_AUTHENTICATION_PROMPT_REQUESTED`, C). The automation chip turns grey, "Blocked", the mirror shows the platform's placeholder (the secure screen never appears in it), and the mirror footer reads "Settings is showing a protected screen" with Take over and Stop; the agent's input is dropped until the block lifts. Nothing says "the session stopped".
+Unchanged from Q3 in behaviour (the session display is the reference display, C; the view zooms 2× on the agent's target; Pause is `notifyBlocked()` + `setInteractive(true)`, Resume is `requestUnblock()`, Take over is `handOverApplications()`, C; secure content and biometric prompts block the session and do not close it, C). What changes is the look: the mirror is a pane set into the glass, with an inner shadow (0 2 10 at 28 % black) and a 1 dp paper outline, so it reads as a window in the sheet rather than a card on it. Stop sits on `errorContainer`, Pause on paper, Take over filled. The note's own blur is cut out under the pane (Q5 already does this, C: the mirror's surface sits below the window).
 
 ### 3.5 The taskbar button and the tray
 
-- The button sits in the taskbar's system group, right after All apps and before the divider. 44 dp, the leaf at 24 dp.
-- **Idle:** the leaf. **Running:** the leaf breathes (1.6 s) and a 2.5 dp ring in `primary` shows progress when the agent has a plan; otherwise the ring spins. **Needs an answer:** a count badge in `primary`.
-- Clicking opens the tray (400 dp) above the button with `spring.settle`. Each row: a status mark, the prompt on one line, the status line (needs your answer · running · done 4 min ago), the agent's name, a chevron. Rows open that task's note at the taskbar anchor.
-- History lists finished tasks for 24 h with their undo lists.
+As Q3: the button after All apps, 44 dp, the leaf at 24 dp; running: the leaf breathes and a 2.5 dp ring in `primary` shows progress; needs an answer: a count badge. The tray is the same glass as the note; rows on hover lift onto paper; a running row shows the ink dot.
 
 ### 3.6 Undo
 
-- Every settings change Quire makes is a row with old → new and its own undo. Undo all restores the previous values in reverse order.
-- Undo stays available in the note, and for 24 h from the tray's History (the Q6 audit log).
-- Undo is itself a change and shows as a step, but needs no consent: it only restores what the person already allowed.
+- Every change Quire makes is undoable from the step that made it, from the Done card's "Undo" (one change) or "Undo all", and for 24 h from the tray's History (the Q6 audit log).
+- Undo is itself a step and needs no question: it restores what the person already had.
+- A destructive action that the platform can reverse (a file to the bin) says so on the card and offers Undo on its step; one it cannot reverse says "This can't be undone." on the card.
 
-## 4. Visual system
+## 4. Material: glass, paper, ink
 
-### 4.1 Type
+Three materials, each with one job. Glass is the note: it shows what is behind it. Paper is anything laid on the glass that the person can act on: cards, the field, pills. Ink is text and marks. Brand colour appears only on the leaf, the halo and the rim.
 
-Google Sans for everything in the note (the system's `google-sans*` families, C). Google Sans Code for code. Sizes in sp; line height after the slash.
+### 4.1 Glass
+
+| Token | Light | Dark | What it is |
+|---|---|---|---|
+| `quire.glass.blur` | 34 dp | 34 dp | The system's background blur (`BackgroundBlurDrawable`, C: Q5 uses it), at the radius SystemUI's shade uses (C); 51 px at 240 dpi |
+| `quire.glass.tint` | `surface` at 80 % | `surfaceContainer` at 80 % | The note's own colour over the blur. 80 % is the lowest alpha at which every pair in §7.4 passes at the worst backdrop on all eight wallpapers (§7.4) |
+| `quire.glass.specular` | white at 75 %, 1 dp, inside the top edge | white at 18 % | Light on the top edge of the pane |
+| `quire.glass.outline` | white at 55 %, 1 dp, inside | white at 14 % | The pane's edge where it meets the desktop |
+| `quire.glass.rim` | 1.5 dp conic stroke of the halo's hues (`#7E8CFF → #C58BFF → #FF7A9C → #FFB38A → #8FD6FF`), at 70 % | the same hues lightened (`#A9B6FF → #DDBDFF → #FFB0C4 → #FFD3B3 → #B8E8FF`), at 80 % | The holographic edge: the halo's light, caught in the glass. Its angle starts at 200° (brightest at the top-left) and turns while the agent works (§5.1) |
+| `quire.glass.glow` | `#7E8CFF` at 18 %, 24 dp | `primary` at 16 %, 24 dp | A soft outer glow on the rim |
+| `quire.glass.bloom` | white at 34 %, radial from the top-left corner, to 62 % of the width | white at 7 % | Light falling on the glass |
+| `quire.glass.shadow` | 0 24 48 at 22 % `#1B1B21`, plus 0 2 6 at 8 % | 0 24 48 at 55 % black, plus 0 2 6 at 30 % | Depth: the sheet floats above the desktop |
+| Prototype only | `saturate(1.4)` on the blurred backdrop | | CSS only. Android's blur has no saturation; the tint at 80 % does the work on the device, and the renders are a touch more vivid than the build will be (HYPOTHESIS until the Porter's capture; §10) |
+
+The glass is drawn in three layers, back to front: the blur (platform), the tint with the specular and outline (one rounded rect), and the rim with its glow (one stroked path). The bloom is a radial gradient in the tint layer. Nothing else is translucent over the desktop; paper is translucent over the glass only.
+
+### 4.2 Paper
+
+| Token | Light | Dark | Used for |
+|---|---|---|---|
+| `quire.paper` | `surfaceContainerLowest` at 72 % | `surfaceContainerHigh` at 80 % | Cards: plan, the destructive question, an agent's request, changes, error, sign-in, agents; the folded-steps chip; the undo pill; paper buttons |
+| `quire.paper.line` | white at 90 %, 1 dp, inside the top edge | white at 10 % | The lit edge of a sheet |
+| `quire.paper.outline` | `outlineVariant` at 40 % | `outlineVariant` at 60 % | The sheet's edge |
+| `quire.field` | `surfaceContainerLowest` at 80 % | `surfaceContainerHighest` at 85 % | The field, change rows, the command chip, the diff, details |
+| Radius | 16 dp cards, 22 dp field, 10 dp rows, pill for pills | | |
+
+Paper sits on glass, so the same word can be read as "a sheet on the pane": it is a little more opaque than the glass, lit on its top edge, and never blurred on its own (the glass under it already is).
+
+### 4.3 Ink
+
+| Token | Light | Dark | Used for |
+|---|---|---|---|
+| `quire.ink` | `onSurface` | `onSurface` | Answers, the prompt, titles, step titles, text buttons, pill labels |
+| `quire.ink.soft` | `onSurface` blended 85 % over the note's colour (`#4F5058` on Folio) | the same (`#CAC5D0` on Folio) | The quiet line, kind icons, pending steps, placeholders, sub-lines, card metadata |
+| `quire.ink.rule` | `primary` at 55 %, fading to transparent at the right | the same | The rule under the prompt |
+| `quire.ink.caret` | `primary`, 2 dp | the same | The caret in the field and at the end of streaming text |
+| `quire.ink.mark` | `primary` (the running dot), `success` (the tick), `error` (the cross) | the same | The pen's marks on steps |
+
+Soft ink is derived, not a fixed grey: `onSurfaceVariant` fails at the worst backdrop once the glass is below 92 % (ANAL-215 measured 4.0:1 at 80 %), while `onSurface` at 85 % over the note passes at 80 % on every wallpaper (§7.4). The build computes it from the two roles.
+
+### 4.4 Buttons on glass
+
+| Kind | Look | Used for |
+|---|---|---|
+| Filled | `primary` / `onPrimary` | The safe choice (Keep it), Take over, Connect, Sign in, send |
+| Tonal | `secondaryContainer` / `onSecondaryContainer` | An agent's `allow_always` option; the picker's selection |
+| Paper | `quire.paper` with its line and outline, label in ink | Undo, Pause, Try again, Run it, New, Use another agent |
+| Text | Label in ink, no surface | Show changes, Show log, History, an agent's reject option |
+| Stop pill | `errorContainer` / `onErrorContainer`, with the stop icon | Stop in the mirror; the destructive verb (Delete) |
+
+Text buttons are ink, not `primary`: at the worst backdrop a `primary` label on 80 % glass is 3.8:1 in light (§7.4), and ink is 7.5:1. The same holds for Stop: `error` as text is 3.4:1 on the dark glass over white, so Stop and Delete sit on `errorContainer`, which is 4.5:1 or better on every wallpaper (the closest pair in the whole design; the system's own role pair).
+
+### 4.5 Cost and fallbacks
+
+**What the blur costs (C, ANAL-203, `docs/googlebook-ui.md` §2.3).** The shade's blur in Cuttlefish costs SurfaceFlinger 2.8 to 4.0 ms of RenderEngine time per GPU-composed frame, full screen at 1920×1080 at 60 Hz; on the G14 the shade draws its blur at radius 51 px with no GPU hang, and its per-frame cost is still unmeasured (`frame_cost` waits for the graphics check). The G14 thresholds B2 set are RenderEngine ≤ 6 ms average and p90 ≤ 8 ms per GPU-composed frame, against a 120 Hz frame of 8.3 ms. Blur forces GPU composition for the frame, which on the G14 is the case for most frames anyway (`use_overlay_planes=false`, C).
+
+**What the note asks for.** The note blurs only its own area: 400×88 dp in the first moment and at most 480 dp × 60 % of the display height when grown, so at 1.5× between 0.16 and 0.7 Mpx of the G14's 5.2 Mpx panel, 3 % to 13 % of what the shade blurs. The Kawase dual filter's cost scales with the blurred area, so the note's blur should cost between 0.1 and 0.6 ms per frame by proportion (HYPOTHESIS; a different GPU and a smaller surface, so the Porter measures it, §10). The mirror state cuts the blur out under the pane (Q5, C), which keeps the largest note at the same cost as a 760×180 dp strip.
+
+**Budgets the Porter measures against, on the G14 at 120 Hz** (the acceptance for this issue):
+
+| Path | Budget |
+|---|---|
+| The note's blur | ≤ 1.5 ms RenderEngine per GPU-composed frame while the note is up, measured as B2 does (`scripts/ui/blur-report.py`'s method on `dumpsys SurfaceFlinger --timestats`) |
+| Open (unroll + rim) | ≤ 2 janky frames in the open, `dumpsys gfxinfo dev.openbook.quire` |
+| Streaming (ink, 10 s answer) | janky frames ≤ 5 % |
+| Fold | ≤ 1 janky frame |
+| Rim while working | one invalidation per frame of the rim view only, ≤ 0.3 ms CPU; nothing else redraws |
+| Idle note | zero invalidations except the caret at 1 Hz |
+
+If the blur budget fails, the knob is the radius (34 → 24 dp), not the alpha; if the rim's turn fails, it stands still (the design loses nothing, §5.3).
+
+**Blur off.** `WindowManager.isCrossWindowBlurEnabled()` is false, with a listener for changes (`addCrossWindowBlurEnabledListener`), when WM's `BlurController` turns blur off: battery saver, thermal status SEVERE or above, tunnel mode, or `Settings.Global.disable_window_blurs` from Developer options (C for the controller's rules, `docs/googlebook-ui.md` §2.3; ⚑ the Porter confirms the API in our tree). This is also the "Reduce transparency" case: Android has no such setting, so the platform's own switch is the one honoured. With it off:
+
+| | Glass on | Blur off |
+|---|---|---|
+| Note | tint at 80 % over the blur | tint at 96 %, no blur |
+| Bloom | on | off |
+| Rim | 70 % / 80 % | 60 % of that, no glow |
+| Paper, field | translucent | opaque (`surfaceContainerLowest` / `surfaceContainerHigh`) |
+| Shadow, outline, specular | on | shadow and outline on; specular off |
+| Loops (rim turn, leaf breathe, ink dot, caret) | on | off: economy. The running mark is a still dot with a halo; the rim stands at 200° |
+
+Contrast at 96 % passes trivially (every pair is at or above its glass-on value). The layout does not change, so nothing moves when blur switches mid-task; the note re-draws its surface on the listener.
+
+**Remove animations** (`ValueAnimator.areAnimatorsEnabled()` false) is separate from blur off and is §5.3: every spring and fade is a cut, the glass stays.
+
+## 5. Notepen to paper: motion
+
+### 5.1 Tokens
+
+Springs are stiffness and damping ratio, mass 1 (Compose `spring(dampingRatio, stiffness)`, `SpringForce`). Durations are for non-spatial changes, with Material 3's easing. The last column is the Remove-animations behaviour.
+
+| Token | Value | Settle | Used for | Remove animations |
+|---|---|---|---|---|
+| `quire.spring.unfold` | stiffness 380, damping 0.80 | ≈ 300 ms, one 3 % overshoot | The sheet's scale 0.6 → 1 out of the pen or up from the taskbar | A cut to the final geometry |
+| `quire.spring.settle` | 700, 0.90 | ≈ 170 ms | Reflow when content grows; the picker; the tray | A cut |
+| `quire.spring.expand` | 300, 0.85 | ≈ 270 ms | The note into the mirror and back; the mirror's zoom | A cut |
+| `quire.spring.fold` | 900, 1.00 | ≈ 130 ms, no overshoot | The sheet back into the pen or the taskbar | A cut |
+| `quire.spring.tick` | 1400, 0.70 | ≈ 150 ms (full size at ≈ 90 ms) | The halo bloom, the taskbar press | Appears at full size |
+| `quire.duration.unroll` | 220 ms, emphasised decelerate `(0.05, 0.7, 0.1, 1)` | | The sheet's clip from 0 to its full height, from the origin | A cut |
+| `quire.duration.rim` | 200 ms, standard `(0.2, 0, 0, 1)` | | The rim lighting up at the end of the unroll | Lit at once |
+| `quire.duration.unwrite` | 160 ms, emphasised accelerate `(0.3, 0, 0.8, 0.15)` | | The rim going dark before the fold | Dark at once |
+| `quire.duration.ink` | 160 ms, standard; stagger 24 ms per word, at most 6 words in flight | | A word arriving: opacity 0 → 1 and a 2 dp rise | Appears at once |
+| `quire.duration.rule` | 240 ms, emphasised decelerate, after a 120 ms delay | | The rule drawn left to right under the sent prompt | Drawn at once |
+| `quire.duration.draw` | 180 ms, emphasised decelerate | | A tick or cross drawn as a stroke (path length 17 dp and 23 dp at 20 dp) | Drawn at once |
+| `quire.duration.fade` | 120 ms, standard | | Labels, the halo label, the tap ring, a new step row | 0 ms |
+| `quire.duration.fade.slow` | 200 ms, standard | | The halo out, the system dialog in, Chrome appearing behind the note | 0 ms |
+| `quire.loop.rim` | one turn per 12 s, linear, while the agent works | | The rim's light moving around the sheet: "it is thinking" | Still, at 200° |
+| `quire.loop.breathe` | scale 1 → 1.08 → 1, 1600 ms, standard | | The leaf while thinking, the mic ring, the taskbar button while an app is driven | Still |
+| `quire.loop.inkdot` | scale 1 → 1.35 → 1 and opacity 0.9 → 0.55 → 0.9, 900 ms, ease-in-out | | The running step's mark | A still dot with a 3 dp halo at 30 % |
+| `quire.loop.caret` | 1 Hz, step | | The caret | A still caret |
+| `quire.loop.levels` | 1100 ms ease-in-out per bar, staggered 50 ms | | The mic level bars | The current level, no easing |
+
+### 5.2 Choreography
+
+**Out from the pen** (`invoke-shake` → `open`)
+
+1. t = 0: the halo scales 0 → 1 with `spring.tick`; the intake outline and the label fade in over 120 ms.
+2. t = 150 ms: the sheet appears at scale 0.6 with its transform origin on the hotspot and opacity 0, clipped to zero height at its origin edge. It unrolls (the clip opens to the full height over 220 ms, `duration.unroll`) while it scales to 1 with `spring.unfold` and fades in over 120 ms. The rim is dark until t ≈ 310 ms, then lights up over 200 ms (`duration.rim`), so the last thing to arrive is the light on the edge. From the taskbar, the sheet unrolls upward from the button.
+3. t = 390 ms: the halo fades out over 200 ms. The field has focus from the first frame the sheet exists; the label fades out as the sheet appears.
+
+**The words** (`compose` → `streaming`)
+
+- Typing adds letters at once. On Enter the field's text moves to the prompt line and is written in ink: each word arrives with `duration.ink`, 24 ms apart. Then the rule is drawn under the words, left to right (`duration.rule`), and the body opens with `spring.settle`.
+- "Thinking…" shows with the breathing leaf until the first message chunk. The rim begins its turn (`loop.rim`) on send and stops when the run ends.
+- The answer arrives as ink: each new word rises into place (`duration.ink`), at most six in flight; when chunks arrive faster than that, later words appear without the stagger, so the text never lags the agent by more than ≈ 150 ms. Sentences complete; nothing moves after it has arrived. The caret sits after the last word.
+
+**The marks** (`steps`)
+
+- A new step row fades in (120 ms). Its mark is the ink dot, pulsing (`loop.inkdot`).
+- When the step completes, the dot is replaced in the same frame by the tick, drawn as a stroke from its start to its end (`duration.draw`). A failed step draws the cross the same way in `error`.
+- A change's Undo pill fades in with the tick (120 ms). Pressing it strikes the step, turns the pill into "Undone", and the result line re-flows with `spring.settle`.
+- When the run ends, the step list folds into its chip with `spring.settle`; the rim stops turning.
+
+**The question** (`confirm-destructive`): the card fades in on paper (120 ms) and the note reflows with `spring.settle`; focus lands on the card, then Tab reaches Keep. The rim keeps turning: the run is waiting, not over.
+
+**Into the mirror** (`consent-system` → `mirror`): width 400 → 760 and height to fit, both with `spring.expand`; the pane fades in over 200 ms once the size has settled 90 %. The transform origin stays where the note was anchored. Back from the mirror uses the same spring in reverse.
+
+**Settle** (content arrives): the note's height, and width when it changes class, animate with `spring.settle`. Content inside is laid out at its final position and fades or inks in; nothing slides. If the note would leave the screen, its position moves with the same spring.
+
+**Fold back** (`done` → nothing)
+
+1. The rim goes dark over 160 ms (`duration.unwrite`).
+2. The sheet rolls up towards its origin: the clip closes towards the origin edge and the scale goes 1 → 0.6 with `spring.fold`; opacity 1 → 0 over the last 60 % of the travel. Into the taskbar, the sheet also travels to the button; on arrival the button presses (`spring.tick`) and the ring or badge appears.
+
+**The tray** opens from the button with `spring.settle` on scale 0.9 → 1 and a 120 ms fade, origin bottom centre.
+
+### 5.3 Remove animations, and economy
+
+Android's "Remove animations" sets the animator duration scale to 0 (`ValueAnimator.areAnimatorsEnabled()` is false). `SpringAnimation` does not read that scale, so the build checks it itself (Q5 does, C: `Motion.enabled`). With it on, every token behaves as the last column of §5.1: the sheet appears at rest and disappears in one frame; words, rules and ticks are drawn at once; every loop is still. Nothing is conveyed by motion alone: every state also has text or a shape, so Remove animations loses nothing.
+
+**Economy** is the other switch: when the platform turns blur off (§4.5), the loops stop too, but springs and fades stay. The person asked for battery, not for stillness; a 300 ms unroll costs nothing against a loop that runs for a minute.
+
+### 5.4 Frame budget
+
+The note is one window with a blurred backdrop. While a run is on, the continuous work is the rim's turn (one stroked path, one invalidation per frame on its own view), the ink dot on one 8 dp mark, the breathing 18 dp leaf, and the words arriving (alpha and a 2 dp translate on spans, at most six at a time). At rest the only work is the caret at 1 Hz. The mirror's cost is the platform's. §4.5 gives the numbers the Porter measures against at 120 Hz.
+
+## 6. Easier
+
+What was on screen in Q3's first moment, and what is now:
+
+| Q3 (`compose`) | Q7 (`open`) |
+|---|---|
+| Header: leaf, agent chip with where and a chevron, Hide, Close | gone; the agent's name is on the quiet line |
+| Intake chip with a thumbnail and a remove button | the intake on the quiet line, as text with a 20×13 thumbnail; clicking it drops the intake |
+| Three suggestion chips | gone |
+| The field, a mic button and a send button beside it | one pill: the leaf, the field, the mic and send inside it |
+| Footer with two key hints | the quiet line: agent · intake · Esc close · × |
+| 11 interactive things, 7 lines | 4 interactive things (the field, the agent, the intake, ×), 2 lines, 88 dp tall |
+
+Rules:
+
+- **One place to type.** The field is the only control that takes text, and it always has focus when the note opens, after a send, and after a run ends (unless a card or a result button takes it, §8.2). Its placeholder is "Ask Quire", then "Ask a follow-up".
+- **The agent is shown quietly.** A 14 dp avatar and the name, in 12 sp, on the quiet line. Where it runs ("on this laptop", "in the Linux environment", "on Brian's desk") is in the picker, in the tooltip and in the TalkBack label, not on the line; the one exception is "not connected", which shows beside "No agent". The name is a button: it opens the picker.
+- **No chrome until it is needed.** No header. The × is on the quiet line, 24 dp. Hide and Close are the same ×: while a task runs it hides (the task keeps running), otherwise it closes. The key hint beside it says which.
+- **Nothing asks unless it must.** Non-destructive changes happen and show their Undo. The destructive card is the one question, and the safe answer is the obvious one.
+- **Suggestions are out.** Q6 makes the agent know where it is; it does not need the person to pick a starter. If the owner wants them back, they return as one quiet "Try:" line, never as chips.
+- **The quiet line gives way in order.** While a state shows, the intake keeps the app's name only ("Settings · Display" → "Settings") and an empty intake ("Add what's on screen") is dropped; if the line still does not fit, the intake's name truncates. The state text carries no elapsed time (that is on the result's sub-line). The agent's name, the state and the key hint never truncate.
+
+## 7. Visual tokens
+
+### 7.1 Type
+
+Google Sans for everything in the note (the system's `google-sans*` families, C). Google Sans Code for code. Sizes in sp; line height after the slash. Unchanged from Q3.
 
 | Role | Size | Weight | Used for |
 |---|---|---|---|
 | `quire.type.prompt` | 15/22 | 500 | The person's prompt |
 | `quire.type.body` | 15/22 | 400 | Answers, results |
-| `quire.type.label` | 14/20 | 400 | Steps, plan entries, auth rows, field text |
-| `quire.type.chip` | 13/20 | 500 | Agent chip, intake chip, buttons, card titles (600) |
-| `quire.type.meta` | 12/16 | 400 | Footer, change rows' "where", timestamps, kbd hints |
+| `quire.type.label` | 14/20 | 400 | Steps, plan entries, auth rows, the field; the step's value at 500 |
+| `quire.type.chip` | 13/20 | 500 | Buttons, pills, card titles (600) |
+| `quire.type.meta` | 12/16 | 400 | The quiet line (the agent's name at 500), sub-lines, change rows' "where", key hints |
 | `quire.type.code` | 12.5/18 | 400 | Code blocks, commands, diffs (Google Sans Code) |
 | `quire.type.sysdialog` | 22/28 | 400 | The platform dialog's title (platform-owned) |
 
-### 4.2 Spacing and shape
+### 7.2 Spacing and shape
 
 | Token | Value |
 |---|---|
-| Spacing scale | 4, 8, 12, 16, 24, 32 dp. Block gap 10 dp inside the body; chip gap 6 dp; button gap 8 dp. |
+| Spacing scale | 4, 8, 12, 16, 24, 32 dp. Block gap 10 dp inside the body; button gap 8 dp (6 dp between a card's options). |
 | Note radius | 28 dp |
-| Card radius | 16 dp |
-| Mirror, image, code radius | 16, 12, 12 dp |
-| Field radius | 20 dp |
-| Chips, buttons | pill |
-| Button height | 36 dp, 16 dp side padding (12 for text buttons) |
-| Icon button | 32 dp, icon 20 dp |
-| Composer buttons | 40 dp |
-| Step row | 28 dp min height, 10 dp gap, 20 dp status mark, 16 dp kind icon |
+| Paper radius | 16 dp |
+| Field | 44 dp tall, radius 22; 14 dp left padding, 6 dp right; the leaf 18 dp; mic and send 32 dp inside it |
+| Mirror pane, image, code radius | 16, 12, 12 dp |
+| Pills (undo, folded steps, stop) | 24 dp tall (undo), 28 dp (folded steps), 36 dp (stop); pill radius |
+| Button height | 36 dp, 16 dp side padding (10 for text buttons) |
+| Icon button | 32 dp, icon 20 dp; on the quiet line 24 dp, icon 18 dp |
+| Step row | 28 dp min height, 10 dp gap, 20 dp mark, 16 dp kind icon |
+| Quiet line | 24 dp tall, 12/16; 16 dp left, 10 dp right, 8 dp bottom |
+| Rim | 1.5 dp |
 | Focus ring | 2 dp `primary`, 2 dp offset (buttons: a 2 dp `surface` gap then 2 dp `primary`) |
 
-### 4.3 Colour
+### 7.3 Colour
 
-All roles are Material 3 TonalSpot, derived by Android 17 from the current wallpaper. The prototype uses the values `scripts/brand/monet.py`'s library computes for the Folio wallpapers (seed `#959DE5` light, `#9F87FE` dark), which the device matched within 3 RGB units in ANAL-207 (C). Q5 reads them from the theme (`android.R.attr.colorPrimary` and the `system_*` palettes), never from constants.
+All roles are Material 3 TonalSpot, derived by Android 17 from the current wallpaper. The prototype uses the values `scripts/brand/monet.py`'s library computes for the Folio wallpapers (seed `#959DE5` light, `#9F87FE` dark; spec 2025). The build reads them from the theme (`system_*` colours; Q5's `Palette.kt`, C), never from constants; the only fixed colours are the success green and the brand's hues.
 
 | Use | Role | Light | Dark |
 |---|---|---|---|
-| Answer text, titles | `onSurface` | `#31323B` | `#E9E3EF` |
-| Secondary text, footer, pending marks | `onSurfaceVariant` | `#5E5E68` | `#AEA9B5` |
-| Filled button (Allow, send, Take over), progress ring, focus ring, focus rings in the mirror | `primary` / `onPrimary` | `#565B8C` / `#FBF8FF` | `#CBC0ED` / `#423B5F` |
+| Ink | `onSurface` | `#31323B` | `#E9E3EF` |
+| Soft ink | `onSurface` ⊕ note 85 % | `#4F5058` | `#CAC5D0` |
+| The glass | `surface` / `surfaceContainer` at 80 % | `#FBF8FE` | `#1A191F` |
+| Paper | `surfaceContainerLowest` at 72 % / `surfaceContainerHigh` at 80 % | `#FFFFFF` | `#201F26` |
+| The field | `surfaceContainerLowest` at 80 % / `surfaceContainerHighest` at 85 % | `#FFFFFF` | `#27252D` |
+| Filled button, focus ring, caret, rule, the ink dot, the agent's pointer rings | `primary` / `onPrimary` | `#565B8C` / `#FBF8FF` | `#CBC0ED` / `#423B5F` |
 | New value pill | `primaryContainer` / `onPrimaryContainer` | `#C0C5FD` / `#393E6D` | `#554D73` / `#E7DFFF` |
-| Tonal button, intake chip, selected agent, Ask Quire toolbar item | `secondaryContainer` / `onSecondaryContainer` | `#E0E0F9` / `#4F5065` | `#3D394D` / `#C3BCD4` |
+| Tonal button, the picker's selection | `secondaryContainer` / `onSecondaryContainer` | `#E0E0F9` / `#4F5065` | `#3D394D` / `#C3BCD4` |
 | Automation chip | `tertiaryContainer` / `onTertiaryContainer` | `#F0CBF8` / `#5C4166` | `#F1C0E6` / `#5E3958` |
-| Error text, failed step, Stop | `error` | `#A8364B` | `#F97386` |
-| Done check, mic indicator | `success`-tinted (from the green `system_accent` is not available; use `#2F6B45` / `#9BD5A8`, containers `#BDEBCB` / `#1E4A2F`) | | |
+| Stop pill, Delete | `errorContainer` / `onErrorContainer` | `#F97386` / `#6E0523` | `#871C34` / `#FF97A3` |
+| The cross, the error card's rim, failed step text | `error` | `#A8364B` | `#F97386` |
+| The tick, the mic indicator | `success` (fixed: `#2F6B45` / `#9BD5A8`; containers `#BDEBCB` / `#1E4A2F`) | | |
 | Halo label, Jump pill, code block (light) | `inverseSurface` / `inverseOnSurface` | `#0E0E12` / `#E9E3EF` | `#FDF8FE` / `#31323B` |
-| Card, field | `surfaceContainer` (light), `surfaceContainerHigh` (dark) | `#EFECF6` | `#201F26` |
-| Note | `note-bg` | `surface` `#FBF8FE` at 92 % | `surfaceContainer` `#1A191F` at 92 % |
-| Outline | `outlineVariant` | `#B2B1BC` | `#494650` |
+| Paper outline | `outlineVariant` at 40 % / 60 % | `#B2B1BC` | `#494650` |
 
-The **brand gradient** (`#7E8CFF → #4355B9`, fold `#FFB38A → #FF7A9C`, halo conic through `#D08BFF`) appears only on the leaf glyph, the halo, and the agent's pointer in the mirror.
+The **brand hues** (`#7E8CFF → #4355B9`, fold `#FFB38A → #FF7A9C`, halo conic through `#D08BFF`) appear only on the leaf, the halo, the rim and the agent's pointer in the mirror.
 
-### 4.4 The glyph and the halo
+### 7.4 Contrast (measured)
 
-- **Leaf:** a 24 dp page, 16×18 with 3.5 dp corners, the top-right corner folded as a 6 dp triangle in the spark gradient. In the note header at 22 dp, in chips at 14–16 dp, in the taskbar at 24 dp. While the agent thinks it breathes (§5). It is OpenBook's own; it is not a star, a sparkle or a ring of light.
-- **Halo:** a 32 dp ring with a 2 dp conic stroke. Listening: 40 dp. It blooms with `spring.tick` and fades out 200 ms after the note has opened. It is never shown at the same time as the note at rest.
-
-### 4.5 Contrast (measured)
-
-`scripts/quire/contrast-check.py --md`, run on the prototype's tokens. "Worst backdrop" means the translucent note composited over black and over white, scored at whichever gives the lower ratio; that bounds every real backdrop under the blur. (The first version of the check picked one backdrop from the foreground's luminance, which chose black for the dark theme's mid-luminance text and reported 8.0:1 for a pair that is 4.0:1 over white. ANAL-217's review caught it; the corrected script reproduces those failures on the previous tokens.)
+`scripts/quire/contrast-check.py --md`, on the prototype's tokens. Every pair is composited through its stack (paper or field over the glass) over black and over white, and scored at the lower ratio; that bounds every real backdrop under the blur, which averages what is behind and never makes it darker than black or lighter than white.
 
 | Pair (foreground on background) | Light | Dark | Target |
 |---|---|---|---|
-| Answer text on the note | 10.1:1 pass | 11.1:1 pass | 4.5:1 (worst backdrop) |
-| Secondary text on the note | 5.1:1 pass | 6.1:1 pass | 4.5:1 (worst backdrop) |
-| Secondary text on a card | 5.5:1 pass | 7.6:1 pass | 4.5:1 |
-| Secondary text on a card (dark uses surface-high) | 5.2:1 pass | 7.1:1 pass | 4.5:1 |
-| Filled button: Allow | 6.1:1 pass | 6.1:1 pass | 4.5:1 |
-| Tonal button: Allow for this session (allow_always) | 6.1:1 pass | 6.1:1 pass | 4.5:1 |
-| Text button: Don’t allow | 5.1:1 pass | 8.2:1 pass | 4.5:1 (worst backdrop) |
+| Ink: answer text, titles, text buttons, on the glass | 7.5:1 pass | 7.3:1 pass | 4.5:1 (worst backdrop) |
+| Soft ink: the quiet line, step kinds, pending steps, on the glass | 4.8:1 pass | 5.4:1 pass | 4.5:1 (worst backdrop) |
+| Soft ink on paper (cards) | 7.0:1 pass | 8.7:1 pass | 4.5:1 (worst backdrop) |
+| Soft ink in the field (placeholder) and on change rows | 7.3:1 pass | 8.4:1 pass | 4.5:1 (worst backdrop) |
+| Ink on paper (undo pill, paper button) | 11.1:1 pass | 11.8:1 pass | 4.5:1 (worst backdrop) |
+| Filled button: Keep it, Take over, send | 6.1:1 pass | 6.1:1 pass | 4.5:1 |
+| Tonal button, agent picker selection | 6.1:1 pass | 6.1:1 pass | 4.5:1 |
+| Stop pill, Delete | 4.6:1 pass | 4.5:1 pass | 4.5:1 |
 | New value pill | 6.1:1 pass | 6.1:1 pass | 4.5:1 |
 | Mic indicator | 9.6:1 pass | 7.7:1 pass | 4.5:1 |
 | Automation chip (Using Settings) | 6.1:1 pass | 6.1:1 pass | 4.5:1 |
-| Halo label, Jump pill | 15.3:1 pass | 12.1:1 pass | 4.5:1 |
-| Danger text: Stop | 5.1:1 pass | 5.2:1 pass | 4.5:1 (worst backdrop) |
-| Intake chip | 6.1:1 pass | 6.1:1 pass | 4.5:1 |
-| Done check (icon, non-text) | 5.0:1 pass | 8.3:1 pass | 3.0:1 (worst backdrop) |
-| Focus ring (non-text) | 5.1:1 pass | 8.2:1 pass | 3.0:1 (worst backdrop) |
-| Pending-step outline (non-text) | 5.1:1 pass | 6.1:1 pass | 3.0:1 (worst backdrop) |
-| Field outline on focus (non-text) | 5.5:1 pass | 10.2:1 pass | 3.0:1 |
+| Halo label, Jump pill, paused pill | 15.3:1 pass | 12.1:1 pass | 4.5:1 |
+| Done tick (non-text) on the glass | 3.8:1 pass | 5.5:1 pass | 3.0:1 (worst backdrop) |
+| Focus ring (non-text) on the glass | 3.8:1 pass | 5.4:1 pass | 3.0:1 (worst backdrop) |
+| Focus ring (non-text) on paper | 5.6:1 pass | 8.7:1 pass | 3.0:1 (worst backdrop) |
+| Pending-step ring, soft ink (non-text) | 4.8:1 pass | 5.4:1 pass | 3.0:1 (worst backdrop) |
+| Field outline on focus (non-text) | 5.8:1 pass | 8.3:1 pass | 3.0:1 (worst backdrop) |
+| Running mark, the ink dot (non-text) | 3.8:1 pass | 5.4:1 pass | 3.0:1 (worst backdrop) |
 
-What the check changed: at 84 % the light note failed three pairs (4.2:1) over a black backdrop, so the light note is 92 %. At 80 % the dark note failed secondary text (4.0:1) and Stop (3.4:1) over a white backdrop, so the dark note is 92 % as well; at 88 % Stop passes by 0.06, too close. The pending step's ring was `outline` (2.8:1) and is now `onSurfaceVariant`. Other wallpapers give other roles; Q5 runs the same check against the device's actual palette for all eight OpenBook wallpapers, and the note's alpha is the one knob to turn if one fails.
+**All eight wallpapers** (`scripts/quire/q7-contrast.py --md`, the system's own roles for each wallpaper's seed, light and dark, glass at 80 %): every pair passes on every wallpaper. The closest pair everywhere is the Stop pill at 4.54 to 4.58:1, which is the system's own `errorContainer` / `onErrorContainer` pair and does not depend on the glass. The next closest is soft ink on the glass in light at 4.8:1 over black. Lowering the glass below 80 % fails soft ink first (4.1:1 at 74 %); raising it gains nothing visible. 80 % is the number.
 
-### 4.6 Icons
+What the check changed from Q3: text buttons and Stop were `primary` and `error` as text on the note; at 80 % they are 3.8:1 and 3.4:1 at the worst backdrop, so text buttons are ink and Stop is a pill (§4.4). Secondary text was `onSurfaceVariant` (4.0:1 at 80 %); it is soft ink (§4.3). The pending ring follows soft ink. With those three changes the glass could come down from 92 % to 80 %.
 
-Material Symbols Rounded (Apache-2.0, already in the tree for Settings), weight 400, optical size 24, filled for status marks and the mic indicator, outlined elsewhere. Kinds map to icons: read → `visibility`, edit → `edit`, delete → `delete`, move → `drive_file_move`, search → `search`, execute → `terminal`, think → `psychology`, fetch → `language`, other → `more_horiz`; Quire's own tools: setting → `tune`, app → `apps`, window → `select_window`.
+The rim, the bloom, the specular and the rule are decorative and have no target; the rim never carries meaning that the step's text does not.
 
-## 5. Motion
+### 7.5 Icons
 
-### 5.1 Tokens
+Material Symbols Rounded (Apache-2.0), weight 400, optical size 24, filled for status marks and the mic indicator, outlined elsewhere. Kinds map to icons as in Q3: read → `visibility`, edit → `edit`, delete → `delete`, move → `drive_file_move`, search → `search`, execute → `terminal`, think → `psychology`, fetch and web → `language`, file → `folder`, other → `more_horiz`; Quire's own tools: setting → `tune`, app → `apps`, window → `select_window`. The tick and the cross are not symbols: they are strokes the build draws (§10).
 
-Springs are given as stiffness and damping ratio, mass 1, which is what Compose's `spring(dampingRatio, stiffness)` and `androidx.dynamicanimation.SpringForce` take. The settle time is the time to within 1 % at 60 Hz, for reference only; springs have no duration. Durations are for opacity and other non-spatial changes, with Material 3's easing.
+## 8. Accessibility
 
-| Token | Value | Settle | Used for |
-|---|---|---|---|
-| `quire.spring.unfold` | stiffness 380, damping 0.80 | ≈ 300 ms, one 3 % overshoot | The note out of the pointer or up from the taskbar |
-| `quire.spring.settle` | 700, 0.90 | ≈ 170 ms | Reflow when content grows, the agent picker, the tray |
-| `quire.spring.expand` | 300, 0.85 | ≈ 270 ms | The note into the mirror and back |
-| `quire.spring.fold` | 900, 1.00 | ≈ 130 ms, no overshoot | The note into the pointer or the taskbar |
-| `quire.spring.tick` | 1400, 0.70 | ≈ 150 ms (full size at ≈ 90 ms) | The halo bloom, the check-mark pop, the taskbar press |
-| `quire.duration.fade` | 120 ms, standard `(0.2, 0, 0, 1)` | | Labels, chips, the caret, the tap ring |
-| `quire.duration.fade.slow` | 200 ms, standard | | The halo out, the system dialog in |
-| `quire.loop.breathe` | scale 1 → 1.08 → 1, 1600 ms, standard, loop | | The leaf while thinking, the mic ring, the taskbar button while an app is driven |
-| `quire.loop.spinner` | 1 rotation per 1000 ms, linear | | The running step |
-| `quire.loop.caret` | 1 Hz, step | | Streaming text |
-| `quire.loop.levels` | 1100 ms ease-in-out per bar, staggered 50 ms | | The mic level bars |
-
-### 5.2 Choreography
-
-**Out from the pointer** (`invoke-shake` → `compose`)
-
-1. t = 0: the halo scales 0 → 1 with `spring.tick`; the intake outline fades in over 120 ms. The label fades in at the same time.
-2. t = 150 ms: the note appears at scale 0.2 with its transform origin on the hotspot and opacity 0, then scales to 1 with `spring.unfold` while its opacity goes to 1 over 120 ms. The label fades out over 120 ms.
-3. t = 390 ms: the halo fades out over 200 ms. The field has focus from the first frame the note exists.
-
-**Settle** (content arrives): the note's height, and width when it changes class, animate with `spring.settle` from the old size to the new. Content inside is laid out at its final position and fades in over 120 ms; nothing slides. If the note would leave the screen, its position moves with the same spring.
-
-**Expand into the mirror** (`consent-system` → `mirror`): width 400 → 760 and height to fit, both with `spring.expand`; the mirror surface fades in over 200 ms once the size has settled 90 %. The transform origin stays where the note was anchored, so it grows away from the pointer. Back from the mirror uses the same spring in reverse.
-
-**Steps tick:** a new step fades in (120 ms). When it completes, the check scales 0.6 → 1 with `spring.tick` and the spinner is replaced in the same frame. When the run ends, the step list collapses to its chip with `spring.settle`.
-
-**Fold back** (`done` → nothing): scale 1 → 0.2 towards the transform origin (the hotspot, or the taskbar button's centre) with `spring.fold`; opacity 1 → 0 over the last 60 % of the travel. Into the taskbar, the note also translates to the button; on arrival the button does its press (`spring.tick`) and the ring or badge appears.
-
-**The tray** opens from the button with `spring.settle` on scale 0.9 → 1 and a 120 ms fade, origin bottom centre.
-
-### 5.3 Remove animations
-
-Android's "Remove animations" sets the animator duration scale to 0 (`ValueAnimator.areAnimatorsEnabled()` is false). `SpringAnimation` does not read that scale, so Q5 checks it itself. With it on:
-
-| Token | Behaviour |
-|---|---|
-| `spring.unfold`, `settle`, `expand`, `fold` | A cut to the final geometry. The note appears at rest and disappears in one frame. |
-| `spring.tick` | The halo appears at full size; the check appears at full size; the taskbar button does not press. |
-| `duration.fade`, `fade.slow` | 0 ms. |
-| `loop.breathe` | Still. The thinking state is shown by the "Thinking…" line and the footer text instead of the glyph. |
-| `loop.spinner` | A still ring with a 270° arc. |
-| `loop.caret` | A still caret. |
-| `loop.levels` | The bars show the current level and update without easing. |
-
-Nothing is conveyed by motion alone: every state also has text or a shape, so Remove animations loses nothing.
-
-### 5.4 Frame budget
-
-The note is one window with a blurred backdrop; the only continuous work while idle is the caret (1 Hz) and the breathe loop on a 22 dp glyph. The mirror's cost is the platform's. Q5 measures the open, stream, consent and fold at 60 fps on the G14 (ANAL-219's acceptance), and the blur at the shade's radius is within B2's budget by construction (same radius, smaller area).
-
-## 6. Accessibility
-
-### 6.1 Keyboard paths
+### 8.1 Keyboard paths
 
 | Goal | Keys |
 |---|---|
 | Open Quire | Meta+Space; the assist key; Tab to the taskbar's Quire button and Enter |
 | Send | Enter. Shift+Enter inserts a new line. |
-| Stop a run | Esc, or Tab to Stop in the mirror. Cancels the run, answers any open permission request as cancelled, and shows Stopped. Esc never hides a running task. |
-| Close the note | Esc (when idle, done or stopped). A second Esc never does anything destructive. |
+| Stop a run | Esc, or Tab to Stop in the mirror. Cancels the run, answers any open request as cancelled (deletes nothing), and shows Stopped. Esc never hides a running task. |
+| Close the note | Esc (when idle, done or stopped), or Tab to × on the quiet line. A second Esc never does anything destructive. |
+| Hide a running task | Tab to × on the quiet line, Enter; or Meta+Space from anywhere; or Enter on the taskbar's Quire button. The task keeps running; Meta+Space or the taskbar button brings it back. |
 | Hold to talk | Hold the mic key or the assist key; release sends. Esc while holding cancels. |
-| Change the agent | Tab to the chip, Enter, arrows, Enter. Esc closes the list. |
-| Answer consent | Focus is on the card. Tab to the agent's options in the order shown, reject first (Claude Code: Don't allow, Allow for this session, Allow); Enter or Space. Nothing is chosen by default. |
-| Mirror | Tab to Pause, Stop, Take over. When paused, Tab into the mirror to act inside the session; Esc returns to the buttons. |
+| Change the agent | Tab to the agent's name on the quiet line, Enter, arrows, Enter. Esc closes the list. |
+| Drop the intake | Tab to the intake on the quiet line, Enter |
+| Answer the destructive question | Focus is on the card. Tab reaches Keep it first, then Delete; Enter or Space. Nothing is chosen by default. |
+| Answer an agent's request | Focus is on the card. Tab to the agent's options in the order shown, reject first; Enter or Space. |
+| Undo a change | Tab to the step's Undo pill, Enter; or to Undo on the result |
+| Mirror | Tab to Stop, Pause, Take over. When paused, Tab into the mirror to act inside the session; Esc returns to the buttons. |
 | Scroll a long answer | Page Up / Page Down in the body; Ctrl+End jumps to latest |
 | Copy a code block | Tab to the copy button, Enter; or select and Ctrl+C |
-| Hide a running task | Tab to the header's Hide button, Enter; or Meta+Space again from anywhere; or Enter on the taskbar's Quire button. The task keeps running; Meta+Space or the taskbar button brings it back where it was. |
-| Open the tray | Tab to the taskbar's Quire button, Enter; arrows between tasks |
 
-### 6.2 Focus order
+### 8.2 Focus order
 
-Header left to right (leaf is not focusable): agent chip → background → close. Then the intake chip's remove button, then the body top to bottom (steps are a list, not focusable individually; cards and their buttons are), then the suggestion chips, then the field → mic → send. Initial focus: the field on open; the consent card when it arrives; the result's first button on Done; the first auth method on sign-in; Resume when paused. Focus never jumps while the person is typing; a consent card arriving during typing is announced and reachable with Tab, and takes focus only if the field is empty.
+The field → mic → send; then the body top to bottom (steps are a list; an Undo pill, a card and its buttons are stops); then the quiet line left to right: the agent's name → the intake → ×. Initial focus: the field on open; the destructive card when it arrives (then Tab to Keep); an agent's request card when it arrives; the result's first button on Done; the first auth method on sign-in; Resume when paused. Focus never jumps while the person is typing; a card arriving during typing is announced and reachable with Tab, and takes focus only if the field is empty.
 
-### 6.3 TalkBack
+### 8.3 TalkBack
 
 | Element | Role | Label and announcements |
 |---|---|---|
 | Halo | live region, polite | "Quire. Pointing at Settings." / "Pointing at a secure window; nothing is taken in." |
 | Note | dialog | "Quire. Claude Code on this laptop." Opening announces the intake: "Taking in Settings, Display." |
-| Agent chip | button | "Agent: Claude Code on this laptop. Change." |
-| Intake chip | group with a button | "Taking in Settings, Display. Remove." / "Selection from Notes: 'The conference runs…'. Remove." |
 | Field | edit text | "Ask Quire." Hint: "Enter sends, Shift Enter new line." |
 | Mic | button | "Hold to talk." While held: "Listening." The transcript is a live region, polite. |
+| Quiet line: agent | button | "Agent: Claude Code on this laptop. Change." |
+| Quiet line: intake | button | "Taking in Settings, Display. Remove." / "Selection from Notes: 'The conference runs…'. Remove." / "Secure window, nothing taken in." |
+| Quiet line: × | button | "Close." / while running: "Hide the note; the task keeps running." |
 | Thinking | live region, polite | "Claude Code is thinking." once; not repeated per chunk. |
-| Answer | text, live region polite | Announced in sentences as they complete, not per chunk. |
-| Steps | list | Each: "Reading Display settings, done." / "Turning on Battery saver, running." Changes announced politely, one per step. |
+| Answer | text, live region polite | Announced in sentences as they complete, not per word. |
+| Steps | list | Each: "Opening Chrome, done." / "Going to foxnews.com, running." / "Settings: Dark theme on, done. Undo available." Changes announced politely, one per step. |
+| Undo pill | button | "Undo: Settings, Dark theme on." After: "Undone." |
 | Plan | list | "Plan, 1 of 4 done." Entries: "2, Turn off notifications during the talk, high priority, in progress." |
-| Consent card | group, live region assertive | "Claude Code asks to change 2 settings. Battery saver, off to on. Brightness level, 80 % to 40 %. You can undo this." then the options as the agent named them: "Buttons: Don't allow, Allow for this session, Allow." |
+| Destructive card | group, live region assertive | "Claude Code wants to delete a file. report-draft.pdf, in Downloads, 2.4 megabytes, today 11:40. It goes to the bin and can be restored from Files for 30 days. Buttons: Keep it, Delete." |
+| Agent's request card | group, live region assertive | As Q3: the title, the rows, then "Buttons:" and the agent's own names. |
 | Mirror | image, live region polite | "Live view of Settings, used by Claude Code. Step 2 of 4, tapping Connected devices." Updates per step, never per frame. Paused: "Paused. The mirror is interactive." |
-| Result | live region polite | "Done. Battery saver is on and brightness is at 40 %. Changed 2 settings. Undo available." |
+| Result | live region polite | "Done. Dark theme is on. Changed 1 setting. Undo available." |
 | Error | live region assertive | "Claude Code stopped. The agent closed the connection before finishing. Nothing was changed." |
 | Stopped | live region assertive | "Stopped after 3 of 4 steps. Battery saver was turned on. Lowering brightness was interrupted and may be partly applied; check Display settings. Undo available." |
-| Hide button | button | "Hide the note; the task keeps running." |
 | Taskbar button | button | "Quire." / "Quire, 2 tasks running, 1 needs your answer." |
-| Tray row | button | "Turn on Battery saver and lower the brightness. Needs your answer. Claude Code." |
+| Tray row | button | "Delete the newest file in Downloads. Needs your answer. Claude Code." |
 | Mic indicator | image | "Microphone in use by Quire." |
 
-### 6.4 Text size and display size
+The rim, the bloom, the ink reveal and the marks' drawing have no announcements: they repeat what the text says.
 
-The note is laid out in dp and sp, so Display size and Text size apply. At Text size "largest" (1.3×), the note's width stays 400 dp and the body wraps; the three consent buttons wrap to two rows (Allow stays right-aligned on its own row). At 2× display scaling on the G14 the note is 800 px wide, still under half the screen.
+### 8.4 Text size and display size
 
-### 6.5 Contrast
+The note is laid out in dp and sp, so Display size and Text size apply. At Text size "largest" (1.3×), the note's width stays 400 dp and the body wraps; the quiet line gives way in its order (§6) and, if the state text still does not fit, wraps to a second line with the agent and intake on the first and the state and × on the second. The destructive card's two buttons stay on one row to 1.3×. At 2× display scaling on the G14 the note is 800 px wide, still under half the screen.
 
-§4.5. Both themes pass, at the note's worst backdrop, for every text and non-text pair in the design.
+## 9. Mapping to ACP and the OS tools, and what the Porter checks
 
-## 7. Mapping to ACP and the OS tools, and what the Porter checks
-
-Each state's driver, and whether it exists today. **C** is from `docs/quire.md` §2, §4 or §6. **⚑** marks a gap or an assumption to confirm before Q5 builds that state.
+Q3's §7 mapping stands as confirmed by the Porter on ANAL-217 and built in Q5 (C). The rows that are new or changed:
 
 | State or element | ACP event or OS action | Status |
 |---|---|---|
-| Shake → halo | `GestureDetectionInteractor.onShakeGestureDetected()` → `invokeContextualSearch(ENTRYPOINT_SYSTEM_ACTION)`; the halo is a new SystemUI overlay fed by `MultiDisplayCursorPositionInteractor` | C, confirmed by the Porter on `8f5dedd3edc3`: feasible, new code. `contextualcursor/` has no UI layer and the listener gets no position, so Q5 passes the last cursor position to it and draws there. Meta+G is bound to the same path. |
-| Key → halo | Meta+Space and the Copilot key (Meta+Shift+F23) → `KEY_GESTURE_TYPE_LAUNCH_ASSISTANT` → `PhoneWindowManager.launchAssistAction` → `SearchManager.launchAssist` → SystemUI `AssistManager.startAssist` → the assistant role's voice-interaction session | C, corrected: not Q2's to add, and not contextual search. Intake is the assist data (`AssistStructure`, assist screenshot; gated by the assist-data settings). `allowCaptureByFocusedWindow = true`. The 10 s rule lives in SystemUI. ⚑ Q2 decides whether to keep two intake paths or route the keys to `KEY_GESTURE_TYPE_LAUNCH_CONTEXTUAL_SEARCH`. |
-| Intake: window under the pointer, name and screenshot | `EXTRA_SCREENSHOT` (whole display), `EXTRA_VISIBLE_PACKAGE_NAMES`; bounds via `ContextualSearchConfig.sourceBounds` and the pointer via `intentExtras`, set by SystemUI and copied onto the launch intent | C, corrected: SystemUI supplies the bounds; not the OS tools' "list windows". On the key path, `AssistStructure`'s window nodes give the focused window's bounds. |
-| Intake: secure window | `EXTRA_FLAG_SECURE_FOUND` | C. |
-| Ask Quire on a selection | `ACTION_PROCESS_TEXT` + `text/plain`, listed by `Editor.ProcessTextIntentActionsHandler` in the overflow (`SHOW_AS_ACTION_NEVER`), fired with `startActivityForResult` carrying `EXTRA_PROCESS_TEXT` and `EXTRA_PROCESS_TEXT_READONLY` | C, corrected: no role involved; a label without icon; no geometry (anchor at the pointer); the window name from `getCallingPackage()`; Quire must be force-queryable. ⚑ WebView and Compose text are not in the tree; Q5 tests them with real apps. |
-| Hold to talk | The assistant role's voice session; Q7's recogniser | ⚑ Q7. The design needs partial results (the grey partial words). |
-| Agent chip and picker | `quired agents`; `initialize` → `authMethods` | C. |
-| Streaming, thinking | `agent_message_chunk`, `agent_thought_chunk` | C. |
-| Steps | `tool_call`, `tool_call_update` (`kind`, `status`, `title`) | C. |
-| Plan | `plan` entries with `status`, `priority` | C. |
-| Consent card, agent actions | `session/request_permission` → `options[]` (`optionId`, `name`, `kind`); the answer is `{ outcome: selected, optionId }` or `{ outcome: cancelled }` | C. The buttons are the agent's options with the agent's names; `kind` only orders and styles them. |
-| Consent card, OS tools (settings old → new, apps, windows, computer control) | The broker's own card, raised while it holds the MCP `tools/call`, with Quire's options; the broker reads the current value when the call arrives, so old → new is exact | C, confirmed by the Porter. "Allow for this task" is broker-enforced here. `quired` pre-allows Quire's tools for Claude Code so one call raises one card. ⚑ Native ACP agents may ask first; Q6 handles them agent by agent. |
-| Stop (Esc, Stop) | The broker stops accepting calls, calls `notifyBlocked()` on a computer-control session, then sends `session/cancel`; a pending `request_permission` is answered `cancelled`; the turn ends with `stopReason: cancelled` | C, confirmed as a Q6 requirement. The broker knows which calls completed; the card lists only changes made through Quire's tools and says the agent's own file and command actions are not listed. |
-| Consent: diff and command | `tool_call.content` of type `diff`; the title for commands | C for ACP. Gap confirmed: `quired`'s Claude adapter sends a title and `rawInput` (`old_string`/`new_string`, `content`) but no `diff`; the Porter adds it from `rawInput` (for Write, `oldText` read from the file). ⚑ Native ACP agents: unverified, agent by agent. |
-| Platform consent | `onSessionPending` hands Quire an `IntentSender`; Quire launches `RequestComputerControlAccessActivity` | C, corrected copy (§3.3 rule 5): `ERROR_PERMISSION_DENIED` is shared by a refusal, a missing app-op, the visible-window check and cross-device authorisation; `ERROR_DEVICE_LOCKED` and `ERROR_SESSION_LIMIT_REACHED` have their own copy. ⚑ The dialog's look is the platform's; the render shows a stand-in. |
-| Mirror | `InteractiveMirror` on the session display; `resize(w, h)` sets only the surface | C, corrected: the session display has the reference display's size and density (1920×1200 dp on the G14; `ComputerControlSessionParams` has no size), so the view shows it at 0.383 and zooms 2× on the control the agent acts on (§3.4). ⚑ Q2 may instead patch the framework for a smaller session; the design does not need it. |
-| Agent pointer and tap ring in the mirror | Drawn by Quire core from the input it injects: `ComputerControlSession.tap`, `swipe`, `longPress`, `insertText`, `performAction`, `requestScreenshot`; the target control from `getAccessibilityWindows()` | C, confirmed: only the session owner holds the session object; agents in the Linux environment have no binder access and reach these only through Quire's MCP tools. |
-| Pause, Resume | `notifyBlocked()` (`BLOCK_REASON_CALLER_INITIATED`) + `setInteractive(true)`; `requestUnblock()` | C, corrected: the platform has a pause. Agent input is dropped without an error while not Active; the mirror is interactive only while Blocked. The broker holds the agent's input calls meanwhile. |
-| Take over | `handOverApplications()` | C. |
-| Stop | Close the session | C. A session also closes after the 60-minute global timeout or when its display is empty. |
-| Secure content, biometric prompt | `BLOCK_REASON_SECURE_CONTENT`, `BLOCK_REASON_AUTHENTICATION_PROMPT_REQUESTED` | C, corrected: these block the session, they do not close it (§3.4). |
-| Automation indicator | Launcher3 `enable_app_automation_indicator`; Quire's own taskbar breathe | C for the flag. ⚑ What the platform indicator looks like is unseen; the design adds the Quire button's breathe and does not draw the platform's. |
-| Done, error | `stopReason`; `quired`'s exit and stderr report | C. |
-| Not signed in | `authenticate`, `-32000 Authentication required` | C. |
-| Hidden task and tray | Quire core's session list | C, confirmed as core state. A request stays pending while hidden; ACP gives the agent no way to withdraw it, so the card handles the turn ending while it is open (it reads "The agent moved on" and closes). Hiding never cancels. |
-| Settings help, undo | The settings tool's change log with undo (Q6) | C, confirmed as a Q6 requirement: store namespace (system / secure / global), key, old value and new value; restore only if the setting still holds the new value. |
-| Long output → file | The Storage Access Framework (DocumentsUI, in AOSP); Quire's History | C, corrected: AOSP has no Notes app and OpenBook ships none. |
-| Images | `ContentBlock` type `image` | C. |
-| Offline | Connector state in the core | ⚑ Core-side. |
-| Taskbar button | Launcher3 taskbar | ⚑ A Launcher3 change (Q5); the position (after All apps) is a design decision. |
+| Tool steps with values ("Going to foxnews.com", "Settings: Dark theme on") | `tool_call` / `tool_call_update` `title` and `kind` (C); the value from the broker's own call record (Q6) | ⚑ Q6: the broker knows the argument and the result of every Quire tool call; the step shows them. The `title` from an agent's own tool call shows as is. |
+| Undo on a step | The settings tool's change log (Q6): namespace, key, old, new; restore only if the setting still holds the new value | ⚑ Q6 requirement, confirmed as such on ANAL-215's review; the pill is the log's row. |
+| The destructive card | The broker's own card, raised while it holds the MCP `tools/call` for a destructive-tier tool (Q6), with Quire's two options; the broker refuses the call until answered | ⚑ Q6. The tier list is ANAL-220's. The card's copy comes from the tool: the object, where, what happens, reversible or not. |
+| No card for other tools | The broker executes and records the call | ⚑ Q6 replaces Q3's "every mediated change goes through a card". |
+| Blur off | `WindowManager.isCrossWindowBlurEnabled()` and `addCrossWindowBlurEnabledListener` (Android 12+ API); WM's `BlurController` rules (C, `docs/googlebook-ui.md` §2.3) | ⚑ The Porter confirms the API in our tree and that the note's `BackgroundBlurDrawable` is dropped (not just hidden) when it is false. |
+| The rim | A stroked path with a `SweepGradient`, rotated by a `ValueAnimator` while a run is on | Design; §10 gives the draw. |
+| Ink reveal | Alpha and a 2 dp translate on word spans of the streaming `TextView`, or a per-word layer in the custom text view Q5 draws | ⚑ The Porter picks the mechanism; §10 lists both. |
+| The sheet's unroll and fold | `View.setClipBounds` from the origin edge, with the scale spring Q5 has | Design; §10. |
+| Chrome appearing behind the note | The apps tool opens the activity; the note stays on top (`TYPE_APPLICATION_OVERLAY`, C) | C for the layer. |
 
-The Porter confirmed this mapping on head `c415663` against frameworks/base `8f5dedd3edc3` and `quired` `fff2145` (ANAL-217, 2026-10-18), by source reads; nothing was run on Android, Cuttlefish or the G14. The ⚑ marks that remain are decisions for Q2, Q5, Q6 and Q7, not unconfirmed platform facts.
+Everything else in Q3's §7 is unchanged: invocation, intake, the agent chip and picker (now on the quiet line), streaming, plan, the agent's own `request_permission`, platform consent, the mirror, pause, take over, secure content, done, error, sign-in, hidden tasks, long output, images, offline, the taskbar button.
 
-## 8. For Q5
+## 10. For the Porter
 
-- **One component, many states.** Build the note as one Compose surface with a state object that mirrors §3.2; the prototype's `quire.js` has that shape (`note(n)` takes `blocks[]`, `mirror`, `listening`, `consent`). Reflow is one `spring.settle` on size.
-- **Layers.** The halo and the intake outline: SystemUI, above all windows, no touch. The note: a window owned by Quire core (`TYPE_APPLICATION_OVERLAY` as a privileged app; Q5 confirms the type) that takes focus and keyboard, below the status bar and system dialogs. The tray: Launcher3's taskbar popup.
-- **Two platform constraints (C, the Porter on `8f5dedd3edc3`).** (1) `ComputerControlSessionProcessor` refuses to create a session unless the caller's uid has a visible non-toast window (`isUidForeground`, else `ERROR_PERMISSION_DENIED`). Quire core is the session owner, so the note, or at least the mirror, must be a window of its uid while a session is created; a SystemUI-owned note cannot request one. (2) Consent and blocks: Quire launches the platform dialog from the `IntentSender` in `onSessionPending`; `ERROR_PERMISSION_DENIED` is not only a refusal; `ERROR_DEVICE_LOCKED` and `ERROR_SESSION_LIMIT_REACHED` need their own copy; secure content and biometric prompts block the session rather than close it; a session closes when Quire or the person closes it, after 60 minutes, or when its display is empty. §3.3 rule 5 and §3.4 carry the copy.
-- **Force-queryable.** Declare `android:forceQueryable="true"` or list Quire in `config_forceQueryablePackages`, or Ask Quire never appears in apps that target API 30+ (§2).
-- **The mirror zoom.** Track the agent's target control from `getAccessibilityWindows()`; animate the 2× region with `spring.expand`; return to the whole display between steps and on Pause (§3.4).
-- **Springs:** `spring(dampingRatio, stiffness)` in Compose, or `SpringForce` in dynamicanimation. Check `ValueAnimator.areAnimatorsEnabled()` on every spring and snap when false (§5.3).
-- **Dynamic colour:** use the theme's roles (§4.3) and run `scripts/quire/contrast-check.py` against the device's palette for the eight OpenBook wallpapers before sign-off; adjust only `note-bg`'s alpha.
-- **Fonts:** `google-sans-text` for the note, `google-sans-flex` for nothing (the note has no display sizes), Google Sans Code for code (OFL; add it to the font set if it is not shipped yet, ⚑).
-- **What to record for acceptance:** each screen id in §3.2 as a Cuttlefish capture next to its render, both themes; the four motion paths in §5.2 at 60 fps on the G14; the keyboard paths in §6.1 and the TalkBack labels in §6.3.
+- **The surface.** Keep Q5's one `BackgroundBlurDrawable` at 34 dp; set its colour to the note's colour at 80 % (`Palette.NOTE_ALPHA = 0.80f`). Draw the specular as a 1 dp line inside the top edge and the outline as a 1 dp inset stroke, in the same draw as the tint. The bloom is a `RadialGradient` (white at 34 % / 7 % to transparent at 62 % of the width, centred on the top-left corner) painted over the tint. The rim is a separate `View` above the content: a rounded-rect `Path` inset by 0.75 dp, stroked 1.5 dp with a `SweepGradient` of the five hues (§4.1; the lightened set in dark), `Paint.alpha` at 70 % / 80 %, with a `BlurMaskFilter` of 24 dp at 18 % under it for the glow (or a second, wider stroke at low alpha if the mask filter costs more than 0.3 ms). Rotate the gradient's matrix with a `ValueAnimator` of 12 s, linear, `RESTART`, running only while `running` is true and `Motion.enabled` and blur is on; invalidate only the rim view. The sheet's shadow stays the `elevation` Q5 uses, with the ambient and spot colours set to §4.1's.
+- **Blur off.** Listen with `addCrossWindowBlurEnabledListener`; when false, swap the background for a rounded rect at 96 %, drop the bloom, set the rim's alpha to 60 % of its value and cancel every loop (`Motion.economy = true`). Swap back on true. The layout does not change.
+- **Paper.** `Palette.card` becomes `surfaceContainerLowest` at 72 % (light) / `surfaceContainerHigh` at 80 % (dark); `Palette.field` becomes `surfaceContainerLowest` at 80 % / `surfaceContainerHighest` at 85 %; each paper rect gets a 1 dp line inside its top edge (`quire.paper.line`) and the outline at 40 % / 60 %.
+- **Ink.** `Palette.inkSoft = blend(onSurface, note, 0.85)` replaces `onSurfaceVariant` everywhere the note draws secondary text, pending marks and kind icons. Text buttons use `onSurface`. Stop and the destructive verb use `errorContainer` / `onErrorContainer`.
+- **No header.** Remove `NoteView`'s header row; the quiet line is a new row after the composer: the agent (avatar 14 dp + name, a button that opens the picker above it), the intake (thumbnail 20×13 + name, a button that drops it; the page is dropped from the name while a state shows), a spacer, the state text, the key hint, and × (24 dp; Hide while running, Close otherwise). The picker anchors to the quiet line and opens upward.
+- **The composer.** One pill, 44 dp, radius 22: the leaf 18 dp, the `EditText`, the mic 32 dp and send 32 dp inside it. Send is filled only when there is text.
+- **The prompt.** Written in ink with the rule under it: a 1.5 dp line in `primary` at 55 % fading to transparent over the right 30 %, drawn with a width animation (0 → 100 %, 240 ms, emphasised decelerate, 120 ms after send). The words: see ink reveal.
+- **Ink reveal.** Two ways that fit Q5's custom text drawing; pick by cost. (a) Spans: each new word gets a span whose alpha and vertical offset animate over 160 ms (a `ReplacementSpan` or a custom `CharacterStyle` with an animated paint), staggered 24 ms, at most six live; invalidate the text view per frame while any is live. (b) Layers: the streaming `TextView` draws committed text once, and a small overlay view draws the last ≤ 6 words with their own alpha and offset until they settle. Either way, with `Motion.enabled` false, words appear at once.
+- **The marks.** The running mark: an 8 dp circle in `primary`, scale 1 → 1.35 → 1 and alpha 0.9 → 0.55 → 0.9 over 900 ms, `RESTART`; still with a 3 dp halo at 30 % in economy or Remove animations. The tick: a `Path` (`M4.5 10.5 l3.6 3.6 l7.4 -7.6` in a 20 dp box), stroked 2.2 dp round, drawn with `PathMeasure` from 0 to its length over 180 ms, emphasised decelerate, in `success`. The cross: `M6 6 l8 8 M14 6 l-8 8`, the same way, in `error`. The Undo pill: 24 dp, paper, the undo symbol at 15 dp and "Undo" at 12 sp 500; after undo, "Undone" with the check, no surface, soft ink; the step title struck.
+- **The destructive card.** `Block.Consent` with `source = BROKER` and exactly two `Option`s whose kinds are `reject_once` (safe) and `allow_once` (destructive); draw it with the `error` rim at 70 % (1.5 dp), the delete symbol in `error`, a file row (icon, name, sub) and the sentence; style the `allow_once` option as the stop pill and the `reject_once` as filled, the reverse of an agent's card, because here the safe choice is the one to make easy. Focus the card, then Tab reaches the filled button first (order the buttons: Delete, Keep it; focus order: Keep it, Delete).
+- **The unroll.** At open, set `clipBounds` to a zero-height rect at the origin edge and animate it to the full bounds over 220 ms (emphasised decelerate) while the scale spring runs from 0.6 (Q5's `SpringValue` with `Motion.UNFOLD`); fade in over 120 ms; start the rim's alpha at 0 and animate it to full over 200 ms starting at 160 ms. The fold is the reverse: rim alpha to 0 over 160 ms (emphasised accelerate), then `clipBounds` closing towards the origin and the scale spring to 0.6 (`Motion.FOLD`), alpha over the last 60 %. From the taskbar the origin edge is the bottom.
+- **Springs:** unchanged (`Motion.kt`); check `Motion.enabled` on every spring and loop.
+- **Dynamic colour:** run `scripts/quire/q7-contrast.py` against the device's palette (`--device` with `q5-cf-check.py`'s "contrast" section) for the eight wallpapers before sign-off; adjust only the glass alpha, and tell me if it moves.
+- **What to record for acceptance** (this issue's): each screen id in §3.2 as a G14 capture next to its render, both themes, on the Folio wallpapers and the first moment on all eight; the four motion paths in §5.2 at 120 fps on the G14 with `dumpsys gfxinfo` against §4.5's budgets; the blur's RenderEngine cost with and without the note; blur off (`wm disable-blur 1`) showing the fallback; Remove animations showing the cuts; the keyboard paths in §8.1 and the TalkBack labels in §8.3.
 
-## 9. Edge states: covered and remaining
+## 11. Edge states: covered and remaining
 
-Covered in this design: empty (first run, `no-agent`), loading (streaming, steps, "Waiting for your permission"), error (`error`, `stopped`, denied consent, offline, secure window, blocked session), overflow (long output, code, wide note), long strings (prompt wraps; chips truncate with an ellipsis; the tray truncates the prompt to one line), keyboard focus (§6.2), light and dark (every screen), two sizes (both renders), text scaling (§6.4), Remove animations (§5.3).
+Covered in this design: empty (first run, `no-agent`; the first moment, `open`), loading (streaming, steps, the ink dot, "Waiting for your permission"), error (`error`, `stopped`, the destructive question kept, denied consent, offline, secure window, blocked session), overflow (long output, code, wide note), long strings (the prompt wraps; the quiet line gives way in order and then wraps; the tray truncates the prompt to one line; a long file name on the destructive card wraps on its row), keyboard focus (§8.2), light and dark (every screen), two sizes (both renders), all eight wallpapers (`wallpapers.png` and `q7-contrast.py`), blur off (`glass-off`), Remove animations (§5.3), text scaling (§8.4).
 
-Remaining, for Q5 to design in the build: right-to-left layout (the note mirrors; the halo and intake are symmetric; the pointer offset flips), a second display (the note opens on the display with the pointer), the lock screen (Quire does not open; the contextual cursor already requires the device to be unlocked, C), and the note's behaviour when the window under the pointer closes while the note is open (the intake chip stays; it is a snapshot), and a consent card whose turn ends while it is open (the card reads "The agent moved on" and closes; ACP gives the agent no way to withdraw a request).
+Remaining, for the build: right-to-left layout (the note mirrors; the rim's angle mirrors so the light stays at the top-leading corner; the rule fades towards the trailing edge), a second display (the note opens on the display with the pointer), the lock screen (Quire does not open; C), the window under the pointer closing while the note is open (the intake stays; it is a snapshot), a card whose turn ends while it is open (it reads "The agent moved on" and closes), and a destructive card hidden behind the taskbar: the badge counts it, the tray row says "Needs your answer · Delete this file?", and nothing is deleted until it is answered.
 
 ## Reproduce
 
 ```text
-scripts/quire/render-design.sh            # both sizes, every state, light and dark, into docs/quire-design/png/ and g14/
-scripts/quire/render-design.sh fhd consent mirror   # one size, chosen screens
-scripts/quire/contrast-check.py --md      # the table in §4.5; exit 1 if any pair fails
-docs/quire-design/index.html?play=1       # the clickable prototype
-node evidence/2026-10-18-quire-design/keyboard-check.js . OUTDIR   # Playwright walk of the keyboard consent / stop / hide paths (needs `npm i playwright`)
+scripts/quire/render-design.sh                 # both sizes, every state, light and dark, plus wallpapers.png and gallery.png
+scripts/quire/render-design.sh fhd open steps  # one size, chosen screens
+scripts/quire/render-design.sh walls           # the note over all eight wallpapers
+scripts/quire/contrast-check.py --md           # the table in §7.4; exit 1 if any pair fails
+~/anybook/tools-local/brand-venv/bin/python scripts/quire/q7-contrast.py --md   # all eight wallpapers; --alpha 0.76 to try another glass
+docs/quire-design/index.html?play=1            # the clickable prototype; ?play=1&glass=0 for blur off
+docs/quire-design/index.html?screen=open&wall=tide&theme=dark   # one screen, another wallpaper
 ```
 
 Fonts are fetched into the host data dir (`~/anybook/quire/fonts`) and linked into `docs/quire-design/fonts/`, which is gitignored. Google Sans, Google Sans Flex and Google Sans Code are OFL-1.1; Material Symbols Rounded is Apache-2.0. The same trademark reading as ANAL-202 applies: the fonts are used, never named in the product.
