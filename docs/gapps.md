@@ -272,7 +272,12 @@ ADB="adb -s …" scripts/microg/gms-apps.sh LABEL OUTDIR       # Play-services a
 
 ### 6.7 On the G14
 
-The owner's checklist goes on ANAL-192's next stick. It is posted there as a comment, with the exact steps and the expected output.
+- **Installed on 2026-10-19 over wireless adb** (`evidence/2026-10-19-microg-g14/`). The laptop's `quire9` image already had PR #80, so the image's own `openbook-addons --from-dir` installed the three APKs in 2.7 s, with no image update and no reboot.
+  - The grants, the app-op and the battery exemption are all in place.
+  - GmsCore and Companion report Google's certificate to apps, read headless (`scripts/microg/testapps/headless/SigCheck.java`).
+  - No denial.
+- **Not checked yet on the laptop:** microG's self-check screen (the laptop was in use), device registration and push (off until the owner turns them on), and network location (after a restart, with the online lookup on).
+- For a stick, the owner's checklist is on ANAL-192.
 
 ## Owner decisions (2026-10-17)
 

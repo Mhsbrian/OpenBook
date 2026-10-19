@@ -1,0 +1,70 @@
+# 2026-10-19T15:35:47Z after the install, on the G14
+PACKAGES
+package:com.google.android.gms versionCode:252432034
+package:com.google.android.gsf versionCode:8
+package:com.android.vending versionCode:84022634
+  codePath=/data/app/~~3aWj7eZiy0NraYn5w024pA==/com.google.android.gms-EysVV8NeKJQZwRtq6mV0IA==
+  installerPackageName=null
+  codePath=/data/app/~~COqunxEPnq73ywDp16JICA==/com.android.vending-Cu_rA48Inh3dW1yYRyhq_A==
+  installerPackageName=null
+  codePath=/data/app/~~2slQ6eeST1bfPqTEeVfacA==/com.google.android.gsf-VubMwGGJwigmGOaQ5o0B8w==
+  installerPackageName=null
+GRANTED
+android.permission.ACCESS_ADSERVICES_AD_ID: granted=true
+android.permission.ACCESS_ADSERVICES_ATTRIBUTION: granted=true
+android.permission.ACCESS_ADSERVICES_TOPICS: granted=true
+android.permission.ACCESS_BACKGROUND_LOCATION: granted=true
+android.permission.ACCESS_COARSE_LOCATION: granted=true
+android.permission.ACCESS_FINE_LOCATION: granted=true
+android.permission.ACCESS_LOCAL_NETWORK: granted=true
+android.permission.ACCESS_NETWORK_STATE: granted=true
+android.permission.ACCESS_WIFI_STATE: granted=true
+android.permission.AUTHENTICATE_ACCOUNTS: granted=true
+android.permission.BLUETOOTH: granted=true
+android.permission.BLUETOOTH_ADMIN: granted=true
+android.permission.CHANGE_WIFI_STATE: granted=true
+android.permission.FOREGROUND_SERVICE: granted=true
+android.permission.GET_ACCOUNTS: granted=true
+android.permission.INTERACT_ACROSS_USERS: granted=true
+android.permission.INTERNET: granted=true
+android.permission.MANAGE_ACCOUNTS: granted=true
+android.permission.MODIFY_AUDIO_SETTINGS: granted=true
+android.permission.NFC: granted=true
+android.permission.POST_NOTIFICATIONS: granted=true
+android.permission.READ_EXTERNAL_STORAGE: granted=true
+android.permission.READ_PHONE_STATE: granted=true
+android.permission.READ_SYNC_SETTINGS: granted=true
+android.permission.READ_SYNC_STATS: granted=true
+android.permission.RECEIVE_BOOT_COMPLETED: granted=true
+android.permission.RECEIVE_SMS: granted=true
+android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS: granted=true
+android.permission.USE_BIOMETRIC: granted=true
+android.permission.USE_CREDENTIALS: granted=true
+android.permission.USE_FINGERPRINT: granted=true
+android.permission.WAKE_LOCK: granted=true
+android.permission.WRITE_EXTERNAL_STORAGE: granted=true
+android.permission.WRITE_SYNC_SETTINGS: granted=true
+com.google.android.c2dm.permission.RECEIVE: granted=true
+com.google.android.c2dm.permission.SEND: granted=true
+com.google.android.gms.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION: granted=true
+com.google.android.gms.auth.api.phone.permission.SEND: granted=true
+com.google.android.gms.auth.permission.GOOGLE_ACCOUNT_CHANGE: granted=true
+com.google.android.gms.locationsharingreporter.periodic.STATUS_UPDATE: granted=true
+com.google.android.gms.nearby.exposurenotification.EXPOSURE_CALLBACK: granted=true
+com.google.android.gms.permission.AD_ID: granted=true
+com.google.android.gtalkservice.permission.GTALK_SERVICE: granted=true
+org.microg.gms.STATUS_BROADCAST: granted=true
+APPOPS
+SYSTEM_ALERT_WINDOW: allow
+DEVICEIDLE
+user,com.google.android.gms,10133
+SIGNATURES
+com.google.android.gms sha1=38918a453d07199354f8b19af05ec6562ced5788 sha256=f0fd6c5b410f25cb25c3b53346c8972fae30f8ee7411df910480ad6b2d60db83
+com.android.vending sha1=38918a453d07199354f8b19af05ec6562ced5788 sha256=f0fd6c5b410f25cb25c3b53346c8972fae30f8ee7411df910480ad6b2d60db83
+com.google.android.gsf sha1=10321bd893f69af97f7573aafe9de1dc0901f3a1 sha256=9bd06727e62796c0130eb6dab39b73157451582cbd138e86c468acc395d14165
+LOCATION
+    fused provider:
+      identity=10133/com.google.android.gms
+      target service=10133/com.google.android.gms/org.microg.gms.location.provider.FusedLocationProviderService@2
+AVC
+2
