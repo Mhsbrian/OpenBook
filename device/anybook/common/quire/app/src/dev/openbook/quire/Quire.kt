@@ -27,6 +27,14 @@ object Quire {
     const val EXTRA_SOURCE_BOUNDS = "dev.openbook.quire.extra.SOURCE_BOUNDS"
 
     /**
+     * With the bounds, SystemUI passes the package of the window they belong to and when it read them
+     * (`SystemClock.elapsedRealtime()`, ms), so Quire names the window it crops to and refuses bounds too old to match
+     * the screenshot (invocation/IntakePolicy.kt).
+     */
+    const val EXTRA_SOURCE_PACKAGE = "dev.openbook.quire.extra.SOURCE_PACKAGE"
+    const val EXTRA_SOURCE_TIME = "dev.openbook.quire.extra.SOURCE_TIME"
+
+    /**
      * Debuggable builds keep the last few invocations and session screenshots in Quire's private storage, as evidence
      * for the Q2 checks. User builds keep none. Q5 replaces this with the real surface.
      */
