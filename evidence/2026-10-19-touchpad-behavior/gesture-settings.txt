@@ -1,0 +1,11 @@
+settings system touchpad_tap_dragging: 1
+Input Queue Delay (real): [0.000000]
+Input Queue Max Delay (real): [0.017000]
+Inter-Tap Timeout (real): [0.150000]
+Tap Drag Enable (boolean): [true]
+Tap Drag Lock Enable (boolean): [false]
+Tap Drag Timeout (real): [0.300000]
+Tap Enable (boolean): [true]
+Tap Minimum Pressure (real): [25.000000]
+Tap Timeout (real): [0.200000]
+Two Finger Vertical Close Distance Thresh (real): [45.000000]
