@@ -1,0 +1,119 @@
+[17:33:06] anal224-compat-after3: QEMU started (disk compat-after3-compat.img, adb on 127.0.0.1:43249)
+[17:33:29] boot: slot b up (module)
+PASS user unlocked: Lock credential verified successfully
+PASS ARM bridge and enforcing: 20261019.armfix1
+1a8a2bd1aef13e738230988a1e17fb32b8c56e36732b9882da76789bb5a94930
+x86_64,arm64-v8a
+libberberis_arm64.so
+Enforcing
+PASS ARM64 executable and ISA regressions: [{'test': 'bridge-exec', 'ok': True, 'abi': 'arm64-v8a', 'uname_machine': 'aarch64', 'hwcap': '0x9fb'}, {'test': 'bridge-id-registers', 'ok': True, 'sigill': 0, 'first_sigill': -1, 'midr': '0x410fd034', 'isar0': '0x211120', 'pfr0': '0x11', 'hwcap_cpuid': True}, {'test': 'bridge-fp-estimates', 'ok': True, 'cases': 6900, 'bad': 0, 'first_bad': ''}, {'test': 'bridge-int-simd', 'ok': True, 'crc32': True, 'neon_fma': True}]
+PASS real framework policy and direct API guards: PASS matching declared contract
+PASS missing source
+PASS missing target
+PASS cross-package service
+PASS cross-package application
+PASS different UID
+PASS different process
+PASS dropped permission
+PASS different permission
+PASS different export
+PASS different direct-boot visibility
+PASS disabled service
+PASS disabled application
+PASS missing isolation
+PASS different zygote policy
+PASS native-only target
+PASS different external-service policy
+PASS wrong fallback component
+PASS unknown source component
+PASS different ABI
+PASS native x86_64 eligible
+PASS ARM64 rejected
+PASS ARMv7 rejected
+PASS secondary x86 rejected
+PASS null ABI uses native default
+PASS start rejects before connecting/using null app data
+PASS startChildZygote rejects before connecting/using null app data
+POLICY_PASS checks=27
+PASS install ARM-only probe: Performing Streamed Install
+Success
+
+PASS probe attempt 1: --------- beginning of main
+10-19 17:33:41.489  2150  2150 I NativeFallbackProbe: intent=intent:#Intent;launchFlags=0x10000000;extendedLaunchFlags=0x4;component=dev.openbook.nativefallback/.ProbeActivity;end
+10-19 17:33:41.490  2150  2150 I NativeFallbackProbe: declared_service_flags=0x22
+10-19 17:33:41.495  2150  2150 I NativeFallbackProbe: native_bind=false elapsed_ms=5
+10-19 17:33:41.799  2150  2150 I NativeFallbackProbe: PASS translated isolated JNI returned 42
+PASS probe attempt 2: --------- beginning of main
+10-19 17:33:42.599  2244  2244 I NativeFallbackProbe: intent=intent:#Intent;launchFlags=0x10000000;extendedLaunchFlags=0x4;component=dev.openbook.nativefallback/.ProbeActivity;end
+10-19 17:33:42.600  2244  2244 I NativeFallbackProbe: declared_service_flags=0x22
+10-19 17:33:42.600  2244  2244 I NativeFallbackProbe: native_bind=false elapsed_ms=1
+10-19 17:33:42.878  2244  2244 I NativeFallbackProbe: PASS translated isolated JNI returned 42
+PASS probe attempt 3: --------- beginning of main
+10-19 17:33:43.520  2323  2323 I NativeFallbackProbe: intent=intent:#Intent;launchFlags=0x10000000;extendedLaunchFlags=0x4;component=dev.openbook.nativefallback/.ProbeActivity;end
+10-19 17:33:43.526  2323  2323 I NativeFallbackProbe: declared_service_flags=0x22
+10-19 17:33:43.527  2323  2323 I NativeFallbackProbe: native_bind=false elapsed_ms=1
+10-19 17:33:44.290  2323  2323 I NativeFallbackProbe: PASS translated isolated JNI returned 42
+PASS guest requests do not prewarm native zygote: {'before': '', 'after': ''}
+PASS rejected service records do not accumulate: ACTIVITY MANAGER SERVICES (dumpsys activity services)
+  (nothing)
+PASS service alias positive: --------- beginning of main
+10-19 17:33:45.286  2423  2423 I NativeFallbackProbe: intent=intent:#Intent;launchFlags=0x10000000;extendedLaunchFlags=0x4;component=dev.openbook.nativefallback/.ProbeActivity;S.alias_control=positive;end
+10-19 17:33:45.286  2423  2423 I NativeFallbackProbe: declared_service_flags=0x22
+10-19 17:33:45.291  2423  2423 I NativeFallbackProbe: native_bind=true elapsed_ms=4
+10-19 17:33:45.498  2423  2423 I NativeFallbackProbe: PASS compatible alias translated JNI returned 42
+PASS service alias permission: --------- beginning of main
+10-19 17:33:46.059  2503  2503 I NativeFallbackProbe: intent=intent:#Intent;launchFlags=0x10000000;extendedLaunchFlags=0x4;component=dev.openbook.nativefallback/.ProbeActivity;S.alias_control=permission;end
+10-19 17:33:46.059  2503  2503 I NativeFallbackProbe: declared_service_flags=0x2a
+10-19 17:33:46.068  2503  2503 I NativeFallbackProbe: native_bind=false elapsed_ms=9
+10-19 17:33:46.068  2503  2503 I NativeFallbackProbe: PASS permission mismatch rejected
+PASS install native host control: Performing Streamed Install
+Success
+
+PASS host control uses x86_64: primaryCpuAbi=x86_64
+PASS host control activity started: Starting: Intent { flg=0x8000 cmp=dev.openbook.nativefallback/.ProbeActivity (has extras) }
+Status: ok
+LaunchState: UNKNOWN (0)
+Activity: dev.openbook.nativefallback/.ProbeActivity
+WaitTime: 130
+Complete
+PASS host native service lookup preserved: --------- beginning of main
+10-19 17:33:47.002  2585  2585 I NativeFallbackProbe: intent=intent:#Intent;launchFlags=0x10008000;extendedLaunchFlags=0x4;component=dev.openbook.nativefallback/.ProbeActivity;S.alias_control=host;end
+10-19 17:33:47.002  2585  2585 I NativeFallbackProbe: declared_service_flags=0x22
+10-19 17:33:47.011  2585  2585 I NativeFallbackProbe: native_bind=true elapsed_ms=9
+10-19 17:33:47.012  2585  2585 I NativeFallbackProbe: PASS host native-only bind accepted
+PASS install existing probe arm64: Performing Streamed Install
+Success
+
+PASS no additional legacy probe failures arm64: {'summary': 'PROBE_DONE pass=18 fail=2 skip=0', 'failed': ['isa', 'signals']}
+PASS install existing probe x86_64: Performing Streamed Install
+Success
+
+PASS no additional legacy probe failures x86_64: {'summary': 'PROBE_DONE pass=18 fail=0 skip=2', 'failed': []}
+PASS install Chromium ARM64: Performing Streamed Install
+Success
+
+PASS Chromium uses ARM64: primaryCpuAbi=arm64-v8a
+127.0.0.1 - - [19/Oct/2026 13:34:13] "GET /0.html HTTP/1.1" 200 -
+127.0.0.1 - - [19/Oct/2026 13:34:14] code 404, message File not found
+127.0.0.1 - - [19/Oct/2026 13:34:14] "GET /favicon.ico HTTP/1.1" 404 -
+PASS Chromium exposes a page: ['OpenBook ARM renderer 0']
+127.0.0.1 - - [19/Oct/2026 13:34:15] "GET /0.html HTTP/1.1" 200 -
+PASS ARM renderer navigation 0: {'result': {'type': 'object', 'value': {'answer': 42, 'round': 0, 'pixel': [0, 170, 68, 255]}}}
+PASS unrelated app starts during round 0: {'seconds': 0.841, 'am': 'Starting: Intent { act=android.settings.SETTINGS }\nStatus: ok\nLaunchState: COLD\nActivity: com.android.settings/.Settings$NetworkDashboardActivity\nTotalTime: 804\nWaitTime: 807\nComplete\n'}
+127.0.0.1 - - [19/Oct/2026 13:34:17] "GET /1.html HTTP/1.1" 200 -
+PASS ARM renderer navigation 1: {'result': {'type': 'object', 'value': {'answer': 42, 'round': 1, 'pixel': [0, 170, 68, 255]}}}
+PASS unrelated app starts during round 1: {'seconds': 0.954, 'am': 'Starting: Intent { act=android.settings.SETTINGS }\nStatus: ok\nLaunchState: COLD\nActivity: com.android.settings/.Settings$NetworkDashboardActivity\nTotalTime: 875\nWaitTime: 881\nComplete\n'}
+127.0.0.1 - - [19/Oct/2026 13:34:18] "GET /2.html HTTP/1.1" 200 -
+PASS ARM renderer navigation 2: {'result': {'type': 'object', 'value': {'answer': 42, 'round': 2, 'pixel': [0, 170, 68, 255]}}}
+PASS unrelated app starts during round 2: {'seconds': 0.885, 'am': 'Starting: Intent { act=android.settings.SETTINGS }\nStatus: ok\nLaunchState: COLD\nActivity: com.android.settings/.Settings$NetworkDashboardActivity\nTotalTime: 814\nWaitTime: 817\nComplete\n'}
+PASS Chromium managed service alias exercised: 6
+PASS no ELF mismatch or exhausted zygote wait: {'retries': 0, 'max_retries': 99}
+PASS managed isolated renderer exists: u:r:untrusted_app_34:s0:c126,c256,c512,c768 3152 org.chromium.chrome org.chromium.chrome
+u:r:app_zygote:s0:c512,c768     3208 org.chromium.chrome_zygote  org.chromium.chrome_zygote
+u:r:isolated_app:s0:c512,c768   3231 org.chromium.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0 org.chromium.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0
+u:r:untrusted_app_34:s0:c126,c256,c512,c768 3254 org.chromium.chrome:privileged_process0 org.chromium.chrome:privileged_process0
+u:r:isolated_app:s0:c512,c768   3314 org.chromium.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:1 org.chromium.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:1
+u:r:isolated_app:s0:c512,c768   3363 org.chromium.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:3 org.chromium.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:3
+u:r:su:s0                       3749 sh                          sh -c ps -A -o LABEL,PID,NAME,ARGS | grep chromium
+u:r:su:s0                       3752 grep                        grep chromium
+[17:34:21] anal224-compat-after3: QEMU stopped (quit)

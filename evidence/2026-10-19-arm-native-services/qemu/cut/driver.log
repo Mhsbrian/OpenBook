@@ -1,0 +1,17 @@
+[17:39:36] ota-armfix1-cut: QEMU started (disk cut.img, adb on 127.0.0.1:39901)
+[17:39:51] boot: slot a up (module)
+[17:40:33] ota-armfix1-cut: QEMU stopped (quit)
+[17:40:33] [PASS] cut: power cut while update_engine writes slot b
+[17:40:33] ota-armfix1-cut-2: QEMU started (disk cut.img, adb on 127.0.0.1:39901)
+[17:40:48] boot: slot a up (module)
+[17:40:59] [PASS] cut: after the cut slot a boots, the build it ran before, /data intact
+[17:41:54] [PASS] cut: the update re-run completes and verifies
+[17:42:16] boot: slot b up (module)
+[17:42:16] [PASS] cut: slot b boots
+[17:42:27] [PASS] cut: after the re-run: the PIN unlocks the user's storage
+[17:42:27] [PASS] cut: after the re-run: slot b runs the package's build (vbmeta digest, build date)
+[17:42:27] [PASS] cut: after the re-run: /data intact: the setting, the 4 MiB file, the app, the serial number, provisioned
+[17:42:27] [PASS] cut: after the re-run: no setup screen after the update (OpenBookSetup steps aside on a provisioned system)
+[17:42:27] [PASS] cut: after the re-run: SELinux enforcing; the OpenBook boot HAL runs
+[17:42:28] [PASS] cut: the merge completes
+[17:42:32] ota-armfix1-cut-2: QEMU stopped (quit)

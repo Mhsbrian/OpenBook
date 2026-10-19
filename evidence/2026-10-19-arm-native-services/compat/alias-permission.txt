@@ -1,0 +1,5 @@
+--------- beginning of main
+10-19 17:33:46.059  2503  2503 I NativeFallbackProbe: intent=intent:#Intent;launchFlags=0x10000000;extendedLaunchFlags=0x4;component=dev.openbook.nativefallback/.ProbeActivity;S.alias_control=permission;end
+10-19 17:33:46.059  2503  2503 I NativeFallbackProbe: declared_service_flags=0x2a
+10-19 17:33:46.068  2503  2503 I NativeFallbackProbe: native_bind=false elapsed_ms=9
+10-19 17:33:46.068  2503  2503 I NativeFallbackProbe: PASS permission mismatch rejected

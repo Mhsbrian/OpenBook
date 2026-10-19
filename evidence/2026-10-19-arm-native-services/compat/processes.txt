@@ -1,0 +1,8 @@
+u:r:untrusted_app_34:s0:c126,c256,c512,c768 3152 org.chromium.chrome org.chromium.chrome
+u:r:app_zygote:s0:c512,c768     3208 org.chromium.chrome_zygote  org.chromium.chrome_zygote
+u:r:isolated_app:s0:c512,c768   3231 org.chromium.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0 org.chromium.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0
+u:r:untrusted_app_34:s0:c126,c256,c512,c768 3254 org.chromium.chrome:privileged_process0 org.chromium.chrome:privileged_process0
+u:r:isolated_app:s0:c512,c768   3314 org.chromium.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:1 org.chromium.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:1
+u:r:isolated_app:s0:c512,c768   3363 org.chromium.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:3 org.chromium.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:3
+u:r:su:s0                       3749 sh                          sh -c ps -A -o LABEL,PID,NAME,ARGS | grep chromium
+u:r:su:s0                       3752 grep                        grep chromium

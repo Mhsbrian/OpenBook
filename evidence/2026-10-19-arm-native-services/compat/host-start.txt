@@ -1,0 +1,6 @@
+Starting: Intent { flg=0x8000 cmp=dev.openbook.nativefallback/.ProbeActivity (has extras) }
+Status: ok
+LaunchState: UNKNOWN (0)
+Activity: dev.openbook.nativefallback/.ProbeActivity
+WaitTime: 130
+Complete

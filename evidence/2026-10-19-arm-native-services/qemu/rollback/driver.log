@@ -1,0 +1,21 @@
+[17:34:30] ota-armfix1-rollback: QEMU started (disk rollback.img, adb on 127.0.0.1:59691)
+[17:34:56] boot: slot a up (module)
+[17:36:27] [PASS] rollback: the broken package (its kernel cannot start: rdinit missing) installs on slot b and verifies like any other
+[17:36:36] boot: Kernel panic - not syncing: VFS: Unable to mount root fs on unknown-block(0,0)
+[17:36:44] boot: Kernel panic - not syncing: VFS: Unable to mount root fs on unknown-block(0,0)
+[17:36:52] boot: Kernel panic - not syncing: VFS: Unable to mount root fs on unknown-block(0,0)
+[17:37:12] boot: slot a up (module)
+[17:37:12] [PASS] rollback: slot b fails to start three times (kernel panic, reboot), then systemd-boot starts slot a by itself
+[17:37:23] [PASS] rollback: slot a is the build it ran before, /data intact (PIN, setting, file, app)
+[17:37:34] [PASS] rollback: update_engine is idle again on slot a (the failed update is cancelled)
+[17:37:34] [PASS] rollback: the boot HAL followed the loader: misc names slot a active, slot b unbootable; the ESP starts a next
+[17:38:46] [PASS] rollback: then the good package from slot a: written to slot b and verified (the bad entry replaced)
+[17:39:10] boot: slot b up (module)
+[17:39:10] [PASS] rollback: slot b boots the good build
+[17:39:20] [PASS] rollback: after the second attempt: the PIN unlocks the user's storage
+[17:39:21] [PASS] rollback: after the second attempt: slot b runs the package's build (vbmeta digest, build date)
+[17:39:21] [PASS] rollback: after the second attempt: /data intact: the setting, the 4 MiB file, the app, the serial number, provisioned
+[17:39:21] [PASS] rollback: after the second attempt: no setup screen after the update (OpenBookSetup steps aside on a provisioned system)
+[17:39:21] [PASS] rollback: after the second attempt: SELinux enforcing; the OpenBook boot HAL runs
+[17:39:21] [PASS] rollback: the merge completes
+[17:39:25] ota-armfix1-rollback: QEMU stopped (quit)

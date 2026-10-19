@@ -1,0 +1,17 @@
+[
+  {
+    "file": "native-fallback-arm64.apk",
+    "bytes": 20956,
+    "sha256": "98231f9bf69e6faf48047fd99f81d0dcc51be5d9f717e46fcae839a4fe0c5de8"
+  },
+  {
+    "file": "native-fallback-x86_64.apk",
+    "bytes": 20953,
+    "sha256": "e9e5a0b636d54069817921d2a333f7581165941ddf1f003f9bcb17b995ba8163"
+  },
+  {
+    "file": "chromium-158-arm64.apk",
+    "bytes": 419346056,
+    "sha256": "49d5a8c512c33ef8d58276b94f00621f6cb54cdbeee58de26c2eea950189f4a8"
+  }
+]

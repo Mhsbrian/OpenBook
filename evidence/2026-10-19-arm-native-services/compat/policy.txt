@@ -1,0 +1,28 @@
+PASS matching declared contract
+PASS missing source
+PASS missing target
+PASS cross-package service
+PASS cross-package application
+PASS different UID
+PASS different process
+PASS dropped permission
+PASS different permission
+PASS different export
+PASS different direct-boot visibility
+PASS disabled service
+PASS disabled application
+PASS missing isolation
+PASS different zygote policy
+PASS native-only target
+PASS different external-service policy
+PASS wrong fallback component
+PASS unknown source component
+PASS different ABI
+PASS native x86_64 eligible
+PASS ARM64 rejected
+PASS ARMv7 rejected
+PASS secondary x86 rejected
+PASS null ABI uses native default
+PASS start rejects before connecting/using null app data
+PASS startChildZygote rejects before connecting/using null app data
+POLICY_PASS checks=27

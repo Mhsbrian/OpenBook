@@ -1,5 +1,32 @@
 # Status
 
+## 2026-10-19: ARM64 Chromium native-service fix prepared (ANAL-224)
+
+`20261019.armfix1` preserves the installed `photos1` base, including Quire and
+RADV's YV12 fix. Android now rejects guest-ISA native-only services promptly
+and maps Chromium's two known renderer declarations to their existing managed
+services only when their access and isolation contracts match. ARM64 remains
+enabled; all 86 bridge/guest files (30,393,207 bytes), the kernel and graphics
+binaries are unchanged. The two framework JARs grow by 2,184 bytes combined.
+
+The G14 product in QEMU passes 32/32 compatibility checks, including 27 policy
+assertions, isolated ARM64 JNI, rejected incompatible aliases, native x86_64
+eligibility, and the unmodified ARM64 Chromium 158.0.8111.0 rendering JavaScript
+and canvas on three pages with native-only renderers explicitly enabled.
+Settings cold starts take 0.84–0.95 seconds; zygote retries: zero. The old image
+accepts the unsupported guest native bind; the candidate rejects it in 1–5 ms.
+Legacy ARM probes retain only their two known `isa`/`signals` failures.
+
+OTA rehearsal from the installed `photos1` state passes **36/36**: A → B
+upgrade, three failed boots followed by automatic rollback, and power-cut
+recovery with a resumed update. The test PIN, app, setting and file survive.
+
+The package is prepared on the build host; the G14 was last observed running
+`20261019.photos1`, slot A, enforcing. It was not updated in this task.
+General native-only ARM services without a supported managed fallback and
+ARMv7 remain unsupported. See `docs/arm-native-services.md` and
+`evidence/2026-10-19-arm-native-services/` for the image manifest and tests.
+
 ## 2026-10-19: PR integration (ANAL-188)
 
 This integration consolidates PRs #94, #98 and #104–#117 with merge commits, preserving their dependency history. Status conflicts retain both evidence records; Quire retains the surface and Linux-agent initialization. The two outstanding #115 confirmation bugs are corrected with host dispatch regressions (17/17; the original head fails 12). No image or laptop update was performed. #117 contributes diagnostics only: the physical touchpad reproduction and fix remain open.
@@ -49,7 +76,7 @@ and full Photos-use verification remain pending. Evidence: `evidence/2026-10-19-
 | Google services compatibility (microG add-on, ANAL-210) | **Cuttlefish: microG's self-check 18/18 green**, signature spoofing only for microG's certificate (negative test passes), device registration, push tokens for 3 Play-services apps, microG as location provider. QEMU, G14 image `g1a`: the add-on installs under enforcing on the live stick and on an installed disk's first start (self-check 18/18), the wizard's switch off by default, the plain stick has the same 140 packages as `main`'s image. One denial per boot from `stdio_to_kmsg`, removed in `f7df42d` (rerun pending the build lane) | **Installed over adb (2026-10-19):** the image's `openbook-addons`; grants in place, Google's certificate reported to apps, no denial. Self-check screen, push and location not yet checked there | `evidence/2026-10-17-microg/` |
 | Bring-your-own Google apps package (installer step, ANAL-211) | **QEMU, G14 image `anal211b`, enforcing: 79/79.** The wizard's advanced step checks a package from a USB drive (synthetic packages only) and installs it into a rebuilt `product`: power cuts at five points leave only the guaranteed states; the installed system boots with dm-verity on the new product (a flipped byte trips it); the apps run privileged from `/product` with their permissions; setup and Settings › About show the GSF Android ID. Host tests 89/89; without the step, installs are byte-identical to `main`'s | Not run | `evidence/2026-10-18-byo-gapps/` |
 | Installer | **Wizard 25/25, engine 65/65, end to end 79/79; the firmware boot entry (`Boot####`, #68) boots with no fallback path** (SELinux enforcing): whole disk and **alongside a Windows-like disk** (Windows' partitions byte-identical and still booting; OpenBook boots from a firmware boot option); **power cuts at 6 points**, each leaving the old table, a blank disk or a complete install, and each restart completing; reinstall; the installed disk with and without the stick. **Firmware boot entries (since ANAL-191's #68):** the installer creates `Boot####` "OpenBook" itself; OVMF boots it with the fallback path deleted, and alongside leaves Windows' entry byte-identical and appends OpenBook to `BootOrder` (owner decision): Windows still starts by default and the firmware's boot menu lists OpenBook | Live USB boots; the wizard has not run yet | `evidence/2026-10-17-installer-wizard/`, `evidence/2026-10-17-installer-e2e/`, `evidence/2026-10-17-installer-bootorder/` |
-| Image updates over adb (ANAL-223) | **QEMU 55/55** from the installer's whole-disk install of `anal192e`: A → B keeping `/data` (PIN, apps, settings, files), B → A through the new boot HAL, an unbootable slot rolled back after three tries, a power cut mid-update. Host tests of `openbook-bootsync` 56/56 | **Yes, 2026-10-18 23:24Z:** slot A (`anal192e`) → slot B (`openbook-ota-20261018-cand1`: `main` + #107 + bootsync + #109 + #106 + #104) over Wi-Fi in 82 s; booted, marked good, merge completed; same packages, Settings, Wi-Fi networks, account and PIN; no crashes | `evidence/2026-10-18-ota/`, `docs/adb-debug.md` §7, PR #112 |
+| Image updates over adb (ANAL-223) | **QEMU 55/55** from the installer's whole-disk install of `anal192e`: A → B keeping `/data` (PIN, apps, settings, files), B → A through the new boot HAL, an unbootable slot rolled back after three tries, a power cut mid-update. Host tests of `openbook-bootsync` 56/56  **2026-10-19, ANAL-224:** `photos1` → `armfix1` upgrade, rollback and power-cut recovery pass 36/36 in QEMU; candidate prepared, G14 rollout pending. | **Yes, 2026-10-18 23:24Z:** slot A (`anal192e`) → slot B (`openbook-ota-20261018-cand1`: `main` + #107 + bootsync + #109 + #106 + #104) over Wi-Fi in 82 s; booted, marked good, merge completed; same packages, Settings, Wi-Fi networks, account and PIN; no crashes | `evidence/2026-10-18-ota/`, `docs/adb-debug.md` §7, PR #112 |
 | Debugging the installed system over the network (ANAL-222) | — | **Yes, on the installed G14 (NVMe, 2026-10-18):** adb from the build host over Wi-Fi, with no stick. `scripts/g14-adb.sh capture` saves the "save logs" set in 34 s (21 yes, 0 NO, 3 unknown). adb is back about 12 s after a reboot, and the desktop shows at 7.7 s. **No USB device mode**, so the network is the only path. **adb needs no authorization (root for anyone on the network)**; `ro.adb.secure=1` awaits the owner | `evidence/2026-10-18-g14-installed-adb/`, `docs/adb-debug.md` |
 
 **What is left on the G14** (since 2026-10-18 the laptop runs OpenBook installed, from `anal192e`, updated over adb to `openbook-ota-20261018-cand1` the same day; tests go over adb, `docs/adb-debug.md`, ANAL-222, and **no more stick sessions are needed**):

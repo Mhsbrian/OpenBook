@@ -1,0 +1,79 @@
+{
+  "BOOT/kernel": {
+    "before": {
+      "bytes": 26858496,
+      "sha256": "55b86074614a94592ddecebd2b77b1f2ed9aa38e8ad992b73c78c64d04c516f9"
+    },
+    "after": {
+      "bytes": 26858496,
+      "sha256": "55b86074614a94592ddecebd2b77b1f2ed9aa38e8ad992b73c78c64d04c516f9"
+    },
+    "same": true
+  },
+  "SYSTEM/framework/framework.jar": {
+    "before": {
+      "bytes": 48704621,
+      "sha256": "3a4936a77b8598c9b17f38672c2b251441d8e3d31764ff4b011b6cdc49595fe0"
+    },
+    "after": {
+      "bytes": 48704937,
+      "sha256": "a91b6d7918d62fb43df4b9d5809d26371ae1a612588f69c460b273324e9e9c6e"
+    },
+    "same": false
+  },
+  "SYSTEM/framework/services.jar": {
+    "before": {
+      "bytes": 25007635,
+      "sha256": "593d6cc2abca68e96e6a19b5f6f1a072ea8e3f3039b139e8a0ba35a8a68ccc0f"
+    },
+    "after": {
+      "bytes": 25009503,
+      "sha256": "48b80b79802b78b561f037b8b37d5610b864d047d78df225bcc9bbbdc88ac8da"
+    },
+    "same": false
+  },
+  "SYSTEM/lib64/libberberis_arm64.so": {
+    "before": {
+      "bytes": 2994864,
+      "sha256": "75e51d4de98bfd926996435216c19ff0d43596883b6060bcffa18198348c0f5e"
+    },
+    "after": {
+      "bytes": 2994864,
+      "sha256": "75e51d4de98bfd926996435216c19ff0d43596883b6060bcffa18198348c0f5e"
+    },
+    "same": true
+  },
+  "VENDOR/bin/hw/android.hardware.composer.hwc3-service.drm": {
+    "before": {
+      "bytes": 408448,
+      "sha256": "df6f5287593727e048c9c8fc183ebfd1c046359615df6c405c78bdabf56e1583"
+    },
+    "after": {
+      "bytes": 408448,
+      "sha256": "df6f5287593727e048c9c8fc183ebfd1c046359615df6c405c78bdabf56e1583"
+    },
+    "same": true
+  },
+  "VENDOR/bin/openbook-bootsync": {
+    "before": {
+      "bytes": 85008,
+      "sha256": "e3019926318877e95798de0b81343109e93c08daf1ba83d2aac9b4e4bb5bd656"
+    },
+    "after": {
+      "bytes": 85008,
+      "sha256": "e3019926318877e95798de0b81343109e93c08daf1ba83d2aac9b4e4bb5bd656"
+    },
+    "same": true
+  },
+  "VENDOR/lib64/hw/vulkan.radv.so": {
+    "before": {
+      "bytes": 18651361,
+      "sha256": "12af6411f97d9a294e12c47d0a8e557e03f5765714feece01e1566a1a90a2ba9"
+    },
+    "after": {
+      "bytes": 18651361,
+      "sha256": "12af6411f97d9a294e12c47d0a8e557e03f5765714feece01e1566a1a90a2ba9"
+    },
+    "same": true
+  }
+}

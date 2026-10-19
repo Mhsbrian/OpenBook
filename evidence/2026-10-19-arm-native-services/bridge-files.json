@@ -1,0 +1,518 @@
+[
+  {
+    "path": "SYSTEM/bin/arm64/app_process64",
+    "bytes": 51216,
+    "sha256": "5bcf257b6f044c5cb0a3c8ba3315d084721dd546a726cc99c20195317cea4a20",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/bin/arm64/linker64",
+    "bytes": 929624,
+    "sha256": "5e4f95faa5d5aa8d59c1b30274728813ddac3a5868a1c89452e364b048cc4d9d",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/bin/arm64/openbook_bridge_check",
+    "bytes": 327672,
+    "sha256": "28b7f92a6352f07e677b6dc8ad2800d78233f1f52f10dc406d34b457fb223d60",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/bin/berberis_program_runner_arm64",
+    "bytes": 51576,
+    "sha256": "e6246b6f031af8cef4c85ca922b50e94f6c01c171df5acad9ef68fa760bc5ef8",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/bin/berberis_program_runner_binfmt_misc_arm64",
+    "bytes": 51376,
+    "sha256": "db93d4b7f732400b03612d51f451feb4b848007fbbd4ab3a97fb3176bd8e55c7",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/etc/init/berberis.rc",
+    "bytes": 711,
+    "sha256": "f180bb4d739c5fc21d7020de7d88565c0b324a554ad3e964026428d1ea72fc87",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/android.hardware.renderscript@1.0.so",
+    "bytes": 417080,
+    "sha256": "1a15fbcfb4ed570f03405e9ce862c70388e0f91572491cd15674d420bce33de9",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/ld-android.so",
+    "bytes": 34160,
+    "sha256": "c63e65ceaf476529074c3014c484f92750ba5bf9a0a9bc35cd3425a55a0e637d",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libEGL.so",
+    "bytes": 70672,
+    "sha256": "292ca3474f39ea7cbae814cad1ec7f2114492357eba9b635423c7b660c2c930b",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libGLESv1_CM.so",
+    "bytes": 105304,
+    "sha256": "74babc0ad2db2c5a29206cf86fa14cf4dd0495fa50d083f8c087b06d0e359d07",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libGLESv2.so",
+    "bytes": 326712,
+    "sha256": "781db90ef14ee037d76b466ece568015962e5f0f6f6aac78c7df7449ad796163",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libGLESv3.so",
+    "bytes": 326712,
+    "sha256": "45aa4daa0e4b50093ef818cf216937ecbfcbb643fdbf2de251ee0f7db61c0eda",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libOpenMAXAL.so",
+    "bytes": 51528,
+    "sha256": "4f89c47ecff80bb1cf1992c4743ebc589b0c2b7e5aeb381351e65da4abbf532b",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libOpenSLES.so",
+    "bytes": 51528,
+    "sha256": "2e90d92bdd6be6c26b43b78e5c47568c3ebbada6b9f6826f85670b20c2e2127a",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libRS.so",
+    "bytes": 86792,
+    "sha256": "defba1bad124f54d329c41eb4110373e6965468b87f70f060b30232070e01067",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libRSCpuRef.so",
+    "bytes": 431304,
+    "sha256": "19bc658c515da3ac07e23e881495a29bd58cbc63bb50e47c77b4d13cb7cc67dd",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libRSDriver.so",
+    "bytes": 248616,
+    "sha256": "75d9c0e9b3a68f26610f956e585ef5c94e5553a26eea07e8dac28f0e4dc5c256",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libRSSupport.so",
+    "bytes": 964216,
+    "sha256": "6573c97ea677a8606a5f8dac239a10d2a08ef447b548fbdfccaf2550d2f92f4b",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libRS_internal.so",
+    "bytes": 331976,
+    "sha256": "c71789f8b5ab7fb2cd235361c45a749bdd2cc241fcc19a8b006a426dceb04389",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libaaudio.so",
+    "bytes": 53640,
+    "sha256": "bc48d35c9d9620d9e288f553f14233e9b3eef2f358507d0f77f4e42dd6586461",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libamidi.so",
+    "bytes": 35928,
+    "sha256": "f0d29732197c6c81531851f2b3cef260bd5563a7dad22800cf123594bce455ac",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libandroid.so",
+    "bytes": 207592,
+    "sha256": "95ab3b0d1202a68f98bca513562cb4f2d7e87b664c9c9bc69e2ce8db31b2cafa",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libandroid_runtime.so",
+    "bytes": 520776,
+    "sha256": "25ae5d159e7c531560a8192789267274ef0d48b27a2ff13c53b7205a4c99dc0e",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libandroidicu.so",
+    "bytes": 52792,
+    "sha256": "7d50a37fce86de6e4ed658e80b9c10597909f1db0674e9b648f57e8fba33da64",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libbase.so",
+    "bytes": 218520,
+    "sha256": "0e6dda3d0f8df2a653bbb549e32b19f6c857ff9c1289ff39a0b9f4302782ed65",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libbcinfo.so",
+    "bytes": 983208,
+    "sha256": "1b190d8233fa4f7d1cecc831929e1529f41acfc7471ceb953dcf6dfac0bebefd",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libbinder_ndk.so",
+    "bytes": 104816,
+    "sha256": "a5abafa91ce67c4cfdce78aaebf3051711fb4b5a935950946102c6eff6c3687e",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libblas.so",
+    "bytes": 1368944,
+    "sha256": "c33193b29fca87fea9949e11fb63815f2936d66fe6458923e2dfc70fce08fc70",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libc++.so",
+    "bytes": 1152760,
+    "sha256": "cb118e98c74d3454858921123b9b51ba13df9cad7dfa141dd892c453661a4d78",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libc.so",
+    "bytes": 1202248,
+    "sha256": "d7cb7d72ce901f4c2ccc169b243e923cbc1c4b1b32d362a84632f442efe204b5",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libcamera2ndk.so",
+    "bytes": 37088,
+    "sha256": "58230cfd096bb45c273d19addc2029b580957544e091dbf7cf7abf59d117dca2",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libcompiler_rt.so",
+    "bytes": 68512,
+    "sha256": "c428a36861c9143434229ccfb6ffede9b830bb5f0828d2dbb1afea61fd4664ab",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libcrypto.so",
+    "bytes": 1798512,
+    "sha256": "19c148278386b18cc28ab01715ebdabe780234ad96eaec5f4d148416512a2dfd",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libcutils.so",
+    "bytes": 118336,
+    "sha256": "63302b4c41a189dd4b55fbbddf4c20e83e9dec6c91183bf261564e85402f5484",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libdl.so",
+    "bytes": 50832,
+    "sha256": "a9d3405f5147e195921896ab6a8d6e58fb7970311d55b60bad4c14de27bc2582",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libdl_android.so",
+    "bytes": 34744,
+    "sha256": "cb0602b883fc4219583745d60f114db54b316874e4a794e90a32c91d61ed9f52",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libft2.so",
+    "bytes": 654992,
+    "sha256": "6e9e4f2de4585c28544fe6c78f6ea5d2ff018373e24bb149e2abe1e971fd60da",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libgui.so",
+    "bytes": 35272,
+    "sha256": "47bcb7dc6db39adcfb1ad2fb762f2e13f2fe3fa1ddf07e33d9f5ed2f2dd2d3d5",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libhidlbase.so",
+    "bytes": 744672,
+    "sha256": "95e6462c1e0b3ddab13adf6d4325fa4ea08d7d359c0581dccb5cf26df6fa3649",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libicu.so",
+    "bytes": 70600,
+    "sha256": "969069116f78aa74e8f4dd99567467bdb97cdb6a3ca6ae4bf99a1ef57fb5b649",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libicui18n.so",
+    "bytes": 2846336,
+    "sha256": "d441d6b0c984e7eae830f93599692a06e589402f2d5a6f28073816ceb3b04e1e",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libicuuc.so",
+    "bytes": 2019392,
+    "sha256": "3e86b262f0f97cc355234b155cf26bea2c9aa2a804ad597a256bb62987cdde2b",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libjnigraphics.so",
+    "bytes": 36400,
+    "sha256": "3ab8efc60c7d1e3f8d86f90f8df083d106a478c4d23de33631dc2e24c9491164",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/liblog.so",
+    "bytes": 102624,
+    "sha256": "03daaeb7623b3abee3088edb839c31f59c0346e014904ff7a503fce37299996a",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/liblzma.so",
+    "bytes": 200176,
+    "sha256": "8ddf7e62abac61404ec37c5ac49d88c9e33287521f9d5e6fb46a6c5960f89f32",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libm.so",
+    "bytes": 281592,
+    "sha256": "841ccde6ba39bdd9206e14de0d3c1f12df935283adc9bbe361be96d5ac9ba96c",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libmediandk.so",
+    "bytes": 135424,
+    "sha256": "7fdae79db9ccbed189c0ffadc2efca835f178a1f2cd5d1f8973361dbe8b5f0b1",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libnative_bridge_vdso.so",
+    "bytes": 34712,
+    "sha256": "768ed4326ccdadcc1e934c8eeeaea0c4d427be34207c96d6415aa88c0601272d",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libnativehelper.so",
+    "bytes": 36536,
+    "sha256": "2741066e822fe5f0bbc6a2bee2dd040e4af1ac7ba77810d272c3e29ad8c9bf8e",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libnativewindow.so",
+    "bytes": 37056,
+    "sha256": "2fdfa4c1fc60b33bc5a9c299a159f25f9f01b220b6331d87d87d2061535080e0",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libneuralnetworks.so",
+    "bytes": 37088,
+    "sha256": "cd7bc8347713a37d54d0635606a8fc4705a55219b77c286df0fddc5d5e1d1fb9",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libpng.so",
+    "bytes": 218896,
+    "sha256": "0fa05ec6f058ec94e126fb8b532be91c8eda90db0f248f15e7aeea372607ea3d",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libsqlite.so",
+    "bytes": 1522560,
+    "sha256": "898418d17dd447f8298363c01fbcd084d926ba7f91e6fecda1ca2b8d34081ffd",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libssl.so",
+    "bytes": 605136,
+    "sha256": "07851770a8a12b52f1de7cecfb5dcb561ba5e0d582fa02a54b17655fe68dd1f2",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libstdc++.so",
+    "bytes": 51680,
+    "sha256": "615c6814380d54d810138e5ebc1d625847a5efc4372d08613a249ad13500f94b",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libsync.so",
+    "bytes": 51304,
+    "sha256": "3a4c24a772f15cfad77dc94ea131985fe5b2dd194d03f6a3373864dc726abc2d",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libunwindstack.so",
+    "bytes": 721760,
+    "sha256": "d5424d9425e28355252352c81dd0225dac737aadd2d6762ea93f8026ae4d0d36",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libutils.so",
+    "bytes": 168784,
+    "sha256": "9d56a4d04c5ea8975ddd5cc994706dd0c73411a7ffd3d75aa9b7a903446edcf9",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libutilscallstack.so",
+    "bytes": 52136,
+    "sha256": "98888b3210d74332b5a4f428414e7e808086f92a638176cf86cdd89876661ea3",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libvndksupport.so",
+    "bytes": 51424,
+    "sha256": "bdffcdee8a526ff7ceb72f50d2f90a23573cdee536d59deded131d4512cb1270",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libvulkan.so",
+    "bytes": 119360,
+    "sha256": "dafe4dffdf23e5aeb3dcfbb2397b1343080a746a4fa0c97734f105d954c54f60",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libwebviewchromium_plat_support.so",
+    "bytes": 36000,
+    "sha256": "9b7f3e169ccc307a85460d8bf72da5920b5a8a0b0371d1ab207018ca84a421c7",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/arm64/libz.so",
+    "bytes": 118000,
+    "sha256": "7f0b3de0dc45ec33a7b3c5f91e411c78faaafde3383fbe36f217d5f7d4a320f4",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/libberberis_arm64.so",
+    "bytes": 2994864,
+    "sha256": "75e51d4de98bfd926996435216c19ff0d43596883b6060bcffa18198348c0f5e",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/libberberis_exec_region.so",
+    "bytes": 575328,
+    "sha256": "eab5f6047e22edb63d5e5a2fe7520aedc9254afa51b2007dd6253003e749a43b",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/libberberis_proxy_libEGL.so",
+    "bytes": 508848,
+    "sha256": "8b3a286c11a3e2b05f8c4849d7ef8995cee2fb52a656eba4ae68c59daa44b40f",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/libberberis_proxy_libGLESv1_CM.so",
+    "bytes": 52448,
+    "sha256": "bd90767ec237771ed0d1f68fe55479aa0e8c78bf6d9ac1aaf957ec860af2af11",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/libberberis_proxy_libGLESv2.so",
+    "bytes": 102928,
+    "sha256": "1c9998c5b84d4a8f62139899768f21a0faea8897576b4e56392f6256c67c38e3",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/libberberis_proxy_libGLESv3.so",
+    "bytes": 102928,
+    "sha256": "42c5ca630994f47f98721675b2c4482e064f9f1bfed8275eb3c2d16d240e0644",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/libberberis_proxy_libOpenMAXAL.so",
+    "bytes": 85808,
+    "sha256": "e2e4d91079f8f428b0c698de3f3c0538b3746015a070af99dddeddd65d16bb4a",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/libberberis_proxy_libOpenSLES.so",
+    "bytes": 186920,
+    "sha256": "ab5c219d1065b18be74a74aa165e8e1208a05b09ad30d0d2eb85c4d59c6c137b",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/libberberis_proxy_libaaudio.so",
+    "bytes": 52168,
+    "sha256": "e991bfe14893b27ecb3960448bb2a867ec1129c68e50764d3d627415b8738fcd",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/libberberis_proxy_libamidi.so",
+    "bytes": 52032,
+    "sha256": "814688698a6a73024f14cab561bcf4f2252e1ac7913ceea0e9c219c86e379006",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/libberberis_proxy_libandroid.so",
+    "bytes": 102448,
+    "sha256": "d660689ed512949de614ee3e3ac32dde66aa20221f5c857b4127252ccc7efc97",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/libberberis_proxy_libandroid_runtime.so",
+    "bytes": 133552,
+    "sha256": "c863142c9bc7a7d5bfd3c56297c23a8ecff1c18e5de574f7bcf77b0a9c198f4a",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/libberberis_proxy_libbinder_ndk.so",
+    "bytes": 85384,
+    "sha256": "4b6e24f838eda276c0824bea6b7d5ed53d003d9f0dc7c12542b3f2a662af77c5",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/libberberis_proxy_libc.so",
+    "bytes": 85304,
+    "sha256": "6f7e7f2a17676295b32e4375d4f2d224971eb83e51a3a85b6c66cb8387dcfebc",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/libberberis_proxy_libcamera2ndk.so",
+    "bytes": 52608,
+    "sha256": "edf6e4e3d3eb5ce0597386f264882af39298a5e2a342c75372cb8d83c2d2a9fe",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/libberberis_proxy_libjnigraphics.so",
+    "bytes": 52208,
+    "sha256": "a7bda0cf6ec15a2e12cb3b865e5501b8a88ddf567e313892d765d7a6139390d2",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/libberberis_proxy_libm.so",
+    "bytes": 51632,
+    "sha256": "28b5c758a8aa4a27e629a098ce5a5e0030a4a00f025dd33db3b4f6fbf3491dba",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/libberberis_proxy_libmediandk.so",
+    "bytes": 85560,
+    "sha256": "56b81313111d96fc1fcdda0d035cabeeaea7e887f521ba7529465ef49c9d74f9",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/libberberis_proxy_libnativehelper.so",
+    "bytes": 52120,
+    "sha256": "7baee6f2b0ac705651a3a09caea78d5bad38f515ebabd1b894e068357c046cb0",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/libberberis_proxy_libnativewindow.so",
+    "bytes": 52216,
+    "sha256": "30dda3089ae1f775eb14f3e6231f44647fff8e94d6de21b2ce9374d5fa4e2450",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/libberberis_proxy_libneuralnetworks.so",
+    "bytes": 52168,
+    "sha256": "267c3e2e6de844db060ef5712ce5807fac847a6dd9b1f5bd032bd63f840dabf7",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/libberberis_proxy_libvulkan.so",
+    "bytes": 964256,
+    "sha256": "da6b08dc0f70d8c52f3df6d091e9fa0ddd380e4e6fc090f6eb2de68b9e39396f",
+    "identical_to_photos1": true
+  },
+  {
+    "path": "SYSTEM/lib64/libberberis_proxy_libwebviewchromium_plat_support.so",
+    "bytes": 51544,
+    "sha256": "0f29d16f8e4fcee50ce9a8c45fe9ef004c6e4dc05037ffcedf3faad28f17f314",
+    "identical_to_photos1": true
+  }
+]

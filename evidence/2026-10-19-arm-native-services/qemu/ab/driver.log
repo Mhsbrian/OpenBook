@@ -1,0 +1,17 @@
+[17:22:43] ota-armfix1-ab: QEMU started (disk ab.img, adb on 127.0.0.1:40007)
+[17:22:57] boot: slot a up (module)
+[17:24:29] [PASS] ab: g14-adb.sh ota: slot b written over adb, verified
+[17:24:29] [PASS] ab: the boot HAL moved the ESP entry (no bootstrap)
+[17:24:29] [PASS] ab: progress shown while update_engine writes
+[17:24:50] boot: slot b up (module)
+[17:24:50] [PASS] ab: after the reboot systemd-boot starts slot b
+[17:25:01] [PASS] ab: after the update: the PIN unlocks the user's storage
+[17:25:01] [PASS] ab: after the update: slot b runs the package's build (vbmeta digest, build date)
+[17:25:01] [PASS] ab: after the update: /data intact: the setting, the 4 MiB file, the app, the serial number, provisioned
+[17:25:01] [PASS] ab: after the update: no setup screen after the update (OpenBookSetup steps aside on a provisioned system)
+[17:25:01] [PASS] ab: after the update: SELinux enforcing; the OpenBook boot HAL runs
+[17:25:01] [PASS] ab: the virtual A/B merge completes
+[17:25:01] [PASS] ab: ESP: slot b's entry is good and the default; slot a's entry is gone
+[17:25:01] [PASS] ab: boot HAL (misc): current and active slot b, marked successful
+[17:25:01] [PASS] ab: no SELinux denial for openbook-bootsync, the boot HAL or the ESP (enforcing); the others are listed in avc.txt, not gated
+[17:25:16] ota-armfix1-ab: QEMU stopped (quit)

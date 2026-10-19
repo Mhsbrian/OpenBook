@@ -1,0 +1,193 @@
+{
+ "run": "armfix1",
+ "passed": 36,
+ "total": 36,
+ "cases": {
+  "ab": [
+   {
+    "check": "g14-adb.sh ota: slot b written over adb, verified",
+    "ok": true,
+    "detail": "ot starts slot b next\n\nSlot b is ready. Nothing changes until the next boot; slot a and /data are as they were.\n  Reboot:     g14-adb.sh -a 127.0.0.1:40007 shell reboot      then: g14-adb.sh -a 127.0.0.1:40007 wait && g14-adb.sh -a 127.0.0.1:40007 ota-status\n  Not yet:    g14-adb.sh -a 127.0.0.1:40007 ota-cancel        (before rebooting: slot a stays, as if nothing happened)\nIf slot b does not come up: it gets 3 tries. Hold the power button 10 s to force each restart; after the third\nfailed start systemd-boot starts slot a again by itself, with /data as it was. To pick a slot by hand: hold a k"
+   },
+   {
+    "check": "the boot HAL moved the ESP entry (no bootstrap)",
+    "ok": true,
+    "detail": "e up: it gets 3 tries. Hold the power button 10 s to force each restart; after the third\nfailed start systemd-boot starts slot a again by itself, with /data as it was. To pick a slot by hand: hold a key\nwhile powering on and choose \"OpenBook (17 \u00b7 slot A)\". Slot b counts as good once Android has booted it\n(markBootSuccessful); from then on update_engine merges, and slot a is no longer a fallback.\n"
+   },
+   {
+    "check": "progress shown while update_engine writes",
+    "ok": true,
+    "detail": "['96', '97', '98', '99', '100']"
+   },
+   {
+    "check": "after the reboot systemd-boot starts slot b",
+    "ok": true,
+    "detail": "b"
+   },
+   {
+    "check": "after the update: the PIN unlocks the user's storage",
+    "ok": true,
+    "detail": "Lock credential verified successfully"
+   },
+   {
+    "check": "after the update: slot b runs the package's build (vbmeta digest, build date)",
+    "ok": true,
+    "detail": "{'SLOT': '_b', 'VBMETA': '1a8a2bd1aef13e738230988a1e17fb32b8c56e36732b9882da76789bb5a94930', 'DATE': '1792429641'}"
+   },
+   {
+    "check": "after the update: /data intact: the setting, the 4 MiB file, the app, the serial number, provisioned",
+    "ok": true,
+    "detail": "{}"
+   },
+   {
+    "check": "after the update: no setup screen after the update (OpenBookSetup steps aside on a provisioned system)",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "after the update: SELinux enforcing; the OpenBook boot HAL runs",
+    "ok": true,
+    "detail": "running/"
+   },
+   {
+    "check": "the virtual A/B merge completes",
+    "ok": true,
+    "detail": "10-19 17:24:50.995   679   679 I update_engine: [INFO:cleanup_previous_update_action.cc(342)] Merge finished with state MergeCompleted.\nUpdate state: none"
+   },
+   {
+    "check": "ESP: slot b's entry is good and the default; slot a's entry is gone",
+    "ok": true,
+    "detail": "[{'file': 'openbook-b.conf', 'id': 'openbook-b.conf', 'slot': 'b', 'state': 'good'}]"
+   },
+   {
+    "check": "boot HAL (misc): current and active slot b, marked successful",
+    "ok": true,
+    "detail": "1\n1\n1\nsuccessful\n"
+   },
+   {
+    "check": "no SELinux denial for openbook-bootsync, the boot HAL or the ESP (enforcing); the others are listed in avc.txt, not gated",
+    "ok": true,
+    "detail": "[]"
+   }
+  ],
+  "rollback": [
+   {
+    "check": "the broken package (its kernel cannot start: rdinit missing) installs on slot b and verifies like any other",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "slot b fails to start three times (kernel panic, reboot), then systemd-boot starts slot a by itself",
+    "ok": true,
+    "detail": "(3, 'a')"
+   },
+   {
+    "check": "slot a is the build it ran before, /data intact (PIN, setting, file, app)",
+    "ok": true,
+    "detail": "{}"
+   },
+   {
+    "check": "update_engine is idle again on slot a (the failed update is cancelled)",
+    "ok": true,
+    "detail": "UPDATE_STATUS_IDLE\n10-19 17:37:06.474   585   585 I update_engine: [INFO:dynamic_partition_control_android.cc(339)] SnapshotManager released\n10-19 17:37:11.565  1128  1128 D PermissionStorageTimeChangeReceiver: systemTimeSnapshot set to 1792431431564\n10-19 17:37:11.565  1128  1128 D PermissionStorageTimeChangeReceiver: realtimeSnapshot set to 11693\n10-19 17:37:19.584  1128  1128 D PermissionStorageTimeChangeReceiver: systemTimeSnapshot set to 1792431439584\n10-19 17:37:19.585  1128  1128 D PermissionStorageTimeChangeReceiver: realtimeSnapshot set to 19713\n10-19 17:37:16.009  1472  1472 I apexd "
+   },
+   {
+    "check": "the boot HAL followed the loader: misc names slot a active, slot b unbootable; the ESP starts a next",
+    "ok": true,
+    "detail": "('a', '0\\n0\\nrc=70\\n')"
+   },
+   {
+    "check": "then the good package from slot a: written to slot b and verified (the bad entry replaced)",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "slot b boots the good build",
+    "ok": true,
+    "detail": "b"
+   },
+   {
+    "check": "after the second attempt: the PIN unlocks the user's storage",
+    "ok": true,
+    "detail": "Lock credential verified successfully"
+   },
+   {
+    "check": "after the second attempt: slot b runs the package's build (vbmeta digest, build date)",
+    "ok": true,
+    "detail": "{'SLOT': '_b', 'VBMETA': '1a8a2bd1aef13e738230988a1e17fb32b8c56e36732b9882da76789bb5a94930', 'DATE': '1792429641'}"
+   },
+   {
+    "check": "after the second attempt: /data intact: the setting, the 4 MiB file, the app, the serial number, provisioned",
+    "ok": true,
+    "detail": "{}"
+   },
+   {
+    "check": "after the second attempt: no setup screen after the update (OpenBookSetup steps aside on a provisioned system)",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "after the second attempt: SELinux enforcing; the OpenBook boot HAL runs",
+    "ok": true,
+    "detail": "running/"
+   },
+   {
+    "check": "the merge completes",
+    "ok": true,
+    "detail": "10-19 17:39:08.258   679   679 I update_engine: [INFO:cleanup_previous_update_action.cc(342)] Merge finished with state MergeCompleted.\nUpdate state: none"
+   }
+  ],
+  "cut": [
+   {
+    "check": "power cut while update_engine writes slot b",
+    "ok": true,
+    "detail": "at progress 40"
+   },
+   {
+    "check": "after the cut slot a boots, the build it ran before, /data intact",
+    "ok": true,
+    "detail": "{}"
+   },
+   {
+    "check": "the update re-run completes and verifies",
+    "ok": true,
+    "detail": "0.1:39901 wait && g14-adb.sh -a 127.0.0.1:39901 ota-status\n  Not yet:    g14-adb.sh -a 127.0.0.1:39901 ota-cancel        (before rebooting: slot a stays, as if nothing happened)\nIf slot b does not come up: it gets 3 tries. Hold the power button 10 s to force each restart; after the third\nfailed start systemd-boot starts slot a again by itself, with /data as it was. To pick a slot by hand: hold a key\nwhile powering on and choose \"OpenBook (17 \u00b7 slot A)\". Slot b counts as good once Android has booted it\n(markBootSuccessful); from then on update_engine merges, and slot a is no longer a fallback.\n"
+   },
+   {
+    "check": "slot b boots",
+    "ok": true,
+    "detail": "b"
+   },
+   {
+    "check": "after the re-run: the PIN unlocks the user's storage",
+    "ok": true,
+    "detail": "Lock credential verified successfully"
+   },
+   {
+    "check": "after the re-run: slot b runs the package's build (vbmeta digest, build date)",
+    "ok": true,
+    "detail": "{'SLOT': '_b', 'VBMETA': '1a8a2bd1aef13e738230988a1e17fb32b8c56e36732b9882da76789bb5a94930', 'DATE': '1792429641'}"
+   },
+   {
+    "check": "after the re-run: /data intact: the setting, the 4 MiB file, the app, the serial number, provisioned",
+    "ok": true,
+    "detail": "{}"
+   },
+   {
+    "check": "after the re-run: no setup screen after the update (OpenBookSetup steps aside on a provisioned system)",
+    "ok": true,
+    "detail": "com.android.launcher3/.uioverrides.QuickstepLauncher"
+   },
+   {
+    "check": "after the re-run: SELinux enforcing; the OpenBook boot HAL runs",
+    "ok": true,
+    "detail": "running/"
+   },
+   {
+    "check": "the merge completes",
+    "ok": true,
+    "detail": "10-19 17:42:15.907   682   682 I update_engine: [INFO:cleanup_previous_update_action.cc(342)] Merge finished with state MergeCompleted.\nUpdate state: none"
+   }
+  ]
+ }
+}
