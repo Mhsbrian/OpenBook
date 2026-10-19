@@ -210,7 +210,7 @@ The full, tested steps, including the kernel, the hardware-check stick and the i
 | Area | Docs |
 |---|---|
 | **Start here** | [`PLAN`](docs/PLAN.md) · [`STATUS`](docs/STATUS.md) · [`RESEARCH`](docs/RESEARCH.md) · [`BUILD`](docs/BUILD.md) |
-| **Hardware** | [`HARDWARE`](docs/HARDWARE.md) · [`nvidia`](docs/nvidia.md) |
+| **Hardware** | [`HARDWARE`](docs/HARDWARE.md) · [`adb-debug`](docs/adb-debug.md) · [`nvidia`](docs/nvidia.md) |
 | **Android** | [`aosp-build`](docs/aosp-build.md) · [`aosp-desktop`](docs/aosp-desktop.md) · [`googlebook-ui`](docs/googlebook-ui.md) · [`gapps`](docs/gapps.md) |
 | **Kernel and graphics** | [`kernel`](docs/kernel.md) · [`mesa`](docs/mesa.md) · [`graphics-amd`](docs/graphics-amd.md) |
 | **ARM apps** | [`COMPAT-MATRIX`](docs/COMPAT-MATRIX.md) · [`compat-harness`](docs/compat-harness.md) · [`digitalis`](docs/digitalis.md) |
