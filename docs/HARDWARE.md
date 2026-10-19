@@ -1,5 +1,18 @@
 # Hardware
 
+The owner has now booted fw10 into Googlebook setup through both normal and
+save-logs entries. The new G14 capture confirms Radeon initialization, MT7925
+firmware and both CS35L56 amplifier firmware loads. Wi-Fi scanning is reported
+working, but joining remains unverified: the saved capture ends at 66 seconds,
+with no authentication attempt recorded. Audio has confirmed Codec2 shared-buffer denials;
+silence at startup alone does not establish speaker failure. Follow-up evidence
+and compatibility changes: `evidence/2026-10-19-googlebook-wifi-audio/`.
+The SanDisk now contains net18 (`74c5270b2c37b658…`), with full 12.77 GB
+write/readback verification and safe power-off. Its Wi-Fi override, decoder
+fix and expanded diagnostics passed VM checks; actual joining and speaker
+playback await the next G14 boot. The prior used extent and logs are preserved.
+Earlier records below describe the preceding iterations.
+
 The returned **2026-10-19 G14 Googlebook capture** identifies a firmware-path
 packaging error: the live entry dropped `firmware_class.path=/vendor/firmware`.
 Radeon firmware lookup fails at 6.047 seconds and GPU initialization aborts;
@@ -7,7 +20,7 @@ XDNA and MT7925 firmware lookup fail too. Minigbm and SurfaceFlinger subsequentl
 fail. The firmware files are present in vendor. The corrected image
 `048bacf5934bcd22…` now holds the vendor command line on the owner's SanDisk:
 the full 12.77 GB write/readback matches, and the stick was powered off. It has
-not yet been retested on the G14.
+subsequently been tested as described above.
 The original 160 log files are backed up privately and the FAT check passes.
 See `evidence/2026-10-19-googlebook-g14-black-screen/` for the physical findings
 and their limits. Earlier trial notes below describe the preceding builds.

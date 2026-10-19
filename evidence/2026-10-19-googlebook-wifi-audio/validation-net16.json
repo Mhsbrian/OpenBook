@@ -1,0 +1,28 @@
+{
+  "elapsed_s": 760.6,
+  "input_sha256": "d31bd2b5d78e4fc10938ed6d4a32b8b81a2804288640608badfbee8c9ffad440",
+  "input_unchanged": true,
+  "decoy_unchanged": true,
+  "usb_capture_finished": true,
+  "boot_completed_reported": true,
+  "runtime_findings": {
+    "setup_welcome_activity_seen": true,
+    "system_server_fatal_signals": [
+      "10-19 21:59:32.978   774  4657 F libc    : Fatal signal 11 (SIGSEGV), code 2 (SEGV_ACCERR), fault addr 0x7f667a48d000 in tid 4657 (Thread<00>), pid 774 (system_server)"
+    ],
+    "zygote_exit_events": 1,
+    "system_server_execmem_denial_seen": true,
+    "mmd_setup_abort_seen": true
+  },
+  "scope": "Intermediate net16 runtime: Wi-Fi override and decoder fix verified; service-dump pipe and ALSA traversal corrections follow in final candidate",
+  "saved_files": 291,
+  "saved_bytes": 28889224,
+  "wifi_verification_ok": true,
+  "vorbis_component_creations": 20,
+  "sound_effects_loading_completions": 2,
+  "decoder_avcs": 0,
+  "queue_bad_input": 0,
+  "ui_sound_load_errors": 0,
+  "physical_wifi_connection_verified": false,
+  "physical_audio_playback_verified": false
+}

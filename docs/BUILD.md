@@ -2,6 +2,21 @@
 
 ## Ruby live-image research lane (ANAL-228, 2026-10-19)
 
+The Wi-Fi/audio follow-up also builds a resource-only RRO using AOSP's host
+`aapt2`, `idmap2`, `signapk.jar`, host `lib64` and bundled JDK 21. Only the local
+public AOSP test certificate is used. `idmap2` must accept both resources under
+the vendor policy; runtime diagnostics must show both effective values false.
+The recipe records the target/overlay hashes. Rerun `compat-audit.py` after
+changing `ruby-probe.cil`; an older audit is deliberately refused. Add
+`run-probe.py --audio` to expose a silent-input emulated HDA codec without
+accessing host sound devices. This does not test the G14 speakers.
+The net18 validation uses `--uefi-usb --usb-logs --usb-log-entry serial-logs
+--accel tcg --tpm --audio --timeout 660` with the patched QEMU executable.
+Check the extracted completion marker, the Wi-Fi service's cached setting,
+sound-effect loading and ALSA inventory; an exit-zero observation alone is
+not a pass. Keep all raw network dumps and software-TPM state private.
+See `evidence/2026-10-19-googlebook-wifi-audio/`.
+
 The first G14 capture exposed a loader regression: using an extracted kernel
 and initrd does not inherit `vendor_boot.img`'s command line. The probe and live
 packagers now preserve that command line, require exactly one

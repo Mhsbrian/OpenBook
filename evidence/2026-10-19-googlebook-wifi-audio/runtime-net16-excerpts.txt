@@ -1,0 +1,5 @@
+10-19 21:56:07.427  1631  1631 I OpenBookRubyWifi: config_wifi_connected_mac_randomization_supported=false
+10-19 21:56:07.526  1636  1636 I OpenBookRubyWifi: config_wifiDropConnectionWhenMacConfigurationFails=false
+10-19 21:56:07.573  1641  1641 I OpenBookRubyWifi: platform overlay verification=ok
+10-19 21:58:55:335 effects loading completed
+10-19 22:00:30:511 effects loading completed

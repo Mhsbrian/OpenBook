@@ -1,0 +1,20 @@
+{
+  "schema": "openbook-ruby-usb-write/1",
+  "date": "2026-10-19",
+  "target": "Previously identified 62 GB SanDisk Ultra; serial retained privately",
+  "image_sha256": "74c5270b2c37b6588d0464a34b3f75b7af06124d36659bda3be1aa9256fea8a7",
+  "image_bytes": 12766412800,
+  "write_seconds": 662,
+  "readback_seconds": 96,
+  "full_readback_matches": true,
+  "powered_off": true,
+  "prior_boot_used_extent_backed_up": true,
+  "prior_backup_bytes": 12766412800,
+  "prior_log_files_preserved": 64,
+  "prior_log_bytes_preserved": 8967953,
+  "both_log_backups_hash_verified": true,
+  "internal_laptop_or_firmware_updated": false,
+  "physical_wifi_connection_verified": false,
+  "physical_audio_playback_verified": false,
+  "scope": "Verified physical medium update of net18 Wi-Fi/media compatibility and diagnostic fixes. Hardware connection and audible playback still require a G14 retest."
+}

@@ -1,5 +1,36 @@
 # Status
 
+## 2026-10-19: Googlebook reaches G14 setup; Wi-Fi/audio follow-up (ANAL-228)
+
+The owner reports both fw10 entries reaching setup. The returned 64-file
+capture confirms Radeon, MT7925 and both CS35L56 amplifier initialization.
+It ends at 66 seconds without a completion marker or recorded authentication;
+Wi-Fi scanning is reported, but joining is not established by these logs.
+Codec2 shared-buffer denials prevent Android from decoding UI sounds.
+The full used image extent and all logs are preserved privately.
+
+Added a Google-package-specific Wi-Fi RRO for OpenBook's absent vendor HAL,
+with bounded activation and effective-value verification. Restored the existing
+OpenBook decoder/SoundPool/MediaPlayer queue rules lost with Ruby's replacement
+system_ext. Expanded saved diagnostics cover connection state, resource values,
+ALSA, AudioFlinger and audio policy. All 23 host regression checks and the native
+VINTF/strict-policy audit pass; no permissive domain is added. Physical joining
+and audible playback still require a G14 retest.
+
+Final net18 VM validation (`74c5270b2c37b658…`) completes 600.2 seconds of saved
+capture with zero overruns, failed saves or unsaved bytes. Both Wi-Fi resource
+values and the service's randomization cache are false. UI sound loading
+succeeds, and decoder, diagnostic-pipe and ALSA inventory denials are absent.
+The source and synthetic internal disk are unchanged. The 660.6-second run
+reaches welcome with one zygote exit and a zram setup abort, but no captured
+system-server fatal signal. Earlier intermittent crashes remain unresolved.
+The owner's SanDisk now holds net18: all 12,766,412,800 bytes were written and
+fully read back with matching SHA-256, then the stick was powered off. The
+previous used extent and 64 logs are backed up privately. Next: a 12-minute
+G14 logging boot with a Wi-Fi join and, if setup permits, audible playback.
+Evidence:
+`evidence/2026-10-19-googlebook-wifi-audio/`.
+
 ## 2026-10-19: G14 Googlebook black screen traced to firmware lookup (ANAL-228)
 
 The returned stick contains 160 files / 13.6 MB of physical G14 diagnostics.
