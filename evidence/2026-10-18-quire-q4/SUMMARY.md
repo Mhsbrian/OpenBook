@@ -74,7 +74,7 @@ The Checker held PR #111 at `b2ccb8b` for two `quired serve` faults, and asked f
 ## Not done
 
 - The G14 run (acceptance 2): over adb, once the installed system's update carries AVF (ANAL-214, ANAL-223): `scripts/quire/linux-env-adb.sh -s ADDR:5555 check images.tar.gz OUT`.
-- Pairing a second computer: the Checker held the design (`docs/quire-pairing.md`): TLS session resumption skips the pin check, so a revoked peer could resume; and the pairing code must bind both identities in a defined transcript. It is revised before anything is built.
+- Pairing a second computer: the Checker held revision 1 of the design. TLS session resumption skipped the pin check, so a revoked peer could resume, and the pairing code didn't bind both identities. Revision 2 (`docs/quire-pairing.md`) disables resumption and checks the live pins on every connection. It binds a canonical transcript with both pins into the exporter's context, the commitment and the code. Nothing is built until it is approved.
 - The guest's `cidata.iso` (guest agent, cloud-init files) is AOSP's checked-in prebuilt (build 15101902); building it from source needs a musl host build.
 - A guest kernel with virtio-gpu, for Linux GUI apps.
 
