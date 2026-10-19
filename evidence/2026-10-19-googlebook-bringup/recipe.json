@@ -1,0 +1,83 @@
+{
+  "schema": "openbook-ruby-vm-probe/1",
+  "installable": false,
+  "scope": "Local VM experiment; not a Googlebook installer source",
+  "source_sha256": {
+    "system": "4ebc0e69314aea8cdc4eb97351716c7ebc6dc1d3a0ed66e17025f32d9af1e487",
+    "system_ext": "da7fd503976de920eb556b56fcc05f6ff4a5af8a1ce8996f7c1591e0711fe0f1",
+    "product": "c5c6e4fb94c3c673862254069df83910a700f91d50302f294c759530d59020d2",
+    "vendor": "0107fe16fb86066d2b272af0732f04600c6aca2fdf9ffce327f8da251dd7dd61",
+    "vendor_dlkm": "14427e5f27accbe78d3bd68365b5365cab91f8f4a7031e09d16ef5062d709521",
+    "system_dlkm": "34185c35cb8bbccd5dfd0bb74eecb8a21e2445730411ef1583e1245628e0d617"
+  },
+  "kernel_sha256": "55b86074614a94592ddecebd2b77b1f2ed9aa38e8ad992b73c78c64d04c516f9",
+  "bootconfig": {
+    "androidboot.hardware": "openbook",
+    "androidboot.boot_devices": "pci0000:00/0000:00:04.0",
+    "androidboot.slot_suffix": "_a",
+    "androidboot.force_normal_boot": "1",
+    "androidboot.console": "ttyS0",
+    "androidboot.serialconsole": "1",
+    "androidboot.verifiedbootstate": "orange",
+    "androidboot.vbmeta.device_state": "unlocked",
+    "androidboot.veritymode": "enforcing",
+    "androidboot.vbmeta.avb_version": "1.2",
+    "androidboot.vbmeta.hash_alg": "sha256",
+    "androidboot.vbmeta.digest": "39a5d329d6c66567f0436c2212df0b305fa427e2b9b0485d2503a89f54431c78",
+    "androidboot.vbmeta.size": "4352",
+    "androidboot.serialno": "OPENBOOKRUBYVM01",
+    "androidboot.selinux": "enforcing"
+  },
+  "gpt": [
+    {
+      "name": "misc",
+      "first_lba": 2048,
+      "last_lba": 10239,
+      "partuuid": "7eb27bc2-75a9-5fc0-9d40-0709768556c6"
+    },
+    {
+      "name": "boot_a",
+      "first_lba": 10240,
+      "last_lba": 141311,
+      "partuuid": "686a4d3c-c6e0-5762-918e-0f81a149da3b"
+    },
+    {
+      "name": "init_boot_a",
+      "first_lba": 141312,
+      "last_lba": 157695,
+      "partuuid": "44cdac13-1bcc-5129-ae45-cdc63623ec5c"
+    },
+    {
+      "name": "vendor_boot_a",
+      "first_lba": 157696,
+      "last_lba": 288767,
+      "partuuid": "ee32e235-cbbb-5e83-a3d0-945685e646ea"
+    },
+    {
+      "name": "vbmeta_a",
+      "first_lba": 288768,
+      "last_lba": 290815,
+      "partuuid": "326e7d53-9b85-5f84-b6c5-f2d2978c5d99"
+    },
+    {
+      "name": "metadata",
+      "first_lba": 290816,
+      "last_lba": 421887,
+      "partuuid": "f2c03ef3-774d-5873-8d5a-3fb4b3607ff8"
+    },
+    {
+      "name": "super",
+      "first_lba": 421888,
+      "last_lba": 7630847,
+      "partuuid": "1354feb0-00d7-5996-8630-fcbf9186cb08"
+    },
+    {
+      "name": "userdata",
+      "first_lba": 7630848,
+      "last_lba": 24408063,
+      "partuuid": "ad24c633-e0b2-55ac-b571-501bfa5f2598"
+    }
+  ],
+  "avb": "local test-key root, unlocked/orange; retained Google logical image descriptors",
+  "policy": "strictly compiled hybrid; six OpenBook grants removed, two scoped serial-diagnostic rules added; enforcing requested"
+}

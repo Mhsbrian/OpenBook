@@ -1,0 +1,18 @@
+{
+  "input_files_hashed": 389,
+  "audit_inputs_unchanged": true,
+  "super_readback_matches": 6,
+  "enforcing_reported": true,
+  "module_loader_exit_zero": true,
+  "registered_security_interfaces": [
+    "android.hardware.gatekeeper.IGatekeeper/default",
+    "android.hardware.security.keymint.IKeyMintDevice/default",
+    "android.system.keystore2.IKeystoreService/default"
+  ],
+  "zygote_sigill_count": 16,
+  "bootanimation_sigill_count": 1,
+  "kernel_module_abi_errors": [],
+  "boot_completed": false,
+  "physical_device_tested": false,
+  "serial_parsing": "Kernel records removed only when decoding interleaved userspace lines; original serial retained."
+}

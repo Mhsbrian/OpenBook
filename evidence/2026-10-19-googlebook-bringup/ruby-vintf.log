@@ -1,0 +1,224 @@
+[INFO] Cannot parse "$OUT/ruby/kernel-release.txt" as kernel version, parsing as GKI kernel release.
+[INFO] Cannot parse "$OUT/ruby/kernel-release.txt" as GKI kernel release, parsing as kernel release
+[INFO] Cannot parse "$OUT/ruby/kernel-release.txt" as kernel release
+[INFO] Cannot parse "6.18.21-android17-5-g3938c8d97142-ab16302624
+" as kernel version, parsing as GKI kernel release.
+[INFO] "6.18.21-android17-5-g3938c8d97142-ab16302624
+" is not a mainline kernel.
+[INFO] Successfully parsed content of $OUT/ruby/kernel-release.txt: 6.18.21-android17-5-g3938c8d97142-ab16302624
+
+[INFO] Sysprop apex.all.ready=true
+[INFO] Get modified time '$OUT/ruby/apex/apex-info-list.xml': OK
+[INFO] getFrameworkHalManifest: Reading VINTF information.
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/manifest.xml': OK
+[INFO] List '$RUBY/fs/system_a/system/etc/vintf/manifest/': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/manifest/android.frameworks.stats-service.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/manifest/android.system.keystore2-service.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/manifest/android.system.net.netd-service.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/manifest/android.system.suspend-service.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/manifest/android.system.vold-service.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/manifest/com.android.desktop.drm_network.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/manifest/com.android.desktop.video_chat.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/manifest/com.google.android.snapshot.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/manifest/manifest_android.frameworks.cameraservice.service.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/manifest/manifest_gscd.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/manifest/manifest_media_c2_software.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/manifest/manifest_services_android.frameworks.devicestate.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/manifest/manifest_services_android.frameworks.location.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/manifest/omapi.xml': OK
+[INFO] Fetch '$RUBY/fs/product_a/etc/vintf/manifest.xml': NAME_NOT_FOUND
+[INFO] List '$RUBY/fs/product_a/etc/vintf/manifest/': NAME_NOT_FOUND
+[INFO] Fetch '$RUBY/fs/system_ext_a/etc/vintf/manifest.xml': OK
+[INFO] List '$RUBY/fs/system_ext_a/etc/vintf/manifest/': OK
+[INFO] Fetch '$RUBY/fs/system_ext_a/etc/vintf/manifest/com.google.android.desktop.super-partition-utils.xml': OK
+[INFO] Fetch '$RUBY/fs/system_ext_a/etc/vintf/manifest/vintf_fragments.xml': OK
+[INFO] Sysprop apex.all.ready=true
+[INFO] Fetch '$OUT/ruby/apex/apex-info-list.xml': OK
+[INFO] Loaded APEX Infos from /apex/apex-info-list.xml
+[INFO] List '$OUT/ruby/apex/com.android.apex.cts.shim/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.devicelock/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.i18n/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.npumanager/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.runtime/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.adbd/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.adservices/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.appsearch/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.art/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.bt/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.configinfrastructure/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.conscrypt/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.crashrecovery/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.extservices/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.healthfitness/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.ipsec/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.media/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.media.swcodec/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.mediaprovider/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.neuralnetworks/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.nfcservices/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.ondevicepersonalization/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.os.statsd/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.permission/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.profiling/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.resolv/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.rkpd/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.scheduling/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.sdkext/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.telephonycore/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.tethering/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.tzdata/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.uprobestats/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.uwb/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.virt/etc/vintf/': OK
+[INFO] Fetch '$OUT/ruby/apex/com.android.virt/etc/vintf/virtualizationservice.xml': OK
+[INFO] List '$OUT/ruby/apex/com.android.webapp/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.wifi/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.hardware.biometrics.fingerprint.virtual/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.android.compos/etc/vintf/': OK
+[INFO] List '$OUT/ruby/apex/com.google.android.gmssystem/etc/vintf/': OK
+[INFO] Sysprop apex.all.ready=true
+[INFO] Get modified time '$OUT/ruby/apex/apex-info-list.xml': OK
+[INFO] getDeviceHalManifest: Reading VINTF information.
+[INFO] Sysprop ro.boot.product.vendor.sku is missing, default to ''
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest.xml': OK
+[INFO] Sysprop apex.all.ready=true
+[INFO] Fetch '$OUT/ruby/apex/apex-info-list.xml': OK
+[INFO] Loaded APEX Infos from /apex/apex-info-list.xml
+[INFO] List '$RUBY/fs/vendor_a/etc/vintf/manifest/': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/allocator.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/android.hardware.boot-service.android-desktop.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/android.hardware.camera.provider-usb-service.android-desktop.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/android.hardware.camera.provider@2.7-service-legacy-wrapper.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/android.hardware.dumpstate-service-desktop.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/android.hardware.gatekeeper-service.trusty.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/android.hardware.health-service.android-desktop.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/android.hardware.lights-service.android-desktop.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/android.hardware.npu-intel-service.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/android.hardware.power-service.pixel.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/android.hardware.power.stats.desktop.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/android.hardware.security.secretkeeper.trusty.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/android.hardware.sensors-multihal.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/android.hardware.thermal-service.pixel.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/android.hardware.usb-service.desktop.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/android.hardware.weaver-service.android-desktop.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/android.hardware.wifi-service.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/android.hardware.wifi.hostapd.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/android.hardware.wifi.supplicant.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/bluetooth-service-desktop.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/bluetooth_audio.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/com.android.desktop.power.charge_control.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/com.android.desktop.power.suspend_notification_service.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/com.google.android.snapshot_collector-service.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/com.google.desktop.disk_info.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/dms-service.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/hwc3-drm.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/manifest_desktop_wifi_ext_aidl.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/manifest_media_c2_cros_codecs.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/manifest_thermal_profile_setter_aidl.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/mapper.minigbm.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/memtrack-default.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/npuhal_proxy_service.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/powerhal_proxy_service.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/ti.amp.calib.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/vendor.dolby.media.c2-default-service-dax-desktop.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/vendor.google.desktop.camera-tool-executor.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/vendor.google.desktop.ec-executor.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/vendor.google.desktop.futility-executor.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/vendor.google.desktop.i2cexecutor.i2c-executor.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/vendor.google.desktop.keyboard_proxy_service.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/vendor.google.desktop.oemlock-service.xml': OK
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/manifest/vendor.google.desktop.vpd_executor.vpd-executor.xml': OK
+[INFO] List '$OUT/ruby/apex/com.android.hardware.audio.desktop/etc/vintf/': OK
+[INFO] Fetch '$OUT/ruby/apex/com.android.hardware.audio.desktop/etc/vintf/dras.core-cpp.audio.xml': OK
+[INFO] Fetch '$OUT/ruby/apex/com.android.hardware.audio.desktop/etc/vintf/dras.core.audio.xml': OK
+[INFO] List '$OUT/ruby/apex/com.android.hardware.cas/etc/vintf/': OK
+[INFO] Fetch '$OUT/ruby/apex/com.android.hardware.cas/etc/vintf/android.hardware.cas-service.xml': OK
+[INFO] List '$OUT/ruby/apex/com.android.hardware.drm.clearkey/etc/vintf/': OK
+[INFO] Fetch '$OUT/ruby/apex/com.android.hardware.drm.clearkey/etc/vintf/android.hardware.drm-service.clearkey.xml': OK
+[INFO] List '$OUT/ruby/apex/com.android.hardware.fingerprint.crosfp/etc/vintf/': OK
+[INFO] Fetch '$OUT/ruby/apex/com.android.hardware.fingerprint.crosfp/etc/vintf/android.hardware.biometrics.fingerprint-service.crosfp.xml': OK
+[INFO] List '$OUT/ruby/apex/com.android.hardware.keymint.strongbox.desktop/etc/vintf/': OK
+[INFO] Fetch '$OUT/ruby/apex/com.android.hardware.keymint.strongbox.desktop/etc/vintf/android.hardware.security.keymint-service.strongbox.desktop.xml': OK
+[INFO] List '$OUT/ruby/apex/com.google.android.hardware.biometrics.face/etc/vintf/': OK
+[INFO] Fetch '$OUT/ruby/apex/com.google.android.hardware.biometrics.face/etc/vintf/vintf_fragment.xml': OK
+[INFO] List '$OUT/ruby/apex/com.google.android.widevine/etc/vintf/': OK
+[INFO] Fetch '$OUT/ruby/apex/com.google.android.widevine/etc/vintf/com.google.android.widevine.xml': OK
+[INFO] Sysprop ro.boot.product.hardware.sku is missing, default to ''
+[INFO] Fetch '$OUT/empty/etc/vintf/manifest.xml': NAME_NOT_FOUND
+[INFO] Fetch '$OUT/empty/etc/manifest.xml': NAME_NOT_FOUND
+[INFO] Sysprop apex.all.ready=true
+[INFO] Fetch '$OUT/ruby/apex/apex-info-list.xml': OK
+[INFO] Loaded APEX Infos from /apex/apex-info-list.xml
+[INFO] List '$OUT/empty/etc/vintf/manifest/': NAME_NOT_FOUND
+[INFO] getDeviceHalManifest: Successfully processed VINTF information
+[INFO] getFrameworkHalManifest: Successfully processed VINTF information
+[INFO] Sysprop apex.all.ready=true
+[INFO] Get modified time '$OUT/ruby/apex/apex-info-list.xml': OK
+[INFO] Sysprop apex.all.ready=true
+[INFO] Get modified time '$OUT/ruby/apex/apex-info-list.xml': OK
+[INFO] fetched kernel level from RuntimeInfo '202604'
+[INFO] Sysprop apex.all.ready=true
+[INFO] Get modified time '$OUT/ruby/apex/apex-info-list.xml': OK
+[INFO] getFrameworkCompatibilityMatrix: Reading VINTF information.
+[INFO] List '$RUBY/fs/system_a/system/etc/vintf/': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/compatibility_matrix.202404.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/compatibility_matrix.202504.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/compatibility_matrix.202604.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/compatibility_matrix.7.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/compatibility_matrix.8.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/compatibility_matrix.device.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/manifest.xml': OK
+[INFO] List '$RUBY/fs/system_ext_a/etc/vintf/': OK
+[INFO] Fetch '$RUBY/fs/system_ext_a/etc/vintf/compatibility_matrix.toscana.xml': OK
+[INFO] Fetch '$RUBY/fs/system_ext_a/etc/vintf/manifest.xml': OK
+[INFO] List '$RUBY/fs/product_a/etc/vintf/': OK
+[INFO] Fetch '$RUBY/fs/product_a/etc/vintf/compatibility_matrix.xml': OK
+[INFO] getFrameworkCompatibilityMatrix: Successfully processed VINTF information
+[INFO] getDeviceCompatibilityMatrix: Reading VINTF information.
+[INFO] Fetch '$RUBY/fs/vendor_a/etc/vintf/compatibility_matrix.xml': OK
+[INFO] getDeviceCompatibilityMatrix: Successfully processed VINTF information
+[INFO] fetched kernel version 6.18.21
+[INFO] read kernel configs from $RUBY/kernel/config
+[INFO] Sysprop apex.all.ready=true
+[INFO] Get modified time '$OUT/ruby/apex/apex-info-list.xml': OK
+[INFO] Sysprop apex.all.ready=true
+[INFO] Get modified time '$OUT/ruby/apex/apex-info-list.xml': OK
+[INFO] Sysprop apex.all.ready=true
+[INFO] Get modified time '$OUT/ruby/apex/apex-info-list.xml': OK
+[INFO] Sysprop apex.all.ready=true
+[INFO] Get modified time '$OUT/ruby/apex/apex-info-list.xml': OK
+[INFO] List '$RUBY/fs/system_a/system/etc/vintf/': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/compatibility_matrix.202404.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/compatibility_matrix.202504.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/compatibility_matrix.202604.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/compatibility_matrix.7.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/compatibility_matrix.8.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/compatibility_matrix.device.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/manifest.xml': OK
+[INFO] List '$RUBY/fs/system_ext_a/etc/vintf/': OK
+[INFO] Fetch '$RUBY/fs/system_ext_a/etc/vintf/compatibility_matrix.toscana.xml': OK
+[INFO] Fetch '$RUBY/fs/system_ext_a/etc/vintf/manifest.xml': OK
+[INFO] List '$RUBY/fs/product_a/etc/vintf/': OK
+[INFO] Fetch '$RUBY/fs/product_a/etc/vintf/compatibility_matrix.xml': OK
+[INFO] Sysprop apex.all.ready=true
+[INFO] Get modified time '$OUT/ruby/apex/apex-info-list.xml': OK
+[INFO] List '$RUBY/fs/system_a/system/etc/vintf/': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/compatibility_matrix.202404.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/compatibility_matrix.202504.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/compatibility_matrix.202604.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/compatibility_matrix.7.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/compatibility_matrix.8.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/compatibility_matrix.device.xml': OK
+[INFO] Fetch '$RUBY/fs/system_a/system/etc/vintf/manifest.xml': OK
+[INFO] List '$RUBY/fs/system_ext_a/etc/vintf/': OK
+[INFO] Fetch '$RUBY/fs/system_ext_a/etc/vintf/compatibility_matrix.toscana.xml': OK
+[INFO] Fetch '$RUBY/fs/system_ext_a/etc/vintf/manifest.xml': OK
+[INFO] List '$RUBY/fs/product_a/etc/vintf/': OK
+[INFO] Fetch '$RUBY/fs/product_a/etc/vintf/compatibility_matrix.xml': OK
+[INFO] Sysprop apex.all.ready=true
+[INFO] Get modified time '$OUT/ruby/apex/apex-info-list.xml': OK
+[INFO] Sysprop apex.all.ready=true
+[INFO] Get modified time '$OUT/ruby/apex/apex-info-list.xml': OK
+[INFO] Sysprop apex.all.ready=true
+[INFO] Get modified time '$OUT/ruby/apex/apex-info-list.xml': OK
+COMPATIBLE

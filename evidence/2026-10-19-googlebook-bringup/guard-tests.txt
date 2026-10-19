@@ -1,0 +1,14 @@
+test_device_directory_refused (__main__.Guards.test_device_directory_refused) ... ok
+test_existing_output_preserved (__main__.Guards.test_existing_output_preserved) ... ok
+test_extra_grant_refuses_drift (__main__.Guards.test_extra_grant_refuses_drift) ... ok
+test_kernel_banner_across_read_boundary (__main__.Guards.test_kernel_banner_across_read_boundary) ... ok
+test_missing_grant_refuses_drift (__main__.Guards.test_missing_grant_refuses_drift) ... ok
+test_neverallow_removal_forbidden (__main__.Guards.test_neverallow_removal_forbidden) ... ok
+test_output_cannot_be_inside_source_via_symlink (__main__.Guards.test_output_cannot_be_inside_source_via_symlink) ... ok
+test_qemu_option_delimiter_refused (__main__.Guards.test_qemu_option_delimiter_refused) ... ok
+test_reduction_preserves_every_unrelated_statement (__main__.Guards.test_reduction_preserves_every_unrelated_statement) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.003s
+
+OK

@@ -1,0 +1,27 @@
+{
+  "schema": "openbook-ruby-policy-reductions/1",
+  "mapping_version": "202604",
+  "purpose": "Local Ruby user-framework probe with the current OpenBook userdebug vendor. Remove only these grants; preserve neverallow checks. Rebuild a dedicated user vendor before release.",
+  "remove": [
+    {
+      "statement": "(allow system_server_202604 self (process (execmem)))",
+      "count": 1,
+      "reason": "Ruby user system_server forbids the OpenBook SwiftShader fallback execmem grant."
+    },
+    {
+      "statement": "(allow hal_hwcrypto_server su_202604 (tcp_socket (read write accept getopt)))",
+      "count": 1,
+      "reason": "Userdebug HAL test socket access is forbidden by Ruby user policy."
+    },
+    {
+      "statement": "(allow hal_keymint_server su_202604 (tcp_socket (read write accept getopt)))",
+      "count": 3,
+      "reason": "Userdebug HAL test socket access is forbidden by Ruby user policy."
+    },
+    {
+      "statement": "(allow hal_atrace_default debugfs_tracing_debug_202604 (file (ioctl read write getattr lock append map open watch watch_reads)))",
+      "count": 1,
+      "reason": "Ruby user policy forbids access to debug tracing files."
+    }
+  ]
+}
