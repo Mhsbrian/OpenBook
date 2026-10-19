@@ -70,11 +70,18 @@ class TaskControl(private val task: Task, private val surface: QuireSurface) : A
         while (true) {
             val text = onMain(5000, null as String?) { f ->
                 val r = run()
+                val answered = r?.answeredPrompt?.let {
+                    r.answeredPrompt = null
+                    "The person answered Android's prompt in $it.\n"
+                } ?: ""
                 f.complete(when {
                     r == null -> "${task.control?.endedBecause ?: "Computer control has ended."}"
+                    r.prompt != null -> "Android is asking the person to confirm on their own screen (${r.prompt}): " +
+                        "installing an app or granting a permission. Wait for them; your next step waits by itself. " +
+                        "Don't repeat the action that asked.\n" + (cc.read() ?: "")
                     r.blocked -> "${r.appName} is showing a protected screen, which Quire can't read or use. The " +
                         "person can take over."
-                    else -> cc.read()
+                    else -> cc.read()?.let { answered + it }
                 })
             }
             if (text != null) return text

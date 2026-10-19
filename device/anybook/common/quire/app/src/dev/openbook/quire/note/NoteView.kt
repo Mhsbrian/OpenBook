@@ -511,6 +511,17 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
             body.measure(exact, MeasureSpec.makeMeasureSpec((cap - fixed).coerceAtLeast(dpi(48f)), MeasureSpec.AT_MOST))
             fixed += body.measuredHeight
         }
+        if (mirrorPanel.visibility != GONE && fixed > cap) {
+            // The mirror's pane gives up height until the note fits the display: Stop, Pause and Take over stay in
+            // view however many steps there are.
+            val over = fixed - cap
+            val before = mirrorPanel.measuredHeight
+            mirrorPanel.maxFrameHeight = (mirrorPanel.frameHeight() - over).coerceAtLeast(dpi(120f))
+            mirrorPanel.measure(exact, MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED))
+            fixed += mirrorPanel.measuredHeight - before
+        } else if (mirrorPanel.visibility == GONE) {
+            mirrorPanel.maxFrameHeight = Int.MAX_VALUE
+        }
         setMeasuredDimension(w, fixed)
     }
 

@@ -614,6 +614,27 @@ mirror, and a tap on Connected devices found by its text.
 - Destructive-control recognition is English-only and by label, now over every app the person has: the Checker's
   review of that boundary matters more than before.
 
+### 10.5a From the owner's sessions on the G14 (quire9)
+
+- **The jolt** (it predates Q6): the note's window was as small as the card, and moved and resized as the card
+  unfolded and grew. For a frame the system showed the new content at the window's old position, so the note jumped
+  about 225 px and back (`evidence/2026-10-19-quire-q6/vm/open-jolt-before.png`, frames 0.1 s apart). The note's
+  window is now a trusted overlay (`INTERNAL_SYSTEM_WINDOW`). It covers the display and never moves; its touchable
+  region is still the card, so clicks beside it still reach the apps below (input's untrusted-occlusion rule doesn't
+  apply to a trusted overlay). It still hides when a window asks for overlays to be hidden: that rule is about system
+  application overlays (`open-jolt-after.png`).
+- **Long runs:** the steps show the latest five, under one line counting the earlier ones (click to see them all). In
+  the mirror it is the latest three, and the mirror's pane shrinks so the note always fits the display: a 102-step
+  run had pushed Stop, Pause and Take over off the screen.
+- **Android's own prompts during a run:** an app being driven (Aurora Store installing an app) makes Android ask the
+  person on their own display (`CONFIRM_INSTALL`), not in the mirror. Quire now notices it, steps the note aside so it
+  can be answered, holds the agent's next step until the person answers, and tells the agent ("don't repeat the
+  action that asked").
+- **Desktop icons that seemed to vanish:** Launcher3 put every installed app on the second desktop page, skipping
+  the first (kept for a search bar on phones; OpenBook's desktop has none). The launcher shows the first page by
+  default, so the icons seemed gone. `aosp/patches/packages/apps/Launcher3/0003` searches for space from the first
+  page.
+
 ### 10.6 The note in glass and ink (ANAL-227, built)
 
 Atelier's revision of the note (`docs/quire-design.md` in PR #114), built into Q5's surface:

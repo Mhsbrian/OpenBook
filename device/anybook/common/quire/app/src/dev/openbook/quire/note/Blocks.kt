@@ -444,31 +444,58 @@ class CodeBlock(private val env: NoteEnv) {
 }
 
 /** One line per tool call (§3.2 Steps), or the folded chip "4 steps ✓" once the run is over. */
-class StepsView(env: NoteEnv) : BlockView<Block.Steps>(env) {
+/**
+ * One line per step (§3.2 Tool steps). A long run keeps only its latest [window] lines in view, under one line that
+ * counts the earlier ones and opens them on click, so the note never outgrows the screen however long the agent works
+ * (ANAL-220: a 102-step run in the mirror ran off the display).
+ */
+class StepsView(env: NoteEnv, private val window: Int = 5) : BlockView<Block.Steps>(env) {
     override val view = LinearLayout(env.context).apply {
         orientation = LinearLayout.VERTICAL
         importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
     }
     private val rows = LinkedHashMap<String, StepRow>()
     private var chip: TextView? = null
+    private var earlier: TextView? = null
 
     override fun bind(b: Block.Steps) {
         val folded = b.folded && !b.expanded
         if (folded) {
             view.removeAllViews()
             rows.clear()
+            earlier = null
             val failed = b.items.any { it.status == StepStatus.FAILED || it.status == StepStatus.INTERRUPTED }
             view.addView(foldedChip(b, failed), LinearLayout.LayoutParams(WRAP_CONTENT, env.dpi(28f)))
             return
         }
         chip?.let { view.removeView(it) }
         chip = null
-        val ids = b.items.map { it.id }.toSet()
+        val rolling = !b.folded && !b.expanded && b.items.size > window + 1
+        val shownItems = if (rolling) b.items.takeLast(window) else b.items
+        // The earlier steps, counted on one line that opens them (§5.2 Settle: nothing slides, the count changes).
+        val hidden = b.items.size - shownItems.size
+        if (rolling) {
+            val line = earlier ?: foldedChip(b, false).also {
+                chip = null
+                earlier = it
+                view.addView(it, 0, LinearLayout.LayoutParams(WRAP_CONTENT, env.dpi(28f)).apply {
+                    bottomMargin = env.dpi(2f)
+                })
+            }
+            val ok = b.items.take(hidden).count { it.status == StepStatus.DONE }
+            line.text = env.context.resources.getQuantityString(R.plurals.q_steps_earlier, hidden, hidden, ok)
+        } else {
+            earlier?.let { view.removeView(it) }
+            earlier = null
+        }
+        val base = if (earlier != null) 1 else 0
+        val ids = shownItems.map { it.id }.toSet()
         rows.keys.filter { it !in ids }.forEach { view.removeView(rows.remove(it)!!.view) }
-        b.items.forEachIndexed { i, s ->
+        shownItems.forEachIndexed { i, s ->
             val row = rows[s.id] ?: StepRow(env).also {
                 rows[s.id] = it
-                view.addView(it.view, i, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
+                view.addView(it.view, (base + i).coerceAtMost(view.childCount), LinearLayout.LayoutParams(MATCH_PARENT,
+                    WRAP_CONTENT).apply {
                     topMargin = if (i == 0) 0 else env.dpi(2f)
                 })
                 if (Motion.enabled) {

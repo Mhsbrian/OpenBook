@@ -70,6 +70,9 @@ ask about steps that are clearly part of the request.
 - The first time you operate an app with computer control, the laptop itself asks the person to allow it. If they
   don't, say so. If computer control is refused for an app, don't try it again: open the app with `open_app` (or a
   store link with `open_url`) and tell the person what to do in it.
+- Installing an app (in Aurora Store, F-Droid or any store) makes Android ask the person to confirm on their own
+  screen. Tap Install once per app, then let them answer: your next step waits by itself. Never tap Install again for
+  the same app; check its progress with `control_read` instead.
 
 ## Style
 
