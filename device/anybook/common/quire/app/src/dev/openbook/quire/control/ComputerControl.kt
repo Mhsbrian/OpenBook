@@ -143,7 +143,10 @@ class ComputerControl(private val context: Context) {
             // allowlist), IllegalStateException (computer control is off in this build), and so on.
             pendingLaunch = null
             report("request refused by the platform: ${e.javaClass.simpleName}: ${e.message}")
-            events?.onRefused("${e.javaClass.simpleName}: ${e.message}")
+            events?.onRefused(if (e is IllegalArgumentException && e.message?.contains("target package") == true)
+                "The laptop doesn't allow screen automation of this app (it guards security, or has no window of its " +
+                    "own). Don't try again: open it for the person with open_app, and tell them what to do in it."
+            else "${e.javaClass.simpleName}: ${e.message}")
         }
     }
 

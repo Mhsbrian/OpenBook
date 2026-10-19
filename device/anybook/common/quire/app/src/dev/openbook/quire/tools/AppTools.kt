@@ -111,7 +111,8 @@ object AppTools {
 
     private val openUrl = object : Tool("open_url", Tier.ACT, "app") {
         override val description = "Open a web page on the laptop, in the person's browser or in the browser they name " +
-            "(\"Chrome\"). Turn a site's name into its address yourself: \"fox news\" is https://www.foxnews.com."
+            "(\"Chrome\"). Turn a site's name into its address yourself: \"fox news\" is https://www.foxnews.com. " +
+            "A store link (market://search?q=... or market://details?id=...) opens in the app store the person has."
         override val schema = Schema.obj(
             "url" to Schema.str("The address, e.g. https://www.foxnews.com. http and https only."),
             "app" to Schema.str("The browser to use, e.g. \"Chrome\" (optional; default: the person's browser)."),
@@ -123,6 +124,17 @@ object AppTools {
 
         override fun run(c: Context, args: JSONObject, note: CallNote): ToolResult {
             val uri = normalize(args.req("url"))
+            if (uri.scheme == "market") {
+                // A store link: the person's store app (Aurora Store, F-Droid, Play) opens it, or the one they named.
+                val stores = c.packageManager.queryIntentActivities(Intent(Intent.ACTION_VIEW, uri),
+                    android.content.pm.PackageManager.ResolveInfoFlags.of(0)).map { it.activityInfo.packageName }.distinct()
+                if (stores.isEmpty()) throw ToolError("No app store on this laptop opens store links.")
+                val named = args.str("app")?.let { n -> runCatching { Apps.find(c, n).pkg }.getOrNull() }
+                val pkg = named?.takeIf { it in stores } ?: stores.first()
+                note.retitle("Opening the store in ${Apps.label(c, pkg)}")
+                Apps.start(c, Intent(Intent.ACTION_VIEW, uri).setPackage(pkg))
+                return ToolResult.text("Opened $uri in ${Apps.label(c, pkg)}.")
+            }
             val browsers = Apps.browsers(c)
             val named = args.str("app")
             val browser = if (named != null) {
@@ -149,8 +161,9 @@ object AppTools {
         val t = url.trim()
         if (t.isEmpty()) throw ToolError("Missing \"url\".")
         val u = Uri.parse(if (Regex("^[a-zA-Z][a-zA-Z0-9+.-]*:").containsMatchIn(t)) t else "https://$t")
+        if (u.scheme?.lowercase() == "market") return u
         if (u.scheme?.lowercase() !in setOf("http", "https") || u.host.isNullOrEmpty()) {
-            throw ToolError("Only web addresses (http or https) can be opened this way.")
+            throw ToolError("Only web addresses (http or https) and store links (market://) can be opened this way.")
         }
         return u
     }

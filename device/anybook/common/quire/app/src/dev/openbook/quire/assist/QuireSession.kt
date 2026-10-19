@@ -24,7 +24,6 @@ import dev.openbook.quire.tools.ScreenReader
 class QuireSession(context: Context) : VoiceInteractionSession(context) {
     companion object {
         private const val READ_MS = 8000L
-        private const val NO_LIST_MS = 2500L
     }
 
     override fun onCreate() {
@@ -45,8 +44,10 @@ class QuireSession(context: Context) : VoiceInteractionSession(context) {
             // "Use text from screen", no policy or private profile against it): without the list, none will come.
             val coming = args.getParcelableArrayList(KEY_FOREGROUND_ACTIVITIES, android.content.ComponentName::class.java)
             Log.i(TAG, "assistant: screen read expects ${coming?.size ?: "?"} structure(s); args=${args.keySet()}")
-            // Without the list (or with the list's flag off) give the structures a moment before calling it none.
-            if (coming == null) handler.postDelayed({ ScreenReader.onNoAssist() }, NO_LIST_MS)
+            // Without the list the platform withheld the screen (an assistant that started its own session while not
+            // on screen, or the person's setting): say so at once, so the reader can hold the note on screen and ask
+            // again, rather than wait.
+            if (coming == null) ScreenReader.onWithheld()
             else if (coming.isEmpty()) ScreenReader.onNoAssist()
             // The platform hands everything over within a few seconds, or never; the reader stops waiting by itself.
             ScreenReader.whenDone { handler.post { if (reading) finish() } }

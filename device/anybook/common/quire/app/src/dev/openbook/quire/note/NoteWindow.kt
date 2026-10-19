@@ -187,6 +187,10 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
         if (animate) {
             r.unfold { c.focus(focus) }
         } else {
+            // Added again in place (a change of overlay kind, a new theme): the window starts display-wide and takes
+            // its frame a moment later, so the note stays invisible until then rather than jump into place.
+            r.alpha = 0f
+            r.appearWhenFramed()
             c.post { c.focus(focus) }
         }
     }
@@ -518,6 +522,26 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
             lp.height = want.height()
             scrollTo(want.left, want.top)
             wm.updateViewLayout(this, lp)
+            if (appearing) {
+                // The window manager applies a new frame with the window's next buffer: two frames later the note is
+                // where it belongs.
+                appearing = false
+                postOnAnimation { postOnAnimation { alpha = 1f } }
+            }
+        }
+
+        /** Set by [appearWhenFramed]: the note shows once its window has taken its frame. */
+        private var appearing = false
+
+        fun appearWhenFramed() {
+            appearing = true
+            // A window that needs no new frame never passes through applyFrame's update; show it anyway.
+            postDelayed({
+                if (appearing) {
+                    appearing = false
+                    alpha = 1f
+                }
+            }, APPEAR_FALLBACK_MS)
         }
 
         /** §3.1 Placement: beside the pointer (flipping at the right edge, kept above the taskbar), or above the button. */
@@ -721,6 +745,7 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
 
         /** After the first frame is committed, how long until WM has shown the surface. */
         private const val VISIBLE_SETTLE_MS = 150L
+        private const val APPEAR_FALLBACK_MS = 120L
 
         /** Room around the card for its shadow, inside the window (dp). */
         private const val FRAME_MARGIN = 32f
