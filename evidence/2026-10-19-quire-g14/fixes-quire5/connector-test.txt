@@ -1,0 +1,11 @@
+PASS normal start: READY, waited 2000 ms, starts=1
+PASS start accepted before the Terminal app publishes starting: READY, waited 3000 ms, starts=1
+PASS a moment of error during the start: READY, waited 3000 ms, starts=1
+PASS a refused start keeps its reason: ERROR, waited 0 ms, starts=1, detail=precise start failure
+PASS a start that never happens is given up after the publish lag: STOPPED, waited 10000 ms, starts=1
+PASS an error that lasts is reported after the grace: ERROR, waited 21000 ms, starts=1, detail=unknown state error
+PASS not installed: installed, then started: READY, waited 4000 ms, starts=1
+PASS the Terminal app gets its exemption before the start: READY, waited 1000 ms, starts=1
+PASS running: no start: READY, waited 0 ms, starts=0
+PASS off: not started (that is the note's Set up): TERMINAL_OFF, waited 0 ms, starts=0
+RESULT 10 passed, 0 failed

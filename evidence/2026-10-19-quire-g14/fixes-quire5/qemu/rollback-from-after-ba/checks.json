@@ -1,0 +1,70 @@
+{
+ "case": "rollback-from-after-ba",
+ "checks": [
+  {
+   "check": "the broken package (its kernel cannot start: rdinit missing) installs on slot b and verifies like any other",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "slot b fails to start three times (kernel panic, reboot), then systemd-boot starts slot a by itself",
+   "ok": true,
+   "detail": "(3, 'a')"
+  },
+  {
+   "check": "slot a is the build it ran before, /data intact (PIN, setting, file, app)",
+   "ok": true,
+   "detail": "{}"
+  },
+  {
+   "check": "update_engine is idle again on slot a (the failed update is cancelled)",
+   "ok": true,
+   "detail": "UPDATE_STATUS_IDLE\n10-19 12:10:11.285   579   579 I update_engine: [INFO:dynamic_partition_control_android.cc(339)] SnapshotManager released\n10-19 12:10:15.816  1141  1141 D PermissionStorageTimeChangeReceiver: systemTimeSnapshot set to 1792411815816\n10-19 12:10:15.816  1141  1141 D PermissionStorageTimeChangeReceiver: realtimeSnapshot set to 11393\n10-19 12:10:23.806  1141  1141 D PermissionStorageTimeChangeReceiver: systemTimeSnapshot set to 1792411823806\n10-19 12:10:23.806  1141  1141 D PermissionStorageTimeChangeReceiver: realtimeSnapshot set to 19383\n10-19 12:10:20.731  1743  1743 I apexd "
+  },
+  {
+   "check": "the boot HAL followed the loader: misc names slot a active, slot b unbootable; the ESP starts a next",
+   "ok": true,
+   "detail": "('a', '0\\n0\\nrc=70\\n')"
+  },
+  {
+   "check": "then the good package from slot a: written to slot b and verified (the bad entry replaced)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "slot b boots the good build",
+   "ok": true,
+   "detail": "b"
+  },
+  {
+   "check": "after the second attempt: the PIN unlocks the user's storage",
+   "ok": true,
+   "detail": "Lock credential verified successfully"
+  },
+  {
+   "check": "after the second attempt: slot b runs the package's build (vbmeta digest, build date)",
+   "ok": true,
+   "detail": "{'SLOT': '_b', 'VBMETA': '4aa4ffa21882d186bad6fecba48cc9128568a4e1d9b46b842314b04dda8c195d', 'DATE': '1792411246'}"
+  },
+  {
+   "check": "after the second attempt: /data intact: the setting, the 4 MiB file, the app, the serial number, provisioned",
+   "ok": true,
+   "detail": "{}"
+  },
+  {
+   "check": "after the second attempt: no setup screen after the update (OpenBookSetup steps aside on a provisioned system)",
+   "ok": true,
+   "detail": "com.android.launcher3/.uioverrides.QuickstepLauncher"
+  },
+  {
+   "check": "after the second attempt: SELinux enforcing; the OpenBook boot HAL runs",
+   "ok": true,
+   "detail": "running/"
+  },
+  {
+   "check": "the merge completes",
+   "ok": true,
+   "detail": "10-19 12:12:11.474   682   682 I update_engine: [INFO:cleanup_previous_update_action.cc(342)] Merge finished with state MergeCompleted.\nUpdate state: none"
+  }
+ ]
+}
