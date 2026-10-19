@@ -1,5 +1,21 @@
 # Status
 
+## 2026-10-19: preserve configured USB state (ANAL-228)
+
+The owner requests data-preserving updates after completing setup on USB.
+An offline 12,766,412,800-byte backup of the configured USB's full used extent
+matches a second independent device read by SHA-256. It includes the current
+encrypted userdata and metadata and remains private. System and boot payloads
+match net18. Read-only inspection confirms net18/zram19 layout compatibility, unchanged
+encryption/security components and a vendor-only logical-image change. The
+existing full-image writer would erase setup and must not be used for ordinary
+updates of this configured stick. The next update path must preserve userdata,
+metadata, misc and disk identity, rebuild matching boot/AVB files, and verify
+protected bytes before reboot. The current USB is single-slot; the installed
+OpenBook A/B updater does not apply. Updater implementation, a disposable-state
+rehearsal and physical post-update unlock remain pending. Contract:
+`docs/googlebook-live.md`.
+
 ## 2026-10-19: paired G14 evidence and zram correction (ANAL-228)
 
 Wireless pairing succeeded. Two live captures and a complete private bugreport

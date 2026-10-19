@@ -1,5 +1,12 @@
 # Hardware
 
+The owner has completed setup on the net18 USB and requests preserving that
+state during future updates. The same SanDisk is attached to the development
+host. Read-only inspection confirms separate 8 GiB userdata and 64 MiB metadata
+partitions, with the same extents as zram19. This supports offline system-only
+updates, but an updated G14 unlock has not been tested. Preserve both data and
+encryption metadata; a full fresh-image rewrite is unsuitable for iteration.
+
 The running G14 is now paired over wireless ADB. Two captures and a complete
 bugreport confirm net18 Wi-Fi association and validated internet, Radeon 890M
 hardware rendering at 2880×1800/120 Hz, and sound-effects decoding with a
