@@ -10,6 +10,7 @@
 | Graphical setup and input | Googlebook boot animation and welcome screen render; pointer input opens the screen-reader prompt and Escape dismisses it | No completed setup, usable launcher or physical AMD GPU result |
 | Longer runtime stability | Final 495.4-second observation catches `system_server` SIGSEGV/SEGV_ACCERR and a zygote restart; `mmd_setup` aborts on missing zram | Fails stability; RenderThread `execmem` denials implicate the VM SwiftShader fallback, with full trace still needed |
 | Physical 62 GB SanDisk Ultra, subsequent owner-requested trial | Original write/readback matched; owner subsequently reported a black screen; initialized metadata found but no persistent diagnostics | Physical desktop fails the owner's trial; cause unconfirmed; new USB logging captures the next boot |
+| Persistent USB diagnostics | 600.2-second VM capture saved 17.5 MB with zero kernel overruns or write failures; final Mesa GL capture has no logger/FIFO denials; diagnostic image written and fully read back on the SanDisk | G14 capture remains required; this is a logging pass, not a black-screen fix |
 
 Evidence: `evidence/2026-10-19-googlebook-live/` and
 `evidence/2026-10-19-googlebook-usb/`; reproduction:

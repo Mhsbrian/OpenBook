@@ -13,6 +13,11 @@ logs to its ESP. Inspection found no saved reports. Its metadata partition was
 initialized, but its bootstat and watchdog directories were empty. That is
 evidence of Android initialization, not a diagnosis or successful desktop boot.
 The complete used image extent was preserved privately before replacement.
+The same SanDisk has now been updated with diagnostic candidate
+`19b9a9492f6b09bad04077378443d307f12ddd4a19f669e22486c88eb2b03f74`:
+all 12,766,412,800 bytes read back correctly, and the stick was powered off.
+The installed laptop and firmware were not updated. Validation and the exact
+write/readback result are in `evidence/2026-10-19-googlebook-usb-logs/`.
 
 The new **Googlebook - save detailed logs to USB (10 minutes)** entry runs a
 static PID 1 helper before Android, saving `early.txt` and `early-kernel.txt`.
@@ -201,7 +206,10 @@ entry. Do not install to internal storage. Capture whether the welcome screen
 renders and whether keyboard/touchpad work before attempting setup. The
 physical TPM, Radeon path, Wi-Fi and credential behavior remain unqualified.
 
-### First trial on the G14
+### Original trial on the G14
+
+These steps describe the original trial. For the reported black screen, use
+the save-logs procedure at the top of this document.
 
 1. Insert the verified stick and select its UEFI entry from the firmware's
    one-time boot menu. Select **Googlebook on OpenBook - experimental live boot**

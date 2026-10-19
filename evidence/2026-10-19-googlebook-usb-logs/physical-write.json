@@ -1,0 +1,16 @@
+{
+  "schema": "openbook-ruby-usb-write/1",
+  "date": "2026-10-19",
+  "target": "Previously identified 62 GB SanDisk Ultra; serial retained privately",
+  "image_sha256": "19b9a9492f6b09bad04077378443d307f12ddd4a19f669e22486c88eb2b03f74",
+  "image_bytes": 12766412800,
+  "write_seconds": 719,
+  "readback_seconds": 95,
+  "full_readback_matches": true,
+  "powered_off": true,
+  "prior_failed_boot_used_extent_backed_up": true,
+  "prior_backup_bytes": 12766412800,
+  "internal_laptop_or_firmware_updated": false,
+  "g14_boot_fix_claimed": false,
+  "scope": "Verified physical medium update only. The next G14 boot must collect the hardware failure evidence."
+}

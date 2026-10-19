@@ -26,6 +26,11 @@ defaults, APEX directories and the logger executable. No neverallow is disabled.
 
 The final local image hash is
 `19b9a9492f6b09bad04077378443d307f12ddd4a19f669e22486c88eb2b03f74`.
+The same 62 GB SanDisk Ultra was updated with this image: the guarded writer
+wrote 12,766,412,800 bytes in 719 seconds and fully read them back in 95 seconds
+with matching SHA-256, then powered the device off. `physical-write.json`
+records the result. Its failed-boot used extent is retained privately; the
+installed laptop and firmware were not changed.
 Generated recovery images, extracted contents, raw diagnostic streams and
 software-TPM state remain local. The next G14 capture is required to diagnose
 the physical black screen. Operation and reproduction: `docs/googlebook-live.md`.

@@ -77,5 +77,19 @@
     "system_server_crash_captured": false,
     "mmd_setup_abort_captured": false
   },
-  "scope": "VM logging validation. The owner reported a physical G14 black screen; the next hardware capture is still needed."
+  "scope": "VM logging validation. The owner reported a physical G14 black screen; the next hardware capture is still needed.",
+  "delta_from_original_stick": {
+    "kernel_unchanged": true,
+    "changed_logical_images": [
+      "vendor"
+    ],
+    "changed_vendor_files": [
+      "bin/ruby-usb-log",
+      "etc/init/ruby-usb-log.rc",
+      "etc/ruby-usb-log-collect.sh",
+      "etc/selinux/precompiled_sepolicy",
+      "etc/selinux/vendor_file_contexts",
+      "etc/selinux/vendor_sepolicy.cil"
+    ]
+  }
 }
