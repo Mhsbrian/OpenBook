@@ -124,6 +124,9 @@ class LabReceiver : BroadcastReceiver() {
                     Log.i(TAG, "lab: agent ${it.endpoint.id} ${it.endpoint.address} connected=${it.connected} " +
                         "state=${it.state} name=${it.name}")
                 }
+                surface.window.card?.mirrorPanel?.controlsOnScreen()?.forEach { (name, r) ->
+                    Log.i(TAG, "lab: mirror $name at ${r.left},${r.top},${r.right},${r.bottom}")
+                }
             }
             else -> Log.w(TAG, "lab: unknown note action $action")
         }

@@ -88,6 +88,14 @@ class MirrorPanel(private val env: NoteEnv, private val onAction: (Action) -> Un
         maxLines = 1
         ellipsize = TextUtils.TruncateAt.END
     }
+    /** Where Stop, Pause and Take over are on the display, for the lab's DUMP (a UI dump never idles over the mirror). */
+    fun controlsOnScreen(): Map<String, android.graphics.Rect> = listOf("stop" to stop, "pause" to pause,
+        "takeover" to takeOver).filter { it.second.isShown }.associate { (name, v) ->
+        val loc = IntArray(2)
+        v.getLocationOnScreen(loc)
+        name to android.graphics.Rect(loc[0], loc[1], loc[0] + v.width, loc[1] + v.height)
+    }
+
     private val stop = QButton(context, p, context.getString(R.string.q_stop), QButton.Style.DANGER).apply {
         setOnClickListener { onAction(Action.STOP) }
     }

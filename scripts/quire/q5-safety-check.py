@@ -417,11 +417,21 @@ def consent(d, size=None, at=(1400.0, 300.0), deny=False):
                  f"; windows hiding overlays present={hiding}")
         gone = win(ws, f"{QUIRE}/{QUIRE}.note.{WAIT}") is None
         d.result(f"consent {label}: the waiting activity is gone once the session exists", gone, f"gone={gone}")
-        stopped = tap_quire_text(d, "Stop", timeout=20)
+        # A UI dump never idles over the live mirror: the lab says where Stop is, and the check taps it there.
+        mark = d.mark(f"consent {label} stop")
+        d.lab("DUMP")
+        st = d.wait_log(r"lab: mirror stop at (\d+),(\d+),(\d+),(\d+)", mark, timeout=5)
+        stopped = bool(st)
+        if st:
+            x1, y1, x2, y2 = map(int, st.groups())
+            d.sh(f"input tap {(x1 + x2) // 2} {(y1 + y2) // 2}")
         e = d.wait_log(r"note: control run ended stopped=true", tag, timeout=10)
         o = d.wait_log(r"note: window ordinary overlay", tag, timeout=5)
+        tap = d.wait_log(r"note: mirror action STOP", mark, timeout=1)
         d.result(f"consent {label}: Stop on the screen ends the run; the note is ordinary again",
-                 stopped and bool(e) and bool(o), (e.group(0) if e else "not stopped") + (" · ordinary" if o else ""))
+                 stopped and bool(tap) and bool(e) and bool(o),
+                 (f"tapped Stop at {st.group(0).split(' at ')[1]}; " if st else "Stop not found; ") +
+                 (e.group(0) if e else "not stopped") + (" · ordinary" if o else ""))
     finally:
         q5.clean(d)
         d.sh(f"am force-stop {SETTINGS}")
