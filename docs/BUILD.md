@@ -371,6 +371,12 @@ adb -s SERIAL install -r -d /tmp/quire-dev-apk/OpenBookQuire.apk
 # health. They start scripts/quire/q5-acp-agent.py (scripted ACP agents) on this host and `adb reverse` to them.
 scripts/quire/q5-cf-check.py SERIAL OUT --design PATH/TO/docs/quire-design     # PR #98's renders
 scripts/quire/q5-cf-check.py SERIAL OUT --only states --themes dark --states control,stopped   # a subset
+scripts/quire/q5-cf-check.py SERIAL OUT --desk none ...          # nothing behind the note (Settings and Files hide it)
+# The safety regressions (ANAL-219, the Checker's three findings): protected windows, the consent dialog at 1920x1080 and
+# 1280x800, two agents with colliding session IDs, the payload an agent receives. Needs the image's QuireSecureProbe.apk.
+scripts/quire/q5-safety-check.py SERIAL OUT --probe QuireSecureProbe.apk
+# Host tests for the parts with no Android types (SessionRoutes, IntakePolicy): the tree's kotlinc and JDK, no device.
+device/anybook/common/quire/tools/unit-test.sh
 # Icons: cut Material Symbols to the note's set (fonts/README.md)
 device/anybook/common/quire/tools/subset-icons.py MaterialSymbolsRounded.ttf \
   device/anybook/common/quire/app/res/font/quire_symbols.ttf device/anybook/common/quire/app/src/dev/openbook/quire/note/Icons.kt

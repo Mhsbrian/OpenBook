@@ -41,8 +41,8 @@ import dev.openbook.quire.ui.rounded
  * The note's window (docs/quire-design.md §3.1 Layer, §8 Layers). A window of Quire's own uid, because the platform
  * creates a computer-control session only for an owner with a visible non-toast window (§8). It is an ordinary
  * application overlay, above app windows and below the status bar and system dialogs, so it hides whenever a window on
- * screen asks the system to hide overlays (`setHideOverlayWindows`: a banking app, a permission dialog, the platform's
- * computer-control consent).
+ * screen asks the system to hide overlays (`setHideOverlayWindows`: a banking app, a permission dialog; Settings and
+ * Files on every page).
  *
  * The window is only as big as the card needs ([NoteRoot]): an untrusted overlay over another app's window blocks the
  * touches that pass through it, so a display-wide transparent window would swallow every click outside the card. Its
@@ -104,8 +104,8 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
 
     /**
      * True while the platform's computer-control dialog is up: the note steps aside like [suspended], so nothing of
-     * Quire's ever covers the dialog. The dialog would hide the note anyway (it hides overlays); Quire's
-     * [ConsentWaitActivity] sits beneath it meanwhile.
+     * Quire's ever covers the dialog. (The dialog asks to hide overlays, but its app lacks the permission that makes the
+     * request count, so the note has to step aside itself.) Quire's [ConsentWaitActivity] sits beneath it meanwhile.
      */
     var platformDialog = false
         set(value) {
