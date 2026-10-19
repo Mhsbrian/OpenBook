@@ -34,9 +34,9 @@ import java.lang.ref.WeakReference
  *
  * The platform creates a session only for an owner with a visible window: it checks when Quire asks, and again after
  * the person allows in its consent dialog. The note is an ordinary overlay, so it is hidden whenever a window on screen
- * hides overlays: Settings and Files always do, and so does the consent dialog itself. So the request starts from this
- * activity, which no overlay rule hides, and the dialog is started from it: the dialog opens above it and stays above
- * it, and nothing of Quire's ever covers the dialog. The activity is inert (no touch, no focus) and transparent; while
+ * hides overlays, and Settings and Files always do. So the request starts from this activity, which no overlay rule
+ * hides, and the dialog is started from it: the dialog opens above it and stays above it, and nothing of Quire's ever
+ * covers the dialog. The activity is inert (no touch, no focus) and transparent; while
  * the dialog is up it shows a waiting card where the note was. It is gone as soon as the platform has answered (the
  * session is created or refused) or the run stops.
  */

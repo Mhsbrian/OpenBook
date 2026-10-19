@@ -253,12 +253,14 @@ def endpoints(d, claude_connected=True):
 
 
 def clean(d):
-    """No note, no tray, no session: Esc twice, close what's left."""
+    """No note, no tray, no session: Esc twice, close what's left. A real Esc only when a window has focus: with none
+    (the desktop after its app was stopped), the key waits for one and the launcher is blamed with an ANR."""
     for _ in range(3):
         d.lab("ESC")
         time.sleep(0.3)
     d.lab("CLOSE")
-    d.sh("input keyevent KEYCODE_ESCAPE")
+    if "mCurrentFocus=null" not in d.sh("dumpsys window displays | grep -m1 mCurrentFocus").replace(" ", ""):
+        d.sh("input keyevent KEYCODE_ESCAPE")
     time.sleep(0.8)
 
 
@@ -499,8 +501,8 @@ def states(d, agents, theme, design, only=None):
               taps=json.dumps(TAPS), x=1400.0, y=300.0, aimMs="8000")
         m = d.wait_log(r"cc: pending", tag)
         time.sleep(1.5)
-        cap("consent-system", "onSessionPending, the platform's dialog", bool(m), "the note waits beside the "
-            "platform's dialog, without focus or touch")
+        cap("consent-system", "onSessionPending, the platform's dialog", bool(m), "the platform's dialog above "
+            "Quire's waiting activity and its card; the note steps aside")
         if not d.tap_text("Only this time"):
             d.result(f"{theme}: consent-system dialog", False, "no 'Only this time' button")
             return
@@ -1037,9 +1039,13 @@ def health(d):
     (d.o / "crash-buffer.txt").write_text(crash)
     events = d.sh("logcat -d -b events -s am_crash am_anr am_proc_start")
     anr = [l for l in events.splitlines() if "am_anr" in l]
-    sysui = [l for l in events.splitlines() if "am_proc_start" in l and "com.android.systemui" in l]
+    sysui = re.findall(r"am_proc_start.*?\[0,(\d+),\d+,com\.android\.systemui,", events)
+    current = d.sh("pidof com.android.systemui").strip()
     d.result("health: no ANR", not anr, anr[:3] if anr else "none")
-    d.result("health: SystemUI did not restart", len(sysui) == 0, f"{len(sysui)} SystemUI starts since the log began")
+    # On a fresh boot the log holds SystemUI's first start; a restart is a start of any other process.
+    others = [p for p in sysui if p != current]
+    d.result("health: SystemUI did not restart", not others, f"SystemUI starts since the log began: {sysui}, "
+             f"running: {current}")
     # The kernel's ring buffer can have rotated since boot; logcat keeps the audit lines too.
     denials = [l for l in (d.sh("dmesg") + d.sh("logcat -d -b all")).splitlines() if "avc:" in l and "denied" in l]
     quire = [l for l in denials if "platform_app" in l or "dev.openbook.quire" in l]
