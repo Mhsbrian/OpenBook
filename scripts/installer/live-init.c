@@ -736,12 +736,14 @@ static const char COLLECT[] =
     "s LEDS; for l in /sys/class/leds/*; do echo \"${l##*/} $(cat $l/brightness)/$(cat $l/max_brightness)\"; done\n"
     "s GETEVENT; getevent -lp 2>&1 | head -n 900\n"
     // The touchpad's "Clock changed backwards" errors (gestures library, ANAL-176 desktop2 logs): its HID report
-    // descriptor (the Scan Time unit) and, once the desktop is up, 20 s of its raw events with MSC_TIMESTAMP.
+    // descriptor (the Scan Time unit) and its raw events with MSC_TIMESTAMP: those TOUCHPAD_EARLY recorded from
+    // sys.boot_completed on, when the owner uses the touchpad, else 20 s now.
     "s HIDDESC; for d in /sys/bus/hid/devices/*; do echo \"${d##*/} $(grep HID_NAME $d/uevent) "
     "$(od -An -tx1 -v $d/report_descriptor | tr -d ' \\n')\"; done\n"
-    "s TOUCHPADEV; d=; for e in /sys/class/input/event*; do case \"$(cat $e/device/name)\" in *Touchpad) "
+    "s TOUCHPADEV; f=/data/local/tmp/openbook-touchpad.txt; if [ -s $f ]; then echo \"# from sys.boot_completed\"; "
+    "cat $f; else d=; for e in /sys/class/input/event*; do case \"$(cat $e/device/name)\" in *Touchpad) "
     "d=/dev/input/${e##*/};; esac; done; [ -n \"$d\" ] && [ \"$(getprop sys.boot_completed)\" = 1 ] && "
-    "timeout 20 getevent -lt $d 2>&1 | head -n 30000\n"
+    "timeout 20 getevent -lt $d 2>&1 | head -n 30000; fi\n"
     "s AUDIO; dumpsys media.audio_flinger 2>&1 | head -n 40\n"
     // Kernel facts (ANAL-198): the DMA-BUF heaps Codec2 allocates from, and amdgpu's firmware versions (MES, CP,
     // SMU, ...), which only debugfs shows. The GKI allows debugfs; Android does not mount it.
@@ -835,6 +837,14 @@ static const char PRIOR_BOOTS[] =
 static const char PRIOR_LIST[] =
     "cd /data && for d in misc/logd tombstones anr system/dropbox; do if [ -d $d ]; then "
     "echo \"$d $(du -sk $d | cut -f1) KiB, $(find $d -type f | wc -l) files\"; else echo \"$d missing\"; fi; done";
+// The touchpad's raw events for 90 s from sys.boot_completed (ANAL-178), in the background: the owner uses the
+// touchpad as soon as the desktop appears, while COLLECT (TOUCHPADEV) runs only at the final capture, after the
+// settle time and openbook-hwtest. 30000 lines are about 25 s of finger contact.
+static const char TOUCHPAD_EARLY[] =
+    "d=; for e in /sys/class/input/event*; do case \"$(cat $e/device/name)\" in *Touchpad) d=/dev/input/${e##*/};; "
+    "esac; done; [ -n \"$d\" ] || exit 0; "
+    "(timeout 90 getevent -lt $d 2>&1 | head -n 30000 > /data/local/tmp/openbook-touchpad.txt) </dev/null >/dev/null 2>&1 &";
+
 static int prior_done, prior_rc = -2;  // -2: not attempted
 static long long prior_bytes = -1;
 
@@ -1041,6 +1051,7 @@ static void logs_helper(int ready_fd, const char *esp_node) {
                 if (run_android("getprop sys.boot_completed", -1, v, sizeof v, 20) == 0 && !strcmp(v, "1")) {
                     t_complete = now;
                     say("logs: sys.boot_completed=1 at %.0f s", now);
+                    run_android(TOUCHPAD_EARLY, -1, NULL, 0, 10);
                 }
             }
             if (t_complete < 0 && !early_done && now - t_second >= 90) { capture("early"); early_done = 1; }

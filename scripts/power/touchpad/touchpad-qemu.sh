@@ -9,6 +9,7 @@
 # input.txt (dumpsys input, the test device), result.json.
 #
 # usage: touchpad-qemu.sh RUN [LIVE_IMAGE]
+#   TP_MODE=plain|palm|sticky: how each stroke ends or pauses (elan-uhid.c); default plain
 set -euo pipefail
 R=$(cd "$(dirname "$0")/../../.." && pwd); S=$R/scripts/installer; D=$S/inst-docker.sh; H=$(cd "$(dirname "$0")" && pwd)
 A=${OPENBOOK_HOME:-${ANYBOOK_HOME:-$HOME/anybook}}; I=$A/installer
@@ -27,9 +28,9 @@ cp "$W/elan-uhid" "$W/test-disk.img"; truncate -s $(( (N / 1048576 + 1) * 104857
 cp --reflink=auto "$SRC" "$W/stick.img"
 printf 'timeout 0\ndefault openbook-vm.conf\nconsole-mode keep\neditor no\n' > "$W/loader.conf"
 "$D" mcopy -o -i "$W/stick.img@@1M" "$W/loader.conf" ::/loader/loader.conf
-python3 - "$W/expect.json" "$N" <<'EOF'
+python3 - "$W/expect.json" "$N" "${TP_MODE:-plain}" <<'EOF'
 import json, sys
-n = int(sys.argv[2]); T = "/data/local/tmp"
+n = int(sys.argv[2]); mode = sys.argv[3]; T = "/data/local/tmp"
 p = {"wait": "console:/ \\$ ", "timeout": 120}
 def mark(name):  # markers split with "" so the echoed command line does not match
     return f"echo ===TP-{name[:1]}\"\"{name[1:]}==="
@@ -42,12 +43,14 @@ steps = [{"wait": "init: init second stage started", "timeout": 300}, {"send": "
                   f"echo COPY\"\"RC=$?\n"}, {"wait": "COPYRC=\\d+", "timeout": 60}, p,
          {"send": "su 0 logcat -b all -c\n"}, p,
          {"send": f"su 0 sh -c 'timeout 40 getevent -lt > {T}/tp-events.txt 2>&1 &'; sleep 1\n"}, p,
-         {"send": f"su 0 sh -c '{T}/elan-uhid 4 2000 1500 > {T}/tp-elan.txt 2>&1 &'; sleep 5; "
+         {"send": f"su 0 sh -c '{T}/elan-uhid 4 2000 1500 {mode} > {T}/tp-elan.txt 2>&1 &'; sleep 5; "
                   f"{mark('DEVICES')}; su 0 cat /proc/bus/input/devices; "
                   f"{mark('INPUT')}; su 0 dumpsys input | grep -A 40 'OpenBook test ELAN 04F3:3315 Touchpad' | head -n 60; "
                   f"{mark('WAIT')}\n"}, {"wait": "\n===TP-WAIT===", "timeout": 120}, p,
          {"send": f"sleep 30; {mark('ELAN')}; su 0 cat {T}/tp-elan.txt; {mark('COUNTS')}; "
                   "echo clock_changed_backwards=$(su 0 logcat -d -b all | grep -c 'Clock changed backwards'); "
+                  "su 0 logcat -d -b all -v monotonic | grep -B 6 -A 1 'Clock changed backwards' | "
+                  "grep -E 'Clock changed|EventHub|InputReader|Gestures|Touchpad|input' | head -n 40; "
                   f"{mark('B64BEGIN')}; su 0 sh -c 'gzip -c {T}/tp-events.txt | base64'; {mark('B64END')}\n"},
          {"wait": "\n===TP-B64END===", "timeout": 300}, p, {"send": "su 0 reboot -p\n"}]
 json.dump(steps, open(sys.argv[1], "w"), indent=1)
@@ -76,7 +79,7 @@ mine = "\n".join(re.sub(r"^(\[\s*[\d.]+\]) \S+: ", r"\1 ", l) for l in events.sp
 block = next((b for b in devices.split("\n\n") if "OpenBook test ELAN 04F3:3315 Touchpad" in b), "")
 ev = re.search(r"B: EV=(\S+)", block)
 c = dict(re.findall(r"(\w+)=(\d+)", counts))
-res = {"image": sys.argv[3].rsplit("/", 1)[-1], "elan_uhid": elan.strip().splitlines()[-1:] if elan.strip() else None,
+res = {"image": sys.argv[3].rsplit("/", 1)[-1], "mode": __import__("os").environ.get("TP_MODE", "plain"), "elan_uhid": elan.strip().splitlines()[-1:] if elan.strip() else None,
        "touchpad_node": node.group(1) if node else None, "ev_bits": ev.group(1) if ev else None,
        "ev_rep": bool(ev and int(ev.group(1), 16) >> 20 & 1),
        "classes": (re.search(r"Classes: (.*)", inp) or [None, None])[1],
