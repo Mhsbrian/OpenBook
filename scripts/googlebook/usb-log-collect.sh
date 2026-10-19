@@ -11,8 +11,10 @@ echo 'RUBY_ANDROID_LOG_BEGIN'
 id
 getenforce
 cat /proc/cmdline /proc/bootconfig
+cat /sys/module/firmware_class/parameters/path
+ls -l /dev/dri
 # Continuous Android buffers alongside bounded periodic service snapshots.
-logcat -b all -v threadtime &
+timeout 600 logcat -b all -v threadtime &
 logpid=$!
 trap 'kill "$logpid" 2>/dev/null' EXIT
 for checkpoint in $(seq 1 18); do
@@ -29,4 +31,9 @@ for checkpoint in $(seq 1 18); do
     done
     sleep 15
 done
+echo 'RUBY_SNAPSHOTS_END'
+# Fast failing services make the 18 snapshots finish in about 4.5 minutes.
+# Keep logcat alive for the remaining capture window; the sink closes its FIFO
+# at 600 seconds (or its byte limit), and timeout also bounds a silent logcat.
+wait "$logpid"
 echo 'RUBY_ANDROID_LOG_END'

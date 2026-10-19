@@ -2,6 +2,16 @@
 
 ## Ruby live-image research lane (ANAL-228, 2026-10-19)
 
+The first G14 capture exposed a loader regression: using an extracted kernel
+and initrd does not inherit `vendor_boot.img`'s command line. The probe and live
+packagers now preserve that command line, require exactly one
+`firmware_class.path=/vendor/firmware`, and record it in their recipes. Verify
+the five generated loader entries and the saved `/proc/cmdline` before a
+hardware trial. Existing direct-kernel probe recipes without `vendor_cmdline`
+must be rebuilt. The collector also keeps logcat alive after its periodic
+snapshots; its lifetime remains bounded. Evidence:
+`evidence/2026-10-19-googlebook-g14-black-screen/`.
+
 The black-screen follow-up adds persistent USB capture while retaining enforcing
 SELinux. `hybrid-probe.py` builds the static logger and validates its policy and
 vendor image labels; `live-image.py` adds normal, Mesa GL and VM logging entries.

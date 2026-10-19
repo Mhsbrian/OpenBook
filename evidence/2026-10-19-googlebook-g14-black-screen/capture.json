@@ -1,0 +1,79 @@
+{
+  "schema": "openbook-ruby-g14-capture/1",
+  "date": "2026-10-19",
+  "hardware": "GA403WR / Ryzen AI 9 HX 370 / Radeon 890M",
+  "entry": "logs (ANGLE/RADV)",
+  "source_image_sha256": "19b9a9492f6b09bad04077378443d307f12ddd4a19f669e22486c88eb2b03f74",
+  "files": 160,
+  "bytes": 13595559,
+  "copy_hashes_match_source": true,
+  "esp_read_only_fsck_exit": 0,
+  "complete_marker": false,
+  "kernel_first_sequence": 0,
+  "kernel_last_sequence": 26305,
+  "kernel_sequence_gaps": 0,
+  "last_kernel_uptime_s": 525.829401,
+  "android_snapshot_count": 18,
+  "android_collector_exit_status": 0,
+  "android_collector_duration_s": 272.197998,
+  "surfaceflinger_sigabrt_unique_pids": 33,
+  "boot_completed_property_seen": false,
+  "selinux": "enforcing",
+  "verity": "enforcing",
+  "firmware_path_in_saved_cmdline": false,
+  "failed_firmware_requests": [
+    {
+      "path": "amdgpu/dcn_3_5_dmcub.bin",
+      "present_in_vendor_tree": true
+    },
+    {
+      "path": "amdgpu/gc_11_5_0_mes.bin",
+      "present_in_vendor_tree": false
+    },
+    {
+      "path": "amdgpu/gc_11_5_0_mes_2.bin",
+      "present_in_vendor_tree": true
+    },
+    {
+      "path": "amdgpu/gc_11_5_0_pfp.bin",
+      "present_in_vendor_tree": true
+    },
+    {
+      "path": "amdgpu/psp_14_0_0_toc.bin",
+      "present_in_vendor_tree": true
+    },
+    {
+      "path": "amdgpu/sdma_6_1_0.bin",
+      "present_in_vendor_tree": true
+    },
+    {
+      "path": "amdgpu/vcn_4_0_5.bin",
+      "present_in_vendor_tree": true
+    },
+    {
+      "path": "amdnpu/17f0_10/npu.sbin",
+      "present_in_vendor_tree": true
+    },
+    {
+      "path": "mediatek/mt7925/BT_RAM_CODE_MT7925_1_1_hdr.bin",
+      "present_in_vendor_tree": true
+    },
+    {
+      "path": "mediatek/mt7925/WIFI_MT7925_PATCH_MCU_1_1_hdr.bin",
+      "present_in_vendor_tree": true
+    },
+    {
+      "path": "mediatek/mt7925/WIFI_RAM_CODE_MT7925_1_1.bin",
+      "present_in_vendor_tree": true
+    },
+    {
+      "path": "regulatory.db",
+      "present_in_vendor_tree": true
+    }
+  ],
+  "stream_sha256": {
+    "kernel": "99919ce8a1e6311bc9df7eba8c2d226a89dc4d666b00c37aac9c111cc6249cfc",
+    "android": "31afcf75a27a79f296c2e182ee142d8cc46bcec582eb9f1900acb6a37498b290"
+  },
+  "physical_write_performed_this_review": false
+}
