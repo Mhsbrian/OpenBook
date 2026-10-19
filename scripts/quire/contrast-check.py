@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Check WCAG contrast for the colour pairs the Quire note uses, in both themes (ANAL-215).
+"""Check WCAG contrast for the colour pairs the Quire note uses, in both themes (ANAL-215, revised for the glass note
+in ANAL-227).
 
-Reads the tokens from docs/quire-design/index.html so the table in docs/quire-design.md §4 cannot drift from the
-prototype. A translucent surface (the note's background) is composited over both black and white, and the pair is
-scored at whichever gives the lower ratio. That bounds every real backdrop under the blur. (An earlier version picked
-one backdrop from the foreground's luminance and chose black for mid-luminance dark-theme text, which reported
-8.0:1 for a pair that is 4.0:1 over white. ANAL-217 review.)
+Reads the tokens from docs/quire-design/index.html so the table in docs/quire-design.md §7 cannot drift from the
+prototype. The note is translucent glass (`--note-tint` at `--glass-a`) and the sheets on it ("paper", the field) are
+translucent too, so every pair is composited through its whole stack (paper over glass over backdrop) over both black
+and white, and scored at whichever gives the lower ratio. That bounds every real backdrop under the blur: the blur
+averages what is behind, it never makes it darker than black or lighter than white.
 
 usage: contrast-check.py [--md] [--html PATH]      exit 1 if any pair misses its target
        --html PATH checks another copy of the prototype (e.g. `git show <rev>:docs/quire-design/index.html`)
@@ -20,10 +21,14 @@ def block(selector):
     m = re.search(re.escape(selector) + r'\s*\{(.*?)\n\}', css, re.S)
     return dict(re.findall(r'--([\w-]+):\s*([^;]+);', m.group(1)))
 
+ROOT = block(':root')
 T = {'light': block(':root, [data-theme="light"]'), 'dark': block('[data-theme="dark"]')}
+GLASS_A = float(ROOT['glass-a'])
 
-def rgb(c):
+def rgb(c, tk=None):
     c = c.strip()
+    if c.startswith('var(--'):  # --ink: var(--on-surface)
+        return rgb(tk[c[6:-1]], tk)
     if c.startswith('#'):
         return tuple(int(c[i:i+2], 16) / 255 for i in (1, 3, 5)) + (1.0,)
     m = re.match(r'rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\)', c)
@@ -40,47 +45,64 @@ def ratio(a, b):
     la, lb = lum(a), lum(b); hi, lo = max(la, lb), min(la, lb); return (hi + 0.05) / (lo + 0.05)
 
 BLACK, WHITE = (0, 0, 0, 1), (1, 1, 1, 1)
-# (label, foreground token, background token, target ratio, note)
+# (label, foreground token, background stack (top first), target ratio)
+# 'glass' is the note; 'paper' and 'field' are the sheets on it. A stack of one opaque token needs no backdrop.
 PAIRS = [
-    ('Answer text on the note', 'on-surface', 'note-bg', 4.5, 'worst backdrop'),
-    ('Secondary text on the note', 'on-surface-variant', 'note-bg', 4.5, 'worst backdrop'),
-    ('Secondary text on a card', 'on-surface-variant', 'surface-container', 4.5, ''),
-    ('Secondary text on a card (dark uses surface-high)', 'on-surface-variant', 'surface-high', 4.5, ''),
-    ('Filled button: Allow', 'on-primary', 'primary', 4.5, ''),
-    ('Tonal button: Allow for this session (allow_always)', 'on-secondary-container', 'secondary-container', 4.5, ''),
-    ('Text button: Don’t allow', 'primary', 'note-bg', 4.5, 'worst backdrop'),
-    ('New value pill', 'on-primary-container', 'primary-container', 4.5, ''),
-    ('Mic indicator', 'on-success-container', 'success-container', 4.5, ''),
-    ('Automation chip (Using Settings)', 'on-tertiary-container', 'tertiary-container', 4.5, ''),
-    ('Halo label, Jump pill', 'inverse-on-surface', 'inverse-surface', 4.5, ''),
-    ('Danger text: Stop', 'error', 'note-bg', 4.5, 'worst backdrop'),
-    ('Intake chip', 'on-secondary-container', 'secondary-container', 4.5, ''),
-    ('Done check (icon, non-text)', 'success', 'note-bg', 3.0, 'worst backdrop'),
-    ('Focus ring (non-text)', 'primary', 'note-bg', 3.0, 'worst backdrop'),
-    ('Pending-step outline (non-text)', 'on-surface-variant', 'note-bg', 3.0, 'worst backdrop'),
-    ('Field outline on focus (non-text)', 'primary', 'surface-container', 3.0, ''),
+    ('Ink: answer text, titles, text buttons, on the glass', 'ink', ['glass'], 4.5),
+    ('Soft ink: the quiet line, step kinds, pending steps, on the glass', 'ink-soft', ['glass'], 4.5),
+    ('Soft ink on paper (cards)', 'ink-soft', ['paper', 'glass'], 4.5),
+    ('Soft ink in the field (placeholder) and on change rows', 'ink-soft', ['field', 'glass'], 4.5),
+    ('Ink on paper (undo pill, paper button)', 'ink', ['paper', 'glass'], 4.5),
+    ('Filled button: Keep it, Take over, send', 'on-primary', ['primary'], 4.5),
+    ('Tonal button, agent picker selection', 'on-secondary-container', ['secondary-container'], 4.5),
+    ('Stop pill, Delete', 'on-error-container', ['error-container'], 4.5),
+    ('New value pill', 'on-primary-container', ['primary-container'], 4.5),
+    ('Mic indicator', 'on-success-container', ['success-container'], 4.5),
+    ('Automation chip (Using Settings)', 'on-tertiary-container', ['tertiary-container'], 4.5),
+    ('Halo label, Jump pill, paused pill', 'inverse-on-surface', ['inverse-surface'], 4.5),
+    ('Done tick (non-text) on the glass', 'success', ['glass'], 3.0),
+    ('Focus ring (non-text) on the glass', 'primary', ['glass'], 3.0),
+    ('Focus ring (non-text) on paper', 'primary', ['paper', 'glass'], 3.0),
+    ('Pending-step ring, soft ink (non-text)', 'ink-soft', ['glass'], 3.0),
+    ('Field outline on focus (non-text)', 'primary', ['field', 'glass'], 3.0),
+    ('Running mark, the ink dot (non-text)', 'primary', ['glass'], 3.0),
 ]
 
-def worst(theme, fg_t, bg_t):
-    """The pair's ratio at its worst backdrop: the minimum over black and white behind a translucent background."""
-    tk = T[theme]; fg = rgb(tk[fg_t]); bg = rgb(tk[bg_t])
-    if bg[3] >= 1:
-        return ratio(fg, bg), None
-    return min((ratio(fg, over(bg, bd)), name) for bd, name in ((BLACK, 'black'), (WHITE, 'white')))
+def layer(theme, name):
+    tk = T[theme]
+    if name == 'glass':
+        r, g, b = [int(v) / 255 for v in tk['note-tint'].split(',')]
+        return (r, g, b, GLASS_A)
+    return rgb(tk[name], tk)
+
+def worst(theme, fg_t, stack):
+    """The pair's ratio at its worst backdrop: the minimum over black and white behind the translucent stack."""
+    tk = T[theme]; fg = rgb(tk[fg_t], tk)
+    layers = [layer(theme, n) for n in stack]
+    if all(l[3] >= 1 for l in layers):
+        return ratio(fg, layers[0]), None
+    best = None
+    for bd, name in ((BLACK, 'black'), (WHITE, 'white')):
+        c = bd
+        for l in reversed(layers): c = over(l, c)
+        r = ratio(fg, c)
+        if best is None or r < best[0]: best = (r, name)
+    return best
 
 rows, ok = [], True
-for label, fg_t, bg_t, target, note in PAIRS:
+for label, fg_t, stack, target in PAIRS:
     cells = [label]
     for theme in ('light', 'dark'):
-        r, backdrop = worst(theme, fg_t, bg_t); passed = r >= target; ok &= passed
+        r, backdrop = worst(theme, fg_t, stack); passed = r >= target; ok &= passed
         cells.append(f'{r:.1f}:1 {"pass" if passed else "FAIL"}' + (f' ({backdrop})' if backdrop and '--md' not in sys.argv else ''))
-    cells.append(f'{target:.1f}:1' + (f' ({note})' if note else ''))
+    cells.append(f'{target:.1f}:1' + (' (worst backdrop)' if any(layer('light', n)[3] < 1 for n in stack) else ''))
     rows.append(cells)
 
 if '--md' in sys.argv:
     print('| Pair (foreground on background) | Light | Dark | Target |'); print('|---|---|---|---|')
     for r in rows: print('| ' + ' | '.join(r) + ' |')
 else:
-    for r in rows: print(f'{r[0]:<48} light {r[1]:<14} dark {r[2]:<14} target {r[3]}')
+    print(f'glass alpha {GLASS_A}')
+    for r in rows: print(f'{r[0]:<66} light {r[1]:<14} dark {r[2]:<14} target {r[3]}')
 print(('ALL PASS' if ok else 'SOME FAIL'), file=sys.stderr)
 sys.exit(0 if ok else 1)
