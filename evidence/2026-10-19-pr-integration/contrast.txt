@@ -1,0 +1,20 @@
+ALL PASS
+glass alpha 0.8
+Ink: answer text, titles, text buttons, on the glass               light 7.5:1 pass (black) dark 7.3:1 pass (white) target 4.5:1 (worst backdrop)
+Soft ink: the quiet line, step kinds, pending steps, on the glass  light 4.8:1 pass (black) dark 5.4:1 pass (white) target 4.5:1 (worst backdrop)
+Soft ink on paper (cards)                                          light 7.0:1 pass (black) dark 8.7:1 pass (white) target 4.5:1 (worst backdrop)
+Soft ink in the field (placeholder) and on change rows             light 7.3:1 pass (black) dark 8.4:1 pass (white) target 4.5:1 (worst backdrop)
+Ink on paper (undo pill, paper button)                             light 11.1:1 pass (black) dark 11.8:1 pass (white) target 4.5:1 (worst backdrop)
+Filled button: Keep it, Take over, send                            light 6.1:1 pass     dark 6.1:1 pass     target 4.5:1
+Tonal button, agent picker selection                               light 6.1:1 pass     dark 6.1:1 pass     target 4.5:1
+Stop pill, Delete                                                  light 4.6:1 pass     dark 4.5:1 pass     target 4.5:1
+New value pill                                                     light 6.1:1 pass     dark 6.1:1 pass     target 4.5:1
+Mic indicator                                                      light 9.6:1 pass     dark 7.7:1 pass     target 4.5:1
+Automation chip (Using Settings)                                   light 6.1:1 pass     dark 6.1:1 pass     target 4.5:1
+Halo label, Jump pill, paused pill                                 light 15.3:1 pass    dark 12.1:1 pass    target 4.5:1
+Done tick (non-text) on the glass                                  light 3.8:1 pass (black) dark 5.5:1 pass (white) target 3.0:1 (worst backdrop)
+Focus ring (non-text) on the glass                                 light 3.8:1 pass (black) dark 5.4:1 pass (white) target 3.0:1 (worst backdrop)
+Focus ring (non-text) on paper                                     light 5.6:1 pass (black) dark 8.7:1 pass (white) target 3.0:1 (worst backdrop)
+Pending-step ring, soft ink (non-text)                             light 4.8:1 pass (black) dark 5.4:1 pass (white) target 3.0:1 (worst backdrop)
+Field outline on focus (non-text)                                  light 5.8:1 pass (black) dark 8.3:1 pass (white) target 3.0:1 (worst backdrop)
+Running mark, the ink dot (non-text)                               light 3.8:1 pass (black) dark 5.4:1 pass (white) target 3.0:1 (worst backdrop)
