@@ -272,7 +272,7 @@ DESK = "apps"
 def desk(d, which):
     if DESK == "none":
         for pkg in (SETTINGS, "com.android.documentsui"):
-            for tid in re.findall(r"Task\{\w+ #(\d+) type=standard (?:A=\d+:" + re.escape(pkg) + r" |I=" +
+            for tid in re.findall(r"Task\{\w+ #(\d+) type=standard (?:A=\d+:" + re.escape(pkg) + r"(?:\.[\w.]+)? |I=" +
                                   re.escape(pkg) + r"/)", d.sh("dumpsys activity activities | grep -F 'Task{'")):
                 d.sh(f"am stack remove {tid}")
         d.sh("input keyevent KEYCODE_HOME")
