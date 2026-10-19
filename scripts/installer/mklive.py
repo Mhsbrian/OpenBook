@@ -503,6 +503,7 @@ Licences: LICENSES/README.txt.
         "bootconfig": {k: v for k, v in base.items() if k not in live_only},
     }
     manifest = {
+        "image_base": "openbook-aosp",
         "schema": "openbook-live-manifest/2", "label": a.label, "fingerprint": fp, "kernel_release": release,
         "slot": "a", "vbmeta_digest": digest,
         "partitions": {n: {"bytes": os.path.getsize(s), "sha256": sha256(s)} for n, s in copies},

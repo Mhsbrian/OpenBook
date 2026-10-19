@@ -35,7 +35,7 @@ static void usage(void) {
             "usage: openbook-install [--root DIR] [--boot-part-uuid UUID] [--log FILE] COMMAND ...\n"
             "  disks | hwinfo | nvram | addons\n"
             "  plan --target BY-ID --layout whole|alongside [--locale L] [--keyboard K] [--set-default]\n"
-            "       [--addon NAME]... [--gapps SHA256] [--out FILE]\n"
+            "       [--image-base openbook-aosp] [--addon NAME]... [--gapps SHA256] [--out FILE]\n"
             "  gapps-check --package FILE\n"
             "  apply --plan FILE --confirm-disk /dev/disk/by-id/BY-ID [--events]   (env OPENBOOK_INSTALL_ERASE)\n"
             "  daemon [--socket PATH]\n");
@@ -145,6 +145,14 @@ int main(int argc, char **argv) {
         snprintf(r.layout, sizeof r.layout, "whole");
         for (; i < argc; i++) {
             if (!strcmp(argv[i], "--target") && i + 1 < argc) snprintf(r.target, sizeof r.target, "%s", argv[++i]);
+            else if (!strcmp(argv[i], "--image-base") && i + 1 < argc) {
+                const char *base = argv[++i];
+                if (!base[0] || strlen(base) >= sizeof r.image_base) {
+                    usage();
+                    return 2;
+                }
+                snprintf(r.image_base, sizeof r.image_base, "%s", base);
+            }
             else if (!strcmp(argv[i], "--layout") && i + 1 < argc) snprintf(r.layout, sizeof r.layout, "%s", argv[++i]);
             else if (!strcmp(argv[i], "--locale") && i + 1 < argc) snprintf(r.locale, sizeof r.locale, "%s", argv[++i]);
             else if (!strcmp(argv[i], "--keyboard") && i + 1 < argc) snprintf(r.keyboard, sizeof r.keyboard, "%s", argv[++i]);

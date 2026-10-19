@@ -230,6 +230,12 @@ static int compute_layout(const struct plan_req *r, struct disk *d, int n, struc
     L->src = src;
     L->inst = src->install;
     L->boot = -1;
+    // Enforced again when apply recomputes the plan. A recovery cannot fall through to the AOSP writer.
+    if (r->image_base[0] && strcmp(r->image_base, "openbook-aosp")) {
+        *code = "image_base_unavailable";
+        snprintf(why, wl, "Only the OpenBook AOSP base is installable. Googlebook recovery needs a validated compatibility image.");
+        return -1;
+    }
     power_read(&L->pw);
     if (!src->ok) {
         *code = "no_source";
@@ -637,6 +643,7 @@ static void plan_core(struct layout *L, struct jw *w) {
     jw_str(w, "layout", L->r->layout);
     jw_obj(w, "request");
     jw_str(w, "target", L->r->target);
+    if (L->r->image_base[0]) jw_str(w, "image_base", L->r->image_base);
     jw_str(w, "layout", L->r->layout);
     jw_str(w, "locale", L->r->locale);
     jw_str(w, "keyboard", L->r->keyboard);
@@ -903,6 +910,11 @@ int plan_req_from_json(const struct jv *plan, struct plan_req *r) {
     memset(r, 0, sizeof *r);
     struct jv *q = jget(plan, "request"), *s = jget(plan, "seeds");
     if (!q || !s) return -1;
+    if (jget(q, "image_base")) {
+        const char *base = jstr(q, "image_base");
+        if (!base || !base[0] || strlen(base) >= sizeof r->image_base) return -1;
+        snprintf(r->image_base, sizeof r->image_base, "%s", base);
+    }
     snprintf(r->target, sizeof r->target, "%s", jstr(q, "target") ? jstr(q, "target") : "");
     snprintf(r->layout, sizeof r->layout, "%s", jstr(q, "layout") ? jstr(q, "layout") : "");
     snprintf(r->locale, sizeof r->locale, "%s", jstr(q, "locale") ? jstr(q, "locale") : "");

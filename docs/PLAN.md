@@ -1,5 +1,12 @@
 # OpenBook track plan
 
+**2026-10-19, ANAL-228:** Track B research is reopened at the owner's request.
+The GBRUNCH review and installer groundwork are in `docs/googlebook-image-base.md`.
+Googlebook installation remains unavailable pending recovery-use terms and the
+combined security, graphics and disk-layout gates. Earlier parked milestones
+below describe the previous decision, not a claim that an AMD Googlebook image
+is now ready. The retained M0 recovery remains a local research fixture.
+
 Goal: the Googlebook experience on x86_64 hardware Google does not ship. AMD Ryzen comes first, then other Intel parts, and NVIDIA later.
 
 Status as of 2026-10-15. Facts are labelled **CONFIRMED** (we checked a primary source or ran a test ourselves), **REPORTED** (press or third-party claims), or **HYPOTHESIS** (not yet tested). See `docs/RESEARCH.md` for sources and `docs/STATUS.md` for evidence.

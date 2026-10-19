@@ -74,7 +74,7 @@ fun ChooseScreen(vm: InstallerViewModel, rail: RailModel, onTry: () -> Unit) {
                         vm.markTried()
                         onTry()
                     } else if (canInstall) {
-                        vm.goTo(WizardStep.DISK)
+                        vm.showImageBases()
                     }
                 },
                 enabled = !vm.chooseInstall || canInstall,

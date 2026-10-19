@@ -1,5 +1,14 @@
 # Hardware
 
+## Googlebook recovery base (2026-10-19, ANAL-228)
+
+The alternative targets the existing GA403WR / HX 370 / Radeon 890M `1002:150e`
+inventory below, with NVIDIA off for initial trials. Current G14 AOSP evidence
+does not establish Googlebook recovery compatibility. GBRUNCH's AMD evidence is
+kernel/module admission in QEMU only; its physical desktop report is Intel HP.
+No G14 Googlebook boot or hardware change was performed for this review. See
+`docs/googlebook-image-base.md` for the required graphics/security/interface checks.
+
 ## G14 touchpad measurement (2026-10-19, ANAL-226)
 
 On `20261019.photos1` slot A: ELAN `04f3:3315`, five slots, X 0–3905,

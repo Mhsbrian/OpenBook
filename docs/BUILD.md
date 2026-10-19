@@ -1,5 +1,35 @@
 # Build and reproduce
 
+## Googlebook image-base groundwork (ANAL-228, 2026-10-19)
+
+See `docs/googlebook-image-base.md` for the pinned GBRUNCH review and remaining
+boot/integration gates. No Google recovery is needed for these checks:
+
+```sh
+python3 scripts/installer/recovery-preflight-test.py -v
+OUT=/tmp/ob228-app device/anybook/common/installer/app/tools/compile-check.sh
+scripts/installer/engine-host-build.sh "$HOME/anybook/installer/build/ob228/openbook-install"
+scripts/installer/inst-docker.sh python3 "$PWD/scripts/installer/image-base-test.py" \
+  --engine "$HOME/anybook/installer/build/ob228/openbook-install" \
+  --image /path/to/existing-openbook-live.img \
+  --run "$HOME/anybook/installer/work/ob228-new-run"
+```
+
+The run directory must be new. The test copies the live image and uses a sparse
+file target. `image-base-qemu.py` similarly takes `--image`, a newly built
+`--apk` and a new `--run` directory under `installer/qemu/`, and checks the actual
+chooser in QEMU with the existing image's daemon. It never installs to the target.
+The host fixture suite tests the changed daemon separately.
+
+For a recovery you have permission to use, run
+`python3 scripts/installer/recovery-preflight.py --raw /path/to/recovery.bin`
+(or `--zip`). Redirect stdout to a **different** report file if desired. Exit 0
+means byte identity matched, not installation approval. It opens only a regular
+file read-only and does not download, mount, extract or execute recovery content.
+The source is about 19.1 GB raw; streaming hashing uses bounded memory. A future
+local assembly needs space for both the retained recovery and separate output,
+kernel/AOSP artifacts and scratch storage; this phase does not size or build it.
+
 ## G14 touchpad diagnostic replay (ANAL-226, 2026-10-19)
 
 `scripts/power/touchpad/build-replay.sh` builds an isolated host copy of the

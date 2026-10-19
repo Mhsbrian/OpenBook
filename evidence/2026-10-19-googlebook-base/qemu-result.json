@@ -1,0 +1,299 @@
+{
+  "reason": "all steps done",
+  "seconds": 139.8,
+  "steps_done": 107,
+  "steps": 107,
+  "hits": [
+    {
+      "step": 0,
+      "wait": "init: init second stage started",
+      "t": 6.0
+    },
+    {
+      "step": 1,
+      "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+      "t": 8.2
+    },
+    {
+      "step": 3,
+      "wait": "console:/ \\$ ",
+      "t": 8.2
+    },
+    {
+      "step": 5,
+      "wait": "console:/ # ",
+      "t": 8.2
+    },
+    {
+      "step": 7,
+      "wait": "console:/ # ",
+      "t": 8.5
+    },
+    {
+      "step": 9,
+      "wait": "\\nBOOTDONE=1 uptime=",
+      "t": 20.0
+    },
+    {
+      "step": 10,
+      "wait": "console:/ # ",
+      "t": 20.1
+    },
+    {
+      "step": 12,
+      "wait": "console:/ # ",
+      "t": 23.3
+    },
+    {
+      "step": 14,
+      "wait": "console:/ # ",
+      "t": 26.0
+    },
+    {
+      "step": 16,
+      "wait": "console:/ # ",
+      "t": 26.7
+    },
+    {
+      "step": 18,
+      "wait": "console:/ # ",
+      "t": 42.4
+    },
+    {
+      "step": 20,
+      "wait": "@@SEEN\\[",
+      "t": 42.4
+    },
+    {
+      "step": 21,
+      "wait": "console:/ # ",
+      "t": 42.4
+    },
+    {
+      "step": 23,
+      "wait": "@@TAPPED@@",
+      "t": 46.6
+    },
+    {
+      "step": 24,
+      "wait": "console:/ # ",
+      "t": 46.6
+    },
+    {
+      "step": 27,
+      "wait": "@@SEEN\\[",
+      "t": 51.9
+    },
+    {
+      "step": 28,
+      "wait": "console:/ # ",
+      "t": 51.9
+    },
+    {
+      "step": 30,
+      "wait": "@@TAPPED@@",
+      "t": 54.0
+    },
+    {
+      "step": 31,
+      "wait": "console:/ # ",
+      "t": 54.0
+    },
+    {
+      "step": 34,
+      "wait": "@@SEEN\\[",
+      "t": 59.2
+    },
+    {
+      "step": 35,
+      "wait": "console:/ # ",
+      "t": 59.2
+    },
+    {
+      "step": 37,
+      "wait": "@@TAPPED@@",
+      "t": 61.4
+    },
+    {
+      "step": 38,
+      "wait": "console:/ # ",
+      "t": 61.4
+    },
+    {
+      "step": 41,
+      "wait": "@@TAPPED@@",
+      "t": 66.5
+    },
+    {
+      "step": 42,
+      "wait": "console:/ # ",
+      "t": 66.5
+    },
+    {
+      "step": 45,
+      "wait": "@@SEEN\\[",
+      "t": 71.8
+    },
+    {
+      "step": 46,
+      "wait": "console:/ # ",
+      "t": 71.8
+    },
+    {
+      "step": 50,
+      "wait": "===BASE-AOSP-UI-END===",
+      "t": 75.3
+    },
+    {
+      "step": 51,
+      "wait": "console:/ # ",
+      "t": 77.4
+    },
+    {
+      "step": 53,
+      "wait": "@@TAPPED@@",
+      "t": 79.5
+    },
+    {
+      "step": 54,
+      "wait": "console:/ # ",
+      "t": 79.5
+    },
+    {
+      "step": 57,
+      "wait": "@@SEEN\\[",
+      "t": 85.0
+    },
+    {
+      "step": 58,
+      "wait": "console:/ # ",
+      "t": 85.0
+    },
+    {
+      "step": 62,
+      "wait": "===BASE-GOOGLEBOOK-UI-END===",
+      "t": 88.6
+    },
+    {
+      "step": 63,
+      "wait": "console:/ # ",
+      "t": 90.7
+    },
+    {
+      "step": 65,
+      "wait": "@@TAPPED@@",
+      "t": 92.8
+    },
+    {
+      "step": 66,
+      "wait": "console:/ # ",
+      "t": 92.8
+    },
+    {
+      "step": 69,
+      "wait": "@@SEEN\\[",
+      "t": 98.1
+    },
+    {
+      "step": 70,
+      "wait": "console:/ # ",
+      "t": 98.1
+    },
+    {
+      "step": 72,
+      "wait": "console:/ # ",
+      "t": 98.3
+    },
+    {
+      "step": 77,
+      "wait": "@@TAPPED@@",
+      "t": 106.8
+    },
+    {
+      "step": 78,
+      "wait": "console:/ # ",
+      "t": 106.8
+    },
+    {
+      "step": 81,
+      "wait": "@@TAPPED@@",
+      "t": 112.0
+    },
+    {
+      "step": 82,
+      "wait": "console:/ # ",
+      "t": 112.0
+    },
+    {
+      "step": 85,
+      "wait": "@@SEEN\\[",
+      "t": 117.3
+    },
+    {
+      "step": 86,
+      "wait": "console:/ # ",
+      "t": 117.3
+    },
+    {
+      "step": 88,
+      "wait": "@@TAPPED@@",
+      "t": 119.3
+    },
+    {
+      "step": 89,
+      "wait": "console:/ # ",
+      "t": 119.3
+    },
+    {
+      "step": 92,
+      "wait": "@@SEEN\\[",
+      "t": 124.7
+    },
+    {
+      "step": 93,
+      "wait": "console:/ # ",
+      "t": 124.7
+    },
+    {
+      "step": 95,
+      "wait": "===BASE-RETURN-UI-END===",
+      "t": 125.6
+    },
+    {
+      "step": 96,
+      "wait": "console:/ # ",
+      "t": 127.7
+    },
+    {
+      "step": 98,
+      "wait": "@@TAPPED@@",
+      "t": 129.8
+    },
+    {
+      "step": 99,
+      "wait": "console:/ # ",
+      "t": 129.8
+    },
+    {
+      "step": 102,
+      "wait": "@@SEEN\\[",
+      "t": 135.0
+    },
+    {
+      "step": 103,
+      "wait": "console:/ # ",
+      "t": 135.0
+    },
+    {
+      "step": 105,
+      "wait": "===BASE-RUNTIME-END===",
+      "t": 136.0
+    },
+    {
+      "step": 106,
+      "wait": "console:/ # ",
+      "t": 136.0
+    }
+  ],
+  "qemu_rc": 0
+}

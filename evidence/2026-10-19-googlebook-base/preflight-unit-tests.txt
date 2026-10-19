@@ -1,0 +1,12 @@
+test_changed_content (__main__.RecoveryTests.test_changed_content) ... ok
+test_device (__main__.RecoveryTests.test_device) ... ok
+test_fifo_does_not_block (__main__.RecoveryTests.test_fifo_does_not_block) ... ok
+test_match_never_authorizes_install (__main__.RecoveryTests.test_match_never_authorizes_install) ... ok
+test_symlink (__main__.RecoveryTests.test_symlink) ... ok
+test_wrong_size (__main__.RecoveryTests.test_wrong_size) ... ok
+test_zip_official_manifest_mismatch (__main__.RecoveryTests.test_zip_official_manifest_mismatch) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.001s
+
+OK

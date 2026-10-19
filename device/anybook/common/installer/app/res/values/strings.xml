@@ -7,6 +7,17 @@
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name">OpenBook Installer</string>
+    <string name="base_title">Choose your image base</string>
+    <string name="base_lede">Start with the OpenBook image on your USB.</string>
+    <string name="base_rail_hint">Choose an image base</string>
+    <string name="base_aosp">OpenBook · AOSP</string>
+    <string name="base_aosp_body">Our open-source Android desktop, with OpenBook’s AMD graphics, laptop controls and apps.</string>
+    <string name="base_aosp_status">Included on this USB</string>
+    <string name="base_aosp_note">Installs the OpenBook image from this USB. Optional app packages come later, after you choose a disk.</string>
+    <string name="base_googlebook">Googlebook OS</string>
+    <string name="base_googlebook_body">Google’s desktop from an official recovery image, paired with OpenBook’s hardware support. An experimental path under development.</string>
+    <string name="base_googlebook_status">Not available yet</string>
+    <string name="base_googlebook_note">Googlebook installation is not available in this build. AMD/G14 compatibility still needs validation, and recovery use needs permission under its license. No Google image is included or downloaded. Choose OpenBook · AOSP to continue.</string>
     <!-- Window, launcher shortcut and taskbar label -->
     <string name="window_title">Install OpenBook</string>
     <string name="brand_name" translatable="false">OpenBook</string>

@@ -344,6 +344,14 @@ static void cmd_disks(long long id) {
 
 static void cmd_plan(long long id, struct jv *q) {
     struct plan_req r = {0};
+    if (jget(q, "image_base")) {
+        const char *base = jstr(q, "image_base");
+        if (!base || !base[0] || strlen(base) >= sizeof r.image_base) {
+            reply_err(id, "bad_request", "image_base: expected a nonempty base identifier");
+            return;
+        }
+        snprintf(r.image_base, sizeof r.image_base, "%s", base);
+    }
     snprintf(r.target, sizeof r.target, "%s", jstr(q, "target") ? jstr(q, "target") : "");
     snprintf(r.layout, sizeof r.layout, "%s", jstr(q, "layout") ? jstr(q, "layout") : "whole");
     snprintf(r.locale, sizeof r.locale, "%s", jstr(q, "locale") ? jstr(q, "locale") : "");

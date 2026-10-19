@@ -1,0 +1,78 @@
+[
+  {
+    "check": "legacy AOSP plan works",
+    "passed": true
+  },
+  {
+    "check": "explicit AOSP plan records base",
+    "passed": true
+  },
+  {
+    "check": "explicit AOSP plan replays with same digest",
+    "passed": true
+  },
+  {
+    "check": "CLI refuses googlebook-recovery",
+    "passed": true
+  },
+  {
+    "check": "CLI refuses unknown-base",
+    "passed": true
+  },
+  {
+    "check": "apply refuses foreign base before writing",
+    "passed": true
+  },
+  {
+    "check": "daemon base 'googlebook-recovery'",
+    "passed": true
+  },
+  {
+    "check": "daemon base 'other'",
+    "passed": true
+  },
+  {
+    "check": "daemon base None",
+    "passed": true
+  },
+  {
+    "check": "daemon base []",
+    "passed": true
+  },
+  {
+    "check": "daemon base ''",
+    "passed": true
+  },
+  {
+    "check": "daemon base 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'",
+    "passed": true
+  },
+  {
+    "check": "daemon base 'openbook-aosp'",
+    "passed": true
+  },
+  {
+    "check": "source marker 'googlebook-recovery'",
+    "passed": true
+  },
+  {
+    "check": "source marker 'other'",
+    "passed": true
+  },
+  {
+    "check": "source marker None",
+    "passed": true
+  },
+  {
+    "check": "source marker ''",
+    "passed": true
+  },
+  {
+    "check": "source marker 'openbook-aosp'",
+    "passed": true
+  },
+  {
+    "check": "target never opened for writes",
+    "passed": true
+  }
+]

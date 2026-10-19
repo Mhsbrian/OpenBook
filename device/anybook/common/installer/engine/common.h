@@ -372,6 +372,7 @@ void hwinfo_json(struct jw *w, struct disk *d, int n);
 
 // ------------------------------------------------------------------ plan and apply
 struct plan_req {
+    char image_base[32];  // empty: legacy AOSP request; otherwise openbook-aosp (ANAL-228)
     char target[160];
     char layout[16];      // whole | alongside
     char locale[32];

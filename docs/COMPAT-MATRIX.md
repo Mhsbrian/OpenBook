@@ -1,5 +1,16 @@
 # Compatibility matrix
 
+## Googlebook alternative base (ANAL-228, 2026-10-19)
+
+| Base / target | Current evidence | Installer state |
+|---|---|---|
+| OpenBook AOSP / GA403WR | Existing G14 evidence below; new image-base selection checked separately | Default; unchanged hardware support scope |
+| Ruby `16452207` + OpenBook compatibility / GA403WR | Source review only; no combined boot, graphics, security, Google services or ARM app result | Unavailable; engine rejects this base |
+| GBRUNCH AMD replacement kernel / QEMU TCG | Upstream report: kernel + 13-module admission; no Android graphics or physical AMD result | Not an OpenBook install artifact |
+
+GBRUNCH's 17 AMD and 5 boot-menu unit tests passed locally; these do not establish
+runtime compatibility. See `docs/googlebook-image-base.md` for source pins and gates.
+
 ## Touchpad behavior (2026-10-19, ANAL-226)
 
 | Check | Result | Scope |

@@ -1,0 +1,7 @@
+compile-check: note: transitive jspecify not resolved (not needed to compile)
+compile-check: note: transitive guava-listenablefuture-prebuilt-jar not resolved (not needed to compile)
+compile-check: note: transitive framework-sdkextensions.stubs not resolved (not needed to compile)
+compile-check: note: transitive kotlinx_serialization_core not resolved (not needed to compile)
+compile-check: 64 library jars on the classpath
+compile-check: aapt2 compile+link OK
+compile-check: OK (26 Kotlin files, 166 classes, 0 warnings, 0 errors)

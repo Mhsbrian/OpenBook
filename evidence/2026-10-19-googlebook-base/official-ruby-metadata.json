@@ -1,0 +1,24 @@
+{
+  "checked_at": "2026-10-19",
+  "source": "https://dl.google.com/dl/edgedl/device/recovery/production_recovery.json",
+  "ruby": [
+    {
+      "channel": "STABLE",
+      "device": "ruby",
+      "file": "recovery.zip",
+      "filesize": 19069493760,
+      "manufacturer": "Lenovo",
+      "md5": "0567fe2ed0dd1c1753b383a6b3dbfe81",
+      "model": "Lenovo Googlebook 15",
+      "name": "Lenovo Googlebook 15",
+      "url": "https://dl.google.com/device/recovery/ruby-user/16452207/recovery.zip",
+      "zipfilesize": 1,
+      "buildexploreruri": "",
+      "buildidentifier": "16452207_CL3B.260622.271.R1",
+      "target": "ruby-user",
+      "branch": "arsp-26Q3-desktop-release",
+      "dateupdated": "2026-10-05",
+      "previousVersionGeneration": 1788908184965351
+    }
+  ]
+}

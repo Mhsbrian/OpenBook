@@ -65,6 +65,8 @@ enum class InstallBlocker { NONE, CHECKING, UNREACHABLE, NOT_LIVE, NO_SOURCE }
 
 enum class InstallLayout(val id: String) { WHOLE("whole"), ALONGSIDE("alongside") }
 
+enum class ImageBase(val id: String) { AOSP("openbook-aosp"), GOOGLEBOOK("googlebook-recovery") }
+
 data class InstallFailure(
     /** True when the engine refused before writing anything (plan_changed, confirm_mismatch, power, ...). */
     val notStarted: Boolean,
@@ -159,6 +161,19 @@ class InstallerViewModel(app: Application) : AndroidViewModel(app) {
 
     // 3 Try or install
     var chooseInstall by mutableStateOf(true)
+    var imageBasePage by mutableStateOf(false)
+        private set
+    var imageBase by mutableStateOf(ImageBase.AOSP)
+        private set
+
+    fun showImageBases() { imageBasePage = true }
+
+    fun selectImageBase(base: ImageBase) {
+        if (imageBase != base) {
+            imageBase = base
+            invalidatePlan()
+        }
+    }
 
     // 4 Disk
     var selectedDisk by mutableStateOf<String?>(null)
@@ -235,6 +250,7 @@ class InstallerViewModel(app: Application) : AndroidViewModel(app) {
         }
 
     fun goTo(target: WizardStep) {
+        if ((target == WizardStep.DISK || target == WizardStep.CONFIRM) && imageBase != ImageBase.AOSP) return
         step = target
         when (target) {
             WizardStep.HARDWARE -> if (hw !is Load.Ready && hw !is Load.Loading) loadHardware()
@@ -252,7 +268,7 @@ class InstallerViewModel(app: Application) : AndroidViewModel(app) {
         if (!canGoBack) return
         when (step) {
             WizardStep.HARDWARE -> goTo(WizardStep.WELCOME)
-            WizardStep.CHOOSE -> goTo(WizardStep.HARDWARE)
+            WizardStep.CHOOSE -> if (imageBasePage) imageBasePage = false else goTo(WizardStep.HARDWARE)
             WizardStep.DISK -> if (gappsPage) gappsPage = false else goTo(WizardStep.CHOOSE)
             WizardStep.CONFIRM -> {
                 gappsPage = gappsWanted
@@ -535,18 +551,19 @@ class InstallerViewModel(app: Application) : AndroidViewModel(app) {
     private fun currentPlanKey(): String? {
         val target = selectedDisk ?: return null
         val gapps = planGapps()?.let { listOf("gapps=$it", "confirmed=$gappsConfirmed") } ?: emptyList()
-        return (listOf(target, layout.id, languageTag, keyboardId, setDefault().toString()) + planAddons() + gapps)
+        return (listOf(target, imageBase.id, layout.id, languageTag, keyboardId, setDefault().toString()) + planAddons() + gapps)
             .joinToString("|")
     }
 
     private fun setDefault() = layout == InstallLayout.WHOLE || alongsideSetDefault
 
     val canPlan: Boolean
-        get() = installBlocker == InstallBlocker.NONE && selectedDiskInfo?.let { layoutAllowed(it, layout) } == true &&
+        get() = imageBase == ImageBase.AOSP && installBlocker == InstallBlocker.NONE && selectedDiskInfo?.let { layoutAllowed(it, layout) } == true &&
             (!gappsWanted || !gappsPage || gappsReady)
 
     /** "View the plan" ([toConfirm] false) or Continue ([toConfirm] true). Both run the read-only `plan`. */
     fun requestPlan(toConfirm: Boolean) {
+        if (!canPlan) return
         val key = currentPlanKey() ?: return
         val existing = plan
         if (existing != null && planKey == key) {
@@ -559,6 +576,7 @@ class InstallerViewModel(app: Application) : AndroidViewModel(app) {
         planError = null
         val args: JSONObject.() -> Unit = {
             put("target", target)
+            put("image_base", imageBase.id)
             put("layout", layout.id)
             put("locale", languageTag)
             put("keyboard", keyboardId)

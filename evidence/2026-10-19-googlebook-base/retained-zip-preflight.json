@@ -1,0 +1,19 @@
+{
+  "schema": "openbook-recovery-preflight/1",
+  "matched": true,
+  "profile": "googlebook-ruby-16452207",
+  "build": "16452207_CL3B.260622.271.R1",
+  "format": "zip",
+  "bytes": 7816442985,
+  "sha256": "3c4dc7f636f29a1207e71d001fd2864aa20ce8354faecd2ef1ae47582b977f6c",
+  "installable": false,
+  "blockers": [
+    "recovery_use_permission",
+    "matched_kernel_and_modules",
+    "ruby_vendor_vintf_and_selinux",
+    "software_security_and_userdata",
+    "g14_graphics_and_hardware_validation",
+    "recovery_layout_writer_and_rollback"
+  ],
+  "scope": "Byte identity only; no AVB signature, license, compatibility or boot validation"
+}

@@ -1,5 +1,17 @@
 # Status
 
+## 2026-10-19: Googlebook alternative base (ANAL-228)
+
+Reviewed GBRUNCH at `a8936fd33e50` and Google's current Ruby recovery metadata.
+Added the installer image-base choice, an engine gate that refuses unsupported
+bases during planning/apply, and a host-only read-only pinned-recovery preflight.
+AOSP stays the default. Googlebook is visible as **Not available yet**; no Google
+payload, bootable compatibility image, download service or recovery writer is
+included. Recovery-use permission, Ruby security/VINTF/policy, G14 graphics and
+the new layout/update path remain gates before enabling it. See
+`docs/googlebook-image-base.md` and `evidence/2026-10-19-googlebook-base/` for the
+review, tests and validation limits. No laptop or USB update was made.
+
 ## 2026-10-19: PR integration (ANAL-188)
 
 This integration consolidates PRs #94, #98 and #104–#117 with merge commits, preserving their dependency history. Status conflicts retain both evidence records; Quire retains the surface and Linux-agent initialization. The two outstanding #115 confirmation bugs are corrected with host dispatch regressions (17/17; the original head fails 12). No image or laptop update was performed. #117 contributes diagnostics only: the physical touchpad reproduction and fix remain open.
