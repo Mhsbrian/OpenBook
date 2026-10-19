@@ -6,6 +6,7 @@ package dev.openbook.quire.agents
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Bundle
 import android.os.ParcelFileDescriptor
 import android.os.PowerExemptionManager
 import android.os.SystemClock
@@ -88,6 +89,11 @@ object Connectors {
             } catch (e: Exception) {
                 return Status(NAME, State.ERROR, "the Terminal app's agent bridge: ${e.message}")
             }
+            return parse(bundle)
+        }
+
+        /** The agent bridge's answer (status and start both give one): its `state` and, for an error, `message`. */
+        private fun parse(bundle: Bundle?): Status {
             val message = bundle?.getString("message")
             return when (bundle?.getString("state")) {
                 "running" -> Status(NAME, State.READY)
@@ -119,7 +125,8 @@ object Connectors {
                 return Status(NAME, State.ERROR, "the Terminal app's agent bridge: ${e.message}")
             }
             Log.i(TAG, "agents: asked the Terminal app to start the Linux environment: ${bundle?.getString("state")}")
-            return status(context)
+            // Its own answer: a start it refused keeps its reason, and the state it publishes next may still lag.
+            return parse(bundle)
         }
 
         /**
@@ -129,16 +136,30 @@ object Connectors {
          */
         fun ensureRunning(context: Context, timeoutMs: Long): Status {
             var s = status(context)
-            if (s.state == State.STOPPED || s.state == State.NOT_INSTALLED || s.state == State.ERROR) s = start(context)
+            var acceptedAt = -1L
+            if (s.state == State.STOPPED || s.state == State.NOT_INSTALLED || s.state == State.ERROR) {
+                s = start(context)
+                if (s.state == State.ERROR) {
+                    Log.i(TAG, "agents: the Linux environment did not start: ${s.detail}")
+                    return s
+                }
+                acceptedAt = SystemClock.elapsedRealtime()
+            }
             val deadline = SystemClock.elapsedRealtime() + timeoutMs
-            var errorSince = 0L
+            var errorSince = -1L
             while (true) {
                 val now = SystemClock.elapsedRealtime()
-                // Right after a start the bridge can say "error" for a moment (its vsock probe answers no such
-                // device until crosvm has the guest up); only an error that lasts is one.
-                errorSince = if (s.state == State.ERROR) (if (errorSince == 0L) now else errorSince) else 0L
-                val waiting = s.state == State.STARTING || s.state == State.INSTALLING ||
-                    (s.state == State.ERROR && now - errorSince < ERROR_GRACE_MS)
+                errorSince = if (s.state == State.ERROR) (if (errorSince < 0) now else errorSince) else -1L
+                val waiting = when (s.state) {
+                    State.STARTING, State.INSTALLING -> true
+                    // The Terminal app publishes "starting" a moment after it accepted the start (VmController
+                    // starts in a coroutine): until then it still reads stopped, or not installed.
+                    State.STOPPED, State.NOT_INSTALLED -> acceptedAt >= 0 && now - acceptedAt < PUBLISH_LAG_MS
+                    // Right after a start the bridge can say "error" for a moment (its vsock probe answers no such
+                    // device until crosvm has the guest up); only an error that lasts is one.
+                    State.ERROR -> now - errorSince < ERROR_GRACE_MS
+                    else -> false
+                }
                 if (!waiting || now > deadline) break
                 SystemClock.sleep(POLL_MS)
                 s = status(context)
@@ -164,6 +185,7 @@ object Connectors {
 
         private const val START_EXEMPTION_MS = 60_000L
         private const val ERROR_GRACE_MS = 20_000L
+        private const val PUBLISH_LAG_MS = 10_000L
         private const val POLL_MS = 1000L
 
         /** A stream to the guest's quired, relayed by the Terminal app. */
