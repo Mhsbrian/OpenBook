@@ -1,0 +1,2 @@
+AGENT     NAME      VERSION  PROTOCOL  STATE
+opencode  opencode  1.19.3   acp       ready

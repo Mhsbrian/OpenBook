@@ -7,7 +7,7 @@
 | # | Item | Result | Where |
 |---|---|---|---|
 | 1 | Cuttlefish: the Linux environment boots, `quired agents` in the guest lists an agent installed there, and a prompt sent from Quire core gets an answer back, with the logs | **Met.** Final image, fresh `/data`: **29 pass, 0 fail**. The Terminal app installs the image and boots the guest under nested KVM. `quired agents`, typed in the Terminal app, lists opencode 1.19.3 (screenshot). Quire core lists the same agent through the bridge and sends "Reply with exactly: QUIRE OK"; opencode in the guest answers **"QUIRE OK"**, `end_turn`, in 3.0 s | `cf/` |
-| 2 | G14 through the owner's stick: the same, plus a KVM check and the guest's boot time | **Not run.** The check is written and passes on Cuttlefish (`scripts/quire/q4-device-check.sh`, `cf-device/`: 0 failures, with `/dev/kvm`, `kvm_amd` and `systemd-analyze` in the Terminal app). The G14 product builds with AVF (see below). The guest image (733 MB) doesn't fit the stick's 256 MiB ESP, where add-ons go, so the stick builder (ANAL-192) has to carry it in the stick's userdata | `cf-device/` |
+| 2 | G14 through the owner's stick: the same, plus a KVM check and the guest's boot time | **Not run.** The check is written and passes on Cuttlefish (`scripts/quire/q4-device-check.sh`, `cf-device/`: 0 failures, with `/dev/kvm`, `kvm_amd` and `systemd-analyze` in the Terminal app). The G14 product builds with AVF (see below). The G14 now has OpenBook installed and updates over adb (ANAL-223), so no stick is needed: `scripts/quire/linux-env-adb.sh check` pushes the image and runs the check over adb, and passes on Cuttlefish that way (`recheck/cf-adb/`, 0 failures) | `cf-device/`, `recheck/cf-adb/` |
 | 3 | With no KVM, Quire degrades to a paired computer and says so; it does not fail silently | **Met in Cuttlefish**, with pairing itself not built: Quire says the Linux environment can't be used, why, and that a paired computer could be used instead but none is paired (**8 pass, 0 fail**). On a PC, no KVM means AVF isn't offered at all, and Quire says "no hardware virtualization" (fixture-tested; not booted) | `cf-nokvm/` |
 | 4 | Evidence and `docs/quire.md` §4 updated | This folder; `docs/quire.md` §4.1, §5.4, §6.1, §7, §8; `docs/quire-pairing.md` (design, for review) | |
 
@@ -52,10 +52,29 @@ Earlier images during the work (not committed) found three faults, each fixed an
    They are listed apart in `cf/selinux-denials.txt`.
 8. **The guest's desktop session (weston) fails**: Debian's cloud kernel has no virtio-gpu DRM. The terminal and agents don't need it.
 
+## Recheck: PR #111's holds (2026-10-19 UTC, `recheck/`)
+
+The Checker held PR #111 at `b2ccb8b` for two `quired serve` faults, and asked for the builder's unmount helper to be scoped (ANAL-217; ANAL-218's review thread). The G14 is now reached over adb (ANAL-223), so this pass also adds the image's install path for an installed system.
+
+| | Result | Where |
+|---|---|---|
+| Hold 1: `session/new` without `cwd` followed a `Root/Quire` symlinked out of Root | Fixed. `Quire`'s real path must be inside Root, and the folder is created through an `os.Root` handle on Root. `TestServeDefaultFolderStaysInRoot`: `Quire` linked out of Root, linked to a missing folder out of it (nothing is created outside either), and linked to a folder inside Root (followed) | `serve-holds-before-after.txt` |
+| Hold 2: a client that left while an agent started let `Serve` return before the agent's `Close` | Fixed. The start joins `Close` before announcing ready, and shutdown waits for ready. `TestServeDisconnectDuringAgentStart` runs through `Serve`: the client leaves mid-start and `Close` blocks, so `Serve` must not return until it finishes | `serve-holds-before-after.txt` |
+| The Checker's two reproductions and the two new tests | All four fail on `b2ccb8b` and pass here; 100 runs under `-race` pass | `serve-holds-before-after.txt` |
+| Unit tests (`go test -race ./...`) | 32 pass, 0 fail, plus 6 subtests | `go-tests.txt` |
+| Builder unmount follow-up | Without `-W`, AOSP's builder worked in a mktemp folder inside its container, and the host read that container path (`/tmp/tmp.XXXX/disk.raw`), which can't be told apart from the host's own files (`image/loop-backing-probe.txt`). It now gets `WORK/work` (`-W`, mounted at the same path), and `scripts/quire/unmount-build-loops.sh` selects only that folder's `root_part` and `debian_cloud_image/disk.raw`. Fixture test: 4 of 12 mounted loop devices selected, all this build's automounts | `image/unmount-build-loops-test.txt` |
+| A real build with udiskie running | udiskie mounted both of the build's loop devices; the helper unmounted exactly those two (`/dev/loop0p1` for `disk.raw`, `/dev/loop0` for `root_part`, both in `WORK/work`); build finished in about 1 min | `image/build.log.unmount`, `image/loop-sampler-summary.txt` |
+| Guest image | `quired` 0.2.1 (these fixes), opencode 1.19.3 test agent, `images.tar.gz` 821 MB | `image/image-info.txt` |
+| QEMU on this host | boots in 5.5 s (`systemd-analyze`); `quired 0.2.1` lists opencode over vsock; a non-host peer is refused; a prompt (session without `cwd`, so the new default-folder path) comes back "QUIRE OK", `end_turn`, in 14.1 s | `qemu/` |
+| Cuttlefish, installed over adb (`linux-env-adb.sh check`, same product build as `cf/`) | **0 failures.** Preflight; push with sha256 match on the device; Terminal app installs and runs the guest in 92 s; Quire core connects to `quired 0.2.1` and lists opencode; VM start to Quire connected: 23.4 s; the prompt is answered "QUIRE OK", `end_turn`, in 14.6 s | `cf-adb/` |
+| `linux-env-adb.sh` refusals | refuses a push while a Linux environment is installed (replacing it deletes the guest's files), a missing image, and a prompt that would break its quoting; `--replace-installed` clears the Terminal app's data and pushes | `cf-adb/push-refusals.txt` |
+| The gfxstream ANR again (Terminal app frozen while the check typed into it; INFO only) | This time with the trace. The main thread waits in `DrawFrameTask::drawFrame`; RenderThread spins in Cuttlefish's virtual-GPU Vulkan driver (`vulkan.ranchu.so` from `com.google.cf.vulkan`: `vkQueueWaitIdle` → `VulkanStreamGuest::read` → `AddressSpaceStream::speculativeRead`, `sched_yield`), waiting on the host's gfxstream renderer. This backs the earlier attribution: a Cuttlefish virtual-GPU stall, not OpenBook code or the G14's amdgpu path. Because of it, the Terminal app's own `systemd-analyze` wasn't captured in this run | `cf-adb/anr/main-and-renderthread.txt`, full trace beside it, `cf-adb/terminal-anr.png` |
+| SELinux denials | 13 distinct, all AOSP AVF or Cuttlefish domains, as in `cf/`. Two not seen there: `virtmgr` reading the image on `/sdcard` (listed under Found 7 already), and MediaProvider searching `/data/local/tmp`, where the check's files are | `cf-adb/selinux-denials.txt` |
+
 ## Not done
 
-- The G14 run (acceptance 2): it needs the guest image on the owner's stick (ANAL-192) and the merged product.
-- Pairing a second computer: a design for the Checker's review (`docs/quire-pairing.md`); nothing built.
+- The G14 run (acceptance 2): over adb, once the installed system's update carries AVF (ANAL-214, ANAL-223): `scripts/quire/linux-env-adb.sh -s ADDR:5555 check images.tar.gz OUT`.
+- Pairing a second computer: the Checker held the design (`docs/quire-pairing.md`): TLS session resumption skips the pin check, so a revoked peer could resume; and the pairing code must bind both identities in a defined transcript. It is revised before anything is built.
 - The guest's `cidata.iso` (guest agent, cloud-init files) is AOSP's checked-in prebuilt (build 15101902); building it from source needs a musl host build.
 - A guest kernel with virtio-gpu, for Linux GUI apps.
 
@@ -80,8 +99,13 @@ scripts/quire/q4-cf-check.py 127.0.0.1:16218 RUN --image OUT/images.tar.gz
 scripts/cf-boot.sh down
 # No KVM: the same, with CF_ARGS+=" --extra_kernel_cmdline=initcall_blacklist=svm_init", then
 scripts/quire/q4-cf-check.py 127.0.0.1:16218 RUN --image OUT/images.tar.gz --only nokvm,health
-# On the device itself (what the G14 runs): push the script and the image, then as root
+# On the device itself: push the script and the image, then as root
 Q4_WIFI=VirtWifi sh /data/local/tmp/q4-device-check.sh /data/local/tmp/images.tar.gz /data/local/tmp/q4
+# The same from the host over adb, on an installed system (recheck/cf-adb/; on the G14: -s ADDR:5555, no Q4_WIFI)
+scripts/quire/linux-env-adb.sh -s 127.0.0.1:16219 preflight
+Q4_WIFI=VirtWifi scripts/quire/linux-env-adb.sh -s 127.0.0.1:16219 check OUT/images.tar.gz RUN
+# The builder's unmount selection
+bash scripts/quire/unmount-build-loops-test.sh
 ```
 
 Prompts went to opencode's free model with no account (no OpenBook or owner credentials in the image). The evidence was scanned for common credential patterns, and the Terminal app's session keys are redacted from the logcat extracts (a bounded check, not proof).
