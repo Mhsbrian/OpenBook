@@ -1,11 +1,13 @@
 From: B <9922368+Mhsbrian@users.noreply.github.com>
 Date: Mon, 19 Oct 2026 17:00:00 +0000
-Subject: [PATCH] OPENBOOK: reject untranslated native services before queuing starts
+Subject: [PATCH] OPENBOOK: route bridged Chromium services through managed aliases
 
-zygote_next cannot load guest-ISA libraries. Return a failed service lookup
-so callers can immediately select a managed NativeBridge-compatible service.
-Also reject direct native-zygote requests before starting or connecting.
-Do not remove ARM64 from the supported application ABIs.
+Reject unsupported native-only service lookups before allocating service
+records or blocking process starts. Chromium 158 itself only falls back
+between native services, so map its two known renderer declarations to
+the existing managed services when their access and sandbox contracts
+match exactly. Use Android component alias semantics for callbacks.
+Guard direct native-zygote calls too; keep the ARM64 application ABI.
 
 diff --git a/core/java/android/os/NativeZygoteProcess.java b/core/java/android/os/NativeZygoteProcess.java
 --- a/core/java/android/os/NativeZygoteProcess.java
@@ -70,19 +72,38 @@ diff --git a/services/core/java/com/android/server/am/ActiveServices.java b/serv
  import android.os.PowerExemptionManager;
  import android.os.PowerExemptionManager.ReasonCode;
  import android.os.Process;
-@@ -5240,6 +5241,11 @@
+@@ -5122,9 +5123,17 @@
+         // See if the intent refers to an alias. If so, update the intent with the target component
+         // name. `resolution` will contain the alias component name, which we need to return
+         // to the client.
+-        final ComponentAliasResolver.Resolution<ComponentName> resolution =
++        ComponentAliasResolver.Resolution<ComponentName> resolution =
+                 mAm.mComponentAliasResolver.resolveService(service, resolvedType,
+                         /* match flags */ 0, userId, callingUid);
++        if (!resolution.isAlias() && !isSdkSandboxService && fgsDelegateOptions == null) {
++            final ComponentName nativeService = resolveNativeBridgeServiceFallback(service,
++                    resolvedType, userId, callingUid, callingPid, allowInstant, matchQuarantined);
++            if (nativeService != null) {
++                resolution = new ComponentAliasResolver.Resolution<>(nativeService,
++                        service.getComponent());
++            }
++        }
+ 
+         final ComponentName comp;
+         if (instanceName == null) {
+@@ -5238,6 +5247,11 @@
+                 if (sInfo == null) {
+                     Slog.w(TAG_SERVICE, "Unable to start service " + service + " U=" + userId +
                            ": not found");
-                     return null;
-                 }
++                    return null;
++                }
 +                // Check before constructing/inserting a ServiceRecord: failed binds must
 +                // not accumulate records or prewarm a zygote that cannot load the library.
 +                if (!isNativeServiceAbiSupported(sInfo)) {
-+                    return null;
-+                }
+                     return null;
+                 }
                  if (instanceName != null
-                         && (sInfo.flags & ServiceInfo.FLAG_ISOLATED_PROCESS) == 0
-                         && !isSdkSandboxService) {
-@@ -5475,10 +5481,31 @@
+@@ -5475,10 +5489,65 @@
                  }
              }
  
@@ -100,6 +121,40 @@ diff --git a/services/core/java/com/android/server/am/ActiveServices.java b/serv
          return null;
 +    }
 +
++    /** Use the existing component-alias contract, including the original name in callbacks. */
++    private ComponentName resolveNativeBridgeServiceFallback(Intent service, String resolvedType,
++            int userId, int callingUid, int callingPid, boolean allowInstant,
++            boolean matchQuarantined) {
++        final ComponentName original = service.getComponent();
++        if (original == null || !android.os.Flags.nativeFrameworkPrototype()) return null;
++        final String targetClass = NativeBridgeServiceFallback.targetClass(original.getClassName());
++        if (targetClass == null) return null;
++        long flags = ActivityManagerService.STOCK_PM_FLAGS | PackageManager.MATCH_DEBUG_TRIAGED_MISSING;
++        if (allowInstant) flags |= PackageManager.MATCH_INSTANT;
++        if (matchQuarantined) flags |= PackageManager.MATCH_QUARANTINED_COMPONENTS;
++        final ResolveInfo source = mAm.getPackageManagerInternal().resolveService(service,
++                resolvedType, flags, userId, callingUid, callingPid);
++        if (source == null || source.serviceInfo == null
++                || NativeZygoteProcess.isAbiSupported(source.serviceInfo.applicationInfo.primaryCpuAbi)) {
++            return null;
++        }
++        final Intent candidate = new Intent(service).setComponent(
++                new ComponentName(original.getPackageName(), targetClass));
++        final ResolveInfo target = mAm.getPackageManagerInternal().resolveService(candidate,
++                resolvedType, flags, userId, callingUid, callingPid);
++        if (target == null || !NativeBridgeServiceFallback.compatible(source.serviceInfo,
++                target.serviceInfo)) {
++            return null;
++        }
++        // Both declarations have identical access and sandbox requirements. The normal
++        // service lookup below still enforces permissions, visibility, user and app-op policy.
++        service.setOriginalIntent(new Intent(service));
++        service.setComponent(candidate.getComponent());
++        Slog.i(TAG_SERVICE, "Native bridge service fallback: " + original.flattenToShortString()
++                + " -> " + targetClass);
++        return original;
++    }
++
 +    private static boolean isNativeServiceAbiSupported(ServiceInfo serviceInfo) {
 +        final int nativeIsolated = ServiceInfo.FLAG_NATIVE_SERVICE
 +                | ServiceInfo.FLAG_ISOLATED_PROCESS;
@@ -114,3 +169,56 @@ diff --git a/services/core/java/com/android/server/am/ActiveServices.java b/serv
      }
  
      private int getAllowMode(Intent service, @Nullable String callingPackage) {
+diff --git a/services/core/java/com/android/server/am/NativeBridgeServiceFallback.java b/services/core/java/com/android/server/am/NativeBridgeServiceFallback.java
+new file mode 100644
+--- /dev/null
++++ b/services/core/java/com/android/server/am/NativeBridgeServiceFallback.java
+@@ -0,0 +1,48 @@
++/*
++ * Copyright (C) 2026 The OpenBook Authors
++ * SPDX-License-Identifier: Apache-2.0
++ */
++package com.android.server.am;
++
++import android.content.pm.ServiceInfo;
++
++import java.util.Objects;
++
++/** Narrow compatibility rule for Chromium's declared managed renderer services. */
++final class NativeBridgeServiceFallback {
++    private NativeBridgeServiceFallback() {}
++
++    static String targetClass(String sourceClass) {
++        // Do not infer arbitrary fallbacks by removing "Native" from a class name.
++        if (sourceClass == null) return null;
++        switch (sourceClass) {
++            case "org.chromium.content.app.NativeOnlySandboxedProcessService0":
++                return "org.chromium.content.app.SandboxedProcessService0";
++            case "org.chromium.content.app.NativeOnlySandboxedProcessService1":
++                return "org.chromium.content.app.SandboxedProcessService1";
++            default:
++                return null;
++        }
++    }
++
++    static boolean compatible(ServiceInfo source, ServiceInfo target) {
++        if (source == null || target == null) return false;
++        final String expected = targetClass(source.name);
++        if (expected == null) return false;
++        final int nativeIsolated = ServiceInfo.FLAG_NATIVE_SERVICE | ServiceInfo.FLAG_ISOLATED_PROCESS;
++        return (source.flags & nativeIsolated) == nativeIsolated
++                && expected.equals(target.name)
++                && source.applicationInfo != null && target.applicationInfo != null
++                && Objects.equals(source.packageName, target.packageName)
++                && Objects.equals(source.applicationInfo.packageName, target.applicationInfo.packageName)
++                && source.applicationInfo.uid == target.applicationInfo.uid
++                && Objects.equals(source.applicationInfo.primaryCpuAbi, target.applicationInfo.primaryCpuAbi)
++                && Objects.equals(source.processName, target.processName)
++                && Objects.equals(source.permission, target.permission)
++                && source.exported == target.exported
++                && source.directBootAware == target.directBootAware
++                && source.enabled && target.enabled
++                && source.applicationInfo.enabled && target.applicationInfo.enabled
++                && (source.flags & ~ServiceInfo.FLAG_NATIVE_SERVICE) == target.flags;
++    }
++}
