@@ -971,7 +971,7 @@ An accidental seventh cut, in a development run, landed during `system` and left
 - **The cut model is the guest's**, not a disk's: a real SSD can lose or reorder writes in its own cache. The engine flushes (fsync) after every step and before the GPT and the activation, but a crash-replay test of every write (`Next`) would show more.
 - **Windows is a stand-in.** BitLocker, Windows' own boot repair and Fast Startup were not tested. Real Windows ESPs are often 100 MB; ours is 260 MB.
 - **The firmware option was added by a test app**, through the same `SetVariable` a firmware setup uses. The G14's setup screens were not tried.
-- **No OTA slot switch or boot counting:** `openbook-bootsync` isn't built, and slot B is blank. *Since built: §2.5, §13.13.*
+- **No OTA slot switch or boot counting:** `openbook-bootsync` isn't built, and slot B is blank. *Since built: §2.5, §13.14.*
 
 ### 13.5 Findings
 1. **The installed system offers to "set up" the installer stick.** With the stick plugged into an installed OpenBook, vold logs "disk:8,0 has unknown partition table … giving up", and SystemUI shows "QEMU USB drive detected · Tap to set up" (`StorageNotification`, unsupported disk). Tapping it leads to formatting the stick. PR #52's vold patch only skips the disk the running system booted from. *Fix proposal:* also skip any disk whose GPT has an ESP labelled `OPENBOOK` plus `super`/`misc` partitions (an OpenBook stick or disk), with a QEMU check in `e2e-qemu.py inst-stick`. Reported, not gated; in `docs/INSTALL.md` known issues.
@@ -1091,7 +1091,7 @@ python3 scripts/installer/e2e-qemu.py avc OUT <logcat.gz and sections/avc.txt fi
 - The owner's run of §13.6, then the spare-drive install (§13.7) once a drive is named.
 - When PR #61 is on `main`: the next stick, with Vulkan 1.4 and ANAL-177's second graphics run.
 - Fixes for §13.5 findings 1 and 2. They touch vold (ANAL-176's area) and the engine's OS labels (ANAL-191's).
-- `openbook-bootsync`, the slot B test and boot counting (an OTA switch). *Done: §13.13.*
+- `openbook-bootsync`, the slot B test and boot counting (an OTA switch). *Done: §13.14.*
 - A crash-replay test of the engine on the host: log every write and replay every prefix, including writes lost since the last flush, especially for the shared Windows ESP.
 - The release checklist's open items (`docs/INSTALL.md` §9): `WHENCE`, the GPL source bundle, the release key, a signed manifest.
 

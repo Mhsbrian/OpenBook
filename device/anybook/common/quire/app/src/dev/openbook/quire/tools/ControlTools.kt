@@ -115,8 +115,10 @@ object ControlTools {
             note.retitle(title)
             val page = sensitivePage(control)
             val destructive = DESTRUCTIVE.find(t.label)
-            if (page != null || destructive != null) {
+            val unclassified = t.bounds == null || t.label.isBlank()
+            if (page != null || destructive != null || unclassified) {
                 val why = if (destructive != null) "“${t.label.take(80)}” may change something that can't be undone."
+                    else if (unclassified) "Quire can't identify what this point in ${control.app} will do."
                     else "This page of ${control.app} (“$page”) protects the laptop or your accounts."
                 if (!note.confirm(Ask("Tap “${t.label.take(60)}” in ${control.app}?", why = why +
                         " Quire can't undo it.", verb = "Tap it", keep = "Don't tap"))) {
@@ -139,8 +141,11 @@ object ControlTools {
             val control = live(note)
             val page = sensitivePage(control)
             val submit = args.optBoolean("submit")
-            if (page != null && !note.confirm(Ask("Type in ${control.app}?", why = "This page (“$page”) protects the " +
-                    "laptop or your accounts.", verb = "Type it", keep = "Don't type"))) {
+            if ((page != null || submit) && !note.confirm(Ask(
+                    if (submit) "Type and submit in ${control.app}?" else "Type in ${control.app}?",
+                    why = if (submit) "Submitting may send a message or perform the app's action. Quire can't undo it."
+                        else "This page (“$page”) protects the laptop or your accounts.",
+                    verb = if (submit) "Submit it" else "Type it", keep = "Don't type"))) {
                 return ToolResult.error(Broker.DENIED)
             }
             control.type(args.optString("text"), args.optBoolean("replace"), submit, "Typing “${args.optString("text")

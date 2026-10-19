@@ -102,6 +102,10 @@
 
 ## History
 
+### 2026-10-19: Quire confirmation review fixes during PR integration (ANAL-188 / ANAL-220)
+- Submitting text and tapping an unidentified target now ask before dispatch; agent Undo asks before restoring adb/developer settings. Ordinary typing, identified taps and non-sensitive Undo remain automatic.
+- Host dispatch regressions 17/17; the original head fails 12/17. App/probe compilation: zero warnings. This fixes the two PR #115 findings in source; no image or laptop update was performed in this merge task.
+
 ### 2026-10-18: Quire Q4, agents in the Linux environment (ANAL-218)
 
 - **AVF was compiled out of both products** (AOSP's PC product doesn't inherit AVF's `product_packages.mk`); `linux-env.mk` puts it in, with the Terminal app off by default as in AOSP.

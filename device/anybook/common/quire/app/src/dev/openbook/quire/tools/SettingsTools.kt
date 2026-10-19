@@ -418,6 +418,15 @@ object SettingsTools {
                 else -> log.last()
             } ?: throw ToolError("There is no change of Quire's to undo.")
             if (e.undone) throw ToolError("That change was already undone.")
+            // Resolve and authorize this exact entry, rather than looking up "last" again after confirmation.
+            // The person's Undo button calls undo directly; an agent must ask before restoring sensitive settings.
+            val s = SettingsCatalog.byKey(e.key) ?: throw ToolError("Quire can't undo ${e.name} any more.")
+            if (s.sensitive && !note.confirm(Ask("Undo ${s.name}?",
+                    listOf(Change(s.name, s.where, s.label(s.get(c)), s.label(e.old))),
+                    why = "This changes how the laptop can be reached or debugged. It can be changed back in Settings.",
+                    verb = "Undo it", keep = "Leave it"))) {
+                return ToolResult.error(Broker.DENIED)
+            }
             note.retitle("Undoing ${e.name}")
             val undone = undo(c, e)
             note.changed(listOf(undone))
