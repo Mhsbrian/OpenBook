@@ -1,0 +1,66 @@
+Subject: Input dispatching timed out (ba00a56 com.android.virtualization.terminal/com.android.virtualization.terminal.new2.ui.MainActivity is not responding. Waited 15000ms for KeyEvent(deviceId=-1, eventTime=313868000000ns, source=UNKNOWN, displayId=-1, action=UP, flags=0x00000000, keyCode=ENTER(66), scanCode=0, metaState=0x00000000, repeatCount=0), policyFlags=0x6b000000).
+Timeout: 15000
+TimeoutStart: 313868
+
+"main" prio=5 tid=1 Native
+  | group="main" sCount=1 ucsCount=0 flags=1 obj=0x71f78b08 self=0x7675c4a02be0
+  | sysTid=4161 nice=-10 cgrp=top-app sched=0/0 handle=0x7676892f7038
+  | state=S schedstat=( 23540479717 10380694772 126686 ) utm=1716 stm=637 core=0 HZ=100
+  | stack=0x7ffc3f991000-0x7ffc3f993000 stackSize=8188KB
+  | held mutexes=
+  native: #00 pc 00059966  /apex/com.android.runtime/lib64/bionic/libc.so (syscall+22) (BuildId: 931dd708b3792c0f68e76a20c7b8b3dc)
+  native: #01 pc 00068053  /apex/com.android.runtime/lib64/bionic/libc.so (__futex_wait_ex+115) (BuildId: 931dd708b3792c0f68e76a20c7b8b3dc)
+  native: #02 pc 00067fa9  /apex/com.android.runtime/lib64/bionic/libc.so (pthread_cond_wait+57) (BuildId: 931dd708b3792c0f68e76a20c7b8b3dc)
+  native: #03 pc 0037dee4  /system/lib64/libhwui.so (android::uirenderer::renderthread::DrawFrameTask::drawFrame+388) (BuildId: e04f80821560e6342c56fa1dd328387c)
+  at android.graphics.HardwareRenderer.nSyncAndDrawFrame(Native method)
+  at android.graphics.HardwareRenderer.syncAndDrawFrame(HardwareRenderer.java:596)
+  at android.view.ThreadedRenderer.draw(ThreadedRenderer.java:848)
+  at android.view.ViewRootImpl.draw(ViewRootImpl.java:6320)
+  at android.view.ViewRootImpl.performDraw(ViewRootImpl.java:5970)
+  at android.view.ViewRootImpl.performTraversals(ViewRootImpl.java:4903)
+  at android.view.ViewRootImpl.doTraversal(ViewRootImpl.java:3351)
+  at android.view.ViewRootImpl$TraversalCallback.onVsync(ViewRootImpl.java:11448)
+  at android.view.Choreographer$CallbackRecord.run(Choreographer.java:1664)
+  at android.view.Choreographer.doCallbacks(Choreographer.java:1252)
+  at android.view.Choreographer.doFrame(Choreographer.java:1209)
+  at android.view.Choreographer$FrameDisplayEventReceiver.run(Choreographer.java:1640)
+  at android.os.Handler.handleCallback(Handler.java:1095)
+  at android.os.Handler.dispatchMessageImpl(Handler.java:135)
+  at android.os.Handler.dispatchMessage(Handler.java:125)
+  at android.os.Looper.loopOnce(Looper.java:296)
+  at android.os.Looper.loop(Looper.java:397)
+  at android.app.ActivityThread.main(ActivityThread.java:9523)
+  at java.lang.reflect.Method.invoke(Native method)
+  at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:575)
+  at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:939)
+DumpLatencyMs: 3.02699
+
+"RenderThread" daemon prio=7 tid=19 Native
+  | group="main" sCount=1 ucsCount=0 flags=1 obj=0x207b968 self=0x7675c4a44cc0
+  | sysTid=4186 nice=-4 cgrp=top-app sched=0/0 handle=0x76733da8f0c0
+  | state=R schedstat=( 39705218425 20278683877 91709 ) utm=1870 stm=2099 core=0 HZ=100
+  | stack=0x76733d998000-0x76733d99a000 stackSize=988KB
+  | held mutexes=
+  native: #00 pc 0005dda7  /apex/com.android.runtime/lib64/bionic/libc.so (sched_yield+7) (BuildId: 931dd708b3792c0f68e76a20c7b8b3dc)
+  native: #01 pc 0035f754  /apex/com.google.cf.vulkan/lib64/hw/vulkan.ranchu.so (AddressSpaceStream::speculativeRead+148) (BuildId: 5dee465e008f39e34eb0eff02d576ba1)
+  native: #02 pc 0035f5df  /apex/com.google.cf.vulkan/lib64/hw/vulkan.ranchu.so (AddressSpaceStream::readFully+191) (BuildId: 5dee465e008f39e34eb0eff02d576ba1)
+  native: #03 pc 0021871a  /apex/com.google.cf.vulkan/lib64/hw/vulkan.ranchu.so (gfxstream::vk::VulkanStreamGuest::read+90) (BuildId: 5dee465e008f39e34eb0eff02d576ba1)
+  native: #04 pc 0021ee8e  /apex/com.google.cf.vulkan/lib64/hw/vulkan.ranchu.so (gfxstream::vk::VkEncoder::vkQueueWaitIdle+238) (BuildId: 5dee465e008f39e34eb0eff02d576ba1)
+  native: #05 pc 001fc420  /apex/com.google.cf.vulkan/lib64/hw/vulkan.ranchu.so (gfxstream::vk::ResourceTracker::on_vkQueueSubmit+5936) (BuildId: 5dee465e008f39e34eb0eff02d576ba1)
+  native: #06 pc 002498a3  /apex/com.google.cf.vulkan/lib64/hw/vulkan.ranchu.so (gfxstream_vk_QueueSubmit+1939) (BuildId: 5dee465e008f39e34eb0eff02d576ba1)
+  native: #07 pc 00027728  /system/lib64/libvulkan.so (vulkan::driver::QueueSubmit+56) (BuildId: 97499614f9cd09a6fbbcb7f821605e11)
+  native: #08 pc 00820ea5  /system/lib64/libhwui.so (GrVkPrimaryCommandBuffer::submitToQueue+1493) (BuildId: e04f80821560e6342c56fa1dd328387c)
+  native: #09 pc 00825d6f  /system/lib64/libhwui.so (GrVkGpu::submitCommandBuffer+255) (BuildId: e04f80821560e6342c56fa1dd328387c)
+  native: #10 pc 006f98e7  /system/lib64/libhwui.so (GrGpu::submitToGpu+87) (BuildId: e04f80821560e6342c56fa1dd328387c)
+  native: #11 pc 003eea95  /system/lib64/libhwui.so (android::uirenderer::renderthread::VulkanManager::finishFrame+629) (BuildId: e04f80821560e6342c56fa1dd328387c)
+  native: #12 pc 003e93f9  /system/lib64/libhwui.so (android::uirenderer::skiapipeline::SkiaVulkanPipeline::draw+633) (BuildId: e04f80821560e6342c56fa1dd328387c)
+  native: #13 pc 0037af92  /system/lib64/libhwui.so (android::uirenderer::renderthread::CanvasContext::draw+994) (BuildId: e04f80821560e6342c56fa1dd328387c)
+  native: #14 pc 0037e8c0  /system/lib64/libhwui.so (std::__1::__function::__func<android::uirenderer::renderthread::DrawFrameTask::postAndWait::$_0, void >::operator +1552) (BuildId: e04f80821560e6342c56fa1dd328387c)
+  native: #15 pc 0038b675  /system/lib64/libhwui.so (android::uirenderer::WorkQueue::process+677) (BuildId: e04f80821560e6342c56fa1dd328387c)
+  native: #16 pc 003f3dcb  /system/lib64/libhwui.so (android::uirenderer::renderthread::RenderThread::threadLoop+459) (BuildId: e04f80821560e6342c56fa1dd328387c)
+  native: #17 pc 000196c9  /system/lib64/libutils.so (android::Thread::_threadLoop+329) (BuildId: 5a9d60e47b8abaa40634f81d5a03ed1a)
+  native: #18 pc 0001bc12  /system/lib64/libutils.so (libutil_thread_trampoline +18) (BuildId: 5a9d60e47b8abaa40634f81d5a03ed1a)
+  native: #19 pc 0008c352  /apex/com.android.runtime/lib64/bionic/libc.so (__pthread_start +66) (BuildId: 931dd708b3792c0f68e76a20c7b8b3dc)
+  native: #20 pc 0008628d  /apex/com.android.runtime/lib64/bionic/libc.so (__start_thread+45) (BuildId: 931dd708b3792c0f68e76a20c7b8b3dc)
+  (no managed stack frames)
+DumpLatencyMs: 158.182
