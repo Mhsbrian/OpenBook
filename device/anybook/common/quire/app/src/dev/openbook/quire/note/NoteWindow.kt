@@ -201,6 +201,31 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
     /** Where the card is on the display (display pixels), or null when the note is not showing. */
     fun cardOnScreen(): Rect? = root?.cardRect()
 
+    /**
+     * A still of the card (NoteCard.still) and where it is on the display, once the card has laid out what its task
+     * now holds; null when there is no note. [done] runs once, on the main thread.
+     */
+    fun stillOfCard(done: (android.graphics.Bitmap?, Rect?) -> Unit) {
+        val r = root ?: return done(null, null)
+        var called = false
+        fun capture() {
+            if (called) return
+            called = true
+            val c = r.card
+            val bmp = runCatching { c.still() }.getOrNull()
+            done(bmp, bmp?.let { Rect(c.left, c.top, c.left + it.width, c.top + it.height) })
+        }
+        r.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+            override fun onGlobalLayout() {
+                r.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                capture()
+            }
+        })
+        r.requestLayout()
+        // A note whose window is not traversed (removed meanwhile) still lets the run go on, without a still.
+        r.postDelayed({ capture() }, STILL_TIMEOUT_MS)
+    }
+
     /** Folds the note into its anchor (§5.2 Fold back), then removes the window. */
     fun fold(intoTaskbar: Boolean, done: () -> Unit = {}) {
         val r = root ?: return done()
@@ -627,6 +652,9 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
 
         /** How long the window stays bigger than the card after the card last moved or shrank. */
         private const val SHRINK_MS = 250L
+
+        /** How long [stillOfCard] waits for the card's layout before it gives up on a still. */
+        private const val STILL_TIMEOUT_MS = 300L
     }
 }
 

@@ -45,6 +45,8 @@ class ComputerControl(private val context: Context) {
 
     /** What happened to a request or a session, for the note (docs/quire-design.md §3.3 rule 5, §3.4). */
     interface Events {
+        /** The platform asks for consent; the dialog opens once [proceed] runs (the note readies its waiting still). */
+        fun beforeDialog(proceed: () -> Unit) = proceed()
         fun onPending(dialogShown: Boolean) {}
         fun onCreated(session: ComputerControlSession) {}
         fun onCreationFailed(errorCode: Int, dialogShown: Boolean) {}
@@ -151,17 +153,20 @@ class ComputerControl(private val context: Context) {
                 report("pending: the platform asks for consent")
                 val host = consent
                 if (host != null && starter !is android.app.Activity) {
-                    host.open(intentSender) { ok ->
-                        if (ok) {
-                            dialogShown = true
-                            report("pending: the dialog is open, above Quire's waiting activity")
-                            events?.onPending(true)
-                        } else {
-                            pendingLaunch = null
-                            report("pending: could not open the consent dialog")
-                            events?.onPending(false)
+                    val open = {
+                        host.open(intentSender) { ok ->
+                            if (ok) {
+                                dialogShown = true
+                                report("pending: the dialog is open, above Quire's waiting activity")
+                                events?.onPending(true)
+                            } else {
+                                pendingLaunch = null
+                                report("pending: could not open the consent dialog")
+                                events?.onPending(false)
+                            }
                         }
                     }
+                    events?.beforeDialog(open) ?: open()
                     return
                 }
                 try {

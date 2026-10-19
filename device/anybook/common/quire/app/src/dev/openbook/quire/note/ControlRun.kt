@@ -72,15 +72,29 @@ class ControlRun(
         }
     }
 
-    override fun onPending(dialogShown: Boolean) {
-        if (!dialogShown) return
-        // The platform's dialog is up: the note waits and says so, and steps aside; Quire's waiting activity shows the
-        // same card beneath the dialog (§3.3 rule 5).
+    override fun beforeDialog(proceed: () -> Unit) {
+        // The note waits and says so; Quire's waiting activity shows a still of it, at its place, beneath the
+        // platform's dialog (§3.3 rule 5). The dialog opens once the still is ready.
         waitingResult = Block.Result(Icons.SHIELD, Tone.WARN, context.getString(R.string.q_cc_waiting),
             context.getString(R.string.q_cc_waiting_sub, task.agent?.name ?: context.getString(R.string.app_name), app))
             .also { task.blocks += it }
-        window.platformDialog = true
         task.controlPhase(Task.Phase.WAITING)
+        window.stillOfCard { still, at ->
+            if (finished || stopped) return@stillOfCard
+            ConsentWait.still(still, at)
+            proceed()
+        }
+    }
+
+    override fun onPending(dialogShown: Boolean) {
+        if (!dialogShown) {
+            waitingResult?.let { task.blocks.remove(it) }
+            waitingResult = null
+            task.controlPhase(Task.Phase.WORKING)
+            return
+        }
+        // The platform's dialog is starting: the note steps aside, and the still beneath the dialog takes its place.
+        window.platformDialog = true
     }
 
     override fun onCreated(session: ComputerControlSession) {
