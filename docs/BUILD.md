@@ -1,14 +1,30 @@
 # Build and reproduce
 
+## GKI zram boot integration (ANAL-228)
+
+PC builds copy `init.openbook.zram.rc` into vendor init; it loads zram from
+`/system/lib/modules` during early-init using the existing modprobe domain.
+The matching system_dlkm supplies zsmalloc through modules.dep. Framework mmd
+retains swap configuration. `hybrid-probe.py` copies the same source fragment
+when working from older PRODUCT_OUT and records its hash; rerun the native
+audit first (396 inputs). Validate with `host_init_verifier` and a new UEFI/USB
+VM run. Require zram0, nonzero SwapTotal, successful mmd setup and no setup abort
+in runtime evidence; presence of the module file alone is insufficient.
+
+The user-build ADB collector now isolates each procfs/storage read and captures
+module, memory, IO-pressure and mmd state. A partial capture retains every
+available section; it does not require relaxing the user build's restrictions.
+See `evidence/2026-10-19-googlebook-live-adb/investigation.md`.
+
 ## Ruby live ADB capture (2026-10-19)
 
 `scripts/googlebook/capture-adb.py` collects bounded, private diagnostics from
 an explicitly named, already paired device without the userdebug/root
 assumptions of the older G14 helper. Run
-`python3 scripts/googlebook/capture-adb-test.py -v` for its six failure/privacy
+`python3 scripts/googlebook/capture-adb-test.py -v` for its seven failure/privacy
 checks. Pairing and collection commands are in `docs/googlebook-live.md`.
-The current G14 access preflight is blocked on pairing; it is not a new
-hardware validation result.
+Pairing has succeeded; hardware findings and expected user-build diagnostic
+denials are recorded in the live-ADB investigation evidence.
 
 ## Ruby live-image research lane (ANAL-228, 2026-10-19)
 

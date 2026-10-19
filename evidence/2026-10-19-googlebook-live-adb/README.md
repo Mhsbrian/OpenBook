@@ -1,5 +1,9 @@
 # Live Ruby G14 access preflight
 
+The pairing blocker below was subsequently resolved. Current hardware findings,
+the zram correction and remaining stability gates are in `investigation.md`.
+This file preserves the earlier access-preflight result.
+
 2026-10-19, ANAL-228. The owner offered the running laptop for investigation
 before internal-disk installer work. The supplied address advertises the Ruby
 live serial through mDNS; its TLS connection port accepts TCP. The advertised

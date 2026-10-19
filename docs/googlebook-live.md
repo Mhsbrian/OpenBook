@@ -7,12 +7,13 @@ retained recovery material and must stay local.
 
 ## Live laptop inspection over ADB
 
-The owner has booted the G14 and enabled Wireless debugging. The 2026-10-19
-host preflight sees the Ruby live mDNS identity and reaches its TLS connection
-port, but ADB has no connected transport. The advertised legacy port 5555
-refuses TCP connections. The current host uses Platform Tools 37.0.1 with
-LIBADBMDNS enabled. No live shell or new hardware diagnostics were obtained;
-pairing is the next required step, not a hardware failure diagnosis.
+The G14 was successfully paired on 2026-10-19 using Platform Tools 37.0.1.
+The live user build remains enforcing. Two captures and a full private bugreport
+confirm connected/validated Wi-Fi, Radeon rendering and the software audio
+path. They also expose missing zram and a property-service-related framework
+watchdog. Current findings and limits:
+`evidence/2026-10-19-googlebook-live-adb/investigation.md`.
+The following procedure documents pairing again if the transport changes.
 
 On the G14, open **Wireless debugging → Pair device with pairing code**. The
 pairing dialog's port differs from the normal connection port and its code is
@@ -40,7 +41,7 @@ command exits zero. Retain denied sections as evidence; do not change enforcemen
 to make diagnostics pass. Raw dumps can include network identifiers and app
 content and stay private.
 
-Once paired, establish the running build and USB-backed mounts, effective
+For every new candidate, establish the running build and USB-backed mounts, effective
 Wi-Fi resources and actual association/DHCP/validation, audio routing and
 decoder state, Radeon/SurfaceFlinger behavior, suspend/power errors and crash
 history. Correct observed faults and retest before promoting the image to an

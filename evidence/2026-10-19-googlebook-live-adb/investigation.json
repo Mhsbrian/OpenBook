@@ -1,0 +1,101 @@
+{
+  "schema": "openbook-ruby-live-investigation/1",
+  "date": "2026-10-19",
+  "platform": "ASUS GA403WR / AMD Ryzen AI 9 HX 370 / Radeon 890M",
+  "framework_build": "ruby 16452207",
+  "physical_image": "net18",
+  "selinux": "Enforcing",
+  "live_boot": true,
+  "captures": [
+    {
+      "started_utc": "2026-10-19T23:11:37.079480+00:00",
+      "complete": true,
+      "connected": true,
+      "command_records": 30,
+      "failed_sections": [
+        "boot",
+        "storage",
+        "dmesg"
+      ],
+      "manifest_sha256": "48beb40c790413149b853f2dc3914e3bc58f53c2f12fa393b379775c3ef929f8",
+      "logcat_sha256": "a5ad88ed8df50e69d79ad0e2a9a7e210e30e7501d6236a979d7a25c3c6b809e5",
+      "watchdog_sha256": "46d3e5a363eb49e7124add2447a497ec283ac66496b48748fb72edaa79f45451"
+    },
+    {
+      "started_utc": "2026-10-19T23:18:27.349883+00:00",
+      "complete": true,
+      "connected": true,
+      "command_records": 40,
+      "failed_sections": [
+        "bootconfig",
+        "partitions",
+        "swaps",
+        "dmesg"
+      ],
+      "manifest_sha256": "6d84df6ee7168a182c2a833d7cc2e1c36d741096450a34609f84daa358e06914",
+      "logcat_sha256": "3fd2b3ee85b861300bff2db6ffb66642eb76dd66b1aba81cc25d5b0988495afb",
+      "watchdog_sha256": "46d3e5a363eb49e7124add2447a497ec283ac66496b48748fb72edaa79f45451"
+    }
+  ],
+  "bugreport": {
+    "sha256": "672281862a2e354841f508206d8a245f40b2d744fe5c5c4acec78bacf4fc091d",
+    "zip_entries": 237,
+    "uncompressed_bytes": 63952761,
+    "raw_content_private": true
+  },
+  "observations": {
+    "wifi_connected": true,
+    "internet_validated_both_captures": true,
+    "wifi_standard": "802.11ax",
+    "wifi_security": "WPA2-PSK",
+    "wifi_frequency_mhz": 2437,
+    "physical_radeon_rendering": true,
+    "panel_pixels": [
+      2880,
+      1800
+    ],
+    "panel_refresh_hz": 120,
+    "audio_speaker_route": true,
+    "audio_sample_rate_hz": 48000,
+    "audio_frames_written": 454656,
+    "audible_playback_confirmed": false,
+    "swap_total_kib": 0,
+    "mmd_setup_abort_tombstones": 2,
+    "system_server_watchdog_entries": 1,
+    "watchdog_uptime_ms": 1010521,
+    "watchdog_blocked_seconds": 74,
+    "watchdog_blocking_site": "property-service connect from IdmapDaemon.stopIdmapServiceLocked",
+    "watchdog_root_cause_established": false,
+    "desktop_service_registration_failures": 7,
+    "user_setup_complete": true,
+    "device_provisioned": true,
+    "speaker_media_volume": 1,
+    "speaker_media_volume_max": 15
+  },
+  "validation": {
+    "capture_guards": 7,
+    "compat_guards": 16,
+    "live_guards": 7,
+    "init_verifier_passed": true,
+    "audit_inputs": 396,
+    "audit_inputs_unchanged": true,
+    "static_cases": {
+      "openbook": true,
+      "ruby": true,
+      "hybrid": false,
+      "hybrid-reduced": true
+    },
+    "unchanged_from_net18": [
+      "system",
+      "system_ext",
+      "product",
+      "kernel",
+      "system_dlkm",
+      "vendor_dlkm",
+      "compiled_selinux_policy",
+      "usb_logger_binary"
+    ]
+  },
+  "physical_modification": "ADB pairing only; no settings, reboot, USB or internal disk write",
+  "scope": "Hardware observations, not installation or stability qualification"
+}
