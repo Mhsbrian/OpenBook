@@ -77,14 +77,17 @@ def touchpad_clock(text):
     its time base from it, and "Clock changed backwards" means that base jumped back (ANAL-178). The cause on the G14:
     the kernel's autorepeat of BTN_TOOL_FINGER (the touchpad has EV_REP), in frames without MSC_TIMESTAMP; Android
     turns kernel repeat off for touchpads with aosp/patches/frameworks/native."""
-    frames, msc = [], None
-    for m in re.finditer(r"\[\s*([\d.]+)\]\s+(?:\S+: )?(EV_\w+)\s+(\S+)\s+([0-9a-f]+)", text):
-        t, typ, code, val = float(m.group(1)), m.group(2), m.group(3), int(m.group(4), 16)
+    frames, msc, input_seen = [], None, False
+    for m in re.finditer(r"\[\s*([\d.]+)\]\s+(?:\S+: )?(EV_\w+)\s+(\S+)\s+(\S+)", text):
+        t, typ, code, val = float(m.group(1)), m.group(2), m.group(3), m.group(4)
         if typ == "EV_MSC" and code == "MSC_TIMESTAMP":
-            msc = val
-        elif typ == "EV_SYN" and code == "SYN_REPORT":
-            frames.append((t, msc))
-            msc = None
+            msc = int(val, 16)
+        if typ == "EV_SYN" and code == "SYN_REPORT":
+            if input_seen:  # not a frame of EV_REP alone (EventHub setting the repeat rate)
+                frames.append((t, msc))
+            msc, input_seen = None, False
+        elif typ != "EV_REP":
+            input_seen = True
     if len(frames) < 10:
         return None
     with_msc = [(t, m) for t, m in frames if m is not None]
