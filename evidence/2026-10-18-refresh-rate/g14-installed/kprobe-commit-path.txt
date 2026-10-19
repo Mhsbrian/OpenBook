@@ -1,0 +1,55 @@
+# kprobes on amdgpu/DC while Chrome ran testufo.com, 0.6 s (2026-10-18 16:4xZ): one frame's commit, then totals
+previous vblank at -3.978 ms
+   0.000 ms  amdgpu_dm_atomic_commit_tail_begin  
+   0.167 ms  dc_dmub_srv_wait_for_idle_in  dc_dmub_srv_wait_for_idle+0x4/0x150 [amdgpu]
+   0.176 ms  dc_dmub_srv_wait_for_idle_out  dcn35_update_clocks+0xaf2/0xb50 [amdgpu] <- dc_dmub_srv_wait_for_idle
+   0.342 ms  dc_update_planes_and_stream_in  
+   0.508 ms  commit_planes_for_stream_in  
+   0.548 ms  dc_dmub_srv_wait_for_idle_in  dc_dmub_srv_wait_for_idle+0x4/0x150 [amdgpu]
+   0.551 ms  dc_dmub_srv_wait_for_idle_out  dcn35_update_clocks+0xaf2/0xb50 [amdgpu] <- dc_dmub_srv_wait_for_idle
+   4.320 ms  dm_crtc_high_irq_in  
+   4.360 ms  drm_vblank_event  crtc=0, seq=301890, time=2556674454512, high-prec=true
+   4.361 ms  dm_crtc_high_irq_out  
+   4.694 ms  dc_dmub_srv_wait_for_idle_in  dc_dmub_srv_wait_for_idle+0x4/0x150 [amdgpu]
+   4.704 ms  dc_dmub_srv_wait_for_idle_out  dmub_hw_lock_mgr_cmd+0x86/0xb0 [amdgpu] <- dc_dmub_srv_wait_for_idle
+   4.712 ms  dc_dmub_srv_wait_for_idle_in  dc_dmub_srv_wait_for_idle+0x4/0x150 [amdgpu]
+   4.712 ms  dc_dmub_srv_wait_for_idle_out  dc_dmub_update_dirty_rect+0x205/0x250 [amdgpu] <- dc_dmub_srv_wait_for_idle
+   4.748 ms  dc_dmub_srv_wait_for_idle_in  dc_dmub_srv_wait_for_idle+0x4/0x150 [amdgpu]
+   4.757 ms  dc_dmub_srv_wait_for_idle_out  dmub_hw_lock_mgr_cmd+0x86/0xb0 [amdgpu] <- dc_dmub_srv_wait_for_idle
+   4.792 ms  dc_dmub_srv_wait_for_idle_in  dc_dmub_srv_wait_for_idle+0x4/0x150 [amdgpu]
+   4.805 ms  dc_dmub_srv_wait_for_idle_out  dc_send_update_cursor_info_to_dmu+0x291/0x2d0 [amdgpu] <- dc_dmub_srv_wait_for_idle
+   4.822 ms  dc_dmub_srv_wait_for_idle_in  dc_dmub_srv_wait_for_idle+0x4/0x150 [amdgpu]
+   4.825 ms  dc_dmub_srv_wait_for_idle_out  dmub_hw_lock_mgr_cmd+0x86/0xb0 [amdgpu] <- dc_dmub_srv_wait_for_idle
+   4.839 ms  dc_dmub_srv_wait_for_idle_in  dc_dmub_srv_wait_for_idle+0x4/0x150 [amdgpu]
+   4.842 ms  dc_dmub_srv_wait_for_idle_out  dmub_hw_lock_mgr_cmd+0x86/0xb0 [amdgpu] <- dc_dmub_srv_wait_for_idle
+   4.853 ms  dc_dmub_srv_wait_for_idle_in  dc_dmub_srv_wait_for_idle+0x4/0x150 [amdgpu]
+   4.857 ms  dc_dmub_srv_wait_for_idle_out  dc_send_update_cursor_info_to_dmu+0x291/0x2d0 [amdgpu] <- dc_dmub_srv_wait_for_idle
+   4.865 ms  dc_dmub_srv_wait_for_idle_in  dc_dmub_srv_wait_for_idle+0x4/0x150 [amdgpu]
+   4.868 ms  dc_dmub_srv_wait_for_idle_out  dmub_hw_lock_mgr_cmd+0x86/0xb0 [amdgpu] <- dc_dmub_srv_wait_for_idle
+   4.881 ms  dc_dmub_srv_wait_for_idle_in  dc_dmub_srv_wait_for_idle+0x4/0x150 [amdgpu]
+   4.884 ms  dc_dmub_srv_wait_for_idle_out  dmub_abm_set_pipe+0x82/0xb0 [amdgpu] <- dc_dmub_srv_wait_for_idle
+   4.892 ms  dc_dmub_srv_wait_for_idle_in  dc_dmub_srv_wait_for_idle+0x4/0x150 [amdgpu]
+   4.895 ms  dc_dmub_srv_wait_for_idle_out  dmub_abm_set_level+0x78/0xa0 [amdgpu] <- dc_dmub_srv_wait_for_idle
+   5.077 ms  dc_dmub_srv_wait_for_idle_in  dc_dmub_srv_wait_for_idle+0x4/0x150 [amdgpu]
+   5.085 ms  dc_dmub_srv_wait_for_idle_out  dmub_abm_set_pipe+0x82/0xb0 [amdgpu] <- dc_dmub_srv_wait_for_idle
+   5.093 ms  dc_dmub_srv_wait_for_idle_in  dc_dmub_srv_wait_for_idle+0x4/0x150 [amdgpu]
+   5.095 ms  dc_dmub_srv_wait_for_idle_out  dmub_abm_set_level+0x78/0xa0 [amdgpu] <- dc_dmub_srv_wait_for_idle
+   5.118 ms  dc_dmub_srv_wait_for_idle_in  dc_dmub_srv_wait_for_idle+0x4/0x150 [amdgpu]
+   5.121 ms  dc_dmub_srv_wait_for_idle_out  dmub_hw_lock_mgr_cmd+0x86/0xb0 [amdgpu] <- dc_dmub_srv_wait_for_idle
+   5.126 ms  commit_planes_for_stream_out  
+   5.136 ms  dc_update_planes_and_stream_out  
+   5.138 ms  drm_atomic_helper_wait_for_flip_done_in  
+  12.673 ms  dm_crtc_high_irq_in  
+  12.714 ms  drm_vblank_event  crtc=0, seq=301891, time=2556682790415, high-prec=true
+  12.714 ms  dm_crtc_high_irq_out  
+  12.722 ms  dm_pflip_high_irq_in  
+  12.762 ms  drm_vblank_event_delivered  file=0000000000000000, crtc=0, seq=301891
+  12.778 ms  drm_atomic_helper_wait_for_flip_done_out  
+  12.781 ms  amdgpu_dm_atomic_commit_tail_finish  
+
+dc_update_planes_and_stream: n=36 median 4.612 ms max 5.190 ms
+commit_planes_for_stream: n=36 median 4.420 ms max 5.043 ms
+commit_planes_for_stream_fast: n=0
+drm_atomic_helper_wait_for_flip_done: n=36 median 7.647 ms max 8.344 ms
+dma_resv_wait_timeout: n=29 median 0.488 ms max 2.654 ms
+dc_dmub_srv_wait_for_idle: n=553 median 0.004 ms max 0.019 ms
