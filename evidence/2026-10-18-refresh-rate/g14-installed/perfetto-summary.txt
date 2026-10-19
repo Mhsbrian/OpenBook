@@ -1,0 +1,80 @@
+# perfetto, 6 s while Chrome ran testufo.com (2026-10-18 16:40Z); trace stays on the build host (~10.9 MB)
+# composer process slices:
+"thread","name","n","avg_ms","max_ms"
+"android.hardwar","ExecuteDisplayCommand",664,0.192000,0.617000
+"android.hardwar","AsyncWaitForBuffersSwap",332,13.998000,15.359000
+"android.hardwar","CleanupPriorFrameResources",332,0.013000,0.030000
+"android.hardwar","CommitFrame",332,0.307000,0.540000
+"android.hardwar","CommitStagedComposition",332,0.328000,0.582000
+"android.hardwar","Commit_nonblock",332,0.274000,0.487000
+"android.hardwar","GetAtomicModeReqForArgs",332,0.025000,0.099000
+"android.hardwar","PresentStagedComposition",332,0.339000,0.600000
+
+# kernel events:
+"name","n"
+"amdgpu_dm_atomic_check_begin",332
+"amdgpu_dm_atomic_check_finish",332
+"amdgpu_dm_atomic_commit_tail_begin",333
+"amdgpu_dm_atomic_commit_tail_finish",332
+"drm_vblank_event",665
+"drm_vblank_event_delivered",332
+
+# 60 ms of the timeline (K: kernel ftrace, H: composer, S: SurfaceFlinger; duration in the last column)
+   0.000 ms  S:isFencePending                                0.005
+   0.022 ms  S:VSyncPredictor::onFrameMissed                 0.001
+   7.199 ms  K:drm_vblank_event                              0.000
+   7.246 ms  K:drm_vblank_event_delivered                    0.000
+   7.268 ms  K:amdgpu_dm_atomic_commit_tail_finish           0.000
+   8.349 ms  S:isFencePending                                0.003
+   9.240 ms  S:waitForever                                   2.685
+   9.291 ms  S:waitForever                                   2.635
+   9.347 ms  H:PresentStagedComposition                      0.257
+   9.378 ms  H:Commit_nonblock                               0.216
+   9.399 ms  K:amdgpu_dm_atomic_check_begin                  0.000
+   9.580 ms  K:amdgpu_dm_atomic_check_finish                 0.000
+   9.623 ms  H:AsyncWaitForBuffersSwap                      14.641
+  11.903 ms  K:amdgpu_dm_atomic_commit_tail_begin            0.000
+  15.531 ms  K:drm_vblank_event                              0.000
+  16.658 ms  S:isFencePending                                0.004
+  16.678 ms  S:VSyncPredictor::onFrameMissed                 0.001
+  23.897 ms  K:drm_vblank_event                              0.000
+  23.946 ms  K:drm_vblank_event_delivered                    0.000
+  24.245 ms  K:amdgpu_dm_atomic_commit_tail_finish           0.000
+  25.116 ms  S:isFencePending                                0.010
+  26.781 ms  S:waitForever                                   2.694
+  26.867 ms  S:waitForever                                   2.607
+  26.956 ms  H:PresentStagedComposition                      0.534
+  27.045 ms  H:Commit_nonblock                               0.425
+  27.095 ms  K:amdgpu_dm_atomic_check_begin                  0.000
+  27.443 ms  K:amdgpu_dm_atomic_check_finish                 0.000
+  27.520 ms  H:AsyncWaitForBuffersSwap                      13.178
+  29.464 ms  K:amdgpu_dm_atomic_commit_tail_begin            0.000
+  32.204 ms  K:drm_vblank_event                              0.000
+  33.351 ms  S:isFencePending                                0.003
+  33.368 ms  S:VSyncPredictor::onFrameMissed                 0.001
+  40.569 ms  K:drm_vblank_event                              0.000
+  40.616 ms  K:drm_vblank_event_delivered                    0.000
+  40.645 ms  K:amdgpu_dm_atomic_commit_tail_finish           0.000
+  41.784 ms  S:isFencePending                                0.010
+  43.471 ms  S:waitForever                                   2.622
+  43.542 ms  S:waitForever                                   2.552
+  43.644 ms  H:PresentStagedComposition                      0.537
+  43.773 ms  H:Commit_nonblock                               0.391
+  43.833 ms  K:amdgpu_dm_atomic_check_begin                  0.000
+  44.138 ms  K:amdgpu_dm_atomic_check_finish                 0.000
+  44.200 ms  H:AsyncWaitForBuffersSwap                      13.119
+  46.082 ms  K:amdgpu_dm_atomic_commit_tail_begin            0.000
+  48.881 ms  K:drm_vblank_event                              0.000
+  50.020 ms  S:isFencePending                                0.003
+  50.037 ms  S:VSyncPredictor::onFrameMissed                 0.001
+  57.245 ms  K:drm_vblank_event                              0.000
+  57.293 ms  K:drm_vblank_event_delivered                    0.000
+  57.315 ms  K:amdgpu_dm_atomic_commit_tail_finish           0.000
+  58.398 ms  S:isFencePending                                0.002
+  59.240 ms  S:waitForever                                   2.739
+  59.291 ms  S:waitForever                                   2.688
+  59.342 ms  H:PresentStagedComposition                      0.220
+  59.371 ms  H:Commit_nonblock                               0.184
+  59.388 ms  K:amdgpu_dm_atomic_check_begin                  0.000
+  59.545 ms  K:amdgpu_dm_atomic_check_finish                 0.000
+  59.582 ms  H:AsyncWaitForBuffersSwap                      14.765
