@@ -196,6 +196,15 @@
             android:exported="true"
             android:permission="android.permission.BIND_VOICE_INTERACTION" />
 
+        <!-- Q6: read_screen and take_screenshot ask the person with the platform's own dialog whether Quire may read the
+             screen (tools/ScreenConsentActivity.kt). Inert and transparent; not exported. -->
+        <activity
+            android:name=".tools.ScreenConsentActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:taskAffinity="dev.openbook.quire.consent.screen"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
         <!-- Q6: the notifications_list and notification_dismiss tools (tools/SystemTools.kt). -->
         <service
             android:name=".tools.QuireNotificationListener"

@@ -54,11 +54,14 @@ import dev.openbook.quire.ui.rounded
  * While the platform's consent dialog is up the note steps aside ([platformDialog]): Quire's [ConsentWaitActivity],
  * beneath the dialog, keeps Quire visible for the platform's check after Allow.
  *
- * The one exception is the task that owns a live computer-control session, while it is the task shown
- * ([systemFor]): its mirror with Pause, Take over and Stop must stay in view while the agent acts, and the app it drives
- * may hide overlays (Settings does, even on the session display), so the note is then a system application overlay
- * (SYSTEM_APPLICATION_OVERLAY, which Quire holds as a platform app). Any other task shown in the window, also while the
- * session's own task is hidden, is an ordinary overlay; so is the session's task once its run ends.
+ * Two exceptions, each only while that task is the one shown ([systemFor]), make the note a system application overlay
+ * (SYSTEM_APPLICATION_OVERLAY, which Quire holds as a platform app):
+ * - the task that owns a live computer-control session: its mirror with Pause, Take over and Stop must stay in view
+ *   while the agent acts, and the app it drives may hide overlays (Settings does, even on the session display);
+ * - Q6 (ANAL-220): a task waiting for the person's answer, a consent card. An agent opens Files or Settings for the
+ *   person and then asks before deleting something; a question nobody can see would hold the request, or invite an
+ *   answer given blind. The card names exactly what would happen. Once it is answered, the task is ordinary again.
+ * Any other task shown in the window, also while the session's own task is hidden, is an ordinary overlay.
  */
 class NoteWindow(private val context: Context, private val surface: Callbacks) {
     interface Callbacks : NoteCard.Actions {
@@ -99,19 +102,20 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
      * Only the task that owns a live computer-control session gets a system application overlay; every other task,
      * whatever runs elsewhere, is an ordinary one. Decided per task, each time a task is shown.
      */
-    private fun systemFor(t: Task) = t.control?.sessionLive == true
+    private fun systemFor(t: Task) = t.control?.sessionLive == true || t.needsAnswer
 
     /**
-     * A task's computer-control session started or ended (ControlRun). The window manager decides whether to hide a
-     * window only when it is added, so when the shown task's kind changes, the window is added again in the other
-     * kind. A hidden task's session changes nothing here; it is decided when that task is shown again.
+     * A task's computer-control session started or ended (ControlRun), or its consent card came or went (Q6). The window
+     * manager decides whether to hide a window only when it is added, so when the shown task's kind changes, the window
+     * is added again in the other kind. A hidden task's changes change nothing here; it is decided when that task is
+     * shown again.
      */
-    fun sessionChanged() {
+    fun sessionChanged(focus: Task.Focus = Task.Focus.KEEP) {
         val t = task ?: return
         if (systemFor(t) == systemWindow) return
         closePicker()
         remove()
-        show(t, Task.Focus.KEEP, animate = false)
+        show(t, focus, animate = false)
     }
 
     /**

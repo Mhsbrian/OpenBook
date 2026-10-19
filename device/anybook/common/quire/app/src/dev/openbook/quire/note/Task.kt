@@ -53,6 +53,9 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
 
         /** Q6: this task's computer control, as the tools drive it. */
         fun controlFor(task: Task): AgentControl? = null
+
+        /** Q6: a platform consent dialog is up for this task's tool; the note steps aside meanwhile. */
+        fun platformDialog(task: Task, up: Boolean) {}
     }
 
     enum class Phase { COMPOSE, WORKING, WAITING, MIRROR, DONE, STOPPED, ERROR, SIGNIN, NO_AGENT, OFFLINE }
@@ -1077,6 +1080,8 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
         return step
     }
 
+    override fun toolPlatformDialog(up: Boolean) = host.platformDialog(this, up)
+
     override fun toolRetitle(step: Any, title: String) {
         val s = step as Step
         s.title = title
@@ -1158,6 +1163,41 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
                 host.changed(this)
             }
         }, "quire-undo").start()
+    }
+
+    /** Debuggable builds: one tool call as an agent's would arrive, its result logged (LabReceiver TOOL). */
+    fun labTool(name: String, args: JSONObject) {
+        val b = host.broker ?: return
+        val wasRunning = running
+        if (!running) {
+            running = true
+            phase = Phase.WORKING
+            startedAt = SystemClock.elapsedRealtime()
+        }
+        b.call(this, name, args) { result ->
+            host.handler.post {
+                val text = (0 until (result.optJSONArray("content")?.length() ?: 0)).joinToString(" ") { i ->
+                    result.getJSONArray("content").getJSONObject(i).let { c ->
+                        if (c.optString("type") == "image") "[image ${c.optString("data").length} b64]" else c.optString("text")
+                    }
+                }
+                Log.i(TAG, "lab: tool $name -> error=${result.optBoolean("isError")} " + JSONObject.quote(text.take(3000)))
+                if (!wasRunning && running && control == null) {
+                    running = false
+                    endedAt = SystemClock.elapsedRealtime()
+                    removeThinking()
+                    phase = Phase.DONE
+                    foldSteps(true)
+                    host.changed(this, Focus.RESULT)
+                }
+            }
+        }
+    }
+
+    /** Debuggable builds: answers the consent card shown (LabReceiver CONSENT). */
+    fun labConsent(option: String) {
+        val card = pending ?: return
+        answer(card, card.options.firstOrNull { it.id == option || it.kind.startsWith(option) }?.id)
     }
 
     fun close() {

@@ -25,8 +25,8 @@ class QuireVoiceInteractionService : VoiceInteractionService() {
 
     /** Main thread. While allowed, a session Quire shows may get the assist structure and screenshot. */
     fun allowScreenContext(allow: Boolean) {
-        setDisabledShowContext(if (allow) 0 else
-            VoiceInteractionSession.SHOW_WITH_ASSIST or VoiceInteractionSession.SHOW_WITH_SCREENSHOT)
+        setDisabledShowContext(if (allow) 0 else VoiceInteractionSession.SHOW_WITH_ASSIST or
+            VoiceInteractionSession.SHOW_WITH_SCREENSHOT or VoiceInteractionSession.SHOW_WITH_ASSIST_STRUCTURE_SCREEN_CONTENT)
     }
 
     override fun onShutdown() {
