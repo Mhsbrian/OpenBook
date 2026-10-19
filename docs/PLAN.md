@@ -97,22 +97,25 @@ Each milestone is small, has a verification artifact, and is checked into `evide
 | M7 | Performance and parity | A+B | Benchmarks against an Intel Googlebook baseline (needs device access); Chrome; Linux terminal fallback | Not started (ANAL-166) |
 | M8 | USB installer | A | A bootable OpenBook USB image that runs live and installs through a graphical wizard, only to a disk the user confirms by name (epic ANAL-188, owner goal 2026-10-16) | **In progress:** design done (ANAL-189); the live USB builds and boots on the G14 (ANAL-190); the wizard and install engine are being built (ANAL-191) |
 
-## 4a. Device-in-the-loop: Multica on the G14 (owner directive, 2026-10-16)
+## 4a. Device-in-the-loop: Multica on the G14 (owner directive, 2026-10-16; re-planned 2026-10-18)
 
-**Do not drop this as we iterate.** Building, testing and verification move onto the real laptop in phases, run by a Multica runtime and a dedicated test agent on the ASUS G14 (epic ANAL-193):
+**Do not drop this as we iterate.** Testing and verification happen on the real laptop, continually (epic ANAL-193).
 
-| Phase | Runtime host | Purpose | Issue |
-|---|---|---|---|
-| 1 | G14's current Linux (Arch/Omarchy) | Runtime and "OpenBook G14 Tester" agent online; root inventory (dmesg, ACPI, EDID) | ANAL-194 (needs the owner to install the daemon) |
-| 2 | G14 Linux, KVM | Our AOSP 17 image and OpenBook kernel in Cuttlefish on the real Zen 5 CPU | ANAL-195 |
-| 3 | G14 Linux ⇄ OpenBook bare metal | Unattended dual-boot cycle: boot OpenBook once, run test hooks, reboot to Linux, harvest and report | ANAL-196 (after ANAL-176) |
-| 4 | Installed OpenBook | Runtime on the device itself: CTS/VTS subsets, ARM compat on hardware, suspend/battery, benchmarks | ANAL-197 (after M8 / ANAL-188) |
+**2026-10-18 (ANAL-222):**
+- The owner installed OpenBook (`anal192e`) on the G14's whole NVMe disk. The laptop's own Linux is gone.
+- The G14 is now reached from the build host over Wi-Fi with adb (`scripts/g14-adb.sh`, `docs/adb-debug.md`), so **owner stick sessions are no longer part of the loop.**
+- The Linux-hosted phases (old 1–3: ANAL-194 runtime on the G14's Linux, ANAL-195 Cuttlefish there, ANAL-196 the dual-boot cycle) can no longer run as written and are superseded. Retiring them is the owner's call.
 
-**Quality gate.** From M3 on, a bare-metal milestone (M3, M4, M5, M8) is delivered only when it is reproduced on the G14:
-- by the device agent once it exists;
-- until then, by an owner-run checklist with the exact commands and logs.
+| Phase | Where it runs | Purpose | Issue | State |
+|---|---|---|---|---|
+| 1 | Build host → G14 over adb | Captures (the "save logs" set), live logcat, persistent logs across boots, screen captures | ANAL-222 | **Done** (2026-10-18) |
+| 2 | Build host → G14 over adb | **Network image updates:** put a new build on the laptop without a stick or a wipe. Either an A/B slot write over adb, or an OTA through update_engine with `openbook-bootsync` (`docs/installer.md` §2.5). It writes the laptop's disk, so it needs the owner's explicit OK | proposed | Not started |
+| 3 | Build host → G14 over adb | Suites on hardware: the stick add-ons (graphics, ARM apps, power) over adb, CTS/VTS subsets, the ARM compat matrix, suspend/battery, benchmarks | ANAL-197 (re-scoped) | Not started |
+| 4 | Optional: on the G14 itself | A Multica runtime on the laptop (AVF Linux terminal or a chroot), if driving it from the build host stops being enough | ANAL-197 | Open question |
 
-Everything built for bare metal must therefore be scripted, unattended-safe, and emit durable logs and machine-readable results. Heavy builds (AOSP, kernel, Mesa) stay on the 7950X dev host; the laptop runs and verifies. The device agent follows the same safety rules: never flash, repartition, wipe or change the boot configuration without explicit owner confirmation that names the device or entry.
+**Quality gate.** From M3 on, a bare-metal milestone (M3, M4, M5, M8) is delivered only when it is reproduced on the G14. That means an adb capture or suite run with its logs and results in `evidence/`. Owner-run steps remain only where hands or ears are needed (touchpad, lid, listening).
+
+Everything built for bare metal must therefore be scripted, unattended-safe, and emit durable logs and machine-readable results. Heavy builds (AOSP, kernel, Mesa) stay on the 7950X dev host; the laptop runs and verifies. The same safety rules apply over adb: never flash, repartition, wipe or change the boot configuration without explicit owner confirmation that names the device or entry.
 
 ## 5. Reuse instead of rebuild
 

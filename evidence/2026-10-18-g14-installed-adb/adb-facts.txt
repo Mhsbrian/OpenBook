@@ -1,0 +1,51 @@
+# adb and USB facts on the installed G14, read over adb as root (adb root, undone after), 2026-10-18T16:08:34Z
+## build
+OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+uptime_s 384.51
+## adbd: authorization and listeners
+ro.debuggable=[1]
+ro.adb.secure=[]
+ro.boot.verifiedbootstate=[orange]
+persist.sys.usb.config=[adb]
+sys.usb.config=[adb]
+sys.usb.configfs=[0]
+service.adb.tcp.port=[]
+persist.adb.tcp.port=[]
+settings: adb_enabled=1 adb_wifi_enabled=1
+/data/misc/adb/adb_keys: 0 keys
+listening TCP ports (hex; 15B3 = 5555):
+00000000000000000000000000000000:15B3
+00000000000000000000000000000000:84AF
+10-18 16:04:04.789   941   941 I adbd    : authentication not required
+10-18 16:04:05.080  2857  2857 I adbd    : authentication not required
+10-18 16:04:05.826  2857  2859 I adbd    : adbwifi started on port 41249
+10-18 16:04:05.827  2857  2865 I adbd    : Registering TCP with framework 'adb-67DA8ED81858C75C-A4wASR'
+## USB: device mode (UDC) and controllers
+/sys/class/udc: []
+/dev/usb-ffs/adb: ls: /dev/usb-ffs/adb: No such file or directory
+0000:65:00.4 class 0x0c0330 driver [xhci_hcd]
+0000:67:00.0 class 0x0c0330 driver [xhci_hcd]
+0000:67:00.3 class 0x0c0330 driver [xhci_hcd]
+0000:67:00.4 class 0x0c0330 driver [xhci_hcd]
+0000:67:00.5 class 0x0c0340 driver []
+## USB network drivers (GKI system_dlkm) and their state
+ax88179_178a.ko cdc_ether.ko cdc_ncm.ko r8152.ko thunderbolt.ko usbnet.ko 
+loaded: []
+  Ethernet State: enabled
+  Ethernet interface name filter: (usb|eth)\d+
+## persistent logs
+persist.logd.logpersistd=[logcatd] size=[16] logcatd=running
+persist.logd.logpersistd=logcatd
+persist.logd.logpersistd.size=16
+event-log-tags logcat logcat.01 logcat.id 
+## kernel log and pstore
+dmesg first line: [    0.000000] Linux version 6.18.21-android17-5
+log_buf_len=1M
+/sys/fs/pstore: []
+## Wi-Fi power save
+/system/bin/sh: /vendor/bin/iw: inaccessible or not found
+Power save: on
+## boot reason history
+reboot,userrequested,1792339334
+reboot,factory_reset,1792337946
+reboot,1792337940

@@ -1,0 +1,135 @@
+{
+ "schema": "openbook-avc-summary/1",
+ "dir": "adb-first",
+ "dmesg": {
+  "android": 12,
+  "helper": 3
+ },
+ "logcat": {
+  "android": 26,
+  "helper": 6
+ },
+ "dmesg_lines": 12,
+ "tuples": 9,
+ "tuples_without_flags_health_check": 9,
+ "denials": [
+  {
+   "scontext": "keystore",
+   "tcontext": "hal_gatekeeper_service",
+   "tclass": "service_manager",
+   "perms": [
+    "find"
+   ],
+   "paths": [],
+   "in": [
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "platform_app",
+   "tcontext": "bluetooth_lea_prop",
+   "tclass": "file",
+   "perms": [
+    "read"
+   ],
+   "paths": [
+    "u:object_r:bluetooth_lea_prop:s0"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "system_app",
+   "tcontext": "hal_audio_default",
+   "tclass": "binder",
+   "perms": [
+    "call"
+   ],
+   "paths": [],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "system_app",
+   "tcontext": "hal_authsecret_default",
+   "tclass": "binder",
+   "perms": [
+    "call"
+   ],
+   "paths": [],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "system_app",
+   "tcontext": "hal_bluetooth_default",
+   "tclass": "binder",
+   "perms": [
+    "call"
+   ],
+   "paths": [],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "system_app",
+   "tcontext": "system_suspend_control_internal_service",
+   "tclass": "service_manager",
+   "perms": [
+    "find"
+   ],
+   "paths": [],
+   "in": [
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "system_app",
+   "tcontext": "system_suspend_control_service",
+   "tclass": "service_manager",
+   "perms": [
+    "find"
+   ],
+   "paths": [],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "system_app",
+   "tcontext": "tracingproxy_service",
+   "tclass": "service_manager",
+   "perms": [
+    "find"
+   ],
+   "paths": [],
+   "in": [
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "system_server",
+   "tcontext": "wifi_hal_prop",
+   "tclass": "file",
+   "perms": [
+    "read"
+   ],
+   "paths": [
+    "u:object_r:wifi_hal_prop:s0"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  }
+ ]
+}

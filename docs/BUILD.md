@@ -285,6 +285,16 @@ scripts/g14-qemu.sh <img> <run> && scripts/g14-qemu.sh --again <run>   # two boo
 ```
 Details: `docs/g14-product.md`.
 
+## Bare metal: debugging the installed G14 over adb (ANAL-222)
+
+```bash
+scripts/g14-adb.sh find && scripts/g14-adb.sh connect     # mDNS finds "OpenBook on ..."; or OPENBOOK_G14_ADDR=<ip>
+scripts/g14-adb.sh capture [--hwtest] [--bugreport] [--redact OUT] [DEST]   # the "save logs" set, ~35 s
+scripts/g14-adb.sh logcat -b all                           # follow; resumes after a dropped link
+scripts/g14-adb.sh persist-logs on                         # keep logcat across boots (product default)
+```
+The G14 has no USB device mode, so adb is network-only, and it currently needs no authorization (`docs/adb-debug.md` §5). Details: `docs/adb-debug.md`.
+
 ## Bare metal: audio, Wi-Fi and Bluetooth on the G14 (ANAL-179)
 
 ```bash
