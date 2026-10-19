@@ -758,6 +758,14 @@ static const char COLLECT[] =
     "dumpsys location 2>&1 | grep -A9 -E '^ *(network|fused) provider:' | grep -E 'provider:|identity=|last location' | "
     "sed -E 's/(Location\\[[a-z]+) [-0-9.]+,[-0-9.]+/\\1 <redacted>/'\n"
     "s FEATURES; pm list features 2>&1\n"
+    // The installer (ANAL-191): the daemon's own log (each request, plan and refusal; disk serial numbers, EUI and
+    // WWN masked) and the firmware's boot entries, read-only (`openbook-install nvram`: BootOrder, BootCurrent and
+    // every Boot####), for the spare-drive install (docs/installer.md section 13.7).
+    "s INSTALLER; tail -n 200 /data/misc/openbook_install/installd.log 2>&1 | cut -c1-3000 | sed -E "
+    "-e 's/(\"(serial|wwn)\":\")[^\"]*/\\1<redacted>/g' "
+    "-e 's/((nvme|usb|ata|scsi|mmc)-[A-Za-z0-9_.:-]*_)[A-Za-z0-9.]{4,}/\\1<serial>/g' "
+    "-e 's/((nvme|wwn)-(eui\\.|0x))[0-9a-fA-F]+/\\1<id>/g'; "
+    "echo; openbook-install nvram 2>&1\n"
     // Bounded: one stuck service (a HAL with no hardware behind it, in a VM) blocks service list, and with it the
     // rest of this capture (ANAL-178, QEMU).
     "s SERVICES; timeout 30 service list 2>&1\n"
