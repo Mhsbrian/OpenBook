@@ -1,0 +1,19 @@
+{
+ "image": "openbook-live-20261018-anal178-tpearly-test.img",
+ "touchpadev_lines": 10763,
+ "from_boot_completed": true,
+ "touchpad_clock": {
+  "ok": false,
+  "frames": 1836,
+  "frames_with_msc": 1836,
+  "repeat_frames": 0,
+  "msc_backward_steps": 3,
+  "msc_backward_within_1s": 0,
+  "median_msc_per_event_second": 5.055,
+  "median_frame_interval_ms": 0.82
+ },
+ "touchpad_clock_warnings": {
+  "ok": null,
+  "count": 0
+ }
+}

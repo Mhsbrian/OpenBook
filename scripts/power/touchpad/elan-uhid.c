@@ -7,7 +7,14 @@
 // button type: 5 contacts, click pad; the Windows certification blob: zeros) and acknowledges its SET_REPORTs.
 // Nothing else: no hardware is touched. Needs /dev/uhid (root).
 //
-// usage: elan-uhid [STROKES [STROKE_MS [PAUSE_MS]]]       default 4 strokes of 2000 ms, 1500 ms apart
+// usage: elan-uhid [STROKES [STROKE_MS [PAUSE_MS [MODE [START_MS]]]]]
+//   default 4 strokes of 2000 ms, 1500 ms apart, plain, the first one 3000 ms after the device is created
+// MODE: plain  each stroke ends with a normal lift-off;
+//       palm   each stroke ends with confidence 0 and the tip up: hid-multitouch splits that into an active palm
+//              frame and a separate lift-off frame without MSC_TIMESTAMP (mt_release_pending_palms);
+//       sticky halfway through each stroke the reports stop for 150 ms with the finger down: hid-multitouch's 100 ms
+//              timer releases the contact in a frame without MSC_TIMESTAMP (mt_release_contacts), then the finger
+//              comes back.
 // Prints "elan-uhid: ..." lines; the last one is "elan-uhid: done: N reports".
 #include <errno.h>
 #include <fcntl.h>
@@ -86,6 +93,9 @@ static void handle_uhid(int timeout_ms) {
 int main(int argc, char **argv) {
     int strokes = argc > 1 ? atoi(argv[1]) : 4, stroke_ms = argc > 2 ? atoi(argv[2]) : 2000;
     int pause_ms = argc > 3 ? atoi(argv[3]) : 1500;
+    const char *mode = argc > 4 ? argv[4] : "plain";
+    int palm = !strcmp(mode, "palm"), sticky = !strcmp(mode, "sticky");
+    int start_ms = argc > 5 ? atoi(argv[5]) : 3000;
     setvbuf(stdout, NULL, _IOLBF, 0);
     fd = open("/dev/uhid", O_RDWR | O_CLOEXEC);
     if (fd < 0) { perror("elan-uhid: /dev/uhid"); return 1; }
@@ -102,9 +112,10 @@ int main(int argc, char **argv) {
     ev.u.create2.version = 0x0100;
     send_event(&ev);
     printf("elan-uhid: created (descriptor %zu bytes)\n", sizeof RDESC);
-    // 3 s for the probe (the driver's feature requests) and for Android to open and configure the new input devices,
-    // as it has long before anyone touches a built-in touchpad. handle_uhid() returns once the queue is empty.
-    for (double end = now_ms() + 3000; now_ms() < end;) handle_uhid((int)(end - now_ms()) + 1);
+    // START_MS (3 s by default) for the probe (the driver's feature requests) and for Android to open and configure
+    // the new input devices, as it has long before anyone touches a built-in touchpad. handle_uhid() returns once the
+    // queue is empty.
+    for (double end = now_ms() + start_ms; now_ms() < end;) handle_uhid((int)(end - now_ms()) + 1);
 
     unsigned scan = 0, reports = 0;
     for (int s = 0; s < strokes; s++) {
@@ -118,7 +129,7 @@ int main(int argc, char **argv) {
             scan = (scan + 41) & 0xffff;
             put_bits(r, 12, 4, 1);               // contact count
             put_bits(r, 16, 16, scan);           // scan time
-            put_bits(r, 32, 1, 1);               // confidence
+            put_bits(r, 32, 1, !(palm && !down)); // confidence: 0 on a palm's lift-off
             put_bits(r, 33, 1, down);            // tip switch
             put_bits(r, 36, 4, s & 15);          // contact id
             put_bits(r, 40, 16, x);
@@ -130,11 +141,12 @@ int main(int argc, char **argv) {
             send_event(&ev);
             reports++;
             t += 4;
+            if (sticky && f == frames / 2) t += 150;  // no reports for 150 ms, finger down
             double wait = t - now_ms();
             handle_uhid(wait > 0 ? (int)wait : 0);
             if (wait > 0) { struct timespec ts = {0, (long)((t - now_ms()) * 1e6)}; if (ts.tv_nsec > 0) nanosleep(&ts, NULL); }
         }
-        printf("elan-uhid: stroke %d: %d reports\n", s + 1, frames + 2);
+        printf("elan-uhid: stroke %d (%s): %d reports\n", s + 1, mode, frames + 2);
         handle_uhid(pause_ms);
     }
     memset(&ev, 0, sizeof ev);
