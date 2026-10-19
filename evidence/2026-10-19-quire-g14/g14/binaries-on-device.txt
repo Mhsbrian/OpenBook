@@ -1,0 +1,5 @@
+MATCH /system_ext/priv-app/OpenBookQuire/OpenBookQuire.apk 6d9010e8c6bdf71c
+MATCH /system/apex/com.android.virt.apex 1e0fec0bb09b6628
+MATCH /vendor/bin/hw/android.hardware.composer.hwc3-service.drm df6f5287593727e0
+MATCH /vendor/bin/openbook-pc-setup 0e70d4a55c27388c
+MATCH /vendor/bin/openbook-bootsync e3019926318877e9

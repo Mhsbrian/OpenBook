@@ -29,13 +29,15 @@ How it works: `docs/installer.md` §2.5 (bootsync, the boot HAL) and §13.13 (re
 # a separate tree for the integration, so this PR's branch stays clean
 git clone -q <your checkout> <data>/ota/<name> && cd <data>/ota/<name>
 git merge <PR branches>          # resolve docs/STATUS.md conflicts with --ours; any conflict in device/ or aosp/ is a real one
+export BUILD_NUMBER=<yyyymmdd>.<x>   # its own fingerprint: g14-adb.sh ota refuses the running build's (stale package cache)
 AOSP_JOBS=20 scripts/aosp-docker.sh -d anybook-aosp-build-<x> /repo/scripts/aosp-build.sh anybook_g14_x86_64-cp2a-userdebug \
   droid target-files-package otatools-package openbook_hals_test validatekeymaps </dev/null >/dev/null 2>&1
 timeout 590 docker wait anybook-aosp-build-<x>   # repeat until it returns; `m exit 0` in <data>/logs/aosp/build-*.log
 scripts/ota/make-ota.sh openbook-ota-<yyyymmdd>-<x> --tree "<commit>: <what it is>"   # ~1 min, under the lane lock
 ```
 
-- **Pass:** `<data>/ota/out/<label>.{zip,json,bootsync}` exist, and the JSON's `vbmeta_digest` and `build_date_utc` are new.
+- **Pass:** `<data>/ota/out/<label>.{zip,json,bootsync}` exist, and the JSON's `vbmeta_digest`, `build_date_utc` and `fingerprint` are new.
+- **Why the build number:** without one every build is `…/eng.builde:userdebug`. With the running build's fingerprint, PackageManager keeps its parse cache of the old system APKs and APEXes (it invalidates `eng.*` caches by mtimes, which image files don't have) and runs no upgrade step. On 2026-10-19 that kept AVF's system service from starting after an update (ANAL-225).
 - For the rollback rehearsal, also run `make-ota.sh <label>-broken --target-files <data>/ota/builds/<label>/target_files.zip --otatools <data>/ota/builds/<label>/otatools.zip --break-boot`. That gives the same build with a kernel command line that cannot start. **Never send a `-broken` package to the laptop.** Its JSON says `test_only_broken_boot: true`.
 - Run the build under the lane lock (aosp-docker.sh takes it). Redirect its output: a plain `| tail` keeps the tool call open until the build ends.
 - Check that the merged PRs are in the image, for example by hashing a changed binary in `target_files.zip` against the previous build's.

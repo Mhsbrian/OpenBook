@@ -1,0 +1,21 @@
+q2-check setup 1792412065.869
+10-19 12:14:24.461 I/Quire   ( 1434): assistant: session shown trigger=assistant_shortcut pointer=false source=null invocationType=0 keyboardHint=true display=0 showFlags=0x4
+10-19 12:14:24.461 I/Quire   ( 1434): assistant: started contextual search trigger=assistant_shortcut
+10-19 12:14:24.752 I/Quire   ( 1434): invocation: trigger=assistant_shortcut entrypoint=11(KEYBOARD_SHORTCUT) visible=[com.android.launcher3] flagSecureFound=false screenshot=1920x1200 token=true audioPlaying=n/a managedProfileVisible=false caller=dev.openbook.quire mediaProjectionOffered=true
+10-19 12:14:24.754 I/Quire   ( 1434): note: invocation anchor=taskbar bounds=null intake=None reason=no-pointer source=null age=none crop=none
+10-19 12:14:24.760 I/Quire   ( 1434): note: task 1 for assistant_shortcut, agent=none intake=None
+10-19 12:14:24.770 I/Quire   ( 1434): note: shown task 1 phase=NO_AGENT anchor=Taskbar
+10-19 12:14:24.770 I/Quire   ( 1434): note: unfold animated=true
+10-19 12:14:25.226 I/Quire   ( 1434): invocation: saved /data/user/0/dev.openbook.quire/files/invocations/20261019-121424-752-assistant_shortcut.json
+10-19 12:14:28.130 I/Quire   ( 1434): agents: turned the Linux environment on
+10-19 12:14:28.247 I/Quire   ( 1434): agents: asked the Terminal app to start the Linux environment: installing
+10-19 12:14:53.309 I/Quire   ( 1434): agents: the Linux environment is READY
+10-19 12:14:53.309 I/Quire   ( 1434): agents: status linux-environment=READY paired-computer=NOT_PAIRED
+10-19 12:14:53.411 W/Quire   ( 1434): agents: unavailable: The Linux environment couldn’t be reached. (no answer on vsock port 7690: connect failed: ECONNRESET (Connection reset by peer)) Quire can use the agents on another computer instead, but none is paired.
+10-19 12:14:55.413 I/Quire   ( 1434): agents: status linux-environment=READY paired-computer=NOT_PAIRED
+10-19 12:14:55.413 W/Quire   ( 1434): agents: unavailable: The Linux environment couldn’t be reached. (no answer on vsock port 7690: connect failed: ECONNRESET (Connection reset by peer)) Quire can use the agents on another computer instead, but none is paired.
+10-19 12:14:57.414 I/Quire   ( 1434): agents: status linux-environment=READY paired-computer=NOT_PAIRED
+10-19 12:14:57.435 I/Quire   ( 1434): agents: connected via linux-environment in 21 ms; quired 0.2.1
+10-19 12:15:00.166 I/Quire   ( 1434): agents: agent opencode version="1.19.3" supported=true
+10-19 12:15:00.167 I/Quire   ( 1434): note: Linux environment set up: READY, 1 agent(s)
+10-19 12:15:00.167 I/Quire   ( 1434): acp: found in the Linux environment: linux:opencode

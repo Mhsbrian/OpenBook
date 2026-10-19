@@ -338,7 +338,7 @@ ota)
   T=$(mktemp -d); trap 'rm -rf "$T"' EXIT
   # ---- the package: its manifest (make-ota.sh) against the zip itself
   python3 - "$PKG" "$MAN" "$BS" > "$T/pkg.env" <<'PYEOF'
-import hashlib, json, sys, zipfile
+import hashlib, json, shlex, sys, zipfile
 pkg, man, bs = sys.argv[1:4]
 m = json.load(open(man))
 h = hashlib.sha256()
@@ -358,7 +358,7 @@ for k, v in (("PKG_DEVICE", meta.get("pre-device", "")), ("PKG_FP", meta.get("po
              ("PKG_TS", meta.get("post-timestamp", "0")), ("PKG_VBMETA", m.get("vbmeta_digest", "")),
              ("PKG_LABEL", m.get("label", "")), ("PKG_TREE", m.get("tree", "")),
              ("PKG_BYTES", str(m.get("bytes", 0))), ("PKG_PROBLEMS", "; ".join(problems))):
-    print(f"{k}='{v}'")
+    print(f"{k}={shlex.quote(v)}")  # sourced below: a quote in the manifest's tree must stay text
 PYEOF
   . "$T/pkg.env"
   # ---- the device
@@ -384,6 +384,10 @@ PYEOF
   bad=$PKG_PROBLEMS
   [ "$PKG_DEVICE" = "$DEV_DEVICE" ] || bad="$bad; the package is for '$PKG_DEVICE', the device is '$DEV_DEVICE'"
   [ "${PKG_TS:-0}" -ge "${DEV_TS:-0}" ] || bad="$bad; the package is older than the running build (a downgrade)"
+  # PackageManager keys its parse cache by the fingerprint and, on eng.* builds, invalidates it by mtimes, which image
+  # files don't have: with the same fingerprint the new system's APKs and APEXes keep their old parse (ANAL-225: AVF's
+  # system service never started), and no upgrade step runs. Build the package with a new BUILD_NUMBER.
+  [ "$PKG_FP" != "$DEV_FP" ] || bad="$bad; the package has the running build's fingerprint ($DEV_FP): build it with a new BUILD_NUMBER"
   [ "$DEV_VAB" = true ] || bad="$bad; the device has no virtual A/B"
   [ "$DEV_INSTALLED" = whole ] || bad="$bad; not a whole-disk OpenBook install (installed='$DEV_INSTALLED')"
   [ "$DEV_UE" = UPDATE_STATUS_IDLE ] || bad="$bad; update_engine is not idle ($DEV_UE): an update or merge is pending (ota-status)"

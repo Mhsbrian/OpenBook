@@ -1,0 +1,27 @@
+[    0.000000] Hypervisor detected: KVM
+[    0.000000] kvm-clock: Using msrs 4b564d01 and 4b564d00
+[    0.000000] kvm-clock: using sched offset of 1530144205 cycles
+[    0.000001] clocksource: kvm-clock: mask: 0xffffffffffffffff max_cycles: 0x1cd42e4dffb, max_idle_ns: 881590591483 ns
+[    0.011570] kvm-guest: APIC: eoi() replaced with kvm_guest_apic_eoi_write()
+[    0.011579] kvm-guest: KVM setup pv remote TLB flush
+[    0.011581] kvm-guest: setup PV sched yield
+[    0.011598] Booting paravirtualized kernel on KVM
+[    0.200817] kvm-guest: APIC: send_IPI_mask() replaced with kvm_send_ipi_mask()
+[    0.201933] kvm-guest: APIC: send_IPI_mask_allbutself() replaced with kvm_send_ipi_mask_allbutself()
+[    0.203352] kvm-guest: setup PV IPIs
+[    0.231217] x86/fpu: Supporting XSAVE feature 0x1000: 'Control-flow Kernel registers (KVM only)'
+[    0.498320] clocksource: Switched to clocksource kvm-clock
+[    0.526288] kvm_intel: VMX not supported by CPU 0
+[    0.527060] kvm_amd: TSC scaling supported
+[    0.527739] kvm_amd: Nested Virtualization enabled
+[    0.528509] kvm_amd: Nested Paging enabled
+[    0.529194] kvm_amd: LBR virtualization supported
+[    0.529965] kvm_amd: Virtual GIF supported
+[    0.531336] kvm_amd: Virtual NMI enabled
+[    2.241655] init: starting service 'vendor.openbook.kvm-check'...
+[    2.243942] init: ... started service 'vendor.openbook.kvm-check' has pid 368
+[    2.244735] init: SVC_EXEC service 'vendor.openbook.kvm-check' pid 368 (uid 0 gid 0+0 context default) started; waiting...
+[    2.250072] openbook-pc-setup: KVM is available (10:232): AVF can run the Linux environment
+[    2.254033] init: Service 'vendor.openbook.kvm-check' (pid 368) exited with status 0 waiting took 0.011000 seconds
+[    2.255217] init: Sending SIGKILL to service 'vendor.openbook.kvm-check' (pid 368) process group...
+[    3.157414] init: processing action (vendor.openbook.kvm=1) from (/vendor/etc/init/hw/init.openbook.rc:97)

@@ -1,0 +1,1 @@
+crw-rw-rw- 1 root root 10, 232 2026-10-19 05:25 /dev/kvm
