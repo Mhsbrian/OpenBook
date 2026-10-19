@@ -1,0 +1,4 @@
+# Exact original Ruby mapping. The retained framework defines this type and
+# its permissions. Other desktop service types belong to Ruby's replaced vendor
+# policy and require a separate integration review; do not silently relabel them.
+android.system.desktop.security.gsc.IGsc/default u:object_r:gscd_service:s0

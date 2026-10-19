@@ -1,5 +1,9 @@
 # Ruby framework on the OpenBook platform
 
+Follow-up: `googlebook-live.md` adds the verified instruction-emulation lane,
+bare-metal-module UEFI/USB packaging and boot-control entry contract. The
+measurements below describe the initial KVM probe, before that follow-up.
+
 2026-10-19, ANAL-228. This is the first local interoperability milestone after
 the owner requested implementation. It uses the retained Ruby
 `16452207_CL3B.260622.271.R1` research files, the existing OpenBook G14 product,

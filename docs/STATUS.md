@@ -1,5 +1,26 @@
 # Status
 
+## 2026-10-19: Ruby graphical UEFI live boot in QEMU (ANAL-228)
+
+The local Ruby/OpenBook live image now reaches Google's graphical welcome
+screen through OVMF and emulated USB, using the existing G14 kernel/vendor and
+patched QEMU TCG to cover the 7950X's missing AVX-VNNI. Enforcing boot reports
+completion and successfully marks slot A good. Fixed the live loader-entry
+contract, restored Ruby's TPM ownership and its framework-defined GSC service
+label, and added native service-context validation. The original image and
+synthetic internal disk remain unchanged in the boot tests.
+
+Static checks pass with 395 inputs unchanged; arithmetic oracles match and the
+guard suites pass 12/12 + 6/6. Seven desktop services still need vendor-policy
+integration. The longer test exposes a `system_server` SIGSEGV and zygote restart
+after welcome, preceded by RenderThread `execmem` denials on the VM fallback
+path; missing zram also aborts `mmd_setup`. This is not a stable desktop pass.
+The physical Radeon/TPM path, completed setup, credentials and apps remain
+unqualified. The installer option stays unavailable. The 12.8 GB
+candidate stays local; no physical stick is attached to the build host, so the
+requested USB update has not occurred. See `docs/googlebook-live.md` and
+`evidence/2026-10-19-googlebook-live/` for exact results and the hardware gate.
+
 ## 2026-10-19: first Ruby/OpenBook VM integration (ANAL-228)
 
 Implemented the native VINTF/APEX/kernel and strict SELinux audit, a pinned

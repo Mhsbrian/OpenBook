@@ -1,0 +1,45 @@
+[
+  {
+    "case": "negative",
+    "exit_code": 1,
+    "report": {
+      "schema": "openbook-bootsync/1",
+      "command": "mark-good",
+      "current_slot": "a",
+      "ok": false,
+      "code": "no_current_entry",
+      "error": "the running slot a has no loader entry on the ESP"
+    }
+  },
+  {
+    "case": "fixed",
+    "exit_code": 0,
+    "report": {
+      "schema": "openbook-bootsync/1",
+      "command": "mark-good",
+      "current_slot": "a",
+      "after_update": false,
+      "entries": [
+        {
+          "file": "openbook-a.conf",
+          "id": "openbook-a.conf",
+          "slot": "a",
+          "state": "good"
+        },
+        {
+          "file": "ruby-serial.conf",
+          "id": "ruby-serial.conf",
+          "state": "good"
+        }
+      ],
+      "loader_conf": {
+        "default": "openbook-a.conf",
+        "preferred": null
+      },
+      "next_boot_entry": "openbook-a.conf",
+      "next_boot_slot": "a",
+      "esp_free_bytes": 230991360,
+      "ok": true
+    }
+  }
+]

@@ -1,0 +1,20 @@
+{
+  "schema": "openbook-ruby-observation/1",
+  "accel": "kvm",
+  "uefi_usb": true,
+  "qemu_exit": 0,
+  "elapsed_s": 150.1,
+  "observation_window_elapsed": true,
+  "input_sha256": "eaa01efc6b09fd6b5b3ad17c202c782b9adf2a0e14d4beed4cf1893d04b33b03",
+  "input_unchanged": true,
+  "guest_disk_unchanged": true,
+  "test_entry": "serial",
+  "screenshot_error": null,
+  "decoy_unchanged": true,
+  "second_stage_init": true,
+  "diagnostics_completed": true,
+  "boot_completed_reported": false,
+  "kernel_panic": false,
+  "sigill": true,
+  "scope": "Observation only. Review original logs; no hardware or installation claim."
+}

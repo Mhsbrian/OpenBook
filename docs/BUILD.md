@@ -1,5 +1,13 @@
 # Build and reproduce
 
+## Ruby live-image research lane (ANAL-228, 2026-10-19)
+
+See `docs/googlebook-live.md` for the isolated patched-QEMU build, native versus
+emulated arithmetic checks, bare-metal probe packaging, and UEFI/USB tests with
+a synthetic internal disk. The output is a local research image, not an
+installer source. Device writing remains a separate exact-device operation
+through the existing guarded writer after the boot gates pass.
+
 ## Local Ruby/OpenBook integration probe (ANAL-228, 2026-10-19)
 
 `docs/googlebook-bringup.md` documents `scripts/googlebook/compat-audit.py` and

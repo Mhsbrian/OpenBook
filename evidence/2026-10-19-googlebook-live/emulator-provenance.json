@@ -1,0 +1,24 @@
+{
+  "qemu_repository": "https://github.com/qemu/qemu",
+  "qemu_commit": "4fc49f46dc95d4a27de2509e7fceb2931e91faeb",
+  "gbrunch_repository": "https://github.com/danbyumagic/gbrunch",
+  "gbrunch_commit": "a8936fd33e50efda3f1b36e332ab30b67b709ab1",
+  "tracked_source_verified": "HEAD plus exactly the reviewed patch, checked against a temporary index",
+  "source_guard_passed": true,
+  "native_oracle_feature_guard_passed": true,
+  "configure_flags": [
+    "--target-list=x86_64-softmmu,x86_64-linux-user",
+    "--without-default-features",
+    "--enable-tcg",
+    "--enable-tools",
+    "--disable-docs",
+    "--disable-rust",
+    "--disable-werror",
+    "--enable-pixman",
+    "--enable-tpm"
+  ],
+  "qemu_system_sha256": "35db71cb2178b665983472bb584f87505cf431f225a881149dba83de0350de8a",
+  "qemu_user_sha256": "c969a0d0ee1e8eae335778a189606b8c13e770f50e380d9dc132e969d41b3d0c",
+  "research_container_id": "sha256:8092d2c0f49e1e33e3a239cfc2888f79ae29e907c64669ffefaa2f5d4cbf8485",
+  "patch_sha256": "ffab526a7f7248ed7c7673cbd813f104fdd6e0027d97439be8f4a73cddfd4468"
+}

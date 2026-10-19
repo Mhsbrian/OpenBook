@@ -1,5 +1,12 @@
 # Hardware
 
+The 2026-10-19 follow-up adds a TCG execution baseline for Ruby's AVX-VNNI
+instructions and an emulated USB/UEFI path (`docs/googlebook-live.md`). This
+does not change the 7950X's native ISA or qualify the G14. OpenBook already
+packages TPM core and CRB as vendor modules; the VM can exercise them against
+a disposable software TPM. No physical USB was attached during the initial
+device inventory for this turn.
+
 ## Googlebook VM CPU baseline (2026-10-19, ANAL-228)
 
 The first mixed Ruby/OpenBook KVM boot runs on the Ryzen 9 7950X build host,

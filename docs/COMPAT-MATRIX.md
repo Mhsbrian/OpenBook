@@ -1,5 +1,20 @@
 # Compatibility matrix
 
+## Ruby/OpenBook UEFI live research (ANAL-228, 2026-10-19)
+
+| Check | Observed result | Limit |
+|---|---|---|
+| Patched QEMU TCG instruction lane | The faulting VEX VPDPWSSD executes; 10,000-iteration GFNI/VPCLMUL and VNNI digests match native arithmetic oracles | Emulation research; native Zen 4 still faults |
+| UEFI, emulated USB, synthetic internal NVMe | Enforcing boot reaches `sys.boot_completed=1`; boot-control marks slot A good; original image, guest backing file and internal decoy hashes remain unchanged | Eight-minute VM observation; no physical USB write or G14 result |
+| Native VINTF, strict SELinux, service-context validation | Both stock baselines and adapted hybrid pass; 395 inventoried inputs unchanged | Seven vendor-private desktop service labels rejected; further integration needed |
+| Graphical setup and input | Googlebook boot animation and welcome screen render; pointer input opens the screen-reader prompt and Escape dismisses it | No completed setup, usable launcher or physical AMD GPU result |
+| Longer runtime stability | Final 495.4-second observation catches `system_server` SIGSEGV/SEGV_ACCERR and a zygote restart; `mmd_setup` aborts on missing zram | Fails stability; RenderThread `execmem` denials implicate the VM SwiftShader fallback, with full trace still needed |
+| Physical 62 GB SanDisk Ultra | No USB block device attached to the build host during this run | Stick has not been updated |
+
+Evidence: `evidence/2026-10-19-googlebook-live/`; reproduction:
+`docs/googlebook-live.md`. Neither this prototype nor its successful boot marker
+enables the Googlebook installer option.
+
 ## Ruby/OpenBook local integration (ANAL-228, 2026-10-19)
 
 | Combination | Observed result | Limit |
