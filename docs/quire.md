@@ -379,11 +379,15 @@ Code: `device/anybook/common/quire/app/src/dev/openbook/quire/` (`note/`, `acp/`
     steps and the waiting row, with no composer and no footer, on the note's own surface. Then the note steps aside,
     so the only change on screen is the dialog's scrim (Atelier's ruling, 2026-10-19). Nothing of Quire's covers the
     dialog, at any display size.
-  - **While a session runs**, the note is a *system* application overlay (`SYSTEM_APPLICATION_OVERLAY`, signature). The
-    app being driven may hide overlays: Settings does on every page, even on the session display. An ordinary overlay
-    would then hide the live mirror, Pause and Stop for the whole run
-    (`evidence/2026-10-19-quire-q5-safety/why-session-overlay/`). The note is an ordinary overlay again when the run
-    ends. WM decides whether to hide a window only when it is added, so the window is added again at each change.
+  - **The task that owns a live computer-control session, while it is the task shown,** is a *system* application
+    overlay (`SYSTEM_APPLICATION_OVERLAY`, signature). The app being driven may hide overlays: Settings does on every
+    page, even on the session display. An ordinary overlay would then hide the live mirror, Pause and Stop for the
+    whole run (`evidence/2026-10-19-quire-q5-safety/why-session-overlay/`).
+    - Any other task shown in the window is ordinary, also while the session's own task runs hidden. So is that task
+      once its run ends.
+    - It is decided per task each time a task is shown, and again when a session starts or ends. WM decides whether to
+      hide a window only when it is added, so the window is added again at each change.
+    - The Checker accepted this scope after a recheck found the first version leaked the exemption to other tasks.
 - **One card for every state** of `docs/quire-design.md` §3.2, laid out at its final size and revealed with
   spring.settle; the mirror grows with spring.expand; the note unfolds from and folds to its anchor (§5.2). Springs are
   the design's stiffness and damping, integrated like the prototype's; with Remove animations every spring cuts and

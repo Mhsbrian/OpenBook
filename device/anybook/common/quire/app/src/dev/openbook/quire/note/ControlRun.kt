@@ -40,6 +40,13 @@ class ControlRun(
     val session: ComputerControlSession?
         get() = control.session
 
+    /**
+     * True from the session's creation until the run ends: while its task is the one shown, the note is a system
+     * overlay (NoteWindow.systemFor), so the mirror and Stop stay in view.
+     */
+    var sessionLive = false
+        private set
+
     private var index = 0
     private var mirror: Mirror? = null
     private var waitingStep: Step? = null
@@ -100,9 +107,11 @@ class ControlRun(
     override fun onCreated(session: ComputerControlSession) {
         window.platformDialog = false
         // While the session runs, the person must always see it and be able to stop it, even when the app it drives
-        // hides overlays (Settings always does, on the session display too): the note becomes a system overlay until
-        // the run ends (NoteWindow.sessionOverlay).
-        window.sessionOverlay = true
+        // hides overlays (Settings always does, on the session display too): while this task is shown, the note is a
+        // system overlay until the run ends (NoteWindow.systemFor). Other tasks stay ordinary.
+        sessionLive = true
+        Log.i(TAG, "note: task ${task.id} owns a live session")
+        window.sessionChanged()
         waitingResult?.let { task.blocks.remove(it) }
         waitingStep?.let {
             it.status = StepStatus.DONE
@@ -343,7 +352,8 @@ class ControlRun(
             first?.changed()
         }
         window.platformDialog = false
-        window.sessionOverlay = false
+        sessionLive = false
+        window.sessionChanged()
         ConsentWait.close()
         Log.i(TAG, "note: control run ended stopped=$stopped: $msg")
         task.controlEnded(stopped, msg, sub, tone, icon)

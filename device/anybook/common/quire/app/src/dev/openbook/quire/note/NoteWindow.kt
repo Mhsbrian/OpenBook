@@ -52,10 +52,11 @@ import dev.openbook.quire.ui.rounded
  * While the platform's consent dialog is up the note steps aside ([platformDialog]): Quire's [ConsentWaitActivity],
  * beneath the dialog, keeps Quire visible for the platform's check after Allow.
  *
- * The one exception is a running computer-control session ([sessionOverlay]): the live mirror with Pause, Take over and
- * Stop must stay in view while the agent acts, and the app it drives may hide overlays (Settings does, even on the
- * session display), so for the session's life the note is a system application overlay (SYSTEM_APPLICATION_OVERLAY,
- * which Quire holds as a platform app). It goes back to an ordinary overlay when the run ends.
+ * The one exception is the task that owns a live computer-control session, while it is the task shown
+ * ([systemFor]): its mirror with Pause, Take over and Stop must stay in view while the agent acts, and the app it drives
+ * may hide overlays (Settings does, even on the session display), so the note is then a system application overlay
+ * (SYSTEM_APPLICATION_OVERLAY, which Quire holds as a platform app). Any other task shown in the window, also while the
+ * session's own task is hidden, is an ordinary overlay; so is the session's task once its run ends.
  */
 class NoteWindow(private val context: Context, private val surface: Callbacks) {
     interface Callbacks : NoteCard.Actions {
@@ -86,21 +87,30 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
             root?.let { updateParams(it) }
         }
 
+    /** Whether the window shown now is a system application overlay (decided when it was added). */
+    private var systemWindow = false
+
+    /** The kind of the last window added, kept across [remove], to log each change of kind once. */
+    private var lastSystem = false
+
     /**
-     * True while a computer-control session runs (ControlRun): the note is a system application overlay, so the mirror
-     * and its controls stay visible when the driven app hides overlays. The window manager decides whether to hide a
-     * window when it is added, so the window is added again in the other kind.
+     * Only the task that owns a live computer-control session gets a system application overlay; every other task,
+     * whatever runs elsewhere, is an ordinary one. Decided per task, each time a task is shown.
      */
-    var sessionOverlay = false
-        set(value) {
-            if (field == value) return
-            field = value
-            Log.i(TAG, "note: window ${if (value) "system overlay (computer control running)" else "ordinary overlay"}")
-            val t = task ?: return
-            closePicker()
-            remove()
-            show(t, Task.Focus.KEEP, animate = false)
-        }
+    private fun systemFor(t: Task) = t.control?.sessionLive == true
+
+    /**
+     * A task's computer-control session started or ended (ControlRun). The window manager decides whether to hide a
+     * window only when it is added, so when the shown task's kind changes, the window is added again in the other
+     * kind. A hidden task's session changes nothing here; it is decided when that task is shown again.
+     */
+    fun sessionChanged() {
+        val t = task ?: return
+        if (systemFor(t) == systemWindow) return
+        closePicker()
+        remove()
+        show(t, Task.Focus.KEEP, animate = false)
+    }
 
     /**
      * True while the platform's computer-control dialog is up: the note steps aside like [suspended], so nothing of
@@ -144,18 +154,24 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
             gravity = Gravity.TOP or Gravity.START
             x = d.left
             y = d.top
-            if (sessionOverlay) privateFlags = privateFlags or WindowManager.LayoutParams.PRIVATE_FLAG_SYSTEM_APPLICATION_OVERLAY
+            if (systemFor(t)) privateFlags = privateFlags or WindowManager.LayoutParams.PRIVATE_FLAG_SYSTEM_APPLICATION_OVERLAY
             softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING
             layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
             fitInsetsTypes = 0
             windowAnimations = 0
         }
         r.params = lp
+        systemWindow = systemFor(t)
+        if (systemWindow != lastSystem) {
+            Log.i(TAG, if (systemWindow) "note: window system overlay (computer control running, task ${t.id})"
+                else "note: window ordinary overlay (task ${t.id})")
+            lastSystem = systemWindow
+        }
         r.frame.set(d)
         updateParams(r)
         wm.addView(r, lp)
         Log.i(TAG, "note: shown task ${t.id} phase=${t.phase} anchor=${t.anchor.javaClass.simpleName}" +
-            if (sessionOverlay) " system=true" else "")
+            if (systemFor(t)) " system=true" else "")
         if (animate) {
             r.unfold { c.focus(focus) }
         } else {
