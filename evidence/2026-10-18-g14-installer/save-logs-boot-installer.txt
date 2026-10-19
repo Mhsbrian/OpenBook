@@ -1,0 +1,16 @@
+# Second boot ("save logs", 11:59, SELinux permissive), same filter.
+
+10-18 11:59:30.398206  root     1     1 I efivars : Registered efivars operations
+10-18 11:59:30.535531  root   171   171 I nvme0n1 : p1 p2
+10-18 11:59:33.206036  logd   565   565 I modprobe: Loading module /vendor/lib/modules/efivarfs.ko with args ''
+10-18 11:59:33.208910  logd   565   565 I modprobe: Loaded kernel module /vendor/lib/modules/efivarfs.ko
+10-18 11:59:52.011000  root  2065  2065 I openbook-instal: type=1400 audit(0.0:72): avc:  denied  { read } for  name="type" dev="sysfs" ino=58421 scontext=u:r:openbook_installd:s0 tcontext=u:object_r:sysfs_batteryinfo:s0 tclass=file permissive=1
+10-18 11:59:52.011000  root  2065  2065 I openbook-instal: type=1400 audit(0.0:73): avc:  denied  { open } for  path="/sys/devices/platform/USBC000:00/power_supply/ucsi-source-psy-USBC000:002/type" dev="sysfs" ino=58421 scontext=u:r:openbook_installd:s0 tcontext=u:object_r:sysfs_batteryinfo:s0 tclass=file permissive=1
+
+# collect-final.txt (save logs): efivarfs mount, module, daemon
+[init.svc.openbook_installd]: [running]
+[init.svc_debug_pid.openbook_installd]: [2065]
+[ro.boottime.openbook_installd]: [19237055164]
+efivarfs /sys/firmware/efi/efivars efivarfs rw,nosuid,nodev,noexec,relatime 0 0
+efivarfs 36864 1 - Live 0x0000000000000000
+ 2065     1 root         S   3576 openbook-install
