@@ -9,7 +9,7 @@
 | Native VINTF, strict SELinux, service-context validation | Both stock baselines and adapted hybrid pass; 395 inventoried inputs unchanged | Seven vendor-private desktop service labels rejected; further integration needed |
 | Graphical setup and input | Googlebook boot animation and welcome screen render; pointer input opens the screen-reader prompt and Escape dismisses it | No completed setup, usable launcher or physical AMD GPU result |
 | Longer runtime stability | Final 495.4-second observation catches `system_server` SIGSEGV/SEGV_ACCERR and a zygote restart; `mmd_setup` aborts on missing zram | Fails stability; RenderThread `execmem` denials implicate the VM SwiftShader fallback, with full trace still needed |
-| Physical 62 GB SanDisk Ultra, subsequent owner-requested trial | 12,766,412,800-byte write and full SHA-256 readback match the VM-tested candidate; three old reports backed up; powered off | Physical G14 boot still untested; known VM stability failures remain |
+| Physical 62 GB SanDisk Ultra, subsequent owner-requested trial | Original write/readback matched; owner subsequently reported a black screen; initialized metadata found but no persistent diagnostics | Physical desktop fails the owner's trial; cause unconfirmed; new USB logging captures the next boot |
 
 Evidence: `evidence/2026-10-19-googlebook-live/` and
 `evidence/2026-10-19-googlebook-usb/`; reproduction:
@@ -22,7 +22,7 @@ enables the Googlebook installer option.
 |---|---|---|
 | Ruby 16452207 framework + OpenBook G14 vendor, stock policies | VINTF/APEX/kernel check passes; strict policy compilation rejects six debug grants | Direct transplant is not accepted |
 | Same, scoped policy adaptation | Strict compilation passes; KVM reaches enforcing second-stage init, module load, software security services, encrypted data and zygote | Zygote and boot animation trap on AVX-VNNI `vpdpwssd` on the Zen 4 7950X host; no completed desktop |
-| Same, physical GA403WR / HX 370 | Not run; existing CPU inventory includes AVX-VNNI | No Googlebook G14 boot, graphics, credentials, apps or update result |
+| Same, physical GA403WR / HX 370 | Owner reports black screen on the live USB; existing CPU inventory includes AVX-VNNI | No successful Googlebook G14 desktop, credentials or apps result |
 
 Evidence: `evidence/2026-10-19-googlebook-bringup/`; reproduction and next gates:
 `docs/googlebook-bringup.md`. The Googlebook installer option remains unavailable.

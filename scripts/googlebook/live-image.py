@@ -87,6 +87,9 @@ def main():
     recipe = json.loads((src / "recipe.json").read_text())
     if recipe.get("schema") != "openbook-ruby-vm-probe/1" or recipe.get("module_variant") != "bm":
         p.error("Requires the bare-metal module variant; rebuild with --variant bm")
+    logger = src / "vendor/bin/ruby-usb-log"
+    if not logger.is_file() or h.audit.sha(logger) != recipe.get("usb_logger_sha256"):
+        p.error("Rebuild probe with the persistent USB logger")
     disk = src / "probe.img"
     if not disk.is_file() or disk.is_symlink():
         p.error("Probe must be a regular file")
@@ -136,21 +139,35 @@ def main():
     (esp / "loader/loader.conf").write_text("timeout 5\ndefault openbook-a.conf\neditor no\nconsole-mode keep\n")
     params = boot_parameters(recipe, esp_uuid)
     entries = {}
-    for mode in ("live", "serial"):
+    for mode in ("live", "logs", "safe-logs", "serial", "serial-logs"):
         conf = dict(params)
         extra = ""
-        if mode == "serial":
+        if "serial" in mode:
             conf.update({"androidboot.console": "ttyS0", "androidboot.serialconsole": "1"})
             extra = " console=ttyS0,115200 8250.nr_uarts=1 printk.devkmsg=on"
+        if "logs" in mode:
+            conf["androidboot.openbook.ruby_logs"] = "1"
+            extra += " rdinit=/ruby-usb-log loglevel=7 ignore_loglevel log_buf_len=4M printk.devkmsg=on"
+        if mode == "safe-logs":
+            conf["androidboot.hardware.egl"] = "mesa"
         initrd = esp / f"ruby/initrd-{mode}.img"
         with initrd.open("xb") as f:
             for ramdisk in sorted((w / "vendor_boot").glob("vendor_ramdisk*")):
                 f.write(ramdisk.read_bytes())
             f.write((w / "init_boot/ramdisk").read_bytes())
+            if "logs" in mode:
+                # A legacy lz4 stream must end before an uncompressed newc
+                # archive; otherwise its magic is treated as a chunk length.
+                f.write(b"\0" * (4 + (-f.tell() % 4)))
+                f.write(proto.newc([("ruby-usb-log", 0o100755, logger.read_bytes())]))
             f.write(h.gpt.bootconfig_trailer(h.bc.render(conf).decode(), f.tell()))
         entries[mode] = conf
-        title = "Googlebook on OpenBook - experimental live boot" if mode == "live" else "Googlebook - VM serial diagnostics"
-        filename = "openbook-a.conf" if mode == "live" else "ruby-serial.conf"
+        title = {"live": "Googlebook on OpenBook - experimental live boot",
+                 "logs": "Googlebook - save detailed logs to USB (10 minutes)",
+                 "safe-logs": "Googlebook - Mesa GL, save detailed logs to USB",
+                 "serial": "Googlebook - VM serial diagnostics",
+                 "serial-logs": "Googlebook - VM serial and USB logs"}[mode]
+        filename = "openbook-a.conf" if mode == "live" else f"ruby-{mode}.conf"
         (esp / f"loader/entries/{filename}").write_text(
             f"title {title}\nlinux /ruby/kernel\ninitrd /ruby/initrd-{mode}.img\noptions bootconfig{extra}\n")
     manifest = {"schema": "openbook-ruby-live-research/1", "installable": False,
@@ -164,6 +181,14 @@ def main():
         "No desktop or hardware qualification yet. Keep this recovery-derived image local.\n"
         "UEFI Secure Boot must already be off. No installer is provided.\n"
         "Android uses this disk's fixed-size userdata; it does not grow to fill a stick.\n")
+    with (esp / "ruby/README.txt").open("a") as f:
+        f.write("For a black screen choose 'save detailed logs to USB'. Wait 12 minutes, then shut down.\n"
+                "Logs: openbook/logs/ruby-<boot-id>/ on this FAT partition. complete.txt marks a finished capture.\n"
+                "No automatic power-off. A forced power-off may lose the most recent chunk.\n"
+                "early.txt alone means PID 1 ran but the Android collector did not start.\n"
+                "No session can mean failure before PID 1, USB not found, or a logging/storage failure.\n"
+                "The alternate Mesa GL entry changes the rendering path and also records logs.\n"
+                "SELinux and verity stay enforcing. Capture is capped at 48 MiB with 32 MiB ESP reserve.\n")
     proto.make_fat(str(esp), str(w / "esp.img"), 256)
     output = w / "ruby-live.img"
     gpt.write(str(output))

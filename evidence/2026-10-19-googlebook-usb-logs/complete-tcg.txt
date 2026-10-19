@@ -1,0 +1,1 @@
+Capture finished after 600.2s; collector_bytes=17488406; kernel_overruns=0; failed_save_attempts=0; unsaved_bytes=0; reason=timeout.

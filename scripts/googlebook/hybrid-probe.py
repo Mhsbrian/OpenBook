@@ -35,6 +35,26 @@ audit = module("audit", HERE / "compat-audit.py")
 MiB = 1 << 20
 
 
+def vendor_contexts(text, paths):
+    """Keep original label rules applicable to the vendor tree being packed.
+
+    Unrelated platform executable types can differ between AOSP and Ruby.
+    Preserve the original regex and file-kind selector; libselinux still does
+    the final precedence/label lookup. checkfc validates every retained type.
+    """
+    result = []
+    for line in text.splitlines():
+        fields = line.split()
+        if not fields or fields[0].startswith("#"):
+            continue
+        if len(fields) not in (2, 3):
+            raise ValueError("Unexpected file-context rule")
+        pattern = re.compile(fields[0])
+        if any(pattern.fullmatch(path) for path in paths):
+            result.append(line)
+    return "\n".join(result) + "\n"
+
+
 def run(*args, **kw):
     print("+", " ".join(map(str, args)), flush=True)
     return subprocess.run(list(map(str, args)), check=True, **kw)
@@ -86,6 +106,10 @@ def prepare(a):
     if any(line.strip().startswith("/dev/tpm") for line in text.splitlines()):
         raise ValueError("OpenBook already defines TPM ownership; review the integration")
     ueventd.write_text(text + "\n# Retained Ruby gscd device ownership\n" + tpm_rule + "\n")
+    engine = HERE.parents[1] / "device/anybook/common/installer/engine"
+    run("gcc", "-static", "-O2", "-Wall", "-Wextra", "-Werror", "-ffunction-sections", "-fdata-sections",
+        "-Wl,--gc-sections", "-I", engine, HERE / "usb-log.c", engine / "fat.c", engine / "util.c",
+        "-o", vendor / "bin/ruby-usb-log")
     se = vendor / "etc/selinux"
     services = se / "vendor_service_contexts"
     services.write_text(audit.framework_service_contexts(services.read_text(),
@@ -105,6 +129,10 @@ def prepare(a):
     run(a.tools / "secilc", "-m", "-M", "true", "-G", "-c", "33", "-o", se / "precompiled_sepolicy",
         "-f", "/dev/null", *policy_inputs)
     run(a.tools / "checkfc", "-s", se / "precompiled_sepolicy", services)
+    contexts = se / "vendor_file_contexts"
+    contexts.write_text(contexts.read_text() + "\n/vendor/bin/ruby-usb-log u:object_r:ruby_usb_log_exec:s0\n"
+                        "/dev/ruby-log-stream u:object_r:ruby_usb_log_pipe:s0\n")
+    run(a.tools / "checkfc", se / "precompiled_sepolicy", contexts)
     for part, root in (("plat", a.ruby / "fs/system_a/system"), ("system_ext", a.ruby / "fs/system_ext_a"),
                        ("product", a.ruby / "fs/product_a")):
         shutil.copyfile(root / f"etc/selinux/{part}_sepolicy_and_mapping.sha256",
@@ -123,6 +151,27 @@ service openbook.ruby.probe /system/bin/sh /vendor/etc/ruby-probe.sh
     console ttyS0
     oneshot
 ''')
+    (vendor / "etc/init/ruby-usb-log.rc").write_text('''on early-init && property:ro.boot.openbook.ruby_logs=1
+    start ruby-usb-log
+
+on property:ro.boot.openbook.ruby_logs=1
+    start ruby-usb-log-collect
+
+service ruby-usb-log /vendor/bin/ruby-usb-log --collect
+    user root
+    group root
+    capabilities SYSLOG
+    disabled
+    oneshot
+
+service ruby-usb-log-collect /system/bin/sh /vendor/etc/ruby-usb-log-collect.sh
+    user shell
+    group shell system log readproc
+    seclabel u:r:shell:s0
+    disabled
+    oneshot
+''')
+    shutil.copyfile(HERE / "usb-log-collect.sh", vendor / "etc/ruby-usb-log-collect.sh")
     (vendor / "etc/ruby-probe.sh").write_text('''#!/system/bin/sh
 sleep 20
 for checkpoint in 1 2 3 4 5 6 7 8 9 10 11 12; do
@@ -149,7 +198,26 @@ echo OPENBOOK_RUBY_PROBE_END
 [ "$checkpoint" = 12 ] || sleep 30
 done
 ''')
-    context = a.product / "obj/ETC/file_contexts.bin_intermediates/file_contexts.bin"
+    # Vendor contexts alone omit platform defaults such as vendor_file and
+    # vendor_apex_file. Preserve the original product's applicable label rules;
+    # unrelated platform executable types can differ in the retained framework.
+    context = w / "file_contexts"
+    context_inputs = [a.product / "system/etc/selinux/plat_file_contexts",
+                      a.product / "system_ext/etc/selinux/system_ext_file_contexts",
+                      a.product / "product/etc/selinux/product_file_contexts", contexts]
+    paths = ["/vendor"] + ["/vendor/" + str(p.relative_to(vendor)) for p in vendor.rglob("*")]
+    context.write_text(vendor_contexts("\n".join(p.read_text() for p in context_inputs if p.exists()), paths))
+    run(a.tools / "checkfc", se / "precompiled_sepolicy", context)
+    label_tests = w / "file-context-tests.txt"
+    label_tests.write_text("/vendor vendor_file\n/vendor/etc/ueventd.rc vendor_configs_file\n"
+                           "/vendor/apex vendor_apex_file\n/vendor/bin/ruby-usb-log ruby_usb_log_exec\n")
+    with (w / "file-context-tests.log").open("wb") as log:
+        check = subprocess.run([str(a.tools / "checkfc"), "-t", str(context), str(label_tests)],
+                               stdout=log, stderr=subprocess.STDOUT)
+    # checkfc.c returns 2 for unused rules in this focused test; mismatches and
+    # lookup/parse failures return 1. All rules were policy-validated above.
+    if check.returncode not in (0, 2):
+        raise ValueError("Vendor label regression; see file-context-tests.log")
     vendor_img = w / "vendor.img"
     run(a.tools / "mkfs.erofs", "-zlz4hc,9", "-T", "1792368000", "--mount-point=vendor",
         f"--product-out={a.product}", f"--file-contexts={context}", vendor_img, vendor)
@@ -221,7 +289,9 @@ done
               "kernel_sha256": audit.sha(a.kernel / "bzImage"), "module_variant": a.variant,
               "bootconfig": params, "gpt": g.table(),
               "avb": "local test-key root, unlocked/orange; retained Google logical image descriptors",
-              "policy": "strictly compiled hybrid; six OpenBook grants removed, two scoped serial-diagnostic rules added; enforcing requested"}
+              "usb_logger_sha256": audit.sha(vendor / "bin/ruby-usb-log"),
+              "file_contexts_sha256": audit.sha(context),
+              "policy": "strictly compiled hybrid; six OpenBook grants removed; scoped serial and USB diagnostic domains; enforcing requested"}
     (w / "recipe.json").write_text(json.dumps(recipe, indent=2) + "\n")
     return w
 

@@ -1,5 +1,25 @@
 # Status
 
+## 2026-10-19: persistent Googlebook USB diagnostics (ANAL-228)
+
+The owner reports a black screen on the original experimental USB. That image
+only sent VM serial diagnostics; no saved ESP reports were found. Its used
+image extent is preserved privately. Added normal and Mesa GL save-logs entries,
+an early boot checkpoint, and enforcing kernel/Android capture to the stick.
+
+The full VM capture finishes after 600.2 seconds with no kernel overruns,
+failed writes or unsaved bytes, retaining the known system-server crash.
+The final candidate's separate Mesa GL capture passes with no logger-related
+denials. The logger binary is identical across these tests; the final change
+only permits a read-only terminal query on its FIFO. Native checks and all host
+guards pass. Evidence: `evidence/2026-10-19-googlebook-usb-logs/`.
+
+This enables diagnosis of the next physical boot; it does not resolve the G14
+black screen or qualify the desktop. Use **Googlebook - save detailed logs to
+USB (10 minutes)**, wait 12 minutes, then shut down and reconnect the stick.
+It does not power off automatically. The guarded physical update/readback is
+recorded separately when complete.
+
 ## 2026-10-19: experimental Googlebook stick written (ANAL-228)
 
 At the owner's request after the reported VM stability failure, the attached

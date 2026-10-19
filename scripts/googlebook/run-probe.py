@@ -91,10 +91,16 @@ def main():
     p.add_argument("--qemu", default="qemu-system-x86_64")
     p.add_argument("--accel", choices=("kvm", "tcg"), default="kvm")
     p.add_argument("--uefi-usb", action="store_true")
+    p.add_argument("--usb-logs", action="store_true", help="Select shipped serial+USB logger; retain writes in the private USB copy")
+    p.add_argument("--usb-log-entry", choices=("serial-logs", "logs", "safe-logs"), default="serial-logs")
     p.add_argument("--tpm", action="store_true", help="Use a new disposable software TPM over CRB; no hardware attestation claim")
     p.add_argument("--wake-display", action="store_true", help="After the observation, capture, send the wake key, wait 15 seconds and capture again")
     p.add_argument("--timeout", type=int, default=180, choices=range(30, 1801), metavar="30..1800")
     a = p.parse_args()
+    if a.usb_logs and not a.uefi_usb:
+        p.error("--usb-logs requires --uefi-usb")
+    if a.usb_log_entry != "serial-logs" and not a.usb_logs:
+        p.error("--usb-log-entry requires --usb-logs")
     if not Path("/.dockerenv").exists():
         p.error("Run through inst-docker.sh")
     qemu = shutil.which(a.qemu)
@@ -117,7 +123,8 @@ def main():
         esp = manifest["gpt"][0]
         if esp["name"] != "EFI" or manifest["image_sha256"] != before:
             p.error("Live image manifest does not match the input")
-        (w / "loader.conf").write_text("timeout 1\ndefault ruby-serial.conf\neditor no\nconsole-mode keep\n")
+        entry = f"ruby-{a.usb_log_entry}.conf" if a.usb_logs else "ruby-serial.conf"
+        (w / "loader.conf").write_text(f"timeout 1\ndefault {entry}\neditor no\nconsole-mode keep\n")
         h.run("mcopy", "-o", "-i", f"{guest_disk}@@{esp['first_lba'] * 512}", w / "loader.conf", "::/loader/loader.conf")
     guest_sha = h.audit.sha(guest_disk)
     # Linux AF_UNIX has a short pathname limit; use the new workdir as cwd.
@@ -125,7 +132,7 @@ def main():
            "-smp", "4", "-m", "8192", "-display", "none", "-nic", "none",
            "-serial", f"file:{w}/serial.log", "-monitor", "none", "-no-reboot",
            "-qmp", "unix:qmp.sock,server=on,wait=off",
-           "-drive", f"file={guest_disk},format=raw,if=none,id=d0,snapshot=on", "-device", "virtio-vga"]
+           "-drive", f"file={guest_disk},format=raw,if=none,id=d0,snapshot={'off' if a.usb_logs else 'on'}", "-device", "virtio-vga"]
     decoy = None
     if a.uefi_usb:
         shutil.copyfile("/usr/share/edk2/x64/OVMF_VARS.4m.fd", w / "vars.fd")
@@ -178,6 +185,12 @@ def main():
                 proc.kill()
                 proc.wait()
     serial = (w / "serial.log").read_text(errors="replace") if (w / "serial.log").exists() else ""
+    logs_rc = None
+    if a.usb_logs:
+        logs_rc = subprocess.run(["mcopy", "-s", "-i", f"{guest_disk}@@{esp['first_lba'] * 512}",
+                                  "::/openbook/logs", str(w / "saved-logs")]).returncode
+    saved_files = [f for f in sorted((w / "saved-logs").rglob("*")) if f.is_file()]
+    observed = "\n".join(f.read_text(errors="replace") for f in saved_files) if saved_files else serial
     result = {"schema": "openbook-ruby-observation/1", "accel": a.accel, "uefi_usb": a.uefi_usb,
               "software_tpm": a.tpm,
               "qemu_sha256": qemu_sha,
@@ -185,21 +198,25 @@ def main():
               "observation_window_elapsed": elapsed, "input_sha256": before,
               "input_unchanged": h.audit.sha(disk) == before,
               "guest_disk_unchanged": h.audit.sha(guest_disk) == guest_sha,
-              "test_entry": "serial" if a.uefi_usb else "direct kernel",
+              "test_entry": a.usb_log_entry if a.usb_logs else "serial" if a.uefi_usb else "direct kernel",
+              "persistent_usb_logs": a.usb_logs,
+              "logs_readback_exit": logs_rc,
+              "saved_log_files": [str(f.relative_to(w)) for f in saved_files],
+              "usb_capture_finished": any(f.name == "complete.txt" for f in saved_files),
               "wake_display_requested": a.wake_display,
               "screenshots": [f.name for f in sorted(w.glob("screen*.ppm"))],
               "screenshot_error": screen_error,
               "decoy_unchanged": h.audit.sha(decoy) == decoy_sha if decoy else None,
-              "second_stage_init": "init second stage started" in serial,
-              "diagnostics_completed": "OPENBOOK_RUBY_PROBE_END" in serial,
-              "boot_completed_reported": "OPENBOOK_RUBY_BOOT_COMPLETED=1" in serial,
-              "kernel_panic": "Kernel panic" in serial,
-              "sigill": "signal 4 (SIGILL)" in serial,
-              "runtime_findings": runtime_findings(serial),
+              "second_stage_init": "init second stage started" in observed,
+              "diagnostics_completed": "OPENBOOK_RUBY_PROBE_END" in observed or "RUBY_ANDROID_LOG_END" in observed,
+              "boot_completed_reported": "OPENBOOK_RUBY_BOOT_COMPLETED=1" in observed or "[sys.boot_completed]: [1]" in observed,
+              "kernel_panic": "Kernel panic" in observed,
+              "sigill": "signal 4 (SIGILL)" in observed,
+              "runtime_findings": runtime_findings(observed),
               "scope": "Observation only. Review original logs; no hardware or installation claim."}
     (w / "result.json").write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps(result, indent=2))
-    if not result["input_unchanged"] or not result["guest_disk_unchanged"] or result["decoy_unchanged"] is False or (not elapsed and proc.returncode):
+    if not result["input_unchanged"] or (not a.usb_logs and not result["guest_disk_unchanged"]) or result["decoy_unchanged"] is False or (not elapsed and proc.returncode) or (a.usb_logs and logs_rc):
         raise SystemExit(2)
 
 

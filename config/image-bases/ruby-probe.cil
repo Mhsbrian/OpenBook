@@ -5,3 +5,38 @@
 ; Read-only diagnostics on the VM serial console, without a root shell.
 (allow init serial_device (chr_file (getattr open read write ioctl)))
 (allow shell serial_device (chr_file (getattr open read write ioctl)))
+
+; Opt-in USB logger: no mount, network, app data, executable shell or internal
+; partition access. FAT updates use the existing crash-ordered ESP writer.
+(type ruby_usb_log)
+(typeattributeset domain (ruby_usb_log))
+(roletype r ruby_usb_log)
+(type ruby_usb_log_exec)
+(typeattributeset file_type (ruby_usb_log_exec))
+(typeattributeset exec_type (ruby_usb_log_exec))
+(typeattributeset vendor_file_type (ruby_usb_log_exec))
+(type ruby_usb_log_pipe)
+(typeattributeset dev_type (ruby_usb_log_pipe))
+(allow init ruby_usb_log (process (transition rlimitinh siginh)))
+(allow init ruby_usb_log_exec (file (read getattr open execute map)))
+(allow ruby_usb_log ruby_usb_log_exec (file (read getattr open execute map entrypoint)))
+(allow ruby_usb_log init (process (sigchld)))
+(typetransition init ruby_usb_log_exec process ruby_usb_log)
+(allow ruby_usb_log self (capability2 (syslog)))
+(allow ruby_usb_log kernel (system (syslog_read)))
+(allow ruby_usb_log kmsg_device (chr_file (read open getattr)))
+(allow ruby_usb_log proc_bootconfig (file (read open getattr)))
+(allow ruby_usb_log proc_random (file (read open getattr)))
+(allow ruby_usb_log sysfs_type (dir (read open search getattr)))
+(allow ruby_usb_log sysfs_type (lnk_file (read getattr)))
+(allow ruby_usb_log sysfs (file (read open getattr)))
+(allow ruby_usb_log block_device (dir (read open search getattr)))
+(allow ruby_usb_log block_device (lnk_file (read getattr)))
+(allow ruby_usb_log openbook_esp_block_device (blk_file (read write open getattr)))
+(allow ruby_usb_log device (dir (write add_name)))
+(typetransition ruby_usb_log device fifo_file ruby_usb_log_pipe)
+(allow ruby_usb_log ruby_usb_log_pipe (fifo_file (create read open getattr setattr)))
+(allow shell ruby_usb_log_pipe (fifo_file (write open getattr ioctl)))
+; Toybox's isatty() probes stdout with TCGETS. Permit only that read-only
+; query on our FIFO so ps/ls do not flood the capture with harmless denials.
+(allowx shell ruby_usb_log_pipe (ioctl fifo_file (0x5401)))

@@ -1,0 +1,81 @@
+{
+  "schema": "openbook-ruby-usb-logging-validation/1",
+  "date": "2026-10-19",
+  "final_image_sha256": "19b9a9492f6b09bad04077378443d307f12ddd4a19f669e22486c88eb2b03f74",
+  "image_bytes": 12766412800,
+  "installable": false,
+  "hardware_black_screen_resolved": false,
+  "logger_sha256": "2d4aacc9be89991761963ca3db58bcf72e0d922da27fca04630dd0918076d72a",
+  "long_to_final_delta": "Only vendor_sepolicy.cil and precompiled_sepolicy changed: add TCGETS (0x5401) permission for shell on the diagnostic FIFO. Logger, collector script, kernel and other logical images are identical.",
+  "native_audit": {
+    "inputs": 395,
+    "inputs_unchanged": true,
+    "cases": {
+      "openbook": true,
+      "ruby": true,
+      "hybrid": false,
+      "hybrid-reduced": true
+    }
+  },
+  "host_tests": {
+    "compatibility_guards": 13,
+    "live_image_guards": 6,
+    "uuid_and_fat_guards": "pass",
+    "fixture_fsck_exit": 0,
+    "file_context_policy_check": "pass",
+    "critical_vendor_labels": "pass"
+  },
+  "payload_readback_partitions": [
+    "EFI",
+    "boot_a",
+    "init_boot_a",
+    "super",
+    "vbmeta_a",
+    "vendor_boot_a"
+  ],
+  "full_duration_capture": {
+    "image_sha256": "d19d9eddd37b085039495561689d90252a1b1559f2fd2fdaa2f6236c22fbb03a",
+    "entry": "logs",
+    "accel": "tcg",
+    "observation_s": 760.7,
+    "input_unchanged": true,
+    "internal_decoy_unchanged": true,
+    "readback_exit": 0,
+    "files": 228,
+    "bytes": 17533446,
+    "enforcing_seen": true,
+    "mesa_selected": false,
+    "logger_domain_denials": 0,
+    "logger_pipe_denial_lines": 321,
+    "completion": [
+      "Capture finished after 600.2s; collector_bytes=17488406; kernel_overruns=0; failed_save_attempts=0; unsaved_bytes=0; reason=timeout."
+    ],
+    "boot_completed_reported": true,
+    "kernel_panic": false,
+    "sigill_pattern_seen": false,
+    "system_server_crash_captured": true,
+    "mmd_setup_abort_captured": true
+  },
+  "final_candidate_capture": {
+    "image_sha256": "19b9a9492f6b09bad04077378443d307f12ddd4a19f669e22486c88eb2b03f74",
+    "entry": "safe-logs",
+    "accel": "kvm",
+    "observation_s": 100.2,
+    "input_unchanged": true,
+    "internal_decoy_unchanged": true,
+    "readback_exit": 0,
+    "files": 38,
+    "bytes": 3149136,
+    "enforcing_seen": true,
+    "mesa_selected": true,
+    "logger_domain_denials": 0,
+    "logger_pipe_denial_lines": 0,
+    "completion": [],
+    "boot_completed_reported": false,
+    "kernel_panic": false,
+    "sigill_pattern_seen": true,
+    "system_server_crash_captured": false,
+    "mmd_setup_abort_captured": false
+  },
+  "scope": "VM logging validation. The owner reported a physical G14 black screen; the next hardware capture is still needed."
+}

@@ -23,6 +23,17 @@ probe = load("probe_test", "hybrid-probe.py")
 
 
 class Guards(unittest.TestCase):
+    def test_vendor_context_filter_preserves_platform_defaults_and_kind(self):
+        rules = ("/(vendor|system/vendor)(/.*)? u:object_r:vendor_file:s0\n"
+                 "/vendor/apex(/.*)? -d u:object_r:vendor_apex_file:s0\n"
+                 "/system/bin/unrelated u:object_r:unavailable_in_ruby:s0\n"
+                 "/vendor/bin/ruby-usb-log u:object_r:ruby_usb_log_exec:s0\n")
+        out = probe.vendor_contexts(rules, ["/vendor", "/vendor/apex", "/vendor/bin/ruby-usb-log"])
+        self.assertNotIn("unavailable_in_ruby", out)
+        self.assertIn("/vendor/apex(/.*)? -d u:object_r:vendor_apex_file:s0", out)
+        self.assertIn("/(vendor|system/vendor)(/.*)? u:object_r:vendor_file:s0", out)
+        self.assertIn("ruby_usb_log_exec", out)
+
     def setUp(self):
         self.profile = json.loads(audit.POLICY_PROFILE.read_text())
         self.statements = "".join((r["statement"] + "\n") * r["count"] for r in self.profile["remove"])
