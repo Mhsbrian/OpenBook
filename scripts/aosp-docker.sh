@@ -19,6 +19,7 @@
 # the container exits (with -d: `&& docker wait NAME` inside its flock). The container gets a token that
 # is also written to <data dir>/aosp/.lane.owner, so aosp-build.sh can tell its own lane lock from someone else's.
 # ANYBOOK_LANE_UNLOCKED=1: no lane at all (a tree of your own).
+# BUILD_NUMBER is passed through: a build meant as an update needs its own (it is in the fingerprint), see g14-adb.sh ota.
 set -euo pipefail
 A=${ANYBOOK_HOME:-$HOME/anybook}; R=$(cd "$(dirname "$0")/.." && pwd)
 RUN=(--rm -i); NAME=
@@ -62,7 +63,7 @@ docker image inspect anybook-aosp >/dev/null 2>&1 || docker build -t anybook-aos
 C=(docker run "${RUN[@]}" --init -u "$(id -u):$(id -g)"
   --security-opt seccomp=unconfined --security-opt systempaths=unconfined
   -v "$A/aosp:/aosp" -v "$A/ccache:/ccache" -v "$A/logs/aosp:/logs" -v "$R:/repo:ro"
-  -e AOSP_JOBS -e AOSP_BRANCH -e AOSP_TARGET -e ANYBOOK_LANE_UNLOCKED "${LANE[@]}"
+  -e AOSP_JOBS -e AOSP_BRANCH -e AOSP_TARGET -e ANYBOOK_LANE_UNLOCKED -e BUILD_NUMBER "${LANE[@]}"
   -e ANYBOOK_REV="$(git -C "$R" describe --always --dirty 2>/dev/null || echo unknown)" anybook-aosp "$@")
 [ -n "$NAME" ] || exec "${C[@]}"  # the lane lock's fd stays open in docker run until the container exits
 "${C[@]}"

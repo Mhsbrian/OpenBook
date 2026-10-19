@@ -384,6 +384,10 @@ PYEOF
   bad=$PKG_PROBLEMS
   [ "$PKG_DEVICE" = "$DEV_DEVICE" ] || bad="$bad; the package is for '$PKG_DEVICE', the device is '$DEV_DEVICE'"
   [ "${PKG_TS:-0}" -ge "${DEV_TS:-0}" ] || bad="$bad; the package is older than the running build (a downgrade)"
+  # PackageManager keys its parse cache by the fingerprint and, on eng.* builds, invalidates it by mtimes, which image
+  # files don't have: with the same fingerprint the new system's APKs and APEXes keep their old parse (ANAL-225: AVF's
+  # system service never started), and no upgrade step runs. Build the package with a new BUILD_NUMBER.
+  [ "$PKG_FP" != "$DEV_FP" ] || bad="$bad; the package has the running build's fingerprint ($DEV_FP): build it with a new BUILD_NUMBER"
   [ "$DEV_VAB" = true ] || bad="$bad; the device has no virtual A/B"
   [ "$DEV_INSTALLED" = whole ] || bad="$bad; not a whole-disk OpenBook install (installed='$DEV_INSTALLED')"
   [ "$DEV_UE" = UPDATE_STATUS_IDLE ] || bad="$bad; update_engine is not idle ($DEV_UE): an update or merge is pending (ota-status)"
