@@ -21,6 +21,14 @@
 | 2026-10-17 | Our build: `main` + ANAL-179's SoundPool rule (`anal179-sp-a`) | QEMU 11.1.2, KVM, q35 + OVMF from USB; ICH9 HDA recorded to WAV; SELinux enforcing | **SystemUI's unlock sound plays:** 0 SoundPool denials, and two sounds at the codec (boot and unlock). On `main` there were 2 denials and nothing at the codec. G14: next stick | `evidence/2026-10-17-soundpool/` |
 | 2026-10-17 | Our build: `anybook_cf_x86_64_pc-cp2a-userdebug` with the microG patch, microG 0.3.17.252432 installed by `openbook-addons` (ANAL-210) | Cuttlefish (cvd 1.57.0) in Docker, KVM, Ryzen 9 7950X, `guest_swiftshader`, Wi-Fi to the internet | **microG works:** self-check 18/18; signature spoofing only for microG's certificate (a fake `com.google.android.gms` keeps its own); device registration and push connected; FCM tokens for 3 Play-services apps; microG is the network and fused provider | `evidence/2026-10-17-microg/` |
 | 2026-10-18 | Our build: `openbook-live-anal210-g1a` (G14 product) with the microG add-on on the stick (ANAL-210) | QEMU 11.1.2, KVM, q35 + OVMF from USB, SELinux enforcing | **The add-on works in the VM:** installed 7 s after boot on the live stick and on an installed disk's first start, self-check 18/18; the wizard offers it off by default; without it, the same 140 packages as `main`'s image. One denial per boot from `stdio_to_kmsg`, removed (rerun pending). G14 untested | `evidence/2026-10-17-microg/qemu-g1a/` |
+| 2026-10-19 | `20261019.quire9` (installed, PR #115's tree with PR #80) + microG 0.3.17.252432, installed over wireless adb by the image's `openbook-addons` (ANAL-210) | **ASUS GA403WR (G14), bare metal**, SELinux enforcing | **Installed and spoofing works on the laptop:** 3 packages, 11 grants, app-op and battery exemption; GmsCore and Companion report Google's certificate to apps; no denial. Self-check screen, push and network location not yet checked there | `evidence/2026-10-19-microg-g14/` |
+
+## Google Photos on the installed G14 (2026-10-19, ANAL-210)
+
+| App / test | Result | Evidence |
+|---|---|---|
+| Google Photos 7.96.0.996044120, x86_64, microG 0.3.17.252432, `quire9` | Owner reports sign-in and photos shown, then UI restarts on opening. Three SurfaceFlinger SIGABRTs confirm 384×640 YV12 import failure. | `evidence/2026-10-19-photos-yv12/surfaceflinger-crashes.txt` |
+| Synthetic RGB/YV12/YUV420 frames with Mesa patch 0005, Radeon 890M | 15/15 imports and colour readbacks pass. Driver isolated to test process; desktop stays running. Full Photos app retest pending. | `evidence/2026-10-19-photos-yv12/` |
 
 ## Audio, Wi-Fi and Bluetooth on the G14
 
