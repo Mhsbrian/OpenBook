@@ -9,7 +9,9 @@ import android.graphics.PointF
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Region
+import android.os.SystemClock
 import android.util.Log
+import android.view.InputDevice
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -124,7 +126,11 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
             root?.let { updateParams(it) }
         }
 
+    /** When the note last appeared (uptimeMillis), for the outside-touch grace period. */
+    private var shownAt = 0L
+
     fun show(t: Task, focus: Task.Focus, animate: Boolean = true) {
+        shownAt = SystemClock.uptimeMillis()
         val existing = root
         if (existing != null && task === t) {
             update(t, focus)
@@ -617,6 +623,7 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
                 when (event.keyCode) {
                     KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BACK -> {
                         if (event.repeatCount == 0) {
+                            Log.i(TAG, "note: ${KeyEvent.keyCodeToString(event.keyCode)}")
                             if (!closePicker()) surface.escape()
                         }
                         return true
@@ -637,6 +644,13 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
 
         override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
             if (ev.actionMasked == MotionEvent.ACTION_OUTSIDE) {
+                val why = ignoredOutside(ev)
+                if (why != null) {
+                    Log.i(TAG, "note: outside touch ignored ($why)")
+                    return true
+                }
+                Log.i(TAG, "note: outside touch: hide (source=0x${Integer.toHexString(ev.source)} " +
+                    "buttons=${ev.buttonState})")
                 if (!closePicker() && !platformDialog && !suspended) surface.outside()
                 return true
             }
@@ -653,7 +667,27 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
         }
     }
 
+    /**
+     * Why an outside touch must not hide the note, or null when it should (ANAL-225). A click elsewhere hides it; a
+     * touchpad scroll, swipe or pinch elsewhere does not (the input dispatcher reports those as touches, with no button
+     * pressed), nor does anything in the moment after the note appeared: a touchpad finger that started before it did,
+     * or the rest of the shake that called it.
+     */
+    private fun ignoredOutside(ev: MotionEvent): String? {
+        val age = SystemClock.uptimeMillis() - shownAt
+        if (age < OUTSIDE_GRACE_MS) return "${age} ms after the note appeared"
+        when (ev.classification) {
+            MotionEvent.CLASSIFICATION_TWO_FINGER_SWIPE -> return "two-finger swipe"
+            MotionEvent.CLASSIFICATION_MULTI_FINGER_SWIPE -> return "multi-finger swipe"
+            MotionEvent.CLASSIFICATION_PINCH -> return "pinch"
+        }
+        if (ev.isFromSource(InputDevice.SOURCE_MOUSE) && ev.buttonState == 0) return "pointer, no button"
+        return null
+    }
+
     companion object {
+        private const val OUTSIDE_GRACE_MS = 500L
+
         /** The note is never taller than 60 % of the display (§3.1); the mirror is the one exception. */
         private const val MAX_HEIGHT = 0.6f
 

@@ -203,7 +203,8 @@ def facts(d):
 def invoke(d):
     d.log("== invoke")
     mouse = q2.Mouse(d)
-    cases = [("shake", "system_action", lambda: mouse.shake()),
+    # A shake as a person makes it: 25-count strokes (the detector wants 12 dp back from each turn, ANAL-225).
+    cases = [("shake", "system_action", lambda: mouse.shake(amplitude=25)),
              ("meta_space", "assistant_shortcut",
               lambda: d.sh("input keycombination KEYCODE_META_LEFT KEYCODE_SPACE"))]
     for name, trigger, act in cases:

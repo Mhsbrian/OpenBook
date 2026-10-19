@@ -170,6 +170,17 @@ fun main() {
         Thread.sleep(100)
         checkCase("remote EOF closes the owned bridge descriptor", !endingPeer.pair[0].fileDescriptor.valid())
         endingPeer.rescue()
+        // ANAL-225: a stopped environment (after a reboot) is started, then the connection opens.
+        val startingPeer = Peer()
+        Connectors.LinuxEnvironment.ready = false
+        Connectors.LinuxEnvironment.startable = true
+        val started = AcpAgent(context, ep("alpha"), noListener, main)
+        val startedInfo = await<AgentInfo> { started.connect(it) }
+        checkCase("a stopped environment is started, then connected",
+            startedInfo.isSuccess && Connectors.LinuxEnvironment.starts == 1)
+        started.close()
+        startingPeer.rescue()
+        Connectors.LinuxEnvironment.startable = false
         Connectors.LinuxEnvironment.ready = false
         val before = Connectors.LinuxEnvironment.opens
         val c = AcpAgent(context, ep("alpha"), noListener, main)
