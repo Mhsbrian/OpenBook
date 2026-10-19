@@ -1,0 +1,97 @@
+{
+ "reason": "QEMU exited (0)",
+ "seconds": 119.3,
+ "steps_done": 27,
+ "steps": 27,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "init: init second stage started",
+   "t": 12.4
+  },
+  {
+   "step": 1,
+   "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+   "t": 19.6
+  },
+  {
+   "step": 3,
+   "wait": "console:/ \\$ ",
+   "t": 19.6
+  },
+  {
+   "step": 5,
+   "wait": "console:/ # ",
+   "t": 19.7
+  },
+  {
+   "step": 7,
+   "wait": "console:/ # ",
+   "t": 20.0
+  },
+  {
+   "step": 9,
+   "wait": "\\nBOOTDONE=1 uptime=",
+   "t": 48.3
+  },
+  {
+   "step": 10,
+   "wait": "console:/ # ",
+   "t": 48.3
+  },
+  {
+   "step": 12,
+   "wait": "console:/ # ",
+   "t": 50.8
+  },
+  {
+   "step": 14,
+   "wait": "\n===PRE-DISKS-END===",
+   "t": 52.1
+  },
+  {
+   "step": 15,
+   "wait": "console:/ # ",
+   "t": 52.1
+  },
+  {
+   "step": 17,
+   "wait": "\n===PLAN-END===",
+   "t": 54.5
+  },
+  {
+   "step": 18,
+   "wait": "console:/ # ",
+   "t": 54.5
+  },
+  {
+   "step": 20,
+   "wait": "\n===APPLY-END===",
+   "t": 113.7
+  },
+  {
+   "step": 21,
+   "wait": "console:/ # ",
+   "t": 113.7
+  },
+  {
+   "step": 23,
+   "wait": "\n===AVC-END===",
+   "t": 114.8
+  },
+  {
+   "step": 24,
+   "wait": "console:/ # ",
+   "t": 114.8
+  },
+  {
+   "step": 26,
+   "wait": "reboot: Power down|ACPI: PM: Preparing to enter system sleep state S5|Power down",
+   "t": 118.7
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/qemu/ota-anal192e/stick.img",
+ "nvme": "/home/hive/anybook/installer/qemu/ota-anal192e/whole.img",
+ "nvme2": null
+}

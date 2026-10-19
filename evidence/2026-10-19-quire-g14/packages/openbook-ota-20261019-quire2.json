@@ -1,0 +1,47 @@
+{
+ "schema": "openbook-ota/1",
+ "label": "openbook-ota-20261019-quire2",
+ "tree": "afb905e: #112 25b899f + #109 3a81419 + #106 10bd84a + #104 d15c25c (= the G14's cand1 image) + #108 dd56681 + #110 52a3bc2 + #111 72ee925 + ANAL-225 (PR #113): the note reaching the Linux environment's agents, its transport fix, BUILD_NUMBER 20261019.quire2",
+ "test_only_broken_boot": false,
+ "fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.quire2:userdebug/test-keys",
+ "build_date_utc": 1792385633,
+ "device": "anybook_g14",
+ "bytes": 994429497,
+ "sha256": "713226fb81093e85e995b6e6f04be77ee1867b406370770f6504715593bdee70",
+ "vbmeta_digest": "1d2d8f5e5d68b622610a046ac66bfd47eaef75c970c44a3d2684e71d8fbfc596",
+ "vbmeta_size": 6144,
+ "payload_properties": [
+  "FILE_HASH=zrTkpYn/gYBCEQncP3ZTc+eFyJfn1RJTR8aqQJSLvRY=",
+  "FILE_SIZE=994421843",
+  "METADATA_HASH=U2Cs08/+l1e4fwProfgCKha5lAnxHLtkfzKTxMOss2c=",
+  "METADATA_SIZE=44737"
+ ],
+ "partitions": [
+  "boot",
+  "init_boot",
+  "product",
+  "super_empty",
+  "system",
+  "system_dlkm",
+  "system_ext",
+  "system_other",
+  "userdata",
+  "vbmeta",
+  "vendor",
+  "vendor_boot",
+  "vendor_dlkm"
+ ],
+ "bootsync_sha256": "e3019926318877e95798de0b81343109e93c08daf1ba83d2aac9b4e4bb5bd656",
+ "metadata": {
+  "ota-property-files": "payload_metadata.bin:4162:45004,payload.bin:4162:994421843,payload_properties.txt:994426063:154,apex_info.pb:1992:1491,care_map.pb:3530:585,metadata:69:698,metadata.pb:835:1109                      ",
+  "ota-required-cache": "0",
+  "ota-streaming-property-files": "payload.bin:4162:994421843,payload_properties.txt:994426063:154,apex_info.pb:1992:1491,care_map.pb:3530:585,metadata:69:698,metadata.pb:835:1109                        ",
+  "ota-type": "AB",
+  "post-build": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.quire2:userdebug/test-keys",
+  "post-build-incremental": "20261019.quire2",
+  "post-sdk-level": "37",
+  "post-security-patch-level": "2026-06-05",
+  "post-timestamp": "1792385633",
+  "pre-device": "anybook_g14"
+ }
+}

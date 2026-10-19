@@ -1,0 +1,6 @@
+owner: the session's own task keeps its mirror and Stop over a protected window	PASS	task 2: system=True onScreen=True
+owner: a new note while the session's task runs hidden is ordinary (1)	FAIL	shown task 3 (session task 2 hidden and running: True); system=True forceHidden=False onScreen=True
+owner: reopening the session's task brings its mirror back (1)	PASS	system=True onScreen=True
+owner: a new note while the session's task runs hidden is ordinary (2)	FAIL	shown task 4 (session task 2 hidden and running: True); system=True forceHidden=False onScreen=True
+owner: reopening the session's task brings its mirror back (2)	PASS	system=True onScreen=True
+owner: after Stop, the task's own note is ordinary and hides under the protected window	PASS	note: control run ended stopped=true; system=False forceHidden=True onScreen=False

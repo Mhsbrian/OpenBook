@@ -1,0 +1,40 @@
+{
+ "case": "prep",
+ "checks": [
+  {
+   "check": "the installed entry gets the serial console; loader.conf as the installer wrote it",
+   "ok": true,
+   "detail": "title OpenBook\nversion 17 \u00b7 slot A\nsort-key openbook-1\nlinux /openbook/a/kernel\ninitrd /openbook/a/vendor_ramdisk.img\ninitrd /openbook/a/ramdisk.img\ninitrd /openbook/a/bootconfig.img\noptions firmware_class.path=/vendor/firmware log_buf_len=1M bootconfig console=ttyS0,115200 8250.nr_uarts=1 printk.devkmsg=on\n"
+  },
+  {
+   "check": "the installed disk boots slot a",
+   "ok": true,
+   "detail": "a"
+  },
+  {
+   "check": "an app installed with adb install",
+   "ok": true,
+   "detail": "Performing Streamed Install\nSuccess\n"
+  },
+  {
+   "check": "a screen-lock PIN set",
+   "ok": true,
+   "detail": "Pin set to '1234'\n"
+  },
+  {
+   "check": "the base state recorded (marker, file, app, provisioned)",
+   "ok": true,
+   "detail": "{'FP': 'OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys', 'DATE': '1792331042', 'SLOT': '_a', 'VBMETA': '6d3735b9f31f31e923025243af06f6396673f8efcaef6b6fa3de862367498acf', 'SERIAL': '396F58B8DC3BD6F8', 'SELINUX': 'Enforcing', 'MARKER': 'e15da3960417fa11', 'PROVISIONED': '1/1', 'FILE': 'a2366ced60eabe4675687b9a5d1f23820798a0c5e5626c6833557f681f9a07f8', 'APP': 'package:dev.anybook.probe.x86_64 versionCode:1', 'USERSTATE': 'RUNNING_UNLOCKED', 'HAL': '/running', 'TOP': 'com.android.launcher3/.uioverrides.QuickstepLauncher'}"
+  },
+  {
+   "check": "SELinux enforcing; the image's own boot HAL (AOSP default) runs",
+   "ok": true,
+   "detail": "{'FP': 'OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys', 'DATE': '1792331042', 'SLOT': '_a', 'VBMETA': '6d3735b9f31f31e923025243af06f6396673f8efcaef6b6fa3de862367498acf', 'SERIAL': '396F58B8DC3BD6F8', 'SELINUX': 'Enforcing', 'MARKER': 'e15da3960417fa11', 'PROVISIONED': '1/1', 'FILE': 'a2366ced60eabe4675687b9a5d1f23820798a0c5e5626c6833557f681f9a07f8', 'APP': 'package:dev.anybook.probe.x86_64 versionCode:1', 'USERSTATE': 'RUNNING_UNLOCKED', 'HAL': '/running', 'TOP': 'com.android.launcher3/.uioverrides.QuickstepLauncher'}"
+  },
+  {
+   "check": "powers off",
+   "ok": true,
+   "detail": ""
+  }
+ ]
+}

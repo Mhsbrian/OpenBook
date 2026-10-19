@@ -1,0 +1,3 @@
+10-18 20:05:20.746 I/Quire   ( 4897): q4-device list-0 1792353920
+10-18 20:05:20.758 I/Quire   ( 3149): lab: dev.openbook.quire.lab.AGENTS_LIST
+10-18 20:05:21.266 I/Quire   ( 3149): agents: agent opencode version="1.19.3" supported=true

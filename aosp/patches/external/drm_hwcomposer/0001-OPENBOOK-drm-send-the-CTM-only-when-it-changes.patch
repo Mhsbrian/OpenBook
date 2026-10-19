@@ -1,0 +1,90 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <bhoneycutt153@gmail.com>
+Date: Sun, 18 Oct 2026 18:00:00 +0000
+Subject: [PATCH] OPENBOOK: drm: send the CTM only when it changes
+
+HwcDisplay passes the color matrix (the identity when nothing is set) with
+every frame, and SetCtmIfNeeded() registered a new CTM blob for every
+commit. The kernel marks a CRTC's color management as changed whenever its
+CTM property gets a different blob, even one holding the same matrix.
+amdgpu treats that as a reason to rebuild the CRTC's planes
+(should_reset_plane: "CRTC Degamma changes currently require us to
+recreate planes"), so every page flip became a full DC update. On DCN 3.5
+(Radeon 890M, ASUS G14) a full update waits through the next vblank before
+it programs the flip, so each flip landed two vblanks after its commit:
+SurfaceFlinger at 120 Hz presented every 16.7 ms (TimeStats: 470 of 478
+present intervals 16 ms, 477 of 480 frames missed, RenderEngine 3 ms), and
+amdgpu never took its fast flip path (commit_planes_for_stream_fast: 0 of
+61 commits).
+
+Keep the last committed matrix in KmsState and leave the CRTC's blob alone
+while the matrix is unchanged. A failed or test-only commit does not update
+it, so the next commit sends the matrix again. The color-pipeline path
+already sets 0 (no blob) and only clears the cache.
+---
+ drm/DrmAtomicStateManager.cpp | 15 +++++++++++++++
+ drm/DrmAtomicStateManager.h   |  8 ++++++++
+ 2 files changed, 23 insertions(+)
+
+diff --git a/drm/DrmAtomicStateManager.cpp b/drm/DrmAtomicStateManager.cpp
+index 99d646f..a446b50 100644
+--- a/drm/DrmAtomicStateManager.cpp
++++ b/drm/DrmAtomicStateManager.cpp
+@@ -317,9 +317,23 @@ bool DrmAtomicStateManager::SetCtmIfNeeded(const AtomicCommitArgs &args,
+ 
+   auto *drm = pipe_->device;
+   if (drm->GetResMan().UseColorPipeline()) {
++    request.new_frame_state.ctm.reset();
+     return crtc->GetCtmProperty().AtomicSet(*request.property_set, 0);
+   }
+   auto drm_color_matrix = ColorUtil::ToColorTransform3x3(args.color_matrix);
++  if (!drm_color_matrix) {
++    ALOGE("Failed to convert the color matrix");
++    return false;
++  }
++
++  std::array<uint64_t, 9> matrix{};
++  std::copy(std::begin(drm_color_matrix->matrix),
++            std::end(drm_color_matrix->matrix), matrix.begin());
++  if (committed_frame_state_.ctm == matrix) {
++    /* Already on the CRTC: keep its blob (see KmsState::ctm). */
++    return true;
++  }
++
+   auto ctm_blob = drm->RegisterUserPropertyBlob(drm_color_matrix.get(),
+                                                 sizeof(drm_color_ctm));
+   if (!ctm_blob) {
+@@ -332,6 +346,7 @@ bool DrmAtomicStateManager::SetCtmIfNeeded(const AtomicCommitArgs &args,
+   }
+ 
+   request.used_kms_objects.blobs.emplace_back(std::move(ctm_blob));
++  request.new_frame_state.ctm = matrix;
+   return true;
+ }
+ 
+diff --git a/drm/DrmAtomicStateManager.h b/drm/DrmAtomicStateManager.h
+index 4e1eb9e..e003875 100644
+--- a/drm/DrmAtomicStateManager.h
++++ b/drm/DrmAtomicStateManager.h
+@@ -18,6 +18,7 @@
+ 
+ #include <pthread.h>
+ 
++#include <array>
+ #include <cstdint>
+ #include <map>
+ #include <memory>
+@@ -75,6 +76,13 @@ class DrmAtomicStateManager : public DrmAtomicCommitSink {
+ 
+     /* To avoid setting the inactive state twice, which will fail the commit */
+     bool crtc_active_state{};
++
++    /* The CTM matrix last set on the CRTC. The kernel flags a color management
++     * change whenever the CTM property gets a new blob, even one with the same
++     * matrix, and amdgpu then rebuilds the planes: a full display update on every
++     * frame, so every flip misses a vblank. Unchanged matrices are not sent again.
++     */
++    std::optional<std::array<uint64_t, 9>> ctm;
+   };
+ 
+   // State for a pending atomic request. Includes the pending kms objects and

@@ -1,0 +1,21 @@
+08:14:22 == facts
+08:14:22 PASS Quire installed as a privileged system app: codePath=/system_ext/priv-app/OpenBookQuire versionName=17 privateFlags=[ PRIVATE_FLAG_ACTIVITIES_RESIZE_MODE_RESIZEABLE ALLOW_AUDIO_PLAYBACK_CAPTURE PRIVILEGED SYSTEM_EXT PRIVATE_FLAG_ALLOW_NATIVE_HE
+08:14:22 PASS Quire holds the assistant role: dev.openbook.quire
+08:14:22 PASS AVF in the image and KVM on (ro.boot.hypervisor.vm.supported): feature=1 vm.supported=1 vendor.openbook.kvm=1
+08:14:23 PASS the Terminal app and its agent bridge: package:com.android.virtualization.terminal [com.android.virtualization.terminal.agentbridge]: User 0: ceDataInode=6856 deDataInode=6609 pccCeDataInode=0 pccDeDataInode=0 installed=true hidden=false s
+08:14:23 INFO the Linux environment as Quire core sees it: linux-environment=TERMINAL_OFF paired-computer=NOT_PAIRED
+08:14:24 == setup
+08:14:30 PASS setup: the note offers Set up the Linux environment: Set up the Linux environment
+08:15:02 PASS setup: one click turns the Linux environment on, installs and starts it, and lists its agents: READY with 1 agent(s) after 32 s
+08:15:05 == agent
+08:15:11 PASS agent: Quire started the stopped Linux environment itself: bridge said installing; then READY
+08:15:11 PASS agent: the note lists the Linux environment's agents: linux:opencode connected=false
+08:15:15 PASS agent: the person connects it in the note: Connect opencode
+08:15:27 PASS agent: the typed prompt was sent (input text, Enter): acp: connected to linux:opencode:
+08:15:33 PASS agent: the prompt went to the agent in the Linux environment: session opencode-1 with linux:opencode
+08:15:48 PASS agent: an answer in the note: stopReason=end_turn after 11.9 s; 'QUIRE OK' shown
+08:15:50 == health
+08:15:50 PASS no crash of Quire, SystemUI or the Terminal app: 0 lines
+08:15:50 PASS no ANR or crash event for them: 0 events
+08:15:50 PASS no SELinux denial for Quire or the Linux environment: 3 distinct since start, 0 ours
+08:15:51 == 15 PASS, 0 FAIL, 1 INFO

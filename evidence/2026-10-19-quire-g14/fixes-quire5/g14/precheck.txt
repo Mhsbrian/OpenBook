@@ -1,0 +1,10 @@
+OTA of 192.168.50.11:5555 with /home/hive/anybook/ota/out/openbook-ota-20261019-quire5.zip, 2026-10-19T12:22:53Z; log: /home/hive/anybook/installer/g14/ota-20261019T122253Z/ota.log
+
+device    192.168.50.11:5555: OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.quire2:userdebug/test-keys
+          slot a, vbmeta 1d2d8f5e5d68b622610a046ac66bfd47eaef75c970c44a3d2684e71d8fbfc596, installed=whole, virtual A/B true
+package   openbook-ota-20261019-quire5 (994 MB): OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.quire5:userdebug/test-keys
+          tree eb43243: quire2 (afb905e) + ANAL-225 fixes (1b0599a, dcaa459, eb43243): shake needs real strokes (frameworks/base 0009), the note ignores touchpad gestures outside, the Terminal bridge starts the Linux environment (Virtualization 0002), Quire starts it (waits out the start's publication lag), retries quired, offers Set up; BUILD_NUMBER 20261019.quire5, vbmeta 4aa4ffa21882d186bad6fecba48cc9128568a4e1d9b46b842314b04dda8c195d
+update    slot a -> slot b; /data and slot a are kept; slot a stays the fallback until slot b boots
+bootsync  on the device: the boot HAL moves the loader entry
+checks    passed
+dry run: nothing written

@@ -128,15 +128,43 @@ Full serial logs are `matrix/*/serial.log.gz`.
 
 **GBL later.** It reads the boot images, runs libavb, and is Google's direction. Switch when three things are true: CL 4051936 (pick the disk GBL was loaded from) has landed, CL 4286120 (`boot_part_uuid`) has landed, and we have a BootControl provider, either upstream or a small OpenBook EFI driver backed by `misc`. systemd-boot would then chainload GBL (`efi /EFI/OpenBook/gbl_x86_64.efi`), or the firmware entry points straight at it.
 
-### 2.5 A/B and updates with systemd-boot (design, H)
-- **Source of truth:** the Android partitions (`boot_x`, `init_boot_x`, `vendor_boot_x`, `vbmeta_x`). `super` uses virtual A/B with compression, so there is one copy, and the OTA's copy-on-write data lives in `/data`.
+### 2.5 A/B and updates with systemd-boot (built, ANAL-223)
+Built and tested in QEMU, and used for the G14's first update on 2026-10-18 (§13.13, `evidence/2026-10-18-ota/`). The design below is as built (C) unless marked H.
+- **Source of truth:** the Android partitions (`boot_x`, `init_boot_x`, `vendor_boot_x`, `vbmeta_x`). `super` uses virtual A/B with compression, so there is one copy, and the OTA's copy-on-write data lives in `super`'s free space and `/data`.
 - **ESP mirror:** `openbook/<slot>/{kernel, vendor_ramdisk.img, ramdisk.img, bootconfig.img}`. Entry `loader/entries/openbook-<slot>[+N[-M]].conf` lists the three initrds with bootconfig last.
-- **`openbook-bootsync`**, a native tool in its own SELinux domain. GKI has `VFAT_FS=y`, C. It runs:
-  - **After update_engine postinstall:** export slot B's boot images to the ESP, compute B's vbmeta digest, write `openbook-b+3.conf`, and make it the default.
-  - **On `markBootSuccessful`:** rename the entry to `openbook-b.conf` ("good").
-  - **On a failed boot:** systemd-boot itself lowers the count and, at `+0`, sorts the entry last, so slot A boots again.
-- **Boot control HAL:** `android.hardware.boot-service.openbook` = AOSP `libboot_control` (`misc`, already working: "Invalid boot control found… Re-initializing" on first boot, C) plus calls into bootsync.
-- **Live USB:** slot A only, and no OTA; you re-flash instead. Whether Android 17 is happy with no `_b` partitions at all is checked in ANAL-190; the fallback is tiny `_b` partitions (H). **Checked:** a slot-A-only stick boots as far as the A/B image does (§11.4, C).
+- **`openbook-bootsync`** (`device/anybook/common/bootsync/bootsync.c`): a vendor binary in its own SELinux domain, `openbook_bootsync`. It is plain C on the install engine's GPT, FAT, JSON and SHA-256 code, so it needs no mount: the ESP is opened `O_EXCL` (refused while mounted) through `/dev/block/by-name/EFI`, which gets its own label, `openbook_esp_block_device`. It does four things:
+  - **`activate SLOT`** (the HAL's `setActiveBootSlot`, which update_engine calls after postinstall):
+    - Reads `vbmeta_SLOT` (one top-level struct; chained partitions are refused) and checks every hash descriptor against `boot_SLOT`, `init_boot_SLOT` and `vendor_boot_SLOT`. It requires a signature, and the running slot's signing key unless `--allow-new-key`.
+    - Extracts the kernel, the generic ramdisk and the vendor ramdisk fragments, padded as `mkproto.py copy_padded` does. Slot A's files from the installer are byte-identical to what it exports.
+    - Builds the bootconfig from the running entry's own blob: the product's static keys are taken from the new `vendor_boot`, and the slot suffix and vbmeta digest and size are set.
+    - The command line is the new `vendor_boot`'s, plus whatever the running entry added (a VM's console).
+    - Writes, in this order:
+      1. removes the slot's old entry;
+      2. writes `openbook/SLOT/*` and reads it back;
+      3. writes `openbook-SLOT+3.conf`;
+      4. writes loader.conf with `default openbook-<running>.conf` and `preferred openbook-SLOT.conf`.
+  - **`mark-good`** (`markBootSuccessful`): the running slot's counted entry becomes `openbook-SLOT.conf`, and loader.conf's default becomes this slot.
+    - After an update, the other slot's entry is removed: the merge overwrites that slot.
+    - On every later boot it changes nothing.
+  - **`disable SLOT`** (`setSlotAsUnbootable`; update_engine calls it after the merge): removes that slot's entry, but never the running slot's.
+  - **`status`**: read-only JSON with both slots, the ESP files against what they should hold, and the entry systemd-boot starts next. The model of systemd-boot v262.1's `boot_entry_compare` and `config_select_default_entry` was checked against an independent one in the host tests.
+- **How the loader picks:** systemd-boot 262 skips a `preferred` entry with no tries left (`config_find_entry(..., check_assessment=true)` in `src/boot/boot.c`), and the `default` is the slot that last booted fine.
+  - **New slot:** systemd-boot boots the new slot and counts it down itself (`+3` → `+2-1` → …).
+  - **Slot that never reaches Android:** at `+0` it is skipped, and the old slot starts. That is the rollback, with no Android code involved.
+- **Every ESP write is crash-ordered** (`fat_replace`, `fat_rename`, `fat_unlink` in the engine's `fat.c`): new data and its FAT chain first, then the directory entry, then the old chain is freed, with an fsync between each. A stop after any write step leaves a FAT that passes `fsck.fat` and a loader state that boots: the old slot until loader.conf is written, the new slot after (host tests, `scripts/ota/bootsync-test.py`).
+- **Boot control HAL:** `android.hardware.boot-service.openbook` (`device/anybook/common/bootsync/hal/`) is AOSP's AIDL default service on `libboot_control` (`misc`), running in AOSP's `hal_bootctl_default` domain. It replaces `com.android.hardware.boot`.
+  - `setActiveBootSlot`, `markBootSuccessful` and `setSlotAsUnbootable` run bootsync first, and change `misc` only when bootsync succeeded.
+  - So a slot is marked successful in `misc` (which lets update_engine start the merge) only once its ESP entry is good.
+  - If the loader fell back to the old slot, `misc` follows the loader at the next `markBootSuccessful`.
+- **The first update onto an image without bootsync:** a new image's `postinstall` cannot do the ESP step. update_engine runs it in AOSP's `postinstall` domain under the *running* image's policy, which allows no block device at all (`system/sepolicy/private/postinstall.te`).
+  - On the old image, the HAL is AOSP's and only writes `misc`.
+  - So `scripts/g14-adb.sh ota` runs the package's own `openbook-bootsync activate` once, as root over adb, after update_engine finished. On userdebug, `su` is permissive.
+  - From then on the image's own HAL does it.
+- **Live USB:** slot A only, and no OTA; you re-flash instead. **Checked:** a slot-A-only stick boots as far as the A/B image does (§11.4, C).
+- **Not done:**
+  - Alongside installs (kernels on XBOOTLDR, no loader.conf of ours on a shared ESP): bootsync refuses them.
+  - A bring-your-own GApps product (§15) is not carried across an update: a full package brings the stock `product`.
+  - A slot that fails on the G14 itself was not tried. The G14's firmware does write systemd-boot's counter: its first boot of slot B renamed `openbook-b+3.conf` to `+2-1` (§13.13).
 
 ### 2.6 Firmware entry, cmdline and Secure Boot
 - **On the USB stick:** systemd-boot at `EFI/BOOT/BOOTX64.EFI`, the removable-media path, so no NVRAM change is needed.
@@ -757,7 +785,7 @@ Image `openbook-live-20261017-anal191e` (built from this branch, `userdebug`, AO
 - **No G14.** USB 3 and the 890M will change timings; the install's reads run at stick speed. On a real install, `userdata` is the rest of a 1 TB disk.
 - **Alongside was not booted in QEMU,** only checked on image files. A firmware entry needs efivarfs (decision 6). End-to-end alongside, interrupted installs and an OTA slot switch are ANAL-192. *Since done, except the OTA slot switch: §13. The firmware entry: §12.11.*
 - **QEMU's display shows red and blue swapped.** The wizard's `#4355B9` shows as `#B95543` in QEMU's screendump (`screens/qemu-display-channel-swap-example.png`). Android's own `screencap` is correct; the screenshots here are `screencap`s. The two `installed-boot-*` frames were captured through QEMU and have their channels swapped back. This is the VM display path (virtio-gpu fallback), not the app; it is passed to the graphics lane.
-- **Not built yet:** `openbook-bootsync` and the boot control link (slot B stays blank), the text hardware report boot entry (`androidboot.openbook.diag`), a signed manifest, translations, and copying the install report into `/metadata` on first boot.
+- **Not built yet:** `openbook-bootsync` and the boot control link (slot B stays blank; *since built, §2.5*), the text hardware report boot entry (`androidboot.openbook.diag`), a signed manifest, translations, and copying the install report into `/metadata` on first boot.
 - **The boot animation** of the installed system is AOSP's, not OpenBook's.
 
 ### 12.8 On the G14: owner checklist (until the device agent exists)
@@ -841,6 +869,31 @@ Status as of 2026-10-17, 22:10 UTC. Evidence: `evidence/2026-10-17-installer-nvr
 
 **Not shown:** the G14's firmware with these entries, including whether its menu lists `BootOrder` only, like EDK2's. ANAL-192's spare-drive install will be the first real NVRAM write, and the NVRAM write is one more reason that step needs the owner's go-ahead.
 
+### 12.12 On the G14: the owner's `anal192d` session (2026-10-18)
+
+Evidence: `evidence/2026-10-18-g14-installer/SUMMARY.md` (filtered extracts of the host copy `stick-20261018T123221Z`). There are no photos yet and no hardware report.
+- **The wizard opened by itself** on the stick's first boot (11:01:06). The installer's setup screen stepped aside without a crash.
+- **The firmware side was ready:** `efivarfs.ko` loaded and efivarfs mounted, with no denial. The G14's own boot entries were not recorded; "save logs" now collects them.
+- **An install of the internal NVMe was requested at 11:04:29**, after "Install OpenBook" was reopened from All Apps. **The engine refused it before writing anything.**
+  - **No install report** reached the stick. Any install that passes the early checks writes one.
+  - **The internal NVMe's table is unchanged:** p1 2 GiB + p2 952 GiB, as in every session since 2026-10-16.
+  - **Most likely S8** (H): the laptop was on battery at 41 %. The wizard only enables Install after the typed name matches, and the plan had not changed.
+  - On mains power that install would have erased the internal NVMe. The checklist said to stop at the Disk screen.
+- **Two denials that only real hardware shows:**
+  - The daemon reading the power supplies (`sysfs_batteryinfo`).
+    - AOSP lets only the health HAL read them (a neverallow), so the app's reading (BatteryManager) is the one S8 uses, as `PROTOCOL.md` says.
+    - The denial is now `dontaudit`.
+    - **S8 now fails closed:** with neither reading, the engine refuses with `power`. It used to log "not checked" and carry on.
+  - The hardware check listing `/vendor/firmware`. Policy can't allow it (a `system_ext` domain and a vendor type). The speaker-tuning check then stays silent, by design.
+- **"Save logs" now collects the installer** (`scripts/installer/live-init.c`, section `INSTALLER`):
+  - the daemon's log, with disk serial numbers, EUI and WWN masked;
+  - `openbook-install nvram`.
+  - `report.md` gains `installer_nvram` (the firmware's entries and `BootOrder`) and `installer_log` (dry runs, installs, refusals).
+- **Tests** (image `anal191i`, built at `b25f91a`):
+  - engine host tests **69/69**, with new S8 cases (on battery at 41 % with the charger off; unreadable supplies with no reading);
+  - QEMU "save logs" **11/11**: the `INSTALLER` section and both verdicts on a real capture;
+  - wizard dry run and install **17/17**, enforcing.
+
 ## 13. End to end, and the owner's integrated stick (ANAL-192)
 
 Status as of 2026-10-17, 17:10 UTC. Evidence: `evidence/2026-10-17-installer-e2e/`, starting with `SUMMARY.md`. Everything here ran in QEMU/KVM + OVMF on image files, SELinux enforcing. **Nothing has run on the G14 yet** (§13.6).
@@ -918,7 +971,7 @@ An accidental seventh cut, in a development run, landed during `system` and left
 - **The cut model is the guest's**, not a disk's: a real SSD can lose or reorder writes in its own cache. The engine flushes (fsync) after every step and before the GPT and the activation, but a crash-replay test of every write (`Next`) would show more.
 - **Windows is a stand-in.** BitLocker, Windows' own boot repair and Fast Startup were not tested. Real Windows ESPs are often 100 MB; ours is 260 MB.
 - **The firmware option was added by a test app**, through the same `SetVariable` a firmware setup uses. The G14's setup screens were not tried.
-- **No OTA slot switch or boot counting:** `openbook-bootsync` isn't built, and slot B is blank.
+- **No OTA slot switch or boot counting:** `openbook-bootsync` isn't built, and slot B is blank. *Since built: §2.5, §13.14.*
 
 ### 13.5 Findings
 1. **The installed system offers to "set up" the installer stick.** With the stick plugged into an installed OpenBook, vold logs "disk:8,0 has unknown partition table … giving up", and SystemUI shows "QEMU USB drive detected · Tap to set up" (`StorageNotification`, unsupported disk). Tapping it leads to formatting the stick. PR #52's vold patch only skips the disk the running system booted from. *Fix proposal:* also skip any disk whose GPT has an ESP labelled `OPENBOOK` plus `super`/`misc` partitions (an OpenBook stick or disk), with a QEMU check in `e2e-qemu.py inst-stick`. Reported, not gated; in `docs/INSTALL.md` known issues.
@@ -998,7 +1051,7 @@ The install goes onto a **spare drive only**: an external USB/Thunderbolt SSD, o
    - photograph each.
 4. Plug the stick into the build host: the install report and log are in `openbook/logs/install-*.{json,log}`. For an external drive, attach it too: its ESP carries the same report.
 
-The installed system has no "save logs" entry. Its logs need the device agent (ANAL-197) or a later debug entry.
+The installed system has no "save logs" entry. Since ANAL-222 its logs come over the network instead: `scripts/g14-adb.sh capture` saves the same files from the running system in about 35 s (`docs/adb-debug.md`).
 
 ### 13.8 Unattended runs (the device agent, ANAL-193)
 The matrix is the agent's procedure. `e2e-qemu.sh IMG RUN all` runs every case in QEMU and writes `results.json`. On the laptop, the same engine commands run from a root shell on the live stick:
@@ -1038,7 +1091,7 @@ python3 scripts/installer/e2e-qemu.py avc OUT <logcat.gz and sections/avc.txt fi
 - The owner's run of §13.6, then the spare-drive install (§13.7) once a drive is named.
 - When PR #61 is on `main`: the next stick, with Vulkan 1.4 and ANAL-177's second graphics run.
 - Fixes for §13.5 findings 1 and 2. They touch vold (ANAL-176's area) and the engine's OS labels (ANAL-191's).
-- `openbook-bootsync`, the slot B test and boot counting (an OTA switch). Slot B is blank today.
+- `openbook-bootsync`, the slot B test and boot counting (an OTA switch). *Done: §13.14.*
 - A crash-replay test of the engine on the host: log every write and replay every prefix, including writes lost since the last flush, especially for the shared Windows ESP.
 - The release checklist's open items (`docs/INSTALL.md` §9): `WHENCE`, the GPL source bundle, the release key, a signed manifest.
 
@@ -1059,6 +1112,9 @@ Built on the owner's request after PR #64 merged; it replaces `anal192c`. Eviden
 - **On the G14:** boots 1–3 as in §13.6. In boot 1, step 6 (a ringtone preview) should now play. Then **boot 4, "OpenBook graphics check"**: about 30 minutes, AC power, lid open, no screen-lock PIN; it powers off by itself (`docs/graphics-amd.md`, owner checklist steps 4–6). Then plug the stick into the build host and reply "stick attached".
 
 ### 13.12 The next stick: `openbook-live-20261018-anal192d` (2026-10-18)
+
+> **Ended 2026-10-18 (ANAL-222).** The owner installed `anal192e` on the G14's whole disk; testing now runs over adb from the build host (`docs/adb-debug.md`). This checklist is kept as the record of the `anal192d` session. A stick is still the tool for testing the installer itself, on a spare drive.
+
 Built on the coordinator's request (2026-10-18 07:55Z). It replaces `anal198`, which was written to the owner's stick at 20:25Z on 2026-10-17 and never booted. Evidence: `evidence/2026-10-18-stick-anal192d/SUMMARY.md`. Everything ran in QEMU/KVM + OVMF on image files, SELinux enforcing. **Nothing has run on the G14 yet.**
 
 - **Built from `main` `81578c1` plus PR #83's one commit,** as `7d9bc0a`. Its tree equals today's `main` (`13a020c`) apart from `docs/STATUS.md`.
@@ -1177,6 +1233,98 @@ Then plug the stick into the build host and reply **"stick attached" on ANAL-192
 | ANAL-208 (B7) | the browser photo, if taken |
 
 4. Then wake ANAL-159 (the coordinator) to merge the routed issues' PRs.
+
+### 13.13 The next stick: `openbook-live-20261018-anal192e` (2026-10-18, the 120 Hz fix)
+Built on the owner's request ("a new build that fixes 120 Hz … update the USB stick", 12:30Z). It replaces `anal192d`. Evidence: `evidence/2026-10-18-stick-anal192e/SUMMARY.md`. Everything ran in QEMU/KVM + OVMF on image files, SELinux enforcing. **Nothing has run on the G14 yet.**
+
+- **Built from `main` `cb6099a`** (clean checkout; the build, the snapshot and the graphics add-on in one lane-lock hold; 30 min 42 s). New in the product since `anal192d`:
+  - **#88 (ANAL-212): no 60 fps cap.** `config_defaultRefreshRate` 0 and `config_defaultPeakRefreshRate` 1000, Googlebook's values. On `anal192d` the G14 scanned out at 120 Hz but drew at most 60 frames a second.
+  - #85 (ANAL-211): the installer's bring-your-own-GApps step (advanced, off unless chosen).
+- **Not in it** (merged or opened after the build started):
+  - #97 (ANAL-198): the `mediaserver` memfd rule that lets MediaPlayer play under enforcing, and "save logs" collecting `amdgpu_firmware_info`. So Settings' sound previews may stay silent in the default (enforcing) boot, as on `anal192d`.
+  - Also merged after the build started: #100 (B8, OpenBook's first-run setup, which replaces Provision) and #101 (Wallpaper & style's preview crash). Still open: #104 (the installer's power check). The stick after this one carries them.
+- **Add-ons:** the power check, the ARM apps check, and the graphics check `openbook-gfxcheck-anal192e`, built from this product.
+- **sha256** `90631d0f5537cd36d7f52462cd8c8684ad3688072d9605e97ec4ac89a253f9c9`, and `8df3e31c…` before the add-ons.
+- **The owner's `anal192d` session** was copied read-only before this stick (`~/anybook/installer/g14/stick-20261018T123221Z/`): the default boot in `live-001/prior/`, "save logs" in `live-001`, the ARM apps check in `live-002`. It was routed to ANAL-176/178/179/191/198/200/202–208/212 and the coordinator; most have delivered (#91–#104).
+
+| Run on `anal192e` | Result |
+|---|---|
+| Live stick matrix (`live-qemu.sh`) | **40/40.** First boot `boot_completed` at 34.9 s during other agents' Cuttlefish builds; not a timing measurement |
+| **Refresh rate** (`refresh-qemu.sh`, #88's own check) | **3/3.** The config reads 0/1000 at runtime; DisplayModeDirector's primary render range goes up to 1000; Settings scrolling renders at the VM display's full 75 Hz in 12/12 samples (37.5 Hz on `anal211b`, under the old cap) |
+| Wizard (8 cases, with the firmware-entry and alongside cases) | **51/51** |
+| End to end (`e2e-qemu.sh`) | **79/79** |
+| Graphics check (`gfx-qemu.sh`, quick) | 6/6 steps; `blur` done in 46 s |
+| ARM apps check / power check | 5/5 verdicts / 14/14 and 10/10 steps |
+| SELinux denials | **None involve an OpenBook type** (266 records in the same 10 AOSP/test-shell groups) |
+| `write-stick.sh --dry-run` to the owner's SanDisk Ultra | passes; nothing written; 18 report files would be backed up (already copied, above) |
+
+**Write it** (on the build host; it backs up the stick's reports, then erases it):
+```bash
+cd ~/anybook/repo && OPENBOOK_WRITE_CONFIRM=/dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0 \
+  scripts/installer/write-stick.sh ~/anybook/installer/out/openbook-live-20261018-anal192e.img \
+  /dev/disk/by-id/usb-SanDisk_Ultra_<serial>-0:0
+```
+
+**The owner's checklist** (mains power, lid open, power on holding **Esc**, pick the stick). Nothing here writes to the laptop's disks.
+
+**Boot 1: "OpenBook"** (about 30 minutes)
+1. **120 Hz** (ANAL-212). On the desktop, scroll a long Settings page, drag a window around and move the pointer in circles: it should look clearly smoother than `anal192d`. Then turn on Battery Saver for a minute (it caps drawing at 60 again) and off.
+2. **Installer dry run** (ANAL-191; not saved last time):
+   - Language → Continue;
+   - Hardware check → **Save report to USB** → Continue;
+   - **Install OpenBook** → Continue;
+   - Disk: the internal NVMe → **View the plan**. Photograph it;
+   - **Back** → **Try OpenBook**. Never press Continue on the Disk screen.
+3. **The look**, if you didn't photograph it on `anal192d`: the desktop, All Apps (round icons), Settings in Google Sans, two overlapping windows (shadows), Quick Settings (frosted blur).
+4. **Sound:**
+   - Bluetooth headphones and a browser video (speakers and Bluetooth);
+   - wired headphones in and out;
+   - Settings → Sound previews. They may stay silent in this boot (#97 isn't on this stick); try again in boot 2.
+5. **Battery Saver on** (ANAL-178; not captured last time), and confirm the dialog. Then power off from the menu.
+
+**Boot 2: "OpenBook - save logs to this USB stick"** (about 12 minutes; powers off by itself).
+- **Use the touchpad for 20 s as soon as the desktop appears** (ANAL-178; not captured last time).
+- Play one Settings → Sound preview.
+- Then leave the laptop in a quiet room. The `refresh_rate` verdict (#88) is in this boot's report.
+
+**Boot 3: "OpenBook graphics check"** (about 40 minutes; no screen-lock PIN; powers off by itself; ANAL-177, ANAL-203). It didn't run on `anal192d`.
+
+**Not needed again:** the ARM apps check (done on `anal192d`, ANAL-200 #93). Its entry is still on the stick.
+
+**Optional:**
+- ANAL-211's dry run of the GApps step. It needs a second USB drive with `~/anybook/installer/gapps/packages/openbook-synthetic-gapps-x86_64-37.zip` (14 kB, sha256 `35241f7f…`, already built). Follow ANAL-211's comment on this issue, Part A only;
+- `linux-s2idle.py` on the laptop's Linux (ANAL-178).
+
+Then plug the stick into the build host and reply **"stick attached" on ANAL-192**, with the photos. The routing is as in §13.12; also ANAL-212 (the `refresh_rate` verdict and the render rates), and ANAL-211 if its dry run was done.
+
+### 13.14 Image updates over adb (ANAL-223, 2026-10-18)
+A full A/B update over adb onto an installed system, keeping `/data`. Built in §2.5; how to run it: `docs/adb-debug.md` §7. Evidence: `evidence/2026-10-18-ota/`, starting with `SUMMARY.md`.
+
+**The pieces:**
+- `scripts/ota/make-ota.sh LABEL` snapshots a build's target files and otatools under the lane lock and runs AOSP's `ota_from_target_files`. The result is a full package, with the payload signed by the build's key. Next to it: `LABEL.json` (tree, fingerprint, build date, size, sha256, vbmeta digest) and `LABEL.bootsync` (the build's `/vendor/bin/openbook-bootsync`). `--break-boot` makes a test-only package whose kernel cannot start, rebuilt and signed with AOSP's own `add_img_to_target_files`.
+- `scripts/g14-adb.sh ota PACKAGE` runs in order:
+  1. checks the package against its manifest and the device (product, downgrade, VAB, whole-disk install, update_engine idle, `/data` space, AC or at least 50 % battery);
+  2. asks for the device's address as confirmation (`--yes` skips it);
+  3. streams the package with AOSP's `update_device.py` over the adb connection and shows update_engine's progress;
+  4. on an image without bootsync, runs the package's copy once as root;
+  5. verifies that systemd-boot starts the new slot next;
+  6. prints the reboot and rollback steps.
+
+  `ota-status` and `ota-cancel` follow it up, and `state` records what an update must keep.
+- **Tests:**
+  - `scripts/ota/bootsync-test.sh`: host tests on a whole-disk install made by the engine.
+  - `scripts/ota/ota-qemu.py`: the rehearsal in QEMU/OVMF, with adb over QEMU's USB Ethernet (GKI `cdc_ether`) and the serial console on the installed entry.
+
+**Results (C):**
+
+| Run | Result |
+|---|---|
+| Host tests, the candidate's boot images in slot B | **56/56**. Refusals with the ESP unchanged (blank slot, a changed byte, another key, unsigned); activate, mark-good, rollback, re-update, B → A, cancel, disable; a stop after each write step boots |
+| QEMU, from `e2e-qemu.sh`'s whole-disk install of `anal192e` (the G14's image), package `openbook-ota-20261018-cand1` | **55/55.** `ab`: A → B with bootsync from the package, PIN, app, setting and file kept, no setup screen, merge done, ESP and `misc` agree. `ba`: B → A through the boot HAL. `rollback`: an unbootable B panics three times, then A starts by itself with `/data` intact; the good package then installs. `cut`: a power cut at 40 % leaves A booting; the re-run resumes and completes |
+| QEMU, from the G14's state after its update (slot B, the new boot HAL) | **23/23.** A broken update to slot A falls back to B after three tries, with `/data` intact, and the HAL sets `misc` to match; a power cut while slot A is written leaves B booting, and the re-run completes |
+| **The G14**, 2026-10-18 23:22–23:25Z, owner's go on ANAL-214 | Slot B written in **82 s** over Wi-Fi; boot completed 36 s after the reboot; `markBootSuccessful` renamed `openbook-b+2-1.conf` to `openbook-b.conf` (the firmware had written the counter); the merge finished 12 s after boot. Same user, packages, Settings, Wi-Fi networks, account and PIN; no crashes; no denial from the update path |
+
+**Not shown:** a slot that fails on the G14 itself (rollback was shown in QEMU), frame pacing after the update (the screen was static), and alongside installs.
 
 ## 14. App add-ons: microG (ANAL-210)
 

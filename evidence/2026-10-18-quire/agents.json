@@ -1,0 +1,158 @@
+[
+  {
+    "id": "claude",
+    "name": "Claude Code",
+    "binaries": [
+      "claude"
+    ],
+    "protocol": "claude-stream",
+    "checked": "2.1.301",
+    "note": "adapted: print mode, stream-json; resumes with --resume",
+    "path": "~/.local/share/mise/command-wrappers/bin/claude",
+    "version": "2.1.301 (Claude Code)",
+    "supported": true
+  },
+  {
+    "id": "opencode",
+    "name": "opencode",
+    "binaries": [
+      "opencode"
+    ],
+    "protocol": "acp",
+    "args": [
+      "acp"
+    ],
+    "checked": "2.0.31",
+    "path": "~/.local/share/mise/installs/opencode/latest/node_modules/.bin/opencode",
+    "version": "opencode v2.0.31",
+    "supported": true
+  },
+  {
+    "id": "copilot",
+    "name": "GitHub Copilot CLI",
+    "binaries": [
+      "copilot"
+    ],
+    "protocol": "acp",
+    "args": [
+      "--acp"
+    ],
+    "checked": "1.0.98",
+    "path": "~/.local/share/mise/installs/copilot/latest/copilot",
+    "version": "GitHub Copilot CLI 1.0.98.",
+    "supported": true
+  },
+  {
+    "id": "cursor",
+    "name": "Cursor Agent",
+    "binaries": [
+      "cursor-agent"
+    ],
+    "protocol": "acp",
+    "args": [
+      "acp"
+    ],
+    "checked": "2026.10.14",
+    "path": "~/.local/share/mise/installs/cursor-agent/latest/bin/cursor-agent",
+    "version": "2026.10.14-941492e",
+    "supported": true
+  },
+  {
+    "id": "kimi",
+    "name": "Kimi Code",
+    "binaries": [
+      "kimi"
+    ],
+    "protocol": "acp",
+    "args": [
+      "acp"
+    ],
+    "checked": "2.2.0",
+    "path": "~/.local/share/mise/shims/kimi",
+    "version": "2.2.0",
+    "supported": true
+  },
+  {
+    "id": "hermes",
+    "name": "Hermes Agent",
+    "binaries": [
+      "hermes"
+    ],
+    "protocol": "acp",
+    "args": [
+      "acp"
+    ],
+    "checked": "0.20.5",
+    "path": "~/.local/bin/hermes",
+    "version": "Hermes Agent v0.20.5 (2026.8.19) · upstream 0eb4f62a · local 987064ca (+1 carried commit)",
+    "supported": true
+  },
+  {
+    "id": "omp",
+    "name": "Oh My Pi",
+    "binaries": [
+      "omp"
+    ],
+    "protocol": "acp",
+    "args": [
+      "acp"
+    ],
+    "checked": "18.11.2",
+    "path": "~/.local/share/mise/installs/github-can1357-oh-my-pi/latest/omp",
+    "version": "omp/18.11.2",
+    "supported": true
+  },
+  {
+    "id": "grok",
+    "name": "Grok CLI",
+    "binaries": [
+      "grok"
+    ],
+    "protocol": "grok-headless",
+    "checked": "1.0.62",
+    "note": "no ACP server; headless --output-format streaming-json emits ACP session updates (adapter planned)",
+    "path": "~/.local/share/mise/command-wrappers/bin/grok",
+    "version": "grok 1.0.62 (1474f9cbdd91) [alpha]",
+    "supported": false
+  },
+  {
+    "id": "codex",
+    "name": "Codex CLI",
+    "binaries": [
+      "codex"
+    ],
+    "protocol": "codex-app-server",
+    "checked": "0.163.0",
+    "note": "speaks its own JSON-RPC (codex app-server); adapter planned",
+    "path": "~/.local/share/mise/command-wrappers/bin/codex",
+    "version": "codex-cli 0.163.0",
+    "supported": false
+  },
+  {
+    "id": "antigravity",
+    "name": "Antigravity CLI",
+    "binaries": [
+      "agy",
+      "antigravity"
+    ],
+    "protocol": "agy-stream",
+    "checked": "1.4.0",
+    "note": "print mode with stream-json; adapter planned",
+    "path": "~/.local/share/mise/installs/antigravity-cli/latest/agy",
+    "version": "1.4.0",
+    "supported": false
+  },
+  {
+    "id": "pi",
+    "name": "Pi",
+    "binaries": [
+      "pi"
+    ],
+    "protocol": "none",
+    "checked": "1.3.0",
+    "note": "no ACP or machine-readable stream found in --help",
+    "path": "~/.local/share/mise/installs/pi/latest/pi/pi",
+    "version": "1.3.0",
+    "supported": false
+  }
+]

@@ -1,0 +1,98 @@
+{
+ "disk": "whole.img",
+ "mbr": "protective",
+ "primary_valid": true,
+ "backup_valid": true,
+ "table_from": "primary",
+ "disk_guid": "296ED0BF-7488-4734-8297-A9D9FE405EB1",
+ "partitions": [
+  {
+   "index": 1,
+   "type": "C12A7328-F81F-11D2-BA4B-00A0C93EC93B",
+   "uuid": "7EB660DE-FA7A-47F2-A130-84B05DAAEACB",
+   "first": 2048,
+   "last": 534527,
+   "name": "EFI system partition",
+   "bytes": 272629760,
+   "digest": "dda6af5fab9989e10d4cd5aea35e7092a0db5933a2351950f87ded8d1ca773de",
+   "head_blank": false
+  },
+  {
+   "index": 2,
+   "type": "E3C9E316-0B5C-4DB8-817D-F92DF00215AE",
+   "uuid": "339E818D-1A5A-447E-84B9-EE65CD15DEFA",
+   "first": 534528,
+   "last": 567295,
+   "name": "Microsoft reserved partition",
+   "bytes": 16777216,
+   "digest": "441e96f11148c15c9e9a09814ae913ba736c8506cd992717a9e1505dc91dc1fb",
+   "head_blank": false
+  },
+  {
+   "index": 3,
+   "type": "EBD0A0A2-B9E5-4433-87C0-68B6B72699C7",
+   "uuid": "2A0B396F-CE59-4E7B-8375-BEB86A66B8D3",
+   "first": 567296,
+   "last": 134785023,
+   "name": "Basic data partition",
+   "bytes": 68719476736,
+   "digest": "52b5902b942f54c9f9dce5dcba2a3271928ee9a79342ec7db3510c36080335a0",
+   "head_blank": false
+  },
+  {
+   "index": 4,
+   "type": "DE94BBA4-06D1-4D40-A16A-BFD50179D6AC",
+   "uuid": "5A3B5F85-1A25-4427-A31C-A22542A517C6",
+   "first": 134785024,
+   "last": 136423423,
+   "name": "Recovery",
+   "bytes": 838860800,
+   "digest": "8ce2c5d67d1ec074c5d1d4231eaf823b0a000c593bffd7f1be0168b9c9828d02",
+   "head_blank": false
+  }
+ ],
+ "fat": {
+  "EFI system partition": {
+   "files": [
+    "EFI/BOOT/BOOTX64.EFI",
+    "EFI/Microsoft/Boot/BCD",
+    "EFI/Microsoft/Boot/bootmgfw.efi"
+   ],
+   "fsck": {
+    "rc": 0,
+    "out": [
+     "fsck.fat 4.2 (2021-01-31)",
+     "/home/hive/anybook/logs/installer/e2e-anal192e/inspect/cut-1.json.tmp: 8 files, 95/524252 clusters"
+    ]
+   },
+   "sha256": {
+    "EFI/BOOT/BOOTX64.EFI": "0c6af2b2043cad9e9481063eafdaab02304d902af24c8e0980afb059e6bb9a68",
+    "EFI/Microsoft/Boot/bootmgfw.efi": "0c6af2b2043cad9e9481063eafdaab02304d902af24c8e0980afb059e6bb9a68"
+   }
+  }
+ },
+ "fallback": [
+  "EFI system partition"
+ ],
+ "openbook_entry": [],
+ "plan_files_ok": 0,
+ "plan_files_bad": [
+  "openbook/a/kernel",
+  "openbook/a/vendor_ramdisk.img",
+  "openbook/a/ramdisk.img",
+  "openbook/a/bootconfig.img",
+  "loader/entries/openbook-a.conf",
+  "loader/loader.conf",
+  "EFI/OpenBook/systemd-bootx64.efi",
+  "EFI/BOOT/BOOTX64.EFI"
+ ],
+ "plan_table": false,
+ "ref_partitions": {
+  "EFI system partition": "unchanged",
+  "Microsoft reserved partition": "unchanged",
+  "Basic data partition": "unchanged",
+  "Recovery": "unchanged"
+ },
+ "ref_bytes": null,
+ "state": "old-table"
+}

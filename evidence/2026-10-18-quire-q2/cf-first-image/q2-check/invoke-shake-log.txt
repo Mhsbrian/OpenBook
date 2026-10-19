@@ -1,0 +1,3 @@
+--------- beginning of main
+10-18 14:48:26.182 I/Quire   ( 3112): assistant: ready
+10-18 14:49:33.818 I/Quire   ( 4104): q2-check shake 1792334973.531

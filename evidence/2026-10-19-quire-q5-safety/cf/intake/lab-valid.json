@@ -1,0 +1,20 @@
+[
+ {
+  "type": "text",
+  "text": "The person called Quire while looking at Settings. A screenshot of that window may follow."
+ },
+ {
+  "type": "image",
+  "mimeType": "image/jpeg",
+  "bytes": 10667,
+  "size": [
+   800,
+   600
+  ],
+  "file": "lab-valid-1.jpg"
+ },
+ {
+  "type": "text",
+  "text": "Checker: what do you see? (lab-valid)"
+ }
+]

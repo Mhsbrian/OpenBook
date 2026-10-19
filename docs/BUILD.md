@@ -1,5 +1,14 @@
 # Build and reproduce
 
+## G14 touchpad diagnostic replay (ANAL-226, 2026-10-19)
+
+`scripts/power/touchpad/build-replay.sh` builds an isolated host copy of the
+bundled gestures library and an offline event replay; it does not use the AOSP
+build lane or write the laptop. Commands, dependencies and limitations are in
+`docs/touchpad-behavior.md`. Eight synthetic control checks pass. Physical
+reproduction and a libinput runtime comparison remain required before an image
+change; no touchpad update image has been built.
+
 Everything here runs without host sudo. The tools that Arch's base system doesn't provide run in Docker containers. You need `/dev/kvm` accessible and your user in the `docker` group.
 
 ## G14 ARM native-service candidate (2026-10-19, ANAL-224)
@@ -310,6 +319,16 @@ scripts/g14-qemu.sh <img> <run> && scripts/g14-qemu.sh --again <run>   # two boo
 ```
 Details: `docs/g14-product.md`.
 
+## Bare metal: debugging the installed G14 over adb (ANAL-222)
+
+```bash
+scripts/g14-adb.sh find && scripts/g14-adb.sh connect     # mDNS finds "OpenBook on ..."; or OPENBOOK_G14_ADDR=<ip>
+scripts/g14-adb.sh capture [--hwtest] [--bugreport] [--redact OUT] [DEST]   # the "save logs" set, ~35 s
+scripts/g14-adb.sh logcat -b all                           # follow; resumes after a dropped link
+scripts/g14-adb.sh persist-logs on                         # keep logcat across boots (product default)
+```
+The G14 has no USB device mode, so adb is network-only, and it currently needs no authorization (`docs/adb-debug.md` §5). Details: `docs/adb-debug.md`.
+
 ## Bare metal: audio, Wi-Fi and Bluetooth on the G14 (ANAL-179)
 
 ```bash
@@ -336,6 +355,8 @@ scripts/power/power-check-qemu.sh openbook-powercheck-anal178-a vm     # QEMU: L
 scripts/power/power-check-qemu.sh openbook-powercheck-anal178-a real   # QEMU: the entry as shipped
 scripts/power/collect-qemu.sh a                                        # save-logs facts inside Android 17
 scripts/power/touchpad/touchpad-qemu.sh RUN [LIVE_IMAGE]               # the G14 touchpad on uhid: repeat frames, clock errors
+TP_MODE=palm scripts/power/touchpad/touchpad-qemu.sh RUN [LIVE_IMAGE]  # ... with palm lift-offs (or sticky: a 150 ms pause)
+scripts/power/touchpad/touchpad-logs-qemu.sh RUN [LIVE_IMAGE]          # the save-logs boot's touchpad capture (TOUCHPADEV)
 ```
 Owner steps (Linux comparison on the laptop, the add-on on the stick) and how to read the results: `docs/power-input.md`.
 
@@ -374,3 +395,84 @@ scripts/ui/doc-fonts-metrics.py --fonttools ~/anybook/aosp/src/external/fonttool
 ```
 - `aosp-build.sh` applies the `frameworks/base` patch (legacy `fonts.xml` only; the framework reads `font_fallback.xml`).
 - Details: `docs/googlebook-ui.md` §2.1.1; evidence `evidence/2026-10-17-doc-fonts/`.
+
+## Quire core: the agent layer's platform hooks (ANAL-216)
+```bash
+device/anybook/common/quire/tools/compile-check.sh   # Quire and its test helper, with the in-tree kotlinc (no Soong)
+# Build the Cuttlefish product plus the test helper under the lane lock, snapshot it, boot it on the AMD lane:
+#   evidence/2026-10-18-quire-q2/SUMMARY.md, "Reproduce"
+scripts/quire/q2-cf-check.py SERIAL OUT --probe QuireSecureProbe.apk   # invocation, computer control, refusals, health
+```
+- Quire is in both products through `desktop.mk` (`device/anybook/common/quire/quire.mk`).
+- It needs, besides its module: frameworks/base patches `0005`–`0007` and Launcher3 `0002` (`aosp-build.sh` applies them),
+  four aconfig flags in `release/openbook/cp2a/`, and the build flag `RELEASE_PACKAGE_COMPUTER_CONTROL`
+  (`release/flag_values/cp2a/`). Why: `docs/quire.md` §2.5.
+- `q2-cf-check.py` drives Quire through its root-only `LabActivity` alias, so it needs a userdebug build and `adb root`.
+
+### Quire's surface, the note (ANAL-219)
+```bash
+# Iterate on Quire without the AOSP lane: build the APK outside Soong (platform test key) and install it over the image's.
+device/anybook/common/quire/tools/build-apk.sh                       # -> /tmp/quire-dev-apk/OpenBookQuire.apk
+adb -s SERIAL install -r -d /tmp/quire-dev-apk/OpenBookQuire.apk
+# The checks: every design state in light and dark next to Q3's renders, keyboard, labels, Remove animations, frames,
+# health. They start scripts/quire/q5-acp-agent.py (scripted ACP agents) on this host and `adb reverse` to them.
+scripts/quire/q5-cf-check.py SERIAL OUT --design PATH/TO/docs/quire-design     # PR #98's renders
+scripts/quire/q5-cf-check.py SERIAL OUT --only states --themes dark --states control,stopped   # a subset
+scripts/quire/q5-cf-check.py SERIAL OUT --desk none ...          # nothing behind the note (Settings and Files hide it)
+# The safety regressions (ANAL-219, the Checker's three findings): protected windows, the consent dialog at 1920x1080 and
+# 1280x800, two agents with colliding session IDs, the payload an agent receives. Needs the image's QuireSecureProbe.apk.
+scripts/quire/q5-safety-check.py SERIAL OUT --probe QuireSecureProbe.apk
+# Host tests for the parts with no Android types (SessionRoutes, IntakePolicy): the tree's kotlinc and JDK, no device.
+device/anybook/common/quire/tools/unit-test.sh
+# Icons: cut Material Symbols to the note's set (fonts/README.md)
+device/anybook/common/quire/tools/subset-icons.py MaterialSymbolsRounded.ttf \
+  device/anybook/common/quire/app/res/font/quire_symbols.ttf device/anybook/common/quire/app/src/dev/openbook/quire/note/Icons.kt
+```
+- The image build is unchanged (`droid`, Quire is in `desktop.mk`). The halo and the pointer for contextual search are
+  frameworks/base `0008` (SystemUI), which `aosp-build.sh` applies with the others.
+- The note's lab commands (`note/LabReceiver.kt`) work on debuggable builds only, from root or the system.
+
+## Quire Q4: the Linux environment and quired serve (ANAL-218)
+```bash
+(cd quire/quired && go test -race ./...)                       # quired, serve included
+quire/linux-env/build-deb.sh OUT [amd64|arm64]                  # quired_<version>_<arch>.deb
+# The Debian guest, with AOSP's builder from the pinned tree (privileged Docker, ~3 min warm, ~10 GB):
+scripts/quire/linux-env-image.sh OUT [--test-agent opencode]   # OUT/images.tar.gz, image-info.txt, kernel_config
+scripts/quire/linux-env-qemu.sh OUT/images.tar.gz RUN [--prompt opencode "Reply with exactly: QUIRE OK"]
+# Cuttlefish with AVF (the build and boot commands are in evidence/2026-10-18-quire-q4/SUMMARY.md, "Reproduce"):
+scripts/quire/q4-cf-check.py SERIAL RUN --image OUT/images.tar.gz        # facts, off, install, guest, prompt, refuse
+scripts/quire/q4-cf-check.py SERIAL RUN --image OUT/images.tar.gz --only nokvm,health   # a boot without KVM
+# On the device itself (the G14 has no host): adb push or the stick, then as root
+sh q4-device-check.sh /sdcard/linux/images.tar.gz /data/local/tmp/q4 [PROMPT]
+```
+- AVF comes from `device/anybook/common/linux-env/linux-env.mk` (both products, through `desktop.mk`); the Terminal
+  app's agent bridge is `aosp/patches/packages/modules/Virtualization/0001` (`aosp-build.sh` applies it).
+- The image builder runs as root in a privileged container and uses loop devices. A desktop automounter (udiskie
+  here) mounts them on the host; the script unmounts the build's own while it runs.
+- Why each piece: `docs/quire.md` §4.1, §5.4; pairing a second computer is a design under review
+  (`docs/quire-pairing.md`).
+
+### Quire tool confirmation regressions
+
+```bash
+python3 device/anybook/common/quire/tools/policy-test.py
+```
+Uses the AOSP JDK and Kotlin compiler with host boundary fakes; no device, model or network. `QUIRE_POLICY_SOURCE` can point at an older tools directory for a negative control.
+
+## Headless video-buffer regression check (ANAL-210)
+
+`scripts/graphics/ahb-import-check.c` tests RGB, YV12 and flexible YUV420 imports
+through the installed EGL driver, including colour readback. It opens no window
+and does not launch Photos. Build with the NDK (API 37):
+
+```sh
+x86_64-linux-android37-clang -O2 -Wall -Wextra -Werror \
+  scripts/graphics/ahb-import-check.c -landroid -lEGL -lGLESv2 -o ahb-import-check
+adb -s <device> push ahb-import-check /data/local/tmp/
+adb -s <device> shell /data/local/tmp/ahb-import-check 384 640
+```
+
+Exit 0 means all three imports and pixel comparisons passed; 1 means a failed
+case; 2 means setup/argument failure. Optional dimensions must be even, 4–4096.
+Mesa patch 0005 is applied by `mesa-android-build.sh fetch`; rebuild and stage
+Mesa before building the OS image. Evidence: `evidence/2026-10-19-photos-yv12/`.

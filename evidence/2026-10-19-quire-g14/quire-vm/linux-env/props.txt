@@ -1,0 +1,7 @@
+[init.svc.vendor.openbook.kvm-check]: [stopped]
+[init.svc_debug_pid.vendor.openbook.kvm-check]: []
+[ro.boot.hypervisor.protected_vm.supported]: [0]
+[ro.boot.hypervisor.version]: [openbook-kvm]
+[ro.boot.hypervisor.vm.supported]: [1]
+[ro.boottime.vendor.openbook.kvm-check]: [2080988009]
+[vendor.openbook.kvm]: [1]

@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  Quire core (ANAL-216, docs/quire.md §4). Privileged permissions are listed in privapp-permissions-dev.openbook.quire.xml,
+  the default grant of POST_NOTIFICATIONS in default-permissions-dev.openbook.quire.xml.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="dev.openbook.quire">
+
+    <!-- Own computer-control sessions (internal|privileged; the platform also requires the assistant role and an entry
+         in its session owner allowlist). -->
+    <uses-permission android:name="android.permission.ACCESS_COMPUTER_CONTROL" />
+    <!-- The session's running notification; the platform refuses agents without it. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Start contextual search from the assistant session (Meta+Space, the assist key). -->
+    <uses-permission android:name="android.permission.ACCESS_CONTEXTUAL_SEARCH" />
+    <!-- The note (ANAL-219, docs/quire-design.md §3.1 Layer): an ordinary application overlay of Quire's own uid, so
+         it hides whenever a window asks the system to hide overlays. Only while a computer-control session runs is it
+         a *system* application overlay (signature permission), so the live mirror and Stop stay in view when the
+         driven app hides overlays; see note/NoteWindow.kt. -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.SYSTEM_APPLICATION_OVERLAY" />
+    <!-- ANAL-220: the note's window is a trusted overlay (signature): it covers the display without blocking the clicks
+         that pass through it beside the card, so it never has to move or resize, which made the note jump. It still
+         hides like any ordinary overlay when a window asks the system to hide overlays. -->
+    <uses-permission android:name="android.permission.INTERNAL_SYSTEM_WINDOW" />
+    <!-- Agents are reached over sockets: loopback on debuggable builds today (note/LabReceiver.kt), vsock and paired
+         computers later (Q4). -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Reach the agents in the Linux environment: the Terminal app relays the guest's quired (ANAL-218,
+         aosp/patches/packages/modules/Virtualization). signature|privileged; privapp-permissions grants it. -->
+    <uses-permission android:name="com.android.virtualization.terminal.permission.ACCESS_AGENT_BRIDGE" />
+    <!-- ANAL-225: Quire starts the Linux environment when called, so the Terminal app may start its foreground
+         service from the background (a 60 s exemption per start), and the note's Set up turns the Linux environment
+         on. Both signature|privileged; privapp-permissions lists them. -->
+    <uses-permission android:name="android.permission.CHANGE_DEVICE_IDLE_TEMP_WHITELIST" />
+    <uses-permission android:name="android.permission.CHANGE_COMPONENT_ENABLED_STATE" />
+
+    <!-- Q6 (ANAL-220): Quire's OS tools (tools/), which agents call and Quire core decides (docs/quire.md §4.2, §5.3).
+         Signature or privileged; the platform certificate grants them, privapp-permissions lists the privileged ones.
+         Apps and windows: start apps and pages from the background, see, focus, move, resize and close the person's
+         windows. -->
+    <uses-permission android:name="android.permission.START_ACTIVITIES_FROM_BACKGROUND" />
+    <uses-permission android:name="android.permission.REAL_GET_TASKS" />
+    <uses-permission android:name="android.permission.REORDER_TASKS" />
+    <uses-permission android:name="android.permission.MANAGE_ACTIVITY_TASKS" />
+    <uses-permission android:name="android.permission.REMOVE_TASKS" />
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+    <!-- Settings the person can change, through each one's own API (tools/SettingsTools.kt), with an undo log. -->
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
+    <uses-permission android:name="android.permission.MODIFY_DAY_NIGHT_MODE" />
+    <uses-permission android:name="android.permission.POWER_SAVER" />
+    <uses-permission android:name="android.permission.DEVICE_POWER" />
+    <uses-permission android:name="android.permission.CONTROL_DISPLAY_BRIGHTNESS" />
+    <uses-permission android:name="android.permission.CONTROL_DISPLAY_COLOR_TRANSFORMS" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.BLUETOOTH_PRIVILEGED" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.NETWORK_SETTINGS" />
+    <uses-permission android:name="android.permission.NETWORK_AIRPLANE_MODE" />
+    <!-- The person's files in shared storage; MediaProvider keeps every app's Android/data and Android/obb out, and
+         the tools refuse all of Android/ (tools/FileTools.kt). Files opens a document Quire grants it. -->
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.MANAGE_DOCUMENTS" />
+    <!-- The clipboard, read only when an agent's clipboard_read asks; the platform shows its "pasted" notice. -->
+    <uses-permission android:name="android.permission.READ_CLIPBOARD_IN_BACKGROUND" />
+    <!-- Notifications through Quire's own listener (granted by the framework overlay's default), and what plays. -->
+    <uses-permission android:name="android.permission.MANAGE_NOTIFICATION_LISTENERS" />
+    <uses-permission android:name="android.permission.MEDIA_CONTENT_CONTROL" />
+    <!-- read_screen: the assist structure, which the platform gives the assistant only with this (normal). -->
+    <uses-permission android:name="android.permission.READ_ASSIST_STRUCTURE_SCREEN_CONTENT" />
+
+    <!-- Names of the apps a session automates, for its notification and status. The Terminal app, to know whether
+         the Linux environment is there and on. -->
+    <queries>
+        <package android:name="com.android.virtualization.terminal" />
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
+
+    <application
+        android:name=".QuireApplication"
+        android:label="@string/app_name"
+        android:icon="@drawable/ic_quire"
+        android:theme="@style/Theme.Quire"
+        android:allowBackup="false"
+        android:supportsRtl="true"
+        android:resizeableActivity="true"
+        android:forceQueryable="true">
+
+        <!-- Quire's window for Q2: computer-control status, the live mirror of the session display, and the last
+             invocation. -->
+        <activity
+            android:name=".control.ControlActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:launchMode="singleTask">
+            <layout
+                android:defaultWidth="960dp"
+                android:defaultHeight="720dp"
+                android:gravity="center" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Scripted checks (scripts/quire/q2-cf-check.sh) send their commands here. Not exported: only root and the
+             system can start it, so no app can drive a session through Quire. -->
+        <activity-alias
+            android:name=".control.LabActivity"
+            android:targetActivity=".control.ControlActivity"
+            android:exported="false" />
+
+        <!-- Contextual search (config_defaultContextualSearchPackageName): ContextualSearchManagerService starts it
+             as the system with the screenshot, the visible packages and the entry point. Exported because Launcher3
+             checks that it resolves before it invokes contextual search; only callers that may start contextual
+             search themselves can start it directly. -->
+        <activity
+            android:name=".invocation.ContextualSearchActivity"
+            android:exported="true"
+            android:permission="android.permission.ACCESS_CONTEXTUAL_SEARCH"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTask"
+            android:taskAffinity="dev.openbook.quire.invocation"
+            android:noHistory="true"
+            android:theme="@android:style/Theme.NoDisplay">
+            <intent-filter>
+                <action android:name="android.app.contextualsearch.action.LAUNCH_CONTEXTUAL_SEARCH" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <!-- "Ask Quire" on a selection (docs/quire-design.md §2): listed in the text toolbar's overflow. Quire is
+             forceQueryable (above), or apps that target API 30+ without a <queries> entry wouldn't list it. -->
+        <activity
+            android:name=".invocation.ProcessTextActivity"
+            android:exported="true"
+            android:label="@string/ask_quire"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity="dev.openbook.quire.invocation"
+            android:theme="@android:style/Theme.NoDisplay">
+            <intent-filter>
+                <action android:name="android.intent.action.PROCESS_TEXT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
+
+        <!-- Save as a file (docs/quire-design.md §3.2): carries the Storage Access Framework picker's result for the
+             note, which is a window. Not exported. -->
+        <activity
+            android:name=".note.SaveActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:taskAffinity="dev.openbook.quire.save"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <!-- Beneath the platform's computer-control consent dialog, which hides overlays such as the note: Quire starts
+             the dialog from it, so the dialog is always above it, and the platform still sees a visible Quire window
+             when it checks after Allow. Inert (no touch, no focus), gone when the dialog is answered. Not exported. -->
+        <activity
+            android:name=".note.ConsentWaitActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:taskAffinity="dev.openbook.quire.consent"
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.Quire.ConsentWait" />
+
+        <!-- Scripted checks of the note (scripts/quire/q5-cf-check.py), debuggable builds only. Not exported: only root
+             and the system can reach it. -->
+        <receiver
+            android:name=".note.LabReceiver"
+            android:exported="false" />
+
+        <!-- The assistant role (config_defaultAssistant). -->
+        <service
+            android:name=".assist.QuireVoiceInteractionService"
+            android:exported="true"
+            android:permission="android.permission.BIND_VOICE_INTERACTION">
+            <meta-data
+                android:name="android.voice_interaction"
+                android:resource="@xml/quire_voice_interaction_service" />
+            <intent-filter>
+                <action android:name="android.service.voice.VoiceInteractionService" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".assist.QuireSessionService"
+            android:exported="true"
+            android:permission="android.permission.BIND_VOICE_INTERACTION" />
+
+        <!-- Q6: read_screen and take_screenshot ask the person with the platform's own dialog whether Quire may read the
+             screen (tools/ScreenConsentActivity.kt). Inert and transparent; not exported. -->
+        <activity
+            android:name=".tools.ScreenConsentActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:taskAffinity="dev.openbook.quire.consent.screen"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <!-- Q6: the notifications_list and notification_dismiss tools (tools/SystemTools.kt). -->
+        <service
+            android:name=".tools.QuireNotificationListener"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
+        <!-- Required by the assistant role; speech arrives with Q7 (ANAL-221). -->
+        <service
+            android:name=".assist.QuireRecognitionService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.speech.RecognitionService" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </service>
+    </application>
+</manifest>

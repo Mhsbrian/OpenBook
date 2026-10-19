@@ -587,13 +587,77 @@ Unchanged behaviour:
     stretches, adding up to 3.5 s.
   - `scripts/graphics/render-rate-timeline.py` measures a session from its persisted logcat, for boots without a
     dumpsys.
-- **On the G14, after:** `anal192e`. HYPOTHESIS until then: the dump shows `render=[0, 1000]`, `refresh_rate`
-  passes, and most screen-on time is at 120. Compare missed frames per minute too.
+- **On the G14, after #88** (installed `anal192e`): the dump shows `render=[0, 1000]`, `refresh_rate` passes,
+  and SurfaceFlinger runs at 120 Hz 100 % of the time. But frames reach the panel only every 16.7 ms: see "Second
+  cause" below.
 
 **Check a stick that predates the fix:** Developer options → "Force peak refresh rate" sets `min_refresh_rate` to
 infinity. That vote has priority 3 and conflicts with the default vote at priority 0, so DisplayModeDirector drops
 the default vote. The result is a constant 120 Hz render rate, with no lowering for idle content. Use it as a
 test only, not as the fix.
+
+### Second cause: every flip a full display update (2026-10-18, installed `anal192e`)
+
+With #88 installed, the owner still saw 60 Hz in apps and while moving windows, and testufo.com in Chrome reported
+60 fps. On the laptop, over adb (`evidence/2026-10-18-refresh-rate/g14-installed/`):
+
+- **The policy fix works.** The render range is [0, 1000], and SurfaceFlinger runs at 120 Hz 100 % of the time.
+- **Frames still reach the panel only every 16.7 ms.**
+  - SurfaceFlinger TimeStats, 8 s of testufo.com: 470 of 478 present intervals were 16 ms, and 477 of 480 frames
+    were counted as missed.
+  - RenderEngine needed only about 3 ms per frame (`timestats-chrome-ufo-8s.txt`). Settings scrolling looks the
+    same (315 of 315 intervals at 16 ms), so this is the whole system, not Chrome.
+- **Each flip lands two vblanks after its commit.**
+  - Perfetto: drm_hwcomposer commits about 2.2 ms after a vblank, but its present fence signals about 14 ms
+    later. SurfaceFlinger sees the previous frame still pending, skips a vsync, and draws every other one
+    (`perfetto-summary.txt`).
+  - Kernel probes on amdgpu (`kprobe-commit-path.txt`):
+    - Every flip goes through DC's `commit_planes_for_stream`. None of 36 went through
+      `commit_planes_for_stream_fast`.
+    - Each flip runs the bandwidth step (`dcn35_update_clocks`) and then sits for about 4 ms.
+    - It programs the flip only after the next vblank, so the flip latches one vblank late.
+- **Why every flip is a full update.**
+  - amdgpu logs "Disabling DRM plane" followed by "Enabling DRM plane" for every commit (`drm-atomic-debug.txt`).
+    `should_reset_plane()` returns true each frame, because the CRTC's `color_mgmt_changed` is set: "CRTC Degamma
+    changes currently require us to recreate planes".
+  - drm_hwcomposer passes the color matrix with every frame (the identity when there is none), and
+    `SetCtmIfNeeded()` registers a **new CTM blob for every commit**.
+  - The kernel counts any new CTM blob as a color-management change, even when the matrix is the same. Probes:
+    62 CTM blob replacements for 62 atomic checks, blob IDs cycling 520/521…527/528 (`kprobe-ctm-blobs.txt`).
+  - Googlebook avoids this: with `vendor.hwc.drm.enable_color_pipeline=true` drm_hwcomposer sets the CTM to 0
+    (no blob), which is not a change.
+- **Why it only shows now.** Before #88, SurfaceFlinger drew every other vblank anyway, which hid the late flips.
+- **Fix:** `aosp/patches/external/drm_hwcomposer/0001-OPENBOOK-drm-send-the-CTM-only-when-it-changes.patch`.
+  - drm_hwcomposer remembers the last committed matrix (`KmsState::ctm`) and leaves the CRTC's blob alone while
+    the matrix is unchanged.
+  - A failed or test-only commit doesn't update the cache.
+- **Shown on the laptop** (`evidence/2026-10-18-refresh-rate/g14-installed/SUMMARY.md`), same Settings scroll,
+  installed composer vs patched composer:
+
+  | | Installed | Patched |
+  |---|---|---|
+  | Present intervals (8 s) | 16 ms × 477 | **8 ms × 959** |
+  | Missed frames | 490 | **0** |
+  | DC update types (1.5 s) | full 91 | **fast 181** |
+  | Plane re-adds | 182 | **0** |
+  | New CTM blobs | 91 | **0** |
+
+  - The patched binary was built out of band from the G14 product's own compile and link rules. An unpatched
+    rebuild matches the installed binary section for section (`composer-build.txt`).
+  - It runs until the next reboot, through a tmpfs bind mount.
+  - It becomes permanent with the next image or network update built from `main` with the patch.
+- **Checks on the laptop:**
+  - `scripts/graphics/g14-flip-check.sh [--scroll]` gives TimeStats and probe counts: DC update types, plane
+    re-adds, new CTM blobs.
+  - `scripts/graphics/g14-composer-swap.sh BINARY|--revert` runs a composer build without a reinstall. It restarts
+    the UI, writes no partition, and undoes itself on reboot. If the new composer isn't running after 10 s, it
+    reverts on its own.
+  - Its first version bind-mounted from `/data`. `/data` is `nosuid`, so init couldn't enter the HAL's SELinux
+    domain, and the laptop rebooted once. The script now stages on a tmpfs mounted without `nosuid`.
+- **Separate, minor:** after an idle period, amdgpu allows DCN 3.5 idle optimizations
+  (`amdgpu_dm_ips_status`: idle optimization 1, IPS entry counts 0). DC then makes the first commit after idle a
+  full update too (`kprobe-idle-update-types.txt`). That costs one late frame when motion starts, not a steady
+  60 fps.
 
 ### Not done, in order of value
 
@@ -618,3 +682,18 @@ test only, not as the fix.
      with the experimental `amdgpu.freesync_video=1`) needs a front-porch stretch.
    - HYPOTHESIS, from reading `amdgpu_dm.c` (not measured): switching 120 → 60 is a full modeset with a visible
      blank.
+
+## YV12 frames restarting the desktop (2026-10-19, ANAL-210)
+
+On the G14's `quire9` image, Photos exposes a missing YV12 mapping in RADV's
+Android hardware-buffer properties. ANGLE rejects the EGLImage with 0x300c;
+SurfaceFlinger aborts in `GaneshBackendTexture`. This restarts the Android UI.
+The same failure reproduces with synthetic buffers without Photos or microG.
+
+`mesa/patches/upstream/0005-*` maps YV12 to Vulkan's three-plane 4:2:0 format.
+The existing Mesa layout importer swaps U/V offsets and preserves gralloc
+strides. The G14 passes 15/15 headless import-and-colour checks with the patch
+loaded only in a private mount namespace. No renderer switch, weakened fatal
+check, app data reset, or account change is required. See
+`evidence/2026-10-19-photos-yv12/SUMMARY.md` for crash excerpts and update state,
+and `docs/BUILD.md` for the reproducer. Full Photos use still needs an app check.

@@ -1,0 +1,18 @@
+PASS: labelled Send tap denied; confirmations=1 taps=0
+PASS: submission cannot bypass confirmation; confirmations=1 submissions=0
+PASS: unclassified coordinate tap requires confirmation; confirmations=1 taps=0
+PASS: ordinary draft typing stays automatic; confirmations=0 types=1
+PASS: direct adb change denied; confirmations=1 writes=0
+PASS: agent adb undo cannot bypass confirmation; confirmations=1 writes=0 value=off
+PASS: allowed submission dispatches once; confirmations=1 submissions=1
+PASS: allowed unclassified tap dispatches once; confirmations=1 taps=1
+PASS: unlabelled accessible target denied; confirmations=1 taps=0
+PASS: ordinary labelled tap stays automatic; confirmations=0 taps=1
+PASS: sensitive undo usb_debugging allow=false; confirmations=1 writes=0 value=off
+PASS: sensitive undo usb_debugging allow=true; confirmations=1 writes=1 value=on
+PASS: sensitive undo wireless_debugging allow=false; confirmations=1 writes=0 value=off
+PASS: sensitive undo wireless_debugging allow=true; confirmations=1 writes=1 value=on
+PASS: sensitive undo developer_options allow=false; confirmations=1 writes=0 value=off
+PASS: sensitive undo developer_options allow=true; confirmations=1 writes=1 value=on
+PASS: ordinary undo stays automatic; confirmations=0 writes=1
+17 pass, 0 fail (policy expectations, not compilation errors)

@@ -1,0 +1,9 @@
+no /dev/kvm on this boot	PASS	ls: /dev/kvm: No such file or directory
+the Linux environment cannot start without KVM	PASS	Result: Bundle[{state=error, message=the VM is not running: its crosvm exited (no KVM?)}]
+no KVM: Quire says the Linux environment can't be used and names the fallback	PASS	The Linux environment couldn’t be reached. (the VM is not running: its crosvm exited (no KVM?)) Quire can use the agents on another computer instead, but none is paired.
+crash buffer empty	PASS	0 lines; 
+no ANR	PASS	am_anr events: 0
+no SystemUI restart	PASS	pid at start 2668, now 2668
+no new SELinux denial outside AOSP's AVF and Cuttlefish's known three	PASS	16 distinct, 0 new
+AOSP AVF denials seen (the VM works with them)	INFO	12 lines: scontext=u:r:priv_app_all_virtualizationmanager:s0 tcontext=u:object_r:fuse:s0 tclass=file; scontext=u:r:priv_app_all_virtualizationmanager:s0 tcontext=u:object_r:gpu_device:s0 tclass=chr_file; scontext=u:r:priv_app_all_virtualizationmanager:s0 tcontext=u:r:surfaceflinger:s0 tclass=fd
+no denial for the Terminal app's bridge or Quire	PASS	

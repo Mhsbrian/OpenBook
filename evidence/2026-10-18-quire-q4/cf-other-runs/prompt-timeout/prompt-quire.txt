@@ -1,0 +1,3 @@
+q2-check prompt 1792353108.326
+10-18 19:51:48.307 I/Quire   ( 3152): lab: dev.openbook.quire.lab.AGENTS_PROMPT
+10-18 19:51:52.670 I/Quire   ( 3152): agents: session opencode-1 agent=opencode folder=/home/droid/Quire/2026-10-18-2017406627

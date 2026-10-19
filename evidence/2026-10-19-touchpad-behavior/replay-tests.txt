@@ -1,0 +1,13 @@
+test_converter_palm_and_missing_msc (__main__.ReplayTests.test_converter_palm_and_missing_msc) ... ok
+test_converter_rejects_incomplete_contact (__main__.ReplayTests.test_converter_rejects_incomplete_contact) ... ok
+test_converter_rejects_lost_events (__main__.ReplayTests.test_converter_rejects_lost_events) ... ok
+test_palm_does_not_tap (__main__.ReplayTests.test_palm_does_not_tap) ... ok
+test_scroll_staggered_fingers (__main__.ReplayTests.test_scroll_staggered_fingers) ... ok
+test_tap (__main__.ReplayTests.test_tap) ... ok
+test_tap_drag_setting_controls_held_button (__main__.ReplayTests.test_tap_drag_setting_controls_held_button) ... ok
+test_three_finger_swipe (__main__.ReplayTests.test_three_finger_swipe) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.027s
+
+OK

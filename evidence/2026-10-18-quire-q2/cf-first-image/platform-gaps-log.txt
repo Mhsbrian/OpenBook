@@ -1,0 +1,13 @@
+10-18 14:58:34.396   818  2599 I ComputerControlAllowlistController: isPackageAllowedToCreateSession: Is there any allowlist entry for dev.openbook.quire : true
+10-18 14:58:34.397   818  2599 I ComputerControlAllowlistController: isPackageAutomatable: Is there any allowlist entry for com.android.settings : true
+10-18 14:58:34.597  4583  4592 W Binder  : java.lang.NullPointerException: Attempt to read from field 'android.accessibilityservice.IAccessibilityServiceClient android.view.accessibility.AccessibilityDisplayProxy.mServiceClient' on a null object reference in method 'boolean android.view.accessibility.AccessibilityManager.registerDisplayProxy(android.view.accessibility.AccessibilityDisplayProxy)'
+10-18 14:58:34.597  4583  4592 W Binder  : 	at android.view.accessibility.AccessibilityManager.registerDisplayProxy(AccessibilityManager.java:2259)
+10-18 14:58:34.597  4583  4592 W Binder  : 	at android.companion.virtual.computercontrol.ComputerControlSession$CallbackProxy$1.registerDisplayProxy(ComputerControlSession.java:1156)
+10-18 14:58:34.607   818  2808 I ComputerControlAllowlistController: isPackageAutomatable: Is there any allowlist entry for com.android.settings : true
+10-18 14:58:57.259  3720  3720 I adbd    : adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d | grep -E 'Permission Denial: Cannot call startContextualSearch|ComputerControlAllowlistController|registerDisplayProxy|No Activity found to handle''
+# Copied from the terminal at 14:52 (the device's buffers were cleared with logcat -c before the dump above):
+10-18 14:52:05.105   818  3006 W Binder  : java.lang.SecurityException: Permission Denial: Cannot call startContextualSearch from pid=0, uid=10092
+10-18 14:52:05.105   818  3006 W Binder  : 	at com.android.server.contextualsearch.ContextualSearchManagerService.enforcePermission(ContextualSearchManagerService.java:466)
+10-18 14:54:14.188  3112  3112 E AndroidRuntime: android.content.ActivityNotFoundException: No Activity found to handle null
+10-18 14:54:14.188  3112  3112 E AndroidRuntime: 	at android.app.Activity.startIntentSender(Activity.java:6624)
+10-18 14:54:14.188  3112  3112 E AndroidRuntime: 	at dev.openbook.quire.control.ComputerControl$callback$1.onSessionPending(ComputerControl.kt:118)

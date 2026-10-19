@@ -1,0 +1,6 @@
+?   	github.com/Mhsbrian/OpenBook/quire/quired	[no test files]
+ok  	github.com/Mhsbrian/OpenBook/quire/quired/internal/acp	1.256s
+ok  	github.com/Mhsbrian/OpenBook/quire/quired/internal/agents	1.006s
+ok  	github.com/Mhsbrian/OpenBook/quire/quired/internal/harness	18.055s
+ok  	github.com/Mhsbrian/OpenBook/quire/quired/internal/serve	2.443s
+?   	github.com/Mhsbrian/OpenBook/quire/quired/internal/vsock	[no test files]

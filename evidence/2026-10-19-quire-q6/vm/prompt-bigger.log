@@ -1,0 +1,6 @@
+  3803  3803 I Quire   : acp[linux:opencode]: session tools=true skill files=3
+  3803  3803 I Quire   : note: task 3 session opencode-3 with linux:opencode
+  3803  3803 I Quire   : note: task 3 prompt (2 blocks)
+  3803  5813 I Quire   : tools: change text_size recorded (6 kept)
+  3803  5813 I Quire   : tools: change_setting tier=ACT -> ok in 1 ms "Text size: 130%"
+  3803  3803 I Quire   : note: task 3 ended stopReason=end_turn confirmed=true

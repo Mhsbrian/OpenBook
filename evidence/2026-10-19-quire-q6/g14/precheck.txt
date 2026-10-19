@@ -1,0 +1,10 @@
+OTA of 192.168.50.11:5555 with /home/hive/anybook/ota/out/openbook-ota-20261019-quire6.zip, 2026-10-19T14:04:57Z; log: /home/hive/anybook/installer/g14/ota-20261019T140457Z/ota.log
+
+device    192.168.50.11:5555: OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.quire5:userdebug/test-keys
+          slot b, vbmeta 4aa4ffa21882d186bad6fecba48cc9128568a4e1d9b46b842314b04dda8c195d, installed=whole, virtual A/B true
+package   openbook-ota-20261019-quire6 (994 MB): OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.quire6:userdebug/test-keys
+          tree 653161d+7a9f45b (PR #115, ANAL-220 Q6 on #113's quire5 tree 1a061aa): OpenBook's skill and OS tools, vbmeta 950ca34bd646fd23d3543bdebb1048828069823608ff65a3074211a24a567a0f
+update    slot b -> slot a; /data and slot b are kept; slot b stays the fallback until slot a boots
+bootsync  on the device: the boot HAL moves the loader entry
+checks    passed
+dry run: nothing written

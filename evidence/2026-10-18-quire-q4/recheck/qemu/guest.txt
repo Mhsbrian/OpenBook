@@ -1,0 +1,26 @@
+### $ systemctl is-active quired.service
+active
+### exit 0
+### $ quired version
+$ quired 0.2.1
+### exit 0
+### $ quired agents
+$ AGENT     NAME      VERSION  PROTOCOL  STATE
+opencode  opencode  1.19.3   acp       ready
+### exit 0
+### $ sudo modprobe vsock_loopback; timeout 5 socat -u /dev/null VSOCK-CONNECT:1:7690; echo socat=$?
+$ socat=0
+### exit 0
+### $ journalctl -u quired.service -b --no-pager -o short-monotonic | tail -20
+$ Hint: You are currently not seeing messages from other users and the system.
+      Users in groups 'adm', 'systemd-journal' can see all messages.
+      Pass -q to turn off this notice.
+[    4.875079] localhost quired[803]: 2026/10/18 23:53:53.871890 serve: listening on vsock port 7690 (peers: the host only)
+[    5.329495] localhost quired[803]: 2026/10/18 23:53:54.327652 vsock:2:1592742129: connected
+[    6.426172] localhost quired[803]: 2026/10/18 23:53:55.424320 vsock:2:1592742129: closed (0 sessions)
+[    8.367436] localhost quired[803]: 2026/10/18 23:53:57.365569 serve: refused vsock:1:379463682 (not the host)
+### exit 0
+### $ systemd-analyze
+$ Startup finished in 1.763s (kernel) + 3.762s (userspace) = 5.525s 
+graphical.target reached after 3.150s in userspace.
+### exit 0

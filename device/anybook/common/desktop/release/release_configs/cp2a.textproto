@@ -1,5 +1,6 @@
 # Adds AnyBook's desktop flag values to the core cp2a (Android 17) release config: the set generated from the
 # reference image, then OpenBook's own picks (release/openbook/).
+# Build flag values (RELEASE_*) are in ../flag_values/cp2a/, which the release config tool reads by itself.
 name: "cp2a"
 aconfig_value_sets: "aconfig_value_set-anybook_desktop-cp2a"
 aconfig_value_sets: "aconfig_value_set-openbook_desktop-cp2a"

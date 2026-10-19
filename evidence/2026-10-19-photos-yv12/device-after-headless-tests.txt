@@ -1,0 +1,6 @@
+Mon Oct 19 16:08:26 UTC 2026
+anybook_g14_x86_64-userdebug 17 CP2A.260605.016 20261019.quire9 test-keys
+2838.00 66962.99
+11384 11555
+64ca20e147f6b2bf9d694ee1425a4402e733c5df8b09ffb7db29afe142e18e3e  /vendor/lib64/hw/vulkan.radv.so
+0

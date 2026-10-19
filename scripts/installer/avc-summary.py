@@ -6,7 +6,8 @@
 The save-logs entries boot permissive, and their log helper runs in the kernel domain, so the raw counts
 (live-report.py's avc_denials) are mostly the helper. This separates:
   helper      scontext kernel from the helper's own processes (openbook-live-init and the shell tools it runs, or
-              service lookups by uid 0): expected, never in a normal boot
+              service lookups by uid 0): expected, never in a normal boot. In a capture over adb (summary.json
+              "source": "adb"), scontext shell, su and adbd: the adb session's own commands
   kernel      scontext kernel from anything else (modprobe, kworkers: firmware loads). These are real: the enforcing
               entries block them too (ANAL-176: amdgpu's firmware_load)
   induced     tcontext kernel, or vfat: Android services answering the helper (dumpsys, screencap, getprop), or
@@ -38,7 +39,10 @@ HELPER_COMMS = {"openbook-live-i", "sh", "toolbox", "toybox", "getprop", "logcat
                 "df", "ps", "date", "grep", "head", "ip", "cmd", "service", "pm", "readlink", "tar", "gzip", "tail"}
 
 
-def classify(scon, tcon, tclass="", comm=None):
+def classify(scon, tcon, tclass="", comm=None, adb=False):
+    # A capture over adb (scripts/g14-adb.sh, summary.json "source": "adb"): the helper is the adb session itself.
+    if adb and scon in ("shell", "su", "adbd"):
+        return "helper"
     if scon == "kernel":
         # Service lookups and binder calls by uid 0 carry no comm: the helper's dumpsys/cmd.
         if comm is None or comm in HELPER_COMMS or tclass in ("service_manager", "binder"):
@@ -56,6 +60,10 @@ def main():
     ap.add_argument("--md")
     a = ap.parse_args()
     d = a.live_dir
+    try:
+        adb = json.load(open(os.path.join(d, "summary.json"))).get("source") == "adb"
+    except (OSError, ValueError):
+        adb = False
     counts = {"dmesg": collections.Counter(), "logcat": collections.Counter()}
     tuples = collections.defaultdict(lambda: {"perms": set(), "paths": set(), "sources": set()})
     for src, files in (("dmesg", ["dmesg.txt"]), ("logcat", ["logcat-early.txt", "logcat-final.txt"])):
@@ -66,7 +74,7 @@ def main():
                     continue
                 perms, scon, tcon, tclass = m.groups()
                 cm = re.search(r' comm="([^"]*)"', line)
-                kind = classify(scon, tcon, tclass, cm.group(1) if cm else None)
+                kind = classify(scon, tcon, tclass, cm.group(1) if cm else None, adb)
                 counts[src][kind] += 1
                 if kind not in ("android", "kernel"):
                     continue

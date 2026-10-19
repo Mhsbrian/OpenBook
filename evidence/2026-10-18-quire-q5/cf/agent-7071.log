@@ -1,0 +1,12 @@
+16:37:16 7071 listen {"port": 7071, "name": "Cursor", "auth": true}
+16:41:17 7071 <- {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": 1, "clientCapabilities": {"fs": {"readTextFile": false, "writeTextFile": false}, "terminal": false}, "clientInfo": {"name": "quire", "title": "Quire", "version": "0.5"}}}
+16:41:17 7071 -> {"jsonrpc": "2.0", "id": 1, "result": {"protocolVersion": 1, "agentCapabilities": {"loadSession": false, "promptCapabilities": {"image": true, "audio": false, "embeddedContext": false}}, "authMethods": [{"id": "browser", "name": "Sign in with the browser", "description": "cursor-agent login"}, {"id": "api-key", "name": "Use an API key", "description": "stays in Cursor"}], "agentInfo": {"name": "cu…
+16:41:17 7071 <- {"jsonrpc": "2.0", "id": 2, "method": "session/new", "params": {"cwd": "/home/brian", "mcpServers": []}}
+16:41:17 7071 -> {"jsonrpc": "2.0", "id": 2, "error": {"code": -32000, "message": "Authentication required"}}
+16:43:07 7071 listen {"port": 7071, "name": "Cursor", "auth": true}
+16:47:03 7071 <- {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": 1, "clientCapabilities": {"fs": {"readTextFile": false, "writeTextFile": false}, "terminal": false}, "clientInfo": {"name": "quire", "title": "Quire", "version": "0.5"}}}
+16:47:03 7071 -> {"jsonrpc": "2.0", "id": 1, "result": {"protocolVersion": 1, "agentCapabilities": {"loadSession": false, "promptCapabilities": {"image": true, "audio": false, "embeddedContext": false}}, "authMethods": [{"id": "browser", "name": "Sign in with the browser", "description": "cursor-agent login"}, {"id": "api-key", "name": "Use an API key", "description": "stays in Cursor"}], "agentInfo": {"name": "cu…
+16:47:04 7071 <- {"jsonrpc": "2.0", "id": 2, "method": "session/new", "params": {"cwd": "/home/brian", "mcpServers": []}}
+16:47:04 7071 -> {"jsonrpc": "2.0", "id": 2, "error": {"code": -32000, "message": "Authentication required"}}
+16:48:53 7071 listen {"port": 7071, "name": "Cursor", "auth": true}
+16:52:12 7071 listen {"port": 7071, "name": "Cursor", "auth": true}
