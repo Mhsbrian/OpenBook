@@ -1,0 +1,4 @@
+[hypervisor.memory_reclaim.supported]: [1]
+[ro.boot.hypervisor.protected_vm.supported]: [0]
+[ro.boot.hypervisor.version]: [cf-crosvm]
+[ro.boot.hypervisor.vm.supported]: [1]

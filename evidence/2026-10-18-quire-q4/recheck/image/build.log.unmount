@@ -1,0 +1,4 @@
+19:53:09 unmount /dev/loop0p1 (/run/media/hive/96948a1b-36c7-4beb-bf27-466a8a8ce873; backing ~/anybook/quire/linux-env/work/debian_cloud_image/disk.raw)
+Unmounted /dev/loop0p1.
+19:53:10 unmount /dev/loop0 (/run/media/hive/96948a1b-36c7-4beb-bf27-466a8a8ce873; backing ~/anybook/quire/linux-env/work/root_part)
+Unmounted /dev/loop0.

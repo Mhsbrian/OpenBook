@@ -1,0 +1,12 @@
+virtualization=22f1c9ee92b1
+build_id=openbook_x86_64-26101823-Sun Oct 18 23:52:28 UTC 2026
+kernel=6.12.113+deb13-cloud-amd64
+quired_deb=quired_0.2.1_amd64.deb 0c7bcc83e5a369735af8fab3d5d0c5fc0089c66d42a4f8ef5306d08111ac4927
+test_agent=opencode
+images.tar.gz=1e0efa0fe6de8fbd2e031d9c6738ad17f690aa89d1c9eda9a0486cf96f3aad20 821177609 bytes
+CONFIG_VIRTIO_VSOCKETS=m
+CONFIG_VIRTIO_FS=y
+CONFIG_VIRTIO_BLK=m
+CONFIG_VIRTIO_NET=m
+CONFIG_SERIAL_8250=y
+CONFIG_DRM_VIRTIO_GPU not set
