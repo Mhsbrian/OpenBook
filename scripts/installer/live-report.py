@@ -136,11 +136,29 @@ MAC = re.compile(r"\b(?!00:00:00:00:00:00|ff:ff:ff:ff:ff:ff)([0-9a-fA-F]{2}:){5}
 SERIAL = re.compile(r"(SerialNumber: |iSerial\s+\d+\s+|usb-[A-Za-z0-9_]+_|mfg/product/ver/serial [^/\s]*/[^/\s]*/[^/\s]*/)"
                     r"([A-Za-z0-9]{6,})")
 SSID = re.compile(r'(\b(?:SSID|ssid)\b[\s:=]*)("[^"]*"|[^\s,}"]+)')
+# Wireless debugging's six-digit pairing code, which AdbDebuggingManager logs while the pairing dialog is open
+# (ANAL-222: the installed G14's logcat).
+PAIRCODE = re.compile(r"(updateUIPairCode: |[Pp]airing code[:= ]+)(\d{6})\b")
 
 
-def redact(text):
+# Wi-Fi network names, learned from the logs themselves so every other spelling is masked too: the installed
+# system's Wi-Fi logs also name networks bare, its own and the neighbours' it scanned ("summary=NAME",
+# WifiPickerTracker's "[StandardWifiEntry][NAME]", WifiNetworkSelector's "NAME:<bssid>(5GHz)"; ANAL-222).
+SSID_NAME = re.compile(r'\b(?:SSID|ssid)\b[\s:=]*"([^"]{2,32})"|Wifi is connected to "([^"]{2,32})"|'
+                       r"\[\w*WifiEntry\]\[([^\]\n]{2,32})\]|(?:: | / )([^/:\n]{2,32}):[0-9a-fA-F]{2}(?::[0-9a-fA-F]{2}){5}\(")
+
+
+def ssid_names(text):
+    return {n for m in SSID_NAME.finditer(text) for n in m.groups() if n and n not in ("<unknown ssid>", "[redacted]")}
+
+
+def redact(text, names=()):
+    names = set(names) | ssid_names(text)
     text = MAC.sub("xx:xx:xx:xx:xx:xx", text)
     text = SERIAL.sub(lambda m: m.group(1) + "[redacted]", text)
+    text = PAIRCODE.sub(lambda m: m.group(1) + "[redacted]", text)
+    for n in sorted(names, key=len, reverse=True):
+        text = re.sub(r"(?<![\w-])" + re.escape(n) + r"(?![\w-])", "[redacted]", text)
     return SSID.sub(lambda m: m.group(1) + ('"[redacted]"' if m.group(2).startswith('"') else "[redacted]"), text)
 
 
@@ -414,6 +432,10 @@ def main():
     print("\n".join(lines))
     if a.redact:
         os.makedirs(a.redact, exist_ok=True)
+        names = set()
+        for f in sorted(os.listdir(d)):
+            if f.endswith((".txt", ".json", ".md")) and os.path.isfile(f"{d}/{f}"):
+                names |= ssid_names(open(f"{d}/{f}", errors="replace").read())
         for f in sorted(os.listdir(d)):
             src, dst = f"{d}/{f}", f"{a.redact}/{f}"
             # Earlier boots' logs (prior-boots.tar.gz, unpacked into prior/ by read-stick-logs.sh) are not masked
@@ -421,7 +443,7 @@ def main():
             if os.path.isdir(src) or f.endswith(".tar.gz"):
                 print(f"not copied to {a.redact}: {f} (use --redact-file on single files)", file=sys.stderr)
             elif f.endswith((".txt", ".json", ".md")):
-                open(dst, "w").write(redact(open(src, errors="replace").read()))
+                open(dst, "w").write(redact(open(src, errors="replace").read(), names))
             else:
                 shutil.copy(src, dst)
 
