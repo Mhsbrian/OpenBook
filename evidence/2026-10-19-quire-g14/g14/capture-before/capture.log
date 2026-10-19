@@ -1,0 +1,5 @@
+capture of 192.168.50.11:5555 into /home/hive/anybook/installer/g14/ota-g14-20261019T0545Z/capture-before, 2026-10-19T05:45:53Z
+system facts (live-init.c COLLECT, about 30 s)
+logcat, kernel log, screen
+earlier boots: /data/misc/logd, tombstones, anr, dropbox
+

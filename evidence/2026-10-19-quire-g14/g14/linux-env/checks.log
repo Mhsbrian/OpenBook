@@ -1,0 +1,25 @@
+10:43:22 == kvm
+10:43:22 INFO CPU svm flag (cores): 24
+10:43:22 PASS KVM registered its device: 10:232
+10:43:22 PASS /dev/kvm: crw-rw-rw- 1 root root 10, 232 2026-10-19 10:35 /dev/kvm
+10:43:22 PASS kvm_amd loaded: nested=1 npt=Y; log: [    0.081515] x86/fpu: Supporting XSAVE feature 0x1000: 'Control-flow Kernel registers (KVM only)' [    0.541310] kvm_intel: VMX not supported by CPU 1 
+10:43:22 INFO properties: [init.svc.vendor.openbook.kvm-check]: [stopped] [init.svc_debug_pid.vendor.openbook.kvm-check]: [] [ro.boot.hypervisor.protected_vm.supported]: [0] [ro.boot.hypervisor.version]: [openbook-kvm] [ro.boot.hypervisor.vm.supported]: [1] [ro.boottime.vendor.openbook.kvm-check]: [4181125390] [vendor.openbook.kvm]: [1] 
+10:43:22 == avf
+10:43:22 PASS feature android.software.virtualization_framework: 
+10:43:22 PASS crosvm and virtmgr: 
+10:43:22 PASS Terminal app installed: 1 disabled
+10:43:22 PASS Quire holds ACCESS_AGENT_BRIDGE: 
+10:43:22 == install
+10:43:22 PASS Android has internet: its own network
+10:43:22 PASS image in place: -rw-rw---- 1 u0_a112 media_rw 821177609 2026-10-18 23:53 /sdcard/linux/images.tar.gz
+10:43:42 PASS Terminal installs the image: by itself (running)
+10:43:43 PASS Linux environment running: state=running after 21 s
+10:43:43 == guest
+10:43:46 PASS Quire core lists the agents in the guest: agent opencode version="1.19.3" supported=true;
+10:43:46 INFO VM start -> Quire connected to quired (s): 7.6
+10:43:46 == terminal
+10:44:02 INFO quired agents and systemd-analyze in the Terminal app (screenshot): terminal.png
+10:44:02 == prompt
+10:44:19 PASS a prompt from Quire core is answered in the guest: 10-19 10:44:18.615 I/Quire   ( 2124): agents: answer opencode-1 stop=end_turn ms=12699 text="QUIRE OK"
+10:44:19 INFO SELinux denials (distinct): 51
+10:44:19 == 0 failure(s)

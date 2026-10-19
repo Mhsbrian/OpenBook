@@ -29,6 +29,8 @@ class AcpConnection(
     private val output: OutputStream,
     private val handler: Handler,
     private val name: String,
+    /** The stream's owner, when [input] and [output] don't end a blocked read by closing (Link). */
+    private val transport: Link? = null,
 ) : Closeable {
     interface Handler {
         /** A notification from the peer, on the reader thread, in order. */
@@ -66,8 +68,10 @@ class AcpConnection(
     private val pending = ConcurrentHashMap<Long, (Result<Any?>) -> Unit>()
     private val nextId = AtomicLong(1)
     private val closed = AtomicBoolean(false)
+    private val started = AtomicBoolean(false)
 
     fun start() {
+        started.set(true)
         Thread({ readLoop() }, "acp-read-$name").start()
     }
 
@@ -121,6 +125,9 @@ class AcpConnection(
             if (!closed.get()) error = e
         }
         shutdown(error)
+        // The transport is released here, after the last read, on end of stream, an error or close(): never while a
+        // read may still use its descriptor, whose number the system may give to the next file opened.
+        transport?.close()
     }
 
     private fun dispatch(message: JSONObject) {
@@ -166,6 +173,10 @@ class AcpConnection(
 
     override fun close() {
         shutdown(null)
+        // Before waiting for the reader: a read blocked on a stream that doesn't own its descriptor ends only when the
+        // transport is shut down, and reader.close() waits for that read. The reader thread then releases it.
+        transport?.shutdown()
+        if (!started.get()) transport?.close()
         try {
             reader.close()
         } catch (e: IOException) {

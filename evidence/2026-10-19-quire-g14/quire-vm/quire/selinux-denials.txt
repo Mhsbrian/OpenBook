@@ -1,0 +1,4 @@
+      3 avc: denied  { read write } for  path=2F6D656D66643A4D656D6F72794865617042617365202864656C6574656429 dev="tmpfs" scontext=u:r:system_server:s0 tcontext=u:object_r:audioserver_tmpfs:s0 tclass=file permissive=0
+      2 avc: denied  { read write } for  comm="binder:518_5" path=2F6D656D66643A4D656D6F72794865617042617365202864656C6574656429 dev="tmpfs" scontext=u:r:system_server:s0 tcontext=u:object_r:audioserver_tmpfs:s0 tclass=file permissive=0
+      1 avc: denied/avc: denied/; s/ pid=[0-9]+//; s/ ino=[0-9]+//' | sort | uniq -c | sort -rn'
+      1 avc: denied  { read write } for  comm="audioserver" path=2F6D656D66643A4D656D6F72794865617042617365202864656C6574656429 dev="tmpfs" scontext=u:r:system_server:s0 tcontext=u:object_r:audioserver_tmpfs:s0 tclass=file permissive=0

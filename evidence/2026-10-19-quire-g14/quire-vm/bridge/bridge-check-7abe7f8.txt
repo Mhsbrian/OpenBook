@@ -1,0 +1,51 @@
+PASS discovery adds entry
+PASS discovery does not connect or choose default
+PASS rediscovery preserves explicit choice and entry identity
+PASS agent metadata comes from describe
+PASS no filesystem or terminal capability
+PASS describe names selected agent
+PASS no prompt or session before explicit request
+PASS newSession response decoded
+PASS newSession routes alpha with server-created cwd
+PASS authenticate routes alpha
+PASS cancel retains session id
+FAIL idle bridge close returns within 1.5 seconds
+close thread state=BLOCKED
+  java.io.BufferedReader.close(BufferedReader.java:535)
+  dev.openbook.quire.acp.AcpConnection.close(AcpConnection.kt:170)
+  dev.openbook.quire.acp.AcpAgent.close(AcpAgent.kt:231)
+  checker.BridgeCheckKt.main$lambda$5(BridgeCheck.kt:140)
+  checker.BridgeCheckKt$3.invoke(D8$$SyntheticClass:0)
+  kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+reader acp-read-linux:alpha RUNNABLE
+  libcore.io.Linux.readBytes(Native Method)
+  libcore.io.Linux.read(Linux.java:232)
+  libcore.io.ForwardingOs.read(ForwardingOs.java:629)
+  libcore.io.BlockGuardOs.read(BlockGuardOs.java:325)
+  libcore.io.IoBridge.read(IoBridge.java:604)
+  java.io.FileInputStream.read(FileInputStream.java:353)
+  sun.nio.cs.StreamDecoder.readBytes(StreamDecoder.java:309)
+  sun.nio.cs.StreamDecoder.implRead(StreamDecoder.java:373)
+  sun.nio.cs.StreamDecoder.read(StreamDecoder.java:183)
+  java.io.InputStreamReader.read(InputStreamReader.java:177)
+  java.io.BufferedReader.fill(BufferedReader.java:172)
+  java.io.BufferedReader.readLine(BufferedReader.java:337)
+  java.io.BufferedReader.readLine(BufferedReader.java:403)
+  dev.openbook.quire.acp.AcpConnection.readLoop(AcpConnection.kt:110)
+  dev.openbook.quire.acp.AcpConnection.start$lambda$1(AcpConnection.kt:71)
+  dev.openbook.quire.acp.AcpConnection$0.run(D8$$SyntheticClass:0)
+  java.lang.Thread.run(Thread.java:1572)
+PASS shutdown releases blocked close
+PASS rejects server version
+PASS bad server version never starts agent
+peer ended: InterruptedIOException
+PASS a rejected connect (server version) releases the bridge descriptor
+PASS rejects agent version
+PASS a rejected connect (agent version) releases the bridge descriptor
+PASS rejects describe error
+PASS a rejected connect (describe error) releases the bridge descriptor
+peer ended: InterruptedIOException
+PASS remote EOF notifies the client
+FAIL remote EOF closes the owned bridge descriptor
+PASS stopped environment fails before opening and explains why
+RESULT 21 passed, 2 failed

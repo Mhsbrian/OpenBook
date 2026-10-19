@@ -1,0 +1,12 @@
+{
+ "schema": "openbook-avc-summary/1",
+ "dir": "capture-before",
+ "dmesg": {},
+ "logcat": {
+  "helper": 11
+ },
+ "dmesg_lines": 0,
+ "tuples": 0,
+ "tuples_without_flags_health_check": 0,
+ "denials": []
+}

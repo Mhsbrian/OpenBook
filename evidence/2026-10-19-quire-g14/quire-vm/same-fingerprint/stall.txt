@@ -1,0 +1,16 @@
+# AVF's system service and the VM's network after an update, in the rehearsal VM (2026-10-19), from each run's logcat
+
+## quire1: fingerprint .../eng.builde, the same as the running build's
+10-19 04:34:40.637 D/SystemServerTiming(  687): startApexServices
+10-19 04:34:40.638 V/SystemServerTiming(  687): startApexServices took to complete: 1ms
+10-19 04:36:23.882 I/servicemanager(  348): Caller(pid=1938,uid=1000,sid=u:r:virtualizationservice:s0) Since 'android.system.vmtethering.IVmTethering' could not be found trying to start it as a lazy AIDL service. (if it's not configured to be a lazy service, i
+10-19 04:36:23.883 E/init    (    1): Control message: Could not find 'aidl/android.system.vmtethering.IVmTethering' for ctl.interface_start from pid: 348 (/system/bin/servicemanager)
+10-19 04:36:23.883 I/servicemanager( 2655): Caller(pid=1938,uid=1000,sid=u:r:virtualizationservice:s0) Tried to start aidl service android.system.vmtethering.IVmTethering as a lazy service, but was unable to. Usually this happens when a service is not installe
+... 1679 such lookups in the run; the Linux environment stayed 'starting' (results.tsv)
+
+## quire2: fingerprint .../20261019.quire2
+10-19 05:25:12.600 D/SystemServerTiming(  671): startApexServices
+10-19 05:25:12.601 D/SystemServerTiming(  671): starting com.android.system.virtualmachine.VirtualizationSystemService
+10-19 05:25:12.601 I/SystemServiceManager(  671): Starting com.android.system.virtualmachine.VirtualizationSystemService
+10-19 05:25:12.601 V/SystemServerTiming(  671): starting com.android.system.virtualmachine.VirtualizationSystemService took to complete: 0ms
+IVmTethering lookups that failed: 0

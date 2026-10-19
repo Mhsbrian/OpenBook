@@ -496,6 +496,9 @@ def case_ab(a, from_state="base", case="ab", pkg_path=None):
         adb = Adb(port, out)
         adb.connect()
         unlock(adb)
+        # As root: openbook_bootsync_exec is its own type, which the shell domain may not execute, so `[ -x ]` from
+        # an unprivileged shell is false even where the binary is there.
+        adb.root()
         has_bootsync = adb.sh("[ -x /vendor/bin/openbook-bootsync ] && echo yes")[0].strip() == "yes"
         rc = g14adb(port, "ota", pkg_path, "--yes", logfile=f"{out}/g14-adb-ota.log")
         text = open(f"{out}/g14-adb-ota.log").read()

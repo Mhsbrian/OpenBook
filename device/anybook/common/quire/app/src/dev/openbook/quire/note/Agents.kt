@@ -64,11 +64,13 @@ class AgentEntry(val endpoint: Endpoint) {
 
 /**
  * The agents Quire knows and their ACP connections. Updates and permission requests are routed to the task that owns
- * the session on the connection they came from ([SessionRoutes]: two agents may use the same session ID). Today the
- * list holds the endpoints a debuggable build was given by its lab commands; Q4 fills it from `quired agents` in the
- * Linux environment.
+ * the session on the connection they came from ([SessionRoutes]: two agents may use the same session ID). The list
+ * holds the agents `quired serve` reports in the Linux environment ([foundInLinux]), and on debuggable builds the
+ * endpoints its lab commands gave.
  */
 class AgentDirectory(context: Context, private val main: Executor) : AcpAgent.Listener {
+    private val app: Context = context.applicationContext
+
     interface SessionOwner {
         fun onUpdate(update: JSONObject)
         fun onPermission(request: JSONObject, answer: (JSONObject) -> Unit)
@@ -114,6 +116,20 @@ class AgentDirectory(context: Context, private val main: Executor) : AcpAgent.Li
         save()
     }
 
+    /**
+     * The agents quired reported in the Linux environment. A new one is listed but not connected: nothing is sent to it
+     * before the person connects it (§5.3). Known ones keep their connection and choice. Returns whether the list
+     * changed.
+     */
+    fun foundInLinux(found: List<Endpoint>): Boolean {
+        val added = found.filter { find(it.id) == null }
+        if (added.isEmpty()) return false
+        added.forEach { entries += AgentEntry(it) }
+        Log.i(TAG, "acp: found in the Linux environment: ${added.joinToString(" ") { it.id }}")
+        save()
+        return true
+    }
+
     fun setConnected(entry: AgentEntry, connected: Boolean) {
         entry.connected = connected
         save()
@@ -126,7 +142,7 @@ class AgentDirectory(context: Context, private val main: Executor) : AcpAgent.Li
             done(Result.success(existing))
             return
         }
-        val agent = AcpAgent(entry.endpoint, this, main)
+        val agent = AcpAgent(app, entry.endpoint, this, main)
         entry.agent = agent
         entry.state = AgentEntry.State.CONNECTING
         agent.connect { r ->

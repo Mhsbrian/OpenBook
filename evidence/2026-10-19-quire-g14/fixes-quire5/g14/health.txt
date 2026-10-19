@@ -1,0 +1,4 @@
+crash lines: 0
+anr/crash events: 0
+denials naming Quire or AVF: 0 (the 3 counted were SystemUI reading bluetooth_lea_prop, known, and adbd echoing this command)
+    renderRate=120.00 Hz
