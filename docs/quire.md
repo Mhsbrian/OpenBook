@@ -602,11 +602,31 @@ mirror, and a tap on Connected devices found by its text.
 - **The note over Settings and Files** (§8 item 10): outside a question, the note still hides there, so an answer the
   agent gives after opening Files, or Quire called over Settings, isn't seen until that window goes. The owner and the
   Checker decide whether the note shows over them always.
-- **The Checker's review of the tool boundary**, which is much wider now; Atelier's sign-off on the steps, the
-  confirmation card and the change list, which the glass-and-ink restyle (ANAL-227, PR #114) will redraw.
+- **The Checker's review of the tool boundary**, which is much wider now, and Atelier's review of the note as built
+  to the glass-and-ink design (ANAL-227, PR #114; §10.6).
 - **`quired` updates** reach a Linux environment that is already installed only by hand today (a new guest image
   replaces the person's guest files). A self-update from Quire core is the next step.
 - Destructive-control recognition is English-only and by label; the computer-control allowlist is Settings only.
+
+### 10.6 The note in glass and ink (ANAL-227, built)
+
+Atelier's revision of the note (`docs/quire-design.md` in PR #114), built into Q5's surface:
+
+- **Glass:** the note's colour at 80 % over the system's blur, a bloom from the top-left, a specular top edge, a white
+  inner outline, and the holographic rim in the halo's hues. The rim's light turns once every 12 s while the agent
+  works and rests at 200° otherwise. With the platform's blur off, the note is 96 % paper and the loops stop
+  (`isCrossWindowBlurEnabled` and its listener).
+- **Paper and ink:** cards and the field are translucent paper with a lit top edge. Soft ink is `onSurface` at 85 %
+  over the note. Text buttons are ink.
+- **The first moment:** no header and no suggestions. The field is one pill with the leaf, the mic and send. The quiet
+  line is the last line of every state: the agent, the intake, the state, Esc and ×.
+- **The pen:** the prompt is written in ink with its rule drawn under it, new words of an answer arrive as ink (160 ms,
+  at most six fades in flight), and steps carry the ink dot while running, then a tick or a cross drawn as a stroke.
+- **The destructive question:** a paper card rimmed in `error`, with the thing on its own row and Quire's own verbs
+  ("Delete", "Keep it"). The verb sits on `errorContainer`; the safe choice is filled and focused first. In the
+  mirror, Stop is on `errorContainer` and Pause on paper.
+- **Not yet:** the sheet's unroll clip and the turning halo label, the taskbar button with its ring (Launcher3), and
+  the frame budgets on the G14 (§4.5 of the design).
 
 ## Sources
 
