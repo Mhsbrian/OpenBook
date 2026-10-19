@@ -1,0 +1,17 @@
+== OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys at 2026-10-18T17:55:12Z
+== focus: Window{b5dd3b7 u0 NotificationShade}
+renderRate=120.00 Hz
+activeMode={id=0, hwcId=2, resolution=2880x1800, vsyncRate=120.00 Hz, dpi=242.23x241.90, group=1, vrrConfig=N/A, hdrOutputType=SDR}
+displayManagerPolicy={defaultModeId=0, allowGroupSwitching=false, primaryRanges={physical=[0.00 Hz, 1000.00 Hz], render=[0.00 Hz, 1000.00 Hz]}, appRequestRanges={physical=[0.00 Hz, 1000.00 Hz], render=[0.00 Hz, 1000.00 Hz]} idleScreenConfig=nullptr}
+== TimeStats, 8 s
+totalFrames = 961
+missedFrames = 0
+clientCompositionFrames = 961
+presentToPresent: 8ms=959
+averageRenderEngineTiming = 3.343 ms
+renderEngineTiming: 1ms=1 2ms=159 3ms=329 4ms=453 5ms=19
+== amdgpu flips and CTM blobs, 1.5 s
+DC update types: fast 181, med 0, full 0
+planes (re-)added to the DC state: 0
+new CTM blobs: 0 (ids: )
+kprobes left: 0
