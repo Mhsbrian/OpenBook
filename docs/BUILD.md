@@ -1,5 +1,15 @@
 # Build and reproduce
 
+## Local Ruby/OpenBook integration probe (ANAL-228, 2026-10-19)
+
+`docs/googlebook-bringup.md` documents `scripts/googlebook/compat-audit.py` and
+`hybrid-probe.py`. They use an existing G14 product/kernel build and retained
+Ruby extraction, audit VINTF/APEX/kernel/policy, then assemble a disposable VM
+image. The installer container mounts sources read-only and passes only KVM.
+Outputs contain local recovery-derived material and are not release artifacts.
+The measured probe reaches zygote but fails on AVX-VNNI instructions on the
+7950X host; read the evidence before interpreting a successful script exit.
+
 ## Googlebook image-base groundwork (ANAL-228, 2026-10-19)
 
 See `docs/googlebook-image-base.md` for the pinned GBRUNCH review and remaining

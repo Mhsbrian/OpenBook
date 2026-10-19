@@ -1,0 +1,11 @@
+{
+  "elapsed_s": 90.1,
+  "qemu_exit": 0,
+  "observation_window_elapsed": true,
+  "first_stage_switch_root": true,
+  "second_stage_init": true,
+  "diagnostics_completed": true,
+  "kernel_panic": false,
+  "boot_completed_reported": false,
+  "scope": "Milestone observations only. Service registration and boot_completed require log review."
+}

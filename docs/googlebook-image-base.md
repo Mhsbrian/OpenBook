@@ -15,6 +15,13 @@ AMD Android stack. Combining them is plausible, but a working G14 Googlebook
 desktop has **not** been demonstrated. Copying our vendor image over Ruby's vendor
 is not a validated integration.
 
+**Follow-up, 2026-10-19:** the owner asked to start methodical implementation.
+Local interoperability work has moved beyond this initial review: the new
+`scripts/googlebook/compat-audit.py` validates the mixed framework/vendor tuple,
+and `hybrid-probe.py` builds and runs a disposable VM experiment. See
+`googlebook-bringup.md` for the measured milestone, remaining failures and
+reproduction commands. The installer option remains unavailable.
+
 This change implements the first installer boundary:
 
 - The live wizard now goes from Try/Install to **Choose your image base**, then
@@ -29,10 +36,11 @@ This change implements the first installer boundary:
 - A host-side, read-only preflight identifies a locally supplied Ruby raw/ZIP
   against pinned hashes. Its report always says `installable: false`.
 
-There is no Google recovery download, import service, compatibility image builder
-or recovery disk writer in this change. No Google payload or derived vendor image
-is distributed. No USB or laptop was flashed. This is a review and tested
-foundation, **not a bootable Googlebook release**.
+The initial chooser change contains no recovery download/import service or
+recovery disk writer. The follow-up adds a **local VM experiment builder**, not
+an installer source adapter. No Google payload or derived vendor image is
+distributed. No USB or laptop was flashed. This is **not a bootable Googlebook
+release**.
 
 ## Current primary-source facts
 

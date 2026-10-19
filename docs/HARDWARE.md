@@ -1,5 +1,14 @@
 # Hardware
 
+## Googlebook VM CPU baseline (2026-10-19, ANAL-228)
+
+The first mixed Ruby/OpenBook KVM boot runs on the Ryzen 9 7950X build host,
+not the GA403WR. Zygote and boot animation both trap on VEX `vpdpwssd`, requiring
+AVX-VNNI. CPUID and an isolated instruction probe confirm that the 7950X lacks
+it despite having AVX512-VNNI. The retained HX 370 inventory reports AVX-VNNI;
+that hardware still needs an actual Googlebook boot trial. No physical-device
+write or update occurred. See `docs/googlebook-bringup.md`.
+
 ## Googlebook recovery base (2026-10-19, ANAL-228)
 
 The alternative targets the existing GA403WR / HX 370 / Radeon 890M `1002:150e`

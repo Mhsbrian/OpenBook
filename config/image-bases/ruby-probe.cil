@@ -1,0 +1,7 @@
+; Local Ruby 16452207 VM probe only. These private Ruby types are deliberately
+; pinned to this experiment, not a generic vendor ABI or release policy.
+; Keep strict neverallow compilation and enforcing mode.
+
+; Read-only diagnostics on the VM serial console, without a root shell.
+(allow init serial_device (chr_file (getattr open read write ioctl)))
+(allow shell serial_device (chr_file (getattr open read write ioctl)))

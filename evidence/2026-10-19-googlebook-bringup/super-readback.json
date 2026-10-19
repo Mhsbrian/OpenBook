@@ -1,0 +1,32 @@
+{
+  "system": {
+    "expected_sha256": "4ebc0e69314aea8cdc4eb97351716c7ebc6dc1d3a0ed66e17025f32d9af1e487",
+    "readback_sha256": "4ebc0e69314aea8cdc4eb97351716c7ebc6dc1d3a0ed66e17025f32d9af1e487",
+    "matched": true
+  },
+  "system_ext": {
+    "expected_sha256": "da7fd503976de920eb556b56fcc05f6ff4a5af8a1ce8996f7c1591e0711fe0f1",
+    "readback_sha256": "da7fd503976de920eb556b56fcc05f6ff4a5af8a1ce8996f7c1591e0711fe0f1",
+    "matched": true
+  },
+  "product": {
+    "expected_sha256": "c5c6e4fb94c3c673862254069df83910a700f91d50302f294c759530d59020d2",
+    "readback_sha256": "c5c6e4fb94c3c673862254069df83910a700f91d50302f294c759530d59020d2",
+    "matched": true
+  },
+  "vendor": {
+    "expected_sha256": "0107fe16fb86066d2b272af0732f04600c6aca2fdf9ffce327f8da251dd7dd61",
+    "readback_sha256": "0107fe16fb86066d2b272af0732f04600c6aca2fdf9ffce327f8da251dd7dd61",
+    "matched": true
+  },
+  "vendor_dlkm": {
+    "expected_sha256": "14427e5f27accbe78d3bd68365b5365cab91f8f4a7031e09d16ef5062d709521",
+    "readback_sha256": "14427e5f27accbe78d3bd68365b5365cab91f8f4a7031e09d16ef5062d709521",
+    "matched": true
+  },
+  "system_dlkm": {
+    "expected_sha256": "34185c35cb8bbccd5dfd0bb74eecb8a21e2445730411ef1583e1245628e0d617",
+    "readback_sha256": "34185c35cb8bbccd5dfd0bb74eecb8a21e2445730411ef1583e1245628e0d617",
+    "matched": true
+  }
+}

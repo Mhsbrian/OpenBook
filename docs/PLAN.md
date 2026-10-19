@@ -1,7 +1,8 @@
 # OpenBook track plan
 
-**2026-10-19, ANAL-228:** Track B research is reopened at the owner's request.
+**2026-10-19, ANAL-228:** Track B research and local VM bring-up are reopened at the owner's request.
 The GBRUNCH review and installer groundwork are in `docs/googlebook-image-base.md`.
+The first mixed Ruby/OpenBook VM experiment is in `docs/googlebook-bringup.md`.
 Googlebook installation remains unavailable pending recovery-use terms and the
 combined security, graphics and disk-layout gates. Earlier parked milestones
 below describe the previous decision, not a claim that an AMD Googlebook image

@@ -1,0 +1,20 @@
+[
+  {
+    "process": "zygote64",
+    "file": "libcrypto_httpengine.so",
+    "build_id": "dbc6896825ca7158db70b7f7aaba84ae",
+    "sha256": "223db1af99ed2835dc0e87442413162e2200ec6f817e5701d1e07cb752ad574d",
+    "tombstone_pc": "0xc7d3f",
+    "instruction": "VEX vpdpwssd",
+    "required_feature": "avx_vnni"
+  },
+  {
+    "process": "bootanimation",
+    "file": "libz.so",
+    "build_id": "c6b5f8abba90473c8d57442443e14368",
+    "sha256": "371f70d6a9392327cb36838d0cbc7af7388d1689c25d91cd343af8e58433683b",
+    "tombstone_pc": "0x11145",
+    "instruction": "VEX vpdpwssd",
+    "required_feature": "avx_vnni"
+  }
+]

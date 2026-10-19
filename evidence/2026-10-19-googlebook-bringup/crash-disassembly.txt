@@ -1,0 +1,14 @@
+libcrypto_httpengine.so:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+00000000000c7d3f <_ZN4bssl30CRYPTO_tls13_hkdf_expand_labelEPhmPK9env_md_stPKhmS5_mS5_m@@INTERSECTED_SYMBOLS+0x3a1ef>:
+   c7d3f:	c4 c2 25 52 e5       	{vex} vpdpwssd %ymm13,%ymm11,%ymm4
+libz.so:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000011145 <adler32_combine64@@Base+0x195>:
+   11145:	c4 e2 31 52 f2       	{vex} vpdpwssd %xmm2,%xmm9,%xmm6

@@ -1,5 +1,16 @@
 # Compatibility matrix
 
+## Ruby/OpenBook local integration (ANAL-228, 2026-10-19)
+
+| Combination | Observed result | Limit |
+|---|---|---|
+| Ruby 16452207 framework + OpenBook G14 vendor, stock policies | VINTF/APEX/kernel check passes; strict policy compilation rejects six debug grants | Direct transplant is not accepted |
+| Same, scoped policy adaptation | Strict compilation passes; KVM reaches enforcing second-stage init, module load, software security services, encrypted data and zygote | Zygote and boot animation trap on AVX-VNNI `vpdpwssd` on the Zen 4 7950X host; no completed desktop |
+| Same, physical GA403WR / HX 370 | Not run; existing CPU inventory includes AVX-VNNI | No Googlebook G14 boot, graphics, credentials, apps or update result |
+
+Evidence: `evidence/2026-10-19-googlebook-bringup/`; reproduction and next gates:
+`docs/googlebook-bringup.md`. The Googlebook installer option remains unavailable.
+
 ## Googlebook alternative base (ANAL-228, 2026-10-19)
 
 | Base / target | Current evidence | Installer state |

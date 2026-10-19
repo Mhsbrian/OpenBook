@@ -1,0 +1,185 @@
+[INFO] Cannot parse "$OUT/openbook/kernel-release.txt" as kernel version, parsing as GKI kernel release.
+[INFO] Cannot parse "$OUT/openbook/kernel-release.txt" as GKI kernel release, parsing as kernel release
+[INFO] Cannot parse "$OUT/openbook/kernel-release.txt" as kernel release
+[INFO] Cannot parse "6.18.21-android17-5-gfbfdd65b0fd1
+" as kernel version, parsing as GKI kernel release.
+[INFO] "6.18.21-android17-5-gfbfdd65b0fd1
+" is not a mainline kernel.
+[INFO] Successfully parsed content of $OUT/openbook/kernel-release.txt: 6.18.21-android17-5-gfbfdd65b0fd1
+
+[INFO] Sysprop apex.all.ready=true
+[INFO] Get modified time '$OUT/openbook/apex/apex-info-list.xml': OK
+[INFO] getFrameworkHalManifest: Reading VINTF information.
+[INFO] Fetch '$PRODUCT/system/etc/vintf/manifest.xml': OK
+[INFO] List '$PRODUCT/system/etc/vintf/manifest/': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/manifest/manifest_services_android.frameworks.location.xml': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/manifest/manifest_services_android.frameworks.devicestate.xml': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/manifest/manifest_services_android.frameworks.vibrator.xml': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/manifest/android.frameworks.stats-service.xml': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/manifest/android.system.keystore2-service.xml': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/manifest/android.system.suspend-service.xml': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/manifest/manifest_media_c2_software.xml': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/manifest/android.system.net.netd-service.xml': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/manifest/android.system.vold-service.xml': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/manifest/manifest_android.frameworks.cameraservice.service.xml': OK
+[INFO] Fetch '$PRODUCT/product/etc/vintf/manifest.xml': NAME_NOT_FOUND
+[INFO] List '$PRODUCT/product/etc/vintf/manifest/': NAME_NOT_FOUND
+[INFO] Fetch '$PRODUCT/system_ext/etc/vintf/manifest.xml': OK
+[INFO] List '$PRODUCT/system_ext/etc/vintf/manifest/': NAME_NOT_FOUND
+[INFO] Sysprop apex.all.ready=true
+[INFO] Fetch '$OUT/openbook/apex/apex-info-list.xml': OK
+[INFO] Loaded APEX Infos from /apex/apex-info-list.xml
+[INFO] List '$OUT/openbook/apex/com.android.adbd/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.adservices/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.apex.cts.shim/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.appsearch/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.art/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.bt/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.cellbroadcast/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.configinfrastructure/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.conscrypt/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.crashrecovery/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.devicelock/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.extservices/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.healthfitness/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.i18n/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.ipsec/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.media/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.media.swcodec/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.mediaprovider/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.neuralnetworks/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.nfcservices/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.npumanager/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.ondevicepersonalization/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.os.statsd/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.permission/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.profiling/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.resolv/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.rkpd/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.runtime/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.scheduling/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.sdkext/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.telephonycore/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.tethering/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.tzdata/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.uprobestats/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.uwb/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.virt/etc/vintf/': OK
+[INFO] Fetch '$OUT/openbook/apex/com.android.virt/etc/vintf/virtualizationservice.xml': OK
+[INFO] List '$OUT/openbook/apex/com.android.webapp/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.wifi/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.compos/etc/vintf/': OK
+[INFO] List '$OUT/openbook/apex/com.android.hardware.biometrics.fingerprint.virtual/etc/vintf/': OK
+[INFO] Sysprop apex.all.ready=true
+[INFO] Get modified time '$OUT/openbook/apex/apex-info-list.xml': OK
+[INFO] getDeviceHalManifest: Reading VINTF information.
+[INFO] Sysprop ro.boot.product.vendor.sku is missing, default to ''
+[INFO] Fetch '$PRODUCT/vendor/etc/vintf/manifest.xml': OK
+[INFO] Sysprop apex.all.ready=true
+[INFO] Fetch '$OUT/openbook/apex/apex-info-list.xml': OK
+[INFO] Loaded APEX Infos from /apex/apex-info-list.xml
+[INFO] List '$PRODUCT/vendor/etc/vintf/manifest/': OK
+[INFO] Fetch '$PRODUCT/vendor/etc/vintf/manifest/weaver-openbook.xml': OK
+[INFO] Fetch '$PRODUCT/vendor/etc/vintf/manifest/lights-openbook.xml': OK
+[INFO] Fetch '$PRODUCT/vendor/etc/vintf/manifest/power-openbook.xml': OK
+[INFO] Fetch '$PRODUCT/vendor/etc/vintf/manifest/android.hardware.usb-service.example.xml': OK
+[INFO] Fetch '$PRODUCT/vendor/etc/vintf/manifest/allocator.xml': OK
+[INFO] Fetch '$PRODUCT/vendor/etc/vintf/manifest/power.stats-openbook.xml': OK
+[INFO] Fetch '$PRODUCT/vendor/etc/vintf/manifest/mapper.minigbm.xml': OK
+[INFO] Fetch '$PRODUCT/vendor/etc/vintf/manifest/thermal-openbook.xml': OK
+[INFO] Fetch '$PRODUCT/vendor/etc/vintf/manifest/hwc3-drm.xml': OK
+[INFO] Fetch '$PRODUCT/vendor/etc/vintf/manifest/bluetooth-service-default.xml': OK
+[INFO] Fetch '$PRODUCT/vendor/etc/vintf/manifest/health-openbook.xml': OK
+[INFO] Fetch '$PRODUCT/vendor/etc/vintf/manifest/android.hardware.wifi.supplicant.xml': OK
+[INFO] Fetch '$PRODUCT/vendor/etc/vintf/manifest/android.hardware.boot-service.openbook.xml': OK
+[INFO] List '$OUT/openbook/apex/com.android.hardware.audio/etc/vintf/': OK
+[INFO] Fetch '$OUT/openbook/apex/com.android.hardware.audio/etc/vintf/android.hardware.audio.service-aidl.xml': OK
+[INFO] Fetch '$OUT/openbook/apex/com.android.hardware.audio/etc/vintf/android.hardware.bluetooth.audio.xml': OK
+[INFO] List '$OUT/openbook/apex/com.android.hardware.authsecret/etc/vintf/': OK
+[INFO] Fetch '$OUT/openbook/apex/com.android.hardware.authsecret/etc/vintf/android.hardware.authsecret-service.example.xml': OK
+[INFO] List '$OUT/openbook/apex/com.android.hardware.cas/etc/vintf/': OK
+[INFO] Fetch '$OUT/openbook/apex/com.android.hardware.cas/etc/vintf/android.hardware.cas-service.xml': OK
+[INFO] List '$OUT/openbook/apex/com.android.hardware.dumpstate/etc/vintf/': OK
+[INFO] Fetch '$OUT/openbook/apex/com.android.hardware.dumpstate/etc/vintf/dumpstate-default.xml': OK
+[INFO] List '$OUT/openbook/apex/com.android.hardware.gatekeeper/etc/vintf/': OK
+[INFO] Fetch '$OUT/openbook/apex/com.android.hardware.gatekeeper/etc/vintf/android.hardware.gatekeeper-service.nonsecure.xml': OK
+[INFO] Fetch '$OUT/openbook/apex/com.android.hardware.gatekeeper/etc/vintf/android.hardware.security.sharedsecret-gatekeeper.xml': OK
+[INFO] List '$OUT/openbook/apex/com.android.hardware.keymint/etc/vintf/': OK
+[INFO] Fetch '$OUT/openbook/apex/com.android.hardware.keymint/etc/vintf/android.hardware.security.keymint-service.xml': OK
+[INFO] Fetch '$OUT/openbook/apex/com.android.hardware.keymint/etc/vintf/android.hardware.security.secureclock-service.xml': OK
+[INFO] Fetch '$OUT/openbook/apex/com.android.hardware.keymint/etc/vintf/android.hardware.security.sharedsecret-service.xml': OK
+[INFO] List '$OUT/openbook/apex/com.android.hardware.memtrack/etc/vintf/': OK
+[INFO] Fetch '$OUT/openbook/apex/com.android.hardware.memtrack/etc/vintf/memtrack-default.xml': OK
+[INFO] Sysprop ro.boot.product.hardware.sku is missing, default to ''
+[INFO] Fetch '$OUT/empty/etc/vintf/manifest.xml': NAME_NOT_FOUND
+[INFO] Fetch '$OUT/empty/etc/manifest.xml': NAME_NOT_FOUND
+[INFO] Sysprop apex.all.ready=true
+[INFO] Fetch '$OUT/openbook/apex/apex-info-list.xml': OK
+[INFO] Loaded APEX Infos from /apex/apex-info-list.xml
+[INFO] List '$OUT/empty/etc/vintf/manifest/': NAME_NOT_FOUND
+[INFO] getDeviceHalManifest: Successfully processed VINTF information
+[INFO] getFrameworkHalManifest: Successfully processed VINTF information
+[INFO] Sysprop apex.all.ready=true
+[INFO] Get modified time '$OUT/openbook/apex/apex-info-list.xml': OK
+[INFO] Sysprop apex.all.ready=true
+[INFO] Get modified time '$OUT/openbook/apex/apex-info-list.xml': OK
+[INFO] fetched kernel level from RuntimeInfo '202604'
+[INFO] Sysprop apex.all.ready=true
+[INFO] Get modified time '$OUT/openbook/apex/apex-info-list.xml': OK
+[INFO] getFrameworkCompatibilityMatrix: Reading VINTF information.
+[INFO] List '$PRODUCT/system/etc/vintf/': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/manifest.xml': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/compatibility_matrix.device.xml': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/compatibility_matrix.202404.xml': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/compatibility_matrix.7.xml': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/compatibility_matrix.8.xml': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/compatibility_matrix.202604.xml': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/compatibility_matrix.202504.xml': OK
+[INFO] List '$PRODUCT/system_ext/etc/vintf/': OK
+[INFO] Fetch '$PRODUCT/system_ext/etc/vintf/manifest.xml': OK
+[INFO] List '$PRODUCT/product/etc/vintf/': NAME_NOT_FOUND
+[INFO] getFrameworkCompatibilityMatrix: Successfully processed VINTF information
+[INFO] getDeviceCompatibilityMatrix: Reading VINTF information.
+[INFO] Fetch '$PRODUCT/vendor/etc/vintf/compatibility_matrix.xml': OK
+[INFO] getDeviceCompatibilityMatrix: Successfully processed VINTF information
+[INFO] fetched kernel version 6.18.21
+[INFO] read kernel configs from $KERNEL/dot_config
+[INFO] Sysprop apex.all.ready=true
+[INFO] Get modified time '$OUT/openbook/apex/apex-info-list.xml': OK
+[INFO] Sysprop apex.all.ready=true
+[INFO] Get modified time '$OUT/openbook/apex/apex-info-list.xml': OK
+[INFO] Sysprop apex.all.ready=true
+[INFO] Get modified time '$OUT/openbook/apex/apex-info-list.xml': OK
+[INFO] Sysprop apex.all.ready=true
+[INFO] Get modified time '$OUT/openbook/apex/apex-info-list.xml': OK
+[INFO] List '$PRODUCT/system/etc/vintf/': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/manifest.xml': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/compatibility_matrix.device.xml': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/compatibility_matrix.202404.xml': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/compatibility_matrix.7.xml': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/compatibility_matrix.8.xml': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/compatibility_matrix.202604.xml': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/compatibility_matrix.202504.xml': OK
+[INFO] List '$PRODUCT/system_ext/etc/vintf/': OK
+[INFO] Fetch '$PRODUCT/system_ext/etc/vintf/manifest.xml': OK
+[INFO] List '$PRODUCT/product/etc/vintf/': NAME_NOT_FOUND
+[INFO] Sysprop apex.all.ready=true
+[INFO] Get modified time '$OUT/openbook/apex/apex-info-list.xml': OK
+[INFO] List '$PRODUCT/system/etc/vintf/': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/manifest.xml': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/compatibility_matrix.device.xml': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/compatibility_matrix.202404.xml': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/compatibility_matrix.7.xml': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/compatibility_matrix.8.xml': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/compatibility_matrix.202604.xml': OK
+[INFO] Fetch '$PRODUCT/system/etc/vintf/compatibility_matrix.202504.xml': OK
+[INFO] List '$PRODUCT/system_ext/etc/vintf/': OK
+[INFO] Fetch '$PRODUCT/system_ext/etc/vintf/manifest.xml': OK
+[INFO] List '$PRODUCT/product/etc/vintf/': NAME_NOT_FOUND
+[INFO] Sysprop apex.all.ready=true
+[INFO] Get modified time '$OUT/openbook/apex/apex-info-list.xml': OK
+[INFO] Sysprop apex.all.ready=true
+[INFO] Get modified time '$OUT/openbook/apex/apex-info-list.xml': OK
+[INFO] Sysprop apex.all.ready=true
+[INFO] Get modified time '$OUT/openbook/apex/apex-info-list.xml': OK
+COMPATIBLE

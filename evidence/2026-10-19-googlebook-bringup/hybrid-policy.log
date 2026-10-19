@@ -1,0 +1,29 @@
+neverallow check failed at $RUBY/fs/system_a/system/etc/selinux/plat_sepolicy.cil:72489 from system/sepolicy/private/system_server.te:1591
+  (neverallow system_server self (process (execmem)))
+    <root>
+    allow at $PRODUCT/vendor/etc/selinux/vendor_sepolicy.cil:3053 from device/anybook/common/pc/sepolicy/swiftshader/swiftshader.te:7 from out/soong/.intermediates/system/sepolicy/vendor_sepolicy.unversioned.cil/android_common/anybook_g14/vendor_sepolicy.unversioned.cil:2267
+      (allow system_server_202604 self (process (execmem)))
+
+neverallow check failed at $RUBY/fs/system_a/system/etc/selinux/plat_sepolicy.cil:38208 from system/sepolicy/private/hal_neverallows.te:59
+  (neverallow base_typeattr_700 domain (tcp_socket (ioctl read write create getattr setattr lock relabelfrom relabelto append map bind connect listen accept getopt setopt shutdown recvfrom sendto name_bind node_bind name_connect)))
+    <root>
+    allow at $PRODUCT/vendor/etc/selinux/vendor_sepolicy.cil:1311 from system/sepolicy/vendor/hal_hwcrypto_default.te:10 from out/soong/.intermediates/system/sepolicy/vendor_sepolicy.unversioned.cil/android_common/anybook_g14/vendor_sepolicy.unversioned.cil:1082
+      (allow hal_hwcrypto_server su_202604 (tcp_socket (read write accept getopt)))
+    <root>
+    allow at $PRODUCT/vendor/etc/selinux/vendor_sepolicy.cil:1448 from system/sepolicy/vendor/hal_keymint_default.te:7 from out/soong/.intermediates/system/sepolicy/vendor_sepolicy.unversioned.cil/android_common/anybook_g14/vendor_sepolicy.unversioned.cil:1178
+      (allow hal_keymint_server su_202604 (tcp_socket (read write accept getopt)))
+    <root>
+    allow at $PRODUCT/vendor/etc/selinux/vendor_sepolicy.cil:1463 from system/sepolicy/vendor/hal_keymint_default.te:8 from out/soong/.intermediates/system/sepolicy/vendor_sepolicy.unversioned.cil/android_common/anybook_g14/vendor_sepolicy.unversioned.cil:1188
+      (allow hal_keymint_server su_202604 (tcp_socket (read write accept getopt)))
+    <root>
+    allow at $PRODUCT/vendor/etc/selinux/vendor_sepolicy.cil:1478 from system/sepolicy/vendor/hal_keymint_default.te:9 from out/soong/.intermediates/system/sepolicy/vendor_sepolicy.unversioned.cil/android_common/anybook_g14/vendor_sepolicy.unversioned.cil:1198
+      (allow hal_keymint_server su_202604 (tcp_socket (read write accept getopt)))
+
+neverallow check failed at $RUBY/fs/system_a/system/etc/selinux/plat_sepolicy.cil:26874 from system/sepolicy/private/domain.te:1759
+  (neverallow base_typeattr_360 debugfs_tracing_debug (file (ioctl read write create setattr lock relabelfrom append unlink link rename open watch watch_mount watch_sb watch_with_perm watch_reads)))
+    <root>
+    allow at $PRODUCT/vendor/etc/selinux/vendor_sepolicy.cil:592 from system/sepolicy/vendor/hal_atrace_default.te:11 from out/soong/.intermediates/system/sepolicy/vendor_sepolicy.unversioned.cil/android_common/anybook_g14/vendor_sepolicy.unversioned.cil:583
+      (allow hal_atrace_default debugfs_tracing_debug_202604 (file (ioctl read write getattr lock append map open watch watch_reads)))
+
+Failed to generate binary
+Failed to build policydb

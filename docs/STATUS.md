@@ -1,5 +1,19 @@
 # Status
 
+## 2026-10-19: first Ruby/OpenBook VM integration (ANAL-228)
+
+Implemented the native VINTF/APEX/kernel and strict SELinux audit, a pinned
+policy adaptation, and a local-only mixed-image VM probe. Both stock baselines
+pass. The adapted tuple passes static checks; the original mixed vendor policy
+correctly fails on six debug grants. The VM reaches enforcing second-stage
+init, loads the matched G14 modules, registers software KeyMint/Gatekeeper and
+keystore2, initializes encrypted userdata and starts zygote. It then fails on
+VEX `vpdpwssd` in zygote's crypto library and boot animation's zlib: this Zen 4
+host lacks AVX-VNNI. The G14 inventory has that feature, but this is not a G14
+boot result. Security-service denials remain; no desktop or install readiness
+is claimed. The Googlebook chooser remains unavailable. See
+`docs/googlebook-bringup.md` and `evidence/2026-10-19-googlebook-bringup/`.
+
 ## 2026-10-19: Googlebook alternative base (ANAL-228)
 
 Reviewed GBRUNCH at `a8936fd33e50` and Google's current Ruby recovery metadata.
