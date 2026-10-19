@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.ServiceInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -23,18 +24,31 @@ public final class ProbeActivity extends Activity {
         super.onCreate(saved);
         result = new TextView(this);
         setContentView(result);
-        boolean hostControl = getIntent().getBooleanExtra("host_control", false);
+        Log.i(TAG, "intent=" + getIntent().toUri(Intent.URI_INTENT_SCHEME));
+        String aliasControl = getIntent().getStringExtra("alias_control");
+        boolean hostControl = "host".equals(aliasControl);
         Handler handler = new Handler(getMainLooper());
         handler.postDelayed(() -> {
             if (!complete) report("FAIL fallback timed out");
         }, 15000);
-        String aliasControl = getIntent().getStringExtra("alias_control");
         boolean positiveAlias = "positive".equals(aliasControl);
         boolean negativeAlias = "permission".equals(aliasControl);
         String className = positiveAlias
                 ? "org.chromium.content.app.NativeOnlySandboxedProcessService1"
                 : negativeAlias ? "org.chromium.content.app.NativeOnlySandboxedProcessService0"
                 : getPackageName() + ".NativeOnly";
+        try {
+            int flags = getPackageManager().getServiceInfo(
+                    new ComponentName(this, className), 0).flags;
+            Log.i(TAG, "declared_service_flags=0x" + Integer.toHexString(flags));
+            if ((flags & ServiceInfo.FLAG_NATIVE_SERVICE) == 0) {
+                report("FAIL fixture missing nativeService flag; check framework resource IDs");
+                return;
+            }
+        } catch (Exception e) {
+            report("FAIL fixture lookup: " + e);
+            return;
+        }
         long start = SystemClock.elapsedRealtime();
         ServiceConnection unused = new ServiceConnection() {
             public void onServiceConnected(ComponentName name, IBinder service) {}
