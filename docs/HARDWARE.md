@@ -1,5 +1,12 @@
 # Hardware
 
+The owner has made the running G14 available for live investigation. The host
+sees its Ruby live mDNS advertisement and reaches the TLS debugging port;
+legacy TCP 5555 refuses connections. ADB pairing is still required, so no new
+shell, Wi-Fi association, audio playback or crash-history evidence is available
+from this inspection yet. Network reachability alone does not establish the
+connection path or installer readiness. See `docs/googlebook-live.md`.
+
 The owner has now booted fw10 into Googlebook setup through both normal and
 save-logs entries. The new G14 capture confirms Radeon initialization, MT7925
 firmware and both CS35L56 amplifier firmware loads. Wi-Fi scanning is reported

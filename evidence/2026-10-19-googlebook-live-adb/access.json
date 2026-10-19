@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-19",
+  "adb_version": "37.0.1",
+  "adb_mdns_backend": "LIBADBMDNS",
+  "mdns_enabled": true,
+  "ruby_live_mdns_seen": true,
+  "tls_connection_port_tcp_reachable": true,
+  "legacy_5555_tcp_refused": true,
+  "adb_connected": false,
+  "capture_complete": false,
+  "capture_exit": 2,
+  "shell_commands_executed": 0,
+  "host_checks_passed": 6,
+  "hardware_diagnostics_obtained": false,
+  "physical_disk_changed": false,
+  "next_input": "Temporary pairing endpoint and code from the device UI"
+}
