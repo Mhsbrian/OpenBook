@@ -1,0 +1,26 @@
+# ps (SystemUI and Quire start times; boot at 15:56:15 UTC)
+  PID STIME     ELAPSED NAME                       
+ 2644 15:56:06    08:13 com.android.systemui
+ 2938 15:56:07    08:12 com.android.launcher3
+ 3157 15:56:08    08:11 dev.openbook.quire
+ 3861 15:56:42    07:37 com.android.systemui:screenshot
+# events buffer since boot: am_crash / am_anr / am_native_crash / systemui deaths / Quire process starts
+10-18 15:56:07.092   814   847 I am_proc_start: [0,2644,10099,com.android.systemui,bound-service,{com.android.systemui/com.android.systemui.wallpapers.GradientColorWallpaper}]
+10-18 15:56:09.010   814   847 I am_proc_start: [0,3157,10095,dev.openbook.quire,bound-service,{dev.openbook.quire/dev.openbook.quire.assist.QuireVoiceInteractionService}]
+10-18 15:56:43.349   814   847 I am_proc_start: [0,3861,10099,com.android.systemui:screenshot,bound-service,{com.android.systemui/com.android.systemui.screenshot.TakeScreenshotService}]
+10-18 15:57:03.817   814   847 I am_proc_start: [0,4084,10130,dev.openbook.quire.secureprobe,top-activity,{dev.openbook.quire.secureprobe/dev.openbook.quire.secureprobe.SecureActivity}]
+10-18 16:03:03.212   814   847 I am_proc_start: [0,6000,10130,dev.openbook.quire.secureprobe,activity,{dev.openbook.quire.secureprobe/dev.openbook.quire.secureprobe.SecureActivity}]
+# first line of the events buffer
+--------- beginning of events
+10-18 15:55:58.020   395   395 I auditd  : Multiple same specifications for android.hardware.secure_element.ISecureElement/eSE1.
+# kernel log: avc denials since boot
+3
+      1 avc: denied  { find } for uid=1003 name=gpu scontext=u:r:bootanim:s0 tcontext=u:object_r:gpu_service:s0 tclass=service_manager permissive=0
+      1 avc: denied  { read } for  comm=".gce.gceservice" name="u:object_r:zygote_config_prop:s0" dev="tmpfs" scontext=u:r:gceservice:s0:c73,c256,c512,c768 tcontext=u:object_r:zygote_config_prop:s0 tclass=file permissive=0 app=com.android.google.gce.gceservice
+      1 avc: denied  { write } for  comm="init" name="error_report_end" dev="tracefs" scontext=u:r:init:s0 tcontext=u:object_r:debugfs_bootreceiver_tracing:s0 tclass=dir permissive=0 bug=b/340399580
+# tombstones / anr
+/data/anr:
+total 0
+
+/data/tombstones:
+total 0

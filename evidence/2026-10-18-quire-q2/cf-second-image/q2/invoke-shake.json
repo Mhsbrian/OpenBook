@@ -1,0 +1,21 @@
+{
+  "time": 1792339031211,
+  "trigger": "system_action",
+  "entrypoint": 9,
+  "entrypointName": "SYSTEM_ACTION",
+  "visiblePackages": [
+    "dev.openbook.quire.secureprobe",
+    "com.android.settings",
+    "com.android.settings",
+    "com.android.launcher3"
+  ],
+  "flagSecureFound": true,
+  "audioPlaying": null,
+  "managedProfileVisible": false,
+  "token": true,
+  "callingPackage": "com.android.launcher3",
+  "mediaProjectionOffered": true,
+  "screenshot": "20261018-155711-211-system_action.png",
+  "width": 1920,
+  "height": 1080
+}

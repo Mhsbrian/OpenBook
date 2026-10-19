@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  Q2 strings: plumbing only. Q3 (ANAL-215) designs the words people see; Q5 builds them.
+-->
+<resources>
+    <string name="app_name">Quire</string>
+
+    <!-- The note opened by an invocation. -->
+    <string name="note_title">Quire</string>
+    <string name="note_trigger">Called by: %1$s</string>
+    <string name="note_visible">On screen: %1$s</string>
+    <string name="note_nothing_visible">nothing reported</string>
+    <string name="note_secure">A secure window was left out of the screenshot.</string>
+    <string name="note_no_screenshot">No screenshot was shared.</string>
+    <string name="note_close">Close</string>
+
+    <!-- Computer control. -->
+    <string name="control_heading">Computer control</string>
+    <string name="control_open_settings">Let Quire open Settings</string>
+    <string name="control_tap_toggle">Tap “Use Dark theme”</string>
+    <string name="control_hand_over">Take over</string>
+    <string name="control_stop">Stop</string>
+    <string name="control_idle">No session.</string>
+    <string name="control_last_invocation">Last call: %1$s</string>
+    <string name="control_no_invocation">Quire hasn’t been called yet.</string>
+
+    <!-- The session's running notification (posted by the platform for Quire). -->
+    <string name="channel_automation">Quire using apps</string>
+    <string name="notification_using">Quire is using %1$s</string>
+    <string name="notification_using_text">It runs on a separate display. Open Quire to watch, take over or stop.</string>
+</resources>

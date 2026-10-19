@@ -1,0 +1,15 @@
+check	result	detail
+Dark theme off before	PASS	Night mode: no
+consent asked (session pending)	PASS	cc: pending
+platform consent dialog, 'Only this time'	PASS	Allow Quire to use screen automation?
+session created	PASS	cc: created: display 1920x1080
+session active	PASS	lifecycle: active
+Dark theme page launched through the session	PASS	com.android.settings/.Settings$DarkThemeSettingsActivity
+Settings runs on the session display	PASS	display #3
+Quire's mirror	PASS	cc: mirror created
+session screenshot	PASS	cc: screenshot: 1920x1080 saved /data/user/0/dev.openbook.quire/files/control/20261018-155952-545-session.png
+tap through the session	FAIL	no target / no tap
+the tap turned Dark theme on	FAIL	Night mode: no
+handOverApplications()	PASS	cc: hand over: done
+session closed after hand over	PASS	cc: lifecycle: closed reason=4(SESSION_EMPTY)
+Settings moved to the main display	PASS	display #0
