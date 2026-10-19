@@ -48,7 +48,10 @@ previous Digitalis instruction/signal and individual-app limitations remain.
 ## Reproduce
 
 `scripts/compat/native-service/build.sh` builds an ARM64-only APK using the
-existing compatibility SDK/NDK and the synced AOSP API jar. It attempts a
+existing compatibility SDK/NDK. Manifest resources come from the candidate's
+`framework-res.apk`: the public SDK still uses a staging ID for `nativeService`,
+which the image would silently ignore. The fixture verifies the resolved
+`FLAG_NATIVE_SERVICE` before testing. It attempts a
 native-only bind, requires rejection within one second, then binds an isolated
 managed service and verifies a result computed by ARM64 JNI through Binder.
 Its native-only service deliberately has no Java class. Additional fixtures

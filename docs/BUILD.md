@@ -2,6 +2,31 @@
 
 Everything here runs without host sudo. The tools that Arch's base system doesn't provide run in Docker containers. You need `/dev/kvm` accessible and your user in the `docker` group.
 
+## G14 ARM native-service candidate (2026-10-19, ANAL-224)
+
+`openbook-ota-20261019-armfix1` was built from integration commit
+`f72c1753ced270a3a7ad41a07e70ecd1d516030f`: the installed `photos1` tree
+(`d3e04fd`, including Quire and the RADV YV12 fix) plus the native-service ABI
+guards and validated Chromium managed-service aliases. The task PR carries
+the framework patch and tests; it does not replace the installed base with an
+older main image. The exact integration tree is retained separately.
+
+```bash
+AOSP_JOBS=16 BUILD_NUMBER=20261019.armfix1 scripts/aosp-docker.sh \
+  /repo/scripts/aosp-build.sh anybook_g14_x86_64-cp2a-userdebug \
+  droid target-files-package otatools-package openbook_hals_test validatekeymaps
+scripts/ota/make-ota.sh openbook-ota-20261019-armfix1 \
+  --tree 'f72c1753ced270a3a7ad41a07e70ecd1d516030f: photos1 + ANAL-224'
+```
+
+Build completed in 13m30s with a peak of about 52.6 GB. The package is
+994,547,625 bytes, SHA-256
+`fb95dcc49c2af455d2f847bba4814e823f5cf35a6e41953dcb60542ec52ab944`.
+Target-files and OTA tools are retained under `~/anybook/ota/builds/` and the
+package under `~/anybook/ota/out/`; images are not committed. The manifest and
+validation records are in `evidence/2026-10-19-arm-native-services/`.
+For compatibility checks and their limits, see `docs/arm-native-services.md`.
+
 ## Layout (outside the repo; images are never committed)
 
 ```

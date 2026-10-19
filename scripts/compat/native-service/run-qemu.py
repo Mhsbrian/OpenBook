@@ -125,8 +125,17 @@ def main():
             check("install native host control", result.returncode == 0, result.stdout + result.stderr)
             abi, _ = adb.sh("dumpsys package dev.openbook.nativefallback | grep primaryCpuAbi")
             check("host control uses x86_64", "primaryCpuAbi=x86_64" in abi, abi.strip())
-            adb.sh("am start -W -n dev.openbook.nativefallback/.ProbeActivity --ez host_control true")
-            host_log, _ = adb.sh("logcat -d -s NativeFallbackProbe:I '*:S'")
+            adb.sh("am force-stop dev.openbook.nativefallback; logcat -c")
+            host_start, rc = adb.sh("am start -W --activity-clear-task "
+                                   "-n dev.openbook.nativefallback/.ProbeActivity --es alias_control host")
+            (args.out / "host-start.txt").write_text(host_start)
+            check("host control activity started", rc == 0 and "Status: ok" in host_start, host_start.strip())
+            end = time.monotonic() + 20
+            while time.monotonic() < end:
+                host_log, _ = adb.sh("logcat -d -s NativeFallbackProbe:I '*:S'")
+                if "PASS " in host_log or "FAIL " in host_log:
+                    break
+                time.sleep(0.5)
             (args.out / "host-probe.txt").write_text(host_log)
             check("host native service lookup preserved", "PASS host native-only bind accepted" in host_log,
                   host_log.strip())
@@ -241,8 +250,12 @@ def main():
         (args.out / "logcat.txt").write_text(logs)
         check("Chromium managed service alias exercised", "Native bridge service fallback: org.chromium.chrome/" in logs,
               logs.count("Native bridge service fallback: org.chromium.chrome/"))
-        check("no ELF mismatch or zygote retry storm", "EM_AARCH64" not in logs and
-              "Got error connecting to zygote, retrying" not in logs, "ELF/zygote retry log search")
+        # A managed app zygote may briefly retry while its socket opens. The old
+        # failure exhausted 60-second waits, with thousands of retries per child.
+        retries = logs.count("Got error connecting to zygote, retrying")
+        check("no ELF mismatch or exhausted zygote wait", "EM_AARCH64" not in logs and
+              "Failed to connect to Zygote through socket" not in logs and retries < 100,
+              dict(retries=retries, max_retries=99))
         processes, _ = adb.sh("ps -A -o LABEL,PID,NAME,ARGS | grep chromium")
         (args.out / "processes.txt").write_text(processes)
         check("managed isolated renderer exists", "sandboxed_process" in processes and

@@ -8,6 +8,10 @@ W=$A/compat/out/native-service
 BT=$A/compat/sdk/build-tools/37.0.0
 TC=$A/compat/sdk/ndk/toolchains/llvm/prebuilt/linux-x86_64
 JAR=$A/aosp/src/prebuilts/sdk/current/public/android.jar
+# The SDK's flagged nativeService attr has a staging ID (0x01a20005). Link the
+# manifest with the tested image's resources, where it is finalized (0x010106ae).
+RES=${OPENBOOK_FRAMEWORK_RES:-$A/aosp/src/out/target/product/anybook_g14/system/framework/framework-res.apk}
+[ -f "$RES" ] || { echo "Build the G14 image first, or set OPENBOOK_FRAMEWORK_RES" >&2; exit 1; }
 export PATH="$A/aosp/src/prebuilts/jdk/jdk21/linux-x86/bin:$PATH"
 mkdir -p "$W/classes" "$A/compat/keys"
 KS=$A/compat/keys/probe-debug.keystore
@@ -24,7 +28,7 @@ for variant in arm64 x86_64; do
     mkdir -p "$V/lib/$abi"
     "$TC/bin/$triple-linux-android30-clang" -Wall -Wextra -Werror -O2 -fPIC -shared \
         "$S/probe.c" -o "$V/lib/$abi/libfallbackprobe.so"
-    "$BT/aapt2" link -o "$V/unsigned.apk" -I "$JAR" --manifest "$S/AndroidManifest.xml"
+    "$BT/aapt2" link -o "$V/unsigned.apk" -I "$RES" --manifest "$S/AndroidManifest.xml"
     cp "$W/classes.dex" "$V/"
     (cd "$V" && zip -q -X unsigned.apk classes.dex "lib/$abi/libfallbackprobe.so")
     "$BT/zipalign" -P 16 -f 4 "$V/unsigned.apk" "$V/aligned.apk"
