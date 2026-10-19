@@ -259,7 +259,7 @@ def clean(d):
         d.lab("ESC")
         time.sleep(0.3)
     d.lab("CLOSE")
-    if "mCurrentFocus=null" not in d.sh("dumpsys window displays | grep -m1 mCurrentFocus").replace(" ", ""):
+    if "name=" in d.sh("dumpsys input | grep -A1 -m1 FocusedWindows:"):
         d.sh("input keyevent KEYCODE_ESCAPE")
     time.sleep(0.8)
 
