@@ -164,7 +164,12 @@ object SettingsCatalog {
         override fun isOn(c: Context) = c.getSystemService(PowerManager::class.java).isPowerSaveMode
         override fun turn(c: Context, on: Boolean) {
             if (!c.getSystemService(PowerManager::class.java).setPowerSaveModeEnabled(on)) {
-                throw ToolError("Battery Saver can't be changed now (the laptop may be charging).")
+                val plugged = c.registerReceiver(null, android.content.IntentFilter(android.content.Intent.ACTION_BATTERY_CHANGED))
+                    ?.getIntExtra(android.os.BatteryManager.EXTRA_PLUGGED, 0) ?: 0
+                throw ToolError(if (plugged != 0) "Battery Saver can't be turned on while the laptop is plugged in: " +
+                    "Android allows it only on battery (Settings shows the same). It can turn on by itself once " +
+                    "unplugged: Settings › Battery › Battery Saver › Set a schedule." else
+                    "Battery Saver can't be changed on this laptop now.")
             }
         }
     }

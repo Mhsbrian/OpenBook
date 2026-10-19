@@ -24,6 +24,7 @@ import dev.openbook.quire.tools.ScreenReader
 class QuireSession(context: Context) : VoiceInteractionSession(context) {
     companion object {
         private const val READ_MS = 8000L
+        private const val NO_LIST_MS = 2500L
     }
 
     override fun onCreate() {
@@ -40,10 +41,13 @@ class QuireSession(context: Context) : VoiceInteractionSession(context) {
         if (args?.getBoolean(ScreenReader.EXTRA_READ, false) == true) {
             reading = true
             Log.i(TAG, "assistant: session shown for a screen read showFlags=0x${Integer.toHexString(showFlags)}")
-            // Without SHOW_WITH_ASSIST the platform withheld the structure (the person's setting, a policy, a private
-            // profile): there will be no onHandleAssist.
-            if (showFlags and SHOW_WITH_ASSIST == 0) ScreenReader.onNoAssist()
-            if (showFlags and SHOW_WITH_SCREENSHOT == 0) ScreenReader.onScreenshot(null)
+            // The platform lists the activities whose structures follow only when it gives them (the person's
+            // "Use text from screen", no policy or private profile against it): without the list, none will come.
+            val coming = args.getParcelableArrayList(KEY_FOREGROUND_ACTIVITIES, android.content.ComponentName::class.java)
+            Log.i(TAG, "assistant: screen read expects ${coming?.size ?: "?"} structure(s); args=${args.keySet()}")
+            // Without the list (or with the list's flag off) give the structures a moment before calling it none.
+            if (coming == null) handler.postDelayed({ ScreenReader.onNoAssist() }, NO_LIST_MS)
+            else if (coming.isEmpty()) ScreenReader.onNoAssist()
             // The platform hands everything over within a few seconds, or never; the reader stops waiting by itself.
             ScreenReader.whenDone { handler.post { if (reading) finish() } }
             handler.postDelayed({ if (reading) finish() }, READ_MS)
@@ -98,6 +102,8 @@ class QuireSession(context: Context) : VoiceInteractionSession(context) {
     override fun onHandleAssist(state: AssistState) {
         if (!reading) return
         structures++
+        Log.i(TAG, "assistant: assist ${state.index + 1}/${state.count} structure=${state.assistStructure != null} " +
+            "app=${state.assistStructure?.activityComponent?.packageName}")
         ScreenReader.onAssist(state)
     }
 

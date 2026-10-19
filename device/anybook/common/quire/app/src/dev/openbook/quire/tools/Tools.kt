@@ -80,6 +80,12 @@ interface CallNote {
     /** Settings the call changed, shown in the note with an undo for each. */
     fun changed(entries: List<ChangeLog.Entry>)
 
+    /**
+     * The platform's own consent dialog is up (or gone): the note steps aside meanwhile, so nothing of Quire's covers
+     * it (NoteWindow.platformDialog).
+     */
+    fun platformDialog(up: Boolean)
+
     /** True once the call no longer matters: the person stopped the task, or the turn ended. */
     val cancelled: Boolean
 

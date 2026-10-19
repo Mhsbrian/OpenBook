@@ -63,6 +63,7 @@ object ScreenReader {
                 }
                 vis.allowScreenContext(true)
                 val flags = VoiceInteractionSession.SHOW_WITH_ASSIST or
+                    VoiceInteractionSession.SHOW_WITH_ASSIST_STRUCTURE_SCREEN_CONTENT or
                     if (screenshot) VoiceInteractionSession.SHOW_WITH_SCREENSHOT else 0
                 vis.showSession(Bundle().apply { putBoolean(EXTRA_READ, true) }, flags)
                 started.complete(true)
@@ -172,6 +173,8 @@ object ScreenTools {
         override fun title(c: Context, args: JSONObject) = "Reading the screen"
         override fun run(c: Context, args: JSONObject, note: CallNote): ToolResult {
             val windows = LiveContext.windows(c)
+            ScreenConsentActivity.ensure(c, note)
+            note.retitle("Reading the screen")
             val r = ScreenReader.read(c, screenshot = false)
             val out = StringBuilder()
             out.append("Windows on screen, front first:\n")
@@ -179,8 +182,9 @@ object ScreenTools {
             if (windows.isEmpty()) out.append("- (none: the desktop)\n")
             val read = r.windows.filter { it.text.isNotBlank() }
             if (read.isEmpty()) {
-                out.append("\nThe windows' text isn't available: a protected window may be showing, or the person " +
-                    "turned off \"Use text from screen\" for Quire (Settings › Apps › Default apps › Digital assistant).")
+                out.append("\nThe windows' text isn't available now: a protected window may be showing, or Quire's " +
+                    "note isn't on screen (the laptop lets its assistant read the screen only while the assistant " +
+                    "shows). take_screenshot may still work.")
             }
             for (w in read) {
                 out.append("\n## ").append(Apps.label(c, w.app)).append('\n').append(w.text)
@@ -195,6 +199,8 @@ object ScreenTools {
         override val schema = Schema.obj()
         override fun title(c: Context, args: JSONObject) = "Looking at the screen"
         override fun run(c: Context, args: JSONObject, note: CallNote): ToolResult {
+            ScreenConsentActivity.ensure(c, note)
+            note.retitle("Looking at the screen")
             val r = ScreenReader.read(c, screenshot = true)
             val b = r.screenshot ?: throw ToolError("The laptop gave no screenshot: the person may have turned off " +
                 "\"Use screenshot\" for Quire, or a protected window is showing.")
