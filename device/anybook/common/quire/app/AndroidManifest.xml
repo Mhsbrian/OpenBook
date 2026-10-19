@@ -16,9 +16,10 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Start contextual search from the assistant session (Meta+Space, the assist key). -->
     <uses-permission android:name="android.permission.ACCESS_CONTEXTUAL_SEARCH" />
-    <!-- The note (ANAL-219, docs/quire-design.md §3.1 Layer): an application overlay of Quire's own uid, because the
-         platform creates a computer-control session only for an owner with a visible window. A *system* application
-         overlay (signature permission), so the platform's consent dialog doesn't hide it; see note/NoteWindow.kt. -->
+    <!-- The note (ANAL-219, docs/quire-design.md §3.1 Layer): an ordinary application overlay of Quire's own uid, so
+         it hides whenever a window asks the system to hide overlays. Only while a computer-control session runs is it
+         a *system* application overlay (signature permission), so the live mirror and Stop stay in view when the
+         driven app hides overlays; see note/NoteWindow.kt. -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.SYSTEM_APPLICATION_OVERLAY" />
     <!-- Agents are reached over sockets: loopback on debuggable builds today (note/LabReceiver.kt), vsock and paired
@@ -111,6 +112,17 @@
             android:excludeFromRecents="true"
             android:taskAffinity="dev.openbook.quire.save"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <!-- Beneath the platform's computer-control consent dialog, which hides overlays such as the note: Quire starts
+             the dialog from it, so the dialog is always above it, and the platform still sees a visible Quire window
+             when it checks after Allow. Inert (no touch, no focus), gone when the dialog is answered. Not exported. -->
+        <activity
+            android:name=".note.ConsentWaitActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:taskAffinity="dev.openbook.quire.consent"
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.Quire.ConsentWait" />
 
         <!-- Scripted checks of the note (scripts/quire/q5-cf-check.py), debuggable builds only. Not exported: only root
              and the system can reach it. -->

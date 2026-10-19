@@ -54,9 +54,23 @@ class ComputerControl(private val context: Context) {
         fun onClosed(reason: Int) {}
     }
 
+    /**
+     * Opens the platform's consent dialog for a caller that is not an activity (the note, a window): from an activity
+     * of Quire's own, beneath the dialog, which keeps Quire visible while the dialog hides overlays
+     * (note/ConsentWaitActivity.kt).
+     */
+    interface ConsentHost {
+        /** Starts [sender]'s dialog; [opened] runs once, with whether it started. */
+        fun open(sender: IntentSender, opened: (Boolean) -> Unit)
+
+        /** The dialog was answered, or the request is over. */
+        fun close()
+    }
+
     /** The note's listener for the current request and session; null for Q2's window and the lab. */
     var events: Events? = null
     private var dialogShown = false
+    private var consent: ConsentHost? = null
 
     private val main = context.mainExecutor
     private val listeners = CopyOnWriteArraySet<Listener>()
@@ -81,9 +95,10 @@ class ComputerControl(private val context: Context) {
     /**
      * Asks the platform for a session that may run [targets], then launches [launch] (a package or a flattened
      * component) on it. Quire must have a visible window while it asks (Q2's activity, or the note): the platform
-     * requires the agent to be in the foreground, and Quire starts the consent dialog from [starter].
+     * requires the agent to be in the foreground, and checks again after consent. Quire starts the consent dialog from
+     * [starter] when it is an activity, else through [host].
      */
-    fun request(starter: Context, targets: List<String>, launch: String?) {
+    fun request(starter: Context, targets: List<String>, launch: String?, host: ConsentHost? = null) {
         if (session != null) {
             report("request refused by Quire: a session is already open")
             events?.onRefused("a session is already open")
@@ -117,6 +132,7 @@ class ComputerControl(private val context: Context) {
             return
         }
         pendingLaunch = launch
+        consent = host
         report("request name=$name targets=$targets version=${VirtualDeviceManager.COMPUTER_CONTROL_VERSION}")
         try {
             vdm.requestComputerControlSession(params, main, callback(starter))
@@ -133,6 +149,21 @@ class ComputerControl(private val context: Context) {
         object : ComputerControlSession.Callback {
             override fun onSessionPending(intentSender: IntentSender) {
                 report("pending: the platform asks for consent")
+                val host = consent
+                if (host != null && starter !is android.app.Activity) {
+                    host.open(intentSender) { ok ->
+                        if (ok) {
+                            dialogShown = true
+                            report("pending: the dialog is open, above Quire's waiting activity")
+                            events?.onPending(true)
+                        } else {
+                            pendingLaunch = null
+                            report("pending: could not open the consent dialog")
+                            events?.onPending(false)
+                        }
+                    }
+                    return
+                }
                 try {
                     starter.startIntentSender(
                         intentSender, null, 0, 0, 0,
@@ -159,6 +190,8 @@ class ComputerControl(private val context: Context) {
                 report("created: display ${size.width}x${size.height}")
                 created.setLifecycleCallback(main, lifecycle)
                 events?.onCreated(created)
+                // The platform has checked; the waiting activity can go now that the note is back.
+                closeConsent()
                 pendingLaunch?.let { launch(it) }
                 pendingLaunch = null
             }
@@ -167,6 +200,7 @@ class ComputerControl(private val context: Context) {
                 pendingLaunch = null
                 report("creation failed: error=$errorCode(${errorName(errorCode)}) dialogShown=$dialogShown")
                 events?.onCreationFailed(errorCode, dialogShown)
+                closeConsent()
             }
 
             @Deprecated("The platform's own deprecation; LifecycleCallback.onClosed reports the reason.")
@@ -174,6 +208,11 @@ class ComputerControl(private val context: Context) {
                 closed()
             }
         }
+
+    private fun closeConsent() {
+        consent?.close()
+        consent = null
+    }
 
     private val lifecycle =
         object : ComputerControlSession.LifecycleCallback {

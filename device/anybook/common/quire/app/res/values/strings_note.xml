@@ -198,6 +198,7 @@
     <string name="q_cc_asking">Asking to use %1$s</string>
     <string name="q_cc_allowed">Allowed to use %1$s</string>
     <string name="q_cc_waiting">Waiting for your permission</string>
+    <string name="q_cc_no_window">Quire couldn’t put its window on screen to ask.</string>
     <string name="q_cc_waiting_sub">The system is asking whether %1$s may use %2$s.</string>
     <string name="q_cc_opening">Opening %1$s</string>
     <string name="q_cc_opened">Opened %1$s</string>
