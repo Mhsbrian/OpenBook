@@ -12,6 +12,8 @@ import android.system.OsConstants
 import android.util.Log
 import dev.openbook.quire.Quire.TAG
 import dev.openbook.quire.agents.Connectors
+import dev.openbook.quire.tools.Broker
+import dev.openbook.quire.tools.Skill
 import java.io.Closeable
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -171,6 +173,9 @@ class AcpAgent(
         /** [answer] takes ACP's `outcome` object; call it once. */
         fun onPermission(agent: AcpAgent, sessionId: String, request: JSONObject, answer: (JSONObject) -> Unit)
 
+        /** Q6: `_quire/tools/call` from quired; [answer] takes an MCP CallToolResult, once, from any thread. */
+        fun onToolCall(agent: AcpAgent, sessionId: String, name: String, args: JSONObject, answer: (JSONObject) -> Unit)
+
         fun onClosed(agent: AcpAgent, error: Throwable?)
     }
 
@@ -247,8 +252,22 @@ class AcpAgent(
         )
     }
 
+    /**
+     * A new session. In the Linux environment, quired gets OpenBook's skill for the agent's instruction files and adds
+     * Quire's OS tools as an MCP server (Q6, ANAL-220): every agent knows from the start that it is Quire on this
+     * laptop, and can act on it.
+     */
     fun newSession(done: (Result<String>) -> Unit) {
-        call("session/new", routed(JSONObject().put("cwd", endpoint.cwd).put("mcpServers", JSONArray()))) { r ->
+        val params = routed(JSONObject().put("cwd", endpoint.cwd).put("mcpServers", JSONArray()))
+        params.optJSONObject("_meta")?.optJSONObject("quire")?.let { q ->
+            q.put("tools", true).put("skill", Skill.markdown(Broker.TOOLS))
+        }
+        call("session/new", params) { r ->
+            r.onSuccess {
+                val q = (it as? JSONObject)?.optJSONObject("_meta")?.optJSONObject("quire")
+                Log.i(TAG, "acp[${endpoint.id}]: session tools=${q?.optBoolean("tools")} " +
+                    "skill files=${q?.optJSONArray("files")?.length() ?: 0}")
+            }
             done(r.mapCatching { (it as JSONObject).getString("sessionId") })
         }
     }
@@ -298,6 +317,12 @@ class AcpAgent(
                     listener.onPermission(this@AcpAgent, params.optString("sessionId"), params) { outcome ->
                         reply.result(JSONObject().put("outcome", outcome))
                     }
+                }
+                // Q6: quired relays the agent's calls of Quire's OS tools (its `openbook` MCP server).
+                "_quire/tools/list" -> reply.result(Broker.list())
+                "_quire/tools/call" -> main.execute {
+                    listener.onToolCall(this@AcpAgent, params.optString("sessionId"), params.optString("name"),
+                        params.optJSONObject("arguments") ?: JSONObject()) { result -> reply.result(result) }
                 }
                 // Quire advertises no file system and no terminal (clientCapabilities above).
                 else -> reply.error(AcpConnection.METHOD_NOT_FOUND, "Quire does not offer $method")

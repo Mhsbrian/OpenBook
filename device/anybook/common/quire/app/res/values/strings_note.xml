@@ -198,6 +198,13 @@
     <string name="q_broker_allow">Allow</string>
     <string name="q_changed_title">Changed %1$d settings</string>
     <string name="q_changed_meta">just now</string>
+    <!-- Q6: the broker's list of settings it changed in a task, each with an undo. -->
+    <plurals name="q_changed">
+        <item quantity="one">Changed %1$d setting</item>
+        <item quantity="other">Changed %1$d settings</item>
+    </plurals>
+    <string name="q_undone_where">%1$s · undone</string>
+    <string name="q_undo_failed">Couldn’t undo %1$s.</string>
     <string name="q_undo_all">Undo all</string>
     <string name="q_foot_undo">Done · undo stays available for 24 h from the Quire button</string>
 

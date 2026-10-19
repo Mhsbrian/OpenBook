@@ -17,10 +17,12 @@ import dev.openbook.quire.control.ComputerControl
  * A computer-control run in the note (docs/quire-design.md §3.3 rule 5, §3.4): the platform's consent, the live
  * mirror with the agent's pointer and the 2× zoom, Pause, Take over and Stop, and honest copy for every way it ends.
  *
- * Until Q6 (ANAL-220) gives agents Quire's computer-control tools over MCP, the steps come from [plan]: a fixed list of
- * controls to tap, found through the session's accessibility tree, given by a debuggable build's lab command. Every
- * action is real (the platform session, its consent dialog, the taps, the mirror); only the choice of steps is scripted.
- * Like the broker will, the run holds its input while paused, so a dropped tap never shows as a completed step.
+ * Two drivers. With [agentMode] (Q6, ANAL-220) the steps come from the agent's computer-control tools
+ * (tools/ControlTools.kt): each `agent*` call is one step, in the same mirror, with the same pointer, zoom and tap ring.
+ * Otherwise they come from [plan], a fixed list of controls to tap given by a debuggable build's lab command (Q5's
+ * checks). Every action is real either way (the platform session, its consent dialog, the taps, the mirror). The run
+ * holds the agent's input while paused or blocked and carries it out on Resume, so a dropped tap never shows as a
+ * completed step.
  */
 class ControlRun(
     private val context: Context,
@@ -33,12 +35,18 @@ class ControlRun(
     private val window: NoteWindow,
     /** How long the pointer rests on a control before the tap; the checks slow it down to take their screenshots. */
     private val aimMs: Long = AIM_MS,
+    /** Driven by an agent's tool calls in the task's own turn (Q6), not by [plan]. */
+    val agentMode: Boolean = false,
 ) : ComputerControl.Events {
     /** One step: tap the control labelled [text]; [title] is the step's line while it runs, [done] after. */
     data class Tap(val text: String, val title: String, val done: String)
 
     val session: ComputerControlSession?
         get() = control.session
+
+    /** The app the run drives, as the note names it. */
+    val appName: String
+        get() = app
 
     /**
      * True from the session's creation until the run ends: while its task is the one shown, the note is a system
@@ -57,8 +65,19 @@ class ControlRun(
     private var stepStart = 0L
     private var resumedAt = 0L
 
+    /** Agent mode: runs once, with null when the app is open on the session display, else why it isn't. */
+    var ready: ((String?) -> Unit)? = null
+
+    /** Agent mode: why the run ended, for the agent's next call. */
+    var endedBecause: String? = null
+        private set
+
+    /** Agent mode: the step held while paused or blocked, carried out on Resume. */
+    private var held: (() -> Unit)? = null
+    private var heldFail: ((String) -> Unit)? = null
+
     fun start(prompt: String) {
-        task.beginControl(prompt, this)
+        if (agentMode) task.attachControl(this) else task.beginControl(prompt, this)
         control.events = this
         val asking = Step("cc-ask", context.getString(R.string.q_cc_asking, app), "app", StepStatus.RUNNING)
         waitingStep = asking
@@ -118,7 +137,7 @@ class ControlRun(
             it.title = context.getString(R.string.q_cc_allowed, app)
         }
         val m = Mirror(app)
-        m.total = plan.size + 1
+        m.total = if (agentMode) 0 else plan.size + 1
         mirror = m
         task.mirror = m
         m.steps.items += Step("cc-open", context.getString(R.string.q_cc_opening, app), "app", StepStatus.RUNNING)
@@ -133,7 +152,12 @@ class ControlRun(
             }
             m.steps.changed()
             task.controlPhase(Task.Phase.MIRROR)
-            next()
+            if (agentMode) {
+                ready?.invoke(null)
+                ready = null
+            } else {
+                next()
+            }
         }, OPEN_SETTLE_MS)
     }
 
@@ -178,7 +202,7 @@ class ControlRun(
             m.blockedReason = null
             m.status = ""
             task.controlPhase(Task.Phase.MIRROR)
-            if (!m.paused) handler.post { next() }
+            if (!m.paused) handler.post { if (agentMode) release() else next() }
         }
     }
 
@@ -297,7 +321,7 @@ class ControlRun(
                 control.resume()
                 m.paused = false
                 task.controlPhase(Task.Phase.MIRROR, Task.Focus.RESUME)
-                handler.postDelayed({ next() }, BETWEEN_MS)
+                handler.postDelayed({ if (agentMode) release() else next() }, BETWEEN_MS)
             }
             MirrorPanel.Action.TAKE_OVER -> {
                 handedOver = true
@@ -355,8 +379,118 @@ class ControlRun(
         sessionLive = false
         window.sessionChanged()
         ConsentWait.close()
-        Log.i(TAG, "note: control run ended stopped=$stopped: $msg")
-        task.controlEnded(stopped, msg, sub, tone, icon)
+        Log.i(TAG, "note: control run ended stopped=$stopped agent=$agentMode: $msg")
+        if (agentMode) {
+            endedBecause = listOfNotNull(msg, sub).joinToString(" ")
+            ready?.invoke(endedBecause)
+            ready = null
+            heldFail?.invoke(endedBecause!!)
+            held = null
+            heldFail = null
+            task.controlDetached(stopped, msg, sub, tone, icon)
+        } else {
+            task.controlEnded(stopped, msg, sub, tone, icon)
+        }
+    }
+
+    // ---------------------------------------------------------------------------------------- agent mode (Q6)
+
+    val live: Boolean
+        get() = mirror != null && !finished
+
+    val paused: Boolean
+        get() = mirror?.paused == true
+
+    val blocked: Boolean
+        get() = mirror?.blockedReason != null
+
+    /**
+     * One agent step, as the mirror shows it: [act] runs once the run isn't paused or blocked, with the step's line;
+     * it calls `finish(ok)`. [done] gets null when the step was carried out, else why not. Main thread.
+     */
+    fun agentStep(title: String, kind: String, act: (Step, (Boolean) -> Unit) -> Unit, done: (String?) -> Unit) {
+        val m = mirror
+        if (m == null || finished) {
+            done(endedBecause ?: "Computer control isn't running; start it with control_start.")
+            return
+        }
+        if (m.paused || m.blockedReason != null) {
+            // Held until Resume, or until the session unblocks; replaced if the agent sends another.
+            heldFail?.invoke("Replaced by a newer step while the person had paused.")
+            held = { agentStep(title, kind, act, done) }
+            heldFail = done
+            Log.i(TAG, "note: control step held (paused=${m.paused} blocked=${m.blockedReason != null})")
+            return
+        }
+        val step = Step("cc-a${m.steps.items.size}", title, kind, StepStatus.RUNNING)
+        m.steps.items += step
+        m.steps.changed()
+        task.controlPhase(Task.Phase.MIRROR)
+        act(step) { ok ->
+            step.status = if (ok) StepStatus.DONE else StepStatus.FAILED
+            m.steps.changed()
+            task.controlPhase(Task.Phase.MIRROR)
+            done(if (ok) null else "It didn't work.")
+        }
+    }
+
+    /** Aims at [target] (session pixels) in the mirror, then taps it. */
+    fun agentTap(x: Int, y: Int, target: android.graphics.Rect?, title: String, done: (String?) -> Unit) {
+        agentStep(title, "execute", { step, finish ->
+            val m = mirror!!
+            m.target = target
+            m.pointer = PointF(x.toFloat(), y.toFloat())
+            task.controlPhase(Task.Phase.MIRROR)
+            handler.postDelayed({
+                if (finished || stopped) return@postDelayed done(endedBecause ?: "Stopped.")
+                if (m.paused || m.blockedReason != null) {
+                    // Paused while aiming: the tap waits for Resume.
+                    m.steps.items.remove(step)
+                    m.steps.changed()
+                    held = { agentTap(x, y, target, title, done) }
+                    heldFail = done
+                    return@postDelayed
+                }
+                control.tap(x, y)
+                m.tapAt = SystemClock.uptimeMillis()
+                handler.postDelayed({
+                    m.target = null
+                    finish(true)
+                }, AFTER_TAP_MS)
+            }, aimMs)
+        }, done)
+    }
+
+    /** A step with no aiming: type, scroll, back. [act] returns null, or why it was refused. */
+    fun agentAction(title: String, act: () -> String?, done: (String?) -> Unit) {
+        agentStep(title, "execute", { _, finish ->
+            val refused = act()
+            if (refused != null) {
+                done(refused)
+                finish(false)
+                return@agentStep
+            }
+            handler.postDelayed({ finish(true) }, AFTER_TAP_MS)
+        }, done)
+    }
+
+    /** The agent is done with the app: close the session, or hand the app over to the person's screen. */
+    fun agentEnd(handOver: Boolean) {
+        if (finished) return
+        if (handOver) {
+            handedOver = true
+            control.handOver()
+        } else {
+            index = plan.size
+            control.close()
+        }
+    }
+
+    private fun release() {
+        val h = held ?: return
+        held = null
+        heldFail = null
+        h()
     }
 
     companion object {

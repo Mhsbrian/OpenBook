@@ -38,6 +38,9 @@ type fakeAgent struct {
 	mu   sync.Mutex
 	n    int
 	cwds map[string]string
+	mcps map[string][]acp.McpServer
+	// waiting counts "wait" turns that have started (quired sets up the turn before it prompts).
+	waiting int
 }
 
 func (f *fakeAgent) Info() acp.InitializeResponse {
@@ -54,7 +57,7 @@ func (f *fakeAgent) Authenticate(_ context.Context, id string) error {
 	return nil
 }
 
-func (f *fakeAgent) NewSession(_ context.Context, cwd string, _ []acp.McpServer) (string, error) {
+func (f *fakeAgent) NewSession(_ context.Context, cwd string, mcp []acp.McpServer) (string, error) {
 	if f.needAuth && !f.authed.Load() {
 		return "", acp.Errorf(acp.CodeAuthRequired, "Authentication required")
 	}
@@ -62,6 +65,10 @@ func (f *fakeAgent) NewSession(_ context.Context, cwd string, _ []acp.McpServer)
 	f.n++
 	sid := fmt.Sprintf("a%d", f.n)
 	f.cwds[sid] = cwd
+	if f.mcps == nil {
+		f.mcps = map[string][]acp.McpServer{}
+	}
+	f.mcps[sid] = mcp
 	f.mu.Unlock()
 	// Real agents announce things about a session before session/new's reply is handled.
 	f.client.Update(sid, acp.ChunkUpdate(acp.UpdateAgentThoughtChunk, "early").Marshal())
@@ -91,6 +98,9 @@ func (f *fakeAgent) Prompt(ctx context.Context, sid string, prompt []acp.Content
 		}
 		return acp.StopEndTurn, nil
 	case "wait":
+		f.mu.Lock()
+		f.waiting++
+		f.mu.Unlock()
 		<-ctx.Done()
 		return acp.StopCancelled, nil
 	}

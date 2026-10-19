@@ -26,6 +26,12 @@ const (
 	permTool   = "approve"
 )
 
+// ToolServer is the name of the MCP server with Quire's OS tools (quired serve adds it to a
+// session when Quire core asks, package serve). Quire core decides every call to it: it asks the
+// person before destructive ones and refuses the never tier, so Claude Code's own question would
+// only ask twice. Claude Code runs its tools without asking (--allowedTools mcp__openbook).
+const ToolServer = "openbook"
+
 // claudeAgent adapts Claude Code's print mode to ACP. Each prompt is one `claude -p` run; the
 // first creates the conversation with --session-id and later ones continue it with --resume.
 type claudeAgent struct {
@@ -106,6 +112,11 @@ func (c *claudeAgent) Prompt(ctx context.Context, sid string, prompt []acp.Conte
 
 	args := []string{"-p", "--output-format", "stream-json", "--verbose", "--include-partial-messages",
 		"--mcp-config", c.mcpConfig(s, bridge.socket), "--permission-prompt-tool", "mcp__" + permServer + "__" + permTool}
+	for _, m := range s.mcp {
+		if m.Name == ToolServer {
+			args = append(args, "--allowedTools", "mcp__"+ToolServer)
+		}
+	}
 	if s.started {
 		args = append(args, "--resume", sid)
 	} else {
