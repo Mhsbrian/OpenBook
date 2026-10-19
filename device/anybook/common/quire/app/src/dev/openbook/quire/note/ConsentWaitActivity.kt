@@ -13,6 +13,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.WindowManager
 import android.widget.FrameLayout
@@ -36,9 +37,10 @@ import java.lang.ref.WeakReference
  * the person allows in its consent dialog. The note is an ordinary overlay, so it is hidden whenever a window on screen
  * hides overlays, and Settings and Files always do. So the request starts from this activity, which no overlay rule
  * hides, and the dialog is started from it: the dialog opens above it and stays above it, and nothing of Quire's ever
- * covers the dialog. The activity is inert (no touch, no focus) and transparent; while
- * the dialog is up it shows a waiting card where the note was. It is gone as soon as the platform has answered (the
- * session is created or refused) or the run stops.
+ * covers the dialog. The activity is inert (no touch, no focus) and transparent; while the dialog is up it shows a
+ * still of the note at the note's place (header, intake, prompt, steps, the waiting row; no composer, no footer), on
+ * the note's own surface, so the only change on screen is the dialog's scrim (§5.2). It is gone as soon as the
+ * platform has answered (the session is created or refused) or the run stops.
  */
 object ConsentWait : ComputerControl.ConsentHost {
     /** What the waiting card says, and where the note's card was (display pixels), to draw it in the same place. */
@@ -48,6 +50,8 @@ object ConsentWait : ComputerControl.ConsentHost {
 
     private var pending: Pending? = null
     private var card: Card? = null
+    private var still: android.graphics.Bitmap? = null
+    private var stillAt: Rect? = null
     private var activity: WeakReference<ConsentWaitActivity>? = null
     private var main: android.os.Handler? = null
     private val timeout = Runnable {
@@ -76,14 +80,22 @@ object ConsentWait : ComputerControl.ConsentHost {
         }
     }
 
-    /** The platform asks: the activity, already on screen, starts the dialog above itself and shows the card. */
+    /** The note's still and where it is (display pixels), shown beneath the dialog instead of the plain card. */
+    fun still(bitmap: android.graphics.Bitmap?, at: Rect?) {
+        still = bitmap
+        stillAt = at
+    }
+
+    /** The platform asks: the activity, already on screen, shows the still, then starts the dialog above itself. */
     override fun open(sender: IntentSender, opened: (Boolean) -> Unit) {
         val a = activity?.get()
         if (a == null || a.isFinishing) {
             Log.w(TAG, "consent: no waiting activity to open the dialog from")
             return opened(false)
         }
-        a.openDialog(sender, opened)
+        val b = still
+        val at = stillAt
+        a.openDialog(sender, opened, if (b != null && at != null) b to at else null)
     }
 
     /** The platform answered or the run ended: the waiting activity goes. */
@@ -91,6 +103,8 @@ object ConsentWait : ComputerControl.ConsentHost {
         main?.removeCallbacks(timeout)
         pending = null
         card = null
+        still = null
+        stillAt = null
         activity?.get()?.let {
             if (!it.isFinishing) {
                 Log.i(TAG, "consent: waiting activity finished")
@@ -151,9 +165,27 @@ class ConsentWaitActivity : Activity() {
         window.decorView.invalidate()
     }
 
-    /** Starts the platform's dialog above this activity, and shows the waiting card beneath it. */
-    fun openDialog(sender: IntentSender, opened: (Boolean) -> Unit) {
+    /**
+     * Shows the note's [still] (or, without one, the plain waiting card) and, once that frame is on screen, starts the
+     * platform's dialog above this activity. The note steps aside as the dialog starts (ControlRun.onPending), so the
+     * still takes its place without a blink and nothing of Quire's is ever over the dialog.
+     */
+    fun openDialog(sender: IntentSender, opened: (Boolean) -> Unit, still: Pair<android.graphics.Bitmap, Rect>?) {
+        if (still != null) {
+            card?.let { (it.parent as? ViewGroup)?.removeView(it) }
+            val v = stillView(still.first, still.second)
+            (window.decorView.findViewById<ViewGroup>(android.R.id.content).getChildAt(0) as ViewGroup).addView(v)
+            card = v
+            Log.i(TAG, "consent: the note's still at ${still.second.toShortString()}")
+        }
         card?.visibility = View.VISIBLE
+        val decor = window.decorView
+        decor.viewTreeObserver.registerFrameCommitCallback { decor.post { startDialog(sender, opened) } }
+        decor.invalidate()
+    }
+
+    private fun startDialog(sender: IntentSender, opened: (Boolean) -> Unit) {
+        if (isFinishing) return opened(false)
         try {
             startIntentSender(sender, null, 0, 0, 0, ActivityOptions.makeBasic()
                 .setPendingIntentBackgroundActivityStartMode(ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOW_IF_VISIBLE)
@@ -178,7 +210,49 @@ class ConsentWaitActivity : Activity() {
         super.onDestroy()
     }
 
-    /** The note's waiting card (§3.3 rule 5), drawn where the note was; inert, and beneath the dialog. */
+    /**
+     * The note's still on the note's surface (the blur at the note's radius under the 92 % note colour, the 1 dp
+     * outline, the 12 dp shadow), at [at] in display pixels. An image: nothing in it can take focus.
+     */
+    private fun stillView(still: android.graphics.Bitmap, at: Rect): View {
+        val p = Palette.of(this)
+        val radius = dp(NoteCard.RADIUS_DP)
+        val box = FrameLayout(this).apply {
+            val blur = window.decorView.viewRootImpl?.createBackgroundBlurDrawable()?.apply {
+                setColor(p.noteBackground)
+                setBlurRadius(dpi(NoteCard.BLUR_DP))
+                setCornerRadius(radius, radius, radius, radius)
+            }
+            background = blur ?: rounded(context, p.noteBackground, NoteCard.RADIUS_DP)
+            foreground = rounded(context, 0, NoteCard.RADIUS_DP, p.noteOutline, 1f)
+            elevation = dp(12f)
+            outlineAmbientShadowColor = p.shadow
+            outlineSpotShadowColor = p.shadow
+            outlineProvider = object : android.view.ViewOutlineProvider() {
+                override fun getOutline(view: View, outline: android.graphics.Outline) {
+                    outline.setRoundRect(0, 0, view.width, view.height, radius)
+                }
+            }
+            clipToOutline = true
+            isFocusable = false
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+            addView(android.widget.ImageView(context).apply {
+                setImageBitmap(still)
+                scaleType = android.widget.ImageView.ScaleType.FIT_XY
+            }, FrameLayout.LayoutParams(still.width, still.height))
+        }
+        box.layoutParams = FrameLayout.LayoutParams(still.width, still.height).apply { gravity = Gravity.TOP or Gravity.START }
+        // At the note's place in display pixels, whatever this window's own offset.
+        box.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
+            val loc = IntArray(2)
+            (v.parent as View).getLocationOnScreen(loc)
+            v.translationX = (at.left - loc[0]).toFloat()
+            v.translationY = (at.top - loc[1]).toFloat()
+        }
+        return box
+    }
+
+    /** The plain waiting card, for a run with no note to take a still of; inert, and beneath the dialog. */
     private fun waitingCard(c: ConsentWait.Card): View {
         val p = Palette.of(this)
         val frame = FrameLayout(this)

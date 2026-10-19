@@ -375,8 +375,10 @@ Code: `device/anybook/common/quire/app/src/dev/openbook/quire/` (`note/`, `acp/`
   - **Consent:** Quire asks for a computer-control session from `note/ConsentWaitActivity.kt`, an inert, transparent
     activity of its own, which no overlay rule hides. The platform checks for a visible owner window when Quire asks
     and again after Allow. The activity starts the platform's dialog, so the dialog opens above it and stays above it.
-    While the dialog is up, the activity shows Quire's waiting card and the note steps aside. Nothing of Quire's
-    covers the dialog, at any display size.
+    Before the dialog starts, the activity shows a still of the note at the note's place: header, intake, prompt,
+    steps and the waiting row, with no composer and no footer, on the note's own surface. Then the note steps aside,
+    so the only change on screen is the dialog's scrim (Atelier's ruling, 2026-10-19). Nothing of Quire's covers the
+    dialog, at any display size.
   - **While a session runs**, the note is a *system* application overlay (`SYSTEM_APPLICATION_OVERLAY`, signature). The
     app being driven may hide overlays: Settings does on every page, even on the session display. An ordinary overlay
     would then hide the live mirror, Pause and Stop for the whole run
@@ -396,7 +398,7 @@ Code: `device/anybook/common/quire/app/src/dev/openbook/quire/` (`note/`, `acp/`
   `-32000` (sign-in) and a dropped connection each have their state, and the copy after a stop or an error says what
   finished, what was interrupted, and that Quire can't undo the agent's own actions (§3.3 rule 6). Agents are reached
   over loopback TCP on debuggable builds (through `adb reverse`); `quired serve` over vsock is Q4's.
-- **Computer control in the note** (`note/ControlRun.kt`): the platform's consent with Quire's waiting card beneath it, the
+- **Computer control in the note** (`note/ControlRun.kt`): the platform's consent with a still of the note beneath it, the
   live mirror zoomed 2× on the control in use with the agent's pointer, the tap ring and the focus ring, Pause
   (`notifyBlocked()`, the mirror becomes interactive, the run holds its input), Resume, Take over
   (`handOverApplications()`) and Stop, and the error copy of §3.3 rule 5. Until Q6 gives agents Quire's tools, the

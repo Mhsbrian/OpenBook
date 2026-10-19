@@ -4,6 +4,7 @@
 package dev.openbook.quire.note
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Outline
 import android.graphics.Paint
@@ -433,6 +434,35 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
             task.wide = true
             post { this.task?.let { bind(it) } }
         }
+    }
+
+    /**
+     * A still of the card for Quire's waiting activity beneath the platform's consent dialog (§3.3 rule 5): every
+     * section above the composer, as laid out now: header, intake, prompt, steps and the waiting row. No composer,
+     * no footer, no focus ring, and no surface (the activity draws the same surface under it).
+     */
+    fun still(): Bitmap? {
+        val bottom = if (composer.visibility != GONE) composer.top else footer.top
+        if (width <= 0 || bottom <= 0) return null
+        // A block that just arrived is still fading in (§5.2 Settle); the still shows it as it will be.
+        for (i in 0 until blocksColumn.childCount) {
+            val v = blocksColumn.getChildAt(i)
+            if (v.alpha < 1f) {
+                v.animate().cancel()
+                v.alpha = 1f
+            }
+        }
+        val bmp = Bitmap.createBitmap(width, bottom, Bitmap.Config.ARGB_8888)
+        val c = Canvas(bmp)
+        for (v in sections) {
+            if (v === composer || v === footer) break
+            if (v.visibility != VISIBLE) continue
+            c.save()
+            c.translate(v.left.toFloat(), v.top.toFloat())
+            v.draw(c)
+            c.restore()
+        }
+        return bmp
     }
 
     override fun dispatchDraw(canvas: Canvas) {

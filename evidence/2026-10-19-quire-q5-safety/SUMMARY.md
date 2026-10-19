@@ -104,7 +104,7 @@ failure in each script. All three are fixed in the checks, not in Quire, and the
 | State | Render | Build | Why |
 |---|---|---|---|
 | Any state over Settings or Files | The note over the app | The note does not show | Both hide overlays on every page, and the note honours that (finding 1). The intake and the agent still work. Open decision below |
-| `consent-system` | The note, undimmed, waiting beside the platform's dialog | The dialog over the dimmed desktop, with Quire's waiting card beneath the dim where the note was | The waiting card is drawn by the activity beneath the dialog, so nothing of Quire's can cover the dialog at any display size |
+| `consent-system` | The note, undimmed, waiting beside the platform's dialog | The dialog over the dimmed desktop, with a still of the note beneath the dim, at the note's place | The still is drawn by the activity beneath the dialog, so nothing of Quire's can cover the dialog at any display size. Atelier accepted this on 2026-10-19 and asked for the still (header, intake, prompt, steps, the waiting row; no composer, no footer) in place of the first round's two-line card. See "Atelier's ruling" below |
 | `mirror-takeover` | "Settings is on your screen now" in the note | The note is hidden behind Settings once Settings is on the person's display | After the run the note is ordinary content again. Reported as INFO, not as a pass |
 
 ## Open decision (for the owner and the Checker)
