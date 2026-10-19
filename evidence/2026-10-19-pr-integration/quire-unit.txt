@@ -1,0 +1,40 @@
+== SessionRoutes
+PASS A's session-1 routes to task A
+PASS B's session-1 routes to task B
+PASS two routes for the colliding ID
+PASS an unknown session on A has no owner
+PASS a look-alike connection is another connection
+PASS task A cannot release B's session-1
+PASS task A releases its own
+PASS B's route survives A's release
+PASS A's disconnect reaches A's tasks only
+PASS B still routes after A disconnects
+PASS A has no routes left
+PASS a second drop of A finds nothing
+PASS a stale release keeps the newer owner
+== IntakePolicy
+PASS the shake over Settings takes in Settings' window
+PASS a window partly off the display is cropped to what shows
+PASS a full-screen window is the whole display, named as that window
+PASS no screenshot: nothing
+PASS the stale pointer (Meta+Space after 10 s still): nothing
+PASS a pointer over the desktop, no window: nothing
+PASS bounds without a pointer: nothing
+PASS empty bounds: nothing
+PASS inverted bounds: nothing
+PASS the pointer outside the bounds: nothing
+PASS bounds off the display: nothing
+PASS no package: nothing
+PASS no time: nothing
+PASS bounds read 3.5 s ago: nothing
+PASS bounds from the future: nothing
+PASS at the limit: still the window
+PASS a package the screenshot does not show: nothing
+PASS visible packages withheld: nothing
+PASS the desktop's home task (it spans every window): nothing
+PASS the system UI: nothing
+PASS Quire itself: nothing
+PASS a secure window and no bounds: nothing, said as secure
+PASS a secure window elsewhere does not stop the window under the pointer
+PASS no screenshot is never said as secure
+37 passed, 0 failed

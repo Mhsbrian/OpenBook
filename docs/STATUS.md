@@ -1,5 +1,11 @@
 # Status
 
+## 2026-10-19: PR integration (ANAL-188)
+
+This integration consolidates PRs #94, #98 and #104–#117 with merge commits, preserving their dependency history. Status conflicts retain both evidence records; Quire retains the surface and Linux-agent initialization. The two outstanding #115 confirmation bugs are corrected with host dispatch regressions (17/17; the original head fails 12). No image or laptop update was performed. #117 contributes diagnostics only: the physical touchpad reproduction and fix remain open.
+
+Local checks: Go race tests pass; Quire host tests 37/37; connector tests 10/10; app and probe compile with zero warnings; eight touchpad replay tests pass from a fresh isolated build; contrast checks pass. Evidence: `evidence/2026-10-19-pr-integration/`. Earlier hardware and QEMU results below retain their original scope and dates.
+
 ## 2026-10-19: G14 touchpad investigation (ANAL-226)
 
 Read-only check of the installed `20261019.photos1` image (slot A): tap dragging
@@ -18,15 +24,15 @@ See `docs/touchpad-behavior.md` and `evidence/2026-10-19-touchpad-behavior/`.
 Confirmed three SurfaceFlinger aborts on the G14's `quire9` build: missing RADV
 YV12 hardware-buffer mapping. Mesa patch 0005 passes 15/15 headless imports
 and pixel checks on the Radeon 890M. QEMU update/recovery checks pass 49/49.
-`20261019.photos1` is staged and verified in slot A; the G14 still runs `quire9`
-in slot B pending the owner’s restart. Post-boot data and Photos verification
-remain pending. Evidence: `evidence/2026-10-19-photos-yv12/`.
+`20261019.photos1` was staged and verified in slot A. ANAL-226 subsequently
+observed it running in slot A (see the touchpad record above). Post-boot data
+and full Photos-use verification remain pending. Evidence: `evidence/2026-10-19-photos-yv12/`.
 
 ## State of the union (2026-10-18, 15:20 UTC)
 
 **Goal:** the Googlebook-style Android 17 desktop on the ASUS ROG Zephyrus G14 (GA403WR: Ryzen AI 9 HX 370, Radeon 890M), installed from a USB stick through a wizard and verified on the laptop. Repo: https://github.com/Mhsbrian/OpenBook.
 
-**Repo hygiene:** PRs #1–#87 are merged and none are open. The 2026-10-17 cleanup left one remote branch, `main`; every other branch was merged or superseded. Two branches with commits never merged are kept as tags: `archive/anal-190-live-image-b` (superseded on `main`) and `archive/anal-178-stick-integration`.
+**Previous cleanup (2026-10-17):** PRs #1–#87 were merged and none were open at that time. The 2026-10-17 cleanup left one remote branch, `main`; every other branch was merged or superseded. Two branches with commits never merged are kept as tags: `archive/anal-190-live-image-b` (superseded on `main`) and `archive/anal-178-stick-integration`.
 
 ### What works, and where it has been shown
 
