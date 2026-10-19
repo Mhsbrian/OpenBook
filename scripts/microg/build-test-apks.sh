@@ -7,6 +7,8 @@
 #                             its .Loc activity asks the network, fused and gps providers for one location each
 #   openbook-fakegms.apk      a package named com.google.android.gms that asks for microG's fake signature but is
 #                             signed with a throwaway key: the patch must not spoof it (the negative test)
+#   sigcheck.dex              the same signature check without an app or a screen, for a laptop in use:
+#                             adb shell app_process -cp /data/local/tmp/sigcheck.dex / SigCheck PKG...
 # Both are signed with local throwaway keys that are never committed. Output: ~/anybook/microg/out/testapps.
 set -euo pipefail
 if [ -z "${ANYBOOK_IN_CONTAINER:-}" ]; then
@@ -42,7 +44,12 @@ mkdir -p "$W/fakegms"
   --min-sdk-version $API --target-sdk-version 36 --version-code 1 --version-name 1.0-anal210-negative-test
 sign openbook-fakegms "$W/fakegms/unsigned.apk" "$OUT/openbook-fakegms.apk"
 
+mkdir -p "$W/headless"
+javac --release 11 -nowarn -cp "$JAR" -d "$W/headless" "$SRC/headless/SigCheck.java"
+"$BT/d8" --release --min-api $API --lib "$JAR" --output "$W/headless" "$W/headless/SigCheck.class"
+cp "$W/headless/classes.dex" "$OUT/sigcheck.dex"
+
 for f in "$OUT"/*.apk; do
   echo "== ${f##*/}"; "$BT/apksigner" verify --print-certs "$f" | grep -E 'DN|SHA-256'
 done
-(cd "$OUT" && sha256sum *.apk > SHA256SUMS && cat SHA256SUMS)
+(cd "$OUT" && sha256sum *.apk sigcheck.dex > SHA256SUMS && cat SHA256SUMS)

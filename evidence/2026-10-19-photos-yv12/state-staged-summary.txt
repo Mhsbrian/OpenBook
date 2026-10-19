@@ -1,0 +1,11 @@
+G14 state before versus after staging, before reboot (2026-10-19).
+Packages: 165 -> 165; same versions: True
+fingerprint: OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.quire9:userdebug/test-keys -> OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.quire9:userdebug/test-keys
+slot: _b -> _b
+accounts: unchanged=True
+lock_disabled: unchanged=True
+media_files_user: 222 -> 222
+media_list_sha256: unchanged=True
+wifi_networks: unchanged=True
+selinux: Enforcing -> Enforcing
+Post-boot state and Photos app retest: pending owner restart.

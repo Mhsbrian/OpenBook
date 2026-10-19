@@ -1,0 +1,7 @@
+renderer=ANGLE (AMD, Vulkan 1.4.354 (AMD Radeon 890M Graphics (RADV STRIX1) (0x0000150E)), radv-26.2.5)
+ pixel[1,1]=176,34,0 pixel[6,1]=0,94,206 pixel[1,6]=255,162,50 pixel[6,6]=80,222,255 pixels=PASS
+RGBA8888 64x64 stride=64 image=valid egl=0x3000 gl=0x0 PASS
+ pixel[1,1]=176,34,0 pixel[6,1]=0,94,206 pixel[1,6]=255,162,50 pixel[6,6]=80,222,255 pixels=PASS
+YV12 64x64 stride=256 image=valid egl=0x3000 gl=0x0 PASS
+ pixel[1,1]=176,34,0 pixel[6,1]=0,94,206 pixel[1,6]=255,162,50 pixel[6,6]=80,222,255 pixels=PASS
+YUV420 64x64 stride=256 image=valid egl=0x3000 gl=0x0 PASS
