@@ -1,5 +1,18 @@
 # Status
 
+## 2026-10-19: G14 touchpad investigation (ANAL-226)
+
+Read-only check of the installed `20261019.photos1` image (slot A): tap dragging
+is **already enabled** in Settings and the mapper, so the earlier disabled-default
+hypothesis is insufficient. Captured 45 seconds of touchpad-only events and
+added an offline replay of the bundled ChromeOS gestures library, with 8/8
+synthetic control checks passing. No labeled failing gesture was captured;
+libinput runtime comparison and physical before/after remain pending. No
+touchpad tuning, laptop setting change, or image update was made. The next step
+requires the owner to reproduce the problem during a labeled capture; then fix,
+QEMU rehearsal, OTA from the current image tree, and owner comparison.
+See `docs/touchpad-behavior.md` and `evidence/2026-10-19-touchpad-behavior/`.
+
 ## State of the union (2026-10-18, 11:55 UTC)
 
 **Goal:** the Googlebook-style Android 17 desktop on the ASUS ROG Zephyrus G14 (GA403WR: Ryzen AI 9 HX 370, Radeon 890M), installed from a USB stick through a wizard and verified on the laptop. Repo: https://github.com/Mhsbrian/OpenBook.
