@@ -3,15 +3,21 @@
 
 package dev.openbook.quire.note
 
+import android.app.contextualsearch.ContextualSearchManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.PointF
+import android.graphics.Rect
+import android.os.SystemClock
 import android.util.Log
 import dev.openbook.quire.Quire
 import dev.openbook.quire.Quire.TAG
 import dev.openbook.quire.QuireApplication
 import dev.openbook.quire.acp.Endpoint
+import dev.openbook.quire.invocation.Calls
 import dev.openbook.quire.invocation.Invocations
 import org.json.JSONArray
 
@@ -23,10 +29,15 @@ import org.json.JSONArray
  *
  * ENDPOINT (id, name, where, address tcp:127.0.0.1:PORT, cwd, local, connected) · ENDPOINT_REMOVE (id) ·
  * OPEN (trigger, x and y for a pointer anchor else the taskbar, intake window|region|selection|secure|none, name, text)
- * · SEND (text) · ESC · HIDE · CLOSE · REOPEN · PICKER · PICK (id) · CONTROL (prompt, app, launch, taps: JSON
- * [[text, title, done], ...]) · MIRROR (action pause|resume|takeover|stop) · TRAY · LISTEN (final, partial) ·
- * LISTEN_RELEASE · BROKER (title, meta, rows: JSON [[name, where, old, new], ...], why, prompt, steps: JSON
- * [[title, kind], ...]) · PALETTE · DUMP
+ * · SEND (text) · ESC · HIDE · CLOSE · REOPEN (task id, else the last hidden) · PICKER · PICK (id) · CONTROL (prompt,
+ * app, launch, taps: JSON [[text, title, done], ...]) · MIRROR (action pause|resume|takeover|stop) · TRAY · LISTEN
+ * (final, partial) · LISTEN_RELEASE · BROKER (title, meta, rows: JSON [[name, where, old, new], ...], why, prompt,
+ * steps: JSON [[title, kind], ...]) · PALETTE · DUMP
+ *
+ * INVOKE (px, py, bounds "l,t,r,b", source, age ms, visible "a,b", secure, w, h): a made-up contextual search call, as
+ * if from SystemUI, through the same code as a real one (invocation/Calls), with a generated screenshot whose pixels
+ * encode their own position (red = x, green = y, scaled to 255), so a check can tell from the image an agent received
+ * which part of the display it is. Any extra left out is absent from the call.
  */
 class LabReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -49,7 +60,12 @@ class LabReceiver : BroadcastReceiver() {
             "ESC" -> surface.escape()
             "HIDE" -> surface.hide()
             "CLOSE" -> surface.close()
-            "REOPEN" -> surface.tasks.lastOrNull { it.hidden }?.let { surface.reopen(it) }
+            "REOPEN" -> {
+                val id = intent.getStringExtra("task")?.toIntOrNull()
+                (if (id != null) surface.tasks.firstOrNull { it.id == id } else surface.tasks.lastOrNull { it.hidden })
+                    ?.let { surface.reopen(it) }
+            }
+            "INVOKE" -> Calls.handle(context.applicationContext as QuireApplication, invocation(intent))
             "PICKER" -> surface.window.card?.agentChip?.let { surface.openPicker(it) }
             "PICK" -> intent.getStringExtra("id")?.let { id -> surface.agents.find(id)?.let { surface.pickAgent(it) } }
             "CONTROL" -> {
@@ -101,7 +117,8 @@ class LabReceiver : BroadcastReceiver() {
             "DUMP" -> {
                 surface.tasks.forEach {
                     Log.i(TAG, "lab: task ${it.id} phase=${it.phase} running=${it.running} hidden=${it.hidden} " +
-                        "needsAnswer=${it.needsAnswer} blocks=${it.blocks.map { b -> b.javaClass.simpleName }}")
+                        "needsAnswer=${it.needsAnswer} agent=${it.agent?.endpoint?.id} session=${it.sessionId} " +
+                        "shown=${surface.window.task === it} blocks=${it.blocks.map { b -> b.javaClass.simpleName }}")
                 }
                 surface.agents.entries.forEach {
                     Log.i(TAG, "lab: agent ${it.endpoint.id} ${it.endpoint.address} connected=${it.connected} " +
@@ -110,6 +127,36 @@ class LabReceiver : BroadcastReceiver() {
             }
             else -> Log.w(TAG, "lab: unknown note action $action")
         }
+    }
+
+    /** The launch intent ContextualSearchManagerService would send, for INVOKE. */
+    private fun invocation(lab: Intent): Intent {
+        val w = lab.getStringExtra("w")?.toIntOrNull() ?: 1920
+        val h = lab.getStringExtra("h")?.toIntOrNull() ?: 1080
+        val shot = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        val row = IntArray(w)
+        for (y in 0 until h) {
+            for (x in 0 until w) row[x] = Color.rgb(x * 255 / (w - 1), y * 255 / (h - 1), 128)
+            shot.setPixels(row, 0, w, 0, y, w, 1)
+        }
+        val i = Intent(ContextualSearchManager.ACTION_LAUNCH_CONTEXTUAL_SEARCH)
+            .putExtra(ContextualSearchManager.EXTRA_ENTRYPOINT, ContextualSearchManager.ENTRYPOINT_SYSTEM_ACTION)
+            .putExtra(Quire.EXTRA_TRIGGER, "lab_invoke")
+            .putExtra(ContextualSearchManager.EXTRA_SCREENSHOT, shot)
+            .putExtra(ContextualSearchManager.EXTRA_FLAG_SECURE_FOUND, lab.getStringExtra("secure") == "true")
+            .putStringArrayListExtra(ContextualSearchManager.EXTRA_VISIBLE_PACKAGE_NAMES,
+                ArrayList((lab.getStringExtra("visible") ?: "com.android.settings").split(',').filter { it.isNotEmpty() }))
+        val px = lab.getStringExtra("px")?.toFloatOrNull()
+        val py = lab.getStringExtra("py")?.toFloatOrNull()
+        if (px != null && py != null) i.putExtra(Quire.EXTRA_POINTER_X, px).putExtra(Quire.EXTRA_POINTER_Y, py)
+        lab.getStringExtra("bounds")?.split(',')?.mapNotNull { it.trim().toIntOrNull() }?.takeIf { it.size == 4 }?.let {
+            i.sourceBounds = Rect(it[0], it[1], it[2], it[3])
+        }
+        lab.getStringExtra("source")?.let { i.putExtra(Quire.EXTRA_SOURCE_PACKAGE, it) }
+        lab.getStringExtra("age")?.toLongOrNull()?.let {
+            i.putExtra(Quire.EXTRA_SOURCE_TIME, SystemClock.elapsedRealtime() - it)
+        }
+        return i
     }
 
     private fun anchor(intent: Intent): Anchor =
