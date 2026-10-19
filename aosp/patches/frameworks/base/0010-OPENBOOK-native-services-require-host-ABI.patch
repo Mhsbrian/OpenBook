@@ -1,0 +1,90 @@
+From: B <9922368+Mhsbrian@users.noreply.github.com>
+Date: Mon, 19 Oct 2026 17:00:00 +0000
+Subject: [PATCH] OPENBOOK: reject untranslated native services before queuing starts
+
+zygote_next cannot load guest-ISA libraries. Return a failed service lookup
+so callers can immediately select a managed NativeBridge-compatible service.
+Also reject direct native-zygote requests before starting or connecting.
+Do not remove ARM64 from the supported application ABIs.
+
+diff --git a/core/java/android/os/NativeZygoteProcess.java b/core/java/android/os/NativeZygoteProcess.java
+--- a/core/java/android/os/NativeZygoteProcess.java
++++ b/core/java/android/os/NativeZygoteProcess.java
+@@ -27,6 +27,8 @@
+ 
+ import com.android.internal.os.Zygote;
+ 
++import dalvik.system.VMRuntime;
++
+ import java.io.FileDescriptor;
+ import java.io.IOException;
+ import java.util.Map;
+@@ -54,6 +56,23 @@
+ 
+     public NativeZygoteProcess(LocalSocketAddress socketAddress) {
+         mSocketAddress = socketAddress;
++    }
++
++    /**
++     * Whether zygote_next can load this ABI. Unlike the managed zygote it has no
++     * NativeBridge runtime: a guest ABI in SUPPORTED_ABIS is not enough.
++     * @hide
++     */
++    public static boolean isAbiSupported(@Nullable String abi) {
++        final String libraryIsa = VMRuntime.getInstructionSet(
++                abi != null ? abi : Build.SUPPORTED_ABIS[0]);
++        return libraryIsa.equals(VMRuntime.getCurrentInstructionSet());
++    }
++
++    private static void requireSupportedAbi(String abi) {
++        if (!isAbiSupported(abi)) {
++            throw new IllegalArgumentException("Native zygote cannot translate ABI " + abi);
++        }
+     }
+ 
+     private static native void nativePrewarmNativeZygote();
+@@ -119,6 +138,7 @@
+                                                   boolean bindOverrideSysprops,
+                                                   long startSeq,
+                                                   @Nullable String[] zygoteArgs) {
++        requireSupportedAbi(abi);
+         int pid;
+         try {
+             connectToZygote();
+@@ -149,6 +169,7 @@
+                                                int uidRangeStart,
+                                                int uidRangeEnd,
+                                                ApplicationInfo appInfo) {
++        requireSupportedAbi(abi);
+         // Create an unguessable address in the global abstract namespace.
+         String serverAddress = processClass + "/" + UUID.randomUUID().toString();
+         // The address of abstract socket should be prefixed with '@'.  LocalSocket.connect()
+diff --git a/services/core/java/com/android/server/am/ActiveServices.java b/services/core/java/com/android/server/am/ActiveServices.java
+--- a/services/core/java/com/android/server/am/ActiveServices.java
++++ b/services/core/java/com/android/server/am/ActiveServices.java
+@@ -210,6 +210,7 @@
+ import android.os.Message;
+ import android.os.PowerExemptionManager;
+ import android.os.PowerExemptionManager.ReasonCode;
++import android.os.NativeZygoteProcess;
+ import android.os.Process;
+ import android.os.RemoteCallback;
+ import android.os.RemoteCallbackList;
+@@ -5475,6 +5476,17 @@
+                 }
+             }
+ 
++            // Return an ordinary failed lookup before binding or queueing a process start.
++            // Apps such as Chromium can then bind their managed-service fallback, whose
++            // JNI libraries use NativeBridge. Do not try to instantiate a native-only
++            // service as a Java Service: it need not contain that class.
++            if (r.mIsNativeIsolated
++                    && !NativeZygoteProcess.isAbiSupported(r.appInfo.primaryCpuAbi)) {
++                Slog.w(TAG_SERVICE, "Native-only service unavailable for ABI "
++                        + r.appInfo.primaryCpuAbi + ": " + r.shortInstanceName);
++                return null;
++            }
++
+             r.appInfo.seInfo += generateAdditionalSeInfoFromService(service, r);
+             return new ServiceLookupResult(r, resolution.getAlias());
+         }
