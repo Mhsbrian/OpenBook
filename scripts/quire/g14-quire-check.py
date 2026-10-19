@@ -24,6 +24,8 @@ Sections, in order:
   health   Since this run started: crashes and ANRs of Quire, SystemUI and the Terminal app; tombstones; SELinux
            denials naming Quire, the Terminal app, crosvm or virtualization.
 
+The screen must be unlocked: the check wakes it but never unlocks it (on the G14 that is the owner's PIN). Locked, the
+screen-driving sections are skipped and reported as failed for that reason.
 Changes nothing the person set: no app is installed, no setting is changed, the demo only opens pages. Home brings the
 desktop forward, so open windows go to the taskbar, where they stay. Screen-driving: run it only while nobody uses the
 device. Commands that are not a person's (the control demo's plan, the check's
@@ -98,6 +100,15 @@ class Dev(q2.Dev):
                     return t
             time.sleep(0.5)
         return None
+
+    def unlocked(self):
+        """Wakes the screen; returns (unlocked, detail): the user's storage unlocked and no keyguard showing."""
+        self.sh("input keyevent KEYCODE_WAKEUP")
+        time.sleep(1)
+        user = self.sh("am get-started-user-state 0").strip()
+        m = re.search(r"(?i)keyguardShowing[=:]\s*(true|false)", self.sh("dumpsys activity activities | grep -i keyguard"))
+        keyguard = m.group(1).lower() if m else "unknown"
+        return "RUNNING_UNLOCKED" in user and keyguard == "false", f"user={user} keyguardShowing={keyguard}"
 
     def pointer(self):
         """The mouse pointer's position in display pixels, from dumpsys input's pointer controller, or None."""
@@ -362,6 +373,11 @@ def main():
     since = d.sh("date '+%m-%d %H:%M:%S.000'").strip()
     try:
         for name in a.only.split(","):
+            if name in ("invoke", "agent", "control"):
+                ok, detail = d.unlocked()
+                if not ok:
+                    d.result(f"{name}: the screen is unlocked (needed to drive it)", False, detail + "; section skipped")
+                    continue
             if name == "health":
                 health(d, since)
             elif name == "agent":
