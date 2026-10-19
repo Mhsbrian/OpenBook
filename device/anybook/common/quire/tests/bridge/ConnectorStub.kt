@@ -14,8 +14,18 @@ object Connectors {
     object LinuxEnvironment {
         var ready = true
         var opens = 0
+        /** Whether ensureRunning can start a stopped environment (the Terminal app's start), and how often it did. */
+        var startable = false
+        var starts = 0
         lateinit var next: ParcelFileDescriptor
         fun status(context: Context) = Status(if (ready) State.READY else State.STOPPED)
+        fun ensureRunning(context: Context, timeoutMs: Long): Status {
+            if (!ready && startable) {
+                starts++
+                ready = true
+            }
+            return status(context)
+        }
         fun connect(context: Context): ParcelFileDescriptor { opens++; return next }
     }
 }

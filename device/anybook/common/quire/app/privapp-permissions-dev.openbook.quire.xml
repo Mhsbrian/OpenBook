@@ -13,5 +13,7 @@
         <permission name="android.permission.ACCESS_COMPUTER_CONTROL" />
         <permission name="android.permission.ACCESS_CONTEXTUAL_SEARCH" />
         <permission name="com.android.virtualization.terminal.permission.ACCESS_AGENT_BRIDGE" />
+        <permission name="android.permission.CHANGE_DEVICE_IDLE_TEMP_WHITELIST" />
+        <permission name="android.permission.CHANGE_COMPONENT_ENABLED_STATE" />
     </privapp-permissions>
 </permissions>

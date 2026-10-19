@@ -10,6 +10,7 @@ import android.util.Base64
 import android.util.Log
 import dev.openbook.quire.Quire.TAG
 import dev.openbook.quire.R
+import dev.openbook.quire.agents.Connectors
 import dev.openbook.quire.acp.AcpAgent
 import dev.openbook.quire.acp.AcpConnection
 import dev.openbook.quire.ui.QButton
@@ -30,6 +31,13 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
         val handler: android.os.Handler
         fun changed(task: Task, focus: Focus = Focus.KEEP)
         fun announce(task: Task, text: CharSequence, assertive: Boolean)
+
+        /** The Linux environment's state as Quire last saw it, null before the first look (ANAL-225). */
+        val linuxState: Connectors.State?
+            get() = null
+
+        /** The note's Set up: turns the Linux environment on, installs and starts it. */
+        fun setUpLinux() {}
     }
 
     enum class Phase { COMPOSE, WORKING, WAITING, MIRROR, DONE, STOPPED, ERROR, SIGNIN, NO_AGENT, OFFLINE }
@@ -772,12 +780,24 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
         host.changed(this)
     }
 
-    /** No agent is connected: list what Quire found (§3.2 No agent connected). Nothing is sent before a choice. */
+    /**
+     * No agent is connected: list what Quire found (§3.2 No agent connected). Nothing is sent before a choice. With
+     * none found because the Linux environment is off or not installed, the person's one step is offered: Set up.
+     */
     private fun showAgents() {
         phase = Phase.NO_AGENT
         val found = host.agents.entries
-        blocks += Block.Agents(context.getString(R.string.q_noagent_title), context.getString(
-            if (found.isEmpty()) R.string.q_noagent_none else R.string.q_noagent_msg),
+        val linux = host.linuxState
+        val setUp = found.isEmpty() &&
+            (linux == Connectors.State.TERMINAL_OFF || linux == Connectors.State.NOT_INSTALLED)
+        val message = when {
+            found.isNotEmpty() -> R.string.q_noagent_msg
+            linux == Connectors.State.INSTALLING -> R.string.q_noagent_installing
+            linux == Connectors.State.STARTING -> R.string.q_noagent_starting
+            setUp -> R.string.q_noagent_setup
+            else -> R.string.q_noagent_none
+        }
+        blocks += Block.Agents(context.getString(R.string.q_noagent_title), context.getString(message),
             found.map { e ->
                 Row(null, e.name, context.getString(if (e.state == AgentEntry.State.UNREACHABLE)
                     R.string.q_agent_unreachable else R.string.q_agent_found, e.where), e.initials, e.color)
@@ -790,6 +810,9 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
                     chooseAgent(it)
                 }
             },
+            if (setUp) Action(context.getString(R.string.q_setup_linux), null, QButton.Style.FILLED) {
+                host.setUpLinux()
+            } else null,
         ), end = true)
     }
 

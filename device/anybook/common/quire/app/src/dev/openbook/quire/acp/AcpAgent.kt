@@ -100,9 +100,12 @@ data class Endpoint(
         return Link(socket.getInputStream(), socket.getOutputStream(), { socket.close() }, socket)
     }
 
-    /** A stream to quired in the Linux environment; when it can't be used, the error says why (Connectors). */
+    /**
+     * A stream to quired in the Linux environment, which is started first when it is stopped (after every reboot), so
+     * a prompt to a connected agent just takes a little longer. When it can't be used, the error says why.
+     */
     private fun openLinux(context: Context): Link {
-        val status = Connectors.LinuxEnvironment.status(context)
+        val status = Connectors.LinuxEnvironment.ensureRunning(context, START_TIMEOUT_MS)
         if (status.state != Connectors.State.READY) throw IOException(status.describe(context))
         val pfd = Connectors.LinuxEnvironment.connect(context)
         // These streams don't own the descriptor, and closing them doesn't end a read blocked on it: shutdown(2)
@@ -118,6 +121,9 @@ data class Endpoint(
     companion object {
         const val CONNECT_TIMEOUT_MS = 3000
         const val LINUX = "linux:"
+
+        /** How long a call waits for a stopped Linux environment to start (21 s on the G14). */
+        const val START_TIMEOUT_MS = 120_000L
     }
 }
 

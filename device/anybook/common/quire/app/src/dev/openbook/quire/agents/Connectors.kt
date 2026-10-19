@@ -7,7 +7,11 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.ParcelFileDescriptor
+import android.os.PowerExemptionManager
+import android.os.SystemClock
 import android.os.SystemProperties
+import android.util.Log
+import dev.openbook.quire.Quire.TAG
 import dev.openbook.quire.R
 
 /**
@@ -27,6 +31,8 @@ object Connectors {
         TERMINAL_OFF,
         /** The Linux environment is on, but its Debian image isn't installed yet. */
         NOT_INSTALLED,
+        /** The Terminal app is installing the Debian image. */
+        INSTALLING,
         STOPPED,
         STARTING,
         /** The Linux environment failed (detail says how), or quired didn't answer in it. */
@@ -44,6 +50,7 @@ object Connectors {
                 State.TERMINAL_MISSING -> R.string.agents_no_avf
                 State.TERMINAL_OFF -> R.string.agents_terminal_off
                 State.NOT_INSTALLED -> R.string.agents_not_installed
+                State.INSTALLING -> R.string.agents_installing
                 State.STOPPED -> R.string.agents_stopped
                 State.STARTING -> R.string.agents_starting
                 State.ERROR -> R.string.agents_error
@@ -87,9 +94,69 @@ object Connectors {
                 "starting" -> Status(NAME, State.STARTING)
                 "stopped" -> Status(NAME, State.STOPPED)
                 "not_installed" -> Status(NAME, State.NOT_INSTALLED)
+                "installing" -> Status(NAME, State.INSTALLING)
                 else -> Status(NAME, State.ERROR, message ?: "unknown state ${bundle?.getString("state")}")
             }
         }
+
+        /**
+         * Asks the Terminal app to start the Linux environment, installing it first if it isn't (ANAL-225: the person
+         * never opens the Terminal app for Quire's agents). The Terminal app runs the VM in a foreground service, and
+         * may start one from the background only with an exemption, which Quire grants it first (its
+         * CHANGE_DEVICE_IDLE_TEMP_WHITELIST). Blocks briefly; call off the main thread.
+         */
+        fun start(context: Context): Status {
+            try {
+                context.getSystemService(PowerExemptionManager::class.java)?.addToTemporaryAllowList(TERMINAL,
+                    PowerExemptionManager.REASON_OTHER, "Quire starts the Linux environment for its agents",
+                    START_EXEMPTION_MS)
+            } catch (e: Exception) {
+                Log.w(TAG, "agents: no start exemption for the Terminal app: ${e.message}")
+            }
+            val bundle = try {
+                context.contentResolver.call(AUTHORITY, "start", null, null)
+            } catch (e: Exception) {
+                return Status(NAME, State.ERROR, "the Terminal app's agent bridge: ${e.message}")
+            }
+            Log.i(TAG, "agents: asked the Terminal app to start the Linux environment: ${bundle?.getString("state")}")
+            return status(context)
+        }
+
+        /**
+         * The Linux environment running, started (or installed and started) if it is merely stopped or not installed,
+         * within [timeoutMs]. Returns the last status: READY, or why not. A Linux environment that is off, or a
+         * device without AVF or KVM, is not changed here. Blocks; call off the main thread.
+         */
+        fun ensureRunning(context: Context, timeoutMs: Long): Status {
+            var s = status(context)
+            if (s.state == State.STOPPED || s.state == State.NOT_INSTALLED || s.state == State.ERROR) s = start(context)
+            val deadline = SystemClock.elapsedRealtime() + timeoutMs
+            while (s.state == State.STARTING || s.state == State.INSTALLING) {
+                if (SystemClock.elapsedRealtime() > deadline) break
+                SystemClock.sleep(POLL_MS)
+                s = status(context)
+            }
+            Log.i(TAG, "agents: the Linux environment is ${s.state}" + (s.detail?.let { " ($it)" } ?: ""))
+            return s
+        }
+
+        /**
+         * The person's one step (Set up, in the note): turns the Linux environment on, as Developer options' "Linux
+         * development environment" switch does, then starts it, which installs it first. Blocks briefly.
+         */
+        fun setUp(context: Context): Status {
+            try {
+                context.packageManager.setApplicationEnabledSetting(TERMINAL,
+                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED, 0)
+                Log.i(TAG, "agents: turned the Linux environment on")
+            } catch (e: Exception) {
+                return Status(NAME, State.ERROR, "could not turn the Linux environment on: ${e.message}")
+            }
+            return start(context)
+        }
+
+        private const val START_EXEMPTION_MS = 60_000L
+        private const val POLL_MS = 1000L
 
         /** A stream to the guest's quired, relayed by the Terminal app. */
         fun connect(context: Context): ParcelFileDescriptor =

@@ -152,6 +152,11 @@
     <string name="q_use_instead">Use %1$s instead</string>
     <string name="q_noagent_title">Connect an agent</string>
     <string name="q_noagent_msg">Quire works with the agents you already have. These are the ones it found:</string>
+    <!-- ANAL-225: the Linux environment, where Quire runs the person's agents. -->
+    <string name="q_noagent_setup">Quire runs your agents in a Linux environment on this laptop. Setting it up takes a minute or two, once.</string>
+    <string name="q_noagent_installing">Setting up the Linux environment. This takes a minute or two, once.</string>
+    <string name="q_noagent_starting">Starting the Linux environment…</string>
+    <string name="q_setup_linux">Set up the Linux environment</string>
     <string name="q_noagent_none">Quire works with the agents you already have. It hasn’t found one yet.</string>
     <string name="q_agent_found">%1$s</string>
     <string name="q_agent_unreachable">can’t be reached</string>

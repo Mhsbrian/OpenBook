@@ -12,6 +12,7 @@ import dev.openbook.quire.Quire.TAG
 import dev.openbook.quire.QuireApplication
 import dev.openbook.quire.R
 import dev.openbook.quire.acp.Endpoint
+import dev.openbook.quire.agents.Connectors
 
 /**
  * Quire's surface (docs/quire-design.md): the note and the tasks behind it. Every way of calling Quire ends in
@@ -33,6 +34,10 @@ class QuireSurface(private val app: QuireApplication) : Task.Host, NoteWindow.Ca
     private var night = app.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK
 
     private var discovering = false
+    private var settingUp = false
+
+    override var linuxState: Connectors.State? = null
+        private set
 
     init {
         app.registerComponentCallbacks(this)
@@ -94,27 +99,64 @@ class QuireSurface(private val app: QuireApplication) : Task.Host, NoteWindow.Ca
 
     /**
      * Asks quired in the Linux environment which agents it has (Q4, agents/Agents.kt) and lists the new ones. Off the
-     * main thread; a note still asking for an agent shows them when the answer comes. A Linux environment that is off
-     * or stopped is not an error here: the agents already listed stay, and connecting one says what is missing.
+     * main thread; a note still asking for an agent shows them when the answer comes. A stopped Linux environment
+     * (after every reboot) is started first, so the person never opens Terminal for it (ANAL-225); one that is off or
+     * not installed is left for the note's Set up. The agents already listed stay either way.
      */
     private fun discover() {
-        if (discovering) return
+        if (discovering || settingUp) return
         discovering = true
         app.agentWork.execute {
-            val found = try {
-                app.agents.agents().filter { it.supported }.map {
-                    Endpoint(id = Endpoint.LINUX + it.id, name = it.name, where = app.getString(R.string.q_where_linux),
-                        address = Endpoint.LINUX + it.id, cwd = "", local = true)
-                }
-            } catch (e: Exception) {
-                Log.i(TAG, "note: no agents from the Linux environment: ${e.javaClass.simpleName}")
-                null
+            var env = Connectors.LinuxEnvironment.status(app)
+            if (env.state == Connectors.State.STOPPED || env.state == Connectors.State.ERROR ||
+                env.state == Connectors.State.STARTING) {
+                handler.post { linuxChanged(Connectors.State.STARTING) }
+                env = Connectors.LinuxEnvironment.ensureRunning(app, Endpoint.START_TIMEOUT_MS)
             }
+            val found = if (env.state == Connectors.State.READY) linuxAgents() else null
             handler.post {
                 discovering = false
+                linuxChanged(env.state)
                 if (found != null && agents.foundInLinux(found)) window.task?.agentsChanged()
             }
         }
+    }
+
+    /** The note's Set up: turns the Linux environment on, installs and starts it, then lists its agents. */
+    override fun setUpLinux() {
+        if (settingUp) return
+        settingUp = true
+        linuxChanged(Connectors.State.INSTALLING)
+        app.agentWork.execute {
+            var env = Connectors.LinuxEnvironment.setUp(app)
+            if (env.state != Connectors.State.READY) {
+                env = Connectors.LinuxEnvironment.ensureRunning(app, SET_UP_TIMEOUT_MS)
+            }
+            val found = if (env.state == Connectors.State.READY) linuxAgents() else null
+            Log.i(TAG, "note: Linux environment set up: ${env.state}, ${found?.size ?: 0} agent(s)")
+            handler.post {
+                settingUp = false
+                linuxChanged(env.state)
+                if (found != null) agents.foundInLinux(found)
+                window.task?.agentsChanged()
+            }
+        }
+    }
+
+    private fun linuxAgents(): List<Endpoint>? = try {
+        app.agents.agents().filter { it.supported }.map {
+            Endpoint(id = Endpoint.LINUX + it.id, name = it.name, where = app.getString(R.string.q_where_linux),
+                address = Endpoint.LINUX + it.id, cwd = "", local = true)
+        }
+    } catch (e: Exception) {
+        Log.i(TAG, "note: no agents from the Linux environment: ${e.javaClass.simpleName}")
+        null
+    }
+
+    private fun linuxChanged(state: Connectors.State) {
+        if (state == linuxState) return
+        linuxState = state
+        window.task?.agentsChanged()
     }
 
     /** The tray of tasks above the taskbar (§3.5). */
@@ -242,5 +284,8 @@ class QuireSurface(private val app: QuireApplication) : Task.Host, NoteWindow.Ca
 
     companion object {
         private val REOPEN_TRIGGERS = setOf("assistant_shortcut", "assist_key", "taskbar")
+
+        /** A first install from the download can take minutes; from the debuggable build's local image, about 30 s. */
+        private const val SET_UP_TIMEOUT_MS = 15 * 60_000L
     }
 }
