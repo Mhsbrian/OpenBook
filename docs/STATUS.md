@@ -4,8 +4,10 @@
 
 Confirmed three SurfaceFlinger aborts on the G14's `quire9` build: missing RADV
 YV12 hardware-buffer mapping. Mesa patch 0005 passes 15/15 headless imports
-and pixel checks on the Radeon 890M. The OS update is being rehearsed; Photos
-app verification remains pending. Evidence: `evidence/2026-10-19-photos-yv12/`.
+and pixel checks on the Radeon 890M. QEMU update/recovery checks pass 49/49.
+`20261019.photos1` is staged and verified in slot A; the G14 still runs `quire9`
+in slot B pending the owner’s restart. Post-boot data and Photos verification
+remain pending. Evidence: `evidence/2026-10-19-photos-yv12/`.
 
 ## State of the union (2026-10-18, 11:55 UTC)
 

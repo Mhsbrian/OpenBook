@@ -59,5 +59,34 @@ Synthetic frame tests do not establish complete Photos/microG compatibility.
 ## Update
 
 Integration tree `d3e04fd` is the installed tree `17581de` plus Mesa patch 0005.
-Build number: `20261019.photos1`. Update rehearsal and staging results are
-recorded below when complete.
+Build number: `20261019.photos1`. The AOSP build completed in 1m40s. Its target
+files contain the exact RADV binary tested on the G14 (SHA-256
+`12af6411f97d9a294e12c47d0a8e557e03f5765714feece01e1566a1a90a2ba9`).
+The shared AOSP vendor staging directory was restored after snapshotting the
+build, so another task does not silently inherit the experimental driver.
+
+QEMU: **49/49 checks pass** (`qemu/`): 13 reconstruct the current `quire9`
+slot-B baseline; 36 exercise the fixed update from that baseline (13 upgrade,
+13 broken-boot rollback and retry, 10 power-cut recovery). PIN, app, setting
+and test file survive; merges complete; no OpenBook boot/ESP SELinux denials.
+
+The owner's standing G14 OTA authorization on ANAL-214 was checked against
+the latest comments before staging. No other G14 session was active. AC power
+was connected and battery was 90%. The normal package (not the broken test
+package) passed preflight and was written to slot A in 69 seconds. Verification
+confirmed matching vbmeta, synchronized ESP files and `openbook-a+3.conf` as
+the next boot entry. **The G14 has not been rebooted by this run:** its running
+image remains `quire9`, and the fix awaits the owner's restart.
+
+Before reboot, `g14-adb.sh ota-cancel` can cancel the staged update. If the new
+slot cannot boot, the loader falls back to slot B after three failed attempts.
+After a successful boot and snapshot merge, returning to the old code requires
+a new forward update. Full Photos use, the on-device driver hash after boot,
+and post-boot data preservation remain to be verified. No app data was cleared
+and no account was removed.
+
+After staging, the same 165 packages and versions remain, account count and
+Wi-Fi network count match, and the 222 user-media files have the same list
+hash. This is a pre-reboot comparison, not a post-upgrade claim. The running
+SurfaceFlinger/system_server PIDs stayed 11384/11555 throughout the diagnostic
+and staging work. Test files were removed and adbd was restored to uid 2000.

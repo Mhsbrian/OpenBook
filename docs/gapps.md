@@ -292,8 +292,9 @@ crashes on the G14. The captured failures are YV12 video-frame imports, and
 reproduce without any Google app or service. Mesa patch 0005 fixes the missing
 RADV mapping; 15/15 synthetic import and colour checks pass on the G14 with
 the patched driver isolated to the test process. This is not a reason to clear
-Photos data or remove the account. Full Photos compatibility after the system
-update is not yet established. Evidence and deployment state:
+Photos data or remove the account. The fixed `20261019.photos1` update is
+staged on the G14 and awaits a restart. Full Photos compatibility after the
+system update is not yet established. Evidence and deployment state:
 `evidence/2026-10-19-photos-yv12/SUMMARY.md`.
 
 ## Sources
