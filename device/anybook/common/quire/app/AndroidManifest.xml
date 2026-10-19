@@ -26,8 +26,14 @@
          computers later (Q4). -->
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <!-- Names of the apps a session automates, for its notification and status. -->
+    <!-- Reach the agents in the Linux environment: the Terminal app relays the guest's quired (ANAL-218,
+         aosp/patches/packages/modules/Virtualization). signature|privileged; privapp-permissions grants it. -->
+    <uses-permission android:name="com.android.virtualization.terminal.permission.ACCESS_AGENT_BRIDGE" />
+
+    <!-- Names of the apps a session automates, for its notification and status. The Terminal app, to know whether
+         the Linux environment is there and on. -->
     <queries>
+        <package android:name="com.android.virtualization.terminal" />
         <intent>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />

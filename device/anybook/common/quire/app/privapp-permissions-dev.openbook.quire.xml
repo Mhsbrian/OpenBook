@@ -5,11 +5,13 @@
 
   Privileged permissions of Quire (system_ext priv-app, platform certificate). ACCESS_COMPUTER_CONTROL is
   internal|privileged, so only this entry grants it. ACCESS_CONTEXTUAL_SEARCH is signature|privileged and also comes
-  from the platform signature; it is listed so the list is complete.
+  from the platform signature; it is listed so the list is complete. ACCESS_AGENT_BRIDGE (signature|privileged, from the
+  Terminal app in AVF's APEX) lets Quire reach quired in the Linux environment (ANAL-218).
 -->
 <permissions>
     <privapp-permissions package="dev.openbook.quire">
         <permission name="android.permission.ACCESS_COMPUTER_CONTROL" />
         <permission name="android.permission.ACCESS_CONTEXTUAL_SEARCH" />
+        <permission name="com.android.virtualization.terminal.permission.ACCESS_AGENT_BRIDGE" />
     </privapp-permissions>
 </permissions>
