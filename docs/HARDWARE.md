@@ -85,3 +85,13 @@ It writes `anybook-hw-<board>-<date>.tar.gz`, with serials, UUIDs and MAC addres
 | Virtualization (the Linux environment) | kvm_amd, vhost_vsock, tun (all built in: `KVM_AMD=y`, `VHOST_VSOCK=y`, `TUN=y` in the G14 kernel's `dot_config`) | AVF: crosvm, virtmgr, the Terminal app and its Debian guest (ANAL-218) | In both images since Q4. `openbook-pc-setup kvm` sets AVF's `ro.boot.hypervisor.*` properties only when KVM registered its device, so the firmware's SVM switch decides whether the Linux environment is offered. **Untested on the G14**: the check (`scripts/quire/q4-device-check.sh`) records `/dev/kvm`, `kvm_amd` and the guest's boot time |
 | IOMMU | amd_iommu | — | `AMD_IOMMU=y` in OpenBook GKI; starts with interrupt remapping on QEMU's emulated AMD-Vi (ANAL-171) |
 | Boot | UEFI, GPT; EFI loader with bootconfig | AVB orange | systemd-boot, GRUB and GBL boot our kernel and userspace from a USB GPT image in QEMU/OVMF. **On the G14:** systemd-boot boots our kernel from USB with Secure Boot off, and Android's first and second stage ran from the stick (ANAL-189 hardware check) |
+
+## G14 YV12 video import (2026-10-19, ANAL-210)
+
+The Radeon 890M on `20261019.quire9` reproducibly rejects YV12 EGLImage imports.
+Photos triggered three SurfaceFlinger aborts with 384×640 YV12 frames. Mesa
+patch 0005 supplies the missing RADV format mapping; on this G14, an isolated
+headless process passes import and colour readback for RGB, YV12 and flexible
+YUV420 at five sizes (15/15), without restarting the desktop. This is a driver
+format defect, not evidence of failing hardware. System deployment and the
+Photos app check are tracked in `evidence/2026-10-19-photos-yv12/SUMMARY.md`.

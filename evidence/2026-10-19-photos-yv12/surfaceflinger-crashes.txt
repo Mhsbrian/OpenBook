@@ -1,0 +1,26 @@
+Timestamp: 2026-10-19 15:43:07.865317565+0000
+Process uptime: 1315s
+Cmdline: /system/bin/surfaceflinger
+signal 6 (SIGABRT), code -1 (SI_QUEUE), fault addr --------
+Abort message: 'Failed to create a valid texture. [address omitted]:[384,640] isProtected:0 isWriteable:0 format:842094169'
+      #03 pc 000000000042fd17  /system/bin/surfaceflinger (android::renderengine::skia::GaneshBackendTexture::GaneshBackendTexture(sk_sp<GrDirectContext>, AHardwareBuffer*, bool)+663) (BuildId: 0b943b013442350740978bf22e5f3ed8)
+      #04 pc 000000000042fa3d  /system/bin/surfaceflinger (android::renderengine::skia::GaneshGpuContext::makeBackendTexture(AHardwareBuffer*, bool)+93) (BuildId: 0b943b013442350740978bf22e5f3ed8)
+      #05 pc 0000000000439fe2  /system/bin/surfaceflinger (android::renderengine::skia::SkiaRenderEngine::mapExternalTextureBuffer(android::sp<android::GraphicBuffer> const&, bool)+722) (BuildId: 0b943b013442350740978bf22e5f3ed8)
+
+Timestamp: 2026-10-19 15:43:39.698019896+0000
+Process uptime: 32s
+Cmdline: /system/bin/surfaceflinger
+signal 6 (SIGABRT), code -1 (SI_QUEUE), fault addr --------
+Abort message: 'Failed to create a valid texture. [address omitted]:[384,640] isProtected:0 isWriteable:0 format:842094169'
+      #03 pc 000000000042fd17  /system/bin/surfaceflinger (android::renderengine::skia::GaneshBackendTexture::GaneshBackendTexture(sk_sp<GrDirectContext>, AHardwareBuffer*, bool)+663) (BuildId: 0b943b013442350740978bf22e5f3ed8)
+      #04 pc 000000000042fa3d  /system/bin/surfaceflinger (android::renderengine::skia::GaneshGpuContext::makeBackendTexture(AHardwareBuffer*, bool)+93) (BuildId: 0b943b013442350740978bf22e5f3ed8)
+      #05 pc 0000000000439fe2  /system/bin/surfaceflinger (android::renderengine::skia::SkiaRenderEngine::mapExternalTextureBuffer(android::sp<android::GraphicBuffer> const&, bool)+722) (BuildId: 0b943b013442350740978bf22e5f3ed8)
+
+Timestamp: 2026-10-19 15:45:43.059138485+0000
+Process uptime: 125s
+Cmdline: /system/bin/surfaceflinger
+signal 6 (SIGABRT), code -1 (SI_QUEUE), fault addr --------
+Abort message: 'Failed to create a valid texture. [address omitted]:[384,640] isProtected:0 isWriteable:0 format:842094169'
+      #03 pc 000000000042fd17  /system/bin/surfaceflinger (android::renderengine::skia::GaneshBackendTexture::GaneshBackendTexture(sk_sp<GrDirectContext>, AHardwareBuffer*, bool)+663) (BuildId: 0b943b013442350740978bf22e5f3ed8)
+      #04 pc 000000000042fa3d  /system/bin/surfaceflinger (android::renderengine::skia::GaneshGpuContext::makeBackendTexture(AHardwareBuffer*, bool)+93) (BuildId: 0b943b013442350740978bf22e5f3ed8)
+      #05 pc 0000000000439fe2  /system/bin/surfaceflinger (android::renderengine::skia::SkiaRenderEngine::mapExternalTextureBuffer(android::sp<android::GraphicBuffer> const&, bool)+722) (BuildId: 0b943b013442350740978bf22e5f3ed8)

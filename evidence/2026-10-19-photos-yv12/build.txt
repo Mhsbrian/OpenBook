@@ -1,0 +1,10 @@
+AOSP build: droid target-files-package otatools-package openbook_hals_test validatekeymaps
+Build completed successfully: 1m40s, m exit 0
+NDK probe compile: -Wall -Wextra -Werror, exit 0
+Mesa patch 0005 git am on the existing four-patch stack: exit 0; source byte-identical to tested build
+Integration tree: d3e04fd (installed tree 17581de plus Mesa patch 0005)
+Original device and AOSP staged RADV SHA-256: 64ca20e147f6b2bf9d694ee1425a4402e733c5df8b09ffb7db29afe142e18e3e
+Patched RADV SHA-256: 12af6411f97d9a294e12c47d0a8e557e03f5765714feece01e1566a1a90a2ba9
+Target-files RADV SHA-256: 12af6411f97d9a294e12c47d0a8e557e03f5765714feece01e1566a1a90a2ba9
+OTA: openbook-ota-20261019-photos1
+OTA SHA-256: 5fca8a92662d2e8947adc9917bda24bb010038e2ad85d49407b3d96a23dee706

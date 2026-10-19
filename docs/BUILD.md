@@ -424,3 +424,21 @@ sh q4-device-check.sh /sdcard/linux/images.tar.gz /data/local/tmp/q4 [PROMPT]
 python3 device/anybook/common/quire/tools/policy-test.py
 ```
 Uses the AOSP JDK and Kotlin compiler with host boundary fakes; no device, model or network. `QUIRE_POLICY_SOURCE` can point at an older tools directory for a negative control.
+
+## Headless video-buffer regression check (ANAL-210)
+
+`scripts/graphics/ahb-import-check.c` tests RGB, YV12 and flexible YUV420 imports
+through the installed EGL driver, including colour readback. It opens no window
+and does not launch Photos. Build with the NDK (API 37):
+
+```sh
+x86_64-linux-android37-clang -O2 -Wall -Wextra -Werror \
+  scripts/graphics/ahb-import-check.c -landroid -lEGL -lGLESv2 -o ahb-import-check
+adb -s <device> push ahb-import-check /data/local/tmp/
+adb -s <device> shell /data/local/tmp/ahb-import-check 384 640
+```
+
+Exit 0 means all three imports and pixel comparisons passed; 1 means a failed
+case; 2 means setup/argument failure. Optional dimensions must be even, 4–4096.
+Mesa patch 0005 is applied by `mesa-android-build.sh fetch`; rebuild and stage
+Mesa before building the OS image. Evidence: `evidence/2026-10-19-photos-yv12/`.

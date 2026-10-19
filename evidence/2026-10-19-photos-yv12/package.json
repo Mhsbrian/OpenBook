@@ -1,0 +1,47 @@
+{
+  "schema": "openbook-ota/1",
+  "label": "openbook-ota-20261019-photos1",
+  "tree": "d3e04fd: quire9 17581de plus ANAL-210 RADV YV12 mapping",
+  "test_only_broken_boot": false,
+  "fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.photos1:userdebug/test-keys",
+  "build_date_utc": 1792425609,
+  "device": "anybook_g14",
+  "bytes": 994548619,
+  "sha256": "5fca8a92662d2e8947adc9917bda24bb010038e2ad85d49407b3d96a23dee706",
+  "vbmeta_digest": "f1f7f5143cb4504d8b6fe32077f3520eae6c6e51f140a7d95dbef303d20e9273",
+  "vbmeta_size": 6144,
+  "payload_properties": [
+    "FILE_HASH=W4PaaJhjmMvOWtxS3DPFISvtAKSQNQ6C/IwTq9qc8QU=",
+    "FILE_SIZE=994540955",
+    "METADATA_HASH=FYXzLJKYcwAWy7mKUC4ZUw2kacQ2tbbzNYA303OqpNI=",
+    "METADATA_SIZE=44740"
+  ],
+  "partitions": [
+    "boot",
+    "init_boot",
+    "product",
+    "super_empty",
+    "system",
+    "system_dlkm",
+    "system_ext",
+    "system_other",
+    "userdata",
+    "vbmeta",
+    "vendor",
+    "vendor_boot",
+    "vendor_dlkm"
+  ],
+  "bootsync_sha256": "e3019926318877e95798de0b81343109e93c08daf1ba83d2aac9b4e4bb5bd656",
+  "metadata": {
+    "ota-property-files": "payload_metadata.bin:4172:45007,payload.bin:4172:994540955,payload_properties.txt:994545185:154,apex_info.pb:1999:1491,care_map.pb:3537:588,metadata:69:700,metadata.pb:837:1114                      ",
+    "ota-required-cache": "0",
+    "ota-streaming-property-files": "payload.bin:4172:994540955,payload_properties.txt:994545185:154,apex_info.pb:1999:1491,care_map.pb:3537:588,metadata:69:700,metadata.pb:837:1114                        ",
+    "ota-type": "AB",
+    "post-build": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.photos1:userdebug/test-keys",
+    "post-build-incremental": "20261019.photos1",
+    "post-sdk-level": "37",
+    "post-security-patch-level": "2026-06-05",
+    "post-timestamp": "1792425609",
+    "pre-device": "anybook_g14"
+  }
+}
