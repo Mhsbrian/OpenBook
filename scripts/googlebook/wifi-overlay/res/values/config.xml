@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<resources>
+    <!-- OpenBook has no vendor Wi-Fi HAL. Ruby's product overlay otherwise
+         overrides the matching vendor settings and requires MAC reconfiguration
+         through that absent HAL. Do not advertise randomization we cannot do. -->
+    <bool name="config_wifi_connected_mac_randomization_supported">false</bool>
+    <bool name="config_wifiDropConnectionWhenMacConfigurationFails">false</bool>
+</resources>

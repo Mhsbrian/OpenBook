@@ -9,9 +9,20 @@ import unittest
 spec = importlib.util.spec_from_file_location("live", Path(__file__).with_name("live-image.py"))
 live = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(live)
+spec = importlib.util.spec_from_file_location("observation", Path(__file__).with_name("run-probe.py"))
+observation = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(observation)
 
 
 class LiveGuards(unittest.TestCase):
+    def test_init_trigger_is_not_boot_completion(self):
+        for text in ("init: parsing action sys.boot_completed=1\n", "sys.boot_completed=0\n",
+                     "echo OPENBOOK_RUBY_BOOT_COMPLETED=1\n"):
+            self.assertFalse(observation.boot_completed_reported(text))
+        for text in ("sys.boot_completed=1\n", "[sys.boot_completed]: [1]\r\n",
+                     "OPENBOOK_RUBY_BOOT_COMPLETED=1\n"):
+            self.assertTrue(observation.boot_completed_reported(text))
+
     def test_boot_uuid_replaces_pci_path_without_changing_input(self):
         conf = {"androidboot.boot_devices": "pci0000:00/0000:00:04.0",
                 "androidboot.selinux": "enforcing", "androidboot.veritymode": "enforcing"}
