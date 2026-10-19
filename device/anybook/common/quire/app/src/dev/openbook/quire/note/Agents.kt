@@ -75,6 +75,9 @@ class AgentDirectory(context: Context, private val main: Executor) : AcpAgent.Li
         fun onUpdate(update: JSONObject)
         fun onPermission(request: JSONObject, answer: (JSONObject) -> Unit)
         fun onAgentClosed(error: Throwable?)
+
+        /** Q6: an agent's call of Quire's OS tools; [answer] takes an MCP CallToolResult, once, from any thread. */
+        fun onToolCall(name: String, args: JSONObject, answer: (JSONObject) -> Unit)
     }
 
     private val prefs = context.getSharedPreferences("agents", Context.MODE_PRIVATE)
@@ -184,6 +187,21 @@ class AgentDirectory(context: Context, private val main: Executor) : AcpAgent.Li
             return
         }
         owner.onPermission(request, answer)
+    }
+
+    /**
+     * Q6: `_quire/tools/call`. A call belongs to the task that owns the session on this connection; with none, nobody
+     * asked for it and it is refused.
+     */
+    override fun onToolCall(agent: AcpAgent, sessionId: String, name: String, args: JSONObject,
+        answer: (JSONObject) -> Unit) {
+        val owner = owners.owner(agent, sessionId)
+        if (owner == null) {
+            Log.i(TAG, "acp[${agent.endpoint.id}]: tool $name for a session no task owns: refused")
+            answer(dev.openbook.quire.tools.ToolResult.error("No request of the person's is running in this session.").json())
+            return
+        }
+        owner.onToolCall(name, args, answer)
     }
 
     /** A connection closed: only the tasks with a session on it hear of it; other agents' tasks run on. */

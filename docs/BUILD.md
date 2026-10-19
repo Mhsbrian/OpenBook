@@ -417,3 +417,10 @@ sh q4-device-check.sh /sdcard/linux/images.tar.gz /data/local/tmp/q4 [PROMPT]
   here) mounts them on the host; the script unmounts the build's own while it runs.
 - Why each piece: `docs/quire.md` §4.1, §5.4; pairing a second computer is a design under review
   (`docs/quire-pairing.md`).
+
+### Quire tool confirmation regressions
+
+```bash
+python3 device/anybook/common/quire/tools/policy-test.py
+```
+Uses the AOSP JDK and Kotlin compiler with host boundary fakes; no device, model or network. `QUIRE_POLICY_SOURCE` can point at an older tools directory for a negative control.

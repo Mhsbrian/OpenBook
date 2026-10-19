@@ -56,6 +56,8 @@ sealed class Block {
         val why: String?,
         val options: List<Option>,
         val toolCallId: String?,
+        /** Q6, ANAL-227: Quire's destructive question: the verb on `errorContainer`, the safe choice first. */
+        val destructive: Boolean = false,
         /** Answers the request; the note calls it once, with an option id or null for cancelled. */
         val answer: (String?) -> Unit,
     ) : Block() {
@@ -64,8 +66,15 @@ sealed class Block {
         var answered = false
     }
 
-    /** "Changed 3 settings" with per-row undo (§3.2 Settings help; the rows come from Q6's change log). */
-    class Changes(val title: String, val meta: String?, val rows: List<Change>, val undo: Boolean) : Block()
+    /**
+     * "Changed 3 settings" with per-row undo (§3.2 Settings help). Q6's broker adds a row for each setting it changes;
+     * [onUndo] undoes row i, which then shows as undone ([undone]).
+     */
+    class Changes(var title: String, val meta: String?, rows: List<Change>, val undo: Boolean,
+        val onUndo: ((Int) -> Unit)? = null) : Block() {
+        val rows: MutableList<Change> = rows.toMutableList()
+        val undone = mutableSetOf<Int>()
+    }
 
     /** A one-line result with an icon (Done, Stopped, Waiting for your permission, Offline). */
     class Result(val icon: String, val tone: Tone, var message: String, var sub: String?) : Block()
@@ -95,6 +104,14 @@ enum class Tone { SUCCESS, WARN, ERROR }
 enum class StepStatus { PENDING, RUNNING, DONE, FAILED, INTERRUPTED }
 
 class Step(val id: String, var title: String, var kind: String, var status: StepStatus) {
+    /** Q6: a call of Quire's own tools. The broker names the line, so the agent's later updates don't rename it. */
+    var broker = false
+
+    /** The broker's tool for this line, and the agent's tool call id once matched (the agent may announce it late). */
+    var toolName: String? = null
+    var agentId: String? = null
+    var startedAt = 0L
+
     /** File and command details, for the consent card. */
     var rawInput: org.json.JSONObject? = null
     var diff: List<DiffLine>? = null

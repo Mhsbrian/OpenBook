@@ -13,6 +13,14 @@ import dev.openbook.quire.R
 import dev.openbook.quire.agents.Connectors
 import dev.openbook.quire.acp.AcpAgent
 import dev.openbook.quire.acp.AcpConnection
+import dev.openbook.quire.tools.AgentControl
+import dev.openbook.quire.tools.Ask
+import dev.openbook.quire.tools.Broker
+import dev.openbook.quire.tools.ChangeLog
+import dev.openbook.quire.tools.LiveContext
+import dev.openbook.quire.tools.SettingsTools
+import dev.openbook.quire.tools.Tool
+import dev.openbook.quire.tools.ToolResult
 import dev.openbook.quire.ui.QButton
 import java.io.ByteArrayOutputStream
 import org.json.JSONArray
@@ -24,7 +32,7 @@ import org.json.JSONObject
  * Esc, Stop and Hide follow §3.3 rule 4 and §6.1. The note draws whatever task is visible; a hidden task keeps running.
  */
 class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, var anchor: Anchor) :
-    AgentDirectory.SessionOwner {
+    AgentDirectory.SessionOwner, Broker.Owner {
     interface Host {
         val context: Context
         val agents: AgentDirectory
@@ -38,6 +46,16 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
 
         /** The note's Set up: turns the Linux environment on, installs and starts it. */
         fun setUpLinux() {}
+
+        /** Q6: Quire's OS tools broker, for this task's agent calls. */
+        val broker: Broker?
+            get() = null
+
+        /** Q6: this task's computer control, as the tools drive it. */
+        fun controlFor(task: Task): AgentControl? = null
+
+        /** Q6: a platform consent dialog is up for this task's tool; the note steps aside meanwhile. */
+        fun platformDialog(task: Task, up: Boolean) {}
     }
 
     enum class Phase { COMPOSE, WORKING, WAITING, MIRROR, DONE, STOPPED, ERROR, SIGNIN, NO_AGENT, OFFLINE }
@@ -85,8 +103,22 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
     private var intakeSent = false
     private var stopTimeout: Runnable? = null
 
-    /** Set by a computer-control run, which drives this task instead of an agent turn (ControlRun). */
+    /**
+     * Set by a computer-control run: one that drives this task instead of an agent turn (a lab run), or one the task's
+     * agent drives through Quire's tools within its turn ([ControlRun.agentMode], Q6).
+     */
     var control: ControlRun? = null
+
+    /** Q6: broker cards waiting behind the one shown, when an agent asks two things at once. */
+    private val queuedCards = ArrayDeque<Block.Consent>()
+
+    /** Q6: the settings the broker changed in this task, one Changes block for all of them. */
+    private var changes: Block.Changes? = null
+    private val changeEntries = ArrayList<ChangeLog.Entry>()
+
+    /** Q6: the first turn opens with the skill's preface; every turn with the time and the windows on screen. */
+    private var contextSent = false
+    private var nextToolStep = 1
 
     init {
         if (agent == null) showAgents()
@@ -289,6 +321,14 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
 
     private fun turn(agent: AcpAgent, sid: String, text: String) {
         val content = JSONArray()
+        // The live context (ANAL-220): who the agent is, the time, the language and the windows on screen. From Quire,
+        // and labelled so; app names only, no window titles.
+        try {
+            content.put(text(LiveContext.block(context, first = !contextSent)))
+        } catch (e: Exception) {
+            Log.w(TAG, "note: task $id: no live context: ${e.message}")
+        }
+        contextSent = true
         if (!intakeSent) {
             intakeContent(agent).forEach { content.put(it) }
             intakeSent = true
@@ -346,11 +386,13 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
     fun stop() {
         if (!running || stopping) return
         stopping = true
+        drainCards()
         pending?.let { answer(it, null) }
         val ctl = control
         if (ctl != null) {
             ctl.stop()
-            return
+            // A lab run is the whole task; an agent's run is a step of its turn, which is cancelled too.
+            if (!ctl.agentMode) return
         }
         val sid = sessionId
         // The cancel goes to the connection the session lives on, never to whichever agent the note shows.
@@ -451,22 +493,35 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
     }
 
     private fun findStep(id: String): Pair<Block.Steps, Step>? {
-        for (b in blocks) if (b is Block.Steps) b.items.firstOrNull { it.id == id }?.let { return b to it }
+        for (b in blocks) if (b is Block.Steps) b.items.firstOrNull { it.id == id || it.agentId == id }
+            ?.let { return b to it }
         return null
     }
 
     private fun upsertStep(u: JSONObject): Step? {
         val id = u.optString("toolCallId").ifEmpty { return null }
-        val found = findStep(id)
+        var found = findStep(id)
+        if (found == null) {
+            // An agent may announce its call of Quire's tool after the broker has drawn the line for it: one line.
+            val named = Broker.toolNamed(u.optString("title"))
+            if (named != null) {
+                found = blocks.filterIsInstance<Block.Steps>().flatMap { b -> b.items.map { b to it } }.lastOrNull { (_, s) ->
+                    s.broker && s.agentId == null && s.toolName == named &&
+                        SystemClock.elapsedRealtime() - s.startedAt < LATE_ANNOUNCE_MS
+                }?.also { it.second.agentId = id }
+            }
+        }
         val block = found?.first ?: currentSteps()
         val step = found?.second ?: Step(id, "", "other", StepStatus.PENDING).also { block.items += it }
-        u.optString("title").takeIf { it.isNotEmpty() }?.let { step.title = it }
-        u.optString("kind").takeIf { it.isNotEmpty() }?.let { step.kind = it }
-        when (u.optString("status")) {
-            "pending" -> step.status = StepStatus.PENDING
-            "in_progress" -> step.status = StepStatus.RUNNING
-            "completed" -> step.status = StepStatus.DONE
-            "failed" -> step.status = StepStatus.FAILED
+        if (!step.broker) {
+            u.optString("title").takeIf { it.isNotEmpty() }?.let { step.title = it }
+            u.optString("kind").takeIf { it.isNotEmpty() }?.let { step.kind = it }
+            when (u.optString("status")) {
+                "pending" -> step.status = StepStatus.PENDING
+                "in_progress" -> step.status = StepStatus.RUNNING
+                "completed" -> step.status = StepStatus.DONE
+                "failed" -> step.status = StepStatus.FAILED
+            }
         }
         u.optJSONObject("rawInput")?.let { step.rawInput = it }
         val content = u.optJSONArray("content")
@@ -492,11 +547,22 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
             return
         }
         val tool = request.optJSONObject("toolCall") ?: JSONObject()
-        val step = upsertStep(tool)
         val opts = request.optJSONArray("options") ?: JSONArray()
         val options = (0 until opts.length()).mapNotNull { i ->
             opts.optJSONObject(i)?.let { Option(it.optString("optionId"), it.optString("name"), it.optString("kind")) }
         }.sortedBy { it.order }
+        // Quire's own tools (Q6): the broker decides every call to them itself, and asks the person before anything
+        // destructive, so the agent's own question about calling one is answered here instead of asking twice.
+        val own = Broker.toolNamed(tool.optString("title"), strict = true)
+        if (own != null) {
+            val allow = options.firstOrNull { it.kind == "allow_always" } ?: options.firstOrNull { it.kind == "allow_once" }
+            if (allow != null) {
+                Log.i(TAG, "note: task $id permission for Quire's $own: ${allow.kind}, the broker decides the call")
+                answer(AcpAgent.selected(allow.id))
+                return
+            }
+        }
+        val step = upsertStep(tool)
         if (options.isEmpty()) {
             answer(AcpAgent.cancelled())
             return
@@ -558,7 +624,22 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
             phase = if (mirror != null) Phase.MIRROR else Phase.WORKING
             if (mirror == null) blocks += Block.Thinking()
         }
+        val next = queuedCards.removeFirstOrNull()
+        if (next != null && running && !stopping) {
+            removeThinking()
+            raiseBrokerCard(next)
+            return
+        }
         host.changed(this, Focus.FIELD)
+    }
+
+    /** Answers every waiting broker card no. */
+    private fun drainCards() {
+        while (true) {
+            val c = queuedCards.removeFirstOrNull() ?: break
+            c.answered = true
+            c.answer(null)
+        }
     }
 
     /**
@@ -619,6 +700,9 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
         endedAt = SystemClock.elapsedRealtime()
         removeThinking()
         endAnswer()
+        drainCards()
+        // The agent's computer-control run ends with its turn, so no app is left running out of sight.
+        control?.takeIf { it.agentMode }?.agentEnd(handOver = false)
         // A card still open when the turn ends: the agent moved on (§9). Release it.
         pending?.let { p ->
             p.answered = true
@@ -676,6 +760,14 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
         endedAt = SystemClock.elapsedRealtime()
         removeThinking()
         endAnswer()
+        drainCards()
+        pending?.let { p ->
+            p.answered = true
+            p.answer(null)
+            blocks.remove(p)
+            pending = null
+        }
+        control?.takeIf { it.agentMode }?.agentEnd(handOver = false)
         markInterrupted()
         phase = Phase.ERROR
         val name = agent?.name ?: ""
@@ -903,6 +995,29 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
         host.changed(this, Focus.FIELD)
     }
 
+    /** Q6: an agent's computer-control run joins this task's turn. */
+    fun attachControl(run: ControlRun) {
+        control = run
+        removeThinking()
+        endAnswer()
+        host.changed(this, Focus.KEEP)
+    }
+
+    /**
+     * Q6: the agent's run ended (the agent finished with the app, the person took over or stopped it, the session
+     * closed). Its steps are already in the task; the turn goes on, so the note goes back to working.
+     */
+    fun controlDetached(stopped: Boolean, message: String, sub: String?, tone: Tone, icon: String) {
+        mirror = null
+        control = null
+        if (tone != Tone.SUCCESS && !stopped) blocks += Block.Result(icon, tone, message, sub)
+        if (running && !stopping && phase in setOf(Phase.MIRROR, Phase.WAITING, Phase.WORKING)) {
+            phase = if (pending != null) Phase.WAITING else Phase.WORKING
+            if (pending == null && blocks.lastOrNull() !is Block.Thinking) blocks += Block.Thinking()
+        }
+        host.changed(this, Focus.KEEP)
+    }
+
     fun controlPhase(p: Phase, focus: Focus = Focus.KEEP) {
         phase = p
         host.changed(this, focus)
@@ -923,6 +1038,177 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
         host.announce(this, listOfNotNull(message, sub).joinToString(" "), stopped || tone == Tone.ERROR)
     }
 
+    // ---------------------------------------------------------------------------------------- Q6: the broker
+
+    /** `_quire/tools/call` from this task's session (AgentDirectory). */
+    override fun onToolCall(name: String, args: JSONObject, answer: (JSONObject) -> Unit) {
+        val b = host.broker
+        if (b == null) {
+            answer(ToolResult.error("Quire's tools aren't available here.").json())
+            return
+        }
+        b.call(this, name, args, answer)
+    }
+
+    override val toolsLive: Boolean
+        get() = running && !stopping
+
+    override val agentControl: AgentControl
+        get() = host.controlFor(this) ?: throw IllegalStateException("no computer control")
+
+    override fun toolStep(tool: Tool, title: String): Any {
+        removeThinking()
+        endAnswer()
+        // The agent's own line for this call, if it already sent one: the newest open line that names the tool.
+        val mine = blocks.filterIsInstance<Block.Steps>().flatMap { b -> b.items.map { b to it } }.lastOrNull { (_, s) ->
+            !s.broker && (s.status == StepStatus.PENDING || s.status == StepStatus.RUNNING) &&
+                Broker.toolNamed(s.title) == tool.name
+        }
+        val (block, step) = mine ?: currentSteps().let { b ->
+            b to Step("q6-${nextToolStep++}", title, tool.kind, StepStatus.RUNNING).also { b.items += it }
+        }
+        if (mine != null) step.agentId = step.id
+        step.broker = true
+        step.toolName = tool.name
+        step.startedAt = SystemClock.elapsedRealtime()
+        step.title = title
+        step.kind = tool.kind
+        step.status = StepStatus.RUNNING
+        block.changed()
+        if (phase == Phase.WORKING && blocks.lastOrNull() !is Block.Thinking) blocks += Block.Thinking()
+        host.changed(this)
+        return step
+    }
+
+    override fun toolPlatformDialog(up: Boolean) = host.platformDialog(this, up)
+
+    /** Q6: true while a screen read needs the note on screen (NoteWindow.systemFor). */
+    var heldOnScreen = false
+        private set
+
+    override fun toolOnScreen(on: Boolean) {
+        heldOnScreen = on
+        host.changed(this)
+    }
+
+    override fun toolRetitle(step: Any, title: String) {
+        val s = step as Step
+        s.title = title
+        findStep(s.id)?.first?.changed()
+        host.changed(this)
+    }
+
+    override fun toolDone(step: Any, ok: Boolean) {
+        val s = step as Step
+        if (s.status == StepStatus.RUNNING || s.status == StepStatus.PENDING) {
+            s.status = if (ok) StepStatus.DONE else StepStatus.FAILED
+        }
+        findStep(s.id)?.first?.changed()
+        host.changed(this)
+    }
+
+    override fun toolAsk(step: Any, tool: Tool, ask: Ask, answer: (Boolean) -> Unit) {
+        if (!running || stopping) {
+            answer(false)
+            return
+        }
+        val s = step as Step
+        val options = listOf(
+            Option("deny", ask.keep, "reject_once"),
+            Option("allow", ask.verb, "allow_once"),
+        )
+        val card = Block.Consent(Block.Consent.Source.BROKER, ask.title, kindLabel(tool.kind), ask.rows, ask.detail,
+            null, ask.why, options, s.id, destructive = true) { id -> answer(id == "allow") }
+        Log.i(TAG, "note: task $id asks the person before ${tool.name}")
+        if (pending != null) {
+            queuedCards.addLast(card)
+            return
+        }
+        removeThinking()
+        endAnswer()
+        raiseBrokerCard(card)
+        host.announce(this, context.getString(R.string.q_a11y_consent, context.getString(R.string.app_name), card.title,
+            options.joinToString(", ") { it.name }), true)
+    }
+
+    override fun toolChanged(step: Any, entries: List<ChangeLog.Entry>) {
+        val block = changes ?: Block.Changes("", context.getString(R.string.q_changed_meta), emptyList(), undo = true) { i ->
+            undoChange(i)
+        }.also {
+            changes = it
+            blocks += it
+        }
+        for (e in entries) {
+            changeEntries += e
+            block.rows += Change(e.name, e.where, e.oldLabel, e.newLabel)
+        }
+        block.title = context.resources.getQuantityString(R.plurals.q_changed, block.rows.size, block.rows.size)
+        block.changed()
+        host.changed(this)
+    }
+
+    /** The Changes block's undo for row [i]: the setting goes back, and the row says so. */
+    private fun undoChange(i: Int) {
+        val block = changes ?: return
+        val e = changeEntries.getOrNull(i) ?: return
+        if (i in block.undone) return
+        block.undone += i
+        block.changed()
+        host.changed(this)
+        Thread({
+            val r = runCatching { SettingsTools.undo(context, e) }
+            host.handler.post {
+                r.onSuccess {
+                    block.rows[i] = Change(e.name, context.getString(R.string.q_undone_where, e.where), e.newLabel,
+                        e.oldLabel)
+                    Log.i(TAG, "note: task $id undid ${e.key}")
+                }
+                r.onFailure {
+                    block.undone -= i
+                    notify(context.getString(R.string.q_undo_failed, e.name))
+                    Log.w(TAG, "note: task $id undo ${e.key} failed: ${it.message}")
+                }
+                block.changed()
+                host.changed(this)
+            }
+        }, "quire-undo").start()
+    }
+
+    /** Debuggable builds: one tool call as an agent's would arrive, its result logged (LabReceiver TOOL). */
+    fun labTool(name: String, args: JSONObject) {
+        val b = host.broker ?: return
+        val wasRunning = running
+        if (!running) {
+            running = true
+            phase = Phase.WORKING
+            startedAt = SystemClock.elapsedRealtime()
+        }
+        b.call(this, name, args) { result ->
+            host.handler.post {
+                val text = (0 until (result.optJSONArray("content")?.length() ?: 0)).joinToString(" ") { i ->
+                    result.getJSONArray("content").getJSONObject(i).let { c ->
+                        if (c.optString("type") == "image") "[image ${c.optString("data").length} b64]" else c.optString("text")
+                    }
+                }
+                Log.i(TAG, "lab: tool $name -> error=${result.optBoolean("isError")} " + JSONObject.quote(text.take(3000)))
+                if (!wasRunning && running && control == null) {
+                    running = false
+                    endedAt = SystemClock.elapsedRealtime()
+                    removeThinking()
+                    phase = Phase.DONE
+                    foldSteps(true)
+                    host.changed(this, Focus.RESULT)
+                }
+            }
+        }
+    }
+
+    /** Debuggable builds: answers the consent card shown (LabReceiver CONSENT). */
+    fun labConsent(option: String) {
+        val card = pending ?: return
+        answer(card, card.options.firstOrNull { it.id == option || it.kind.startsWith(option) }?.id)
+    }
+
     fun close() {
         if (running) stop()
         releaseSession()
@@ -934,5 +1220,8 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
         private const val STOP_TIMEOUT_MS = 8000L
         private const val SETTINGS_LABEL = "Settings"
         private const val NOTICE_MS = 4000L
+
+        /** How long after the broker drew a tool's line the agent's own announcement of it is matched to it. */
+        private const val LATE_ANNOUNCE_MS = 5000L
     }
 }

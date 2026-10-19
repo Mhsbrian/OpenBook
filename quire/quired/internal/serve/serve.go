@@ -13,8 +13,14 @@
 // here, confined to the session's folder (package harness), because the files live here.
 //
 // What serve refuses, on top of package harness: session folders outside Root, and MCP servers
-// supplied by the client (a stdio MCP server is a command line quired would run; Quire's OS tools
-// get their own shim in Q6). A permission request the client can't answer is refused.
+// supplied by the client (a stdio MCP server is a command line quired would run). Quire's own OS
+// tools come the other way: the client asks for them in session/new (_meta.quire.tools) and
+// quired adds its own MCP server, which relays to the client (tools.go). A permission request the
+// client can't answer is refused.
+//
+// Every agent also learns where it is: the client sends the text of OpenBook's skill in
+// session/new (_meta.quire.skill), and quired writes it into the session's new folder as
+// AGENTS.md, CLAUDE.md and GEMINI.md, the files agents read from their working folder.
 package serve
 
 import (
@@ -53,7 +59,8 @@ type Server struct {
 	// Root/Quire; one with cwd must name a folder inside Root. Either way a symlink may lead
 	// only to somewhere else inside Root.
 	Root     string
-	FS       bool // serve fs/read_text_file and fs/write_text_file to ACP agents
+	FS       bool   // serve fs/read_text_file and fs/write_text_file to ACP agents
+	Self     string // quired's executable, which agents start as the tools' MCP server; default os.Executable()
 	Discover func(context.Context) []agents.Found
 	Start    func(context.Context, agents.Spec, harness.Client, harness.Options) (harness.Agent, error)
 	Log      *log.Logger
@@ -78,7 +85,20 @@ type agentsResult struct {
 type quireMeta struct {
 	Agent string `json:"agent,omitempty"`
 	Cwd   string `json:"cwd,omitempty"`
+	// session/new: the client asks for its OS tools; the reply says whether they were added.
+	Tools bool `json:"tools,omitempty"`
+	// session/new: OpenBook's skill, for the agent's instruction files; the reply names the files
+	// written.
+	Skill string   `json:"skill,omitempty"`
+	Files []string `json:"files,omitempty"`
 }
+
+// SkillFiles are the instruction files agents read from their working folder: AGENTS.md (opencode,
+// Codex, Copilot, Cursor and most others), CLAUDE.md (Claude Code) and GEMINI.md (Gemini CLI).
+var SkillFiles = []string{"AGENTS.md", "CLAUDE.md", "GEMINI.md"}
+
+// maxSkill bounds the skill text a client may have written into a folder.
+const maxSkill = 256 << 10
 
 type agentParam struct {
 	Agent string          `json:"agent"`
@@ -86,14 +106,16 @@ type agentParam struct {
 }
 
 // metaAgent reads {"quire": {"agent": ...}} from a _meta object.
-func metaAgent(meta json.RawMessage) string {
+func metaAgent(meta json.RawMessage) string { return readMeta(meta).Agent }
+
+func readMeta(meta json.RawMessage) quireMeta {
 	var m map[string]json.RawMessage
 	if len(meta) == 0 || json.Unmarshal(meta, &m) != nil {
-		return ""
+		return quireMeta{}
 	}
 	var q quireMeta
 	_ = json.Unmarshal(m[MetaKey], &q)
-	return q.Agent
+	return q
 }
 
 func withMeta(q quireMeta) json.RawMessage {
@@ -164,8 +186,11 @@ type session struct {
 	agentSID string
 	cwd      string
 
-	mu   sync.Mutex
-	turn context.CancelFunc // the running turn's cancel, or nil
+	tools *toolBridge // the OS tools' bridge, if the client asked for them
+
+	mu      sync.Mutex
+	turn    context.CancelFunc // the running turn's cancel, or nil
+	turnCtx context.Context    // the running turn, or nil: tool calls are relayed only within it
 }
 
 // out is the connection to the client, for the handlers and the agents' relays.
@@ -184,14 +209,21 @@ func (c *conn) shutdown() {
 	for _, r := range c.agents {
 		rs = append(rs, r)
 	}
+	var bridges []*toolBridge
 	for _, se := range c.sessions {
 		se.mu.Lock()
 		if se.turn != nil {
 			se.turn()
 		}
 		se.mu.Unlock()
+		if se.tools != nil {
+			bridges = append(bridges, se.tools)
+		}
 	}
 	c.mu.Unlock()
+	for _, b := range bridges {
+		b.close()
+	}
 	var wg sync.WaitGroup
 	for _, r := range rs {
 		wg.Add(1)
@@ -296,6 +328,10 @@ func (c *conn) initializeResult() acp.InitializeResponse {
 	meta, _ := json.Marshal(map[string]any{MetaKey: map[string]any{
 		"router":  true,
 		"methods": []string{MethodAgents, MethodDescribe},
+		// session/new's _meta.quire.tools and .skill are understood; tools are relayed with these.
+		"tools":       true,
+		"skill":       true,
+		"clientTools": []string{MethodToolsList, MethodToolsCall},
 	}})
 	return acp.InitializeResponse{
 		ProtocolVersion: acp.ProtocolVersion,
@@ -496,24 +532,56 @@ func (c *conn) newSession(ctx context.Context, req acp.NewSessionRequest) (any, 
 	if len(req.McpServers) > 0 {
 		return nil, acp.Errorf(acp.CodeInvalidParams, "quired serve does not run MCP servers named by the client")
 	}
-	id := metaAgent(req.Meta)
+	q := readMeta(req.Meta)
+	id := q.Agent
+	if len(q.Skill) > maxSkill {
+		return nil, acp.Errorf(acp.CodeInvalidParams, "the skill is longer than %d bytes", maxSkill)
+	}
 	dir, err := c.sessionDir(req.Cwd)
 	if err != nil {
 		return nil, err
 	}
 	made := req.Cwd == "" // a folder serve made for this session, removed again if it stays empty
+	var files []string
+	if q.Skill != "" && made {
+		// Only into the folder serve just made: a folder the client named may be the person's own.
+		if files, err = writeSkill(dir, q.Skill); err != nil {
+			c.s.logf("%s: session/new %s: skill files: %v", c.peer, id, err)
+		}
+	}
+	cleanup := func() {
+		if made {
+			for _, f := range files {
+				_ = os.Remove(filepath.Join(dir, f))
+			}
+			_ = os.Remove(dir)
+		}
+	}
 	r, err := c.agent(ctx, id)
 	if err != nil {
-		if made {
-			_ = os.Remove(dir)
-		}
+		cleanup()
 		return nil, err
 	}
-	asid, err := r.agent.NewSession(ctx, dir, nil)
-	if err != nil {
-		if made {
-			_ = os.Remove(dir)
+	c.mu.Lock()
+	c.next++
+	se := &session{id: fmt.Sprintf("%s-%d", id, c.next), agentID: id, cwd: dir}
+	c.mu.Unlock()
+	var mcp []acp.McpServer
+	if q.Tools {
+		b, server, err := c.openTools(se)
+		if err != nil {
+			cleanup()
+			return nil, fmt.Errorf("Quire's tools: %w", err)
 		}
+		se.tools = b
+		mcp = append(mcp, server)
+	}
+	asid, err := r.agent.NewSession(ctx, dir, mcp)
+	if err != nil {
+		if se.tools != nil {
+			se.tools.close()
+		}
+		cleanup()
 		c.dropIfDead(r, err)
 		c.s.logf("%s: session/new %s: %s", c.peer, id, firstLine(err.Error()))
 		var re *acp.RPCError
@@ -523,14 +591,44 @@ func (c *conn) newSession(ctx context.Context, req acp.NewSessionRequest) (any, 
 		}
 		return nil, err
 	}
+	se.agentSID = asid
 	c.mu.Lock()
-	c.next++
-	se := &session{id: fmt.Sprintf("%s-%d", id, c.next), agentID: id, agentSID: asid, cwd: dir}
 	c.sessions[se.id] = se
+	closed := c.closed
 	c.mu.Unlock()
+	if closed && se.tools != nil {
+		// shutdown has already collected the bridges it closes.
+		se.tools.close()
+	}
 	r.client.register(asid, se.id)
-	c.s.logf("%s: session %s (%s) in %s", c.peer, se.id, id, dir)
-	return newSessionResult{SessionID: se.id, Meta: withMeta(quireMeta{Agent: id, Cwd: dir})}, nil
+	c.s.logf("%s: session %s (%s) in %s, tools=%t, skill files=%d", c.peer, se.id, id, dir, se.tools != nil, len(files))
+	return newSessionResult{SessionID: se.id, Meta: withMeta(quireMeta{Agent: id, Cwd: dir, Tools: se.tools != nil, Files: files})}, nil
+}
+
+// writeSkill writes skill into dir's instruction files, through a handle on dir, and never over a
+// file that is already there.
+func writeSkill(dir, skill string) ([]string, error) {
+	r, err := os.OpenRoot(dir)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Close()
+	var written []string
+	for _, name := range SkillFiles {
+		f, err := r.OpenFile(name, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o644)
+		if err != nil {
+			return written, err
+		}
+		_, werr := io.WriteString(f, skill)
+		if cerr := f.Close(); werr == nil {
+			werr = cerr
+		}
+		if werr != nil {
+			return written, werr
+		}
+		written = append(written, name)
+	}
+	return written, nil
 }
 
 func (c *conn) prompt(req acp.PromptRequest) (any, error) {
@@ -554,9 +652,9 @@ func (c *conn) prompt(req acp.PromptRequest) (any, error) {
 		se.mu.Unlock()
 		return nil, acp.Errorf(acp.CodeInvalidRequest, "a turn is already running in %s", se.id)
 	}
-	se.turn = cancel
+	se.turn, se.turnCtx = cancel, tctx
 	se.mu.Unlock()
-	defer func() { se.mu.Lock(); se.turn = nil; se.mu.Unlock() }()
+	defer func() { se.mu.Lock(); se.turn, se.turnCtx = nil, nil; se.mu.Unlock() }()
 
 	t0 := time.Now()
 	stop, err := r.agent.Prompt(tctx, se.agentSID, req.Prompt)
