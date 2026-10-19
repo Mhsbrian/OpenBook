@@ -1,0 +1,21 @@
+{
+  "time": 1792339057382,
+  "trigger": "assist_key",
+  "entrypoint": 11,
+  "entrypointName": "KEYBOARD_SHORTCUT",
+  "visiblePackages": [
+    "dev.openbook.quire.secureprobe",
+    "com.android.settings",
+    "com.android.settings",
+    "com.android.launcher3"
+  ],
+  "flagSecureFound": true,
+  "audioPlaying": null,
+  "managedProfileVisible": false,
+  "token": true,
+  "callingPackage": "dev.openbook.quire",
+  "mediaProjectionOffered": true,
+  "screenshot": "20261018-155737-382-assist_key.png",
+  "width": 1920,
+  "height": 1080
+}

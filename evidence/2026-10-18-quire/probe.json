@@ -1,0 +1,226 @@
+[
+  {
+    "agent": "claude",
+    "version": "2.1.301 (Claude Code)",
+    "ok": true,
+    "initialize": {
+      "protocolVersion": 1,
+      "agentCapabilities": {
+        "loadSession": true,
+        "promptCapabilities": {
+          "image": false,
+          "audio": false,
+          "embeddedContext": false
+        },
+        "mcpCapabilities": {
+          "http": false,
+          "sse": false
+        }
+      },
+      "authMethods": [],
+      "agentInfo": {
+        "name": "claude-code",
+        "title": "Claude Code (adapted by quired)",
+        "version": "2.1.301 (Claude Code)"
+      }
+    },
+    "sessionId": "cef6f408-a521-47ab-bada-2a3519efc8f3",
+    "ms": 0
+  },
+  {
+    "agent": "opencode",
+    "version": "opencode v2.0.31",
+    "ok": true,
+    "initialize": {
+      "protocolVersion": 1,
+      "agentCapabilities": {
+        "loadSession": true,
+        "promptCapabilities": {
+          "image": true,
+          "audio": false,
+          "embeddedContext": true
+        },
+        "mcpCapabilities": {
+          "http": true,
+          "sse": false
+        }
+      },
+      "authMethods": [
+        {
+          "id": "opencode-login",
+          "name": "Login with opencode",
+          "description": "Run `opencode auth login` in the terminal"
+        }
+      ],
+      "agentInfo": {
+        "name": "OpenCode",
+        "version": "2.0.31"
+      }
+    },
+    "sessionId": "ses_eb0cd8d78ffeeG33o4IY2omrM0",
+    "ms": 1489
+  },
+  {
+    "agent": "copilot",
+    "version": "GitHub Copilot CLI 1.0.98.",
+    "ok": true,
+    "initialize": {
+      "protocolVersion": 1,
+      "agentCapabilities": {
+        "loadSession": true,
+        "promptCapabilities": {
+          "image": true,
+          "audio": false,
+          "embeddedContext": true
+        },
+        "mcpCapabilities": {
+          "http": true,
+          "sse": true
+        }
+      },
+      "authMethods": [
+        {
+          "id": "copilot-login",
+          "name": "Log in with Copilot CLI",
+          "description": "Run `copilot login` in the terminal"
+        }
+      ],
+      "agentInfo": {
+        "name": "Copilot",
+        "title": "Copilot",
+        "version": "1.0.98"
+      }
+    },
+    "sessionId": "5db8c15a-d3e5-4cb6-b0d6-9ec9316775e0",
+    "ms": 1597
+  },
+  {
+    "agent": "cursor",
+    "version": "2026.10.14-941492e",
+    "ok": false,
+    "initialize": {
+      "protocolVersion": 1,
+      "agentCapabilities": {
+        "loadSession": true,
+        "promptCapabilities": {
+          "image": true,
+          "audio": false,
+          "embeddedContext": false
+        },
+        "mcpCapabilities": {
+          "http": true,
+          "sse": true
+        }
+      },
+      "authMethods": [
+        {
+          "id": "cursor_login",
+          "name": "Cursor Login",
+          "description": "Authenticate using existing Cursor login credentials. Run 'agent login' first if not logged in."
+        }
+      ]
+    },
+    "error": "session/new: acp error -32000: Authentication required",
+    "ms": 3874
+  },
+  {
+    "agent": "kimi",
+    "version": "2.2.0",
+    "ok": false,
+    "initialize": {
+      "protocolVersion": 1,
+      "agentCapabilities": {
+        "loadSession": true,
+        "promptCapabilities": {
+          "image": true,
+          "audio": false,
+          "embeddedContext": true
+        },
+        "mcpCapabilities": {
+          "http": true,
+          "sse": true
+        }
+      },
+      "authMethods": [
+        {
+          "id": "login",
+          "name": "Login with Kimi account",
+          "description": "Open the device-code login flow in a terminal."
+        }
+      ],
+      "agentInfo": {
+        "name": "Kimi Code CLI",
+        "version": "2.2.0"
+      }
+    },
+    "error": "session/new: acp error -32000: Authentication required\nagent stderr (tail):\n{\"level\":\"info\",\"msg\":\"acp: auth readiness probe failed, trying the OAuth summary\",\"error\":\"no provider configured; complete onboarding via /login or the providers endpoint\"}",
+    "ms": 1586
+  },
+  {
+    "agent": "hermes",
+    "version": "Hermes Agent v0.20.5 (2026.8.19) · upstream 0eb4f62a · local 987064ca (+1 carried commit)",
+    "ok": false,
+    "initialize": {
+      "protocolVersion": 1,
+      "agentCapabilities": {
+        "loadSession": true,
+        "promptCapabilities": {
+          "image": true,
+          "audio": false,
+          "embeddedContext": false
+        },
+        "mcpCapabilities": {
+          "http": false,
+          "sse": false
+        }
+      },
+      "authMethods": [
+        {
+          "id": "hermes-setup",
+          "name": "Configure Hermes provider",
+          "description": "Open Hermes' interactive model/provider setup in a terminal. Use this when Hermes has not been configured on this machine yet."
+        }
+      ],
+      "agentInfo": {
+        "name": "hermes-agent",
+        "version": "0.20.5"
+      }
+    },
+    "error": "session/new: acp error -32603: Internal error\nagent stderr (tail):\n2026-10-18 09:27:56 [INFO] hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily\n2026-10-18 09:27:56 [INFO] hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai\n2026-10-18 09:27:56 [INFO] hermes_cli.plugin_capabilities: capability_check plugin=herdr-agent-state capability=tools.override decision=deny checked_by=plugin_capability_granted evidence=not granted\n2026-10-18 09:27:56 [INFO] hermes_cli.plugins: Plugin discovery complete: 56 found, 50 enabled\n2026-10-18 09:27:56 [WARNING] acp_adapter.session: Background MCP discovery previously exited with no connected servers; retrying discovery thread\n2026-10-18 09:27:57 [WARNING] agent.auxiliary_client: resolve_provider_client: xai-oauth requested but no xAI OAuth token found (run: hermes model -\u003e xAI Grok OAuth — SuperGrok / Premium+)\n2026-10-18 09:27:57 [WARNING] agent.auxiliary_client: Auxiliary client: PAID lane engaged for auxiliary task — OpenRouter fallback model 'google/gemini-3.6-flash' is not a :free SKU and may incur real spend. Set auxiliary.free_only: true to restrict auxiliary fallbacks to free models, or auxiliary.openrouter_model to a :free model.\n2026-10-18 09:27:57 [WARNING] agent.auxiliary_client: Auxiliary: marking openrouter unhealthy for 60s (payment / credit error). Subsequent auxiliary calls will skip it until 09:28:57.\n2026-10-18 09:27:57 [WARNING] agent.auxiliary_client: Auxiliary Nous client unavailable: no Nous authentication found (run: hermes auth).\n2026-10-18 09:27:57 [WARNING] agent.auxiliary_client: Auxiliary: marking nous unhealthy for 60s (payment / credit error). Subsequent auxiliary calls will skip it until 09:28:57.\n2026-10-18 09:27:57 [WARNING] agent.credential_pool: Copilot token exchange degraded to RAW token (exchange unavailable); enterprise-only models may 400 with model_not_available_for_integrator until exchange recovers.\n2026-10-18 09:27:57 [WARNING] agent.auxiliary_client: Auxiliary auto-detect: no provider available (tried: openrouter, nous, local/custom, api-key). Compression, summarization, and memory flush will not work. Set OPENROUTER_API_KEY or configure a local model in config.yaml.",
+    "ms": 1998
+  },
+  {
+    "agent": "omp",
+    "version": "omp/18.11.2",
+    "ok": true,
+    "initialize": {
+      "protocolVersion": 1,
+      "agentCapabilities": {
+        "loadSession": true,
+        "promptCapabilities": {
+          "image": true,
+          "audio": false,
+          "embeddedContext": true
+        },
+        "mcpCapabilities": {
+          "http": true,
+          "sse": true
+        }
+      },
+      "authMethods": [
+        {
+          "id": "agent",
+          "name": "Use existing local credentials",
+          "description": "Authenticate via the provider keys/OAuth state already configured under ~/.omp."
+        }
+      ],
+      "agentInfo": {
+        "name": "omp",
+        "title": "omp",
+        "version": "18.11.2"
+      }
+    },
+    "sessionId": "01a14f32-97f9-7090-b051-fd1f3025635f",
+    "ms": 1637
+  }
+]

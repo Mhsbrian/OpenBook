@@ -1,0 +1,14 @@
+// Copyright (C) 2026 The OpenBook Authors
+// SPDX-License-Identifier: Apache-2.0
+
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+aconfig_values {
+    name: "aconfig-values-openbook_desktop-cp2a-android.companion.virtualdevice.flags-all",
+    package: "android.companion.virtualdevice.flags",
+    srcs: [
+        "*_flag_values.textproto",
+    ],
+}

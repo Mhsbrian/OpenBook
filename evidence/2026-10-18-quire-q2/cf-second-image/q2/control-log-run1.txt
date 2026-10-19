@@ -1,0 +1,38 @@
+--------- beginning of main
+10-18 15:56:09.047 I/Quire   ( 3157): assistant: ready
+10-18 15:57:10.828 I/Quire   ( 4123): q2-check shake 1792339030.906
+10-18 15:57:11.212 I/Quire   ( 3157): invocation: trigger=system_action entrypoint=9(SYSTEM_ACTION) visible=[dev.openbook.quire.secureprobe, com.android.settings, com.android.settings, com.android.launcher3] flagSecureFound=true screenshot=1920x1080 token=true audioPlaying=n/a managedProfileVisible=false caller=com.android.launcher3 mediaProjectionOffered=true
+10-18 15:57:11.378 I/Quire   ( 3157): invocation: saved /data/user/0/dev.openbook.quire/files/invocations/20261018-155711-211-system_action.json
+10-18 15:57:23.723 I/Quire   ( 4189): q2-check meta_space 1792339043.800
+10-18 15:57:23.785 I/Quire   ( 3157): assistant: session shown trigger=assistant_shortcut invocationType=0 keyboardHint=true display=0 showFlags=0x4
+10-18 15:57:23.785 I/Quire   ( 3157): assistant: started contextual search trigger=assistant_shortcut
+10-18 15:57:23.912 I/Quire   ( 3157): invocation: trigger=assistant_shortcut entrypoint=11(KEYBOARD_SHORTCUT) visible=[dev.openbook.quire.secureprobe, com.android.settings, com.android.settings, com.android.launcher3] flagSecureFound=true screenshot=1920x1080 token=true audioPlaying=n/a managedProfileVisible=false caller=dev.openbook.quire mediaProjectionOffered=true
+10-18 15:57:24.066 I/Quire   ( 3157): invocation: saved /data/user/0/dev.openbook.quire/files/invocations/20261018-155723-912-assistant_shortcut.json
+10-18 15:57:37.114 I/Quire   ( 4248): q2-check assist_key 1792339057.183
+10-18 15:57:37.192 I/Quire   ( 3157): assistant: session shown trigger=assist_key invocationType=7 keyboardHint=false display=0 showFlags=0x4
+10-18 15:57:37.192 I/Quire   ( 3157): assistant: started contextual search trigger=assist_key
+10-18 15:57:37.382 I/Quire   ( 3157): invocation: trigger=assist_key entrypoint=11(KEYBOARD_SHORTCUT) visible=[dev.openbook.quire.secureprobe, com.android.settings, com.android.settings, com.android.launcher3] flagSecureFound=true screenshot=1920x1080 token=true audioPlaying=n/a managedProfileVisible=false caller=dev.openbook.quire mediaProjectionOffered=true
+10-18 15:57:37.610 I/Quire   ( 3157): invocation: saved /data/user/0/dev.openbook.quire/files/invocations/20261018-155737-382-assist_key.json
+10-18 15:57:53.173 I/Quire   ( 4327): q2-check control 1792339073.243
+10-18 15:57:53.314 I/Quire   ( 3157): lab: dev.openbook.quire.lab.REQUEST
+10-18 15:57:53.355 I/Quire   ( 3157): cc: request name=quire-1792339073321 targets=[com.android.settings] version=5
+10-18 15:57:53.376 I/Quire   ( 3157): cc: pending: the platform asks for consent
+10-18 15:57:56.712 I/Quire   ( 3157): cc: created: display 1920x1080
+10-18 15:57:56.754 I/Quire   ( 3157): cc: launch: com.android.settings/.Settings$DarkThemeSettingsActivity
+10-18 15:57:56.754 I/Quire   ( 3157): cc: lifecycle: active
+10-18 15:57:56.787 I/Quire   ( 3157): cc: mirror created
+10-18 15:58:04.150 I/Quire   ( 4464): q2-check screenshot-before 1792339084.216
+10-18 15:58:04.231 I/Quire   ( 3157): lab: dev.openbook.quire.lab.SCREENSHOT
+10-18 15:58:04.411 I/Quire   ( 3157): cc: screenshot: 1920x1080 saved /data/user/0/dev.openbook.quire/files/control/20261018-155804-307-session.png
+10-18 15:58:04.553 I/Quire   ( 3157): lab: dev.openbook.quire.lab.WINDOWS
+10-18 15:58:04.555 I/Quire   ( 3157): cc: windows: 0
+10-18 15:58:06.586 I/Quire   ( 4481): q2-check tap 1792339086.653
+10-18 15:58:06.660 I/Quire   ( 3157): lab: dev.openbook.quire.lab.TAP
+10-18 15:58:06.662 I/Quire   ( 3157): cc: tap refused by Quire: no node with text "Use Dark theme" (0 accessibility windows)
+10-18 15:58:37.805 I/Quire   ( 4633): q2-check screenshot-after 1792339117.867
+10-18 15:58:37.877 I/Quire   ( 3157): lab: dev.openbook.quire.lab.SCREENSHOT
+10-18 15:58:38.066 I/Quire   ( 3157): cc: screenshot: 1920x1080 saved /data/user/0/dev.openbook.quire/files/control/20261018-155837-985-session.png
+10-18 15:58:39.314 I/Quire   ( 4652): q2-check handover 1792339119.384
+10-18 15:58:39.382 I/Quire   ( 3157): lab: dev.openbook.quire.lab.HAND_OVER
+10-18 15:58:39.505 I/Quire   ( 3157): cc: hand over: done
+10-18 15:58:39.696 I/Quire   ( 3157): cc: lifecycle: closed reason=4(SESSION_EMPTY)
