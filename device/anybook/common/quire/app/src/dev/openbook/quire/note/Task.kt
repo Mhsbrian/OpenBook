@@ -70,6 +70,9 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
         private set
     var sessionId: String? = null
         private set
+
+    /** The connection [sessionId] was opened on: the session's ID means something only there (SessionRoutes). */
+    private var sessionAgent: AcpAgent? = null
     private var pending: Block.Consent? = null
     private var intakeSent = false
     private var stopTimeout: Runnable? = null
@@ -210,10 +213,7 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
 
     fun chooseAgent(entry: AgentEntry) {
         if (running) return
-        if (entry !== agent && sessionId != null) {
-            host.agents.release(sessionId!!)
-            sessionId = null
-        }
+        if (entry !== agent && sessionId != null) releaseSession()
         agent = entry
         host.agents.use(entry)
         if (phase == Phase.NO_AGENT || phase == Phase.SIGNIN || phase == Phase.OFFLINE) {
@@ -249,20 +249,34 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
     private fun agentReady(entry: AgentEntry, agent: AcpAgent, text: String) {
         if (!running || stopping) return
         val sid = sessionId
-        if (sid != null) {
+        if (sid != null && sessionAgent === agent) {
             turn(agent, sid, text)
             return
+        }
+        if (sid != null) {
+            // The session was opened on a connection that has since closed; this one has never heard of it.
+            Log.i(TAG, "note: task $id session $sid was on a closed connection; opening a new one")
+            releaseSession()
         }
         agent.newSession { r ->
             if (!running || stopping) return@newSession
             r.onSuccess {
                 sessionId = it
-                host.agents.own(it, this)
+                sessionAgent = agent
+                host.agents.own(agent, it, this)
                 Log.i(TAG, "note: task $id session $it with ${entry.endpoint.id}")
                 turn(agent, it, text)
             }
             r.onFailure { failed(it) }
         }
+    }
+
+    private fun releaseSession() {
+        val sid = sessionId
+        val a = sessionAgent
+        if (sid != null && a != null) host.agents.release(a, sid, this)
+        sessionId = null
+        sessionAgent = null
     }
 
     private fun turn(agent: AcpAgent, sid: String, text: String) {
@@ -331,14 +345,15 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
             return
         }
         val sid = sessionId
-        val a = agent?.agent
+        // The cancel goes to the connection the session lives on, never to whichever agent the note shows.
+        val a = sessionAgent
         markInterrupted()
         if (sid == null || a == null) {
             ended("cancelled")
             return
         }
         a.cancel(sid)
-        Log.i(TAG, "note: task $id cancel sent")
+        Log.i(TAG, "note: task $id cancel sent to ${a.endpoint.id} for $sid")
         // If the agent never confirms, the note still ends the task, and says the stop wasn't confirmed.
         val timeout = Runnable { if (running) ended("cancelled", confirmed = false) }
         stopTimeout = timeout
@@ -511,7 +526,8 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
         pending = card
         blocks += card
         phase = Phase.WAITING
-        Log.i(TAG, "note: task $id permission for ${step?.id} options=${options.map { it.id }}")
+        Log.i(TAG, "note: task $id permission for ${step?.id} options=${options.map { it.id }} " +
+            "from ${sessionAgent?.endpoint?.id} session $sessionId")
         host.changed(this, Focus.CONSENT)
         host.announce(this, context.getString(R.string.q_a11y_consent, name, card.title,
             options.joinToString(", ") { it.name }), true)
@@ -877,8 +893,8 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
     }
 
     fun close() {
-        sessionId?.let { host.agents.release(it) }
         if (running) stop()
+        releaseSession()
     }
 
     companion object {

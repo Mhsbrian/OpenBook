@@ -64,8 +64,9 @@ class AgentEntry(val endpoint: Endpoint) {
 
 /**
  * The agents Quire knows and their ACP connections. Updates and permission requests are routed to the task that owns
- * the session. Today the list holds the endpoints a debuggable build was given by its lab commands; Q4 fills it from
- * `quired agents` in the Linux environment.
+ * the session on the connection they came from ([SessionRoutes]: two agents may use the same session ID). Today the
+ * list holds the endpoints a debuggable build was given by its lab commands; Q4 fills it from `quired agents` in the
+ * Linux environment.
  */
 class AgentDirectory(context: Context, private val main: Executor) : AcpAgent.Listener {
     interface SessionOwner {
@@ -76,7 +77,7 @@ class AgentDirectory(context: Context, private val main: Executor) : AcpAgent.Li
 
     private val prefs = context.getSharedPreferences("agents", Context.MODE_PRIVATE)
     val entries = mutableListOf<AgentEntry>()
-    private val owners = HashMap<String, SessionOwner>()
+    private val owners = SessionRoutes<AcpAgent, SessionOwner>()
     var lastUsed: String? = prefs.getString(KEY_LAST, null)
         private set
 
@@ -143,35 +144,42 @@ class AgentDirectory(context: Context, private val main: Executor) : AcpAgent.Li
         }
     }
 
-    fun own(sessionId: String, owner: SessionOwner) {
-        owners[sessionId] = owner
+    /** [owner] owns [sessionId] on [agent]'s connection, the one that answered `session/new`. */
+    fun own(agent: AcpAgent, sessionId: String, owner: SessionOwner) {
+        owners.own(agent, sessionId, owner)
     }
 
-    fun release(sessionId: String) {
-        owners.remove(sessionId)
+    fun release(agent: AcpAgent, sessionId: String, owner: SessionOwner) {
+        owners.release(agent, sessionId, owner)
     }
 
     override fun onUpdate(agent: AcpAgent, sessionId: String, update: JSONObject) {
-        owners[sessionId]?.onUpdate(update)
+        owners.owner(agent, sessionId)?.onUpdate(update)
     }
 
     override fun onPermission(agent: AcpAgent, sessionId: String, request: JSONObject,
         answer: (JSONObject) -> Unit) {
-        val owner = owners[sessionId]
+        val owner = owners.owner(agent, sessionId)
         if (owner == null) {
-            // No note owns this session: nobody can be asked, so the answer is no (docs/quire.md §5.1).
+            // No note owns this session on this connection: nobody can be asked, so the answer is no
+            // (docs/quire.md §5.1).
+            Log.i(TAG, "acp[${agent.endpoint.id}]: permission for a session no task owns: cancelled")
             answer(AcpAgent.cancelled())
             return
         }
         owner.onPermission(request, answer)
     }
 
+    /** A connection closed: only the tasks with a session on it hear of it; other agents' tasks run on. */
     override fun onClosed(agent: AcpAgent, error: Throwable?) {
-        val entry = entries.firstOrNull { it.agent === agent } ?: return
-        entry.agent = null
-        entry.state = AgentEntry.State.IDLE
-        Log.i(TAG, "acp: ${entry.endpoint.id} closed${error?.let { ": ${it.javaClass.simpleName}" } ?: ""}")
-        owners.values.toList().forEach { it.onAgentClosed(error) }
+        val owned = owners.drop(agent)
+        entries.firstOrNull { it.agent === agent }?.let {
+            it.agent = null
+            it.state = AgentEntry.State.IDLE
+        }
+        Log.i(TAG, "acp: ${agent.endpoint.id} closed${error?.let { ": ${it.javaClass.simpleName}" } ?: ""}, " +
+            "${owned.size} session(s)")
+        owned.forEach { it.onAgentClosed(error) }
     }
 
     private fun save() {
