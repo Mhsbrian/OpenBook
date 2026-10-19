@@ -1,6 +1,6 @@
 # Quire Q6: every agent knows it is OpenBook's assistant and can drive the laptop (ANAL-220)
 
-2026-10-19. What was built and how it works: `docs/quire.md` §10. The update to the G14 is in `g14/` once it ran.
+2026-10-19. What was built and how it works: `docs/quire.md` §10. The update to the G14 is in `g14/`.
 
 ## Host
 
@@ -41,3 +41,14 @@ Through the broker directly (lab `TOOL`, real taps):
 
 Not run, by the owner's request to keep testing short: the full matrix on a second agent, and the Bluetooth and delete
 prompts through an agent (their tools were checked through the broker above).
+
+## The G14 (`g14/`)
+
+- **The Linux environment, in place:** `quired` 0.3.0 over 0.2.1, checksum checked in the guest (`guest-quired.md`).
+- **The update:** `openbook-ota-20261019-quire6` (`packages/`, fingerprint `…/20261019.quire6`, vbmeta `950ca34b…`).
+  - `ota --dry-run` passed (`precheck.txt`).
+  - `ota --yes` wrote slot A and verified it (`ota-apply.log`).
+  - Restarted at 14:07Z with the owner at the laptop. It came up on slot A, was marked good, and the merge completed (`ota-status-after.log`).
+  - Users, packages, versions and settings are the same (`state-diff.md`).
+  - The QEMU rehearsal was skipped at the owner's request. The A/B fallback stayed armed until slot A booted.
+- **"open chrome and go to fox news"** (`prompt-foxnews.log`): opencode's session got the tools and the skill files. `open_url` opened foxnews.com in Chrome, which came to the front.
