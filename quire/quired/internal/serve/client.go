@@ -22,6 +22,10 @@ type Remote struct {
 	closer io.Closer
 	info   acp.InitializeResponse
 
+	// Tools answers quired's _quire/tools/list and _quire/tools/call (Quire core's OS tools). Nil
+	// refuses them. Set it before the first session.
+	Tools func(ctx context.Context, method string, params json.RawMessage) (any, error)
+
 	mu      sync.Mutex
 	clients map[string]harness.Client    // quired session id → who shows it
 	early   map[string][]json.RawMessage // updates that came before session/new's reply
@@ -94,6 +98,12 @@ func (rm *Remote) notify(method string, params json.RawMessage) {
 }
 
 func (rm *Remote) handle(ctx context.Context, method string, params json.RawMessage) (any, error) {
+	if method == MethodToolsList || method == MethodToolsCall {
+		if rm.Tools == nil {
+			return nil, acp.Errorf(acp.CodeMethodNotFound, "this client offers no tools")
+		}
+		return rm.Tools(ctx, method, params)
+	}
 	if method != acp.MethodRequestPermission {
 		return nil, acp.Errorf(acp.CodeMethodNotFound, "%s", method)
 	}
@@ -140,15 +150,30 @@ func (a *remoteAgent) Authenticate(ctx context.Context, methodID string) error {
 }
 
 func (a *remoteAgent) NewSession(ctx context.Context, cwd string, mcp []acp.McpServer) (string, error) {
+	sid, _, err := a.newSession(ctx, cwd, mcp, quireMeta{Agent: a.id})
+	return sid, err
+}
+
+// NewQuireSession opens a session as Quire core does: with its OS tools relayed to rm.Tools when
+// tools is set, and skill written into the session's folder. It returns quired's _meta reply.
+func NewQuireSession(ctx context.Context, a harness.Agent, tools bool, skill string) (string, json.RawMessage, error) {
+	ra, ok := a.(*remoteAgent)
+	if !ok {
+		return "", nil, errors.New("not an agent of a quired serve")
+	}
+	return ra.newSession(ctx, "", nil, quireMeta{Agent: ra.id, Tools: tools, Skill: skill})
+}
+
+func (a *remoteAgent) newSession(ctx context.Context, cwd string, mcp []acp.McpServer, q quireMeta) (string, json.RawMessage, error) {
 	if mcp == nil {
 		mcp = []acp.McpServer{}
 	}
 	var res newSessionResult
-	if err := a.rm.rpc.Call(ctx, acp.MethodSessionNew, acp.NewSessionRequest{Cwd: cwd, McpServers: mcp, Meta: withMeta(quireMeta{Agent: a.id})}, &res); err != nil {
-		return "", err
+	if err := a.rm.rpc.Call(ctx, acp.MethodSessionNew, acp.NewSessionRequest{Cwd: cwd, McpServers: mcp, Meta: withMeta(q)}, &res); err != nil {
+		return "", nil, err
 	}
 	a.rm.register(res.SessionID, a.client)
-	return res.SessionID, nil
+	return res.SessionID, res.Meta, nil
 }
 
 // SessionFolder returns the folder quired serve gave a session, from session/new's _meta.

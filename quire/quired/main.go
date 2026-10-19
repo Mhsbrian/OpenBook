@@ -26,9 +26,10 @@ import (
 	"github.com/Mhsbrian/OpenBook/quire/quired/internal/acp"
 	"github.com/Mhsbrian/OpenBook/quire/quired/internal/agents"
 	"github.com/Mhsbrian/OpenBook/quire/quired/internal/harness"
+	"github.com/Mhsbrian/OpenBook/quire/quired/internal/serve"
 )
 
-const version = "0.2.1"
+const version = "0.3.0"
 
 var clientInfo = acp.Implementation{Name: "quired", Title: "Quire harness host (OpenBook)", Version: version}
 
@@ -81,6 +82,8 @@ func main() {
 		err = cmdServe(ctx, os.Args[2:])
 	case "permission-mcp": // started by the Claude Code adapter, not by people
 		err = cmdPermissionMCP(os.Args[2:])
+	case "tools-mcp": // started by agents in a Quire session, not by people
+		err = cmdToolsMCP(os.Args[2:])
 	case "version", "--version":
 		fmt.Println("quired", version)
 	case "help", "-h", "--help":
@@ -347,6 +350,20 @@ func cmdPermissionMCP(args []string) error {
 		return errors.New("permission-mcp: --socket is required")
 	}
 	return harness.ServePermissionMCP(os.Stdin, os.Stdout, *socket, version)
+}
+
+// cmdToolsMCP is the MCP server with Quire's OS tools that agents start in a session of quired
+// serve; it relays to the serving quired over its private socket (internal/serve/tools.go).
+func cmdToolsMCP(args []string) error {
+	fs := flag.NewFlagSet("tools-mcp", flag.ContinueOnError)
+	socket := fs.String("socket", "", "the session's tools socket")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if *socket == "" {
+		return errors.New("tools-mcp: --socket is required")
+	}
+	return serve.ServeToolsMCP(os.Stdin, os.Stdout, *socket, version)
 }
 
 // termClient renders a session in a terminal, or as NDJSON with --json, and answers permission

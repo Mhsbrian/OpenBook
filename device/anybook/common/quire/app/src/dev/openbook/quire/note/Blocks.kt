@@ -766,7 +766,10 @@ private class ChangesView(env: NoteEnv) : BlockView<Block.Changes>(env) {
     override fun bind(b: Block.Changes) {
         view.removeAllViews()
         view.addView(titleRow(env, Icons.TUNE, env.palette.onSurfaceVariant, b.title, b.meta))
-        b.rows.forEach { view.addView(changeRow(env, it, if (b.undo) ({}) else null), env.lp(top = 8f)) }
+        b.rows.forEachIndexed { i, row ->
+            val undo = if (b.undo && i !in b.undone && b.onUndo != null) ({ b.onUndo.invoke(i) }) else null
+            view.addView(changeRow(env, row, undo), env.lp(top = 8f))
+        }
     }
 }
 
