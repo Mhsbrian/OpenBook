@@ -41,6 +41,7 @@ android_app {
         "privapp_whitelist_com.android.launcher3.contextual_search",
         "privapp_whitelist_dev.openbook.quire",
         "quire_computercontrol_automatable_app_allowlist",
+        "quire_computercontrol_automatable_app_denylist",
         "quire_computercontrol_session_owner_allowlist",
         "quire_contextual_search_feature",
     ],
@@ -97,6 +98,15 @@ prebuilt_etc {
     system_ext_specific: true,
     sub_dir: "computercontrol",
     src: "etc/computercontrol/automatable_app_allowlist.txt",
+    filename_from_src: true,
+}
+
+// The system screens no agent may automate (ANAL-220): installer, certificates, credentials, VPN, provisioning, shell.
+prebuilt_etc {
+    name: "quire_computercontrol_automatable_app_denylist",
+    system_ext_specific: true,
+    sub_dir: "computercontrol",
+    src: "etc/computercontrol/automatable_app_denylist.txt",
     filename_from_src: true,
 }
 

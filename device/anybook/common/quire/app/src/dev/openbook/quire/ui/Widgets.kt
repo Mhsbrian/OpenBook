@@ -101,7 +101,12 @@ class QButton(
     style: Style,
     glyph: String? = null,
 ) : TextView(context), RingTarget {
-    enum class Style { FILLED, TONAL, TEXT, DANGER }
+    /**
+     * Buttons on glass (docs/quire-design.md §4.4): FILLED the safe or main choice, TONAL an agent's allow-always, PAPER
+     * Undo, Pause and the like, TEXT a quiet choice in ink, DANGER legacy red text, DESTRUCTIVE the destructive verb and
+     * Stop on `errorContainer`.
+     */
+    enum class Style { FILLED, TONAL, TEXT, DANGER, PAPER, DESTRUCTIVE }
 
     override val ring = Ring.GAP
     override val ringRadius: Float = context.dp(18f)
@@ -121,6 +126,8 @@ class QButton(
         minHeight = context.dpi(36f)
         isFocusable = true
         isClickable = true
+        // The note draws its own focus ring (§8.1); the platform's grey highlight would show behind the pill.
+        defaultFocusHighlightEnabled = false
         apply()
     }
 
@@ -134,19 +141,24 @@ class QButton(
         val (bg, fg) = when (style) {
             Style.FILLED -> palette.primary to palette.onPrimary
             Style.TONAL -> palette.secondaryContainer to palette.onSecondaryContainer
-            Style.TEXT -> 0 to palette.primary
+            // Text buttons are ink, not primary: a primary label on 80 % glass fails at the worst backdrop (§4.4).
+            Style.TEXT -> 0 to palette.onSurface
             Style.DANGER -> 0 to palette.error
+            Style.PAPER -> palette.card to palette.onSurface
+            Style.DESTRUCTIVE -> palette.errorContainer to onErrorContainer(palette)
         }
         val side = if (style == Style.TEXT || style == Style.DANGER) 10f else 16f
         setPadding(dpi(if (glyph != null) side - 4f else side), 0, dpi(side), 0)
-        background = rounded(context, bg, 18f)
+        background = if (style == Style.PAPER) rounded(context, bg, 18f, palette.cardOutline, 1f) else rounded(context, bg, 18f)
         setTextColor(fg)
         text = withIcon(context, glyph, label, 18f)
         contentDescription = label
     }
 }
 
-/** A 32 dp round icon button (§4.2), e.g. the header's Hide and Close. */
+private fun onErrorContainer(p: Palette): Int = if (p.dark) 0xFFFFDAD6.toInt() else 0xFF410002.toInt()
+
+/** A 32 dp round icon button (§4.2), e.g. the quiet line's ×. */
 class IconButton(context: Context, palette: Palette, glyph: String, description: CharSequence) :
     FrameLayout(context), RingTarget {
     override val ring = Ring.OFFSET
