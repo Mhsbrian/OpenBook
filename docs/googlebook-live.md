@@ -114,6 +114,14 @@ The last recorded owner stick is a 62 GB SanDisk Ultra. No USB block device was
 attached to the build host when this work began. A generated image is not an
 updated stick, and an emulated USB boot is not a G14 test.
 
+The owner subsequently attached that stick and explicitly requested its update
+after the stability findings. The guarded writer backed up three old reports,
+wrote the same tested candidate and verified all 12,766,412,800 bytes against
+SHA-256 `5b21c93932dc39deb46b4462ebafcf17a943de93dbfd2d005d5233e142e66e1e`.
+The stick was powered off successfully. This is a limited diagnostic trial,
+not qualification or an installed-laptop update. The physical-write evidence
+is in `evidence/2026-10-19-googlebook-usb/`.
+
 The candidate reaches the graphical welcome screen in the enforcing VM but
 fails the subsequent stability observation. It is not ready for a routine
 live-USB handoff or a claim of working desktop/credential persistence. Before replacing
@@ -130,6 +138,21 @@ the firmware's one-time USB boot selection and the normal experimental live
 entry. Do not install to internal storage. Capture whether the welcome screen
 renders and whether keyboard/touchpad work before attempting setup. The
 physical TPM, Radeon path, Wi-Fi and credential behavior remain unqualified.
+
+### First trial on the G14
+
+1. Insert the verified stick and select its UEFI entry from the firmware's
+   one-time boot menu. Select **Googlebook on OpenBook - experimental live boot**
+   in the stick's menu (the default). The serial entry is for VM diagnostics.
+2. Check the welcome screen, keyboard and touchpad first. A welcome screen is
+   not evidence that setup, accounts or applications work. Record any black
+   screen, restart or freeze, including roughly how long after boot it happened.
+3. This image has fixed 8 GiB encrypted userdata on the stick and no OpenBook
+   installer. The remaining stick capacity is not automatically allocated.
+4. Shut the live system down before removing the stick. Select the laptop's
+   existing OpenBook firmware entry on the next boot to return to its installed
+   system. This procedure does not stage an OTA or select a different internal
+   slot.
 
 Evidence and current limitations are recorded in
 `evidence/2026-10-19-googlebook-live/`. No recovery image or software-TPM state is

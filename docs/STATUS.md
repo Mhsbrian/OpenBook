@@ -1,5 +1,19 @@
 # Status
 
+## 2026-10-19: experimental Googlebook stick written (ANAL-228)
+
+At the owner's request after the reported VM stability failure, the attached
+62 GB SanDisk Ultra was updated with the existing Ruby/OpenBook live candidate.
+The guarded writer backed up three reports, wrote 12,766,412,800 bytes and read
+the entire image back with matching SHA-256 `5b21c93932dc39de…`. It powered the
+stick off successfully. Evidence: `evidence/2026-10-19-googlebook-usb/`.
+
+This is a limited hardware diagnostic trial. The known system-server restart,
+zram failure and desktop-service gaps remain; no G14 Googlebook boot has yet
+been observed. The installed laptop system and firmware were not changed.
+Boot the USB's default **Googlebook on OpenBook - experimental live boot** entry
+and check welcome, keyboard and touchpad first. Installation remains disabled.
+
 ## 2026-10-19: Ruby graphical UEFI live boot in QEMU (ANAL-228)
 
 The local Ruby/OpenBook live image now reaches Google's graphical welcome
@@ -16,9 +30,9 @@ integration. The longer test exposes a `system_server` SIGSEGV and zygote restar
 after welcome, preceded by RenderThread `execmem` denials on the VM fallback
 path; missing zram also aborts `mmd_setup`. This is not a stable desktop pass.
 The physical Radeon/TPM path, completed setup, credentials and apps remain
-unqualified. The installer option stays unavailable. The 12.8 GB
-candidate stays local; no physical stick is attached to the build host, so the
-requested USB update has not occurred. See `docs/googlebook-live.md` and
+unqualified. The installer option stays unavailable. At the end of this VM
+bring-up, no physical stick was attached; the later requested write is recorded
+above. The candidate stays local. See `docs/googlebook-live.md` and
 `evidence/2026-10-19-googlebook-live/` for exact results and the hardware gate.
 
 ## 2026-10-19: first Ruby/OpenBook VM integration (ANAL-228)

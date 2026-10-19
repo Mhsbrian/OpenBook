@@ -1,11 +1,17 @@
 # Hardware
 
+On 2026-10-19, the owner attached the previously identified 62 GB SanDisk Ultra
+and requested the experimental Googlebook image. The guarded write and full
+12.8 GB readback passed, then the stick was powered off. This verifies the
+physical medium, not G14 boot or Radeon/TPM compatibility. The installed G14
+and firmware were not modified. See `evidence/2026-10-19-googlebook-usb/`.
+
 The 2026-10-19 follow-up adds a TCG execution baseline for Ruby's AVX-VNNI
 instructions and an emulated USB/UEFI path (`docs/googlebook-live.md`). This
 does not change the 7950X's native ISA or qualify the G14. OpenBook already
 packages TPM core and CRB as vendor modules; the VM can exercise them against
 a disposable software TPM. No physical USB was attached during the initial
-device inventory for this turn.
+VM bring-up inventory; the later stick write is recorded above.
 
 ## Googlebook VM CPU baseline (2026-10-19, ANAL-228)
 

@@ -1,0 +1,31 @@
+{
+  "schema": "openbook-ruby-usb-write/1",
+  "date": "2026-10-19",
+  "authorization": "Owner requested updating the attached, previously identified SanDisk stick in ANAL-228",
+  "trigger_comment_id": "01a1559a-3777-715f-8457-1d10b94f35fc",
+  "writer_commit": "86fc790bfdb8ff0f40977da9d8a37fe3b2691148",
+  "device": {
+    "model": "SanDisk Ultra",
+    "capacity_bytes": 62109253632,
+    "by_id": "usb-SanDisk_Ultra_[redacted]-0:0",
+    "transport": "usb"
+  },
+  "image_bytes": 12766412800,
+  "image_sha256": "5b21c93932dc39deb46b4462ebafcf17a943de93dbfd2d005d5233e142e66e1e",
+  "readback_sha256": "5b21c93932dc39deb46b4462ebafcf17a943de93dbfd2d005d5233e142e66e1e",
+  "write_seconds": 717,
+  "readback_seconds": 96,
+  "reports_backed_up": 3,
+  "report_backup_bytes": 18096,
+  "reports_backup": "$DATA/installer/stick-backup/20261019T191953Z",
+  "powered_off": true,
+  "physical_g14_boot_tested": false,
+  "installed_system_changed": false,
+  "installable": false,
+  "known_limits": [
+    "VM system_server SIGSEGV and zygote restart after welcome",
+    "mmd_setup abort on missing zram",
+    "desktop service policy gaps",
+    "physical AMD graphics and TPM path not yet tested"
+  ]
+}

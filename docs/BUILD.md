@@ -6,7 +6,10 @@ See `docs/googlebook-live.md` for the isolated patched-QEMU build, native versus
 emulated arithmetic checks, bare-metal probe packaging, and UEFI/USB tests with
 a synthetic internal disk. The output is a local research image, not an
 installer source. Device writing remains a separate exact-device operation
-through the existing guarded writer after the boot gates pass.
+through the existing guarded writer. The owner-requested limited hardware
+trial on 2026-10-19 wrote this candidate and passed full readback; it does not
+waive the remaining stability gates. The image hash, write/readback result and
+backup record are in `evidence/2026-10-19-googlebook-usb/`.
 
 ## Local Ruby/OpenBook integration probe (ANAL-228, 2026-10-19)
 
