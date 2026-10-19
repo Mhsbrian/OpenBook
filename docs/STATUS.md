@@ -1,5 +1,20 @@
 # Status
 
+## 2026-10-19: live G14 inspection waiting for ADB pairing (ANAL-228)
+
+The owner reports the G14 running with Wireless debugging enabled. Host
+preflight confirms the Ruby live mDNS identity and reachable TLS port; legacy
+5555 is refused and ADB has no connected device. Live logging and corrective
+work require the temporary pairing port/code from the device UI. No new
+hardware pass or failure is inferred from this access check.
+
+Added a Ruby user-build capture tool with explicit target selection, bounded
+commands, private output and preserved failures; all six failure/privacy tests
+pass. Its real-device preflight exits 2 without attempting shell collection.
+Next: pair, capture network/audio/graphics/power/crash state, then fix and
+validate observed faults before installer work. Evidence:
+`evidence/2026-10-19-googlebook-live-adb/`.
+
 ## 2026-10-19: Googlebook reaches G14 setup; Wi-Fi/audio follow-up (ANAL-228)
 
 The owner reports both fw10 entries reaching setup. The returned 64-file

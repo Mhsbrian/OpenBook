@@ -5,6 +5,52 @@ packager and an instruction-emulation lane. These are local research artifacts;
 the installer Googlebook option remains unavailable. Generated images contain
 retained recovery material and must stay local.
 
+## Live laptop inspection over ADB
+
+The owner has booted the G14 and enabled Wireless debugging. The 2026-10-19
+host preflight sees the Ruby live mDNS identity and reaches its TLS connection
+port, but ADB has no connected transport. The advertised legacy port 5555
+refuses TCP connections. The current host uses Platform Tools 37.0.1 with
+LIBADBMDNS enabled. No live shell or new hardware diagnostics were obtained;
+pairing is the next required step, not a hardware failure diagnosis.
+
+On the G14, open **Wireless debugging → Pair device with pairing code**. The
+pairing dialog's port differs from the normal connection port and its code is
+temporary. Keep the dialog open while pairing. Enter the code interactively;
+do not save it in scripts, evidence or command arguments. The existing
+`g14-adb.sh capture` targets the earlier userdebug system and attempts root and
+debugfs setup. Use the Ruby-specific collector for this user build:
+
+```sh
+ADB_BIN="$HOME/anybook/android-sdk/platform-tools/adb"
+"$ADB_BIN" -P 5222 pair "$PAIR_ENDPOINT"
+"$ADB_BIN" -P 5222 connect "$CONNECT_ENDPOINT"
+python3 scripts/googlebook/capture-adb.py \
+  --adb "$ADB_BIN" --serial "$CONNECT_ENDPOINT" --out "$CAPTURE"
+```
+
+Set the endpoints from the device UI (`IPv4:port`), and use a new capture
+directory. The collector uses an explicit device, bounded read-only commands,
+private directory/file modes, per-command exit status and hashes, and an
+incrementally replaced manifest. It does not alter root state, mounts, settings,
+logs or partitions. Exit 0 means collection finished without command failures;
+1 means a completed but partial capture; 2 means no connected device. None is
+a hardware pass. Inspect raw output for service-level denials even when a
+command exits zero. Retain denied sections as evidence; do not change enforcement
+to make diagnostics pass. Raw dumps can include network identifiers and app
+content and stay private.
+
+Once paired, establish the running build and USB-backed mounts, effective
+Wi-Fi resources and actual association/DHCP/validation, audio routing and
+decoder state, Radeon/SurfaceFlinger behavior, suspend/power errors and crash
+history. Correct observed faults and retest before promoting the image to an
+installer source. The research manifest remains `installable: false`; this
+inspection does not authorize writing an internal disk.
+
+Primary references checked 2026-10-19:
+[Android wireless ADB pairing](https://developer.android.com/tools/adb#connect-to-a-device-over-wi-fi),
+[AOSP bug-report interpretation](https://source.android.com/docs/core/tests/debug/read-bug-reports).
+
 ## Wi-Fi and audio follow-up
 
 The owner now reports both fw10 entries reaching setup. The returned capture

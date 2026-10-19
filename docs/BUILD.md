@@ -1,5 +1,15 @@
 # Build and reproduce
 
+## Ruby live ADB capture (2026-10-19)
+
+`scripts/googlebook/capture-adb.py` collects bounded, private diagnostics from
+an explicitly named, already paired device without the userdebug/root
+assumptions of the older G14 helper. Run
+`python3 scripts/googlebook/capture-adb-test.py -v` for its six failure/privacy
+checks. Pairing and collection commands are in `docs/googlebook-live.md`.
+The current G14 access preflight is blocked on pairing; it is not a new
+hardware validation result.
+
 ## Ruby live-image research lane (ANAL-228, 2026-10-19)
 
 The Wi-Fi/audio follow-up also builds a resource-only RRO using AOSP's host
