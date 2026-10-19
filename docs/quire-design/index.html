@@ -1,51 +1,60 @@
 <!DOCTYPE html>
 <!--
-  Quire: interaction and motion design (ANAL-215). The spec is docs/quire-design.md.
+  Quire: the note, glass and ink (ANAL-227, revising ANAL-215). The spec is docs/quire-design.md.
 
   This file is the clickable prototype and the source of every render in png/ (1920×1080) and g14/ (2880×1800).
   The desktop, the windows and every value on screen are sample data for illustration.
 
   View:   open in a browser (gallery of every state, light and dark).
-  One screen:   index.html?screen=<id>[&theme=dark][&size=g14|fhd]
-  Play (interactive):   index.html?play=1[&theme=dark][&size=g14]
+  One screen:   index.html?screen=<id>[&theme=dark][&size=g14|fhd][&wall=bloom|folio|strata|tide][&glass=0]
+  Play (interactive):   index.html?play=1[&theme=dark][&size=g14][&glass=0]
       shake the pointer, press Meta+Space, click the taskbar button, hold the mic, select text. Esc stops a run (or closes an
-      idle note); Meta+Space, the Hide button or a click elsewhere hides a running task behind the taskbar button.
-      The HUD has "Remove animations" to see the reduced-motion behaviour.
+      idle note); Meta+Space, the × or a click elsewhere hides a running task behind the taskbar button.
+      The HUD has "Remove animations" (every spring and fade becomes a cut) and "Blur off" (the platform turned blur off:
+      battery saver, thermal, Developer options; the note becomes near-opaque paper).
   Render all PNGs:   scripts/quire/render-design.sh
   Fonts: fonts/ (not committed; render-design.sh fetches them) or system fallbacks.
 
   Colour roles are the Material 3 TonalSpot scheme Android 17 derives from the Folio wallpapers
-  (assets/wallpapers/monet.json, computed with scripts/brand/monet.py's library). The brand gradient appears only on
-  Quire's own glyph and halo. Everything else is the device's dynamic colour, so the note follows the wallpaper.
+  (assets/wallpapers/monet.json, computed with scripts/brand/monet.py's library, spec 2025). The brand gradient appears
+  only on Quire's own glyph, the halo and the holographic rim. Everything else is the device's dynamic colour, so the
+  note follows the wallpaper. ?wall= swaps the wallpaper behind the note; the roles stay Folio's, as a stand-in.
 -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width">
-<title>Quire: interaction and motion design</title>
+<title>Quire: the note, glass and ink</title>
 <style>
 @font-face { font-family: "OB Sans"; src: url("fonts/GoogleSans.ttf") format("truetype"); font-weight: 400 700; font-display: block; }
 @font-face { font-family: "OB Sans Flex"; src: url("fonts/GoogleSansFlex.ttf") format("truetype"); font-weight: 100 1000; font-display: block; }
 @font-face { font-family: "OB Code"; src: url("fonts/GoogleSansCode.ttf") format("truetype"); font-weight: 300 800; font-display: block; }
 @font-face { font-family: "OB Symbols"; src: url("fonts/MaterialSymbolsRounded.ttf") format("truetype"); font-weight: 100 700; font-display: block; }
+@property --holo-angle { syntax: "<angle>"; inherits: false; initial-value: 200deg; }
+@property --holo-a { syntax: "<number>"; inherits: true; initial-value: 0.7; }
 
 /* ============================================================================================
-   Tokens. Names mirror docs/quire-design.md so Q5 can map them to Android resources one to one.
+   Tokens. Names mirror docs/quire-design.md so the build can map them to Android resources one to one.
    ============================================================================================ */
 :root {
   /* spacing: 4 dp base */
   --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-10: 40px; --sp-12: 48px;
   /* shape */
-  --r-note: 28px; --r-card: 16px; --r-chip: 999px; --r-field: 20px; --r-btn: 999px; --r-thumb: 8px;
+  --r-note: 28px; --r-card: 16px; --r-chip: 999px; --r-field: 22px; --r-btn: 999px; --r-thumb: 6px;
   /* note geometry (dp) */
   --note-w: 400px; --note-w-wide: 480px; --note-w-mirror: 760px; --note-max-h: 60vh;
+  /* glass (§4.1): the system's background blur at the shade's radius; the tint is the note's own colour at 80 % */
+  --glass-blur: 34px; --glass-saturate: 1.4; --glass-a: .80; --holo-w: 1.5px;
   /* motion (see quire.js for the spring solver that uses these) */
-  --m-halo: 90ms; --m-tick: 160ms; --m-fade: 120ms; --m-fade-slow: 200ms;
+  --m-halo: 90ms; --m-tick: 160ms; --m-fade: 120ms; --m-fade-slow: 200ms; --m-ink: 160ms; --m-rule: 240ms; --m-unroll: 220ms; --m-rim: 200ms;
   --e-standard: cubic-bezier(.2, 0, 0, 1); --e-emph-decel: cubic-bezier(.05, .7, .1, 1); --e-emph-accel: cubic-bezier(.3, 0, .8, .15);
-  /* brand (only on the glyph and the halo) */
+  /* brand (only on the glyph, the halo and the rim) */
   --q-grad: linear-gradient(135deg, #7E8CFF 0%, #4355B9 100%);
   --q-grad-fold: linear-gradient(135deg, #FFB38A 0%, #FF7A9C 100%);
   --q-halo: conic-gradient(from 210deg, #7E8CFF, #D08BFF, #FF7A9C, #FFB38A, #7E8CFF);
+  /* the holographic rim: the halo's hues, lighter and farther apart, so the edge reads as light on glass, not a stripe */
+  --q-holo: conic-gradient(from var(--holo-angle), #7E8CFF 0deg, #C58BFF 70deg, #FF7A9C 140deg, #FFB38A 200deg, #8FD6FF 270deg, #7E8CFF 360deg);
+  --q-holo-dark: conic-gradient(from var(--holo-angle), #A9B6FF 0deg, #DDBDFF 70deg, #FFB0C4 140deg, #FFD3B3 200deg, #B8E8FF 270deg, #A9B6FF 360deg);
   --q-ink: #1B1B21;
 }
 /* ---- Material 3 roles, TonalSpot from the Folio light wallpaper (seed #959DE5) ---- */
@@ -59,8 +68,17 @@
   --on-surface: #31323B; --on-surface-variant: #5E5E68; --outline: #7A7A84; --outline-variant: #B2B1BC;
   --inverse-surface: #0E0E12; --inverse-on-surface: #E9E3EF;
   --success: #2F6B45; --on-success-container: #0B3B20; --success-container: #BDEBCB;
-  --note-bg: rgba(251, 248, 254, .92); --note-outline: rgba(178, 177, 188, .5);
-  --note-shadow: 0 12px 32px rgba(27, 27, 33, .18), 0 2px 6px rgba(27, 27, 33, .08);
+  /* ink (§4.3): the text is onSurface; soft ink is onSurface blended 85 % over the note's own colour, never a fixed grey */
+  --ink: var(--on-surface); --ink-soft: #4F5058;
+  /* glass (§4.1) */
+  --note-tint: 251, 248, 254;                                /* surface */
+  --note-bg: rgba(var(--note-tint), var(--glass-a)); --note-bg-solid: rgba(var(--note-tint), .96);
+  --note-outline: rgba(255, 255, 255, .55); --specular: rgba(255, 255, 255, .75); --bloom: rgba(255, 255, 255, .34);
+  --holo-a: .70; --holo-glow: rgba(126, 140, 255, .18);
+  --note-shadow: 0 24px 48px rgba(27, 27, 33, .22), 0 2px 6px rgba(27, 27, 33, .08), 0 0 0 .5px rgba(27, 27, 33, .06);
+  /* paper (§4.2): sheets laid on the glass. surfaceContainerLowest at 72 %, with a lit top edge */
+  --paper: rgba(255, 255, 255, .72); --paper-solid: #FFFFFF; --paper-line: rgba(255, 255, 255, .9); --paper-outline: rgba(178, 177, 188, .40);
+  --field: rgba(255, 255, 255, .80); --field-solid: #FFFFFF;
   --intake: rgba(86, 91, 140, .55); --intake-glow: rgba(86, 91, 140, .18);
   --wall: url("../../assets/wallpapers/1920x1080/openbook-folio-light.jpg") center / cover;
   --taskbar: rgba(251, 248, 254, .55); --status-fg: #1B1B21;
@@ -79,8 +97,14 @@
   --on-surface: #E9E3EF; --on-surface-variant: #AEA9B5; --outline: #77747E; --outline-variant: #494650;
   --inverse-surface: #FDF8FE; --inverse-on-surface: #31323B;
   --success: #9BD5A8; --on-success-container: #BDEBCB; --success-container: #1E4A2F;
-  --note-bg: rgba(26, 25, 31, .92); --note-outline: rgba(73, 70, 80, .6);
-  --note-shadow: 0 12px 32px rgba(0, 0, 0, .5), 0 2px 6px rgba(0, 0, 0, .3);
+  --ink: var(--on-surface); --ink-soft: #CAC5D0;
+  --note-tint: 26, 25, 31;                                   /* surfaceContainer */
+  --note-bg: rgba(var(--note-tint), var(--glass-a)); --note-bg-solid: rgba(var(--note-tint), .96);
+  --note-outline: rgba(255, 255, 255, .14); --specular: rgba(255, 255, 255, .18); --bloom: rgba(255, 255, 255, .07);
+  --holo-a: .80; --holo-glow: rgba(203, 192, 237, .16);
+  --note-shadow: 0 24px 48px rgba(0, 0, 0, .55), 0 2px 6px rgba(0, 0, 0, .3);
+  --paper: rgba(32, 31, 38, .80); --paper-solid: #201F26; --paper-line: rgba(255, 255, 255, .10); --paper-outline: rgba(73, 70, 80, .6);
+  --field: rgba(39, 37, 45, .85); --field-solid: #27252D;
   --intake: rgba(203, 192, 237, .6); --intake-glow: rgba(203, 192, 237, .16);
   --wall: url("../../assets/wallpapers/1920x1080/openbook-folio-dark.jpg") center / cover;
   --taskbar: rgba(15, 14, 18, .5); --status-fg: #E9E3EF;
@@ -88,6 +112,13 @@
   --sel: rgba(203, 192, 237, .30);
   --scrim: rgba(0, 0, 0, .45);
 }
+/* the other OpenBook wallpapers, as backdrops to judge the glass on (?wall=); the roles stay Folio's */
+[data-wall="bloom"][data-theme="light"] { --wall: url("../../assets/wallpapers/1920x1080/openbook-bloom-light.jpg") center / cover; }
+[data-wall="bloom"][data-theme="dark"] { --wall: url("../../assets/wallpapers/1920x1080/openbook-bloom-dark.jpg") center / cover; }
+[data-wall="strata"][data-theme="light"] { --wall: url("../../assets/wallpapers/1920x1080/openbook-strata-light.jpg") center / cover; }
+[data-wall="strata"][data-theme="dark"] { --wall: url("../../assets/wallpapers/1920x1080/openbook-strata-dark.jpg") center / cover; }
+[data-wall="tide"][data-theme="light"] { --wall: url("../../assets/wallpapers/1920x1080/openbook-tide-light.jpg") center / cover; }
+[data-wall="tide"][data-theme="dark"] { --wall: url("../../assets/wallpapers/1920x1080/openbook-tide-dark.jpg") center / cover; }
 
 * { box-sizing: border-box; }
 html, body { margin: 0; }
@@ -190,6 +221,16 @@ body.play .artboard { zoom: 1; border-radius: 0; box-shadow: none; }
 .slider i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 8px; background: var(--primary); }
 .slider b { position: absolute; top: -6px; width: 4px; height: 28px; border-radius: 2px; background: var(--primary); }
 
+/* Browser sample (for the Q6 tool steps) */
+.browser .bar { height: 48px; flex: none; display: flex; align-items: center; gap: 10px; padding: 0 16px; background: var(--surface-low); }
+.browser .bar .url { flex: 1; height: 34px; border-radius: 17px; background: var(--surface-container); display: flex; align-items: center; padding: 0 14px; gap: 8px; font-size: 13px; color: var(--on-surface-variant); }
+.browser .bar .url b { color: var(--on-surface); font-weight: 500; }
+.browser .page { flex: 1; background: #FFFFFF; padding: 28px 40px; display: flex; flex-direction: column; gap: 14px; }
+[data-theme="dark"] .browser .page { background: #121214; }
+.browser .mast { height: 40px; width: 220px; border-radius: 6px; background: #1F2A44; }
+.browser .ln { height: 12px; border-radius: 6px; background: var(--outline-variant); opacity: .55; }
+.browser .hero { height: 220px; border-radius: 12px; background: linear-gradient(135deg, var(--surface-container), var(--surface-highest)); }
+
 /* Document sample (for the selection entry) */
 .doc .doc-body { flex: 1; padding: 40px 64px; overflow: hidden; font-family: "OB Sans Flex", "Google Sans Flex", "OB Sans", sans-serif; font-size: 16px; line-height: 1.6; }
 .doc h1 { font-size: 28px; font-weight: 500; margin: 0 0 16px; letter-spacing: -0.01em; }
@@ -229,57 +270,66 @@ body.play .artboard { zoom: 1; border-radius: 0; box-shadow: none; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes caret { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 @keyframes levels { 0%, 100% { transform: scaleY(.3); } 50% { transform: scaleY(1); } }
+@keyframes holo { to { --holo-angle: 560deg; } }                      /* one turn per 12 s while the agent works (§5.1 loop.rim) */
+@keyframes inkdot { 0%, 100% { transform: scale(1); opacity: .9; } 50% { transform: scale(1.35); opacity: .55; } }   /* the running mark */
+@keyframes ink { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: none; } }           /* a word arriving (§5.2) */
+@keyframes draw { from { stroke-dashoffset: var(--len); } to { stroke-dashoffset: 0; } }
+@keyframes rulein { from { transform: scaleX(0); } to { transform: scaleX(1); } }                                    /* the rule under the prompt (§5.2) */                            /* a tick or rule drawn as a stroke */
 .frozen *, .frozen *::before, .frozen *::after { animation: none !important; transition: none !important; }
 
 /* ============================================================================================
-   The note
+   The note: glass (§4.1)
    ============================================================================================ */
 .note { position: absolute; z-index: 45; width: var(--note-w); max-height: var(--note-max-h); display: flex; flex-direction: column;
-        border-radius: var(--r-note); background: var(--note-bg); backdrop-filter: blur(34px) saturate(1.2); -webkit-backdrop-filter: blur(34px) saturate(1.2);
-        box-shadow: var(--note-shadow), 0 0 0 1px var(--note-outline); color: var(--on-surface); font-size: 14px; line-height: 20px;
-        transform-origin: var(--ox, 0) var(--oy, 0); }
+        border-radius: var(--r-note); background: var(--note-bg);
+        backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)); -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+        box-shadow: var(--note-shadow), inset 0 1px 0 var(--specular), inset 0 0 0 1px var(--note-outline);
+        color: var(--ink); font-size: 14px; line-height: 20px; transform-origin: var(--ox, 0) var(--oy, 0); isolation: isolate; }
+/* the holographic rim: a 1.5 dp conic stroke of the brand's hues, masked to the border, plus a faint outer glow */
+.note::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: var(--holo-w); background: var(--q-holo);
+                -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+                -webkit-mask-composite: xor; mask-composite: exclude; opacity: var(--holo-a); pointer-events: none; z-index: 2;
+                box-shadow: 0 0 24px var(--holo-glow); }
+/* light falling on the glass: a bloom from the top-left */
+.note::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 1;
+               background: radial-gradient(120% 70% at 0% 0%, var(--bloom), transparent 62%); }
+[data-theme="dark"] .note::before { background: var(--q-holo-dark); }
+.note.working::before { animation: holo 12s linear infinite; }
+/* economy (§5.4): blur off also means no loops. The rim stands still, the leaf and the ink dot hold, the caret stays. */
+[data-motion="off"] .note.working::before, [data-motion="off"] .thinking, [data-motion="off"] .tb-quire.running .leaf-wrap, [data-motion="off"] .caret, [data-motion="off"] .halo.breathe, [data-motion="off"] .levels i { animation: none !important; }
+.note > * { flex: none; position: relative; z-index: 3; }
 .note.wide { width: var(--note-w-wide); }
 .note.mirror { width: var(--note-w-mirror); max-height: none; }
 .note.listening { width: var(--note-w); }
-.note > * { flex: none; }
 .note .scroll { flex: 1 1 auto; min-height: 0; overflow: auto; position: relative; }
 
-/* header */
-.n-head { display: flex; align-items: center; gap: 8px; padding: 12px 12px 0 16px; min-height: 44px; }
-.n-head .leaf { width: 22px; height: 22px; }
-.n-head .leaf-wrap.thinking { animation: breathe 1.6s var(--e-standard) infinite; }
-.agent { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 8px 0 6px; border-radius: 14px; font-size: 13px; font-weight: 500; color: var(--on-surface);
-         background: transparent; max-width: 270px; white-space: nowrap; }
-.agent:hover, .agent.open { background: var(--surface-high); }
-.agent .av { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font-size: 9.5px; font-weight: 700; color: #fff; flex: none; }
-.agent .where { color: var(--on-surface-variant); font-weight: 400; }
-.agent .where::before { content: "·"; margin: 0 5px 0 1px; }
-.agent .ms { font-size: 18px; color: var(--on-surface-variant); margin-left: -2px; }
-.n-head .spacer { flex: 1; }
-.ibtn { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; color: var(--on-surface-variant); flex: none; }
-.ibtn .ms { font-size: 20px; }
-.ibtn:hover { background: var(--surface-high); }
-.ibtn.focus { outline: 2px solid var(--primary); outline-offset: 1px; }
+/* blur off (battery saver, thermal, Developer options, the platform's own switch): near-opaque paper, the rim dimmed, no bloom */
+[data-glass="off"] .note, [data-glass="off"] .tray, [data-glass="off"] .picker { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--note-bg-solid);
+     box-shadow: var(--note-shadow), inset 0 0 0 1px var(--note-outline); }
+[data-glass="off"] .note::before { opacity: calc(var(--holo-a) * .6); box-shadow: none; }
+[data-glass="off"] .note::after { display: none; }
+[data-glass="off"] .card, [data-glass="off"] .change, [data-glass="off"] .cmd, [data-glass="off"] .diff, [data-glass="off"] .details { background: var(--paper-solid); }
+[data-glass="off"] .field { background: var(--field-solid); }
 
-/* intake chip + prompt */
-.n-prompt { padding: 10px 16px 4px; display: flex; flex-direction: column; gap: 8px; }
-.intake-chip { display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 10px 0 4px; border-radius: 14px; background: var(--secondary-container);
-               color: var(--on-secondary-container); font-size: 12.5px; font-weight: 500; align-self: flex-start; max-width: 100%; }
-.intake-chip .thumb { width: 32px; height: 20px; border-radius: 6px; background: var(--surface-lowest); overflow: hidden; position: relative; flex: none; outline: 1px solid var(--outline-variant); }
-.intake-chip .thumb i { position: absolute; left: 3px; top: 3px; width: 10px; height: 14px; background: var(--primary); opacity: .55; border-radius: 1px; }
-.intake-chip .thumb i + i { left: 16px; width: 13px; height: 9px; opacity: .3; }
-.intake-chip .ms { font-size: 16px; }
-.intake-chip .x { margin-left: 2px; margin-right: -6px; opacity: .7; }
-.intake-chip q { quotes: "“" "”"; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.you { font-size: 15px; line-height: 22px; color: var(--on-surface); font-weight: 500; padding: 2px 0; }
-.you.spoken::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--success); margin: 0 8px 1px 0; }
+/* the prompt: the person's words in ink, with the pen's rule under them (§5.2) */
+.you { font-size: 15px; line-height: 22px; color: var(--ink); font-weight: 500; padding: 14px 16px 0; }
+.you.spoken .w:first-child::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--success); margin: 0 8px 1px 0; }
+.you .rule { display: block; height: 1.5px; margin-top: 8px; border-radius: 1px; background: linear-gradient(90deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 30%, transparent) 70%, transparent 100%); opacity: .55; }
+.you + .scroll .n-body, .you + .n-body { padding-top: 10px; }
+
+/* a word arriving: ink. Static screens show every word at rest; the streaming screen shows the last two mid-reveal. */
+.ink .w { display: inline; }
+.ink .w.a1 { opacity: .35; } .ink .w.a2 { opacity: .7; }
+.play .ink .w.new { animation: ink var(--m-ink) var(--e-standard) both; animation-delay: calc(var(--i, 0) * 24ms); }
+.play .you.fresh .rule { transform-origin: left; animation: rulein var(--m-rule) var(--e-emph-decel) both; animation-delay: 120ms; }
 
 /* body blocks */
 .n-body { padding: 8px 16px 12px; display: flex; flex-direction: column; gap: 10px; }
-.thought { display: flex; align-items: center; gap: 8px; color: var(--on-surface-variant); font-size: 13px; font-weight: 500; }
+.thought { display: flex; align-items: center; gap: 8px; color: var(--ink-soft); font-size: 13px; font-weight: 500; }
 .thought .leaf { width: 14px; height: 14px; }
+.thought .leaf-wrap.thinking { animation: breathe 1.6s var(--e-standard) infinite; }
 .thought .ellipsis { letter-spacing: .1em; }
-.answer { font-size: 15px; line-height: 22px; color: var(--on-surface); }
+.answer { font-size: 15px; line-height: 22px; color: var(--ink); }
 .answer p { margin: 0 0 8px; }
 .answer p:last-child { margin-bottom: 0; }
 .answer ul { margin: 0 0 8px; padding-left: 20px; }
@@ -287,88 +337,107 @@ body.play .artboard { zoom: 1; border-radius: 0; box-shadow: none; }
 .answer b { font-weight: 600; }
 .caret { display: inline-block; width: 2px; height: 16px; background: var(--primary); vertical-align: -3px; margin-left: 2px; border-radius: 1px; animation: caret 1s steps(1) infinite; }
 
-/* steps */
+/* steps: the pen's marks (§3.2, §5.2) */
 .steps { display: flex; flex-direction: column; gap: 2px; }
-.step { display: flex; align-items: center; gap: 10px; min-height: 28px; font-size: 13.5px; color: var(--on-surface); }
+.step { display: flex; align-items: center; gap: 10px; min-height: 28px; font-size: 13.5px; color: var(--ink); }
 .step .st { width: 20px; height: 20px; display: grid; place-items: center; flex: none; }
-.step .st .ms { font-size: 18px; }
-.step.pending { color: var(--on-surface-variant); }
-.step.pending .st::before { content: ""; width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--on-surface-variant); }
-.step.running .st::before { content: ""; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--outline-variant); border-top-color: var(--primary); animation: spin 1s linear infinite; }
-.step.done .st .ms { color: var(--success); }
-.step.failed .st .ms { color: var(--error); }
+.step .st svg { width: 20px; height: 20px; }
+.step .st path { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.play .step.fresh .st path { stroke-dasharray: var(--len); animation: draw 180ms var(--e-emph-decel) both; }
+.step.pending { color: var(--ink-soft); }
+.step.pending .st::before { content: ""; width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--ink-soft); }
+.step.running .st::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--primary); animation: inkdot .9s ease-in-out infinite; }
+.frozen .step.running .st::before, body[data-motion="off"] .step.running .st::before { animation: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 30%, transparent); }
+.step.done .st { color: var(--success); }
+.step.failed .st { color: var(--error); }
 .step.failed { color: var(--error); }
-.step .kind { font-size: 16px; color: var(--on-surface-variant); }
+.step.undone .t { text-decoration: line-through; text-decoration-color: var(--outline); color: var(--ink-soft); }
+.step .kind { font-size: 16px; color: var(--ink-soft); }
 .step .t { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.step .t code { font-size: 12.5px; background: var(--surface-high); padding: 1px 6px; border-radius: 6px; }
-.steps-folded { display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 10px 0 8px; border-radius: 14px; background: var(--surface-high);
-                font-size: 12.5px; font-weight: 500; color: var(--on-surface-variant); align-self: flex-start; }
+.step .t code { font-size: 12.5px; background: var(--paper); padding: 1px 6px; border-radius: 6px; }
+.step .t .val { font-weight: 500; }
+/* a change the agent made without asking (Q6): its step carries its own undo, on paper */
+.step .undo-pill { margin-left: auto; height: 24px; padding: 0 10px 0 6px; border-radius: 12px; background: var(--paper); box-shadow: inset 0 1px 0 var(--paper-line), 0 0 0 1px var(--paper-outline);
+                   font-size: 12px; font-weight: 500; color: var(--ink); display: inline-flex; align-items: center; gap: 4px; flex: none; cursor: pointer; }
+.step .undo-pill .ms { font-size: 15px; color: var(--ink-soft); }
+.step .undo-pill.done { color: var(--ink-soft); box-shadow: none; background: transparent; }
+.steps-folded { display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 10px 0 8px; border-radius: 14px; background: var(--paper); box-shadow: inset 0 1px 0 var(--paper-line), 0 0 0 1px var(--paper-outline);
+                font-size: 12.5px; font-weight: 500; color: var(--ink-soft); align-self: flex-start; }
 .steps-folded .ms { font-size: 16px; color: var(--success); }
-.steps-folded .ms.chev { color: var(--on-surface-variant); margin-left: -2px; }
+.steps-folded .ms.chev { color: var(--ink-soft); margin-left: -2px; }
 
-/* card (plan, consent, changes, auth, error) */
-.card { border-radius: var(--r-card); background: var(--surface-lowest); padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;
-        outline: 1px solid color-mix(in srgb, var(--outline-variant) 55%, transparent); }
-[data-theme="dark"] .card { background: var(--surface-high); }
-.card .ct { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--on-surface); }
-.card .ct .ms { font-size: 18px; color: var(--on-surface-variant); }
-.card .ct .meta { margin-left: auto; font-size: 12px; font-weight: 500; color: var(--on-surface-variant); }
-.card.consent { outline: 1.5px solid var(--primary); }
+/* paper: a sheet laid on the glass (plan, consent, changes, auth, error) (§4.2) */
+.card { border-radius: var(--r-card); background: var(--paper); padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;
+        box-shadow: inset 0 1px 0 var(--paper-line), 0 0 0 1px var(--paper-outline); }
+.card .ct { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--ink); }
+.card .ct .ms { font-size: 18px; color: var(--ink-soft); }
+.card .ct .meta { margin-left: auto; font-size: 12px; font-weight: 500; color: var(--ink-soft); }
+.card.consent { box-shadow: inset 0 1px 0 var(--paper-line), 0 0 0 1.5px var(--primary); }
 .card.consent .ct .ms { color: var(--primary); }
-.card.error { outline-color: color-mix(in srgb, var(--error) 50%, transparent); }
+/* the one card that asks before acting (Q6): a destructive action. The rim is the error role; the safe choice is the filled one. */
+.card.destructive { box-shadow: inset 0 1px 0 var(--paper-line), 0 0 0 1.5px color-mix(in srgb, var(--error) 70%, transparent); }
+.card.destructive .ct .ms { color: var(--error); }
+.card.destructive .ct { font-size: 14px; }
+.card.error { box-shadow: inset 0 1px 0 var(--paper-line), 0 0 0 1px color-mix(in srgb, var(--error) 50%, transparent); }
 .card.error .ct .ms { color: var(--error); }
-.card.focus { box-shadow: 0 0 0 2px var(--primary); }
+.card.focus { box-shadow: inset 0 1px 0 var(--paper-line), 0 0 0 2px var(--primary); }
 .plan { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; counter-reset: p; }
 .plan li { display: flex; align-items: center; gap: 10px; font-size: 13.5px; min-height: 26px; }
 .plan li .n { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 600; flex: none;
               background: var(--surface-highest); color: var(--on-surface-variant); }
 .plan li.done .n { background: var(--success-container); color: var(--on-success-container); }
 .plan li.active .n { background: var(--primary); color: var(--on-primary); }
-.plan li.done .t { color: var(--on-surface-variant); text-decoration: line-through; text-decoration-color: var(--outline-variant); }
-.plan li .pri { margin-left: auto; font-size: 11px; font-weight: 600; color: var(--on-surface-variant); text-transform: uppercase; letter-spacing: .04em; }
+.plan li.done .t { color: var(--ink-soft); text-decoration: line-through; text-decoration-color: var(--outline-variant); }
+.plan li .pri { margin-left: auto; font-size: 11px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .04em; }
 .plan li .pri.high { color: var(--tertiary); }
 
-.change { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 6px 12px; padding: 8px 10px; border-radius: 10px; background: var(--surface-container); }
-[data-theme="dark"] .change { background: var(--surface-highest); }
+.change { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 6px 12px; padding: 8px 10px; border-radius: 10px; background: var(--field); box-shadow: inset 0 1px 0 var(--paper-line); }
 .change .k { font-size: 13.5px; font-weight: 500; }
-.change .w { font-size: 12px; color: var(--on-surface-variant); grid-column: 1; }
+.change .w { font-size: 12px; color: var(--ink-soft); grid-column: 1; }
 .change .v { grid-column: 2; grid-row: 1 / 3; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
-.change .v .old { color: var(--on-surface-variant); text-decoration: line-through; text-decoration-color: var(--outline); }
-.change .v .ms { font-size: 16px; color: var(--on-surface-variant); }
+.change .v .old { color: var(--ink-soft); text-decoration: line-through; text-decoration-color: var(--outline); }
+.change .v .ms { font-size: 16px; color: var(--ink-soft); }
 .change .v .new { font-weight: 600; color: var(--on-primary-container); background: var(--primary-container); padding: 2px 8px; border-radius: 8px; }
-.change .v .undo { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: var(--on-surface-variant); margin-left: 4px; }
+.change .v .undo { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: var(--ink-soft); margin-left: 4px; }
 .change .v .undo .ms { font-size: 18px; color: inherit; }
 .change .cb { grid-column: 2; grid-row: 1 / 3; }
-.cmd { font-size: 12.5px; background: var(--surface-container); padding: 6px 10px; border-radius: 8px; color: var(--on-surface); white-space: pre-wrap; word-break: break-all; }
-[data-theme="dark"] .cmd { background: var(--surface-highest); }
-.diff { font-size: 12px; line-height: 18px; border-radius: 8px; overflow: hidden; background: var(--surface-container); }
-[data-theme="dark"] .diff { background: var(--surface-highest); }
+.cmd { font-size: 12.5px; background: var(--field); padding: 6px 10px; border-radius: 8px; color: var(--ink); white-space: pre-wrap; word-break: break-all; }
+.diff { font-size: 12px; line-height: 18px; border-radius: 8px; overflow: hidden; background: var(--field); }
 .diff div { padding: 0 10px; white-space: pre; }
 .diff .del { background: color-mix(in srgb, var(--error-container) 35%, transparent); }
 .diff .add { background: color-mix(in srgb, var(--success-container) 55%, transparent); }
-.consent-why { font-size: 13px; color: var(--on-surface-variant); }
+.consent-why { font-size: 13px; color: var(--ink-soft); }
+.file-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; background: var(--field); box-shadow: inset 0 1px 0 var(--paper-line); font-size: 13.5px; }
+.file-row .ms { font-size: 20px; color: var(--ink-soft); }
+.file-row small { margin-left: auto; font-size: 12px; color: var(--ink-soft); }
 
-/* buttons */
+/* buttons (§4.4): on glass, text buttons are ink; the primary colour is for filled buttons and the focus ring; Stop sits on error-container */
 .btns { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .btns.end { justify-content: flex-end; }
 .btn { height: 36px; padding: 0 16px; border-radius: var(--r-btn); display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 500; white-space: nowrap;
-       color: var(--primary); cursor: default; }
+       color: var(--ink); cursor: default; }
 .btn .ms { font-size: 18px; }
 .btn.filled { background: var(--primary); color: var(--on-primary); }
 .btn.tonal { background: var(--secondary-container); color: var(--on-secondary-container); }
-.btn.outlined { outline: 1px solid var(--outline); }
+.btn.paper { background: var(--paper); box-shadow: inset 0 1px 0 var(--paper-line), 0 0 0 1px var(--paper-outline); }
+.btn.outlined { box-shadow: 0 0 0 1px var(--outline); }
 .btn.text { padding: 0 10px; }
-.card.consent .btns { gap: 6px; }   /* three agent-named options fit one row at 400 dp; at larger text they wrap (§6.4) */
-.btn.danger { color: var(--error); }
+.card.consent .btns, .card.destructive .btns { gap: 6px; }   /* three agent-named options fit one row at 400 dp; at larger text they wrap (§6.4) */
+.btn.danger, .btn.stop { background: var(--error-container); color: var(--on-error-container); }
 .btn.focus { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--primary); }
 /* real <button>s: keyboard-focusable, Enter/Space activate; the look is the design's, the focus ring is §4.2's */
 button.btn, button.ibtn, button.tb-btn { font-family: inherit; appearance: none; border: 0; margin: 0; background: none; cursor: pointer; }
-button.btn { color: var(--primary); }
-button.ibtn { color: var(--on-surface-variant); }
+button.btn { color: var(--ink); }
+button.ibtn { color: var(--ink-soft); }
 .btn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--primary); }
 .ibtn:focus-visible, .tb-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
-.card:focus { outline: none; box-shadow: 0 0 0 2px var(--primary); }
+.card:focus { outline: none; box-shadow: inset 0 1px 0 var(--paper-line), 0 0 0 2px var(--primary); }
 .btn.disabled { opacity: .38; }
+.ibtn { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; color: var(--ink-soft); flex: none; }
+.ibtn .ms { font-size: 20px; }
+.ibtn:hover { background: var(--paper); }
+.ibtn.focus { outline: 2px solid var(--primary); outline-offset: 1px; }
+.ibtn.sm { width: 24px; height: 24px; } .ibtn.sm .ms { font-size: 18px; }
 
 /* result */
 .result { display: flex; gap: 10px; align-items: flex-start; }
@@ -376,35 +445,34 @@ button.ibtn { color: var(--on-surface-variant); }
 .result .ms.err { color: var(--error); }
 .result .ms.warn { color: var(--tertiary); }
 .result .msg { font-size: 15px; line-height: 22px; }
-.result .msg small { display: block; font-size: 12.5px; color: var(--on-surface-variant); margin-top: 2px; }
-.details { font-size: 12px; line-height: 17px; color: var(--on-surface-variant); background: var(--surface-container); border-radius: 8px; padding: 8px 10px; white-space: pre-wrap; }
-[data-theme="dark"] .details { background: var(--surface-highest); }
+.result .msg small { display: block; font-size: 12.5px; color: var(--ink-soft); margin-top: 2px; }
+.details { font-size: 12px; line-height: 17px; color: var(--ink-soft); background: var(--field); border-radius: 8px; padding: 8px 10px; white-space: pre-wrap; }
 
 /* auth */
 .auth-list { display: flex; flex-direction: column; gap: 4px; }
 .auth-list .row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; font-size: 13.5px; }
-.auth-list .row:hover { background: var(--surface-container); }
-.auth-list .row .ms { font-size: 18px; color: var(--on-surface-variant); }
-.auth-list .row small { color: var(--on-surface-variant); font-size: 12px; margin-left: auto; }
+.auth-list .row:hover { background: var(--field); }
+.auth-list .row .ms { font-size: 18px; color: var(--ink-soft); }
+.auth-list .row small { color: var(--ink-soft); font-size: 12px; margin-left: auto; }
 
-/* agent picker */
-.picker { position: absolute; left: 10px; top: 46px; width: 300px; z-index: 5; border-radius: 16px; background: var(--surface-high); box-shadow: var(--note-shadow); padding: 6px; }
-[data-theme="light"] .picker { background: var(--surface-lowest); }
-.picker .hd { font-size: 11.5px; font-weight: 600; color: var(--on-surface-variant); padding: 8px 10px 4px; text-transform: uppercase; letter-spacing: .05em; }
+/* agent picker: opens up from the quiet line (§3.2 Choosing the agent) */
+.picker { position: absolute; left: 10px; bottom: 36px; width: 300px; z-index: 5; border-radius: 16px; background: var(--note-bg); backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)); -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+          box-shadow: var(--note-shadow), inset 0 1px 0 var(--specular), inset 0 0 0 1px var(--note-outline); padding: 6px; }
+.picker .hd { font-size: 11.5px; font-weight: 600; color: var(--ink-soft); padding: 8px 10px 4px; text-transform: uppercase; letter-spacing: .05em; }
 .picker .it { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; font-size: 13.5px; }
 .picker .it.sel { background: var(--secondary-container); color: var(--on-secondary-container); }
 .picker .it .av { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; flex: none; }
 .picker .it .w { flex: 1; min-width: 0; }
-.picker .it .w small { display: block; font-size: 12px; color: var(--on-surface-variant); }
-.picker .it .ms { font-size: 18px; color: var(--on-surface-variant); }
+.picker .it .w small { display: block; font-size: 12px; color: var(--ink-soft); }
+.picker .it .ms { font-size: 18px; color: var(--ink-soft); }
 .picker .it .ms.ok { color: var(--success); }
 .picker .it .ms.warn { color: var(--tertiary); }
 .picker .it.dim { opacity: .6; }
-.picker .foot { border-top: 1px solid var(--outline-variant); margin-top: 4px; padding-top: 4px; }
+.picker .foot { border-top: 1px solid var(--paper-outline); margin-top: 4px; padding-top: 4px; }
 
 /* code block */
 .codeblock { border-radius: 12px; background: var(--inverse-surface); color: var(--inverse-on-surface); overflow: hidden; font-size: 12.5px; line-height: 18px; }
-[data-theme="dark"] .codeblock { background: var(--surface-lowest); color: var(--on-surface); }
+[data-theme="dark"] .codeblock { background: rgba(0, 0, 0, .55); color: var(--on-surface); box-shadow: inset 0 0 0 1px var(--paper-outline); }
 .codeblock .bar { display: flex; align-items: center; height: 32px; padding: 0 6px 0 12px; font-size: 11.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; opacity: .75; }
 .codeblock .bar .ibtn { margin-left: auto; color: inherit; }
 .codeblock .bar .ibtn .ms { font-size: 16px; }
@@ -413,7 +481,7 @@ button.ibtn { color: var(--on-surface-variant); }
 [data-theme="dark"] .codeblock .k { color: #CBC0ED; } [data-theme="dark"] .codeblock .s { color: #FFB38A; }
 
 /* image */
-.img { border-radius: 12px; overflow: hidden; position: relative; background: var(--surface-container); outline: 1px solid var(--outline-variant); }
+.img { border-radius: 12px; overflow: hidden; position: relative; background: var(--field); box-shadow: 0 0 0 1px var(--paper-outline), inset 0 1px 0 var(--paper-line); }
 .img .cap { position: absolute; left: 8px; bottom: 8px; height: 24px; padding: 0 10px; border-radius: 12px; background: var(--inverse-surface); color: var(--inverse-on-surface); font-size: 11.5px; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; }
 .img .cap .ms { font-size: 14px; }
 .img .expand { position: absolute; right: 6px; top: 6px; width: 28px; height: 28px; border-radius: 50%; background: var(--inverse-surface); color: var(--inverse-on-surface); display: grid; place-items: center; }
@@ -425,14 +493,16 @@ button.ibtn { color: var(--on-surface-variant); }
              display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
 .jump .ms { font-size: 16px; }
 
-/* mirror */
-.mirror-bar { display: flex; align-items: center; gap: 10px; padding: 10px 12px 8px 16px; font-size: 13px; font-weight: 500; }
+/* mirror: a pane set into the glass (§3.4) */
+.mirror-bar { display: flex; align-items: center; gap: 10px; padding: 12px 12px 8px 16px; font-size: 13px; font-weight: 500; }
 .mirror-bar .auto { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px 0 8px; border-radius: 13px; background: var(--tertiary-container); color: var(--on-tertiary-container); font-size: 12px; font-weight: 600; }
 .mirror-bar .auto .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--tertiary); }
 .mirror-bar .auto.paused { background: var(--surface-highest); color: var(--on-surface-variant); }
 .mirror-bar .auto.paused .dot { background: var(--outline); }
 .mirror-bar .spacer { flex: 1; }
-.mirror-view { margin: 0 12px; border-radius: 16px; overflow: hidden; position: relative; aspect-ratio: 16 / 10; background: var(--surface-dim); outline: 1px solid var(--outline-variant); }
+.mirror-view { margin: 0 12px; border-radius: 16px; overflow: hidden; position: relative; aspect-ratio: 16 / 10; background: var(--surface-dim);
+               box-shadow: inset 0 2px 10px rgba(0,0,0,.28), 0 0 0 1px var(--paper-outline); }
+.mirror-view::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 7; border-radius: inherit; box-shadow: inset 0 2px 10px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.25); }
 .mirror-view .stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1200px; transform-origin: 0 0; }   /* the session display, 1920×1200 dp on the G14 */
 .mirror-view .stage .window { left: 0; top: 0; border-radius: 0; box-shadow: none; }
 .mirror-view .overlay { position: absolute; inset: 0; pointer-events: none; }
@@ -445,10 +515,10 @@ button.ibtn { color: var(--on-surface-variant); }
 .mirror-view .paused-scrim span { height: 36px; padding: 0 14px; border-radius: 18px; background: var(--inverse-surface); color: var(--inverse-on-surface); display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; }
 .mirror-step { padding: 8px 16px 0; }
 .mirror-foot { display: flex; align-items: center; gap: 8px; padding: 10px 12px 12px 16px; }
-.mirror-foot .status { font-size: 13px; color: var(--on-surface-variant); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mirror-foot .status { font-size: 13px; color: var(--ink-soft); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* listening */
-.listen { display: flex; align-items: center; gap: 12px; padding: 4px 16px 8px; }
+.listen { display: flex; align-items: center; gap: 12px; padding: 14px 16px 8px; }
 .levels { display: flex; align-items: center; gap: 3px; height: 28px; }
 .levels i { width: 4px; height: 100%; border-radius: 2px; background: var(--primary); transform-origin: center; animation: levels 1.1s ease-in-out infinite; }
 .levels i:nth-child(2) { animation-delay: .1s; } .levels i:nth-child(3) { animation-delay: .2s; } .levels i:nth-child(4) { animation-delay: .05s; } .levels i:nth-child(5) { animation-delay: .25s; }
@@ -456,53 +526,69 @@ button.ibtn { color: var(--on-surface-variant); }
 .frozen .levels i:nth-child(1) { transform: scaleY(.4); } .frozen .levels i:nth-child(2) { transform: scaleY(.8); } .frozen .levels i:nth-child(3) { transform: scaleY(1); }
 .frozen .levels i:nth-child(4) { transform: scaleY(.6); } .frozen .levels i:nth-child(5) { transform: scaleY(.9); } .frozen .levels i:nth-child(6) { transform: scaleY(.5); } .frozen .levels i:nth-child(7) { transform: scaleY(.3); }
 .listen .tx { font-size: 15px; line-height: 22px; flex: 1; }
-.listen .tx .partial { color: var(--on-surface-variant); }
-.listen .hint { font-size: 12px; color: var(--on-surface-variant); }
+.listen .tx .partial { color: var(--ink-soft); }
+.listen .hint { font-size: 12px; color: var(--ink-soft); }
 
-/* composer */
-.composer { display: flex; align-items: flex-end; gap: 6px; padding: 8px 10px 10px 12px; }
-.field { flex: 1; min-height: 40px; border-radius: var(--r-field); background: var(--surface-container); display: flex; align-items: center; padding: 8px 14px; font-size: 14px; color: var(--on-surface-variant);
-         outline: 1px solid transparent; }
-[data-theme="dark"] .field { background: var(--surface-highest); }
-.field.focus { outline: 2px solid var(--primary); color: var(--on-surface); }
-.field .text { flex: 1; min-width: 0; color: var(--on-surface); }
-.field .text.ph { color: var(--on-surface-variant); }
+/* the composer: one pill, the only place to type (§6). The leaf sits in it; the mic and send are inside it. */
+.composer { display: flex; align-items: flex-end; gap: 6px; padding: 8px 10px 6px 10px; }
+.note > .composer:first-child { padding-top: 10px; }
+.field { flex: 1; min-height: 44px; border-radius: var(--r-field); background: var(--field); display: flex; align-items: center; padding: 6px 6px 6px 14px; gap: 10px; font-size: 14px; color: var(--ink-soft);
+         box-shadow: inset 0 1px 0 var(--paper-line), 0 0 0 1px var(--paper-outline); }
+.field.focus { box-shadow: inset 0 1px 0 var(--paper-line), 0 0 0 2px var(--primary); color: var(--ink); }
+.field .leaf { width: 18px; height: 18px; flex: none; }
+.field .text { flex: 1; min-width: 0; color: var(--ink); line-height: 20px; }
+.field .text.ph { color: var(--ink-soft); }
 .field .caret { height: 15px; vertical-align: -2px; }
-.send { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--primary); color: var(--on-primary); flex: none; }
-.send.disabled { background: var(--surface-highest); color: var(--on-surface-variant); }
+.send { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--primary); color: var(--on-primary); flex: none; }
+.send.disabled { background: transparent; color: var(--ink-soft); }
 .send .ms { font-size: 20px; }
-.mic { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: var(--on-surface-variant); flex: none; }
+.mic { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; color: var(--ink-soft); flex: none; }
 .mic .ms { font-size: 20px; }
 .mic.on { background: var(--success-container); color: var(--on-success-container); }
-.suggest { display: flex; gap: 6px; flex-wrap: wrap; padding: 0 16px 4px; }
-.suggest span { height: 30px; padding: 0 12px; border-radius: 15px; outline: 1px solid var(--outline-variant); font-size: 12.5px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; color: var(--on-surface); }
-.suggest span .ms { font-size: 16px; color: var(--on-surface-variant); }
 
-/* footer status */
-.n-foot { display: flex; align-items: center; gap: 8px; padding: 0 16px 10px; font-size: 12px; color: var(--on-surface-variant); min-height: 20px; }
-.n-foot .spacer { flex: 1; }
-.n-foot kbd { font: 500 11px/1 "OB Sans", sans-serif; padding: 3px 5px; border-radius: 5px; background: var(--surface-high); color: var(--on-surface-variant); }
+/* the quiet line (§6): who answers, what was taken in, how to leave. Always the last line of the note. */
+.n-foot { display: flex; align-items: center; gap: 4px; padding: 0 10px 8px 16px; font-size: 12px; line-height: 16px; color: var(--ink-soft); min-height: 24px; white-space: nowrap; }
+.n-foot .who { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); font-weight: 500; height: 24px; padding: 0 6px 0 2px; margin-left: -4px; border-radius: 12px; min-width: 0; flex: 0 4 auto; }
+.n-foot .who .nm { flex: none; }
+.n-foot .who:hover, .n-foot .who.open { background: var(--paper); }
+.n-foot .who .av { width: 14px; height: 14px; border-radius: 50%; display: grid; place-items: center; font-size: 7.5px; font-weight: 700; color: #fff; flex: none; }
+.n-foot .who .where { color: var(--ink-soft); font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }   /* the first thing to give way */
+.n-foot .took { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 6px; border-radius: 12px; min-width: 0; flex: 0 1 auto; }
+.n-foot .who { flex: 0 4 auto; }
+.n-foot .took .tx { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.n-foot.has-state .who .where { display: none; }
+.n-foot .took:hover { background: var(--paper); }
+.n-foot .took .thumb { width: 20px; height: 13px; border-radius: 3px; background: var(--paper-solid); position: relative; flex: none; box-shadow: 0 0 0 1px var(--paper-outline); overflow: hidden; }
+.n-foot .took .thumb i { position: absolute; left: 2px; top: 2px; width: 6px; height: 9px; background: var(--primary); opacity: .55; border-radius: 1px; }
+.n-foot .took .thumb i + i { left: 10px; width: 8px; height: 6px; opacity: .3; }
+.n-foot .took .ms { font-size: 14px; }
+.n-foot .took q { quotes: "“" "”"; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.n-foot .dot::before { content: "·"; margin: 0 2px; }
+.n-foot .spacer { flex: 1 0 8px; }
+.n-foot .state { color: var(--ink-soft); flex: none; margin-right: 6px; }
+.n-foot kbd { font: 500 11px/1 "OB Sans", sans-serif; padding: 3px 5px; border-radius: 5px; background: var(--paper); box-shadow: 0 0 0 1px var(--paper-outline); color: var(--ink-soft); }
+.n-foot .ibtn.sm { margin-left: 2px; }
 
 /* taskbar tray */
-.tray { position: absolute; z-index: 45; width: 400px; border-radius: 24px; background: var(--note-bg); backdrop-filter: blur(34px) saturate(1.2); -webkit-backdrop-filter: blur(34px) saturate(1.2);
-        box-shadow: var(--note-shadow), 0 0 0 1px var(--note-outline); padding: 8px; display: flex; flex-direction: column; gap: 2px; transform-origin: 50% 100%; }
-.tray .hd { display: flex; align-items: center; gap: 8px; padding: 8px 10px 6px; font-size: 13px; font-weight: 600; color: var(--on-surface); }
+.tray { position: absolute; z-index: 45; width: 400px; border-radius: 24px; background: var(--note-bg); backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)); -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+        box-shadow: var(--note-shadow), inset 0 1px 0 var(--specular), inset 0 0 0 1px var(--note-outline); padding: 8px; display: flex; flex-direction: column; gap: 2px; transform-origin: 50% 100%; color: var(--ink); }
+.tray .hd { display: flex; align-items: center; gap: 8px; padding: 8px 10px 6px; font-size: 13px; font-weight: 600; color: var(--ink); }
 .tray .hd .leaf { width: 18px; height: 18px; }
 .tray .hd .spacer { flex: 1; }
 .tray .hd .ibtn { width: 28px; height: 28px; }
 .tray .task { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 14px; }
-.tray .task:hover { background: var(--surface-high); }
+.tray .task:hover { background: var(--paper); }
 .tray .task .st { width: 28px; height: 28px; display: grid; place-items: center; flex: none; }
 .tray .task .st .ms { font-size: 20px; }
-.tray .task .st.run::before { content: ""; width: 16px; height: 16px; border-radius: 50%; border: 2.5px solid var(--outline-variant); border-top-color: var(--primary); animation: spin 1s linear infinite; }
+.tray .task .st.run::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--primary); animation: inkdot .9s ease-in-out infinite; }
 .tray .task .st.ok .ms { color: var(--success); }
 .tray .task .st.ask .ms { color: var(--primary); }
 .tray .task .w { flex: 1; min-width: 0; }
 .tray .task .w b { display: block; font-size: 13.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tray .task .w small { display: block; font-size: 12px; color: var(--on-surface-variant); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tray .task .agent-mini { font-size: 11.5px; color: var(--on-surface-variant); flex: none; }
-.tray .task .ms.chev { color: var(--on-surface-variant); font-size: 18px; }
-.tray .foot { border-top: 1px solid color-mix(in srgb, var(--outline-variant) 60%, transparent); margin-top: 4px; padding: 8px 10px 2px; display: flex; gap: 8px; }
+.tray .task .w small { display: block; font-size: 12px; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tray .task .agent-mini { font-size: 11.5px; color: var(--ink-soft); flex: none; }
+.tray .task .ms.chev { color: var(--ink-soft); font-size: 18px; }
+.tray .foot { border-top: 1px solid var(--paper-outline); margin-top: 4px; padding: 8px 10px 2px; display: flex; gap: 8px; }
 
 /* system dialog (platform-owned; drawn only to show the state around it) */
 .sysdialog { position: absolute; z-index: 70; width: 420px; border-radius: 28px; background: var(--surface-high); box-shadow: var(--win-shadow); padding: 24px; display: flex; flex-direction: column; gap: 12px; }
@@ -511,6 +597,7 @@ button.ibtn { color: var(--on-surface-variant); }
 .sysdialog h3 { margin: 0; font-size: 22px; font-weight: 400; text-align: center; line-height: 28px; }
 .sysdialog p { margin: 0; font-size: 14px; line-height: 20px; color: var(--on-surface-variant); }
 .sysdialog .btns { justify-content: flex-end; margin-top: 8px; }
+.sysdialog .btn.text { color: var(--primary); }
 .sysdialog .lbl { position: absolute; top: -26px; left: 0; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--on-surface-variant); }
 
 /* annotations for the gallery */
@@ -522,16 +609,17 @@ button.ibtn { color: var(--on-surface-variant); }
 .no-anno .anno { display: none; }
 
 /* HUD for play mode */
-.hud { position: fixed; right: 16px; top: 16px; z-index: 100; display: flex; gap: 8px; align-items: center; background: rgba(27, 27, 33, .85); color: #fff; padding: 8px 12px; border-radius: 12px; font-size: 12.5px; }
+.hud { position: fixed; right: 16px; top: 16px; z-index: 100; display: flex; gap: 12px; align-items: center; background: rgba(27, 27, 33, .85); color: #fff; padding: 8px 12px; border-radius: 12px; font-size: 12.5px; }
 .hud label { display: inline-flex; align-items: center; gap: 6px; }
 .hud .k { opacity: .7; }
 </style>
 </head>
 <body>
 <div class="gallery-head">
-  <h1>Quire: interaction and motion design</h1>
+  <h1>Quire: the note, glass and ink</h1>
   <p>Every state of the note, in light and dark. The spec is <a href="../quire-design.md">docs/quire-design.md</a>. Add <code>?play=1</code> to this URL for the clickable prototype,
-     <code>?screen=&lt;id&gt;</code> for one screen, <code>&amp;theme=dark</code> and <code>&amp;size=g14</code> (1920×1200 dp, rendered at 1.5× for the G14's 2880×1800). All values on screen are sample data.</p>
+     <code>?screen=&lt;id&gt;</code> for one screen, <code>&amp;theme=dark</code>, <code>&amp;size=g14</code> (1920×1200 dp, rendered at 1.5× for the G14's 2880×1800),
+     <code>&amp;wall=bloom|strata|tide</code> for another wallpaper behind the glass, and <code>&amp;glass=0</code> for the platform's blur-off fallback. All values on screen are sample data.</p>
 </div>
 <div class="gallery" id="gallery"></div>
 <svg width="0" height="0" style="position:absolute">
