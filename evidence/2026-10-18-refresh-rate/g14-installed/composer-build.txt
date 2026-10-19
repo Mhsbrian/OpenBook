@@ -1,0 +1,16 @@
+# The patched composer, built out of band (2026-10-18), and how it was checked
+
+Compile and link commands: the G14 product's own Soong rules for android.hardware.composer.hwc3-service.drm (android_vendor_x86_64_silvermont), read from out/soong/build.anybook_g14_x86_64*.ninja, run from the AOSP tree with -ffile-prefix-map so source paths match; sources from external/drm_hwcomposer at its pin 87daba89, with and without aosp/patches/external/drm_hwcomposer/0001.
+
+sha256:
+  installed on the G14 (/vendor/bin/hw/..., = out/soong intermediate of 2026-10-16): a614b6d3994bb074f938b166f37d9c2c6ce99ba0ca7e349a038d9150f0df1964
+  rebuilt from the pin, unpatched:                                              0f099ae1afd811d145de4332e09cf00a15859cebfa24187e63ddf93aa0fe37e4
+  rebuilt from the pin + patch 0001 (the one run on the G14):                     d61012c33ebb7a0deadf843f05c34b60ac2373ba251c3c268af0ca6c547fb692
+
+Section hashes (llvm-objcopy --dump-section): the unpatched rebuild matches the installed binary in every code and data section; only the build ID and debug data differ, so the patched build differs from the installed one by the patch alone.
+  .text         installed 2276a35d7ead  unpatched rebuild 2276a35d7ead  patched e3e7797141fd
+  .rodata       installed 25c271072f6b  unpatched rebuild 25c271072f6b  patched 8e13a1c0d608
+  .data.rel.ro  installed 8a50c4933935  unpatched rebuild 8a50c4933935  patched 366b77becabb
+  .dynsym       installed e307bf955821  unpatched rebuild e307bf955821  patched a243a57b8485
+  .dynstr       installed b1e86d9b67f8  unpatched rebuild b1e86d9b67f8  patched 3774f50443a5
+  .rela.dyn     installed 9f95fa14d847  unpatched rebuild 9f95fa14d847  patched d909ec3efefb

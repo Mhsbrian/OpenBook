@@ -1,0 +1,43 @@
+# kprobes, 2 swipes in Settings (2026-10-18 16:5xZ): drm_property_replace_blob_from_id (expected_size 72 = struct drm_color_ctm), atomic checks, DC flip path
+replace_blob CTM calls: 62; atomic checks: 62; commit_planes_for_stream: 61; commit_planes_for_stream_fast: 0
+
+3202.595068: replace_blob: blob_id=521 expected_size=72 expected_elem=-1
+3202.595091: amdgpu_dm_atomic_check_begin: state=00000000738a6340 allow_modeset=1 legacy_cursor_update=0 async_update=0 duplicated=0 num_connector=10 num_private_objs=0
+3202.596826: cps: 
+3202.603008: replace_blob: blob_id=520 expected_size=72 expected_elem=-1
+3202.603024: amdgpu_dm_atomic_check_begin: state=0000000019daf1e3 allow_modeset=1 legacy_cursor_update=0 async_update=0 duplicated=0 num_connector=10 num_private_objs=0
+3202.605371: cps: 
+3202.619868: replace_blob: blob_id=521 expected_size=72 expected_elem=-1
+3202.619888: amdgpu_dm_atomic_check_begin: state=00000000738a6340 allow_modeset=1 legacy_cursor_update=0 async_update=0 duplicated=0 num_connector=10 num_private_objs=0
+3202.621978: cps: 
+3202.636936: replace_blob: blob_id=520 expected_size=72 expected_elem=-1
+3202.636952: amdgpu_dm_atomic_check_begin: state=000000003d14affe allow_modeset=1 legacy_cursor_update=0 async_update=0 duplicated=0 num_connector=10 num_private_objs=0
+3202.639123: cps: 
+3202.653068: replace_blob: blob_id=521 expected_size=72 expected_elem=-1
+3202.653093: amdgpu_dm_atomic_check_begin: state=00000000895df9df allow_modeset=1 legacy_cursor_update=0 async_update=0 duplicated=0 num_connector=10 num_private_objs=0
+3202.655331: cps: 
+3202.670347: replace_blob: blob_id=520 expected_size=72 expected_elem=-1
+3202.670390: amdgpu_dm_atomic_check_begin: state=00000000662e6a6e allow_modeset=1 legacy_cursor_update=0 async_update=0 duplicated=0 num_connector=10 num_private_objs=0
+3202.672621: cps: 
+3202.686656: replace_blob: blob_id=521 expected_size=72 expected_elem=-1
+3202.686680: amdgpu_dm_atomic_check_begin: state=0000000093bcdf66 allow_modeset=1 legacy_cursor_update=0 async_update=0 duplicated=0 num_connector=10 num_private_objs=0
+3202.688884: cps: 
+3202.703149: replace_blob: blob_id=520 expected_size=72 expected_elem=-1
+3202.703165: amdgpu_dm_atomic_check_begin: state=0000000096e521ca allow_modeset=1 legacy_cursor_update=0 async_update=0 duplicated=0 num_connector=10 num_private_objs=0
+3202.705617: cps: 
+3202.719971: replace_blob: blob_id=521 expected_size=72 expected_elem=-1
+3202.719986: amdgpu_dm_atomic_check_begin: state=0000000093bcdf66 allow_modeset=1 legacy_cursor_update=0 async_update=0 duplicated=0 num_connector=10 num_private_objs=0
+3202.722038: cps: 
+3202.736567: replace_blob: blob_id=520 expected_size=72 expected_elem=-1
+3202.736581: amdgpu_dm_atomic_check_begin: state=0000000096e521ca allow_modeset=1 legacy_cursor_update=0 async_update=0 duplicated=0 num_connector=10 num_private_objs=0
+3202.738928: cps: 
+3202.753130: replace_blob: blob_id=521 expected_size=72 expected_elem=-1
+3202.753151: amdgpu_dm_atomic_check_begin: state=00000000e0594b72 allow_modeset=1 legacy_cursor_update=0 async_update=0 duplicated=0 num_connector=10 num_private_objs=0
+3202.755319: cps: 
+3202.770089: replace_blob: blob_id=520 expected_size=72 expected_elem=-1
+3202.770108: amdgpu_dm_atomic_check_begin: state=0000000016c7d9d7 allow_modeset=1 legacy_cursor_update=0 async_update=0 duplicated=0 num_connector=10 num_private_objs=0
+3202.772256: cps: 
+3202.786672: replace_blob: blob_id=521 expected_size=72 expected_elem=-1
+3202.786692: amdgpu_dm_atomic_check_begin: state=00000000e0cc8db3 allow_modeset=1 legacy_cursor_update=0 async_update=0 duplicated=0 num_connector=10 num_private_objs=0
+3202.788640: cps: 
+3202.803679: replace_blob: blob_id=520 expected_size=72 expected_elem=-1

@@ -1,0 +1,16 @@
+# kprobes, 40 s with the screen idle (launcher): DC update type per commit (dc_check_update_surfaces_for_stream: 0 fast, 1 med, 2 full) and idle-optimization toggles
+11106 allow_idle_int allow=0
+36 vbl_worker 
+18 vbl_on 
+18 vbl_off 
+18 allow_idle_int allow=1
+4 upd_type type=2
+4 cps 
+1 drm_vblank_event crtc=0, seq=323800, time=2739357218351, high-prec=true
+1 drm_vblank_event crtc=0, seq=323801, time=2739365556441, high-prec=true
+1 drm_vblank_event crtc=0, seq=323802, time=2739373893753, high-prec=true
+1 drm_vblank_event crtc=0, seq=323803, time=2739382229570, high-prec=true
+1 drm_vblank_event crtc=0, seq=323804, time=2739390569011, high-prec=true
+
+# /sys/kernel/debug/dri/0/amdgpu_dm_ips_status
+IPS config: 6; Idle optimization: 1; entry counts: rcg=0 ips1=0 ips2=0 (so IPS itself never engaged)
