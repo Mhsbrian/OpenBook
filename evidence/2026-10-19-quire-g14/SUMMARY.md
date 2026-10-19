@@ -73,16 +73,19 @@ which SELinux doesn't let see that binary; it looks as root now (`b3be816`).
 | 05:45–10:25 | the previous run stopped at its usage limit right after the baseline | the kernel wake lock `anal225` it took against suspend stayed on the laptop (on AC) until 10:25, when this run released it |
 | 10:25 | `state` again (the owner had used the laptop since), then `ota --dry-run` (`precheck.txt`) | checks passed: fingerprint differs, AC, update_engine idle, whole-disk install, bootsync on the device |
 | 10:25 | `ota --yes` over Wi-Fi (`ota-apply.log`) | slot A written in 90 s; `verified slot a: images match vbmeta_a (1d2d8f5e…, the package's), ESP files in_sync, entry openbook-a+3.conf; systemd-boot starts slot a next` |
-| 10:26 | the reboot | **not done:** the owner was using the laptop (input seconds before). The update waits as the next boot's default |
+| 10:26 | the reboot | not done by me: the owner was using the laptop. The update waited as the next boot's default |
+| 10:35 | the owner restarted and unlocked it | slot A, `…/20261019.quire2`, vbmeta `1d2d8f5e…`; marked good 10:35:24; merge completed 10:35:26; the ESP's default is slot A (`ota-status-after.log`) |
+| 10:37 | `state` against 10:25 (`state-diff.md`) | the same user, PIN, 153 packages at the same versions (plus the 7 new ones), Settings (only boot counters, plus Quire as the assistant), 2 Wi-Fi networks, 1 account, the user's 163 files with an identical list hash |
+| 10:38 | `capture --redact` (`capture-after/`), binaries, health | 22 yes, 1 NO (the installer's NVRAM entry, NO before too); the five changed binaries match the target files; 120 Hz; no crash, ANR or tombstone; no denial for Quire or AVF |
+| 10:39 | AVF and the Linux environment's image | KVM, `IVmTethering` registered, Quire the assistant with its default grants; the guest image pushed, sha256 matches (`linux-env-push.log`) |
 
-Still to run after the owner's restart and PIN: `ota-status` (slot A, marked good, merge), `state` against
-`state-before2`, `capture-after`, the binaries against the target files, 120 fps, then the Linux environment
-(`linux-env-adb.sh push`, then `check`) and `g14-quire-check.py`. The screen checks run only while the laptop is
-unlocked and not in use.
+Not run on the G14: the screen-driving steps, which are the Terminal app's install of the guest
+(`linux-env-adb.sh check`) and `g14-quire-check.py`. They need the laptop unlocked and not in use, and the owner was
+using it (input at 10:40:53). The owner can take the same steps with `docs/quire-howto.md`; Quire's log then shows
+the path.
 
 ## Not covered here
 
-- The laptop after its restart (above): the owner's PIN unlocks the user, and Quire, the Terminal app and their data
-  live in that user's storage.
+- On the G14: the guest's install and an agent's answer in the note (above).
 - TalkBack, G14 frame timing and blur, and the taskbar button (Q5's own follow-ups); Q4's pairing.
 - Test keys sign the update, as before; adb authorisation (`ro.adb.secure`) is unchanged, as the owner hasn't decided.
