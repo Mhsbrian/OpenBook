@@ -23,6 +23,16 @@ probe = load("probe_test", "hybrid-probe.py")
 
 
 class Guards(unittest.TestCase):
+    def test_wifi_overlay_targets_retained_google_package(self):
+        manifest = (HERE / "wifi-overlay/AndroidManifest.xml").read_text()
+        probe.validate_wifi_target(manifest, "com.google.android.wifi.resources")
+        for package in ("com.android.wifi.resources", "another.package"):
+            with self.subTest(package=package), self.assertRaisesRegex(ValueError, "target package mismatch"):
+                probe.validate_wifi_target(manifest, package)
+        with self.assertRaisesRegex(ValueError, "target package mismatch"):
+            probe.validate_wifi_target(manifest.replace("com.google.android.wifi.resources", "com.android.wifi.resources"),
+                                       "com.google.android.wifi.resources")
+
     def test_vendor_boot_contract_preserved(self):
         cmd = "firmware_class.path=/vendor/firmware log_buf_len=1M custom_platform_option=1"
         self.assertEqual(probe.platform_cmdline(cmd), cmd)

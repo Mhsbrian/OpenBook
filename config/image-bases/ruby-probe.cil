@@ -40,3 +40,27 @@
 ; Toybox's isatty() probes stdout with TCGETS. Permit only that read-only
 ; query on our FIFO so ps/ls do not flood the capture with harmless denials.
 (allowx shell ruby_usb_log_pipe (ioctl fifo_file (0x5401)))
+; Ruby already permits shell to read proc_asound files, but omits directory
+; traversal. Allow only traversal for the opt-in card/PCM inventory, not ALSA
+; device access, mixer changes, recording or a broader /proc read grant.
+(allow shell proc_asound (dir (search)))
+
+; Ruby's retained policy has memfd_file permissions but does not enable
+; memfd_class. On the selected G14 kernel Codec2's queues are tmpfs files.
+; Carry the existing OpenBook system_ext media fix into this private mixed
+; policy (that partition is replaced by Ruby). No generic tmpfs write grant.
+; Physical fw10: mediaswcodec cannot write its own queues or map SoundPool's
+; queues; KeypressStandard.ogg fails to load. Keep isolated clients excluded.
+(type ruby_mediaswcodec_tmpfs)
+(typeattributeset file_type (ruby_mediaswcodec_tmpfs))
+(typeattributeset mlstrustedobject (ruby_mediaswcodec_tmpfs))
+(typetransition mediaswcodec tmpfs file ruby_mediaswcodec_tmpfs)
+(allow mediaswcodec ruby_mediaswcodec_tmpfs (file (read write getattr map)))
+(typeattribute ruby_codec2_clients)
+(typeattributeset ruby_codec2_clients (and hal_codec2_client (not isolated_app_all)))
+(allow ruby_codec2_clients ruby_mediaswcodec_tmpfs (file (read write getattr map)))
+(allow mediaswcodec appdomain_tmpfs (file (read write getattr map)))
+(allow mediaswcodec mediaserver_tmpfs (file (read write getattr map)))
+(allow mediaswcodec system_server_tmpfs (file (read write getattr map)))
+(allow audioserver appdomain_tmpfs (file (read write getattr map)))
+(allow mediaserver audioserver_tmpfs (file (read write getattr map)))

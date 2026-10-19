@@ -23,6 +23,13 @@ h = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(h)
 
 
+def boot_completed_reported(text):
+    # A parsed init trigger mentioning sys.boot_completed=1 is not a property
+    # observation. Only accept complete diagnostic output lines.
+    return bool(re.search(
+        r"(?m)^(?:OPENBOOK_RUBY_BOOT_COMPLETED=1|\[sys.boot_completed\]: \[1\]|sys.boot_completed=1)\r?$", text))
+
+
 def runtime_findings(serial):
     """Boot completion can coexist with later crashes; retain both facts."""
     return {
@@ -94,6 +101,7 @@ def main():
     p.add_argument("--usb-logs", action="store_true", help="Select shipped serial+USB logger; retain writes in the private USB copy")
     p.add_argument("--usb-log-entry", choices=("serial-logs", "logs", "safe-logs"), default="serial-logs")
     p.add_argument("--tpm", action="store_true", help="Use a new disposable software TPM over CRB; no hardware attestation claim")
+    p.add_argument("--audio", action="store_true", help="Emulated HDA codec with a silent input and no host audio device")
     p.add_argument("--wake-display", action="store_true", help="After the observation, capture, send the wake key, wait 15 seconds and capture again")
     p.add_argument("--timeout", type=int, default=180, choices=range(30, 1801), metavar="30..1800")
     a = p.parse_args()
@@ -157,6 +165,8 @@ def main():
     if a.tpm:
         cmd += ["-chardev", "socket,id=chrtpm,path=tpm.sock", "-tpmdev", "emulator,id=tpm0,chardev=chrtpm",
                 "-device", "tpm-crb,tpmdev=tpm0"]
+    if a.audio:
+        cmd += ["-audiodev", "none,id=audio0", "-device", "intel-hda", "-device", "hda-duplex,audiodev=audio0"]
     (w / "command.json").write_text(json.dumps(cmd, indent=2) + "\n")
     start = time.monotonic()
     with tpm_backend(w, a.tpm), (w / "qemu.log").open("wb") as log:
@@ -195,6 +205,7 @@ def main():
     observed = "\n".join(f.read_text(errors="replace") for f in saved_files) if saved_files else serial
     result = {"schema": "openbook-ruby-observation/1", "accel": a.accel, "uefi_usb": a.uefi_usb,
               "software_tpm": a.tpm,
+              "emulated_audio": a.audio,
               "qemu_sha256": qemu_sha,
               "qemu_exit": proc.returncode, "elapsed_s": round(time.monotonic() - start, 1),
               "observation_window_elapsed": elapsed, "input_sha256": before,
@@ -211,7 +222,7 @@ def main():
               "decoy_unchanged": h.audit.sha(decoy) == decoy_sha if decoy else None,
               "second_stage_init": "init second stage started" in observed,
               "diagnostics_completed": "OPENBOOK_RUBY_PROBE_END" in observed or "RUBY_ANDROID_LOG_END" in observed,
-              "boot_completed_reported": "OPENBOOK_RUBY_BOOT_COMPLETED=1" in observed or "[sys.boot_completed]: [1]" in observed,
+              "boot_completed_reported": boot_completed_reported(observed),
               "kernel_panic": "Kernel panic" in observed,
               "sigill": "signal 4 (SIGILL)" in observed,
               "runtime_findings": runtime_findings(observed),

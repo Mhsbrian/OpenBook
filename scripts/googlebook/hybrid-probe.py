@@ -19,6 +19,7 @@ import shlex
 import shutil
 import subprocess
 import time
+import xml.etree.ElementTree as ET
 
 HERE = Path(__file__).resolve().parent
 
@@ -84,6 +85,53 @@ def run(*args, **kw):
     return subprocess.run(list(map(str, args)), check=True, **kw)
 
 
+def wifi_overlay(a, w, vendor):
+    """Build a local test-signed, resource-only hardware compatibility RRO."""
+    source = HERE / "wifi-overlay"
+    targets = list((a.audit / "ruby-apex/com.android.wifi/priv-app").glob("*/ServiceWifiResourcesGoogle.apk"))
+    if len(targets) != 1:
+        raise ValueError("Expected exactly one audited Ruby Wi-Fi resource APK")
+    package = subprocess.check_output([str(a.tools / "aapt2"), "dump", "packagename", str(targets[0])], text=True).strip()
+    validate_wifi_target((source / "AndroidManifest.xml").read_text(), package)
+    aosp = a.product.parents[3]
+    java = aosp / "prebuilts/jdk/jdk21/linux-x86/bin/java"
+    cert = aosp / "build/make/target/product/security/testkey"
+    compiled, unsigned = w / "wifi-res.zip", w / "wifi-unsigned.apk"
+    run(a.tools / "aapt2", "compile", "--dir", source / "res", "-o", compiled)
+    run(a.tools / "aapt2", "link", "--manifest", source / "AndroidManifest.xml",
+        "-I", a.ruby / "fs/system_a/system/framework/framework-res.apk",
+        "--min-sdk-version", "36", "--target-sdk-version", "36",
+        "--auto-add-overlay", "--no-resource-deduping", "--no-resource-removal",
+        "-o", unsigned, compiled)
+    target = vendor / "overlay/OpenBookRubyWifi.apk"
+    run(java, f"-Djava.library.path={a.tools.parent / 'lib64'}", "-jar", a.tools.parent / "framework/signapk.jar",
+        str(cert) + ".x509.pem", str(cert) + ".pk8", unsigned, target)
+    # Validate the actual retained Wi-Fi APK's overlayable declarations.
+    run(a.tools / "idmap2", "create", "--target-apk-path", targets[0],
+        "--overlay-apk-path", target, "--idmap-path", w / "wifi.idmap", "--policy", "vendor")
+    shutil.copyfile(HERE / "wifi-platform.sh", vendor / "etc/ruby-wifi-platform.sh")
+    (vendor / "etc/init/ruby-wifi-platform.rc").write_text('''service ruby-wifi-platform /system/bin/sh /vendor/etc/ruby-wifi-platform.sh
+    class late_start
+    user shell
+    group shell system log
+    seclabel u:r:shell:s0
+    oneshot
+''')
+    return {"package": "org.openbook.ruby.wifi", "apk_sha256": audit.sha(target),
+            "target_package": package,
+            "target_sha256": audit.sha(targets[0]), "idmap_vendor_policy_validated": True,
+            "activation": "mutable RRO, system user 0, highest priority; runtime readback required"}
+
+
+def validate_wifi_target(manifest, package):
+    # idmap2 validates resource mappings but does not reject a targetPackage
+    # mismatch. Runtime OMS does. Fail before building a useless overlay.
+    overlay = ET.fromstring(manifest).find("overlay")
+    attr = "{http://schemas.android.com/apk/res/android}targetPackage"
+    if package != "com.google.android.wifi.resources" or overlay is None or overlay.get(attr) != package:
+        raise ValueError("Ruby Wi-Fi overlay target package mismatch")
+
+
 def new_output(path, sources):
     path = path.absolute()
     if any(c in str(path) for c in (",", "\n", "\r")):
@@ -119,6 +167,7 @@ def prepare(a):
     # capabilities and labels; host copy ownership is not used as image metadata.
     vendor = w / "vendor"
     shutil.copytree(a.product / "vendor", vendor, symlinks=True)
+    wifi = wifi_overlay(a, w, vendor)
     # The retained Ruby framework runs gscd as hsm. Preserve its reviewed device
     # ownership contract on the existing OpenBook TPM/CRB modules; no policy bypass.
     tpm_rule = "/dev/tpm* 0660 hsm hsm"
@@ -315,6 +364,7 @@ done
               "scope": "Local VM experiment; not a Googlebook installer source", "source_sha256": hashes,
               "kernel_sha256": audit.sha(a.kernel / "bzImage"), "module_variant": a.variant,
               "vendor_cmdline": vendor_cmdline,
+              "wifi_overlay": wifi,
               "bootconfig": params, "gpt": g.table(),
               "avb": "local test-key root, unlocked/orange; retained Google logical image descriptors",
               "usb_logger_sha256": audit.sha(vendor / "bin/ruby-usb-log"),
