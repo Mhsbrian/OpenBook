@@ -44,6 +44,8 @@ class Broker(private val context: Context) {
 
         fun toolPlatformDialog(up: Boolean)
 
+        fun toolOnScreen(on: Boolean)
+
         /** False once the task stopped or its turn ended: a call still running then is cancelled. */
         val toolsLive: Boolean
 
@@ -135,6 +137,15 @@ class Broker(private val context: Context) {
 
         override fun platformDialog(up: Boolean) {
             main.post { owner.toolPlatformDialog(up) }
+        }
+
+        override fun onScreen(on: Boolean) {
+            val f = CompletableFuture<Unit>()
+            main.post {
+                owner.toolOnScreen(on)
+                f.complete(Unit)
+            }
+            runCatching { f.get(2, TimeUnit.SECONDS) }
         }
 
         override fun changed(entries: List<ChangeLog.Entry>) {

@@ -60,7 +60,9 @@ import dev.openbook.quire.ui.rounded
  *   while the agent acts, and the app it drives may hide overlays (Settings does, even on the session display);
  * - Q6 (ANAL-220): a task waiting for the person's answer, a consent card. An agent opens Files or Settings for the
  *   person and then asks before deleting something; a question nobody can see would hold the request, or invite an
- *   answer given blind. The card names exactly what would happen. Once it is answered, the task is ordinary again.
+ *   answer given blind. The card names exactly what would happen. Once it is answered, the task is ordinary again;
+ * - Q6: a task whose agent reads the screen, for the moment of the read: the platform gives its assistant the screen
+ *   only while the assistant is visible, and the person should see Quire while it reads.
  * Any other task shown in the window, also while the session's own task is hidden, is an ordinary overlay.
  */
 class NoteWindow(private val context: Context, private val surface: Callbacks) {
@@ -102,7 +104,7 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
      * Only the task that owns a live computer-control session gets a system application overlay; every other task,
      * whatever runs elsewhere, is an ordinary one. Decided per task, each time a task is shown.
      */
-    private fun systemFor(t: Task) = t.control?.sessionLive == true || t.needsAnswer
+    private fun systemFor(t: Task) = t.control?.sessionLive == true || t.needsAnswer || t.heldOnScreen
 
     /**
      * A task's computer-control session started or ended (ControlRun), or its consent card came or went (Q6). The window

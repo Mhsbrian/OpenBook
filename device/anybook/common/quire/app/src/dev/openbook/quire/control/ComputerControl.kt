@@ -501,11 +501,18 @@ class ComputerControl(private val context: Context) {
         return out.toString()
     }
 
-    private fun readNode(node: AccessibilityNodeInfo, depth: Int, out: StringBuilder, found: MutableList<Node>) {
+    /**
+     * One node of [read]. A control without a label of its own (a Settings row, a list item) is labelled with its
+     * children's text, which is then not repeated below it; controls inside it are still listed.
+     */
+    private fun readNode(node: AccessibilityNodeInfo, depth: Int, out: StringBuilder, found: MutableList<Node>,
+        absorbed: Boolean = false) {
         if (depth > 40 || out.length > 16_000 || !node.isVisibleToUser) return
-        val label = (node.text ?: node.contentDescription ?: node.hintText)?.toString()?.trim()?.takeIf { it.isNotEmpty() }
+        val own = (node.text ?: node.contentDescription ?: node.hintText)?.toString()?.trim()?.takeIf { it.isNotEmpty() }
         val actionable = node.isClickable || node.isCheckable || node.isEditable || node.isScrollable
-        if (label != null || actionable) {
+        var absorbs = absorbed
+        var printed = false
+        if (actionable || (own != null && !absorbed)) {
             val bounds = Rect().also { node.getBoundsInScreen(it) }
             val kind = when {
                 node.isEditable -> "field"
@@ -515,13 +522,21 @@ class ComputerControl(private val context: Context) {
                 else -> "text"
             }
             val checked = if (node.isCheckable) node.checked == AccessibilityNodeInfo.CHECKED_STATE_TRUE else null
+            val fromKids = if (own == null && (node.isClickable || node.isCheckable)) {
+                labelOf(node).trim().takeIf { it.isNotEmpty() }?.let {
+                    absorbs = true
+                    it.replace(Regex("\\s+"), " ").take(160)
+                }
+            } else null
             val text = when {
                 node.isPassword -> "(password field)"
-                label != null -> label.take(200)
+                own != null -> own.take(200)
+                fromKids != null -> fromKids
+                kind == "list" -> "(list)"
                 else -> "(unlabelled)"
             }
             out.append("  ".repeat(depth.coerceAtMost(10)))
-            if (kind != "text" || actionable) {
+            if (actionable) {
                 val n = found.size + 1
                 found += Node(n, text, kind, bounds, node.isClickable || node.isCheckable, checked, node.isPassword)
                 out.append('[').append(n).append("] ").append(kind).append(' ')
@@ -530,8 +545,11 @@ class ComputerControl(private val context: Context) {
             if (checked != null) out.append(if (checked) " (on)" else " (off)")
             if (!node.isEnabled) out.append(" (disabled)")
             out.append('\n')
+            printed = true
         }
-        for (i in 0 until node.childCount) node.getChild(i)?.let { readNode(it, depth + 1, out, found) }
+        for (i in 0 until node.childCount) {
+            node.getChild(i)?.let { readNode(it, if (printed) depth + 1 else depth, out, found, absorbs) }
+        }
     }
 
     /** Moves the session's apps to the person's display; the platform then closes the session. */

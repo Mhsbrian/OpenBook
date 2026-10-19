@@ -1,0 +1,8 @@
+  6860  6860 I Quire   : acp[linux:opencode]: session tools=true skill files=3
+  6860  6860 I Quire   : note: task 1 session opencode-1 with linux:opencode
+  6860  6860 I Quire   : note: task 1 prompt (2 blocks)
+  6860  6860 I Quire   : assistant: screen read expects 1 structure(s); args=[dev.openbook.quire.extra.READ_SCREEN, android.service.voice.FOREGROUND_ACTIVITIES, android.service.voice.SHOW_SESSION_ID]
+  6860  6860 I Quire   : assistant: assist 1/1 structure=true app=com.android.documentsui
+  6860  6860 I Quire   : assistant: screen read session hidden after 1 structure(s)
+  6860  6935 I Quire   : tools: read_screen tier=OBSERVE -> ok in 320 ms "Reading the screen"
+  6860  6860 I Quire   : note: task 1 ended stopReason=end_turn confirmed=true

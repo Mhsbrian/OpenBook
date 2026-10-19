@@ -165,6 +165,17 @@ object ScreenReader {
 }
 
 object ScreenTools {
+    /** Runs [read] with the note held on screen ([CallNote.onScreen]); the window needs a moment to be added again. */
+    private fun <T> onScreen(note: CallNote, read: () -> T): T {
+        note.onScreen(true)
+        return try {
+            Thread.sleep(300)
+            read()
+        } finally {
+            note.onScreen(false)
+        }
+    }
+
     private val readScreen = object : Tool("read_screen", Tier.OBSERVE, "read") {
         override val description = "Read what is on the laptop's screen now: each visible window's app and its text " +
             "and controls (buttons, fields, switches). Use it for \"what's on my screen?\" and before acting on what " +
@@ -175,7 +186,7 @@ object ScreenTools {
             val windows = LiveContext.windows(c)
             ScreenConsentActivity.ensure(c, note)
             note.retitle("Reading the screen")
-            val r = ScreenReader.read(c, screenshot = false)
+            val r = onScreen(note) { ScreenReader.read(c, screenshot = false) }
             val out = StringBuilder()
             out.append("Windows on screen, front first:\n")
             windows.forEach { out.append("- ").append(it.describe()).append('\n') }
@@ -201,7 +212,7 @@ object ScreenTools {
         override fun run(c: Context, args: JSONObject, note: CallNote): ToolResult {
             ScreenConsentActivity.ensure(c, note)
             note.retitle("Looking at the screen")
-            val r = ScreenReader.read(c, screenshot = true)
+            val r = onScreen(note) { ScreenReader.read(c, screenshot = true) }
             val b = r.screenshot ?: throw ToolError("The laptop gave no screenshot: the person may have turned off " +
                 "\"Use screenshot\" for Quire, or a protected window is showing.")
             return ToolResult.image("The laptop's screen, ${b.width}×${b.height}:", b)
