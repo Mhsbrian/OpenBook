@@ -116,16 +116,24 @@ def scene(d, *stop):
     """Nothing of Quire's, and none of these apps, on screen. Their tasks are removed, not only stopped: Settings runs
     as the system uid, and a desktop restores a stopped app's task when another app starts."""
     q5.clean(d)
-    for p in (SETTINGS, FILES, PROBE) + stop:
-        for tid in task_ids(d, p):
-            d.sh(f"am stack remove {tid}")
-        d.sh(f"am force-stop {p}")
-    d.sh("input keyevent KEYCODE_HOME")
-    time.sleep(1.0)
+    pkgs = (SETTINGS, FILES, PROBE) + stop
+    for attempt in range(4):
+        for p in pkgs:
+            for tid in task_ids(d, p):
+                d.sh(f"am stack remove {tid}")
+            d.sh(f"am force-stop {p}")
+        d.sh("input keyevent KEYCODE_HOME")
+        time.sleep(1.0)
+        # A desktop can bring back a task it had kept (a session's app returned to this display, a minimized
+        # window): look again, and go round once more if any of them is still there.
+        left = [w["name"] for w in windows(d) if any(w["name"].startswith(p + "/") for p in pkgs)]
+        if not left:
+            return
+        d.log(f"scene: still on screen after round {attempt + 1}: {left}")
 
 
 def task_ids(d, pkg):
-    return re.findall(r"Task\{\w+ #(\d+) type=standard (?:A=\d+:" + re.escape(pkg) + r" |I=" + re.escape(pkg) + r"/)",
+    return re.findall(r"Task\{\w+ #(\d+) type=standard (?:A=\d+:" + re.escape(pkg) + r"(?:\.[\w.]+)? |I=" + re.escape(pkg) + r"/)",
                       d.sh("dumpsys activity activities | grep -F 'Task{'"))
 
 
