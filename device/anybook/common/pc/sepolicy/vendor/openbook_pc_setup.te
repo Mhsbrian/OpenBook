@@ -19,3 +19,7 @@ r_dir_file(openbook_pc_setup, sysfs_gpu)
 r_dir_file(openbook_pc_setup, sysfs_devices_system_cpu)
 allow openbook_pc_setup sysfs_devices_system_cpu:file setattr;
 allow openbook_pc_setup self:capability { chown fowner };
+
+# kvm (ANAL-218): read whether KVM registered its misc device (sysfs, above), and say so in vendor.openbook.kvm for
+# init.openbook.rc.
+set_prop(openbook_pc_setup, vendor_openbook_prop)

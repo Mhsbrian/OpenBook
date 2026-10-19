@@ -1,0 +1,18 @@
+CPU svm flag (cores)	INFO	4
+KVM registered its device	PASS	10:232
+/dev/kvm	PASS	crw-rw-rw- 1 root root 10, 232 2026-10-18 20:02 /dev/kvm
+kvm_amd in the kernel log	FAIL	
+properties	INFO	[hypervisor.memory_reclaim.supported]: [1] [ro.boot.hypervisor.protected_vm.supported]: [0] [ro.boot.hypervisor.version]: [cf-crosvm] [ro.boot.hypervisor.vm.supported]: [1] 
+feature android.software.virtualization_framework	PASS	
+crosvm and virtmgr	PASS	
+Terminal app installed	PASS	1 disabled
+Quire holds ACCESS_AGENT_BRIDGE	PASS	
+Android has internet	PASS	VirtWifi
+image copied	PASS	-rw-rw---- 1 u0_a111 media_rw 776040680 2026-10-18 20:03 /sdcard/linux/images.tar.gz
+Terminal installs the image	PASS	by itself (running)
+Linux environment running	PASS	state=running after 27 s
+Quire core lists the agents in the guest	PASS	agent opencode version="1.19.3" supported=true;
+VM start -> Quire connected to quired (s)	INFO	13.4
+guest boot (systemd)	INFO	
+a prompt from Quire core is answered in the guest	PASS	10-18 20:04:44.062 I/Quire   ( 3149): agents: answer opencode-1 stop=end_turn ms=4102 text="QUIRE OK"
+SELinux denials (distinct)	INFO	12

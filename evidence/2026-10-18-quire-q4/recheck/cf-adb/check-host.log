@@ -1,0 +1,40 @@
+build                              AnyBook/anybook_cf_x86_64_pc/anybook_vsoc_x86_64:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+debuggable                         1
+AVF feature                        yes
+crosvm, virtmgr                    crosvm virtmgr 
+Terminal app                       installed, off
+KVM's device (sysfs)               10:232
+kvm_amd (npt, nested)              Y 1 
+ro.boot.hypervisor.vm.supported    1
+Linux environment installed        no
+free in /data                      15.6 GiB
+pushing images.tar.gz (783 MiB) to 127.0.0.1:16219:/sdcard/linux/images.tar.gz
+~/anybook/quire/linux-env/out-q4fix3/images.tar.gz: 1 file pushed, 0 skipped. 231.9 MB/s (821177609 bytes in 3.377s)
+/sdcard/linux/images.tar.gz: sha256 1e0efa0fe6de8fbd2e031d9c6738ad17f690aa89d1c9eda9a0486cf96f3aad20 matches
+~/multica_workspaces/analtechnic-b248a69dce69/anal-218-ca23e99f36cf/workdir/OpenBook/scripts/quire/q4-device-check.sh: 1 file pushed, 0 skipped. 7.0 MB/s (8744 bytes in 0.001s)
+q4-device-check.sh on 127.0.0.1:16219 (install, boot, agents, prompt: about 5 minutes)
+/data/local/tmp/openbook-q4/out/./: 12 files pulled, 0 skipped. 6.6 MB/s (3210526 bytes in 0.464s)
+/data/local/tmp/openbook-q4/run.log: 1 file pulled, 0 skipped. 0.4 MB/s (1515 bytes in 0.004s)
+CPU svm flag (cores)	INFO	4
+KVM registered its device	PASS	10:232
+/dev/kvm	PASS	crw-rw-rw- 1 root root 10, 232 2026-10-18 23:58 /dev/kvm
+kvm_amd loaded	PASS	nested=1 npt=Y; log: 
+properties	INFO	[hypervisor.memory_reclaim.supported]: [1] [ro.boot.hypervisor.protected_vm.supported]: [0] [ro.boot.hypervisor.version]: [cf-crosvm] [ro.boot.hypervisor.vm.supported]: [1] 
+feature android.software.virtualization_framework	PASS	
+crosvm and virtmgr	PASS	
+Terminal app installed	PASS	1 disabled
+Quire holds ACCESS_AGENT_BRIDGE	PASS	
+Android has internet	PASS	VirtWifi
+image in place	PASS	-rw-rw---- 1 u0_a114 media_rw 821177609 2026-10-18 23:53 /sdcard/linux/images.tar.gz
+Terminal installs the image	PASS	by itself (running)
+Linux environment running	PASS	state=running after 92 s
+Quire core lists the agents in the guest	PASS	agent opencode version="1.19.3" supported=true;
+VM start -> Quire connected to quired (s)	INFO	23.4
+quired agents and systemd-analyze in the Terminal app (screenshot)	INFO	terminal.png
+a prompt from Quire core is answered in the guest	PASS	10-19 00:04:54.473 I/Quire   ( 3131): agents: answer opencode-1 stop=end_turn ms=14619 text="QUIRE OK"
+SELinux denials (distinct)	INFO	13
+results in ~/anybook/quire/linux-env/cf-q4fix/check; q4-device-check.sh exit 0 (its failure count)
+
+real	3m45.642s
+user	0m0.541s
+sys	0m1.816s

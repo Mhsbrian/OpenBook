@@ -1,6 +1,6 @@
 # Quire: the agent layer of OpenBook (ANAL-214)
 
-As of 2026-10-18. Labels: **C** = confirmed (we read it in a primary source or in our AOSP 17 tree, or ran it ourselves), **R** = reported (press or third party), **HYPOTHESIS** = not yet tested. Evidence for what is built is in [`evidence/2026-10-18-quire/`](../evidence/2026-10-18-quire/) (Q1) and [`evidence/2026-10-18-quire-q2/`](../evidence/2026-10-18-quire-q2/) (Q2).
+As of 2026-10-18. Labels: **C** = confirmed (we read it in a primary source or in our AOSP 17 tree, or ran it ourselves), **R** = reported (press or third party), **HYPOTHESIS** = not yet tested. Evidence for what is built is in [`evidence/2026-10-18-quire/`](../evidence/2026-10-18-quire/) (Q1), [`evidence/2026-10-18-quire-q2/`](../evidence/2026-10-18-quire-q2/) (Q2) and [`evidence/2026-10-18-quire-q4/`](../evidence/2026-10-18-quire-q4/) (Q4).
 
 ## Summary
 
@@ -9,6 +9,7 @@ As of 2026-10-18. Labels: **C** = confirmed (we read it in a primary source or i
 - **Two open protocols, no lock-in.** Agents talk to Quire over **ACP** (Agent Client Protocol, Apache-2.0, v1), the protocol Zed and others use for editors. Quire gives its OS tools to agents over **MCP** (Model Context Protocol). An agent that speaks ACP works with Quire with no Quire-specific code. For agents that don't, `quired` adapts them.
 - **Built today: `quired`, the harness host for trusted local agents.** It finds the agent CLIs on a machine, runs them, and gives every one of them the same ACP interface. On this host it opened real ACP sessions with opencode, Copilot and omp. Through its Claude Code adapter it ran real turns in which the person's "allow" or "deny" decided whether a file was written. It has 22 unit tests that pass with the race detector, including regressions for the faults the ANAL-217 review found (§6).
 - **Built in Q2: Quire core in the image, and the AOSP 17 hooks working** (§2.5, §2.6). In Cuttlefish, a pointer shake, Meta+Space and the assist key each open Quire with a screenshot that leaves secure windows out and the list of visible apps. Quire asks for a computer-control session on Settings; the platform's own consent dialog appears; Settings runs on a separate display that Quire mirrors; a tap through the session turns Dark theme on; "take over" moves Settings to the person's screen. A denied consent, the lock screen and a secure window each stop it. Getting there took four small AOSP patches, all fixes or device configuration rather than relaxed checks.
+- **Built in Q4: agents run on the laptop itself** (§4.1). Both images carry AVF and its Terminal app. The Debian guest is built here, with `quired` in it, and Quire core reaches that `quired` over vsock through a bridge in the Terminal app. In Cuttlefish, under nested KVM on AMD, the guest boots in about 12 s. `quired agents` in its terminal lists opencode, installed there, and a prompt sent from Quire core comes back from opencode in the guest. Without KVM, Quire says the Linux environment can't run and names a paired computer as the fallback. Pairing is designed and under review ([`docs/quire-pairing.md`](quire-pairing.md)); it is not built. The G14 run waits for the owner's stick.
 - **How we learned from Multica (reviewed, not copied).** Multica's daemon detects agent CLIs and drives each through its own output format. Its licence adds conditions on commercial embedding. Quire takes the idea of detecting and running the agents a person has, and builds it on open protocols with its own code. No Multica code is used (§3).
 
 ## 1. The experience
@@ -210,11 +211,28 @@ flowchart LR
   - **Observe:** read settings, list apps and windows, read the selection, take a screenshot of non-secure windows. Observe is not harmless: these can show messages, names and documents, so each one has a scope and a destination (§5.3).
   - **Act, with consent each time or for the task:** change a setting from an allowlist; open, move or close windows; start a computer-control session for named apps.
   - **Never:** read secure windows; touch other apps' data; change security settings (lock screen, verified boot, developer options); install apps; send messages or make payments without the person doing it. The core refuses these tools outright. Computer control needs more than that, because a session on an approved app can tap anything in it (§5.3).
-- **`quired`:** finds and runs the agent CLIs, adapts the ones without ACP, and confines the ACP file reads and writes it serves to the session's folder. It is not a sandbox: agents run as the person's user (§5.2). It runs where the agents can run. Agent CLIs are Linux (glibc) programs, so on the laptop that means the **Linux environment**: AOSP 17's AVF Terminal, whose Debian guest is built for x86_64 too (`packages/modules/Virtualization/build/debian/`, `TerminalApp` has `assets-x86_64`; C). OpenBook doesn't ship AVF yet, and the G14 kernel needs KVM on AMD for it. HYPOTHESIS until Q4.
+- **`quired`:** finds and runs the agent CLIs, adapts the ones without ACP, and confines the ACP file reads and writes it serves to the session's folder. It is not a sandbox: agents run as the person's user (§5.2). It runs where the agents can run. Agent CLIs are Linux (glibc) programs, so on the laptop that means the **Linux environment**: AOSP 17's AVF Terminal and its Debian guest (§4.1).
 - **Connectors**, in order:
-  1. local ACP agents through `quired`;
-  2. a paired computer's `quired`, for people whose agents live on another machine;
+  1. local ACP agents through `quired` in the Linux environment (§4.1);
+  2. a paired computer's `quired`, for people whose agents live on another machine, or whose laptop can't run the Linux environment. Designed, not built: [`docs/quire-pairing.md`](quire-pairing.md). The Checker held revision 1: TLS session resumption skipped the pin check, and the pairing code didn't bind both identities. Revision 2 fixes both and is back for review;
   3. direct cloud APIs with the person's own key, through a small agent loop in the core, for people with no CLI at all.
+
+  Quire tries them in order and says why each one can't be used: no AVF in the image, no KVM, the Linux environment off, not installed, stopped or failing, nothing paired (`agents/Connectors.kt`). It never fails silently.
+
+### 4.1 The Linux environment and `quired serve` (Q4, ANAL-218)
+
+```text
+Quire core (platform_app)                 Terminal app (vmlauncher_app)              Debian guest (crosvm, KVM)
+  AgentHost: ACP client  --socket pair-->  AgentBridgeProvider  --------vsock------->  quired serve :7690 -> agents
+  ContentResolver.openFileDescriptor(       relays bytes both ways, half-closes too   peer must be CID 2 (Android)
+   content://…agentbridge/vsock/7690)       only port 7690 is offered
+```
+
+- **AVF in both products.** AOSP's generic system product carries the `com.android.virt` APEX, but builds it without AVF (no crosvm, virtmgr or Terminal app) unless the product inherits AVF's `product_packages.mk`; the phone Cuttlefish products do, the PC one did not (C). `device/anybook/common/linux-env/linux-env.mk` does, from `desktop.mk`. cp2a already enables the AVF release flags (custom VMs with paravirtualized devices, networking). The Terminal app ships disabled, as in AOSP: the person turns on **Developer options › Linux development environment**.
+- **KVM.** Cuttlefish's launcher sets `ro.boot.hypervisor.vm.supported=1` on x86 (C). On a PC nothing did, so the PC product's `init.openbook.rc` runs `openbook-pc-setup kvm` at `post-fs`, which reads whether KVM registered its device (sysfs: only crosvm and ueventd may stat `/dev/kvm`), and sets the `ro.boot.hypervisor.*` properties only then. A G14 with SVM off in its firmware is not offered a Linux environment that can't start; Quire says "no hardware virtualization" and names the fallback.
+- **The guest image is built here** (`scripts/quire/linux-env-image.sh`), with AOSP's own builder (`packages/modules/Virtualization/build/debian/`) and OpenBook's patch (`quire/linux-env/image/build-debian.patch`): Debian 13's own cloud kernel and initrd instead of a kernel downloaded from Google's CI, `quired` installed as a `.deb` with a systemd unit (user `droid`, vsock port 7690), and `socat`, which AOSP's ttyd bridge needs but its builder doesn't install. A test image may carry a pinned, checksummed agent (opencode, MIT); a product image ships none. On a debuggable build the Terminal app installs it from `/sdcard/linux/images.tar.gz`. On an installed OpenBook, such as the G14 since ANAL-223, `scripts/quire/linux-env-adb.sh push` puts it there over adb and checks its sha256 on the device. It refuses while a Linux environment is installed, because replacing one deletes the guest's files; the person does that in the Terminal app's Recovery settings. `linux-env-adb.sh check` then runs Q4's on-device check (`q4-device-check.sh`) and pulls its results. The builder works in its own folder (`WORK/work`, its `-W`); while it runs, `scripts/quire/unmount-build-loops.sh` undoes a desktop automounter's mounts of that folder's two loop-backed files, and of nothing else. The guest's `cidata.iso` (its guest agent and cloud-init files) is AOSP's checked-in one (`TerminalApp/assets-x86_64`, build 15101902); building it from source needs a musl host build (open).
+- **How Quire core reaches `quired`.** Only a VM's owner may have a vsock to it: AVF's policy forbids creating vsock sockets outside AVF's own domains and the Terminal app (`domain.te`), and lets other apps only read and write sockets their own `virtmgr` made (`virtualizationservice_use`; C). So the Terminal app, which owns the VM, connects to the guest's port 7690 itself, as its ttyd bridge (`AndroidToVmBridge`) does, and relays the connection to one end of a socket pair; Quire core gets the other end through a content provider (`aosp/patches/packages/modules/Virtualization/0001`). It does not use `virtmgr`'s `VirtualMachine.connectVsock`: the owner may only read and write that socket, and passing on Quire's hang-up as a half-close needs `shutdown` (Cuttlefish showed the denial). A passed, connected unix socket between apps needs no new SELinux policy (`binder_call(appdomain, appdomain)`, `appdomain:unix_stream_socket` read/write; C, no denial in Cuttlefish).
+- **`quired serve`** is one ACP agent towards Quire core that routes each session to an agent installed in the guest (`session/new` with `_meta.quire.agent`), and lists and describes them with two extension methods, `_quire/agents` and `_quire/describe`, as ACP's extensibility rules allow (C, agentclientprotocol.com/protocol/extensibility). `authenticate` is passed to the agent, and an `auth_required` error from `session/new` carries the agent's `authMethods`, so Quire can show each agent's sign-in. Terminal-type methods (run the agent's own login interactively) are never sent through `authenticate`, as ACP requires: the person signs in from the Terminal app.
 
 ## 5. Security and privacy
 
@@ -244,7 +262,15 @@ Q1 is a harness for **trusted local agents**. This section separates what Q1 enf
 - **Observe is disclosure.** Screenshots, the selection and window lists can contain messages, names and documents. Each disclosure has an explicit scope (the window or region the person invoked Quire on) and destination (the named agent, and whether it runs locally or in the cloud). Both are shown to the person before anything is sent.
 - **Secure content stays dark.** Windows with `FLAG_SECURE` are excluded from screenshots, and computer-control sessions block on them (platform behaviour, §2.4).
 
-### 5.4 Credentials and logs
+### 5.4 What Q4 adds at the vsock boundary (C, tested, §6.1)
+
+- **Who can reach `quired` in the guest.** Only Android: `quired serve` refuses vsock peers other than CID 2, so a process in the guest (vsock loopback) or another VM gets nothing. On Android, only AVF's domains can open a vsock, and only the VM's owner, the Terminal app, gets one to this VM. It offers it on to callers holding `ACCESS_AGENT_BRIDGE` (signature|privileged, granted to Quire by its privapp allowlist), and only for port 7690: ttyd and the guest agent stay the Terminal app's own.
+- **What Quire core can ask of `quired`.** Sessions run in folders inside `--root` (the guest user's home); a `cwd` outside it, or reached through a symlink out of it, is refused. A `session/new` without `cwd` gets a new folder under `Root/Quire`. The real path of `Quire` must be inside Root too, and the folder is created through a handle on Root (`os.Root`), so a `Quire` that links out of Root is refused before anything is created (ANAL-217's review of PR #111). MCP servers named by the client are refused: a stdio MCP server is a command line `quired` would run, and Quire's OS tools get their own shim in Q6.
+- **Permission answers.** A request the client can't answer (gone, timed out) is refused with the agent's own reject option; an answer that isn't one of the agent's options is refused too. Quire core answers with the person's choice among the agent's own options, or by a fixed policy in the scripted checks; with nobody to ask, it refuses.
+- **Lifetime.** When Quire core's connection ends, `quired` cancels every running turn and stops every agent it started for it, including one that was still starting. `Serve` returns only once they have all stopped.
+- **Still the trusted-agent contract (§5.2).** Agents in the guest run as `droid` with that user's full access, including `sudo` without a password in AOSP's image. The guest is the boundary towards Android, not towards the agents.
+
+### 5.5 Credentials and logs
 
 - `quired` does not store, ask for or proxy agent credentials. Agents keep their own sign-in.
 - `quired` is not a secret boundary:
@@ -253,7 +279,7 @@ Q1 is a harness for **trusted local agents**. This section separates what Q1 enf
 - `quired` never logs its own environment. Evidence is redacted of home paths only, which is not secret redaction. Evidence is therefore scanned for common credential patterns before it is committed (a bounded check, not proof).
 - Cloud keys for the direct connectors will stay in the core, in Android Keystore (design, Q4 and later).
 
-### 5.5 What we will not do
+### 5.6 What we will not do
 
 Bypass Play Integrity, DRM or licence checks; use Google's Gemini apps or Magic Pointer code; send screen contents anywhere the person didn't choose.
 
@@ -301,10 +327,20 @@ quired run [flags] AGENT PROMPT...           run one turn (--approve ask|read|al
 
 **Not done yet:**
 
-- `quired serve`, the transport to Quire core;
 - the Codex, Grok and Antigravity adapters;
-- the `authenticate` flow;
-- passing Quire's OS-tools MCP server, which is Q3.
+- passing Quire's OS-tools MCP server, which is Q6.
+
+### 6.1 `quired serve` (Q4)
+
+```text
+quired serve [--vsock PORT | --unix PATH | --stdio] [--root DIR] [--max-conns N]
+quired agents --connect ADDR                 list the agents of a quired serve (vsock:CID:PORT or unix:PATH)
+quired run --connect ADDR [flags] AGENT PROMPT...
+```
+
+- **`internal/serve`:** the router (one ACP connection, many agents and sessions), and `Remote`, the same client in Go that `--connect` uses and that Quire core's `AgentHost` mirrors in Kotlin. Updates an agent sends about a session before `session/new` has returned are held and delivered in order on both sides.
+- **`internal/vsock`:** `AF_VSOCK` with the standard library only. `syscall` can't decode a vsock address, so bind, connect and `accept4` are raw system calls on non-blocking sockets in Go's poller.
+- **Guest packaging:** `quire/linux-env/` (`build-deb.sh`, `quired.service`). On an installed system the image goes in over adb: `scripts/quire/linux-env-adb.sh` (§4.1).
 
 ## 7. Milestones
 
@@ -315,7 +351,7 @@ Each one is a sub-issue of ANAL-214 with its own acceptance checks. "G14" means 
 | Q1 | **`quired` harness host** (ANAL-214) | Porter | Built and checked on this host (§6), this PR |
 | Q2 | **Platform hooks in the image** (ANAL-216). Quire core skeleton as a privileged system app: `ROLE_ASSISTANT`, contextual search package, `ACCESS_COMPUTER_CONTROL` allowlist, the shake flag and the computer-control flags in OpenBook's flag set | Porter | In Cuttlefish: a shake and Meta+Space open Quire with a screenshot and the visible packages; a computer-control session on Settings shows in an `InteractiveMirror`; with per-app consent on, through the ordinary allowlist path (not a debug super agent): fresh consent, a second unapproved app, denial, secure content, lock and take-over; no new SELinux denials; the release flags diff reviewed. **Done in Cuttlefish (§2.6)** |
 | Q3 | **Interaction and motion design** (ANAL-215) | Atelier | Invocation, the note's states (asking, streaming, steps, consent, mirror, done, error), motion specs and a clickable prototype; the visual language matches OpenBook's look |
-| Q4 | **The Linux environment and `quired serve`** (ANAL-218). AVF Terminal in OpenBook, KVM on AMD, `quired` in the Debian guest, ACP over vsock to the core, pairing for a second computer | Porter | An agent installed in the Linux environment answers a prompt from Quire core in Cuttlefish, then on the G14 |
+| Q4 | **The Linux environment and `quired serve`** (ANAL-218). AVF Terminal in OpenBook, KVM on AMD, `quired` in the Debian guest, ACP over vsock to the core, pairing for a second computer | Porter | An agent installed in the Linux environment answers a prompt from Quire core in Cuttlefish, then on the G14. **Done in Cuttlefish (§4.1):** 29/29, and 8/8 without KVM; installed over adb, 0 failures. Open: the G14 run, over adb once the installed system's update carries AVF (`scripts/quire/linux-env-adb.sh check`), and pairing (design revision 2, for re-review) |
 | Q5 | **The surface** (ANAL-219). The note, steps, consent and mirror, built to Q3's spec | Porter with Atelier | Q3's states, in a recorded Cuttlefish session; 60 fps on the G14; works with TalkBack and keyboard only. **Built and checked in Cuttlefish (§9); the G14, TalkBack and the Launcher3 button are open** |
 | Q6 | **OS tools over MCP** (ANAL-220). Settings (allowlisted, with undo), apps and windows, computer control | Porter | A scripted matrix: "turn on dark theme", "make text bigger", "open Files and show Downloads", each with the right consent, plus deny, cancel and never-tier refusals tested at the broker (§5.3) |
 | Q7 | **Voice** (ANAL-221). Hold to talk, on-device speech-to-text (open models only), and the note reading back | Porter | Works offline on the G14; the mic indicator is always shown |
@@ -334,8 +370,8 @@ In the order the ANAL-217 review ranked them, with what Q2 found.
    - **Debuggable builds keep the last five invocation screenshots and session screenshots** in Quire's private storage, as Q2 evidence. User builds keep none. Q5 keeps this for the Q2 checks.
    - **After Pause and Resume the session's accessibility windows are gone** (C, Q5): `getAccessibilityWindows()` throws a NullPointerException from system_server (`ProxyAccessibilityServiceConnection.getWindows()` dereferences a null list) for at least 3 s after `requestUnblock()`. On block, `ComputerControlSession` unregisters its accessibility display proxy and re-registers it on active; HYPOTHESIS: the re-registered connection lacks the window-retrieval capability the first registration had. Quire catches it and ends the run honestly (§9). Q6 needs a platform fix before an agent can continue after a pause.
 3. **The pointer shake and Meta+A/Meta+G were dead in AOSP 17 on a device like ours** (C): Launcher3 lacked `ACCESS_CONTEXTUAL_SEARCH`, and SystemUI armed the shake only for users who can log out (headless system user mode, which Googlebook runs and OpenBook does not). Both are patched (§2.5); the patches are small enough to send upstream.
-4. **AVF on AMD** (HYPOTHESIS). The Terminal's x86_64 assets and Debian build exist at Virtualization `22f1c9ee92b1`, and our kernel's x86 `gki_defconfig` (`fbfdd65b0fd1`) has `CONFIG_KVM=y` and `CONFIG_KVM_AMD=y`. That is configuration, not a running device. Q4 must show the built kernel's config, `/dev/kvm` access under SELinux, crosvm booting the non-protected Debian guest, and vsock, first in Cuttlefish and then on the G14 (GA403WR, Ryzen AI 9 HX 370). If it can't run, `quired` would run on a paired computer and Quire would use cloud connectors; that fallback isn't built.
-5. **Protocol compatibility and sign-in.** `quired` refuses ACP versions other than 1. Cursor and Kimi need an ACP `authenticate` step on this host; Quire will show each agent's `authMethods` in its connect screen.
+4. **AVF on AMD.** In Cuttlefish (C): `kvm_amd` nested, crosvm on `/dev/kvm`, the non-protected Debian guest, vsock both ways, no denial for OpenBook code, and AOSP AVF's own denials listed (`evidence/2026-10-18-quire-q4/`). Found on the way: AOSP's PC product compiled AVF out; `virtmgr`'s vsock can't be half-closed by its owner; and without KVM, AVF and the Terminal app keep calling a dead VM running. Each is handled in §4.1. **On the G14, KVM is there:** a read-only adb check of the installed system (ANAL-214, 2026-10-18 23:36 UTC) found `/dev/kvm`, SVM on and `kvm_amd` loaded. **AVF and the guest on it are unproven.** AVF arrives with the next update over adb (ANAL-223), and the guest image (about 800 MB) is pushed the same way. `scripts/quire/linux-env-adb.sh check` then runs the KVM check, `kvm_amd`, the guest's boot time and the prompt there. It passes on Cuttlefish over adb, with 0 failures. The guest's network is Android's, through AVF's tethering, so the laptop needs Wi-Fi for cloud agents.
+5. **Protocol compatibility and sign-in.** `quired` refuses ACP versions other than 1. Cursor and Kimi need an ACP `authenticate` step on this host. Since Q4, `quired serve` passes `authenticate` through and attaches each agent's `authMethods` to `auth_required`; Quire's connect screen (Q5) shows them. Agents whose only method is `terminal` (run the agent's own login) are signed in from the Terminal app.
 6. **Agent CLIs change often.** The catalog records the version each entry was checked against, and adapters are only needed for agents without ACP. The industry is moving to ACP: 6 of the 11 CLIs on this host have it.
 7. **The shake gesture is "early"** (its own TODO). We may tune the threshold for touchpads. In Cuttlefish a mouse shake of 8 strokes, 15 counts each, 50 ms apart, fires it on the first try.
 8. **Contextual search also hands Quire a `MediaProjection`** (§2.3). Quire never uses it; a review should confirm it is never started.
@@ -465,5 +501,7 @@ The evidence is in `evidence/2026-10-19-quire-q5-safety/SUMMARY.md`.
 - Agent Client Protocol, spec and SDKs (Apache-2.0, protocol version 1): https://github.com/agentclientprotocol/agent-client-protocol · https://agentclientprotocol.com. Permission requests are optional for the agent ("the Agent MAY request permission"), and cancel obligations: https://agentclientprotocol.com/protocol/v1/prompt-turn. Version negotiation: https://agentclientprotocol.com/protocol/v1/initialization. Both accessed 2026-10-18.
 - Multica README and licence: https://github.com/multica-ai/multica
 - Kernel: `common` at `fbfdd65b0fd1`, `arch/x86/configs/gki_defconfig`.
+- Agent Client Protocol, extensibility (`_meta`, `_`-prefixed extension methods) and authentication (`authMethods`, `authenticate`, terminal methods): https://agentclientprotocol.com/protocol/extensibility · https://agentclientprotocol.com/protocol/v1/authentication, accessed 2026-10-18.
+- AVF in AOSP 17, our pinned tree (Virtualization `22f1c9ee92b1`): `apex/product_packages.mk` (`PRODUCT_AVF_ENABLED`), `build/apex/Android.bp` (the AVF-disabled APEX variant), `android/TerminalApp/` (`ImageArchive.kt` and `InstalledImage.kt` for the local image and its build id, `new2/core/VmController.kt`, `AndroidToVmBridge.kt`), `libs/framework-virtualization/.../VirtualMachine.java` (`connectVsock`), `build/debian/`; `system/sepolicy/private/te_macros` (`virtualizationservice_use`), `domain.te` (the vsock neverallow), `crosvm.te` (`/dev/kvm`), `app.te`; `device/google/cuttlefish/host/commands/assemble_cvd/bootconfig_args.cpp` (the hypervisor properties).
 - AOSP 17 (`android-latest-release`, our pinned tree: frameworks/base `8f5dedd3edc3`, Virtualization `22f1c9ee92b1`; paths as cited above): `frameworks/base/core/java/android/companion/virtual/computercontrol/`, `frameworks/base/packages/SystemUI/src/com/android/systemui/contextualcursor/`, `frameworks/base/core/java/android/app/contextualsearch/ContextualSearchManager.java`, `frameworks/base/services/contextualsearch/`, `frameworks/base/services/companion/java/com/android/server/companion/virtual/computercontrol/ComputerControlAllowlistController.java`, `frameworks/base/packages/VirtualDeviceManager/`, `build/release/aconfig/{cp2a,trunk_staging}/`, `packages/modules/Virtualization/`
 - Rambler: secondary report of Google's 2026-09-21 post (R): https://letsdatascience.com/news/google-details-magic-pointer-and-rambler-features-for-google-978edf8d
