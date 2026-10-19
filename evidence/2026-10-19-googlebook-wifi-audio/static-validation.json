@@ -1,0 +1,32 @@
+{
+  "compatibility_guards": 16,
+  "live_guards": 7,
+  "audited_inputs": 395,
+  "inputs_unchanged": true,
+  "native_static_checks": {
+    "ruby": true,
+    "openbook": true,
+    "hybrid-reduced": true
+  },
+  "unadapted_hybrid_expected_failure": true,
+  "permissive_domains": [],
+  "wifi_overlay": {
+    "package": "org.openbook.ruby.wifi",
+    "apk_sha256": "e2169d896c9fea8ac1af7ec18d6a7612cdc43dfa34294fdb6706dac48884dafe",
+    "target_package": "com.google.android.wifi.resources",
+    "target_sha256": "827cb7759f9dbe7b043a0f77272a3cc731cee178d00062c3e3ea855378c888d6",
+    "idmap_vendor_policy_validated": true,
+    "activation": "mutable RRO, system user 0, highest priority; runtime readback required"
+  },
+  "kernel_and_framework_images_unchanged": true,
+  "static_usb_logger_unchanged": true,
+  "firmware_path_retained": true,
+  "boot_animation": {
+    "sha256": "e76c29d47140fc3fa6bc38fe16a88693021c683f33ec110c4bfa18cdb3096a08",
+    "archive_entries": 247,
+    "audio_entries": [],
+    "scope": "Retained system/media/bootanimation.zip; does not rule out sounds triggered elsewhere"
+  },
+  "final_audit": "net18",
+  "alsa_diagnostic_permission": "shell may search proc_asound directories; existing file read permissions retained"
+}

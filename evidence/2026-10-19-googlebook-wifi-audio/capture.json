@@ -1,0 +1,20 @@
+{
+  "schema": "openbook-googlebook-g14-wifi-audio/1",
+  "image_before_update_sha256": "048bacf5934bcd22c2450784e83ec5e8eb563184ff7bb7e690ac595a68ba48f4",
+  "capture_files": 64,
+  "capture_bytes": 8967953,
+  "backup_files_sha256_verified": true,
+  "read_only_fat_check": "passed",
+  "kernel_last_uptime_s": 65.936853,
+  "android_checkpoints": 4,
+  "complete_marker": false,
+  "connection_attempt_captured": false,
+  "physical_playback_test_captured": false,
+  "capture_end_reason": "unknown",
+  "private_used_extent_backup": {
+    "bytes": 12766412800,
+    "sha256": "43e929dc84b46e21596b18f2604177336010b987bd00d2c50e2913656e0ecf03",
+    "mode": "0600",
+    "scope": "used image extent before Wi-Fi/audio update"
+  }
+}

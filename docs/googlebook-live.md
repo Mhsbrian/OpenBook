@@ -5,6 +5,43 @@ packager and an instruction-emulation lane. These are local research artifacts;
 the installer Googlebook option remains unavailable. Generated images contain
 retained recovery material and must stay local.
 
+## Wi-Fi and audio follow-up
+
+The owner now reports both fw10 entries reaching setup. The returned capture
+confirms Radeon and network/amplifier firmware initialization. It ends at
+66 seconds without a recorded connection attempt or completion marker.
+Codec2 shared-buffer denials explain the captured failure to decode UI sounds;
+the cause of the reported Wi-Fi join failure is not yet established.
+
+The net18 vendor integration restores the existing OpenBook media queue policy
+and overrides Ruby's unsupported MAC-randomization assumptions with a mutable
+RRO. The activation service verifies the two effective values for system user
+0; it does not change networks, credentials or the selected supplicant. Ruby's
+system, system_ext and product image bytes remain unchanged. Strict SELinux
+compilation and enforcing mode remain mandatory.
+
+The final VM validation saves a complete 600.2-second capture, verifies both
+Wi-Fi override values and the service's cached randomization setting, and
+loads UI sounds without the previous Codec2 errors. ALSA inventory and service
+dumps are readable through the corrected logger. It does not test a physical
+Wi-Fi radio or audible speaker output. Earlier intermittent framework crashes
+remain open. The final 660.6-second observation has one zygote exit and no
+captured system-server fatal signal.
+
+The owner's SanDisk now holds net18 (`74c5270b2c37b658…`), with matching full
+12,766,412,800-byte readback and successful power-off. Prior logs and the used
+image extent are preserved privately. See the latest `physical-write.json`.
+
+Use **save detailed logs**, wait for setup, try connecting once, and note the
+visible result. If setup becomes usable, test a media clip or sound preview;
+the retained boot animation has no audio track, so silence there is inconclusive.
+Keep this boot running for **12
+minutes**, then shut down normally and return the stick. Diagnostics now include
+Wi-Fi/connection state and effective resource values, ALSA inventory, audio
+policy and AudioFlinger. No saved network XML or microphone samples are read.
+Raw dumps still contain network identifiers and must remain private. See
+`evidence/2026-10-19-googlebook-wifi-audio/` for evidence and validation limits.
+
 ## Black-screen capture on the USB
 
 The owner reported a black screen after selecting the original live entry.
@@ -33,10 +70,10 @@ See `evidence/2026-10-19-googlebook-g14-black-screen/physical-write.json`.
 The new **Googlebook - save detailed logs to USB (10 minutes)** entry runs a
 static PID 1 helper before Android, saving `early.txt` and `early-kernel.txt`.
 An early-init vendor service then streams kernel records, and an Android shell
-service supplies all logcat buffers plus repeated properties, processes,
-mounts, memory, SurfaceFlinger, display, window, activity and power snapshots.
-The corrected collector also records the firmware path and DRM nodes, and
-keeps logcat alive after the 18 snapshots. On the returned failing G14 boot,
+service supplies all logcat buffers plus repeated selected properties, processes,
+mounts, memory, network and audio snapshots, with occasional display snapshots.
+The collector also records the kernel command line and DRM nodes, and
+keeps logcat alive independently of the snapshots. On the returned failing G14 boot,
 the previous script stopped logcat normally at 272 seconds when those snapshots
 finished; kernel records continued through 526 seconds without a completion
 marker. That missing marker does not establish why the session ended.
@@ -154,7 +191,7 @@ Service-list queries can generate denied Binder calls; they do not grant access
 to those services. A successful harness exit means the observation completed,
 including an early guest reboot; it is not a desktop pass.
 
-The final 495.4-second observation rendered the welcome screen and responded to
+An earlier 495.4-second observation rendered the welcome screen and responded to
 input, then `system_server` faulted with SIGSEGV/SEGV_ACCERR and zygote restarted.
 Earlier RenderThread `execmem` denials implicate the VM's SwiftShader JIT path,
 whose debug-only grant the strict Ruby user policy forbids. This is a hypothesis

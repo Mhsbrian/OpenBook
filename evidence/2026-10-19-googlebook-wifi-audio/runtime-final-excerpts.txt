@@ -1,0 +1,7 @@
+ 0 [Intel          ]: HDA-Intel - HDA Intel
+00-00: Generic Analog : Generic Analog : playback 1 : capture 1
+10-19 22:15:59.439  1803  1803 I OpenBookRubyWifi: config_wifi_connected_mac_randomization_supported=false
+10-19 22:15:59.535  1808  1808 I OpenBookRubyWifi: config_wifiDropConnectionWhenMacConfigurationFails=false
+10-19 22:15:59.584  1810  1810 I OpenBookRubyWifi: platform overlay verification=ok
+Resource Name: config_wifi_connected_mac_randomization_supported, value: false
+10-19 22:18:47:917 effects loading completed

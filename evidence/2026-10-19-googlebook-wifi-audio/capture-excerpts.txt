@@ -1,0 +1,11 @@
+6,1567,6085913,-,caller=T466;amdgpu 0000:65:00.0: amdgpu: SMU is initialized successfully!
+6,1568,6087301,-,caller=T466;amdgpu 0000:65:00.0: amdgpu: [drm] Display Core v3.2.351 initialized on DCN 3.5
+6,1570,6090112,-,caller=T466;amdgpu 0000:65:00.0: amdgpu: [drm] DMUB hardware initialized: version=0x09005700
+6,1796,6924099,-,caller=T176;mt7925e 0000:63:00.0: HW/SW Version: 0x8a108a10, Build Time: 20260414153001a\x0a
+6,1825,7057901,-,caller=T228;cs35l56-hda i2c-CSC3556:00-cs35l56-hda.0: DSP1: Firmware: 1a00d6 vendor: 0x2 v3.11.16, 41 algorithms
+6,1832,7059730,-,caller=T475;cs35l56-hda i2c-CSC3556:00-cs35l56-hda.1: DSP1: Firmware: 1a00d6 vendor: 0x2 v3.11.16, 41 algorithms
+36,3482,49353751,-,caller=T724;type=1400 audit(1792445181.103:39): avc:  denied  { write } for  comm="binder:1055_1" name="memfd:MessageQueue" dev="tmpfs" ino=9218 scontext=u:r:mediaswcodec:s0 tcontext=u:object_r:tmpfs:s0 tclass=file permissive=0
+36,3483,49353820,-,caller=T724;type=1400 audit(1792445181.103:40): avc:  denied  { write } for  comm="mediaswcodec" name="memfd:MessageQueue" dev="tmpfs" ino=15360 scontext=u:r:mediaswcodec:s0 tcontext=u:object_r:tmpfs:s0 tclass=file permissive=0
+10-19 21:26:21.112  1249  2741 W AudioSvc.SfxHelper: onLoadSoundEffects(), Error -2147483648 while loading sample /product/media/audio/ui/KeypressStandard.ogg
+10-19 21:26:17.444  1249  1249 I SupplicantStaIfaceHal: Initializing SupplicantStaIfaceHal using AIDL Mainline implementation
+10-19 21:26:17.443  1249  1249 E WifiHal : No HIDL or AIDL service available for the Wifi Vendor HAL.
