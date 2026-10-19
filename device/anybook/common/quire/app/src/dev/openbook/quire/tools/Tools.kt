@@ -30,9 +30,12 @@ enum class Tier {
 /** A refusal or failure the agent should read, as a tool result with `isError`. */
 class ToolError(message: String) : Exception(message)
 
-/** What the person is asked before a destructive call: the card's title, what changes, and what Quire can't undo. */
+/**
+ * What the person is asked before a destructive call: the card's title, what changes, what Quire can't undo, and the
+ * two buttons in Quire's words (docs/quire-design.md §3.3 rule 2): the destructive verb, and the safe choice.
+ */
 data class Ask(val title: String, val rows: List<Change> = emptyList(), val detail: String? = null,
-    val why: String)
+    val why: String, val verb: String = "Allow", val keep: String = "Keep it")
 
 /** An MCP `CallToolResult`. */
 class ToolResult private constructor(val content: JSONArray, val error: Boolean) {

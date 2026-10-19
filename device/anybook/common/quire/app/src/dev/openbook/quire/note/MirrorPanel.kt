@@ -96,10 +96,10 @@ class MirrorPanel(private val env: NoteEnv, private val onAction: (Action) -> Un
         name to android.graphics.Rect(loc[0], loc[1], loc[0] + v.width, loc[1] + v.height)
     }
 
-    private val stop = QButton(context, p, context.getString(R.string.q_stop), QButton.Style.DANGER).apply {
+    private val stop = QButton(context, p, context.getString(R.string.q_stop), QButton.Style.DESTRUCTIVE).apply {
         setOnClickListener { onAction(Action.STOP) }
     }
-    private val pause = QButton(context, p, context.getString(R.string.q_pause), QButton.Style.TONAL, Icons.PAUSE)
+    private val pause = QButton(context, p, context.getString(R.string.q_pause), QButton.Style.PAPER, Icons.PAUSE)
     private val takeOver = QButton(context, p, context.getString(R.string.q_take_over), QButton.Style.FILLED,
         Icons.OPEN_IN_FULL).apply { setOnClickListener { onAction(Action.TAKE_OVER) } }
     private var task: Task? = null

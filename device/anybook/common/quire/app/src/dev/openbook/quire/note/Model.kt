@@ -56,6 +56,8 @@ sealed class Block {
         val why: String?,
         val options: List<Option>,
         val toolCallId: String?,
+        /** Q6, ANAL-227: Quire's destructive question: the verb on `errorContainer`, the safe choice first. */
+        val destructive: Boolean = false,
         /** Answers the request; the note calls it once, with an option id or null for cancelled. */
         val answer: (String?) -> Unit,
     ) : Block() {

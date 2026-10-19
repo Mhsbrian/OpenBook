@@ -1114,11 +1114,11 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
         }
         val s = step as Step
         val options = listOf(
-            Option("deny", context.getString(R.string.q_broker_deny), "reject_once"),
-            Option("allow", context.getString(R.string.q_broker_allow), "allow_once"),
+            Option("deny", ask.keep, "reject_once"),
+            Option("allow", ask.verb, "allow_once"),
         )
         val card = Block.Consent(Block.Consent.Source.BROKER, ask.title, kindLabel(tool.kind), ask.rows, ask.detail,
-            null, ask.why, options, s.id) { id -> answer(id == "allow") }
+            null, ask.why, options, s.id, destructive = true) { id -> answer(id == "allow") }
         Log.i(TAG, "note: task $id asks the person before ${tool.name}")
         if (pending != null) {
             queuedCards.addLast(card)

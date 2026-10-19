@@ -192,6 +192,25 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
     }
 
     /** Draws the note again in the current theme, in place (light and dark follow the system, §4.3). */
+    /**
+     * Glass or paper (docs/quire-design.md §4.5): when the platform turns window blur off (battery saver, thermal,
+     * Developer options) or back on, the note re-draws its surface with the same layout.
+     */
+    private var glass = Palette.glassOn(context)
+
+    init {
+        try {
+            wm.addCrossWindowBlurEnabledListener(context.mainExecutor) { on ->
+                if (on == glass) return@addCrossWindowBlurEnabledListener
+                glass = on
+                android.util.Log.i(dev.openbook.quire.Quire.TAG, "note: window blur ${if (on) "on" else "off"}")
+                retheme()
+            }
+        } catch (e: RuntimeException) {
+            // No blur on this device: the note stays paper.
+        }
+    }
+
     fun retheme() {
         val t = task ?: return
         closePicker()

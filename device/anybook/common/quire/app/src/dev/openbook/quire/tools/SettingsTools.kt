@@ -383,7 +383,8 @@ object SettingsTools {
             val old = s.get(c)
             val new = s.parse(c, args.req("value"), old)
             return Ask("Change ${s.name}?", listOf(Change(s.name, s.where, s.label(old), s.label(new))),
-                why = "This changes how the laptop can be reached or debugged. It can be changed back in Settings.")
+                why = "This changes how the laptop can be reached or debugged. It can be changed back in Settings.",
+                verb = "Change it", keep = "Leave it")
         }
 
         override fun run(c: Context, args: JSONObject, note: CallNote): ToolResult {

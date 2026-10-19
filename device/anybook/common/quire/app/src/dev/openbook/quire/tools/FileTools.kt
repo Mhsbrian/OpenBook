@@ -177,7 +177,8 @@ object FileTools {
             if (!args.optBoolean("overwrite")) throw ToolError("${Files.rel(f)} exists. Pass overwrite: true to " +
                 "replace it (the person is asked), or choose another name.")
             return Ask("Replace ${f.name}?", listOf(Change(f.name, Files.rel(f.parentFile!!), Files.describe(c, f)
-                .substringAfter(" (").trimEnd(')'), "new text")), why = "Its current content will be lost.")
+                .substringAfter(" (").trimEnd(')'), "new text")), why = "Its current content will be lost.",
+                verb = "Replace", keep = "Keep it")
         }
         override fun run(c: Context, args: JSONObject, note: CallNote): ToolResult {
             val f = Files.resolve(args.req("path"))
@@ -256,8 +257,9 @@ object FileTools {
             if (f == Files.root.canonicalFile) throw ToolError("That is the person's whole shared storage.")
             val n = Files.count(f) - 1
             val what = if (f.isDirectory) "folder with $n items" else Files.describe(c, f).substringAfter(" (").trimEnd(')')
-            return Ask("Delete ${f.name}?", listOf(Change(f.name, Files.rel(f.parentFile!!), what, "deleted")),
-                why = "Deleted files can't be brought back by Quire.")
+                .replace(", ", " · ")
+            return Ask("Delete ${f.name}?", listOf(Change(f.name, "${Files.rel(f.parentFile!!)} · $what", "", "")),
+                why = "This can't be undone: Quire can't bring deleted files back.", verb = "Delete", keep = "Keep it")
         }
         override fun run(c: Context, args: JSONObject, note: CallNote): ToolResult {
             val f = Files.resolve(args.req("path"))
