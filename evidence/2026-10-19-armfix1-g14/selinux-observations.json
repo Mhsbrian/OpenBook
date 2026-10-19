@@ -1,0 +1,54 @@
+{
+  "openbook_domain_denial_tuples": 0,
+  "additional_tuples_relative_to_before_capture": [
+    {
+      "scontext": "app_zygote",
+      "tcontext": "zygote_exec",
+      "tclass": "file",
+      "perms": [
+        "getattr"
+      ]
+    },
+    {
+      "scontext": "hal_usb_default",
+      "tcontext": "sysfs_batteryinfo",
+      "tclass": "dir",
+      "perms": [
+        "search"
+      ]
+    },
+    {
+      "scontext": "isolated_app",
+      "tcontext": "app_data_file",
+      "tclass": "file",
+      "perms": [
+        "setattr"
+      ]
+    },
+    {
+      "scontext": "isolated_app",
+      "tcontext": "content_capture_service",
+      "tclass": "service_manager",
+      "perms": [
+        "find"
+      ]
+    },
+    {
+      "scontext": "keystore",
+      "tcontext": "hal_gatekeeper_service",
+      "tclass": "service_manager",
+      "perms": [
+        "find"
+      ]
+    },
+    {
+      "scontext": "platform_app",
+      "tcontext": "bluetooth_lea_prop",
+      "tclass": "file",
+      "perms": [
+        "read"
+      ]
+    }
+  ],
+  "interpretation": "Captures cover different activity and boot phases; additional tuples alone do not establish regressions. No associated failure established in this rollout."
+}
