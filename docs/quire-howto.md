@@ -27,8 +27,8 @@ For the G14 after ANAL-225's update (`openbook-ota-20261019-quire2`). How it wor
 
 - **First start:** turn on **Settings › System › Developer options › Linux development environment**, then open
   **Terminal** once. It installs OpenBook's Debian image, with `quired` and opencode, from `/sdcard/linux/` and starts
-  it. Put the image there first (`scripts/quire/linux-env-adb.sh push`, after the update's restart). Without it, the
-  Terminal app downloads Google's image, which has no `quired`, so Quire finds no agent.
+  it (on the G14 since 2026-10-19 10:39Z; elsewhere, `scripts/quire/linux-env-adb.sh push` puts it there). Without it,
+  the Terminal app downloads Google's image, which has no `quired`, so Quire finds no agent.
 - **To stop it for now:** use the Terminal notification.
 - **To turn it off:** switch **Linux development environment** off. Quire then says the Linux environment is off
   instead of failing.
