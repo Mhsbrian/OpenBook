@@ -20,6 +20,8 @@ usage: ota-qemu.py prep  --run RUN --installed DISK            the base state: t
                    starts A again by itself, /data intact; then the good package from there
          cut       a power cut while update_engine writes slot B: A boots with /data intact; the update re-run completes
          ba        the second update, B -> A, from ab's disk: this time the boot HAL on B moves the ESP entry
+       --from STATE (ab, rollback, cut): start from another saved disk state instead of base, e.g. after-ab (what
+         the G14 runs after its first update); the case directory is then CASE-from-STATE
        ota-qemu.py check --run RUN                              results.json and SUMMARY.md from the cases' checks
 Results: <data dir>/logs/installer/ota/RUN/<case>/ (serial.log, adb logs, checks.json); disks in
 <data dir>/installer/ota/RUN/.
@@ -333,8 +335,9 @@ def wait_merge(adb, timeout=900):
     """update_engine merges the snapshots after markBootSuccessful; done when its log says so and no snapshot is left."""
     t0 = time.time()
     while time.time() - t0 < timeout:
-        out, _ = adb.sh("logcat -d -b all | grep -E 'Merge finished with state|MergeFailed|merge failed' | tail -n 3; "
-                        "snapshotctl dump 2>&1 | grep -iE 'update.?state' | head -n 1")
+        # update_engine's own lines only: adbd logs every shell command, this grep's words included
+        out, _ = adb.sh("logcat -d -b all -s update_engine | grep -E 'Merge finished with state|MergeFailed|merge failed' "
+                        "| tail -n 3; snapshotctl dump 2>&1 | grep -iE 'update.?state' | head -n 1")
         if "MergeCompleted" in out or re.search(r"state:\s*none", out, re.I):
             return True, out.strip(), round(time.time() - t0)
         if "MergeFailed" in out:
@@ -493,13 +496,14 @@ def case_ab(a, from_state="base", case="ab", pkg_path=None):
         adb = Adb(port, out)
         adb.connect()
         unlock(adb)
+        has_bootsync = adb.sh("[ -x /vendor/bin/openbook-bootsync ] && echo yes")[0].strip() == "yes"
         rc = g14adb(port, "ota", pkg_path, "--yes", logfile=f"{out}/g14-adb-ota.log")
         text = open(f"{out}/g14-adb-ota.log").read()
         C(f"g14-adb.sh ota: slot {tgt} written over adb, verified", rc == 0 and f"verified  slot {tgt}" in text,
           text[-800:])
-        C("the first update's ESP step: bootsync from the package (running image has none)" if from_state == "base" else
+        C("the first update's ESP step: bootsync from the package (running image has none)" if not has_bootsync else
           "the boot HAL moved the ESP entry (no bootstrap)",
-          ("from the package" in text) == (from_state == "base"), text[-400:])
+          ("from the package" in text) == (not has_bootsync), text[-400:])
         progress = re.findall(r"UPDATE_STATUS_DOWNLOADING (\d+)%", text)
         C("progress shown while update_engine writes", len(set(progress)) >= 3, progress[-5:])
         if rc:
@@ -545,25 +549,40 @@ def case_ab(a, from_state="base", case="ab", pkg_path=None):
     return 0 if all(x["ok"] for x in C.items) else 1
 
 
-def case_rollback(a):
-    q, out = case_dir(a.run, "rollback")
-    C = Checks(f"{out}/checks.json", "rollback")
-    base = json.load(open(f"{q}/base.json"))
-    good, broken = pkg_info(a.ota), pkg_info(a.broken)
-    disk = f"{q}/rollback.img"
-    reflink(f"{q}/base.img", disk)
-    shutil.copy(f"{q}/base.vars", f"{q}/rollback.vars")
+def start_case(a, case, from_state):
+    """A case's directory, checks, disk (a copy of the saved state FROM) and VM."""
+    q, out = case_dir(a.run, case)
+    C = Checks(f"{out}/checks.json", case)
+    disk = f"{q}/{case}.img"
+    reflink(f"{q}/{from_state}.img", disk)
+    shutil.copy(f"{q}/{from_state}.vars", f"{q}/{case}.vars")
     port = free_port()
-    vm = VM(out, disk, f"{q}/rollback.vars", port, f"ota-{a.run}-rollback")
+    vm = VM(out, disk, f"{q}/{case}.vars", port, f"ota-{a.run}-{case}")
+    return q, out, C, disk, port, vm
+
+
+def same_data(st, b):
+    """The prep markers (setting, file, app) and the build (vbmeta) in st as in the reference state b."""
+    keys = ("SLOT", "VBMETA", "MARKER", "FILE", "APP")
+    return all(st.get(k) == b.get(k) for k in keys), {k: (b.get(k), st.get(k)) for k in keys if st.get(k) != b.get(k)}
+
+
+def case_rollback(a, from_state="base", case="rollback"):
+    q, out, C, disk, port, vm = start_case(a, case, from_state)
+    base = json.load(open(f"{q}/base.json"))
+    good = pkg_info(a.ota)
     vm.start()
     try:
-        boot(vm)
+        cur = boot(vm)
+        tgt = "b" if cur == "a" else "a"
         adb = Adb(port, out)
         adb.connect()
+        adb.root()
         unlock(adb)
+        before = state(adb)
         rc = g14adb(port, "ota", a.broken, "--yes", logfile=f"{out}/g14-adb-ota-broken.log")
-        C("the broken package (its kernel cannot start: rdinit missing) installs and verifies like any other",
-          rc == 0 and "verified  slot b" in open(f"{out}/g14-adb-ota-broken.log").read())
+        C(f"the broken package (its kernel cannot start: rdinit missing) installs on slot {tgt} and verifies like any "
+          "other", rc == 0 and f"verified  slot {tgt}" in open(f"{out}/g14-adb-ota-broken.log").read())
         adb.connect()
         adb.root()
         adb.sh("reboot")
@@ -573,32 +592,40 @@ def case_rollback(a):
             if slot != "panic":
                 break
             panics += 1
-        C("slot b fails to start three times (kernel panic, reboot), then systemd-boot starts slot a by itself",
-          panics == 3 and slot == "a", (panics, slot))
+        C(f"slot {tgt} fails to start three times (kernel panic, reboot), then systemd-boot starts slot {cur} by itself",
+          panics == 3 and slot == cur, (panics, slot))
         adb.connect()
         adb.root()
         ok, how = unlock(adb)
         st = state(adb)
-        b = base["state"]
-        C("slot a is the old build, /data intact (PIN, setting, file, app)", ok and st.get("SLOT") == "_a" and
-          st.get("VBMETA") == b["VBMETA"] and st.get("MARKER") == b["MARKER"] and st.get("FILE") == b["FILE"] and
-          st.get("APP") == b["APP"], {k: (b.get(k), st.get(k)) for k in ("SLOT", "VBMETA", "MARKER", "FILE", "APP")})
+        same, diff = same_data(st, before)
+        C(f"slot {cur} is the build it ran before, /data intact (PIN, setting, file, app)", ok and same, diff)
         o, _ = adb.sh("timeout 10 update_engine_client --follow 2>&1 | grep -o 'UPDATE_STATUS_[A-Z_]*' | tail -n 1; "
-                      "logcat -d -b all | grep -iE 'rollback|Cancel|snapshot' | grep -iE 'update_engine|snapshot|init' | tail -n 6")
-        C("update_engine is idle again on slot a (the failed update is cancelled)", "UPDATE_STATUS_IDLE" in o, o)
+                      "logcat -d -b all | grep -iE 'rollback|Cancel|snapshot|fell back' | "
+                      "grep -iE 'update_engine|snapshot|init|boot-service' | tail -n 8")
+        C(f"update_engine is idle again on slot {cur} (the failed update is cancelled)", "UPDATE_STATUS_IDLE" in o, o)
         open(f"{out}/esp-fallback.txt", "w").write(o)
+        if adb.sh("[ -x /vendor/bin/openbook-bootsync ] && echo yes")[0].strip() == "yes":
+            s = bootsync_status(adb)
+            json.dump(s, open(f"{out}/bootsync-status-fallback.json", "w"), indent=1)
+            # bootctl is-slot-bootable prints 0 and exits EX_SOFTWARE (70) for a slot that is not bootable
+            o2, _ = adb.sh(f"bootctl get-active-boot-slot; bootctl is-slot-bootable {'ab'.index(tgt)}; echo rc=$?")
+            w = o2.split()
+            C(f"the boot HAL followed the loader: misc names slot {cur} active, slot {tgt} unbootable; the ESP starts "
+              f"{cur} next", s.get("next_boot_slot") == cur and w[:2] == [str("ab".index(cur)), "0"] and
+              "rc=0" not in o2, (s.get("next_boot_slot"), o2))
         # and the good package from there: the system recovers from the failed attempt by itself
         rc = g14adb(port, "ota", a.ota, "--yes", logfile=f"{out}/g14-adb-ota-good.log")
-        C("then the good package from slot a: written and verified (the bad entry replaced)",
-          rc == 0 and "verified  slot b" in open(f"{out}/g14-adb-ota-good.log").read())
+        C(f"then the good package from slot {cur}: written to slot {tgt} and verified (the bad entry replaced)",
+          rc == 0 and f"verified  slot {tgt}" in open(f"{out}/g14-adb-ota-good.log").read())
         adb.connect()
         adb.root()
         adb.sh("reboot")
         slot = boot(vm)
-        C("slot b boots the good build", slot == "b", slot)
+        C(f"slot {tgt} boots the good build", slot == tgt, slot)
         adb.connect()
         adb.root()
-        after_update(C, adb, base, good, "b", "after the second attempt")
+        after_update(C, adb, base, good, tgt, "after the second attempt")
         ok, how, secs = wait_merge(adb)
         C("the merge completes", ok, how)
         adb.sh("reboot -p")
@@ -610,22 +637,19 @@ def case_rollback(a):
     return 0 if all(x["ok"] for x in C.items) else 1
 
 
-def case_cut(a):
-    q, out = case_dir(a.run, "cut")
-    C = Checks(f"{out}/checks.json", "cut")
+def case_cut(a, from_state="base", case="cut"):
+    q, out, C, disk, port, vm = start_case(a, case, from_state)
     base = json.load(open(f"{q}/base.json"))
     pkg = pkg_info(a.ota)
-    disk = f"{q}/cut.img"
-    reflink(f"{q}/base.img", disk)
-    shutil.copy(f"{q}/base.vars", f"{q}/cut.vars")
-    port = free_port()
-    vm = VM(out, disk, f"{q}/cut.vars", port, f"ota-{a.run}-cut")
     vm.start()
     try:
-        boot(vm)
+        cur = boot(vm)
+        tgt = "b" if cur == "a" else "a"
         adb = Adb(port, out)
         adb.connect()
+        adb.root()
         unlock(adb)
+        before = state(adb)
         logf = f"{out}/g14-adb-ota-cut.log"
         p = subprocess.Popen([f"{R}/scripts/g14-adb.sh", "-a", f"127.0.0.1:{port}", "ota", a.ota, "--yes"],
                              stdout=open(logf, "w"), stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
@@ -639,8 +663,8 @@ def case_cut(a):
             time.sleep(0.5)
         vm.stop("quit")  # the power cut
         p.kill()
-        C("power cut while update_engine writes slot b", cut_at is not None, f"at progress {cut_at}")
-        vm = VM(out, disk, f"{q}/cut.vars", port, f"ota-{a.run}-cut-2")
+        C(f"power cut while update_engine writes slot {tgt}", cut_at is not None, f"at progress {cut_at}")
+        vm = VM(out, disk, f"{q}/{case}.vars", port, f"ota-{a.run}-{case}-2")
         vm.start()
         slot = boot(vm)
         adb = Adb(port, out)
@@ -648,24 +672,21 @@ def case_cut(a):
         adb.root()
         ok, how = unlock(adb)
         st = state(adb)
-        b = base["state"]
-        C("after the cut slot a boots, the old build, /data intact", slot == "a" and ok and st.get("VBMETA") == b["VBMETA"]
-          and st.get("MARKER") == b["MARKER"] and st.get("FILE") == b["FILE"] and st.get("APP") == b["APP"],
-          {k: (b.get(k), st.get(k)) for k in ("VBMETA", "MARKER", "FILE", "APP")})
-        s = bootsync_status(adb, "/data/local/tmp/none")  # no bootsync on this image: read the ESP from outside later
+        same, diff = same_data(st, before)
+        C(f"after the cut slot {cur} boots, the build it ran before, /data intact", slot == cur and ok and same, diff)
         rc = g14adb(port, "ota", a.ota, "--yes", logfile=f"{out}/g14-adb-ota-rerun.log")
         text = open(f"{out}/g14-adb-ota-rerun.log").read()
-        C("the update re-run completes and verifies", rc == 0 and "verified  slot b" in text, text[-600:])
+        C("the update re-run completes and verifies", rc == 0 and f"verified  slot {tgt}" in text, text[-600:])
         o, _ = adb.sh("logcat -d -b all | grep -iE 'resum|Resuming|interrupted|previous update' | grep -i update_engine | tail -n 5")
         open(f"{out}/resume.txt", "w").write(o)
         adb.connect()
         adb.root()
         adb.sh("reboot")
         slot = boot(vm)
-        C("slot b boots", slot == "b", slot)
+        C(f"slot {tgt} boots", slot == tgt, slot)
         adb.connect()
         adb.root()
-        after_update(C, adb, base, pkg, "b", "after the re-run")
+        after_update(C, adb, base, pkg, tgt, "after the re-run")
         ok, how, secs = wait_merge(adb)
         C("the merge completes", ok, how)
         adb.sh("reboot -p")
@@ -680,7 +701,9 @@ def case_cut(a):
 def check(a):
     q, l = paths(a.run)
     cases, total, passed = {}, 0, 0
-    for c in ("prep", "ab", "rollback", "cut", "ba"):
+    order = ["prep", "ab", "ba", "rollback", "cut"]
+    found = sorted(d for d in os.listdir(l) if os.path.exists(f"{l}/{d}/checks.json"))
+    for c in [x for x in order if x in found] + [x for x in found if x not in order]:
         f = f"{l}/{c}/checks.json"
         if os.path.exists(f):
             cases[c] = json.load(open(f))["checks"]
@@ -706,6 +729,8 @@ def main():
     ap.add_argument("--installed")
     ap.add_argument("--ota")
     ap.add_argument("--broken")
+    ap.add_argument("--from", dest="from_state", help="start from this saved disk state (default base; ba: after-ab), "
+                    "e.g. after-ab, the state the G14 is in after its first update")
     a = ap.parse_args()
     for p in (a.ota, a.broken):
         if p and not (p.endswith(".zip") and os.path.exists(p[:-4] + ".json")):
@@ -714,14 +739,16 @@ def main():
         return prep(a)
     if a.cmd == "check":
         return check(a)
+    frm = a.from_state
+    suffix = f"-from-{frm}" if frm else ""
     if a.name == "ab":
-        return case_ab(a)
+        return case_ab(a, from_state=frm or "base", case="ab" + suffix)
     if a.name == "ba":
-        return case_ab(a, from_state="after-ab", case="ba")
+        return case_ab(a, from_state=frm or "after-ab", case="ba" + (suffix if frm and frm != "after-ab" else ""))
     if a.name == "rollback":
-        return case_rollback(a)
+        return case_rollback(a, from_state=frm or "base", case="rollback" + suffix)
     if a.name == "cut":
-        return case_cut(a)
+        return case_cut(a, from_state=frm or "base", case="cut" + suffix)
     sys.exit(f"unknown case {a.name}")
 
 

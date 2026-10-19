@@ -28,7 +28,7 @@ Docs: `docs/installer.md` §2.5 and §13.13, `docs/adb-debug.md` §7.
 | Crashes, denials | 23:26 | No tombstone or ANR, no fatal crash in logcat, before or after. No denial involves OpenBook's update path. New after the update: first-stage init's snapuserd records (`kernel` → `ota_metadata_file`, `super_block_device`, `sysfs_ublk`; once, on the snapshot boot, as in QEMU) and `hal_usb_default` → `sysfs_batteryinfo` (AOSP's example USB HAL, not from this change) | `capture-after/avc.md` |
 | Frame pacing | 23:27 | Not measured: nothing moved on the screen during the passive check (the laptop was in use, so the scrolling check was not run) | `flip-check-after.txt` |
 
-## QEMU rehearsal (`qemu/`, run `r2`): 55/55
+## QEMU rehearsal (`qemu/`, run `r2`): 55/55 before the laptop, 78/78 with the two cases added after
 
 On the G14's own starting point: `scripts/installer/e2e-qemu.sh`'s `install` case installed `openbook-live-20261018-anal192e.img` onto a 128 GiB virtual NVMe (unattended engine, `new-complete`; `qemu/e2e-install/`). `prep` added the serial console to that entry, did setup the way the installer's setup ends, set a PIN, installed an app, and wrote a setting and a 4 MiB file. adb ran over QEMU's USB Ethernet (GKI `cdc_ether`), and every update used `g14-adb.sh ota`.
 
@@ -40,7 +40,14 @@ On the G14's own starting point: `scripts/installer/e2e-qemu.sh`'s `install` cas
 | `rollback` | a package whose kernel cannot start (`--break-boot`: `rdinit` missing, `panic=5`) installs and verifies; B panics **three times**, then systemd-boot starts A by itself, with `/data` intact and update_engine idle; the good package then installs from A and B boots | 12/12 |
 | `cut` | power cut (QEMU `quit`) at 40 % of the write: A boots, `/data` intact; the re-run resumes ("Resuming after 282/718 operations") and completes | 10/10 |
 
-A development run on a build without #109/#106/#104 (`r1`, `ota-dev1`) passed the same cases.
+Added after the laptop's update, from `after-ab` (the state the G14 is in now: slot B, the new boot HAL), so the next update's fallback is proven on the image the laptop runs:
+
+| Case | What it shows | Checks |
+|---|---|---|
+| `rollback-from-after-ab` | the broken package to slot A through the boot HAL; A panics three times, B starts by itself with `/data` intact; the HAL then sets `misc` to B active and A unbootable (it follows the loader); the good package installs and A boots | 13/13 |
+| `cut-from-after-ab` | a power cut at 40 % while slot A is written: B boots with `/data` intact; the re-run resumes and completes | 10/10 |
+
+A development run on a build without #109/#106/#104 (`r1`, `ota-dev1`) passed the same cases as the first table.
 
 ## Host tests (`host/`): 56/56
 

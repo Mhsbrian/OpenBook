@@ -466,7 +466,7 @@ ota-status)
     echo "boot HAL: openbook [$(getprop init.svc.vendor.boot-openbook)] AOSP default [$(getprop init.svc.vendor.boot-default)]"
     echo "update_engine: $(timeout 10 update_engine_client --follow 2>&1 | grep -o "UPDATE_STATUS_[A-Z_]*" | tail -n 1)"
     echo "snapshots: $(snapshotctl dump 2>&1 | grep -iE "update.?state" | head -n 1)"
-    logcat -d -b all 2>/dev/null | grep -E "Merge finished|bootsync|fell back" | tail -n 12
+    logcat -d -b all 2>/dev/null | grep -E "Merge finished|bootsync|fell back" | grep -v " adbd " | tail -n 12
     [ -x /vendor/bin/openbook-bootsync ] && /vendor/bin/openbook-bootsync --json status 2>/dev/null ||
       echo "(no openbook-bootsync on this image)"' | tr -d '\r' | python3 -c "$(cat <<'PYEOF'
 import json, sys

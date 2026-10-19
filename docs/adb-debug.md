@@ -110,6 +110,8 @@ A new build reaches the laptop as a full A/B update. update_engine writes the sl
 
 **Each update writes the laptop's disk** (the other slot, the copy-on-write data in `/data`, the ESP's loader entry), so it needs the owner's go for that device.
 
+**For agents:** the skill `openbook-g14-update` (`.claude/skills/openbook-g14-update/SKILL.md`, also a Multica workspace skill) is this procedure step by step: the gates, the build, the QEMU rehearsal from the laptop's current state, the laptop step with its idle rule, the after-checks, the evidence and the report.
+
 ```bash
 # on the build host, after the product build (with the target-files-package and otatools-package goals)
 scripts/aosp-docker.sh -d anybook-aosp-build /repo/scripts/aosp-build.sh anybook_g14_x86_64-cp2a-userdebug \
