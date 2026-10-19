@@ -1,0 +1,3 @@
+         1792353645.849  4242  4253 I virtmgr : virtualizationmanager::crosvm: Non-protected virtual machine "debian" (owner: u0_a126, cid: 2048) started
+         1792353659.447  3150  3849 I Quire   : agents: connected via linux-environment in 3 ms; quired 0.2.0
+         1792353662.944  3747  3747 I adbd    : adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -v epoch | grep -E 'Non-protected virtual machine "debian".* started|agents: connected via' '

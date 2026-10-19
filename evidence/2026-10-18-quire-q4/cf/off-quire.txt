@@ -1,0 +1,4 @@
+q2-check off 1792353621.613
+10-18 20:00:21.467 I/Quire   ( 3150): lab: dev.openbook.quire.lab.AGENTS_LIST
+10-18 20:00:21.472 I/Quire   ( 3150): agents: status linux-environment=TERMINAL_OFF paired-computer=NOT_PAIRED
+10-18 20:00:21.472 W/Quire   ( 3150): agents: unavailable: The Linux environment is off. Turn it on in Settings › System › Developer options › Linux development environment. Quire can use the agents on another computer instead, but none is paired.

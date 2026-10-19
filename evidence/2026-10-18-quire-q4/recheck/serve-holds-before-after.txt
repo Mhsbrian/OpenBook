@@ -1,0 +1,32 @@
+# The Checker's two reproductions (checker_review_test.go, ANAL-217) and the two new tests, on PR #111's old head b2ccb8b and on this head.
+## b2ccb8b (quire/quired at b2ccb8b, plus this head's serve_test.go and checker_review_test.go)
+=== RUN   TestCheckerDefaultSessionRejectsOutsideSymlink
+    checker_review_test.go:25: default session escaped root: returned="/tmp/TestCheckerDefaultSessionRejectsOutsideSymlink2529342292/001/Quire/2026-10-18-2429508202" resolved="/tmp/TestCheckerDefaultSessionRejectsOutsideSymlink2529342292/002/2026-10-18-2429508202" root="/tmp/TestCheckerDefaultSessionRejectsOutsideSymlink2529342292/001"
+--- FAIL: TestCheckerDefaultSessionRejectsOutsideSymlink (0.00s)
+=== RUN   TestCheckerDisconnectWaitsForStartingAgentClose
+    checker_review_test.go:55: shutdown returned while Close for an agent started during disconnect was still blocked
+--- FAIL: TestCheckerDisconnectWaitsForStartingAgentClose (0.00s)
+=== RUN   TestServeDefaultFolderStaysInRoot
+    serve_test.go:378: Quire -> /tmp/TestServeDefaultFolderStaysInRoot7288692/002: a session was made
+    serve_test.go:381: Quire -> /tmp/TestServeDefaultFolderStaysInRoot7288692/002: made 2026-10-18-1072269824 outside the root
+    serve_test.go:381: Quire -> /tmp/TestServeDefaultFolderStaysInRoot7288692/002/missing: made 2026-10-18-1072269824 outside the root
+--- FAIL: TestServeDefaultFolderStaysInRoot (0.01s)
+=== RUN   TestServeDisconnectDuringAgentStart
+    serve_test.go:462: Serve returned while the agent was still stopping
+--- FAIL: TestServeDisconnectDuringAgentStart (0.00s)
+FAIL
+FAIL	github.com/Mhsbrian/OpenBook/quire/quired/internal/serve	0.027s
+FAIL
+## this head (92ca3429a55e, quire/quired, plus checker_review_test.go)
+=== RUN   TestCheckerDefaultSessionRejectsOutsideSymlink
+--- PASS: TestCheckerDefaultSessionRejectsOutsideSymlink (0.00s)
+=== RUN   TestCheckerDisconnectWaitsForStartingAgentClose
+--- PASS: TestCheckerDisconnectWaitsForStartingAgentClose (0.10s)
+=== RUN   TestServeDefaultFolderStaysInRoot
+--- PASS: TestServeDefaultFolderStaysInRoot (0.01s)
+=== RUN   TestServeDisconnectDuringAgentStart
+--- PASS: TestServeDisconnectDuringAgentStart (0.10s)
+PASS
+ok  	github.com/Mhsbrian/OpenBook/quire/quired/internal/serve	1.235s
+## stress: the new tests and the existing folder/disconnect tests, 100 times under -race
+ok  	github.com/Mhsbrian/OpenBook/quire/quired/internal/serve	14.174s

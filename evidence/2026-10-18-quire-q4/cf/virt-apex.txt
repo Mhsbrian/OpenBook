@@ -1,0 +1,14 @@
+/apex/com.android.virt/bin:
+crosvm
+crosvm_vu_fs
+crosvm_vu_snd
+early_virtmgr
+fd_server
+vfio_handler
+virtmgr
+virtualizationservice
+vm
+vmnic
+
+/apex/com.android.virt/priv-app:
+VmTerminalApp@CP2A.260605.016

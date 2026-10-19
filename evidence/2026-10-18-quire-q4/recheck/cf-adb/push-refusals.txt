@@ -1,0 +1,20 @@
+$ linux-env-adb.sh push IMAGE   (a Linux environment is installed)
+linux-env-adb: a Linux environment is already installed and the Terminal app keeps it. Replacing it deletes the guest's files: the person does that in Terminal > Settings > Recovery, or pass --replace-installed (pm clear com.android.virtualization.terminal)
+exit=1
+$ linux-env-adb.sh push missing.tar.gz
+linux-env-adb: no image /nonexistent/images.tar.gz
+exit=1
+$ linux-env-adb.sh check IMAGE OUT "it's"
+linux-env-adb: PROMPT may not contain a single quote
+exit=1
+$ linux-env-adb.sh push IMAGE --replace-installed
+replacing the installed Linux environment: pm clear com.android.virtualization.terminal (the guest's files are deleted)
+Success
+pushing images.tar.gz (783 MiB) to 127.0.0.1:16219:/sdcard/linux/images.tar.gz
+~/anybook/quire/linux-env/out-q4fix3/images.tar.gz: 1 file pushed, 0 skipped. 172.7 MB/s (821177609 bytes in 4.536s)
+/sdcard/linux/images.tar.gz: sha256 1e0efa0fe6de8fbd2e031d9c6738ad17f690aa89d1c9eda9a0486cf96f3aad20 matches
+next, the person's steps: Settings > System > Developer options > Linux development environment on, then Terminal > Install
+exit=0
+$ linux-env-adb.sh preflight
+Terminal app                       installed, on
+Linux environment installed        no

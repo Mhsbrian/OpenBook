@@ -1,0 +1,7 @@
+# Loop devices during the image build (sampled every 0.2 s): backing files, what unmount-build-loops.sh --dry-run would select, and /dev/loop mounts. Count, then line.
+      9 backing loop0 ~/anybook/quire/linux-env/work/debian_cloud_image/disk.raw
+     69 backing loop0 ~/anybook/quire/linux-env/work/root_part
+      5 mount /dev/loop0p1 /run/media/hive/96948a1b-36c7-4beb-bf27-466a8a8ce873 ext4 rw,nosuid,nodev,relatime,errors=remount-ro 0 0
+      1 mount /dev/loop0 /run/media/hive/96948a1b-36c7-4beb-bf27-466a8a8ce873 ext4 rw,nosuid,nodev,relatime 0 0
+      5 select would unmount /dev/loop0p1 (/run/media/hive/96948a1b-36c7-4beb-bf27-466a8a8ce873; backing ~/anybook/quire/linux-env/work/debian_cloud_image/disk.raw)
+      1 select would unmount /dev/loop0 (/run/media/hive/96948a1b-36c7-4beb-bf27-466a8a8ce873; backing ~/anybook/quire/linux-env/work/root_part)

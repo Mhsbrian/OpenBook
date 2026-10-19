@@ -1,0 +1,5 @@
+q2-check list-1 1792353659.608
+10-18 20:00:59.443 I/Quire   ( 3150): lab: dev.openbook.quire.lab.AGENTS_LIST
+10-18 20:00:59.444 I/Quire   ( 3150): agents: status linux-environment=READY paired-computer=NOT_PAIRED
+10-18 20:00:59.447 I/Quire   ( 3150): agents: connected via linux-environment in 3 ms; quired 0.2.0
+10-18 20:01:02.700 I/Quire   ( 3150): agents: agent opencode version="1.19.3" supported=true

@@ -1,0 +1,1 @@
+10-18 19:43:19.073   825  4618 I am_anr  : [0,4053,com.android.virtualization.terminal,686407237,Input dispatching timed out (bb5e2ae com.android.virtualization.terminal/com.android.virtualization.terminal.new2.ui.MainActivity is not responding. Waited 15000ms for FocusEvent(hasFocus=true)).]
