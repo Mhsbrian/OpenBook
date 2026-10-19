@@ -1,0 +1,35 @@
+{
+  "accel": "tcg",
+  "uefi_usb": true,
+  "software_tpm": true,
+  "emulated_audio": true,
+  "qemu_sha256": "35db71cb2178b665983472bb584f87505cf431f225a881149dba83de0350de8a",
+  "elapsed_s": 660.6,
+  "input_sha256": "c29aade10f317995bf20dc726a2fdfe16768b64087dad20b72794f19267075af",
+  "input_unchanged": true,
+  "decoy_unchanged": true,
+  "usb_capture_finished": true,
+  "boot_completed_reported": true,
+  "kernel_panic": false,
+  "sigill": false,
+  "runtime_findings": {
+    "setup_welcome_activity_seen": true,
+    "system_server_fatal_signals": [
+      "10-19 23:25:51.547   776  4723 F libc    : Fatal signal 11 (SIGSEGV), code 2 (SEGV_ACCERR), fault addr 0x75514a730000 in tid 4723 (Thread<00>), pid 776 (system_server)"
+    ],
+    "zygote_exit_events": 1,
+    "system_server_execmem_denial_seen": true,
+    "mmd_setup_abort_seen": false
+  },
+  "saved_files": 290,
+  "saved_bytes": 29417686,
+  "zram_device_created": true,
+  "swap_total_kib_observations": [
+    0,
+    12146652
+  ],
+  "mmd_setup_successful_exits": 2,
+  "mmd_running_snapshots": 17,
+  "selinux_enforcing_seen": true,
+  "scope": "zram boot/setup correction in VM; known framework SIGSEGV remains; no physical rewrite or installation qualification"
+}

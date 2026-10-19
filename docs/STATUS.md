@@ -1,5 +1,27 @@
 # Status
 
+## 2026-10-19: paired G14 evidence and zram correction (ANAL-228)
+
+Wireless pairing succeeded. Two live captures and a complete private bugreport
+confirm Wi-Fi association with validated internet, Radeon 890M acceleration at
+2880×1800/120 Hz, and successful sound decoding with a speaker route. Audible
+playback is not yet established; speaker media volume is 1.
+
+The physical G14 has zero swap and `mmd_setup` aborts because zram0 is absent.
+Added early loading of the already-packaged matching GKI zram module, shared
+by PC builds and the hybrid packager. Thirty host guards, native init validation
+and the 396-input VINTF/strict-policy audit pass. The 660.6-second VM observation
+verifies active swap, two successful mmd setup exits and 17 running snapshots.
+The full saved capture completes with no lost bytes; source and internal-decoy
+hashes are unchanged. The known VM system-server SIGSEGV still occurs. The new
+candidate must be retested on hardware; the running net18 USB is unchanged.
+
+A 74-second foreground-handler watchdog is traced to a blocked property-service
+connection while stopping idmap2d. Its underlying cause remains open. Seven
+desktop service registrations, unsupported Chrome EC services and timestamp
+regressions also need work. Installation stays disabled. Evidence and validation:
+`evidence/2026-10-19-googlebook-live-adb/investigation.md`.
+
 ## 2026-10-19: live G14 inspection waiting for ADB pairing (ANAL-228)
 
 The owner reports the G14 running with Wireless debugging enabled. Host

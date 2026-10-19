@@ -1,11 +1,15 @@
 # Hardware
 
-The owner has made the running G14 available for live investigation. The host
-sees its Ruby live mDNS advertisement and reaches the TLS debugging port;
-legacy TCP 5555 refuses connections. ADB pairing is still required, so no new
-shell, Wi-Fi association, audio playback or crash-history evidence is available
-from this inspection yet. Network reachability alone does not establish the
-connection path or installer readiness. See `docs/googlebook-live.md`.
+The running G14 is now paired over wireless ADB. Two captures and a complete
+bugreport confirm net18 Wi-Fi association and validated internet, Radeon 890M
+hardware rendering at 2880×1800/120 Hz, and sound-effects decoding with a
+speaker output route. Audibility remains unverified; speaker volume is low (1).
+Thermal HAL reports live CPU/GPU/Wi-Fi sensors and no throttling at capture.
+The physical machine also exposes missing zram and a framework watchdog blocked
+in a property-service connection. A module-loading correction is prepared for
+the next image; it has not changed the currently booted USB. See
+`evidence/2026-10-19-googlebook-live-adb/investigation.md`.
+The following paragraphs preserve earlier test history.
 
 The owner has now booted fw10 into Googlebook setup through both normal and
 save-logs entries. The new G14 capture confirms Radeon initialization, MT7925

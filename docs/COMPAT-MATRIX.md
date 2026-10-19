@@ -6,19 +6,23 @@
 |---|---|---|
 | Patched QEMU TCG instruction lane | The faulting VEX VPDPWSSD executes; 10,000-iteration GFNI/VPCLMUL and VNNI digests match native arithmetic oracles | Emulation research; native Zen 4 still faults |
 | UEFI, emulated USB, synthetic internal NVMe | Enforcing boot reaches `sys.boot_completed=1`; boot-control marks slot A good; original image, guest backing file and internal decoy hashes remain unchanged | Eight-minute VM observation; physical-medium verification is separate below |
-| Native VINTF, strict SELinux, service-context validation | Both stock baselines and adapted hybrid pass; 395 inventoried inputs unchanged | Seven vendor-private desktop service labels rejected; further integration needed |
+| Native VINTF, strict SELinux, service-context validation | Both stock baselines and adapted hybrid pass; current zram audit covers 396 unchanged inputs | Seven vendor-private desktop service labels still require integration |
 | Graphical setup and input | Googlebook boot animation and welcome screen render; pointer input opens the screen-reader prompt and Escape dismisses it | No completed setup, usable launcher or physical AMD GPU result |
 | Longer runtime stability | Earlier observations, including net16, catch `system_server` SIGSEGV/SEGV_ACCERR and a zygote restart; final net18 captures no fatal signal in 660.6 s, but zram setup still aborts | Stability unresolved; earlier RenderThread `execmem` denials implicate the VM SwiftShader fallback, with full trace still needed |
-| Physical GA403WR / HX 370 / Radeon 890M | After the firmware-path correction, the owner reports setup in normal and logging boots; new logs show Radeon, MT7925 and CS35L56 initialization | Current capture ends at 66 s; no completed setup or stability qualification |
-| Live Ruby ADB inspection | Owner reports running G14; mDNS and TLS-port reachability confirmed, but no connected ADB transport | Pairing port/code required before live hardware evidence; six collector failure/privacy tests pass |
-| Ruby Wi-Fi | Owner reports scanning, but saved network does not connect; product RRO assumes unsupported MAC reconfiguration | net18 VM verifies both override values and the service's cached randomization setting false; authentication/DHCP require a captured hardware attempt |
-| Ruby audio | fw10 Codec2 queue denials prevented UI sound decoding; net18 loads sound effects under enforcing with no decoder AVCs | Dedicated queue policy restored; ALSA inventory captured; physical playback still requires testing |
+| Physical GA403WR / HX 370 / Radeon 890M | Paired net18 captures confirm ANGLE/RADV on Radeon 890M, 2880×1800 at 120 Hz | Cursor warnings and stability still need work; no installed Googlebook qualification |
+| Live Ruby ADB inspection | Pairing succeeds; two bounded captures and full bugreport collected privately; seven collector checks pass | User policy denies dmesg and some procfs reads; independent sections still complete |
+| Ruby Wi-Fi | Physical net18 connection uses WPA2-PSK/802.11ax; address, default route and VALIDATED internet observed twice; both compatibility values false | Reconnect, roaming, suspend and throughput not tested |
+| Ruby audio | Physical net18 sound effects load; ALSA ALC285, 48 kHz speaker route and 454,656 output frames observed; previous decoder errors absent | Speaker media volume 1; audibility and microphone still unverified |
+| Physical memory management | zram0 absent, SwapTotal 0, two mmd_setup SIGABRT tombstones; matching module exists but is not loaded | Early module-loading correction prepared; hardware retest required |
+| zram19 VM correction | zram0 created, swap activated, mmd_setup exits 0 twice and mmd runs in 17 snapshots; full saved capture completes at 600.4 s with no lost bytes | 660.6-second test still reproduces the separate system-server SIGSEGV; no physical update yet |
+| Physical watchdog | android.fg blocks 74 s; earlier stacks place it in property-service connect while stopping idmap2d; later wait channel agrees | Property server stall cause unresolved; high IO pressure does not prove USB causation |
 | net18 VM diagnostics | 271 files / 24.5 MB, completion at 600.2 s; zero overruns, failed saves or unsaved bytes; no logger-pipe or ALSA inventory denials | No physical Wi-Fi radio or audible output exercised; earlier intermittent VM crashes remain unresolved |
-| Current net18 SanDisk medium (`74c5270b2c37b658…`) | All 12,766,412,800 bytes written and fully read back with matching SHA-256; powered off; previous used extent and 64 logs preserved privately | Ready for G14 Wi-Fi and playback retest; medium verification is not hardware qualification |
+| Current net18 SanDisk medium (`74c5270b2c37b658…`) | Full write/readback passed; now booted on the G14 and investigated over ADB | Not rewritten during live inspection; candidate corrections require a later USB handoff |
 | Earlier fw10 SanDisk medium (`048bacf5934bcd22…`) | 12,766,412,800 bytes written and fully read back with matching SHA-256; powered off successfully; prior used image extent and 160 reports preserved privately | Owner subsequently reports setup through both normal and logging entries |
 | Persistent USB diagnostics | G14 returned 160 files / 13.6 MB, contiguous kernel records through 526 s and 18 Android snapshots; private backup hashes and read-only FAT check pass | No completion marker; capture end unexplained. Logcat ended at 272 s with the snapshot loop; corrected to continue afterward |
 
-Evidence: `evidence/2026-10-19-googlebook-live/` and
+Latest evidence: `evidence/2026-10-19-googlebook-live-adb/investigation.md`.
+Earlier evidence: `evidence/2026-10-19-googlebook-live/` and
 `evidence/2026-10-19-googlebook-usb/` and
 `evidence/2026-10-19-googlebook-g14-black-screen/`; reproduction:
 `docs/googlebook-live.md`. Neither this prototype nor its successful boot marker
@@ -30,7 +34,7 @@ enables the Googlebook installer option.
 |---|---|---|
 | Ruby 16452207 framework + OpenBook G14 vendor, stock policies | VINTF/APEX/kernel check passes; strict policy compilation rejects six debug grants | Direct transplant is not accepted |
 | Same, scoped policy adaptation | Strict compilation passes; KVM reaches enforcing second-stage init, module load, software security services, encrypted data and zygote | Zygote and boot animation trap on AVX-VNNI `vpdpwssd` on the Zen 4 7950X host; no completed desktop |
-| Same, physical GA403WR / HX 370 | Saved logs reach Android userspace, then fail graphics after missing firmware-path initialization; no SIGILL in the captured interval | No successful Googlebook G14 desktop, credentials or apps result; loader fix awaits retest |
+| Same, physical GA403WR / HX 370 | Initial firmware-path failure corrected; latest live evidence confirms Radeon rendering and validated Wi-Fi | Watchdog, memory setup and desktop-service gaps remain; see current results above |
 
 Evidence: `evidence/2026-10-19-googlebook-bringup/`; reproduction and next gates:
 `docs/googlebook-bringup.md`. The Googlebook installer option remains unavailable.
@@ -40,7 +44,7 @@ Evidence: `evidence/2026-10-19-googlebook-bringup/`; reproduction and next gates
 | Base / target | Current evidence | Installer state |
 |---|---|---|
 | OpenBook AOSP / GA403WR | Existing G14 evidence below; new image-base selection checked separately | Default; unchanged hardware support scope |
-| Ruby `16452207` + OpenBook compatibility / GA403WR | VM welcome renders; physical logs identify firmware-path failure before Radeon initialization, with a local correction awaiting hardware retest | Unavailable; engine rejects this base; stable desktop, security and app qualification remain open |
+| Ruby `16452207` + OpenBook compatibility / GA403WR | VM welcome and physical Radeon rendering/validated Wi-Fi observed; live bugreport exposes stability and platform integration faults | Unavailable; engine rejects this base; stable desktop, security and app qualification remain open |
 | GBRUNCH AMD replacement kernel / QEMU TCG | Upstream report: kernel + 13-module admission; no Android graphics or physical AMD result | Not an OpenBook install artifact |
 
 GBRUNCH's 17 AMD and 5 boot-menu unit tests passed locally; these do not establish

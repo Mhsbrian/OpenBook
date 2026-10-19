@@ -1,0 +1,10 @@
+6,1323,10469484,-,caller=T277;zram: Added device: zram0
+6,4473,289301756,-,caller=T4412;Adding 12146652k swap on /dev/block/zram0.  Priority:-2 extents:1 across:12146652k SS
+14,4475,289305976,-,caller=T1;init: starting service 'mmd'...
+14,4480,289331346,-,caller=T1;init: Service 'mmd_setup' (pid 4412) exited with status 0 oneshot service took 0.470000 seconds in background
+14,5027,359105998,-,caller=T1;init: Service 'zygote' (pid 472) received SIGKILL
+14,6288,420337770,-,caller=T1;init: Service 'mmd_setup' (pid 7960) exited with status 0 oneshot service took 0.084000 seconds in background
+SwapTotal:             0 kB
+SwapTotal:      12146652 kB
+init.svc.mmd=running
+sys.boot_completed=1
