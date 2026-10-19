@@ -5,6 +5,7 @@ package dev.openbook.quire
 
 import android.app.Application
 import dev.openbook.quire.control.ComputerControl
+import dev.openbook.quire.note.QuireSurface
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -13,11 +14,16 @@ class QuireApplication : Application() {
     lateinit var computerControl: ComputerControl
         private set
 
+    /** The note and its tasks (docs/quire-design.md). */
+    lateinit var surface: QuireSurface
+        private set
+
     /** Disk work: screenshots and invocation records. */
     val io: ExecutorService = Executors.newSingleThreadExecutor()
 
     override fun onCreate() {
         super.onCreate()
         computerControl = ComputerControl(this)
+        surface = QuireSurface(this)
     }
 }
