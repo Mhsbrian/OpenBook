@@ -1,0 +1,9 @@
+21:38:22 7071 listen {"port": 7071, "name": "Cursor", "auth": true}
+21:42:15 7071 <- {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": 1, "clientCapabilities": {"fs": {"readTextFile": false, "writeTextFile": false}, "terminal": false}, "clientInfo": {"name": "quire", "title": "Quire", "version": "0.5"}}}
+21:42:15 7071 -> {"jsonrpc": "2.0", "id": 1, "result": {"protocolVersion": 1, "agentCapabilities": {"loadSession": false, "promptCapabilities": {"image": true, "audio": false, "embeddedContext": false}}, "authMethods": [{"id": "browser", "name": "Sign in with the browser", "description": "cursor-agent login"}, {"id": "api-key", "name": "Use an API key", "description": "stays in Cursor"}], "agentInfo": {"name": "cu…
+21:42:15 7071 <- {"jsonrpc": "2.0", "id": 2, "method": "session/new", "params": {"cwd": "/home/brian", "mcpServers": []}}
+21:42:15 7071 -> {"jsonrpc": "2.0", "id": 2, "error": {"code": -32000, "message": "Authentication required"}}
+21:47:51 7071 <- {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": 1, "clientCapabilities": {"fs": {"readTextFile": false, "writeTextFile": false}, "terminal": false}, "clientInfo": {"name": "quire", "title": "Quire", "version": "0.5"}}}
+21:47:51 7071 -> {"jsonrpc": "2.0", "id": 1, "result": {"protocolVersion": 1, "agentCapabilities": {"loadSession": false, "promptCapabilities": {"image": true, "audio": false, "embeddedContext": false}}, "authMethods": [{"id": "browser", "name": "Sign in with the browser", "description": "cursor-agent login"}, {"id": "api-key", "name": "Use an API key", "description": "stays in Cursor"}], "agentInfo": {"name": "cu…
+21:47:51 7071 <- {"jsonrpc": "2.0", "id": 2, "method": "session/new", "params": {"cwd": "/home/brian", "mcpServers": []}}
+21:47:51 7071 -> {"jsonrpc": "2.0", "id": 2, "error": {"code": -32000, "message": "Authentication required"}}
