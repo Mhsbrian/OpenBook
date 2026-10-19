@@ -1,0 +1,109 @@
+
+============================================
+PLATFORM_VERSION_CODENAME=REL
+PLATFORM_VERSION=17
+TARGET_PRODUCT=anybook_g14_x86_64
+TARGET_BUILD_VARIANT=userdebug
+TARGET_ARCH=x86_64
+TARGET_ARCH_VARIANT=silvermont
+HOST_OS=linux
+HOST_OS_EXTRA=Linux-7.2.8-5-omarchy-bore-x86_64-Ubuntu-24.04.5-LTS
+HOST_CROSS_OS=windows
+BUILD_ID=CP2A.260605.016
+OUT_DIR=out
+SOONG_ONLY=false
+SOONG_INCREMENTAL_ANALYSIS=false
+============================================
+Running product configuration...
+============================================
+PLATFORM_VERSION_CODENAME=REL
+PLATFORM_VERSION=17
+TARGET_PRODUCT=anybook_g14_x86_64
+TARGET_BUILD_VARIANT=userdebug
+TARGET_ARCH=x86_64
+TARGET_ARCH_VARIANT=silvermont
+HOST_OS=linux
+HOST_OS_EXTRA=Linux-7.2.8-5-omarchy-bore-x86_64-Ubuntu-24.04.5-LTS
+HOST_CROSS_OS=windows
+BUILD_ID=CP2A.260605.016
+OUT_DIR=out
+SOONG_ONLY=false
+SOONG_INCREMENTAL_ANALYSIS=true
+============================================
+[100% 1/1] bootstrap blueprint
+Running globs...
+ninja:
+ninja: SISO_EXPERIMENTS=fallback-on-exec-error enabled
+SISO_EXPERIMENTS=ignore-missing-out-in-depfile enabled
+
+ninja: ignore missing out error in depfile
+
+ninja:  0.13s Build Succeeded: 0 steps - 0.00/s
+
+No need to regenerate ninja file
+No need to regenerate ninja file
+No need to regenerate ninja file
+Starting ninja...
+ninja:
+ninja: SISO_EXPERIMENTS=allow-unexpected-rsp-remove enabled
+SISO_EXPERIMENTS=ignore-missing-out-in-depfile enabled
+SISO_EXPERIMENTS=oom-score-adj enabled
+
+ninja: ignore missing out error in depfile
+
+[  0% 2/3773] //device/anybook/common/installer/app:OpenBookInstaller aapt2 compile device/anybook/common/installer/app/res[common]
+[  0% 3/2426] //device/anybook/common/installer:openbook-install clang engine/main.c
+[  7% 4/54] //device/anybook/common/installer:openbook-install clang engine/gpt.c
+[  9% 5/54] //device/anybook/common/installer/app:OpenBookInstaller overlay resource file list[common]
+[ 11% 6/54] //device/anybook/common/installer:openbook-install clang engine/lp.c
+[ 12% 7/54] //device/anybook/common/installer:openbook-install clang engine/avb.c
+[ 14% 8/54] //device/anybook/common/installer:openbook-install clang engine/efivar.c
+[ 16% 9/54] //device/anybook/common/installer:openbook-install clang engine/product.c
+[ 18% 10/54] //device/anybook/common/installer:openbook-install clang engine/hw.c
+[ 20% 11/54] //device/anybook/common/installer:openbook-install clang engine/source.c
+[ 22% 12/54] //device/anybook/common/installer:openbook-install clang engine/erofs.c
+[ 24% 13/54] //device/anybook/common/installer:openbook-install clang engine/daemon.c
+[ 25% 14/54] //device/anybook/common/installer:openbook-install clang engine/addon.c
+[ 27% 15/54] //device/anybook/common/installer:openbook-install clang engine/apk.c
+[ 29% 16/54] //device/anybook/common/installer:openbook-install clang engine/gapps.c
+[ 31% 17/54] //device/anybook/common/installer:openbook-install clang engine/util.c
+[ 33% 18/54] //device/anybook/common/installer:openbook-install clang engine/fat.c
+[ 35% 19/54] //device/anybook/common/installer:openbook-install clang engine/install.c
+[ 37% 20/54] //device/anybook/common/installer:openbook-install clang engine/zipr.c
+[ 38% 21/54] //device/anybook/common/installer:openbook-install clang engine/disks.c
+[ 40% 22/54] //device/anybook/common/installer/app:OpenBookInstaller aapt2 link[common]
+[ 42% 23/54] //device/anybook/common/installer/app:OpenBookInstaller merge assets from dependencies[common]
+[ 44% 24/54] Copy: out/target/common/obj/APPS/OpenBookInstaller_intermediates/package-export.apk
+[ 46% 25/54] //device/anybook/common/installer/app:OpenBookInstaller convert to proto[common]
+[ 48% 26/54] //device/anybook/common/installer:openbook-install link openbook-install
+[ 50% 27/54] cp out/target/product/anybook_g14/symbols/system_ext/bin/openbook-install
+[ 51% 28/54] out/host/linux-x86/bin/symbols_map -elf out/target/product/anybook_g14/symbols/system_ext/bin/openbook-install -write_if_changed out/target/product/anybook_g14/obj/PACKAGING/elf_symbol_mapping_intermediates/system_ext/bin/openbook-install.textproto
+[ 53% 29/54] //device/anybook/common/installer:openbook-install strip openbook-install
+[ 56% 30/53] Install: out/target/product/anybook_g14/system_ext/bin/openbook-install
+[ 58% 31/53] target Prebuilt: openbook-install (out/target/product/anybook_g14/obj/EXECUTABLES/openbook-install_intermediates/openbook-install)
+[ 60% 32/53] //device/anybook/common/installer/app:OpenBookInstaller ResourceProcessorBusyBox[common]
+[ 64% 33/51] //device/anybook/common/installer/app:OpenBookInstaller kotlinc[common]
+[ 66% 34/51] //device/anybook/common/installer/app:OpenBookInstaller jarjar[common]
+[ 68% 35/51] //device/anybook/common/installer/app:OpenBookInstaller for resources[common]
+[ 70% 36/51] Copy: out/target/common/obj/APPS/OpenBookInstaller_intermediates/classes.jar
+[ 72% 37/51] //device/anybook/common/installer/app:OpenBookInstaller r8[common]
+stderr:
+Warning: An API level of 37 is not supported by this compiler. Please use an API level of 36 or earlier)
+[ 74% 38/51] verify depfile
+[ 76% 39/51] //device/anybook/common/installer/app:OpenBookInstaller align[common]
+[ 78% 40/51] //device/anybook/common/installer/app:OpenBookInstaller convert to binary[common]
+[ 80% 41/51] //device/anybook/common/installer/app:OpenBookInstaller for dex resources[common]
+[ 82% 42/51] //device/anybook/common/installer/app:OpenBookInstaller align[common]
+[ 84% 43/51] out/host/linux-x86/bin/merge_zips out/soong/.intermediates/device/anybook/common/installer/app/OpenBookInstaller/android_common/OpenBookInstaller-unsigned.apk out/soong/.intermediates/device/anybook/common/installer/app/OpenBookInstaller/android_common/dex-withres-aligned/OpenBookInstaller.jar out/soong/.intermediates/device/anybook/common/installer/app/OpenBookInstaller/android_common/package-res.apk.binary.out.apk
+[ 86% 44/51] //device/anybook/common/installer/app:OpenBookInstaller signapk[common]
+[ 88% 45/51] Copy: out/target/product/anybook_g14/obj/APPS/OpenBookInstaller_intermediates/package.apk
+[ 90% 46/51] Install: out/target/product/anybook_g14/system_ext/priv-app/OpenBookInstaller/OpenBookInstaller.apk
+[ 92% 47/51] //device/anybook/common/installer/app:OpenBookInstaller dexpreopt[common]
+[ 94% 48/51] Install: out/target/product/anybook_g14/system_other/system_ext/priv-app/OpenBookInstaller/oat/x86_64/OpenBookInstaller.vdex
+[ 96% 49/51] Install: out/target/product/anybook_g14/system_other/system_ext/priv-app/OpenBookInstaller/oat/x86_64/OpenBookInstaller.odex
+ninja: 44.05s Build Succeeded: 48 steps - 1.09/s
+
+
+#### build completed successfully (48 seconds) ####
+Try enabling incremental analysis for faster builds after changing Android.bp files.
+See http://go/soong-incremental-analysis

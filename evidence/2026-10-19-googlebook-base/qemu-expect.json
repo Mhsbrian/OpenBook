@@ -1,0 +1,381 @@
+[
+  {
+    "wait": "init: init second stage started",
+    "timeout": 180
+  },
+  {
+    "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+    "timeout": 300
+  },
+  {
+    "send": "\n"
+  },
+  {
+    "wait": "console:/ \\$ ",
+    "timeout": 120
+  },
+  {
+    "send": "su\n"
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 30
+  },
+  {
+    "send": "dmesg -n 1; stty cols 300\n"
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 30
+  },
+  {
+    "send": "while [ \"$(getprop sys.boot_completed)\" != 1 ]; do sleep 2; done; echo BOOTDONE=1 uptime=$(cut -d' ' -f1 /proc/uptime)\n"
+  },
+  {
+    "wait": "\\nBOOTDONE=1 uptime=",
+    "timeout": 600
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 30
+  },
+  {
+    "send": "while read -r k n v; do [ \"$k\" = export ] && export \"$n=$v\"; done < /data/system/environ/classpath; svc power stayon true; settings put system screen_off_timeout 3600000; input keyevent 224; wm dismiss-keyguard\n"
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 30
+  },
+  {
+    "send": "wm density 240; mkdir -p /mnt/obesp; mount -t vfat /dev/block/sda1 /mnt/obesp; cp /mnt/obesp/openbook/base-test.apk /data/local/tmp/base-test.apk; umount /mnt/obesp; am force-stop org.openbook.installer; pm install -r /data/local/tmp/base-test.apk\n"
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 120
+  },
+  {
+    "send": "am start --windowingMode 5 -n org.openbook.installer/.MainActivity\n"
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 120
+  },
+  {
+    "send": "\nwhile read -r k n v; do [ \"$k\" = export ] && export \"$n=$v\"; done < /data/system/environ/classpath\nui() { uiautomator dump /data/local/tmp/ui.xml >/dev/null 2>&1; }\nbnd() { ui; tr '>' '\\n' < /data/local/tmp/ui.xml | grep -E 'package=\"org\\.openbook\\.(installer|setup)\"' | grep -F -e \"text=\\\"$1\" -e \"text='$1\" -e \"content-desc=\\\"$1\" | head -n 1 | sed -n 's/.*bounds=\"\\[\\([0-9]*\\),\\([0-9]*\\)\\]\\[\\([0-9]*\\),\\([0-9]*\\)\\]\".*/\\1 \\2 \\3 \\4/p'; }\ntap() { b=$(bnd \"$1\"); if [ -z \"$b\" ]; then echo \"@@NOTFOUND[$1]@@\"; return 1; fi; set -- $b; input tap $(( ($1+$3)/2 )) $(( ($2+$4)/2 )); echo \"@@TAPPED@@\"; }\nbndx() { ui; tr '>' '\\n' < /data/local/tmp/ui.xml | grep -E 'package=\"org\\.openbook\\.(installer|setup)\"' | grep -F -e \"text=\\\"$1\\\"\" -e \"text='$1'\" | head -n 1 | sed -n 's/.*bounds=\"\\[\\([0-9]*\\),\\([0-9]*\\)\\]\\[\\([0-9]*\\),\\([0-9]*\\)\\]\".*/\\1 \\2 \\3 \\4/p'; }\ntapx() { b=$(bndx \"$1\"); if [ -z \"$b\" ]; then echo \"@@NOTFOUND[$1]@@\"; return 1; fi; set -- $b; input tap $(( ($1+$3)/2 )) $(( ($2+$4)/2 )); echo \"@@TAPPED@@\"; }\nwaitfor() { i=0; while [ $i -lt ${2:-90} ]; do b=$(bnd \"$1\"); if [ -n \"$b\" ]; then echo \"@@SEEN[$1]@@\"; return 0; fi; sleep 2; i=$((i+2)); done; echo \"@@TIMEOUT[$1]@@\"; return 1; }\nsnap() { screencap -p /data/local/tmp/snap.png && sync && echo 3 > /proc/sys/vm/drop_caches && mkdir -p /mnt/obesp && mount -t vfat ${SNAPDEV:-/dev/block/sda1} /mnt/obesp && mkdir -p /mnt/obesp/openbook/shots && cp /data/local/tmp/snap.png \"/mnt/obesp/openbook/shots/$1.png\"; sync; umount /mnt/obesp; echo 3 > /proc/sys/vm/drop_caches; echo \"@@SNAP[$1]@@\"; }\n\n"
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 120
+  },
+  {
+    "send": "waitfor 'Choose your language' 120\n"
+  },
+  {
+    "wait": "@@SEEN\\[",
+    "timeout": 180
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 30
+  },
+  {
+    "send": "tap 'Continue'\n"
+  },
+  {
+    "wait": "@@TAPPED@@",
+    "timeout": 90
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 30
+  },
+  {
+    "pause": 3
+  },
+  {
+    "send": "waitfor 'STEP 2 OF 7' 120\n"
+  },
+  {
+    "wait": "@@SEEN\\[",
+    "timeout": 180
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 30
+  },
+  {
+    "send": "tap 'Continue'\n"
+  },
+  {
+    "wait": "@@TAPPED@@",
+    "timeout": 90
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 30
+  },
+  {
+    "pause": 3
+  },
+  {
+    "send": "waitfor 'STEP 3 OF 7' 120\n"
+  },
+  {
+    "wait": "@@SEEN\\[",
+    "timeout": 180
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 30
+  },
+  {
+    "send": "tap 'Install OpenBook'\n"
+  },
+  {
+    "wait": "@@TAPPED@@",
+    "timeout": 90
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 30
+  },
+  {
+    "pause": 3
+  },
+  {
+    "send": "tap 'Continue'\n"
+  },
+  {
+    "wait": "@@TAPPED@@",
+    "timeout": 90
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 30
+  },
+  {
+    "pause": 3
+  },
+  {
+    "send": "waitfor 'Choose your image base' 120\n"
+  },
+  {
+    "wait": "@@SEEN\\[",
+    "timeout": 180
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 30
+  },
+  {
+    "pause": 2
+  },
+  {
+    "shot": "base-aosp"
+  },
+  {
+    "send": "echo ===BASE-AOSP-UI-BEGIN===; ui; cat /data/local/tmp/ui.xml; echo ===BASE-AOSP-UI-END===\n"
+  },
+  {
+    "wait": "===BASE-AOSP-UI-END===",
+    "timeout": 180
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 30
+  },
+  {
+    "send": "tap 'Googlebook OS'\n"
+  },
+  {
+    "wait": "@@TAPPED@@",
+    "timeout": 90
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 30
+  },
+  {
+    "pause": 3
+  },
+  {
+    "send": "waitfor 'Googlebook installation is not available' 120\n"
+  },
+  {
+    "wait": "@@SEEN\\[",
+    "timeout": 180
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 30
+  },
+  {
+    "pause": 2
+  },
+  {
+    "shot": "base-googlebook"
+  },
+  {
+    "send": "echo ===BASE-GOOGLEBOOK-UI-BEGIN===; ui; cat /data/local/tmp/ui.xml; echo ===BASE-GOOGLEBOOK-UI-END===\n"
+  },
+  {
+    "wait": "===BASE-GOOGLEBOOK-UI-END===",
+    "timeout": 180
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 30
+  },
+  {
+    "send": "tap 'Continue'\n"
+  },
+  {
+    "wait": "@@TAPPED@@",
+    "timeout": 90
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 30
+  },
+  {
+    "pause": 3
+  },
+  {
+    "send": "waitfor 'Choose your image base' 120\n"
+  },
+  {
+    "wait": "@@SEEN\\[",
+    "timeout": 180
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 30
+  },
+  {
+    "send": "cmd uimode night yes\n"
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 120
+  },
+  {
+    "pause": 3
+  },
+  {
+    "pause": 2
+  },
+  {
+    "shot": "base-googlebook-dark"
+  },
+  {
+    "send": "tap 'OpenBook \u00b7 AOSP'\n"
+  },
+  {
+    "wait": "@@TAPPED@@",
+    "timeout": 90
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 30
+  },
+  {
+    "pause": 3
+  },
+  {
+    "send": "tap 'Continue'\n"
+  },
+  {
+    "wait": "@@TAPPED@@",
+    "timeout": 90
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 30
+  },
+  {
+    "pause": 3
+  },
+  {
+    "send": "waitfor 'STEP 4 OF 7' 120\n"
+  },
+  {
+    "wait": "@@SEEN\\[",
+    "timeout": 180
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 30
+  },
+  {
+    "send": "tap 'Back'\n"
+  },
+  {
+    "wait": "@@TAPPED@@",
+    "timeout": 90
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 30
+  },
+  {
+    "pause": 3
+  },
+  {
+    "send": "waitfor 'Choose your image base' 120\n"
+  },
+  {
+    "wait": "@@SEEN\\[",
+    "timeout": 180
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 30
+  },
+  {
+    "send": "echo ===BASE-RETURN-UI-BEGIN===; ui; cat /data/local/tmp/ui.xml; echo ===BASE-RETURN-UI-END===\n"
+  },
+  {
+    "wait": "===BASE-RETURN-UI-END===",
+    "timeout": 180
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 30
+  },
+  {
+    "send": "tap 'Back'\n"
+  },
+  {
+    "wait": "@@TAPPED@@",
+    "timeout": 90
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 30
+  },
+  {
+    "pause": 3
+  },
+  {
+    "send": "waitfor 'Install OpenBook' 120\n"
+  },
+  {
+    "wait": "@@SEEN\\[",
+    "timeout": 180
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 30
+  },
+  {
+    "send": "echo ===BASE-RUNTIME-BEGIN===; getenforce; logcat -d -b crash; echo ===BASE-RUNTIME-END===\n"
+  },
+  {
+    "wait": "===BASE-RUNTIME-END===",
+    "timeout": 180
+  },
+  {
+    "wait": "console:/ # ",
+    "timeout": 30
+  }
+]

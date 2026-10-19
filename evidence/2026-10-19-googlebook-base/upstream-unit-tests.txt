@@ -1,0 +1,32 @@
+test_generated_make_config_quotes (test_amd_imports.ImportAudit.test_generated_make_config_quotes) ... ok
+test_module_provider_is_not_missing_core_symbol (test_amd_imports.ImportAudit.test_module_provider_is_not_missing_core_symbol) ... ok
+test_replacement_enables_real_amd_platform_support (test_amd_imports.ImportAudit.test_replacement_enables_real_amd_platform_support) ... ok
+test_allow_modules_without_rewriting_core (test_amd_preflight.PlanAGuards.test_allow_modules_without_rewriting_core) ... ok
+test_exception_does_not_allow_other_core_booleans (test_amd_preflight.PlanAGuards.test_exception_does_not_allow_other_core_booleans) ... ok
+test_exception_requires_modular_amdgpu (test_amd_preflight.PlanAGuards.test_exception_requires_modular_amdgpu) ... ok
+test_platform_bool_cannot_use_display_exception (test_amd_preflight.PlanAGuards.test_platform_bool_cannot_use_display_exception) ... ok
+test_recovery_config_mismatch_is_rejected (test_amd_preflight.PlanAGuards.test_recovery_config_mismatch_is_rejected) ... ok
+test_reject_new_builtins_and_changed_original_builtins (test_amd_preflight.PlanAGuards.test_reject_new_builtins_and_changed_original_builtins) ... ok
+test_unset_and_compiler_config (test_amd_preflight.PlanAGuards.test_unset_and_compiler_config) ... ok
+test_header_overlay_skips_only_generated_header_trees (test_amd_source_provenance.SourceManifestTests.test_header_overlay_skips_only_generated_header_trees) ... ok
+test_modified_driver_source_is_rejected_even_with_header_overlay (test_amd_source_provenance.SourceManifestTests.test_modified_driver_source_is_rejected_even_with_header_overlay) ... ok
+test_symlink_source_is_rejected (test_amd_source_provenance.SourceManifestTests.test_symlink_source_is_rejected) ... ok
+test_unsafe_paths_rejected (test_amd_source_provenance.SourceManifestTests.test_unsafe_paths_rejected) ... ok
+test_valid_manifest (test_amd_source_provenance.SourceManifestTests.test_valid_manifest) ... ok
+test_wrong_archive_hash_rejected (test_amd_source_provenance.SourceManifestTests.test_wrong_archive_hash_rejected) ... ok
+test_wrong_commit_rejected (test_amd_source_provenance.SourceManifestTests.test_wrong_commit_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 0.005s
+
+OK
+test_amd_entry_is_opt_in_and_uses_separate_guarded_assets (test_googlebook_boot_menu.MenuTests.test_amd_entry_is_opt_in_and_uses_separate_guarded_assets) ... ok
+test_existing_menu_upgrade_backup_and_idempotence (test_googlebook_boot_menu.MenuTests.test_existing_menu_upgrade_backup_and_idempotence) ... ok
+test_identical_command_and_default_gate (test_googlebook_boot_menu.MenuTests.test_identical_command_and_default_gate) ... ok
+test_installer_uuid_remapping (test_googlebook_boot_menu.MenuTests.test_installer_uuid_remapping) ... ok
+test_reject_ambiguous_or_foreign_configs (test_googlebook_boot_menu.MenuTests.test_reject_ambiguous_or_foreign_configs) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.062s
+
+OK

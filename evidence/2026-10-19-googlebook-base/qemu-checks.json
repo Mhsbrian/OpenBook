@@ -1,0 +1,9 @@
+{
+  "AOSP Continue enabled=true": true,
+  "GOOGLEBOOK Continue enabled=false": true,
+  "RETURN Continue enabled=true": true,
+  "no target writes": true,
+  "SELinux enforcing": true,
+  "no app crash": true,
+  "no UI timeout": true
+}

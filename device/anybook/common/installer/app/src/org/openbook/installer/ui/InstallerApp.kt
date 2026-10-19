@@ -38,7 +38,7 @@ fun InstallerApp(vm: InstallerViewModel, onClose: () -> Unit, onRestart: () -> U
                 when (vm.step) {
                     WizardStep.WELCOME -> WelcomeScreen(vm, live = LiveSystem.isLiveSession() || vm.hello.valueOrNull?.live == true)
                     WizardStep.HARDWARE -> HardwareScreen(vm, rail)
-                    WizardStep.CHOOSE -> ChooseScreen(vm, rail, onTry = onClose)
+                    WizardStep.CHOOSE -> if (vm.imageBasePage) ImageBaseScreen(vm, rail) else ChooseScreen(vm, rail, onTry = onClose)
                     WizardStep.DISK -> if (vm.gappsPage) GappsScreen(vm, rail) else DiskScreen(vm, rail)
                     WizardStep.CONFIRM -> ConfirmScreen(vm, rail)
                     WizardStep.INSTALL -> InstallScreen(vm, rail)
@@ -75,7 +75,7 @@ private fun railModel(vm: InstallerViewModel): RailModel {
     }
     when (step) {
         WizardStep.HARDWARE -> hints[step] = stringResource(R.string.rail_hint_hardware)
-        WizardStep.CHOOSE -> hints[step] = stringResource(R.string.rail_hint_choose)
+        WizardStep.CHOOSE -> hints[step] = stringResource(if (vm.imageBasePage) R.string.base_rail_hint else R.string.rail_hint_choose)
         WizardStep.DISK -> hints[step] = stringResource(if (vm.gappsPage) R.string.rail_hint_gapps else R.string.rail_hint_disk)
         WizardStep.CONFIRM -> hints[step] = stringResource(R.string.rail_hint_confirm)
         WizardStep.INSTALL -> vm.install.current?.let { hints[step] = stepLabel(it, done = false) }

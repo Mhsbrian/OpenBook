@@ -19,6 +19,14 @@ all of its files at the catalogued sizes; ANAL-210). The Google apps step (ANAL-
 `gapps_check` below) adds `refused`, `not_a_package`, `no_package`, `no_gapps` (the plan names a package that is not
 staged, or changed), `gapps_clash` (the package adds a file the image has), `gapps_not_confirmed`.
 
+ANAL-228: `plan` also accepts optional `image_base: "openbook-aosp"` and records
+it in the hashed plan's `request`. Omission retains legacy AOSP behavior. A
+nonempty unsupported identifier returns `image_base_unavailable`; malformed
+values return `bad_request`. Apply repeats the base gate when rebuilding the
+plan. A stick manifest with an explicit foreign/malformed `image_base` is
+`no_source`. Googlebook recovery is unavailable in this engine; the host's
+`openbook-recovery-preflight/1` report is not an install source.
+
 All sizes are bytes (integers). Strings from the engine (model names, details) are not localised; the app
 localises everything it renders from ids and states.
 

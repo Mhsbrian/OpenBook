@@ -69,6 +69,7 @@ def wizard_disk(addon):
     s = W.wait_ui("Choose your language", 180) + W.tap("Continue", 4)
     s += W.wait_ui("STEP 2 OF 7", 120) + W.tap("Continue", 4)
     s += W.wait_ui("STEP 3 OF 7", 60) + W.tap("Install OpenBook", 2) + W.tap("Continue", 4)
+    s += W.wait_ui("Choose your image base", 60) + W.tap("Continue", 4)
     s += W.wait_ui("STEP 4 OF 7", 90) + [{"pause": 5}]
     s += section("WIZARD-DISK", "ui; cat /data/local/tmp/ui.xml; echo", 60)
     s += W.shot("wizard-disk")

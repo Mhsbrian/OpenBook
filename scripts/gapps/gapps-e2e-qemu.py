@@ -187,6 +187,8 @@ def expect(case):
         s += W.wait_ui("STEP 3 OF 7", 60)
         s += W.tap("Install OpenBook", 2)
         s += W.tap("Continue", 4)
+        s += W.wait_ui("Choose your image base", 60)
+        s += W.tap("Continue", 4)
         s += W.wait_ui("STEP 4 OF 7", 90)
         s += [{"pause": 4}]
         s += W.shot("g4-disk")

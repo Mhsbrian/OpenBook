@@ -54,6 +54,12 @@ int source_open(struct source *s, struct disk *d, int n) {
         snprintf(s->why, sizeof s->why, "MANIFEST.json: %s", err);
         return -1;
     }
+    // Old OpenBook sticks omit this field. An explicit foreign or malformed marker must fail closed.
+    if (jget(s->manifest, "image_base") &&
+        (!jstr(s->manifest, "image_base") || strcmp(jstr(s->manifest, "image_base"), "openbook-aosp"))) {
+        snprintf(s->why, sizeof s->why, "this image base is not supported by the AOSP install writer");
+        return -1;
+    }
     snprintf(s->label, sizeof s->label, "%s", jstr(s->manifest, "label") ? jstr(s->manifest, "label") : "");
     snprintf(s->fingerprint, sizeof s->fingerprint, "%s",
              jstr(s->manifest, "fingerprint") ? jstr(s->manifest, "fingerprint") : "");

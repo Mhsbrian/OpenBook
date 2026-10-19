@@ -1,5 +1,13 @@
 # Installer: USB image, boot chain, install flow and wizard (ANAL-189)
 
+**2026-10-19, ANAL-228:** the wizard now includes an image-base page between
+Try/Install and disk selection (within step 3). OpenBook AOSP is the default;
+Googlebook OS exposes its research status with Continue disabled. The engine
+refuses unsupported bases, including during apply, and new AOSP manifests name
+their base. The host recovery preflight identifies a pinned file but never
+enables installation. See [the source review and integration gates](googlebook-image-base.md).
+No Googlebook-compatible install image has been built or validated.
+
 Status as of 2026-10-17. This is the design for milestone M8 (epic ANAL-188). The owner gave the go-ahead to move on to live USB booting on 2026-10-16 (ANAL-189). Stage 2 (ANAL-190, the live USB image) is built: see §11. Stage 3 (ANAL-191: the wizard, the install engine and first-boot setup) is built and tested in QEMU: see §12.
 
 Labels: **C** = confirmed (a primary source, or we ran it), **R** = reported by others, **H** = hypothesis (not tested yet). Evidence is in `evidence/2026-10-16-installer/`, starting with `SUMMARY.md`.
