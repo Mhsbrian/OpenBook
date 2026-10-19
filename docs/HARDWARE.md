@@ -1,5 +1,13 @@
 # Hardware
 
+## G14 touchpad measurement (2026-10-19, ANAL-226)
+
+On `20261019.photos1` slot A: ELAN `04f3:3315`, five slots, X 0–3905,
+Y 0–2382, resolution 31 units/mm, palm tool type but no pressure/size axes.
+Tap dragging is already enabled in both Settings and the gesture library;
+drag lock is off. The reported failure still needs a labeled reproduction.
+See `docs/touchpad-behavior.md` and `evidence/2026-10-19-touchpad-behavior/`.
+
 ## Dev and build host (confirmed 2026-10-15)
 
 | Item | Value |
