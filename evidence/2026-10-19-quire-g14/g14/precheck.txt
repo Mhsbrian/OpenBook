@@ -1,0 +1,10 @@
+OTA of 192.168.50.11:5555 with /home/hive/anybook/ota/out/openbook-ota-20261019-quire2.zip, 2026-10-19T10:25:07Z; log: /home/hive/anybook/installer/g14/ota-20261019T102507Z/ota.log
+
+device    192.168.50.11:5555: OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+          slot b, vbmeta e0ec4b9ccb2df1e7b01c41e097b3d2b4ee56d14a3d1ecbf92db28b49acaa4fac, installed=whole, virtual A/B true
+package   openbook-ota-20261019-quire2 (994 MB): OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.quire2:userdebug/test-keys
+          tree afb905e: #112 25b899f + #109 3a81419 + #106 10bd84a + #104 d15c25c (= the G14's cand1 image) + #108 dd56681 + #110 52a3bc2 + #111 72ee925 + ANAL-225 (PR #113): the note reaching the Linux environment's agents, its transport fix, BUILD_NUMBER 20261019.quire2, vbmeta 1d2d8f5e5d68b622610a046ac66bfd47eaef75c970c44a3d2684e71d8fbfc596
+update    slot b -> slot a; /data and slot b are kept; slot b stays the fallback until slot a boots
+bootsync  on the device: the boot HAL moves the loader entry
+checks    passed
+dry run: nothing written
