@@ -156,7 +156,8 @@ A plan without `gapps` is exactly what it was before this step existed.
 
 ## apply (writes; S3, S4)
 `{"id":5,"cmd":"apply","plan_sha256":"9f2c...","target":"nvme-SK_hynix_PVC10_AN0BS4F2A","typed":"sk hynix pvc10","power":{"ac":true,"battery_pct":87}}`
-(`power`: the app's reading, used for S8 when the daemon cannot read the supplies.)
+(`power`: the app's reading, used for S8 when the daemon cannot read the supplies. Without either, `apply` is
+refused with `power`: S8 is never skipped.)
 The daemon re-computes the plan (same seeds), refuses with `plan_changed` if it differs, refuses with
 `confirm_mismatch` unless `typed` equals `confirm_text` (case-insensitive, whitespace ignored), and with `power`
 if S8 fails. Then it streams:

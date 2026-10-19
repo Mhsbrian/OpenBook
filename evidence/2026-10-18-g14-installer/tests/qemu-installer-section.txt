@@ -1,0 +1,6 @@
+===INSTALLER===
+17:52:31 openbook-installd ready (live=1, SELinux permissive, boot_part_uuid e12d6a88-65ab-5960-a5ba-7862da38e2ba)
+17:52:33 client connected: pid 2671 uid 10083
+
+{"ok":true,"nvram":{"available":true,"dir":"/sys/firmware/efi/efivars","boot_order":["0002","0000","0001","0003"],"boot_current":"0002","boot_next":null,"entries":[{"num":"0003","description":"EFI Internal Shell","active":true,"path":""},{"num":"0002","description":"UEFI QEMU QEMU USB HARDDRIVE 1-0000:00:01.0-1","active":true,"path":""},{"num":"0001","description":"EFI Firmware Setup","active":true,"path":""},{"num":"0000","description":"BootManagerMenuApp","active":true,"path":""}]}}
+
