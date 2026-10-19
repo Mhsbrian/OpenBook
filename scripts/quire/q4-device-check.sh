@@ -1,13 +1,14 @@
 #!/system/bin/sh
 # SPDX-License-Identifier: Apache-2.0
-# Quire Q4 (ANAL-218) on the device itself, as root on a userdebug OpenBook: the same checks as q4-cf-check.py,
-# for the G14, where no host drives adb. Android's mksh and toybox only.
+# Quire Q4 (ANAL-218) on the device itself, as root on a userdebug OpenBook (the G14, Cuttlefish): the same checks as
+# q4-cf-check.py. Android's mksh and toybox only.
 #
 #   sh q4-device-check.sh IMAGE OUTDIR [PROMPT]
 #
 # IMAGE is the Linux environment's images.tar.gz (scripts/quire/linux-env-image.sh). It is copied to
-# /sdcard/linux/images.tar.gz, where the Terminal app installs from on debuggable builds. OUTDIR gets results.tsv
-# (check, PASS/FAIL/INFO, detail) and the logs. Steps:
+# /sdcard/linux/images.tar.gz, where the Terminal app installs from on debuggable builds, unless it is already there.
+# From a host over adb (an installed G14, Cuttlefish), scripts/quire/linux-env-adb.sh check pushes both and runs this.
+# OUTDIR gets results.tsv (check, PASS/FAIL/INFO, detail) and the logs. Steps:
 #   1. KVM: the CPU's svm flag, KVM's device, /dev/kvm, kvm_amd in the kernel log, vendor.openbook.kvm and the
 #      ro.boot.hypervisor.* properties init.openbook.rc derives from it.
 #   2. AVF: the feature, crosvm and virtmgr, the Terminal app (off by default) and Quire's permission.
@@ -88,7 +89,12 @@ ping -c1 -W3 8.8.8.8 > /dev/null 2>&1; result "Android has internet" $([ $? = 0 
 pm enable $T > /dev/null
 for p in ACCESS_LOCAL_NETWORK POST_NOTIFICATIONS RECORD_AUDIO; do pm grant $T android.permission.$p 2>/dev/null; done
 mkdir -p /sdcard/linux
-cp "$IMAGE" /sdcard/linux/images.tar.gz; check "image copied" $? "$(ls -l /sdcard/linux/images.tar.gz)"
+# linux-env-adb.sh pushes the image there itself.
+if [ "$IMAGE" = /sdcard/linux/images.tar.gz ]; then
+  [ -s "$IMAGE" ]; check "image in place" $? "$(ls -l /sdcard/linux/images.tar.gz)"
+else
+  cp "$IMAGE" /sdcard/linux/images.tar.gz; check "image copied" $? "$(ls -l /sdcard/linux/images.tar.gz)"
+fi
 t0=$(date +%s)
 am start -n $T/.LauncherActivity > /dev/null
 # A debuggable build installs a local image by itself; otherwise the Terminal app shows Install for the person to tap.
