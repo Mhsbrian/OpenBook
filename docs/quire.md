@@ -10,6 +10,7 @@ As of 2026-10-18. Labels: **C** = confirmed (we read it in a primary source or i
 - **Built today: `quired`, the harness host for trusted local agents.** It finds the agent CLIs on a machine, runs them, and gives every one of them the same ACP interface. On this host it opened real ACP sessions with opencode, Copilot and omp. Through its Claude Code adapter it ran real turns in which the person's "allow" or "deny" decided whether a file was written. It has 22 unit tests that pass with the race detector, including regressions for the faults the ANAL-217 review found (§6).
 - **Built in Q2: Quire core in the image, and the AOSP 17 hooks working** (§2.5, §2.6). In Cuttlefish, a pointer shake, Meta+Space and the assist key each open Quire with a screenshot that leaves secure windows out and the list of visible apps. Quire asks for a computer-control session on Settings; the platform's own consent dialog appears; Settings runs on a separate display that Quire mirrors; a tap through the session turns Dark theme on; "take over" moves Settings to the person's screen. A denied consent, the lock screen and a secure window each stop it. Getting there took four small AOSP patches, all fixes or device configuration rather than relaxed checks.
 - **Built in Q4: agents run on the laptop itself** (§4.1). Both images carry AVF and its Terminal app. The Debian guest is built here, with `quired` in it, and Quire core reaches that `quired` over vsock through a bridge in the Terminal app. In Cuttlefish, under nested KVM on AMD, the guest boots in about 12 s. `quired agents` in its terminal lists opencode, installed there, and a prompt sent from Quire core comes back from opencode in the guest. Without KVM, Quire says the Linux environment can't run and names a paired computer as the fallback. Pairing is designed and under review ([`docs/quire-pairing.md`](quire-pairing.md)); it is not built. The G14 run waits for the owner's stick.
+- **Built in Q6: every agent knows it is Quire on OpenBook and can drive the laptop** (§10). Each session gets OpenBook's skill (as `AGENTS.md`, `CLAUDE.md` and `GEMINI.md` in its folder, as the tools' MCP instructions, and as a context block on every prompt) and 37 OS tools that Quire core serves through `quired`: apps and the web, the screen, settings with undo, files, windows, computer control, clipboard, notifications and media. Quire core decides every call; only destructive ones ask first. In the rehearsal VM, opencode's free model, given the owner's prompts word for word, opened Fox News in the browser, turned on Dark theme, made the text bigger, turned on Battery Saver, showed Downloads in Files and read the screen.
 - **How we learned from Multica (reviewed, not copied).** Multica's daemon detects agent CLIs and drives each through its own output format. Its licence adds conditions on commercial embedding. Quire takes the idea of detecting and running the agents a person has, and builds it on open protocols with its own code. No Multica code is used (§3).
 
 ## 1. The experience
@@ -207,10 +208,19 @@ flowchart LR
   - keeps the audit log of every change it made, with undo where possible.
   - It is an ACP **client**, so it can talk to any ACP agent anywhere.
 - **Quire surface:** the note, the mirror and the inline consent. Atelier designed it (ANAL-215, `docs/quire-design.md`); Q5 built it (§9). The note is a window of Quire core, because the computer-control session owner must have a visible window of its own; SystemUI draws the halo and the intake outline; the taskbar button is Launcher3's (not built yet).
-- **OS tools** (not built, Q6): an MCP server the core passes to every agent in `session/new`, in three tiers. The tiers are design requirements, enforced by the core on every call whatever the agent asks or claims (§5.3).
-  - **Observe:** read settings, list apps and windows, read the selection, take a screenshot of non-secure windows. Observe is not harmless: these can show messages, names and documents, so each one has a scope and a destination (§5.3).
-  - **Act, with consent each time or for the task:** change a setting from an allowlist; open, move or close windows; start a computer-control session for named apps.
-  - **Never:** read secure windows; touch other apps' data; change security settings (lock screen, verified boot, developer options); install apps; send messages or make payments without the person doing it. The core refuses these tools outright. Computer control needs more than that, because a session on an approved app can tap anything in it (§5.3).
+- **OS tools** (Q6, built, §10): an MCP server in every session, relayed by `quired` to the core, which decides each call
+  whatever the agent asks or claims. The owner's rule (ANAL-225, 2026-10-19): Quire reads, reviews and changes OpenBook
+  freely, and asks only before something destructive. So, replacing Q1's "consent for every change":
+  - **Observe** and **Act** run at once, as steps in the note: read the screen, list and open apps and web pages, change
+    a setting (with an undo), work with files and windows, the clipboard, notifications and media, and operate an app
+    by computer control in the mirror.
+  - **Confirm:** destructive actions ask in the note first, saying exactly what will happen, with Allow and Don't allow:
+    deleting or replacing files; adb and developer settings; in computer control, a tap on a control that deletes,
+    uninstalls, disables, clears, resets, sends, pays or buys, and any step on security, account, developer or reset
+    pages. Uninstalling apps, clearing app data, factory reset, sending messages and purchases have no tool of their own:
+    they can only happen through computer control, where these rules catch them.
+  - **Never:** no tool reads secure windows (the platform leaves them out) or other apps' private files (`Android/` is
+    refused), types into a password field, or turns a protection off silently.
 - **`quired`:** finds and runs the agent CLIs, adapts the ones without ACP, and confines the ACP file reads and writes it serves to the session's folder. It is not a sandbox: agents run as the person's user (§5.2). It runs where the agents can run. Agent CLIs are Linux (glibc) programs, so on the laptop that means the **Linux environment**: AOSP 17's AVF Terminal and its Debian guest (§4.1).
 - **Connectors**, in order:
   1. local ACP agents through `quired` in the Linux environment (§4.1);
@@ -251,7 +261,7 @@ Q1 is a harness for **trusted local agents**. This section separates what Q1 enf
 - **Asking is the agent's choice.** In ACP v1 the agent MAY call `session/request_permission` before a tool call; nothing requires it. `quired` serves `fs/write_text_file` without asking the person, because the agent's own policy is what asks. In the ANAL-217 review a synthetic agent wrote a file with no question asked.
 - **Claude's bridge sees only what Claude sends it.** A tool that Claude Code's own settings already allow runs without a question.
 
-### 5.3 Requirements before Quire acts on the system (design, Q2–Q6)
+### 5.3 Requirements before Quire acts on the system (design, Q2–Q6; what Q6 enforces is §10.3)
 
 - **Opt-in:** no agent is connected until the person connects it, and every note names the agent answering.
 - **The broker authorizes every privileged call.** Quire core checks each OS-tool call against the person's grants when it is made, independent of the agent. An agent cannot grant itself anything. "Allow for this task" covers one tool for one task. Deny, cancel, a timeout and an unreachable person all mean no.
@@ -353,7 +363,7 @@ Each one is a sub-issue of ANAL-214 with its own acceptance checks. "G14" means 
 | Q3 | **Interaction and motion design** (ANAL-215) | Atelier | Invocation, the note's states (asking, streaming, steps, consent, mirror, done, error), motion specs and a clickable prototype; the visual language matches OpenBook's look |
 | Q4 | **The Linux environment and `quired serve`** (ANAL-218). AVF Terminal in OpenBook, KVM on AMD, `quired` in the Debian guest, ACP over vsock to the core, pairing for a second computer | Porter | An agent installed in the Linux environment answers a prompt from Quire core in Cuttlefish, then on the G14. **Done in Cuttlefish (§4.1):** 29/29, and 8/8 without KVM; installed over adb, 0 failures. Open: the G14 run, over adb once the installed system's update carries AVF (`scripts/quire/linux-env-adb.sh check`), and pairing (design revision 2, for re-review) |
 | Q5 | **The surface** (ANAL-219). The note, steps, consent and mirror, built to Q3's spec | Porter with Atelier | Q3's states, in a recorded Cuttlefish session; 60 fps on the G14; works with TalkBack and keyboard only. **Built and checked in Cuttlefish (§9); the G14, TalkBack and the Launcher3 button are open** |
-| Q6 | **OS tools over MCP** (ANAL-220). Settings (allowlisted, with undo), apps and windows, computer control | Porter | A scripted matrix: "turn on dark theme", "make text bigger", "open Files and show Downloads", each with the right consent, plus deny, cancel and never-tier refusals tested at the broker (§5.3) |
+| Q6 | **Every agent knows it is OpenBook's assistant and can drive the laptop** (ANAL-220). OpenBook's skill and 37 OS tools over MCP; only destructive actions ask | Porter | The owner's prompts, verbatim, on two agents, in the VM, then the G14 (§10). **Built; in the VM with opencode (§10.4); the G14 and a second agent: §10.5** |
 | Q7 | **Voice** (ANAL-221). Hold to talk, on-device speech-to-text (open models only), and the note reading back | Porter | Works offline on the G14; the mic indicator is always shown |
 | Q8 | **Review and verification** (ANAL-217) | Checker | A security and privacy review of each PR against §5, and the G14 checklist results recorded |
 
@@ -494,6 +504,109 @@ The evidence is in `evidence/2026-10-19-quire-q5-safety/SUMMARY.md`.
   permission controller's screens, and the note now honours that. Calling Quire over them opens a note nobody sees
   (the intake and the agent still work), and after Take over the closing line is hidden behind Settings. This is a
   product decision for the owner and the Checker (§8).
+
+
+## 10. Built: OpenBook's skill and OS tools (Q6, ANAL-220)
+
+Code: `quire/quired/internal/serve/tools.go` (`quired` 0.3.0), `device/anybook/common/quire/app/src/dev/openbook/quire/tools/`,
+and the note's side in `note/Task.kt`, `note/ControlRun.kt` (agent mode) and `note/TaskControl.kt`. Evidence:
+`evidence/2026-10-19-quire-q6/`.
+
+### 10.1 What every agent is told
+
+- **OpenBook's skill** (`tools/Skill.kt`): you are Quire, the assistant built into this laptop; "the computer", the
+  screen, apps, settings and files mean OpenBook, not the Linux environment you run in; never install apps into Linux or
+  use adb for the laptop; which tool for which request ("open Chrome and go to fox news" is `open_url` with
+  `https://www.foxnews.com` and Chrome); the consent rules; answer briefly in the person's language. Quire core sends it
+  in `session/new` (`_meta.quire.skill`) and `quired` writes it into the session's new folder as `AGENTS.md`,
+  `CLAUDE.md` and `GEMINI.md`, never over a file that is there. The `openbook` MCP server gives the same rules as its
+  `instructions`.
+- **A context block on every prompt** (`tools/WindowTools.kt`, `LiveContext`), labelled as Quire's: the time and time
+  zone, the person's language, and the apps on screen by name (no window titles: they can hold a subject line). The
+  first prompt of a session also carries the skill's preface.
+
+### 10.2 How a call travels
+
+```text
+agent (guest) --stdio MCP--> quired tools-mcp --unix socket 0600--> quired serve --ACP _quire/tools/call--> Quire core
+                                                                                  (the vsock link Q4 opened)
+```
+
+- Quire core asks for the tools in `session/new` (`_meta.quire.tools`); `quired` adds one MCP server, `openbook`, to
+  the session. Claude Code runs its tools without its own question (`--allowedTools mcp__openbook`); for other agents,
+  Quire answers their own permission question about an `openbook` tool itself, since the broker decides the call.
+- A call is relayed only while a turn runs in its session, and ends with the turn. Listing is allowed any time.
+- Each call is one step in the note; when the agent also announces it, the two lines become one, with Quire's title
+  ("Opening foxnews.com in Chrome").
+
+### 10.3 The tools and the tiers (`tools/`)
+
+| Area | Tools | Tier |
+|---|---|---|
+| Apps and the web | `list_apps`, `open_app`, `open_url` (a named browser, else the person's) | observe, act |
+| The screen | `read_screen` (the assist structure of the visible windows), `take_screenshot` | observe |
+| Settings | `list_settings`, `change_setting` (19: dark theme, text size, bold text, Battery Saver, brightness, three volumes, Bluetooth, Wi-Fi, airplane mode, Night Light, screen timeout, location, color inversion, high contrast text, remove animations; developer options, USB and wireless debugging ask first), `undo_change`, `open_settings` | act |
+| Files (shared storage) | `list_files`, `search_files`, `read_file`, `open_file`, `open_folder`, `write_file` (replacing asks), `make_folder`, `copy_file`, `move_file`, `delete_file` (asks) | observe, act, confirm |
+| Windows | `list_windows`, `focus_window`, `move_window`, `maximize_window`, `close_window` | act |
+| Computer control | `control_start`, `control_read`, `control_tap`, `control_type`, `control_scroll`, `control_back`, `control_screenshot`, `control_end` | act; destructive taps ask |
+| Also | `clipboard_read`, `clipboard_write`, `notifications_list`, `notification_dismiss`, `media_control` | observe, act |
+
+- **Settings** use each one's own platform API, as Settings does, and every change goes into a 24-hour change log
+  (`tools/ChangeLog.kt`). The note lists the task's changes with an Undo on each.
+- **Confirmations** are Quire's own card (Don't allow, Allow) naming what will happen. Stop, Esc, the end of the turn
+  and 30 minutes without an answer all mean no; Don't allow tells the agent not to try another way.
+- **The note is a system overlay while it holds a question** (`NoteWindow.systemFor`): Files and Settings hide overlays,
+  and a confirmation nobody can see would hold the request or invite an answer given blind. It is ordinary again once
+  answered. It is also held on screen for the moment of a screen read (below).
+- **Computer control** is Q5's run in agent mode: the platform's consent (per app, "Always allow" remembered by the
+  platform), the mirror with the agent's pointer, Pause (the agent's step waits), Take over and Stop. The run closes
+  with the agent's turn. Only apps in the image's automatable allowlist can be driven: Settings today.
+- **Screen reading follows three platform rules found here (C):** AOSP 17 strips assist data unless the assistant
+  declares `usesAssistData`, `usesAssistScreenshots` and `usesAssistStructureScreenContent`; the assistant's "Use text
+  from screen" is now an app op (`READ_SCREEN_CONTEXT`) that starts off, so `read_screen` asks the person once with the
+  platform's own dialog (`VoiceInteractionManager.createRequestReadScreenContextIntent`; the note steps aside); and an
+  assistant that starts its own session gets screen data only while its window is visible (`isSelfTriggerAllowed`).
+- **Never tier, enforced:** secure windows stay dark (assist leaves them out, screenshots black them); `Android/` and
+  anything outside shared storage are refused; `control_type` refuses a password field; no tool turns a protection off.
+- **Battery Saver** can't turn on while the laptop is plugged in: Android allows it only on battery
+  (`PowerManagerService.setLowPowerModeInternal`), and the tool says so.
+- **Permissions** (`AndroidManifest.xml`): Quire is platform-signed, so the signature permissions these APIs need are
+  granted; the privileged ones are listed in its privapp file. Notification access comes from the image's default
+  (`config_defaultListenerAccessPackages`), granted once on an install that predates it, and never again if the person
+  turns it off.
+
+### 10.4 Checked in the rehearsal VM (C)
+
+The G14's own state (`openbook-ota-20261019-quire5`, slot B) in QEMU, Quire built from this branch and installed over
+it, the Linux environment from `scripts/quire/linux-env-image.sh` with `quired` 0.3.0 and opencode 1.19.3 (its free
+model, no account). Each prompt word for word in a new note, no hints:
+
+| Prompt | What happened |
+|---|---|
+| "open chrome and go to fox news" (typed) | `open_url` with Chrome: refused, the VM has no Chrome and the result lists its browsers; `open_url` again: Fox News opened. "Opened Fox News in the browser (Chrome isn't installed on this laptop, so I used WebView Browser Tester)", 20 s |
+| "turn on dark theme" | `change_setting`: Dark theme Off → On, Undo in the note; "Dark theme is on." |
+| "make the text bigger" | `change_setting`: text size up one step |
+| "turn on battery saver" | `change_setting` (on simulated battery power) |
+| "open Files and show my Downloads" | `open_folder`: Files on Downloads |
+| "what's on my screen?" (Files in front) | `read_screen` after the platform's consent: Files' structure read |
+
+Through the broker directly (the lab's `TOOL` command, real taps on the note and the platform's dialogs): Undo from the
+note puts Dark theme back; a delete over Files shows its card above Files, Don't allow leaves the file and Allow
+deletes it; `Android/data/…` and `../../data` are refused; computer control on Settings with the platform's consent, the
+mirror, and a tap on Connected devices found by its text.
+
+### 10.5 Open
+
+- **The G14:** the update and the owner's prompts on the laptop (ANAL-220's report).
+- **A second agent** the owner signs in to (Claude Code, Gemini, Copilot…), for the matrix's second column.
+- **The note over Settings and Files** (§8 item 10): outside a question, the note still hides there, so an answer the
+  agent gives after opening Files, or Quire called over Settings, isn't seen until that window goes. The owner and the
+  Checker decide whether the note shows over them always.
+- **The Checker's review of the tool boundary**, which is much wider now; Atelier's sign-off on the steps, the
+  confirmation card and the change list, which the glass-and-ink restyle (ANAL-227, PR #114) will redraw.
+- **`quired` updates** reach a Linux environment that is already installed only by hand today (a new guest image
+  replaces the person's guest files). A self-update from Quire core is the next step.
+- Destructive-control recognition is English-only and by label; the computer-control allowlist is Settings only.
 
 ## Sources
 
