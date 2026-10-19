@@ -1,0 +1,4 @@
+MATCH /system_ext/priv-app/OpenBookQuire/OpenBookQuire.apk 551e8c2b41724cf7
+MATCH /system_ext/priv-app/SystemUI/SystemUI.apk 779cb0a4c82529ce
+MATCH /system/apex/com.android.virt.apex 5a8ec7a4b5801fb6
+MATCH /vendor/bin/hw/android.hardware.composer.hwc3-service.drm df6f5287593727e0

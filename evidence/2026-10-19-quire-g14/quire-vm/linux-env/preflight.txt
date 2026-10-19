@@ -1,0 +1,10 @@
+build                              OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.quire2:userdebug/test-keys
+debuggable                         1
+AVF feature                        yes
+crosvm, virtmgr                    crosvm virtmgr 
+Terminal app                       installed, off
+KVM's device (sysfs)               10:232
+kvm_amd (npt, nested)              Y 1 
+ro.boot.hypervisor.vm.supported    1
+Linux environment installed        no
+free in /data                      114.1 GiB

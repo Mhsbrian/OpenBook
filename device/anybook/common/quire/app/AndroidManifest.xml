@@ -29,6 +29,11 @@
     <!-- Reach the agents in the Linux environment: the Terminal app relays the guest's quired (ANAL-218,
          aosp/patches/packages/modules/Virtualization). signature|privileged; privapp-permissions grants it. -->
     <uses-permission android:name="com.android.virtualization.terminal.permission.ACCESS_AGENT_BRIDGE" />
+    <!-- ANAL-225: Quire starts the Linux environment when called, so the Terminal app may start its foreground
+         service from the background (a 60 s exemption per start), and the note's Set up turns the Linux environment
+         on. Both signature|privileged; privapp-permissions lists them. -->
+    <uses-permission android:name="android.permission.CHANGE_DEVICE_IDLE_TEMP_WHITELIST" />
+    <uses-permission android:name="android.permission.CHANGE_COMPONENT_ENABLED_STATE" />
 
     <!-- Names of the apps a session automates, for its notification and status. The Terminal app, to know whether
          the Linux environment is there and on. -->

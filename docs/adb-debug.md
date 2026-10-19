@@ -113,8 +113,9 @@ A new build reaches the laptop as a full A/B update. update_engine writes the sl
 **For agents:** the skill `openbook-g14-update` (`.claude/skills/openbook-g14-update/SKILL.md`, also a Multica workspace skill) is this procedure step by step: the gates, the build, the QEMU rehearsal from the laptop's current state, the laptop step with its idle rule, the after-checks, the evidence and the report.
 
 ```bash
-# on the build host, after the product build (with the target-files-package and otatools-package goals)
-scripts/aosp-docker.sh -d anybook-aosp-build /repo/scripts/aosp-build.sh anybook_g14_x86_64-cp2a-userdebug \
+# on the build host, after the product build (with the target-files-package and otatools-package goals). Each update
+# build needs its own BUILD_NUMBER (it is in the fingerprint; `ota` refuses the running build's, ANAL-225)
+BUILD_NUMBER=<date>.<x> scripts/aosp-docker.sh -d anybook-aosp-build /repo/scripts/aosp-build.sh anybook_g14_x86_64-cp2a-userdebug \
     droid target-files-package otatools-package && docker wait anybook-aosp-build
 scripts/ota/make-ota.sh openbook-ota-<date>-<x>                 # ~1 min: <data dir>/ota/out/<label>.{zip,json,bootsync}
 scripts/g14-adb.sh state <file>.json                            # optional: what the update must keep, to compare after

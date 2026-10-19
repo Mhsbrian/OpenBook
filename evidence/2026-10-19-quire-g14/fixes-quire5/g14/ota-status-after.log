@@ -1,0 +1,17 @@
+build: OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.quire5:userdebug/test-keys (Mon Oct 19 12:00:46 UTC 2026)
+slot: _b  vbmeta: 4aa4ffa21882d186bad6fecba48cc9128568a4e1d9b46b842314b04dda8c195d
+boot HAL: openbook [running] AOSP default []
+update_engine: UPDATE_STATUS_IDLE
+snapshots: Update state: none
+10-19 12:35:56.132   906   906 I android.hardware.boot-service.openbook: IBootControl AIDL service (OpenBook: misc + openbook-bootsync) running...
+10-19 12:36:00.576   906   906 I android.hardware.boot-service.openbook: bootsync mark-good: 12:36:00 step 1: mark the running slot's entry good
+10-19 12:36:00.576   906   906 I android.hardware.boot-service.openbook: bootsync mark-good: 12:36:00 openbook-b+2-1.conf -> openbook-b.conf
+10-19 12:36:00.576   906   906 I android.hardware.boot-service.openbook: bootsync mark-good: 12:36:00 step 2: remove the other slot's entry (the merge overwrites that slot)
+10-19 12:36:00.576   906   906 I android.hardware.boot-service.openbook: bootsync mark-good: 12:36:00 removed loader/entries/openbook-a.conf (the update to this slot booted)
+10-19 12:36:00.576   906   906 I android.hardware.boot-service.openbook: bootsync mark-good: 12:36:00 loader.conf: default openbook-b.conf
+10-19 12:36:05.076  1113  1113 I update_engine: [INFO:cleanup_previous_update_action.cc(342)] Merge finished with state MergeCompleted.
+10-19 12:36:05.084   906   906 I android.hardware.boot-service.openbook: bootsync disable _a: 12:36:05 step 1: remove the slot's entry
+ESP: systemd-boot starts slot b next; loader.conf default openbook-b.conf, preferred None
+  slot a: entry None (none), images ok, ESP files in_sync, vbmeta 1d2d8f5e5d68b622
+  slot b: entry openbook-b.conf (good), images ok, ESP files in_sync, vbmeta 4aa4ffa21882d186
+adbd back to uid 2000

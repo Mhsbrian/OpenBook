@@ -1,0 +1,4 @@
+10-19 10:44:02.125 I/Quire   ( 4942): q4-device prompt 1792406642
+10-19 10:44:02.142 I/Quire   ( 2124): lab: dev.openbook.quire.lab.AGENTS_PROMPT
+10-19 10:44:05.916 I/Quire   ( 2124): agents: session opencode-1 agent=opencode folder=/home/droid/Quire/2026-10-19-1634038109
+10-19 10:44:18.615 I/Quire   ( 2124): agents: answer opencode-1 stop=end_turn ms=12699 text="QUIRE OK"

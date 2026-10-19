@@ -1,0 +1,150 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: OpenBook <noreply@anybook.invalid>
+Date: Mon, 19 Oct 2026 11:00:00 +0000
+Subject: [PATCH] OPENBOOK: TerminalApp: the agent bridge starts the Linux
+ environment
+
+AgentBridgeProvider gets call("start"): when the Linux environment is
+stopped (after every reboot) or failed, it starts the VM; when it isn't
+installed, it installs it (from the image a debuggable build finds in
+/sdcard/linux, else the download) and starts the VM once installed.
+status() reports "installing" while the installer runs.
+
+So Quire core can start its agents' environment when the person calls
+it, and the person never has to open the Terminal app for that. Both
+paths start VmService, a foreground service: the caller exempts this
+app from the background start limit first; a start that fails anyway is
+reported as an error, not a crash.
+
+OpenBook ANAL-225 (Quire on the G14).
+
+Change-Id: Ic9ea0c53eb6bff036ac8ab85346aaccbef92e5af
+---
+ .../terminal/AgentBridgeProvider.kt           | 72 ++++++++++++++++++-
+ 1 file changed, 69 insertions(+), 3 deletions(-)
+
+diff --git a/android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt b/android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt
+index af8064c49..0787d9082 100644
+--- a/android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt
++++ b/android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt
+@@ -21,6 +21,7 @@ import android.database.Cursor
+ import android.net.Uri
+ import android.os.Bundle
+ import android.os.ParcelFileDescriptor
++import android.os.SystemClock
+ import android.system.ErrnoException
+ import android.system.Os
+ import android.system.OsConstants
+@@ -28,6 +29,8 @@ import android.system.VmSocketAddress
+ import android.system.virtualmachine.VirtualMachine
+ import android.util.Log
+ import com.android.system.virtualmachine.flags.Flags
++import com.android.virtualization.terminal.new2.core.InstallState
++import com.android.virtualization.terminal.new2.core.Installer
+ import com.android.virtualization.terminal.new2.core.VmController
+ import com.android.virtualization.terminal.new2.core.VmState
+ import java.io.FileDescriptor
+@@ -50,8 +53,12 @@ import kotlin.concurrent.thread
+  * agent stay private to this app.
+  *
+  * - `openFile(content://com.android.virtualization.terminal.agentbridge/vsock/7690, "rw")`
+- * - `call("status")` returns `state` (not_installed, stopped, starting, running, error) and,
++ * - `call("status")` returns `state` (not_installed, installing, stopped, starting, running, error) and,
+  *   for an error, `message`.
++ * - `call("start")` starts the Linux environment for the caller and returns the same: it installs it first when it
++ *   isn't (from the image a debuggable build finds in /sdcard/linux, else the download), then starts the VM, so the
++ *   person never has to open this app for Quire's agents. Both run in [VmService], a foreground service: the caller
++ *   exempts this app from the background start limit first (PowerExemptionManager.addToTemporaryAllowList).
+  */
+ class AgentBridgeProvider : ContentProvider() {
+     companion object {
+@@ -62,6 +69,8 @@ class AgentBridgeProvider : ContentProvider() {
+         /** Nothing listens here; [probe] only asks whether the guest answers at all. */
+         private const val PROBE_PORT = 7699
+         private val nextId = AtomicInteger()
++        /** How long a start that had to install first keeps waiting for the install, before it gives up. */
++        private const val INSTALL_TIMEOUT_MS = 30 * 60_000L
+     }
+ 
+     override fun onCreate(): Boolean = true
+@@ -72,6 +81,7 @@ class AgentBridgeProvider : ContentProvider() {
+ 
+     private fun state(): Pair<String, String?> {
+         if (!Flags.terminalNewuiJetpack()) return "error" to "the agent bridge needs the new Terminal UI"
++        if (Installer.isInstalling) return "installing" to null
+         if (!InstalledImage.getDefault(context!!).isInstalled()) return "not_installed" to null
+         return when (val s = VmController.vmState.value) {
+             // VmController calls the VM running as soon as crosvm is started, and AVF keeps listing it while its
+@@ -108,14 +118,70 @@ class AgentBridgeProvider : ContentProvider() {
+ 
+     override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
+         enforce()
+-        if (method != "status") throw IllegalArgumentException("unknown method $method")
+-        val (state, message) = state()
++        val (state, message) =
++            when (method) {
++                "status" -> state()
++                "start" -> start()
++                else -> throw IllegalArgumentException("unknown method $method")
++            }
+         return Bundle().apply {
+             putString("state", state)
+             message?.let { putString("message", it) }
+         }
+     }
+ 
++    /** Installs if needed, then starts the VM; returns the state right after asking. See the class. */
++    private fun start(): Pair<String, String?> {
++        val (state, message) = state()
++        return try {
++            when (state) {
++                "running", "starting", "installing" -> state to message
++                "not_installed" -> {
++                    Log.i(TAG, "start: installing the Linux environment for ${callingPackage ?: "?"}")
++                    Installer.install()
++                    thread(name = "AgentBridge-start") { startWhenInstalled() }
++                    "installing" to null
++                }
++                else -> {
++                    startVm()
++                    "starting" to null
++                }
++            }
++        } catch (e: Exception) {
++            // Most likely the background limit on foreground services: the caller didn't exempt this app.
++            Log.w(TAG, "start failed", e)
++            "error" to "could not start the Linux environment: ${e.message ?: e.javaClass.simpleName}"
++        }
++    }
++
++    private fun startWhenInstalled() {
++        val deadline = SystemClock.elapsedRealtime() + INSTALL_TIMEOUT_MS
++        while (SystemClock.elapsedRealtime() < deadline) {
++            when (val s = Installer.installState.value) {
++                is InstallState.Installed -> {
++                    try {
++                        startVm()
++                    } catch (e: Exception) {
++                        Log.w(TAG, "start after install failed", e)
++                    }
++                    return
++                }
++                is InstallState.Error -> {
++                    Log.w(TAG, "install failed: ${s.errorCause}")
++                    return
++                }
++                else -> Thread.sleep(1000)
++            }
++        }
++        Log.w(TAG, "install did not finish in ${INSTALL_TIMEOUT_MS / 60_000} min")
++    }
++
++    private fun startVm() {
++        Log.i(TAG, "start: starting the Linux environment for ${callingPackage ?: "?"}")
++        VmController.reset()
++        VmController.start()
++    }
++
+     override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor {
+         enforce()
+         val seg = uri.pathSegments

@@ -3,9 +3,18 @@
 
 package dev.openbook.quire.acp
 
+import android.content.Context
+import android.os.ParcelFileDescriptor
+import android.os.SystemClock
+import android.system.ErrnoException
+import android.system.Os
+import android.system.OsConstants
 import android.util.Log
 import dev.openbook.quire.Quire.TAG
+import dev.openbook.quire.agents.Connectors
 import java.io.Closeable
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -14,18 +23,50 @@ import java.net.InetSocketAddress
 import java.net.Socket
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 import org.json.JSONArray
 import org.json.JSONObject
 
-/** An open byte stream to an ACP agent. */
-class Link(val input: InputStream, val output: OutputStream, private val onClose: Closeable) : Closeable {
-    override fun close() = onClose.close()
+/**
+ * An open byte stream to an ACP agent, owned by the [AcpConnection] that reads it. [shutdown] ends reading and writing
+ * from any thread, so a read blocked on the stream returns; [close] shuts it down and releases it. Both run once, however
+ * often they are called.
+ */
+class Link(
+    val input: InputStream,
+    val output: OutputStream,
+    private val onShutdown: () -> Unit,
+    private val onRelease: Closeable,
+) : Closeable {
+    private val down = AtomicBoolean(false)
+    private val released = AtomicBoolean(false)
+
+    fun shutdown() {
+        if (!down.compareAndSet(false, true)) return
+        try {
+            onShutdown()
+        } catch (e: Exception) {
+            // Already gone.
+        }
+    }
+
+    override fun close() {
+        shutdown()
+        if (!released.compareAndSet(false, true)) return
+        try {
+            onRelease.close()
+        } catch (e: IOException) {
+            // Already gone.
+        }
+    }
 }
 
 /**
- * Where an agent is reached. Today that is a TCP address on the loopback interface, which debuggable builds use to
- * reach an agent on the host through `adb reverse` (scripts/quire/q5-acp-agent.py, or a real ACP agent behind socat).
- * Q4 adds `quired serve` over vsock from the Linux environment, and pairing adds an authenticated LAN link.
+ * Where an agent is reached. `linux:<agent>` is an agent in the laptop's Linux environment: `quired serve` in the
+ * Debian guest, over vsock through the Terminal app's agent bridge (agents/Connectors.kt, ANAL-218), with the agent
+ * named in [quiredAgent]. `tcp:<host>:<port>` is a loopback address, which debuggable builds use to reach an agent on
+ * the host through `adb reverse` (scripts/quire/q5-acp-agent.py, or a real ACP agent behind socat). Pairing adds an
+ * authenticated LAN link.
  */
 data class Endpoint(
     val id: String,
@@ -39,8 +80,16 @@ data class Endpoint(
     /** False for a paired computer: unreachable means offline, not broken. */
     val local: Boolean,
 ) {
+    /**
+     * The agent `quired serve` routes this endpoint's sessions to (its `_meta.quire.agent`), or null for an endpoint
+     * that is the agent itself.
+     */
+    val quiredAgent: String?
+        get() = address.removePrefix(LINUX).takeIf { address.startsWith(LINUX) && it.isNotEmpty() }
+
     /** Opens the link. Blocks; call off the main thread. */
-    fun open(): Link {
+    fun open(context: Context): Link {
+        if (quiredAgent != null) return openLinux(context)
         val parts = address.split(":")
         require(parts.size == 3 && parts[0] == "tcp") { "unsupported address $address" }
         val host = InetAddress.getByName(parts[1])
@@ -49,11 +98,48 @@ data class Endpoint(
         val socket = Socket()
         socket.connect(InetSocketAddress(host, parts[2].toInt()), CONNECT_TIMEOUT_MS)
         socket.tcpNoDelay = true
-        return Link(socket.getInputStream(), socket.getOutputStream(), socket)
+        // Closing a Java socket from another thread ends a read blocked on it.
+        return Link(socket.getInputStream(), socket.getOutputStream(), { socket.close() }, socket)
+    }
+
+    /**
+     * A stream to quired in the Linux environment, which is started first when it is stopped (after every reboot), so
+     * a prompt to a connected agent just takes a little longer. When it can't be used, the error says why.
+     */
+    private fun openLinux(context: Context): Link {
+        val status = Connectors.LinuxEnvironment.ensureRunning(context, START_TIMEOUT_MS)
+        if (status.state != Connectors.State.READY) throw IOException(status.describe(context))
+        // quired starts a few seconds after the guest answers on vsock: right after a start it resets the connection.
+        val deadline = SystemClock.elapsedRealtime() + QUIRED_WAIT_MS
+        var pfd: ParcelFileDescriptor
+        while (true) {
+            try {
+                pfd = Connectors.LinuxEnvironment.connect(context)
+                break
+            } catch (e: IOException) {
+                if (SystemClock.elapsedRealtime() > deadline) throw e
+                SystemClock.sleep(1000)
+            }
+        }
+        // These streams don't own the descriptor, and closing them doesn't end a read blocked on it: shutdown(2)
+        // does. quired then sees EOF and stops the agent it started for this connection (agents/AgentHost.kt).
+        return Link(FileInputStream(pfd.fileDescriptor), FileOutputStream(pfd.fileDescriptor), {
+            try {
+                Os.shutdown(pfd.fileDescriptor, OsConstants.SHUT_RDWR)
+            } catch (_: ErrnoException) {
+            }
+        }, pfd)
     }
 
     companion object {
         const val CONNECT_TIMEOUT_MS = 3000
+        const val LINUX = "linux:"
+
+        /** How long a call waits for a stopped Linux environment to start (21 s on the G14). */
+        const val START_TIMEOUT_MS = 120_000L
+
+        /** How long a call keeps trying quired in a Linux environment that has just started. */
+        const val QUIRED_WAIT_MS = 30_000L
     }
 }
 
@@ -73,7 +159,12 @@ data class AuthMethod(val id: String, val name: String, val description: String?
  * callback runs on [main]. Quire offers the agent no file system and no terminal: an agent uses its own tools, and asks
  * the person through `session/request_permission` when its policy says to.
  */
-class AcpAgent(val endpoint: Endpoint, private val listener: Listener, private val main: Executor) {
+class AcpAgent(
+    private val context: Context,
+    val endpoint: Endpoint,
+    private val listener: Listener,
+    private val main: Executor,
+) {
     interface Listener {
         fun onUpdate(agent: AcpAgent, sessionId: String, update: JSONObject)
 
@@ -84,7 +175,6 @@ class AcpAgent(val endpoint: Endpoint, private val listener: Listener, private v
     }
 
     private val io = Executors.newSingleThreadExecutor { r -> Thread(r, "acp-open-${endpoint.id}") }
-    private var link: Link? = null
     private var connection: AcpConnection? = null
 
     @Volatile var info: AgentInfo? = null
@@ -97,14 +187,14 @@ class AcpAgent(val endpoint: Endpoint, private val listener: Listener, private v
     fun connect(done: (Result<AgentInfo>) -> Unit) {
         io.execute {
             val opened = try {
-                endpoint.open()
+                endpoint.open(context)
             } catch (e: Exception) {
                 Log.w(TAG, "acp[${endpoint.id}]: cannot reach ${endpoint.address}: ${e.javaClass.simpleName}")
                 main.execute { done(Result.failure(e)) }
                 return@execute
             }
-            val c = AcpConnection(opened.input, opened.output, handler, endpoint.id)
-            link = opened
+            // The connection owns the link: it shuts it down on close and releases it once its reader is done.
+            val c = AcpConnection(opened.input, opened.output, handler, endpoint.id, opened)
             connection = c
             c.start()
             val params = JSONObject()
@@ -114,12 +204,28 @@ class AcpAgent(val endpoint: Endpoint, private val listener: Listener, private v
                     .put("terminal", false))
                 .put("clientInfo", JSONObject().put("name", "quire").put("title", "Quire").put("version", VERSION))
             c.request("initialize", params) { r ->
-                val result = r.mapCatching { parseInfo(it as? JSONObject ?: throw IOException("bad initialize")) }
-                result.onSuccess { info = it }
-                result.onFailure { close() }
-                main.execute { done(result) }
+                val routed = endpoint.quiredAgent
+                if (routed == null || r.isFailure) {
+                    finishConnect(r, done)
+                    return@request
+                }
+                val version = (r.getOrNull() as? JSONObject)?.optInt("protocolVersion", -1) ?: -1
+                if (version != PROTOCOL_VERSION) {
+                    finishConnect(Result.failure(IOException("quired chose ACP version $version")), done)
+                    return@request
+                }
+                // quired answered for itself; the name, sign-in methods and image support that matter are the
+                // agent's own initialize response, which _quire/describe returns (it starts the agent, no model call).
+                c.request("_quire/describe", JSONObject().put("agent", routed)) { d -> finishConnect(d, done) }
             }
         }
+    }
+
+    private fun finishConnect(r: Result<Any?>, done: (Result<AgentInfo>) -> Unit) {
+        val result = r.mapCatching { parseInfo(it as? JSONObject ?: throw IOException("bad initialize")) }
+        result.onSuccess { info = it }
+        result.onFailure { close() }
+        main.execute { done(result) }
     }
 
     private fun parseInfo(o: JSONObject): AgentInfo {
@@ -142,13 +248,19 @@ class AcpAgent(val endpoint: Endpoint, private val listener: Listener, private v
     }
 
     fun newSession(done: (Result<String>) -> Unit) {
-        call("session/new", JSONObject().put("cwd", endpoint.cwd).put("mcpServers", JSONArray())) { r ->
+        call("session/new", routed(JSONObject().put("cwd", endpoint.cwd).put("mcpServers", JSONArray()))) { r ->
             done(r.mapCatching { (it as JSONObject).getString("sessionId") })
         }
     }
 
     fun authenticate(methodId: String, done: (Result<Unit>) -> Unit) {
-        call("authenticate", JSONObject().put("methodId", methodId)) { r -> done(r.map { }) }
+        call("authenticate", routed(JSONObject().put("methodId", methodId))) { r -> done(r.map { }) }
+    }
+
+    /** Names the agent for quired serve, which routes session/new and authenticate by `_meta.quire.agent`. */
+    private fun routed(params: JSONObject): JSONObject {
+        val agent = endpoint.quiredAgent ?: return params
+        return params.put("_meta", JSONObject().put("quire", JSONObject().put("agent", agent)))
     }
 
     /** Runs one turn; [done] gets the stop reason. */
@@ -170,12 +282,6 @@ class AcpAgent(val endpoint: Endpoint, private val listener: Listener, private v
     fun close() {
         connection?.close()
         connection = null
-        try {
-            link?.close()
-        } catch (e: IOException) {
-            // Already gone.
-        }
-        link = null
     }
 
     private val handler = object : AcpConnection.Handler {
