@@ -89,6 +89,23 @@ service vendor.openbook.audio-setup /vendor/bin/openbook-audio-setup boot
     disabled
     stdio_to_kmsg
 
+# ANAL-218: AVF's capability properties, set only when the firmware gives us KVM (openbook-pc-setup kvm). Cuttlefish
+# sets them itself; on a PC nothing else does.
+on post-fs
+    exec_start vendor.openbook.kvm-check
+
+on property:vendor.openbook.kvm=1
+    setprop ro.boot.hypervisor.vm.supported 1
+    setprop ro.boot.hypervisor.protected_vm.supported 0
+    setprop ro.boot.hypervisor.version openbook-kvm
+
+service vendor.openbook.kvm-check /vendor/bin/openbook-pc-setup kvm
+    user root
+    group root
+    oneshot
+    disabled
+    stdio_to_kmsg
+
 service vendor.openbook.sysfs-perms /vendor/bin/openbook-pc-setup perms
     user root
     group root system

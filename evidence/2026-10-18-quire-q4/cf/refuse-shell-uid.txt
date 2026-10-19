@@ -1,0 +1,2 @@
+Error while accessing provider:com.android.virtualization.terminal.agentbridge
+java.lang.SecurityException: Permission Denial: opening provider com.android.virtualization.terminal.AgentBridgeProvider from (null) (pid=4728, uid=2000) requires com.android.virtualization.terminal.permission.ACCESS_AGENT_BRIDGE or com.android.virtualization.terminal.permission.ACCESS_AGENT_BRIDGE

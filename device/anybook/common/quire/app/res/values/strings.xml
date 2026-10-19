@@ -25,4 +25,23 @@
     <string name="channel_automation">Quire using apps</string>
     <string name="notification_using">Quire is using %1$s</string>
     <string name="notification_using_text">It runs on a separate display. Open Quire to watch, take over or stop.</string>
+
+    <!-- Agents (Q4, ANAL-218): where they run, and why Quire can't reach them. Q5's note replaces this window. -->
+    <string name="agents_heading">Agents</string>
+    <string name="agents_list_button">Find agents</string>
+    <string name="agents_send">Ask</string>
+    <string name="agents_prompt_hint">Ask an agent…</string>
+    <string name="agents_list">Agents in the %1$s: %2$s</string>
+    <string name="agents_where_linux">Linux environment</string>
+    <string name="agents_where_paired">paired computer</string>
+    <string name="agents_ready">Ready.</string>
+    <string name="agents_no_avf">This build of OpenBook has no Linux environment.</string>
+    <string name="agents_no_kvm">This laptop can’t run the Linux environment: it has no hardware virtualization (KVM), or it is turned off in the firmware settings.</string>
+    <string name="agents_terminal_off">The Linux environment is off. Turn it on in Settings › System › Developer options › Linux development environment.</string>
+    <string name="agents_not_installed">The Linux environment isn’t set up yet. Open Terminal to install it.</string>
+    <string name="agents_stopped">The Linux environment isn’t running. Open Terminal to start it.</string>
+    <string name="agents_starting">The Linux environment is starting.</string>
+    <string name="agents_error">The Linux environment couldn’t be reached.</string>
+    <string name="agents_not_paired">Quire can use the agents on another computer instead, but none is paired.</string>
+    <string name="agents_permission_title">Allow %1$s?</string>
 </resources>

@@ -1,0 +1,109 @@
+
+--- a/build/debian/build_internal.sh	2026-10-15 20:44:46.691494073 -0400
++++ b/build/debian/build_internal.sh	2026-10-18 13:56:19.012044169 -0400
+@@ -214,18 +214,25 @@
+   local root_uuid=$(sfdisk --part-uuid "${RAW_DISK_IMG}" 1)
+   sed -i "s/{root_part_guid}/${root_uuid}/g" vm_config.json
+ 
+-  # Fetch the latest Android Common Kernel from CI if not specified
+-  if [[ -z "${KERNEL_BUILD_ID}" ]]; then
+-    KERNEL_BUILD_ID=$(curl -s https://ci.android.com/builds/branches/aosp_kernel-common-android16-6.12/status.json | \
+-      jq -r '.targets[] | select(.name == "kernel_server_'${TARGET_ARCH}'") | .last_known_good_build')
+-  fi
++  # OpenBook: the kernel and initrd are Debian's, exported from the customized root filesystem
++  # by build_rootfs_in_chroot.sh.
++  cp "${SCRIPT_DIR}/openbook-kernel/vmlinuz" vmlinuz
++  cp "${SCRIPT_DIR}/openbook-kernel/initrd.img" initrd.img
++  cp "${SCRIPT_DIR}/openbook-kernel/kernel_version" "${SCRIPT_DIR}/openbook-kernel/kernel_config" .
+ 
+-  local kernel_url="https://androidbuildinternal.googleapis.com/android/internal/build/v3/builds/${KERNEL_BUILD_ID}/kernel_server_${TARGET_ARCH}/attempts/latest/artifacts"
+-  wget -q -O vmlinuz "${kernel_url}/${VMLINUZ_NAME}/url"
+-  wget -q -O initrd.img "${kernel_url}/initramfs.img/url"
++  # OpenBook: a desktop automounter may have mounted the root filesystem's loop device on the
++  # host (linux-env-image.sh unmounts it). Wait until nothing holds it before it is packed.
++  local i
++  for i in $(seq 1 60); do
++    [[ -z "$(losetup -j "${ROOT_PART_FILE}")" ]] && break
++    sleep 1
++  done
++  [[ -z "$(losetup -j "${ROOT_PART_FILE}")" ]] || error "root_part is still attached: $(losetup -j "${ROOT_PART_FILE}")"
+ 
+   local bundle_contents=(build_id "${ROOT_PART_FILE##*/}" vm_config.json vmlinuz initrd.img)
+   popd > /dev/null
++  # OpenBook: the kernel's version and config go next to the bundle, for the evidence.
++  cp "${WORKDIR}/kernel_version" "${WORKDIR}/kernel_config" "$(dirname "${FINAL_OUTPUT_FILE}")/"
+ 
+   # Compress everything into the final tarball using multi-core pigz
+   tar -I pigz -cv -f "${FINAL_OUTPUT_FILE}" -C "${WORKDIR}" "${bundle_contents[@]}"
+
+--- a/build/debian/build_rootfs_in_chroot.sh	2026-10-15 20:44:46.691573563 -0400
++++ b/build/debian/build_rootfs_in_chroot.sh	2026-10-18 13:54:27.782215673 -0400
+@@ -30,6 +30,7 @@
+   mesa-vulkan-drivers
+   procps
+   pulseaudio
++  socat
+   systemd-zram-generator
+   vulkan-tools
+   weston
+@@ -39,10 +40,30 @@
+ 
+ ### --- Functions --- ###
+ 
+-# Remove default kernel packages to make room for our custom kernel
+-remove_default_kernels() {
+-  echo "--- Removing default kernel packages ---"
+-  apt purge -y linux-image-*
++# OpenBook: keep Debian's own cloud kernel. The guest boots it directly (build_internal.sh
++# copies /boot's kernel and initrd into the bundle) instead of a kernel downloaded from Google's CI.
++keep_debian_kernel() {
++  echo "--- Keeping Debian's kernel ---"
++  ls /boot/vmlinuz-* /boot/initrd.img-*
++}
++
++# OpenBook: install the local packages staged in /mnt/build/localdebs (quired), and the agents
++# named in /mnt/build/openbook-agents (test images only; a product image ships no agent).
++install_openbook() {
++  echo "--- Installing OpenBook packages ---"
++  if compgen -G "/mnt/build/localdebs/*.deb" > /dev/null; then
++    eatmydata apt install -y /mnt/build/localdebs/*.deb
++  fi
++  if [ -s /mnt/build/openbook-agents ]; then
++    while read -r agent url sha; do
++      [ -n "$agent" ] || continue
++      echo "test agent: $agent from $url"
++      curl -fsSL -o "/tmp/$agent.tgz" "$url"
++      echo "$sha  /tmp/$agent.tgz" | sha256sum -c -
++      tar -xzf "/tmp/$agent.tgz" -C /usr/local/bin
++      rm "/tmp/$agent.tgz"
++    done < /mnt/build/openbook-agents
++  fi
+ }
+ 
+ # Install required packages and optimize the process
+@@ -127,9 +148,24 @@
+ 
+ ### --- Main Execution --- ###
+ 
+-remove_default_kernels
++# OpenBook: hand the newest kernel, its initrd and its config to build_internal.sh, through the
++# bind-mounted build folder.
++export_kernel() {
++  local v
++  v=$(ls -1 /boot/vmlinuz-* | sed 's|/boot/vmlinuz-||' | sort -V | tail -1)
++  mkdir -p /mnt/build/openbook-kernel
++  cp "/boot/vmlinuz-$v" /mnt/build/openbook-kernel/vmlinuz
++  cp "/boot/initrd.img-$v" /mnt/build/openbook-kernel/initrd.img
++  cp "/boot/config-$v" /mnt/build/openbook-kernel/kernel_config
++  echo "$v" > /mnt/build/openbook-kernel/kernel_version
++  echo "--- Kernel for the bundle: $v ---"
++}
++
++keep_debian_kernel
+ install_packages
++install_openbook
+ install_ttyd
+ apply_custom_configs
++export_kernel
+ 
+ echo "Rootfs customization completed successfully."

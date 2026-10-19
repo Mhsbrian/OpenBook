@@ -1,0 +1,4 @@
+q2-check nokvm 1792352419.913
+10-18 19:40:20.057 I/Quire   ( 3138): lab: dev.openbook.quire.lab.AGENTS_LIST
+10-18 19:40:20.070 I/Quire   ( 3138): agents: status linux-environment=ERROR(the VM is not running: its crosvm exited (no KVM?)) paired-computer=NOT_PAIRED
+10-18 19:40:20.070 W/Quire   ( 3138): agents: unavailable: The Linux environment couldn’t be reached. (the VM is not running: its crosvm exited (no KVM?)) Quire can use the agents on another computer instead, but none is paired.

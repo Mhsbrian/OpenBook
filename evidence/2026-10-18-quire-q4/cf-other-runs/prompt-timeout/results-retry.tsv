@@ -1,0 +1,6 @@
+Quire core reached quired in the guest	PASS	agents: connected via linux-environment in 2 ms; quired 0.2.0
+quired lists an agent installed in the guest	PASS	opencode 1.19.3 supported=true
+VM start -> Quire connected to quired (s)	INFO	12.1
+guest boot (systemd)	INFO	no Startup line in the console; kernel 6.12.113+deb13-cloud-amd64
+opencode's sign-in methods reach Quire (ACP authMethods)	PASS	[opencode-login:agent:"Login with opencode"]
+a prompt from Quire core is answered by opencode in the guest	PASS	answer opencode-1 stop=end_turn ms=9489 text="QUIRE OK" (11.2 s)

@@ -1,0 +1,12 @@
+15:38:16 == nokvm
+15:38:16 PASS no /dev/kvm on this boot: ls: /dev/kvm: No such file or directory
+15:40:19 PASS the Linux environment cannot start without KVM: Result: Bundle[{state=error, message=the VM is not running: its crosvm exited (no KVM?)}]
+15:40:20 PASS no KVM: Quire says the Linux environment can't be used and names the fallback: The Linux environment couldn’t be reached. (the VM is not running: its crosvm exited (no KVM?)) Quire can use the agents on another computer instead, but none is paired.
+15:40:25 == health
+15:40:25 PASS crash buffer empty: 0 lines; 
+15:40:25 PASS no ANR: am_anr events: 0
+15:40:25 PASS no SystemUI restart: pid at start 2668, now 2668
+15:40:25 PASS no new SELinux denial outside AOSP's AVF and Cuttlefish's known three: 16 distinct, 0 new
+15:40:25 INFO AOSP AVF denials seen (the VM works with them): 12 lines: scontext=u:r:priv_app_all_virtualizationmanager:s0 tcontext=u:object_r:fuse:s0 tclass=file; scontext=u:r:priv_app_all_virtualizationmanager:s0 tcontext=u:object_r:gpu_device:s0 tclass=chr_file; scontext=u:r:priv_app_all_virtualizationmanager:s0 tcontext=u:r:surfaceflinger:s0 tclass=fd
+15:40:25 PASS no denial for the Terminal app's bridge or Quire: 
+15:40:26 == 8 pass, 0 fail

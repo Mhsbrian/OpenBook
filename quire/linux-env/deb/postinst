@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+if [ "$1" = configure ]; then
+	# Works in the image build's chroot too, where systemd isn't running.
+	deb-systemd-helper enable quired.service >/dev/null || true
+	if [ -d /run/systemd/system ]; then
+		systemctl daemon-reload >/dev/null || true
+		systemctl restart quired.service >/dev/null || true
+	fi
+fi
