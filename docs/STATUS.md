@@ -17,8 +17,10 @@ guards pass. Evidence: `evidence/2026-10-19-googlebook-usb-logs/`.
 This enables diagnosis of the next physical boot; it does not resolve the G14
 black screen or qualify the desktop. Use **Googlebook - save detailed logs to
 USB (10 minutes)**, wait 12 minutes, then shut down and reconnect the stick.
-It does not power off automatically. The guarded physical update/readback is
-recorded separately when complete.
+It does not power off automatically. The same 62 GB SanDisk Ultra has now been
+updated: 12,766,412,800 bytes written in 719 seconds, fully read back in 95
+seconds with matching SHA-256 `19b9a9492f6b09ba…`, then powered off successfully.
+The installed laptop and firmware were not updated.
 
 ## 2026-10-19: experimental Googlebook stick written (ANAL-228)
 

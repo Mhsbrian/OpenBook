@@ -6,6 +6,9 @@ ESP reports, bootstat entries or watchdog files. The original candidate only
 logged to a VM serial console. Its used disk extent was backed up privately for
 investigation. Persistent USB diagnostics are described in
 `docs/googlebook-live.md`; a VM capture is not proof of a physical Radeon fix.
+The same SanDisk now holds diagnostic candidate `19b9a9492f6b09ba…`: the full
+12.8 GB write/readback matches and the device was powered off. The next hardware
+trial should select the save-logs entry and return the resulting capture.
 
 On 2026-10-19, the owner attached the previously identified 62 GB SanDisk Ultra
 and requested the experimental Googlebook image. The guarded write and full

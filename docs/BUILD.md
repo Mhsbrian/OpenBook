@@ -10,6 +10,10 @@ actual hardware-facing menu entry and extract logs from the private VM disk.
 The original input and synthetic internal disk must remain unchanged. For a
 full ten-minute capture, allow a longer observation window (for example 760 s).
 See `docs/googlebook-live.md` for operation and capture limits.
+The diagnostic image `19b9a9492f6b09ba…` is now on the owner's SanDisk with
+matching full readback; `evidence/2026-10-19-googlebook-usb-logs/` records the
+VM validation, unchanged logger across the final policy-only adjustment and
+physical-write result.
 
 See `docs/googlebook-live.md` for the isolated patched-QEMU build, native versus
 emulated arithmetic checks, bare-metal probe packaging, and UEFI/USB tests with
