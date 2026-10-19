@@ -1,0 +1,6 @@
+checks    passed
+[  58s] [INFO:update_engine_client_android.cc(102)] onPayloadApplicationComplete(ErrorCode::kSuccess (0))
+[  58s] UPDATE_STATUS_UPDATED_NEED_REBOOT 0%
+update_engine: slot a written in 69 s (UPDATE_STATUS_UPDATED_NEED_REBOOT)
+verified  slot a: images match vbmeta_a (f1f7f5143cb4504d..., the package's), ESP files in_sync, entry openbook-a+3.conf; systemd-boot starts slot a next
+Slot a is ready. Nothing changes until the next boot; slot b and /data are as they were.
