@@ -1,0 +1,5 @@
+10-19 05:26:48.017 I/Quire   ( 2893): q4-device list-1 1792387608
+10-19 05:26:48.031 I/Quire   ( 1442): lab: dev.openbook.quire.lab.AGENTS_LIST
+10-19 05:26:48.032 I/Quire   ( 1442): agents: status linux-environment=READY paired-computer=NOT_PAIRED
+10-19 05:26:48.070 I/Quire   ( 1442): agents: connected via linux-environment in 37 ms; quired 0.2.1
+10-19 05:26:53.240 I/Quire   ( 1442): agents: agent opencode version="1.19.3" supported=true

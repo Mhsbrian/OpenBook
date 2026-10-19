@@ -1,0 +1,33 @@
+q2-check control 1792387757.399
+10-19 05:29:16.182 I/Quire   ( 1442): lab: note CONTROL
+10-19 05:29:16.186 I/Quire   ( 1442): note: shown task 5 phase=COMPOSE anchor=Pointer
+10-19 05:29:16.186 I/Quire   ( 1442): note: unfold animated=true
+10-19 05:29:16.410 I/Quire   ( 1442): consent: starting the waiting activity
+10-19 05:29:16.417 I/Quire   ( 1442): consent: waiting activity created
+10-19 05:29:17.005 I/Quire   ( 1442): consent: waiting activity on screen
+10-19 05:29:17.007 I/Quire   ( 1442): cc: request name=quire-1792387757005 targets=[com.android.settings] version=5
+10-19 05:29:17.008 I/Quire   ( 1442): cc: pending: the platform asks for consent
+10-19 05:29:17.029 I/Quire   ( 1442): consent: the note's still at [773,327][1373,643]
+10-19 05:29:17.165 I/Quire   ( 1442): consent: dialog started above the waiting activity
+10-19 05:29:17.165 I/Quire   ( 1442): cc: pending: the dialog is open, above Quire's waiting activity
+10-19 05:29:21.262 I/Quire   ( 1442): cc: created: display 1920x1200
+10-19 05:29:21.262 I/Quire   ( 1442): note: task 5 owns a live session
+10-19 05:29:21.262 I/Quire   ( 1442): note: removed
+10-19 05:29:21.266 I/Quire   ( 1442): note: window system overlay (computer control running, task 5)
+10-19 05:29:21.282 I/Quire   ( 1442): note: shown task 5 phase=WAITING anchor=Pointer system=true
+10-19 05:29:21.287 I/Quire   ( 1442): cc: launch: com.android.settings
+10-19 05:29:21.287 I/Quire   ( 1442): consent: waiting activity finished
+10-19 05:29:21.288 I/Quire   ( 1442): cc: lifecycle: active
+10-19 05:29:21.313 I/Quire   ( 1442): cc: mirror created
+10-19 05:29:23.093 I/Quire   ( 1442): note: control aiming at "Display" bounds=Rect(2, 1023 - 700, 1160)
+10-19 05:29:25.612 I/Quire   ( 1442): cc: tap: 351,1091
+10-19 05:29:26.794 I/Quire   ( 1442): note: control aiming at "Dark theme" bounds=Rect(0, 1023 - 698, 1160)
+10-19 05:29:29.298 I/Quire   ( 1442): cc: tap: 349,1091
+10-19 05:29:30.463 I/Quire   ( 1442): note: control run complete
+10-19 05:29:30.463 I/Quire   ( 1442): cc: close: requested
+10-19 05:29:30.463 I/Quire   ( 1442): note: removed
+10-19 05:29:30.499 I/Quire   ( 1442): note: window ordinary overlay (task 5)
+10-19 05:29:30.578 I/Quire   ( 1442): note: shown task 5 phase=MIRROR anchor=Pointer
+10-19 05:29:30.589 I/Quire   ( 1442): note: control run ended stopped=false: Opened Dark theme.
+10-19 05:29:30.761 I/Quire   ( 1442): cc: lifecycle: closed reason=1(CALLER_INITIATED)
+10-19 05:29:30.867 I/Quire   ( 1442): lab: note MIRROR
