@@ -1,5 +1,14 @@
 # Build and reproduce
 
+## G14 touchpad diagnostic replay (ANAL-226, 2026-10-19)
+
+`scripts/power/touchpad/build-replay.sh` builds an isolated host copy of the
+bundled gestures library and an offline event replay; it does not use the AOSP
+build lane or write the laptop. Commands, dependencies and limitations are in
+`docs/touchpad-behavior.md`. Eight synthetic control checks pass. Physical
+reproduction and a libinput runtime comparison remain required before an image
+change; no touchpad update image has been built.
+
 Everything here runs without host sudo. The tools that Arch's base system doesn't provide run in Docker containers. You need `/dev/kvm` accessible and your user in the `docker` group.
 
 ## Layout (outside the repo; images are never committed)

@@ -1,5 +1,15 @@
 # Compatibility matrix
 
+## Touchpad behavior (2026-10-19, ANAL-226)
+
+| Check | Result | Scope |
+|---|---|---|
+| G14 current tap-drag configuration | Enabled in Settings and mapper | Read-only, `20261019.photos1`, slot A |
+| Tap, drag, staggered scroll, palm, three-finger swipe and parser controls | 8/8 checks pass | Synthetic offline gestures-library replay; no physical fix claimed |
+| Owner's failing motions, libinput comparison and before/after G14 traces | Pending | Needs labeled physical reproduction before tuning or OTA |
+
+Details: `docs/touchpad-behavior.md`.
+
 ## Images on hosts and VMs
 
 | Date | Image | Host / VM | Result | Evidence |
