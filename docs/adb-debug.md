@@ -106,7 +106,7 @@ The G14's QEMU tests use the serial console, not adb, so they are unaffected. Cu
 
 ## 7. Updating the installed system (A/B image updates over adb, ANAL-223)
 
-A new build reaches the laptop as a full A/B update. update_engine writes the slot that is not running, and `/data` (apps, settings, files, the PIN) is kept. The running slot stays the fallback until the new one has booted. How it works: `docs/installer.md` §2.5. Results: §13.13 and `evidence/2026-10-18-ota/`.
+A new build reaches the laptop as a full A/B update. update_engine writes the slot that is not running, and `/data` (apps, settings, files, the PIN) is kept. The running slot stays the fallback until the new one has booted. How it works: `docs/installer.md` §2.5. Results: §13.14 and `evidence/2026-10-18-ota/`.
 
 **Each update writes the laptop's disk** (the other slot, the copy-on-write data in `/data`, the ESP's loader entry), so it needs the owner's go for that device.
 

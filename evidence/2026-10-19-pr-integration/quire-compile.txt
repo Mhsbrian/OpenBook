@@ -1,0 +1,2 @@
+compile-check: OpenBookQuire OK (53 Kotlin files, 357 classes, 0 warnings)
+compile-check: QuireSecureProbe OK (2 Kotlin files, 4 classes, 0 warnings)

@@ -553,6 +553,7 @@ agent (guest) --stdio MCP--> quired tools-mcp --unix socket 0600--> quired serve
 
 - **Settings** use each one's own platform API, as Settings does, and every change goes into a 24-hour change log
   (`tools/ChangeLog.kt`). The note lists the task's changes with an Undo on each.
+- Agent-requested submission (`control_type` with `submit=true`) and taps without an identifiable target ask before dispatch. Ordinary typing and identified non-sensitive taps remain automatic. Agent-requested Undo of adb or developer settings confirms the exact entry before writing; the person’s own Undo button remains a direct action. Host dispatch regressions: `python3 device/anybook/common/quire/tools/policy-test.py` (17/17; pre-fix head 96080bf fails 12). These checks use boundary fakes, not a device.
 - **Confirmations** are Quire's own card (Don't allow, Allow) naming what will happen. Stop, Esc, the end of the turn
   and 30 minutes without an answer all mean no; Don't allow tells the agent not to try another way.
 - **The note is a system overlay while it holds a question** (`NoteWindow.systemFor`): Files and Settings hide overlays,
