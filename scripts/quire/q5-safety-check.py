@@ -4,7 +4,7 @@
 """Quire Q5 safety checks (ANAL-219): the regressions for the Checker's three findings on PR #110 (2026-10-18), on a
 booted userdebug OpenBook device, normally Cuttlefish.
 
-usage: q5-safety-check.py SERIAL OUTDIR [--only overlay,consent,agents,intake] [--probe APK]
+usage: q5-safety-check.py SERIAL OUTDIR [--only overlay,consent,owner,agents,intake] [--probe APK]
 
 Sections:
   overlay  1. The note and the tray hide under a window that hides overlays (the probe's ProtectedActivity calls
@@ -18,6 +18,11 @@ Sections:
            time" creates the session, so the platform found Quire on screen without any exemption. While the session
            runs the note (mirror, Pause, Stop) is on screen though Settings hides overlays on both displays; Stop on the
            screen ends it and the note is an ordinary overlay again. "Don't allow" is refused and leaves nothing.
+  owner    The exemption belongs to the session's own task (the Checker's recheck, 2026-10-19): with a paused Settings
+           session and the protected probe on screen, the session's task keeps its mirror and Stop in view; a new note
+           opened by the shake path, while that task runs hidden, is an ordinary overlay and hides under the probe;
+           reopening the session's task brings the mirror back; another switch away is ordinary again; after Stop the
+           task's own note is ordinary and hides under the probe.
   agents   Two ACP agents that both name their session "session-1" (Agent A, Agent B): each permission request reaches
            only its own agent's task and is shown under that agent's name; Esc on A's card answers A "cancelled" and
            sends session/cancel to A only; Allow on B's card answers B only; with a new task on A (session-1 again),
@@ -451,6 +456,85 @@ def consent(d, size=None, at=(1400.0, 300.0), deny=False):
             time.sleep(3)
 
 
+# ------------------------------------------------------------------------------------------------ owner
+
+def owner(d):
+    d.log("== owner (the overlay exemption belongs to the session's own task)")
+    scene(d)
+    tag = d.mark("owner")
+    try:
+        d.lab("CONTROL", prompt="In Settings, turn on Dark theme", app="Settings", launch=SETTINGS,
+              taps=json.dumps(q5.TAPS[:2]), x=1400.0, y=300.0, aimMs="60000")
+        if not d.wait_log(r"cc: pending: the dialog is open", tag, timeout=15) or not d.tap_text("Only this time"):
+            d.result("owner: a live session", False, "no dialog or no 'Only this time'")
+            return
+        created = d.wait_log(r"cc: created: display", tag, timeout=15)
+        d.wait_log(r'note: control aiming at', tag, timeout=15)
+        d.lab("MIRROR", action="pause")
+        paused = d.wait_log(r"cc: lifecycle: blocked reason=3", tag)
+        mark = d.mark("owner which task")
+        d.lab("DUMP")
+        own = d.wait_log(r"lab: task (\d+) phase=MIRROR running=true", mark, timeout=5)
+        if not created or not paused or not own:
+            d.result("owner: a live, paused session", False, (created.group(0) if created else "no session") +
+                     ("; paused" if paused else "; not paused") + (f"; task {own.group(1)}" if own else "; no task"))
+            return
+        ctl = own.group(1)
+        d.sh(f"am start -W -n {PROBE}/.ProtectedActivity >/dev/null")
+        time.sleep(1.5)
+
+        def note_state(save):
+            ws = windows(d, f"owner/{save}-windows.txt")
+            d.screencap(f"owner/{save}.png")
+            return win(ws, "Quire")
+
+        def dump():
+            mark = d.mark(f"owner dump {time.time():.0f}")
+            d.lab("DUMP")
+            time.sleep(0.6)
+            return d.since(mark)
+
+        n = note_state("session-task")
+        d.result("owner: the session's own task keeps its mirror and Stop over a protected window",
+                 n is not None and n["system"] and n["onscreen"], f"task {ctl}: system={n and n['system']} "
+                 f"onScreen={n and n['onscreen']}")
+        for i in (1, 2):
+            mark = d.mark(f"owner away {i}")
+            d.lab("OPEN", trigger="shake", intake="none", x=600.0, y=300.0)
+            shown = d.wait_log(r"note: shown task (\d+)", mark)
+            time.sleep(1.2)
+            n = note_state(f"away-{i}")
+            st = dump()
+            hid = re.search(rf"lab: task {ctl} phase=MIRROR running=true hidden=true", st)
+            d.result(f"owner: a new note while the session's task runs hidden is ordinary ({i})",
+                     bool(shown) and shown.group(1) != ctl and bool(hid) and n is not None and not n["system"] and
+                     n["hidden"] and not n["onscreen"],
+                     f"shown task {shown and shown.group(1)} (session task {ctl} hidden and running: {bool(hid)}); "
+                     f"system={n and n['system']} forceHidden={n and n['hidden']} onScreen={n and n['onscreen']}")
+            d.lab("REOPEN", task=ctl)
+            time.sleep(1.5)
+            n = note_state(f"back-{i}")
+            d.result(f"owner: reopening the session's task brings its mirror back ({i})",
+                     n is not None and n["system"] and n["onscreen"],
+                     f"system={n and n['system']} onScreen={n and n['onscreen']}")
+        st = dump()
+        stop = re.search(r"lab: mirror stop at (\d+),(\d+),(\d+),(\d+)", st)
+        mark = d.mark("owner stop")
+        if stop:
+            x1, y1, x2, y2 = map(int, stop.groups())
+            d.sh(f"input tap {(x1 + x2) // 2} {(y1 + y2) // 2}")
+        ended = d.wait_log(rf"note: control run ended stopped=true", mark, timeout=10)
+        time.sleep(1.5)
+        n = note_state("after-stop")
+        d.result("owner: after Stop, the task's own note is ordinary and hides under the protected window",
+                 bool(stop) and bool(ended) and n is not None and not n["system"] and n["hidden"] and not n["onscreen"],
+                 (ended.group(0) if ended else "not stopped") + f"; system={n and n['system']} "
+                 f"forceHidden={n and n['hidden']} onScreen={n and n['onscreen']}")
+    finally:
+        q5.clean(d)
+        d.sh(f"am force-stop {PROBE}")
+
+
 # ------------------------------------------------------------------------------------------------ agents
 
 def agents(d):
@@ -790,7 +874,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("serial")
     ap.add_argument("out")
-    ap.add_argument("--only", default="overlay,consent,agents,intake")
+    ap.add_argument("--only", default="overlay,consent,owner,agents,intake")
     ap.add_argument("--probe", help="install this QuireSecureProbe.apk first")
     args = ap.parse_args()
     d = Dev(args.serial, args.out)
@@ -810,6 +894,8 @@ def main():
             consent(d)
             consent(d, size="1280x800", at=(900.0, 300.0))
             consent(d, deny=True)
+        if "owner" in only:
+            owner(d)
         if "agents" in only:
             agents(d)
         if "intake" in only:
