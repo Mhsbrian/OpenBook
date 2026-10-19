@@ -7,7 +7,11 @@ environment's Debian image on it over adb the way the laptop gets it (scripts/qu
 person's steps, the guest, an agent's answer to Quire core), then runs scripts/quire/g14-quire-check.py. The Debian
 guest runs under nested KVM (the VM has -cpu host).
 
-usage: quire-qemu.py --run RUN --image images.tar.gz [--from STATE] [--only SECTIONS]
+usage: quire-qemu.py --run RUN --image images.tar.gz [--from STATE] [--only SECTIONS] [--mode full|stopped|firstrun]
+  full      the Linux environment installed by linux-env-adb.sh check, then the checks (default)
+  stopped   the same, then the Terminal app force-stopped, so Quire must start the Linux environment itself
+  firstrun  only the image pushed (the Linux environment stays off), then facts, setup (the note's one-click Set
+            up), agent and health
 Results: <data dir>/logs/installer/ota/RUN/quire-from-STATE/ (serial.log, linux-env/, quire/, the scripts' logs).
 The disk copy is removed at the end; the saved state is not changed.
 """
@@ -43,9 +47,11 @@ def main():
     ap.add_argument("--run", required=True)
     ap.add_argument("--image", required=True, help="images.tar.gz from scripts/quire/linux-env-image.sh")
     ap.add_argument("--from", dest="from_state", default="after-ba")
-    ap.add_argument("--only", default="facts,invoke,agent,control,health")
+    ap.add_argument("--only", default=None)
+    ap.add_argument("--mode", choices=("full", "stopped", "firstrun"), default="full")
     a = ap.parse_args()
-    q, out = oq.case_dir(a.run, f"quire-from-{a.from_state}")
+    only = a.only or ("facts,setup,agent,health" if a.mode == "firstrun" else "facts,invoke,agent,control,health")
+    q, out = oq.case_dir(a.run, f"quire-{a.mode}-from-{a.from_state}")
     disk, vars_file = f"{q}/quire.img", f"{q}/quire.vars"
     oq.reflink(f"{q}/{a.from_state}.img", disk)
     shutil.copy(f"{q}/{a.from_state}.vars", vars_file)
@@ -63,9 +69,19 @@ def main():
         rc["bridge"] = script([f"{oq.R}/device/anybook/common/quire/tools/bridge-test.sh", serial, f"{out}/bridge"],
                               f"{out}/bridge-test.log", 900)
         oq.log(f"quire: bridge-test.sh exit {rc['bridge']}")
-        rc["linux-env"] = script([f"{oq.R}/scripts/quire/linux-env-adb.sh", "-s", serial, "check", a.image,
-                                  f"{out}/linux-env"], f"{out}/linux-env-adb.log", 2400)
-        oq.log(f"quire: linux-env-adb.sh check exit {rc['linux-env']}")
+        if a.mode == "firstrun":
+            rc["linux-env"] = script([f"{oq.R}/scripts/quire/linux-env-adb.sh", "-s", serial, "push", a.image],
+                                     f"{out}/linux-env-adb.log", 900)
+        else:
+            rc["linux-env"] = script([f"{oq.R}/scripts/quire/linux-env-adb.sh", "-s", serial, "check", a.image,
+                                      f"{out}/linux-env"], f"{out}/linux-env-adb.log", 2400)
+        oq.log(f"quire: linux-env-adb.sh {'push' if a.mode == 'firstrun' else 'check'} exit {rc['linux-env']}")
+        if a.mode == "stopped":
+            adb.connect()
+            adb.root()
+            adb.sh("am force-stop com.android.virtualization.terminal")
+            st, _ = adb.sh("content call --uri content://com.android.virtualization.terminal.agentbridge --method status")
+            oq.log(f"quire: Terminal app force-stopped; the bridge says {st.strip()}")
         # The Linux environment's check takes minutes; the VM's screen locks meanwhile. Unlock it again (the
         # rehearsal's own PIN) and keep it on for the screen checks, which never unlock by themselves.
         adb.connect()
@@ -73,7 +89,7 @@ def main():
         adb.sh("svc power stayon true")
         oq.log(f"quire: unlocked again={unlocked}")
         rc["quire"] = script([sys.executable, f"{oq.R}/scripts/quire/g14-quire-check.py", serial, f"{out}/quire",
-                              "--only", a.only], f"{out}/g14-quire-check.log", 1800)
+                              "--only", only], f"{out}/g14-quire-check.log", 2400)
         oq.log(f"quire: g14-quire-check.py exit {rc['quire']}")
         adb.sh("reboot -p")
         vm.wait_exit(120)

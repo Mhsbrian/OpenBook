@@ -4,6 +4,8 @@
 package dev.openbook.quire.acp
 
 import android.content.Context
+import android.os.ParcelFileDescriptor
+import android.os.SystemClock
 import android.system.ErrnoException
 import android.system.Os
 import android.system.OsConstants
@@ -107,7 +109,18 @@ data class Endpoint(
     private fun openLinux(context: Context): Link {
         val status = Connectors.LinuxEnvironment.ensureRunning(context, START_TIMEOUT_MS)
         if (status.state != Connectors.State.READY) throw IOException(status.describe(context))
-        val pfd = Connectors.LinuxEnvironment.connect(context)
+        // quired starts a few seconds after the guest answers on vsock: right after a start it resets the connection.
+        val deadline = SystemClock.elapsedRealtime() + QUIRED_WAIT_MS
+        var pfd: ParcelFileDescriptor
+        while (true) {
+            try {
+                pfd = Connectors.LinuxEnvironment.connect(context)
+                break
+            } catch (e: IOException) {
+                if (SystemClock.elapsedRealtime() > deadline) throw e
+                SystemClock.sleep(1000)
+            }
+        }
         // These streams don't own the descriptor, and closing them doesn't end a read blocked on it: shutdown(2)
         // does. quired then sees EOF and stops the agent it started for this connection (agents/AgentHost.kt).
         return Link(FileInputStream(pfd.fileDescriptor), FileOutputStream(pfd.fileDescriptor), {
@@ -124,6 +137,9 @@ data class Endpoint(
 
         /** How long a call waits for a stopped Linux environment to start (21 s on the G14). */
         const val START_TIMEOUT_MS = 120_000L
+
+        /** How long a call keeps trying quired in a Linux environment that has just started. */
+        const val QUIRED_WAIT_MS = 30_000L
     }
 }
 

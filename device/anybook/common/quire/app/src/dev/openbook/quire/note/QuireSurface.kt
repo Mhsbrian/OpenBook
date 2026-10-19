@@ -113,7 +113,7 @@ class QuireSurface(private val app: QuireApplication) : Task.Host, NoteWindow.Ca
                 handler.post { linuxChanged(Connectors.State.STARTING) }
                 env = Connectors.LinuxEnvironment.ensureRunning(app, Endpoint.START_TIMEOUT_MS)
             }
-            val found = if (env.state == Connectors.State.READY) linuxAgents() else null
+            val found = if (env.state == Connectors.State.READY) linuxAgents(QUIRED_WAIT_MS) else null
             handler.post {
                 discovering = false
                 linuxChanged(env.state)
@@ -132,7 +132,7 @@ class QuireSurface(private val app: QuireApplication) : Task.Host, NoteWindow.Ca
             if (env.state != Connectors.State.READY) {
                 env = Connectors.LinuxEnvironment.ensureRunning(app, SET_UP_TIMEOUT_MS)
             }
-            val found = if (env.state == Connectors.State.READY) linuxAgents() else null
+            val found = if (env.state == Connectors.State.READY) linuxAgents(QUIRED_WAIT_MS) else null
             Log.i(TAG, "note: Linux environment set up: ${env.state}, ${found?.size ?: 0} agent(s)")
             handler.post {
                 settingUp = false
@@ -143,14 +143,26 @@ class QuireSurface(private val app: QuireApplication) : Task.Host, NoteWindow.Ca
         }
     }
 
-    private fun linuxAgents(): List<Endpoint>? = try {
-        app.agents.agents().filter { it.supported }.map {
-            Endpoint(id = Endpoint.LINUX + it.id, name = it.name, where = app.getString(R.string.q_where_linux),
-                address = Endpoint.LINUX + it.id, cwd = "", local = true)
+    /**
+     * The agents quired reports, asking again for up to [waitMs]: quired starts a few seconds after the guest answers
+     * on vsock, so right after a start it isn't listening yet. Blocks; call off the main thread.
+     */
+    private fun linuxAgents(waitMs: Long): List<Endpoint>? {
+        val deadline = android.os.SystemClock.elapsedRealtime() + waitMs
+        while (true) {
+            try {
+                return app.agents.agents().filter { it.supported }.map {
+                    Endpoint(id = Endpoint.LINUX + it.id, name = it.name, where = app.getString(R.string.q_where_linux),
+                        address = Endpoint.LINUX + it.id, cwd = "", local = true)
+                }
+            } catch (e: Exception) {
+                if (android.os.SystemClock.elapsedRealtime() > deadline) {
+                    Log.i(TAG, "note: no agents from the Linux environment: ${e.javaClass.simpleName}")
+                    return null
+                }
+                android.os.SystemClock.sleep(2000)
+            }
         }
-    } catch (e: Exception) {
-        Log.i(TAG, "note: no agents from the Linux environment: ${e.javaClass.simpleName}")
-        null
     }
 
     private fun linuxChanged(state: Connectors.State) {
@@ -287,5 +299,8 @@ class QuireSurface(private val app: QuireApplication) : Task.Host, NoteWindow.Ca
 
         /** A first install from the download can take minutes; from the debuggable build's local image, about 30 s. */
         private const val SET_UP_TIMEOUT_MS = 15 * 60_000L
+
+        /** How long Quire keeps asking a just-started Linux environment for its agents. */
+        private const val QUIRED_WAIT_MS = 30_000L
     }
 }
