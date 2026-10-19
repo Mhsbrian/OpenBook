@@ -1,0 +1,22 @@
+# The G14 before anything was written, read over adb (shell user, then adb root only inside g14-adb.sh), 2026-10-18
+## 21:37Z (start of ANAL-223)
+ro.build.date          Sun Oct 18 13:44:02 UTC 2026 (ro.build.date.utc 1792331042)
+ro.boot.slot_suffix    _a
+ro.boot.openbook.installed  whole
+ro.virtual_ab.enabled / .compression.enabled  true / true
+ro.boot.vbmeta.digest  6d3735b9f31f31e923025243af06f6396673f8efcaef6b6fa3de862367498acf
+                       = openbook-live-20261018-anal192e.img.json "vbmeta_digest": the laptop was installed from anal192e
+ro.adb.secure          (unset)
+/system/etc/security/otacerts.zip  present (AOSP testkey.x509.pem; update_engine 17 reads it: platform_constants_android.cc)
+update_engine          running
+ESP                    not mounted (no vfat mount)
+/dev/block/by-name     EFI nvme0n1p1, misc p2, boot_a/b p3/p4, init_boot_a/b p5/p6, vendor_boot_a/b p7/p8,
+                       vbmeta_a/b p9/p10, metadata p11, super p12, userdata p13
+/data                  941G, 4.7G used
+## 23:19Z (before the update)
+uptime 53 min: the laptop had rebooted at about 22:26Z, so ANAL-212's composer swap (/mnt/openbook-hwc) was gone
+no process on the build host was using the laptop (ps: no adb -s 192.168.50.11, g14-adb.sh or composer-swap)
+AC powered: true, battery 62 %
+## 23:24Z (just before the reboot)
+mWakefulness=Awake, focus: the launcher, keyguard not showing, no media session or audio player started
+last user input 1144 s earlier (dumpsys power mLastUserActivityTime) -> idle: rebooted

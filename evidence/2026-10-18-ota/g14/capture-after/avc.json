@@ -1,0 +1,195 @@
+{
+ "schema": "openbook-avc-summary/1",
+ "dir": "capture-after",
+ "dmesg": {
+  "kernel": 5,
+  "android": 6
+ },
+ "logcat": {
+  "kernel": 5,
+  "android": 15
+ },
+ "dmesg_lines": 11,
+ "tuples": 12,
+ "tuples_without_flags_health_check": 12,
+ "denials": [
+  {
+   "scontext": "hal_usb_default",
+   "tcontext": "sysfs_batteryinfo",
+   "tclass": "dir",
+   "perms": [
+    "search"
+   ],
+   "paths": [
+    "power_supply"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "kernel",
+   "tcontext": "ota_metadata_file",
+   "tclass": "file",
+   "perms": [
+    "getattr",
+    "open",
+    "read"
+   ],
+   "paths": [
+    "/metadata/ota/state",
+    "state"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "kernel",
+   "tcontext": "super_block_device",
+   "tclass": "lnk_file",
+   "perms": [
+    "relabelto"
+   ],
+   "paths": [
+    "super"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "kernel",
+   "tcontext": "sysfs_ublk",
+   "tclass": "file",
+   "perms": [
+    "getattr"
+   ],
+   "paths": [
+    "/sys/devices/virtual/misc/ublk-control/ublkc6/uevent"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "keystore",
+   "tcontext": "hal_gatekeeper_service",
+   "tclass": "service_manager",
+   "perms": [
+    "find"
+   ],
+   "paths": [],
+   "in": [
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "platform_app",
+   "tcontext": "bluetooth_lea_prop",
+   "tclass": "file",
+   "perms": [
+    "read"
+   ],
+   "paths": [
+    "u:object_r:bluetooth_lea_prop:s0"
+   ],
+   "in": [
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "system_server",
+   "tcontext": "wifi_hal_prop",
+   "tclass": "file",
+   "perms": [
+    "read"
+   ],
+   "paths": [
+    "u:object_r:wifi_hal_prop:s0"
+   ],
+   "in": [
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "untrusted_app_34",
+   "tcontext": "proc",
+   "tclass": "file",
+   "perms": [
+    "read"
+   ],
+   "paths": [
+    "devices"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "untrusted_app_34",
+   "tcontext": "proc_tty_drivers",
+   "tclass": "file",
+   "perms": [
+    "read"
+   ],
+   "paths": [
+    "drivers"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "untrusted_app_34",
+   "tcontext": "qemu_hw_prop",
+   "tclass": "file",
+   "perms": [
+    "read"
+   ],
+   "paths": [
+    "u:object_r:qemu_hw_prop:s0"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "untrusted_app_34",
+   "tcontext": "qemu_sf_lcd_density_prop",
+   "tclass": "file",
+   "perms": [
+    "read"
+   ],
+   "paths": [
+    "u:object_r:qemu_sf_lcd_density_prop:s0"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  },
+  {
+   "scontext": "untrusted_app_34",
+   "tcontext": "serialno_prop",
+   "tclass": "file",
+   "perms": [
+    "read"
+   ],
+   "paths": [
+    "u:object_r:serialno_prop:s0"
+   ],
+   "in": [
+    "dmesg",
+    "logcat"
+   ]
+  }
+ ]
+}

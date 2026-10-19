@@ -1,0 +1,323 @@
+{
+ "cases": {
+  "fixture": [
+   {
+    "check": "the engine installs the live image onto a 64 GiB image file",
+    "ok": true,
+    "detail": "None"
+   }
+  ],
+  "installed": [
+   {
+    "check": "status: slot A's images verify against vbmeta_a",
+    "ok": true,
+    "detail": "{'images_ok': True, 'vbmeta_digest': '6d3735b9f31f31e923025243af06f6396673f8efcaef6b6fa3de862367498acf', 'vbmeta_key_sha256': '7728e30f50bfa5cea165f473175a08803f6a8346642b5aa10913e9d9e6defef6', 'vbmeta_signed': True, 'vbmeta_release': 'avbtool 1.4.0', 'entry': 'openbook-a.conf', 'entry_state': 'good', 'esp_files': 'in_sync'}"
+   },
+   {
+    "check": "status: slot A's ESP files are byte for byte what bootsync exports (kernel, both ramdisks, bootconfig)",
+    "ok": true,
+    "detail": "{'images_ok': True, 'vbmeta_digest': '6d3735b9f31f31e923025243af06f6396673f8efcaef6b6fa3de862367498acf', 'vbmeta_key_sha256': '7728e30f50bfa5cea165f473175a08803f6a8346642b5aa10913e9d9e6defef6', 'vbmeta_signed': True, 'vbmeta_release': 'avbtool 1.4.0', 'entry': 'openbook-a.conf', 'entry_state': 'good', 'esp_files': 'in_sync'}"
+   },
+   {
+    "check": "status: slot A good, slot B blank and without an entry",
+    "ok": true,
+    "detail": "{'images_ok': False, 'images_error': 'vbmeta_b: no vbmeta image (blank slot?)', 'entry': None, 'entry_state': 'none'}"
+   },
+   {
+    "check": "status: systemd-boot starts openbook-a.conf (bootsync and the independent model agree)",
+    "ok": true,
+    "detail": "('openbook-a.conf', 'openbook-a.conf')"
+   },
+   {
+    "check": "loader.conf as the installer wrote it",
+    "ok": true,
+    "detail": "b'timeout menu-hidden\\nconsole-mode keep\\neditor no\\ndefault openbook-a.conf\\n'"
+   }
+  ],
+  "refuse-blank": [
+   {
+    "check": "activate b with slot B blank: refused",
+    "ok": true,
+    "detail": "{'schema': 'openbook-bootsync/1', 'command': 'activate', 'current_slot': 'a', 'slot': 'b', 'ok': False, 'code': 'slot_not_ready', 'error': 'vbmeta_b: no vbmeta image (blank slot?)'}"
+   },
+   {
+    "check": "the ESP is unchanged",
+    "ok": true,
+    "detail": ""
+   }
+  ],
+  "refuse-corrupt": [
+   {
+    "check": "one byte of vendor_boot_b changed: refused (hash descriptor)",
+    "ok": true,
+    "detail": "{'schema': 'openbook-bootsync/1', 'command': 'activate', 'current_slot': 'a', 'slot': 'b', 'ok': False, 'code': 'slot_not_ready', 'error': 'vendor_boot_b does not match its vbmeta hash descriptor (an incomplete or damaged write)'}"
+   },
+   {
+    "check": "the ESP is unchanged",
+    "ok": true,
+    "detail": ""
+   }
+  ],
+  "refuse-key": [
+   {
+    "check": "activate b: refused (key_changed)",
+    "ok": true,
+    "detail": "{'schema': 'openbook-bootsync/1', 'command': 'activate', 'current_slot': 'a', 'slot': 'b', 'vbmeta_digest': 'b60bb70045e090110720066f998864ccebe18903a9b7ac26c2f8dc68d5535a33', 'vbmeta_key_sha256': '22de3994532196f61c039e90260d78a93a4c57362c7e789be928036e80b77c8c', 'ok': False, 'code': 'key_changed', 'error': \"vbmeta_b is signed with another key (22de3994532196f6) than the running slot's (7728e30f5"
+   },
+   {
+    "check": "the ESP is unchanged",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "with --allow-new-key: accepted",
+    "ok": true,
+    "detail": "{'schema': 'openbook-bootsync/1', 'command': 'activate', 'current_slot': 'a', 'slot': 'b', 'vbmeta_digest': 'b60bb70045e090110720066f998864ccebe18903a9b7ac26c2f8dc68d5535a33', 'vbmeta_key_sha256': '22de3994532196f61c039e90260d78a93a4c57362c7e789be928036e80b77c8c', 'files': [{'path': 'openbook/b/kernel', 'bytes': 26858496, 'sha256': '55b86074614a94592ddecebd2b77b1f2ed9aa38e8ad992b73c78c64d04c516f9'"
+   }
+  ],
+  "refuse-unsigned": [
+   {
+    "check": "activate b: refused (unsigned)",
+    "ok": true,
+    "detail": "{'schema': 'openbook-bootsync/1', 'command': 'activate', 'current_slot': 'a', 'slot': 'b', 'vbmeta_digest': '55277a64b1566300db36023d821b32dc49ec5b9cf56421e8ead1cbaaec89187c', 'vbmeta_key_sha256': None, 'ok': False, 'code': 'unsigned', 'error': 'vbmeta_b is unsigned'}"
+   },
+   {
+    "check": "the ESP is unchanged",
+    "ok": true,
+    "detail": ""
+   }
+  ],
+  "activate": [
+   {
+    "check": "activate b succeeds",
+    "ok": true,
+    "detail": "None"
+   },
+   {
+    "check": "entries: openbook-a.conf and openbook-b+3.conf",
+    "ok": true,
+    "detail": "['openbook-a.conf', 'openbook-b+3.conf']"
+   },
+   {
+    "check": "loader.conf: default openbook-a.conf, preferred openbook-b.conf, the installer's other lines kept",
+    "ok": true,
+    "detail": "timeout menu-hidden\nconsole-mode keep\neditor no\ndefault openbook-a.conf\npreferred openbook-b.conf\n"
+   },
+   {
+    "check": "B's bootconfig: slot _b, vbmeta_b's digest and size",
+    "ok": true,
+    "detail": "{'androidboot.slot_suffix': '_b', 'androidboot.vbmeta.digest': 'e0ec4b9ccb2df1e7b01c41e097b3d2b4ee56d14a3d1ecbf92db28b49acaa4fac'}"
+   },
+   {
+    "check": "B's bootconfig keeps the install's own values (serial, boot_part_uuid, locale, installed)",
+    "ok": true,
+    "detail": "{}"
+   },
+   {
+    "check": "the entry: slot B's files, bootconfig last, version 'slot B', A's options",
+    "ok": true,
+    "detail": "title OpenBook\nversion 17 \u00b7 slot B\nsort-key openbook-1\nlinux /openbook/b/kernel\ninitrd /openbook/b/vendor_ramdisk.img\ninitrd /openbook/b/ramdisk.img\ninitrd /openbook/b/bootconfig.img\noptions firmware_class.path=/vendor/firmware log_buf_len=1M bootconfig\n"
+   },
+   {
+    "check": "openbook/b/kernel is boot_b's kernel",
+    "ok": true,
+    "detail": "26858496"
+   },
+   {
+    "check": "fsck.fat: clean",
+    "ok": true,
+    "detail": "{'rc': 0, 'out': ['fsck.fat 4.2 (2021-01-31)', '/home/hive/anybook/installer/work/ota-cand1/tmp.bin: 25 files, 14748/130812 clusters']}"
+   },
+   {
+    "check": "systemd-boot starts openbook-b+3.conf (bootsync and the independent model agree)",
+    "ok": true,
+    "detail": "('openbook-b+3.conf', 'openbook-b+3.conf')"
+   },
+   {
+    "check": "status: slot B in sync, pending",
+    "ok": true,
+    "detail": "{'images_ok': True, 'vbmeta_digest': 'e0ec4b9ccb2df1e7b01c41e097b3d2b4ee56d14a3d1ecbf92db28b49acaa4fac', 'vbmeta_key_sha256': '7728e30f50bfa5cea165f473175a08803f6a8346642b5aa10913e9d9e6defef6', 'vbmeta_signed': True, 'vbmeta_release': 'avbtool 1.4.0', 'entry': 'openbook-b+3.conf', 'entry_state': 'pending', 'esp_files': 'in_sync'}"
+   }
+  ],
+  "again": [
+   {
+    "check": "activate b a second time: succeeds, the same files and contents",
+    "ok": true,
+    "detail": "set()"
+   },
+   {
+    "check": "fsck.fat: clean",
+    "ok": true,
+    "detail": "{'rc': 0, 'out': ['fsck.fat 4.2 (2021-01-31)', '/home/hive/anybook/installer/work/ota-cand1/tmp.bin: 25 files, 14748/130812 clusters']}"
+   }
+  ],
+  "booted": [
+   {
+    "check": "systemd-boot's first try renames the entry (+3 -> +2-1; mren stands in)",
+    "ok": true,
+    "detail": ""
+   },
+   {
+    "check": "mark-good on b succeeds, after_update",
+    "ok": true,
+    "detail": "None"
+   },
+   {
+    "check": "entries: openbook-b.conf only (A's goes: the merge overwrites slot A)",
+    "ok": true,
+    "detail": "['openbook-b.conf']"
+   },
+   {
+    "check": "loader.conf: default openbook-b.conf, no preferred line",
+    "ok": true,
+    "detail": "timeout menu-hidden\nconsole-mode keep\neditor no\ndefault openbook-b.conf\n"
+   },
+   {
+    "check": "systemd-boot starts openbook-b.conf",
+    "ok": true,
+    "detail": "openbook-b.conf"
+   },
+   {
+    "check": "fsck.fat: clean",
+    "ok": true,
+    "detail": "{'rc': 0, 'out': ['fsck.fat 4.2 (2021-01-31)', '/home/hive/anybook/installer/work/ota-cand1/tmp.bin: 24 files, 14747/130812 clusters']}"
+   },
+   {
+    "check": "mark-good again (every boot): nothing written",
+    "ok": true,
+    "detail": "{'schema': 'openbook-bootsync/1', 'command': 'mark-good', 'current_slot': 'b', 'after_update': False, 'entries': [{'file': 'openbook-b.conf', 'id': 'openbook-b.conf', 'slot': 'b', 'state': 'good'}], 'loader_conf': {'default': 'openbook-b.conf', 'preferred': None}, 'next_boot_entry': 'openbook-b.conf', 'next_boot_slot': 'b', 'esp_free_bytes': 475402240, 'ok': True}"
+   }
+  ],
+  "second": [
+   {
+    "check": "activate a on b succeeds",
+    "ok": true,
+    "detail": "None"
+   },
+   {
+    "check": "entries: openbook-a+3.conf, openbook-b.conf",
+    "ok": true,
+    "detail": "['openbook-a+3.conf', 'openbook-b.conf']"
+   },
+   {
+    "check": "loader.conf: default openbook-b.conf, preferred openbook-a.conf",
+    "ok": true,
+    "detail": "timeout menu-hidden\nconsole-mode keep\neditor no\ndefault openbook-b.conf\npreferred openbook-a.conf\n"
+   },
+   {
+    "check": "systemd-boot starts openbook-a+3.conf",
+    "ok": true,
+    "detail": "openbook-a+3.conf"
+   },
+   {
+    "check": "A's bootconfig: slot _a, the A build's vbmeta digest",
+    "ok": true,
+    "detail": "5f519de6e2182ce253a035f0c779a3faa83d4b413dd0bcb920b5639cb4a36a38"
+   },
+   {
+    "check": "A boots, mark-good on a: openbook-a.conf only, default a",
+    "ok": true,
+    "detail": "['openbook-a.conf']"
+   },
+   {
+    "check": "fsck.fat: clean",
+    "ok": true,
+    "detail": "{'rc': 0, 'out': ['fsck.fat 4.2 (2021-01-31)', '/home/hive/anybook/installer/work/ota-cand1/tmp.bin: 24 files, 14747/130812 clusters']}"
+   }
+  ],
+  "rollback": [
+   {
+    "check": "after three failed tries (+0-3) systemd-boot starts openbook-a.conf",
+    "ok": true,
+    "detail": "openbook-a.conf"
+   },
+   {
+    "check": "status on a: next boot a, B bad",
+    "ok": true,
+    "detail": "[{'file': 'openbook-a.conf', 'id': 'openbook-a.conf', 'slot': 'a', 'state': 'good'}, {'file': 'openbook-b+0-3.conf', 'id': 'openbook-b.conf', 'slot': 'b', 'state': 'bad', 'tries_left': 0, 'tries_done': 3}]"
+   },
+   {
+    "check": "mark-good on a: the preferred line goes, default a, B's bad entry stays",
+    "ok": true,
+    "detail": "('timeout menu-hidden\\nconsole-mode keep\\neditor no\\ndefault openbook-a.conf\\n', ['openbook-a.conf', 'openbook-b+0-3.conf'])"
+   },
+   {
+    "check": "mark-good on a reports next boot a (the HAL resets misc to it)",
+    "ok": true,
+    "detail": "{'schema': 'openbook-bootsync/1', 'command': 'mark-good', 'current_slot': 'a', 'after_update': False, 'entries': [{'file': 'openbook-a.conf', 'id': 'openbook-a.conf', 'slot': 'a', 'state': 'good'}, {'file': 'openbook-b+0-3.conf', 'id': 'openbook-b.conf', 'slot': 'b', 'state': 'bad', 'tries_left': 0, 'tries_done': 3}], 'loader_conf': {'default': 'openbook-a.conf', 'preferred': None}, 'next_boot_ent"
+   }
+  ],
+  "reupdate": [
+   {
+    "check": "activate b again after the rollback: the bad entry replaced by openbook-b+3.conf",
+    "ok": true,
+    "detail": "['openbook-a.conf', 'openbook-b+3.conf']"
+   },
+   {
+    "check": "fsck.fat: clean",
+    "ok": true,
+    "detail": "{'rc': 0, 'out': ['fsck.fat 4.2 (2021-01-31)', '/home/hive/anybook/installer/work/ota-cand1/tmp.bin: 25 files, 14748/130812 clusters']}"
+   }
+  ],
+  "cancel": [
+   {
+    "check": "activate a on a: B's entry and the preferred line go, A starts",
+    "ok": true,
+    "detail": "(['openbook-a.conf'], 'timeout menu-hidden\\nconsole-mode keep\\neditor no\\ndefault openbook-a.conf\\n')"
+   }
+  ],
+  "disable": [
+   {
+    "check": "disable b on a: B's entry and the preferred line go, A starts",
+    "ok": true,
+    "detail": "(['openbook-a.conf'], 'timeout menu-hidden\\nconsole-mode keep\\neditor no\\ndefault openbook-a.conf\\n')"
+   },
+   {
+    "check": "disable a on a (the running slot): nothing changes",
+    "ok": true,
+    "detail": "{'schema': 'openbook-bootsync/1', 'command': 'disable', 'current_slot': 'a', 'slot': 'a', 'ok': True, 'changed': False}"
+   }
+  ],
+  "cut-files": [
+   {
+    "check": "stopped after 'files': fsck.fat clean, systemd-boot starts openbook-a.conf",
+    "ok": true,
+    "detail": "(75, {'rc': 0, 'out': ['fsck.fat 4.2 (2021-01-31)', '/home/hive/anybook/installer/work/ota-cand1/tmp.bin: 24 files, 14747/130812 clusters']}, 'openbook-a.conf')"
+   },
+   {
+    "check": "activate b again from that state completes",
+    "ok": true,
+    "detail": "None"
+   }
+  ],
+  "cut-entry": [
+   {
+    "check": "stopped after 'entry': fsck.fat clean, systemd-boot starts openbook-a.conf",
+    "ok": true,
+    "detail": "(75, {'rc': 0, 'out': ['fsck.fat 4.2 (2021-01-31)', '/home/hive/anybook/installer/work/ota-cand1/tmp.bin: 25 files, 14748/130812 clusters']}, 'openbook-a.conf')"
+   },
+   {
+    "check": "activate b again from that state completes",
+    "ok": true,
+    "detail": "None"
+   }
+  ],
+  "cut-loader": [
+   {
+    "check": "stopped after 'loader': fsck.fat clean, systemd-boot starts openbook-b+3.conf",
+    "ok": true,
+    "detail": "(75, {'rc': 0, 'out': ['fsck.fat 4.2 (2021-01-31)', '/home/hive/anybook/installer/work/ota-cand1/tmp.bin: 25 files, 14748/130812 clusters']}, 'openbook-b+3.conf')"
+   },
+   {
+    "check": "activate b again from that state completes",
+    "ok": true,
+    "detail": "None"
+   }
+  ]
+ },
+ "passed": 56,
+ "total": 56,
+ "image": "openbook-live-20261018-anal192e.img",
+ "slot_images": "/home/hive/anybook/ota/builds/openbook-ota-20261018-cand1/images",
+ "alt_images": "/home/hive/anybook/ota/builds/dev1/images"
+}

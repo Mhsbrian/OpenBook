@@ -1,0 +1,16 @@
+::/loader/entries/
+::/loader/loader.conf
+::/loader/entries/openbook-a.conf
+::/openbook/a/
+::/openbook/logs/
+::/openbook/a/kernel
+::/openbook/a/vendor_ramdisk.img
+::/openbook/a/ramdisk.img
+::/openbook/a/bootconfig.img
+::/openbook/logs/install-20261018T221200Z.json
+::/openbook/logs/install-20261018T221200Z.log
+---
+timeout menu-hidden
+console-mode keep
+editor no
+default openbook-a.conf

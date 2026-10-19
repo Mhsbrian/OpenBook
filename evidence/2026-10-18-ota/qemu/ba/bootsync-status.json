@@ -1,0 +1,43 @@
+{
+ "schema": "openbook-bootsync/1",
+ "command": "status",
+ "current_slot": "a",
+ "slots": {
+  "a": {
+   "images_ok": true,
+   "vbmeta_digest": "e0ec4b9ccb2df1e7b01c41e097b3d2b4ee56d14a3d1ecbf92db28b49acaa4fac",
+   "vbmeta_key_sha256": "7728e30f50bfa5cea165f473175a08803f6a8346642b5aa10913e9d9e6defef6",
+   "vbmeta_signed": true,
+   "vbmeta_release": "avbtool 1.4.0",
+   "entry": "openbook-a.conf",
+   "entry_state": "good",
+   "esp_files": "in_sync"
+  },
+  "b": {
+   "images_ok": true,
+   "vbmeta_digest": "e0ec4b9ccb2df1e7b01c41e097b3d2b4ee56d14a3d1ecbf92db28b49acaa4fac",
+   "vbmeta_key_sha256": "7728e30f50bfa5cea165f473175a08803f6a8346642b5aa10913e9d9e6defef6",
+   "vbmeta_signed": true,
+   "vbmeta_release": "avbtool 1.4.0",
+   "entry": null,
+   "entry_state": "none",
+   "esp_files": "in_sync"
+  }
+ },
+ "entries": [
+  {
+   "file": "openbook-a.conf",
+   "id": "openbook-a.conf",
+   "slot": "a",
+   "state": "good"
+  }
+ ],
+ "loader_conf": {
+  "default": "openbook-a.conf",
+  "preferred": null
+ },
+ "next_boot_entry": "openbook-a.conf",
+ "next_boot_slot": "a",
+ "esp_free_bytes": 475398144,
+ "ok": true
+}
