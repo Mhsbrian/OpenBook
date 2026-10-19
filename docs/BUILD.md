@@ -1,5 +1,15 @@
 # Build and reproduce
 
+## Configured research USB updates
+
+The owner requires preserving net18's completed setup during iteration.
+Fresh `live-image.py` output contains blank userdata/metadata; do not apply it
+with the full-image writer to the configured stick. An offline preserving
+updater must retain data, encryption metadata, misc and boot identity while
+replacing a coherent system/AVB/ESP set. Net18 and zram19 have matching extents,
+but their ESP UUIDs differ. Implementation and an end-to-end preservation
+rehearsal remain pending. See `docs/googlebook-live.md` for the contract.
+
 ## GKI zram boot integration (ANAL-228)
 
 PC builds copy `init.openbook.zram.rc` into vendor init; it loads zram from

@@ -1,0 +1,41 @@
+{
+  "schema": "openbook-ruby-preservation-preflight/1",
+  "date": "2026-10-19",
+  "source": "Configured net18 USB, offline and unmounted",
+  "backup_used_extent_bytes": 12766412800,
+  "backup_sha256": "64b1be702f10e97d96244cfd89ff2c2f7cb7c50e808854fad57f27ade7ee9ce0",
+  "independent_device_readback_sha256": "64b1be702f10e97d96244cfd89ff2c2f7cb7c50e808854fad57f27ade7ee9ce0",
+  "backup_verified": true,
+  "backup_is_private": true,
+  "system_payloads_match_net18": [
+    "boot_a",
+    "init_boot_a",
+    "vendor_boot_a",
+    "vbmeta_a",
+    "super"
+  ],
+  "protected_partitions": [
+    "misc",
+    "metadata",
+    "userdata"
+  ],
+  "userdata_bytes": 8589934592,
+  "metadata_bytes": 67108864,
+  "candidate": "zram19",
+  "partition_extents_match": true,
+  "candidate_partition_guids_differ": true,
+  "changed_logical_partitions": [
+    "vendor"
+  ],
+  "fstab_unchanged": true,
+  "compiled_policy_unchanged": true,
+  "checked_vendor_security_files": 7,
+  "checked_vendor_security_files_unchanged": true,
+  "system_slots": [
+    "a"
+  ],
+  "physical_system_update_performed": false,
+  "preserving_updater_implemented": false,
+  "post_update_unlock_verified": false,
+  "scope": "Preservation feasibility and verified private backup, not a completed data-preserving update"
+}

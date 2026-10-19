@@ -4,6 +4,7 @@
 
 | Check | Observed result | Limit |
 |---|---|---|
+| Configured USB data preservation | net18/zram19 partition extents, fstab and security components match; only vendor changes among logical images | Offline preserving updater and unlock rehearsal pending; fresh-image writer would reset setup; single-slot USB has no A/B fallback |
 | Patched QEMU TCG instruction lane | The faulting VEX VPDPWSSD executes; 10,000-iteration GFNI/VPCLMUL and VNNI digests match native arithmetic oracles | Emulation research; native Zen 4 still faults |
 | UEFI, emulated USB, synthetic internal NVMe | Enforcing boot reaches `sys.boot_completed=1`; boot-control marks slot A good; original image, guest backing file and internal decoy hashes remain unchanged | Eight-minute VM observation; physical-medium verification is separate below |
 | Native VINTF, strict SELinux, service-context validation | Both stock baselines and adapted hybrid pass; current zram audit covers 396 unchanged inputs | Seven vendor-private desktop service labels still require integration |

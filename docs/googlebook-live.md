@@ -5,6 +5,57 @@ packager and an instruction-emulation lane. These are local research artifacts;
 the installer Googlebook option remains unavailable. Generated images contain
 retained recovery material and must stay local.
 
+## Preserve the configured USB during iteration
+
+The owner has completed setup on net18 and wants to keep apps, accounts,
+settings and data between platform fixes. Data preservation is now a requirement
+for this configured stick. `write-stick.sh` writes a fresh full image and is
+not an update method for it: the new image contains blank metadata/userdata.
+Do not use a fresh-image rewrite for an ordinary iteration.
+
+The attached net18 medium and zram19 candidate have identical partition extents:
+8 GiB userdata, 64 MiB metadata, 4 MiB misc, and a separate system super
+partition. Only vendor changes among the logical images. The fstab, compiled
+policy and seven vendor KeyMint/Gatekeeper/Weaver-related files are unchanged.
+This supports an offline system-only update design; it does not yet prove that
+the user's encrypted data unlocks after the update.
+
+The update contract is:
+
+1. Shut down Android and attach the stick to the development host. Unmount its
+   partitions and make a private, verified backup of the whole used image
+   extent, including both GPT copies, boot files, system, misc, metadata and
+   encrypted userdata. Do not boot the user's data on a VM with different
+   security state as a substitute for a G14 unlock test.
+2. Preserve the partition layout and GUIDs, misc, metadata and userdata. The
+   metadata partition contains the blobs needed to unlock encrypted userdata;
+   copying userdata alone is insufficient. Keep the same serial identity,
+   encryption policy and compatible KeyMint/security implementation.
+3. Replace the coherent system/boot/AVB set only. For net18 → zram19 this means
+   super, vbmeta_a and the matching ESP initrds/manifest; the boot image payloads
+   are unchanged. Candidate initrds contain a different ESP UUID, so they must
+   be rebuilt for the existing stick's UUID. Preserve its diagnostic logs.
+4. Rehearse on disposable state, verify all written ranges and verify that the
+   protected partitions remain byte-identical before the first updated boot.
+   Then verify unlock, existing apps/settings, Wi-Fi and the intended fix on
+   the G14. Keep the pre-update backup until acceptance.
+
+The current research USB has slot A only. The installed-OpenBook A/B updater
+does not apply; this is an offline update, with backup-based recovery rather
+than automatic fallback. A later rollback may require restoring the matching
+data snapshot if the newer framework migrated app or system data. Major base,
+layout or encryption changes require a separate compatibility review.
+
+As of 2026-10-19 this contract is established, but a guarded preserving updater
+and its end-to-end rehearsal are not yet implemented. No data-preserving USB
+update or successful post-update unlock is claimed. The configured USB's full
+12,766,412,800-byte used extent is backed up privately and matches an independent
+second device read by SHA-256. Boot/system payloads match net18; protected
+partition hashes are retained privately. See
+`evidence/2026-10-19-googlebook-live-adb/preservation-preflight.json`.
+Primary reference checked
+2026-10-19: [AOSP metadata encryption](https://source.android.com/docs/security/features/encryption/metadata).
+
 ## Live laptop inspection over ADB
 
 The G14 was successfully paired on 2026-10-19 using Platform Tools 37.0.1.
