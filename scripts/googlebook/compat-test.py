@@ -23,6 +23,17 @@ probe = load("probe_test", "hybrid-probe.py")
 
 
 class Guards(unittest.TestCase):
+    def test_vendor_boot_contract_preserved(self):
+        cmd = "firmware_class.path=/vendor/firmware log_buf_len=1M custom_platform_option=1"
+        self.assertEqual(probe.platform_cmdline(cmd), cmd)
+
+    def test_missing_or_conflicting_firmware_path_refused(self):
+        for cmd in ("", "log_buf_len=1M", "firmware_class.path=/lib/firmware",
+                    "firmware_class.path=/vendor/firmware firmware_class.path=/wrong",
+                    "firmware_class.path=/vendor/firmware\ninit=/bad"):
+            with self.subTest(cmd=cmd), self.assertRaises(ValueError):
+                probe.platform_cmdline(cmd)
+
     def test_vendor_context_filter_preserves_platform_defaults_and_kind(self):
         rules = ("/(vendor|system/vendor)(/.*)? u:object_r:vendor_file:s0\n"
                  "/vendor/apex(/.*)? -d u:object_r:vendor_apex_file:s0\n"

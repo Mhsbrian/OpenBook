@@ -149,8 +149,10 @@ def main():
         cmd += ["-drive", f"file={decoy},format=raw,if=none,id=internal",
                 "-device", "nvme,drive=internal,serial=SYNTHETICINTERNAL"]
     else:
+        recipe = json.loads((src / "recipe.json").read_text())
+        vendor_cmdline = h.platform_cmdline(recipe.get("vendor_cmdline", ""))
         cmd += ["-kernel", str(src / "boot/kernel"), "-initrd", str(src / "initrd.img"),
-                "-append", "bootconfig console=ttyS0,115200 8250.nr_uarts=1 earlycon=uart8250,io,0x3f8,115200 printk.devkmsg=on panic=-1",
+                "-append", vendor_cmdline + " bootconfig console=ttyS0,115200 8250.nr_uarts=1 earlycon=uart8250,io,0x3f8,115200 printk.devkmsg=on panic=-1",
                 "-device", "nvme,drive=d0,serial=RUBYPROBE,addr=0x4"]
     if a.tpm:
         cmd += ["-chardev", "socket,id=chrtpm,path=tpm.sock", "-tpmdev", "emulator,id=tpm0,chardev=chrtpm",

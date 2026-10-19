@@ -120,9 +120,10 @@ def main():
         raise ValueError("Logical images differ from the probe recipe")
     gpt = h.gpt.Gpt(scale, a.label)
     esp_uuid = gpt.parts[0]["uuid"]
-    for n in ("boot", "init_boot", "vendor_boot"):
+    for n in ("boot", "init_boot"):
         h.run(proto.tool("unpack_bootimg"), "--boot_img", parts / f"{n}_a.img", "--out", w / n,
               stdout=subprocess.DEVNULL)
+    vendor_cmdline = h.unpack_vendor(proto.tool("unpack_bootimg"), parts / "vendor_boot_a.img", w / "vendor_boot")
     if h.audit.sha(w / "boot/kernel") != recipe["kernel_sha256"]:
         raise ValueError("Kernel differs from the probe recipe")
     digest = subprocess.check_output([proto.tool("avbtool"), "calculate_vbmeta_digest", "--image",
@@ -169,11 +170,11 @@ def main():
                  "serial-logs": "Googlebook - VM serial and USB logs"}[mode]
         filename = "openbook-a.conf" if mode == "live" else f"ruby-{mode}.conf"
         (esp / f"loader/entries/{filename}").write_text(
-            f"title {title}\nlinux /ruby/kernel\ninitrd /ruby/initrd-{mode}.img\noptions bootconfig{extra}\n")
+            f"title {title}\nlinux /ruby/kernel\ninitrd /ruby/initrd-{mode}.img\noptions {vendor_cmdline} bootconfig{extra}\n")
     manifest = {"schema": "openbook-ruby-live-research/1", "installable": False,
                 "desktop_validated": False, "hardware_validated": False, "module_variant": "bm",
                 "input_sha256": source_sha, "logical_sha256": got, "kernel_sha256": recipe["kernel_sha256"],
-                "gpt": gpt.table(), "entries": entries,
+                "gpt": gpt.table(), "entries": entries, "vendor_cmdline": vendor_cmdline,
                 "scope": "Local research only. No installer source or redistribution permission. Fixed-size encrypted userdata on this image only."}
     (esp / "ruby/RESEARCH.json").write_text(json.dumps(manifest, indent=2) + "\n")
     (esp / "ruby/README.txt").write_text(

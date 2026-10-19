@@ -1,0 +1,18 @@
+Selected physical G14 records; kernel timestamps are microseconds since boot.
+
+4,1562,6047149,-,caller=T482;amdgpu 0000:65:00.0: Direct firmware load for amdgpu/psp_14_0_0_toc.bin failed with error -2
+4,1564,6047159,-,caller=T482;amdgpu 0000:65:00.0: Direct firmware load for amdgpu/dcn_3_5_dmcub.bin failed with error -2
+4,1566,6047163,-,caller=T482;amdgpu 0000:65:00.0: Direct firmware load for amdgpu/gc_11_5_0_pfp.bin failed with error -2
+4,1568,6047167,-,caller=T482;amdgpu 0000:65:00.0: Direct firmware load for amdgpu/sdma_6_1_0.bin failed with error -2
+4,1570,6047171,-,caller=T482;amdgpu 0000:65:00.0: Direct firmware load for amdgpu/vcn_4_0_5.bin failed with error -2
+4,1572,6047175,-,caller=T482;amdgpu 0000:65:00.0: Direct firmware load for amdgpu/gc_11_5_0_mes_2.bin failed with error -2
+4,1574,6047179,-,caller=T482;amdgpu 0000:65:00.0: Direct firmware load for amdgpu/gc_11_5_0_mes.bin failed with error -2
+3,1577,6047181,-,caller=T482;amdgpu 0000:65:00.0: amdgpu: Fatal error during GPU init
+4,1613,6073451,-,caller=T482;amdxdna 0000:66:00.1: Direct firmware load for amdnpu/17f0_10/npu.sbin failed with error -2
+4,1805,6668168,-,caller=T482;mt7925e 0000:63:00.0: Direct firmware load for mediatek/mt7925/WIFI_RAM_CODE_MT7925_1_1.bin failed with error -2
+4,1864,6943077,-,caller=T192;bluetooth hci0: Direct firmware load for mediatek/mt7925/BT_RAM_CODE_MT7925_1_1_hdr.bin failed with error -2
+14,15498,283675434,-,caller=T1;init: Service 'ruby-usb-log-collect' (pid 1014) exited with status 0 oneshot service took 272.197998 seconds in background
+10-19 20:37:11.913   947   947 E android.hardware.graphics.allocator-service.minigbm: Failed to initialize Minigbm AIDL allocator.
+10-19 20:37:16.611  1324  1333 E libEGL  : ANGLE Error:Display.cpp:1128 (initialize): ANGLE Display::initialize error 0: Internal Vulkan error (-3): Initialization of an object could not be completed for implementation-specific reasons, in external/angle/src/libANGLE/renderer/vulkan/vk_renderer.cpp, initialize:2673.
+10-19 20:37:16.611  1324  1333 F SurfaceFlinger: no suitable EGLConfig found, giving up (format: 1, vendor: Android, version: 1.4 Android META-EGL, extensions: EGL_ANDROID_front_buffer_auto_refresh EGL_ANDROID_get_native_client_buffer EGL_ANDROID_presentation_time EGL_EXT_surface_CTA861_3_metadata EGL_EXT_surface_SMPTE2086_metadata EGL_KHR_get_all_proc_addresses EGL_KHR_swap_buffers_with_damage , Client API: OpenGL_ES)
+10-19 20:37:16.611  1324  1333 F libc    : Fatal signal 6 (SIGABRT), code -1 (SI_QUEUE) in tid 1333 (surfaceflinger), pid 1324 (surfaceflinger)

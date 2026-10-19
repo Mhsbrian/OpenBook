@@ -15,6 +15,7 @@ import importlib.util
 import json
 from pathlib import Path
 import re
+import shlex
 import shutil
 import subprocess
 import time
@@ -33,6 +34,29 @@ gpt = module("g14", HERE.parent / "kernel-g14-qemu.py")
 bc = module("bootconfig", HERE.parent / "installer/bootconfig.py")
 audit = module("audit", HERE / "compat-audit.py")
 MiB = 1 << 20
+
+
+def platform_cmdline(text):
+    """Retain the vendor boot contract when loading its kernel directly.
+
+    Android bootloaders consume vendor_boot's cmdline. QEMU -kernel and our
+    UEFI Linux entries do not: omitting it hides all /vendor/firmware files.
+    Refuse incompatible inputs instead of silently making a broken G14 image.
+    """
+    if any(c in text for c in ("\n", "\r", "\0")):
+        raise ValueError("Invalid vendor command line")
+    paths = [s for s in text.split() if s.startswith("firmware_class.path=")]
+    if paths != ["firmware_class.path=/vendor/firmware"]:
+        raise ValueError("Vendor command line must select /vendor/firmware exactly once")
+    return text.strip()
+
+
+def unpack_vendor(tool, image, out):
+    args = shlex.split(subprocess.check_output(
+        [str(tool), "--boot_img", str(image), "--out", str(out), "--format=mkbootimg"], text=True))
+    if "--vendor_cmdline" not in args:
+        raise ValueError("Missing vendor command line")
+    return platform_cmdline(args[args.index("--vendor_cmdline") + 1])
 
 
 def vendor_contexts(text, paths):
@@ -210,7 +234,9 @@ done
     run(a.tools / "checkfc", se / "precompiled_sepolicy", context)
     label_tests = w / "file-context-tests.txt"
     label_tests.write_text("/vendor vendor_file\n/vendor/etc/ueventd.rc vendor_configs_file\n"
-                           "/vendor/apex vendor_apex_file\n/vendor/bin/ruby-usb-log ruby_usb_log_exec\n")
+                           "/vendor/apex vendor_apex_file\n/vendor/bin/ruby-usb-log ruby_usb_log_exec\n"
+                           "/vendor/firmware openbook_vendor_fw_file\n"
+                           "/vendor/firmware/amdgpu/psp_14_0_0_toc.bin openbook_vendor_fw_file\n")
     with (w / "file-context-tests.log").open("wb") as log:
         check = subprocess.run([str(a.tools / "checkfc"), "-t", str(context), str(label_tests)],
                                stdout=log, stderr=subprocess.STDOUT)
@@ -251,9 +277,10 @@ done
         cmd += ["--partition", f"{n}_a:readonly:{sizes[n]}:ruby_probe_a", "--image", f"{n}_a={src}"]
     run(*cmd)
     # Existing matched G14 kernel/modules; OpenBook first-stage fstab and generic init.
-    for name in ("boot", "init_boot", "vendor_boot"):
+    for name in ("boot", "init_boot"):
         run(a.tools / "unpack_bootimg", "--boot_img", a.product / f"{name}.img", "--out", w / name,
             stdout=subprocess.DEVNULL)
+    vendor_cmdline = unpack_vendor(a.tools / "unpack_bootimg", a.product / "vendor_boot.img", w / "vendor_boot")
     if audit.sha(w / "boot/kernel") != audit.sha(a.kernel / "bzImage"):
         raise ValueError("PRODUCT_OUT boot kernel does not match the selected G14 dist")
     layout = [("misc", 4 * MiB, gpt.LINUX_DATA, None),
@@ -287,6 +314,7 @@ done
     recipe = {"schema": "openbook-ruby-vm-probe/1", "installable": False,
               "scope": "Local VM experiment; not a Googlebook installer source", "source_sha256": hashes,
               "kernel_sha256": audit.sha(a.kernel / "bzImage"), "module_variant": a.variant,
+              "vendor_cmdline": vendor_cmdline,
               "bootconfig": params, "gpt": g.table(),
               "avb": "local test-key root, unlocked/orange; retained Google logical image descriptors",
               "usb_logger_sha256": audit.sha(vendor / "bin/ruby-usb-log"),
@@ -297,9 +325,11 @@ done
 
 
 def boot(a, w):
+    recipe = json.loads((w / "recipe.json").read_text())
+    vendor_cmdline = platform_cmdline(recipe.get("vendor_cmdline", ""))
     cmd = ["qemu-system-x86_64", "-machine", "q35", "-accel", "kvm", "-cpu", "host", "-smp", "4", "-m", "8192",
            "-kernel", str(w / "boot/kernel"), "-initrd", str(w / "initrd.img"),
-           "-append", "bootconfig console=ttyS0,115200 8250.nr_uarts=1 earlycon=uart8250,io,0x3f8,115200 printk.devkmsg=on panic=-1",
+           "-append", vendor_cmdline + " bootconfig console=ttyS0,115200 8250.nr_uarts=1 earlycon=uart8250,io,0x3f8,115200 printk.devkmsg=on panic=-1",
            "-drive", f"file={w}/probe.img,format=raw,if=none,id=d0,snapshot=on",
            "-device", "nvme,drive=d0,serial=RUBYPROBE,addr=0x4", "-device", "virtio-vga",
            "-display", "none", "-nic", "none", "-serial", f"file:{w}/serial.log", "-monitor", "none", "-no-reboot"]

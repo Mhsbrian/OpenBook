@@ -1,5 +1,15 @@
 # Hardware
 
+The returned **2026-10-19 G14 Googlebook capture** identifies a firmware-path
+packaging error: the live entry dropped `firmware_class.path=/vendor/firmware`.
+Radeon firmware lookup fails at 6.047 seconds and GPU initialization aborts;
+XDNA and MT7925 firmware lookup fail too. Minigbm and SurfaceFlinger subsequently
+fail. The firmware files are present in vendor. The corrected local image
+preserves the vendor command line, but has not been retested on this hardware.
+The original 160 log files are backed up privately and the FAT check passes.
+See `evidence/2026-10-19-googlebook-g14-black-screen/` for the physical findings
+and their limits. Earlier trial notes below describe the preceding builds.
+
 The owner subsequently reported a black screen after selecting the experimental
 Googlebook USB entry. Inspection found initialized Android metadata but no saved
 ESP reports, bootstat entries or watchdog files. The original candidate only
@@ -7,8 +17,8 @@ logged to a VM serial console. Its used disk extent was backed up privately for
 investigation. Persistent USB diagnostics are described in
 `docs/googlebook-live.md`; a VM capture is not proof of a physical Radeon fix.
 The same SanDisk now holds diagnostic candidate `19b9a9492f6b09ba…`: the full
-12.8 GB write/readback matches and the device was powered off. The next hardware
-trial should select the save-logs entry and return the resulting capture.
+12.8 GB write/readback matches and the device was powered off. Its returned
+save-logs capture is analyzed above; the firmware-path fix is not yet on it.
 
 On 2026-10-19, the owner attached the previously identified 62 GB SanDisk Ultra
 and requested the experimental Googlebook image. The guarded write and full

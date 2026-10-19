@@ -1,5 +1,24 @@
 # Status
 
+## 2026-10-19: G14 Googlebook black screen traced to firmware lookup (ANAL-228)
+
+The returned stick contains 160 files / 13.6 MB of physical G14 diagnostics.
+At 6.047 seconds amdgpu fails firmware lookup, then GPU initialization; minigbm
+and SurfaceFlinger fail afterward. The research loaders omitted the vendor
+boot command line, including `firmware_class.path=/vendor/firmware`, despite
+the required files being present. Wi-Fi, Bluetooth and XDNA lookup fail too.
+
+Fixed vendor command-line propagation for all UEFI and direct QEMU entries,
+added a firmware-path guard, and kept logcat alive after the 18 snapshots
+(previously it stopped after 272 seconds on this failing boot). The returned
+capture ends at 526 seconds without a completion marker; its end is unexplained.
+The corrected VM capture finishes at 600.4 seconds: 299 files / 29.8 MB, zero
+overruns or failed saves, and Android logs continue after the snapshot loop.
+The source and internal-decoy hashes are unchanged. The known later VM
+system-server crash remains. The physical stick and logs are preserved. The corrected candidate still
+requires a G14 test; no physical desktop success is claimed. Evidence and
+validation: `evidence/2026-10-19-googlebook-g14-black-screen/`.
+
 ## 2026-10-19: persistent Googlebook USB diagnostics (ANAL-228)
 
 The owner reports a black screen on the original experimental USB. That image

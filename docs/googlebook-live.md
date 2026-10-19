@@ -19,11 +19,25 @@ all 12,766,412,800 bytes read back correctly, and the stick was powered off.
 The installed laptop and firmware were not updated. Validation and the exact
 write/readback result are in `evidence/2026-10-19-googlebook-usb-logs/`.
 
+The returned diagnostic capture now identifies the first physical blocker:
+the research loader omitted `firmware_class.path=/vendor/firmware`. Radeon
+initialization fails on firmware lookup before minigbm/EGL and SurfaceFlinger
+fail. Wi-Fi, Bluetooth and XDNA firmware lookup fail too. The packagers now
+preserve the actual `vendor_boot.img` command line, with a guard for that path.
+The local corrected candidate is `048bacf5934bcd22…`; it has not replaced the
+returned stick during log review. Update to the corrected candidate before
+the next hardware trial. See `evidence/2026-10-19-googlebook-g14-black-screen/`.
+
 The new **Googlebook - save detailed logs to USB (10 minutes)** entry runs a
 static PID 1 helper before Android, saving `early.txt` and `early-kernel.txt`.
 An early-init vendor service then streams kernel records, and an Android shell
 service supplies all logcat buffers plus repeated properties, processes,
 mounts, memory, SurfaceFlinger, display, window, activity and power snapshots.
+The corrected collector also records the firmware path and DRM nodes, and
+keeps logcat alive after the 18 snapshots. On the returned failing G14 boot,
+the previous script stopped logcat normally at 272 seconds when those snapshots
+finished; kernel records continued through 526 seconds without a completion
+marker. That missing marker does not establish why the session ended.
 No desktop interaction or network connection is needed. The alternate
 **Googlebook - Mesa GL, save detailed logs to USB** entry changes the EGL path
 and captures the same evidence. Neither entry changes the installed laptop.
