@@ -35,20 +35,22 @@ session's life, and only then, the note is a system application overlay.
 |---|---|---|---|
 | `anybook_cf_x86_64_pc-cp2a-userdebug` `droid QuireSecureProbe`, `0008` with package and time | `e51eff1` + this round's work tree | OK in 34:06 (other branches had built in between) | `build-20261018T235456Z.log` |
 | The same, `0008` also skipping the home task | the four fix commits (`f60e5c5`) | OK in 6:23 | `build-20261019T003117Z.log` |
-| The same, with the lab reporting the mirror's controls; **the evidence image** | `07f0495` | OK in 1:22; snapshot `~/anybook/aosp/cf/q5s-out3` | `build-20261019T004804Z.log` |
+| The same, with the lab reporting the mirror's controls; the image for `regression/` | `07f0495` | OK in 1:22; snapshot `~/anybook/aosp/cf/q5s-out3` | `build-20261019T004804Z.log` |
+| The same, with the note's still beneath the consent dialog (Atelier's ruling 1); the image for `cf/` and `atelier-still/` | `45e773a` | OK in 1:22; snapshot `~/anybook/aosp/cf/q5s-out4` | `build-20261019T020844Z.log` |
 
-All three ran under the lane lock (`scripts/aosp-docker.sh`, `AOSP_JOBS=24`), and frameworks/base got its 8 patches.
-**Which Quire ran:** the image's own, built in-tree by Soong (`/system_ext/priv-app/OpenBookQuire`, no dev APK). Its
-sources are identical to `07f0495`'s; the tree's `device/anybook/common/quire` was compared file by file. Later
-commits change only comments, docs, checks and this evidence. The probe is the image build's `QuireSecureProbe.apk`.
-The boot was fresh (`/data` new), on the AMD lane: `CF_GPU=amd`, `gfxstream_guest_angle`, 1920×1080 at 160 dpi.
+All four ran under the lane lock (`scripts/aosp-docker.sh`, `AOSP_JOBS=24`), and frameworks/base got its 8 patches.
+**Which Quire ran:** each time the image's own, built in-tree by Soong (`/system_ext/priv-app/OpenBookQuire`, no dev
+APK), its sources compared file by file with the commit named above. The probe is the image build's
+`QuireSecureProbe.apk`. Each boot was fresh (`/data` new), on the AMD lane: `CF_GPU=amd`, `gfxstream_guest_angle`,
+1920×1080 at 160 dpi.
 
 ## Results
 
 ### The regressions: `scripts/quire/q5-safety-check.py` (`cf/`)
 
-**54 PASS, 0 FAIL, 0 INFO** (`cf/results.tsv`, `cf/checks.log`, with screenshots, window dumps and the ACP
-payloads):
+**54 PASS, 0 FAIL, 0 INFO** on `45e773a`'s image, after Atelier's ruling 1 changed when the dialog opens. It was also
+54/54 on `07f0495`'s image before that change. Files: `cf/results.tsv`, `cf/checks.log`, with screenshots, window dumps
+and the ACP payloads.
 
 - overlay: 7
 - consent: 18 (1920×1080, 1280×800, and Don't allow)
@@ -99,6 +101,28 @@ failure in each script. All three are fixed in the checks, not in Quire, and the
   stopping Settings. `clean()` now sends Esc only when input has a focused window.
 - In health, the SystemUI start at boot was counted as a restart. A restart is now a start of any other process.
 
+### Atelier's ruling 1: a still of the note beneath the consent dialog (`atelier-still/`, `45e773a`)
+
+Atelier signed off on the build at `69cf4d1` and accepted the waiting surface beneath the dimmed dialog, with one
+change: the surface is a still of the note at the note's geometry, so the only change on screen is the scrim.
+
+- **What it shows:** the header with the leaf and agent chip, the intake chip, the prompt, the steps with "Asking to
+  use Settings" running, and the waiting row. No composer, no footer, nothing focusable.
+- **How it works:**
+  - `NoteCard.still()` draws the sections above the composer into a bitmap, once the card has laid out the waiting
+    row. A block still fading in is drawn at full opacity.
+  - The waiting activity shows it at the card's place, on the note's surface.
+  - The dialog starts only once that frame is on screen, and the note steps aside as it starts. So, as before,
+    nothing of Quire's is over the dialog.
+- `q5-cf-check.py --states control` in both themes, then health: **13 PASS, 0 FAIL, 2 INFO**.
+  - `consent-system` and `consent-system-dark` are in `atelier-still/side-by-side/`. The mirror, Pause and Take over
+    run again with it.
+  - Health: no Quire crash, ANR, SystemUI restart or new denial.
+- At 1280×800 (`cf/consent/1280x800.jpg`), the still sits under the dialog.
+- In the safety check, Settings was on screen and hid the note itself. The still beneath the dialog still showed: it is
+  the waiting activity's inert image, not the overlay.
+- `regression/side-by-side/consent-system*.jpg` show the first round's two-line card, which this replaces.
+
 ## Where the build now differs from the renders, beyond `evidence/2026-10-18-quire-q5/SUMMARY.md`
 
 | State | Render | Build | Why |
@@ -126,7 +150,9 @@ Nothing of the second or third is built.
 ## Not done here
 
 - The G14: frames, blur, TalkBack and the Launcher3 taskbar button, as before.
-- Atelier's view of the two new deviations above.
+- Take over: Atelier ruled that a note hidden in place is a symptom. If the owner keeps the overlay rule, Take over
+  folds the note into the taskbar as a finished task. If the note moves to the assistant's window, the design's Done
+  state stands. Either way, it waits for the decision below.
 - The frameworks/base unit tests (SystemUI multivalent) were not run. The behaviour of `0008` is checked from outside,
   through the real Meta+Space and shake above.
 
@@ -135,11 +161,11 @@ Nothing of the second or third is built.
 ```bash
 # Image under the lane lock and its snapshot: ~/anybook/work/anal219s/build-cf.sh (SNAP=... for the directory), which
 # runs the same commands as evidence/2026-10-18-quire-q5/SUMMARY.md's "Reproduce".
-export CF_OUT=~/anybook/aosp/cf/q5s-out3 CF_STAGE=~/anybook/aosp/cf/q5s CF_NAME=anybook-cf-q5s CF_DEVICE=anybook_vsoc_x86_64 \
+export CF_OUT=~/anybook/aosp/cf/q5s-out4 CF_STAGE=~/anybook/aosp/cf/q5s CF_NAME=anybook-cf-q5s CF_DEVICE=anybook_vsoc_x86_64 \
   CF_GPU=amd CF_GPU_MODE=gfxstream_guest_angle CF_ADB_PORT=16229 CF_WEBRTC_PORT=11229 CF_ARGS=--vhost_user_vsock=true \
   ANDROID_ADB_SERVER_PORT=5229
 scripts/cf-boot.sh up && scripts/cf-boot.sh wait && ~/anybook/android-sdk/platform-tools/adb connect 127.0.0.1:16229
-scripts/quire/q5-safety-check.py 127.0.0.1:16229 OUT/cf --probe ~/anybook/aosp/cf/q5s-out3/apk/QuireSecureProbe.apk
+scripts/quire/q5-safety-check.py 127.0.0.1:16229 OUT/cf --probe ~/anybook/aosp/cf/q5s-out4/apk/QuireSecureProbe.apk   # q5s-out3 for regression/
 scripts/quire/q5-cf-check.py 127.0.0.1:16229 OUT/regression --only states,keyboard,a11y,motion,frames,video,health \
   --desk none --design PATH/TO/docs/quire-design    # PR #98 at e0ace54
 device/anybook/common/quire/tools/unit-test.sh
