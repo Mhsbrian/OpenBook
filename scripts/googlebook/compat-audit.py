@@ -25,6 +25,7 @@ import xml.etree.ElementTree as ET
 REPO = Path(__file__).resolve().parents[2]
 POLICY_PROFILE = REPO / "config/image-bases/ruby-vendor-policy.json"
 PROBE_POLICY = REPO / "config/image-bases/ruby-probe.cil"
+SERVICE_PROFILE = REPO / "config/image-bases/ruby-framework-services.txt"
 PARTS = ("system", "system_ext", "product", "vendor", "odm")
 
 
@@ -68,6 +69,24 @@ def reduce_policy(text, profile):
             raise ValueError(f"Policy drift: expected {rule['count']} occurrences, got {count}: {rule['statement']}")
         lines = [line for line in lines if line.strip() != rule["statement"]]
     return "".join(lines)
+
+
+def framework_service_contexts(vendor, ruby, profile):
+    """Restore exact original labels for retained framework services, not allows."""
+    def entries(text):
+        return [line.split() for line in text.splitlines() if line.strip() and not line.lstrip().startswith("#")]
+    original, current = entries(ruby), entries(vendor)
+    added = []
+    for entry in entries(profile):
+        if len(entry) != 2 or original.count(entry) != 1:
+            raise ValueError("Ruby framework service label drift")
+        conflicts = [item for item in current if item[0] == entry[0]]
+        if conflicts and conflicts != [entry]:
+            raise ValueError("Conflicting vendor service label")
+        if not conflicts:
+            added.append(" ".join(entry))
+            current.append(entry)
+    return vendor + "\n# Retained Ruby framework service labels\n" + "\n".join(added) + "\n"
 
 
 def policy_inputs(maps):
@@ -116,15 +135,15 @@ class Audit:
                 "command": [self.clean(str(v)) for v in cmd], "log": str(log.relative_to(self.a.out))}
 
     def inventory(self, trees):
-        files = {POLICY_PROFILE, PROBE_POLICY}
+        files = {POLICY_PROFILE, PROBE_POLICY, SERVICE_PROFILE}
         for maps in trees:
             for root in maps.values():
                 files.update(p for sub in ("etc/vintf", "etc/selinux", "apex")
                              for p in (root / sub).rglob("*") if p.is_file())
-                files.update(p for p in (root / "build.prop", root / "etc/build.prop") if p.is_file())
+                files.update(p for p in (root / "build.prop", root / "etc/build.prop", root / "etc/ueventd.rc") if p.is_file())
         files.update((self.a.kernel / "dot_config", self.a.kernel / "linux_banner.txt",
                       self.a.ruby / "kernel/config", self.a.ruby / "kernel/vmlinux"))
-        files.update(self.a.tools / n for n in ("checkvintf", "secilc", "deapexer", "debugfs_static", "fsck.erofs"))
+        files.update(self.a.tools / n for n in ("checkvintf", "secilc", "checkfc", "deapexer", "debugfs_static", "fsck.erofs"))
         return {self.clean(str(p)): sha(p) for p in sorted(files)}
 
     def apexes(self, maps, out):
@@ -212,11 +231,19 @@ class Audit:
             reductions = profile["remove"]
         policy = self.command([self.a.tools / "secilc", "-m", "-M", "true", "-G", "-c", "33",
                                "-o", out / "policy.bin", "-f", "/dev/null", *inputs], out / "policy.log")
+        contexts = maps["vendor"] / "etc/selinux/vendor_service_contexts"
+        if reduced:
+            merged = framework_service_contexts(contexts.read_text(),
+                (self.a.ruby / "fs/vendor_a/etc/selinux/vendor_service_contexts").read_text(), SERVICE_PROFILE.read_text())
+            contexts = out / "vendor_service_contexts"
+            contexts.write_text(merged)
+        services = self.command([self.a.tools / "checkfc", "-s", out / "policy.bin", contexts], out / "services.log") if policy["passed"] else None
         return {"vintf": vintf, "selinux": policy, "active_apexes": selected,
+                "service_contexts": services,
                 "policy_mapping": version, "removed_grants": reductions,
                 "policy_inputs": {self.clean(str(p)): sha(p) for p in inputs},
                 "kernel_config_sha256": sha(kconfig), "kernel_version": kversion,
-                "static_checks_passed": vintf["passed"] and policy["passed"]}
+                "static_checks_passed": vintf["passed"] and policy["passed"] and services["passed"]}
 
     def run(self):
         a = self.a

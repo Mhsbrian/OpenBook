@@ -1,0 +1,59 @@
+{
+  "purpose": "Basic input observation on welcome screen; pointer input showed the screen-reader prompt (not enabled), then Escape was sent. No account, network or terms accepted.",
+  "commands": [
+    {
+      "execute": "input-send-event",
+      "arguments": {
+        "events": [
+          {
+            "type": "abs",
+            "data": {
+              "axis": "x",
+              "value": 28978
+            }
+          },
+          {
+            "type": "abs",
+            "data": {
+              "axis": "y",
+              "value": 28343
+            }
+          },
+          {
+            "type": "btn",
+            "data": {
+              "down": true,
+              "button": "left"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "execute": "input-send-event",
+      "arguments": {
+        "events": [
+          {
+            "type": "btn",
+            "data": {
+              "down": false,
+              "button": "left"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "execute": "send-key",
+      "arguments": {
+        "keys": [
+          {
+            "type": "qcode",
+            "data": "esc"
+          }
+        ],
+        "hold-time": 100
+      }
+    }
+  ]
+}

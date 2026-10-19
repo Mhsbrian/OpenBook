@@ -1,0 +1,4 @@
+# Research emulator build lane; never receives host disks.
+FROM openbook-installer:latest
+RUN pacman -Syu --noconfirm --needed git ninja meson pkgconf glib2 pixman diffutils \
+    && pacman -Scc --noconfirm

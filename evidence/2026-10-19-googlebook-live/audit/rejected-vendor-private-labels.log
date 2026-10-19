@@ -1,0 +1,4 @@
+libsepol.context_from_record: type desktop_data_migration_service is not defined
+libsepol.context_from_record: could not create context structure
+$OUT/hybrid-reduced/vendor_service_contexts:  line 6 has invalid context u:object_r:desktop_data_migration_service:s0
+Error: could not load context file from $OUT/hybrid-reduced/vendor_service_contexts

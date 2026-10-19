@@ -62,6 +62,10 @@ def prepare(a):
         raise ValueError("Required baseline/hybrid static checks failed")
     aliases = {"$RUBY": a.ruby, "$PRODUCT": a.product, "$TOOLS": a.tools,
                "$KERNEL": a.kernel, "$REPO": HERE.parents[1], "$OUT": a.audit}
+    if "$RUBY/fs/vendor_a/etc/ueventd.rc" not in report["input_inventory"]:
+        raise ValueError("Rerun the audit to include Ruby's TPM ownership configuration")
+    if not report["cases"]["hybrid-reduced"].get("service_contexts", {}).get("passed"):
+        raise ValueError("Rerun the audit to validate retained framework service labels")
     for name, expected in report["input_inventory"].items():
         prefix, _, rel = name.partition("/")
         if prefix not in aliases or audit.sha(aliases[prefix] / rel) != expected:
@@ -71,7 +75,21 @@ def prepare(a):
     # capabilities and labels; host copy ownership is not used as image metadata.
     vendor = w / "vendor"
     shutil.copytree(a.product / "vendor", vendor, symlinks=True)
+    # The retained Ruby framework runs gscd as hsm. Preserve its reviewed device
+    # ownership contract on the existing OpenBook TPM/CRB modules; no policy bypass.
+    tpm_rule = "/dev/tpm* 0660 hsm hsm"
+    ruby_ueventd = (a.ruby / "fs/vendor_a/etc/ueventd.rc").read_text()
+    if ruby_ueventd.splitlines().count(tpm_rule) != 1:
+        raise ValueError("Ruby TPM ownership rule changed")
+    ueventd = vendor / "etc/ueventd.rc"
+    text = ueventd.read_text()
+    if any(line.strip().startswith("/dev/tpm") for line in text.splitlines()):
+        raise ValueError("OpenBook already defines TPM ownership; review the integration")
+    ueventd.write_text(text + "\n# Retained Ruby gscd device ownership\n" + tpm_rule + "\n")
     se = vendor / "etc/selinux"
+    services = se / "vendor_service_contexts"
+    services.write_text(audit.framework_service_contexts(services.read_text(),
+        (a.ruby / "fs/vendor_a/etc/selinux/vendor_service_contexts").read_text(), audit.SERVICE_PROFILE.read_text()))
     reduced_cil = a.audit / "hybrid-reduced/vendor_sepolicy.cil"
     (se / "vendor_sepolicy.cil").write_text(reduced_cil.read_text() + "\n" + audit.PROBE_POLICY.read_text())
     # Recompile the audited inputs into this new image, with neverallow checks.
@@ -86,6 +104,7 @@ def prepare(a):
             policy_inputs.append(se / "vendor_sepolicy.cil" if src == reduced_cil else src)
     run(a.tools / "secilc", "-m", "-M", "true", "-G", "-c", "33", "-o", se / "precompiled_sepolicy",
         "-f", "/dev/null", *policy_inputs)
+    run(a.tools / "checkfc", "-s", se / "precompiled_sepolicy", services)
     for part, root in (("plat", a.ruby / "fs/system_a/system"), ("system_ext", a.ruby / "fs/system_ext_a"),
                        ("product", a.ruby / "fs/product_a")):
         shutil.copyfile(root / f"etc/selinux/{part}_sepolicy_and_mapping.sha256",
@@ -106,17 +125,29 @@ service openbook.ruby.probe /system/bin/sh /vendor/etc/ruby-probe.sh
 ''')
     (vendor / "etc/ruby-probe.sh").write_text('''#!/system/bin/sh
 sleep 20
+for checkpoint in 1 2 3 4 5 6 7 8 9 10 11 12; do
 echo OPENBOOK_RUBY_PROBE_BEGIN
+echo OPENBOOK_RUBY_CHECKPOINT=$checkpoint
 id
 getenforce
 echo OPENBOOK_RUBY_BOOT_COMPLETED=$(getprop sys.boot_completed)
 service list
+echo OPENBOOK_RUBY_PROBE_DISKS
+ls -l /dev/block/by-name
+cat /proc/mounts
+echo OPENBOOK_RUBY_PROBE_PROCESSES
+ps -A
+echo OPENBOOK_RUBY_PROBE_DISPLAY
+dumpsys SurfaceFlinger --display-id
+dumpsys window | grep -E 'mCurrentFocus|mFocusedApp|mDisplayEnabled|mScreenOn'
 echo OPENBOOK_RUBY_PROBE_MODULES
 cat /proc/modules
 echo OPENBOOK_RUBY_PROBE_LOGCAT
 logcat -b crash -d -v threadtime
 logcat -b all -d -v brief -t 400
 echo OPENBOOK_RUBY_PROBE_END
+[ "$checkpoint" = 12 ] || sleep 30
+done
 ''')
     context = a.product / "obj/ETC/file_contexts.bin_intermediates/file_contexts.bin"
     vendor_img = w / "vendor.img"
@@ -127,7 +158,7 @@ echo OPENBOOK_RUBY_PROBE_END
         "--partition_size", gpt.round_up(vendor_img.stat().st_size + 16 * MiB, MiB),
         "--do_not_generate_fec", "--hash_algorithm", "sha256")
     images = {n: a.ruby / f"super/{n}_a.img" for n in ("system", "system_ext", "product")}
-    images.update(vendor=vendor_img, vendor_dlkm=a.kernel / "vm/vendor_dlkm.img",
+    images.update(vendor=vendor_img, vendor_dlkm=a.kernel / f"{a.variant}/vendor_dlkm.img",
                   system_dlkm=a.kernel / "system_dlkm.flatten.erofs.img")
     for src in images.values():
         if not src.is_file() or src.is_symlink():
@@ -187,7 +218,8 @@ echo OPENBOOK_RUBY_PROBE_END
         f.write(gpt.bootconfig_trailer(bc.render(params).decode(), f.tell()))
     recipe = {"schema": "openbook-ruby-vm-probe/1", "installable": False,
               "scope": "Local VM experiment; not a Googlebook installer source", "source_sha256": hashes,
-              "kernel_sha256": audit.sha(a.kernel / "bzImage"), "bootconfig": params, "gpt": g.table(),
+              "kernel_sha256": audit.sha(a.kernel / "bzImage"), "module_variant": a.variant,
+              "bootconfig": params, "gpt": g.table(),
               "avb": "local test-key root, unlocked/orange; retained Google logical image descriptors",
               "policy": "strictly compiled hybrid; six OpenBook grants removed, two scoped serial-diagnostic rules added; enforcing requested"}
     (w / "recipe.json").write_text(json.dumps(recipe, indent=2) + "\n")
@@ -237,11 +269,14 @@ def main():
     for n in ("ruby", "product", "tools", "kernel", "audit", "key", "out"):
         p.add_argument("--" + n, type=Path, required=True)
     p.add_argument("--timeout", type=int, default=180, choices=range(30, 601), metavar="30..600")
+    p.add_argument("--variant", choices=("vm", "bm"), default="vm")
+    p.add_argument("--prepare-only", action="store_true", help="Assemble only; use run-probe.py for a separate observation")
     a = p.parse_args()
     for n in ("ruby", "product", "tools", "kernel", "audit", "key"):
         setattr(a, n, getattr(a, n).resolve(strict=True))
     w = prepare(a)
-    boot(a, w)
+    if not a.prepare_only:
+        boot(a, w)
 
 
 if __name__ == "__main__":

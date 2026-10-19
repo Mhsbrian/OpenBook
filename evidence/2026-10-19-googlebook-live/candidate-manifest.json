@@ -1,0 +1,121 @@
+{
+  "schema": "openbook-ruby-live-research/1",
+  "installable": false,
+  "desktop_validated": false,
+  "hardware_validated": false,
+  "module_variant": "bm",
+  "input_sha256": "921e30c92191f11defc60443ce062fc8dec8ee18330904e97c8b35df8217189a",
+  "logical_sha256": {
+    "system": "4ebc0e69314aea8cdc4eb97351716c7ebc6dc1d3a0ed66e17025f32d9af1e487",
+    "system_ext": "da7fd503976de920eb556b56fcc05f6ff4a5af8a1ce8996f7c1591e0711fe0f1",
+    "product": "c5c6e4fb94c3c673862254069df83910a700f91d50302f294c759530d59020d2",
+    "vendor": "eb96a6522cc719524ae16b3b18d5f89d8588efdd36e125642a9661bc62103eed",
+    "vendor_dlkm": "024774373cb9c09c634140ef9504bd5d9d81a9ee2006d5c4c3183a596ee0ce63",
+    "system_dlkm": "34185c35cb8bbccd5dfd0bb74eecb8a21e2445730411ef1583e1245628e0d617"
+  },
+  "kernel_sha256": "55b86074614a94592ddecebd2b77b1f2ed9aa38e8ad992b73c78c64d04c516f9",
+  "gpt": [
+    {
+      "name": "EFI",
+      "first_lba": 2048,
+      "last_lba": 526335,
+      "partuuid": "0db762f3-8208-5f72-9cba-34a96c64a3f5"
+    },
+    {
+      "name": "misc",
+      "first_lba": 526336,
+      "last_lba": 534527,
+      "partuuid": "7234d66d-32a6-5059-aef9-499907c2d878"
+    },
+    {
+      "name": "boot_a",
+      "first_lba": 534528,
+      "last_lba": 665599,
+      "partuuid": "9425249c-780e-582c-a5f9-61ad6c6dd38c"
+    },
+    {
+      "name": "init_boot_a",
+      "first_lba": 665600,
+      "last_lba": 681983,
+      "partuuid": "acaf591e-0233-53ae-b94b-cc3339068dca"
+    },
+    {
+      "name": "vendor_boot_a",
+      "first_lba": 681984,
+      "last_lba": 813055,
+      "partuuid": "0d8d9991-b9ad-5d53-840f-6871f7556f27"
+    },
+    {
+      "name": "vbmeta_a",
+      "first_lba": 813056,
+      "last_lba": 815103,
+      "partuuid": "5afe5744-2777-5559-aac4-2d0bc557e251"
+    },
+    {
+      "name": "metadata",
+      "first_lba": 815104,
+      "last_lba": 946175,
+      "partuuid": "ba8b4bc9-2ffe-58a6-83a5-bda6d0802549"
+    },
+    {
+      "name": "super",
+      "first_lba": 946176,
+      "last_lba": 8155135,
+      "partuuid": "5674aaaf-1361-5e22-a756-d151d79068f3"
+    },
+    {
+      "name": "userdata",
+      "first_lba": 8155136,
+      "last_lba": 24932351,
+      "partuuid": "394b6496-a5ab-5ec5-bc33-63c32a039a7d"
+    }
+  ],
+  "entries": {
+    "live": {
+      "androidboot.hardware": "openbook",
+      "androidboot.slot_suffix": "_a",
+      "androidboot.force_normal_boot": "1",
+      "androidboot.verifiedbootstate": "orange",
+      "androidboot.vbmeta.device_state": "unlocked",
+      "androidboot.veritymode": "enforcing",
+      "androidboot.vbmeta.avb_version": "1.2",
+      "androidboot.vbmeta.hash_alg": "sha256",
+      "androidboot.vbmeta.digest": "bc00a13a04707c97f692a47d87db95d3312e871b9a6a0ab7046fa2ada6d25806",
+      "androidboot.vbmeta.size": "4352",
+      "androidboot.serialno": "RUBYLIVERESEARCH",
+      "androidboot.selinux": "enforcing",
+      "androidboot.boot_part_uuid": "0db762f3-8208-5f72-9cba-34a96c64a3f5",
+      "androidboot.openbook.live": "1"
+    },
+    "serial": {
+      "androidboot.hardware": "openbook",
+      "androidboot.slot_suffix": "_a",
+      "androidboot.force_normal_boot": "1",
+      "androidboot.verifiedbootstate": "orange",
+      "androidboot.vbmeta.device_state": "unlocked",
+      "androidboot.veritymode": "enforcing",
+      "androidboot.vbmeta.avb_version": "1.2",
+      "androidboot.vbmeta.hash_alg": "sha256",
+      "androidboot.vbmeta.digest": "bc00a13a04707c97f692a47d87db95d3312e871b9a6a0ab7046fa2ada6d25806",
+      "androidboot.vbmeta.size": "4352",
+      "androidboot.serialno": "RUBYLIVERESEARCH",
+      "androidboot.selinux": "enforcing",
+      "androidboot.boot_part_uuid": "0db762f3-8208-5f72-9cba-34a96c64a3f5",
+      "androidboot.openbook.live": "1",
+      "androidboot.console": "ttyS0",
+      "androidboot.serialconsole": "1"
+    }
+  },
+  "scope": "Local research only. No installer source or redistribution permission. Fixed-size encrypted userdata on this image only.",
+  "payload_readback": {
+    "EFI": "cb9676f4ae36f7e95fb2bb7fe48b8911e93af0871ae365701df944d1b523ea05",
+    "boot_a": "f6fc1a5892cba10d24ba3c250f5abe4115ba0f7c0556a653995b41373bfbcec8",
+    "init_boot_a": "0237a3399e093acabf63a0b036ac43b7e1b06a59dc7b665d852c0c6ec28e2dae",
+    "vendor_boot_a": "b8dc14803c8a07b0ec675d9cc9d2baf7b16c8acfd1a90c63782fa7e0d95bda80",
+    "vbmeta_a": "1944f9b72268bd9218778f6b90170a5f26f3e9a282deddbe9c0acc34f2c1adcc",
+    "super": "822f5a03804888a4e6c0047a9d8983beaef6d8f5573d83d18e2a7fd8716e7028"
+  },
+  "image_sha256": "5b21c93932dc39deb46b4462ebafcf17a943de93dbfd2d005d5233e142e66e1e",
+  "image_bytes": 12766412800,
+  "input_unchanged": true
+}

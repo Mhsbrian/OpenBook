@@ -1,0 +1,8 @@
+2026-10-19 read-only Android StorageManager query on the installed G14.
+Command: sm list-disks; sm list-volumes all
+No disks returned. Volumes:
+private mounted null
+emulated;0 mounted null
+
+Direct /proc/partitions read was denied to shell; no root change was attempted.
+This establishes no exposed external storage volume, not a complete hardware inventory.

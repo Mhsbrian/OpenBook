@@ -1,0 +1,9 @@
+{
+  "setup_welcome_activity_seen": true,
+  "system_server_fatal_signals": [
+    "10-19 19:10:09.647   692  5563 F libc    : Fatal signal 11 (SIGSEGV), code 2 (SEGV_ACCERR), fault addr 0x74595d4c1000 in tid 5563 (Thread<00>), pid 692 (system_server)"
+  ],
+  "zygote_exit_events": 1,
+  "system_server_execmem_denial_seen": true,
+  "mmd_setup_abort_seen": true
+}

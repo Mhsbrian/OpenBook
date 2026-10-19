@@ -1,0 +1,13 @@
+NAME        TYPE           SIZE TRAN MODEL                     MOUNTPOINTS
+zram0       disk    66500689920                                [SWAP]
+nvme1n1     disk   500107862016 nvme Samsung SSD 970 EVO 500GB
+├─nvme1n1p1 part     4294967296 nvme
+└─nvme1n1p2 part   495810760704 nvme
+nvme2n1     disk  4000787030016 nvme WD_BLACK SN850X 4000GB
+├─nvme2n1p1 part     2147483648 nvme                           /boot
+└─nvme2n1p2 part  3998636572672 nvme
+  └─root    crypt 3998619795456                                /home
+                                                               /var/cache/pacman/pkg
+                                                               /var/log
+                                                               /
+nvme0n1     disk   250059350016 nvme Samsung SSD 960 EVO 250GB

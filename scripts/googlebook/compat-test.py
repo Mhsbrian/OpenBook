@@ -73,6 +73,22 @@ class Guards(unittest.TestCase):
             p.write_bytes(b"\0" * ((1 << 20) - 7) + b"Linux version 6.18.21-android17-5-example (builder)\0")
             self.assertEqual(audit.kernel_release(p), "6.18.21-android17-5-example")
 
+    def test_framework_labels_require_original_mapping(self):
+        with self.assertRaisesRegex(ValueError, "drift"):
+            audit.framework_service_contexts("", "foo u:object_r:bar:s0\n", "foo u:object_r:other:s0\n")
+
+    def test_framework_labels_refuse_vendor_conflict(self):
+        original = "foo u:object_r:bar:s0\n"
+        with self.assertRaisesRegex(ValueError, "Conflicting"):
+            audit.framework_service_contexts("foo u:object_r:other:s0\n", original, original)
+
+    def test_framework_labels_preserve_existing_contexts(self):
+        original = "foo u:object_r:bar:s0\n"
+        vendor = "existing u:object_r:keep:s0\n"
+        output = audit.framework_service_contexts(vendor, original, original)
+        self.assertTrue(output.startswith(vendor))
+        self.assertEqual(output.count(original), 1)
+
 
 if __name__ == "__main__":
     unittest.main()
