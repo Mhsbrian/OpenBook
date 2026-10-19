@@ -1,0 +1,662 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: OpenBook <noreply@anybook.invalid>
+Date: Sun, 18 Oct 2026 12:00:00 +0000
+Subject: [PATCH] OPENBOOK: SystemUI: Quire's halo, and the pointer and window
+ for contextual search
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+OpenBook's agent layer, Quire (docs/quire-design.md §2), answers a call in
+its first 100 ms with a halo at the pointer and an outline around the window
+it takes in, and opens its note beside the pointer. The contextual cursor has
+no feedback layer and passes contextual search no position: the shake calls
+invokeContextualSearch(ENTRYPOINT_SYSTEM_ACTION, config = null).
+
+- The shake detector remembers the last pointer position (QuirePointer).
+- On a shake, SystemUI finds the topmost visible app task under the pointer
+  (never the home task, which spans the display beneath every window) and
+  passes a ContextualSearchConfig with the display, the task's bounds as
+  sourceBounds, and in intentExtras the pointer's position, the task's
+  package and the time the bounds were read, which
+  ContextualSearchManagerService copies onto the launch intent. Over the
+  desktop there are no bounds and Quire takes in nothing. Then it shows
+  the halo (QuireHalo): a 32 dp conic ring that blooms with a spring, the
+  intake outline and a label, gone 600 ms later. It is a trusted, untouchable,
+  unfocusable overlay; with Remove animations nothing moves.
+- AssistManager.startAssist adds the same position, bounds, package and
+  time to the assistant's args, with the halo, when the assistant is Quire
+  and the pointer moved in the last 10 s (Meta+Space, the assist key).
+  Otherwise it adds nothing, and Quire takes in nothing.
+
+Nothing changes for other contextual search apps or assistants beyond the
+extra launch extras, which use Quire's own keys.
+---
+ .../systemui/assist/AssistManager.java        |  10 +
+ .../systemui/contextualcursor/QuirePointer.kt | 151 +++++++
+ .../interactor/ContextualCursorInteractor.kt  |  32 +-
+ .../interactor/GestureDetectionInteractor.kt  |   3 +
+ .../systemui/contextualcursor/ui/QuireHalo.kt | 323 ++++++++++++++++++
+ 5 files changed, 515 insertions(+), 4 deletions(-)
+ create mode 100644 packages/SystemUI/src/com/android/systemui/contextualcursor/QuirePointer.kt
+ create mode 100644 packages/SystemUI/src/com/android/systemui/contextualcursor/ui/QuireHalo.kt
+
+diff --git a/packages/SystemUI/src/com/android/systemui/assist/AssistManager.java b/packages/SystemUI/src/com/android/systemui/assist/AssistManager.java
+index 515a652d0054..b88ee140b206 100644
+--- a/packages/SystemUI/src/com/android/systemui/assist/AssistManager.java
++++ b/packages/SystemUI/src/com/android/systemui/assist/AssistManager.java
+@@ -35,6 +35,7 @@ import com.android.internal.logging.nano.MetricsProto.MetricsEvent;
+ import com.android.systemui.LauncherProxyService;
+ import com.android.systemui.assist.domain.interactor.AssistInteractor;
+ import com.android.systemui.assist.ui.DefaultUiController;
++import com.android.systemui.contextualcursor.QuirePointer;
+ import com.android.systemui.dagger.SysUISingleton;
+ import com.android.systemui.dagger.qualifiers.Background;
+ import com.android.systemui.dagger.qualifiers.Main;
+@@ -105,6 +106,8 @@ public class AssistManager {
+     }
+ 
+     private static final String TAG = "AssistManager";
++    // OPENBOOK: OpenBook's assistant (docs/quire.md).
++    private static final String QUIRE_PACKAGE = "dev.openbook.quire";
+ 
+     // Note that VERBOSE logging may leak PII (e.g. transcription contents).
+     private static final boolean VERBOSE = false;
+@@ -347,6 +350,13 @@ public class AssistManager {
+         int legacyDeviceState = mPhoneStateMonitor.getPhoneState();
+         args.putInt(INVOCATION_PHONE_STATE_KEY, legacyDeviceState);
+         args.putLong(INVOCATION_TIME_MS_KEY, SystemClock.elapsedRealtime());
++        // OPENBOOK: Quire's note opens at the pointer if it moved in the last 10 s, with the halo (OpenBook's
++        // docs/quire-design.md §2: Meta+Space, the assist key).
++        if (QUIRE_PACKAGE.equals(assistComponent.getPackageName())) {
++            QuirePointer.INSTANCE.addTo(mContext, args,
++                    args.getBoolean(Intent.EXTRA_ASSIST_INPUT_HINT_KEYBOARD, false)
++                            ? "Quire  Meta Space" : "Quire");
++        }
+         mAssistLogger.reportAssistantInvocationEventFromLegacy(
+                 legacyInvocationType,
+                 /* isInvocationComplete = */ true,
+diff --git a/packages/SystemUI/src/com/android/systemui/contextualcursor/QuirePointer.kt b/packages/SystemUI/src/com/android/systemui/contextualcursor/QuirePointer.kt
+new file mode 100644
+index 000000000000..8889e86d6ffd
+--- /dev/null
++++ b/packages/SystemUI/src/com/android/systemui/contextualcursor/QuirePointer.kt
+@@ -0,0 +1,151 @@
++/*
++ * Copyright (C) 2026 The OpenBook Authors
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package com.android.systemui.contextualcursor
++
++import android.app.ActivityTaskManager
++import android.app.WindowConfiguration
++import android.app.contextualsearch.ContextualSearchConfig
++import android.content.Context
++import android.content.pm.PackageManager
++import android.graphics.Rect
++import android.os.Bundle
++import android.os.SystemClock
++import android.util.Log
++import com.android.systemui.contextualcursor.ui.QuireHalo
++import com.android.systemui.cursorposition.data.model.CursorPosition
++
++/**
++ * OPENBOOK: where the pointer is when Quire is called, and the window under it (OpenBook's docs/quire-design.md §2).
++ * SystemUI already follows the pointer for the shake; it hands the contextual search app the pointer's position in the
++ * launch extras and the window's bounds as `sourceBounds`, so Quire's note opens at the pointer and takes in that window.
++ * Meta+Space and the assist key use the same position when the pointer moved in the last 10 s (§2: "the 10 s rule").
++ * With the bounds go the window's package, so Quire names the window it crops to (not the topmost visible app), and the
++ * time they were read, so Quire can refuse bounds that are too old to match the screenshot. Without a recent pointer, or
++ * over the desktop, SystemUI sends no bounds and Quire takes in nothing.
++ */
++object QuirePointer {
++    private const val TAG = "QuirePointer"
++
++    /** The keys Quire reads (dev.openbook.quire's Quire.EXTRA_POINTER_X/Y). */
++    const val EXTRA_POINTER_X = "dev.openbook.quire.extra.POINTER_X"
++    const val EXTRA_POINTER_Y = "dev.openbook.quire.extra.POINTER_Y"
++
++    /** The window's bounds, for the assistant session to pass on as `sourceBounds`. */
++    const val EXTRA_SOURCE_BOUNDS = "dev.openbook.quire.extra.SOURCE_BOUNDS"
++
++    /** The package of the window in the bounds, and when the bounds were read (elapsedRealtime, ms). */
++    const val EXTRA_SOURCE_PACKAGE = "dev.openbook.quire.extra.SOURCE_PACKAGE"
++    const val EXTRA_SOURCE_TIME = "dev.openbook.quire.extra.SOURCE_TIME"
++
++    /** How long a pointer stays "where the person is looking" for the keys. */
++    const val RECENT_MS = 10_000L
++
++    @Volatile private var last: CursorPosition? = null
++    @Volatile private var lastAt = 0L
++
++    /** Set by ContextualCursorInteractor, so the assistant path can show the same halo. */
++    @Volatile var halo: QuireHalo? = null
++
++    /** Called by the shake detector for every pointer position. */
++    fun moved(position: CursorPosition) {
++        last = position
++        lastAt = SystemClock.uptimeMillis()
++    }
++
++    /** The last position, when the pointer moved within [windowMs]. */
++    fun recent(windowMs: Long = RECENT_MS): CursorPosition? {
++        val p = last ?: return null
++        return if (SystemClock.uptimeMillis() - lastAt <= windowMs) p else null
++    }
++
++    fun current(): CursorPosition? = last
++
++    /**
++     * The bounds and package of the topmost visible app task under [p], or null over the desktop: the home task spans
++     * the display beneath every window, so it is never "the window under the pointer".
++     */
++    fun taskAt(p: CursorPosition): Pair<Rect, String?>? =
++        try {
++            ActivityTaskManager.getInstance()
++                .getTasks(MAX_TASKS, false, false, p.displayId)
++                .firstOrNull { t ->
++                    val mode = t.configuration.windowConfiguration.windowingMode
++                    t.isVisible &&
++                        t.configuration.windowConfiguration.activityType ==
++                            WindowConfiguration.ACTIVITY_TYPE_STANDARD &&
++                        t.displayId == p.displayId &&
++                        (mode == WindowConfiguration.WINDOWING_MODE_FREEFORM ||
++                            mode == WindowConfiguration.WINDOWING_MODE_FULLSCREEN ||
++                            mode == WindowConfiguration.WINDOWING_MODE_MULTI_WINDOW) &&
++                        t.configuration.windowConfiguration.bounds.contains(p.x.toInt(), p.y.toInt())
++                }
++                ?.let {
++                    Rect(it.configuration.windowConfiguration.bounds) to
++                        (it.topActivity ?: it.baseActivity)?.packageName
++                }
++                ?.takeIf { it.second != null }
++        } catch (e: RuntimeException) {
++            Log.w(TAG, "no task list", e)
++            null
++        }
++
++    /**
++     * The contextual search config for a call at [p]: its display, the pointer, and the window under it (bounds,
++     * package, when they were read), or no window at all over the desktop.
++     */
++    fun config(p: CursorPosition, target: Pair<Rect, String?>?): ContextualSearchConfig =
++        ContextualSearchConfig.Builder()
++            .setDisplayId(p.displayId)
++            .setSourceBounds(target?.first)
++            .setIntentExtras(
++                Bundle().apply {
++                    putFloat(EXTRA_POINTER_X, p.x)
++                    putFloat(EXTRA_POINTER_Y, p.y)
++                    putSource(this, target)
++                }
++            )
++            .build()
++
++    private fun putSource(b: Bundle, target: Pair<Rect, String?>?) {
++        target ?: return
++        b.putString(EXTRA_SOURCE_PACKAGE, target.second)
++        b.putLong(EXTRA_SOURCE_TIME, SystemClock.elapsedRealtime())
++    }
++
++    /** Puts the pointer and the window's bounds into the assistant's args, when the pointer moved recently. */
++    fun addTo(context: Context, args: Bundle, label: String) {
++        val p = recent() ?: return
++        val target = taskAt(p)
++        args.putFloat(EXTRA_POINTER_X, p.x)
++        args.putFloat(EXTRA_POINTER_Y, p.y)
++        target?.let { args.putParcelable(EXTRA_SOURCE_BOUNDS, it.first) }
++        putSource(args, target)
++        halo?.show(p.displayId, p.x, p.y, target?.first, label, appName(context, target?.second))
++    }
++
++    fun appName(context: Context, pkg: String?): String? {
++        pkg ?: return null
++        return try {
++            val pm = context.packageManager
++            pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString()
++        } catch (e: PackageManager.NameNotFoundException) {
++            null
++        }
++    }
++
++    private const val MAX_TASKS = 20
++}
+diff --git a/packages/SystemUI/src/com/android/systemui/contextualcursor/domain/interactor/ContextualCursorInteractor.kt b/packages/SystemUI/src/com/android/systemui/contextualcursor/domain/interactor/ContextualCursorInteractor.kt
+index e15c0d3f9559..878cba04761e 100644
+--- a/packages/SystemUI/src/com/android/systemui/contextualcursor/domain/interactor/ContextualCursorInteractor.kt
++++ b/packages/SystemUI/src/com/android/systemui/contextualcursor/domain/interactor/ContextualCursorInteractor.kt
+@@ -17,11 +17,15 @@
+ package com.android.systemui.contextualcursor.domain.interactor
+ 
+ import android.app.contextualsearch.ContextualSearchManager
++import android.content.Context
+ import android.os.UserManager
+ import com.android.hardware.input.Flags.enableContextualCursorDesktopEntrypoints
+ import com.android.systemui.CoreStartable
+ import com.android.systemui.LauncherProxyService
++import com.android.systemui.contextualcursor.QuirePointer
++import com.android.systemui.contextualcursor.ui.QuireHalo
+ import com.android.systemui.dagger.SysUISingleton
++import com.android.systemui.dagger.qualifiers.Application
+ import com.android.systemui.dagger.qualifiers.Background
+ import com.android.systemui.deviceentry.domain.interactor.DeviceEntryInteractor
+ import com.android.systemui.statusbar.policy.domain.interactor.DeviceProvisioningInteractor
+@@ -44,13 +48,16 @@ constructor(
+     private val gestureDetectionInteractor: GestureDetectionInteractor,
+     launcherProxyService: LauncherProxyService,
+     @param:Background private val backgroundScope: CoroutineScope,
++    @Application context: Context,
++    private val quireHalo: QuireHalo,
+ ) : CoreStartable {
+-    private val shakeGestureListener = ShakeGestureListener(launcherProxyService)
++    private val shakeGestureListener = ShakeGestureListener(launcherProxyService, context, quireHalo)
+ 
+     override fun start() {
+         if (!enableContextualCursorDesktopEntrypoints()) {
+             return
+         }
++        QuirePointer.halo = quireHalo
+ 
+         backgroundScope.launch {
+             /** The combination indicates user has been in a proper logged-in status */
+@@ -79,15 +86,32 @@ constructor(
+         }
+     }
+ 
+-    private class ShakeGestureListener(private val launcherProxyService: LauncherProxyService) :
+-        GestureDetectionInteractor.OnShakeGestureListener {
++    private class ShakeGestureListener(
++        private val launcherProxyService: LauncherProxyService,
++        private val context: Context,
++        private val halo: QuireHalo,
++    ) : GestureDetectionInteractor.OnShakeGestureListener {
+         override fun onShakeGestureDetected() {
++            // OPENBOOK: the pointer's position and the window under it go to the contextual search app with the
++            // call, and the halo answers at once (OpenBook's docs/quire-design.md §2).
++            val position = QuirePointer.current()
++            val target = position?.let { QuirePointer.taskAt(it) }
+             // TODO: b/484184229 - temporarily invoke contextual search before the actual
+             //  launch method is landed.]
+             launcherProxyService.proxy?.invokeContextualSearch(
+                 ContextualSearchManager.ENTRYPOINT_SYSTEM_ACTION,
+-                /* config= */ null,
++                position?.let { QuirePointer.config(it, target) },
+             )
++            if (position != null) {
++                halo.show(
++                    position.displayId,
++                    position.x,
++                    position.y,
++                    target?.first,
++                    "Ask Quire",
++                    QuirePointer.appName(context, target?.second),
++                )
++            }
+         }
+     }
+ }
+diff --git a/packages/SystemUI/src/com/android/systemui/contextualcursor/domain/interactor/GestureDetectionInteractor.kt b/packages/SystemUI/src/com/android/systemui/contextualcursor/domain/interactor/GestureDetectionInteractor.kt
+index a777be02df66..0d5fb4ed422b 100644
+--- a/packages/SystemUI/src/com/android/systemui/contextualcursor/domain/interactor/GestureDetectionInteractor.kt
++++ b/packages/SystemUI/src/com/android/systemui/contextualcursor/domain/interactor/GestureDetectionInteractor.kt
+@@ -18,6 +18,7 @@ package com.android.systemui.contextualcursor.domain.interactor
+ 
+ import android.util.Log
+ import com.android.hardware.input.Flags.enableContextualCursorDesktopEntrypoints
++import com.android.systemui.contextualcursor.QuirePointer
+ import com.android.systemui.cursorposition.data.model.CursorPosition
+ import com.android.systemui.cursorposition.domain.interactor.MultiDisplayCursorPositionInteractor
+ import com.android.systemui.dagger.qualifiers.Background
+@@ -79,6 +80,8 @@ constructor(
+                 cursorInteractor.cursorPositions
+                     .filterNotNull()
+                     .map { pos: CursorPosition ->
++                        // OPENBOOK: remember where the pointer is, for Quire's note and halo.
++                        QuirePointer.moved(pos)
+                         TimedPosition(pos, systemClock.currentTimeMillis())
+                     }
+                     .scan(emptyList<TimedPosition>()) { recentPositions, newTimedPosition ->
+diff --git a/packages/SystemUI/src/com/android/systemui/contextualcursor/ui/QuireHalo.kt b/packages/SystemUI/src/com/android/systemui/contextualcursor/ui/QuireHalo.kt
+new file mode 100644
+index 000000000000..b7a5a50a11d4
+--- /dev/null
++++ b/packages/SystemUI/src/com/android/systemui/contextualcursor/ui/QuireHalo.kt
+@@ -0,0 +1,323 @@
++/*
++ * Copyright (C) 2026 The OpenBook Authors
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package com.android.systemui.contextualcursor.ui
++
++import android.animation.ValueAnimator
++import android.content.Context
++import android.content.res.Configuration
++import android.graphics.Canvas
++import android.graphics.Color
++import android.graphics.LinearGradient
++import android.graphics.Matrix
++import android.graphics.Paint
++import android.graphics.PixelFormat
++import android.graphics.Rect
++import android.graphics.RectF
++import android.graphics.Shader
++import android.graphics.SweepGradient
++import android.graphics.Typeface
++import android.hardware.display.DisplayManager
++import android.os.Handler
++import android.util.Log
++import android.util.PathParser
++import android.view.Choreographer
++import android.view.View
++import android.view.WindowManager
++import com.android.systemui.dagger.SysUISingleton
++import com.android.systemui.dagger.qualifiers.Application
++import com.android.systemui.dagger.qualifiers.Main
++import javax.inject.Inject
++import kotlin.math.abs
++import kotlin.math.ceil
++import kotlin.math.min
++import kotlin.math.sqrt
++
++/**
++ * OPENBOOK: the first 100 ms of calling Quire (OpenBook's docs/quire-design.md §2, §4.4, §5.2): a halo blooms around
++ * the pointer's hotspot, the window under it gets the intake outline, and a label names what was done ("Ask Quire",
++ * or the shortcut). Drawn by SystemUI above every window, so it answers even when the app under the pointer is slow;
++ * it takes no touch and no focus. The note itself is Quire's window; the halo fades out once it has opened.
++ *
++ * Motion: the halo scales 0 → 1 with spring.tick (stiffness 1400, damping 0.7); the outline and the label fade in over
++ * 120 ms; the label fades out at 150 ms; everything fades out over 200 ms from 390 ms. With Remove animations the halo
++ * appears at full size and everything cuts (§5.3).
++ */
++@SysUISingleton
++class QuireHalo
++@Inject
++constructor(@Application private val context: Context, @Main private val handler: Handler) {
++    private var window: HaloView? = null
++    private var windowManager: WindowManager? = null
++
++    /** Shows the halo at ([x], [y]) on [displayId], with the outline around [bounds] when known. Any thread. */
++    fun show(displayId: Int, x: Float, y: Float, bounds: Rect?, label: String, appName: String?) {
++        handler.post { showOnMain(displayId, x, y, bounds, label, appName) }
++    }
++
++    private fun showOnMain(displayId: Int, x: Float, y: Float, bounds: Rect?, label: String, appName: String?) {
++        remove()
++        val display = context.getSystemService(DisplayManager::class.java).getDisplay(displayId) ?: return
++        val windowContext =
++            context.createDisplayContext(display)
++                .createWindowContext(WindowManager.LayoutParams.TYPE_SECURE_SYSTEM_OVERLAY, null)
++        val wm = windowContext.getSystemService(WindowManager::class.java)
++        val view = HaloView(windowContext, x, y, bounds, label)
++        view.contentDescription =
++            if (appName != null) "Quire. Pointing at $appName." else "Quire."
++        view.accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
++        val lp =
++            WindowManager.LayoutParams(
++                    WindowManager.LayoutParams.MATCH_PARENT,
++                    WindowManager.LayoutParams.MATCH_PARENT,
++                    WindowManager.LayoutParams.TYPE_SECURE_SYSTEM_OVERLAY,
++                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
++                        WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
++                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
++                        WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
++                    PixelFormat.TRANSLUCENT,
++                )
++                .apply {
++                    title = "QuireHalo"
++                    setTrustedOverlay()
++                    layoutInDisplayCutoutMode =
++                        WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
++                    fitInsetsTypes = 0
++                    windowAnimations = 0
++                }
++        try {
++            wm.addView(view, lp)
++        } catch (e: RuntimeException) {
++            Log.w(TAG, "could not show the halo", e)
++            return
++        }
++        window = view
++        windowManager = wm
++        view.start { remove() }
++    }
++
++    private fun remove() {
++        val v = window ?: return
++        window = null
++        try {
++            windowManager?.removeView(v)
++        } catch (e: RuntimeException) {
++            // Already gone.
++        }
++    }
++
++    private class HaloView(
++        context: Context,
++        private val cx: Float,
++        private val cy: Float,
++        private val bounds: Rect?,
++        private val label: String,
++    ) : View(context), Choreographer.FrameCallback {
++        private val density = resources.displayMetrics.density
++        private val dark =
++            resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
++                Configuration.UI_MODE_NIGHT_YES
++        private val primary =
++            context.getColor(
++                if (dark) android.R.color.system_primary_dark
++                else android.R.color.system_primary_light
++            )
++        private val inverseSurface =
++            context.getColor(
++                if (dark) android.R.color.system_inverse_surface_dark
++                else android.R.color.system_inverse_surface_light
++            )
++        private val inverseOnSurface =
++            context.getColor(
++                if (dark) android.R.color.system_inverse_on_surface_dark
++                else android.R.color.system_inverse_on_surface_light
++            )
++        private val animate = ValueAnimator.areAnimatorsEnabled()
++
++        // The halo: a 32 dp ring with a 2 dp conic stroke through the brand colours (§4.4).
++        private val ring =
++            Paint(Paint.ANTI_ALIAS_FLAG).apply {
++                style = Paint.Style.STROKE
++                strokeWidth = 2f * density
++                shader =
++                    SweepGradient(
++                            0f,
++                            0f,
++                            intArrayOf(BRAND_A, HALO_C, FOLD_B, FOLD_A, BRAND_A),
++                            null,
++                        )
++                        .also { it.setLocalMatrix(Matrix().apply { setRotate(210f - 90f) }) }
++            }
++        // The intake outline: 2 dp of primary at 55 %, 2 dp off the window, over a 10 dp glow at 18 % (§2 rules).
++        private val outline =
++            Paint(Paint.ANTI_ALIAS_FLAG).apply {
++                style = Paint.Style.STROKE
++                strokeWidth = 2f * density
++                color = withAlpha(primary, 0.55f)
++            }
++        private val glow =
++            Paint(Paint.ANTI_ALIAS_FLAG).apply {
++                style = Paint.Style.STROKE
++                strokeWidth = 10f * density
++                color = withAlpha(primary, 0.18f)
++            }
++        private val pill = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = inverseSurface }
++        private val text =
++            Paint(Paint.ANTI_ALIAS_FLAG).apply {
++                color = inverseOnSurface
++                textSize = 12.5f * density
++                typeface = Typeface.create(Typeface.create("google-sans-text", Typeface.NORMAL), 500, false)
++            }
++        private val leafBody =
++            PathParser.createPathFromPathData(
++                "M7.5 3H14l6 6v8.5A3.5 3.5 0 0 1 16.5 21h-9A3.5 3.5 0 0 1 4 17.5v-11A3.5 3.5 0 0 1 7.5 3Z"
++            )
++        private val leafFold = PathParser.createPathFromPathData("M14 3v4.5A1.5 1.5 0 0 0 15.5 9H20Z")
++        private val leafBodyPaint =
++            Paint(Paint.ANTI_ALIAS_FLAG).apply {
++                shader = LinearGradient(4f, 3f, 20f, 21f, BRAND_A, BRAND_B, Shader.TileMode.CLAMP)
++            }
++        private val leafFoldPaint =
++            Paint(Paint.ANTI_ALIAS_FLAG).apply {
++                shader = LinearGradient(14f, 3f, 20f, 9f, FOLD_A, FOLD_B, Shader.TileMode.CLAMP)
++            }
++
++        private var scale = if (animate) 0f else 1f
++        private var velocity = 0f
++        private var lastFrame = 0L
++        private var labelAlpha = if (animate) 0f else 1f
++        private var allAlpha = 1f
++        private var start = 0L
++        private var onDone: (() -> Unit)? = null
++
++        fun start(done: () -> Unit) {
++            onDone = done
++            start = System.nanoTime()
++            Choreographer.getInstance().postFrameCallback(this)
++        }
++
++        override fun onDetachedFromWindow() {
++            Choreographer.getInstance().removeFrameCallback(this)
++            super.onDetachedFromWindow()
++        }
++
++        override fun doFrame(frameTimeNanos: Long) {
++            val t = (frameTimeNanos - start) / 1_000_000f
++            if (animate) {
++                // spring.tick, mass 1, integrated in 4 ms substeps like Quire's own springs.
++                val dt = if (lastFrame == 0L) 0f else min(0.064f, (frameTimeNanos - lastFrame) / 1e9f)
++                lastFrame = frameTimeNanos
++                val k = 1400f
++                val c = 2f * 0.7f * sqrt(k)
++                val steps = ceil(dt / 0.004f).toInt().coerceAtLeast(1)
++                val h = dt / steps
++                repeat(steps) {
++                    val a = -k * (scale - 1f) - c * velocity
++                    velocity += a * h
++                    scale += velocity * h
++                }
++                if (abs(scale - 1f) < 0.002f && abs(velocity) < 0.02f) scale = 1f
++                labelAlpha =
++                    when {
++                        t < 120f -> t / 120f
++                        t < 150f -> 1f
++                        else -> (1f - (t - 150f) / 120f).coerceAtLeast(0f)
++                    }
++                allAlpha = if (t < 390f) 1f else (1f - (t - 390f) / 200f).coerceAtLeast(0f)
++            } else {
++                // Remove animations: everything at rest, then gone in one frame (§5.3).
++                labelAlpha = if (t < 270f) 1f else 0f
++                allAlpha = if (t < 590f) 1f else 0f
++            }
++            invalidate()
++            if (t >= 600f) {
++                onDone?.invoke()
++                onDone = null
++                return
++            }
++            Choreographer.getInstance().postFrameCallback(this)
++        }
++
++        override fun onDraw(canvas: Canvas) {
++            val a = allAlpha
++            if (bounds != null && a > 0f) {
++                val r = 20f * density
++                val g = RectF(bounds).apply { inset(-5f * density, -5f * density) }
++                glow.alpha = (Color.alpha(withAlpha(primary, 0.18f)) * a * (if (animate) min(1f, labelFade()) else 1f)).toInt()
++                canvas.drawRoundRect(g, r + 5f * density, r + 5f * density, glow)
++                val o = RectF(bounds).apply { inset(-3f * density, -3f * density) }
++                outline.alpha = (Color.alpha(withAlpha(primary, 0.55f)) * a * (if (animate) min(1f, labelFade()) else 1f)).toInt()
++                canvas.drawRoundRect(o, r + 3f * density, r + 3f * density, outline)
++            }
++            // The ring around the hotspot (the arrow's tip is 4 dp right and 3 dp below the hotspot in the
++            // prototype's drawing; the halo centres there).
++            val hx = cx + 4f * density
++            val hy = cy + 3f * density
++            canvas.save()
++            canvas.translate(hx, hy)
++            canvas.scale(scale, scale)
++            ring.alpha = (255 * a).toInt()
++            canvas.drawCircle(0f, 0f, 15f * density, ring)
++            canvas.restore()
++            val la = labelAlpha * a
++            if (la > 0f) {
++                val left = cx + 28f * density
++                val top = cy - 6f * density
++                val leaf = 14f * density
++                val w = 8f * density + leaf + 6f * density + text.measureText(label) + 12f * density
++                val h = 28f * density
++                pill.alpha = (255 * la).toInt()
++                canvas.drawRoundRect(left, top, left + w, top + h, h / 2, h / 2, pill)
++                canvas.save()
++                canvas.translate(left + 8f * density, top + (h - leaf) / 2)
++                canvas.scale(leaf / 24f, leaf / 24f)
++                leafBodyPaint.alpha = (255 * la).toInt()
++                leafFoldPaint.alpha = (255 * la).toInt()
++                canvas.drawPath(leafBody, leafBodyPaint)
++                canvas.drawPath(leafFold, leafFoldPaint)
++                canvas.restore()
++                text.alpha = (255 * la).toInt()
++                val fm = text.fontMetrics
++                canvas.drawText(
++                    label,
++                    left + 8f * density + leaf + 6f * density,
++                    top + h / 2 - (fm.ascent + fm.descent) / 2,
++                    text,
++                )
++            }
++        }
++
++        /** The outline fades in over the first 120 ms. */
++        private fun labelFade(): Float = ((System.nanoTime() - start) / 1_000_000f / 120f)
++    }
++
++    companion object {
++        private const val TAG = "QuireHalo"
++        private const val BRAND_A = 0xFF7E8CFF.toInt()
++        private const val BRAND_B = 0xFF4355B9.toInt()
++        private const val HALO_C = 0xFFD08BFF.toInt()
++        private const val FOLD_A = 0xFFFFB38A.toInt()
++        private const val FOLD_B = 0xFFFF7A9C.toInt()
++
++        private fun withAlpha(color: Int, alpha: Float) =
++            Color.argb(
++                (alpha * 255).toInt(),
++                Color.red(color),
++                Color.green(color),
++                Color.blue(color),
++            )
++    }
++}
+-- 
+2.56.0
+

@@ -2,16 +2,29 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 // Quire core (ANAL-216, docs/quire.md §4): OpenBook's agent layer as a privileged system app. It holds the assistant
-// role, is the contextual search app, and may own computer-control sessions. This milestone (Q2) is the plumbing: the
-// AOSP 17 hooks reach Quire, and Quire can drive Settings on a computer-control display with the user's consent.
+// role, is the contextual search app, and may own computer-control sessions. Q2 is the plumbing: the AOSP 17 hooks
+// reach Quire, and Quire can drive Settings on a computer-control display with the user's consent. Q5 (ANAL-219) is
+// the surface: the note, its ACP client, consent and the live mirror (docs/quire-design.md).
 // quire.mk installs it; ../desktop/desktop.mk inherits quire.mk.
 
 package {
     default_applicable_licenses: ["Android-Apache-2.0"],
 }
 
+// Google Sans Code ships inside Quire for code in the note (fonts/README.md); its OFL text goes into the image's
+// notices. Material Symbols (the icon subset) is Apache-2.0, like the rest of the module.
+license {
+    name: "openbook_quire_googlesanscode_license",
+    license_kinds: ["SPDX-license-identifier-OFL-1.1"],
+    license_text: ["fonts/OFL-GoogleSansCode.txt"],
+}
+
 android_app {
     name: "OpenBookQuire",
+    licenses: [
+        "Android-Apache-2.0",
+        "openbook_quire_googlesanscode_license",
+    ],
     srcs: ["app/src/**/*.kt"],
     resource_dirs: ["app/res"],
     manifest: "app/AndroidManifest.xml",

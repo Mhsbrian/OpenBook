@@ -1,0 +1,20 @@
+[
+ {
+  "type": "text",
+  "text": "The person called Quire while looking at Quire secure probe. A screenshot of that window may follow."
+ },
+ {
+  "type": "image",
+  "mimeType": "image/jpeg",
+  "bytes": 16188,
+  "size": [
+   880,
+   780
+  ],
+  "file": "key-1.jpg"
+ },
+ {
+  "type": "text",
+  "text": "Checker: what do you see? (key)"
+ }
+]
