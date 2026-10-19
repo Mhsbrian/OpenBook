@@ -64,14 +64,14 @@ NEAR_PX = 400
 
 
 class Dev(q2.Dev):
-    def note(self, action, **extras):
+    def note(self, verb, **extras):
         args = []
         for k, v in extras.items():
             if isinstance(v, float):
                 args += ["--ef", k, str(v)]
             else:
                 args += ["--es", k, f"'{v}'"]
-        return self.sh(f"am broadcast -n {NOTE_LAB} -a dev.openbook.quire.lab.{action} " + " ".join(args))
+        return self.sh(f"am broadcast -n {NOTE_LAB} -a dev.openbook.quire.lab.{verb} " + " ".join(args))
 
     def since(self, tag):
         text = self.quire_log()
@@ -115,13 +115,27 @@ class Dev(q2.Dev):
         dump = self.sh("dumpsys input")
         self.write("dumpsys-input-pointer.txt", "\n".join(l for l in dump.splitlines()
                                                          if re.search(r"(?i)pointer|position|cursor", l))[:20000])
-        for rx in (r"(?i)cursor position[:=]\s*\(?\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)",
+        for rx in (r"Pointer\(id=\d+, MOUSE\) at \((-?[\d.]+), (-?[\d.]+)\)",  # input dispatcher (Android 17)
+                   r"(?i)cursor position[:=]\s*\(?\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)",
                    r"(?i)\bposition[:=]\s*\(?\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)",
                    r"(?i)pointerX[:=]\s*(-?[\d.]+)\W+pointerY[:=]\s*(-?[\d.]+)"):
             m = re.search(rx, dump)
             if m:
                 return float(m.group(1)), float(m.group(2))
         return None
+
+    def note_card(self, xml):
+        """The note card's bounds on screen: the union of Quire's labelled nodes in a UI dump (the window itself may
+        span the display while the note unfolds), or None."""
+        try:
+            root = q2.ET.fromstring(xml)
+        except q2.ET.ParseError:
+            return None
+        boxes = [list(map(int, re.findall(r"-?\d+", n.get("bounds")))) for n in root.iter("node")
+                 if n.get("package") == QUIRE and (n.get("text") or n.get("content-desc"))]
+        if not boxes:
+            return None
+        return (min(b[0] for b in boxes), min(b[1] for b in boxes), max(b[2] for b in boxes), max(b[3] for b in boxes))
 
     def note_window(self):
         """The note's window from dumpsys window: (frame, on screen), or None when there is none."""
@@ -211,9 +225,11 @@ def invoke(d):
         shown = d.wait_log(POINTER_RE, 10, since=tag)
         time.sleep(1.2)
         ptr, w = d.pointer(), d.note_window()
-        frame, on_screen = w if w else (None, False)
+        on_screen = bool(w and w[1])
         d.screencap(f"invoke-{name}.png")
-        d.write(f"invoke-{name}-ui.xml", d.ui())
+        xml = d.ui()
+        d.write(f"invoke-{name}-ui.xml", xml)
+        frame = d.note_card(xml)
         d.result(f"{name}: Quire's note opened and is on screen",
                  bool(m) and m.group(1) == trigger and bool(shown) and on_screen,
                  (f"trigger={m.group(1)}" if m else "no invocation logged") +
@@ -222,7 +238,7 @@ def invoke(d):
         near, dist = beside(ptr, frame)
         d.result(f"{name}: the note beside the pointer",
                  bool(shown) and shown.group(3) == "Pointer" and on_screen and near is True,
-                 f"anchor={shown.group(3) if shown else '-'} pointer={ptr} note frame={frame}" +
+                 f"anchor={shown.group(3) if shown else '-'} pointer={ptr} note card={frame}" +
                  (f" distance={dist:.0f}px (limit {NEAR_PX})" if dist is not None else " (geometry unknown)"))
         close_note(d)
     mouse.close()
@@ -269,7 +285,7 @@ def agent(d, prompt, expect):
     if shown.group(2) == "NO_AGENT":
         d.screencap("agent-connect.png")
         d.write("agent-connect-ui.xml", d.ui())
-        tapped = d.tap_text("Connect ", prefix=True)
+        tapped = d.tap_text(f"Connect {agents[0][2].strip()}")
         d.result("agent: the person connects it in the note", bool(tapped), tapped or "no Connect button")
         if not tapped:
             return
