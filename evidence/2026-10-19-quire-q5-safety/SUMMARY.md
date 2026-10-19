@@ -36,9 +36,10 @@ session's life, and only then, the note is a system application overlay.
 | `anybook_cf_x86_64_pc-cp2a-userdebug` `droid QuireSecureProbe`, `0008` with package and time | `e51eff1` + this round's work tree | OK in 34:06 (other branches had built in between) | `build-20261018T235456Z.log` |
 | The same, `0008` also skipping the home task | the four fix commits (`f60e5c5`) | OK in 6:23 | `build-20261019T003117Z.log` |
 | The same, with the lab reporting the mirror's controls; the image for `regression/` | `07f0495` | OK in 1:22; snapshot `~/anybook/aosp/cf/q5s-out3` | `build-20261019T004804Z.log` |
-| The same, with the note's still beneath the consent dialog (Atelier's ruling 1); the image for `cf/` and `atelier-still/` | `45e773a` | OK in 1:22; snapshot `~/anybook/aosp/cf/q5s-out4` | `build-20261019T020844Z.log` |
+| The same, with the note's still beneath the consent dialog (Atelier's ruling 1) | `45e773a` | OK in 1:22; snapshot `~/anybook/aosp/cf/q5s-out4` | `build-20261019T020844Z.log` |
+| The same, with the exemption bound to the session's own task (the Checker's recheck); **the image for `cf/` and `atelier-still/`** | `f238e95` | OK in 1:21; snapshot `~/anybook/aosp/cf/q5s-out5` | `build-20261019T022331Z.log` |
 
-All four ran under the lane lock (`scripts/aosp-docker.sh`, `AOSP_JOBS=24`), and frameworks/base got its 8 patches.
+All five ran under the lane lock (`scripts/aosp-docker.sh`, `AOSP_JOBS=24`), and frameworks/base got its 8 patches.
 **Which Quire ran:** each time the image's own, built in-tree by Soong (`/system_ext/priv-app/OpenBookQuire`, no dev
 APK), its sources compared file by file with the commit named above. The probe is the image build's
 `QuireSecureProbe.apk`. Each boot was fresh (`/data` new), on the AMD lane: `CF_GPU=amd`, `gfxstream_guest_angle`,
@@ -48,12 +49,13 @@ APK), its sources compared file by file with the commit named above. The probe i
 
 ### The regressions: `scripts/quire/q5-safety-check.py` (`cf/`)
 
-**54 PASS, 0 FAIL, 0 INFO** on `45e773a`'s image, after Atelier's ruling 1 changed when the dialog opens. It was also
-54/54 on `07f0495`'s image before that change. Files: `cf/results.tsv`, `cf/checks.log`, with screenshots, window dumps
-and the ACP payloads.
+**60 PASS, 0 FAIL, 0 INFO** on `f238e95`'s image, a fresh boot. The 60 include the new `owner` section, the Checker's
+recheck case below. Before that section existed: 54/54 on `07f0495`'s image and again on `45e773a`'s. Files:
+`cf/results.tsv`, `cf/checks.log`, with screenshots, window dumps and the ACP payloads.
 
 - overlay: 7
 - consent: 18 (1920×1080, 1280×800, and Don't allow)
+- owner: 6
 - agents: 10
 - intake: 19
 
@@ -92,16 +94,42 @@ ran again in both themes next to their renders. So did the keyboard paths, label
 recordings and health. Settings and Files hide overlays on every page, so the run uses `--desk none`: nothing behind the
 note. The side-by-sides therefore differ from the renders in what is behind the card.
 
-**Earlier runs in this round** (`earlier-runs/first-final-run/`). The first final run on this image had one harness
-failure in each script. All three are fixed in the checks, not in Quire, and the run above is a second fresh boot.
+**Earlier runs in this round** (`earlier-runs/first-final-run/`). The first final run on `07f0495`'s image had one
+harness failure in each script. All three are fixed in the checks, not in Quire, and the run above is a second fresh
+boot.
 
 - In the safety check, a UI dump came back empty while B's card was on screen (the screenshot is kept). The dump is now
   retried.
 - In health, the launcher was blamed with an ANR. The harness had sent Esc while nothing had input focus, right after
   stopping Settings. `clean()` now sends Esc only when input has a focused window.
 - In health, the SystemUI start at boot was counted as a restart. A restart is now a start of any other process.
+- On `f238e95`'s image, two runs of the intake check failed the same way. A Settings task back from a closed session
+  display (affinity `com.android.settings.root`, which the task match missed) was restored by the desktop above the
+  probe. The window under the pointer was then Settings, and Quire took in and named Settings correctly. The check now
+  matches that task, clears it again after Files starts, and logs what is under the pointer.
 
-### Atelier's ruling 1: a still of the note beneath the consent dialog (`atelier-still/`, `45e773a`)
+### The Checker's recheck: the exemption leaked to other tasks (`cf/owner/`, `f238e95`)
+
+The Checker held `69cf4d1` (ANAL-217, 02:03 UTC). `sessionOverlay` was a flag on the shared note window. A new ordinary
+note opened by a shake, while a control task ran hidden, inherited `SYSTEM_APPLICATION_OVERLAY` and stayed above a window
+that hides overlays.
+
+- **The fix (`f238e95`):**
+  - The note window decides its kind per task, each time a task is shown, replaced or reopened.
+  - A task is a system overlay only while it owns a live session (`ControlRun.sessionLive`, from creation until the run
+    ends).
+  - When the shown task's kind changes, the window is added again.
+- **The regression** (`q5-safety-check.py`, section `owner`):
+  - A paused Settings session and the probe's protected window.
+  - The session's task keeps its mirror and Stop.
+  - A new note by the shake path is ordinary and hidden (`forceHidden=true`), twice.
+  - Reopening the session's task brings the mirror back.
+  - After Stop, the task's own note is ordinary and hidden.
+- **Before the fix**, on `45e773a`'s image, the section fails exactly as the Checker found: the new note is
+  `system=True`, `onScreen=True` above the protected window (`earlier-runs/owner-before-fix/`).
+- **After the fix:** 6/6.
+
+### Atelier's ruling 1: a still of the note beneath the consent dialog (`atelier-still/`, built at `45e773a`, run on `f238e95`'s image)
 
 Atelier signed off on the build at `69cf4d1` and accepted the waiting surface beneath the dimmed dialog, with one
 change: the surface is a still of the note at the note's geometry, so the only change on screen is the scrim.

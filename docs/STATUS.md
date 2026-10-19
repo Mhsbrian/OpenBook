@@ -107,8 +107,9 @@
 - **Open, for the owner and the Checker:** Settings, Files and the permission screens hide overlays on every page, so
   the note does not show over them (`docs/quire.md` §8 item 10).
 - **Atelier signed off on the build** (`69cf4d1`). Its one change, a still of the note beneath the consent dialog
-  instead of a two-line card, is built (`45e773a`), and the safety checks pass 54/54 again. Take over waits for the
-  overlay decision.
+  instead of a two-line card, is built (`45e773a`). Take over waits for the overlay decision.
+- **The Checker's recheck** closed the agent and intake Holds, and found the session exemption leaking to other tasks.
+  It is now bound to the session's own task (`f238e95`). Safety checks pass 60/60 with that case added.
 
 ### 2026-10-18: Quire's surface, the note, built to Q3's design (ANAL-219, Q5)
 - **Built** (`docs/quire.md` §9): the note is a window of Quire core (a system application overlay, so it stays visible through the platform's computer-control consent, which re-checks that the session owner has a visible window). One card for every state of `docs/quire-design.md`, with its springs, colours from the wallpaper, Google Sans, and Remove animations honoured. An ACP v1 client renders thought and message chunks, steps, plans, images and permission requests with the agent's own option names. Computer control shows the platform's consent, the mirror zoomed 2× on the control in use with the agent's pointer, Pause, Take over and Stop. SystemUI (frameworks/base 0008) draws the halo and the intake outline and passes the pointer and the window's bounds, so the note opens at the pointer.
