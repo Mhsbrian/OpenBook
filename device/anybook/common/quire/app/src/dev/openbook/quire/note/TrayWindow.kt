@@ -89,7 +89,6 @@ class TrayWindow(private val context: Context, private val surface: QuireSurface
             title = "Quire tray"
             gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
             y = bottom + context.dpi(12f) - pad
-            privateFlags = privateFlags or WindowManager.LayoutParams.PRIVATE_FLAG_SYSTEM_APPLICATION_OVERLAY
             fitInsetsTypes = 0
             windowAnimations = 0
         }

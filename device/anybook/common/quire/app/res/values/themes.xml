@@ -10,4 +10,15 @@
         <!-- The note draws its own keyboard focus ring (docs/quire-design.md §4.2); no grey default highlight. -->
         <item name="android:defaultFocusHighlightEnabled">false</item>
     </style>
+
+    <!-- ConsentWaitActivity: transparent, no animation, no system bars of its own; its window is inert (no touch, no
+         focus) and only shows Quire's waiting card beneath the platform's consent dialog. -->
+    <style name="Theme.Quire.ConsentWait" parent="@android:style/Theme.Translucent.NoTitleBar">
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:windowDisablePreview">true</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">always</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:defaultFocusHighlightEnabled">false</item>
+    </style>
 </resources>

@@ -57,12 +57,25 @@ class ControlRun(
         waitingStep = asking
         task.blocks += Block.Steps().apply { items += asking }
         task.controlPhase(Task.Phase.WORKING)
-        control.request(context, listOf(PACKAGE_OF[app] ?: launch.substringBefore('/')), null)
+        // Quire asks from its waiting activity, so the platform finds a visible Quire window even when overlays are
+        // hidden; if the platform asks the person, its dialog opens above that activity, which then shows this card
+        // where the note was, and the note steps aside (onPending).
+        ConsentWait.begin(context, ConsentWait.Card(context.getString(R.string.q_cc_waiting),
+            context.getString(R.string.q_cc_waiting_sub, task.agent?.name ?: context.getString(R.string.app_name), app),
+            window.cardOnScreen())) { ok ->
+            if (finished || stopped) return@begin
+            if (ok) {
+                control.request(context, listOf(PACKAGE_OF[app] ?: launch.substringBefore('/')), null, ConsentWait)
+            } else {
+                onRefused(context.getString(R.string.q_cc_no_window))
+            }
+        }
     }
 
     override fun onPending(dialogShown: Boolean) {
         if (!dialogShown) return
-        // The platform's dialog is up: the note waits and says so, and keeps out of its way (§3.3 rule 5).
+        // The platform's dialog is up: the note waits and says so, and steps aside; Quire's waiting activity shows the
+        // same card beneath the dialog (§3.3 rule 5).
         waitingResult = Block.Result(Icons.SHIELD, Tone.WARN, context.getString(R.string.q_cc_waiting),
             context.getString(R.string.q_cc_waiting_sub, task.agent?.name ?: context.getString(R.string.app_name), app))
             .also { task.blocks += it }
@@ -72,6 +85,10 @@ class ControlRun(
 
     override fun onCreated(session: ComputerControlSession) {
         window.platformDialog = false
+        // While the session runs, the person must always see it and be able to stop it, even when the app it drives
+        // hides overlays (Settings always does, on the session display too): the note becomes a system overlay until
+        // the run ends (NoteWindow.sessionOverlay).
+        window.sessionOverlay = true
         waitingResult?.let { task.blocks.remove(it) }
         waitingStep?.let {
             it.status = StepStatus.DONE
@@ -271,6 +288,7 @@ class ControlRun(
     fun stop() {
         if (finished) return
         stopped = true
+        ConsentWait.close()
         window.platformDialog = false
         if (control.session != null) {
             control.close()
@@ -311,6 +329,8 @@ class ControlRun(
             first?.changed()
         }
         window.platformDialog = false
+        window.sessionOverlay = false
+        ConsentWait.close()
         Log.i(TAG, "note: control run ended stopped=$stopped: $msg")
         task.controlEnded(stopped, msg, sub, tone, icon)
     }

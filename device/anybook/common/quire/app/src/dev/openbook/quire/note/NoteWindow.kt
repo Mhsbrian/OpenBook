@@ -39,15 +39,23 @@ import dev.openbook.quire.ui.rounded
 
 /**
  * The note's window (docs/quire-design.md §3.1 Layer, §8 Layers). A window of Quire's own uid, because the platform
- * creates a computer-control session only for an owner with a visible non-toast window (§8). It is an application
- * overlay above app windows and below the status bar and system dialogs, as wide as the display and transparent
- * outside the card; only the card (and the agent picker) take touches.
+ * creates a computer-control session only for an owner with a visible non-toast window (§8). It is an ordinary
+ * application overlay, above app windows and below the status bar and system dialogs, so it hides whenever a window on
+ * screen asks the system to hide overlays (`setHideOverlayWindows`: a banking app, a permission dialog, the platform's
+ * computer-control consent).
  *
- * It is a *system* application overlay (SYSTEM_APPLICATION_OVERLAY, a signature permission Quire holds as a
- * platform-signed app): the platform's computer-control consent dialog hides ordinary overlays, and the note has to stay
- * visible through that dialog, or the session the person just allowed is refused for want of a visible window. In
- * return the note never covers or competes with that dialog: while it is up the window gives up focus and touch and
- * the card keeps clear of the screen's centre, where the dialog sits ([platformDialog]).
+ * The window is only as big as the card needs ([NoteRoot]): an untrusted overlay over another app's window blocks the
+ * touches that pass through it, so a display-wide transparent window would swallow every click outside the card. Its
+ * content is laid out in display coordinates and scrolled by the window's position, so the card can move and grow
+ * while the window follows it.
+ *
+ * While the platform's consent dialog is up the note steps aside ([platformDialog]): Quire's [ConsentWaitActivity],
+ * beneath the dialog, keeps Quire visible for the platform's check after Allow.
+ *
+ * The one exception is a running computer-control session ([sessionOverlay]): the live mirror with Pause, Take over and
+ * Stop must stay in view while the agent acts, and the app it drives may hide overlays (Settings does, even on the
+ * session display), so for the session's life the note is a system application overlay (SYSTEM_APPLICATION_OVERLAY,
+ * which Quire holds as a platform app). It goes back to an ordinary overlay when the run ends.
  */
 class NoteWindow(private val context: Context, private val surface: Callbacks) {
     interface Callbacks : NoteCard.Actions {
@@ -75,19 +83,35 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
         set(value) {
             if (field == value) return
             field = value
-            root?.let {
-                it.visibility = if (value) View.INVISIBLE else View.VISIBLE
-                updateParams(it)
-            }
+            root?.let { updateParams(it) }
         }
 
-    /** True while the platform's computer-control dialog is up: no focus, no touch, clear of the centre. */
+    /**
+     * True while a computer-control session runs (ControlRun): the note is a system application overlay, so the mirror
+     * and its controls stay visible when the driven app hides overlays. The window manager decides whether to hide a
+     * window when it is added, so the window is added again in the other kind.
+     */
+    var sessionOverlay = false
+        set(value) {
+            if (field == value) return
+            field = value
+            Log.i(TAG, "note: window ${if (value) "system overlay (computer control running)" else "ordinary overlay"}")
+            val t = task ?: return
+            closePicker()
+            remove()
+            show(t, Task.Focus.KEEP, animate = false)
+        }
+
+    /**
+     * True while the platform's computer-control dialog is up: the note steps aside like [suspended], so nothing of
+     * Quire's ever covers the dialog. The dialog would hide the note anyway (it hides overlays); Quire's
+     * [ConsentWaitActivity] sits beneath it meanwhile.
+     */
     var platformDialog = false
         set(value) {
             if (field == value) return
             field = value
             root?.let { updateParams(it) }
-            root?.requestLayout()
         }
 
     fun show(t: Task, focus: Task.Focus, animate: Boolean = true) {
@@ -106,25 +130,32 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
         card = c
         root = r
         c.bind(t)
+        // The first frame covers the display; once the card is laid out the window shrinks to it (NoteRoot.syncFrame).
+        val d = displayBounds()
         val lp = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT,
+            d.width(), d.height(),
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH or
-                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
+                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
             PixelFormat.TRANSLUCENT,
         ).apply {
             title = "Quire"
             gravity = Gravity.TOP or Gravity.START
-            privateFlags = privateFlags or WindowManager.LayoutParams.PRIVATE_FLAG_SYSTEM_APPLICATION_OVERLAY
+            x = d.left
+            y = d.top
+            if (sessionOverlay) privateFlags = privateFlags or WindowManager.LayoutParams.PRIVATE_FLAG_SYSTEM_APPLICATION_OVERLAY
             softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING
             layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
             fitInsetsTypes = 0
             windowAnimations = 0
         }
         r.params = lp
+        r.frame.set(d)
         updateParams(r)
         wm.addView(r, lp)
-        Log.i(TAG, "note: shown task ${t.id} phase=${t.phase} anchor=${t.anchor.javaClass.simpleName}")
+        Log.i(TAG, "note: shown task ${t.id} phase=${t.phase} anchor=${t.anchor.javaClass.simpleName}" +
+            if (sessionOverlay) " system=true" else "")
         if (animate) {
             r.unfold { c.focus(focus) }
         } else {
@@ -167,6 +198,9 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
         card?.tick()
     }
 
+    /** Where the card is on the display (display pixels), or null when the note is not showing. */
+    fun cardOnScreen(): Rect? = root?.cardRect()
+
     /** Folds the note into its anchor (§5.2 Fold back), then removes the window. */
     fun fold(intoTaskbar: Boolean, done: () -> Unit = {}) {
         val r = root ?: return done()
@@ -187,9 +221,15 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
         Log.i(TAG, "note: removed")
     }
 
+    /** The display in display pixels, and its system bars: the window itself is only as big as the card. */
+    private fun displayBounds(): Rect = wm.currentWindowMetrics.bounds
+
+    private fun displayInsets(types: Int) = wm.currentWindowMetrics.windowInsets.getInsets(types)
+
     private fun updateParams(r: NoteRoot) {
         val lp = r.params ?: return
         val away = platformDialog || suspended
+        r.visibility = if (away) View.INVISIBLE else View.VISIBLE
         val focusable = !away
         lp.flags = if (focusable) lp.flags and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()
             else lp.flags or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
@@ -202,7 +242,6 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
             (lp.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()) or
                 WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
         }
-        r.keepClearOfCentre = platformDialog
         if (r.isAttachedToWindow) wm.updateViewLayout(r, lp)
     }
 
@@ -238,10 +277,18 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
     val pickerOpen: Boolean
         get() = picker != null
 
-    /** The window's content: a transparent full-display frame that places, reveals, unfolds and folds the card. */
+    /**
+     * The window's content: places, reveals, unfolds and folds the card. Children are laid out in display coordinates;
+     * the view is scrolled by the window's position ([frame]), which follows the card: at rest it is the card (and the
+     * picker) plus room for the shadow, during an animation also the area the animation crosses.
+     */
     private inner class NoteRoot(context: Context, val card: NoteCard, var anchor: Anchor) : FrameLayout(context) {
         var params: WindowManager.LayoutParams? = null
-        var keepClearOfCentre = false
+
+        /** The window's frame in display pixels, as last asked of the window manager. */
+        val frame = Rect()
+        private var frameQueued = false
+        private var foldIntoTaskbar = false
         private val target = RectF()
         private val from = RectF()
         private val shown = RectF()
@@ -256,6 +303,7 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
         private var foldTranslate = PointF()
 
         private val insets = ViewTreeObserver.OnComputeInternalInsetsListener { info ->
+            // In window coordinates: the content is scrolled by the window's position.
             info.setTouchableInsets(ViewTreeObserver.InternalInsetsInfo.TOUCHABLE_INSETS_REGION)
             val region = Region()
             if (!folding) {
@@ -264,6 +312,7 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
                 pickerView?.let { pv ->
                     region.op(Rect(pv.left, pv.top, pv.right, pv.bottom), Region.Op.UNION)
                 }
+                region.translate(-scrollX, -scrollY)
             }
             info.touchableRegion.set(region)
         }
@@ -289,19 +338,25 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
         }
 
         override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-            val h = MeasureSpec.getSize(heightMeasureSpec)
-            card.maxHeight = if (card.widthDp == NoteCard.MIRROR_WIDTH) Int.MAX_VALUE else (h * MAX_HEIGHT).toInt()
-            super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+            // Children measure against the display, not against the window, which is only as big as the card was.
+            val d = displayBounds()
+            card.maxHeight = if (card.widthDp == NoteCard.MIRROR_WIDTH) Int.MAX_VALUE else (d.height() * MAX_HEIGHT).toInt()
+            card.measure(MeasureSpec.makeMeasureSpec(d.width(), MeasureSpec.AT_MOST),
+                MeasureSpec.makeMeasureSpec(d.height(), MeasureSpec.AT_MOST))
+            pickerView?.measure(MeasureSpec.makeMeasureSpec(dpi(300f), MeasureSpec.EXACTLY),
+                MeasureSpec.makeMeasureSpec(d.height(), MeasureSpec.AT_MOST))
+            setMeasuredDimension(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.getSize(heightMeasureSpec))
         }
 
         override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
-            val (x, y) = place(card.measuredWidth, card.measuredHeight, r - l, b - t)
+            val d = displayBounds()
+            val (x, y) = place(card.measuredWidth, card.measuredHeight, d.width(), d.height())
             card.layout(x, y, x + card.measuredWidth, y + card.measuredHeight)
             pickerView?.let { pv ->
                 val a = pickerAnchor ?: return@let
                 val loc = Rect(0, 0, a.width, a.height)
                 offsetDescendantRectToMyCoords(a, loc)
-                val px = (loc.left - dpi(6f)).coerceIn(0, (r - l) - pv.measuredWidth)
+                val px = (loc.left - dpi(6f)).coerceIn(0, d.width() - pv.measuredWidth)
                 val py = loc.bottom + dpi(4f)
                 pv.layout(px, py, px + pv.measuredWidth, py + pv.measuredHeight)
             }
@@ -314,6 +369,7 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
                 from.set(next)
                 lastWidthDp = card.widthDp
                 syncCard()
+                syncFrame()
                 return
             }
             if (next != target) {
@@ -324,18 +380,79 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
                 from.set(shown)
                 target.set(next)
                 reveal.snapTo(0f)
-                reveal.animateTo(1f, if (expand) Motion.EXPAND else Motion.SETTLE)
+                reveal.animateTo(1f, if (expand) Motion.EXPAND else Motion.SETTLE) { syncFrame() }
             } else {
                 syncCard()
             }
+            syncFrame()
+        }
+
+        /**
+         * The frame the window needs now: what is shown and where it is going, the picker, and during the unfold or
+         * fold the anchor it scales around, plus room for the shadow. Folding into the taskbar crosses the display.
+         */
+        private fun neededFrame(): Rect {
+            val d = displayBounds()
+            if (folding && foldIntoTaskbar) return Rect(d)
+            val r = RectF(target)
+            r.union(shown)
+            if (reveal.isRunning) r.union(from)
+            if (folding || scale.isRunning || card.scaleX != 1f) r.union(origin.x, origin.y)
+            pickerView?.let { pv -> r.union(pv.left.toFloat(), pv.top.toFloat(), pv.right.toFloat(), pv.bottom.toFloat()) }
+            val m = dpi(FRAME_MARGIN)
+            val out = Rect(r.left.toInt() - m, r.top.toInt() - m, r.right.toInt() + 1 + m, r.bottom.toInt() + 1 + m)
+            if (!out.intersect(d)) out.set(d)
+            return out
+        }
+
+        /**
+         * Moves the window to [neededFrame] on the next frame: it grows at once and shrinks once nothing is moving.
+         * Applied outside layout, so the new frame and the new scroll reach the same draw; and a frame that moves always
+         * changes size too, because the window manager moves a resized window with its next buffer but moves a window
+         * of the same size at once, ahead of the content (WindowState.updateSurfacePosition).
+         */
+        fun syncFrame() {
+            if (frameQueued) return
+            frameQueued = true
+            post {
+                frameQueued = false
+                applyFrame()
+            }
+        }
+
+        private val shrink = Runnable { applyFrame(allowShrink = true) }
+
+        private fun applyFrame(allowShrink: Boolean = false) {
+            val lp = params ?: return
+            if (!isAttachedToWindow) return
+            val want = neededFrame()
+            if (want == frame) return
+            val moving = reveal.isRunning || scale.isRunning || folding
+            if (frame.contains(want) && (!allowShrink || moving)) {
+                // Smaller than the window: shrink a moment after the last change, not on every frame of a reveal.
+                removeCallbacks(shrink)
+                postDelayed(shrink, SHRINK_MS)
+                return
+            }
+            removeCallbacks(shrink)
+            if (want.width() == frame.width() && want.height() == frame.height()) {
+                val d = displayBounds()
+                if (want.bottom < d.bottom) want.bottom += 1 else want.top -= 1
+            }
+            frame.set(want)
+            lp.x = want.left
+            lp.y = want.top
+            lp.width = want.width()
+            lp.height = want.height()
+            scrollTo(want.left, want.top)
+            wm.updateViewLayout(this, lp)
         }
 
         /** §3.1 Placement: beside the pointer (flipping at the right edge, kept above the taskbar), or above the button. */
         private fun place(w: Int, h: Int, W: Int, H: Int): Pair<Int, Int> {
-            val ins = rootWindowInsets
-            val bottomInset = ins?.getInsets(WindowInsets.Type.navigationBars() or WindowInsets.Type.tappableElement())
-                ?.bottom ?: dpi(64f)
-            val topInset = ins?.getInsets(WindowInsets.Type.statusBars())?.top ?: dpi(32f)
+            val bottomInset = displayInsets(WindowInsets.Type.navigationBars() or WindowInsets.Type.tappableElement())
+                .bottom
+            val topInset = displayInsets(WindowInsets.Type.statusBars()).top
             val floor = H - bottomInset
             var x: Int
             var y: Int
@@ -361,20 +478,12 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
                     origin.set(cx, floor.toFloat())
                 }
             }
-            if (keepClearOfCentre) {
-                // The platform dialog sits in the middle of the screen; keep the card beside it, never over it.
-                val dw = dpi(DIALOG_W)
-                val dh = dpi(DIALOG_H)
-                val dialog = Rect((W - dw) / 2, (H - dh) / 2, (W + dw) / 2, (H + dh) / 2)
-                val me = Rect(x, y, x + w, y + h)
-                if (Rect.intersects(me, dialog)) {
-                    x = if (me.centerX() < W / 2) dialog.left - dpi(24f) - w else dialog.right + dpi(24f)
-                }
-            }
             x = x.coerceIn(dpi(8f), maxOf(dpi(8f), W - w - dpi(8f)))
             y = y.coerceIn(topInset, maxOf(topInset, floor - h))
             return x to y
         }
+
+        fun cardRect() = Rect(shown.left.toInt(), shown.top.toInt(), shown.right.toInt(), shown.bottom.toInt())
 
         private fun applyReveal(f: Float) {
             shown.set(from.left + (target.left - from.left) * f, from.top + (target.top - from.top) * f,
@@ -413,12 +522,13 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
                 if (!Motion.enabled) {
                     card.alpha = 1f
                     scale.snapTo(1f)
+                    syncFrame()
                     end()
                     return@post
                 }
                 Motion.fade(card, 1f)
                 scale.snapTo(FOLDED)
-                scale.animateTo(1f, Motion.UNFOLD)
+                scale.animateTo(1f, Motion.UNFOLD) { syncFrame() }
                 end()
             }
         }
@@ -427,16 +537,18 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
         fun fold(intoTaskbar: Boolean, end: () -> Unit) {
             Log.i(TAG, "note: fold into=${if (intoTaskbar) "taskbar" else "anchor"} animated=${Motion.enabled}")
             folding = true
+            foldIntoTaskbar = intoTaskbar
             requestLayout()
             if (intoTaskbar) {
-                val ins = rootWindowInsets
-                val bottom = ins?.getInsets(WindowInsets.Type.navigationBars() or WindowInsets.Type.tappableElement())
-                    ?.bottom ?: dpi(64f)
-                val button = PointF(width / 2f, height - bottom / 2f)
+                val d = displayBounds()
+                val bottom = displayInsets(WindowInsets.Type.navigationBars() or WindowInsets.Type.tappableElement())
+                    .bottom
+                val button = PointF(d.width() / 2f, d.height() - bottom / 2f)
                 foldTranslate.set(button.x - origin.x, button.y - origin.y)
             } else {
                 foldTranslate.set(0f, 0f)
             }
+            syncFrame()
             if (!Motion.enabled) {
                 end()
                 return
@@ -456,6 +568,7 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
             removeView(v)
             pickerView = null
             pickerAnchor = null
+            syncFrame()
         }
 
         override fun dispatchKeyEvent(event: KeyEvent): Boolean {
@@ -488,7 +601,9 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
             }
             if (ev.actionMasked == MotionEvent.ACTION_DOWN && pickerView != null) {
                 val pv = pickerView!!
-                if (ev.x < pv.left || ev.x > pv.right || ev.y < pv.top || ev.y > pv.bottom) {
+                val x = ev.x + scrollX
+                val y = ev.y + scrollY
+                if (x < pv.left || x > pv.right || y < pv.top || y > pv.bottom) {
                     closePicker()
                     return true
                 }
@@ -507,9 +622,11 @@ class NoteWindow(private val context: Context, private val surface: Callbacks) {
         /** After the first frame is committed, how long until WM has shown the surface. */
         private const val VISIBLE_SETTLE_MS = 150L
 
-        /** The platform consent dialog's footprint the note keeps clear of, generously (dp). */
-        private const val DIALOG_W = 600f
-        private const val DIALOG_H = 440f
+        /** Room around the card for its shadow, inside the window (dp). */
+        private const val FRAME_MARGIN = 32f
+
+        /** How long the window stays bigger than the card after the card last moved or shrank. */
+        private const val SHRINK_MS = 250L
     }
 }
 
