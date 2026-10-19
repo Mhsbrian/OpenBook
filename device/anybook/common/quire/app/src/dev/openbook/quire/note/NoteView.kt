@@ -48,7 +48,7 @@ import dev.openbook.quire.ui.role
 import dev.openbook.quire.ui.rounded
 
 /**
- * The note (docs/quire-design.md §3.1): header, prompt, body, suggestions, composer and footer in one card, or the
+ * The note (docs/quire-design.md §3.1): prompt, body, composer and the quiet line in one pane of glass, or the
  * mirror (§3.4) in the same card, grown. [bind] reconciles the card with a [Task]. The card is laid out at its final
  * size; [NoteRoot] reveals it with spring.settle from the old size to the new (§5.2 Settle), so content never slides.
  */
@@ -69,54 +69,45 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
         private set
     var maxHeight = Int.MAX_VALUE
 
-    // Header (§3.1): leaf · agent chip · Hide · Close.
-    private val leaf = Leaf(context, 22f)
-    private val avatar = Avatar(context, 18f, 10f)
-    private val agentName = env.text(TextRole.CHIP, p.onSurface)
-    private val agentWhere = env.text(TextRole.CHIP_REGULAR, p.onSurfaceVariant)
+    // There is no header (glass and ink, §1): the agent, what was taken in and how to leave are the quiet line, the last
+    // line of the note in every state. The leaf sits in the field.
+    private val leaf = Leaf(context, 18f)
+    private val avatar = Avatar(context, 16f, 9f)
+    private val agentName = env.text(TextRole.META_MEDIUM, p.onSurface).apply {
+        maxLines = 1
+        ellipsize = TextUtils.TruncateAt.END
+    }
     val agentChip: LinearLayout = object : LinearLayout(context), RingTarget {
         override val ring = Ring.GAP
-        override val ringRadius = context.dp(14f)
+        override val ringRadius = context.dp(12f)
     }.apply {
         orientation = LinearLayout.HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
-        setPadding(dpi(6f), 0, dpi(4f), 0)
-        background = hoverable(context, p.surfaceHigh, 14f)
+        setPadding(dpi(2f), 0, dpi(6f), 0)
+        background = hoverable(context, p.card, 12f)
         isFocusable = true
         isClickable = true
-        addView(avatar, LinearLayout.LayoutParams(dpi(18f), dpi(18f)))
+        addView(avatar, LinearLayout.LayoutParams(dpi(16f), dpi(16f)))
         addView(agentName, LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply { marginStart = dpi(6f) })
-        addView(agentWhere, LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply { marginStart = dpi(5f) })
-        addView(Icon(context, Icons.ARROW_DROP_DOWN, 18f, p.onSurfaceVariant),
-            LinearLayout.LayoutParams(dpi(18f), dpi(18f)).apply { marginStart = dpi(2f) })
         setOnClickListener { actions.openPicker(this) }
     }
-    private val hideButton = IconButton(context, p, Icons.OPEN_IN_NEW_DOWN, context.getString(R.string.q_a11y_hide))
-        .apply { setOnClickListener { actions.hide() } }
     private val closeButton = IconButton(context, p, Icons.CLOSE, context.getString(R.string.q_close)).apply {
         setOnClickListener { actions.close() }
     }
-    private val header = LinearLayout(context).apply {
-        orientation = LinearLayout.HORIZONTAL
-        gravity = Gravity.CENTER_VERTICAL
-        setPadding(dpi(16f), dpi(12f), dpi(12f), 0)
-        minimumHeight = dpi(44f)
-        addView(leaf, LinearLayout.LayoutParams(dpi(22f), dpi(22f)))
-        addView(agentChip, LinearLayout.LayoutParams(WRAP_CONTENT, dpi(28f)).apply { marginStart = dpi(8f) })
-        addView(View(context), LinearLayout.LayoutParams(0, 1, 1f))
-        addView(hideButton, LinearLayout.LayoutParams(dpi(32f), dpi(32f)).apply { marginEnd = dpi(4f) })
-        addView(closeButton, LinearLayout.LayoutParams(dpi(32f), dpi(32f)))
-    }
 
-    // Prompt (§3.1): intake chip and the person's words.
+    // What Quire took in, on the quiet line (§3.1).
     private val intakeChip = IntakeChip(env) { task?.removeIntake() }
+
+    // The prompt in ink, with the pen's rule under it (§3.1, §5.2 The words).
     private val promptText = env.text(TextRole.PROMPT, p.onSurface)
+    private val rule = InkRule(context, p.primary)
     private val prompt = LinearLayout(context).apply {
         orientation = LinearLayout.VERTICAL
-        setPadding(dpi(16f), dpi(10f), dpi(16f), dpi(4f))
-        addView(intakeChip, LinearLayout.LayoutParams(WRAP_CONTENT, dpi(28f)))
-        addView(promptText, env.lp(top = 8f).apply { bottomMargin = dpi(0f) })
+        setPadding(dpi(16f), dpi(14f), dpi(16f), dpi(2f))
+        addView(promptText, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
+        addView(rule, LinearLayout.LayoutParams(MATCH_PARENT, dpi(1.5f)).apply { topMargin = dpi(8f) })
     }
+    private var ruledPrompt: String? = null
 
     // Body (§3.1): scrolls; header and composer stay.
     private val blocksColumn = LinearLayout(context).apply {
@@ -155,8 +146,7 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
     }
     private val views = LinkedHashMap<Int, BlockView<*>>()
 
-    // Suggestions, composer, footer.
-    private val suggest = ButtonRow(context, 6f, false).apply { setPadding(dpi(16f), 0, dpi(16f), dpi(4f)) }
+    // Composer and the quiet line.
     val field: EditText = object : EditText(context) {
         override fun onKeyPreIme(keyCode: Int, event: KeyEvent): Boolean {
             if (keyCode == KeyEvent.KEYCODE_ESCAPE && event.action == KeyEvent.ACTION_UP) {
@@ -169,7 +159,7 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
         role(TextRole.FIELD, p.onSurface, env.type)
         setHintTextColor(p.onSurfaceVariant)
         background = null
-        setPadding(dpi(14f), dpi(10f), dpi(14f), dpi(10f))
+        setPadding(dpi(8f), dpi(10f), dpi(6f), dpi(10f))
         inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE or
             InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
         imeOptions = EditorInfo.IME_ACTION_SEND or EditorInfo.IME_FLAG_NO_FULLSCREEN
@@ -197,16 +187,22 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
         })
         setOnFocusChangeListener { _, _ -> fieldFrame.refreshDrawableState(); updateFieldFrame() }
     }
-    private val fieldFrame = FrameLayout(context).apply { addView(field, FrameLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)) }
+    // The field (§3.1): one pill of paper, 44 dp, radius 22, with the leaf, the words, the mic and send in it.
+    private val fieldFrame = LinearLayout(context).apply {
+        orientation = LinearLayout.HORIZONTAL
+        gravity = Gravity.CENTER_VERTICAL
+        minimumHeight = dpi(44f)
+        setPadding(dpi(12f), 0, dpi(4f), 0)
+    }
     private val mic = object : FrameLayout(context), RingTarget {
         override val ring = Ring.OFFSET
         override val ringRadius = context.dp(20f)
     }.apply {
-        addView(Icon(context, Icons.MIC, 20f, p.onSurfaceVariant), FrameLayout.LayoutParams(dpi(40f), dpi(40f)))
+        addView(Icon(context, Icons.MIC, 20f, p.onSurfaceVariant), FrameLayout.LayoutParams(dpi(36f), dpi(36f)))
         contentDescription = context.getString(R.string.q_a11y_mic)
         isFocusable = true
         isClickable = true
-        background = hoverable(context, p.surfaceHigh, 20f)
+        background = hoverable(context, p.card, 18f)
         // Hold to talk arrives with Q7 (ANAL-221); the button is in its place so focus order is final (§6.2).
         isEnabled = false
         alpha = 0.6f
@@ -216,19 +212,19 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
         override val ring = Ring.OFFSET
         override val ringRadius = context.dp(20f)
     }.apply {
-        addView(sendIcon, FrameLayout.LayoutParams(dpi(40f), dpi(40f)))
+        addView(sendIcon, FrameLayout.LayoutParams(dpi(36f), dpi(36f)))
         contentDescription = context.getString(R.string.q_a11y_send)
         isFocusable = true
         isClickable = true
         setOnClickListener { submit() }
     }
-    private val composer = LinearLayout(context).apply {
-        orientation = LinearLayout.HORIZONTAL
-        gravity = Gravity.BOTTOM
-        setPadding(dpi(12f), dpi(8f), dpi(10f), dpi(10f))
-        addView(fieldFrame, LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f))
-        addView(mic, LinearLayout.LayoutParams(dpi(40f), dpi(40f)).apply { marginStart = dpi(6f) })
-        addView(send, LinearLayout.LayoutParams(dpi(40f), dpi(40f)).apply { marginStart = dpi(6f) })
+    private val composer = FrameLayout(context).apply {
+        setPadding(dpi(10f), dpi(8f), dpi(10f), dpi(2f))
+        fieldFrame.addView(leaf, LinearLayout.LayoutParams(dpi(18f), dpi(18f)))
+        fieldFrame.addView(field, LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f))
+        fieldFrame.addView(mic, LinearLayout.LayoutParams(dpi(36f), dpi(36f)).apply { marginStart = dpi(2f) })
+        fieldFrame.addView(send, LinearLayout.LayoutParams(dpi(36f), dpi(36f)).apply { marginStart = dpi(4f) })
+        addView(fieldFrame, FrameLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
     }
     private val footText = env.text(TextRole.META, p.onSurfaceVariant).apply {
         maxLines = 1
@@ -257,15 +253,25 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
     }
     private val footKey = kbd(context, p, "Esc")
     private val footAction = env.text(TextRole.META, p.onSurfaceVariant)
+    private val dot = env.text(TextRole.META, p.onSurfaceVariant, "·")
+
+    /**
+     * The quiet line (§1, §3.1): the agent, what Quire took in, the state, how to leave, and ×. The last line of the
+     * note in every state; 12/16 in soft ink.
+     */
     private val footer = LinearLayout(context).apply {
         orientation = LinearLayout.HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
-        setPadding(dpi(16f), 0, dpi(16f), dpi(10f))
-        minimumHeight = dpi(30f)
-        addView(footText, LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f))
-        addView(footSave, LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply { marginEnd = dpi(8f) })
+        setPadding(dpi(12f), dpi(4f), dpi(8f), dpi(8f))
+        minimumHeight = dpi(36f)
+        addView(agentChip, LinearLayout.LayoutParams(WRAP_CONTENT, dpi(24f)))
+        addView(dot, LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply { marginStart = dpi(4f) })
+        addView(intakeChip, LinearLayout.LayoutParams(WRAP_CONTENT, dpi(24f)).apply { marginStart = dpi(4f) })
+        addView(footText, LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f).apply { marginStart = dpi(8f) })
+        addView(footSave, LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply { marginEnd = dpi(4f) })
         addView(footKey)
-        addView(footAction, LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply { marginStart = dpi(6f) })
+        addView(footAction, LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply { marginStart = dpi(4f) })
+        addView(closeButton, LinearLayout.LayoutParams(dpi(28f), dpi(28f)).apply { marginStart = dpi(4f) })
     }
     val mirrorPanel = MirrorPanel(env) { actions.mirrorAction(it) }
 
@@ -298,7 +304,8 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
         announcer.text = text
     }
 
-    private val sections = listOf<View>(header, prompt, listenRow, mirrorPanel, body, suggest, composer, footer)
+    // Glass and ink (§3.1): no header and no suggestions; the quiet line closes every state.
+    private val sections = listOf<View>(prompt, listenRow, mirrorPanel, body, composer, footer)
     var task: Task? = null
         private set
     private var draftShown = 0
@@ -318,6 +325,91 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
     }
     private val ringPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
     private val radius = dp(RADIUS_DP)
+
+    // Glass (§4.1): bloom, the specular line on the top edge, and the holographic rim, whose light turns while the
+    // agent works (§5.1 loop.rim) and stands at 200° otherwise.
+    private val bloomPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val specularPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeWidth = dp(1f)
+    }
+    private val rimPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeWidth = dp(1.5f)
+    }
+    private val rimMatrix = android.graphics.Matrix()
+    private var rimShader: android.graphics.SweepGradient? = null
+    private var rimCx = Float.NaN
+    private var rimCy = Float.NaN
+    private var rimAngle = RIM_REST
+    private var rimLoop: android.animation.ValueAnimator? = null
+
+    /** Turns the rim's light while the agent works; still under Remove animations and with blur off (§5.3). */
+    private fun rimTurning(on: Boolean) {
+        val run = on && Motion.enabled && p.glass && isAttachedToWindow
+        if (run == (rimLoop != null)) return
+        if (!run) {
+            rimLoop?.cancel()
+            rimLoop = null
+            rimAngle = RIM_REST
+            invalidate()
+            return
+        }
+        rimLoop = android.animation.ValueAnimator.ofFloat(0f, 360f).apply {
+            duration = RIM_TURN_MS
+            repeatCount = android.animation.ValueAnimator.INFINITE
+            interpolator = android.view.animation.LinearInterpolator()
+            val start = rimAngle
+            addUpdateListener {
+                rimAngle = (start + it.animatedValue as Float) % 360f
+                invalidate()
+            }
+            start()
+        }
+    }
+
+    private fun drawGlass(canvas: Canvas) {
+        val w = shown.width()
+        if (w <= 0f || shown.height() <= 0f) return
+        if (p.glass) {
+            bloomPaint.shader = android.graphics.RadialGradient(shown.left, shown.top, w * 0.62f, p.bloom,
+                android.graphics.Color.TRANSPARENT, android.graphics.Shader.TileMode.CLAMP)
+            canvas.drawRoundRect(shown, radius, radius, bloomPaint)
+        }
+    }
+
+    private fun drawEdges(canvas: Canvas) {
+        val inset = dp(0.75f)
+        // The pane's edge where it meets the desktop, 1 dp inside the rim.
+        canvas.drawRoundRect(shown.left + dp(2f), shown.top + dp(2f), shown.right - dp(2f), shown.bottom - dp(2f),
+            radius - dp(2f), radius - dp(2f), outlinePaint)
+        if (p.glass) {
+            // Light on the top edge, fading towards the corners.
+            val y = shown.top + dp(1.5f)
+            specularPaint.shader = android.graphics.LinearGradient(shown.left + radius, y, shown.right - radius, y,
+                intArrayOf(android.graphics.Color.TRANSPARENT, p.specular, p.specular, android.graphics.Color.TRANSPARENT),
+                floatArrayOf(0f, 0.2f, 0.8f, 1f), android.graphics.Shader.TileMode.CLAMP)
+            canvas.drawLine(shown.left + radius * 0.6f, y, shown.right - radius * 0.6f, y, specularPaint)
+        }
+        val cx = shown.centerX()
+        val cy = shown.centerY()
+        if (rimShader == null || cx != rimCx || cy != rimCy) {
+            rimCx = cx
+            rimCy = cy
+            rimShader = android.graphics.SweepGradient(cx, cy, p.rim + p.rim[0], null)
+        }
+        rimMatrix.setRotate(rimAngle, cx, cy)
+        rimShader!!.setLocalMatrix(rimMatrix)
+        rimPaint.shader = rimShader
+        canvas.drawRoundRect(shown.left + inset, shown.top + inset, shown.right - inset, shown.bottom - inset,
+            radius - inset, radius - inset, rimPaint)
+    }
+
+    override fun onDetachedFromWindow() {
+        rimLoop?.cancel()
+        rimLoop = null
+        super.onDetachedFromWindow()
+    }
 
     init {
         sections.forEach { addView(it) }
@@ -346,10 +438,11 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        // The system's background blur at the shade's radius, under the 92 % note colour (§3.1 Surface).
+        // The system's background blur at the shade's radius, under the note's colour at 80 % (§4.1); with blur off,
+        // the colour at 96 % alone (§4.5).
         surfaces.clear()
         repeat(4) {
-            val b = viewRootImpl?.createBackgroundBlurDrawable()
+            val b = if (p.glass) viewRootImpl?.createBackgroundBlurDrawable() else null
             surfaces += if (b != null) {
                 b.setColor(p.noteBackground)
                 b.setBlurRadius(dpi(BLUR_DP))
@@ -380,6 +473,7 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
         if (!mirrorShown) {
             setPiece(0, l, t, r, b, radius, radius, radius, radius)
             surfaces[0].draw(canvas)
+            drawGlass(canvas)
             return
         }
         val ht = hole.top.toInt()
@@ -416,6 +510,17 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
         if (body.visibility != GONE) {
             body.measure(exact, MeasureSpec.makeMeasureSpec((cap - fixed).coerceAtLeast(dpi(48f)), MeasureSpec.AT_MOST))
             fixed += body.measuredHeight
+        }
+        if (mirrorPanel.visibility != GONE && fixed > cap) {
+            // The mirror's pane gives up height until the note fits the display: Stop, Pause and Take over stay in
+            // view however many steps there are.
+            val over = fixed - cap
+            val before = mirrorPanel.measuredHeight
+            mirrorPanel.maxFrameHeight = (mirrorPanel.frameHeight() - over).coerceAtLeast(dpi(120f))
+            mirrorPanel.measure(exact, MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED))
+            fixed += mirrorPanel.measuredHeight - before
+        } else if (mirrorPanel.visibility == GONE) {
+            mirrorPanel.maxFrameHeight = Int.MAX_VALUE
         }
         setMeasuredDimension(w, fixed)
     }
@@ -467,9 +572,7 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
 
     override fun dispatchDraw(canvas: Canvas) {
         super.dispatchDraw(canvas)
-        val inset = outlinePaint.strokeWidth / 2
-        canvas.drawRoundRect(shown.left + inset, shown.top + inset, shown.right - inset, shown.bottom - inset,
-            radius, radius, outlinePaint)
+        drawEdges(canvas)
         drawFocusRing(canvas)
     }
 
@@ -540,14 +643,15 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
 
     private fun updateSend() {
         val enabled = task?.canSend == true && field.text.isNotBlank()
-        send.background = rounded(context, if (enabled) p.primary else p.surfaceHighest, 20f)
+        send.background = rounded(context, if (enabled) p.primary else 0, 18f)
         sendIcon.setTextColor(if (enabled) p.onPrimary else p.onSurfaceVariant)
         send.isEnabled = enabled
     }
 
     private fun updateFieldFrame() {
         val focused = field.hasFocus()
-        fieldFrame.background = rounded(context, p.field, 20f, if (focused) p.primary else 0, if (focused) 2f else 0f)
+        fieldFrame.background = rounded(context, p.field, 22f, if (focused) p.primary else p.cardOutline,
+            if (focused) 2f else 1f)
     }
 
     private fun updateJump() {
@@ -592,27 +696,36 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
         if (agent != null) {
             avatar.set(agent.initials, agent.color)
             agentName.text = agent.name
-            agentWhere.text = "· " + if (t.phase == Task.Phase.NO_AGENT) context.getString(R.string.q_not_connected)
-                else agent.where
         } else {
             avatar.set("?", p.outline)
             agentName.text = context.getString(R.string.q_no_agent)
-            agentWhere.text = "· " + context.getString(R.string.q_not_connected)
         }
         agentChip.contentDescription = context.getString(R.string.q_a11y_agent, agentName.text, agent?.where ?: "")
         agentChip.isEnabled = !t.running
-        hideButton.visibility = if (t.running) VISIBLE else GONE
         closeButton.contentDescription = context.getString(if (t.running) R.string.q_a11y_hide else R.string.q_close)
         closeButton.tooltipText = context.getString(if (t.running) R.string.q_tip_hide else R.string.q_tip_close)
-        hideButton.tooltipText = context.getString(R.string.q_tip_hide)
 
-        // Prompt.
+        // The quiet line's intake.
         intakeChip.bind(t.intake, removable = t.prompt == null)
         intakeChip.visibility = if (t.intake != null) VISIBLE else GONE
+        dot.visibility = intakeChip.visibility
+
+        // The prompt in ink, then the rule drawn under it (§5.2 The words).
         promptText.text = t.prompt
-        promptText.visibility = if (t.prompt != null) VISIBLE else GONE
-        prompt.visibility = if (t.intake != null || t.prompt != null) VISIBLE else GONE
-        (promptText.layoutParams as LinearLayout.LayoutParams).topMargin = if (t.intake != null) dpi(8f) else 0
+        prompt.visibility = if (t.prompt != null) VISIBLE else GONE
+        if (t.prompt != null && t.prompt != ruledPrompt) {
+            val fresh = !newTask
+            ruledPrompt = t.prompt
+            if (fresh && Motion.enabled) {
+                promptText.alpha = 0f
+                promptText.translationY = dp(2f)
+                promptText.animate().alpha(1f).translationY(0f).setDuration(INK_MS).setInterpolator(Motion.STANDARD)
+                    .start()
+                rule.draw(animated = true)
+            } else {
+                rule.draw(animated = false)
+            }
+        }
 
         // Listening.
         val l = t.listening
@@ -639,14 +752,6 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
             body.visibility = if (t.blocks.isEmpty() || l != null) GONE else VISIBLE
         }
 
-        // Suggestions.
-        val s = t.suggestions
-        suggest.removeAllViews()
-        s.forEach { (glyph, label) ->
-            suggest.addView(SuggestionChip(env, glyph, label) { actions.send(label) })
-        }
-        suggest.visibility = if (s.isEmpty() || l != null) GONE else VISIBLE
-
         // Composer.
         composer.visibility = if (t.composerVisible) VISIBLE else GONE
         field.hint = t.placeholder
@@ -659,8 +764,9 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
         field.tooltipText = null
         updateSend()
 
-        // Footer.
+        // The quiet line: in every state but the mirror, which has its own controls.
         footer.visibility = if (mirror != null) GONE else VISIBLE
+        rimTurning(t.running && t.phase != Task.Phase.WAITING || t.needsAnswer)
         tick()
         requestLayout()
         invalidate()
@@ -721,7 +827,8 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
                 if (field.hasFocus() && field.text.isNotEmpty()) return
                 val card = views.values.firstOrNull { it is ConsentView }?.view ?: return
                 card.post {
-                    card.requestFocus()
+                    // A destructive question focuses the safe choice (§3.3 rule 2); Enter does nothing until then.
+                    card.findViewWithTag<View>(ConsentView.KEEP)?.requestFocus() ?: card.requestFocus()
                     scroll.requestChildRectangleOnScreen(card, android.graphics.Rect(0, 0, card.width, card.height),
                         false)
                 }
@@ -749,6 +856,9 @@ class NoteCard(context: Context, val env: NoteEnv, private val actions: Actions)
     }
 
     companion object {
+        private const val RIM_REST = 200f
+        private const val RIM_TURN_MS = 12_000L
+        private const val INK_MS = 160L
         const val WIDTH = 400
         const val WIDE_WIDTH = 480
         const val MIRROR_WIDTH = 760
@@ -915,5 +1025,169 @@ class LevelBars(context: Context, color: Int) : View(context) {
             val x = i * (w + gap)
             canvas.drawRoundRect(x, (height - h) / 2f, x + w, (height + h) / 2f, w / 2f, w / 2f, paint)
         }
+    }
+}
+
+/**
+ * The pen's rule under the sent prompt (§3.1, §4.3 ink.rule): 1.5 dp of `primary` at 55 %, fading to transparent at
+ * the right, drawn left to right over 240 ms after a 120 ms delay (§5.1 duration.rule).
+ */
+class InkRule(context: Context, private val color: Int) : View(context) {
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private var progress = 0f
+    private var anim: android.animation.ValueAnimator? = null
+
+    fun draw(animated: Boolean) {
+        anim?.cancel()
+        if (!animated || !Motion.enabled) {
+            progress = 1f
+            invalidate()
+            return
+        }
+        progress = 0f
+        anim = android.animation.ValueAnimator.ofFloat(0f, 1f).apply {
+            startDelay = 120L
+            duration = 240L
+            interpolator = android.view.animation.PathInterpolator(0.05f, 0.7f, 0.1f, 1f)
+            addUpdateListener {
+                progress = it.animatedValue as Float
+                invalidate()
+            }
+            start()
+        }
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        if (width == 0 || progress <= 0f) return
+        val w = width * progress
+        paint.shader = android.graphics.LinearGradient(0f, 0f, width.toFloat(), 0f,
+            Palette.withAlpha(color, 0.55f), android.graphics.Color.TRANSPARENT, android.graphics.Shader.TileMode.CLAMP)
+        canvas.drawRect(0f, 0f, w, height.toFloat(), paint)
+    }
+}
+
+/**
+ * The pen's mark on a step (§3.2 Tool steps, §5.2 The marks): the ink dot while it runs, pulsing; a tick drawn as a
+ * stroke in `success` when it is done; a cross in `error` when it failed or was interrupted; a small hollow dot while
+ * it waits.
+ */
+class StepMark(context: Context, private val palette: Palette) : View(context) {
+    enum class Kind { PENDING, RUNNING, DONE, FAILED }
+
+    private val fill = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val stroke = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeCap = Paint.Cap.ROUND
+        strokeJoin = Paint.Join.ROUND
+    }
+    private val path = android.graphics.Path()
+    private val part = android.graphics.Path()
+    private val measure = android.graphics.PathMeasure()
+    private var kind = Kind.PENDING
+    private var drawn = 1f
+    private var pulse = 0f
+    private var anim: android.animation.ValueAnimator? = null
+
+    fun set(k: Kind, animate: Boolean) {
+        if (k == kind && anim != null) return
+        val was = kind
+        kind = k
+        anim?.cancel()
+        anim = null
+        drawn = 1f
+        pulse = 0f
+        when {
+            k == Kind.RUNNING && Motion.enabled && palette.glass -> anim = android.animation.ValueAnimator.ofFloat(0f, 1f)
+                .apply {
+                    duration = 900L
+                    repeatCount = android.animation.ValueAnimator.INFINITE
+                    repeatMode = android.animation.ValueAnimator.REVERSE
+                    interpolator = android.view.animation.AccelerateDecelerateInterpolator()
+                    addUpdateListener {
+                        pulse = it.animatedValue as Float
+                        invalidate()
+                    }
+                    start()
+                }
+            (k == Kind.DONE || k == Kind.FAILED) && animate && was != k && Motion.enabled -> {
+                drawn = 0f
+                anim = android.animation.ValueAnimator.ofFloat(0f, 1f).apply {
+                    duration = 180L
+                    interpolator = android.view.animation.PathInterpolator(0.05f, 0.7f, 0.1f, 1f)
+                    addUpdateListener {
+                        drawn = it.animatedValue as Float
+                        invalidate()
+                    }
+                    start()
+                }
+            }
+        }
+        invalidate()
+    }
+
+    override fun onDetachedFromWindow() {
+        anim?.cancel()
+        super.onDetachedFromWindow()
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        val s = minOf(width, height).toFloat()
+        val cx = width / 2f
+        val cy = height / 2f
+        val d = resources.displayMetrics.density
+        when (kind) {
+            Kind.PENDING -> {
+                stroke.color = palette.onSurfaceVariant
+                stroke.strokeWidth = 1.5f * d
+                canvas.drawCircle(cx, cy, 3.5f * d, stroke)
+            }
+            Kind.RUNNING -> {
+                // A still dot with a 3 dp halo when loops are off (§5.1 loop.inkdot).
+                val still = anim == null
+                fill.color = Palette.withAlpha(palette.primary, if (still) 0.3f else 0.18f * (1f - pulse))
+                canvas.drawCircle(cx, cy, (if (still) 7f else 4f + 3.5f * pulse) * d, fill)
+                fill.color = Palette.withAlpha(palette.primary, 0.9f - 0.35f * pulse)
+                canvas.drawCircle(cx, cy, 4f * d * (1f + 0.35f * pulse), fill)
+            }
+            Kind.DONE, Kind.FAILED -> {
+                stroke.color = if (kind == Kind.DONE) palette.success else palette.error
+                stroke.strokeWidth = 2f * d
+                path.reset()
+                if (kind == Kind.DONE) {
+                    path.moveTo(cx - s * 0.28f, cy + s * 0.02f)
+                    path.lineTo(cx - s * 0.08f, cy + s * 0.22f)
+                    path.lineTo(cx + s * 0.30f, cy - s * 0.20f)
+                } else {
+                    path.moveTo(cx - s * 0.22f, cy - s * 0.22f)
+                    path.lineTo(cx + s * 0.22f, cy + s * 0.22f)
+                    path.moveTo(cx + s * 0.22f, cy - s * 0.22f)
+                    path.lineTo(cx - s * 0.22f, cy + s * 0.22f)
+                }
+                if (drawn >= 1f) {
+                    canvas.drawPath(path, stroke)
+                } else {
+                    // Drawn as a stroke from its start to its end (§5.2).
+                    measure.setPath(path, false)
+                    var left = drawn * run { var t = 0f; do { t += measure.length } while (measure.nextContour()); t }
+                    measure.setPath(path, false)
+                    do {
+                        val len = measure.length
+                        part.reset()
+                        measure.getSegment(0f, minOf(len, left), part, true)
+                        canvas.drawPath(part, stroke)
+                        left -= len
+                    } while (left > 0f && measure.nextContour())
+                }
+            }
+        }
+    }
+}
+
+/** Ink arriving (§5.1 duration.ink): a span whose alpha rises from 0 to 1 while the new words settle. */
+class InkSpan : android.text.style.CharacterStyle(), android.text.style.UpdateAppearance {
+    var alpha = 0f
+
+    override fun updateDrawState(tp: android.text.TextPaint) {
+        tp.color = Palette.withAlpha(tp.color, android.graphics.Color.alpha(tp.color) / 255f * alpha)
     }
 }

@@ -79,6 +79,11 @@
         <item quantity="other">%1$d steps</item>
     </plurals>
     <string name="q_steps_done">%1$d done</string>
+    <!-- A long run: the earlier steps counted on one line, which opens them (ANAL-220). -->
+    <plurals name="q_steps_earlier">
+        <item quantity="one">%1$d earlier step · %2$d done · show</item>
+        <item quantity="other">%1$d earlier steps · %2$d done · show</item>
+    </plurals>
     <string name="q_a11y_steps">Steps, %1$d of %2$d done.</string>
     <string name="q_a11y_steps_folded">%1$d steps. Show them.</string>
     <string name="q_plan">Plan</string>
@@ -198,6 +203,13 @@
     <string name="q_broker_allow">Allow</string>
     <string name="q_changed_title">Changed %1$d settings</string>
     <string name="q_changed_meta">just now</string>
+    <!-- Q6: the broker's list of settings it changed in a task, each with an undo. -->
+    <plurals name="q_changed">
+        <item quantity="one">Changed %1$d setting</item>
+        <item quantity="other">Changed %1$d settings</item>
+    </plurals>
+    <string name="q_undone_where">%1$s · undone</string>
+    <string name="q_undo_failed">Couldn’t undo %1$s.</string>
     <string name="q_undo_all">Undo all</string>
     <string name="q_foot_undo">Done · undo stays available for 24 h from the Quire button</string>
 
@@ -217,6 +229,7 @@
     <string name="q_cc_status">Step %1$d of %2$d · %3$d s</string>
     <string name="q_cc_paused_status">Paused by you · %1$d s</string>
     <string name="q_cc_protected">%1$s is showing a protected screen</string>
+    <string name="q_cc_prompt">Waiting for you: %1$s is asking on your screen</string>
     <string name="q_cc_handed_over">%1$s is on your screen now.</string>
     <string name="q_cc_done">Done in %1$s.</string>
     <string name="q_cc_done_sub">In %1$s · %2$d taps · %3$d s</string>

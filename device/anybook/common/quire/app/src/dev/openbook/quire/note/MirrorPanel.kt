@@ -67,10 +67,20 @@ class MirrorPanel(private val env: NoteEnv, private val onAction: (Action) -> Un
         isClickable = false
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
     }
+    /** The tallest the mirror pane may be, so the whole note fits on the display (set by the note while measuring). */
+    var maxFrameHeight = Int.MAX_VALUE
+
+    fun frameHeight() = frame.measuredHeight
+
     private val frame = object : FrameLayout(context) {
         override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-            val w = MeasureSpec.getSize(widthMeasureSpec)
-            val h = w * 10 / 16
+            // 16:10, narrower when the display is too short for the full width (the pane stays centred).
+            var w = MeasureSpec.getSize(widthMeasureSpec)
+            var h = w * 10 / 16
+            if (h > maxFrameHeight) {
+                h = maxFrameHeight.coerceAtLeast(dpi(120f))
+                w = h * 16 / 10
+            }
             super.onMeasure(MeasureSpec.makeMeasureSpec(w, MeasureSpec.EXACTLY),
                 MeasureSpec.makeMeasureSpec(h, MeasureSpec.EXACTLY))
         }
@@ -83,7 +93,9 @@ class MirrorPanel(private val env: NoteEnv, private val onAction: (Action) -> Un
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
         accessibilityLiveRegion = ACCESSIBILITY_LIVE_REGION_POLITE
     }
-    private val steps = StepsView(env)
+    // The mirror keeps its latest three steps in view under the count of the earlier ones, so Stop, Pause and Take over
+    // always stay on screen.
+    private val steps = StepsView(env, window = 3)
     private val status = env.text(TextRole.CHIP_REGULAR, p.onSurfaceVariant).apply {
         maxLines = 1
         ellipsize = TextUtils.TruncateAt.END
@@ -96,10 +108,10 @@ class MirrorPanel(private val env: NoteEnv, private val onAction: (Action) -> Un
         name to android.graphics.Rect(loc[0], loc[1], loc[0] + v.width, loc[1] + v.height)
     }
 
-    private val stop = QButton(context, p, context.getString(R.string.q_stop), QButton.Style.DANGER).apply {
+    private val stop = QButton(context, p, context.getString(R.string.q_stop), QButton.Style.DESTRUCTIVE).apply {
         setOnClickListener { onAction(Action.STOP) }
     }
-    private val pause = QButton(context, p, context.getString(R.string.q_pause), QButton.Style.TONAL, Icons.PAUSE)
+    private val pause = QButton(context, p, context.getString(R.string.q_pause), QButton.Style.PAPER, Icons.PAUSE)
     private val takeOver = QButton(context, p, context.getString(R.string.q_take_over), QButton.Style.FILLED,
         Icons.OPEN_IN_FULL).apply { setOnClickListener { onAction(Action.TAKE_OVER) } }
     private var task: Task? = null
@@ -118,6 +130,7 @@ class MirrorPanel(private val env: NoteEnv, private val onAction: (Action) -> Un
         addView(frame, LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
             marginStart = dpi(12f)
             marginEnd = dpi(12f)
+            gravity = Gravity.CENTER_HORIZONTAL
         })
         addView(steps.view, LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
             setMargins(dpi(16f), dpi(8f), dpi(16f), 0)

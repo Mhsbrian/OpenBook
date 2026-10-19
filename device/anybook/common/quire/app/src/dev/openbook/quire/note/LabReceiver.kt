@@ -34,6 +34,10 @@ import org.json.JSONArray
  * (final, partial) · LISTEN_RELEASE · BROKER (title, meta, rows: JSON [[name, where, old, new], ...], why, prompt,
  * steps: JSON [[title, kind], ...]) · PALETTE · DUMP
  *
+ * Q6 (ANAL-220): TOOL (name, args JSON) calls one of Quire's OS tools through the broker, for the shown task, as an
+ * agent's call would arrive; the result is logged as "lab: tool NAME -> ...". TOOLS logs the tool list and the skill's
+ * size. CONSENT (option allow|deny) answers the shown task's consent card.
+ *
  * INVOKE (px, py, bounds "l,t,r,b", source, age ms, visible "a,b", secure, w, h): a made-up contextual search call, as
  * if from SystemUI, through the same code as a real one (invocation/Calls), with a generated screenshot whose pixels
  * encode their own position (red = x, green = y, scaled to 255), so a check can tell from the image an agent received
@@ -114,6 +118,24 @@ class LabReceiver : BroadcastReceiver() {
                     }, intent.getStringExtra("why") ?: "", intent.getStringExtra("prompt"),
                     (0 until steps.length()).map { steps.getJSONArray(it).let { s -> s.getString(0) to s.getString(1) } })
             }
+            "TOOL" -> {
+                val task = surface.window.task
+                if (task == null) {
+                    Log.w(TAG, "lab: no task shown for TOOL")
+                    return
+                }
+                val name = intent.getStringExtra("name") ?: return
+                val args = runCatching { org.json.JSONObject(intent.getStringExtra("args") ?: "{}") }
+                    .getOrDefault(org.json.JSONObject())
+                task.labTool(name, args)
+            }
+            "TOOLS" -> {
+                val list = dev.openbook.quire.tools.Broker.list()
+                Log.i(TAG, "lab: tools ${list.getJSONArray("tools").length()} " +
+                    "skill=${dev.openbook.quire.tools.Skill.markdown(dev.openbook.quire.tools.Broker.TOOLS).length} chars " +
+                    "instructions=${list.getString("instructions").length} chars")
+            }
+            "CONSENT" -> surface.window.task?.labConsent(intent.getStringExtra("option") ?: "deny")
             "DUMP" -> {
                 surface.tasks.forEach {
                     Log.i(TAG, "lab: task ${it.id} phase=${it.phase} running=${it.running} hidden=${it.hidden} " +

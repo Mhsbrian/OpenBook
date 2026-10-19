@@ -14,6 +14,7 @@ import android.view.Display
 import com.android.internal.app.AssistUtils
 import dev.openbook.quire.Quire
 import dev.openbook.quire.Quire.TAG
+import dev.openbook.quire.tools.ScreenReader
 
 /**
  * The assistant session, started by Meta+Space, the assist key or the Copilot key. It shows nothing itself: it hands the
@@ -21,13 +22,38 @@ import dev.openbook.quire.Quire.TAG
  * secure windows out and the visible packages, at Quire's ContextualSearchActivity.
  */
 class QuireSession(context: Context) : VoiceInteractionSession(context) {
+    companion object {
+        private const val READ_MS = 8000L
+    }
+
     override fun onCreate() {
         super.onCreate()
         setUiEnabled(false)
     }
 
+    /** Shown by an agent's read_screen or take_screenshot: no call, no contextual search, only the assist data. */
+    private var reading = false
+    private var structures = 0
+
     override fun onShow(args: Bundle?, showFlags: Int) {
         super.onShow(args, showFlags)
+        if (args?.getBoolean(ScreenReader.EXTRA_READ, false) == true) {
+            reading = true
+            Log.i(TAG, "assistant: session shown for a screen read showFlags=0x${Integer.toHexString(showFlags)}")
+            // The platform lists the activities whose structures follow only when it gives them (the person's
+            // "Use text from screen", no policy or private profile against it): without the list, none will come.
+            val coming = args.getParcelableArrayList(KEY_FOREGROUND_ACTIVITIES, android.content.ComponentName::class.java)
+            Log.i(TAG, "assistant: screen read expects ${coming?.size ?: "?"} structure(s); args=${args.keySet()}")
+            // Without the list the platform withheld the screen (an assistant that started its own session while not
+            // on screen, or the person's setting): say so at once, so the reader can hold the note on screen and ask
+            // again, rather than wait.
+            if (coming == null) ScreenReader.onWithheld()
+            else if (coming.isEmpty()) ScreenReader.onNoAssist()
+            // The platform hands everything over within a few seconds, or never; the reader stops waiting by itself.
+            ScreenReader.whenDone { handler.post { if (reading) finish() } }
+            handler.postDelayed({ if (reading) finish() }, READ_MS)
+            return
+        }
         val trigger = triggerOf(args)
         val requestedDisplay = args?.getInt(Intent.EXTRA_ASSIST_DISPLAY_ID, Display.INVALID_DISPLAY)
             ?: Display.INVALID_DISPLAY
@@ -73,6 +99,26 @@ class QuireSession(context: Context) : VoiceInteractionSession(context) {
         }
         finish()
     }
+
+    override fun onHandleAssist(state: AssistState) {
+        if (!reading) return
+        structures++
+        Log.i(TAG, "assistant: assist ${state.index + 1}/${state.count} structure=${state.assistStructure != null} " +
+            "app=${state.assistStructure?.activityComponent?.packageName}")
+        ScreenReader.onAssist(state)
+    }
+
+    override fun onHandleScreenshot(screenshot: android.graphics.Bitmap?) {
+        if (reading) ScreenReader.onScreenshot(screenshot)
+    }
+
+    override fun onHide() {
+        super.onHide()
+        if (reading) Log.i(TAG, "assistant: screen read session hidden after $structures structure(s)")
+        reading = false
+    }
+
+    private val handler = android.os.Handler(android.os.Looper.getMainLooper())
 
     private fun triggerOf(args: Bundle?): String {
         val type = args?.getInt(AssistUtils.INVOCATION_TYPE_KEY, AssistUtils.INVOCATION_TYPE_UNKNOWN)

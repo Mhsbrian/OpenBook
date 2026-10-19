@@ -25,6 +25,17 @@ class QuireSurface(private val app: QuireApplication) : Task.Host, NoteWindow.Ca
         get() = app
     override val handler = Handler(Looper.getMainLooper())
     override val agents = AgentDirectory(app, app.mainExecutor)
+
+    /** Q6: Quire's OS tools, for the agents' calls (tools/Broker.kt). */
+    override val broker = dev.openbook.quire.tools.Broker(app)
+    private val controls = java.util.WeakHashMap<Task, TaskControl>()
+
+    override fun platformDialog(task: Task, up: Boolean) {
+        if (window.task === task) window.platformDialog = up
+    }
+
+    override fun controlFor(task: Task): dev.openbook.quire.tools.AgentControl =
+        synchronized(controls) { controls.getOrPut(task) { TaskControl(task, this) } }
     val window = NoteWindow(app, this)
     val tray = TrayWindow(app, this)
 
@@ -277,6 +288,8 @@ class QuireSurface(private val app: QuireApplication) : Task.Host, NoteWindow.Ca
     override fun changed(task: Task, focus: Task.Focus) {
         if (window.task === task) {
             window.update(task, focus)
+            // A consent card makes the note a system overlay until it is answered (NoteWindow.systemFor).
+            window.sessionChanged(focus)
             startTicker()
         }
         if (task.hidden && !task.running && !task.needsAnswer) {

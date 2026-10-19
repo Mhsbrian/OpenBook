@@ -22,6 +22,10 @@
          driven app hides overlays; see note/NoteWindow.kt. -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.SYSTEM_APPLICATION_OVERLAY" />
+    <!-- ANAL-220: the note's window is a trusted overlay (signature): it covers the display without blocking the clicks
+         that pass through it beside the card, so it never has to move or resize, which made the note jump. It still
+         hides like any ordinary overlay when a window asks the system to hide overlays. -->
+    <uses-permission android:name="android.permission.INTERNAL_SYSTEM_WINDOW" />
     <!-- Agents are reached over sockets: loopback on debuggable builds today (note/LabReceiver.kt), vsock and paired
          computers later (Q4). -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -34,6 +38,43 @@
          on. Both signature|privileged; privapp-permissions lists them. -->
     <uses-permission android:name="android.permission.CHANGE_DEVICE_IDLE_TEMP_WHITELIST" />
     <uses-permission android:name="android.permission.CHANGE_COMPONENT_ENABLED_STATE" />
+
+    <!-- Q6 (ANAL-220): Quire's OS tools (tools/), which agents call and Quire core decides (docs/quire.md §4.2, §5.3).
+         Signature or privileged; the platform certificate grants them, privapp-permissions lists the privileged ones.
+         Apps and windows: start apps and pages from the background, see, focus, move, resize and close the person's
+         windows. -->
+    <uses-permission android:name="android.permission.START_ACTIVITIES_FROM_BACKGROUND" />
+    <uses-permission android:name="android.permission.REAL_GET_TASKS" />
+    <uses-permission android:name="android.permission.REORDER_TASKS" />
+    <uses-permission android:name="android.permission.MANAGE_ACTIVITY_TASKS" />
+    <uses-permission android:name="android.permission.REMOVE_TASKS" />
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+    <!-- Settings the person can change, through each one's own API (tools/SettingsTools.kt), with an undo log. -->
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
+    <uses-permission android:name="android.permission.MODIFY_DAY_NIGHT_MODE" />
+    <uses-permission android:name="android.permission.POWER_SAVER" />
+    <uses-permission android:name="android.permission.DEVICE_POWER" />
+    <uses-permission android:name="android.permission.CONTROL_DISPLAY_BRIGHTNESS" />
+    <uses-permission android:name="android.permission.CONTROL_DISPLAY_COLOR_TRANSFORMS" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.BLUETOOTH_PRIVILEGED" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.NETWORK_SETTINGS" />
+    <uses-permission android:name="android.permission.NETWORK_AIRPLANE_MODE" />
+    <!-- The person's files in shared storage; MediaProvider keeps every app's Android/data and Android/obb out, and
+         the tools refuse all of Android/ (tools/FileTools.kt). Files opens a document Quire grants it. -->
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.MANAGE_DOCUMENTS" />
+    <!-- The clipboard, read only when an agent's clipboard_read asks; the platform shows its "pasted" notice. -->
+    <uses-permission android:name="android.permission.READ_CLIPBOARD_IN_BACKGROUND" />
+    <!-- Notifications through Quire's own listener (granted by the framework overlay's default), and what plays. -->
+    <uses-permission android:name="android.permission.MANAGE_NOTIFICATION_LISTENERS" />
+    <uses-permission android:name="android.permission.MEDIA_CONTENT_CONTROL" />
+    <!-- read_screen: the assist structure, which the platform gives the assistant only with this (normal). -->
+    <uses-permission android:name="android.permission.READ_ASSIST_STRUCTURE_SCREEN_CONTENT" />
 
     <!-- Names of the apps a session automates, for its notification and status. The Terminal app, to know whether
          the Linux environment is there and on. -->
@@ -158,6 +199,26 @@
             android:name=".assist.QuireSessionService"
             android:exported="true"
             android:permission="android.permission.BIND_VOICE_INTERACTION" />
+
+        <!-- Q6: read_screen and take_screenshot ask the person with the platform's own dialog whether Quire may read the
+             screen (tools/ScreenConsentActivity.kt). Inert and transparent; not exported. -->
+        <activity
+            android:name=".tools.ScreenConsentActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:taskAffinity="dev.openbook.quire.consent.screen"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <!-- Q6: the notifications_list and notification_dismiss tools (tools/SystemTools.kt). -->
+        <service
+            android:name=".tools.QuireNotificationListener"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
 
         <!-- Required by the assistant role; speech arrives with Q7 (ANAL-221). -->
         <service

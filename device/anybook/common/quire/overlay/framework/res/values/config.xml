@@ -13,4 +13,8 @@
     <!-- The app ContextualSearchManagerService starts with ACTION_LAUNCH_CONTEXTUAL_SEARCH, a screenshot and the
          visible packages: the pointer shake, Meta+A and Meta+G, through Launcher3. -->
     <string name="config_defaultContextualSearchPackageName" translatable="false">dev.openbook.quire</string>
+    <!-- Q6 (ANAL-220): Quire's notification listener has access by default, for the notifications_list and
+         notification_dismiss tools. It shows in Settings › Notifications › Device & app notifications, where the person
+         can turn it off. -->
+    <string name="config_defaultListenerAccessPackages" translatable="false">dev.openbook.quire</string>
 </resources>
