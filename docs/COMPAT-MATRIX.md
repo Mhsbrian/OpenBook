@@ -23,6 +23,13 @@
 | 2026-10-18 | Our build: `openbook-live-anal210-g1a` (G14 product) with the microG add-on on the stick (ANAL-210) | QEMU 11.1.2, KVM, q35 + OVMF from USB, SELinux enforcing | **The add-on works in the VM:** installed 7 s after boot on the live stick and on an installed disk's first start, self-check 18/18; the wizard offers it off by default; without it, the same 140 packages as `main`'s image. One denial per boot from `stdio_to_kmsg`, removed (rerun pending). G14 untested | `evidence/2026-10-17-microg/qemu-g1a/` |
 | 2026-10-19 | `20261019.quire9` (installed, PR #115's tree with PR #80) + microG 0.3.17.252432, installed over wireless adb by the image's `openbook-addons` (ANAL-210) | **ASUS GA403WR (G14), bare metal**, SELinux enforcing | **Installed and spoofing works on the laptop:** 3 packages, 11 grants, app-op and battery exemption; GmsCore and Companion report Google's certificate to apps; no denial. Self-check screen, push and network location not yet checked there | `evidence/2026-10-19-microg-g14/` |
 
+## Google Photos on the installed G14 (2026-10-19, ANAL-210)
+
+| App / test | Result | Evidence |
+|---|---|---|
+| Google Photos 7.96.0.996044120, x86_64, microG 0.3.17.252432, `quire9` | Owner reports sign-in and photos shown, then UI restarts on opening. Three SurfaceFlinger SIGABRTs confirm 384×640 YV12 import failure. | `evidence/2026-10-19-photos-yv12/surfaceflinger-crashes.txt` |
+| Synthetic RGB/YV12/YUV420 frames with Mesa patch 0005, Radeon 890M | 15/15 imports and colour readbacks pass. Driver isolated to test process; desktop stays running. Full Photos app retest pending. | `evidence/2026-10-19-photos-yv12/` |
+
 ## Audio, Wi-Fi and Bluetooth on the G14
 
 The owner's two sessions of 2026-10-17 on the **ASUS GA403WR** (Ryzen AI 9 HX 370), live USB, ANAL-179. Session 1 was stick `anal178c` (`main`); session 2 was `anal176s` (`main` + PR #52 as of then). Each had a default boot (SELinux enforcing), then a "save logs" boot (permissive, `openbook-hwtest`). Details: `docs/g14-audio-net.md` §10.

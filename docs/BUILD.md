@@ -349,3 +349,21 @@ scripts/ui/doc-fonts-metrics.py --fonttools ~/anybook/aosp/src/external/fonttool
 ```
 - `aosp-build.sh` applies the `frameworks/base` patch (legacy `fonts.xml` only; the framework reads `font_fallback.xml`).
 - Details: `docs/googlebook-ui.md` §2.1.1; evidence `evidence/2026-10-17-doc-fonts/`.
+
+## Headless video-buffer regression check (ANAL-210)
+
+`scripts/graphics/ahb-import-check.c` tests RGB, YV12 and flexible YUV420 imports
+through the installed EGL driver, including colour readback. It opens no window
+and does not launch Photos. Build with the NDK (API 37):
+
+```sh
+x86_64-linux-android37-clang -O2 -Wall -Wextra -Werror \
+  scripts/graphics/ahb-import-check.c -landroid -lEGL -lGLESv2 -o ahb-import-check
+adb -s <device> push ahb-import-check /data/local/tmp/
+adb -s <device> shell /data/local/tmp/ahb-import-check 384 640
+```
+
+Exit 0 means all three imports and pixel comparisons passed; 1 means a failed
+case; 2 means setup/argument failure. Optional dimensions must be even, 4–4096.
+Mesa patch 0005 is applied by `mesa-android-build.sh fetch`; rebuild and stage
+Mesa before building the OS image. Evidence: `evidence/2026-10-19-photos-yv12/`.

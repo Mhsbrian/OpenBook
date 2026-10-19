@@ -83,3 +83,13 @@ It writes `anybook-hw-<board>-<date>.tar.gz`, with serials, UUIDs and MAC addres
 | Platform | asus-wmi, asus-armoury, hid-asus | — | asus-wmi/hid-asus built (ANAL-171). 6.18 asus-wmi has `dgpu_disable` and `gpu_mux_mode`; asus-armoury (6.19) not needed for bring-up |
 | IOMMU | amd_iommu | — | `AMD_IOMMU=y` in OpenBook GKI; starts with interrupt remapping on QEMU's emulated AMD-Vi (ANAL-171) |
 | Boot | UEFI, GPT; EFI loader with bootconfig | AVB orange | systemd-boot, GRUB and GBL boot our kernel and userspace from a USB GPT image in QEMU/OVMF. **On the G14:** systemd-boot boots our kernel from USB with Secure Boot off, and Android's first and second stage ran from the stick (ANAL-189 hardware check) |
+
+## G14 YV12 video import (2026-10-19, ANAL-210)
+
+The Radeon 890M on `20261019.quire9` reproducibly rejects YV12 EGLImage imports.
+Photos triggered three SurfaceFlinger aborts with 384×640 YV12 frames. Mesa
+patch 0005 supplies the missing RADV format mapping; on this G14, an isolated
+headless process passes import and colour readback for RGB, YV12 and flexible
+YUV420 at five sizes (15/15), without restarting the desktop. This is a driver
+format defect, not evidence of failing hardware. System deployment and the
+Photos app check are tracked in `evidence/2026-10-19-photos-yv12/SUMMARY.md`.
