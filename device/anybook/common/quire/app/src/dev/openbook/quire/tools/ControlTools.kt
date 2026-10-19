@@ -116,7 +116,7 @@ object ControlTools {
                 val why = if (destructive != null) "“${t.label.take(80)}” may change something that can't be undone."
                     else "This page of ${control.app} (“$page”) protects the laptop or your accounts."
                 if (!note.confirm(Ask("Tap “${t.label.take(60)}” in ${control.app}?", why = why +
-                        " Quire can't undo it."))) {
+                        " Quire can't undo it.", verb = "Tap it", keep = "Don't tap"))) {
                     return ToolResult.error(Broker.DENIED)
                 }
             }
@@ -137,7 +137,7 @@ object ControlTools {
             val page = sensitivePage(control)
             val submit = args.optBoolean("submit")
             if (page != null && !note.confirm(Ask("Type in ${control.app}?", why = "This page (“$page”) protects the " +
-                    "laptop or your accounts."))) {
+                    "laptop or your accounts.", verb = "Type it", keep = "Don't type"))) {
                 return ToolResult.error(Broker.DENIED)
             }
             control.type(args.optString("text"), args.optBoolean("replace"), submit, "Typing “${args.optString("text")

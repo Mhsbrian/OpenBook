@@ -107,11 +107,27 @@ open class CardLayout(context: Context, palette: Palette, stroke: Int = palette.
     override val ring = Ring.EDGE
     override val ringRadius = context.dp(16f)
 
+    private val line = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+        strokeWidth = context.dp(1f)
+        color = palette.paperLine
+    }
+    private val lit = palette.glass
+
     init {
         orientation = VERTICAL
         background = rounded(context, palette.card, 16f, stroke, strokeDp)
         setPadding(context.dpi(14f), context.dpi(12f), context.dpi(14f), context.dpi(12f))
         clipToOutline = false
+        setWillNotDraw(false)
+    }
+
+    /** Paper's lit top edge (§4.2 paper.line), between the corners. */
+    override fun onDraw(canvas: android.graphics.Canvas) {
+        super.onDraw(canvas)
+        if (!lit || width == 0) return
+        val r = context.dp(16f)
+        val y = context.dp(1.5f)
+        canvas.drawLine(r, y, width - r, y, line)
     }
 }
 
@@ -220,6 +236,11 @@ private class ThinkingView(env: NoteEnv) : BlockView<Block.Thinking>(env) {
  */
 class AnswerView(env: NoteEnv) : BlockView<Block.Answer>(env) {
     override val view = LinearLayout(env.context).apply { orientation = LinearLayout.VERTICAL }
+
+    /** How much of the last text segment had arrived, for the ink of what arrives next (§5.2 The words). */
+    private var inked = 0
+    private var inkedIndex = -1
+
     private var caretOn = true
     private var streaming = false
     private val blink = object : Runnable {
@@ -240,7 +261,7 @@ class AnswerView(env: NoteEnv) : BlockView<Block.Answer>(env) {
             when (s) {
                 is Markdown.Segment.Text -> {
                     val tv = existing as? CaretText ?: CaretText(env).also { replace(i, it) }
-                    tv.text = s.text
+                    tv.text = ink(i, s.text, b.streaming && i == segments.size - 1)
                     tv.tag = null
                 }
                 is Markdown.Segment.Code -> {
@@ -259,6 +280,46 @@ class AnswerView(env: NoteEnv) : BlockView<Block.Answer>(env) {
         view.contentDescription = null
     }
 
+    /**
+     * The words that arrived since the last chunk rise into place as ink (§5.1 duration.ink): an [InkSpan] over the new
+     * range, its alpha 0 → 1 over 160 ms. Text that is already there never moves. At most six fades in flight; past
+     * that, new text appears at once so it never lags the agent.
+     */
+    private fun ink(index: Int, text: CharSequence, live: Boolean): CharSequence {
+        if (!Motion.enabled || !live) {
+            inked = text.length
+            inkedIndex = index
+            return text
+        }
+        val from = if (index == inkedIndex) inked.coerceAtMost(text.length) else 0
+        inkedIndex = index
+        inked = text.length
+        val out = android.text.SpannableStringBuilder(text)
+        // Fades still running keep their spans on their ranges.
+        for ((span, range) in spanRange) {
+            if (range.second <= out.length) out.setSpan(span, range.first, range.second,
+                android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+        if (from < out.length && spanRange.size < MAX_INK) {
+            val span = InkSpan()
+            spanRange[span] = from to out.length
+            out.setSpan(span, from, out.length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            android.animation.ValueAnimator.ofFloat(0f, 1f).apply {
+                duration = INK_MS
+                interpolator = Motion.STANDARD
+                addUpdateListener {
+                    span.alpha = it.animatedValue as Float
+                    view.findViewWithTag<CaretText>(CARET)?.invalidate()
+                    if (span.alpha >= 1f) spanRange.remove(span)
+                }
+                start()
+            }
+        }
+        return out
+    }
+
+    private val spanRange = HashMap<InkSpan, Pair<Int, Int>>()
+
     private fun replace(i: Int, v: View) {
         if (i < view.childCount) view.removeViewAt(i)
         view.addView(v, i, env.lp(top = if (i == 0) 0f else 8f))
@@ -266,6 +327,8 @@ class AnswerView(env: NoteEnv) : BlockView<Block.Answer>(env) {
 
     companion object {
         private const val CARET = "caret"
+        private const val INK_MS = 160L
+        private const val MAX_INK = 6
     }
 }
 
@@ -465,25 +528,17 @@ class StepsView(env: NoteEnv) : BlockView<Block.Steps>(env) {
 
 private class StepRow(val env: NoteEnv) {
     private val p = env.palette
-    private val mark = FrameLayout(env.context)
-    private val ring = StatusRing(env.context, p)
-    private val glyph = Icon(env.context, Icons.CHECK_CIRCLE, 18f, p.success, filled = true)
+    private val mark = StepMark(env.context, p)
     private val kind = Icon(env.context, Icons.MORE_HORIZ, 16f, p.onSurfaceVariant)
     private val title = env.text(TextRole.LABEL, p.onSurface).apply {
         maxLines = 1
         ellipsize = TextUtils.TruncateAt.END
     }
     private var status: StepStatus? = null
-    private val pop = SpringValue(Motion.TICK, 1f, 0.002f) {
-        glyph.scaleX = it
-        glyph.scaleY = it
-    }
     val view = LinearLayout(env.context).apply {
         orientation = LinearLayout.HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
         minimumHeight = env.dpi(28f)
-        mark.addView(ring, FrameLayout.LayoutParams(env.dpi(20f), env.dpi(20f)))
-        mark.addView(glyph, FrameLayout.LayoutParams(env.dpi(20f), env.dpi(20f)))
         addView(mark, LinearLayout.LayoutParams(env.dpi(20f), env.dpi(20f)))
         addView(kind, LinearLayout.LayoutParams(env.dpi(16f), env.dpi(16f)).apply { marginStart = env.dpi(10f) })
         addView(title, LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f).apply { marginStart = env.dpi(10f) })
@@ -494,30 +549,23 @@ private class StepRow(val env: NoteEnv) {
         kind.text = kindIcon(s.kind)
         val was = status
         status = s.status
+        // The pen's marks (§5.2): the ink dot while it runs, then a tick or a cross drawn in the same frame.
+        val changed = was != null && was != s.status
         when (s.status) {
-            StepStatus.PENDING, StepStatus.RUNNING -> {
-                ring.visibility = View.VISIBLE
-                glyph.visibility = View.GONE
-                ring.mode = if (s.status == StepStatus.RUNNING) StatusRing.Mode.RUNNING else StatusRing.Mode.PENDING
-                title.setTextColor(if (s.status == StepStatus.PENDING) p.onSurfaceVariant else p.onSurface)
+            StepStatus.PENDING -> {
+                mark.set(StepMark.Kind.PENDING, false)
+                title.setTextColor(p.onSurfaceVariant)
+            }
+            StepStatus.RUNNING -> {
+                mark.set(StepMark.Kind.RUNNING, false)
+                title.setTextColor(p.onSurface)
             }
             StepStatus.DONE -> {
-                ring.visibility = View.GONE
-                glyph.visibility = View.VISIBLE
-                glyph.setGlyph(Icons.CHECK_CIRCLE, true)
-                glyph.setTextColor(p.success)
+                mark.set(StepMark.Kind.DONE, changed)
                 title.setTextColor(p.onSurface)
-                // The check pops 0.6 → 1 with spring.tick, in the frame the spinner goes (§5.2 Steps tick).
-                if (was != null && was != StepStatus.DONE) {
-                    pop.snapTo(0.6f)
-                    pop.animateTo(1f)
-                }
             }
             StepStatus.FAILED, StepStatus.INTERRUPTED -> {
-                ring.visibility = View.GONE
-                glyph.visibility = View.VISIBLE
-                glyph.setGlyph(if (s.status == StepStatus.FAILED) Icons.CANCEL else Icons.STOP_CIRCLE, true)
-                glyph.setTextColor(p.error)
+                mark.set(StepMark.Kind.FAILED, changed)
                 title.setTextColor(p.error)
             }
         }
@@ -616,6 +664,17 @@ private class PlanView(env: NoteEnv) : BlockView<Block.Plan>(env) {
 /** A change row: name, where it lives, old → new as a pill, and an undo button after Allow (§3.2, §3.6). */
 fun changeRow(env: NoteEnv, c: Change, undo: (() -> Unit)?): View {
     val p = env.palette
+    if (c.old.isEmpty() && c.new.isEmpty()) {
+        // The thing itself, on its own row (§3.2 The destructive question): name, then where · size · when.
+        return LinearLayout(env.context).apply {
+            orientation = LinearLayout.VERTICAL
+            background = rounded(env.context, p.field, 10f)
+            setPadding(env.dpi(10f), env.dpi(8f), env.dpi(10f), env.dpi(8f))
+            addView(env.text(TextRole.LABEL_MEDIUM, p.onSurface, c.name))
+            addView(env.text(TextRole.META, p.onSurfaceVariant, c.where), env.lp(top = 4f))
+            contentDescription = "${c.name}, ${c.where}"
+        }
+    }
     val old = env.text(TextRole.CHIP_REGULAR, p.onSurfaceVariant).apply {
         text = SpannableStringBuilder(c.old).apply {
             setSpan(StrikethroughSpan(), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
@@ -668,7 +727,12 @@ class ConsentView(env: NoteEnv) : BlockView<Block.Consent>(env) {
         val p = env.palette
         val v = view
         v.removeAllViews()
-        val head = titleRow(env, Icons.SHIELD, p.primary, b.title, b.meta, filled = true)
+        // The destructive question (§3.2, §3.3 rule 2): paper rimmed in `error`, the verb on `errorContainer`, the safe
+        // choice filled and focused first.
+        v.background = rounded(env.context, p.card, 16f, if (b.destructive) Palette.withAlpha(p.error, 0.7f) else
+            p.primary, 1.5f)
+        val head = if (b.destructive) titleRow(env, Icons.DELETE, p.error, b.title, b.meta, filled = true)
+            else titleRow(env, Icons.SHIELD, p.primary, b.title, b.meta, filled = true)
         val hidden = b.options.filter { it.kind == "reject_always" }
         if (hidden.isNotEmpty()) {
             head.addView(IconButton(env.context, p, Icons.MORE_VERT, env.context.getString(R.string.q_more_options))
@@ -702,7 +766,10 @@ class ConsentView(env: NoteEnv) : BlockView<Block.Consent>(env) {
         b.why?.let { v.addView(env.text(TextRole.CHIP_REGULAR, p.onSurfaceVariant, it), env.lp(top = 8f)) }
         val row = ButtonRow(env.context, 6f, end = true)
         b.options.filter { it.kind != "reject_always" }.forEach { o ->
-            row.addView(QButton(env.context, p, o.name, o.style).apply {
+            val style = if (!b.destructive) o.style else if (o.kind.startsWith("reject")) QButton.Style.FILLED
+                else QButton.Style.DESTRUCTIVE
+            row.addView(QButton(env.context, p, o.name, style).apply {
+                if (b.destructive && o.kind.startsWith("reject")) tag = KEEP
                 setOnClickListener { env.task()?.answer(b, o.id) }
             })
         }
@@ -710,6 +777,11 @@ class ConsentView(env: NoteEnv) : BlockView<Block.Consent>(env) {
         val name = env.task()?.agent?.name ?: ""
         v.contentDescription = env.context.getString(R.string.q_a11y_consent, name, b.title,
             b.options.joinToString(", ") { it.name })
+    }
+
+    companion object {
+        /** The safe choice on a destructive card, which takes focus first. */
+        const val KEEP = "keep"
     }
 
     private fun diffView(lines: List<DiffLine>): View {
