@@ -2,7 +2,7 @@
 
 2026-10-19. The update the installed G14 gets: its current tree plus Quire, rehearsed in QEMU from the laptop's own
 state, then checked as the person meets Quire: the note, an agent in the Linux environment, and the Settings demo.
-The laptop step is in `g14/` once it has run.
+The laptop step is in `g14/`.
 
 ## What is in it
 
@@ -65,9 +65,24 @@ which SELinux doesn't let see that binary; it looks as root now (`b3be816`).
    its transport is fixed in `df1b47d` and waits for the recheck.
 3. **`g14-adb.sh ota`'s `pkg.env`** broke on a quote in the manifest's tree text before anything was sent (`9c79987`).
 
+## On the laptop (`g14/`)
+
+| When (UTC) | What | Result |
+|---|---|---|
+| 05:45 | baseline: `state` and `capture --redact` (`capture-before/`, without the full logcat, dmesg and collect files) | slot B, `…/eng.builde`, vbmeta `e0ec4b9c…` |
+| 05:45–10:25 | the previous run stopped at its usage limit right after the baseline | the kernel wake lock `anal225` it took against suspend stayed on the laptop (on AC) until 10:25, when this run released it |
+| 10:25 | `state` again (the owner had used the laptop since), then `ota --dry-run` (`precheck.txt`) | checks passed: fingerprint differs, AC, update_engine idle, whole-disk install, bootsync on the device |
+| 10:25 | `ota --yes` over Wi-Fi (`ota-apply.log`) | slot A written in 90 s; `verified slot a: images match vbmeta_a (1d2d8f5e…, the package's), ESP files in_sync, entry openbook-a+3.conf; systemd-boot starts slot a next` |
+| 10:26 | the reboot | **not done:** the owner was using the laptop (input seconds before). The update waits as the next boot's default |
+
+Still to run after the owner's restart and PIN: `ota-status` (slot A, marked good, merge), `state` against
+`state-before2`, `capture-after`, the binaries against the target files, 120 fps, then the Linux environment
+(`linux-env-adb.sh push`, then `check`) and `g14-quire-check.py`. The screen checks run only while the laptop is
+unlocked and not in use.
+
 ## Not covered here
 
-- The laptop itself (`g14/`): after the update's reboot the owner's PIN unlocks the user. Quire, the Terminal app and
-  their data live in that user's storage, so the Linux environment and the screen checks wait for that unlock.
+- The laptop after its restart (above): the owner's PIN unlocks the user, and Quire, the Terminal app and their data
+  live in that user's storage.
 - TalkBack, G14 frame timing and blur, and the taskbar button (Q5's own follow-ups); Q4's pairing.
 - Test keys sign the update, as before; adb authorisation (`ro.adb.secure`) is unchanged, as the owner hasn't decided.
