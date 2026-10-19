@@ -1,0 +1,19 @@
+22:44:20 == states (light)
+22:44:30 PASS light: consent-system (onSessionPending, the platform's dialog): the platform's dialog above Quire's waiting activity and its card; the note steps aside
+22:44:43 PASS light: mirror (InteractiveMirror, 2x zoom, agent pointer): cc: created: display 1920x1080; first tap 349,732; aiming at Dark theme Rect(698,
+22:44:56 PASS light: mirror-paused (notifyBlocked()): cc: lifecycle: blocked reason=3(CALLER_INITIATED)
+22:44:56 PASS light: mirror-paused holds the agent's input: no tap on the paused control
+22:45:02 INFO light: mirror-takeover (handOverApplications(); the note keeps the side it flipped to): cc: lifecycle: closed reason=4(SESSION_EMPTY); the note is hidden: Settings, now on this display, hides overlays
+22:45:04 == states (dark)
+22:45:14 PASS dark: consent-system (onSessionPending, the platform's dialog): the platform's dialog above Quire's waiting activity and its card; the note steps aside
+22:45:28 PASS dark: mirror (InteractiveMirror, 2x zoom, agent pointer): cc: created: display 1920x1080; first tap 349,732; aiming at Dark theme Rect(698,
+22:45:41 PASS dark: mirror-paused (notifyBlocked()): cc: lifecycle: blocked reason=3(CALLER_INITIATED)
+22:45:41 PASS dark: mirror-paused holds the agent's input: no tap on the paused control
+22:45:47 INFO dark: mirror-takeover (handOverApplications(); the note keeps the side it flipped to): cc: lifecycle: closed reason=4(SESSION_EMPTY); the note is hidden: Settings, now on this display, hides overlays
+22:45:49 == health
+22:45:49 PASS health: no Quire crash: crash buffer clean of Quire
+22:45:49 PASS health: no ANR: none
+22:45:49 PASS health: SystemUI did not restart: SystemUI starts since the log began: ['2645'], running: 2645
+22:45:49 PASS health: no SELinux denial for Quire (platform_app): none
+22:45:49 PASS health: no new SELinux denials: 7 denials, new: []
+22:45:49 == 13 PASS, 0 FAIL, 2 INFO
