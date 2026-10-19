@@ -1,0 +1,4 @@
+<g14>: boot completed, 37 s after waiting started
+OpenBook on ROG Zephyrus G14 (GA403WR) on OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.armfix1:userdebug/test-keys
+up:  17:54:12 up 0 min,  0 users,  load average: 1.38, 0.33, 0.11
+SELinux Enforcing; adbd uid 2000; boot_completed=1; adb_enabled=1 adb_wifi_enabled=1 ro.adb.secure=[]
