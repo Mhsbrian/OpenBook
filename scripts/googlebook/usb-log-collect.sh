@@ -30,7 +30,8 @@ for checkpoint in $(seq 1 36); do
     cat /proc/asound/cards /proc/asound/pcm
     ls -l /dev/snd
     for prop in sys.boot_completed init.svc.wpa_supplicant init.svc.wifi_mainline_supplicant \
-        init.svc.audioserver init.svc.ruby-usb-log; do
+        init.svc.audioserver init.svc.ruby-usb-log init.svc.vendor.openbook.zram \
+        init.svc.mmd_setup init.svc.mmd mmd.zram.enabled mmd.setup_complete; do
         echo "$prop=$(getprop "$prop")"
     done
     ps -AZ
