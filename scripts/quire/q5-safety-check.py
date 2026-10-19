@@ -762,8 +762,18 @@ def intake(d):
             d.sh(f"am start -W -n {FILES}/.files.FilesActivity >/dev/null")
             time.sleep(1.5)
             place(d, FILES, 40, 120, 960, 900)
-            ws = windows(d)
+            # Starting Files can make the desktop restore a task it kept (Settings back from a closed session's
+            # display): remove it again, and make sure the probe is the topmost window under the pointer.
+            for tid in task_ids(d, SETTINGS):
+                d.sh(f"am stack remove {tid}")
+            time.sleep(0.8)
+            ws = windows(d, "intake/scene-windows.txt")
             fw = win(ws, f"{FILES}/{FILES}.files.FilesActivity")
+            target = ((pw[0] + pw[2]) // 2, (pw[1] + pw[3]) // 2)
+            under = next((w["name"] for w in ws if w["onscreen"] and w["frame"] and "/" in w["name"] and
+                          w["frame"][0] <= target[0] < w["frame"][2] and w["frame"][1] <= target[1] < w["frame"][3]),
+                         None)
+            d.log(f"intake scene: topmost app window at {target}: {under}")
             mouse.move(3000, -3000)        # the top-right corner
             time.sleep(0.3)
             glide(mouse, -(1919 - (pw[0] + pw[2]) // 2), (pw[1] + pw[3]) // 2 - 150)
