@@ -180,7 +180,7 @@ Reviewed from Multica's public README, its CLI's help, and its observable behavi
 ```mermaid
 flowchart LR
   subgraph laptop["OpenBook (Android 17)"]
-    surface["Quire surface<br/>note · mirror · consent<br/>(SystemUI / Launcher3 overlay)"]
+    surface["Quire surface<br/>note · mirror · consent<br/>(Quire core's window; halo in SystemUI)"]
     core["Quire core<br/>privileged system app<br/>sessions · policy · audit"]
     tools["OS tools (MCP)<br/>settings · apps · windows<br/>computer control"]
     hooks["AOSP 17 hooks<br/>shake gesture · contextual search<br/>assistant role · computer control"]
@@ -205,7 +205,7 @@ flowchart LR
   - runs sessions and permission policy;
   - keeps the audit log of every change it made, with undo where possible.
   - It is an ACP **client**, so it can talk to any ACP agent anywhere.
-- **Quire surface:** the note, the mirror and the inline consent, drawn above apps in SystemUI's or Launcher3's layer. Atelier designs it (ANAL-215).
+- **Quire surface:** the note, the mirror and the inline consent. Atelier designed it (ANAL-215, `docs/quire-design.md`); Q5 built it (§9). The note is a window of Quire core, because the computer-control session owner must have a visible window of its own; SystemUI draws the halo and the intake outline; the taskbar button is Launcher3's (not built yet).
 - **OS tools** (not built, Q6): an MCP server the core passes to every agent in `session/new`, in three tiers. The tiers are design requirements, enforced by the core on every call whatever the agent asks or claims (§5.3).
   - **Observe:** read settings, list apps and windows, read the selection, take a screenshot of non-secure windows. Observe is not harmless: these can show messages, names and documents, so each one has a scope and a destination (§5.3).
   - **Act, with consent each time or for the task:** change a setting from an allowlist; open, move or close windows; start a computer-control session for named apps.
@@ -316,7 +316,7 @@ Each one is a sub-issue of ANAL-214 with its own acceptance checks. "G14" means 
 | Q2 | **Platform hooks in the image** (ANAL-216). Quire core skeleton as a privileged system app: `ROLE_ASSISTANT`, contextual search package, `ACCESS_COMPUTER_CONTROL` allowlist, the shake flag and the computer-control flags in OpenBook's flag set | Porter | In Cuttlefish: a shake and Meta+Space open Quire with a screenshot and the visible packages; a computer-control session on Settings shows in an `InteractiveMirror`; with per-app consent on, through the ordinary allowlist path (not a debug super agent): fresh consent, a second unapproved app, denial, secure content, lock and take-over; no new SELinux denials; the release flags diff reviewed. **Done in Cuttlefish (§2.6)** |
 | Q3 | **Interaction and motion design** (ANAL-215) | Atelier | Invocation, the note's states (asking, streaming, steps, consent, mirror, done, error), motion specs and a clickable prototype; the visual language matches OpenBook's look |
 | Q4 | **The Linux environment and `quired serve`** (ANAL-218). AVF Terminal in OpenBook, KVM on AMD, `quired` in the Debian guest, ACP over vsock to the core, pairing for a second computer | Porter | An agent installed in the Linux environment answers a prompt from Quire core in Cuttlefish, then on the G14 |
-| Q5 | **The surface** (ANAL-219). The note, steps, consent and mirror, built to Q3's spec | Porter with Atelier | Q3's states, in a recorded Cuttlefish session; 60 fps on the G14; works with TalkBack and keyboard only |
+| Q5 | **The surface** (ANAL-219). The note, steps, consent and mirror, built to Q3's spec | Porter with Atelier | Q3's states, in a recorded Cuttlefish session; 60 fps on the G14; works with TalkBack and keyboard only. **Built and checked in Cuttlefish (§9); the G14, TalkBack and the Launcher3 button are open** |
 | Q6 | **OS tools over MCP** (ANAL-220). Settings (allowlisted, with undo), apps and windows, computer control | Porter | A scripted matrix: "turn on dark theme", "make text bigger", "open Files and show Downloads", each with the right consent, plus deny, cancel and never-tier refusals tested at the broker (§5.3) |
 | Q7 | **Voice** (ANAL-221). Hold to talk, on-device speech-to-text (open models only), and the note reading back | Porter | Works offline on the G14; the mic indicator is always shown |
 | Q8 | **Review and verification** (ANAL-217) | Checker | A security and privacy review of each PR against §5, and the G14 checklist results recorded |
@@ -331,7 +331,8 @@ In the order the ANAL-217 review ranked them, with what Q2 found.
 2. **Computer control is `@hide` and partly flagged off in cp2a** (C). Q2 turned on `computer_control_access`, `_support_v5` and `_per_app_consent` and checked them in Cuttlefish through the ordinary allowlist path (§2.6). **What held:** sessions, consent, the lock-screen and secure-content refusals, the mirror, screenshots, taps and hand-over, with no crash or new denial. **What didn't, out of the box:** the allowlists need a configuration server, the consent dialog is not installed, and the session's accessibility tree never worked (an AOSP bug). Each is fixed in §2.5. Still open:
    - **An app that is already running on the person's display has no accessibility tree in the session** (C: 0 windows in four tries, 2 windows whenever Settings started fresh on the session display). Cause: HYPOTHESIS, the running process is not tied to the virtual device's accessibility clients. Quire's checks start the app fresh; Q6 must handle it (start the target fresh, or work from screenshots) and we should report it upstream.
    - **Release keys.** The session owner allowlist pins Quire's certificate, today AOSP's test platform key. An image signed with release keys needs its own digest in `session_owner_allowlist.txt`, or computer control stays off (it fails closed).
-   - **Debuggable builds keep the last five invocation screenshots and session screenshots** in Quire's private storage, as Q2 evidence. User builds keep none. Q5 replaces this.
+   - **Debuggable builds keep the last five invocation screenshots and session screenshots** in Quire's private storage, as Q2 evidence. User builds keep none. Q5 keeps this for the Q2 checks.
+   - **After Pause and Resume the session's accessibility windows are gone** (C, Q5): `getAccessibilityWindows()` throws a NullPointerException from system_server (`ProxyAccessibilityServiceConnection.getWindows()` dereferences a null list) for at least 3 s after `requestUnblock()`. On block, `ComputerControlSession` unregisters its accessibility display proxy and re-registers it on active; HYPOTHESIS: the re-registered connection lacks the window-retrieval capability the first registration had. Quire catches it and ends the run honestly (§9). Q6 needs a platform fix before an agent can continue after a pause.
 3. **The pointer shake and Meta+A/Meta+G were dead in AOSP 17 on a device like ours** (C): Launcher3 lacked `ACCESS_CONTEXTUAL_SEARCH`, and SystemUI armed the shake only for users who can log out (headless system user mode, which Googlebook runs and OpenBook does not). Both are patched (§2.5); the patches are small enough to send upstream.
 4. **AVF on AMD** (HYPOTHESIS). The Terminal's x86_64 assets and Debian build exist at Virtualization `22f1c9ee92b1`, and our kernel's x86 `gki_defconfig` (`fbfdd65b0fd1`) has `CONFIG_KVM=y` and `CONFIG_KVM_AMD=y`. That is configuration, not a running device. Q4 must show the built kernel's config, `/dev/kvm` access under SELinux, crosvm booting the non-protected Debian guest, and vsock, first in Cuttlefish and then on the G14 (GA403WR, Ryzen AI 9 HX 370). If it can't run, `quired` would run on a paired computer and Quire would use cloud connectors; that fallback isn't built.
 5. **Protocol compatibility and sign-in.** `quired` refuses ACP versions other than 1. Cursor and Kimi need an ACP `authenticate` step on this host; Quire will show each agent's `authMethods` in its connect screen.
@@ -339,6 +340,124 @@ In the order the ANAL-217 review ranked them, with what Q2 found.
 7. **The shake gesture is "early"** (its own TODO). We may tune the threshold for touchpads. In Cuttlefish a mouse shake of 8 strokes, 15 counts each, 50 ms apart, fires it on the first try.
 8. **Contextual search also hands Quire a `MediaProjection`** (§2.3). Quire never uses it; a review should confirm it is never started.
 9. **Naming:** "Quire" needs the same trademark check as "OpenBook" before any public image (`docs/STATUS.md`).
+10. **Where the note may show** (C, 2026-10-19). AOSP lets a system application overlay stay visible over windows that
+    hide overlays (`SYSTEM_APPLICATION_OVERLAY`: "overlays that will stay visible, even if another window is requesting
+    overlays to be hidden"). The Checker asked that the note's ordinary content honour those windows instead
+    (ANAL-217). It now does, except while a computer-control session runs (§9). The cost: Settings, Files and the
+    permission screens hide overlays on every page, so the note does not show over the apps Quire most often helps
+    with. Ways forward, for the owner and the Checker to choose:
+    - keep this;
+    - put the note in the assistant's own window (`VoiceInteractionSession`, `TYPE_VOICE_INTERACTION`, which AOSP never
+      hides);
+    - a frameworks/base change: system application overlays hide for windows that hide overlays through the public
+      permission (`HIDE_OVERLAY_WINDOWS`, normal: any installed app, such as a bank, and also Files), and stay for
+      windows of apps holding `HIDE_NON_SYSTEM_OVERLAY_WINDOWS` (signature|preinstalled: Settings, the permission
+      controller, the package installer).
+    The platform's computer-control consent dialog asks to hide overlays, but VirtualDeviceManager holds neither
+    permission, so its request does not count (C, 2026-10-19: only Settings' windows were hiding overlays while the
+    dialog was up). The note steps aside from that dialog by itself, and Quire's waiting activity sits beneath it.
+
+## 9. Built: the Quire surface (Q5, ANAL-219)
+
+Code: `device/anybook/common/quire/app/src/dev/openbook/quire/` (`note/`, `acp/`, `ui/`), and frameworks/base patch
+`0008` for SystemUI. Checks: `scripts/quire/q5-cf-check.py`. Evidence: `evidence/2026-10-18-quire-q5/` (`SUMMARY.md`).
+
+**What is built (C, in Cuttlefish)**
+
+- **The note is a window of Quire core**: an ordinary application overlay of Quire's uid (`note/NoteWindow.kt`, since
+  the safety round of 2026-10-19, below).
+  - It hides whenever a window on screen asks the system to hide overlays (`Window.setHideOverlayWindows`, or the
+    system flag `SYSTEM_FLAG_HIDE_NON_SYSTEM_OVERLAY_WINDOWS`). The tray does too.
+  - The window is only the card and its shadow. An untrusted overlay blocks the touches that pass through it, so a
+    display-wide window would swallow every click beside the card. The content is laid out in display coordinates and
+    scrolled by the window's position. A frame that moves also changes size, because WM moves a resized window
+    together with its next buffer.
+  - **Consent:** Quire asks for a computer-control session from `note/ConsentWaitActivity.kt`, an inert, transparent
+    activity of its own, which no overlay rule hides. The platform checks for a visible owner window when Quire asks
+    and again after Allow. The activity starts the platform's dialog, so the dialog opens above it and stays above it.
+    Before the dialog starts, the activity shows a still of the note at the note's place: header, intake, prompt,
+    steps and the waiting row, with no composer and no footer, on the note's own surface. Then the note steps aside,
+    so the only change on screen is the dialog's scrim (Atelier's ruling, 2026-10-19). Nothing of Quire's covers the
+    dialog, at any display size.
+  - **The task that owns a live computer-control session, while it is the task shown,** is a *system* application
+    overlay (`SYSTEM_APPLICATION_OVERLAY`, signature). The app being driven may hide overlays: Settings does on every
+    page, even on the session display. An ordinary overlay would then hide the live mirror, Pause and Stop for the
+    whole run (`evidence/2026-10-19-quire-q5-safety/why-session-overlay/`).
+    - Any other task shown in the window is ordinary, also while the session's own task runs hidden. So is that task
+      once its run ends.
+    - It is decided per task each time a task is shown, and again when a session starts or ends. WM decides whether to
+      hide a window only when it is added, so the window is added again at each change.
+    - The Checker accepted this scope after a recheck found the first version leaked the exemption to other tasks.
+- **One card for every state** of `docs/quire-design.md` §3.2, laid out at its final size and revealed with
+  spring.settle; the mirror grows with spring.expand; the note unfolds from and folds to its anchor (§5.2). Springs are
+  the design's stiffness and damping, integrated like the prototype's; with Remove animations every spring cuts and
+  every loop is still (§5.3). Colours are the system's `system_*` roles (§4.3); type is Google Sans Text; Google Sans
+  Code and a 14 KB Material Symbols subset ship in Quire (`fonts/README.md`). Background blur at the shade's radius;
+  around the mirror, the blur is drawn in four pieces, because the mirror's surface sits below the window and a blur
+  over it blurs the live view.
+- **An ACP v1 client** (`acp/`): JSON-RPC 2.0 over NDJSON, `initialize`, `session/new`, `session/prompt`,
+  `session/cancel`, `authenticate`; it offers no file system and no terminal. Session updates become blocks (thought,
+  answer with markdown and code, steps, plan, images); `session/request_permission` becomes the consent card with the
+  agent's own option names, reject first; Esc answers `cancelled` and sends `session/cancel`. Stop reasons, errors,
+  `-32000` (sign-in) and a dropped connection each have their state, and the copy after a stop or an error says what
+  finished, what was interrupted, and that Quire can't undo the agent's own actions (§3.3 rule 6). Agents are reached
+  over loopback TCP on debuggable builds (through `adb reverse`); `quired serve` over vsock is Q4's.
+- **Computer control in the note** (`note/ControlRun.kt`): the platform's consent with a still of the note beneath it, the
+  live mirror zoomed 2× on the control in use with the agent's pointer, the tap ring and the focus ring, Pause
+  (`notifyBlocked()`, the mirror becomes interactive, the run holds its input), Resume, Take over
+  (`handOverApplications()`) and Stop, and the error copy of §3.3 rule 5. Until Q6 gives agents Quire's tools, the
+  steps of a run come from a debuggable build's lab command; the session, the dialog, the taps and the mirror are
+  real.
+- **Invocation:** contextual search hands every call to the note; "Ask Quire" on a selection is an
+  `ACTION_PROCESS_TEXT` handler and Quire is force-queryable. **SystemUI (frameworks/base 0008)** draws the halo and the
+  intake outline on a shake and passes contextual search the pointer's position and the app window under it: its
+  bounds as `sourceBounds`, its package, and when SystemUI read them. The home task is never that window. Meta+Space
+  and the assist key get the same when the pointer moved in the last 10 s, so the note opens beside the pointer.
+  Without a recent pointer the note rises from the taskbar.
+- **What Quire takes in** (`invocation/IntakePolicy.kt`): a window only when SystemUI said which one. That means a
+  pointer inside non-empty bounds that are on the display, the window's package, bounds read at most 3 s earlier, and
+  that package on the screenshot. The screenshot is cropped to those bounds and named after that package. Anything
+  less, or the desktop, SystemUI or Quire under the pointer, and nothing is taken in. The whole display is never sent
+  under a window's name.
+- **Agents' sessions** (`note/SessionRoutes.kt`): a session belongs to the connection it was opened on. Updates,
+  permission requests, cancels, releases and disconnects reach only the task that owns that connection's session, even
+  when two agents use the same session ID.
+- **Also built:** the agent picker, the listening card (Q7 feeds it), the tray of hidden and finished tasks (drawn by
+  Quire above the taskbar), the broker's settings card with Quire's options and the change list after Allow (raised
+  from the lab until Q6's broker raises them), and the note re-themes with the system's dark theme.
+
+**Checked (C):** `q5-cf-check.py` in Cuttlefish on the Q5 image: **79 pass, 0 fail, 12 info** after Atelier's review
+(`evidence/2026-10-18-quire-q5/SUMMARY.md`). Every screen id of the design in light and dark next to its render; the
+real shake and Meta+Space open the note at the pointer with the window's bounds; the platform's consent, the mirror,
+Pause (no tap while paused) and Take over; honest stop and error copy; long output with Jump to latest and "Save as a
+file", and code saved through the Storage Access Framework; the keyboard paths of §6.1 and §6.2 (9/9); a label on
+every control in the UI dumps (§6.3); Remove animations; three screen recordings; contrast on all eight wallpapers in
+both themes and on the device's own palette (closest pair 5.07:1 against 4.5:1); Quire's frames in Cuttlefish (1194
+frames, 1 janky, p99 8 ms on a quiet host); no Quire crash, ANR, SystemUI restart or SELinux denial. A real agent, opencode
+2.0.31 over its own ACP mode, answered in the note (with the intake image sent; its model said it can't read images).
+
+**The safety round (2026-10-19, the Checker's Hold at `88bf79b`, ANAL-217)** changed the four points above: the
+note's overlay and consent, the intake rule, session routing, and SystemUI's package and time. The regressions are
+`scripts/quire/q5-safety-check.py` (54 checks: protected windows, the consent dialog at 1920×1080 and 1280×800, two
+agents with colliding session IDs, and the payload an agent receives) and the host tests (`tools/unit-test.sh`, 37).
+The evidence is in `evidence/2026-10-19-quire-q5-safety/SUMMARY.md`.
+
+**Not yet (open)**
+
+- **The G14:** 60 fps for open, stream, consent and fold, and the blur within B2's budget, are measured on the laptop;
+  Cuttlefish's frame stats are only a proxy.
+- **TalkBack:** it is not part of AOSP. The labels, roles and live regions are checked from UI dumps; the TalkBack
+  walkthrough needs TalkBack installed (the G14 stick).
+- **The taskbar button** (Launcher3: the leaf after All apps, the progress ring, the badge, the breathing while an app
+  is driven): not built. Launcher3's `TaskbarView` counts its static views in many places, so it is its own change.
+- **Q6 and Q7 wiring:** the broker card, the change list with undo and the computer-control steps are lab-driven until
+  Q6; listening needs Q7's recogniser.
+- **Halo details:** the halo does not follow the pointer while the note opens, and the keys' halo uses the same label
+  for Meta+Space and the Copilot key.
+- **The note does not show over Settings or Files** (C, 2026-10-19). Both hide overlays on every page, as do the
+  permission controller's screens, and the note now honours that. Calling Quire over them opens a note nobody sees
+  (the intake and the agent still work), and after Take over the closing line is hidden behind Settings. This is a
+  product decision for the owner and the Checker (§8).
 
 ## Sources
 

@@ -1,0 +1,34 @@
+After Pause and Resume, the computer-control session's accessibility windows are unavailable (docs/quire.md §8).
+Cuttlefish, Q2 image + Q5 dev APK, 2026-10-18 (logcat, tag Quire). First run, before Quire caught it:
+
+FATAL EXCEPTION: main
+java.lang.NullPointerException: Attempt to invoke virtual method 'java.lang.Object
+  android.view.accessibility.AccessibilityWindowInfo$WindowListSparseArray.get(int, java.lang.Object)' on a null
+  object reference
+  at android.os.Parcel.readException(Parcel.java:3301)
+  at dev.openbook.quire.control.ComputerControl.find(ComputerControl.kt:327)
+  ...
+Caused by: android.os.RemoteException: Remote stack trace:
+  at com.android.server.accessibility.ProxyAccessibilityServiceConnection.getWindows(ProxyAccessibilityServiceConnection.java:235)
+
+With the catch in place (second run):
+
+18:20:35.345 note: mirror action RESUME
+18:20:35.346 cc: resume: requestUnblock
+18:20:35.356 cc: lifecycle: active
+18:20:35.853 cc: windows unavailable: NullPointerException: ... WindowListSparseArray.get(int, java.lang.Object) ...
+  (the same every 300 ms)
+18:20:38.272 cc: windows unavailable: NullPointerException: ...
+18:20:38.317 note: mirror action TAKE_OVER
+18:20:38.353 cc: hand over: done
+
+Source (frameworks/base 8f5dedd3edc3 + OpenBook patches):
+- ComputerControlSession's lifecycle callback unregisters its accessibility display proxy in onBlocked() and
+  registers it again in onActive().
+- ProxyAccessibilityServiceConnection.getWindows() calls super.getWindows(), which returns null when the connection
+  may not retrieve windows (hasRightsToCurrentUserLocked / canRetrieveWindowsLocked / checkAccessibilityAccess), and
+  dereferences it without a check.
+HYPOTHESIS: the re-registered connection lacks the window-retrieval capability or installed-service info the first
+registration got. Not yet fixed: Quire ends the run with "After the pause, the system stopped showing Quire what's
+in Settings, so the run ended" and closes the session. Q6 needs the platform fix before an agent continues after a
+pause.
