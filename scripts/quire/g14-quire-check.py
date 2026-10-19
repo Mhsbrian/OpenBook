@@ -19,6 +19,9 @@ Sections, in order:
            answer streams into the note and must contain EXPECT. Needs the Linux environment running
            (scripts/quire/linux-env-adb.sh check). Nothing is sent another way: if typing doesn't reach the note, the
            section fails there.
+  setup    The first run: with the Linux environment off (its image in /sdcard/linux), Meta+Space; the note offers "Set up
+           the Linux environment"; one click turns it on, installs and starts it, and the note lists its agents. Then
+           the agent section runs on top (ANAL-225).
   control  The computer-control demo on Settings: the platform's consent dialog, "Only this time", the live mirror,
            taps on Display and Dark theme through the session (it opens the page and changes nothing), then Stop.
   health   Since this run started: crashes and ANRs of Quire, SystemUI and the Terminal app; tombstones; SELinux
@@ -273,11 +276,20 @@ def agent(d, prompt, expect):
         d.result("agent: the note is on screen", False, ("shown" if shown else "not shown") + f"; window {w}")
         return
     task = shown.group(1)
-    found = d.wait_log(r"acp: found in the Linux environment: (.*)", 20, since=tag)
-    time.sleep(1)
-    d.note("DUMP")
-    time.sleep(1)
-    agents = re.findall(r"lab: agent (linux:\S+) \S+ connected=(\w+) state=\w+ name=(.*)", d.since(tag))
+    # A stopped Linux environment is started by Quire first (ANAL-225): the agents appear once it runs.
+    agents, end = [], time.time() + 150
+    while time.time() < end and not agents:
+        d.note("DUMP")
+        time.sleep(3)
+        agents = re.findall(r"lab: agent (linux:\S+) \S+ connected=(\w+) state=\w+ name=(.*)", d.since(tag))
+    found = re.search(r"acp: found in the Linux environment: (.*)", d.since(tag))
+    # The start may have come from an earlier call of Quire in this run: look at the whole log.
+    everything = d.quire_log()
+    started = re.search(r"agents: asked the Terminal app to start the Linux environment: (\w+)", everything)
+    if started:
+        ready = re.search(r"agents: the Linux environment is (\w+)", everything[started.start():])
+        d.result("agent: Quire started the stopped Linux environment itself", bool(ready) and ready.group(1) == "READY",
+                 f"bridge said {started.group(1)}; then {ready.group(1) if ready else 'no result'}")
     d.result("agent: the note lists the Linux environment's agents", bool(agents),
              (f"new: {found.group(1)}; " if found else "") + ", ".join(f"{a} connected={c}" for a, c, _ in agents))
     if not agents:
@@ -286,7 +298,8 @@ def agent(d, prompt, expect):
     if shown.group(2) == "NO_AGENT":
         d.screencap("agent-connect.png")
         d.write("agent-connect-ui.xml", d.ui())
-        tapped = d.tap_text(f"Connect {agents[0][2].strip()}")
+        shown = re.search(POINTER_RE, d.since(tag)) or shown
+        tapped = d.tap_text(f"Connect {agents[0][2].strip()}", timeout=20)
         d.result("agent: the person connects it in the note", bool(tapped), tapped or "no Connect button")
         if not tapped:
             return
@@ -296,15 +309,17 @@ def agent(d, prompt, expect):
     d.sh("input text '" + prompt.replace(" ", "%s").replace("'", "") + "'")
     time.sleep(0.8)
     d.sh("input keyevent KEYCODE_ENTER")
-    sent = d.wait_log(rf"note: task {task} prompt \((\d+) blocks\)", 10, since=tag)
+    # Proof the typed Enter reached the note: its prompt, or the connection the send opens first (starting the agent
+    # in the guest can take longer than typing).
+    sent = d.wait_log(rf"note: task {task} prompt \((\d+) blocks\)|acp: connected to linux:\S+", 60, since=tag)
     d.result("agent: the typed prompt was sent (input text, Enter)", bool(sent),
-             f"{sent.group(1)} content blocks" if sent else "no prompt from the note in 10 s")
+             sent.group(0) if sent else "no prompt or agent connection from the note in 60 s")
     if not sent:
         d.screencap("agent-not-sent.png")
         d.write("agent-log.txt", d.since(tag))
         close_note(d)
         return
-    session = d.wait_log(rf"note: task {task} session (\S+) with (\S+)", 60, since=tag)
+    session = d.wait_log(rf"note: task {task} session (\S+) with (\S+)", 120, since=tag)
     d.result("agent: the prompt went to the agent in the Linux environment",
              bool(session) and session.group(2).startswith("linux:"),
              f"session {session.group(1)} with {session.group(2)}" if session else "no session")
@@ -321,6 +336,32 @@ def agent(d, prompt, expect):
              (f"stopReason={end.group(1)} after {secs:.1f} s" if end else "no end in 240 s") +
              f"; '{expect}' {'shown' if expect in texts else 'not shown'}")
     d.write("agent-log.txt", d.since(tag))
+    close_note(d)
+
+
+def setup(d):
+    d.log("== setup")
+    desktop(d)
+    tag = d.mark("setup")
+    d.sh("input keycombination KEYCODE_META_LEFT KEYCODE_SPACE")
+    shown = d.wait_log(POINTER_RE, 20, since=tag)
+    if not shown:
+        d.result("setup: the note opened", False, "not shown in 20 s")
+        return
+    tapped = d.tap_text("Set up the Linux environment", timeout=30)
+    d.screencap("setup-offer.png")
+    d.result("setup: the note offers Set up the Linux environment", bool(tapped), tapped or "no Set up button")
+    if not tapped:
+        d.write("setup-log.txt", d.since(tag))
+        return
+    t0 = time.time()
+    done = d.wait_log(r"note: Linux environment set up: (\w+), (\d+) agent", 900, since=tag)
+    d.result("setup: one click turns the Linux environment on, installs and starts it, and lists its agents",
+             bool(done) and done.group(1) == "READY" and int(done.group(2)) > 0,
+             (f"{done.group(1)} with {done.group(2)} agent(s) after {time.time() - t0:.0f} s" if done
+              else "not done in 900 s"))
+    d.screencap("setup-done.png")
+    d.write("setup-log.txt", d.since(tag))
     close_note(d)
 
 
@@ -368,7 +409,10 @@ def health(d, since):
     denials = d.sh(f"logcat -d -b all -t '{since}' | grep 'avc:  denied' | "
                    "sed -E 's/.*avc:  denied/avc: denied/; s/ pid=[0-9]+//; s/ ino=[0-9]+//' | sort | uniq -c | sort -rn")
     d.write("selinux-denials.txt", denials)
-    ours = [l for l in denials.splitlines() if re.search(r"quire|platform_app|virtualization|crosvm|virtmgr", l)]
+    # Known and harmless (AOSP): virtmgr inherits the Terminal installer's read descriptor of images.tar.gz, which AVF
+    # denies; it shows whenever the Linux environment is installed during the run.
+    ours = [l for l in denials.splitlines() if re.search(r"quire|platform_app|virtualization|crosvm|virtmgr", l)
+            and "linux/images.tar.gz" not in l]
     d.result("no SELinux denial for Quire or the Linux environment", not ours,
              f"{len(denials.splitlines())} distinct since start, {len(ours)} ours" +
              (": " + " | ".join(o.strip() for o in ours[:3]) if ours else ""))
@@ -390,7 +434,7 @@ def main():
     since = d.sh("date '+%m-%d %H:%M:%S.000'").strip()
     try:
         for name in a.only.split(","):
-            if name in ("invoke", "agent", "control"):
+            if name in ("invoke", "agent", "control", "setup"):
                 ok, detail = d.unlocked()
                 if not ok:
                     d.result(f"{name}: the screen is unlocked (needed to drive it)", False, detail + "; section skipped")

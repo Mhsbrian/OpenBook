@@ -131,8 +131,15 @@ object Connectors {
             var s = status(context)
             if (s.state == State.STOPPED || s.state == State.NOT_INSTALLED || s.state == State.ERROR) s = start(context)
             val deadline = SystemClock.elapsedRealtime() + timeoutMs
-            while (s.state == State.STARTING || s.state == State.INSTALLING) {
-                if (SystemClock.elapsedRealtime() > deadline) break
+            var errorSince = 0L
+            while (true) {
+                val now = SystemClock.elapsedRealtime()
+                // Right after a start the bridge can say "error" for a moment (its vsock probe answers no such
+                // device until crosvm has the guest up); only an error that lasts is one.
+                errorSince = if (s.state == State.ERROR) (if (errorSince == 0L) now else errorSince) else 0L
+                val waiting = s.state == State.STARTING || s.state == State.INSTALLING ||
+                    (s.state == State.ERROR && now - errorSince < ERROR_GRACE_MS)
+                if (!waiting || now > deadline) break
                 SystemClock.sleep(POLL_MS)
                 s = status(context)
             }
@@ -156,6 +163,7 @@ object Connectors {
         }
 
         private const val START_EXEMPTION_MS = 60_000L
+        private const val ERROR_GRACE_MS = 20_000L
         private const val POLL_MS = 1000L
 
         /** A stream to the guest's quired, relayed by the Terminal app. */
