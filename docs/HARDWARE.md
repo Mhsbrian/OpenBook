@@ -63,6 +63,7 @@ It writes `anybook-hw-<board>-<date>.tar.gz`, with serials, UUIDs and MAC addres
 4. **Fan and power tuning:** mainline `asus-armoury` has a power-limit table for the GA403WR (6.19+). The 6.18 kernel has the older `asus-wmi` `ppt_*` attributes.
 5. **Suspend and panel power saving:** on the laptop's own Linux 7.2, 4 s2idle cycles completed with no amd_pmc errors, and amdgpu kept PSR off for the panel. One `WARNING` in `dc_dmub_srv_apply_idle_power_optimizations` (`dc_dmub_srv.c:1710`) appeared after about 23 hours. All of this is untested on our 6.18; if the display hangs on idle there, turning off DCN idle power states is the first thing to try (hypothesis).
 6. **Safety:** first bring-up boots from USB only. Nothing on the internal NVMe or the firmware gets flashed, repartitioned or wiped without explicit confirmation that names the device.
+7. **No USB device mode.** `/sys/class/udc` is empty and all USB controllers are xHCI hosts; the USB4 router (`67:00.5`) has no driver in our kernel. adb therefore runs over IP only (tcp:5555, Wireless debugging); a USB cable to the build host carries nothing. A USB-Ethernet adapter would need the GKI's `r8152`/`ax88179_178a`/`cdc_ether` modules loaded at boot (they ship in `system_dlkm` but are not loaded). `docs/adb-debug.md` (ANAL-222).
 
 ## Other candidate devices
 - Zen 4 laptops (Ryzen 7040/8040, Radeon 780M), as a secondary target.
