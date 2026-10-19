@@ -103,7 +103,7 @@
   window's package. frameworks/base 0008 now passes the package and the time, and never picks the home task.
   Otherwise nothing is taken in.
 - **Checked** on a fresh in-tree build in Cuttlefish (`evidence/2026-10-19-quire-q5-safety/`): 54/54 safety checks,
-  37/37 host tests, and the Q5 checks again with nothing behind the note.
+  37/37 host tests, and the Q5 checks again with nothing behind the note (76 pass, 0 fail, 14 info).
 - **Open, for the owner and the Checker:** Settings, Files and the permission screens hide overlays on every page, so
   the note does not show over them (`docs/quire.md` §8 item 10).
 

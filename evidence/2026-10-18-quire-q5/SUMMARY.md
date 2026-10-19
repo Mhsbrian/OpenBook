@@ -3,6 +3,12 @@
 The write-up is `docs/quire.md` §9 (built) and §8 (findings); the design is PR #98, `docs/quire-design.md` at
 `e0ace54`.
 
+**Since then:** the Checker's three safety findings at `88bf79b` were fixed on 2026-10-19. The note is now an ordinary
+overlay except while a computer-control session runs, consent goes through an activity beneath the dialog, sessions
+are keyed by connection, and intake needs SystemUI's window. The regressions and their evidence are in
+`evidence/2026-10-19-quire-q5-safety/SUMMARY.md`. What this page says about the system overlay and the note beside
+the dialog is superseded there.
+
 **What changed**
 - `device/anybook/common/quire/app/src/dev/openbook/quire/`:
   - `note/`: the note (a system application overlay of Quire core's uid), one card for every state, the mirror
