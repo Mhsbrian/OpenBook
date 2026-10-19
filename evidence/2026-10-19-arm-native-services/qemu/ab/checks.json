@@ -1,0 +1,70 @@
+{
+ "case": "ab",
+ "checks": [
+  {
+   "check": "g14-adb.sh ota: slot b written over adb, verified",
+   "ok": true,
+   "detail": "ot starts slot b next\n\nSlot b is ready. Nothing changes until the next boot; slot a and /data are as they were.\n  Reboot:     g14-adb.sh -a 127.0.0.1:40007 shell reboot      then: g14-adb.sh -a 127.0.0.1:40007 wait && g14-adb.sh -a 127.0.0.1:40007 ota-status\n  Not yet:    g14-adb.sh -a 127.0.0.1:40007 ota-cancel        (before rebooting: slot a stays, as if nothing happened)\nIf slot b does not come up: it gets 3 tries. Hold the power button 10 s to force each restart; after the third\nfailed start systemd-boot starts slot a again by itself, with /data as it was. To pick a slot by hand: hold a k"
+  },
+  {
+   "check": "the boot HAL moved the ESP entry (no bootstrap)",
+   "ok": true,
+   "detail": "e up: it gets 3 tries. Hold the power button 10 s to force each restart; after the third\nfailed start systemd-boot starts slot a again by itself, with /data as it was. To pick a slot by hand: hold a key\nwhile powering on and choose \"OpenBook (17 \u00b7 slot A)\". Slot b counts as good once Android has booted it\n(markBootSuccessful); from then on update_engine merges, and slot a is no longer a fallback.\n"
+  },
+  {
+   "check": "progress shown while update_engine writes",
+   "ok": true,
+   "detail": "['96', '97', '98', '99', '100']"
+  },
+  {
+   "check": "after the reboot systemd-boot starts slot b",
+   "ok": true,
+   "detail": "b"
+  },
+  {
+   "check": "after the update: the PIN unlocks the user's storage",
+   "ok": true,
+   "detail": "Lock credential verified successfully"
+  },
+  {
+   "check": "after the update: slot b runs the package's build (vbmeta digest, build date)",
+   "ok": true,
+   "detail": "{'SLOT': '_b', 'VBMETA': '1a8a2bd1aef13e738230988a1e17fb32b8c56e36732b9882da76789bb5a94930', 'DATE': '1792429641'}"
+  },
+  {
+   "check": "after the update: /data intact: the setting, the 4 MiB file, the app, the serial number, provisioned",
+   "ok": true,
+   "detail": "{}"
+  },
+  {
+   "check": "after the update: no setup screen after the update (OpenBookSetup steps aside on a provisioned system)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "after the update: SELinux enforcing; the OpenBook boot HAL runs",
+   "ok": true,
+   "detail": "running/"
+  },
+  {
+   "check": "the virtual A/B merge completes",
+   "ok": true,
+   "detail": "10-19 17:24:50.995   679   679 I update_engine: [INFO:cleanup_previous_update_action.cc(342)] Merge finished with state MergeCompleted.\nUpdate state: none"
+  },
+  {
+   "check": "ESP: slot b's entry is good and the default; slot a's entry is gone",
+   "ok": true,
+   "detail": "[{'file': 'openbook-b.conf', 'id': 'openbook-b.conf', 'slot': 'b', 'state': 'good'}]"
+  },
+  {
+   "check": "boot HAL (misc): current and active slot b, marked successful",
+   "ok": true,
+   "detail": "1\n1\n1\nsuccessful\n"
+  },
+  {
+   "check": "no SELinux denial for openbook-bootsync, the boot HAL or the ESP (enforcing); the others are listed in avc.txt, not gated",
+   "ok": true,
+   "detail": "[]"
+  }
+ ]
+}

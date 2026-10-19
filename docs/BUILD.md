@@ -18,7 +18,8 @@ Everything here runs without host sudo. The tools that Arch's base system doesn'
 (`d3e04fd`, including Quire and the RADV YV12 fix) plus the native-service ABI
 guards and validated Chromium managed-service aliases. The task PR carries
 the framework patch and tests; it does not replace the installed base with an
-older main image. The exact integration tree is retained separately.
+older main image. The exact [integration tree](https://github.com/Mhsbrian/OpenBook/tree/f72c1753ced270a3a7ad41a07e70ecd1d516030f)
+is retained on branch `anal-224/g14-armfix1`.
 
 ```bash
 AOSP_JOBS=16 BUILD_NUMBER=20261019.armfix1 scripts/aosp-docker.sh \

@@ -1,0 +1,5 @@
+20261019.armfix1
+1a8a2bd1aef13e738230988a1e17fb32b8c56e36732b9882da76789bb5a94930
+x86_64,arm64-v8a
+libberberis_arm64.so
+Enforcing
