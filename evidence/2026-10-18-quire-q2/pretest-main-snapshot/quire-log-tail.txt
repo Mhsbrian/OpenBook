@@ -1,0 +1,4 @@
+--------- beginning of main
+10-18 13:55:08.965 I/Quire   ( 3936): lab: dev.openbook.quire.lab.REQUEST in 6000 ms
+10-18 13:55:14.975 I/Quire   ( 3936): cc: request name=quire-1792331714968 targets=[com.android.settings] version=4
+10-18 13:55:14.977 I/Quire   ( 3936): cc: request refused by the platform: IllegalStateException: Cannot create ComputerControlSession - flag disabled

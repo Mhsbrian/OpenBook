@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  Quire (ANAL-216) as the default for the two AOSP 17 hooks it plugs into (docs/quire.md §2.3). Both are empty in AOSP.
+-->
+<resources>
+    <!-- The assistant role's default holder (PermissionController roles.xml, defaultHolders): Meta+Space, the assist
+         key and the Copilot key go to its VoiceInteractionService. Computer control also requires the agent to hold
+         this role (computer_control_role_assistant_requirement). -->
+    <string name="config_defaultAssistant" translatable="false">dev.openbook.quire</string>
+    <!-- The app ContextualSearchManagerService starts with ACTION_LAUNCH_CONTEXTUAL_SEARCH, a screenshot and the
+         visible packages: the pointer shake, Meta+A and Meta+G, through Launcher3. -->
+    <string name="config_defaultContextualSearchPackageName" translatable="false">dev.openbook.quire</string>
+</resources>

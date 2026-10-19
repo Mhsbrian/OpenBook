@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  Privileged permissions of Quire (system_ext priv-app, platform certificate). ACCESS_COMPUTER_CONTROL is
+  internal|privileged, so only this entry grants it. ACCESS_CONTEXTUAL_SEARCH is signature|privileged and also comes
+  from the platform signature; it is listed so the list is complete.
+-->
+<permissions>
+    <privapp-permissions package="dev.openbook.quire">
+        <permission name="android.permission.ACCESS_COMPUTER_CONTROL" />
+        <permission name="android.permission.ACCESS_CONTEXTUAL_SEARCH" />
+    </privapp-permissions>
+</permissions>

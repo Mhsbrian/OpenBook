@@ -1,0 +1,2 @@
+ls: /data/system/computercontrol/: No such file or directory
+cat: /data/system/computercontrol/*allowlist*: No such file or directory

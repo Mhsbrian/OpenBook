@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  Runtime permissions granted to Quire by default. A computer-control session needs POST_NOTIFICATIONS: the platform
+  posts the session's "Quire is using <app>" notification for the agent, and refuses agents that can't notify. The
+  user can still revoke it.
+-->
+<exceptions>
+    <exception package="dev.openbook.quire">
+        <permission name="android.permission.POST_NOTIFICATIONS" fixed="false" />
+    </exception>
+</exceptions>

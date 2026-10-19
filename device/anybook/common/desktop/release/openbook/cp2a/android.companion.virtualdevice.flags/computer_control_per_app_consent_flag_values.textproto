@@ -1,0 +1,10 @@
+# Declared in frameworks/base/core/java/android/companion/virtual/flags/flags.aconfig
+# Computer-control consent per app (ANAL-216, docs/quire.md §2.4): the platform's dialog asks for each app the agent
+# would automate, and "Always allow" covers that app only. Without it, one "Always allow" let the agent automate every
+# app on the allowlist. Enabled in trunk_staging, not in cp2a. The ANAL-217 review made it part of Q2's acceptance.
+flag_value {
+  package: "android.companion.virtualdevice.flags"
+  name: "computer_control_per_app_consent"
+  state: ENABLED
+  permission: READ_ONLY
+}
