@@ -74,7 +74,10 @@ object ControlTools {
         override val schema = Schema.obj("app" to Schema.str("The app, e.g. \"Settings\"."), required = listOf("app"))
         override fun title(c: Context, args: JSONObject) = "Opening ${args.optString("app")} to work in it"
         override fun run(c: Context, args: JSONObject, note: CallNote): ToolResult {
-            val app = Apps.find(c, args.req("app"))
+            // A window's number from list_windows names its app too.
+            val asked = args.req("app")
+            val app = asked.toIntOrNull()?.let { id -> LiveContext.windows(c, all = true).firstOrNull { it.taskId == id } }
+                ?.let { w -> Apps.find(c, w.pkg) } ?: Apps.find(c, asked)
             val control = note.control
             if (control.app == app.label) return ToolResult.text("${app.label} is already open for you. " + control.read())
             if (control.app != null) control.end(handOver = false)

@@ -35,6 +35,9 @@ object ScreenReader {
         var screenshot: Bitmap? = null
         var screenshotDone = false
         var wantScreenshot = false
+
+        /** The platform gave this session no screen data at all (see QuireSession). */
+        var withheld = false
         val done = CompletableFuture<Reading>()
 
         fun check() {
@@ -110,6 +113,15 @@ object ScreenReader {
         }
     }
 
+    /** The platform withheld the screen from this session: nothing will come. */
+    fun onWithheld() {
+        val r = pending ?: return
+        synchronized(r) {
+            r.withheld = true
+            r.done.complete(r)
+        }
+    }
+
     /** No assist data will come (the platform withheld it). */
     fun onNoAssist() {
         val r = pending ?: return
@@ -165,12 +177,17 @@ object ScreenReader {
 }
 
 object ScreenTools {
-    /** Runs [read] with the note held on screen ([CallNote.onScreen]); the window needs a moment to be added again. */
-    private fun <T> onScreen(note: CallNote, read: () -> T): T {
+    /**
+     * Reads the screen; only if the platform withheld it, because Quire's note wasn't on screen (Files and Settings hide
+     * it), reads again with the note held on screen ([CallNote.onScreen]). A note already in view is never re-added.
+     */
+    private fun read(c: Context, note: CallNote, screenshot: Boolean): ScreenReader.Reading {
+        val first = ScreenReader.read(c, screenshot)
+        if (!first.withheld) return first
         note.onScreen(true)
         return try {
             Thread.sleep(300)
-            read()
+            ScreenReader.read(c, screenshot)
         } finally {
             note.onScreen(false)
         }
@@ -186,7 +203,7 @@ object ScreenTools {
             val windows = LiveContext.windows(c)
             ScreenConsentActivity.ensure(c, note)
             note.retitle("Reading the screen")
-            val r = onScreen(note) { ScreenReader.read(c, screenshot = false) }
+            val r = read(c, note, screenshot = false)
             val out = StringBuilder()
             out.append("Windows on screen, front first:\n")
             windows.forEach { out.append("- ").append(it.describe()).append('\n') }
@@ -212,7 +229,7 @@ object ScreenTools {
         override fun run(c: Context, args: JSONObject, note: CallNote): ToolResult {
             ScreenConsentActivity.ensure(c, note)
             note.retitle("Looking at the screen")
-            val r = onScreen(note) { ScreenReader.read(c, screenshot = true) }
+            val r = read(c, note, screenshot = true)
             val b = r.screenshot ?: throw ToolError("The laptop gave no screenshot: the person may have turned off " +
                 "\"Use screenshot\" for Quire, or a protected window is showing.")
             return ToolResult.image("The laptop's screen, ${b.width}×${b.height}:", b)

@@ -560,7 +560,12 @@ agent (guest) --stdio MCP--> quired tools-mcp --unix socket 0600--> quired serve
   answered. It is also held on screen for the moment of a screen read (below).
 - **Computer control** is Q5's run in agent mode: the platform's consent (per app, "Always allow" remembered by the
   platform), the mirror with the agent's pointer, Pause (the agent's step waits), Take over and Stop. The run closes
-  with the agent's turn. Only apps in the image's automatable allowlist can be driven: Settings today.
+  with the agent's turn. Since quire8 every launchable app can be driven (`automatable_app_allowlist.txt` is `*`),
+  except the platform's own refusals (the permission controller, approved agents) and OpenBook's denylist
+  (`automatable_app_denylist.txt`: the package installer, certificates and credentials, VPN dialogs, provisioning, the
+  shell and the Terminal). The platform still asks the person per app. Quire-only flow fixes: a refused app gets a
+  plain answer telling the agent to open it instead of retrying; `open_url` opens store links (`market://`) in the
+  person's store app; `control_start` takes a window's number.
 - **Screen reading follows three platform rules found here (C):** AOSP 17 strips assist data unless the assistant
   declares `usesAssistData`, `usesAssistScreenshots` and `usesAssistStructureScreenContent`; the assistant's "Use text
   from screen" is now an app op (`READ_SCREEN_CONTEXT`) that starts off, so `read_screen` asks the person once with the
@@ -606,7 +611,8 @@ mirror, and a tap on Connected devices found by its text.
   to the glass-and-ink design (ANAL-227, PR #114; §10.6).
 - **`quired` updates** reach a Linux environment that is already installed only by hand today (a new guest image
   replaces the person's guest files). A self-update from Quire core is the next step.
-- Destructive-control recognition is English-only and by label; the computer-control allowlist is Settings only.
+- Destructive-control recognition is English-only and by label, now over every app the person has: the Checker's
+  review of that boundary matters more than before.
 
 ### 10.6 The note in glass and ink (ANAL-227, built)
 
