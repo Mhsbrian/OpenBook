@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
 # Render the Quire design (docs/quire-design/index.html) to PNGs with headless Chromium.
 #
-# Two sizes, as the acceptance for ANAL-215 asks:
+# Two sizes, as the acceptance for ANAL-215 and ANAL-227 asks:
 #   fhd   1920x1080 dp at 1x  -> 1920x1080 px PNG   (Cuttlefish, 160 dpi)        docs/quire-design/png/
 #   g14   1920x1200 dp at 1.5x -> 2880x1800 px      (the G14 panel at 240 dpi)   docs/quire-design/g14/ as JPEG q92 4:4:4
-#         (55 PNGs at 2880x1800 weigh 35 MB; the JPEGs 22 MB. Pass G14_PNG=1 to keep the PNGs instead.)
+#         (PNGs at 2880x1800 weigh ~0.7 MB each; the JPEGs ~0.4 MB. Pass G14_PNG=1 to keep the PNGs instead.)
+#   walls the first moment and a finished task over each of the eight OpenBook wallpapers (light on light, dark on dark, no window behind),
+#         cropped to the note and tiled into docs/quire-design/png/wallpapers.png, to judge the glass on every backdrop
 #
 # Fonts (Google Sans, Google Sans Flex, Google Sans Code: OFL-1.1; Material Symbols Rounded: Apache-2.0) are fetched
 # once into the host data dir and linked into docs/quire-design/fonts/, which is gitignored: they are never committed.
 #
-# usage: render-design.sh [fhd|g14|all] [SCREEN...]     default: all sizes, every screen, light and dark
+# usage: render-design.sh [fhd|g14|walls|all] [SCREEN...]     default: all sizes, every screen, light and dark
 set -euo pipefail
 R=$(cd "$(dirname "$0")/../.." && pwd); D=$R/docs/quire-design
 A=${OPENBOOK_HOME:-${ANYBOOK_HOME:-$HOME/anybook}}; F=$A/quire/fonts
@@ -25,10 +27,10 @@ GF=https://github.com/google/fonts/raw/main/ofl
 ln -sfn "$F" "$D/fonts"
 
 SCREENS=("$@")
-if [ ${#SCREENS[@]} -eq 0 ]; then
-  SCREENS=(idle invoke-shake invoke-key invoke-secure invoke-taskbar invoke-voice invoke-selection compose agent-picker streaming steps plan
-           consent consent-command consent-system mirror mirror-paused done stopped error signin background settings-help long-output
-           code images no-agent offline)
+if [ ${#SCREENS[@]} -eq 0 ]; then   # keep in step with ORDER in quire.js
+  SCREENS=(idle invoke-shake invoke-key open invoke-taskbar invoke-secure invoke-voice invoke-selection compose agent-picker streaming
+           steps setting-undo plan confirm-destructive consent-command consent-system mirror mirror-paused done stopped error signin
+           background settings-help long-output code images no-agent offline glass-off)
 fi
 
 shot(){ # out query width height scale
@@ -50,10 +52,29 @@ render_size(){ # size
     fi
   done
 }
+render_walls(){ # the note over every wallpaper: open (the first moment) and setting-undo (a finished task), cropped to the note
+  local T=$(mktemp -d); local tiles=()
+  for w in bloom folio strata tide; do
+    for th in light dark; do
+      local q="&theme=$th&wall=$w&size=fhd&bare=1"
+      shot "$T/open-$w-$th.png" "?screen=open$q" 1920 1080 1 >/dev/null
+      shot "$T/undo-$w-$th.png" "?screen=setting-undo$q" 1920 1080 1 >/dev/null
+      # the note sits at the pointer (1010,470) + (18,18); crop a 480x300 (open) and 480x400 (undo) window around it
+      magick "$T/open-$w-$th.png" -crop 480x150+1000+470 +repage "$T/a.png"
+      magick "$T/undo-$w-$th.png" -crop 480x330+1000+470 +repage "$T/b.png"
+      magick "$T/a.png" "$T/b.png" -append -bordercolor none -border 0 "$T/tile-$w-$th.png"
+      magick "$T/tile-$w-$th.png" -gravity north -background '#1B1B21' -fill '#fff' -font "$F/GoogleSans.ttf" -pointsize 16 -splice 0x28 -annotate +0+6 "$w · $th" "$T/tile-$w-$th.png"
+      tiles+=("$T/tile-$w-$th.png")
+    done
+  done
+  magick montage "${tiles[@]}" -tile 4x2 -geometry +8+8 -background '#1B1B21' "$D/png/wallpapers.png"
+  echo "$D/png/wallpapers.png"; rm -rf "$T"
+}
 case $SIZES in
   fhd|g14) render_size "$SIZES" ;;
-  all) render_size fhd; render_size g14 ;;
-  *) echo "usage: $0 [fhd|g14|all] [SCREEN...]" >&2; exit 2 ;;
+  walls) render_walls ;;
+  all) render_size fhd; render_size g14; render_walls ;;
+  *) echo "usage: $0 [fhd|g14|walls|all] [SCREEN...]" >&2; exit 2 ;;
 esac
 # gallery contact sheet (light + dark, every state), at 1x
-[ ${#SCREENS[@]} -ge 20 ] && shot "$D/png/gallery.png" "?size=fhd" 2000 17700 0.5 || true
+[ ${#SCREENS[@]} -ge 20 ] && shot "$D/png/gallery.png" "?size=fhd" 2000 19500 0.5 || true
