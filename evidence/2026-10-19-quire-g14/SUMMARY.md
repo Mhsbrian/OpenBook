@@ -79,13 +79,18 @@ which SELinux doesn't let see that binary; it looks as root now (`b3be816`).
 | 10:38 | `capture --redact` (`capture-after/`), binaries, health | 22 yes, 1 NO (the installer's NVRAM entry, NO before too); the five changed binaries match the target files; 120 Hz; no crash, ANR or tombstone; no denial for Quire or AVF |
 | 10:39 | AVF and the Linux environment's image | KVM, `IVmTethering` registered, Quire the assistant with its default grants; the guest image pushed, sha256 matches (`linux-env-push.log`) |
 
-Not run on the G14: the screen-driving steps, which are the Terminal app's install of the guest
-(`linux-env-adb.sh check`) and `g14-quire-check.py`. They need the laptop unlocked and not in use, and the owner was
-using it (input at 10:40:53). The owner can take the same steps with `docs/quire-howto.md`; Quire's log then shows
-the path.
+| 10:43 | the Linux environment on the G14 (`linux-env/`, `linux-env-adb.sh check`), at the owner's request not to wait for an idle laptop | 0 failures: KVM (`kvm_amd`, nested, NPT); the Terminal app installed the guest by itself and it ran after 21 s; Quire core reached `quired` 7.6 s after VM start and listed opencode 1.19.3; "QUIRE OK", `end_turn`, in 12.7 s |
+| 10:45 | `g14-quire-check.py` on the G14 (`quire/`) | the shake and Meta+Space open the note on screen, 86 and 67 px from the pointer; over Settings it is made and hidden, as reviewed; the note lists `linux:opencode`; Connect opencode, the prompt typed, "QUIRE OK" in the note, `end_turn` in 5.3 s |
+| 10:46 | the Settings demo | the platform's consent dialog ("Allow Quire to use screen automation with Settings?") opened, and a person at the laptop answered it at 10:46:44. The check had not found its button: the dialog isn't in uiautomator's dump. The session then opened Display and Dark theme in the mirror: "Opened Dark theme. In Settings · 2 taps · 12 s" (Quire's log). The check counts this as a FAIL, because its own step didn't tap the button |
+| | health | no crash or ANR of Quire, SystemUI or the Terminal app. One denial the check counts as AVF's: system_server's OomAdjuster may not `setsched` AVF's virtio-sound helper (`crosvm_vu_snd`, AOSP policy); the Linux environment is unaffected |
+
+Left out on purpose: the screenshots and UI dumps of the G14 run, because they show the owner's screen.
+
+Follow-ups:
+- `g14-quire-check.py` should find the consent dialog's buttons another way than uiautomator.
+- Whether OpenBook allows system_server `setsched` on `crosvm_vu_snd`.
 
 ## Not covered here
 
-- On the G14: the guest's install and an agent's answer in the note (above).
 - TalkBack, G14 frame timing and blur, and the taskbar button (Q5's own follow-ups); Q4's pairing.
 - Test keys sign the update, as before; adb authorisation (`ro.adb.secure`) is unchanged, as the owner hasn't decided.
