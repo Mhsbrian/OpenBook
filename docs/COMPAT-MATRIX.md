@@ -9,7 +9,8 @@
 | Native VINTF, strict SELinux, service-context validation | Both stock baselines and adapted hybrid pass; 395 inventoried inputs unchanged | Seven vendor-private desktop service labels rejected; further integration needed |
 | Graphical setup and input | Googlebook boot animation and welcome screen render; pointer input opens the screen-reader prompt and Escape dismisses it | No completed setup, usable launcher or physical AMD GPU result |
 | Longer runtime stability | Final 495.4-second observation catches `system_server` SIGSEGV/SEGV_ACCERR and a zygote restart; `mmd_setup` aborts on missing zram | Fails stability; RenderThread `execmem` denials implicate the VM SwiftShader fallback, with full trace still needed |
-| Physical GA403WR / HX 370 / Radeon 890M | Returned USB logs show missing firmware search path; amdgpu initialization fails at 6.047 s, followed by minigbm/EGL failure and SurfaceFlinger aborts | Loader correction built locally; physical graphics and desktop still require retest |
+| Physical GA403WR / HX 370 / Radeon 890M | Returned USB logs show missing firmware search path; amdgpu initialization fails at 6.047 s, followed by minigbm/EGL failure and SurfaceFlinger aborts | Loader correction written to the SanDisk; physical graphics and desktop still require retest |
+| Corrected SanDisk medium (`048bacf5934bcd22…`) | 12,766,412,800 bytes written and fully read back with matching SHA-256; powered off successfully; prior used image extent and 160 reports preserved privately | Verifies the removable medium, not the next G14 boot |
 | Persistent USB diagnostics | G14 returned 160 files / 13.6 MB, contiguous kernel records through 526 s and 18 Android snapshots; private backup hashes and read-only FAT check pass | No completion marker; capture end unexplained. Logcat ended at 272 s with the snapshot loop; corrected to continue afterward |
 
 Evidence: `evidence/2026-10-19-googlebook-live/` and

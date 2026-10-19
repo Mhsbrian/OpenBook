@@ -15,8 +15,12 @@ capture ends at 526 seconds without a completion marker; its end is unexplained.
 The corrected VM capture finishes at 600.4 seconds: 299 files / 29.8 MB, zero
 overruns or failed saves, and Android logs continue after the snapshot loop.
 The source and internal-decoy hashes are unchanged. The known later VM
-system-server crash remains. The physical stick and logs are preserved. The corrected candidate still
-requires a G14 test; no physical desktop success is claimed. Evidence and
+system-server crash remains. At the owner's follow-up request, the corrected
+candidate `048bacf5934bcd22…` was written to the same 62 GB SanDisk Ultra:
+12,766,412,800 bytes written in 637 s, fully read back in 95 s with matching
+SHA-256, then powered off. The previous used image extent and all 160 logs are
+backed up privately. The corrected candidate still requires a G14 test; no
+physical desktop success is claimed. Evidence and
 validation: `evidence/2026-10-19-googlebook-g14-black-screen/`.
 
 ## 2026-10-19: persistent Googlebook USB diagnostics (ANAL-228)

@@ -13,7 +13,7 @@ logs to its ESP. Inspection found no saved reports. Its metadata partition was
 initialized, but its bootstat and watchdog directories were empty. That is
 evidence of Android initialization, not a diagnosis or successful desktop boot.
 The complete used image extent was preserved privately before replacement.
-The same SanDisk has now been updated with diagnostic candidate
+The same SanDisk was first updated with diagnostic candidate
 `19b9a9492f6b09bad04077378443d307f12ddd4a19f669e22486c88eb2b03f74`:
 all 12,766,412,800 bytes read back correctly, and the stick was powered off.
 The installed laptop and firmware were not updated. Validation and the exact
@@ -24,9 +24,11 @@ the research loader omitted `firmware_class.path=/vendor/firmware`. Radeon
 initialization fails on firmware lookup before minigbm/EGL and SurfaceFlinger
 fail. Wi-Fi, Bluetooth and XDNA firmware lookup fail too. The packagers now
 preserve the actual `vendor_boot.img` command line, with a guard for that path.
-The local corrected candidate is `048bacf5934bcd22…`; it has not replaced the
-returned stick during log review. Update to the corrected candidate before
-the next hardware trial. See `evidence/2026-10-19-googlebook-g14-black-screen/`.
+After the owner's follow-up request, corrected candidate `048bacf5934bcd22…`
+was written to the same SanDisk. All 12,766,412,800 bytes read back with matching
+SHA-256; the stick was powered off and is ready for the next hardware trial.
+The previous used image extent and all 160 reports are backed up privately.
+See `evidence/2026-10-19-googlebook-g14-black-screen/physical-write.json`.
 
 The new **Googlebook - save detailed logs to USB (10 minutes)** entry runs a
 static PID 1 helper before Android, saving `early.txt` and `early-kernel.txt`.
@@ -50,6 +52,21 @@ the timed capture and records any unsaved bytes or failed write attempts.
 Early shutdown can leave an incomplete session. Keep each session together;
 raw diagnostics can include device identifiers and should not be published
 without review.
+
+For the firmware-path regression, use the named **save detailed logs** entry;
+the default experimental live entry does not persist diagnostics. Check the
+welcome screen and keyboard/touchpad if they become available, then return the
+stick after the full capture window. The next review must establish:
+
+- The saved command line contains `firmware_class.path=/vendor/firmware`.
+- Radeon firmware loads and amdgpu initializes instead of repeating the
+  `-2` lookup failures; also check MT7925 and XDNA separately.
+- Minigbm, EGL and SurfaceFlinger initialize, with no recurring graphics
+  service crashes throughout the captured interval.
+- Boot completion and the visible welcome screen agree; neither alone
+  qualifies setup, accounts, applications or long-term stability.
+- `complete.txt` records the capture's duration, overruns and write failures.
+  If it is absent, retain the partial session and diagnose its stopping point.
 
 The helper selects exactly one physical bootconfig PARTUUID, requires the EFI
 partition on USB and the research-image marker, and opens only that partition.
