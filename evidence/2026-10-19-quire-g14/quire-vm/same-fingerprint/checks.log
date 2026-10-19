@@ -1,0 +1,25 @@
+04:35:59 == kvm
+04:35:59 INFO CPU svm flag (cores): 8
+04:36:00 PASS KVM registered its device: 10:232
+04:36:00 PASS /dev/kvm: crw-rw-rw- 1 root root 10, 232 2026-10-19 04:34 /dev/kvm
+04:36:00 PASS kvm_amd loaded: nested=1 npt=Y; log: [    0.000000] Hypervisor detected: KVM [    0.000000] kvm-clock: Using msrs 4b564d01 and 4b564d00 
+04:36:00 INFO properties: [init.svc.vendor.openbook.kvm-check]: [stopped] [init.svc_debug_pid.vendor.openbook.kvm-check]: [] [ro.boot.hypervisor.protected_vm.supported]: [0] [ro.boot.hypervisor.version]: [openbook-kvm] [ro.boot.hypervisor.vm.supported]: [1] [ro.boottime.vendor.openbook.kvm-check]: [3497999766] [vendor.openbook.kvm]: [1] 
+04:36:00 == avf
+04:36:00 PASS feature android.software.virtualization_framework: 
+04:36:00 PASS crosvm and virtmgr: 
+04:36:00 PASS Terminal app installed: 1 disabled
+04:36:00 PASS Quire holds ACCESS_AGENT_BRIDGE: 
+04:36:00 == install
+04:36:00 PASS Android has internet: its own network
+04:36:00 PASS image in place: -rw-rw---- 1 u0_a113 media_rw 821177609 2026-10-18 23:53 /sdcard/linux/images.tar.gz
+04:36:28 PASS Terminal installs the image: by itself (starting)
+04:55:55 FAIL Linux environment running: state=starting after 1195 s
+04:55:55 == guest
+04:58:59 FAIL Quire core lists the agents in the guest: 
+04:58:59 INFO VM start -> Quire connected to quired (s): ?
+04:58:59 == terminal
+04:59:09 FAIL quired agents and systemd-analyze in the Terminal app (screenshot): no terminal on screen
+04:59:09 == prompt
+05:04:22 FAIL a prompt from Quire core is answered in the guest: 
+05:04:22 INFO SELinux denials (distinct): 9
+05:04:22 == 4 failure(s)
