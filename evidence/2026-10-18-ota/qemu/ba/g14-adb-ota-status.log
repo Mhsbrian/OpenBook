@@ -1,0 +1,21 @@
+$ /home/hive/multica_workspaces/analtechnic-b248a69dce69/anal-223-536e232c9126/workdir/OpenBook/scripts/g14-adb.sh -a 127.0.0.1:33897 ota-status
+build: OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys (Sun Oct 18 22:32:05 UTC 2026)
+slot: _a  vbmeta: e0ec4b9ccb2df1e7b01c41e097b3d2b4ee56d14a3d1ecbf92db28b49acaa4fac
+boot HAL: openbook [running] AOSP default []
+update_engine: UPDATE_STATUS_IDLE
+snapshots: Update state: none
+10-18 23:10:07.228   467   467 I android.hardware.boot-service.openbook: bootsync mark-good: 23:10:07 step 1: mark the running slot's entry good
+10-18 23:10:07.228   467   467 I android.hardware.boot-service.openbook: bootsync mark-good: 23:10:07 openbook-a+2-1.conf -> openbook-a.conf
+10-18 23:10:07.228   467   467 I android.hardware.boot-service.openbook: bootsync mark-good: 23:10:07 step 2: remove the other slot's entry (the merge overwrites that slot)
+10-18 23:10:07.228   467   467 I android.hardware.boot-service.openbook: bootsync mark-good: 23:10:07 removed loader/entries/openbook-b.conf (the update to this slot booted)
+10-18 23:10:07.228   467   467 I android.hardware.boot-service.openbook: bootsync mark-good: 23:10:07 loader.conf: default openbook-a.conf
+10-18 23:10:11.813   665   665 I update_engine: [INFO:cleanup_previous_update_action.cc(342)] Merge finished with state MergeCompleted.
+10-18 23:10:11.979   467   467 I android.hardware.boot-service.openbook: bootsync disable _b: 23:10:11 step 1: remove the slot's entry
+10-18 23:10:22.147  1481  1481 I adbd    : adbd service requested 'shell,v2,TERM=xterm-kitty,raw:logcat -d -b all | grep -E 'Merge finished with state|MergeFailed|merge failed' | tail -n 3; snapshotctl dump 2>&1 | grep -iE 'update.?state' | head -n 1'
+10-18 23:10:22.684  1481  1481 I adbd    : adbd service requested 'shell,v2,TERM=xterm-kitty,raw:/vendor/bin/openbook-bootsync --json status 2>/dev/null'
+10-18 23:10:23.299  1481  1481 I adbd    :     logcat -d -b all 2>/dev/null | grep -E "Merge finished|bootsync|fell back" | tail -n 12
+10-18 23:10:23.299  1481  1481 I adbd    :     [ -x /vendor/bin/openbook-bootsync ] && /vendor/bin/openbook-bootsync --json status 2>/dev/null ||
+10-18 23:10:23.299  1481  1481 I adbd    :       echo "(no openbook-bootsync on this image)"'
+ESP: systemd-boot starts slot a next; loader.conf default openbook-a.conf, preferred None
+  slot a: entry openbook-a.conf (good), images ok, ESP files in_sync, vbmeta e0ec4b9ccb2df1e7
+  slot b: entry None (none), images ok, ESP files in_sync, vbmeta e0ec4b9ccb2df1e7

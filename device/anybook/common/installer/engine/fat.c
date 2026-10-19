@@ -895,3 +895,168 @@ int fat_write(struct fat *f, const char *path, const void *data, uint32_t len) {
     if (!rc) rc = fat_flush(f);
     return rc;
 }
+
+// ------------------------------------------------------------------ replace, rename, remove (openbook-bootsync)
+// For a FAT volume that a boot loader reads after any power cut: every change is ordered so that a cut between two
+// writes leaves either the old state or the new one, at worst with clusters nobody references (lost clusters, which
+// fsck reclaims). Each barrier is an fsync of the descriptor (a block device: the page cache gives no write order).
+static int barrier(struct fat *f) { return fsync(f->fd) && errno != EINVAL && errno != EROFS ? -1 : 0; }
+
+// Split "a/b/c" into the directory "a/b" (loaded into d) and the name "c".
+static int dir_of(struct fat *f, const char *path, int create, struct dirbuf *d, char *name, size_t nl) {
+    char dirpath[512];
+    const char *slash = strrchr(path, '/');
+    snprintf(dirpath, sizeof dirpath, "%.*s", slash ? (int)(slash - path) : 0, path);
+    snprintf(name, nl, "%s", slash ? slash + 1 : path);
+    if (!name[0]) {
+        errno = EINVAL;
+        return -1;
+    }
+    if (create && dirpath[0] && fat_mkdirs(f, dirpath)) return -1;
+    uint32_t pdir;
+    struct dent pe;
+    if (lookup(f, dirpath, &pdir, &pe) != 1 || !(pe.attr & 0x10)) {
+        errno = ENOENT;
+        return -1;
+    }
+    if (dir_load(f, pe.first, d)) {
+        dir_free(d);
+        return -1;
+    }
+    return 0;
+}
+
+static void mark_deleted(struct dirbuf *d, const struct dent *e) {
+    for (uint32_t p = e->lfn_pos; p <= e->pos; p += 32) d->data[p] = 0xE5;
+}
+
+// Store a directory, the cluster holding byte `first_pos` first: a new entry is on disk before the old one goes.
+static int dir_store_from(struct fat *f, struct dirbuf *d, uint32_t first_pos) {
+    if (d->first == 0 && f->type != 32) return dir_store(f, d);
+    int k = (int)(first_pos / f->cluster_bytes);
+    if (k >= d->ncl) k = 0;
+    if (pwrite_all(f->fd, d->data + (size_t)k * f->cluster_bytes, f->cluster_bytes, cl_off(f, d->cl[k]))) return -1;
+    if (d->ncl > 1 && barrier(f)) return -1;
+    for (int i = 0; i < d->ncl; i++)
+        if (i != k && pwrite_all(f->fd, d->data + (size_t)i * f->cluster_bytes, f->cluster_bytes, cl_off(f, d->cl[i])))
+            return -1;
+    return 0;
+}
+
+// Room for n more entries without growing the directory during the change itself: grow it first, on its own.
+static int dir_reserve(struct fat *f, struct dirbuf *d, int n) {
+    int ncl = d->ncl;
+    if (find_slots(f, d, n) < 0) return -1;
+    if (d->ncl == ncl) return 0;
+    if (dir_store(f, d) || barrier(f) || fat_flush(f) || barrier(f)) return -1;
+    return 0;
+}
+
+static int nslots(const char *name) {
+    uint8_t raw[11], nt;
+    if (clean_83(name, raw, &nt)) return 1;
+    return 1 + ((int)strlen(name) + 12) / 13;
+}
+
+int fat_replace(struct fat *f, const char *path, const void *data, uint32_t len) {
+    char name[256];
+    struct dirbuf d;
+    if (dir_of(f, path, 1, &d, name, sizeof name)) return -1;
+    struct find_arg a = {.name = name};
+    dir_iter(&d, find_cb, &a);
+    if (a.hit && (a.found.attr & 0x10)) {
+        dir_free(&d);
+        errno = EISDIR;
+        return -1;
+    }
+    if (!a.hit && dir_reserve(f, &d, nslots(name))) {
+        dir_free(&d);
+        return -1;
+    }
+    // 1. the new data in free clusters, and the FAT with the new chain (the old one still allocated)
+    int64_t first = write_chain(f, data, len);
+    int rc = first < 0 || barrier(f) || fat_flush(f) || barrier(f);
+    // 2. the directory entry points at the new chain
+    uint32_t at = 0;
+    if (!rc && a.hit) {
+        uint8_t *e = d.data + a.found.pos;
+        wr16(e + 20, (uint32_t)first >> 16);
+        wr16(e + 26, (uint32_t)first & 0xFFFF);
+        wr32(e + 28, len);
+        dos_time(e + 22, e + 24);
+        at = a.found.pos;
+    } else if (!rc) {
+        int64_t pos = find_slots(f, &d, nslots(name));
+        rc = pos < 0 || add_entry(f, &d, name, 0x20, (uint32_t)first, len);
+        at = pos < 0 ? 0 : (uint32_t)pos;
+    }
+    if (!rc) rc = dir_store_from(f, &d, at) || barrier(f);
+    // 3. the old chain freed
+    if (!rc && a.hit && a.found.first) {
+        free_chain(f, a.found.first);
+        rc = fat_flush(f) || barrier(f);
+    }
+    dir_free(&d);
+    return rc ? -1 : 0;
+}
+
+int fat_rename(struct fat *f, const char *path, const char *new_name) {
+    char name[256];
+    struct dirbuf d;
+    if (strchr(new_name, '/') || !new_name[0]) {
+        errno = EINVAL;
+        return -1;
+    }
+    if (dir_of(f, path, 0, &d, name, sizeof name)) return -1;
+    struct find_arg a = {.name = name}, b = {.name = new_name};
+    dir_iter(&d, find_cb, &a);
+    dir_iter(&d, find_cb, &b);
+    if (!a.hit || b.hit) {
+        dir_free(&d);
+        errno = a.hit ? EEXIST : ENOENT;
+        return -1;
+    }
+    if (dir_reserve(f, &d, nslots(new_name) + 1)) {
+        dir_free(&d);
+        return -1;
+    }
+    uint8_t old[32];
+    memcpy(old, d.data + a.found.pos, 32);
+    mark_deleted(&d, &a.found);
+    int64_t pos = find_slots(f, &d, nslots(new_name));
+    int rc = pos < 0 || add_entry(f, &d, new_name, a.found.attr, a.found.first, a.found.size);
+    if (!rc) {  // keep the creation time
+        uint8_t *e = d.data + pos + 32 * (nslots(new_name) - 1);
+        memcpy(e + 13, old + 13, 5);
+    }
+    if (!rc) rc = dir_store_from(f, &d, (uint32_t)pos) || barrier(f);
+    dir_free(&d);
+    return rc ? -1 : 0;
+}
+
+int fat_unlink(struct fat *f, const char *path) {
+    char name[256];
+    struct dirbuf d;
+    if (dir_of(f, path, 0, &d, name, sizeof name)) return -1;
+    struct find_arg a = {.name = name};
+    dir_iter(&d, find_cb, &a);
+    if (!a.hit || (a.found.attr & 0x10)) {
+        dir_free(&d);
+        errno = a.hit ? EISDIR : ENOENT;
+        return -1;
+    }
+    mark_deleted(&d, &a.found);
+    int rc = dir_store_from(f, &d, a.found.pos) || barrier(f);
+    if (!rc && a.found.first) {
+        free_chain(f, a.found.first);
+        rc = fat_flush(f) || barrier(f);
+    }
+    dir_free(&d);
+    return rc ? -1 : 0;
+}
+
+uint64_t fat_free_bytes(struct fat *f) {
+    uint64_t n = 0;
+    for (uint32_t c = 2; c < f->nclusters + 2; c++) n += fat_get(f, c) == 0;
+    return n * f->cluster_bytes;
+}
