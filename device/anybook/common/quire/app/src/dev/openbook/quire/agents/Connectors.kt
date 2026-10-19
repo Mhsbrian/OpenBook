@@ -6,8 +6,13 @@ package dev.openbook.quire.agents
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Bundle
 import android.os.ParcelFileDescriptor
+import android.os.PowerExemptionManager
+import android.os.SystemClock
 import android.os.SystemProperties
+import android.util.Log
+import dev.openbook.quire.Quire.TAG
 import dev.openbook.quire.R
 
 /**
@@ -27,6 +32,8 @@ object Connectors {
         TERMINAL_OFF,
         /** The Linux environment is on, but its Debian image isn't installed yet. */
         NOT_INSTALLED,
+        /** The Terminal app is installing the Debian image. */
+        INSTALLING,
         STOPPED,
         STARTING,
         /** The Linux environment failed (detail says how), or quired didn't answer in it. */
@@ -44,6 +51,7 @@ object Connectors {
                 State.TERMINAL_MISSING -> R.string.agents_no_avf
                 State.TERMINAL_OFF -> R.string.agents_terminal_off
                 State.NOT_INSTALLED -> R.string.agents_not_installed
+                State.INSTALLING -> R.string.agents_installing
                 State.STOPPED -> R.string.agents_stopped
                 State.STARTING -> R.string.agents_starting
                 State.ERROR -> R.string.agents_error
@@ -81,15 +89,104 @@ object Connectors {
             } catch (e: Exception) {
                 return Status(NAME, State.ERROR, "the Terminal app's agent bridge: ${e.message}")
             }
+            return parse(bundle)
+        }
+
+        /** The agent bridge's answer (status and start both give one): its `state` and, for an error, `message`. */
+        private fun parse(bundle: Bundle?): Status {
             val message = bundle?.getString("message")
             return when (bundle?.getString("state")) {
                 "running" -> Status(NAME, State.READY)
                 "starting" -> Status(NAME, State.STARTING)
                 "stopped" -> Status(NAME, State.STOPPED)
                 "not_installed" -> Status(NAME, State.NOT_INSTALLED)
+                "installing" -> Status(NAME, State.INSTALLING)
                 else -> Status(NAME, State.ERROR, message ?: "unknown state ${bundle?.getString("state")}")
             }
         }
+
+        /**
+         * Asks the Terminal app to start the Linux environment, installing it first if it isn't (ANAL-225: the person
+         * never opens the Terminal app for Quire's agents). The Terminal app runs the VM in a foreground service, and
+         * may start one from the background only with an exemption, which Quire grants it first (its
+         * CHANGE_DEVICE_IDLE_TEMP_WHITELIST). Blocks briefly; call off the main thread.
+         */
+        fun start(context: Context): Status {
+            try {
+                context.getSystemService(PowerExemptionManager::class.java)?.addToTemporaryAllowList(TERMINAL,
+                    PowerExemptionManager.REASON_OTHER, "Quire starts the Linux environment for its agents",
+                    START_EXEMPTION_MS)
+            } catch (e: Exception) {
+                Log.w(TAG, "agents: no start exemption for the Terminal app: ${e.message}")
+            }
+            val bundle = try {
+                context.contentResolver.call(AUTHORITY, "start", null, null)
+            } catch (e: Exception) {
+                return Status(NAME, State.ERROR, "the Terminal app's agent bridge: ${e.message}")
+            }
+            Log.i(TAG, "agents: asked the Terminal app to start the Linux environment: ${bundle?.getString("state")}")
+            // Its own answer: a start it refused keeps its reason, and the state it publishes next may still lag.
+            return parse(bundle)
+        }
+
+        /**
+         * The Linux environment running, started (or installed and started) if it is merely stopped or not installed,
+         * within [timeoutMs]. Returns the last status: READY, or why not. A Linux environment that is off, or a
+         * device without AVF or KVM, is not changed here. Blocks; call off the main thread.
+         */
+        fun ensureRunning(context: Context, timeoutMs: Long): Status {
+            var s = status(context)
+            var acceptedAt = -1L
+            if (s.state == State.STOPPED || s.state == State.NOT_INSTALLED || s.state == State.ERROR) {
+                s = start(context)
+                if (s.state == State.ERROR) {
+                    Log.i(TAG, "agents: the Linux environment did not start: ${s.detail}")
+                    return s
+                }
+                acceptedAt = SystemClock.elapsedRealtime()
+            }
+            val deadline = SystemClock.elapsedRealtime() + timeoutMs
+            var errorSince = -1L
+            while (true) {
+                val now = SystemClock.elapsedRealtime()
+                errorSince = if (s.state == State.ERROR) (if (errorSince < 0) now else errorSince) else -1L
+                val waiting = when (s.state) {
+                    State.STARTING, State.INSTALLING -> true
+                    // The Terminal app publishes "starting" a moment after it accepted the start (VmController
+                    // starts in a coroutine): until then it still reads stopped, or not installed.
+                    State.STOPPED, State.NOT_INSTALLED -> acceptedAt >= 0 && now - acceptedAt < PUBLISH_LAG_MS
+                    // Right after a start the bridge can say "error" for a moment (its vsock probe answers no such
+                    // device until crosvm has the guest up); only an error that lasts is one.
+                    State.ERROR -> now - errorSince < ERROR_GRACE_MS
+                    else -> false
+                }
+                if (!waiting || now > deadline) break
+                SystemClock.sleep(POLL_MS)
+                s = status(context)
+            }
+            Log.i(TAG, "agents: the Linux environment is ${s.state}" + (s.detail?.let { " ($it)" } ?: ""))
+            return s
+        }
+
+        /**
+         * The person's one step (Set up, in the note): turns the Linux environment on, as Developer options' "Linux
+         * development environment" switch does, then starts it, which installs it first. Blocks briefly.
+         */
+        fun setUp(context: Context): Status {
+            try {
+                context.packageManager.setApplicationEnabledSetting(TERMINAL,
+                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED, 0)
+                Log.i(TAG, "agents: turned the Linux environment on")
+            } catch (e: Exception) {
+                return Status(NAME, State.ERROR, "could not turn the Linux environment on: ${e.message}")
+            }
+            return start(context)
+        }
+
+        private const val START_EXEMPTION_MS = 60_000L
+        private const val ERROR_GRACE_MS = 20_000L
+        private const val PUBLISH_LAG_MS = 10_000L
+        private const val POLL_MS = 1000L
 
         /** A stream to the guest's quired, relayed by the Terminal app. */
         fun connect(context: Context): ParcelFileDescriptor =

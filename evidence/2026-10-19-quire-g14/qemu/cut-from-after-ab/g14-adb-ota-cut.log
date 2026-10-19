@@ -1,0 +1,57 @@
+OTA of 127.0.0.1:52915 with /home/hive/anybook/ota/out/openbook-ota-20261019-quire2.zip, 2026-10-19T05:16:44Z; log: /home/hive/anybook/installer/g14/ota-20261019T051644Z/ota.log
+
+device    127.0.0.1:52915: OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+          slot b, vbmeta e0ec4b9ccb2df1e7b01c41e097b3d2b4ee56d14a3d1ecbf92db28b49acaa4fac, installed=whole, virtual A/B true
+package   openbook-ota-20261019-quire2 (994 MB): OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.quire2:userdebug/test-keys
+          tree afb905e: #112 25b899f + #109 3a81419 + #106 10bd84a + #104 d15c25c (= the G14's cand1 image) + #108 dd56681 + #110 52a3bc2 + #111 72ee925 + ANAL-225 (PR #113): the note reaching the Linux environment's agents, its transport fix, BUILD_NUMBER 20261019.quire2, vbmeta 1d2d8f5e5d68b622610a046ac66bfd47eaef75c970c44a3d2684e71d8fbfc596
+update    slot b -> slot a; /data and slot b are kept; slot b stays the fallback until slot a boots
+bootsync  on the device: the boot HAL moves the loader entry
+checks    passed
+
+== update_engine writes slot a (DOWNLOADING: the write, then VERIFYING, FINALIZING)
+[   0s] UPDATE_STATUS_IDLE 0%
+[   0s] UPDATE_STATUS_UPDATE_AVAILABLE 0%
+[   0s] UPDATE_STATUS_CLEANUP_PREVIOUS_UPDATE 0%
+[   0s] UPDATE_STATUS_DOWNLOADING 0%
+[   2s] UPDATE_STATUS_DOWNLOADING 1%
+[   3s] UPDATE_STATUS_DOWNLOADING 2%
+[   3s] UPDATE_STATUS_DOWNLOADING 3%
+[   4s] UPDATE_STATUS_DOWNLOADING 4%
+[   4s] UPDATE_STATUS_DOWNLOADING 5%
+[   5s] UPDATE_STATUS_DOWNLOADING 6%
+[   5s] UPDATE_STATUS_DOWNLOADING 7%
+[   6s] UPDATE_STATUS_DOWNLOADING 8%
+[   6s] UPDATE_STATUS_DOWNLOADING 9%
+[   6s] UPDATE_STATUS_DOWNLOADING 10%
+[   7s] UPDATE_STATUS_DOWNLOADING 11%
+[   7s] UPDATE_STATUS_DOWNLOADING 12%
+[   8s] UPDATE_STATUS_DOWNLOADING 13%
+[   8s] UPDATE_STATUS_DOWNLOADING 14%
+[   9s] UPDATE_STATUS_DOWNLOADING 15%
+[  10s] UPDATE_STATUS_DOWNLOADING 16%
+[  10s] UPDATE_STATUS_DOWNLOADING 17%
+[  11s] UPDATE_STATUS_DOWNLOADING 18%
+[  11s] UPDATE_STATUS_DOWNLOADING 19%
+[  12s] UPDATE_STATUS_DOWNLOADING 20%
+[  12s] UPDATE_STATUS_DOWNLOADING 21%
+[  13s] UPDATE_STATUS_DOWNLOADING 22%
+[  13s] UPDATE_STATUS_DOWNLOADING 23%
+[  14s] UPDATE_STATUS_DOWNLOADING 24%
+[  14s] UPDATE_STATUS_DOWNLOADING 25%
+[  15s] UPDATE_STATUS_DOWNLOADING 26%
+[  15s] UPDATE_STATUS_DOWNLOADING 27%
+[  15s] UPDATE_STATUS_DOWNLOADING 28%
+[  16s] UPDATE_STATUS_DOWNLOADING 29%
+[  17s] UPDATE_STATUS_DOWNLOADING 30%
+[  17s] UPDATE_STATUS_DOWNLOADING 31%
+[  17s] UPDATE_STATUS_DOWNLOADING 32%
+[  18s] UPDATE_STATUS_DOWNLOADING 33%
+[  18s] UPDATE_STATUS_DOWNLOADING 34%
+[  18s] UPDATE_STATUS_DOWNLOADING 35%
+[  19s] UPDATE_STATUS_DOWNLOADING 36%
+[  19s] UPDATE_STATUS_DOWNLOADING 37%
+[  20s] UPDATE_STATUS_DOWNLOADING 38%
+[  21s] UPDATE_STATUS_DOWNLOADING 39%
+[  21s] UPDATE_STATUS_DOWNLOADING 40%
+[  21s] adb: error: device offline
+127.0.0.1:52915: connection refused: is USB debugging on (Settings > System > Developer options)?

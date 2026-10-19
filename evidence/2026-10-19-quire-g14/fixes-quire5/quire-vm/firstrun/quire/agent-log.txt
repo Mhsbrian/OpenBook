@@ -1,0 +1,18 @@
+q2-check agent 1792412106.624
+10-19 12:15:05.206 I/Quire   ( 1434): assistant: session shown trigger=assistant_shortcut pointer=false source=null invocationType=0 keyboardHint=true display=0 showFlags=0x4
+10-19 12:15:05.206 I/Quire   ( 1434): assistant: started contextual search trigger=assistant_shortcut
+10-19 12:15:05.296 I/Quire   ( 1434): invocation: trigger=assistant_shortcut entrypoint=11(KEYBOARD_SHORTCUT) visible=[com.android.launcher3] flagSecureFound=false screenshot=1920x1200 token=true audioPlaying=n/a managedProfileVisible=false caller=dev.openbook.quire mediaProjectionOffered=true
+10-19 12:15:05.296 I/Quire   ( 1434): note: invocation anchor=taskbar bounds=null intake=None reason=no-pointer source=null age=none crop=none
+10-19 12:15:05.296 I/Quire   ( 1434): note: task 2 for assistant_shortcut, agent=none intake=None
+10-19 12:15:05.303 I/Quire   ( 1434): note: shown task 2 phase=NO_AGENT anchor=Taskbar
+10-19 12:15:05.303 I/Quire   ( 1434): note: unfold animated=true
+10-19 12:15:05.777 I/Quire   ( 1434): invocation: saved /data/user/0/dev.openbook.quire/files/invocations/20261019-121505-296-assistant_shortcut.json
+10-19 12:15:06.243 I/Quire   ( 1434): agents: agent opencode version="1.19.3" supported=true
+10-19 12:15:06.927 I/Quire   ( 1434): lab: note DUMP
+10-19 12:15:06.927 I/Quire   ( 1434): lab: task 2 phase=NO_AGENT running=false hidden=false needsAnswer=false agent=null session=null shown=true blocks=[Agents, Buttons]
+10-19 12:15:06.927 I/Quire   ( 1434): lab: agent linux:opencode linux:opencode connected=false state=IDLE name=opencode
+10-19 12:15:16.774 I/Quire   ( 1434): agents: the Linux environment is READY
+10-19 12:15:25.739 I/Quire   ( 1434): acp: connected to linux:opencode: OpenCode 1.19.3 auth=[opencode-login] images=true
+10-19 12:15:31.606 I/Quire   ( 1434): note: task 2 session opencode-1 with linux:opencode
+10-19 12:15:31.606 I/Quire   ( 1434): note: task 2 prompt (1 blocks)
+10-19 12:15:43.377 I/Quire   ( 1434): note: task 2 ended stopReason=end_turn confirmed=true

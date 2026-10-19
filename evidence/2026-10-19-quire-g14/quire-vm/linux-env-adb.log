@@ -1,0 +1,37 @@
+$ /home/hive/anybook/ota/quire1/scripts/quire/linux-env-adb.sh -s 127.0.0.1:45513 check /home/hive/anybook/quire/linux-env/out-q4fix3/images.tar.gz /home/hive/anybook/logs/installer/ota/r2/quire-from-after-ba/linux-env
+build                              OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.quire2:userdebug/test-keys
+debuggable                         1
+AVF feature                        yes
+crosvm, virtmgr                    crosvm virtmgr 
+Terminal app                       installed, off
+KVM's device (sysfs)               10:232
+kvm_amd (npt, nested)              Y 1 
+ro.boot.hypervisor.vm.supported    1
+Linux environment installed        no
+free in /data                      114.1 GiB
+pushing images.tar.gz (783 MiB) to 127.0.0.1:45513:/sdcard/linux/images.tar.gz
+/home/hive/anybook/quire/linux-env/out-q4fix3/images.tar.gz: 1 file pushed, 0 skipped. 36.9 MB/s (821177609 bytes in 21.223s)
+/sdcard/linux/images.tar.gz: sha256 1e0efa0fe6de8fbd2e031d9c6738ad17f690aa89d1c9eda9a0486cf96f3aad20 matches
+/home/hive/anybook/ota/quire1/scripts/quire/q4-device-check.sh: 1 file pushed, 0 skipped. 252.9 MB/s (8744 bytes in 0.000s)
+q4-device-check.sh on 127.0.0.1:45513 (install, boot, agents, prompt: about 5 minutes)
+/data/local/tmp/openbook-q4/out/./: 12 files pulled, 0 skipped. 14.9 MB/s (2480531 bytes in 0.159s)
+/data/local/tmp/openbook-q4/run.log: 1 file pulled, 0 skipped. 4.2 MB/s (1760 bytes in 0.000s)
+CPU svm flag (cores)	INFO	8
+KVM registered its device	PASS	10:232
+/dev/kvm	PASS	crw-rw-rw- 1 root root 10, 232 2026-10-19 05:25 /dev/kvm
+kvm_amd loaded	PASS	nested=1 npt=Y; log: [    0.000000] Hypervisor detected: KVM [    0.000000] kvm-clock: Using msrs 4b564d01 and 4b564d00 
+properties	INFO	[init.svc.vendor.openbook.kvm-check]: [stopped] [init.svc_debug_pid.vendor.openbook.kvm-check]: [] [ro.boot.hypervisor.protected_vm.supported]: [0] [ro.boot.hypervisor.version]: [openbook-kvm] [ro.boot.hypervisor.vm.supported]: [1] [ro.boottime.vendor.openbook.kvm-check]: [2080988009] [vendor.openbook.kvm]: [1] 
+feature android.software.virtualization_framework	PASS	
+crosvm and virtmgr	PASS	
+Terminal app installed	PASS	1 disabled
+Quire holds ACCESS_AGENT_BRIDGE	PASS	
+Android has internet	PASS	its own network
+image in place	PASS	-rw-rw---- 1 u0_a113 media_rw 821177609 2026-10-18 23:53 /sdcard/linux/images.tar.gz
+Terminal installs the image	PASS	by itself (running)
+Linux environment running	PASS	state=running after 29 s
+Quire core lists the agents in the guest	PASS	agent opencode version="1.19.3" supported=true;
+VM start -> Quire connected to quired (s)	INFO	11.2
+quired agents and systemd-analyze in the Terminal app (screenshot)	INFO	terminal.png
+a prompt from Quire core is answered in the guest	PASS	10-19 05:27:25.910 I/Quire   ( 1442): agents: answer opencode-1 stop=end_turn ms=4913 text="QUIRE OK"
+SELinux denials (distinct)	INFO	22
+results in /home/hive/anybook/logs/installer/ota/r2/quire-from-after-ba/linux-env; q4-device-check.sh exit 0 (its failure count)

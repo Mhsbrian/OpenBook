@@ -1,0 +1,47 @@
+{
+ "schema": "openbook-ota/1",
+ "label": "openbook-ota-20261019-quire2-broken",
+ "tree": "afb905e: #112 25b899f + #109 3a81419 + #106 10bd84a + #104 d15c25c (= the G14's cand1 image) + #108 dd56681 + #110 52a3bc2 + #111 72ee925 + ANAL-225 (PR #113): the note reaching the Linux environment's agents, its transport fix, BUILD_NUMBER 20261019.quire2 + test-only: vendor_boot rdinit missing",
+ "test_only_broken_boot": true,
+ "fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.quire2:userdebug/test-keys",
+ "build_date_utc": 1792385633,
+ "device": "anybook_g14",
+ "bytes": 994429505,
+ "sha256": "1c821b0104065b3cb6bd3e6529a1ce207e6917f53e5c4b2c2782f6e1a3ea0f31",
+ "vbmeta_digest": "c6369a17786d9e6b65cbc4a930c38cc65b98454fc3974da0008e10118c47028a",
+ "vbmeta_size": 6144,
+ "payload_properties": [
+  "FILE_HASH=3aa+QYWvFXAY1fQb1f0mfHFvVULm5ydSnqdL2ov3PFA=",
+  "FILE_SIZE=994421851",
+  "METADATA_HASH=PW8RK9rxly6n64CJLTgCROqjsx9xXSSSynl0a1gN4js=",
+  "METADATA_SIZE=44737"
+ ],
+ "partitions": [
+  "boot",
+  "init_boot",
+  "product",
+  "super_empty",
+  "system",
+  "system_dlkm",
+  "system_ext",
+  "system_other",
+  "userdata",
+  "vbmeta",
+  "vendor",
+  "vendor_boot",
+  "vendor_dlkm"
+ ],
+ "bootsync_sha256": "e3019926318877e95798de0b81343109e93c08daf1ba83d2aac9b4e4bb5bd656",
+ "metadata": {
+  "ota-property-files": "payload_metadata.bin:4162:45004,payload.bin:4162:994421851,payload_properties.txt:994426071:154,apex_info.pb:1992:1491,care_map.pb:3530:585,metadata:69:698,metadata.pb:835:1109                      ",
+  "ota-required-cache": "0",
+  "ota-streaming-property-files": "payload.bin:4162:994421851,payload_properties.txt:994426071:154,apex_info.pb:1992:1491,care_map.pb:3530:585,metadata:69:698,metadata.pb:835:1109                        ",
+  "ota-type": "AB",
+  "post-build": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.quire2:userdebug/test-keys",
+  "post-build-incremental": "20261019.quire2",
+  "post-sdk-level": "37",
+  "post-security-patch-level": "2026-06-05",
+  "post-timestamp": "1792385633",
+  "pre-device": "anybook_g14"
+ }
+}

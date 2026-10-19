@@ -39,7 +39,8 @@
     <string name="agents_no_kvm">This laptop can’t run the Linux environment: it has no hardware virtualization (KVM), or it is turned off in the firmware settings.</string>
     <string name="agents_terminal_off">The Linux environment is off. Turn it on in Settings › System › Developer options › Linux development environment.</string>
     <string name="agents_not_installed">The Linux environment isn’t set up yet. Open Terminal to install it.</string>
-    <string name="agents_stopped">The Linux environment isn’t running. Open Terminal to start it.</string>
+    <string name="agents_installing">The Linux environment is being installed. This takes a few minutes the first time.</string>
+    <string name="agents_stopped">The Linux environment didn’t start. Open Terminal to see why.</string>
     <string name="agents_starting">The Linux environment is starting.</string>
     <string name="agents_error">The Linux environment couldn’t be reached.</string>
     <string name="agents_not_paired">Quire can use the agents on another computer instead, but none is paired.</string>
