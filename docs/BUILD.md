@@ -20,10 +20,13 @@ actual hardware-facing menu entry and extract logs from the private VM disk.
 The original input and synthetic internal disk must remain unchanged. For a
 full ten-minute capture, allow a longer observation window (for example 760 s).
 See `docs/googlebook-live.md` for operation and capture limits.
-The diagnostic image `19b9a9492f6b09ba…` is now on the owner's SanDisk with
-matching full readback; `evidence/2026-10-19-googlebook-usb-logs/` records the
+The initial diagnostic image `19b9a9492f6b09ba…` was written with matching
+full readback; `evidence/2026-10-19-googlebook-usb-logs/` records the
 VM validation, unchanged logger across the final policy-only adjustment and
-physical-write result.
+physical-write result. The owner's follow-up now places the corrected
+`048bacf5934bcd22…` image on the same SanDisk, again with full 12.77 GB readback
+and successful power-off. Its prior boot state and logs are backed up privately.
+The new write evidence is `evidence/2026-10-19-googlebook-g14-black-screen/physical-write.json`.
 
 See `docs/googlebook-live.md` for the isolated patched-QEMU build, native versus
 emulated arithmetic checks, bare-metal probe packaging, and UEFI/USB tests with

@@ -68,6 +68,18 @@ there are no logger-domain or FIFO denials. `validation.json` and
 completion is reported, but the known system-server SIGSEGV and `mmd_setup`
 abort recur. This is a packaging/logging pass, not stable desktop qualification.
 
-The returned physical stick still holds diagnostic candidate `19b9a949…` and
-its saved reports. This review does not write a new image to it. The correction
-requires a new physical test before claiming Radeon or desktop success.
+At the end of log review, the returned stick still held diagnostic candidate
+`19b9a949…`; the `physical_stick_updated: false` field in `validation.json`
+describes that review run.
+
+The owner subsequently requested proceeding. The same 62 GB SanDisk Ultra was
+updated with the corrected, unchanged VM-tested image `048bacf5934bcd22…`:
+12,766,412,800 bytes written in 637 s and fully read back in 95 s with matching
+SHA-256, then powered off successfully. `physical-write.json` records this
+later action. Before writing, its entire used image extent was preserved
+privately (12,766,412,800 bytes, mode 0600); both copies of its 160 report files
+were hash-verified. The installed laptop and firmware were not updated.
+
+The next G14 test should use **Googlebook - save detailed logs to USB (10
+minutes)**, run for 12 minutes, then return the stick for inspection. The
+correction requires that physical test before claiming Radeon or desktop success.
