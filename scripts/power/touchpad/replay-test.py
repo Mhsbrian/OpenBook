@@ -108,6 +108,20 @@ class ReplayTests(unittest.TestCase):
         m = Motion(); m.add([], 10); m.add([(1, 1800, 1000, True)], 20); m.add([])
         self.assertFalse(any("down" in x for x in m.run()))
 
+    def test_tapping_off_suppresses_taps_and_scroll_clicks(self):
+        for stagger in (0, 12, 24):
+            with self.subTest(stagger=stagger):
+                m = Motion(); m.add([], 10)
+                m.add([(1, 1800, 1000, False)], 20); m.add([], 80)
+                m.add([(2, 1500, 1000, False)], stagger)
+                for i in range(80):
+                    m.add([(2, 1500, 1000 + i * 5, False), (3, 2200, 1000 + i * 5, False)])
+                # Fingers lift separately, as they often do during real scrolling.
+                m.add([(3, 2200, 1395, False)], 10); m.add([])
+                events = m.run(**{"Tap Enable": False})
+                self.assertTrue(any("type: scroll" in x["description"] for x in events))
+                self.assertFalse(any("down" in x for x in events))
+
     def test_three_finger_swipe(self):
         m = Motion(); m.add([], 10)
         for i in range(100):

@@ -1,0 +1,5 @@
+# Local Ruby/OpenBook experiment: G14 and QEMU have no Chrome EC console.
+# Stop marks an unstarted service disabled before class_start core. This uses
+# the existing system service definition; cross-Treble overrides are rejected.
+on early-init
+    stop timberslide

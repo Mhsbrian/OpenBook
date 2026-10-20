@@ -1,5 +1,21 @@
 # Hardware
 
+The Ruby live follow-up confirms ELAN `04f3:3315` is recognized through
+TouchpadInputMapper. The older dump has tapping on, while the owner reports
+scroll/click interference with tapping off. Current-user preference propagation
+and gesture timestamp warnings need a labeled physical trace. Nine synthetic
+AOSP replay controls pass, including tap-disabled scrolling; this is not a
+physical Ruby touchpad fix. The read-only ADB collector now records the exact
+preferences and mapper state. See `docs/touchpad-behavior.md` for the separate
+Ruby and installed-OpenBook findings.
+
+Vendor-only preserving updates are implemented for this configured research
+USB. Both private prepared clones preserve 8,805,941,248 bytes outside the three
+update partitions and retain other ESP files. G14 credential unlock and apps
+must still be checked after an update; byte preservation is not that hardware
+test. Current validation: `evidence/2026-10-19-googlebook-services-update/`.
+The paragraphs below retain the earlier baseline observations.
+
 The owner has completed setup on the net18 USB and requests preserving that
 state during future updates. The same SanDisk is attached to the development
 host. Read-only inspection confirms separate 8 GiB userdata and 64 MiB metadata

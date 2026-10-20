@@ -7,8 +7,20 @@ Fresh `live-image.py` output contains blank userdata/metadata; do not apply it
 with the full-image writer to the configured stick. An offline preserving
 updater must retain data, encryption metadata, misc and boot identity while
 replacing a coherent system/AVB/ESP set. Net18 and zram19 have matching extents,
-but their ESP UUIDs differ. Implementation and an end-to-end preservation
-rehearsal remain pending. See `docs/googlebook-live.md` for the contract.
+but their ESP UUIDs differ. `preserve-update.py` now prepares and verifies a
+private clone with the original identity and data; `apply-preserved-update.py`
+defaults to read-only device preflight and writes only EFI/super/vbmeta_a when
+the exact USB is confirmed. Both reject changed baselines. Ten preservation
+guards cover GPT CRCs, excluded ranges, identity/security drift and device
+selection. See `docs/googlebook-live.md` for commands and rehearsal requirements.
+
+The Ruby desktop-service profile restores seven exact service labels and only
+reviewed original policy statements. Rerun the native audit before packaging;
+the profile and PC init fragment are audited inputs. Validate the latter with
+`host_init_verifier config/image-bases/ruby-pc-init.rc`. The fragment stops the
+unsupported Chrome EC logger before class startup. The user-build collector
+also records touchpad capabilities, mapper state and current/system-user
+preferences without modifying them.
 
 ## GKI zram boot integration (ANAL-228)
 

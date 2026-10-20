@@ -36,7 +36,7 @@ def runtime_findings(serial):
         "setup_welcome_activity_seen": "desktop.setupwizard/.user.DesktopWelcomeActivity" in serial,
         "system_server_fatal_signals": sorted(set(line.strip() for line in serial.splitlines()
             if "Fatal signal" in line and "(system_server)" in line)),
-        "zygote_exit_events": len(re.findall(r"Service 'zygote' \(pid [0-9]+\) (?:received|exited)", serial)),
+        "zygote_exit_events": len(set(re.findall(r"Service 'zygote' \(pid [0-9]+\) (?:received|exited)", serial))),
         "system_server_execmem_denial_seen": any("execmem" in line and "scontext=u:r:system_server:s0" in line
                                                  for line in serial.splitlines()),
         "mmd_setup_abort_seen": bool(re.search(r"Service 'mmd_setup' \(pid [0-9]+\) received SIGABRT", serial)),
@@ -65,11 +65,14 @@ def screenshot(path, target):
 
 
 @contextmanager
-def tpm_backend(w, enabled):
+def tpm_backend(w, enabled, state_from=None):
     if not enabled:
         yield
         return
-    (w / "tpm-state").mkdir()
+    if state_from:
+        shutil.copytree(state_from, w / "tpm-state")
+    else:
+        (w / "tpm-state").mkdir()
     with (w / "swtpm.log").open("wb") as log:
         proc = subprocess.Popen(["swtpm", "socket", "--tpm2", "--tpmstate", "dir=tpm-state",
                                  "--ctrl", "type=unixio,path=tpm.sock", "--flags", "not-need-init"],
@@ -101,6 +104,7 @@ def main():
     p.add_argument("--usb-logs", action="store_true", help="Select shipped serial+USB logger; retain writes in the private USB copy")
     p.add_argument("--usb-log-entry", choices=("serial-logs", "logs", "safe-logs"), default="serial-logs")
     p.add_argument("--tpm", action="store_true", help="Use a new disposable software TPM over CRB; no hardware attestation claim")
+    p.add_argument("--tpm-state-from", type=Path, help="Copy a previous disposable VM's TPM state for an update rehearsal; never G14 data")
     p.add_argument("--audio", action="store_true", help="Emulated HDA codec with a silent input and no host audio device")
     p.add_argument("--wake-display", action="store_true", help="After the observation, capture, send the wake key, wait 15 seconds and capture again")
     p.add_argument("--timeout", type=int, default=180, choices=range(30, 1801), metavar="30..1800")
@@ -109,6 +113,14 @@ def main():
         p.error("--usb-logs requires --uefi-usb")
     if a.usb_log_entry != "serial-logs" and not a.usb_logs:
         p.error("--usb-log-entry requires --usb-logs")
+    tpm_hashes = None
+    if a.tpm_state_from:
+        if not (a.tpm and a.usb_logs) or not a.tpm_state_from.is_dir() or a.tpm_state_from.is_symlink():
+            p.error("TPM reuse requires --tpm --usb-logs and a regular state directory")
+        state_files = list(a.tpm_state_from.iterdir())
+        if not state_files or any(not f.is_file() or f.is_symlink() for f in state_files):
+            p.error("TPM state must contain regular files only")
+        tpm_hashes = {f.name: h.audit.sha(f) for f in state_files}
     if not Path("/.dockerenv").exists():
         p.error("Run through inst-docker.sh")
     qemu = shutil.which(a.qemu)
@@ -119,7 +131,7 @@ def main():
     disk = src / ("ruby-live.img" if a.uefi_usb else "probe.img")
     if not disk.is_file() or disk.is_symlink() or any(c in str(src) for c in ",\n\r"):
         p.error("Expected a regular image under an input path without QEMU delimiters")
-    w = h.new_output(a.out, (src,))
+    w = h.new_output(a.out, (src, *([a.tpm_state_from.resolve()] if a.tpm_state_from else [])))
     before = h.audit.sha(disk)
     guest_disk = disk
     if a.uefi_usb:
@@ -135,6 +147,17 @@ def main():
         (w / "loader.conf").write_text(f"timeout 1\ndefault {entry}\neditor no\nconsole-mode keep\n")
         h.run("mcopy", "-o", "-i", f"{guest_disk}@@{esp['first_lba'] * 512}", w / "loader.conf", "::/loader/loader.conf")
     guest_sha = h.audit.sha(guest_disk)
+    prior_sessions = set()
+    if a.usb_logs:
+        # A preserved disk already has complete.txt from earlier boots. Do not
+        # count those as evidence of this observation's boot or capture success.
+        prior = w / "prior-logs"
+        prior_copy = subprocess.run(["mcopy", "-s", "-i", f"{guest_disk}@@{esp['first_lba'] * 512}",
+                                    "::/openbook/logs", str(prior)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if a.tpm_state_from and prior_copy.returncode:
+            raise ValueError("Restored-state rehearsal must inventory prior logs before boot")
+        if prior.is_dir():
+            prior_sessions = {p.name for p in prior.iterdir()}
     # Linux AF_UNIX has a short pathname limit; use the new workdir as cwd.
     cmd = [a.qemu, "-machine", "q35", "-accel", a.accel, "-cpu", "host" if a.accel == "kvm" else "max",
            "-smp", "4", "-m", "8192", "-display", "none", "-nic", "none",
@@ -169,7 +192,7 @@ def main():
         cmd += ["-audiodev", "none,id=audio0", "-device", "intel-hda", "-device", "hda-duplex,audiodev=audio0"]
     (w / "command.json").write_text(json.dumps(cmd, indent=2) + "\n")
     start = time.monotonic()
-    with tpm_backend(w, a.tpm), (w / "qemu.log").open("wb") as log:
+    with tpm_backend(w, a.tpm, a.tpm_state_from), (w / "qemu.log").open("wb") as log:
         proc = subprocess.Popen(cmd, stdout=log, stderr=subprocess.STDOUT, cwd=w)
         elapsed = False
         screen_error = None
@@ -201,10 +224,16 @@ def main():
     if a.usb_logs:
         logs_rc = subprocess.run(["mcopy", "-s", "-i", f"{guest_disk}@@{esp['first_lba'] * 512}",
                                   "::/openbook/logs", str(w / "saved-logs")]).returncode
-    saved_files = [f for f in sorted((w / "saved-logs").rglob("*")) if f.is_file()]
-    observed = "\n".join(f.read_text(errors="replace") for f in saved_files) if saved_files else serial
+    saved_files = [f for f in sorted((w / "saved-logs").rglob("*")) if f.is_file()
+                   and f.relative_to(w / "saved-logs").parts[0] not in prior_sessions]
+    # USB capture is bounded to ten minutes; retain later serial evidence too.
+    observed = serial + "\n" + "\n".join(f.read_text(errors="replace") for f in saved_files)
     result = {"schema": "openbook-ruby-observation/1", "accel": a.accel, "uefi_usb": a.uefi_usb,
               "software_tpm": a.tpm,
+              "software_tpm_restored": bool(a.tpm_state_from),
+              "source_tpm_unchanged": ({f.name: h.audit.sha(f) for f in a.tpm_state_from.iterdir()} == tpm_hashes)
+                                      if a.tpm_state_from else None,
+              "prior_log_sessions_excluded": len(prior_sessions),
               "emulated_audio": a.audio,
               "qemu_sha256": qemu_sha,
               "qemu_exit": proc.returncode, "elapsed_s": round(time.monotonic() - start, 1),
@@ -229,7 +258,7 @@ def main():
               "scope": "Observation only. Review original logs; no hardware or installation claim."}
     (w / "result.json").write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps(result, indent=2))
-    if not result["input_unchanged"] or (not a.usb_logs and not result["guest_disk_unchanged"]) or result["decoy_unchanged"] is False or (not elapsed and proc.returncode) or (a.usb_logs and logs_rc):
+    if not result["input_unchanged"] or result["source_tpm_unchanged"] is False or (not a.usb_logs and not result["guest_disk_unchanged"]) or result["decoy_unchanged"] is False or (not elapsed and proc.returncode) or (a.usb_logs and logs_rc):
         raise SystemExit(2)
 
 

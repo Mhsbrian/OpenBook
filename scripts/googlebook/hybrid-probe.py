@@ -158,6 +158,11 @@ def prepare(a):
         raise ValueError("Rerun the audit to include Ruby's TPM ownership configuration")
     if "$REPO/device/anybook/common/pc/init.openbook.zram.rc" not in report["input_inventory"]:
         raise ValueError("Rerun the audit to include the GKI zram module loader")
+    for required in ("$REPO/config/image-bases/ruby-desktop-services.cil",
+                     "$REPO/config/image-bases/ruby-pc-init.rc",
+                     "$RUBY/fs/system_a/system/etc/init/timberslide.rc"):
+        if required not in report["input_inventory"]:
+            raise ValueError(f"Rerun the audit to include {required}")
     if not report["cases"]["hybrid-reduced"].get("service_contexts", {}).get("passed"):
         raise ValueError("Rerun the audit to validate retained framework service labels")
     for name, expected in report["input_inventory"].items():
@@ -192,7 +197,15 @@ def prepare(a):
     services.write_text(audit.framework_service_contexts(services.read_text(),
         (a.ruby / "fs/vendor_a/etc/selinux/vendor_service_contexts").read_text(), audit.SERVICE_PROFILE.read_text()))
     reduced_cil = a.audit / "hybrid-reduced/vendor_sepolicy.cil"
-    (se / "vendor_sepolicy.cil").write_text(reduced_cil.read_text() + "\n" + audit.PROBE_POLICY.read_text())
+    (se / "vendor_sepolicy.cil").write_text(reduced_cil.read_text() + "\n" + audit.PROBE_POLICY.read_text()
+                                           + "\n" + audit.DESKTOP_POLICY.read_text())
+    # Fail on upstream service command drift before disabling this PC-inapplicable daemon.
+    original_ec = (a.ruby / "fs/system_a/system/etc/init/timberslide.rc").read_text()
+    ec_command = ("service timberslide /system/bin/timberslide --name cros_ec --log-to-logcat "
+                  "--log-to-file /data/misc/timberslide/cros_ec.log --period-ms 4000")
+    if original_ec.splitlines().count(ec_command) != 1:
+        raise ValueError("Ruby timberslide init contract changed")
+    shutil.copyfile(audit.PC_INIT, vendor / "etc/init/ruby-pc.rc")
     # Recompile the audited inputs into this new image, with neverallow checks.
     # A stale or replaced binary in the previous audit directory is not trusted.
     policy_inputs = []
@@ -201,7 +214,7 @@ def prepare(a):
         src = aliases[prefix] / rel
         if audit.sha(src) != expected:
             raise ValueError(f"Audited policy input drift: {name}")
-        if src != audit.PROBE_POLICY:
+        if src not in (audit.PROBE_POLICY, audit.DESKTOP_POLICY):
             policy_inputs.append(se / "vendor_sepolicy.cil" if src == reduced_cil else src)
     run(a.tools / "secilc", "-m", "-M", "true", "-G", "-c", "33", "-o", se / "precompiled_sepolicy",
         "-f", "/dev/null", *policy_inputs)
