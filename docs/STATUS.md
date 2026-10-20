@@ -11,10 +11,13 @@ init verification, 50 host checks and compatibility audits pass. The 760.6-secon
 preserving VM rehearsal mounts encrypted test data, completes boot and registers
 the provider without a provider exit or recorded fatal signal. Its ten-minute
 capture completes with zero lost bytes; zero cameras is expected in this VM.
-The candidate remains private and has not been applied to the configured USB.
-Physical preview and app/privacy
-tests remain required; live ADB access and the physical USB are unavailable on
-this host. Details and validation: `docs/g14-camera.md` and
+Camera23 is now on the configured SanDisk. A fresh private backup matched a
+second independent device read. Only super/vbmeta_a/EFI were written, and all
+12,766,412,800 bytes passed direct readback (`bf79eef29bc760e5…`). All
+8,805,941,248 protected bytes, including userdata and encryption metadata, and
+unrelated ESP files remain unchanged. The backup is retained and power-off
+succeeded. G14 unlock, existing app state and physical camera/privacy tests
+remain required on the next boot. Details and validation: `docs/g14-camera.md` and
 `evidence/2026-10-19-googlebook-camera/`.
 
 ## 2026-10-19: Ruby input gaps confirmed; live follow-up awaits ADB (ANAL-228)

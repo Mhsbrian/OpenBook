@@ -5,11 +5,13 @@ packager and an instruction-emulation lane. These are local research artifacts;
 the installer Googlebook option remains unavailable. Generated images contain
 retained recovery material and must stay local.
 
-Latest handoff: services21 is on the owner's SanDisk. The preserving update and
-full 12.77 GB direct readback passed, protected data is unchanged, the private
-backup is retained and the drive powered off. Its 18.3-minute existing-state VM
-rehearsal passed; G14 post-update unlock and hardware behavior still need a
-retest. Evidence: `evidence/2026-10-19-googlebook-services-update/`.
+Latest handoff: camera23 is on the owner's SanDisk. A fresh private backup was
+verified by an independent second device read before the preserving update.
+Full 12.77 GB direct readback passed (`bf79eef29bc760e5…`), all 8,805,941,248
+protected bytes are unchanged, the backup is retained and the drive powered off.
+Its 760.6-second existing-state VM rehearsal passed; G14 post-update unlock and
+camera behavior still need a test. Evidence:
+`evidence/2026-10-19-googlebook-camera/physical-write.json`.
 
 ## Preserve the configured USB during iteration
 
@@ -129,8 +131,10 @@ Ruby report exposes zero cameras and the vendor tree had no provider. Rebuild
 configuration, feature/manifest declarations and restricted video-node access.
 The latest collectors report provider and camera-service state without capturing
 frames. See `docs/g14-camera.md` for the EXTERNAL lens-facing limitation and
-physical acceptance. Apply only through a new backup and the preserving updater;
-the owner has used the configured stick since its last backup.
+physical acceptance. Camera23 was applied through a fresh backup and the
+preserving updater; all userdata and encryption metadata bytes are retained.
+Repeat the fresh-backup step before every subsequent update if the owner has
+booted or used the configured stick since its last backup.
 
 ### Desktop services and touchpad follow-up
 

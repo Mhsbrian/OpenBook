@@ -58,12 +58,22 @@ are excluded. The source image, source TPM state and synthetic internal decoy
 are unchanged. This bounded VM observation does not resolve the separate physical
 watchdog or qualify the G14 webcam.
 
-## Hardware gate
+## Physical USB handoff and remaining hardware gate
 
-The configured SanDisk is absent from this workstation, and the G14 has no usable
-wireless ADB endpoint. Camera23 has **not** been applied to the physical USB.
-A new backup must precede the preserving update because the owner has used the
-stick since its last backup. Never replace its configured data with the fresh
+`physical-write.json` records the camera23 handoff. A new private backup of the
+owner's current configured stick matched an independent second direct read.
+The preserving updater then matched the live device to that backup before
+writing only super/vbmeta_a/EFI. All 12,766,412,800 bytes passed direct readback
+with SHA-256 `bf79eef29bc760e50889b0d01518836fd0b3ae2b33f6f0b304692fa96a5176b6`.
+All 8,805,941,248 protected bytes, including userdata/encryption metadata, and
+unrelated ESP files remain unchanged. The backup is retained privately and the
+stick powered off successfully. The prepared EFI partition has 218,440,192 bytes
+free for diagnostics. Earlier static/runtime JSON describes pre-deployment checks.
+
+The next G14 boot must confirm credential unlock, existing apps/settings and
+camera behavior. Use the ten-minute save-logs entry and the current Wireless
+debugging IP/port for inspection. A fresh backup is required before a subsequent
+update if the stick has been used. Never replace its configured data with a fresh
 candidate's blank data partitions.
 
 The selected provider accepts MJPEG color, advertises EXTERNAL lens facing, and

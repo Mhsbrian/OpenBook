@@ -83,11 +83,24 @@ and synthetic internal disk remain unchanged; physical validation is still open.
 
 ## Physical acceptance and preservation
 
-Keep the configured USB's current data: take a new verified backup before the
-next preserving update, because the owner has booted and used services21 since
-its previous backup. Retain metadata, userdata and identity; never use the fresh
-candidate's blank data partitions on this configured stick. The generated
-Google-based images and the owner's backup remain private.
+Camera23 has been applied to the configured SanDisk from a fresh verified
+backup of its current services21 state. Only super/vbmeta_a/EFI were written;
+full 12,766,412,800-byte direct readback matches `bf79eef29bc760e5…`. All
+8,805,941,248 protected bytes, including userdata and encryption metadata, and
+unrelated ESP files remain unchanged. Power-off succeeded; the backup is retained.
+This verifies stored bytes, not the user's next credential unlock or camera frames.
+
+Keep the configured USB's current data: take a new verified backup before every
+subsequent preserving update if the stick has been used. Retain metadata,
+userdata and identity; never use a fresh candidate's blank data partitions on
+this configured stick. Generated Google-based images and owner backups stay private.
+
+For the first updated boot, select **Googlebook - save detailed logs to USB
+(10 minutes)**. Confirm that the existing user unlocks and the configured apps
+and settings are present before testing video. Leave this boot running for at
+least ten minutes so the bounded capture can finish; shut Android down before
+moving the stick back to the development host. For live inspection, use the
+current IP address and port displayed on the main Wireless debugging screen.
 
 On the G14, verify the service, video-node labels/access, `dumpsys media.camera`,
 and camera privacy state. Then use an authorized camera app and a browser video
