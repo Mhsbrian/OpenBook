@@ -6,10 +6,12 @@ capacity through Android's rounding; the absent laptop has not been remeasured.
 Fresh28 adds an explicitly destructive full-capacity installer option for the
 1 TB NVMe. See `googlebook-fresh-install.md`; hardware application is pending.
 
-The owner now reports Bluetooth call instability and laptop microphone selection
-with AirPods/Pixel Buds. Static policy inspection finds missing classic SCO routes
-despite Ruby enabling software HFP. A passive diagnostic APK is provided for
-off-host capture; neither a hardware root cause nor an audio fix is claimed.
+The returned Pixel Buds call report shows HFP/A2DP connected, no SCO audio,
+only the speaker as a communication device, and built-in microphone recording.
+The SCO policy candidate passes 12 synthetic route/stream cases against the exact
+retained audio APEX. It is not shipped: the default Bluetooth HAL also lacks the
+kernel's USB voice-endpoint control path. Speaker stuttering needs a contemporaneous
+system bug report; no timing or controller change has been applied.
 See `googlebook-audio-diagnostic.md`.
 
 2026-10-20 installed follow-up: the owner confirms bare-metal installation succeeds

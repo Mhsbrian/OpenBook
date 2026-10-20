@@ -1,5 +1,28 @@
 # Status
 
+## 2026-10-20: Returned call diagnostic and SCO boundary test (ANAL-228)
+
+The returned Pixel Buds/Teams report confirms a system-visible missing headset
+microphone path: HFP/A2DP connected throughout the sampled states, HFP audio
+inactive, no Bluetooth communication device, and built-in microphone recording.
+It also directly confirms the laptop's roughly 8 GiB data filesystem with a
+16 GB Android advertised total. Raw owner logs remain private.
+
+The candidate SCO policy passes 12 synthetic provider/session/route/stream cases
+in enforcing Cuttlefish against the exact retained audio APEX; baseline fails
+because the Bluetooth module exposes no SCO interface. Five report-analysis tests
+pass. This is not a shipped Bluetooth fix: source review also found that the
+default Bluetooth HAL lacks the kernel's HCI driver-command path for USB voice
+endpoints. Policy remains excluded from product/image packaging pending transport
+integration, PCM tests and hardware validation.
+
+Reported severe internal-speaker stuttering remains undiagnosed. The earlier
+codec-clock patch is present, and old hardware logs show it enabled. Request a
+system bug report directly after reproduction; do not infer packet loss, timing
+failure or a need to reset data from the public-API report. Fresh28 and all physical
+media are unchanged. See `googlebook-audio-diagnostic.md` and
+`evidence/2026-10-20-googlebook-hfp29/`.
+
 ## 2026-10-20: Fresh28 full-capacity installation and away-from-host audio capture
 
 Fresh28 adds a distinct **Fresh install Googlebook to SSD - ERASE SSD DATA**
@@ -25,7 +48,7 @@ The owner's clarified **16 GB Settings total** is consistent with Android's
 rounding: the new diagnostic observes about 8 GiB StatFs data capacity and
 16,000,000,000 bytes from Android's storage API on the same emulator. This
 corrects the earlier direct equation of the UI reading with an 8 GiB filesystem;
-the absent laptop still needs direct measurement.
+the later returned call report now confirms both values on the laptop itself.
 
 OpenBook Audio Check is built and signed as a normal APK. Android 17 UI tests
 pass capture/background sampling/marker/stop, byte-identical SAF export and
