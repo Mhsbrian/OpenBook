@@ -209,6 +209,9 @@ def prepare(a):
     if original_ec.splitlines().count(ec_command) != 1:
         raise ValueError("Ruby timberslide init contract changed")
     shutil.copyfile(audit.PC_INIT, vendor / "etc/init/ruby-pc.rc")
+    quarantine = None
+    if getattr(a, "test_update_engine_stop", False):
+        quarantine = module("update_quarantine", HERE / "update-quarantine.py").prepare(a.ruby, vendor)
     # Recompile the audited inputs into this new image, with neverallow checks.
     # A stale or replaced binary in the previous audit directory is not trusted.
     policy_inputs = []
@@ -310,6 +313,9 @@ echo OPENBOOK_RUBY_CHECKPOINT=$checkpoint
 id
 getenforce
 echo OPENBOOK_RUBY_BOOT_COMPLETED=$(getprop sys.boot_completed)
+echo init.svc.update_engine=$(getprop init.svc.update_engine)
+timeout 8 service check android.os.UpdateEngineService
+timeout 8 service check android.os.UpdateEngineStableService
 echo init.svc.vendor.camera.provider-ext=$(getprop init.svc.vendor.camera.provider-ext)
 timeout 8 service check android.hardware.camera.provider.ICameraProvider/external/0
 timeout 8 dumpsys media.camera
@@ -433,6 +439,7 @@ done
               "zram_init_sha256": audit.sha(audit.ZRAM_INIT),
               "camera": camera,
               "camera_fmq_test": fmq_test,
+              "update_quarantine": quarantine,
               "bootconfig": params, "gpt": g.table(),
               "avb": "local test-key root, unlocked/orange; retained Google logical image descriptors",
               "usb_logger_sha256": audit.sha(vendor / "bin/ruby-usb-log"),
@@ -491,6 +498,8 @@ def main():
     p.add_argument("--camera-fmq-test", action="store_true",
                    help="Add camera-domain memfd/YUV-buffer tests to a disposable VM; never deploy this image")
     p.add_argument("--prepare-only", action="store_true", help="Assemble only; use run-probe.py for a separate observation")
+    p.add_argument("--test-update-engine-stop", action="store_true",
+                   help="Disposable VM negative experiment: fresh-data boot failed; never deploy")
     a = p.parse_args()
     for n in ("ruby", "product", "tools", "kernel", "audit", "key"):
         setattr(a, n, getattr(a, n).resolve(strict=True))

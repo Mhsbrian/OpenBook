@@ -1,0 +1,135 @@
+{
+  "schema": "openbook-ruby-observation/1",
+  "accel": "tcg",
+  "uefi_usb": false,
+  "software_tpm": true,
+  "software_tpm_restored": false,
+  "source_tpm_unchanged": null,
+  "prior_log_sessions_excluded": 0,
+  "emulated_audio": false,
+  "qemu_sha256": "35db71cb2178b665983472bb584f87505cf431f225a881149dba83de0350de8a",
+  "qemu_exit": 0,
+  "elapsed_s": 272.4,
+  "observation_window_elapsed": false,
+  "input_sha256": "a4d8916116f78bc706b17699da6867dea5419615ab3c418a4b90776a6b0a060d",
+  "input_unchanged": true,
+  "guest_disk_unchanged": true,
+  "test_entry": "direct kernel",
+  "persistent_usb_logs": false,
+  "logs_readback_exit": null,
+  "usb_capture_finished": false,
+  "wake_display_requested": false,
+  "screenshots": [],
+  "screenshot_error": null,
+  "decoy_unchanged": null,
+  "second_stage_init": true,
+  "diagnostics_completed": true,
+  "boot_completed_reported": false,
+  "kernel_panic": false,
+  "sigill": false,
+  "runtime_findings": {
+    "setup_welcome_activity_seen": true,
+    "system_server_fatal_signals": [
+      "10-20 13:39:56.735   658  2918 F libc    : Fatal signal 11 (SIGSEGV), code 2 (SEGV_ACCERR), fault addr 0x72367bc00000 in tid 2918 (Thread<00>), pid 658 (system_server)"
+    ],
+    "zygote_exit_events": 2,
+    "system_server_execmem_denial_seen": true,
+    "mmd_setup_abort_seen": false,
+    "camera_provider_running_reported": false,
+    "camera_provider_registered_reported": true,
+    "camera_device_counts_reported": [
+      0
+    ],
+    "camera_provider_abort_seen": false,
+    "camera_fmq_test_exit_statuses": [],
+    "camera_buffer_test_exit_statuses": [],
+    "camera_buffer_test_abort_seen": false,
+    "camera_fmq_tmpfs_denial_seen": false,
+    "camera_provider_default_label_denial_seen": false
+  },
+  "scope": "Observation only. Review original logs; no hardware or installation claim.",
+  "saved_log_file_count": 0,
+  "serial_sha256": "80826d3a1727a7654a71c440b0c0b90b500c7732ca4b5f22d164d4f6f0535c6a",
+  "selected_serial_counts": {
+    "engine_process": 7,
+    "engine_state": 0,
+    "engine_binder": 12,
+    "init_started": 1,
+    "init_rejected": 0,
+    "checkpoint_failure": 4,
+    "boot_completed": 0,
+    "system_server_crash": 1
+  },
+  "excerpts": {
+    "engine_process": [
+      {
+        "line": 2925,
+        "text": "root           537     1   10870380  11996 0                   0 S update_engine"
+      },
+      {
+        "line": 4123,
+        "text": "root           537     1   10870380  11996 0                   0 S update_engine"
+      },
+      {
+        "line": 5286,
+        "text": "root           537     1   10870380  11996 0                   0 S update_engine"
+      },
+      {
+        "line": 6445,
+        "text": "root           537     1   10870380  11996 0                   0 S update_engine"
+      }
+    ],
+    "engine_state": [],
+    "engine_binder": [
+      {
+        "line": 3650,
+        "text": "43\tandroid.os.UpdateEngineService: []"
+      },
+      {
+        "line": 3653,
+        "text": "44\tandroid.os.UpdateEngineStableService: []"
+      },
+      {
+        "line": 4813,
+        "text": "43\tandroid.os.UpdateEngineService: []"
+      },
+      {
+        "line": 4815,
+        "text": "44\tandroid.os.UpdateEngineStableService: []"
+      }
+    ],
+    "init_started": [
+      {
+        "line": 2224,
+        "text": "[   19.657569][    T1] init: ... started service 'update_engine' has pid 537"
+      }
+    ],
+    "init_rejected": [],
+    "checkpoint_failure": [
+      {
+        "line": 11277,
+        "text": "[  266.618001][   T98] init: Received sys.powerctl='reboot,Checkpoint commit failed' from pid: 3362 (system_server)"
+      },
+      {
+        "line": 11278,
+        "text": "[  266.619258][    T1] init: Got shutdown_command 'reboot,Checkpoint commit failed' Calling HandlePowerctlMessage()"
+      },
+      {
+        "line": 11300,
+        "text": "[  266.962215][    T1] init: Reboot start, reason: reboot,Checkpoint commit failed, reboot_target: Checkpoint commit failed"
+      },
+      {
+        "line": 11962,
+        "text": "[  271.527709][    T1] reboot: Restarting system with command 'Checkpoint commit failed'"
+      }
+    ],
+    "boot_completed": [],
+    "system_server_crash": [
+      {
+        "line": 10510,
+        "text": "10-20 13:39:56.735   658  2918 F libc    : Fatal signal 11 (SIGSEGV), code 2 (SEGV_ACCERR), fault addr 0x72367bc00000 in tid 2918 (Thread<00>), pid 658 (system_server)"
+      }
+    ]
+  },
+  "complete_containment": false
+}

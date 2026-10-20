@@ -1,0 +1,23 @@
+{
+  "schema": "openbook-ruby-vm-probe/1",
+  "installable": false,
+  "scope": "Local VM experiment; not a Googlebook installer source",
+  "source_sha256": {
+    "system": "4ebc0e69314aea8cdc4eb97351716c7ebc6dc1d3a0ed66e17025f32d9af1e487",
+    "system_ext": "da7fd503976de920eb556b56fcc05f6ff4a5af8a1ce8996f7c1591e0711fe0f1",
+    "product": "c5c6e4fb94c3c673862254069df83910a700f91d50302f294c759530d59020d2",
+    "vendor": "c1b62a4cb7f43bf6f2610bbd6b47b4042fcbf834289bdeb24e0e6f6ec4aa0f8a",
+    "vendor_dlkm": "024774373cb9c09c634140ef9504bd5d9d81a9ee2006d5c4c3183a596ee0ce63",
+    "system_dlkm": "34185c35cb8bbccd5dfd0bb74eecb8a21e2445730411ef1583e1245628e0d617"
+  },
+  "kernel_sha256": "55b86074614a94592ddecebd2b77b1f2ed9aa38e8ad992b73c78c64d04c516f9",
+  "module_variant": "bm",
+  "update_quarantine": {
+    "scope": "experimental auto-start suppression; privileged restart/downloads/recovery uncontained",
+    "stock_rc_sha256": "ddd600b1c1a5bc8b683d959bbe38b1978ab327929b95241641ff44e98f06e098",
+    "override_sha256": "f870d1c86620f4aa4ff6933e0cadc99e86e2877c62ac6bfc3fa47d57adee1d07",
+    "unattended_safe": false
+  },
+  "policy": "strictly compiled hybrid; six OpenBook grants removed; scoped serial and USB diagnostic domains; enforcing requested",
+  "file_contexts_sha256": "bee35722623f3d8a64b77667952d3ec5aab5915918c1cfdb856af30b947815d5"
+}

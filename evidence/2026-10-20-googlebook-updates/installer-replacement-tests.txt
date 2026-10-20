@@ -1,0 +1,13 @@
+test_add_replace_preserves_android_and_unrelated_efi (__main__.PackageTests.test_add_replace_preserves_android_and_unrelated_efi) ... <frozen importlib._bootstrap>:533: DeprecationWarning: the load_module() method is deprecated and slated for removal in Python 3.15; use exec_module() instead
+ok
+test_existing_installer_requires_exact_review_and_complete_manifest (__main__.PackageTests.test_existing_installer_requires_exact_review_and_complete_manifest) ... ok
+test_unrecognized_installer_file_and_menu_rejected (__main__.PackageTests.test_unrecognized_installer_file_and_menu_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 3.917s
+
+OK
+Offline migration entry packaged in private clone; all Android partitions unchanged.
+Offline migration entry packaged in private clone; all Android partitions unchanged.
+Offline migration entry packaged in private clone; all Android partitions unchanged.
+Offline migration entry packaged in private clone; all Android partitions unchanged.

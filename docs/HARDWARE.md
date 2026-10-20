@@ -1,5 +1,15 @@
 # Hardware
 
+Update qualification (ANAL-229, 2026-10-20): no connected G14 ADB endpoint was
+available for a new update-specific capture. No USB, SSD, firmware or laptop
+setting was changed. The retained camera25 VM has one boot-control slot while
+advertising Virtual A/B; its stock update engine registers both Binder
+interfaces. This is exposure evidence, not proof that an OTA successfully
+applies. An offline VM experiment stops the engine, but fails fresh-data boot;
+the initialized-data variant boots and reproduces the known system-server
+crash. Networked idle/charging, reboot/recovery, Play app-update preservation
+and newer-data rollback remain unqualified. See `docs/googlebook-updates.md`.
+
 Camera25 acceptance follow-up (2026-10-20): the owner confirms that the webcam
 is fixed and Bluetooth works. These are physical owner reports, not measured
 frame-rate/image-quality, Bluetooth-profile, suspend or privacy tests. Evidence:

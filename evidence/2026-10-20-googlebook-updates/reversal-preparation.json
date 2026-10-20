@@ -1,0 +1,53 @@
+{
+  "schema": "openbook-ruby-preserving-update/1",
+  "complete": true,
+  "backup_sha256": "ed08cb95e0dbce091b55df5f7a99b7a0f020470d4d73e243ec162bb785396860",
+  "candidate_sha256": "df793f2eed3a5c901659014c2ae368d8e5eeb3d504b514d46fc8c0c1959a7af4",
+  "physical_device_written": false,
+  "data_unlock_verified": false,
+  "image_sha256": "69e7d3b5a2eb7d7d9e913b61e95286d3d50d5bf427476c09851a4316ca0830ce",
+  "writes": [
+    {
+      "name": "EFI",
+      "offset": 1048576,
+      "length": 268435456,
+      "sha256": "f5e40681a4936c1d1618516c079d50aa41ef670a87bd40ecaf1171c8d1d31940"
+    },
+    {
+      "name": "vbmeta_a",
+      "offset": 416284672,
+      "length": 1048576,
+      "sha256": "52cf55947f174cdf456d1382fc90bb181dd8eee4bccd0f6f0a3414dacc31a70f"
+    },
+    {
+      "name": "super",
+      "offset": 484442112,
+      "length": 3690987520,
+      "sha256": "d85ff1662c15f8ab1a8811f063f1e68851f9e6f907fc56591ada82ad4539b1fe"
+    }
+  ],
+  "protected": [
+    {
+      "offset": 0,
+      "length": 1048576,
+      "sha256": "16fc782a163ebbca75573a2472e55129790c337b83ae593c1303013a35b81cee"
+    },
+    {
+      "offset": 269484032,
+      "length": 146800640,
+      "sha256": "ead85fdce13afefd49e697a3738c0791c2710be12ed34822c5d30706da1e354f"
+    },
+    {
+      "offset": 417333248,
+      "length": 67108864,
+      "sha256": "6840e8c466f9a7cd089f548e4150243c047c9f36685584bd2c850b4880b0842d"
+    },
+    {
+      "offset": 4175429632,
+      "length": 8590983168,
+      "sha256": "0867434a45cdf4b1427d2c1b822f0b555c9712bde961a9920310bd6be342335a"
+    }
+  ],
+  "sources_unchanged": true,
+  "unrelated_esp_files_unchanged": true
+}

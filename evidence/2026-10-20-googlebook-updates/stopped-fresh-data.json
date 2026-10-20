@@ -1,0 +1,123 @@
+{
+  "schema": "openbook-ruby-observation/1",
+  "accel": "tcg",
+  "uefi_usb": false,
+  "software_tpm": true,
+  "software_tpm_restored": false,
+  "source_tpm_unchanged": null,
+  "prior_log_sessions_excluded": 0,
+  "emulated_audio": false,
+  "qemu_sha256": "35db71cb2178b665983472bb584f87505cf431f225a881149dba83de0350de8a",
+  "qemu_exit": 0,
+  "elapsed_s": 275.7,
+  "observation_window_elapsed": false,
+  "input_sha256": "5f3fb4d20bbfcdbffb0670ccff59d6f55add8fb621a9d89cea68751440a12dbb",
+  "input_unchanged": true,
+  "guest_disk_unchanged": true,
+  "test_entry": "direct kernel",
+  "persistent_usb_logs": false,
+  "logs_readback_exit": null,
+  "usb_capture_finished": false,
+  "wake_display_requested": false,
+  "screenshots": [],
+  "screenshot_error": null,
+  "decoy_unchanged": null,
+  "second_stage_init": true,
+  "diagnostics_completed": true,
+  "boot_completed_reported": false,
+  "kernel_panic": false,
+  "sigill": false,
+  "runtime_findings": {
+    "setup_welcome_activity_seen": true,
+    "system_server_fatal_signals": [],
+    "zygote_exit_events": 1,
+    "system_server_execmem_denial_seen": true,
+    "mmd_setup_abort_seen": false,
+    "camera_provider_running_reported": false,
+    "camera_provider_registered_reported": true,
+    "camera_device_counts_reported": [
+      0
+    ],
+    "camera_provider_abort_seen": false,
+    "camera_fmq_test_exit_statuses": [],
+    "camera_buffer_test_exit_statuses": [],
+    "camera_buffer_test_abort_seen": false,
+    "camera_fmq_tmpfs_denial_seen": false,
+    "camera_provider_default_label_denial_seen": false
+  },
+  "scope": "Observation only. Review original logs; no hardware or installation claim.",
+  "saved_log_file_count": 0,
+  "serial_sha256": "de3565e238ae26a9b489858e14a6d00b9bb443e2171168a24e55ec414f02a33f",
+  "selected_serial_counts": {
+    "engine_process": 0,
+    "engine_state": 7,
+    "engine_binder": 14,
+    "init_started": 0,
+    "init_rejected": 0,
+    "checkpoint_failure": 4,
+    "boot_completed": 0,
+    "system_server_crash": 0
+  },
+  "excerpts": {
+    "engine_process": [],
+    "engine_state": [
+      {
+        "line": 2416,
+        "text": "init.svc.update_engine=stopped"
+      },
+      {
+        "line": 3688,
+        "text": "init.svc.update_engine=stopped"
+      },
+      {
+        "line": 4846,
+        "text": "init.svc.update_engine=stopped"
+      },
+      {
+        "line": 6002,
+        "text": "init.svc.update_engine=stopped"
+      }
+    ],
+    "engine_binder": [
+      {
+        "line": 2417,
+        "text": "Service android.os.UpdateEngineService: not found"
+      },
+      {
+        "line": 2418,
+        "text": "Service android.os.UpdateEngineStableService: not found"
+      },
+      {
+        "line": 3689,
+        "text": "Service android.os.UpdateEngineService: not found"
+      },
+      {
+        "line": 3690,
+        "text": "Service android.os.UpdateEngineStableService: not found"
+      }
+    ],
+    "init_started": [],
+    "init_rejected": [],
+    "checkpoint_failure": [
+      {
+        "line": 11445,
+        "text": "[  268.893639][   T98] init: Received sys.powerctl='reboot,Checkpoint commit failed' from pid: 652 (system_server)"
+      },
+      {
+        "line": 11446,
+        "text": "[  268.894563][    T1] init: Got shutdown_command 'reboot,Checkpoint commit failed' Calling HandlePowerctlMessage()"
+      },
+      {
+        "line": 11462,
+        "text": "[  269.804000][    T1] init: Reboot start, reason: reboot,Checkpoint commit failed, reboot_target: Checkpoint commit failed"
+      },
+      {
+        "line": 12219,
+        "text": "[  274.763992][    T1] reboot: Restarting system with command 'Checkpoint commit failed'"
+      }
+    ],
+    "boot_completed": [],
+    "system_server_crash": []
+  },
+  "complete_containment": false
+}

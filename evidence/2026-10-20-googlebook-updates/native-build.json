@@ -1,0 +1,18 @@
+{
+  "scope": "Native preparation of the negative engine-stop experiment, no hardware qualification",
+  "build_exit_code": 0,
+  "build_log_sha256": "a3e6b43fba0767f825dfef5287aded9b716160f3ad34b8e862014389c00fe8c6",
+  "secilc_sha256": "80c78c8f442883ee90c008180ea44f2298acbb0be8ccbc1c8049e49f8ab4121b",
+  "secilc_flags": [
+    "-m",
+    "-M",
+    "true",
+    "-G",
+    "-c",
+    "33"
+  ],
+  "neverallow_checks_disabled": false,
+  "precompiled_policy_sha256": "3da8e5cd715d83dcfa65cf11cade77dce6544f157ec937062af0315e7d7540a4",
+  "file_context_tests_sha256": "bd58208bf17103df73a9ed2d505426fe2b6457e4517384dd07d637c2751ab190",
+  "policy_source_scope": "same scoped camera25 adaptation; no new permission grant for engine stop"
+}

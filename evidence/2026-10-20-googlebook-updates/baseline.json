@@ -1,0 +1,118 @@
+{
+  "schema": "openbook-ruby-observation/1",
+  "accel": "tcg",
+  "uefi_usb": true,
+  "software_tpm": true,
+  "software_tpm_restored": true,
+  "source_tpm_unchanged": true,
+  "prior_log_sessions_excluded": 4,
+  "emulated_audio": true,
+  "qemu_sha256": "35db71cb2178b665983472bb584f87505cf431f225a881149dba83de0350de8a",
+  "qemu_exit": 0,
+  "elapsed_s": 760.7,
+  "observation_window_elapsed": true,
+  "input_sha256": "9809adcd47420007e9935306b8aca71612cc72afd3e3f524dd1aa448ede68fae",
+  "input_unchanged": true,
+  "guest_disk_unchanged": false,
+  "test_entry": "serial-logs",
+  "persistent_usb_logs": true,
+  "logs_readback_exit": 0,
+  "usb_capture_finished": true,
+  "wake_display_requested": false,
+  "screenshots": [
+    "screen.ppm"
+  ],
+  "screenshot_error": null,
+  "decoy_unchanged": true,
+  "second_stage_init": true,
+  "diagnostics_completed": true,
+  "boot_completed_reported": true,
+  "kernel_panic": false,
+  "sigill": false,
+  "runtime_findings": {
+    "setup_welcome_activity_seen": true,
+    "system_server_fatal_signals": [],
+    "zygote_exit_events": 0,
+    "system_server_execmem_denial_seen": false,
+    "mmd_setup_abort_seen": false,
+    "camera_provider_running_reported": false,
+    "camera_provider_registered_reported": true,
+    "camera_device_counts_reported": [
+      0
+    ],
+    "camera_provider_abort_seen": false,
+    "camera_fmq_test_exit_statuses": [],
+    "camera_buffer_test_exit_statuses": [],
+    "camera_buffer_test_abort_seen": false,
+    "camera_fmq_tmpfs_denial_seen": false,
+    "camera_provider_default_label_denial_seen": false
+  },
+  "scope": "Observation only. Review original logs; no hardware or installation claim.",
+  "saved_log_file_count": 285,
+  "serial_sha256": "2ceceb56a8227230e39de33b63c21fd2c2dbc9e90e0fd0f17c9ae3e34d16584d",
+  "selected_serial_counts": {
+    "engine_process": 12,
+    "engine_state": 0,
+    "engine_binder": 23,
+    "init_started": 1,
+    "init_rejected": 0,
+    "checkpoint_failure": 0,
+    "boot_completed": 1,
+    "system_server_crash": 0
+  },
+  "excerpts": {
+    "engine_process": [
+      {
+        "line": 3081,
+        "text": "root           583     1   10946172  12232 0                   0 S update_engine"
+      },
+      {
+        "line": 4449,
+        "text": "root           583     1   10946172  12232 0                   0 S update_engine"
+      },
+      {
+        "line": 5900,
+        "text": "root           583     1   10946172  12232 0                   0 S update_engine"
+      },
+      {
+        "line": 7626,
+        "text": "root           583     1   10946172  12232 0                   0 S update_engine"
+      }
+    ],
+    "engine_state": [],
+    "engine_binder": [
+      {
+        "line": 2631,
+        "text": "34\tandroid.os.UpdateEngineService: []"
+      },
+      {
+        "line": 2634,
+        "text": "35\tandroid.os.UpdateEngineStableService: []"
+      },
+      {
+        "line": 3996,
+        "text": "34\tandroid.os.UpdateEngineService: []"
+      },
+      {
+        "line": 3998,
+        "text": "35\tandroid.os.UpdateEngineStableService: []"
+      }
+    ],
+    "init_started": [
+      {
+        "line": 2371,
+        "text": "[   23.636249][    T1] init: ... started service 'update_engine' has pid 583"
+      }
+    ],
+    "init_rejected": [],
+    "checkpoint_failure": [],
+    "boot_completed": [
+      {
+        "line": 8330,
+        "text": "[  170.548352][    T1] init: processing action (sys.boot_completed=1) from (/system/etc/init/hw/init.rc:1244)"
+      }
+    ],
+    "system_server_crash": []
+  },
+  "complete_containment": false
+}

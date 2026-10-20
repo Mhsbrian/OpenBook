@@ -52,9 +52,12 @@ supplied by an arbitrary USB.
 Userdata may continue changing during normal live use. After a system update,
 regenerate the source pin and installer for the newly reviewed build; the old
 installer deliberately refuses changed static system or boot payloads. The
-current `add` command is addition-only and requires existing EFI files unchanged;
-replacement of an existing installer needs a separately reviewed packaging
-operation, included in the update follow-up.
+default `add` command is addition-only and requires existing EFI files unchanged;
+replacement of an existing installer requires an independently retained digest
+of its old `ruby-installer/build.json`. The new
+`--replace-installer-sha256` packaging operation validates the exact old files
+and menus before replacing them in a private clone. See
+`googlebook-update-prototype.md`; no physical write is implied.
 
 Metadata, userdata, misc, boot, init_boot, vendor_boot, vbmeta and super are
 copied byte-for-byte. Serial identity, kernel, initrd bodies, security services,

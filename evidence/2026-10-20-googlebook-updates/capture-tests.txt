@@ -1,0 +1,13 @@
+test_denied_procfs_does_not_suppress_storage_or_memory (__main__.CaptureGuards.test_denied_procfs_does_not_suppress_storage_or_memory) ... ok
+test_existing_capture_preserved (__main__.CaptureGuards.test_existing_capture_preserved) ... ok
+test_explicit_endpoint_required (__main__.CaptureGuards.test_explicit_endpoint_required) ... ok
+test_failed_command_retains_private_output (__main__.CaptureGuards.test_failed_command_retains_private_output) ... ok
+test_hung_client_is_reaped_and_partial_output_kept (__main__.CaptureGuards.test_hung_client_is_reaped_and_partial_output_kept) ... ok
+test_partial_capture_is_not_reported_as_success (__main__.CaptureGuards.test_partial_capture_is_not_reported_as_success) ... ok
+test_unconnected_device_stops_before_shell_commands (__main__.CaptureGuards.test_unconnected_device_stops_before_shell_commands) ... ok
+test_update_capture_preserves_phase_and_denied_slot_query (__main__.CaptureGuards.test_update_capture_preserves_phase_and_denied_slot_query) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.516s
+
+OK

@@ -1,5 +1,27 @@
 # Build and reproduce
 
+## Ruby update research and staging gate (ANAL-229, 2026-10-20)
+
+Start with `docs/googlebook-updates.md` and the reproduction commands in
+`docs/googlebook-update-prototype.md`. The local prototype inventories the
+retained build, collects read-only device diagnostics, verifies signed review
+records and stages exact artifacts. It does not authenticate Google keys or
+automatically run native compatibility tests. Existing `compat-audit.py` and
+disposable boot rehearsals supply separate evidence. The camera25 profile is
+research-only; there is no hardware promotion approval.
+
+`migration-package.py add --replace-installer-sha256` permits reviewed replacement
+of an existing offline installer in a private clone. It pins the previous
+installer, validates new source/artifact hashes and preserves unrelated EFI
+content and all Android partitions. Regenerate its source pin after system or
+boot changes. Synthetic staging/replacement and existing regression results are
+in `evidence/2026-10-20-googlebook-updates/`.
+
+`hybrid-probe.py --test-update-engine-stop` is a disposable negative experiment:
+the backend stops, but fresh-data boot fails at checkpoint commit. Initialized
+encrypted data boots with a later system-server crash. Do not deploy that
+fragment or consider Google OS updates contained.
+
 ## Configured Googlebook USB to internal NVMe (ANAL-228)
 
 `tools/Dockerfile.ruby-installer` builds a separate offline Linux RAM installer.

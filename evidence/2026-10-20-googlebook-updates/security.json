@@ -1,0 +1,71 @@
+{
+  "schema": "openbook-ruby-update-security-inventory/1",
+  "reviewed_utc": "2026-10-20",
+  "trust": "Observed keys are NOT independent Google trust anchors; no stock OTA supplied or verified",
+  "vbmeta": {
+    "stock": {
+      "sha256": "c3235badca09474b00c2c599a81b4f762b8389abebf8eeececd0a8c0365cd7ae",
+      "public_key_sha256": "8f267440b8c98961ba1ae9f1ca8eb2ae1669093a637027803cf048492b5d35e0",
+      "rollback_index": 1339,
+      "rollback_index_location": 0,
+      "flags": 0,
+      "algorithm_id": 2
+    },
+    "hybrid": {
+      "sha256": "c7c85601c879ce004e0fbbf0bb583ae7a1e288bad80ac3040df9f585cd586b35",
+      "public_key_sha256": "7728e30f50bfa5cea165f473175a08803f6a8346642b5aa10913e9d9e6defef6",
+      "rollback_index": 0,
+      "rollback_index_location": 0,
+      "flags": 0,
+      "algorithm_id": 2
+    }
+  },
+  "ota_certificates": {
+    "system": [
+      {
+        "entry": "projects/chromeos-release-bot/locations/us/keyRings/RubyMPKeys/releasekey.x509.pem",
+        "certificate": [
+          "subject=CN=test",
+          "issuer=CN=test",
+          "sha256 Fingerprint=00:E8:97:B7:70:71:87:47:79:60:B8:A9:40:9B:37:8C:DD:2B:E8:D9:B1:B8:1C:99:9C:CD:DF:55:AB:7F:49:73"
+        ],
+        "spki_sha256": "b261307ad8ef8f883da70a4b0de079abe5c29a849e7f25c66e879c5a91dda53a"
+      }
+    ],
+    "recovery": [
+      {
+        "entry": "projects/chromeos-release-bot/locations/us/keyRings/RubyMPKeys/releasekey.x509.pem",
+        "certificate": [
+          "subject=CN=test",
+          "issuer=CN=test",
+          "sha256 Fingerprint=00:E8:97:B7:70:71:87:47:79:60:B8:A9:40:9B:37:8C:DD:2B:E8:D9:B1:B8:1C:99:9C:CD:DF:55:AB:7F:49:73"
+        ],
+        "spki_sha256": "b261307ad8ef8f883da70a4b0de079abe5c29a849e7f25c66e879c5a91dda53a"
+      }
+    ]
+  },
+  "manifest_check": {
+    "url": "https://dl.google.com/dl/edgedl/device/recovery/production_recovery.json",
+    "sha256": "2781da970295a16e2351bb7f6bfdc4f47e99069bd1d1da3e38bf81acf6ef3005",
+    "ruby": [
+      {
+        "channel": "STABLE",
+        "device": "ruby",
+        "file": "recovery.zip",
+        "filesize": 19069493760,
+        "manufacturer": "Lenovo",
+        "md5": "0567fe2ed0dd1c1753b383a6b3dbfe81",
+        "model": "Lenovo Googlebook 15",
+        "name": "Lenovo Googlebook 15",
+        "url": "https://dl.google.com/device/recovery/ruby-user/16452207/recovery.zip",
+        "zipfilesize": 1,
+        "buildexploreruri": "",
+        "buildidentifier": "16452207_CL3B.260622.271.R1",
+        "target": "ruby-user",
+        "branch": "arsp-26Q3-desktop-release",
+        "dateupdated": "2026-10-05",
+        "previousVersionGeneration": 1788908184965351
+      }
+    ]
+  }
+}

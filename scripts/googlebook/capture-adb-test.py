@@ -99,6 +99,26 @@ echo available
                 self.assertEqual((out / f"{name}.txt").read_text(), "available\n")
             self.assertTrue({"bootconfig", "partitions", "swaps"}.issubset(report["failed_sections"]))
 
+    def test_update_capture_preserves_phase_and_denied_slot_query(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); out = root / "capture"; adb = root / "fake-adb"
+            adb.write_text('''#!/bin/sh
+if [ "$5" = get-state ]; then echo device; exit 0; fi
+case "$6" in
+  *get-number-slots*) echo 'Permission denied' >&2; exit 1;;
+esac
+echo observed
+''')
+            adb.chmod(0o700)
+            self.assertEqual(capture.collect(adb, "192.0.2.1:5555", 5222, out,
+                                             updates_only=True, phase="idle-charging"), 1)
+            report = json.loads((out / "manifest.json").read_text())
+            self.assertEqual(report["phase"], "idle-charging")
+            self.assertTrue(report["updates_only"])
+            self.assertEqual(report["failed_sections"], ["bootctl-get-number-slots"])
+            self.assertEqual((out / "staged-packages.txt").read_text(), "observed\n")
+            self.assertFalse((out / "dmesg.txt").exists())
+
 
 if __name__ == "__main__":
     unittest.main()

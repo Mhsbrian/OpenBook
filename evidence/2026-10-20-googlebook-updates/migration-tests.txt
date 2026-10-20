@@ -1,0 +1,37 @@
+test_bad_backup_gpt_refused (__main__.MigrationTests.test_bad_backup_gpt_refused) ... ok
+test_changed_boot_file_refused_before_writes (__main__.MigrationTests.test_changed_boot_file_refused_before_writes) ... ok
+test_changed_data_since_confirmation_refused (__main__.MigrationTests.test_changed_data_since_confirmation_refused) ... ok
+test_changed_system_refused_before_writes (__main__.MigrationTests.test_changed_system_refused_before_writes) ... ok
+test_corrupt_bootconfig_refused (__main__.MigrationTests.test_corrupt_bootconfig_refused) ... ok
+test_failed_readback_never_activates_gpt (__main__.MigrationTests.test_failed_readback_never_activates_gpt) ... Source verified. Installing; keep power connected.
+Copying misc (1 MiB)
+ok
+test_full_copy_preserves_state_and_rebinds_only_boot_identity (__main__.MigrationTests.test_full_copy_preserves_state_and_rebinds_only_boot_identity) ... Source verified. Installing; keep power connected.
+Copying misc (1 MiB)
+Copying boot_a (1 MiB)
+Copying init_boot_a (1 MiB)
+Copying vendor_boot_a (1 MiB)
+Copying vbmeta_a (1 MiB)
+Copying metadata (1 MiB)
+Copying super (1 MiB)
+Copying userdata (1 MiB)
+Copying EFI (16 MiB)
+ok
+test_interrupted_write_never_activates_gpt_or_changes_source (__main__.MigrationTests.test_interrupted_write_never_activates_gpt_or_changes_source) ... Source verified. Installing; keep power connected.
+Copying misc (1 MiB)
+Copying boot_a (1 MiB)
+Copying init_boot_a (1 MiB)
+Copying vendor_boot_a (1 MiB)
+Copying vbmeta_a (1 MiB)
+Copying metadata (1 MiB)
+Copying super (1 MiB)
+Copying userdata (1 MiB)
+ok
+test_power_guard_and_final_prewrite_recheck (__main__.MigrationTests.test_power_guard_and_final_prewrite_recheck) ... ok
+test_smaller_target_refused (__main__.MigrationTests.test_smaller_target_refused) ... ok
+test_source_target_alias_and_non_nvme_refused (__main__.MigrationTests.test_source_target_alias_and_non_nvme_refused) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 12.552s
+
+OK

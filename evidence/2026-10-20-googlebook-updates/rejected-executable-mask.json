@@ -1,0 +1,10 @@
+{
+  "scope": "Rejected compile-time experiment; no image booted or policy exception retained",
+  "build_log_sha256": "8bcbceca137dc81dd31963e95a6f1648e0736576750cc089363f204842e3e4bc",
+  "excerpts": [
+    "neverallow check failed at <RUBY>/fs/system_a/system/etc/selinux/plat_sepolicy.cil:26140 from system/sepolicy/private/domain.te:819",
+    "  (neverallow domain exec_type (file (mounton)))",
+    "      (allow init update_engine_exec (file (mounton)))"
+  ],
+  "neverallow_retained": true
+}
