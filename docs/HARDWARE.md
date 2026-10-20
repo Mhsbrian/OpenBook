@@ -1,5 +1,13 @@
 # Hardware
 
+Current follow-up: the owner reports using Settings after the preserving update.
+Independent live checks await a usable wireless ADB endpoint. Static inspection
+confirms the retained Ruby input framework lacks both OpenBook touchpad timing
+fixes. The possible Settings-only scroll/activation symptom remains unconfirmed
+by a motion trace; no physical fix is claimed. See
+`evidence/2026-10-19-googlebook-touchpad-followup/`. The earlier statements below
+describe the state at the time of the USB write.
+
 Latest medium: services21 is written to the owner's SanDisk using the preserving
 updater. Full 12.77 GB direct readback matches the private clone, all protected
 data remains byte-identical, and power-off succeeded. The G14's first boot of

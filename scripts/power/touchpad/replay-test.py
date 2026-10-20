@@ -71,6 +71,52 @@ class ReplayTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "SYN_DROPPED"):
             converter.convert("[ 1.000000] EV_SYN SYN_DROPPED 00000000")
 
+    def test_converter_runtime_timestamp_and_tap_settings(self):
+        trace = """[ 10.000000] EV_KEY BTN_TOUCH UP
+[ 10.000000] EV_SYN SYN_REPORT 00000000
+[ 10.100000] EV_MSC MSC_TIMESTAMP 00001004
+[ 10.100000] EV_SYN SYN_REPORT 00000000
+[ 10.102000] EV_KEY BTN_TOOL_FINGER REPEAT
+[ 10.102000] EV_SYN SYN_REPORT 00000001
+[ 10.104000] EV_MSC MSC_TIMESTAMP 00000000
+[ 10.104000] EV_SYN SYN_REPORT 00000000
+"""
+        patched = converter.convert(trace)
+        ruby = converter.convert(trace, msc_policy="reset-on-sync",
+                                 tap_to_click=False, tap_dragging=False)
+        self.assertEqual([f["msc"] for f in patched["frames"]], [0, .0041, .0041, 0])
+        self.assertEqual([f["msc"] for f in ruby["frames"]], [0, .0041, 0, 0])
+        self.assertEqual([f["time"] for f in patched["frames"]],
+                         [f["time"] for f in ruby["frames"]])
+        self.assertFalse(ruby["properties"]["Tap Enable"])
+        self.assertFalse(ruby["properties"]["Tap Drag Enable"])
+        self.assertEqual(ruby["conversion"]["msc_policy"], "reset-on-sync")
+
+    def test_repeat_frame_timestamp_reset_reproduces_clock_warning_not_click(self):
+        # SYNTHETIC two-finger motion plus MSC-less frames every ~41 ms.
+        # Model the known converter gap, without claiming a physical Ruby repro.
+        for policy in ("preserve", "reset-on-sync"):
+            with self.subTest(policy=policy), tempfile.TemporaryDirectory() as tmp:
+                m = Motion(); m.add([], 1)
+                for i in range(200):
+                    m.add([(1, 1500, 1000 + i * 3, False), (2, 2200, 1000 + i * 3, False)])
+                    if i > 60 and i % 10 == 0:
+                        prior = m.frames[-1]
+                        m.frames.append(dict(prior, time=prior["time"] + .002,
+                                             msc=prior["msc"] if policy == "preserve" else 0))
+                m.add([])
+                if policy == "reset-on-sync":
+                    m.frames[-1]["msc"] = 0
+                p = Path(tmp) / "frames.json"
+                p.write_text(json.dumps(dict(hardware=HARDWARE,
+                    properties={"Tap Enable": False, "Tap Drag Enable": False}, frames=m.frames)))
+                result = subprocess.run([REPLAY, str(p)], check=True, capture_output=True, text=True)
+                events = json.loads(result.stdout)
+                warnings = result.stderr.count("Clock changed backwards")
+                self.assertEqual(warnings, 13 if policy == "reset-on-sync" else 0)
+                self.assertTrue(any("type: scroll" in e["description"] for e in events))
+                self.assertFalse(any("down" in e for e in events))
+
     def test_converter_rejects_incomplete_contact(self):
         with self.assertRaisesRegex(ValueError, "all-fingers-up"):
             converter.convert("[ 1.000000] EV_SYN SYN_REPORT 00000000")

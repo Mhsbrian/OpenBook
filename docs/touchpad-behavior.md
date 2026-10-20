@@ -2,6 +2,17 @@
 
 ## Ruby live USB follow-up (ANAL-228)
 
+Latest follow-up: the owner withdrew the Play Store concern (intentionally
+disabled) and narrowed the input symptom to possible Settings-only activation.
+Read-only inspection confirms the retained Ruby input library lacks OpenBook's
+EventHub repeat suppression and MSC-preservation fixes. This is a confirmed
+compatibility gap, not yet a demonstrated cause of unwanted clicks. Eleven
+synthetic checks pass; the new clock control produces 13 warnings with Ruby's
+timestamp policy versus zero with OpenBook's, and **no clicks in either case**.
+Current wireless ADB access is unavailable; no new G14 trace or setting change
+was made. Evidence and the exact binary fingerprint:
+`evidence/2026-10-19-googlebook-touchpad-followup/`.
+
 This is a separate runtime from the installed OpenBook investigation below.
 The owner reports two-finger scrolling behaving like single taps with tapping
 disabled. Ruby's earlier capture recognizes `ASCE1206:00 04F3:3315 Touchpad`
@@ -24,11 +35,24 @@ Use the newly discovered touchpad node, not the event number from the installed
 system. If the user build denies raw input reads, preserve the denial; do not
 change root or enforcement. No keyboard event capture is requested.
 
-The offline suite now has nine passing synthetic checks, including taps and
+The offline suite now has eleven passing synthetic checks, including taps and
 staggered two-finger scrolling/release with Tap Enable false: scroll events are
 produced and no button-change events are produced. Hardware motions, effective
 toggle propagation and timestamp ordering remain to be verified. No touchpad
 sensitivity/default change has been shipped for this report.
+
+For a future Ruby trace, choose the observed mapper values explicitly. For
+example, **only if both settings are confirmed off**:
+
+```bash
+python3 scripts/power/touchpad/getevent-to-frames.py touchpad-private.txt frames.json \
+  --msc-policy reset-on-sync --tap-to-click off --tap-dragging off
+```
+
+The default `preserve` policy continues to model patched OpenBook. Comparing
+both policies is an offline control; the replay still uses AOSP's gestures
+library and excludes Android's scroll-to-motion conversion and app dispatch.
+Do not infer that zero button gestures rules out unwanted app activation.
 
 ## Device facts, 2026-10-19
 

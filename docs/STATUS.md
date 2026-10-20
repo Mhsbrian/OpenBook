@@ -1,5 +1,19 @@
 # Status
 
+## 2026-10-19: Ruby input gaps confirmed; live follow-up awaits ADB (ANAL-228)
+
+The owner reports post-update Settings scrolling can activate items with
+tapping disabled, and withdrew the Play Store concern (intentionally disabled).
+Static inspection confirms Ruby retains neither OpenBook's touchpad repeat
+suppression nor MSC-preservation fix. Replay now models either timestamp policy
+and explicit tapping preferences. Eleven replay and seven collector checks pass;
+the synthetic clock control reproduces warnings but not unwanted clicks.
+No laptop setting, security state or image was changed. The G14 responds on
+the network but has no usable ADB connection; its current Wireless debugging
+IP/port is needed. Physical validation of services21, current tap preference,
+Settings dispatch and watchdog stability remains pending. Evidence:
+`evidence/2026-10-19-googlebook-touchpad-followup/`.
+
 ## 2026-10-19: services21 USB update preserves configured data (ANAL-228)
 
 The owner's SanDisk now contains services21. The updater matched the complete
