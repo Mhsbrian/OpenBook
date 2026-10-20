@@ -1,0 +1,32 @@
+{
+  "schema": "openbook-camera-physical-diagnosis/1",
+  "observed_utc": "2026-10-20T02:26:52Z",
+  "candidate": "camera23",
+  "boot_completed": true,
+  "selinux": "Enforcing",
+  "encrypted_data_mounted": true,
+  "camera_provider_registered": true,
+  "public_camera_count": 1,
+  "camera_id": "100",
+  "lens_facing": "EXTERNAL",
+  "video_nodes": {
+    "range": "video0..video3",
+    "mode": "0660",
+    "owner": "root",
+    "group": "camera",
+    "selinux_type": "video_device"
+  },
+  "failed_operation": "ftruncate(MessageQueue, 266240)",
+  "source_domain": "hal_camera_default",
+  "target_type": "tmpfs",
+  "object_class": "file",
+  "denied_permission": "write",
+  "result": "invalid request fmq; session open failed",
+  "active_camera_clients_at_capture": 0,
+  "frames_captured": false,
+  "privacy_state_confirmed": false,
+  "current_user_tap_setting": 1,
+  "mapper_tap_enabled": true,
+  "owner_data_or_settings_changed_by_adb": false,
+  "followup_adb_lost_when_usb_returned": true
+}

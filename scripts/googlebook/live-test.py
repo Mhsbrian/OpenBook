@@ -15,6 +15,14 @@ spec.loader.exec_module(observation)
 
 
 class LiveGuards(unittest.TestCase):
+    def test_camera_fmq_probe_requires_an_exit_result(self):
+        started = "init: starting service 'openbook.camera-fmq-test'...\n"
+        self.assertEqual(observation.runtime_findings(started)["camera_fmq_test_exit_statuses"], [])
+        failure = "init: Service 'openbook.camera-fmq-test' (pid 123) exited with status 21\n"
+        success = "init: Service 'openbook.camera-fmq-test' (pid 456) exited with status 0\n"
+        self.assertEqual(observation.runtime_findings(failure * 2)["camera_fmq_test_exit_statuses"], [21])
+        self.assertEqual(observation.runtime_findings(success)["camera_fmq_test_exit_statuses"], [0])
+
     def test_duplicate_capture_does_not_double_count_zygote_exit(self):
         line = "init: Service 'zygote' (pid 123) received signal 9\n"
         result = observation.runtime_findings(line + line)

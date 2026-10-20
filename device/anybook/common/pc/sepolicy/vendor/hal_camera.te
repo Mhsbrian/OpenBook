@@ -1,0 +1,8 @@
+# The G14's android17-6.18 kernel labels camera FMQ memfds as tmpfs files.
+# Without a private type, ftruncate(MessageQueue) is denied and the external
+# camera session fails before streaming (ANAL-228, camera23 hardware capture).
+# Keep queue access between the camera HAL and its framework client; do not
+# grant writes to generic tmpfs or expose queues directly to applications.
+type hal_camera_default_tmpfs, file_type;
+tmpfs_domain(hal_camera_default)
+allow cameraserver hal_camera_default_tmpfs:file { getattr map read write };

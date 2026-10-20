@@ -216,6 +216,7 @@ class Audit:
         files = {POLICY_PROFILE, PROBE_POLICY, SERVICE_PROFILE, ZRAM_INIT, DESKTOP_POLICY, PC_INIT,
                  self.a.ruby / "fs/system_a/system/etc/init/timberslide.rc"}
         files.update(CAMERA_SOURCE.glob("*"))
+        files.add(CAMERA_SOURCE.parent / "sepolicy/vendor/hal_camera.te")
         files.update(self.a.product / "vendor" / name for name in CAMERA_FILES)
         files.update((self.a.product / "vendor/lib64").glob("*camera*.so"))
         for maps in trees:

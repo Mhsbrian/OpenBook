@@ -1,0 +1,35 @@
+{
+  "elapsed_s": 180.4,
+  "input_unchanged": true,
+  "guest_disk_unchanged": true,
+  "kernel_panic": false,
+  "sigill": false,
+  "boot_completed_reported": false,
+  "runtime_findings": {
+    "setup_welcome_activity_seen": false,
+    "system_server_fatal_signals": [],
+    "zygote_exit_events": 0,
+    "system_server_execmem_denial_seen": false,
+    "mmd_setup_abort_seen": false,
+    "camera_provider_running_reported": false,
+    "camera_provider_registered_reported": true,
+    "camera_device_counts_reported": [
+      0
+    ],
+    "camera_provider_abort_seen": false,
+    "camera_fmq_test_exit_statuses": [
+      0
+    ],
+    "camera_fmq_tmpfs_denial_seen": false,
+    "camera_provider_default_label_denial_seen": false
+  },
+  "schema": "openbook-camera-fmq-runtime/1",
+  "enforcing_reported": true,
+  "test_source_sha256": "c538099d31c2ffb43873821be5c7df52349e3aa86a66be60d1ec7942a21eea6d",
+  "camera_domain_verified_by_probe": true,
+  "memfd_bytes": 266240,
+  "queue_label": "hal_camera_default_tmpfs",
+  "scope": "Focused memfd operation test; no video device, frame capture or complete Android boot qualification",
+  "initial_probe_failed_at_selinuxfs_read": true,
+  "test_only_policy_grants_added": false
+}

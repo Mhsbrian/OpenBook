@@ -13,6 +13,50 @@ private net18 G14 bugreport independently reports **zero camera devices**. That
 capture predates services21, whose camera payload was unchanged. These facts
 identify a missing integration layer; they do not measure current capture quality.
 
+## Camera23 physical follow-up (2026-10-20 UTC)
+
+Wireless ADB now connects to the booted G14. Camera23 enumerates one public
+camera (`external/100`), and `/dev/video0..3` are root:camera 0660 with
+`video_device` labels. The desktop camera app repeatedly fails to open its
+session. The captured failure is specific:
+
+```text
+avc: denied { write } name="memfd:MessageQueue"
+  scontext=u:r:hal_camera_default:s0 tcontext=u:object_r:tmpfs:s0 tclass=file permissive=0
+ftruncate(MessageQueue, 266240) failed for memfd creation: Permission denied
+initialize: invalid request fmq
+open: camera device session init failed
+```
+
+The pinned AOSP external-provider source allocates request and result metadata
+FMQs before starting its output thread. This denial explains a failed open
+despite successful enumeration; it does not establish whether later capture
+stages also need work. No frame is captured or published. No evidence implicates
+the preserved user data, and no data reset or privacy override is appropriate.
+
+Camera24 adds `hal_camera_default_tmpfs` and `tmpfs_domain(hal_camera_default)`
+in `sepolicy/vendor/hal_camera.te`, plus read/write/map/getattr for cameraserver
+on that dedicated type. This follows the existing PC audio-HAL adaptation for
+the android17-6.18 kernel, where memfds are ordinary tmpfs files. There is no
+generic tmpfs write grant, app-domain queue access, executable queue mapping or
+permissive domain. The native audit hashes the source and compiled vendor policy.
+
+The opt-in `hybrid-probe.py --camera-fmq-test --prepare-only` builds a disposable
+VM payload in the actual camera HAL domain, without test-specific allow rules.
+It allocates a 266,240-byte memfd, checks its label, maps it and verifies all
+bytes through two shared mappings. Init must report exit status 0, and the
+existing diagnostics must separately report enforcing. The HAL cannot read
+selinuxfs directly; an initial test returned 11 at that check, so enforcement is
+verified externally. `live-image.py` refuses this test payload. Build the ordinary
+USB candidate **without** this flag. A successful FMQ test does not prove
+cross-process Camera2 streaming or physical webcam frames.
+
+Camera24 passes that focused test and the 760.6-second preserving UEFI rehearsal.
+Existing encrypted VM data mounts, boot completes and the provider registers,
+with no provider exit, fatal signal, zygote exit or watchdog kill recorded.
+The ten-minute capture finishes with zero lost bytes. All 51 host checks pass;
+both baseline and adapted-hybrid native audits pass across 413 unchanged inputs.
+
 ## Implementation
 
 `device/anybook/common/pc/camera/camera.mk` includes the open-source AOSP AIDL
@@ -51,7 +95,7 @@ device-specific provider adaptation.
 Build with the shared AOSP lane lock and Ubuntu container:
 
 ```bash
-AOSP_JOBS=8 BUILD_NUMBER=20261019.camera1 scripts/aosp-docker.sh \
+AOSP_JOBS=8 BUILD_NUMBER=20261020.camera2 scripts/aosp-docker.sh \
   /repo/scripts/aosp-build.sh anybook_g14_x86_64-cp2a-userdebug vendorimage
 python3 scripts/googlebook/compat-test.py -v
 python3 scripts/googlebook/live-test.py -v
@@ -88,7 +132,10 @@ backup of its current services21 state. Only super/vbmeta_a/EFI were written;
 full 12,766,412,800-byte direct readback matches `bf79eef29bc760e5…`. All
 8,805,941,248 protected bytes, including userdata and encryption metadata, and
 unrelated ESP files remain unchanged. Power-off succeeded; the backup is retained.
-This verifies stored bytes, not the user's next credential unlock or camera frames.
+The subsequent G14 boot reaches boot completion and mounts encrypted `/data`.
+Camera enumeration succeeds but streaming fails as described above. Credential
+unlock and the completeness of all owner apps/settings were not independently
+tested. Camera24 is a new local candidate, not yet applied to the configured USB.
 
 Keep the configured USB's current data: take a new verified backup before every
 subsequent preserving update if the stick has been used. Retain metadata,
@@ -116,6 +163,7 @@ this change does not claim to fix those issues.
 - Prior hardware evidence: `evidence/2026-10-16-ga403wr-inventory/SUMMARY.md`,
   `lsusb.txt`, and `evidence/2026-10-16-g14-hwcheck/hwcheck-005-dmesg.txt`.
 - Current validation: `evidence/2026-10-19-googlebook-camera/`.
+- Physical FMQ diagnosis and follow-up: `evidence/2026-10-20-googlebook-camera-fmq/`.
 - [AOSP USB camera integration](https://source.android.com/docs/core/camera/external-usb-cameras),
   checked 2026-10-19: UVC kernel support plus an external Android provider,
   manifest/configuration and camera access controls are required. The documented
@@ -123,3 +171,7 @@ this change does not claim to fix those issues.
 - Local pinned AOSP source: `hardware/interfaces/camera/provider/default/`
   and `camera/device/default/ExternalCamera{Device,Utils}.cpp`, plus
   `system/sepolicy/{vendor/hal_camera_default,private/hal_camera}.te`.
+- Source checked locally on 2026-10-20: hardware/interfaces revision
+  `d41643629491b67274c1c5092518adfab51a2ff9`,
+  `camera/device/default/ExternalCameraDeviceSession.cpp:189`; system/sepolicy
+  revision `e066568e98d86db31a9346d30977f3632fa7073c`, `public/te_macros:75`.

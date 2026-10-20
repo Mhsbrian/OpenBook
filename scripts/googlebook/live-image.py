@@ -85,6 +85,8 @@ def main():
         p.error("Use a short alphanumeric label")
     src = a.probe.resolve(strict=True)
     recipe = json.loads((src / "recipe.json").read_text())
+    if recipe.get("camera_fmq_test"):
+        raise ValueError("Camera FMQ test payload is VM-only; rebuild without --camera-fmq-test for USB")
     if recipe.get("schema") != "openbook-ruby-vm-probe/1" or recipe.get("module_variant") != "bm":
         p.error("Requires the bare-metal module variant; rebuild with --variant bm")
     logger = src / "vendor/bin/ruby-usb-log"

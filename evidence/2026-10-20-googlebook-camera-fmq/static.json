@@ -1,0 +1,38 @@
+{
+  "schema": "openbook-camera-fmq-validation/1",
+  "candidate": "camera24",
+  "host_checks": {
+    "compatibility": 24,
+    "live_image_and_reporting": 10,
+    "private_adb_collection": 7,
+    "preserving_update": 10
+  },
+  "native_build_passed": true,
+  "fmq_init_verifier_passed": true,
+  "audit_inputs": 413,
+  "audit_inputs_unchanged": true,
+  "static_cases": {
+    "openbook": true,
+    "ruby": true,
+    "hybrid": false,
+    "hybrid-reduced": true
+  },
+  "unadapted_hybrid_failure_expected": true,
+  "fresh_image_sha256": "b3cadf83dc66d0b8b2c98f6cba4c93e312b172491fa20c7612384220bcddcdd5",
+  "fresh_image_bytes": 12766412800,
+  "security_payloads_unchanged": {
+    "etc/fstab.openbook": true,
+    "apex/com.android.hardware.keymint.rust_nonsecure.apex": true,
+    "apex/com.android.hardware.gatekeeper.nonsecure.apex": true,
+    "bin/hw/android.hardware.weaver-service.openbook": true,
+    "etc/init/weaver-openbook.rc": true,
+    "etc/vintf/manifest/weaver-openbook.xml": true,
+    "lib64/android.hardware.weaver-V3-ndk.so": true,
+    "lib64/android.hardware.security.keymint-V1-ndk.so": true
+  },
+  "test_and_candidate_compiled_policy_identical": true,
+  "compiled_policy_sha256": "28d6b9da984b1b7fa4d2a2477ae650bf3cb3d420ca19a8c54488e5032efe9a1f",
+  "test_payload_absent_from_usb_candidate": true,
+  "test_payload_rejected_by_usb_packager": true,
+  "physical_frame_delivery_validated": false
+}

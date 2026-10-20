@@ -1,5 +1,25 @@
 # Status
 
+## 2026-10-20: G14 camera FMQ failure isolated (ANAL-228)
+
+Wireless ADB reached camera23. The G14 enumerates one public UVC camera, but
+session open fails at `ftruncate(MessageQueue, 266240)`: SELinux blocks the
+camera HAL writing a generic tmpfs memfd. Camera24 adds a dedicated queue type
+and scoped cameraserver access, following the PC audio-HAL adaptation.
+No reset, privacy override, permissive policy or framework change is involved.
+
+The native vendor build, 51 host checks and 413-input baseline/hybrid audit pass.
+A separate VM probe running in the actual HAL domain verifies allocation,
+labeling and shared mappings with exit 0 under enforcing. Binary-policy checks
+confirm required queue grants and preserve app/generic-tmpfs isolation. The
+probe is excluded from USB images. Actual Camera2 streaming remains a hardware
+gate. Evidence and reproduction: `evidence/2026-10-20-googlebook-camera-fmq/`
+and `docs/g14-camera.md`.
+
+The current physical input capture has tapping enabled in both user 10 and the
+mapper. It does not reproduce the owner's earlier tap-disabled Settings symptom;
+no setting was changed. Play Store remains as the owner configured it.
+
 ## 2026-10-19: UVC camera provider added (ANAL-228)
 
 The earlier hardware research identifies a working kernel UVC binding for the
