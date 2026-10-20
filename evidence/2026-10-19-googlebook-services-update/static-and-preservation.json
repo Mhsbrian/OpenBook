@@ -1,0 +1,64 @@
+{
+  "schema": "openbook-ruby-services-validation/1",
+  "candidate": "services21",
+  "candidate_sha256": "e2a9999a8095815a41ab64840aaaf5cbb0de15bc1726439df76864b5dbb7ed93",
+  "image_bytes": 12766412800,
+  "static_audit": {
+    "inputs": 399,
+    "unchanged": true,
+    "passed": {
+      "openbook": true,
+      "ruby": true,
+      "hybrid": false,
+      "hybrid-reduced": true
+    },
+    "unadapted_failure_expected": true
+  },
+  "changed_logical_partitions": [
+    "vendor"
+  ],
+  "encryption_components_unchanged": {
+    "etc/fstab.openbook": true,
+    "apex/com.android.hardware.keymint.rust_nonsecure.apex": true,
+    "apex/com.android.hardware.gatekeeper.nonsecure.apex": true,
+    "lib64/android.hardware.weaver-V3-ndk.so": true,
+    "lib64/android.hardware.security.keymint-V1-ndk.so": true,
+    "bin/hw/android.hardware.weaver-service.openbook": true,
+    "etc/init/weaver-openbook.rc": true,
+    "etc/vintf/manifest/weaver-openbook.xml": true
+  },
+  "host_tests": {
+    "compatibility": 17,
+    "live": 8,
+    "adb_collection": 7,
+    "preservation": 10,
+    "synthetic_touchpad": 9
+  },
+  "init_verifier_passed": true,
+  "physical_unlock_verified": false,
+  "touchpad_hardware_fix_claimed": false,
+  "configured": {
+    "complete": true,
+    "sources_unchanged": true,
+    "unrelated_esp_files_unchanged": true,
+    "protected_bytes": 8805941248,
+    "write_names": [
+      "EFI",
+      "vbmeta_a",
+      "super"
+    ],
+    "image_sha256": "d52f877b4e1199f96ef1908501361234e85e9c2631e3dbdc86034890d3f46861"
+  },
+  "disposable_vm": {
+    "complete": true,
+    "sources_unchanged": true,
+    "unrelated_esp_files_unchanged": true,
+    "protected_bytes": 8805941248,
+    "write_names": [
+      "EFI",
+      "vbmeta_a",
+      "super"
+    ],
+    "image_sha256": "b10b65f73be811a1a12b2068473e3ff16098ad1f1425b58b25627e6c4defca01"
+  }
+}

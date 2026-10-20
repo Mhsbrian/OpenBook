@@ -5,6 +5,12 @@ packager and an instruction-emulation lane. These are local research artifacts;
 the installer Googlebook option remains unavailable. Generated images contain
 retained recovery material and must stay local.
 
+Latest handoff: services21 is on the owner's SanDisk. The preserving update and
+full 12.77 GB direct readback passed, protected data is unchanged, the private
+backup is retained and the drive powered off. Its 18.3-minute existing-state VM
+rehearsal passed; G14 post-update unlock and hardware behavior still need a
+retest. Evidence: `evidence/2026-10-19-googlebook-services-update/`.
+
 ## Preserve the configured USB during iteration
 
 The owner has completed setup on net18 and wants to keep apps, accounts,
@@ -13,11 +19,12 @@ for this configured stick. `write-stick.sh` writes a fresh full image and is
 not an update method for it: the new image contains blank metadata/userdata.
 Do not use a fresh-image rewrite for an ordinary iteration.
 
-The attached net18 medium and zram19 candidate have identical partition extents:
+The configured net18 snapshot and services21 candidate have identical partition extents:
 8 GiB userdata, 64 MiB metadata, 4 MiB misc, and a separate system super
-partition. Only vendor changes among the logical images. The fstab, compiled
-policy and seven vendor KeyMint/Gatekeeper/Weaver-related files are unchanged.
-This supports an offline system-only update design; it does not yet prove that
+partition. Only vendor changes among the logical images. The fstab and seven
+vendor KeyMint/Gatekeeper/Weaver-related files are unchanged. The compiled policy
+adds the reviewed desktop-service contracts described below.
+This supports the offline system-only update; it does not yet prove that
 the user's encrypted data unlocks after the update.
 
 The update contract is:
@@ -31,7 +38,7 @@ The update contract is:
    metadata partition contains the blobs needed to unlock encrypted userdata;
    copying userdata alone is insufficient. Keep the same serial identity,
    encryption policy and compatible KeyMint/security implementation.
-3. Replace the coherent system/boot/AVB set only. For net18 → zram19 this means
+3. Replace the coherent system/boot/AVB set only. For net18 → services21 this means
    super, vbmeta_a and the matching ESP initrds/manifest; the boot image payloads
    are unchanged. Candidate initrds contain a different ESP UUID, so they must
    be rebuilt for the existing stick's UUID. Preserve its diagnostic logs.

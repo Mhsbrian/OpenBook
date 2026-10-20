@@ -1,5 +1,30 @@
 # Status
 
+## 2026-10-19: services21 USB update preserves configured data (ANAL-228)
+
+The owner's SanDisk now contains services21. The updater matched the complete
+used extent to the verified backup, then wrote only super, vbmeta_a and EFI.
+All 12,766,412,800 bytes passed direct readback with SHA-256
+`d52f877b4e1199f96ef1908501361234e85e9c2631e3dbdc86034890d3f46861`.
+All 8,805,941,248 protected bytes, including userdata, metadata, misc and GPT,
+are unchanged. The private backup is retained and power-off succeeded.
+G14 credential unlock and existing apps/settings still need a physical retest.
+
+The 1,100.6-second rehearsal updates a previously booted disposable VM disk
+with copied TPM state. Encrypted data mounts, boot completes, seven restored
+desktop services register, zram activates and mmd setup succeeds. No fatal
+signal, zygote exit, watchdog kill or Chrome EC logger start is recorded.
+The ten-minute capture finishes with zero lost bytes, excluding the prior
+session. Welcome responds to keyboard/pointer input after idle. All 51 host
+checks and the 399-input native VINTF/strict-policy audit pass.
+
+The ELAN touchpad is recognized. Added preference/mapper diagnostics and a
+tap-disabled scroll control; no physical fix is claimed for unwanted taps.
+Labeled motion and active-user toggle propagation still need capture. The
+physical watchdog, audible playback, vendor serviceability backend and
+installation/recovery qualification remain open. Evidence:
+`evidence/2026-10-19-googlebook-services-update/`. Entries below retain history.
+
 ## 2026-10-19: preserve configured USB state (ANAL-228)
 
 The owner requests data-preserving updates after completing setup on USB.

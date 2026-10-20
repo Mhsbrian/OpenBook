@@ -1,0 +1,9 @@
+{
+  "scope": "Disposable VM only; not the configured G14 data",
+  "initial_idle_display": "inactive",
+  "wake_key": "display active but blank in immediate captures",
+  "escape_and_pointer_motion": "welcome and screen-reader prompt rendered",
+  "second_escape": "prompt dismissed; welcome rendered",
+  "screenshot": "vm-responsive.png",
+  "hardware_touchpad_test": false
+}

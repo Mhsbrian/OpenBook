@@ -15,6 +15,11 @@ spec.loader.exec_module(observation)
 
 
 class LiveGuards(unittest.TestCase):
+    def test_duplicate_capture_does_not_double_count_zygote_exit(self):
+        line = "init: Service 'zygote' (pid 123) received signal 9\n"
+        result = observation.runtime_findings(line + line)
+        self.assertEqual(result["zygote_exit_events"], 1)
+
     def test_init_trigger_is_not_boot_completion(self):
         for text in ("init: parsing action sys.boot_completed=1\n", "sys.boot_completed=0\n",
                      "echo OPENBOOK_RUBY_BOOT_COMPLETED=1\n"):
