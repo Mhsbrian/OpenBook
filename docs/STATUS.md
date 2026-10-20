@@ -3,15 +3,26 @@
 ## Release coordination — 2026-10-20
 
 Multica **ANAL-232** is the release hub; **ANAL-233 / RB-20261020-01** is the
-first proposed batch continuing ANAL-228. The build is awaiting approval.
+first batch continuing ANAL-228. B Honey authorized plan v1; its corrected
+candidate has been built privately at pinned source `8294358eabd1`.
 It includes corrected AVB boot parameters and a regenerated installer pin;
 Fresh28's old artifact is held. The experimental OTA guard and unfinished
-Bluetooth/audio fixes are excluded. No USB or laptop change is authorized.
+Bluetooth/audio fixes are excluded. Live boot and the 1 TB installer reach
+Android in QEMU, with known system-server crashes still present.
+The 300-second restart without USB retains all four metadata-encryption files
+and boot identity; it also reproduces that crash.
+No USB or laptop change is authorized.
 See `release-control.md`; the hub holds current operational state.
 Project instructions route new/resumed tasks; the read-only release intake
 census catches older work and later revisions before plan/build decisions.
 It reports discovery and watch coverage, not image qualification. The PR
 handoff template takes effect after it lands on the default branch.
+Agents now budget build space with a minimum 40 GiB host reserve and clean
+their completed disposable fixtures while retaining release/recovery images,
+owner backups and evidence. Measured cleanup belongs in the release handoff.
+This release's scoped cleanup recovered 45.81 GiB and left 69.36 GiB free.
+All planned functional checks and console review completed; sanitized hashes,
+crash counts and retention details are in `evidence/2026-10-20-release-rb01/`.
 
 ## 2026-10-20: Returned call diagnostic and SCO boundary test (ANAL-228)
 
