@@ -1,0 +1,11 @@
+{
+  "installed": true,
+  "foreground_capture": true,
+  "background_samples": true,
+  "marker": true,
+  "stop": true,
+  "saf_export_identical": true,
+  "bluetooth_denial_supported": true,
+  "app_crash": false,
+  "physical_bluetooth_tested": false
+}

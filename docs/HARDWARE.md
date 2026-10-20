@@ -1,11 +1,24 @@
 # Hardware
 
+2026-10-20 fresh-install/audio follow-up: the owner reports **16 GB in Settings**,
+not 8 GB. A disposable Android test reproduces 8 GiB filesystem/16 GB reported
+capacity through Android's rounding; the absent laptop has not been remeasured.
+Fresh28 adds an explicitly destructive full-capacity installer option for the
+1 TB NVMe. See `googlebook-fresh-install.md`; hardware application is pending.
+
+The owner now reports Bluetooth call instability and laptop microphone selection
+with AirPods/Pixel Buds. Static policy inspection finds missing classic SCO routes
+despite Ruby enabling software HFP. A passive diagnostic APK is provided for
+off-host capture; neither a hardware root cause nor an audio fix is claimed.
+See `googlebook-audio-diagnostic.md`.
+
 2026-10-20 installed follow-up: the owner confirms bare-metal installation succeeds
 and is using the G14 away from the host. A repeat/timestamp control reproduces the
 reported short tap-drag in the retained Ruby library. Input27 is prepared for
 later hardware testing; it has not been installed. The owner also confirms the
 storage-size limitation: migration retained the 8 GiB encrypted data extent.
-Growing it safely remains unresolved. See `googlebook-input-update.md`.
+Growing it while retaining existing data remains unresolved. See
+`googlebook-input-update.md` and the later capacity clarification above.
 
 Camera25 acceptance follow-up (2026-10-20): the owner confirms that the webcam
 is fixed and Bluetooth works. These are physical owner reports, not measured

@@ -127,9 +127,13 @@ preparer accepts it.
 
 ## Storage report
 
-The owner's limited available storage is explained by the installer's deliberate
-8 GiB userdata copy, not evidence that files disappeared. The rest of the SSD is
-unallocated. This candidate does **not** expand storage.
+The installer deliberately copied an 8 GiB userdata partition and left the rest
+of the SSD unallocated. The owner subsequently clarified that Settings reports
+**16 GB**. That UI value is compatible with Android's rounded system-plus-data
+total; a disposable Android test now reproduces this exact distinction. The
+actual laptop filesystem still needs measurement. See `googlebook-fresh-install.md`
+for the correction and the separate owner-requested full-capacity fresh option.
+Input27's preserving update does **not** expand storage.
 
 A correct repair must grow the final partition without moving its start/UUID,
 retain both GPT copies, reopen the full-sized encrypted mapping using the existing
@@ -152,8 +156,10 @@ known CE/DE files; test a key-aware offline growth method, interruptions and
 restoration before enabling it on the laptop. If direct growth cannot preserve
 encrypted blocks, evaluate a same-device filesystem migration preserving fscrypt
 policy/keys and metadata. Reformatting the current userdata is not an acceptable
-repair. Do not consume all spare space before deciding whether recoverable system
-slots need a small reservation.
+repair of existing data. The later, explicitly selected **fresh** mode is a
+different operation: it discards the target's setup and formats new encrypted
+storage across the available capacity. It does not claim to preserve data or add
+recoverable system slots.
 
 ## Primary sources checked 2026-10-20
 
