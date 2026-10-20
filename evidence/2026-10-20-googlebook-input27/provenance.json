@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-20",
+  "owner_report": "Bare-metal installation succeeds; held tap-drag releases early; storage remains limited",
+  "owner_laptop_accessed": false,
+  "physical_disks_written": false,
+  "reference_gestures": "6c2310952338e9f094a1aeb6a83f7356ff5d6042",
+  "erofs_tools": "abbde14092ad3abd8908b864fa9b04685820577b",
+  "f2fs_tools": "c64468cb6397fb63bded0f549438b472f7e7cf88",
+  "vold": "307fbdc3bb083fb4db8078bd9465581fd0d1d923",
+  "fs_mgr": "157112fcbaa00b6e84c63146cfde249c56cd652c",
+  "kernel": "fbfdd65b0fd1d020a560c54988cdccaec73a6b0a",
+  "aosp_replay_tests": 12,
+  "candidate_gate_tests": 8,
+  "real_converter_checks": 2,
+  "retained_library_drag_controls": 6,
+  "storage_expanded": false,
+  "physical_updater_delivered": false,
+  "failed_builds": [
+    "EROFS full-data image-layer rebuild unsupported",
+    "4 KiB compression clusters exceeded original logical partition"
+  ],
+  "accepted_build": "8-byte correction; full metadata reconstruction, 64 KiB compression clusters"
+}

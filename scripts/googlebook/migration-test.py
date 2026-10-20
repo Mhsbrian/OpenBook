@@ -84,11 +84,11 @@ class MigrationTests(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
-    def migrate(self, pin=None, expected=None):
+    def migrate(self, pin=None, expected=None, fresh=False):
         src = os.open(self.src, os.O_RDONLY)
         dst = os.open(self.target, os.O_RDWR)
         try:
-            return m.migrate(src, dst, pin or self.pin, self.work, expected)
+            return m.migrate(src, dst, pin or self.pin, self.work, expected, fresh=fresh)
         finally:
             os.close(src)
             os.close(dst)
@@ -209,6 +209,67 @@ class MigrationTests(unittest.TestCase):
         finally:
             os.close(src); os.close(dst)
         self.assertEqual(self.target.read_bytes(), bytes(self.target.stat().st_size))
+
+    def test_fresh_resets_old_state_and_uses_target_capacity(self):
+        self.target.write_bytes(b"OLD SSD DATA" * (self.target.stat().st_size // 12) + b"\0" * 4)
+        result = self.migrate(fresh=True)
+        self.assertEqual(result["install_mode"], "fresh")
+        self.assertLess(result["unallocated_bytes"], m.MIB)
+        self.assertGreater(result["userdata_bytes"], 32 * m.MIB)
+        src, dst = os.open(self.src, os.O_RDONLY), os.open(self.target, os.O_RDONLY)
+        try:
+            new = m.read_gpt(dst)
+            for old, row in zip(self.gpt["rows"], new["rows"]):
+                start, size = m.extent(row)
+                if row["name"] in m.STATIC:
+                    self.assertEqual(m.digest(src, *m.extent(old)), m.digest(dst, start, size))
+                elif row["name"] in ("misc", "metadata"):
+                    self.assertEqual(m.read_at(dst, start, size), bytes(size))
+                elif row["name"] == "userdata":
+                    self.assertEqual(m.read_at(dst, start, 4 * m.MIB), bytes(4 * m.MIB))
+                    self.assertEqual(m.read_at(dst, start + size - 4 * m.MIB, 4 * m.MIB), bytes(4 * m.MIB))
+            self.assertEqual(hashlib.sha256(self.src.read_bytes()).hexdigest(), self.before)
+        finally:
+            os.close(src); os.close(dst)
+        record = json.loads((self.work / "efi-after/ruby/RESEARCH.json").read_text())
+        self.assertTrue(record["userdata_format_on_first_boot"])
+        self.assertEqual(record["userdata_bytes"], result["userdata_bytes"])
+
+    def test_one_tb_layout_has_backup_gpt_at_end_and_full_data_extent(self):
+        size = 1_000_000_000_000
+        rows, headers = m.target_gpt(self.gpt, size, fresh=True)
+        with self.target.open("wb") as f:
+            f.truncate(size)
+        fd = os.open(self.target, os.O_RDWR)
+        try:
+            for offset, data in headers:
+                m.write_at(fd, offset, data)
+            actual = m.read_gpt(fd)
+        finally:
+            os.close(fd)
+        self.assertEqual(actual["used_bytes"], size)
+        self.assertEqual(actual["rows"], rows)
+        self.assertGreater(m.extent(rows[-1])[1], 990_000_000_000)
+        self.assertLess(size - 33 * 512 - (rows[-1]["last_lba"] + 1) * 512, m.MIB)
+
+    def test_fresh_requires_distinct_typed_confirmation(self):
+        self.assertEqual(m.confirmation_phrase("EXACT-SERIAL", True), "FRESH ERASE EXACT-SERIAL")
+        self.assertNotEqual(m.confirmation_phrase("EXACT-SERIAL"), m.confirmation_phrase("EXACT-SERIAL", True))
+
+    def test_interrupted_fresh_reset_leaves_target_unpublished_and_source_unchanged(self):
+        write = m.write_at
+        data_start = m.extent(self.gpt["rows"][-1])[0]
+        def interrupt(fd, offset, data):
+            if offset == data_start:
+                raise OSError("fresh reset interrupted")
+            return write(fd, offset, data)
+        with patch.object(m, "write_at", interrupt), self.assertRaisesRegex(OSError, "interrupted"):
+            self.migrate(fresh=True)
+        with self.target.open("rb") as f:
+            self.assertEqual(f.read(34 * 512), bytes(34 * 512))
+            f.seek(-33 * 512, os.SEEK_END)
+            self.assertEqual(f.read(), bytes(33 * 512))
+        self.assertEqual(hashlib.sha256(self.src.read_bytes()).hexdigest(), self.before)
 
 
 if __name__ == "__main__":

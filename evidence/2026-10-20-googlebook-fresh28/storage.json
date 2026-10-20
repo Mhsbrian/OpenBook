@@ -1,0 +1,26 @@
+{
+  "event": "storage",
+  "data_filesystem": {
+    "total_bytes": 8587837440,
+    "available_bytes": 8186855424,
+    "free_bytes": 8321073152,
+    "block_size": 4096
+  },
+  "root_filesystem": {
+    "total_bytes": 891015168,
+    "available_bytes": 0,
+    "free_bytes": 0,
+    "block_size": 4096
+  },
+  "app_filesystem": {
+    "total_bytes": 8587837440,
+    "available_bytes": 8186855424,
+    "free_bytes": 8321073152,
+    "block_size": 4096
+  },
+  "android_storage_total_bytes": 16000000000,
+  "fresh_target_bytes": 1000000000000,
+  "fresh_userdata_partition_bytes": 995824238592,
+  "f2fs_checker_mib": 949692,
+  "physical_laptop_measured": false
+}

@@ -1,5 +1,40 @@
 # Build and reproduce
 
+## Fresh28 SSD installer and audio diagnostic
+
+The returned call-report analysis and isolated SCO HAL probe are documented in
+`googlebook-audio-diagnostic.md` and
+`evidence/2026-10-20-googlebook-hfp29/README.md`. Build the explicit test target
+with `AOSP_JOBS=20 scripts/aosp-docker.sh /repo/scripts/aosp-build.sh
+anybook_g14_x86_64-cp2a-userdebug openbook-hfp-hal-test`. It is never installed in
+a product. The alternate SCO XML is a VM candidate, deliberately excluded from
+`pc.mk` pending USB voice transport integration; fresh28 remains unchanged.
+
+`googlebook-fresh-install.md` describes the new USB fresh-install option, which
+retains input27's system and creates new encrypted data storage across the remaining
+NVMe capacity after exact erase confirmation. It is separate from preserving an
+existing laptop setup. No physical media has been updated in this turn.
+
+`bash scripts/googlebook/audio-diagnostic/build.sh` produces a normal signed APK
+with no network or recording permission. Cuttlefish UI/capture/export/permission
+checks and static Bluetooth policy findings are in `googlebook-audio-diagnostic.md`.
+
+## Installed Googlebook input27 candidate
+
+The owner reports successful bare-metal migration. Input27 applies the exact-build
+MSC timestamp correction to the retained input library. The builder compares every
+system inode/xattr and file, verifies new AVB descriptors, and retains camera25's
+vendor, kernel and credential components. Twelve replay tests, eight negative/input
+gates and native before/after converter/gesture controls are documented in
+`googlebook-input-update.md`.
+
+`installed-update.py` prepares only a regular-file clone of a **fresh current**
+installed snapshot, preserving metadata/userdata/GPT and disk-bound boot identity.
+It is not a physical writer or A/B updater. The earlier USB backup must never
+replace newer laptop data. The preserving path retains the 8 GiB partition
+(Android may display 16 GB after rounding); safe encrypted F2FS expansion of
+existing data is additional unresolved work.
+
 ## Ruby update research and staging gate (ANAL-229, 2026-10-20)
 
 Start with `docs/googlebook-updates.md` and the reproduction commands in

@@ -1,0 +1,70 @@
+{
+  "schema": "openbook-audio-policy-audit/1",
+  "files": {
+    "audio_policy_configuration.xml": "49fd39d755d7b6bebbb00026f89bb668383d57cf20089cc08ce9f8279bba3b14",
+    "primary_audio_policy_configuration.xml": "2f1d981a6af8918ee54b2c1a27aa408eadab1f501e6f9e35d52c0f73dcb73760",
+    "r_submix_audio_policy_configuration.xml": "44aa04e6a3fe674bf22e1e87fee602ca4d42e701740bf96f0101fe6c3b2abe09",
+    "bluetooth_with_le_audio_policy_configuration_7_0.xml": "59615b080e62635347c24511168fad0f6e1f959e520d9cf402e7e6f98be4b914",
+    "audio_policy_volumes.xml": "c76950c2751984d6edc10c892068e2dce1bfdc9ee4622a8a01a082ae3cb017b5",
+    "default_volume_tables.xml": "9b865f9fe272bdd0f23357f630da21ffd73742358e7e33bfcdf6c853e9e59f79"
+  },
+  "modules": [
+    {
+      "name": "primary",
+      "declared_types": [
+        "AUDIO_DEVICE_IN_BUILTIN_MIC",
+        "AUDIO_DEVICE_IN_WIRED_HEADSET",
+        "AUDIO_DEVICE_OUT_SPEAKER",
+        "AUDIO_DEVICE_OUT_WIRED_HEADPHONE",
+        "AUDIO_DEVICE_OUT_WIRED_HEADSET"
+      ],
+      "routed_types": [
+        "AUDIO_DEVICE_IN_BUILTIN_MIC",
+        "AUDIO_DEVICE_IN_WIRED_HEADSET",
+        "AUDIO_DEVICE_OUT_SPEAKER",
+        "AUDIO_DEVICE_OUT_WIRED_HEADPHONE",
+        "AUDIO_DEVICE_OUT_WIRED_HEADSET"
+      ]
+    },
+    {
+      "name": "r_submix",
+      "declared_types": [
+        "AUDIO_DEVICE_IN_REMOTE_SUBMIX",
+        "AUDIO_DEVICE_OUT_REMOTE_SUBMIX"
+      ],
+      "routed_types": [
+        "AUDIO_DEVICE_IN_REMOTE_SUBMIX",
+        "AUDIO_DEVICE_OUT_REMOTE_SUBMIX"
+      ]
+    },
+    {
+      "name": "bluetooth",
+      "declared_types": [
+        "AUDIO_DEVICE_IN_BLE_HEADSET",
+        "AUDIO_DEVICE_OUT_BLE_BROADCAST",
+        "AUDIO_DEVICE_OUT_BLE_HEADSET",
+        "AUDIO_DEVICE_OUT_BLE_SPEAKER",
+        "AUDIO_DEVICE_OUT_BLUETOOTH_A2DP",
+        "AUDIO_DEVICE_OUT_BLUETOOTH_A2DP_HEADPHONES",
+        "AUDIO_DEVICE_OUT_BLUETOOTH_A2DP_SPEAKER",
+        "AUDIO_DEVICE_OUT_HEARING_AID"
+      ],
+      "routed_types": [
+        "AUDIO_DEVICE_IN_BLE_HEADSET",
+        "AUDIO_DEVICE_OUT_BLE_BROADCAST",
+        "AUDIO_DEVICE_OUT_BLE_HEADSET",
+        "AUDIO_DEVICE_OUT_BLE_SPEAKER",
+        "AUDIO_DEVICE_OUT_BLUETOOTH_A2DP",
+        "AUDIO_DEVICE_OUT_BLUETOOTH_A2DP_HEADPHONES",
+        "AUDIO_DEVICE_OUT_BLUETOOTH_A2DP_SPEAKER",
+        "AUDIO_DEVICE_OUT_HEARING_AID"
+      ]
+    }
+  ],
+  "classic_sco_input": false,
+  "classic_sco_output": false,
+  "le_audio_input": true,
+  "a2dp_playback": true,
+  "scope": "Static declarations only; no radio, codec negotiation or call route measured",
+  "bluetooth.hfp.software_datapath.enabled": "true"
+}
