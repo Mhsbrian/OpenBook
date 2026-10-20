@@ -1,0 +1,25 @@
+{
+  "schema": "openbook-ruby-usb-apply/1",
+  "verified": true,
+  "image_bytes": 12766412800,
+  "readback_sha256": "95e30c7ae6be28494630c281b6e6b091009dbda36dc427e3c5ea08b63c0ca22b",
+  "written_names": [
+    "super",
+    "vbmeta_a",
+    "EFI"
+  ],
+  "protected_bytes": 8805941248,
+  "date": "2026-10-20",
+  "target": "configured SanDisk Ultra USB",
+  "target_capacity_bytes": 62109253632,
+  "fresh_backup_verified_by_independent_read": true,
+  "fresh_backup_retained": true,
+  "backup_sha256": "f6aca7eac0e4ad660779eb430c97bf9d09297ea6982059003e2d5b58c7de7cc2",
+  "powered_off": true,
+  "all_non_efi_partitions_unchanged": true,
+  "existing_efi_files_unchanged": true,
+  "physical_nvme_written": false,
+  "physical_credential_unlock_verified": false,
+  "automatic_google_os_updates_blocked": false,
+  "operation": "Add offline migration installer; Android partition contents unchanged"
+}

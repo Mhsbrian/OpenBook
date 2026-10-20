@@ -1,0 +1,27 @@
+#!/bin/busybox sh
+# SPDX-License-Identifier: Apache-2.0
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export LANG=C.UTF-8
+mount -t devtmpfs devtmpfs /dev
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+mount -t tmpfs -o mode=0755 tmpfs /run
+mount -t tmpfs -o mode=1777 tmpfs /tmp
+exec </dev/console >/dev/console 2>&1
+echo 0 > /proc/sys/kernel/printk
+# Deliberately no network, automounter, swap, Android, TPM reset or disk fsck.
+for module in nvme sd_mod xhci_pci usb_storage uas usbhid hid_asus hid_generic atkbd i8042 \
+              i2c_hid_acpi hid_multitouch virtio_pci virtio_blk ac battery; do
+    modprobe "$module" 2>/dev/null || true
+done
+sleep 3
+mdev -s
+touch /run/openbook-offline-installer
+stty sane
+python3 /opt/openbook/migrate.py --pin /opt/openbook/source.json
+echo
+echo "Press Enter to power off. Keep your source USB."
+read -r answer
+sync
+poweroff -f
+while true; do sleep 60; done

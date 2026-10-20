@@ -1,0 +1,13 @@
+{
+  "schema": "openbook-owner-hardware-report/1",
+  "date": "2026-10-20",
+  "issue": "ANAL-228",
+  "comment_id": "01a15923-d6d6-77ca-a7c6-c2efad97bf23",
+  "candidate": "camera25",
+  "webcam_reported_working": true,
+  "bluetooth_reported_working": true,
+  "evidence_kind": "owner report following the verified USB update",
+  "instrumented_frame_rate_or_image_quality_test": false,
+  "bluetooth_profiles_or_suspend_test_specified": false,
+  "physical_nvme_migration_tested": false
+}

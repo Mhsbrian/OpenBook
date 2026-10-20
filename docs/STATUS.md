@@ -1,5 +1,35 @@
 # Status
 
+## 2026-10-20: Configured Googlebook migration installer (ANAL-228)
+
+The owner confirms camera25 fixes the webcam and Bluetooth works. A separate
+offline RAM boot entry now implements same-G14 migration of the configured USB
+to a selected internal NVMe. It preserves all Android partitions, encryption
+metadata and serial identity, creates new target GUIDs, rebinds the EFI boot
+identity, verifies each copied partition and registers a firmware boot entry.
+The exact target serial must be typed before writes. Live boot stays the default.
+
+Eleven integrity/failure tests pass. The final 480-second VM observation reaches
+Android boot completion using the target NVMe with the source USB attached;
+metadata-encryption files and source/TPM/decoy state remain unchanged. Incorrect
+confirmation cancels without disk writes. This does not qualify runtime
+stability: the final VM records the earlier system-server crash class, and one
+other attempt exits before boot completion for an undetermined reason.
+Both outcomes are retained in the evidence.
+
+The installer entry is now on the configured SanDisk. A fresh backup matched an
+independent second device read before preparation. Full 12,766,412,800-byte direct
+readback matches `95e30c7ae6be2849…`; all Android partition contents and existing
+EFI files are unchanged. The backup is retained and power-off succeeded.
+
+The initial migration retains 8 GiB userdata and leaves other SSD space
+unallocated. No physical internal SSD has been installed by the agent; the
+owner's display/input, PIN, apps and files remain acceptance steps. Google's
+automatic OS updater is not blocked or qualified. Separate ANAL-229 covers
+measured containment, full/incremental update adaptation, a local build/test
+pipeline and app/service options. Details: `docs/googlebook-migration.md` and
+`evidence/2026-10-20-googlebook-migration/`.
+
 ## 2026-10-20: G14 Camera2 and graphics failures reproduced (ANAL-228)
 
 Camera24 boots and fixes the HAL's initial FMQ allocation. Its black preview has

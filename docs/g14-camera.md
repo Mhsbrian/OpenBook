@@ -1,5 +1,11 @@
 # G14 UVC camera integration
 
+Owner acceptance, 2026-10-20: after camera25 was written and verified, the owner
+reports that the camera is fixed and Bluetooth works. This confirms practical
+preview use according to the owner; measured frame delivery, orientation,
+privacy and suspend remain separate tests. See
+`evidence/2026-10-20-googlebook-migration/owner-confirmation.json`.
+
 The GA403WR inventory identifies `3277:0060`, a Shinetech USB2.0 FHD UVC webcam.
 The earlier G14 boot captures show `uvcvideo` binding both its UVC 1.10 and
 1.50 interfaces. The OpenBook GKI already has `CONFIG_USB_VIDEO_CLASS=y` and

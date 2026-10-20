@@ -4,14 +4,18 @@
 
 | Check | Observed result | Limit |
 |---|---|---|
+| Configured Googlebook offline migration | Separate RAM installer, pinned camera25 source, exact NVMe confirmation, per-partition readback, new destination GUIDs and firmware boot registration; eleven integrity/failure tests pass | Same G14 only; retains 8 GiB userdata; physical credential unlock and app-state acceptance required; no automatic OTA containment |
+| Migration26 configured SanDisk (`95e30c7ae6be2849…`) | Fresh backup independently verified; new installer entry added; full used extent passes direct readback; all Android partitions and existing EFI files unchanged; powered off | Physical installer display/input and SSD migration still require owner acceptance |
+| Migration26 VM data retention | Final 480-second observation reaches boot completion from NVMe with source USB attached; original metadata-encryption files and source/TPM/decoy unchanged | System-server SIGSEGV and zygote restart recur; another attempt exits early; successful copy/data checks do not establish runtime stability |
 | Configured USB data preservation | camera24 → camera25 uses a fresh independently verified backup; partition extents, fstab and security components match; only vendor changes among logical images | Stored bytes are verified; physical credential unlock still needs a G14 check; fresh-image writer would reset setup; single-slot USB has no A/B fallback |
 | Patched QEMU TCG instruction lane | The faulting VEX VPDPWSSD executes; 10,000-iteration GFNI/VPCLMUL and VNNI digests match native arithmetic oracles | Emulation research; native Zen 4 still faults |
 | UEFI, emulated USB, synthetic internal NVMe | Enforcing boot reaches `sys.boot_completed=1`; boot-control marks slot A good; original image, guest backing file and internal decoy hashes remain unchanged | Eight-minute VM observation; physical-medium verification is separate below |
 | Native VINTF, strict SELinux, service-context validation | Both stock baselines and adapted hybrid pass; camera25 covers 415 unchanged inputs; 49 full-context policy expectations pass with old-policy and MLS negative controls | Absent vendor serviceability backend remains separate from framework registration |
 | Data-preserving USB updater | Private configured and disposable VM clones retain all 8,805,941,248 protected bytes and unrelated ESP files; ten guard checks pass | Physical post-update credential unlock and user apps require a G14 test; single-slot recovery uses the private backup |
 | Ruby ELAN touchpad | TouchpadInputMapper recognizes `04f3:3315`; eleven synthetic AOSP checks pass; Ruby lacks OpenBook's repeat/MSC fixes; latest physical capture has tapping enabled in user 10 and mapper | Clock control reproduces warnings but no clicks; earlier tap-disabled Settings activation still needs a labeled physical motion trace |
-| Ruby G14 UVC webcam | Camera24 fixes HAL allocation; live Camera2 fails at app result-FMQ transfer. API1 starts UVC 640×480/30 then the provider aborts after graphics-allocator discovery is denied. Camera25 addresses both policy gaps | Both physical probes receive zero frames on camera24; candidate frame delivery, orientation and privacy remain unverified; provider reports EXTERNAL, not FRONT |
-| Camera25 validation | Enforcing HAL queue/YUV-buffer tests pass; normal UEFI preserving boot completes 760.7 seconds with encrypted VM data and complete ten-minute logs; physical USB update/readback passes | Focused direct-kernel VM later reboots on a checkpoint failure; normal run's audit rate limiting drops 210 events; physical camera25 boot and frames remain untested |
+| Ruby G14 UVC webcam | Camera25 corrects the app result-queue and graphics-allocator policy failures; owner now reports the camera is fixed | No instrumented frame-rate, image-quality, orientation, privacy or suspend acceptance; provider reports EXTERNAL, not FRONT |
+| Ruby G14 Bluetooth | Owner reports working Bluetooth on camera25 | Profiles, reconnect, suspend and throughput were not specified or independently measured |
+| Camera25 validation | Enforcing HAL queue/YUV-buffer tests pass; normal UEFI preserving boot completes 760.7 seconds with encrypted VM data and complete ten-minute logs; physical USB update/readback passes; subsequent owner camera/Bluetooth report is positive | Focused direct-kernel VM later reboots on a checkpoint failure; normal run's audit rate limiting drops 210 events; broader hardware qualification remains open |
 | Graphical setup and input | Googlebook boot animation and welcome screen render; pointer input opens the screen-reader prompt and Escape dismisses it | No completed setup, usable launcher or physical AMD GPU result |
 | Longer runtime stability | Earlier observations, including net16, catch `system_server` SIGSEGV/SEGV_ACCERR and a zygote restart; final net18 captures no fatal signal in 660.6 s, but zram setup still aborts | Stability unresolved; earlier RenderThread `execmem` denials implicate the VM SwiftShader fallback, with full trace still needed |
 | Physical GA403WR / HX 370 / Radeon 890M | Paired net18 captures confirm ANGLE/RADV on Radeon 890M, 2880×1800 at 120 Hz | Cursor warnings and stability still need work; no installed Googlebook qualification |
@@ -22,7 +26,7 @@
 | zram19 VM correction | zram0 created, swap activated, mmd_setup exits 0 twice and mmd runs in 17 snapshots; full saved capture completes at 600.4 s with no lost bytes | 660.6-second test still reproduces the separate system-server SIGSEGV; no physical update yet |
 | Physical watchdog | android.fg blocks 74 s; earlier stacks place it in property-service connect while stopping idmap2d; later wait channel agrees | Property server stall cause unresolved; high IO pressure does not prove USB causation |
 | net18 VM diagnostics | 271 files / 24.5 MB, completion at 600.2 s; zero overruns, failed saves or unsaved bytes; no logger-pipe or ALSA inventory denials | No physical Wi-Fi radio or audible output exercised; earlier intermittent VM crashes remain unresolved |
-| Current camera25 configured SanDisk (`c613fd06e2eb2138…` before boot) | Fresh latest-state backup independently verified; only super/vbmeta_a/EFI written; full 12.77 GB direct readback passes; all protected bytes and unrelated EFI files preserved; powered off | G14 boot, credential unlock, app state and actual webcam frames require hardware testing |
+| Camera25 configured SanDisk (`c613fd06e2eb2138…` before boot) | Full 12.77 GB readback and protected-byte preservation pass; subsequent owner reports working camera and Bluetooth | No exhaustive app-state, credential or hardware acceptance audit |
 | Prior camera24 configured SanDisk (`207aaaa1f2f1f376…` before boot) | Fresh backup and full update readback passed; subsequent ADB confirms boot and encrypted data mounted; owner reports the laptop is good with the disk | Camera2 queue and graphics-allocator failures reproduced; latest used state backed up before camera25; no exhaustive app-state audit |
 | Prior camera23 configured SanDisk (`bf79eef29bc760e5…` before boot) | Full update readback passed; subsequent ADB confirms boot completion and encrypted data mounted | Camera open failed at FMQ; its latest used state was backed up before camera24 |
 | Earlier services21 configured SanDisk (`d52f877b4e1199f9…`) | System-only writes and full readback passed; owner subsequently reported using Settings; current state backed up before camera23 | Independent post-update hardware checks were limited by unavailable ADB |
@@ -38,8 +42,9 @@ Earlier physical ADB evidence: `evidence/2026-10-19-googlebook-live-adb/investig
 Earlier evidence: `evidence/2026-10-19-googlebook-live/` and
 `evidence/2026-10-19-googlebook-usb/` and
 `evidence/2026-10-19-googlebook-g14-black-screen/`; reproduction:
-`docs/googlebook-live.md`. Neither this prototype nor its successful boot marker
-enables the Googlebook installer option.
+`docs/googlebook-live.md`. These earlier live-boot results do not enable the
+AOSP wizard's generic Googlebook fresh-install card. The separate configured
+USB migration entry and its evidence are in `docs/googlebook-migration.md`.
 
 ## Ruby/OpenBook local integration (ANAL-228, 2026-10-19)
 

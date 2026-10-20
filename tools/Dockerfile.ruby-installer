@@ -1,0 +1,11 @@
+# Local offline migration environment. No Google payload or owner data included.
+# Retain package-versions.txt alongside each generated artifact.
+FROM debian:trixie-slim@sha256:a29215f6a35e51e22adffa17f89e9d2ef06214e64a2bad10d765c46aea49f11f
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    linux-image-amd64 busybox-static python3 kmod cpio gzip \
+    mtools dosfstools util-linux binutils efibootmgr \
+    && rm -rf /var/lib/apt/lists/*
+COPY scripts/googlebook/migrate.py /opt/openbook/migrate.py
+COPY scripts/googlebook/migration-init /opt/openbook/init
+COPY scripts/googlebook/build-migration-ramdisk.py /opt/openbook/build.py
+ENTRYPOINT ["python3", "/opt/openbook/build.py"]
