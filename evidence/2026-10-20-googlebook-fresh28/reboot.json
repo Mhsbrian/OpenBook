@@ -1,0 +1,44 @@
+{
+  "schema": "openbook-fresh-reboot/1",
+  "source_sparse_map_unchanged": true,
+  "observation_completed": true,
+  "boot_completed": true,
+  "metadata_key_files": 4,
+  "metadata_keys_unchanged": true,
+  "boot_identity_unchanged": true,
+  "nvme_selection": true,
+  "runtime_findings": {
+    "setup_welcome_activity_seen": true,
+    "system_server_fatal_signals": [],
+    "zygote_exit_events": 0,
+    "system_server_execmem_denial_seen": false,
+    "mmd_setup_abort_seen": false,
+    "camera_provider_running_reported": false,
+    "camera_provider_registered_reported": true,
+    "camera_device_counts_reported": [
+      0
+    ],
+    "camera_provider_abort_seen": false,
+    "camera_fmq_test_exit_statuses": [],
+    "camera_buffer_test_exit_statuses": [],
+    "camera_buffer_test_abort_seen": false,
+    "camera_fmq_tmpfs_denial_seen": false,
+    "camera_provider_default_label_denial_seen": false
+  },
+  "qmp_events": [
+    {
+      "timestamp": {
+        "seconds": 1792513696,
+        "microseconds": 466942
+      },
+      "event": "RTC_CHANGE",
+      "data": {
+        "offset": -1,
+        "qom-path": "/machine/unattached/device[5]/rtc"
+      }
+    }
+  ],
+  "physical_hardware_tested": false,
+  "usb_attached": false,
+  "serial_default_entry_for_observation": true
+}

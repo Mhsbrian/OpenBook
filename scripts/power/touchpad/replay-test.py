@@ -7,6 +7,7 @@ the owner's complaint or certify the physical device. Usage: replay-test.py BIN
 """
 import importlib.util
 import json
+import math
 from pathlib import Path
 import subprocess
 import sys
@@ -46,6 +47,42 @@ class Motion:
 
 
 class ReplayTests(unittest.TestCase):
+    def test_long_drag_with_kernel_repeat_timestamp_gap(self):
+        """A synthetic held contact must survive six seconds and release on lift.
+
+        The reset control deliberately demonstrates the retained Ruby converter's
+        early release. This is not a labeled recording from the physical G14.
+        """
+        for policy in ("clean", "reset-on-sync", "preserve"):
+            with self.subTest(policy=policy), tempfile.TemporaryDirectory() as tmp:
+                m = Motion(); m.add([], 10)
+                m.add([(1, 1800, 1000, False)], 20); m.add([], 20)
+                m.add([(2, 1800, 1000, False)], 70)
+                for i in range(1500):
+                    m.add([(2, 1800 + 300 * math.sin(i / 150), 1000, False)])
+                    if i > 150 and i % 10 == 0 and policy != "clean":
+                        prior = m.frames[-1]
+                        m.frames.append(dict(prior, time=prior["time"] + .002,
+                            msc=0 if policy == "reset-on-sync" else prior["msc"]))
+                lift = m.time + .0041
+                m.add([], 100)
+                path = Path(tmp) / "frames.json"
+                path.write_text(json.dumps(dict(hardware=HARDWARE,
+                    properties={"Tap Enable": True, "Tap Drag Enable": True,
+                                "Tap Drag Lock Enable": False}, frames=m.frames)))
+                result = subprocess.run([REPLAY, str(path)], check=True,
+                                        capture_output=True, text=True)
+                buttons = [e for e in json.loads(result.stdout) if "down" in e]
+                self.assertEqual([(e["down"], e["up"]) for e in buttons], [(1, 0), (0, 1)])
+                if policy == "reset-on-sync":
+                    self.assertLess(buttons[-1]["delivered_at"] - buttons[0]["delivered_at"], 1)
+                    self.assertLess(buttons[-1]["delivered_at"], lift - 5)
+                    self.assertIn("Clock changed backwards", result.stderr)
+                else:
+                    self.assertAlmostEqual(buttons[-1]["delivered_at"], lift, places=6)
+                    self.assertGreater(buttons[-1]["delivered_at"] - buttons[0]["delivered_at"], 6)
+                    self.assertEqual(result.stderr, "")
+
     def test_converter_palm_and_missing_msc(self):
         text = """[ 10.000000] EV_KEY BTN_TOUCH UP
 [ 10.000000] EV_SYN SYN_REPORT 00000000

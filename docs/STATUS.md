@@ -1,5 +1,92 @@
 # Status
 
+## 2026-10-20: Returned call diagnostic and SCO boundary test (ANAL-228)
+
+The returned Pixel Buds/Teams report confirms a system-visible missing headset
+microphone path: HFP/A2DP connected throughout the sampled states, HFP audio
+inactive, no Bluetooth communication device, and built-in microphone recording.
+It also directly confirms the laptop's roughly 8 GiB data filesystem with a
+16 GB Android advertised total. Raw owner logs remain private.
+
+The candidate SCO policy passes 12 synthetic provider/session/route/stream cases
+in enforcing Cuttlefish against the exact retained audio APEX; baseline fails
+because the Bluetooth module exposes no SCO interface. Five report-analysis tests
+pass. This is not a shipped Bluetooth fix: source review also found that the
+default Bluetooth HAL lacks the kernel's HCI driver-command path for USB voice
+endpoints. Policy remains excluded from product/image packaging pending transport
+integration, PCM tests and hardware validation.
+
+Reported severe internal-speaker stuttering remains undiagnosed. The earlier
+codec-clock patch is present, and old hardware logs show it enabled. Request a
+system bug report directly after reproduction; do not infer packet loss, timing
+failure or a need to reset data from the public-API report. Fresh28 and all physical
+media are unchanged. See `googlebook-audio-diagnostic.md` and
+`evidence/2026-10-20-googlebook-hfp29/`.
+
+## 2026-10-20: Fresh28 full-capacity installation and away-from-host audio capture
+
+Fresh28 adds a distinct **Fresh install Googlebook to SSD - ERASE SSD DATA**
+USB entry while retaining configured migration and live boot. It packages
+input27 and uses the remaining NVMe space for new encrypted data after exact
+serial confirmation. Fifteen unit tests pass, including fresh reset/interruption
+and 1 TB geometry. Actual installer cancellation preserves source/target/decoy;
+the normal framebuffer/keyboard path is exercised and visually reviewed.
+
+The 1 TB VM installer verifies its payloads, registers its firmware entry and
+boots Android with a 995,824,238,592-byte userdata partition. The actual F2FS
+checker observes 949,692 MiB and four new metadata-encryption files are present.
+The eight-minute observation still exhibits the known VM system-server/execmem
+crash class, so storage/install success is not a general stability claim.
+No physical USB or laptop was changed. See `googlebook-fresh-install.md`.
+The normal restart without USB reaches graphical setup; a second, instrumented
+300-second restart confirms boot completion, unchanged encryption keys and boot
+identity, and no system-server fatal signal in that narrower window. An initial
+serial-only checker missed the normal boot because its selected entry disables
+serial output; no production boot-entry change was needed or shipped.
+
+The owner's clarified **16 GB Settings total** is consistent with Android's
+rounding: the new diagnostic observes about 8 GiB StatFs data capacity and
+16,000,000,000 bytes from Android's storage API on the same emulator. This
+corrects the earlier direct equation of the UI reading with an 8 GiB filesystem;
+the later returned call report now confirms both values on the laptop itself.
+
+OpenBook Audio Check is built and signed as a normal APK. Android 17 UI tests
+pass capture/background sampling/marker/stop, byte-identical SAF export and
+Bluetooth permission denial. It records public route/profile metadata, not audio.
+Static policy extracted from the actual vendor image lacks classic SCO routes
+while Ruby's software HFP property is already enabled. This is a concrete gap,
+not proof of the negotiated headset path or every call-quality failure.
+Bluetooth changes are not included in fresh28. Hardware diagnostics, call-route
+correction and acceptance remain open; see `googlebook-audio-diagnostic.md`.
+
+## 2026-10-20: Installed Ruby input27 candidate and storage follow-up (ANAL-228)
+
+The owner confirms successful bare-metal installation and is using the G14 away
+from the host. The reported short tap-drag is reproduced by synthetic MSC-less
+repeat frames in the retained Ruby gestures library. The exact-build converter
+patch preserves MSC between frames; native before/after controls and twelve
+AOSP replay tests pass. Eight candidate/identity integrity and refusal tests pass.
+
+Input27 is built privately. Every system inode/xattr and file is compared; only
+the eight-byte input correction changes a system file. A prepared installed VM
+clone preserves all data/metadata/GPT bytes before boot. Its 480-second observation
+boots and preserves four encryption-key files, while reproducing the existing VM
+system-server crash class. The initial firmware-UUID log assertion was replaced
+by direct bootconfig verification plus observed NVMe partition selection; both
+the original result and the same-run re-evaluation are retained.
+
+No laptop or disk was written. This delivers a candidate and offline clone
+preparer, not a physical updater or automatic rollback. Deployment requires a
+fresh current-laptop backup, reviewed offline application/recovery and hardware
+acceptance; never restore the earlier USB data over the now-active SSD.
+
+The additional storage report led to identifying the migration's 8 GiB userdata limit
+(the later 16 GB Settings clarification and rounding reproduction are above).
+Spare SSD space is unallocated. No expansion is delivered: safe offline F2FS
+growth with metadata/fscrypt encryption needs separate preservation/recovery
+tests. Details and next steps: `docs/googlebook-input-update.md`;
+measurements: `evidence/2026-10-20-googlebook-input27/`.
+
 ## 2026-10-20: Ruby update pipeline research (ANAL-229)
 
 Decision: build reviewed full-recovery candidates on a local host first.

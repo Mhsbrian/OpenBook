@@ -1,0 +1,52 @@
+{
+  "schema": "openbook-ruby-installed-update-rehearsal/1",
+  "source_sha256": "e09832d673dda7f4c70ed2010ce2b53f0e6c2f328d1c803ef67235f3fdd59291",
+  "source_unchanged": true,
+  "source_tpm_unchanged": true,
+  "observation_completed": true,
+  "elapsed_s": 492.0,
+  "boot_completed": true,
+  "metadata_keys_identical": true,
+  "metadata_key_files": 4,
+  "runtime_findings": {
+    "setup_welcome_activity_seen": true,
+    "system_server_fatal_signals": [
+      "10-20 15:16:06.044   669  3324 F libc    : Fatal signal 11 (SIGSEGV), code 2 (SEGV_ACCERR), fault addr 0x7e96b2377000 in tid 3324 (Thread<00>), pid 669 (system_server)"
+    ],
+    "zygote_exit_events": 1,
+    "system_server_execmem_denial_seen": true,
+    "mmd_setup_abort_seen": false,
+    "camera_provider_running_reported": false,
+    "camera_provider_registered_reported": true,
+    "camera_device_counts_reported": [
+      0
+    ],
+    "camera_provider_abort_seen": false,
+    "camera_fmq_test_exit_statuses": [],
+    "camera_buffer_test_exit_statuses": [],
+    "camera_buffer_test_abort_seen": false,
+    "camera_fmq_tmpfs_denial_seen": false,
+    "camera_provider_default_label_denial_seen": false
+  },
+  "qmp_events": [
+    {
+      "timestamp": {
+        "seconds": 1792509175,
+        "microseconds": 233392
+      },
+      "event": "RTC_CHANGE",
+      "data": {
+        "offset": -1,
+        "qom-path": "/machine/unattached/device[5]/rtc"
+      }
+    }
+  ],
+  "hardware_tested": false,
+  "owner_credentials_tested": false,
+  "initial_harness_assertion_failed": "GUID absent from OVMF fallback entry text; not proof of wrong Android boot identity",
+  "target_uuid_printed_in_serial": false,
+  "disk_bound_bootconfig_unchanged": true,
+  "nvme_partition_selection_observed": true,
+  "assessment": "Re-evaluation of the same completed run with direct bootconfig byte verification; no second VM run",
+  "preservation_and_boot_checks_passed": true
+}

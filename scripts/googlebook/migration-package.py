@@ -132,6 +132,13 @@ def add(snapshot, snapshot_sha, base_manifest, installer, out, replace_installer
         conf = out / f"ruby-install{suffix}.conf"
         conf.write_text(installer_entry(suffix))
         m.run("mcopy", "-o", "-i", esp, conf, f"::/loader/entries/{conf.name}")
+        conf = out / f"ruby-fresh{suffix}.conf"
+        conf.write_text(
+            "title Fresh install Googlebook to SSD - ERASE SSD DATA" + (" (VM serial)" if suffix else "") + "\n"
+            "linux /ruby-installer/kernel\ninitrd /ruby-installer/initrd.img\n"
+            "options openbook.install=fresh " +
+            ("console=ttyS0,115200 loglevel=3\n" if suffix else "console=tty0 loglevel=3\n"))
+        m.run("mcopy", "-o", "-i", esp, conf, f"::/loader/entries/{conf.name}")
     m.run("fsck.fat", "-n", esp)
     after = out / "efi-after"; after.mkdir()
     m.run("mcopy", "-s", "-i", esp, "::*", after)

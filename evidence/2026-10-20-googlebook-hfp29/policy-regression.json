@@ -1,0 +1,9 @@
+{
+  "removed_sco_nodes": {
+    "mixPorts": 2,
+    "devicePorts": 4,
+    "routes": 4
+  },
+  "all_preexisting_elements_identical": true,
+  "product_copy_rule_unchanged": true
+}

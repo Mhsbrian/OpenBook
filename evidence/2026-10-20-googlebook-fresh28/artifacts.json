@@ -1,0 +1,22 @@
+{
+  "candidate": "fresh28",
+  "image_sha256": "a634827b21503d39884903b831fd2e7f610ec126c84be3bbf6d6f4c4fa912d96",
+  "parent_input27_sha256": "816e694848c146b84c661f46717cf113f5df9ae47c07556cbba4b2021f5f4bf9",
+  "installer": {
+    "schema": "openbook-ruby-offline-installer/1",
+    "kernel_release": "6.12.113+deb13-amd64",
+    "source_pin_sha256": "85a52f383edbbaccf7b7701c89deb72483d77a1a2214c617db341dfc5b7730c4",
+    "files": {
+      "initrd.img": "ad1509943fc1339d4b68daf159ed622f1a9ded8346e11e6066b05918b02d3f85",
+      "kernel": "4336c75fc1a6a58e7bda66cbe9f4042f88064e7abc93faaea9e2aceb19459561",
+      "package-versions.txt": "b3f2bd58528ed027709db3512f4bbf39c20cb317bdc89a4ee4d601666108d38b",
+      "source.json": "85a52f383edbbaccf7b7701c89deb72483d77a1a2214c617db341dfc5b7730c4"
+    }
+  },
+  "apk_sha256": "ee725e12a857492c58769ba23e88719796df65f6f14502177bac77c87bbe36da",
+  "apk_bytes": 20883,
+  "physical_media_written": false,
+  "owner_data_included": false,
+  "embedded_installer_source_sha256": "cd882714cd180f17dc674b5fbf58588e6c1d80919c52536f2ea0e18cd55eefc9",
+  "rejected_candidate": "fresh28-image-v2: incorrect missing-entry hypothesis; source guard refuses before writes; NOT a candidate"
+}

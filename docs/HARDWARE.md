@@ -1,5 +1,27 @@
 # Hardware
 
+2026-10-20 fresh-install/audio follow-up: the owner reports **16 GB in Settings**,
+not 8 GB. A disposable Android test reproduces 8 GiB filesystem/16 GB reported
+capacity through Android's rounding; the absent laptop has not been remeasured.
+Fresh28 adds an explicitly destructive full-capacity installer option for the
+1 TB NVMe. See `googlebook-fresh-install.md`; hardware application is pending.
+
+The returned Pixel Buds call report shows HFP/A2DP connected, no SCO audio,
+only the speaker as a communication device, and built-in microphone recording.
+The SCO policy candidate passes 12 synthetic route/stream cases against the exact
+retained audio APEX. It is not shipped: the default Bluetooth HAL also lacks the
+kernel's USB voice-endpoint control path. Speaker stuttering needs a contemporaneous
+system bug report; no timing or controller change has been applied.
+See `googlebook-audio-diagnostic.md`.
+
+2026-10-20 installed follow-up: the owner confirms bare-metal installation succeeds
+and is using the G14 away from the host. A repeat/timestamp control reproduces the
+reported short tap-drag in the retained Ruby library. Input27 is prepared for
+later hardware testing; it has not been installed. The owner also confirms the
+storage-size limitation: migration retained the 8 GiB encrypted data extent.
+Growing it while retaining existing data remains unresolved. See
+`googlebook-input-update.md` and the later capacity clarification above.
+
 Update qualification (ANAL-229, 2026-10-20): no connected G14 ADB endpoint was
 available for a new update-specific capture. No USB, SSD, firmware or laptop
 setting was changed. The retained camera25 VM has one boot-control slot while

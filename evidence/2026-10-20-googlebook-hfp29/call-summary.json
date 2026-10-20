@@ -1,0 +1,64 @@
+{
+  "schema": "openbook-audio-report-summary/1",
+  "duration_ms": 57823,
+  "rows": 22,
+  "snapshots": 19,
+  "clean_stop": true,
+  "access_errors": 0,
+  "bluetooth_permitted_snapshots": 19,
+  "device_types_observed": [
+    "bluetooth_a2dp",
+    "built_in_mic",
+    "speaker",
+    "type_25"
+  ],
+  "available_communication_types_observed": [
+    "speaker"
+  ],
+  "no_bluetooth_communication_route_observed": true,
+  "audio_modes_observed": [
+    0
+  ],
+  "recording_device_types_observed": [
+    "built_in_mic"
+  ],
+  "recording_observations": 9,
+  "recording_unsilenced_observations": 9,
+  "profiles": {
+    "HFP": {
+      "observations": 19,
+      "connection_states_observed": [
+        2
+      ],
+      "audio_connected_counts_observed": [
+        0
+      ]
+    },
+    "A2DP": {
+      "observations": 19,
+      "connection_states_observed": [
+        2
+      ],
+      "audio_connected_counts_observed": []
+    },
+    "LE_AUDIO": {
+      "observations": 19,
+      "connection_states_observed": [
+        0
+      ],
+      "audio_connected_counts_observed": []
+    }
+  },
+  "a2dp_playing_events": 1,
+  "marked_problems": 1,
+  "storage": {
+    "data_total_bytes": 8587837440,
+    "data_available_bytes": 784199680,
+    "android_total_bytes": 16000000000
+  },
+  "limits": [
+    "No audio content or underrun/RF measurements",
+    "Recording app identity unavailable; event gaps may hide transitions",
+    "Communication route is not a measurement of media playback routing"
+  ]
+}

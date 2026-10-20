@@ -1,5 +1,11 @@
 # Move a configured Googlebook USB to the same G14
 
+**Later option, 2026-10-20:** `googlebook-fresh-install.md` documents fresh28's
+separate **Fresh install - ERASE SSD DATA** entry, which uses the remaining SSD
+capacity and starts setup over. The preserving migration described here keeps
+the source filesystem size. The owner's 16 GB Settings reading is compatible
+with its 8 GiB data partition and Android's rounded reported total.
+
 This is an offline migration of the existing camera25 system and its saved
 state. It is separate from the AOSP wizard's fresh-install writer. The generic
 Googlebook recovery card remains gated: it must not feed a Ruby image into the

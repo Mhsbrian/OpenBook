@@ -75,7 +75,7 @@ def observe(proc, qmp, seconds, work):
     return completed, events
 
 
-def menu_default(image, entry, work):
+def menu_default(image, entry, work, installed_alias=False):
     fd = os.open(image, os.O_RDONLY)
     try:
         gpt = m.read_gpt(fd)
@@ -85,6 +85,14 @@ def menu_default(image, entry, work):
     conf.write_text(f"timeout 1\ndefault {entry}\neditor no\nconsole-mode keep\n")
     m.run("mcopy", "-o", "-i", f"{image}@@{m.extent(gpt['rows'][0])[0]}",
           conf, "::/loader/loader.conf")
+    if installed_alias:
+        # Test fixture only: retain serial observation on the automatic second
+        # boot after boot-control selects openbook-a.conf. Production uses live.
+        alias = work / "serial-alias.conf"
+        m.run("mcopy", "-i", f"{image}@@{m.extent(gpt['rows'][0])[0]}",
+              f"::/loader/entries/{entry}", alias)
+        m.run("mcopy", "-o", "-i", f"{image}@@{m.extent(gpt['rows'][0])[0]}",
+              alias, "::/loader/entries/openbook-a.conf")
 
 
 def console_screenshot(work, name):
@@ -121,7 +129,9 @@ def metadata_key_hashes(image, work, label):
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--source", type=Path, required=True, help="Packaged disposable VM USB directory")
-    p.add_argument("--tpm-state-from", type=Path, required=True, help="Previous disposable VM software TPM")
+    p.add_argument("--tpm-state-from", type=Path, help="Previous disposable VM software TPM; omit for fresh")
+    p.add_argument("--fresh", action="store_true")
+    p.add_argument("--target-bytes", type=int, default=20 << 30)
     p.add_argument("--android-qemu", required=True, help="ISA-compatible QEMU for Ruby")
     p.add_argument("--out", type=Path, required=True)
     p.add_argument("--seconds", type=int, default=760)
@@ -129,28 +139,35 @@ def main():
     p.add_argument("--console-smoke", action="store_true", help="Capture the normal console UI and cancel with keyboard input")
     a = p.parse_args()
     m.require(not (a.cancel and a.console_smoke), "Choose one cancellation mode")
+    m.require(a.fresh != bool(a.tpm_state_from), "Fresh needs a new TPM; migration needs an existing TPM")
+    m.require(20 << 30 <= a.target_bytes <= 2_000_000_000_000, "Target size outside test bounds")
+    m.require(not (a.cancel or a.console_smoke) or a.target_bytes == 20 << 30,
+              "Cancellation uses the bounded 20 GiB fixture")
     m.require(Path("/.dockerenv").exists(), "Run inside inst-docker.sh; never pass a physical device")
     m.require(30 <= a.seconds <= 1800, "Observation window outside bounds")
     source = a.source / "ruby-live.img"
     m.require(m.stat.S_ISREG(source.lstat().st_mode), "Regular synthetic USB required")
-    for path in (a.source, a.out, a.tpm_state_from):
+    for path in (a.source, a.out, a.tpm_state_from or Path(".")):
         m.require(not any(c in str(path) for c in ",\n\r"), "Unsafe QEMU path")
     a.out.mkdir(mode=0o700)
     w = a.out.resolve()
     original_sha = sha(source)
     usb = w / "source-usb.img"
     m.run("cp", "--reflink=auto", "--sparse=always", source, usb)
-    menu_default(usb, "ruby-install.conf" if a.console_smoke else "ruby-install-serial.conf", w)
+    entry = "ruby-fresh" if a.fresh else "ruby-install"
+    menu_default(usb, entry + (".conf" if a.console_smoke else "-serial.conf"), w)
     usb_sha = sha(usb)
-    source_keys = metadata_key_hashes(usb, w, "source")
+    source_keys = {} if a.fresh else metadata_key_hashes(usb, w, "source")
     target = w / "installed.img"
     with target.open("xb") as f:
-        f.truncate(20 << 30)
+        f.truncate(a.target_bytes)
     decoy = w / "decoy.img"
     with decoy.open("xb") as f:
         f.write(b"DO NOT MODIFY OTHER DISKS\n")
         f.truncate(32 << 20)
-    target_before, decoy_sha = sha(target), sha(decoy)
+    # Do not read a sparse 1 TB target just to hash known holes.
+    target_before = sha(target) if a.cancel or a.console_smoke else None
+    decoy_sha = sha(decoy)
     vars_file = w / "vars.fd"
     shutil.copyfile("/usr/share/edk2/x64/OVMF_VARS.4m.fd", vars_file)
     common = ["-machine", "q35", "-smp", "4", "-m", "8192", "-display", "none",
@@ -221,8 +238,9 @@ def main():
                         r.screenshot(w / "qmp.sock", w / "installer.ppm")
                         sock.sendall(b"1\n")
                         sent.add("disk")
-                    if "Type exactly 'ERASE MIGRATIONTEST'" in text and "confirm" not in sent:
-                        sock.sendall(b"WRONG SERIAL\n" if a.cancel else b"ERASE MIGRATIONTEST\n")
+                    phrase = m.confirmation_phrase("MIGRATIONTEST", a.fresh)
+                    if f"Type exactly '{phrase}'" in text and "confirm" not in sent:
+                        sock.sendall(b"WRONG SERIAL\n" if a.cancel else (phrase + "\n").encode())
                         sent.add("confirm")
                     if "Press Enter to power off." in text and "poweroff" not in sent:
                         sock.sendall(b"\n")
@@ -248,7 +266,14 @@ def main():
         source_gpt, target_gpt = m.read_gpt(src_fd), m.read_gpt(dst_fd)
         protected = []
         for old, new in zip(source_gpt["rows"], target_gpt["rows"]):
-            m.require(old["partuuid"] != new["partuuid"] and m.extent(old) == m.extent(new), "Target identity/extent")
+            m.require(old["partuuid"] != new["partuuid"], "Target identity")
+            if a.fresh and new["name"] in ("misc", "metadata", "userdata"):
+                start, length = m.extent(new)
+                count = min(length, 4 * m.MIB)
+                m.require(m.read_at(dst_fd, start, count) == bytes(count)
+                          and m.read_at(dst_fd, start + length - count, count) == bytes(count), "Fresh state not reset")
+                continue
+            m.require(m.extent(old) == m.extent(new), "Target extent")
             if old["name"] != "EFI":
                 m.require(m.digest(src_fd, *m.extent(old)) == m.digest(dst_fd, *m.extent(new)), "Copied state differs")
                 protected.append(old["name"])
@@ -256,7 +281,7 @@ def main():
         os.close(src_fd); os.close(dst_fd)
     # Source's selected menu is still the installer. Target boots serial logging;
     # attaching both proves the target UUID, not source USB order, selects Android.
-    menu_default(target, "ruby-serial-logs.conf", w)
+    menu_default(target, "ruby-serial-logs.conf", w, installed_alias=True)
     cmd = [a.android_qemu, "-accel", "tcg", "-cpu", "max", *common,
            "-drive", f"file={target},format=raw,if=none,id=target",
            "-device", "nvme,drive=target,serial=MIGRATIONTEST,bootindex=1",
@@ -267,7 +292,7 @@ def main():
            "-device", "tpm-crb,tpmdev=tpm0",
            "-audiodev", "none,id=audio0", "-device", "intel-hda", "-device", "hda-duplex,audiodev=audio0"]
     (w / "android-command.json").write_text(json.dumps(cmd, indent=2) + "\n")
-    tpm_hashes = {p.name: sha(p) for p in a.tpm_state_from.iterdir() if p.is_file()}
+    tpm_hashes = {p.name: sha(p) for p in a.tpm_state_from.iterdir() if p.is_file()} if a.tpm_state_from else {}
     start = time.monotonic()
     with r.tpm_backend(w, True, a.tpm_state_from), (w / "android-qemu.log").open("wb") as log:
         proc = subprocess.Popen(cmd, cwd=w, stdout=log, stderr=subprocess.STDOUT)
@@ -283,13 +308,17 @@ def main():
                   non_efi_partitions_identical_before_boot=protected,
                   source_unchanged=sha(usb) == usb_sha and sha(source) == original_sha,
                   decoy_unchanged=sha(decoy) == decoy_sha,
-                  source_tpm_unchanged=tpm_hashes == {p.name: sha(p) for p in a.tpm_state_from.iterdir() if p.is_file()},
+                  source_tpm_unchanged=tpm_hashes == ({p.name: sha(p) for p in a.tpm_state_from.iterdir() if p.is_file()} if a.tpm_state_from else {}),
                   target_esp_uuid=target_gpt["rows"][0]["partuuid"],
                   target_uuid_observed=target_gpt["rows"][0]["partuuid"].lower() in serial.lower(),
                   target_partitions_observed=all(text in serial for text in (
                       "metadata -> /dev/block/nvme0n1p7", "super -> /dev/block/nvme0n1p8",
                       "userdata -> /dev/block/nvme0n1p9", "/dev/block/nvme0n1p7 /metadata ext4")),
-                  metadata_encryption_files_unchanged=source_keys == metadata_key_hashes(target, w, "installed"),
+                  metadata_encryption_files_unchanged=(source_keys == metadata_key_hashes(target, w, "installed")) if not a.fresh else None,
+                  fresh_metadata_key_files=len(metadata_key_hashes(target, w, "fresh")) if a.fresh else None,
+                  install_mode="fresh" if a.fresh else "preserve-usb-data",
+                  target_bytes=a.target_bytes,
+                  userdata_partition_bytes=m.extent(target_gpt["rows"][-1])[1],
                   elapsed_s=round(time.monotonic() - start, 1),
                   observation_window_completed=observation_completed,
                   qemu_exit_code=proc.returncode,
@@ -299,9 +328,10 @@ def main():
                   physical_hardware_tested=False, physical_credential_unlock_verified=False)
     (w / "result.json").write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps(result, indent=2))
-    m.require(all(result[k] for k in ("source_unchanged", "decoy_unchanged", "source_tpm_unchanged",
-                                     "target_uuid_observed", "target_partitions_observed", "metadata_encryption_files_unchanged",
-                                     "observation_window_completed", "boot_completed")), "Migration boot did not pass")
+    required = ["source_unchanged", "decoy_unchanged", "source_tpm_unchanged",
+                "target_uuid_observed", "target_partitions_observed", "observation_window_completed", "boot_completed"]
+    required += ["fresh_metadata_key_files"] if a.fresh else ["metadata_encryption_files_unchanged"]
+    m.require(all(result[k] for k in required), "Migration boot did not pass")
 
 
 if __name__ == "__main__":

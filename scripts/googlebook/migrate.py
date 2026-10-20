@@ -111,11 +111,15 @@ def extent(row):
     return row["first_lba"] * 512, (row["last_lba"] - row["first_lba"] + 1) * 512
 
 
-def target_gpt(source, size):
+def target_gpt(source, size, fresh=False):
     require(size % 512 == 0 and size >= source["used_bytes"], "Target too small or unaligned")
     rows = copy.deepcopy(source["rows"])
     for row in rows:
         row["partuuid"] = str(uuid.uuid4())
+    if fresh:
+        # All remaining whole MiB, leaving room for the backup GPT. No fixed
+        # USB capacity carries over to a new filesystem.
+        rows[-1]["last_lba"] = ((size // 512 - 33) // 2048) * 2048 - 1
     # Intentionally retain the encrypted filesystem's exact extent. Growing its
     # partition alone does not grow F2FS, and formatting would destroy the setup.
     table = bytearray(16384)
@@ -181,7 +185,7 @@ def check_source(fd, pin):
     return gpt
 
 
-def prepare_esp(src, gpt, rows, pin, work):
+def prepare_esp(src, gpt, rows, pin, work, fresh=False):
     esp = work / "esp.img"
     start, length = extent(gpt["rows"][0])
     with esp.open("xb") as out:
@@ -195,7 +199,8 @@ def prepare_esp(src, gpt, rows, pin, work):
         require(hashlib.sha256((tree / name).read_bytes()).hexdigest() == expected,
                 f"Source boot file changed: {name}")
     changed = {"ruby/RESEARCH.json", "loader/entries/ruby-install.conf",
-               "loader/entries/ruby-install-serial.conf"}
+               "loader/entries/ruby-install-serial.conf",
+               "loader/entries/ruby-fresh.conf", "loader/entries/ruby-fresh-serial.conf"}
     entries = {}
     for mode in MODES:
         name = f"ruby/initrd-{mode}.img"
@@ -215,11 +220,14 @@ def prepare_esp(src, gpt, rows, pin, work):
         run("mcopy", "-o", "-i", esp, output, f"::/{name}")
         entries[mode] = params
         changed.add(name)
-    for mode in ("ruby-install.conf", "ruby-install-serial.conf"):
+    for mode in ("ruby-install.conf", "ruby-install-serial.conf",
+                 "ruby-fresh.conf", "ruby-fresh-serial.conf"):
         if (tree / "loader/entries" / mode).exists():
             run("mdel", "-i", esp, f"::/loader/entries/{mode}")
     installed = dict(schema="openbook-ruby-installed/1", image_base="googlebook-ruby",
-                     automatic_updates_qualified=False, data_expansion=False,
+                     automatic_updates_qualified=False, data_expansion=fresh,
+                     install_mode="fresh" if fresh else "preserve-usb-data",
+                     userdata_format_on_first_boot=fresh,
                      source_build=pin["build"], gpt=rows, entries=entries,
                      kernel_sha256=pin["kernel_sha256"], payload_readback=pin["payload_readback"],
                      userdata_bytes=extent(rows[-1])[1], same_machine_only=True)
@@ -241,14 +249,14 @@ def prepare_esp(src, gpt, rows, pin, work):
     return esp
 
 
-def migrate(src, dst, pin, work, expected_source=None, before_write=None):
+def migrate(src, dst, pin, work, expected_source=None, before_write=None, fresh=False):
     """FDs are already exclusively opened and checked by the caller."""
     gpt = check_source(src, pin)
     before = digest(src, 0, gpt["used_bytes"])
     require(expected_source is None or before == expected_source, "Source changed after confirmation")
     size = capacity(dst)
-    rows, headers = target_gpt(gpt, size)
-    esp = prepare_esp(src, gpt, rows, pin, work)
+    rows, headers = target_gpt(gpt, size, fresh)
+    esp = prepare_esp(src, gpt, rows, pin, work, fresh)
     # Prepare and verify all boot changes before the first destructive write.
     if before_write:
         before_write()
@@ -260,6 +268,29 @@ def migrate(src, dst, pin, work, expected_source=None, before_write=None):
     # No valid target GPT/boot path is activated until all payloads verify.
     for row in gpt["rows"][1:] + gpt["rows"][:1]:
         start, length = extent(row)
+        if fresh and row["name"] in ("misc", "metadata", "userdata"):
+            target_row = next(r for r in rows if r["name"] == row["name"])
+            start, length = extent(target_row)
+            # Android's formattable path recognizes a zeroed first 4096 bytes.
+            # Fresh metadata means new keys; never import the USB's keys/data.
+            # Clear the full small state partitions and both userdata edges.
+            # This is a reset, NOT a secure erase of old media.
+            spans = [(start, length)] if row["name"] != "userdata" else [
+                (start, min(length, 4 * MIB)), (start + length - min(length, 4 * MIB), min(length, 4 * MIB))]
+            print(f"Resetting {row['name']}; new capacity {length // MIB} MiB", flush=True)
+            for offset, count in spans:
+                for at in range(0, count, 4 * MIB):
+                    write_at(dst, offset + at, bytes(min(4 * MIB, count - at)))
+            os.fsync(dst)
+            if stat.S_ISBLK(os.fstat(dst).st_mode):
+                fcntl.ioctl(dst, 0x1261)
+            for offset, count in spans:
+                for at in range(0, count, 4 * MIB):
+                    n = min(4 * MIB, count - at)
+                    require(read_at(dst, offset + at, n) == bytes(n), "Fresh reset readback failed")
+            checks.append(dict(name=row["name"], bytes=length, reset_ranges=spans,
+                               copied_from_usb=False, formatted_on_first_boot=row["name"] != "misc"))
+            continue
         payload = os.open(esp, os.O_RDONLY) if row["name"] == "EFI" else src
         offset = 0 if row["name"] == "EFI" else start
         try:
@@ -286,6 +317,7 @@ def migrate(src, dst, pin, work, expected_source=None, before_write=None):
     actual = read_gpt(dst)
     require(actual["rows"] == rows and actual["used_bytes"] == size, "Final target layout mismatch")
     result = dict(schema="openbook-ruby-migration-result/1", complete=True,
+                  install_mode="fresh" if fresh else "preserve-usb-data",
                   source_sha256=before, source_unchanged=True, source_bytes=gpt["used_bytes"],
                   target_bytes=size, target_gpt=rows, partitions=checks,
                   userdata_bytes=extent(rows[-1])[1],
@@ -354,12 +386,21 @@ def power_ready():
     check_power(rows)
 
 
-def interactive(pin):
-    print("\nOPENBOOK · Install this Googlebook USB and keep its data\n", flush=True)
-    print("Offline copy for the same laptop. The USB remains your recovery copy.")
+def confirmation_phrase(serial, fresh=False):
+    return ("FRESH ERASE " if fresh else "ERASE ") + serial
+
+
+def interactive(pin, fresh=False):
+    print("\nOPENBOOK · " + ("Fresh Googlebook install" if fresh else
+          "Install this Googlebook USB and keep its data") + "\n", flush=True)
+    print("Offline installation for the same laptop. The source USB stays unchanged.")
     print("The selected SSD is replaced completely. Back up its existing contents first.")
     print("Connect the charger before installing.")
-    print("Saved Android data stays 8 GiB; remaining SSD space stays unallocated.")
+    if fresh:
+        print("FRESH START: no USB or SSD accounts, apps, files or settings are retained.")
+        print("Android creates new encrypted data storage using the remaining SSD space.")
+    else:
+        print("Saved Android data keeps its USB filesystem size; remaining SSD space stays unallocated.")
     print("Automatic Google OS updates are NOT qualified or blocked by this installer.\n")
     product = Path("/sys/class/dmi/id/product_name").read_text().strip()
     require(product.startswith(pin["dmi_product_prefix"]), "This installer is pinned to a different machine profile")
@@ -406,9 +447,13 @@ def interactive(pin):
         source_hash = digest(src, 0, gpt["used_bytes"])
     finally:
         os.close(src)
-    phrase = "ERASE " + target["serial"]
+    phrase = confirmation_phrase(target["serial"], fresh)
     print(f"\nThis erases ALL existing partitions on {target['model']} ({target['path']}).")
     print(f"Serial: {target['serial']} · capacity: {target['size']} bytes")
+    if fresh:
+        planned, _ = target_gpt(gpt, target["size"], fresh=True)
+        print(f"New Android data partition: {extent(planned[-1])[1] / 1e9:.2f} GB before filesystem overhead.")
+        print("All current SSD data will be lost. Setup starts from scratch.")
     print("Your configured USB is retained. This is not a secure erase.")
     print("After verification, a new OpenBook Googlebook firmware boot entry is added.")
     if input(f"Type exactly {phrase!r} to install, or Enter to cancel: ").strip() != phrase:
@@ -424,7 +469,7 @@ def interactive(pin):
             require(os.fstat(src).st_rdev == source["rdev"] and os.fstat(dst).st_rdev == target["rdev"],
                     "Device changed while opening")
             with tempfile.TemporaryDirectory(prefix="openbook-migrate-") as tmp:
-                migrate(src, dst, pin, Path(tmp), source_hash, before_write=power_ready)
+                migrate(src, dst, pin, Path(tmp), source_hash, before_write=power_ready, fresh=fresh)
             fcntl.ioctl(dst, 0x125f)  # BLKRRPART after verified final GPT
         finally:
             os.close(dst)
@@ -443,7 +488,8 @@ def interactive(pin):
         print(f"Disk verified; firmware entry could not be registered: {exc}")
         print(r"Select the SSD's EFI\BOOT\BOOTX64.EFI in your firmware boot menu.")
     print("Power off, remove the USB, then boot OpenBook Googlebook from the SSD.")
-    print("Verify your existing PIN, apps and files. Keep the USB until accepted.")
+    print("Complete new setup and verify Storage capacity." if fresh else
+          "Verify your existing PIN, apps and files. Keep the USB until accepted.")
 
 
 def main():
@@ -452,6 +498,7 @@ def main():
     p.add_argument("--image-test", type=Path, help="Disposable regular source image only")
     p.add_argument("--out", type=Path)
     p.add_argument("--target-bytes", type=int)
+    p.add_argument("--fresh", action="store_true", help="Erase target setup and use remaining SSD capacity")
     a = p.parse_args()
     os.umask(0o077)
     pin = json.loads(a.pin.read_text())
@@ -464,7 +511,7 @@ def main():
             dst = os.open(a.out / "installed.img", os.O_RDWR | os.O_CREAT | os.O_EXCL, 0o600)
             try:
                 os.ftruncate(dst, a.target_bytes)
-                result = migrate(src, dst, pin, a.out)
+                result = migrate(src, dst, pin, a.out, fresh=a.fresh)
                 print(json.dumps({k: result[k] for k in ("complete", "source_unchanged", "userdata_bytes", "boot_verified")}))
             finally:
                 os.close(dst)
@@ -474,7 +521,7 @@ def main():
         require(not a.out and not a.target_bytes, "Physical mode is interactive only")
         require(os.geteuid() == 0 and Path("/run/openbook-offline-installer").is_file(),
                 "Physical writes require the dedicated offline installer boot")
-        interactive(pin)
+        interactive(pin, fresh=a.fresh)
 
 
 if __name__ == "__main__":
