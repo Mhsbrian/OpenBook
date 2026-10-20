@@ -1,0 +1,45 @@
+{
+  "schema": "openbook-ruby-migration-rehearsal/1",
+  "migration_verified": true,
+  "firmware_boot_entry_created": true,
+  "non_efi_partitions_identical_before_boot": [
+    "misc",
+    "boot_a",
+    "init_boot_a",
+    "vendor_boot_a",
+    "vbmeta_a",
+    "metadata",
+    "super",
+    "userdata"
+  ],
+  "source_unchanged": true,
+  "decoy_unchanged": true,
+  "source_tpm_unchanged": true,
+  "target_esp_uuid": "e958b254-8387-4d9b-b8a1-8a5191cb323e",
+  "target_uuid_observed": false,
+  "metadata_encryption_files_unchanged": true,
+  "elapsed_s": 774.7,
+  "boot_completed": true,
+  "runtime_findings": {
+    "setup_welcome_activity_seen": true,
+    "system_server_fatal_signals": [],
+    "zygote_exit_events": 0,
+    "system_server_execmem_denial_seen": false,
+    "mmd_setup_abort_seen": false,
+    "camera_provider_running_reported": false,
+    "camera_provider_registered_reported": true,
+    "camera_device_counts_reported": [
+      0
+    ],
+    "camera_provider_abort_seen": false,
+    "camera_fmq_test_exit_statuses": [],
+    "camera_buffer_test_exit_statuses": [],
+    "camera_buffer_test_abort_seen": false,
+    "camera_fmq_tmpfs_denial_seen": false,
+    "camera_provider_default_label_denial_seen": false
+  },
+  "physical_hardware_tested": false,
+  "physical_credential_unlock_verified": false,
+  "reviewed_uuid_case_insensitively": true,
+  "original_harness_failure": "Case-sensitive UUID comparison; original result retained"
+}

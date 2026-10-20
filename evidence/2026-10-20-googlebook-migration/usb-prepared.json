@@ -1,0 +1,22 @@
+{
+  "schema": "openbook-ruby-migration-usb-preparation/1",
+  "image_bytes": 12766412800,
+  "image_sha256": "95e30c7ae6be28494630c281b6e6b091009dbda36dc427e3c5ea08b63c0ca22b",
+  "verified_fresh_backup_sha256": "f6aca7eac0e4ad660779eb430c97bf9d09297ea6982059003e2d5b58c7de7cc2",
+  "source_unchanged": true,
+  "existing_efi_files_unchanged": true,
+  "protected_bytes": 8805941248,
+  "all_non_efi_partitions_unchanged": true,
+  "physical_device_written": false,
+  "installer": {
+    "schema": "openbook-ruby-offline-installer/1",
+    "kernel_release": "6.12.113+deb13-amd64",
+    "source_pin_sha256": "dbe5782233e0b894441dfb339b527681e6e3fe7b7fae3ff4956eea3b5f25afab",
+    "files": {
+      "initrd.img": "5f81d94b232b0943ba2e6625469d16c06528e748c5d4473de7f0fbae8f3bfaf5",
+      "kernel": "4336c75fc1a6a58e7bda66cbe9f4042f88064e7abc93faaea9e2aceb19459561",
+      "package-versions.txt": "b3f2bd58528ed027709db3512f4bbf39c20cb317bdc89a4ee4d601666108d38b",
+      "source.json": "dbe5782233e0b894441dfb339b527681e6e3fe7b7fae3ff4956eea3b5f25afab"
+    }
+  }
+}

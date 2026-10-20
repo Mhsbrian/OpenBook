@@ -1,0 +1,11 @@
+{
+  "normal_console_keyboard_cancel": true,
+  "screenshots_require_visual_review": true,
+  "source_unchanged": true,
+  "target_unchanged": true,
+  "decoy_unchanged": true,
+  "screenshots_visually_reviewed": true,
+  "warning_pixels_preserved_after_cancellation": true,
+  "raw_framebuffer_matches_export": true,
+  "preview_concern": "Misleading small-text preview; full-resolution pixels and enlarged review show complete warnings"
+}

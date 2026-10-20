@@ -1,5 +1,32 @@
 # Build and reproduce
 
+## Configured Googlebook USB to internal NVMe (ANAL-228)
+
+`tools/Dockerfile.ruby-installer` builds a separate offline Linux RAM installer.
+`scripts/googlebook/migration-package.py` pins it to the reviewed camera25
+system and adds an explicit migration boot entry to a fresh configured-USB
+backup. Android partitions and the default live entry remain unchanged.
+This is not the AOSP wizard's fresh-install engine.
+
+`scripts/googlebook/migration-test.py` passes eleven synthetic integrity and
+failure tests. The interactive QEMU driver exercises exact disk confirmation,
+copy/readback, firmware registration, NVMe boot with the source still attached,
+and persistence of the existing metadata-encryption files. Separate cancellation
+and normal-console tests check that source, target and decoy disks stay unchanged.
+Commands, same-machine restrictions and measured evidence are in
+`docs/googlebook-migration.md` and `evidence/2026-10-20-googlebook-migration/`.
+
+The configured SanDisk now includes this entry. Full direct readback of the
+12,766,412,800-byte used extent matches `95e30c7ae6be2849…`, with all Android
+partitions and pre-existing EFI files retained. Its fresh backup is kept privately
+and the USB powered off. The exact build container is retained locally as
+`openbook-ruby-installer:migration26`; its image ID is recorded in the evidence.
+
+The destination keeps the source's 8 GiB userdata extent; unused SSD space is
+left unallocated. Physical owner credential unlock remains a separate check.
+This installer does not block Google's OS updater; ANAL-229 covers that
+follow-up. Do not deploy an unreviewed stock OTA to this hybrid.
+
 ## G14 UVC camera provider (ANAL-228)
 
 Camera25 follows two additional physical failures: cameraserver-to-app result
@@ -19,7 +46,8 @@ encrypted test-data mounting and complete ten-minute logs. All 52 host checks,
 on the configured SanDisk, prepared from a fresh independently verified backup.
 Full direct readback matches `c613fd06e2eb2138…`; all 8,805,941,248 protected
 bytes and unrelated EFI files are unchanged. The backup is retained and the
-stick powered off. G14 boot, credential unlock and real frames remain pending.
+stick powered off. The owner subsequently reports working camera and Bluetooth;
+broader hardware and credential-state acceptance remains separate.
 Deployment record: `evidence/2026-10-20-googlebook-camera-clients/physical-write.json`.
 
 Camera24 follows the physical camera23 FMQ denial with a dedicated

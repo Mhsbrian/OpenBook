@@ -1,5 +1,19 @@
 # Hardware
 
+Camera25 acceptance follow-up (2026-10-20): the owner confirms that the webcam
+is fixed and Bluetooth works. These are physical owner reports, not measured
+frame-rate/image-quality, Bluetooth-profile, suspend or privacy tests. Evidence:
+`evidence/2026-10-20-googlebook-migration/owner-confirmation.json`.
+The requested same-G14 migration path is documented in `googlebook-migration.md`;
+its disk-copy checks do not substitute for post-install credential unlock.
+
+Latest USB (migration26): camera25 plus the offline migration boot entry is
+written to the configured SanDisk. Its latest saved state was backed up and
+independently read back first. The complete 12.77 GB used extent verifies as
+`95e30c7ae6be2849…`; all non-EFI partitions and existing EFI files are unchanged.
+The backup is retained and the stick is powered off. No internal NVMe has been
+written by the agent. See `evidence/2026-10-20-googlebook-migration/physical-write.json`.
+
 Camera follow-up (2026-10-20 UTC): wireless ADB reaches camera24 on the G14.
 The first HAL queue fix works, but Camera2 fails when cameraserver passes its
 result queue to the app: SELinux denies access to `cameraserver_tmpfs`.
@@ -18,14 +32,15 @@ fixes. The possible Settings-only scroll/activation symptom remains unconfirmed
 by a motion trace; no physical fix is claimed. See
 `evidence/2026-10-19-googlebook-touchpad-followup/`.
 
-Latest medium: camera25 is written to the owner's SanDisk using a fresh verified
+Previous camera25 system update: camera25 was written using a fresh verified
 backup of its latest camera24 state and the preserving updater. Full 12.77 GB
 direct readback matches the private clone (`c613fd06e2eb2138…`); all
 8,805,941,248 protected bytes, including userdata/encryption metadata, remain
 byte-identical. Unrelated EFI files are also unchanged. Power-off succeeded
 and the fresh backup is retained. The earlier camera24 ADB session confirmed
 boot completion and encrypted `/data` mounted. Camera25 boot, credential unlock,
-existing app state and webcam frames still require a G14 check. See
+existing app state still require a G14 check in the recorded write result;
+the subsequent owner camera/Bluetooth acceptance is noted above. See
 `evidence/2026-10-20-googlebook-camera-clients/physical-write.json`.
 
 The Ruby live follow-up confirms ELAN `04f3:3315` is recognized through
