@@ -225,6 +225,24 @@ def prepare(a):
     contexts = se / "vendor_file_contexts"
     contexts.write_text(contexts.read_text() + "\n/vendor/bin/ruby-usb-log u:object_r:ruby_usb_log_exec:s0\n"
                         "/dev/ruby-log-stream u:object_r:ruby_usb_log_pipe:s0\n")
+    # Opt-in disposable VM check, excluded from the ordinary USB candidate.
+    # Use the production HAL domain and policy without adding test permissions.
+    fmq_test = None
+    if a.camera_fmq_test:
+        source = HERE / "camera-fmq-test.c"
+        binary = vendor / "bin/openbook-camera-fmq-test"
+        run("gcc", "-static", "-O2", "-Wall", "-Wextra", "-Werror", source, "-o", binary)
+        contexts.write_text(contexts.read_text() +
+                           "/vendor/bin/openbook-camera-fmq-test u:object_r:hal_camera_default_exec:s0\n")
+        (vendor / "etc/init/openbook-camera-fmq-test.rc").write_text('''service openbook.camera-fmq-test /vendor/bin/openbook-camera-fmq-test
+    class hal
+    user cameraserver
+    group camera
+    oneshot
+''')
+        fmq_test = {"source_sha256": audit.sha(source), "binary_sha256": audit.sha(binary),
+                    "expected_domain": "hal_camera_default", "expected_exit_status": 0,
+                    "scope": "disposable VM only; no video device or frames"}
     run(a.tools / "checkfc", se / "precompiled_sepolicy", contexts)
     for part, root in (("plat", a.ruby / "fs/system_a/system"), ("system_ext", a.ruby / "fs/system_ext_a"),
                        ("product", a.ruby / "fs/product_a")):
@@ -310,6 +328,9 @@ done
                            "/vendor/bin/hw/android.hardware.camera.provider-V1-external-service hal_camera_default_exec\n"
                            "/vendor/firmware openbook_vendor_fw_file\n"
                            "/vendor/firmware/amdgpu/psp_14_0_0_toc.bin openbook_vendor_fw_file\n")
+    if fmq_test:
+        with label_tests.open("a") as f:
+            f.write("/vendor/bin/openbook-camera-fmq-test hal_camera_default_exec\n")
     with (w / "file-context-tests.log").open("wb") as log:
         check = subprocess.run([str(a.tools / "checkfc"), "-t", str(context), str(label_tests)],
                                stdout=log, stderr=subprocess.STDOUT)
@@ -391,6 +412,7 @@ done
               "wifi_overlay": wifi,
               "zram_init_sha256": audit.sha(audit.ZRAM_INIT),
               "camera": camera,
+              "camera_fmq_test": fmq_test,
               "bootconfig": params, "gpt": g.table(),
               "avb": "local test-key root, unlocked/orange; retained Google logical image descriptors",
               "usb_logger_sha256": audit.sha(vendor / "bin/ruby-usb-log"),
@@ -446,6 +468,8 @@ def main():
         p.add_argument("--" + n, type=Path, required=True)
     p.add_argument("--timeout", type=int, default=180, choices=range(30, 601), metavar="30..600")
     p.add_argument("--variant", choices=("vm", "bm"), default="vm")
+    p.add_argument("--camera-fmq-test", action="store_true",
+                   help="Add a camera-domain memfd test to a disposable VM image; never deploy this image")
     p.add_argument("--prepare-only", action="store_true", help="Assemble only; use run-probe.py for a separate observation")
     a = p.parse_args()
     for n in ("ruby", "product", "tools", "kernel", "audit", "key"):

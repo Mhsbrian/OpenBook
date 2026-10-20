@@ -1,0 +1,67 @@
+{
+  "schema": "openbook-camera-fmq-policy-check/1",
+  "policy_sha256": "28d6b9da984b1b7fa4d2a2477ae650bf3cb3d420ca19a8c54488e5032efe9a1f",
+  "checks": [
+    {
+      "source": "hal_camera_default",
+      "target": "hal_camera_default_tmpfs",
+      "permission": "getattr",
+      "allowed": true
+    },
+    {
+      "source": "hal_camera_default",
+      "target": "hal_camera_default_tmpfs",
+      "permission": "map",
+      "allowed": true
+    },
+    {
+      "source": "hal_camera_default",
+      "target": "hal_camera_default_tmpfs",
+      "permission": "read",
+      "allowed": true
+    },
+    {
+      "source": "hal_camera_default",
+      "target": "hal_camera_default_tmpfs",
+      "permission": "write",
+      "allowed": true
+    },
+    {
+      "source": "cameraserver",
+      "target": "hal_camera_default_tmpfs",
+      "permission": "getattr",
+      "allowed": true
+    },
+    {
+      "source": "cameraserver",
+      "target": "hal_camera_default_tmpfs",
+      "permission": "map",
+      "allowed": true
+    },
+    {
+      "source": "cameraserver",
+      "target": "hal_camera_default_tmpfs",
+      "permission": "read",
+      "allowed": true
+    },
+    {
+      "source": "cameraserver",
+      "target": "hal_camera_default_tmpfs",
+      "permission": "write",
+      "allowed": true
+    },
+    {
+      "assertion": "neverallow hal_camera_default tmpfs:file write;",
+      "passed": true
+    },
+    {
+      "assertion": "neverallow appdomain hal_camera_default_tmpfs:file { read write map };",
+      "passed": true
+    },
+    {
+      "assertion": "neverallow hal_camera_default hal_camera_default_tmpfs:file execute;",
+      "passed": true
+    }
+  ],
+  "permissive_domains": []
+}

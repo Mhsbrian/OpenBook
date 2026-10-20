@@ -48,6 +48,11 @@ def runtime_findings(serial):
             r"(?m)^Number of camera devices: ([0-9]+)\r?$", serial)))),
         "camera_provider_abort_seen": bool(re.search(
             r"Service 'vendor\.camera\.provider-ext' \(pid [0-9]+\) received SIGABRT", serial)),
+        "camera_fmq_test_exit_statuses": sorted(set(map(int, re.findall(
+            r"Service 'openbook\.camera-fmq-test' \(pid [0-9]+\) exited with status ([0-9]+)", serial)))),
+        "camera_fmq_tmpfs_denial_seen": any("avc:" in line and "denied" in line and
+            "scontext=u:r:hal_camera_default:s0" in line and 'name="memfd:MessageQueue"' in line
+            for line in serial.splitlines()),
         "camera_provider_default_label_denial_seen": any(
             "avc:" in line and "denied" in line and
             "name=android.hardware.camera.provider.ICameraProvider/external/0" in line and

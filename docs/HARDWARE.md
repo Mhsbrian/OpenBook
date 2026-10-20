@@ -1,17 +1,18 @@
 # Hardware
 
-Camera follow-up: the G14's `3277:0060` UVC webcam was detected in the earlier
-hardware captures, but the PC vendor had no Android camera provider or video-node
-access rule; the saved Ruby bugreport lists zero cameras. The new camera23
-candidate includes the AOSP provider and restricted camera-group permissions.
-Its preserving VM rehearsal boots and registers the provider for a 760.6-second
-observation without a provider exit. No camera is attached to that VM.
-Physical capture, MJPEG modes, app selection, orientation and privacy behavior
-still require a G14 test. The configured USB now contains camera23; see
-`docs/g14-camera.md` for the hardware checks.
+Camera follow-up (2026-10-20 UTC): wireless ADB connects to camera23 on the G14.
+The `3277:0060` UVC webcam now enumerates as one public external camera, with
+root:camera 0660 video nodes. Session open fails because SELinux blocks
+`ftruncate(MessageQueue)` on a generic tmpfs memfd, before the output thread
+starts. Camera24 supplies a dedicated camera HAL queue type and scoped
+cameraserver access. Physical frames, orientation and privacy behavior still
+require a test after applying that candidate. The configured USB remains on
+camera23; see `docs/g14-camera.md` and
+`evidence/2026-10-20-googlebook-camera-fmq/`.
 
 Trackpad follow-up: the owner reports using Settings after the preserving update.
-Independent live checks await a usable wireless ADB endpoint. Static inspection
+The latest live capture shows user 10 and the effective mapper both have tapping
+enabled; it does not reproduce the earlier tap-disabled symptom. Static inspection
 confirms the retained Ruby input framework lacks both OpenBook touchpad timing
 fixes. The possible Settings-only scroll/activation symptom remains unconfirmed
 by a motion trace; no physical fix is claimed. See
@@ -21,8 +22,9 @@ Latest medium: camera23 is written to the owner's SanDisk using a fresh verified
 backup and the preserving updater. Full 12.77 GB direct readback matches the
 private clone (`bf79eef29bc760e5…`); all 8,805,941,248 protected bytes, including
 userdata/encryption metadata, remain byte-identical. Power-off succeeded and the
-backup is retained. The G14's first boot of this update remains pending; verify
-credential unlock and existing setup before claiming hardware success. See
+backup is retained. ADB now confirms G14 boot completion and encrypted `/data`
+mounted; credential unlock and all existing app state were not separately checked.
+Any subsequent update needs a fresh backup of the now-used stick. See
 `evidence/2026-10-19-googlebook-camera/physical-write.json`.
 
 The Ruby live follow-up confirms ELAN `04f3:3315` is recognized through

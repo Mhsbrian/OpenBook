@@ -2,6 +2,14 @@
 
 ## G14 UVC camera provider (ANAL-228)
 
+Camera24 follows the physical camera23 FMQ denial with a dedicated
+`hal_camera_default_tmpfs` label and cameraserver queue access. Native vendor
+build, both baseline audits and the adapted hybrid pass with 413 unchanged
+inputs. `hybrid-probe.py --camera-fmq-test --prepare-only` adds an opt-in
+camera-domain memfd test for a disposable VM; its source documents exit codes.
+Require exit 0 plus enforcing diagnostics. USB packaging refuses that test
+payload: build the deployable research candidate without the flag.
+
 The PC product now builds AOSP's AIDL external camera provider, its VINTF
 instance, feature XML, configuration and camera-group video-node permissions.
 Run `vendorimage` through the AOSP container/lane before the Ruby compatibility
