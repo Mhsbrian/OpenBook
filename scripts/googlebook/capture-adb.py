@@ -58,6 +58,7 @@ PROPERTIES = (
     "init.svc.ruby-wifi-platform", "init.svc.audioserver", "init.svc.wifi_mainline_supplicant",
     "init.svc.vendor.openbook.zram", "init.svc.mmd_setup", "init.svc.mmd",
     "mmd.zram.enabled", "mmd.setup_complete",
+    "init.svc.timberslide",
 )
 
 
@@ -79,6 +80,15 @@ def commands():
     yield "alsa-cards", "cat /proc/asound/cards"
     yield "alsa-pcm", "cat /proc/asound/pcm"
     yield "sound-devices", "ls -l /dev/snd"
+    yield "input", "timeout 15 dumpsys input"
+    yield "input-capabilities", "timeout 10 getevent -lp"
+    yield "current-user", "am get-current-user"
+    # Preferences are per-user; a headless system user's values can disagree
+    # with the signed-in desktop user. Read exact keys, never a settings dump.
+    for user in ("current", "0"):
+        for key in ("touchpad_tap_to_click", "touchpad_tap_dragging", "touchpad_natural_scrolling",
+                    "touchpad_pointer_speed", "touchpad_right_click_zone"):
+            yield f"{key}-{user}", f"settings --user {user} get system {key}"
     yield "wifi-status", "timeout 15 cmd wifi status"
     yield "overlays", "timeout 15 cmd overlay list --user 0"
     for name in ("config_wifiMainlineSupplicantEnabled", "config_wifi_connected_mac_randomization_supported",

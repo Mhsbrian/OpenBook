@@ -1,4 +1,10 @@
-# Exact original Ruby mapping. The retained framework defines this type and
-# its permissions. Other desktop service types belong to Ruby's replaced vendor
-# policy and require a separate integration review; do not silently relabel them.
+# Exact original Ruby mappings. Desktop type contracts are the reviewed subset
+# in ruby-desktop-services.cil; audit checks both against the retained vendor.
 android.system.desktop.security.gsc.IGsc/default u:object_r:gscd_service:s0
+desktop_data_migration u:object_r:desktop_data_migration_service:s0
+com.android.desktop.drm_network.IDrmNetworkService/default u:object_r:drm_network_service:s0
+desktop_net u:object_r:desktop_net_service:s0
+com.android.server.desktop.power.IDesktopSettingHealthService/default u:object_r:desktop_setting_health_service:s0
+com.google.android.snapshot.ISnapshot/default u:object_r:desktop_snapshot_service:s0
+com.android.desktop.video_chat.IVideoChatManager/default u:object_r:desktop_video_chat_manager:s0
+com.android.server.desktop.serviceability.IDesktopServiceabilityService/default u:object_r:desktop_serviceability_service:s0

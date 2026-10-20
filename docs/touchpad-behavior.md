@@ -1,5 +1,35 @@
 # G14 touchpad behavior (ANAL-226)
 
+## Ruby live USB follow-up (ANAL-228)
+
+This is a separate runtime from the installed OpenBook investigation below.
+The owner reports two-finger scrolling behaving like single taps with tapping
+disabled. Ruby's earlier capture recognizes `ASCE1206:00 04F3:3315 Touchpad`
+through TouchpadInputMapper, with Tap Enable **true**, Tap Drag Enable **false**
+and Integrated Touchpad **false**. That older snapshot does not establish the
+effective preference during the failing motion. Do not copy the installed
+OpenBook settings or force a device-property override as a presumed fix.
+
+The Ruby capture also records 253 gesture queue flush warnings about backwards
+time and 270 spurious timer callbacks. These are concrete input-stack symptoms;
+their relationship to the unwanted clicks is unproven. The local AOSP library
+and Ruby's retained binary are different builds, so an offline control is not
+a Ruby runtime qualification.
+
+`scripts/googlebook/capture-adb.py` now captures the active user ID, exact
+current/system-user touchpad preferences, capabilities and effective mapper
+state. On the next Ruby boot, turn tapping off, capture that state, then record
+a labeled touchpad-only trace while reproducing the scroll/click behavior.
+Use the newly discovered touchpad node, not the event number from the installed
+system. If the user build denies raw input reads, preserve the denial; do not
+change root or enforcement. No keyboard event capture is requested.
+
+The offline suite now has nine passing synthetic checks, including taps and
+staggered two-finger scrolling/release with Tap Enable false: scroll events are
+produced and no button-change events are produced. Hardware motions, effective
+toggle propagation and timestamp ordering remain to be verified. No touchpad
+sensitivity/default change has been shipped for this report.
+
 ## Device facts, 2026-10-19
 
 The installed G14 now runs `20261019.photos1`, slot A, from integration tree

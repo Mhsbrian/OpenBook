@@ -23,6 +23,14 @@ probe = load("probe_test", "hybrid-probe.py")
 
 
 class Guards(unittest.TestCase):
+    def test_desktop_contract_rejects_new_permission_and_membership(self):
+        original = "(type a)\n(typeattributeset service_manager_type (a b))\n"
+        audit.validate_desktop_policy(original, "(type a)\n(typeattributeset service_manager_type (a))\n")
+        for changed in ("(allow system_server a (service_manager (add)))",
+                        "(typeattributeset service_manager_type (c))", "(type c)"):
+            with self.subTest(changed=changed), self.assertRaises(ValueError):
+                audit.validate_desktop_policy(original, changed)
+
     def test_wifi_overlay_targets_retained_google_package(self):
         manifest = (HERE / "wifi-overlay/AndroidManifest.xml").read_text()
         probe.validate_wifi_target(manifest, "com.google.android.wifi.resources")

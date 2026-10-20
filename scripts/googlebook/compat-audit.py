@@ -26,6 +26,8 @@ REPO = Path(__file__).resolve().parents[2]
 POLICY_PROFILE = REPO / "config/image-bases/ruby-vendor-policy.json"
 PROBE_POLICY = REPO / "config/image-bases/ruby-probe.cil"
 SERVICE_PROFILE = REPO / "config/image-bases/ruby-framework-services.txt"
+DESKTOP_POLICY = REPO / "config/image-bases/ruby-desktop-services.cil"
+PC_INIT = REPO / "config/image-bases/ruby-pc-init.rc"
 ZRAM_INIT = REPO / "device/anybook/common/pc/init.openbook.zram.rc"
 PARTS = ("system", "system_ext", "product", "vendor", "odm")
 
@@ -116,6 +118,23 @@ def policy_inputs(maps):
     return version, required + optional
 
 
+def validate_desktop_policy(original, subset):
+    """Only existing statements or flat attribute membership subsets may pass."""
+    lines = original.splitlines()
+    for line in subset.splitlines():
+        if not line.strip() or line.lstrip().startswith(";"):
+            continue
+        members = re.fullmatch(r"\(typeattributeset (\w+) \(([\w ]+)\)\)", line)
+        if members:
+            prefix = f"(typeattributeset {members[1]} ("
+            originals = [v for v in lines if v.startswith(prefix)]
+            if len(originals) != 1 or not set(members[2].split()).issubset(
+                    set(originals[0][len(prefix):-2].split())):
+                raise ValueError("Ruby desktop attribute contract drift")
+        elif lines.count(line) != 1:
+            raise ValueError("Ruby desktop policy contract drift")
+
+
 class Audit:
     def __init__(self, args):
         self.a = args
@@ -136,7 +155,8 @@ class Audit:
                 "command": [self.clean(str(v)) for v in cmd], "log": str(log.relative_to(self.a.out))}
 
     def inventory(self, trees):
-        files = {POLICY_PROFILE, PROBE_POLICY, SERVICE_PROFILE, ZRAM_INIT}
+        files = {POLICY_PROFILE, PROBE_POLICY, SERVICE_PROFILE, ZRAM_INIT, DESKTOP_POLICY, PC_INIT,
+                 self.a.ruby / "fs/system_a/system/etc/init/timberslide.rc"}
         for maps in trees:
             for root in maps.values():
                 files.update(p for sub in ("etc/vintf", "etc/selinux", "apex")
@@ -229,6 +249,9 @@ class Audit:
             changed.write_text(reduce_policy(source.read_text(), profile))
             inputs = [changed if p == source else p for p in inputs]
             inputs.append(PROBE_POLICY)
+            validate_desktop_policy((self.a.ruby / "fs/vendor_a/etc/selinux/vendor_sepolicy.cil").read_text(),
+                                    DESKTOP_POLICY.read_text())
+            inputs.append(DESKTOP_POLICY)
             reductions = profile["remove"]
         policy = self.command([self.a.tools / "secilc", "-m", "-M", "true", "-G", "-c", "33",
                                "-o", out / "policy.bin", "-f", "/dev/null", *inputs], out / "policy.log")

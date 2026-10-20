@@ -46,15 +46,98 @@ than automatic fallback. A later rollback may require restoring the matching
 data snapshot if the newer framework migrated app or system data. Major base,
 layout or encryption changes require a separate compatibility review.
 
-As of 2026-10-19 this contract is established, but a guarded preserving updater
-and its end-to-end rehearsal are not yet implemented. No data-preserving USB
-update or successful post-update unlock is claimed. The configured USB's full
+The preserving tools below now implement this contract for vendor-only updates.
+Post-update G14 unlock still requires a physical test. The configured USB's full
 12,766,412,800-byte used extent is backed up privately and matches an independent
 second device read by SHA-256. Boot/system payloads match net18; protected
 partition hashes are retained privately. See
 `evidence/2026-10-19-googlebook-live-adb/preservation-preflight.json`.
 Primary reference checked
 2026-10-19: [AOSP metadata encryption](https://source.android.com/docs/security/features/encryption/metadata).
+
+### Preserving update tools
+
+`scripts/googlebook/preserve-update.py` accepts regular files only and creates
+a new **private** clone; it never writes a device. Supply the verified offline
+backup, its independently checked SHA-256, the original live manifest and a
+new candidate directory. Review vendor/security compatibility first: unchanged
+framework hashes alone do not prove compatible KeyMint, Gatekeeper, Weaver or
+fstab behavior. For services21, all eight reviewed encryption-related files
+match net18, including the fstab and security APEXes.
+
+```sh
+scripts/installer/inst-docker.sh python3 "$REPO/scripts/googlebook/preserve-update.py" \
+  --snapshot "$BACKUP" --snapshot-sha256 "$VERIFIED_BACKUP_SHA256" \
+  --base-manifest "$BASE/manifest.json" --candidate "$CANDIDATE" --out "$PRESERVED"
+```
+
+It validates both GPT headers/tables and CRCs, unchanged partition extents,
+framework/kernel/modules/boot images and security boot parameters. It verifies
+the original system partitions against the baseline manifest, rebinds all five
+candidate initrds to the original ESP UUID, preserves the existing menu and
+other FAT files, then verifies every byte outside EFI/super/vbmeta_a. Metadata,
+userdata, misc, boot images, both GPT copies and unused padding must match.
+The input backup and candidate are rehashed afterward. Output `update.json`
+is a verified write plan; all output includes private user state and stays local.
+Existing or partial output directories are never reused.
+
+`scripts/googlebook/apply-preserved-update.py` defaults to read-only preflight.
+It accepts only an unmounted whole USB by-id path with 512-byte sectors, passes
+only that device to a network-isolated container, and independently validates
+the plan and backup. It directly reads the entire used USB extent and refuses
+if anything changed since the backup. Application requires exact device
+confirmation already obtained from the owner:
+
+```sh
+python3 scripts/googlebook/apply-preserved-update.py \
+  --prepared "$PRESERVED" --backup "$BACKUP" --device "$AUTHORIZED_USB"
+# After the VM rehearsal and explicit authorization naming this USB:
+python3 scripts/googlebook/apply-preserved-update.py \
+  --prepared "$PRESERVED" --backup "$BACKUP" --device "$AUTHORIZED_USB" \
+  --apply --confirm-device "$AUTHORIZED_USB"
+```
+
+Only super, vbmeta_a and EFI are written, in that order, with fsync. Full used
+extent readback uses direct I/O and must match the preserving clone before
+power-off. Do not interrupt power during this single-slot update. On a failed
+write/readback, keep the backup, leave the stick unbooted and investigate;
+the tool will refuse a partial disk on its next invocation. Restoration is a
+separate explicitly authorized recovery operation. Never restore a fresh image
+over the configured data as a shortcut.
+
+Tests: `python3 scripts/googlebook/preserve-update-test.py -v`.
+For a disposable encrypted-state rehearsal, prepare a clone from a previous
+VM's `usb-test.img` and pass that VM's `tpm-state` to
+`run-probe.py --tpm --tpm-state-from "$PREVIOUS_VM/tpm-state" --usb-logs`.
+The runner copies TPM state, verifies its source unchanged and excludes prior
+USB log sessions from the new result. Never use the owner's real data in this
+VM lane; successful synthetic-data mounting does not prove G14 credential unlock.
+
+### Desktop services and touchpad follow-up
+
+The services21 candidate restores seven desktop service labels and a reviewed
+subset of their original type/permission contracts. `compat-audit.py` rejects
+contract drift; strict neverallow and service-context checks remain enabled.
+No blanket grant to `default_android_service` is added. This restores framework
+registration, but does not supply the absent vendor serviceability application
+used by Tips/RepairMode. That backend remains an integration gap.
+
+The G14 and QEMU have no Chrome EC console. `ruby-pc-init.rc` stops timberslide
+during early-init, before its class starts. A service override across the
+system/vendor boundary is rejected by Android and is not used. Source reviewed
+2026-10-19: AOSP `system/core/init/service.cpp` (`StopOrReset`) and
+`service_parser.cpp` (`EndSection`), and the
+[init reference](https://android.googlesource.com/platform/system/core/+/refs/heads/main/init/README.md).
+
+Ruby recognizes ELAN `04f3:3315` through TouchpadInputMapper. The earlier private
+dump shows Tap Enable true and Tap Drag Enable false; it does not establish the
+setting at the time of the owner's reported scroll/click failure. The collector
+now captures the active user, exact touchpad preferences for current/system
+users, mapper state and capabilities. It does not alter preferences or capture
+keystrokes. Nine offline gesture checks include tapping-off scrolling with
+staggered contact and release; they are controls for the AOSP library, not a
+Ruby hardware fix. Before changing tuning, record the toggle-off mapper state
+and a labeled touchpad-only trace using `docs/touchpad-behavior.md`.
 
 ## Live laptop inspection over ADB
 
