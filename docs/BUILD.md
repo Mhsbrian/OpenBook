@@ -15,8 +15,12 @@ and `evidence/2026-10-20-googlebook-camera-clients/`.
 
 The camera25 normal UEFI preserving rehearsal passes at 760.7 seconds, including
 encrypted test-data mounting and complete ten-minute logs. All 52 host checks,
-49 full-context policy expectations and 415 audit inputs pass. The physical
-stick remains on camera24; deploy only from a fresh backup of its latest state.
+49 full-context policy expectations and 415 audit inputs pass. Camera25 is now
+on the configured SanDisk, prepared from a fresh independently verified backup.
+Full direct readback matches `c613fd06e2eb2138…`; all 8,805,941,248 protected
+bytes and unrelated EFI files are unchanged. The backup is retained and the
+stick powered off. G14 boot, credential unlock and real frames remain pending.
+Deployment record: `evidence/2026-10-20-googlebook-camera-clients/physical-write.json`.
 
 Camera24 follows the physical camera23 FMQ denial with a dedicated
 `hal_camera_default_tmpfs` label and cameraserver queue access. Native vendor

@@ -18,15 +18,15 @@ fixes. The possible Settings-only scroll/activation symptom remains unconfirmed
 by a motion trace; no physical fix is claimed. See
 `evidence/2026-10-19-googlebook-touchpad-followup/`.
 
-Latest medium: camera24 is written to the owner's SanDisk using a fresh verified
-backup and the preserving updater. Full 12.77 GB direct readback matches the
-private clone (`207aaaa1f2f1f376…`); all 8,805,941,248 protected bytes, including
-userdata/encryption metadata, remain byte-identical. Power-off succeeded and the
-backup is retained. The camera24 ADB session confirms boot completion and
-encrypted `/data` mounted; the owner reports the laptop is good with the disk.
-No exhaustive app-state audit or successful webcam frames are claimed. The next
-update requires a fresh backup of this newly used state. See
-`evidence/2026-10-20-googlebook-camera-fmq/physical-write.json`.
+Latest medium: camera25 is written to the owner's SanDisk using a fresh verified
+backup of its latest camera24 state and the preserving updater. Full 12.77 GB
+direct readback matches the private clone (`c613fd06e2eb2138…`); all
+8,805,941,248 protected bytes, including userdata/encryption metadata, remain
+byte-identical. Unrelated EFI files are also unchanged. Power-off succeeded
+and the fresh backup is retained. The earlier camera24 ADB session confirmed
+boot completion and encrypted `/data` mounted. Camera25 boot, credential unlock,
+existing app state and webcam frames still require a G14 check. See
+`evidence/2026-10-20-googlebook-camera-clients/physical-write.json`.
 
 The Ruby live follow-up confirms ELAN `04f3:3315` is recognized through
 TouchpadInputMapper. The older dump has tapping on, while the owner reports

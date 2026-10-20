@@ -23,10 +23,16 @@ Native build, 52 host checks, 49 full-context policy expectations and the
 later reboots on a checkpoint failure and is not a full-boot success. The normal
 UEFI preserving rehearsal does complete boot and 760.7 seconds of observation,
 mounting encrypted VM data and completing ten-minute logs with no recorded
-fatal signal, provider exit or watchdog kill. Camera25 is ready locally; the
-physical stick still runs camera24 and is absent from the development host.
-Next: normal G14 shutdown, return the stick, fresh verified backup, preserving
-update/readback, then real Camera2 frames and privacy checks.
+fatal signal, provider exit or watchdog kill.
+
+Camera25 is now on the configured SanDisk. A fresh backup of its latest camera24
+state matched an independent second direct read. Only super/vbmeta_a/EFI were
+written; full 12,766,412,800-byte direct readback matches `c613fd06e2eb2138…`.
+All 8,805,941,248 protected bytes, including userdata and encryption metadata,
+and unrelated EFI files are unchanged. The fresh backup is retained privately
+and power-off succeeded. Next: boot the logging entry, verify existing setup
+unlocks, then test real Camera2 frames and privacy behavior on the G14.
+Deployment evidence: `evidence/2026-10-20-googlebook-camera-clients/physical-write.json`.
 
 ## 2026-10-20: G14 camera FMQ failure isolated (ANAL-228)
 

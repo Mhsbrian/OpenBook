@@ -1,0 +1,28 @@
+{
+  "schema": "openbook-ruby-usb-apply/1",
+  "verified": true,
+  "image_bytes": 12766412800,
+  "readback_sha256": "c613fd06e2eb213855d17902bd6685c740f7990b15dc2613d9d76c6e56fc6b7e",
+  "written_names": [
+    "super",
+    "vbmeta_a",
+    "EFI"
+  ],
+  "protected_bytes": 8805941248,
+  "candidate": "camera25",
+  "date_utc": "2026-10-20",
+  "code_commit": "6c5590411f004a8dfd1dead67ca99f4b06e94fb3",
+  "trigger_comment_id": "01a1590a-e755-7b25-9115-cf70bafa092b",
+  "device_model": "SanDisk Ultra",
+  "device_capacity_bytes": 62109253632,
+  "device_identifier": "usb-SanDisk_Ultra_[redacted]-0:0",
+  "fresh_backup_independently_verified": true,
+  "backup_sha256": "261aed702196971fbd08320386f3c72bf1e44c9383f7a2c3f4f36b076b098278",
+  "backup_retained_privately": true,
+  "userdata_and_encryption_metadata_unchanged": true,
+  "unrelated_esp_files_unchanged": true,
+  "powered_off": true,
+  "physical_g14_camera25_boot_verified": false,
+  "physical_camera_frames_verified": false,
+  "internal_disks_written": false
+}
