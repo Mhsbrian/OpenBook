@@ -1,0 +1,18 @@
+{
+  "schema": "openbook-camera-preservation/1",
+  "scope": "disposable camera24-to-camera25 VM update; never owner userdata",
+  "complete": true,
+  "sources_unchanged": true,
+  "source_sha256": "3d9cba8be5f9201c1e02bbe60f060ac4dcbe0392ca6d15751837667ae4bee081",
+  "fresh_candidate_sha256": "df793f2eed3a5c901659014c2ae368d8e5eeb3d504b514d46fc8c0c1959a7af4",
+  "preserved_image_sha256": "9809adcd47420007e9935306b8aca71612cc72afd3e3f524dd1aa448ede68fae",
+  "written_partitions": [
+    "EFI",
+    "vbmeta_a",
+    "super"
+  ],
+  "protected_bytes": 8805941248,
+  "unrelated_esp_files_unchanged": true,
+  "physical_device_written": false,
+  "physical_credential_unlock_verified": false
+}

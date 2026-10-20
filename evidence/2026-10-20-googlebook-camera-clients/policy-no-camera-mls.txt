@@ -1,0 +1,53 @@
+libsepol.policydb_index_others: security:  1 users, 2 roles, 2682 types, 0 bools
+libsepol.policydb_index_others: security: 1 sens, 1024 cats
+libsepol.policydb_index_others: security:  108 classes, 47935 rules, 0 cond rules
+PASS u:r:untrusted_app:s0:c147,c256,c522,c768 -> u:r:cameraserver:s0 fd:use allowed=1 expected=1 reason=0x0
+PASS u:r:untrusted_app:s0:c147,c256,c522,c768 -> u:object_r:cameraserver_tmpfs:s0 file:read allowed=1 expected=1 reason=0x0
+FAIL u:r:untrusted_app:s0:c147,c256,c522,c768 -> u:object_r:cameraserver_tmpfs:s0 file:write allowed=0 expected=1 reason=0x2
+PASS u:r:untrusted_app:s0:c147,c256,c522,c768 -> u:object_r:cameraserver_tmpfs:s0 file:getattr allowed=1 expected=1 reason=0x0
+PASS u:r:untrusted_app:s0:c147,c256,c522,c768 -> u:object_r:cameraserver_tmpfs:s0 file:map allowed=1 expected=1 reason=0x0
+PASS u:r:untrusted_app:s0:c147,c256,c522,c768 -> u:object_r:cameraserver_tmpfs:s0 file:execute allowed=0 expected=0 reason=0x1
+PASS u:r:untrusted_app:s0:c147,c256,c522,c768 -> u:object_r:cameraserver_tmpfs:s0 file:setattr allowed=0 expected=0 reason=0x1
+PASS u:r:untrusted_app:s0:c147,c256,c522,c768 -> u:object_r:hal_camera_default_tmpfs:s0 file:read allowed=0 expected=0 reason=0x1
+PASS u:r:untrusted_app:s0:c147,c256,c522,c768 -> u:object_r:hal_camera_default_tmpfs:s0 file:write allowed=0 expected=0 reason=0x1
+PASS u:r:untrusted_app:s0:c147,c256,c522,c768 -> u:object_r:video_device:s0 chr_file:read allowed=0 expected=0 reason=0x1
+PASS u:r:untrusted_app:s0:c147,c256,c522,c768 -> u:object_r:video_device:s0 chr_file:write allowed=0 expected=0 reason=0x1
+PASS u:r:untrusted_app:s0:c23,c256,c512,c768 -> u:r:cameraserver:s0 fd:use allowed=1 expected=1 reason=0x0
+PASS u:r:untrusted_app:s0:c23,c256,c512,c768 -> u:object_r:cameraserver_tmpfs:s0 file:read allowed=1 expected=1 reason=0x0
+FAIL u:r:untrusted_app:s0:c23,c256,c512,c768 -> u:object_r:cameraserver_tmpfs:s0 file:write allowed=0 expected=1 reason=0x2
+PASS u:r:untrusted_app:s0:c23,c256,c512,c768 -> u:object_r:cameraserver_tmpfs:s0 file:getattr allowed=1 expected=1 reason=0x0
+PASS u:r:untrusted_app:s0:c23,c256,c512,c768 -> u:object_r:cameraserver_tmpfs:s0 file:map allowed=1 expected=1 reason=0x0
+PASS u:r:untrusted_app:s0:c23,c256,c512,c768 -> u:object_r:cameraserver_tmpfs:s0 file:execute allowed=0 expected=0 reason=0x1
+PASS u:r:untrusted_app:s0:c23,c256,c512,c768 -> u:object_r:cameraserver_tmpfs:s0 file:setattr allowed=0 expected=0 reason=0x1
+PASS u:r:untrusted_app:s0:c23,c256,c512,c768 -> u:object_r:hal_camera_default_tmpfs:s0 file:read allowed=0 expected=0 reason=0x1
+PASS u:r:untrusted_app:s0:c23,c256,c512,c768 -> u:object_r:hal_camera_default_tmpfs:s0 file:write allowed=0 expected=0 reason=0x1
+PASS u:r:untrusted_app:s0:c23,c256,c512,c768 -> u:object_r:video_device:s0 chr_file:read allowed=0 expected=0 reason=0x1
+PASS u:r:untrusted_app:s0:c23,c256,c512,c768 -> u:object_r:video_device:s0 chr_file:write allowed=0 expected=0 reason=0x1
+PASS u:r:priv_app:s0:c512,c768 -> u:r:cameraserver:s0 fd:use allowed=1 expected=1 reason=0x0
+PASS u:r:priv_app:s0:c512,c768 -> u:object_r:cameraserver_tmpfs:s0 file:read allowed=1 expected=1 reason=0x0
+FAIL u:r:priv_app:s0:c512,c768 -> u:object_r:cameraserver_tmpfs:s0 file:write allowed=0 expected=1 reason=0x2
+PASS u:r:priv_app:s0:c512,c768 -> u:object_r:cameraserver_tmpfs:s0 file:getattr allowed=1 expected=1 reason=0x0
+PASS u:r:priv_app:s0:c512,c768 -> u:object_r:cameraserver_tmpfs:s0 file:map allowed=1 expected=1 reason=0x0
+PASS u:r:priv_app:s0:c512,c768 -> u:object_r:cameraserver_tmpfs:s0 file:execute allowed=0 expected=0 reason=0x1
+PASS u:r:priv_app:s0:c512,c768 -> u:object_r:cameraserver_tmpfs:s0 file:setattr allowed=0 expected=0 reason=0x1
+PASS u:r:priv_app:s0:c512,c768 -> u:object_r:hal_camera_default_tmpfs:s0 file:read allowed=0 expected=0 reason=0x1
+PASS u:r:priv_app:s0:c512,c768 -> u:object_r:hal_camera_default_tmpfs:s0 file:write allowed=0 expected=0 reason=0x1
+PASS u:r:priv_app:s0:c512,c768 -> u:object_r:video_device:s0 chr_file:read allowed=0 expected=0 reason=0x1
+PASS u:r:priv_app:s0:c512,c768 -> u:object_r:video_device:s0 chr_file:write allowed=0 expected=0 reason=0x1
+PASS u:r:isolated_app:s0:c1,c2,c512,c768 -> u:object_r:cameraserver_tmpfs:s0 file:read allowed=0 expected=0 reason=0x1
+PASS u:r:hal_camera_default:s0 -> u:object_r:hal_camera_default_tmpfs:s0 file:read allowed=1 expected=1 reason=0x0
+PASS u:r:cameraserver:s0 -> u:object_r:hal_camera_default_tmpfs:s0 file:read allowed=1 expected=1 reason=0x0
+PASS u:r:isolated_app:s0:c1,c2,c512,c768 -> u:object_r:cameraserver_tmpfs:s0 file:write allowed=0 expected=0 reason=0x1
+PASS u:r:hal_camera_default:s0 -> u:object_r:hal_camera_default_tmpfs:s0 file:write allowed=1 expected=1 reason=0x0
+PASS u:r:cameraserver:s0 -> u:object_r:hal_camera_default_tmpfs:s0 file:write allowed=1 expected=1 reason=0x0
+PASS u:r:isolated_app:s0:c1,c2,c512,c768 -> u:object_r:cameraserver_tmpfs:s0 file:getattr allowed=0 expected=0 reason=0x1
+PASS u:r:hal_camera_default:s0 -> u:object_r:hal_camera_default_tmpfs:s0 file:getattr allowed=1 expected=1 reason=0x0
+PASS u:r:cameraserver:s0 -> u:object_r:hal_camera_default_tmpfs:s0 file:getattr allowed=1 expected=1 reason=0x0
+PASS u:r:isolated_app:s0:c1,c2,c512,c768 -> u:object_r:cameraserver_tmpfs:s0 file:map allowed=0 expected=0 reason=0x1
+PASS u:r:hal_camera_default:s0 -> u:object_r:hal_camera_default_tmpfs:s0 file:map allowed=1 expected=1 reason=0x0
+PASS u:r:cameraserver:s0 -> u:object_r:hal_camera_default_tmpfs:s0 file:map allowed=1 expected=1 reason=0x0
+PASS u:r:hal_camera_default:s0 -> u:object_r:tmpfs:s0 file:write allowed=0 expected=0 reason=0x1
+PASS u:r:hal_camera_default:s0 -> u:object_r:hal_graphics_allocator_service:s0 service_manager:find allowed=1 expected=1 reason=0x0
+PASS u:r:hal_camera_default:s0 -> u:r:hal_graphics_allocator_default:s0 binder:call allowed=1 expected=1 reason=0x0
+PASS u:r:hal_camera_default:s0 -> u:object_r:same_process_hal_file:s0 file:execute allowed=1 expected=1 reason=0x0
+RESULT mode=fixed checks=49 failures=3

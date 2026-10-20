@@ -1,0 +1,17 @@
+{
+  "schema": "openbook-camera-policy-regression/1",
+  "checks_per_policy": 49,
+  "camera24_negative_control_passed": true,
+  "camera24_fixed_expectations_failures": 14,
+  "camera25_fixed_expectations_passed": true,
+  "mls_only_negative_control": {
+    "change": "remove cameraserver_tmpfs_202604 from vendor mlstrustedobject membership in temporary CIL",
+    "fixed_expectations_failures": 3,
+    "failed_permission": "file:write",
+    "reason": "0x2 constraint"
+  },
+  "permissive_domains": [],
+  "libsepol_source_revision": "a8c5e74f85f869bf236a01ba24181b78f5e39a52",
+  "libsepol_archive_sha256": "cce71708e13487f554fa8e4346657bfba135fcfd563e7ed37d47ea5a18d7027c",
+  "scope": "compiled TE and MLS decision checks; no physical frames or actual Binder transaction"
+}

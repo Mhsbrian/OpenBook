@@ -1,0 +1,47 @@
+{
+  "schema": "openbook-camera-client-diagnosis/1",
+  "date_utc": "2026-10-20",
+  "observed_image": "camera24",
+  "boot_completed": true,
+  "encrypted_data_mounted": true,
+  "public_camera_count": 1,
+  "hal_initial_fmq_failure_reproduced": false,
+  "camera2": {
+    "app_operation": "ICameraDeviceUser.getCaptureResultMetadataQueue",
+    "denied_source_type": "untrusted_app",
+    "denied_target_type": "cameraserver_tmpfs",
+    "denied_class": "file",
+    "denied_permissions": ["read", "write"],
+    "selinux_enforcing": true,
+    "device_status_before_diagnostic": "UNCONFIGURED",
+    "output_streams_before_diagnostic": 0,
+    "request_counter_before_diagnostic": 0,
+    "diagnostic_frames": 0
+  },
+  "camera_api1": {
+    "uvc_streamon_observed": true,
+    "configured_width": 640,
+    "configured_height": 480,
+    "configured_fps_not_measured": 30,
+    "denied_source_type": "hal_camera_default",
+    "denied_target_type": "hal_graphics_allocator_service",
+    "denied_class": "service_manager",
+    "denied_permission": "find",
+    "provider_abort_message": "gralloc-mapper is missing",
+    "stack": ["GraphicBufferMapper", "HandleImporter", "ExternalCameraDeviceSession"],
+    "diagnostic_frames": 0,
+    "provider_restarted": true
+  },
+  "diagnostic": {
+    "package": "org.openbook.test.camera",
+    "permission": "android.permission.CAMERA",
+    "foreground_run_limit_ms": 20000,
+    "live_test_apk_sha256": "38baebe95af2bc0883fe2422c4792394dc46229b52611a62b56805e33c9c3a1e",
+    "removed_after_testing": true,
+    "owner_camera_app_reopened": true,
+    "images_or_audio_saved": false,
+    "owner_data_reset": false,
+    "privacy_override": false,
+    "physical_frame_delivery_validated": false
+  }
+}

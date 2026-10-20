@@ -1,5 +1,33 @@
 # Status
 
+## 2026-10-20: G14 Camera2 and graphics failures reproduced (ANAL-228)
+
+Camera24 boots and fixes the HAL's initial FMQ allocation. Its black preview has
+two further confirmed causes: the Camera2 result queue cannot reach the app,
+and the provider cannot discover the graphics allocator. A temporary diagnostic
+reproduces Camera2's queue failure and, through API1, reaches UVC streaming
+before the provider aborts at mapper initialization. Both probes receive zero
+frames. The diagnostic was removed and the owner's camera app reopened.
+No pictures/audio were saved and no owner data, privacy setting or Play Store
+state was reset.
+
+Camera25 adds the cameraserver tmpfs fallback for ordinary app clients, scoped
+MLS object trust, and the standard graphics-allocator client attribute for the
+external provider. Validation now covers the app security contexts and synthetic
+YUV-buffer import as well as HAL queue allocation. Physical frame delivery is
+still unverified. See `docs/g14-camera.md` and
+`evidence/2026-10-20-googlebook-camera-clients/`.
+
+Native build, 52 host checks, 49 full-context policy expectations and the
+415-input audit pass. The enforcing HAL probes pass; their direct-kernel VM
+later reboots on a checkpoint failure and is not a full-boot success. The normal
+UEFI preserving rehearsal does complete boot and 760.7 seconds of observation,
+mounting encrypted VM data and completing ten-minute logs with no recorded
+fatal signal, provider exit or watchdog kill. Camera25 is ready locally; the
+physical stick still runs camera24 and is absent from the development host.
+Next: normal G14 shutdown, return the stick, fresh verified backup, preserving
+update/readback, then real Camera2 frames and privacy checks.
+
 ## 2026-10-20: G14 camera FMQ failure isolated (ANAL-228)
 
 Wireless ADB reached camera23. The G14 enumerates one public UVC camera, but

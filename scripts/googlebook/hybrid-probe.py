@@ -243,6 +243,25 @@ def prepare(a):
         fmq_test = {"source_sha256": audit.sha(source), "binary_sha256": audit.sha(binary),
                     "expected_domain": "hal_camera_default", "expected_exit_status": 0,
                     "scope": "disposable VM only; no video device or frames"}
+        # Built explicitly as a native test, absent from ordinary vendor images.
+        buffer_source = HERE.parents[1] / "device/anybook/common/pc/camera/camera-buffer-test.cpp"
+        buffer_built = a.product / "data/nativetest64/vendor/openbook-camera-buffer-test/openbook-camera-buffer-test"
+        if not buffer_built.is_file():
+            raise ValueError("Build openbook-camera-buffer-test in the AOSP lane before --camera-fmq-test")
+        buffer_binary = vendor / "bin/openbook-camera-buffer-test"
+        shutil.copyfile(buffer_built, buffer_binary)
+        buffer_binary.chmod(0o755)
+        contexts.write_text(contexts.read_text() +
+                           "/vendor/bin/openbook-camera-buffer-test u:object_r:hal_camera_default_exec:s0\n")
+        (vendor / "etc/init/openbook-camera-buffer-test.rc").write_text('''service openbook.camera-buffer-test /vendor/bin/openbook-camera-buffer-test
+    class late_start
+    user cameraserver
+    group audio camera input drmrpc usb
+    oneshot
+''')
+        fmq_test["buffer_test"] = {
+            "source_sha256": audit.sha(buffer_source), "binary_sha256": audit.sha(buffer_binary),
+            "expected_exit_status": 0, "scope": "synthetic YUV allocation, import, CPU write/read"}
     run(a.tools / "checkfc", se / "precompiled_sepolicy", contexts)
     for part, root in (("plat", a.ruby / "fs/system_a/system"), ("system_ext", a.ruby / "fs/system_ext_a"),
                        ("product", a.ruby / "fs/product_a")):
@@ -331,6 +350,7 @@ done
     if fmq_test:
         with label_tests.open("a") as f:
             f.write("/vendor/bin/openbook-camera-fmq-test hal_camera_default_exec\n")
+            f.write("/vendor/bin/openbook-camera-buffer-test hal_camera_default_exec\n")
     with (w / "file-context-tests.log").open("wb") as log:
         check = subprocess.run([str(a.tools / "checkfc"), "-t", str(context), str(label_tests)],
                                stdout=log, stderr=subprocess.STDOUT)
@@ -469,7 +489,7 @@ def main():
     p.add_argument("--timeout", type=int, default=180, choices=range(30, 601), metavar="30..600")
     p.add_argument("--variant", choices=("vm", "bm"), default="vm")
     p.add_argument("--camera-fmq-test", action="store_true",
-                   help="Add a camera-domain memfd test to a disposable VM image; never deploy this image")
+                   help="Add camera-domain memfd/YUV-buffer tests to a disposable VM; never deploy this image")
     p.add_argument("--prepare-only", action="store_true", help="Assemble only; use run-probe.py for a separate observation")
     a = p.parse_args()
     for n in ("ruby", "product", "tools", "kernel", "audit", "key"):
