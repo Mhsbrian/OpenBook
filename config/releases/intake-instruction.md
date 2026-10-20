@@ -8,6 +8,15 @@ active release ANAL-233 (01a15aa3-e12a-7210-b3cf-236c7a4f7458) unless the hub
 names a newer active release. Reuse existing records. Check active runs before
 starting any build; do not dispatch another agent or create duplicate releases.
 
+Follow the hub's project-wide reconciliation requirement. Before proposing a
+plan or executing an approved build, census all AnyBook issues (all pages),
+including already-in-review work, new issues and later revisions. Use
+scripts/releases/intake-audit.py when available; otherwise use paginated CLI
+reads. Verify relevant threads and actual PR heads separately. Record pending,
+queued, blocked, deferred and included work in the hub; no silent exclusions.
+Do not bulk-subscribe already-ready historical issues. New base images also
+need a track, parent/source identity, hashes and a release record before promotion.
+
 Update the hub's queue with exact source commits, dependencies, included and
 excluded behavior, evidence and remaining limitations. Re-read before writing
 and preserve unrelated edits. A source being in_review or a PR merging is not

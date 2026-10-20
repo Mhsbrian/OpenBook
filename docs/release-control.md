@@ -36,6 +36,12 @@ approve merging it.
 
 ## Work-item handoff and automatic intake
 
+The AnyBook project description supplies release instructions to every new or
+resumed task in that project. Agents, not the owner, are responsible for intake.
+Already-running tasks may still have older context. Work outside AnyBook does
+not inherit these instructions; bring it into the project or explicitly hand it
+off to the hub before considering its output for release.
+
 Every image-affecting work issue records a short release handoff:
 
 - track and intended target;
@@ -67,10 +73,69 @@ reuse the existing proposed release and stop before building unless the exact
 plan already has valid human approval. It must not dispatch further agents or
 add recursive comment/task-completion subscriptions.
 
+If work is already in review, ingest it during reconciliation rather than
+creating a batch of immediately satisfied watches. Readiness watches are
+one-shot notifications, not subscriptions to every PR commit. Source agents
+renew intake for revised work; the coordinator rechecks heads before freezing
+and building. Do not make the owner register or renew these watches.
+
+## Catching existing work and new images
+
+Before proposing a plan, and again before executing an approved build, the
+coordinator takes a complete project census. Include old in-review items,
+blocked work, new tasks and source revisions. A title search alone cannot
+establish image impact. Expand relevant issue threads and linked PRs, keeping
+the existing bounded comment-read workflow.
+
+```sh
+python3 scripts/releases/intake-audit.py --output ./intake-census.json
+# Later, use a fresh filename and the prior snapshot to highlight index changes:
+python3 scripts/releases/intake-audit.py \
+  --previous ./intake-census.json --output ./intake-census-next.json
+```
+
+This read-only helper follows pagination through an empty page, rejects
+repeated/incomplete pages, and reports new/changed/missing issues and readiness
+watch health. It does not read private comments, infer track/eligibility,
+subscribe agents or approve anything. Its index-change comparison cannot
+detect every PR head change; verify actual heads separately. A failed or
+partial census cannot serve as the completed release reconciliation.
+
+Keep the current census attached to the hub. The coordinator records the
+disposition of relevant work in its queue: **needs assessment, queued, blocked,
+deferred with a reason, or included in a named plan**. Unknown track or impact
+stays needs assessment. Unresolved relevant work must be explicitly deferred
+with its impact on the proposed release explained; it cannot disappear from
+the queue. A census is discovery evidence, not proof that all listed work is
+qualified. Catch changes again before building; changed approved inputs require
+a new revision, while unrelated work stays in the next batch.
+
+Every new image follows the same handoff, including a new upstream/base image:
+record its track, parent image/release, source/input hashes, source issue and
+tests. Development/VM images may stay with their feature issue, marked
+experimental. An image intended for the stick or laptop must acquire a release
+record and pass the plan, validation and device gates before promotion. A
+different track/base starts a separately qualified release; “newer” alone is
+not compatibility evidence. Historical releases remain immutable.
+
+The PR template repeats the handoff so contributors see it where code changes
+are submitted. It takes effect for default PR creation after this PR's template
+lands in the repository's default branch; project instructions are live now.
+These are agent workflow controls, not a GitHub-required check or a wrapper
+that prevents arbitrary manual image builds.
+
+For the owner, the hub is the only place to manage releases: “What's ready?”,
+“Prepare the next release”, or “Hold this release” are sufficient requests.
+The coordinator presents a short included/deferred list and a concrete plan
+for approval. The owner never has to assemble commit lists or copy handoffs
+between issues. Approval still identifies the exact plan; final device-write
+approval identifies the tested image, operation and exact device.
+
 ## Approval and execution
 
 1. **Reconcile.** Read the hub, active release and bounded comment history.
-   Read actual linked PR state and exact heads. Check active release runs.
+   Complete the project census and dispositions above. Read actual linked PR
+   state and exact heads. Check active release runs.
    Preserve unrelated concurrent edits; reread the issue before updating it.
 2. **Freeze.** Create a release record under the hub, or reuse its existing
    draft. Record the preceding accepted release separately from any held
