@@ -107,7 +107,16 @@ without a recorded fatal signal, provider/zygote exit or watchdog kill. Its
 600.3-second capture completes with 285 new files and no unsaved collector bytes;
 kernel audit rate limiting separately drops 210 events. The source image,
 source TPM state and synthetic internal disk remain unchanged. Actual camera
-frames remain a G14 gate. Camera25 is prepared but not yet on the physical USB.
+frames remain a G14 gate.
+
+Camera25 is now on the configured physical SanDisk. A fresh backup of its latest
+camera24 state matches an independent direct read. The guarded updater verifies
+the stick against that backup before writing only super/vbmeta_a/EFI, then checks
+the entire 12,766,412,800-byte used extent by direct readback. Its result matches
+`c613fd06e2eb213855d17902bd6685c740f7990b15dc2613d9d76c6e56fc6b7e`.
+All 8,805,941,248 protected bytes and unrelated EFI files are unchanged. The
+backup is retained privately and power-off succeeded. G14 boot and credential
+unlock have not yet been retested with camera25.
 
 For a physical follow-up, build the temporary APK with
 `bash scripts/googlebook/camera-probe/build.sh`. Install it for the current
@@ -119,9 +128,10 @@ check the elapsed span before interpreting the result. Uninstall it afterwards
 and reopen the owner's camera app. Any nonzero frame count is still insufficient
 to qualify orientation, color, privacy, suspend or browser use.
 
-Evidence: `evidence/2026-10-20-googlebook-camera-clients/`. The next USB update
-must begin with a new backup of the **now-used** camera24 stick. Never deploy the
-blank data partitions from the fresh candidate or an earlier owner snapshot.
+Evidence: `evidence/2026-10-20-googlebook-camera-clients/`, including
+`physical-write.json`. After any further laptop use, the next USB update must
+begin with a new backup of that latest state. Never deploy the blank data
+partitions from the fresh candidate or an earlier owner snapshot.
 
 Sources checked 2026-10-20: pinned AOSP
 `frameworks/av/services/camera/libcameraservice/api2/CameraDeviceClient.cpp`

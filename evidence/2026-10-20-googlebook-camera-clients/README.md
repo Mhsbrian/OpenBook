@@ -66,7 +66,16 @@ credential unlock. The fresh candidate's hash is
 `df793f2eed3a5c901659014c2ae368d8e5eeb3d504b514d46fc8c0c1959a7af4`.
 Its blank userdata is never an update source for the configured physical stick.
 
+`physical-write.json` records camera25 deployment to the configured SanDisk.
+A fresh backup of its latest camera24 state matches an independent second
+direct read. The updater also matches the current stick to that backup before
+writing only super/vbmeta_a/EFI. Full 12,766,412,800-byte direct readback matches
+`c613fd06e2eb213855d17902bd6685c740f7990b15dc2613d9d76c6e56fc6b7e`.
+All 8,805,941,248 protected bytes, including userdata and encryption metadata,
+and unrelated EFI files are unchanged. The backup is retained privately and
+power-off succeeds. Camera25 G14 boot, credential unlock and actual webcam
+frames are still untested.
+
 Build instructions, primary-source references and hardware acceptance:
-`docs/g14-camera.md`. The USB is still in the laptop. Deployment requires a new
-verified backup of its latest used state, a preserving update and complete
-readback. An earlier owner snapshot must not replace newer saved data.
+`docs/g14-camera.md`. Each future update after laptop use requires a fresh
+verified backup. An earlier owner snapshot must not replace newer saved data.
