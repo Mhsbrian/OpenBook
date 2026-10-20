@@ -1,5 +1,32 @@
 # Status
 
+## 2026-10-20: Installed Ruby input27 candidate and storage follow-up (ANAL-228)
+
+The owner confirms successful bare-metal installation and is using the G14 away
+from the host. The reported short tap-drag is reproduced by synthetic MSC-less
+repeat frames in the retained Ruby gestures library. The exact-build converter
+patch preserves MSC between frames; native before/after controls and twelve
+AOSP replay tests pass. Eight candidate/identity integrity and refusal tests pass.
+
+Input27 is built privately. Every system inode/xattr and file is compared; only
+the eight-byte input correction changes a system file. A prepared installed VM
+clone preserves all data/metadata/GPT bytes before boot. Its 480-second observation
+boots and preserves four encryption-key files, while reproducing the existing VM
+system-server crash class. The initial firmware-UUID log assertion was replaced
+by direct bootconfig verification plus observed NVMe partition selection; both
+the original result and the same-run re-evaluation are retained.
+
+No laptop or disk was written. This delivers a candidate and offline clone
+preparer, not a physical updater or automatic rollback. Deployment requires a
+fresh current-laptop backup, reviewed offline application/recovery and hardware
+acceptance; never restore the earlier USB data over the now-active SSD.
+
+The additional storage report matches the migration's 8 GiB userdata limit.
+Spare SSD space is unallocated. No expansion is delivered: safe offline F2FS
+growth with metadata/fscrypt encryption needs separate preservation/recovery
+tests. Details and next steps: `docs/googlebook-input-update.md`;
+measurements: `evidence/2026-10-20-googlebook-input27/`.
+
 ## 2026-10-20: Configured Googlebook migration installer (ANAL-228)
 
 The owner confirms camera25 fixes the webcam and Bluetooth works. A separate

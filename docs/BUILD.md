@@ -1,5 +1,20 @@
 # Build and reproduce
 
+## Installed Googlebook input27 candidate
+
+The owner reports successful bare-metal migration. Input27 applies the exact-build
+MSC timestamp correction to the retained input library. The builder compares every
+system inode/xattr and file, verifies new AVB descriptors, and retains camera25's
+vendor, kernel and credential components. Twelve replay tests, eight negative/input
+gates and native before/after converter/gesture controls are documented in
+`googlebook-input-update.md`.
+
+`installed-update.py` prepares only a regular-file clone of a **fresh current**
+installed snapshot, preserving metadata/userdata/GPT and disk-bound boot identity.
+It is not a physical writer or A/B updater. The earlier USB backup must never
+replace newer laptop data. Storage remains 8 GiB: safe encrypted F2FS expansion
+is additional unresolved work, with source findings in the same document.
+
 ## Configured Googlebook USB to internal NVMe (ANAL-228)
 
 `tools/Dockerfile.ruby-installer` builds a separate offline Linux RAM installer.

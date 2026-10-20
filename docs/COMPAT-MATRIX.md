@@ -4,6 +4,9 @@
 
 | Check | Observed result | Limit |
 |---|---|---|
+| Installed Googlebook owner acceptance | Owner reports bare-metal installation was a complete success and is actively using the laptop | Owner report, not a new instrumented credential/app audit |
+| Input27 tap-drag correction | Actual Ruby converter and gesture-library controls demonstrate premature release with MSC reset and correct six-second hold with preserved MSC; all system inode/xattr metadata retained | Synthetic controls; physical kernel events and app behavior need acceptance; no laptop update performed |
+| Installed storage capacity | Migration retains the original 8 GiB encrypted F2FS userdata and leaves spare SSD space unallocated, matching the owner report | No growth delivered; generic mounted resize is unsupported; offline encrypted-data preservation must be rehearsed |
 | Configured Googlebook offline migration | Separate RAM installer, pinned camera25 source, exact NVMe confirmation, per-partition readback, new destination GUIDs and firmware boot registration; eleven integrity/failure tests pass | Same G14 only; retains 8 GiB userdata; physical credential unlock and app-state acceptance required; no automatic OTA containment |
 | Migration26 configured SanDisk (`95e30c7ae6be2849…`) | Fresh backup independently verified; new installer entry added; full used extent passes direct readback; all Android partitions and existing EFI files unchanged; powered off | Physical installer display/input and SSD migration still require owner acceptance |
 | Migration26 VM data retention | Final 480-second observation reaches boot completion from NVMe with source USB attached; original metadata-encryption files and source/TPM/decoy unchanged | System-server SIGSEGV and zygote restart recur; another attempt exits early; successful copy/data checks do not establish runtime stability |

@@ -1,0 +1,16 @@
+[
+  {
+    "mode": "reset",
+    "library_sha256": "e27014ec1e2e4d611cdd6df2c1175d86d679d1353ee970f190e831953fbcb3e4",
+    "exit_code": 0,
+    "stdout": "INPUT_CONVERTER expected=reset first=1.234500 second=0.000000 explicit_zero=0.000000 pass=1\nINPUT_REPLAY policy=0 down=1.410000 up=7.646100 lift=7.646100 downs=1 ups=1 pass=1\nINPUT_REPLAY policy=1 down=1.410000 up=2.197200 lift=7.646100 downs=1 ups=1 pass=1\nINPUT_REPLAY policy=2 down=1.410000 up=7.646100 lift=7.646100 downs=1 ups=1 pass=1\n",
+    "stderr": "linker: Warning: failed to find generated linker configuration from \"/linkerconfig/ld.config.txt\"\nWARNING: linker: Warning: failed to find generated linker configuration from \"/linkerconfig/ld.config.txt\"\n"
+  },
+  {
+    "mode": "preserve",
+    "library_sha256": "4752d1351dbed7f0b5cb5a1d31d409edbb91396c6627fd7b34e1e99a0e655148",
+    "exit_code": 0,
+    "stdout": "INPUT_CONVERTER expected=preserve first=1.234500 second=1.234500 explicit_zero=0.000000 pass=1\nINPUT_REPLAY policy=0 down=1.410000 up=7.646100 lift=7.646100 downs=1 ups=1 pass=1\nINPUT_REPLAY policy=1 down=1.410000 up=2.197200 lift=7.646100 downs=1 ups=1 pass=1\nINPUT_REPLAY policy=2 down=1.410000 up=7.646100 lift=7.646100 downs=1 ups=1 pass=1\n",
+    "stderr": "linker: Warning: failed to find generated linker configuration from \"/linkerconfig/ld.config.txt\"\nWARNING: linker: Warning: failed to find generated linker configuration from \"/linkerconfig/ld.config.txt\"\n"
+  }
+]
