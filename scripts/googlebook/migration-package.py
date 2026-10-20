@@ -31,6 +31,7 @@ u = module("preserve", "preserve-update.py")
 def make_pin(base, out, build, dmi):
     image = u.regular(base / "ruby-live.img")
     manifest = json.loads(u.regular(base / "manifest.json").read_text())
+    m.require("experimental_ota_guard" not in manifest, "Disposable OTA experiment cannot be an installer source")
     m.require(u.h.audit.sha(image) == manifest["image_sha256"], "Reviewed base image checksum changed")
     m.require(not out.exists(), "New pin output required")
     out.mkdir(mode=0o700)
@@ -40,6 +41,7 @@ def make_pin(base, out, build, dmi):
         m.require(manifest["gpt"] == [
             {k: r[k] for k in ("name", "first_lba", "last_lba", "partuuid")} for r in gpt["rows"]],
             "Reviewed manifest GPT mismatch")
+        u.verify_vbmeta_bootconfig(image, manifest["gpt"], manifest["entries"])
         esp = out / "esp.img"
         u.live.copy_range(image, esp, *m.extent(gpt["rows"][0]))
         tree = out / "efi"; tree.mkdir()
@@ -61,29 +63,42 @@ def make_pin(base, out, build, dmi):
 
 
 INSTALLER_FILES = ("kernel", "initrd.img", "build.json", "package-versions.txt")
-INSTALLER_ENTRIES = ("loader/entries/ruby-install.conf", "loader/entries/ruby-install-serial.conf")
+LEGACY_ENTRIES = ("loader/entries/ruby-install.conf", "loader/entries/ruby-install-serial.conf")
+FRESH_ENTRIES = ("loader/entries/ruby-fresh.conf", "loader/entries/ruby-fresh-serial.conf")
+INSTALLER_ENTRIES = LEGACY_ENTRIES + FRESH_ENTRIES
 
 
 def replacement_contract(before, expected):
     """Authorize replacement of exactly the previous reviewed installer files."""
     files = u.tree_hashes(before)
     managed = {f"ruby-installer/{n}" for n in INSTALLER_FILES} | set(INSTALLER_ENTRIES)
-    present = {n for n in files if n.startswith("ruby-installer/") or n in INSTALLER_ENTRIES}
+    present = {n for n in files if n.startswith(("ruby-installer/",
+               "loader/entries/ruby-install", "loader/entries/ruby-fresh"))}
     if expected is None:
         m.require(not present, "Installer already present; reviewed replacement required")
         return set()
-    m.require(present == managed, "Incomplete or unfamiliar existing installer")
+    legacy = managed - set(FRESH_ENTRIES)
+    m.require(present in (managed, legacy), "Incomplete or unfamiliar existing installer")
     m.require(files["ruby-installer/build.json"] == expected, "Old installer review pin mismatch")
     build = json.loads((before / "ruby-installer/build.json").read_text())
     m.require(build.get("schema") == "openbook-ruby-offline-installer/1", "Unknown old installer schema")
     for name in ("kernel", "initrd.img", "package-versions.txt"):
         m.require(files[f"ruby-installer/{name}"] == build["files"][name], "Old installer file changed")
-    for suffix, name in zip(("", "-serial"), INSTALLER_ENTRIES):
-        m.require((before / name).read_text() == installer_entry(suffix), "Old installer menu changed")
-    return managed
+    for names, fresh in ((LEGACY_ENTRIES, False), (FRESH_ENTRIES, True)):
+        for suffix, name in zip(("", "-serial"), names):
+            if name in present:
+                m.require((before / name).read_text() == installer_entry(suffix, fresh),
+                          "Old installer menu changed")
+    return present
 
 
-def installer_entry(suffix):
+def installer_entry(suffix, fresh=False):
+    if fresh:
+        return ("title Fresh install Googlebook to SSD - ERASE SSD DATA"
+                + (" (VM serial)" if suffix else "") + "\n"
+                "linux /ruby-installer/kernel\ninitrd /ruby-installer/initrd.img\n"
+                "options openbook.install=fresh "
+                + ("console=ttyS0,115200 loglevel=3\n" if suffix else "console=tty0 loglevel=3\n"))
     return ("title Install this Googlebook USB to SSD - keep saved data"
             + (" (VM serial)" if suffix else "") + "\n"
             "linux /ruby-installer/kernel\ninitrd /ruby-installer/initrd.img\n"
@@ -93,6 +108,7 @@ def installer_entry(suffix):
 def add(snapshot, snapshot_sha, base_manifest, installer, out, replace_installer_sha256=None):
     snapshot = u.regular(snapshot)
     old = json.loads(u.regular(base_manifest).read_text())
+    m.require("experimental_ota_guard" not in old, "Disposable OTA experiment cannot be an installer source")
     m.require(u.h.audit.sha(snapshot) == snapshot_sha, "Snapshot checksum mismatch")
     m.require(not out.exists(), "New output required")
     pin = json.loads(u.regular(installer / "source.json").read_text())
@@ -133,11 +149,7 @@ def add(snapshot, snapshot_sha, base_manifest, installer, out, replace_installer
         conf.write_text(installer_entry(suffix))
         m.run("mcopy", "-o", "-i", esp, conf, f"::/loader/entries/{conf.name}")
         conf = out / f"ruby-fresh{suffix}.conf"
-        conf.write_text(
-            "title Fresh install Googlebook to SSD - ERASE SSD DATA" + (" (VM serial)" if suffix else "") + "\n"
-            "linux /ruby-installer/kernel\ninitrd /ruby-installer/initrd.img\n"
-            "options openbook.install=fresh " +
-            ("console=ttyS0,115200 loglevel=3\n" if suffix else "console=tty0 loglevel=3\n"))
+        conf.write_text(installer_entry(suffix, fresh=True))
         m.run("mcopy", "-o", "-i", esp, conf, f"::/loader/entries/{conf.name}")
     m.run("fsck.fat", "-n", esp)
     after = out / "efi-after"; after.mkdir()
@@ -152,6 +164,10 @@ def add(snapshot, snapshot_sha, base_manifest, installer, out, replace_installer
     for name in INSTALLER_FILES:
         m.require(u.h.audit.sha(after / "ruby-installer" / name) == u.h.audit.sha(installer / name),
                   "Installer EFI readback failed")
+    for names, fresh in ((LEGACY_ENTRIES, False), (FRESH_ENTRIES, True)):
+        for suffix, name in zip(("", "-serial"), names):
+            m.require((after / name).read_text() == installer_entry(suffix, fresh),
+                      "Installer menu readback failed")
     output = out / "ruby-live.img"
     m.run("cp", "--reflink=auto", "--sparse=always", snapshot, output)
     output.chmod(0o600)

@@ -1,0 +1,13 @@
+{
+  "legacy_input27_image_sha256": "816e694848c146b84c661f46717cf113f5df9ae47c07556cbba4b2021f5f4bf9",
+  "declared_sizes": [
+    "4352"
+  ],
+  "refused": true,
+  "reason": "Bootconfig vbmeta size differs from image",
+  "corrected_candidate_image_sha256": "4be743d2cc11d6f58ce15e2dce6ac4ba264776965611317831ad86345d564937",
+  "corrected_size": "4032",
+  "corrected_actual_efi_readback_passed": true,
+  "corrected_actual_vbmeta_hash_and_size_passed": true,
+  "physical_device_written": false
+}

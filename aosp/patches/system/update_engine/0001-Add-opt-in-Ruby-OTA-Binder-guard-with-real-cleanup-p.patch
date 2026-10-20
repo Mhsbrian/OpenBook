@@ -1,0 +1,484 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <bhoneycutt153@gmail.com>
+Date: Tue, 20 Oct 2026 13:38:59 -0400
+Subject: [PATCH] Add opt-in Ruby OTA Binder guard with real cleanup
+ passthrough
+
+---
+ Android.bp                       |  50 +++++++++++
+ aosp/daemon_state_android.cc     |  13 +++
+ aosp/daemon_state_android.h      |   4 +
+ aosp/openbook_ota_guard.h        |  77 +++++++++++++++++
+ aosp/openbook_ota_guard_probe.cc | 118 ++++++++++++++++++++++++++
+ aosp/openbook_ota_guard_test.cc  | 138 +++++++++++++++++++++++++++++++
+ 6 files changed, 400 insertions(+)
+ create mode 100644 aosp/openbook_ota_guard.h
+ create mode 100644 aosp/openbook_ota_guard_probe.cc
+ create mode 100644 aosp/openbook_ota_guard_test.cc
+
+diff --git a/Android.bp b/Android.bp
+index 1a855117..3c9092e2 100644
+--- a/Android.bp
++++ b/Android.bp
+@@ -614,6 +614,56 @@ cc_binary {
+     init_rc: ["update_engine.rc"],
+ }
+ 
++// Explicit experimental target only. No product inclusion or init service:
++// package as /system/bin/update_engine only in a reviewed disposable Ruby image.
++cc_test_host {
++    name: "openbook_ota_guard_test",
++    srcs: ["aosp/openbook_ota_guard_test.cc"],
++    include_dirs: ["system"],
++    gtest: false,
++    cflags: ["-Wall", "-Wextra", "-Werror"],
++}
++
++cc_binary {
++    name: "openbook_ota_guard_probe",
++    defaults: ["ue_defaults", "libupdate_engine_android_exports"],
++    exclude_shared_libs: ["libprotobuf-cpp-lite"],
++    ldflags: ["-Wl,--exclude-libs,ALL"],
++    static_libs: ["libupdate_engine_android_openbook_guard", "libprotobuf-cpp-lite"],
++    srcs: ["aosp/openbook_ota_guard_probe.cc"],
++}
++
++cc_library_static {
++    name: "libupdate_engine_android_openbook_guard",
++    defaults: [
++        "libupdate_engine_android_defaults",
++        "libupdate_engine_android_exports",
++    ],
++    cflags: ["-DOPENBOOK_RUBY_OTA_GUARD"],
++}
++
++cc_binary {
++    name: "openbook_ruby_update_engine",
++    defaults: [
++        "ue_defaults",
++        "libupdate_engine_android_exports",
++    ],
++    cflags: ["-DOPENBOOK_RUBY_OTA_GUARD"],
++    // Ruby's protobuf has a different SONAME/Abseil revision. Keep this
++    // build's generated-message runtime private; never replace Ruby's library.
++    exclude_shared_libs: ["libprotobuf-cpp-lite"],
++    ldflags: ["-Wl,--exclude-libs,ALL"],
++    static_libs: [
++        "libupdate_engine_android_openbook_guard",
++        "libgflags",
++        "libprotobuf-cpp-lite",
++    ],
++    srcs: [
++        "main.cc",
++        "aosp/metrics_reporter_android.cc",
++    ],
++}
++
+ // update_engine_nostats (type: executable)
+ // ========================================================
+ // update_engine daemon version without the stats integration.
+diff --git a/aosp/daemon_state_android.cc b/aosp/daemon_state_android.cc
+index dd659adc..d13b4709 100644
+--- a/aosp/daemon_state_android.cc
++++ b/aosp/daemon_state_android.cc
+@@ -25,6 +25,10 @@
+ #include "update_engine/common/hardware.h"
+ #include "update_engine/common/prefs.h"
+ 
++#ifdef OPENBOOK_RUBY_OTA_GUARD
++#include "update_engine/aosp/openbook_ota_guard.h"
++#endif
++
+ namespace chromeos_update_engine {
+ 
+ bool DaemonStateAndroid::Initialize() {
+@@ -72,6 +76,11 @@ bool DaemonStateAndroid::Initialize() {
+                                  hardware_.get(),
+                                  ApexHandlerInterface::CreateApexHandler()));
+ 
++#ifdef OPENBOOK_RUBY_OTA_GUARD
++  ota_guard_ = std::make_unique<OpenBookOtaGuard>(*update_attempter_);
++  LOG(WARNING) << OpenBookOtaGuard::kMessage;
++#endif
++
+   return true;
+ }
+ 
+@@ -91,7 +100,11 @@ void DaemonStateAndroid::RemoveObserver(ServiceObserverInterface* observer) {
+ }
+ 
+ ServiceDelegateAndroidInterface* DaemonStateAndroid::service_delegate() {
++#ifdef OPENBOOK_RUBY_OTA_GUARD
++  return ota_guard_.get();
++#else
+   return update_attempter_.get();
++#endif
+ }
+ 
+ }  // namespace chromeos_update_engine
+diff --git a/aosp/daemon_state_android.h b/aosp/daemon_state_android.h
+index dea3a23f..aa5a6f31 100644
+--- a/aosp/daemon_state_android.h
++++ b/aosp/daemon_state_android.h
+@@ -65,6 +65,10 @@ class DaemonStateAndroid : public DaemonStateInterface {
+   // The main class handling the updates.
+   std::unique_ptr<UpdateAttempterAndroid> update_attempter_;
+ 
++#ifdef OPENBOOK_RUBY_OTA_GUARD
++  std::unique_ptr<ServiceDelegateAndroidInterface> ota_guard_;
++#endif
++
+   // OpenSSLWrapper and CertificateChecker used for checking changes in SSL
+   // certificates.
+   OpenSSLWrapper openssl_wrapper_;
+diff --git a/aosp/openbook_ota_guard.h b/aosp/openbook_ota_guard.h
+new file mode 100644
+index 00000000..94023fb1
+--- /dev/null
++++ b/aosp/openbook_ota_guard.h
+@@ -0,0 +1,77 @@
++// Copyright 2026 OpenBook
++// SPDX-License-Identifier: Apache-2.0
++#pragma once
++
++#include <utility>
++
++#include "update_engine/aosp/service_delegate_android_interface.h"
++
++namespace chromeos_update_engine {
++
++// Experimental, compile-time policy for the single-slot Ruby hybrid.
++// Keep the real updater's initialization, observers and cleanup implementation.
++// Reject every installation-related Binder request before entering that updater.
++// There is deliberately no property, header, UID or API that enables installs.
++//
++// This does NOT contain recovery/sideload, privileged direct writes, independent
++// download clients, or a merge already pending when this binary is introduced.
++// Qualify only on a quiescent disposable image before any hardware deployment.
++class OpenBookOtaGuard final : public ServiceDelegateAndroidInterface {
++ public:
++  static constexpr const char* kMessage =
++      "OpenBook: OS installation is disabled pending a qualified update path";
++
++  // The real delegate must outlive the guard.
++  explicit OpenBookOtaGuard(ServiceDelegateAndroidInterface& delegate)
++      : delegate_(delegate) {}
++
++  bool ApplyPayload(const std::string&, int64_t, int64_t,
++                    const std::vector<std::string>&, Error* error) override {
++    return Refuse(error);
++  }
++  bool ApplyPayload(int, int64_t, int64_t,
++                    const std::vector<std::string>&, Error* error) override {
++    return Refuse(error);
++  }
++  bool TriggerPostinstall(const std::string&, Error* error) override {
++    return Refuse(error);
++  }
++  bool SuspendUpdate(Error* error) override { return Refuse(error); }
++  bool ResumeUpdate(Error* error) override { return Refuse(error); }
++  bool CancelUpdate(Error* error) override { return Refuse(error); }
++  bool ResetStatus(Error* error) override { return Refuse(error); }
++  bool VerifyPayloadApplicable(const std::string&, Error* error) override {
++    return Refuse(error);
++  }
++  bool setShouldSwitchSlotOnReboot(const std::string&, Error* error) override {
++    return Refuse(error);
++  }
++  bool resetShouldSwitchSlotOnReboot(Error* error) override {
++    return Refuse(error);
++  }
++  uint64_t AllocateSpaceForPayload(const std::string&,
++                                  const std::vector<std::string>&,
++                                  Error* error) override {
++    Refuse(error);
++    return 0;  // AOSP's allocation contract: zero plus a non-success Error.
++  }
++
++  void CleanupSuccessfulUpdate(
++      std::unique_ptr<CleanupSuccessfulUpdateCallbackInterface> callback,
++      Error* error) override {
++    // Never fabricate success: preserve real errors, completion and death hooks.
++    delegate_.CleanupSuccessfulUpdate(std::move(callback), error);
++  }
++
++ private:
++  static bool Refuse(Error* error) {
++    if (error) {
++      *error = Error{ErrorCode::kError, kMessage, __LINE__, __FILE__};
++    }
++    return false;
++  }
++
++  ServiceDelegateAndroidInterface& delegate_;
++};
++
++}  // namespace chromeos_update_engine
+diff --git a/aosp/openbook_ota_guard_probe.cc b/aosp/openbook_ota_guard_probe.cc
+new file mode 100644
+index 00000000..6f1a6877
+--- /dev/null
++++ b/aosp/openbook_ota_guard_probe.cc
+@@ -0,0 +1,118 @@
++// Copyright 2026 OpenBook
++// SPDX-License-Identifier: Apache-2.0
++// Explicit disposable-VM tool. Never included in a product.
++#include "update_engine/aosp/openbook_ota_guard.h"
++
++#include <fcntl.h>
++#include <unistd.h>
++
++#include <chrono>
++#include <condition_variable>
++#include <cstdlib>
++#include <iostream>
++#include <mutex>
++#include <string>
++
++#include <android-base/unique_fd.h>
++#include <binder/IServiceManager.h>
++#include <binder/ProcessState.h>
++#include <android/os/BnUpdateEngineCallback.h>
++#include <android/os/BnUpdateEngineStableCallback.h>
++#include <android/os/IUpdateEngine.h>
++#include <android/os/IUpdateEngineStable.h>
++
++using android::binder::Status;
++using android::String16;
++using chromeos_update_engine::OpenBookOtaGuard;
++
++static void Check(bool value, const char* name) {
++  std::cout << (value ? "PASS " : "FAIL ") << name << std::endl;
++  if (!value) std::exit(1);
++}
++
++static void Denied(const Status& status, const char* name) {
++  Check(status.exceptionCode() == Status::EX_SERVICE_SPECIFIC &&
++        status.serviceSpecificErrorCode() == 1 &&
++        status.exceptionMessage() == OpenBookOtaGuard::kMessage, name);
++}
++
++template<class BinderCallback>
++class Callback final : public BinderCallback {
++ public:
++  std::mutex mutex;
++  std::condition_variable cv;
++  unsigned statuses = 0;
++  int completion = -1;
++  Status onStatusUpdate(int, float) override {
++    std::lock_guard lock(mutex);
++    ++statuses;
++    cv.notify_all();
++    return Status::ok();
++  }
++  Status onPayloadApplicationComplete(int code) override {
++    std::lock_guard lock(mutex);
++    completion = code;
++    cv.notify_all();
++    return Status::ok();
++  }
++  bool Wait(bool complete) {
++    std::unique_lock lock(mutex);
++    return cv.wait_for(lock, std::chrono::seconds(20), [&]() {
++      return complete ? completion != -1 : statuses > 0;
++    });
++  }
++};
++
++int main(int argc, char** argv) {
++  if (argc != 2 || std::string(argv[1]) != "--disposable-vm") {
++    std::cerr << "Only for a disposable VM: --disposable-vm\n";
++    return 2;
++  }
++  android::ProcessState::self()->startThreadPool();
++  auto sm = android::defaultServiceManager();
++  auto normal = android::interface_cast<android::os::IUpdateEngine>(
++      sm->checkService(String16("android.os.UpdateEngineService")));
++  auto stable = android::interface_cast<android::os::IUpdateEngineStable>(
++      sm->checkService(String16("android.os.UpdateEngineStableService")));
++  Check(normal && stable, "both Binder services registered");
++  bool value = true;
++  const String16 missing("/openbook-guard-probe-no-such-payload");
++  // Read-only policy identification FIRST. Stop here against a stock engine.
++  Denied(normal->verifyPayloadApplicable(missing, &value), "guard identification");
++  android::os::ParcelFileDescriptor fd(
++      android::base::unique_fd(open("/dev/null", O_RDONLY | O_CLOEXEC)));
++  Check(fd.get() >= 0, "harmless descriptor available");
++  Denied(normal->applyPayload(String16("https://example.invalid/ota"), 0, 0, {}),
++         "ordinary URL apply");
++  Denied(normal->applyPayloadFd(fd, 0, 0, {}), "ordinary FD apply");
++  Denied(stable->applyPayloadFd(fd, 0, 0, {}), "stable FD apply");
++  Denied(normal->triggerPostinstall(String16("system")), "ordinary postinstall");
++  Denied(stable->triggerPostinstall(String16("system")), "stable postinstall");
++  Denied(normal->resume(), "resume");
++  Denied(normal->suspend(), "suspend");
++  Denied(normal->cancel(), "cancel");
++  Denied(normal->resetStatus(), "reset status");
++  Denied(normal->setShouldSwitchSlotOnReboot(missing), "slot activation");
++  Denied(normal->resetShouldSwitchSlotOnReboot(), "slot reset");
++  int64_t space = -1;
++  Denied(normal->allocateSpaceForPayload(missing, {}, &space), "space allocation");
++
++  auto cb = android::sp<Callback<android::os::BnUpdateEngineCallback>>::make();
++  auto scb = android::sp<Callback<android::os::BnUpdateEngineStableCallback>>::make();
++  value = false;
++  Check(normal->bind(cb, &value).isOk() && value, "ordinary bind");
++  Check(cb->Wait(false), "ordinary status callback");
++  value = false;
++  Check(stable->bind(scb, &value).isOk() && value, "stable bind");
++  Check(scb->Wait(false), "stable status callback");
++  value = false;
++  Check(normal->unbind(cb, &value).isOk() && value, "ordinary unbind");
++  value = false;
++  Check(stable->unbind(scb, &value).isOk() && value, "stable unbind");
++  Check(normal->cleanupSuccessfulUpdate(cb).isOk(), "real cleanup accepted");
++  Check(cb->Wait(true), "real cleanup callback received");
++  {
++    std::lock_guard lock(cb->mutex);
++    Check(cb->completion == 0, "real cleanup succeeded on quiescent VM");
++  }
++}
+diff --git a/aosp/openbook_ota_guard_test.cc b/aosp/openbook_ota_guard_test.cc
+new file mode 100644
+index 00000000..bfafabc6
+--- /dev/null
++++ b/aosp/openbook_ota_guard_test.cc
+@@ -0,0 +1,138 @@
++// Copyright 2026 OpenBook
++// SPDX-License-Identifier: Apache-2.0
++#include "update_engine/aosp/openbook_ota_guard.h"
++
++#include <cstdlib>
++#include <iostream>
++
++using namespace chromeos_update_engine;
++
++static void Check(bool value, const char* name) {
++  if (!value) {
++    std::cerr << "FAIL " << name << '\n';
++    std::exit(1);
++  }
++  std::cout << "PASS " << name << '\n';
++}
++
++class Sentinel final : public ServiceDelegateAndroidInterface {
++ public:
++  unsigned calls = 0;
++  unsigned cleanups = 0;
++  bool fail_cleanup = false;
++  std::unique_ptr<CleanupSuccessfulUpdateCallbackInterface> saved;
++  bool ApplyPayload(const std::string&, int64_t, int64_t,
++                    const std::vector<std::string>&, Error*) override {
++    ++calls; return true;
++  }
++  bool ApplyPayload(int, int64_t, int64_t,
++                    const std::vector<std::string>&, Error*) override {
++    ++calls; return true;
++  }
++  bool TriggerPostinstall(const std::string&, Error*) override {
++    ++calls; return true;
++  }
++  bool SuspendUpdate(Error*) override { ++calls; return true; }
++  bool ResumeUpdate(Error*) override { ++calls; return true; }
++  bool CancelUpdate(Error*) override { ++calls; return true; }
++  bool ResetStatus(Error*) override { ++calls; return true; }
++  bool VerifyPayloadApplicable(const std::string&, Error*) override {
++    ++calls; return true;
++  }
++  bool setShouldSwitchSlotOnReboot(const std::string&, Error*) override {
++    ++calls; return true;
++  }
++  bool resetShouldSwitchSlotOnReboot(Error*) override { ++calls; return true; }
++  uint64_t AllocateSpaceForPayload(const std::string&,
++                                  const std::vector<std::string>&,
++                                  Error*) override {
++    ++calls; return 42;
++  }
++  void CleanupSuccessfulUpdate(
++      std::unique_ptr<CleanupSuccessfulUpdateCallbackInterface> callback,
++      Error* error) override {
++    ++cleanups;
++    *error = Error{fail_cleanup ? ErrorCode::kError : ErrorCode::kSuccess,
++                   "sentinel cleanup", 42, "sentinel"};
++    saved = std::move(callback);
++  }
++};
++
++struct Observed {
++  int code = -1;
++  double progress = -1;
++  bool destroyed = false;
++  std::function<void()> death;
++};
++
++class Callback final : public CleanupSuccessfulUpdateCallbackInterface {
++ public:
++  explicit Callback(Observed& observed) : observed_(observed) {}
++  ~Callback() override { observed_.destroyed = true; }
++  void OnCleanupProgressUpdate(double progress) override {
++    observed_.progress = progress;
++  }
++  void OnCleanupComplete(int32_t code) override { observed_.code = code; }
++  void RegisterForDeathNotifications(
++      const std::function<void()>& unbind) override { observed_.death = unbind; }
++ private:
++  Observed& observed_;
++};
++
++int main() {
++  Sentinel real;
++  OpenBookOtaGuard guard(real);
++  Error error{};
++  auto denied = [&](bool result, const char* name) {
++    Check(!result && error.error_code == ErrorCode::kError &&
++          error.message == OpenBookOtaGuard::kMessage &&
++          error.file_name && error.line_number > 0 && real.calls == 0, name);
++    error = Error{};
++  };
++  denied(guard.ApplyPayload("https://example.invalid/ota", 0, 0,
++                           {"SWITCH_SLOT_ON_REBOOT=1"}, &error), "URL install");
++  denied(guard.ApplyPayload(-1, INT64_MIN, INT64_MAX, {}, &error),
++         "FD install rejected without reading the descriptor");
++  denied(guard.TriggerPostinstall("system", &error), "postinstall");
++  denied(guard.SuspendUpdate(&error), "suspend");
++  denied(guard.ResumeUpdate(&error), "resume");
++  denied(guard.CancelUpdate(&error), "cancel");
++  denied(guard.ResetStatus(&error), "reset status");
++  denied(guard.VerifyPayloadApplicable("/does/not/exist", &error),
++         "verification rejected without reading a file");
++  denied(guard.setShouldSwitchSlotOnReboot("/does/not/exist", &error),
++         "slot activation");
++  denied(guard.resetShouldSwitchSlotOnReboot(&error), "slot reset");
++  const auto space = guard.AllocateSpaceForPayload("/does/not/exist", {}, &error);
++  Check(space == 0, "allocation error return contract");
++  denied(false, "allocation rejected before backend state changes");
++  Check(!guard.ApplyPayload(-1, 0, 0, {}, nullptr),
++        "null error pointer still refuses");
++
++  Observed observed;
++  auto callback = std::make_unique<Callback>(observed);
++  auto* identity = callback.get();
++  guard.CleanupSuccessfulUpdate(std::move(callback), &error);
++  Check(real.cleanups == 1 && real.saved.get() == identity &&
++        error.error_code == ErrorCode::kSuccess &&
++        error.message == "sentinel cleanup", "real cleanup and callback identity");
++  Check(observed.code == -1 && observed.progress == -1,
++        "no fabricated completion before real cleanup");
++  bool dead = false;
++  real.saved->RegisterForDeathNotifications([&]() { dead = true; });
++  real.saved->OnCleanupProgressUpdate(0.42);
++  real.saved->OnCleanupComplete(7);
++  observed.death();
++  Check(observed.progress == 0.42 && observed.code == 7 && dead,
++        "real progress, failure completion and death callback");
++  real.saved.reset();
++  Check(observed.destroyed, "callback lifetime retained");
++
++  real.fail_cleanup = true;
++  guard.CleanupSuccessfulUpdate(nullptr, &error);
++  Check(real.cleanups == 2 && !real.saved &&
++        error.error_code == ErrorCode::kError &&
++        error.message == "sentinel cleanup" && error.line_number == 42,
++        "immediate cleanup failure preserved");
++  Check(real.calls == 0, "no installation backend calls across all methods");
++}

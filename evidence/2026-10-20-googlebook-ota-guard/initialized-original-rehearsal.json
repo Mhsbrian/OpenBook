@@ -1,0 +1,68 @@
+{
+  "schema": "openbook-ruby-ota-guard-rehearsal/1",
+  "boot_completed": true,
+  "observation_completed": true,
+  "elapsed_s": 760.7,
+  "source_tpm_unchanged": true,
+  "decoy_unchanged": true,
+  "enforcing_reported": true,
+  "avb_handoff_errors": [],
+  "ipc_checks_passed": [
+    "both Binder services registered",
+    "cancel",
+    "guard identification",
+    "harmless descriptor available",
+    "ordinary FD apply",
+    "ordinary URL apply",
+    "ordinary bind",
+    "ordinary postinstall",
+    "ordinary unbind",
+    "real cleanup accepted",
+    "real cleanup callback received",
+    "real cleanup succeeded on quiescent VM",
+    "reset status",
+    "resume",
+    "slot activation",
+    "slot reset",
+    "space allocation",
+    "stable FD apply",
+    "stable bind",
+    "stable postinstall",
+    "stable status callback",
+    "stable unbind",
+    "suspend"
+  ],
+  "ipc_checks_missing": [
+    "ordinary status callback"
+  ],
+  "ipc_failures": [],
+  "probe_exit_statuses": [
+    0
+  ],
+  "metadata_key_files": 4,
+  "metadata_keys_identical": true,
+  "source_unchanged": true,
+  "candidate_unchanged": true,
+  "serial_sha256": "55a12e7c4ee0a314e3844efecd1a2496bceef9f885015701f319a35df171321a",
+  "runtime_findings": {
+    "setup_welcome_activity_seen": true,
+    "system_server_fatal_signals": [],
+    "zygote_exit_events": 0,
+    "system_server_execmem_denial_seen": false,
+    "mmd_setup_abort_seen": false,
+    "camera_provider_running_reported": false,
+    "camera_provider_registered_reported": true,
+    "camera_device_counts_reported": [
+      0
+    ],
+    "camera_provider_abort_seen": false,
+    "camera_fmq_test_exit_statuses": [],
+    "camera_buffer_test_exit_statuses": [],
+    "camera_buffer_test_abort_seen": false,
+    "camera_fmq_tmpfs_denial_seen": false,
+    "camera_provider_default_label_denial_seen": false
+  },
+  "deployment_eligible": false,
+  "hardware_tested": false,
+  "unattended_safe": false
+}

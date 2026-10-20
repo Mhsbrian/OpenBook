@@ -1,0 +1,13 @@
+test_baseline_manifest_matches_pinned_artifact (__main__.Gates.test_baseline_manifest_matches_pinned_artifact) ... ok
+test_device_and_symlink_refused (__main__.Gates.test_device_and_symlink_refused) ... ok
+test_kernel_boot_vendor_and_identity_drift (__main__.Gates.test_kernel_boot_vendor_and_identity_drift) ... ok
+test_patch_changes_exactly_instruction (__main__.Gates.test_patch_changes_exactly_instruction) ... ok
+test_patch_refuses_modified_or_already_patched_library (__main__.Gates.test_patch_refuses_modified_or_already_patched_library) ... ok
+test_reviewed_candidate (__main__.Gates.test_reviewed_candidate) ... ok
+test_unknown_artifact (__main__.Gates.test_unknown_artifact) ... ok
+test_wrong_patch_profile (__main__.Gates.test_wrong_patch_profile) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 7.188s
+
+OK

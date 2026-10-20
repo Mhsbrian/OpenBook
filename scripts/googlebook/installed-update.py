@@ -59,6 +59,7 @@ def prepare(snapshot, expected_sha, base, candidate, out):
     m.require(p.h.audit.sha(snapshot) == expected_sha, "Fresh installed backup hash mismatch")
     m.require(p.h.audit.sha(source) == new["image_sha256"], "Candidate hash mismatch")
     p.verify_manifest(new, p.read_gpt(source), source.stat().st_size)
+    p.verify_vbmeta_bootconfig(source, new["gpt"], new["entries"])
     with snapshot.open("rb") as f:
         gpt = m.read_gpt(f.fileno())
     rows = gpt["rows"]
@@ -105,6 +106,7 @@ def prepare(snapshot, expected_sha, base, candidate, out):
         m.require(body == new_body and new_params == new["entries"][mode],
                   "Candidate initrd changed")
         params["androidboot.vbmeta.digest"] = new_params["androidboot.vbmeta.digest"]
+        params["androidboot.vbmeta.size"] = new_params["androidboot.vbmeta.size"]
         reference.write_bytes(body + m.bootconfig(params, len(body)))
         m.run("mcopy", "-o", "-i", esp, reference, f"::/{name}")
         installed["entries"][mode] = params

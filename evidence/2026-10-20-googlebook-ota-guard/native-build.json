@@ -1,0 +1,26 @@
+{
+  "date_utc": "2026-10-20",
+  "aosp_update_engine_pin": "4591637f51644f5429f9e2fe589ab22b92f61842",
+  "applied_aosp_commit": "d6796e4d41a3796180973dfc1454fb275d1cf236",
+  "patch_sha256": "39d87d6906a150c0d85583cdf7fb5a08f3a4bb3a8599ae3170afaeeadd38d248",
+  "build_logs": {
+    "guard": {
+      "sha256": "3b480f8334f95fa3dc0814df5bd953be70555c36cc6032a25249ff656d60faff",
+      "result": [
+        "=== 2026-10-20T17:46:05Z m exit 0"
+      ],
+      "targets": "openbook_ruby_update_engine openbook_ota_guard_test openbook_ota_guard_probe"
+    },
+    "normal": {
+      "sha256": "bfeaa31dde10af95f89f4ad7b5746394624d3ae4da8a0dd05837c7ca353d6463",
+      "result": [
+        "=== 2026-10-20T18:09:32Z m exit 0"
+      ],
+      "targets": "update_engine"
+    }
+  },
+  "normal_updater_sha256": "286b3f84f50b01cb1f0ab3d18a2fd7e8c4c5912d0f862024d431111112b8699a",
+  "normal_updater_contains_guard_policy": false,
+  "opt_in_targets_only": true,
+  "product_packages_modified": false
+}

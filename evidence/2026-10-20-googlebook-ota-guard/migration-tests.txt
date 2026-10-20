@@ -1,0 +1,45 @@
+.....Source verified. Installing; keep power connected.
+Copying misc (1 MiB)
+..Source verified. Installing; keep power connected.
+Resetting misc; new capacity 1 MiB
+Copying boot_a (1 MiB)
+Copying init_boot_a (1 MiB)
+Copying vendor_boot_a (1 MiB)
+Copying vbmeta_a (1 MiB)
+Resetting metadata; new capacity 1 MiB
+Copying super (1 MiB)
+Resetting userdata; new capacity 39 MiB
+Copying EFI (16 MiB)
+.Source verified. Installing; keep power connected.
+Copying misc (1 MiB)
+Copying boot_a (1 MiB)
+Copying init_boot_a (1 MiB)
+Copying vendor_boot_a (1 MiB)
+Copying vbmeta_a (1 MiB)
+Copying metadata (1 MiB)
+Copying super (1 MiB)
+Copying userdata (1 MiB)
+Copying EFI (16 MiB)
+.Source verified. Installing; keep power connected.
+Resetting misc; new capacity 1 MiB
+Copying boot_a (1 MiB)
+Copying init_boot_a (1 MiB)
+Copying vendor_boot_a (1 MiB)
+Copying vbmeta_a (1 MiB)
+Resetting metadata; new capacity 1 MiB
+Copying super (1 MiB)
+Resetting userdata; new capacity 39 MiB
+.Source verified. Installing; keep power connected.
+Copying misc (1 MiB)
+Copying boot_a (1 MiB)
+Copying init_boot_a (1 MiB)
+Copying vendor_boot_a (1 MiB)
+Copying vbmeta_a (1 MiB)
+Copying metadata (1 MiB)
+Copying super (1 MiB)
+Copying userdata (1 MiB)
+.....
+----------------------------------------------------------------------
+Ran 15 tests in 17.059s
+
+OK

@@ -1,5 +1,9 @@
 # Reproduce the local update prototype
 
+The native backend and VM implementation added after this staging prototype is
+documented in `googlebook-ota-guard.md`. Use that guide for guarded-daemon builds,
+Binder/cleanup tests and AVB boot-parameter checks.
+
 Read `googlebook-updates.md` first. These tools do not install an update,
 authenticate a Google signing key, or declare the current G14 safe unattended.
 Only scripts, profiles and sanitized evidence belong in Git. Images, extracted

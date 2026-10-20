@@ -18,6 +18,32 @@ spec.loader.exec_module(applier)
 
 
 class PreserveGuards(unittest.TestCase):
+    def test_bootconfig_uses_unpadded_vbmeta_size_and_digest(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); image, gpt = self.disk(root)
+            table = gpt.table()
+            row = next(r for r in table if r["name"] == "vbmeta_a")
+            start, capacity = u.extent(row)
+            blob = bytearray(320); blob[:4] = b"AVB0"
+            struct.pack_into(">QQ", blob, 12, 0, 64)
+            with image.open("r+b") as f:
+                f.seek(start); f.write(blob)
+            params = {"androidboot.vbmeta.hash_alg": "sha256",
+                      "androidboot.vbmeta.size": "320",
+                      "androidboot.vbmeta.digest": u.hashlib.sha256(blob).hexdigest()}
+            u.verify_vbmeta_bootconfig(image, table, {"live": params})
+            for field, bad, message in (("androidboot.vbmeta.size", str(capacity), "size"),
+                                        ("androidboot.vbmeta.digest", "0" * 64, "digest"),
+                                        ("androidboot.vbmeta.hash_alg", "sha512", "digest")):
+                changed = dict(params); changed[field] = bad
+                with self.subTest(field=field), self.assertRaisesRegex(ValueError, message):
+                    u.verify_vbmeta_bootconfig(image, table, {"live": changed})
+            struct.pack_into(">QQ", blob, 12, capacity, capacity)
+            with image.open("r+b") as f:
+                f.seek(start); f.write(blob)
+            with self.assertRaisesRegex(ValueError, "Invalid vbmeta size"):
+                u.verify_vbmeta_bootconfig(image, table, {"live": params})
+
     def test_apply_plan_cannot_target_userdata_or_omit_protection(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp); backup, gpt = self.disk(root)
@@ -32,6 +58,11 @@ class PreserveGuards(unittest.TestCase):
                                    for a, b in u.protected_ranges(gpt.table(), gpt.total)])
             (prepared / "update.json").write_text(json.dumps(plan))
             applier.validate_plan(prepared, backup)
+            experimental = copy.deepcopy(plan)
+            experimental["schema"] = "openbook-ruby-experimental-clone/1"
+            (prepared / "update.json").write_text(json.dumps(experimental))
+            with self.assertRaisesRegex(ValueError, "Incomplete preserving update"):
+                applier.validate_plan(prepared, backup)
             bad = copy.deepcopy(plan); bad["writes"][0]["name"] = "userdata"
             (prepared / "update.json").write_text(json.dumps(bad))
             with self.assertRaisesRegex(ValueError, "Only"):

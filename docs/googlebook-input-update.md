@@ -1,5 +1,12 @@
 # Installed Googlebook input candidate (ANAL-228, 2026-10-20)
 
+Later ANAL-229 gate: **do not promote the retained input27 artifact yet**.
+Its rebuilt vbmeta has an unpadded size of 4032 bytes while the boot entries
+still declare 4352. The updated builder regenerates both size and digest;
+installed preparation now refuses this mismatch. Rebuild/repin and rehearse the
+corrected artifact before hardware use. The input-library fix and its native
+tests below remain valid; see `googlebook-ota-guard.md`.
+
 The owner reports successful bare-metal installation, then a reproducible
 tap-drag release after roughly one second while the second contact stays down.
 The laptop is away from the host and in use. No laptop connection, preference

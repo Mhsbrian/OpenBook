@@ -50,7 +50,36 @@ def contents(root):
     return result
 
 
-def build(a):
+def replacement_metadata(before, replacements):
+    """Only regular-file size may differ; preserve every other inode/xattr."""
+    expected, found = [], set()
+    for line in before:
+        row = line.split(" ")
+        if row[0] == "I":
+            name = bytes.fromhex(row[1]).decode()
+            if name in replacements:
+                if int(row[2]) & 0o170000 != 0o100000 or int(row[5]) != 1:
+                    raise ValueError("Replacement requires an existing regular file without hardlinks")
+                row[6] = str(len(replacements[name]))
+                found.add(name)
+                line = " ".join(row)
+        expected.append(line)
+    if found != set(replacements):
+        raise ValueError("Replacement path is absent from baseline metadata")
+    return sorted(expected)
+
+
+def verify_boot_files(tree, work, entries):
+    for mode, params in entries.items():
+        actual = (tree / f"ruby/initrd-{mode}.img").read_bytes()
+        if actual != (work / f"initrd-{mode}.img").read_bytes() or p.split_initrd(actual)[1] != params:
+            raise ValueError("EFI bootconfig readback mismatch")
+    if (tree / "ruby/RESEARCH.json").read_bytes() != (work / "RESEARCH.json").read_bytes():
+        raise ValueError("EFI manifest readback mismatch")
+
+
+def build_system(a, transform, result_schema):
+    """Shared exact-camera25 reassembler. Callers supply an explicit transform."""
     base = p.regular(a.base / "ruby-live.img")
     old = json.loads(p.regular(a.base / "manifest.json").read_text())
     if old["image_sha256"] != CAMERA25 or p.h.audit.sha(base) != CAMERA25:
@@ -67,9 +96,14 @@ def build(a):
     source = w / "source"
     run(tools / "fsck.erofs", f"--extract={source}", system)
     original = contents(source)
-    patched, offset = patcher.patch((source / TARGET.lstrip("/")).read_bytes())
-    target = source / TARGET.lstrip("/")
-    target.write_bytes(patched)
+    replacements, annotations = transform(source)
+    if not replacements or set(annotations) & set(old):
+        raise ValueError("Transform must replace files without overriding baseline fields")
+    expected_metadata = replacement_metadata(before, replacements)
+    for name, data in replacements.items():
+        if name not in original or original[name][0] != "file":
+            raise ValueError("Replacement is not an existing regular file")
+        p.regular(source / name.lstrip("/")).write_bytes(data)
     fsconfig, contexts = [], []
     for row in (r.split(" ") for r in before if r.startswith("I ")):
         _, encoded, mode, uid, gid, nlink, size, seconds, nanos = row
@@ -104,13 +138,14 @@ def build(a):
     run(tools / "mkfs.erofs", "-zlz4hc,9", "-C65536", "-T", "1230768000", "--preserve-mtime",
         f"--fs-config-file={w / 'fs_config'}", f"--file-contexts={w / 'contexts'}", rebuilt, source)
     after = inventory(a.inventory, rebuilt)
-    if before != after:
+    if expected_metadata != after:
         (w / "after.metadata").write_text("\n".join(after) + "\n")
         raise ValueError("EROFS metadata differs; candidate not assembled")
     extracted = w / "rebuilt"
     run(tools / "fsck.erofs", f"--extract={extracted}", rebuilt)
     expected = dict(original)
-    expected[TARGET] = ["file", p.hashlib.sha256(patched).hexdigest()]
+    expected.update({name: ["file", p.hashlib.sha256(data).hexdigest()]
+                     for name, data in replacements.items()})
     if contents(extracted) != expected:
         raise ValueError("Unexpected file/content/link changes")
     run(tools / "avbtool", "add_hashtree_footer", "--image", rebuilt,
@@ -132,6 +167,7 @@ def build(a):
     run(tools / "avbtool", "verify_image", "--image", chain / "vbmeta.img", "--key", a.key)
     digest = subprocess.check_output([str(tools / "avbtool"), "calculate_vbmeta_digest",
                                      "--image", str(vbmeta)], text=True).strip()
+    vbmeta_size = 256 + sum(struct.unpack_from(">QQ", vbmeta.read_bytes(), 12))
     table = p.read_gpt(base)
     rows = {r["name"]: r for r in table}
     ssize = p.extent(rows["super"])[1]
@@ -149,9 +185,7 @@ def build(a):
     run("mcopy", "-s", "-i", esp, "::*", tree)
     updated = copy.deepcopy(old)
     updated["logical_sha256"]["system"] = p.h.audit.sha(rebuilt)
-    updated["input_correction"] = dict(source_sha256=patcher.SOURCE_SHA256,
-        output_sha256=p.hashlib.sha256(patched).hexdigest(), offset=offset, bytes=8,
-        hardware_validated=False)
+    updated.update(annotations)
     changed = {"ruby/RESEARCH.json"}
     for mode, params in updated["entries"].items():
         name = f"ruby/initrd-{mode}.img"
@@ -159,6 +193,7 @@ def build(a):
         if actual != old["entries"][mode]:
             raise ValueError("Boot parameters differ from manifest")
         params["androidboot.vbmeta.digest"] = digest
+        params["androidboot.vbmeta.size"] = str(vbmeta_size)
         local = w / f"initrd-{mode}.img"
         local.write_bytes(body + p.h.gpt.bootconfig_trailer(p.h.bc.render(params).decode(), len(body)))
         run("mcopy", "-o", "-i", esp, local, f"::/{name}")
@@ -172,6 +207,7 @@ def build(a):
     if {k:v for k,v in p.tree_hashes(tree).items() if k not in changed} != {
             k:v for k,v in p.tree_hashes(after_tree).items() if k not in changed}:
         raise ValueError("Unrelated boot files changed")
+    verify_boot_files(after_tree, w, updated["entries"])
     run("fsck.fat", "-n", esp)
     output = w / "ruby-live.img"
     run("cp", "--reflink=auto", base, output)
@@ -189,18 +225,31 @@ def build(a):
         if p.digest_range(output,start,size) != p.digest_range(base,start,size):
             raise ValueError("Protected partition/GPT changed")
     updated["image_sha256"] = p.h.audit.sha(output)
+    p.verify_vbmeta_bootconfig(output, table, updated["entries"])
     if p.h.audit.sha(base) != CAMERA25:
         raise ValueError("Source changed")
     (w / "manifest.json").write_text(json.dumps(updated, indent=2) + "\n")
     (w / "result.json").write_text(json.dumps(dict(
-        schema="openbook-ruby-input-candidate/1", complete=True,
+        schema=result_schema, complete=True,
         source_sha256=CAMERA25,image_sha256=updated["image_sha256"],
-        metadata_rows=len(before),all_inode_xattrs_identical=True,
-        file_and_symlink_count=len(original),only_changed_file=TARGET,
-        input_correction=updated["input_correction"],
+        metadata_rows=len(before),all_inode_xattrs_identical=before==after,
+        only_metadata_change="replacement file sizes" if before!=after else None,
+        file_and_symlink_count=len(original),changed_files=sorted(replacements),
+        only_changed_file=next(iter(replacements)) if len(replacements)==1 else None,
+        **annotations,
         protected_ranges_identical=True,source_unchanged=True,
         physical_device_written=False), indent=2) + "\n")
     print("Candidate complete; no configured data or physical device was written.")
+
+
+def build(a):
+    def transform(source):
+        patched, offset = patcher.patch((source / TARGET.lstrip("/")).read_bytes())
+        return {TARGET: patched}, {"input_correction": dict(
+            source_sha256=patcher.SOURCE_SHA256,
+            output_sha256=p.hashlib.sha256(patched).hexdigest(), offset=offset,
+            bytes=8, hardware_validated=False)}
+    build_system(a, transform, "openbook-ruby-input-candidate/1")
 
 
 if __name__ == "__main__":

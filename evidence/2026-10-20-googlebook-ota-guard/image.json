@@ -1,0 +1,44 @@
+{
+  "schema": "openbook-ruby-ota-guard-candidate/1",
+  "complete": true,
+  "source_sha256": "df793f2eed3a5c901659014c2ae368d8e5eeb3d504b514d46fc8c0c1959a7af4",
+  "image_sha256": "4be743d2cc11d6f58ce15e2dce6ac4ba264776965611317831ad86345d564937",
+  "metadata_rows": 7292,
+  "all_inode_xattrs_identical": false,
+  "only_metadata_change": "replacement file sizes",
+  "file_and_symlink_count": 3464,
+  "changed_files": [
+    "/system/bin/update_engine",
+    "/system/bin/update_engine_client",
+    "/system/etc/init/update_engine.rc",
+    "/system/etc/selinux/plat_sepolicy.cil",
+    "/system/etc/selinux/plat_sepolicy_and_mapping.sha256"
+  ],
+  "only_changed_file": null,
+  "experimental_ota_guard": {
+    "deployment_eligible": false,
+    "hardware_validated": false,
+    "unattended_safe": false,
+    "probe_replaces_update_engine_client": true,
+    "engine_sha256": "4e100c44ccbf7db565f26e76a28c8c5b59cb1edaac81b5b125ca039f7f550a6d",
+    "probe_sha256": "db4b42fac916c96408b93c4a6feeeb951873fe1feea52bd3b2406910f2458bd5",
+    "test_harness_policy": {
+      "scope": "shell test-client Binder/FD access only; never deploy",
+      "neverallow_checked": true,
+      "policy_sha256": "3dde9afa670fabeeb4c569c05a1d636f5203ebb289e3e979787e174ac0156d5f",
+      "rules_sha256": "ce8a47226c73808fc792d13f6ba2a0e332cafee0be7ccc591ad640a6db9cd756",
+      "runtime_recompilation_required": true
+    },
+    "files": {
+      "/system/bin/update_engine": "4e100c44ccbf7db565f26e76a28c8c5b59cb1edaac81b5b125ca039f7f550a6d",
+      "/system/bin/update_engine_client": "db4b42fac916c96408b93c4a6feeeb951873fe1feea52bd3b2406910f2458bd5",
+      "/system/etc/init/update_engine.rc": "bb6602988812874a47f16c0b8e152dacf162f62bf772ac3104f41abfa02abe0d",
+      "/system/etc/selinux/plat_sepolicy.cil": "3557f8bbfa13628aac80bce6b24bfc43e7d7f1d942e6214b5caff32565768d47",
+      "/system/etc/selinux/plat_sepolicy_and_mapping.sha256": "e5ed307bd0323623c686e31c1798511dc14bf5aaaa3124f38fbb438b45c809a5"
+    },
+    "scope": "normal-boot Binder installation requests; recovery and independent downloads uncontained"
+  },
+  "protected_ranges_identical": true,
+  "source_unchanged": true,
+  "physical_device_written": false
+}

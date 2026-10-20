@@ -8,10 +8,14 @@
 | Signed local staging | Synthetic signed positive, unknown/tampered/incompatible/stale input rejection, stage separation, interrupted copy and disk-space checks | Reviewer attestations only; no Google trust anchor, hardware writer or automatic audit orchestration |
 | Installer replacement | Independently pinned old installer, exact file/menu contract, new source pin and payload hashes checked; Android and unrelated EFI bytes preserved in synthetic tests | Private clone only; physical write remains single-slot and non-atomic |
 | Engine-stop experiment | Backend/interface suppression observed; initialized encrypted-data UEFI VM completes boot | Fresh-data VM reboots on checkpoint commit; initialized VM still crashes system_server; downloads, privileged restart, Play/APEX and recovery uncontained; never deploy |
+| Native installation guard | 19 native and 20 policy assertions pass; fresh/initialized VMs each complete 760.7 s and pass 24 IPC checks; initialized encryption keys unchanged | Real cleanup retained; fresh VM still records a baseline-class system-server crash; VM shell test permissions are not deployable; network/recovery and current-device behavior unqualified |
+| AVB boot handoff | Builder regenerates unpadded size and digest; preparation/source pinning check actual vbmeta bytes | Earlier input27/fresh28 artifacts need corrected boot parameters, new pins and rehearsal before promotion |
 | Recoverable system/data update | Design retains complete known-good system set, offline backup and schema compatibility gate | Dual-system writer, failed-boot/missing-entry fallback and newer-schema restoration are not implemented or qualified for Ruby |
 
 Evidence and reproduction: `evidence/2026-10-20-googlebook-updates/`,
 `docs/googlebook-updates.md`, `docs/googlebook-update-prototype.md`.
+Latest implementation: `docs/googlebook-ota-guard.md` and
+`evidence/2026-10-20-googlebook-ota-guard/`.
 
 ## Ruby/OpenBook UEFI live research (ANAL-228, updated 2026-10-20)
 

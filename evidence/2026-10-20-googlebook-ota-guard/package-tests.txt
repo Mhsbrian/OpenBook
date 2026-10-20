@@ -1,0 +1,11 @@
+<frozen importlib._bootstrap>:533: DeprecationWarning: the load_module() method is deprecated and slated for removal in Python 3.15; use exec_module() instead
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 6.493s
+
+OK
+Offline migration entry packaged in private clone; all Android partitions unchanged.
+Offline migration entry packaged in private clone; all Android partitions unchanged.
+Offline migration entry packaged in private clone; all Android partitions unchanged.
+Offline migration entry packaged in private clone; all Android partitions unchanged.
+Offline migration entry packaged in private clone; all Android partitions unchanged.

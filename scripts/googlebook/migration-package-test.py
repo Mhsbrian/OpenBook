@@ -99,6 +99,37 @@ class PackageTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "menu changed"):
             p.replacement_contract(tree, p.u.h.audit.sha(old / "build.json"))
 
+    def test_legacy_upgrade_and_fresh_menu_drift(self):
+        old = self.installer("old")
+        added = self.root / "added"
+        p.add(self.f.src, self.before, self.manifest_path, old, added)
+        tree = added / "efi-after"
+        expected = p.u.h.audit.sha(old / "build.json")
+        original = (tree / p.FRESH_ENTRIES[0]).read_text()
+        (tree / p.FRESH_ENTRIES[0]).write_text("unreviewed erase")
+        with self.assertRaisesRegex(ValueError, "menu changed"):
+            p.replacement_contract(tree, expected)
+        (tree / p.FRESH_ENTRIES[0]).unlink()
+        with self.assertRaisesRegex(ValueError, "Incomplete"):
+            p.replacement_contract(tree, expected)
+        (tree / p.FRESH_ENTRIES[1]).unlink()
+        managed = p.replacement_contract(tree, expected)
+        self.assertEqual(managed, {f"ruby-installer/{n}" for n in p.INSTALLER_FILES} | set(p.LEGACY_ENTRIES))
+        self.assertEqual(original, p.installer_entry("", fresh=True))
+
+    def test_disposable_guard_cannot_get_installer(self):
+        self.manifest["experimental_ota_guard"] = {"deployment_eligible": False}
+        self.manifest_path.write_text(json.dumps(self.manifest))
+        with self.assertRaisesRegex(ValueError, "Disposable OTA experiment"):
+            p.add(self.f.src, self.before, self.manifest_path, self.installer("new"), self.root / "bad")
+        self.assertFalse((self.root / "bad").exists())
+        base = self.root / "experiment"; base.mkdir()
+        (base / "ruby-live.img").write_bytes(b"synthetic")
+        (base / "manifest.json").write_text(json.dumps(self.manifest))
+        with self.assertRaisesRegex(ValueError, "Disposable OTA experiment"):
+            p.make_pin(base, self.root / "bad-pin", "test", "synthetic")
+        self.assertFalse((self.root / "bad-pin").exists())
+
 
 if __name__ == "__main__":
     unittest.main()
