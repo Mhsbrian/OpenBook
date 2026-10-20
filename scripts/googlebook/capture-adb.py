@@ -82,6 +82,9 @@ def commands():
     yield "sound-devices", "ls -l /dev/snd"
     yield "input", "timeout 15 dumpsys input"
     yield "input-capabilities", "timeout 10 getevent -lp"
+    # Presence of the input device's EV_REP capability does not establish its
+    # effective repeat delay or prove repeat frames occurred; capture motion too.
+    yield "input-kernel-devices", "cat /proc/bus/input/devices"
     yield "current-user", "am get-current-user"
     # Preferences are per-user; a headless system user's values can disagree
     # with the signed-in desktop user. Read exact keys, never a settings dump.
@@ -101,6 +104,17 @@ def commands():
     yield "system-server-crashes", "timeout 15 dumpsys dropbox --print system_server_crash"
     yield "system-server-watchdogs", "timeout 15 dumpsys dropbox --print system_server_watchdog"
     yield "processes", "ps -AZ"
+    for index, service in enumerate((
+            "desktop_data_migration",
+            "com.android.desktop.drm_network.IDrmNetworkService/default",
+            "desktop_net",
+            "com.android.server.desktop.power.IDesktopSettingHealthService/default",
+            "com.google.android.snapshot.ISnapshot/default",
+            "com.android.desktop.video_chat.IVideoChatManager/default",
+            "com.android.server.desktop.serviceability.IDesktopServiceabilityService/default")):
+        # service check can return zero for 'not found'. Keep the text as
+        # evidence; command success alone is not a registration pass.
+        yield f"desktop-service-{index}", f"timeout 10 service check {service}"
 
 
 def collect(adb, serial, server_port, out):

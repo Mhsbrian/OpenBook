@@ -1,5 +1,14 @@
 # Build and reproduce
 
+Ruby input follow-up: `getevent-to-frames.py --msc-policy reset-on-sync` models
+the inspected Ruby converter; the default `preserve` models patched OpenBook.
+Set `--tap-to-click on|off` and `--tap-dragging on|off` from the captured effective
+mapper values. Eleven synthetic replay checks now pass. The collector also
+records kernel input capabilities and checks seven desktop service registrations;
+inspect `service check` text because `not found` may still exit zero. No new
+image was built or deployed for this diagnostic change. See
+`evidence/2026-10-19-googlebook-touchpad-followup/`.
+
 ## Configured research USB updates
 
 The owner requires preserving net18's completed setup during iteration.
