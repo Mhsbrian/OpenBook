@@ -1,0 +1,77 @@
+{
+  "schema": "openbook-camera-validation/1",
+  "candidate": "camera23",
+  "physical_usb_updated": false,
+  "physical_camera_capture_validated": false,
+  "prior_hardware": {
+    "usb_id": "3277:0060",
+    "driver": "uvcvideo",
+    "kernel_binding_captured": true,
+    "prior_net18_camera_device_count": 0
+  },
+  "host_checks": {
+    "compatibility": 24,
+    "live_image_and_reporting": 9,
+    "private_adb_collection": 7,
+    "preserving_update": 10
+  },
+  "native_init_verifier_passed": true,
+  "native_audit": {
+    "inputs": 412,
+    "inputs_unchanged": true,
+    "cases": {
+      "openbook": {
+        "vintf": true,
+        "selinux": true,
+        "service_contexts": true
+      },
+      "ruby": {
+        "vintf": true,
+        "selinux": true,
+        "service_contexts": true
+      },
+      "hybrid": {
+        "vintf": true,
+        "selinux": false,
+        "service_contexts": null
+      },
+      "hybrid-reduced": {
+        "vintf": true,
+        "selinux": true,
+        "service_contexts": true
+      }
+    },
+    "unadapted_hybrid_policy_failure_expected": true
+  },
+  "camera_product_input_contract": {
+    "provider": "android.hardware.camera.provider.ICameraProvider/external/0",
+    "files": {
+      "bin/hw/android.hardware.camera.provider-V1-external-service": "41910f729f7f99a277ff320b02179c4732a23a61590ddb19badba73caab9a07b",
+      "etc/init/android.hardware.camera.provider-V1-external-service.rc": "985d8dd245b0700cb0d6fd47f8a855d2f968e93368a24c72938669eeede5e288",
+      "etc/vintf/manifest.xml": "138cd88ea22d6f9142429c0430ef5c49db7d01f725f9e652b8368bd21d6f04ab",
+      "etc/external_camera_config.xml": "706780a2acf246ad88cb520e1b8c37f36e06f4c8e65a83f1c4891bbfaa88330a",
+      "etc/permissions/android.hardware.camera.external.xml": "e4da42e3028b96fd81e31048151ab5af272044861d3927d537f5f4be6d28fe0b",
+      "lib64/android.hardware.camera.provider-V1-external-impl.so": "0802c3317d5dc99a595f00d777c26e80102611c0ec5278a080fea8952cfbff0e",
+      "lib64/camera.device-external-impl.so": "c2cbb0752946081aed04d9579d34855bcb5704d2cbdedbb89323c34c998155a9",
+      "etc/selinux/vendor_service_contexts": "c53e776f99342b4def1bc1538ba5a28710a5b49c868b485a96d27faaf09393e9"
+    },
+    "video_node_access": "0660 root camera",
+    "ignored_video_nodes": [],
+    "physical_capture_validated": false
+  },
+  "fresh_image_sha256": "227cb2068f55261927b13b0df856ff947ee35d8591ea84c88ef7196114f8d467",
+  "fresh_image_bytes": 12766412800,
+  "encryption_and_credential_files_unchanged": {
+    "etc/fstab.openbook": true,
+    "apex/com.android.hardware.keymint.rust_nonsecure.apex": true,
+    "apex/com.android.hardware.gatekeeper.nonsecure.apex": true,
+    "bin/hw/android.hardware.weaver-service.openbook": true,
+    "etc/init/weaver-openbook.rc": true,
+    "etc/vintf/manifest/weaver-openbook.xml": true,
+    "lib64/android.hardware.weaver-V3-ndk.so": true,
+    "lib64/android.hardware.security.keymint-V1-ndk.so": true
+  },
+  "source_revision": {
+    "hardware_interfaces": "d41643629491b67274c1c5092518adfab51a2ff9"
+  }
+}

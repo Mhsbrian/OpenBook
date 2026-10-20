@@ -1,3 +1,7 @@
 # The software Gatekeeper (com.android.hardware.gatekeeper.nonsecure) also serves the shared-secret negotiation
 # with KeyMint, under its own instance name.
 android.hardware.security.sharedsecret.ISharedSecret/gatekeeper u:object_r:hal_gatekeeper_service:s0
+
+# AOSP's UVC provider uses external/0. The platform labels internal/0 only;
+# retain the existing camera HAL permission contract for this exact instance.
+android.hardware.camera.provider.ICameraProvider/external/0 u:object_r:hal_camera_service:s0

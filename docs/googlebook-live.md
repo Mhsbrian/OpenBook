@@ -120,6 +120,18 @@ The runner copies TPM state, verifies its source unchanged and excludes prior
 USB log sessions from the new result. Never use the owner's real data in this
 VM lane; successful synthetic-data mounting does not prove G14 credential unlock.
 
+### UVC camera follow-up
+
+The current PC vendor now includes AOSP's external camera provider for the
+G14's USB UVC webcam. Earlier kernel binding alone was insufficient: the saved
+Ruby report exposes zero cameras and the vendor tree had no provider. Rebuild
+`vendorimage` before auditing/packaging camera23. The audit requires the provider,
+configuration, feature/manifest declarations and restricted video-node access.
+The latest collectors report provider and camera-service state without capturing
+frames. See `docs/g14-camera.md` for the EXTERNAL lens-facing limitation and
+physical acceptance. Apply only through a new backup and the preserving updater;
+the owner has used the configured stick since its last backup.
+
 ### Desktop services and touchpad follow-up
 
 The services21 candidate restores seven desktop service labels and a reviewed

@@ -1,5 +1,22 @@
 # Status
 
+## 2026-10-19: UVC camera provider added (ANAL-228)
+
+The earlier hardware research identifies a working kernel UVC binding for the
+G14 webcam. The PC vendor lacked the Android provider and video-device access;
+the saved Ruby bugreport reports zero cameras. Camera23 adds AOSP's AIDL external
+provider, manifest, config, features and root:camera 0660 video nodes without
+weakening SELinux or changing camera permissions/privacy controls. Native build,
+init verification, 50 host checks and compatibility audits pass. The 760.6-second
+preserving VM rehearsal mounts encrypted test data, completes boot and registers
+the provider without a provider exit or recorded fatal signal. Its ten-minute
+capture completes with zero lost bytes; zero cameras is expected in this VM.
+The candidate remains private and has not been applied to the configured USB.
+Physical preview and app/privacy
+tests remain required; live ADB access and the physical USB are unavailable on
+this host. Details and validation: `docs/g14-camera.md` and
+`evidence/2026-10-19-googlebook-camera/`.
+
 ## 2026-10-19: Ruby input gaps confirmed; live follow-up awaits ADB (ANAL-228)
 
 The owner reports post-update Settings scrolling can activate items with

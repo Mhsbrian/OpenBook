@@ -1,5 +1,18 @@
 # Build and reproduce
 
+## G14 UVC camera provider (ANAL-228)
+
+The PC product now builds AOSP's AIDL external camera provider, its VINTF
+instance, feature XML, configuration and camera-group video-node permissions.
+Run `vendorimage` through the AOSP container/lane before the Ruby compatibility
+audit; old camera-less vendor trees are rejected. The native audit includes the
+camera inputs and packaging validates the service label. Commands, supported
+formats and physical acceptance are in `docs/g14-camera.md`. The saved-USB and
+ADB collectors report camera metadata/status without capturing images.
+Camera23 passes 50 host checks, native init/compatibility checks and a 760.6-second
+preserving VM boot with provider registration. The VM has no camera; actual
+G14 video capture remains a separate hardware gate.
+
 Ruby input follow-up: `getevent-to-frames.py --msc-policy reset-on-sync` models
 the inspected Ruby converter; the default `preserve` models patched OpenBook.
 Set `--tap-to-click on|off` and `--tap-dragging on|off` from the captured effective

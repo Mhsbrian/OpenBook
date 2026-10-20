@@ -1,0 +1,15 @@
+{
+  "schema": "openbook-camera-preservation-evidence/1",
+  "candidate": "camera23",
+  "scope": "Disposable VM data only; no physical USB write or owner credential-unlock assertion",
+  "complete": true,
+  "backup_sha256": "21cf6bc62bf193eb49c5c01daf531d81f212b621544f6d8d7bc8ad74e5500791",
+  "fresh_candidate_sha256": "227cb2068f55261927b13b0df856ff947ee35d8591ea84c88ef7196114f8d467",
+  "preserving_image_sha256": "84ad9bbe8aa164db2cd7892f4cdb7b59406c61c5d0c29d5a1280ab8df3098c3f",
+  "updated_partitions": ["EFI", "vbmeta_a", "super"],
+  "protected_bytes": 8805941248,
+  "sources_unchanged": true,
+  "unrelated_esp_files_unchanged": true,
+  "physical_device_written": false,
+  "owner_data_unlock_verified": false
+}

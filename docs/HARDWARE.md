@@ -1,5 +1,15 @@
 # Hardware
 
+Camera follow-up: the G14's `3277:0060` UVC webcam was detected in the earlier
+hardware captures, but the PC vendor had no Android camera provider or video-node
+access rule; the saved Ruby bugreport lists zero cameras. The new camera23
+candidate includes the AOSP provider and restricted camera-group permissions.
+Its preserving VM rehearsal boots and registers the provider for a 760.6-second
+observation without a provider exit. No camera is attached to that VM.
+Physical capture, MJPEG modes, app selection, orientation and privacy behavior
+still require a G14 test. See `docs/g14-camera.md`; this candidate has not been
+written to the owner's configured USB.
+
 Current follow-up: the owner reports using Settings after the preserving update.
 Independent live checks await a usable wireless ADB endpoint. Static inspection
 confirms the retained Ruby input framework lacks both OpenBook touchpad timing

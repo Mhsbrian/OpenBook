@@ -1,0 +1,52 @@
+{
+  "elapsed_s": 760.6,
+  "observation_window_elapsed": true,
+  "boot_completed_reported": true,
+  "software_tpm_restored": true,
+  "source_tpm_unchanged": true,
+  "prior_log_sessions_excluded": 2,
+  "input_unchanged": true,
+  "decoy_unchanged": true,
+  "usb_capture_finished": true,
+  "kernel_panic": false,
+  "sigill": false,
+  "qemu_exit": 0,
+  "logs_readback_exit": 0,
+  "runtime_findings": {
+    "setup_welcome_activity_seen": true,
+    "system_server_fatal_signals": [],
+    "zygote_exit_events": 0,
+    "system_server_execmem_denial_seen": false,
+    "mmd_setup_abort_seen": false,
+    "camera_provider_running_reported": false,
+    "camera_provider_registered_reported": true,
+    "camera_device_counts_reported": [
+      0
+    ],
+    "camera_provider_abort_seen": false,
+    "camera_provider_default_label_denial_seen": false
+  },
+  "qemu_sha256": "35db71cb2178b665983472bb584f87505cf431f225a881149dba83de0350de8a",
+  "accel": "tcg",
+  "test_entry": "serial-logs",
+  "emulated_audio": true,
+  "schema": "openbook-camera-runtime-evidence/1",
+  "candidate": "camera23",
+  "new_capture_files": 285,
+  "new_capture_bytes": 21147522,
+  "completion": [
+    "Capture finished after 600.3s; collector_bytes=21101621; kernel_overruns=0; failed_save_attempts=0; unsaved_bytes=0; reason=timeout.\n"
+  ],
+  "camera_provider_start_events_serial": 1,
+  "camera_provider_exit_events_serial": 0,
+  "camera_provider_process_seen": true,
+  "camera_provider_in_media_camera_dump": true,
+  "fatal_signals_entire_serial": 0,
+  "fatal_signals_serial_and_new_capture": 0,
+  "watchdog_kills_serial_and_new_capture": 0,
+  "preserved_encrypted_vm_data_mounted": true,
+  "physical_usb_updated": false,
+  "physical_camera_capture_validated": false,
+  "provider_property_visibility": "The shell cannot read init.svc.vendor.camera.provider-ext on Ruby; registration, cameraserver and process evidence establish startup.",
+  "scope": "No camera attached to QEMU; zero enumerated cameras is expected and does not validate physical frames or owner credential unlock."
+}
