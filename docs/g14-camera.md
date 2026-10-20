@@ -135,7 +135,14 @@ unrelated ESP files remain unchanged. Power-off succeeded; the backup is retaine
 The subsequent G14 boot reaches boot completion and mounts encrypted `/data`.
 Camera enumeration succeeds but streaming fails as described above. Credential
 unlock and the completeness of all owner apps/settings were not independently
-tested. Camera24 is a new local candidate, not yet applied to the configured USB.
+tested.
+
+Camera24 has now been applied from a **new** backup taken after that G14 session.
+The backup matched an independent second direct device read. Only
+super/vbmeta_a/EFI were written, and full 12,766,412,800-byte direct readback
+matches `207aaaa1f2f1f376…`. All 8,805,941,248 protected bytes and unrelated ESP
+files match the new backup. Power-off succeeded. The backup is retained privately;
+the next G14 boot must verify unlock, existing setup and actual camera frames.
 
 Keep the configured USB's current data: take a new verified backup before every
 subsequent preserving update if the stick has been used. Retain metadata,
