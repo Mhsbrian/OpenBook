@@ -125,9 +125,14 @@ def inside(apply):
         return
     write_ranges(image, target, plan["writes"])
     print("Direct readback of the entire used extent", flush=True)
-    if direct_digest(target, image.stat().st_size) != plan["image_sha256"]:
+    actual = direct_digest(target, image.stat().st_size)
+    if actual != plan["image_sha256"]:
         raise ValueError("DEVICE VERIFICATION FAILED; retain backup and do not boot")
     print("VERIFIED: complete used extent matches the preserving image", flush=True)
+    print(json.dumps({"schema": "openbook-ruby-usb-apply/1", "verified": True,
+                      "image_bytes": image.stat().st_size, "readback_sha256": actual,
+                      "written_names": ["super", "vbmeta_a", "EFI"],
+                      "protected_bytes": sum(r["length"] for r in plan["protected"])}), flush=True)
 
 
 def main():

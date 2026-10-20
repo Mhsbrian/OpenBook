@@ -1,0 +1,50 @@
+{
+  "elapsed_s": 1100.6,
+  "observation_window_elapsed": true,
+  "boot_completed_reported": true,
+  "software_tpm_restored": true,
+  "source_tpm_unchanged": true,
+  "prior_log_sessions_excluded": 1,
+  "input_unchanged": true,
+  "decoy_unchanged": true,
+  "usb_capture_finished": true,
+  "kernel_panic": false,
+  "sigill": false,
+  "services_registered": {
+    "desktop_data_migration": true,
+    "com.android.desktop.drm_network.IDrmNetworkService/default": true,
+    "desktop_net": true,
+    "com.android.server.desktop.power.IDesktopSettingHealthService/default": true,
+    "com.google.android.snapshot.ISnapshot/default": true,
+    "com.android.desktop.video_chat.IVideoChatManager/default": true,
+    "com.android.server.desktop.serviceability.IDesktopServiceabilityService/default": true
+  },
+  "new_capture_files": 286,
+  "new_capture_bytes": 21068764,
+  "completion": [
+    "Capture finished after 600.2s; collector_bytes=21022863; kernel_overruns=0; failed_save_attempts=0; unsaved_bytes=0; reason=timeout.\n"
+  ],
+  "runtime_findings": {
+    "setup_welcome_activity_seen": true,
+    "system_server_fatal_signals": [],
+    "zygote_exit_events": 0,
+    "system_server_execmem_denial_seen": false,
+    "mmd_setup_abort_seen": false
+  },
+  "fatal_signals_entire_serial": 0,
+  "watchdog_kills_entire_serial": 0,
+  "timberslide_starts": 0,
+  "cross_treble_override_errors": 0,
+  "mmd_setup_success": [
+    "[  151.906220][    T1] init: Service 'mmd_setup' (pid 2733) exited with status 0 oneshot service took 0.440000 seconds in background"
+  ],
+  "swap_activation": [
+    "[  151.888276][ T2733] Adding 12146652k swap on /dev/block/zram0.  Priority:-2 extents:1 across:12146652k SS"
+  ],
+  "preserved_encrypted_data_mounted": true,
+  "physical_user_unlock_verified": false,
+  "qemu_sha256": "35db71cb2178b665983472bb584f87505cf431f225a881149dba83de0350de8a",
+  "accel": "tcg",
+  "test_entry": "serial-logs",
+  "emulated_audio": true
+}

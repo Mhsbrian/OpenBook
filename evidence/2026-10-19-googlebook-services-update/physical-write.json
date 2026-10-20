@@ -1,0 +1,19 @@
+{
+  "schema": "openbook-ruby-usb-apply/1",
+  "verified": true,
+  "image_bytes": 12766412800,
+  "readback_sha256": "d52f877b4e1199f96ef1908501361234e85e9c2631e3dbdc86034890d3f46861",
+  "written_names": [
+    "super",
+    "vbmeta_a",
+    "EFI"
+  ],
+  "protected_bytes": 8805941248,
+  "device": "Owner SanDisk Ultra USB (identifier withheld)",
+  "verified_at_utc": "2026-10-20T00:32:31.951261+00:00",
+  "powered_off": true,
+  "prewrite_matched_verified_backup": true,
+  "private_backup_retained": true,
+  "physical_postupdate_boot_tested": false,
+  "internal_disk_written": false
+}

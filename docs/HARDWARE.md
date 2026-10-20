@@ -1,5 +1,11 @@
 # Hardware
 
+Latest medium: services21 is written to the owner's SanDisk using the preserving
+updater. Full 12.77 GB direct readback matches the private clone, all protected
+data remains byte-identical, and power-off succeeded. The G14's first boot of
+this update remains pending; verify credential unlock and existing setup before
+claiming hardware success. See the services-update `physical-write.json` evidence.
+
 The Ruby live follow-up confirms ELAN `04f3:3315` is recognized through
 TouchpadInputMapper. The older dump has tapping on, while the owner reports
 scroll/click interference with tapping off. Current-user preference propagation
