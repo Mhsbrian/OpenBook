@@ -1,5 +1,16 @@
 # Build and reproduce
 
+## Fresh28 SSD installer and audio diagnostic
+
+`googlebook-fresh-install.md` describes the new USB fresh-install option, which
+retains input27's system and creates new encrypted data storage across the remaining
+NVMe capacity after exact erase confirmation. It is separate from preserving an
+existing laptop setup. No physical media has been updated in this turn.
+
+`bash scripts/googlebook/audio-diagnostic/build.sh` produces a normal signed APK
+with no network or recording permission. Cuttlefish UI/capture/export/permission
+checks and static Bluetooth policy findings are in `googlebook-audio-diagnostic.md`.
+
 ## Installed Googlebook input27 candidate
 
 The owner reports successful bare-metal migration. Input27 applies the exact-build
@@ -12,8 +23,9 @@ gates and native before/after converter/gesture controls are documented in
 `installed-update.py` prepares only a regular-file clone of a **fresh current**
 installed snapshot, preserving metadata/userdata/GPT and disk-bound boot identity.
 It is not a physical writer or A/B updater. The earlier USB backup must never
-replace newer laptop data. Storage remains 8 GiB: safe encrypted F2FS expansion
-is additional unresolved work, with source findings in the same document.
+replace newer laptop data. The preserving path retains the 8 GiB partition
+(Android may display 16 GB after rounding); safe encrypted F2FS expansion of
+existing data is additional unresolved work.
 
 ## Configured Googlebook USB to internal NVMe (ANAL-228)
 

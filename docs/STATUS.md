@@ -1,5 +1,41 @@
 # Status
 
+## 2026-10-20: Fresh28 full-capacity installation and away-from-host audio capture
+
+Fresh28 adds a distinct **Fresh install Googlebook to SSD - ERASE SSD DATA**
+USB entry while retaining configured migration and live boot. It packages
+input27 and uses the remaining NVMe space for new encrypted data after exact
+serial confirmation. Fifteen unit tests pass, including fresh reset/interruption
+and 1 TB geometry. Actual installer cancellation preserves source/target/decoy;
+the normal framebuffer/keyboard path is exercised and visually reviewed.
+
+The 1 TB VM installer verifies its payloads, registers its firmware entry and
+boots Android with a 995,824,238,592-byte userdata partition. The actual F2FS
+checker observes 949,692 MiB and four new metadata-encryption files are present.
+The eight-minute observation still exhibits the known VM system-server/execmem
+crash class, so storage/install success is not a general stability claim.
+No physical USB or laptop was changed. See `googlebook-fresh-install.md`.
+The normal restart without USB reaches graphical setup; a second, instrumented
+300-second restart confirms boot completion, unchanged encryption keys and boot
+identity, and no system-server fatal signal in that narrower window. An initial
+serial-only checker missed the normal boot because its selected entry disables
+serial output; no production boot-entry change was needed or shipped.
+
+The owner's clarified **16 GB Settings total** is consistent with Android's
+rounding: the new diagnostic observes about 8 GiB StatFs data capacity and
+16,000,000,000 bytes from Android's storage API on the same emulator. This
+corrects the earlier direct equation of the UI reading with an 8 GiB filesystem;
+the absent laptop still needs direct measurement.
+
+OpenBook Audio Check is built and signed as a normal APK. Android 17 UI tests
+pass capture/background sampling/marker/stop, byte-identical SAF export and
+Bluetooth permission denial. It records public route/profile metadata, not audio.
+Static policy extracted from the actual vendor image lacks classic SCO routes
+while Ruby's software HFP property is already enabled. This is a concrete gap,
+not proof of the negotiated headset path or every call-quality failure.
+Bluetooth changes are not included in fresh28. Hardware diagnostics, call-route
+correction and acceptance remain open; see `googlebook-audio-diagnostic.md`.
+
 ## 2026-10-20: Installed Ruby input27 candidate and storage follow-up (ANAL-228)
 
 The owner confirms successful bare-metal installation and is using the G14 away
@@ -21,7 +57,8 @@ preparer, not a physical updater or automatic rollback. Deployment requires a
 fresh current-laptop backup, reviewed offline application/recovery and hardware
 acceptance; never restore the earlier USB data over the now-active SSD.
 
-The additional storage report matches the migration's 8 GiB userdata limit.
+The additional storage report led to identifying the migration's 8 GiB userdata limit
+(the later 16 GB Settings clarification and rounding reproduction are above).
 Spare SSD space is unallocated. No expansion is delivered: safe offline F2FS
 growth with metadata/fscrypt encryption needs separate preservation/recovery
 tests. Details and next steps: `docs/googlebook-input-update.md`;

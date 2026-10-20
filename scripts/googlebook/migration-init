@@ -18,7 +18,10 @@ sleep 3
 mdev -s
 touch /run/openbook-offline-installer
 stty sane
-python3 /opt/openbook/migrate.py --pin /opt/openbook/source.json
+case " $(cat /proc/cmdline) " in
+    *" openbook.install=fresh "*) python3 /opt/openbook/migrate.py --pin /opt/openbook/source.json --fresh ;;
+    *) python3 /opt/openbook/migrate.py --pin /opt/openbook/source.json ;;
+esac
 echo
 echo "Press Enter to power off. Keep your source USB."
 read -r answer
