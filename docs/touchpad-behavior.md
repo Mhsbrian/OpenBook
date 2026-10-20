@@ -1,5 +1,16 @@
 # G14 touchpad behavior (ANAL-226)
 
+## Installed Ruby tap-drag follow-up, 2026-10-20
+
+The owner now confirms successful bare-metal migration and reports a held drag
+releasing after about one second. A synthetic replay through the actual retained
+Ruby gestures library reproduces release after 0.7872 seconds when repeat frames
+reset MSC timestamps; preserved timestamps hold for 6.2361 seconds, until lift.
+The real converter's before/after native probes pass. Input27 is prepared with
+the exact-build equivalent of OpenBook's MSC-preservation patch; no tap setting,
+drag-lock behavior or timeout is changed. See `googlebook-input-update.md`.
+Hardware acceptance is pending because the laptop is away and in use.
+
 ## Ruby live USB follow-up (ANAL-228)
 
 Latest follow-up: the owner withdrew the Play Store concern (intentionally
