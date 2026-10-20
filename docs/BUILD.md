@@ -9,6 +9,12 @@ inputs. `hybrid-probe.py --camera-fmq-test --prepare-only` adds an opt-in
 camera-domain memfd test for a disposable VM; its source documents exit codes.
 Require exit 0 plus enforcing diagnostics. USB packaging refuses that test
 payload: build the deployable research candidate without the flag.
+The normal camera24 candidate passes a 760.6-second preserving UEFI rehearsal,
+including a complete ten-minute capture with zero lost bytes. The configured
+SanDisk was then updated from a new independently verified backup. Full direct
+readback matches `207aaaa1f2f1f376…`, and all 8,805,941,248 protected bytes are
+unchanged. Power-off succeeded; G14 capture still needs testing. Current results:
+`evidence/2026-10-20-googlebook-camera-fmq/`.
 
 The PC product now builds AOSP's AIDL external camera provider, its VINTF
 instance, feature XML, configuration and camera-group video-node permissions.

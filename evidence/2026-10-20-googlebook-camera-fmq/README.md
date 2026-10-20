@@ -81,6 +81,19 @@ internal disk remain unchanged. Ruby's shell cannot read the provider's init
 property; registration and process evidence establish startup. Zero enumerated
 devices is expected in this camera-less VM and does not qualify G14 frames.
 
+## Physical USB update
+
+`physical-write.json` records the camera24 deployment. After the owner returned
+the configured SanDisk, a fresh private backup matched an independent second
+direct device read. The updater checked the device against that backup again,
+wrote only super/vbmeta_a/EFI, then verified the entire 12,766,412,800-byte used
+extent against the prepared preserving clone. Readback SHA-256:
+`207aaaa1f2f1f376260315233bd2bf14fd55257ee927dbebe2febd8c0783b9d3`.
+All 8,805,941,248 protected bytes and unrelated EFI files remain unchanged.
+Power-off succeeded. The backup is retained privately; no internal disk or
+firmware was written. Actual G14 unlock, existing setup and camera frames remain
+the next hardware gate.
+
 Build and hardware acceptance instructions: `docs/g14-camera.md`. Primary
 source checked locally: hardware/interfaces
 `d41643629491b67274c1c5092518adfab51a2ff9`,

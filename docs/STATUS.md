@@ -16,6 +16,15 @@ probe is excluded from USB images. Actual Camera2 streaming remains a hardware
 gate. Evidence and reproduction: `evidence/2026-10-20-googlebook-camera-fmq/`
 and `docs/g14-camera.md`.
 
+The 760.6-second preserving UEFI rehearsal mounts encrypted test data, completes
+boot and finishes ten-minute logging with zero lost bytes and no recorded fatal
+signal, provider exit or watchdog kill. Camera24 is now on the SanDisk. A fresh
+backup matched an independent second device read; only super/vbmeta_a/EFI were
+written. Full 12.77 GB direct readback matches `207aaaa1f2f1f376…`, with all
+8,805,941,248 protected bytes and unrelated ESP files preserved. Power-off
+succeeded and the backup is retained. Awaiting G14 unlock and camera frame tests;
+Googlebook bare-metal installation remains gated.
+
 The current physical input capture has tapping enabled in both user 10 and the
 mapper. It does not reproduce the owner's earlier tap-disabled Settings symptom;
 no setting was changed. Play Store remains as the owner configured it.

@@ -1,0 +1,26 @@
+{
+  "schema": "openbook-ruby-usb-apply/1",
+  "verified": true,
+  "image_bytes": 12766412800,
+  "readback_sha256": "207aaaa1f2f1f376260315233bd2bf14fd55257ee927dbebe2febd8c0783b9d3",
+  "written_names": [
+    "super",
+    "vbmeta_a",
+    "EFI"
+  ],
+  "protected_bytes": 8805941248,
+  "candidate": "camera24",
+  "date_utc": "2026-10-20",
+  "device_model": "SanDisk Ultra",
+  "device_capacity_bytes": 62109253632,
+  "device_identifier": "usb-SanDisk_Ultra_[redacted]-0:0",
+  "fresh_backup_independently_verified": true,
+  "backup_sha256": "163ed0d6e6245bfd58f468387f5c5d5694a6b27bd116477cd74444ba63c0324c",
+  "backup_retained_privately": true,
+  "userdata_and_encryption_metadata_unchanged": true,
+  "unrelated_esp_files_unchanged": true,
+  "powered_off": true,
+  "physical_g14_camera24_boot_verified": false,
+  "physical_camera_frames_verified": false,
+  "internal_disks_written": false
+}

@@ -6,8 +6,8 @@ root:camera 0660 video nodes. Session open fails because SELinux blocks
 `ftruncate(MessageQueue)` on a generic tmpfs memfd, before the output thread
 starts. Camera24 supplies a dedicated camera HAL queue type and scoped
 cameraserver access. Physical frames, orientation and privacy behavior still
-require a test after applying that candidate. The configured USB remains on
-camera23; see `docs/g14-camera.md` and
+require a test on the updated G14. The configured USB now contains camera24;
+see `docs/g14-camera.md` and
 `evidence/2026-10-20-googlebook-camera-fmq/`.
 
 Trackpad follow-up: the owner reports using Settings after the preserving update.
@@ -18,14 +18,14 @@ fixes. The possible Settings-only scroll/activation symptom remains unconfirmed
 by a motion trace; no physical fix is claimed. See
 `evidence/2026-10-19-googlebook-touchpad-followup/`.
 
-Latest medium: camera23 is written to the owner's SanDisk using a fresh verified
+Latest medium: camera24 is written to the owner's SanDisk using a fresh verified
 backup and the preserving updater. Full 12.77 GB direct readback matches the
-private clone (`bf79eef29bc760e5…`); all 8,805,941,248 protected bytes, including
+private clone (`207aaaa1f2f1f376…`); all 8,805,941,248 protected bytes, including
 userdata/encryption metadata, remain byte-identical. Power-off succeeded and the
-backup is retained. ADB now confirms G14 boot completion and encrypted `/data`
-mounted; credential unlock and all existing app state were not separately checked.
-Any subsequent update needs a fresh backup of the now-used stick. See
-`evidence/2026-10-19-googlebook-camera/physical-write.json`.
+backup is retained. The prior camera23 ADB session confirmed boot completion and
+encrypted `/data` mounted. Camera24 unlock, existing app state and webcam frames
+still require a G14 check. See
+`evidence/2026-10-20-googlebook-camera-fmq/physical-write.json`.
 
 The Ruby live follow-up confirms ELAN `04f3:3315` is recognized through
 TouchpadInputMapper. The older dump has tapping on, while the owner reports
