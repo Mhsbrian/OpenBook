@@ -2,6 +2,22 @@
 
 ## G14 UVC camera provider (ANAL-228)
 
+Camera25 follows two additional physical failures: cameraserver-to-app result
+FMQ access and the external provider's graphics-allocator discovery. Build
+`vendorimage` and the explicit `openbook-camera-buffer-test` target through the
+AOSP lane. The optional `--camera-fmq-test` VM payload now also allocates,
+imports, writes and reads a synthetic YUV buffer in the production HAL domain;
+neither test is included in normal USB images. `camera-policy-test.c` evaluates
+full contexts, including MLS, against compiled old and new policies. The
+foreground diagnostic APK in `scripts/googlebook/camera-probe/` exercises API1
+and Camera2 without storing frames. Reproduction and limits: `docs/g14-camera.md`
+and `evidence/2026-10-20-googlebook-camera-clients/`.
+
+The camera25 normal UEFI preserving rehearsal passes at 760.7 seconds, including
+encrypted test-data mounting and complete ten-minute logs. All 52 host checks,
+49 full-context policy expectations and 415 audit inputs pass. The physical
+stick remains on camera24; deploy only from a fresh backup of its latest state.
+
 Camera24 follows the physical camera23 FMQ denial with a dedicated
 `hal_camera_default_tmpfs` label and cameraserver queue access. Native vendor
 build, both baseline audits and the adapted hybrid pass with 413 unchanged

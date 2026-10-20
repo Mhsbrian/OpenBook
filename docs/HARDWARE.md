@@ -1,14 +1,14 @@
 # Hardware
 
-Camera follow-up (2026-10-20 UTC): wireless ADB connects to camera23 on the G14.
-The `3277:0060` UVC webcam now enumerates as one public external camera, with
-root:camera 0660 video nodes. Session open fails because SELinux blocks
-`ftruncate(MessageQueue)` on a generic tmpfs memfd, before the output thread
-starts. Camera24 supplies a dedicated camera HAL queue type and scoped
-cameraserver access. Physical frames, orientation and privacy behavior still
-require a test on the updated G14. The configured USB now contains camera24;
-see `docs/g14-camera.md` and
-`evidence/2026-10-20-googlebook-camera-fmq/`.
+Camera follow-up (2026-10-20 UTC): wireless ADB reaches camera24 on the G14.
+The first HAL queue fix works, but Camera2 fails when cameraserver passes its
+result queue to the app: SELinux denies access to `cameraserver_tmpfs`.
+A bounded API1 diagnostic bypasses that boundary and starts the `3277:0060`
+UVC webcam at 640×480/30; the provider then aborts because graphics-allocator
+discovery is denied, leaving the mapper unavailable. Both APIs deliver zero
+frames. Camera25 addresses both confirmed policy gaps; actual frames,
+orientation and privacy behavior remain hardware gates. No reset is indicated.
+See `docs/g14-camera.md` and `evidence/2026-10-20-googlebook-camera-clients/`.
 
 Trackpad follow-up: the owner reports using Settings after the preserving update.
 The latest live capture shows user 10 and the effective mapper both have tapping
@@ -22,9 +22,10 @@ Latest medium: camera24 is written to the owner's SanDisk using a fresh verified
 backup and the preserving updater. Full 12.77 GB direct readback matches the
 private clone (`207aaaa1f2f1f376…`); all 8,805,941,248 protected bytes, including
 userdata/encryption metadata, remain byte-identical. Power-off succeeded and the
-backup is retained. The prior camera23 ADB session confirmed boot completion and
-encrypted `/data` mounted. Camera24 unlock, existing app state and webcam frames
-still require a G14 check. See
+backup is retained. The camera24 ADB session confirms boot completion and
+encrypted `/data` mounted; the owner reports the laptop is good with the disk.
+No exhaustive app-state audit or successful webcam frames are claimed. The next
+update requires a fresh backup of this newly used state. See
 `evidence/2026-10-20-googlebook-camera-fmq/physical-write.json`.
 
 The Ruby live follow-up confirms ELAN `04f3:3315` is recognized through

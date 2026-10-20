@@ -1,0 +1,45 @@
+{
+  "schema": "openbook-camera-focused-runtime/1",
+  "elapsed_s": 279.6,
+  "qemu_exit": 0,
+  "full_boot_validated": false,
+  "enforcing_observed": true,
+  "input_unchanged": true,
+  "guest_disk_unchanged": true,
+  "tests": {
+    "source_sha256": "c538099d31c2ffb43873821be5c7df52349e3aa86a66be60d1ec7942a21eea6d",
+    "binary_sha256": "3e6c91b6f9d56c909cf4277a01109a69524d7011777cb38473f1a415d47434c6",
+    "expected_domain": "hal_camera_default",
+    "expected_exit_status": 0,
+    "scope": "disposable VM only; no video device or frames",
+    "buffer_test": {
+      "source_sha256": "e6a0852ad9a03f789423d4481c0c97a1fc369a3219b6da29e947b480b992e0d3",
+      "binary_sha256": "2c307a69c30aa6f24db3fd8d75deec8ff3fd71e47a8797075d98616eea230708",
+      "expected_exit_status": 0,
+      "scope": "synthetic YUV allocation, import, CPU write/read"
+    }
+  },
+  "runtime_findings": {
+    "setup_welcome_activity_seen": true,
+    "system_server_fatal_signals": [],
+    "zygote_exit_events": 2,
+    "system_server_execmem_denial_seen": true,
+    "mmd_setup_abort_seen": false,
+    "camera_provider_running_reported": false,
+    "camera_provider_registered_reported": true,
+    "camera_device_counts_reported": [
+      0
+    ],
+    "camera_provider_abort_seen": false,
+    "camera_fmq_test_exit_statuses": [
+      0
+    ],
+    "camera_buffer_test_exit_statuses": [
+      0
+    ],
+    "camera_buffer_test_abort_seen": false,
+    "camera_fmq_tmpfs_denial_seen": false,
+    "camera_provider_default_label_denial_seen": false
+  },
+  "limitation": "Both camera tests exit0 near guest22s; later RenderThread execmem denials, zygote exits and Checkpoint commit failed reboot. Not a successful full boot or physical streaming test."
+}

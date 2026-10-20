@@ -1,0 +1,50 @@
+{
+  "elapsed_s": 760.7,
+  "observation_window_elapsed": true,
+  "boot_completed_reported": true,
+  "software_tpm_restored": true,
+  "source_tpm_unchanged": true,
+  "prior_log_sessions_excluded": 4,
+  "input_unchanged": true,
+  "decoy_unchanged": true,
+  "usb_capture_finished": true,
+  "kernel_panic": false,
+  "sigill": false,
+  "qemu_exit": 0,
+  "logs_readback_exit": 0,
+  "runtime_findings": {
+    "setup_welcome_activity_seen": true,
+    "system_server_fatal_signals": [],
+    "zygote_exit_events": 0,
+    "system_server_execmem_denial_seen": false,
+    "mmd_setup_abort_seen": false,
+    "camera_provider_running_reported": false,
+    "camera_provider_registered_reported": true,
+    "camera_device_counts_reported": [
+      0
+    ],
+    "camera_provider_abort_seen": false,
+    "camera_fmq_test_exit_statuses": [],
+    "camera_buffer_test_exit_statuses": [],
+    "camera_buffer_test_abort_seen": false,
+    "camera_fmq_tmpfs_denial_seen": false,
+    "camera_provider_default_label_denial_seen": false
+  },
+  "qemu_sha256": "35db71cb2178b665983472bb584f87505cf431f225a881149dba83de0350de8a",
+  "accel": "tcg",
+  "test_entry": "serial-logs",
+  "schema": "openbook-camera-runtime-evidence/1",
+  "candidate": "camera25",
+  "new_capture_files": 285,
+  "new_capture_bytes": 21091204,
+  "completion": [
+    "Capture finished after 600.3s; collector_bytes=21045303; kernel_overruns=0; failed_save_attempts=0; unsaved_bytes=0; reason=timeout.\n"
+  ],
+  "camera_provider_exit_events_serial": 0,
+  "fatal_signals_serial_and_new_capture": 0,
+  "watchdog_kills_serial_and_new_capture": 0,
+  "preserved_encrypted_vm_data_mounted": true,
+  "kernel_audit_lost_max": 210,
+  "physical_camera_capture_validated": false,
+  "limits": "VM has no webcam. Zero logger overrun/unsaved bytes does not imply complete kernel audit records; kernel audit rate limiting dropped events. Guest disk changes are expected for saved USB logs and Android runtime data."
+}

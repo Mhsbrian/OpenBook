@@ -15,6 +15,18 @@ spec.loader.exec_module(observation)
 
 
 class LiveGuards(unittest.TestCase):
+    def test_graphics_probe_abort_is_not_a_successful_start(self):
+        started = "init: starting service 'openbook.camera-buffer-test'...\n"
+        aborted = "init: Service 'openbook.camera-buffer-test' (pid 123) received SIGABRT\n"
+        success = "init: Service 'openbook.camera-buffer-test' (pid 456) exited with status 0\n"
+        self.assertEqual(observation.runtime_findings(started)["camera_buffer_test_exit_statuses"], [])
+        failed = observation.runtime_findings(started + aborted)
+        self.assertTrue(failed["camera_buffer_test_abort_seen"])
+        self.assertEqual(failed["camera_buffer_test_exit_statuses"], [])
+        passed = observation.runtime_findings(success * 2)
+        self.assertFalse(passed["camera_buffer_test_abort_seen"])
+        self.assertEqual(passed["camera_buffer_test_exit_statuses"], [0])
+
     def test_camera_fmq_probe_requires_an_exit_result(self):
         started = "init: starting service 'openbook.camera-fmq-test'...\n"
         self.assertEqual(observation.runtime_findings(started)["camera_fmq_test_exit_statuses"], [])

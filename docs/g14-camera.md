@@ -13,6 +13,126 @@ private net18 G14 bugreport independently reports **zero camera devices**. That
 capture predates services21, whose camera payload was unchanged. These facts
 identify a missing integration layer; they do not measure current capture quality.
 
+## Camera24 physical follow-up (2026-10-20 UTC)
+
+The owner reports that the updated disk boots correctly, but preview remains
+black. Wireless ADB confirms boot completion, encrypted `/data` mounted and one
+public camera. The camera24 HAL queue correction works: its initial session now
+opens. Two further failures were reproduced independently:
+
+1. Camera2 calls `ICameraDeviceUser.getCaptureResultMetadataQueue`. Binder cannot
+   transfer the cameraserver-created queue FD to the categorized app context:
+   `untrusted_app:s0:c147,c256,c522,c768` is denied read/write on
+   `cameraserver_tmpfs:s0`. The device remains UNCONFIGURED, with no streams or
+   capture requests. The resulting `DeadObjectException` does not itself prove
+   that cameraserver died; the matching FD-transfer denial explains this path.
+2. A temporary normal app using Camera API1 bypasses that app-facing FMQ and
+   reaches UVC STREAMON at 640×480/30. The external provider then receives a
+   service-manager denial finding `hal_graphics_allocator_service`, falls through
+   mapper initialization, and aborts with `gralloc-mapper is missing`. Its native
+   stack is in `GraphicBufferMapper` / camera `HandleImporter`. Zero frames reach
+   the app. The provider restarts automatically.
+
+The same diagnostic using Camera2 reproduces the metadata-queue failure. Each
+foreground run lasts 20 seconds and logs counts/timing/luma range only. It saves
+no frames or audio and has no network/storage permission. It was uninstalled
+and the owner's camera app reopened after testing. No data reset, security-mode
+change, privacy override or Play Store change was made.
+
+Camera25 adds two narrowly scoped corrections in `sepolicy/vendor/hal_camera.te`:
+
+- Permit ordinary app clients to read/write/map/getattr the **cameraserver**
+  queue, excluding `isolated_app_all`. Add MLS trust to that shared **object**
+  type because the app categories differ from the service's s0. This is the
+  tmpfs-file equivalent of AOSP's cameraserver memfd grant, following the existing
+  audio/Codec2 kernel compatibility pattern. Apps still cannot access the HAL's
+  queue or video nodes; no generic tmpfs write, queue execution, app trusted-subject
+  attribute or permissive domain is added.
+- Apply `hal_client_domain(hal_camera_default, hal_graphics_allocator)`. AOSP's
+  standard client attribute supplies allocator discovery, Binder IPC and mapper
+  loading. A one-off `find` grant would leave the remaining operations untested.
+
+`camera-policy-test.c` uses libsepol's security server to evaluate compiled
+policies with full MLS contexts. It checks three app contexts, FD use, queue
+permissions, isolated-process exclusion, HAL queue isolation, video-node
+isolation and allocator discovery/IPC. Camera24 is the negative control; a
+candidate must pass the fixed expectations. This complements native neverallow
+compilation; it is not a physical streaming test.
+
+Build the host checker against the pinned AOSP libsepol (already built by the
+native policy tools), then run both controls:
+
+```bash
+clang -O2 -Wall -Wextra -Werror \
+  -I "$AOSP_SRC/external/selinux/libsepol/include" \
+  scripts/googlebook/camera-policy-test.c \
+  "$AOSP_SRC/out/soong/.intermediates/external/selinux/libsepol/libsepol/linux_glibc_x86_64_static/libsepol.a" \
+  -o "$PRIVATE_OUT/camera-policy-test"
+"$PRIVATE_OUT/camera-policy-test" "$OLD_AUDIT/hybrid-reduced/policy.bin" broken
+"$PRIVATE_OUT/camera-policy-test" "$NEW_AUDIT/hybrid-reduced/policy.bin" fixed
+```
+
+A separate negative control removes only `cameraserver_tmpfs_202604` from the
+vendor CIL's `mlstrustedobject` membership in a temporary copy, recompiles with
+the audit's exact `secilc` invocation and runs the fixed expectations. It must
+fail only the three categorized-app writes with reason `0x2` (constraint).
+Never change the shipping policy or use `secilc -N` for this test.
+
+The optional VM payload now also runs `openbook-camera-buffer-test` in the
+production HAL domain. It allocates a synthetic 640×480 YUV buffer, clones/imports
+its handle, writes all Y/Cb/Cr samples and verifies them through the original
+mapping. Init must report exit 0 with no abort. It does not open a webcam.
+Build the native test explicitly before preparing a test image:
+
+```bash
+AOSP_JOBS=8 BUILD_NUMBER=20261020.camera4 scripts/aosp-docker.sh \
+  /repo/scripts/aosp-build.sh anybook_g14_x86_64-cp2a-userdebug \
+  openbook-camera-buffer-test vendorimage
+```
+
+The native test installs under PRODUCT_OUT's `data/nativetest64/vendor`, never
+the production vendor tree. `--camera-fmq-test` copies it into the disposable VM
+only, records its source/binary hashes and labels it with the real HAL domain.
+Normal USB packaging rejects that test recipe.
+
+Camera25 passes the native build, 52 host checks and the 415-input native audit.
+All 49 compiled-policy expectations pass; removing only the object-trust
+membership reproduces three MLS write denials. Both focused camera probes
+exit 0 under enforcing. Their direct-kernel VM later hits RenderThread execmem
+denials, zygote exits and a checkpoint-failure reboot at 279.6 seconds, without
+boot completion. These are focused operation results, not a successful full
+boot. The separate normal UEFI preserving candidate completes a 760.7-second
+rehearsal: boot completes, encrypted test data mounts and the provider registers,
+without a recorded fatal signal, provider/zygote exit or watchdog kill. Its
+600.3-second capture completes with 285 new files and no unsaved collector bytes;
+kernel audit rate limiting separately drops 210 events. The source image,
+source TPM state and synthetic internal disk remain unchanged. Actual camera
+frames remain a G14 gate. Camera25 is prepared but not yet on the physical USB.
+
+For a physical follow-up, build the temporary APK with
+`bash scripts/googlebook/camera-probe/build.sh`. Install it for the current
+foreground user and grant **only its own** CAMERA permission. Close any other
+camera client, launch `org.openbook.test.camera/.CameraProbeActivity --es api 1`
+or `--es api 2`, allow the 20-second run to finish and collect the
+`OpenBookCameraProbe` log tag. If the app pauses, it closes the camera early;
+check the elapsed span before interpreting the result. Uninstall it afterwards
+and reopen the owner's camera app. Any nonzero frame count is still insufficient
+to qualify orientation, color, privacy, suspend or browser use.
+
+Evidence: `evidence/2026-10-20-googlebook-camera-clients/`. The next USB update
+must begin with a new backup of the **now-used** camera24 stick. Never deploy the
+blank data partitions from the fresh candidate or an earlier owner snapshot.
+
+Sources checked 2026-10-20: pinned AOSP
+`frameworks/av/services/camera/libcameraservice/api2/CameraDeviceClient.cpp`
+(`CreateMetadataQueue`, `getCaptureResultMetadataQueue`),
+`frameworks/native/libs/ui/Gralloc5.cpp` (`waitForAllocator`),
+`system/sepolicy/private/{app.te,mls,hal_graphics_allocator.te}` and
+`system/sepolicy/vendor/hal_camera_default.te`. The current public
+[allocator policy](https://android.googlesource.com/platform/system/sepolicy/+/refs/heads/main/private/hal_graphics_allocator.te)
+independently confirms the standard client discovery/Binder/mapper pattern;
+the local pinned policy, rather than moving upstream main, is the build input.
+
 ## Camera23 physical follow-up (2026-10-20 UTC)
 
 Wireless ADB now connects to the booted G14. Camera23 enumerates one public
