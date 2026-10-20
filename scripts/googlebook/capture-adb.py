@@ -123,12 +123,38 @@ def commands():
         yield f"desktop-service-{index}", f"timeout 10 service check {service}"
 
 
-def collect(adb, serial, server_port, out):
+def update_commands():
+    """Read-only phase capture; no update check/download, reboot or idle forcing."""
+    yield "identity", "id; getenforce; cat /proc/uptime /proc/sys/kernel/random/boot_id"
+    for name in ("ro.build.fingerprint", "ro.vendor.build.fingerprint", "ro.boot.slot_suffix",
+                 "ro.build.ab_update", "ro.virtual_ab.enabled", "ro.virtual_ab.compression.enabled",
+                 "ro.virtual_ab.userspace.snapshots.enabled", "ro.virtual_ab.ublk.enabled",
+                 "init.svc.update_engine", "init.svc.vendor.boot-openbook", "sys.boot_completed"):
+        yield name, "getprop " + name
+    yield "automatic-setting", "settings get global ota_disable_automatic_update"
+    yield "block-links", "ls -l /dev/block/by-name"
+    yield "processes", "ps -AZ"
+    yield "services", "service list"
+    for name in ("get-number-slots", "get-current-slot", "get-active-boot-slot",
+                 "get-snapshot-merge-status"):
+        yield "bootctl-" + name, "timeout 10 bootctl " + name
+    yield "snapshot-state", "timeout 10 snapshotctl dump"
+    for package in ("com.google.android.gms", "com.android.vending", "com.android.settings"):
+        yield "package-" + package, "timeout 15 dumpsys package " + package
+    for name in ("jobscheduler", "battery", "deviceidle", "recovery", "system_update",
+                 "android.os.UpdateEngineService", "android.os.UpdateEngineStableService"):
+        yield name, "timeout 15 dumpsys " + name
+    yield "staged-packages", "pm list staged-sessions"
+    yield "logcat", "timeout 20 logcat -d -b all -v threadtime"
+
+
+def collect(adb, serial, server_port, out, updates_only=False, phase="ordinary"):
     base = [str(adb), "-P", str(server_port), "-s", endpoint(serial)]
     out.mkdir(mode=0o700, parents=True, exist_ok=False)
     report = {"schema": "openbook-ruby-adb-capture/1", "serial": serial,
               "started_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
               "complete": False, "connected": False, "commands": [],
+              "phase": phase, "updates_only": updates_only,
               "scope": "Private user-build diagnostics; command completion is not hardware qualification"}
 
     def save():
@@ -143,7 +169,7 @@ def collect(adb, serial, server_port, out):
     save()
     if not report["connected"]:
         return 2
-    for name, command in commands():
+    for name, command in (update_commands() if updates_only else commands()):
         report["commands"].append(capture(out, name, base + ["shell", "set -e; " + command]))
         save()
     report["complete"] = True
@@ -159,11 +185,14 @@ def main():
     p.add_argument("--serial", required=True, type=endpoint)
     p.add_argument("--server-port", type=int, default=5222)
     p.add_argument("--out", type=Path, required=True, help="New private directory; existing paths are refused")
+    p.add_argument("--updates-only", action="store_true", help="Read-only OS update exposure capture")
+    p.add_argument("--phase", choices=("ordinary", "idle-charging", "after-reboot", "recovery"),
+                   default="ordinary", help="Observation label only; does not change device state")
     a = p.parse_args()
     if not 1 <= a.server_port <= 65535:
         p.error("Invalid local ADB server port")
     os.umask(0o077)
-    code = collect(a.adb, a.serial, a.server_port, a.out)
+    code = collect(a.adb, a.serial, a.server_port, a.out, a.updates_only, a.phase)
     print(f"Capture exit {code}: {a.out / 'manifest.json'} (raw logs are private)")
     raise SystemExit(code)
 

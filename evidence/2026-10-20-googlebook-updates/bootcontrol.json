@@ -1,0 +1,9 @@
+{
+  "schema": "openbook-ruby-bootcontrol-observation/1",
+  "scope": "retained disposable camera25 VM misc; not current G14 HAL query",
+  "magic": "0x42414342",
+  "version": 1,
+  "slot_count": 1,
+  "crc_valid": true,
+  "physical_boot_b_present": false
+}

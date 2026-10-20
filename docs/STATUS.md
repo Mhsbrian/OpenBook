@@ -1,5 +1,34 @@
 # Status
 
+## 2026-10-20: Ruby update pipeline research (ANAL-229)
+
+Decision: build reviewed full-recovery candidates on a local host first.
+Unattended stock OS updates remain unsafe/unqualified on this single-slot
+hybrid. The retained stock engine runs despite its `disabled` init stanza;
+GMS owns update client/UI components, and recovery has a separate path.
+Stock vbmeta rollback index 1339 and key differ from the hybrid's public
+test-key/index-0 trust domain. No independent Google OTA trust anchor or actual
+OTA signature was verified.
+
+Added exact-build inventory, read-only runtime capture, a signed-review staging
+gate with unknown-input rejection, and a pinned offline-installer replacement
+operation. The staged review is an operator attestation, not an automated
+compatibility verdict. Positive and negative synthetic tests pass. Dated
+sources, maintenance comparison, app/service design, recoverable-layout and
+schema-aware data rollback requirements are in `docs/googlebook-updates.md`.
+
+Containment is **not delivered**: the optional engine-stop experiment removes
+both Binder interfaces but its fresh-data VM fails checkpoint commit. An
+initialized encrypted-data UEFI VM boots and later reproduces the existing
+system-server crash. Restoring camera25 in a second 480.7-second VM trial returns
+the updater process/interfaces and boots, with the same crash class; all four
+existing metadata-encryption files survive both trials unchanged.
+No new hardware capture or physical writes occurred.
+Networked download/application/activation prevention, preserved Play updates,
+recovery containment and dual-system/newer-schema rollback tests still block
+acceptance. Evidence: `evidence/2026-10-20-googlebook-updates/`; commands:
+`docs/googlebook-update-prototype.md`.
+
 ## 2026-10-20: Configured Googlebook migration installer (ANAL-228)
 
 The owner confirms camera25 fixes the webcam and Bluetooth works. A separate

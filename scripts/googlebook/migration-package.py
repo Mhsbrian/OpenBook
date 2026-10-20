@@ -60,13 +60,46 @@ def make_pin(base, out, build, dmi):
     print("Pinned source system and boot files; no userdata or credentials are packaged.")
 
 
-def add(snapshot, snapshot_sha, base_manifest, installer, out):
+INSTALLER_FILES = ("kernel", "initrd.img", "build.json", "package-versions.txt")
+INSTALLER_ENTRIES = ("loader/entries/ruby-install.conf", "loader/entries/ruby-install-serial.conf")
+
+
+def replacement_contract(before, expected):
+    """Authorize replacement of exactly the previous reviewed installer files."""
+    files = u.tree_hashes(before)
+    managed = {f"ruby-installer/{n}" for n in INSTALLER_FILES} | set(INSTALLER_ENTRIES)
+    present = {n for n in files if n.startswith("ruby-installer/") or n in INSTALLER_ENTRIES}
+    if expected is None:
+        m.require(not present, "Installer already present; reviewed replacement required")
+        return set()
+    m.require(present == managed, "Incomplete or unfamiliar existing installer")
+    m.require(files["ruby-installer/build.json"] == expected, "Old installer review pin mismatch")
+    build = json.loads((before / "ruby-installer/build.json").read_text())
+    m.require(build.get("schema") == "openbook-ruby-offline-installer/1", "Unknown old installer schema")
+    for name in ("kernel", "initrd.img", "package-versions.txt"):
+        m.require(files[f"ruby-installer/{name}"] == build["files"][name], "Old installer file changed")
+    for suffix, name in zip(("", "-serial"), INSTALLER_ENTRIES):
+        m.require((before / name).read_text() == installer_entry(suffix), "Old installer menu changed")
+    return managed
+
+
+def installer_entry(suffix):
+    return ("title Install this Googlebook USB to SSD - keep saved data"
+            + (" (VM serial)" if suffix else "") + "\n"
+            "linux /ruby-installer/kernel\ninitrd /ruby-installer/initrd.img\n"
+            + ("options console=ttyS0,115200 loglevel=3\n" if suffix else "options console=tty0 loglevel=3\n"))
+
+
+def add(snapshot, snapshot_sha, base_manifest, installer, out, replace_installer_sha256=None):
     snapshot = u.regular(snapshot)
     old = json.loads(u.regular(base_manifest).read_text())
     m.require(u.h.audit.sha(snapshot) == snapshot_sha, "Snapshot checksum mismatch")
     m.require(not out.exists(), "New output required")
     pin = json.loads(u.regular(installer / "source.json").read_text())
     build = json.loads(u.regular(installer / "build.json").read_text())
+    m.require(build.get("schema") == "openbook-ruby-offline-installer/1"
+              and set(build.get("files", {})) == {"kernel", "initrd.img", "package-versions.txt", "source.json"},
+              "Unknown or incomplete installer build")
     m.require(u.h.audit.sha(installer / "source.json") == build["source_pin_sha256"], "Installer/source mismatch")
     for name, sha in build["files"].items():
         m.require(Path(name).name == name and u.h.audit.sha(u.regular(installer / name)) == sha,
@@ -84,26 +117,32 @@ def add(snapshot, snapshot_sha, base_manifest, installer, out):
     m.run("fsck.fat", "-n", esp)
     before = out / "efi-before"; before.mkdir()
     m.run("mcopy", "-s", "-i", esp, "::*", before)
+    replaceable = replacement_contract(before, replace_installer_sha256)
     for name, sha in pin["efi_sha256"].items():
         m.require(u.h.audit.sha(before / name) == sha, f"Source boot file changed: {name}")
     additions = out / "ruby-installer"; additions.mkdir()
-    for name in ("kernel", "initrd.img", "build.json", "package-versions.txt"):
+    for name in INSTALLER_FILES:
         shutil.copyfile(installer / name, additions / name)
-    m.run("mcopy", "-s", "-i", esp, additions, "::/")
+    if replaceable:
+        for name in INSTALLER_FILES:
+            m.run("mcopy", "-o", "-i", esp, additions / name, f"::/ruby-installer/{name}")
+    else:
+        m.run("mcopy", "-s", "-i", esp, additions, "::/")
     for suffix in ("", "-serial"):
         conf = out / f"ruby-install{suffix}.conf"
-        conf.write_text(
-            "title Install this Googlebook USB to SSD - keep saved data" + (" (VM serial)" if suffix else "") + "\n"
-            "linux /ruby-installer/kernel\ninitrd /ruby-installer/initrd.img\n"
-            + ("options console=ttyS0,115200 loglevel=3\n" if suffix else "options console=tty0 loglevel=3\n"))
+        conf.write_text(installer_entry(suffix))
         m.run("mcopy", "-o", "-i", esp, conf, f"::/loader/entries/{conf.name}")
     m.run("fsck.fat", "-n", esp)
     after = out / "efi-after"; after.mkdir()
     m.run("mcopy", "-s", "-i", esp, "::*", after)
-    # Every pre-existing file must remain identical; additions only.
+    # Only the explicitly reviewed previous installer may change.
     for name, sha in u.tree_hashes(before).items():
-        m.require(u.h.audit.sha(after / name) == sha, f"Existing EFI file changed: {name}")
-    for name in ("kernel", "initrd.img", "build.json", "package-versions.txt"):
+        if name not in replaceable:
+            m.require(u.h.audit.sha(after / name) == sha, f"Existing EFI file changed: {name}")
+    m.require(set(u.tree_hashes(after)) == set(u.tree_hashes(before)) |
+              {f"ruby-installer/{n}" for n in INSTALLER_FILES} | set(INSTALLER_ENTRIES),
+              "Unexpected EFI file added or removed")
+    for name in INSTALLER_FILES:
         m.require(u.h.audit.sha(after / "ruby-installer" / name) == u.h.audit.sha(installer / name),
                   "Installer EFI readback failed")
     output = out / "ruby-live.img"
@@ -144,9 +183,10 @@ def add(snapshot, snapshot_sha, base_manifest, installer, out):
                 image_sha256=updated["image_sha256"], writes=writes, protected=protected,
                 sources_unchanged=True, unrelated_esp_files_unchanged=True,
                 physical_device_written=False, data_unlock_verified=False,
-                operation="Add offline migration boot entry; all Android partitions unchanged")
+                replaced_installer_sha256=replace_installer_sha256,
+                operation="Replace" if replaceable else "Add")
     (out / "update.json").write_text(json.dumps(plan, indent=2) + "\n")
-    print("Offline migration entry added to private clone; all Android partitions unchanged.")
+    print("Offline migration entry packaged in private clone; all Android partitions unchanged.")
 
 
 def main():
@@ -162,11 +202,14 @@ def main():
     for name in ("snapshot", "base-manifest", "installer", "out"):
         attach.add_argument("--" + name, type=Path, required=True)
     attach.add_argument("--snapshot-sha256", required=True)
+    attach.add_argument("--replace-installer-sha256",
+                        help="SHA-256 of the previously reviewed ruby-installer/build.json; default is addition only")
     args = parser.parse_args()
     if args.operation == "pin":
         make_pin(args.base, args.out, args.build, args.dmi_prefix)
     else:
-        add(args.snapshot, args.snapshot_sha256, args.base_manifest, args.installer, args.out)
+        add(args.snapshot, args.snapshot_sha256, args.base_manifest, args.installer, args.out,
+            args.replace_installer_sha256)
 
 
 if __name__ == "__main__":

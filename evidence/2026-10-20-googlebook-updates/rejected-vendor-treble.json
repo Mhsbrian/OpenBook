@@ -1,0 +1,133 @@
+{
+  "schema": "openbook-ruby-observation/1",
+  "accel": "tcg",
+  "uefi_usb": false,
+  "software_tpm": true,
+  "software_tpm_restored": false,
+  "source_tpm_unchanged": null,
+  "prior_log_sessions_excluded": 0,
+  "emulated_audio": false,
+  "qemu_sha256": "35db71cb2178b665983472bb584f87505cf431f225a881149dba83de0350de8a",
+  "qemu_exit": 0,
+  "elapsed_s": 275.2,
+  "observation_window_elapsed": false,
+  "input_sha256": "50a88d6d5f4f543e6f75cbe0de34055106b29782f6b9d0c7a81b599f93d0f6db",
+  "input_unchanged": true,
+  "guest_disk_unchanged": true,
+  "test_entry": "direct kernel",
+  "persistent_usb_logs": false,
+  "logs_readback_exit": null,
+  "usb_capture_finished": false,
+  "wake_display_requested": false,
+  "screenshots": [],
+  "screenshot_error": null,
+  "decoy_unchanged": null,
+  "second_stage_init": true,
+  "diagnostics_completed": true,
+  "boot_completed_reported": false,
+  "kernel_panic": false,
+  "sigill": false,
+  "runtime_findings": {
+    "setup_welcome_activity_seen": true,
+    "system_server_fatal_signals": [],
+    "zygote_exit_events": 1,
+    "system_server_execmem_denial_seen": true,
+    "mmd_setup_abort_seen": false,
+    "camera_provider_running_reported": false,
+    "camera_provider_registered_reported": true,
+    "camera_device_counts_reported": [
+      0
+    ],
+    "camera_provider_abort_seen": false,
+    "camera_fmq_test_exit_statuses": [],
+    "camera_buffer_test_exit_statuses": [],
+    "camera_buffer_test_abort_seen": false,
+    "camera_fmq_tmpfs_denial_seen": false,
+    "camera_provider_default_label_denial_seen": false
+  },
+  "scope": "Observation only. Review original logs; no hardware or installation claim.",
+  "saved_log_file_count": 0,
+  "serial_sha256": "65f233ed4436ad068f45500eb46928c2122f08b895144b7cd89cbddc4a38ce9a",
+  "selected_serial_counts": {
+    "engine_process": 7,
+    "engine_state": 0,
+    "engine_binder": 13,
+    "init_started": 1,
+    "init_rejected": 1,
+    "checkpoint_failure": 4,
+    "boot_completed": 0,
+    "system_server_crash": 0
+  },
+  "excerpts": {
+    "engine_process": [
+      {
+        "line": 2965,
+        "text": "root           548     1   10843756  12064 0                   0 S update_engine"
+      },
+      {
+        "line": 4174,
+        "text": "root           548     1   10843756  12064 0                   0 S update_engine"
+      },
+      {
+        "line": 5336,
+        "text": "root           548     1   10843756  12064 0                   0 S update_engine"
+      },
+      {
+        "line": 6495,
+        "text": "root           548     1   10843756  12064 0                   0 S update_engine"
+      }
+    ],
+    "engine_state": [],
+    "engine_binder": [
+      {
+        "line": 2540,
+        "text": "36\tandroid.os.UpdateEngineService:[   47.115633][  T260] type=1400 audit(1792503191.601:56): avc:  denied  { call } for  comm=\"service\" scontext=u:r:shell:s0 tcontext=u:r:update_engine:s0 tclass=binder permissive=0"
+      },
+      {
+        "line": 2542,
+        "text": "37\tandroid.os.UpdateEngineStableService: []"
+      },
+      {
+        "line": 3699,
+        "text": "43\tandroid.os.UpdateEngineService: []"
+      },
+      {
+        "line": 3700,
+        "text": "44\tandroid.os.UpdateEngineStableService: []"
+      }
+    ],
+    "init_started": [
+      {
+        "line": 2229,
+        "text": "[   21.062772][    T1] init: ... started service 'update_engine' has pid 548"
+      }
+    ],
+    "init_rejected": [
+      {
+        "line": 625,
+        "text": "[    4.245240][    T1] init: /vendor/etc/init/ruby-update-quarantine.rc: 7: service 'update_engine' overrides another service across the treble boundary."
+      }
+    ],
+    "checkpoint_failure": [
+      {
+        "line": 11360,
+        "text": "[  268.763307][   T98] init: Received sys.powerctl='reboot,Checkpoint commit failed' from pid: 660 (system_server)"
+      },
+      {
+        "line": 11361,
+        "text": "[  268.766702][    T1] init: Got shutdown_command 'reboot,Checkpoint commit failed' Calling HandlePowerctlMessage()"
+      },
+      {
+        "line": 11376,
+        "text": "[  269.277020][    T1] init: Reboot start, reason: reboot,Checkpoint commit failed, reboot_target: Checkpoint commit failed"
+      },
+      {
+        "line": 12137,
+        "text": "[  274.267175][    T1] reboot: Restarting system with command 'Checkpoint commit failed'"
+      }
+    ],
+    "boot_completed": [],
+    "system_server_crash": []
+  },
+  "complete_containment": false
+}

@@ -1,0 +1,30 @@
+{
+  "product": {
+    "file": "privapp-permissions-google-p.xml",
+    "sha256": "a58097a8ab28d2ddef8ff29d86847dfc009c911e8600baa2fce5f7ac7653ce54",
+    "gms_selected_grants": [
+      "android.permission.EMERGENCY_INSTALL_PACKAGES",
+      "android.permission.NOTIFY_PENDING_SYSTEM_UPDATE",
+      "android.permission.REBOOT",
+      "android.permission.RECOVERY",
+      "android.permission.SEND_SAFETY_CENTER_UPDATE",
+      "android.permission.UPDATE_APP_OPS_STATS",
+      "android.permission.UPDATE_DEVICE_STATS",
+      "android.permission.UPDATE_FONTS"
+    ]
+  },
+  "gms-apex": {
+    "file": "privapp_allowlist_com.google.android.gmssystem.xml",
+    "sha256": "fb9c9978ca9c77ced6c89025ceb3c50aad559edde3e3072a4f2b6e16971ee322",
+    "gms_selected_grants": [
+      "android.permission.EMERGENCY_INSTALL_PACKAGES",
+      "android.permission.NOTIFY_PENDING_SYSTEM_UPDATE",
+      "android.permission.REBOOT",
+      "android.permission.RECOVERY",
+      "android.permission.SEND_SAFETY_CENTER_UPDATE",
+      "android.permission.UPDATE_APP_OPS_STATS",
+      "android.permission.UPDATE_DEVICE_STATS",
+      "android.permission.UPDATE_FONTS"
+    ]
+  }
+}

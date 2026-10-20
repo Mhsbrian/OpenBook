@@ -1,0 +1,118 @@
+{
+  "schema": "openbook-ruby-observation/1",
+  "accel": "tcg",
+  "uefi_usb": false,
+  "software_tpm": true,
+  "software_tpm_restored": false,
+  "source_tpm_unchanged": null,
+  "prior_log_sessions_excluded": 0,
+  "emulated_audio": false,
+  "qemu_sha256": "35db71cb2178b665983472bb584f87505cf431f225a881149dba83de0350de8a",
+  "qemu_exit": 0,
+  "elapsed_s": 240.5,
+  "observation_window_elapsed": true,
+  "input_sha256": "7827ba1bcd086f1c1051b311942191579d7eacb1cb57e833ce23b080f0f96d2b",
+  "input_unchanged": true,
+  "guest_disk_unchanged": true,
+  "test_entry": "direct kernel",
+  "persistent_usb_logs": false,
+  "logs_readback_exit": null,
+  "usb_capture_finished": false,
+  "wake_display_requested": false,
+  "screenshots": [
+    "screen.ppm"
+  ],
+  "screenshot_error": null,
+  "decoy_unchanged": null,
+  "second_stage_init": true,
+  "diagnostics_completed": true,
+  "boot_completed_reported": false,
+  "kernel_panic": false,
+  "sigill": false,
+  "runtime_findings": {
+    "setup_welcome_activity_seen": false,
+    "system_server_fatal_signals": [],
+    "zygote_exit_events": 0,
+    "system_server_execmem_denial_seen": false,
+    "mmd_setup_abort_seen": false,
+    "camera_provider_running_reported": false,
+    "camera_provider_registered_reported": true,
+    "camera_device_counts_reported": [
+      0
+    ],
+    "camera_provider_abort_seen": false,
+    "camera_fmq_test_exit_statuses": [],
+    "camera_buffer_test_exit_statuses": [],
+    "camera_buffer_test_abort_seen": false,
+    "camera_fmq_tmpfs_denial_seen": false,
+    "camera_provider_default_label_denial_seen": false
+  },
+  "scope": "Observation only. Review original logs; no hardware or installation claim.",
+  "saved_log_file_count": 0,
+  "serial_sha256": "2b1a9212665de2d33e04fe96ee5f05db1090373b0fd2e28aab8cfeea2aa8bff4",
+  "selected_serial_counts": {
+    "engine_process": 6,
+    "engine_state": 0,
+    "engine_binder": 12,
+    "init_started": 1,
+    "init_rejected": 1,
+    "checkpoint_failure": 0,
+    "boot_completed": 0,
+    "system_server_crash": 0
+  },
+  "excerpts": {
+    "engine_process": [
+      {
+        "line": 2971,
+        "text": "root           547     1   11046508  12008 0                   0 S update_engine"
+      },
+      {
+        "line": 4178,
+        "text": "root           547     1   11046508  12008 0                   0 S update_engine"
+      },
+      {
+        "line": 5339,
+        "text": "root           547     1   11046508  12008 0                   0 S update_engine"
+      },
+      {
+        "line": 6498,
+        "text": "root           547     1   11046508  12008 0                   0 S update_engine"
+      }
+    ],
+    "engine_state": [],
+    "engine_binder": [
+      {
+        "line": 2549,
+        "text": "36\tandroid.os.UpdateEngineService: []"
+      },
+      {
+        "line": 2550,
+        "text": "37\tandroid.os.UpdateEngineStableService: []"
+      },
+      {
+        "line": 3705,
+        "text": "43\tandroid.os.UpdateEngineService: []"
+      },
+      {
+        "line": 3706,
+        "text": "44\tandroid.os.UpdateEngineStableService: []"
+      }
+    ],
+    "init_started": [
+      {
+        "line": 2225,
+        "text": "[   20.026198][    T1] init: ... started service 'update_engine' has pid 547"
+      }
+    ],
+    "init_rejected": [
+      {
+        "line": 625,
+        "text": "[    3.804361][    T1] init: /vendor/etc/init/ruby-update-quarantine.rc: 7: No user specified for service 'update_engine', so it would have been root."
+      }
+    ],
+    "checkpoint_failure": [],
+    "boot_completed": [],
+    "system_server_crash": []
+  },
+  "complete_containment": false
+}

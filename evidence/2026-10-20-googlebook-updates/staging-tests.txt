@@ -1,0 +1,19 @@
+test_apk_component_attributes_not_nested_intent_attributes (__main__.QuarantineTests.test_apk_component_attributes_not_nested_intent_attributes) ... ok
+test_known_contract_and_unknown_definition (__main__.QuarantineTests.test_known_contract_and_unknown_definition) ... ok
+test_bad_signature_and_unsigned_profile (__main__.StageTests.test_bad_signature_and_unsigned_profile) ... ok
+test_changed_evidence_and_missing_boot_file (__main__.StageTests.test_changed_evidence_and_missing_boot_file) ... ok
+test_devices_traversal_symlinks_and_incremental_refused (__main__.StageTests.test_devices_traversal_symlinks_and_incremental_refused) ... ok
+test_duplicate_json_key_refused (__main__.StageTests.test_duplicate_json_key_refused) ... ok
+test_incompatible_and_missing_gates (__main__.StageTests.test_incompatible_and_missing_gates) ... ok
+test_interrupted_copy_never_publishes (__main__.StageTests.test_interrupted_copy_never_publishes) ... ok
+test_low_disk_refused (__main__.StageTests.test_low_disk_refused) ... ok
+test_positive_exact_tuple_staged_original_preserved (__main__.StageTests.test_positive_exact_tuple_staged_original_preserved) ... ok
+test_promotion_requires_every_prior_gate (__main__.StageTests.test_promotion_requires_every_prior_gate) ... ok
+test_scope_cannot_escalate_to_trial (__main__.StageTests.test_scope_cannot_escalate_to_trial) ... ok
+test_stale_or_wrong_tuple_report (__main__.StageTests.test_stale_or_wrong_tuple_report) ... ok
+test_unknown_original_refused_before_output (__main__.StageTests.test_unknown_original_refused_before_output) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.290s
+
+OK

@@ -1,0 +1,11 @@
+# EXPERIMENTAL: auto-start suppression, NOT an execution or security boundary.
+# "stop" marks an unstarted init service disabled. This action follows the
+# system rc's slot_suffix enable action, before late_start on the tested build.
+# An explicit privileged start/enable can defeat it. Re-review any init change.
+# No package, UI, policy or executable is modified. Remove and rebuild vendor
+# to reverse on next boot. Downloads, recovery and Mainline are not contained.
+on early-init
+    stop update_engine
+
+on property:ro.boot.slot_suffix=*
+    stop update_engine

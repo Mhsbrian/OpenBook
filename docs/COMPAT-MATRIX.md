@@ -1,5 +1,18 @@
 # Compatibility matrix
 
+## Ruby update research (ANAL-229, 2026-10-20)
+
+| Check | Observed result | Limit |
+|---|---|---|
+| Retained update exposure | GMS update components, engine process and both Binder interfaces, one boot-control slot, Virtual A/B advertised, separate recovery backend | Offline saved VM evidence; no measured network download or applied OTA; current G14 capture unavailable |
+| Signed local staging | Synthetic signed positive, unknown/tampered/incompatible/stale input rejection, stage separation, interrupted copy and disk-space checks | Reviewer attestations only; no Google trust anchor, hardware writer or automatic audit orchestration |
+| Installer replacement | Independently pinned old installer, exact file/menu contract, new source pin and payload hashes checked; Android and unrelated EFI bytes preserved in synthetic tests | Private clone only; physical write remains single-slot and non-atomic |
+| Engine-stop experiment | Backend/interface suppression observed; initialized encrypted-data UEFI VM completes boot | Fresh-data VM reboots on checkpoint commit; initialized VM still crashes system_server; downloads, privileged restart, Play/APEX and recovery uncontained; never deploy |
+| Recoverable system/data update | Design retains complete known-good system set, offline backup and schema compatibility gate | Dual-system writer, failed-boot/missing-entry fallback and newer-schema restoration are not implemented or qualified for Ruby |
+
+Evidence and reproduction: `evidence/2026-10-20-googlebook-updates/`,
+`docs/googlebook-updates.md`, `docs/googlebook-update-prototype.md`.
+
 ## Ruby/OpenBook UEFI live research (ANAL-228, updated 2026-10-20)
 
 | Check | Observed result | Limit |
