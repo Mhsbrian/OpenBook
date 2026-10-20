@@ -1,0 +1,28 @@
+{
+  "schema": "openbook-camera-physical-write/1",
+  "candidate": "camera23",
+  "target_model": "SanDisk Ultra",
+  "fresh_backup_verified_by_independent_direct_read": true,
+  "fresh_backup_sha256": "2f2080d79e9916529a5ed34b136143f463bac359d1fb5d0ae76c7b3e6a9f03ef",
+  "backup_retained_private": true,
+  "fresh_candidate_sha256": "227cb2068f55261927b13b0df856ff947ee35d8591ea84c88ef7196114f8d467",
+  "preserving_image_sha256": "bf79eef29bc760e50889b0d01518836fd0b3ae2b33f6f0b304692fa96a5176b6",
+  "physical_usb_updated": true,
+  "written_partitions": [
+    "super",
+    "vbmeta_a",
+    "EFI"
+  ],
+  "full_direct_readback_verified": true,
+  "verified_bytes": 12766412800,
+  "readback_sha256": "bf79eef29bc760e50889b0d01518836fd0b3ae2b33f6f0b304692fa96a5176b6",
+  "protected_bytes_unchanged": 8805941248,
+  "unrelated_esp_files_unchanged": true,
+  "sources_unchanged": true,
+  "prepared_esp_free_bytes": 218440192,
+  "powered_off": true,
+  "physical_post_update_boot_verified": false,
+  "owner_credential_unlock_verified": false,
+  "physical_camera_capture_validated": false,
+  "scope": "Verified offline preserving update. Physical G14 unlock, existing app state and camera behavior require the next boot."
+}

@@ -12,6 +12,9 @@ ADB collectors report camera metadata/status without capturing images.
 Camera23 passes 50 host checks, native init/compatibility checks and a 760.6-second
 preserving VM boot with provider registration. The VM has no camera; actual
 G14 video capture remains a separate hardware gate.
+The configured SanDisk update and full readback now pass, preserving userdata
+and encryption metadata from a fresh backup. Deployment evidence and exact
+image hash: `evidence/2026-10-19-googlebook-camera/physical-write.json`.
 
 Ruby input follow-up: `getevent-to-frames.py --msc-policy reset-on-sync` models
 the inspected Ruby converter; the default `preserve` models patched OpenBook.

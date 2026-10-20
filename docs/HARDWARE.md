@@ -7,22 +7,23 @@ candidate includes the AOSP provider and restricted camera-group permissions.
 Its preserving VM rehearsal boots and registers the provider for a 760.6-second
 observation without a provider exit. No camera is attached to that VM.
 Physical capture, MJPEG modes, app selection, orientation and privacy behavior
-still require a G14 test. See `docs/g14-camera.md`; this candidate has not been
-written to the owner's configured USB.
+still require a G14 test. The configured USB now contains camera23; see
+`docs/g14-camera.md` for the hardware checks.
 
-Current follow-up: the owner reports using Settings after the preserving update.
+Trackpad follow-up: the owner reports using Settings after the preserving update.
 Independent live checks await a usable wireless ADB endpoint. Static inspection
 confirms the retained Ruby input framework lacks both OpenBook touchpad timing
 fixes. The possible Settings-only scroll/activation symptom remains unconfirmed
 by a motion trace; no physical fix is claimed. See
-`evidence/2026-10-19-googlebook-touchpad-followup/`. The earlier statements below
-describe the state at the time of the USB write.
+`evidence/2026-10-19-googlebook-touchpad-followup/`.
 
-Latest medium: services21 is written to the owner's SanDisk using the preserving
-updater. Full 12.77 GB direct readback matches the private clone, all protected
-data remains byte-identical, and power-off succeeded. The G14's first boot of
-this update remains pending; verify credential unlock and existing setup before
-claiming hardware success. See the services-update `physical-write.json` evidence.
+Latest medium: camera23 is written to the owner's SanDisk using a fresh verified
+backup and the preserving updater. Full 12.77 GB direct readback matches the
+private clone (`bf79eef29bc760e5…`); all 8,805,941,248 protected bytes, including
+userdata/encryption metadata, remain byte-identical. Power-off succeeded and the
+backup is retained. The G14's first boot of this update remains pending; verify
+credential unlock and existing setup before claiming hardware success. See
+`evidence/2026-10-19-googlebook-camera/physical-write.json`.
 
 The Ruby live follow-up confirms ELAN `04f3:3315` is recognized through
 TouchpadInputMapper. The older dump has tapping on, while the owner reports
