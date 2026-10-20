@@ -1,0 +1,43 @@
+{
+  "schema": "openbook-release-cleanup-summary/1",
+  "release": "RB-20261020-01",
+  "passes": [
+    {
+      "scope": "earlier ANAL-229 experiments",
+      "removed_allowlist_entries": 36,
+      "private_manifest_sha256": "f13f890880420dea07035c0e05f68156faca9577527cb193ff613ae42f035a95",
+      "free_bytes_before": 25492787200,
+      "free_bytes_after": 61714665472,
+      "net_free_bytes_gained": 36221878272,
+      "finished_utc": "2026-10-20T19:40:23Z",
+      "retained": [
+        "All three final experimental images and their manifests/results",
+        "Latest v3 rehearsal input/runtime disks and successful baseline retry",
+        "Logs, screenshots, metadata-key evidence and TPM state",
+        "Source baseline, owner backups and all current release artifacts"
+      ]
+    },
+    {
+      "scope": "completed RB-20261020-01 validation",
+      "removed_allowlist_entries": 17,
+      "private_manifest_sha256": "5ec9cdacacea1765f6559b60d5945e16e437af2cd0c16964c64dbcc4785c7cee",
+      "free_bytes_before": 61502476288,
+      "free_bytes_after": 74473484288,
+      "net_free_bytes_gained": 12971008000,
+      "finished_utc": "2026-10-20T19:49:32Z",
+      "retained": [
+        "Final release image, corrected input image, installer and source pin",
+        "Plan, authorization, tool identities, hashes and all test evidence",
+        "Logs, screenshots, key-check evidence and TPM state remain private",
+        "Source/recovery images and owner backups are untouched"
+      ]
+    }
+  ],
+  "net_free_bytes_gained_during_cleanup": 49192886272,
+  "host_free_bytes_after": 74473484288,
+  "future_minimum_host_reserve_bytes": 42949672960,
+  "measurement": "Host filesystem available space measured before and after each cleanup; concurrent activity may affect net deltas. Sparse/reflink logical sizes are not counted as recovered bytes.",
+  "private_allowlists_retained": true,
+  "owner_backups_or_physical_devices_modified": false,
+  "fixture_recreation_required": true
+}

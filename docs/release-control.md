@@ -25,14 +25,19 @@ It needs a corrected build, a new installer source pin and a new rehearsal
 before promotion. The native OTA guard in PR #121 remains a VM experiment and
 is excluded from the proposed next USB release.
 
-`config/releases/RB-20261020-01-plan-v1.json` is the first frozen proposal,
+`config/releases/RB-20261020-01-plan-v1.json` is the first frozen plan,
 also attached to ANAL-233. Its exact-byte SHA-256 is
 `abffe5eb4afa2b40d1fd72d0668c412a874d993e1609852beff969579f296f91`.
-No approval, build output, deployment or hardware acceptance is claimed by that
-file. Source commit `8294358eabd121c92e926768f8fdffa8894b9638` is deliberately
+The plan file records inputs; authorization and results are separate records.
+Source commit `8294358eabd121c92e926768f8fdffa8894b9638` is deliberately
 pinned; use its normal input-correction/installer recipe, not its OTA-guard
 candidate builder. The source PR remains a draft; approval to build does not
 approve merging it.
+
+B Honey authorized plan v1 in comment `01a15ab6-d813-746b-89f2-4884a7af9b03`.
+The executed candidate and completed functional checks are recorded in
+`evidence/2026-10-20-release-rb01/`. Runtime crashes remain unresolved;
+physical deployment is not approved.
 
 ## Work-item handoff and automatic intake
 
@@ -143,9 +148,10 @@ approval identifies the tested image, operation and exact device.
    Never substitute a newer branch head for a pinned commit.
 3. **Approve build.** Verify B Honey's actual Multica comment author, rather
    than an agent's quotation. Record comment ID, plan revision and exact-byte
-   plan hash. “Approve build RB-20261020-01 plan v1” approves only the attached
-   proposal. An ambiguous comment needs clarification; changed plan bytes need
-   a new approval. Do not infer approval from elapsed time or an issue status.
+   plan hash. A contextual go-ahead for a concrete, previously presented plan
+   is sufficient; no magic wording is required. An ambiguous comment needs
+   clarification; changed plan bytes need a new approval. Do not infer approval
+   from elapsed time or an issue status.
 4. **Build and test.** Use the pinned clean checkout and a fresh private output
    directory. Hold the shared build lock for the whole build/rehearsal command
    chain; never overlap two builds of the same track. Run existing scripts in
@@ -169,6 +175,34 @@ verifying its input/output hashes; otherwise use a fresh attempt directory.
 Further feature work goes into the next proposed release. A successful build
 does not silently advance the current installed release.
 
+## Storage budget and cleanup
+
+The agent owns cleanup as part of every build/test handoff. Check actual host
+free space before work, estimate the peak additional allocated space for the
+planned build and VM copies, and retain at least **40 GiB free** after that
+estimate. This is a minimum host reserve, not an estimate for a full AOSP build.
+Stop before the next allocating phase if the reserve is threatened. Recheck
+between phases; concurrent work and Btrfs sharing make apparent file sizes
+unreliable. Sparse 1 TB test drives do not allocate 1 TB, but their written
+extents still consume space.
+
+After collecting results, remove only explicitly identified, reproducible
+scratch from this task: extracted/rebuilt trees, intermediate partitions and
+completed disposable VM disk copies. Verify that no active process uses them
+and that subsequent checks no longer depend on them. Record the exact paths in
+a private cleanup manifest, retain logs/results/screenshots and provenance,
+then measure host free space again. Report actual space recovered; summing
+file sizes overcounts shared extents. Failed tests keep their evidence even
+when their disposable disks are removed.
+
+Keep the frozen candidate and installer, required source/recovery images,
+current rollback baseline and all owner backups. Never sweep other tasks,
+delete active builds, run a blanket Docker/cache prune, or treat owner data
+as scratch. Obsolete release/recovery artifacts need a separate retention
+decision. A reproduction may require recreating a removed fixture; identify
+that explicitly in the evidence. The hub records cleanup and remaining free
+space so the owner does not have to manage temporary files.
+
 The release issue carries build/deployment progress. The hub remains the
 index/review desk; do not mark unrelated source issues done or reassign their
 owners. Stop with a concrete blocker when an input, approval, source/license
@@ -182,6 +216,7 @@ qualification, backup or recovery gate is missing.
 | Build approval | Verified member comment ID and exact plan hash |
 | Build attempt | Tool/container identities, durable logs, step outcomes, final checksums, private artifact location |
 | Validation | Exact artifact tested, evidence hashes, failures and explicit untested boundaries |
+| Storage | Estimated peak plus host reserve, measured before/after free space, removed scratch and retained recovery/evidence |
 | Deployment approval | Verified member comment, image checksum, operation, exact device and backup/recovery plan |
 | Deployment result | Readback, boot/hardware checks, owner acceptance and installed/stick pointers |
 

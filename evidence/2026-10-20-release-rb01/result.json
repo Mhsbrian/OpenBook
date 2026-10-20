@@ -1,0 +1,156 @@
+{
+  "schema": "openbook-release-result/1",
+  "release": "RB-20261020-01",
+  "plan_revision": 1,
+  "plan_sha256": "abffe5eb4afa2b40d1fd72d0668c412a874d993e1609852beff969579f296f91",
+  "source_commit": "8294358eabd121c92e926768f8fdffa8894b9638",
+  "build_authorization_comment": "01a15ab6-d813-746b-89f2-4884a7af9b03",
+  "attempt": 5,
+  "earlier_attempts": "1-4 stopped in test orchestration before image assembly; logs retained.",
+  "regression_evidence_reused": "Five passing suites from attempt 2, after exact source comparison.",
+  "image": {
+    "sha256": "7d0900ec13f41b08130ed99fc800f4739ab89ff8be6a046df908094a38220bc0",
+    "bytes": 12766412800,
+    "manifest_sha256": "c55d9df4eae1b18a49580be6e359faf221f31fbf73e41bf0ef197caaa991b23b",
+    "installer_source_pin_sha256": "06fe300915a6ad539ab95a0fdc442ac66682804f13c6c8d01ecfae9761e8537f",
+    "installer_initrd_sha256": "d570778a2f0a70b057030f877fd395d7d49fe5ef90c61950226300a745291a1e",
+    "installer_kernel_sha256": "4336c75fc1a6a58e7bda66cbe9f4042f88064e7abc93faaea9e2aceb19459561",
+    "base_image_sha256": "df793f2eed3a5c901659014c2ae368d8e5eeb3d504b514d46fc8c0c1959a7af4",
+    "corrected_input_image_sha256": "554fb78970f94d985c8be86f4b07c42c5f64ea9823eac33816a993a5d88dffe6",
+    "bootconfig_vbmeta_sizes": [
+      "4032"
+    ]
+  },
+  "build_verification": {
+    "metadata_rows": 7292,
+    "files_and_symlinks": 3464,
+    "all_inode_xattrs_identical": true,
+    "only_system_file_changed": "/system/lib64/libinputflinger.so",
+    "patch_bytes": 8,
+    "protected_ranges_identical": true,
+    "source_unchanged": true,
+    "experimental_ota_guard_included": false
+  },
+  "regression_tests": {
+    "unit-input-candidate-retained-profile": 8,
+    "unit-live": 11,
+    "unit-migration-package": 5,
+    "unit-migration": 15,
+    "unit-preserve-update": 11,
+    "input-replay": 12
+  },
+  "regression_test_total": 62,
+  "native_checks": 8,
+  "live": {
+    "elapsed_s": 760.6,
+    "boot_completed": true,
+    "usb_capture_finished": true,
+    "source_and_decoy_unchanged": true,
+    "runtime": {
+      "system_server_fatal_signal_count": 1,
+      "zygote_exit_events": 1,
+      "system_server_execmem_denial_seen": true
+    },
+    "capture_loss": {
+      "kernel_overruns": 0,
+      "failed_saves": 0,
+      "unsaved_bytes": 0
+    },
+    "additional_synthetic_wake_key": "Sent once during observation; interim screen remained inactive. Boot/setup evidence comes from captured logs."
+  },
+  "fresh_install": {
+    "elapsed_s": 493.6,
+    "boot_completed": true,
+    "firmware_boot_entry_created": true,
+    "source_and_decoy_unchanged": true,
+    "target_bytes": 1000000000000,
+    "userdata_partition_bytes": 995824238592,
+    "new_metadata_key_files": 4,
+    "runtime": {
+      "system_server_fatal_signal_count": 2,
+      "zygote_exit_events": 2,
+      "system_server_execmem_denial_seen": true
+    }
+  },
+  "restart": {
+    "seconds_requested": 300,
+    "boot_completed": true,
+    "usb_attached": false,
+    "metadata_keys_unchanged": true,
+    "metadata_key_files": 4,
+    "boot_identity_unchanged": true,
+    "source_sparse_map_unchanged": true,
+    "existing_serial_entry_used_for_observation": true,
+    "runtime": {
+      "system_server_fatal_signal_count": 1,
+      "zygote_exit_events": 1,
+      "system_server_execmem_denial_seen": true
+    }
+  },
+  "wrong_confirmation": {
+    "cancelled": true,
+    "target_unchanged": true,
+    "source_unchanged": true,
+    "decoy_unchanged": true
+  },
+  "normal_console_cancel": {
+    "normal_console_keyboard_cancel": true,
+    "screenshots_require_visual_review": true,
+    "source_unchanged": true,
+    "target_unchanged": true,
+    "decoy_unchanged": true
+  },
+  "console_visual_review": {
+    "complete": true,
+    "selection": "Fresh-install warning, total SSD replacement, exact synthetic target and Enter-to-cancel prompt are legible.",
+    "cancelled": "Power-off prompt is visible after Enter; test independently verifies all disk hashes unchanged."
+  },
+  "tool_sha256": {
+    "erofs-inventory": "48b55e2f040b97be9a8c2eccf9cd50863cff28a3bc938187d05096ac96416faf",
+    "qemu-system-x86_64": "35db71cb2178b665983472bb584f87505cf431f225a881149dba83de0350de8a",
+    "input-replay-native": "3c4862e6c159b825a0bae02e3af46b32802a274efe007bbd4b8e2411f72dae02",
+    "mkfs.erofs": "b254640c783f9626b81b90d483c35d0e998c42113ba1259d1f3f5accfd0dc8e0",
+    "fsck.erofs": "dd61160aa49a3d63da41ed2ff13e0e42be37d4a09a88f9d459002b2ca0cc2db7",
+    "avbtool": "e32e02591c36e4c2871578c3f57f377766b1366f84e6197b4cfb7f34c63fa6d5",
+    "lpmake": "28eb0383c8298bd4bbb6030e6f03e1a8679985e0ad3ecfb81a722868864d529e"
+  },
+  "replay_fixture": {
+    "source_commit": "6c2310952338e9f094a1aeb6a83f7356ff5d6042",
+    "source_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "binary_sha256": "3c08847ff788acb66a92b492a71bb022c26c9ead34d4a060b00fb8b6ef8705cf",
+    "source_and_local_diff_retained_privately": true
+  },
+  "evidence_sha256": {
+    "input/result.json": "7db11932a9b9801cef66caeecc79705fb9890c6724b449328190be9267e1b065",
+    "input-native.json": "01ada237e7b4e0c6dcd9d91bffd987fff4a28c4a9e6c24fb0b380e54e9713619",
+    "live/result.json": "0cea3c2aaa85babbcbb8c6d6e33b3e5a9912bb7b9efc61d7f1fb297e59da42fc",
+    "fresh/result.json": "842631042cb2839803c3f9c068c441148dc318328fbe2dbd66f2ee681a778a16",
+    "reboot/result.json": "4592ca2575e6ce989056f08a0d59ba0b93243c022a355738c31dbfb2bc1349dd",
+    "cancel/result.json": "b2da411c033977d1927abd2bf1eec5cf2b21cc800e1497f664de83af9674182c",
+    "console/result.json": "27533dd4757eb6b43e185ff9b0ee4f2ed6de271fe60146f901eeb1e14dc7e616",
+    "run.log": "9f0b9292dd69d90c6a33e41027b4513281c21bac423000b291cdd07ce0028929",
+    "console/console-selection.png": "185f3403deaa0d9617b675143e25e4766c6c5bd6f295b1507a141475f9057ed1",
+    "console/console-cancelled.png": "0095e17ad75577f63a46742aa56e5d982d67f65593d065b8cf4b1e5828ea3089"
+  },
+  "tool_container": "sha256:7217cade7ef1a3d027bdb97eeed388a63d23faf22f88adf7f2b2499d79db8049",
+  "installer_container": "sha256:d189a4b9e7f705be165070b730039214e81fd6dde6a21aca3c9c4700d8b58815",
+  "release_artifacts_retained_privately": true,
+  "physical_device_written": false,
+  "physical_hardware_tested": false,
+  "deployment_approved": false,
+  "limitations": [
+    "Synthetic VM validation does not qualify hardware stability or physical PIN unlock.",
+    "No current-laptop data-preserving update menu or encrypted-data expansion.",
+    "No automatic OTA containment/rollback or Bluetooth microphone/speaker-stutter fix.",
+    "Physical USB preparation needs its fresh backup and separate exact-device approval."
+  ],
+  "cleanup": {
+    "summary_file": "cleanup.json",
+    "disposable_vm_disks_removed_after_validation": true,
+    "scratch_trees_removed_after_validation": true,
+    "release_images_and_installer_retained": true,
+    "net_free_bytes_gained_during_cleanup": 49192886272,
+    "host_free_bytes_after": 74473484288
+  }
+}

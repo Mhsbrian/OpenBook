@@ -1,5 +1,14 @@
 # Hardware
 
+2026-10-20 release follow-up: RB-20261020-01 is a private synthetic candidate
+continuing Fresh28 with corrected AVB boot parameters and a new installer pin.
+Live boot and a full-capacity 1 TB fresh installation reach Android in offline
+QEMU; the known system-server crash recurs. No physical USB, G14, firmware or
+installed data was changed. No USB disk was attached at release preparation.
+The physical pointers below therefore remain camera25/migration26. Fresh
+stick backup, a preserving preparation, exact-device write approval and
+hardware acceptance are separate steps; see `release-control.md`.
+
 2026-10-20 fresh-install/audio follow-up: the owner reports **16 GB in Settings**,
 not 8 GB. A disposable Android test reproduces 8 GiB filesystem/16 GB reported
 capacity through Android's rounding; the absent laptop has not been remeasured.

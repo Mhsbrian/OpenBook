@@ -3,10 +3,20 @@
 ## Release coordination
 
 Use Multica **ANAL-232** as the central release index and approval desk.
-**ANAL-233 / RB-20261020-01** proposes the corrected Fresh28 successor; it has
-not been approved or built. See `release-control.md` for frozen inputs,
-automatic intake, build approval and separate device-write approval.
+**ANAL-233 / RB-20261020-01** holds the privately built corrected Fresh28
+successor, authorized by B Honey against unchanged plan v1. Source commit
+`8294358eabd121c92e926768f8fdffa8894b9638` rebuilds the normal input candidate
+and offline installer; the experimental OTA guard is excluded.
+See `release-control.md` for frozen inputs, automatic intake, storage cleanup
+and separate device-write approval. The hub/release record holds current
+validation and promotion state.
 Earlier Fresh28 readiness is superseded by ANAL-229's AVB size finding.
+The release does not provide a current-laptop data-preserving update or
+automatic rollback. Its synthetic image must not be flashed over a configured
+USB: prepare that later from the stick's fresh verified backup.
+Executed recipe and sanitized results:
+`evidence/2026-10-20-release-rb01/`. All required functional checks completed;
+the known VM crash remains explicit.
 
 ## Fresh28 SSD installer and audio diagnostic
 
