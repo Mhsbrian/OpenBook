@@ -1,5 +1,14 @@
 # Status
 
+## Release coordination — 2026-10-20
+
+Multica **ANAL-232** is the release hub; **ANAL-233 / RB-20261020-01** is the
+first proposed batch continuing ANAL-228. The build is awaiting approval.
+It includes corrected AVB boot parameters and a regenerated installer pin;
+Fresh28's old artifact is held. The experimental OTA guard and unfinished
+Bluetooth/audio fixes are excluded. No USB or laptop change is authorized.
+See `release-control.md`; the hub holds current operational state.
+
 ## 2026-10-20: Returned call diagnostic and SCO boundary test (ANAL-228)
 
 The returned Pixel Buds/Teams report confirms a system-visible missing headset
