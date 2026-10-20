@@ -1,5 +1,13 @@
 # Build and reproduce
 
+## Release coordination
+
+Use Multica **ANAL-232** as the central release index and approval desk.
+**ANAL-233 / RB-20261020-01** proposes the corrected Fresh28 successor; it has
+not been approved or built. See `release-control.md` for frozen inputs,
+automatic intake, build approval and separate device-write approval.
+Earlier Fresh28 readiness is superseded by ANAL-229's AVB size finding.
+
 ## Fresh28 SSD installer and audio diagnostic
 
 The returned call-report analysis and isolated SCO HAL probe are documented in
