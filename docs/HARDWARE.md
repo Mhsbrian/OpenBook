@@ -1,5 +1,12 @@
 # Hardware
 
+2026-10-20 OTA follow-up: the owner is using the installed G14 and reports normal
+app updates working. System OTA/rollback is the requested focus. The new backend
+guard is a disposable VM prototype; no laptop app, setting, disk or firmware has
+changed. A current paired ADB endpoint, installed-layout/snapshot capture and
+fresh recovery backup are still needed for a hardware trial. The existing AOSP
+A/B procedure does not establish Ruby rollback. See `googlebook-ota-guard.md`.
+
 2026-10-20 fresh-install/audio follow-up: the owner reports **16 GB in Settings**,
 not 8 GB. A disposable Android test reproduces 8 GiB filesystem/16 GB reported
 capacity through Android's rounding; the absent laptop has not been remeasured.

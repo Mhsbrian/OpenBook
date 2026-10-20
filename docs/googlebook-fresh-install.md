@@ -1,5 +1,12 @@
 # Googlebook fresh SSD installation (fresh28)
 
+Later ANAL-229 gate: this retained candidate inherits input27's stale AVB size
+in its boot parameters. Before hardware use, rebuild/repin corrected boot
+parameters, regenerate the offline installer source pin and repeat the rehearsal.
+The new source-pinning guard rejects the mismatch. Capacity/installer tests below
+remain evidence for those mechanisms, not approval of the old artifact.
+See `googlebook-ota-guard.md`.
+
 Prepared 2026-10-20 for the owner-requested fresh start on the G14's 1 TB NVMe.
 This is a new option alongside configured-USB migration. It is **not** an update
 of the currently installed laptop. No physical disk was accessed or written.

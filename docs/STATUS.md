@@ -1,5 +1,37 @@
 # Status
 
+## 2026-10-20: Ruby OTA guard implementation (ANAL-229)
+
+The owner requests system OTA control and rollback while continuing to use the
+installed G14; ordinary app updates are owner-reported working. An opt-in native
+update-engine delegate now refuses installation/activation requests while
+retaining real boot initialization, status callbacks and cleanup errors.
+The normal AOSP update target and product packages are unchanged.
+
+The disposable builder preserves filesystem metadata and data/GPT, signs and
+verifies the local AVB chain, and includes a bounded ordinary/stable Binder
+probe. VM-only shell permissions are strictly compiled and tested against
+unchanged ordinary-app/raw-data denials. Experimental clones cannot pass the
+physical writer or installer source gates. See `googlebook-ota-guard.md` and
+`evidence/2026-10-20-googlebook-ota-guard/` for results and limits.
+
+Both final VMs completed 760.7 seconds and passed all 24 IPC checks; initialized
+encryption keys remained unchanged. The fresh VM still records a system-server
+crash also seen in the baseline. The evidence retains an initial parser failure
+and its corrected evaluation of the same bytes. Native/policy checks and 77
+Python cases pass; this does not qualify stability or automatic rollback.
+
+Boot observation identified a stale AVB size in the earlier system reassembler.
+It now regenerates both digest and size and checks actual partition bytes before
+preparing an update or pinning an installer. Existing input27/fresh28 artifacts
+require refreshed boot parameters, new pins and a rehearsal before promotion.
+Installer replacement also validates the parent's new fresh-install entries.
+
+No physical device changed. Current-device/network/recovery containment,
+recoverable Ruby slots, interrupted physical writes and schema-aware data rollback
+remain open. A current paired G14 endpoint and fresh installed-state evidence
+are needed before a laptop trial.
+
 ## 2026-10-20: Returned call diagnostic and SCO boundary test (ANAL-228)
 
 The returned Pixel Buds/Teams report confirms a system-visible missing headset

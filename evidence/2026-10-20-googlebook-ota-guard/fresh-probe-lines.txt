@@ -1,0 +1,79 @@
+2563: Enforcing
+3912: Enforcing
+14424: PASS both Binder services registered
+14427: PASS guard identification
+14428: PASS harmless descriptor available
+14429: PASS ordinary URL apply
+14430: PASS ordinary FD apply
+14431: PASS stable FD apply
+14432: PASS ordinary postinstall[  371.676126][    T1] libprocessgroup: Created cgroup /sys/fs/cgroup/system/uid_1086
+14434: PASS stable postinstall
+14435: PASS resume
+14436: PASS suspend
+14437: PASS cancel
+14438: PASS reset status
+14439: PASS slot activation
+14440: PASS slot reset
+14442: PASS space allocation
+14443: PASS ordinary bind
+14444: PASS ordinary status callback
+14445: PASS stable bind
+14446: PASS stable status callback
+14447: PASS ordinary unbind
+14448: PASS stable unbind
+14450: PASS real cleanup accepted
+14461: PASS real cleanup callback received
+14462: PASS real cleanup succeeded on quiescent VM
+14463: [  371.861140][    T1] init: Service 'openbook.ota-guard-probe' (pid 4880) exited with status 0 oneshot service took 0.350000 seconds in background
+14553: OPENBOOK_RUBY_BOOT_COMPLETED=1
+16015: OPENBOOK_RUBY_BOOT_COMPLETED=1
+20775: PASS both Binder services registered
+20776: PASS guard identification
+20777: PASS harmless descriptor available
+20778: PASS ordinary URL apply
+20779: PASS ordinary FD apply
+20780: PASS stable FD apply
+20781: PASS ordinary postinstall
+20782: PASS stable postinstall
+20783: PASS resume
+20784: PASS suspend
+20785: PASS cancel
+20786: PASS reset status
+20787: PASS slot activation
+20788: PASS slot reset
+20789: PASS space allocation
+20790: PASS ordinary bind
+20791: PASS ordinary status callback
+20792: PASS stable bind
+20793: PASS stable status callback
+20794: PASS ordinary unbind
+20795: PASS stable unbind
+20797: PASS real cleanup accepted
+20798: PASS real cleanup callback received
+20799: PASS real cleanup succeeded on quiescent VM
+20802: [  574.974074][    T1] init: Service 'openbook.ota-guard-probe' (pid 10254) exited with status 0 oneshot service took 0.321000 seconds in background
+22336: PASS both Binder services registered
+22340: PASS guard identification
+22341: PASS harmless descriptor available
+22342: PASS ordinary URL apply
+22343: PASS ordinary FD apply
+22345: PASS stable FD apply
+22346: PASS ordinary postinstall
+22347: PASS stable postinstall
+22348: PASS resume
+22349: PASS suspend
+22350: PASS cancel
+22351: PASS reset status
+22352: PASS slot activation
+22353: PASS slot reset
+22354: PASS space allocation
+22355: PASS ordinary bind
+22356: PASS ordinary status callback
+22357: PASS stable bind
+22358: PASS stable status callback
+22359: PASS ordinary unbind
+22360: PASS stable unbind
+22361: PASS real cleanup accepted
+22362: PASS real cleanup callback received
+22363: PASS real cleanup succeeded on quiescent VM
+22364: [  724.565276][    T1] init: Service 'openbook.ota-guard-probe' (pid 13678) exited with status 0 oneshot service took 0.201000 seconds in background

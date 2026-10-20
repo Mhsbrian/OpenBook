@@ -1,0 +1,13 @@
+libsepol.policydb_index_others: security:  1 users, 2 roles, 2682 types, 0 bools
+libsepol.policydb_index_others: security: 1 sens, 1024 cats
+libsepol.policydb_index_others: security:  108 classes, 47939 rules, 0 cond rules
+PASS u:r:shell:s0 -> u:r:update_engine:s0 binder:call allowed=1 expected=1
+PASS u:r:update_engine:s0 -> u:r:shell:s0 binder:call allowed=1 expected=1
+PASS u:r:shell:s0 -> u:r:update_engine:s0 fd:use allowed=1 expected=1
+PASS u:r:update_engine:s0 -> u:r:shell:s0 fd:use allowed=1 expected=1
+PASS u:r:gmscore_app:s0:c512,c768 -> u:r:update_engine:s0 binder:call allowed=1 expected=1
+PASS u:r:system_app:s0 -> u:r:update_engine:s0 binder:call allowed=1 expected=1
+PASS u:r:system_server:s0 -> u:r:update_engine:s0 binder:call allowed=1 expected=1
+PASS u:r:untrusted_app:s0:c147,c256,c522,c768 -> u:r:update_engine:s0 binder:call allowed=0 expected=0
+PASS u:r:shell:s0 -> u:object_r:system_file:s0 file:entrypoint allowed=0 expected=0
+PASS u:r:shell:s0 -> u:object_r:userdata_block_device:s0 blk_file:write allowed=0 expected=0

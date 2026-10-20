@@ -1,0 +1,29 @@
+2565: Enforcing
+3892: Enforcing
+8401: PASS both Binder services registered
+8403: PASS guard identification
+8404: PASS harmless descriptor available
+8405: PASS ordinary URL apply
+8406: PASS ordinary FD apply
+8407: PASS stable FD apply
+8408: PASS ordinary postinstall
+8409: PASS stable postinstall
+8410: PASS resume
+8411: PASS suspend
+8412: PASS cancel
+8413: PASS reset status
+8414: PASS slot activation
+8415: PASS slot reset
+8416: PASS space allocation
+8419: PASS ordinary bind
+8420: PASS ordinary status callback[  201.634075][ T2760] servicemanager: Caller(pid=808,uid=1000,sid=u:r:system_server:s0) Tried to start aidl service android.hardware.biometrics.face.virtualhal.IVirtualHal/virtual as a lazy service, but was unable to. Usually this happens when a service is not installed, but if the service is intended to be used as a lazy service, then it may be configured incorrectly.
+8422: PASS stable bind
+8423: PASS stable status callback
+8424: PASS ordinary unbind
+8425: PASS stable unbind
+8427: PASS real cleanup accepted
+8428: PASS real cleanup callback received
+8429: PASS real cleanup succeeded on quiescent VM
+8433: [  201.667911][    T1] init: Service 'openbook.ota-guard-probe' (pid 2755) exited with status 0 oneshot service took 0.211000 seconds in background
+8640: OPENBOOK_RUBY_BOOT_COMPLETED=1
+10292: OPENBOOK_RUBY_BOOT_COMPLETED=1

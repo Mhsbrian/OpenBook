@@ -133,9 +133,33 @@ def compatible(old, new):
         for key in ("androidboot.selinux", "androidboot.veritymode"):
             if before.get(key) != "enforcing" or after.get(key) != "enforcing":
                 raise ValueError("Requires enforcing boot")
-        allowed = {"androidboot.boot_part_uuid", "androidboot.vbmeta.digest"}
+        allowed = {"androidboot.boot_part_uuid", "androidboot.vbmeta.digest", "androidboot.vbmeta.size"}
         if {k: v for k, v in before.items() if k not in allowed} != {k: v for k, v in after.items() if k not in allowed}:
             raise ValueError("Boot identity/security parameters changed")
+
+
+def verify_vbmeta_bootconfig(image, table, entries):
+    """Check this hybrid's single-root AVB digest/size, not signing authority."""
+    if not entries:
+        raise ValueError("Missing bootconfig entries")
+    row = next(r for r in table if r["name"] == "vbmeta_a")
+    offset, capacity = extent(row)
+    with image.open("rb") as f:
+        f.seek(offset); header = f.read(256)
+        if len(header) != 256 or header[:4] != b"AVB0":
+            raise ValueError("Unsupported vbmeta header")
+        size = 256 + sum(struct.unpack_from(">QQ", header, 12))
+        if not 256 <= size <= capacity:
+            raise ValueError("Invalid vbmeta size")
+        f.seek(offset); data = f.read(size)
+    if len(data) != size:
+        raise ValueError("Truncated vbmeta")
+    digest = hashlib.sha256(data).hexdigest()
+    for params in entries.values():
+        if params.get("androidboot.vbmeta.size") != str(size):
+            raise ValueError("Bootconfig vbmeta size differs from image")
+        if params.get("androidboot.vbmeta.hash_alg") != "sha256" or params.get("androidboot.vbmeta.digest") != digest:
+            raise ValueError("Bootconfig vbmeta digest differs from image")
 
 
 def split_initrd(data):
@@ -163,7 +187,7 @@ def protected_ranges(table, size):
         yield cursor, size - cursor
 
 
-def prepare(snapshot, snapshot_sha, base, candidate, out):
+def prepare(snapshot, snapshot_sha, base, candidate, out, *, experiment_validator=None):
     snapshot = regular(snapshot)
     image = regular(candidate / "ruby-live.img")
     old = json.loads(regular(base).read_text())
@@ -175,7 +199,14 @@ def prepare(snapshot, snapshot_sha, base, candidate, out):
     table = read_gpt(snapshot)
     verify_manifest(old, table, snapshot.stat().st_size)
     verify_manifest(new, read_gpt(image), image.stat().st_size)
-    compatible(old, new)
+    if experiment_validator is None:
+        compatible(old, new)
+    else:
+        # Internal VM API only, deliberately absent from the CLI. Its output
+        # uses a different schema, rejected by the physical apply validator.
+        experiment_validator(old, new)
+    verify_vbmeta_bootconfig(snapshot, table, old["entries"])
+    verify_vbmeta_bootconfig(image, new["gpt"], new["entries"])
     for src, manifest, rows in ((snapshot, old, table), (image, new, new["gpt"])):
         for row in rows:
             if row["name"] in (*BOOT, "super", "vbmeta_a"):
@@ -183,7 +214,8 @@ def prepare(snapshot, snapshot_sha, base, candidate, out):
                     raise ValueError(f"System partition differs from manifest: {row['name']}")
     w = h.new_output(out, (snapshot.parent, candidate))
     w.chmod(0o700)
-    report = {"schema": "openbook-ruby-preserving-update/1", "complete": False,
+    report = {"schema": ("openbook-ruby-experimental-clone/1" if experiment_validator
+                         else "openbook-ruby-preserving-update/1"), "complete": False,
               "backup_sha256": snapshot_sha, "candidate_sha256": new["image_sha256"],
               "physical_device_written": False, "data_unlock_verified": False}
     (w / "update.json").write_text(json.dumps(report, indent=2) + "\n")
@@ -269,7 +301,9 @@ def prepare(snapshot, snapshot_sha, base, candidate, out):
     report.update(complete=True, image_sha256=updated["image_sha256"], writes=writes,
                   protected=protected, sources_unchanged=True, unrelated_esp_files_unchanged=True)
     (w / "update.json").write_text(json.dumps(report, indent=2) + "\n")
-    print("Verified private updated clone; physical USB unchanged. G14 unlock still requires testing.")
+    print("Verified disposable clone; physical writer rejects this experimental plan."
+          if experiment_validator else
+          "Verified private updated clone; physical USB unchanged. G14 unlock still requires testing.")
 
 
 def main():

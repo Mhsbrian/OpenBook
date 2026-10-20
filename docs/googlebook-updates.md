@@ -10,6 +10,14 @@ first. Do not enable unattended OS updates or deliver stock OTAs to this
 single-slot hybrid.** An app can later show status and request approval.
 Universal automatic AMD patching is not supported by the evidence.
 
+Implementation follow-up: the owner reports ordinary app updates working and
+requests system OTA/rollback work while using the installed G14.
+`googlebook-ota-guard.md` documents the opt-in native installation guard,
+preserved real cleanup, disposable Binder harness and current qualification
+results. No containment has been installed on the laptop. This supersedes
+engine stopping as the implementation direction; the negative results below
+remain part of the evidence.
+
 The prototype implements signed review/staging, retained-build inventory,
 read-only runtime capture, and reviewed installer replacement. An optional
 init fragment experiments with suppressing `update_engine` auto-start.

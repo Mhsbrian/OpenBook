@@ -1,5 +1,19 @@
 # Build and reproduce
 
+## Ruby OTA guard prototype (ANAL-229)
+
+`googlebook-ota-guard.md` documents the opt-in native backend, disposable image
+builder, Binder probe and encrypted-data rehearsal. It preserves real updater
+cleanup while refusing installation requests. The ordinary AOSP updater and
+product packages are unchanged. VM test permissions and images are explicitly
+ineligible for hardware; installer packaging and the physical writer reject them.
+
+The shared system reassembler now regenerates and verifies both AVB boot digest
+and unpadded size. Older input27/fresh28 candidates need corrected boot parameters
+and new pins/rehearsals before promotion. Installer replacement now accepts the
+reviewed legacy two-entry layout or fresh28's four-entry layout and validates
+all managed menu contents, including erase options.
+
 ## Fresh28 SSD installer and audio diagnostic
 
 The returned call-report analysis and isolated SCO HAL probe are documented in

@@ -1,0 +1,19 @@
+PASS URL install
+PASS FD install rejected without reading the descriptor
+PASS postinstall
+PASS suspend
+PASS resume
+PASS cancel
+PASS reset status
+PASS verification rejected without reading a file
+PASS slot activation
+PASS slot reset
+PASS allocation error return contract
+PASS allocation rejected before backend state changes
+PASS null error pointer still refuses
+PASS real cleanup and callback identity
+PASS no fabricated completion before real cleanup
+PASS real progress, failure completion and death callback
+PASS callback lifetime retained
+PASS immediate cleanup failure preserved
+PASS no installation backend calls across all methods

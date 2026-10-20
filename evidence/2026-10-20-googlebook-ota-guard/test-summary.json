@@ -1,0 +1,21 @@
+{
+  "python_suites": {
+    "candidate-tests.txt": 5,
+    "capture-tests.txt": 8,
+    "input-tests.txt": 8,
+    "live-tests.txt": 11,
+    "migration-tests.txt": 15,
+    "package-tests.txt": 5,
+    "preservation-tests.txt": 11,
+    "staging-tests.txt": 14
+  },
+  "python_test_cases": 77,
+  "native_guard_assertions": 19,
+  "policy_baseline_assertions": 10,
+  "policy_harness_assertions": 10,
+  "final_vm_unique_ipc_assertions_each": 24,
+  "baseline_policy_scope": "full contexts, baseline/harness access controls",
+  "final_harness_policy_sha256": "3dde9afa670fabeeb4c569c05a1d636f5203ebb289e3e979787e174ac0156d5f",
+  "policy_harness_matches_tested_v2": true,
+  "physical_device_written": false
+}
