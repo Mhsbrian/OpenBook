@@ -2,6 +2,14 @@
 
 ## Fresh28 SSD installer and audio diagnostic
 
+The returned call-report analysis and isolated SCO HAL probe are documented in
+`googlebook-audio-diagnostic.md` and
+`evidence/2026-10-20-googlebook-hfp29/README.md`. Build the explicit test target
+with `AOSP_JOBS=20 scripts/aosp-docker.sh /repo/scripts/aosp-build.sh
+anybook_g14_x86_64-cp2a-userdebug openbook-hfp-hal-test`. It is never installed in
+a product. The alternate SCO XML is a VM candidate, deliberately excluded from
+`pc.mk` pending USB voice transport integration; fresh28 remains unchanged.
+
 `googlebook-fresh-install.md` describes the new USB fresh-install option, which
 retains input27's system and creates new encrypted data storage across the remaining
 NVMe capacity after exact erase confirmation. It is separate from preserving an

@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-20",
+  "files": {
+    "hardware/interfaces/audio/aidl/default/bluetooth/DevicePortProxy.cpp": "93af6971653dbdacc721f951c273354eb6757f859861fbc2709161461f886058",
+    "hardware/interfaces/audio/aidl/default/bluetooth/ModuleBluetoothBase.cpp": "fed528ad74f62cd9ae4ab06ded5fa048173a2ff6e5d8c3f8c43301a64a097e26",
+    "hardware/interfaces/bluetooth/aidl/default/BluetoothHci.cpp": "20b253987d3c7846ed16ceaedbf119f01763b200d2110c6b78929c16ec096120",
+    "hardware/interfaces/bluetooth/aidl/default/net_bluetooth_mgmt.cpp": "2e76e9a3be1fcd543ec9a349a514c00f38a2885e7c598e0e0a2fc188c32e47c4",
+    "hardware/interfaces/bluetooth/hci/h4_protocol.cc": "777945a17a4d49ae2ce75b4ccba31a7e51f37e4b3f710a5c29a30e2ca09d1e0e",
+    "hardware/interfaces/bluetooth/hci/hci_packetizer.cc": "2be583483cfe6687ad548d7b3289177cd89dc08feb5466c3e1cf3d9a5f2e0f74",
+    "kernel/common/net/bluetooth/hci_core.c": "ac314f2dca9749932e08fbb2b2643828e0db2d8564e0359ef40a1d9beb953fb6",
+    "kernel/common/net/bluetooth/hci_drv.c": "d52f081b2fd40af0a4fa80c2d80570638f95b5ae3b857e16b55821414a84bbb8",
+    "kernel/common/drivers/bluetooth/btusb.c": "47dbcfe9dd37b7bf67149ac6feb9c002fc784fc0bcfe2d06b1f2c740093b56a8",
+    "kernel/common/include/net/bluetooth/hci_drv.h": "d892fa826939e9c640649a9831ead9331859e0d6077aa074ae5993b550ed43a2"
+  },
+  "hardware_interfaces_commit": "d41643629491b67274c1c5092518adfab51a2ff9",
+  "kernel_commit": "fbfdd65b0fd1d020a560c54988cdccaec73a6b0a",
+  "retained_bluetooth_service_sha256": "feab440cfdfe797b2343c55fb10c76549eb31112ee69d2b2f556f5915919e014",
+  "retained_audio_apex_sha256": "dca81a647aa21f6d91f2d7250b00a775b6ab6403cd040a2ded3ce49bcca2fa03",
+  "audio_binary_contains_device_clock_property": true,
+  "older_hardware_property_pacing": "false",
+  "current_call_property_measured": false,
+  "usb_voice_endpoint_driver_protocol_in_hal": false,
+  "hardware_transfer_tested": false,
+  "physical_devices_written": false
+}

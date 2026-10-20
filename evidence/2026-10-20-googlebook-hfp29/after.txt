@@ -1,0 +1,7 @@
+PASS rate=8000 direction=output ports=3
+PASS rate=8000 direction=input ports=1
+PASS rate=16000 direction=output ports=3
+PASS rate=16000 direction=input ports=1
+PASS rate=32000 direction=output ports=3
+PASS rate=32000 direction=input ports=1
+PASS 12 SCO route/stream cases; synthetic stack, no RF or call audio

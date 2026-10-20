@@ -1,0 +1,16 @@
+{
+  "audio_apex_sha256": "dca81a647aa21f6d91f2d7250b00a775b6ab6403cd040a2ded3ce49bcca2fa03",
+  "baseline_missing_sco": true,
+  "policy_sha256": "2e5f3b6e5b74331279575e8b6d7bc793d65a74338d67254466b2391ff92478f4",
+  "probe_sha256": "5616110ee8ed7f05c369b14a9c0f8b16073c781159b66978c803c4b648a67153",
+  "stream_cases": 12,
+  "hfp_rates": [
+    8000,
+    16000,
+    32000
+  ],
+  "enforcing": true,
+  "synthetic_stack": true,
+  "physical_radio_tested": false,
+  "audio_frames_tested": false
+}

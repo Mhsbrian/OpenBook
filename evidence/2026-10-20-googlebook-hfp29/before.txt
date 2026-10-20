@@ -1,0 +1,1 @@
+FAIL SCO control interface exposed
