@@ -8,6 +8,10 @@ It includes corrected AVB boot parameters and a regenerated installer pin;
 Fresh28's old artifact is held. The experimental OTA guard and unfinished
 Bluetooth/audio fixes are excluded. No USB or laptop change is authorized.
 See `release-control.md`; the hub holds current operational state.
+Project instructions route new/resumed tasks; the read-only release intake
+census catches older work and later revisions before plan/build decisions.
+It reports discovery and watch coverage, not image qualification. The PR
+handoff template takes effect after it lands on the default branch.
 
 ## 2026-10-20: Returned call diagnostic and SCO boundary test (ANAL-228)
 
