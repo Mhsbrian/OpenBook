@@ -29,12 +29,70 @@ SERVICE_PROFILE = REPO / "config/image-bases/ruby-framework-services.txt"
 DESKTOP_POLICY = REPO / "config/image-bases/ruby-desktop-services.cil"
 PC_INIT = REPO / "config/image-bases/ruby-pc-init.rc"
 ZRAM_INIT = REPO / "device/anybook/common/pc/init.openbook.zram.rc"
+CAMERA_SOURCE = REPO / "device/anybook/common/pc/camera"
+CAMERA_FILES = (
+    "bin/hw/android.hardware.camera.provider-V1-external-service",
+    "etc/init/android.hardware.camera.provider-V1-external-service.rc",
+    "etc/vintf/manifest.xml",
+    "etc/external_camera_config.xml",
+    "etc/permissions/android.hardware.camera.external.xml",
+    "lib64/android.hardware.camera.provider-V1-external-impl.so",
+    "lib64/camera.device-external-impl.so",
+    "etc/selinux/vendor_service_contexts",
+)
 PARTS = ("system", "system_ext", "product", "vendor", "odm")
 
 
 def sha(path):
     with path.open("rb") as f:
         return hashlib.file_digest(f, "sha256").hexdigest()
+
+
+def camera_contract(vendor):
+    """Fail before packaging a webcam image with a missing provider or access rule.
+
+    VINTF, policy compilation and a guest boot still validate the native ABI and
+    service startup. This only verifies the required PC integration inputs.
+    """
+    missing = [name for name in CAMERA_FILES if not (vendor / name).is_file()]
+    if missing:
+        raise ValueError(f"Rebuild the PC vendor with camera support; missing {missing}")
+    manifest = ET.parse(vendor / "etc/vintf/manifest.xml").getroot()
+    hals = [h for h in manifest.findall("hal") if h.findtext("name") == "android.hardware.camera.provider"]
+    # assemble_vintf normalizes source <interface> entries to <fqname>.
+    instances = set()
+    for hal in hals:
+        instances.update(e.text for e in hal.findall("fqname"))
+        instances.update(f"{i.findtext('name')}/{e.text}" for i in hal.findall("interface")
+                         for e in i.findall("instance"))
+    if len(hals) != 1 or hals[0].get("format") != "aidl" or \
+            hals[0].findtext("name") != "android.hardware.camera.provider" or \
+            ([v.text for v in hals[0].findall("version")] or ["1"]) != ["1"] or \
+            instances != {"ICameraProvider/external/0"}:
+        raise ValueError("Unexpected external camera VINTF contract")
+    config = ET.parse(vendor / "etc/external_camera_config.xml").getroot()
+    ignored = config.find("Provider/ignore")
+    if ignored is None or list(ignored):
+        raise ValueError("PC webcam must not exclude boot-assigned video node numbers")
+    rules = [line.split() for line in (vendor / "etc/ueventd.rc").read_text().splitlines()
+             if line.strip().startswith("/dev/video")]
+    if rules != [["/dev/video*", "0660", "root", "camera"]]:
+        raise ValueError("Camera video nodes must be restricted to root:camera 0660")
+    name = "android.hardware.camera.provider.ICameraProvider/external/0"
+    labels = [line.split() for line in (vendor / "etc/selinux/vendor_service_contexts").read_text().splitlines()
+              if line.split() and line.split()[0] == name]
+    if labels != [[name, "u:object_r:hal_camera_service:s0"]]:
+        raise ValueError("External camera service needs the exact hal_camera_service label")
+    features = {e.get("name") for e in ET.parse(
+        vendor / "etc/permissions/android.hardware.camera.external.xml").getroot().findall("feature")}
+    if not {"android.hardware.camera.any", "android.hardware.camera.external"}.issubset(features):
+        raise ValueError("Missing external camera framework features")
+    if sha(vendor / "etc/external_camera_config.xml") != sha(CAMERA_SOURCE / "external_camera_config.xml"):
+        raise ValueError("Rebuild vendor: camera configuration differs from the reviewed source")
+    return {"provider": name,
+            "files": {name: sha(vendor / name) for name in CAMERA_FILES},
+            "video_node_access": "0660 root camera", "ignored_video_nodes": [],
+            "physical_capture_validated": False}
 
 
 def kernel_release(path):
@@ -157,6 +215,9 @@ class Audit:
     def inventory(self, trees):
         files = {POLICY_PROFILE, PROBE_POLICY, SERVICE_PROFILE, ZRAM_INIT, DESKTOP_POLICY, PC_INIT,
                  self.a.ruby / "fs/system_a/system/etc/init/timberslide.rc"}
+        files.update(CAMERA_SOURCE.glob("*"))
+        files.update(self.a.product / "vendor" / name for name in CAMERA_FILES)
+        files.update((self.a.product / "vendor/lib64").glob("*camera*.so"))
         for maps in trees:
             for root in maps.values():
                 files.update(p for sub in ("etc/vintf", "etc/selinux", "apex")
@@ -271,6 +332,7 @@ class Audit:
 
     def run(self):
         a = self.a
+        camera = camera_contract(a.product / "vendor")
         empty = a.out / "empty"
         empty.mkdir()
         ruby = {"system": a.ruby / "fs/system_a/system", "system_ext": a.ruby / "fs/system_ext_a",
@@ -285,6 +347,7 @@ class Audit:
         apex_records = {n: self.apexes(m, apex_roots[n]) for n, m in (("ruby", ruby), ("openbook", openbook))}
         hybrid = {**ruby, "vendor": openbook["vendor"], "odm": openbook["odm"]}
         report = {"schema": "openbook-googlebook-compat-audit/1", "installable": False,
+                  "camera": camera,
                   "scope": "Static local-tree checks; no boot, signature trust, runtime ABI or licensing assertion",
                   "tools": {n: sha(a.tools / n) for n in ("checkvintf", "secilc", "deapexer")},
                   "properties": {n: {p: properties(root) for p, root in m.items()} for n, m in (("ruby", ruby), ("openbook", openbook))},

@@ -131,6 +131,9 @@ $(call inherit-product, hardware/interfaces/audio/aidl/default/audio_effects.mk)
 # Wi-Fi: AOSP's wpa_supplicant and wificond on the laptop's mac80211 driver, no vendor Wi-Fi HAL (wifi/wifi.mk).
 $(call inherit-product, device/anybook/common/pc/wifi/wifi.mk)
 
+# UVC cameras need an Android provider in addition to the built-in kernel driver.
+$(call inherit-product, device/anybook/common/pc/camera/camera.mk)
+
 # Bluetooth: AOSP's AIDL HAL over the kernel's HCI user channel (btusb + btmtk on the G14). The profiles a laptop
 # uses: audio out (A2DP source, AVRCP), keyboards and mice (HID host), LE (GATT), battery levels, file transfer,
 # tethering to a phone (PANU). No HFP gateway yet: it needs the HAL's SCO audio path, untested. Class of device:

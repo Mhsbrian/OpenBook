@@ -23,6 +23,69 @@ probe = load("probe_test", "hybrid-probe.py")
 
 
 class Guards(unittest.TestCase):
+    def camera_vendor(self, root):
+        for name in audit.CAMERA_FILES:
+            p = root / name; p.parent.mkdir(parents=True, exist_ok=True); p.write_text("fixture")
+        (root / "etc/vintf/manifest.xml").write_text((audit.CAMERA_SOURCE / "manifest.xml").read_text())
+        (root / "etc/external_camera_config.xml").write_text((audit.CAMERA_SOURCE / "external_camera_config.xml").read_text())
+        (root / "etc/ueventd.rc").write_text("/dev/video* 0660 root camera\n")
+        (root / "etc/selinux/vendor_service_contexts").write_text(
+            "android.hardware.camera.provider.ICameraProvider/external/0 u:object_r:hal_camera_service:s0\n")
+        (root / "etc/permissions/android.hardware.camera.external.xml").write_text(
+            '<permissions><feature name="android.hardware.camera.any"/>'
+            '<feature name="android.hardware.camera.external"/></permissions>')
+
+    def test_camera_accepts_source_and_assembled_vintf(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td); self.camera_vendor(root)
+            self.assertFalse(audit.camera_contract(root)["physical_capture_validated"])
+            p = root / "etc/vintf/manifest.xml"
+            p.write_text('<manifest><hal format="aidl"><name>android.hardware.camera.provider</name>'
+                         '<fqname>ICameraProvider/external/0</fqname></hal></manifest>')
+            self.assertEqual(len(audit.camera_contract(root)["files"]), len(audit.CAMERA_FILES))
+
+    def test_camera_rejects_missing_service(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td); self.camera_vendor(root); (root / audit.CAMERA_FILES[0]).unlink()
+            with self.assertRaisesRegex(ValueError, "missing"):
+                audit.camera_contract(root)
+
+    def test_camera_rejects_unprotected_video_nodes(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td); self.camera_vendor(root)
+            (root / "etc/ueventd.rc").write_text("/dev/video* 0666 root root\n")
+            with self.assertRaisesRegex(ValueError, "restricted"):
+                audit.camera_contract(root)
+
+    def test_camera_rejects_ignored_boot_assigned_nodes(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td); self.camera_vendor(root); p = root / "etc/external_camera_config.xml"
+            p.write_text(p.read_text().replace("<ignore />", "<ignore><id>0</id></ignore>"))
+            with self.assertRaisesRegex(ValueError, "exclude"):
+                audit.camera_contract(root)
+
+    def test_camera_rejects_wrong_provider_instance(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td); self.camera_vendor(root); p = root / "etc/vintf/manifest.xml"
+            p.write_text(p.read_text().replace("external/0", "internal/0"))
+            with self.assertRaisesRegex(ValueError, "VINTF"):
+                audit.camera_contract(root)
+
+    def test_camera_rejects_stale_or_changed_stream_config(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td); self.camera_vendor(root); p = root / "etc/external_camera_config.xml"
+            p.write_text(p.read_text().replace('enabled="false"', 'enabled="true"'))
+            with self.assertRaisesRegex(ValueError, "reviewed source"):
+                audit.camera_contract(root)
+
+    def test_camera_rejects_missing_or_default_service_label(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td); self.camera_vendor(root); p = root / "etc/selinux/vendor_service_contexts"
+            for label in ("", "android.hardware.camera.provider.ICameraProvider/external/0 u:object_r:default_android_service:s0\n"):
+                p.write_text(label)
+                with self.assertRaisesRegex(ValueError, "hal_camera_service label"):
+                    audit.camera_contract(root)
+
     def test_desktop_contract_rejects_new_permission_and_membership(self):
         original = "(type a)\n(typeattributeset service_manager_type (a b))\n"
         audit.validate_desktop_policy(original, "(type a)\n(typeattributeset service_manager_type (a))\n")

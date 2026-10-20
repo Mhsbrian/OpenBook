@@ -28,6 +28,27 @@ class LiveGuards(unittest.TestCase):
                      "OPENBOOK_RUBY_BOOT_COMPLETED=1\n"):
             self.assertTrue(observation.boot_completed_reported(text))
 
+    def test_camera_registration_does_not_imply_camera_enumeration(self):
+        state = observation.runtime_findings(
+            "init.svc.vendor.camera.provider-ext=running\n"
+            "Service android.hardware.camera.provider.ICameraProvider/external/0: found\n"
+            "Number of camera devices: 0\n")
+        self.assertTrue(state["camera_provider_running_reported"])
+        self.assertTrue(state["camera_provider_registered_reported"])
+        self.assertEqual(state["camera_device_counts_reported"], [0])
+        state = observation.runtime_findings(
+            "echo init.svc.vendor.camera.provider-ext=running\n"
+            "Service android.hardware.camera.provider.ICameraProvider/external/0: not found\n")
+        self.assertFalse(state["camera_provider_running_reported"])
+        self.assertFalse(state["camera_provider_registered_reported"])
+        self.assertEqual(state["camera_device_counts_reported"], [])
+        state = observation.runtime_findings(
+            "Service 'vendor.camera.provider-ext' (pid 487) received SIGABRT\n"
+            "avc: denied { add } name=android.hardware.camera.provider.ICameraProvider/external/0 "
+            "tcontext=u:object_r:default_android_service:s0\n")
+        self.assertTrue(state["camera_provider_abort_seen"])
+        self.assertTrue(state["camera_provider_default_label_denial_seen"])
+
     def test_boot_uuid_replaces_pci_path_without_changing_input(self):
         conf = {"androidboot.boot_devices": "pci0000:00/0000:00:04.0",
                 "androidboot.selinux": "enforcing", "androidboot.veritymode": "enforcing"}

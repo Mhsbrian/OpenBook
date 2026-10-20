@@ -158,6 +158,9 @@ def prepare(a):
         raise ValueError("Rerun the audit to include Ruby's TPM ownership configuration")
     if "$REPO/device/anybook/common/pc/init.openbook.zram.rc" not in report["input_inventory"]:
         raise ValueError("Rerun the audit to include the GKI zram module loader")
+    camera = audit.camera_contract(a.product / "vendor")
+    if report.get("camera") != camera:
+        raise ValueError("Rerun the audit to include the built PC camera provider")
     for required in ("$REPO/config/image-bases/ruby-desktop-services.cil",
                      "$REPO/config/image-bases/ruby-pc-init.rc",
                      "$RUBY/fs/system_a/system/etc/init/timberslide.rc"):
@@ -270,6 +273,9 @@ echo OPENBOOK_RUBY_CHECKPOINT=$checkpoint
 id
 getenforce
 echo OPENBOOK_RUBY_BOOT_COMPLETED=$(getprop sys.boot_completed)
+echo init.svc.vendor.camera.provider-ext=$(getprop init.svc.vendor.camera.provider-ext)
+timeout 8 service check android.hardware.camera.provider.ICameraProvider/external/0
+timeout 8 dumpsys media.camera
 service list
 echo OPENBOOK_RUBY_PROBE_DISKS
 ls -l /dev/block/by-name
@@ -301,6 +307,7 @@ done
     label_tests = w / "file-context-tests.txt"
     label_tests.write_text("/vendor vendor_file\n/vendor/etc/ueventd.rc vendor_configs_file\n"
                            "/vendor/apex vendor_apex_file\n/vendor/bin/ruby-usb-log ruby_usb_log_exec\n"
+                           "/vendor/bin/hw/android.hardware.camera.provider-V1-external-service hal_camera_default_exec\n"
                            "/vendor/firmware openbook_vendor_fw_file\n"
                            "/vendor/firmware/amdgpu/psp_14_0_0_toc.bin openbook_vendor_fw_file\n")
     with (w / "file-context-tests.log").open("wb") as log:
@@ -383,6 +390,7 @@ done
               "vendor_cmdline": vendor_cmdline,
               "wifi_overlay": wifi,
               "zram_init_sha256": audit.sha(audit.ZRAM_INIT),
+              "camera": camera,
               "bootconfig": params, "gpt": g.table(),
               "avb": "local test-key root, unlocked/orange; retained Google logical image descriptors",
               "usb_logger_sha256": audit.sha(vendor / "bin/ruby-usb-log"),

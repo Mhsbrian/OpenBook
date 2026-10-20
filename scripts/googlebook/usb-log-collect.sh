@@ -31,7 +31,8 @@ for checkpoint in $(seq 1 36); do
     ls -l /dev/snd
     for prop in sys.boot_completed init.svc.wpa_supplicant init.svc.wifi_mainline_supplicant \
         init.svc.audioserver init.svc.ruby-usb-log init.svc.vendor.openbook.zram \
-        init.svc.mmd_setup init.svc.mmd mmd.zram.enabled mmd.setup_complete; do
+        init.svc.mmd_setup init.svc.mmd mmd.zram.enabled mmd.setup_complete \
+        init.svc.vendor.camera.provider-ext; do
         echo "$prop=$(getprop "$prop")"
     done
     ps -AZ
@@ -46,7 +47,10 @@ for checkpoint in $(seq 1 36); do
         echo "=== resource $resource ==="
         service_dump timeout 8 cmd overlay lookup --user 0 com.google.android.wifi.resources "com.google.android.wifi.resources:bool/$resource"
     done
-    for service in wifi connectivity audio media.audio_flinger media.audio_policy; do
+    # Camera metadata/status only: never open a stream or save webcam frames.
+    ls -lZ /dev/video*
+    service_dump timeout 8 service check android.hardware.camera.provider.ICameraProvider/external/0
+    for service in wifi connectivity audio media.audio_flinger media.audio_policy media.camera; do
         echo "=== dumpsys $service ==="
         service_dump timeout 8 dumpsys "$service"
     done

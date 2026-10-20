@@ -59,6 +59,7 @@ PROPERTIES = (
     "init.svc.vendor.openbook.zram", "init.svc.mmd_setup", "init.svc.mmd",
     "mmd.zram.enabled", "mmd.setup_complete",
     "init.svc.timberslide",
+    "init.svc.vendor.camera.provider-ext",
 )
 
 
@@ -80,6 +81,11 @@ def commands():
     yield "alsa-cards", "cat /proc/asound/cards"
     yield "alsa-pcm", "cat /proc/asound/pcm"
     yield "sound-devices", "ls -l /dev/snd"
+    yield "camera-devices", "ls -lZ /dev/video*"
+    yield "camera-sysfs", "for d in /sys/class/video4linux/video*; do echo $d; cat $d/name; readlink -f $d/device; done"
+    yield "camera-provider", "timeout 10 service check android.hardware.camera.provider.ICameraProvider/external/0"
+    yield "camera-features", "pm list features | grep android.hardware.camera"
+    yield "camera-privacy", "timeout 10 dumpsys sensor_privacy"
     yield "input", "timeout 15 dumpsys input"
     yield "input-capabilities", "timeout 10 getevent -lp"
     # Presence of the input device's EV_REP capability does not establish its
@@ -97,7 +103,7 @@ def commands():
     for name in ("config_wifiMainlineSupplicantEnabled", "config_wifi_connected_mac_randomization_supported",
                  "config_wifiDropConnectionWhenMacConfigurationFails"):
         yield name, f"timeout 15 cmd overlay lookup --user 0 com.google.android.wifi.resources com.google.android.wifi.resources:bool/{name}"
-    for service in ("wifi", "connectivity", "audio", "media.audio_flinger", "media.audio_policy",
+    for service in ("wifi", "connectivity", "audio", "media.audio_flinger", "media.audio_policy", "media.camera",
                     "SurfaceFlinger", "display", "window", "power", "thermalservice", "battery", "meminfo"):
         yield service, f"timeout 15 dumpsys {service}"
     yield "last-anr", "timeout 15 dumpsys activity lastanr"

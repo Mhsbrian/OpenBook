@@ -40,6 +40,18 @@ def runtime_findings(serial):
         "system_server_execmem_denial_seen": any("execmem" in line and "scontext=u:r:system_server:s0" in line
                                                  for line in serial.splitlines()),
         "mmd_setup_abort_seen": bool(re.search(r"Service 'mmd_setup' \(pid [0-9]+\) received SIGABRT", serial)),
+        "camera_provider_running_reported": bool(re.search(
+            r"(?m)^init\.svc\.vendor\.camera\.provider-ext=running\r?$", serial)),
+        "camera_provider_registered_reported": bool(re.search(
+            r"(?m)^Service android\.hardware\.camera\.provider\.ICameraProvider/external/0: found\r?$", serial)),
+        "camera_device_counts_reported": sorted(set(map(int, re.findall(
+            r"(?m)^Number of camera devices: ([0-9]+)\r?$", serial)))),
+        "camera_provider_abort_seen": bool(re.search(
+            r"Service 'vendor\.camera\.provider-ext' \(pid [0-9]+\) received SIGABRT", serial)),
+        "camera_provider_default_label_denial_seen": any(
+            "avc:" in line and "denied" in line and
+            "name=android.hardware.camera.provider.ICameraProvider/external/0" in line and
+            "tcontext=u:object_r:default_android_service:s0" in line for line in serial.splitlines()),
     }
 
 
