@@ -1,0 +1,75 @@
+{
+  "schema": "openbook-native-footprint/1",
+  "scope": "Retained partition trees; no APEX extraction, later-installed apps, or downloaded code",
+  "runtime_verdict": "not_tested",
+  "apk_count": 248,
+  "native_apk_count": 48,
+  "abi_combinations": {
+    "arm64-v8a,x86_64": 11,
+    "x86_64": 29,
+    "arm64-v8a,armeabi-v7a,x86,x86_64": 4,
+    "arm64-v8a": 3,
+    "x86,x86_64": 1
+  },
+  "arm_only_apks": [
+    {
+      "path": "product_a/app/VoiceAccessPrebuilt/VoiceAccessPrebuilt.apk",
+      "sha256": "bfbb8afe3d2e99ea84c207df661ccf193950adcb5cb65140453b5e4c638506c7",
+      "abis": [
+        "arm64-v8a"
+      ],
+      "libraries": [
+        {
+          "name": "lib/arm64-v8a/libgoogle_tagger_jni.so",
+          "elf_machine": 183
+        },
+        {
+          "name": "lib/arm64-v8a/libogg_opus_encoder.so",
+          "elf_machine": 183
+        }
+      ]
+    },
+    {
+      "path": "product_a/priv-app/SettingsIntelligenceGooglePrebuilt/SettingsIntelligenceGooglePrebuilt.apk",
+      "sha256": "ab75e8c9ab4a995f662dcf6c477a7b754016bafac2593f87fc6a185c257dfa47",
+      "abis": [
+        "arm64-v8a"
+      ],
+      "libraries": [
+        {
+          "name": "lib/arm64-v8a/libandroidx.graphics.path.so",
+          "elf_machine": 183
+        },
+        {
+          "name": "lib/arm64-v8a/libgeller_jni_lite_lib.so",
+          "elf_machine": 183
+        },
+        {
+          "name": "lib/arm64-v8a/libicing.so",
+          "elf_machine": 183
+        }
+      ]
+    },
+    {
+      "path": "system_ext_a/priv-app/YourWidgetsStub/YourWidgetsStub.apk",
+      "sha256": "7c358afb074d9e44d71f6c1648f1bc0cabca4aeb0e2c54a0071c7a76d921f53d",
+      "abis": [
+        "arm64-v8a"
+      ],
+      "libraries": [
+        {
+          "name": "lib/arm64-v8a/libandroidx.graphics.path.so",
+          "elf_machine": 183
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "external_arm_elf_count": 471,
+  "external_arm_elf_locations": {
+    "system_a/system/lib64/arm64/": 412,
+    "system_a/system/lib64/berberis/arm64/": 57,
+    "system_a/system/bin/berberis/arm64/": 2
+  },
+  "apk_abi_and_elf_headers_agree": true
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "run": "vm1",
+    "elapsed_s": 450.3,
+    "boot_completed_reported": true,
+    "runtime_findings": {
+      "setup_welcome_activity_seen": true,
+      "system_server_fatal_signals": [
+        "10-21 12:18:58.515   825  4490 F libc    : Fatal signal 11 (SIGSEGV), code 2 (SEGV_ACCERR), fault addr 0x7e8f68681000 in tid 4490 (Thread<00>), pid 825 (system_server)"
+      ],
+      "zygote_exit_events": 2,
+      "system_server_execmem_denial_seen": true,
+      "mmd_setup_abort_seen": false,
+      "camera_provider_running_reported": false,
+      "camera_provider_registered_reported": true,
+      "camera_device_counts_reported": [
+        0
+      ],
+      "camera_provider_abort_seen": false,
+      "camera_fmq_test_exit_statuses": [],
+      "camera_buffer_test_exit_statuses": [],
+      "camera_buffer_test_abort_seen": false,
+      "camera_fmq_tmpfs_denial_seen": false,
+      "camera_provider_default_label_denial_seen": false
+    },
+    "decoy_unchanged": true,
+    "script_finished": false,
+    "guest_library_mount_denied": true,
+    "search_functional_verdict": "inconclusive: test harness / system-server failure",
+    "serial_sha256": "25a45a0b71dc28c87ceecfbe1ce5d1a770e7016f52770ac9de3936ace0b8db65"
+  },
+  {
+    "run": "vm2",
+    "elapsed_s": 505.4,
+    "boot_completed_reported": true,
+    "runtime_findings": {
+      "setup_welcome_activity_seen": true,
+      "system_server_fatal_signals": [
+        "10-21 12:29:41.275   792  4528 F libc    : Fatal signal 11 (SIGSEGV), code 2 (SEGV_ACCERR), fault addr 0x7428fc919000 in tid 4528 (Thread<00>), pid 792 (system_server)"
+      ],
+      "zygote_exit_events": 1,
+      "system_server_execmem_denial_seen": true,
+      "mmd_setup_abort_seen": false,
+      "camera_provider_running_reported": false,
+      "camera_provider_registered_reported": true,
+      "camera_device_counts_reported": [
+        0
+      ],
+      "camera_provider_abort_seen": false,
+      "camera_fmq_test_exit_statuses": [],
+      "camera_buffer_test_exit_statuses": [],
+      "camera_buffer_test_abort_seen": false,
+      "camera_fmq_tmpfs_denial_seen": false,
+      "camera_provider_default_label_denial_seen": false
+    },
+    "decoy_unchanged": true,
+    "script_finished": false,
+    "guest_library_mount_denied": false,
+    "search_functional_verdict": "inconclusive: test harness / system-server failure",
+    "serial_sha256": "7e0ebe46c84394294ee14a47091ed77ea9f23e4cb77356487b1ea7ad7b9f8cb9"
+  }
+]

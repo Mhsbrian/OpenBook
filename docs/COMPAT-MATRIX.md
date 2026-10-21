@@ -6,10 +6,12 @@
 |---|---|
 | G14 HX 370, Ruby `CL3B.260622.271.R1`, Settings Intelligence `1.1.0.937862210.sr` | Two search-field launches and one direct search intent crash after Houdini initialization fails and ARM64 `libicing.so` cannot load in x86_64. Two matching older crashes were already present. |
 | Same session, normal Display settings | Opens; four samples over 30 seconds retain Settings/system_server PIDs and activity, no new search crash. |
-| Ruby with proposed open-source ARM bridge | Not built or tested. Existing AOSP Digitalis results do not establish Ruby compatibility. |
+| Retained Ruby footprint | 248 APKs; 48 carry native code, three are ARM64-only (Settings Intelligence, Voice Access, YourWidget). Static exposure, not three confirmed failures. |
+| Ruby alternate bridge, property only | Built; enforcing VM denies the guest-library bind mount. Insufficient correction. |
+| Ruby alternate bridge plus mount-point label | Built; exact two-file/one-label diff, AVB, payload readback and checkfc pass. Runtime qualification remains separate. |
 
-Detailed evidence, APK identity and fix proposal: `docs/settings-search.md` and
-`evidence/2026-10-21-settings-search/`. No image or device configuration changed.
+Detailed evidence, APK identity and correction scope: `docs/settings-search.md` and
+`evidence/2026-10-21-settings-search/`. Images remain private experiments; no physical device was changed.
 
 ## Touchpad behavior (2026-10-19, ANAL-226)
 

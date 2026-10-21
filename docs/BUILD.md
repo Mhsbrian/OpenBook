@@ -1,13 +1,50 @@
 # Build and reproduce
 
-## Ruby Settings search diagnostics (ANAL-234, 2026-10-21)
+## Ruby bridge correction experiment (ANAL-234, 2026-10-21)
 
-`scripts/diagnostics/settings-search.py` collects bounded private evidence from
-an explicit authorized adb device without changing it. Python 3 and adb suffice;
-no AOSP build is needed. Usage, nine parser checks, observed crash chain and the
-proposed Ruby bridge qualification are in `docs/settings-search.md`. Keep output
-outside Git. Collection reserves 128 MiB above 40 GiB host free space; a later
-image build requires a separate measured budget and release plan.
+`docs/settings-search.md` records the hardware diagnosis, static footprint,
+experimental image hashes and qualification limits. The diagnostic collector
+remains read-only; the new builder selects the already-shipped alternate ARM64
+bridge and fixes its exact mount-point label in private regular image files.
+Nine patch/metadata regressions supplement the nine diagnostic parser checks.
+
+Use the existing `openbook-installer` tools container, the retained RB01
+synthetic input and camera25 logical images, AOSP host tools and test AVB key,
+and the read-only `erofs-inventory` helper from the input-correction work.
+Keep PR #123's helpers in a separate checkout at
+`ca0335c2ae06062cc6b45560b3b57a3b304e6c01`; `bridge-tooling-lock.json` verifies
+the imported files. No proprietary payload belongs in Git. For example, after
+binding these task-specific paths inside the normal installer mounts:
+
+```sh
+OPENBOOK_RELEASE_TOOLS="$BRIDGE_HELPERS" python3 scripts/googlebook/bridge-candidate-test.py -v
+scripts/installer/inst-docker.sh env OPENBOOK_RELEASE_TOOLS="$BRIDGE_HELPERS" \
+  python3 "$BRIDGE_REPO/scripts/googlebook/build-bridge-candidate.py" \
+  --base "$BRIDGE_BASE" --logical "$BRIDGE_LOGICAL" --tools "$BRIDGE_TOOLS" \
+  --inventory "$BRIDGE_INVENTORY" --key "$BRIDGE_KEY" --out "$BRIDGE_NEW_OUTPUT"
+```
+
+The builder refuses any parent other than the recorded RB01 input. Budget
+6 GiB additional space for construction above the 40 GiB reserve; use new
+output directories. It rebuilds only system, updates coherent AVB/boot metadata,
+checks all file/xattr changes, verifies logical readbacks and protected ranges,
+and cleans its listed extraction scratch. Output UUID/salt are recorded, not
+assumed deterministic. A later release still needs an approved frozen plan.
+
+`bridge-vm-input.py` creates a separate instrumented image from that experiment,
+the same logical/tool/key inputs, and `--probes` pointing to the repository's
+built ARM64/x86_64 JNI probes. Its private vendor script is never released.
+`run-bridge-vm.py --input ... --out ... --qemu ...` runs UEFI/USB with TCG `max`,
+4 CPUs, 8 GiB RAM, software TPM and no guest network. The native 7950X host lacks
+Ruby's required AVX-VNNI, so KVM `-cpu host` is not this test lane. Reserve
+4 GiB additional disk per observation. The runner records minimum free space,
+collects results in the foreground and stops its guest. Exit zero means
+collection completed; inspect test statuses, crashes and boot findings.
+
+No installer is included in the experiment. Final USB packaging must rebind
+the installer to the new system/AVB hashes and preserve the existing live,
+fresh-install and saved-data migration entries. It must not write a configured
+stick from a synthetic test image.
 
 ## G14 touchpad diagnostic replay (ANAL-226, 2026-10-19)
 

@@ -73,59 +73,102 @@ works. An empty buffer is inconclusive. Historical package/PID/timestamp matchin
 prevents unrelated library crashes from being classified as this failure.
 The nine parser checks and actual 13-command device capture passed.
 
-## Proposed fix and acceptance plan
+## Shared footprint and correction experiment
 
-This is the requested investigation and plan for review. No runtime fix or image
-has been built. Preferred experiment: integrate OpenBook's existing **open-source
-Digitalis ARM64 bridge** with Ruby, preserving the signed Settings package and
-all three native libraries. Its previous AOSP/G14 results are useful starting
-evidence, but do not qualify it for Ruby's ART, linker namespaces and SELinux.
+The 2026-10-21 retained-tree audit inspected **248 APKs**, including 48 with
+embedded native libraries. Three are ARM64-only: Settings Intelligence,
+Voice Access and YourWidget. All embedded ELF headers agree with their ABI
+folder names. The 471 external ARM ELF files are confined to the expected
+Houdini/Berberis guest directories. This is a static exposure inventory, not a
+claim that all three apps crash. APEX contents, downloaded libraries and apps
+installed after the retained image need separate runtime coverage.
 
-1. **Freeze a disposable experiment.** Pin the current Ruby parent image and
-   its full hashes, OpenBook integration source, guest-library bundle and bridge
-   build. Start from the existing import
-   `b6b7fc30f5e1cb2d2b9b465e3fdaa905616c31dc` plus the reviewed Android 17
-   patches in `aosp/patches/frameworks/libs/binary_translation/`. Check Ruby's
-   native-bridge ABI, linker/guest-library dependencies and strict SELinux
-   compilation before packaging. Use synthetic userdata. Keep the release
-   hub's current candidate and owner data out of this experiment.
-2. **Change translation as a coherent set.** Provide the compatible bridge,
-   guest libraries and linker configuration, and select it for ARM64 apps.
-   Pin every changed input. Avoid a one-library Icing swap: the package has two
-   other ARM64 libraries and its exact JNI/protobuf compatibility with public
-   Icing has not been established. A matching, legitimately available native
-   x86_64 package would be a separate alternative requiring its own identity,
-   signing, version and permission review.
-3. **Rehearse before hardware.** Ruby requires AVX-VNNI absent from this Zen 4
-   host; reuse the established TCG-capable Ruby VM lane. First run the ARM64 JNI
-   probe and x86_64 control. Then test both search entry points, rapid typing,
-   backspace, empty query, repeated open/close, result navigation, and restart
-   with retained synthetic search data. Require 20 consecutive open/type/select
-   cycles, correct results for `display`, `bluetooth` and `keyboard`, and five
-   minutes without a new search crash, ANR or Settings/system_server restart.
-   Compare native Settings navigation and the existing ARM-app regression corpus.
-4. **Prepare a release only after evidence.** Report the complete diff, hashes,
-   successful tests and failures to ANAL-232 for a numbered Ruby release plan.
-   A bridge change can affect every ARM64 app. Assume system/boot/AVB and
-   installer pin impact until the actual packaging proves otherwise; no intended
-   partition-layout, data-format or firmware change. Check preserving-update
-   support and rehearse recovery; Ruby has no qualified automatic A/B rollback.
-5. **Hardware acceptance.** After approval of the exact final image, operation,
-   device and current backup/recovery plan, deploy via the Ruby procedure and
-   repeat the search tests on the G14, including physical typing and reboot.
-   Verify PIN, apps and data retention. Do not use the AOSP A/B updater for Ruby.
+```sh
+python3 scripts/diagnostics/native-footprint.py \
+  --root /private/retained-ruby/fs --out /private/new-footprint.json
+```
 
-The proposed experiment has no measured disk budget yet. Before building,
-calculate peak additional allocated space and keep at least 40 GiB free at every
-phase. Approximately 53 GiB was available during diagnosis, which is not blanket
-permission for another full image/VM copy. Preserve recovery baselines, candidate
-images and evidence; clean only this task's completed reproducible scratch.
+Ruby already includes `libndk_translation.so`, its corresponding 57 guest
+libraries, runners and init rules. The smaller first correction selects that
+existing bridge instead of introducing the Digitalis fork. The translation
+binary and signed APKs remain byte-identical. The secondary-layout property
+must stay true: it makes Ruby's existing init rule bind its Berberis guest
+libraries onto `/system/lib64/arm64`.
 
-Houdini's log explicitly names a commercial license restriction. This plan does
-not patch that library or infer rights to reuse/redistribute it. Ruby and Google
-package artifacts remain private under the owner's existing authorized use;
-any new proprietary input needs its licensing settled before inclusion. Public
-AOSP source has not been matched to this Google Settings package version.
+The first property-only VM demonstrated why that change is insufficient:
+enforcing SELinux denied init's `mounton` on that directory, labeled
+`system_lib_file`. The revised experiment labels **only that directory** as
+`system_file`, for which the existing policy permits init's mount. An exact
+`-d` entry in `plat_file_contexts` keeps the label consistent with restorecon.
+The contained libraries keep their original labels; compiled policy, SELinux
+enforcement and dm-verity remain unchanged. No permissive domain or general
+mount permission was added.
+
+The source parent is RB01's synthetic pre-installer input,
+`554fb78970f94d985c8be86f4b07c42c5f64ea9823eac33816a993a5d88dffe6`.
+The corrected experimental image is
+`e28abe2988e345b14e3f03b20e2a3a9b9695edadd4e51a62df4cac3d78e0f32d`.
+Its verified changes are two text files (`build.prop`, `plat_file_contexts`)
+and the one directory label. The 3,464 files/links and 7,292 metadata rows were
+compared against that exact allowlist. All six logical payload readbacks match
+the AVB-verified inputs; GPT and protected partitions match the parent.
+`checkfc` accepts the corrected contexts against the retained camera25 policy.
+The five boot variants have matching AVB digests and actual 4,032-byte vbmeta
+size. This experiment has no installer and is **not a release or deployment
+candidate**.
+
+`scripts/googlebook/build-bridge-candidate.py` verifies the helper files from
+PR #123 commit `ca0335c2ae06062cc6b45560b3b57a3b304e6c01` against its local
+hash lock. It accepts only the exact RB01 parent, works on regular private
+images, verifies all metadata/content differences and readbacks, and preserves
+the original. EROFS/AVB output UUID/salt can differ between executions; the
+manifest records each actual output hash. The VM instrumentation is a separate
+copy, with an open-source JNI test script replacing the existing serial
+probe. It is explicitly marked `not_for_release`, uses synthetic userdata and
+has no network or physical block-device access.
+
+## Qualification and release requirements
+
+The hardware ADB connection disappeared during this follow-up. No corrected
+image has been run on the G14. The first instrumented VM also reproduced the
+previously known system-server crash and checkpoint-commit reboot. Its JNI
+installation failed because the test shell's temporary directory was not
+writable; that harness error was corrected, and it is not a translator verdict.
+Full functional results must be reviewed before release qualification.
+
+Require the ARM64 JNI probe and native x86_64 control, both Settings search
+entry points, typing/backspace/empty queries, result navigation, 20 consecutive
+open/type/select cycles and five minutes without a new search crash or
+Settings/system-server restart. Test `display`, `bluetooth` and `keyboard`,
+restart with retained synthetic data, and cover Voice Access/YourWidget and the
+ARM regression corpus. VM software rendering and physical AMD graphics must
+be distinguished when assessing failures.
+
+The next Ruby release must retain the existing live/logging, fresh-install and
+saved-data migration USB choices. The system hash, AVB/initrds and installer
+source pin change; no partition layout, kernel, firmware or data-format change
+is intended. PR #123's preserving updater only authorizes the exact RB01
+transition, so a new exact transition and matching installer must be qualified.
+Never overwrite a configured USB with this synthetic image. Preserve an offline
+backup, verify all protected bytes and rehearse boot/unlock/recovery first.
+Automatic Ruby A/B rollback remains unavailable; the AOSP updater is separate.
+
+The release hub owns the next numbered plan. Complete project census, actual
+PR-head reconciliation, approval of the frozen plan, foreground build/tests,
+and separate approval of the final checksum/operation/exact device are still
+required. An experiment's successful build does not approve promotion.
+
+Builds and tests keep a 40 GiB host reserve. The revised builder copies only
+needed logical extents and releases extraction scratch before comparing a
+second extraction. The VM observer records minimum free space and stops near
+the reserve. Exact private cleanup manifests retain evidence of removed,
+reproducible task-owned scratch; source/recovery/owner artifacts are preserved.
+
+Ruby and its existing Google payloads stay local under the owner's existing
+licensed use. No proprietary library or APK is redistributed. This correction
+does not patch Houdini, interpret its internal error code, or establish rights
+to distribute `libndk_translation`. Digitalis remains a separately qualified
+open-source alternative, not the implementation of this experiment.
 
 ## Source checks (2026-10-21)
 
@@ -137,7 +180,15 @@ AOSP source has not been matched to this Google Settings package version.
   open-source embedded search engine; availability alone does not establish
   compatibility with the shipped proprietary APK.
 - [Public Berberis README](https://android.googlesource.com/platform/frameworks/libs/binary_translation/+/refs/heads/main/README.md)
-  describes a RISC-V guest on its main branch. The ARM64 candidate above is the
-  separately pinned Digitalis fork, not an assumed upstream ARM64 product.
+  describes a RISC-V guest on its main branch. The separately pinned Digitalis
+  ARM64 fork is not an assumed upstream ARM64 product.
   Existing import, license inventory, patches and measured limits are in
   `docs/digitalis.md`; AOSP results remain separate from Ruby qualification.
+
+- [AOSP Native Bridge README](https://android.googlesource.com/platform/art/+/refs/heads/main/libnativebridge/README.md):
+  translation uses a separate guest linker and library environment.
+- Local primary-source checkout: `device/google/cuttlefish`, commit
+  `283645aacf6cdb56cc31a9362f54d412dbc132a1`, `shared/desktop/common_x86.mk`
+  contains `ndk_translation_only`, `houdini_only` and combined modes. The web
+  endpoint was unavailable during verification; this source observation does
+  not establish redistribution rights for the referenced vendor binaries.

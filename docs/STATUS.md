@@ -1,15 +1,20 @@
 # Status
 
-## 2026-10-21: Ruby Settings search diagnosis (ANAL-234)
+## 2026-10-21: Ruby Settings search correction experiment (ANAL-234)
 
-Reproduced two search-field crashes and one direct search-intent crash on the
-G14's Ruby live environment. Houdini initialization fails, then ARM64 Icing
-fails to load into the x86_64 process. Settings/system_server stayed alive;
-Display navigation passed a 30-second control. Added private capture tooling,
-nine parser regressions, evidence and a fix proposal in
-`docs/settings-search.md`. No fix/image/deployment yet; proposed Ruby bridge
-integration needs isolated qualification. AOSP bridge results are not Ruby
-acceptance. Sanitized evidence: `evidence/2026-10-21-settings-search/`.
+The G14 failure is an ARM64 Icing load error after Houdini initialization fails.
+The footprint audit found three ARM64-only preloads among 248 APKs. Built a
+private correction selecting Ruby's existing `libndk_translation` and fixing
+only its guest-library mount-point label. Two text files and one directory
+label change; signed APKs, bridge binaries, compiled policy, kernel, data and
+layout remain intact. AVB, metadata/content allowlists, logical readbacks and
+`checkfc` pass. Nine patch checks and nine collector checks cover the tooling.
+
+This remains experimental: the property-only VM exposed the mount denial and
+reproduced a known system-server/checkpoint failure; further runtime validation
+is required. The G14 disconnected from ADB before correction testing. No
+physical write or new release is approved. See `docs/settings-search.md` and
+`evidence/2026-10-21-settings-search/` for exact identities and release gates.
 
 ## 2026-10-19: PR integration (ANAL-188)
 
