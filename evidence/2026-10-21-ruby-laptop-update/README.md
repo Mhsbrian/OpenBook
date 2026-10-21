@@ -91,3 +91,13 @@ The owner closed the lid once after the update. The laptop entered s2idle twice
 screen on although the lid was still closed. The same "sleep about 27 s, then
 key wake" cycle ran repeatedly on camera25 earlier the same day, so it predates
 the update. Key code and the exact ACPI source are not yet known.
+
+## Timed lid test (`g14-sleep-test-2.json`)
+
+With only power/lid/sleep-button/video-bus/WMI-hotkey events recorded, closing
+the lid led to a ~1 s suspend. On resume the kernel reported the lid **open**
+(from the firmware's `_LID`) and the power button sent `KEY_WAKEUP`. Googlebook
+then treated the laptop as open on AC and held its ~26 minute screen-off
+wakelock, so it did not suspend again until the lid was opened 10 minutes later.
+This kernel sends `KEY_WAKEUP` on every resume. Candidate fixes are tracked in
+ANAL-235.
