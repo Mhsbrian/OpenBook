@@ -1,0 +1,354 @@
+{
+  "schema": "openbook-ruby-laptop-update-rehearsal-evidence/1",
+  "synthetic_only": true,
+  "owner_data": false,
+  "hardware_tested": false,
+  "phases": [
+    {
+      "run": "run1",
+      "installer_initrd_sha256": "f50e3a6a6aef8ef7686ba7c3784f0fd73559913b4082f758b4628f471e442f3e",
+      "phase": "ui-update-0",
+      "mode": "update",
+      "answer": "wrong",
+      "elapsed_s": 43.0,
+      "qemu_exit_code": 0,
+      "stopped": false,
+      "sent": [
+        "confirm",
+        "disk",
+        "poweroff"
+      ],
+      "usb_partitions_unchanged": true,
+      "decoy_unchanged": true,
+      "gpt_unchanged": true,
+      "data_partitions_unchanged": true,
+      "changed": [],
+      "rollback_state": null,
+      "passed": true
+    },
+    {
+      "run": "run1",
+      "installer_initrd_sha256": "f50e3a6a6aef8ef7686ba7c3784f0fd73559913b4082f758b4628f471e442f3e",
+      "phase": "ui-update-1",
+      "mode": "update",
+      "answer": "confirm",
+      "elapsed_s": 41.6,
+      "qemu_exit_code": 0,
+      "stopped": true,
+      "sent": [
+        "confirm",
+        "disk",
+        "poweroff"
+      ],
+      "usb_partitions_unchanged": true,
+      "decoy_unchanged": true,
+      "gpt_unchanged": true,
+      "data_partitions_unchanged": true,
+      "changed": [],
+      "rollback_state": null,
+      "verified_message": false,
+      "new_system": false,
+      "new_bootconfig": false,
+      "passed": false
+    },
+    {
+      "run": "run2",
+      "installer_initrd_sha256": "161ce0a3da16b27cb1647f3f6a4ff9fa5d05b4a39c4714e8b1b4ac4e111f3ca5",
+      "phase": "ui-update-0",
+      "mode": "update",
+      "answer": "cancel",
+      "elapsed_s": 38.8,
+      "qemu_exit_code": 0,
+      "stopped": false,
+      "sent": [
+        "confirm",
+        "disk",
+        "poweroff"
+      ],
+      "usb_partitions_unchanged": true,
+      "decoy_unchanged": true,
+      "gpt_unchanged": true,
+      "data_partitions_unchanged": true,
+      "changed": [],
+      "rollback_state": null,
+      "passed": true
+    },
+    {
+      "run": "run2",
+      "installer_initrd_sha256": "161ce0a3da16b27cb1647f3f6a4ff9fa5d05b4a39c4714e8b1b4ac4e111f3ca5",
+      "phase": "ui-update-1",
+      "mode": "update",
+      "answer": "confirm",
+      "elapsed_s": 135.6,
+      "qemu_exit_code": 0,
+      "stopped": false,
+      "sent": [
+        "confirm",
+        "disk",
+        "poweroff"
+      ],
+      "usb_partitions_unchanged": true,
+      "decoy_unchanged": true,
+      "gpt_unchanged": true,
+      "data_partitions_unchanged": true,
+      "changed": [
+        "EFI",
+        "super",
+        "vbmeta_a"
+      ],
+      "rollback_state": "updated",
+      "verified_message": true,
+      "new_system": true,
+      "new_bootconfig": true,
+      "passed": true
+    },
+    {
+      "run": "run2",
+      "installer_initrd_sha256": "161ce0a3da16b27cb1647f3f6a4ff9fa5d05b4a39c4714e8b1b4ac4e111f3ca5",
+      "phase": "android-after-update",
+      "label": "after-update",
+      "elapsed_s": 480.5,
+      "observation_completed": true,
+      "qemu_exit_code": 0,
+      "qmp_events": [
+        "RTC_CHANGE"
+      ],
+      "boot_completed": true,
+      "vbmeta_roots": {
+        "product": "308d9898636469f18c48e9294edd786a921fe0ff8cf916fd67b061964bfd9310",
+        "system": "b431bd41e048a162c205c1faed61fede38ec209608f23e5d60e4594db9535d68",
+        "system_dlkm": "8a5e599cd59499e4e26c2b85b1a8933287fe2891691276522c3f2f645c2bc800",
+        "system_ext": "9cea9196359ade6dc6cd65462ecb656f5baef1425986e4dadc1e810a2f73352a",
+        "vendor": "16f743f8cc50bb74efb875756b7fe3967f757ef34b28ff75486b0e0a23c2574e",
+        "vendor_dlkm": "5ed1f2cae879ed865edbadd90819d298cbb9a22a6fc11bfe0f7a35fc3d92230c"
+      },
+      "verity_roots_observed": {
+        "product": true,
+        "system": true,
+        "system_dlkm": true,
+        "system_ext": true,
+        "vendor": true,
+        "vendor_dlkm": true
+      },
+      "target_storage_observed": true,
+      "metadata_keys_unchanged": true,
+      "metadata_key_files": 4,
+      "runtime_findings": {
+        "setup_welcome_activity_seen": true,
+        "system_server_fatal_signals": [
+          "10-21 20:56:36.754   666  1680 F libc    : Fatal signal 11 (SIGSEGV), code 2 (SEGV_ACCERR), fault addr 0x7fa94c498000 in tid 1680 (Thread<00>), pid 666 (system_server)"
+        ],
+        "zygote_exit_events": 1,
+        "system_server_execmem_denial_seen": true,
+        "mmd_setup_abort_seen": false,
+        "camera_provider_running_reported": false,
+        "camera_provider_registered_reported": true,
+        "camera_device_counts_reported": [
+          0
+        ],
+        "camera_provider_abort_seen": false,
+        "camera_fmq_test_exit_statuses": [],
+        "camera_buffer_test_exit_statuses": [],
+        "camera_buffer_test_abort_seen": false,
+        "camera_fmq_tmpfs_denial_seen": false,
+        "camera_provider_default_label_denial_seen": false
+      },
+      "hardware_tested": false,
+      "owner_data": false,
+      "system_verity_root_observed": true,
+      "passed": true,
+      "reevaluated_same_capture": true,
+      "initial_harness_result": {
+        "passed": false,
+        "reason": "required firmware/guest text that is not printed; superseded by verity-root and NVMe storage checks on the same capture"
+      }
+    },
+    {
+      "run": "run2",
+      "installer_initrd_sha256": "161ce0a3da16b27cb1647f3f6a4ff9fa5d05b4a39c4714e8b1b4ac4e111f3ca5",
+      "phase": "ui-restore-3",
+      "mode": "restore",
+      "answer": "confirm",
+      "elapsed_s": 55.6,
+      "qemu_exit_code": 0,
+      "stopped": false,
+      "sent": [
+        "confirm",
+        "disk",
+        "poweroff"
+      ],
+      "usb_partitions_unchanged": true,
+      "decoy_unchanged": true,
+      "gpt_unchanged": true,
+      "data_partitions_unchanged": true,
+      "changed": [
+        "EFI",
+        "super",
+        "vbmeta_a"
+      ],
+      "rollback_state": "restored",
+      "verified_message": true,
+      "original_system_restored": true,
+      "original_bootconfig": true,
+      "passed": true
+    },
+    {
+      "run": "run2",
+      "installer_initrd_sha256": "161ce0a3da16b27cb1647f3f6a4ff9fa5d05b4a39c4714e8b1b4ac4e111f3ca5",
+      "phase": "android-after-restore",
+      "label": "after-restore",
+      "elapsed_s": 480.6,
+      "observation_completed": true,
+      "qemu_exit_code": 0,
+      "qmp_events": [
+        "RTC_CHANGE"
+      ],
+      "boot_completed": true,
+      "vbmeta_roots": {
+        "product": "308d9898636469f18c48e9294edd786a921fe0ff8cf916fd67b061964bfd9310",
+        "system": "2041c1ed7691c991c8cd4cc97d8d64a8ed3f14cc65d9ae412ee50db1985c7fe5",
+        "system_dlkm": "8a5e599cd59499e4e26c2b85b1a8933287fe2891691276522c3f2f645c2bc800",
+        "system_ext": "9cea9196359ade6dc6cd65462ecb656f5baef1425986e4dadc1e810a2f73352a",
+        "vendor": "16f743f8cc50bb74efb875756b7fe3967f757ef34b28ff75486b0e0a23c2574e",
+        "vendor_dlkm": "5ed1f2cae879ed865edbadd90819d298cbb9a22a6fc11bfe0f7a35fc3d92230c"
+      },
+      "verity_roots_observed": {
+        "product": true,
+        "system": true,
+        "system_dlkm": true,
+        "system_ext": true,
+        "vendor": true,
+        "vendor_dlkm": true
+      },
+      "target_storage_observed": true,
+      "metadata_keys_unchanged": true,
+      "metadata_key_files": 4,
+      "runtime_findings": {
+        "setup_welcome_activity_seen": true,
+        "system_server_fatal_signals": [
+          "10-21 21:07:34.046   665  1684 F libc    : Fatal signal 11 (SIGSEGV), code 2 (SEGV_ACCERR), fault addr 0x79bd8ce77000 in tid 1684 (Thread<00>), pid 665 (system_server)"
+        ],
+        "zygote_exit_events": 1,
+        "system_server_execmem_denial_seen": true,
+        "mmd_setup_abort_seen": false,
+        "camera_provider_running_reported": false,
+        "camera_provider_registered_reported": true,
+        "camera_device_counts_reported": [
+          0
+        ],
+        "camera_provider_abort_seen": false,
+        "camera_fmq_test_exit_statuses": [],
+        "camera_buffer_test_exit_statuses": [],
+        "camera_buffer_test_abort_seen": false,
+        "camera_fmq_tmpfs_denial_seen": false,
+        "camera_provider_default_label_denial_seen": false
+      },
+      "hardware_tested": false,
+      "owner_data": false,
+      "system_verity_root_observed": true,
+      "passed": true
+    },
+    {
+      "run": "run3",
+      "installer_initrd_sha256": "b645eb452393abd6bc752cc55cd2a0a8d8ae515f62fd73243f7a9a5d63099be8",
+      "phase": "ui-update-0",
+      "mode": "update",
+      "answer": "confirm",
+      "elapsed_s": 89.5,
+      "qemu_exit_code": 0,
+      "stopped": false,
+      "sent": [
+        "confirm",
+        "disk",
+        "poweroff"
+      ],
+      "usb_partitions_unchanged": true,
+      "decoy_unchanged": true,
+      "gpt_unchanged": true,
+      "data_partitions_unchanged": true,
+      "changed": [
+        "EFI",
+        "super",
+        "vbmeta_a"
+      ],
+      "rollback_state": "updated",
+      "verified_message": true,
+      "new_system": true,
+      "new_bootconfig": true,
+      "passed": true
+    },
+    {
+      "run": "run3",
+      "installer_initrd_sha256": "b645eb452393abd6bc752cc55cd2a0a8d8ae515f62fd73243f7a9a5d63099be8",
+      "phase": "ui-restore-1",
+      "mode": "restore",
+      "answer": "confirm",
+      "elapsed_s": 75.4,
+      "qemu_exit_code": 0,
+      "stopped": false,
+      "sent": [
+        "confirm",
+        "disk",
+        "poweroff"
+      ],
+      "usb_partitions_unchanged": true,
+      "decoy_unchanged": true,
+      "gpt_unchanged": true,
+      "data_partitions_unchanged": true,
+      "changed": [
+        "EFI",
+        "super",
+        "vbmeta_a"
+      ],
+      "rollback_state": "restored",
+      "verified_message": true,
+      "original_system_restored": true,
+      "original_bootconfig": true,
+      "passed": true
+    },
+    {
+      "run": "run3",
+      "installer_initrd_sha256": "b645eb452393abd6bc752cc55cd2a0a8d8ae515f62fd73243f7a9a5d63099be8",
+      "phase": "ui-restore-2",
+      "mode": "restore",
+      "answer": "noop",
+      "elapsed_s": 44.4,
+      "qemu_exit_code": 0,
+      "stopped": false,
+      "sent": [
+        "disk",
+        "poweroff"
+      ],
+      "usb_partitions_unchanged": true,
+      "decoy_unchanged": true,
+      "gpt_unchanged": true,
+      "data_partitions_unchanged": true,
+      "changed": [],
+      "rollback_state": "restored",
+      "passed": true
+    },
+    {
+      "run": "run3",
+      "installer_initrd_sha256": "b645eb452393abd6bc752cc55cd2a0a8d8ae515f62fd73243f7a9a5d63099be8",
+      "phase": "ui-update-3",
+      "mode": "update",
+      "answer": "cancel",
+      "elapsed_s": 41.4,
+      "qemu_exit_code": 0,
+      "stopped": false,
+      "sent": [
+        "confirm",
+        "disk",
+        "poweroff"
+      ],
+      "usb_partitions_unchanged": true,
+      "decoy_unchanged": true,
+      "gpt_unchanged": true,
+      "data_partitions_unchanged": true,
+      "changed": [],
+      "rollback_state": "restored",
+      "passed": true
+    }
+  ],
+  "known_bug_found": "run1 ui-update-1: identity recheck reopened the exclusively held disk (EBUSY); stopped before any write; fixed in run2+"
+}

@@ -66,19 +66,24 @@ INSTALLER_FILES = ("kernel", "initrd.img", "build.json", "package-versions.txt")
 LEGACY_ENTRIES = ("loader/entries/ruby-install.conf", "loader/entries/ruby-install-serial.conf")
 FRESH_ENTRIES = ("loader/entries/ruby-fresh.conf", "loader/entries/ruby-fresh-serial.conf")
 INSTALLER_ENTRIES = LEGACY_ENTRIES + FRESH_ENTRIES
+# Present only when the installer embeds a reviewed laptop-update.json.
+UPDATE_ENTRIES = ("loader/entries/ruby-update.conf", "loader/entries/ruby-update-serial.conf",
+                  "loader/entries/ruby-restore.conf", "loader/entries/ruby-restore-serial.conf")
+BASE_BUILD_FILES = {"kernel", "initrd.img", "package-versions.txt", "source.json"}
 
 
 def replacement_contract(before, expected):
     """Authorize replacement of exactly the previous reviewed installer files."""
     files = u.tree_hashes(before)
     managed = {f"ruby-installer/{n}" for n in INSTALLER_FILES} | set(INSTALLER_ENTRIES)
-    present = {n for n in files if n.startswith(("ruby-installer/",
-               "loader/entries/ruby-install", "loader/entries/ruby-fresh"))}
+    present = {n for n in files if n.startswith(("ruby-installer/", "loader/entries/ruby-install",
+               "loader/entries/ruby-fresh", "loader/entries/ruby-update", "loader/entries/ruby-restore"))}
     if expected is None:
         m.require(not present, "Installer already present; reviewed replacement required")
         return set()
     legacy = managed - set(FRESH_ENTRIES)
-    m.require(present in (managed, legacy), "Incomplete or unfamiliar existing installer")
+    m.require(present in (managed, legacy, managed | set(UPDATE_ENTRIES)),
+              "Incomplete or unfamiliar existing installer")
     m.require(files["ruby-installer/build.json"] == expected, "Old installer review pin mismatch")
     build = json.loads((before / "ruby-installer/build.json").read_text())
     m.require(build.get("schema") == "openbook-ruby-offline-installer/1", "Unknown old installer schema")
@@ -89,6 +94,9 @@ def replacement_contract(before, expected):
             if name in present:
                 m.require((before / name).read_text() == installer_entry(suffix, fresh),
                           "Old installer menu changed")
+    for name, text in update_entries().items():
+        if name in present:
+            m.require((before / name).read_text() == text, "Old installer menu changed")
     return present
 
 
@@ -105,6 +113,20 @@ def installer_entry(suffix, fresh=False):
             + ("options console=ttyS0,115200 loglevel=3\n" if suffix else "options console=tty0 loglevel=3\n"))
 
 
+def update_entries():
+    """Laptop system update/restore entries; both run the same offline installer."""
+    entries = {}
+    for name, title, mode in (("ruby-update", "Update the laptop's Googlebook system - keep data", "update"),
+                              ("ruby-restore", "Restore previous laptop system (after an update)", "restore")):
+        for suffix in ("", "-serial"):
+            entries[f"loader/entries/{name}{suffix}.conf"] = (
+                f"title {title}" + (" (VM serial)" if suffix else "") + "\n"
+                "linux /ruby-installer/kernel\ninitrd /ruby-installer/initrd.img\n"
+                f"options openbook.install={mode} "
+                + ("console=ttyS0,115200 loglevel=3\n" if suffix else "console=tty0 loglevel=3\n"))
+    return entries
+
+
 def add(snapshot, snapshot_sha, base_manifest, installer, out, replace_installer_sha256=None):
     snapshot = u.regular(snapshot)
     old = json.loads(u.regular(base_manifest).read_text())
@@ -114,8 +136,12 @@ def add(snapshot, snapshot_sha, base_manifest, installer, out, replace_installer
     pin = json.loads(u.regular(installer / "source.json").read_text())
     build = json.loads(u.regular(installer / "build.json").read_text())
     m.require(build.get("schema") == "openbook-ruby-offline-installer/1"
-              and set(build.get("files", {})) == {"kernel", "initrd.img", "package-versions.txt", "source.json"},
+              and set(build.get("files", {})) in (BASE_BUILD_FILES, BASE_BUILD_FILES | {"laptop-update.json"}),
               "Unknown or incomplete installer build")
+    laptop_update = "laptop-update.json" in build["files"]
+    if laptop_update:
+        lu = module("laptop_update", "laptop-update.py")
+        lu.check_spec(json.loads(u.regular(installer / "laptop-update.json").read_text()), pin)
     m.require(u.h.audit.sha(installer / "source.json") == build["source_pin_sha256"], "Installer/source mismatch")
     for name, sha in build["files"].items():
         m.require(Path(name).name == name and u.h.audit.sha(u.regular(installer / name)) == sha,
@@ -151,6 +177,13 @@ def add(snapshot, snapshot_sha, base_manifest, installer, out, replace_installer
         conf = out / f"ruby-fresh{suffix}.conf"
         conf.write_text(installer_entry(suffix, fresh=True))
         m.run("mcopy", "-o", "-i", esp, conf, f"::/loader/entries/{conf.name}")
+    menu = update_entries() if laptop_update else {}
+    m.require(laptop_update or not set(UPDATE_ENTRIES) & set(u.tree_hashes(before)),
+              "Replacing an update-capable installer requires a laptop update record")
+    for name, text in menu.items():
+        conf = out / Path(name).name
+        conf.write_text(text)
+        m.run("mcopy", "-o", "-i", esp, conf, f"::/{name}")
     m.run("fsck.fat", "-n", esp)
     after = out / "efi-after"; after.mkdir()
     m.run("mcopy", "-s", "-i", esp, "::*", after)
@@ -159,8 +192,10 @@ def add(snapshot, snapshot_sha, base_manifest, installer, out, replace_installer
         if name not in replaceable:
             m.require(u.h.audit.sha(after / name) == sha, f"Existing EFI file changed: {name}")
     m.require(set(u.tree_hashes(after)) == set(u.tree_hashes(before)) |
-              {f"ruby-installer/{n}" for n in INSTALLER_FILES} | set(INSTALLER_ENTRIES),
+              {f"ruby-installer/{n}" for n in INSTALLER_FILES} | set(INSTALLER_ENTRIES) | set(menu),
               "Unexpected EFI file added or removed")
+    for name, text in menu.items():
+        m.require((after / name).read_text() == text, "Installer menu readback failed")
     for name in INSTALLER_FILES:
         m.require(u.h.audit.sha(after / "ruby-installer" / name) == u.h.audit.sha(installer / name),
                   "Installer EFI readback failed")
@@ -207,6 +242,7 @@ def add(snapshot, snapshot_sha, base_manifest, installer, out, replace_installer
                 sources_unchanged=True, unrelated_esp_files_unchanged=True,
                 physical_device_written=False, data_unlock_verified=False,
                 replaced_installer_sha256=replace_installer_sha256,
+                laptop_update_entries=sorted(menu),
                 operation="Replace" if replaceable else "Add")
     (out / "update.json").write_text(json.dumps(plan, indent=2) + "\n")
     print("Offline migration entry packaged in private clone; all Android partitions unchanged.")

@@ -8,4 +8,5 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
 COPY scripts/googlebook/migrate.py /opt/openbook/migrate.py
 COPY scripts/googlebook/migration-init /opt/openbook/init
 COPY scripts/googlebook/build-migration-ramdisk.py /opt/openbook/build.py
+COPY scripts/googlebook/laptop-update.py /opt/openbook/laptop-update.py
 ENTRYPOINT ["python3", "/opt/openbook/build.py"]

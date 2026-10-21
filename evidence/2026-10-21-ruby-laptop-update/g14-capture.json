@@ -1,0 +1,43 @@
+{
+  "schema": "openbook-ruby-g14-update-capture/1",
+  "captured_utc": "2026-10-21T20:13:51.054129+00:00",
+  "method": "paired wireless ADB, shell user, read-only capture-adb.py command sets; no root/settings/reboot",
+  "build_fingerprint": "Lenovo/ruby/ruby:17/CL3B.260622.271.R1/16452207:user/release-keys",
+  "vendor_fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
+  "slot_suffix": "_a",
+  "installed_system": "camera25 (live vbmeta digest c25e789e... matches the retained camera25 boot entries)",
+  "block_names": [
+    "EFI",
+    "boot_a",
+    "init_boot_a",
+    "metadata",
+    "misc",
+    "nvme0n1",
+    "super",
+    "userdata",
+    "vbmeta_a",
+    "vendor_boot_a"
+  ],
+  "second_slot_partitions": false,
+  "ab_update": "true",
+  "virtual_ab": "true",
+  "virtual_ab_compression": "true",
+  "update_engine": "running",
+  "ota_disable_automatic_update": "null",
+  "system_update_info_file_absent": true,
+  "recovery_reboot_pending": false,
+  "gms_system_update_activity_enabled": true,
+  "repairmode_boot_receiver_crashes": 2,
+  "repairmode_cause_vendor_serviceability_bind": true,
+  "other_app_crashes": 1,
+  "dropbox_system_server_crash_entries": 0,
+  "dropbox_retained_entries": 83,
+  "anr_since_boot": false,
+  "data_filesystem": {
+    "size": "7.9G",
+    "used": "7.4G",
+    "available": "384M",
+    "use": "96%"
+  },
+  "note": "Owner app/account names, Wi-Fi identifiers and device serials intentionally omitted."
+}

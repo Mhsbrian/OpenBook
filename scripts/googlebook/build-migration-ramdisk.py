@@ -87,6 +87,17 @@ def main():
         (root / "init").chmod(0o755)
         shutil.copyfile("/opt/openbook/migrate.py", root / "opt/openbook/migrate.py")
         shutil.copyfile(pin, root / "opt/openbook/source.json")
+        # Optional laptop update/restore mode, bound to this same pinned system.
+        update = Path("/input/laptop-update.json")
+        if update.exists():
+            record = json.loads(update.read_text())
+            source = json.loads(pin.read_text())
+            if (record.get("schema") != "openbook-ruby-laptop-update/1"
+                    or record["new"]["build"] != source["build"]
+                    or record["new"]["payload_readback"] != source["payload_readback"]):
+                raise ValueError("Laptop update record does not match the source pin")
+            shutil.copyfile("/opt/openbook/laptop-update.py", root / "opt/openbook/laptop-update.py")
+            shutil.copyfile(update, root / "opt/openbook/laptop-update.json")
         # Stable ordering and no host ownership in the cpio. The package lock and
         # output digests identify the precise environment; timestamps are normalized.
         for path in root.rglob("*"):
@@ -97,6 +108,8 @@ def main():
         compressed = subprocess.run(["gzip", "-n", "-9"], input=archive, capture_output=True, check=True).stdout
         (out / "initrd.img").write_bytes(compressed)
         shutil.copyfile(pin, out / "source.json")
+        if update.exists():
+            shutil.copyfile(update, out / "laptop-update.json")
         versions = subprocess.check_output(["dpkg-query", "-W", "-f=${Package}\t${Version}\n"])
         (out / "package-versions.txt").write_bytes(versions)
         record = dict(schema="openbook-ruby-offline-installer/1", kernel_release=release,
