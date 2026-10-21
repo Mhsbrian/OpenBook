@@ -1,0 +1,47 @@
+{
+  "schema": "openbook-ruby-g14-sleep-check/1",
+  "captured_utc": "2026-10-21T22:43Z",
+  "method": "read-only ADB: dumpsys power/batterystats --history/input, logcat; owner closed the lid once",
+  "system": "RB-20261020-01 system after the USB laptop update",
+  "sleep_mode": "s2idle (/sys/power/mem_sleep)",
+  "time_suspended_since_boot_s": 31.5,
+  "basis": "Realtime 563674 ms minus Uptime 532125 ms (dumpsys meminfo)",
+  "timeline_local_edt": [
+    {
+      "t": "18:40:34.70",
+      "event": "lid closed; Android sleeps (reason lid_switch) and locks"
+    },
+    {
+      "t": "18:40:44.00",
+      "event": "processor suspends"
+    },
+    {
+      "t": "18:40:45.88",
+      "event": "resume after 1.9 s; kernel wake reason '9 acpi'; Power Button input event; Android wakes screen (WAKE_REASON_WAKE_KEY) with lid still closed"
+    },
+    {
+      "t": "18:41:45.72",
+      "event": "screen off by 60 s lid-closed activity timeout"
+    },
+    {
+      "t": "18:41:54.21",
+      "event": "processor suspends"
+    },
+    {
+      "t": "18:42:23.87",
+      "event": "resume after 29.7 s; '9 acpi'; Power Button event; screen wake (KEY)"
+    },
+    {
+      "t": "18:42:37.02",
+      "event": "Android reports lid opened"
+    }
+  ],
+  "same_pattern_before_update": "camera25 earlier on 2026-10-21: 11:27-13:52 every sleep ended after about 27 s with '9 acpi' + KEY screen wake (screen then stayed on until the 10 min timeout); overnight sleeps mostly ran about 593 s between timer wakes",
+  "conclusion": "Sleep is entered, but an ACPI event delivered as a Power Button key wakes the screen, even with the lid closed. Pre-existing on camera25; the update changed no kernel, vendor or power component.",
+  "unknown": [
+    "key code (KEY_POWER vs KEY_WAKEUP)",
+    "which ACPI/EC notification triggers it",
+    "kernel log (denied on user build)"
+  ],
+  "next": "owner-timed lid test capturing only Power Button/Lid/Sleep Button/WMI-hotkey input events (no keyboard or touchpad), then a kernel/vendor fix candidate tested in VM and on the stick first"
+}
