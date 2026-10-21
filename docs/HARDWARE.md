@@ -1,5 +1,14 @@
 # Hardware
 
+## Ruby live search diagnosis (2026-10-21, ANAL-234)
+
+Authorized adb observation confirms Ryzen AI 9 HX 370 and OpenBook G14 boot
+properties, running Ruby `CL3B.260622.271.R1` with `ro.boot.openbook.live=1`.
+Settings search fails after Houdini initialization and an ARM64 library load
+error. The meaning of the bridge's internal error remains unknown; this is not
+proof of an AMD instruction or hardware fault. Exact release-image identity and
+the NVMe installation were not attested. See `docs/settings-search.md`.
+
 ## G14 touchpad measurement (2026-10-19, ANAL-226)
 
 On `20261019.photos1` slot A: ELAN `04f3:3315`, five slots, X 0–3905,
