@@ -1,0 +1,22 @@
+{
+  "schema": "openbook-ruby-physical-write/1",
+  "release": "RB-20261020-01 v3",
+  "device": "SanDisk Ultra USB stick ending 2034",
+  "approval_comment_id": "01a16077-9b01-7566-9706-b0e7e7dd5b04",
+  "started_utc": "2026-10-21T21:57:30Z",
+  "finished_utc": "2026-10-21T22:13:19Z",
+  "prewrite_check": "direct read matched the twice-read backup b362347c8a64c4b702d012c070ac9d9accb4a0bb5decbd2d4d83e3a05ca092b7",
+  "written": [
+    "super",
+    "vbmeta_a",
+    "EFI"
+  ],
+  "image_bytes": 12766412800,
+  "readback_sha256": "806c69bea85f348079cdfca8fd8dd18ca3d83c7d9fb2cafc93d1be1066b8ad88",
+  "expected_sha256": "806c69bea85f348079cdfca8fd8dd18ca3d83c7d9fb2cafc93d1be1066b8ad88",
+  "verified": true,
+  "protected_bytes": 8805941248,
+  "powered_off": true,
+  "laptop_written": false,
+  "note": "super/vbmeta_a bytes were rewritten identically by the coherent three-part writer; only EFI content changed"
+}
