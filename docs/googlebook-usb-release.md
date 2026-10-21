@@ -63,3 +63,9 @@ describes the signed partition metadata;
 [AOSP metadata encryption](https://source.android.com/docs/security/features/encryption/metadata)
 describes the separate key metadata and boot requirements. This narrowly
 pinned update retains those encryption inputs; it does not qualify a new base.
+
+## Qualified run
+
+The configured SanDisk write and full direct readback completed under B Honey’s
+recorded approval. See `evidence/2026-10-20-rb01-usb/README.md` for the exact
+qualification, reused installer regression evidence and remaining hardware limits.

@@ -1520,11 +1520,24 @@ and full Photos-use verification remain pending. Evidence: `evidence/2026-10-19-
 - **Evidence:** `evidence/2026-10-16-g14-hwcheck/`.
 
 
-## Ruby USB release preparation — 2026-10-20
+## Ruby USB release handoff — 2026-10-20
 
-RB-20261020-01 is being prepared for the configured SanDisk Ultra ending 2034
-under ANAL-233, using the input/AVB payload already validated from ANAL-228/229.
-The new packaging path verifies exact baseline/candidate manifests, retains all
-bytes outside EFI/super/vbmeta, and replaces only a hash-identified installer.
-No G14 or USB deployment is claimed by this source change. See
-`docs/googlebook-usb-release.md` for the procedure and qualification limits.
+RB-20261020-01 packaging revision 2 was written to the approved SanDisk Ultra
+ending 2034. Full direct readback of all 12,766,412,800 used bytes matched the
+prepared image, and the stick was powered off. All 8,805,941,248 bytes outside
+EFI/super/vbmeta remain identical to the fresh backup. The laptop was not written.
+
+The preservation path and installer replacement passed 41 regression checks.
+A 760.7-second encrypted-state VM rehearsal booted Android, completed logging,
+retained all four metadata-key files and preserved its source/decoy disks.
+Both wrong-confirmation paths and normal-console cancellation passed. The
+final installer has the same 1,297 extracted entries and permissions as the
+tested installer; archive inode numbers differ. See
+`evidence/2026-10-20-rb01-usb/result.json` and `docs/googlebook-usb-release.md`.
+
+One system-server crash recurred in the VM. The cause remains unconfirmed.
+G14 boot, existing PIN/apps and trackpad behavior still need owner validation;
+this is a test release, not stable hardware acceptance. The original backup,
+prepared image, installer, logs and recovery record are retained privately.
+Only enumerated completed scratch from this task was removed. Host free space
+at handoff: 54.56 GiB (40 GiB reserve).

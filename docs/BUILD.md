@@ -733,11 +733,12 @@ Mesa patch 0005 is applied by `mesa-android-build.sh fetch`; rebuild and stage
 Mesa before building the OS image. Evidence: `evidence/2026-10-19-photos-yv12/`.
 
 
-## Ruby USB release preparation — 2026-10-20
+## Ruby USB release handoff — 2026-10-20
 
-RB-20261020-01 is being prepared for the configured SanDisk Ultra ending 2034
-under ANAL-233, using the input/AVB payload already validated from ANAL-228/229.
-The new packaging path verifies exact baseline/candidate manifests, retains all
-bytes outside EFI/super/vbmeta, and replaces only a hash-identified installer.
-No G14 or USB deployment is claimed by this source change. See
-`docs/googlebook-usb-release.md` for the procedure and qualification limits.
+RB-20261020-01 v2 retains the previously validated Android payload and adds
+exact-transition preservation, verified installer replacement and final plan
+composition. The guarded configured-USB write and full direct readback passed.
+Use `docs/googlebook-usb-release.md` for the three-stage procedure and
+`evidence/2026-10-20-rb01-usb/result.json` for source/tool identities, checks,
+the retained mount-guard failure and cleanup. Never substitute the synthetic
+test image for the configured output. Original backups and artifacts remain private.
