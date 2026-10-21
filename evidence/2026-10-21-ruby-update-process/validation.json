@@ -1,0 +1,12 @@
+{
+  "schema": "openbook-ruby-update-process-validation/1",
+  "regression_tests": 24,
+  "source_assessment": "retained-source-assessment.json",
+  "source_only_result": "awaiting_review",
+  "source_hash_matches": true,
+  "hardware_install_available": false,
+  "images_copied_or_built": false,
+  "temporary_synthetic_fixtures_removed": true,
+  "free_bytes_at_handoff_check": 804329693184,
+  "scope": "Host readiness contract and staging storage gates; not an APK, OTA reconstruction or hardware qualification."
+}

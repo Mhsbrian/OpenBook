@@ -21,6 +21,7 @@ def module(name):
 s = module("update-stage")
 q = module("update-quarantine")
 i = module("update-inventory")
+a = module("update-assess")
 
 
 class StageTests(unittest.TestCase):
@@ -39,6 +40,11 @@ class StageTests(unittest.TestCase):
         cls.keys.cleanup()
 
     def setUp(self):
+        # Tiny synthetic fixtures must not require a 40 GiB CI/tmpfs volume.
+        # Dedicated boundary/pressure tests below override this capacity.
+        capacity = patch.object(s.shutil, "disk_usage", return_value=shutil_usage(1 << 45))
+        capacity.start()
+        self.addCleanup(capacity.stop)
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name)
         self.original = self.root / "original"
@@ -191,6 +197,121 @@ class StageTests(unittest.TestCase):
         with patch.object(s.shutil, "disk_usage", return_value=s.shutil._ntuple_diskusage(1, 1, 0)):
             with self.assertRaisesRegex(ValueError, "disk space"):
                 self.stage()
+
+    def assess(self, **changes):
+        args = dict(original=self.original, profile_path=self.p, candidate=self.candidate,
+                    review=self.r, signature=self.sig, trusted_key=self.pub,
+                    stage_parent=self.root)
+        args.update(changes)
+        return a.assess(**args)
+
+    def test_assessment_is_read_only_and_cannot_authorize_installation(self):
+        before = {str(p): s.digest(p) for p in self.root.rglob("*") if p.is_file()}
+        result = self.assess()
+        self.assertEqual(result["state"], "ready_for_local_staging")
+        self.assertTrue(result["can_stage_now"])
+        self.assertTrue(result["must_revalidate_before_staging"])
+        self.assertFalse(result["physical_install_available"])
+        self.assertFalse(result["automatic_install_authorized"])
+        self.assertEqual(result["review"], "signature_and_tuple_verified")
+        self.assertEqual(result["verified_attestations"], list(s.GATES["rehearsal"]))
+        self.assertEqual(before, {str(p): s.digest(p) for p in self.root.rglob("*") if p.is_file()})
+
+    def test_identity_is_not_upstream_authentication_or_review(self):
+        result = self.assess(review=None)
+        self.assertEqual(result["state"], "awaiting_review")
+        self.assertEqual(result["source_identity"], "matches_local_profile")
+        self.assertEqual(result["review"], "not_verified")
+        self.assertEqual(result["verified_attestations"], [])
+        self.assertFalse(result["can_stage_now"])
+        self.assertEqual(result["upstream_authentication"], "not_established_by_this_assessment")
+
+    def test_cached_ready_status_cannot_bypass_staging_revalidation(self):
+        self.assertTrue(self.assess()["can_stage_now"])
+        (self.candidate / "evidence").write_bytes(b"replaced after status query")
+        with self.assertRaisesRegex(ValueError, "Evidence changed"):
+            self.stage()
+        self.assertFalse(self.out.exists())
+
+    def test_assessment_missing_unknown_and_unsupported_source(self):
+        self.assertEqual(self.assess(original=None)["state"], "awaiting_source")
+        self.original.write_bytes(b"new unidentified build")
+        result = self.assess()
+        self.assertEqual(result["state"], "unknown_input")
+        self.assertFalse(result["can_stage_now"])
+        self.profile["original"]["kind"] = "incremental-ota"
+        self.sign()
+        result = self.assess()
+        self.assertEqual(result["state"], "blocked")
+        self.assertIn("not implemented", result["blockers"][0]["message"])
+
+    def test_assessment_rejects_forgery_expiry_and_changed_artifacts(self):
+        self.r.write_bytes(self.r.read_bytes() + b" ")
+        result = self.assess()
+        self.assertFalse(result["can_stage_now"])
+        self.assertEqual(result["verified_attestations"], [])
+        self.review["expires_utc"] = "2000-01-01T00:00:00Z"
+        self.sign()
+        self.assertIn("Expired", self.assess()["blockers"][0]["message"])
+        self.review["expires_utc"] = "2100-01-01T00:00:00Z"
+        self.sign()
+        (self.candidate / "kernel").write_bytes(b"changed")
+        self.assertFalse(self.assess()["can_stage_now"])
+        self.assertFalse(self.out.exists())
+
+    def test_assessment_does_not_escalate_stage_or_accept_missing_evidence(self):
+        self.assertFalse(self.assess(stage="trial")["can_stage_now"])
+        self.review["checks"].pop("vintf")
+        self.sign()
+        result = self.assess()
+        self.assertIn("vintf", result["blockers"][0]["message"])
+        self.assertEqual(result["verified_attestations"], [])
+
+    def test_assessment_requires_space_check_and_reserve(self):
+        self.assertEqual(self.assess(stage_parent=None)["blockers"][0]["code"], "storage_not_checked")
+        required = self.original.stat().st_size + sum(p.stat().st_size for p in self.candidate.iterdir())
+        required += s.STAGING_OVERHEAD_BYTES + sum(p.stat().st_size for p in (self.p,self.r,self.sig,self.pub))
+        for spare, expected in ((-1, False), (0, True)):
+            available = required + s.HOST_RESERVE_BYTES + spare
+            with self.subTest(spare=spare), patch.object(a.shutil, "disk_usage",
+                    return_value=shutil_usage(available)):
+                self.assertEqual(self.assess()["can_stage_now"], expected)
+        with patch.object(s.shutil, "disk_usage", return_value=shutil_usage(required+s.HOST_RESERVE_BYTES-1)):
+            with self.assertRaisesRegex(ValueError, "40 GiB"):
+                self.stage()
+        self.assertFalse(self.out.exists())
+
+    def test_staging_stops_if_other_work_consumes_reserve(self):
+        plenty = shutil_usage(1 << 45)
+        with patch.object(s.shutil, "disk_usage", side_effect=[plenty, plenty, shutil_usage(0)]):
+            with self.assertRaisesRegex(ValueError, "40 GiB"):
+                self.stage()
+        self.assertFalse(self.out.exists())
+        self.assertEqual(self.original.read_bytes(), b"authorized synthetic full recovery")
+
+    def test_assessment_rejects_devices_links_malformed_and_missing_inputs(self):
+        self.assertFalse(self.assess(original=Path("/dev/null"))["can_stage_now"])
+        link = self.root / "link"
+        link.symlink_to(self.original)
+        self.assertFalse(self.assess(original=link)["can_stage_now"])
+        self.assertFalse(self.assess(profile_path=self.root/"absent")["can_stage_now"])
+        self.p.write_text('{"schema":1,"schema":2}')
+        self.assertFalse(self.assess()["can_stage_now"])
+        self.p.write_text('[]')
+        self.assertFalse(self.assess()["can_stage_now"])
+
+    def test_assessment_cli_emits_blocked_json_without_local_paths(self):
+        proc = subprocess.run(["python3", str(Path(__file__).with_name("update-assess.py")),
+                               "--profile", str(self.p), "--original", str(self.original)],
+                              capture_output=True, text=True)
+        self.assertEqual(proc.returncode, 2)
+        self.assertEqual(json.loads(proc.stdout)["state"], "awaiting_review")
+        self.assertNotIn(str(self.root), proc.stdout)
+        self.assertEqual(proc.stderr, "")
+
+
+def shutil_usage(free):
+    return s.shutil._ntuple_diskusage(1 << 46, (1 << 46)-free, free)
 
 
 class QuarantineTests(unittest.TestCase):

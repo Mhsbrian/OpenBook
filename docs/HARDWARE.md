@@ -1,5 +1,14 @@
 # Hardware
 
+2026-10-21 OTA follow-up: host-only readiness/approval checks can proceed
+without the G14. No current-device inspection or hardware write was performed
+by this work. The release hub records the separately authorized RB01 v2 USB
+write, with laptop state unchanged and G14 USB boot/unlock/trackpad acceptance
+pending. Current GPT, pending updates/snapshots, backup/recovery and real Google
+client behavior still need read-only capture and later controlled testing.
+See `googlebook-update-workstreams.md`; VM Binder refusal is not proof of all
+hardware OTA paths being contained.
+
 2026-10-20 OTA follow-up: the owner is using the installed G14 and reports normal
 app updates working. System OTA/rollback is the requested focus. The new backend
 guard is a disposable VM prototype; no laptop app, setting, disk or firmware has

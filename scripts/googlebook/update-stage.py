@@ -24,6 +24,8 @@ GATES = {
     "trial": ("encrypted_data", "boot_health", "failure_recovery", "containment", "data_rollback"),
     "promotion": ("hardware", "owner_acceptance"),
 }
+HOST_RESERVE_BYTES = 40 * 2**30
+STAGING_OVERHEAD_BYTES = 64 * 2**20
 
 
 def require(value, message):
@@ -129,6 +131,13 @@ def evaluate(original, candidate, profile_path, review_path, signature, key, sta
     return decision, profile, reports, profile_raw, review_raw, sig_bytes, key_bytes
 
 
+def staging_bytes(original, candidate, contract, reports, metadata_bytes=0):
+    """Conservative full-copy allocation; no sparse/reflink savings assumed."""
+    return STAGING_OVERHEAD_BYTES + metadata_bytes + regular(original).stat().st_size + sum(
+        regular(candidate / n).stat().st_size
+        for n in set(contract["artifacts"]) | set(reports))
+
+
 def stage_files(original, candidate, profile, review, signature, key, stage, out):
     checked = evaluate(original, candidate, profile, review, signature, key, stage)
     decision, contract, reports, profile_raw, review_raw, sig_bytes, key_bytes = checked
@@ -137,9 +146,10 @@ def stage_files(original, candidate, profile, review, signature, key, stage, out
     require(not any(p.is_symlink() for p in out.parents), "Symlink output parent refused")
     # Rename on one filesystem publishes a fully checked directory. A crash
     # before rename leaves only a private .partial directory, never an approval.
-    required = regular(original).stat().st_size
-    required += sum(regular(candidate / n).stat().st_size for n in set(contract["artifacts"]) | set(reports))
-    require(shutil.disk_usage(out.parent).free >= required + (64 << 20), "Insufficient staging disk space")
+    required = staging_bytes(original, candidate, contract, reports,
+                             sum(map(len, (profile_raw, review_raw, sig_bytes, key_bytes))))
+    require(shutil.disk_usage(out.parent).free >= required + HOST_RESERVE_BYTES,
+            "Insufficient staging disk space including 40 GiB host reserve")
     pending = Path(tempfile.mkdtemp(prefix=f".{out.name}.partial-", dir=out.parent))
     try:
         (pending / "artifacts").mkdir()
@@ -147,12 +157,18 @@ def stage_files(original, candidate, profile, review, signature, key, stage, out
         sources.extend((candidate / n, pending / "artifacts" / n, h)
                        for n, h in (contract["artifacts"] | reports).items())
         for source, target, expected in sources:
+            require(shutil.disk_usage(out.parent).free >= required + HOST_RESERVE_BYTES,
+                    "Insufficient staging disk space including 40 GiB host reserve")
+            source_size = regular(source).stat().st_size
             with regular(source).open("rb") as src, target.open("xb") as dst:
                 shutil.copyfileobj(src, dst, 4 << 20)
                 dst.flush()
                 os.fsync(dst.fileno())
             require(digest(target) == expected, "Input changed during copy")
             target.chmod(0o400)
+            required -= source_size
+        require(shutil.disk_usage(out.parent).free >= required + HOST_RESERVE_BYTES,
+                "Insufficient staging disk space including 40 GiB host reserve")
         for name, data in (("profile.json", profile_raw), ("review.json", review_raw),
                            ("review.sig", sig_bytes), ("reviewer.pub", key_bytes),
                            ("decision.json", canonical(decision) + b"\n")):

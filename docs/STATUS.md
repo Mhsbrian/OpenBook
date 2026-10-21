@@ -1,5 +1,25 @@
 # Status
 
+## 2026-10-21: Ruby software work resumes independently of hardware testing
+
+ANAL-229 is in progress for host/app process work. The OTA guard remains a
+VM-only prototype, with no laptop containment or automatic recovery claim.
+The central release record reports RB-20261020-01 v2 written/read back on the
+approved USB; the guard was excluded and the laptop was not changed.
+
+Added a read-only JSON readiness interface backed by the existing signed-stage
+verifier, plus a mandatory 40 GiB host reserve in the staging implementation.
+It distinguishes byte identity, signed reviewer attestations and unavailable
+physical installation. The retained 19.07 GB raw source matches its profile and
+correctly returns `awaiting_review`. No image was copied or built in this step.
+The source is identified, not independently authenticated by this check.
+
+`googlebook-update-workstreams.md` records the evidence, dependencies, app/service
+contract and next host-native audit automation milestone. Complete OTA
+reconstruction, authenticated transport, production guard packaging, network/
+recovery/Mainline qualification, recoverable Ruby slots and data-schema rollback
+remain unfinished. Existing ANAL-230/231 are retained; no agent was dispatched.
+
 ## 2026-10-20: Ruby OTA guard implementation (ANAL-229)
 
 The owner requests system OTA control and rollback while continuing to use the
