@@ -3,13 +3,20 @@
 ANAL-229, evidence reviewed **2026-10-21**. This is a development work plan,
 not a frozen release plan or authorization to modify a physical device.
 
-The first execution milestone is now implemented in `googlebook-update-workflow.md`:
+The first execution milestone is implemented in `googlebook-update-workflow.md`:
 a fixed, pinned camera25 replay runs the native audit, reassembly and input
 controls, records durable job states and cleans its completed scratch. Real
 execution passed and remains `assembled_unqualified`. It does not reconstruct
 a new recovery/OTA or close trust, installer-pin, boot, containment or recovery
 gates. The table below describes the broader workstream, not completed universal
 adaptation. Authenticated service requests and a UI remain follow-on work.
+
+The linked runtime stage is implemented in `googlebook-update-rehearsal.md`:
+separate durable records for a synthetic encrypted-data boot and cold restart,
+exact parent/candidate identities, explicit crash/data-policy gates and scoped
+cleanup. `evidence/2026-10-21-ruby-update-rehearsal/` records the measured outcome.
+Reaching Android boot completion is insufficient: a later native or Java crash
+holds the job. This is not an automatic rollback implementation.
 
 ## Current evidence
 
@@ -36,8 +43,8 @@ modification. No new Google OTA has been supplied/validated in this work.
 
 | Workstream | Next bounded deliverable | Acceptance and dependency | Effort/risk assessment |
 |---|---|---|---|
-| Host adaptation, ANAL-229 | Wire the known full-recovery path into a versioned job: pinned original and AMD transform profile, native audits, immutable output identities, regenerated installer pin, evidence collection | Reject unknown input/transform/tool identities and missing/failed native checks. Replay a known retained tuple first. Require authorized input and independently established upstream trust before qualifying a new production import. | Substantial integration; existing assemblers help, but arbitrary future framework/vendor changes remain engineering work |
-| App/backend contract, ANAL-229 | Read-only assessment delivered here; next add durable job history and authenticated status/review requests with synthetic fixtures | No caller-supplied commands, paths, trust keys or device nodes in a future remote API. UI must show exact blockers and distinguish development, reviewed, trial and deployed states. | Smaller than recovery/compatibility work; starting a polished install button now would hide missing capabilities |
+| Host adaptation, ANAL-229 | Fixed audit/assembly job and linked synthetic rehearsal delivered; next resolve observed runtime blockers, verify data contents/recovery and qualify a new input's trust/provenance before adapting it | Reject unknown input/transform/tool identities and missing/failed checks. Installer pinning and qualified release packaging remain separate from the development job. | Substantial integration; arbitrary future framework/vendor changes remain engineering work |
+| App/backend contract, ANAL-229 | Read-only assessment and local durable job records delivered; next authenticated status/review requests with fixed job identifiers | No caller-supplied commands, paths, trust keys or device nodes in a future remote API. UI must show exact blockers and distinguish development, reviewed, trial and deployed states. | Smaller than recovery/compatibility work; starting a polished install button now would hide missing capabilities |
 | Containment, ANAL-230 | Build a production-shaped VM candidate without the probe/test grants; use a separately instrumented caller and matched controls | Repeat both APIs, real cleanup, ordinary app/security-UI operation and a network/idle/reboot/recovery/Mainline matrix. Fail on unfamiliar client/build. Physical behavior remains a later gate. | Integration and test heavy; proprietary client paths are not inferred from names or offline results |
 | Recoverability, ANAL-231 | Regular-file VM transaction with complete second system set, counted boot attempts, protected shared metadata and an offline rescue path | Interrupt each write/activation boundary; test missing boot files, failure to reach health gates, signature/profile refusal and successful fallback. Add a data-version contract and explicitly reject old-system boot on incompatible newer data. | Highest safety risk; system fallback alone does not solve data/key/schema recovery |
 

@@ -54,6 +54,11 @@ editing hashes until a job passes is not qualification. Installer source pins,
 encrypted-data boot, stability, containment, recovery/data rollback and hardware
 acceptance remain separate gates.
 
+The linked next stage is now implemented in `googlebook-update-rehearsal.md`.
+It leaves the completed assembly record immutable and creates its own record for
+two bounded boots using synthetic encrypted data and copied software TPM state.
+Its health verdicts do not grant release approval or test owner credentials.
+
 ## Reproduction
 
 Use the existing authorized private inputs. `DATA` below is the host's retained

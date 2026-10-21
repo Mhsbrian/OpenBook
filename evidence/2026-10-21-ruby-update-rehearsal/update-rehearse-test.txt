@@ -1,0 +1,2 @@
+Final integrated rehearsal suite: 29 tests, exit 0, OK.
+The initial 22-test log is retained separately; the final invocation was collected in the task tool output.

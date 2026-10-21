@@ -1,5 +1,16 @@
 # Build and reproduce
 
+## Ruby encrypted-data rehearsal — 2026-10-21
+
+`googlebook-update-rehearsal.md` documents the next executable stage: consume a
+completed adaptation job, prepare a pinned synthetic encrypted VM, observe its
+boot and cold restart, and retain independent health verdicts. Run
+`bash scripts/googlebook/run-update-rehearsal.sh` with the private inputs named
+there. Budget 64 GiB additional plus the 40 GiB reserve. The launcher uses the
+same offline container and shared track lock; no physical device is exposed.
+Run `python3 scripts/googlebook/update-rehearse-test.py -v` for failure gates.
+This does not implement owner-data recovery, automatic rollback or deployment.
+
 ## Fixed Ruby host workflow — 2026-10-21
 
 `googlebook-update-workflow.md` documents the executable camera25 replay:

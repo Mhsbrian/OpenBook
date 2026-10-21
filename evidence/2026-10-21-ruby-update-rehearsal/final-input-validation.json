@@ -1,0 +1,8 @@
+{
+  "exit_code": 0,
+  "elapsed_s": 11.8,
+  "output": "Final source/profile and original input validation passed; no VM or image write.\n",
+  "scope": "Final capture-reader integration validated against unchanged original private inputs; no new VM execution.",
+  "script_sha256": "d91d208019ab0b24faa96619ec28ad55bbb611fc1d7da3881220f57e7d22d3f8",
+  "profile_sha256": "cd7cd3c1523ed5027406bcdb9f5f8658cd7912495715e626448776838afda709"
+}

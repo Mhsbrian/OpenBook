@@ -1,0 +1,20 @@
+{
+  "initial_attempt": {
+    "state": "failed",
+    "failed_phase": "preparing",
+    "exit_code": 2,
+    "reason": "Live manifest/geometry mismatch",
+    "wrong_fresh_manifest_sha256": "d6d3a5a7f185afb7e834847e1b0bb39cc15edbf893e90d3972ef88a3e22fe05a",
+    "correct_initialized_manifest_sha256": "de9489eb8d470ce8f62935bea13a79be45b3077351f4ceb9dcc7d51f890ed8e6",
+    "prepare_log_sha256": "f4fe494b9f120bdba49b452cff8aa32042e571f0496e735a70f573c24328f035",
+    "prepared_image_created": false,
+    "vm_started": false,
+    "response": "Bound a fresh job to the recorded synthetic camera24-to-camera25 preservation manifest; retained strict geometry/static-payload checks."
+  },
+  "concurrent_attempt": {
+    "exit_code": 2,
+    "shared_track_lock_refused_concurrent_run": true,
+    "output_created": false,
+    "message": "Rehearsal stopped: [Errno 11] Resource temporarily unavailable"
+  }
+}

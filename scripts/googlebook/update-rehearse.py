@@ -29,10 +29,11 @@ def load(name, path):
 
 
 w = load("workflow", HERE / "update-workflow.py")
+c = load("capture", HERE / "rehearsal-capture.py")
 PROFILE = w.REPO / "config/image-bases/ruby-rehearsal-camera25.json"
 DEPENDENCIES = (*w.SCRIPTS, "googlebook/update-workflow.py", "googlebook/run-probe.py",
                 "googlebook/migration-qemu.py", "googlebook/migrate.py",
-                "googlebook/apply-preserved-update.py")
+                "googlebook/apply-preserved-update.py", "googlebook/rehearsal-capture.py")
 OBSERVATION_SECONDS = 760
 PEAK_BYTES = 64 * w.GIB
 
@@ -221,10 +222,13 @@ def execute(a):
             observation = w.read_json(a.out / phase / "result.json")
             disk = a.out / phase / "usb-test.img"
             after = q.metadata_key_hashes(disk, a.out, phase)
-            text = w.regular(a.out / phase / "serial.log").read_text(errors="replace")
+            text, capture_files = c.current_capture(a.out / phase, observation)
+            w.atomic_json(a.out / (phase + "-capture-files.json"), capture_files)
             outcome = verdict(observation, text, keys, after, profile)
             outcome.update(observation_sha256=w.sha(a.out / phase / "result.json"),
-                           serial_sha256=w.sha(a.out / phase / "serial.log"))
+                           serial_sha256=w.sha(a.out / phase / "serial.log"),
+                           capture_file_count=len(capture_files),
+                           capture_inventory_sha256=w.sha_value(capture_files))
             if command_error:
                 outcome.update(passed=False, command_error=command_error)
                 outcome["blockers"].append("harness_command_failed")

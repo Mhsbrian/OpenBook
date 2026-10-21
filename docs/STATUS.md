@@ -1,5 +1,36 @@
 # Status
 
+## 2026-10-21: Adaptation rehearsal reaches encrypted boot/restart, held on runtime health
+
+The assembly job now feeds a separate pinned synthetic-data rehearsal. The
+known input-correction candidate completed 760.6 seconds of UEFI boot observation
+and a 760.7-second cold restart with copied software TPM state. Both retained all
+four metadata-encryption files, the verified `/data/misc` policy and enforcing
+encrypted F2FS mounts. Source images, source TPM state and decoys were unchanged.
+
+Both observations **fail health**: RepairMode's boot receiver crashes while
+binding `vendor.google.desktop.serviceability.VendorServiceabilityService`.
+The retained camera25 baseline has the same exception; this is the previously
+documented vendor-backend gap, not evidence that it is harmless. The job finishes
+`held`, with no promotion. These initialized observations have no recorded
+system-server fatal signal/zygote restart; earlier fresh-image failures remain
+unresolved. No owner PIN or app databases were tested, and no rollback occurred.
+
+The health reader now examines current saved guest logs as well as serial,
+rejecting prior sessions and unsafe/missing files. The exact execution version
+and separate broader review of the same bytes are retained. 29 rehearsal tests
+and 87 existing regressions pass; two retained crash-log controls also fail their
+health checks correctly. Actual wrong-manifest and concurrent-run attempts stop.
+
+Cleanup removed 15 enumerated scratch paths after collecting evidence. Free
+space was 744.65 GiB before execution, 739.90 before cleanup, 741.22 immediately
+after and 743.64 after sync at handoff. Original/recovery inputs, candidate, TPM
+state and diagnostics remain private. No physical device or release changed.
+See `googlebook-update-rehearsal.md` and
+`evidence/2026-10-21-ruby-update-rehearsal/`. Next: resolve the observed service
+failure and add synthetic app-data/recovery checks; production containment,
+automatic fallback and schema-compatible rollback remain separate unfinished work.
+
 ## 2026-10-21: Executable Ruby adaptation replay
 
 The fixed local workflow now runs native audits and image assembly rather than

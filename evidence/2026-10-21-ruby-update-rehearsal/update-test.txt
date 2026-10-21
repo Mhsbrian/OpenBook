@@ -1,0 +1,29 @@
+test_apk_component_attributes_not_nested_intent_attributes (__main__.QuarantineTests.test_apk_component_attributes_not_nested_intent_attributes) ... ok
+test_known_contract_and_unknown_definition (__main__.QuarantineTests.test_known_contract_and_unknown_definition) ... ok
+test_assessment_cli_emits_blocked_json_without_local_paths (__main__.StageTests.test_assessment_cli_emits_blocked_json_without_local_paths) ... ok
+test_assessment_does_not_escalate_stage_or_accept_missing_evidence (__main__.StageTests.test_assessment_does_not_escalate_stage_or_accept_missing_evidence) ... ok
+test_assessment_is_read_only_and_cannot_authorize_installation (__main__.StageTests.test_assessment_is_read_only_and_cannot_authorize_installation) ... ok
+test_assessment_missing_unknown_and_unsupported_source (__main__.StageTests.test_assessment_missing_unknown_and_unsupported_source) ... ok
+test_assessment_rejects_devices_links_malformed_and_missing_inputs (__main__.StageTests.test_assessment_rejects_devices_links_malformed_and_missing_inputs) ... ok
+test_assessment_rejects_forgery_expiry_and_changed_artifacts (__main__.StageTests.test_assessment_rejects_forgery_expiry_and_changed_artifacts) ... ok
+test_assessment_requires_space_check_and_reserve (__main__.StageTests.test_assessment_requires_space_check_and_reserve) ... ok
+test_bad_signature_and_unsigned_profile (__main__.StageTests.test_bad_signature_and_unsigned_profile) ... ok
+test_cached_ready_status_cannot_bypass_staging_revalidation (__main__.StageTests.test_cached_ready_status_cannot_bypass_staging_revalidation) ... ok
+test_changed_evidence_and_missing_boot_file (__main__.StageTests.test_changed_evidence_and_missing_boot_file) ... ok
+test_devices_traversal_symlinks_and_incremental_refused (__main__.StageTests.test_devices_traversal_symlinks_and_incremental_refused) ... ok
+test_duplicate_json_key_refused (__main__.StageTests.test_duplicate_json_key_refused) ... ok
+test_identity_is_not_upstream_authentication_or_review (__main__.StageTests.test_identity_is_not_upstream_authentication_or_review) ... ok
+test_incompatible_and_missing_gates (__main__.StageTests.test_incompatible_and_missing_gates) ... ok
+test_interrupted_copy_never_publishes (__main__.StageTests.test_interrupted_copy_never_publishes) ... ok
+test_low_disk_refused (__main__.StageTests.test_low_disk_refused) ... ok
+test_positive_exact_tuple_staged_original_preserved (__main__.StageTests.test_positive_exact_tuple_staged_original_preserved) ... ok
+test_promotion_requires_every_prior_gate (__main__.StageTests.test_promotion_requires_every_prior_gate) ... ok
+test_scope_cannot_escalate_to_trial (__main__.StageTests.test_scope_cannot_escalate_to_trial) ... ok
+test_staging_stops_if_other_work_consumes_reserve (__main__.StageTests.test_staging_stops_if_other_work_consumes_reserve) ... ok
+test_stale_or_wrong_tuple_report (__main__.StageTests.test_stale_or_wrong_tuple_report) ... ok
+test_unknown_original_refused_before_output (__main__.StageTests.test_unknown_original_refused_before_output) ... ok
+
+----------------------------------------------------------------------
+Ran 24 tests in 0.420s
+
+OK

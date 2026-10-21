@@ -1,5 +1,12 @@
 # Hardware
 
+2026-10-21 runtime follow-up: the private adapted candidate completed a
+760.6-second synthetic UEFI boot and 760.7-second cold restart under offline
+TCG/software TPM. Encryption metadata/policy survived both; RepairMode Java
+crashes hold both health verdicts. This is not G14 TPM/PIN/app-data, hardware
+stability or recovery qualification. No laptop/USB write occurred; the candidate
+excludes the experimental OTA guard. See `googlebook-update-rehearsal.md`.
+
 2026-10-21 host execution milestone: the fixed adaptation workflow completed on
 the Ryzen 7950X host, including real VINTF/SELinux audits, image assembly and eight
 native input-library controls. Its container has no physical-device access.
