@@ -278,3 +278,13 @@ headless process passes import and colour readback for RGB, YV12 and flexible
 YUV420 at five sizes (15/15), without restarting the desktop. This is a driver
 format defect, not evidence of failing hardware. System deployment and the
 Photos app check are tracked in `evidence/2026-10-19-photos-yv12/SUMMARY.md`.
+
+
+## Ruby USB release preparation — 2026-10-20
+
+RB-20261020-01 is being prepared for the configured SanDisk Ultra ending 2034
+under ANAL-233, using the input/AVB payload already validated from ANAL-228/229.
+The new packaging path verifies exact baseline/candidate manifests, retains all
+bytes outside EFI/super/vbmeta, and replaces only a hash-identified installer.
+No G14 or USB deployment is claimed by this source change. See
+`docs/googlebook-usb-release.md` for the procedure and qualification limits.
