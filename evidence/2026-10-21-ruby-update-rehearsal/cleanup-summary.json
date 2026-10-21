@@ -1,0 +1,14 @@
+{
+  "complete": true,
+  "free_before_bytes": 794461704192,
+  "children_reaped": true,
+  "free_after_bytes": 795879018496,
+  "observed_free_delta_bytes": 1417314304,
+  "removed_path_count": 15,
+  "private_cleanup_manifest_sha256": "25d78e2d007d89592080ec96aff54877fc76498a9e7dd2596299292b26ed1277",
+  "free_before_execution_bytes": 799557980160,
+  "free_at_handoff_bytes": 798478303232,
+  "original_inputs_and_candidate_retained": true,
+  "logs_results_and_provenance_retained": true,
+  "removed_paths_verified_absent": true
+}

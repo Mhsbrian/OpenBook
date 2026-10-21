@@ -1,0 +1,30 @@
+{
+  "schema": "openbook-ruby-rehearsal-profile/1",
+  "fixture_kind": "synthetic-vm",
+  "scope": "Initialized camera25 offline software-TPM VM; no owner credentials or physical deployment.",
+  "container_image": "sha256:7217cade7ef1a3d027bdb97eeed388a63d23faf22f88adf7f2b2499d79db8049",
+  "fixture_sha256": "c45eba1c568f16908391532de278439d54edcfa587281bd01234b7dcfa0918e2",
+  "tpm_tree_sha256": "5d7c09138d7a1ffaaf067b999fe53dde26ec27433c8bba2859a92a91871ed4aa",
+  "base_manifest_sha256": "de9489eb8d470ce8f62935bea13a79be45b3077351f4ceb9dcc7d51f890ed8e6",
+  "qemu_sha256": "35db71cb2178b665983472bb584f87505cf431f225a881149dba83de0350de8a",
+  "candidate_sha256": "22e93f392882e4a15f2414c3bc3a65ad2aedf89b4756b9c1cf4fbaf6a3536155",
+  "data_policy_sha256": "90ab9ee82194d59116dcc7c67c8999f3f2cbe489de9622856ed4e3c7922b9307",
+  "scripts": {
+    "scripts/googlebook/compat-audit.py": "ec23b24a5022a116ca5a9a84ecd7da621b87dfb6f6a7b39e962a60f789d6b2d3",
+    "scripts/googlebook/build-input-candidate.py": "645e13d1a0c607053bc738b3f8e1690da4b79837c40d9a4df16c1cb97cd8bad7",
+    "scripts/googlebook/input-timestamp-patch.py": "d0d67a065a55878c4d650f3e7291912a4c92489f08e7e26f4db5944bd17fcca6",
+    "scripts/googlebook/preserve-update.py": "555be84b5d44c4ea7da432afc0affb9aec88eedcf93df4fccc3220bf1d9a974e",
+    "scripts/googlebook/run-input-native.py": "d0603a86d0d1deba06c45a704ccba0bec04ba3b0aafb626300f44ed6de2c1109",
+    "scripts/googlebook/live-image.py": "add4e771ad6bd49a9b86970bfad3126e9d1c27869221e9755b4ed759ddacfc6d",
+    "scripts/googlebook/hybrid-probe.py": "2b82fcc117ce93490bb2aedc191cbf4c5811ef31e7ea913e5a18be984a87ca75",
+    "scripts/kernel-g14-qemu.py": "e65f42796aa5f6e1156466460ac09f08d465ce6c9c71301345c884e826e912b1",
+    "scripts/installer/bootconfig.py": "40db658b34e913112a79827cbf3002a61e3d7114bf396bbc2447067a0327c777",
+    "scripts/installer/mkproto.py": "ac5abe0849fc2e61ed89c2c23e196fbc4c47014ef169c1461abae0b2054910c3",
+    "scripts/installer/mklive.py": "e8c855fbea424d128336b259bef252037652e372fcfd3708ffb21d896bc7165c",
+    "scripts/googlebook/update-workflow.py": "556cb6c7cbff41f03e565b5f415faa7d71ee85ca13281b53abf205da7b3d968e",
+    "scripts/googlebook/run-probe.py": "3371ff3f53c4a099859f70b28543b13fa042ee2221148c5b83c70a8ddad0e473",
+    "scripts/googlebook/migration-qemu.py": "37b9365cb45b5cbc396d1b2fcadea089fc7943b9a8abbb77dd0e95c0aa4a6570",
+    "scripts/googlebook/migrate.py": "cd882714cd180f17dc674b5fbf58588e6c1d80919c52536f2ea0e18cd55eefc9",
+    "scripts/googlebook/apply-preserved-update.py": "8145c4e37d455681c27ed5089e009e8853f84eaf1c06e2ed706772f38a91fc84"
+  }
+}

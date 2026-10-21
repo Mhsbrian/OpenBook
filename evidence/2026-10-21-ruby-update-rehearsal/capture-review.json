@@ -1,0 +1,93 @@
+{
+  "scope": "Reassessment of the exact retained observations; no new VM execution.",
+  "assessor_sha256": "d91d208019ab0b24faa96619ec28ad55bbb611fc1d7da3881220f57e7d22d3f8",
+  "capture_reader_sha256": "d43eaa3f881afe8d13d1465831ee4def0f12c77af9e2e691f1ed778518495b52",
+  "cases": {
+    "boot": {
+      "checks": {
+        "observation_completed": true,
+        "qemu_identity": true,
+        "qemu_exited_cleanly": true,
+        "source_image_unchanged": true,
+        "source_tpm_unchanged": true,
+        "software_tpm_restored": true,
+        "decoy_unchanged": true,
+        "fresh_capture_complete": true,
+        "boot_completed": true,
+        "enforcing_observed": true,
+        "encrypted_data_mount_observed": true,
+        "encryption_policy_retained": true,
+        "four_metadata_keys_retained": true,
+        "no_kernel_panic": true,
+        "no_sigill": true,
+        "no_fatal_exception": false,
+        "no_system_server_crash": true,
+        "no_zygote_restart": true,
+        "no_mmd_abort": true,
+        "no_camera_abort": true,
+        "no_avb_handoff_error": true
+      },
+      "passed": false,
+      "blockers": [
+        "no_fatal_exception"
+      ],
+      "fatal_lines": [
+        "10-21 19:24:40.018  2538  2538 E AndroidRuntime: FATAL EXCEPTION: main",
+        "10-21 19:24:59.113  3376  3376 E AndroidRuntime: FATAL EXCEPTION: main"
+      ],
+      "metadata_key_files": 4,
+      "data_policy_sha256": "90ab9ee82194d59116dcc7c67c8999f3f2cbe489de9622856ed4e3c7922b9307",
+      "owner_credentials_tested": false,
+      "app_data_contents_verified": false,
+      "rollback_tested": false,
+      "physical_device_written": false,
+      "capture_file_count": 280,
+      "capture_inventory_sha256": "7b386dfa8a0098dce4868cb3d6924dacadb9737d4a27785e6e6dcafb1ec06a9e",
+      "observation_sha256": "ba0ea94b7e568d9d6bbf51ae0254b2e8b8d29d9aa25adb19c5d01ae283b3188c",
+      "serial_sha256": "7f99c6bd919866ffd26c2373b658e0e753f7112af2aa0f1989ed841caba06cbd"
+    },
+    "restart": {
+      "checks": {
+        "observation_completed": true,
+        "qemu_identity": true,
+        "qemu_exited_cleanly": true,
+        "source_image_unchanged": true,
+        "source_tpm_unchanged": true,
+        "software_tpm_restored": true,
+        "decoy_unchanged": true,
+        "fresh_capture_complete": true,
+        "boot_completed": true,
+        "enforcing_observed": true,
+        "encrypted_data_mount_observed": true,
+        "encryption_policy_retained": true,
+        "four_metadata_keys_retained": true,
+        "no_kernel_panic": true,
+        "no_sigill": true,
+        "no_fatal_exception": false,
+        "no_system_server_crash": true,
+        "no_zygote_restart": true,
+        "no_mmd_abort": true,
+        "no_camera_abort": true,
+        "no_avb_handoff_error": true
+      },
+      "passed": false,
+      "blockers": [
+        "no_fatal_exception"
+      ],
+      "fatal_lines": [
+        "10-21 19:38:02.148  2708  2708 E AndroidRuntime: FATAL EXCEPTION: main",
+        "10-21 19:38:20.984  3536  3536 E AndroidRuntime: FATAL EXCEPTION: main"
+      ],
+      "metadata_key_files": 4,
+      "data_policy_sha256": "90ab9ee82194d59116dcc7c67c8999f3f2cbe489de9622856ed4e3c7922b9307",
+      "owner_credentials_tested": false,
+      "app_data_contents_verified": false,
+      "rollback_tested": false,
+      "physical_device_written": false,
+      "capture_file_count": 283,
+      "capture_inventory_sha256": "8cb407d8d52bf81a54537d4bb601afebe9a15de09e55394e5066f67eadd35eba",
+      "observation_sha256": "c80a3e4a025b80d1e1821da557c6affae9c290d310c33ca3cb204e5cf6acf923",
+      "serial_sha256": "d377a7e350eb693312311e88ec597a441065900d92caff857ee314f202641b4d"
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "scope": "Parser replay of retained diagnostic files only; no new VM execution or encryption-key assertion.",
+  "cases": [
+    {
+      "source": "retained 2026-10-20 fresh-guard-v3",
+      "serial_sha256": "e29488c4eac2cdaa23cf90f359326f3f314b166c2c18e74bd4775172c4aab3af",
+      "result_sha256": "1faa3d16f6b6b427657119dda78210edf5d8fe7a49ddfe480c326ea9745d6361",
+      "current_capture_files": 273,
+      "capture_inventory_sha256": "0d80528b956d97f32d5c17881541bf4f708b4cebb2e38e808fe18fedfb68f21b",
+      "boot_completed_reported": true,
+      "health_checks": {
+        "no_fatal_exception": false,
+        "no_system_server_crash": false,
+        "no_zygote_restart": false
+      },
+      "fatal_line_count": 16
+    },
+    {
+      "source": "retained 2026-10-20 fresh-baseline-retry",
+      "serial_sha256": "78ee641ed07ff9f2fd3bcd9687dad983060fac59a8829f8e4598cf9fa668803f",
+      "result_sha256": "f775a359270ebe16fe57ad95b228c8d8046fd1657ee5c63e9656a1d641f1f85c",
+      "current_capture_files": 188,
+      "capture_inventory_sha256": "af7401a1bebecdeabc293280e7d345ff24f711583ebc673e968a7b937262188b",
+      "boot_completed_reported": true,
+      "health_checks": {
+        "no_fatal_exception": false,
+        "no_system_server_crash": false,
+        "no_zygote_restart": true
+      },
+      "fatal_line_count": 4
+    }
+  ]
+}

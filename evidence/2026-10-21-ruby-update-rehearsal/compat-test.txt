@@ -1,0 +1,29 @@
+test_camera_accepts_source_and_assembled_vintf (__main__.Guards.test_camera_accepts_source_and_assembled_vintf) ... ok
+test_camera_rejects_ignored_boot_assigned_nodes (__main__.Guards.test_camera_rejects_ignored_boot_assigned_nodes) ... ok
+test_camera_rejects_missing_or_default_service_label (__main__.Guards.test_camera_rejects_missing_or_default_service_label) ... ok
+test_camera_rejects_missing_service (__main__.Guards.test_camera_rejects_missing_service) ... ok
+test_camera_rejects_stale_or_changed_stream_config (__main__.Guards.test_camera_rejects_stale_or_changed_stream_config) ... ok
+test_camera_rejects_unprotected_video_nodes (__main__.Guards.test_camera_rejects_unprotected_video_nodes) ... ok
+test_camera_rejects_wrong_provider_instance (__main__.Guards.test_camera_rejects_wrong_provider_instance) ... ok
+test_desktop_contract_rejects_new_permission_and_membership (__main__.Guards.test_desktop_contract_rejects_new_permission_and_membership) ... ok
+test_device_directory_refused (__main__.Guards.test_device_directory_refused) ... ok
+test_existing_output_preserved (__main__.Guards.test_existing_output_preserved) ... ok
+test_extra_grant_refuses_drift (__main__.Guards.test_extra_grant_refuses_drift) ... ok
+test_framework_labels_preserve_existing_contexts (__main__.Guards.test_framework_labels_preserve_existing_contexts) ... ok
+test_framework_labels_refuse_vendor_conflict (__main__.Guards.test_framework_labels_refuse_vendor_conflict) ... ok
+test_framework_labels_require_original_mapping (__main__.Guards.test_framework_labels_require_original_mapping) ... ok
+test_kernel_banner_across_read_boundary (__main__.Guards.test_kernel_banner_across_read_boundary) ... ok
+test_missing_grant_refuses_drift (__main__.Guards.test_missing_grant_refuses_drift) ... ok
+test_missing_or_conflicting_firmware_path_refused (__main__.Guards.test_missing_or_conflicting_firmware_path_refused) ... ok
+test_neverallow_removal_forbidden (__main__.Guards.test_neverallow_removal_forbidden) ... ok
+test_output_cannot_be_inside_source_via_symlink (__main__.Guards.test_output_cannot_be_inside_source_via_symlink) ... ok
+test_qemu_option_delimiter_refused (__main__.Guards.test_qemu_option_delimiter_refused) ... ok
+test_reduction_preserves_every_unrelated_statement (__main__.Guards.test_reduction_preserves_every_unrelated_statement) ... ok
+test_vendor_boot_contract_preserved (__main__.Guards.test_vendor_boot_contract_preserved) ... ok
+test_vendor_context_filter_preserves_platform_defaults_and_kind (__main__.Guards.test_vendor_context_filter_preserves_platform_defaults_and_kind) ... ok
+test_wifi_overlay_targets_retained_google_package (__main__.Guards.test_wifi_overlay_targets_retained_google_package) ... ok
+
+----------------------------------------------------------------------
+Ran 24 tests in 0.009s
+
+OK

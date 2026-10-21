@@ -4,6 +4,8 @@
 
 | Check | Result | Limit |
 |---|---|---|
+| Linked encrypted-data rehearsal | 760.6 s boot + 760.7 s cold restart; four metadata-key files and data policy retained, enforcing encrypted mounts, sources/TPM/decoys unchanged | Both health verdicts held on RepairMode/vendor-serviceability Java crashes; no owner PIN/app-content, rollback, production guard or hardware qualification |
+| Rehearsal failure gates | 29 tests plus 87 existing regressions; real wrong-manifest/concurrent-run refusals; saved-log-only crashes detected and prior sessions excluded | Trusted local CLI; two bounded observations are not long-term stability or upstream trust |
 | Fixed adaptation execution | Real Ruby/OpenBook/reduced-hybrid native audits pass; raw-hybrid policy fails as expected; image assembly preserves 7,292 metadata rows and protected ranges; eight native controls pass | Known camera25 input-correction replay only; no new OTA reconstruction, upstream trust, boot, guard inclusion or recovery qualification |
 | Workflow failures | Unknown actual source stops before audit/assembly; 23 job tests plus 59 existing regressions pass; deployment gate rejects unreviewed candidate | Trusted local CLI with private files; no authenticated service/APK, resumable jobs or production signing |
 | Read-only readiness contract | Source/profile identity, signed stage/expiry/evidence and reserve checks; unknown/changed/expired/incomplete inputs refused | Local single-user CLI; signed reports are attestations, not executed compatibility tests; no service/APK or install permission |

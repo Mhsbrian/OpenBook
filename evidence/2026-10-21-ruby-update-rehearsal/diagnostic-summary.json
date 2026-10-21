@@ -1,0 +1,29 @@
+{
+  "cases": {
+    "boot": {
+      "crashing_java_processes": [
+        "com.google.android.desktop.repairmode"
+      ],
+      "remote_exception_causes": [
+        "android.os.RemoteException: Failed to bind to vendor.google.desktop.serviceability.VendorServiceabilityService",
+        "android.os.RemoteException: Remote stack trace:"
+      ]
+    },
+    "restart": {
+      "crashing_java_processes": [
+        "com.google.android.desktop.repairmode"
+      ],
+      "remote_exception_causes": [
+        "android.os.RemoteException: Failed to bind to vendor.google.desktop.serviceability.VendorServiceabilityService",
+        "android.os.RemoteException: Remote stack trace:"
+      ]
+    }
+  },
+  "retained_baseline": {
+    "scope": "Original synthetic camera25 observation; no fresh control run.",
+    "result_sha256": "376b5d9b8e4cd8905aed2695e70d3dbee3412e04f25df66669c9f511b8df3e95",
+    "capture_inventory_sha256": "9c3c57e25ad10b5068d54af422dbb37f77080752df697db88a50d377edec0d13",
+    "repairmode_process_seen": true,
+    "same_remote_exception_seen": true
+  }
+}

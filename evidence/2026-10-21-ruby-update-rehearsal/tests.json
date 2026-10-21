@@ -1,0 +1,34 @@
+[
+  {
+    "suite": "update-rehearse-test.py",
+    "exit_code": 0,
+    "test_count": 29,
+    "final_command": "PYTHONDONTWRITEBYTECODE=1 python3 scripts/googlebook/update-rehearse-test.py -v",
+    "final_result": "29 tests passed after capture-reader integration; initial text log below predates that integration."
+  },
+  {
+    "suite": "update-workflow-test.py",
+    "exit_code": 0,
+    "test_count": 23
+  },
+  {
+    "suite": "update-test.py",
+    "exit_code": 0,
+    "test_count": 24
+  },
+  {
+    "suite": "preserve-update-test.py",
+    "exit_code": 0,
+    "test_count": 11
+  },
+  {
+    "suite": "compat-test.py",
+    "exit_code": 0,
+    "test_count": 24
+  },
+  {
+    "suite": "ota-guard-candidate-test.py",
+    "exit_code": 0,
+    "test_count": 5
+  }
+]

@@ -1,0 +1,10 @@
+test_identical_size_preserves_every_metadata_byte (__main__.Gates.test_identical_size_preserves_every_metadata_byte) ... ok
+test_missing_symlink_directory_and_hardlink_refused (__main__.Gates.test_missing_symlink_directory_and_hardlink_refused) ... ok
+test_probe_console_interleave_and_false_passes (__main__.Gates.test_probe_console_interleave_and_false_passes) ... ok
+test_size_only_preserves_owner_mode_time_and_xattrs (__main__.Gates.test_size_only_preserves_owner_mode_time_and_xattrs) ... ok
+test_unknown_hash_wrong_arch_and_missing_policy_refused (__main__.Gates.test_unknown_hash_wrong_arch_and_missing_policy_refused) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.001s
+
+OK

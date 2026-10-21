@@ -25,6 +25,7 @@
     "scripts/googlebook/run-probe.py": "3371ff3f53c4a099859f70b28543b13fa042ee2221148c5b83c70a8ddad0e473",
     "scripts/googlebook/migration-qemu.py": "37b9365cb45b5cbc396d1b2fcadea089fc7943b9a8abbb77dd0e95c0aa4a6570",
     "scripts/googlebook/migrate.py": "cd882714cd180f17dc674b5fbf58588e6c1d80919c52536f2ea0e18cd55eefc9",
-    "scripts/googlebook/apply-preserved-update.py": "8145c4e37d455681c27ed5089e009e8853f84eaf1c06e2ed706772f38a91fc84"
+    "scripts/googlebook/apply-preserved-update.py": "8145c4e37d455681c27ed5089e009e8853f84eaf1c06e2ed706772f38a91fc84",
+    "scripts/googlebook/rehearsal-capture.py": "d43eaa3f881afe8d13d1465831ee4def0f12c77af9e2e691f1ed778518495b52"
   }
 }
