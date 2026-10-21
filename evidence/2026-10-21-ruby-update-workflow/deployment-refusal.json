@@ -1,0 +1,6 @@
+{
+  "passed": true,
+  "new_candidate_rejected": true,
+  "reason": "Candidate is not the exact reviewed input27 artifact",
+  "candidate_sha256": "22e93f392882e4a15f2414c3bc3a65ad2aedf89b4756b9c1cf4fbaf6a3536155"
+}

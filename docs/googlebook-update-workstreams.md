@@ -3,6 +3,14 @@
 ANAL-229, evidence reviewed **2026-10-21**. This is a development work plan,
 not a frozen release plan or authorization to modify a physical device.
 
+The first execution milestone is now implemented in `googlebook-update-workflow.md`:
+a fixed, pinned camera25 replay runs the native audit, reassembly and input
+controls, records durable job states and cleans its completed scratch. Real
+execution passed and remains `assembled_unqualified`. It does not reconstruct
+a new recovery/OTA or close trust, installer-pin, boot, containment or recovery
+gates. The table below describes the broader workstream, not completed universal
+adaptation. Authenticated service requests and a UI remain follow-on work.
+
 ## Current evidence
 
 | Area | Established | Not established |

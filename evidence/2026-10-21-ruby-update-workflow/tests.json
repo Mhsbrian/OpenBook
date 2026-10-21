@@ -1,0 +1,25 @@
+[
+  {
+    "suite": "update-workflow-test.py",
+    "exit_code": 0
+  },
+  {
+    "suite": "update-test.py",
+    "exit_code": 0
+  },
+  {
+    "suite": "preserve-update-test.py",
+    "exit_code": 0
+  },
+  {
+    "suite": "compat-test.py",
+    "exit_code": 0
+  },
+  {
+    "suite": "input-candidate-test.py",
+    "exit_code": 2,
+    "kind": "invocation_error",
+    "tests_executed": 0,
+    "note": "This release-specific suite requires an already reviewed candidate pin and explicit input arguments. It was not a generic regression suite; actual new-candidate refusal checked separately."
+  }
+]

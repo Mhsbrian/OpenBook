@@ -1,0 +1,22 @@
+Checking openbook (VINTF/APEX/kernel and strict SELinux)...
+Checking ruby (VINTF/APEX/kernel and strict SELinux)...
+Checking hybrid (VINTF/APEX/kernel and strict SELinux)...
+Checking hybrid-reduced (VINTF/APEX/kernel and strict SELinux)...
+{
+  "openbook": {
+    "vintf": true,
+    "selinux": true
+  },
+  "ruby": {
+    "vintf": true,
+    "selinux": true
+  },
+  "hybrid": {
+    "vintf": true,
+    "selinux": false
+  },
+  "hybrid-reduced": {
+    "vintf": true,
+    "selinux": true
+  }
+}

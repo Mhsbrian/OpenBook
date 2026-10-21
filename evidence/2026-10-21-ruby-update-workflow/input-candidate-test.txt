@@ -1,0 +1,4 @@
+usage: input-candidate-test.py [-h] --library LIBRARY
+                               --base-manifest BASE_MANIFEST
+                               --candidate-manifest CANDIDATE_MANIFEST
+input-candidate-test.py: error: the following arguments are required: --library, --base-manifest, --candidate-manifest
