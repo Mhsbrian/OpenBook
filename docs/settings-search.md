@@ -88,44 +88,109 @@ python3 scripts/diagnostics/native-footprint.py \
   --root /private/retained-ruby/fs --out /private/new-footprint.json
 ```
 
-Ruby already includes `libndk_translation.so`, its corresponding 57 guest
-libraries, runners and init rules. The smaller first correction selects that
-existing bridge instead of introducing the Digitalis fork. The translation
-binary and signed APKs remain byte-identical. The secondary-layout property
-must stay true: it makes Ruby's existing init rule bind its Berberis guest
-libraries onto `/system/lib64/arm64`.
+Two alternatives were built and tested against Ruby, keeping the signed apps,
+kernel, data format and enforcing policy intact. Neither is release qualified.
 
-The first property-only VM demonstrated why that change is insufficient:
-enforcing SELinux denied init's `mounton` on that directory, labeled
-`system_lib_file`. The revised experiment labels **only that directory** as
-`system_file`, for which the existing policy permits init's mount. An exact
-`-d` entry in `plat_file_contexts` keeps the label consistent with restorecon.
-The contained libraries keep their original labels; compiled policy, SELinux
-enforcement and dm-verity remain unchanged. No permissive domain or general
-mount permission was added.
+### Rejected: Ruby's shipped alternate translator
 
-The source parent is RB01's synthetic pre-installer input,
-`554fb78970f94d985c8be86f4b07c42c5f64ea9823eac33816a993a5d88dffe6`.
-The corrected experimental image is
+The first experiment selected `libndk_translation.so` and its existing guest
+libraries. A property-only attempt exposed an init `mounton` denial. Labeling
+only `/system/lib64/arm64` as `system_file` (and adding an exact directory rule
+to `plat_file_contexts`) fixed that mount without changing compiled policy.
+The corrected image is
 `e28abe2988e345b14e3f03b20e2a3a9b9695edadd4e51a62df4cac3d78e0f32d`.
-Its verified changes are two text files (`build.prop`, `plat_file_contexts`)
-and the one directory label. The 3,464 files/links and 7,292 metadata rows were
-compared against that exact allowlist. All six logical payload readbacks match
-the AVB-verified inputs; GPT and protected partitions match the parent.
-`checkfc` accepts the corrected contexts against the retained camera25 policy.
-The five boot variants have matching AVB digests and actual 4,032-byte vbmeta
-size. This experiment has no installer and is **not a release or deployment
-candidate**.
+Its two text-file changes and one directory label passed exact metadata/content
+comparison, `checkfc`, AVB and all six logical-payload readbacks.
 
-`scripts/googlebook/build-bridge-candidate.py` verifies the helper files from
-PR #123 commit `ca0335c2ae06062cc6b45560b3b57a3b304e6c01` against its local
-hash lock. It accepts only the exact RB01 parent, works on regular private
-images, verifies all metadata/content differences and readbacks, and preserves
-the original. EROFS/AVB output UUID/salt can differ between executions; the
-manifest records each actual output hash. The VM instrumentation is a separate
-copy, with an open-source JNI test script replacing the existing serial
-probe. It is explicitly marked `not_for_release`, uses synthetic userdata and
-has no network or physical block-device access.
+Runtime testing **rejected** this candidate: the ARM probe had 15 passing and
+four failing groups before a fatal `SIGILL` in `frecpe d0,d0`. Sequentially
+consistent atomics violated the ordering test 137,431 times in 200,000 trials.
+ABI reporting, counter/ID-register behavior and signal semantics also failed.
+The native control completed with 18 passes and two architecture-specific skips.
+Search no longer showed the original ELF mismatch in the captured logs, but it
+ANRed and restarted; results/navigation were not verified. Twenty launch/input
+attempts are not twenty successful search cycles. Evidence:
+`ndk-vm-results.json` and `ndk-probe-log.txt` in the evidence directory.
+The builder retains this mode only behind `--reproduce-rejected-ndk`.
+
+### Experimental: source-built AOSP17 Digitalis
+
+The next experiment uses the existing source-built AOSP17 Digitalis bundle,
+not a downloaded proprietary translator. Bundle manifest SHA-256:
+`b1e2e2f7d5883fa650510fc5faef59824b7f1d7de02a536f38b8e78cbcf88604`;
+bridge SHA-256:
+`75e51d4de98bfd926996435216c19ff0d43596883b6060bcffa18198348c0f5e`.
+The 74-file bundle matches the retained AOSP product outputs. Its import,
+Apache-2.0 license review and source patches are documented in `docs/digitalis.md`.
+Those earlier AOSP results do not qualify this Ruby integration.
+
+`digitalis-overlay.py` verifies every bundle hash and inventory entry, selects
+`libberberis_arm64.so`, installs its matching guest environment and runners,
+and replaces Ruby's existing Berberis init rule. It removes the previous guest
+library directory contents instead of mixing incompatible libraries. Of 70
+created paths, 42 recreate existing paths; there are 28 net-new paths (including
+one directory), and 370 old guest paths are not recreated. The exact filesystem
+diff covers 445 changed file paths; metadata rows change from 7,292 to 6,608.
+Unrelated content/metadata, all APKs, compiled SELinux policy, kernel, partition
+layout and protected data ranges are verified unchanged.
+
+Parent synthetic image:
+`554fb78970f94d985c8be86f4b07c42c5f64ea9823eac33816a993a5d88dffe6`.
+Digitalis experimental image:
+`dd69a06f00de8873a6d7c3fc9276302ddad8fc4ac62f49db793fdee76017a1a8`.
+AVB, all six logical readbacks, source immutability and exact metadata/content
+checks passed. The five boot variants carry coherent new AVB digests and the
+actual 4,032-byte vbmeta size. This image has no installer and is **not for
+physical deployment**.
+
+On Ruby/TCG the ARM probe completes: **17 pass, 3 fail**. Atomics, ID-register
+reads and scalar/vector reciprocal-estimate regressions now pass; native x86_64
+completes **18 pass, 0 fail, 2 skip**. Remaining failures are NaN semantics,
+SIGILL signal metadata and `Build.CPU_ABI=x86_64` in an ARM64 app. Ruby does not
+contain our AOSP ART CPU_ABI compatibility patch. Its public-source rationale
+is Android's removal of deprecated CPU_ABI updates in ART commit
+`b7947b064177a2fd65e8d80059bf49fd3fed12f5`, checked in the local primary-source
+checkout; the web endpoint was unavailable. Copying an AOSP ART library into
+Ruby without qualifying its interface is not a completed fix.
+
+Search UI launches and accepts input, but observed process restarts and missing
+result-navigation evidence prevent a pass. ANRs include startup, service and
+input timeouts with guest CPU pressure around 89–96%; this does not establish
+that translation is their cause. A manual cleared `display` query accepted all
+letters but showed **No results**. Absence of the original ELF error does not
+prove that Icing loaded or indexing works. The fresh VM script also accumulated
+query text across reused activities; the next harness revision explicitly clears
+it and rotates `display`, `bluetooth`, and `keyboard`. These harness improvements
+are not retroactive test results. See the runtime evidence for final collection
+status and the retained-data rehearsal.
+
+The fresh observation stopped at its 1,800-second bound during final log output;
+the completion marker was not reached. All 20 launch/input attempts were
+observed, with missing/replaced search PIDs. Settings/system-server control
+samples kept system_server PID 803; no fatal system-server signal was present
+in the collected logs. The USB logger completed its separate ten-minute capture.
+Neither a full log stream nor a crash-free search soak is claimed. Exact
+results: `digitalis-fresh-runtime.json` and `digitalis-retained-runtime.json`.
+
+The exact synthetic RB01 encrypted-data fixture was prepared with the new
+system and VM diagnostic vendor image. Output SHA-256:
+`1bc520a025d3d81cc05ff89862c59edb18fd421a2abd039778d2bf5331215ddf`.
+It booted in a 502.2-second observation using a copied software TPM, verified
+the same persistent fscrypt policy as its predecessor, and repeated the ARM
+17/3 and native 18/0/2 results. Source image, source TPM and internal decoy were
+unchanged; no system-server fatal signal or zygote exit was observed. Search
+still ANRed. This run was deliberately stopped after boot/probe collection and
+one search attempt; it is not a completed search soak or a PIN/owner-app test.
+The preparation remains `complete=false` / `requires_installer_rebind=true`.
+
+The builder imports PR #123 helper files at
+`ca0335c2ae06062cc6b45560b3b57a3b304e6c01`, verified by a checked-in hash lock.
+It accepts only the exact synthetic parent and regular private images, verifies
+all metadata/content differences and readbacks, and preserves its source.
+EROFS/AVB UUID/salt may vary; each actual output hash is recorded. VM
+instrumentation is a separate copy, marked `not_for_release`; only the existing
+vendor diagnostic script is replaced, with our open-source JNI probes embedded.
+It has no physical device or guest network access.
 
 ## Qualification and release requirements
 
@@ -163,12 +228,16 @@ needed logical extents and releases extraction scratch before comparing a
 second extraction. The VM observer records minimum free space and stops near
 the reserve. Exact private cleanup manifests retain evidence of removed,
 reproducible task-owned scratch; source/recovery/owner artifacts are preserved.
+At this implementation handoff, 44.68 GiB was free; the lowest recorded VM
+observation was 43.63 GiB. Completed disposable VM disks were removed only after
+collection and an open-file check. `implementation-storage.json` records actual
+before/after measurements separately from the earlier diagnosis-only record.
 
 Ruby and its existing Google payloads stay local under the owner's existing
-licensed use. No proprietary library or APK is redistributed. This correction
-does not patch Houdini, interpret its internal error code, or establish rights
-to distribute `libndk_translation`. Digitalis remains a separately qualified
-open-source alternative, not the implementation of this experiment.
+licensed use. No proprietary library or APK is redistributed. These experiments
+do not patch Houdini, interpret its internal error code, or establish rights
+to redistribute the shipped alternate translator. Only source/tooling and
+sanitized evidence are published.
 
 ## Source checks (2026-10-21)
 

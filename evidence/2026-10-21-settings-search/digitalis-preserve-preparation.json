@@ -1,0 +1,58 @@
+{
+  "schema": "openbook-ruby-preserving-update/1",
+  "complete": false,
+  "backup_sha256": "3ae5daf7b45d847ebe50bb15fca0a6a272d7d402fc4467ff5d199be20caa63e2",
+  "candidate_sha256": "40f494f3252389ee4f5ad617b8fb6b9dfab5ed720810d60231b8328930584641",
+  "physical_device_written": false,
+  "data_unlock_verified": false,
+  "image_sha256": "1bc520a025d3d81cc05ff89862c59edb18fd421a2abd039778d2bf5331215ddf",
+  "writes": [
+    {
+      "name": "EFI",
+      "offset": 1048576,
+      "length": 268435456,
+      "sha256": "18c2f74950afa61c88312261e8a2082c7f3690b859c0d2ed61fc8baab52deb38"
+    },
+    {
+      "name": "vbmeta_a",
+      "offset": 416284672,
+      "length": 1048576,
+      "sha256": "ed79b8a28c4bec06706e0d513a0c22213e3e80bc0cd97c865087b09b51b00a61"
+    },
+    {
+      "name": "super",
+      "offset": 484442112,
+      "length": 3690987520,
+      "sha256": "24e360e835b0c635346f8fd55745213fbbf8c9497a4ecb804a1317ca6e5a1a80"
+    }
+  ],
+  "protected": [
+    {
+      "offset": 0,
+      "length": 1048576,
+      "sha256": "16fc782a163ebbca75573a2472e55129790c337b83ae593c1303013a35b81cee"
+    },
+    {
+      "offset": 269484032,
+      "length": 146800640,
+      "sha256": "ead85fdce13afefd49e697a3738c0791c2710be12ed34822c5d30706da1e354f"
+    },
+    {
+      "offset": 417333248,
+      "length": 67108864,
+      "sha256": "38cd127beca9e21a6ed62d665816e4b76afa3fa1b0ec8bfafad5f53745887f88"
+    },
+    {
+      "offset": 4175429632,
+      "length": 8590983168,
+      "sha256": "756e1d1746cc390c7291d92b6a2aeac35a7345c0d165400c73c65b97fdca3353"
+    }
+  ],
+  "sources_unchanged": true,
+  "unrelated_esp_files_unchanged": true,
+  "reviewed_release": "ANAL-234-EXPERIMENT-ONLY",
+  "requires_installer_rebind": true,
+  "not_for_release": true,
+  "free_after": 47645822976,
+  "scope": "Exact synthetic fixture preparation only; runtime result is digitalis-retained-runtime.json. No owner data or physical device."
+}

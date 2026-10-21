@@ -7,6 +7,7 @@ the guest finishes or its bounded observation expires, and watches host space.
 Exit zero means collection finished; examine the tests, not just this status.
 """
 import argparse
+import hashlib
 import importlib.util
 import json
 import os
@@ -23,6 +24,7 @@ def main():
     parser.add_argument("--input", required=True, type=Path)
     parser.add_argument("--out", required=True, type=Path)
     parser.add_argument("--qemu", required=True)
+    parser.add_argument("--tpm-state-from", type=Path, help="Retained synthetic VM TPM only, copied by the pinned runner")
     parser.add_argument("--timeout", type=int, default=1800, choices=range(60, 1801))
     a = parser.parse_args()
     if not Path("/.dockerenv").exists(): parser.error("Use the installer tools container")
@@ -31,6 +33,9 @@ def main():
     if manifest.get("vm_instrumentation", {}).get("not_for_release") is not True:
         parser.error("Requires an explicitly instrumented synthetic test image")
     runner = Path(os.environ["OPENBOOK_RELEASE_TOOLS"]) / "scripts/googlebook/run-probe.py"
+    lock = json.loads(Path(__file__).with_name("bridge-tooling-lock.json").read_text())
+    if hashlib.sha256(runner.read_bytes()).hexdigest() != lock["files"]["scripts/googlebook/run-probe.py"]:
+        parser.error("Pinned VM runner changed")
     spec = importlib.util.spec_from_file_location("runner", runner)
     r = importlib.util.module_from_spec(spec); spec.loader.exec_module(r)
     free_before = shutil.disk_usage(a.out.parent).free
@@ -38,7 +43,10 @@ def main():
     command = [sys.executable, str(runner), "--input", str(a.input), "--out", str(a.out),
                "--qemu", a.qemu, "--accel", "tcg", "--uefi-usb", "--usb-logs",
                "--tpm", "--audio", "--timeout", str(a.timeout)]
+    if a.tpm_state_from:
+        command += ["--tpm-state-from", str(a.tpm_state_from)]
     stop = None
+    woke_display = False
     minimum = free_before
     proc = subprocess.Popen(command)
     try:
@@ -48,6 +56,9 @@ def main():
             minimum = min(minimum, free)
             serial = a.out / "serial.log"
             text = serial.read_text(errors="replace") if serial.exists() else ""
+            if not woke_display and re.search(r"(?m)^BRIDGE_VM_BOOT_COMPLETED=1\r?$", text):
+                r.qmp(a.out / "qmp.sock", {"execute": "send-key", "arguments": {"keys": [{"type": "qcode", "data": "spc"}]}})
+                woke_display = True
             if not stop:
                 if free < (40 << 30) + (128 << 20): stop = "space_reserve"
                 elif re.search(r"(?m)^BRIDGE_VM_DONE\r?$", text): stop = "guest_finished"
@@ -63,7 +74,7 @@ def main():
             try: r.qmp(a.out / "qmp.sock", {"execute": "quit"})
             finally: proc.wait(timeout=90)
     (a.out / "observer.json").write_text(json.dumps({"stop_reason": stop or "runner_limit_or_exit",
-        "runner_status": rc, "free_before": free_before, "minimum_free": minimum,
+        "runner_status": rc, "display_wake_injected": woke_display, "free_before": free_before, "minimum_free": minimum,
         "free_after": shutil.disk_usage(a.out.parent).free}, indent=2) + "\n")
     return 1 if stop == "space_reserve" else rc
 

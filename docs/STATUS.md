@@ -3,18 +3,22 @@
 ## 2026-10-21: Ruby Settings search correction experiment (ANAL-234)
 
 The G14 failure is an ARM64 Icing load error after Houdini initialization fails.
-The footprint audit found three ARM64-only preloads among 248 APKs. Built a
-private correction selecting Ruby's existing `libndk_translation` and fixing
-only its guest-library mount-point label. Two text files and one directory
-label change; signed APKs, bridge binaries, compiled policy, kernel, data and
-layout remain intact. AVB, metadata/content allowlists, logical readbacks and
-`checkfc` pass. Nine patch checks and nine collector checks cover the tooling.
+The footprint audit found three ARM64-only preloads among 248 APKs; this is a
+shared translation dependency, not evidence that all three apps fail.
 
-This remains experimental: the property-only VM exposed the mount denial and
-reproduced a known system-server/checkpoint failure; further runtime validation
-is required. The G14 disconnected from ADB before correction testing. No
-physical write or new release is approved. See `docs/settings-search.md` and
-`evidence/2026-10-21-settings-search/` for exact identities and release gates.
+The shipped alternate translator was built and **rejected** after ARM ordering
+failures and a fatal FRECPE SIGILL. A source-built Digitalis experiment passes
+image integrity checks and completes the ARM probe (17 pass / 3 fail); the
+native control passes all 18 applicable groups. NaN behavior, signal metadata
+and Ruby's unpatched CPU_ABI reporting remain incompatible. Settings search
+still restarts in the software-rendered TCG VM; no successful result-navigation
+or hardware pass is claimed. The updated harness is explicit about these limits.
+
+The G14 remains disconnected from ADB. No physical write or new release was
+performed. The next Ruby USB release is held pending functional qualification,
+a reviewed preserving transition/installer rebind, and its frozen-plan approval.
+See `docs/settings-search.md` and `evidence/2026-10-21-settings-search/` for exact
+identities, completed runtime evidence and release gates.
 
 ## 2026-10-19: PR integration (ANAL-188)
 

@@ -1,0 +1,13 @@
+{
+  "scope": "Tooling checks, separate from runtime qualification",
+  "bridge_candidate_tests": {"passed": 16, "failed": 0},
+  "synthetic_preservation_guard_tests": {"passed": 8, "failed": 0},
+  "diagnostic_parser_tests": {"passed": 9, "failed": 0},
+  "commands": [
+    "OPENBOOK_RELEASE_TOOLS=<pinned PR123 checkout> PYTHONDONTWRITEBYTECODE=1 python3 scripts/googlebook/bridge-candidate-test.py -v",
+    "OPENBOOK_RELEASE_TOOLS=<pinned PR123 checkout> PYTHONDONTWRITEBYTECODE=1 python3 scripts/googlebook/bridge-preserve-test.py -v",
+    "PYTHONDONTWRITEBYTECODE=1 python3 scripts/diagnostics/settings-search-test.py -v"
+  ],
+  "runtime_release_qualified": false,
+  "physical_device_written": false
+}
