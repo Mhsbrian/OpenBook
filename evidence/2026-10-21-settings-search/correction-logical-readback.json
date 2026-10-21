@@ -1,0 +1,11 @@
+{
+  "all_match": true,
+  "logical_sha256": {
+    "system": "247024aaa85ffbf938a33af4938037bac4ff809f6ceb582d8b601b577dd89ff6",
+    "system_ext": "da7fd503976de920eb556b56fcc05f6ff4a5af8a1ce8996f7c1591e0711fe0f1",
+    "product": "c5c6e4fb94c3c673862254069df83910a700f91d50302f294c759530d59020d2",
+    "vendor": "e072350a7df2f59aaa14cc2095a94bd4661de2dccbca1422e38abd80554332d4",
+    "vendor_dlkm": "024774373cb9c09c634140ef9504bd5d9d81a9ee2006d5c4c3183a596ee0ce63",
+    "system_dlkm": "34185c35cb8bbccd5dfd0bb74eecb8a21e2445730411ef1583e1245628e0d617"
+  }
+}

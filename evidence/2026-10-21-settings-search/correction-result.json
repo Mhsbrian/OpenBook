@@ -1,0 +1,41 @@
+{
+  "schema": "openbook-ruby-bridge-candidate/1",
+  "complete": true,
+  "source_sha256": "554fb78970f94d985c8be86f4b07c42c5f64ea9823eac33816a993a5d88dffe6",
+  "image_sha256": "e28abe2988e345b14e3f03b20e2a3a9b9695edadd4e51a62df4cac3d78e0f32d",
+  "metadata_rows": 7292,
+  "metadata_verified_against_exact_change_allowlist": true,
+  "file_and_symlink_count": 3464,
+  "changed_files": [
+    "/system/build.prop",
+    "/system/etc/selinux/plat_file_contexts"
+  ],
+  "changed_labels": {
+    "/system/lib64/arm64": [
+      "u:object_r:system_lib_file:s0",
+      "u:object_r:system_file:s0"
+    ]
+  },
+  "bridge_correction": {
+    "previous": "libhoudini.so",
+    "selected": "libndk_translation.so",
+    "mountpoint_label": "u:object_r:system_file:s0",
+    "file_contexts_override": "/system/etc/selinux/plat_file_contexts",
+    "retained_secondary_layout": true,
+    "changed_file": "/system/build.prop",
+    "properties_before_sha256": "e78d42a7bc6b5aa198eb2a18e8799a0e15eaa4c0324273902d31c247ec2a148c",
+    "properties_after_sha256": "0416524900fc234257d0b87074ef4a8a6e179fe1e16e6b163a5c91f3883b2d62",
+    "existing_bridge_inputs": {
+      "lib64/libndk_translation.so": "ebdd6c0df05adefe295151adc02ce9863fa02621971d6dd7166d0b8666e926d1",
+      "etc/init/berberis_arm_or_arm64.rc": "e0940fb0c3bb1c51eb805c29d98855dfe7bbef465adaa642957060c4b11cd1a6",
+      "bin/ndk_translation_program_runner_binfmt_misc_arm64": "be0a4650067c0b47c293a9d8ce3f2f694cc1dc34083cccf35cd96dfccfee1871",
+      "lib64/berberis/arm64/libc.so": "03e7bcf8d3bdc73545b0ed91847f7e76c14e60c70ceffb63ff511cbb64d49422",
+      "lib64/berberis/arm64/ld-android.so": "c63e65ceaf476529074c3014c484f92750ba5bf9a0a9bc35cd3425a55a0e637d"
+    },
+    "hardware_validated": false,
+    "private_retained_payload": true
+  },
+  "protected_ranges_identical": true,
+  "source_unchanged": true,
+  "physical_device_written": false
+}

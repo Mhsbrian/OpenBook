@@ -7,7 +7,10 @@ properties, running Ruby `CL3B.260622.271.R1` with `ro.boot.openbook.live=1`.
 Settings search fails after Houdini initialization and an ARM64 library load
 error. The meaning of the bridge's internal error remains unknown; this is not
 proof of an AMD instruction or hardware fault. Exact release-image identity and
-the NVMe installation were not attested. See `docs/settings-search.md`.
+the NVMe installation were not attested. ADB disconnected during follow-up;
+the corrected bridge image has not been tested on the G14. TCG tests use a
+synthetic UEFI/USB guest and cannot establish AMD hardware acceptance.
+See `docs/settings-search.md`.
 
 ## G14 touchpad measurement (2026-10-19, ANAL-226)
 
