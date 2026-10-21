@@ -70,3 +70,15 @@ match the repository and the reviewed record. A no-VM image test of that exact
 pin and record updated and restored a camera25-installed test disk.
 
 Tests: `tests.json` (178 passed).
+
+## After the owner's laptop update (`g14-after-update.json`)
+
+The owner ran **Update** from the written USB (`physical-write.json`). After
+reboot the laptop reports RB01's boot vbmeta digest and size, and its
+`libinputflinger.so` hash is the corrected output. Both users unlocked
+(credential storage open after PIN entry), with app and account counts present
+and touchpad settings, Wi-Fi and camera unchanged. No system-server crash, fatal
+signal or ANR. RepairMode (2) and Settings Intelligence (2) crashes are known and
+pre-existing; the latter's `libicing.so` ARM64 load failure has 21+ camera25
+entries in dropbox. Not verified here: physical tap-drag feel, sleep/resume and
+the USB rollback record.
