@@ -1,5 +1,17 @@
 # Build and reproduce
 
+## Ruby host update readiness — 2026-10-21
+
+`googlebook-update-workstreams.md` separates host adaptation, app/backend,
+containment and recovery work from the G14 acceptance gate. The read-only
+`scripts/googlebook/update-assess.py` command checks exact source identity,
+signed stage evidence and storage without creating a candidate or approving a
+write. `update-stage.py` revalidates and preserves a 40 GiB host reserve plus
+the complete copy/metadata budget. Run `python3 scripts/googlebook/update-test.py -v`.
+The source-only assessment correctly waits for review; it does not authenticate
+Google payload signatures or perform the compatibility tests it reports as
+reviewer attestations.
+
 ## Ruby OTA guard prototype (ANAL-229)
 
 `googlebook-ota-guard.md` documents the opt-in native backend, disposable image

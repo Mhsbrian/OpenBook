@@ -9,6 +9,12 @@ authenticate a Google signing key, or declare the current G14 safe unattended.
 Only scripts, profiles and sanitized evidence belong in Git. Images, extracted
 APKs, user data, raw diagnostics, keys and TPM state stay local.
 
+The 2026-10-21 follow-up, `googlebook-update-workstreams.md`, adds a read-only
+assessment contract for the eventual UI and separates hardware gates from host
+implementation. Assessment does not stage files; staging always revalidates.
+Copy budgets include metadata/overhead and a 40 GiB free host reserve, checked
+before allocation, between files and before metadata writes.
+
 ## Inventory and runtime capture
 
 Use retained extraction directories from `gbos-unpack.sh` and `compat-audit.py`.

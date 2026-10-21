@@ -10,6 +10,11 @@ first. Do not enable unattended OS updates or deliver stock OTAs to this
 single-slot hybrid.** An app can later show status and request approval.
 Universal automatic AMD patching is not supported by the evidence.
 
+**2026-10-21 review:** `googlebook-update-workstreams.md` records the current
+evidence, independent software workstreams, readiness implementation and exact
+next gates. Hardware qualification is still pending; it does not block host
+adaptation tooling, the app/service contract or disposable recovery development.
+
 Implementation follow-up: the owner reports ordinary app updates working and
 requests system OTA/rollback work while using the installed G14.
 `googlebook-ota-guard.md` documents the opt-in native installation guard,

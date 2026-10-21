@@ -1,0 +1,46 @@
+{
+  "schema": "openbook-ruby-update-assessment/1",
+  "stage": "rehearsal",
+  "assessed_at_utc": "2026-10-21T18:26:42.656393+00:00",
+  "state": "awaiting_review",
+  "source_identity": "matches_local_profile",
+  "review": "not_verified",
+  "required_checks": [
+    "license",
+    "provenance",
+    "signatures",
+    "rollback_indexes",
+    "vintf",
+    "selinux",
+    "kernel_modules",
+    "firmware_graphics",
+    "layout",
+    "installer_pin"
+  ],
+  "verified_attestations": [],
+  "blockers": [
+    {
+      "code": "review_inputs_missing",
+      "message": "Signed review and complete candidate inputs are required."
+    }
+  ],
+  "can_stage_now": false,
+  "must_revalidate_before_staging": true,
+  "upstream_authentication": "not_established_by_this_assessment",
+  "adaptation_executed": false,
+  "physical_install_available": false,
+  "automatic_install_authorized": false,
+  "physical_device_written": false,
+  "host_reserve_bytes": 42949672960,
+  "profile_sha256": "7c9f3cbfa46e36d8536a21b4679d055b0a6a12f26a0a302a70e3ace6ddef1950",
+  "build": "16452207_CL3B.260622.271.R1+OpenBook-camera25",
+  "target": "ASUS GA403WR Ryzen AI 9 HX 370 / Radeon 890M",
+  "source_sha256": "4f4490415d4db0721fa99ad10abd64b1b05c284b6c0e413907da948561de8c9e",
+  "source_bytes": 19069493760,
+  "missing_inputs": [
+    "candidate",
+    "review",
+    "signature",
+    "trusted_key"
+  ]
+}
