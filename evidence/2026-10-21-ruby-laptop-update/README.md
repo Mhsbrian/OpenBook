@@ -82,3 +82,12 @@ signal or ANR. RepairMode (2) and Settings Intelligence (2) crashes are known an
 pre-existing; the latter's `libicing.so` ARM64 load failure has 21+ camera25
 entries in dropbox. Not verified here: physical tap-drag feel, sleep/resume and
 the USB rollback record.
+
+## Lid-close sleep check (`g14-sleep-check.json`)
+
+The owner closed the lid once after the update. The laptop entered s2idle twice
+(1.9 s and 29.7 s; 31.5 s total suspended since boot). Each time an ACPI wake
+(`9 acpi`) arrived as a **Power Button** input event, and Android turned the
+screen on although the lid was still closed. The same "sleep about 27 s, then
+key wake" cycle ran repeatedly on camera25 earlier the same day, so it predates
+the update. Key code and the exact ACPI source are not yet known.
