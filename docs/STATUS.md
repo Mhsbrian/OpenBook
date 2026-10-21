@@ -1,5 +1,14 @@
 # Status
 
+## 2026-10-21: RB01 v3 written to the SanDisk (laptop update/restore entries)
+
+After B Honey's approval, the guarded writer checked the SanDisk ending 2034 against its fresh
+backup, wrote `super`/`vbmeta_a` (identical bytes) and the new `EFI`, then read back the whole
+12,766,412,800-byte used extent: SHA-256 `806c69be…` matches. All 8,805,941,248 protected bytes
+are retained and the stick is powered off. The laptop is unchanged; running the USB's Update
+entry on the G14 and PIN/apps/trackpad acceptance are next. See
+`evidence/2026-10-21-ruby-laptop-update/physical-write.json`.
+
 ## 2026-10-21: G14 back on ADB; USB laptop-update/restore entries rehearsed
 
 Read-only G14 capture over paired wireless ADB: the laptop runs **camera25**
