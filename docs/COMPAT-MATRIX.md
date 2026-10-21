@@ -8,7 +8,8 @@
 | Same session, normal Display settings | Opens; four samples over 30 seconds retain Settings/system_server PIDs and activity, no new search crash. |
 | Retained Ruby footprint | 248 APKs; 48 carry native code, three are ARM64-only (Settings Intelligence, Voice Access, YourWidget). Static exposure, not three confirmed failures. |
 | Ruby alternate bridge, property only | Built; enforcing VM denies the guest-library bind mount. Insufficient correction. |
-| Ruby alternate bridge plus mount-point label | Built; exact two-file/one-label diff, AVB, payload readback and checkfc pass. Runtime qualification remains separate. |
+| Ruby alternate bridge plus mount-point label | **Rejected:** ARM probe 15 pass / 4 fail then fatal FRECPE SIGILL; seq_cst ordering violations; search ANR. Native control 18 pass / 2 skip. |
+| Ruby source-built Digitalis experiment | ARM probe completes 17 pass / 3 fail (NaNs, signal metadata, CPU_ABI); atomics and FRECPE regressions pass. Native control 18 pass / 0 fail / 2 skip. Search process restarts; no functional result-navigation pass. Not release qualified. |
 
 Detailed evidence, APK identity and correction scope: `docs/settings-search.md` and
 `evidence/2026-10-21-settings-search/`. Images remain private experiments; no physical device was changed.

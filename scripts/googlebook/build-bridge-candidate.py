@@ -144,6 +144,7 @@ def rebuild_files(tools, inventory_tool, image, source, before, original,
     (w / "contexts").write_text("\n".join(contexts) + "\n")
     rebuilt = w / f"{partition}.img"
     epoch = max(int(row.split(" ")[7]) for row in before if row.startswith("I "))
+    space(w, image.stat().st_size + (512 << 20))
     run(tools / "mkfs.erofs", "-zlz4hc,9", "-C65536", "-T", str(epoch), "--preserve-mtime",
         *([f"--mount-point={mountpoint.lstrip('/')}"] if mountpoint else []),
         f"--fs-config-file={w / 'fs_config'}", f"--file-contexts={w / 'contexts'}", rebuilt, source)
@@ -238,7 +239,15 @@ def build(a):
     w.mkdir(mode=0o700, parents=True, exist_ok=False)
     tools = a.tools
     run = p.h.run
-    space(w, 5 << 30)
+    space(w, 6 << 30)
+    (w / "build-inputs.json").write_text(json.dumps({
+        "builder_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        "helper_lock": LOCK, "free_before": shutil.disk_usage(w).free,
+        "tool_sha256": {name: p.h.audit.sha(p.regular(tools / name))
+                         for name in ("mkfs.erofs", "fsck.erofs", "avbtool", "lpdump")},
+        "inventory_sha256": p.h.audit.sha(p.regular(a.inventory)),
+        "source_image_sha256": BASE_SHA,
+    }, indent=2) + "\n")
     table = p.read_gpt(base)
     rows = {r["name"]: r for r in table}
     super_offset, layout = disk_layout(base, table, w)
@@ -253,6 +262,7 @@ def build(a):
     original = contents(source)
     original_props = (source / TARGET.lstrip("/")).read_bytes()
     patched = patch(original_props)
+    overlay_report = None
     bridge_root = source / "system"
     required = ("lib64/libndk_translation.so", "etc/init/berberis_arm_or_arm64.rc",
                 "bin/ndk_translation_program_runner_binfmt_misc_arm64",
@@ -263,18 +273,31 @@ def build(a):
     rc = (bridge_root / "etc/init/berberis_arm_or_arm64.rc").read_text()
     if "mount none /system/lib64/berberis/arm64 /system/lib64/arm64 bind" not in rc:
         raise ValueError("Missing existing secondary-layout guest mount")
-    target = source / TARGET.lstrip("/")
-    target.chmod(target.stat().st_mode | 0o200)
-    target.write_bytes(patched)
-    context_file = source / CONTEXTS.lstrip("/")
-    old_contexts = context_file.read_bytes()
-    new_contexts = patch_contexts(old_contexts)
-    context_file.chmod(context_file.stat().st_mode | 0o200)
-    context_file.write_bytes(new_contexts)
-    changes = {TARGET: (original_props, patched), CONTEXTS: (old_contexts, new_contexts)}
-    labels = {MOUNTPOINT: ("u:object_r:system_lib_file:s0", "u:object_r:system_file:s0")}
-    rebuilt, extracted = rebuild_files(tools, a.inventory, system, source, before, original,
-                                       changes, "system", w, labels=labels)
+    if a.digitalis_bundle:
+        spec = importlib.util.spec_from_file_location("digitalis", Path(__file__).with_name("digitalis-overlay.py"))
+        overlay = importlib.util.module_from_spec(spec); spec.loader.exec_module(overlay)
+        expected_metadata, expected_contents, overlay_report = overlay.apply(source, before, original, a.digitalis_bundle, contents)
+        (w / "digitalis-overlay.json").write_text(json.dumps(overlay_report, indent=2) + "\n")
+        patched = (source / TARGET.lstrip("/")).read_bytes()
+        changes = dict.fromkeys(overlay_report["changed_files"])
+        labels = {}
+        rebuilt, extracted = rebuild_files(tools, a.inventory, system, source, expected_metadata,
+                                            expected_contents, {}, "system", w)
+        bridge_inputs = {"bundle_manifest_sha256": overlay.BUNDLE_MANIFEST_SHA,
+                        "libberberis_arm64.so": p.h.audit.sha(a.digitalis_bundle / "system/lib64/libberberis_arm64.so")}
+    else:
+        target = source / TARGET.lstrip("/")
+        target.chmod(target.stat().st_mode | 0o200)
+        target.write_bytes(patched)
+        context_file = source / CONTEXTS.lstrip("/")
+        old_contexts = context_file.read_bytes()
+        new_contexts = patch_contexts(old_contexts)
+        context_file.chmod(context_file.stat().st_mode | 0o200)
+        context_file.write_bytes(new_contexts)
+        changes = {TARGET: (original_props, patched), CONTEXTS: (old_contexts, new_contexts)}
+        labels = {MOUNTPOINT: ("u:object_r:system_lib_file:s0", "u:object_r:system_file:s0")}
+        rebuilt, extracted = rebuild_files(tools, a.inventory, system, source, before, original,
+                                           changes, "system", w, labels=labels)
     # All other logical inputs are unchanged camera25 artifacts. Verify them
     # against the RB01 manifest before assembling; never accept a floating tree.
     images = {n: a.logical / f"{n}_a.img" for n in old["logical_sha256"] if n != "system"}
@@ -312,13 +335,15 @@ def build(a):
     updated = copy.deepcopy(old)
     updated["logical_sha256"]["system"] = p.h.audit.sha(rebuilt)
     updated["bridge_correction"] = dict(
-        previous="libhoudini.so", selected="libndk_translation.so",
-        mountpoint_label=labels[MOUNTPOINT][1], file_contexts_override=CONTEXTS,
-        retained_secondary_layout=True, changed_file=TARGET,
+        previous="libhoudini.so", selected="libberberis_arm64.so" if overlay_report else "libndk_translation.so",
+        mountpoint_label=labels.get(MOUNTPOINT, (None, "u:object_r:system_lib_file:s0"))[1],
+        file_contexts_override=None if overlay_report else CONTEXTS,
+        retained_secondary_layout=not bool(overlay_report), changed_file=TARGET,
         properties_before_sha256=p.hashlib.sha256(original_props).hexdigest(),
         properties_after_sha256=p.hashlib.sha256(patched).hexdigest(),
         existing_bridge_inputs=bridge_inputs, hardware_validated=False,
         private_retained_payload=True)
+    if overlay_report: updated["bridge_correction"]["digitalis_overlay"] = overlay_report
     vbinfo = subprocess.check_output([str(tools / "avbtool"), "info_image", "--image", str(vbmeta)], text=True)
     vbsize = sum(map(int, re.findall(r"(?:Header|Authentication|Auxiliary) Block:\s+(\d+) bytes", vbinfo)))
     if not vbsize: raise ValueError("Missing actual AVB size")
@@ -399,6 +424,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("base","logical","tools","inventory","key","out"):
         parser.add_argument("--"+name,type=Path,required=True)
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--digitalis-bundle", type=Path, help="Pinned source-built AOSP17 alternative; experimental Ruby qualification")
+    mode.add_argument("--reproduce-rejected-ndk", action="store_true",
+                      help="Reproduce the rejected shipped-translator experiment; never release")
     args = parser.parse_args()
     if not Path("/.dockerenv").exists():
         parser.error("Use inst-docker.sh; regular images only")

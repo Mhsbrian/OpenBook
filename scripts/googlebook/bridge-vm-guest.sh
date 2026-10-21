@@ -35,14 +35,24 @@ run() {
 run am get-current-user
 user=$(am get-current-user </dev/null 2>/dev/null)
 case "$user" in ''|*[!0-9]*) echo BRIDGE_VM_NO_USER; exit 3;; esac
-# VM-only isolation: SwiftShader's error-dialog rendering crashes system_server
-# under the retained enforcing policy. Suppress dialogs, preserve crash logs and
+# VM-only hypothesis test: isolate error-dialog rendering from the known
+# system_server execmem denial/crash with SwiftShader. Preserve crash logs and
 # fail qualification on crashes; this is never a production configuration.
 run settings put global hide_error_dialogs 1
 run settings put global device_provisioned 1
 run settings --user "$user" put secure user_setup_complete 1
+run settings --user "$user" put system screen_off_timeout 1800000
+run settings put global window_animation_scale 0
+run settings put global transition_animation_scale 0
+run settings put global animator_duration_scale 0
+run wm size 800x600
+run wm density 160
+run settings put global disable_window_blurs 1
+run pm disable-user --user "$user" com.google.android.desktop.setupwizard
+run svc power stayon true
 run input keyevent KEYCODE_WAKEUP
 run wm dismiss-keyguard
+run logcat -b main -G 8M
 echo BRIDGE_VM_EARLY_SEARCH
 run am start --user "$user" -W -a com.android.settings.action.SETTINGS_SEARCH
 sleep 10
@@ -52,7 +62,9 @@ for abi in arm64 x86_64; do
     run pm install --user "$user" -r "$PWD/$abi.apk"
     run am start --user "$user" -W -n "dev.anybook.probe.$abi/dev.anybook.probe.MainActivity"
     sleep 50
-    logcat -d -v threadtime -s AnyBookProbe AndroidRuntime NativeBridge berberis houdini
+    logcat -d -v threadtime -s AnyBookProbe:V AndroidRuntime NativeBridge berberis houdini
+    run run-as "dev.anybook.probe.$abi" --user "$user" cat files/probe-results.txt
+    run am force-stop --user "$user" "dev.anybook.probe.$abi"
 done
 run dumpsys package com.google.android.settings.intelligence
 run pm path --user "$user" com.google.android.settings.intelligence
@@ -63,11 +75,19 @@ for attempt in $(seq 1 20); do
         echo BRIDGE_VM_SEARCH_LAUNCH_FAILED
         break
     fi
-    run input text display
+    # Clear the previous query even when Android reuses the same activity.
+    run input keycombination KEYCODE_CTRL_LEFT KEYCODE_A
     run input keyevent KEYCODE_DEL
-    run input text y
+    case "$((attempt % 3))" in
+        1) query=display;; 2) query=bluetooth;; 0) query=keyboard;;
+    esac
+    run input text "$query"
+    run input keyevent KEYCODE_DEL
+    case "$query" in display) last=y;; bluetooth) last=h;; keyboard) last=d;; esac
+    run input text "$last"
     sleep 5
     echo BRIDGE_VM_SEARCH_PID=$(pidof com.google.android.settings.intelligence)
+    logcat -d -v threadtime -s AndroidRuntime NativeBridge berberis houdini Icing
     if [ "$attempt" = 1 ] || [ "$attempt" = 20 ]; then
         run uiautomator dump --compressed "$PWD/search-$attempt.xml"
         cat "search-$attempt.xml"
@@ -86,6 +106,10 @@ for package in com.google.android.apps.accessibility.voiceaccess com.google.andr
     sleep 20
     echo BRIDGE_VM_PACKAGE_PID=$package:$(pidof "$package")
 done
+logcat -b all -d -v threadtime
+echo BRIDGE_VM_SOAK_BEGIN
 sleep 300
+run dumpsys activity exit-info com.google.android.settings.intelligence
+run dumpsys dropbox --print system_app_anr
 logcat -b all -d -v threadtime
 echo BRIDGE_VM_DONE

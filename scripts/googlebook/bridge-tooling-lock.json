@@ -8,6 +8,7 @@
     "scripts/installer/bootconfig.py": "40db658b34e913112a79827cbf3002a61e3d7114bf396bbc2447067a0327c777",
     "scripts/installer/mkproto.py": "ac5abe0849fc2e61ed89c2c23e196fbc4c47014ef169c1461abae0b2054910c3",
     "scripts/kernel-g14-qemu.py": "e65f42796aa5f6e1156466460ac09f08d465ce6c9c71301345c884e826e912b1",
-    "scripts/installer/mklive.py": "e8c855fbea424d128336b259bef252037652e372fcfd3708ffb21d896bc7165c"
+    "scripts/installer/mklive.py": "e8c855fbea424d128336b259bef252037652e372fcfd3708ffb21d896bc7165c",
+    "scripts/googlebook/run-probe.py": "3371ff3f53c4a099859f70b28543b13fa042ee2221148c5b83c70a8ddad0e473"
   }
 }

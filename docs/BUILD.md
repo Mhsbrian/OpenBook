@@ -4,9 +4,11 @@
 
 `docs/settings-search.md` records the hardware diagnosis, static footprint,
 experimental image hashes and qualification limits. The diagnostic collector
-remains read-only; the new builder selects the already-shipped alternate ARM64
-bridge and fixes its exact mount-point label in private regular image files.
-Nine patch/metadata regressions supplement the nine diagnostic parser checks.
+remains read-only. The image builder offers an explicitly selected source-built
+Digitalis experiment. The shipped alternate translator failed runtime testing
+and is available only as `--reproduce-rejected-ndk` for reproduction.
+Sixteen patch/metadata/readback checks, eight synthetic-preservation guards and
+nine diagnostic parser checks pass; these do not imply a functional search fix.
 
 Use the existing `openbook-installer` tools container, the retained RB01
 synthetic input and camera25 logical images, AOSP host tools and test AVB key,
@@ -21,7 +23,8 @@ OPENBOOK_RELEASE_TOOLS="$BRIDGE_HELPERS" python3 scripts/googlebook/bridge-candi
 scripts/installer/inst-docker.sh env OPENBOOK_RELEASE_TOOLS="$BRIDGE_HELPERS" \
   python3 "$BRIDGE_REPO/scripts/googlebook/build-bridge-candidate.py" \
   --base "$BRIDGE_BASE" --logical "$BRIDGE_LOGICAL" --tools "$BRIDGE_TOOLS" \
-  --inventory "$BRIDGE_INVENTORY" --key "$BRIDGE_KEY" --out "$BRIDGE_NEW_OUTPUT"
+  --inventory "$BRIDGE_INVENTORY" --key "$BRIDGE_KEY" \
+  --digitalis-bundle "$BRIDGE_DIGITALIS_A17" --out "$BRIDGE_NEW_OUTPUT"
 ```
 
 The builder refuses any parent other than the recorded RB01 input. Budget
@@ -40,6 +43,14 @@ Ruby's required AVX-VNNI, so KVM `-cpu host` is not this test lane. Reserve
 4 GiB additional disk per observation. The runner records minimum free space,
 collects results in the foreground and stops its guest. Exit zero means
 collection completed; inspect test statuses, crashes and boot findings.
+
+`preserve-bridge-vm.py --base ... --candidate ... --out ...` accepts only the
+recorded synthetic RB01 encrypted-data fixture and an instrumented Digitalis
+candidate. It rejects other base manifests and unrelated kernel/framework or
+policy changes. Rehearse its output with `run-bridge-vm.py --tpm-state-from ...`
+using a copy of the matching synthetic TPM state. Budget 5 GiB above the host
+reserve for preparation. The result remains `complete=false` and
+`requires_installer_rebind=true`; it is not a production preserving updater.
 
 No installer is included in the experiment. Final USB packaging must rebind
 the installer to the new system/AVB hashes and preserve the existing live,

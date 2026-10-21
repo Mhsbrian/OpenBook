@@ -8,8 +8,10 @@ Settings search fails after Houdini initialization and an ARM64 library load
 error. The meaning of the bridge's internal error remains unknown; this is not
 proof of an AMD instruction or hardware fault. Exact release-image identity and
 the NVMe installation were not attested. ADB disconnected during follow-up;
-the corrected bridge image has not been tested on the G14. TCG tests use a
-synthetic UEFI/USB guest and cannot establish AMD hardware acceptance.
+neither alternate-bridge experiment has been tested on the G14. Digitalis
+completes the ARM probe in a synthetic UEFI/USB TCG guest with three known
+compatibility failures. TCG software-rendering/search restarts cannot establish
+AMD hardware acceptance or prove the same cause as the original load failure.
 See `docs/settings-search.md`.
 
 ## G14 touchpad measurement (2026-10-19, ANAL-226)

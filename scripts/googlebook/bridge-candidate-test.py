@@ -3,10 +3,14 @@
 import importlib.util
 from pathlib import Path
 import unittest
+import tempfile
 
 spec = importlib.util.spec_from_file_location("builder", Path(__file__).with_name("build-bridge-candidate.py"))
 b = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(b)
+spec = importlib.util.spec_from_file_location("digitalis", Path(__file__).with_name("digitalis-overlay.py"))
+d = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(d)
 
 
 class PatchTests(unittest.TestCase):
@@ -58,6 +62,46 @@ class PatchTests(unittest.TestCase):
         self.assertTrue(result.startswith(original))
         self.assertIn(b"/system/lib64/arm64 -d u:object_r:system_file:s0\n", result)
         with self.assertRaises(ValueError): b.patch_contexts(result)
+
+    def test_logical_readback_orders_non_adjacent_physical_extents(self):
+        with tempfile.TemporaryDirectory() as directory:
+            disk = Path(directory) / "disk.img"
+            disk.write_bytes(b"a" * 512 + b"b" * 512 + b"c" * 512)
+            part = {"extents": [(0, 1, 2), (1, 1, 0)], "size": 1024}
+            self.assertEqual(b.hash_logical(disk, 0, part), b.hashlib.sha256(b"c" * 512 + b"a" * 512).hexdigest())
+
+    def test_logical_readback_rejects_gaps(self):
+        with tempfile.TemporaryDirectory() as directory:
+            disk = Path(directory) / "disk.img"; disk.write_bytes(bytes(1024))
+            with self.assertRaises(ValueError):
+                b.hash_logical(disk, 0, {"extents": [(1, 1, 0)], "size": 512})
+
+    def test_logical_readback_rejects_truncation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            disk = Path(directory) / "disk.img"; disk.write_bytes(bytes(511))
+            with self.assertRaises(ValueError):
+                b.hash_logical(disk, 0, {"extents": [(0, 1, 0)], "size": 512})
+
+    def test_digitalis_selects_matching_guest_layout(self):
+        source = self.props + b"ro.berberis.version=16.0.0\n"
+        result = d.properties(source)
+        self.assertIn(d.NEW_BRIDGE, result)
+        self.assertIn(b"ro.berberis.is_2nd_native_bridge=false\n", result)
+        self.assertNotIn(b"ro.berberis.version=", result)
+        self.assertTrue(result.endswith(b"ro.berberis.flags=disable-ir-check\n"))
+        self.assertIn(b"other=value\n", result)
+
+    def test_digitalis_rejects_ambiguous_bridge_selection(self):
+        with self.assertRaises(ValueError): d.properties(self.props + b.OLD)
+
+    def test_digitalis_rejects_unreviewed_runtime_flags(self):
+        with self.assertRaises(ValueError): d.properties(self.props + b"ro.berberis.flags=unknown\n")
+
+    def test_digitalis_rejects_wrong_bundle_before_filesystem_changes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            bundle = Path(directory)
+            (bundle / "SHA256SUMS").write_text("0" * 64 + "  system/lib64/foreign.so\n")
+            with self.assertRaises(ValueError): d.bundle_files(bundle)
 
 
 if __name__ == "__main__":

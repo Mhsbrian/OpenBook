@@ -1,0 +1,423 @@
+{
+  "schema": "openbook-ruby-bridge-runtime/1",
+  "verdict": "NOT RELEASE QUALIFIED",
+  "candidate_sha256": "dd69a06f00de8873a6d7c3fc9276302ddad8fc4ac62f49db793fdee76017a1a8",
+  "vm_instrumented_sha256": "40f494f3252389ee4f5ad617b8fb6b9dfab5ed720810d60231b8328930584641",
+  "probe_runs": [
+    {
+      "pid": 7289,
+      "tid": 7447,
+      "tests": {
+        "load": {
+          "status": "PASS",
+          "detail": "abi=arm64-v8a compiler=[clang 21.0.0 (https://android.googlesource.com/toolchain/llvm-project 9f872551d3c681d06fd303b36f16ed5c274735eb)]"
+        },
+        "java_jni_args": {
+          "status": "PASS",
+          "detail": "checks=1 ms=49"
+        },
+        "java_jni_exception": {
+          "status": "PASS",
+          "detail": "checks=1 ms=9"
+        },
+        "java_jni_register_natives": {
+          "status": "PASS",
+          "detail": "checks=1 ms=1"
+        },
+        "java_jni_callbacks": {
+          "status": "PASS",
+          "detail": "checks=12 ms=551"
+        },
+        "abi": {
+          "status": "PASS",
+          "detail": "checks=3 abi=arm64-v8a uname.machine=aarch64 at_platform=? exe=/system/bin/berberis/arm64/app_process64 pagesz=4096 hwcap=fp+asimd+aes+pmull+sha1+sha2+crc32+atomics+cpuid(hwcap2=0x0) cpuinfo=[CPU implementer : 0x41 / Features : fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm lrcpc dcpop asimddp] proc_auxv=unreadable ms=303"
+        },
+        "neon": {
+          "status": "PASS",
+          "detail": "checks=16 cvt=[2147483647 -2147483648 0 2] frecpe(1.0)=0x3f7f8000 ms=66"
+        },
+        "crypto": {
+          "status": "PASS",
+          "detail": "checks=5 present=[aes pmull crc32 ] ms=55"
+        },
+        "isa": {
+          "status": "FAIL",
+          "detail": "checks=32 failed=nan_snan_priority,nan_first_operand,default_nan_positive nan=[7fc0000a 7fc0000b ffc00000 7fc0000b] fmax(qNaN,1)=7fc0000a fmaxnm(qNaN,1)=3f800000 fmin(+0,-0)=80000000 fmin(-0,+0)=80000000 cntfrq=19200000 cnt/wall=0.990 ctr_el0=0x8444c004(sig0) dczid=0x10(sig0) midr=0x410fd034(sig0) isar0=0x211120(sig0) ms=1359"
+        },
+        "atomics": {
+          "status": "PASS",
+          "detail": "checks=7 wide_cas_bits=128 sb_seqcst_violations=0/200000 sb_relaxed_reorders=8543/200000 ms=5839"
+        },
+        "tls": {
+          "status": "PASS",
+          "detail": "checks=3 ms=521"
+        },
+        "threads": {
+          "status": "PASS",
+          "detail": "checks=6 affinity=4 online=4 hwconc=4 ms=1018"
+        },
+        "syscalls": {
+          "status": "PASS",
+          "detail": "checks=7 uname=Linux/aarch64 personality=0x0 ms=37"
+        },
+        "dlopen": {
+          "status": "PASS",
+          "detail": "checks=13 rtld_default_JNI_GetCreatedJavaVMs=absent dlopen(libart.so)=fail loaded_objects=21 dlopen(/system/lib64/libc.so)=ok ms=4252"
+        },
+        "cxx_exceptions": {
+          "status": "PASS",
+          "detail": "checks=10 backtrace_frames=12 ms=128"
+        },
+        "jit": {
+          "status": "PASS",
+          "detail": "checks=4 dual_map_no_flush_sees=22 ms=34"
+        },
+        "signals": {
+          "status": "FAIL",
+          "detail": "checks=13 failed=sigill_si_code_kernel sigill_signo=4 sigill_code=-1 alarm_on_this_thread=0 ms=1461"
+        },
+        "gles": {
+          "status": "PASS",
+          "detail": "checks=7 egl=1.5 renderer=[ANGLE (Google  Vulkan 1.3.0 (SwiftShader Device (LLVM 16.0.0] version=[OpenGL ES 3.1 (ANGLE 2.1 git hash: 89ef25f8f92e103b5bec64e19] pixel=255,128,0,255 ms=983"
+        },
+        "vulkan": {
+          "status": "PASS",
+          "detail": "checks=8 loader=1.4 device=[SwiftShader Device (LLVM 16.0.0)] api=1.3.0 ms=184"
+        },
+        "regress": {
+          "status": "FAIL",
+          "detail": "checks=10 failed=build_cpu_abi_is_native_abi Build.CPU_ABI=x86_64 id: midr=0x410fd034 mpidr=0x80000000 pfr0=0x11 isar0=0x211120 isar1=0x0 mmfr0=0x111ff000000 sigill=0(first #-1) frecpe(1.0)=0x3f7f8000 bad: s=0 d=0 4s=0  ms=1275"
+        }
+      },
+      "complete": true,
+      "package": "dev.anybook.probe.arm64",
+      "reported_totals": {
+        "pass": 17,
+        "fail": 3,
+        "skip": 0
+      }
+    },
+    {
+      "pid": 7289,
+      "tid": 8569,
+      "tests": {
+        "load": {
+          "status": "PASS",
+          "detail": "abi=arm64-v8a compiler=[clang 21.0.0 (https://android.googlesource.com/toolchain/llvm-project 9f872551d3c681d06fd303b36f16ed5c274735eb)]"
+        },
+        "java_jni_args": {
+          "status": "PASS",
+          "detail": "checks=1 ms=2"
+        },
+        "java_jni_exception": {
+          "status": "PASS",
+          "detail": "checks=1 ms=2"
+        },
+        "java_jni_register_natives": {
+          "status": "PASS",
+          "detail": "checks=1 ms=0"
+        },
+        "java_jni_callbacks": {
+          "status": "PASS",
+          "detail": "checks=12 ms=730"
+        },
+        "abi": {
+          "status": "PASS",
+          "detail": "checks=3 abi=arm64-v8a uname.machine=aarch64 at_platform=? exe=/system/bin/berberis/arm64/app_process64 pagesz=4096 hwcap=fp+asimd+aes+pmull+sha1+sha2+crc32+atomics+cpuid(hwcap2=0x0) cpuinfo=[CPU implementer : 0x41 / Features : fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm lrcpc dcpop asimddp] proc_auxv=unreadable ms=2"
+        },
+        "crypto": {
+          "status": "PASS",
+          "detail": "checks=5 present=[aes pmull crc32 ] ms=0"
+        },
+        "neon": {
+          "status": "PASS",
+          "detail": "checks=16 cvt=[2147483647 -2147483648 0 2] frecpe(1.0)=0x3f7f8000 ms=1"
+        },
+        "isa": {
+          "status": "FAIL",
+          "detail": "checks=32 failed=nan_snan_priority,nan_first_operand,default_nan_positive nan=[7fc0000a 7fc0000b ffc00000 7fc0000b] fmax(qNaN,1)=7fc0000a fmaxnm(qNaN,1)=3f800000 fmin(+0,-0)=80000000 fmin(-0,+0)=80000000 cntfrq=19200000 cnt/wall=1.000 ctr_el0=0x8444c004(sig0) dczid=0x10(sig0) midr=0x410fd034(sig0) isar0=0x211120(sig0) ms=60"
+        },
+        "atomics": {
+          "status": "PASS",
+          "detail": "checks=7 wide_cas_bits=128 sb_seqcst_violations=0/200000 sb_relaxed_reorders=7208/200000 ms=7226"
+        },
+        "tls": {
+          "status": "PASS",
+          "detail": "checks=3 ms=119"
+        },
+        "threads": {
+          "status": "PASS",
+          "detail": "checks=6 affinity=4 online=4 hwconc=4 ms=2277"
+        },
+        "syscalls": {
+          "status": "PASS",
+          "detail": "checks=7 uname=Linux/aarch64 personality=0x0 ms=58"
+        },
+        "dlopen": {
+          "status": "PASS",
+          "detail": "checks=13 rtld_default_JNI_GetCreatedJavaVMs=absent dlopen(libart.so)=fail loaded_objects=39 dlopen(/system/lib64/libc.so)=ok ms=1551"
+        },
+        "cxx_exceptions": {
+          "status": "PASS",
+          "detail": "checks=10 backtrace_frames=12 ms=130"
+        },
+        "jit": {
+          "status": "PASS",
+          "detail": "checks=4 dual_map_no_flush_sees=22 ms=406"
+        },
+        "signals": {
+          "status": "FAIL",
+          "detail": "checks=13 failed=sigill_si_code_kernel sigill_signo=4 sigill_code=-1 alarm_on_this_thread=0 ms=660"
+        },
+        "gles": {
+          "status": "PASS",
+          "detail": "checks=7 egl=1.5 renderer=[ANGLE (Google  Vulkan 1.3.0 (SwiftShader Device (LLVM 16.0.0] version=[OpenGL ES 3.1 (ANGLE 2.1 git hash: 89ef25f8f92e103b5bec64e19] pixel=255,128,0,255 ms=2488"
+        },
+        "vulkan": {
+          "status": "PASS",
+          "detail": "checks=8 loader=1.4 device=[SwiftShader Device (LLVM 16.0.0)] api=1.3.0 ms=85"
+        },
+        "regress": {
+          "status": "FAIL",
+          "detail": "checks=10 failed=build_cpu_abi_is_native_abi Build.CPU_ABI=x86_64 id: midr=0x410fd034 mpidr=0x80000000 pfr0=0x11 isar0=0x211120 isar1=0x0 mmfr0=0x111ff000000 sigill=0(first #-1) frecpe(1.0)=0x3f7f8000 bad: s=0 d=0 4s=0  ms=1410"
+        }
+      },
+      "complete": true,
+      "package": "dev.anybook.probe.arm64",
+      "reported_totals": {
+        "pass": 17,
+        "fail": 3,
+        "skip": 0
+      }
+    },
+    {
+      "pid": 9730,
+      "tid": 9762,
+      "tests": {
+        "load": {
+          "status": "PASS",
+          "detail": "abi=x86_64 compiler=[clang 21.0.0 (https://android.googlesource.com/toolchain/llvm-project 9f872551d3c681d06fd303b36f16ed5c274735eb)]"
+        },
+        "java_jni_args": {
+          "status": "PASS",
+          "detail": "checks=1 ms=568"
+        },
+        "java_jni_exception": {
+          "status": "PASS",
+          "detail": "checks=1 ms=0"
+        },
+        "java_jni_register_natives": {
+          "status": "PASS",
+          "detail": "checks=1 ms=0"
+        },
+        "java_jni_callbacks": {
+          "status": "PASS",
+          "detail": "checks=12 ms=1748"
+        },
+        "abi": {
+          "status": "PASS",
+          "detail": "checks=1 abi=x86_64 uname.machine=x86_64 at_platform=x86_64 exe=/system/bin/app_process64 pagesz=4096 hwcap=0x1fcbfbfd/0x2 cpuinfo=[model name : QEMU TCG CPU version 2.5+ / flags  : fpu de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush acpi mmx fxsr sse sse2 ss ht syscall nx mmxext pdpe1gb rdtscp lm 3dnowext 3dnow nopl xtopology cpuid pni pclmulqdq ] proc_auxv=unreadable ms=4"
+        },
+        "crypto": {
+          "status": "PASS",
+          "detail": "checks=5 ms=0"
+        },
+        "isa": {
+          "status": "SKIP",
+          "detail": "AArch64-only semantics (x86_64 is the native control) ms=0"
+        },
+        "neon": {
+          "status": "SKIP",
+          "detail": "not an ARM build ms=0"
+        },
+        "atomics": {
+          "status": "PASS",
+          "detail": "checks=5 wide_cas_bits=128 sb_seqcst_violations=0/200000 sb_relaxed_reorders=85054/200000 ms=18008"
+        },
+        "tls": {
+          "status": "PASS",
+          "detail": "checks=3 ms=15"
+        },
+        "threads": {
+          "status": "PASS",
+          "detail": "checks=6 affinity=4 online=4 hwconc=4 ms=2861"
+        },
+        "syscalls": {
+          "status": "PASS",
+          "detail": "checks=7 uname=Linux/x86_64 personality=0x0 ms=56"
+        },
+        "dlopen": {
+          "status": "PASS",
+          "detail": "checks=13 rtld_default_JNI_GetCreatedJavaVMs=absent dlopen(libart.so)=fail loaded_objects=388 dlopen(/system/lib64/libc.so)=ok ms=310"
+        },
+        "cxx_exceptions": {
+          "status": "PASS",
+          "detail": "checks=10 backtrace_frames=11 ms=27"
+        },
+        "jit": {
+          "status": "PASS",
+          "detail": "checks=4 dual_map_no_flush_sees=23 ms=25"
+        },
+        "signals": {
+          "status": "PASS",
+          "detail": "checks=13 sigill_signo=4 sigill_code=2 alarm_on_this_thread=0 ms=377"
+        },
+        "gles": {
+          "status": "PASS",
+          "detail": "checks=7 egl=1.5 renderer=[ANGLE (Google  Vulkan 1.3.0 (SwiftShader Device (LLVM 16.0.0] version=[OpenGL ES 3.1 (ANGLE 2.1 git hash: 89ef25f8f92e103b5bec64e19] pixel=255,128,0,255 ms=5030"
+        },
+        "regress": {
+          "status": "PASS",
+          "detail": "checks=1 Build.CPU_ABI=x86_64 ms=0"
+        },
+        "vulkan": {
+          "status": "PASS",
+          "detail": "checks=8 loader=1.4 device=[SwiftShader Device (LLVM 16.0.0)] api=1.3.0 ms=182"
+        }
+      },
+      "complete": true,
+      "package": "dev.anybook.probe.x86_64",
+      "reported_totals": {
+        "pass": 18,
+        "fail": 0,
+        "skip": 2
+      }
+    }
+  ],
+  "search_attempts": 20,
+  "search_pid_samples": [
+    null,
+    11854,
+    null,
+    12564,
+    12564,
+    12564,
+    12564,
+    12564,
+    12564,
+    12564,
+    12564,
+    12564,
+    12564,
+    14475,
+    14475,
+    14475,
+    14475,
+    15408,
+    15408,
+    15408
+  ],
+  "search_results_navigation_verified": false,
+  "search_anr_headers": [
+    [
+      "10-21 13:17:38.502   803  5430 E ActivityManager: ANR in com.google.android.settings.intelligence",
+      "10-21 13:17:38.502   803  5430 E ActivityManager: PID: 4799",
+      "10-21 13:17:38.502   803  5430 E ActivityManager: Reason: Process ProcessRecord{a36eb5c 4799:com.google.android.settings.intelligence/u10a139} failed to complete startup",
+      "10-21 13:17:38.502   803  5430 E ActivityManager: ErrorId: a59bff45-37c1-444d-b81e-6c63a1db3069",
+      "10-21 13:17:38.502   803  5430 E ActivityManager: Frozen: false",
+      "10-21 13:17:38.502   803  5430 E ActivityManager: Load: 35.66 / 14.01 / 5.45",
+      "10-21 13:17:38.502   803  5430 E ActivityManager: ----- Output from /proc/pressure/memory -----",
+      "10-21 13:17:38.502   803  5430 E ActivityManager: some avg10=0.00 avg60=0.00 avg300=0.00 total=305"
+    ],
+    [
+      "10-21 13:19:40.620   803  8896 E ActivityManager: ANR in com.google.android.settings.intelligence",
+      "10-21 13:19:40.620   803  8896 E ActivityManager: PID: 8164",
+      "10-21 13:19:40.620   803  8896 E ActivityManager: Reason: executing service com.google.android.settings.intelligence/.modules.routines.impl.worker.RoutinesJobIntentService, waited 23611ms",
+      "10-21 13:19:40.620   803  8896 E ActivityManager: ErrorId: 12e47298-8c7f-48cd-969b-d322fc8dd551",
+      "10-21 13:19:40.620   803  8896 E ActivityManager: Frozen: false",
+      "10-21 13:19:40.620   803  8896 E ActivityManager: Load: 0.0 / 0.0 / 0.0",
+      "10-21 13:19:40.620   803  8896 E ActivityManager: ----- Output from /proc/pressure/memory -----",
+      "10-21 13:19:40.620   803  8896 E ActivityManager: some avg10=0.00 avg60=0.00 avg300=0.00 total=491"
+    ],
+    [
+      "10-21 13:21:48.688   803 11513 E ActivityManager: ANR in com.google.android.settings.intelligence (com.google.android.settings.intelligence/.modules.search.SearchActivity)",
+      "10-21 13:21:48.688   803 11513 E ActivityManager: PID: 9913",
+      "10-21 13:21:48.688   803 11513 E ActivityManager: Reason: Input dispatching timed out (Application does not have a focused window).",
+      "10-21 13:21:48.688   803 11513 E ActivityManager: Parent: com.google.android.settings.intelligence/.modules.search.SearchActivity",
+      "10-21 13:21:48.688   803 11513 E ActivityManager: ErrorId: 915e169f-98ca-4ca4-b9f5-0eaa12d78844",
+      "10-21 13:21:48.688   803 11513 E ActivityManager: Frozen: false",
+      "10-21 13:21:48.688   803 11513 E ActivityManager: Load: 64.79 / 45.59 / 20.83",
+      "10-21 13:21:48.688   803 11513 E ActivityManager: ----- Output from /proc/pressure/memory -----"
+    ]
+  ],
+  "anr_packages": [
+    "com.android.keychain",
+    "com.android.vending",
+    "com.google.android.adservices.api",
+    "com.google.android.apps.photos",
+    "com.google.android.as",
+    "com.google.android.as.oss",
+    "com.google.android.contacts",
+    "com.google.android.ext.services",
+    "com.google.android.gms",
+    "com.google.android.gms.persistent",
+    "com.google.android.googlequicksearchbox",
+    "com.google.android.permissioncontroller",
+    "com.google.android.rkpdapp",
+    "com.google.android.settings.intelligence",
+    "com.google.android.verifier",
+    "dev.anybook.probe.x86_64"
+  ],
+  "icing_em_aarch64_error_observed": false,
+  "system_server_samples": [
+    "803",
+    "803"
+  ],
+  "guest_script_finished": false,
+  "observation": {
+    "elapsed_s": 1800.7,
+    "boot_completed_reported": true,
+    "input_unchanged": true,
+    "decoy_unchanged": true,
+    "software_tpm_restored": false,
+    "source_tpm_unchanged": null,
+    "logs_readback_exit": 0,
+    "usb_capture_finished": true,
+    "kernel_panic": false,
+    "sigill": false,
+    "runtime_findings": {
+      "setup_welcome_activity_seen": true,
+      "system_server_fatal_signals": [],
+      "zygote_exit_events": 0,
+      "system_server_execmem_denial_seen": false,
+      "mmd_setup_abort_seen": false,
+      "camera_provider_running_reported": false,
+      "camera_provider_registered_reported": true,
+      "camera_device_counts_reported": [
+        0
+      ],
+      "camera_provider_abort_seen": false,
+      "camera_fmq_test_exit_statuses": [],
+      "camera_buffer_test_exit_statuses": [],
+      "camera_buffer_test_abort_seen": false,
+      "camera_fmq_tmpfs_denial_seen": false,
+      "camera_provider_default_label_denial_seen": false
+    }
+  },
+  "observer": {
+    "stop_reason": "runner_limit_or_exit",
+    "runner_status": 0,
+    "display_wake_injected": true,
+    "free_before": 51978416128,
+    "minimum_free": 47023300608,
+    "free_after": 47178334208
+  },
+  "limits": [
+    "QEMU TCG / SwiftShader, 4 vCPU and 8 GiB; not physical AMD qualification",
+    "VM-only hide_error_dialogs, synthetic setup, resolution and animation controls",
+    "The old fixture blur command failed; no blur-disabled result claimed",
+    "The old fixture accumulated query text and did not select a result",
+    "The old run-as argument order failed; probe results come from complete logcat runs",
+    "No successful Voice Access / YourWidget functional result",
+    "Absence of the original ELF mismatch does not prove Icing loaded or search works"
+  ],
+  "raw_serial_sha256": "f9ec8e3dc67d809121c47f185e2d0438a984218a5cac69f8bdaa848c3dbeb00d",
+  "manual_ui_check": {
+    "action": "During attempt 20, QMP Ctrl+A, Backspace, type display; wait 8 seconds; screenshot",
+    "automated_fixture_modified": false,
+    "result_navigation_verified": false,
+    "later_visible_query": "display",
+    "later_visible_result": "No results",
+    "screenshot": "manual-display-later.png"
+  }
+}
