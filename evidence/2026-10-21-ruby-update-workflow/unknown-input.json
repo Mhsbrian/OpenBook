@@ -1,0 +1,9 @@
+{
+  "exit_code": 2,
+  "state": "failed",
+  "failed_phase": "validating",
+  "error": "Input identity changed: $ORIGINAL",
+  "audit_created": false,
+  "candidate_created": false,
+  "workflow_sha256": "556cb6c7cbff41f03e565b5f415faa7d71ee85ca13281b53abf205da7b3d968e"
+}

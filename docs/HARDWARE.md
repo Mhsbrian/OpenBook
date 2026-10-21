@@ -1,5 +1,12 @@
 # Hardware
 
+2026-10-21 host execution milestone: the fixed adaptation workflow completed on
+the Ryzen 7950X host, including real VINTF/SELinux audits, image assembly and eight
+native input-library controls. Its container has no physical-device access.
+No G14/USB write or new guest boot occurred; these static/native checks do not
+resolve VM stability, installed OTA containment or recovery/data compatibility.
+See `googlebook-update-workflow.md` for the exact development scope.
+
 2026-10-21 OTA follow-up: host-only readiness/approval checks can proceed
 without the G14. No current-device inspection or hardware write was performed
 by this work. The release hub records the separately authorized RB01 v2 USB

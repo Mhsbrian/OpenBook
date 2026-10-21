@@ -4,6 +4,8 @@
 
 | Check | Result | Limit |
 |---|---|---|
+| Fixed adaptation execution | Real Ruby/OpenBook/reduced-hybrid native audits pass; raw-hybrid policy fails as expected; image assembly preserves 7,292 metadata rows and protected ranges; eight native controls pass | Known camera25 input-correction replay only; no new OTA reconstruction, upstream trust, boot, guard inclusion or recovery qualification |
+| Workflow failures | Unknown actual source stops before audit/assembly; 23 job tests plus 59 existing regressions pass; deployment gate rejects unreviewed candidate | Trusted local CLI with private files; no authenticated service/APK, resumable jobs or production signing |
 | Read-only readiness contract | Source/profile identity, signed stage/expiry/evidence and reserve checks; unknown/changed/expired/incomplete inputs refused | Local single-user CLI; signed reports are attestations, not executed compatibility tests; no service/APK or install permission |
 | Retained Ruby original | 19,069,493,760 bytes rehashed to `4f4490415d4db072…`; state `awaiting_review` | Byte identity only; upstream authentication and new OTA adaptation remain separate |
 | Native guard | Prior fresh/initialized VMs each pass 24 Binder checks; real cleanup retained | Offline VM with test-only permissions; G14, downloads, recovery, Mainline and fallback remain unqualified |

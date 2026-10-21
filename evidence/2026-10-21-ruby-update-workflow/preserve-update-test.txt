@@ -1,0 +1,19 @@
+test_apply_plan_cannot_target_userdata_or_omit_protection (__main__.PreserveGuards.test_apply_plan_cannot_target_userdata_or_omit_protection) ... ok
+test_apply_ranges_preserve_surrounding_data (__main__.PreserveGuards.test_apply_ranges_preserve_surrounding_data) ... Writing super: 512 bytes
+Writing vbmeta_a: 512 bytes
+Writing EFI: 512 bytes
+ok
+test_bootconfig_rebind_retains_ramdisk (__main__.PreserveGuards.test_bootconfig_rebind_retains_ramdisk) ... ok
+test_bootconfig_uses_unpadded_vbmeta_size_and_digest (__main__.PreserveGuards.test_bootconfig_uses_unpadded_vbmeta_size_and_digest) ... ok
+test_both_gpt_copies_required (__main__.PreserveGuards.test_both_gpt_copies_required) ... ok
+test_devices_and_symlinks_refused (__main__.PreserveGuards.test_devices_and_symlinks_refused) ... ok
+test_every_byte_outside_three_allowed_partitions_is_protected (__main__.PreserveGuards.test_every_byte_outside_three_allowed_partitions_is_protected) ... ok
+test_framework_identity_and_enforcement_changes_refused (__main__.PreserveGuards.test_framework_identity_and_enforcement_changes_refused) ... ok
+test_gpt_cannot_be_relocated_silently (__main__.PreserveGuards.test_gpt_cannot_be_relocated_silently) ... ok
+test_physical_apply_rejects_unnamed_or_regular_device (__main__.PreserveGuards.test_physical_apply_rejects_unnamed_or_regular_device) ... ok
+test_truncated_range_fails (__main__.PreserveGuards.test_truncated_range_fails) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.077s
+
+OK

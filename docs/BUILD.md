@@ -1,5 +1,16 @@
 # Build and reproduce
 
+## Fixed Ruby host workflow — 2026-10-21
+
+`googlebook-update-workflow.md` documents the executable camera25 replay:
+versioned input/tool pins, native compatibility gates, exact image reassembly,
+native transform controls, durable failure states and scoped scratch cleanup.
+Run `bash scripts/googlebook/run-update-workflow.sh` with the documented private
+inputs. The launcher uses the retained container by immutable ID, offline, with
+no physical devices. Budget 64 GiB additional plus a 40 GiB host reserve. Run
+`python3 scripts/googlebook/update-workflow-test.py -v` for failure-boundary tests.
+Successful assembly remains unqualified for boot, hardware or deployment.
+
 ## Ruby host update readiness — 2026-10-21
 
 `googlebook-update-workstreams.md` separates host adaptation, app/backend,

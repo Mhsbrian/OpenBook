@@ -1,0 +1,65 @@
+{
+  "schema": "openbook-ruby-update-job/1",
+  "recipe": "camera25-input-correction-v1",
+  "state": "assembled_unqualified",
+  "history": [
+    {
+      "state": "validating",
+      "time_unix": 1792609272.6532803,
+      "free_bytes": 804308955136
+    },
+    {
+      "state": "auditing",
+      "time_unix": 1792609290.2844596,
+      "free_bytes": 804308955136
+    },
+    {
+      "state": "assembling",
+      "time_unix": 1792609359.4454715,
+      "free_bytes": 803363663872
+    },
+    {
+      "state": "verifying",
+      "time_unix": 1792609410.2707686,
+      "free_bytes": 792440717312
+    },
+    {
+      "state": "cleaning",
+      "time_unix": 1792609433.966016,
+      "free_bytes": 792438198272
+    },
+    {
+      "state": "assembled_unqualified",
+      "time_unix": 1792609434.3813689,
+      "free_bytes": 799543250944
+    }
+  ],
+  "physical_device_written": false,
+  "installation_available": false,
+  "release_approved": false,
+  "upstream_authenticated": false,
+  "raw_to_derived_provenance_verified": false,
+  "workflow_sha256": "ed93f4933fa7ccb8740ed800f7653d57eaebc57a6a9e1b6277e74f7218583ea9",
+  "host_reserve_bytes": 42949672960,
+  "profile_sha256": "496fdf2220e57737a5d6a75aa956d75de893cfbff93ad60c9d7328865650b6d7",
+  "candidate_sha256": "22e93f392882e4a15f2414c3bc3a65ad2aedf89b4756b9c1cf4fbaf6a3536155",
+  "cleanup": {
+    "schema": "openbook-ruby-workflow-cleanup/1",
+    "free_before_bytes": 792438198272,
+    "complete": true,
+    "children_reaped": true,
+    "free_after_bytes": 798031912960,
+    "observed_free_delta_bytes": 5593714688
+  },
+  "input_native_sha256": "01ada237e7b4e0c6dcd9d91bffd987fff4a28c4a9e6c24fb0b380e54e9713619",
+  "audit_report_sha256": "b04b2f2363e2315cbc3b83d8451e8f6e10b559bf29986dc6e43df51f5a5d845f",
+  "assembly_result_sha256": "7547546d21e9d8e60029268fc7a100a886708991c885c4f42f7d76359ec91bd9",
+  "remaining_gates": [
+    "upstream trust and extraction provenance",
+    "installer source pin",
+    "encrypted-data boot/stability",
+    "containment",
+    "recovery/data rollback",
+    "hardware trial and release approval"
+  ]
+}

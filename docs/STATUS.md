@@ -1,5 +1,22 @@
 # Status
 
+## 2026-10-21: Executable Ruby adaptation replay
+
+The fixed local workflow now runs native audits and image assembly rather than
+only checking reviewer attestations. The known camera25 replay completed in
+162.4 seconds: all three required tuples pass VINTF/strict SELinux/service-label
+checks, the unreduced hybrid fails its policy control, and all eight native input
+checks pass. The builder preserves all 7,292 metadata rows and protected data/GPT
+ranges, changing only the known input library. 82 Python regression tests pass.
+
+The result is `assembled_unqualified`, with no release or physical-install
+permission. This is a private development replay using retained inputs and a
+public AVB test key; it neither reconstructs a new Google OTA nor proves upstream
+trust/raw-to-derived provenance. The guard, boot stability and rollback remain
+separate work. The existing deployment gate rejects this unreviewed image.
+Automatic scoped cleanup retains the candidate/evidence and records actual free
+space. See `googlebook-update-workflow.md` and its dated evidence directory.
+
 ## 2026-10-21: Ruby software work resumes independently of hardware testing
 
 ANAL-229 is in progress for host/app process work. The OTA guard remains a

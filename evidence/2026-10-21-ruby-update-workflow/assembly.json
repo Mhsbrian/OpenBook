@@ -1,0 +1,24 @@
+{
+  "schema": "openbook-ruby-input-candidate/1",
+  "complete": true,
+  "source_sha256": "df793f2eed3a5c901659014c2ae368d8e5eeb3d504b514d46fc8c0c1959a7af4",
+  "image_sha256": "22e93f392882e4a15f2414c3bc3a65ad2aedf89b4756b9c1cf4fbaf6a3536155",
+  "metadata_rows": 7292,
+  "all_inode_xattrs_identical": true,
+  "only_metadata_change": null,
+  "file_and_symlink_count": 3464,
+  "changed_files": [
+    "/system/lib64/libinputflinger.so"
+  ],
+  "only_changed_file": "/system/lib64/libinputflinger.so",
+  "input_correction": {
+    "source_sha256": "e27014ec1e2e4d611cdd6df2c1175d86d679d1353ee970f190e831953fbcb3e4",
+    "output_sha256": "4752d1351dbed7f0b5cb5a1d31d409edbb91396c6627fd7b34e1e99a0e655148",
+    "offset": 2411352,
+    "bytes": 8,
+    "hardware_validated": false
+  },
+  "protected_ranges_identical": true,
+  "source_unchanged": true,
+  "physical_device_written": false
+}
