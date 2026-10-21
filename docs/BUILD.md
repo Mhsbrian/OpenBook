@@ -1,5 +1,14 @@
 # Build and reproduce
 
+## Ruby Settings search diagnostics (ANAL-234, 2026-10-21)
+
+`scripts/diagnostics/settings-search.py` collects bounded private evidence from
+an explicit authorized adb device without changing it. Python 3 and adb suffice;
+no AOSP build is needed. Usage, nine parser checks, observed crash chain and the
+proposed Ruby bridge qualification are in `docs/settings-search.md`. Keep output
+outside Git. Collection reserves 128 MiB above 40 GiB host free space; a later
+image build requires a separate measured budget and release plan.
+
 ## G14 touchpad diagnostic replay (ANAL-226, 2026-10-19)
 
 `scripts/power/touchpad/build-replay.sh` builds an isolated host copy of the

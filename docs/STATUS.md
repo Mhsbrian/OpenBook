@@ -1,5 +1,16 @@
 # Status
 
+## 2026-10-21: Ruby Settings search diagnosis (ANAL-234)
+
+Reproduced two search-field crashes and one direct search-intent crash on the
+G14's Ruby live environment. Houdini initialization fails, then ARM64 Icing
+fails to load into the x86_64 process. Settings/system_server stayed alive;
+Display navigation passed a 30-second control. Added private capture tooling,
+nine parser regressions, evidence and a fix proposal in
+`docs/settings-search.md`. No fix/image/deployment yet; proposed Ruby bridge
+integration needs isolated qualification. AOSP bridge results are not Ruby
+acceptance. Sanitized evidence: `evidence/2026-10-21-settings-search/`.
+
 ## 2026-10-19: PR integration (ANAL-188)
 
 This integration consolidates PRs #94, #98 and #104–#117 with merge commits, preserving their dependency history. Status conflicts retain both evidence records; Quire retains the surface and Linux-agent initialization. The two outstanding #115 confirmation bugs are corrected with host dispatch regressions (17/17; the original head fails 12). No image or laptop update was performed. #117 contributes diagnostics only: the physical touchpad reproduction and fix remain open.

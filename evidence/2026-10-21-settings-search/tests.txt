@@ -1,0 +1,17 @@
+test_bridge_failure_without_crash_is_inconclusive (__main__.AnalyzeTests.test_bridge_failure_without_crash_is_inconclusive) ... ok
+test_command_denial_is_detected (__main__.AnalyzeTests.test_command_denial_is_detected) ... ok
+test_empty_is_inconclusive (__main__.AnalyzeTests.test_empty_is_inconclusive) ... ok
+test_historical_permission_error_does_not_fail_capture (__main__.AnalyzeTests.test_historical_permission_error_does_not_fail_capture) ... ok
+test_other_app_same_library_is_not_search (__main__.AnalyzeTests.test_other_app_same_library_is_not_search) ... ok
+test_record_and_deduplicate_crash (__main__.AnalyzeTests.test_record_and_deduplicate_crash) ... ok
+test_same_pid_other_time_is_not_attributed (__main__.AnalyzeTests.test_same_pid_other_time_is_not_attributed) ... ok
+test_successful_bridge_line_is_not_failure (__main__.AnalyzeTests.test_successful_bridge_line_is_not_failure) ... ok
+test_unidentified_library_error_is_inconclusive (__main__.AnalyzeTests.test_unidentified_library_error_is_inconclusive) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.000s
+
+OK
+
+On-device capture: 13/13 command records status=ok; process exit 0.
+Capture completion is not a search pass.
