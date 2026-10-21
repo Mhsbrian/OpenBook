@@ -1,0 +1,52 @@
+{
+  "schema": "openbook-ruby-g14-sleep-test/1",
+  "date": "2026-10-21",
+  "method": "owner-timed lid close (asked: 3 min); on-device getevent of Power Button, Sleep Button, Lid Switch, both Video Bus and ASUS WMI hotkeys only (no keyboard/touchpad), 1 s heartbeat; logcat and batterystats afterwards; capture processes and files removed after collection",
+  "timeline_local_edt": [
+    {
+      "t": "18:54:48.62",
+      "event": "SW_LID closed; Android: lid closed, DesktopPowerService disables its wakelocks"
+    },
+    {
+      "t": "18:54:48.79-18:54:50.06",
+      "event": "two suspend aborts: 'Last active Wakeup Source: eventpoll', 'Pending Wakeup Sources: mmc0'"
+    },
+    {
+      "t": "18:54:56.88",
+      "event": "processor suspends (s2idle)"
+    },
+    {
+      "t": "18:54:57.90",
+      "event": "resume after ~1 s; wake reason '7 pinctrl_amd:9 acpi'"
+    },
+    {
+      "t": "18:54:57.89",
+      "event": "kernel reports SW_LID open (lid state from firmware _LID on resume), then Power Button KEY_WAKEUP 28 ms later; Android wakes (WAKE_REASON_LID), re-enables DesktopPowerService wakelocks"
+    },
+    {
+      "t": "18:55:57.90",
+      "event": "screen off after 60 s; DesktopPowerService: 'Screen OFF while plugged in: acquiring screen-off wakelock for 1585000ms'"
+    },
+    {
+      "t": "18:55:58-19:05:24",
+      "event": "no further suspend (about 1 s added to total suspended time); Wi-Fi disconnected at 18:59:44"
+    },
+    {
+      "t": "19:05:24",
+      "event": "wake by touchpad motion; no lid-open event because the kernel already reported open"
+    }
+  ],
+  "kernel_source_facts": [
+    "drivers/acpi/button.c acpi_button_resume() reports KEY_WAKEUP from every ACPI power-button device on resume",
+    "lid_init_state defaults to METHOD (no DMI quirk matches this model): _LID is evaluated on resume",
+    "CONFIG_ACPI_BUTTON=y, so button.* parameters are kernel command-line options"
+  ],
+  "interpretation": "A resume shortly after closing reported the lid open; Googlebook then treats the laptop as open on AC and holds a ~26 min screen-off wakelock, so it neither stays dark nor suspends. Every resume also emits KEY_WAKEUP, which turns the screen on even when the lid is reported closed (first test).",
+  "owner_confirmation_needed": "whether the lid was opened around 18:54:57 (expected closed for 3 minutes)",
+  "candidate_fixes": [
+    "Power Button KEY_WAKEUP on resume must not light the screen when the lid is closed (kernel: only when the button caused the wake; or Android key handling)",
+    "lid state after resume: button.lid_init_state=ignore (rely on firmware notifications) or a re-check/debounce, tested against real opens",
+    "identify the pinctrl_amd GPIO and mmc0 wakeup sources (touchpad pressed by the lid? card reader)"
+  ],
+  "no_device_change": true
+}
