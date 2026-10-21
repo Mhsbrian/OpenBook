@@ -280,11 +280,12 @@ format defect, not evidence of failing hardware. System deployment and the
 Photos app check are tracked in `evidence/2026-10-19-photos-yv12/SUMMARY.md`.
 
 
-## Ruby USB release preparation — 2026-10-20
+## Ruby USB release handoff — 2026-10-20
 
-RB-20261020-01 is being prepared for the configured SanDisk Ultra ending 2034
-under ANAL-233, using the input/AVB payload already validated from ANAL-228/229.
-The new packaging path verifies exact baseline/candidate manifests, retains all
-bytes outside EFI/super/vbmeta, and replaces only a hash-identified installer.
-No G14 or USB deployment is claimed by this source change. See
-`docs/googlebook-usb-release.md` for the procedure and qualification limits.
+The approved SanDisk Ultra ending 2034 now contains RB-20261020-01 v2. Its
+entire 12,766,412,800-byte used extent passed direct readback, and power-off
+succeeded. All 8,805,941,248 bytes outside EFI/super/vbmeta match the backup.
+The G14 installation and firmware are unchanged. Physical USB boot, existing
+PIN/apps and the trackpad correction still need owner verification on the G14.
+One system-server crash recurred in the synthetic VM; no stable-hardware claim.
+See `evidence/2026-10-20-rb01-usb/README.md`.

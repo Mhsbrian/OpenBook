@@ -240,11 +240,16 @@ In the same VM, Digitalis runs at about 65% of libndk_translation's speed. The h
 | 2026-10-17 | AOSP's dEQP app (EGL, window surfaces) and Android 17's ANGLE end2end CTS helper app, on ANGLE on RADV 1.1 | Same | **dEQP-EGL, 1,287 cases: 847 pass, 0 fail**, 438 not supported, 204 s. **ANGLE end2end, 2,364 CTS PASS tests: 1,814 pass, 2 fail** (`MultisampledRenderToTextureWithAdvancedBlendTest`, ES 3.1), 329 skipped by ANGLE, 219 not in this build, 66 s | same |
 
 
-## Ruby USB release preparation — 2026-10-20
+## Ruby USB release handoff — 2026-10-20
 
-RB-20261020-01 is being prepared for the configured SanDisk Ultra ending 2034
-under ANAL-233, using the input/AVB payload already validated from ANAL-228/229.
-The new packaging path verifies exact baseline/candidate manifests, retains all
-bytes outside EFI/super/vbmeta, and replaces only a hash-identified installer.
-No G14 or USB deployment is claimed by this source change. See
-`docs/googlebook-usb-release.md` for the procedure and qualification limits.
+| Check | RB-20261020-01 v2 result |
+|---|---|
+| Configured camera25 → corrected RB01 USB | Exact reviewed transition only; protected bytes and complete physical direct readback pass |
+| Existing encrypted synthetic data | 760.7-second UEFI boot/logging pass; four metadata-key files unchanged |
+| Installer replacement and source pin | Verified; 1,297 extracted entries/permissions match the tested installer |
+| Wrong confirmation / normal keyboard cancellation | Both install choices and console cancellation preserve source/target/decoy |
+| Runtime stability | One system-server crash recurred; cause unresolved |
+| G14 unlock/apps/trackpad | Awaiting physical owner test |
+| Laptop update, OTA guard, automatic rollback, audio fixes | Outside this release |
+
+Details: `evidence/2026-10-20-rb01-usb/result.json`.

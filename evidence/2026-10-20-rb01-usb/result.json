@@ -1,0 +1,128 @@
+{
+  "schema": "openbook-ruby-usb-deployment/1",
+  "at": "2026-10-21T01:21:40.067261+00:00",
+  "release": "RB-20261020-01",
+  "revision": 2,
+  "track": "ruby-g14",
+  "approval_comment": "01a15be7-3d35-73aa-912e-ba7d32ddde21",
+  "source": {
+    "code_commit": "36b7b2008a91ed1907f3c64b5037e72ef8a35fc3",
+    "plan_commit": "6b6abc7e62c383d216b225de7c979898c6fc69d3",
+    "pull_request": "https://github.com/Mhsbrian/OpenBook/pull/123",
+    "source_blob_ids": {
+      "scripts/googlebook/preserve-update.py": "d468a7edbb7288983916e06410f3a632a63dc4aa",
+      "scripts/googlebook/migration-package.py": "4e0ae48964136492975118d924b7810d2f588d2f",
+      "scripts/googlebook/finalize-usb-release.py": "a10285d3078f6783645e505fd220f9dc27ceada1",
+      "scripts/googlebook/apply-preserved-update.py": "916197b18553c53f718488bdc6f97a5dc1019e7a"
+    }
+  },
+  "used_extent_bytes": 12766412800,
+  "image_sha256": "f47dc88c99b45f5153ed8decc5408709d5280d5e50f18b89d3c6665a5bc239c1",
+  "installer_source_pin_sha256": "013afc613cd9a95bab616180813d09d0aa34d5b4e6a1e994515c20f61a2e46e7",
+  "regression_tests": 41,
+  "encryption_check": {
+    "synthetic_only": true,
+    "metadata_key_files": 4,
+    "metadata_key_hashes_unchanged": true,
+    "source_pin_embedded_verified": true
+  },
+  "console_visual_review": {
+    "selection_screen_readable": true,
+    "fresh_erase_warning_visible": true,
+    "target_is_synthetic": true,
+    "cancellation_poweroff_prompt_visible": true,
+    "reviewed": true
+  },
+  "configured_installer_comparison": {
+    "file_contents_and_permissions_identical": true,
+    "entries": 1297,
+    "differing_cpio_header_fields": [
+      0
+    ],
+    "interpretation": "Archive inode numbers differ; extracted files, modes, ownership, links and timestamps match the tested installer."
+  },
+  "full_install_regression": "Prior RB01 fresh installation and restart evidence reused: installer program/build code identical; new source pin independently checked and actual new installer entry/cancellation paths tested.",
+  "protected_bytes": 8805941248,
+  "write_partitions": [
+    "EFI",
+    "vbmeta_a",
+    "super"
+  ],
+  "physical_write_verified": true,
+  "powered_off": true,
+  "hardware_acceptance": {
+    "g14_boot": false,
+    "owner_unlock": false,
+    "trackpad": false
+  },
+  "laptop_written": false,
+  "firmware_written": false,
+  "automatic_rollback": false,
+  "preparation_attempts": [
+    "Configured attempt 1 stopped on the input/output path guard before creating output; the backup mount was moved into a dedicated directory. Source code and frozen inputs were unchanged.",
+    "Configured attempt 2 completed all stages."
+  ],
+  "free_bytes_at_handoff": 58583097344,
+  "synthetic_live": {
+    "input_unchanged": true,
+    "decoy_unchanged": true,
+    "observation_window_elapsed": true,
+    "boot_completed_reported": true,
+    "usb_capture_finished": true
+  },
+  "runtime_limitations": {
+    "system_server_fatal_signals": 1,
+    "system_server_execmem_denial_seen": true,
+    "cause_confirmed": false
+  },
+  "installer_checks": {
+    "synthetic-migration": {
+      "cancelled": true,
+      "target_unchanged": true,
+      "source_unchanged": true,
+      "decoy_unchanged": true
+    },
+    "synthetic-fresh-cancel": {
+      "cancelled": true,
+      "target_unchanged": true,
+      "source_unchanged": true,
+      "decoy_unchanged": true
+    },
+    "synthetic-console": {
+      "normal_console_keyboard_cancel": true,
+      "source_unchanged": true,
+      "target_unchanged": true,
+      "decoy_unchanged": true
+    }
+  },
+  "cleanup": [
+    {
+      "at": "2026-10-21T01:10:30.894267+00:00",
+      "mode": "completed-installer-disks",
+      "free_bytes_before": 62320992256,
+      "complete": true,
+      "free_bytes_after": 62311432192
+    },
+    {
+      "at": "2026-10-21T01:10:00.285234+00:00",
+      "mode": "completed-vms",
+      "free_bytes_before": 62198796288,
+      "complete": true,
+      "free_bytes_after": 62306664448
+    },
+    {
+      "at": "2026-10-21T01:15:42.314845+00:00",
+      "mode": "configured",
+      "free_bytes_before": 57715884032,
+      "complete": true,
+      "free_bytes_after": 58601549824
+    },
+    {
+      "at": "2026-10-21T00:55:01.849703+00:00",
+      "mode": "synthetic",
+      "free_bytes_before": 56496975872,
+      "complete": true,
+      "free_bytes_after": 57158307840
+    }
+  ]
+}
