@@ -1,0 +1,46 @@
+{
+  "schema": "openbook-ruby-g14-after-update/1",
+  "captured_utc": "2026-10-21T22:35:41.223095+00:00",
+  "method": "paired wireless ADB, shell user, read-only; same command sets as g14-capture.json plus targeted reads",
+  "update_run_by": "owner, USB entry 'Update the laptop's Googlebook system - keep data'",
+  "build_fingerprint": "Lenovo/ruby/ruby:17/CL3B.260622.271.R1/16452207:user/release-keys",
+  "boot_vbmeta_digest": "913489549ae182bafd8e89daa907fc796b37d0d2b25f1e5a7e100f73cb31ff93",
+  "boot_vbmeta_size": "4032",
+  "matches_release": "RB-20261020-01 (v2/v3 system); camera25 was c25e789e... / 4352",
+  "libinputflinger_sha256": "4752d1351dbed7f0b5cb5a1d31d409edbb91396c6627fd7b34e1e99a0e655148",
+  "libinputflinger_is_corrected_output": true,
+  "camera25_source_sha256": "e27014ec1e2e4d611cdd6df2c1175d86d679d1353ee970f190e831953fbcb3e4",
+  "boot_completed": true,
+  "users": 2,
+  "users_running_unlocked": 2,
+  "credential_storage_unlocked_after_boot": true,
+  "packages_secondary_user": 262,
+  "third_party_packages_secondary_user": 4,
+  "accounts": 2,
+  "touchpad_settings_unchanged": true,
+  "touchpad_detected": true,
+  "wifi_connected": true,
+  "camera_devices": 1,
+  "crashes_since_boot": {
+    "repairmode (known vendor-backend gap)": 2,
+    "settings.intelligence (known ARM64 libicing load failure, ANAL-234; at least 21 earlier camera25 entries in dropbox, Oct 20-21)": 2,
+    "third-party app (also before update)": 1
+  },
+  "system_server_crash_entries": 0,
+  "fatal_signals": 0,
+  "anr_since_boot": false,
+  "data_filesystem": {
+    "size": "7.9G",
+    "used": "7.2G",
+    "available": "644M",
+    "use": "93%"
+  },
+  "update_engine": "running",
+  "not_verified": [
+    "physical tap-drag behaviour (owner check)",
+    "apps opening/content beyond counts",
+    "sleep/resume",
+    "the USB rollback record (stick not on host)"
+  ],
+  "system_update_registered": "no registered update info observed (empty system_update dump); no recovery reboot pending"
+}

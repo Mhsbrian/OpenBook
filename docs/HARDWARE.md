@@ -1,5 +1,10 @@
 # Hardware
 
+2026-10-21 G14 after the USB laptop update: runs the RB01 system (vbmeta
+`913489549ae1…`, corrected `libinputflinger.so`), data and PIN unlock retained
+(both users `RUNNING_UNLOCKED`), touchpad/Wi-Fi/camera present, no system-server
+crash or ANR. Tap-drag feel and sleep/resume are owner checks; `/data` 93 % used.
+
 2026-10-21 G14 capture (paired wireless ADB, read-only): installed camera25 on
 the internal NVMe, single slot, `/data` 7.9 GB at 95-96 % used (about 0.4 GB
 free). RepairMode's boot receiver crashes on hardware as in the VM; no

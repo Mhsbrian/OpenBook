@@ -1,5 +1,18 @@
 # Status
 
+## 2026-10-21: G14 updated to the RB01 system from the USB, data kept
+
+The owner ran the USB's **Update** entry. Read-only ADB after reboot: boot vbmeta
+digest `913489549ae1…` (size 4032) is RB01's; `/system/lib64/libinputflinger.so`
+is the corrected tap-drag library (`4752d135…`, was `e27014ec…`). Boot completed;
+both users are `RUNNING_UNLOCKED` after PIN entry; 262 packages, 4 third-party
+apps and 2 accounts are present; touchpad settings, Wi-Fi and the camera are as
+before. No system-server crash, fatal signal or ANR. RepairMode and Settings
+Intelligence crashes are the known pre-existing ones (the latter also on camera25,
+ANAL-234). `/data` remains 7.9 GB, 93 % used. Physical tap-drag and sleep/resume
+await the owner's check; the camera25 rollback copy stays on the USB. Evidence:
+`evidence/2026-10-21-ruby-laptop-update/g14-after-update.json`.
+
 ## 2026-10-21: RB01 v3 written to the SanDisk (laptop update/restore entries)
 
 After B Honey's approval, the guarded writer checked the SanDisk ending 2034 against its fresh
