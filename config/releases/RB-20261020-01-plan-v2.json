@@ -1,0 +1,62 @@
+{
+  "schema": "openbook-release-usb-plan/1",
+  "release": "RB-20261020-01",
+  "revision": 2,
+  "track": "ruby-g14",
+  "parent_plan_sha256": "abffe5eb4afa2b40d1fd72d0668c412a874d993e1609852beff969579f296f91",
+  "approval": {
+    "comment_id": "01a15be7-3d35-73aa-912e-ba7d32ddde21",
+    "author": "B Honey",
+    "scope": "Work the appropriate issues, prepare the image, and write it to the identified SanDisk while retaining data; known VM crash limitation disclosed in the preceding reply."
+  },
+  "source_commit": "36b7b2008a91ed1907f3c64b5037e72ef8a35fc3",
+  "source_parent": "3cf58662b64c50f17432212a0f5e18f216c3f9fd",
+  "system_candidate_sha256": "554fb78970f94d985c8be86f4b07c42c5f64ea9823eac33816a993a5d88dffe6",
+  "prior_synthetic_packaged_sha256": "7d0900ec13f41b08130ed99fc800f4739ab89ff8be6a046df908094a38220bc0",
+  "installer_container": "sha256:d189a4b9e7f705be165070b730039214e81fd6dde6a21aca3c9c4700d8b58815",
+  "device": {
+    "model": "SanDisk Ultra",
+    "serial": "4C530001041228122034",
+    "bytes": 62109253632,
+    "by_id": "/dev/disk/by-id/usb-SanDisk_Ultra_4C530001041228122034-0:0"
+  },
+  "backup_sha256": "cec4270dd3041bec5145b3145d71f5b9af4a98c6eca338d326420b4a3e95996f",
+  "includes": [
+    "camera25 AMD hardware compatibility baseline",
+    "input27 timestamp correction",
+    "regenerated and verified AVB bootconfig digest and unpadded size",
+    "new offline-installer source pin and installer build",
+    "live boot and diagnostic live boot",
+    "fresh SSD installation with explicit erase confirmation",
+    "USB-state-to-SSD migration with explicit erase confirmation",
+    "exact legacy/fresh installer menu validation"
+  ],
+  "excludes": [
+    "experimental native OTA guard",
+    "VM-only shell Binder/FD policy permissions and test probe",
+    "unqualified Bluetooth SCO/USB voice transport changes",
+    "a claimed fix for internal-speaker stutter",
+    "updating the current laptop while retaining its newer data",
+    "in-place encrypted userdata expansion",
+    "automatic Ruby system/data rollback",
+    "SSD or firmware writes"
+  ],
+  "recipe": [
+    "Reconcile census and exact PR heads; hold the Ruby build lock.",
+    "Run preservation/transition/installer regression tests.",
+    "Prepare the exact reviewed system transition on a synthetic encrypted camera25 snapshot, rebuild its pinned installer and validate the composed output.",
+    "Run an offline UEFI encrypted-state rehearsal and installer source/pin checks; report runtime crashes separately.",
+    "Prepare the same transition on the verified configured USB backup, rebuild its pinned installer and verify every protected byte and final source pin.",
+    "Recheck device/backup by an independent direct read; use the guarded writer for only super/vbmeta/EFI; require full direct readback and power-off."
+  ],
+  "host_storage": {
+    "reserve_gib": 40,
+    "phase_peak_additional_gib": 12,
+    "cleanup": "Only enumerated completed scratch belonging to ANAL-233; retain original backups, final package, pins, logs and provenance."
+  },
+  "acceptance_limits": [
+    "Physical G14 unlock, trackpad, camera/audio acceptance still needs a laptop boot.",
+    "Existing VM crashes remain a test-release limitation, not a claimed fix.",
+    "No automatic rollback; retain and verify original backup for offline restoration."
+  ]
+}
