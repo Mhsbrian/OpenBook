@@ -1,0 +1,22 @@
+{
+  "schema": "openbook-test-summary/1",
+  "suites": {
+    "laptop-update-test.py": 16,
+    "migration-package-test.py": 7,
+    "migration-test.py": 15,
+    "preserve-update-test.py": 11,
+    "update-rehearse-test.py": 29,
+    "update-test.py": 24,
+    "update-workflow-test.py": 23,
+    "compat-test.py": 24,
+    "live-test.py": 11,
+    "capture-adb-test.py": 8,
+    "audio-report-test.py": 5,
+    "ota-guard-candidate-test.py": 5
+  },
+  "passed": 178,
+  "failed": 0,
+  "not_run": {
+    "input-candidate-test.py": "artifact-argument test (--library/--base-manifest/--candidate-manifest); unchanged by this work"
+  }
+}

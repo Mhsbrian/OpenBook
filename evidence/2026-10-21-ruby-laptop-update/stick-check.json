@@ -1,0 +1,29 @@
+{
+  "schema": "openbook-ruby-stick-check/1",
+  "checked_utc": "2026-10-21T20:20Z",
+  "device": "SanDisk Ultra USB stick ending 2034 (release RB-20261020-01 v2)",
+  "method": "read-only: per-partition SHA-256 through a read-only container device mapping; ESP mounted ro; metadata mounted ro after unmounting a desktop automount",
+  "reference_image_sha256": "f47dc88c99b45f5153ed8decc5408709d5280d5e50f18b89d3c6665a5bc239c1",
+  "gpt_rows_equal": true,
+  "identical": [
+    "misc",
+    "boot_a",
+    "init_boot_a",
+    "vendor_boot_a",
+    "vbmeta_a",
+    "super"
+  ],
+  "changed": [
+    "EFI",
+    "metadata",
+    "userdata"
+  ],
+  "efi_file_changes": [
+    "loader/random-seed"
+  ],
+  "new_usb_log_sessions": 0,
+  "last_android_boot_reason": "shutdown,userrequested (written 2026-10-21 07:56:46 EDT)",
+  "interpretation": "The verified RB01 v2 system is intact. The stick booted Android after the 2026-10-20 write and shut down normally; no saved logs exist, so PIN/apps/trackpad results are not known from the stick.",
+  "usb_link_at_host": "480 Mbit/s (USB 2.0 port)",
+  "desktop_automount": "metadata partition had been auto-mounted read-write by the host desktop; unmounted before reading"
+}

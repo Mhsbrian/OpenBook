@@ -36,18 +36,66 @@ class PackageTests(unittest.TestCase):
     def tearDown(self):
         self.f.tearDown()
 
-    def installer(self, version):
+    def installer(self, version, laptop_update=None):
         root = self.root / version
         root.mkdir()
         (root / "source.json").write_text(json.dumps(self.f.pin))
         for name in ("kernel", "initrd.img", "package-versions.txt"):
             (root / name).write_text(version + "-" + name)
+        names = ["source.json", "kernel", "initrd.img", "package-versions.txt"]
+        if laptop_update is not None:
+            (root / "laptop-update.json").write_text(json.dumps(laptop_update))
+            names.append("laptop-update.json")
         build = {"schema": "openbook-ruby-offline-installer/1",
                  "source_pin_sha256": p.u.h.audit.sha(root / "source.json"),
-                 "files": {name: p.u.h.audit.sha(root / name) for name in
-                           ("source.json", "kernel", "initrd.img", "package-versions.txt")}}
+                 "files": {name: p.u.h.audit.sha(root / name) for name in names}}
         (root / "build.json").write_text(json.dumps(build))
         return root
+
+    def laptop_update(self):
+        portable = {k: {n: v for n, v in e.items() if n != "androidboot.boot_part_uuid"}
+                    for k, e in self.f.pin["entries"].items()}
+        return dict(schema="openbook-ruby-laptop-update/1",
+                    previous=dict(build="previous", payload_readback=dict(self.f.pin["payload_readback"],
+                                  super="0" * 64), entries=portable, kernel_sha256=self.f.pin["kernel_sha256"]),
+                    new=dict(build=self.f.pin["build"], payload_readback=self.f.pin["payload_readback"],
+                             entries=portable), changed_logical=["system"], data_compatible_rollback=True)
+
+    def test_laptop_update_entries_are_added_reviewed_and_retained(self):
+        old = self.installer("old", self.laptop_update())
+        added, replaced = self.root / "added", self.root / "replaced"
+        p.add(self.f.src, self.before, self.manifest_path, old, added)
+        entries = p.update_entries()
+        self.assertEqual(len(entries), 4)
+        for name, text in entries.items():
+            self.assertEqual((added / "efi-after" / name).read_text(), text)
+        self.assertIn("openbook.install=update console=tty0", entries["loader/entries/ruby-update.conf"])
+        self.assertIn("openbook.install=restore console=ttyS0", entries["loader/entries/ruby-restore-serial.conf"])
+        plan = json.loads((added / "update.json").read_text())
+        self.assertEqual(plan["laptop_update_entries"], sorted(entries))
+        for row in self.f.gpt["rows"][1:]:
+            self.assertEqual(p.u.digest_range(self.f.src, *p.m.extent(row)),
+                             p.u.digest_range(added / "ruby-live.img", *p.m.extent(row)))
+        module("apply-preserved-update").validate_plan(added, self.f.src)
+        expected = p.u.h.audit.sha(old / "build.json")
+        p.add(added / "ruby-live.img", p.u.h.audit.sha(added / "ruby-live.img"), added / "manifest.json",
+              self.installer("new", self.laptop_update()), replaced, expected)
+        with self.assertRaisesRegex(ValueError, "requires a laptop update record"):
+            p.add(added / "ruby-live.img", p.u.h.audit.sha(added / "ruby-live.img"), added / "manifest.json",
+                  self.installer("plain"), self.root / "downgrade", expected)
+        drifted = self.root / "drifted"
+        p.m.run("mcopy", "-s", "-i", added / "esp.img", "::*", drifted.mkdir() or drifted)
+        (drifted / "loader/entries/ruby-update.conf").write_text("title tampered\n")
+        with self.assertRaisesRegex(ValueError, "menu changed"):
+            p.replacement_contract(drifted, expected)
+
+    def test_laptop_update_record_must_match_installer_pin(self):
+        record = self.laptop_update()
+        record["new"]["build"] = "another system"
+        with self.assertRaisesRegex(ValueError, "does not match this USB"):
+            p.add(self.f.src, self.before, self.manifest_path, self.installer("mismatched", record),
+                  self.root / "refused")
+        self.assertFalse((self.root / "refused").exists())
 
     def test_add_replace_preserves_android_and_unrelated_efi(self):
         old, new = self.installer("old"), self.installer("new")

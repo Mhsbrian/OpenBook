@@ -1,5 +1,13 @@
 # Hardware
 
+2026-10-21 G14 capture (paired wireless ADB, read-only): installed camera25 on
+the internal NVMe, single slot, `/data` 7.9 GB at 95-96 % used (about 0.4 GB
+free). RepairMode's boot receiver crashes on hardware as in the VM; no
+system-server crash in dropbox and no ANR since boot. The SanDisk RB01 v2 stick
+is intact (system partitions byte-identical). The new USB laptop update/restore
+entries are VM-rehearsed only; the laptop and stick are unchanged. See
+`googlebook-laptop-update.md`.
+
 2026-10-21 runtime follow-up: the private adapted candidate completed a
 760.6-second synthetic UEFI boot and 760.7-second cold restart under offline
 TCG/software TPM. Encryption metadata/policy survived both; RepairMode Java

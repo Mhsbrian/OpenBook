@@ -1,5 +1,32 @@
 # Status
 
+## 2026-10-21: G14 back on ADB; USB laptop-update/restore entries rehearsed
+
+Read-only G14 capture over paired wireless ADB: the laptop runs **camera25**
+from its internal NVMe (live vbmeta digest matches camera25; single slot, no
+`_b` partitions), not RB01 v2, so the trackpad correction is not on it yet.
+`update_engine` runs, A/B and Virtual A/B properties are set, GMS's system-update
+activity is enabled and the automatic-update setting is unset; no system update
+or recovery reboot is pending. RepairMode's boot receiver crashes on the hardware
+exactly as in the VM (one per user). Dropbox holds no system-server crash among
+83 retained entries and no ANR since boot. **`/data` is 7.9 GB with about
+0.4 GB free (95-96 %).** The SanDisk RB01 v2 stick still matches its written
+system byte for byte; it booted Android once since and shut down normally.
+
+New `laptop-update.py` adds USB entries **Update the laptop's Googlebook system -
+keep data** and **Restore previous laptop system**. Update writes only `super`,
+`vbmeta_a` and `EFI` on the laptop after copying the old three to a rollback area
+beyond the USB's partitions; Restore writes them back. Synthetic QEMU rehearsal
+through the real entries: refusal on wrong/cancelled confirmation, update,
+Android boot of the new system (dm-verity roots match the new vbmeta, four
+encryption-key files unchanged), restore to byte-identical camera25 bytes and
+Android boot of the restored system on data the newer system used. 178 Python
+tests pass. A prepared, private SanDisk image (installer replacement only) passed
+packaging and preflight checks; **no USB or laptop write was made**. See
+`googlebook-laptop-update.md` and `evidence/2026-10-21-ruby-laptop-update/`.
+Next: owner approval for the stick write, then the owner-run laptop update and
+PIN/apps/trackpad acceptance. Storage growth remains separate unfinished work.
+
 ## 2026-10-21: Adaptation rehearsal reaches encrypted boot/restart, held on runtime health
 
 The assembly job now feeds a separate pinned synthetic-data rehearsal. The

@@ -1,5 +1,12 @@
 # Build and reproduce
 
+## Ruby laptop update/restore USB entries — 2026-10-21
+
+`laptop-update.py spec` binds a reviewed previous system to the USB's pinned new
+system; the installer container embeds it and `migration-package.py add` then
+adds the update/restore menu entries. `laptop-update-qemu.py` rehearses the real
+entries on synthetic disks. Commands and limits: `googlebook-laptop-update.md`.
+
 ## Ruby encrypted-data rehearsal — 2026-10-21
 
 `googlebook-update-rehearsal.md` documents the next executable stage: consume a
