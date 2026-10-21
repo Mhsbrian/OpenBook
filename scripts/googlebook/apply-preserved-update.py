@@ -22,10 +22,11 @@ u = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(u)
 
 
-def validate_plan(prepared, backup):
+def validate_plan(prepared, backup, plan=None):
     image = u.regular(prepared / "ruby-live.img")
     backup = u.regular(backup)
-    plan = json.loads(u.regular(prepared / "update.json").read_text())
+    if plan is None:
+        plan = json.loads(u.regular(prepared / "update.json").read_text())
     if plan.get("schema") != "openbook-ruby-preserving-update/1" or plan.get("complete") is not True:
         raise ValueError("Incomplete preserving update")
     if u.h.audit.sha(backup) != plan["backup_sha256"] or u.h.audit.sha(image) != plan["image_sha256"]:

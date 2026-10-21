@@ -238,3 +238,13 @@ In the same VM, Digitalis runs at about 65% of libndk_translation's speed. The h
 | 2026-10-17 | The same RADV built **without android-strict (Vulkan 1.4)**, bind-mounted for the pass | Same | **45,220 pass, 5 fail, 0 crash, 0 flakes**, 222 s, no amdgpu fault. 1,998 more passes than 1.1, no new failure. **Decision: ship 1.4** (`docs/graphics-amd.md`). The failures: AHB rendering (real), `info.device_extensions` (Mesa newer than the CTS), `opfma.fp64` (also on the 610M), 2 harness cases (fixed) | same |
 | 2026-10-17 | GLES through Android's libEGL: **ANGLE on RADV 1.1** (shipped) and **radeonsi** | Same, pbuffer 256×256 | **dEQP-GLES2/3/31, 13,671 cases. ANGLE: 13,099 pass, 0 fail**, 509 not supported, 63 warnings, 35 s. **radeonsi: 13,621 pass, 0 fail** (identical to the 610M), 33 s. The G14 passes all 92 of our cases that Mesa CI lists as failing for ANGLE on RADV Stoney | same |
 | 2026-10-17 | AOSP's dEQP app (EGL, window surfaces) and Android 17's ANGLE end2end CTS helper app, on ANGLE on RADV 1.1 | Same | **dEQP-EGL, 1,287 cases: 847 pass, 0 fail**, 438 not supported, 204 s. **ANGLE end2end, 2,364 CTS PASS tests: 1,814 pass, 2 fail** (`MultisampledRenderToTextureWithAdvancedBlendTest`, ES 3.1), 329 skipped by ANGLE, 219 not in this build, 66 s | same |
+
+
+## Ruby USB release preparation — 2026-10-20
+
+RB-20261020-01 is being prepared for the configured SanDisk Ultra ending 2034
+under ANAL-233, using the input/AVB payload already validated from ANAL-228/229.
+The new packaging path verifies exact baseline/candidate manifests, retains all
+bytes outside EFI/super/vbmeta, and replaces only a hash-identified installer.
+No G14 or USB deployment is claimed by this source change. See
+`docs/googlebook-usb-release.md` for the procedure and qualification limits.

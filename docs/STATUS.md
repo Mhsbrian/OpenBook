@@ -1518,3 +1518,13 @@ and full Photos-use verification remain pending. Evidence: `evidence/2026-10-19-
 - **Deciding test (owner):** `amd-s2idle test` on the laptop's own Linux. If it reaches S0i3, diff its drivers against ours; if not, it's the BIOS.
 - **Scope:** S0i3 affects standby battery drain only. It does not block live USB booting or installation. It continues in ANAL-178 with the hardware-check stick, the probe and the `acpi_d3cold` module.
 - **Evidence:** `evidence/2026-10-16-g14-hwcheck/`.
+
+
+## Ruby USB release preparation — 2026-10-20
+
+RB-20261020-01 is being prepared for the configured SanDisk Ultra ending 2034
+under ANAL-233, using the input/AVB payload already validated from ANAL-228/229.
+The new packaging path verifies exact baseline/candidate manifests, retains all
+bytes outside EFI/super/vbmeta, and replaces only a hash-identified installer.
+No G14 or USB deployment is claimed by this source change. See
+`docs/googlebook-usb-release.md` for the procedure and qualification limits.

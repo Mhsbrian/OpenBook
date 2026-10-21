@@ -731,3 +731,13 @@ Exit 0 means all three imports and pixel comparisons passed; 1 means a failed
 case; 2 means setup/argument failure. Optional dimensions must be even, 4–4096.
 Mesa patch 0005 is applied by `mesa-android-build.sh fetch`; rebuild and stage
 Mesa before building the OS image. Evidence: `evidence/2026-10-19-photos-yv12/`.
+
+
+## Ruby USB release preparation — 2026-10-20
+
+RB-20261020-01 is being prepared for the configured SanDisk Ultra ending 2034
+under ANAL-233, using the input/AVB payload already validated from ANAL-228/229.
+The new packaging path verifies exact baseline/candidate manifests, retains all
+bytes outside EFI/super/vbmeta, and replaces only a hash-identified installer.
+No G14 or USB deployment is claimed by this source change. See
+`docs/googlebook-usb-release.md` for the procedure and qualification limits.

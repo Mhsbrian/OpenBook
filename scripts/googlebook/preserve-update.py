@@ -2,9 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 """Prepare a PRIVATE updated clone of an offline Ruby live USB backup.
 
-Regular files only; no physical device writes. Limited to vendor-only updates
-with identical framework, kernel, boot partitions and layout. Requires a
-verified backup and a separately reviewed vendor/security compatibility check.
+Regular files only; no physical device writes. Defaults to vendor-only updates
+with identical framework, kernel, boot partitions and layout. An exact reviewed
+RB01 transition also accepts the pinned input fix and AVB size correction, but
+remains incomplete until its installer is rebound. Requires a verified backup.
 Single slot: this is not an atomic OTA or automatic rollback mechanism.
 """
 import argparse
@@ -112,7 +113,35 @@ def verify_manifest(manifest, table, size):
         raise ValueError("Live manifest/geometry mismatch")
 
 
-def compatible(old, new):
+def manifest_fingerprint(value):
+    return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
+# Reviewed manifests, not a general permission to replace framework partitions.
+# The complete candidate image and every static payload are verified by prepare.
+RB01_BASES = {
+    "b97a3e4e25486148860b32785db78265a41893986e9e6d5e1a076b13bd87f60f",  # configured migration26-v7
+    "f70558621c0d7609294103902597f75613fd301e30916d3ee19eef17d3e246eb",  # pristine camera25
+    "7cb2223f998f238b63867e95af3d40e44a302db0156df832bce36d6e5c17dcde",  # synthetic encrypted camera25
+}
+RB01_INPUT = "7fa3f5e4c7226285bf5c4f4db9bd7484816e35b503045a052e28ca4bcc2b2489"
+
+
+def compatible(old, new, reviewed_release=None):
+    if reviewed_release is not None:
+        if (reviewed_release != "RB-20261020-01" or manifest_fingerprint(old) not in RB01_BASES
+                or manifest_fingerprint(new) != RB01_INPUT):
+            raise ValueError("Unreviewed release transition")
+        # Only the already audited eight-byte input fix and corrected AVB size.
+        # All other identity, enforcement, vendor, module and boot checks remain.
+        if old["logical_sha256"]["vendor"] != new["logical_sha256"]["vendor"]:
+            raise ValueError("Concurrent vendor change is not qualified")
+        new = copy.deepcopy(new)
+        new["logical_sha256"]["system"] = old["logical_sha256"]["system"]
+        for mode, params in new["entries"].items():
+            if (old["entries"][mode]["androidboot.vbmeta.size"], params["androidboot.vbmeta.size"]) != ("4352", "4032"):
+                raise ValueError("Unreviewed AVB size transition")
+            params["androidboot.vbmeta.size"] = "4352"
     if [(r["name"], *extent(r)) for r in old["gpt"]] != [(r["name"], *extent(r)) for r in new["gpt"]]:
         raise ValueError("Partition layout changed")
     for key in ("kernel_sha256", "vendor_cmdline"):
@@ -163,7 +192,7 @@ def protected_ranges(table, size):
         yield cursor, size - cursor
 
 
-def prepare(snapshot, snapshot_sha, base, candidate, out):
+def prepare(snapshot, snapshot_sha, base, candidate, out, reviewed_release=None):
     snapshot = regular(snapshot)
     image = regular(candidate / "ruby-live.img")
     old = json.loads(regular(base).read_text())
@@ -175,7 +204,7 @@ def prepare(snapshot, snapshot_sha, base, candidate, out):
     table = read_gpt(snapshot)
     verify_manifest(old, table, snapshot.stat().st_size)
     verify_manifest(new, read_gpt(image), image.stat().st_size)
-    compatible(old, new)
+    compatible(old, new, reviewed_release)
     for src, manifest, rows in ((snapshot, old, table), (image, new, new["gpt"])):
         for row in rows:
             if row["name"] in (*BOOT, "super", "vbmeta_a"):
@@ -198,6 +227,11 @@ def prepare(snapshot, snapshot_sha, base, candidate, out):
     updated["gpt"] = table
     updated["preserved_from_sha256"] = snapshot_sha
     updated["scope"] += " Preserved private user data; never redistribute."
+    if reviewed_release:
+        updated["reviewed_release"] = reviewed_release
+        updated["requires_installer_rebind"] = True
+        if "offline_migration_installer" in old:
+            updated["offline_migration_installer"] = old["offline_migration_installer"]
     changed_files = {"ruby/RESEARCH.json"}
     for mode, params in updated["entries"].items():
         filename = f"ruby/initrd-{mode}.img"
@@ -266,8 +300,10 @@ def prepare(snapshot, snapshot_sha, base, candidate, out):
     updated["payload_readback"].update({r["name"]: r["sha256"] for r in writes})
     updated["image_sha256"] = h.audit.sha(output)
     (w / "manifest.json").write_text(json.dumps(updated, indent=2) + "\n")
-    report.update(complete=True, image_sha256=updated["image_sha256"], writes=writes,
+    report.update(complete=not bool(reviewed_release), image_sha256=updated["image_sha256"], writes=writes,
                   protected=protected, sources_unchanged=True, unrelated_esp_files_unchanged=True)
+    if reviewed_release:
+        report.update(reviewed_release=reviewed_release, requires_installer_rebind=True)
     (w / "update.json").write_text(json.dumps(report, indent=2) + "\n")
     print("Verified private updated clone; physical USB unchanged. G14 unlock still requires testing.")
 
@@ -277,11 +313,12 @@ def main():
     for name in ("snapshot", "base-manifest", "candidate", "out"):
         p.add_argument("--" + name, type=Path, required=True)
     p.add_argument("--snapshot-sha256", required=True)
+    p.add_argument("--reviewed-release", choices=("RB-20261020-01",))
     a = p.parse_args()
     if not Path("/.dockerenv").exists():
         p.error("Run through inst-docker.sh; no physical devices")
     os.umask(0o077)
-    prepare(a.snapshot, a.snapshot_sha256, a.base_manifest, a.candidate, a.out)
+    prepare(a.snapshot, a.snapshot_sha256, a.base_manifest, a.candidate, a.out, a.reviewed_release)
 
 
 if __name__ == "__main__":

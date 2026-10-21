@@ -15,6 +15,9 @@ from pathlib import Path
 import shutil
 
 HERE = Path(__file__).resolve().parent
+INSTALLER_FILES = {"kernel", "initrd.img", "build.json", "package-versions.txt"}
+INSTALLER_MENUS = {f"loader/entries/ruby-{kind}{suffix}.conf"
+                   for kind in ("install", "fresh") for suffix in ("", "-serial")}
 
 
 def module(name, filename):
@@ -47,7 +50,10 @@ def make_pin(base, out, build, dmi):
         names = ["ruby/kernel", "EFI/BOOT/BOOTX64.EFI"]
         names += [f"ruby/initrd-{mode}.img" for mode in m.MODES]
         # The default menu selection can change without changing any boot payload.
-        names += [str(p.relative_to(tree)) for p in (tree / "loader/entries").glob("*.conf")]
+        # Installer menus are replaced when rebinding the installer itself.
+        # Pin the Android boot entries, which migration must actually preserve.
+        names += [str(p.relative_to(tree)) for p in (tree / "loader/entries").glob("*.conf")
+                  if str(p.relative_to(tree)) not in INSTALLER_MENUS]
         pin = dict(schema="openbook-ruby-migration-source/1", build=build,
                    dmi_product_prefix=dmi, image_bytes=gpt["used_bytes"], gpt=manifest["gpt"],
                    entries=manifest["entries"], kernel_sha256=manifest["kernel_sha256"],
@@ -60,7 +66,24 @@ def make_pin(base, out, build, dmi):
     print("Pinned source system and boot files; no userdata or credentials are packaged.")
 
 
-def add(snapshot, snapshot_sha, base_manifest, installer, out):
+def replacement_files(tree, manifest, expected_build_sha):
+    directory = tree / "ruby-installer"
+    if not expected_build_sha:
+        m.require(not directory.exists() and not any((tree / n).exists() for n in INSTALLER_MENUS),
+                  "Installer already exists; explicit verified replacement required")
+        return set()
+    m.require(directory.is_dir() and {p.name for p in directory.iterdir()} == INSTALLER_FILES,
+              "Unexpected existing installer file set")
+    m.require(u.h.audit.sha(directory / "build.json") == expected_build_sha,
+              "Existing installer identity mismatch")
+    build = json.loads((directory / "build.json").read_text())
+    m.require(build == manifest.get("offline_migration_installer"), "Existing installer manifest mismatch")
+    for name in INSTALLER_FILES - {"build.json"}:
+        m.require(u.h.audit.sha(directory / name) == build["files"][name], "Existing installer changed")
+    return {f"ruby-installer/{name}" for name in INSTALLER_FILES} | INSTALLER_MENUS
+
+
+def add(snapshot, snapshot_sha, base_manifest, installer, out, replace_installer_sha256=None):
     snapshot = u.regular(snapshot)
     old = json.loads(u.regular(base_manifest).read_text())
     m.require(u.h.audit.sha(snapshot) == snapshot_sha, "Snapshot checksum mismatch")
@@ -84,8 +107,11 @@ def add(snapshot, snapshot_sha, base_manifest, installer, out):
     m.run("fsck.fat", "-n", esp)
     before = out / "efi-before"; before.mkdir()
     m.run("mcopy", "-s", "-i", esp, "::*", before)
+    replaceable = replacement_files(before, old, replace_installer_sha256)
     for name, sha in pin["efi_sha256"].items():
         m.require(u.h.audit.sha(before / name) == sha, f"Source boot file changed: {name}")
+    if replaceable:
+        m.run("mdeltree", "-i", esp, "::/ruby-installer")
     additions = out / "ruby-installer"; additions.mkdir()
     for name in ("kernel", "initrd.img", "build.json", "package-versions.txt"):
         shutil.copyfile(installer / name, additions / name)
@@ -104,12 +130,19 @@ def add(snapshot, snapshot_sha, base_manifest, installer, out):
             "options openbook.install=fresh " +
             ("console=ttyS0,115200 loglevel=3\n" if suffix else "console=tty0 loglevel=3\n"))
         m.run("mcopy", "-o", "-i", esp, conf, f"::/loader/entries/{conf.name}")
+    embedded = {k: v for k, v in old.items() if k not in ("image_sha256", "payload_readback", "requires_installer_rebind")}
+    embedded["offline_migration_installer"] = build
+    record = out / "RESEARCH.json"
+    record.write_text(json.dumps(embedded, indent=2) + "\n")
+    m.run("mcopy", "-o", "-i", esp, record, "::/ruby/RESEARCH.json")
     m.run("fsck.fat", "-n", esp)
     after = out / "efi-after"; after.mkdir()
     m.run("mcopy", "-s", "-i", esp, "::*", after)
-    # Every pre-existing file must remain identical; additions only.
+    # Only the explicitly identified installer and its menus can be replaced.
     for name, sha in u.tree_hashes(before).items():
-        m.require(u.h.audit.sha(after / name) == sha, f"Existing EFI file changed: {name}")
+        if name not in replaceable and name != "ruby/RESEARCH.json":
+            m.require(u.h.audit.sha(after / name) == sha, f"Existing EFI file changed: {name}")
+    m.require((after / "ruby/RESEARCH.json").read_bytes() == record.read_bytes(), "Embedded manifest readback failed")
     for name in ("kernel", "initrd.img", "build.json", "package-versions.txt"):
         m.require(u.h.audit.sha(after / "ruby-installer" / name) == u.h.audit.sha(installer / name),
                   "Installer EFI readback failed")
@@ -145,6 +178,14 @@ def add(snapshot, snapshot_sha, base_manifest, installer, out):
     updated["preserved_from_sha256"] = snapshot_sha
     updated["payload_readback"].update({r["name"]: r["sha256"] for r in writes})
     updated["offline_migration_installer"] = build
+    updated.pop("requires_installer_rebind", None)
+    # Verify the FINAL source, including the updated menus, against the exact
+    # pin embedded in the rebuilt installer. Never ship an unusable source pin.
+    fd = os.open(output, os.O_RDONLY)
+    try:
+        m.check_source(fd, pin)
+    finally:
+        os.close(fd)
     (out / "manifest.json").write_text(json.dumps(updated, indent=2) + "\n")
     plan = dict(schema="openbook-ruby-preserving-update/1", complete=True,
                 backup_sha256=snapshot_sha, candidate_sha256=build["files"]["initrd.img"],
@@ -169,11 +210,13 @@ def main():
     for name in ("snapshot", "base-manifest", "installer", "out"):
         attach.add_argument("--" + name, type=Path, required=True)
     attach.add_argument("--snapshot-sha256", required=True)
+    attach.add_argument("--replace-installer-sha256", help="SHA-256 of the reviewed existing EFI installer build.json")
     args = parser.parse_args()
     if args.operation == "pin":
         make_pin(args.base, args.out, args.build, args.dmi_prefix)
     else:
-        add(args.snapshot, args.snapshot_sha256, args.base_manifest, args.installer, args.out)
+        add(args.snapshot, args.snapshot_sha256, args.base_manifest, args.installer, args.out,
+            args.replace_installer_sha256)
 
 
 if __name__ == "__main__":
