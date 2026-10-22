@@ -105,22 +105,28 @@ def verify_boot_files(tree, work, entries):
 
 
 def build_system(a, transform, result_schema):
-    """Shared exact-camera25 reassembler. Callers supply an explicit transform.
+    """Shared reassembler for an exact, reviewed base. Callers supply an explicit transform.
 
-    The transform returns (replacements, annotations) or, for a disposable
+    The base is camera25 unless the caller pins another reviewed image with
+    a.base_sha256; every logical image must match the base manifest. The
+    transform returns (replacements, annotations) or, for a disposable
     experiment only, (replacements, annotations, additions).
     """
+    expected_base = getattr(a, "base_sha256", None) or CAMERA25
     base = p.regular(a.base / "ruby-live.img")
     old = json.loads(p.regular(a.base / "manifest.json").read_text())
-    if old["image_sha256"] != CAMERA25 or p.h.audit.sha(base) != CAMERA25:
-        raise ValueError("Requires the reviewed fresh camera25 baseline")
+    if old["image_sha256"] != expected_base or p.h.audit.sha(base) != expected_base:
+        raise ValueError("Requires the reviewed fresh camera25 baseline" if expected_base == CAMERA25
+                         else "Base image differs from its reviewed pin")
     w = a.out
     w.mkdir(mode=0o700, parents=True, exist_ok=False)
     tools = a.tools
     run = p.h.run
+    for name, digest in old["logical_sha256"].items():
+        if p.h.audit.sha(p.regular(a.base / f"logical/{name}_a.img")) != digest:
+            raise ValueError("Baseline system hash mismatch" if name == "system"
+                             else f"Baseline logical image differs from manifest: {name}")
     system = p.regular(a.base / "logical/system_a.img")
-    if p.h.audit.sha(system) != old["logical_sha256"]["system"]:
-        raise ValueError("Baseline system hash mismatch")
     before = inventory(a.inventory, system)
     (w / "before.metadata").write_text("\n".join(before) + "\n")
     source = w / "source"
@@ -266,12 +272,12 @@ def build_system(a, transform, result_schema):
             raise ValueError("Protected partition/GPT changed")
     updated["image_sha256"] = p.h.audit.sha(output)
     p.verify_vbmeta_bootconfig(output, table, updated["entries"])
-    if p.h.audit.sha(base) != CAMERA25:
+    if p.h.audit.sha(base) != expected_base:
         raise ValueError("Source changed")
     (w / "manifest.json").write_text(json.dumps(updated, indent=2) + "\n")
     (w / "result.json").write_text(json.dumps(dict(
         schema=result_schema, complete=True,
-        source_sha256=CAMERA25,image_sha256=updated["image_sha256"],
+        source_sha256=expected_base,image_sha256=updated["image_sha256"],
         metadata_rows=len(before),all_inode_xattrs_identical=before==after,
         only_metadata_change=("replacement file sizes" + (" and added paths" if additions else ""))
                              if before!=after else None,

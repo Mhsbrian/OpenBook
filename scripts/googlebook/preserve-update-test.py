@@ -190,14 +190,31 @@ class PreserveGuards(unittest.TestCase):
         both = copy.deepcopy(new); both["logical_sha256"]["vendor"] = "vendor-v2"
         with self.assertRaisesRegex(ValueError, "Reviewed logical changes differ"):
             u.compatible(old, both, ("vendor_dlkm",))  # no concurrent vendor change
-        other = copy.deepcopy(old); other["logical_sha256"]["system"] = "framework-v2"
-        with self.assertRaisesRegex(ValueError, "Only vendor_dlkm"):
-            u.compatible(old, other, ("system",))
+        other = copy.deepcopy(old); other["logical_sha256"]["product"] = "product-v2"
+        with self.assertRaisesRegex(ValueError, "Only vendor_dlkm or system"):
+            u.compatible(old, other, ("product",))
+        with self.assertRaisesRegex(ValueError, "Only vendor_dlkm or system"):
+            u.compatible(old, other, ("vendor",))
         with self.assertRaisesRegex(ValueError, "Reviewed logical changes differ"):
             u.compatible(old, old, ("vendor_dlkm",))  # a review must match a real change
         drift = copy.deepcopy(new); drift["kernel_sha256"] = "other"
         with self.assertRaises(ValueError):
             u.compatible(old, drift, ("vendor_dlkm",))  # every other check still applies
+
+    def test_reviewed_system_change_is_explicit_and_exact(self):
+        old = self.manifest()
+        new = copy.deepcopy(old); new["logical_sha256"]["system"] = "framework-v2"
+        with self.assertRaises(ValueError):
+            u.compatible(old, new)  # never implicitly
+        u.compatible(old, new, ("system",))
+        both = copy.deepcopy(new); both["logical_sha256"]["system_ext"] = "ext-v2"
+        with self.assertRaisesRegex(ValueError, "Reviewed logical changes differ"):
+            u.compatible(old, both, ("system",))  # only the reviewed image may differ
+        with self.assertRaisesRegex(ValueError, "Reviewed logical changes differ"):
+            u.compatible(old, new, ("system", "vendor_dlkm"))  # each review must match a change
+        boot = copy.deepcopy(new); boot["payload_readback"]["boot_a"] = "other"
+        with self.assertRaises(ValueError):
+            u.compatible(old, boot, ("system",))  # boot images stay fixed
 
     def test_bootconfig_rebind_retains_ramdisk(self):
         body = b"not-a-real-ramdisk" * 100
