@@ -2,11 +2,19 @@
 # SPDX-License-Identifier: Apache-2.0
 """Build an OpenBook-signed Virtual A/B OTA payload for a Ruby A/B device.
 
-A full update_engine payload for a release: the dynamic partition `system`
-(Virtual A/B) and the static boot chain (`boot`, `init_boot`, `vendor_boot`,
-`vbmeta`). update_engine applies it into the other slot — a `system_b` snapshot
-in super plus the `_b` boot/vbmeta partitions — then bootsync activates that
-slot and one reboot switches. The payload is signed with the OpenBook OTA key
+A complete update_engine payload for a release: all six dynamic partitions
+(Virtual A/B snapshots in super) and the static boot chain (`boot`, `init_boot`,
+`vendor_boot`, `vbmeta`). update_engine applies it into the other slot, then
+bootsync activates that slot and one reboot switches. Every dynamic partition
+must be in the payload: update_engine rebuilds the target slot's partition table
+from exactly the payload's dynamic_partition_metadata, so a partition left out
+does not exist in the new slot (aosp/dynamic_partition_control_android.cc,
+UpdatePartitionMetadata).
+
+--source makes it incremental: operations are computed against the installed
+slot's exact partition images, so unchanged blocks become source copies (nearly
+free under Virtual A/B compression) and update_engine checks every source block
+hash before using it. Without --source it is a full payload. The payload is signed with the OpenBook OTA key
 through scripts/googlebook/sign-ota-payload.sh (the key never leaves the host)
 and verified against the public certificate images install.
 
@@ -23,11 +31,15 @@ import subprocess
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-# A full Virtual A/B payload: system is dynamic (snapshotted in super); the boot
-# chain is static (written to the _b partitions).
-DYNAMIC = ("system",)
+# Dynamic partitions are snapshotted in super; the boot chain is static (written
+# to the _b partitions). Order matches the Googlebook super.
+DYNAMIC = ("system", "system_ext", "product", "vendor", "vendor_dlkm", "system_dlkm")
 STATIC = ("boot", "init_boot", "vendor_boot", "vbmeta")
 MAX_TIMESTAMP = 4102444800  # 2100-01-01, so the anti-downgrade check passes
+# Full payloads are minor version 0; deltas use 8 (kZucchiniMinorPayloadVersion,
+# supported since Android 12). update_engine rejects an unsupported version
+# before writing anything.
+DELTA_MINOR_VERSION = 8
 
 
 def sha(path):
@@ -36,6 +48,14 @@ def sha(path):
         for chunk in iter(lambda: f.read(8 << 20), b""):
             h.update(chunk)
     return h.hexdigest()
+
+
+def dynamic_partition_info(group, group_size):
+    """delta_generator's --dynamic_partition_info_file. The list is space-separated, as in misc_info.txt."""
+    return (f"super_partition_groups={group}\n"
+            f"{group}_size={group_size}\n"
+            f"{group}_partition_list={' '.join(DYNAMIC)}\n"
+            "virtual_ab=true\nvirtual_ab_compression=true\n")
 
 
 def payload_checks(data, props, names, signature_verifies):
@@ -54,23 +74,22 @@ def payload_checks(data, props, names, signature_verifies):
 
 def build(a):
     for name in (*DYNAMIC, *STATIC):
-        if not (a.release / f"{name}.img").is_file():
-            raise ValueError(f"missing release image {name}.img")
+        for d in (a.release, a.source) if a.source else (a.release,):
+            if not (d / f"{name}.img").is_file():
+                raise ValueError(f"missing image {d / (name + '.img')}")
     a.out.mkdir(mode=0o700, parents=True, exist_ok=False)
     group = a.group
     group_size = a.group_size
     dyn = a.out / "dynamic_partition_info.txt"
-    dyn.write_text(
-        f"super_partition_groups={group}\n"
-        f"{group}_size={group_size}\n"
-        f"{group}_partition_list={':'.join(DYNAMIC)}\n"
-        "virtual_ab=true\nvirtual_ab_compression=true\n")
+    dyn.write_text(dynamic_partition_info(group, group_size))
 
     names = [*DYNAMIC, *STATIC]
     parts = ":".join(str(a.release / f"{n}.img") for n in names)
     unsigned = a.out / "payload.unsigned.bin"
-    subprocess.run([str(a.delta_generator), f"--new_partitions={parts}",
-                    f"--partition_names={':'.join(names)}", "--major_version=2", "--minor_version=0",
+    old = [f"--old_partitions={':'.join(str(a.source / f'{n}.img') for n in names)}"] if a.source else []
+    subprocess.run([str(a.delta_generator), f"--new_partitions={parts}", *old,
+                    f"--partition_names={':'.join(names)}", "--major_version=2",
+                    f"--minor_version={DELTA_MINOR_VERSION if a.source else 0}",
                     f"--max_timestamp={MAX_TIMESTAMP}", f"--dynamic_partition_info_file={dyn}",
                     f"--out_file={unsigned}"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
@@ -92,8 +111,10 @@ def build(a):
     checks = payload_checks(data, props, names, verify.returncode == 0)
     result = dict(schema="openbook-ruby-ab-ota/1", payload_sha256=sha(payload), payload_bytes=len(data),
                   metadata_size=manifest_size, metadata_signature_size=sig_size,
+                  kind="incremental" if a.source else "full",
                   dynamic=list(DYNAMIC), static=list(STATIC),
                   release_image_sha256={n: sha(a.release / f"{n}.img") for n in names},
+                  source_image_sha256={n: sha(a.source / f"{n}.img") for n in names} if a.source else None,
                   certificate_sha256=sha(a.cert), checks=checks, passed=all(checks.values()))
     (a.out / "result.json").write_text(json.dumps(result, indent=2) + "\n")
     (a.out / "payload_properties.txt").write_text(props)
@@ -104,7 +125,8 @@ def build(a):
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--release", type=Path, required=True, help="dir with system/boot/init_boot/vendor_boot/vbmeta .img")
+    p.add_argument("--release", type=Path, required=True, help="dir with the six dynamic + boot chain .img files")
+    p.add_argument("--source", type=Path, help="installed slot's images (same names): build an incremental payload")
     p.add_argument("--delta-generator", type=Path, required=True)
     p.add_argument("--key", type=Path, required=True, help="OpenBook OTA private key (host, 0600, outside repos)")
     p.add_argument("--cert", type=Path, required=True, help="OpenBook OTA public certificate")

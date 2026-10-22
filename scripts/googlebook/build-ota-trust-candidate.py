@@ -82,6 +82,9 @@ APPLY_POLICY = """
 ; mount/relabel perms to the target context, and the context type must associate.
 (allow init ota_package_file (filesystem (mount remount unmount relabelfrom relabelto getattr)))
 (allow ota_package_file ota_package_file (filesystem (associate)))
+; The shell driver reads the payload headers and hashes the payload on that drive.
+(allow shell ota_package_file (dir (search getattr open read)))
+(allow shell ota_package_file (file (read open getattr)))
 """
 
 APPLY_SCRIPT = """# Disposable VM only: apply the OpenBook-signed A/B OTA payload from the mounted drive.
@@ -97,12 +100,13 @@ say idle waited=${waited}s slot=$(getprop ro.boot.slot_suffix) vab=$(getprop ro.
 say otacerts=$(sha256sum /system/etc/security/otacerts.zip | cut -d' ' -f1)
 say payload=$(sha256sum /mnt/otapayload/payload.bin | cut -d' ' -f1)
 # update_engine_client expects newline-separated key=value headers (not comma-joined).
-timeout 900 update_engine_client --update --follow \\
+timeout 3000 update_engine_client --update --follow \\
   --payload=file:///mnt/otapayload/payload.bin \\
-  --headers="$(cat /system/etc/openbook-ota-test/payload_properties.txt)"; say update exit=$?
-update_engine_client --show 2>/dev/null || true
+  --headers="$(cat /mnt/otapayload/payload_properties.txt)"; rc=$?; say update exit=$rc
 logcat -d -b main -b system -s update_engine:V update_engine_client:V bootsync:V | sed 's/^/OTALOG /'
 say end
+# As the system updater does after UPDATED_NEED_REBOOT: an orderly reboot (shell holds REBOOT).
+[ $rc -eq 0 ] && { sleep 5; svc power reboot; }
 """
 
 TEST_SERVICE = """
@@ -248,9 +252,9 @@ def build(a):
                 a, source, APPLY_POLICY if getattr(a, 'apply_from_drive', False) else "")
             replacements.update(policy_files)
             if getattr(a, 'apply_from_drive', False):
-                props = b.p.regular(a.apply_from_drive).read_bytes()
-                additions = {TEST_DIR: None, f"{TEST_DIR}/apply.sh": APPLY_SCRIPT.encode(),
-                             f"{TEST_DIR}/payload_properties.txt": props}
+                # The payload and its headers ride on the drive: nothing payload-specific is baked
+                # into this system, so it can be the exact source of an incremental payload.
+                additions = {TEST_DIR: None, f"{TEST_DIR}/apply.sh": APPLY_SCRIPT.encode()}
                 marker, payloads = "experimental_ota_apply_test", {}
             else:
                 files, payloads = test_payloads(a.vm_test)
@@ -279,8 +283,8 @@ if __name__ == "__main__":
     p.add_argument("--input-correction", action="store_true", help="Also apply RB01's libinputflinger patch")
     p.add_argument("--vm-test", type=Path, help="Disposable payload directory from make-ota-test-payloads.sh")
     p.add_argument("--vm-test-signer", type=Path, help="Certificate that signed the openbook-* test payloads")
-    p.add_argument("--apply-from-drive", type=Path,
-                   help="Disposable A/B apply harness: payload_properties.txt of the payload on the drive")
+    p.add_argument("--apply-from-drive", action="store_true",
+                   help="Disposable A/B apply harness: apply the payload (+ payload_properties.txt) on the drive")
     p.add_argument("--stock-trust", action="store_true", help="VM-test control: keep Google's archive")
     a = p.parse_args()
     if a.cert and not a.cert_sha256:

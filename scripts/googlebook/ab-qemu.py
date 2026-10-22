@@ -74,6 +74,8 @@ def main():
     for name in ("image-dir", "qemu", "bootsync", "out"):
         p.add_argument("--" + name, type=Path, required=True)
     p.add_argument("--seconds", type=int, default=720)
+    p.add_argument("--accel", choices=("tcg", "kvm"), default="tcg",
+                   help="kvm: the host CPU runs Ruby natively (GFNI/VNNI in hardware); tcg needs the GFNI/VNNI-emulating build")
     p.add_argument("--reevaluate", action="store_true", help="judge an existing --out run again; no VM boot")
     a = p.parse_args()
     if not Path("/.dockerenv").exists():
@@ -90,7 +92,7 @@ def main():
     subprocess.run(["cp", "--reflink=auto", str(a.image_dir / "disk.img"), str(disk)], check=True)
     vars_file = a.out / "vars.fd"
     vars_file.write_bytes(Path("/usr/share/edk2/x64/OVMF_VARS.4m.fd").read_bytes())
-    cmd = [str(a.qemu), "-machine", "q35", "-accel", "tcg", "-cpu", "max", "-smp", "4", "-m", "8192",
+    cmd = [str(a.qemu), "-machine", "q35", "-accel", a.accel, "-cpu", "host" if a.accel == "kvm" else "max", "-smp", "4", "-m", "8192",
            "-display", "none", "-nic", "none", "-monitor", "none", "-no-reboot",
            "-drive", "if=pflash,format=raw,readonly=on,file=/usr/share/edk2/x64/OVMF_CODE.4m.fd",
            "-drive", f"if=pflash,format=raw,file={vars_file}",

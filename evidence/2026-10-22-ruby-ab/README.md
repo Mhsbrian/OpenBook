@@ -51,3 +51,37 @@ the full write is slow under TCG emulation, not a correctness limit. Reaching 10
 `bootsync activate b` / reboot-into-B / broken-slot fallback needs a KVM-speed or multi-hour run.
 The payload-delivery path to the NIC-less VM was resolved step by step (driver domain, context=
 mount permission set, a pinned nvme slot, a world-readable payload, newline-separated headers).
+
+## Milestone 3 complete: OTA into slot B, reboot into it, automatic fallback (2026-10-22, later)
+
+Supersedes `ab-ota-apply-inprogress.json` and corrects `ab-ota-payload.json`: that earlier full
+payload listed only `system` as a dynamic partition. update_engine rebuilds the target slot's
+partition table from exactly the payload's list (`UpdatePartitionMetadata`), so slot B would have
+had no vendor/product/system_ext/module partitions and could not have booted. The payload now
+carries all six dynamic partitions plus the boot chain.
+
+- `ab-ota-delta-payload.json`: a complete **incremental** update (all 10 partitions) computed
+  against the installed slot A, signed with the OpenBook key: 2.66 MB instead of 892 MB, because
+  unchanged blocks become source copies. Its signature verifies against the installed certificate.
+- `ab-ota-apply.json` — **11/11**: the stock update_engine applied it on the A/B disk (TCG); the
+  on-device payload hash matched; libsnapshot reached `Unverified` (all writes and verification
+  done); update_engine called setActiveBootSlot, and bootsync verified slot B's images, exported
+  them and staged `openbook-b+3.conf` as preferred; slot B's four static partitions equal the
+  release byte for byte; the system then rebooted in order (`svc power reboot`). The first verdict
+  (kept in the file) relied on console lines that the driver's console dropped; the checks now use
+  on-disk state.
+- `ab-ota-boot-slot-b.json` — **7/7**: the next boot started slot B, completed, and was marked
+  successful (bootsync: `openbook-b+2-1.conf -> openbook-b.conf`, slot A's entry removed, B the
+  default); all six snapshots merged ("Merge completed" ×6) and libsnapshot's state returned to None.
+- `ab-ota-verify-slot-b-post-merge.json` — after the merge, slot B's six logical partitions (read
+  through slot B's own metadata) and four boot partitions are **byte-identical to the release**.
+  `...-pre-merge.json` is the negative control: before the merge `system` differs (its changes are
+  still in the snapshot). COW partitions stay listed after a merge until the next update starts
+  (libsnapshot `CreateUpdateSnapshots` reclaims them), so content decides.
+- `ab-ota-fallback.json` — **7/7**: a post-apply copy with vbmeta_b corrupted (a bad update). Boots
+  1–3 started slot B and each failed first-stage verification (`Failed to verify vbmeta digest`,
+  fatal reboot); systemd-boot counted the entry down and boot 4 started **slot A by itself**, which
+  completed boot; slot B's entry is retired, slot A boots next, and the update was rolled back.
+- KVM is not usable for Ruby on this build host: zygote gets SIGILL because Ruby's userspace uses
+  AVX-VNNI, which this Zen 4 CPU lacks (the G14's CPU has it). TCG with the VNNI/GFNI-emulating QEMU
+  build stays the VM path; incremental payloads keep apply times short.
