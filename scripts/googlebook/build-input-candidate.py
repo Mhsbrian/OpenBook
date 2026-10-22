@@ -31,6 +31,8 @@ p = load("preserve", "preserve-update.py")
 patcher = load("inputpatch", "input-timestamp-patch.py")
 CAMERA25 = "df793f2eed3a5c901659014c2ae368d8e5eeb3d504b514d46fc8c0c1959a7af4"
 TARGET = "/system/lib64/libinputflinger.so"
+ADDED_TIMESTAMP = 1230768000
+ADDED_CONTEXT = "u:object_r:system_file:s0"
 
 
 def inventory(tool, image):
@@ -69,6 +71,30 @@ def replacement_metadata(before, replacements):
     return sorted(expected)
 
 
+def addition_metadata(rows, additions):
+    """New root-owned system_file inodes: bytes for 0644 files, None for 0755 directories."""
+    rows = list(rows)
+    index = {bytes.fromhex(r.split(" ")[1]).decode(): i for i, r in enumerate(rows) if r.startswith("I ")}
+    for name in sorted(additions):
+        parent = name.rsplit("/", 1)[0]
+        if name in index or parent not in index or any(c.isspace() for c in name):
+            raise ValueError("Addition must be a new path in an existing directory")
+        row = rows[index[parent]].split(" ")
+        if int(row[2]) & 0o170000 != 0o040000:
+            raise ValueError("Addition parent is not a directory")
+        if additions[name] is None:
+            mode, nlink, size = 0o040755, 2, 0
+            row[5] = str(int(row[5]) + 1)
+            rows[index[parent]] = " ".join(row)
+        else:
+            mode, nlink, size = 0o100644, 1, len(additions[name])
+        encoded = name.encode().hex()
+        index[name] = len(rows)
+        rows.append(f"I {encoded} {mode} 0 0 {nlink} {size} {ADDED_TIMESTAMP} 0")
+        rows.append(f"X {encoded} {b'security.selinux'.hex()} {ADDED_CONTEXT.encode().hex()}")
+    return sorted(rows)
+
+
 def verify_boot_files(tree, work, entries):
     for mode, params in entries.items():
         actual = (tree / f"ruby/initrd-{mode}.img").read_bytes()
@@ -79,7 +105,11 @@ def verify_boot_files(tree, work, entries):
 
 
 def build_system(a, transform, result_schema):
-    """Shared exact-camera25 reassembler. Callers supply an explicit transform."""
+    """Shared exact-camera25 reassembler. Callers supply an explicit transform.
+
+    The transform returns (replacements, annotations) or, for a disposable
+    experiment only, (replacements, annotations, additions).
+    """
     base = p.regular(a.base / "ruby-live.img")
     old = json.loads(p.regular(a.base / "manifest.json").read_text())
     if old["image_sha256"] != CAMERA25 or p.h.audit.sha(base) != CAMERA25:
@@ -96,16 +126,26 @@ def build_system(a, transform, result_schema):
     source = w / "source"
     run(tools / "fsck.erofs", f"--extract={source}", system)
     original = contents(source)
-    replacements, annotations = transform(source)
+    replacements, annotations, *extra = transform(source)
+    additions = extra[0] if extra else {}
     if not replacements or set(annotations) & set(old):
         raise ValueError("Transform must replace files without overriding baseline fields")
-    expected_metadata = replacement_metadata(before, replacements)
+    if additions and not any(k.startswith("experimental_") and v.get("deployment_eligible") is False
+                             for k, v in annotations.items()):
+        raise ValueError("Added files are limited to disposable experiments")
+    expected_metadata = addition_metadata(replacement_metadata(before, replacements), additions)
     for name, data in replacements.items():
         if name not in original or original[name][0] != "file":
             raise ValueError("Replacement is not an existing regular file")
         p.regular(source / name.lstrip("/")).write_bytes(data)
+    for name in sorted(additions):
+        local = source / name.lstrip("/")
+        if additions[name] is None:
+            local.mkdir()
+        else:
+            local.write_bytes(additions[name])
     fsconfig, contexts = [], []
-    for row in (r.split(" ") for r in before if r.startswith("I ")):
+    for row in (r.split(" ") for r in expected_metadata if r.startswith("I ")):
         _, encoded, mode, uid, gid, nlink, size, seconds, nanos = row
         path = bytes.fromhex(encoded).decode()
         if any(c.isspace() for c in path):
@@ -116,7 +156,7 @@ def build_system(a, transform, result_schema):
         if not local.is_symlink():
             os.chmod(local, int(mode) & 0o7777)
         os.utime(local, ns=(int(seconds) * 10**9 + int(nanos),) * 2, follow_symlinks=False)
-        attrs = [r.split(" ") for r in before if r.startswith(f"X {encoded} ")]
+        attrs = [r.split(" ") for r in expected_metadata if r.startswith(f"X {encoded} ")]
         attrs = {bytes.fromhex(r[2]): bytes.fromhex(r[3]) for r in attrs}
         if b"security.selinux" not in attrs or set(attrs) - {b"security.selinux", b"security.capability"}:
             raise ValueError("Unexpected source xattrs")
@@ -145,7 +185,7 @@ def build_system(a, transform, result_schema):
     run(tools / "fsck.erofs", f"--extract={extracted}", rebuilt)
     expected = dict(original)
     expected.update({name: ["file", p.hashlib.sha256(data).hexdigest()]
-                     for name, data in replacements.items()})
+                     for name, data in (*replacements.items(), *additions.items()) if data is not None})
     if contents(extracted) != expected:
         raise ValueError("Unexpected file/content/link changes")
     run(tools / "avbtool", "add_hashtree_footer", "--image", rebuilt,
@@ -233,9 +273,11 @@ def build_system(a, transform, result_schema):
         schema=result_schema, complete=True,
         source_sha256=CAMERA25,image_sha256=updated["image_sha256"],
         metadata_rows=len(before),all_inode_xattrs_identical=before==after,
-        only_metadata_change="replacement file sizes" if before!=after else None,
+        only_metadata_change=("replacement file sizes" + (" and added paths" if additions else ""))
+                             if before!=after else None,
         file_and_symlink_count=len(original),changed_files=sorted(replacements),
-        only_changed_file=next(iter(replacements)) if len(replacements)==1 else None,
+        only_changed_file=next(iter(replacements)) if len(replacements)==1 and not additions else None,
+        **({"added_paths": sorted(additions)} if additions else {}),
         **annotations,
         protected_ranges_identical=True,source_unchanged=True,
         physical_device_written=False), indent=2) + "\n")

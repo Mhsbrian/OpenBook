@@ -178,6 +178,13 @@ class PackageTests(unittest.TestCase):
             p.make_pin(base, self.root / "bad-pin", "test", "synthetic")
         self.assertFalse((self.root / "bad-pin").exists())
 
+    def test_any_experimental_marker_blocks_installer_packaging(self):
+        self.manifest["experimental_ota_trust_test"] = {"deployment_eligible": False}
+        self.manifest_path.write_text(json.dumps(self.manifest))
+        with self.assertRaisesRegex(ValueError, "Disposable OTA experiment"):
+            p.add(self.f.src, self.before, self.manifest_path, self.installer("new"), self.root / "bad")
+        self.assertFalse((self.root / "bad").exists())
+
 
 if __name__ == "__main__":
     unittest.main()

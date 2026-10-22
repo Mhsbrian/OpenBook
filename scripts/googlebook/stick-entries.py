@@ -82,7 +82,7 @@ def add(snapshot, snapshot_sha, base_manifest, spec_path, out):
     old = json.loads(u.regular(base_manifest).read_text())
     spec = json.loads(u.regular(spec_path).read_text())
     check_spec(spec)
-    m.require("experimental_ota_guard" not in old, "Disposable OTA experiment cannot be packaged")
+    m.require(not any(k.startswith("experimental_") for k in old), "Disposable OTA experiment cannot be packaged")
     m.require(u.h.audit.sha(snapshot) == snapshot_sha, "Snapshot checksum mismatch")
     m.require(not out.exists(), "New output required")
     table = u.read_gpt(snapshot)
