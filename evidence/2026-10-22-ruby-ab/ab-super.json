@@ -1,0 +1,29 @@
+{
+  "schema": "openbook-ruby-ab-super/1",
+  "super_sha256": "07ba1a50ae4aabe71cab1d22f33c9bceefa1ff7bf7f5cd207bb114a840be53fd",
+  "super_bytes": 12884901888,
+  "geometry": {
+    "super_size": 12884901888,
+    "metadata_size": 65536,
+    "metadata_slots": 3,
+    "virtual_ab": true,
+    "group": "google_dynamic_partitions",
+    "group_max": 12880707584
+  },
+  "slotA": [
+    "product",
+    "system",
+    "system_dlkm",
+    "system_ext",
+    "vendor",
+    "vendor_dlkm"
+  ],
+  "checks": {
+    "virtual_ab_flag": true,
+    "metadata_slots": true,
+    "both_groups": true,
+    "slotB_empty": true,
+    "slotA_bytes_identical": true
+  },
+  "passed": true
+}

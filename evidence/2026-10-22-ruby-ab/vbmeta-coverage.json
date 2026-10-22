@@ -1,0 +1,19 @@
+{
+  "schema": "openbook-ruby-vbmeta-coverage/1",
+  "captured_utc": "2026-10-22T13:00Z",
+  "method": "avbtool info_image on retained images; read-only",
+  "pristine_googlebook_vbmeta_a": {
+    "source": "~/anybook/work/gbos-ruby/parts/vbmeta_a.img (authoritative Googlebook Ruby)",
+    "algorithm": "SHA256_RSA4096 (Google key)",
+    "descriptors": ["boot", "init_boot", "vendor_boot", "pvmfw", "system", "system_ext", "product", "vendor", "vendor_dlkm", "system_dlkm"],
+    "covers_boot_chain": true
+  },
+  "our_research_candidate_vbmeta": {
+    "source": "anal229-trust-r2/candidate/vbmeta.img (RB-20261022-01 line; the reassembler output the laptop runs)",
+    "algorithm": "SHA256_RSA4096 (AOSP test key)",
+    "descriptors": ["system", "system_ext", "product", "vendor", "vendor_dlkm", "system_dlkm"],
+    "covers_boot_chain": false,
+    "why": "the shared reassembler rebuilds vbmeta from only the six super logical images; boot/init_boot/vendor_boot are unchanged Googlebook originals verified by the loader path, so the research image still boots."
+  },
+  "implication": "For the A/B OTA build, rebuild vbmeta the Googlebook way (covering the boot chain, signed with the OpenBook key). Then update_engine can verify a boot update AND the existing openbook-bootsync works unchanged (it requires boot descriptors in vbmeta_SLOT). No Ruby-specific bootsync mode is needed."
+}
