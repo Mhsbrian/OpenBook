@@ -6,8 +6,11 @@
 `otacerts.zip` with one pinned public OpenBook certificate. With `--vm-test`
 it adds a disposable `update_engine_client` harness and test payloads from
 `make-ota-test-payloads.sh`; `ota-trust-qemu.py` boots that image and judges
-each verify/allocate/update step. Commands, results and the key-custody
-decision: `googlebook-ota-trust.md`. Run
+each verify/allocate/update step. `stage-base.py` stages any reviewed image
+as a base, so `--base-sha256` layers the certificate onto the current release.
+`sign-ota-payload.sh` signs OpenBook payloads on the host with the owner-held
+key (`--self-test` checks the key and certificate). Commands, results and key
+custody: `googlebook-ota-trust.md`. Run
 `python3 scripts/googlebook/ota-trust-candidate-test.py` for the unit checks.
 
 ## Lid guard module and USB diagnostics entries — 2026-10-21

@@ -164,7 +164,8 @@ A=$HOME/anybook/aosp/src
 scripts/googlebook/make-ota-test-payloads.sh "$A/out/host/linux-x86/bin/delta_generator" "$W/inputs2"
 COMMON="--base $HOME/anybook/installer/work/anal228-ruby-live-camera25 \
   --tools $A/out/host/linux-x86/bin --inventory $EROFS_INVENTORY \
-  --key $A/external/avb/test/data/testkey_rsa4096.pem --vm-test $W/inputs2/payloads"
+  --key $A/external/avb/test/data/testkey_rsa4096.pem --vm-test $W/inputs2/payloads \
+  --vm-test-signer $W/inputs2/keys/openbook-test.x509.pem"
 scripts/installer/inst-docker.sh python3 "$PWD/scripts/googlebook/build-ota-trust-candidate.py" $COMMON \
   --cert "$W/inputs2/keys/openbook-test.x509.pem" \
   --cert-sha256 "$(sha256sum "$W/inputs2/keys/openbook-test.x509.pem" | cut -d' ' -f1)" --out "$W/trust-test"
@@ -178,37 +179,117 @@ done
 ```
 
 `EROFS_INVENTORY` is the read-only helper from `googlebook-input-update.md`.
+
+The release candidate on RB-20261021-01 (the release hub repeats this on its
+next base):
+
+```sh
+R=$HOME/anybook/installer/work/anal229-trust-r1
+scripts/installer/inst-docker.sh python3 "$PWD/scripts/googlebook/stage-base.py" \
+  --source "$RB_20261021_01_CANDIDATE" \
+  --source-sha256 4b110e750ec2e7874ccdaf563ca8b9c7d45cd8eccc18848478edb1f9b5382cf3 \
+  --tools "$OTATOOLS/bin" --out "$R/base-rb0121"
+cp config/security/openbook-ota-2026.x509.pem "$R/"
+scripts/installer/inst-docker.sh python3 "$PWD/scripts/googlebook/build-ota-trust-candidate.py" \
+  --base "$R/base-rb0121" --base-sha256 4b110e750ec2e7874ccdaf563ca8b9c7d45cd8eccc18848478edb1f9b5382cf3 \
+  --tools "$A/out/host/linux-x86/bin" --inventory "$EROFS_INVENTORY" \
+  --key "$A/external/avb/test/data/testkey_rsa4096.pem" --cert "$R/openbook-ota-2026.x509.pem" \
+  --cert-sha256 c755c4a3313c6d597538e19c2ad4af77334acb1681dff044c0c92aea3f6410bb --out "$R/candidate"
+scripts/googlebook/sign-ota-payload.sh --self-test "$A/out/host/linux-x86/bin/delta_generator" \
+  ~/.local/share/openbook-keys/ota/openbook-ota-2026.key config/security/openbook-ota-2026.x509.pem
+```
 The camera25 base is the reviewed fresh live image used by the other builders.
 
-## Owner decision: OpenBook OTA key custody
+## OpenBook OTA key (approved 2026-10-22)
 
-The production change needs a real OpenBook update key. The private key must
-never enter the repository, an image or a log.
+B Honey approved the custody plan on ANAL-229 on 2026-10-22. The key was
+generated that day.
 
-Recommendation:
-- generate an RSA-4096 key offline on the build host;
-- keep it outside every repository, in an owner-held directory (mode 0600);
-- keep a passphrase-encrypted offline backup that the owner holds;
-- put only the certificate into builds.
+| Item | Value |
+|---|---|
+| Algorithm | RSA-4096, PKCS#8 PEM, SHA-256 signatures |
+| Certificate | `config/security/openbook-ota-2026.x509.pem`, `O=OpenBook, CN=OpenBook Ruby OTA release key 2026`, valid 2026-10-22 to 2056-10-21 |
+| Certificate file SHA-256 | `c755c4a3313c6d597538e19c2ad4af77334acb1681dff044c0c92aea3f6410bb` |
+| DER fingerprint (SHA-256) | `25:BB:B0:69:1D:B3:24:6A:51:09:95:13:9D:EF:80:4C:C1:9B:D7:CE:49:E7:B8:3B:D1:AA:BB:EE:5F:CC:DD:D2` |
+| Private key | Build host, `~/.local/share/openbook-keys/ota/` (directory 0700, key 0600) |
+| Offline backup | Same key, scrypt + AES-256 encrypted, in `backup/`. The owner copies it to offline media and moves the passphrase into a password manager. |
 
-`delta_generator` can sign from hash files, so the key can later move to a
-hardware token without changing devices.
+The key directory is outside every repository and outside `~/anybook`, which
+the build containers mount. No build container can read it. Only the
+certificate enters images and Git. `.gitignore` refuses `*.key` and `*.pk8`.
 
-Losing the key is recoverable: the USB Update path does not use
-`update_engine` and can install a new certificate.
+`scripts/googlebook/sign-ota-payload.sh` signs on the host with
+`delta_generator`'s hash-file mode, then verifies the result against the
+certificate. Only its two `openssl pkeyutl` calls touch the key, so a hardware
+token can replace them later. It refuses to run:
+- in a container;
+- with a key under `~/anybook` or in a git work tree;
+- with a key that is not mode 0600;
+- with a key that does not match the certificate.
 
-The same decision should cover the AVB key. Today's images are signed with the
-public AOSP test key, so verified boot is not yet an owner-controlled trust
-chain.
+`--self-test` signs an inert payload (partition `openbook_selftest`,
+`max_timestamp` 1), verifies it against the certificate, checks that another
+key fails, and deletes it. It passes with the real key. Test payloads are never
+signed with the real key.
+
+If the key is lost, the USB Update path, which does not use `update_engine`, can
+install a new certificate.
+
+The AVB key is still the public AOSP test key. Moving verified boot to an
+owner-held key is a separate decision of the same shape.
+
+## Release candidate on RB-20261021-01
+
+`stage-base.py` turns a reviewed image into a reassembler base:
+- the image and its manifest;
+- the super logical images, unpacked with otatools' `lpunpack` and each checked
+  against the manifest.
+
+`build-ota-trust-candidate.py --base-sha256` then layers the certificate onto
+that exact image. The shared reassembler now accepts any pinned, reviewed base
+(camera25 stays the default) and checks every logical image against the base
+manifest.
+
+Development candidate `9985be733553f1adfaf500864d4f02e03d47b585a63fcc109d866f3e2aa47184`:
+- base: RB-20261021-01, image `4b110e75…`, vbmeta `611d49f2…`, the vbmeta the
+  G14 reports;
+- the only changed file is `/system/etc/security/otacerts.zip`, archive
+  `3e1529c9…`;
+- only the `system` logical image differs;
+- boot partitions and kernel are identical;
+- the lid-guard module and trackpad fix are retained;
+- new vbmeta `3ceeb6ac…`.
+
+In the VM (TCG, no NIC):
+- **Boot:** completes with SELinux enforcing, `openbook_lid_guard` loaded and
+  no AVB errors. Runtime matches the unchanged RB-20261021-01 run (one
+  `system_server` SIGSEGV in 720 s against two in 540 s).
+- **Harness (a twin with the same certificate):** payloads from both
+  disposable keys are refused at the metadata signature on verify, allocate
+  and apply, before any partition preparation. The device reports archive
+  `3e1529c9…`, and super slot 1 is unchanged. All 19 checks pass.
+
+Evidence: `release-candidate.json` and `vm-release-cert.json`.
+
+USB packaging: `preserve-update.py --allow-logical system` now accepts a
+reviewed system change on the same terms as `vendor_dlkm`:
+- explicit, never implicit;
+- every other logical image, boot image and kernel identical;
+- the stage marked incomplete until `migration-package.py` rebinds the
+  installer and `compose-usb-plan.py` composes the plan.
+
+`laptop-update.py spec --allow-logical system` already accepted it.
 
 ## Next
 
-1. After the key decision, build the production image. Start from the current
-   release's inputs (camera25 with `--input-correction` and the certificate,
-   then `build-module-candidate.py` for `openbook_lid_guard`), boot it in the VM
-   and check the archive hash on the device.
-2. Allow a reviewed `system` change in the USB packaging chain
-   (`preserve-update.py`/`laptop-update.py` accept only `vendor_dlkm` today),
-   then file a numbered Ruby release through the hub with its own approvals.
-3. Later: our own OTA delivery (ANAL-231 second slot, an OpenBook payload
-   builder) and the admin update UI.
+1. Release hub: the next Ruby release after RB-20261021-02 should layer the
+   certificate onto that release's image. Run `stage-base.py` on it, then
+   `build-ota-trust-candidate.py --base-sha256 <its hash> --cert
+   config/security/openbook-ota-2026.x509.pem`, then the usual USB chain with
+   `--allow-logical system`. It needs its own plan approval and stick-write
+   approval.
+2. On the laptop after the update, check with read-only ADB that
+   `/system/etc/security/otacerts.zip` has SHA-256
+   `3e1529c919baf5bbe71c729e2f6884d034a589328af0fb41a1ae730ac3342a59`.
+3. Later: our own OTA delivery (ANAL-231 second slot, OpenBook payloads signed
+   with `sign-ota-payload.sh`) and the admin update UI.
