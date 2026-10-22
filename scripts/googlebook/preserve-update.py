@@ -3,8 +3,10 @@
 """Prepare a PRIVATE updated clone of an offline Ruby live USB backup.
 
 Regular files only; no physical device writes. Limited to vendor-only updates
-with identical framework, kernel, boot partitions and layout. Requires a
-verified backup and a separately reviewed vendor/security compatibility check.
+with identical framework, kernel, boot partitions and layout, or one explicitly
+reviewed system/vendor_dlkm image change (--allow-logical), whose output stays
+incomplete until the USB installer is re-pinned. Requires a verified backup and
+a separately reviewed vendor/security compatibility check.
 Single slot: this is not an atomic OTA or automatic rollback mechanism.
 """
 import argparse
@@ -114,13 +116,15 @@ def verify_manifest(manifest, table, size):
 
 # Logical images that may change only through an explicit --allow-logical review.
 # Their outputs stay incomplete until the USB's installer is re-pinned.
-REVIEWABLE_LOGICAL = ("vendor_dlkm",)
+# system: RB-20261021-02 replaces only native-bridge files (ANAL-234 Digitalis);
+# APKs, framework, ART, policy and data formats are unchanged.
+REVIEWABLE_LOGICAL = ("system", "vendor_dlkm")
 
 
 def compatible(old, new, allow_logical=()):
     if allow_logical:
         if not set(allow_logical) <= set(REVIEWABLE_LOGICAL):
-            raise ValueError("Only vendor_dlkm can be reviewed with --allow-logical")
+            raise ValueError("Only system or vendor_dlkm can be reviewed with --allow-logical")
         changed = sorted(n for n, v in new["logical_sha256"].items() if old["logical_sha256"].get(n) != v)
         if changed != sorted(set(allow_logical)):
             raise ValueError(f"Reviewed logical changes differ: {changed}")
