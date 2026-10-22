@@ -28,3 +28,14 @@ No device or laptop data is involved. The built super stays in the private work 
   formatted userdata at its full planned size (19,624 MB on this disk; ~919 GiB on the 1 TB SSD) and
   mounted it through metadata encryption; metadata formatted; no AVB errors. 0 system_server crashes,
   0 zygote restarts. No SELinux denials from bootsync, the boot HAL or the ESP device.
+
+## OpenBook-signed Virtual A/B OTA payload (`build-ruby-ab-ota.py`)
+
+- `ab-ota-payload.json`: a full update_engine payload for a release — the dynamic partition `system`
+  (Virtual A/B) plus the static boot chain (`boot`, `init_boot`, `vendor_boot`, `vbmeta`, the
+  boot-covering vbmeta). Built with `delta_generator` and signed with the OpenBook OTA key through
+  the host-only `sign-ota-payload.sh` (the key never enters a container). 892 MB. Read back
+  independently: CrAU v2, all five partitions in the manifest, the metadata signature **verifies
+  against the installed OpenBook certificate**, and `payload_properties` match the bytes. This is
+  the update that installs into slot B; the in-VM apply + reboot-switch + fallback is the next step.
+  `build-ruby-ab-ota-test.py` covers the read-back checks (5).

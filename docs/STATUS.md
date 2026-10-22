@@ -1,5 +1,15 @@
 # Status
 
+## 2026-10-22: OpenBook-signed Virtual A/B OTA payload built and verified (ANAL-229)
+
+`build-ruby-ab-ota.py` builds the full update_engine payload that installs into slot B: the dynamic
+`system` (Virtual A/B) plus the static boot chain (boot/init_boot/vendor_boot/vbmeta). It is signed
+with the OpenBook OTA key through the host-only sign-ota-payload.sh and read back independently —
+CrAU v2, all five partitions in the manifest, the metadata signature verifies against the installed
+OpenBook certificate, properties match the 892 MB payload. 5 unit tests. Next: apply it in the A/B
+VM through the stock update_engine, reboot-switch to slot B, then broken-slot fallback. Evidence:
+`evidence/2026-10-22-ruby-ab/ab-ota-payload.json`. Laptop unchanged.
+
 ## 2026-10-22: Ruby A/B disk assembled and boots in QEMU with two slots (ANAL-229)
 
 `build-ruby-ab-image.py` assembles the two-slot whole-disk image from the RB-20261022-01 candidate:
