@@ -1,0 +1,22 @@
+{
+  "schema": "openbook-ruby-g14-ota-observation/1",
+  "captured_utc": "2026-10-22T12:32Z",
+  "source": "read-only wireless ADB logcat of the owner's manual Settings > System update check at 08:30-08:31 local",
+  "method": "observation only; nothing on the laptop was changed",
+  "finding": "Google DID offer this device a system update. GMS SystemUpdate (com.google.android.gms .update.SystemUpdateActivity) found a candidate, fetched payload_metadata.bin into /data/ota_package, and asked the stock update_engine to validate it. The device rejected it before downloading or writing any system data; the UI briefly showed Preparing System for Update, then returned to up to date.",
+  "why_rejected": [
+    "The metadata signature check passed (the payload is still signed by Google's key, and the laptop still carries Google's otacerts because the OpenBook certificate release is not on it yet).",
+    "The real stop was the source-partition content check: the offered update is an incremental (delta) that expects the exact stock system on disk. Our system carries the compatibility changes (Digitalis, trackpad fix, sleep fix), so the on-disk source hash did not match what the delta targets, and update_engine returned a source-hash-mismatch error during PreDownloadValidateAction.",
+    "The follow-on full-payload fetch returned HTTP 403."
+  ],
+  "no_partition_written": true,
+  "slot_unchanged": true,
+  "boot_note": "update_engine logged that boot_a is not in super metadata (expected on this single-slot device); it never reached partition writes.",
+  "implications": [
+    "This hybrid DOES receive Google OTAs over the air; our earlier read of the public recovery manifest (still only 16452207) does not capture the Omaha server-side offer.",
+    "Right now the only thing stopping a Google OTA is the natural source-hash mismatch from our patches. That is fragile: a full (non-incremental) payload would not hit the source-hash check.",
+    "This is exactly why the OpenBook OTA-certificate release (RB-20261022-01, ANAL-253) should reach the laptop: it refuses a Google-signed payload at the first signature check, deterministically, before any staging.",
+    "It also confirms the capture step of the patch pipeline: the offered payload metadata and URL are visible in the log for an authorized, owner-driven adaptation flow."
+  ],
+  "redactions": "update URL and any account/device identifiers are not recorded here"
+}
