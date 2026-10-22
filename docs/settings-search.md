@@ -269,6 +269,13 @@ overlay. The overlay builder is still pinned to the synthetic RB01 parent and
 must be rebased onto that release's inputs. The hardware gates below then run
 after Update, with Restore available.
 
+**Release, 2026-10-22:** B Honey approved the release, and RB-20261021-02 (ANAL-252) was built from RB-20261021-01's candidate with this overlay. `build-bridge-candidate.py` and `bridge-vm-input.py` now copy unchanged partitions out of the reviewed parent.
+
+- In the instrumented Ruby VM, Digitalis is selected and boot completes with the lid guard present. Over 20 search cycles there were no Settings Services crashes, ANRs or `libicing` load errors. ARM probe 17/3 as before.
+- The synthetic laptop takes RB-20261021-01 → RB-20261021-02 with data kept, boots, and restores byte for byte.
+
+The SanDisk write waits for a fresh backup of the stick and the identified-write confirmation.
+
 The hardware ADB connection disappeared during the 2026-10-21 follow-up. The first instrumented VM also reproduced the
 previously known system-server crash and checkpoint-commit reboot. Its JNI
 installation failed because the test shell's temporary directory was not

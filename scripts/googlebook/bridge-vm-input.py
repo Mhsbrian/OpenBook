@@ -5,6 +5,7 @@
 Retains enforcing policy. Replaces only the existing vendor serial diagnostic
 script and rebuilds its verified filesystem. Embeds the open-source JNI probes
 in that script. Does not touch a physical device or configured owner data.
+Without --logical, unchanged logical images are copied out of the candidate.
 """
 import argparse
 import base64
@@ -32,9 +33,21 @@ def build(a):
         raise ValueError("Requires a synthetic, non-installable bridge experiment")
     w = a.out
     w.mkdir(mode=0o700, parents=True, exist_ok=False)
-    c.space(w, 2 << 30)
+    c.space(w, 6 << 30)
     free_before = shutil.disk_usage(w).free
-    vendor = a.logical / "vendor_a.img"
+    copied = []
+    if a.logical:
+        logical = {n: a.logical / f"{n}_a.img" for n in old["logical_sha256"]}
+    else:
+        candidate_layout = c.disk_layout(src, p.read_gpt(src), w)
+        logical = {}
+        for n in old["logical_sha256"]:
+            if n == "system": continue
+            logical[n] = w / f"input-{n}.img"
+            offset, layout = candidate_layout
+            c.copy_logical(src, logical[n], offset, layout[n + "_a"])
+            copied.append(logical[n])
+    vendor = logical["vendor"]
     if p.h.audit.sha(p.regular(vendor)) != old["logical_sha256"]["vendor"]:
         raise ValueError("Vendor differs")
     before = c.inventory(a.inventory, vendor)
@@ -58,7 +71,7 @@ def build(a):
     rebuilt, extracted = c.rebuild_one_file(a.tools, a.inventory, vendor, root, before, contents,
                                             target, original, script, "vendor", w, "/vendor")
     c.remove_extracted(extracted)
-    images = {n: a.logical / f"{n}_a.img" for n in old["logical_sha256"]}
+    images = {n: logical.get(n) for n in old["logical_sha256"]}
     images.update(system=a.candidate / "system.img", vendor=rebuilt)
     for n, file in images.items():
         if n != "vendor" and p.h.audit.sha(p.regular(file)) != old["logical_sha256"][n]:
@@ -130,14 +143,16 @@ def build(a):
     if p.h.audit.sha(src) != old["image_sha256"]: raise ValueError("Source changed")
     (w / "manifest.json").write_text(json.dumps(updated, indent=2) + "\n")
     meta.unlink()
-    (w / "cleanup.json").write_text(json.dumps({"removed": [str(root),str(extracted),str(meta)],
+    for file in copied: file.unlink()
+    (w / "cleanup.json").write_text(json.dumps({"removed": [str(root),str(extracted),str(meta),*map(str, copied)],
         "free_before": free_before, "free_after": shutil.disk_usage(w).free}, indent=2) + "\n")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    for name in ("candidate", "logical", "tools", "inventory", "key", "probes", "out"):
+    for name in ("candidate", "tools", "inventory", "key", "probes", "out"):
         parser.add_argument("--" + name, type=Path, required=True)
+    parser.add_argument("--logical", type=Path, help="Directory of unchanged *_a.img inputs; default: copy from the candidate")
     args = parser.parse_args()
     if not Path("/.dockerenv").exists(): parser.error("Use the local installer tools container")
     os.umask(0o077)
