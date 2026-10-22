@@ -31,7 +31,7 @@ u = module("preserve", "preserve-update.py")
 def make_pin(base, out, build, dmi):
     image = u.regular(base / "ruby-live.img")
     manifest = json.loads(u.regular(base / "manifest.json").read_text())
-    m.require("experimental_ota_guard" not in manifest, "Disposable OTA experiment cannot be an installer source")
+    m.require(not any(k.startswith("experimental_") for k in manifest), "Disposable OTA experiment cannot be an installer source")
     m.require(u.h.audit.sha(image) == manifest["image_sha256"], "Reviewed base image checksum changed")
     m.require(not out.exists(), "New pin output required")
     out.mkdir(mode=0o700)
@@ -130,7 +130,7 @@ def update_entries():
 def add(snapshot, snapshot_sha, base_manifest, installer, out, replace_installer_sha256=None):
     snapshot = u.regular(snapshot)
     old = json.loads(u.regular(base_manifest).read_text())
-    m.require("experimental_ota_guard" not in old, "Disposable OTA experiment cannot be an installer source")
+    m.require(not any(k.startswith("experimental_") for k in old), "Disposable OTA experiment cannot be an installer source")
     m.require(u.h.audit.sha(snapshot) == snapshot_sha, "Snapshot checksum mismatch")
     m.require(not out.exists(), "New output required")
     pin = json.loads(u.regular(installer / "source.json").read_text())
