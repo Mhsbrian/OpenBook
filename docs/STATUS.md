@@ -1,5 +1,18 @@
 # Status
 
+## 2026-10-22: Ruby A/B super built and verified; vbmeta finding corrected (ANAL-229)
+
+`build-ruby-ab-super.py` builds the installed 12 GiB Virtual A/B `super` from our six slot-A
+logical images, reading the geometry (VAB flag, 3 metadata slots, group
+`google_dynamic_partitions_a/_b`, group max) from the pristine Googlebook Ruby `super` so nothing
+is guessed. Verified: VAB flag, 3 slots, slot B an empty group, slot A byte-identical to the
+inputs. Review correction: the pristine Googlebook vbmeta_a covers the full boot chain
+(boot/init_boot/vendor_boot/pvmfw); only our research reassembler's vbmeta omits it. So the A/B
+build rebuilds vbmeta the Googlebook way and the existing openbook-bootsync works unchanged (no
+Ruby-specific mode). Tests: `build-ruby-ab-super-test.py` (3), `plan-ruby-ab-test.py` (7).
+Evidence: `evidence/2026-10-22-ruby-ab/`. Next in the A/B image builder: the OpenBook-signed
+boot-covering vbmeta, blank _b/misc/metadata/userdata, and the two-slot ESP. Laptop unchanged.
+
 ## 2026-10-22: Ruby A/B layout planned and built; the OTA foundation (ANAL-229)
 
 Two confirmed facts set the direction: a single-slot Ruby system cannot take an OpenBook OTA
