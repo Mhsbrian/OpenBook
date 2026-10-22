@@ -1,0 +1,59 @@
+{
+  "schema": "openbook-ruby-ota-trust-release-candidate/1",
+  "base": {
+    "release": "RB-20261021-01",
+    "image_sha256": "4b110e750ec2e7874ccdaf563ca8b9c7d45cd8eccc18848478edb1f9b5382cf3",
+    "vbmeta_digest": "611d49f2a587b8bf75b57c343e4ec4fc14347d92516dd7c6dd2a3b0a7c61e794"
+  },
+  "candidate": {
+    "image_sha256": "9985be733553f1adfaf500864d4f02e03d47b585a63fcc109d866f3e2aa47184",
+    "vbmeta_digest": "3ceeb6acbb63407e715d23d1379a466b226b6a8aafd00e4815e544d59ec5627b",
+    "changed_files": [
+      "/system/etc/security/otacerts.zip"
+    ],
+    "only_metadata_change": "replacement file sizes",
+    "logical_changed": [
+      "system"
+    ],
+    "boot_partitions_identical": true,
+    "kernel_identical": true,
+    "vendor_module_retained": "97a5868c9d24f23c76d73ab294ff1b4f42d9aa7b0d2a2be3f4cb62261eabc6c6",
+    "input_correction_retained": true,
+    "ota_trust_anchor": {
+      "certificate_sha256": "c755c4a3313c6d597538e19c2ad4af77334acb1681dff044c0c92aea3f6410bb",
+      "der_sha256": "25bbb0691db3246a510995139def804cc19bd7ce49e7b83bd1aabbee5fccddd2",
+      "subject": "CN=OpenBook Ruby OTA release key 2026,O=OpenBook",
+      "rsa_bits": 4096,
+      "archive_entry": "openbook/releasekey.x509.pem",
+      "archive_sha256": "3e1529c919baf5bbe71c729e2f6884d034a589328af0fb41a1ae730ac3342a59",
+      "replaced_sha256": "640c923ab47c6b220263cec685de5a0deb6cdec7695742776a87719bde2d5bdb",
+      "replaced_entry": "projects/chromeos-release-bot/locations/us/keyRings/RubyMPKeys/releasekey.x509.pem",
+      "stock_ota_accepted": false,
+      "hardware_validated": false
+    },
+    "protected_ranges_identical": true,
+    "deployment_status": "development candidate; not a release, not written to any device"
+  },
+  "preserve_update_reviewed_system": true,
+  "boot_observation": {
+    "seconds": 720.6,
+    "boot_completed": true,
+    "selinux_enforcing": true,
+    "lid_guard_loaded": true,
+    "avb_handoff_errors": 0,
+    "system_server_sigsegv": 1,
+    "zygote_exit_events": 1,
+    "serial_sha256": "75b61a2a67d173fd479ed041fc0662ed20bbfc4786c7940725e0dd9a73d2a8fe",
+    "baseline_rb_20261021_01": {
+      "seconds": 540.4,
+      "system_server_sigsegv": 2,
+      "zygote_exit_events": 2
+    }
+  },
+  "release_certificate_harness": {
+    "image_sha256": "see vm-release-cert.json",
+    "all_test_signers_refused": true
+  },
+  "signing_self_test": "passed: RSA-4096 signature verifies against the certificate and fails with another key; inert payload deleted",
+  "hardware_tested": false
+}

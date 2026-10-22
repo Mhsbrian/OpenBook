@@ -15,6 +15,7 @@ import struct
 import subprocess
 import tempfile
 import unittest
+import unittest.mock
 import zipfile
 
 spec = importlib.util.spec_from_file_location("trust", Path(__file__).with_name("build-ota-trust-candidate.py"))
@@ -128,13 +129,71 @@ class TestPayloads(unittest.TestCase):
 
 class Modes(unittest.TestCase):
     def test_stock_trust_is_a_vm_control_and_excludes_a_certificate(self):
-        base = dict(cert=None, cert_sha256=None, input_correction=False)
+        base = dict(cert=None, cert_sha256=None, input_correction=False, vm_test_signer=None)
         with self.assertRaisesRegex(ValueError, "control only"):
             t.build(argparse.Namespace(**base, vm_test=None, stock_trust=True))
         with self.assertRaisesRegex(ValueError, "Supply --cert"):
             t.build(argparse.Namespace(**base, vm_test=Path("x"), stock_trust=False))
         with self.assertRaisesRegex(ValueError, "Supply --cert"):
             t.build(argparse.Namespace(**{**base, "cert": Path("c")}, vm_test=Path("x"), stock_trust=True))
+        with self.assertRaisesRegex(ValueError, "--vm-test-signer"):
+            t.build(argparse.Namespace(**base, vm_test=Path("x"), stock_trust=True))
+
+
+class TrustedCases(unittest.TestCase):
+    """The harness trusts openbook-* payloads only when their signer is the installed certificate."""
+
+    def transform_record(self, installed, signer):
+        root = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, root)
+        source = root / "source"
+        (source / "system/etc/security").mkdir(parents=True)
+        (source / "system/etc/init").mkdir(parents=True)
+        stock = io.BytesIO()
+        with zipfile.ZipFile(stock, "w") as z:
+            z.writestr(t.STOCK_ENTRY, b"google")
+        (source / t.OTACERTS.lstrip("/")).write_bytes(stock.getvalue())
+        (source / "system/etc/init/update_engine.rc").write_text(t.g.q.STOCK_RC)
+        payloads = root / "payloads"; payloads.mkdir()
+        for case in t.CASES:
+            body, props = payload()
+            (payloads / f"{case}.bin").write_bytes(body)
+            (payloads / f"{case}.properties").write_text(props)
+        (root / "installed.pem").write_bytes(installed)
+        (root / "signer.pem").write_bytes(signer)
+        seen = {}
+
+        def fake_build_system(a, transform, schema):
+            seen["result"] = transform(source)
+        a = argparse.Namespace(cert=root / "installed.pem", cert_sha256="pin", stock_trust=False,
+                               input_correction=False, vm_test=payloads, vm_test_signer=root / "signer.pem")
+        with unittest.mock.patch.object(t, "STOCK_OTACERTS_SHA256", hashlib.sha256(stock.getvalue()).hexdigest()), \
+                unittest.mock.patch.object(t, "certificate", return_value=(installed, {"certificate_sha256": "c"})), \
+                unittest.mock.patch.object(t.g, "test_policy", return_value=({}, {"scope": "test"})), \
+                unittest.mock.patch.object(t.b, "build_system", fake_build_system):
+            t.build(a)
+        replacements, annotations, additions = seen["result"]
+        return annotations["experimental_ota_trust_test"]["trusted_cases"]
+
+    def test_matching_signer_trusts_openbook_cases(self):
+        self.assertEqual(self.transform_record(b"PEM-A", b"PEM-A"), ["openbook-static", "openbook-vab"])
+
+    def test_release_certificate_trusts_no_test_payload(self):
+        self.assertEqual(self.transform_record(b"PEM-RELEASE", b"PEM-TEST"), [])
+
+
+class StageBase(unittest.TestCase):
+    def test_refuses_a_source_that_differs_from_its_pin(self):
+        spec = importlib.util.spec_from_file_location("stage", Path(__file__).with_name("stage-base.py"))
+        stage = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(stage)
+        root = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, root)
+        (root / "ruby-live.img").write_bytes(b"image")
+        (root / "manifest.json").write_text('{"image_sha256": "%s"}' % hashlib.sha256(b"image").hexdigest())
+        with self.assertRaisesRegex(ValueError, "differs from its pin"):
+            stage.stage(root, "0" * 64, root, root / "out")
+        self.assertFalse((root / "out").exists())
 
 
 if __name__ == "__main__":

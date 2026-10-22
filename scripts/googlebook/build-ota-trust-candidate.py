@@ -9,8 +9,9 @@ OTAs fail that first check, while OpenBook-signed payloads still verify. App
 and Mainline (APEX) updates are verified with their own keys, not this archive.
 
 The only key input is a public certificate; no private key enters this tool.
---input-correction also applies RB01's libinputflinger patch, reproducing
-RB01's system. --vm-test adds a disposable harness: after boot, the stock
+The base is camera25 unless --base-sha256 pins another reviewed Ruby image
+(for example the current release), so the certificate is a one-file layer.
+--input-correction also applies RB01's libinputflinger patch to camera25. --vm-test adds a disposable harness: after boot, the stock
 update_engine_client runs the reviewed test payloads, using shell Binder
 grants. That image carries an experimental marker that installer packaging
 refuses. Never deploy it. --stock-trust, only allowed with --vm-test, keeps
@@ -150,10 +151,15 @@ def build(a):
         raise ValueError("--stock-trust is a VM-test control only")
     if a.stock_trust == bool(a.cert):
         raise ValueError("Supply --cert, or --stock-trust for the control")
+    if bool(a.vm_test) != bool(getattr(a, "vm_test_signer", None)):
+        raise ValueError("--vm-test needs --vm-test-signer, the certificate of the openbook-* test payloads")
     replacement, cert_record = None, None
     if a.cert:
         pem, cert_record = certificate("openssl", a.cert, a.cert_sha256)
         replacement = archive(pem)
+    trusted = []
+    if a.vm_test and replacement and b.p.regular(a.vm_test_signer).read_bytes() == pem:
+        trusted = [c for c in CASES if c.startswith("openbook-")]
 
     def transform(source):
         stock = source / OTACERTS.lstrip("/")
@@ -186,7 +192,7 @@ def build(a):
             additions = {TEST_DIR: None, f"{TEST_DIR}/run.sh": TEST_SCRIPT.encode(), **files}
             annotations["experimental_ota_trust_test"] = dict(
                 deployment_eligible=False, hardware_validated=False, unattended_safe=False,
-                trust="stock" if a.stock_trust else "openbook", payloads=payloads,
+                trust="stock" if a.stock_trust else "openbook", trusted_cases=trusted, payloads=payloads,
                 test_harness_policy=policy_record,
                 files={n: hashlib.sha256(d).hexdigest() for n, d in {**replacements, **additions}.items()
                        if d is not None})
@@ -200,10 +206,12 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__)
     for name in ("base", "tools", "inventory", "key", "out"):
         p.add_argument("--" + name, type=Path, required=True)
+    p.add_argument("--base-sha256", help="Pin of a reviewed base other than camera25")
     p.add_argument("--cert", type=Path, help="OpenBook OTA certificate (public PEM)")
     p.add_argument("--cert-sha256")
     p.add_argument("--input-correction", action="store_true", help="Also apply RB01's libinputflinger patch")
     p.add_argument("--vm-test", type=Path, help="Disposable payload directory from make-ota-test-payloads.sh")
+    p.add_argument("--vm-test-signer", type=Path, help="Certificate that signed the openbook-* test payloads")
     p.add_argument("--stock-trust", action="store_true", help="VM-test control: keep Google's archive")
     a = p.parse_args()
     if a.cert and not a.cert_sha256:

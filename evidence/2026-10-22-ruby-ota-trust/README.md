@@ -11,6 +11,9 @@ setting was touched. Design and commands: `docs/googlebook-ota-trust.md`.
 | `vm-stock.json` | The same for the stock-certificate control `3c3ca47a…` |
 | `vm-*-lpdump.json` | `lpdump` of super metadata slots 0 and 1 before and after each run |
 | `superseded.json` | Three earlier runs and why each was replaced |
+| `production-shape.json` | Production-path check on camera25 with the test certificate (image deleted) |
+| `release-candidate.json` | Real candidate `9985be73…` = RB-20261021-01 + OpenBook certificate: identity, single changed file, retained module and trackpad fix, VM boot, runtime against the RB-20261021-01 baseline |
+| `vm-release-cert.json` | Harness twin with the real certificate: payloads from both disposable keys refused at the signature on every request, archive `3e1529c9…` on the device, 19/19 checks |
 
 ## Outcome
 

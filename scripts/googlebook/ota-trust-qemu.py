@@ -153,7 +153,14 @@ def harness(serial):
                 finished=bool(re.search(r"OTATRUST end", console)))
 
 
-def judge(trust, observed):
+def trusted_cases(test):
+    """Cases the installed certificate should accept; older images imply it from the trust mode."""
+    if "trusted_cases" in test:
+        return tuple(test["trusted_cases"])
+    return ("openbook-static", "openbook-vab") if test["trust"] == "openbook" else ()
+
+
+def judge(trusted, observed):
     by = {(s["step"], s["case"]): s for s in observed["steps"]}
 
     def refused(case, step):
@@ -161,13 +168,12 @@ def judge(trust, observed):
         return (s["logged"] and s["exit"] not in (None, 0) and SIGNATURE in s["error_codes"]
                 and not s["signature_verified"] and not s["partitions_prepared"])
 
-    untrusted = ("foreign-static",) if trust == "openbook" else CASES
     checks = {f"{case} {step} refused at metadata signature, before partition preparation": refused(case, step)
-              for case in untrusted for step in ("verify", "allocate", "update")}
-    if trust == "openbook":
-        for case in ("openbook-static", "openbook-vab"):
-            s = by[("verify", case)]
-            checks[f"{case} metadata verified"] = s["exit"] == 0 and s["signature_verified"]
+              for case in CASES if case not in trusted for step in ("verify", "allocate", "update")}
+    for case in trusted:
+        s = by[("verify", case)]
+        checks[f"{case} metadata verified"] = s["exit"] == 0 and s["signature_verified"]
+    if "openbook-static" in trusted:
         s = by[("update", "openbook-static")]
         checks["openbook-static update stops at the missing second slot"] = (
             s["exit"] not in (None, 0) and s["final_error_code"] == BARRIER and s["error_codes"] == [BARRIER])
@@ -215,7 +221,7 @@ def main():
     after["metadata_ota"] = ota_state(disk, table, a.out, "after")
     serial = (run / "serial.log").read_text(errors="replace").replace("\r", "")
     observed = harness(serial)
-    checks = judge(test["trust"], observed)
+    checks = judge(trusted_cases(test), observed)
     checks["boot completed"] = r.boot_completed_reported(serial)
     checks["SELinux enforcing"] = bool(re.search(r"(?m)^Enforcing$", serial))
     # The serial diagnostics entry also runs as shell; count only the updater, its client and the harness files.
@@ -234,6 +240,7 @@ def main():
                                                        and observed["updater_idle_after_s"] < 300)
     checks["current super metadata slot unchanged"] = before["super"]["slot0"] == after["super"]["slot0"]
     result = dict(schema="openbook-ruby-ota-trust-rehearsal/1", trust=test["trust"],
+                  trusted_cases=list(trusted_cases(test)),
                   candidate_sha256=manifest["image_sha256"], payloads=test["payloads"],
                   expected_otacerts_sha256=(manifest.get("ota_trust_anchor", {}).get("archive_sha256")
                                             or "640c923ab47c6b220263cec685de5a0deb6cdec7695742776a87719bde2d5bdb"),

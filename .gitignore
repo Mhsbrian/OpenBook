@@ -18,3 +18,7 @@ __pycache__/
 docs/installer-design/fonts
 assets/src/fonts
 docs/quire-design/fonts
+
+# Never commit private keys (the OTA signing key lives outside every repository)
+*.key
+*.pk8

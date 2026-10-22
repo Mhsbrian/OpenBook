@@ -1,5 +1,25 @@
 # Status
 
+## 2026-10-22: OpenBook OTA key created; release candidate with it (ANAL-229)
+
+After B Honey approved custody, the OpenBook OTA key was generated on the build host:
+- RSA-4096, kept outside every repository and container mount;
+- an encrypted backup is ready for the owner to keep offline;
+- certificate `config/security/openbook-ota-2026.x509.pem`, fingerprint `25:BB:B0:69…`.
+
+`sign-ota-payload.sh` signs OpenBook payloads on the host; its self-test passes with
+the real key. `stage-base.py` plus `--base-sha256` layer the certificate onto any
+reviewed release. The USB chain now accepts a reviewed `system` change.
+
+The candidate `9985be73…` is RB-20261021-01 with only `otacerts.zip` changed. In the VM:
+- it boots with SELinux enforcing and the lid guard loaded;
+- the device reports the OpenBook archive, and every test-signed payload is refused at
+  the signature;
+- runtime matches the unchanged release.
+
+The laptop is unchanged. Handed to the release hub for the release after RB-20261021-02.
+See `googlebook-ota-trust.md`.
+
 ## 2026-10-22: OTA trust anchor proven in the VM (ANAL-229/230)
 
 Ruby trusts one OTA key: the single certificate in `/system/etc/security/otacerts.zip`.
