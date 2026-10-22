@@ -114,13 +114,15 @@ def verify_manifest(manifest, table, size):
 
 # Logical images that may change only through an explicit --allow-logical review.
 # Their outputs stay incomplete until the USB's installer is re-pinned.
-REVIEWABLE_LOGICAL = ("vendor_dlkm",)
+# Framework images whose reviewed change keeps kernel, vendor, boot and data format:
+# vendor_dlkm (added modules) and system (exact file changes from the builders).
+REVIEWABLE_LOGICAL = ("vendor_dlkm", "system")
 
 
 def compatible(old, new, allow_logical=()):
     if allow_logical:
         if not set(allow_logical) <= set(REVIEWABLE_LOGICAL):
-            raise ValueError("Only vendor_dlkm can be reviewed with --allow-logical")
+            raise ValueError("Only vendor_dlkm or system can be reviewed with --allow-logical")
         changed = sorted(n for n, v in new["logical_sha256"].items() if old["logical_sha256"].get(n) != v)
         if changed != sorted(set(allow_logical)):
             raise ValueError(f"Reviewed logical changes differ: {changed}")
