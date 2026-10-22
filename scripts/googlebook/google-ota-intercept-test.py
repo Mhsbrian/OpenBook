@@ -23,6 +23,7 @@ def load(name, filename):
 
 
 cap = load("cap", "capture-google-ota.py")
+stock = load("stock", "stage-stock-source.py")
 ins = load("ins", "inspect-google-ota.py")
 srv = load("srv", "serve-payload.py")
 
@@ -160,6 +161,27 @@ class Capture(unittest.TestCase):
 
     def test_no_offer(self):
         self.assertIsNone(cap.parse("10-22 08:30:18.000 900 900 I ActivityManager: nothing")["url"])
+
+
+
+class StockGpt(unittest.TestCase):
+    def test_reads_partition_names_and_extents(self):
+        import uuid
+        rows = [("boot_a", 2048, 4095), ("pvmfw_a", 4096, 4103), ("super", 4104, 8199)]
+        hdr = bytearray(92)
+        hdr[:8] = b"EFI PART"
+        struct.pack_into("<QII", hdr, 72, 2, 128, 128)
+        ent = bytearray(128 * 128)
+        for i, (name, first, last) in enumerate(rows):
+            e = i * 128
+            ent[e:e + 16] = uuid.uuid4().bytes_le
+            struct.pack_into("<QQ", ent, e + 32, first, last)
+            ent[e + 56:e + 56 + 72] = name.encode("utf-16-le").ljust(72, b"\0")
+        img = Path(tempfile.mkdtemp()) / "disk.bin"
+        img.write_bytes(b"\0" * 512 + bytes(hdr) + b"\0" * (512 - 92) + bytes(ent))
+        got = stock.gpt(img)
+        self.assertEqual([(r["name"], r["offset"] // 512, r["length"] // 512) for r in got],
+                         [("boot_a", 2048, 2048), ("pvmfw_a", 4096, 8), ("super", 4104, 4096)])
 
 
 if __name__ == "__main__":

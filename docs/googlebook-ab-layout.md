@@ -111,6 +111,37 @@ payload carrying `pvmfw`/`recovery`/`ota_recovery` applies on v2 but not v1.
 - Full payloads use **zstd** replace operations (`--enable_replace_zstd`),
   which decompress several times faster than the default xz.
 
+## Intercept → patch → update: turning Google's updates into G14 updates
+
+The goal of ANAL-229. Five stages; the first two are built and verified.
+
+1. **Intercept** (`capture-google-ota.py`). Google offers updates to the G14 per
+   device (seen 2026-10-22; the public recovery manifest still lists only
+   16452207, dated 2026-10-05). After the owner presses *Check for update*, the
+   offer is read from the laptop's logs over adb, read-only: the URL, payload
+   offset/size and hash headers from update_engine's ApplyPayload request, or an
+   OTA-like URL from GMS logs (with the OpenBook certificate installed, GMS may
+   stop before update_engine). Saved privately; other Google downloads (speech
+   packs etc.) are never taken as offers.
+2. **Inspect, download, reconstruct** (`inspect-google-ota.py`,
+   `stage-stock-source.py`, `reconstruct-google-release.py`). Read the OTA zip by
+   HTTP Range: Google's metadata (from/to build), the payload manifest, and, for
+   an incremental, whether every source partition matches our staged stock
+   16452207 images (all 13 of Google's slot-A partitions). Download and verify
+   the payload against Google's FILE_HASH, then rebuild Google's new partitions
+   with AOSP's `ota_extractor`, each checked against the hash in Google's signed
+   manifest. Proven on our own incremental: byte-identical output; a wrong
+   source is refused.
+3. **Patch** (rebase the OpenBook layer onto Google's new framework). Next:
+   generalize the existing release builders so Google's new system, system_ext
+   and product replace 16452207's, with OpenBook's AMD vendor stack and the
+   patches re-applied (trackpad correction, Digitalis, OTA certificate, owner
+   OTA policy).
+4. **Sign and prove**: `build-ruby-ab-ota.py` (OpenBook key), `check-ota-fit.py`,
+   VM boot and the small/large OTA suites.
+5. **Update**: today via the stick's Update entry (single slot); after the fresh
+   install, wirelessly with `g14-ota.sh` (two slots, automatic fallback).
+
 ## The owner OTA path: how a wireless update reaches the laptop
 
 On a user build, AOSP lets only `system_server`, `system_app`, `gmscore_app` and a
