@@ -1,5 +1,16 @@
 # Status
 
+## 2026-10-22: Ruby A/B layout planned and built; the OTA foundation (ANAL-229)
+
+Two confirmed facts set the direction: a single-slot Ruby system cannot take an OpenBook OTA
+through the stock updater (update_engine needs a second slot for vbmeta/boot, so the A/B layout
+is prerequisite), and Ruby's vbmeta_a covers only the six super partitions, not the boot chain
+(so bootsync needs a Ruby verification mode). `scripts/googlebook/plan-ruby-ab.py` computes and
+validates the two-slot whole-disk layout from a reviewed single-slot candidate: on the G14's 1 TB
+SSD it adds the second slot and grows userdata from ~8 GiB to ~919 GiB (the storage fix). Tested
+(`plan-ruby-ab-test.py`, 7). Next: the A/B image builder, bootsync Ruby mode, and the QEMU
+boot/OTA/fallback proof. See `googlebook-ab-layout.md`. The laptop is unchanged.
+
 ## 2026-10-22: RB-20261021-02 on the SanDisk; RB-20261022-01 composed (ANAL-229/252)
 
 With B Honey's write approval, the approved RB-20261021-02 (Settings search fix) was written
