@@ -1,0 +1,16 @@
+{
+  "schema": "openbook-ruby-provenance/1",
+  "captured_utc": "2026-10-22",
+  "compared": "the A/B image / OTA payload input (RB-20261022-01 candidate) against the pristine Googlebook Ruby partitions (~/anybook/work/gbos-ruby/parts), sha256 per partition",
+  "stock_google_unchanged": ["product", "system_ext"],
+  "openbook_g14_build": {
+    "system": "Google's Ruby system plus our patches: trackpad fix (libinputflinger), Digitalis ARM translator replacing Houdini (Settings search fix), OpenBook OTA certificate (update block)",
+    "vendor": "OpenBook AMD vendor: G14 hardware HALs, the A/B boot HAL and openbook-bootsync",
+    "vendor_dlkm": "our AMD kernel modules, including openbook_lid_guard (lid-closed sleep fix)",
+    "system_dlkm": "modules matching our kernel",
+    "boot": "our AMD kernel (6.18.21-android17)",
+    "init_boot": "ours",
+    "vendor_boot": "ours: first-stage AMD modules and vendor ramdisk"
+  },
+  "pipeline_today": "two stages: per-fix builders (input/bridge/module/trust) produce the patched release; the A/B builders (super, image, OTA) repackage that release. A single automated stock-to-patched-A/B-OTA pipeline is the capture-and-patch milestone, not yet built."
+}
