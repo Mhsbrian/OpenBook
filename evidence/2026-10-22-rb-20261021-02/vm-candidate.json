@@ -1,0 +1,74 @@
+{
+  "schema": "openbook-ruby-release-vm/1",
+  "candidate_sha256": "5a466ee6012ce220e964205fdd3aad7c1788b992b392debddcc9f816c485784a",
+  "vm_instrumented_sha256": "d885e7fc836c8407a07002cc4d5d67ef269de8054f0cf0a1167ecff4fd387617",
+  "scope": "QEMU TCG max CPU, SwiftShader, 4 vCPU/8 GiB, no network; instrumented vendor copy, never released",
+  "boot_completed": true,
+  "native_bridge_selected": [
+    "libberberis_arm64.so"
+  ],
+  "settings_intelligence_anrs": 0,
+  "lid_guard_module_messages": 36,
+  "houdini_initialization_failures": 0,
+  "icing_em_aarch64_errors": 0,
+  "settings_intelligence_fatal_exceptions": 0,
+  "unsatisfied_link_errors": 0,
+  "probe_runs": [
+    {
+      "package": "dev.anybook.probe.arm64",
+      "complete": true,
+      "totals": {
+        "pass": 17,
+        "fail": 3,
+        "skip": 0
+      },
+      "failed": [
+        "isa",
+        "regress",
+        "signals"
+      ]
+    },
+    {
+      "package": "dev.anybook.probe.x86_64",
+      "complete": true,
+      "totals": {
+        "pass": 18,
+        "fail": 0,
+        "skip": 2
+      },
+      "failed": []
+    }
+  ],
+  "search_attempts": 20,
+  "anr_packages": [
+    "ActivityRecord{211849391",
+    "Window{ff721f6",
+    "com.android.systemui",
+    "com.android.vending",
+    "com.android.vending:instant_app_installer",
+    "com.google.android.as",
+    "com.google.android.as.oss",
+    "com.google.android.contacts",
+    "com.google.android.desktop.setupwizard",
+    "com.google.android.gms",
+    "com.google.android.gms.persistent",
+    "com.google.android.inputmethod.latin",
+    "com.google.android.permissioncontroller",
+    "input",
+    "system"
+  ],
+  "system_server_fatal_signals": 0,
+  "kernel_panic": false,
+  "observer": {
+    "stop_reason": "runner_limit_or_exit",
+    "runner_status": 0,
+    "display_wake_injected": true,
+    "free_before": 1235838590976,
+    "minimum_free": 1183325696000,
+    "free_after": 1209986727936
+  },
+  "limits": [
+    "TCG is 10-50x slower than the G14; ANRs here do not measure translation",
+    "No result navigation or hardware claim; hardware acceptance is on the G14"
+  ]
+}
