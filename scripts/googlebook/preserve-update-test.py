@@ -190,14 +190,29 @@ class PreserveGuards(unittest.TestCase):
         both = copy.deepcopy(new); both["logical_sha256"]["vendor"] = "vendor-v2"
         with self.assertRaisesRegex(ValueError, "Reviewed logical changes differ"):
             u.compatible(old, both, ("vendor_dlkm",))  # no concurrent vendor change
-        other = copy.deepcopy(old); other["logical_sha256"]["system"] = "framework-v2"
-        with self.assertRaisesRegex(ValueError, "Only vendor_dlkm"):
-            u.compatible(old, other, ("system",))
+        other = copy.deepcopy(old); other["logical_sha256"]["product"] = "product-v2"
+        with self.assertRaisesRegex(ValueError, "Only system or vendor_dlkm"):
+            u.compatible(old, other, ("product",))
         with self.assertRaisesRegex(ValueError, "Reviewed logical changes differ"):
             u.compatible(old, old, ("vendor_dlkm",))  # a review must match a real change
         drift = copy.deepcopy(new); drift["kernel_sha256"] = "other"
         with self.assertRaises(ValueError):
             u.compatible(old, drift, ("vendor_dlkm",))  # every other check still applies
+
+    def test_reviewed_system_change_is_explicit_and_exact(self):
+        old = self.manifest()
+        new = copy.deepcopy(old); new["logical_sha256"]["system"] = "bridge-v2"
+        with self.assertRaises(ValueError):
+            u.compatible(old, new)  # never implicitly
+        u.compatible(old, new, ("system",))
+        with self.assertRaisesRegex(ValueError, "Reviewed logical changes differ"):
+            u.compatible(old, new, ("vendor_dlkm",))  # the review names the actual image
+        both = copy.deepcopy(new); both["logical_sha256"]["system_ext"] = "ext-v2"
+        with self.assertRaisesRegex(ValueError, "Reviewed logical changes differ"):
+            u.compatible(old, both, ("system",))  # one reviewed image, nothing beside it
+        drift = copy.deepcopy(new); drift["vendor_cmdline"] = "other"
+        with self.assertRaises(ValueError):
+            u.compatible(old, drift, ("system",))  # every other check still applies
 
     def test_bootconfig_rebind_retains_ramdisk(self):
         body = b"not-a-real-ramdisk" * 100
