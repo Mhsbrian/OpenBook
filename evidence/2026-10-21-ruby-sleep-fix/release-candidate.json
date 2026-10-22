@@ -26,7 +26,9 @@
     "elapsed_s": 540.4,
     "module_loaded": true,
     "boot_completed": true,
-    "known_vm_system_server_sigsegv": true
+    "system_server_fatal_signals": 2,
+    "zygote_exit_events": 2,
+    "note": "Same SEGV_ACCERR class seen in every earlier Ruby VM run; the G14 dropbox showed none on hardware"
   },
   "laptop_update_rehearsal": {
     "path": "camera25 -> RB01 (v3 synthetic USB) -> RB01+guard (synthetic USB) -> restore to RB01",
