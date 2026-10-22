@@ -351,6 +351,26 @@ def reevaluate(a):
     m.require(result["passed"], "Re-evaluated Android phase failed")
 
 
+def swap_usb(a):
+    """Attach a newer USB and make the laptop's current system the restore baseline."""
+    w = a.run.resolve()
+    state = json.loads((w / "state.json").read_text())
+    laptop, usb = w / "laptop.img", w / "usb.img"
+    m.require(state["phases"] and state["phases"][-1]["passed"], "Previous phase must pass first")
+    usb.unlink()
+    m.run("cp", "--reflink=auto", a.usb_package / "ruby-live.img", usb)
+    with usb.open("r+b") as f:
+        f.truncate(state["usb_bytes"])
+    state["usb_pin"] = json.loads((a.installer / "source.json").read_text())
+    hashes, _ = partition_hashes(laptop)
+    state["original"], state["original_bootconfig"] = hashes, bootconfig(laptop)
+    state["installer"], state["usb_package"] = str(a.installer), str(a.usb_package)
+    state["phases"].append(dict(phase=f"swap-usb-{len(state['phases'])}", passed=True,
+                                usb=str(a.usb_package), new_restore_baseline=True))
+    (w / "state.json").write_text(json.dumps(state, indent=2) + "\n")
+    print(json.dumps({"swapped": str(a.usb_package), "build": state["usb_pin"]["build"]}))
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     sub = p.add_subparsers(dest="phase", required=True)
@@ -371,6 +391,10 @@ def main():
     q.add_argument("--seconds", type=int, default=480)
     avb = Path(os.environ.get("OPENBOOK_HOME", str(Path.home() / "anybook"))) / "aosp/src/out/host/linux-x86/bin/avbtool"
     q.add_argument("--avbtool", default=str(avb))
+    q = sub.add_parser("swap-usb", help="Attach a newer USB package; current laptop system becomes the restore baseline")
+    q.add_argument("--run", type=Path, required=True)
+    q.add_argument("--usb-package", type=Path, required=True)
+    q.add_argument("--installer", type=Path, required=True)
     q = sub.add_parser("reevaluate", help="Recompute the latest Android phase from its saved capture")
     q.add_argument("--run", type=Path, required=True)
     q.add_argument("--label", required=True)
@@ -378,7 +402,7 @@ def main():
     a = p.parse_args()
     m.require(Path("/.dockerenv").exists(), "Run inside inst-docker.sh; never pass a physical device")
     os.umask(0o077)
-    {"prepare": prepare, "ui": ui, "android": android, "reevaluate": reevaluate}[a.phase](a)
+    {"prepare": prepare, "ui": ui, "android": android, "reevaluate": reevaluate, "swap-usb": swap_usb}[a.phase](a)
 
 
 if __name__ == "__main__":

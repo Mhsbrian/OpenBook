@@ -179,6 +179,26 @@ class PreserveGuards(unittest.TestCase):
             entry["androidboot.boot_part_uuid"] = "new"
         u.compatible(old, new)
 
+    def test_reviewed_vendor_dlkm_change_is_explicit_and_exact(self):
+        old = self.manifest()
+        old["logical_sha256"]["vendor_dlkm"] = "modules-v1"
+        new = copy.deepcopy(old)
+        new["logical_sha256"]["vendor_dlkm"] = "modules-v2"
+        with self.assertRaises(ValueError):
+            u.compatible(old, new)  # never implicitly
+        u.compatible(old, new, ("vendor_dlkm",))
+        both = copy.deepcopy(new); both["logical_sha256"]["vendor"] = "vendor-v2"
+        with self.assertRaisesRegex(ValueError, "Reviewed logical changes differ"):
+            u.compatible(old, both, ("vendor_dlkm",))  # no concurrent vendor change
+        other = copy.deepcopy(old); other["logical_sha256"]["system"] = "framework-v2"
+        with self.assertRaisesRegex(ValueError, "Only vendor_dlkm"):
+            u.compatible(old, other, ("system",))
+        with self.assertRaisesRegex(ValueError, "Reviewed logical changes differ"):
+            u.compatible(old, old, ("vendor_dlkm",))  # a review must match a real change
+        drift = copy.deepcopy(new); drift["kernel_sha256"] = "other"
+        with self.assertRaises(ValueError):
+            u.compatible(old, drift, ("vendor_dlkm",))  # every other check still applies
+
     def test_bootconfig_rebind_retains_ramdisk(self):
         body = b"not-a-real-ramdisk" * 100
         data = body + u.h.gpt.bootconfig_trailer("androidboot.boot_part_uuid = original\n", len(body))

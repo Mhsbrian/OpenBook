@@ -1,0 +1,119 @@
+{
+  "schema": "openbook-ruby-lid-guard-release-candidate/1",
+  "date": "2026-10-22",
+  "proposed_release": "RB-20261021-01 (Ruby): RB-20261020-01 system + openbook_lid_guard in vendor_dlkm",
+  "module_sha256": "97a5868c9d24f23c76d73ab294ff1b4f42d9aa7b0d2a2be3f4cb62261eabc6c6",
+  "candidate": {
+    "builder": "scripts/googlebook/build-module-candidate.py",
+    "source_sha256": "554fb78970f94d985c8be86f4b07c42c5f64ea9823eac33816a993a5d88dffe6",
+    "image_sha256": "4b110e750ec2e7874ccdaf563ca8b9c7d45cd8eccc18848478edb1f9b5382cf3",
+    "changed_logical": [
+      "vendor_dlkm"
+    ],
+    "added_file": "/lib/modules/openbook_lid_guard.ko",
+    "edited_files": [
+      "/lib/modules/modules.load",
+      "/lib/modules/modules.dep"
+    ],
+    "metadata_rows": [
+      296,
+      298
+    ],
+    "avb_chain_verified": true
+  },
+  "ruby_vm_boot": {
+    "entry": "serial",
+    "elapsed_s": 540.4,
+    "module_loaded": true,
+    "boot_completed": true,
+    "known_vm_system_server_sigsegv": true
+  },
+  "laptop_update_rehearsal": {
+    "path": "camera25 -> RB01 (v3 synthetic USB) -> RB01+guard (synthetic USB) -> restore to RB01",
+    "phases": [
+      {
+        "phase": "ui-update-0",
+        "passed": true,
+        "changed": [
+          "EFI",
+          "super",
+          "vbmeta_a"
+        ],
+        "rollback_state": "updated",
+        "new_system": true
+      },
+      {
+        "phase": "swap-usb-1",
+        "passed": true
+      },
+      {
+        "phase": "ui-update-2",
+        "passed": true,
+        "changed": [
+          "EFI",
+          "super",
+          "vbmeta_a"
+        ],
+        "rollback_state": "updated",
+        "new_system": true
+      },
+      {
+        "phase": "android-after-guard-update",
+        "passed": true,
+        "boot_completed": true,
+        "system_verity_root_observed": true,
+        "metadata_keys_unchanged": true
+      },
+      {
+        "phase": "ui-restore-4",
+        "passed": true,
+        "changed": [
+          "EFI",
+          "super",
+          "vbmeta_a"
+        ],
+        "rollback_state": "restored",
+        "original_system_restored": true
+      }
+    ],
+    "guard_loaded_after_update": true
+  },
+  "real_stick": {
+    "device": "SanDisk Ultra USB stick ending 2034",
+    "backup_sha256": "d0fe0ea6cb9d8c08aedb9f42d8c4a73c2277317dc2be10a73a566e1fcbf27ea2",
+    "backup_reads_matched": 2,
+    "stages": [
+      {
+        "name": "stage-a-system",
+        "operation": "SystemUpdate",
+        "image_sha256": "c21ab5a0941fc6eb419bf5b058ddc438288c954c653ca79ad333b07e3a6bcf0f"
+      },
+      {
+        "name": "stage-b-installer",
+        "operation": "Replace",
+        "image_sha256": "f3001a9b212c43569746e6541d24970be2ec9ce277e1ce6e6bd9e2bab043fd28"
+      },
+      {
+        "name": "stage-c-entries",
+        "operation": "AddBootEntries",
+        "image_sha256": "f1e7410b297578af2dfe9c07b5a0eeede663e6886ddbbc134e2345db6df6fadb"
+      }
+    ],
+    "installer_source_pin_sha256": "7517ca4145c1c120456578b76a3ba6be8215a2ad85816a74450d738f5210774f",
+    "laptop_update_record_sha256": "804f4975cf485bf5756bc7343670fc481b82c3608ef133cc04f496ae3a26bf82",
+    "final_image_sha256": "f1e7410b297578af2dfe9c07b5a0eeede663e6886ddbbc134e2345db6df6fadb",
+    "writes": [
+      "EFI",
+      "vbmeta_a",
+      "super"
+    ],
+    "protected_bytes": 8805941248,
+    "apply_validator_accepted": true,
+    "physical_preflight": "read-only direct read matched the backup; no bytes written",
+    "physical_device_written": false
+  },
+  "not_verified": [
+    "G14 hardware lid/sleep behaviour with the module",
+    "PIN unlock with the new vendor_dlkm (VM fixture has no PIN)"
+  ]
+}
