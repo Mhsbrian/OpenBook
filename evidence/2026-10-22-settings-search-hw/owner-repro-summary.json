@@ -1,0 +1,27 @@
+{
+  "scope": "Historical ring-buffer observations; not a fresh test or fix verdict",
+  "settings_search_icing_architecture_crashes": [
+    {
+      "device_log_time": "10-21 21:21:39.719",
+      "pid": 6766
+    },
+    {
+      "device_log_time": "10-21 21:21:41.245",
+      "pid": 8754
+    }
+  ],
+  "houdini_initialization_failures_all_processes": [
+    {
+      "device_log_time": "10-21 21:21:39.773",
+      "pid": 8754
+    },
+    {
+      "device_log_time": "10-21 21:21:44.064",
+      "pid": 9038
+    }
+  ],
+  "diagnosis": "settings_search_arm64_load_failure_observed",
+  "fix_validated": false,
+  "capture_complete_without_errors": true,
+  "context": "Owner reproduced the search failure on the installed RB-20261021-01 system shortly before 21:22 EDT 2026-10-21; collected read-only over wireless adb."
+}

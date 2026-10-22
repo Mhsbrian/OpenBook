@@ -1,5 +1,18 @@
 # Compatibility matrix
 
+## Ruby translators on G14 hardware (2026-10-22, ANAL-234)
+
+Executable mode over adb on the installed RB-20261021-01 system (Ryzen AI 9 HX 370, enforcing). No system change.
+
+| Translator | Google `libicing.so`: 600 docs, 10 queries, restart | `bridge_check` (4 groups) | CoreMark / native |
+|---|---|---|---|
+| Houdini (configured) | `SIGTRAP` at first guest instruction | `SIGTRAP` | — |
+| Ruby `libndk_translation` | Pass | Crash (`SIGSEGV`) | 0.737 |
+| Digitalis (source-built) | Pass | 4/4 pass | 0.362 |
+
+Full-system Settings UI on the G14 is still untested. Details: `docs/settings-search.md`,
+`evidence/2026-10-22-settings-search-hw/`.
+
 ## Ruby Settings search (2026-10-21, ANAL-234)
 
 | Target/test | Result |

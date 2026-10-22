@@ -1,5 +1,71 @@
 # Ruby Settings search failure (ANAL-234)
 
+## Hardware translator comparison, 2026-10-22
+
+The owner reproduced the crash on the installed RB-20261021-01 system shortly
+before 21:22 EDT. The read-only collector found the same chain at 21:21:39 and
+21:21:41: Houdini initialization fails, then ARM64 `libicing.so` is rejected
+as `EM_AARCH64`. Settings Services crashed three times; Settings itself did not.
+This is the installed NVMe system, not only the live stick
+(`owner-repro-summary.json`).
+
+With the G14 back on wireless adb, the three translators were compared on the
+real Ryzen AI 9 HX 370 under Ruby's kernel and enforcing SELinux. The test ran
+in a temporary `/data/local/tmp` directory and was then removed. Nothing in
+`/system`, no setting and no app was changed. `icing_probe` loads Google's own
+ARM64 `libicing.so`, extracted on the device from its Settings Services APK
+(`ab75e8c9…`). It answers `JNI_OnLoad` through a small JNI shim, then:
+
+1. registers all 35 natives;
+2. indexes 600 Settings-like documents;
+3. runs 10 prefix, AND and OR queries, checking each result set against an
+   independent model;
+4. persists, restarts on the same directory, and repeats the queries.
+
+| Translator | Icing (600 docs, 10 queries, restart) | `bridge_check` ISA groups | CoreMark vs native x86_64 |
+|---|---|---|---|
+| Houdini, as configured | `SIGTRAP` at the first guest instruction | `SIGTRAP` | — |
+| Ruby's `libndk_translation` | **Pass**, 0.58 ms/search, 269 ms to index | Crashes (`SIGSEGV` in translated code) | 0.737 |
+| Source-built Digitalis | **Pass**, 1.31 ms/search, 270 ms to index | **4/4 pass** (exec, ID registers, 6,900 FRECPE/FRSQRTE cases, CRC32/NEON) | 0.362 |
+
+The CoreMark figures are the best of three interleaved 600k-iteration rounds,
+all validated: native 27,807, Digitalis 10,073 and ndk 20,500 iterations/s.
+An earlier identical run reproduced every pass/fail result and both ratios.
+
+- **Houdini fails in both modes on this CPU.** In app mode it reports
+  initialization failure `0x00010002`. Run directly, it traps before the first
+  ARM instruction completes. Its banner limits use to Google ALOS under Intel's
+  commercial licence. We do not patch, spoof or bypass it.
+- **Both alternatives run Google's search engine correctly at native speed.**
+  The VM's ANRs hit many apps, including Play Services, Play Store and the
+  keyboard. They came from TCG emulation, not from Icing under translation.
+- **Recommendation:** Digitalis, the existing experiment. It is open source,
+  passes every ISA check here and matches the AOSP track. `libndk_translation`
+  is twice as fast on CPU-bound code. However, it crashes in `bridge_check`, and
+  in the VM it showed ordering, FRECPE and signal defects, so it stays rejected.
+
+Each run used its own guest set: the probe links `libm`, `liblog`, `libz` and
+`libc++` with RUNPATH `$ORIGIN/guest`, so libicing binds only to that set. Only
+libc's startup `libnetd_client.so` came from Ruby's `/system/lib64/arm64`;
+Icing makes no socket calls. `dl_iterate_phdr` reports the guest linker by its
+`PT_INTERP` name.
+
+Berberis' runner ignores `-l`/`-s` on x86_64 and prefers Ruby's
+`/system/bin/berberis` linker. `dg_launch` therefore calls the exported
+`GuestLoader::StartExecutable` with Digitalis' own linker and vdso.
+
+**Still not tested on hardware:** the full Ruby + Digitalis system. This covers
+the init rule and labels, ART loading `libberberis_arm64.so` as the native
+bridge, the guest `app_process64`, the Settings UI, result navigation, Voice
+Access/YourWidget and the ARM app corpus. This evidence supports, but does not
+replace, that acceptance. Evidence: `evidence/2026-10-22-settings-search-hw/`.
+
+```sh
+scripts/diagnostics/icing-probe/build.sh /private/new-build
+python3 scripts/diagnostics/icing-probe/icing-probe-hw.py --adb ADB --serial EXACT_SERIAL \
+  --build /private/new-build --digitalis "$HOME/anybook/digitalis/bundle-a17" --out /private/new-run
+```
+
 ## Confirmed on the laptop, 2026-10-21
 
 Opening the left-hand search field starts Google Settings Intelligence. Its
@@ -194,8 +260,16 @@ It has no physical device or guest network access.
 
 ## Qualification and release requirements
 
-The hardware ADB connection disappeared during this follow-up. No corrected
-image has been run on the G14. The first instrumented VM also reproduced the
+Update 2026-10-22: the translator and Google's Icing library now pass on the
+G14 itself (section above). No corrected *system image* has run on the G14.
+The laptop has since moved to RB-20261021-01, whose USB **Update** entry keeps
+data and whose **Restore** entry returns to the previous system. That is now the
+expected delivery path: the next Ruby release is RB-20261021-01 plus this
+overlay. The overlay builder is still pinned to the synthetic RB01 parent and
+must be rebased onto that release's inputs. The hardware gates below then run
+after Update, with Restore available.
+
+The hardware ADB connection disappeared during the 2026-10-21 follow-up. The first instrumented VM also reproduced the
 previously known system-server crash and checkpoint-commit reboot. Its JNI
 installation failed because the test shell's temporary directory was not
 writable; that harness error was corrected, and it is not a translator verdict.
