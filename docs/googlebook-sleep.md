@@ -106,3 +106,63 @@ Results are in `evidence/2026-10-21-ruby-sleep-fix/release-candidate.json`:
 - The synthetic laptop takes camera25 → RB01 → RB01 + guard, boots with the module
   loaded and encryption keys unchanged, and restores to RB01 byte for byte.
 - The real stick plan passes the read-only physical preflight.
+
+## S0i3 and the dGPU (ANAL-238)
+
+Evidence: `evidence/2026-10-22-ruby-dgpu-power/`. Labels as in `STATUS.md`.
+
+**S0i3 is never reached** (CONFIRMED). The PowerStats HAL reports `total_hw_sleep` as the SoC's S0i3 residency, and
+batterystats records it after resumes. Across 7 boots (2026-10-20 to 2026-10-22, before and after the lid guard) it
+is 0 ms in every record, over 130 suspends. `scripts/googlebook/sleep-history.py <bugreport.zip>` extracts this
+without root, together with wake reasons and battery-only spans.
+
+**What sleep costs today** (CONFIRMED). Overnight on battery, with the screen off and 98.6 % of the time suspended,
+the laptop drew 4.5 W on average (631 minutes, 63 spans of 10 minutes, 2.9–5.9 W each).
+
+**The dGPU is not shown to be the blocker.** The earlier wording "S0i3 still blocked by the driverless dGPU" was an
+expectation carried over, not a measurement:
+- On the AOSP image the same G14 missed S0i3 with the dGPU's bridge in D3cold, and again with every LPI constraint
+  met (`power-input.md` §1, runs 4–7).
+- On Ruby the dGPU hook (`vendor.openbook.dgpu-pm`) runs at early-init. Its HDMI-audio unbind is CONFIRMED:
+  `snd_hda_intel` binds `64:00.1` at boot, and holds only the AMD functions afterwards.
+- D3cold is a HYPOTHESIS until a root capture, because a user build's shell cannot read PCI power state.
+
+The cause of the S0i3 miss is UNKNOWN. The AOSP track's leading HYPOTHESIS is MPM or the USB4 routers
+(`power-input.md`).
+
+**Why the hook's own report was never seen.** init's `stdio_to_kmsg` opens `/dev/kmsg_debug`. Ruby's user second
+stage never relabels that node, so it stays `tmpfs`, and every write by a vendor domain is denied (four denials per
+boot from `openbook_pc_setup`). The same applies to every `stdio_to_kmsg` vendor service on Ruby.
+
+**Wake sources in the RB-20261021-01 lid test.** 5 of 7 dark resumes were `9 acpi:38 PCIe PME`. IRQ 38 is the PME and
+hotplug vector of `00:03.1`, the dGPU's root port (`/proc/interrupts`). Whether the dGPU itself raises them is a
+HYPOTHESIS.
+
+### Root-domain report and D0 hold (vendor change, not yet on the laptop)
+
+- `openbook-pc-setup` logs every line to logd as well, through vendor toybox's `log`.
+- `dgpu-report` runs at `sys.boot_completed=1`, and again whenever `debug.openbook.dgpu_report` changes. It logs, as
+  root:
+  - each NVIDIA function's driver, `power_state`, `runtime_status`, `control` and runtime-PM times;
+  - the root port and its ACPI power resources (`PG00:<resource_in_use>`);
+  - `dgpu_disable` and `gpu_mux_mode` (read only);
+  - `/sys/power/suspend_stats`;
+  - a verdict: `d3cold`, `d3hot`, `d0-no-driver`, `d0-driver` or `absent`.
+
+  It never reads PCI config space.
+- `debug.openbook.dgpu_pm=on|auto` (`dgpu-ctl`) holds every NVIDIA function in D0, or lets it suspend again. The hold
+  is volatile: a reboot returns to `dgpu-pm`'s default. It refuses while a driver drives the GPU.
+- Policy: one added rule, `r_dir_file(openbook_pc_setup, sysfs_suspend_stats)`. Everything else is already allowed
+  by the laptop's compiled policy (`policy-check.txt`). The `debug.` triggers are allowed too: vendor_init may read
+  `debug_prop`, and shell may set it.
+
+Use from the host:
+
+```sh
+python3 -I scripts/googlebook/dgpu-power-adb.py --serial <adb serial> report
+# on battery, lid open, nobody using it; 3 x 10 min: auto (D3cold), on (D0), auto
+python3 -I scripts/googlebook/dgpu-power-adb.py --serial <adb serial> battery --minutes 10 --out dgpu-battery.json
+```
+
+The battery run flags any state in which the screen went off, someone used the laptop or the charger was connected.
+Such a comparison is not valid. The run always ends with `auto`.
