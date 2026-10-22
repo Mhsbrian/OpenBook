@@ -36,7 +36,45 @@ class PlanTests(unittest.TestCase):
             self.assertEqual(rows[f"{base}_a"]["length"], rows[f"{base}_b"]["length"])
             self.assertEqual(rows[f"{base}_a"]["source"], "candidate")
             self.assertEqual(rows[f"{base}_b"]["source"], "blank")
-        self.assertEqual(rows["super"]["length"], 12 * ab.GiB)
+        self.assertEqual(rows["super"]["length"], 24 * ab.GiB)
+
+    def test_every_google_ab_partition_exists_at_least_at_googles_size(self):
+        # Google's Ruby recovery-image GPT: a payload for Google's partition set must find every target.
+        google = {"boot": 64, "init_boot": 8, "vendor_boot": 32, "vbmeta": 4, "pvmfw": 4,
+                  "recovery": 32, "ota_recovery": 128}
+        rows = {r["name"]: r for r in self.layout["partitions"]}
+        for base, mib in google.items():
+            for slot in "ab":
+                self.assertGreaterEqual(rows[f"{base}_{slot}"]["length"], mib * ab.MiB, f"{base}_{slot}")
+        for base in ("pvmfw", "recovery", "ota_recovery"):
+            self.assertEqual(rows[f"{base}_a"]["source"], "blank")
+
+    def test_super_holds_a_whole_group_update_snapshot(self):
+        cap = self.layout["ota_capacity"]
+        self.assertGreaterEqual(cap["super_bytes"], 2 * cap["group_max_bytes"])
+
+    def test_esp_holds_both_slots_at_maximum(self):
+        cap = self.layout["ota_capacity"]
+        self.assertGreaterEqual(cap["esp_bytes"], cap["esp_two_slot_max_bytes"])
+
+    def test_capacity_rules_are_enforced(self):
+        for name, length, msg in (("super", 12 * ab.GiB, "whole-group"), ("EFI", 256 * ab.MiB, "ESP"),
+                                  ("vendor_boot_a", 16 * ab.MiB, "smaller than Google")):
+            bad = ab.plan(self.m, 1000204886016)
+            row = next(r for r in bad["partitions"] if r["name"] == name)
+            delta = row["length"] - length
+            row["length"] = length
+            for r in bad["partitions"][bad["partitions"].index(row) + 1:]:
+                r["offset"] -= delta
+            with self.assertRaisesRegex(ValueError, msg):
+                ab.validate(bad)
+
+    def test_candidate_partition_larger_than_plan_is_refused(self):
+        m = manifest()
+        boot = next(r for r in m["gpt"] if r["name"] == "boot_a")
+        boot["last_lba"] = boot["first_lba"] + (256 * ab.MiB) // SECTOR - 1
+        with self.assertRaisesRegex(ValueError, "larger than the planned"):
+            ab.plan(m, 1000204886016)
 
     def test_userdata_takes_the_rest_and_grows(self):
         rows = {r["name"]: r for r in self.layout["partitions"]}
@@ -59,7 +97,7 @@ class PlanTests(unittest.TestCase):
     def test_super_must_fit_candidate_content(self):
         m = manifest()
         big = next(r for r in m["gpt"] if r["name"] == "super")
-        big["last_lba"] = big["first_lba"] + (13 * ab.GiB) // SECTOR - 1
+        big["last_lba"] = big["first_lba"] + (25 * ab.GiB) // SECTOR - 1
         with self.assertRaisesRegex(ValueError, "super is smaller"):
             ab.plan(m, 1000204886016)
 

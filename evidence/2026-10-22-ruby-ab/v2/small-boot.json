@@ -1,0 +1,113 @@
+{
+  "phase": "boot",
+  "run": {
+    "elapsed_s": 1800.8,
+    "timed_out": true,
+    "qmp_events": [
+      "RTC_CHANGE"
+    ]
+  },
+  "booted_slot": "b",
+  "boot_control": {
+    "suffix": "_a",
+    "magic_ok": true,
+    "nb_slot": 2,
+    "slots": [
+      {
+        "priority": 7,
+        "tries": 0,
+        "successful": false
+      },
+      {
+        "priority": 15,
+        "tries": 1,
+        "successful": true
+      }
+    ]
+  },
+  "bootsync": {
+    "schema": "openbook-bootsync/1",
+    "command": "status",
+    "current_slot": "b",
+    "slots": {
+      "a": {
+        "images_ok": true,
+        "vbmeta_digest": "254252b6acc00f3ba0f7e84a05942a28518e4185958ec9d52fec7755330cd491",
+        "vbmeta_key_sha256": "7728e30f50bfa5cea165f473175a08803f6a8346642b5aa10913e9d9e6defef6",
+        "vbmeta_signed": true,
+        "vbmeta_release": "avbtool 1.4.0",
+        "entry": null,
+        "entry_state": "none",
+        "esp_files": "in_sync"
+      },
+      "b": {
+        "images_ok": true,
+        "vbmeta_digest": "568ff1d07fa6e26847458a3fbaab642c94776a5bf38f1b887c2685dc2190cb72",
+        "vbmeta_key_sha256": "7728e30f50bfa5cea165f473175a08803f6a8346642b5aa10913e9d9e6defef6",
+        "vbmeta_signed": true,
+        "vbmeta_release": "avbtool 1.4.0",
+        "entry": "openbook-b.conf",
+        "entry_state": "good",
+        "esp_files": "in_sync"
+      }
+    },
+    "entries": [
+      {
+        "file": "openbook-b.conf",
+        "id": "openbook-b.conf",
+        "slot": "b",
+        "state": "good"
+      }
+    ],
+    "loader_conf": {
+      "default": "openbook-b.conf",
+      "preferred": null
+    },
+    "next_boot_entry": "openbook-b.conf",
+    "next_boot_slot": "b",
+    "esp_free_bytes": 1011408896,
+    "ok": true
+  },
+  "snapshot_state": "None",
+  "merge_log": [
+    " binder as linkToDeath cannot be implemented. serviceName: emergency_affordance",
+    " constructed with Config: com.google.android.configupdater.emergencynumberdb.EmergencyNumberDbConfig@3234857, StoredState: co",
+    " snapuserd: product_b: Snapshot I/O terminated. Waiting for merge thread....",
+    " snapuserd: system_b: Worker threads terminated with ret: 1 Merge-thread with ret: 1 RA-thread with ret: 1",
+    " snapuserd: vendor_b: Worker threads terminated with ret: 1 Merge-thread with ret: 1 RA-thread with ret: 1",
+    "/update_engine(  677): [INFO:snapshot.cpp(1537)] CheckTargetMergeState for system_b returned: Merging",
+    "132\temergency_affordance: []",
+    "134\temergency_affordance: []",
+    "135\temergency_affordance: []",
+    ": [INFO:cleanup_previous_update_action.cc(383)] Waiting for merge to complete: 97%.",
+    "=NOT_ROAMING accessNetworkTechnology=UNKNOWN rejectCause=0 emergencyEnabled=false availableServices=[] cellIdentity=null voic",
+    "D/ConfigUpdater( 4219): Loaded SharedPreferences: EmergencyNumberDbDownload"
+  ],
+  "runtime_findings": {
+    "setup_welcome_activity_seen": true,
+    "system_server_fatal_signals": 0,
+    "zygote_exit_events": 0,
+    "system_server_execmem_denial_seen": false,
+    "mmd_setup_abort_seen": false,
+    "camera_provider_running_reported": false,
+    "camera_provider_registered_reported": true,
+    "camera_device_counts_reported": 1,
+    "camera_provider_abort_seen": false,
+    "camera_fmq_test_exit_statuses": 0,
+    "camera_buffer_test_exit_statuses": 0,
+    "camera_buffer_test_abort_seen": false,
+    "camera_fmq_tmpfs_denial_seen": false,
+    "camera_provider_default_label_denial_seen": false
+  },
+  "checks": {
+    "booted_slot_b": true,
+    "boot_completed": true,
+    "slot_b_marked_successful": true,
+    "bootsync_b_entry_good": true,
+    "bootsync_next_boot_b": true,
+    "snapshot_merged": true,
+    "no_avb_error": true
+  },
+  "schema": "openbook-ruby-ab-ota/1",
+  "passed": true
+}

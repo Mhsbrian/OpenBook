@@ -59,6 +59,7 @@ class PartitionSet(unittest.TestCase):
         line = next(x for x in text.splitlines() if x.startswith("google_dynamic_partitions_partition_list="))
         self.assertEqual(line.split("=", 1)[1].split(" "), list(m.DYNAMIC))
         self.assertIn("virtual_ab=true", text)
+        self.assertIn("virtual_ab_compression_method=lz4", text)  # not delta_generator's slow gz default
 
     def test_delta_minor_version_is_a_delta_version(self):
         self.assertGreaterEqual(m.DELTA_MINOR_VERSION, 2)  # 0 is full-only

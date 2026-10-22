@@ -8,15 +8,28 @@ update_engine need a second slot: update_engine writes the *other* slot's
 boot/vbmeta and a Virtual A/B snapshot of super, then one reboot switches. This
 tool turns the single-slot candidate into a two-slot whole-disk plan:
 
-  EFI(512M) misc boot_a boot_b init_boot_a init_boot_b vendor_boot_a vendor_boot_b
-  vbmeta_a vbmeta_b metadata super(VAB, both slots) userdata(rest)
+  EFI misc {boot,init_boot,vendor_boot,vbmeta,pvmfw,recovery,ota_recovery}_{a,b}
+  metadata super(Virtual A/B, both slots) userdata(rest)
 
 Slot A is populated from the candidate; slot B starts blank (update_engine fills
 it on the first OTA). userdata is blank and gets all remaining space — this is
 what frees the G14 from its fixed ~8 GiB data partition. This is the planning
 and validation step only: offsets, sizes, sources and a disk-fits check. It
-writes no image and touches no device. The layout matches docs/installer.md 3.2,
-anchored to the candidate's real partition sizes.
+writes no image and touches no device.
+
+Sizing (layout v2, "OTA-ready"). Partition sizes are fixed once installed, so they
+are chosen for the largest update the laptop should ever take, not for today's
+content:
+  - Every A/B partition of Google's Ruby layout exists, at least at Google's size
+    (read from Google's recovery image GPT), so any payload built for Google's
+    partition set finds every target partition.
+  - Partitions holding OpenBook content (our AMD kernel in boot, our ramdisks) get
+    at least 2x headroom over today's content.
+  - super is twice Google's dynamic-partition group cap: even an update that
+    rewrites the whole group keeps its Virtual A/B snapshot inside super, so an
+    OTA never depends on free space in /data (which reached 98% on the G14).
+  - The ESP holds both slots' boot files at their partitions' maximum sizes.
+validate() enforces these rules.
 """
 import argparse
 import json
@@ -27,11 +40,24 @@ MiB = 1024 * 1024
 GiB = 1024 * MiB
 ALIGN = MiB
 GPT_RESERVE_SECTORS = 34          # protective MBR + header + 128 entries, each end
-EFI_BYTES = 512 * MiB             # two slots of ESP boot artifacts + headroom
-SUPER_BYTES = 12 * GiB            # Virtual A/B, same size class as Googlebook's
-# Per-slot static partitions; sizes are asserted against the candidate.
-SLOTTED = ("boot", "init_boot", "vendor_boot", "vbmeta")
-SINGLE = ("EFI", "misc", "metadata")
+# Google's Ruby dynamic-partition group cap (google_dynamic_partitions max size in Google's super).
+GOOGLE_GROUP_MAX = 12_880_707_584
+SUPER_BYTES = 24 * GiB            # >= 2 x GOOGLE_GROUP_MAX: a whole-group rewrite's snapshot fits in super
+EFI_BYTES = 1 * GiB               # both slots' boot files at maximum size, with margin (see validate)
+# Per-slot static partitions: (bytes, Google's size, why).
+SLOT_SIZES = {
+    "boot":         (128 * MiB, 64 * MiB, "OpenBook AMD kernel (25.6 MiB today): 2x Google, 5x today"),
+    "init_boot":    (16 * MiB,  8 * MiB,  "OpenBook generic ramdisk (2.9 MiB today): 2x Google"),
+    "vendor_boot":  (64 * MiB,  32 * MiB, "Google's own vendor_boot needs 30.3 MiB: 2x Google"),
+    "vbmeta":       (4 * MiB,   4 * MiB,  "Google's size"),
+    "pvmfw":        (4 * MiB,   4 * MiB,  "Google's size; in Google's vbmeta, so Google payloads may carry it"),
+    "recovery":     (32 * MiB,  32 * MiB, "Google's size; present so Google-shaped payloads apply"),
+    "ota_recovery": (128 * MiB, 128 * MiB, "Google's size; present so Google-shaped payloads apply"),
+}
+SLOTTED = tuple(SLOT_SIZES)
+SINGLE_SIZES = {"misc": 4 * MiB, "metadata": 64 * MiB}  # Google's sizes
+# Filled from the candidate on slot A; the others start blank on both slots.
+FROM_CANDIDATE = ("boot", "init_boot", "vendor_boot", "vbmeta")
 
 
 def align_up(value, alignment=ALIGN):
@@ -49,20 +75,26 @@ def plan(manifest, disk_bytes):
     src = candidate_sizes(manifest)
     # Order on disk. Every slotted partition appears as _a and _b at the same size.
     order = ["EFI", "misc"]
-    sizes = {"EFI": EFI_BYTES, "misc": src["misc"]}
-    for base in ("boot", "init_boot", "vendor_boot", "vbmeta"):
+    sizes = {"EFI": EFI_BYTES, "misc": SINGLE_SIZES["misc"]}
+    sources = {}
+    for base, (size, _google, _why) in SLOT_SIZES.items():
         a = f"{base}_a"
-        if a not in src:
-            raise ValueError(f"Candidate is missing {a}")
+        if base in FROM_CANDIDATE:
+            if a not in src:
+                raise ValueError(f"Candidate is missing {a}")
+            if src[a] > size:
+                raise ValueError(f"Candidate {a} ({src[a]} bytes) is larger than the planned {size}")
         for slot in ("a", "b"):
             name = f"{base}_{slot}"
             order.append(name)
-            sizes[name] = src[a]
+            sizes[name] = size
+            sources[name] = "candidate" if slot == "a" and base in FROM_CANDIDATE else "blank"
     order += ["metadata", "super", "userdata"]
-    sizes["metadata"] = src["metadata"]
+    sizes["metadata"] = SINGLE_SIZES["metadata"]
     sizes["super"] = SUPER_BYTES
     if SUPER_BYTES < src["super"]:
-        raise ValueError("12 GiB super is smaller than the candidate's super content")
+        raise ValueError("The planned super is smaller than the candidate's super content")
+    sources.update(EFI="candidate", super="candidate", misc="blank", metadata="blank")
 
     first_usable = GPT_RESERVE_SECTORS * SECTOR
     backup_gpt = GPT_RESERVE_SECTORS * SECTOR
@@ -71,8 +103,7 @@ def plan(manifest, disk_bytes):
     for name in order[:-1]:  # everything but userdata
         length = align_up(sizes[name])
         rows.append(dict(name=name, offset=offset, length=length,
-                         slot=name[-1] if name.endswith(("_a", "_b")) else None,
-                         source="candidate" if name.endswith("_a") or name in ("EFI", "super") else "blank"))
+                         slot=name[-1] if name.endswith(("_a", "_b")) else None, source=sources[name]))
         offset += length
     data_start = offset
     data_end = (disk_bytes - backup_gpt) // ALIGN * ALIGN
@@ -83,7 +114,7 @@ def plan(manifest, disk_bytes):
 
     fixed_total = sum(r["length"] for r in rows if r["name"] != "userdata")
     return dict(
-        schema="openbook-ruby-ab-layout/1",
+        schema="openbook-ruby-ab-layout/2",
         source_image_sha256=manifest["image_sha256"],
         disk_bytes=disk_bytes,
         a_slot_source="the reviewed single-slot candidate",
@@ -92,12 +123,22 @@ def plan(manifest, disk_bytes):
         fixed_system_bytes=fixed_total,
         userdata_bytes=userdata,
         partitions=rows,
+        ota_capacity=dict(
+            super_bytes=SUPER_BYTES, group_max_bytes=GOOGLE_GROUP_MAX,
+            worst_case_update_bytes=2 * GOOGLE_GROUP_MAX,
+            slotted={b: dict(bytes=v[0], google_bytes=v[1], why=v[2]) for b, v in SLOT_SIZES.items()},
+            esp_bytes=EFI_BYTES, esp_two_slot_max_bytes=2 * esp_slot_max()),
         notes=[
-            "boot/init_boot/vendor_boot are NOT covered by Ruby's vbmeta; the ESP/loader verifies them, "
-            "so the A/B boot chain and bootsync need a Ruby verification mode (tracked, not in this plan).",
-            "super is Virtual A/B: one copy, the OTA's snapshot lives in its free space and in /data.",
+            "vbmeta_a is rebuilt to cover the boot chain (boot, init_boot, vendor_boot) and the six "
+            "super partitions, so openbook-bootsync verifies each slot as on the AOSP track.",
+            "super is Virtual A/B with room for a whole-group update's snapshot; /data is never needed for it.",
         ],
     )
+
+
+def esp_slot_max():
+    """One slot's ESP files at most: kernel (<= boot), vendor ramdisk (<= vendor_boot), ramdisk (<= init_boot)."""
+    return sum(SLOT_SIZES[b][0] for b in ("boot", "vendor_boot", "init_boot")) + MiB  # + bootconfig
 
 
 def validate(layout):
@@ -116,11 +157,19 @@ def validate(layout):
     if expect > layout["disk_bytes"] - GPT_RESERVE_SECTORS * SECTOR:
         raise ValueError("Layout overruns the disk's backup GPT reserve")
     names = [r["name"] for r in rows]
+    size = dict((r["name"], r["length"]) for r in rows)
+    # OTA capacity rules (layout v2).
+    if size["super"] < 2 * GOOGLE_GROUP_MAX:
+        raise ValueError("super must hold a whole-group update's snapshot (2 x the group cap)")
+    if size["EFI"] < 2 * esp_slot_max():
+        raise ValueError("The ESP cannot hold both slots' boot files at their maximum sizes")
+    for base, (planned, google, _why) in SLOT_SIZES.items():
+        if f"{base}_a" in size and size[f"{base}_a"] < google:
+            raise ValueError(f"{base} is smaller than Google's {google} bytes")
     for base in SLOTTED:
         if f"{base}_a" not in names or f"{base}_b" not in names:
             raise ValueError(f"Missing a slot for {base}")
-        if dict((r["name"], r["length"]) for r in rows)[f"{base}_a"] != \
-           dict((r["name"], r["length"]) for r in rows)[f"{base}_b"]:
+        if size[f"{base}_a"] != size[f"{base}_b"]:
             raise ValueError(f"{base} slots differ in size")
     return True
 

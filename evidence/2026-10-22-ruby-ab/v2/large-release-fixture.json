@@ -1,0 +1,31 @@
+{
+  "schema": "openbook-large-release-fixture/1",
+  "source_release": "the RB-20261022-01 release partition set",
+  "grow_bytes": 2147483648,
+  "system_original_fs_bytes": 1016664064,
+  "sizes": {
+    "system": 3191865344,
+    "system_ext": 252346368,
+    "product": 1971519488,
+    "vendor": 164626432,
+    "vendor_dlkm": 53645312,
+    "system_dlkm": 18165760,
+    "boot": 67108864,
+    "init_boot": 8388608,
+    "vendor_boot": 67108864,
+    "vbmeta": 8192
+  },
+  "sha256": {
+    "system": "39e275aacad32c0483e309b55a298413d5644961d147471bbe3cdc0b51637d27",
+    "system_ext": "da7fd503976de920eb556b56fcc05f6ff4a5af8a1ce8996f7c1591e0711fe0f1",
+    "product": "c5c6e4fb94c3c673862254069df83910a700f91d50302f294c759530d59020d2",
+    "vendor": "e072350a7df2f59aaa14cc2095a94bd4661de2dccbca1422e38abd80554332d4",
+    "vendor_dlkm": "c22672e2333f1d97833688d2554dee6e06515c425ae1674aa3e2a6b4099c5fba",
+    "system_dlkm": "34185c35cb8bbccd5dfd0bb74eecb8a21e2445730411ef1583e1245628e0d617",
+    "boot": "f6fc1a5892cba10d24ba3c250f5abe4115ba0f7c0556a653995b41373bfbcec8",
+    "init_boot": "0237a3399e093acabf63a0b036ac43b7e1b06a59dc7b665d852c0c6ec28e2dae",
+    "vendor_boot": "b8dc14803c8a07b0ec675d9cc9d2baf7b16c8acfd1a90c63782fa7e0d95bda80",
+    "vbmeta": "faa205b63b2051ef82ff5fa549a1e4231726d602fd74c0f1949a8be2a1c5ab8a"
+  },
+  "keystream": "AES-256-CTR, fixed key and IV (reproducible, incompressible)"
+}

@@ -187,6 +187,11 @@ def build(a):
         run("mcopy", "-i", esp, p, "::/" + str(p.relative_to(esp_tree)))
     run("fsck.fat", "-n", esp, stdout=subprocess.DEVNULL)
 
+    # super's LP metadata names its device size: the image must be exactly the planned partition.
+    super_row = next(r for r in layout["partitions"] if r["name"] == "super")
+    if a.super_img.stat().st_size != super_row["length"]:
+        raise ValueError(f"super image is {a.super_img.stat().st_size} bytes, the layout's super is "
+                         f"{super_row['length']} (build it with build-ruby-ab-super.py --super-bytes)")
     # Payloads into the disk at their GPT offsets.
     offs = {r["name"]: r["offset"] for r in layout["partitions"]}
     for name, path in (("EFI", esp), ("boot_a", w / "boot_a.img"), ("init_boot_a", w / "init_boot_a.img"),

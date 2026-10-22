@@ -1,0 +1,193 @@
+{
+  "schema": "openbook-ruby-ab-layout/2",
+  "source_image_sha256": "4ffc2db3956397ba9153e986c7f9f4d7aef87d5ee15fc09f9e4674c27b609726",
+  "disk_bytes": 1000204886016,
+  "a_slot_source": "the reviewed single-slot candidate",
+  "b_slot": "blank; update_engine writes it on the first OpenBook OTA, then one reboot switches",
+  "userdata": "blank; formatted on first boot; takes all remaining space",
+  "fixed_system_bytes": 27703377920,
+  "userdata_bytes": 972499714048,
+  "partitions": [
+    {
+      "name": "EFI",
+      "offset": 1048576,
+      "length": 1073741824,
+      "slot": null,
+      "source": "candidate"
+    },
+    {
+      "name": "misc",
+      "offset": 1074790400,
+      "length": 4194304,
+      "slot": null,
+      "source": "blank"
+    },
+    {
+      "name": "boot_a",
+      "offset": 1078984704,
+      "length": 134217728,
+      "slot": "a",
+      "source": "candidate"
+    },
+    {
+      "name": "boot_b",
+      "offset": 1213202432,
+      "length": 134217728,
+      "slot": "b",
+      "source": "blank"
+    },
+    {
+      "name": "init_boot_a",
+      "offset": 1347420160,
+      "length": 16777216,
+      "slot": "a",
+      "source": "candidate"
+    },
+    {
+      "name": "init_boot_b",
+      "offset": 1364197376,
+      "length": 16777216,
+      "slot": "b",
+      "source": "blank"
+    },
+    {
+      "name": "vendor_boot_a",
+      "offset": 1380974592,
+      "length": 67108864,
+      "slot": "a",
+      "source": "candidate"
+    },
+    {
+      "name": "vendor_boot_b",
+      "offset": 1448083456,
+      "length": 67108864,
+      "slot": "b",
+      "source": "blank"
+    },
+    {
+      "name": "vbmeta_a",
+      "offset": 1515192320,
+      "length": 4194304,
+      "slot": "a",
+      "source": "candidate"
+    },
+    {
+      "name": "vbmeta_b",
+      "offset": 1519386624,
+      "length": 4194304,
+      "slot": "b",
+      "source": "blank"
+    },
+    {
+      "name": "pvmfw_a",
+      "offset": 1523580928,
+      "length": 4194304,
+      "slot": "a",
+      "source": "blank"
+    },
+    {
+      "name": "pvmfw_b",
+      "offset": 1527775232,
+      "length": 4194304,
+      "slot": "b",
+      "source": "blank"
+    },
+    {
+      "name": "recovery_a",
+      "offset": 1531969536,
+      "length": 33554432,
+      "slot": "a",
+      "source": "blank"
+    },
+    {
+      "name": "recovery_b",
+      "offset": 1565523968,
+      "length": 33554432,
+      "slot": "b",
+      "source": "blank"
+    },
+    {
+      "name": "ota_recovery_a",
+      "offset": 1599078400,
+      "length": 134217728,
+      "slot": "a",
+      "source": "blank"
+    },
+    {
+      "name": "ota_recovery_b",
+      "offset": 1733296128,
+      "length": 134217728,
+      "slot": "b",
+      "source": "blank"
+    },
+    {
+      "name": "metadata",
+      "offset": 1867513856,
+      "length": 67108864,
+      "slot": null,
+      "source": "blank"
+    },
+    {
+      "name": "super",
+      "offset": 1934622720,
+      "length": 25769803776,
+      "slot": null,
+      "source": "candidate"
+    },
+    {
+      "name": "userdata",
+      "offset": 27704426496,
+      "length": 972499714048,
+      "slot": null,
+      "source": "blank"
+    }
+  ],
+  "ota_capacity": {
+    "super_bytes": 25769803776,
+    "group_max_bytes": 12880707584,
+    "worst_case_update_bytes": 25761415168,
+    "slotted": {
+      "boot": {
+        "bytes": 134217728,
+        "google_bytes": 67108864,
+        "why": "OpenBook AMD kernel (25.6 MiB today): 2x Google, 5x today"
+      },
+      "init_boot": {
+        "bytes": 16777216,
+        "google_bytes": 8388608,
+        "why": "OpenBook generic ramdisk (2.9 MiB today): 2x Google"
+      },
+      "vendor_boot": {
+        "bytes": 67108864,
+        "google_bytes": 33554432,
+        "why": "Google's own vendor_boot needs 30.3 MiB: 2x Google"
+      },
+      "vbmeta": {
+        "bytes": 4194304,
+        "google_bytes": 4194304,
+        "why": "Google's size"
+      },
+      "pvmfw": {
+        "bytes": 4194304,
+        "google_bytes": 4194304,
+        "why": "Google's size; in Google's vbmeta, so Google payloads may carry it"
+      },
+      "recovery": {
+        "bytes": 33554432,
+        "google_bytes": 33554432,
+        "why": "Google's size; present so Google-shaped payloads apply"
+      },
+      "ota_recovery": {
+        "bytes": 134217728,
+        "google_bytes": 134217728,
+        "why": "Google's size; present so Google-shaped payloads apply"
+      }
+    },
+    "esp_bytes": 1073741824,
+    "esp_two_slot_max_bytes": 438304768
+  },
+  "notes": [
+    "vbmeta_a is rebuilt to cover the boot chain (boot, init_boot, vendor_boot) and the six super partitions, so openbook-bootsync verifies each slot as on the AOSP track.",
+    "super is Virtual A/B with room for a whole-group update's snapshot; /data is never needed for it."
+  ]
+}

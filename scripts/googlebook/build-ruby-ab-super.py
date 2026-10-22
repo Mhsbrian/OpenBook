@@ -63,6 +63,8 @@ def build(a):
     geo = read_geometry(a.tools / "lpdump", a.reference_super)
     if not geo["virtual_ab"] or geo["group_max"] is None:
         raise ValueError("reference super is not a Virtual A/B super with a sized A/B group")
+    if a.super_bytes and a.super_bytes < geo["super_size"]:
+        raise ValueError("--super-bytes may only enlarge the reference super")
     images = {}
     for name in RUBY_PARTS:
         img = a.logical / f"{name}_a.img"
@@ -73,7 +75,9 @@ def build(a):
     super_img = a.out / "super.img"
     cmd = [str(a.tools / "lpmake"), "--metadata-size", str(geo["metadata_size"]),
            "--metadata-slots", str(geo["metadata_slots"]), "--virtual-ab",
-           "--device", f"super:{geo['super_size']}",
+           # Google's group cap and metadata geometry; the device itself may be larger, so a whole-group
+           # update's Virtual A/B snapshot fits in super (plan-ruby-ab.py: 2 x the group cap).
+           "--device", f"super:{a.super_bytes or geo['super_size']}",
            "--group", f"{geo['group']}_a:{geo['group_max']}",
            "--group", f"{geo['group']}_b:{geo['group_max']}",
            "--output", str(super_img)]
@@ -122,5 +126,6 @@ if __name__ == "__main__":
     p.add_argument("--logical", type=Path, required=True, help="dir with <name>_a.img for the six Ruby partitions")
     p.add_argument("--reference-super", type=Path, required=True, help="pristine Googlebook Ruby super for geometry")
     p.add_argument("--tools", type=Path, required=True, help="dir with lpmake, lpdump, lpunpack")
+    p.add_argument("--super-bytes", type=int, help="device size (>= the reference's); groups keep Google's cap")
     p.add_argument("--out", type=Path, required=True)
     build(p.parse_args())

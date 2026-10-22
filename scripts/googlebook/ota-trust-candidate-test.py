@@ -210,6 +210,7 @@ class ApplyMode(unittest.TestCase):
         # init mounts the drive with the ota_package_file label; the driver runs as shell.
         self.assertIn("context=u:object_r:ota_package_file:s0", t.APPLY_SERVICE)
         self.assertIn("mount ext4 /dev/block/nvme1n1 /mnt/otapayload", t.APPLY_SERVICE)
+        self.assertIn("mount ext4 /dev/block/nvme0n1 /mnt/otapayload", t.APPLY_SERVICE)  # numbering varies
         self.assertIn("seclabel u:r:shell:s0", t.APPLY_SERVICE)
         self.assertIn("update_engine_client --update", t.APPLY_SCRIPT)
         self.assertIn("payload=file:///mnt/otapayload/payload.bin", t.APPLY_SCRIPT)
