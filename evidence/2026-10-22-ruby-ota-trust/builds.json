@@ -1,0 +1,172 @@
+{
+  "builds": {
+    "trust": {
+      "schema": "openbook-ruby-ota-trust-test/1",
+      "image_sha256": "2db57f343b83aca7e9eb1972d74237980335d8d9343f6c237105f00716fba1cd",
+      "source_sha256": "df793f2eed3a5c901659014c2ae368d8e5eeb3d504b514d46fc8c0c1959a7af4",
+      "changed_files": [
+        "/system/etc/init/update_engine.rc",
+        "/system/etc/security/otacerts.zip",
+        "/system/etc/selinux/plat_sepolicy.cil",
+        "/system/etc/selinux/plat_sepolicy_and_mapping.sha256"
+      ],
+      "added_paths": [
+        "/system/etc/openbook-ota-test",
+        "/system/etc/openbook-ota-test/foreign-static.headers",
+        "/system/etc/openbook-ota-test/foreign-static.metadata",
+        "/system/etc/openbook-ota-test/foreign-static.payload",
+        "/system/etc/openbook-ota-test/openbook-static.headers",
+        "/system/etc/openbook-ota-test/openbook-static.metadata",
+        "/system/etc/openbook-ota-test/openbook-static.payload",
+        "/system/etc/openbook-ota-test/openbook-vab.headers",
+        "/system/etc/openbook-ota-test/openbook-vab.metadata",
+        "/system/etc/openbook-ota-test/openbook-vab.payload",
+        "/system/etc/openbook-ota-test/run.sh"
+      ],
+      "only_metadata_change": "replacement file sizes and added paths",
+      "metadata_rows": 7292,
+      "protected_ranges_identical": true,
+      "ota_trust_anchor": {
+        "certificate_sha256": "e984dedb0b7fd1bb345ae738c3782c5b1bf01e0e0aef9662dfb1fc3488bbed3c",
+        "der_sha256": "c1800e56bb88c3f3f8a4685095e0b3639ef61bae44b0ccdf27a81d423628d77d",
+        "subject": "CN=openbook-test OTA (disposable VM test only)",
+        "rsa_bits": 4096,
+        "archive_entry": "openbook/releasekey.x509.pem",
+        "archive_sha256": "056c15c7b92682901436b19d4d0dc9b1d53a92caf25b28d35fc2435c9a395a6f",
+        "replaced_sha256": "640c923ab47c6b220263cec685de5a0deb6cdec7695742776a87719bde2d5bdb",
+        "replaced_entry": "projects/chromeos-release-bot/locations/us/keyRings/RubyMPKeys/releasekey.x509.pem",
+        "stock_ota_accepted": false,
+        "hardware_validated": false
+      },
+      "trust": "openbook",
+      "payloads": {
+        "foreign-static": {
+          "payload_sha256": "6ed26c05c09bab33f1d11af7f785d0c756b490fd5e48e0c0716661274fcb89cc",
+          "metadata_size": 243,
+          "metadata_signature_size": 523
+        },
+        "openbook-static": {
+          "payload_sha256": "5eaab5584e081681e297874e0a0c3deef79ff4b45386033a36de4e46404b165c",
+          "metadata_size": 243,
+          "metadata_signature_size": 523
+        },
+        "openbook-vab": {
+          "payload_sha256": "4ba5fd316ce1f0d56b05a63f2d62f997102f72288c44a4e4e803b31bbf98fafb",
+          "metadata_size": 397,
+          "metadata_signature_size": 523
+        }
+      },
+      "test_harness_policy": {
+        "scope": "shell test-client Binder/FD access only; never deploy",
+        "neverallow_checked": true,
+        "policy_sha256": "3dde9afa670fabeeb4c569c05a1d636f5203ebb289e3e979787e174ac0156d5f",
+        "rules_sha256": "ce8a47226c73808fc792d13f6ba2a0e332cafee0be7ccc591ad640a6db9cd756",
+        "runtime_recompilation_required": true
+      },
+      "file_sha256": {
+        "/system/etc/security/otacerts.zip": "056c15c7b92682901436b19d4d0dc9b1d53a92caf25b28d35fc2435c9a395a6f",
+        "/system/etc/init/update_engine.rc": "b7e4b4348593696b3ff724c3d806e1897d2292fc854c8cc8de4fedc82f3b49e0",
+        "/system/etc/selinux/plat_sepolicy.cil": "3557f8bbfa13628aac80bce6b24bfc43e7d7f1d942e6214b5caff32565768d47",
+        "/system/etc/selinux/plat_sepolicy_and_mapping.sha256": "e5ed307bd0323623c686e31c1798511dc14bf5aaaa3124f38fbb438b45c809a5",
+        "/system/etc/openbook-ota-test/run.sh": "8519acad4c2d8184304ba3c467396222c4ffb7c7d52cefbca74111b6350ffbf8",
+        "/system/etc/openbook-ota-test/foreign-static.payload": "6ed26c05c09bab33f1d11af7f785d0c756b490fd5e48e0c0716661274fcb89cc",
+        "/system/etc/openbook-ota-test/foreign-static.metadata": "e3be86cb10e785798591c5c9b3f2b43fa11a54b3624f5a3349dda845f024efcd",
+        "/system/etc/openbook-ota-test/foreign-static.headers": "2141bd993e9b5556ea6830d5639e37b669eae872af80ee0cb80f111ee78f1305",
+        "/system/etc/openbook-ota-test/openbook-static.payload": "5eaab5584e081681e297874e0a0c3deef79ff4b45386033a36de4e46404b165c",
+        "/system/etc/openbook-ota-test/openbook-static.metadata": "1911342d6505e38632ef6252f88e42fa96e9d2eb282ae8c4e65b941467493708",
+        "/system/etc/openbook-ota-test/openbook-static.headers": "4442785fd8d88f2b75f043b28751c0d7bd628781672c9d9fcbe9300d3e40c11a",
+        "/system/etc/openbook-ota-test/openbook-vab.payload": "4ba5fd316ce1f0d56b05a63f2d62f997102f72288c44a4e4e803b31bbf98fafb",
+        "/system/etc/openbook-ota-test/openbook-vab.metadata": "d8049bbdc6dbb5caa932ad843eb97f23c5d51951a71956db09add27800509e07",
+        "/system/etc/openbook-ota-test/openbook-vab.headers": "5014c90710bfe6c7c64ad9c82b8e7ab0be4f773cfaf1580748b4ced73f263f67"
+      },
+      "physical_device_written": false
+    },
+    "stock": {
+      "schema": "openbook-ruby-ota-trust-test/1",
+      "image_sha256": "3c3ca47af6894e5264c89e61261bd18f635518201b5932382e6f5449b3a57e3a",
+      "source_sha256": "df793f2eed3a5c901659014c2ae368d8e5eeb3d504b514d46fc8c0c1959a7af4",
+      "changed_files": [
+        "/system/etc/init/update_engine.rc",
+        "/system/etc/selinux/plat_sepolicy.cil",
+        "/system/etc/selinux/plat_sepolicy_and_mapping.sha256"
+      ],
+      "added_paths": [
+        "/system/etc/openbook-ota-test",
+        "/system/etc/openbook-ota-test/foreign-static.headers",
+        "/system/etc/openbook-ota-test/foreign-static.metadata",
+        "/system/etc/openbook-ota-test/foreign-static.payload",
+        "/system/etc/openbook-ota-test/openbook-static.headers",
+        "/system/etc/openbook-ota-test/openbook-static.metadata",
+        "/system/etc/openbook-ota-test/openbook-static.payload",
+        "/system/etc/openbook-ota-test/openbook-vab.headers",
+        "/system/etc/openbook-ota-test/openbook-vab.metadata",
+        "/system/etc/openbook-ota-test/openbook-vab.payload",
+        "/system/etc/openbook-ota-test/run.sh"
+      ],
+      "only_metadata_change": "replacement file sizes and added paths",
+      "metadata_rows": 7292,
+      "protected_ranges_identical": true,
+      "ota_trust_anchor": null,
+      "trust": "stock",
+      "payloads": {
+        "foreign-static": {
+          "payload_sha256": "6ed26c05c09bab33f1d11af7f785d0c756b490fd5e48e0c0716661274fcb89cc",
+          "metadata_size": 243,
+          "metadata_signature_size": 523
+        },
+        "openbook-static": {
+          "payload_sha256": "5eaab5584e081681e297874e0a0c3deef79ff4b45386033a36de4e46404b165c",
+          "metadata_size": 243,
+          "metadata_signature_size": 523
+        },
+        "openbook-vab": {
+          "payload_sha256": "4ba5fd316ce1f0d56b05a63f2d62f997102f72288c44a4e4e803b31bbf98fafb",
+          "metadata_size": 397,
+          "metadata_signature_size": 523
+        }
+      },
+      "test_harness_policy": {
+        "scope": "shell test-client Binder/FD access only; never deploy",
+        "neverallow_checked": true,
+        "policy_sha256": "3dde9afa670fabeeb4c569c05a1d636f5203ebb289e3e979787e174ac0156d5f",
+        "rules_sha256": "ce8a47226c73808fc792d13f6ba2a0e332cafee0be7ccc591ad640a6db9cd756",
+        "runtime_recompilation_required": true
+      },
+      "file_sha256": {
+        "/system/etc/init/update_engine.rc": "b7e4b4348593696b3ff724c3d806e1897d2292fc854c8cc8de4fedc82f3b49e0",
+        "/system/etc/selinux/plat_sepolicy.cil": "3557f8bbfa13628aac80bce6b24bfc43e7d7f1d942e6214b5caff32565768d47",
+        "/system/etc/selinux/plat_sepolicy_and_mapping.sha256": "e5ed307bd0323623c686e31c1798511dc14bf5aaaa3124f38fbb438b45c809a5",
+        "/system/etc/openbook-ota-test/run.sh": "8519acad4c2d8184304ba3c467396222c4ffb7c7d52cefbca74111b6350ffbf8",
+        "/system/etc/openbook-ota-test/foreign-static.payload": "6ed26c05c09bab33f1d11af7f785d0c756b490fd5e48e0c0716661274fcb89cc",
+        "/system/etc/openbook-ota-test/foreign-static.metadata": "e3be86cb10e785798591c5c9b3f2b43fa11a54b3624f5a3349dda845f024efcd",
+        "/system/etc/openbook-ota-test/foreign-static.headers": "2141bd993e9b5556ea6830d5639e37b669eae872af80ee0cb80f111ee78f1305",
+        "/system/etc/openbook-ota-test/openbook-static.payload": "5eaab5584e081681e297874e0a0c3deef79ff4b45386033a36de4e46404b165c",
+        "/system/etc/openbook-ota-test/openbook-static.metadata": "1911342d6505e38632ef6252f88e42fa96e9d2eb282ae8c4e65b941467493708",
+        "/system/etc/openbook-ota-test/openbook-static.headers": "4442785fd8d88f2b75f043b28751c0d7bd628781672c9d9fcbe9300d3e40c11a",
+        "/system/etc/openbook-ota-test/openbook-vab.payload": "4ba5fd316ce1f0d56b05a63f2d62f997102f72288c44a4e4e803b31bbf98fafb",
+        "/system/etc/openbook-ota-test/openbook-vab.metadata": "d8049bbdc6dbb5caa932ad843eb97f23c5d51951a71956db09add27800509e07",
+        "/system/etc/openbook-ota-test/openbook-vab.headers": "5014c90710bfe6c7c64ad9c82b8e7ab0be4f773cfaf1580748b4ced73f263f67"
+      },
+      "physical_device_written": false
+    }
+  },
+  "test_certificates_sha256": {
+    "foreign-test.x509.pem": "4c8f587e193347c714f1a5bdc8d6a3a0299a0207303b6c1064eb2a3f3b141859",
+    "openbook-test.x509.pem": "e984dedb0b7fd1bb345ae738c3782c5b1bf01e0e0aef9662dfb1fc3488bbed3c"
+  },
+  "test_payloads": {
+    "foreign-static.bin": {
+      "sha256": "6ed26c05c09bab33f1d11af7f785d0c756b490fd5e48e0c0716661274fcb89cc",
+      "bytes": 1115401
+    },
+    "openbook-static.bin": {
+      "sha256": "5eaab5584e081681e297874e0a0c3deef79ff4b45386033a36de4e46404b165c",
+      "bytes": 1115401
+    },
+    "openbook-vab.bin": {
+      "sha256": "4ba5fd316ce1f0d56b05a63f2d62f997102f72288c44a4e4e803b31bbf98fafb",
+      "bytes": 2164131
+    }
+  },
+  "private_keys_committed": false
+}
