@@ -216,5 +216,33 @@ class ApplyMode(unittest.TestCase):
         self.assertIn("payload=file:///mnt/otapayload/payload.bin", t.APPLY_SCRIPT)
         self.assertNotIn("CASES", t.APPLY_SCRIPT)  # no baked test payloads
 
+
+class OwnerOtaPolicy(unittest.TestCase):
+    """The production owner OTA path: adb shell may drive update_engine; the payload is streamed over HTTP."""
+
+    def test_policy_is_exactly_the_binder_and_fd_rules(self):
+        rules = [l for l in t.OWNER_OTA_POLICY.splitlines() if l.startswith("(allow")]
+        self.assertEqual(rules, [
+            "(allow shell update_engine (binder (call transfer)))",
+            "(allow update_engine shell (binder (call transfer)))",
+            "(allow shell update_engine (fd (use)))",
+            "(allow update_engine shell (fd (use)))"])
+
+    def test_policy_never_opens_shell_data(self):
+        # AOSP forbids other domains to search /data/local/tmp or open shell files (shell.te neverallows).
+        self.assertNotIn("shell_data_file", t.OWNER_OTA_POLICY)
+        self.assertNotIn("ota_package_file", t.OWNER_OTA_POLICY)
+
+    def test_owner_mode_is_not_mixed_with_the_trust_harness(self):
+        base = dict(cert=Path("c"), cert_sha256="s", stock_trust=False, input_correction=False,
+                    vm_test=Path("x"), vm_test_signer=Path("y"), apply_from_drive=False, owner_ota_policy=True)
+        with self.assertRaisesRegex(ValueError, "apply-from-drive"):
+            t.build(argparse.Namespace(**base))
+
+    def test_owner_rehearsal_streams_over_http(self):
+        self.assertIn(f"--payload={t.OWNER_VM_URL}", t.OWNER_APPLY_SCRIPT)
+        self.assertNotIn("--payload=file://", t.OWNER_APPLY_SCRIPT)
+        self.assertIn("ip -4 addr", t.OWNER_APPLY_SCRIPT)  # waits for the network before applying
+
 if __name__ == "__main__":
     unittest.main()

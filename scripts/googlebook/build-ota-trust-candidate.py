@@ -90,6 +90,22 @@ APPLY_POLICY = """
 (allow shell ota_package_file (file (read open getattr)))
 """
 
+# Production: the owner's OTA path. The owner's paired debugging shell (adb) may drive the stock
+# update_engine, which streams the payload over HTTP from the owner's build host, the standard A/B delivery:
+# no staging file on the device, and no access to /data/local/tmp (which AOSP forbids other domains to open).
+# update_engine still installs only payloads signed for the installed otacerts (the OpenBook certificate), so
+# this adds a delivery path, not a trust path. Delivery: scripts/googlebook/g14-ota.sh.
+OWNER_OTA_POLICY = """
+; OpenBook owner OTA path (production): adb shell may drive update_engine; it streams the payload over HTTP.
+(allow shell update_engine (binder (call transfer)))
+(allow update_engine shell (binder (call transfer)))
+(allow shell update_engine (fd (use)))
+(allow update_engine shell (fd (use)))
+"""
+OWNER_OTA_SCOPE = ("production owner OTA path: adb shell may drive update_engine, which streams the payload "
+                   "over HTTP from the owner's host; installs still require the OpenBook signature")
+OWNER_VM_URL = "http://10.0.2.2:8090/payload.bin"  # the VM rehearsal's host, over QEMU user networking
+
 APPLY_SCRIPT = """# Disposable VM only: apply the OpenBook-signed A/B OTA payload from the mounted drive.
 DONE=/data/local/tmp/openbook-ota-apply.done
 [ -e $DONE ] && exit 0
@@ -111,6 +127,16 @@ say end
 # As the system updater does after UPDATED_NEED_REBOOT: an orderly reboot (shell holds REBOOT).
 [ $rc -eq 0 ] && { sleep 5; svc power reboot; }
 """
+
+# Owner mode (VM rehearsal of OWNER_OTA_POLICY): update_engine streams the payload over HTTP from the
+# rehearsal's host, as on the laptop; only the headers come from the payload drive.
+OWNER_APPLY_SCRIPT = (APPLY_SCRIPT
+    .replace("timeout 14400 update_engine_client",
+             "n=0; until ip -4 addr 2>/dev/null | grep -q 'inet 10\\.0\\.2\\.' || [ $n -ge 300 ]; do sleep 5; "
+             "n=$((n + 5)); done; say network=$(ip -4 addr 2>/dev/null | grep -o 'inet 10\\.0\\.2\\.[0-9]*') "
+             f"waited=${{n}}s url={OWNER_VM_URL}\ntimeout 14400 update_engine_client", 1)
+    .replace("--payload=file:///mnt/otapayload/payload.bin", f"--payload={OWNER_VM_URL}"))
+
 
 TEST_SERVICE = """
 # Disposable VM only: stock update_engine_client against reviewed test payloads.
@@ -213,6 +239,8 @@ def build(a):
         raise ValueError("--stock-trust is a VM-test control only")
     if a.stock_trust == bool(a.cert):
         raise ValueError("Supply --cert, or --stock-trust for the control")
+    if getattr(a, "owner_ota_policy", False) and a.vm_test:
+        raise ValueError("--owner-ota-policy is proven with --apply-from-drive, not the trust harness")
     if getattr(a, 'apply_from_drive', False) and a.vm_test:
         raise ValueError("--apply-from-drive and --vm-test are different VM harnesses; pick one")
     if bool(a.vm_test) != bool(getattr(a, "vm_test_signer", None)):
@@ -245,19 +273,33 @@ def build(a):
             annotations["input_correction"] = dict(
                 source_sha256=b.patcher.SOURCE_SHA256, output_sha256=hashlib.sha256(patched).hexdigest(),
                 offset=offset, bytes=8, hardware_validated=False)
+        owner = getattr(a, "owner_ota_policy", False)
+        if owner and not (a.vm_test or getattr(a, "apply_from_drive", False)):
+            # Production release: the owner OTA path only.
+            policy_files, policy_record = g.test_policy(a, source, "", base=OWNER_OTA_POLICY, scope=OWNER_OTA_SCOPE)
+            replacements.update(policy_files)
+            annotations["owner_ota_path"] = dict(policy=policy_record, delivery="HTTP from the owner's host",
+                                                 deployment_eligible=True, hardware_validated=False)
         if a.vm_test or getattr(a, 'apply_from_drive', False):
             rc = source / "system/etc/init/update_engine.rc"
             if rc.read_text() != g.q.STOCK_RC:
                 raise ValueError("Unrecognized stock init contract")
             service = APPLY_SERVICE if getattr(a, 'apply_from_drive', False) else TEST_SERVICE
             replacements["/system/etc/init/update_engine.rc"] = (g.q.STOCK_RC + service).encode()
-            policy_files, policy_record = g.test_policy(
-                a, source, APPLY_POLICY if getattr(a, 'apply_from_drive', False) else "")
+            if owner:
+                # Production rules for the update itself; disposable rules only deliver the payload.
+                policy_files, policy_record = g.test_policy(
+                    a, source, APPLY_POLICY, base=OWNER_OTA_POLICY,
+                    scope=OWNER_OTA_SCOPE + "; plus disposable payload-drive mount for the headers (VM only)")
+            else:
+                policy_files, policy_record = g.test_policy(
+                    a, source, APPLY_POLICY if getattr(a, 'apply_from_drive', False) else "")
             replacements.update(policy_files)
             if getattr(a, 'apply_from_drive', False):
                 # The payload and its headers ride on the drive: nothing payload-specific is baked
                 # into this system, so it can be the exact source of an incremental payload.
-                additions = {TEST_DIR: None, f"{TEST_DIR}/apply.sh": APPLY_SCRIPT.encode()}
+                additions = {TEST_DIR: None,
+                             f"{TEST_DIR}/apply.sh": (OWNER_APPLY_SCRIPT if owner else APPLY_SCRIPT).encode()}
                 marker, payloads = "experimental_ota_apply_test", {}
             else:
                 files, payloads = test_payloads(a.vm_test)
@@ -286,6 +328,9 @@ if __name__ == "__main__":
     p.add_argument("--input-correction", action="store_true", help="Also apply RB01's libinputflinger patch")
     p.add_argument("--vm-test", type=Path, help="Disposable payload directory from make-ota-test-payloads.sh")
     p.add_argument("--vm-test-signer", type=Path, help="Certificate that signed the openbook-* test payloads")
+    p.add_argument("--owner-ota-policy", action="store_true",
+                   help="Production: the owner's adb shell may drive update_engine, which streams the payload "
+                        "over HTTP from the owner's host (installs still require the OpenBook signature)")
     p.add_argument("--apply-from-drive", action="store_true",
                    help="Disposable A/B apply harness: apply the payload (+ payload_properties.txt) on the drive")
     p.add_argument("--stock-trust", action="store_true", help="VM-test control: keep Google's archive")
