@@ -1,5 +1,17 @@
 # Status
 
+## 2026-10-22: Ruby A/B disk assembled and boots in QEMU with two slots (ANAL-229)
+
+`build-ruby-ab-image.py` assembles the two-slot whole-disk image from the RB-20261022-01 candidate:
+the A/B super, slot A's boot images, vbmeta_a rebuilt to cover the boot chain, and the ESP with
+systemd-boot plus slot A in openbook-bootsync's layout. openbook-bootsync's own `status` reports slot
+A in_sync byte-for-byte. `ab-qemu.py` boots it as the internal NVMe: all 9 checks pass — boot
+completed on slot A, the A/B boot HAL sees 2 slots and marked slot A successful through bootsync,
+userdata formatted at its full planned size (19.6 GB on the test disk; ~919 GiB on the 1 TB SSD) and
+mounted, no AVB errors, no bootsync/HAL denials, 0 system_server crashes. The existing boot HAL and
+bootsync work unchanged on Ruby. Next: an OpenBook-signed OTA into slot B with reboot-switch and
+fallback. Evidence: `evidence/2026-10-22-ruby-ab/`. Laptop unchanged.
+
 ## 2026-10-22: Ruby A/B super built and verified; vbmeta finding corrected (ANAL-229)
 
 `build-ruby-ab-super.py` builds the installed 12 GiB Virtual A/B `super` from our six slot-A
