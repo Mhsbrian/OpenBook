@@ -1,0 +1,37 @@
+{
+  "schema": "openbook-g14-check/1",
+  "release": "RB-20261022-01",
+  "record": "ANAL-253",
+  "utc": "2026-10-22T22:32:10Z",
+  "method": "read-only wireless ADB on the owner's G14 after the stick's Update entry (no settings, files or partitions changed)",
+  "boot_source": "the laptop's SSD (androidboot.boot_part_uuid is not the stick's)",
+  "vbmeta_digest": "dd1f1b609e9348bc49796afcbbc045e67598c4614236c3bc4623a2f9222d2c0f",
+  "vbmeta_matches_release": true,
+  "otacerts_sha256": "3e1529c919baf5bbe71c729e2f6884d034a589328af0fb41a1ae730ac3342a59",
+  "otacerts_is_openbook": true,
+  "native_bridge": "libberberis_arm64.so",
+  "boot_completed": true,
+  "lid_guard_module_loaded": true,
+  "data_kept": {
+    "users": 2,
+    "accounts": 2,
+    "packages_user10": 261,
+    "third_party_packages_user10": 3,
+    "user10_credential_storage_unlocked": true,
+    "wifi_connected": true,
+    "touchpad_detected": true,
+    "note": "2026-10-21 record had 262 packages / 4 third-party in user 10; one fewer third-party app now (names not recorded by design); owner asked to confirm"
+  },
+  "storage": {
+    "data_size": "7.9G",
+    "used": "7.3G",
+    "free": "585M",
+    "use": "93%",
+    "note": "was 98% (217 MB free) on 2026-10-22 12:25; installd is purging app caches (incl. the extracted ARM libicing) under low space; the fresh install fixes it"
+  },
+  "crashes_since_boot": {
+    "com.google.android.desktop.repairmode": "2 (BootCompletedReceiver; known vendor-backend gap)",
+    "com.google.android.desktop.tips": "1 (cannot bind vendor.google.desktop.serviceability.VendorServiceabilityService; same vendor-backend gap class)"
+  },
+  "unrelated_to_change": "this release changes only /system/etc/security/otacerts.zip"
+}
