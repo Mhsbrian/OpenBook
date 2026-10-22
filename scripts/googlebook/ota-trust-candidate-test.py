@@ -196,5 +196,24 @@ class StageBase(unittest.TestCase):
         self.assertFalse((root / "out").exists())
 
 
+
+class ApplyMode(unittest.TestCase):
+    """--apply-from-drive swaps in the mount+apply harness and bakes no payloads."""
+
+    def test_refuses_combining_with_vm_test(self):
+        base = dict(cert=Path("c"), cert_sha256="s", stock_trust=False, input_correction=False,
+                    vm_test=Path("x"), vm_test_signer=Path("y"), apply_from_drive=True)
+        with self.assertRaisesRegex(ValueError, "pick one"):
+            t.build(argparse.Namespace(**base))
+
+    def test_apply_mounts_payload_with_ota_label_and_applies(self):
+        # init mounts the drive with the ota_package_file label; the driver runs as shell.
+        self.assertIn("context=u:object_r:ota_package_file:s0", t.APPLY_SERVICE)
+        self.assertIn("mount ext4 /dev/block/nvme1n1 /mnt/otapayload", t.APPLY_SERVICE)
+        self.assertIn("seclabel u:r:shell:s0", t.APPLY_SERVICE)
+        self.assertIn("update_engine_client --update", t.APPLY_SCRIPT)
+        self.assertIn("payload=file:///mnt/otapayload/payload.bin", t.APPLY_SCRIPT)
+        self.assertNotIn("CASES", t.APPLY_SCRIPT)  # no baked test payloads
+
 if __name__ == "__main__":
     unittest.main()
