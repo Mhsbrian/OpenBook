@@ -7,6 +7,8 @@ Status as of 2026-10-16. Labels:
 
 Nothing in this document was run on the G14. It is research plus Linux-side reasoning, as the issue asked. Evidence is in `evidence/2026-10-16-nvidia/`.
 
+**Googlebook image (Ruby track), 2026-10-22:** the project-churro review and the execution plan for the dGPU on the Googlebook image are in `docs/nvidia-googlebook.md` (epic ANAL-237). The kernel and userspace facts below still apply. The "dGPU stays off" decision is being revisited there as selectable graphics modes.
+
 **Which GPU:** the board is a GA403WR, which ASUS ships with the **RTX 5070 Ti Laptop (GB205)**, not the RTX 5070 Laptop (GB206) named in the issue title (§2). Everything below applies to both, because nouveau and linux-firmware treat them identically.
 
 ## Recommendation
