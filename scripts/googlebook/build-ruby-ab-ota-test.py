@@ -48,5 +48,21 @@ class Checks(unittest.TestCase):
         self.assertFalse(m.payload_checks(body, props, NAMES, True)["crau_v2"])
 
 
+class PartitionSet(unittest.TestCase):
+    def test_every_googlebook_dynamic_partition_is_in_the_payload(self):
+        # update_engine builds the new slot's partition table from exactly this list.
+        self.assertEqual(set(m.DYNAMIC),
+                         {"system", "system_ext", "product", "vendor", "vendor_dlkm", "system_dlkm"})
+
+    def test_partition_list_is_space_separated(self):
+        text = m.dynamic_partition_info("google_dynamic_partitions", 12880707584)
+        line = next(x for x in text.splitlines() if x.startswith("google_dynamic_partitions_partition_list="))
+        self.assertEqual(line.split("=", 1)[1].split(" "), list(m.DYNAMIC))
+        self.assertIn("virtual_ab=true", text)
+
+    def test_delta_minor_version_is_a_delta_version(self):
+        self.assertGreaterEqual(m.DELTA_MINOR_VERSION, 2)  # 0 is full-only
+
+
 if __name__ == "__main__":
     unittest.main()

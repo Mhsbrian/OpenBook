@@ -84,18 +84,19 @@ it and one reboot switches. `plan-ruby-ab-test.py` covers it (7 tests).
      successful (markBootSuccessful → bootsync mark-good), bootsync still in sync,
      userdata formatted at its full planned size and mounted (encrypted),
      metadata formatted, no AVB errors, no bootsync/HAL SELinux denials.
-3. **OpenBook-signed OTA into slot B** — payload built; apply verified in progress.
-   - Payload: `build-ruby-ab-ota.py` (done, signature verifies against the cert).
-   - Apply: `ab-ota-qemu.py` boots a disposable A/B apply-test disk (certificate
-     candidate + a one-shot apply driver) with the signed payload on a second
-     drive; `build-ota-trust-candidate.py --apply-from-drive` carries the driver.
-     Verified: the stock update_engine trusts the installed OpenBook cert, the
-     payload signature verifies (0 mismatches), and it wrote 171/610 operations
-     (293 MB) into the `system_b` snapshot with 0 errors
-     (`evidence/2026-10-22-ruby-ab/ab-ota-apply-inprogress.json`). The full write
-     is slow under TCG; reaching 100% + `bootsync activate b` + reboot-into-B +
-     broken-slot fallback needs a KVM-speed or multi-hour run. That completion,
-     and the fallback, is the immediate next step.
+3. **OpenBook-signed OTA into slot B, reboot, fallback** — done, VM-proven.
+   - `build-ruby-ab-ota.py` builds a complete payload (all six dynamic partitions
+     + the boot chain; a partition left out does not exist in the new slot) as a
+     full or **incremental** update (`--source`): the incremental for the test
+     release is 2.66 MB, signed with the OpenBook key.
+   - `ab-ota-qemu.py --phase apply`: the stock update_engine applies it, bootsync
+     verifies and activates slot B, the system reboots (11/11). `--phase boot`:
+     slot B boots, is marked good and merges (7/7). `verify-ab-slot.py`: merged
+     slot B equals the release byte for byte (10/10 partitions). `--phase
+     fallback`: with vbmeta_b corrupted, three slot-B attempts fail and
+     systemd-boot starts slot A by itself; the update rolls back (7/7).
+   - Evidence: `evidence/2026-10-22-ruby-ab/ab-ota-*.json`. VM runs use TCG (Ruby
+     needs AVX-VNNI, which the Zen 4 build host lacks).
 4. **Fresh installer** for this layout (erases the SSD, names it, keeps nothing),
    which is the install the owner is waiting for. Explicit device-named approval.
 5. **Capture + patch Google OTAs**: the offer is visible to an authorized flow

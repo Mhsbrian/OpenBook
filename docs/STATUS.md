@@ -1,5 +1,16 @@
 # Status
 
+## 2026-10-22: OpenBook OTA proven end to end in the VM: apply, reboot into slot B, fallback (ANAL-229)
+
+On the Ruby A/B disk, a signed incremental OpenBook update (2.66 MB, all 10 partitions) was applied by
+the stock update_engine; bootsync activated slot B and the system rebooted (11/11). Slot B then booted,
+was marked good and merged (7/7), and its ten partitions are byte-identical to the release. With
+vbmeta_b corrupted, three slot-B boots failed and systemd-boot started slot A by itself with the
+update rolled back (7/7). Fixed on the way: the earlier payload listed only `system` (slot B would
+not have booted) and wrote the dynamic partition list colon-separated. Next: the fresh installer for
+this layout (needs explicit approval naming the SSD), then capture/patch of Google updates.
+Evidence: `evidence/2026-10-22-ruby-ab/ab-ota-*.json`. Laptop unchanged.
+
 ## 2026-10-22: OpenBook-signed OTA applies into slot B through the stock update_engine (ANAL-229)
 
 `ab-ota-qemu.py` boots a disposable A/B apply-test disk with the signed payload on a second drive and
