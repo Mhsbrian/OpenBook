@@ -106,7 +106,7 @@ def launch(a, disk, out, seconds, payload=None):
            "-device", "nvme,drive=target,serial=RUBYABTEST,addr=0x4,bootindex=1"]
     if payload:
         cmd += ["-drive", f"file={payload},format=raw,if=none,id=payload,snapshot=on",
-                "-device", "nvme,drive=payload,serial=OTAPAYLOAD,addr=0x5"]  # higher slot -> nvme1n1
+                "-device", "nvme,drive=payload,serial=OTAPAYLOAD,addr=0x5"]  # nvme0 or nvme1: probe order
     cmd += ["-device", "virtio-vga", "-serial", f"file:{out}/serial.log",
             "-qmp", "unix:qmp.sock,server=on,wait=off",
             "-chardev", "socket,id=chrtpm,path=tpm.sock", "-tpmdev", "emulator,id=tpm0,chardev=chrtpm",

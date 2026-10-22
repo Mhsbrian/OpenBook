@@ -1,0 +1,126 @@
+{
+  "source": "GPT of Google's Ruby recovery image (android-desktop_signed_recovery_image.bin), read 2026-10-22",
+  "group_max_bytes": 12880707584,
+  "partitions": [
+    {
+      "name": "ota_recovery_a",
+      "bytes": 134217728
+    },
+    {
+      "name": "KERN-C",
+      "bytes": 512
+    },
+    {
+      "name": "ROOT-C",
+      "bytes": 512
+    },
+    {
+      "name": "RWFW-A",
+      "bytes": 512
+    },
+    {
+      "name": "RWFW-B",
+      "bytes": 512
+    },
+    {
+      "name": "OEM",
+      "bytes": 4194304
+    },
+    {
+      "name": "EFI-SYSTEM",
+      "bytes": 67108864
+    },
+    {
+      "name": "KERN-A",
+      "bytes": 536870912
+    },
+    {
+      "name": "super",
+      "bytes": 12884901888
+    },
+    {
+      "name": "KERN-B",
+      "bytes": 4194304
+    },
+    {
+      "name": "ROOT-B",
+      "bytes": 536870912
+    },
+    {
+      "name": "boot_a",
+      "bytes": 67108864
+    },
+    {
+      "name": "boot_b",
+      "bytes": 67108864
+    },
+    {
+      "name": "vbmeta_a",
+      "bytes": 4194304
+    },
+    {
+      "name": "vbmeta_b",
+      "bytes": 4194304
+    },
+    {
+      "name": "metadata",
+      "bytes": 67108864
+    },
+    {
+      "name": "init_boot_a",
+      "bytes": 8388608
+    },
+    {
+      "name": "init_boot_b",
+      "bytes": 8388608
+    },
+    {
+      "name": "vendor_boot_a",
+      "bytes": 33554432
+    },
+    {
+      "name": "vendor_boot_b",
+      "bytes": 33554432
+    },
+    {
+      "name": "pvmfw_a",
+      "bytes": 4194304
+    },
+    {
+      "name": "pvmfw_b",
+      "bytes": 4194304
+    },
+    {
+      "name": "misc",
+      "bytes": 4194304
+    },
+    {
+      "name": "recovery_a",
+      "bytes": 33554432
+    },
+    {
+      "name": "recovery_b",
+      "bytes": 33554432
+    },
+    {
+      "name": "desktop_security_persist",
+      "bytes": 16777216
+    },
+    {
+      "name": "desktop_security_storage",
+      "bytes": 33554432
+    },
+    {
+      "name": "frp_persist",
+      "bytes": 2097152
+    },
+    {
+      "name": "userdata",
+      "bytes": 4336885760
+    },
+    {
+      "name": "ota_recovery_b",
+      "bytes": 134217728
+    }
+  ]
+}

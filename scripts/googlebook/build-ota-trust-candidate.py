@@ -70,6 +70,9 @@ service openbook.ota-apply /system/bin/sh /system/etc/openbook-ota-test/apply.sh
 
 on property:sys.boot_completed=1
     mkdir /mnt/otapayload 0771 root system
+    # NVMe instance numbers follow probe completion, not PCI slot order (seen both ways), so try both.
+    # Only the payload drive (a bare ext4) mounts: the system disk is in use and is not ext4.
+    mount ext4 /dev/block/nvme0n1 /mnt/otapayload ro context=u:object_r:ota_package_file:s0
     mount ext4 /dev/block/nvme1n1 /mnt/otapayload ro context=u:object_r:ota_package_file:s0
     start openbook.ota-apply
 """
@@ -100,7 +103,7 @@ say idle waited=${waited}s slot=$(getprop ro.boot.slot_suffix) vab=$(getprop ro.
 say otacerts=$(sha256sum /system/etc/security/otacerts.zip | cut -d' ' -f1)
 say payload=$(sha256sum /mnt/otapayload/payload.bin | cut -d' ' -f1)
 # update_engine_client expects newline-separated key=value headers (not comma-joined).
-timeout 3000 update_engine_client --update --follow \\
+timeout 14400 update_engine_client --update --follow \\
   --payload=file:///mnt/otapayload/payload.bin \\
   --headers="$(cat /mnt/otapayload/payload_properties.txt)"; rc=$?; say update exit=$rc
 logcat -d -b main -b system -s update_engine:V update_engine_client:V bootsync:V | sed 's/^/OTALOG /'

@@ -1,0 +1,76 @@
+{
+  "schema": "openbook-ota-fit/1",
+  "kind": "incremental",
+  "minor_version": 8,
+  "vabc_compression": "lz4",
+  "partitions": {
+    "system": {
+      "kind": "dynamic",
+      "new_bytes": 1133674496,
+      "cow_bytes": 14508161
+    },
+    "system_ext": {
+      "kind": "dynamic",
+      "new_bytes": 252346368,
+      "cow_bytes": 6122334
+    },
+    "product": {
+      "kind": "dynamic",
+      "new_bytes": 1971519488,
+      "cow_bytes": 33305893
+    },
+    "vendor": {
+      "kind": "dynamic",
+      "new_bytes": 164626432,
+      "cow_bytes": 3410151
+    },
+    "vendor_dlkm": {
+      "kind": "dynamic",
+      "new_bytes": 53645312,
+      "cow_bytes": 2545340
+    },
+    "system_dlkm": {
+      "kind": "dynamic",
+      "new_bytes": 18165760,
+      "cow_bytes": 2428607
+    },
+    "boot": {
+      "kind": "static",
+      "new_bytes": 67108864,
+      "partition_bytes": 134217728,
+      "fits": true
+    },
+    "init_boot": {
+      "kind": "static",
+      "new_bytes": 8388608,
+      "partition_bytes": 16777216,
+      "fits": true
+    },
+    "vendor_boot": {
+      "kind": "static",
+      "new_bytes": 67108864,
+      "partition_bytes": 67108864,
+      "fits": true
+    },
+    "vbmeta": {
+      "kind": "static",
+      "new_bytes": 8192,
+      "partition_bytes": 4194304,
+      "fits": true
+    }
+  },
+  "snapshot": {
+    "installed_dynamic_bytes": 3593977856,
+    "installed_basis": "the payload's source sizes",
+    "new_dynamic_bytes": 3593977856,
+    "cow_bytes": 62320486,
+    "extra_extent_bytes": 0,
+    "needed_bytes": 62320486,
+    "super_free_bytes": 22174777344,
+    "fits_in_super": true,
+    "would_need_data_bytes": 0
+  },
+  "esp_two_slot_bytes": 285212672,
+  "problems": [],
+  "fits": true
+}

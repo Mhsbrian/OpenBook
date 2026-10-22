@@ -1,5 +1,18 @@
 # Status
 
+## 2026-10-22: Layout v2 proven for small and large OTAs (ANAL-229)
+
+Before the fresh installer fixes partition sizes for good, the A/B layout was resized for the largest
+update the laptop should take (`plan-ruby-ab.py` v2): every A/B partition of Google's own Ruby layout
+(read from Google's recovery image GPT) at ≥ Google's size, adding `pvmfw`, `recovery` and
+`ota_recovery`; ≥ 2× headroom for OpenBook's kernel and ramdisks; a 24 GiB super (2 × Google's group
+cap) so any update's snapshot fits in super and never needs /data; a 1 GiB ESP. userdata on the 1 TB SSD
+≈ 905.7 GiB. New `check-ota-fit.py` preflights any payload against the layout (8 tests). Payloads now use
+lz4 snapshot compression and zstd replace operations. On a v2 disk in QEMU, a 2.69 MB incremental and a
+5.04 GB full update (system grown by 2 GiB) both passed apply, reboot into slot B, byte-for-byte verify
+and broken-slot fallback (`ab-ota-suite.sh`). Next: the fresh installer for v2. Evidence:
+`evidence/2026-10-22-ruby-ab/v2/`. Laptop unchanged.
+
 ## 2026-10-22: OpenBook OTA proven end to end in the VM: apply, reboot into slot B, fallback (ANAL-229)
 
 On the Ruby A/B disk, a signed incremental OpenBook update (2.66 MB, all 10 partitions) was applied by

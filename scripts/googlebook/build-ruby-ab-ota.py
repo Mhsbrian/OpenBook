@@ -40,6 +40,9 @@ MAX_TIMESTAMP = 4102444800  # 2100-01-01, so the anti-downgrade check passes
 # supported since Android 12). update_engine rejects an unsupported version
 # before writing anything.
 DELTA_MINOR_VERSION = 8
+# How the device compresses the Virtual A/B snapshot it writes. delta_generator's default is gz; lz4 costs far
+# less CPU on the laptop during an update (snapuserd has supported it since Android 13).
+VABC_COMPRESSION = "lz4"
 
 
 def sha(path):
@@ -50,12 +53,13 @@ def sha(path):
     return h.hexdigest()
 
 
-def dynamic_partition_info(group, group_size):
+def dynamic_partition_info(group, group_size, vabc_compression=VABC_COMPRESSION):
     """delta_generator's --dynamic_partition_info_file. The list is space-separated, as in misc_info.txt."""
     return (f"super_partition_groups={group}\n"
             f"{group}_size={group_size}\n"
             f"{group}_partition_list={' '.join(DYNAMIC)}\n"
-            "virtual_ab=true\nvirtual_ab_compression=true\n")
+            "virtual_ab=true\nvirtual_ab_compression=true\n"
+            f"virtual_ab_compression_method={vabc_compression}\n")
 
 
 def payload_checks(data, props, names, signature_verifies):
@@ -81,7 +85,7 @@ def build(a):
     group = a.group
     group_size = a.group_size
     dyn = a.out / "dynamic_partition_info.txt"
-    dyn.write_text(dynamic_partition_info(group, group_size))
+    dyn.write_text(dynamic_partition_info(group, group_size, a.vabc_compression))
 
     names = [*DYNAMIC, *STATIC]
     parts = ":".join(str(a.release / f"{n}.img") for n in names)
@@ -91,6 +95,9 @@ def build(a):
                     f"--partition_names={':'.join(names)}", "--major_version=2",
                     f"--minor_version={DELTA_MINOR_VERSION if a.source else 0}",
                     f"--max_timestamp={MAX_TIMESTAMP}", f"--dynamic_partition_info_file={dyn}",
+                    # zstd for replace operations: decompresses several times faster than the default xz
+                    # (full payloads; deltas need minor version 9 for it)
+                    *(["--enable_replace_zstd"] if a.replace_zstd else []),
                     f"--out_file={unsigned}"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     # Sign + verify against the certificate through the audited host signer.
@@ -112,6 +119,7 @@ def build(a):
     result = dict(schema="openbook-ruby-ab-ota/1", payload_sha256=sha(payload), payload_bytes=len(data),
                   metadata_size=manifest_size, metadata_signature_size=sig_size,
                   kind="incremental" if a.source else "full",
+                  vabc_compression=a.vabc_compression, replace_zstd=a.replace_zstd,
                   dynamic=list(DYNAMIC), static=list(STATIC),
                   release_image_sha256={n: sha(a.release / f"{n}.img") for n in names},
                   source_image_sha256={n: sha(a.source / f"{n}.img") for n in names} if a.source else None,
@@ -130,6 +138,8 @@ if __name__ == "__main__":
     p.add_argument("--delta-generator", type=Path, required=True)
     p.add_argument("--key", type=Path, required=True, help="OpenBook OTA private key (host, 0600, outside repos)")
     p.add_argument("--cert", type=Path, required=True, help="OpenBook OTA public certificate")
+    p.add_argument("--vabc-compression", default=VABC_COMPRESSION, choices=("lz4", "gz", "zstd", "none"))
+    p.add_argument("--no-replace-zstd", dest="replace_zstd", action="store_false")
     p.add_argument("--group", default="google_dynamic_partitions")
     p.add_argument("--group-size", type=int, default=12880707584)
     p.add_argument("--out", type=Path, required=True)
