@@ -1,5 +1,20 @@
 # Status
 
+## 2026-10-22: RB-20261021-02 on the SanDisk; RB-20261022-01 composed (ANAL-229/252)
+
+With B Honey's write approval, the approved RB-20261021-02 (Settings search fix) was written
+with its frozen tools:
+- the fresh backup's two direct reads match;
+- the installer pin and laptop record are byte-identical to the frozen plan;
+- `super`/`vbmeta_a`/`EFI` were written, and the full readback matches `233eed28…`;
+- all protected bytes are kept and the stick is powered off.
+
+The next release, RB-20261022-01, is RB-20261021-02 plus the OpenBook OTA certificate. Its
+final image `39f4f1f0…` is composed against the verified stick image and passes the writer's
+validator. The VM boot and the certificate harness pass. It is written once the stick is
+re-powered on the host. The laptop is unchanged. Evidence: `evidence/2026-10-22-rb-20261021-02/`,
+`evidence/2026-10-22-rb-20261022-01/`.
+
 ## 2026-10-22: OpenBook OTA key created; release candidate with it (ANAL-229)
 
 After B Honey approved custody, the OpenBook OTA key was generated on the build host:
