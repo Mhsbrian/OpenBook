@@ -1,0 +1,22 @@
+{
+  "schema": "openbook-ruby-physical-write/1",
+  "release": "RB-20261021-01",
+  "device": "SanDisk Ultra USB stick ending 2034",
+  "approval_comment_id": "01a1611a-595f-7d29-b152-094c88450793",
+  "started_utc": "2026-10-22T00:55:19Z",
+  "finished_utc": "2026-10-22T01:02:25Z",
+  "prewrite_check": "direct read matched the twice-read backup d0fe0ea6cb9d8c08aedb9f42d8c4a73c2277317dc2be10a73a566e1fcbf27ea2",
+  "written": [
+    "super",
+    "vbmeta_a",
+    "EFI"
+  ],
+  "image_bytes": 12766412800,
+  "readback_sha256": "f1e7410b297578af2dfe9c07b5a0eeede663e6886ddbbc134e2345db6df6fadb",
+  "expected_sha256": "f1e7410b297578af2dfe9c07b5a0eeede663e6886ddbbc134e2345db6df6fadb",
+  "verified": true,
+  "protected_bytes": 8805941248,
+  "powered_off": true,
+  "laptop_written": false,
+  "note": "super/vbmeta_a carry the RB01 system with openbook_lid_guard in vendor_dlkm; EFI carries the re-pinned installer, RB01->RB01+guard laptop record and sleep-diagnostics entry"
+}
