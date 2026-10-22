@@ -1,5 +1,17 @@
 # Status
 
+## 2026-10-21: G14 lid sleep holds with openbook_lid_guard (RB-20261021-01)
+
+The owner ran the USB Update entry. The laptop now reports RB-20261021-01's vbmeta
+(`611d49f2…`), and `openbook_lid_guard` is loaded. In a lid test of about 4 minutes the
+processor was suspended 92 % of the time (232 of 251 s). Seven brief dark resumes
+(`9 acpi`, some `38 PCIe PME`) left the screen off, and opening the lid woke it
+immediately. Before the fix, every resume lit the screen, and one false lid-open kept
+it awake. PIN unlock, apps and accounts are intact. There are no new crashes or
+module SELinux denials. Not yet checked: battery-only and overnight runs, and S0i3
+(still blocked by the driverless dGPU). Evidence:
+`evidence/2026-10-21-ruby-sleep-fix/g14-guard-test.json`.
+
 ## 2026-10-22: RB-20261021-01 written to the SanDisk (lid guard, ANAL-235/236)
 
 After B Honey's approval, the guarded writer matched the SanDisk ending 2034 to its
