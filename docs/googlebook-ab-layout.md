@@ -132,15 +132,34 @@ The goal of ANAL-229. Five stages; the first two are built and verified.
    with AOSP's `ota_extractor`, each checked against the hash in Google's signed
    manifest. Proven on our own incremental: byte-identical output; a wrong
    source is refused.
-3. **Patch** (rebase the OpenBook layer onto Google's new framework). Next:
-   generalize the existing release builders so Google's new system, system_ext
-   and product replace 16452207's, with OpenBook's AMD vendor stack and the
-   patches re-applied (trackpad correction, Digitalis, OTA certificate, owner
-   OTA policy).
+3. **Patch** (rebase the OpenBook layer onto Google's new framework). Mapped,
+   not built yet. Today's hybrid keeps Google's `system`, `system_ext` and
+   `product` byte-for-byte over OpenBook's AMD vendor stack, made by
+   `gbos-unpack.sh` → `compat-audit.py` (VINTF + strict SELinux compile) →
+   `hybrid-probe.py prepare` → `live-image.py`, then the RB patch layers. Plan:
+   - an adapter from `reconstruct-google-release.py` output to the
+     `gbos-unpack.sh` layout, so `compat-audit.py` and `hybrid-probe.py` take a
+     new Google build unchanged; their Google-specific checks (TPM ueventd rule,
+     timberslide rc, Wi-Fi overlay) fail loudly if Google changed those files;
+   - one combined `build_system()` pass for the system patches, plus
+     `build-module-candidate.py` for the lid guard (vendor side, no Google pin);
+   - re-derive the trackpad correction per build: it is an 8-byte patch pinned
+     to the whole `libinputflinger.so` hash (or drop it if Google fixed the bug);
+     Digitalis is content-based, but its builder must come onto this branch
+     (PR #124); the certificate swap pins Google's stock `otacerts.zip` (likely
+     unchanged while Google keeps its key);
+   - golden test first: rebuild today's release from stock 16452207 through the
+     new pipeline and compare it with RB-20261022-01 / candidate R.
+   Risks: the new framework's VINTF matrix against the fixed OpenBook vendor and
+   6.18 kernel; SELinux mapping `202604` and the regenerated policy hashes;
+   system size; Digitalis against Google's new libraries.
 4. **Sign and prove**: `build-ruby-ab-ota.py` (OpenBook key), `check-ota-fit.py`,
    VM boot and the small/large OTA suites.
-5. **Update**: today via the stick's Update entry (single slot); after the fresh
-   install, wirelessly with `g14-ota.sh` (two slots, automatic fallback).
+5. **Update**: a new Google framework changes `system_ext` and `product`, which
+   the single-slot USB Update path refuses (`preserve-update.py`,
+   `laptop-update.py`: only `system`/`vendor_dlkm`). So patched Google updates
+   reach the laptop through the two-slot layout: fresh install onto v2, then
+   OpenBook-signed OTAs (`g14-ota.sh`, automatic fallback).
 
 ## The owner OTA path: how a wireless update reaches the laptop
 
