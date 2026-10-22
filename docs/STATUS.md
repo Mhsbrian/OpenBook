@@ -1,5 +1,24 @@
 # Status
 
+## 2026-10-22: Ruby dGPU power state, sleep cost and S0i3 attribution (ANAL-238)
+
+- **S0i3:** not reached on Ruby. In batterystats, the PowerStats HAL's S0i3 time is 0 in all 130 suspends recorded
+  over 7 boots (2026-10-20 to 2026-10-22), before and after the lid guard.
+- **Not shown to be the dGPU.** On the AOSP image the same G14 missed S0i3 with the dGPU already in D3cold. The
+  "blocked by the driverless dGPU" wording is corrected.
+- **Sleep cost:** asleep on battery without S0i3, the laptop draws about **4.5 W**. That was measured overnight:
+  631 min, screen off, 98.6 % suspended.
+- **The dGPU hook on Ruby.** Its HDMI-audio unbind works (CONFIRMED). Its own report was always lost: Ruby leaves
+  `/dev/kmsg_debug` labelled `tmpfs`, so `stdio_to_kmsg` writes from vendor domains are denied. D3cold is likely
+  but unmeasured, because a user build's shell cannot read PCI power state.
+- **Vendor change (image-affecting, Ruby; not on the laptop):**
+  - `openbook-pc-setup` also logs to logd;
+  - a root-domain `dgpu-report` runs at boot completion and on `setprop debug.openbook.dgpu_report`;
+  - a volatile `debug.openbook.dgpu_pm on|auto` hold for the D0/D3cold battery comparison.
+
+  Host tools: `scripts/googlebook/sleep-history.py` and `dgpu-power-adb.py`. Evidence:
+  `evidence/2026-10-22-ruby-dgpu-power/`; details in `googlebook-sleep.md`.
+
 ## 2026-10-22: G14 on RB-20261022-01; the owner OTA path built (ANAL-229)
 
 The SanDisk got RB-20261022-01 (verified readback `8834cd89…`). B Honey checked its live entry and ran
@@ -158,8 +177,8 @@ processor was suspended 92 % of the time (232 of 251 s). Seven brief dark resume
 (`9 acpi`, some `38 PCIe PME`) left the screen off, and opening the lid woke it
 immediately. Before the fix, every resume lit the screen, and one false lid-open kept
 it awake. PIN unlock, apps and accounts are intact. There are no new crashes or
-module SELinux denials. Not yet checked: battery-only and overnight runs, and S0i3
-(still blocked by the driverless dGPU). Evidence:
+module SELinux denials. Not yet checked: battery-only and overnight runs. S0i3 is not
+reached; its cause is open (see the 2026-10-22 ANAL-238 entry: not shown to be the dGPU). Evidence:
 `evidence/2026-10-21-ruby-sleep-fix/g14-guard-test.json`.
 
 ## 2026-10-22: RB-20261021-01 written to the SanDisk (lid guard, ANAL-235/236)
