@@ -6,7 +6,9 @@ Requires the read-only erofs-inventory helper built against the AOSP host tools.
 Rebuilds EROFS with original ownership/labels, then compares EVERY inode/xattr
 and file. Unknown extended attributes or hardlinks fail closed.
 No userdata from an installed laptop is an input. Never flash this whole image
-over a configured device. Release packaging and a reviewed preserving updater
+over a configured device. --base is one of the reviewed parents in BASES; without
+--logical, the unchanged logical images are copied out of the parent and checked
+against its manifest. Release packaging and a reviewed preserving updater
 are separate steps. OPENBOOK_RELEASE_TOOLS names the pinned PR #123 checkout.
 """
 import argparse
@@ -38,6 +40,13 @@ def load(name, file):
 
 p = load("preserve", "preserve-update.py")
 BASE_SHA = "554fb78970f94d985c8be86f4b07c42c5f64ea9823eac33816a993a5d88dffe6"
+# Reviewed parents: the RB01 synthetic baseline, and RB-20261021-01's module
+# candidate (RB01 plus openbook_lid_guard in vendor_dlkm, PR #121 e4cff4e).
+BASES = {
+    BASE_SHA: "RB01 synthetic pre-installer baseline",
+    "4b110e750ec2e7874ccdaf563ca8b9c7d45cd8eccc18848478edb1f9b5382cf3":
+        "RB-20261021-01 candidate (RB01 + openbook_lid_guard)",
+}
 TARGET = "/system/build.prop"
 OLD = b"ro.dalvik.vm.native.bridge=libhoudini.so\n"
 NEW = b"ro.dalvik.vm.native.bridge=libndk_translation.so\n"
@@ -233,8 +242,9 @@ def hash_logical(disk, offset, part):
 def build(a):
     base = p.regular(a.base / "ruby-live.img")
     old = json.loads(p.regular(a.base / "manifest.json").read_text())
-    if old["image_sha256"] != BASE_SHA or p.h.audit.sha(base) != BASE_SHA:
-        raise ValueError("Requires the reviewed RB01 synthetic pre-installer baseline")
+    base_sha = old["image_sha256"]
+    if base_sha not in BASES or p.h.audit.sha(base) != base_sha:
+        raise ValueError("Requires a reviewed parent: " + ", ".join(BASES.values()))
     w = a.out
     w.mkdir(mode=0o700, parents=True, exist_ok=False)
     tools = a.tools
@@ -246,7 +256,7 @@ def build(a):
         "tool_sha256": {name: p.h.audit.sha(p.regular(tools / name))
                          for name in ("mkfs.erofs", "fsck.erofs", "avbtool", "lpdump")},
         "inventory_sha256": p.h.audit.sha(p.regular(a.inventory)),
-        "source_image_sha256": BASE_SHA,
+        "source_image_sha256": base_sha, "source": BASES[base_sha],
     }, indent=2) + "\n")
     table = p.read_gpt(base)
     rows = {r["name"]: r for r in table}
@@ -298,9 +308,18 @@ def build(a):
         labels = {MOUNTPOINT: ("u:object_r:system_lib_file:s0", "u:object_r:system_file:s0")}
         rebuilt, extracted = rebuild_files(tools, a.inventory, system, source, before, original,
                                            changes, "system", w, labels=labels)
-    # All other logical inputs are unchanged camera25 artifacts. Verify them
-    # against the RB01 manifest before assembling; never accept a floating tree.
-    images = {n: a.logical / f"{n}_a.img" for n in old["logical_sha256"] if n != "system"}
+    # All other logical inputs are unchanged. Verify them against the parent's
+    # manifest before assembling; never accept a floating tree.
+    copied = []
+    if a.logical:
+        images = {n: a.logical / f"{n}_a.img" for n in old["logical_sha256"] if n != "system"}
+    else:
+        images = {}
+        for n in old["logical_sha256"]:
+            if n == "system": continue
+            images[n] = w / f"input-{n}.img"
+            copy_logical(base, images[n], super_offset, layout[n + "_a"])
+            copied.append(images[n])
     for name, src in images.items():
         p.regular(src)
         if p.h.audit.sha(src) != old["logical_sha256"][name]:
@@ -399,12 +418,12 @@ def build(a):
         if hash_logical(output, super_offset, layout[name + "_a"]) != expected:
             raise ValueError(f"Logical payload readback failed: {name}")
     updated["image_sha256"] = p.h.audit.sha(output)
-    if p.h.audit.sha(base) != BASE_SHA:
+    if p.h.audit.sha(base) != base_sha:
         raise ValueError("Source changed")
     (w / "manifest.json").write_text(json.dumps(updated, indent=2) + "\n")
     (w / "result.json").write_text(json.dumps(dict(
         schema="openbook-ruby-bridge-candidate/1", complete=True,
-        source_sha256=BASE_SHA,image_sha256=updated["image_sha256"],
+        source_sha256=base_sha,image_sha256=updated["image_sha256"],
         metadata_rows=len(before),metadata_verified_against_exact_change_allowlist=True,
         file_and_symlink_count=len(original),changed_files=sorted(changes),changed_labels=labels,
         bridge_correction=updated["bridge_correction"],
@@ -412,7 +431,7 @@ def build(a):
         physical_device_written=False), indent=2) + "\n")
     # Only reproducible scratch from this invocation. Keep the candidate,
     # corrected system/AVB, provenance and logs for reproduction and review.
-    scratch_files = [system, esp]
+    scratch_files = [system, esp, *copied]
     scratch_dirs = [tree, after_tree]
     (w / "cleanup-final.json").write_text(json.dumps([str(x) for x in scratch_files + scratch_dirs], indent=2))
     for scratch in scratch_files: scratch.unlink()
@@ -422,8 +441,9 @@ def build(a):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    for name in ("base","logical","tools","inventory","key","out"):
+    for name in ("base","tools","inventory","key","out"):
         parser.add_argument("--"+name,type=Path,required=True)
+    parser.add_argument("--logical", type=Path, help="Directory of unchanged *_a.img inputs; default: copy from --base")
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--digitalis-bundle", type=Path, help="Pinned source-built AOSP17 alternative; experimental Ruby qualification")
     mode.add_argument("--reproduce-rejected-ndk", action="store_true",
