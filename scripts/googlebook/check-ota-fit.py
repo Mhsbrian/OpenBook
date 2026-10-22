@@ -78,6 +78,10 @@ def info_size(buf):
     return next((v for n, _, v in fields(buf) if n == 1), 0)
 
 
+def info_hash(buf):
+    return next((v.hex() for n, _, v in fields(buf) if n == 2), None)
+
+
 def parse_manifest(buf):
     m = dict(minor_version=0, partial_update=False, partitions=[], groups=[],
              vabc_enabled=False, vabc_compression=None, cow_version=None)
@@ -87,14 +91,14 @@ def parse_manifest(buf):
         elif num == 16:
             m["partial_update"] = bool(val)
         elif num == 13:
-            p = dict(name=None, new_size=0, old_size=0, estimate_cow_size=None)
+            p = dict(name=None, new_size=0, old_size=0, estimate_cow_size=None, old_hash=None, new_hash=None)
             for n, _, v in fields(val):
                 if n == 1:
                     p["name"] = v.decode()
                 elif n == 6:
-                    p["old_size"] = info_size(v)
+                    p["old_size"], p["old_hash"] = info_size(v), info_hash(v)
                 elif n == 7:
-                    p["new_size"] = info_size(v)
+                    p["new_size"], p["new_hash"] = info_size(v), info_hash(v)
                 elif n == 19:
                     p["estimate_cow_size"] = v
             m["partitions"].append(p)
