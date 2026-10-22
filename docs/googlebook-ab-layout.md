@@ -84,20 +84,18 @@ it and one reboot switches. `plan-ruby-ab-test.py` covers it (7 tests).
      successful (markBootSuccessful → bootsync mark-good), bootsync still in sync,
      userdata formatted at its full planned size and mounted (encrypted),
      metadata formatted, no AVB errors, no bootsync/HAL SELinux denials.
-3. **OpenBook-signed OTA into slot B** — payload built, apply next.
-   - Done: `build-ruby-ab-ota.py` builds a full Virtual A/B payload (dynamic
-     `system` + static boot/init_boot/vendor_boot/vbmeta) with `delta_generator`,
-     signs it with the OpenBook OTA key through `sign-ota-payload.sh`, and reads
-     it back — CrAU v2, all five partitions, the metadata signature verifies
-     against the installed certificate, properties match
-     (`evidence/2026-10-22-ruby-ab/ab-ota-payload.json`,
-     `build-ruby-ab-ota-test.py`).
-   - Next: apply it in the A/B VM through the stock update_engine — it writes the
-     `_b` boot/vbmeta and the `system_b` snapshot, the boot HAL runs bootsync
-     `activate b`, a reboot boots slot B, `mark-good`/merge; then a **broken slot
-     B → automatic fallback to A** (bootsync's 3-try counter). Open harness
-     question: deliver the ~892 MB payload to the NIC-less VM (extra drive) and
-     drive the second boot cycle.
+3. **OpenBook-signed OTA into slot B** — payload built; apply verified in progress.
+   - Payload: `build-ruby-ab-ota.py` (done, signature verifies against the cert).
+   - Apply: `ab-ota-qemu.py` boots a disposable A/B apply-test disk (certificate
+     candidate + a one-shot apply driver) with the signed payload on a second
+     drive; `build-ota-trust-candidate.py --apply-from-drive` carries the driver.
+     Verified: the stock update_engine trusts the installed OpenBook cert, the
+     payload signature verifies (0 mismatches), and it wrote 171/610 operations
+     (293 MB) into the `system_b` snapshot with 0 errors
+     (`evidence/2026-10-22-ruby-ab/ab-ota-apply-inprogress.json`). The full write
+     is slow under TCG; reaching 100% + `bootsync activate b` + reboot-into-B +
+     broken-slot fallback needs a KVM-speed or multi-hour run. That completion,
+     and the fallback, is the immediate next step.
 4. **Fresh installer** for this layout (erases the SSD, names it, keeps nothing),
    which is the install the owner is waiting for. Explicit device-named approval.
 5. **Capture + patch Google OTAs**: the offer is visible to an authorized flow

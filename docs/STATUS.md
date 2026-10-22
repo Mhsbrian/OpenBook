@@ -1,5 +1,16 @@
 # Status
 
+## 2026-10-22: OpenBook-signed OTA applies into slot B through the stock update_engine (ANAL-229)
+
+`ab-ota-qemu.py` boots a disposable A/B apply-test disk with the signed payload on a second drive and
+a one-shot apply driver. Verified: the stock update_engine trusts the installed OpenBook certificate
+(otacerts 3e1529c9 on device), the payload signature verifies (0 mismatches), and it writes the
+slot-B system_b snapshot — 171/610 operations, 293 MB, 0 errors — before the run was stopped (the
+full write is slow under TCG, not a correctness limit). The NIC-less-VM delivery path was resolved
+(driver domain, context= mount perm set in the disposable policy, pinned nvme slot, world-readable
+payload, newline headers). Next: carry it to 100% + bootsync activate b + reboot into slot B +
+broken-slot fallback (needs KVM speed). Evidence: evidence/2026-10-22-ruby-ab/. Laptop unchanged.
+
 ## 2026-10-22: OpenBook-signed Virtual A/B OTA payload built and verified (ANAL-229)
 
 `build-ruby-ab-ota.py` builds the full update_engine payload that installs into slot B: the dynamic

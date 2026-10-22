@@ -39,3 +39,15 @@ No device or laptop data is involved. The built super stays in the private work 
   against the installed OpenBook certificate**, and `payload_properties` match the bytes. This is
   the update that installs into slot B; the in-VM apply + reboot-switch + fallback is the next step.
   `build-ruby-ab-ota-test.py` covers the read-back checks (5).
+
+## OTA apply into slot B through the stock update_engine (`ab-ota-qemu.py`)
+
+`ab-ota-apply-inprogress.json`: a disposable A/B apply-test disk (the certificate candidate plus a
+one-shot apply driver) booted with the signed payload on a second drive. The stock update_engine
+accepted the OpenBook-signed payload and applied it into slot B: the device reports the OpenBook
+`otacerts` (`3e1529c9…`), the metadata signature verified (0 mismatches), and update_engine wrote
+171/610 operations (293 MB) into the `system_b` snapshot with 0 errors before the run was stopped —
+the full write is slow under TCG emulation, not a correctness limit. Reaching 100% plus the
+`bootsync activate b` / reboot-into-B / broken-slot fallback needs a KVM-speed or multi-hour run.
+The payload-delivery path to the NIC-less VM was resolved step by step (driver domain, context=
+mount permission set, a pinned nvme slot, a world-readable payload, newline-separated headers).
