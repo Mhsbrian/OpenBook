@@ -23,6 +23,7 @@ def load(name, filename):
 
 
 cap = load("cap", "capture-google-ota.py")
+watch = load("watch", "watch-google-ruby.py")
 stock = load("stock", "stage-stock-source.py")
 ins = load("ins", "inspect-google-ota.py")
 srv = load("srv", "serve-payload.py")
@@ -182,6 +183,17 @@ class StockGpt(unittest.TestCase):
         got = stock.gpt(img)
         self.assertEqual([(r["name"], r["offset"] // 512, r["length"] // 512) for r in got],
                          [("boot_a", 2048, 2048), ("pvmfw_a", 4096, 8), ("super", 4104, 4096)])
+
+
+
+class Watch(unittest.TestCase):
+    def test_reports_only_unknown_ruby_builds(self):
+        data = [dict(device="ruby", buildidentifier="16452207_CL3B.260622.271.R1", channel="STABLE"),
+                dict(device="ruby", buildidentifier="17000000_CL3B.261101.005", channel="STABLE"),
+                dict(device="lapis", buildidentifier="99999999_X", channel="STABLE")]
+        rows = watch.entries(data, "ruby")
+        self.assertEqual(len(rows), 2)
+        self.assertEqual([r["build"] for r in watch.new_builds(rows, {"16452207"})], ["17000000_CL3B.261101.005"])
 
 
 if __name__ == "__main__":
