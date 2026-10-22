@@ -1,0 +1,40 @@
+{
+  "schema": "openbook-ruby-g14-check/1",
+  "release": "RB-20261021-02",
+  "captured_utc": "2026-10-22T12:21:52Z..12:25Z",
+  "method": "read-only wireless ADB (shell user); no settings, files or partitions changed",
+  "uptime_at_first_check_s": 60,
+  "vbmeta_digest": "2da606567434fcae3b53ade44b3858015652e8ec2e206caefd2b1724ac23c576",
+  "vbmeta_matches_release": true,
+  "fingerprint": "Lenovo/ruby/ruby:17/CL3B.260622.271.R1/16452207:user/release-keys",
+  "native_bridge": "libberberis_arm64.so",
+  "settings_search": {
+    "settings_services_libicing_arm64_loaded_via_digitalis": true,
+    "dlopen_result": "ok (13 ms)",
+    "search_activity_opened_by_owner_08_21_44_local": true,
+    "settings_services_process_deaths_since_boot": 0,
+    "typed_query_tested_by_agent": false,
+    "note": "agent did not inject input while the owner was using another app"
+  },
+  "lid_guard_module_loaded": true,
+  "otacerts": "Google stock (640c923a...); the OpenBook certificate arrives with RB-20261022-01",
+  "update_engine": "running, no requests logged since boot",
+  "crashes_since_boot": {
+    "system_server": 0,
+    "repairmode_boot_receiver": 2,
+    "third_party_app_workmanager_misconfiguration": 1
+  },
+  "storage": {
+    "data_total_bytes": 8587837440,
+    "data_free_bytes": 217356288,
+    "use_percent": 98,
+    "storage_monitor_level": "LOW",
+    "low_threshold_bytes": 429391872,
+    "installd_cache_purges_first_4_min": 1172,
+    "apps_code_bytes": 1810850816,
+    "apps_data_bytes": 755630578,
+    "apps_cache_bytes": 14512128,
+    "unattributed_note": "the rest (~5.6 GB) is in areas a user build hides from ADB (user 10 storage, system dex/APEX, filesystem reserve)",
+    "free_before_update_2026_10_21_bytes_approx": 623000000
+  }
+}
