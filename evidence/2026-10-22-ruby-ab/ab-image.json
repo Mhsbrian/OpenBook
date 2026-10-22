@@ -1,0 +1,116 @@
+{
+  "schema": "openbook-ruby-ab-image/1",
+  "disk_bytes": 34359738368,
+  "vm_entry": true,
+  "source_image_sha256": "18235b4506bb22f45b467d1b81bd2675b1a8fd3808863bb95c7b1181a5d25ab8",
+  "efi_partuuid": "84065d8d-ef6a-4605-a0bc-45dcdead9551",
+  "vbmeta_a": {
+    "size": 5568,
+    "digest": "568ff1d07fa6e26847458a3fbaab642c94776a5bf38f1b887c2685dc2190cb72",
+    "covers": [
+      "boot",
+      "init_boot",
+      "vendor_boot",
+      "system",
+      "system_ext",
+      "product",
+      "vendor",
+      "vendor_dlkm",
+      "system_dlkm"
+    ]
+  },
+  "options": "firmware_class.path=/vendor/firmware log_buf_len=1M bootconfig console=ttyS0,115200 8250.nr_uarts=1 printk.devkmsg=on",
+  "layout": [
+    {
+      "name": "EFI",
+      "offset": 1048576,
+      "length": 536870912,
+      "slot": null,
+      "source": "candidate"
+    },
+    {
+      "name": "misc",
+      "offset": 537919488,
+      "length": 4194304,
+      "slot": null,
+      "source": "blank"
+    },
+    {
+      "name": "boot_a",
+      "offset": 542113792,
+      "length": 67108864,
+      "slot": "a",
+      "source": "candidate"
+    },
+    {
+      "name": "boot_b",
+      "offset": 609222656,
+      "length": 67108864,
+      "slot": "b",
+      "source": "blank"
+    },
+    {
+      "name": "init_boot_a",
+      "offset": 676331520,
+      "length": 8388608,
+      "slot": "a",
+      "source": "candidate"
+    },
+    {
+      "name": "init_boot_b",
+      "offset": 684720128,
+      "length": 8388608,
+      "slot": "b",
+      "source": "blank"
+    },
+    {
+      "name": "vendor_boot_a",
+      "offset": 693108736,
+      "length": 67108864,
+      "slot": "a",
+      "source": "candidate"
+    },
+    {
+      "name": "vendor_boot_b",
+      "offset": 760217600,
+      "length": 67108864,
+      "slot": "b",
+      "source": "blank"
+    },
+    {
+      "name": "vbmeta_a",
+      "offset": 827326464,
+      "length": 1048576,
+      "slot": "a",
+      "source": "candidate"
+    },
+    {
+      "name": "vbmeta_b",
+      "offset": 828375040,
+      "length": 1048576,
+      "slot": "b",
+      "source": "blank"
+    },
+    {
+      "name": "metadata",
+      "offset": 829423616,
+      "length": 67108864,
+      "slot": null,
+      "source": "blank"
+    },
+    {
+      "name": "super",
+      "offset": 896532480,
+      "length": 12884901888,
+      "slot": null,
+      "source": "candidate"
+    },
+    {
+      "name": "userdata",
+      "offset": 13781434368,
+      "length": 20577255424,
+      "slot": null,
+      "source": "blank"
+    }
+  ]
+}

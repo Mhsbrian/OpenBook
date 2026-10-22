@@ -71,17 +71,23 @@ it and one reboot switches. `plan-ruby-ab-test.py` covers it (7 tests).
 ## Milestones
 
 1. **Layout** — done (`plan-ruby-ab.py`, tested).
-2. **Ruby A/B image builder** — in progress. Done: `build-ruby-ab-super.py`
-   builds the 12 GiB Virtual A/B `super` from the six slot-A logical images,
-   geometry read from the pristine Googlebook `super`, slot B an empty group,
-   slot A verified byte-identical (`evidence/2026-10-22-ruby-ab/ab-super.json`).
-   Remaining: rebuild `vbmeta` covering the boot chain (OpenBook-signed), create
-   blank `_b`/`misc`/`metadata`/`userdata`, and build the two-slot ESP
-   (systemd-boot + `openbook-a/openbook-b` entries + bootsync files) from Ruby's
-   kernel + three initrds. Output is a raw image for QEMU and the fresh installer.
-3. **QEMU: boot slot A**, then an **OpenBook-signed full OTA into slot B**
-   through the stock update_engine, reboot-switch, `mark-good`, and a **broken
-   slot B → automatic fallback to A**.
+2. **Ruby A/B image builder** — done, and the disk boots.
+   - `build-ruby-ab-super.py`: the 12 GiB Virtual A/B `super`, geometry from the
+     pristine Googlebook `super`, slot B an empty group, slot A byte-identical.
+   - `build-ruby-ab-image.py`: assembles the disk — the two-slot GPT, slot A's
+     boot images, `vbmeta_a` rebuilt to cover the boot chain (signed), and the
+     ESP with systemd-boot and slot A in openbook-bootsync's layout, extracted
+     exactly as `bootsync.c` does. openbook-bootsync's own `status` reports slot A
+     `in_sync` byte-for-byte with a good entry.
+   - `ab-qemu.py`: boots it as the internal NVMe in QEMU. All 9 checks pass:
+     boot completed on slot A, the A/B boot HAL sees 2 slots and marked slot A
+     successful (markBootSuccessful → bootsync mark-good), bootsync still in sync,
+     userdata formatted at its full planned size and mounted (encrypted),
+     metadata formatted, no AVB errors, no bootsync/HAL SELinux denials.
+3. **QEMU: OpenBook-signed full OTA into slot B** — next. Build an
+   OpenBook-signed Virtual A/B payload from a release, apply it through the stock
+   update_engine, let bootsync `activate b`, reboot-switch, `mark-good`, merge;
+   then a **broken slot B → automatic fallback to A** (bootsync's 3-try counter).
 4. **Fresh installer** for this layout (erases the SSD, names it, keeps nothing),
    which is the install the owner is waiting for. Explicit device-named approval.
 5. **Capture + patch Google OTAs**: the offer is visible to an authorized flow
@@ -94,6 +100,13 @@ it and one reboot switches. `plan-ruby-ab-test.py` covers it (7 tests).
 python3 scripts/googlebook/plan-ruby-ab.py \
   --candidate "$RB_20261022_01_CANDIDATE_DIR" --disk-bytes 1000204886016 --out layout.json
 python3 scripts/googlebook/plan-ruby-ab-test.py
+
+# assemble the disk and boot it (in the installer container)
+scripts/installer/inst-docker.sh python3 scripts/googlebook/build-ruby-ab-image.py \
+  --candidate "$CANDIDATE" --super-img "$AB_SUPER" --tools "$AOSP_HOST_BIN" --key "$AVB_KEY" \
+  --out "$IMG" --disk-bytes 34359738368 --vm
+scripts/installer/inst-docker.sh python3 scripts/googlebook/ab-qemu.py --image-dir "$IMG" \
+  --qemu "$TCG_QEMU" --bootsync "$BOOTSYNC_HOST" --out "$VM"
 
 # build + verify the A/B super (needs lpmake/lpdump/lpunpack on LD_LIBRARY_PATH)
 python3 scripts/googlebook/build-ruby-ab-super.py --logical "$SLOT_A_LOGICAL_DIR" \
