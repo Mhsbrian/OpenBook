@@ -111,6 +111,60 @@ payload carrying `pvmfw`/`recovery`/`ota_recovery` applies on v2 but not v1.
 - Full payloads use **zstd** replace operations (`--enable_replace_zstd`),
   which decompress several times faster than the default xz.
 
+## The owner OTA path: how a wireless update reaches the laptop
+
+On a user build, AOSP lets only `system_server`, `system_app`, `gmscore_app` and a
+GKI hook talk to update_engine, so an adb session cannot hand it an update.
+Releases built with `build-ota-trust-candidate.py --owner-ota-policy` add the
+**owner OTA policy**: four rules letting the owner's paired adb shell drive the
+stock update_engine (binder call/transfer and fd use, both ways), the exact
+rules every VM apply used. Nothing else.
+
+The payload is **streamed over HTTP** from the owner's build host, the standard
+A/B delivery: update_engine downloads it straight into the other slot, so the
+laptop needs no staging space (its /data was 93–98% full), and plain `http://`
+is allowed on user builds (`libcurl_http_fetcher.cc`; update_engine is a
+`net_domain`). Staging in `/data/local/tmp` was tried first and rejected at
+policy compile time by AOSP's neverallow: other domains may not search that
+directory or open shell files. Integrity never depends on the transport:
+update_engine checks the payload's signature against the installed OpenBook
+certificate (and FILE_HASH/METADATA_HASH) before the slot switch.
+
+- `serve-payload.py`: serves exactly `payload.bin` and its properties on one
+  address, with the HTTP Range requests update_engine uses, until idle
+  (`serve-payload-test.py`, 7 tests over a real socket).
+- `g14-ota.sh`: preflight (`check-ota-fit.py`) → read-only device checks
+  (OpenBook certificate installed, a second slot) → serve → `update_engine_client
+  --update --payload=http://…` → optional reboot and slot check. It refuses
+  without `--approved "<release> to the G14"`; `--dry-run` stops before serving.
+  Dry run on the G14 (RB-20261022-01, 2026-10-22): preflight fits, certificate
+  present, one slot → refused, as expected until the fresh install.
+- Still to do before the first wireless update: a VM rehearsal of the HTTP leg.
+  The VNNI/GFNI-emulating QEMU build has no user-mode networking, so it needs
+  rebuilding with slirp (or passt).
+
+## Fresh installer for layout v2 (design)
+
+Built on the Ruby stick's offline installer (`migrate.py --fresh`), which
+already has the G14 DMI pin, internal-NVMe-only targets that refuse the USB, a
+typed `FRESH ERASE <serial>` phrase, write-then-readback and a QEMU rehearsal
+that types the prompt (`migration-qemu.py`). The AOSP engine's layout is
+data-driven, but it accepts only OpenBook AOSP sticks and runs inside live
+Android, which the Ruby stick does not boot. To add:
+1. GPT generated from `plan-ruby-ab.py` for the real disk size (19 partitions)
+   instead of copying the stick's single-slot rows.
+2. A pin listing the prebuilt slot-A images (ESP files, boot chain, vbmeta,
+   super) with SHA-256s.
+3. Bind `androidboot.boot_part_uuid` to the new ESP at install time, keeping
+   the bootsync layout and the vbmeta digest.
+4. Sparse/extent writes for the 24 GiB super (content ≈ 3.6 GB).
+5. Zero slot B, misc and metadata (first MiB of the rest), as the AOSP engine does.
+6. A dry-run plan hash and power-cut cases, from the AOSP engine's tests.
+7. A v2 `migration-qemu.py` case: the 19-partition GPT, blank slot B, userdata
+   filling the disk, then boot slot A and run one OTA.
+The image it writes must be a release with the owner OTA policy (candidate R),
+so the first update after the reinstall can arrive wirelessly.
+
 ## Milestones
 
 1. **Layout** — done (`plan-ruby-ab.py`, tested).

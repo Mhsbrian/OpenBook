@@ -4,7 +4,7 @@
 
 Composes the pieces built and checked separately:
   plan-ruby-ab.py          the two-slot GPT layout
-  build-ruby-ab-super.py   the 12 GiB Virtual A/B super (slot A filled, slot B empty)
+  build-ruby-ab-super.py   the 24 GiB Virtual A/B super (slot A filled, slot B empty)
 and adds what remains:
   vbmeta_a  rebuilt to cover the boot chain like Googlebook's (boot, init_boot,
             vendor_boot hash descriptors plus the six super hashtree descriptors),

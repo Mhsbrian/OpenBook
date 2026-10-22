@@ -1,0 +1,5 @@
+2026-10-22 22:47 UTC, g14-ota.sh --dry-run, small v2 incremental payload, layout v2 (1 TB):
+1/5 preflight: incremental payload, 10 partitions: FITS; snapshot 0.06 GiB of 20.65 GiB free in super
+2/5 device:    running slot _a; OpenBook certificate yes; second slot NO
+result:        refused ("the laptop has one slot; an OTA needs the two-slot layout (fresh install)"), exit 4
+               nothing served, nothing applied; read-only adb only

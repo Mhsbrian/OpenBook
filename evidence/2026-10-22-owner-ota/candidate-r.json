@@ -1,0 +1,24 @@
+{
+  "schema": "openbook-ruby-candidate-record/1",
+  "name": "candidate R (RB-20261022-01 + owner OTA policy)",
+  "base_system": "RB-20261021-02 system 5a466ee6...",
+  "image_sha256": "3999a99d597ee27a179dd90abdd5fb31176edf94381e9bf2a54d38a545c7be50",
+  "changed_files": [
+    "/system/etc/security/otacerts.zip",
+    "/system/etc/selinux/plat_sepolicy.cil",
+    "/system/etc/selinux/plat_sepolicy_and_mapping.sha256"
+  ],
+  "owner_ota_path": {
+    "policy": {
+      "scope": "production owner OTA path: adb shell may drive update_engine, which streams the payload over HTTP from the owner's host; installs still require the OpenBook signature",
+      "neverallow_checked": true,
+      "policy_sha256": "3dde9afa670fabeeb4c569c05a1d636f5203ebb289e3e979787e174ac0156d5f",
+      "rules_sha256": "e08b63929651426eff251cf5be9148b63e089e6f57086d19e5657772f9e5a916",
+      "runtime_recompilation_required": true
+    },
+    "delivery": "HTTP from the owner's host",
+    "deployment_eligible": true,
+    "hardware_validated": false
+  },
+  "release_status": "development candidate; not queued (needs the fresh installer and an HTTP-leg VM rehearsal)"
+}

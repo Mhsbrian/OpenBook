@@ -1,5 +1,18 @@
 # Status
 
+## 2026-10-22: G14 on RB-20261022-01; the owner OTA path built (ANAL-229)
+
+The SanDisk got RB-20261022-01 (verified readback `8834cd89…`). B Honey checked its live entry and ran
+Update: the G14 now runs RB-20261022-01 from the SSD with the OpenBook OTA certificate (Google system
+updates are refused), data kept. Next, the path for wireless OpenBook updates: releases built with
+`--owner-ota-policy` let the owner's adb shell drive update_engine (four binder/fd rules, as in every VM
+apply), and update_engine streams the payload over HTTP from the host (`serve-payload.py`, `g14-ota.sh`).
+Staging in /data/local/tmp was refused at policy compile time by AOSP's neverallows. Candidate R
+(RB-20261022-01 + that policy, `3999a99d…`) boots on a v2 disk in QEMU (9/9). `g14-ota.sh --dry-run`
+on the G14 refuses as designed (one slot). Open: VM rehearsal of the HTTP leg (QEMU needs slirp), then
+the fresh installer for v2 (design in `docs/googlebook-ab-layout.md`). Evidence:
+`evidence/2026-10-22-rb-20261022-01/`, `evidence/2026-10-22-owner-ota/`.
+
 ## 2026-10-22: Layout v2 proven for small and large OTAs (ANAL-229)
 
 Before the fresh installer fixes partition sizes for good, the A/B layout was resized for the largest

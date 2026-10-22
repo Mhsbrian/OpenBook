@@ -1,0 +1,56 @@
+{
+  "schema": "openbook-ruby-ab-boot/1",
+  "elapsed_s": 900.9,
+  "observation_completed": true,
+  "qmp_events": [
+    "RTC_CHANGE"
+  ],
+  "boot_control": {
+    "suffix": "_a",
+    "magic_ok": true,
+    "nb_slot": 2,
+    "slots": [
+      {
+        "priority": 7,
+        "tries": 1,
+        "successful": true
+      },
+      {
+        "priority": 7,
+        "tries": 7,
+        "successful": false
+      }
+    ]
+  },
+  "bootsync_status_ok": true,
+  "next_boot_slot": "a",
+  "userdata_bytes": 15244197888,
+  "checks": {
+    "boot_completed": true,
+    "booted_slot_a": true,
+    "boot_hal_sees_two_slots": true,
+    "slot_a_marked_successful": true,
+    "bootsync_slot_a_in_sync": true,
+    "bootsync_entry_good": true,
+    "userdata_formatted_full_size_and_mounted": true,
+    "metadata_formatted_ext4": true,
+    "no_avb_handoff_error": true
+  },
+  "passed": true,
+  "runtime_findings": {
+    "setup_welcome_activity_seen": true,
+    "system_server_fatal_signals": 0,
+    "zygote_exit_events": 0,
+    "system_server_execmem_denial_seen": false,
+    "mmd_setup_abort_seen": false,
+    "camera_provider_running_reported": false,
+    "camera_provider_registered_reported": true,
+    "camera_device_counts_reported": 1,
+    "camera_provider_abort_seen": false,
+    "camera_fmq_test_exit_statuses": 0,
+    "camera_buffer_test_exit_statuses": 0,
+    "camera_buffer_test_abort_seen": false,
+    "camera_fmq_tmpfs_denial_seen": false,
+    "camera_provider_default_label_denial_seen": false
+  }
+}
