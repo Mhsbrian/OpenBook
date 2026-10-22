@@ -39,7 +39,7 @@ TEST_POLICY = """
 """
 
 
-def test_policy(a, source):
+def test_policy(a, source, extra_cil=""):
     """Compile exact image policy inputs with neverallow checks before packaging."""
     old = b.json.loads((a.base / "manifest.json").read_text())
     roots = {}
@@ -59,7 +59,8 @@ def test_policy(a, source):
     mapping = (se / f"mapping/{version}.cil").read_bytes()
     if (se / "plat_sepolicy_and_mapping.sha256").read_text().strip() != b.p.hashlib.sha256(plat + mapping).hexdigest():
         raise ValueError("Unrecognized platform policy hash contract")
-    updated = plat + TEST_POLICY.encode()
+    rules = TEST_POLICY + extra_cil
+    updated = plat + rules.encode()
     local = a.out / "probe-plat.cil"; local.write_bytes(updated)
     inputs = [local, se / f"mapping/{version}.cil",
               vendor / "plat_pub_versioned.cil", vendor / "vendor_sepolicy.cil",
@@ -79,7 +80,7 @@ def test_policy(a, source):
     }
     return replacements, {"scope": "shell test-client Binder/FD access only; never deploy",
                           "neverallow_checked": True, "policy_sha256": b.p.h.audit.sha(policy),
-                          "rules_sha256": b.p.hashlib.sha256(TEST_POLICY.encode()).hexdigest(),
+                          "rules_sha256": b.p.hashlib.sha256(rules.encode()).hexdigest(),
                           "runtime_recompilation_required": True}
 
 

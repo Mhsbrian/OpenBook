@@ -50,6 +50,61 @@ ENTRY = "openbook/releasekey.x509.pem"
 TEST_DIR = "/system/etc/openbook-ota-test"
 CASES = ("foreign-static", "openbook-static", "openbook-vab")
 
+# Disposable A/B apply harness: a one-shot that stages the OpenBook-signed payload
+# from a second drive into /data/ota_package (where real OTAs live, so the
+# ota_package_file label is correct) and applies it through the stock
+# update_engine_client. The boot HAL then runs bootsync activate on the target
+# slot. VM only; never deployed.
+APPLY_SERVICE = """
+# Disposable VM only: apply the OpenBook-signed A/B OTA payload.
+# init mounts the payload drive with the ota_package_file label (so update_engine
+# may read it) and starts the driver as shell, which the trust harness already
+# proved can drive update_engine_client. No staging copy, no shell mount.
+service openbook.ota-apply /system/bin/sh /system/etc/openbook-ota-test/apply.sh
+    user shell
+    group shell system log readproc
+    seclabel u:r:shell:s0
+    console ttyS0
+    disabled
+    oneshot
+
+on property:sys.boot_completed=1
+    mkdir /mnt/otapayload 0771 root system
+    mount ext4 /dev/block/nvme1n1 /mnt/otapayload ro context=u:object_r:ota_package_file:s0
+    start openbook.ota-apply
+"""
+
+APPLY_POLICY = """
+; Disposable VM apply harness only: let init label the payload drive ota_package_file
+; via the context= mount option, so update_engine may read the payload.
+; The full documented permission set for an `-o context=` ext4 mount, so there is
+; no run-by-run denial chase: the mounting domain (init) needs the filesystem
+; mount/relabel perms to the target context, and the context type must associate.
+(allow init ota_package_file (filesystem (mount remount unmount relabelfrom relabelto getattr)))
+(allow ota_package_file ota_package_file (filesystem (associate)))
+"""
+
+APPLY_SCRIPT = """# Disposable VM only: apply the OpenBook-signed A/B OTA payload from the mounted drive.
+DONE=/data/local/tmp/openbook-ota-apply.done
+[ -e $DONE ] && exit 0
+touch $DONE
+say() { echo "OTAAPPLY $*"; }
+waited=0
+until logcat -d -b main -s update_engine:I | grep -q "Terminating cleanup previous update" || [ $waited -ge 300 ]; do
+  sleep 5; waited=$((waited + 5))
+done
+say idle waited=${waited}s slot=$(getprop ro.boot.slot_suffix) vab=$(getprop ro.virtual_ab.enabled)
+say otacerts=$(sha256sum /system/etc/security/otacerts.zip | cut -d' ' -f1)
+say payload=$(sha256sum /mnt/otapayload/payload.bin | cut -d' ' -f1)
+# update_engine_client expects newline-separated key=value headers (not comma-joined).
+timeout 900 update_engine_client --update --follow \\
+  --payload=file:///mnt/otapayload/payload.bin \\
+  --headers="$(cat /system/etc/openbook-ota-test/payload_properties.txt)"; say update exit=$?
+update_engine_client --show 2>/dev/null || true
+logcat -d -b main -b system -s update_engine:V update_engine_client:V bootsync:V | sed 's/^/OTALOG /'
+say end
+"""
+
 TEST_SERVICE = """
 # Disposable VM only: stock update_engine_client against reviewed test payloads.
 service openbook.ota-trust-test /system/bin/sh /system/etc/openbook-ota-test/run.sh
@@ -151,6 +206,8 @@ def build(a):
         raise ValueError("--stock-trust is a VM-test control only")
     if a.stock_trust == bool(a.cert):
         raise ValueError("Supply --cert, or --stock-trust for the control")
+    if getattr(a, 'apply_from_drive', False) and a.vm_test:
+        raise ValueError("--apply-from-drive and --vm-test are different VM harnesses; pick one")
     if bool(a.vm_test) != bool(getattr(a, "vm_test_signer", None)):
         raise ValueError("--vm-test needs --vm-test-signer, the certificate of the openbook-* test payloads")
     replacement, cert_record = None, None
@@ -181,16 +238,25 @@ def build(a):
             annotations["input_correction"] = dict(
                 source_sha256=b.patcher.SOURCE_SHA256, output_sha256=hashlib.sha256(patched).hexdigest(),
                 offset=offset, bytes=8, hardware_validated=False)
-        if a.vm_test:
+        if a.vm_test or getattr(a, 'apply_from_drive', False):
             rc = source / "system/etc/init/update_engine.rc"
             if rc.read_text() != g.q.STOCK_RC:
                 raise ValueError("Unrecognized stock init contract")
-            replacements["/system/etc/init/update_engine.rc"] = (g.q.STOCK_RC + TEST_SERVICE).encode()
-            policy_files, policy_record = g.test_policy(a, source)
+            service = APPLY_SERVICE if getattr(a, 'apply_from_drive', False) else TEST_SERVICE
+            replacements["/system/etc/init/update_engine.rc"] = (g.q.STOCK_RC + service).encode()
+            policy_files, policy_record = g.test_policy(
+                a, source, APPLY_POLICY if getattr(a, 'apply_from_drive', False) else "")
             replacements.update(policy_files)
-            files, payloads = test_payloads(a.vm_test)
-            additions = {TEST_DIR: None, f"{TEST_DIR}/run.sh": TEST_SCRIPT.encode(), **files}
-            annotations["experimental_ota_trust_test"] = dict(
+            if getattr(a, 'apply_from_drive', False):
+                props = b.p.regular(a.apply_from_drive).read_bytes()
+                additions = {TEST_DIR: None, f"{TEST_DIR}/apply.sh": APPLY_SCRIPT.encode(),
+                             f"{TEST_DIR}/payload_properties.txt": props}
+                marker, payloads = "experimental_ota_apply_test", {}
+            else:
+                files, payloads = test_payloads(a.vm_test)
+                additions = {TEST_DIR: None, f"{TEST_DIR}/run.sh": TEST_SCRIPT.encode(), **files}
+                marker = "experimental_ota_trust_test"
+            annotations[marker] = dict(
                 deployment_eligible=False, hardware_validated=False, unattended_safe=False,
                 trust="stock" if a.stock_trust else "openbook", trusted_cases=trusted, payloads=payloads,
                 test_harness_policy=policy_record,
@@ -198,7 +264,8 @@ def build(a):
                        if d is not None})
         return replacements, annotations, additions
 
-    schema = "openbook-ruby-ota-trust-test/1" if a.vm_test else "openbook-ruby-ota-trust-candidate/1"
+    schema = ("openbook-ruby-ota-apply-test/1" if getattr(a, 'apply_from_drive', False) else
+              "openbook-ruby-ota-trust-test/1" if a.vm_test else "openbook-ruby-ota-trust-candidate/1")
     b.build_system(a, transform, schema)
 
 
@@ -212,6 +279,8 @@ if __name__ == "__main__":
     p.add_argument("--input-correction", action="store_true", help="Also apply RB01's libinputflinger patch")
     p.add_argument("--vm-test", type=Path, help="Disposable payload directory from make-ota-test-payloads.sh")
     p.add_argument("--vm-test-signer", type=Path, help="Certificate that signed the openbook-* test payloads")
+    p.add_argument("--apply-from-drive", type=Path,
+                   help="Disposable A/B apply harness: payload_properties.txt of the payload on the drive")
     p.add_argument("--stock-trust", action="store_true", help="VM-test control: keep Google's archive")
     a = p.parse_args()
     if a.cert and not a.cert_sha256:
