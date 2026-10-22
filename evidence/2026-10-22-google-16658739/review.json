@@ -1,0 +1,79 @@
+{
+  "schema": "openbook-google-update-review/1",
+  "captured_utc": "2026-10-22",
+  "device_check": {
+    "when_local": "19:37",
+    "gms_checkin": "finished (code 21021), config update succeeded",
+    "offer_handed_to_update_engine": false,
+    "metadata_fetched": false,
+    "log_window_covers_check": true,
+    "note": "nothing to intercept from this check; the OpenBook certificate was not reached"
+  },
+  "public_listing": {
+    "source": "Google's production recovery manifest",
+    "previous": "16452207_CL3B.260622.271.R1 (2026-10-05)",
+    "new": "16658739_CL3B.260622.276.R4 (2026-10-22)",
+    "download_md5_verified": true
+  },
+  "diff": {
+    "old": "16452207",
+    "new": "16658739",
+    "changed_partitions": [
+      "boot",
+      "init_boot",
+      "ota_recovery",
+      "product",
+      "pvmfw",
+      "system",
+      "system_dlkm",
+      "system_ext",
+      "vbmeta",
+      "vendor",
+      "vendor_boot",
+      "vendor_dlkm"
+    ],
+    "unchanged_partitions": [
+      "recovery"
+    ],
+    "framework_files": {
+      "system": {
+        "added": 0,
+        "removed": 0,
+        "changed": 104,
+        "total": 3464
+      },
+      "system_ext": {
+        "added": 0,
+        "removed": 0,
+        "changed": 40,
+        "total": 165
+      },
+      "product": {
+        "added": 0,
+        "removed": 0,
+        "changed": 133,
+        "total": 584
+      }
+    },
+    "security_patch": [
+      "2026-09-01",
+      "2026-10-01"
+    ],
+    "framework_partition_sizes_unchanged": true,
+    "selinux_or_vintf_changes_in_framework": false,
+    "compatibility_matrices_changed": [],
+    "selinux_mappings": [
+      "202404.cil",
+      "202504.cil",
+      "202604.cil"
+    ]
+  },
+  "patch_layers": {
+    "trackpad correction": "anchor libinputflinger.so unchanged: the pinned 8-byte patch applies as-is",
+    "OTA certificate swap": "stock otacerts.zip unchanged: applies as-is",
+    "owner OTA policy": "plat_sepolicy.cil and its version unchanged: applies as-is",
+    "Digitalis bridge": "native-bridge property (libhoudini.so) and /system/lib64/arm64 (412 files) unchanged; only the base pin must move to the new base",
+    "lid guard": "vendor_dlkm is OpenBook's: unaffected",
+    "OpenBook vendor stack": "no framework compatibility matrix changed"
+  }
+}
