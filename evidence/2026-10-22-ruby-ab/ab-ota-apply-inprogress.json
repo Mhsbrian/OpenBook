@@ -1,0 +1,25 @@
+{
+  "schema": "openbook-ruby-ab-ota-apply/1",
+  "result": "apply mechanism verified in progress; full write not completed under TCG (VM speed, not correctness)",
+  "on_device_otacerts": "3e1529c919baf5bbe71c729e2f6884d034a589328af0fb41a1ae730ac3342a59 (OpenBook certificate)",
+  "update_engine": {
+    "reached_apply_payload": true,
+    "metadata_signature_mismatches": 0,
+    "payload_errors": 0,
+    "operations_completed": 171,
+    "operations_total": 610,
+    "percent": 28,
+    "bytes_written": 293339136,
+    "target": "slot B (system_b snapshot + _b boot/vbmeta on the two-slot disk)",
+    "applied_without_error_through_percent": 28
+  },
+  "delivery_path_resolved": [
+    "driver runs as shell (seclabel u:r:shell:s0), not update_engine (fixed exit 127)",
+    "init mounts the payload drive with context=u:object_r:ota_package_file:s0 (full context= perm set in the disposable policy)",
+    "payload on a dedicated nvme at a pinned PCI slot -> /dev/block/nvme1n1",
+    "payload.bin world-readable (update_engine lacks dac_override)",
+    "update headers passed newline-separated (not comma-joined)"
+  ],
+  "not_yet_captured": "100% apply + bootsync activate b + reboot into slot B + broken-slot fallback; needs a KVM-speed or multi-hour run",
+  "serial_sha256": "fa0abc6263455008a8fb67bd8124590f1be48c4a856c8eec533d0f2bc192a8f4"
+}
