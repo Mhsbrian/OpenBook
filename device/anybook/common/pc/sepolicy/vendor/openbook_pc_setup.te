@@ -14,6 +14,9 @@ r_dir_file(openbook_pc_setup, sysfs)
 allow openbook_pc_setup sysfs:file w_file_perms;
 # It reads every PCI function's vendor ID, the iGPU's included (sysfs_gpu, file_contexts).
 r_dir_file(openbook_pc_setup, sysfs_gpu)
+# dgpu-report (ANAL-238): the s2idle hardware-sleep counters next to the dGPU's state. Its lines go to logd
+# (write_logd, for every domain) through vendor toybox's log.
+r_dir_file(openbook_pc_setup, sysfs_suspend_stats)
 
 # perms: hand cpufreq's energy_performance_preference to the power HAL.
 r_dir_file(openbook_pc_setup, sysfs_devices_system_cpu)
