@@ -123,7 +123,7 @@ def main():
     p.add_argument("--accel", choices=("kvm", "tcg"), default="kvm")
     p.add_argument("--uefi-usb", action="store_true")
     p.add_argument("--usb-logs", action="store_true", help="Select shipped serial+USB logger; retain writes in the private USB copy")
-    p.add_argument("--usb-log-entry", choices=("serial-logs", "logs", "safe-logs"), default="serial-logs")
+    p.add_argument("--usb-log-entry", choices=("serial-logs", "logs", "safe-logs", "sleep-diag-serial"), default="serial-logs")
     p.add_argument("--tpm", action="store_true", help="Use a new disposable software TPM over CRB; no hardware attestation claim")
     p.add_argument("--tpm-state-from", type=Path, help="Copy a previous disposable VM's TPM state for an update rehearsal; never G14 data")
     p.add_argument("--audio", action="store_true", help="Emulated HDA codec with a silent input and no host audio device")

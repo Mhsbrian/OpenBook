@@ -12,6 +12,7 @@ load("//build/kernel/kleaf:hermetic_tools.bzl", "hermetic_genrule")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_files", "strip_prefix")
 load(
     "//build/kernel/kleaf:kernel.bzl",
+    "ddk_module",
     "initramfs",
     "kernel_abi",
     "kernel_build",
@@ -218,6 +219,18 @@ pkg_install(
     name = "anybook_amd_x86_64_dist",
     srcs = [":anybook_amd_x86_64_dist_files"],
     destdir = "out/anybook_amd_x86_64/dist",
+)
+
+# ANAL-235: keep a closed lid dark across s2idle resumes (drops the ACPI power button's resume KEY_WAKEUP
+# while the lid is closed; re-reads _LID after resume). Built on the device kernel_build so its modversions
+# CRCs match the other vendor modules. Not in the G14 load lists until it is qualified.
+#   tools/bazel build --config=stamp //devices/anybook:openbook_lid_guard
+ddk_module(
+    name = "openbook_lid_guard",
+    srcs = ["lid_guard/openbook_lid_guard.c"],
+    out = "openbook_lid_guard.ko",
+    kernel_build = ":anybook_amd_x86_64",
+    deps = ["//common:all_headers_x86_64"],
 )
 
 # ANAL-198: images for the ASUS ROG Zephyrus G14 2025 (GA403WR), in two variants:

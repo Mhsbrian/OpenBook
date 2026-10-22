@@ -1,5 +1,19 @@
 # Status
 
+## 2026-10-21: G14 lid sleep: cause found, kernel fix VM-tested (ANAL-235)
+
+Read-only G14 tests show lid-closed sleep is entered but undone: every resume
+emits a Power Button `KEY_WAKEUP` (kernel `acpi_button_resume()`), and one resume
+reported the lid open, after which Googlebook holds a ~26 minute screen-off
+wakelock on AC. The firmware's `_LID` returns open whenever the EC is not marked
+ready. New vendor module `openbook_lid_guard` drops the resume `KEY_WAKEUP` while
+the lid is (or was, at suspend) closed and corrects a false open by re-reading
+`_LID` after resume. On the G14 kernel in QEMU it removes the closed-lid wake
+(1 → 0, open-lid wake kept) and turns a simulated false open into closed after
+1.0 s; unloading restores the old behaviour. A USB diagnostics entry
+(`pm_debug_messages` plus ACPI notify logging) boots in the VM. Not yet packaged
+into Ruby or tested on the G14. See `googlebook-sleep.md`.
+
 ## 2026-10-21: G14 updated to the RB01 system from the USB, data kept
 
 The owner ran the USB's **Update** entry. Read-only ADB after reboot: boot vbmeta

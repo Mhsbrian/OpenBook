@@ -1,5 +1,12 @@
 # Build and reproduce
 
+## Lid guard module and USB diagnostics entries — 2026-10-21
+
+`tools/bazel build --config=stamp //devices/anybook:openbook_lid_guard` builds the
+vendor module after `scripts/kernel-amd-apply.sh`. `kernel/devices/anybook/lid_guard/test/`
+holds its QEMU test. `scripts/googlebook/stick-entries.py` adds allowlisted boot entries
+to a Ruby USB clone for `apply-preserved-update.py`. Details: `googlebook-sleep.md`.
+
 ## Ruby laptop update/restore USB entries — 2026-10-21
 
 `laptop-update.py spec` binds a reviewed previous system to the USB's pinned new

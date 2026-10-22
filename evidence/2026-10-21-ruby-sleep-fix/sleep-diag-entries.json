@@ -1,0 +1,11 @@
+{
+  "schema": "openbook-ruby-stick-entries/1",
+  "entries": [
+    {"name": "ruby-sleep-diag.conf", "base": "ruby-logs.conf",
+     "title": "Googlebook - sleep diagnostics, save logs to USB (10 minutes)",
+     "add_options": ["pm_debug_messages", "acpi.debug_layer=0x4", "acpi.debug_level=0x4"]},
+    {"name": "ruby-sleep-diag-serial.conf", "base": "ruby-serial-logs.conf",
+     "title": "Googlebook - sleep diagnostics (VM serial and USB logs)",
+     "add_options": ["pm_debug_messages", "acpi.debug_layer=0x4", "acpi.debug_level=0x4"]}
+  ]
+}

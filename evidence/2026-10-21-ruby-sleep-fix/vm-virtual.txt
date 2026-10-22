@@ -1,0 +1,13 @@
+== kernel 6.18.21-android17-5-gfbfdd65b0fd1
+== scenario virtual
+RESULT baseline closed_lid_wakeups=1 open_lid_wakeups=1
+== module loaded
+RESULT guarded closed_lid_wakeups=0 open_lid_wakeups=1
+COUNTERS dropped_wakeups=2 lid_corrections=0
+KLOG [    8.679929][   T71] openbook_lid_guard: loading out-of-tree module taints kernel.
+KLOG [    8.681414][   T71] openbook_lid_guard: watching Power Button (power button)
+KLOG [    8.689788][   T73] openbook_lid_guard: watching Test Lid Switch (lid)
+KLOG [   10.007719][   T73] openbook_lid_guard: lid closed: dropped resume KEY_WAKEUP from Power Button
+== module unloaded
+RESULT unloaded closed_lid_wakeups=1 open_lid_wakeups=1
+== done
