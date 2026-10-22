@@ -1,0 +1,381 @@
+{
+  "schema": "openbook-ruby-ota-trust-rehearsal/1",
+  "trust": "openbook",
+  "trusted_cases": [],
+  "candidate_sha256": "4f364c406fa194180873810f095aa3e05b1845eddbf50cb0ece5a9eeaae1000d",
+  "payloads": {
+    "foreign-static": {
+      "payload_sha256": "6ed26c05c09bab33f1d11af7f785d0c756b490fd5e48e0c0716661274fcb89cc",
+      "metadata_size": 243,
+      "metadata_signature_size": 523
+    },
+    "openbook-static": {
+      "payload_sha256": "5eaab5584e081681e297874e0a0c3deef79ff4b45386033a36de4e46404b165c",
+      "metadata_size": 243,
+      "metadata_signature_size": 523
+    },
+    "openbook-vab": {
+      "payload_sha256": "4ba5fd316ce1f0d56b05a63f2d62f997102f72288c44a4e4e803b31bbf98fafb",
+      "metadata_size": 397,
+      "metadata_signature_size": 523
+    }
+  },
+  "expected_otacerts_sha256": "3e1529c919baf5bbe71c729e2f6884d034a589328af0fb41a1ae730ac3342a59",
+  "observed": {
+    "steps": [
+      {
+        "step": "verify",
+        "case": "foreign-static",
+        "exit": 248,
+        "logged": true,
+        "error_codes": [
+          "kDownloadMetadataSignatureMismatch"
+        ],
+        "final_error_code": null,
+        "signature_verified": false,
+        "partitions_prepared": false,
+        "snapshots_created": false,
+        "target_super_metadata_written": false,
+        "milestones": [
+          "I update_engine: [INFO:binder_service_android.cc(179)] Received a request of verifying payload metadata in /system/etc/openbook-ota-test/foreign-static.metadata.",
+          "I update_engine: [INFO:payload_verifier.cc(190)] Failed to verify the signature with 1 keys.",
+          "E update_engine: [ERROR:update_attempter_android.cc(111)] Replying with failure: system/update_engine/aosp/update_attempter_android.cc 579: Failed to validate metadata signature: ErrorCode::kDownloadMetadataSignatureMismatch",
+          "I update_engine_client: [INFO:update_engine_client_android.cc(269)] Payload is not applicable.",
+          "E update_engine_client: [ERROR:update_engine_client_android.cc(324)] Status(-8, EX_SERVICE_SPECIFIC): '26: Failed to validate metadata signature: ErrorCode::kDownloadMetadataSignatureMismatch'"
+        ]
+      },
+      {
+        "step": "allocate",
+        "case": "foreign-static",
+        "exit": 248,
+        "logged": true,
+        "error_codes": [
+          "kDownloadMetadataSignatureMismatch"
+        ],
+        "final_error_code": null,
+        "signature_verified": false,
+        "partitions_prepared": false,
+        "snapshots_created": false,
+        "target_super_metadata_written": false,
+        "milestones": [
+          "I update_engine: [INFO:binder_service_android.cc(211)] Received a request of allocating space for /system/etc/openbook-ota-test/foreign-static.metadata.",
+          "I update_engine: [INFO:payload_verifier.cc(190)] Failed to verify the signature with 1 keys.",
+          "E update_engine: [ERROR:update_attempter_android.cc(111)] Replying with failure: system/update_engine/aosp/update_attempter_android.cc 579: Failed to validate metadata signature: ErrorCode::kDownloadMetadataSignatureMismatch",
+          "I update_engine_client: [INFO:update_engine_client_android.cc(287)] Allocation failed.",
+          "E update_engine_client: [ERROR:update_engine_client_android.cc(324)] Status(-8, EX_SERVICE_SPECIFIC): '26: Failed to validate metadata signature: ErrorCode::kDownloadMetadataSignatureMismatch'"
+        ]
+      },
+      {
+        "step": "update",
+        "case": "foreign-static",
+        "exit": 1,
+        "logged": true,
+        "error_codes": [
+          "kDownloadMetadataSignatureMismatch"
+        ],
+        "final_error_code": "kDownloadMetadataSignatureMismatch",
+        "signature_verified": false,
+        "partitions_prepared": false,
+        "snapshots_created": false,
+        "target_super_metadata_written": false,
+        "milestones": [
+          "I update_engine: [INFO:update_attempter_android.cc(251)] ApplyPayload(file:///system/etc/openbook-ota-test/foreign-static.payload, 0, 0) FILE_HASH=btJsBcCbqzPx0Rr394XQx1a0kP1eSODAcWZhJ0/Licw=, FILE_SIZE=1115401, METADATA_HASH=+EY7W7F0Gw9+ud",
+          "I update_engine: [INFO:dynamic_partition_control_android.cc(1359)] ResetUpdate resetting update state and deleting snapshots.",
+          "I update_engine: [INFO:action_processor.cc(118)] ActionProcessor: finished UpdateBootFlagsAction with code ErrorCode::kSuccess",
+          "I update_engine: [INFO:snapshot.cpp(4615)] merge_stats file does not exist: /metadata/ota/merge_stats",
+          "I update_engine: [INFO:action_processor.cc(118)] ActionProcessor: finished CleanupPreviousUpdateAction with code ErrorCode::kSuccess",
+          "I update_engine: [INFO:action_processor.cc(118)] ActionProcessor: finished InstallPlanAction with code ErrorCode::kSuccess",
+          "E update_engine: [ERROR:BootControlClient.cpp(178)] MarkSlotUnbootable(1) failed Status(-8, EX_SERVICE_SPECIFIC): '-1: Invalid slot 1'",
+          "E update_engine: [ERROR:boot_control_android.cc(113)] Unable to call MarkSlotUnbootable for slot B: Status(-8, EX_SERVICE_SPECIFIC): '-1: Invalid slot 1'",
+          "W update_engine: [WARNING:download_action.cc(69)] Unable to mark new slot B. Proceeding with the update anyway.",
+          "I update_engine: [INFO:payload_verifier.cc(190)] Failed to verify the signature with 1 keys.",
+          "E update_engine: [ERROR:delta_performer.cc(408)] Mandatory metadata signature validation failed",
+          "I update_engine: [INFO:action_processor.cc(118)] ActionProcessor: finished DownloadAction with code ErrorCode::kDownloadMetadataSignatureMismatch",
+          "I update_engine_client: [INFO:update_engine_client_android.cc(102)] onPayloadApplicationComplete(ErrorCode::kDownloadMetadataSignatureMismatch (26))"
+        ]
+      },
+      {
+        "step": "verify",
+        "case": "openbook-static",
+        "exit": 248,
+        "logged": true,
+        "error_codes": [
+          "kDownloadMetadataSignatureMismatch"
+        ],
+        "final_error_code": null,
+        "signature_verified": false,
+        "partitions_prepared": false,
+        "snapshots_created": false,
+        "target_super_metadata_written": false,
+        "milestones": [
+          "I update_engine: [INFO:binder_service_android.cc(179)] Received a request of verifying payload metadata in /system/etc/openbook-ota-test/openbook-static.metadata.",
+          "I update_engine: [INFO:payload_verifier.cc(190)] Failed to verify the signature with 1 keys.",
+          "E update_engine: [ERROR:update_attempter_android.cc(111)] Replying with failure: system/update_engine/aosp/update_attempter_android.cc 579: Failed to validate metadata signature: ErrorCode::kDownloadMetadataSignatureMismatch",
+          "I update_engine_client: [INFO:update_engine_client_android.cc(269)] Payload is not applicable.",
+          "E update_engine_client: [ERROR:update_engine_client_android.cc(324)] Status(-8, EX_SERVICE_SPECIFIC): '26: Failed to validate metadata signature: ErrorCode::kDownloadMetadataSignatureMismatch'"
+        ]
+      },
+      {
+        "step": "allocate",
+        "case": "openbook-static",
+        "exit": 248,
+        "logged": true,
+        "error_codes": [
+          "kDownloadMetadataSignatureMismatch"
+        ],
+        "final_error_code": null,
+        "signature_verified": false,
+        "partitions_prepared": false,
+        "snapshots_created": false,
+        "target_super_metadata_written": false,
+        "milestones": [
+          "I update_engine: [INFO:binder_service_android.cc(211)] Received a request of allocating space for /system/etc/openbook-ota-test/openbook-static.metadata.",
+          "I update_engine: [INFO:payload_verifier.cc(190)] Failed to verify the signature with 1 keys.",
+          "E update_engine: [ERROR:update_attempter_android.cc(111)] Replying with failure: system/update_engine/aosp/update_attempter_android.cc 579: Failed to validate metadata signature: ErrorCode::kDownloadMetadataSignatureMismatch",
+          "I update_engine_client: [INFO:update_engine_client_android.cc(287)] Allocation failed.",
+          "E update_engine_client: [ERROR:update_engine_client_android.cc(324)] Status(-8, EX_SERVICE_SPECIFIC): '26: Failed to validate metadata signature: ErrorCode::kDownloadMetadataSignatureMismatch'"
+        ]
+      },
+      {
+        "step": "update",
+        "case": "openbook-static",
+        "exit": 1,
+        "logged": true,
+        "error_codes": [
+          "kDownloadMetadataSignatureMismatch"
+        ],
+        "final_error_code": "kDownloadMetadataSignatureMismatch",
+        "signature_verified": false,
+        "partitions_prepared": false,
+        "snapshots_created": false,
+        "target_super_metadata_written": false,
+        "milestones": [
+          "I update_engine: [INFO:update_attempter_android.cc(251)] ApplyPayload(file:///system/etc/openbook-ota-test/openbook-static.payload, 0, 0) FILE_HASH=Xqq1WE4IFoHil4dOCgw97vef9LRThgM6Nt5ORkBLFlw=, FILE_SIZE=1115401, METADATA_HASH=+EY7W7F0Gw9+u",
+          "I update_engine: [INFO:dynamic_partition_control_android.cc(1359)] ResetUpdate resetting update state and deleting snapshots.",
+          "I update_engine: [INFO:action_processor.cc(118)] ActionProcessor: finished UpdateBootFlagsAction with code ErrorCode::kSuccess",
+          "I update_engine: [INFO:snapshot.cpp(4615)] merge_stats file does not exist: /metadata/ota/merge_stats",
+          "I update_engine: [INFO:action_processor.cc(118)] ActionProcessor: finished CleanupPreviousUpdateAction with code ErrorCode::kSuccess",
+          "I update_engine: [INFO:action_processor.cc(118)] ActionProcessor: finished InstallPlanAction with code ErrorCode::kSuccess",
+          "E update_engine: [ERROR:BootControlClient.cpp(178)] MarkSlotUnbootable(1) failed Status(-8, EX_SERVICE_SPECIFIC): '-1: Invalid slot 1'",
+          "E update_engine: [ERROR:boot_control_android.cc(113)] Unable to call MarkSlotUnbootable for slot B: Status(-8, EX_SERVICE_SPECIFIC): '-1: Invalid slot 1'",
+          "W update_engine: [WARNING:download_action.cc(69)] Unable to mark new slot B. Proceeding with the update anyway.",
+          "E update_engine: [ERROR:delta_performer.cc(408)] Mandatory metadata signature validation failed[  346.189594][    T1] init: Service 'apexd' (pid 385) exited with status 0 oneshot service took 326.014008 seconds in background",
+          "I update_engine: [INFO:action_processor.cc(118)] ActionProcessor: finished DownloadAction with code ErrorCode::kDownloadMetadataSignatureMismatch",
+          "I update_engine_client: [INFO:update_engine_client_android.cc(102)] onPayloadApplicationComplete(ErrorCode::kDownloadMetadataSignatureMismatch (26))"
+        ]
+      },
+      {
+        "step": "verify",
+        "case": "openbook-vab",
+        "exit": 248,
+        "logged": true,
+        "error_codes": [
+          "kDownloadMetadataSignatureMismatch"
+        ],
+        "final_error_code": null,
+        "signature_verified": false,
+        "partitions_prepared": false,
+        "snapshots_created": false,
+        "target_super_metadata_written": false,
+        "milestones": [
+          "I update_engine: [INFO:binder_service_android.cc(179)] Received a request of verifying payload metadata in /system/etc/openbook-ota-test/openbook-vab.metadata.",
+          "I update_engine: [INFO:payload_verifier.cc(190)] Failed to verify the signature with 1 keys.",
+          "E update_engine: [ERROR:update_attempter_android.cc(111)] Replying with failure: system/update_engine/aosp/update_attempter_android.cc 579: Failed to validate metadata signature: ErrorCode::kDownloadMetadataSignatureMismatch",
+          "I update_engine_client: [INFO:update_engine_client_android.cc(269)] Payload is not applicable.",
+          "E update_engine_client: [ERROR:update_engine_client_android.cc(324)] Status(-8, EX_SERVICE_SPECIFIC): '26: Failed to validate metadata signature: ErrorCode::kDownloadMetadataSignatureMismatch'"
+        ]
+      },
+      {
+        "step": "allocate",
+        "case": "openbook-vab",
+        "exit": 248,
+        "logged": true,
+        "error_codes": [
+          "kDownloadMetadataSignatureMismatch"
+        ],
+        "final_error_code": null,
+        "signature_verified": false,
+        "partitions_prepared": false,
+        "snapshots_created": false,
+        "target_super_metadata_written": false,
+        "milestones": [
+          "I update_engine: [INFO:binder_service_android.cc(211)] Received a request of allocating space for /system/etc/openbook-ota-test/openbook-vab.metadata.",
+          "I update_engine: [INFO:payload_verifier.cc(190)] Failed to verify the signature with 1 keys.",
+          "E update_engine: [ERROR:update_attempter_android.cc(111)] Replying with failure: system/update_engine/aosp/update_attempter_android.cc 579: Failed to validate metadata signature: ErrorCode::kDownloadMetadataSignatureMismatch",
+          "I update_engine_client: [INFO:update_engine_client_android.cc(287)] Allocation failed.",
+          "E update_engine_client: [ERROR:update_engine_client_android.cc(324)] Status(-8, EX_SERVICE_SPECIFIC): '26: Failed to validate metadata signature: ErrorCode::kDownloadMetadataSignatureMismatch'"
+        ]
+      },
+      {
+        "step": "update",
+        "case": "openbook-vab",
+        "exit": 1,
+        "logged": true,
+        "error_codes": [
+          "kDownloadMetadataSignatureMismatch"
+        ],
+        "final_error_code": "kDownloadMetadataSignatureMismatch",
+        "signature_verified": false,
+        "partitions_prepared": false,
+        "snapshots_created": false,
+        "target_super_metadata_written": false,
+        "milestones": [
+          "I update_engine: [INFO:update_attempter_android.cc(251)] ApplyPayload(file:///system/etc/openbook-ota-test/openbook-vab.payload, 0, 0) FILE_HASH=S6X9MWzh8NVrBaY/LWL5lxAvciiMRKTk6AOzG7+Y+vs=, FILE_SIZE=2164131, METADATA_HASH=llJtuSqCOvowBT0Y",
+          "I update_engine: [INFO:dynamic_partition_control_android.cc(1359)] ResetUpdate resetting update state and deleting snapshots.",
+          "I update_engine: [INFO:action_processor.cc(118)] ActionProcessor: finished UpdateBootFlagsAction with code ErrorCode::kSuccess",
+          "I update_engine: [INFO:snapshot.cpp(4615)] merge_stats file does not exist: /metadata/ota/merge_stats",
+          "I update_engine: [INFO:action_processor.cc(118)] ActionProcessor: finished CleanupPreviousUpdateAction with code ErrorCode::kSuccess",
+          "I update_engine: [INFO:action_processor.cc(118)] ActionProcessor: finished InstallPlanAction with code ErrorCode::kSuccess",
+          "E update_engine: [ERROR:BootControlClient.cpp(178)] MarkSlotUnbootable(1) failed Status(-8, EX_SERVICE_SPECIFIC): '-1: Invalid slot 1'",
+          "E update_engine: [ERROR:boot_control_android.cc(113)] Unable to call MarkSlotUnbootable for slot B: Status(-8, EX_SERVICE_SPECIFIC): '-1: Invalid slot 1'",
+          "W update_engine: [WARNING:download_action.cc(69)] Unable to mark new slot B. Proceeding with the update anyway.",
+          "I update_engine: [INFO:payload_verifier.cc(190)] Failed to verify the signature with 1 keys.",
+          "E update_engine: [ERROR:delta_performer.cc(408)] Mandatory metadata signature validation failed",
+          "I update_engine: [INFO:action_processor.cc(118)] ActionProcessor: finished DownloadAction with code ErrorCode::kDownloadMetadataSignatureMismatch",
+          "I update_engine_client: [INFO:update_engine_client_android.cc(102)] onPayloadApplicationComplete(ErrorCode::kDownloadMetadataSignatureMismatch (26))"
+        ]
+      }
+    ],
+    "harness_runs": 1,
+    "updater_idle_after_s": 5,
+    "otacerts_sha256": "3e1529c919baf5bbe71c729e2f6884d034a589328af0fb41a1ae730ac3342a59",
+    "props": {
+      "slot": "_a",
+      "secure": "1",
+      "virtual_ab": "true"
+    },
+    "finished": true
+  },
+  "checks": {
+    "foreign-static verify refused at metadata signature, before partition preparation": true,
+    "foreign-static allocate refused at metadata signature, before partition preparation": true,
+    "foreign-static update refused at metadata signature, before partition preparation": true,
+    "openbook-static verify refused at metadata signature, before partition preparation": true,
+    "openbook-static allocate refused at metadata signature, before partition preparation": true,
+    "openbook-static update refused at metadata signature, before partition preparation": true,
+    "openbook-vab verify refused at metadata signature, before partition preparation": true,
+    "openbook-vab allocate refused at metadata signature, before partition preparation": true,
+    "openbook-vab update refused at metadata signature, before partition preparation": true,
+    "boot completed": true,
+    "SELinux enforcing": true,
+    "no update_engine or harness denials": true,
+    "harness finished": true,
+    "single-slot boot partitions unchanged": true,
+    "second slot never activated": true,
+    "harness ran once": true,
+    "updater idle before the first request": true,
+    "current super metadata slot unchanged": true,
+    "trust archive on device": true
+  },
+  "passed": true,
+  "disk": {
+    "before": {
+      "static": {
+        "boot_a": "f6fc1a5892cba10d24ba3c250f5abe4115ba0f7c0556a653995b41373bfbcec8",
+        "init_boot_a": "0237a3399e093acabf63a0b036ac43b7e1b06a59dc7b665d852c0c6ec28e2dae",
+        "vendor_boot_a": "b8dc14803c8a07b0ec675d9cc9d2baf7b16c8acfd1a90c63782fa7e0d95bda80",
+        "vbmeta_a": "797a2f9ef41c0f3fbb1fdbd2f0db0088a1cdc5fea155b8f9d2ac0c2de8179f1e"
+      },
+      "boot_control": {
+        "raw": "0000000000000000000000000000000000000000000000000000000000000000",
+        "suffix": "",
+        "magic_ok": false,
+        "nb_slot": 0,
+        "slots": [
+          {
+            "priority": 0,
+            "tries": 0,
+            "successful": false
+          },
+          {
+            "priority": 0,
+            "tries": 0,
+            "successful": false
+          }
+        ]
+      },
+      "super": {
+        "slot0": {
+          "primary": "85e1ea2b029a9cbdcd3fbcc597f61785d827981e0a90cfdcfac8f93d2b5dfec3",
+          "backup": "85e1ea2b029a9cbdcd3fbcc597f61785d827981e0a90cfdcfac8f93d2b5dfec3"
+        },
+        "slot1": {
+          "primary": "85e1ea2b029a9cbdcd3fbcc597f61785d827981e0a90cfdcfac8f93d2b5dfec3",
+          "backup": "85e1ea2b029a9cbdcd3fbcc597f61785d827981e0a90cfdcfac8f93d2b5dfec3"
+        }
+      },
+      "metadata_ota": {
+        "/ota": [],
+        "/ota/snapshots": []
+      }
+    },
+    "after": {
+      "static": {
+        "boot_a": "f6fc1a5892cba10d24ba3c250f5abe4115ba0f7c0556a653995b41373bfbcec8",
+        "init_boot_a": "0237a3399e093acabf63a0b036ac43b7e1b06a59dc7b665d852c0c6ec28e2dae",
+        "vendor_boot_a": "b8dc14803c8a07b0ec675d9cc9d2baf7b16c8acfd1a90c63782fa7e0d95bda80",
+        "vbmeta_a": "797a2f9ef41c0f3fbb1fdbd2f0db0088a1cdc5fea155b8f9d2ac0c2de8179f1e"
+      },
+      "boot_control": {
+        "raw": "5f61000042434142010100009700000000000000000000000000000001911d3b",
+        "suffix": "_a",
+        "magic_ok": true,
+        "nb_slot": 1,
+        "slots": [
+          {
+            "priority": 7,
+            "tries": 1,
+            "successful": true
+          },
+          {
+            "priority": 0,
+            "tries": 0,
+            "successful": false
+          }
+        ]
+      },
+      "super": {
+        "slot0": {
+          "primary": "85e1ea2b029a9cbdcd3fbcc597f61785d827981e0a90cfdcfac8f93d2b5dfec3",
+          "backup": "85e1ea2b029a9cbdcd3fbcc597f61785d827981e0a90cfdcfac8f93d2b5dfec3"
+        },
+        "slot1": {
+          "primary": "85e1ea2b029a9cbdcd3fbcc597f61785d827981e0a90cfdcfac8f93d2b5dfec3",
+          "backup": "85e1ea2b029a9cbdcd3fbcc597f61785d827981e0a90cfdcfac8f93d2b5dfec3"
+        }
+      },
+      "metadata_ota": {
+        "/ota": [
+          "snapshots 4096",
+          "state 0"
+        ],
+        "/ota/snapshots": []
+      }
+    },
+    "target_super_slot_changed": false
+  },
+  "updater_denials": [],
+  "serial_sha256": "8142b1a8476117f3fe0f2b4f13ca4f51b663492813fb317e395ce0465ef1d525",
+  "runtime_findings": {
+    "setup_welcome_activity_seen": true,
+    "system_server_fatal_signals": [
+      "10-22 11:51:12.040   797  4761 F libc    : Fatal signal 11 (SIGSEGV), code 2 (SEGV_ACCERR), fault addr 0x7bf80de66000 in tid 4761 (Thread<00>), pid 797 (system_server)"
+    ],
+    "zygote_exit_events": 2,
+    "system_server_execmem_denial_seen": true,
+    "mmd_setup_abort_seen": false,
+    "camera_provider_running_reported": false,
+    "camera_provider_registered_reported": true,
+    "camera_device_counts_reported": [
+      0
+    ],
+    "camera_provider_abort_seen": false,
+    "camera_fmq_test_exit_statuses": [],
+    "camera_buffer_test_exit_statuses": [],
+    "camera_buffer_test_abort_seen": false,
+    "camera_fmq_tmpfs_denial_seen": false,
+    "camera_provider_default_label_denial_seen": false
+  },
+  "deployment_eligible": false,
+  "hardware_tested": false
+}

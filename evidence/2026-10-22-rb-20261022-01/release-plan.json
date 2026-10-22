@@ -1,0 +1,71 @@
+{
+  "schema": "openbook-ruby-release-plan/1",
+  "release": "RB-20261022-01",
+  "status": "composed; awaiting the stick on the host for preflight and write",
+  "parent": {
+    "release": "RB-20261021-02",
+    "usb_sha256": "233eed28901bf8f3fd65612c91d81eb587934e3c3b5f0068f6f9e7d8f76f5462",
+    "system_candidate_sha256": "5a466ee6012ce220e964205fdd3aad7c1788b992b392debddcc9f816c485784a"
+  },
+  "change": {
+    "source": "ANAL-229, PR #121 c72f8cc4ddefbbbeb42f7bc8b5b4714c70f52cd1",
+    "file": "/system/etc/security/otacerts.zip",
+    "certificate": "config/security/openbook-ota-2026.x509.pem",
+    "certificate_sha256": "c755c4a3313c6d597538e19c2ad4af77334acb1681dff044c0c92aea3f6410bb",
+    "archive_sha256": "3e1529c919baf5bbe71c729e2f6884d034a589328af0fb41a1ae730ac3342a59"
+  },
+  "candidate": {
+    "image_sha256": "18235b4506bb22f45b467d1b81bd2675b1a8fd3808863bb95c7b1181a5d25ab8",
+    "changed_files": [
+      "/system/etc/security/otacerts.zip"
+    ],
+    "logical_changed": [
+      "system"
+    ],
+    "vbmeta_digest": "dd1f1b609e9348bc49796afcbbc045e67598c4614236c3bc4623a2f9222d2c0f",
+    "bridge_correction_retained": true,
+    "vendor_module_retained": "97a5868c9d24f23c76d73ab294ff1b4f42d9aa7b0d2a2be3f4cb62261eabc6c6"
+  },
+  "packaging": {
+    "tools": "b75b573f4be2c16c2c196a2b0afd0ffb67328f9d",
+    "installer_image": "openbook-ruby-installer:anal229-laptop-update",
+    "backup": "the verified RB-20261021-02 stick image 233eed28 (the stick has been powered off since its readback)",
+    "laptop_record": {
+      "previous": "RB-20261021-01",
+      "new": "RB-20261022-01-usb",
+      "changed_logical": [
+        "system"
+      ],
+      "sha256": "b0b6116c326e07615bd9b2b99e903cfd337c2dd3460b8c5cc992c421254d50f9"
+    },
+    "installer_pin_sha256": "435915f881ee2da42753e4f1d886ecb508cb584d2a17d9c1239072804e19140b",
+    "final_image_sha256": "39f4f1f0234c581c8578bde406fafc52027185eac67dad10ae3238a5a41c3032",
+    "writes": [
+      "EFI",
+      "vbmeta_a",
+      "super"
+    ],
+    "protected_bytes": 8805941248,
+    "validator_accepted": true
+  },
+  "vm": {
+    "boot": {
+      "seconds": 481.6,
+      "boot_completed": true,
+      "selinux_enforcing": true,
+      "lid_guard_loaded": true,
+      "digitalis_init_parsed": true,
+      "avb_handoff_errors": false,
+      "system_server_sigsegv": 2,
+      "checkpoint_commit_reboot_after_system_server_restart": true,
+      "checkpoint_note": "VM-only: after the SwiftShader execmem system_server crash, the restarted system_server re-commits the storage checkpoint and Android reboots; also on unchanged camera25 (anal228-ruby-run-camera25-test) and ANAL-234 vm1"
+    },
+    "certificate_harness": "vm-release-cert.json: 19/19 checks, OpenBook archive on the device, all test-signed payloads refused at the signature"
+  },
+  "not_tested": [
+    "G14 hardware",
+    "a real Google OTA file",
+    "app/Mainline updates after the change",
+    "synthetic-laptop rehearsal of this exact record (mechanism covered by RB-20261021-02's rehearsal)"
+  ]
+}
