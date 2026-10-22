@@ -1,0 +1,22 @@
+{
+  "schema": "openbook-g14-check/1",
+  "release": "RB-20261022-01",
+  "record": "ANAL-253",
+  "utc": "2026-10-22T22:19:00Z",
+  "method": "read-only wireless ADB on the owner's G14 (no settings, files or partitions changed)",
+  "boot_source": "the SanDisk's live entry (androidboot.boot_part_uuid equals the stick's ESP); the laptop's installed system is still RB-20261021-02",
+  "vbmeta_digest": "dd1f1b609e9348bc49796afcbbc045e67598c4614236c3bc4623a2f9222d2c0f",
+  "vbmeta_matches_release": true,
+  "otacerts_sha256": "3e1529c919baf5bbe71c729e2f6884d034a589328af0fb41a1ae730ac3342a59",
+  "otacerts_is_openbook": true,
+  "native_bridge": "libberberis_arm64.so",
+  "abilist": "x86_64,arm64-v8a",
+  "boot_completed": true,
+  "lid_guard_module_loaded": true,
+  "lid_guard_counters": "not readable from the adb shell in this boot (module and its parameters present)",
+  "crashes_since_boot": {
+    "com.google.android.desktop.repairmode": "2 (BootCompletedReceiver; known vendor-backend gap, also on 2026-10-21)"
+  },
+  "settings_search": "com.google.android.settings.intelligence started; no libicing link failure or crash (the ANAL-234 failure seen on 2026-10-21 is gone); typed-query test is the owner's",
+  "data_partition": "the stick's own 8 GiB userdata (live boot), not the laptop's"
+}
