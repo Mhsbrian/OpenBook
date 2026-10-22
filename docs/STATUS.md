@@ -1,5 +1,15 @@
 # Status
 
+## 2026-10-22: RB-20261021-01 written to the SanDisk (lid guard, ANAL-235/236)
+
+After B Honey's approval, the guarded writer matched the SanDisk ending 2034 to its
+fresh backup, wrote `super`/`vbmeta_a`/`EFI`, and read back the full 12,766,412,800-byte
+used extent: SHA-256 `f1e7410b…` matches. All 8,805,941,248 protected bytes are
+retained and the stick is powered off. The stick now carries the RB01 system with
+`openbook_lid_guard` in `vendor_dlkm`, an installer whose Update entry moves the G14
+from RB01 to RB01 + guard, and a sleep-diagnostics entry. The laptop is unchanged;
+the owner-run Update and a lid test are next. See `googlebook-sleep.md`.
+
 ## 2026-10-21: G14 lid sleep: cause found, kernel fix VM-tested (ANAL-235)
 
 Read-only G14 tests show lid-closed sleep is entered but undone: every resume
