@@ -1,5 +1,21 @@
 # Status
 
+## 2026-10-22: Ruby Settings search, hardware translator comparison (ANAL-234)
+
+The owner's new crash on the installed RB-20261021-01 system has the same cause:
+Houdini fails, then ARM64 `libicing.so` cannot load. On the G14 itself, with
+nothing installed or changed, Houdini also traps in executable mode. Google's
+own `libicing.so` runs correctly under both Digitalis and Ruby's
+`libndk_translation`: 600 documents, 10/10 queries and a restart. Digitalis
+passes all four ISA check groups (CoreMark 0.362× native); `libndk_translation`
+crashes in them (0.737×). The TCG VM's ANRs were emulation speed.
+
+Digitalis remains the recommended fix. The full Ruby + Digitalis system has
+not run on the G14. Next: rebase the overlay onto RB-20261021-01, release it
+through the hub, then test the full search UI on the G14 after USB Update,
+with Restore available. No physical write or release was performed. See
+`docs/settings-search.md` and `evidence/2026-10-22-settings-search-hw/`.
+
 ## 2026-10-21: Ruby Settings search correction experiment (ANAL-234)
 
 The G14 failure is an ARM64 Icing load error after Houdini initialization fails.

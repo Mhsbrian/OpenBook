@@ -1,5 +1,24 @@
 # Build and reproduce
 
+## Ruby translator hardware probe (ANAL-234, 2026-10-22)
+
+`scripts/diagnostics/icing-probe/build.sh OUT` builds, with NDK r30 in `anybook-ndk`:
+
+- `icing_probe`, which runs an app's ARM64 `libicing.so` through a JNI shim;
+- CoreMark for arm64 and x86_64;
+- the static `bridge_check`;
+- `dg_launch`;
+- the synthetic inputs.
+
+`icing-probe-hw.py` needs an explicit adb serial. It pushes everything to a new
+`/data/local/tmp` directory and extracts `libicing.so` from the device's own
+APK. It runs Houdini, a copy of Ruby's ndk runner, and Digitalis from
+`~/anybook/digitalis/bundle-a17`. It then removes the directory and writes raw
+output to a new private directory. It installs nothing and changes no settings;
+it needs about 30 MB on `/data` and refuses to run with less than 400 MB free.
+A full run with three CoreMark rounds takes about 6 minutes.
+`icing-probe.py decode RESULT` checks one run against the expected matches.
+
 ## Ruby bridge correction experiment (ANAL-234, 2026-10-21)
 
 `docs/settings-search.md` records the hardware diagnosis, static footprint,

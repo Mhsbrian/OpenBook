@@ -1,0 +1,14 @@
+ICING_PROBE_ONLOAD version=0x10006 natives=35 unknown_members=0 load_ms=9.3
+ICING_PROBE_LOADED $RUN/ndk/run/icing_probe
+ICING_PROBE_LOADED /system/bin/linker64
+ICING_PROBE_LOADED [vdso]
+ICING_PROBE_LOADED /system/lib64/berberis/arm64/libdl.so
+ICING_PROBE_LOADED /system/lib64/berberis/arm64/libm.so
+ICING_PROBE_LOADED /system/lib64/berberis/arm64/liblog.so
+ICING_PROBE_LOADED /system/lib64/berberis/arm64/libz.so
+ICING_PROBE_LOADED /system/lib64/berberis/arm64/libc++.so
+ICING_PROBE_LOADED /system/lib64/berberis/arm64/libc.so
+ICING_PROBE_LOADED /system/lib64/arm64/libnetd_client.so
+ICING_PROBE_LOADED $RUN/libicing.so
+ICING_PROBE_DONE docs=600 queries=10 timed_rounds=20 load_ms=9.3 init_ms=52.0 index_ms=269.2 first_search_ms=33.6 timed_search_ms=115.9 persist_close_ms=33.3 restart_ms=144.1 total_ms=670.3
+EXIT=0

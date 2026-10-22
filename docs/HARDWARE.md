@@ -1,5 +1,14 @@
 # Hardware
 
+## Ruby ARM translation on the G14 (2026-10-22, ANAL-234)
+
+On the installed RB-20261021-01 system (6.18.21-android17, enforcing), Houdini
+fails in app mode (`0x00010002`) and traps in executable mode on the HX 370.
+Digitalis and Ruby's `libndk_translation` both run Google's ARM64 Icing library
+correctly. Digitalis also passes the ID-register, FRECPE/FRSQRTE and NEON checks
+on Zen 5. CoreMark: native 27,807 it/s, ndk 20,500 and Digitalis 10,073. No image
+with a replaced bridge has booted on the G14 yet. See `docs/settings-search.md`.
+
 ## Ruby live search diagnosis (2026-10-21, ANAL-234)
 
 Authorized adb observation confirms Ryzen AI 9 HX 370 and OpenBook G14 boot
