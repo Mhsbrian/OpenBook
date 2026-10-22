@@ -1,0 +1,60 @@
+{
+  "schema": "openbook-ruby-g14-lid-guard-test/1",
+  "date": "2026-10-21 (EDT)",
+  "release": "RB-20261021-01",
+  "method": "read-only ADB after the owner ran the USB Update entry, rebooted, closed the lid about 4 min and opened it",
+  "system": {
+    "boot_vbmeta_digest": "611d49f2a587b8bf75b57c343e4ec4fc14347d92516dd7c6dd2a3b0a7c61e794",
+    "vbmeta_size": 4032,
+    "matches_release": true,
+    "openbook_lid_guard_loaded": true,
+    "libinputflinger_corrected": true
+  },
+  "data": {
+    "users_running_unlocked": 2,
+    "packages_secondary_user": 262,
+    "third_party_packages": 4,
+    "accounts": 2,
+    "same_counts_as_before_update": true,
+    "data_filesystem": "7.9G, 93% used (623M free)"
+  },
+  "lid_test_local_time": [
+    {
+      "t": "21:14:15.47",
+      "event": "lid closed; Android sleeps (lid_switch); DesktopPowerService disables wakelocks (CLOSED)"
+    },
+    {
+      "t": "21:14:24.64",
+      "event": "processor suspends"
+    },
+    {
+      "t": "21:14:33-21:18:05",
+      "event": "7 dark resumes of ~3 s (9 acpi; some with 38 PCIe PME; three at ~57 s intervals); no screen wake, no lid-open report"
+    },
+    {
+      "t": "21:18:35.88",
+      "event": "lid opened: Android wakes immediately (WAKE_REASON_LID); wake reason 7 pinctrl_amd:9 acpi"
+    }
+  ],
+  "suspended_since_boot_s": 232.3,
+  "since_boot_s": 339.4,
+  "suspended_share_while_closed": "232 of 251 s (92%)",
+  "before_fix": {
+    "2026-10-21 18:40 test": "screen woken by KEY 2 s after each suspend; 31.5 s suspended in total",
+    "2026-10-21 18:54 test": "false lid-open after a 1 s suspend; ~26 min screen-off wakelock; no further suspend"
+  },
+  "health": {
+    "system_server_crashes": 0,
+    "fatal_signals": 0,
+    "anr_since_boot": false,
+    "app_crashes": "RepairMode x2 (known), one third-party app (pre-existing)",
+    "selinux_module_denials": "none; modprobe /dev/kmsg_debug write denials pre-date the update (15 in earlier captures)"
+  },
+  "not_verified": [
+    "module counters (sysfs parameters are not readable by the shell user)",
+    "lid re-check path (no false open occurred)",
+    "on battery and overnight",
+    "trackpad feel (owner check)",
+    "S0i3 residency (still expected 0: driverless dGPU)"
+  ]
+}
