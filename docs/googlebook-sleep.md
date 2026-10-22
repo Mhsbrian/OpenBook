@@ -82,3 +82,27 @@ wake IRQ, the active AMD GPIO pin and each firmware `Dispatching Notify on
 [LID0]/[PWRB]`. A synthetic stick boots it in the VM to boot completion, with
 saved logs and ACPI event debug output. The physical stick needs a fresh backup
 and owner approval first.
+
+## Packaged release candidate (RB-20261021-01, proposed)
+
+`scripts/googlebook/build-module-candidate.py` adds one module to `vendor_dlkm`.
+It adds the file as `root:root 0644 vendor_file`, appends it to `modules.load`
+and adds a `modules.dep` entry, proving that every other inode, xattr and file is
+unchanged. It then re-signs AVB with the local key and updates the bootconfig
+digest. Ruby's `vendor.openbook.dlkm` service loads it at boot.
+
+USB packaging is chained and then composed against the original backup:
+
+1. `preserve-update.py --allow-logical vendor_dlkm`: the system stage, explicitly
+   reviewed and marked incomplete until the installer is re-pinned;
+2. `migration-package.py pin` and `add --replace-installer-sha256`: an installer
+   pinned to the new system, with a laptop record RB01 → RB01 + guard;
+3. `stick-entries.py`: the sleep-diagnostics entry;
+4. `compose-usb-plan.py`: checks the chain, protected bytes and installer pin, and
+   emits one plan accepted by `apply-preserved-update.py`.
+
+Results are in `evidence/2026-10-21-ruby-sleep-fix/release-candidate.json`:
+- The Ruby VM boots the candidate with the module loaded.
+- The synthetic laptop takes camera25 → RB01 → RB01 + guard, boots with the module
+  loaded and encryption keys unchanged, and restores to RB01 byte for byte.
+- The real stick plan passes the read-only physical preflight.

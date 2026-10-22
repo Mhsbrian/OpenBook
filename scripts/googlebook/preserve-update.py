@@ -112,7 +112,21 @@ def verify_manifest(manifest, table, size):
         raise ValueError("Live manifest/geometry mismatch")
 
 
-def compatible(old, new):
+# Logical images that may change only through an explicit --allow-logical review.
+# Their outputs stay incomplete until the USB's installer is re-pinned.
+REVIEWABLE_LOGICAL = ("vendor_dlkm",)
+
+
+def compatible(old, new, allow_logical=()):
+    if allow_logical:
+        if not set(allow_logical) <= set(REVIEWABLE_LOGICAL):
+            raise ValueError("Only vendor_dlkm can be reviewed with --allow-logical")
+        changed = sorted(n for n, v in new["logical_sha256"].items() if old["logical_sha256"].get(n) != v)
+        if changed != sorted(set(allow_logical)):
+            raise ValueError(f"Reviewed logical changes differ: {changed}")
+        new = copy.deepcopy(new)
+        for name in allow_logical:
+            new["logical_sha256"][name] = old["logical_sha256"][name]
     if [(r["name"], *extent(r)) for r in old["gpt"]] != [(r["name"], *extent(r)) for r in new["gpt"]]:
         raise ValueError("Partition layout changed")
     for key in ("kernel_sha256", "vendor_cmdline"):
@@ -187,7 +201,7 @@ def protected_ranges(table, size):
         yield cursor, size - cursor
 
 
-def prepare(snapshot, snapshot_sha, base, candidate, out, *, experiment_validator=None):
+def prepare(snapshot, snapshot_sha, base, candidate, out, *, experiment_validator=None, allow_logical=()):
     snapshot = regular(snapshot)
     image = regular(candidate / "ruby-live.img")
     old = json.loads(regular(base).read_text())
@@ -200,7 +214,7 @@ def prepare(snapshot, snapshot_sha, base, candidate, out, *, experiment_validato
     verify_manifest(old, table, snapshot.stat().st_size)
     verify_manifest(new, read_gpt(image), image.stat().st_size)
     if experiment_validator is None:
-        compatible(old, new)
+        compatible(old, new, allow_logical)
     else:
         # Internal VM API only, deliberately absent from the CLI. Its output
         # uses a different schema, rejected by the physical apply validator.
@@ -298,6 +312,15 @@ def prepare(snapshot, snapshot_sha, base, candidate, out, *, experiment_validato
     updated["payload_readback"].update({r["name"]: r["sha256"] for r in writes})
     updated["image_sha256"] = h.audit.sha(output)
     (w / "manifest.json").write_text(json.dumps(updated, indent=2) + "\n")
+    if allow_logical:
+        # A system change invalidates the USB installer's source pin: the
+        # physical writer accepts this only after an installer rebind stage.
+        report.update(complete=False, requires_installer_rebind=True, reviewed_logical=sorted(allow_logical),
+                      image_sha256=updated["image_sha256"], writes=writes, protected=protected,
+                      sources_unchanged=True, unrelated_esp_files_unchanged=True)
+        (w / "update.json").write_text(json.dumps(report, indent=2) + "\n")
+        print("Verified private system stage; installer rebind still required.")
+        return
     report.update(complete=True, image_sha256=updated["image_sha256"], writes=writes,
                   protected=protected, sources_unchanged=True, unrelated_esp_files_unchanged=True)
     (w / "update.json").write_text(json.dumps(report, indent=2) + "\n")
@@ -311,11 +334,13 @@ def main():
     for name in ("snapshot", "base-manifest", "candidate", "out"):
         p.add_argument("--" + name, type=Path, required=True)
     p.add_argument("--snapshot-sha256", required=True)
+    p.add_argument("--allow-logical", action="append", default=[], choices=REVIEWABLE_LOGICAL,
+                   help="Reviewed logical image change; output requires an installer rebind")
     a = p.parse_args()
     if not Path("/.dockerenv").exists():
         p.error("Run through inst-docker.sh; no physical devices")
     os.umask(0o077)
-    prepare(a.snapshot, a.snapshot_sha256, a.base_manifest, a.candidate, a.out)
+    prepare(a.snapshot, a.snapshot_sha256, a.base_manifest, a.candidate, a.out, allow_logical=tuple(a.allow_logical))
 
 
 if __name__ == "__main__":
