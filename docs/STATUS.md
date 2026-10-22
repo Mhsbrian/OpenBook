@@ -1,5 +1,26 @@
 # Status
 
+## 2026-10-22: OTA trust anchor proven in the VM (ANAL-229/230)
+
+Ruby trusts one OTA key: the single certificate in `/system/etc/security/otacerts.zip`.
+In the VM, a payload signed by a trusted key does more than expected on our
+single-slot layout before failing at the missing `boot_b`: it creates a `system_b`
+snapshot and rewrites super metadata slot 1. So today's laptop does not stop a stock
+OTA cleanly at the missing slot. The new `build-ota-trust-candidate.py` replaces only
+that archive with an OpenBook certificate.
+
+Results, using Google's stock `update_engine` binary:
+- **Trust image (`2db57f34…`):** a foreign-signed payload is refused at the metadata
+  signature on verify, allocate and apply, before any partition preparation.
+  OpenBook-signed payloads verify.
+- **Stock control (`3c3ca47a…`):** the OpenBook-signed payloads are refused.
+- **Both images:** boot partitions and the active slot are unchanged, and there are
+  no updater denials.
+
+The laptop is unchanged. Next: the owner decides custody of the OpenBook OTA key,
+then a production image (certificate only) through the release process. See
+`googlebook-ota-trust.md`.
+
 ## 2026-10-21: G14 lid sleep holds with openbook_lid_guard (RB-20261021-01)
 
 The owner ran the USB Update entry. The laptop now reports RB-20261021-01's vbmeta

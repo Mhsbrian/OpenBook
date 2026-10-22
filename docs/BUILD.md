@@ -1,5 +1,15 @@
 # Build and reproduce
 
+## Ruby OTA trust anchor — 2026-10-22
+
+`scripts/googlebook/build-ota-trust-candidate.py` replaces Ruby's
+`otacerts.zip` with one pinned public OpenBook certificate. With `--vm-test`
+it adds a disposable `update_engine_client` harness and test payloads from
+`make-ota-test-payloads.sh`; `ota-trust-qemu.py` boots that image and judges
+each verify/allocate/update step. Commands, results and the key-custody
+decision: `googlebook-ota-trust.md`. Run
+`python3 scripts/googlebook/ota-trust-candidate-test.py` for the unit checks.
+
 ## Lid guard module and USB diagnostics entries — 2026-10-21
 
 `tools/bazel build --config=stamp //devices/anybook:openbook_lid_guard` builds the

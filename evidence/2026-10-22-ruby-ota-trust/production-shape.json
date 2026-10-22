@@ -1,0 +1,30 @@
+{
+  "schema": "openbook-ruby-ota-trust-candidate/1",
+  "image_sha256": "90896f68512f61f74cb7ed9ec0f985c85baa00b9f509bccac4d133f7ff39a289",
+  "changed_files": [
+    "/system/etc/security/otacerts.zip",
+    "/system/lib64/libinputflinger.so"
+  ],
+  "only_metadata_change": "replacement file sizes",
+  "protected_ranges_identical": true,
+  "ota_trust_anchor": {
+    "certificate_sha256": "e984dedb0b7fd1bb345ae738c3782c5b1bf01e0e0aef9662dfb1fc3488bbed3c",
+    "der_sha256": "c1800e56bb88c3f3f8a4685095e0b3639ef61bae44b0ccdf27a81d423628d77d",
+    "subject": "CN=openbook-test OTA (disposable VM test only)",
+    "rsa_bits": 4096,
+    "archive_entry": "openbook/releasekey.x509.pem",
+    "archive_sha256": "056c15c7b92682901436b19d4d0dc9b1d53a92caf25b28d35fc2435c9a395a6f",
+    "replaced_sha256": "640c923ab47c6b220263cec685de5a0deb6cdec7695742776a87719bde2d5bdb",
+    "replaced_entry": "projects/chromeos-release-bot/locations/us/keyRings/RubyMPKeys/releasekey.x509.pem",
+    "stock_ota_accepted": false,
+    "hardware_validated": false
+  },
+  "input_correction": {
+    "source_sha256": "e27014ec1e2e4d611cdd6df2c1175d86d679d1353ee970f190e831953fbcb3e4",
+    "output_sha256": "4752d1351dbed7f0b5cb5a1d31d409edbb91396c6627fd7b34e1e99a0e655148",
+    "offset": 2411352,
+    "bytes": 8,
+    "hardware_validated": false
+  },
+  "note": "Production path check with the disposable test certificate; image deleted after this record, not deployable"
+}

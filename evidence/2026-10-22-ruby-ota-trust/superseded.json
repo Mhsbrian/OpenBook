@@ -1,0 +1,30 @@
+{
+  "vm-trust-old": {
+    "candidate_sha256": "5f2f386e8976334a62a257597f12844a8abec1f2d3ec2045dbd702b0b88ead32",
+    "trust": "openbook",
+    "passed": false,
+    "failed_checks": [
+      "active slot unchanged"
+    ],
+    "reason": "payloads lacked max_timestamp: OpenBook-signed updates stopped at the anti-downgrade check (kPayloadTimestampError); harness re-ran after each system_server restart; slot check compared against the image's empty misc",
+    "serial_sha256": "65d37676ed8b3c3545c74873dc1fbfeacff84d74ba251a3236a583e19f847480"
+  },
+  "vm-trust-run2": {
+    "candidate_sha256": "027ddd522a7e8ef93337c745841d901ef5dea5e2c8d061536db807b88c955ab8",
+    "trust": "openbook",
+    "passed": false,
+    "failed_checks": [
+      "foreign-static allocate refused at metadata signature"
+    ],
+    "reason": "foreign allocate reached update_engine during its boot-time cleanup and was refused as 'Already processing an update', not at the signature; harness now waits for the cleanup",
+    "serial_sha256": "48d2378e2b2e1cc247fdcc5c709b583731b7c1093d44b14e6529fa847cd1c8dc"
+  },
+  "vm-stock-run2": {
+    "candidate_sha256": "e9bf4c495ad4562477659f5c89b26258faaa8002e0502206c179405e3238044a",
+    "trust": "stock",
+    "passed": true,
+    "failed_checks": [],
+    "reason": "passed; superseded only so trust and control use the same harness",
+    "serial_sha256": "488fe3041d41d8b8cc721caaec4f45e502a6a7dab126b1057000935b52dd0d67"
+  }
+}
