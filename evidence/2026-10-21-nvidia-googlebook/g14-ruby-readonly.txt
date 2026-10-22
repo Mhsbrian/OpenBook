@@ -1,0 +1,34 @@
+# Read-only snapshot of the G14 (Ruby / Googlebook image) over adb, 2026-10-22T01:37Z. adb shell is uid 2000 (shell), user build: PCI power state and dmesg are not readable.
+## identity
+Lenovo/ruby/ruby:17/CL3B.260622.271.R1/16452207:user/release-keys
+OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.armfix1:userdebug/test-keys
+6.18.21-android17-5-gfbfdd65b0fd1
+orange
+## PCI devices
+0000:00:00.0 0000:00:00.2 0000:00:01.0 0000:00:01.1 0000:00:02.0 0000:00:02.1 0000:00:02.2 0000:00:02.3 0000:00:03.0 0000:00:03.1 0000:00:08.0 0000:00:08.1 0000:00:08.2 0000:00:08.3 0000:00:14.0 0000:00:14.3 0000:00:18.0 0000:00:18.1 0000:00:18.2 0000:00:18.3 0000:00:18.4 0000:00:18.5 0000:00:18.6 0000:00:18.7 0000:61:00.0 0000:62:00.0 0000:63:00.0 0000:64:00.0 0000:64:00.1 0000:65:00.0 0000:65:00.1 0000:65:00.2 0000:65:00.4 0000:65:00.5 0000:65:00.6 0000:66:00.0 0000:66:00.1 0000:67:00.0 0000:67:00.3 0000:67:00.4 0000:67:00.5 
+## children of the dGPU root port 00:03.1
+0000:00:03.1:pcie001 0000:00:03.1:pcie004 0000:00:03.1:pcie010 0000:64:00.0 0000:64:00.1 
+## DRM nodes
+card0 card0-DP-1 card0-DP-2 card0-DP-3 card0-DP-4 card0-DP-5 card0-DP-6 card0-DP-7 card0-DP-8 card0-Writeback-1 card0-eDP-1 renderD128 version 
+## modules of interest
+amdgpu asus_nb_wmi asus_wmi efi_pstore nvidia_wmi_ec_backlight snd_hda_intel spi_amd spi_amd_pci tpm_crb 
+## dGPU hook in the vendor init
+2
+## firmware / TPM tools present
+/system/bin/check_tpm_clear
+/system/bin/ectool
+/system/bin/gscd
+/system/bin/gscutil
+check_tpm_clear.rc gscd.rc gscutil-executor.rc gscutil.rc timberslide.rc update_engine.rc 
+init.svc.fwupd=
+init.svc.gscd=
+init.svc.gscutil=
+init.svc.check_tpm_clear=
+init.svc.timberslide=stopped
+init.svc.update_engine=running
+/dev/tpm0 /dev/tpmrm0 
+## power
+  AC powered: true
+  level: 90
+  Capacity level: 3

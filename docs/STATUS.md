@@ -1,5 +1,13 @@
 # Status
 
+## 2026-10-22: NVIDIA on the Googlebook image: project-churro review and epic (ANAL-187 → ANAL-237)
+
+- **project-churro** (no licence, so no code reused) reports Googlebook OS running on nouveau/NVK in dGPU-only MUX mode, on the same GPU as the G14 (RTX 5070 Ti Laptop, GB205): panel, HDMI, Chrome with an NVK AHardwareBuffer patch, and Skia Vulkan. It reports nothing for hybrid use, power, suspend or performance.
+- **On the G14's Googlebook image (read-only):** the dGPU is enumerated with no driver, and our D3cold hook is present (unverified on Ruby). `dgpu_disable=1` was never applied. Some Google TPM tools, `efi_pstore` and `update_engine` are present (audit ANAL-251).
+- **Plan:** Eco / Hybrid / Ultimate graphics modes, locked from the OS, with MUX rollback, plus research into giving the dGPU to the Linux VM. Stage 1 is ANAL-238 to ANAL-242.
+
+Details: `docs/nvidia-googlebook.md`, `evidence/2026-10-21-nvidia-googlebook/`. No image or laptop change.
+
 ## 2026-10-19: PR integration (ANAL-188)
 
 This integration consolidates PRs #94, #98 and #104–#117 with merge commits, preserving their dependency history. Status conflicts retain both evidence records; Quire retains the surface and Linux-agent initialization. The two outstanding #115 confirmation bugs are corrected with host dispatch regressions (17/17; the original head fails 12). No image or laptop update was performed. #117 contributes diagnostics only: the physical touchpad reproduction and fix remain open.

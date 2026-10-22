@@ -1,0 +1,62 @@
+# project-churro as reviewed (ANAL-187, 2026-10-21/22). Read only; nothing built or run. No LICENSE file: no code from it is copied into OpenBook.
+repo: https://github.com/alesimula/project-churro
+commit: d88a97825f6cb47429ccbc553c9e8f523c9f9f02 2026-10-22T02:30:45+02:00 isable update_engine so Google OTAs can't download or install
+commits: 48, first 2026-10-14, authors: alesimula,Alex Sim,
+GitHub metadata: created 2026-10-14T17:32:37Z, stars 15, forks 2, license null
+
+## Files reviewed for NVIDIA (sha256)
+c6e3dd20a5b3055ca99e5f23d8226e6fd29652ae6eec14273bb0417e60130e5c  README.md
+2062a2eb8ccc2ad1a81c4a77885f2752bfe8e8d7eb033a6c8f751703d4e4f588  versions.env
+97581d8706df36e98f10c8c3143b35c5886d82bb9e0c52cfb46dda0257aabbba  docs/02-bringup-log.md
+f5824a3dcf7fec8472219b4cf2404a8b0d1f4021435703f50ee3127a62aa5a77  docs/03-architecture.md
+c125d54ce0a7245595c76622859699d306809fc5945ffca5aa7d5af0b1b36552  docs/05-hardware-support.md
+addc984ea4e4744143d8be78545f277faa4fac282fec0965460ff3eb1d0dd8ae  docs/06-gbrunch-comparison.md
+4b080976f9f1172d619385a86d28e929709b01ef5525dc7430a63844b119cff1  docs/08-gbos86-comparison.md
+7b8830f6b8cf41f164e57babf38961dd5205a527e5f6e14edf8ebdf550b19580  kmod/build-kernel.sh
+7ba7f51e03d67f0d25ed9f4864ac5b4e7292cc3e0a92f0f278345d3da7837820  kmod/patches/nouveau-dsc-off.patch
+992afbf99bd4f1ac53f48ae55c30166a39efe34fd0dba5f4af092a74f89d461a  kmod/patches/nouveau-hybrid-guard.patch
+d586117a0d9d0af99fefb32f1a9312b20cc720e62329f8a2502452b347aa68df  kmod/patches/nouveau-up-01-r535-head-state.patch
+e7c5231c729892640a03472196ca0eefb0da9024e153c252955a8341c749fac7  kmod/patches/nouveau-up-02-gsp-vblank-helpers.patch
+1a088dd895447f4b5ffb88cf318048581aa101d7a1bb44fc8436a4aea4bf04be  kmod/patches/nouveau-up-03-gsp-hdmi-gcp-move.patch
+f3c97775f01806618277fb778ff193e6b9f2f0f119531cd47759369a36da557f  kmod/patches/nouveau-up-04-gsp-disp-mmio-hooks.patch
+6efb7ad81ea88a31d4ccbbdc6bf795100e1e14e058b128260b7887952fb59c35  kmod/patches/nouveau-up-05-gb20x-hdmi-vsi.patch
+9dafc4258910cf58bd895e342dc490880aefe065de602f89b326a99fed203873  kmod/patches/nouveau-up-06-gb20x-hdmi-gcp.patch
+ac3d837af02836c6b4e3dc38bf84a80041cb0c3ae524e64c2a0043a2a3bf9902  kmod/patches/nouveau-up-07-r570-dp-config-stream.patch
+509ffd3391b064ec75bbb60023d3c8117941129541482cc8e041f180a97558fc  kmod/patches/nouveau-up-08-gb20x-head-state.patch
+e0451ec8cbcd23d1252a69daf2e90f7b279dcea9794810a5c8dbf42e6e67d9b3  kmod/patches/nouveau-up-09-gb20x-vblank.patch
+213421c649b4d3aaf4c7659a9e001333866c90114df8081b5f57b86881c70e21  kmod/patches/sysfb-disable-any-gpu.patch
+3b8bd17f3d4d1f7bd0229027fdf2f4c5e638b439c365fcdbd6749ee0f6921b39  kmod/patches/vt-no-ctrl-alt-del.patch
+32f16191329f67c37063256c280ceae4fab8994c700280d6f4d5492a534decf4  gfx/build-mesa.sh
+8132d3cb70a078844b84c69b19e0317c4a9beed4069308fd42df4f037f6aa391  gfx/build-minigbm.sh
+30e02ab000c48ee0e2674869a367cfcc0330f40dbcb042b5c80606cd1ce9ac71  gfx/mesa-patches/android-long-property-names.patch
+4e969dacc204228620edf7de3bebed0536434373d8773deec28e05ae03ab8b6d  gfx/mesa-patches/hasvk-android-api-version.patch
+5b5cf452a1f53a13608ae90cc5f3221ccccec372c50a4858c24265b78ffd5c34  gfx/mesa-patches/nouveau-import-plane-offset.patch
+73d6150fd6f3726d65875576ed9f152a69f63fbe434c65eff50b9a83253526f8  gfx/mesa-patches/nouveau-zink-from-kepler.patch
+cdef6821d1d84e9763e3b046bef410b20bb0c6affc2fdcf3eee0e93272ce401c  gfx/mesa-patches/nvk-android-hardware-buffer.patch
+4e8dbeceaa5b606caecc287d564389e4623bbde1d0f70e08d2f9808a54097515  gfx/mesa-patches/nvk-two-graphics-queues.patch
+fca2c6d6cc84fc09ebb7830168b33e00f858c078fced24ce342e7ee34c3d3b37  gfx/minigbm-patches/nouveau-native.patch
+fe481a6c22c8066d7c79104bfa95e25abba6cb371695b29014ea6631fbe7408c  gfx/minigbm-patches/xe-unknown-gpus.patch
+89884245ad1faa76d9a5afb03ca2c1f6610f14dfd6176dbed50858a51647b22b  features/gpu-nouveau/cmdline
+b4724f2ba88f1ff2bef9cf20b3380f39b096a19d4a82cabd7e2a110c4f9c58f9  features/gpu-nouveau/patch-vendor.sh
+6bb658043c495662ab45511c9bf6184e19ecfd66266ff8e688e9e44b49d66ab5  features/gfx-mesa/patch-vendor.sh
+5f512d3e3f334c30617f4b46c949aa1c612ed0a41898bfcb558615314c17a679  features/gfx-mesa/system_ext/etc/init/zz-churro-gfx.rc
+e14506aee6474faad502e06b0cfbf47362f76020569118337e6ef8406d99369f  features/gfx-mesa/system_ext/etc/init/churro/gfx-mesa.rc
+77c9e2abf6d0a31850a604093be1237a6b05363e64a0a2828e7dea814ac92728  features/gfx-mesa/system_ext/etc/init/churro/gfx-native.rc
+69d3d92d0db22562a08030217d1542763b558603512136d10a2a6be6a3a4a7b4  features/gfx-mesa/system_ext/etc/init/churro/gfx-nouveau.rc
+ca5069eb8fb819eca6024f45d2afb949d8b83cf0a3f6efd96e330b02c11b45ca  features/gfx-mesa/system_ext/etc/init/churro/gfx-soft.rc
+7e9d342604cb9c34068b4c44d6e10300de291405f73392d16ebd0036c566f681  features/gfx-mesa/system_ext/etc/init/churro/nouveau-ui-gl.rc
+862540b170280c7d4e32b4902a1af91bb94a01940e442ac44b81dc3bb06da2e7  features/gfx-mesa/system_ext/etc/init/churro/nouveau-ui-vk.rc
+93f2c69f72937752c6c4654d1c1dd1c084030342c7500df320d114b2cef59017  features/firmware-lockdown/patch-vendor.sh
+17e153ff58de3bebe318f6f71a3838a9f88b0db5f08b756f81b69e2f9238f267  features/drivers-extra/patch-vendor_dlkm.sh
+0393fab2fb1a1e4ea0e9abe0b13cf070c3182bc7a127414e9a510ec57440f8b6  lib/esp.sh
+
+## Upstream origin of the nouveau-up-* backports (From: lines)
+nouveau-up-01-r535-head-state.patch: 554ab79cfd10 drm/nouveau/disp/r535: Add scanline position support + head
+nouveau-up-02-gsp-vblank-helpers.patch: c6659e0ffc19 drm/nouveau/disp: move GSP head-timing ISR and vblank helpers
+nouveau-up-03-gsp-hdmi-gcp-move.patch: eb1ffc3dc72d drm/nouveau/disp: move the GSP HDMI GCP AVMute write to
+nouveau-up-04-gsp-disp-mmio-hooks.patch: 9886aad51f4b drm/nouveau/disp: route GSP-RM display MMIO through
+nouveau-up-05-gb20x-hdmi-vsi.patch: 92f09dcb4e84 drm/nouveau/disp: fix HDMI vendor infoframes on GB20x
+nouveau-up-06-gb20x-hdmi-gcp.patch: 764deff8450c drm/nouveau/disp: fix HDMI GCP AVMute register offsets on
+nouveau-up-07-r570-dp-config-stream.patch: 39fd4b742720 drm/nouveau/gsp: use per-version DP_CONFIG_STREAM params on
+nouveau-up-08-gb20x-head-state.patch: 9421dfe912e5 drm/nouveau/disp: fix head state readback on GB20x
+nouveau-up-09-gb20x-vblank.patch: 5bb489b33323 drm/nouveau/gsp: fix vblank interrupts on GB20x
