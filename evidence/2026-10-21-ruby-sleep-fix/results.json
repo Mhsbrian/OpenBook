@@ -1,0 +1,50 @@
+{
+  "schema": "openbook-ruby-sleep-fix-evidence/1",
+  "date": "2026-10-21",
+  "kernel": "anybook-g14-gbos-16302624 bzImage (6.18.21-android17-5-gfbfdd65b0fd1), the kernel the G14 runs",
+  "module": {
+    "file": "openbook_lid_guard.ko",
+    "sha256": "97a5868c9d24f23c76d73ab294ff1b4f42d9aa7b0d2a2be3f4cb62261eabc6c6",
+    "build": "tools/bazel build --config=stamp //devices/anybook:openbook_lid_guard (Kleaf ddk_module on :anybook_amd_x86_64)",
+    "vermagic": "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions",
+    "undefined_symbols_all_in_kmi": true,
+    "signed": false,
+    "in_g14_load_lists": false
+  },
+  "vm_tests": {
+    "virtual_lid": {
+      "baseline": "closed 1 / open 1 KEY_WAKEUP",
+      "guarded": "closed 0 / open 1; dropped_wakeups=2",
+      "unloaded": "closed 1 / open 1"
+    },
+    "acpi_lid_transient_false_open": {
+      "baseline": "lid open@0.0s stays open; KEY_WAKEUP 1",
+      "guarded": "lid open@0.0s, closed@1.0s; KEY_WAKEUP 0; lid_corrections=1",
+      "unloaded": "lid open@0.0s stays open; KEY_WAKEUP 1"
+    }
+  },
+  "vm_method": "QEMU q35/KVM, direct kernel boot, busybox initramfs; QEMU's ACPI power button; uinput lid or test SSDT lid-transient.aml whose _LID reads open for 0.5 s after each resume; ACPI S3 with RTC alarm (QEMU's RTC does not wake s2idle; both resume through the same device callbacks)",
+  "diagnostics_entry": {
+    "added_entries": [
+      "ruby-sleep-diag.conf",
+      "ruby-sleep-diag-serial.conf"
+    ],
+    "extra_kernel_options": [
+      "pm_debug_messages",
+      "acpi.debug_layer=0x4",
+      "acpi.debug_level=0x4"
+    ],
+    "synthetic_stick_sha256": "85490f62da195e446932a140eb5030fbfe715fd7d5726a7bb5b3579a66556471",
+    "vm_entry": "sleep-diag-serial",
+    "vm_boot_completed": true,
+    "vm_observation_s": 600.6,
+    "usb_logs_saved": true,
+    "acpi_events_debug_output_seen": true
+  },
+  "limits": [
+    "not tested on G14 hardware",
+    "s2idle-specific timing on the G14 unknown; VM used S3",
+    "not yet packaged into Ruby vendor_dlkm",
+    "a false open can still light the screen until the 1 s re-check"
+  ]
+}

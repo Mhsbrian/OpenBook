@@ -1,5 +1,10 @@
 # Hardware
 
+2026-10-21 G14 lid sleep (ANAL-235): s2idle is entered, but each resume emits a
+Power Button `KEY_WAKEUP`, and `_LID` can read open right after a resume (DSDT
+`LID0._LID` returns open while `EC0.ECOK` is clear). Fix candidate
+`openbook_lid_guard` is VM-tested only. See `googlebook-sleep.md`.
+
 2026-10-21 G14 after the USB laptop update: runs the RB01 system (vbmeta
 `913489549ae1…`, corrected `libinputflinger.so`), data and PIN unlock retained
 (both users `RUNNING_UNLOCKED`), touchpad/Wi-Fi/camera present, no system-server

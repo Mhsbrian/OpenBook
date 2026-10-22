@@ -1,0 +1,20 @@
+== kernel 6.18.21-android17-5-gfbfdd65b0fd1
+== scenario acpilid
+acpi lid before sus[    0.715815][   T64] PM: suspend entry (deep)
+LIDSEQ baseline: open@0.0s
+RESULT baseline final_lid=open key_wakeups=1
+== module loaded
+acpi lid before suspend: closed
+LIDSEQ guarded: open@0.0s closed@1.0s
+RESULT guarded final_lid=closed key_wakeups=0
+COUNTERS dropped_wakeups=2 lid_corrections=1
+KLOG [    9.864883][   T71] openbook_lid_guard: loading out-of-tree module taints kernel.
+KLOG [    9.866492][   T71] openbook_lid_guard: watching Lid Switch (lid)
+KLOG [    9.867323][   T71] openbook_lid_guard: watching Power Button (power button)
+KLOG [    9.892593][   T73] openbook_lid_guard: lid closed: dropped resume KEY_WAKEUP from Power Button
+KLOG [   10.936038][   T10] openbook_lid_guard: Lid Switch reports open but _LID says closed 1000 ms after resume; reporting closed
+== module unloaded
+acpi lid before sus[   16.995289][   T82] PM: suspend entry (deep)
+LIDSEQ unloaded: open@0.0s
+RESULT unloaded final_lid=open key_wakeups=1
+== done
