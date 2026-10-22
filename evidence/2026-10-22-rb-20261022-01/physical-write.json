@@ -1,0 +1,66 @@
+{
+  "schema": "openbook-ruby-physical-write/1",
+  "release": "RB-20261022-01",
+  "record": "ANAL-253",
+  "device": "SanDisk Ultra USB stick ending 2034",
+  "approvals": [
+    "ANAL-229 comment 01a16364-abbb-76d1-8ace-3cdc46af3daa: I approve and USB-write approval IS PROVIDED, DO IT",
+    "ANAL-229 comment 01a16597-c03b-75d2-a5db-c7c27c4f040b: USB stick plugged in, lets write to the USB, so I can do load the laptop"
+  ],
+  "packaging_tools": "b75b573f4be2c16c2c196a2b0afd0ffb67328f9d",
+  "installer_image": "openbook-ruby-installer:anal229-laptop-update (94d8dbe1)",
+  "host_automount_note": "the desktop auto-mounted the stick's metadata partition (sda7) when plugged in; unmounted before the backup",
+  "backup": {
+    "sha256": "83b0ff2c7dfb1934f9d03ea183b3d89e9e3bacb736d68743a43206e9bf2fca63",
+    "reads": 2,
+    "reads_match": true,
+    "started_utc": "2026-10-22T21:53:21Z",
+    "finished_utc": "2026-10-22T21:57:51Z",
+    "vs_last_write_233eed28": {
+      "EFI": "differs",
+      "misc": "equal",
+      "boot_a": "equal",
+      "init_boot_a": "equal",
+      "vendor_boot_a": "equal",
+      "vbmeta_a": "equal",
+      "metadata": "differs",
+      "super": "equal",
+      "userdata": "equal"
+    },
+    "note": "EFI and metadata changed because the owner ran the stick's Update entry on the laptop (RB-20261021-02)"
+  },
+  "recomposition": {
+    "laptop_record_sha256": "260bbf78211084704ebb5bda58483583ead5f50521cf9fbae8bf0f3dd3653cea",
+    "laptop_record": "RB-20261021-02 -> RB-20261022-01, system only, data kept",
+    "installer_pin_sha256": "435915f881ee2da42753e4f1d886ecb508cb584d2a17d9c1239072804e19140b",
+    "identical_to_prepared_record_and_pin": true,
+    "installer_initrd_contents_identical_to_prepared": true,
+    "stages": [
+      {
+        "name": "stage-a-system",
+        "operation": "SystemUpdate"
+      },
+      {
+        "name": "stage-b-installer",
+        "operation": "Replace"
+      }
+    ],
+    "candidate_sha256": "18235b4506bb22f45b467d1b81bd2675b1a8fd3808863bb95c7b1181a5d25ab8"
+  },
+  "preflight": "read-only physical preflight passed",
+  "started_utc": "2026-10-22T22:04:56Z",
+  "finished_utc": "2026-10-22T22:12:22Z",
+  "written": [
+    "super",
+    "vbmeta_a",
+    "EFI"
+  ],
+  "image_bytes": 12766412800,
+  "expected_sha256": "8834cd896a59b0322b6d8aa5166b3f75144c4cc2595eaf972c02329a1c2163c7",
+  "readback_sha256": "8834cd896a59b0322b6d8aa5166b3f75144c4cc2595eaf972c02329a1c2163c7",
+  "verified": true,
+  "protected_bytes": 8805941248,
+  "powered_off": true,
+  "laptop_written": false,
+  "supersedes_final": "39f4f1f0... (RB-20261021-01 start point); the laptop is on RB-20261021-02"
+}

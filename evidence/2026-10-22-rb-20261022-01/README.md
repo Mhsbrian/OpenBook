@@ -18,3 +18,16 @@
 - **Not tested:** G14 hardware, a real Google OTA file, app/Mainline updates after the change,
   and a synthetic-laptop rehearsal of this exact record. RB-20261021-02's rehearsal covers the
   same mechanism.
+
+## Written to the SanDisk (2026-10-22 22:12 UTC)
+
+`physical-write.json`: RB-20261022-01 written to the owner's SanDisk Ultra USB stick ending 2034 and
+verified. The owner had run the stick's Update entry (laptop on RB-20261021-02), so a fresh two-read
+backup (`83b0ff2c…`, both reads equal) differed from the last write only in EFI and metadata. The plan
+was recomposed with the frozen tools `b75b573` against that backup, with the laptop record re-targeted
+to RB-20261021-02 → RB-20261022-01 (`260bbf78…`, byte-identical to the prepared record; pin `435915f8…`
+identical; installer initrd contents identical). Read-only physical preflight passed. The writer wrote
+only super, vbmeta_a and EFI (8,805,941,248 protected bytes unchanged), read back the whole 12.77 GB
+used extent: `8834cd896a59b0322b6d8aa5166b3f75144c4cc2595eaf972c02329a1c2163c7` as composed, and
+powered the stick off. The laptop was not written. Its Update entry now goes RB-20261021-02 →
+RB-20261022-01 (system only, data kept); Restore returns the saved system.
