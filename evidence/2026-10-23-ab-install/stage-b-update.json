@@ -1,0 +1,63 @@
+{
+  "schema": "openbook-ruby-preserving-update/1",
+  "complete": true,
+  "backup_sha256": "2fa11a7123e41cad5c4f29eb6c8b770837d30b3f87b0cfbdb36d1155fd6feef8",
+  "candidate_sha256": "ba05db9d369011747f71096cee8c7f30ae205385c42a0be0f863ce34d3a5c728",
+  "image_sha256": "42c934f13994589537098132f9f2519955cb27305be6d2ad0848d629dafdf01c",
+  "writes": [
+    {
+      "name": "EFI",
+      "offset": 1048576,
+      "length": 268435456,
+      "sha256": "1652ce7ac09182f6748d4a1c5362f255e71549c542bfd73f5dbe75a69c4b311c"
+    },
+    {
+      "name": "vbmeta_a",
+      "offset": 416284672,
+      "length": 1048576,
+      "sha256": "f072cb55c38c5083081491795e68c108a620552045e346848c06eea72ab17e14"
+    },
+    {
+      "name": "super",
+      "offset": 484442112,
+      "length": 3690987520,
+      "sha256": "0a71da2585a0610ca36178cab848122d29a63a66ce506959be5b98aded97c99a"
+    }
+  ],
+  "protected": [
+    {
+      "offset": 0,
+      "length": 1048576,
+      "sha256": "16fc782a163ebbca75573a2472e55129790c337b83ae593c1303013a35b81cee"
+    },
+    {
+      "offset": 269484032,
+      "length": 146800640,
+      "sha256": "ead85fdce13afefd49e697a3738c0791c2710be12ed34822c5d30706da1e354f"
+    },
+    {
+      "offset": 417333248,
+      "length": 67108864,
+      "sha256": "0ab2b40a928e209b335ef5545c4ceb262aedc44c08b39a5db05496e3e654f307"
+    },
+    {
+      "offset": 4175429632,
+      "length": 8590983168,
+      "sha256": "3b0729170402bd9bc496dce7e6d200c159707528fa4c9c666085f45a65d134fb"
+    }
+  ],
+  "sources_unchanged": true,
+  "unrelated_esp_files_unchanged": true,
+  "physical_device_written": false,
+  "data_unlock_verified": false,
+  "replaced_installer_sha256": "7418bbb0e908be158132550570695bf39df350f86b899f6e9aa0a13cb95843fd",
+  "laptop_update_entries": [],
+  "two_slot_fresh_install": true,
+  "removed_entries": [
+    "loader/entries/ruby-restore-serial.conf",
+    "loader/entries/ruby-restore.conf",
+    "loader/entries/ruby-update-serial.conf",
+    "loader/entries/ruby-update.conf"
+  ],
+  "operation": "Replace"
+}

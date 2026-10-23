@@ -70,6 +70,8 @@ INSTALLER_ENTRIES = LEGACY_ENTRIES + FRESH_ENTRIES
 UPDATE_ENTRIES = ("loader/entries/ruby-update.conf", "loader/entries/ruby-update-serial.conf",
                   "loader/entries/ruby-restore.conf", "loader/entries/ruby-restore-serial.conf")
 BASE_BUILD_FILES = {"kernel", "initrd.img", "package-versions.txt", "source.json"}
+# Present only when the installer embeds a two-slot install plan (build-ruby-ab-install.py).
+AB_FILES = {"ab-install.json", "ab-bundle.bin"}
 
 
 def replacement_contract(before, expected):
@@ -92,7 +94,8 @@ def replacement_contract(before, expected):
     for names, fresh in ((LEGACY_ENTRIES, False), (FRESH_ENTRIES, True)):
         for suffix, name in zip(("", "-serial"), names):
             if name in present:
-                m.require((before / name).read_text() == installer_entry(suffix, fresh),
+                m.require((before / name).read_text() in {installer_entry(suffix, fresh),
+                                                          installer_entry(suffix, fresh, ab=fresh)},
                           "Old installer menu changed")
     for name, text in update_entries().items():
         if name in present:
@@ -100,12 +103,12 @@ def replacement_contract(before, expected):
     return present
 
 
-def installer_entry(suffix, fresh=False):
+def installer_entry(suffix, fresh=False, ab=False):
     if fresh:
-        return ("title Fresh install Googlebook to SSD - ERASE SSD DATA"
+        return ("title Fresh install Googlebook to SSD" + (" (two slots)" if ab else "") + " - ERASE SSD DATA"
                 + (" (VM serial)" if suffix else "") + "\n"
                 "linux /ruby-installer/kernel\ninitrd /ruby-installer/initrd.img\n"
-                "options openbook.install=fresh "
+                f"options openbook.install={'fresh-ab' if ab else 'fresh'} "
                 + ("console=ttyS0,115200 loglevel=3\n" if suffix else "console=tty0 loglevel=3\n"))
     return ("title Install this Googlebook USB to SSD - keep saved data"
             + (" (VM serial)" if suffix else "") + "\n"
@@ -136,9 +139,16 @@ def add(snapshot, snapshot_sha, base_manifest, installer, out, replace_installer
     pin = json.loads(u.regular(installer / "source.json").read_text())
     build = json.loads(u.regular(installer / "build.json").read_text())
     m.require(build.get("schema") == "openbook-ruby-offline-installer/1"
-              and set(build.get("files", {})) in (BASE_BUILD_FILES, BASE_BUILD_FILES | {"laptop-update.json"}),
+              and set(build.get("files", {})) in (BASE_BUILD_FILES, BASE_BUILD_FILES | {"laptop-update.json"},
+                                                  BASE_BUILD_FILES | AB_FILES),
               "Unknown or incomplete installer build")
     laptop_update = "laptop-update.json" in build["files"]
+    ab = AB_FILES <= set(build["files"])
+    if ab:
+        plan = json.loads(u.regular(installer / "ab-install.json").read_text())
+        m.require(plan.get("schema") == m.AB_SCHEMA and plan["source_pin_sha256"] == build["source_pin_sha256"]
+                  and plan["bundle_file"] == "ab-bundle.bin" and plan["bundle_sha256"] == build["files"]["ab-bundle.bin"],
+                  "Two-slot plan does not match this installer's USB pin")
     if laptop_update:
         lu = module("laptop_update", "laptop-update.py")
         lu.check_spec(json.loads(u.regular(installer / "laptop-update.json").read_text()), pin)
@@ -175,11 +185,16 @@ def add(snapshot, snapshot_sha, base_manifest, installer, out, replace_installer
         conf.write_text(installer_entry(suffix))
         m.run("mcopy", "-o", "-i", esp, conf, f"::/loader/entries/{conf.name}")
         conf = out / f"ruby-fresh{suffix}.conf"
-        conf.write_text(installer_entry(suffix, fresh=True))
+        conf.write_text(installer_entry(suffix, fresh=True, ab=ab))
         m.run("mcopy", "-o", "-i", esp, conf, f"::/loader/entries/{conf.name}")
     menu = update_entries() if laptop_update else {}
-    m.require(laptop_update or not set(UPDATE_ENTRIES) & set(u.tree_hashes(before)),
+    # A two-slot installer retires the single-slot laptop Update/Restore entries: a laptop on two
+    # slots takes OpenBook OTAs, and laptop-update.py refuses its layout anyway.
+    removed = set(UPDATE_ENTRIES) & set(u.tree_hashes(before)) if ab else set()
+    m.require(laptop_update or ab or not set(UPDATE_ENTRIES) & set(u.tree_hashes(before)),
               "Replacing an update-capable installer requires a laptop update record")
+    for name in sorted(removed):
+        m.run("mdel", "-i", esp, f"::/{name}")
     for name, text in menu.items():
         conf = out / Path(name).name
         conf.write_text(text)
@@ -191,8 +206,8 @@ def add(snapshot, snapshot_sha, base_manifest, installer, out, replace_installer
     for name, sha in u.tree_hashes(before).items():
         if name not in replaceable:
             m.require(u.h.audit.sha(after / name) == sha, f"Existing EFI file changed: {name}")
-    m.require(set(u.tree_hashes(after)) == set(u.tree_hashes(before)) |
-              {f"ruby-installer/{n}" for n in INSTALLER_FILES} | set(INSTALLER_ENTRIES) | set(menu),
+    m.require(set(u.tree_hashes(after)) == (set(u.tree_hashes(before)) |
+              {f"ruby-installer/{n}" for n in INSTALLER_FILES} | set(INSTALLER_ENTRIES) | set(menu)) - removed,
               "Unexpected EFI file added or removed")
     for name, text in menu.items():
         m.require((after / name).read_text() == text, "Installer menu readback failed")
@@ -201,7 +216,7 @@ def add(snapshot, snapshot_sha, base_manifest, installer, out, replace_installer
                   "Installer EFI readback failed")
     for names, fresh in ((LEGACY_ENTRIES, False), (FRESH_ENTRIES, True)):
         for suffix, name in zip(("", "-serial"), names):
-            m.require((after / name).read_text() == installer_entry(suffix, fresh),
+            m.require((after / name).read_text() == installer_entry(suffix, fresh, ab=fresh and ab),
                       "Installer menu readback failed")
     output = out / "ruby-live.img"
     m.run("cp", "--reflink=auto", "--sparse=always", snapshot, output)
@@ -243,6 +258,7 @@ def add(snapshot, snapshot_sha, base_manifest, installer, out, replace_installer
                 physical_device_written=False, data_unlock_verified=False,
                 replaced_installer_sha256=replace_installer_sha256,
                 laptop_update_entries=sorted(menu),
+                two_slot_fresh_install=ab, removed_entries=sorted(removed),
                 operation="Replace" if replaceable else "Add")
     (out / "update.json").write_text(json.dumps(plan, indent=2) + "\n")
     print("Offline migration entry packaged in private clone; all Android partitions unchanged.")

@@ -245,27 +245,50 @@ certificate (and FILE_HASH/METADATA_HASH) before the slot switch.
   The VNNI/GFNI-emulating QEMU build has no user-mode networking, so it needs
   rebuilding with slirp (or passt).
 
-## Fresh installer for layout v2 (design)
+## Fresh installer for layout v2: the stick's two-slot entry
 
-Built on the Ruby stick's offline installer (`migrate.py --fresh`), which
-already has the G14 DMI pin, internal-NVMe-only targets that refuse the USB, a
-typed `FRESH ERASE <serial>` phrase, write-then-readback and a QEMU rehearsal
-that types the prompt (`migration-qemu.py`). The AOSP engine's layout is
-data-driven, but it accepts only OpenBook AOSP sticks and runs inside live
-Android, which the Ruby stick does not boot. To add:
-1. GPT generated from `plan-ruby-ab.py` for the real disk size (19 partitions)
-   instead of copying the stick's single-slot rows.
-2. A pin listing the prebuilt slot-A images (ESP files, boot chain, vbmeta,
-   super) with SHA-256s.
-3. Bind `androidboot.boot_part_uuid` to the new ESP at install time, keeping
-   the bootsync layout and the vbmeta digest.
-4. Sparse/extent writes for the 24 GiB super (content ≈ 3.6 GB).
-5. Zero slot B, misc and metadata (first MiB of the rest), as the AOSP engine does.
-6. A dry-run plan hash and power-cut cases, from the AOSP engine's tests.
-7. A v2 `migration-qemu.py` case: the 19-partition GPT, blank slot B, userdata
-   filling the disk, then boot slot A and run one OTA.
-The image it writes must be a release with the owner OTA policy (candidate R),
-so the first update after the reinstall can arrive wirelessly.
+The stick's offline installer (`migrate.py`, a RAM-only Linux on the stick's EFI
+partition) has a two-slot mode: **Fresh install Googlebook to SSD (two slots) -
+ERASE SSD DATA**. It keeps the existing safeguards:
+- the G14 DMI pin;
+- internal-NVMe-only targets that refuse the USB;
+- the typed `FRESH ERASE <serial>` phrase;
+- charger checks;
+- the source USB left unchanged.
+
+It writes the Ruby A/B disk that `build-ruby-ab-image.py` built and `ab-qemu.py` booted,
+using the stick's **own** pinned system bytes:
+
+- `build-ruby-ab-install.py` compares that reference image with the stick and
+  records each byte's source. Boot images and the six logical partitions come
+  from the stick (the A/B super holds them byte-identical; LP extents parsed and
+  cross-checked with `lpdump`). The two-slot additions go in a small bundle:
+  the ESP, super's LP metadata and the re-signed `vbmeta_a` (38 MB, embedded in
+  the installer initrd). Everything else is zeros: slot B, misc, metadata,
+  super's free space and userdata's edges. The writes tile every partition
+  except userdata's interior, so nothing stale survives. The plan is bound to
+  the stick pin's SHA-256. Before it is accepted, the real engine runs it into a
+  blank disk, and every byte outside userdata's interior must equal the reference.
+- `migrate.py --fresh --ab-plan` (`install_ab`) checks the plan, the pin and the
+  bundle, clears the old partition table first, then writes and reads back each
+  region. Last, it writes the GPT sized to the actual disk: userdata takes the
+  rest, exactly as `plan-ruby-ab.py` lays it out. A failed readback or a power
+  cut therefore leaves no bootable half-install (`migration-ab-test.py`).
+- `migration-package.py` gives a two-slot installer the new Fresh entry. It
+  retires the single-slot Update/Restore entries: a two-slot laptop takes
+  OpenBook OTAs, and `laptop-update.py` refuses its layout anyway. The
+  keep-data entry and live boot are unchanged.
+- `ab-install-qemu.py` rehearses it end to end. QEMU boots the packaged stick
+  image's two-slot entry and types the disk and the phrase. The installed NVMe
+  is then compared with the reference and booted with `ab-qemu.py`'s checks.
+
+Development build, 2026-10-23 (`evidence/2026-10-23-ab-install/`): the candidate R
+system (RB-20261022-01 + owner OTA policy) on the RB-20261022-01 stick image produced
+stick image `42c934f1…`.
+- **Proof:** the installer installed it on a blank 1 TB NVMe in 79 s; 27.7 GB compared,
+  identical to the reference.
+- **Boot:** the installed disk booted 9/9.
+- **Not done:** not yet written to the stick or run on the G14.
 
 ## Milestones
 
@@ -302,9 +325,10 @@ so the first update after the reinstall can arrive wirelessly.
      2 GiB) both pass every phase; the large one's snapshot (7.17 GiB) stays in
      super.
 
-4. **Fresh installer** for layout v2 — next. It writes exactly the v2 layout
-   (now proven for small and large OTAs), erases the SSD, names it, keeps
-   nothing. Explicit device-named approval before any physical install.
+4. **Fresh installer** for layout v2 — built and VM-proven (see above): the
+   stick's two-slot entry writes exactly the v2 layout from the stick's own
+   system and erases the SSD's previous contents. Next: a release, the stick write
+   (device-named approval), then the owner runs it on the G14.
 5. **Capture + patch Google OTAs**: the offer is visible to an authorized flow
    (seen on hardware 2026-10-22); rebuild stock partitions on the host, re-apply
    the OpenBook layer, sign with the OpenBook key, deliver via milestone 4.
@@ -327,4 +351,18 @@ scripts/installer/inst-docker.sh python3 scripts/googlebook/ab-qemu.py --image-d
 python3 scripts/googlebook/build-ruby-ab-super.py --logical "$SLOT_A_LOGICAL_DIR" \
   --reference-super "$PRISTINE_GOOGLEBOOK_SUPER" --tools "$LP_TOOLS_DIR" --out "$OUT"
 python3 scripts/googlebook/build-ruby-ab-super-test.py
+
+# two-slot fresh install on the stick (after preserve-update.py stage A and migration-package.py pin)
+scripts/installer/inst-docker.sh python3 scripts/googlebook/build-ruby-ab-image.py ... --out "$REF_HW" \
+  --disk-bytes 1000204886016                                   # hardware reference (no --vm)
+python3 scripts/googlebook/build-ruby-ab-install.py --usb-image "$STAGE_A/ruby-live.img" --pin "$PIN/source.json" \
+  --ab-image "$REF_HW" --release "$NAME" --variant hardware --out "$PLAN" --lpdump "$AOSP_HOST_BIN/lpdump"
+# installer input = source.json + ab-install.json + ab-bundle.bin
+docker build -f tools/Dockerfile.ruby-installer -t openbook-ruby-installer:ab .
+docker run --rm --network none -u "$(id -u):$(id -g)" -v "$INPUT:/input:ro" -v "$INSTALLER:/out" openbook-ruby-installer:ab
+scripts/installer/inst-docker.sh python3 scripts/googlebook/migration-package.py add ... --installer "$INSTALLER"
+scripts/installer/inst-docker.sh python3 scripts/googlebook/compose-usb-plan.py ... --stage "$STAGE_A" --stage "$STAGE_B"
+scripts/installer/inst-docker.sh python3 scripts/googlebook/ab-install-qemu.py --source "$FINAL" --reference "$REF_HW" \
+  --android-qemu "$TCG_QEMU" --bootsync "$BOOTSYNC_HOST" --out "$REHEARSAL"
+python3 scripts/googlebook/migration-ab-test.py
 ```

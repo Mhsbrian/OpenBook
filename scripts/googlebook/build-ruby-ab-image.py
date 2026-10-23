@@ -141,13 +141,22 @@ def build(a):
     disk = w / "disk.img"
     with open(disk, "wb") as f:
         f.truncate(a.disk_bytes)
-    run("sgdisk", "--clear", "-U", "R", disk, stdout=subprocess.DEVNULL)
+    # --gpt-ids reuses another build's disk and partition GUIDs, so a hardware and a VM build of one
+    # release differ only in their boot entry (the ESP's PARTUUID is in the bootconfig).
+    ids = json.loads(a.gpt_ids.read_text()) if a.gpt_ids else None
+    run("sgdisk", "--clear", "-U", ids["disk_guid"] if ids else "R", disk, stdout=subprocess.DEVNULL)
     for i, r in enumerate(layout["partitions"], 1):
         start, end = r["offset"] // 512, (r["offset"] + r["length"]) // 512 - 1
         run("sgdisk", "-n", f"{i}:{start}:{end}", "-t", f"{i}:{EFI_TYPE if r['name'] == 'EFI' else LINUX_TYPE}",
-            "-c", f"{i}:{r['name']}", disk, stdout=subprocess.DEVNULL)
+            "-c", f"{i}:{r['name']}", *(["-u", f"{i}:{ids['partuuids'][r['name']]}"] if ids else []),
+            disk, stdout=subprocess.DEVNULL)
     index = {r["name"]: i for i, r in enumerate(layout["partitions"], 1)}
     efi_uuid = gpt_partuuid(disk, index["EFI"])
+    partuuids = {r["name"]: gpt_partuuid(disk, index[r["name"]]) for r in layout["partitions"]}
+    disk_guid = next(l.split(":", 1)[1].strip().lower() for l in subprocess.check_output(
+        ["sgdisk", "-p", str(disk)], text=True).splitlines() if l.startswith("Disk identifier (GUID):"))
+    if ids and (partuuids != {k: v.lower() for k, v in ids["partuuids"].items()} or disk_guid != ids["disk_guid"].lower()):
+        raise ValueError("sgdisk did not apply the requested GUIDs")
 
     # Slot A ESP files, as bootsync exports them.
     kernel, ramdisk, vram, vcmdline, vbc = extract_boot(src["boot_a"], src["init_boot_a"], src["vendor_boot_a"])
@@ -202,6 +211,7 @@ def build(a):
 
     result = dict(schema="openbook-ruby-ab-image/1", disk_bytes=a.disk_bytes, vm_entry=a.vm,
                   source_image_sha256=manifest["image_sha256"], efi_partuuid=efi_uuid,
+                  disk_guid=disk_guid, partuuids=partuuids,
                   vbmeta_a=dict(size=vbmeta_size, digest=digest,
                                 covers=["boot", "init_boot", "vendor_boot", "system", "system_ext", "product",
                                         "vendor", "vendor_dlkm", "system_dlkm"]),
@@ -216,6 +226,7 @@ if __name__ == "__main__":
         p.add_argument("--" + name, type=Path, required=True)
     p.add_argument("--disk-bytes", type=int, required=True)
     p.add_argument("--vm", action="store_true", help="add the serial console to the entry (QEMU tests)")
+    p.add_argument("--gpt-ids", type=Path, help="result.json of another build: reuse its disk/partition GUIDs")
     a = p.parse_args()
     if not Path("/.dockerenv").exists():
         p.error("Run in the openbook-installer container (scripts/installer/inst-docker.sh)")

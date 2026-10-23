@@ -1,0 +1,17 @@
+{
+  "schema": "openbook-ruby-ab-install-rehearsal/1",
+  "installer_exit": 0,
+  "install_s": 79.1,
+  "prompts_answered": [
+    "confirm",
+    "disk",
+    "poweroff"
+  ],
+  "installed_and_verified": true,
+  "target_bytes": 1000204886016,
+  "layout_matches_reference": true,
+  "bytes_compared": 27711800832,
+  "differing_regions": [],
+  "identical_to_reference_outside_userdata_interior": true,
+  "usb_and_decoy_unchanged": true
+}

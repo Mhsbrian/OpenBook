@@ -1,0 +1,434 @@
+{
+  "schema": "openbook-ruby-ab-install/1",
+  "release": "candidate-R-ab-dev",
+  "variant": "hardware",
+  "source_pin_sha256": "d49502ef8e5ae03150502735ca3eac036f6bb36e17bd4bbd706937c32444df26",
+  "source_build": "candidate-R-ab-dev",
+  "bundle_file": "ab-bundle.bin",
+  "bundle_bytes": 38297600,
+  "bundle_sha256": "2fab414eaa34b8c9b9b178fc796bbd40c299daef91b2a561391e5d251331c92f",
+  "disk_guid": "8354a917-ff07-4595-af97-578813a045ea",
+  "first_usable_lba": 34,
+  "partitions": [
+    {
+      "name": "EFI",
+      "type": "c12a7328-f81f-11d2-ba4b-00a0c93ec93b",
+      "partuuid": "6c2ce8ef-f95b-486d-8ef2-2807104b52bd",
+      "offset": 1048576,
+      "length": 1073741824
+    },
+    {
+      "name": "misc",
+      "type": "0fc63daf-8483-4772-8e79-3d69d8477de4",
+      "partuuid": "395701b4-bc7b-4f7b-86c9-566d3caafda8",
+      "offset": 1074790400,
+      "length": 4194304
+    },
+    {
+      "name": "boot_a",
+      "type": "0fc63daf-8483-4772-8e79-3d69d8477de4",
+      "partuuid": "007ae8d3-0d7e-4f10-ad39-fdc6bf797178",
+      "offset": 1078984704,
+      "length": 134217728
+    },
+    {
+      "name": "boot_b",
+      "type": "0fc63daf-8483-4772-8e79-3d69d8477de4",
+      "partuuid": "8114b7b7-88d6-4dc5-aa9c-6bdb3de10b82",
+      "offset": 1213202432,
+      "length": 134217728
+    },
+    {
+      "name": "init_boot_a",
+      "type": "0fc63daf-8483-4772-8e79-3d69d8477de4",
+      "partuuid": "72d4a0c1-64fd-4d76-a545-cb57571dfaff",
+      "offset": 1347420160,
+      "length": 16777216
+    },
+    {
+      "name": "init_boot_b",
+      "type": "0fc63daf-8483-4772-8e79-3d69d8477de4",
+      "partuuid": "16cd3c1d-6a5c-4b3a-8844-75468463ca25",
+      "offset": 1364197376,
+      "length": 16777216
+    },
+    {
+      "name": "vendor_boot_a",
+      "type": "0fc63daf-8483-4772-8e79-3d69d8477de4",
+      "partuuid": "ed70de04-2b12-4ab3-b99c-704efa0d7f82",
+      "offset": 1380974592,
+      "length": 67108864
+    },
+    {
+      "name": "vendor_boot_b",
+      "type": "0fc63daf-8483-4772-8e79-3d69d8477de4",
+      "partuuid": "1aa548b4-2c19-420f-bed8-2eca757a9e12",
+      "offset": 1448083456,
+      "length": 67108864
+    },
+    {
+      "name": "vbmeta_a",
+      "type": "0fc63daf-8483-4772-8e79-3d69d8477de4",
+      "partuuid": "365d8a5e-7d28-4f70-befc-8a99ea467354",
+      "offset": 1515192320,
+      "length": 4194304
+    },
+    {
+      "name": "vbmeta_b",
+      "type": "0fc63daf-8483-4772-8e79-3d69d8477de4",
+      "partuuid": "d482f339-a25e-4b5c-9ad8-da85974dd15d",
+      "offset": 1519386624,
+      "length": 4194304
+    },
+    {
+      "name": "pvmfw_a",
+      "type": "0fc63daf-8483-4772-8e79-3d69d8477de4",
+      "partuuid": "5e86f996-3f98-43b5-8eee-600ed289d549",
+      "offset": 1523580928,
+      "length": 4194304
+    },
+    {
+      "name": "pvmfw_b",
+      "type": "0fc63daf-8483-4772-8e79-3d69d8477de4",
+      "partuuid": "0fc7a5db-9779-45f2-a557-fda6b91213e6",
+      "offset": 1527775232,
+      "length": 4194304
+    },
+    {
+      "name": "recovery_a",
+      "type": "0fc63daf-8483-4772-8e79-3d69d8477de4",
+      "partuuid": "9f338d66-5b9c-4fba-b80a-2e8cefadd6f8",
+      "offset": 1531969536,
+      "length": 33554432
+    },
+    {
+      "name": "recovery_b",
+      "type": "0fc63daf-8483-4772-8e79-3d69d8477de4",
+      "partuuid": "ac705cd0-6eb4-4244-aa9a-223c2b9be197",
+      "offset": 1565523968,
+      "length": 33554432
+    },
+    {
+      "name": "ota_recovery_a",
+      "type": "0fc63daf-8483-4772-8e79-3d69d8477de4",
+      "partuuid": "98d99aef-28ea-482a-b815-76140138963f",
+      "offset": 1599078400,
+      "length": 134217728
+    },
+    {
+      "name": "ota_recovery_b",
+      "type": "0fc63daf-8483-4772-8e79-3d69d8477de4",
+      "partuuid": "6c89e427-ce76-4e41-916a-393c02a6a5ea",
+      "offset": 1733296128,
+      "length": 134217728
+    },
+    {
+      "name": "metadata",
+      "type": "0fc63daf-8483-4772-8e79-3d69d8477de4",
+      "partuuid": "d0676446-f384-4a1d-b221-b149544f88a2",
+      "offset": 1867513856,
+      "length": 67108864
+    },
+    {
+      "name": "super",
+      "type": "0fc63daf-8483-4772-8e79-3d69d8477de4",
+      "partuuid": "003e465b-7521-4408-bdb2-da39e7577314",
+      "offset": 1934622720,
+      "length": 25769803776
+    },
+    {
+      "name": "userdata",
+      "type": "0fc63daf-8483-4772-8e79-3d69d8477de4",
+      "partuuid": "1bfcfe9b-d913-4f6c-a7b4-4604966493b2",
+      "offset": 27704426496,
+      "length": 972499714048
+    }
+  ],
+  "writes": [
+    {
+      "partition": "EFI",
+      "at": 0,
+      "length": 33554432,
+      "from": "bundle",
+      "offset": 0,
+      "sha256": "9150c21ae21aaca978aab51b3475ea2f3b503162597ec1f1cdce63032476b9a1"
+    },
+    {
+      "partition": "EFI",
+      "at": 33554432,
+      "length": 1040187392,
+      "from": "zero"
+    },
+    {
+      "partition": "misc",
+      "at": 0,
+      "length": 4194304,
+      "from": "zero"
+    },
+    {
+      "partition": "boot_a",
+      "at": 0,
+      "length": 67108864,
+      "from": "usb",
+      "source": "boot_a",
+      "offset": 0,
+      "sha256": "f6fc1a5892cba10d24ba3c250f5abe4115ba0f7c0556a653995b41373bfbcec8"
+    },
+    {
+      "partition": "boot_a",
+      "at": 67108864,
+      "length": 67108864,
+      "from": "zero"
+    },
+    {
+      "partition": "boot_b",
+      "at": 0,
+      "length": 134217728,
+      "from": "zero"
+    },
+    {
+      "partition": "init_boot_a",
+      "at": 0,
+      "length": 8388608,
+      "from": "usb",
+      "source": "init_boot_a",
+      "offset": 0,
+      "sha256": "0237a3399e093acabf63a0b036ac43b7e1b06a59dc7b665d852c0c6ec28e2dae"
+    },
+    {
+      "partition": "init_boot_a",
+      "at": 8388608,
+      "length": 8388608,
+      "from": "zero"
+    },
+    {
+      "partition": "init_boot_b",
+      "at": 0,
+      "length": 16777216,
+      "from": "zero"
+    },
+    {
+      "partition": "vendor_boot_a",
+      "at": 0,
+      "length": 67108864,
+      "from": "usb",
+      "source": "vendor_boot_a",
+      "offset": 0,
+      "sha256": "b8dc14803c8a07b0ec675d9cc9d2baf7b16c8acfd1a90c63782fa7e0d95bda80"
+    },
+    {
+      "partition": "vendor_boot_b",
+      "at": 0,
+      "length": 67108864,
+      "from": "zero"
+    },
+    {
+      "partition": "vbmeta_a",
+      "at": 0,
+      "length": 8192,
+      "from": "bundle",
+      "offset": 33554432,
+      "sha256": "1103fdcdd217e4f48f03a48e470a568b6b306cf03a1644f01f7db5692f46dba3"
+    },
+    {
+      "partition": "vbmeta_a",
+      "at": 8192,
+      "length": 4186112,
+      "from": "zero"
+    },
+    {
+      "partition": "vbmeta_b",
+      "at": 0,
+      "length": 4194304,
+      "from": "zero"
+    },
+    {
+      "partition": "pvmfw_a",
+      "at": 0,
+      "length": 4194304,
+      "from": "zero"
+    },
+    {
+      "partition": "pvmfw_b",
+      "at": 0,
+      "length": 4194304,
+      "from": "zero"
+    },
+    {
+      "partition": "recovery_a",
+      "at": 0,
+      "length": 33554432,
+      "from": "zero"
+    },
+    {
+      "partition": "recovery_b",
+      "at": 0,
+      "length": 33554432,
+      "from": "zero"
+    },
+    {
+      "partition": "ota_recovery_a",
+      "at": 0,
+      "length": 134217728,
+      "from": "zero"
+    },
+    {
+      "partition": "ota_recovery_b",
+      "at": 0,
+      "length": 134217728,
+      "from": "zero"
+    },
+    {
+      "partition": "metadata",
+      "at": 0,
+      "length": 67108864,
+      "from": "zero"
+    },
+    {
+      "partition": "super",
+      "at": 0,
+      "length": 1048576,
+      "from": "bundle",
+      "offset": 33562624,
+      "sha256": "f3153d91e93dbb0fd0b46ebcedb59830bc7ac81adba92edfa6af5862e3900c44"
+    },
+    {
+      "partition": "super",
+      "at": 1048576,
+      "length": 1133674496,
+      "from": "usb",
+      "source": "super",
+      "offset": 1048576,
+      "sha256": "a0932ec56b83a596eecda6e0c53d5e0849013aeeaad5e8427f74224363453afe"
+    },
+    {
+      "partition": "super",
+      "at": 1134723072,
+      "length": 884736,
+      "from": "bundle",
+      "offset": 34611200,
+      "sha256": "b208fcb4db8f62f87a1c64cef938ad335d2ee3db52804bb14833450b0956a2f7"
+    },
+    {
+      "partition": "super",
+      "at": 1135607808,
+      "length": 252346368,
+      "from": "usb",
+      "source": "super",
+      "offset": 1135607808,
+      "sha256": "da7fd503976de920eb556b56fcc05f6ff4a5af8a1ce8996f7c1591e0711fe0f1"
+    },
+    {
+      "partition": "super",
+      "at": 1387954176,
+      "length": 360448,
+      "from": "bundle",
+      "offset": 35495936,
+      "sha256": "3ad7728877e078e1a672f7bc8bf7db6b30683a663524ce49441ced91ce35756c"
+    },
+    {
+      "partition": "super",
+      "at": 1388314624,
+      "length": 1971519488,
+      "from": "usb",
+      "source": "super",
+      "offset": 1388314624,
+      "sha256": "c5c6e4fb94c3c673862254069df83910a700f91d50302f294c759530d59020d2"
+    },
+    {
+      "partition": "super",
+      "at": 3359834112,
+      "length": 851968,
+      "from": "bundle",
+      "offset": 35856384,
+      "sha256": "13df1b6b49dd17e47a1162286446485633aa23414c1e42c319d2609844fd2799"
+    },
+    {
+      "partition": "super",
+      "at": 3360686080,
+      "length": 164626432,
+      "from": "usb",
+      "source": "super",
+      "offset": 3360686080,
+      "sha256": "e072350a7df2f59aaa14cc2095a94bd4661de2dccbca1422e38abd80554332d4"
+    },
+    {
+      "partition": "super",
+      "at": 3525312512,
+      "length": 53645312,
+      "from": "usb",
+      "source": "super",
+      "offset": 3525312512,
+      "sha256": "c22672e2333f1d97833688d2554dee6e06515c425ae1674aa3e2a6b4099c5fba"
+    },
+    {
+      "partition": "super",
+      "at": 3578957824,
+      "length": 880640,
+      "from": "bundle",
+      "offset": 36708352,
+      "sha256": "9b732fa7361523d898c9f0ad03de882f1dee5f436db1212fd55833b3c76ca2d2"
+    },
+    {
+      "partition": "super",
+      "at": 3579838464,
+      "length": 18165760,
+      "from": "usb",
+      "source": "super",
+      "offset": 3579838464,
+      "sha256": "34185c35cb8bbccd5dfd0bb74eecb8a21e2445730411ef1583e1245628e0d617"
+    },
+    {
+      "partition": "super",
+      "at": 3598004224,
+      "length": 708608,
+      "from": "bundle",
+      "offset": 37588992,
+      "sha256": "6f8857bed9285fcaf67d6e535e31a8047aabdf29da28ba4277b2fad351f41bbe"
+    },
+    {
+      "partition": "super",
+      "at": 3598712832,
+      "length": 22171090944,
+      "from": "zero"
+    },
+    {
+      "partition": "userdata",
+      "at": 0,
+      "length": 4194304,
+      "from": "zero"
+    },
+    {
+      "partition": "userdata",
+      "at": -4194304,
+      "length": 4194304,
+      "from": "zero"
+    }
+  ],
+  "reference": {
+    "disk_bytes": 1000204886016,
+    "efi_partuuid": "6c2ce8ef-f95b-486d-8ef2-2807104b52bd",
+    "vbmeta_a": {
+      "size": 5568,
+      "digest": "7a77571dd5a1566de47de482ed348da3dc7a6f367a3bc5ddfc3d8db897ce6e4b",
+      "covers": [
+        "boot",
+        "init_boot",
+        "vendor_boot",
+        "system",
+        "system_ext",
+        "product",
+        "vendor",
+        "vendor_dlkm",
+        "system_dlkm"
+      ]
+    },
+    "options": "firmware_class.path=/vendor/firmware log_buf_len=1M bootconfig",
+    "vm_entry": false
+  },
+  "bytes_from": {
+    "usb": 3736584192,
+    "bundle": 38297600,
+    "zero": 23936884736
+  }
+}
