@@ -1,0 +1,13 @@
+{
+  "schema": "openbook-update-emulator/1",
+  "fingerprint": "google/sdk_gdesktop_x86_64/emu64xa:17/CLE3.260929.004/16489338:userdebug/dev-keys",
+  "engine_device_test": {"exit": 0, "summary": "on emu64xa: 9 passed, 0 failed"},
+  "instrumentation": {"ok": true, "summary": "OK (8 tests) "},
+  "screenshots": 54,
+  "system_app": {"privileged": true,
+                 "reboot_granted": true,
+                 "notifications_granted_without_first_boot": false,
+                 "power_save_exempt": true,
+                 "started_at_boot": true,
+                 "problems": 0}
+}

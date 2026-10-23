@@ -45,6 +45,7 @@ def judge(serial, boot, screenshot):
         "slot_known_at_boot": any(re.search(r"boot: running .* from slot _[ab]", l) for l in logs),
         "watching_update_engine": any("watching update_engine" in l for l in logs),
         "engine_check_ran_offline": any("check finished: exit 3 (NETWORK)" in l for l in logs),
+        "refresh_receiver_works": any("refresh requested" in l for l in logs),
         # Only meaningful when the app ran and the report finished.
         "no_denials_for_the_app": complete and bool(procs) and not denials,
         "no_app_crash": complete and not crashes,

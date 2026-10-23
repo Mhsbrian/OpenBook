@@ -1938,3 +1938,40 @@ and full Photos-use verification remain pending. Evidence: `evidence/2026-10-19-
 - **Review:** two rounds over this work. Found and fixed: a recursive logger, a here-document needing a TMPDIR the service can't use, a lock held for the service's lifetime, a suspend-stretched timer, a first check late by 15 minutes, append-merge gaps, a self-certifying added-files record. All tested.
 - **Next:** build the OpenBook Update app (toolchain, Compose UI, its SELinux domain and privileged permissions), VM-test it, then one two-slot update to the laptop with the owner's approval.
 
+
+### 2026-10-23: OpenBook Update, the owner-visible on-laptop updater app, built and tested (ANAL-229)
+- **What:** the updater is now a themed system app, **OpenBook Update** (`device/anybook/common/updater/app/`, Kotlin + Jetpack Compose + Material 3). It has:
+  - every state, from "up to date" through the preparation checklist to "restart to finish";
+  - notifications; WorkManager checks; downloads only on unmetered networks;
+  - settings, history, and the kinds of release.
+  It restarts into an installed update only after the owner confirms. Only the laptop's admin runs it.
+  Phase 2 is honest: adapting a release on the laptop arrives with phase 3.
+- **Release kinds:**
+  - The engine reads them from the release train: monthly, quarterly or unknown.
+  - Only same-train monthly updates download. Quarterly releases (possibly a new Android version) and unrecognized ones are held.
+  - The first build-ID letter is the year's train, not the Android version (AOSP release configs).
+- **System layer:** `build-update-app-candidate.py` adds:
+  - the APK, a privileged app with REBOOT as its only privileged permission;
+  - its own SELinux domain: `priv_app_all` plus update_engine, with the statements Google's app domains share derived from the image's policy;
+  - its app context and signer;
+  - fail-closed checks.
+  `rebase-google-build.py` carries it all onto later Google builds and derives the domain block again from each new policy.
+- **Tests:**
+  - Engine: 32/32 on the host and on Android's own mksh/awk/toybox.
+  - App: 19 unit tests.
+  - Emulator: engine 9/9 on device, 8/8 instrumented tests, 54 screenshots, and the system-app path.
+  - Ruby VM 16/16 (Google's 16658739 + OpenBook layer + the app, fresh data): privileged for the owner only, its own domain, update_engine bound, boot work and slot read, the engine's check ran in the app's domain, 0 denials for the app.
+  - Production candidate: builds.
+  - Same-build rebase: byte-identical `system`.
+  Evidence: `evidence/2026-10-23-update-app/`.
+- **Review:** three independent reviews, then a second round over the fixes. Main finds, all fixed:
+  - build-ID letters misread as Android versions;
+  - the app domain missing shared-memory rules;
+  - a privileged-permission gate that `uses-permission-sdk-23` could bypass (this image does not enforce the allow-list);
+  - guests able to restart the laptop;
+  - a restart confirmation any app could open;
+  - checks hiding finished downloads;
+  - no deployable candidate possible.
+- **Next:**
+  - On the owner's approval, a release plan through the hub (ANAL-232): build, a QEMU OpenBook-update rehearsal, then a two-slot update of the G14, approved separately.
+  - Phase 3: reconstruct and adapt on the laptop.

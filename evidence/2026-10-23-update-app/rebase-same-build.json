@@ -1,0 +1,15 @@
+{
+ "test": "rebase-google-build.py of the production-check candidate from Google 16658739 onto the same build",
+ "merged": [
+  "/system/build.prop",
+  "/system/etc/selinux/plat_mac_permissions.xml",
+  "/system/etc/selinux/plat_seapp_contexts",
+  "/system/etc/selinux/plat_sepolicy.cil",
+  "/system/etc/selinux/plat_sepolicy_and_mapping.sha256"
+ ],
+ "rebased_system_sha256": "2e7b342585b70b4829831ec32b6ec39681a58c8cc5735c414b6139724dbdb532",
+ "candidate_system_sha256": "2e7b342585b70b4829831ec32b6ec39681a58c8cc5735c414b6139724dbdb532",
+ "byte_identical": true,
+ "rebased_policy_compiled_sha256": "529b1ebe48c6316605ebe42033b0a4fa2a2b8002d64e0e7e845f2f06bc4b22e1",
+ "seapp_checked": true
+}

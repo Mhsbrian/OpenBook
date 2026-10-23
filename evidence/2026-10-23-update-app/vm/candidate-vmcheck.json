@@ -1,0 +1,69 @@
+{
+ "schema": "openbook-ruby-live-research/1",
+ "image_sha256": "0334d20924854d2edd317c79fb7ac8890aee5f847cebfc8c3ba1c28db7167930",
+ "openbook_update_app": {
+  "deployment_eligible": false,
+  "phase": 2,
+  "hardware_validated": false,
+  "package": "org.openbook.update",
+  "version_name": "1.0",
+  "version_code": 1,
+  "apk_sha256": "f3308832e914314ce73b0e141142101033280bf18d4bbd8c08e6d241732953c5",
+  "engine_sha256": "3c7e4e74aebae814a432890b2aebee5996131a17db66d80a964b8faedd18d828",
+  "signing_certificate_sha256": "7a56266544934fb4e6a4dc165d01c0bdf1ccbbdcbe2ce8743c77dd81513eb159",
+  "signature_schemes": [
+   "v2",
+   "v3"
+  ],
+  "requested_permissions": [
+   "android.permission.ACCESS_NETWORK_STATE",
+   "android.permission.FOREGROUND_SERVICE",
+   "android.permission.FOREGROUND_SERVICE_DATA_SYNC",
+   "android.permission.INTERNET",
+   "android.permission.POST_NOTIFICATIONS",
+   "android.permission.REBOOT",
+   "android.permission.RECEIVE_BOOT_COMPLETED",
+   "android.permission.WAKE_LOCK",
+   "org.openbook.update.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+  ],
+  "privileged_permissions": [
+   "android.permission.REBOOT"
+  ],
+  "selinux": {
+   "domain": "openbook_update_app",
+   "seinfo": "openbook",
+   "seapp_context": "user=_app seinfo=openbook isPrivApp=true name=org.openbook.update domain=openbook_update_app type=privapp_data_file levelFrom=all",
+   "policy": {
+    "scope": "OpenBook Update: a privileged app in its own domain (priv_app_all) with binder calls to update_engine; it watches update_engine and restarts into an installed update after the owner confirms",
+    "neverallow_checked": true,
+    "policy_sha256": "529b1ebe48c6316605ebe42033b0a4fa2a2b8002d64e0e7e845f2f06bc4b22e1",
+    "rules_sha256": "864302cfdd6cd2edbb681cd06055dd4b460fc057533652f839c97e88abf861bc",
+    "runtime_recompilation_required": true,
+    "derived_app_domain_statements": 31
+   },
+   "seapp_checked": true
+  },
+  "added_files": {
+   "/system/priv-app/OpenBookUpdate-v1": "dir",
+   "/system/priv-app/OpenBookUpdate-v1/OpenBookUpdate.apk": "f3308832e914314ce73b0e141142101033280bf18d4bbd8c08e6d241732953c5",
+   "/system/etc/permissions/privapp-permissions-org.openbook.update.xml": "d9e4c2d5a456c940e0db5e5925f8735a87159411341c19e6d86d4a5b7eae55ed",
+   "/system/etc/default-permissions/default-permissions-org.openbook.update.xml": "702203e9f22f4d9060a6544cdbdf56b1a8e43eee6bc4ee4fcd813d4cb1159d16",
+   "/system/etc/sysconfig/sysconfig-org.openbook.update.xml": "0e6dfe67118f829d48a1de33e96a920df1cb58bb0806a91099f6815d723dc2da"
+  },
+  "changed_files": [
+   "/system/etc/selinux/plat_mac_permissions.xml",
+   "/system/etc/selinux/plat_seapp_contexts",
+   "/system/etc/selinux/plat_sepolicy.cil",
+   "/system/etc/selinux/plat_sepolicy_and_mapping.sha256"
+  ]
+ },
+ "experimental_update_app_vmcheck": {
+  "deployment_eligible": false,
+  "scope": "disposable VM report of OpenBook Update to the serial console",
+  "added_files": {
+   "/system/etc/init/openbook-update-vmcheck.rc": "a921219613d0f4b7967fcce1799d19e6bd033361ce09e17cf7eab8e9065c9f3a",
+   "/system/etc/openbook-update-vmcheck.sh": "62f40052a5732f07eeaf158f30548d3a8f3a9f487b2b781f2add28e17d8aee9f"
+  }
+ },
+ "note": "Disposable --vm-check candidate on RB-20261023-02 (75fa0196...): not deployable. Removed after the run."
+}
