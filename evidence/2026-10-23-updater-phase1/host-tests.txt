@@ -1,0 +1,24 @@
+test_download_verifies_and_is_idempotent (__main__.Updater.test_download_verifies_and_is_idempotent) ... ok
+test_entry_with_empty_fields_keeps_its_url_and_md5 (__main__.Updater.test_entry_with_empty_fields_keeps_its_url_and_md5) ... ok
+test_error_before_check_starts_a_fresh_state (__main__.Updater.test_error_before_check_starts_a_fresh_state) ... ok
+test_failed_download_keeps_the_partial_for_resume (__main__.Updater.test_failed_download_keeps_the_partial_for_resume) ... ok
+test_help_plain_http_and_unlisted_device (__main__.Updater.test_help_plain_http_and_unlisted_device) ... ok
+test_installed_builds_are_pruned_when_up_to_date (__main__.Updater.test_installed_builds_are_pruned_when_up_to_date) ... ok
+test_listing_as_file_url (__main__.Updater.test_listing_as_file_url) ... ok
+test_md5_mismatch_is_refused_and_cleaned (__main__.Updater.test_md5_mismatch_is_refused_and_cleaned) ... ok
+test_non_numeric_running_build_and_missing_listing (__main__.Updater.test_non_numeric_running_build_and_missing_listing) ... ok
+test_not_enough_space (__main__.Updater.test_not_enough_space) ... ok
+test_oversized_partial_is_discarded_and_older_downloads_pruned (__main__.Updater.test_oversized_partial_is_discarded_and_older_downloads_pruned) ... ok
+test_reserve_above_32_bits_is_not_wrapped (__main__.Updater.test_reserve_above_32_bits_is_not_wrapped) ... ok
+test_resume_and_complete_partial (__main__.Updater.test_resume_and_complete_partial) ... ok
+test_second_run_is_refused_while_one_holds_the_lock (__main__.Updater.test_second_run_is_refused_while_one_holds_the_lock) ... ok
+test_status_before_and_after (__main__.Updater.test_status_before_and_after) ... ok
+test_tampered_download_is_rehashed_and_fetched_again (__main__.Updater.test_tampered_download_is_rehashed_and_fetched_again) ... ok
+test_untrusted_sources_are_refused (__main__.Updater.test_untrusted_sources_are_refused) ... ok
+test_up_to_date (__main__.Updater.test_up_to_date) ... ok
+test_update_available_picks_newest_stable_for_this_device (__main__.Updater.test_update_available_picks_newest_stable_for_this_device) ... ok
+
+----------------------------------------------------------------------
+Ran 19 tests in 0.738s
+
+OK

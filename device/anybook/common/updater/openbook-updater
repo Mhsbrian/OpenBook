@@ -1,0 +1,245 @@
+#!/system/bin/sh
+# SPDX-License-Identifier: Apache-2.0
+# openbook-updater: the on-laptop OpenBook updater (ANAL-229). Phase 1: notice and download.
+#
+# The laptop watches Google's public release listing for its own device and fetches a newer
+# Googlebook release by itself, with no host and no assistant involved:
+#
+#   check     fetch the listing, pick the newest STABLE build for this device, compare it with the
+#             running build (ro.build.version.incremental). Exit 0 up to date, 10 update available.
+#   download  fetch that release's recovery.zip into DIR/<build>/, resuming a partial download, after
+#             a free-space check, then verify Google's MD5. Older downloads in DIR are removed.
+#   status    print the last recorded state.
+#
+# Phase 1 never touches a partition, the boot loader or settings: it reads the network and writes
+# only under DIR. Later phases adapt the release for the G14 and install it
+# (docs/googlebook-on-device-updater.md). Runs on the laptop's own tools: mksh, toybox, awk, curl.
+# mksh arithmetic is 32-bit, so every byte count is computed and compared in awk.
+#
+# usage: openbook-updater [--dir DIR] [--listing URL|FILE] check|download|status
+# env:   OPENBOOK_UPDATER_DIR (default /data/local/tmp/openbook-updater), OPENBOOK_UPDATER_LISTING,
+#        OPENBOOK_UPDATER_RESERVE_KB (free space kept after a download; default 20 GiB)
+# exit:  0 ok/up to date, 10 update available, 2 usage, 3 network, 4 verification, 5 space,
+#        6 busy, 7 no release listed for this device
+
+set -u
+LISTING=${OPENBOOK_UPDATER_LISTING:-https://dl.google.com/dl/edgedl/device/recovery/production_recovery.json}
+DIR=${OPENBOOK_UPDATER_DIR:-/data/local/tmp/openbook-updater}
+RESERVE_KB=${OPENBOOK_UPDATER_RESERVE_KB:-20971520}
+US=$(printf '\037')   # row field separator: not IFS whitespace, so empty fields survive a read
+
+usage() { awk 'NR > 2 && /^#/ { sub(/^# ?/, ""); print; next } NR > 2 { exit }' "$0"; exit 2; }
+log() { printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" | tee -a "$DIR/updater.log"; }
+CHECKED=
+fail() {
+    code=$1; shift; log "error: $*"
+    # Before this run's check, a fresh state (no stale download keys); after it, keep its context.
+    if [ -n "$CHECKED" ]; then record result "error:$code" detail "$*"; else record_new result "error:$code" detail "$*"; fi
+    exit "$code"
+}
+
+# Byte counts exceed mksh's 32-bit integers: compare and compute in awk (exact to 2^53).
+num_ge() { awk -v a="$1" -v b="$2" 'BEGIN { exit !(a + 0 >= b + 0) }'; }
+num_gt() { awk -v a="$1" -v b="$2" 'BEGIN { exit !(a + 0 > b + 0) }'; }
+
+# key=value state, one file, replaced atomically so a reader never sees half a record.
+# record_new starts a fresh state (a new check); record merges into it (later values win).
+write_state() {
+    awk '{ i = index($0, "="); k = substr($0, 1, i - 1); if (!(k in v)) order[++n] = k; v[k] = $0 }
+         END { for (j = 1; j <= n; j++) print v[order[j]] }' > "$DIR/state.tmp" && mv "$DIR/state.tmp" "$DIR/state"
+}
+pairs() { while [ $# -ge 2 ]; do printf '%s=%s\n' "$1" "$2"; shift 2; done; printf 'updated_utc=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"; }
+record_new() { pairs "$@" | write_state; }
+record() { { [ -f "$DIR/state" ] && cat "$DIR/state"; pairs "$@"; } | write_state; }
+
+# Allowed transfer protocols for a URL, redirects included: HTTPS from the network, file:// for local media.
+proto_for() {
+    case $1 in
+        https://*) echo "--proto =https --proto-redir =https" ;;
+        file://*) echo "--proto =file" ;;
+        *) echo "--proto =" ;;  # nothing allowed
+    esac
+}
+
+fetch_listing() {
+    case $LISTING in
+        https://*)
+            # shellcheck disable=SC2046  # proto_for returns separate curl options
+            curl -fsSL $(proto_for "$LISTING") --retry 2 --max-time 60 -o "$DIR/listing.json" "$LISTING" \
+                || fail 3 "cannot fetch the listing $LISTING" ;;
+        http://*) fail 2 "refusing a plain-HTTP listing: $LISTING" ;;
+        *)  local_listing=${LISTING#file://}
+            [ -f "$local_listing" ] || fail 2 "no listing file $local_listing"; cp "$local_listing" "$DIR/listing.json" ;;
+    esac
+}
+
+# Rows "number<US>buildidentifier<US>channel<US>date<US>url<US>md5" for one device, from Google's
+# listing (a JSON array of flat objects). One record per object (RS="}"): linear in the listing's size.
+# Portable awk (one-true-awk on the laptop): no gensub, no \s.
+rows_for() {
+    awk -v want="$1" -v us="$US" 'BEGIN { RS = "}" }
+        function field(obj, key,    re, v) {
+            re = "\"" key "\"[ \t\r\n]*:[ \t\r\n]*(\"[^\"]*\"|-?[0-9.]+)"
+            if (!match(obj, re)) return ""
+            v = substr(obj, RSTART, RLENGTH); sub(/^"[^"]*"[ \t\r\n]*:[ \t\r\n]*/, "", v); gsub(/"/, "", v)
+            return v
+        }
+        {
+            i = 0; while ((j = index(substr($0, i + 1), "{")) > 0) i += j   # last "{" of this record
+            if (!i) next
+            obj = substr($0, i + 1)
+            if (field(obj, "device") != want) next
+            id = field(obj, "buildidentifier"); n = id; sub(/_.*/, "", n)
+            if (n !~ /^[0-9]+$/) next
+            print n us id us field(obj, "channel") us field(obj, "dateupdated") us field(obj, "url") us field(obj, "md5")
+        }' "$DIR/listing.json"
+}
+
+cmd_check() {
+    device=$(getprop ro.product.device)
+    running=$(getprop ro.build.version.incremental)
+    [ -n "$device" ] && [ -n "$running" ] || fail 2 "cannot read this laptop's device or build"
+    case $running in *[!0-9]*) fail 2 "the running build number '$running' is not numeric" ;; esac
+    fetch_listing
+    best=$(rows_for "$device" | awk -F"$US" '$3 == "STABLE"' | sort -t "$US" -k1,1n | tail -1)
+    [ -n "$best" ] || fail 7 "the listing has no STABLE release for $device"
+    IFS=$US read -r number id channel date url md5 <<ROW
+$best
+ROW
+    # Google's releases come from dl.google.com over HTTPS. file:// is accepted only from a local
+    # listing (tests and offline media), never from a listing fetched over the network.
+    case $url in
+        https://dl.google.com/*) ;;
+        file://*) case $LISTING in https://*) fail 4 "a network listing named a local file: $url" ;; esac ;;
+        *) fail 4 "unexpected download location $url" ;;
+    esac
+    printf '%s' "$md5" | grep -qE '^[0-9a-f]{32}$' || fail 4 "the listing's MD5 for $id is malformed"
+    if num_gt "$number" "$running"; then
+        CHECKED=1
+        prune_obsolete "$running"
+        record_new result update-available device "$device" running "$running" latest "$id" latest_date "$date" url "$url" md5 "$md5"
+        log "update available: $device runs $running; Google lists $id ($date, $channel)"
+        return 10
+    fi
+    CHECKED=1
+    prune_obsolete "$running"
+    record_new result up-to-date device "$device" running "$running" latest "$id" latest_date "$date"
+    log "up to date: $device runs $running; newest listed is $id ($date)"
+    return 0
+}
+
+# Downloads live in all-digit directories DIR/<build>/ holding only the updater's own files.
+remove_download() {
+    rm -f "$1/recovery.zip" "$1/recovery.zip.part" "$1/recovery.zip.md5"
+    rmdir "$1" 2>/dev/null && log "removed the download ${1##*/} ($2)"
+}
+# Builds at or below the running one are installed or superseded: drop them.
+prune_obsolete() {
+    for d in "$DIR"/[0-9]*; do
+        [ -d "$d" ] || continue
+        case ${d##*/} in *[!0-9]*) continue ;; esac
+        num_gt "${d##*/}" "$1" || remove_download "$d" "not newer than the running build"
+    done
+}
+# After a verified download, the other pending downloads are superseded.
+prune_except() {
+    for d in "$DIR"/[0-9]*; do
+        [ -d "$d" ] && [ "$d" != "$1" ] || continue
+        case ${d##*/} in *[!0-9]*) continue ;; esac
+        remove_download "$d" "superseded by ${1##*/}"
+    done
+}
+
+cmd_download() {
+    cmd_check; rc=$?
+    [ $rc = 10 ] || { log "nothing to download"; return 0; }
+    out="$DIR/$number"; mkdir -p "$out" || fail 2 "cannot create $out"
+    # A finished download is re-hashed before it is reported verified again: the marker alone could be
+    # planted or the zip could have changed since.
+    if [ -f "$out/recovery.zip" ] && [ "$(cat "$out/recovery.zip.md5" 2>/dev/null)" = "$md5" ]; then
+        if [ "$(md5sum "$out/recovery.zip" | cut -d' ' -f1)" = "$md5" ]; then
+            prune_except "$out"
+            record result downloaded verified "$id" path "$out/recovery.zip" md5 "$md5"
+            log "already downloaded and verified: $out/recovery.zip"; return 0
+        fi
+        log "the earlier download of $id no longer matches Google's MD5; downloading it again"
+        rm -f "$out/recovery.zip" "$out/recovery.zip.md5"
+    fi
+    proto=$(proto_for "$url")
+    # shellcheck disable=SC2086  # $proto holds separate curl options
+    size=$(curl -fsSIL $proto --max-time 60 "$url" 2>/dev/null | tr -d '\r' \
+           | awk '/^HTTP\// { n = 0 } tolower($1) == "content-length:" { n = $2 } END { printf "%.0f", n + 0 }')
+    part="$out/recovery.zip.part"
+    have=0; [ -f "$part" ] && have=$(stat -c %s "$part")
+    if num_gt "$size" 0 && num_gt "$have" "$size"; then
+        log "discarding a partial download larger than the release ($have > $size bytes)"
+        rm -f "$part"; have=0
+    fi
+    free_kb=$(df -k "$out" | awk 'NR == 2 { print $4 }')
+    need_kb=$(awk -v s="$size" -v h="$have" -v r="$RESERVE_KB" 'BEGIN { printf "%.0f", (s - h) / 1024 + r }')
+    num_ge "$free_kb" "$need_kb" || fail 5 "not enough space in $out: ${free_kb} KiB free, ${need_kb} KiB needed (download + reserve)"
+    num_gt "$size" 0 || log "warning: the server did not report a size; only the reserve was checked"
+    record result downloading build "$id" bytes "$size" path "$out/recovery.zip"
+    if num_gt "$size" 0 && [ "$have" = "$size" ]; then
+        log "partial download of $id is already complete ($have bytes); verifying"
+    else
+        log "downloading $id ($size bytes, resuming at $have)"
+        # shellcheck disable=SC2086
+        http=$(curl -fsSL $proto --retry 3 --retry-delay 5 -C - -w '%{http_code}' -o "$part" "$url" 2>> "$DIR/updater.log")
+        rc=$?
+        if [ $rc != 0 ]; then
+            # Only a refused range (curl 33/36, HTTP 416) means the partial cannot continue: restart it once.
+            # Any other failure (network, server) keeps the partial for the next run to resume.
+            case "$rc:$http" in
+                33:*|36:*|*:416) ;;
+                *) fail 3 "download of $id stopped (curl $rc, HTTP ${http:-none}); rerun to resume" ;;
+            esac
+            log "the server refused to resume $id (curl $rc, HTTP ${http:-none}); restarting from the beginning"
+            rm -f "$part"
+            # shellcheck disable=SC2086
+            curl -fsSL $proto --retry 3 --retry-delay 5 -o "$part" "$url" 2>> "$DIR/updater.log" \
+                || fail 3 "download of $id failed; rerun to resume"
+        fi
+    fi
+    got=$(md5sum "$part" | cut -d' ' -f1)
+    if [ "$got" != "$md5" ]; then
+        rm -f "$part"
+        fail 4 "$id failed Google's MD5 check (got $got, listing $md5); the partial file was removed"
+    fi
+    rm -f "$out/recovery.zip.md5"
+    mv "$part" "$out/recovery.zip" || fail 2 "cannot move the verified download into place"
+    printf '%s\n' "$md5" > "$out/recovery.zip.md5" || fail 2 "cannot record the verification of $id"
+    prune_except "$out"
+    record result downloaded verified "$id" path "$out/recovery.zip" md5 "$md5"
+    log "downloaded and verified $id: $out/recovery.zip"
+    return 0
+}
+
+# Parsed in a function so the script's own "$@" survives for the locking re-exec below.
+parse() {
+    CMD=
+    while [ $# -gt 0 ]; do
+        case $1 in
+            --dir) [ $# -ge 2 ] || usage; DIR=$2; shift 2 ;;
+            --listing) [ $# -ge 2 ] || usage; LISTING=$2; shift 2 ;;
+            check|download|status) CMD=$1; shift ;;
+            *) usage ;;
+        esac
+    done
+}
+parse "$@"
+[ -n "$CMD" ] || usage
+mkdir -p "$DIR" || { echo "cannot create $DIR"; exit 2; }
+if [ "$CMD" = status ]; then cat "$DIR/state" 2>/dev/null || echo "result=never-run"; exit 0; fi
+# One run at a time per DIR. toybox flock takes a descriptor number, and mksh marks descriptors
+# opened by a bare `exec 9>` close-on-exec, so flock would never see one. Re-run with the lock file
+# as a redirection of exec instead: that descriptor is inherited by flock, the lock lives on the
+# open file, and the kernel drops it when this run ends (also on a crash).
+if [ "${OPENBOOK_UPDATER_LOCKED:-}" != "$DIR" ]; then
+    OPENBOOK_UPDATER_LOCKED=$DIR exec sh "$0" "$@" 9>> "$DIR/lock"
+fi
+flock -n 9 || { echo "another openbook-updater run holds $DIR/lock"; exit 6; }
+case $CMD in
+    check) cmd_check ;;
+    download) cmd_download ;;
+esac
