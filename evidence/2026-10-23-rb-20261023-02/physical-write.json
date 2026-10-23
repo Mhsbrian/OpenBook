@@ -1,0 +1,65 @@
+{
+  "schema": "openbook-ruby-physical-write/1",
+  "release": "RB-20261023-02",
+  "record": "ANAL-255",
+  "device": "SanDisk Ultra USB stick ending 2034",
+  "approvals": [
+    "ANAL-229 comment 01a1667e-4c7e-784b-a7f7-30ae51534fe1: Can you just redo the USB with the newest patched OS?"
+  ],
+  "packaging_tools": "a92b72c4fc0fb2a3d405987d2d3f02e85a522e5e",
+  "installer_image": "openbook-ruby-installer:anal229-ab (60cb8b00)",
+  "host_automount_note": "the desktop auto-mounted the stick's metadata partition (sda7); unmounted before the backup",
+  "backup": {
+    "sha256": "d995319bfadbed97f932271770bdc2dce7d1a8f7728d4163d46af326dbf75e9b",
+    "reads": 2,
+    "reads_match": true,
+    "vs_last_write_6f555e19": {
+      "EFI": "differs",
+      "misc": "equal",
+      "boot_a": "equal",
+      "init_boot_a": "equal",
+      "vendor_boot_a": "equal",
+      "vbmeta_a": "equal",
+      "metadata": "differs",
+      "super": "equal",
+      "userdata": "equal"
+    },
+    "note": "EFI (systemd-boot random seed) and metadata (desktop auto-mount) changed; GPT and system partitions equal"
+  },
+  "recomposition": {
+    "system_candidate_sha256": "75fa0196090558519fbb33d079ed51e2b9fd86ee102013c089bc8e9122fe9391",
+    "installer_pin_sha256": "6f3245acb37b7e288b0b72a2c3784684dc73b0d873f287f551ccda4a8687e1c7",
+    "pin_identical_to_rehearsed": true,
+    "reviewed_logical": [
+      "product",
+      "system",
+      "system_ext"
+    ],
+    "rehearsed_image_sha256": "6877d0c6911c0b02259b08560c86d9af91ab02ab4f9c38a4db04140e97064f68",
+    "final_differs_from_rehearsed_only_in": [
+      "EFI loader/random-seed",
+      "EFI ruby/RESEARCH.json preserved_from_sha256",
+      "metadata (protected, stick state)"
+    ]
+  },
+  "rehearsal": {
+    "install_identical": true,
+    "install_s": 85.3,
+    "boot_passed": true
+  },
+  "preflight": "read-only physical preflight passed",
+  "started_utc": "2026-10-23T02:44:54Z",
+  "finished_utc": "2026-10-23T02:52:05Z",
+  "written": [
+    "super",
+    "vbmeta_a",
+    "EFI"
+  ],
+  "image_bytes": 12766412800,
+  "expected_sha256": "bfb8e276314d5fe4d07b94b704c15658ebf5821a8c48c6a6431da08061360e13",
+  "readback_sha256": "bfb8e276314d5fe4d07b94b704c15658ebf5821a8c48c6a6431da08061360e13",
+  "verified": true,
+  "protected_bytes": 8805941248,
+  "powered_off": true,
+  "laptop_written": false
+}

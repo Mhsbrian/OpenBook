@@ -1,0 +1,13 @@
+{
+  "schema": "openbook-ruby-offline-installer/1",
+  "kernel_release": "6.12.113+deb13-amd64",
+  "source_pin_sha256": "6f3245acb37b7e288b0b72a2c3784684dc73b0d873f287f551ccda4a8687e1c7",
+  "files": {
+    "ab-bundle.bin": "b6ca747eef96875a4748f08af2ea548c4674df26b2efb00142c354e71c67fef9",
+    "ab-install.json": "629b2ee71d2e5065a91329272352bf05e49da215cb18390691f9d9c4445c9ff6",
+    "initrd.img": "200a7cc66047d0dcb4c8be83d7e73332157864b886992d67de8a715442aba0b4",
+    "kernel": "4336c75fc1a6a58e7bda66cbe9f4042f88064e7abc93faaea9e2aceb19459561",
+    "package-versions.txt": "b3f2bd58528ed027709db3512f4bbf39c20cb317bdc89a4ee4d601666108d38b",
+    "source.json": "6f3245acb37b7e288b0b72a2c3784684dc73b0d873f287f551ccda4a8687e1c7"
+  }
+}

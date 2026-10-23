@@ -1,0 +1,43 @@
+{
+  "schema": "openbook-ruby-google-rebase/1",
+  "complete": true,
+  "source_sha256": "3999a99d597ee27a179dd90abdd5fb31176edf94381e9bf2a54d38a545c7be50",
+  "image_sha256": "75fa0196090558519fbb33d079ed51e2b9fd86ee102013c089bc8e9122fe9391",
+  "google_rebase": {
+    "old_build": "16452207",
+    "new_build": "16658739",
+    "build_properties": {
+      "ro.system.build.fingerprint": "Android/desktop_system/desktop:17/CL3B.260622.276.R4/16658739:user/release-keys",
+      "ro.build.id": "CL3B.260622.276.R4",
+      "ro.build.version.incremental": "16658739",
+      "ro.build.version.security_patch": "2026-10-01",
+      "ro.dalvik.vm.native.bridge": "libberberis_arm64.so"
+    },
+    "google_sha256": {
+      "system_old": "4ebc0e69314aea8cdc4eb97351716c7ebc6dc1d3a0ed66e17025f32d9af1e487",
+      "system_ext_old": "da7fd503976de920eb556b56fcc05f6ff4a5af8a1ce8996f7c1591e0711fe0f1",
+      "product_old": "c5c6e4fb94c3c673862254069df83910a700f91d50302f294c759530d59020d2",
+      "system_new": "c3fac5488aa24f30443756345c08280cd492d8e36ee98de238c929a25017f4b1",
+      "system_ext_new": "dc3f228d2479ae3d979564bd7a02956399300187a67ac19519223911b7108b34",
+      "product_new": "ddf9d7105c4424c727ed53176d89b5a9895d3f59e2699ab5854bb3d1641211c1"
+    },
+    "verbatim_from_new": [
+      "system_ext",
+      "product"
+    ],
+    "system_delta": {
+      "added": 28,
+      "removed": 370,
+      "changed": 53,
+      "merged": [
+        "/system/build.prop"
+      ]
+    },
+    "hardware_validated": false
+  },
+  "metadata_rows": 6608,
+  "all_inode_xattrs_as_expected": true,
+  "protected_ranges_identical": true,
+  "source_unchanged": true,
+  "physical_device_written": false
+}

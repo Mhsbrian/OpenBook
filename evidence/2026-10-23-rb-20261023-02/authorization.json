@@ -1,0 +1,16 @@
+{
+  "schema": "openbook-ruby-write-authorization/1",
+  "approved_by": "B Honey",
+  "approvals": [
+    {"issue": "ANAL-229", "comment_id": "01a1667e-4c7e-784b-a7f7-30ae51534fe1", "text": "Can you just redo the USB with the newest patched OS?",
+     "scope": "release RB-20261023-02 (ANAL-255 frozen plan v1) and its USB write"}
+  ],
+  "release": "RB-20261023-02 (ANAL-255)",
+  "device": "SanDisk Ultra USB stick ending 2034, /dev/disk/by-id/usb-SanDisk_Ultra_4C530001041228122034-0:0 (the only USB stick attached)",
+  "image_sha256": "bfb8e276314d5fe4d07b94b704c15658ebf5821a8c48c6a6431da08061360e13",
+  "backup_sha256": "d995319bfadbed97f932271770bdc2dce7d1a8f7728d4163d46af326dbf75e9b",
+  "system_candidate_sha256": "75fa0196090558519fbb33d079ed51e2b9fd86ee102013c089bc8e9122fe9391",
+  "packaging_tools": "a92b72c4fc0fb2a3d405987d2d3f02e85a522e5e",
+  "operation": "apply-preserved-update.py: verify against backup, write EFI/vbmeta_a/super, full direct readback, power off",
+  "laptop_write_authorized": false
+}

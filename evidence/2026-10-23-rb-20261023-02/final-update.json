@@ -1,0 +1,71 @@
+{
+  "schema": "openbook-ruby-preserving-update/1",
+  "complete": true,
+  "backup_sha256": "d995319bfadbed97f932271770bdc2dce7d1a8f7728d4163d46af326dbf75e9b",
+  "candidate_sha256": "75fa0196090558519fbb33d079ed51e2b9fd86ee102013c089bc8e9122fe9391",
+  "image_sha256": "bfb8e276314d5fe4d07b94b704c15658ebf5821a8c48c6a6431da08061360e13",
+  "writes": [
+    {
+      "name": "EFI",
+      "offset": 1048576,
+      "length": 268435456,
+      "sha256": "5efe29af846e665db20e55d7bda7e37ac64af2c92f9ae4443d0f5ebc3a12c1a4"
+    },
+    {
+      "name": "vbmeta_a",
+      "offset": 416284672,
+      "length": 1048576,
+      "sha256": "97dc9818710bceed0a55c480b062a3e3e8d9c71b2704e5724c3bb503fe38ac2a"
+    },
+    {
+      "name": "super",
+      "offset": 484442112,
+      "length": 3690987520,
+      "sha256": "09aa3104620384a593054ffa535e25f521b1d2c9803f95099970a3a648769cef"
+    }
+  ],
+  "protected": [
+    {
+      "offset": 0,
+      "length": 1048576,
+      "sha256": "16fc782a163ebbca75573a2472e55129790c337b83ae593c1303013a35b81cee"
+    },
+    {
+      "offset": 269484032,
+      "length": 146800640,
+      "sha256": "ead85fdce13afefd49e697a3738c0791c2710be12ed34822c5d30706da1e354f"
+    },
+    {
+      "offset": 417333248,
+      "length": 67108864,
+      "sha256": "51c7fd32179d1ec9f7731b301b695a424688662c938f1da7ad332d146261d729"
+    },
+    {
+      "offset": 4175429632,
+      "length": 8590983168,
+      "sha256": "621af90dea48c52f73d119f1125f0fa0ed8413130cd122b7540d4172eb21d557"
+    }
+  ],
+  "sources_unchanged": true,
+  "unrelated_esp_files_unchanged": true,
+  "physical_device_written": false,
+  "data_unlock_verified": false,
+  "reviewed_logical": [
+    "product",
+    "system",
+    "system_ext"
+  ],
+  "installer_source_pin_sha256": "6f3245acb37b7e288b0b72a2c3784684dc73b0d873f287f551ccda4a8687e1c7",
+  "stages": [
+    {
+      "name": "stage-a-system",
+      "operation": "SystemUpdate",
+      "image_sha256": "b3b7cb74d3b24455eb12a5b8ca76ffa0933d71ee52e3e95f5999fd7e4385b4d1"
+    },
+    {
+      "name": "stage-b-installer",
+      "operation": "Replace",
+      "image_sha256": "bfb8e276314d5fe4d07b94b704c15658ebf5821a8c48c6a6431da08061360e13"
+    }
+  ]
+}
