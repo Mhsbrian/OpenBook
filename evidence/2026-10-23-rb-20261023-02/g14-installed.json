@@ -1,0 +1,71 @@
+{
+  "schema": "openbook-g14-installed-check/1",
+  "release": "RB-20261023-02",
+  "record": "ANAL-255",
+  "checked_utc": "2026-10-23T12:06:17Z",
+  "owner_report": "two-slot Fresh install ran; online setup with Wi-Fi completed without the update block (ANAL-229 01a168a6)",
+  "build": {
+    "fingerprint": "Lenovo/ruby/ruby:17/CL3B.260622.276.R4/16658739:user/release-keys",
+    "system_fingerprint": "Android/desktop_system/desktop:17/CL3B.260622.276.R4/16658739:user/release-keys",
+    "build_id": "CL3B.260622.276.R4",
+    "incremental": "16658739",
+    "security_patch": "2026-10-01"
+  },
+  "two_slot": {
+    "slot": "_a",
+    "virtual_ab": true,
+    "dynamic_partitions": true,
+    "by_name": [
+      "EFI",
+      "boot_a",
+      "boot_b",
+      "init_boot_a",
+      "init_boot_b",
+      "metadata",
+      "misc",
+      "nvme0n1",
+      "ota_recovery_a",
+      "ota_recovery_b",
+      "pvmfw_a",
+      "pvmfw_b",
+      "recovery_a",
+      "recovery_b",
+      "super",
+      "userdata",
+      "vbmeta_a",
+      "vbmeta_b",
+      "vendor_boot_a",
+      "vendor_boot_b"
+    ],
+    "both_slots_present": true
+  },
+  "install_identity": {
+    "vbmeta_digest": "8517e2febdc2735d0e9f9464052f6b96d44be8f7790b0236ca9593630eba975d",
+    "vbmeta_matches_plan": true,
+    "boot_part_uuid": "a2e6602d-dae8-4981-9b83-8e6a058525d9",
+    "esp_matches_plan": true,
+    "verifiedbootstate": "orange",
+    "selinux": "Enforcing"
+  },
+  "openbook_layer": {
+    "native_bridge": "libberberis_arm64.so",
+    "abilist": "x86_64,arm64-v8a",
+    "otacerts_openbook": true,
+    "owner_ota_path": "adb shell binds update_engine: onStatusUpdate(UPDATE_STATUS_IDLE (0), 0)",
+    "lid_guard": "module present (/sys/module/openbook_lid_guard); counters not readable from adb shell"
+  },
+  "storage": {
+    "data": [
+      "928G",
+      "23G",
+      "905G",
+      "3%"
+    ],
+    "data_1k_blocks": 973147136
+  },
+  "health": {
+    "boot_completed": true,
+    "app_crashes": "com.google.android.desktop.repairmode x2 (known Google vendor-backend gap); nothing else",
+    "pending_system_update": false
+  }
+}

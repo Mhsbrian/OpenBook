@@ -1890,3 +1890,16 @@ and full Photos-use verification remain pending. Evidence: `evidence/2026-10-19-
 - **Next:** the owner reruns the two-slot Fresh install. Setup's update check should pass (current build); hardware confirms it.
 - **Evidence:** `evidence/2026-10-23-rb-20261023-02/`.
 
+
+### 2026-10-23: G14 on two slots with Google 16658739, verified (ANAL-229, ANAL-255)
+- The owner ran the two-slot Fresh install from RB-20261023-02. Online setup with Wi-Fi finished without the update block, so the patched current build clears Google's setup check.
+- Read-only adb on the installed laptop:
+  - fingerprint `Lenovo/ruby/ruby:17/CL3B.260622.276.R4/16658739`, patch 2026-10-01;
+  - slot A, Virtual A/B on, all `_a`/`_b` partitions present;
+  - `vbmeta` `8517e2fe…` and ESP `a2e6602d…` as planned;
+  - /data 928 GB (905 GB free);
+  - Digitalis bridge, OpenBook update certificate, lid guard loaded;
+  - the adb shell reaches update_engine (`UPDATE_STATUS_IDLE`), so wireless two-slot updates are possible;
+  - SELinux enforcing; only Google's `repairmode` app crashes (known).
+- **Laptop pointer:** RB-20261023-02.
+- **Evidence:** `evidence/2026-10-23-rb-20261023-02/g14-installed.json`.
