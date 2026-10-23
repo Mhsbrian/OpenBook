@@ -1,0 +1,6 @@
+--------- beginning of main
+10-23 14:19:43.429  3557  3557 W OpenBookUpdate: update_engine is not available: java.lang.IllegalStateException: Failed to find update_engine
+10-23 14:19:43.434  3557  3569 I OpenBookUpdate: android.intent.action.BOOT_COMPLETED: regular checks scheduled
+10-23 14:19:43.535  3557  3569 I OpenBookUpdate: boot: running CLE3.260929.004 (16489338) from slot unknown
+10-23 14:19:44.571  3557  3575 W OpenBookUpdate: update_engine is not available: java.lang.IllegalStateException: Failed to find update_engine
+10-23 14:19:44.962  3557  3571 I OpenBookUpdate: check finished: exit 7 (NOT_LISTED)

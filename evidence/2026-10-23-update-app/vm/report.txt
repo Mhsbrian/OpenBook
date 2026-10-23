@@ -1,0 +1,47 @@
+OBU_LIVE --------- beginning of crash
+OBU_LIVE 10-23 19:16:12.915  5430  5430 E AndroidRuntime: FATAL EXCEPTION: main
+OBU_LIVE 10-23 19:16:12.915  5430  5430 E AndroidRuntime: [  351.503227][  T246] servicemanager: Caller(pid=4764,uid=10218,sid=u:r:rkpdapp:s0:c218,c256,c512,c768) Found android.hardware.security.keymint.IRemotelyProvisionedComponent/default in device VINTF manifest.
+OBU_LIVE 10-23 19:16:12.915  5430  5430 E AndroidRuntime: 	... 10 more
+OBU_LIVE --------- beginning of main
+OBU_LIVE 10-23 19:17:17.984  7208  7208 I OpenBookUpdate: watching update_engine
+OBU_LIVE 10-23 19:17:18.025  7208  7226 I OpenBookUpdate: android.intent.action.BOOT_COMPLETED: regular checks scheduled
+OBU_LIVE 10-23 19:17:18.136  7208  7226 I OpenBookUpdate: boot: running CL3B.260622.276.R4 (16658739) from slot _a
+OBU_LIVE 10-23 19:17:27.634  4792  4792 E AndroidRuntime: FATAL EXCEPTION: main
+OBU_VMCHECK begin
+OBU_HSUM true
+OBU_PRIVAPP_ENFORCEMENT 
+OBU_USERS Users:
+OBU_USERS 	UserInfo{0:System User:811} running
+OBU_USERS 	UserInfo{10:User:412} running
+OBU_OWNER 10
+OBU_CURRENT 10
+OBU_PKG codePath=/system/priv-app/OpenBookUpdate-v1
+OBU_PKG versionName=1.0
+OBU_PKG privateFlags=[ PRIVATE_FLAG_ACTIVITIES_RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION ALLOW_AUDIO_PLAYBACK_CAPTURE PARTIALLY_DIRECT_BOOT_AWARE PRIVILEGED PRIVATE_FLAG_ALLOW_NATIVE_HEAP_POINTER_TAGGING ]
+OBU_PKG android.permission.REBOOT: granted=true
+OBU_PKG User 0: ceDataInode=0 deDataInode=0 pccCeDataInode=0 pccDeDataInode=0 installed=false hidden=false suspended=false appLockEnabled=false distractionFlags=0 stopped=true notLaunched=false enabled=0 instant=false virtual=false quarantined=false
+OBU_PKG android.permission.POST_NOTIFICATIONS: granted=true, flags=[ GRANTED_BY_DEFAULT]
+OBU_PKG User 10: ceDataInode=5978 deDataInode=2725 pccCeDataInode=0 pccDeDataInode=0 installed=true hidden=false suspended=false appLockEnabled=false distractionFlags=0 stopped=false notLaunched=false enabled=0 instant=false virtual=false quarantined=false
+OBU_PKG android.permission.POST_NOTIFICATIONS: granted=true, flags=[ GRANTED_BY_DEFAULT|USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+OBU_IDLE system-excidle,org.openbook.update,10082
+OBU_PS pid=7208 label=u:r:openbook_update_app:s0:c82,c256,c522,c768 name=org.openbook.update
+OBU_START Starting: Intent { cmp=org.openbook.update/.ui.MainActivity }
+OBU_START Status: ok
+OBU_START LaunchState: UNKNOWN (0)
+OBU_START Activity: org.openbook.update/.ui.MainActivity
+OBU_START WaitTime: 438
+OBU_START Complete
+OBU_PS2 pid=7208 label=u:r:openbook_update_app:s0:c82,c256,c522,c768 name=org.openbook.update
+OBU_REFRESH Broadcasting: Intent { act=org.openbook.update.action.REFRESH flg=0x400000 cmp=org.openbook.update/.work.RefreshReceiver }
+OBU_REFRESH Broadcast completed: result=0
+OBU_LOG --------- beginning of main
+OBU_LOG 10-23 19:17:17.984  7208  7208 I OpenBookUpdate: watching update_engine
+OBU_LOG 10-23 19:17:18.025  7208  7226 I OpenBookUpdate: android.intent.action.BOOT_COMPLETED: regular checks scheduled
+OBU_LOG 10-23 19:17:18.136  7208  7226 I OpenBookUpdate: boot: running CL3B.260622.276.R4 (16658739) from slot _a
+OBU_LOG 10-23 19:18:09.344  7208  7231 I OpenBookUpdate: watching update_engine
+OBU_LOG 10-23 19:18:09.568  7208  7223 I OpenBookUpdate: watching update_engine
+OBU_LOG 10-23 19:18:12.828  7208  7224 I OpenBookUpdate: check finished: exit 3 (NETWORK)
+OBU_LOG 10-23 19:18:54.831  7208  7223 I OpenBookUpdate: refresh requested: binding update_engine again
+OBU_LOG 10-23 19:18:54.832  7208  7223 I OpenBookUpdate: watching update_engine
+OBU_VMCHECK done
+OBU_SCREEN_READY

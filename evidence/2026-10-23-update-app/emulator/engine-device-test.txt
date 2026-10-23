@@ -1,0 +1,11 @@
+device emu64xa, build 16489338 (CL3B.260622.276.R4, as a test build ID); synthetic monthly 16490338 (CL3B.260722.001), next quarter (CL4A.260922.001)
+PASS  live Google listing: no release listed for emu64xa (exit 7)
+PASS  newer monthly release with an empty date field: download + verify (exit 0)
+PASS  second download: re-hashed, reported verified (exit 0)
+PASS  MD5 mismatch refused, partial removed (exit 4)
+PASS  next quarter's release held, nothing downloaded (exit 8)
+PASS  stop request ends the transfer and keeps the partial (exit 130)
+PASS  reserve above 2^32 KiB refused (no 32-bit wrap) (exit 5)
+PASS  concurrent run refused (exit 6)
+PASS  status reports the verified download (exit 0)
+on emu64xa: 9 passed, 0 failed

@@ -1,0 +1,4 @@
+V3.0 Signer: certificate DN: CN=OpenBook Update app key 2026, OU=OpenBook Update, O=OpenBook, C=US
+V3.0 Signer: certificate SHA-256 digest: 7a56266544934fb4e6a4dc165d01c0bdf1ccbbdcbe2ce8743c77dd81513eb159
+V3.0 Signer: certificate SHA-1 digest: 8761afd8f88f9a43a625e1c7f0d10e7251cf4943
+V3.0 Signer: certificate MD5 digest: 330c690b993e721da1912313497f331f

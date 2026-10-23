@@ -1,0 +1,5 @@
+headless_system_user=true
+current_user=10
+Users:
+	UserInfo{0:System User:811} running
+	UserInfo{10:User:412} running

@@ -1,0 +1,70 @@
+{
+ "schema": "openbook-ruby-live-research/1",
+ "image_sha256": "27c9d316e42677609b0cab693cfc6fcdc5000281322fdd0888677f382a5f0bf4",
+ "logical_sha256": {
+  "system": "2e7b342585b70b4829831ec32b6ec39681a58c8cc5735c414b6139724dbdb532",
+  "system_ext": "dc3f228d2479ae3d979564bd7a02956399300187a67ac19519223911b7108b34",
+  "product": "ddf9d7105c4424c727ed53176d89b5a9895d3f59e2699ab5854bb3d1641211c1",
+  "vendor": "e072350a7df2f59aaa14cc2095a94bd4661de2dccbca1422e38abd80554332d4",
+  "vendor_dlkm": "c22672e2333f1d97833688d2554dee6e06515c425ae1674aa3e2a6b4099c5fba",
+  "system_dlkm": "34185c35cb8bbccd5dfd0bb74eecb8a21e2445730411ef1583e1245628e0d617"
+ },
+ "openbook_update_app": {
+  "deployment_eligible": true,
+  "phase": 2,
+  "hardware_validated": false,
+  "package": "org.openbook.update",
+  "version_name": "1.0",
+  "version_code": 1,
+  "apk_sha256": "f3308832e914314ce73b0e141142101033280bf18d4bbd8c08e6d241732953c5",
+  "engine_sha256": "3c7e4e74aebae814a432890b2aebee5996131a17db66d80a964b8faedd18d828",
+  "signing_certificate_sha256": "7a56266544934fb4e6a4dc165d01c0bdf1ccbbdcbe2ce8743c77dd81513eb159",
+  "signature_schemes": [
+   "v2",
+   "v3"
+  ],
+  "requested_permissions": [
+   "android.permission.ACCESS_NETWORK_STATE",
+   "android.permission.FOREGROUND_SERVICE",
+   "android.permission.FOREGROUND_SERVICE_DATA_SYNC",
+   "android.permission.INTERNET",
+   "android.permission.POST_NOTIFICATIONS",
+   "android.permission.REBOOT",
+   "android.permission.RECEIVE_BOOT_COMPLETED",
+   "android.permission.WAKE_LOCK",
+   "org.openbook.update.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+  ],
+  "privileged_permissions": [
+   "android.permission.REBOOT"
+  ],
+  "selinux": {
+   "domain": "openbook_update_app",
+   "seinfo": "openbook",
+   "seapp_context": "user=_app seinfo=openbook isPrivApp=true name=org.openbook.update domain=openbook_update_app type=privapp_data_file levelFrom=all",
+   "policy": {
+    "scope": "OpenBook Update: a privileged app in its own domain (priv_app_all) with binder calls to update_engine; it watches update_engine and restarts into an installed update after the owner confirms",
+    "neverallow_checked": true,
+    "policy_sha256": "529b1ebe48c6316605ebe42033b0a4fa2a2b8002d64e0e7e845f2f06bc4b22e1",
+    "rules_sha256": "864302cfdd6cd2edbb681cd06055dd4b460fc057533652f839c97e88abf861bc",
+    "runtime_recompilation_required": true,
+    "derived_app_domain_statements": 31
+   },
+   "seapp_checked": true
+  },
+  "added_files": {
+   "/system/priv-app/OpenBookUpdate-v1": "dir",
+   "/system/priv-app/OpenBookUpdate-v1/OpenBookUpdate.apk": "f3308832e914314ce73b0e141142101033280bf18d4bbd8c08e6d241732953c5",
+   "/system/etc/permissions/privapp-permissions-org.openbook.update.xml": "d9e4c2d5a456c940e0db5e5925f8735a87159411341c19e6d86d4a5b7eae55ed",
+   "/system/etc/default-permissions/default-permissions-org.openbook.update.xml": "702203e9f22f4d9060a6544cdbdf56b1a8e43eee6bc4ee4fcd813d4cb1159d16",
+   "/system/etc/sysconfig/sysconfig-org.openbook.update.xml": "0e6dfe67118f829d48a1de33e96a920df1cb58bb0806a91099f6815d723dc2da"
+  },
+  "changed_files": [
+   "/system/etc/selinux/plat_mac_permissions.xml",
+   "/system/etc/selinux/plat_seapp_contexts",
+   "/system/etc/selinux/plat_sepolicy.cil",
+   "/system/etc/selinux/plat_sepolicy_and_mapping.sha256"
+  ]
+ },
+ "base": "RB-20261023-02 staged candidate 75fa0196090558519fbb33d079ed51e2b9fd86ee102013c089bc8e9122fe9391",
+ "note": "Production-path check only (deployment_eligible record, no experimental parts); not a release. Disposable, removed after."
+}

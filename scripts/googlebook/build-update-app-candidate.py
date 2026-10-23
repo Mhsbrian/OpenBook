@@ -70,7 +70,7 @@ DERIVED_HEADER = "; Every app domain's own statements, as this image's policy gi
 SCOPE = ("OpenBook Update: a privileged app in its own domain (priv_app_all) with binder calls to update_engine; "
          "it watches update_engine and restarts into an installed update after the owner confirms")
 VM_CHECK_RC = b"""# Disposable VM test only (OpenBook Update): report the app to the serial console. Never deploy.
-service openbook_update_vmlog /system/bin/sh -c "logcat -v threadtime -s OpenBookUpdate:* openbook-updater:* AndroidRuntime:E | sed 's/^/OBU_LIVE /'"
+service openbook_update_vmlog /system/bin/sh -c "logcat -G 16M; logcat -v threadtime -s OpenBookUpdate:* openbook-updater:* AndroidRuntime:E | sed 's/^/OBU_LIVE /'"
     user shell
     group shell log readproc
     seclabel u:r:shell:s0
@@ -107,14 +107,17 @@ echo "OBU_OWNER ${owner:-none}"
 echo "OBU_CURRENT $(am get-current-user)"
 dumpsys package org.openbook.update | grep -E 'codePath=|versionName=|privateFlags=|android.permission.(REBOOT|POST_NOTIFICATIONS):|User [0-9]+: .*installed=' | sed 's/^ */OBU_PKG /'
 dumpsys deviceidle whitelist | grep openbook | sed 's/^/OBU_IDLE /'
-logcat -d -s OpenBookUpdate:* | sed 's/^/OBU_LOG /'
 procs() { for p in $(pidof org.openbook.update); do echo "$1 pid=$p label=$(cat /proc/$p/attr/current 2>&1) name=org.openbook.update"; done; }
 procs OBU_PS
 if [ -n "$owner" ]; then
     am start -W --user "$owner" -n org.openbook.update/.ui.MainActivity | sed 's/^/OBU_START /'
     sleep 45
     procs OBU_PS2
+    # The refresh OpenBook's update tooling sends; only the shell or the system may (DUMP).
+    am broadcast --user "$owner" -a org.openbook.update.action.REFRESH -n org.openbook.update/.work.RefreshReceiver | sed 's/^/OBU_REFRESH /'
+    sleep 10
 fi
+logcat -d -s OpenBookUpdate:* | sed 's/^/OBU_LOG /'
 logcat -d -b all | grep 'avc:' | grep 'denied' | grep -E 'openbook_update_app|openbook.update' | sed 's/^/OBU_AVC /'
 echo "OBU_VMCHECK done"
 # (QEMU shows a screen only where the vendor drives the virtual display; OpenBook's drives AMD's.)
