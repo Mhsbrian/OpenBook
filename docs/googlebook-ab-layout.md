@@ -161,6 +161,58 @@ The goal of ANAL-229. Five stages; the first two are built and verified.
    reach the laptop through the two-slot layout: fresh install onto v2, then
    OpenBook-signed OTAs (`g14-ota.sh`, automatic fallback).
 
+## On-device: the self-contained updater (ANAL-229's end state)
+
+The five stages above are proven, but they run on the build **host** and are driven
+by hand (today, with an AI assistant). That is the development harness, not the
+product. The goal is that **the laptop does this itself**: notice Google's update,
+download it, adapt it to the G14, and install it — no workstation, no assistant in
+the loop. The host pipeline exists to prove each step is deterministic and correct
+*before* it is moved onto the device.
+
+**What the laptop already holds**, so it needs no host for the parts that matter:
+its OpenBook AMD vendor stack (`vendor`, `vendor_dlkm`, `system_dlkm`, the boot
+chain) — these never come from Google; the currently-installed Google framework;
+and the OpenBook `otacerts.zip`, so it trusts OpenBook-signed updates, not Google's.
+
+On-device form of each stage (an OpenBook privileged service shipped in the image):
+
+| Stage | Host harness (proven) | On-device component |
+|---|---|---|
+| Watch / notice | `capture-google-ota.py` over adb; `watch-google-ruby.py` | reads its *own* update offer / polls the recovery manifest locally |
+| Download | `inspect` + `reconstruct` on the host | fetches Google's package to local scratch |
+| Adapt (patch) | host rebase: unpack → re-apply layers | extract Google's new framework, merge with the resident vendor stack, re-apply the fixed patches (deterministic file ops) |
+| Sign | OpenBook master key on the host | **device-local key**, its public cert enrolled in this laptop's `otacerts.zip`; the master key never leaves the build host |
+| Install | `g14-ota.sh` streams from the host | local client hands the signed payload to the resident `update_engine` → slot B → reboot, with A/B fallback (milestone 3, driven locally) |
+
+**The one decision that shapes the build — signing on-device.** `update_engine`
+installs only payloads signed by a key in `otacerts.zip`. For the laptop to sign
+the update it adapts, it needs a private key present. The clean, safe model:
+generate a **per-laptop key on the device**, bake its public cert into that
+laptop's hybrid at install time, and keep the private key in a protected on-device
+store. The master OpenBook OTA key stays on the build host (constraint: it never
+enters an image, a log, or a device). This is legitimate — the owner's device, the
+owner's key, no bypass of Google's or anyone else's protections — but it is a
+security choice the owner should confirm.
+
+**What moving on-device still needs** — honestly, a milestone, not a script:
+- the two-slot **v2 layout on the laptop** (milestone 4): a single slot cannot do
+  A/B, and `/data` is ~93–98% full with no room to stage a download. The on-device
+  updater presupposes the fresh install that has been on hold;
+- the small toolset built for **x86_64 Android** and shipped in the OpenBook image
+  (partition extract, payload generation, `avbtool` / erofs / `secilc` equivalents),
+  so no host tools are needed at run time;
+- the patch steps reduced to **deterministic on-device operations** — the trackpad
+  8-byte patch, the certificate (already resident) and the native-bridge
+  properties/libraries are plain file edits; the heavier compat / VINTF / SELinux
+  checks either run from their Android-native tools on-device, or are pre-validated
+  per Google base build by the host harness before that base is trusted.
+
+Until those land, the host pipeline is how a patched Google update reaches the
+laptop; the on-device service is the target it converges on, one proven stage at a
+time.
+
+
 ## The owner OTA path: how a wireless update reaches the laptop
 
 On a user build, AOSP lets only `system_server`, `system_app`, `gmscore_app` and a
