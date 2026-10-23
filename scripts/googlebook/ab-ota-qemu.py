@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-"""OpenBook OTA on a Ruby A/B disk in QEMU: apply into slot B, reboot into it, and fall back.
+"""OpenBook OTA on a Ruby A/B disk in QEMU: apply into the other slot, reboot into it, and fall back.
 
 Three phases on one evolving disk, each judged from the disk and the serial log:
 
@@ -18,6 +18,10 @@ Three phases on one evolving disk, each judged from the disk and the serial log:
             it repeatedly: each slot-B attempt fails in first-stage init and
             systemd-boot counts it down; with no tries left it boots slot A, which
             must complete boot with the update rolled back.
+
+--slot a runs the same phases in the other direction (RB-20261023-03): the disk already runs slot B
+(after an earlier apply/boot into B, passed with --disk), the payload goes into slot A, and the
+fallback corrupts vbmeta_a and expects slot B. --slot b (the default) is the original A -> B run.
 
 Regular image files only, no device, no network. Run in the openbook-installer container.
 """
@@ -45,7 +49,11 @@ def load(name, filename):
 r = load("run_probe", "run-probe.py")
 mq = load("migration_qemu", "migration-qemu.py")
 abq = load("ab_qemu", "ab-qemu.py")
-STATIC_B = ("boot_b", "init_boot_b", "vendor_boot_b", "vbmeta_b")
+STATIC = ("boot", "init_boot", "vendor_boot", "vbmeta")
+
+
+def other(slot):
+    return "a" if slot == "b" else "b"
 # SnapshotManager's UpdateState (system/core/fs_mgr/libsnapshot/android/snapshot/snapshot.proto)
 UPDATE_STATES = {0: "None", 1: "Initiated", 2: "Unverified", 3: "Merging", 4: "MergeNeedsReboot",
                  5: "MergeCompleted", 6: "MergeFailed", 7: "Cancelled"}
@@ -146,6 +154,8 @@ def region_equals(disk, offset, image):
 
 
 def phase_apply(a, offs, lens):
+    t, o = a.slot, other(a.slot)
+    static_t = tuple(f"{n}_{t}" for n in STATIC)
     disk = a.out / "disk.img"
     if a.reevaluate:  # judge an earlier run again from its disk and logs; no boot
         run = json.loads((a.out / "run.json").read_text())
@@ -153,8 +163,12 @@ def phase_apply(a, offs, lens):
         before = json.loads((a.out / "before.json").read_text())
     else:
         a.out.mkdir(mode=0o700)
-        subprocess.run(["cp", "--reflink=auto", str(a.image_dir / "disk.img"), str(disk)], check=True)
-        before = {n: nonzero(disk, offs[n], lens[n]) for n in STATIC_B}
+        # --disk: continue from an earlier run's disk (the B -> A direction starts on a disk running B).
+        subprocess.run(["cp", "--reflink=auto", str(a.disk or a.image_dir / "disk.img"), str(disk)], check=True)
+        before = {n: nonzero(disk, offs[n], lens[n]) for n in static_t}
+        if a.target_dir:
+            before["equal_target"] = {n: region_equals(disk, offs[f"{n}_{t}"], a.target_dir / f"{n}.img")
+                                      for n in STATIC}
         (a.out / "before.json").write_text(json.dumps(before) + "\n")
         run = launch(a, disk, a.out / "run", a.seconds, payload=a.payload)
         serial = run.pop("serial")
@@ -165,32 +179,38 @@ def phase_apply(a, offs, lens):
     # update_engine logs to a file in encrypted /data and the driver's console stream can drop lines,
     # so success is judged from what update_engine leaves on disk, not from console text.
     on_device = (re.search(r"OTAAPPLY payload=([0-9a-f]{64})", serial) or [None, None])[1]
-    bs = bootsync_status(a, disk, "a")
+    bs = bootsync_status(a, disk, o)
     state = snapshot_state(disk, offs, lens, a.out)
-    b = bs.get("slots", {}).get("b", {})
-    static_match = {n: region_equals(disk, offs[f"{n}_b"], a.target_dir / f"{n}.img")
-                    for n in ("boot", "init_boot", "vendor_boot", "vbmeta")} if a.target_dir else None
+    slot_t = bs.get("slots", {}).get(t, {})
+    static_match = {n: region_equals(disk, offs[f"{n}_{t}"], a.target_dir / f"{n}.img")
+                    for n in STATIC} if a.target_dir else None
+    was_blank = not any(before.get(n) for n in static_t)
+    # A blank slot (first update) must have been filled; a used slot (B -> A) must have changed toward the
+    # target: at least one of its static partitions differed from the target before the apply.
+    prior = before.get("equal_target")
+    changed = was_blank if t == "b" else bool(prior) and not all(prior.values())
     checks = {
         "driver_ran": "OTAAPPLY idle" in serial,
         "payload_on_device_matches": on_device == a.payload_sha256 if a.payload_sha256 else bool(on_device),
         # FinishedSnapshotWrites() sets Unverified only after every write and verification succeeded.
         "update_engine_finished_writes": state == "Unverified",
         # update_engine calls setActiveBootSlot only once the update succeeded (end of postinstall).
-        "update_engine_set_active_slot_b": bool(re.search(r"bootsync activate _b: .*loader\.conf: default "
-                                                          r"openbook-a\.conf, preferred openbook-b\.conf", serial)),
-        "slot_b_static_partitions_equal_target": all(static_match.values()) if static_match else
-                                                  all(nonzero(disk, offs[n], lens[n]) for n in STATIC_B),
-        "slot_b_static_were_blank": not any(before.values()),
-        "bootsync_next_boot_b": bs.get("next_boot_slot") == "b",
-        "slot_b_entry_counted": b.get("entry_state") in ("pending", "trying"),
-        "slot_b_images_verified_by_bootsync": b.get("images_ok") is True,
-        "slot_b_esp_files_in_sync": b.get("esp_files") == "in_sync",
+        f"update_engine_set_active_slot_{t}": bool(re.search(
+            rf"bootsync activate _{t}: .*loader\.conf: default openbook-{o}\.conf, preferred openbook-{t}\.conf",
+            serial)),
+        f"slot_{t}_static_partitions_equal_target": all(static_match.values()) if static_match else
+                                                     all(nonzero(disk, offs[n], lens[n]) for n in static_t),
+        (f"slot_{t}_static_were_blank" if t == "b" else f"slot_{t}_static_changed_to_target"): changed,
+        f"bootsync_next_boot_{t}": bs.get("next_boot_slot") == t,
+        f"slot_{t}_entry_counted": slot_t.get("entry_state") in ("pending", "trying"),
+        f"slot_{t}_images_verified_by_bootsync": slot_t.get("images_ok") is True,
+        f"slot_{t}_esp_files_in_sync": slot_t.get("esp_files") == "in_sync",
         "orderly_reboot": bool(re.search(r"Received sys\.powerctl='reboot,' from pid: \d+ \(system_server\)",
                                          serial)) and not run["timed_out"],
     }
-    return dict(phase="apply", run=run, payload_sha256_on_device=on_device, snapshot_state=state,
-                slot_b_static_before=before, slot_b_static_equal_target=static_match, bootsync=bs,
-                activate_log=re.findall(r"bootsync activate _b: [^\n]*", serial), checks=checks)
+    return dict(phase="apply", slot=t, run=run, payload_sha256_on_device=on_device, snapshot_state=state,
+                **{f"slot_{t}_static_before": before, f"slot_{t}_static_equal_target": static_match},
+                bootsync=bs, activate_log=re.findall(rf"bootsync activate _{t}: [^\n]*", serial), checks=checks)
 
 
 def phase_boot(a, offs, lens):
@@ -201,34 +221,36 @@ def phase_boot(a, offs, lens):
     else:
         run = launch(a, disk, a.out, a.seconds)
         serial = run.pop("serial")
+    t = a.slot
     slot = booted_slot(serial)
     bcl = abq.boot_control(disk, offs["misc"])
-    bs = bootsync_status(a, disk, "b")
+    bs = bootsync_status(a, disk, t)
     state = snapshot_state(disk, offs, lens, a.out)
     checks = {
-        "booted_slot_b": slot == "b",
+        f"booted_slot_{t}": slot == t,
         "boot_completed": boot_completed(serial),
-        "slot_b_marked_successful": bcl["slots"][1]["successful"],
-        "bootsync_b_entry_good": bs.get("slots", {}).get("b", {}).get("entry_state") == "good",
-        "bootsync_next_boot_b": bs.get("next_boot_slot") == "b",
+        f"slot_{t}_marked_successful": bcl["slots"][0 if t == "a" else 1]["successful"],
+        f"bootsync_{t}_entry_good": bs.get("slots", {}).get(t, {}).get("entry_state") == "good",
+        f"bootsync_next_boot_{t}": bs.get("next_boot_slot") == t,
         # After the merge libsnapshot clears its update files and the state goes back to None.
         "snapshot_merged": state in ("MergeCompleted", "None") and bool(re.search(r"Merge completed", serial)),
         "no_avb_error": "Failed to verify vbmeta digest" not in serial,
     }
-    return dict(phase="boot", run=run, booted_slot=slot, boot_control=bcl, bootsync=bs, snapshot_state=state,
+    return dict(phase="boot", slot=t, run=run, booted_slot=slot, boot_control=bcl, bootsync=bs, snapshot_state=state,
                 merge_log=sorted(set(re.findall(r"[^\n]{0,60}[Mm]erge[^\n]{0,60}", serial)))[:12],
                 runtime_findings=r.runtime_findings(serial), checks=checks)
 
 
 def phase_fallback(a, offs, lens):
+    t, o = a.slot, other(a.slot)
     a.out.mkdir(mode=0o700)
     disk = a.out / "disk.img"
     subprocess.run(["cp", "--reflink=auto", str(a.disk), str(disk)], check=True)
-    # A bad update: invert one block of vbmeta_b, so it no longer matches the digest bootsync exported.
+    # A bad update: invert one block of the new slot's vbmeta, so it no longer matches the digest bootsync exported.
     with open(disk, "r+b") as f:
-        f.seek(offs["vbmeta_b"] + 256)
+        f.seek(offs[f"vbmeta_{t}"] + 256)
         blk = f.read(4096)
-        f.seek(offs["vbmeta_b"] + 256)
+        f.seek(offs[f"vbmeta_{t}"] + 256)
         f.write(bytes(x ^ 0xFF for x in blk))
     attempts = []
     for i in range(1, a.attempts + 1):
@@ -236,21 +258,21 @@ def phase_fallback(a, offs, lens):
         serial = run.pop("serial")
         attempts.append(dict(attempt=i, booted_slot=booted_slot(serial), boot_completed=boot_completed(serial),
                              avb_error="Failed to verify vbmeta digest" in serial, **run))
-        if attempts[-1]["booted_slot"] == "a":
+        if attempts[-1]["booted_slot"] == o:
             break
-    bs = bootsync_status(a, disk, "a")
+    bs = bootsync_status(a, disk, o)
     state = snapshot_state(disk, offs, lens, a.out)
-    b_tries = [x for x in attempts if x["booted_slot"] != "a"]
+    t_tries = [x for x in attempts if x["booted_slot"] != o]
     checks = {
-        "slot_b_attempts_failed": bool(b_tries) and not any(x["boot_completed"] for x in b_tries),
-        "systemd_boot_counted_down_to_a": len(b_tries) == 3,
-        "fell_back_to_slot_a": attempts[-1]["booted_slot"] == "a",
-        "slot_a_boot_completed": attempts[-1]["boot_completed"],
-        "slot_b_entry_bad_or_gone": bs.get("slots", {}).get("b", {}).get("entry_state") in ("bad", "none"),
-        "next_boot_a": bs.get("next_boot_slot") == "a",
+        f"slot_{t}_attempts_failed": bool(t_tries) and not any(x["boot_completed"] for x in t_tries),
+        f"systemd_boot_counted_down_to_{o}": len(t_tries) == 3,
+        f"fell_back_to_slot_{o}": attempts[-1]["booted_slot"] == o,
+        f"slot_{o}_boot_completed": attempts[-1]["boot_completed"],
+        f"slot_{t}_entry_bad_or_gone": bs.get("slots", {}).get(t, {}).get("entry_state") in ("bad", "none"),
+        f"next_boot_{o}": bs.get("next_boot_slot") == o,
         "update_rolled_back": state in ("Cancelled", "None", "absent"),
     }
-    return dict(phase="fallback", attempts=attempts, bootsync=bs, snapshot_state=state, checks=checks)
+    return dict(phase="fallback", slot=t, attempts=attempts, bootsync=bs, snapshot_state=state, checks=checks)
 
 
 def main():
@@ -260,7 +282,10 @@ def main():
         p.add_argument("--" + name, type=Path, required=True)
     p.add_argument("--payload", type=Path, help="apply: payload drive (ext4 with payload.bin, payload_properties.txt)")
     p.add_argument("--payload-sha256", help="apply: expected sha256 of payload.bin")
-    p.add_argument("--disk", type=Path, help="boot/fallback: the disk from the apply phase")
+    p.add_argument("--disk", type=Path, help="boot/fallback: the disk from the apply phase; "
+                   "apply: start from this disk instead of IMAGE_DIR/disk.img")
+    p.add_argument("--slot", choices=("a", "b"), default="b",
+                   help="the slot the payload goes into (b: from a fresh disk; a: from a disk running B)")
     p.add_argument("--target-dir", type=Path, help="the release's partition images, to compare slot B with")
     p.add_argument("--reevaluate", action="store_true", help="apply/boot: judge an earlier run again, no boot")
     p.add_argument("--seconds", type=int, default=1500)
@@ -276,6 +301,8 @@ def main():
         p.error("apply needs --payload")
     if a.phase != "apply" and not a.disk:
         p.error(f"{a.phase} needs --disk")
+    if a.phase == "apply" and a.slot == "a" and not a.disk:
+        p.error("apply --slot a needs --disk: a disk that runs slot B")
     os.umask(0o077)
     built = json.loads((a.image_dir / "result.json").read_text())
     offs = {row["name"]: row["offset"] for row in built["layout"]}
