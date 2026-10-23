@@ -15,8 +15,11 @@ staged by stage-stock-source.py, this produces the same candidate on NEW:
 
 It fails closed. A path OpenBook changed must be unchanged between OLD and NEW
 (bytes and metadata), except text files in MERGEABLE, which take a line-level
-three-way merge that refuses overlapping edits. Paths OpenBook adds must not
-exist in NEW. The rebuilt image must match the expected inventory exactly
+three-way merge that refuses overlapping edits, and files in APPENDED (the
+platform SELinux policy and file contexts), where OpenBook's change must be a
+pure append that is re-appended to NEW's file. The policy hash is recomputed,
+and a changed policy is compiled again with NEW's policy inputs, neverallows
+included. Paths OpenBook adds must not exist in NEW. The rebuilt image must match the expected inventory exactly
 (build-input-candidate.rebuild_erofs), and the candidate is assembled by the
 same path as every other OpenBook candidate (build-input-candidate.assemble).
 
@@ -45,8 +48,14 @@ def load(name, filename):
 
 b = load("builder", "build-input-candidate.py")
 p = b.p
+guard = load("guard", "build-ota-guard-candidate.py")
 FRAMEWORK_VERBATIM = ("system_ext", "product")
 MERGEABLE = {"/system/build.prop"}
+# OpenBook only appends to these (its SELinux rules and labels): Google's new file + OpenBook's tail.
+APPENDED = {"/system/etc/selinux/plat_sepolicy.cil", "/system/etc/selinux/plat_file_contexts"}
+# Recomputed, never copied: sha256(plat_sepolicy.cil + mapping/<version>.cil), the vendor's cache key.
+POLICY_HASH = "/system/etc/selinux/plat_sepolicy_and_mapping.sha256"
+PLAT = "/system/etc/selinux/plat_sepolicy.cil"
 
 
 def by_path(rows):
@@ -112,6 +121,19 @@ def plan_delta(old, ours, new, old_tree, ours_tree, new_tree):
             raise ValueError(f"{path}: OpenBook removes it, but NEW changed it")
         del expected[path]
     for path in changed:
+        if path == POLICY_HASH:
+            continue                                    # recomputed below from the merged policy
+        if path in APPENDED:
+            if path not in new or with_size(new[path], 0) != with_size(old[path], 0) \
+                    or with_size(ours[path], 0) != with_size(old[path], 0):
+                raise ValueError(f"{path}: append-merge needs unchanged ownership, mode and labels")
+            o, u, n = ((t / path.lstrip("/")).read_bytes() for t in (old_tree, ours_tree, new_tree))
+            if not u.startswith(o):
+                raise ValueError(f"{path}: OpenBook's change is not a pure append; cannot carry it")
+            tail = u[len(o):]
+            merged[path] = n + (b"\n" if tail and n and not n.endswith(b"\n") else b"") + tail
+            expected[path] = with_size(new[path], len(merged[path]))
+            continue
         if path in MERGEABLE:
             if path not in new or with_size(new[path], 0) != with_size(old[path], 0) \
                     or with_size(ours[path], 0) != with_size(old[path], 0):
@@ -128,7 +150,45 @@ def plan_delta(old, ours, new, old_tree, ours_tree, new_tree):
         if path in new:
             raise ValueError(f"{path}: OpenBook adds it, but NEW already has it")
         expected[path] = ours[path]
+    if POLICY_HASH in changed:
+        if POLICY_HASH not in new:
+            raise ValueError(f"{POLICY_HASH}: NEW no longer has it")
+        if with_size(new[POLICY_HASH], 0) != with_size(old[POLICY_HASH], 0) \
+                or with_size(ours[POLICY_HASH], 0) != with_size(old[POLICY_HASH], 0):
+            raise ValueError(f"{POLICY_HASH}: ownership, mode or label changed")
+        merged[POLICY_HASH] = policy_hash(ours_tree, new_tree, merged.get(PLAT))
+        expected[POLICY_HASH] = with_size(new[POLICY_HASH], len(merged[POLICY_HASH]))
     return expected, dict(added=added, removed=removed, changed=changed, merged=merged)
+
+
+def policy_hash(ours_tree, new_tree, merged_plat):
+    """The policy hash file for the merged platform policy, with the mapping version OpenBook's hash used."""
+    se_ours, se_new = ours_tree / "system/etc/selinux", new_tree / "system/etc/selinux"
+    plat = (se_ours / "plat_sepolicy.cil").read_bytes()
+    want = (se_ours / "plat_sepolicy_and_mapping.sha256").read_text().strip()
+    versions = [m.name for m in sorted((se_ours / "mapping").glob("*.cil"))
+                if hashlib.sha256(plat + m.read_bytes()).hexdigest() == want]
+    if len(versions) != 1:
+        raise ValueError("Cannot tell which mapping version the platform policy hash covers")
+    plat_new = merged_plat if merged_plat is not None else (se_new / "plat_sepolicy.cil").read_bytes()
+    mapping = se_new / "mapping" / versions[0]
+    if not mapping.is_file():
+        raise ValueError(f"NEW has no mapping/{versions[0]} for the platform policy hash")
+    return (hashlib.sha256(plat_new + mapping.read_bytes()).hexdigest() + "\n").encode()
+
+
+def compile_policy(a, w, source, vendor_image, framework_images):
+    """secilc over the rebased platform policy and NEW's partner policies, neverallows included."""
+    roots = {}
+    for name, image in (("vendor", vendor_image), *framework_images.items()):
+        roots[name] = w / f"policy-{name}"
+        p.h.run(a.tools / "fsck.erofs", f"--extract={roots[name]}", image)
+    se = source / "system/etc/selinux"
+    _version, inputs = guard.policy_inputs(se / "plat_sepolicy.cil", se, roots["vendor"],
+                                           {n: roots[n] for n in framework_images})
+    out = w / "rebased-policy.bin"
+    p.h.run(a.tools / "secilc", "-m", "-M", "true", "-G", "-c", "33", "-o", out, "-f", "/dev/null", *inputs)
+    return p.h.audit.sha(out)
 
 
 def apply_delta(source, ours_tree, actions):
@@ -205,9 +265,11 @@ def rebase(a):
         if e and e[0] != "dir":
             expected_contents[path] = e
     (w / "expected.metadata").write_text("\n".join(expected_metadata) + "\n")
+    policy_sha256 = None
+    if PLAT in actions["merged"]:
+        policy_sha256 = compile_policy(a, w, source, logical["vendor"], {n: new_img[n] for n in FRAMEWORK_VERBATIM})
     rebuilt, after = b.rebuild_erofs(a, w, source, expected_metadata, expected_contents)
-    run(a.tools / "avbtool", "add_hashtree_footer", "--image", rebuilt, "--partition_name", "system",
-        "--partition_size", new_img["system"].stat().st_size, "--do_not_generate_fec", "--hash_algorithm", "sha256")
+    b.hashtree_footer(a, rebuilt, new_img["system"].stat().st_size)
     images = dict(logical, system=rebuilt, **{n: new_img[n] for n in FRAMEWORK_VERBATIM})
     props = {}
     for line in actions["merged"].get("/system/build.prop", b"").decode().splitlines():
@@ -222,6 +284,7 @@ def rebase(a):
         verbatim_from_new=list(FRAMEWORK_VERBATIM),
         system_delta=dict(added=len(actions["added"]), removed=len(actions["removed"]),
                           changed=len(actions["changed"]), merged=sorted(actions["merged"])),
+        rebased_policy_compiled_sha256=policy_sha256,
         hardware_validated=False)
     details = dict(google_rebase=annotation, metadata_rows=len(expected_metadata),
                    all_inode_xattrs_as_expected=after == expected_metadata)

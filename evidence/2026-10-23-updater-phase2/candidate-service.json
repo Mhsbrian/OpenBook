@@ -1,0 +1,46 @@
+{
+  "schema": "openbook-ruby-updater-candidate/1",
+  "complete": true,
+  "source_sha256": "75fa0196090558519fbb33d079ed51e2b9fd86ee102013c089bc8e9122fe9391",
+  "image_sha256": "84819fc4bf06a43541a36a6c82fd9e431d61c76ebdd633dd7b6caa80aaa2410d",
+  "metadata_rows": 6608,
+  "all_inode_xattrs_identical": false,
+  "only_metadata_change": "replacement file sizes and added paths",
+  "file_and_symlink_count": 3121,
+  "changed_files": [
+    "/system/etc/selinux/plat_file_contexts",
+    "/system/etc/selinux/plat_sepolicy.cil",
+    "/system/etc/selinux/plat_sepolicy_and_mapping.sha256"
+  ],
+  "only_changed_file": null,
+  "added_paths": [
+    "/system/bin/openbook-updater",
+    "/system/etc/init/openbook-updater.rc"
+  ],
+  "experimental_updater_service": {
+    "deployment_eligible": false,
+    "phase": 2,
+    "hardware_validated": false,
+    "superseded_by": "the OpenBook Update app (owner-visible approval)",
+    "service": "openbook_updater: init, after boot, user nobody, group inet; logs to logcat and its directory",
+    "state_dir": "/data/openbook-updater",
+    "added_files": {
+      "/system/bin/openbook-updater": "4440e9f371f5362455e337aa9055764484fb892922a4dce3dabc83db526f4558",
+      "/system/etc/init/openbook-updater.rc": "95725e95de485ffbb80ba8a5cc75fa4f3feba0253867df06ba17fa78e3c117cc"
+    },
+    "policy": {
+      "scope": "VM validation of the on-laptop updater engine (phase 2 groundwork, not deployable): openbook_updater runs its shell and tools, uses the network and its own state directory under /data; it writes no partition",
+      "neverallow_checked": true,
+      "policy_sha256": "75d7ad340e64e6a332a3c7adf5c9b189a8a930605a8f09d3e7d4f6bb5116acfd",
+      "rules_sha256": "a620863e8a2fa02e619e9f1670e033305e679a151a018a4d3114ef2d8e78b352",
+      "runtime_recompilation_required": true
+    },
+    "file_contexts": [
+      "/system/bin/openbook-updater\tu:object_r:openbook_updater_exec:s0",
+      "/data/openbook-updater(/.*)?\tu:object_r:openbook_updater_data_file:s0"
+    ]
+  },
+  "protected_ranges_identical": true,
+  "source_unchanged": true,
+  "physical_device_written": false
+}

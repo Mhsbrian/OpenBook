@@ -39,6 +39,25 @@ TEST_POLICY = """
 """
 
 
+REVIEWED_POLICY_VERSION = "202604"
+
+
+def policy_inputs(plat_cil, se, vendor_root, partner_roots):
+    """secilc inputs for a platform policy, with the image's partner policies. Refuses an unreviewed
+    mapping or genfs version. Shared by test_policy and rebase-google-build.py."""
+    vendor = vendor_root / "etc/selinux"
+    version = (vendor / "plat_sepolicy_vers.txt").read_text().strip()
+    genfs = (vendor / "genfs_labels_version.txt").read_text().strip()
+    if version != REVIEWED_POLICY_VERSION or genfs != REVIEWED_POLICY_VERSION:
+        raise ValueError("Unreviewed policy mapping/genfs version")
+    inputs = [plat_cil, se / f"mapping/{version}.cil", vendor / "plat_pub_versioned.cil",
+              vendor / "vendor_sepolicy.cil", se / f"plat_sepolicy_genfs_{genfs}.cil"]
+    for name, root in partner_roots.items():
+        directory = root / "etc/selinux"
+        inputs += [directory / f"{name}_sepolicy.cil", directory / f"mapping/{version}.cil"]
+    return version, inputs
+
+
 def test_policy(a, source, extra_cil="", base=None, scope=None):
     """Compile exact image policy inputs with neverallow checks before packaging."""
     old = b.json.loads((a.base / "manifest.json").read_text())
@@ -50,24 +69,15 @@ def test_policy(a, source, extra_cil="", base=None, scope=None):
         roots[name] = a.out / f"policy-{name}"
         b.p.h.run(a.tools / "fsck.erofs", f"--extract={roots[name]}", image)
     se = source / "system/etc/selinux"
-    vendor = roots["vendor"] / "etc/selinux"
-    version = (vendor / "plat_sepolicy_vers.txt").read_text().strip()
-    genfs = (vendor / "genfs_labels_version.txt").read_text().strip()
-    if version != "202604" or genfs != "202604":
-        raise ValueError("Unreviewed policy mapping/genfs version")
+    local = a.out / "probe-plat.cil"
+    version, inputs = policy_inputs(local, se, roots["vendor"], {n: roots[n] for n in ("system_ext", "product")})
     plat = (se / "plat_sepolicy.cil").read_bytes()
     mapping = (se / f"mapping/{version}.cil").read_bytes()
     if (se / "plat_sepolicy_and_mapping.sha256").read_text().strip() != b.p.hashlib.sha256(plat + mapping).hexdigest():
         raise ValueError("Unrecognized platform policy hash contract")
     rules = (TEST_POLICY if base is None else base) + extra_cil
     updated = plat + rules.encode()
-    local = a.out / "probe-plat.cil"; local.write_bytes(updated)
-    inputs = [local, se / f"mapping/{version}.cil",
-              vendor / "plat_pub_versioned.cil", vendor / "vendor_sepolicy.cil",
-              se / f"plat_sepolicy_genfs_{genfs}.cil"]
-    for name in ("system_ext", "product"):
-        directory = roots[name] / "etc/selinux"
-        inputs += [directory / f"{name}_sepolicy.cil", directory / f"mapping/{version}.cil"]
+    local.write_bytes(updated)
     policy = a.out / "probe-policy.bin"
     b.p.h.run(a.tools / "secilc", "-m", "-M", "true", "-G", "-c", "33",
               "-o", policy, "-f", "/dev/null", *inputs)

@@ -46,23 +46,58 @@ running from slot B, user build, SDK 37, x86_64):
 The fail-closed rules of the host rebase carry over unchanged. A Google change to a file OpenBook
 patches stops the adaptation. The laptop keeps running and reports it; it never installs a guess.
 
-## Privilege and packaging
+## OpenBook Update: the app the owner sees and approves
 
-The updater ships in the **OpenBook system layer**, the delta that `rebase-google-build.py` carries onto
-each Google build:
-- `/system/bin/openbook-updater`;
-- an init service;
-- an SELinux domain added to the platform policy, the same way the owner OTA policy was added.
+The updater is not a background process the owner never sees. It is a system app, **OpenBook Update**,
+with notifications and an explicit approval before anything is installed (owner's requirement,
+2026-10-23):
 
-That domain gets only:
-- the network;
-- its own state directory;
-- `ota_package_file` (where update_engine reads local payloads);
-- binder calls to update_engine.
+1. **Up to date:** the Googlebook build, its security patch, when it last checked; *Check now*.
+2. **Update found** (notification): Google's build and security month. The download runs on unmetered
+   Wi-Fi only, automatically if the owner allowed that, otherwise after a tap.
+3. **Preparing**, as a live checklist:
+   - downloaded from Google, checksum verified;
+   - checked against the G14 adaptations (trackpad, ARM apps, update certificate, AMD drivers);
+   - G14 version built;
+   - verified.
+   If Google changed something OpenBook patches, the app says so and stops. It never guesses.
+4. **Ready to install** (high-priority notification). The review screen shows:
+   - what is new (Google build, security patch);
+   - what OpenBook re-applied;
+   - that apps and files stay;
+   - that it installs into the second system slot, and the laptop returns to the current version
+     automatically if the new one does not start.
+   Actions: *Install and restart* / *Install now, restart later* / *Not now*.
+5. **Confirmation:** "Install update and restart? Save your work first." Nothing installs without it.
+6. **After the restart** (notification): "Updated to …, all checks passed", or, after a fallback, "The new
+   version didn't start, so your laptop went back to … Nothing was lost."
+7. **Settings and history:** automatic download on Wi-Fi, check frequency, "always ask before
+   installing" (on, and not removable for system updates), past updates with their results, details.
 
-It is a core-domain service, because update_engine's binder service is a framework service.
-Third-party apps cannot call it, and an OpenBook app cannot be platform-signed: the platform key is
-Google's.
+Look: Material You (dynamic colour from the wallpaper), the Googlebook system typography, and an
+"OpenBook" mark on the update-specific screens.
+
+### How it is built
+
+- **App:** Kotlin + Jetpack Compose, Material 3. A privileged app in `/system/priv-app`, signed with an
+  OpenBook app key (private key on the build host). It is added through the OpenBook system layer, so
+  `rebase-google-build.py` carries it onto every Google build.
+- **Engine:** `openbook-updater` (already built and tested) runs as the app's child process in the app's
+  own SELinux domain. Phase 3/4 tools join it there. Checks are WorkManager jobs, visible in Android's
+  settings like any app's.
+- **Install:** the proven update_engine path. The app serves its own signed payload on `127.0.0.1`
+  (update_engine is allowed to fetch HTTP and was shown to apply it on this laptop), then calls
+  `update_engine_client`.
+- **Restart:** only after confirmation, through Android's reboot API: the REBOOT permission, allow-listed
+  for this one privileged app.
+- **SELinux:** a dedicated app domain chosen by `seapp_contexts`/`mac_permissions.xml` for this package
+  and its certificate, both of which we own. It gets only:
+  - the network (for the engine);
+  - its own app data;
+  - running its shell and tools;
+  - binder calls to update_engine.
+- **No init service:** the earlier init-service variant (`openbook-updater.rc`) was VM-tested but will
+  not ship; the app replaces it.
 
 ## Phases
 
@@ -79,11 +114,10 @@ Google's.
    - Two code reviews; every valid finding fixed and tested.
    - Not yet run: a full-size download. The laptop is on the newest build, so there is nothing real
      to fetch.
-2. **Ship it on the laptop.**
-   - The script, the init service (a daily check plus a check after boot), the SELinux domain and the
-     state directory, in the OpenBook layer.
-   - A new release delivered as a two-slot update.
-   - The owner sees "update available / downloaded" in its state.
+2. **The OpenBook Update app, with the engine and approval flow.**
+   - Toolchain, app, its SELinux domain and privileged permissions, in the OpenBook layer.
+   - Shown in the VM: screens, notifications, check and download.
+   - Delivered as one two-slot update after the owner approves.
 3. **Reconstruct and adapt on the laptop.**
    - Android builds of the inventory checker and an AVB signer; the OpenBook layer as on-laptop data.
    - Proven by adapting 16658739 on the laptop and comparing the result with the host's rebase

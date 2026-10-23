@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: Apache-2.0
+# OpenBook on-laptop updater (ANAL-229, docs/googlebook-on-device-updater.md, phase 2): notices Google's
+# newer Googlebook release for this laptop and downloads it into /data/openbook-updater. It never
+# writes a partition. Runs as nobody with network access only, in its own SELinux domain (sepolicy.cil).
+# Logs go to logcat and /data/openbook-updater/updater.log.
+service openbook_updater /system/bin/openbook-updater --dir /data/openbook-updater watch
+    class late_start
+    user nobody
+    group inet
+    disabled
+
+on post-fs-data
+    mkdir /data/openbook-updater 0700 nobody nobody encryption=Require
+
+on property:sys.boot_completed=1
+    start openbook_updater
