@@ -1,0 +1,6 @@
+# On the G14 after the reboot (adb shell, read-only status/wait commands)
+$ getprop ro.boot.slot_suffix            -> _b
+$ getprop ro.boot.vbmeta.digest          -> 8517e2febdc2735d0e9f9464052f6b96d44be8f7790b0236ca9593630eba975d (same release)
+$ update_engine_client --follow          -> onStatusUpdate(UPDATE_STATUS_IDLE (0), 0)
+$ update_engine_client --merge           -> onPayloadApplicationComplete(ErrorCode::kSuccess (0)); Command took 3 ms
+$ logcat -s update_engine:I              -> CleanupSuccessfulUpdate has previously completed with ErrorCode::kSuccess

@@ -1,0 +1,6 @@
+12:27:21 1/5 preflight
+incremental payload, 10 partitions: FITS; snapshot 0.05 GiB of 20.65 GiB free in super (the payload's source sizes)
+12:27:21 2/5 device
+12:27:21    running slot _a; OpenBook certificate yes; second slot yes
+12:27:21    will stream http://<host>:8090/payload.bin (150380 bytes) into slot _b
+12:27:21 dry run: nothing served or applied

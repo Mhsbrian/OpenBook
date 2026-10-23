@@ -1,0 +1,13 @@
+13:11:35 1/5 preflight
+incremental payload, 10 partitions: FITS; snapshot 0.05 GiB of 20.65 GiB free in super (the payload's source sizes)
+13:11:35 2/5 device
+13:11:59    running slot _a; OpenBook certificate yes; second slot yes
+13:11:59    will stream http://<host>:8090/payload.bin (150380 bytes) into slot _b
+13:11:59    approval: RB-20261023-02 test update (same release into slot B) to the G14, ANAL-229 01a168b1
+13:11:59 3/5 serve
+13:12:00 4/5 apply
+[INFO:update_engine_client_android.cc(94)] onStatusUpdate(UPDATE_STATUS_IDLE (0), 0)
+[INFO:update_engine_client_android.cc(102)] onPayloadApplicationComplete(ErrorCode::kDownloadTransferError (9))
+13:12:30    update_engine: ErrorCode::kDownloadTransferError
+the update did not complete; the running slot is unchanged
+13:12:30    server log: <server log>

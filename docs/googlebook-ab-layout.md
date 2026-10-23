@@ -243,9 +243,12 @@ certificate (and FILE_HASH/METADATA_HASH) before the slot switch.
   without `--approved "<release> to the G14"`; `--dry-run` stops before serving.
   Dry run on the G14 (RB-20261022-01, 2026-10-22): preflight fits, certificate
   present, one slot → refused, as expected until the fresh install.
-- Still to do before the first wireless update: a VM rehearsal of the HTTP leg.
-  The VNNI/GFNI-emulating QEMU build has no user-mode networking, so it needs
-  rebuilding with slirp (or passt).
+- First wireless update on the G14, 2026-10-23 (`evidence/2026-10-23-ota-test/`):
+  RB-20261023-02 into slot B, rehearsed in QEMU first.
+  - Applied in 56 s; reboot into slot B; merged; users, packages and settings unchanged.
+  - The host firewall drops inbound LAN connections, so the payload goes through `adb reverse`
+    (`g14-ota.sh --via-adb`): the server binds the host's 127.0.0.1 only, and the laptop fetches
+    `http://127.0.0.1:PORT` over the encrypted wireless-debugging connection.
 
 ## Fresh installer for layout v2: the stick's two-slot entry
 

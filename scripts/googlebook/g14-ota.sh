@@ -16,14 +16,18 @@
 # pass it as --approved "<release> to the G14".
 #
 # usage: g14-ota.sh SIGNED_DIR --layout LAYOUT.json --approved "RB-... to the G14" [--reboot] [--dry-run]
-#        [--laptop 192.168.50.11] [--port 8090]
+#        [--laptop 192.168.50.11] [--port 8090] [--via-adb]
+#
+# --via-adb: serve on this host's 127.0.0.1 only and let the laptop reach it through `adb reverse`
+# (update_engine fetches http://127.0.0.1:PORT on the laptop; adb carries it over the encrypted
+# wireless-debugging connection). Needed when the host firewall drops inbound LAN connections.
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 ADB=${ADB:-$HOME/anybook/android-sdk/platform-tools/adb}
 OPENBOOK_OTACERTS=3e1529c919baf5bbe71c729e2f6884d034a589328af0fb41a1ae730ac3342a59
 usage() { sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; exit 2; }
 
-SIGNED=; LAYOUT=; APPROVED=; REBOOT=0; DRY=0; LAPTOP=192.168.50.11; PORT=8090
+SIGNED=; LAYOUT=; APPROVED=; REBOOT=0; DRY=0; LAPTOP=192.168.50.11; PORT=8090; VIA_ADB=0
 [ $# -ge 1 ] || usage
 SIGNED=$1; shift
 while [ $# -gt 0 ]; do
@@ -34,6 +38,7 @@ while [ $# -gt 0 ]; do
     --dry-run) DRY=1; shift ;;
     --laptop) LAPTOP=$2; shift 2 ;;
     --port) PORT=$2; shift 2 ;;
+    --via-adb) VIA_ADB=1; shift ;;
     *) usage ;;
   esac
 done
@@ -61,8 +66,12 @@ say "   running slot $slot; OpenBook certificate $([ "$certs" = "$OPENBOOK_OTACE
 [ "$certs" = "$OPENBOOK_OTACERTS" ] || { echo "the laptop does not carry the OpenBook OTA certificate; it would refuse this payload"; exit 4; }
 [ $two_slots = 1 ] || { echo "the laptop has one slot; an OTA needs the two-slot layout (fresh install)"; exit 4; }
 
-HOST=$(ip -4 route get "$LAPTOP" | sed -n 's/.* src \([0-9.]*\).*/\1/p')
-[ -n "$HOST" ] || { echo "no route to $LAPTOP"; exit 3; }
+if [ $VIA_ADB = 1 ]; then
+  HOST=127.0.0.1
+else
+  HOST=$(ip -4 route get "$LAPTOP" | sed -n 's/.* src \([0-9.]*\).*/\1/p')
+  [ -n "$HOST" ] || { echo "no route to $LAPTOP"; exit 3; }
+fi
 URL="http://$HOST:$PORT/payload.bin"
 HEADERS=$(cat "$SIGNED/payload_properties.txt")
 say "   will stream $URL ($(stat -c %s "$SIGNED/payload.bin") bytes) into slot $other"
@@ -74,12 +83,17 @@ say "3/5 serve"
 LOG=$(mktemp -t g14-ota-serve.XXXXXX)
 python3 "$HERE/serve-payload.py" --dir "$SIGNED" --bind "$HOST" --port "$PORT" --idle-seconds 900 > "$LOG" 2>&1 &
 SERVER=$!
-trap 'kill $SERVER 2>/dev/null || true; say "   server log: $LOG"' EXIT
+trap 'kill $SERVER 2>/dev/null || true; [ $VIA_ADB = 1 ] && "$ADB" -s "$S" reverse --remove "tcp:$PORT" 2>/dev/null; say "   server log: $LOG"' EXIT
 sleep 1; kill -0 $SERVER 2>/dev/null || { cat "$LOG"; echo "the payload server did not start"; exit 6; }
+if [ $VIA_ADB = 1 ]; then
+  "$ADB" -s "$S" reverse "tcp:$PORT" "tcp:$PORT" > /dev/null || { echo "adb reverse failed"; exit 6; }
+  say "   laptop 127.0.0.1:$PORT -> this host's 127.0.0.1:$PORT through adb"
+fi
 
 say "4/5 apply"
 set +e
-a "update_engine_client --update --follow --payload=$URL --headers=\"$HEADERS\"" 2>&1 | grep --line-buffered -E "onStatusUpdate|onPayloadApplicationComplete" | awk 'NR % 20 == 1 || /Complete/'
+# Snapshot setup, the hash-tree pass and postinstall take minutes: give the client up to an hour.
+timeout 3600 "$ADB" -s "$S" shell "update_engine_client --update --follow --payload=$URL --headers=\"$HEADERS\"" 2>&1 | grep --line-buffered -E "onStatusUpdate|onPayloadApplicationComplete" | awk 'NR % 20 == 1 || /Complete/'
 set -e
 result=$(a logcat -d -s update_engine:I | grep -oE "ErrorCode::k[A-Za-z]+" | tail -1)
 say "   update_engine: ${result:-unknown}"

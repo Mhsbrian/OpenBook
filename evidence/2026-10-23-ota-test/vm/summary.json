@@ -1,0 +1,23 @@
+{
+  "apply": {
+    "passed": true,
+    "failed": []
+  },
+  "boot": {
+    "passed": true,
+    "failed": []
+  },
+  "verify": {
+    "passed": true,
+    "failed": []
+  },
+  "fallback": {
+    "passed": false,
+    "failed": [
+      "slot_b_attempts_failed",
+      "systemd_boot_counted_down_to_a",
+      "fell_back_to_slot_a"
+    ]
+  },
+  "passed": false
+}
