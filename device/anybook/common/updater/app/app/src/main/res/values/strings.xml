@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<resources>
+    <string name="app_name">OpenBook Update</string>
+    <string name="tagline">Google\'s Googlebook updates, for this laptop</string>
+
+    <!-- Main screen states -->
+    <string name="never_checked_title">Check for updates</string>
+    <string name="never_checked_body">OpenBook Update looks for new Googlebook releases from Google for this laptop. Nothing is installed without your approval.</string>
+    <string name="checking_title">Checking for updates…</string>
+    <string name="checking_body">Looking at Google\'s release list for this laptop.</string>
+    <string name="up_to_date_title">Your Googlebook is up to date</string>
+    <string name="up_to_date_body">Google hasn\'t released anything newer for this laptop.</string>
+    <string name="available_title">Update available</string>
+    <string name="available_body_auto">It downloads automatically on Wi-Fi. Nothing is installed without your approval.</string>
+    <string name="available_body_manual">Download it when you\'re ready. Downloads use Wi-Fi or another network that isn\'t metered. Nothing is installed without your approval.</string>
+    <string name="downloading_title">Downloading update</string>
+    <string name="downloading_body">You can keep using your laptop. On a metered network the download waits, then continues.</string>
+    <string name="waiting_wifi_title">Waiting for Wi-Fi</string>
+    <string name="waiting_wifi_body">Downloads use Wi-Fi, Ethernet or another network that isn\'t metered. It continues by itself.</string>
+    <string name="waiting_later_title">The download continues soon</string>
+    <string name="waiting_later_body">It waits for enough free storage or a retry, then continues by itself.</string>
+    <string name="paused_title">Download paused</string>
+    <string name="paused_body">Resume when you like: it continues where it stopped.</string>
+    <string name="verifying_title">Checking the download</string>
+    <string name="verifying_body">Comparing it with Google\'s checksum.</string>
+    <string name="preparing_title">Downloaded and verified</string>
+    <string name="preparing_body">The next steps build the version of this release for this laptop, on the laptop itself. They arrive with a coming OpenBook update. The verified download is kept until then.</string>
+    <string name="held_new_train_title">Quarterly release</string>
+    <string name="held_new_train_body">%1$s is Google\'s next quarterly release, which can bring a new Android version. OpenBook first checks this laptop\'s adaptations against it, then delivers it as an OpenBook update. Nothing is downloaded until then.</string>
+    <string name="held_unrecognized_title">Update needs review</string>
+    <string name="held_unrecognized_body">OpenBook couldn\'t tell what kind of release %1$s is, so it isn\'t downloaded until OpenBook has reviewed it.</string>
+    <string name="ready_title">Ready to install</string>
+    <string name="ready_body">The version of this release for this laptop is built and verified. Review it, then choose when to install.</string>
+    <string name="installing_title">Installing update</string>
+    <string name="installing_body">You can keep using your laptop. The update goes into the second system slot; the current one stays as it is.</string>
+    <string name="installing_stage_downloading">Writing the update · %1$d%%</string>
+    <string name="installing_stage_verifying">Verifying the update · %1$d%%</string>
+    <string name="installing_stage_finalizing">Finishing up · %1$d%%</string>
+    <string name="restart_title">Restart to finish</string>
+    <string name="restart_body">The update is installed. It takes effect when your laptop restarts.</string>
+    <string name="failed_network_title">Can\'t reach Google</string>
+    <string name="failed_network_body">Check your internet connection and try again.</string>
+    <string name="failed_checksum_title">The download didn\'t match</string>
+    <string name="failed_checksum_body">It didn\'t match Google\'s checksum, so it was deleted. OpenBook Update tries once more, then waits for the next check.</string>
+    <string name="failed_listing_title">Google\'s release list was refused</string>
+    <string name="failed_listing_body">It named an unexpected download location or a malformed checksum, so nothing was downloaded. Details: %1$s</string>
+    <string name="failed_storage_title">Not enough storage</string>
+    <string name="failed_storage_body">The update needs more free space. Free up some space, then try again.</string>
+    <string name="failed_not_listed_title">No releases for this device</string>
+    <string name="failed_not_listed_body">Google doesn\'t list Googlebook releases for this device.</string>
+    <string name="failed_busy_title">Already working</string>
+    <string name="failed_busy_body">Another check or download is running. Try again in a moment.</string>
+    <string name="failed_internal_title">Something went wrong</string>
+    <string name="failed_internal_body">OpenBook Update couldn\'t finish. Details: %1$s</string>
+
+    <string name="notifications_off_title">Notifications are off</string>
+    <string name="notifications_off_body">Turn them on to hear about new updates and when a restart is needed.</string>
+    <string name="action_turn_on">Turn on</string>
+
+    <string name="not_admin_title">Managed by the laptop\'s owner</string>
+    <string name="not_admin_body">System updates are checked and approved by an administrator of this laptop.</string>
+
+    <!-- Actions -->
+    <string name="action_check">Check for updates</string>
+    <string name="action_download">Download</string>
+    <string name="action_resume">Resume download</string>
+    <string name="action_pause">Pause download</string>
+    <string name="action_review">Review update</string>
+    <string name="action_restart">Restart now</string>
+    <string name="action_try_again">Try again</string>
+    <string name="action_not_now">Not now</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_history">Update history</string>
+    <string name="action_back">Back</string>
+    <string name="action_cancel">Cancel</string>
+
+    <!-- System and release details -->
+    <string name="info_build">Googlebook build</string>
+    <string name="info_security">Security update</string>
+    <string name="info_slot">System slot</string>
+    <string name="info_last_checked">Last checked</string>
+    <string name="info_never">Not yet</string>
+    <string name="build_value">%1$s · %2$s</string>
+    <string name="release_build">Google build</string>
+    <string name="release_listed">Released</string>
+    <string name="release_size">Download size</string>
+    <string name="progress_of">%1$s of %2$s</string>
+    <string name="progress_unknown_total">%1$s downloaded</string>
+
+    <string name="kind_monthly">Monthly update</string>
+    <string name="kind_quarterly">Quarterly release</string>
+    <string name="kind_unknown">Unrecognized release</string>
+
+    <!-- Preparation checklist -->
+    <string name="step_downloaded">Downloaded from Google</string>
+    <string name="step_verified">Matches Google\'s checksum</string>
+    <string name="step_checked">Checked against this laptop\'s adaptations</string>
+    <string name="step_checked_detail">Trackpad and touch, Arm apps, update certificate, AMD graphics and drivers</string>
+    <string name="step_built">Version for this laptop built</string>
+    <string name="step_ready">Verified and ready to install</string>
+    <string name="step_not_yet">Comes with a later OpenBook update</string>
+    <string name="step_failed">Stopped: nothing was changed</string>
+
+    <!-- Review and confirmation -->
+    <string name="review_title">Review update</string>
+    <string name="review_new">What\'s new</string>
+    <string name="review_reapplied">What OpenBook applies again</string>
+    <string name="review_reapplied_items">Trackpad and touch fixes\nRunning Arm apps\nOpenBook update certificate\nAMD graphics and drivers</string>
+    <string name="review_data">Your apps and files</string>
+    <string name="review_data_body">Everything stays as it is.</string>
+    <string name="review_safety">If something goes wrong</string>
+    <string name="review_safety_body">The update installs into the second system slot. If the new version doesn\'t start, your laptop goes back to the current one by itself.</string>
+    <string name="action_install_restart">Install and restart</string>
+    <string name="action_install_later">Install now, restart later</string>
+    <string name="confirm_install_title">Install update and restart?</string>
+    <string name="confirm_install_body">Save your work first. Your laptop restarts as soon as the update is installed.</string>
+    <string name="confirm_restart_title">Restart now?</string>
+    <string name="confirm_restart_body">Save your work first. If the new version doesn\'t start, your laptop goes back to the current one by itself.</string>
+    <string name="action_restart_confirm">Restart</string>
+    <string name="restart_not_allowed">This copy of OpenBook Update can\'t restart the laptop. Restart it from the power menu.</string>
+
+    <!-- After a restart -->
+    <string name="outcome_updated_title">Update installed</string>
+    <string name="outcome_updated_body">Your laptop now runs %1$s.</string>
+    <string name="outcome_went_back_title">The update didn\'t start</string>
+    <string name="outcome_went_back_body">The new version didn\'t start, so your laptop went back to %1$s.</string>
+    <string name="outcome_changed_title">System updated</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_auto_download">Download updates automatically</string>
+    <string name="settings_auto_download_summary">On Wi-Fi and other unmetered networks</string>
+    <string name="settings_check">Check for updates</string>
+    <string name="settings_daily">Every day</string>
+    <string name="settings_weekly">Every week</string>
+    <string name="settings_always_ask">Always ask before installing</string>
+    <string name="settings_always_ask_summary">System updates always need your approval</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_notifications_summary">Choose which update notifications you get</string>
+    <string name="settings_about">About updates</string>
+    <string name="settings_about_summary">Kinds of releases and how each is handled</string>
+    <string name="settings_version">Version</string>
+    <string name="settings_version_value">%1$s · engine %2$s</string>
+
+    <!-- History -->
+    <string name="history_title">Update history</string>
+    <string name="history_empty">No update activity yet</string>
+    <string name="history_found">Update found: %1$s</string>
+    <string name="history_held">Waiting for OpenBook: %1$s</string>
+    <string name="history_downloaded">Downloaded and verified: %1$s</string>
+    <string name="history_verification_failed">Download didn\'t match Google\'s checksum: %1$s</string>
+    <string name="history_installed">Updated to %1$s</string>
+    <string name="history_went_back">The new version didn\'t start; went back to %1$s</string>
+    <string name="history_changed">System changed to %1$s</string>
+    <string name="history_restart_requested">Update installed; restart required</string>
+
+    <!-- About updates -->
+    <string name="about_title">About updates</string>
+    <string name="about_intro">OpenBook Update watches Google\'s public release list for this laptop. Each release is handled by its kind, read from its build ID.</string>
+    <string name="about_monthly">Google\'s regular update of the running release, with security and quality fixes. It downloads on Wi-Fi. Building the version for this laptop comes with a later OpenBook update.</string>
+    <string name="about_quarterly">A new release train, which can bring new features or a new Android version. It waits until OpenBook has checked this laptop\'s adaptations, then arrives as an OpenBook update.</string>
+    <string name="about_unknown">Not downloaded until OpenBook has reviewed it.</string>
+    <string name="about_beta_title">Beta releases</string>
+    <string name="about_beta">Ignored. Only Google\'s stable releases are offered.</string>
+    <string name="about_play_title">Google Play system updates</string>
+    <string name="about_play">Arrive through Google Play, separately from these updates.</string>
+    <string name="about_openbook_title">OpenBook updates</string>
+    <string name="about_openbook">OpenBook\'s own fixes for this laptop. They install the same safe way, into the second system slot.</string>
+    <string name="about_changed_title">When Google changes what OpenBook adapts</string>
+    <string name="about_changed">If a release changes a part of the system this laptop needs adapted, or no longer fits, OpenBook Update stops and says so. It never installs a guess.</string>
+
+    <!-- Notifications -->
+    <string name="channel_updates">Updates</string>
+    <string name="channel_updates_description">New releases, downloads and results</string>
+    <string name="channel_progress">Download progress</string>
+    <string name="channel_progress_description">Shown while an update downloads</string>
+    <string name="channel_action">Restart required</string>
+    <string name="channel_action_description">When an installed update needs a restart</string>
+    <string name="notify_found_title">Googlebook update available</string>
+    <string name="notify_found_text">%1$s · %2$s</string>
+    <string name="notify_held_title">Quarterly Googlebook release</string>
+    <string name="notify_held_text">%1$s waits for OpenBook support</string>
+    <string name="notify_review_title">A Googlebook release needs review</string>
+    <string name="notify_review_text">%1$s isn\'t downloaded until OpenBook has reviewed it</string>
+    <string name="notify_slowed_title">The update download continues more slowly</string>
+    <string name="notify_slowed_text">Android limits long downloads in the background. Open OpenBook Update to speed it up.</string>
+    <string name="notify_downloaded_title">Update downloaded and verified</string>
+    <string name="notify_downloaded_text">%1$s. Building it for this laptop comes with a later OpenBook update.</string>
+    <string name="notify_restart_title">Restart to finish the update</string>
+    <string name="notify_restart_text">Save your work, then restart from OpenBook Update.</string>
+    <string name="notify_restart_action">Restart…</string>
+    <string name="notify_storage_title">Not enough storage for the update</string>
+    <string name="notify_verification_title">An update download failed its check</string>
+    <string name="notify_verification_text">It didn\'t match Google\'s checksum and was deleted.</string>
+</resources>

@@ -1,23 +1,27 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-"""openbook-updater (phase 1: notice + download) on a synthetic listing and release, host side.
+"""openbook-updater (notice + download) on a synthetic listing and release, host side.
 
 The laptop's own run (mksh, toybox, one-true-awk, curl) is the target environment; these tests pin
-the behaviour: which build is chosen, when it downloads, how it verifies, resumes and refuses.
-OPENBOOK_UPDATER_TEST_SHELL picks the shell (default sh; use mksh where installed). mksh-only behaviour
-(32-bit arithmetic, close-on-exec descriptors) is covered by openbook-updater-device-test.sh on the laptop.
+the behaviour: which build is chosen, when it downloads, how it verifies, resumes, stops and refuses.
+OPENBOOK_UPDATER_TEST_ENV=$(engine-test-env.sh) runs every process of the engine (its locking re-exec
+included) on Android's own mksh R59, one-true-awk and toybox, built from the AOSP tree; without it,
+the host's sh and tools. openbook-updater-device-test.sh runs the scenarios on a device itself.
 """
 import fcntl
 import hashlib
 import json
 import os
 from pathlib import Path
+import signal
 import subprocess
 import tempfile
+import time
 import unittest
 
 SCRIPT = Path(__file__).resolve().with_name("openbook-updater")
-SHELL = os.environ.get("OPENBOOK_UPDATER_TEST_SHELL", "sh")
+DEVICE_ENV = os.environ.get("OPENBOOK_UPDATER_TEST_ENV")          # bin dir: sh, awk, toybox applets
+SHELL = str(Path(DEVICE_ENV) / "sh") if DEVICE_ENV else "sh"
 
 
 class Updater(unittest.TestCase):
@@ -27,7 +31,8 @@ class Updater(unittest.TestCase):
         self.bin = self.root / "bin"
         self.bin.mkdir()
         (self.bin / "getprop").write_text('#!/bin/sh\ncase $1 in ro.product.device) echo "$OBU_DEVICE" ;;'
-                                          ' ro.build.version.incremental) echo "$OBU_BUILD" ;; esac\n')
+                                          ' ro.build.version.incremental) echo "$OBU_BUILD" ;;'
+                                          ' ro.build.id) echo "$OBU_BUILD_ID" ;; esac\n')
         (self.bin / "getprop").chmod(0o755)
         self.dir = self.root / "state"
         self.release = self.root / "recovery.zip"
@@ -46,14 +51,21 @@ class Updater(unittest.TestCase):
         return dict(device=device, channel=channel, buildidentifier=f"{number}_{build}", dateupdated="2026-10-22",
                     url=url or f"file://{self.release}", md5=md5 or self.md5, filesize=19069493760, zipfilesize=1)
 
-    def run_updater(self, *args, build="16658739", device="ruby", listing=None, reserve_kb=0, **extra):
-        env = dict(os.environ, PATH=f"{self.bin}:{os.environ['PATH']}", OBU_DEVICE=device, OBU_BUILD=build,
-                   OPENBOOK_UPDATER_DIR=str(self.dir), OPENBOOK_UPDATER_RESERVE_KB=str(reserve_kb), **extra)
+    def env(self, build="16658739", device="ruby", build_id="CL3B.260622.276.R4", reserve_kb=0, **extra):
+        path = f"{self.bin}:{DEVICE_ENV}:{os.environ['PATH']}" if DEVICE_ENV else f"{self.bin}:{os.environ['PATH']}"
+        return dict(os.environ, PATH=path, OBU_DEVICE=device, OBU_BUILD=build,
+                    OBU_BUILD_ID=build_id, OPENBOOK_UPDATER_DIR=str(self.dir),
+                    OPENBOOK_UPDATER_RESERVE_KB=str(reserve_kb), **extra)
+
+    def run_updater(self, *args, listing=None, **env):
         cmd = [SHELL, str(SCRIPT)] + (["--listing", str(listing)] if listing else []) + list(args)
-        return subprocess.run(cmd, env=env, capture_output=True, text=True, timeout=120)
+        return subprocess.run(cmd, env=self.env(**env), capture_output=True, text=True, timeout=120)
 
     def state(self):
         return dict(l.split("=", 1) for l in (self.dir / "state").read_text().splitlines())
+
+    def release_record(self):
+        return dict(l.split("=", 1) for l in (self.dir / "release").read_text().splitlines())
 
     def test_up_to_date(self):
         r = self.run_updater("check", listing=self.listing([self.entry(16658739), self.entry(16452207)]))
@@ -118,14 +130,6 @@ class Updater(unittest.TestCase):
             r = self.run_updater("check", listing=self.listing([self.entry(16658739)]))
         self.assertEqual(r.returncode, 6)
 
-    def test_untrusted_sources_are_refused(self):
-        cases = {"malformed md5": self.entry(16658739, md5="xyz"),
-                 "foreign host": self.entry(16658739, url="https://example.com/recovery.zip")}
-        for label, entry in cases.items():
-            with self.subTest(label):
-                r = self.run_updater("check", build="16452207", listing=self.listing([entry]))
-                self.assertEqual(r.returncode, 4, r.stdout + r.stderr)
-
     def test_non_numeric_running_build_and_missing_listing(self):
         r = self.run_updater("check", build="eng.builder", listing=self.listing([self.entry(16658739)]))
         self.assertEqual(r.returncode, 2)
@@ -181,7 +185,7 @@ class Updater(unittest.TestCase):
         zip_path.write_bytes(b"planted, but next to a valid-looking marker")
         r = self.run_updater("download", build="16452207", listing=listing)
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
-        self.assertIn("no longer matches Google's MD5", r.stdout)
+        self.assertIn("does not match Google's MD5", r.stdout)
         self.assertEqual(zip_path.read_bytes(), self.release.read_bytes())
 
     def test_installed_builds_are_pruned_when_up_to_date(self):
@@ -203,6 +207,18 @@ class Updater(unittest.TestCase):
         self.assertEqual(part.read_bytes(), b"first megabytes")
         self.assertEqual(self.state()["result"], "error:3")
         self.assertIn("latest", self.state())          # the check's context is kept
+
+    def test_escaped_slashes_are_read_and_other_escapes_refused(self):
+        # Valid JSON may write "/" as "\\/" (org.json, PHP); any other escape in a value is refused.
+        path = self.root / "listing.json"
+        path.write_text(json.dumps([self.entry(16999999)]).replace("/", "\\/"))
+        r = self.run_updater("check", build="16452207", listing=path)
+        self.assertEqual(r.returncode, 10, r.stdout + r.stderr)
+        self.assertEqual(self.state()["url"], f"file://{self.release}")
+        quoted = self.entry(16999999, url=f"file://{self.release}")
+        path.write_text(json.dumps([quoted]).replace("recovery.zip", 'recovery\\u002ezip'))
+        r = self.run_updater("check", build="16452207", listing=path)
+        self.assertEqual(r.returncode, 9, r.stdout + r.stderr)          # the URL is dropped, never guessed
 
     def test_listing_as_file_url(self):
         listing = self.listing([self.entry(16658739)])
@@ -254,6 +270,156 @@ class Updater(unittest.TestCase):
                              OBU_LOGCAT=str(sink))
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         self.assertEqual(sink.read_text().count("LOGCAT -t openbook-updater up to date"), 1)
+
+    def test_release_kinds(self):
+        # running build ID -> Google's newer build ID -> kind. The train is the first three characters
+        # (year letter, product letter, quarter); only the same train is taken by the laptop itself.
+        cases = [("CL3B.260622.271.R1", "CL3B.260622.276.R4", "monthly"),   # Google's real 16452207 -> 16658739
+                 ("CL3B.260622.276.R4", "CL3B.260622.301", "monthly"),
+                 ("CL3B.260622.276.R4", "CL3C.260722.140", "monthly"),      # another variant, same train
+                 ("CL3B.260622.276.R4", "CL4A.260915.088", "quarterly"),    # the next quarter
+                 ("CL3B.260622.276.R4", "DL1A.270101.010", "quarterly"),    # next year's first quarter
+                 ("CL3B.260622.276.R4", "DL2A.270301.010", "quarterly"),    # (a new Android version, perhaps)
+                 ("CL3B.260622.276.R4", "CP4A.260915.088", "unknown"),      # another product
+                 ("CL3B.260622.276.R4", "BL2A.260801.005", "unknown"),      # an earlier train
+                 ("CL3B.260622.276.R4", "CL2A.260801.005", "unknown"),      # an earlier quarter
+                 ("CL3B.260622.276.R4", "CL3B.260522.100", "unknown"),      # an earlier branch date
+                 ("CL3B.260622.276.R4", "", "unknown"),                     # no build ID in the listing
+                 ("eng.builder", "CL3B.260722.140", "unknown")]             # unparseable running ID
+        for running_id, latest_id, kind in cases:
+            with self.subTest(latest_id=latest_id):
+                entry = self.entry(16999999, build=latest_id)
+                if not latest_id:
+                    entry["buildidentifier"] = "16999999"
+                r = self.run_updater("check", build_id=running_id, listing=self.listing([entry]))
+                self.assertEqual(r.returncode, 10, r.stdout + r.stderr)
+                s = self.state()
+                self.assertEqual((s["kind"], s["latest_id"], s["running_id"]), (kind, latest_id, running_id))
+                self.assertIn(f"update available ({kind})", r.stdout)
+                self.assertEqual(self.release_record()["kind"], kind)
+
+    def test_only_monthly_releases_are_downloaded(self):
+        for build in ("CL4A.260915.088", "DL2A.270301.010", "garbage"):
+            with self.subTest(build=build):
+                r = self.run_updater("download", listing=self.listing([self.entry(16999999, build=build)]))
+                self.assertEqual(r.returncode, 8, r.stdout + r.stderr)
+                self.assertEqual(self.state()["result"], "held")
+                self.assertFalse((self.dir / "16999999").exists())
+
+    def test_each_download_records_its_release(self):
+        listing = self.listing([self.entry(16999999, build="CL3B.260722.140")])
+        self.assertEqual(self.run_updater("download", listing=listing).returncode, 0)
+        info = dict(l.split("=", 1) for l in (self.dir / "16999999" / "release.info").read_text().splitlines())
+        self.assertEqual((info["number"], info["latest_id"], info["kind"]), ("16999999", "CL3B.260722.140", "monthly"))
+        # Installed since: the download and its record go.
+        self.assertEqual(self.run_updater("check", build="16999999", listing=listing).returncode, 0)
+        self.assertFalse((self.dir / "16999999").exists())
+
+    def test_release_file_survives_later_runs(self):
+        listing = self.listing([self.entry(16999999, build="CL3B.260722.140")])
+        self.assertEqual(self.run_updater("download", listing=listing).returncode, 0)
+        self.assertEqual(self.run_updater("check", listing=self.root / "absent.json").returncode, 2)   # a failed check
+        rel = self.release_record()
+        self.assertEqual((rel["number"], rel["kind"], rel["md5"]), ("16999999", "monthly", self.md5))
+        self.assertTrue((self.dir / "16999999" / "recovery.zip.md5").is_file())         # the download stays
+        up = self.run_updater("check", build="16999999", listing=listing)               # after installing it
+        self.assertEqual(up.returncode, 0)
+        self.assertEqual(self.release_record()["number"], "16999999")
+        self.assertNotIn("kind", self.release_record())
+
+    def test_listing_refusals_are_not_checksum_failures(self):
+        cases = {"malformed md5": self.entry(16658739, md5="xyz"),
+                 "foreign host": self.entry(16658739, url="https://example.com/recovery.zip")}
+        for label, entry in cases.items():
+            with self.subTest(label):
+                r = self.run_updater("check", build="16452207", listing=self.listing([entry]))
+                self.assertEqual(r.returncode, 9, r.stdout + r.stderr)
+                self.assertEqual(self.state()["result"], "error:9")
+
+    def test_control_characters_never_forge_a_row(self):
+        # A raw newline and the row separator inside a BETA entry's channel must not fake a STABLE row.
+        forged = ("BETA\n16999999\x1f16999999_CL3B.260722.140\x1fSTABLE\x1f\x1fhttps://dl.google.com/forged\x1f"
+                  + "0" * 32)
+        entry = self.entry(16658739)
+        entry["channel"] = "@CHANNEL@"
+        path = self.root / "listing.json"
+        path.write_bytes(json.dumps([entry]).replace("@CHANNEL@", forged).encode())
+        r = self.run_updater("check", build="16452207", listing=path)
+        self.assertEqual(r.returncode, 7, r.stdout + r.stderr)                          # no STABLE row at all
+
+    def fake_curl(self):
+        # A transfer that writes part of the release, then stalls like a slow network.
+        (self.bin / "curl").write_text(
+            '#!/bin/sh\necho $$ > "$OBU_CURL_PID"\n'
+            'case " $* " in *" -I "*|*" -fsSIL "*) printf "HTTP/1.1 200 OK\\r\\ncontent-length: 300000\\r\\n\\r\\n"; exit 0 ;; esac\n'
+            'while [ $# -gt 1 ]; do [ "$1" = -o ] && out=$2; shift; done\n'
+            'head -c 4096 /dev/zero >> "$out"\nexec sleep 120\n')
+        (self.bin / "curl").chmod(0o755)
+
+    def test_stop_ends_the_transfer_and_keeps_the_partial(self):
+        self.fake_curl()
+        pid_file = self.root / "curl.pid"
+        listing = self.listing([self.entry(16999999, build="CL3B.260722.140")])
+        cmd = [SHELL, str(SCRIPT), "--listing", str(listing), "download"]
+        proc = subprocess.Popen(cmd, env=self.env(OBU_CURL_PID=str(pid_file)), stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT, text=True)
+        part = self.dir / "16999999" / "recovery.zip.part"
+        deadline = time.monotonic() + 30
+        while not (part.exists() and part.stat().st_size >= 4096):    # the download is under way
+            self.assertLess(time.monotonic(), deadline, "the download never started")
+            time.sleep(0.05)
+        curl_pid = int(pid_file.read_text())
+        t0 = time.monotonic()
+        proc.send_signal(signal.SIGTERM)
+        out, _ = proc.communicate(timeout=20)
+        self.assertLess(time.monotonic() - t0, 10, "the stop waited for the transfer")
+        self.assertEqual(proc.returncode, 130, out)
+        self.assertIn("stopped on request; the partial download of 16999999_CL3B.260722.140 is kept", out)
+        with self.assertRaises(ProcessLookupError):                  # the transfer ended with it
+            os.kill(curl_pid, 0)
+        self.assertEqual(part.stat().st_size, 4096)
+        s = self.state()
+        self.assertEqual((s["result"], s["build"], s["part"]), ("stopped", "16999999_CL3B.260722.140", str(part)))
+        (self.bin / "curl").unlink()                                  # the lock was released with the run
+        self.assertEqual(self.run_updater("check", listing=listing).returncode, 10)
+
+    def slow_md5(self):
+        # md5sum that takes its time, as on a multi-gigabyte release.
+        (self.bin / "md5sum").write_text('#!/bin/sh\necho $$ > "$OBU_MD5_PID"\nexec sleep 120\n')
+        (self.bin / "md5sum").chmod(0o755)
+
+    def test_stop_during_verification_ends_the_checksum(self):
+        self.slow_md5()
+        pid_file = self.root / "md5.pid"
+        listing = self.listing([self.entry(16999999, build="CL3B.260722.140")])
+        proc = subprocess.Popen([SHELL, str(SCRIPT), "--listing", str(listing), "download"],
+                                env=self.env(OBU_MD5_PID=str(pid_file)), stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT, text=True)
+        deadline = time.monotonic() + 30
+        while not pid_file.exists():
+            self.assertLess(time.monotonic(), deadline, "verification never started")
+            time.sleep(0.05)
+        proc.send_signal(signal.SIGTERM)
+        out, _ = proc.communicate(timeout=20)
+        self.assertEqual(proc.returncode, 130, out)
+        with self.assertRaises(ProcessLookupError):                  # the checksum ended with it
+            os.kill(int(pid_file.read_text()), 0)
+        self.assertEqual(self.state()["result"], "stopped")
+        self.assertIn("kept and verified on the next run", out)
+        (self.bin / "md5sum").unlink()                               # the next run verifies and finishes
+        r = self.run_updater("download", listing=listing)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertEqual(self.state()["result"], "downloaded")
+
+    def test_a_download_without_its_marker_is_verified_not_fetched_again(self):
+        listing = self.listing([self.entry(16999999, build="CL3B.260722.140")])
+        self.assertEqual(self.run_updater("download", listing=listing).returncode, 0)
+        (self.dir / "16999999" / "recovery.zip.md5").unlink()        # stopped between the rename and the marker
+        os.remove(self.root / "recovery.zip")                        # Google's file is gone: no refetch possible
+        r = self.run_updater("download", listing=listing)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("already downloaded and verified", r.stdout)
+        self.assertTrue((self.dir / "16999999" / "recovery.zip.md5").is_file())
 
     def test_status_before_and_after(self):
         self.assertIn("never-run", self.run_updater("status").stdout)

@@ -1,5 +1,51 @@
 # Build and reproduce
 
+## OpenBook Update, the on-laptop updater app (ANAL-229) — 2026-10-23
+
+The app lives in `device/anybook/common/updater/app/` (Kotlin, Jetpack Compose, Material 3). Everything it
+is built with is pinned, and the release APK is byte-reproducible:
+
+| Piece | Version | Pinned by |
+|---|---|---|
+| JDK | Temurin 17.0.20+8 | `mise.toml` (mise) |
+| Android command-line tools | 23.0 | SHA-256 in `toolchain.sh` |
+| Platform, build-tools, platform-tools | android-37.0 r2, 37.0.0, 37.0.1 | Google's repository checksums (the Android CLI checks them); revisions checked after install |
+| Gradle | 9.8.2 | `distributionSha256Sum`; the wrapper jar is checked against Gradle's published SHA-256 |
+| AGP, Kotlin, Compose BOM, AndroidX | 9.4.1, 2.4.21, 2026.09.00, … | `gradle/libs.versions.toml` |
+
+Disk: about 2 GB under `~/anybook/toolchain/` (SDK 0.7 GB, Gradle cache 1.3 GB).
+
+```sh
+cd device/anybook/common/updater/app
+OPENBOOK_ACCEPT_ANDROID_SDK_LICENSE=1 ./toolchain.sh   # first time; installing accepts the Android SDK License
+./make-app-key.sh                                     # once: the OpenBook app key (host only, ~/.local/share/openbook-keys/app)
+./build.sh --reproducible-check                       # verifies the toolchain; unit tests, lint, two clean release builds
+                                                      # compared, signed (v2+v3). Gradle runs in bubblewrap: the system
+                                                      # read-only, the key directory an empty tmpfs
+./emulator-test.sh OUT BUILD_DIR                      # Android Desktop emulator (API 37.1): engine, instrumented tests,
+                                                      # screenshots, and the release APK as a privileged system app
+python3 ../../../../scripts/googlebook/pin-update-app.py BUILD_DIR   # review decision: pin the APK and integration files;
+                                                      # a deployable pin needs a clean, reproducible build
+                                                      # (--development pins any build, for VM checks only)
+```
+
+The engine's host tests run on the host's shell or, as on the laptop, on Android's own mksh R59,
+one-true-awk and toybox built from the AOSP tree:
+`OPENBOOK_UPDATER_TEST_ENV=$(device/anybook/common/updater/engine-test-env.sh) python3 device/anybook/common/updater/openbook-updater-test.py`.
+`openbook-updater-device-test.sh [IP | --serial SERIAL]` runs the scenarios on a device itself.
+
+Into a Ruby image (installer container): `scripts/googlebook/build-update-app-candidate.py` adds the APK
+(in `/system/priv-app/OpenBookUpdate-v<versionCode>`), its privileged-permission allow-list, default
+notification grant, power-save exemption and user types, its SELinux domain (`app-sepolicy.cil` plus the
+statements derived from Google's app domains), app context and app signer, with fail-closed checks (pins,
+`apksigner verify`, the image's own permission definitions, neverallows, `checkseapp`).
+`scripts/googlebook/update-app-vm.sh WORK APK` builds the disposable `--vm-check` variant and the two-slot
+disk, boots it under TCG (Google's Ruby build needs GFNI/VNNI instructions a Zen 4 host lacks under KVM)
+and judges it (`update-app-vm-judge.py`); rerunning on the same WORK resumes. `rebase-google-build.py`
+carries every part onto later Google builds and derives the app-domain block again from each new policy.
+Tests: `python3 scripts/googlebook/build-update-app-candidate-test.py`, `python3 scripts/googlebook/rebase-google-build-test.py`.
+Design and status: `googlebook-on-device-updater.md`.
+
 ## Ruby OTA trust anchor — 2026-10-22
 
 `scripts/googlebook/build-ota-trust-candidate.py` replaces Ruby's

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<resources>
+    <color name="openbook_blue">#2B5BD7</color>
+    <color name="openbook_blue_deep">#173A9C</color>
+</resources>

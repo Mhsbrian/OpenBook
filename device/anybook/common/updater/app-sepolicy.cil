@@ -1,0 +1,23 @@
+; SPDX-License-Identifier: Apache-2.0
+; OpenBook Update (org.openbook.update), the owner-visible on-laptop updater (ANAL-229): a privileged app in
+; its own domain. plat_seapp_contexts selects it only for this package signed with the OpenBook app key
+; (seinfo "openbook" in plat_mac_permissions.xml). Appended to the platform policy by
+; build-update-app-candidate.py and compiled with the image's exact policy inputs, neverallows included.
+;
+; Built like Google's own privileged-app domains (vmlauncher_app): everything a privileged app may do
+; (priv_app_all), plus binder calls to update_engine. In this image only Google's updater (gmscore_app) and
+; system components (system_server, system_app) may call update_engine; an ordinary privileged app (priv_app)
+; may not. The app watches update_engine's status and restarts into an installed update after the owner
+; confirms. Its engine (openbook-updater) runs in this domain as the app's child process.
+;
+; The type itself, its per-domain types and the statements every app domain gets (shared memory,
+; userfaultfd, the per-domain neverallows) are not written here: the builder derives them from what this
+; image's policy gives each of Google's app domains, and rebase-google-build.py checks them against every
+; later Google policy.
+(typeattributeset domain (openbook_update_app))
+(typeattributeset coredomain (openbook_update_app))
+(typeattributeset appdomain (openbook_update_app))
+(typeattributeset netdomain (openbook_update_app))
+(typeattributeset priv_app_all (openbook_update_app))
+(allow openbook_update_app update_engine_service (service_manager (find)))
+(allow openbook_update_app update_engine (binder (call transfer)))

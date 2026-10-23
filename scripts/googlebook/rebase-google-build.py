@@ -15,11 +15,15 @@ staged by stage-stock-source.py, this produces the same candidate on NEW:
 
 It fails closed. A path OpenBook changed must be unchanged between OLD and NEW
 (bytes and metadata), except text files in MERGEABLE, which take a line-level
-three-way merge that refuses overlapping edits, and files in APPENDED (the
-platform SELinux policy and file contexts), where OpenBook's change must be a
-pure append that is re-appended to NEW's file. The policy hash is recomputed,
-and a changed policy is compiled again with NEW's policy inputs, neverallows
-included. Paths OpenBook adds must not exist in NEW. The rebuilt image must match the expected inventory exactly
+three-way merge that refuses overlapping edits, files in APPENDED (the
+platform SELinux policy, file contexts and app contexts), where OpenBook's
+change must be a pure append that is re-appended to NEW's file, and files in
+INSERTED (the app signer list), where OpenBook's change must be one block
+inserted before a closing marker, inserted again before NEW's marker. The policy
+hash is recomputed, a changed policy is compiled again with NEW's policy inputs,
+neverallows included, and changed app contexts are checked against it (checkseapp:
+every domain and type exists). OpenBook's app-domain block is derived again from
+NEW's policy (build-update-app-candidate.app_domain_statements). Paths OpenBook adds must not exist in NEW. The rebuilt image must match the expected inventory exactly
 (build-input-candidate.rebuild_erofs), and the candidate is assembled by the
 same path as every other OpenBook candidate (build-input-candidate.assemble).
 
@@ -49,10 +53,14 @@ def load(name, filename):
 b = load("builder", "build-input-candidate.py")
 p = b.p
 guard = load("guard", "build-ota-guard-candidate.py")
+app = load("update_app", "build-update-app-candidate.py")
 FRAMEWORK_VERBATIM = ("system_ext", "product")
 MERGEABLE = {"/system/build.prop"}
-# OpenBook only appends to these (its SELinux rules and labels): Google's new file + OpenBook's tail.
-APPENDED = {"/system/etc/selinux/plat_sepolicy.cil", "/system/etc/selinux/plat_file_contexts"}
+# OpenBook only appends to these (its SELinux rules, labels and app domains): Google's new file + OpenBook's tail.
+SEAPP = "/system/etc/selinux/plat_seapp_contexts"
+APPENDED = {"/system/etc/selinux/plat_sepolicy.cil", "/system/etc/selinux/plat_file_contexts", SEAPP}
+# OpenBook inserts one block before the closing marker (its app signer, seinfo "openbook").
+INSERTED = {"/system/etc/selinux/plat_mac_permissions.xml": b"</policy>"}
 # Recomputed, never copied: sha256(plat_sepolicy.cil + mapping/<version>.cil), the vendor's cache key.
 POLICY_HASH = "/system/etc/selinux/plat_sepolicy_and_mapping.sha256"
 PLAT = "/system/etc/selinux/plat_sepolicy.cil"
@@ -108,6 +116,56 @@ def merge3(old, ours, new):
     return out
 
 
+def reinsert(old, ours, new, marker):
+    """OpenBook's block inserted before OLD's marker, inserted again before NEW's. Each file must hold the
+    marker exactly once: a second one (a comment, a reformatted file) leaves the right place unclear."""
+    if old.count(marker) != 1 or new.count(marker) != 1:
+        raise ValueError(f"not exactly one {marker.decode()} to insert before")
+    at = old.rindex(marker)
+    block_len = len(ours) - len(old)
+    if block_len <= 0 or ours[:at] != old[:at] or ours[at + block_len:] != old[at:]:
+        raise ValueError("OpenBook's change is not one block before the closing marker; cannot carry it")
+    block = ours[at:at + block_len]
+    if block in new:
+        raise ValueError("NEW already contains OpenBook's block")
+    j = new.rindex(marker)
+    return new[:j] + block + new[j:]
+
+
+def check_signers(xml):
+    """The merged signer list parses, and its one "openbook" signer is the committed OpenBook certificate."""
+    import xml.etree.ElementTree as ET
+    root = ET.fromstring(xml)
+    ours = [s.get("signature") for s in root.findall("signer")
+            if s.find("seinfo") is not None and s.find("seinfo").get("value") == app.SEINFO]
+    want = app.der((app.SRC / "openbook-update.x509.pem").read_bytes()).hex()
+    if ours != [want]:
+        raise ValueError("the merged signer list does not hold exactly the OpenBook certificate as seinfo openbook")
+
+
+def rederive_app_domain(new_plat, tail):
+    """OpenBook's carried policy tail with its app-domain block derived again from NEW's policy: the
+    statements Google's app domains share follow Google, added and removed alike. The repository's own
+    part (before the header) is carried verbatim."""
+    text = tail.decode()
+    if app.DERIVED_HEADER not in text:
+        return tail
+    own, _old = text.split(app.DERIVED_HEADER, 1)
+    return (own + app.DERIVED_HEADER + "\n".join(app.app_domain_statements(new_plat.decode())) + "\n").encode()
+
+
+def check_app_domain(new_plat, merged_plat):
+    """If OpenBook's app domain is carried, its derived block is exactly what NEW's policy gives."""
+    tail = merged_plat[len(new_plat):].decode()
+    if app.DOMAIN not in tail:
+        return
+    if app.DERIVED_HEADER not in tail:
+        raise ValueError("OpenBook's app domain is carried without its derived app-domain block")
+    derived = tail.split(app.DERIVED_HEADER, 1)[1].splitlines()
+    if derived != app.app_domain_statements(new_plat.decode()):
+        raise ValueError("OpenBook's app-domain block differs from what NEW's policy gives Google's app domains")
+
+
 def plan_delta(old, ours, new, old_tree, ours_tree, new_tree):
     """OpenBook's delta against OLD, checked against NEW. Returns (expected rows by path, actions)."""
     added = sorted(set(ours) - set(old))
@@ -131,7 +189,24 @@ def plan_delta(old, ours, new, old_tree, ours_tree, new_tree):
             if not u.startswith(o):
                 raise ValueError(f"{path}: OpenBook's change is not a pure append; cannot carry it")
             tail = u[len(o):]
-            merged[path] = n + (b"\n" if tail and n and not n.endswith(b"\n") else b"") + tail
+            if path == PLAT:
+                tail = rederive_app_domain(n, tail)
+            sep = b"\n" if tail and n and not n.endswith(b"\n") else b""
+            merged[path] = n + sep + tail
+            if path == PLAT:
+                check_app_domain(n + sep, merged[path])
+            expected[path] = with_size(new[path], len(merged[path]))
+            continue
+        if path in INSERTED:
+            if path not in new or with_size(new[path], 0) != with_size(old[path], 0) \
+                    or with_size(ours[path], 0) != with_size(old[path], 0):
+                raise ValueError(f"{path}: insertion needs unchanged ownership, mode and labels")
+            o, u, n = ((t / path.lstrip("/")).read_bytes() for t in (old_tree, ours_tree, new_tree))
+            try:
+                merged[path] = reinsert(o, u, n, INSERTED[path])
+                check_signers(merged[path])
+            except ValueError as e:
+                raise ValueError(f"{path}: {e}") from None
             expected[path] = with_size(new[path], len(merged[path]))
             continue
         if path in MERGEABLE:
@@ -188,7 +263,13 @@ def compile_policy(a, w, source, vendor_image, framework_images):
                                            {n: roots[n] for n in framework_images})
     out = w / "rebased-policy.bin"
     p.h.run(a.tools / "secilc", "-m", "-M", "true", "-G", "-c", "33", "-o", out, "-f", "/dev/null", *inputs)
-    return p.h.audit.sha(out)
+    return out
+
+
+def check_seapp(a, w, source, policy):
+    """The rebased app contexts against the rebased policy: every domain and type exists (checkseapp, as the
+    Android build runs it; the installed file carries no neverallow lines of its own)."""
+    p.h.run(a.tools / "checkseapp", "-p", policy, "-o", w / "seapp-checked", source / SEAPP.lstrip("/"))
 
 
 def apply_delta(source, ours_tree, actions):
@@ -266,8 +347,11 @@ def rebase(a):
             expected_contents[path] = e
     (w / "expected.metadata").write_text("\n".join(expected_metadata) + "\n")
     policy_sha256 = None
-    if PLAT in actions["merged"]:
-        policy_sha256 = compile_policy(a, w, source, logical["vendor"], {n: new_img[n] for n in FRAMEWORK_VERBATIM})
+    if PLAT in actions["merged"] or SEAPP in actions["merged"]:
+        policy = compile_policy(a, w, source, logical["vendor"], {n: new_img[n] for n in FRAMEWORK_VERBATIM})
+        policy_sha256 = p.h.audit.sha(policy)
+        if SEAPP in actions["merged"]:
+            check_seapp(a, w, source, policy)
     rebuilt, after = b.rebuild_erofs(a, w, source, expected_metadata, expected_contents)
     b.hashtree_footer(a, rebuilt, new_img["system"].stat().st_size)
     images = dict(logical, system=rebuilt, **{n: new_img[n] for n in FRAMEWORK_VERBATIM})

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  OpenBook Update may post notifications from the first boot ("update available", "restart to finish").
+  Not fixed: the owner can still turn them off in Settings.
+-->
+<exceptions>
+    <exception package="org.openbook.update">
+        <permission name="android.permission.POST_NOTIFICATIONS" fixed="false" />
+    </exception>
+</exceptions>

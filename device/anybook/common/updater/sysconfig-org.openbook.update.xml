@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  The system updater is exempt from battery optimization, like Android's own: a download found by the
+  background check may run as a visible foreground job, and checks are not deferred by Doze.
+  It is installed for full (human) users, not guests: Googlebook runs a headless system user, which must
+  not run a second copy of the checks and downloads. Of the full users, only admins run it (the app checks).
+-->
+<config>
+    <allow-in-power-save package="org.openbook.update" />
+    <install-in-user-type package="org.openbook.update">
+        <install-in user-type="FULL" />
+        <do-not-install-in user-type="android.os.usertype.full.GUEST" />
+    </install-in-user-type>
+</config>
