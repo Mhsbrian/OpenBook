@@ -1,0 +1,2 @@
+/system/bin/openbook-updater	u:object_r:openbook_updater_exec:s0
+/data/openbook-updater(/.*)?	u:object_r:openbook_updater_data_file:s0

@@ -1,0 +1,10 @@
+{
+  "schema": "openbook-updater-pins/1",
+  "note": "Reviewed SHA-256 of each updater source. A change to a source must update its pin here, in the same reviewed commit.",
+  "files": {
+    "openbook-updater": "4440e9f371f5362455e337aa9055764484fb892922a4dce3dabc83db526f4558",
+    "openbook-updater.rc": "95725e95de485ffbb80ba8a5cc75fa4f3feba0253867df06ba17fa78e3c117cc",
+    "sepolicy.cil": "a620863e8a2fa02e619e9f1670e033305e679a151a018a4d3114ef2d8e78b352",
+    "file_contexts": "96630a8324a1df8ddd42ab3b9e248d2982ed96a01c6bed48b0afcf090dda2fdb"
+  }
+}

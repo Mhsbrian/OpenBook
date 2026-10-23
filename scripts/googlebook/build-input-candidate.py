@@ -18,6 +18,7 @@ import re
 import shutil
 import subprocess
 import struct
+import uuid
 
 HERE = Path(__file__).resolve().parent
 
@@ -71,8 +72,39 @@ def replacement_metadata(before, replacements):
     return sorted(expected)
 
 
+def added_file(value):
+    """An addition's (bytes, mode, context): plain bytes are a 0644 system_file; a (bytes, mode, context)
+    tuple sets a 0755 executable or another label. None (a directory) stays None."""
+    if value is None:
+        return None
+    if isinstance(value, bytes):
+        return value, 0o644, ADDED_CONTEXT
+    data, mode, context = value
+    if not isinstance(data, bytes) or mode not in (0o644, 0o755) or not re.fullmatch(r"u:object_r:[a-z0-9_]+:s0", context):
+        raise ValueError("Added file needs bytes, mode 0644/0755 and a u:object_r:<type>:s0 label")
+    return data, mode, context
+
+
+def check_additions(additions, annotations):
+    """Added files belong to a disposable experiment, or each one is listed by SHA-256 in a reviewed
+    production record (an annotation with deployment_eligible=True and added_files={path: sha256|"dir"})."""
+    if not additions:
+        return
+    if any(k.startswith("experimental_") and isinstance(v, dict) and v.get("deployment_eligible") is False
+           for k, v in annotations.items()):
+        return
+    records = [v for v in annotations.values()
+               if isinstance(v, dict) and v.get("deployment_eligible") is True and "added_files" in v]
+    listed = {}
+    for record in records:
+        listed.update(record["added_files"])
+    actual = {n: "dir" if v is None else p.hashlib.sha256(added_file(v)[0]).hexdigest() for n, v in additions.items()}
+    if not records or listed != actual:
+        raise ValueError("Added files must be a disposable experiment or each listed by SHA-256 in a production record")
+
+
 def addition_metadata(rows, additions):
-    """New root-owned system_file inodes: bytes for 0644 files, None for 0755 directories."""
+    """New root-owned inodes: see added_file() for files; None for 0755 directories."""
     rows = list(rows)
     index = {bytes.fromhex(r.split(" ")[1]).decode(): i for i, r in enumerate(rows) if r.startswith("I ")}
     for name in sorted(additions):
@@ -83,15 +115,16 @@ def addition_metadata(rows, additions):
         if int(row[2]) & 0o170000 != 0o040000:
             raise ValueError("Addition parent is not a directory")
         if additions[name] is None:
-            mode, nlink, size = 0o040755, 2, 0
+            mode, nlink, size, context = 0o040755, 2, 0, ADDED_CONTEXT
             row[5] = str(int(row[5]) + 1)
             rows[index[parent]] = " ".join(row)
         else:
-            mode, nlink, size = 0o100644, 1, len(additions[name])
+            data, perm, context = added_file(additions[name])
+            mode, nlink, size = 0o100000 | perm, 1, len(data)
         encoded = name.encode().hex()
         index[name] = len(rows)
         rows.append(f"I {encoded} {mode} 0 0 {nlink} {size} {ADDED_TIMESTAMP} 0")
-        rows.append(f"X {encoded} {b'security.selinux'.hex()} {ADDED_CONTEXT.encode().hex()}")
+        rows.append(f"X {encoded} {b'security.selinux'.hex()} {context.encode().hex()}")
     return sorted(rows)
 
 
@@ -143,7 +176,11 @@ def rebuild_erofs(a, w, source, expected_metadata, expected):
     (w / "fs_config").write_text("\n".join(fsconfig) + "\n")
     (w / "contexts").write_text("\n".join(contexts) + "\n")
     rebuilt = w / "system.img"
-    run(tools / "mkfs.erofs", "-zlz4hc,9", "-C65536", "-T", "1230768000", "--preserve-mtime",
+    # A UUID derived from the expected content (mkfs.erofs would pick a random one): the same inputs
+    # rebuild the same bytes, so a rebuild can be checked byte for byte.
+    digest = p.hashlib.sha256(("\n".join(expected_metadata) + "\n" + json.dumps(expected, sort_keys=True)).encode())
+    fs_uuid = str(uuid.uuid5(uuid.NAMESPACE_URL, "openbook-erofs:" + digest.hexdigest()))
+    run(tools / "mkfs.erofs", "-zlz4hc,9", "-C65536", "-T", "1230768000", "-U", fs_uuid, "--preserve-mtime",
         f"--fs-config-file={w / 'fs_config'}", f"--file-contexts={w / 'contexts'}", rebuilt, source)
     after = inventory(a.inventory, rebuilt)
     if expected_metadata != after:
@@ -156,13 +193,21 @@ def rebuild_erofs(a, w, source, expected_metadata, expected):
     return rebuilt, after
 
 
+def hashtree_footer(a, image, partition_size):
+    """AVB hash tree and footer for a rebuilt system. The salt comes from the image's content (avbtool
+    would pick a random one), so the same filesystem always gets the same hash tree and vbmeta."""
+    salt = p.h.audit.sha(image)
+    p.h.run(a.tools / "avbtool", "add_hashtree_footer", "--image", image, "--partition_name", "system",
+            "--partition_size", partition_size, "--salt", salt, "--do_not_generate_fec", "--hash_algorithm", "sha256")
+
+
 def build_system(a, transform, result_schema):
     """Shared reassembler for an exact, reviewed base. Callers supply an explicit transform.
 
     The base is camera25 unless the caller pins another reviewed image with
     a.base_sha256; every logical image must match the base manifest. The
-    transform returns (replacements, annotations) or, for a disposable
-    experiment only, (replacements, annotations, additions).
+    transform returns (replacements, annotations) or (replacements, annotations, additions);
+    additions need a disposable experiment or a reviewed production record (check_additions).
     """
     expected_base = getattr(a, "base_sha256", None) or CAMERA25
     base = p.regular(a.base / "ruby-live.img")
@@ -185,12 +230,11 @@ def build_system(a, transform, result_schema):
     run(tools / "fsck.erofs", f"--extract={source}", system)
     original = contents(source)
     replacements, annotations, *extra = transform(source)
-    additions = extra[0] if extra else {}
+    # Normalized once: (bytes, mode, context) per added file, None per added directory.
+    additions = {n: added_file(v) for n, v in (extra[0] if extra else {}).items()}
     if not replacements or set(annotations) & set(old):
         raise ValueError("Transform must replace files without overriding baseline fields")
-    if additions and not any(k.startswith("experimental_") and v.get("deployment_eligible") is False
-                             for k, v in annotations.items()):
-        raise ValueError("Added files are limited to disposable experiments")
+    check_additions(additions, annotations)
     expected_metadata = addition_metadata(replacement_metadata(before, replacements), additions)
     for name, data in replacements.items():
         if name not in original or original[name][0] != "file":
@@ -201,14 +245,12 @@ def build_system(a, transform, result_schema):
         if additions[name] is None:
             local.mkdir()
         else:
-            local.write_bytes(additions[name])
+            local.write_bytes(additions[name][0])
     expected = dict(original)
-    expected.update({name: ["file", p.hashlib.sha256(data).hexdigest()]
-                     for name, data in (*replacements.items(), *additions.items()) if data is not None})
+    files = {**replacements, **{n: v[0] for n, v in additions.items() if v is not None}}
+    expected.update({name: ["file", p.hashlib.sha256(data).hexdigest()] for name, data in files.items()})
     rebuilt, after = rebuild_erofs(a, w, source, expected_metadata, expected)
-    run(tools / "avbtool", "add_hashtree_footer", "--image", rebuilt,
-        "--partition_name", "system", "--partition_size", system.stat().st_size,
-        "--do_not_generate_fec", "--hash_algorithm", "sha256")
+    hashtree_footer(a, rebuilt, system.stat().st_size)
     images = {n: a.base / f"logical/{n}_a.img" for n in old["logical_sha256"]}
     images["system"] = rebuilt
     assemble(a, w, base, old, expected_base, images, annotations, result_schema, dict(

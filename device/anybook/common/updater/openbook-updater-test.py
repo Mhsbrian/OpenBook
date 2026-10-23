@@ -46,9 +46,9 @@ class Updater(unittest.TestCase):
         return dict(device=device, channel=channel, buildidentifier=f"{number}_{build}", dateupdated="2026-10-22",
                     url=url or f"file://{self.release}", md5=md5 or self.md5, filesize=19069493760, zipfilesize=1)
 
-    def run_updater(self, *args, build="16658739", device="ruby", listing=None, reserve_kb=0):
+    def run_updater(self, *args, build="16658739", device="ruby", listing=None, reserve_kb=0, **extra):
         env = dict(os.environ, PATH=f"{self.bin}:{os.environ['PATH']}", OBU_DEVICE=device, OBU_BUILD=build,
-                   OPENBOOK_UPDATER_DIR=str(self.dir), OPENBOOK_UPDATER_RESERVE_KB=str(reserve_kb))
+                   OPENBOOK_UPDATER_DIR=str(self.dir), OPENBOOK_UPDATER_RESERVE_KB=str(reserve_kb), **extra)
         cmd = [SHELL, str(SCRIPT)] + (["--listing", str(listing)] if listing else []) + list(args)
         return subprocess.run(cmd, env=env, capture_output=True, text=True, timeout=120)
 
@@ -215,6 +215,45 @@ class Updater(unittest.TestCase):
         r = self.run_updater("check", listing=self.root / "absent.json")
         self.assertEqual(r.returncode, 2)
         self.assertNotIn("verified", self.state())
+
+    FAST = dict(OPENBOOK_UPDATER_FIRST_DELAY="0", OPENBOOK_UPDATER_INTERVAL="0", OPENBOOK_UPDATER_STEP="0",
+                OPENBOOK_UPDATER_CYCLES="2")
+
+    def test_watch_only_notices(self):
+        listing = self.listing([self.entry(16658739)])
+        (self.dir).mkdir(exist_ok=True)
+        (self.dir / "consent").write_text("auto_download=1\n")          # no longer a switch: watch never downloads
+        r = self.run_updater("watch", build="16452207", listing=listing, **self.FAST)
+        self.assertEqual(r.returncode, 10, r.stdout + r.stderr)           # update available, nothing fetched
+        self.assertIn("check 2 finished (exit 10)", r.stdout)
+        self.assertFalse((self.dir / "16658739").exists())
+
+    def test_watch_first_check_is_on_time(self):
+        import time
+        t0 = time.monotonic()
+        r = self.run_updater("watch", listing=self.listing([self.entry(16658739)]), OPENBOOK_UPDATER_FIRST_DELAY="2",
+                             OPENBOOK_UPDATER_INTERVAL="3600", OPENBOOK_UPDATER_STEP="900", OPENBOOK_UPDATER_CYCLES="1")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertLess(time.monotonic() - t0, 30)                         # not one 900 s step
+
+    def test_watch_survives_failures_and_holds_no_lock_between_cycles(self):
+        r = self.run_updater("watch", listing=self.root / "absent.json", **self.FAST)
+        self.assertIn("check 1 finished (exit 2)", r.stdout)               # a failed cycle ...
+        self.assertIn("check 2 finished (exit 2)", r.stdout)               # ... does not end the service
+        self.dir.mkdir(exist_ok=True)
+        with open(self.dir / "lock", "w") as held:                         # a manual run holding the lock
+            fcntl.flock(held, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            r = self.run_updater("watch", listing=self.listing([self.entry(16658739)]), **self.FAST)
+        self.assertIn("check 1 finished (exit 6)", r.stdout)               # that cycle yields, the watcher lives
+
+    def test_logcat_path_does_not_recurse(self):
+        (self.bin / "log").write_text('#!/bin/sh\necho "LOGCAT $*" >> "$OBU_LOGCAT"\n')
+        (self.bin / "log").chmod(0o755)
+        sink = self.root / "logcat.txt"
+        r = self.run_updater("check", listing=self.listing([self.entry(16658739)]), ANDROID_ROOT="/system",
+                             OBU_LOGCAT=str(sink))
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertEqual(sink.read_text().count("LOGCAT -t openbook-updater up to date"), 1)
 
     def test_status_before_and_after(self):
         self.assertIn("never-run", self.run_updater("status").stdout)

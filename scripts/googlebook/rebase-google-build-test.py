@@ -112,5 +112,54 @@ class Delta(unittest.TestCase):
             self.delta()
 
 
+class AppendMerge(unittest.TestCase):
+    """OpenBook's SELinux rules and labels are appended to Google's policy files and carried by re-appending."""
+    SE = "system/etc/selinux"
+
+    def setUp(self):
+        import hashlib
+        self.h = hashlib
+        self.tmp = tempfile.TemporaryDirectory()
+        t = Path(self.tmp.name)
+        self.trees = {k: t / k for k in ("old", "ours", "new")}
+        plat = {"old": b"(type a)\n", "ours": b"(type a)\n(type openbook_updater)\n", "new": b"(type a)\n(type b)\n"}
+        fc = {"old": b"/system u:object_r:system_file:s0\n",
+              "ours": b"/system u:object_r:system_file:s0\n/system/bin/openbook-updater u:object_r:openbook_updater_exec:s0\n",
+              "new": b"/system u:object_r:system_file:s0\n/system/bin/new u:object_r:new_exec:s0\n"}
+        mapping = {"old": b"(mapping 1)\n", "ours": b"(mapping 1)\n", "new": b"(mapping 2)\n"}
+        self.rows = {}
+        for k, tree in self.trees.items():
+            se = tree / self.SE
+            (se / "mapping").mkdir(parents=True)
+            files = {"plat_sepolicy.cil": plat[k], "plat_file_contexts": fc[k], "mapping/202604.cil": mapping[k],
+                     "plat_sepolicy_and_mapping.sha256": (hashlib.sha256(plat[k] + mapping[k]).hexdigest() + "\n").encode()}
+            self.rows[k] = {}
+            for name, data in files.items():
+                (se / name).write_bytes(data)
+                self.rows[k][f"/{self.SE}/{name}"] = sorted(row(f"/{self.SE}/{name}", size=len(data)))
+        self.plat, self.mapping = plat, mapping
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def delta(self):
+        return r.plan_delta(self.rows["old"], self.rows["ours"], self.rows["new"], *self.trees.values())
+
+    def test_openbook_tail_is_reappended_and_hash_recomputed(self):
+        expected, actions = self.delta()
+        merged = actions["merged"]
+        self.assertEqual(merged[r.PLAT], b"(type a)\n(type b)\n(type openbook_updater)\n")
+        self.assertTrue(merged["/system/etc/selinux/plat_file_contexts"].endswith(
+            b"/system/bin/new u:object_r:new_exec:s0\n/system/bin/openbook-updater u:object_r:openbook_updater_exec:s0\n"))
+        want = self.h.sha256(merged[r.PLAT] + self.mapping["new"]).hexdigest() + "\n"
+        self.assertEqual(merged[r.POLICY_HASH].decode(), want)            # NEW's mapping, merged policy
+        self.assertIn(f" {len(merged[r.PLAT])} ", expected[r.PLAT][0])
+
+    def test_an_edit_that_is_not_an_append_is_refused(self):
+        (self.trees["ours"] / self.SE / "plat_sepolicy.cil").write_bytes(b"(type changed)\n(type openbook_updater)\n")
+        with self.assertRaisesRegex(ValueError, "not a pure append"):
+            self.delta()
+
+
 if __name__ == "__main__":
     unittest.main()

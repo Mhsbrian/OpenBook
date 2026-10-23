@@ -1,0 +1,38 @@
+; SPDX-License-Identifier: Apache-2.0
+; OpenBook on-laptop updater (ANAL-229): /system/bin/openbook-updater, a core daemon started by init.
+; Appended to the platform policy by build-updater-candidate.py and compiled with the image's exact
+; policy inputs, neverallows included. Grants: run its shell and tools, the network, its own state
+; directory and free-space checks. Nothing else. It logs to logcat and its own directory.
+(type openbook_updater)
+(type openbook_updater_exec)
+(roletype object_r openbook_updater_exec)
+(type openbook_updater_data_file)
+(roletype object_r openbook_updater_data_file)
+(typeattributeset domain (openbook_updater))
+(typeattributeset coredomain (openbook_updater))
+(typeattributeset netdomain (openbook_updater))
+(typeattributeset file_type (openbook_updater_exec openbook_updater_data_file))
+(typeattributeset exec_type (openbook_updater_exec))
+(typeattributeset system_file_type (openbook_updater_exec))
+(typeattributeset data_file_type (openbook_updater_data_file))
+(typeattributeset core_data_file_type (openbook_updater_data_file))
+; init starts it in its own domain (Android's init_daemon_domain)
+(allow init openbook_updater_exec (file (read getattr map execute open)))
+(allow init openbook_updater (process (transition)))
+(allow openbook_updater openbook_updater_exec (file (read getattr map execute open entrypoint)))
+(dontaudit init openbook_updater (process (noatsecure)))
+(allow init openbook_updater (process (siginh rlimitinh)))
+(typetransition init openbook_updater_exec process openbook_updater)
+; init creates the state directory (mkdir in openbook-updater.rc)
+(allow init openbook_updater_data_file (dir (ioctl read create getattr setattr open search write add_name relabelto)))
+; the shell interpreter and the tools the script runs: toybox, curl, awk
+(allow openbook_updater shell_exec (file (read getattr map execute open execute_no_trans)))
+(allow openbook_updater toolbox_exec (file (read getattr map execute open execute_no_trans)))
+(allow openbook_updater system_file (file (read getattr map execute open execute_no_trans)))
+; its state directory under /data, and free-space checks on that filesystem
+(allow openbook_updater system_data_root_file (dir (search getattr)))
+(allow openbook_updater openbook_updater_data_file (dir (ioctl read write create getattr setattr lock open search add_name remove_name rmdir)))
+(allow openbook_updater openbook_updater_data_file (file (ioctl read write create getattr setattr lock append map open rename unlink)))
+(allow openbook_updater labeledfs (filesystem (getattr)))
+; stdin/stdout/stderr that init opened on /dev/null before the exec
+(allow openbook_updater init (fd (use)))

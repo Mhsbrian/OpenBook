@@ -10,15 +10,20 @@
 #   download  fetch that release's recovery.zip into DIR/<build>/, resuming a partial download, after
 #             a free-space check, then verify Google's MD5. Older downloads in DIR are removed.
 #   status    print the last recorded state.
+#   watch     check FIRST_DELAY seconds after start, then every INTERVAL seconds of wall-clock time. It
+#             only notices: downloads are explicit (the OpenBook Update app starts them on unmetered
+#             networks). Each check is its own locked run; a failed check is logged, never fatal.
 #
 # Phase 1 never touches a partition, the boot loader or settings: it reads the network and writes
 # only under DIR. Later phases adapt the release for the G14 and install it
 # (docs/googlebook-on-device-updater.md). Runs on the laptop's own tools: mksh, toybox, awk, curl.
 # mksh arithmetic is 32-bit, so every byte count is computed and compared in awk.
 #
-# usage: openbook-updater [--dir DIR] [--listing URL|FILE] check|download|status
+# usage: openbook-updater [--dir DIR] [--listing URL|FILE] check|download|status|watch
 # env:   OPENBOOK_UPDATER_DIR (default /data/local/tmp/openbook-updater), OPENBOOK_UPDATER_LISTING,
-#        OPENBOOK_UPDATER_RESERVE_KB (free space kept after a download; default 20 GiB)
+#        OPENBOOK_UPDATER_RESERVE_KB (free space kept after a download; default 20 GiB),
+#        OPENBOOK_UPDATER_FIRST_DELAY (default 60 s), OPENBOOK_UPDATER_INTERVAL (default 86400 s),
+#        OPENBOOK_UPDATER_STEP (watch: sleep step, default 900 s), OPENBOOK_UPDATER_CYCLES (stop after N; tests)
 # exit:  0 ok/up to date, 10 update available, 2 usage, 3 network, 4 verification, 5 space,
 #        6 busy, 7 no release listed for this device
 
@@ -29,10 +34,19 @@ RESERVE_KB=${OPENBOOK_UPDATER_RESERVE_KB:-20971520}
 US=$(printf '\037')   # row field separator: not IFS whitespace, so empty fields survive a read
 
 usage() { awk 'NR > 2 && /^#/ { sub(/^# ?/, ""); print; next } NR > 2 { exit }' "$0"; exit 2; }
-log() { printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" | tee -a "$DIR/updater.log"; }
+# Not named "log": that would hide toybox's `log` command used below (and recurse).
+say() {
+    # updater.log is kept under 1 MiB: one previous generation is enough for diagnosis.
+    if [ -f "$DIR/updater.log" ] && [ "$(stat -c %s "$DIR/updater.log")" -gt 1048576 ]; then
+        mv -f "$DIR/updater.log" "$DIR/updater.log.1"
+    fi
+    printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" | tee -a "$DIR/updater.log"
+    # On the laptop, also to logcat (readable over adb on a user build).
+    if [ -n "${ANDROID_ROOT:-}" ] && command -v log > /dev/null 2>&1; then command log -t openbook-updater "$*"; fi
+}
 CHECKED=
 fail() {
-    code=$1; shift; log "error: $*"
+    code=$1; shift; say "error: $*"
     # Before this run's check, a fresh state (no stale download keys); after it, keep its context.
     if [ -n "$CHECKED" ]; then record result "error:$code" detail "$*"; else record_new result "error:$code" detail "$*"; fi
     exit "$code"
@@ -103,9 +117,12 @@ cmd_check() {
     fetch_listing
     best=$(rows_for "$device" | awk -F"$US" '$3 == "STABLE"' | sort -t "$US" -k1,1n | tail -1)
     [ -n "$best" ] || fail 7 "the listing has no STABLE release for $device"
-    IFS=$US read -r number id channel date url md5 <<ROW
-$best
-ROW
+    # Split without a here-document: mksh writes those to TMPDIR, outside the service's own directory.
+    oldifs=$IFS; IFS=$US; set -f
+    # shellcheck disable=SC2086  # deliberate split on IFS=$US; globbing is off (set -f)
+    set -- $best
+    set +f; IFS=$oldifs
+    number=$1; id=${2:-}; channel=${3:-}; date=${4:-}; url=${5:-}; md5=${6:-}
     # Google's releases come from dl.google.com over HTTPS. file:// is accepted only from a local
     # listing (tests and offline media), never from a listing fetched over the network.
     case $url in
@@ -118,20 +135,20 @@ ROW
         CHECKED=1
         prune_obsolete "$running"
         record_new result update-available device "$device" running "$running" latest "$id" latest_date "$date" url "$url" md5 "$md5"
-        log "update available: $device runs $running; Google lists $id ($date, $channel)"
+        say "update available: $device runs $running; Google lists $id ($date, $channel)"
         return 10
     fi
     CHECKED=1
     prune_obsolete "$running"
     record_new result up-to-date device "$device" running "$running" latest "$id" latest_date "$date"
-    log "up to date: $device runs $running; newest listed is $id ($date)"
+    say "up to date: $device runs $running; newest listed is $id ($date)"
     return 0
 }
 
 # Downloads live in all-digit directories DIR/<build>/ holding only the updater's own files.
 remove_download() {
     rm -f "$1/recovery.zip" "$1/recovery.zip.part" "$1/recovery.zip.md5"
-    rmdir "$1" 2>/dev/null && log "removed the download ${1##*/} ($2)"
+    rmdir "$1" 2>/dev/null && say "removed the download ${1##*/} ($2)"
 }
 # Builds at or below the running one are installed or superseded: drop them.
 prune_obsolete() {
@@ -152,7 +169,7 @@ prune_except() {
 
 cmd_download() {
     cmd_check; rc=$?
-    [ $rc = 10 ] || { log "nothing to download"; return 0; }
+    [ $rc = 10 ] || { say "nothing to download"; return 0; }
     out="$DIR/$number"; mkdir -p "$out" || fail 2 "cannot create $out"
     # A finished download is re-hashed before it is reported verified again: the marker alone could be
     # planted or the zip could have changed since.
@@ -160,9 +177,9 @@ cmd_download() {
         if [ "$(md5sum "$out/recovery.zip" | cut -d' ' -f1)" = "$md5" ]; then
             prune_except "$out"
             record result downloaded verified "$id" path "$out/recovery.zip" md5 "$md5"
-            log "already downloaded and verified: $out/recovery.zip"; return 0
+            say "already downloaded and verified: $out/recovery.zip"; return 0
         fi
-        log "the earlier download of $id no longer matches Google's MD5; downloading it again"
+        say "the earlier download of $id no longer matches Google's MD5; downloading it again"
         rm -f "$out/recovery.zip" "$out/recovery.zip.md5"
     fi
     proto=$(proto_for "$url")
@@ -172,18 +189,18 @@ cmd_download() {
     part="$out/recovery.zip.part"
     have=0; [ -f "$part" ] && have=$(stat -c %s "$part")
     if num_gt "$size" 0 && num_gt "$have" "$size"; then
-        log "discarding a partial download larger than the release ($have > $size bytes)"
+        say "discarding a partial download larger than the release ($have > $size bytes)"
         rm -f "$part"; have=0
     fi
     free_kb=$(df -k "$out" | awk 'NR == 2 { print $4 }')
     need_kb=$(awk -v s="$size" -v h="$have" -v r="$RESERVE_KB" 'BEGIN { printf "%.0f", (s - h) / 1024 + r }')
     num_ge "$free_kb" "$need_kb" || fail 5 "not enough space in $out: ${free_kb} KiB free, ${need_kb} KiB needed (download + reserve)"
-    num_gt "$size" 0 || log "warning: the server did not report a size; only the reserve was checked"
+    num_gt "$size" 0 || say "warning: the server did not report a size; only the reserve was checked"
     record result downloading build "$id" bytes "$size" path "$out/recovery.zip"
     if num_gt "$size" 0 && [ "$have" = "$size" ]; then
-        log "partial download of $id is already complete ($have bytes); verifying"
+        say "partial download of $id is already complete ($have bytes); verifying"
     else
-        log "downloading $id ($size bytes, resuming at $have)"
+        say "downloading $id ($size bytes, resuming at $have)"
         # shellcheck disable=SC2086
         http=$(curl -fsSL $proto --retry 3 --retry-delay 5 -C - -w '%{http_code}' -o "$part" "$url" 2>> "$DIR/updater.log")
         rc=$?
@@ -194,7 +211,7 @@ cmd_download() {
                 33:*|36:*|*:416) ;;
                 *) fail 3 "download of $id stopped (curl $rc, HTTP ${http:-none}); rerun to resume" ;;
             esac
-            log "the server refused to resume $id (curl $rc, HTTP ${http:-none}); restarting from the beginning"
+            say "the server refused to resume $id (curl $rc, HTTP ${http:-none}); restarting from the beginning"
             rm -f "$part"
             # shellcheck disable=SC2086
             curl -fsSL $proto --retry 3 --retry-delay 5 -o "$part" "$url" 2>> "$DIR/updater.log" \
@@ -211,8 +228,32 @@ cmd_download() {
     printf '%s\n' "$md5" > "$out/recovery.zip.md5" || fail 2 "cannot record the verification of $id"
     prune_except "$out"
     record result downloaded verified "$id" path "$out/recovery.zip" md5 "$md5"
-    log "downloaded and verified $id: $out/recovery.zip"
+    say "downloaded and verified $id: $out/recovery.zip"
     return 0
+}
+
+cmd_watch() {
+    interval=${OPENBOOK_UPDATER_INTERVAL:-86400}; step=${OPENBOOK_UPDATER_STEP:-900}
+    cycles=${OPENBOOK_UPDATER_CYCLES:-0}; n=0
+    due=$(awk -v n="$(date +%s)" -v d="${OPENBOOK_UPDATER_FIRST_DELAY:-60}" 'BEGIN { printf "%.0f", n + d }')
+    say "watching for Google releases: first check in ${OPENBOOK_UPDATER_FIRST_DELAY:-60}s, then every ${interval}s"
+    while :; do
+        now=$(date +%s)
+        # A clock set backwards (RTC fixed by network time) must not postpone checks past one interval.
+        if num_gt "$due" "$(awk -v n="$now" -v i="$interval" 'BEGIN { printf "%.0f", n + i }')"; then due=$now; fi
+        # The wall clock decides: sleep's clock stops while the laptop is suspended.
+        if num_ge "$now" "$due"; then
+            # A separate locked run per check: the watcher holds no lock while it sleeps.
+            sh "$0" --dir "$DIR" --listing "$LISTING" check; rc=$?
+            n=$((n + 1))
+            say "check $n finished (exit $rc); next in ${interval}s"
+            [ "$cycles" -gt 0 ] && [ "$n" -ge "$cycles" ] && return "$rc"
+            due=$(awk -v n="$(date +%s)" -v i="$interval" 'BEGIN { printf "%.0f", n + i }')
+            continue
+        fi
+        # Sleep until the next check is due, at most one step (so suspend cannot stretch it).
+        sleep "$(awk -v d="$due" -v n="$now" -v s="$step" 'BEGIN { w = d - n; if (w > s) w = s; if (w < 1) w = 1; printf "%.0f", w }')"
+    done
 }
 
 # Parsed in a function so the script's own "$@" survives for the locking re-exec below.
@@ -222,7 +263,7 @@ parse() {
         case $1 in
             --dir) [ $# -ge 2 ] || usage; DIR=$2; shift 2 ;;
             --listing) [ $# -ge 2 ] || usage; LISTING=$2; shift 2 ;;
-            check|download|status) CMD=$1; shift ;;
+            check|download|status|watch) CMD=$1; shift ;;
             *) usage ;;
         esac
     done
@@ -230,7 +271,9 @@ parse() {
 parse "$@"
 [ -n "$CMD" ] || usage
 mkdir -p "$DIR" || { echo "cannot create $DIR"; exit 2; }
+export TMPDIR="$DIR"   # any temporary file a tool makes stays in the updater's own directory
 if [ "$CMD" = status ]; then cat "$DIR/state" 2>/dev/null || echo "result=never-run"; exit 0; fi
+if [ "$CMD" = watch ]; then cmd_watch; exit $?; fi
 # One run at a time per DIR. toybox flock takes a descriptor number, and mksh marks descriptors
 # opened by a bare `exec 9>` close-on-exec, so flock would never see one. Re-run with the lock file
 # as a redirection of exec instead: that descriptor is inherited by flock, the lock lives on the

@@ -1,0 +1,19 @@
+{
+  "schema": "openbook-rebase-reproducibility/1",
+  "base": "candidate R 3999a99d (Google 16452207)",
+  "new_build": "16658739",
+  "runs": 2,
+  "system_sha256": [
+    "6d5ac1018fb4616b5c4b8797d06bf47f1613b9ad5e61b7f8be585f06e6c49691",
+    "6d5ac1018fb4616b5c4b8797d06bf47f1613b9ad5e61b7f8be585f06e6c49691"
+  ],
+  "logical_identical": true,
+  "vbmeta_identical": true,
+  "policy_merge": [
+    "/system/build.prop",
+    "/system/etc/selinux/plat_sepolicy.cil",
+    "/system/etc/selinux/plat_sepolicy_and_mapping.sha256"
+  ],
+  "policy_compiled_sha256": "3dde9afa670fabeeb4c569c05a1d636f5203ebb289e3e979787e174ac0156d5f",
+  "content_equal_to_shipped_75fa0196": "files and inode/xattr inventory identical; bytes differed only by the random EROFS UUID and AVB salt, now content-derived"
+}

@@ -1927,5 +1927,14 @@ and full Photos-use verification remain pending. Evidence: `evidence/2026-10-19-
   - MD5 mismatch refused; 32-bit reserve refused correctly; concurrent run refused.
 - **Evidence:** `evidence/2026-10-23-updater-phase1/`.
   - This run also exposed mksh closing `exec 9>` descriptors (toybox flock); fixed with a locking re-exec.
-- **Next:** phase 2 ships the updater in the OpenBook layer (init service, SELinux domain) as a two-slot update.
+- **Next:** phase 2: the owner-visible OpenBook Update app with the engine (see the 2026-10-23 phase 2 entry).
+
+### 2026-10-23: on-laptop updater, phase 2 groundwork, and the OpenBook Update app design (ANAL-229)
+- **Owner requirement:** the updater is a visible, themed app, **OpenBook Update**, with notifications. The user approves "install and restart" after the update is downloaded and checked. Not a hidden service. Design: `docs/googlebook-on-device-updater.md`. The engine runs as the app's child process; installation uses the proven local-HTTP update_engine path.
+- **Built:**
+  - `build-updater-candidate.py` adds the engine with its own SELinux domain, through a neverallow-checked compile with the image's exact policy inputs, plus a production path for added files (`check_additions`, `pins.json`).
+  - `rebase-google-build.py` now append-merges the platform policy and file contexts onto new Google builds, recomputes the policy hash, recompiles with the shared reviewed-version guard, and rebuilds byte-reproducibly (content-derived EROFS UUID and AVB salt; two runs give identical `system` and vbmeta).
+- **VM:** the init-service variant (validation only, not deployable) started in its domain with **0 denials**; boot 9/9. Results of the one-check variant are recorded with this entry's evidence.
+- **Review:** two rounds over this work. Found and fixed: a recursive logger, a here-document needing a TMPDIR the service can't use, a lock held for the service's lifetime, a suspend-stretched timer, a first check late by 15 minutes, append-merge gaps, a self-certifying added-files record. All tested.
+- **Next:** build the OpenBook Update app (toolchain, Compose UI, its SELinux domain and privileged permissions), VM-test it, then one two-slot update to the laptop with the owner's approval.
 
