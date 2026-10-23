@@ -1,0 +1,3 @@
+# OpenBook Update toolchain (toolchain.sh): the JDK that runs Gradle and the Android build tools.
+[tools]
+java = "temurin-17.0.20+8"

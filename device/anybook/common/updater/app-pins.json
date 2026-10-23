@@ -1,0 +1,24 @@
+{
+  "schema": "openbook-update-app-pins/1",
+  "note": "Reviewed SHA-256 of OpenBook Update's system integration and its signed APK. Rebuild the APK with device/anybook/common/updater/app/build.sh to compare (the build is reproducible).",
+  "files": {
+    "app-sepolicy.cil": "18a7ab7f6441ed205f2492cd3a621d8314271c623efe5d1c8339b402d5c7b27f",
+    "app-seapp_contexts": "9309658fe8843ddcd83ce7e67a3c0844fb1365311de7075df5024c5c35f15ad2",
+    "privapp-permissions-org.openbook.update.xml": "d9e4c2d5a456c940e0db5e5925f8735a87159411341c19e6d86d4a5b7eae55ed",
+    "default-permissions-org.openbook.update.xml": "702203e9f22f4d9060a6544cdbdf56b1a8e43eee6bc4ee4fcd813d4cb1159d16",
+    "sysconfig-org.openbook.update.xml": "0e6dfe67118f829d48a1de33e96a920df1cb58bb0806a91099f6815d723dc2da",
+    "openbook-update.x509.pem": "49a01f03eaabef4f69da610d246961262045dd2a2adf6058e412488bb605a0bf"
+  },
+  "apk": {
+    "sha256": "f3308832e914314ce73b0e141142101033280bf18d4bbd8c08e6d241732953c5",
+    "unsigned_sha256": "7a8305305860fcb68741c733fc67a47ea01967c2893c7b18ebc7134e39ad151f",
+    "version_code": 1,
+    "version_name": "1.0",
+    "engine_sha256": "3c7e4e74aebae814a432890b2aebee5996131a17db66d80a964b8faedd18d828",
+    "signing_certificate_sha256": "7a56266544934fb4e6a4dc165d01c0bdf1ccbbdcbe2ce8743c77dd81513eb159",
+    "development_build": true,
+    "worktree_clean": false,
+    "reproducible_check": true,
+    "built_from_commit": "597e7ba9651db6b6f91700618cc00061c8b25556"
+  }
+}

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  Privileged permissions of OpenBook Update (/system/priv-app/OpenBookUpdate, OpenBook app key). REBOOT
+  restarts into an installed update after the owner confirms; it is the app's only privileged permission
+  (build-update-app-candidate.py checks the APK's requests against the image's own permission definitions).
+-->
+<permissions>
+    <privapp-permissions package="org.openbook.update">
+        <permission name="android.permission.REBOOT" />
+    </privapp-permissions>
+</permissions>

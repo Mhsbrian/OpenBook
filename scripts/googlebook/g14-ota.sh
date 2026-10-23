@@ -98,6 +98,9 @@ set -e
 result=$(a logcat -d -s update_engine:I | grep -oE "ErrorCode::k[A-Za-z]+" | tail -1)
 say "   update_engine: ${result:-unknown}"
 [ "$result" = "ErrorCode::kSuccess" ] || { echo "the update did not complete; the running slot is unchanged"; exit 7; }
+# OpenBook Update (if this image has it) shows "Restart to finish" now, not at its next check. The receiver
+# takes the refresh only from the shell or the system; an image without the app ignores it.
+a am broadcast --user current -a org.openbook.update.action.REFRESH -n org.openbook.update/.work.RefreshReceiver > /dev/null 2>&1 || true
 
 if [ $REBOOT = 0 ]; then say "5/5 applied; reboot the laptop to switch to slot $other (or rerun with --reboot)"; exit 0; fi
 say "5/5 reboot"

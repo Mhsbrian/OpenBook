@@ -161,5 +161,93 @@ class AppendMerge(unittest.TestCase):
             self.delta()
 
 
+class InsertMerge(unittest.TestCase):
+    """OpenBook's app signer is inserted before </policy> and carried onto Google's new signer list."""
+    OLD = b'<?xml version="1.0"?><policy><signer signature="aa"><seinfo value="platform"/></signer></policy>'
+    CERT = r.app.der((r.app.SRC / "openbook-update.x509.pem").read_bytes()).hex().encode()
+    BLOCK = b'<signer signature="' + CERT + b'"><seinfo value="openbook"/></signer>'
+    NEW = b'<?xml version="1.0"?><policy><signer signature="aa"><seinfo value="platform"/></signer>' \
+          b'<signer signature="cc"><seinfo value="media"/></signer></policy>'
+
+    def ours(self):
+        return self.OLD.replace(b"</policy>", self.BLOCK + b"</policy>")
+
+    def test_the_block_lands_before_the_new_marker(self):
+        self.assertEqual(r.reinsert(self.OLD, self.ours(), self.NEW, b"</policy>"),
+                         self.NEW.replace(b"</policy>", self.BLOCK + b"</policy>"))
+
+    def test_other_edits_are_refused(self):
+        edited = self.ours().replace(b'value="platform"', b'value="changed"')
+        with self.assertRaisesRegex(ValueError, "not one block"):
+            r.reinsert(self.OLD, edited, self.NEW, b"</policy>")
+        elsewhere = self.OLD.replace(b"<policy>", b"<policy>" + self.BLOCK)
+        with self.assertRaisesRegex(ValueError, "not one block"):
+            r.reinsert(self.OLD, elsewhere, self.NEW, b"</policy>")
+
+    def test_google_shipping_the_block_or_dropping_the_marker_is_refused(self):
+        with self.assertRaisesRegex(ValueError, "already contains"):
+            r.reinsert(self.OLD, self.ours(), self.NEW.replace(b"</policy>", self.BLOCK + b"</policy>"), b"</policy>")
+        with self.assertRaisesRegex(ValueError, "not exactly one </policy>"):
+            r.reinsert(self.OLD, self.ours(), b"<policy/>", b"</policy>")
+        with self.assertRaisesRegex(ValueError, "not exactly one </policy>"):
+            r.reinsert(self.OLD, self.ours(), self.NEW + b"<!-- </policy> -->", b"</policy>")
+
+    def test_the_merged_signer_must_be_the_openbook_certificate(self):
+        r.check_signers(self.NEW.replace(b"</policy>", self.BLOCK + b"</policy>"))
+        with self.assertRaisesRegex(ValueError, "exactly the OpenBook certificate"):
+            r.check_signers(self.NEW.replace(b"</policy>", self.BLOCK.replace(self.CERT, b"0b") + b"</policy>"))
+        with self.assertRaisesRegex(ValueError, "exactly the OpenBook certificate"):
+            r.check_signers(self.NEW.replace(b"</policy>", self.BLOCK * 2 + b"</policy>"))
+
+    def test_plan_delta_carries_signer_and_app_context(self):
+        se = "system/etc/selinux"
+        seapp = {"old": b"user=_app domain=untrusted_app\n",
+                 "ours": b"user=_app domain=untrusted_app\nuser=_app seinfo=openbook name=org.openbook.update domain=openbook_update_app\n",
+                 "new": b"user=_app domain=untrusted_app\nuser=_app domain=new_app\n"}
+        mac = {"old": self.OLD, "ours": self.ours(), "new": self.NEW}
+        with tempfile.TemporaryDirectory() as tmp:
+            trees, rows = {}, {}
+            for k in ("old", "ours", "new"):
+                trees[k] = Path(tmp) / k
+                (trees[k] / se).mkdir(parents=True)
+                rows[k] = {}
+                for name, data in (("plat_seapp_contexts", seapp[k]), ("plat_mac_permissions.xml", mac[k])):
+                    (trees[k] / se / name).write_bytes(data)
+                    rows[k][f"/{se}/{name}"] = sorted(row(f"/{se}/{name}", size=len(data)))
+            expected, actions = r.plan_delta(rows["old"], rows["ours"], rows["new"], trees["old"], trees["ours"], trees["new"])
+        self.assertEqual(actions["merged"][r.SEAPP], seapp["new"] + seapp["ours"][len(seapp["old"]):])
+        self.assertEqual(actions["merged"]["/system/etc/selinux/plat_mac_permissions.xml"],
+                         self.NEW.replace(b"</policy>", self.BLOCK + b"</policy>"))
+
+
+class AppDomain(unittest.TestCase):
+    """OpenBook's app domain must keep every statement Google's app domains share in the NEW policy."""
+    def policy(self, extra=""):
+        lines = []
+        for d in r.app.TEMPLATE_DOMAINS:
+            lines += [f"(type {d})", f"(typetransition {d} tmpfs file appdomain_tmpfs)",
+                      f"(allow {d} appdomain_tmpfs (file (read write getattr map execute)))"]
+            if extra:
+                lines.append(extra.replace("@D@", d))
+        return ("\n".join(lines) + "\n").encode()
+
+    def test_the_app_domain_block_follows_googles_app_domains(self):
+        new = self.policy()
+        own = "(typeattributeset appdomain (openbook_update_app))\n"
+        tail = (own + r.app.DERIVED_HEADER + "\n".join(r.app.app_domain_statements(new.decode())) + "\n").encode()
+        r.check_app_domain(new, new + tail)                                # exact: accepted
+        newer = self.policy("(allow @D@ new_type (file (read)))")
+        with self.assertRaisesRegex(ValueError, "differs"):
+            r.check_app_domain(newer, newer + tail)                        # stale block: refused
+        regenerated = r.rederive_app_domain(newer, tail)
+        self.assertIn(b"(allow openbook_update_app new_type (file (read)))", regenerated)
+        self.assertTrue(regenerated.startswith(own.encode()))              # the repository's part, verbatim
+        r.check_app_domain(newer, newer + regenerated)
+        # Google drops a statement from all app domains: the block drops it too.
+        dropped = r.rederive_app_domain(new, regenerated)
+        self.assertNotIn(b"new_type", dropped)
+        r.check_app_domain(new, new + b"(type unrelated)\n")             # no OpenBook app domain: nothing to check
+
+
 if __name__ == "__main__":
     unittest.main()

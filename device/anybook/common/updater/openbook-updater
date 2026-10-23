@@ -1,21 +1,38 @@
 #!/system/bin/sh
 # SPDX-License-Identifier: Apache-2.0
-# openbook-updater: the on-laptop OpenBook updater (ANAL-229). Phase 1: notice and download.
+# openbook-updater: the on-laptop OpenBook updater engine (ANAL-229): notice and download. The OpenBook
+# Update app runs it as a child process; it also runs by hand over adb.
 #
 # The laptop watches Google's public release listing for its own device and fetches a newer
 # Googlebook release by itself, with no host and no assistant involved:
 #
 #   check     fetch the listing, pick the newest STABLE build for this device, compare it with the
 #             running build (ro.build.version.incremental). Exit 0 up to date, 10 update available.
-#   download  fetch that release's recovery.zip into DIR/<build>/, resuming a partial download, after
-#             a free-space check, then verify Google's MD5. Older downloads in DIR are removed.
+#             The release's kind comes from the two Android build IDs (ro.build.id). A build ID such as
+#             CL3B.260622.276.R4 starts with its release train: a year letter (C = 2026), a product
+#             letter, the quarter (3) and a variant; then the branch date, the build and an optional
+#             respin suffix. A new Android version arrives with a new train, so only the train tells
+#             what the laptop may take by itself:
+#               monthly    the same train (first three characters): Google's regular update of the
+#                          running release
+#               quarterly  a later train of the same product: a quarterly release, possibly a new
+#                          Android version. Held: OpenBook checks the laptop's adaptations against it
+#                          first and delivers it as an OpenBook update
+#               unknown    anything else (unparseable, an earlier train or date, another product): held
+#             A successful check also writes DIR/release: the newest listed release, kept until the next
+#             successful check (the app reads it; DIR/state describes the last run only).
+#   download  fetch that release's recovery.zip into DIR/<build>/ (with release.info, the release it is),
+#             resuming a partial download, after a free-space check, then verify Google's MD5. Older
+#             downloads in DIR are removed after a newer one is verified. Only
+#             monthly releases are downloaded. TERM, INT or HUP stops it cleanly at any point: the
+#             transfer or checksum ends, and the partial file is kept for the next run to resume.
 #   status    print the last recorded state.
 #   watch     check FIRST_DELAY seconds after start, then every INTERVAL seconds of wall-clock time. It
 #             only notices: downloads are explicit (the OpenBook Update app starts them on unmetered
 #             networks). Each check is its own locked run; a failed check is logged, never fatal.
 #
-# Phase 1 never touches a partition, the boot loader or settings: it reads the network and writes
-# only under DIR. Later phases adapt the release for the G14 and install it
+# It never touches a partition, the boot loader or settings: it reads the network and writes only
+# under DIR. Later phases adapt the release for the G14 and install it
 # (docs/googlebook-on-device-updater.md). Runs on the laptop's own tools: mksh, toybox, awk, curl.
 # mksh arithmetic is 32-bit, so every byte count is computed and compared in awk.
 #
@@ -23,9 +40,12 @@
 # env:   OPENBOOK_UPDATER_DIR (default /data/local/tmp/openbook-updater), OPENBOOK_UPDATER_LISTING,
 #        OPENBOOK_UPDATER_RESERVE_KB (free space kept after a download; default 20 GiB),
 #        OPENBOOK_UPDATER_FIRST_DELAY (default 60 s), OPENBOOK_UPDATER_INTERVAL (default 86400 s),
-#        OPENBOOK_UPDATER_STEP (watch: sleep step, default 900 s), OPENBOOK_UPDATER_CYCLES (stop after N; tests)
-# exit:  0 ok/up to date, 10 update available, 2 usage, 3 network, 4 verification, 5 space,
-#        6 busy, 7 no release listed for this device
+#        OPENBOOK_UPDATER_STEP (watch: sleep step, default 900 s), OPENBOOK_UPDATER_CYCLES (stop after N; tests),
+#        OPENBOOK_UPDATER_TEST_BUILD_ID (tests on a device whose own build ID is not a release-train ID, such
+#        as an emulator's: classify against this instead; the OpenBook Update app never sets it)
+# exit:  0 ok/up to date, 10 update available, 2 usage, 3 network, 4 checksum mismatch, 5 space,
+#        6 busy, 7 no release listed for this device, 8 held (the release needs OpenBook support),
+#        9 listing refused (an unexpected download location or a malformed checksum), 130 stopped on request
 
 set -u
 LISTING=${OPENBOOK_UPDATER_LISTING:-https://dl.google.com/dl/edgedl/device/recovery/production_recovery.json}
@@ -45,9 +65,12 @@ say() {
     if [ -n "${ANDROID_ROOT:-}" ] && command -v log > /dev/null 2>&1; then command log -t openbook-updater "$*"; fi
 }
 CHECKED=
+FINAL=
+FINAL_RC=0
 fail() {
     code=$1; shift; say "error: $*"
-    # Before this run's check, a fresh state (no stale download keys); after it, keep its context.
+    # Before this run's check, a fresh state; after it, keep its context. DIR/release keeps the last
+    # successful check's release either way.
     if [ -n "$CHECKED" ]; then record result "error:$code" detail "$*"; else record_new result "error:$code" detail "$*"; fi
     exit "$code"
 }
@@ -56,15 +79,16 @@ fail() {
 num_ge() { awk -v a="$1" -v b="$2" 'BEGIN { exit !(a + 0 >= b + 0) }'; }
 num_gt() { awk -v a="$1" -v b="$2" 'BEGIN { exit !(a + 0 > b + 0) }'; }
 
-# key=value state, one file, replaced atomically so a reader never sees half a record.
+# key=value files, each replaced atomically so a reader never sees half a record.
 # record_new starts a fresh state (a new check); record merges into it (later values win).
-write_state() {
+write_kv() {
     awk '{ i = index($0, "="); k = substr($0, 1, i - 1); if (!(k in v)) order[++n] = k; v[k] = $0 }
-         END { for (j = 1; j <= n; j++) print v[order[j]] }' > "$DIR/state.tmp" && mv "$DIR/state.tmp" "$DIR/state"
+         END { for (j = 1; j <= n; j++) print v[order[j]] }' > "$1.tmp" && mv "$1.tmp" "$1"
 }
 pairs() { while [ $# -ge 2 ]; do printf '%s=%s\n' "$1" "$2"; shift 2; done; printf 'updated_utc=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"; }
-record_new() { pairs "$@" | write_state; }
-record() { { [ -f "$DIR/state" ] && cat "$DIR/state"; pairs "$@"; } | write_state; }
+record_new() { pairs "$@" | write_kv "$DIR/state"; }
+record() { { [ -f "$DIR/state" ] && cat "$DIR/state"; pairs "$@"; } | write_kv "$DIR/state"; }
+write_release() { pairs "$@" | write_kv "$DIR/release"; }
 
 # Allowed transfer protocols for a URL, redirects included: HTTPS from the network, file:// for local media.
 proto_for() {
@@ -75,20 +99,57 @@ proto_for() {
     esac
 }
 
+# Long work (curl, md5sum) runs in the background and the script waits for it: a trapped TERM interrupts
+# `wait` at once (a foreground child would delay the trap until it finished). The child keeps the lock
+# descriptor, so while it lives no second run can write the same files.
+# usage: child OUTFILE COMMAND... (stdout to OUTFILE, errors to the log). Shell functions share variables:
+# its own are prefixed c_ so callers' (out, rc) survive.
+CHILD=
+IN_CHILD=
+child() {
+    c_out=$1; shift
+    IN_CHILD=1                      # stop() falls back to $! if TERM lands before CHILD is set
+    "$@" > "$c_out" 2>> "$DIR/updater.log" &
+    CHILD=$!
+    wait "$CHILD"; c_rc=$?
+    CHILD=; IN_CHILD=
+    return $c_rc
+}
+transfer() { t_out=$1; shift; child "$t_out" curl "$@"; }
+# Sets MD5 to FILE's MD5 (empty if it cannot be read).
+md5_of() {
+    MD5=
+    child "$DIR/md5.out" md5sum "$1" && MD5=$(cut -d' ' -f1 "$DIR/md5.out")
+    rm -f "$DIR/md5.out"
+}
+stop() {
+    s_pid=$CHILD
+    [ -z "$s_pid" ] && [ -n "$IN_CHILD" ] && s_pid=$!
+    [ -n "$s_pid" ] && kill "$s_pid" 2>/dev/null && wait "$s_pid" 2>/dev/null
+    rm -f "$DIR/md5.out" "$DIR/headers" "$DIR/http_code"
+    [ -n "$FINAL" ] && exit "$FINAL_RC"          # the result was already recorded: keep it
+    say "stopped on request${STOP_NOTE:+; $STOP_NOTE}"
+    if [ -n "$CHECKED" ]; then record result stopped; else record_new result stopped; fi
+    exit 130
+}
+
 fetch_listing() {
     case $LISTING in
         https://*)
             # shellcheck disable=SC2046  # proto_for returns separate curl options
-            curl -fsSL $(proto_for "$LISTING") --retry 2 --max-time 60 -o "$DIR/listing.json" "$LISTING" \
+            transfer /dev/null -fsSL $(proto_for "$LISTING") --retry 2 --max-time 60 -o "$DIR/listing.json" "$LISTING" \
                 || fail 3 "cannot fetch the listing $LISTING" ;;
         http://*) fail 2 "refusing a plain-HTTP listing: $LISTING" ;;
         *)  local_listing=${LISTING#file://}
-            [ -f "$local_listing" ] || fail 2 "no listing file $local_listing"; cp "$local_listing" "$DIR/listing.json" ;;
+            [ -f "$local_listing" ] || fail 2 "no listing file $local_listing"
+            cp "$local_listing" "$DIR/listing.json" || fail 2 "cannot read the listing file $local_listing" ;;
     esac
 }
 
 # Rows "number<US>buildidentifier<US>channel<US>date<US>url<US>md5" for one device, from Google's
 # listing (a JSON array of flat objects). One record per object (RS="}"): linear in the listing's size.
+# JSON may escape "/" as "\/" (some serializers do): that is undone. A value with any other escape or
+# a control character is dropped, so a URL or checksum is never guessed and nothing forges a row.
 # Portable awk (one-true-awk on the laptop): no gensub, no \s.
 rows_for() {
     awk -v want="$1" -v us="$US" 'BEGIN { RS = "}" }
@@ -96,7 +157,8 @@ rows_for() {
             re = "\"" key "\"[ \t\r\n]*:[ \t\r\n]*(\"[^\"]*\"|-?[0-9.]+)"
             if (!match(obj, re)) return ""
             v = substr(obj, RSTART, RLENGTH); sub(/^"[^"]*"[ \t\r\n]*:[ \t\r\n]*/, "", v); gsub(/"/, "", v)
-            return v
+            gsub(/\\\//, "/", v)
+            return (index(v, "\\") || v ~ /[\001-\037\177]/) ? "" : v
         }
         {
             i = 0; while ((j = index(substr($0, i + 1), "{")) > 0) i += j   # last "{" of this record
@@ -109,9 +171,25 @@ rows_for() {
         }' "$DIR/listing.json"
 }
 
+# release_kind RUNNING_ID LATEST_ID: see the header. The train is the year letter, the product letter
+# and the quarter digit; the variant letter and the branch date follow.
+release_kind() {
+    awk -v a="$1" -v b="$2" '
+        function ok(s) { return s ~ /^[A-Z][A-Z][0-9][A-Z0-9]\.[0-9][0-9][0-9][0-9][0-9][0-9]\.[0-9]+(\.[A-Z0-9]+)?$/ }
+        BEGIN {
+            if (!ok(a) || !ok(b)) { print "unknown"; exit }
+            split(a, x, "."); split(b, y, ".")
+            if (substr(x[1], 1, 3) == substr(y[1], 1, 3)) { print (y[2] + 0 >= x[2] + 0) ? "monthly" : "unknown"; exit }
+            if (substr(x[1], 2, 1) != substr(y[1], 2, 1)) { print "unknown"; exit }   # another product
+            ta = substr(x[1], 1, 1) substr(x[1], 3, 1); tb = substr(y[1], 1, 1) substr(y[1], 3, 1)
+            print (tb > ta) ? "quarterly" : "unknown"
+        }'
+}
+
 cmd_check() {
     device=$(getprop ro.product.device)
     running=$(getprop ro.build.version.incremental)
+    running_id=${OPENBOOK_UPDATER_TEST_BUILD_ID:-$(getprop ro.build.id)}
     [ -n "$device" ] && [ -n "$running" ] || fail 2 "cannot read this laptop's device or build"
     case $running in *[!0-9]*) fail 2 "the running build number '$running' is not numeric" ;; esac
     fetch_listing
@@ -127,27 +205,36 @@ cmd_check() {
     # listing (tests and offline media), never from a listing fetched over the network.
     case $url in
         https://dl.google.com/*) ;;
-        file://*) case $LISTING in https://*) fail 4 "a network listing named a local file: $url" ;; esac ;;
-        *) fail 4 "unexpected download location $url" ;;
+        file://*) case $LISTING in https://*) fail 9 "a network listing named a local file: $url" ;; esac ;;
+        *) fail 9 "unexpected download location $url" ;;
     esac
-    printf '%s' "$md5" | grep -qE '^[0-9a-f]{32}$' || fail 4 "the listing's MD5 for $id is malformed"
+    printf '%s' "$md5" | grep -qE '^[0-9a-f]{32}$' || fail 9 "the listing's MD5 for $id is malformed"
+    latest_id=${id#*_}; [ "$latest_id" != "$id" ] || latest_id=
+    kind=$(release_kind "$running_id" "$latest_id")
+    prune_obsolete "$running"
     if num_gt "$number" "$running"; then
+        write_release number "$number" latest "$id" latest_id "$latest_id" latest_date "$date" kind "$kind" \
+            url "$url" md5 "$md5" device "$device" running "$running" running_id "$running_id"
+        record_new result update-available device "$device" running "$running" running_id "$running_id" \
+            latest "$id" latest_id "$latest_id" latest_date "$date" kind "$kind" url "$url" md5 "$md5"
         CHECKED=1
-        prune_obsolete "$running"
-        record_new result update-available device "$device" running "$running" latest "$id" latest_date "$date" url "$url" md5 "$md5"
-        say "update available: $device runs $running; Google lists $id ($date, $channel)"
+        [ "$CMD" = check ] && FINAL=1 FINAL_RC=10
+        say "update available ($kind): $device runs $running ($running_id); Google lists $id ($date, $channel)"
         return 10
     fi
+    write_release number "$number" latest "$id" latest_id "$latest_id" latest_date "$date" \
+        device "$device" running "$running" running_id "$running_id"
+    record_new result up-to-date device "$device" running "$running" running_id "$running_id" \
+        latest "$id" latest_id "$latest_id" latest_date "$date"
     CHECKED=1
-    prune_obsolete "$running"
-    record_new result up-to-date device "$device" running "$running" latest "$id" latest_date "$date"
+    [ "$CMD" = check ] && FINAL=1 FINAL_RC=0
     say "up to date: $device runs $running; newest listed is $id ($date)"
     return 0
 }
 
 # Downloads live in all-digit directories DIR/<build>/ holding only the updater's own files.
 remove_download() {
-    rm -f "$1/recovery.zip" "$1/recovery.zip.part" "$1/recovery.zip.md5"
+    rm -f "$1/recovery.zip" "$1/recovery.zip.part" "$1/recovery.zip.md5" "$1/release.info"
     rmdir "$1" 2>/dev/null && say "removed the download ${1##*/} ($2)"
 }
 # Builds at or below the running one are installed or superseded: drop them.
@@ -169,23 +256,40 @@ prune_except() {
 
 cmd_download() {
     cmd_check; rc=$?
-    [ $rc = 10 ] || { say "nothing to download"; return 0; }
+    [ $rc = 10 ] || { FINAL=1 FINAL_RC=0; say "nothing to download"; return 0; }
+    case $kind in
+        monthly) ;;
+        *)  FINAL=1 FINAL_RC=8                   # first: a stop from here on keeps the check's record
+            record result held
+            say "not downloading $id: a $kind release needs OpenBook support for this laptop first"
+            return 8 ;;
+    esac
     out="$DIR/$number"; mkdir -p "$out" || fail 2 "cannot create $out"
-    # A finished download is re-hashed before it is reported verified again: the marker alone could be
-    # planted or the zip could have changed since.
-    if [ -f "$out/recovery.zip" ] && [ "$(cat "$out/recovery.zip.md5" 2>/dev/null)" = "$md5" ]; then
-        if [ "$(md5sum "$out/recovery.zip" | cut -d' ' -f1)" = "$md5" ]; then
+    # Which release this download is, for the app: Google's listing names one build per device and may
+    # move on while a verified download waits.
+    pairs number "$number" latest "$id" latest_id "$latest_id" latest_date "$date" kind "$kind" | write_kv "$out/release.info"
+    # A finished download is re-hashed before it is reported verified again, marker or not: the marker
+    # alone could be stale or planted, and a stop between the rename and the marker leaves none.
+    if [ -f "$out/recovery.zip" ]; then
+        STOP_NOTE="the downloaded file of $id is kept and verified on the next run"
+        record result verifying
+        md5_of "$out/recovery.zip"
+        if [ "$MD5" = "$md5" ]; then
+            printf '%s\n' "$md5" > "$out/recovery.zip.md5" || fail 2 "cannot record the verification of $id"
             prune_except "$out"
             record result downloaded verified "$id" path "$out/recovery.zip" md5 "$md5"
+            FINAL=1 FINAL_RC=0
             say "already downloaded and verified: $out/recovery.zip"; return 0
         fi
-        say "the earlier download of $id no longer matches Google's MD5; downloading it again"
+        say "the earlier download of $id does not match Google's MD5; downloading it again"
         rm -f "$out/recovery.zip" "$out/recovery.zip.md5"
     fi
     proto=$(proto_for "$url")
     # shellcheck disable=SC2086  # $proto holds separate curl options
-    size=$(curl -fsSIL $proto --max-time 60 "$url" 2>/dev/null | tr -d '\r' \
+    transfer "$DIR/headers" -fsSIL $proto --max-time 60 "$url"
+    size=$(tr -d '\r' < "$DIR/headers" \
            | awk '/^HTTP\// { n = 0 } tolower($1) == "content-length:" { n = $2 } END { printf "%.0f", n + 0 }')
+    rm -f "$DIR/headers"
     part="$out/recovery.zip.part"
     have=0; [ -f "$part" ] && have=$(stat -c %s "$part")
     if num_gt "$size" 0 && num_gt "$have" "$size"; then
@@ -196,14 +300,16 @@ cmd_download() {
     need_kb=$(awk -v s="$size" -v h="$have" -v r="$RESERVE_KB" 'BEGIN { printf "%.0f", (s - h) / 1024 + r }')
     num_ge "$free_kb" "$need_kb" || fail 5 "not enough space in $out: ${free_kb} KiB free, ${need_kb} KiB needed (download + reserve)"
     num_gt "$size" 0 || say "warning: the server did not report a size; only the reserve was checked"
-    record result downloading build "$id" bytes "$size" path "$out/recovery.zip"
+    record result downloading build "$id" bytes "$size" path "$out/recovery.zip" part "$part"
+    STOP_NOTE="the partial download of $id is kept"
     if num_gt "$size" 0 && [ "$have" = "$size" ]; then
         say "partial download of $id is already complete ($have bytes); verifying"
     else
         say "downloading $id ($size bytes, resuming at $have)"
         # shellcheck disable=SC2086
-        http=$(curl -fsSL $proto --retry 3 --retry-delay 5 -C - -w '%{http_code}' -o "$part" "$url" 2>> "$DIR/updater.log")
+        transfer "$DIR/http_code" -fsSL $proto --retry 3 --retry-delay 5 -C - -w '%{http_code}' -o "$part" "$url"
         rc=$?
+        http=$(cat "$DIR/http_code" 2>/dev/null); rm -f "$DIR/http_code"
         if [ $rc != 0 ]; then
             # Only a refused range (curl 33/36, HTTP 416) means the partial cannot continue: restart it once.
             # Any other failure (network, server) keeps the partial for the next run to resume.
@@ -214,20 +320,23 @@ cmd_download() {
             say "the server refused to resume $id (curl $rc, HTTP ${http:-none}); restarting from the beginning"
             rm -f "$part"
             # shellcheck disable=SC2086
-            curl -fsSL $proto --retry 3 --retry-delay 5 -o "$part" "$url" 2>> "$DIR/updater.log" \
+            transfer /dev/null -fsSL $proto --retry 3 --retry-delay 5 -o "$part" "$url" \
                 || fail 3 "download of $id failed; rerun to resume"
         fi
     fi
-    got=$(md5sum "$part" | cut -d' ' -f1)
-    if [ "$got" != "$md5" ]; then
+    STOP_NOTE="the downloaded file of $id is kept and verified on the next run"
+    record result verifying
+    md5_of "$part"
+    if [ "$MD5" != "$md5" ]; then
         rm -f "$part"
-        fail 4 "$id failed Google's MD5 check (got $got, listing $md5); the partial file was removed"
+        fail 4 "$id failed Google's MD5 check (got ${MD5:-nothing}, listing $md5); the partial file was removed"
     fi
     rm -f "$out/recovery.zip.md5"
     mv "$part" "$out/recovery.zip" || fail 2 "cannot move the verified download into place"
     printf '%s\n' "$md5" > "$out/recovery.zip.md5" || fail 2 "cannot record the verification of $id"
     prune_except "$out"
     record result downloaded verified "$id" path "$out/recovery.zip" md5 "$md5"
+    FINAL=1 FINAL_RC=0
     say "downloaded and verified $id: $out/recovery.zip"
     return 0
 }
@@ -282,6 +391,7 @@ if [ "${OPENBOOK_UPDATER_LOCKED:-}" != "$DIR" ]; then
     OPENBOOK_UPDATER_LOCKED=$DIR exec sh "$0" "$@" 9>> "$DIR/lock"
 fi
 flock -n 9 || { echo "another openbook-updater run holds $DIR/lock"; exit 6; }
+trap stop TERM INT HUP
 case $CMD in
     check) cmd_check ;;
     download) cmd_download ;;

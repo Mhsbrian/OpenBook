@@ -77,27 +77,79 @@ with notifications and an explicit approval before anything is installed (owner'
 Look: Material You (dynamic colour from the wallpaper), the Googlebook system typography, and an
 "OpenBook" mark on the update-specific screens.
 
-### How it is built
+### How it is built (phase 2, 2026-10-23)
 
-- **App:** Kotlin + Jetpack Compose, Material 3. A privileged app in `/system/priv-app`, signed with an
-  OpenBook app key (private key on the build host). It is added through the OpenBook system layer, so
-  `rebase-google-build.py` carries it onto every Google build.
-- **Engine:** `openbook-updater` (already built and tested) runs as the app's child process in the app's
-  own SELinux domain. Phase 3/4 tools join it there. Checks are WorkManager jobs, visible in Android's
-  settings like any app's.
-- **Install:** the proven update_engine path. The app serves its own signed payload on `127.0.0.1`
-  (update_engine is allowed to fetch HTTP and was shown to apply it on this laptop), then calls
-  `update_engine_client`.
-- **Restart:** only after confirmation, through Android's reboot API: the REBOOT permission, allow-listed
-  for this one privileged app.
-- **SELinux:** a dedicated app domain chosen by `seapp_contexts`/`mac_permissions.xml` for this package
-  and its certificate, both of which we own. It gets only:
-  - the network (for the engine);
-  - its own app data;
-  - running its shell and tools;
-  - binder calls to update_engine.
-- **No init service:** the earlier init-service variant (`openbook-updater.rc`) was VM-tested but will
-  not ship; the app replaces it.
+- **App:** `device/anybook/common/updater/app/`, Kotlin + Jetpack Compose + Material 3, package
+  `org.openbook.update`. A privileged app in `/system/priv-app/OpenBookUpdate`, signed with the OpenBook app
+  key (RSA-4096; private key on the build host only, `make-app-key.sh`). The release APK is
+  byte-reproducible (`build.sh --reproducible-check`) and pinned by SHA-256 in `app-pins.json`.
+- **Engine:** `openbook-updater` ships inside the APK (pinned in `pins.json`; the build stops if it differs),
+  is copied into the app's private files and runs as the app's child process in the app's own domain. Its
+  output goes to a file, so a stop request (SIGTERM, then SIGKILL after 10 s) never cuts it off: it ends
+  its transfer and records `stopped`, and the next run resumes the partial file.
+- **Background work:** WorkManager. A daily or weekly check (network connected); a check when the app
+  opens after 12 hours; the download only on unmetered networks with enough storage, as a visible
+  foreground job with a progress notification. Each release is announced once.
+- **Kinds of release.** The engine classifies each release from the two Android build IDs. A build ID such
+  as `CL3B.260622.276.R4` starts with its release train: a year letter (C = 2026), a product letter, the
+  quarter (3) and a variant. A new Android version arrives with a new train (the year letter alone does
+  not tell it: Android 17 shipped under C with the second quarter), so only the train decides:
+
+  | Kind | From the build IDs | Handling |
+  |---|---|---|
+  | Monthly update | same train (first three characters), same or later branch date | downloads on Wi-Fi; adapting it on the laptop comes with phase 3 |
+  | Quarterly release | a later train of the same product (possibly a new Android version) | held: OpenBook checks the adaptations against it and delivers it as an OpenBook update |
+  | Unrecognized | unparseable, an earlier train or date, another product | held for review |
+  | Beta | listing channel other than STABLE | ignored |
+  | Google Play system updates | (APEX, via Google Play) | outside this app |
+  | OpenBook's own updates | (update_engine, e.g. from a computer) | shown as installing / restart to finish |
+
+  Google's real step from 16452207 (`CL3B.260622.271.R1`) to 16658739 (`CL3B.260622.276.R4`) is a monthly
+  update by this rule. A release that changes a file OpenBook adapts, or no longer fits, stops at the
+  adaptation (phase 3).
+- **Install and restart:** in phase 2 the app watches update_engine (status and progress) and restarts
+  into an installed update only after the owner confirms, through `PowerManager.reboot` (REBOOT, its only
+  privileged permission, allow-listed in `privapp-permissions-org.openbook.update.xml`). After the restart
+  it reports the result from the A/B slot it came back on: updated, or "went back" after a fallback.
+  Installing a release the laptop adapted itself arrives with phases 3–4; until then the checklist shows
+  those steps as "comes with a later OpenBook update".
+- **SELinux:** in this image only Google's updater (`gmscore_app`) and system components may call
+  update_engine; the ordinary privileged-app domain (`priv_app`) cannot. So the app has its own domain,
+  `openbook_update_app` (`app-sepolicy.cil`), built like Google's `vmlauncher_app`: `priv_app_all` (what any
+  privileged app may do) plus binder calls to update_engine. The statements Android gives every app
+  domain (shared memory, userfaultfd, the per-domain neverallows) are derived from what the image's policy
+  gives Google's six app domains, so they follow Google's policy; the rebase checks them against each new
+  one. `plat_seapp_contexts` selects the domain only for this package signed with the OpenBook certificate
+  (seinfo `openbook` in `plat_mac_permissions.xml`). The policy is compiled with the image's own inputs,
+  neverallows included, and the app context is checked with `checkseapp`. Accepted for phase 2: binder
+  access to update_engine cannot be narrowed to status calls, and the network-facing engine runs in the
+  same domain (its input is TLS from dl.google.com, parsed by a fixed awk reader); phase 3's adaptation
+  tools, which parse release images, get a separate, narrower domain.
+- **Privileged permissions:** this image does not enforce the privileged-permission allow-list
+  (`ro.control_privapp_permissions` is unset), so the builder is the gate: every signature or internal
+  framework permission the APK requests (`uses-permission` and `uses-permission-sdk-23`) must be in
+  `privapp-permissions-org.openbook.update.xml`, which holds REBOOT only.
+- **Users:** Googlebook runs a headless system user (user 0) beside the owner's. Only an admin user (the
+  owner) runs checks and downloads and may restart; a guest or other user sees who manages updates. The
+  sysconfig installs the app for full users, not guests, on a first boot; an OpenBook update keeps Google's
+  fingerprint, so there the app also exists for the headless user and stays idle in it.
+- **Notifications:** pre-granted on a first boot (`default-permissions-org.openbook.update.xml`). Android
+  applies default grants only on a first boot or a new build fingerprint, and an OpenBook update keeps
+  Google's fingerprint: there, the app asks once when opened, and shows "Notifications are off" until
+  allowed. A notification that could not be shown is shown at a later check (it is recorded as announced
+  only once it was posted); "restart to finish" is posted again whenever update_engine still waits.
+- **After a restart:** "updated" when the laptop came back on the other slot. "The new version didn't start"
+  only after a restart the owner confirmed in the app and a return to the same slot; otherwise (a waiting
+  update withdrawn meanwhile, or an unreadable slot) nothing is claimed. OpenBook's update tooling
+  (`g14-ota.sh`) tells the app when it staged an update (a receiver only the shell or system can call), so
+  "Restart to finish" appears at once.
+- **App updates:** each app version gets its own directory (`OpenBookUpdate-v<versionCode>`): Android caches
+  parsed packages and trusts an unchanged path while the build fingerprint stays Google's.
+- **Battery:** exempt from power saving like Android's own updater (`sysconfig`), so a download found in
+  the background may run as a foreground job.
+- **Carried forward:** `rebase-google-build.py` re-applies all of it to each new Google build: added paths;
+  appended policy, file contexts and app contexts; the signer inserted again before `</policy>`; the policy
+  compiled again and the app contexts checked against it. A conflict stops the rebase.
 
 ## Phases
 
@@ -114,9 +166,10 @@ Look: Material You (dynamic colour from the wallpaper), the Googlebook system ty
    - Two code reviews; every valid finding fixed and tested.
    - Not yet run: a full-size download. The laptop is on the newest build, so there is nothing real
      to fetch.
-2. **The OpenBook Update app, with the engine and approval flow.**
+2. **The OpenBook Update app, with the engine and approval flow** — built 2026-10-23
+   (`device/anybook/common/updater/app/`; evidence `evidence/2026-10-23-update-app/`).
    - Toolchain, app, its SELinux domain and privileged permissions, in the OpenBook layer.
-   - Shown in the VM: screens, notifications, check and download.
+   - Tested on Google's Android Desktop emulator and in the Ruby VM (see the evidence README).
    - Delivered as one two-slot update after the owner approves.
 3. **Reconstruct and adapt on the laptop.**
    - Android builds of the inventory checker and an AVB signer; the OpenBook layer as on-laptop data.

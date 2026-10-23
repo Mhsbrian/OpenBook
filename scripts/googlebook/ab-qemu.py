@@ -21,6 +21,7 @@ import json
 import os
 from pathlib import Path
 import re
+import socket
 import struct
 import subprocess
 import time
@@ -69,6 +70,53 @@ def userdata_ok(serial, built):
     return mounted and 0.95 * size <= formatted <= size
 
 
+def observe_screens(proc, qmp, seconds, work, markers):
+    """mq.observe, plus a screenshot (QMP screendump, PPM: the TCG build has no PNG support) the first time
+    each marker line appears on the serial console: screen-<marker>.ppm."""
+    deadline = time.monotonic() + seconds
+    while not qmp.exists():
+        mq.m.require(proc.poll() is None and time.monotonic() < deadline, "Android QMP did not start")
+        time.sleep(0.1)
+    events, pending, taken = [], b"", set()
+    serial = work / "serial.log"
+    with socket.socket(socket.AF_UNIX) as sock, (work / "android-qmp-events.jsonl").open("w") as log:
+        sock.settimeout(1)
+        while True:                                     # the socket file appears before QEMU listens
+            try:
+                sock.connect(str(qmp))
+                break
+            except ConnectionRefusedError:
+                mq.m.require(proc.poll() is None, "QEMU exited before QMP was ready; see qemu.log")
+                mq.m.require(time.monotonic() < deadline, "QMP never accepted a connection")
+                time.sleep(0.2)
+        sock.sendall(b'{"execute":"qmp_capabilities"}\n')
+        while time.monotonic() < deadline:
+            text = serial.read_text(errors="replace") if serial.exists() else ""
+            for marker in markers:
+                if marker not in taken and re.search(rf"(?m)^{re.escape(marker)}\r?$", text):
+                    taken.add(marker)
+                    target = work / f"screen-{marker}.ppm"
+                    sock.sendall(json.dumps({"execute": "screendump",
+                                             "arguments": {"filename": str(target)}}).encode() + b"\n")
+            try:
+                data = sock.recv(65536)
+            except socket.timeout:
+                if proc.poll() is not None:
+                    break
+                continue
+            if not data:
+                break
+            pending += data
+            while b"\n" in pending:
+                line, pending = pending.split(b"\n", 1)
+                row = json.loads(line)
+                log.write(json.dumps(row) + "\n"); log.flush()
+                if "event" in row:
+                    events.append(row)
+    completed = time.monotonic() >= deadline and proc.poll() is None
+    return completed, events
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     for name in ("image-dir", "qemu", "bootsync", "out"):
@@ -77,6 +125,8 @@ def main():
     p.add_argument("--accel", choices=("tcg", "kvm"), default="tcg",
                    help="kvm: the host CPU runs Ruby natively (GFNI/VNNI in hardware); tcg needs the GFNI/VNNI-emulating build")
     p.add_argument("--reevaluate", action="store_true", help="judge an existing --out run again; no VM boot")
+    p.add_argument("--screenshot-on", action="append", default=[], metavar="MARKER",
+                   help="take screen-MARKER.ppm when a serial line equals MARKER (repeatable)")
     a = p.parse_args()
     if not Path("/.dockerenv").exists():
         p.error("Run in the openbook-installer container")
@@ -107,7 +157,8 @@ def main():
     with r.tpm_backend(a.out, True), (a.out / "qemu.log").open("wb") as log:
         proc = subprocess.Popen(cmd, cwd=a.out, stdout=log, stderr=subprocess.STDOUT)
         try:
-            completed, events = mq.observe(proc, a.out / "qmp.sock", a.seconds, a.out)
+            completed, events = (observe_screens(proc, a.out / "qmp.sock", a.seconds, a.out, a.screenshot_on)
+                                 if a.screenshot_on else mq.observe(proc, a.out / "qmp.sock", a.seconds, a.out))
         finally:
             mq.stop(proc)
     elapsed = round(time.monotonic() - start, 1)
