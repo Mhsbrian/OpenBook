@@ -1,0 +1,72 @@
+{
+  "schema": "openbook-ruby-physical-write/1",
+  "release": "RB-20261023-01",
+  "record": "ANAL-254",
+  "device": "SanDisk Ultra USB stick ending 2034",
+  "approvals": [
+    "ANAL-229 comment 01a16647-3166-7e0c-9e08-679750a73061: I approved, update the stick"
+  ],
+  "packaging_tools": "4b5d9ef2136895da45c3f67332304961689cb33a",
+  "installer_image": "openbook-ruby-installer:anal229-ab (60cb8b00; code identical to the tools commit)",
+  "host_automount_note": "the desktop auto-mounted the stick's metadata partition (sda7); unmounted before the backup",
+  "backup": {
+    "sha256": "fddc43455d063d13082bfe6f26070f8ccc1857084d3dd5c8154a6eb1f57b0a30",
+    "reads": 2,
+    "reads_match": true,
+    "started_utc": "2026-10-23T01:02:49Z",
+    "finished_utc": "2026-10-23T01:07:31Z",
+    "vs_last_write_8834cd89": {
+      "EFI": "differs",
+      "misc": "equal",
+      "boot_a": "equal",
+      "init_boot_a": "equal",
+      "vendor_boot_a": "equal",
+      "vbmeta_a": "equal",
+      "metadata": "differs",
+      "super": "equal",
+      "userdata": "differs"
+    },
+    "note": "EFI, metadata and userdata changed during the laptop's live session; GPT and system partitions equal"
+  },
+  "recomposition": {
+    "stage_a_image_sha256": "745e8b1040c606a2efdb341983dbeadda6b7521a1dc5a435194e3e5e3fa37418",
+    "installer_pin_sha256": "01f869611963fe3d9bcec05b7b153ddb6e263ed794e3b500021c77d6156ca5c6",
+    "plan_sha256": "725bb90d999ba4edb4e550ece67cd62cf868033dfd1ebc2a5d0bdd9532b30d87",
+    "plan_differs_from_rehearsed_dev_plan_only_in": [
+      "release",
+      "source_build",
+      "source_pin_sha256"
+    ],
+    "replaced_installer_build_sha256": "7418bbb0e908be158132550570695bf39df350f86b899f6e9aa0a13cb95843fd",
+    "stages": [
+      {
+        "name": "stage-a-system",
+        "operation": "SystemUpdate (system only, candidate R)"
+      },
+      {
+        "name": "stage-b-installer",
+        "operation": "Replace (two-slot Fresh entry; Update/Restore retired)"
+      }
+    ]
+  },
+  "rehearsal_on_final": {
+    "install": true,
+    "install_s": 76.4,
+    "boot_passed": true
+  },
+  "preflight": "read-only physical preflight passed",
+  "started_utc": "2026-10-23T01:30:40Z",
+  "finished_utc": "2026-10-23T01:39:26Z",
+  "written": [
+    "super",
+    "vbmeta_a",
+    "EFI"
+  ],
+  "image_bytes": 12766412800,
+  "expected_sha256": "6f555e19b854198229400d3263a11214e8ccd157bb9166df42d02baff37bae11",
+  "readback_sha256": "6f555e19b854198229400d3263a11214e8ccd157bb9166df42d02baff37bae11",
+  "verified": true,
+  "protected_bytes": 8805941248,
+  "powered_off": true,
+  "laptop_written": false
+}

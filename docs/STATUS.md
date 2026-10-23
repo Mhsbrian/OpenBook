@@ -1869,3 +1869,11 @@ and full Photos-use verification remain pending. Evidence: `evidence/2026-10-19-
 - **Next:** release RB-20261023-01 (owner approval), stick write, owner runs it on the G14. The first two-slot update is then the patched Google 16658739.
 - **Evidence:** `evidence/2026-10-23-ab-install/`.
 
+
+### 2026-10-23: RB-20261023-01 written to the stick (ANAL-229, ANAL-254)
+- B Honey approved RB-20261023-01 and its USB write. The release is candidate R (RB-20261022-01 + owner OTA policy) plus the two-slot Fresh install entry.
+- Fresh two-read backup of the SanDisk ending 2034 (`fddc4345…`). Recomposed with tools `4b5d9ef`; the plan has the same writes as the rehearsed development build.
+- Rehearsal on the final image `6f555e19…`: the installer installed a 1 TB NVMe in 76 s, identical to the reference; the installed disk booted 9/9.
+- Preflight passed. Wrote super, vbmeta_a and EFI; readback `6f555e19…`; stick powered off.
+- **Stick pointer:** RB-20261023-01. **Laptop:** unchanged (RB-20261022-01) until the owner runs the two-slot Fresh install.
+- **Evidence:** `evidence/2026-10-23-rb-20261023-01/`.
