@@ -1903,3 +1903,14 @@ and full Photos-use verification remain pending. Evidence: `evidence/2026-10-19-
   - SELinux enforcing; only Google's `repairmode` app crashes (known).
 - **Laptop pointer:** RB-20261023-02.
 - **Evidence:** `evidence/2026-10-23-rb-20261023-02/g14-installed.json`.
+
+### 2026-10-23: first wireless two-slot update on the G14 (ANAL-229)
+- Owner-approved test update: RB-20261023-02 reinstalled into slot B. The release is unchanged, so this tests the update machinery only.
+- **VM first:** apply 11/11, boot B 7/7, slot B byte-identical 10/10, fallback 7/7. The fallback judge counted update_engine's rollback-cleanup line as a slot-B boot; fixed in `ab-ota-qemu.py`, with a regression test.
+- **On the laptop:**
+  - A LAN-served payload was blocked by the host firewall; nothing was written.
+  - `g14-ota.sh --via-adb` (adb reverse, host server on 127.0.0.1): `kSuccess` in 56 s.
+  - Idle-checked reboot: slot B booted in 52 s, merge completed, state counts unchanged.
+- **Laptop pointer:** RB-20261023-02, slot B.
+- **Evidence:** `evidence/2026-10-23-ota-test/`.
+

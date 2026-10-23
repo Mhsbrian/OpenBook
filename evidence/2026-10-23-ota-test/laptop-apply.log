@@ -1,0 +1,19 @@
+13:13:21 1/5 preflight
+incremental payload, 10 partitions: FITS; snapshot 0.05 GiB of 20.65 GiB free in super (the payload's source sizes)
+13:13:21 2/5 device
+13:13:21    running slot _a; OpenBook certificate yes; second slot yes
+13:13:21    will stream http://127.0.0.1:8090/payload.bin (150380 bytes) into slot _b
+13:13:21    approval: RB-20261023-02 test update (same release into slot B) to the G14, ANAL-229 01a168b1
+13:13:21 3/5 serve
+13:13:22    laptop 127.0.0.1:8090 -> this host's 127.0.0.1:8090 through adb
+13:13:22 4/5 apply
+[INFO:update_engine_client_android.cc(94)] onStatusUpdate(UPDATE_STATUS_IDLE (0), 0)
+[INFO:update_engine_client_android.cc(94)] onStatusUpdate(UPDATE_STATUS_VERIFYING (4), 0.0700542)
+[INFO:update_engine_client_android.cc(94)] onStatusUpdate(UPDATE_STATUS_VERIFYING (4), 0.362159)
+[INFO:update_engine_client_android.cc(94)] onStatusUpdate(UPDATE_STATUS_VERIFYING (4), 0.562357)
+[INFO:update_engine_client_android.cc(94)] onStatusUpdate(UPDATE_STATUS_VERIFYING (4), 0.762503)
+[INFO:update_engine_client_android.cc(94)] onStatusUpdate(UPDATE_STATUS_VERIFYING (4), 0.975057)
+[INFO:update_engine_client_android.cc(102)] onPayloadApplicationComplete(ErrorCode::kSuccess (0))
+13:14:18    update_engine: ErrorCode::kSuccess
+13:14:18 5/5 applied; reboot the laptop to switch to slot _b (or rerun with --reboot)
+13:14:19    server log: <server log>

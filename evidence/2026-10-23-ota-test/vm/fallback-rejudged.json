@@ -1,0 +1,120 @@
+{
+  "phase": "fallback",
+  "attempts": [
+    {
+      "attempt": 1,
+      "booted_slot": "b",
+      "boot_completed": false,
+      "avb_error": true,
+      "elapsed_s": 9.7,
+      "timed_out": false,
+      "qmp_events": [
+        "RTC_CHANGE",
+        "SHUTDOWN"
+      ],
+      "booted_slot_recorded": "b"
+    },
+    {
+      "attempt": 2,
+      "booted_slot": "b",
+      "boot_completed": false,
+      "avb_error": true,
+      "elapsed_s": 8.8,
+      "timed_out": false,
+      "qmp_events": [
+        "RTC_CHANGE",
+        "SHUTDOWN"
+      ],
+      "booted_slot_recorded": "b"
+    },
+    {
+      "attempt": 3,
+      "booted_slot": "b",
+      "boot_completed": false,
+      "avb_error": true,
+      "elapsed_s": 8.8,
+      "timed_out": false,
+      "qmp_events": [
+        "RTC_CHANGE",
+        "SHUTDOWN"
+      ],
+      "booted_slot_recorded": "b"
+    },
+    {
+      "attempt": 4,
+      "booted_slot": "a",
+      "boot_completed": true,
+      "avb_error": false,
+      "elapsed_s": 1800.7,
+      "timed_out": true,
+      "qmp_events": [
+        "RTC_CHANGE"
+      ],
+      "booted_slot_recorded": "ab"
+    }
+  ],
+  "bootsync": {
+    "schema": "openbook-bootsync/1",
+    "command": "status",
+    "current_slot": "a",
+    "slots": {
+      "a": {
+        "images_ok": true,
+        "vbmeta_digest": "6e034954d4c277c94d009c41879e948e0c04f32cde92282a50551a9cc6417d10",
+        "vbmeta_key_sha256": "7728e30f50bfa5cea165f473175a08803f6a8346642b5aa10913e9d9e6defef6",
+        "vbmeta_signed": true,
+        "vbmeta_release": "avbtool 1.4.0",
+        "entry": "openbook-a.conf",
+        "entry_state": "good",
+        "esp_files": "in_sync"
+      },
+      "b": {
+        "images_ok": false,
+        "images_error": "vbmeta_b has no hash descriptor for boot",
+        "vbmeta_digest": "1e31dd45e659341d2b6a933cc84f6c34fbfadb43ead34cb15dd9cba9dfcfad81",
+        "vbmeta_key_sha256": "7728e30f50bfa5cea165f473175a08803f6a8346642b5aa10913e9d9e6defef6",
+        "vbmeta_signed": true,
+        "vbmeta_release": "avbtool 1.4.0",
+        "entry": "openbook-b+0-3.conf",
+        "entry_state": "bad"
+      }
+    },
+    "entries": [
+      {
+        "file": "openbook-a.conf",
+        "id": "openbook-a.conf",
+        "slot": "a",
+        "state": "good"
+      },
+      {
+        "file": "openbook-b+0-3.conf",
+        "id": "openbook-b.conf",
+        "slot": "b",
+        "state": "bad",
+        "tries_left": 0,
+        "tries_done": 3
+      }
+    ],
+    "loader_conf": {
+      "default": "openbook-a.conf",
+      "preferred": null
+    },
+    "next_boot_entry": "openbook-a.conf",
+    "next_boot_slot": "a",
+    "esp_free_bytes": 1011404800,
+    "ok": true
+  },
+  "snapshot_state": "None",
+  "checks": {
+    "slot_b_attempts_failed": true,
+    "systemd_boot_counted_down_to_a": true,
+    "fell_back_to_slot_a": true,
+    "slot_a_boot_completed": true,
+    "slot_b_entry_bad_or_gone": true,
+    "next_boot_a": true,
+    "update_rolled_back": true
+  },
+  "schema": "openbook-ruby-ab-ota/1",
+  "passed": true,
+  "rejudged": "booted_slot fixed to first-stage init lines (update_engine's rollback cleanup names system_b)"
+}

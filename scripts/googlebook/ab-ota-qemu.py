@@ -84,8 +84,11 @@ def snapshot_state(disk, offs, lens, work):
 
 
 def booted_slot(serial):
-    """first-stage init names the slot it maps: 'Created logical partition system_a' (or a _b snapshot)."""
-    slots = set(re.findall(r"(?:Created logical partition|Mapped|snapshot)[^\n]*?\bsystem_([ab])\b", serial))
+    """The slot first-stage init maps: 'init: [libfs_mgr] Created logical partition system_a', or for a
+    snapshot boot 'system_b-base' / 'init: Mapped COW device for system_b'. Only init's lines count:
+    update_engine also names system_b when it unmaps a rolled-back snapshot on the old slot."""
+    slots = set(re.findall(r"init: (?:\[libfs_mgr\] )?(?:Created logical partition|Mapped COW device for) "
+                           r"system_([ab])\b", serial))
     return "".join(sorted(slots)) or None
 
 
