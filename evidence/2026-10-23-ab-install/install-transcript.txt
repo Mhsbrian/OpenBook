@@ -1,0 +1,51 @@
+OPENBOOK · Fresh Googlebook install (two slots)
+
+Offline installation for the same laptop. The source USB stays unchanged.
+The selected SSD is replaced completely. Back up its existing contents first.
+Connect the charger before installing.
+FRESH START: no USB or SSD accounts, apps, files or settings are retained.
+Android creates new encrypted data storage using the remaining SSD space.
+Two system slots: OpenBook updates install beside the running system and fall back
+to it automatically if the new one does not start.
+Automatic Google OS updates are NOT qualified or blocked by this installer.
+
+1. QEMU NVMe Ctrl · 1000.2 GB · serial MIGRATIONTEST · /dev/nvme1n1
+
+Disk number, or Enter to cancel: 1
+
+Checking the source before confirmation. This can take several minutes.
+
+This erases ALL existing partitions on QEMU NVMe Ctrl (/dev/nvme1n1).
+Serial: MIGRATIONTEST · capacity: 1000204886016 bytes
+New Android data partition: 972.50 GB before filesystem overhead.
+All current SSD data will be lost. Setup starts from scratch.
+Your configured USB is retained. This is not a secure erase.
+After verification, a new OpenBook Googlebook firmware boot entry is added.
+Type exactly 'FRESH ERASE MIGRATIONTEST' to install, or Enter to cancel: FRESH ERASE MIGRATIONTEST
+Source verified. Installing two slots; keep power connected.
+Writing EFI (1024 MiB)
+Writing misc (4 MiB)
+Writing boot_a (128 MiB)
+Writing boot_b (128 MiB)
+Writing init_boot_a (16 MiB)
+Writing init_boot_b (16 MiB)
+Writing vendor_boot_a (64 MiB)
+Writing vendor_boot_b (64 MiB)
+Writing vbmeta_a (4 MiB)
+Writing vbmeta_b (4 MiB)
+Writing pvmfw_a (4 MiB)
+Writing pvmfw_b (4 MiB)
+Writing recovery_a (32 MiB)
+Writing recovery_b (32 MiB)
+Writing ota_recovery_a (128 MiB)
+Writing ota_recovery_b (128 MiB)
+Writing metadata (64 MiB)
+Writing super (24576 MiB)
+Writing userdata (927448 MiB)
+
+INSTALL VERIFIED. Original USB unchanged.
+Firmware boot entry created: OpenBook Googlebook.
+Power off, remove the USB, then boot OpenBook Googlebook from the SSD.
+Complete new setup and verify Storage capacity.
+
+Press Enter to power off. Keep your source USB.

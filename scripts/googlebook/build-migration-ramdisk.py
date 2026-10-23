@@ -98,6 +98,20 @@ def main():
                 raise ValueError("Laptop update record does not match the source pin")
             shutil.copyfile("/opt/openbook/laptop-update.py", root / "opt/openbook/laptop-update.py")
             shutil.copyfile(update, root / "opt/openbook/laptop-update.json")
+        # Optional two-slot fresh install plan, bound to this same pinned system.
+        ab_plan = Path("/input/ab-install.json")
+        if ab_plan.exists():
+            plan = json.loads(ab_plan.read_text())
+            bundle = Path("/input") / plan["bundle_file"]
+            if (plan.get("schema") != "openbook-ruby-ab-install/1" or plan["bundle_file"] != "ab-bundle.bin"
+                    or plan["source_pin_sha256"] != hashlib.sha256(pin.read_bytes()).hexdigest()
+                    or hashlib.sha256(bundle.read_bytes()).hexdigest() != plan["bundle_sha256"]):
+                raise ValueError("Two-slot plan does not match the source pin or its bundle")
+            if update.exists():
+                raise ValueError("A two-slot installer does not carry the single-slot laptop update")
+            for path in (ab_plan, bundle):
+                shutil.copyfile(path, root / "opt/openbook" / path.name)
+                shutil.copyfile(path, out / path.name)
         # Stable ordering and no host ownership in the cpio. The package lock and
         # output digests identify the precise environment; timestamps are normalized.
         for path in root.rglob("*"):

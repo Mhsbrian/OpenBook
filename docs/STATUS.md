@@ -1858,3 +1858,14 @@ and full Photos-use verification remain pending. Evidence: `evidence/2026-10-19-
 - **Deciding test (owner):** `amd-s2idle test` on the laptop's own Linux. If it reaches S0i3, diff its drivers against ours; if not, it's the BIOS.
 - **Scope:** S0i3 affects standby battery drain only. It does not block live USB booting or installation. It continues in ANAL-178 with the hardware-check stick, the probe and the `acpi_d3cold` module.
 - **Evidence:** `evidence/2026-10-16-g14-hwcheck/`.
+
+### 2026-10-23: two-slot fresh install from the stick, VM-proven (ANAL-229)
+- The stick's installer gained **Fresh install Googlebook to SSD (two slots) - ERASE SSD DATA**. It lays the stick's own pinned system out as the Ruby A/B disk (layout v2):
+  - from the stick: boot images and the six logical partitions;
+  - from a 38 MB bundle in the installer: ESP, super metadata, `vbmeta_a`;
+  - zeros: everything else.
+- The real installer, booted from the packaged stick image in QEMU, installed a blank 1 TB NVMe in 79 s. The result is identical to the reference image (27.7 GB compared), and the installed disk boots 9/9 (slot A marked successful, two slots, userdata 905.7 GiB).
+- Development build (candidate R = RB-20261022-01 + owner OTA policy). Not written to the stick or run on the G14. The single-slot Update/Restore entries are retired on a two-slot stick.
+- **Next:** release RB-20261023-01 (owner approval), stick write, owner runs it on the G14. The first two-slot update is then the patched Google 16658739.
+- **Evidence:** `evidence/2026-10-23-ab-install/`.
+

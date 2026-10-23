@@ -63,7 +63,7 @@ def capacity(fd):
     return info.st_size
 
 
-def read_gpt(fd):
+def read_gpt(fd, names=NAMES):
     size = capacity(fd)
     mbr = read_at(fd, 0, 512)
     require(mbr[510:] == b"\x55\xaa" and mbr[450] == 0xee, "Missing protective MBR")
@@ -102,7 +102,7 @@ def read_gpt(fd):
                          first_lba=start, last_lba=stop,
                          partuuid=str(uuid.UUID(bytes_le=e[16:32])),
                          type=str(uuid.UUID(bytes_le=e[:16]))))
-    require(tuple(r["name"] for r in rows) == NAMES, "Unsupported partition set/order")
+    require(names is None or tuple(r["name"] for r in rows) == names, "Unsupported partition set/order")
     require(len({r["partuuid"] for r in rows}) == len(rows), "Duplicate partition identity")
     return dict(rows=rows, used_bytes=(end + 1) * 512, disk_guid=first[56:72].hex())
 
@@ -327,6 +327,152 @@ def migrate(src, dst, pin, work, expected_source=None, before_write=None, fresh=
     return result
 
 
+
+# --- Two-slot fresh install (layout v2) -------------------------------------------------------------
+# The plan (build-ruby-ab-install.py) lays this USB's own pinned system out as the Ruby A/B disk that
+# was built and booted in QEMU: every partition except userdata's interior is written in full, from
+# the USB (boot images, the logical partitions inside super), from the plan's bundle (GPT-independent
+# overlay: ESP, super metadata, vbmeta_a) or as zeros (slot B, misc, metadata, free space).
+
+AB_SCHEMA = "openbook-ruby-ab-install/1"
+AB_MIN_USERDATA = 8 << 30
+GPT_RESERVE = 34 * 512  # protective MBR + header + 128 entries; plan-ruby-ab.py reserves the same at each end
+
+
+def ab_check_plan(plan, pin_sha256, bundle_fd):
+    require(plan.get("schema") == AB_SCHEMA, "Unrecognized two-slot install plan")
+    require(plan["source_pin_sha256"] == pin_sha256, "Two-slot plan is for a different USB system")
+    require(capacity(bundle_fd) == plan["bundle_bytes"]
+            and digest(bundle_fd, 0, plan["bundle_bytes"]) == plan["bundle_sha256"], "Two-slot bundle changed")
+    rows = plan["partitions"]
+    require(rows and rows[0]["name"] == "EFI" and rows[-1]["name"] == "userdata", "Unsupported two-slot layout")
+    require(len({r["name"] for r in rows}) == len(rows) == len({r["partuuid"] for r in rows}), "Duplicate partition")
+    at = plan["first_usable_lba"] * 512
+    for r in rows:
+        require(r["offset"] % MIB == 0 and r["offset"] >= at and r["length"] % MIB == 0 and r["length"] > 0,
+                f"Bad two-slot partition {r['name']}")
+        at = r["offset"] + r["length"]
+    covered = {}
+    for w in plan["writes"]:
+        require(w["from"] in ("usb", "bundle", "zero") and w["length"] > 0, "Bad two-slot write")
+        covered.setdefault(w["partition"], []).append((w["at"], w["length"]))
+    for r in rows[:-1]:
+        # Nothing stale survives outside userdata: the writes tile every other partition exactly.
+        spans = sorted(covered.pop(r["name"], []))
+        end = 0
+        for start, length in spans:
+            require(start == end, f"Two-slot plan leaves a gap or overlap in {r['name']}")
+            end = start + length
+        require(end == r["length"], f"Two-slot plan does not cover {r['name']}")
+    edges = covered.pop("userdata", [])
+    require(not covered and len(edges) == 2 and set(edges) == {(0, 4 * MIB), (-4 * MIB, 4 * MIB)},
+            "Two-slot plan must reset exactly userdata's two edges")
+
+
+def ab_target_gpt(plan, size):
+    """Primary/backup GPT for this disk: the plan's rows, userdata grown to the disk (as plan-ruby-ab.py)."""
+    require(size % 512 == 0, "Target unaligned")
+    rows = [dict(r) for r in plan["partitions"]]
+    data_end = (size - GPT_RESERVE) // MIB * MIB
+    rows[-1]["length"] = data_end - rows[-1]["offset"]
+    require(rows[-1]["length"] >= AB_MIN_USERDATA, "Target too small for the two-slot layout")
+    end = size // 512 - 1
+    table = bytearray(16384)
+    for i, r in enumerate(rows):
+        table[i * 128:(i + 1) * 128] = (
+            uuid.UUID(r["type"]).bytes_le + uuid.UUID(r["partuuid"]).bytes_le
+            + struct.pack("<QQQ", r["offset"] // 512, (r["offset"] + r["length"]) // 512 - 1, 0)
+            + r["name"].encode("utf-16-le").ljust(72, b"\0"))
+    disk_guid = uuid.UUID(plan["disk_guid"]).bytes_le
+
+    def header(here, other, loc):
+        data = bytearray(512)
+        struct.pack_into("<8sIIIIQQQQ16sQIII", data, 0, b"EFI PART", 0x10000, 92, 0, 0,
+                         here, other, plan["first_usable_lba"], end - 33, disk_guid, loc, 128, 128,
+                         zlib.crc32(table))
+        struct.pack_into("<I", data, 16, zlib.crc32(data[:92]))
+        return bytes(data)
+
+    mbr = bytearray(512)  # protective MBR exactly as sgdisk writes it
+    mbr[446:458] = bytes.fromhex("00000200eeffffff01000000")
+    struct.pack_into("<I", mbr, 458, min(end, 0xffffffff))
+    mbr[510:] = b"\x55\xaa"
+    return rows, [(0, bytes(mbr) + header(1, end, 2) + table),
+                  ((end - 32) * 512, bytes(table) + header(end, 1, end - 32))]
+
+
+def flush(dst, start, length):
+    os.fsync(dst)
+    # Flush the device cache and drop the host page cache, so readback reads the medium.
+    if stat.S_ISBLK(os.fstat(dst).st_mode):
+        fcntl.ioctl(dst, 0x1261)  # BLKFLSBUF
+    else:
+        os.posix_fadvise(dst, start, length, os.POSIX_FADV_DONTNEED)
+
+
+def install_ab(src, dst, pin, plan, bundle, work, pin_sha256, expected_source=None, before_write=None):
+    """Lay the pinned USB system out as the two-slot disk. FDs are opened and checked by the caller."""
+    ab_check_plan(plan, pin_sha256, bundle)
+    gpt = check_source(src, pin)
+    before = digest(src, 0, gpt["used_bytes"])
+    require(expected_source is None or before == expected_source, "Source changed after confirmation")
+    usb = {r["name"]: extent(r) for r in gpt["rows"]}
+    size = capacity(dst)
+    rows, headers = ab_target_gpt(plan, size)
+    place = {r["name"]: (r["offset"], r["length"]) for r in rows}
+    for w in plan["writes"]:
+        if w["from"] == "usb":
+            start, length = usb[w["source"]]
+            require(0 <= w["offset"] and w["offset"] + w["length"] <= length, "Two-slot source outside its partition")
+    if before_write:
+        before_write()
+    print("Source verified. Installing two slots; keep power connected.", flush=True)
+    write_at(dst, 0, bytes(GPT_RESERVE))
+    write_at(dst, size - 33 * 512, bytes(33 * 512))
+    os.fsync(dst)
+    zero = bytes(4 * MIB)
+    checks, announced = [], set()
+    for w in plan["writes"]:
+        p_off, p_len = place[w["partition"]]
+        start = p_off + (w["at"] if w["at"] >= 0 else p_len + w["at"])
+        length = w["length"]
+        require(p_off <= start and start + length <= p_off + p_len, "Two-slot write outside its partition")
+        if w["partition"] not in announced:
+            announced.add(w["partition"])
+            print(f"Writing {w['partition']} ({p_len // MIB} MiB)", flush=True)
+        if w["from"] == "zero":
+            for at in range(0, length, 4 * MIB):
+                write_at(dst, start + at, zero[:min(4 * MIB, length - at)])
+            flush(dst, start, length)
+            for at in range(0, length, 4 * MIB):
+                n = min(4 * MIB, length - at)
+                require(read_at(dst, start + at, n) == zero[:n], f"Reset readback failed: {w['partition']}")
+            checks.append(dict(partition=w["partition"], at=start, bytes=length, zeroed=True))
+            continue
+        payload, offset = (bundle, w["offset"]) if w["from"] == "bundle" else (src, usb[w["source"]][0] + w["offset"])
+        for at in range(0, length, 4 * MIB):
+            write_at(dst, start + at, read_at(payload, offset + at, min(4 * MIB, length - at)))
+        flush(dst, start, length)
+        require(digest(dst, start, length) == w["sha256"], f"Readback failed: {w['partition']}")
+        checks.append(dict(partition=w["partition"], at=start, bytes=length, sha256=w["sha256"], source=w["from"]))
+    require(digest(src, 0, gpt["used_bytes"]) == before, "Source changed during installation")
+    for offset, data in reversed(headers):
+        write_at(dst, offset, data)
+        os.fsync(dst)
+        require(read_at(dst, offset, len(data)) == data, "Target GPT readback failed")
+    actual = read_gpt(dst, names=tuple(r["name"] for r in rows))
+    require([(r["name"], r["first_lba"], r["last_lba"], r["partuuid"]) for r in actual["rows"]]
+            == [(r["name"], r["offset"] // 512, (r["offset"] + r["length"]) // 512 - 1, r["partuuid"]) for r in rows]
+            and actual["used_bytes"] == size, "Final target layout mismatch")
+    result = dict(schema="openbook-ruby-ab-install-result/1", complete=True, install_mode="fresh-two-slot",
+                  release=plan["release"], variant=plan["variant"], plan_bundle_sha256=plan["bundle_sha256"],
+                  source_sha256=before, source_unchanged=True, target_bytes=size,
+                  layout=[dict(name=r["name"], offset=r["offset"], length=r["length"]) for r in rows],
+                  writes=checks, userdata_bytes=rows[-1]["length"],
+                  boot_verified=False, automatic_updates_qualified=False)
+    (work / "result.json").write_text(json.dumps(result, indent=2) + "\n")
+    return result
+
 def device_state(path, writable=False):
     path = path.resolve(strict=True)
     require(stat.S_ISBLK(path.stat().st_mode), "Requires a whole block device")
@@ -390,8 +536,9 @@ def confirmation_phrase(serial, fresh=False):
     return ("FRESH ERASE " if fresh else "ERASE ") + serial
 
 
-def interactive(pin, fresh=False):
-    print("\nOPENBOOK · " + ("Fresh Googlebook install" if fresh else
+def interactive(pin, fresh=False, ab=None):
+    """ab: (plan, bundle path, pin SHA-256) for the two-slot fresh install."""
+    print("\nOPENBOOK · " + ("Fresh Googlebook install (two slots)" if ab else "Fresh Googlebook install" if fresh else
           "Install this Googlebook USB and keep its data") + "\n", flush=True)
     print("Offline installation for the same laptop. The source USB stays unchanged.")
     print("The selected SSD is replaced completely. Back up its existing contents first.")
@@ -399,6 +546,9 @@ def interactive(pin, fresh=False):
     if fresh:
         print("FRESH START: no USB or SSD accounts, apps, files or settings are retained.")
         print("Android creates new encrypted data storage using the remaining SSD space.")
+        if ab:
+            print("Two system slots: OpenBook updates install beside the running system and fall back")
+            print("to it automatically if the new one does not start.")
     else:
         print("Saved Android data keeps its USB filesystem size; remaining SSD space stays unallocated.")
     print("Automatic Google OS updates are NOT qualified or blocked by this installer.\n")
@@ -451,7 +601,10 @@ def interactive(pin, fresh=False):
     print(f"\nThis erases ALL existing partitions on {target['model']} ({target['path']}).")
     print(f"Serial: {target['serial']} · capacity: {target['size']} bytes")
     if fresh:
-        planned, _ = target_gpt(gpt, target["size"], fresh=True)
+        planned, _ = ab_target_gpt(ab[0], target["size"]) if ab else target_gpt(gpt, target["size"], fresh=True)
+        if ab:
+            planned = [dict(r, first_lba=r["offset"] // 512, last_lba=(r["offset"] + r["length"]) // 512 - 1)
+                       for r in planned]
         print(f"New Android data partition: {extent(planned[-1])[1] / 1e9:.2f} GB before filesystem overhead.")
         print("All current SSD data will be lost. Setup starts from scratch.")
     print("Your configured USB is retained. This is not a secure erase.")
@@ -469,7 +622,15 @@ def interactive(pin, fresh=False):
             require(os.fstat(src).st_rdev == source["rdev"] and os.fstat(dst).st_rdev == target["rdev"],
                     "Device changed while opening")
             with tempfile.TemporaryDirectory(prefix="openbook-migrate-") as tmp:
-                migrate(src, dst, pin, Path(tmp), source_hash, before_write=power_ready, fresh=fresh)
+                if ab:
+                    bundle = os.open(ab[1], os.O_RDONLY)
+                    try:
+                        install_ab(src, dst, pin, ab[0], bundle, Path(tmp), ab[2], source_hash,
+                                   before_write=power_ready)
+                    finally:
+                        os.close(bundle)
+                else:
+                    migrate(src, dst, pin, Path(tmp), source_hash, before_write=power_ready, fresh=fresh)
             fcntl.ioctl(dst, 0x125f)  # BLKRRPART after verified final GPT
         finally:
             os.close(dst)
@@ -499,9 +660,16 @@ def main():
     p.add_argument("--out", type=Path)
     p.add_argument("--target-bytes", type=int)
     p.add_argument("--fresh", action="store_true", help="Erase target setup and use remaining SSD capacity")
+    p.add_argument("--ab-plan", type=Path, help="Two-slot install plan (with --fresh)")
     a = p.parse_args()
     os.umask(0o077)
-    pin = json.loads(a.pin.read_text())
+    raw = a.pin.read_bytes()
+    pin = json.loads(raw)
+    ab = None
+    if a.ab_plan:
+        require(a.fresh, "The two-slot install is a fresh install")
+        plan = json.loads(a.ab_plan.read_text())
+        ab = (plan, a.ab_plan.parent / plan["bundle_file"], hashlib.sha256(raw).hexdigest())
     if a.image_test:
         require(a.out and a.target_bytes, "Image test requires output and target size")
         require(stat.S_ISREG(a.image_test.lstat().st_mode), "Image test refuses devices and symlinks")
@@ -511,7 +679,14 @@ def main():
             dst = os.open(a.out / "installed.img", os.O_RDWR | os.O_CREAT | os.O_EXCL, 0o600)
             try:
                 os.ftruncate(dst, a.target_bytes)
-                result = migrate(src, dst, pin, a.out, fresh=a.fresh)
+                if ab:
+                    bundle = os.open(ab[1], os.O_RDONLY)
+                    try:
+                        result = install_ab(src, dst, pin, ab[0], bundle, a.out, ab[2])
+                    finally:
+                        os.close(bundle)
+                else:
+                    result = migrate(src, dst, pin, a.out, fresh=a.fresh)
                 print(json.dumps({k: result[k] for k in ("complete", "source_unchanged", "userdata_bytes", "boot_verified")}))
             finally:
                 os.close(dst)
@@ -521,7 +696,7 @@ def main():
         require(not a.out and not a.target_bytes, "Physical mode is interactive only")
         require(os.geteuid() == 0 and Path("/run/openbook-offline-installer").is_file(),
                 "Physical writes require the dedicated offline installer boot")
-        interactive(pin, fresh=a.fresh)
+        interactive(pin, fresh=a.fresh, ab=ab)
 
 
 if __name__ == "__main__":

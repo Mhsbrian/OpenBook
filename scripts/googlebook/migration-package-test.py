@@ -89,6 +89,49 @@ class PackageTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "menu changed"):
             p.replacement_contract(drifted, expected)
 
+    def ab_installer(self, version, pin_sha=None):
+        root = self.installer(version)
+        bundle = root / "ab-bundle.bin"
+        bundle.write_bytes(b"synthetic two-slot bundle " + version.encode())
+        plan = dict(schema=p.m.AB_SCHEMA, source_pin_sha256=pin_sha or p.u.h.audit.sha(root / "source.json"),
+                    bundle_file="ab-bundle.bin", bundle_sha256=p.u.h.audit.sha(bundle))
+        (root / "ab-install.json").write_text(json.dumps(plan))
+        build = json.loads((root / "build.json").read_text())
+        build["files"].update({n: p.u.h.audit.sha(root / n) for n in sorted(p.AB_FILES)})
+        (root / "build.json").write_text(json.dumps(build))
+        return root
+
+    def test_two_slot_installer_retires_single_slot_update_entries(self):
+        old = self.installer("old", self.laptop_update())
+        added, replaced, again = self.root / "added", self.root / "replaced", self.root / "again"
+        p.add(self.f.src, self.before, self.manifest_path, old, added)
+        p.add(added / "ruby-live.img", p.u.h.audit.sha(added / "ruby-live.img"), added / "manifest.json",
+              self.ab_installer("ab"), replaced, p.u.h.audit.sha(old / "build.json"))
+        tree = replaced / "efi-after"
+        for name in p.UPDATE_ENTRIES:
+            self.assertFalse((tree / name).exists(), name)
+        fresh = (tree / p.FRESH_ENTRIES[0]).read_text()
+        self.assertIn("Fresh install Googlebook to SSD (two slots) - ERASE SSD DATA", fresh)
+        self.assertIn("openbook.install=fresh-ab console=tty0", fresh)
+        self.assertIn("openbook.install=fresh-ab console=ttyS0", (tree / p.FRESH_ENTRIES[1]).read_text())
+        self.assertEqual((tree / p.LEGACY_ENTRIES[0]).read_text(), p.installer_entry(""))
+        plan = json.loads((replaced / "update.json").read_text())
+        self.assertTrue(plan["two_slot_fresh_install"])
+        self.assertEqual(plan["removed_entries"], sorted(p.UPDATE_ENTRIES))
+        module("apply-preserved-update").validate_plan(replaced, added / "ruby-live.img")
+        # A later reviewed replacement accepts the two-slot menu it finds.
+        p.add(replaced / "ruby-live.img", p.u.h.audit.sha(replaced / "ruby-live.img"), replaced / "manifest.json",
+              self.ab_installer("ab2"), again, p.u.h.audit.sha(self.root / "ab" / "build.json"))
+        for row in self.f.gpt["rows"][1:]:
+            self.assertEqual(p.u.digest_range(self.f.src, *p.m.extent(row)),
+                             p.u.digest_range(again / "ruby-live.img", *p.m.extent(row)))
+
+    def test_two_slot_plan_must_match_the_installer_pin(self):
+        with self.assertRaisesRegex(ValueError, "does not match this installer's USB pin"):
+            p.add(self.f.src, self.before, self.manifest_path, self.ab_installer("bad", pin_sha="0" * 64),
+                  self.root / "refused")
+        self.assertFalse((self.root / "refused").exists())
+
     def test_laptop_update_record_must_match_installer_pin(self):
         record = self.laptop_update()
         record["new"]["build"] = "another system"

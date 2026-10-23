@@ -1,0 +1,14 @@
+{
+  "schema": "openbook-ruby-ab-stick-candidate/1",
+  "name": "candidate-R-ab-dev (development build, not a release)",
+  "snapshot": "RB-20261022-01 stick image 8834cd896a59b0322b6d8aa5166b3f75144c4cc2595eaf972c02329a1c2163c7",
+  "system_candidate": "candidate R 3999a99d597ee27a179dd90abdd5fb31176edf94381e9bf2a54d38a545c7be50 (RB-20261022-01 + owner OTA policy)",
+  "stage_a_image_sha256": "2fa11a7123e41cad5c4f29eb6c8b770837d30b3f87b0cfbdb36d1155fd6feef8",
+  "pin_sha256": "d49502ef8e5ae03150502735ca3eac036f6bb36e17bd4bbd706937c32444df26",
+  "pin_build": "candidate-R-ab-dev",
+  "pin_dmi_prefix": "ROG Zephyrus G14 GA403WR",
+  "installer_image": "openbook-ruby-installer:anal229-ab",
+  "final_image_sha256": "42c934f13994589537098132f9f2519955cb27305be6d2ad0848d629dafdf01c",
+  "final_image_bytes": 12766412800,
+  "written_to_any_device": false
+}
