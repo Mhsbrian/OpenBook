@@ -116,13 +116,16 @@ def verify_manifest(manifest, table, size):
 # Their outputs stay incomplete until the USB's installer is re-pinned.
 # Framework images whose reviewed change keeps kernel, vendor, boot and data format:
 # vendor_dlkm (added modules) and system (exact file changes from the builders).
-REVIEWABLE_LOGICAL = ("vendor_dlkm", "system")
+# OpenBook's vendor_dlkm, and Google's framework partitions (all three change on a Google rebase,
+# rebase-google-build.py). Each needs an explicit review that matches a real change.
+REVIEWABLE_LOGICAL = ("vendor_dlkm", "system", "system_ext", "product")
 
 
 def compatible(old, new, allow_logical=()):
     if allow_logical:
         if not set(allow_logical) <= set(REVIEWABLE_LOGICAL):
-            raise ValueError("Only vendor_dlkm or system can be reviewed with --allow-logical")
+            raise ValueError("Only vendor_dlkm or the framework partitions (system, system_ext, product) "
+                             "can be reviewed with --allow-logical")
         changed = sorted(n for n, v in new["logical_sha256"].items() if old["logical_sha256"].get(n) != v)
         if changed != sorted(set(allow_logical)):
             raise ValueError(f"Reviewed logical changes differ: {changed}")

@@ -104,6 +104,58 @@ def verify_boot_files(tree, work, entries):
         raise ValueError("EFI manifest readback mismatch")
 
 
+def rebuild_erofs(a, w, source, expected_metadata, expected):
+    """Build w/system.img from `source` with exactly `expected_metadata` (erofs-inventory rows), then prove it.
+
+    Sets modes and mtimes, writes fs_config/file_contexts, runs mkfs.erofs, and requires the new image's
+    inventory to equal expected_metadata and its extracted files/symlinks to equal `expected`.
+    """
+    tools = a.tools
+    run = p.h.run
+    fsconfig, contexts = [], []
+    for row in (r.split(" ") for r in expected_metadata if r.startswith("I ")):
+        _, encoded, mode, uid, gid, nlink, size, seconds, nanos = row
+        path = bytes.fromhex(encoded).decode()
+        if any(c.isspace() for c in path):
+            raise ValueError("Unsupported whitespace in fs_config path")
+        if int(nlink) != 1 and int(mode) & 0o170000 != 0o040000:
+            raise ValueError("Hardlinks require explicit topology preservation")
+        local = source / path.lstrip("/")
+        if not local.is_symlink():
+            os.chmod(local, int(mode) & 0o7777)
+        os.utime(local, ns=(int(seconds) * 10**9 + int(nanos),) * 2, follow_symlinks=False)
+        attrs = [r.split(" ") for r in expected_metadata if r.startswith(f"X {encoded} ")]
+        attrs = {bytes.fromhex(r[2]): bytes.fromhex(r[3]) for r in attrs}
+        if b"security.selinux" not in attrs or set(attrs) - {b"security.selinux", b"security.capability"}:
+            raise ValueError("Unexpected source xattrs")
+        caps = 0
+        if b"security.capability" in attrs:
+            blob = attrs[b"security.capability"]
+            if len(blob) != 20:
+                raise ValueError("Unsupported capability encoding")
+            magic, low, inh_low, high, inh_high = struct.unpack("<IIIII", blob)
+            if magic != 0x02000001 or inh_low or inh_high:
+                raise ValueError("Unsupported capability flags")
+            caps = low | high << 32
+        fsconfig.append(f"{path.lstrip('/')} {uid} {gid} {int(mode) & 0o7777:04o} capabilities={caps:#x}")
+        context = attrs[b"security.selinux"].rstrip(b"\0").decode()
+        contexts.append(f"{re.escape(path) if path else '/'} {context}")
+    (w / "fs_config").write_text("\n".join(fsconfig) + "\n")
+    (w / "contexts").write_text("\n".join(contexts) + "\n")
+    rebuilt = w / "system.img"
+    run(tools / "mkfs.erofs", "-zlz4hc,9", "-C65536", "-T", "1230768000", "--preserve-mtime",
+        f"--fs-config-file={w / 'fs_config'}", f"--file-contexts={w / 'contexts'}", rebuilt, source)
+    after = inventory(a.inventory, rebuilt)
+    if expected_metadata != after:
+        (w / "after.metadata").write_text("\n".join(after) + "\n")
+        raise ValueError("EROFS metadata differs; candidate not assembled")
+    extracted = w / "rebuilt"
+    run(tools / "fsck.erofs", f"--extract={extracted}", rebuilt)
+    if contents(extracted) != expected:
+        raise ValueError("Unexpected file/content/link changes")
+    return rebuilt, after
+
+
 def build_system(a, transform, result_schema):
     """Shared reassembler for an exact, reviewed base. Callers supply an explicit transform.
 
@@ -150,55 +202,32 @@ def build_system(a, transform, result_schema):
             local.mkdir()
         else:
             local.write_bytes(additions[name])
-    fsconfig, contexts = [], []
-    for row in (r.split(" ") for r in expected_metadata if r.startswith("I ")):
-        _, encoded, mode, uid, gid, nlink, size, seconds, nanos = row
-        path = bytes.fromhex(encoded).decode()
-        if any(c.isspace() for c in path):
-            raise ValueError("Unsupported whitespace in fs_config path")
-        if int(nlink) != 1 and int(mode) & 0o170000 != 0o040000:
-            raise ValueError("Hardlinks require explicit topology preservation")
-        local = source / path.lstrip("/")
-        if not local.is_symlink():
-            os.chmod(local, int(mode) & 0o7777)
-        os.utime(local, ns=(int(seconds) * 10**9 + int(nanos),) * 2, follow_symlinks=False)
-        attrs = [r.split(" ") for r in expected_metadata if r.startswith(f"X {encoded} ")]
-        attrs = {bytes.fromhex(r[2]): bytes.fromhex(r[3]) for r in attrs}
-        if b"security.selinux" not in attrs or set(attrs) - {b"security.selinux", b"security.capability"}:
-            raise ValueError("Unexpected source xattrs")
-        caps = 0
-        if b"security.capability" in attrs:
-            blob = attrs[b"security.capability"]
-            if len(blob) != 20:
-                raise ValueError("Unsupported capability encoding")
-            magic, low, inh_low, high, inh_high = struct.unpack("<IIIII", blob)
-            if magic != 0x02000001 or inh_low or inh_high:
-                raise ValueError("Unsupported capability flags")
-            caps = low | high << 32
-        fsconfig.append(f"{path.lstrip('/')} {uid} {gid} {int(mode) & 0o7777:04o} capabilities={caps:#x}")
-        context = attrs[b"security.selinux"].rstrip(b"\0").decode()
-        contexts.append(f"{re.escape(path) if path else '/'} {context}")
-    (w / "fs_config").write_text("\n".join(fsconfig) + "\n")
-    (w / "contexts").write_text("\n".join(contexts) + "\n")
-    rebuilt = w / "system.img"
-    run(tools / "mkfs.erofs", "-zlz4hc,9", "-C65536", "-T", "1230768000", "--preserve-mtime",
-        f"--fs-config-file={w / 'fs_config'}", f"--file-contexts={w / 'contexts'}", rebuilt, source)
-    after = inventory(a.inventory, rebuilt)
-    if expected_metadata != after:
-        (w / "after.metadata").write_text("\n".join(after) + "\n")
-        raise ValueError("EROFS metadata differs; candidate not assembled")
-    extracted = w / "rebuilt"
-    run(tools / "fsck.erofs", f"--extract={extracted}", rebuilt)
     expected = dict(original)
     expected.update({name: ["file", p.hashlib.sha256(data).hexdigest()]
                      for name, data in (*replacements.items(), *additions.items()) if data is not None})
-    if contents(extracted) != expected:
-        raise ValueError("Unexpected file/content/link changes")
+    rebuilt, after = rebuild_erofs(a, w, source, expected_metadata, expected)
     run(tools / "avbtool", "add_hashtree_footer", "--image", rebuilt,
         "--partition_name", "system", "--partition_size", system.stat().st_size,
         "--do_not_generate_fec", "--hash_algorithm", "sha256")
     images = {n: a.base / f"logical/{n}_a.img" for n in old["logical_sha256"]}
     images["system"] = rebuilt
+    assemble(a, w, base, old, expected_base, images, annotations, result_schema, dict(
+        metadata_rows=len(before),all_inode_xattrs_identical=before==after,
+        only_metadata_change=("replacement file sizes" + (" and added paths" if additions else ""))
+                             if before!=after else None,
+        file_and_symlink_count=len(original),changed_files=sorted(replacements),
+        only_changed_file=next(iter(replacements)) if len(replacements)==1 and not additions else None,
+        **({"added_paths": sorted(additions)} if additions else {}),
+        **annotations))
+
+
+def assemble(a, w, base, old, expected_base, images, annotations, result_schema, details):
+    """vbmeta, super, boot entries, live image and manifest of a base whose logical partitions are `images`.
+
+    Shared by build_system() (a rebuilt system) and rebase-google-build.py (a new Google framework).
+    """
+    tools = a.tools
+    run = p.h.run
     vbmeta = w / "vbmeta.img"
     cmd = [tools / "avbtool", "make_vbmeta_image", "--algorithm", "SHA256_RSA4096",
            "--key", a.key, "--padding_size", "4096", "--output", vbmeta]
@@ -230,7 +259,8 @@ def build_system(a, transform, result_schema):
     tree = w / "esp-before"; tree.mkdir()
     run("mcopy", "-s", "-i", esp, "::*", tree)
     updated = copy.deepcopy(old)
-    updated["logical_sha256"]["system"] = p.h.audit.sha(rebuilt)
+    for n, src in images.items():
+        updated["logical_sha256"][n] = p.h.audit.sha(src)
     updated.update(annotations)
     changed = {"ruby/RESEARCH.json"}
     for mode, params in updated["entries"].items():
@@ -278,13 +308,7 @@ def build_system(a, transform, result_schema):
     (w / "result.json").write_text(json.dumps(dict(
         schema=result_schema, complete=True,
         source_sha256=expected_base,image_sha256=updated["image_sha256"],
-        metadata_rows=len(before),all_inode_xattrs_identical=before==after,
-        only_metadata_change=("replacement file sizes" + (" and added paths" if additions else ""))
-                             if before!=after else None,
-        file_and_symlink_count=len(original),changed_files=sorted(replacements),
-        only_changed_file=next(iter(replacements)) if len(replacements)==1 and not additions else None,
-        **({"added_paths": sorted(additions)} if additions else {}),
-        **annotations,
+        **details,
         protected_ranges_identical=True,source_unchanged=True,
         physical_device_written=False), indent=2) + "\n")
     print("Candidate complete; no configured data or physical device was written.")
