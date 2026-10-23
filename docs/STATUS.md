@@ -1877,3 +1877,16 @@ and full Photos-use verification remain pending. Evidence: `evidence/2026-10-19-
 - Preflight passed. Wrote super, vbmeta_a and EFI; readback `6f555e19…`; stick powered off.
 - **Stick pointer:** RB-20261023-01. **Laptop:** unchanged (RB-20261022-01) until the owner runs the two-slot Fresh install.
 - **Evidence:** `evidence/2026-10-23-rb-20261023-01/`.
+
+### 2026-10-23: Google 16658739 patched for the G14, on the stick (ANAL-229, ANAL-255)
+- **Finding (ANAL-254):** the owner's two-slot fresh install booted on the G14. Google's setup then required its current build, and Google's package was refused by the OpenBook certificate.
+- **Fix:** `rebase-google-build.py` rebased candidate R onto Google 16658739 (October patch level):
+  - `system`: Google's new tree plus OpenBook's exact delta (`build.prop` merged);
+  - `system_ext`/`product`: verbatim.
+  - The result boots 9/9 on two slots in QEMU with Digitalis active.
+- RB-20261023-02 = that build plus the two-slot installer.
+  - Rehearsal: install identical to the reference, installed disk boots 9/9.
+  - Fresh backup `d995319b…`; written; readback `bfb8e276…`; stick powered off.
+- **Next:** the owner reruns the two-slot Fresh install. Setup's update check should pass (current build); hardware confirms it.
+- **Evidence:** `evidence/2026-10-23-rb-20261023-02/`.
+

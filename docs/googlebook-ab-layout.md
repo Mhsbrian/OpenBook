@@ -132,27 +132,29 @@ The goal of ANAL-229. Five stages; the first two are built and verified.
    with AOSP's `ota_extractor`, each checked against the hash in Google's signed
    manifest. Proven on our own incremental: byte-identical output; a wrong
    source is refused.
-3. **Patch** (rebase the OpenBook layer onto Google's new framework). Mapped,
-   not built yet. Today's hybrid keeps Google's `system`, `system_ext` and
-   `product` byte-for-byte over OpenBook's AMD vendor stack, made by
-   `gbos-unpack.sh` → `compat-audit.py` (VINTF + strict SELinux compile) →
-   `hybrid-probe.py prepare` → `live-image.py`, then the RB patch layers. Plan:
-   - an adapter from `reconstruct-google-release.py` output to the
-     `gbos-unpack.sh` layout, so `compat-audit.py` and `hybrid-probe.py` take a
-     new Google build unchanged; their Google-specific checks (TPM ueventd rule,
-     timberslide rc, Wi-Fi overlay) fail loudly if Google changed those files;
-   - one combined `build_system()` pass for the system patches, plus
-     `build-module-candidate.py` for the lid guard (vendor side, no Google pin);
-   - re-derive the trackpad correction per build: it is an 8-byte patch pinned
-     to the whole `libinputflinger.so` hash (or drop it if Google fixed the bug);
-     Digitalis is content-based, but its builder must come onto this branch
-     (PR #124); the certificate swap pins Google's stock `otacerts.zip` (likely
-     unchanged while Google keeps its key);
-   - golden test first: rebuild today's release from stock 16452207 through the
-     new pipeline and compare it with RB-20261022-01 / candidate R.
-   Risks: the new framework's VINTF matrix against the fixed OpenBook vendor and
-   6.18 kernel; SELinux mapping `202604` and the regenerated policy hashes;
-   system size; Digitalis against Google's new libraries.
+3. **Patch** (`rebase-google-build.py`): rebase the OpenBook layer onto Google's
+   new build. OpenBook changes only `system`, so the rebase takes Google's new
+   `system` tree plus OpenBook's exact delta against the old Google build:
+   every added, removed and changed path, with its inode metadata and xattrs
+   (from `erofs-inventory`). `system_ext` and `product` are Google's new images
+   verbatim; vendor, kernel and the boot chain stay OpenBook's.
+   It fails closed:
+   - a path OpenBook touches must be unchanged between the two Google builds;
+   - the only exception is `build.prop`, which takes a line-level three-way merge
+     that refuses edits next to Google's changes;
+   - paths OpenBook adds must not exist in the new build;
+   - the rebuilt image must match the expected inventory exactly, and the candidate is
+     assembled by the same code as every other candidate (`build-input-candidate.py`
+     `rebuild_erofs()`/`assemble()`).
+
+   Done for 16658739 (2026-10-23, `evidence/2026-10-23-rb-20261023-02/`):
+   - delta: 28 added, 370 removed (Digitalis replaces the Houdini-era ARM libraries),
+     53 changed; `build.prop` merged;
+   - no SELinux or VINTF file changed upstream;
+   - boots 9/9 on two slots with Digitalis active and fingerprint CL3B.260622.276.R4/16658739.
+
+   Stick releases accept the reviewed `system_ext`/`product` change (`preserve-update.py
+   --allow-logical`).
 4. **Sign and prove**: `build-ruby-ab-ota.py` (OpenBook key), `check-ota-fit.py`,
    VM boot and the small/large OTA suites.
 5. **Update**: a new Google framework changes `system_ext` and `product`, which
