@@ -190,10 +190,8 @@ class PreserveGuards(unittest.TestCase):
         both = copy.deepcopy(new); both["logical_sha256"]["vendor"] = "vendor-v2"
         with self.assertRaisesRegex(ValueError, "Reviewed logical changes differ"):
             u.compatible(old, both, ("vendor_dlkm",))  # no concurrent vendor change
-        other = copy.deepcopy(old); other["logical_sha256"]["product"] = "product-v2"
-        with self.assertRaisesRegex(ValueError, "Only vendor_dlkm or system"):
-            u.compatible(old, other, ("product",))
-        with self.assertRaisesRegex(ValueError, "Only vendor_dlkm or system"):
+        other = copy.deepcopy(old); other["logical_sha256"]["vendor"] = "vendor-v2"
+        with self.assertRaisesRegex(ValueError, "Only vendor_dlkm or the framework partitions"):
             u.compatible(old, other, ("vendor",))
         with self.assertRaisesRegex(ValueError, "Reviewed logical changes differ"):
             u.compatible(old, old, ("vendor_dlkm",))  # a review must match a real change
@@ -215,6 +213,24 @@ class PreserveGuards(unittest.TestCase):
         boot = copy.deepcopy(new); boot["payload_readback"]["boot_a"] = "other"
         with self.assertRaises(ValueError):
             u.compatible(old, boot, ("system",))  # boot images stay fixed
+
+    def test_reviewed_google_rebase_changes_all_three_framework_partitions(self):
+        old = self.manifest()
+        old["logical_sha256"].update(system_ext="ext", product="product", vendor_dlkm="modules-v1")
+        new = copy.deepcopy(old)
+        for name in ("system", "system_ext", "product"):
+            new["logical_sha256"][name] = name + "-16658739"
+        with self.assertRaises(ValueError):
+            u.compatible(old, new)  # never implicitly
+        u.compatible(old, new, ("system", "system_ext", "product"))
+        with self.assertRaisesRegex(ValueError, "Reviewed logical changes differ"):
+            u.compatible(old, new, ("system", "system_ext"))  # every changed image needs its review
+        vendor = copy.deepcopy(new); vendor["logical_sha256"]["vendor_dlkm"] = "modules-v2"
+        with self.assertRaisesRegex(ValueError, "Reviewed logical changes differ"):
+            u.compatible(old, vendor, ("system", "system_ext", "product"))  # OpenBook's side stays fixed
+        boot = copy.deepcopy(new); boot["payload_readback"]["vendor_boot_a"] = "other"
+        with self.assertRaises(ValueError):
+            u.compatible(old, boot, ("system", "system_ext", "product"))  # boot chain stays fixed
 
     def test_bootconfig_rebind_retains_ramdisk(self):
         body = b"not-a-real-ramdisk" * 100
