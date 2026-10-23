@@ -1,0 +1,8 @@
+PASS  live Google listing: this laptop's build is current or older (exit 0)
+PASS  newer release with an empty date field: download + verify (exit 0)
+PASS  second download: re-hashed, reported verified (exit 0)
+PASS  MD5 mismatch refused, partial removed (exit 4)
+PASS  reserve above 2^32 KiB refused (no 32-bit wrap) (exit 5)
+PASS  concurrent run refused (exit 6)
+PASS  status reports the verified download (exit 0)
+on-laptop: 7 passed, 0 failed

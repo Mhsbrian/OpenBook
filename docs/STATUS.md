@@ -1914,3 +1914,18 @@ and full Photos-use verification remain pending. Evidence: `evidence/2026-10-19-
 - **Laptop pointer:** RB-20261023-02, slot B.
 - **Evidence:** `evidence/2026-10-23-ota-test/`.
 
+### 2026-10-23: on-laptop updater, phase 1: notice and download (ANAL-229)
+- **Probe of the G14:** the laptop natively has `curl` (HTTPS), `mkfs.erofs`/`fsck.erofs`, `lpdump`, awk, `md5sum` and update_engine's services. It lacks `avbtool`, `delta_generator`, `lpunpack` and `openssl`. mksh arithmetic is 32-bit. Design: `docs/googlebook-on-device-updater.md`.
+- **`device/anybook/common/updater/openbook-updater`:**
+  - `check`: Google's listing → newest STABLE build for this device versus the running one.
+  - `download`: HTTPS-only, resume, space reserve, Google's MD5, prune older downloads.
+- **Tests:** 19 on the host.
+- **Code review, two rounds:** 32-bit overflow, stuck or over-eager resume, empty-field row shift, an unverified "already downloaded", redirect sizes, pruning order, stale error state, HTTPS on redirects. All fixed and tested.
+- **On the laptop** (`openbook-updater-device-test.sh`, 7/7; temporary directory, nothing installed):
+  - Google's live listing: up to date;
+  - a synthetic newer release: downloaded, verified, re-hashed on repeat;
+  - MD5 mismatch refused; 32-bit reserve refused correctly; concurrent run refused.
+- **Evidence:** `evidence/2026-10-23-updater-phase1/`.
+  - This run also exposed mksh closing `exec 9>` descriptors (toybox flock); fixed with a locking re-exec.
+- **Next:** phase 2 ships the updater in the OpenBook layer (init service, SELinux domain) as a two-slot update.
+

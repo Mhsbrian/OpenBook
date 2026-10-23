@@ -165,6 +165,8 @@ The goal of ANAL-229. Five stages; the first two are built and verified.
 
 ## On-device: the self-contained updater (ANAL-229's end state)
 
+The detailed design is in `docs/googlebook-on-device-updater.md`: the 2026-10-23 probe of what the laptop runs natively, components per stage and the phase plan. Phase 1 (notice and download) is built.
+
 The five stages above are proven, but they run on the build **host** and are driven
 by hand (today, with an AI assistant). That is the development harness, not the
 product. The goal is that **the laptop does this itself**: notice Google's update,
