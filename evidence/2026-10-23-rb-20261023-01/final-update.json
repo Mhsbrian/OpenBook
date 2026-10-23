@@ -1,0 +1,69 @@
+{
+  "schema": "openbook-ruby-preserving-update/1",
+  "complete": true,
+  "backup_sha256": "fddc43455d063d13082bfe6f26070f8ccc1857084d3dd5c8154a6eb1f57b0a30",
+  "candidate_sha256": "3999a99d597ee27a179dd90abdd5fb31176edf94381e9bf2a54d38a545c7be50",
+  "image_sha256": "6f555e19b854198229400d3263a11214e8ccd157bb9166df42d02baff37bae11",
+  "writes": [
+    {
+      "name": "EFI",
+      "offset": 1048576,
+      "length": 268435456,
+      "sha256": "caf0e62284a64f948d2630483036bbf071e86c1af56c71463f0c1a6d185523b7"
+    },
+    {
+      "name": "vbmeta_a",
+      "offset": 416284672,
+      "length": 1048576,
+      "sha256": "f072cb55c38c5083081491795e68c108a620552045e346848c06eea72ab17e14"
+    },
+    {
+      "name": "super",
+      "offset": 484442112,
+      "length": 3690987520,
+      "sha256": "0a71da2585a0610ca36178cab848122d29a63a66ce506959be5b98aded97c99a"
+    }
+  ],
+  "protected": [
+    {
+      "offset": 0,
+      "length": 1048576,
+      "sha256": "16fc782a163ebbca75573a2472e55129790c337b83ae593c1303013a35b81cee"
+    },
+    {
+      "offset": 269484032,
+      "length": 146800640,
+      "sha256": "ead85fdce13afefd49e697a3738c0791c2710be12ed34822c5d30706da1e354f"
+    },
+    {
+      "offset": 417333248,
+      "length": 67108864,
+      "sha256": "f55b57e774e35cea0f4dc4be4d80eedab3a605921ad5efe3df45096f6e0e6bf4"
+    },
+    {
+      "offset": 4175429632,
+      "length": 8590983168,
+      "sha256": "621af90dea48c52f73d119f1125f0fa0ed8413130cd122b7540d4172eb21d557"
+    }
+  ],
+  "sources_unchanged": true,
+  "unrelated_esp_files_unchanged": true,
+  "physical_device_written": false,
+  "data_unlock_verified": false,
+  "reviewed_logical": [
+    "system"
+  ],
+  "installer_source_pin_sha256": "01f869611963fe3d9bcec05b7b153ddb6e263ed794e3b500021c77d6156ca5c6",
+  "stages": [
+    {
+      "name": "stage-a-system",
+      "operation": "SystemUpdate",
+      "image_sha256": "745e8b1040c606a2efdb341983dbeadda6b7521a1dc5a435194e3e5e3fa37418"
+    },
+    {
+      "name": "stage-b-installer",
+      "operation": "Replace",
+      "image_sha256": "6f555e19b854198229400d3263a11214e8ccd157bb9166df42d02baff37bae11"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "schema": "openbook-ruby-write-authorization/1",
+  "approved_by": "B Honey",
+  "approvals": [
+    {"issue": "ANAL-229", "comment_id": "01a16647-3166-7e0c-9e08-679750a73061", "text": "I approved, update the stick",
+     "scope": "release RB-20261023-01 (ANAL-254 frozen plan v1) and its USB write, as proposed on ANAL-229 and the hub 2026-10-23 01:15 UTC"}
+  ],
+  "release": "RB-20261023-01 (ANAL-254)",
+  "device": "SanDisk Ultra USB stick ending 2034, /dev/disk/by-id/usb-SanDisk_Ultra_4C530001041228122034-0:0 (the only USB stick attached)",
+  "image_sha256": "6f555e19b854198229400d3263a11214e8ccd157bb9166df42d02baff37bae11",
+  "backup_sha256": "fddc43455d063d13082bfe6f26070f8ccc1857084d3dd5c8154a6eb1f57b0a30",
+  "system_candidate_sha256": "3999a99d597ee27a179dd90abdd5fb31176edf94381e9bf2a54d38a545c7be50",
+  "packaging_tools": "4b5d9ef2136895da45c3f67332304961689cb33a",
+  "operation": "apply-preserved-update.py: verify against backup, write EFI/vbmeta_a/super, full direct readback, power off",
+  "laptop_write_authorized": false
+}

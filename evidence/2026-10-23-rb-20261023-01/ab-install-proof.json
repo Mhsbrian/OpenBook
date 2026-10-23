@@ -1,0 +1,11 @@
+{
+  "schema": "openbook-ruby-ab-install-proof/1",
+  "plan_sha256": "725bb90d999ba4edb4e550ece67cd62cf868033dfd1ebc2a5d0bdd9532b30d87",
+  "engine": "migrate.install_ab",
+  "target_bytes": 1000204886016,
+  "userdata_matches_reference": true,
+  "regions_compared": 22,
+  "bytes_compared": 27711800832,
+  "differing_regions": [],
+  "identical_outside_userdata_interior": true
+}
