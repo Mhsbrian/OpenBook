@@ -1,0 +1,22 @@
+== package
+    codePath=/system/priv-app/OpenBookUpdate-v1
+    versionName=1.0
+    privateFlags=[ PRIVATE_FLAG_ACTIVITIES_RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION ALLOW_AUDIO_PLAYBACK_CAPTURE PARTIALLY_DIRECT_BOOT_AWARE PRIVILEGED PRIVATE_FLAG_ALLOW_N
+    pkgFlags=[ SYSTEM HAS_CODE ALLOW_CLEAR_USER_DATA ]
+      android.permission.REBOOT: granted=true
+    User 0: installed=true hidden=false suspended=false appLockEnabled=false distractionFlags=0 stopped=true notLaunched=false enabled=0 instant=false virtual=false quara
+    User 10: installed=true hidden=false suspended=false appLockEnabled=false distractionFlags=0 stopped=false notLaunched=false enabled=0 instant=false virtual=false qua
+        android.permission.POST_NOTIFICATIONS: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+== process
+u:r:openbook_update_app:s0:c12,c257,c522,c768 org.openbook.update
+== otacerts
+3e1529c919baf5bbe71c729e2f6884d034a589328af0fb41a1ae730ac3342a59
+== app log
+10-23 20:49:06.814  6431  6453 I OpenBookUpdate: watching update_engine
+10-23 20:49:07.648  6431  6453 I OpenBookUpdate: check finished: exit 0 (OK)
+== denials for the app
+0
+== crashes since boot
+      1 com.google.android.desktop.repairmode, PID: 2113
+      1 com.google.android.desktop.repairmode, PID: 3475
+== tombstones/anr

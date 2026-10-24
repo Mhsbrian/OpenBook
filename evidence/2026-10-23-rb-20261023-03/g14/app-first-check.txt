@@ -1,0 +1,3 @@
+g of main
+  6431  6453 I OpenBookUpdate: watching update_engine
+  6431  6453 I OpenBookUpdate: check finished: exit 0 (OK)

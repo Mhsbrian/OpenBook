@@ -1,0 +1,23 @@
+00:37:45 idle 3972s media 0
+00:37:57 watcher v1 verdict discarded: /proc/uptime includes suspend, PowerManager uses uptimeMillis
+00:38:04 last input 157961 ms ago, media 0
+00:38:35 last input 188163 ms ago, media 0
+00:39:05 last input 5808 ms ago, media 0
+00:39:35 last input 36116 ms ago, media 0
+00:40:05 last input 66331 ms ago, media 0
+00:40:35 last input 96436 ms ago, media 0
+00:41:06 last input 126746 ms ago, media 0
+00:41:36 last input 156957 ms ago, media 0
+00:42:06 last input 187090 ms ago, media 0
+00:42:36 last input 217268 ms ago, media 0
+00:43:06 last input 247372 ms ago, media 0
+00:43:37 last input 277479 ms ago, media 0
+00:44:07 last input 307589 ms ago, media 0
+00:44:37 last input 337698 ms ago, media 0
+00:45:07 last input 8420 ms ago, media 0
+00:45:45 last input 38603 ms ago, media 0
+00:46:15 last input 76943 ms ago, media 0
+00:46:46 last input 107044 ms ago, media 0
+00:47:16 last input 137151 ms ago, media 0
+00:47:46 last input 167240 ms ago, media 0
+00:48:23 owner on ANAL-232 (comment during the wait): laptop is on and idling; restarting on the owner's word
