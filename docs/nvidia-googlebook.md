@@ -32,6 +32,12 @@ Evidence: `evidence/2026-10-21-nvidia-googlebook/`.
 
 ANAL-240 (NVK), ANAL-241 (modes design) and ANAL-242 (VFIO) are parked until the deep-sleep work lands.
 
+**Owner, 2026-10-24: no live USB, test directly over wireless adb.**
+- adb on the Googlebook system is the non-root `shell` (CONFIRMED on `CL3B.260622.276.R4`: `ro.debuggable=0`, SELinux enforcing). It can read logs and bugreports, set `debug.*` properties and trigger sleep, but not load modules or read PCI power state.
+- So one vendor update adds an allow-listed root "lab" helper, built on ANAL-238's PR #126 mechanism.
+- nouveau and the test modules ship unloaded. adb properties load and unload them, run D3cold and s2idle cycles, and report to logcat.
+- After that single install (with the owner's approvals), the A/B runs entirely over wireless adb.
+
 ## Summary
 
 - **project-churro has already done Googlebook OS on our exact GPU, in discrete mode.** It is a recipe that converts the Googlebook recovery image for generic PCs, and its test laptop (an MSI) has the same GPU as the G14: RTX 5070 Ti Laptop, GB205, `10de:2f18`. In dGPU-only MUX mode it reports the panel, HDMI, Chrome and Skia-Vulkan SurfaceFlinger working on nouveau + NVK (REPORTED, 2026-10-18/19). That removes most of the "is it possible" risk for an Ultimate mode on the G14.
