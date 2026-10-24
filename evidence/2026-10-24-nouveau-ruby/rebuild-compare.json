@@ -1,0 +1,4160 @@
+{
+  "schema": "openbook-kernel-rebuild-compare/1",
+  "vmlinux": {
+    "old": {
+      "sha256": "51bfe8cd4738118c3c7c1b59eda95b3e4b779eca6a9dd73e78e509334fa5982f",
+      "exports": 4721
+    },
+    "new": {
+      "sha256": "406d1ca2b07e0f2b0a708d83507afff2811fe0e4ef608e735fae4516f82d8d17",
+      "exports": 4751
+    },
+    "removed": [],
+    "crc_changed": [],
+    "flags_changed": [],
+    "unprotected": [
+      "iowrite16",
+      "mas_find",
+      "rb_first"
+    ],
+    "added": [
+      "__drm_universal_plane_alloc",
+      "__mt_destroy",
+      "_raw_read_lock_irqsave",
+      "_raw_read_unlock_irqrestore",
+      "acpi_get_next_object",
+      "acpi_lid_open",
+      "dma_resv_fini",
+      "drm_atomic_helper_wait_for_fences",
+      "drm_debugfs_gpuva_info",
+      "drm_gem_handle_delete",
+      "drm_gem_object_init",
+      "drm_invalid_op",
+      "drm_mode_create_dvi_i_properties",
+      "drm_mode_create_tv_properties_legacy",
+      "drm_mode_debug_printmodeline",
+      "drm_plane_force_disable",
+      "drm_plane_helper_disable_primary",
+      "drm_plane_helper_update_primary",
+      "drm_property_add_enum",
+      "drm_property_create",
+      "drm_vblank_work_cancel_sync",
+      "led_classdev_resume",
+      "led_classdev_suspend",
+      "mas_erase",
+      "mas_store_gfp",
+      "mas_walk",
+      "pci_disable_rom",
+      "pci_enable_rom",
+      "refcount_dec_and_mutex_lock",
+      "schedule_hrtimeout"
+    ],
+    "problems": []
+  },
+  "modules": {
+    "vendor_dlkm/ac.ko": {
+      "old_sha256": "85279dd7e62566ac31f22c7a09e50b9fa58cc025730b15c98df1a7d749ca662e",
+      "new_sha256": "b146a0d8aa320d7ab6ef5d4af60113136df30905c818e86f2c67cc89f95726f0",
+      "exports": 0,
+      "imports": 37,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/amd-pmc.ko": {
+      "old_sha256": "9acfad51d474371e649d1203a7fb4c77561dc2d9548a64ce812632d9ac60cd30",
+      "new_sha256": "c1e82d63cbd6e9a87f0da4836dc0d3eb321e1c44ba89b40cafdd76de9a6ec019",
+      "exports": 0,
+      "imports": 89,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/amd_sfh.ko": {
+      "old_sha256": "dbe748653ff10f3007bbe8451106ca3ce06d43d390497a4370ee855c305b7463",
+      "new_sha256": "6c36a37531cb808a526a21a8cdd75967fd5a13251c8c37e0863d3ca756076532",
+      "exports": 1,
+      "imports": 78,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/amdgpu.ko": {
+      "old_sha256": "a4bd9f74ddb390cd1e1411e9b6cbd908956784948eefb31eb30eec4ce3af2bc6",
+      "new_sha256": "15dd8f93c044a6e7e4ac5d723c9a8332d3bdd64c6699f9d36fb628ac7c2d91b0",
+      "exports": 0,
+      "imports": 949,
+      "btf_differs": true,
+      "note": "only the kernel release string differs (and the string offsets it moves): .rela.codetag.alloc_tags, .rela.data, .rela.init.text, .rela.rodata, .rela.text, .rela__bug_table, .rela__dyndbg_classes, .rodata",
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/amdxcp.ko": {
+      "old_sha256": "70cffbc54e16fcc39cc0c43122ef462bd684c4305114f6bffaa3f3709413f4d8",
+      "new_sha256": "a4e7a6459fc41f0bc2ab0d5d8766a53a55b02e39d5cc9d1cad3349ecd68102b7",
+      "exports": 3,
+      "imports": 18,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/amdxdna.ko": {
+      "old_sha256": "36ab7e2ebe0587889de12708170ec141427386a2199b17a7ab20e460dca50a6e",
+      "new_sha256": "105ddb5490e7cad04d29740662dad153b546685d06c2a0a58bb4b2f90bf38ab6",
+      "exports": 0,
+      "imports": 264,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/asus-nb-wmi.ko": {
+      "old_sha256": "e53e207ee3550e88d96d5f79f8a3715ae0531c6d9b395b71f4f628df67f2e09b",
+      "new_sha256": "692d138554069a902a66dba6f4eb9adb51f2d235ac1dcd8cd809205bee848740",
+      "exports": 0,
+      "imports": 14,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/asus-wmi.ko": {
+      "old_sha256": "55b04bbd8abd889534b88d64eaa25bb931bb3fb41297a698ccc252a7202d9dd0",
+      "new_sha256": "9d6e4af7637dc1b78a76db2fd474efeac2bec9efd3ceaed61f2b211ba6ae109e",
+      "exports": 5,
+      "imports": 115,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/battery.ko": {
+      "old_sha256": "dc5f5b6bf29b0f29bc2243bde1e9d016c41bc86e091fc23e3a6dc75479554339",
+      "new_sha256": "73dcb87dac639356792688f57c9ac33fc5f2994e6956536038cd8ce61baa2ecd",
+      "exports": 3,
+      "imports": 60,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/btintel.ko": {
+      "old_sha256": "f48ae9be21d11438d107a8718db7de047b7f398aae2b4bc165a9486ff14243f4",
+      "new_sha256": "4d4b5df0e4721f8fd5ce5df2b9c16cf8f66fb57159f1f5e978090bb4266157ea",
+      "exports": 25,
+      "imports": 61,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/btmtk.ko": {
+      "old_sha256": "63e0df66f31abc1eea0edcc9cf504004d68bd82049d75ba37da81507beba2091",
+      "new_sha256": "665ea6a9f938811a4e47007ad68e81f0832ed44ec51df6d6f678d91394606b5d",
+      "exports": 14,
+      "imports": 65,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/btrtl.ko": {
+      "old_sha256": "7190a5ce5b3fa8b319e7537f2d3dcf31886df9e73b2fad231b6093e63db4d8d8",
+      "new_sha256": "896dacbc749a865beac26a6d82f80523a1f53b9fcb8b2a2d40dd796c58fa884f",
+      "exports": 8,
+      "imports": 39,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/btusb.ko": {
+      "old_sha256": "23fe98cacceb44212c752c313e29d528cdbd7942b3141773a807456c401188af",
+      "new_sha256": "b6e463615f2bf83b62670bc4dda572f9b3b89f1e7792499b5e70f6cbc36fab7d",
+      "exports": 0,
+      "imports": 143,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/cfg80211.ko": {
+      "old_sha256": "891db6b8500f7a321a3c33eabd23ae622eadf638798b1818a1721edf2c6f092d",
+      "new_sha256": "09d9f1d91bbbc67eb467bd68bf43cb994feaed08dd2166a945eca73ce88cb64d",
+      "exports": 174,
+      "imports": 212,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/cs_dsp.ko": {
+      "old_sha256": "32eb42074932e3cb9369bd637633eae9a6ec972478a6a5620de4dc5bd58ef9ce",
+      "new_sha256": "88fd7f1004b19c5bb2a00e39d022cff5cb89b6077c2780355a12dba7444126d8",
+      "exports": 34,
+      "imports": 59,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/drm_buddy.ko": {
+      "old_sha256": "45fd6d50820c4a0919b685ab26332ce000b137a6804550a05df5497787bc4eef",
+      "new_sha256": "5edfdffdd8bf40102adc7d670257d8c92768821387ca3a2a1edaaf9dee0e5fa8",
+      "exports": 10,
+      "imports": 33,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/drm_display_helper.ko": {
+      "old_sha256": "401219765815f67307bf531514a676c9cf0a3fb691f0aa4892029ff0f446a143",
+      "new_sha256": "4b5f0b57eeeee636e2e1c56e066f558d2a34f2803ee6f9464cef49d257fa44d7",
+      "exports": 190,
+      "imports": 111,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/drm_exec.ko": {
+      "old_sha256": "e97b8efa7e498cda3bd93522ff15418cf6cefa3bc5b9b23f499b4b74ca7daf08",
+      "new_sha256": "6ebde533251829b6cdfb2c935ff8fd16cbd9e51ccb8ecc138eb5f413d0c39e49",
+      "exports": 7,
+      "imports": 20,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/drm_panel_backlight_quirks.ko": {
+      "old_sha256": "64701d029b0f828a8daa94759821ca1c2abaa6926649039afec2c7499afb31c8",
+      "new_sha256": "13c7b03030f2368a5d1e1c2827263679ffac37a45a5619495d1e3813f4886871",
+      "exports": 1,
+      "imports": 10,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/drm_suballoc_helper.ko": {
+      "old_sha256": "ebbe3b2205c93a121b73b25a5d4d1b404613d7a05fb29541c6d43607637ba1ae",
+      "new_sha256": "f842a0af82df081fd2d47ed9a0310bc12f886bab6eb288ec4decb53cb4acb9dc",
+      "exports": 5,
+      "imports": 38,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/drm_ttm_helper.ko": {
+      "old_sha256": "ed11b332a2f6699696ab7d774fee7ded9166452d922c1d1ce49e293e64404057",
+      "new_sha256": "59fe575a731f95438ef346dce1f33b5d463ab3c7cf7970044ade66e397c8ffcb",
+      "exports": 5,
+      "imports": 16,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/efivarfs.ko": {
+      "old_sha256": "b3576386364f160ab8aa08bc4f60e07d47efed58d6b622d7a83245ff1a423d37",
+      "new_sha256": "6b0bf7f7cbbd2de6673136ed6c406958fdd42563e56c2926d44cceeef473278a",
+      "exports": 0,
+      "imports": 91,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/fan.ko": {
+      "old_sha256": "be012266c415cf4fce216da7657addfa1ea99893dd1907253c02f7583ca8e6f7",
+      "new_sha256": "3c2e98953e63d811c0b90eb5b340edc72db9b6b21fce9619b8be85f1bd78d36a",
+      "exports": 0,
+      "imports": 34,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/gpu-sched.ko": {
+      "old_sha256": "c98e1e39751ff5cff98cb4f8c12f99ce2d73fe1711d334619da1417fda5fcd23",
+      "new_sha256": "3cc8a8bd0f4305580e45756492c800c187e07cf8ec1bac905745626c24f220bf",
+      "exports": 31,
+      "imports": 105,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/hid-asus.ko": {
+      "old_sha256": "4948ef02128ee003d37cb9ce50862a2499498b31114e8ea713ce7bcc89065659",
+      "new_sha256": "cda124859cd9afd0650d23778d1dcf3933e52dcf1365404bc7b450948d09d258",
+      "exports": 0,
+      "imports": 60,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/hwmon.ko": {
+      "old_sha256": "3f1b59d3aad7f84a6229bf507c84a2ab9f02ed603090bc166ac43a8d4d200938",
+      "new_sha256": "aaaa9a459714597ef37d28f9f4ad147596768dcaaeb18f1449dc70fd5a2bbb5f",
+      "exports": 12,
+      "imports": 84,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/i2c-algo-bit.ko": {
+      "old_sha256": "1767edb3d283a7d8311e1caaab0d634e917c90383783608df9663b60664ffdb9",
+      "new_sha256": "b6fa47cd879a71f5650a74bd79a43f3e99d63ff1e0368d9a7be640d390b8e077",
+      "exports": 3,
+      "imports": 18,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/i2c-designware-core.ko": {
+      "old_sha256": "f6af0c7f1386fc75ad51fdd050eb0e1901ab4fbd0331f1be32c3fe07b3dbf27b",
+      "new_sha256": "8c89e64cce6ddbcd9251c66e8791a877379c6788444c5c8bff1f0d46bcb28439",
+      "exports": 7,
+      "imports": 58,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/i2c-designware-platform.ko": {
+      "old_sha256": "e7d3042cdf373f5b8c69c452f4086a7bf51c8c46edcf5d3c87c49fb733ee5e58",
+      "new_sha256": "2812187efe277fe6ec5e73c79d3a1b27ecd811727fad2835e79511c881198580",
+      "exports": 0,
+      "imports": 39,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/i2c-hid-acpi.ko": {
+      "old_sha256": "01cfc153a286556c79497861f27fe0634ee8761fe59382f36504ccab44b75a48",
+      "new_sha256": "d8abac1369406a82aa05f507b799d30202c41801f8392a1523b6d3ee14593c69",
+      "exports": 0,
+      "imports": 22,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/i2c-hid.ko": {
+      "old_sha256": "6deff74563553d09b0c899ad0efafe35dd81b77ca1b7b0518a4bf19d92bf3ff8",
+      "new_sha256": "a1742cb6f841fb11bbabaa3e0c9496d8fc4ff00ee585e6b4909972cd45ee0455",
+      "exports": 4,
+      "imports": 59,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/i2c-piix4.ko": {
+      "old_sha256": "82e2fa3411f729e42c8dc31e98f67b71a968556658b4090d44a905d565bd53f9",
+      "new_sha256": "0e4d39e473a317c6e3b2d62a6a645cab4071317925b5f2489538f29aeec3c7ee",
+      "exports": 4,
+      "imports": 48,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/i2c-smbus.ko": {
+      "old_sha256": "26e34fddefa382caca31e981fdcdfd66b5e40fe9e76a99d4431e7b7c35a47d7b",
+      "new_sha256": "61d38a1d587e5891fe04261f07da04d9ada4bc098255bcf809fc66a53295cdc0",
+      "exports": 3,
+      "imports": 36,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/k10temp.ko": {
+      "old_sha256": "5837b655618b0937d36b27a8d493b210ba24fc50ccc884896df94e77f98be175",
+      "new_sha256": "2ea61e45a14f9aed34e12c86571f28346a8732312d86bbabca1f510e1cecb57f",
+      "exports": 0,
+      "imports": 26,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/mac80211.ko": {
+      "old_sha256": "7c9bfe4563896b948c9a3468b700d0a63a99cb97d7aa70e8fd5d6d33cf7c83f3",
+      "new_sha256": "e195c1ed3a81bf7c2e725acbe4d25671b4e25b59f67efac210eda63b8bf60fe7",
+      "exports": 145,
+      "imports": 343,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/mfd-core.ko": {
+      "old_sha256": "959083a4de6c2192baf0f649c4f6b20663d0d2f1b2825406ec4403a58f1003bb",
+      "new_sha256": "13fbaea95ec13cad84fca407656517d34ea9ef9b56a0e2b06572147df84acc95",
+      "exports": 4,
+      "imports": 51,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/mt76-connac-lib.ko": {
+      "old_sha256": "3faf426de95d2de16485e632a6a1ddbf0c2baee8a8f28ec5098694405828b66e",
+      "new_sha256": "7bfa462d73f807a174b511514753ecbaec3316a595842bff6975b96d62a850de",
+      "exports": 90,
+      "imports": 72,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/mt76.ko": {
+      "old_sha256": "e85b4525da11adda8410173311b3e676c8bec8b9639511e257a588d00f249008",
+      "new_sha256": "84b59966868a4ab8d756997a5144ba582be6fb8a752a35d126d8a54e14985ecc",
+      "exports": 128,
+      "imports": 203,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/mt7921-common.ko": {
+      "old_sha256": "efe0a3cfbedb30bacbf6b5902df5fa6aef0f3db5b631afd0d68f7ca8a8bc7f72",
+      "new_sha256": "74d61305038a732ff58f1619cd035398ed1cff89adad214b392e2e767cf31ea3",
+      "exports": 19,
+      "imports": 227,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/mt7921e.ko": {
+      "old_sha256": "55fc0b0fe74332a56908c8adb188273aee51273a17bff76ccad54dfe10306d0e",
+      "new_sha256": "e7943e9c227293ab7060ac90b955a96cadb2a49480a06b1ffcc0bc75780e7cef",
+      "exports": 0,
+      "imports": 118,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/mt7925-common.ko": {
+      "old_sha256": "6565bcb3564f2422ee6ac5b2cd405e2b3d47195103c2ec0a0c052275c818343b",
+      "new_sha256": "88d15ab104289bd3599a1ee9e07616a9f17658dbeebb9091b51caf593d98390d",
+      "exports": 27,
+      "imports": 221,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/mt7925e.ko": {
+      "old_sha256": "7e6ba594d913701fd28771ee0f59b8b6e750c5038dc18623cce02e119e8fac13",
+      "new_sha256": "f48f4230ae0c5e8183ee885f9afab0ba59c33450e48c447e08f11e6778f725ee",
+      "exports": 0,
+      "imports": 114,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/mt792x-lib.ko": {
+      "old_sha256": "1eed51cedc72065b6c8ef72c22daac56730a2efe63cb8d3b22daa1a2a68aa833",
+      "new_sha256": "9164edfb81f04e4f54790ceb1c5b26fc296bcdfc192060a6c62296dd2ea0928d",
+      "exports": 66,
+      "imports": 111,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/nvidia-wmi-ec-backlight.ko": {
+      "old_sha256": "8a551494a46e6f466143c87f4b8cf903a51e9a337f7a2df284bab4781e460ba3",
+      "new_sha256": "79c4dcf1637ea497c6d2939615ac35b86dde70392315b2d45a1c6265a2379831",
+      "exports": 0,
+      "imports": 18,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/openbook_lid_guard.ko": {
+      "old_sha256": "97a5868c9d24f23c76d73ab294ff1b4f42d9aa7b0d2a2be3f4cb62261eabc6c6",
+      "new_sha256": "f62ebe3ae5e9c943c893413ec0aee86d5125eb673d7ea64b46b4e198d8d0a6aa",
+      "exports": 0,
+      "imports": 39,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/platform_profile.ko": {
+      "old_sha256": "354bfefea45e3ab8ed21ca1988ba093616a84cc47baf2e73176449b19b28be9d",
+      "new_sha256": "d43af50a8e15166b88d8856e208cca2e90ae6f2e8bfb8975b2fb81d669df01fd",
+      "exports": 5,
+      "imports": 45,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/rtsx_pci.ko": {
+      "old_sha256": "83577383c7e8958c5e27232726374bc942a3b15ccde303725d48038db81542e0",
+      "new_sha256": "41ddd208fc5e9cf5fa01d9d20d0398a2b50cd2c4bfb0f606a4526792f1ee65b1",
+      "exports": 23,
+      "imports": 84,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/rtsx_pci_sdmmc.ko": {
+      "old_sha256": "cc835f39e23c9c1af26f5d4be95f07fb8f61d4246a09a4f997c56d6f0d5d3f81",
+      "new_sha256": "4b319f4ceffd0ba8bca696daa7c09258390b2864c26c2b4ea395169d1a27e5eb",
+      "exports": 0,
+      "imports": 65,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/rtw89_8851b.ko": {
+      "old_sha256": "06e2a8e119b7eccbda135549f19d36e085ed2e03472c0980513f86e8ea6511b2",
+      "new_sha256": "eb66a2e4a5f65eda80f6feb99565489189d25c0e0be1467f329f242e6a5b55a8",
+      "exports": 1,
+      "imports": 51,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/rtw89_8851be.ko": {
+      "old_sha256": "bab4c6af58cffe66615e048f0c273fff72609a5bdf2c3c90ee067f2802eb9e52",
+      "new_sha256": "b91b83eb9551522eef220fee49b50872d2701b157a63a26bed8413fd8c02d248",
+      "exports": 0,
+      "imports": 25,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/rtw89_8852a.ko": {
+      "old_sha256": "d933f390ffe281f66ab1b7bd3eaa4a186172a21e6556f99917c6f3856a15abfe",
+      "new_sha256": "a40a0112c1978246dc6f2f7598e10b18bb817c29aa6f7ccc443ac959b357b9d2",
+      "exports": 1,
+      "imports": 49,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/rtw89_8852ae.ko": {
+      "old_sha256": "b4bec458a0f42a1af1f3728dee2269439cafe7d5de68d4b0febfde126b47e461",
+      "new_sha256": "0e534f73dadf44b4c6c5d51015916ad247e6d7a228f9c694e95bca9ed906c42f",
+      "exports": 0,
+      "imports": 25,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/rtw89_8852b.ko": {
+      "old_sha256": "36576127e677de1e034ed3ee071ae817265a11fcd65ea3462ef389284ec82361",
+      "new_sha256": "9ca93b0373af818eac22be97203b8e01f72d0baec86dd2b03241e6828fd1b558",
+      "exports": 1,
+      "imports": 47,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/rtw89_8852b_common.ko": {
+      "old_sha256": "e7a8ff842d305f6c0b44ee18402f85d9745b3ebc3a54b331db7a85741f2bf2cb",
+      "new_sha256": "7bfdec77ddae431637c6dfd0c53a41b639f470083394061cd1e4f94d9c28cfaa",
+      "exports": 1,
+      "imports": 30,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/rtw89_8852be.ko": {
+      "old_sha256": "bb3f5e3b24799598c0c68266c14fd105b8587efd2ef167cee6fb390c5f92b0d7",
+      "new_sha256": "5e437317f869262ac4a4a631d9ba76fcc3764c5338c5bc55b8e8fa041dfb3741",
+      "exports": 0,
+      "imports": 25,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/rtw89_8852c.ko": {
+      "old_sha256": "1f350344812668f43c2b9c03449695da741c1b347a2cd9048a1741c9119aaac4",
+      "new_sha256": "a79b354cde9df2457625851f1baed1d2b7cfbbcc9d3c60455dc6c9356bf67121",
+      "exports": 1,
+      "imports": 58,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/rtw89_8852ce.ko": {
+      "old_sha256": "88ea5728eae53daa26f09039506139fca665edc672f742ebc937b491c50fc4f3",
+      "new_sha256": "7b52c7d49cfcc8dfe3485fffe6e7e50563efe4e74bace242ff15bfc4375e7be3",
+      "exports": 0,
+      "imports": 25,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/rtw89_8922a.ko": {
+      "old_sha256": "2474dbacaacd997c956937711620ca7f85213bb520408f19d627d990df598a40",
+      "new_sha256": "e769a849d10206cd12e8249e2a3aed1a7eaeb3292c3215c82c7eed150138ef32",
+      "exports": 2,
+      "imports": 65,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/rtw89_8922ae.ko": {
+      "old_sha256": "a1b4dc2a9a55fcf7a3e248fd8a7a757bb8a94d01ac2205eae4fb734d9e662d60",
+      "new_sha256": "342fb2208f34001d4058174f5223e183037ea8238f879db16f67c7980f20384c",
+      "exports": 0,
+      "imports": 25,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/rtw89_core.ko": {
+      "old_sha256": "a46918f5381c87d5a4f870b3d77426c2fb9f6f14b89c2f705ed03f37a6da6d13",
+      "new_sha256": "1b12aba6ccf1c7d936d1b48bf8f08a1b36bf43d438a197b6b6812f157b000bca",
+      "exports": 111,
+      "imports": 186,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/rtw89_pci.ko": {
+      "old_sha256": "da489c89e57ed430e6a033ca8bb4ca6d5e57456c383978e12b2ce21ee024921f",
+      "new_sha256": "e823431c85afaf23b4e65534a5c60fed471fb4aa199093056bd15c79e8d33c6c",
+      "exports": 39,
+      "imports": 97,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/serial-multi-instantiate.ko": {
+      "old_sha256": "348079317c4c8048028b29063e171827b01b73d16fbe83558a965607da382a44",
+      "new_sha256": "1ec5afb5f418b07dbac941521fd073f6eec6309fcfd2bab3dc59856971935fb3",
+      "exports": 0,
+      "imports": 32,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-acp-config.ko": {
+      "old_sha256": "d621fff0c7458774d1b8e52901c711b9ad657bb2439090f475466959703ac9c6",
+      "new_sha256": "5a0e92b0a29ef59ab6ed251d2480130cbfdf171a85726f36c90501b03f7e0b69",
+      "exports": 6,
+      "imports": 14,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-acp-i2s.ko": {
+      "old_sha256": "c9c52c0665880d77c6480219e099cb2e834e361284c0911d726af5e950a034f2",
+      "new_sha256": "b4c3e93a897ba495bdc16fbfe7b21620290a24d755cee55d9899dcca4dcd8f38",
+      "exports": 1,
+      "imports": 13,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-acp-legacy-common.ko": {
+      "old_sha256": "1d51f3ffbb1bdf0c6ad48d664284fda6c0447859843b7e95787a9acb4b0d73ca",
+      "new_sha256": "8b8bd50c20913ee1b2ef1a5fa3a04173835fb4da8f09c67f6f8ef408dd253ec2",
+      "exports": 20,
+      "imports": 26,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-acp-legacy-mach.ko": {
+      "old_sha256": "88f9a0df82b8f95294214ae815ac6da71a6d551224c13cc4ea04588318a7c28f",
+      "new_sha256": "d594028708020a12d8187841812e0d1b0b57f5830ffbe1b104ebd6ddc2b08fc8",
+      "exports": 0,
+      "imports": 37,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-acp-mach.ko": {
+      "old_sha256": "6f0bd41785c5b9c449b245f4ebc0c5040e0bd18693249159872d734f124fc7f8",
+      "new_sha256": "99be04bdcca2984f953803a20e63aef4f4dca3b7e1d4ad7765d58afed414b6ca",
+      "exports": 3,
+      "imports": 41,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-acp-pci.ko": {
+      "old_sha256": "1c022b2ec6f895fdb7da869c16b7cfd97d77805f994db4b687cf3154c04dffd7",
+      "new_sha256": "c955115e589bbd8ea94e2c065ca7d93c585cf2c4849346b3bdab018cc0983242",
+      "exports": 0,
+      "imports": 44,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-acp-pcm.ko": {
+      "old_sha256": "62f955f66538372680e291dd21dbc332596bd595e17e0ad826b4d7520d5eef86",
+      "new_sha256": "6486383fbfdcab9370fd687aaa4b7832e5ddcc629b58397da78cd5ce504b6175",
+      "exports": 4,
+      "imports": 24,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-acp-pdm.ko": {
+      "old_sha256": "1500030d0bdc5274a0781e8ea73bf5183befd4b3fecf7724599090408aaf2dd3",
+      "new_sha256": "9443c4976b1545c607240f159cc51ec7305126d8cb00b48517c06f195b2d1ed9",
+      "exports": 1,
+      "imports": 12,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-acp-sof-mach.ko": {
+      "old_sha256": "68304959af4c81695f4e6b8d67dd16c11b8eac866e905ba74f70bb965733bc5e",
+      "new_sha256": "d8b1db4581a6dbd4bf6e6f3fc97637e5edc487d52cd3fe0eaf57e40df3e06978",
+      "exports": 0,
+      "imports": 17,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-acp70.ko": {
+      "old_sha256": "560818d1323081b684aaaa1d353e4296b9c0e24f26ddca81f55304cffc771111",
+      "new_sha256": "43441932a817a1048d06c1220bc33ca224746072e10db30e8c26a89bee5e4cfa",
+      "exports": 0,
+      "imports": 29,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-amd-acpi-mach.ko": {
+      "old_sha256": "cfde7c2bbca805ec2ceed810247b6ed3a2b1e262d2cc776fc3d1240bb26be968",
+      "new_sha256": "3c05894702c10ca43745b5a29b2d137b00214ada5fc0dd9e30fd1f3f6116ef1b",
+      "exports": 4,
+      "imports": 8,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-amd-sdw-acpi.ko": {
+      "old_sha256": "aa2fbc3e6914d742a2ee091420835483c3081264ec2752bdac195b20f5193571",
+      "new_sha256": "1d138487eff35619c38299eba719c07a62ff17ed894ddfa1a344359314425d8f",
+      "exports": 1,
+      "imports": 14,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-ctl-led.ko": {
+      "old_sha256": "a0e7c19daa03e70198d13d99863017faf7be03743f3d227e8a4e172dcd73bb50",
+      "new_sha256": "9c8908d7868c56849ae1bc4de91e8e7c6d7ce5f668f009a660845fda17048bd2",
+      "exports": 0,
+      "imports": 51,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-hda-cirrus-scodec.ko": {
+      "old_sha256": "8960b9442fbc0245067693602223a7cdb1fa7c5959e1d3992db272bf83a62360",
+      "new_sha256": "3761830fb278ca1d6844a9c518765c60a727d98dcc47b19d7686eea94021b4e5",
+      "exports": 1,
+      "imports": 12,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-hda-codec-alc260.ko": {
+      "old_sha256": "9965a6c28d551f638386182b24999c2e07073af5f1ba66e108a73f7afc43c8f1",
+      "new_sha256": "4b5379b3e7da3b9aecbc78330897b1fe1cd9020dce22adad28ead79dd032239d",
+      "exports": 0,
+      "imports": 31,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-hda-codec-alc262.ko": {
+      "old_sha256": "fd5b3e203b246993b1f62e88099e8a830005df1716285791fa3765069b6b5476",
+      "new_sha256": "1198e866959cc28183cda46c68679a9618c07564d6cdf0130eb146b8c0aba384",
+      "exports": 0,
+      "imports": 29,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-hda-codec-alc268.ko": {
+      "old_sha256": "b11ce4652dbfc94f2e14274846a8d736af1f29e60b882f6a2938d6656e066f42",
+      "new_sha256": "4d10452f8ae69bf7550c5b2d03a885bcbc4e6adc1bceeb6557078c0e2da180ac",
+      "exports": 0,
+      "imports": 39,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-hda-codec-alc269.ko": {
+      "old_sha256": "e34263679a746d0d15c6708a050f3d8a77cabe6173726cbae666a601a6131fdf",
+      "new_sha256": "c8e1c4791dd2f946a2b225085946087519dd07604ced8b55096a794c826ddd51",
+      "exports": 0,
+      "imports": 121,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-hda-codec-alc662.ko": {
+      "old_sha256": "332b6090c6b59e0fca5691bd2931195d16fb546a1ce28cdc10062ba4cd93f136",
+      "new_sha256": "e14b1f93a644aad508bb68109c6407074dbd15c0f8bbb25b2fbec2fb0bbbf652",
+      "exports": 0,
+      "imports": 55,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-hda-codec-alc680.ko": {
+      "old_sha256": "8d386e7257f684f68381b3655783598819cb46a9ad5cc5e38a3eda974024750f",
+      "new_sha256": "06ff87fdd0904744ccc720c27a32d7233441f55ffe6160be366f984abf171c91",
+      "exports": 0,
+      "imports": 21,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-hda-codec-alc861.ko": {
+      "old_sha256": "4ac221b19de1c2872a6bb91692c3818cd084571089bddda55bd1990ce339772e",
+      "new_sha256": "4c355c5c5e0344e9e478e2d7a594f9c14eda594ae547a5ea1cbacf2bef0b6ce0",
+      "exports": 0,
+      "imports": 28,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-hda-codec-alc861vd.ko": {
+      "old_sha256": "f71eed9e0c888cf5474dbdc157208a37eb159fce98c7c33565fa8f673d1f0966",
+      "new_sha256": "19870158ad5473836ceb40200d012a6a3c9111f6513df96ef426efd79af39250",
+      "exports": 0,
+      "imports": 27,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-hda-codec-alc880.ko": {
+      "old_sha256": "2bbb45c011661b1ad46a65ce1c7d1c251fb564ee3d511f852819589600a8a85f",
+      "new_sha256": "70a782682d1c3a0660b2e50f1631cf4d4faf5600f10dc9e37855192e3f5aa927",
+      "exports": 0,
+      "imports": 28,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-hda-codec-alc882.ko": {
+      "old_sha256": "f9d4cf4ad992ed1f8c32be7b0175bfaa45bb7889f16ffa305b3c1b8adc90ec7b",
+      "new_sha256": "778a4f5a4c3a72a7bf57ce70fea7b1f95d691ab2cfa231dfc24ef4d14f43e51f",
+      "exports": 0,
+      "imports": 42,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-hda-codec-atihdmi.ko": {
+      "old_sha256": "f4bba5732a5ddd0addf257a41b9ee42584939e2b39440dcf9bdd8ab85c2d7cdd",
+      "new_sha256": "df4d01d2b62386a0debb4603945c6ada81df86e9296a18cc4d0e6f00397764a6",
+      "exports": 0,
+      "imports": 29,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-hda-codec-generic.ko": {
+      "old_sha256": "19745b8e52e416d1675dd8ac314ccbc1a67717a23af366ac2f953583ff62441b",
+      "new_sha256": "a98a3220eaa0601a661937564e75cc6b71a54a79c4f24fd1ae59efb9c270bf24",
+      "exports": 24,
+      "imports": 115,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-hda-codec-hdmi.ko": {
+      "old_sha256": "96f28a77549ae70ef8230e9a16a8eb03a94ca5886bcf692c9e8bdf03917c428d",
+      "new_sha256": "d0e31e31a7073a2eb581093c3c87e99e407e290a1c2c6caf61826a1f1add1871",
+      "exports": 23,
+      "imports": 95,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-hda-codec-intelhdmi.ko": {
+      "old_sha256": "e101f2920479bad570f653e6d185e1eb88bfd6c514b3ba8a54b350fce4ef0f2f",
+      "new_sha256": "8aaf1f438b268f5a704e14402112e7baecb119cc24003f18c2ca515a524e4bfb",
+      "exports": 0,
+      "imports": 46,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-hda-codec-nvhdmi-mcp.ko": {
+      "old_sha256": "1a67edfa568793b04d90c30bfbb515c39505e86bf2e8ec845e4407ab668cb135",
+      "new_sha256": "bd59970ca47ce986173f0afb8ac3f01ccc8ecdf74457395d47100d550c4f4c27",
+      "exports": 0,
+      "imports": 26,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-hda-codec-nvhdmi.ko": {
+      "old_sha256": "7c40a59b45823249396d094cbca6b2b617ec4ec236396f7f27c7d6953eccdba7",
+      "new_sha256": "2bfac0fa16363cea1ec79f1339ea2aa854d6bc1aa6f50f29e6f2873f0c4fec99",
+      "exports": 0,
+      "imports": 26,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-hda-codec-realtek-lib.ko": {
+      "old_sha256": "588a1a53416c0d6402436b15e0816668dac7aa2cdcc9517ef9a0f96c30dc1303",
+      "new_sha256": "d160acdf6d94e274a0f925527c21535fa76caa329befe11c1da8dc956c0b8bad",
+      "exports": 54,
+      "imports": 48,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-hda-codec-simplehdmi.ko": {
+      "old_sha256": "74eab48df153f4580796c5f477bdece4b5aa39b5b075766e39355e39f2705250",
+      "new_sha256": "ef3b5890fe77f8e0d7301b01a802ad890ddfe8bbc833b72036f6a37d5a4e3f5d",
+      "exports": 7,
+      "imports": 35,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-hda-codec-tegrahdmi.ko": {
+      "old_sha256": "57f9ca3832d0bcfaa06bc9298294ecefca31f9f6bae42d637c1cf76da3ecbc54",
+      "new_sha256": "90bd1051acf363217ec40fd62c4f65cd9a589f67c0ef46f498c8c58326414398",
+      "exports": 0,
+      "imports": 25,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-hda-codec.ko": {
+      "old_sha256": "25a3a0bd4e6238afacaa8aedcc748ebefe9be508b8fd8934d88f238a39a069bd",
+      "new_sha256": "585a4d84893b0627c097ba208f8403f047569a3c7f8d8076c65b7a32215fd475",
+      "exports": 125,
+      "imports": 215,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-hda-core.ko": {
+      "old_sha256": "4e436b6057c35114c20891b3715b575e957c9f1f726c7859b83723d2cefed3b5",
+      "new_sha256": "36738ca6b770e0767e004b0eb7fbb295114c26b91c9aff90f4e9e6509accc7fc",
+      "exports": 98,
+      "imports": 133,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-hda-intel.ko": {
+      "old_sha256": "536d26679ca9528f5f32f659d3e88ea1cec7281e1ff8af24b963d710f12a8437",
+      "new_sha256": "ef773c01f27592648991faa92a4ff00fa55e72a7eece3b7d37d4d6d6f04867d4",
+      "exports": 0,
+      "imports": 128,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-hda-scodec-component.ko": {
+      "old_sha256": "621b6de5707c033278cf59363e4d0d5293b4b8705860aa01e329a730fa7b4b5c",
+      "new_sha256": "f111aa0564ebfa5cdf802f84f0653eb2198d1558eda14622c3183b8e4676efaf",
+      "exports": 7,
+      "imports": 28,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-hda-scodec-cs35l56-i2c.ko": {
+      "old_sha256": "56cd07175d2ed25aae6a18a0e4dd6e4a75d95397c90f0929495419cab9439865",
+      "new_sha256": "469487145516e486c9448608778d0ab780d61c783637ec23102973adfc43f3d9",
+      "exports": 0,
+      "imports": 19,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-hda-scodec-cs35l56.ko": {
+      "old_sha256": "a67c342628d960bb0aceb2549ea68223d0de59c8ad66ee1e8f4a640e33789f4a",
+      "new_sha256": "1c6ebcca4644e1adf3264ee330b3b9d5c103f990a445063b61abedf1c0105e77",
+      "exports": 3,
+      "imports": 92,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-pci-ps.ko": {
+      "old_sha256": "91622bb115a7c333ceb87c30744bd22318dc7ec450adbf58933240b8ff668f3d",
+      "new_sha256": "f7b3113c355300177ca123f2d080d5ae63fa0d016056c13c95dc317857fee781",
+      "exports": 0,
+      "imports": 45,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-ps-pdm-dma.ko": {
+      "old_sha256": "d32f028829871858b7db55f0d31d07f9c043d131d3e249349b68570b53f8ef5f",
+      "new_sha256": "bdfe5d5f7da4e652c6b4c0ebd9d3a3c30b966da252787d9ad24085269ed63246",
+      "exports": 0,
+      "imports": 34,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-ps-sdw-dma.ko": {
+      "old_sha256": "a5f1cccee9f884719bca9961b6819495a7e1d4c37a170f6ef31c4165b4b28254",
+      "new_sha256": "6d91166fa6fd14cf49d7445e621558004f7e92a9958946e4c85b7371eeb4ec76",
+      "exports": 0,
+      "imports": 32,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-soc-acpi-amd-match.ko": {
+      "old_sha256": "ea686d90f8d267911ca99f08fe7b96d6749254923fa8fe7706da0403554fbaaa",
+      "new_sha256": "e3ea0a9a4f82bb00bf8ae9216efd82839ff95eebaae9f518761806301b54fed3",
+      "exports": 4,
+      "imports": 7,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-soc-cs-amp-lib.ko": {
+      "old_sha256": "ddd5788d149087f468ac1a94eb8325cd772610c096ee41562f227dd1cce29885",
+      "new_sha256": "d8cac19730540441621c5a38d0a6e5634f771847c412463c5af15e4eede4bdba",
+      "exports": 7,
+      "imports": 29,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-soc-cs35l56-shared.ko": {
+      "old_sha256": "733d03bb65bd4337ad0a056c799b8cb862d8ab7830fd7225fcabb436790a1961",
+      "new_sha256": "d89ecfcb3d6959a455b28ddbf4c98adaefb86ef9ce36d87040ff04f1caf16dec",
+      "exports": 38,
+      "imports": 48,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-soc-dmic.ko": {
+      "old_sha256": "969a74cdf426a033cf13638cf93c7b869d87057c9e00f3738cd27041a3684173",
+      "new_sha256": "1cdacf913b1d3f42f41024913d4282c6250092725218b39eb6ec844c5d55da01",
+      "exports": 0,
+      "imports": 27,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-soc-max98357a.ko": {
+      "old_sha256": "ad17b891445db209b6174ca431b99c0bdab6fa6541775cf06a4cad82070f9bbf",
+      "new_sha256": "4cd08a1b51971af49dfeed19159df0d87871222636d444a7adda36819e0a3103",
+      "exports": 0,
+      "imports": 17,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-soc-max98388.ko": {
+      "old_sha256": "a1215131f909d8dd5368f9b33c43b82c377696cee2157330aed0eaa92b23d79b",
+      "new_sha256": "5f041369a6d3bde65233d165f0f0e11e423565a982ece1e56eafb50fd6a8c609",
+      "exports": 0,
+      "imports": 41,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-soc-nau8821.ko": {
+      "old_sha256": "317a87e883c591376139e68de51db7d77e598a1e4a654492b37c3a93402df2e2",
+      "new_sha256": "0bc494c3f7ac30979963cd94cfdbbfb53ee05fef1077af79c1b8860a3bd538cd",
+      "exports": 1,
+      "imports": 62,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-soc-nau8825.ko": {
+      "old_sha256": "04a1f5970114482c65e245ebe4f2d85bb5b53f06151e3599088b318a9c1e3f2f",
+      "new_sha256": "3632c9d3be1760e56d565cac6bff3879ea5c2b19d053b1ba3dd2ed87e35a6e43",
+      "exports": 1,
+      "imports": 74,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-soc-ps-mach.ko": {
+      "old_sha256": "c3ea1a14c3dfc5ecb240407c2d26e93f50eb174a6bff61b5241741e8bb331549",
+      "new_sha256": "32a3745ddff4c3cd8fff953ccce415c95e5df3c41185717044ad2b08f978f797",
+      "exports": 0,
+      "imports": 13,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-soc-rl6231.ko": {
+      "old_sha256": "7c06b11cc2677b1a2d0501970a003c9c8126d5ab83ac2c299eb088d53e39ceb6",
+      "new_sha256": "06ffc17e9d1b73957b9323f0070c8c36b7cdada8302f0b28adf6ed02aef9855c",
+      "exports": 4,
+      "imports": 13,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-soc-rt1019.ko": {
+      "old_sha256": "62763a133a1150f87cfdf7590d31c82bbfcabc149fcf98893b11c7852fafe268",
+      "new_sha256": "b533a9af2428b6eeea0f016d31bad12f80fdee692073bea0b66bb09266f993a4",
+      "exports": 0,
+      "imports": 31,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-soc-rt5682-i2c.ko": {
+      "old_sha256": "e63af845bfe7ce2c8cebfe32585782ed2583a83e0df8ab422e005d82e55a7822",
+      "new_sha256": "0fb088a56e4014d13103b8597ff1333e709b0ee74f365694cd9c6f302db7fe28",
+      "exports": 0,
+      "imports": 52,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-soc-rt5682.ko": {
+      "old_sha256": "7b4f51f8f86ff58e3d0e0b9ef75a8a971985da32ad2a7fc0431134f4ff117dcd",
+      "new_sha256": "89287d5012b8d9298969b8dd639f82407b133db29c6fad532fc0add63493a666",
+      "exports": 15,
+      "imports": 65,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-soc-rt5682s.ko": {
+      "old_sha256": "803ee7230df77dfac3a7c66a742fc9c7a5bc1fca769c21e487cdf4e0f473752b",
+      "new_sha256": "b8114b83b0305eb1e9be1b285a5bc1a1b5010c4a17217bbbab67fcb0b5d087ea",
+      "exports": 1,
+      "imports": 75,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-sof-amd-acp.ko": {
+      "old_sha256": "58d4a31e0d9c2c7b93c71924b6720f3c2d842b0df4f2bc2eee8eb6b49740fbcd",
+      "new_sha256": "d36b5c36a5f2043ccc4b4507229ce322110f95e4960b0aaddd7caf83922bac94",
+      "exports": 31,
+      "imports": 59,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-sof-amd-acp63.ko": {
+      "old_sha256": "6f39faa5b6649c7599ba432e7a2d55b76d9e8c614f9534901619a2816732c01e",
+      "new_sha256": "5cd1a1265ccf5e22db71a732ff0771e6fd3f895148e180e3f1a888eb274d3bbb",
+      "exports": 1,
+      "imports": 18,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-sof-amd-acp70.ko": {
+      "old_sha256": "1248ea71a361290bf3215e53cc135601a16ac5898d3796eccf4f705122184f55",
+      "new_sha256": "591339ba1e8cecca1fe17304da9886a1fd8e6c569809baef5a66ed1f57091b62",
+      "exports": 1,
+      "imports": 18,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-sof-amd-rembrandt.ko": {
+      "old_sha256": "63f5bb4479af1a1abd13ee922c0f9bbb4a17ad915fe793fcde6a6da7d5704ff8",
+      "new_sha256": "fde8eaf5a36d0ba2e7c6ac8a7432bea0aca14ac9756263186928bc9ca8cb2bf4",
+      "exports": 1,
+      "imports": 16,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-sof-pci.ko": {
+      "old_sha256": "273f04eb9376c48c95fad7254368f2d6bfe667ad5ea3dacbd087572d2ca7f311",
+      "new_sha256": "f111c9126f9e8d960b829cebf6aba7a1bc48237882805d50090581a364364938",
+      "exports": 4,
+      "imports": 31,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-sof-probes.ko": {
+      "old_sha256": "ba8bbca945b24310b8875e812f8d33c30b1cba31f604853cd239d644109f7c9a",
+      "new_sha256": "624d5ba5d902f3ca889a65ce95d1f0eccc19626a99611ea4cb7c607951902980",
+      "exports": 0,
+      "imports": 60,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-sof-utils.ko": {
+      "old_sha256": "e61d77472f32a1c9d7adc0b9f33ecd179c1a8a78bca6f2b958d33bad1ce37669",
+      "new_sha256": "0c9e89b9a463180b6046f3c3d85896e9086304914cdd0d1d232cabc9c12c65a2",
+      "exports": 1,
+      "imports": 9,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-sof-xtensa-dsp.ko": {
+      "old_sha256": "7c1290b1e4ca79fc05d8cc9472a50bef7889be3634a865f45827448df23fa2d6",
+      "new_sha256": "72c85195761aa080a541d14294fc6fa1909833f087e6c27297a27b968efbc63f",
+      "exports": 1,
+      "imports": 12,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/snd-sof.ko": {
+      "old_sha256": "5d00a236878d1ef1433ece0f9abb60cb0ebe0c2917acf53291f07f75a9c04b84",
+      "new_sha256": "25eee81927f212a90abf7b070c9f2b9d6b40732154e93d3985f90eed0d23ceca",
+      "exports": 84,
+      "imports": 154,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/sparse-keymap.ko": {
+      "old_sha256": "5ee96d4bdf908eb2f1295922786c856ce252a11c6ef4acb7a83b41425bfb1a8b",
+      "new_sha256": "ea8b8500f846e624b589dd43778df737feaf359b66365193bf155512210c0af3",
+      "exports": 5,
+      "imports": 14,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/spi-amd-pci.ko": {
+      "old_sha256": "73b53926e26b1145bfa79d3611604b1dffbe31f979c88b5bef2246335933ce17",
+      "new_sha256": "19086204cf589c7150dbe15ad838f90cc36cbe0b5aea19342232fef789e59fa7",
+      "exports": 0,
+      "imports": 16,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/spi-amd.ko": {
+      "old_sha256": "9259cd32c273520edc4b92f875b0f838892234461ed47d0a9392600ae3847ced",
+      "new_sha256": "e59add04f60ed5ca96306d169742c4fb3883953a8ff35db862479bbe8840ff3d",
+      "exports": 1,
+      "imports": 22,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/system_heap.ko": {
+      "old_sha256": "9fb3dfb9ff8e4dd9286e4c60486f12012e65951cba8f21203ded28c750c3b7a3",
+      "new_sha256": "e604740cb307539a9a9d015f69431bd338fb3ae04d6446613a38460d5101caef",
+      "exports": 0,
+      "imports": 47,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/thermal.ko": {
+      "old_sha256": "75bb4d84ea67c954e77b4fc23c8a4afd215efe4f3a3709cabb749c015150fe05",
+      "new_sha256": "cd81436f60c466d3e59b8d69cdaa650ea90e6ff5dc22ca1cc2c8ec75eddc8a5a",
+      "exports": 0,
+      "imports": 64,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/tpm.ko": {
+      "old_sha256": "e181c91ea14b67a04b0487b9fa30a7303e80b52ad5595227d638131886f8e444",
+      "new_sha256": "f22422cb06fe65c329e0ec572bcc613cc44b0a508ddbc3fe2faf1f4b5958c22e",
+      "exports": 40,
+      "imports": 124,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/tpm_crb.ko": {
+      "old_sha256": "735b977d310ea140319b03bd3ddec0a8973fc0fdbdc36d498018954fcf54e278",
+      "new_sha256": "2fbac93668d822f1aa571565c9d48518a1223f0524fcf408792a1ccf445dbff7",
+      "exports": 0,
+      "imports": 41,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/ucsi_acpi.ko": {
+      "old_sha256": "4914a0a3cc6a90575dfd2b660bb7c198292b9d893283351452b452458bf96d0e",
+      "new_sha256": "bf1dd010cd6c8f94775e9efa285e56d5906e3141d019d6384bee72dd025d2f3a",
+      "exports": 0,
+      "imports": 34,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/video.ko": {
+      "old_sha256": "2d3b8428c85851b32321ce02d18f2d7de56d4a3b79d88d09ad67a11bbb775475",
+      "new_sha256": "eb19fefbdc21f01d79148ee869fab0f01e59a36fb40f3916efa3b234a59743c7",
+      "exports": 7,
+      "imports": 83,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/virtio-gpu.ko": {
+      "old_sha256": "215721f8b2911cad7c46726ed9934c4a438894d1c9803a3505c733de9afe0cb3",
+      "new_sha256": "a65479fb62d9a5257b07af80fed1aa4b96abf5e885af3f604d9135cb258c4dd5",
+      "exports": 0,
+      "imports": 267,
+      "btf_differs": true,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/virtio_dma_buf.ko": {
+      "old_sha256": "17892f56d09aa4782d6e770285938ec92b602bb7505c5e332c05761e28677df6",
+      "new_sha256": "5a42167d4b178712edaacbdd78fc7df018840c8015411780e5c773c83447ad51",
+      "exports": 4,
+      "imports": 10,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/virtio_input.ko": {
+      "old_sha256": "f45638ae3a96082d1e39d3a599790312a5978236617e4f4da91527f0681b2ac2",
+      "new_sha256": "74e4fcd52cef8d74656be0aa444ece9f6d474698f9b878977d139dcfa016f33a",
+      "exports": 0,
+      "imports": 38,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/wmi-bmof.ko": {
+      "old_sha256": "3025b4e814996537c9e144422f46eceb32f0804734954a08625d64632ad2c083",
+      "new_sha256": "489536b7e666d6414f2719d88c596d1c08739404c48f75059c2e46b38ad02ba9",
+      "exports": 0,
+      "imports": 16,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "vendor_dlkm/wmi.ko": {
+      "old_sha256": "8b822227fc42a337b5360be2e86b3e6b53b07b43eac9218d8e8ba465af51cc27",
+      "new_sha256": "bf8100ba22fc4a84ebc61c61bf2f9f79a5f489987c9a65a1c02da50fdd9d395d",
+      "exports": 14,
+      "imports": 65,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        false,
+        false
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/6lowpan.ko": {
+      "old_sha256": "8e9252b1893a407f1763046f8ecf64381c2bb87a699b038196d37e3b26de19a0",
+      "new_sha256": "81405f72dd24e9efbf90ef550c7c728a7ce24632ef92aa7af8e45f26d649eff5",
+      "exports": 6,
+      "imports": 37,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/8021q.ko": {
+      "old_sha256": "30fe31b8d341300f5751a27e2e50455b3bb099771d54112747741c16a14ea35e",
+      "new_sha256": "623b8115bd9c1c34368c2601722046773612af3dbcfff656e6e52b1afa4d4d03",
+      "exports": 0,
+      "imports": 109,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/9pnet.ko": {
+      "old_sha256": "f9cfbeb4b6bde6a3081bb9079b003f099486f5812edddb728668d939c5783247",
+      "new_sha256": "dd65443577ba35b63404afe7e3483acb39ff73d429c36ef178646133d4badde6",
+      "exports": 6,
+      "imports": 96,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/9pnet_fd.ko": {
+      "old_sha256": "c68524c696d56b77066c4ee1f4cdab029074e2413b7e936be3dcb2f6a91c2561",
+      "new_sha256": "6ed97a687d9a50fecea44cfd58ce5523d01ed8947c5a7f5dc5c18932424ca23c",
+      "exports": 0,
+      "imports": 55,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/aqc111.ko": {
+      "old_sha256": "e594ebd83fc47e1ca076cb869ac99027987070cff8cff9fb38f55071a8f5a7d9",
+      "new_sha256": "eda69c94a3f058336e032e55674f4dc5b2878a648ef6db43e67c36fc9e45ea6e",
+      "exports": 0,
+      "imports": 63,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/asix.ko": {
+      "old_sha256": "d3b874543f6e205b90fec0ab5509b75f15e0b222b57ca7c392e104dc6f542cba",
+      "new_sha256": "261c0651ff2aa06bf9691c69eb98e6a155a3d243c64ee58aaac07f276e903cb4",
+      "exports": 0,
+      "imports": 110,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/ax88179_178a.ko": {
+      "old_sha256": "ea0de1b7fdeb628208dbc7fbdd856f75ea0fc0e49ff61841e99f72fbde09e51a",
+      "new_sha256": "11af15380637f25f11c36edb16b8c7ef3dca94b499c87b04c40d9690a956b090",
+      "exports": 0,
+      "imports": 69,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/binder_alloc_kunit.ko": {
+      "old_sha256": "f40053726a66e33278574e691b478dad9d777a08ebb298189ccb834236c4c50b",
+      "new_sha256": "f7e2e4f7c05cd9fa6e3c5b8ce3eba4cefea734b0814b8c5d089d9e18b14cb49e",
+      "exports": 0,
+      "imports": 38,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/bluetooth.ko": {
+      "old_sha256": "fb8909b1a326a2ec618c1c202d55ba82ac1e258d7fdeaa3a4342b4786e568d89",
+      "new_sha256": "40e551355cac215c5f6bffbdcb25f499673275538cec1449afc160691a9f534e",
+      "exports": 58,
+      "imports": 264,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/bsd_comp.ko": {
+      "old_sha256": "1eaadc41ad70798dc4ad38831fe42e68b70c486397adfa844452664a8d308f85",
+      "new_sha256": "0df7ddeed1ea238c378432626232b6630aaa2843474f409d8ff66985b67f6ea2",
+      "exports": 0,
+      "imports": 18,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/btbcm.ko": {
+      "old_sha256": "6d1f2aba3dd01f05c7980aaf52d11a50c5e781a21a3d0244e74b25d2d9be2ca5",
+      "new_sha256": "5e9816c7d927c85becec078cb06b0657982a27ed7d9dd807c2d94b15078b33ad",
+      "exports": 8,
+      "imports": 31,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/btqca.ko": {
+      "old_sha256": "3fa2562e643dc27c0cd01725701db3b86ee7e1a53a9dcbb2029e10d0292173a4",
+      "new_sha256": "50227b67388d19d5f0d8c41ff9da3737b1fb112bc01393a5cbb41f9b0cbc9707",
+      "exports": 5,
+      "imports": 40,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/btsdio.ko": {
+      "old_sha256": "9b09752ccb67ad503aed852c54b3906c6876fd55deb62bf684e5e1ea4f4fd1fd",
+      "new_sha256": "0f13b36873b69f74ad117190ce3b2ea66434a050cea768255b41cacf5df71ab2",
+      "exports": 0,
+      "imports": 40,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/can-bcm.ko": {
+      "old_sha256": "5721457f90c8b48919c9a6eeff6d6bac0651f5ac8431aab37fe26ca2d2af5f34",
+      "new_sha256": "94b54f21661d0f29d13209154515cafca3ab8876bd1124d44eca77b226cb22c6",
+      "exports": 0,
+      "imports": 86,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/can-dev.ko": {
+      "old_sha256": "090d353cd5f6648a35c1ff52c6a8a484517f9ce9e550a9e32bf6cbfc600faa0d",
+      "new_sha256": "0748ff3ccfd7e0089834919217bb72fade8efd64a674eb1167b032ed700b224a",
+      "exports": 27,
+      "imports": 72,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/can-gw.ko": {
+      "old_sha256": "1899ffe1c715bca4e538c26ad1ca7fcc3ed97d4f7ebaa3da60a785e07c6b19e2",
+      "new_sha256": "3c7ce8a6c8a783ba6da6ea868873ff97ea93ea2eaa723e5bcd05e5a5ce92479a",
+      "exports": 0,
+      "imports": 54,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/can-raw.ko": {
+      "old_sha256": "ee58c7b095cd2b3921c9cb96cbd2f7da3b34424da21e7fab4adc4f290dea0aa2",
+      "new_sha256": "7bc5fa359ba1a13b3b874cded55c7446b3e24825b17b30b3507c075a805a8835",
+      "exports": 0,
+      "imports": 69,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/can.ko": {
+      "old_sha256": "33991a916f64b0cf947d6428ed61607328c09faef31e4dc68a7add340f150792",
+      "new_sha256": "895fddf3ee9ff8857eef8153d8ec5df7f641c67827729b92d3b4b9370a263a34",
+      "exports": 5,
+      "imports": 68,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/cdc-acm.ko": {
+      "old_sha256": "c2d9a7cbaf68004ce413b381cd981dc66a8379042dbf9f393a43663a38b68449",
+      "new_sha256": "67ab83d78635c328100c9df39a986aa539241219e0848d3153aa00b6346dd6ff",
+      "exports": 0,
+      "imports": 104,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/cdc_eem.ko": {
+      "old_sha256": "f5ca0eb8d50da3e8c18b4867f5780821baa5130ed83b4481f6a85732978db407",
+      "new_sha256": "72a4663ef56fc5775bd46052eea918ae95542be206c6f58cbc35f6bd95e56c8b",
+      "exports": 0,
+      "imports": 31,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/cdc_ether.ko": {
+      "old_sha256": "6db85508ed855115679fe88f354a4a58a7458fef12e41d1f670ba603a88aabe7",
+      "new_sha256": "dfeec2f129ac6633325cfdf3873f3048e27a35efe78a038bbc46717235d2f023",
+      "exports": 6,
+      "imports": 37,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/cdc_ncm.ko": {
+      "old_sha256": "81b57ad9bc57cacaa484742ae6d5987647e4ad8477623a42ce6db169599c6277",
+      "new_sha256": "0d80435a60802b3390457cc656318c476f25d1381d0c11b75133befedbeb8815",
+      "exports": 7,
+      "imports": 81,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/clk_kunit_helpers.ko": {
+      "old_sha256": "70b0ca31af3accb1f27efc5e91fb2ce74193569ce5751563ba90adef770a183f",
+      "new_sha256": "fd1572b0a98877250580fa30efa01626599ae98ead58386f1a6fa55356efbd5c",
+      "exports": 0,
+      "imports": 22,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/crc-ccitt.ko": {
+      "old_sha256": "57352272bf44c09275aa84ccf272ccc955c402d3e7fb35e95f3484e2072be781",
+      "new_sha256": "24fdb2aeb0517862ec0e01f2407fbdbff6fe9918b71608e6f6d7a83afabed75f",
+      "exports": 2,
+      "imports": 8,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/dev_addr_lists_test.ko": {
+      "old_sha256": "c21830332e982d3e8f3f9d4783ad0495aefd067251ff098f2770622838291046",
+      "new_sha256": "d101c9863cf26714d43c6553a8e7c1051bbd8cf31c4245d77504acef2ef73fa4",
+      "exports": 0,
+      "imports": 29,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/ext4-inode-test.ko": {
+      "old_sha256": "f286e5c0287e351b53ba18a53efb91ad00ce5e68d963a8b01e3fd09a57d6e3c7",
+      "new_sha256": "af3a69e8156a20c3fddb8fa7d5115a73b7e74a868867e48aa292b91e98164b96",
+      "exports": 0,
+      "imports": 13,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/fat_test.ko": {
+      "old_sha256": "1c02f87f6dd68dff2f191d5cd9dbffd72c4a4f6534c3fdd1ad6f2b6a31281ae8",
+      "new_sha256": "263acb9e8338d817c4f9b3453d9df955b1f2d83a315f20d8df21af91b9603011",
+      "exports": 0,
+      "imports": 15,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/ftdi_sio.ko": {
+      "old_sha256": "bbb59243e51f597a3358a8dc30036651285606993fb74453dddc44ee3914fcd0",
+      "new_sha256": "8c6255c89375009ff23c89c3d4419b3445fcfe158b6bf19c129db54476634d13",
+      "exports": 0,
+      "imports": 57,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/gnss.ko": {
+      "old_sha256": "ebd125833337077f93fe395f0efd1e876fef0eacf3868a1d3a2bc7a2a15437b9",
+      "new_sha256": "e0a56c06480249a7ccc517a8e04713a6c304e0e11135f47a2b23ba977c4e88ee",
+      "exports": 0,
+      "imports": 59,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/hci_uart.ko": {
+      "old_sha256": "60230cf0b0215a22a179ba62a2db11b22e5a9642fe792cddfe505ac77f59d451",
+      "new_sha256": "8be36362ca01b24e8b8f3454c643f94e861ed3814ca54d7882a77c03cf84bb3d",
+      "exports": 0,
+      "imports": 204,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/hid-uclogic-test.ko": {
+      "old_sha256": "fbab14ca54510f160920a2a5f8e378457bec31badaff7449122776a50ae93c3c",
+      "new_sha256": "5ccb3ee9da3978b995ff6a24a1d8e76fdf3a860dfed655a40f569a8e037da4b2",
+      "exports": 0,
+      "imports": 18,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/hidp.ko": {
+      "old_sha256": "5c52b733debf94fc2e906c21946b7bcf6ca4c358c2c0104d018680b324b23652",
+      "new_sha256": "5f348b7640c12ba8e3842dcda37d1b2e2073d60e45abd3a8fa0011868fd43c2e",
+      "exports": 0,
+      "imports": 117,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/ieee802154.ko": {
+      "old_sha256": "506596582ea58eca0bb234002598ad250f1cecc3ad5d6ac38b580baa80edc98b",
+      "new_sha256": "ce0a995363836e24f4a6bdf41c62dc05d9fcc51c2861aaf2189d5c92a3eb4b27",
+      "exports": 20,
+      "imports": 108,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/ieee802154_6lowpan.ko": {
+      "old_sha256": "f69924bd7bac8c6e08c9bbac33bd30dd45ea0f22d98577c678b5f2d161b3519f",
+      "new_sha256": "e12c598f792c16ef61c4a0a5ed359be028068f12c958263068bfb8412b91240b",
+      "exports": 0,
+      "imports": 77,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/ieee802154_socket.ko": {
+      "old_sha256": "a123b55afab3660e8ee2f44b58323b4abecaeb23245eaebde029b4cff437b712",
+      "new_sha256": "3365457ffa6217945238a6a90087919bef95c42b3b300ba702fd057fc3b30548",
+      "exports": 0,
+      "imports": 83,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/iio-test-format.ko": {
+      "old_sha256": "cddbeac14a8a5dc791eaaaeb148aa392e0cfff60f183a5ad02e5e3446cf7e377",
+      "new_sha256": "aa8ebea7e576bfe8e48677aec0d455a6e86cefeadc4ed081982db3a252e5869e",
+      "exports": 0,
+      "imports": 19,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/input_test.ko": {
+      "old_sha256": "c6899da5bc86332502a109ae0a078c54787cb97368f26acbabeaa3c953dc988d",
+      "new_sha256": "aafd9d144d82ec86a59201ef15c0d87c5146b51721a7201d0ef7ac153d9015ac",
+      "exports": 0,
+      "imports": 33,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/kheaders.ko": {
+      "old_sha256": "4485bf45180e0b0f3ab29d99ef5821ef01293709c9586ee4313420dbf5610872",
+      "new_sha256": "e747356139108178be1aef04f6065279c960950065c4c724168321223350ca2c",
+      "exports": 0,
+      "imports": 11,
+      "btf_differs": false,
+      "note": "embeds the kernel's own headers archive (/sys/kernel/kheaders.tar.xz)",
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/kunit-example-test.ko": {
+      "old_sha256": "e5718a89900a3decb1c0510dad83d215c6c9cd3aa910990cd8674ab404583481",
+      "new_sha256": "f6ea758c097956862307c44f635378a18f71acde6a6f6c7a8be92cef40ffa6ee",
+      "exports": 0,
+      "imports": 37,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/kunit-test.ko": {
+      "old_sha256": "b0aa70f10fc3b7541fa0d9b3318014dbd6c243ce4ccd5e4b8e480c6c9344ed29",
+      "new_sha256": "e69c392644901e44849b5e6d5c9ea39e394297a920248e1db7d69570f6389a71",
+      "exports": 0,
+      "imports": 52,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/kunit.ko": {
+      "old_sha256": "05476bee45124278ec2ae7e716184d31e716207b7273fdaf88f2ec7009fe6395",
+      "new_sha256": "eb30c8d895a66420faa1610c2815544d97b9f3d9cd8a1b336b666ff0b97af820",
+      "exports": 45,
+      "imports": 100,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/l2tp_core.ko": {
+      "old_sha256": "b55813132242f09461c2d546f0b72bb59c99524f9f38b990c0361d1e7368594a",
+      "new_sha256": "00a57ce9e815cc9ca1b7f2dfc84268ef66f60b946404ed2b54d4e91816c51504",
+      "exports": 15,
+      "imports": 96,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/l2tp_ppp.ko": {
+      "old_sha256": "18e5aada7ad7da9e241af01f1cca82d6e774e46df75da8fc4082d5771380df5f",
+      "new_sha256": "49caf6f897a2d3c0b87bdce5e589af8c8c244ce7bb22454c7b80fdc25285d03b",
+      "exports": 0,
+      "imports": 93,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/libarc4.ko": {
+      "old_sha256": "1c53dd4b29e98e7d2f711b105d1586931fb0935db8fdc60629efc33efe1b98cc",
+      "new_sha256": "8b7aa7af5dabae91497b07e9595b9ccbc733bca214a07761f8152c43dd253a6d",
+      "exports": 2,
+      "imports": 8,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/mac802154.ko": {
+      "old_sha256": "d598c55fedb53374902e2f7499fa1955cdaabae93d943ebaec039ef61607b026",
+      "new_sha256": "2cbf7a84b112b782f9dd5b1c610a7a47bf8ea01f642d0240d279501ccb7f7282",
+      "exports": 0,
+      "imports": 154,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/macsec.ko": {
+      "old_sha256": "13078db859a346bc9e9273e67edfed6fe270bb9925f62faefdee85735e012e38",
+      "new_sha256": "0ffe1a60263be0c3aff078bd47fdb934b75072747470c0a76fc4ac50899f1e45",
+      "exports": 1,
+      "imports": 112,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/mii.ko": {
+      "old_sha256": "b36b6800eeffb4e9dda748eafdef23f6c3b60c1966ee04b64b565d86952aeb2a",
+      "new_sha256": "452d561dd8751b8eae66a0b7ba99dd50d3a04dca41afd3767a7019d6efd3fa7e",
+      "exports": 9,
+      "imports": 16,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/netfs.ko": {
+      "old_sha256": "660b398b72a1f42dbab062c6d640baf7845f27a67fcef0235edb435e028ac587",
+      "new_sha256": "39cd3bddae94c74975a43a02df1645b8824419bb0cb0d6877538f4fb62c6f149",
+      "exports": 1,
+      "imports": 149,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/nfc.ko": {
+      "old_sha256": "d220a3c6c1f7ae3ac6bb2f62e27d2a3ab9e94e043e305fffc15aa1ac8b02f085",
+      "new_sha256": "d987ae9cbb890837ff84de5d3978d2ca6b814042568b386e28abcd0f200febcb",
+      "exports": 0,
+      "imports": 143,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/nhc_dest.ko": {
+      "old_sha256": "82592fd42095fdd78c34579b68c83cb747f625bcf2cdfb5710c123020c9f5725",
+      "new_sha256": "86ce715865b71905833b279307594ae0b63b68b4e98208c6c80bf06e273f851f",
+      "exports": 0,
+      "imports": 9,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/nhc_fragment.ko": {
+      "old_sha256": "3595812d56f611e198ac022962a16aa437af9d35d95dd0245547778ac9a60505",
+      "new_sha256": "8f5ce52ff331fd8c8b50f47964d3111d86dac1712c8d98d593940178d8272dc5",
+      "exports": 0,
+      "imports": 9,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/nhc_hop.ko": {
+      "old_sha256": "89875b79a1265bb8f33c0d4aca5023b24c74fd5b173f04148b41dac77d8a160d",
+      "new_sha256": "1c67dc9a5a98146f3ec7d1fd295bdf365c81a20c9a0be2d6bf670a23a0f28cf7",
+      "exports": 0,
+      "imports": 9,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/nhc_ipv6.ko": {
+      "old_sha256": "1c6ff2f9d8b18a5bc91253cad402a66117da1c84fa3cbe62d41e6f6a4be8a6b6",
+      "new_sha256": "79c34fe4468bd994dbfbf7809336e6306b1e3d9e49dfd8ff7d4f6a1dc8a5638e",
+      "exports": 0,
+      "imports": 9,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/nhc_mobility.ko": {
+      "old_sha256": "f927105cb2c4d2d520459af7f2654cae2c8df2e4847c39c968e32636344c1c64",
+      "new_sha256": "82a49eae331917341198f474dd4721cccb726eb8f623539f49359f716243a56e",
+      "exports": 0,
+      "imports": 9,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/nhc_routing.ko": {
+      "old_sha256": "5fdacc4a962361e65158378f25a6525c145e2c486615581bf7f7f8a5b7f24292",
+      "new_sha256": "966cf7c4a2dd8ca8828c6a8befc9ac138a0303aa679271c3e1b409661c5d9015",
+      "exports": 0,
+      "imports": 9,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/nhc_udp.ko": {
+      "old_sha256": "c0d1fbeb1a1e80b1f0938f393b0a29e80bcebe68f398123dae6001de57e93edd",
+      "new_sha256": "97aaaf6b6744f0b003aa32cf6d6e9d6bc3a89dd93628e8d3ab3b5c0eafbe1690",
+      "exports": 0,
+      "imports": 14,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/of_kunit_helpers.ko": {
+      "old_sha256": "0f4041d5c78b03a5c90cc659b2d6ebe4e51004205a5391e524fcf8f767106dc5",
+      "new_sha256": "48f8a25fc1118f84f27450edaf3c06a74ccc9829f585983698d7de2f7ecec942",
+      "exports": 0,
+      "imports": 13,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/open-dice.ko": {
+      "old_sha256": "05779e6797dfbc0285a7614669a6d54ef324868e298a10ffbb34fab2d62559e7",
+      "new_sha256": "195e127686db4043ab52fcbf88cd05c88f4c709993da79830fd84a990d4cf34f",
+      "exports": 0,
+      "imports": 28,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/platform-test.ko": {
+      "old_sha256": "38b52771fe9aa8e393f727825fda9aa49f43a55970c1a196a94d4f6e52b25036",
+      "new_sha256": "1b4d7a36674dd1db2979ddacc6887be841387ca37a84050f22c74a73cfa1d37b",
+      "exports": 0,
+      "imports": 30,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/ppp_deflate.ko": {
+      "old_sha256": "da595ffa535035e3b9b0c2052fd2e7a694aa52fa021ba9343e6d3ea933745ba2",
+      "new_sha256": "f5bd7e5f868836a5a9e7a195d4ae617ffb3ee2258cc510f9a6a1cdd1ff72a065",
+      "exports": 0,
+      "imports": 30,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/ppp_generic.ko": {
+      "old_sha256": "d1e033976fe487658d2d7bb36e2957a591abacb3195cf002a71e65b8aeaaba0c",
+      "new_sha256": "bb1b87d3c6a27716829159e8ff205d78fcd001fa00167ddae917db0b9c5deee3",
+      "exports": 11,
+      "imports": 121,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/ppp_mppe.ko": {
+      "old_sha256": "cb1a3cde8f8f711a9e4911f0ff0148e5efbd0ae4f8f8e09ffb0d719a38d9c25f",
+      "new_sha256": "87e9a200bb04c454a56d16849a211baa6d48e770a2c5a0025a7fee74cd4a20d5",
+      "exports": 0,
+      "imports": 25,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/pppox.ko": {
+      "old_sha256": "6fa4718630df1e90305b666129ce0103e7659b76ce1cc2f2b2afdf39b4ad6b35",
+      "new_sha256": "f96d3dd131a3f8fed97070f0d078035d3e3a13869941ca6ffa811c7cb2e54b91",
+      "exports": 5,
+      "imports": 19,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/pps_core.ko": {
+      "old_sha256": "770559cb9d56718db392fe708e90c9daf19d98ad6ce7c758f593462d308fe921",
+      "new_sha256": "8cb317373c8b2bc64bdf5e3501eb878e6db61fcda5d0ae2d46e03eed8f6bdd78",
+      "exports": 3,
+      "imports": 54,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/pptp.ko": {
+      "old_sha256": "a3c9b88e97c0daf2c4e03ca3b7e74399dceb6df94745850fe079e9e99a59260b",
+      "new_sha256": "de3e8482420ad1e475dc95d0fcc513501d334c621f5f0428a0477d9bb8404baf",
+      "exports": 0,
+      "imports": 71,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/ptp.ko": {
+      "old_sha256": "8446f9db39018234dbb052606ff88368ee259c2cc0f05ed9fd9908473ba85c0b",
+      "new_sha256": "7286b27172020361b219d6cccd471d944a4e5075098dbefbdd3714aab118bf88",
+      "exports": 5,
+      "imports": 101,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/pwrseq-core.ko": {
+      "old_sha256": "d4015459ef48a2fa080c239bd16a5ceeed57e050fb8332c1e0a92fa2c680b326",
+      "new_sha256": "4bfd5fe7a71340a55a7689e566e6e93923ccc1fa1c57e2603d7e427f34082c89",
+      "exports": 3,
+      "imports": 63,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/r8152.ko": {
+      "old_sha256": "8d1f12e704c95717e830efc9bd04c6fab135de8854ee36b78ade68052a8bc764",
+      "new_sha256": "2298bb2ffcc7a1632ec0901177bd772e1760c8c2848001e22a4ab97cef54a391",
+      "exports": 1,
+      "imports": 144,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/r8153_ecm.ko": {
+      "old_sha256": "b6000f65bf0eb7c82d2ca39bb1ad06faf618b97727149d0e10a5c9e89809682c",
+      "new_sha256": "51b49c325d0b2ac1bc8161b549582c6a5089a4792905bf86a79fe2ce405b22c8",
+      "exports": 0,
+      "imports": 23,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/regmap-kunit.ko": {
+      "old_sha256": "483ce44cc5fb110362d216718ddfcdef356ffef6a6914f41424c2ba1ce47877f",
+      "new_sha256": "a0374a7a7e1cdbbbf0a37c147445d71dfec17ddb4976b57587a661c71af6a86a",
+      "exports": 0,
+      "imports": 51,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/regmap-ram.ko": {
+      "old_sha256": "3b19e49ff1fcd08e32cca3a3416f0a954fba8bc4e22cd425e47adf530415e2fd",
+      "new_sha256": "4f69b052fd6175a2ffc4a8af31a12b210e325ab6e6911f86f24a69b29903abe6",
+      "exports": 1,
+      "imports": 14,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/regmap-raw-ram.ko": {
+      "old_sha256": "336c2c567f4281f27fb1c2f1b5af066f279da3bce507704967e27ba42e0b42f6",
+      "new_sha256": "11c3fd79dde03409f3d6ac29e9f519d7afdf7ba68a12f2d93fc06e8f46615e45",
+      "exports": 1,
+      "imports": 16,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/rfcomm.ko": {
+      "old_sha256": "049bec733cd6fff31504ab939893eb02ec230de0164064cc034ce30e2aedc5cf",
+      "new_sha256": "7eea0ad6f6c5c0b492dbe7c19d67c5658c120f85a5bb503fa7dff90c0a1a727c",
+      "exports": 0,
+      "imports": 158,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/rfkill.ko": {
+      "old_sha256": "543e91fbfddbeb63772ee738698a8d79c61c3e2bc6d24e55b31c7dd33222d4f3",
+      "new_sha256": "75f1aa56e8f639e856e3bdf535d44d7d6dbe20b14f2d7ca09b49dc042113ef63",
+      "exports": 12,
+      "imports": 68,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/rtl8150.ko": {
+      "old_sha256": "c700f5f93e2658398454597a9632ed80496bab3d0e1e2d4015eef5a4128f17f3",
+      "new_sha256": "268636cedd7227b6fd3fbbae242f4d9e3deadfa1fcc95f4b6e7582b0e00c023c",
+      "exports": 0,
+      "imports": 62,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/rust_binder.ko": {
+      "old_sha256": "7e8ef0774b8c4925b85d4b817e1240420b8ce71c7fd0cc9b798330a676ce2938",
+      "new_sha256": "ed990af624a07530529fcef684454d85a4eac7a6d1973348281ba629713aec60",
+      "exports": 0,
+      "imports": 236,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/slcan.ko": {
+      "old_sha256": "cce6a7dc7bec07d2bc3a3af9d21fbcbc1b82b27967139ba3939868b3417f5789",
+      "new_sha256": "1bb13cb81c45aae5689299e2ace035dc3317d4203874d55f29fbaff68d960c81",
+      "exports": 0,
+      "imports": 62,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/slhc.ko": {
+      "old_sha256": "01baefd627d67f6e4224dc79951ba3e85296eba2ac0e8924ed6ac5f15fe639f5",
+      "new_sha256": "3e7cc73de9ee7c418d3e9c2223d69e141c840151d2c6f37ce58696bbe7b7dce5",
+      "exports": 6,
+      "imports": 21,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/soc-topology-test.ko": {
+      "old_sha256": "e26320136f35ae3b30b59ac6f9ccc4071a37f7c913ad893a6bdb415da2a2fb15",
+      "new_sha256": "0a3839bb9c772bee6272ae5b2b33ea9343293b00681381e730ada4a2e832eaf2",
+      "exports": 0,
+      "imports": 26,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/soc-utils-test.ko": {
+      "old_sha256": "f5e3892f3cb5c4156f6b2b734f1ce4c8991427c1883d545bd700a4af303d2978",
+      "new_sha256": "641684161c148d240f351077d51d03dcec05a3161cdbe4f704e743fddf7b8dc3",
+      "exports": 0,
+      "imports": 17,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/test_rtc_lib.ko": {
+      "old_sha256": "9c325d6fe3e24a1a79976ad94321525811c1f2eb611f492355ceb080a65ef53f",
+      "new_sha256": "85070280eada92d1f7eb1458dee5b33c77fe0ed26525485b6147fe59f8a5524f",
+      "exports": 0,
+      "imports": 15,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/thunderbolt.ko": {
+      "old_sha256": "ca1294d793262cb0b6d29915cc5321a7749a0969fca8e5299cee1c8e61d8139c",
+      "new_sha256": "8b01a76c6f3a9420556000f9e71b299dc2b334bc70d4b7a5f307cfc79f2ae7c0",
+      "exports": 29,
+      "imports": 228,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/time_test.ko": {
+      "old_sha256": "c5a90be2e8f1a76ad7a236d77ef50daeb502077b9ef08a8fbd3ecde3c322eb8e",
+      "new_sha256": "9209512371a65cfd9cff059293649e6c7892f5f3fb5e76714f9c52bdb2c4cc49",
+      "exports": 0,
+      "imports": 14,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/tipc.ko": {
+      "old_sha256": "b256acf9b70d43f1bdad8fc63518982c5483dcd49239cde5d837aaa6da7743f3",
+      "new_sha256": "04de913b4062ff935b743718e4548574ffe3c85cdb249b95faa963d14dbe9d26",
+      "exports": 4,
+      "imports": 261,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/tipc_diag.ko": {
+      "old_sha256": "62d8327cd1b32816a71e6b4394fa23b5d69661279c97db62d16e31686f00bafa",
+      "new_sha256": "2dd861311d325a597f87b2da7a2c209aef39b2acbfe4be9ae99c34e01c9fca44",
+      "exports": 0,
+      "imports": 19,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/usbmon.ko": {
+      "old_sha256": "4e8459eadb63f04867c84498778915bb937f135812d317e7d1b1c730ba88488c",
+      "new_sha256": "e584e7ae99f8e9ad7a94d2f858fa31a688e82b3f63bb1053333785e254fd46ee",
+      "exports": 0,
+      "imports": 76,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/usbnet.ko": {
+      "old_sha256": "3f654e1e66a84dcbb21b6a7f542f1741b330302250c0b1e0d2d8311c6e1e728d",
+      "new_sha256": "4e7b2da15f32aea9a7019402797e262a519ec28cbad41e827b53fe5fbcc8b97d",
+      "exports": 32,
+      "imports": 108,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/usbserial.ko": {
+      "old_sha256": "c6657027b42c231e9f05f20b789d97ca4e085a3e573e135560854e2e191d632a",
+      "new_sha256": "bbdac8a5a35c91228e543f26cb6bc1da8be009e6cb40eb82d766cf49ddf52a43",
+      "exports": 11,
+      "imports": 112,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/vcan.ko": {
+      "old_sha256": "2de6c28a1e43047dd6b4805f2be47bd6c8f006836bf6730e375193872e6968ac",
+      "new_sha256": "03f4fd18e1bc0574f3360c5085d2f09ba60b159fb823ae7074532ad3a2c6dc0d",
+      "exports": 0,
+      "imports": 22,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/vcpu_stall_detector.ko": {
+      "old_sha256": "7670457858fd2ba4a1564c945dfd0b6462ef1ca9c55492455b74e9998b3845de",
+      "new_sha256": "408d94e75c50c9a9acbd94f7812cb3a073f85908e0f35793bed3132a1aef55af",
+      "exports": 0,
+      "imports": 34,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/virtio_balloon.ko": {
+      "old_sha256": "b1a739b2e647a4152b324cac9b0c1f26d878089afcda9cd1237702692b0f3ec2",
+      "new_sha256": "b9b970744cd17dbe34454037667401a0449d20a49ac140006eb19274d464755e",
+      "exports": 0,
+      "imports": 86,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/virtio_blk.ko": {
+      "old_sha256": "25d450d54ee5fe0bb80a57ebb371e4a66a09bb5e2767ac0114c6cdc76813a800",
+      "new_sha256": "b7ad1a25aa892d7c40d602a55fd690dd36e302c34c220507dda5ad64c410ed48",
+      "exports": 0,
+      "imports": 96,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/virtio_console.ko": {
+      "old_sha256": "71e9f7f710763956d118c279c688f56b7ac157579ec9a0d2293f60b07662f71e",
+      "new_sha256": "c54d878dccf278abca2aa69913e1ee3d93eb70783204e56c794ff126d09c31db",
+      "exports": 0,
+      "imports": 106,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/virtio_pci.ko": {
+      "old_sha256": "47c7139e9bab80d87c59d6b370c949876419ee83cfe95a3783e42e6876bf7116",
+      "new_sha256": "1b8ba3d7c8e9af45bc043b206d220c79d9227b1b96b170461fc91f400728b012",
+      "exports": 0,
+      "imports": 124,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/virtio_pci_legacy_dev.ko": {
+      "old_sha256": "6bf13549023f1419470f551083c22ba58bca18548e3a62f69a3a64332897d180",
+      "new_sha256": "bb9651ba985bf34d9c9bac066aeedff6e435b39a5ac1ded005f4f87aef95cdd4",
+      "exports": 11,
+      "imports": 21,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/virtio_pci_modern_dev.ko": {
+      "old_sha256": "95655f943636260643af6c86eb49abb0c2fe3d042f98226e989af82dfab093c5",
+      "new_sha256": "e41c1c80d7a99ff0028f8e286ea2384c074d13e30cd89f222057dcadb7a0b170",
+      "exports": 20,
+      "imports": 31,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/vmw_vsock_virtio_transport.ko": {
+      "old_sha256": "e42e100eae0cca1b3cd310d02d4a564d48ba6bb7eb6793ad227607741b4313d1",
+      "new_sha256": "cb67273983682f93e6402b98eb518198b3f3130abacc0fec19d3c040ca41fb4a",
+      "exports": 0,
+      "imports": 89,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/wwan.ko": {
+      "old_sha256": "f4176ac749ed850104887427c7a75482813ad41b7c352391f36f80c7fc258519",
+      "new_sha256": "fbe0a4e09ed2f7f38bc064c45fdb80cae7e3ceacf69ab90181c281a044a74257",
+      "exports": 6,
+      "imports": 88,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/zram.ko": {
+      "old_sha256": "414fbde1cb5f6d9a2143177fe1a9eb3374ea41e2b0d707d230214cbf74fbd209",
+      "new_sha256": "d2de1b001219bcd8bb432d53fe5fd823052e32cbccd20bb8d5ab69d96d341b92",
+      "exports": 0,
+      "imports": 186,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    },
+    "system_dlkm/zsmalloc.ko": {
+      "old_sha256": "033c7cae8098c5e03f3b786a7a1194f72a49462e8b5c5972a016b874dee91a2d",
+      "new_sha256": "388665fa6c3560c5cff61147c21c7db1201a7a4ef685abcdd206a3c484d3240c",
+      "exports": 12,
+      "imports": 58,
+      "btf_differs": false,
+      "note": null,
+      "signed": [
+        true,
+        true
+      ],
+      "vermagic": [
+        "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions ",
+        "6.18.21-android17-5-g206eb00bd0c4 SMP preempt mod_unload modversions "
+      ],
+      "problems": []
+    }
+  },
+  "only_old": [],
+  "only_new": [
+    "vendor_plus_lid/drm_gpuvm.ko",
+    "vendor_plus_lid/nouveau.ko"
+  ],
+  "problems": [],
+  "ok": true
+}

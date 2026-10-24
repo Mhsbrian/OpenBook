@@ -1,0 +1,9 @@
+cuttlefish-virtio.txt hal=virtio pci_id=1af4:1050 driver=virtio-pci source=drm others=
+g14-ga403wr-early.txt hal=amdgpu pci_id=1002:150e driver=unbound source=pci others=
+g14-ga403wr-nouveau.txt hal=amdgpu pci_id=1002:150e driver=amdgpu source=drm others=nvidia
+g14-ga403wr.txt hal=amdgpu pci_id=1002:150e driver=amdgpu source=drm others=
+host-7950x-rtx4090.txt hal=amdgpu pci_id=1002:164e driver=amdgpu source=drm others=nvidia
+no-gpu.txt hal=none pci_id= driver= source= others=
+nvidia-only.txt hal=none pci_id= driver= source= others=nvidia
+radeon-legacy.txt hal=none pci_id= driver= source= others=amd
+vm-amd-vfio-virtio.txt hal=virtio pci_id=1af4:1050 driver=virtio_gpu source=drm others=amd

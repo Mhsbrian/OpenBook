@@ -1,5 +1,10 @@
 # Hardware
 
+2026-10-24 G14 dGPU (RTX 5070 Ti Laptop, GB205, `64:00.0`): a nouveau build for the Ruby kernel lane exists
+(ANAL-239), headless with `runpm=1`, plus GSP-RM 570.144 firmware. It needs a kernel rebuild with 33 more KMI
+symbols. Only QEMU-tested, where it loads and binds nothing; it has never bound the GPU. On the laptop the dGPU
+still has no driver. See `nouveau-ruby.md`.
+
 2026-10-21 G14 lid sleep (ANAL-235): s2idle is entered, but each resume emits a
 Power Button `KEY_WAKEUP`, and `_LID` can read open right after a resume (DSDT
 `LID0._LID` returns open while `EC0.ECOK` is clear). Fix candidate

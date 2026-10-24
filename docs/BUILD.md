@@ -1,5 +1,24 @@
 # Build and reproduce
 
+## nouveau for the G14 dGPU, Ruby kernel lane (ANAL-239) — 2026-10-24
+
+```sh
+# a task's own kernel tree: a reflink copy of ~/anybook/kernel/src (kernel-sync.sh output) is enough
+ANYBOOK_KERNEL_SRC=<tree> scripts/kernel-amd-apply.sh          # kernel/patches/common 0001-0004 (0004: KMI for nouveau)
+scripts/kernel-nouveau-apply.sh <tree>                          # nouveau + kernel/patches/nouveau as nvidia/'s own git repo
+ANYBOOK_KERNEL_SRC=<tree> G14_LABEL=anybook-g14-gbos-16302624-anal239 G14_WORK=<scratch> \
+  ANYBOOK_KERNEL_JOBS=8 BAZEL_ARGS=--local_resources=memory=16384 scripts/kernel-g14-package.sh
+python3 -I scripts/kernel-nouveau-check.py --vmlinux <vmlinux> --installed <vendor_dlkm>/lib/modules \
+  --installed <system_dlkm>/lib/modules --new nouveau.ko --new drm_gpuvm.ko --load-order <modules.load>
+python3 scripts/kernel-firmware-subset.py --fw <linux-firmware> --modules <dist> \
+  --rules kernel/firmware/anybook-nvidia.rules --out <stage> --list <tsv>   # then kernel-g14-firmware.py
+scripts/kernel-g14-qemu.sh <dist> --runs vm,nvme --force --guest-check scripts/nouveau-guest-check.sh \
+  --guest-file device/anybook/common/pc/bin/openbook-pc-setup.sh --guest-file scripts/openbook-pc-setup-test.sh
+```
+
+The apply step of `kernel-g14-package.sh` runs both apply scripts. About 10 min for a cold GKI plus 8 min for the
+vendor modules at 8 jobs; the QEMU step about 2 min. Details and limits: `nouveau-ruby.md`.
+
 ## OpenBook Update, the on-laptop updater app (ANAL-229) — 2026-10-23
 
 The app lives in `device/anybook/common/updater/app/` (Kotlin, Jetpack Compose, Material 3). Everything it
