@@ -10,15 +10,15 @@
     "openbook-update.x509.pem": "49a01f03eaabef4f69da610d246961262045dd2a2adf6058e412488bb605a0bf"
   },
   "apk": {
-    "sha256": "f3308832e914314ce73b0e141142101033280bf18d4bbd8c08e6d241732953c5",
-    "unsigned_sha256": "7a8305305860fcb68741c733fc67a47ea01967c2893c7b18ebc7134e39ad151f",
-    "version_code": 1,
-    "version_name": "1.0",
-    "engine_sha256": "3c7e4e74aebae814a432890b2aebee5996131a17db66d80a964b8faedd18d828",
+    "sha256": "cd2c896ea003717423cf75d8981bd9a4e18f5ef7088faa31646ce93490e79038",
+    "unsigned_sha256": "235b20e2296d785b1b3f9c2f0097c9742e88f4598f597a0790b882e644a7a615",
+    "version_code": 2,
+    "version_name": "2.0",
+    "engine_sha256": "8348e0fce146183803f9a4f195c110ffcc1a6595ea60e680ea88f9beed00e15d",
     "signing_certificate_sha256": "7a56266544934fb4e6a4dc165d01c0bdf1ccbbdcbe2ce8743c77dd81513eb159",
     "development_build": false,
     "worktree_clean": true,
     "reproducible_check": true,
-    "built_from_commit": "367090f4acad57a018110741c0c327b31cce2d1a"
+    "built_from_commit": "5fc1a877b9a0e4d439fdb4735f6d597a2873881c"
   }
 }
