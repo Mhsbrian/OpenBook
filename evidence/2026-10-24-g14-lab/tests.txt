@@ -1,0 +1,62 @@
+# ANAL-257 lab update checks, 2026-10-24 (build host). Each section: command, then result.
+
+## openbook-pc-setup fixtures (dgpu-pm, dgpu-report, dgpu-ctl, lab)
+$ scripts/openbook-pc-setup-test.sh bash
+87 ok
+openbook-pc-setup-test: 0 failure(s)
+$ scripts/openbook-pc-setup-test.sh sh
+87 ok
+openbook-pc-setup-test: 0 failure(s)
+
+## builder and VM judge
+$ python3 -I scripts/googlebook/build-dgpu-diag-candidate-test.py -v
+test_lab_refuses_missing_template_or_existing_grant ... ok
+test_lab_rules_from_openbook_pc_setup_sysfs ... ok
+test_lab_switch_property ... ok
+test_refuses_existing_grant ... ok
+test_refuses_missing_final_newline ... ok
+test_refuses_missing_template_class ... ok
+test_rule_derived_from_template ... ok
+test_vendor_rc ... ok
+test_vm_check_rc ... ok
+test_refuses_missing_file ... ok
+test_refuses_unchanged_replacement ... ok
+test_refuses_unreviewed_base ... ok
+test_replacements ... ok
+test_lab_modprobe_failure_fails ... ok
+test_lab_module_left_loaded_fails ... ok
+test_lab_without_module_fails ... ok
+test_missing_report_fails ... ok
+test_new_denial_fails ... ok
+test_new_vendor_modprobe_denial_fails ... ok
+test_nonzero_exit_fails ... ok
+test_pass ... ok
+test_stats_unreadable_fails ... ok
+test_wrong_state_fails ... ok
+test_sources_are_the_repository_files ... ok
+test_uniform_mtime ... ok
+Ran 25 tests in 0.071s
+OK
+
+## PTM order
+PASSED: 0 failure(s)
+
+## openbook_sleep_diag in QEMU (busybox guest, LPS0 fixture)
+6.18.21-android17-5-gfbfdd65b0fd1: passed True 19 / 19
+6.18.21-android17-5-g206eb00bd0c4: passed True 19 / 19
+
+## kernel package (kernel-g14-package.sh, ANYBOOK_KERNEL_SRC=reflink copy of the kernel lane, G14_LABEL=anybook-g14-gbos-16302624-anal257)
+### 15:36:14 usb: PASS (22.7 s)
+### 15:36:35 uas: PASS (21.1 s)
+### 15:36:57 nvme: PASS (21.3 s)
+### 15:37:20 both-uuid: PASS (23.6 s)
+### 15:37:51 vm: PASS (21.3 s)
+### 15:37:51 overall PASS
+### overall: PASS
+
+## lab guest check on that dist (kernel-g14-qemu.sh --runs vm,nvme --guest-check scripts/lab-guest-check.sh)
+vm: 45 ok, 0 FAIL; lab-guest-check: 0 failure(s)
+nvme: 45 ok, 0 FAIL; lab-guest-check: 0 failure(s)
+
+## policy (build-dgpu-diag-candidate.py --check-policy-only on RB-20261023-03's candidate C 71da0228...)
+passed True ; probes as designed: 19

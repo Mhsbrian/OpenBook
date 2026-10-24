@@ -113,24 +113,62 @@ ANAL-239 (PR #131) changes the kernel (KMI +33 symbols, `6.18.21-android17-5-g20
 CRC, so this module should still load there, but the combined update rebuilds it against that kernel and checks it
 again.
 
-## 4. Testing on the installed laptop (owner direction, 2026-10-24)
+## 4. Testing on the installed laptop: the lab helper (owner direction, 2026-10-24)
 The G14 runs Ruby from its SSD and takes OpenBook updates over Wi-Fi; adb over Wi-Fi is the non-root `shell` user
 (`ro.debuggable=0`). Shell can read logcat and bugreports, set `debug.*` properties and send key events; it cannot
-load modules, write `/sys`, read PCI power states or read dmesg. So:
+load modules, write `/sys`, read PCI power states or read dmesg. So one update installs a root **lab helper**, and
+every experiment after that runs over wireless adb with nothing needed from the owner.
 
-1. **One vendor update installs a root lab helper**, built on ANAL-238's mechanism (PR #126: a root vendor service
-   started by `setprop debug.openbook.*`, reporting to logcat), with allow-listed actions only and fixed module
-   paths: load/unload `nouveau` (ANAL-239's, shipped but not loaded at boot), load/unload `openbook_sleep_diag`
-   with the parameters above, the dGPU D0 hold and auto modes, a dGPU and S0i3 report, and timed s2idle cycles with
-   an RTC wake. It is off until a persistent switch is set once, and adb itself already needs the owner's
-   authorisation. The same update carries ANAL-238's report, this module and ANAL-239's `nouveau.ko`, so the laptop
-   takes a single update.
-2. **Then every experiment runs over wireless adb**, with nothing needed from the owner: baseline, `ptm_off=1`,
-   nouveau bound, driverless, each with the snapshot and USB4 report, and the result read from logcat.
-3. **Before each adb session:** no release operation may be using the laptop (ANAL-232, ANAL-222) and nobody else
-   may be on adb. A live module load can hang the laptop: the owner is warned first that it may reboot.
+### 4.1 What the one update carries
+| Part | What changes | From |
+|---|---|---|
+| boot, `system_dlkm`, `vendor_boot` | Kernel `6.18.21-android17-5-g206eb00bd0c4`: ANAL-239's 33 extra KMI exports for nouveau | ANAL-239's sources, built here (`anybook-g14-gbos-16302624-anal257`) |
+| `vendor_dlkm` | Adds `drm_gpuvm.ko`, `nouveau.ko` and `openbook_sleep_diag.ko`, **all three blocklisted**: in the image, not loaded at boot. `modules.options`: nouveau `runpm=1 modeset=2`. The lid guard is added by the release as before | `g14/modules.tsv` (`block`) |
+| vendor | GSP firmware for the GB205 (ANAL-239); `openbook-pc-setup` (dgpu-report, dgpu-ctl, lab); `init.openbook.rc` (ANAL-238's report and hold, the lab and its module services); four policy rules and the switch's property context | ANAL-238, ANAL-239, this issue |
 
-The owner approves the plan for that update and its install, as for any release. Nothing else.
+nouveau, its helper and the diagnostics module only run when the lab loads them. The boot itself loads the same
+modules as RB-20261023-03.
+
+### 4.2 Using it (wireless adb)
+```sh
+adb shell setprop debug.openbook.lab enable          # once; persists (persist.vendor.openbook.lab=1)
+adb shell setprop debug.openbook.lab report@1        # @N makes a repeated request a new value
+adb logcat -d -s openbook-pc-setup                   # every result is here
+```
+| Action | What happens |
+|---|---|
+| `enable` / `disable` | The switch. Everything else is refused while it is off. Only the root helper can set it |
+| `report` | dGPU state (driver, D-state, runtime PM, root port, ACPI power resources), `suspend_stats` with `last_hw_sleep`, the lab modules, and `openbook_sleep_diag`'s report of the last S0i3 attempt |
+| `nouveau-load` / `nouveau-unload` | init runs `modprobe -s -d /vendor/lib/modules nouveau` (or `-r`) as `vendor_modprobe`. **A live load can hang the laptop:** warn the owner first |
+| `diag-snapshot` / `diag-ptm-off` / `diag-unload` | `openbook_sleep_diag` with `snapshot=2 usb4=1 cycles=8`, or `ptm_off=1 snapshot=1 usb4=1 cycles=8`, or unload |
+| `sleep-20` / `sleep-60` / `sleep-300` | Arms the RTC, suspends now through `/sys/power/state`, and reports after the wake. The screen goes dark for that long |
+
+Design limits: allow-listed values only, fixed module paths and parameters in `init.openbook.rc`, no arbitrary
+commands, no firmware setting written (`dgpu_disable` and `gpu_mux_mode` are read only). One request at a time:
+a request made while the helper still runs is ignored. adb itself needs the owner's authorisation
+(`ro.adb.secure=1`).
+
+### 4.3 Before each adb session
+No release operation may be using the laptop (ANAL-232, ANAL-222), nobody else may be on adb, and the owner is
+warned before a module load or a sleep, because either can end in a reboot.
+
+### 4.4 Checks (`evidence/2026-10-24-g14-lab/`)
+- **Kernel package** (`kernel-g14-package.sh` in a reflink copy of the kernel lane): the module plan check finds
+  0 problems (bare metal: 137 loaded, 6 blocklisted), signatures pass, and all 5 standard QEMU first-stage boots
+  pass. `nouveau.ko`, `drm_gpuvm.ko` and the lid guard are byte-identical to ANAL-239's.
+- **Lab guest check on that kernel** (`scripts/lab-guest-check.sh`, QEMU vm and nvme runs, root): 45/45 each.
+  None of the three modules is live after boot; the lab's exact modprobe commands load and unload them;
+  ANAL-239's nouveau checks pass with the lab-loaded nouveau; the diagnostics report reads back and
+  `openbook-pc-setup lab report` relays it under the guest's own `mksh` and toybox; nothing stays loaded.
+- **`openbook_sleep_diag`** (`2d58051a…` for the new kernel): 36/36 imports in its KMI list, 37/37 CRCs; QEMU
+  test 19/19 on both kernels.
+- **Policy**, compiled with neverallows against RB-20261023-03's own platform, system_ext and product policies:
+  the lab adds exactly `sysfs_rtc` reads and the `sysfs_power` write for `openbook_pc_setup`; it gains no
+  `sys_module` or `syslog_read`, and the shell still cannot set the switch or write `/sys/power`.
+- **Helper fixtures:** 87/87 under bash and POSIX sh; the builder and judge 25/25, with `host_init_verifier` on the
+  new `init.openbook.rc`.
+- **Not yet:** the Ruby VM boot of the VM-check candidate (`e652f813…`), which waits for the Ruby release lock
+  (held by RB-20261024-01's rehearsal), and anything on the laptop.
 
 ## 5. Reading the results
 
@@ -154,5 +192,5 @@ The owner approves the plan for that update and its install, as for any release.
 
 ## 7. Release impact
 - Diagnosis (this page, the probe fix): **none** (the probe only matters when an AOSP check image is rebuilt).
-- `openbook_sleep_diag` and the lab helper: **Ruby**, test-only, in the one combined vendor update (§4), handed off
-  when the helper is built and tested.
+- The lab update (§4.1): **Ruby**: boot, `vendor_boot`, `system_dlkm`, `vendor_dlkm` and vendor. Test-only tools; the
+  boot loads the same modules as before. Handed off when the Ruby VM boot has passed.

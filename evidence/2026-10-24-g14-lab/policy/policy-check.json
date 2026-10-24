@@ -1,0 +1,123 @@
+{
+  "schema": "openbook-ruby-dgpu-policy-check/1",
+  "base_sha256": "71da0228488781fa7db6bbb2b07b8559024023b606ae54cd868f780954b9cc24",
+  "passed": true,
+  "deployment_eligible": true,
+  "issue": "ANAL-238, ANAL-257",
+  "hardware_validated": false,
+  "scope": "dGPU diagnostics (ANAL-238): openbook-pc-setup logs to logd; a root-domain dgpu-report at boot completion and on debug.openbook.dgpu_report; a volatile dgpu-ctl on|auto hold from debug.openbook.dgpu_pm; read access to /sys/power/suspend_stats for openbook_pc_setup. The G14 lab (ANAL-257): allow-listed actions from debug.openbook.lab behind persist.vendor.openbook.lab (set only by openbook_pc_setup): reports, nouveau and openbook_sleep_diag loads and unloads through init's fixed vendor_modprobe services, and RTC-woken suspends through /sys/power/state. No firmware setting (dgpu_disable, gpu_mux_mode) is written",
+  "partition": "vendor",
+  "files": {
+    "/bin/openbook-pc-setup": {
+      "base_sha256": "0e70d4a55c27388c0fb22de69151895633db17d6db49fd90404b73a2c890b31d",
+      "sha256": "5d853eb3f3496065f3a1bd4e5d562254b431edd9b9725b921b669dd64ef6f785"
+    },
+    "/etc/init/hw/init.openbook.rc": {
+      "base_sha256": "9836f8d3d3218663730f348eccf86436a905f7b1ad9da6a2b70288b0a19fe73f",
+      "sha256": "13c5b12a3317b096de6326902d8100ccfcadf0ff10d94a731c702e24a29ab491"
+    },
+    "/etc/selinux/vendor_sepolicy.cil": {
+      "base_sha256": "321e4491be38226c102ecb554517887753f8f37770237abdb129197e84035673",
+      "sha256": "95b61f5e6860804f828bcc90dc70df410aed41bd9fc3abb5aa372574c4412275"
+    },
+    "/etc/selinux/vendor_property_contexts": {
+      "base_sha256": "f91380e8c80a72354855483d13f3ae7be11055062bab57c79f03028ede0d3065",
+      "sha256": "b4bd6a06e1e5eb80752aff77f34d04c115a14dacd0cf0a483e989d3fd363504f"
+    }
+  },
+  "added_policy": [
+    "(allow openbook_pc_setup sysfs_suspend_stats_202604 (dir (ioctl read getattr lock open watch watch_reads search)))",
+    "(allow openbook_pc_setup sysfs_suspend_stats_202604 (file (ioctl read getattr lock map open watch watch_reads)))",
+    "(allow openbook_pc_setup sysfs_suspend_stats_202604 (lnk_file (ioctl read getattr lock map open watch watch_reads)))",
+    "(allow openbook_pc_setup sysfs_rtc_202604 (dir (ioctl read getattr lock open watch watch_reads search)))",
+    "(allow openbook_pc_setup sysfs_rtc_202604 (file (ioctl read getattr lock map open watch watch_reads)))",
+    "(allow openbook_pc_setup sysfs_rtc_202604 (lnk_file (ioctl read getattr lock map open watch watch_reads)))",
+    "(allow openbook_pc_setup sysfs_power_202604 (file (write lock append map open)))"
+  ],
+  "policy": {
+    "neverallow_checked": true,
+    "runtime_recompilation_required": true,
+    "platform_policy_hash": "318c33bb5ebd0ebd73d91a22c9102283b8305fcf0606a204f87927574ad5e227",
+    "vendor_precompiled_hash": "344a39b0d602939129d9b1b84e466a8d988de084082f623b932b5058a47566ab",
+    "base_policy_sha256": "529b1ebe48c6316605ebe42033b0a4fa2a2b8002d64e0e7e845f2f06bc4b22e1",
+    "candidate_policy_sha256": "d17c9b0a35f9328fc81f70cbc09109f055c7cb3fb5856a7fa442ff820793f835",
+    "probes": {
+      "openbook_pc_setup sysfs_suspend_stats:dir search": {
+        "base": false,
+        "candidate": true
+      },
+      "openbook_pc_setup sysfs_suspend_stats:file read": {
+        "base": false,
+        "candidate": true
+      },
+      "openbook_pc_setup sysfs_suspend_stats:lnk_file read": {
+        "base": false,
+        "candidate": true
+      },
+      "hal_power_stats_default sysfs_suspend_stats:file read": {
+        "base": true,
+        "candidate": true
+      },
+      "openbook_pc_setup sysfs:file write": {
+        "base": true,
+        "candidate": true
+      },
+      "openbook_pc_setup tmpfs:chr_file write": {
+        "base": false,
+        "candidate": false
+      },
+      "vendor_init debug_prop:file read": {
+        "base": true,
+        "candidate": true
+      },
+      "vendor_init boot_status_prop:file read": {
+        "base": true,
+        "candidate": true
+      },
+      "shell debug_prop:property_service set": {
+        "base": true,
+        "candidate": true
+      },
+      "openbook_pc_setup sysfs_power:file write": {
+        "base": false,
+        "candidate": true
+      },
+      "openbook_pc_setup sysfs_rtc:lnk_file read": {
+        "base": false,
+        "candidate": true
+      },
+      "openbook_pc_setup sysfs_rtc:dir search": {
+        "base": false,
+        "candidate": true
+      },
+      "openbook_pc_setup vendor_openbook_prop:property_service set": {
+        "base": true,
+        "candidate": true
+      },
+      "vendor_modprobe vendor_file:system module_load": {
+        "base": true,
+        "candidate": true
+      },
+      "init vendor_modprobe:process transition": {
+        "base": true,
+        "candidate": true
+      },
+      "openbook_pc_setup self:capability sys_module": {
+        "base": false,
+        "candidate": false
+      },
+      "openbook_pc_setup kernel:system syslog_read": {
+        "base": false,
+        "candidate": false
+      },
+      "shell vendor_openbook_prop:property_service set": {
+        "base": false,
+        "candidate": false
+      },
+      "shell sysfs_power:file write": {
+        "base": false,
+        "candidate": false
+      }
+    }
+  }
+}
