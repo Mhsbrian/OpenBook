@@ -1,5 +1,9 @@
 # Status
 
+## 2026-10-24: root on the installed Ruby image (ANAL-259)
+
+Decision (B Honey, 2026-10-24): the `openbook_pc_setup` lab helper (ANAL-238/257) is the root path for the agent and bring-up work. It is allow-listed, has no general `su`, and keeps SELinux enforcing. Interactive per-app root is deferred. KernelSU was the approved first choice, but upstream says that on x86_64 kernels with the 2024 syscall-dispatch hardening, including ours, it works only with that hardening weakened, which upstream describes as suitable for test machines only. Nothing was built or run on the laptop, and this adds nothing to any image. Survey, sources and revisit options: `docs/root.md`.
+
 ## 2026-10-19: PR integration (ANAL-188)
 
 This integration consolidates PRs #94, #98 and #104–#117 with merge commits, preserving their dependency history. Status conflicts retain both evidence records; Quire retains the surface and Linux-agent initialization. The two outstanding #115 confirmation bugs are corrected with host dispatch regressions (17/17; the original head fails 12). No image or laptop update was performed. #117 contributes diagnostics only: the physical touchpad reproduction and fix remain open.
