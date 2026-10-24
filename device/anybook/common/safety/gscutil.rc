@@ -1,0 +1,7 @@
+# OpenBook (ANAL-251) replaces Google's gscutil.rc. Google's file ran, on every boot,
+#   gscutil --direct-gsc perform-os-startup --fw-zip-mp /system/etc/security/gsc.zip ...
+# which stages a Google security chip (GSC) firmware update and sends it commands through /dev/tpm0.
+# On a PC, /dev/tpm0 is the processor's firmware TPM, not a Google chip, so OpenBook does not run it.
+# The directory Google's file created stays, as before.
+on post-fs
+    mkdir /metadata/gscutil 775 hsm hsm

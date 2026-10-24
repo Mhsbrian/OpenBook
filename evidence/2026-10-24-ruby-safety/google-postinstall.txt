@@ -1,0 +1,25 @@
+# Google's update postinstall in RB-20261023-03's system (Google 16658739), read from the extracted image
+## /system/bin/updater-wrapper-system (labelled postinstall_exec in system_ext_file_contexts), commands only
+/postinstall/bin/otapreopt_script "$1" "$2" "$3" || true
+if ! google_desktop_firmware_updater system; then
+    exit 1
+fi
+exit 0
+
+## /system/bin/google_desktop_firmware_updater: messages (strings)
+AP firmware update succeeded
+com.google.android.system.desktop.IGscutilExecutor/default
+GSC firmware update started
+GSC firmware update succeeded
+/postinstall/firmware/ap-ec-fw.zip
+/postinstall/system/etc/security/gsc.zip/postinstall/system/etc/security/gsc.prepvt.zip/metadata/gscutil/gsc_update
+Run post install firmware update for system
+Run post install firmware update for vendor
+Vendor firmware update has started, updating AP
+vendor.google.desktop.IFutilityExecutor/default
+
+## Who provides the executors
+IGscutilExecutor: /system/etc/init/gscutil-executor.rc (system; neutralised by ANAL-251)
+IFutilityExecutor: Google's vendor partition, which OpenBook replaces; no provider in OpenBook's vendor: 0 files mention it
+
+## OpenBook payloads: build-ruby-ab-ota.py passes no --new_postinstall_config_file; check-firmware-safety.py payload confirms (payload-*.json)

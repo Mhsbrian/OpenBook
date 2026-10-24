@@ -1,0 +1,3 @@
+FINDING not-neutralised: /system/etc/init/gscutil.rc: still Google's original: it runs on this image
+FINDING not-neutralised: /system/etc/init/gscutil-executor.rc: still Google's original: it runs on this image
+firmware safety (tree): FAIL, 2 finding(s)

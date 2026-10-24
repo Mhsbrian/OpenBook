@@ -1,0 +1,4 @@
+RUN_POSTINSTALL_system=true
+POSTINSTALL_PATH_system=system/bin/updater-wrapper-system
+FILESYSTEM_TYPE_system=erofs
+POSTINSTALL_OPTIONAL_system=false

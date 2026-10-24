@@ -1,0 +1,4 @@
+# OpenBook (ANAL-251) replaces Google's gscutil-executor.rc. Its service (IGscutilExecutor) is how
+# google_desktop_firmware_updater, the postinstall step of Google's system updates, installs Google
+# security chip firmware. A PC has no such chip and OpenBook payloads carry no postinstall step, so the
+# service is not defined here and nothing can start it.

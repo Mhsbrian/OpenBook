@@ -1,0 +1,11 @@
+test_baseline_must_show_the_old_behaviour (__main__.Judge.test_baseline_must_show_the_old_behaviour) ... ok
+test_changed_tpm_tool_behaviour_fails (__main__.Judge.test_changed_tpm_tool_behaviour_fails) ... ok
+test_gscutil_running_fails (__main__.Judge.test_gscutil_running_fails) ... ok
+test_incomplete_report_fails (__main__.Judge.test_incomplete_report_fails) ... ok
+test_neutralised_boot_passes (__main__.Judge.test_neutralised_boot_passes) ... ok
+test_new_crashing_app_fails (__main__.Judge.test_new_crashing_app_fails) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.001s
+
+OK

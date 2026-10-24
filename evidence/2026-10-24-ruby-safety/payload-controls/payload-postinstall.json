@@ -1,0 +1,28 @@
+{
+  "schema": "openbook-firmware-safety-result/1",
+  "mode": "payload",
+  "passed": false,
+  "policy_sha256": "2b806321a068168ed052244d078b5f4ed24d1b218eecbbd6f6f8ebe5af9c7da7",
+  "payload": "~/anybook/work/anal251/pi-control/payload-postinstall.bin",
+  "payload_sha256": "b472f3bc71a2391646528df28b66c110e984ac2ad6e00d1033d6a6434e66e134",
+  "findings": [
+    {
+      "kind": "postinstall",
+      "path": "system",
+      "detail": "runs postinstall system/bin/updater-wrapper-system"
+    }
+  ],
+  "inventory": {
+    "partitions": [
+      "system"
+    ],
+    "postinstall": [
+      {
+        "name": "system",
+        "run_postinstall": true,
+        "postinstall_path": "system/bin/updater-wrapper-system",
+        "postinstall_optional": false
+      }
+    ]
+  }
+}
