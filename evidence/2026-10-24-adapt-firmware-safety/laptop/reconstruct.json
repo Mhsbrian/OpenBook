@@ -1,0 +1,18 @@
+{
+  "schema": "openbook-adapt-reconstruct/1",
+  "source": "stock-16658739",
+  "image": "staged",
+  "google_avb_key_sha256": "8f267440b8c98961ba1ae9f1ca8eb2ae1669093a637027803cf048492b5d35e0",
+  "fingerprint": "Android/desktop_system/desktop:17/CL3B.260622.276.R4/16658739:user/release-keys",
+  "partitions_sha256": {
+    "product": "ddf9d7105c4424c727ed53176d89b5a9895d3f59e2699ab5854bb3d1641211c1",
+    "system": "c3fac5488aa24f30443756345c08280cd492d8e36ee98de238c929a25017f4b1",
+    "system_ext": "dc3f228d2479ae3d979564bd7a02956399300187a67ac19519223911b7108b34",
+    "vbmeta": "ccf4b587fd492112f9533c1903fb05ef8594d2c3cadcf656aa5b135f5525e011"
+  },
+  "dm_verity_root_verified": {
+    "product": true,
+    "system": true,
+    "system_ext": true
+  }
+}

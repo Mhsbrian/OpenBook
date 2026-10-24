@@ -1,0 +1,2 @@
+71e0b3ab16215ab0a9f4f71291cebb265fb696db22d7d12612390850a1e2e735  /data/local/tmp/openbook-adapt-test/payload-test-release/payload.bin
+-rw------- 1 shell shell 1030953563 2026-10-24 09:13 /data/local/tmp/openbook-adapt-test/payload-test-release/payload.bin

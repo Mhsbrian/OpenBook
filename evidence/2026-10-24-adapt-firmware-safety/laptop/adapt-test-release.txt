@@ -1,0 +1,23 @@
+{
+ "complete": true,
+ "delta": {
+  "added": 38,
+  "changed": 59,
+  "removed": 370
+ },
+ "note": "Adapted on this machine; installing it is a later stage (payload, signature, owner approval).",
+ "partitions": {
+  "product": "ddf9d7105c4424c727ed53176d89b5a9895d3f59e2699ab5854bb3d1641211c1",
+  "system": "6f2abd2dc2e5ec6a6c08c9bc0776ea0977a9fae4a0a284308f52f6481f8fa392",
+  "system_ext": "dc3f228d2479ae3d979564bd7a02956399300187a67ac19519223911b7108b34",
+  "vbmeta": "4cfa2acccd515a58d424071e03c46d4d42e01585958c17fc91426a237e399d4d"
+ },
+ "props": {
+  "ro.build.date.utc": "1792468334",
+  "ro.build.id": "CL3B.260622.276.R4",
+  "ro.build.version.incremental": "16658739",
+  "ro.build.version.security_patch": "2026-10-01",
+  "ro.dalvik.vm.native.bridge": "libberberis_arm64.so",
+  "ro.system.build.fingerprint": "Android/desktop_system/desktop:17/CL3B.260622.276.R4/16658739:user/release-keys"
+ }
+}

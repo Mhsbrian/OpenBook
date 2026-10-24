@@ -1,0 +1,12 @@
+{
+ "complete": false,
+ "delta": {
+  "added": 33,
+  "changed": 56,
+  "removed": 370
+ },
+ "note": "",
+ "partitions": {},
+ "props": null
+}
+openbook-adapt: held: firmware safety: this release carries no firmware-safety rules (/system/etc/openbook/firmware-safety.json), so nothing it adapts is checked

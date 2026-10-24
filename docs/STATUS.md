@@ -8,7 +8,7 @@ Any finding holds the release with the reason. Its payloads never carry a postin
 
 - **Agreement.** On four image sets it gives `check-firmware-safety.py`'s findings and inventory exactly. It
   also reads what Android's init reads beyond `*.rc` (5 versioned APEX scripts today, none with a trigger).
-- **On the G14 (pinned `325006b5…`).**
+- **On the G14 (pinned `b80879f2…`).**
   - A test release with ANAL-251's change, OpenBook Update 2.0 and the adapter was adapted in 32 s,
     byte-identical to the host, the check passing.
   - RB-20261023-03's own layer was held: it ships no rules, and under the rules Google's `gscutil` scripts

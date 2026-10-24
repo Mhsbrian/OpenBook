@@ -1,0 +1,103 @@
+{
+  "schema": "openbook-payload/1",
+  "partitions": [
+    {
+      "name": "system",
+      "size": 1133674496,
+      "sha256": "6f2abd2dc2e5ec6a6c08c9bc0776ea0977a9fae4a0a284308f52f6481f8fa392",
+      "identity_copy": false,
+      "estimate_cow_size": 1049676288,
+      "replaced_blocks": 251688,
+      "zero_blocks": 25088
+    },
+    {
+      "name": "system_ext",
+      "size": 252346368,
+      "sha256": "dc3f228d2479ae3d979564bd7a02956399300187a67ac19519223911b7108b34",
+      "identity_copy": true,
+      "estimate_cow_size": 1048576,
+      "replaced_blocks": 0,
+      "zero_blocks": 0
+    },
+    {
+      "name": "product",
+      "size": 1971519488,
+      "sha256": "ddf9d7105c4424c727ed53176d89b5a9895d3f59e2699ab5854bb3d1641211c1",
+      "identity_copy": true,
+      "estimate_cow_size": 1048576,
+      "replaced_blocks": 0,
+      "zero_blocks": 0
+    },
+    {
+      "name": "vendor",
+      "size": 164626432,
+      "sha256": "e072350a7df2f59aaa14cc2095a94bd4661de2dccbca1422e38abd80554332d4",
+      "identity_copy": true,
+      "estimate_cow_size": 1048576,
+      "replaced_blocks": 0,
+      "zero_blocks": 0
+    },
+    {
+      "name": "vendor_dlkm",
+      "size": 53645312,
+      "sha256": "c22672e2333f1d97833688d2554dee6e06515c425ae1674aa3e2a6b4099c5fba",
+      "identity_copy": true,
+      "estimate_cow_size": 1048576,
+      "replaced_blocks": 0,
+      "zero_blocks": 0
+    },
+    {
+      "name": "system_dlkm",
+      "size": 18165760,
+      "sha256": "34185c35cb8bbccd5dfd0bb74eecb8a21e2445730411ef1583e1245628e0d617",
+      "identity_copy": true,
+      "estimate_cow_size": 1048576,
+      "replaced_blocks": 0,
+      "zero_blocks": 0
+    },
+    {
+      "name": "boot",
+      "size": 67108864,
+      "sha256": "f6fc1a5892cba10d24ba3c250f5abe4115ba0f7c0556a653995b41373bfbcec8",
+      "identity_copy": true,
+      "replaced_blocks": 0,
+      "zero_blocks": 0
+    },
+    {
+      "name": "init_boot",
+      "size": 8388608,
+      "sha256": "0237a3399e093acabf63a0b036ac43b7e1b06a59dc7b665d852c0c6ec28e2dae",
+      "identity_copy": true,
+      "replaced_blocks": 0,
+      "zero_blocks": 0
+    },
+    {
+      "name": "vendor_boot",
+      "size": 67108864,
+      "sha256": "b8dc14803c8a07b0ec675d9cc9d2baf7b16c8acfd1a90c63782fa7e0d95bda80",
+      "identity_copy": true,
+      "replaced_blocks": 0,
+      "zero_blocks": 0
+    },
+    {
+      "name": "vbmeta",
+      "size": 8192,
+      "sha256": "4cfa2acccd515a58d424071e03c46d4d42e01585958c17fc91426a237e399d4d",
+      "identity_copy": false,
+      "replaced_blocks": 2,
+      "zero_blocks": 0
+    }
+  ],
+  "metadata_size": 30277,
+  "payload_signature_offset": 1030953040,
+  "metadata_hash_to_sign": "583d952a06556ad520b7aaa484869073656a78709cf0c89657f6c8a7e4c79bcf",
+  "payload_hash_to_sign": "02667749978bc7686dcbbba73746cc83733ef21f099a88f5e15e4e19ba97a4a3",
+  "signed": true,
+  "postinstall": "none",
+  "properties": [
+    "FILE_HASH=ceCzqxYhWrCp9PcSkc67Jl+2ltsi19EmEjkIUKHi5zU=",
+    "FILE_SIZE=1030953563",
+    "METADATA_HASH=WD2VKgZVatUgt6qkhIaQc2VqeHCc8MiWV/bIp+THm88=",
+    "METADATA_SIZE=30277"
+  ]
+}

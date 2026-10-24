@@ -1,0 +1,127 @@
+{
+  "schema": "openbook-adapt-safety-parity/1",
+  "adapter_sha256": "b80879f2ac4b71baa5363c868577306a91822d58cdc1356cd5c673c5e60dc126",
+  "host_checker": "scripts/googlebook/check-firmware-safety.py images --tools (fsck.erofs, debugfs_static)",
+  "go_check": "openbook-adapt firmware-safety (images read in place; compressed files through fsck.erofs)",
+  "compared": [
+    "neutralised",
+    "reviewed_rc",
+    "absent_reviewed_rc",
+    "rc_matches",
+    "binaries",
+    "partitions",
+    "apex_rc_files",
+    "findings (order included)"
+  ],
+  "sets": {
+    "google-16658739": {
+      "images": "Google CL3B.260622.276.R4/16658739 (system, system_ext, product)",
+      "policy_sha256_equal": true,
+      "findings_identical": true,
+      "inventory_identical": true,
+      "passed": false,
+      "findings": [
+        "not-neutralised /system/etc/init/gscutil.rc",
+        "not-neutralised /system/etc/init/gscutil-executor.rc"
+      ],
+      "rc_matches": 7,
+      "apex_rc_files": 16,
+      "read_beyond_host_check": [
+        "/apex/com.google.android.media.swcodec/etc/mediaswcodec.32rc",
+        "/apex/com.google.android.media/etc/mediatranscoding.32rc",
+        "/apex/com.google.android.tethering/etc/netbpfload.33rc",
+        "/apex/com.google.android.tethering/etc/netbpfload.35rc",
+        "/apex/com.google.android.tethering/etc/ot-daemon.34rc"
+      ],
+      "reviewed_rc": {
+        "/system/etc/init/check_tpm_clear.rc": "allowed",
+        "/system/etc/init/ec_crash_collector.rc": "inert",
+        "/system/etc/init/gscd.rc": "allowed",
+        "/system/etc/init/timberslide.rc": "inert",
+        "/system/etc/init/udsattestation.rc": "allowed"
+      }
+    },
+    "google-16452207": {
+      "images": "Google 16452207 (system, system_ext, product)",
+      "policy_sha256_equal": true,
+      "findings_identical": true,
+      "inventory_identical": true,
+      "passed": false,
+      "findings": [
+        "not-neutralised /system/etc/init/gscutil.rc",
+        "not-neutralised /system/etc/init/gscutil-executor.rc"
+      ],
+      "rc_matches": 7,
+      "apex_rc_files": 16,
+      "read_beyond_host_check": [
+        "/apex/com.google.android.media.swcodec/etc/mediaswcodec.32rc",
+        "/apex/com.google.android.media/etc/mediatranscoding.32rc",
+        "/apex/com.google.android.tethering/etc/netbpfload.33rc",
+        "/apex/com.google.android.tethering/etc/netbpfload.35rc",
+        "/apex/com.google.android.tethering/etc/ot-daemon.34rc"
+      ],
+      "reviewed_rc": {
+        "/system/etc/init/check_tpm_clear.rc": "allowed",
+        "/system/etc/init/ec_crash_collector.rc": "inert",
+        "/system/etc/init/gscd.rc": "allowed",
+        "/system/etc/init/timberslide.rc": "inert",
+        "/system/etc/init/udsattestation.rc": "allowed"
+      }
+    },
+    "rb-20261023-03": {
+      "images": "RB-20261023-03 as installed on the G14 (system, system_ext, product, vendor)",
+      "policy_sha256_equal": true,
+      "findings_identical": true,
+      "inventory_identical": true,
+      "passed": false,
+      "findings": [
+        "not-neutralised /system/etc/init/gscutil.rc",
+        "not-neutralised /system/etc/init/gscutil-executor.rc"
+      ],
+      "rc_matches": 9,
+      "apex_rc_files": 23,
+      "read_beyond_host_check": [
+        "/apex/com.google.android.media.swcodec/etc/mediaswcodec.32rc",
+        "/apex/com.google.android.media/etc/mediatranscoding.32rc",
+        "/apex/com.google.android.tethering/etc/netbpfload.33rc",
+        "/apex/com.google.android.tethering/etc/netbpfload.35rc",
+        "/apex/com.google.android.tethering/etc/ot-daemon.34rc"
+      ],
+      "reviewed_rc": {
+        "/apex/com.android.hardware.authsecret/etc/android.hardware.authsecret-service.example.rc": "openbook",
+        "/system/etc/init/check_tpm_clear.rc": "allowed",
+        "/system/etc/init/ec_crash_collector.rc": "inert",
+        "/system/etc/init/gscd.rc": "allowed",
+        "/system/etc/init/timberslide.rc": "inert",
+        "/system/etc/init/udsattestation.rc": "allowed",
+        "/vendor/etc/ueventd.rc": "openbook"
+      }
+    },
+    "test-release": {
+      "images": "the test release: RB-20261023-02 base + ANAL-251 + OpenBook Update 2.0 with openbook-adapt, layer embedded (system, system_ext, product, vendor)",
+      "policy_sha256_equal": true,
+      "findings_identical": true,
+      "inventory_identical": true,
+      "passed": true,
+      "findings": [],
+      "rc_matches": 9,
+      "apex_rc_files": 23,
+      "read_beyond_host_check": [
+        "/apex/com.google.android.media.swcodec/etc/mediaswcodec.32rc",
+        "/apex/com.google.android.media/etc/mediatranscoding.32rc",
+        "/apex/com.google.android.tethering/etc/netbpfload.33rc",
+        "/apex/com.google.android.tethering/etc/netbpfload.35rc",
+        "/apex/com.google.android.tethering/etc/ot-daemon.34rc"
+      ],
+      "reviewed_rc": {
+        "/apex/com.android.hardware.authsecret/etc/android.hardware.authsecret-service.example.rc": "openbook",
+        "/system/etc/init/check_tpm_clear.rc": "allowed",
+        "/system/etc/init/ec_crash_collector.rc": "inert",
+        "/system/etc/init/gscd.rc": "allowed",
+        "/system/etc/init/timberslide.rc": "inert",
+        "/system/etc/init/udsattestation.rc": "allowed",
+        "/vendor/etc/ueventd.rc": "openbook"
+      }
+    }
+  }
+}

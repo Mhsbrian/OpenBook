@@ -1,0 +1,4 @@
+# adapt-device-test.sh cases (host paths shortened to their names; RECON = Google 16658739 reconstructed on the host)
+test-release fix-layer 1 6f2abd2dc2e5ec6a6c08c9bc0776ea0977a9fae4a0a284308f52f6481f8fa392 4cfa2acccd515a58d424071e03c46d4d42e01585958c17fc91426a237e399d4d layer-rb03 ours-test-release.tar
+rb03-own-rules layer-rb03 0 held held
+rb03-repo-rules layer-rb03 0 held held - - firmware-safety.json

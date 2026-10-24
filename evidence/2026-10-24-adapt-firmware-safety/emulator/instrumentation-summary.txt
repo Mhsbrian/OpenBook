@@ -1,0 +1,8 @@
+# instrumentation (13 tests) and AdapterProcessTest (openbook-adapt b80879f2 as the app's child)
+OK (13 tests)
+INSTRUMENTATION_CODE: -1
+## AdapterProcessTest
+INSTRUMENTATION_CODE: -1
+INSTRUMENTATION_STATUS: class=org.openbook.update.AdapterProcessTest
+INSTRUMENTATION_STATUS: test=runsInTheAppSandbox
+OK (1 test)

@@ -1,0 +1,2 @@
+held: firmware safety: this release carries no firmware-safety rules (/system/etc/openbook/firmware-safety.json), so nothing it adapts is checked
+held: firmware safety: not-neutralised /system/etc/init/gscutil.rc (still Google's original: it runs on this image) and 1 more
