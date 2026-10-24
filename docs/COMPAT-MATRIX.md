@@ -267,3 +267,18 @@ In the same VM, Digitalis runs at about 65% of libndk_translation's speed. The h
 | 2026-10-17 | The same RADV built **without android-strict (Vulkan 1.4)**, bind-mounted for the pass | Same | **45,220 pass, 5 fail, 0 crash, 0 flakes**, 222 s, no amdgpu fault. 1,998 more passes than 1.1, no new failure. **Decision: ship 1.4** (`docs/graphics-amd.md`). The failures: AHB rendering (real), `info.device_extensions` (Mesa newer than the CTS), `opfma.fp64` (also on the 610M), 2 harness cases (fixed) | same |
 | 2026-10-17 | GLES through Android's libEGL: **ANGLE on RADV 1.1** (shipped) and **radeonsi** | Same, pbuffer 256×256 | **dEQP-GLES2/3/31, 13,671 cases. ANGLE: 13,099 pass, 0 fail**, 509 not supported, 63 warnings, 35 s. **radeonsi: 13,621 pass, 0 fail** (identical to the 610M), 33 s. The G14 passes all 92 of our cases that Mesa CI lists as failing for ANGLE on RADV Stoney | same |
 | 2026-10-17 | AOSP's dEQP app (EGL, window surfaces) and Android 17's ANGLE end2end CTS helper app, on ANGLE on RADV 1.1 | Same | **dEQP-EGL, 1,287 cases: 847 pass, 0 fail**, 438 not supported, 204 s. **ANGLE end2end, 2,364 CTS PASS tests: 1,814 pass, 2 fail** (`MultisampledRenderToTextureWithAdvancedBlendTest`, ES 3.1), 329 skipped by ANGLE, 219 not in this build, 66 s | same |
+
+
+## Ruby USB release handoff — 2026-10-20
+
+| Check | RB-20261020-01 v2 result |
+|---|---|
+| Configured camera25 → corrected RB01 USB | Exact reviewed transition only; protected bytes and complete physical direct readback pass |
+| Existing encrypted synthetic data | 760.7-second UEFI boot/logging pass; four metadata-key files unchanged |
+| Installer replacement and source pin | Verified; 1,297 extracted entries/permissions match the tested installer |
+| Wrong confirmation / normal keyboard cancellation | Both install choices and console cancellation preserve source/target/decoy |
+| Runtime stability | One system-server crash recurred; cause unresolved |
+| G14 unlock/apps/trackpad | Awaiting physical owner test |
+| Laptop update, OTA guard, automatic rollback, audio fixes | Outside this release |
+
+Details: `evidence/2026-10-20-rb01-usb/result.json`.

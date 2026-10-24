@@ -901,3 +901,14 @@ Exit 0 means all three imports and pixel comparisons passed; 1 means a failed
 case; 2 means setup/argument failure. Optional dimensions must be even, 4–4096.
 Mesa patch 0005 is applied by `mesa-android-build.sh fetch`; rebuild and stage
 Mesa before building the OS image. Evidence: `evidence/2026-10-19-photos-yv12/`.
+
+
+## Ruby USB release handoff — 2026-10-20
+
+RB-20261020-01 v2 retains the previously validated Android payload and adds
+exact-transition preservation, verified installer replacement and final plan
+composition. The guarded configured-USB write and full direct readback passed.
+Use `docs/googlebook-usb-release.md` for the three-stage procedure and
+`evidence/2026-10-20-rb01-usb/result.json` for source/tool identities, checks,
+the retained mount-guard failure and cleanup. Never substitute the synthetic
+test image for the configured output. Original backups and artifacts remain private.

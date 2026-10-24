@@ -327,3 +327,14 @@ headless process passes import and colour readback for RGB, YV12 and flexible
 YUV420 at five sizes (15/15), without restarting the desktop. This is a driver
 format defect, not evidence of failing hardware. System deployment and the
 Photos app check are tracked in `evidence/2026-10-19-photos-yv12/SUMMARY.md`.
+
+
+## Ruby USB release handoff — 2026-10-20
+
+The approved SanDisk Ultra ending 2034 now contains RB-20261020-01 v2. Its
+entire 12,766,412,800-byte used extent passed direct readback, and power-off
+succeeded. All 8,805,941,248 bytes outside EFI/super/vbmeta match the backup.
+The G14 installation and firmware are unchanged. Physical USB boot, existing
+PIN/apps and the trackpad correction still need owner verification on the G14.
+One system-server crash recurred in the synthetic VM; no stable-hardware claim.
+See `evidence/2026-10-20-rb01-usb/README.md`.
