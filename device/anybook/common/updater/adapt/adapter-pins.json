@@ -1,11 +1,11 @@
 {
   "schema": "openbook-adapter-pins/1",
   "note": "openbook-adapt for the image. Rebuild with adapt/build.sh at the commit to compare (reproducible).",
-  "sha256": "090fe211cecfe1d061754f1e8eddecfc236ad61469c0adc1d3edcb60c0c0fcdc",
+  "sha256": "325006b55e6f18ae055740fbcf5b192c807f43df5290a9e8869ed9a6d5b86be0",
   "go": "go1.27.2",
   "go_archive_sha256": "ecbadb99091a3f46e31f5f934b068b1864eafa7995211b39eaddf76996045fe5",
-  "source_sha256": "8d2bb57a07c25c9db905846afd9d6689d3a4fc0f10a6c805caf7f2c20f0096da",
-  "commit": "5fc1a877b9a0e4d439fdb4735f6d597a2873881c",
+  "source_sha256": "8d5500ef9464b15715c64881d053255d44033bcf39bd16833e88ef81c7984491",
+  "commit": "7250e4c89aaa8efb66ae30f9af513f0199414ab3",
   "worktree_clean": true,
   "reproducible_check": true,
   "static": true
