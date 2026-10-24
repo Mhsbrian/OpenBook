@@ -38,6 +38,7 @@ struct Expectation {
 const Expectation kExpectations[] = {
         {"g14-ga403wr.txt", {"amdgpu", "1002:150e", "amdgpu", "drm", ""}},
         {"g14-ga403wr-early.txt", {"amdgpu", "1002:150e", "unbound", "pci", ""}},
+        {"g14-ga403wr-nouveau.txt", {"amdgpu", "1002:150e", "amdgpu", "drm", "nvidia"}},
         {"host-7950x-rtx4090.txt", {"amdgpu", "1002:164e", "amdgpu", "drm", "nvidia"}},
         {"cuttlefish-virtio.txt", {"virtio", "1af4:1050", "virtio-pci", "drm", ""}},
         {"nvidia-only.txt", {"none", "", "", "", "nvidia"}},
