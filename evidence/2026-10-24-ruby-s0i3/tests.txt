@@ -1,0 +1,25 @@
+# ANAL-257 checks, 2026-10-24 (build host). Each line: command, then its result.
+
+## openbook_sleep_diag: PTM order against a mock config space
+$ cc -O2 -Wall -Wextra -Werror kernel/devices/anybook/sleep_diag/test/ptm_plan_test.c && ./ptm_plan_test
+ok   clear: endpoint first, root ports last, granularity kept
+ok   clear: Enable and Root Select off everywhere
+ok   restore: root ports first, endpoint last, exact old values
+ok   restore: every function back to its saved value
+ok   clear: D3cold skipped, refused write not counted
+ok   clear: skipped functions are not marked cleared
+ok   clear: skipped functions are not marked cleared
+ok   restore: only the four cleared functions are written
+ok   restore: unreachable and already-enabled functions untouched
+ok   empty list
+PASSED: 0 failure(s)
+
+## openbook_sleep_diag in QEMU on the G14 kernel (module/vm-result.json)
+$ OPENBOOK_INSTALLER_IMAGE=openbook-installer:anal178 scripts/installer/inst-docker.sh env BUSYBOX=<static busybox> bash kernel/devices/anybook/sleep_diag/test/run-vm-test.sh <G14 bzImage> openbook_sleep_diag.ko <out>
+$ kernel/devices/anybook/sleep_diag/test/check-vm-log.py <out>/serial.log result.json
+passed: True - 17 of 17 checks; kernel 6.18.21-android17-5-gfbfdd65b0fd1
+
+
+## probe-init.c (cpuidle loop fix)
+$ gcc -O2 -Wall -fsyntax-only scripts/installer/probe-init.c
+rc=0
