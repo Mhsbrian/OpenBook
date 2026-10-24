@@ -1,9 +1,31 @@
 # RB-20261023-03: OpenBook Update, built and VM-rehearsed (ANAL-256, 2026-10-23)
 
+## On the G14, 2026-10-24 (`g14/`)
+
+B Honey confirmed "Install 3c3b3b38 on the G14" on ANAL-232.
+
+- **Before (read-only):** slot `_b`, boot digest `8517e2fe…`, Google 16658739, 68 % battery. No other adb or update session. The dry run passed.
+- **Apply:** `g14-ota.sh --via-adb --approved "RB-20261023-03 to the G14"`, under the Ruby track lock. Download and verification took 00:36:35 → 00:37:25 UTC, with `ErrorCode::kSuccess`.
+- **Restart:**
+  - The first idle watcher subtracted Android's `uptimeMillis` from `/proc/uptime`, which includes suspend time, so its "idle" verdict was wrong. It was discarded before anything was restarted.
+  - The corrected watcher read Android's own "N ms ago": input was still 1–3 minutes old.
+  - The owner then wrote that the laptop was on and idling, so the restart was done on the owner's word (00:48:23 UTC).
+- **After:** boot completed and adb was back at 00:49:14 UTC.
+  - Slot `_a`, boot digest `14e3e6c6…`, exactly the release's `vbmeta`. Same Google build.
+  - `update_engine_client --merge` reports success (CleanupSuccessfulUpdate kSuccess).
+- **Counts:** users 2 → 2, packages 302 → 303 (the app), third-party 35 → 35, accounts 0,2 → 0,2. Settings 39/179/206 unchanged.
+- **App:**
+  - Privileged system app (`/system/priv-app/OpenBookUpdate-v1`), REBOOT granted, process in `openbook_update_app` for user 10.
+  - First live check against Google's listing: `exit 0 (OK)`. No denials for the app.
+  - As rehearsed: notifications are not yet allowed (the app asks), and the app is also installed, stopped, for user 0.
+- **Crashes:** only Google's `repairmode` (×2, known). No tombstone or ANR.
+- **OpenBook OTA certificate:** unchanged (`3e1529c9…`).
+- **Rollback:** slot B keeps RB-20261023-02 until the next update. A slot that fails to boot falls back by itself. Going back after this boot means sending RB-20261023-02 as an OpenBook update.
+
 Plan v1, `d6b1633d731ddc3eeca76ee78ed160fb6e40fe69619038ba983aff0a4864d126`, approved by B Honey on
 ANAL-232 (`01a16aa8…`). The release is RB-20261023-02 plus OpenBook Update (ANAL-229, PR #121 `a05f832`,
 APK `f3308832…`). It is delivered to the G14 as an OpenBook-signed incremental update into **slot A**,
-because the laptop runs slot B. **Nothing has been written to the laptop or the stick.**
+because the laptop runs slot B. Written to the G14 on 2026-10-24 (below); the stick is unchanged.
 
 ## Artifacts (`build.json`)
 
