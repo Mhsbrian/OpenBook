@@ -9,7 +9,7 @@ usage: kernel-cf-modset.py --gki DIST --board DIST --blocklist FILE --out DIR [-
                     Its GKI modules carry this build's signature, so they are the only ones its bzImage accepts.
   --board DIST      the Cuttlefish board modules: //common-modules/virtual-device:virtual_device_x86_64_dist,
                     built on the same GKI (its initramfs.img). Only its unsigned vendor modules are used.
-  --vendor-list     the AnyBook vendor modules, one file name per line (evidence/2026-10-16-kernel-amd/vendor-modules.txt)
+  --vendor-list     the AnyBook vendor modules, one file name per line (kernel/cuttlefish/vendor-modules.txt)
   --blocklist       Cuttlefish's device/google/cuttlefish/shared/modules.blocklist (what the product image ships)
   --block           add a module to that blocklist for this image, e.g. one whose hardware the VM lacks. It is still
                     shipped; dlkm_loader skips it. dlkm_loader stops short of setting vendor.dlkm.modules.ready when

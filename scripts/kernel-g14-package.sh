@@ -49,7 +49,7 @@ inputs() {  # what each step depends on; a change reruns it
     lists) hash_of "$D/sha256.txt" "$D"/{bm,vm}/*.img $(find "$R/kernel/devices/anybook/g14" -type f | sort) "$R/scripts/kernel-g14-modlists.py" ;;
     sigcheck) hash_of "$D/sha256.txt" "$D"/{bm,vm}/*.img "$R/scripts/kernel-g14-sigcheck.py" ;;
     qemu) hash_of "$D/sha256.txt" "$D"/{bm,vm}/*.img "$R"/scripts/kernel-g14-qemu.{py,sh} "$R/kernel/devices/anybook/g14/test/fstab.qemu" ;;
-    firmware) hash_of "$R/evidence/2026-10-16-kernel-amd/firmware-subset.tsv" "$R/scripts/kernel-g14-firmware.py" ;;
+    firmware) hash_of "$R/kernel/firmware/anybook-amd-subset.tsv" "$R/scripts/kernel-g14-firmware.py" ;;
     collect) hash_of "$ST"/{build,lists,sigcheck,firmware,qemu} ;;
   esac
 }
@@ -90,7 +90,7 @@ if want sigcheck; then
 fi
 
 if want firmware; then
-  python3 "$R/scripts/kernel-g14-firmware.py" --subset "$R/evidence/2026-10-16-kernel-amd/firmware-subset.tsv" \
+  python3 "$R/scripts/kernel-g14-firmware.py" --subset "$R/kernel/firmware/anybook-amd-subset.tsv" \
     --src "$K/firmware/anybook-amd" --fw "$K/firmware/linux-firmware" --out "$O/firmware"
   done_step firmware
 fi
