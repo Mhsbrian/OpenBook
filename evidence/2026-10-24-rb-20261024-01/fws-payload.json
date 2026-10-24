@@ -1,0 +1,24 @@
+{
+  "schema": "openbook-firmware-safety-result/1",
+  "mode": "payload",
+  "passed": true,
+  "policy_sha256": "2b806321a068168ed052244d078b5f4ed24d1b218eecbbd6f6f8ebe5af9c7da7",
+  "payload": "/home/hive/anybook/installer/work/rb-20261024-01/ota-laptop/signed/payload.bin",
+  "payload_sha256": "15779f0297ac6508a2ce54bd8d4382bcacdc2698cab0469f4818f9c981c57ad6",
+  "findings": [],
+  "inventory": {
+    "partitions": [
+      "system",
+      "system_ext",
+      "product",
+      "vendor",
+      "vendor_dlkm",
+      "system_dlkm",
+      "boot",
+      "init_boot",
+      "vendor_boot",
+      "vbmeta"
+    ],
+    "postinstall": []
+  }
+}

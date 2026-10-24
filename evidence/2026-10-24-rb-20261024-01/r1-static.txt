@@ -1,0 +1,7 @@
+adapter 
+layer files 1
+etc/openbook/firmware-safety.json 2b806321a068168ed052244d078b5f4ed24d1b218eecbbd6f6f8ebe5af9c7da7
+etc/init/gscutil.rc 61149fa16b80229cc7a3df2cd8f197f8160a9f6e252bbae8df49b8fc100c96b4
+etc/init/gscutil-executor.rc 5105310de9674fb53ede1e77d60f7d021e6de870a84ac97a389da2d57f8cab0e
+priv-app/OpenBookUpdate-v2/OpenBookUpdate.apk cd2c896ea003717423cf75d8981bd9a4e18f5ef7088faa31646ce93490e79038
+app 1.0 dir removed
