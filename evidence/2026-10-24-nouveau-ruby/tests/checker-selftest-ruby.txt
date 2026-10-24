@@ -1,0 +1,2 @@
+Each of the 141 modules of RB-20261023-03's vendor_dlkm checked as "new" against the other 140, the release kernel (vmlinux from boot.img) and its system_dlkm:
+pass=141 fail=0 imports=9127

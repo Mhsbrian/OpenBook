@@ -1,0 +1,3 @@
+blocklist virtio_dma_buf.ko
+blocklist virtio-gpu.ko
+blocklist virtio_input.ko

@@ -287,6 +287,19 @@ scripts/kernel-firmware-subset.py --fw ~/anybook/kernel/firmware/linux-firmware 
 - **Packaging** (`vendor_dlkm`/`vendor_boot` images, module load order and blocklists, firmware placement) is done: see [Bare-metal packaging for the G14](#bare-metal-packaging-for-the-g14-anal-198).
 - **Unsigned vendor modules leave the taint flag at 0 on this kernel.** Upstream would set `E`. **HYPOTHESIS:** Android's `MODULE_SIG_PROTECT` change skips that taint. The same holds inside Android: in ANAL-172's Cuttlefish boot, no OpenBook module sets a taint flag.
 
+### nouveau and the 33 KMI symbols it needs (ANAL-239, 2026-10-24)
+
+- **Patch 0004** adds 33 symbols to `anybook_amd` for the external `nouveau.ko` (`kernel/devices/anybook/nvidia/`).
+  - They are on no x86_64 list yet: DRM GEM core, maple tree, KMS property/plane helpers, LED suspend, three
+    exports that were protected from unsigned modules, and a few more.
+  - `common` becomes `206eb00bd0c4`. The kernel, `system_dlkm` and all vendor modules are rebuilt.
+- **Proof that nothing else changed** (`evidence/2026-10-24-nouveau-ruby/rebuild-compare.md`):
+  - every existing export keeps its CRC;
+  - every module keeps its exports, imports and code.
+- **The fragment** (`anybook_nvidia.fragment`, through `nvidia/Kconfig.ext`) adds only `drm_gpuvm.ko`.
+- **Module lists:** nouveau loads last in `vendor_dlkm`, with `g14/modules.options` (`runpm=1 modeset=2`).
+- Details: `nouveau-ruby.md`.
+
 ## Booting in Cuttlefish with our AOSP 17 userspace (ANAL-172)
 
 Status as of 2026-10-16. Evidence is in `evidence/2026-10-16-kernel-cf/`, starting with `SUMMARY.md`. Guesses are labelled **HYPOTHESIS**. This is a VM: no AMD driver probed real hardware.
