@@ -35,13 +35,16 @@ sealed interface InstallerStatus {
 }
 
 /**
- * Observes update_engine through the framework's UpdateEngine API. Binding reports the current status
- * at once, so a status is known moments after [connect] or [refresh]. The app only watches in this phase:
- * it never applies, cancels or resets.
+ * update_engine through the framework's UpdateEngine API. Binding reports the current status at once, so a
+ * status is known moments after [connect] or [refresh]. The app applies only the payload this laptop built
+ * and signed itself, after the owner approved it ([apply]); it never cancels or resets another update.
  */
 class UpdateEngineClient {
     private val _status = MutableStateFlow<InstallerStatus>(InstallerStatus.Unavailable)
     val status: StateFlow<InstallerStatus> = _status.asStateFlow()
+    /** The last payload application's result (update_engine's ErrorCode; 0 is success), once one finishes. */
+    private val _completed = MutableStateFlow<Int?>(null)
+    val completed: StateFlow<Int?> = _completed.asStateFlow()
     private var engine: UpdateEngine? = null
 
     private val callback = object : UpdateEngineCallback() {
@@ -51,7 +54,19 @@ class UpdateEngineClient {
 
         override fun onPayloadApplicationComplete(errorCode: Int) {
             Log.i(TAG, "update_engine finished applying a payload: error code $errorCode")
+            _completed.value = errorCode
         }
+    }
+
+    /**
+     * Starts installing a payload into the other slot: [url] (this app's loopback server) with its properties.
+     * update_engine checks the payload's signature against the running system's certificates before writing.
+     */
+    @Synchronized
+    fun apply(url: String, size: Long, properties: List<String>) {
+        check(connect()) { "update_engine is not available" }
+        _completed.value = null
+        engine!!.applyPayload(url, 0, size, properties.toTypedArray())
     }
 
     /**

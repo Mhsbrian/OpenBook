@@ -25,7 +25,11 @@
     <string name="verifying_title">Checking the download</string>
     <string name="verifying_body">Comparing it with Google\'s checksum.</string>
     <string name="preparing_title">Downloaded and verified</string>
-    <string name="preparing_body">The next steps build the version of this release for this laptop, on the laptop itself. They arrive with a coming OpenBook update. The verified download is kept until then.</string>
+    <string name="preparing_body">This laptop is building its own version of this release: it checks Google\'s release, applies OpenBook\'s adaptations again and verifies the result. It takes a few minutes, and you can keep using your laptop.</string>
+    <string name="preparing_body_later">The next steps build the version of this release for this laptop, on the laptop itself. They arrive with a coming OpenBook update. The verified download is kept until then.</string>
+    <string name="preparing_body_awaiting_key">The version for this laptop is built and verified. Installing it needs this laptop\'s own update key to be recognized by the system, which comes with an OpenBook update. The build is kept until then.</string>
+    <string name="held_adaptation_title">Update needs an OpenBook update</string>
+    <string name="held_adaptation_body">Google\'s %1$s changes something OpenBook adapts for this laptop, so the laptop doesn\'t build it by itself. OpenBook checks it and delivers it as an OpenBook update. Nothing was installed. Details: %2$s</string>
     <string name="held_new_train_title">Quarterly release</string>
     <string name="held_new_train_body">%1$s is Google\'s next quarterly release, which can bring a new Android version. OpenBook first checks this laptop\'s adaptations against it, then delivers it as an OpenBook update. Nothing is downloaded until then.</string>
     <string name="held_unrecognized_title">Update needs review</string>
@@ -51,6 +55,8 @@
     <string name="failed_not_listed_body">Google doesn\'t list Googlebook releases for this device.</string>
     <string name="failed_busy_title">Already working</string>
     <string name="failed_busy_body">Another check or download is running. Try again in a moment.</string>
+    <string name="failed_adapt_title">Couldn\'t build the update</string>
+    <string name="failed_adapt_body">Building this release for your laptop stopped before anything was installed. It tries again later. Details: %1$s</string>
     <string name="failed_internal_title">Something went wrong</string>
     <string name="failed_internal_body">OpenBook Update couldn\'t finish. Details: %1$s</string>
 
@@ -100,6 +106,7 @@
     <string name="step_built">Version for this laptop built</string>
     <string name="step_ready">Verified and ready to install</string>
     <string name="step_not_yet">Comes with a later OpenBook update</string>
+    <string name="step_awaiting_key">Waits for this laptop\'s update key (an OpenBook update)</string>
     <string name="step_failed">Stopped: nothing was changed</string>
 
     <!-- Review and confirmation -->
@@ -154,11 +161,15 @@
     <string name="history_went_back">The new version didn\'t start; went back to %1$s</string>
     <string name="history_changed">System changed to %1$s</string>
     <string name="history_restart_requested">Update installed; restart required</string>
+    <string name="history_built">Built for this laptop: %1$s</string>
+    <string name="history_adapt_held">Needs an OpenBook update: %1$s</string>
+    <string name="history_installed_pending">Installed, restart to finish: %1$s</string>
+    <string name="history_install_failed">Didn\'t install, nothing changed: %1$s</string>
 
     <!-- About updates -->
     <string name="about_title">About updates</string>
     <string name="about_intro">OpenBook Update watches Google\'s public release list for this laptop. Each release is handled by its kind, read from its build ID.</string>
-    <string name="about_monthly">Google\'s regular update of the running release, with security and quality fixes. It downloads on Wi-Fi. Building the version for this laptop comes with a later OpenBook update.</string>
+    <string name="about_monthly">Google\'s regular update of the running release, with security and quality fixes. It downloads on Wi-Fi; then the laptop builds and checks its own version and asks you before installing it.</string>
     <string name="about_quarterly">A new release train, which can bring new features or a new Android version. It waits until OpenBook has checked this laptop\'s adaptations, then arrives as an OpenBook update.</string>
     <string name="about_unknown">Not downloaded until OpenBook has reviewed it.</string>
     <string name="about_beta_title">Beta releases</string>
@@ -186,7 +197,18 @@
     <string name="notify_slowed_title">The update download continues more slowly</string>
     <string name="notify_slowed_text">Android limits long downloads in the background. Open OpenBook Update to speed it up.</string>
     <string name="notify_downloaded_title">Update downloaded and verified</string>
-    <string name="notify_downloaded_text">%1$s. Building it for this laptop comes with a later OpenBook update.</string>
+    <string name="notify_downloaded_text">%1$s. The laptop builds its own version next.</string>
+    <string name="notify_downloaded_text_later">%1$s. Building it for this laptop comes with a later OpenBook update.</string>
+    <string name="notify_ready_title">Update ready to install</string>
+    <string name="notify_ready_text">%1$s is built for this laptop. Review it and choose when to install.</string>
+    <string name="notify_built_title">Update built for this laptop</string>
+    <string name="notify_built_text">%1$s. Installing it needs this laptop\'s update key, which comes with an OpenBook update.</string>
+    <string name="notify_adapt_held_title">A Googlebook update needs an OpenBook update</string>
+    <string name="notify_adapt_held_text">%1$s changes something OpenBook adapts for this laptop</string>
+    <string name="notify_adapt_failed_title">Couldn\'t build the update</string>
+    <string name="notify_adapt_failed_text">Nothing was installed. OpenBook Update tries again later.</string>
+    <string name="notify_install_failed_title">The update didn\'t install</string>
+    <string name="notify_install_failed_text">Nothing changed on this laptop (update_engine code %1$s).</string>
     <string name="notify_restart_title">Restart to finish the update</string>
     <string name="notify_restart_text">Save your work, then restart from OpenBook Update.</string>
     <string name="notify_restart_action">Restart…</string>

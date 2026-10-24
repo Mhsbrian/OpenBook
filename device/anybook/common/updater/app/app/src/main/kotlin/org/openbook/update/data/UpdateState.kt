@@ -1,20 +1,32 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.openbook.update.data
 
+import org.openbook.update.engine.AdaptFacts
 import org.openbook.update.engine.DownloadFacts
 import org.openbook.update.engine.EngineState
 import org.openbook.update.engine.Release
 import org.openbook.update.engine.ReleaseKind
 import org.openbook.update.system.InstallerStatus
 
-/** What the laptop can do on its own today (docs/googlebook-on-device-updater.md, phases). */
+/** What the laptop can do on its own (docs/googlebook-on-device-updater.md, phases). */
 data class Capabilities(
-    /** Phase 3: rebuild Google's release with the OpenBook layer and check it. */
+    /** Phase 3: rebuild Google's release with the OpenBook layer and check it (the system ships the tools). */
     val adaptOnLaptop: Boolean = false,
-    /** Phase 4: build, sign and install the laptop's own update. */
+    /** Phase 4: sign and install the laptop's own build (its key is enrolled in the running system). */
     val installOnLaptop: Boolean = false,
 ) {
-    companion object { val CURRENT = Capabilities() }
+    companion object {
+        const val ADAPTER = "/system/bin/openbook-adapt"
+        const val LAYER = "/system/etc/openbook/layer/layer.json"
+
+        /** Read once per process: both change only with a new system, which restarts the app. */
+        val CURRENT: Capabilities by lazy { detect() }
+
+        fun detect(): Capabilities {
+            val adapt = java.io.File(ADAPTER).canExecute() && java.io.File(LAYER).isFile
+            return Capabilities(adapt, adapt && org.openbook.update.system.LaptopKey.enrolled())
+        }
+    }
 }
 
 /** Where a download job stands in WorkManager. */
@@ -46,6 +58,8 @@ data class Inputs(
     val capabilities: Capabilities = Capabilities.CURRENT,
     /** The newest verified download on disk, which may be an earlier listing's release. */
     val downloaded: Release? = null,
+    /** Building that download for this laptop (phase 3). */
+    val adapt: AdaptFacts = AdaptFacts.NONE,
 )
 
 /** Why an update cannot go further for now. */
@@ -54,9 +68,11 @@ enum class HoldReason {
     NEW_RELEASE_TRAIN,
     /** The build IDs do not show what kind of release it is: OpenBook reviews it first. */
     UNRECOGNIZED,
+    /** Google changed something OpenBook adapts for this laptop: it arrives as an OpenBook update. */
+    ADAPTATION,
 }
 
-enum class Problem { NETWORK, CHECKSUM, STORAGE, NOT_LISTED, BUSY, LISTING_REFUSED, INTERNAL }
+enum class Problem { NETWORK, CHECKSUM, STORAGE, NOT_LISTED, BUSY, LISTING_REFUSED, INTERNAL, ADAPT }
 
 /** One line of the preparation checklist. */
 data class Step(val id: Id, val status: Status) {
@@ -79,8 +95,11 @@ sealed interface UpdateUiState {
                        val reason: WaitReason) : UpdateUiState
     data class Paused(override val system: SystemInfo, val release: Release, val doneBytes: Long, val totalBytes: Long?) : UpdateUiState
     data class Verifying(override val system: SystemInfo, val release: Release) : UpdateUiState
-    data class Preparing(override val system: SystemInfo, val release: Release, val steps: List<Step>) : UpdateUiState
-    data class Held(override val system: SystemInfo, val release: Release, val reason: HoldReason) : UpdateUiState
+    /** [awaitingKey]: built and checked, but this laptop's update key is not enrolled yet (an OpenBook update). */
+    data class Preparing(override val system: SystemInfo, val release: Release, val steps: List<Step>,
+                         val awaitingKey: Boolean = false) : UpdateUiState
+    data class Held(override val system: SystemInfo, val release: Release, val reason: HoldReason,
+                    val detail: String? = null) : UpdateUiState
     /** A version of [release] for this laptop is built and verified; the owner reviews and approves it (phase 4). */
     data class ReadyToInstall(override val system: SystemInfo, val release: Release) : UpdateUiState
     data class Installing(override val system: SystemInfo, val stage: InstallerStatus.Stage, val percent: Int) : UpdateUiState
@@ -110,11 +129,11 @@ object UpdateStateReducer {
                    else UpdateUiState.Downloading(s, release, i.disk.partBytes, total)
         }
         if (i.checking) return UpdateUiState.Checking(s)
-        if (downloaded != null) return prepared(s, downloaded, i.capabilities)
+        if (downloaded != null) return prepared(s, downloaded, i.capabilities, i.adapt)
         val problem = problem(e.errorCode)
         if (release != null) {
             return when {
-                i.disk.verified -> prepared(s, release, i.capabilities)
+                i.disk.verified -> prepared(s, release, i.capabilities, i.adapt)
                 release.kind.held -> UpdateUiState.Held(
                     s, release, if (release.kind == ReleaseKind.QUARTERLY) HoldReason.NEW_RELEASE_TRAIN else HoldReason.UNRECOGNIZED)
                 i.download == DownloadWork.WAITING -> UpdateUiState.Waiting(s, release, i.disk.partBytes, total, i.waitReason)
@@ -139,21 +158,38 @@ object UpdateStateReducer {
         6 -> Problem.BUSY
         7 -> Problem.NOT_LISTED
         9 -> Problem.LISTING_REFUSED
+        11 -> Problem.ADAPT
         else -> Problem.INTERNAL
     }
 
-    /** A verified download. Until the laptop can adapt releases itself (phase 3), the checklist says so. */
-    private fun prepared(s: SystemInfo, release: Release, caps: Capabilities): UpdateUiState {
-        val next = if (caps.adaptOnLaptop) Step.Status.PENDING else Step.Status.NOT_YET_AVAILABLE
-        return UpdateUiState.Preparing(
-            s, release,
-            listOf(
-                Step(Step.Id.DOWNLOADED, Step.Status.DONE),
-                Step(Step.Id.VERIFIED, Step.Status.DONE),
-                Step(Step.Id.CHECKED_ADAPTATIONS, next),
-                Step(Step.Id.BUILT_FOR_LAPTOP, next),
-                Step(Step.Id.READY, next),
-            ),
+    /**
+     * A verified download: the checklist follows its adaptation (phase 3). Without the tools in this system
+     * the remaining steps come with a later OpenBook update; without an enrolled key the laptop builds and
+     * checks the release but installs nothing, and says why.
+     */
+    private fun prepared(s: SystemInfo, release: Release, caps: Capabilities, adapt: AdaptFacts): UpdateUiState {
+        fun steps(checked: Step.Status, built: Step.Status, ready: Step.Status) = listOf(
+            Step(Step.Id.DOWNLOADED, Step.Status.DONE),
+            Step(Step.Id.VERIFIED, Step.Status.DONE),
+            Step(Step.Id.CHECKED_ADAPTATIONS, checked),
+            Step(Step.Id.BUILT_FOR_LAPTOP, built),
+            Step(Step.Id.READY, ready),
         )
+        val (done, active, pending, later) = listOf(Step.Status.DONE, Step.Status.ACTIVE, Step.Status.PENDING, Step.Status.NOT_YET_AVAILABLE)
+        if (!caps.adaptOnLaptop) return UpdateUiState.Preparing(s, release, steps(later, later, later))
+        return when (adapt.status) {
+            AdaptFacts.Status.NONE -> UpdateUiState.Preparing(s, release, steps(pending, pending, pending))
+            AdaptFacts.Status.RUNNING -> UpdateUiState.Preparing(s, release, when (adapt.step) {
+                "reconstruct", "check" -> steps(active, pending, pending)
+                "build", "sign" -> steps(done, active, pending)
+                else -> steps(done, done, active) // payload
+            })
+            AdaptFacts.Status.HELD -> UpdateUiState.Held(s, release, HoldReason.ADAPTATION, adapt.detail)
+            AdaptFacts.Status.FAILED -> UpdateUiState.Failed(s, Problem.ADAPT, release, adapt.detail)
+            AdaptFacts.Status.ADAPTED -> if (caps.installOnLaptop) UpdateUiState.Preparing(s, release, steps(done, done, active))
+                                         else UpdateUiState.Preparing(s, release, steps(done, done, later), awaitingKey = true)
+            AdaptFacts.Status.READY -> if (caps.installOnLaptop) UpdateUiState.ReadyToInstall(s, release)
+                                       else UpdateUiState.Preparing(s, release, steps(done, done, later), awaitingKey = true)
+        }
     }
 }

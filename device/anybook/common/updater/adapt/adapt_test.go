@@ -366,7 +366,11 @@ func TestPlanDeltaHolds(t *testing.T) {
 	write("/system/lib/a.so", "google")
 	write("/system/lib/gone.so", "google")
 	sha := func(s string) string { x := sha256.Sum256([]byte(s)); return hex.EncodeToString(x[:]) }
-	newRows := map[string][]string{"/system/lib/a.so": row("/system/lib/a.so", 6), "/system/lib/gone.so": row("/system/lib/gone.so", 6)}
+	dirRow := func(p string) []string {
+		return []string{"I " + hex.EncodeToString([]byte(p)) + " 16877 0 0 2 0 1230768000 0"}
+	}
+	newRows := map[string][]string{"/system": dirRow("/system"), "/system/lib": dirRow("/system/lib"),
+		"/system/lib/a.so": row("/system/lib/a.so", 6), "/system/lib/gone.so": row("/system/lib/gone.so", 6)}
 	base := func() *Layer {
 		return &Layer{Schema: layerSchema, Data: map[string]string{}, Paths: map[string]*LayerPath{
 			"/system/lib/a.so":    {Old: row("/system/lib/a.so", 6), OldEntry: Entry{"file", sha("google")}, Ours: row("/system/lib/a.so", 4), OursEntry: Entry{"file", sha("ours")}, Carry: "changed"},
@@ -398,6 +402,59 @@ func TestPlanDeltaHolds(t *testing.T) {
 	if _, err := planDelta(base(), newRows, root); !errors.As(err, &h) {
 		t.Fatalf("Google changing a file OpenBook removes must hold: %v", err)
 	}
+	write("/system/lib/gone.so", "google")
+	// Google turned the parent of a path OpenBook adds into a symlink (a non-directory row): held, not written through.
+	nr = map[string][]string{}
+	for k, v := range newRows {
+		nr[k] = v
+	}
+	nr["/system/lib"] = []string{"I " + hex.EncodeToString([]byte("/system/lib")) + " 41471 0 0 1 9 1230768000 0"}
+	if _, err := planDelta(base(), nr, root); !errors.As(err, &h) || !strings.Contains(err.Error(), "not a directory") {
+		t.Fatalf("a symlinked parent must hold: %v", err)
+	}
+	// Google put a file inside a directory OpenBook removes: held, not a failed removal.
+	l := base()
+	l.Paths["/system/old"] = &LayerPath{Old: dirRow("/system/old"), OldEntry: Entry{"dir"}, Carry: "removed"}
+	os.MkdirAll(filepath.Join(root, "system/old"), 0o755)
+	nr = map[string][]string{"/system/old": dirRow("/system/old"), "/system/old/new.so": row("/system/old/new.so", 1)}
+	for k, v := range newRows {
+		nr[k] = v
+	}
+	if _, err := planDelta(l, nr, root); !errors.As(err, &h) || !strings.Contains(err.Error(), "inside it") {
+		t.Fatalf("a removed directory with new contents must hold: %v", err)
+	}
+}
+
+func TestEditedKeysOnce(t *testing.T) {
+	old := lines("a=1", "ro.x=old")
+	ours := lines("a=1", "ro.x=ours")
+	if err := editedKeysOnce(old, ours, lines("ro.y=1", "a=1", "ro.x=ours")); err != nil {
+		t.Fatal(err)
+	}
+	if err := editedKeysOnce(old, ours, lines("ro.x=google", "a=1", "ro.x=ours")); err == nil {
+		t.Fatal("a second definition of a key OpenBook sets must be refused")
+	}
 }
 
 func itoa(n int) string { return strconv.Itoa(n) }
+
+func TestLayerFileRowsLinkCounts(t *testing.T) {
+	dir := func(p string, nlink int) []string {
+		h := hex.EncodeToString([]byte(p))
+		return []string{"I " + h + " 16877 0 0 " + itoa(nlink) + " 0 1230768000 0"}
+	}
+	nlink := func(rows []string) string { return strings.Split(rows[0], " ")[5] }
+	// No /system/etc/openbook yet: it is added with the layer directory, and /system/etc gains a link.
+	got, err := layerFileRows(map[string][]string{"/system/etc": dir("/system/etc", 25)}, 10)
+	if err != nil || nlink(got["/system/etc"]) != "26" || nlink(got["/system/etc/openbook"]) != "3" || nlink(got[layerDir]) != "2" {
+		t.Fatalf("new parent: %v %v", err, got)
+	}
+	// The release carries /system/etc/openbook (with one subdirectory): it gains the layer directory.
+	got, err = layerFileRows(map[string][]string{"/system/etc": dir("/system/etc", 26), "/system/etc/openbook": dir("/system/etc/openbook", 3)}, 10)
+	if err != nil || nlink(got["/system/etc/openbook"]) != "4" || got["/system/etc"] != nil {
+		t.Fatalf("existing parent: %v %v", err, got)
+	}
+	if _, err := layerFileRows(map[string][]string{layerDir: dir(layerDir, 2)}, 10); err == nil {
+		t.Fatal("an existing layer directory must be refused")
+	}
+}

@@ -83,3 +83,5 @@ done
 rm -rf "$W/suite"
 "$G/ab-ota-suite.sh" "$W/img-h" "$W/payload" "$W/rel-target" "$W/suite" --fallback > "$L/suite.log" 2>&1 || true
 note "suite: $(cat "$W/suite/summary.json" 2>/dev/null | tr -d '\n' | cut -c1-600)"
+# The exit status is the evidence: the suite's own verdict (apply, boot and merge, byte compare, fallback).
+python3 -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1])).get("passed") else 1)' "$W/suite/summary.json"

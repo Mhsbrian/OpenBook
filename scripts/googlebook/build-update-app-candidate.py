@@ -66,6 +66,14 @@ PINNED = {"cil": "app-sepolicy.cil", "seapp": "app-seapp_contexts", "privapp": "
           "defaults": "default-permissions-org.openbook.update.xml", "sysconfig": "sysconfig-org.openbook.update.xml",
           "cert": "openbook-update.x509.pem"}
 PRIVILEGED_FLAG = 0x10
+# Phase 3 on the laptop: openbook-adapt (a static Go binary, pinned in adapt/adapter-pins.json) and the AVB key
+# it signs the laptop's own vbmeta with. That key is AOSP's published test key, which OpenBook's images are
+# signed with today (bootsync checks it); its hash is pinned so no other private key can ever ship here.
+ADAPTER = "/system/bin/openbook-adapt"
+ADAPTER_DIR = "/system/etc/openbook"
+AVB_KEY_PATH = "/system/etc/openbook/avb/testkey_rsa4096.pem"
+AOSP_AVB_TEST_KEY_SHA256 = "6a224754880a57ab9cbd308267cd157d94cf05a1c8cb851aec4090e045d24121"
+ADDED_EXEC_CONTEXT = "u:object_r:system_file:s0"
 DERIVED_HEADER = "; Every app domain's own statements, as this image's policy gives Google's app domains (derived):\n"
 SCOPE = ("OpenBook Update: a privileged app in its own domain (priv_app_all) with binder calls to update_engine; "
          "it watches update_engine and restarts into an installed update after the owner confirms")
@@ -233,6 +241,25 @@ def sources(src_dir=SRC):
     out["apk_pin"] = pins["apk"]
     out["engine_pin"] = json.loads((src_dir / "pins.json").read_text())["files"]["openbook-updater"]
     return out
+
+
+def adapter_pin(src_dir=SRC):
+    pin = json.loads((src_dir / "adapt" / "adapter-pins.json").read_text())
+    if pin.get("schema") != "openbook-adapter-pins/1":
+        raise ValueError("Unrecognized adapter pin file")
+    return pin
+
+
+def adapter_additions(adapter, avb_key, pin, vm_check):
+    """The files that let the laptop adapt Google's releases: the pinned binary and the AOSP AVB test key."""
+    if sha(adapter) != pin["sha256"]:
+        raise ValueError("openbook-adapt differs from its pin in adapt/adapter-pins.json")
+    if not vm_check and not (pin.get("worktree_clean") and pin.get("reproducible_check") and pin.get("static")):
+        raise ValueError("A deployable candidate needs openbook-adapt pinned from a clean, reproducible static build")
+    if sha(avb_key) != AOSP_AVB_TEST_KEY_SHA256:
+        raise ValueError("Only AOSP's published AVB test key may ship in the image")
+    return {ADAPTER: (adapter, 0o755, ADDED_EXEC_CONTEXT), ADAPTER_DIR: None, f"{ADAPTER_DIR}/avb": None,
+            AVB_KEY_PATH: avb_key}
 
 
 def der(pem):
@@ -506,6 +533,12 @@ def build(a):
         app_dir = APP_DIR_FORMAT.format(version=apk_record["version_code"])
         additions = {app_dir: None, f"{app_dir}/OpenBookUpdate.apk": apk, PRIVAPP: src["privapp"], DEFAULTS: src["defaults"],
                      SYSCONFIG: src["sysconfig"]}
+        adapter_record = None
+        if getattr(a, "adapter", None):
+            pin = adapter_pin()
+            additions.update(adapter_additions(b.p.regular(a.adapter).read_bytes(), b.p.regular(a.key).read_bytes(), pin, vm_check))
+            adapter_record = dict(sha256=pin["sha256"], go=pin.get("go"), built_from_commit=pin.get("commit"),
+                                  avb_test_key_sha256=AOSP_AVB_TEST_KEY_SHA256)
         record = dict(
             deployment_eligible=not vm_check, phase=2, hardware_validated=False,
             package=PACKAGE, version_name=apk_record["version_name"], version_code=apk_record["version_code"],
@@ -514,8 +547,10 @@ def build(a):
             requested_permissions=apk_record["requested"], privileged_permissions=apk_record["privileged"],
             selinux=dict(domain="openbook_update_app", seinfo=SEINFO, seapp_context=line, policy=policy_record,
                          seapp_checked=True),
-            added_files={n: "dir" if v is None else sha(v) for n, v in additions.items()},
+            added_files={n: "dir" if v is None else sha(v if isinstance(v, bytes) else v[0]) for n, v in additions.items()},
             changed_files=sorted(replacements))
+        if adapter_record:
+            record["adapter"] = adapter_record
         annotations = {"openbook_update_app": record}
         if vm_check:
             additions["/system/etc/init/openbook-update-vmcheck.rc"] = VM_CHECK_RC
@@ -535,6 +570,8 @@ if __name__ == "__main__":
         p.add_argument("--" + name, type=Path, required=True)
     p.add_argument("--base-sha256", required=True)
     p.add_argument("--vm-check", action="store_true", help="add the disposable serial-console report (not deployable)")
+    p.add_argument("--adapter", type=Path, help="openbook-adapt (adapt/build.sh), pinned in adapt/adapter-pins.json: "
+                   "the laptop adapts Google's releases itself (phase 3)")
     args = p.parse_args()
     if not Path("/.dockerenv").exists():
         p.error("Use inst-docker.sh; regular images only")

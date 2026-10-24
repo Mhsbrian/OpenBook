@@ -31,4 +31,20 @@ public class UpdateEngine {
     public boolean unbind() {
         throw new RuntimeException("Stub!");
     }
+
+    /** Applies a payload from an http(s):// or file:// URL; headers are the payload's properties (KEY=VALUE). */
+    public void applyPayload(String url, long offset, long size, String[] headerKeyValuePairs) {
+        throw new RuntimeException("Stub!");
+    }
+
+    /** Stops an ongoing update (the slot being written is left incomplete and is not activated). */
+    public void cancel() {
+        throw new RuntimeException("Stub!");
+    }
+
+    /** Error codes reported to {@link UpdateEngineCallback#onPayloadApplicationComplete}. */
+    public static final class ErrorCodeConstants {
+        public static final int SUCCESS = 0;
+        public static final int UPDATED_BUT_NOT_ACTIVE = 52;
+    }
 }

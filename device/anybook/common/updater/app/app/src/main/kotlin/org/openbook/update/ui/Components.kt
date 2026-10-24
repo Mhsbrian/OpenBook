@@ -88,16 +88,16 @@ fun DetailsCard(title: String?, rows: List<Pair<String, String>>, modifier: Modi
 
 /** The preparation checklist: what happened to the release so far, and what comes next. */
 @Composable
-fun Checklist(steps: List<Step>, modifier: Modifier = Modifier) {
+fun Checklist(steps: List<Step>, modifier: Modifier = Modifier, awaitingKey: Boolean = false) {
     OutlinedCard(modifier.fillMaxWidth()) {
         Column(Modifier.padding(vertical = 8.dp)) {
-            steps.forEach { step -> ChecklistRow(step) }
+            steps.forEach { step -> ChecklistRow(step, awaitingKey) }
         }
     }
 }
 
 @Composable
-private fun ChecklistRow(step: Step) {
+private fun ChecklistRow(step: Step, awaitingKey: Boolean) {
     val label = stringResource(when (step.id) {
         Step.Id.DOWNLOADED -> R.string.step_downloaded
         Step.Id.VERIFIED -> R.string.step_verified
@@ -106,7 +106,8 @@ private fun ChecklistRow(step: Step) {
         Step.Id.READY -> R.string.step_ready
     })
     val detail = when {
-        step.status == Step.Status.NOT_YET_AVAILABLE -> stringResource(R.string.step_not_yet)
+        step.status == Step.Status.NOT_YET_AVAILABLE ->
+            stringResource(if (awaitingKey && step.id == Step.Id.READY) R.string.step_awaiting_key else R.string.step_not_yet)
         step.status == Step.Status.FAILED -> stringResource(R.string.step_failed)
         step.id == Step.Id.CHECKED_ADAPTATIONS -> stringResource(R.string.step_checked_detail)
         else -> null

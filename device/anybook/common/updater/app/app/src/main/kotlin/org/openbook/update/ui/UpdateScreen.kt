@@ -40,6 +40,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.openbook.update.R
 import org.openbook.update.data.Capabilities
+import org.openbook.update.data.Step
 import org.openbook.update.data.HoldReason
 import org.openbook.update.data.Problem
 import org.openbook.update.data.UpdateUiState
@@ -95,7 +96,7 @@ fun UpdateScreen(state: UpdateUiState, actions: UpdateActions, notificationsOn: 
                 Progress(state)
                 Actions(state, actions)
                 if (!notificationsOn) NotificationsOff(actions.enableNotifications)
-                if (state is UpdateUiState.Preparing) Checklist(state.steps)
+                if (state is UpdateUiState.Preparing) Checklist(state.steps, awaitingKey = state.awaitingKey)
                 release(state)?.let { ReleaseCard(it, state) }
                 SystemCard(state)
                 OpenBookMark()
@@ -128,12 +129,19 @@ private fun hero(state: UpdateUiState): Hero = when (state) {
     is UpdateUiState.Verifying -> Hero(R.drawable.ic_verified, stringResource(R.string.verifying_title),
         stringResource(R.string.verifying_body), Tone.PRIMARY, busy = true)
     is UpdateUiState.Preparing -> Hero(R.drawable.ic_laptop, stringResource(R.string.preparing_title),
-        stringResource(R.string.preparing_body), Tone.SECONDARY)
+        stringResource(when {
+            state.awaitingKey -> R.string.preparing_body_awaiting_key
+            state.steps.any { it.status == Step.Status.NOT_YET_AVAILABLE } -> R.string.preparing_body_later
+            else -> R.string.preparing_body
+        }), Tone.SECONDARY, busy = state.steps.any { it.status == Step.Status.ACTIVE })
     is UpdateUiState.Held -> when (state.reason) {
         HoldReason.NEW_RELEASE_TRAIN -> Hero(R.drawable.ic_schedule, stringResource(R.string.held_new_train_title),
             stringResource(R.string.held_new_train_body, state.release.buildId.ifEmpty { state.release.number.toString() }), Tone.SECONDARY)
         HoldReason.UNRECOGNIZED -> Hero(R.drawable.ic_schedule, stringResource(R.string.held_unrecognized_title),
             stringResource(R.string.held_unrecognized_body, state.release.buildId.ifEmpty { state.release.number.toString() }), Tone.SECONDARY)
+        HoldReason.ADAPTATION -> Hero(R.drawable.ic_schedule, stringResource(R.string.held_adaptation_title),
+            stringResource(R.string.held_adaptation_body, state.release.buildId.ifEmpty { state.release.number.toString() },
+                           state.detail.orEmpty()), Tone.SECONDARY)
     }
     is UpdateUiState.ReadyToInstall -> Hero(R.drawable.ic_system_update, stringResource(R.string.ready_title),
         stringResource(R.string.ready_body), Tone.TERTIARY)
@@ -150,6 +158,7 @@ private fun hero(state: UpdateUiState): Hero = when (state) {
             Problem.NOT_LISTED -> R.string.failed_not_listed_title to stringResource(R.string.failed_not_listed_body)
             Problem.BUSY -> R.string.failed_busy_title to stringResource(R.string.failed_busy_body)
             Problem.INTERNAL -> R.string.failed_internal_title to stringResource(R.string.failed_internal_body, state.detail.orEmpty())
+            Problem.ADAPT -> R.string.failed_adapt_title to stringResource(R.string.failed_adapt_body, state.detail.orEmpty())
         }
         Hero(R.drawable.ic_error, stringResource(title), body, Tone.ERROR)
     }

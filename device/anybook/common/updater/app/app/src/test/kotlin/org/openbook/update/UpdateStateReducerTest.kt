@@ -14,6 +14,7 @@ import org.openbook.update.data.SystemInfo
 import org.openbook.update.data.UpdateStateReducer.reduce
 import org.openbook.update.data.UpdateUiState
 import org.openbook.update.data.WaitReason
+import org.openbook.update.engine.AdaptFacts
 import org.openbook.update.engine.DownloadFacts
 import org.openbook.update.engine.EngineState
 import org.openbook.update.engine.ReleaseKind
@@ -121,5 +122,61 @@ class UpdateStateReducerTest {
         assertEquals(InstallerStatus.RestartRequired, InstallerStatus.of(6, 0f))
         assertEquals(InstallerStatus.Unavailable, InstallerStatus.of(9, 0f))
         assertEquals(InstallerStatus.Idle, InstallerStatus.of(11, 0f)) // cleanup of the previous update
+    }
+
+    // Phase 3/4: the checklist follows the laptop's own build of a verified download.
+    private val verified = DownloadFacts(verified = true)
+    private val tools = Capabilities(adaptOnLaptop = true, installOnLaptop = false)
+    private val enrolled = Capabilities(adaptOnLaptop = true, installOnLaptop = true)
+    private fun adapting(caps: Capabilities, facts: AdaptFacts) =
+        reduce(inputs("", newer, { it.copy(disk = verified, capabilities = caps, adapt = facts) }))
+    private val done = Step.Status.DONE
+    private val active = Step.Status.ACTIVE
+    private val pending = Step.Status.PENDING
+    private val later = Step.Status.NOT_YET_AVAILABLE
+
+    @Test fun theChecklistFollowsTheAdaptation() {
+        fun steps(s: UpdateUiState) = (s as UpdateUiState.Preparing).steps.map { it.status }.drop(2)
+        assertEquals(listOf(pending, pending, pending), steps(adapting(tools, AdaptFacts.NONE)))
+        assertEquals(listOf(active, pending, pending), steps(adapting(tools, AdaptFacts(AdaptFacts.Status.RUNNING, "reconstruct"))))
+        assertEquals(listOf(active, pending, pending), steps(adapting(tools, AdaptFacts(AdaptFacts.Status.RUNNING, "check"))))
+        assertEquals(listOf(done, active, pending), steps(adapting(tools, AdaptFacts(AdaptFacts.Status.RUNNING, "build"))))
+        assertEquals(listOf(done, done, active), steps(adapting(tools, AdaptFacts(AdaptFacts.Status.RUNNING, "payload"))))
+    }
+
+    @Test fun withoutAnEnrolledKeyItIsBuiltButNeverOffered() {
+        for (status in listOf(AdaptFacts.Status.ADAPTED, AdaptFacts.Status.READY)) {
+            val s = adapting(tools, AdaptFacts(status)) as UpdateUiState.Preparing
+            assertTrue(s.awaitingKey)
+            assertEquals(listOf(done, done, later), s.steps.map { it.status }.drop(2))
+        }
+        // Enrolled: signed means ready to install; built but not yet signed is the last step running.
+        assertTrue(adapting(enrolled, AdaptFacts(AdaptFacts.Status.READY)) is UpdateUiState.ReadyToInstall)
+        val signing = adapting(enrolled, AdaptFacts(AdaptFacts.Status.ADAPTED)) as UpdateUiState.Preparing
+        assertEquals(listOf(done, done, active), signing.steps.map { it.status }.drop(2))
+    }
+
+    @Test fun aHeldOrFailedAdaptationSaysWhy() {
+        val held = adapting(tools, AdaptFacts(AdaptFacts.Status.HELD, detail = "/system/build.prop: Google changed it")) as UpdateUiState.Held
+        assertEquals(HoldReason.ADAPTATION, held.reason)
+        assertEquals("/system/build.prop: Google changed it", held.detail)
+        val failed = adapting(tools, AdaptFacts(AdaptFacts.Status.FAILED, detail = "no space")) as UpdateUiState.Failed
+        assertEquals(Problem.ADAPT, failed.problem)
+        // A system without the tools: the steps come with a later OpenBook update, whatever is on disk.
+        val old = adapting(Capabilities(), AdaptFacts(AdaptFacts.Status.HELD)) as UpdateUiState.Preparing
+        assertEquals(listOf(later, later, later), old.steps.map { it.status }.drop(2))
+    }
+
+    @Test fun adaptFactsFromTheEnginesFiles() {
+        val id = "16999999_CL3B.260722.140"
+        fun of(state: String, step: String? = null, payload: String? = null, held: String? = null) =
+            AdaptFacts.of(EngineState.parse(state), id, step, payload, held)
+        assertEquals(AdaptFacts(AdaptFacts.Status.RUNNING, "build"), of("result=adapting\nbuild=$id\n", "build\n"))
+        assertEquals(AdaptFacts(AdaptFacts.Status.RUNNING, "reconstruct"), of("result=adapting\nbuild=$id\n"))
+        assertEquals(AdaptFacts.NONE, of("result=adapting\nbuild=16000000_X\n", "build\n")) // another release's run
+        assertEquals(AdaptFacts(AdaptFacts.Status.FAILED, detail = "boom"), of("result=error:11\nbuild=$id\ndetail=boom\n"))
+        assertEquals(AdaptFacts(AdaptFacts.Status.HELD, detail = "x"), of("result=up-to-date\n", held = "layer=ab\ndetail=x\n"))
+        assertEquals(AdaptFacts(AdaptFacts.Status.ADAPTED), of("", payload = "{\"signed\": false}"))
+        assertEquals(AdaptFacts(AdaptFacts.Status.READY), of("", payload = "{\n  \"signed\": true\n}"))
     }
 }

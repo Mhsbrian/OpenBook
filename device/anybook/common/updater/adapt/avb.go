@@ -455,7 +455,10 @@ func hashTree(r io.ReaderAt, size uint64, salt []byte) ([]byte, []byte, error) {
 	tree := make([]byte, treeSize)
 	if size == block {
 		buf := make([]byte, block)
-		if _, err := r.ReadAt(buf, 0); err != nil && err != io.EOF {
+		if n, err := r.ReadAt(buf, 0); n != block {
+			if err == nil {
+				err = io.ErrUnexpectedEOF
+			}
 			return nil, nil, err
 		}
 		d := saltedHash(salt, buf)
@@ -466,7 +469,9 @@ func hashTree(r io.ReaderAt, size uint64, salt []byte) ([]byte, []byte, error) {
 	workers := runtime.NumCPU()
 	const chunk = 2048 // blocks per job (8 MiB)
 	jobs := make(chan uint64)
-	errs := make(chan error, workers)
+	var mu sync.Mutex
+	var firstErr error
+	failed := func() bool { mu.Lock(); defer mu.Unlock(); return firstErr != nil }
 	var wg sync.WaitGroup
 	for w := 0; w < workers; w++ {
 		wg.Add(1)
@@ -474,11 +479,22 @@ func hashTree(r io.ReaderAt, size uint64, salt []byte) ([]byte, []byte, error) {
 			defer wg.Done()
 			buf := make([]byte, chunk*block)
 			for first := range jobs {
+				if failed() {
+					continue // drain: the first error is reported
+				}
 				n := min(chunk, nblocks-first)
 				want := min(n*block, size-first*block)
 				b := buf[:n*block]
-				if _, err := r.ReadAt(b[:want], int64(first*block)); err != nil && err != io.EOF {
-					errs <- err
+				// The image must hold `size` bytes: a short read is an error, never stale data.
+				if got, err := r.ReadAt(b[:want], int64(first*block)); uint64(got) != want {
+					if err == nil {
+						err = io.ErrUnexpectedEOF
+					}
+					mu.Lock()
+					if firstErr == nil {
+						firstErr = err
+					}
+					mu.Unlock()
 					continue
 				}
 				clear(b[want:])
@@ -494,10 +510,8 @@ func hashTree(r io.ReaderAt, size uint64, salt []byte) ([]byte, []byte, error) {
 	}
 	close(jobs)
 	wg.Wait()
-	select {
-	case err := <-errs:
-		return nil, nil, err
-	default:
+	if firstErr != nil {
+		return nil, nil, firstErr
 	}
 	level := level0
 	for n := 0; ; n++ {
@@ -550,6 +564,10 @@ func addHashtreeFooter(path string, partitionSize uint64, name string, salt []by
 			return nil, err
 		}
 	}
+	_, treeSize := hashLevelOffsets(size, avbBlockSize)
+	if size+roundUp(treeSize, avbBlockSize)+avbBlockSize > partitionSize-avbBlockSize {
+		return nil, errors.New("hash tree and vbmeta do not fit the partition")
+	}
 	root, tree, err := hashTree(f, size, salt)
 	if err != nil {
 		return nil, err
@@ -586,7 +604,8 @@ func addHashtreeFooter(path string, partitionSize uint64, name string, salt []by
 	return desc, f.Sync()
 }
 
-// verifyHashtree recomputes an image's dm-verity root digest against its descriptor.
+// verifyHashtree recomputes an image's dm-verity root digest against its descriptor, and the hash tree the
+// image stores beside its data.
 func verifyHashtree(path string, d *HashtreeDesc) error {
 	if d.HashAlgorithm != "sha256" || d.DataBlockSize != avbBlockSize || d.HashBlockSize != avbBlockSize {
 		return fmt.Errorf("%s: unsupported hash tree parameters", d.PartitionName)
@@ -596,12 +615,19 @@ func verifyHashtree(path string, d *HashtreeDesc) error {
 		return err
 	}
 	defer f.Close()
-	root, _, err := hashTree(f, d.ImageSize, d.Salt)
+	root, tree, err := hashTree(f, d.ImageSize, d.Salt)
 	if err != nil {
 		return err
 	}
 	if !bytes.Equal(root, d.RootDigest) {
 		return fmt.Errorf("%s: dm-verity root digest mismatch", d.PartitionName)
+	}
+	if d.TreeSize != uint64(len(tree)) {
+		return fmt.Errorf("%s: hash tree size differs from its descriptor", d.PartitionName)
+	}
+	stored := make([]byte, len(tree))
+	if n, _ := f.ReadAt(stored, int64(d.TreeOffset)); n != len(stored) || !bytes.Equal(stored, tree) {
+		return fmt.Errorf("%s: the stored hash tree is not the image's", d.PartitionName)
 	}
 	return nil
 }

@@ -334,21 +334,43 @@ func cmdAdapt(fl *flag.FlagSet, args []string) error {
 	work := fl.String("work", "", "new scratch directory")
 	out := fl.String("out", "", "new directory for the adapted release")
 	embed := fl.Bool("embed-layer", true, "write the next round's layer into the adapted system (off: reproduce a release built without one)")
+	fl.StringVar(&progressPath, "progress", "", "file to record the current step in (check, build, verify, sign)")
 	fl.Parse(args)
 	if *layerPath == "" || *newDir == "" || *keyPath == "" || *work == "" || *out == "" {
 		usage()
 	}
+	if _, err := os.Lstat(*out); err == nil {
+		return fmt.Errorf("%s exists: an adaptation writes a new directory", *out)
+	}
 	res, err := adapt(*layerPath, *newDir, *oursRoot, *keyPath, *mkfs, *fsck, *secilc, *work, *out, *embed)
 	if res != nil {
-		if *out != "" {
-			os.MkdirAll(*out, 0o700)
+		// A complete adaptation's record goes with it; a stopped one's stays in the work directory, and no
+		// partial output is left that could be taken for a result.
+		if err == nil {
 			writeJSON(filepath.Join(*out, "adapt.json"), res)
+		} else {
+			os.RemoveAll(*out)
+			os.MkdirAll(*work, 0o700)
+			writeJSON(filepath.Join(*work, "adapt.json"), res)
 		}
 		b, _ := json.MarshalIndent(map[string]any{"complete": res.Complete, "props": res.BuildProps, "delta": res.Delta,
 			"partitions": res.Partitions, "note": res.Note}, "", " ")
 		fmt.Println(string(b))
 	}
 	return err
+}
+
+// progress records the current step for the app (one line, replaced atomically); empty path: off.
+var progressPath string
+
+func progress(step string) {
+	if progressPath == "" {
+		return
+	}
+	tmp := progressPath + ".tmp"
+	if os.WriteFile(tmp, []byte(step+"\n"), 0o600) == nil {
+		os.Rename(tmp, progressPath)
+	}
 }
 
 type plan struct {
@@ -378,7 +400,17 @@ func adapt(layerIn, newDir, oursRoot, keyPath, mkfs, fsck, secilc, work, out str
 		return nil, err
 	}
 	res.NewFingerprint = rec.Fingerprint
-	if rec.GoogleKey != l.Google.AVBKeySHA256 {
+	// Google's signed vbmeta, checked again here (reconstruct.json is only a record): its key is the one the
+	// layer's Google build was signed with.
+	gv, _, err := readImageVBMeta(filepath.Join(newDir, "vbmeta.img"))
+	if err != nil {
+		return res, err
+	}
+	if err := gv.Verify(); err != nil {
+		return res, fmt.Errorf("Google's vbmeta: %v", err)
+	}
+	gk := sha256.Sum256(gv.PublicKey)
+	if hex.EncodeToString(gk[:]) != l.Google.AVBKeySHA256 || rec.GoogleKey != l.Google.AVBKeySHA256 {
 		return res, held("Google's release is signed with a different key than the build this release was made from")
 	}
 	newSystem := filepath.Join(newDir, "system.img")
@@ -394,6 +426,7 @@ func adapt(layerIn, newDir, oursRoot, keyPath, mkfs, fsck, secilc, work, out str
 	if err := os.Mkdir(work, 0o700); err != nil {
 		return nil, err
 	}
+	progress("check")
 	newRowsList, err := inventory(newSystem)
 	if err != nil {
 		return nil, err
@@ -409,6 +442,14 @@ func adapt(layerIn, newDir, oursRoot, keyPath, mkfs, fsck, secilc, work, out str
 	newContents, err := contents(source)
 	if err != nil {
 		return nil, err
+	}
+	// Never back in time: Google's release must not be older than the build the running release was made from.
+	newDate, err := buildDateUTC(source)
+	if err != nil {
+		return res, err
+	}
+	if l.Google.BuildDateUTC > 0 && newDate < l.Google.BuildDateUTC {
+		return res, held("Google's release is older than the build this laptop runs")
 	}
 	pl, err := planDelta(l, newRows, source)
 	if err != nil {
@@ -498,6 +539,7 @@ func adapt(layerIn, newDir, oursRoot, keyPath, mkfs, fsck, secilc, work, out str
 		}
 	}
 	res.MetadataRows = len(expected)
+	progress("build")
 	img, err := rebuildErofs(mkfs, fsck, work, source, expected, want)
 	if err != nil {
 		return res, err
@@ -524,7 +566,28 @@ func adapt(layerIn, newDir, oursRoot, keyPath, mkfs, fsck, secilc, work, out str
 		if err := copyFile(filepath.Join(newDir, n+".img"), filepath.Join(out, n+".img")); err != nil {
 			return res, err
 		}
+		// The release vbmeta takes these partitions' descriptors from their footers: they must be exactly the
+		// ones Google signed.
+		fv, _, err := readImageVBMeta(filepath.Join(out, n+".img"))
+		if err != nil {
+			return res, err
+		}
+		var signed, footer []byte
+		for _, d := range gv.Descriptors {
+			if d.Hashtree != nil && d.Partition == n {
+				signed = d.Raw
+			}
+		}
+		for _, d := range fv.Descriptors {
+			if d.Hashtree != nil && d.Partition == n {
+				footer = d.Raw
+			}
+		}
+		if signed == nil || !bytes.Equal(signed, footer) {
+			return res, fmt.Errorf("%s: its footer's hash tree descriptor is not the one Google signed", n)
+		}
 	}
+	progress("sign")
 	// vbmeta: the adapted partitions' own descriptors, the rest from the layer, signed.
 	var sources []*VBMeta
 	for _, n := range vbmetaOrder {
@@ -579,9 +642,13 @@ func adapt(layerIn, newDir, oursRoot, keyPath, mkfs, fsck, secilc, work, out str
 		}
 	}
 	res.BuildProps = buildProperties(pl.merged[buildProp])
+	if res.BuildProps["ro.build.date.utc"] == "" { // build.prop not carried: Google's own
+		res.BuildProps["ro.build.date.utc"] = strconv.FormatInt(newDate, 10)
+	}
 	res.Complete, res.Installable = true, false
 	res.Note = "Adapted on this machine; installing it is a later stage (payload, signature, owner approval)."
-	return res, os.RemoveAll(source)
+	os.RemoveAll(source) // scratch; the result is complete either way
+	return res, nil
 }
 
 func copyFile(src, dst string) error {
@@ -614,7 +681,7 @@ func buildProperties(prop []byte) map[string]string {
 		}
 		switch k {
 		case "ro.build.id", "ro.build.version.incremental", "ro.build.version.security_patch",
-			"ro.system.build.fingerprint", "ro.dalvik.vm.native.bridge":
+			"ro.system.build.fingerprint", "ro.dalvik.vm.native.bridge", "ro.build.date.utc":
 			out[k] = v
 		}
 	}
@@ -699,6 +766,9 @@ func planDelta(l *Layer, newRows map[string][]string, newTree string) (*plan, er
 					return nil, held("%s: %v", p, err)
 				}
 				merged = []byte(strings.Join(m, ""))
+				if err := editedKeysOnce(lines[0], lines[1], m); err != nil {
+					return nil, held("%s: %v", p, err)
+				}
 			case "append":
 				tail := []byte(l.Data[p+".tail"])
 				if p == platCil {
@@ -729,7 +799,7 @@ func planDelta(l *Layer, newRows map[string][]string, newTree string) (*plan, er
 			return nil, fmt.Errorf("%s: unknown carry %q", p, lp.Carry)
 		}
 	}
-	if lp := l.Paths[policyHash]; lp != nil {
+	if lp := l.Paths[policyHash]; lp != nil && lp.Carry == "policy_hash" {
 		if err := sizeOnly(policyHash, lp); err != nil {
 			return nil, err
 		}
@@ -746,7 +816,86 @@ func planDelta(l *Layer, newRows map[string][]string, newTree string) (*plan, er
 		pl.merged[policyHash] = []byte(fmt.Sprintf("%x\n", sha256.Sum256(append(append([]byte(nil), plat...), mapping...))))
 		pl.expected[policyHash] = withSize(newRows[policyHash], len(pl.merged[policyHash]))
 	}
-	return pl, nil
+	return pl, structure(l, pl)
+}
+
+func isDirRow(rows []string) bool {
+	for _, r := range rows {
+		if f := strings.Split(r, " "); f[0] == "I" {
+			mode, _ := strconv.ParseUint(f[2], 10, 32)
+			return mode&sIFMT == sIFDIR
+		}
+	}
+	return false
+}
+
+// structure: every path OpenBook places has real directories above it in the adapted tree, and nothing is
+// left inside a directory OpenBook removes (Google may have added a file there, or turned a directory into
+// a symlink): such a release is held, never written through.
+func structure(l *Layer, pl *plan) error {
+	for p, lp := range l.Paths {
+		if lp.Carry == "removed" {
+			for q := range pl.expected {
+				if strings.HasPrefix(q, p+"/") {
+					return held("%s: OpenBook removes it, but Google's new build has %s inside it", p, q)
+				}
+			}
+			continue
+		}
+		for a := filepath.Dir(p); a != "/" && a != "." && a != ""; a = filepath.Dir(a) {
+			if !isDirRow(pl.expected[a]) {
+				return held("%s: its parent %s is not a directory in Google's new build", p, a)
+			}
+		}
+	}
+	return nil
+}
+
+// realDirs refuses a path whose parents in root are not all real directories (a symlink, or missing).
+func realDirs(root, p string) error {
+	cur := root
+	for _, part := range strings.Split(strings.Trim(filepath.Dir(p), "/"), "/") {
+		if part == "" {
+			continue
+		}
+		cur = filepath.Join(cur, part)
+		st, err := os.Lstat(cur)
+		if err != nil {
+			return err
+		}
+		if !st.IsDir() {
+			return fmt.Errorf("%s: %s is not a real directory", p, cur)
+		}
+	}
+	return nil
+}
+
+// editedKeysOnce: each property OpenBook sets or changes is defined exactly once in the merged build.prop
+// (Android keeps a ro.* property's first definition, so a second one from Google would silently win).
+func editedKeysOnce(old, ours, merged []string) error {
+	key := func(line string) string {
+		k, _, ok := strings.Cut(strings.TrimSpace(line), "=")
+		if !ok || strings.HasPrefix(k, "#") {
+			return ""
+		}
+		return k
+	}
+	inOld := map[string]bool{}
+	for _, l := range old {
+		inOld[l] = true
+	}
+	count := map[string]int{}
+	for _, l := range merged {
+		if k := key(l); k != "" {
+			count[k]++
+		}
+	}
+	for _, l := range ours {
+		if k := key(l); k != "" && !inOld[l] && count[k] != 1 {
+			return fmt.Errorf("OpenBook sets %s, but the merged file defines it %d times", k, count[k])
+		}
+	}
+	return nil
 }
 
 // checkSigners: the merged signer list parses, and its one "openbook" signer is the OpenBook certificate.
@@ -756,8 +905,9 @@ func checkSigners(x []byte, certHex string) error {
 	}
 	var doc struct {
 		Signers []struct {
+			XMLName   xml.Name
 			Signature string `xml:"signature,attr"`
-			Seinfo    *struct {
+			Seinfo    []struct {
 				Value string `xml:"value,attr"`
 			} `xml:"seinfo"`
 		} `xml:"signer"`
@@ -783,7 +933,10 @@ func checkSigners(x []byte, certHex string) error {
 	}
 	var ours []string
 	for _, s := range doc.Signers {
-		if s.Seinfo != nil && s.Seinfo.Value == "openbook" {
+		if s.XMLName.Space != "" {
+			return errors.New("a namespaced signer in the signer list")
+		}
+		if len(s.Seinfo) > 0 && s.Seinfo[0].Value == "openbook" { // the first seinfo, as Python's find() reads it
 			ours = append(ours, s.Signature)
 		}
 	}
@@ -799,6 +952,9 @@ func applyDelta(l *Layer, pl *plan, source, oursRoot string, nextLayer []byte) e
 	removed := append([]string(nil), pl.removed...)
 	sort.Slice(removed, func(i, j int) bool { return strings.Count(removed[i], "/") > strings.Count(removed[j], "/") })
 	for _, p := range removed {
+		if err := realDirs(source, p); err != nil {
+			return err
+		}
 		if err := os.Remove(filepath.Join(source, p)); err != nil {
 			return err
 		}
@@ -818,6 +974,12 @@ func applyDelta(l *Layer, pl *plan, source, oursRoot string, nextLayer []byte) e
 		}
 		if !sameEntry(have, lp.OursEntry) {
 			return fmt.Errorf("%s: the running release's copy differs from its layer", p)
+		}
+		if err := realDirs(source, p); err != nil {
+			return err
+		}
+		if err := realDirs(oursRoot, p); err != nil {
+			return err
 		}
 		dst := filepath.Join(source, p)
 		switch lp.OursEntry[0] {
@@ -849,6 +1011,12 @@ func applyDelta(l *Layer, pl *plan, source, oursRoot string, nextLayer []byte) e
 		}
 	}
 	for p, data := range pl.merged {
+		if err := realDirs(source, p); err != nil {
+			return err
+		}
+		if st, err := os.Lstat(filepath.Join(source, p)); err != nil || !st.Mode().IsRegular() {
+			return fmt.Errorf("%s: not a regular file in Google's new build", p)
+		}
 		if err := os.WriteFile(filepath.Join(source, p), data, 0o644); err != nil {
 			return err
 		}
@@ -869,8 +1037,8 @@ func applyDelta(l *Layer, pl *plan, source, oursRoot string, nextLayer []byte) e
 }
 
 // layerFileRows adds the rows of the layer files an adaptation writes: the layer directory and its
-// layer.json, and /system/etc/openbook unless the release already carries it (a new directory there also
-// adds a link to /system/etc, as EROFS counts a directory's subdirectories in its link count).
+// layer.json, and /system/etc/openbook unless the release already carries it. Each new directory adds a
+// link to its parent, as EROFS counts a directory's subdirectories in its link count.
 func layerFileRows(expected map[string][]string, size int) (map[string][]string, error) {
 	label := hex.EncodeToString([]byte(addedContext))
 	sel := hex.EncodeToString([]byte("security.selinux"))
@@ -887,12 +1055,11 @@ func layerFileRows(expected map[string][]string, size int) (map[string][]string,
 		layerDir:                 row(layerDir, sIFDIR|0o755, 2, 0),
 		layerDir + "/layer.json": row(layerDir+"/layer.json", 0o100644, 1, size),
 	}
-	if expected[parent] == nil {
-		add[parent] = row(parent, sIFDIR|0o755, 3, 0)
-		grand := filepath.Dir(parent)
-		rows := expected[grand]
+	// A new directory adds a link to its parent.
+	bump := func(p string) error {
+		rows := expected[p]
 		if rows == nil {
-			return nil, fmt.Errorf("%s is missing", grand)
+			return fmt.Errorf("%s is missing", p)
 		}
 		bumped := make([]string, len(rows))
 		for i, r := range rows {
@@ -900,16 +1067,22 @@ func layerFileRows(expected map[string][]string, size int) (map[string][]string,
 			if f[0] == "I" {
 				n, err := strconv.Atoi(f[5])
 				if err != nil {
-					return nil, err
+					return err
 				}
 				f[5] = strconv.Itoa(n + 1)
 			}
 			bumped[i] = strings.Join(f, " ")
 		}
-		add[grand] = bumped
-	} else {
-		// The release carries the directory: it gains the layer subdirectory unless it already counts it.
-		return nil, errors.New("a release that carries /system/etc/openbook must list the layer directory in its link count; not supported yet")
+		add[p] = bumped
+		return nil
+	}
+	if expected[parent] == nil {
+		add[parent] = row(parent, sIFDIR|0o755, 3, 0)
+		if err := bump(filepath.Dir(parent)); err != nil {
+			return nil, err
+		}
+	} else if err := bump(parent); err != nil { // the release carries /system/etc/openbook: it gains the layer directory
+		return nil, err
 	}
 	return add, nil
 }
@@ -918,10 +1091,18 @@ func layerFileRows(expected map[string][]string, size int) (map[string][]string,
 func nextLayer(l *Layer, newRows map[string][]string, pl *plan, rec ReconstructResult, newDir, newTree string, policy map[string]string) (*Layer, error) {
 	n := &Layer{Schema: layerSchema, Paths: map[string]*LayerPath{}, Data: map[string]string{},
 		MappingCil: l.MappingCil, OpenBookCert: l.OpenBookCert, VendorPolicy: l.VendorPolicy}
-	n.Google.Build = buildProperties(pl.merged[buildProp])["ro.build.version.incremental"]
-	if n.Google.Build == "" {
-		n.Google.Build = "unknown"
+	// Google's build number from the fingerprint its vbmeta signs (".../<build>:user/release-keys").
+	n.Google.Build = "unknown"
+	if f := strings.Split(rec.Fingerprint, "/"); len(f) >= 5 {
+		if b, _, ok := strings.Cut(f[4], ":"); ok && b != "" {
+			n.Google.Build = b
+		}
 	}
+	date, err := buildDateUTC(newTree)
+	if err != nil {
+		return nil, err
+	}
+	n.Google.BuildDateUTC = date
 	n.Google.Fingerprint = rec.Fingerprint
 	n.Google.SystemSHA256 = rec.Partitions["system"]
 	n.Google.AVBKeySHA256 = rec.GoogleKey

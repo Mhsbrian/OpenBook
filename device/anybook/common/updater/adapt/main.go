@@ -24,6 +24,7 @@
 package main
 
 import (
+	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -74,14 +75,29 @@ func main() {
 		}
 	case "reconstruct":
 		release := fl.String("release", "", "recovery zip or disk image")
+		stock := fl.String("stock", "", "instead: Google's partitions staged on the host (stage-stock-source.py)")
 		out := fl.String("out", "", "new directory for the partitions")
 		key := fl.String("google-key", "", "expected SHA-256 of Google's AVB public key")
+		layerIn := fl.String("layer", "", "take Google's expected key from this layer")
 		fl.Parse(args)
-		if *release == "" || *out == "" {
+		if (*release == "") == (*stock == "") || *out == "" {
 			usage()
 		}
+		if *layerIn != "" {
+			l, lerr := readLayer(*layerIn)
+			if lerr != nil {
+				err = lerr
+				break
+			}
+			*key = l.Google.AVBKeySHA256
+		}
 		var res *ReconstructResult
-		if res, err = reconstruct(*release, *out, []string{"system", "system_ext", "product"}, nil, *key); err == nil {
+		if *stock != "" {
+			res, err = reconstructFromStock(*stock, *out, []string{"system", "system_ext", "product"}, *key)
+		} else {
+			res, err = reconstruct(*release, *out, []string{"system", "system_ext", "product"}, nil, *key)
+		}
+		if err == nil {
 			err = writeJSON(filepath.Join(*out, "reconstruct.json"), res)
 		}
 	case "hashtree-footer":
@@ -164,6 +180,8 @@ func cmdVerifyVBMeta(image, dir string) error {
 	if err := v.Verify(); err != nil {
 		return err
 	}
+	ks := sha256.Sum256(v.PublicKey)
+	fmt.Println("signed by key", hex.EncodeToString(ks[:]))
 	for _, d := range v.Descriptors {
 		if dir == "" {
 			break

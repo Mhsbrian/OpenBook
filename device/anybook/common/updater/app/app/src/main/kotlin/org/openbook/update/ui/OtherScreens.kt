@@ -213,6 +213,10 @@ fun HistoryScreen(entries: List<HistoryEntry>, onBack: () -> Unit) {
                         HistoryEntry.Type.WENT_BACK -> R.drawable.ic_restart to stringResource(R.string.history_went_back, e.build)
                         HistoryEntry.Type.SYSTEM_CHANGED -> R.drawable.ic_system_update to stringResource(R.string.history_changed, e.build)
                         HistoryEntry.Type.RESTART_REQUESTED -> R.drawable.ic_restart to stringResource(R.string.history_restart_requested)
+                        HistoryEntry.Type.BUILT_FOR_LAPTOP -> R.drawable.ic_laptop to stringResource(R.string.history_built, e.build)
+                        HistoryEntry.Type.ADAPTATION_HELD -> R.drawable.ic_schedule to stringResource(R.string.history_adapt_held, e.build)
+                        HistoryEntry.Type.INSTALLED_PENDING_RESTART -> R.drawable.ic_restart to stringResource(R.string.history_installed_pending, e.build)
+                        HistoryEntry.Type.INSTALL_FAILED -> R.drawable.ic_error to stringResource(R.string.history_install_failed, e.build)
                     }
                     ListItem(
                         leadingContent = { Icon(painterResource(icon), contentDescription = null, tint = MaterialTheme.colorScheme.primary) },

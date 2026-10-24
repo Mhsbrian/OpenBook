@@ -15,6 +15,7 @@ import (
 	"crypto"
 	"crypto/rsa"
 	"crypto/sha256"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
@@ -25,12 +26,12 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 const (
-	payloadMinorVersion = 8          // the host's deltas (kZucchiniMinorPayloadVersion); SOURCE_COPY needs >= 2
-	payloadMaxTimestamp = 4102444800 // 2100-01-01, as the host builds (anti-downgrade)
-	chunkBlocks         = 512        // 2 MiB per REPLACE operation, as delta_generator's default chunk
+	payloadMinorVersion = 8   // the host's deltas (kZucchiniMinorPayloadVersion); SOURCE_COPY needs >= 2
+	chunkBlocks         = 512 // 2 MiB per REPLACE operation, as delta_generator's default chunk
 	groupName           = "google_dynamic_partitions"
 	groupSize           = 12880707584
 	rsaSignatureBytes   = 512 // RSA-4096
@@ -90,7 +91,12 @@ type PayloadResult struct {
 }
 
 // writePayload writes an unsigned payload (signature space reserved) and returns the two hashes to sign.
-func writePayload(path string, parts []PayloadPart) (*PayloadResult, error) {
+// maxTimestamp and spl are the new build's ro.build.date.utc and security patch: update_engine refuses a
+// payload older than the running build (its anti-downgrade checks).
+func writePayload(path string, parts []PayloadPart, maxTimestamp int64, spl string) (*PayloadResult, error) {
+	if maxTimestamp <= 0 {
+		return nil, errors.New("the payload needs the new build's timestamp")
+	}
 	sigBlob := signatureBlob(make([]byte, rsaSignatureBytes))
 	type op struct {
 		zero     bool
@@ -136,6 +142,9 @@ func writePayload(path string, parts []PayloadPart) (*PayloadResult, error) {
 			if p.Size%4096 != 0 {
 				return nil, fmt.Errorf("%s: size is not a multiple of 4096", p.Name)
 			}
+		}
+		if p.Size%4096 != 0 {
+			return nil, fmt.Errorf("%s: size is not a multiple of 4096", p.Name)
 		}
 		ops = append(ops, list)
 		if contains(dynamicPartitions, p.Name) {
@@ -187,7 +196,7 @@ func writePayload(path string, parts []PayloadPart) (*PayloadResult, error) {
 	man.u(4, dataLen)              // signatures_offset: after all data
 	man.u(5, uint64(len(sigBlob))) // signatures_size
 	man.u(12, payloadMinorVersion)
-	man.u(14, payloadMaxTimestamp)
+	man.u(14, uint64(maxTimestamp))
 	dyn := &pb{}
 	g := &pb{}
 	g.s(1, groupName)
@@ -201,6 +210,9 @@ func writePayload(path string, parts []PayloadPart) (*PayloadResult, error) {
 	dyn.s(4, "lz4")
 	dyn.u(5, 2) // COW version 2, as the host's payloads
 	man.msg(15, dyn)
+	if spl != "" {
+		man.s(18, spl)
+	}
 	manifest := man.Bytes()
 
 	out, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
@@ -374,7 +386,11 @@ func cmdPayload(fl *flag.FlagSet, args []string) error {
 		return err
 	}
 	bin := filepath.Join(*out, "payload.bin")
-	res, err := writePayload(bin, parts)
+	ts, err := strconv.ParseInt(ar.BuildProps["ro.build.date.utc"], 10, 64)
+	if err != nil {
+		return errors.New("the adaptation does not record the new build's date")
+	}
+	res, err := writePayload(bin, parts, ts, ar.BuildProps["ro.build.version.security_patch"])
 	if err != nil {
 		return err
 	}
@@ -399,11 +415,41 @@ func cmdPayload(fl *flag.FlagSet, args []string) error {
 	return writeJSON(filepath.Join(*out, "payload.json"), res)
 }
 
+// checkSignatures verifies both signatures with a certificate's RSA key, as update_engine will.
+func checkSignatures(certPath string, res *PayloadResult, metaSig, payloadSig []byte) error {
+	der, err := pemDER(certPath)
+	if err != nil {
+		return err
+	}
+	cert, err := x509.ParseCertificate(der)
+	if err != nil {
+		return err
+	}
+	pub, ok := cert.PublicKey.(*rsa.PublicKey)
+	if !ok {
+		return errors.New("the certificate's key is not RSA")
+	}
+	for _, c := range []struct {
+		hash string
+		sig  []byte
+	}{{res.MetadataHash, metaSig}, {res.PayloadHash, payloadSig}} {
+		h, err := hex.DecodeString(c.hash)
+		if err != nil {
+			return err
+		}
+		if err := rsa.VerifyPKCS1v15(pub, crypto.SHA256, h, c.sig); err != nil {
+			return fmt.Errorf("a payload signature does not verify with %s: %v", filepath.Base(certPath), err)
+		}
+	}
+	return nil
+}
+
 // cmdPayloadSign inserts signatures made elsewhere (Android Keystore) into a payload.
 func cmdPayloadSign(fl *flag.FlagSet, args []string) error {
 	dir := fl.String("dir", "", "payload directory (payload.bin, payload.json)")
 	metaSig := fl.String("metadata-signature", "", "file with the metadata hash's signature")
 	paySig := fl.String("payload-signature", "", "file with the payload hash's signature")
+	certPath := fl.String("cert", "", "check both signatures against this certificate (PEM) first")
 	fl.Parse(args)
 	var res PayloadResult
 	b, err := os.ReadFile(filepath.Join(*dir, "payload.json"))
@@ -423,6 +469,11 @@ func cmdPayloadSign(fl *flag.FlagSet, args []string) error {
 	ps, err := os.ReadFile(*paySig)
 	if err != nil {
 		return err
+	}
+	if *certPath != "" {
+		if err := checkSignatures(*certPath, &res, ms, ps); err != nil {
+			return err
+		}
 	}
 	if res.Properties, err = insertSignatures(filepath.Join(*dir, "payload.bin"), &res, ms, ps); err != nil {
 		return err
