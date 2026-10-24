@@ -1,0 +1,80 @@
+{
+  "schema": "openbook-adapt-host-proofs/1",
+  "same_build": {
+    "case": "RB-20261023-03 rebuilt from Google 16658739 and its layer",
+    "layer": {
+      "google_build": "16658739",
+      "paths": 459,
+      "carry": {
+        "changed": 51,
+        "added": 33,
+        "merge3": 1,
+        "insert": 1,
+        "append": 2,
+        "policy_hash": 1,
+        "removed": 370
+      },
+      "policy_mapping": "202604.cil",
+      "layer_json_sha256": "e9954c216ca4b274203368f4c446dd24a30aea8dfe728e6d393fe30669fbb64b",
+      "note": "the layer itself stays private (it holds Google's file rows and build.prop)"
+    },
+    "output": {
+      "system": "2e7b342585b70b4829831ec32b6ec39681a58c8cc5735c414b6139724dbdb532",
+      "system_ext": "dc3f228d2479ae3d979564bd7a02956399300187a67ac19519223911b7108b34",
+      "product": "ddf9d7105c4424c727ed53176d89b5a9895d3f59e2699ab5854bb3d1641211c1",
+      "vbmeta": "d19d423c0d8bc9036ef51cf4501e1b95128c475272eee17e37696772af74f8cc"
+    },
+    "installed": {
+      "system": "2e7b342585b70b4829831ec32b6ec39681a58c8cc5735c414b6139724dbdb532",
+      "system_ext": "dc3f228d2479ae3d979564bd7a02956399300187a67ac19519223911b7108b34",
+      "product": "ddf9d7105c4424c727ed53176d89b5a9895d3f59e2699ab5854bb3d1641211c1",
+      "vbmeta": "d19d423c0d8bc9036ef51cf4501e1b95128c475272eee17e37696772af74f8cc"
+    },
+    "identical": true
+  },
+  "cross_build": {
+    "case": "candidate R (made on Google 16452207) adapted to Google 16658739; the host rebase gave RB-20261023-02",
+    "layer": {
+      "google_build": "16452207",
+      "paths": 451,
+      "carry": {
+        "changed": 50,
+        "added": 28,
+        "merge3": 1,
+        "append": 1,
+        "policy_hash": 1,
+        "removed": 370
+      },
+      "policy_mapping": "202604.cil",
+      "layer_json_sha256": "dc7b0effb7317a0908f981ba7dc536ac73ef1aeaab2408233a393d42e7f101f5",
+      "note": "the layer itself stays private (it holds Google's file rows and build.prop)"
+    },
+    "output": {
+      "system": "6d5ac1018fb4616b5c4b8797d06bf47f1613b9ad5e61b7f8be585f06e6c49691",
+      "system_ext": "dc3f228d2479ae3d979564bd7a02956399300187a67ac19519223911b7108b34",
+      "product": "ddf9d7105c4424c727ed53176d89b5a9895d3f59e2699ab5854bb3d1641211c1",
+      "vbmeta": "186da885a39137c4f6234f999fed554120225e53f7d3fe4b148d6634a693d9bf"
+    },
+    "rb_20261023_02": {
+      "system": "f18aefbec3272c1711cf2d28165182ce277a8b5ce1199eca6c4cb60b489cb4db",
+      "system_ext": "dc3f228d2479ae3d979564bd7a02956399300187a67ac19519223911b7108b34",
+      "product": "ddf9d7105c4424c727ed53176d89b5a9895d3f59e2699ab5854bb3d1641211c1",
+      "vbmeta": "cb346fc2a2c8c6de670251a169b89cc2268a8aa29b25e761c557ab5a5384f260"
+    },
+    "comparison": {
+      "inventory_rows_identical": 6608,
+      "extracted_contents_identical": true,
+      "filesystem_bytes_differing": 20,
+      "where": "EROFS superblock UUID (16 bytes at 1072) and its checksum (4 bytes at 1028)",
+      "why": "the host's RB-20261023-02 rebase ran mkfs.erofs without -U (random UUID); the adapter uses the content-derived UUID later host builds use"
+    }
+  },
+  "embedded_layer": {
+    "case": "same build with the next round's layer written into system (production mode)",
+    "output": {
+      "system": "329138c56be7164271b46d4ab0a884505b913f5e1e998c7cea6c4da84adf38aa",
+      "vbmeta": "8d2ff0b2e1993543388e956af57ec6f7b1d84c1c5afd241857bc2af05b63afe2"
+    },
+    "next_layer_equals_input_layer": true
+  }
+}

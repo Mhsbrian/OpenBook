@@ -1,0 +1,26 @@
+2026-10-24T02:02:56Z laptop: Lenovo/ruby/ruby:17/CL3B.260622.276.R4/16658739:user/release-keys slot _a
+2026-10-24T02:02:56Z laptop /data free: 886 GiB (needs about 30 GiB plus the engine's 20 GiB reserve)
+2026-10-24T02:02:57Z engine check
+2026-10-24T02:02:56Z update available (monthly): ruby runs 16658739 (CL3B.260622.276.R4); Google lists 16658740_CL3B.260622.276.R4 (2026-10-22, STABLE)
+2026-10-24T02:02:57Z engine download (Google's real release, full size)
+2026-10-24T02:02:56Z update available (monthly): ruby runs 16658739 (CL3B.260622.276.R4); Google lists 16658740_CL3B.260622.276.R4 (2026-10-22, STABLE)
+2026-10-24T02:02:56Z downloading 16658740_CL3B.260622.276.R4 (7816433350 bytes, resuming at 0)
+2026-10-24T02:11:29Z downloaded and verified 16658740_CL3B.260622.276.R4: /data/local/tmp/openbook-adapt-test/updater/16658740/recovery.zip
+2026-10-24T02:11:30Z download finished in 513 s
+-rw-rw-rw- 1 shell shell 7816433350 2026-10-23 22:11 /data/local/tmp/openbook-adapt-test/updater/16658740/recovery.zip
+2026-10-24T02:11:30Z reconstruct
+2026-10-24T02:12:11Z reconstruct finished in 41 s
+2026-10-24T02:12:12Z adapt rb03 (embed layer: 0)
+2026-10-24T02:12:40Z adapt rb03: exit 0 in 28 s
+2026-10-24T02:12:43Z   system 2e7b342585b70b4829831ec32b6ec39681a58c8cc5735c414b6139724dbdb532 IDENTICAL to the expected
+2026-10-24T02:12:43Z   vbmeta d19d423c0d8bc9036ef51cf4501e1b95128c475272eee17e37696772af74f8cc IDENTICAL to the expected
+2026-10-24T02:12:43Z adapt r (embed layer: 0)
+2026-10-24T02:13:11Z adapt r: exit 0 in 28 s
+2026-10-24T02:13:13Z   system 6d5ac1018fb4616b5c4b8797d06bf47f1613b9ad5e61b7f8be585f06e6c49691 IDENTICAL to the expected
+2026-10-24T02:13:13Z   vbmeta 186da885a39137c4f6234f999fed554120225e53f7d3fe4b148d6634a693d9bf IDENTICAL to the expected
+2026-10-24T02:13:13Z adapt rb03embed (embed layer: 1)
+2026-10-24T02:13:41Z adapt rb03embed: exit 0 in 28 s
+2026-10-24T02:13:44Z   system 329138c56be7164271b46d4ab0a884505b913f5e1e998c7cea6c4da84adf38aa IDENTICAL to the expected
+2026-10-24T02:13:44Z   vbmeta 8d2ff0b2e1993543388e956af57ec6f7b1d84c1c5afd241857bc2af05b63afe2 IDENTICAL to the expected
+2026-10-24T02:13:44Z result: PASS (3 cases)
+2026-10-24T02:13:44Z removed /data/local/tmp/openbook-adapt-test on the laptop

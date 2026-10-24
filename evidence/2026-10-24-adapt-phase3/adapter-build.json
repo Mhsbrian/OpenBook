@@ -1,0 +1,11 @@
+{
+  "schema": "openbook-adapt-build/1",
+  "sha256": "5dcb32cbdc49b00629f727398502410dad41d49523137205594b3e2f913a8259",
+  "go": "go1.27.2",
+  "go_archive_sha256": "ecbadb99091a3f46e31f5f934b068b1864eafa7995211b39eaddf76996045fe5",
+  "source_sha256": "2b9af7815a5e7a1b2cfb622f2e18420946908392b281ce56c64842c49cd9ce6d",
+  "commit": "a05f832599afc55b3fb1441a9c186342a17fea3f",
+  "worktree_clean": false,
+  "static": true,
+  "reproducible_check": true
+}

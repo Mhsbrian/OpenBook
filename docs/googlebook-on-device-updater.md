@@ -37,9 +37,9 @@ running from slot B, user build, SDK 37, x86_64):
 |---|---|---|
 | 1. Notice | `openbook-updater check`: Google's listing → newest STABLE build for `ro.product.device` → compare with `ro.build.version.incremental` | **built** (phase 1) |
 | 2. Download | `openbook-updater download`: HTTPS only (redirects too), resume, free-space check with a reserve, Google's MD5, prune older downloads | **built** (phase 1) |
-| 3. Reconstruct | `unzip` the recovery image; GPT + LP metadata (`lpdump`) → `dd` each partition; check against the release | to build (phase 3) |
-| 4. Adapt | apply the **OpenBook layer** to Google's new `system`: OpenBook's exact delta against the Google build it was made for, shipped on the laptop as data. Then `fsck.erofs --extract`, apply, `build.prop` three-way merge, `mkfs.erofs` with the expected fs_config/file_contexts, inventory check, hash tree and footer, vbmeta | to build (phase 3): an Android build of `erofs-inventory`; a native hash tree, footer and vbmeta signer (AVB test key, as today) |
-| 5. Payload | an update_engine payload from the installed slot to the adapted release | to build (phase 4): `delta_generator` for Android x86_64, or a minimal full-payload writer |
+| 3. Reconstruct | `openbook-adapt reconstruct`: the recovery zip read once, straight from the zip; GPT and liblp metadata parsed; `system`, `system_ext`, `product` and `vbmeta` kept; Google's vbmeta signature checked against the pinned key and each dm-verity root recomputed | **built** (phase 3; laptop 41 s) |
+| 4. Adapt | `openbook-adapt adapt`: the **OpenBook layer** (OpenBook's exact delta against the Google build a release was made from) re-applied to Google's new `system` with the host rebase's carry rules, fail-closed; `mkfs.erofs` with the host's flags; inventory and content checks; hash tree, footer and vbmeta (AVB test key, as today) | **built** (phase 3; laptop 28 s; byte-identical to the host) |
+| 5. Payload | `openbook-adapt payload`: written partitions as 2 MiB REPLACE operations, the rest as identity copies (free under Virtual A/B, verified by update_engine), every dynamic partition listed, signature space reserved for a Keystore signature | written (phase 4); signature and application checked with delta_generator and `ota_extractor`; VM test in progress |
 | 6. Sign | **per-laptop OTA key**, generated on the laptop, never exported. Its certificate is enrolled in that laptop's `otacerts.zip` by the adapt stage, so every system it builds trusts it. The first enrollment arrives as one ordinary OpenBook update | to build (phase 4): native RSA signer or Android Keystore. The master OpenBook key stays on the build host |
 | 7. Install | `update_engine` applies the local payload into the other slot. Bootsync activates it, systemd-boot falls back after three failed boots, and update_engine merges once the slot is marked good | proven from the host (2026-10-23); the on-laptop caller is phase 2/4 |
 
@@ -171,10 +171,15 @@ Look: Material You (dynamic colour from the wallpaper), the Googlebook system ty
    - Toolchain, app, its SELinux domain and privileged permissions, in the OpenBook layer.
    - Tested on Google's Android Desktop emulator and in the Ruby VM (see the evidence README).
    - Delivered as one two-slot update after the owner approves.
-3. **Reconstruct and adapt on the laptop.**
-   - Android builds of the inventory checker and an AVB signer; the OpenBook layer as on-laptop data.
-   - Proven by adapting 16658739 on the laptop and comparing the result with the host's rebase
-     (`75fa0196…`): content, inventory and vbmeta descriptors.
+3. **Reconstruct and adapt on the laptop** — built 2026-10-24 (`device/anybook/common/updater/adapt/`;
+   evidence `evidence/2026-10-24-adapt-phase3/`).
+   - `openbook-adapt`: one static Go binary (standard library only, reproducible with the pinned official
+     Go toolchain). It holds the EROFS inventory, AVB (hash tree, footer, vbmeta, signing), GPT/liblp
+     parsing, the layer and the carry rules, each checked against the host tool it replaces.
+   - On the G14, from Google's real 7.8 GB download (fetched by the engine): RB-20261023-03's `system`
+     and `vbmeta` rebuilt byte for byte from Google 16658739 and its layer. A layer made on 16452207,
+     adapted to 16658739, gives the host's result byte for byte.
+   - Still to do: ship the binary and the layer in a release, and the app's adaptation step.
 4. **Payload, per-laptop key, install.** On-laptop payload and signing; key enrollment through one host
    update; the first fully on-laptop update.
 5. **End to end on Google's next release.** The laptop notices, downloads, adapts, verifies and installs

@@ -1,5 +1,24 @@
 # Status
 
+## 2026-10-24: phase 3, the laptop adapts Google's release itself (ANAL-229)
+
+`openbook-adapt` (`device/anybook/common/updater/adapt/`) reconstructs Google's partitions from the
+recovery zip the updater downloads. It re-applies the OpenBook layer to Google's new `system` with the
+host rebase's fail-closed carry rules, then rebuilds and signs. It is one static Go binary.
+
+On the G14, from Google's real 7.8 GB download (513 s, MD5-verified by the engine):
+- reconstruct took 41 s;
+- each adaptation took 28 s;
+- RB-20261023-03's `system` and `vbmeta` were rebuilt byte for byte;
+- a layer made on Google 16452207, adapted to 16658739, gave the host's result byte for byte.
+
+Its EROFS, AVB and app-domain ports equal the host tools on real images. The phase-4 payload writer
+passes delta_generator's signature check and `ota_extractor`'s application. Its update_engine VM test is
+in progress. Evidence: `evidence/2026-10-24-adapt-phase3/`.
+
+Next: ship the adapter and layer in a release, the app's adaptation step, then phase 4's Keystore
+signing and install.
+
 ## 2026-10-22: G14 on RB-20261022-01; the owner OTA path built (ANAL-229)
 
 The SanDisk got RB-20261022-01 (verified readback `8834cd89…`). B Honey checked its live entry and ran

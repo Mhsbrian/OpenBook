@@ -1,0 +1,45 @@
+{
+  "schema": "openbook-adapt/1",
+  "complete": true,
+  "old_google_build": "16658739",
+  "new_google_fingerprint": "Android/desktop_system/desktop:17/CL3B.260622.276.R4/16658739:user/release-keys",
+  "build_properties": {
+    "ro.build.id": "CL3B.260622.276.R4",
+    "ro.build.version.incremental": "16658739",
+    "ro.build.version.security_patch": "2026-10-01",
+    "ro.dalvik.vm.native.bridge": "libberberis_arm64.so",
+    "ro.system.build.fingerprint": "Android/desktop_system/desktop:17/CL3B.260622.276.R4/16658739:user/release-keys"
+  },
+  "system_delta": {
+    "added": 33,
+    "changed": 56,
+    "removed": 370
+  },
+  "merged": [
+    "/system/build.prop",
+    "/system/etc/selinux/plat_mac_permissions.xml",
+    "/system/etc/selinux/plat_seapp_contexts",
+    "/system/etc/selinux/plat_sepolicy.cil",
+    "/system/etc/selinux/plat_sepolicy_and_mapping.sha256"
+  ],
+  "policy_compiled": false,
+  "partitions_sha256": {
+    "product": "ddf9d7105c4424c727ed53176d89b5a9895d3f59e2699ab5854bb3d1641211c1",
+    "system": "329138c56be7164271b46d4ab0a884505b913f5e1e998c7cea6c4da84adf38aa",
+    "system_ext": "dc3f228d2479ae3d979564bd7a02956399300187a67ac19519223911b7108b34",
+    "vbmeta": "8d2ff0b2e1993543388e956af57ec6f7b1d84c1c5afd241857bc2af05b63afe2"
+  },
+  "unchanged_partitions_sha256": {
+    "boot": "f6fc1a5892cba10d24ba3c250f5abe4115ba0f7c0556a653995b41373bfbcec8",
+    "init_boot": "0237a3399e093acabf63a0b036ac43b7e1b06a59dc7b665d852c0c6ec28e2dae",
+    "system_dlkm": "34185c35cb8bbccd5dfd0bb74eecb8a21e2445730411ef1583e1245628e0d617",
+    "vendor": "e072350a7df2f59aaa14cc2095a94bd4661de2dccbca1422e38abd80554332d4",
+    "vendor_boot": "b8dc14803c8a07b0ec675d9cc9d2baf7b16c8acfd1a90c63782fa7e0d95bda80",
+    "vendor_dlkm": "c22672e2333f1d97833688d2554dee6e06515c425ae1674aa3e2a6b4099c5fba"
+  },
+  "vbmeta_key_sha256": "7728e30f50bfa5cea165f473175a08803f6a8346642b5aa10913e9d9e6defef6",
+  "metadata_rows": 6624,
+  "new_layer_sha256": "e9954c216ca4b274203368f4c446dd24a30aea8dfe728e6d393fe30669fbb64b",
+  "installable": false,
+  "note": "Adapted on this machine; installing it is a later stage (payload, signature, owner approval)."
+}

@@ -1,5 +1,33 @@
 # Build and reproduce
 
+## openbook-adapt, the on-laptop adapter (ANAL-229, phase 3) — 2026-10-24
+
+`device/anybook/common/updater/adapt/` builds Google's new release for the G14 on the laptop. It is one
+static binary from Go's standard library only:
+
+```sh
+device/anybook/common/updater/adapt/build.sh OUT --reproducible-check   # vet, tests, two clean builds
+```
+
+`build.sh` fetches the official Go 1.27.2 archive into `~/anybook/toolchain` and checks its SHA-256. It
+builds with no network, no cgo and no VCS stamp, and writes `OUT/openbook-adapt` and `OUT/build.json`.
+The same binary runs on the host. With the AOSP host tools on `LD_LIBRARY_PATH`:
+
+```sh
+openbook-adapt reconstruct --release recovery.zip --out NEW             # Google's partitions, verified
+openbook-adapt layer --old-system G/system.img --old-stock G --old-build N --release-dir REL \
+    --app-cert openbook-update.x509.pem --fsck fsck.erofs --work W --out LAYER
+openbook-adapt adapt --layer LAYER --new NEW --ours-root TREE --key testkey_rsa4096.pem \
+    --mkfs mkfs.erofs --fsck fsck.erofs --work W2 --out ADAPTED [--embed-layer=false]
+openbook-adapt payload --adapted ADAPTED --layer LAYER --out PAYLOAD [--key RSA4096.pem]
+```
+
+- On the laptop: `adapt-device-test.sh` runs the engine's real download, then these steps in a
+  temporary directory over adb.
+- In QEMU: `payload-vm-test.sh` has update_engine install an `openbook-adapt` payload. It needs
+  `ADAPT=<host build>`.
+- Google's images, the recovery zip and the layer (Google's file rows) stay private.
+
 ## OpenBook Update, the on-laptop updater app (ANAL-229) — 2026-10-23
 
 The app lives in `device/anybook/common/updater/app/` (Kotlin, Jetpack Compose, Material 3). Everything it
