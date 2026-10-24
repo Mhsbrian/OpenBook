@@ -12,12 +12,21 @@ On the G14, from Google's real 7.8 GB download (513 s, MD5-verified by the engin
 - RB-20261023-03's `system` and `vbmeta` were rebuilt byte for byte;
 - a layer made on Google 16452207, adapted to 16658739, gave the host's result byte for byte.
 
-Its EROFS, AVB and app-domain ports equal the host tools on real images. The phase-4 payload writer
-passes delta_generator's signature check and `ota_extractor`'s application. Its update_engine VM test is
-in progress. Evidence: `evidence/2026-10-24-adapt-phase3/`.
+Its EROFS, AVB and app-domain ports equal the host tools on real images. Evidence:
+`evidence/2026-10-24-adapt-phase3/`.
 
-Next: ship the adapter and layer in a release, the app's adaptation step, then phase 4's Keystore
-signing and install.
+Phase 4 is built too (`evidence/2026-10-24-adapt-phase4/`):
+- **Payload.** In QEMU, Ruby's own update_engine installs an `openbook-adapt` payload: apply, boot and
+  merge, the slot byte-identical, fallback.
+- **App.** OpenBook Update 2.0 adapts a verified download in the background. It signs with this laptop's
+  Android Keystore key once that key is enrolled, and installs after the owner's review and confirmation.
+- **Review.** An independent review led to hardening:
+  - input proofs;
+  - holds instead of writes through symlinks;
+  - a downgrade guard;
+  - Google's signed descriptors required.
+- **Pins.** Adapter `090fe211…` and APK `cd2c896e…`, both clean and reproducible.
+- **Next.** Two releases: R1 (adapter, layer, app 2.0), then R2, which enrolls the laptop's key.
 
 ## 2026-10-22: G14 on RB-20261022-01; the owner OTA path built (ANAL-229)
 

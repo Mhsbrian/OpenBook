@@ -1,0 +1,88 @@
+{
+  "schema": "openbook-adapt-payload-host-checks/1",
+  "note": "Payloads written by openbook-adapt, checked with Google's own update_engine tools on the host (2026-10-24).",
+  "rb02_to_embedded_release": {
+    "installed": "RB-20261023-02 (layer from its images)",
+    "target": "RB-20261023-03 with its layer embedded (embed-adapter-layer.sh), a fixed point of adapt",
+    "payload_sha256": "4e60c81343344573bb6371570c71c315ec34d6a9e0547766b567d838dcfed200",
+    "payload_bytes": 1028856366,
+    "partitions": [
+      {
+        "name": "system",
+        "identity_copy": false,
+        "replaced_blocks": 251176,
+        "zero_blocks": 25600,
+        "estimate_cow_size": 1047579136
+      },
+      {
+        "name": "system_ext",
+        "identity_copy": true,
+        "replaced_blocks": 0,
+        "zero_blocks": 0,
+        "estimate_cow_size": 1048576
+      },
+      {
+        "name": "product",
+        "identity_copy": true,
+        "replaced_blocks": 0,
+        "zero_blocks": 0,
+        "estimate_cow_size": 1048576
+      },
+      {
+        "name": "vendor",
+        "identity_copy": true,
+        "replaced_blocks": 0,
+        "zero_blocks": 0,
+        "estimate_cow_size": 1048576
+      },
+      {
+        "name": "vendor_dlkm",
+        "identity_copy": true,
+        "replaced_blocks": 0,
+        "zero_blocks": 0,
+        "estimate_cow_size": 1048576
+      },
+      {
+        "name": "system_dlkm",
+        "identity_copy": true,
+        "replaced_blocks": 0,
+        "zero_blocks": 0,
+        "estimate_cow_size": 1048576
+      },
+      {
+        "name": "boot",
+        "identity_copy": true,
+        "replaced_blocks": 0,
+        "zero_blocks": 0,
+        "estimate_cow_size": null
+      },
+      {
+        "name": "init_boot",
+        "identity_copy": true,
+        "replaced_blocks": 0,
+        "zero_blocks": 0,
+        "estimate_cow_size": null
+      },
+      {
+        "name": "vendor_boot",
+        "identity_copy": true,
+        "replaced_blocks": 0,
+        "zero_blocks": 0,
+        "estimate_cow_size": null
+      },
+      {
+        "name": "vbmeta",
+        "identity_copy": false,
+        "replaced_blocks": 2,
+        "zero_blocks": 0,
+        "estimate_cow_size": null
+      }
+    ],
+    "delta_generator_signature": "verified (1 of 1 signatures, throwaway RSA-4096 test key)",
+    "ota_extractor": "applied onto RB-20261023-02: all 10 partitions byte-identical to the target release"
+  },
+  "vm": {
+    "payload_sha256": "fb511594620905e2a5597d3c1c103e2af482097a4d6162a30ddc7b618480da61",
+    "signed_with": "the OpenBook OTA key on the build host (the VM trusts it); delta_generator verified the signature before the VM run"
+  }
+}

@@ -22,6 +22,12 @@ openbook-adapt adapt --layer LAYER --new NEW --ours-root TREE --key testkey_rsa4
 openbook-adapt payload --adapted ADAPTED --layer LAYER --out PAYLOAD [--key RSA4096.pem]
 ```
 
+- Pin: `pin.sh OUT` writes `adapter-pins.json`. It accepts only a static build from a clean worktree whose
+  reproducible check passed.
+- Image: `build-update-app-candidate.py --adapter openbook-adapt` adds `/system/bin/openbook-adapt` and AOSP's
+  AVB test key at `/system/etc/openbook/avb/`. The key is hash-pinned; no other key is accepted.
+- Release: `scripts/googlebook/embed-adapter-layer.sh REL_DIR GOOGLE_STOCK BUILD OUT` gives a release its layer
+  with the same adapter. It writes the release images with the final `system` and `vbmeta`.
 - On the laptop: `adapt-device-test.sh` runs the engine's real download, then these steps in a
   temporary directory over adb.
 - In QEMU: `payload-vm-test.sh` has update_engine install an `openbook-adapt` payload. It needs
