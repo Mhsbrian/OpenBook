@@ -1,0 +1,27 @@
+{
+ "schema": "openbook-ruby-dgpu-boot-hook/1",
+ "source": "two G14 Ruby save-logs sessions copied from the SanDisk on 2026-10-19 (stick-backup 20261019T211136Z and 20261019T222531Z, private); same kernel 6.18.21-android17-5-gfbfdd65b0fd1 and the same openbook-pc-setup as the laptop today",
+ "kernel_log_sha256": {
+  "20261019T211136Z": "967cb4f8115a03f953ef2cd97120fd290c0535fc5a5f4078cf690434e0b181c9",
+  "20261019T222531Z": "883e45a0a61ad7f43b4b635f5d604b9e01d5984138475e743be38cda8de7f999"
+ },
+ "sessions": [
+  {
+   "snd_hda_intel_binds_64:00.1_s": 6.361,
+   "dgpu_pm_started_s": 6.943,
+   "dgpu_pm_exit": 0,
+   "dgpu_pm_runtime_s": 0.325
+  },
+  {
+   "snd_hda_intel_binds_64:00.1_s": 6.549,
+   "dgpu_pm_started_s": 7.075,
+   "dgpu_pm_exit": 0,
+   "dgpu_pm_runtime_s": 0.302
+  }
+ ],
+ "openbook_pc_setup_output_seen": false,
+ "openbook_pc_setup_denials": "4 per session, all: denied { write } path=/dev/kmsg_debug dev=tmpfs scontext=u:r:openbook_pc_setup:s0 tcontext=u:object_r:tmpfs:s0 tclass=chr_file permissive=0 (two openbook-pc-setup runs, stdout and stderr)",
+ "other_openbook_pc_setup_denials": 0,
+ "suspends_in_sessions": 0,
+ "reading": "CONFIRMED: the hook runs and exits 0 before anything reads its result; snd_hda_intel holds 64:00.1 when it runs and does not hold it now, so the unbind happened. Its own report never reached a log: init's stdio_to_kmsg opens /dev/kmsg_debug, which the user platform's second stage never relabels, so the vendor domain's writes are denied. HYPOTHESIS (strong, not yet measured): power/control=auto was written too and the dGPU reaches D3cold, as on the AOSP image (dgpu_off D3cold suspended, anal178c)."
+}

@@ -1,0 +1,62 @@
+{
+ "schema": "openbook-ruby-dgpu-readonly/1",
+ "captured_utc": "2026-10-22T01:46Z..01:55Z",
+ "method": "read-only adb shell (uid 2000, u:r:shell:s0) over Wireless debugging on a private adb server; one adb bugreport (raw file kept privately on the build host)",
+ "system": {
+  "fingerprint": "Lenovo/ruby/ruby:17/CL3B.260622.271.R1/16452207:user/release-keys",
+  "vendor_fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
+  "kernel": "6.18.21-android17-5-gfbfdd65b0fd1",
+  "ro.debuggable": "0",
+  "selinux": "Enforcing",
+  "verified_boot": "orange",
+  "release": "RB-20261021-01 (installed 2026-10-21 21:14 EDT; this boot is the one the lid test ran in)",
+  "uptime_s_at_01_46_07Z": 1911,
+  "power": "AC, 91-92 %"
+ },
+ "root_available": false,
+ "root_blockers": [
+  "user system build: ro.debuggable=0, so adb root is refused",
+  "shell is denied getattr/read on the generic sysfs label: PCI power_state, power/*, vendor, class (avc denials in the bugreport's kernel log)",
+  "shell cannot read /sys/power/suspend_stats/* or ACPI LNXPOWER resource_in_use",
+  "dmesg ring is 128 KiB (CONFIG_LOG_BUF_SHIFT=17): the bugreport's KERNEL LOG covers 1059-2177 s only, so neither boot nor the lid test is in it; logcat -b kernel is empty"
+ ],
+ "confirmed": {
+  "nvidia_functions_driver": {
+   "0000:64:00.0": null,
+   "0000:64:00.1": null
+  },
+  "snd_hda_intel_binds": [
+   "0000:65:00.1",
+   "0000:65:00.6"
+  ],
+  "root_port_0000:00:03.1_driver": "pcieport",
+  "firmware_nodes": {
+   "0000:00:03.1": "PNP0A08:00/device:13",
+   "0000:64:00.0": "device:13/LNXVIDEO:00",
+   "0000:64:00.1": "device:13/device:15"
+  },
+  "irq_38": "IR-PCI-MSI-0000:00:03.1 0-edge PCIe PME, pciehp, PCIe bwctrl (the dGPU's root port)",
+  "shell_readable_battery": [
+   "BAT1/current_now",
+   "BAT1/voltage_now",
+   "BAT1/status",
+   "BAT1/charge_now",
+   "ACAD/online"
+  ]
+ },
+ "vendor_identity": {
+  "precompiled_sepolicy": "3da8e5cd715d83dcfa65cf11cade77dce6544f157ec937062af0315e7d7540a4",
+  "vendor_sepolicy.cil": "321e4491be38226c102ecb554517887753f8f37770237abdb129197e84035673",
+  "init.openbook.rc": "9836f8d3d3218663730f348eccf86436a905f7b1ad9da6a2b70288b0a19fe73f",
+  "matches": "the camera25 Ruby vendor extract on the build host, byte for byte; its /vendor/bin/openbook-pc-setup (0e70d4a5...) is the PR #121 version of device/anybook/common/pc/bin/openbook-pc-setup.sh"
+ },
+ "bugreport": {
+  "zip_sha256": "e97360c7623c046d68f4aa67e826878f184c95c849c62abdbdf24455c289e339",
+  "kept": "privately on the build host; not committed"
+ },
+ "not_determined": [
+  "the dGPU's power_state and runtime_status",
+  "PG00 resource_in_use",
+  "amd_pmc S0i3 counters for a specific suspend (batterystats has the totals: sleep-history.json)"
+ ]
+}

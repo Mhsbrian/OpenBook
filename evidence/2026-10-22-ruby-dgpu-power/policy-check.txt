@@ -1,0 +1,16 @@
+# Which permissions the laptop's compiled Ruby policy grants (ANAL-238), 2026-10-22.
+# Policy: precompiled_sepolicy sha256 3da8e5cd715d83dcfa65cf11cade77dce6544f157ec937062af0315e7d7540a4, identical to the G14's /vendor/etc/selinux/precompiled_sepolicy.
+# Method: sepolicy-analyze <policy> neverallow -n 'neverallow RULE;' reports a violation exactly when the policy allows RULE.
+allowed  vendor_init debug_prop:file read
+allowed  vendor_init boot_status_prop:file read   (sys.boot_completed)
+allowed  shell debug_prop:property_service set
+allowed  openbook_pc_setup sysfs:file write
+allowed  openbook_pc_setup sysfs:lnk_file read
+allowed  openbook_pc_setup logdw_socket:sock_file write
+allowed  openbook_pc_setup logd:unix_dgram_socket sendto
+allowed  openbook_pc_setup vendor_toolbox_exec:file execute
+allowed  openbook_pc_setup kmsg_debug_device:chr_file write
+denied   openbook_pc_setup tmpfs:chr_file write
+denied   openbook_pc_setup sysfs_suspend_stats:file read
+allowed  hal_power_stats_default sysfs_suspend_stats:file read
+denied   shell sysfs:file read

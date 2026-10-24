@@ -1,0 +1,58 @@
+# rc=6
+== modules (/proc/modules)
+amdgpu 14340096 0 - Live 0x0000000000000000
+drm_display_helper 253952 1 amdgpu, Live 0x0000000000000000
+drm_ttm_helper 12288 1 amdgpu, Live 0x0000000000000000
+drm_exec 20480 1 amdgpu, Live 0x0000000000000000
+video 81920 3 amdgpu,nvidia_wmi_ec_backlight,asus_wmi, Live 0x0000000000000000
+wmi 40960 4 nvidia_wmi_ec_backlight,asus_wmi,video,wmi_bmof, Live 0x0000000000000000
+FAIL nouveau is live
+FAIL drm_gpuvm is live and used by nouveau
+ok   amdgpu is live
+== modules.options and parameters
+cat: /vendor/lib/modules/modules.options: No such file or directory
+cat: /sys/module/nouveau/parameters/runpm: No such file or directory
+cat: /sys/module/nouveau/parameters/modeset: No such file or directory
+runpm= modeset=
+FAIL runpm=1 (modules.options)
+FAIL modeset=2 (modules.options)
+== nouveau PCI driver
+ls: /sys/bus/pci/drivers/nouveau/: No such file or directory
+FAIL nouveau registered a PCI driver
+ls: /sys/bus/pci/drivers/nouveau/: No such file or directory
+bound devices: 0
+ok   nouveau bound nothing
+ok   no NVIDIA PCI function in this guest
+== DRM nodes
+ok   no DRM node belongs to nouveau
+== kernel log
+ok   no nouveau error or warning in the kernel log
+ok   no kernel BUG, Oops, WARNING or GPF in the kernel log
+tainted=0
+== SELinux
+getenforce: Enforcing
+DENIAL avc:  denied  { write } for  comm="init" name="discard_max_bytes" dev="sysfs" scontext=u:r:init:s0 tcontext=u:object_r:sysfs:s0 tclass=file permissive=0
+DENIAL avc:  denied  { write } for  name="discard_max_bytes" dev="sysfs" scontext=u:r:init:s0 tcontext=u:object_r:sysfs:s0 tclass=file permissive=0
+denials: 2
+ok   SELinux enforcing
+ok   no denial names nouveau, the GSP firmware or openbook-pc-setup
+== openbook-pc-setup on this guest's sysfs (root)
+openbook-pc-setup: no NVIDIA GPU enumerated; nothing to do
+dgpu-pm rc=0
+openbook-pc-setup: dgpu-report (qemu)
+openbook-pc-setup: dgpu-report: suspend_stats success=0 fail=0
+openbook-pc-setup: dgpu-report: state=absent
+dgpu-report rc=0
+--------- beginning of main
+10-24 14:20:16.938  1471  1471 I openbook-pc-setup: no NVIDIA GPU enumerated; nothing to do
+10-24 14:20:16.948  1473  1473 I openbook-pc-setup: dgpu-report (qemu)
+10-24 14:20:17.068  1508  1508 I openbook-pc-setup: dgpu-report: suspend_stats success=0 fail=0
+10-24 14:20:17.072  1509  1509 I openbook-pc-setup: dgpu-report: state=absent
+FAIL dgpu-pm reports nouveau's parameters to logd
+ok   dgpu-pm finds no NVIDIA GPU
+ok   dgpu-report says absent
+== fixture tests under this guest's sh and toybox
+openbook-pc-setup-test: 0 failure(s)
+49 ok
+ok   fixture tests pass under the guest's sh
+guest-check: 6 failure(s)

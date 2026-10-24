@@ -1,0 +1,985 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Sat, 24 Oct 2026 12:00:00 +0000
+Subject: [PATCH] ANYBOOK: GKI: x86: anybook_amd: add the symbols nouveau needs
+
+nouveau.ko is built as an OpenBook vendor module for the G14's RTX 5070 Ti Laptop GPU (GB205), so
+that the dGPU can be runtime power-managed (ANAL-239). Vendor modules are unsigned, so under
+MODULE_SIG_PROTECT they may only use symbols on the KMI list, and the trimmed GKI exports nothing
+else. nouveau needs 33 symbols that are on none of the x86_64 lists yet:
+
+  acpi_get_next_object acpi_lid_open dma_resv_fini drm_atomic_helper_wait_for_fences drm_debugfs_gpuva_info drm_gem_handle_delete drm_gem_object_init drm_invalid_op drm_mode_create_dvi_i_properties drm_mode_create_tv_properties_legacy drm_mode_debug_printmodeline drm_plane_force_disable drm_plane_helper_disable_primary drm_plane_helper_update_primary drm_property_add_enum drm_property_create __drm_universal_plane_alloc drm_vblank_work_cancel_sync iowrite16 led_classdev_resume led_classdev_suspend mas_erase mas_find mas_store_gfp mas_walk __mt_destroy pci_disable_rom pci_enable_rom _raw_read_lock_irqsave _raw_read_unlock_irqrestore rb_first refcount_dec_and_mutex_lock schedule_hrtimeout
+
+Three of them (iowrite16, mas_find, rb_first) were already exported for GKI modules but protected
+from unsigned ones.
+
+Generated with Kleaf, add-only, from the G14 device build with nouveau as one of its kernel_abi modules:
+  tools/bazel run --notrim //devices/anybook:anybook_amd_x86_64_abi_update_symbol_list
+Kleaf also lists here 29 symbols nouveau uses that other x86_64 lists already carry; they change
+nothing in the kernel. No existing entry is removed, so every existing export keeps its CRC.
+
+Change-Id: Id96f31fc68105d1cbffb2e219369da5476ba3ecc
+---
+ gki/x86_64/symbols/anybook_amd | 392 +++++++++++++++++++--------------
+ 1 file changed, 227 insertions(+), 165 deletions(-)
+
+diff --git a/gki/x86_64/symbols/anybook_amd b/gki/x86_64/symbols/anybook_amd
+index d459177ea6f2..ff87e358e072 100644
+--- a/gki/x86_64/symbols/anybook_amd
++++ b/gki/x86_64/symbols/anybook_amd
+@@ -40,6 +40,10 @@
+   alloc_workqueue_noprof
+   amd_smn_read
+   amd_smn_write
++  arch_io_free_memtype_wc
++  arch_io_reserve_memtype_wc
++  arch_phys_wc_add
++  arch_phys_wc_del
+   backlight_device_register
+   backlight_device_unregister
+   backlight_force_update
+@@ -79,6 +83,7 @@
+   clear_page_rep
+   clk_disable
+   clk_enable
++  clk_get_rate
+   clk_hw_get_name
+   clk_prepare
+   clk_set_rate
+@@ -112,6 +117,7 @@
+   debugfs_create_file_unsafe
+   debugfs_create_u32
+   debugfs_create_x32
++  debugfs_lookup
+   debugfs_remove
+   __default_kernel_pte_mask
+   default_llseek
+@@ -119,6 +125,7 @@
+   destroy_workqueue
+   dev_close
+   dev_coredumpv
++  _dev_crit
+   dev_driver_string
+   _dev_err
+   dev_err_probe
+@@ -130,6 +137,7 @@
+   device_for_each_child_reverse
+   device_get_match_data
+   device_initialize
++  device_link_add
+   device_property_present
+   device_property_read_bool
+   device_property_read_string_array
+@@ -169,6 +177,7 @@
+   devm_snd_soc_register_card
+   devm_snd_soc_register_component
+   __devm_spi_alloc_controller
++  _dev_notice
+   _dev_printk
+   devres_add
+   __devres_alloc_node
+@@ -179,6 +188,7 @@
+   _dev_warn
+   disable_irq
+   dma_alloc_attrs
++  dma_alloc_pages
+   dma_buf_detach
+   dma_buf_dynamic_attach
+   dma_buf_export
+@@ -191,6 +201,7 @@
+   dma_fence_add_callback
+   dma_fence_chain_ops
+   dma_fence_context_alloc
++  dma_fence_get_status
+   dma_fence_init
+   dma_fence_release
+   dma_fence_signal
+@@ -200,11 +211,13 @@
+   dma_fence_wait_any_timeout
+   dma_fence_wait_timeout
+   dma_free_attrs
++  dma_free_pages
+   dmam_alloc_attrs
+   dma_map_page_attrs
+   dma_map_resource
+   dma_map_sgtable
+   dma_resv_add_fence
++  dma_resv_get_singleton
+   dma_resv_iter_first
+   dma_resv_iter_next
+   dma_resv_reserve_fences
+@@ -224,48 +237,93 @@
+   dmi_match
+   down_read
+   down_write
++  dput
+   driver_register
+   driver_unregister
++  drm_add_edid_modes
+   drm_add_modes_noedid
++  drm_atomic_add_affected_planes
++  drm_atomic_commit
+   drm_atomic_get_connector_state
+   drm_atomic_get_crtc_state
+   drm_atomic_get_private_obj_state
++  drm_atomic_helper_calc_timestamping_constants
+   drm_atomic_helper_check
+   drm_atomic_helper_check_plane_state
++  drm_atomic_helper_cleanup_planes
+   drm_atomic_helper_commit
++  drm_atomic_helper_commit_hw_done
++  __drm_atomic_helper_connector_destroy_state
+   drm_atomic_helper_connector_destroy_state
++  __drm_atomic_helper_connector_duplicate_state
+   drm_atomic_helper_connector_duplicate_state
++  __drm_atomic_helper_connector_reset
+   drm_atomic_helper_connector_reset
++  __drm_atomic_helper_crtc_destroy_state
+   drm_atomic_helper_crtc_destroy_state
++  __drm_atomic_helper_crtc_duplicate_state
+   drm_atomic_helper_crtc_duplicate_state
++  __drm_atomic_helper_crtc_reset
+   drm_atomic_helper_crtc_reset
+   drm_atomic_helper_dirtyfb
+   drm_atomic_helper_disable_plane
+   drm_atomic_helper_page_flip
+   drm_atomic_helper_plane_destroy_state
+   __drm_atomic_helper_plane_duplicate_state
++  __drm_atomic_helper_plane_reset
+   drm_atomic_helper_plane_reset
+   __drm_atomic_helper_private_obj_duplicate_state
++  drm_atomic_helper_resume
+   drm_atomic_helper_set_config
+   drm_atomic_helper_shutdown
++  drm_atomic_helper_suspend
++  drm_atomic_helper_update_legacy_modeset_state
+   drm_atomic_helper_update_plane
+   drm_atomic_private_obj_fini
+   drm_atomic_private_obj_init
++  drm_atomic_state_alloc
++  __drm_atomic_state_free
++  drm_client_dev_resume
++  drm_client_dev_suspend
+   drm_compat_ioctl
+   drm_connector_attach_encoder
+   drm_connector_cleanup
++  drm_connector_dynamic_init
+   drm_connector_init
++  drm_connector_list_iter_begin
++  drm_connector_list_iter_end
++  drm_connector_list_iter_next
++  drm_connector_register
++  drm_connector_set_path_property
+   drm_connector_unregister
++  drm_connector_update_edid_property
++  drm_crtc_accurate_vblank_count
+   drm_crtc_add_crc_entry
++  drm_crtc_arm_vblank_event
+   drm_crtc_cleanup
+   __drm_crtc_commit_free
++  drm_crtc_enable_color_mgmt
++  drm_crtc_handle_vblank
++  drm_crtc_helper_set_config
++  drm_crtc_helper_set_mode
+   drm_crtc_init_with_planes
++  drm_crtc_send_vblank_event
++  drm_crtc_vblank_count
++  drm_crtc_vblank_crtc
++  drm_crtc_vblank_get
++  drm_crtc_vblank_helper_get_vblank_timestamp
++  drm_crtc_vblank_off
++  drm_crtc_vblank_on
++  drm_crtc_vblank_put
+   drm_cvt_mode
+   __drm_debug
++  drm_debugfs_create_files
++  drm_dev_alloc
+   __drm_dev_dbg
+   drm_dev_enter
+   drm_dev_exit
+   drm_dev_printk
++  drm_dev_put
+   drm_dev_register
+   drm_dev_unplug
+   drm_edid_connector_add_modes
+@@ -276,7 +334,10 @@
+   drm_edid_raw
+   drm_edid_read_custom
+   drm_edid_read_ddc
++  drm_encoder_cleanup
++  drm_encoder_init
+   __drm_err
++  drm_format_info
+   drm_framebuffer_init
+   drm_gem_dmabuf_mmap
+   drm_gem_dmabuf_release
+@@ -294,6 +355,7 @@
+   drm_gem_object_lookup
+   drm_gem_object_release
+   drm_gem_plane_helper_prepare_fb
++  drm_gem_prime_export
+   drm_gem_private_object_init
+   drm_gem_shmem_create
+   drm_gem_shmem_free
+@@ -307,11 +369,23 @@
+   drm_gem_shmem_vunmap_locked
+   drm_gem_unlock_reservations
+   drm_gem_unmap_dma_buf
++  drm_get_edid
++  drm_hdmi_avi_infoframe_from_display_mode
++  drm_hdmi_vendor_infoframe_from_display_mode
++  drm_helper_connector_dpms
++  drm_helper_force_disable_all
+   drm_helper_hpd_irq_event
+   drm_helper_mode_fill_fb_struct
+   drm_helper_probe_single_connector_modes
++  drm_helper_resume_force_mode
+   drm_ioctl
++  drm_kms_helper_connector_hotplug_event
+   drm_kms_helper_hotplug_event
++  drm_kms_helper_is_poll_worker
++  drm_kms_helper_poll_disable
++  drm_kms_helper_poll_enable
++  drm_kms_helper_poll_fini
++  drm_kms_helper_poll_init
+   __drmm_add_action_or_reset
+   drm_match_cea_mode
+   drmm_kfree
+@@ -322,19 +396,50 @@
+   drm_mm_print
+   drm_mm_remove_node
+   drm_mm_takedown
++  drm_mode_config_cleanup
+   drm_mode_config_reset
++  drm_mode_copy
++  drm_mode_create_scaling_mode_property
++  drm_mode_crtc_set_gamma_size
++  drm_mode_destroy
++  drm_mode_duplicate
++  drm_mode_equal
++  drm_mode_object_get
+   drm_mode_object_put
+   drm_mode_probed_add
++  drm_modeset_acquire_fini
++  drm_modeset_acquire_init
++  drm_modeset_backoff
++  drm_mode_set_crtcinfo
++  drm_modeset_drop_locks
+   drm_modeset_lock
++  drm_modeset_lock_all
++  drm_modeset_lock_all_ctx
++  drm_modeset_lock_single_interruptible
++  drm_mode_set_name
+   drm_modeset_unlock
++  drm_modeset_unlock_all
++  drm_mode_vrefresh
++  drm_need_swiotlb
+   drm_object_attach_property
+   drm_object_property_set_value
+   drm_open
++  drm_plane_cleanup
++  drm_plane_create_alpha_property
++  drm_plane_create_blend_mode_property
++  drm_plane_create_color_properties
++  drm_plane_create_zpos_immutable_property
++  drm_plane_create_zpos_property
+   drm_plane_enable_fb_damage_clips
++  drm_plane_helper_destroy
+   drm_poll
++  drm_prime_gem_destroy
++  drm_prime_pages_to_sg
++  drm_prime_sg_to_dma_addr_array
+   drm_printf
+   __drm_printfn_seq_file
+   drm_property_create_enum
++  drm_property_create_range
+   __drm_puts_seq_file
+   drm_read
+   drm_release
+@@ -347,6 +452,8 @@
+   drm_syncobj_free
+   drm_syncobj_get_handle
+   drm_syncobj_replace_fence
++  drm_universal_plane_init
++  drm_vblank_init
+   efi
+   enable_irq
+   eth_type_trans
+@@ -366,6 +473,7 @@
+   __free_pages
+   fwnode_property_read_u32_array
+   gcd
++  get_device
+   get_random_bytes
+   get_unused_fd_flags
+   gpiod_get_optional
+@@ -400,9 +508,11 @@
+   i2c_add_numbered_adapter
+   i2c_del_adapter
+   i2c_del_driver
++  i2c_new_client_device
+   i2c_register_driver
+   i2c_smbus_read_byte
+   i2c_transfer
++  i2c_unregister_device
+   i2c_verify_client
+   ida_alloc_range
+   ida_destroy
+@@ -431,6 +541,7 @@
+   ioread32
+   ioread8
+   ioremap
++  ioremap_wc
+   iounmap
+   iowrite32
+   iowrite8
+@@ -461,6 +572,7 @@
+   kobject_uevent_env
+   krealloc_node_align_noprof
+   kstrdup
++  kstrndup
+   kstrtobool
+   kstrtobool_from_user
+   kstrtoint
+@@ -540,6 +652,7 @@
+   of_get_property
+   of_property_read_bool
+   of_property_read_variable_u32_array
++  orderly_poweroff
+   out_of_line_wait_on_bit_timeout
+   page_offset_base
+   param_ops_bint
+@@ -553,15 +666,19 @@
+   pci_clear_master
+   pci_dev_put
+   pci_disable_device
++  pci_disable_msi
+   pcie_capability_clear_and_set_word_locked
+   pcie_capability_clear_and_set_word_unlocked
+   pcie_capability_read_word
+   pci_enable_device
++  pci_enable_msi
+   pci_find_ext_capability
+   pci_free_irq_vectors
+   pci_get_device
+   pci_get_domain_bus_and_slot
++  pci_ignore_hotplug
+   pci_irq_vector
++  pci_map_rom
+   pci_match_id
+   pcim_enable_device
+   pcim_iomap_regions
+@@ -572,8 +689,11 @@
+   __pci_register_driver
+   pci_release_regions
+   pci_request_regions
++  pci_restore_state
++  pci_save_state
+   pci_set_master
+   pci_set_power_state
++  pci_unmap_rom
+   pci_unregister_driver
+   pci_write_config_byte
+   pci_write_config_dword
+@@ -633,15 +753,19 @@
+   _raw_spin_lock_bh
+   _raw_spin_lock_irq
+   _raw_spin_lock_irqsave
++  _raw_spin_trylock
+   _raw_spin_unlock
+   _raw_spin_unlock_bh
+   _raw_spin_unlock_irq
+   _raw_spin_unlock_irqrestore
+   rb_erase
++  __rb_erase_color
+   rb_first_postorder
++  __rb_insert_augmented
+   rb_insert_color
+   rb_next
+   rb_next_postorder
++  rb_prev
+   rcu_barrier
+   __rcu_read_lock
+   __rcu_read_unlock
+@@ -671,8 +795,10 @@
+   request_firmware
+   request_firmware_direct
+   request_firmware_nowait
++  __request_module
+   __request_region
+   request_threaded_irq
++  reservation_ww_class
+   rfkill_alloc
+   rfkill_destroy
+   rfkill_pause_polling
+@@ -695,6 +821,7 @@
+   sg_alloc_table_from_pages_segment
+   sg_free_table
+   sg_init_one
++  __sg_page_iter_start
+   simple_attr_open
+   simple_attr_release
+   simple_open
+@@ -843,7 +970,40 @@
+   __trace_set_current_state
+   __trace_trigger_soft_disabled
+   try_module_get
++  ttm_bo_eviction_valuable
++  ttm_bo_init_reserved
++  ttm_bo_kmap
++  ttm_bo_kunmap
++  ttm_bo_move_accel_cleanup
++  ttm_bo_move_memcpy
++  ttm_bo_move_to_lru_tail
++  ttm_bo_pin
++  ttm_bo_put
++  ttm_bo_setup_export
++  ttm_bo_unpin
++  ttm_bo_validate
++  ttm_bo_vm_access
++  ttm_bo_vm_close
++  ttm_bo_vm_fault_reserved
++  ttm_bo_vm_open
++  ttm_bo_vm_reserve
++  ttm_bo_wait_ctx
++  ttm_device_fini
++  ttm_device_init
++  ttm_pool_alloc
++  ttm_pool_free
++  ttm_range_man_fini_nocheck
++  ttm_range_man_init_nocheck
++  ttm_resource_fini
++  ttm_resource_free
++  ttm_resource_init
++  ttm_resource_manager_evict_all
++  ttm_resource_manager_init
++  ttm_resource_manager_usage
++  ttm_sg_tt_init
++  ttm_tt_fini
+   __udelay
++  unmap_mapping_range
+   unregister_acpi_notifier
+   unregister_netdevice_notifier
+   unregister_pm_notifier
+@@ -867,14 +1027,17 @@
+   utf8_data_table
+   validate_usercopy_range
+   vfree
++  vga_client_register
+   video_firmware_drivers_only
+   virtio_reset_device
+   virtqueue_get_buf
+   vmalloc_noprof
++  vmalloc_to_page
+   vmap
+   __vma_start_write
+   vmemdup_user
+   vmemmap_base
++  vm_get_page_prot
+   vunmap
+   vzalloc_noprof
+   wait_for_completion
+@@ -918,10 +1081,6 @@
+   acpi_gbl_FADT
+   acpi_get_name
+   add_taint
+-  arch_io_free_memtype_wc
+-  arch_io_reserve_memtype_wc
+-  arch_phys_wc_add
+-  arch_phys_wc_del
+   backlight_device_set_brightness
+   __bitmap_complement
+   __bitmap_or
+@@ -943,12 +1102,10 @@
+   dma_fence_array_create
+   dma_fence_chain_walk
+   dma_fence_dedup_array
+-  dma_fence_get_status
+   dma_fence_get_stub
+   dma_fence_init64
+   dma_resv_describe
+   dma_resv_get_fences
+-  dma_resv_get_singleton
+   dma_resv_iter_first_unlocked
+   dma_resv_iter_next_unlocked
+   dma_resv_replace_fences
+@@ -957,36 +1114,16 @@
+   down_read_trylock
+   down_write_killable
+   drain_workqueue
+-  drm_add_edid_modes
+   drm_any_plane_has_format
+   drm_atomic_add_affected_connectors
+-  drm_atomic_add_affected_planes
+-  drm_atomic_commit
+   drm_atomic_get_plane_state
+   drm_atomic_helper_async_check
+-  drm_atomic_helper_calc_timestamping_constants
+   drm_atomic_helper_check_modeset
+   drm_atomic_helper_check_planes
+-  drm_atomic_helper_cleanup_planes
+-  drm_atomic_helper_commit_hw_done
+-  __drm_atomic_helper_connector_destroy_state
+-  __drm_atomic_helper_connector_duplicate_state
+-  __drm_atomic_helper_connector_reset
+-  __drm_atomic_helper_crtc_destroy_state
+-  __drm_atomic_helper_crtc_duplicate_state
+-  __drm_atomic_helper_crtc_reset
+   drm_atomic_helper_plane_duplicate_state
+-  __drm_atomic_helper_plane_reset
+-  drm_atomic_helper_resume
+-  drm_atomic_helper_suspend
+-  drm_atomic_helper_update_legacy_modeset_state
+   drm_atomic_helper_wait_for_flip_done
+   drm_atomic_normalize_zpos
+-  drm_atomic_state_alloc
+-  __drm_atomic_state_free
+   drm_calc_timestamping_constants
+-  drm_client_dev_resume
+-  drm_client_dev_suspend
+   drm_client_init
+   drm_client_register
+   drm_client_release
+@@ -1001,33 +1138,13 @@
+   drm_connector_attach_max_bpc_property
+   drm_connector_attach_privacy_screen_provider
+   drm_connector_attach_vrr_capable_property
+-  drm_connector_dynamic_init
+   drm_connector_init_with_ddc
+-  drm_connector_list_iter_begin
+-  drm_connector_list_iter_end
+-  drm_connector_list_iter_next
+   drm_connector_set_panel_orientation_with_quirk
+-  drm_connector_set_path_property
+   drm_connector_set_vrr_capable_property
+-  drm_connector_update_edid_property
+   drm_connector_update_privacy_screen
+-  drm_crtc_accurate_vblank_count
+-  drm_crtc_arm_vblank_event
+-  drm_crtc_enable_color_mgmt
+-  drm_crtc_handle_vblank
+   drm_crtc_helper_mode_valid_fixed
+-  drm_crtc_helper_set_config
+-  drm_crtc_helper_set_mode
+   drm_crtc_init
+-  drm_crtc_send_vblank_event
+-  drm_crtc_vblank_count
+-  drm_crtc_vblank_crtc
+-  drm_crtc_vblank_get
+-  drm_crtc_vblank_helper_get_vblank_timestamp
+-  drm_crtc_vblank_off
+-  drm_crtc_vblank_on
+   drm_crtc_vblank_on_config
+-  drm_crtc_vblank_put
+   drm_crtc_vblank_restore
+   drm_dev_wedged_event
+   drm_edid_alloc
+@@ -1036,86 +1153,38 @@
+   drm_edid_to_sad
+   drm_edid_to_speaker_allocation
+   drm_edid_valid
+-  drm_encoder_cleanup
+-  drm_encoder_init
+   drm_file_err
+-  drm_format_info
+   drm_gem_fb_get_obj
+-  drm_gem_prime_export
+-  drm_get_edid
+   drm_handle_vblank
+-  drm_hdmi_avi_infoframe_from_display_mode
+-  drm_hdmi_vendor_infoframe_from_display_mode
+-  drm_helper_connector_dpms
+-  drm_helper_force_disable_all
+-  drm_helper_resume_force_mode
+   drm_is_current_master
+-  drm_kms_helper_connector_hotplug_event
+-  drm_kms_helper_is_poll_worker
+-  drm_kms_helper_poll_disable
+-  drm_kms_helper_poll_enable
+-  drm_kms_helper_poll_fini
+-  drm_kms_helper_poll_init
+   drmm_cgroup_register_region
+   drm_memory_stats_is_zero
+-  drm_mode_config_cleanup
+   drm_mode_config_helper_resume
+   drm_mode_config_helper_suspend
+-  drm_mode_copy
+   drm_mode_create_dp_colorspace_property
+   drm_mode_create_hdmi_colorspace_property
+-  drm_mode_create_scaling_mode_property
+-  drm_mode_crtc_set_gamma_size
+-  drm_mode_destroy
+-  drm_mode_duplicate
+-  drm_mode_equal
+   drm_mode_init
+   drm_mode_is_420_also
+   drm_mode_is_420_only
+-  drm_mode_object_get
+-  drm_modeset_acquire_fini
+-  drm_modeset_acquire_init
+-  drm_modeset_backoff
+-  drm_mode_set_crtcinfo
+-  drm_modeset_drop_locks
+-  drm_modeset_lock_all
+-  drm_modeset_lock_all_ctx
+-  drm_mode_set_name
+-  drm_modeset_unlock_all
+   drm_mode_sort
+-  drm_mode_vrefresh
+-  drm_need_swiotlb
+-  drm_plane_cleanup
+   drm_plane_colorop_3dlut_init
+   drm_plane_colorop_ctm_3x4_init
+   drm_plane_colorop_curve_1d_init
+   drm_plane_colorop_curve_1d_lut_init
+   drm_plane_colorop_mult_init
+-  drm_plane_create_alpha_property
+-  drm_plane_create_blend_mode_property
+   drm_plane_create_color_pipeline_property
+-  drm_plane_create_color_properties
+   drm_plane_create_rotation_property
+-  drm_plane_create_zpos_immutable_property
+-  drm_plane_create_zpos_property
+   drm_plane_get_damage_clips
+   drm_plane_get_damage_clips_count
+-  drm_plane_helper_destroy
+-  drm_prime_gem_destroy
+-  drm_prime_pages_to_sg
+-  drm_prime_sg_to_dma_addr_array
+   __drm_printfn_coredump
+   drm_print_memory_stats
+   drm_privacy_screen_get
+   drm_property_blob_get
+   drm_property_blob_put
+-  drm_property_create_range
+   __drm_puts_coredump
+   drm_send_event_locked
+   drm_show_fdinfo
+   drm_syncobj_get_fd
+-  drm_universal_plane_init
+-  drm_vblank_init
+   drm_writeback_connector_init
+   drm_writeback_queue_job
+   drm_writeback_signal_completion
+@@ -1129,11 +1198,9 @@
+   hrtimer_cb_get_time
+   hrtimer_forward
+   hrtimer_try_to_cancel
+-  i2c_new_client_device
+   idr_alloc_cyclic
+   iommu_iova_to_phys
+   ioremap_cache
+-  ioremap_wc
+   irq_domain_instantiate
+   irq_domain_remove
+   irq_set_chip_and_handler_name
+@@ -1155,7 +1222,6 @@
+   mtree_load
+   nsecs_to_jiffies
+   __num_cores_per_package
+-  orderly_poweroff
+   page_is_ram
+   param_ops_hexint
+   param_ops_string
+@@ -1170,19 +1236,14 @@
+   pcie_get_width_cap
+   pci_enable_atomic_ops_to_root
+   pci_get_base_class
+-  pci_ignore_hotplug
+   pci_load_saved_state
+-  pci_map_rom
+   pci_pr3_present
+   pci_rebar_get_possible_sizes
+   pci_release_resource
+   pci_reset_function
+   pci_resize_resource
+   pci_restore_msi_state
+-  pci_restore_state
+-  pci_save_state
+   pci_store_saved_state
+-  pci_unmap_rom
+   pci_wait_for_pending_transaction
+   pci_wake_from_d3
+   perf_event_update_userpage
+@@ -1202,9 +1263,6 @@
+   radix_tree_next_chunk
+   radix_tree_tag_clear
+   radix_tree_tag_set
+-  _raw_spin_trylock
+-  __rb_erase_color
+-  __rb_insert_augmented
+   seq_hex_dump
+   si_meminfo
+   strnstr
+@@ -1217,54 +1275,20 @@
+   system_highpri_wq
+   system_state
+   time64_to_tm
+-  ttm_bo_eviction_valuable
+-  ttm_bo_init_reserved
+-  ttm_bo_kmap
+-  ttm_bo_kunmap
+   ttm_bo_mem_space
+-  ttm_bo_move_accel_cleanup
+-  ttm_bo_move_memcpy
+-  ttm_bo_move_to_lru_tail
+-  ttm_bo_pin
+-  ttm_bo_put
+   ttm_bo_set_bulk_move
+-  ttm_bo_setup_export
+-  ttm_bo_unpin
+-  ttm_bo_validate
+-  ttm_bo_vm_access
+-  ttm_bo_vm_close
+   ttm_bo_vm_dummy_page
+-  ttm_bo_vm_fault_reserved
+-  ttm_bo_vm_open
+-  ttm_bo_vm_reserve
+-  ttm_bo_wait_ctx
+   ttm_device_clear_dma_mappings
+-  ttm_device_fini
+-  ttm_device_init
+   ttm_device_prepare_hibernation
+   ttm_glob
+   ttm_lru_bulk_move_fini
+   ttm_lru_bulk_move_init
+   ttm_lru_bulk_move_tail
+-  ttm_pool_alloc
+   ttm_pool_debugfs
+   ttm_pool_fini
+-  ttm_pool_free
+   ttm_pool_init
+-  ttm_range_man_fini_nocheck
+-  ttm_range_man_init_nocheck
+-  ttm_resource_fini
+-  ttm_resource_free
+-  ttm_resource_init
+   ttm_resource_manager_create_debugfs
+-  ttm_resource_manager_evict_all
+-  ttm_resource_manager_init
+-  ttm_resource_manager_usage
+-  ttm_sg_tt_init
+-  ttm_tt_fini
+   ttm_tt_pages_limit
+-  unmap_mapping_range
+-  vga_client_register
+   vscnprintf
+   vsnprintf
+   ww_mutex_trylock
+@@ -1275,7 +1299,6 @@
+   __bitmap_clear
+   can_do_mlock
+   cleanup_srcu_struct
+-  dma_alloc_pages
+   dma_buf_attach
+   dma_buf_map_attachment_unlocked
+   dma_buf_mmap
+@@ -1283,7 +1306,6 @@
+   dma_buf_vmap_unlocked
+   dma_buf_vunmap_unlocked
+   dma_fence_chain_find_seqno
+-  dma_free_pages
+   down_interruptible
+   drm_clflush_pages
+   drm_clflush_sg
+@@ -1435,7 +1457,6 @@
+ 
+ # required by drm_buddy.ko
+   rb_last
+-  rb_prev
+ 
+ # required by drm_display_helper.ko
+   drm_atomic_get_new_private_obj_state
+@@ -1445,14 +1466,12 @@
+   drm_crtc_wait_one_vblank
+   drm_display_mode_from_cea_vic
+   drm_edid_dup
+-  drm_modeset_lock_single_interruptible
+   __drm_printfn_dbg
+   drm_sysfs_connector_property_event
+   hdmi_drm_infoframe_init
+ 
+ # required by drm_exec.ko
+   kvrealloc_node_align_noprof
+-  reservation_ww_class
+ 
+ # required by drm_panel_backlight_quirks.ko
+   drm_edid_match
+@@ -1476,7 +1495,6 @@
+   d_alloc
+   d_instantiate
+   d_make_root
+-  dput
+   drop_nlink
+   efi_status_to_err
+   efivar_get_next_variable
+@@ -1570,7 +1588,6 @@
+   try_wait_for_completion
+ 
+ # required by i2c-designware-platform.ko
+-  clk_get_rate
+   __dev_fwnode_const
+   dev_get_regmap
+   fwnode_property_match_string
+@@ -1592,7 +1609,6 @@
+ 
+ # required by i2c-piix4.ko
+   acpi_check_region
+-  _dev_notice
+   ioport_resource
+   pci_bus_read_config_byte
+ 
+@@ -1720,6 +1736,70 @@
+ # required by mt7925-common.ko
+   __folio_put
+ 
++# required by nouveau.ko
++  acpi_get_next_object
++  acpi_lid_open
++  dma_fence_free
++  dma_resv_fini
++  dma_resv_init
++  drm_atomic_helper_commit_cleanup_done
++  __drm_atomic_helper_plane_destroy_state
++  drm_atomic_helper_prepare_planes
++  drm_atomic_helper_setup_commit
++  drm_atomic_helper_swap_state
++  drm_atomic_helper_unprepare_planes
++  drm_atomic_helper_wait_for_dependencies
++  drm_atomic_helper_wait_for_fences
++  drm_atomic_state_clear
++  drm_atomic_state_default_clear
++  drm_atomic_state_default_release
++  drm_atomic_state_init
++  drm_debugfs_gpuva_info
++  drm_gem_handle_delete
++  drm_gem_object_init
++  drm_get_connector_status_name
++  drm_hdmi_avi_infoframe_quant_range
++  drm_helper_probe_detect
++  drm_invalid_op
++  drm_mode_create_dvi_i_properties
++  drm_mode_create_tv_properties_legacy
++  drm_mode_debug_printmodeline
++  drm_mode_get_hv_timing
++  drm_plane_force_disable
++  drm_plane_helper_disable_primary
++  drm_plane_helper_update_primary
++  drm_property_add_enum
++  drm_property_create
++  __drm_universal_plane_alloc
++  drm_vblank_work_cancel_sync
++  drm_vblank_work_init
++  drm_vblank_work_schedule
++  hdmi_infoframe_pack
++  iowrite16
++  kstrtoint_from_user
++  led_classdev_resume
++  led_classdev_suspend
++  mas_erase
++  mas_find
++  mas_store_gfp
++  mas_walk
++  match_string
++  __mt_destroy
++  __ndelay
++  pci_disable_rom
++  pci_enable_rom
++  pci_find_capability
++  _raw_read_lock_irqsave
++  _raw_read_unlock_irqrestore
++  _raw_write_lock_irq
++  _raw_write_unlock_irq
++  rb_first
++  refcount_dec_and_mutex_lock
++  regulator_get_voltage
++  schedule_hrtimeout
++  __sg_page_iter_dma_next
++  strcspn
++
+ # required by platform_profile.ko
+   acpi_kobj
+   class_find_device
+@@ -1729,8 +1809,6 @@
+ # required by rtsx_pci.ko
+   dma_map_sg_attrs
+   idr_preload
+-  pci_disable_msi
+-  pci_enable_msi
+   pci_intx
+   pm_schedule_suspend
+ 
+@@ -1759,7 +1837,6 @@
+   acpi_dev_gpio_irq_wake_get_by
+   acpi_spi_device_alloc
+   i2c_acpi_new_device_by_fwnode
+-  i2c_unregister_device
+   platform_get_irq
+   spi_add_device
+   spi_unregister_device
+@@ -1816,10 +1893,8 @@
+   device_release_driver
+   device_reprobe
+   get_device_system_crosststamp
+-  kstrndup
+   kvasprintf
+   ns_to_timespec64
+-  __request_module
+   snd_card_rw_proc_new
+   snd_component_add
+   _snd_ctl_add_follower
+@@ -1872,11 +1947,7 @@
+   acpi_get_subsystem_id
+   devm_gpiod_get_index_optional
+ 
+-# required by snd-soc-cs-amp-lib.ko
+-  debugfs_lookup
+-
+ # required by snd-soc-cs35l56-shared.ko
+-  _dev_crit
+   gpiod_get_array_optional
+   gpiod_put_array
+   regmap_multi_reg_write_bypassed
+@@ -1975,7 +2046,6 @@
+   dma_heap_get_name
+   __dma_sync_sg_for_cpu
+   __sg_page_iter_next
+-  __sg_page_iter_start
+   __swiotlb_find_pool
+ 
+ # required by thermal.ko
+@@ -2011,7 +2081,6 @@
+   devm_krealloc
+   efi_tpm_final_log_size
+   free_pages
+-  get_device
+   get_free_pages_noprof
+   hash_digest_size
+   hwrng_register
+@@ -2060,11 +2129,7 @@
+   dma_max_mapping_size
+   drm_atomic_helper_damage_merged
+   drm_connector_attach_edid_property
+-  drm_connector_register
+-  drm_debugfs_create_files
+-  drm_dev_alloc
+   drm_dev_get
+-  drm_dev_put
+   drm_event_reserve_init
+   drm_gem_create_mmap_offset
+   drm_gem_dumb_map_offset
+@@ -2092,8 +2157,6 @@
+   virtqueue_enable_cb
+   virtqueue_kick_prepare
+   virtqueue_notify
+-  vmalloc_to_page
+-  vm_get_page_prot
+ 
+ # required by virtio_input.ko
+   virtqueue_add_inbuf
+@@ -2109,5 +2172,4 @@
+   acpi_get_object_info
+   bus_for_each_dev
+   device_create
+-  device_link_add
+   driver_set_override

@@ -1,0 +1,65 @@
+[
+ {
+  "file": "boot.img",
+  "bytes": 26951680,
+  "sha256": "944da373d7c898305648771fdfccf152b3846afbf02512bb90387b2b54a68f79",
+  "what": "GKI boot image of the same build (kernel only)",
+  "avb_footer": false
+ },
+ {
+  "file": "bzImage",
+  "bytes": 26858496,
+  "sha256": "d8590aee9c0469ac8b27751c78bc6e158a8c4c4b76e3ab2a487c165c39988134",
+  "what": "the kernel",
+  "avb_footer": false
+ },
+ {
+  "file": "system_dlkm.img",
+  "bytes": 18165760,
+  "sha256": "c635f0af3b4e5b153514ee98f2fcbe148c897a8e53531360a7cfaa7a47f9d1d0",
+  "what": "erofs (Kleaf system_dlkm.flatten.erofs.img), 100 GKI modules signed by this build's key",
+  "avb_footer": true
+ },
+ {
+  "file": "vendor_boot-ramdisk.lz4",
+  "bytes": 126705,
+  "sha256": "38c4bfa1c093ddde642d3dd4d8c9e958d72b85c81e893dab71175d07a179adf6",
+  "what": "that fragment on its own (lib/modules/<release>/), for a product-built vendor_boot",
+  "avb_footer": false
+ },
+ {
+  "file": "vendor_boot.img",
+  "bytes": 133120,
+  "sha256": "b499ebf164191767760e9ad8034529e0afa11d12592d164b74ffa777153b7b2e",
+  "what": "boot image v4, vendor_boot; one DLKM ramdisk fragment \"dlkm\" with no modules (first stage needs none)",
+  "avb_footer": false
+ },
+ {
+  "file": "vendor_dlkm.img",
+  "bytes": 60350464,
+  "sha256": "c74c86c1299f9598cc71c96eaaf7770f2a8fae737737ffb697d49ccfed30e073",
+  "what": "erofs, unsigned hashtree footer; the vendor modules, Android layout",
+  "avb_footer": true
+ },
+ {
+  "file": "vm/vendor_boot-ramdisk.lz4",
+  "bytes": 310474,
+  "sha256": "10276396b8e8dd60279458f446e37f23a7c2049bc37e8786ca4aadfcde57edc6",
+  "what": "the VM fragment on its own",
+  "avb_footer": false
+ },
+ {
+  "file": "vm/vendor_boot.img",
+  "bytes": 317440,
+  "sha256": "48f835b21efa31c659741d3d68909bd014490136111b0887c4f7267c7b256fce",
+  "what": "the same for VMs; the fragment holds 7 virtio modules",
+  "avb_footer": false
+ },
+ {
+  "file": "vm/vendor_dlkm.img",
+  "bytes": 60350464,
+  "sha256": "7d9f9b81fc0a63e7dc56d3cf93c1e53caf35186c76202ca4d419094ebd9384fe",
+  "what": "the same vendor modules; VM modules.load (no virtio, in first stage) and blocklist (asus-nb-wmi)",
+  "avb_footer": true
+ }
+]

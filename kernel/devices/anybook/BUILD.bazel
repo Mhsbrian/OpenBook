@@ -6,6 +6,7 @@
 #   tools/bazel run --config=stamp //devices/anybook:anybook_amd_x86_64_dist -- --destdir=DIR
 #   tools/bazel run //devices/anybook:anybook_amd_x86_64_abi_update_symbol_list   # -> common/gki/x86_64/symbols/anybook_amd
 #   tools/bazel run --config=stamp //devices/anybook:anybook_g14_dist -- --destdir=DIR   # G14 images (ANAL-198)
+#   nouveau (ANAL-239) is an external module in nvidia/, prepared by kernel-amd-apply.sh (kernel-nouveau-apply.sh)
 
 load("@rules_pkg//pkg:install.bzl", "pkg_install")
 load("//build/kernel/kleaf:hermetic_tools.bzl", "hermetic_genrule")
@@ -176,30 +177,50 @@ _ANYBOOK_AMD_MODULES = [
     "sound/soc/sof/xtensa/snd-sof-xtensa-dsp.ko",
 ]
 
+# ANAL-239: the in-tree helper of nouveau, the NVIDIA dGPU driver. nouveau itself is an external module
+# (//devices/anybook/nvidia:nouveau: common's driver plus kernel/patches/nouveau) so that its Kconfig never enters the
+# device config; nvidia/Kconfig.ext and anybook_nvidia.fragment turn on just this one. Keep sorted.
+_ANYBOOK_NVIDIA_MODULES = [
+    "drivers/gpu/drm/drm_gpuvm.ko",
+]
+
 kernel_build(
     name = "anybook_amd_x86_64",
     srcs = ["//common:kernel_x86_64_sources"],
     outs = [],
     arch = "x86_64",
     base_kernel = "//common:kernel_x86_64",
+    kconfig_ext = "//devices/anybook/nvidia:Kconfig.ext",
     kmi_symbol_list = "//common:gki/x86_64/symbols/anybook_amd",
     make_goals = ["modules"],
     makefile = "//common:Makefile",
-    module_outs = _ANYBOOK_AMD_MODULES,
-    post_defconfig_fragments = ["anybook_amd.fragment"],
+    module_outs = _ANYBOOK_AMD_MODULES + _ANYBOOK_NVIDIA_MODULES,
+    post_defconfig_fragments = [
+        "anybook_amd.fragment",
+        "anybook_nvidia.fragment",
+    ],
     strip_modules = True,
+    visibility = ["//devices/anybook/nvidia:__pkg__"],
 )
 
+# kernel_modules: the external modules whose imports the symbol list must cover (nouveau, ANAL-239).
 kernel_abi(
     name = "anybook_amd_x86_64_abi",
     kernel_build = ":anybook_amd_x86_64",
-    kernel_modules = [],
+    kernel_modules = [
+        ":openbook_sleep_diag",
+        "//devices/anybook/nvidia:nouveau",
+    ],
     kmi_symbol_list_add_only = True,
 )
 
 kernel_modules_install(
     name = "anybook_amd_x86_64_modules_install",
     kernel_build = ":anybook_amd_x86_64",
+    kernel_modules = [
+        ":openbook_sleep_diag",
+        "//devices/anybook/nvidia:nouveau",
+    ],
 )
 
 pkg_files(
@@ -229,6 +250,20 @@ ddk_module(
     name = "openbook_lid_guard",
     srcs = ["lid_guard/openbook_lid_guard.c"],
     out = "openbook_lid_guard.ko",
+    kernel_build = ":anybook_amd_x86_64",
+    deps = ["//common:all_headers_x86_64"],
+)
+
+# ANAL-257: S0i3 diagnostics (PTM off across suspend, PCI and USB4 power snapshots). Test only: in vendor_dlkm but
+# blocklisted (g14/modules.tsv); the G14 lab helper loads it with parameters and unloads it; inert without them.
+#   tools/bazel build --config=stamp //devices/anybook:openbook_sleep_diag
+ddk_module(
+    name = "openbook_sleep_diag",
+    srcs = [
+        "sleep_diag/openbook_sleep_diag.c",
+        "sleep_diag/ptm_plan.h",
+    ],
+    out = "openbook_sleep_diag.ko",
     kernel_build = ":anybook_amd_x86_64",
     deps = ["//common:all_headers_x86_64"],
 )
@@ -301,14 +336,17 @@ _G14_VENDOR_CMDLINE = "'firmware_class.path=/vendor/firmware log_buf_len=1M'"
     srcs = [
         ":anybook_g14_{}_vendor_dlkm".format(v),
         "//common:kernel_x86_64_system_dlkm_image",
+        "g14/modules.options",
         "g14/pack_vendor_dlkm.py",
         "g14/vendor_dlkm.file_contexts",
         "g14/vendor_dlkm.modules.list",
     ],
-    outs = ["g14_{}/vendor_dlkm.{}".format(v, f) for f in ("img", "modules.load", "modules.blocklist", "modules.dep")],
+    outs = ["g14_{}/vendor_dlkm.{}".format(v, f) for f in ("img", "modules.load", "modules.blocklist", "modules.dep",
+                                                          "modules.options")],
     cmd = ("python3 $(location g14/pack_vendor_dlkm.py) --out $(RULEDIR)/g14_{v} " +
            "--file-contexts $(location g14/vendor_dlkm.file_contexts) " +
            "--modules-list $(location g14/vendor_dlkm.modules.list) " +
+           "--modules-options $(location g14/modules.options) " +
            "$(locations :anybook_g14_{v}_vendor_dlkm) $(locations //common:kernel_x86_64_system_dlkm_image)").format(v = v),
 ) for v in _G14_VARIANTS]
 
@@ -328,6 +366,9 @@ pkg_files(
     name = "anybook_g14_dist_files",
     srcs = [
         ":anybook_amd_x86_64",
+        ":openbook_lid_guard",
+        ":openbook_sleep_diag",
+        "//devices/anybook/nvidia:nouveau",
         "//common:kernel_x86_64",
         "//common:kernel_x86_64_additional_artifacts",
         "//common:kernel_x86_64_modules",

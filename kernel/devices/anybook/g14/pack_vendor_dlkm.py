@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build vendor_dlkm.img the way Android loads it, from Kleaf's vendor_dlkm staging archive (ANAL-198).
 
-usage: pack_vendor_dlkm.py --out DIR --file-contexts FC --modules-list LIST INPUT...
+usage: pack_vendor_dlkm.py --out DIR --file-contexts FC --modules-list LIST [--modules-options FILE] INPUT...
 
 INPUT are the files of a Kleaf vendor_dlkm_image(archive = True) and of //common:kernel_x86_64_system_dlkm_image;
 the script picks vendor_dlkm_staging_archive.tar.gz and system_dlkm.modules.load from them. LIST names the
@@ -15,7 +15,9 @@ against, which system_dlkm provides. modules.load, modules.blocklist, modules.so
 kept; modules.alias keeps the aliases of the vendor modules.
 
 Then, as Kleaf's build_vendor_dlkm does: build_image (erofs, file contexts FC, which here are the platform's
-vendor_file labels) and an unsigned AVB hashtree footer. Writes DIR/vendor_dlkm.img and DIR/vendor_dlkm.modules.{load,blocklist,dep}. Runs in a Kleaf
+vendor_file labels) and an unsigned AVB hashtree footer. --modules-options FILE becomes lib/modules/modules.options
+(Kleaf's vendor_dlkm_image has no options input). Writes DIR/vendor_dlkm.img and
+DIR/vendor_dlkm.modules.{load,blocklist,dep,options} (options empty without the flag). Runs in a Kleaf
 hermetic_genrule, which puts python3, build_image, mkfs.erofs and avbtool on PATH.
 """
 import argparse
@@ -35,7 +37,7 @@ def pick(inputs, name):
     return f
 
 
-def layout(archive, gki, wanted, root):
+def layout(archive, gki, wanted, root, options=None):
     with tempfile.TemporaryDirectory() as t:
         with tarfile.open(archive) as tf:
             try:
@@ -78,6 +80,9 @@ def layout(archive, gki, wanted, root):
             if os.path.exists(os.path.join(src, name)):
                 shutil.copy2(os.path.join(src, name), os.path.join(dst, name))
         open(os.path.join(dst, "modules.blocklist"), "a").close()
+        if options:
+            shutil.copyfile(options, os.path.join(dst, "modules.options"))
+        open(os.path.join(dst, "modules.options"), "a").close()
     return vendor, needed_gki
 
 
@@ -86,6 +91,7 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--file-contexts", required=True)
     ap.add_argument("--modules-list", required=True)
+    ap.add_argument("--modules-options")
     ap.add_argument("inputs", nargs="+")
     a = ap.parse_args()
     gki = {base(l) for l in open(pick(a.inputs, "system_dlkm.modules.load")) if l.strip()}
@@ -93,7 +99,8 @@ def main():
     with tempfile.TemporaryDirectory() as w:
         root = os.path.join(w, "root")
         wanted = {l.strip() for l in open(a.modules_list) if l.strip() and not l.startswith("#")}
-        vendor, needed_gki = layout(pick(a.inputs, "vendor_dlkm_staging_archive.tar.gz"), gki, wanted, root)
+        vendor, needed_gki = layout(pick(a.inputs, "vendor_dlkm_staging_archive.tar.gz"), gki, wanted, root,
+                                    a.modules_options)
         props = os.path.join(w, "props")
         with open(props, "w") as f:
             f.write("fs_type=erofs\nuse_dynamic_partition_size=true\nmount_point=vendor_dlkm\n"
@@ -102,7 +109,7 @@ def main():
         subprocess.run(["build_image", root, props, img, "/dev/null"], check=True)
         subprocess.run(["avbtool", "add_hashtree_footer", "--partition_name", "vendor_dlkm",
                         "--hash_algorithm", "sha256", "--image", img], check=True)
-        for f in ("load", "blocklist", "dep"):
+        for f in ("load", "blocklist", "dep", "options"):
             shutil.copy2(os.path.join(root, "lib/modules", f"modules.{f}"),
                          os.path.join(a.out, f"vendor_dlkm.modules.{f}"))
     print(f"vendor_dlkm: {len(vendor)} vendor modules; links {len(needed_gki)} GKI modules from system_dlkm: "

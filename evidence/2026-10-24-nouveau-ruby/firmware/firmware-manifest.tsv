@@ -1,0 +1,5 @@
+# linux-firmware 38c1a7096dfb2188f55f342b835f14c362c59409; /vendor/firmware layout; ANAL-198
+path	size	sha256	source	driver	licence_file	requested_by	ga403wr
+vendor/firmware/nvidia/gb205/gsp/fmc-570.144.bin	199820	cb59a35c1d4bd1274d7267fd10243c29f843ff41c851b9cbd59f5af2ddd7fece	linux-firmware 38c1a7096dfb:nvidia/gb202/gsp/fmc-570.144.bin (WHENCE link nvidia/gb205/gsp/fmc-570.144.bin)	nouveau - NVIDIA GPU driver	LICENCE.nvidia	nouveau	yes
+vendor/firmware/nvidia/gb205/gsp/bootloader-570.144.bin	200812	d40b48e431d1707dc77af3605db358ed7a32ebfc2830eb74de2eddb4d3025071	linux-firmware 38c1a7096dfb:nvidia/gb202/gsp/bootloader-570.144.bin (WHENCE link nvidia/gb205/gsp/bootloader-570.144.bin)	nouveau - NVIDIA GPU driver	LICENCE.nvidia	nouveau	yes
+vendor/firmware/nvidia/gb205/gsp/gsp-570.144.bin	63571696	a8c3ebeed280323aedb51c061f321e73379cce7a9ae643a33dd03915df027f7f	linux-firmware 38c1a7096dfb:nvidia/ga102/gsp/gsp-570.144.bin (WHENCE link nvidia/gb205/gsp/gsp-570.144.bin)	nouveau - NVIDIA GPU driver	LICENCE.nvidia	nouveau	yes

@@ -1,0 +1,120 @@
+# Linux 7.2.8 on the G14 (owner's root inventory, 2026-10-16): the dGPU around the s2idle cycles (ANAL-257).
+# Source: ~/anybook/hw/ga403wr-20261016-135706 (private). Lines quoted verbatim; MACs were already redacted.
+
+== supergfx-mode.txt / supergfx-power.txt
+$ supergfxctl -g
+Integrated
+$ supergfxctl -S
+off
+
+== asus-platform.txt (dgpu_disable, gpu_mux_mode)
+dgpu_disable=0
+gpu_mux_mode=1
+
+== lsmod (power-relevant)
+asus_nb_wmi            32768  0
+amdxdna               294912  0
+ucsi_acpi              16384  0
+asus_armoury          135168  0
+typec_ucsi             90112  1 ucsi_acpi
+amd_pmf                98304  1 amdxdna
+amdtee                 32768  0
+typec                 135168  1 typec_ucsi
+amd_pmc                65536  0
+tee                    69632  3 trusted,amd_pmf,amdtee
+asus_wmi              155648  3 asus_armoury,asus_nb_wmi,hid_asus
+ccp                   241664  2 kvm_amd,amdtee
+thunderbolt           655360  1 typec
+
+== dmesg: NVIDIA, vfio, PCIe hotplug and suspend lines
+[    0.508113] pcieport 0000:00:01.1: pciehp: Slot #0 AttnBtn- PwrCtrl- MRL- AttnInd- PwrInd- HotPlug+ Surprise+ Interlock- NoCompl+ IbPresDis- LLActRep+
+[    0.508554] pcieport 0000:00:02.2: pciehp: Slot #0 AttnBtn- PwrCtrl- MRL- AttnInd- PwrInd- HotPlug+ Surprise+ Interlock- NoCompl+ IbPresDis- LLActRep+
+[    0.508863] pcieport 0000:00:03.1: pciehp: Slot #0 AttnBtn- PwrCtrl- MRL- AttnInd- PwrInd- HotPlug+ Surprise+ Interlock- NoCompl+ IbPresDis- LLActRep+
+[    2.093482] ccp 0000:65:00.2: enabling device (0000 -> 0002)
+[    2.094962] ccp 0000:65:00.2: tee enabled
+[    2.094966] ccp 0000:65:00.2: psp enabled
+[  209.657075] amd-pmf AMDI0103:00: No Smart PC policy present
+[  209.657082] amd-pmf AMDI0103:00: registered PMF device successfully
+[  209.710199] snd_hda_intel 0000:64:00.1: enabling device (0000 -> 0002)
+[  209.710233] snd_hda_intel 0000:64:00.1: Disabling MSI
+[  209.710241] snd_hda_intel 0000:64:00.1: Handle vga_switcheroo audio client
+[  211.560140] nvidia: loading out-of-tree module taints kernel.
+[  211.560151] nvidia: module verification failed: signature and/or required key missing - tainting kernel
+[  211.604173] nvidia-nvlink: Nvlink Core is being initialized, major device number 510
+[  211.605486] nvidia 0000:64:00.0: enabling device (0000 -> 0003)
+[  211.605670] nvidia 0000:64:00.0: vgaarb: VGA decodes changed: olddecodes=io+mem,decodes=none:owns=none
+[  212.557724] NVRM: GPU0 nvAssertOkFailedNoLog: Assertion failed: Invalid data passed [NV_ERR_INVALID_DATA] (0x00000025) returned from PlatformRequestHandler failed to get target temp from SBIOS @ platform_request_handler_ctrl.c:2175
+[  212.557737] NVRM: GPU0 nvAssertOkFailedNoLog: Assertion failed: Invalid data passed [NV_ERR_INVALID_DATA] (0x00000025) returned from PlatformRequestHandler failed to get platform power mode from SBIOS @ platform_request_handler_ctrl.c:2118
+[  212.744238] NVRM: loading NVIDIA UNIX Open Kernel Module for x86_64  615.71.09  Release Build  (root@<host>)  
+[  212.850266] nvidia-modeset: Loading NVIDIA UNIX Open Kernel Mode Setting Driver for x86_64  615.71.09  Release Build  (root@<host>)  
+[  212.897829] nvidia-modeset: WARNING: GPU:0: Unable to read EDID for display device DP-0
+[  212.911956] nvidia-modeset: WARNING: GPU:0: Unable to read EDID for display device DP-0
+[  216.622481] nvidia-modeset: Unloading
+[  216.895972] nvidia-nvlink: Unregistered Nvlink Core, major device number 510
+[  217.037190] snd_hda_intel 0000:64:00.1: GPU sound probed, but not operational: please add a quirk to driver_denylist
+[ 5539.729864] PM: suspend entry (s2idle)
+[61015.982807] pcieport 0000:00:02.2: pciehp: Slot(0-1): Card not present
+[61015.986734] pcieport 0000:00:02.2: pciehp: Slot(0-1): Card present
+[61015.986755] pcieport 0000:00:02.2: pciehp: Slot(0-1): Link Up
+[61016.545916] pcieport 0000:00:03.1: pciehp: Slot(0-2): Card not present
+[61016.545946] pcieport 0000:00:03.1: pciehp: Slot(0-2): Card present
+[61016.545948] pcieport 0000:00:03.1: pciehp: Slot(0-2): Link Up
+[61018.404202] snd_hda_intel 0000:64:00.1: enabling device (0000 -> 0002)
+[61018.404479] snd_hda_intel 0000:64:00.1: Disabling MSI
+[61018.404496] snd_hda_intel 0000:64:00.1: Handle vga_switcheroo audio client
+[61018.415993] PM: suspend exit
+[61022.592442] snd_hda_intel 0000:64:00.1: GPU sound probed, but not operational: please add a quirk to driver_denylist
+[61022.626222] vfio-pci 0000:64:00.0: vgaarb: VGA decodes changed: olddecodes=io+mem,decodes=io+mem:owns=none
+[61022.626417] vfio_pci: add [10de:2f58[ffffffff:ffffffff]] class 0x000000/00000000
+[61023.472442] vfio-pci 0000:64:00.0: Enabling HDA controller
+[61023.472843] vfio_pci: add [10de:2f80[ffffffff:ffffffff]] class 0x000000/00000000
+[61023.635037] vfio-pci 0000:64:00.0: Enabling HDA controller
+[61023.712126] vfio-pci 0000:64:00.0: vgaarb: VGA decodes changed: olddecodes=io+mem,decodes=io+mem:owns=none
+[61045.801484] PM: suspend entry (s2idle)
+[61496.110623] pcieport 0000:00:03.1: pciehp: Slot(0-2): Card not present
+[61496.110651] pcieport 0000:00:03.1: pciehp: Slot(0-2): Card present
+[61496.110653] pcieport 0000:00:03.1: pciehp: Slot(0-2): Link Up
+[61497.962793] snd_hda_intel 0000:64:00.1: enabling device (0000 -> 0002)
+[61497.963030] snd_hda_intel 0000:64:00.1: Disabling MSI
+[61497.963059] snd_hda_intel 0000:64:00.1: Handle vga_switcheroo audio client
+[61505.667202] PM: suspend exit
+[61509.874703] snd_hda_intel 0000:64:00.1: GPU sound probed, but not operational: please add a quirk to driver_denylist
+[61509.902637] vfio-pci 0000:64:00.0: vgaarb: VGA decodes changed: olddecodes=io+mem,decodes=io+mem:owns=none
+[61509.902877] vfio_pci: add [10de:2f58[ffffffff:ffffffff]] class 0x000000/00000000
+[61510.759516] vfio-pci 0000:64:00.0: Enabling HDA controller
+[61510.759847] vfio_pci: add [10de:2f80[ffffffff:ffffffff]] class 0x000000/00000000
+[61511.712028] vfio-pci 0000:64:00.0: Enabling HDA controller
+[61511.817340] vfio-pci 0000:64:00.0: Enabling HDA controller
+[61511.844201] vfio-pci 0000:64:00.0: vgaarb: VGA decodes changed: olddecodes=io+mem,decodes=io+mem:owns=none
+[61525.176680] PM: suspend entry (s2idle)
+[69867.804709] pcieport 0000:00:03.1: pciehp: Slot(0-2): Card not present
+[69867.804739] pcieport 0000:00:03.1: pciehp: Slot(0-2): Card present
+[69867.804741] pcieport 0000:00:03.1: pciehp: Slot(0-2): Link Up
+[69869.666246] snd_hda_intel 0000:64:00.1: enabling device (0000 -> 0002)
+[69869.666312] snd_hda_intel 0000:64:00.1: Disabling MSI
+[69869.666333] snd_hda_intel 0000:64:00.1: Handle vga_switcheroo audio client
+[69869.691708] PM: suspend exit
+[69873.974653] snd_hda_intel 0000:64:00.1: GPU sound probed, but not operational: please add a quirk to driver_denylist
+[69873.998390] vfio-pci 0000:64:00.0: vgaarb: VGA decodes changed: olddecodes=io+mem,decodes=io+mem:owns=none
+[69873.998554] vfio_pci: add [10de:2f58[ffffffff:ffffffff]] class 0x000000/00000000
+[69874.842875] vfio-pci 0000:64:00.0: Enabling HDA controller
+[69874.843171] vfio_pci: add [10de:2f80[ffffffff:ffffffff]] class 0x000000/00000000
+[69874.996688] vfio-pci 0000:64:00.0: Enabling HDA controller
+[69875.128485] vfio-pci 0000:64:00.0: Enabling HDA controller
+[69875.154060] vfio-pci 0000:64:00.0: vgaarb: VGA decodes changed: olddecodes=io+mem,decodes=io+mem:owns=none
+[70730.587182] PM: suspend entry (s2idle)
+[84042.639181] pcieport 0000:00:03.1: pciehp: Slot(0-2): Card not present
+[84042.639200] pcieport 0000:00:03.1: pciehp: Slot(0-2): Card present
+[84042.639202] pcieport 0000:00:03.1: pciehp: Slot(0-2): Link Up
+[84044.504561] snd_hda_intel 0000:64:00.1: enabling device (0000 -> 0002)
+[84044.504613] snd_hda_intel 0000:64:00.1: Disabling MSI
+[84044.504629] snd_hda_intel 0000:64:00.1: Handle vga_switcheroo audio client
+[84044.526755] PM: suspend exit
+[84048.876734] snd_hda_intel 0000:64:00.1: GPU sound probed, but not operational: please add a quirk to driver_denylist
+[84048.900743] vfio-pci 0000:64:00.0: vgaarb: VGA decodes changed: olddecodes=io+mem,decodes=io+mem:owns=none
+[84048.901006] vfio_pci: add [10de:2f58[ffffffff:ffffffff]] class 0x000000/00000000
+[84049.744218] vfio-pci 0000:64:00.0: Enabling HDA controller
+[84049.744658] vfio_pci: add [10de:2f80[ffffffff:ffffffff]] class 0x000000/00000000
+[84050.711892] vfio-pci 0000:64:00.0: Enabling HDA controller
+[84050.761637] vfio-pci 0000:64:00.0: vgaarb: VGA decodes changed: olddecodes=io+mem,decodes=io+mem:owns=none
+# grep for "didn't reach deepest" and "PTM" in the whole dmesg: 0 lines each (2,877 lines, 0.000000 to 84,671 s)

@@ -1,0 +1,115 @@
+# rc=0
+== vendor_dlkm
+-rw-r--r-- 1 root root   97360 1970-01-01 00:00 /vendor/lib/modules/drm_gpuvm.ko
+-rw-r--r-- 1 root root 6679840 1970-01-01 00:00 /vendor/lib/modules/nouveau.ko
+-rw-r--r-- 1 root root   45296 1970-01-01 00:00 /vendor/lib/modules/openbook_sleep_diag.ko
+/vendor/lib/modules/modules.blocklist:blocklist drm_gpuvm.ko
+/vendor/lib/modules/modules.blocklist:blocklist nouveau.ko
+/vendor/lib/modules/modules.blocklist:blocklist openbook_sleep_diag.ko
+ok   nouveau.ko is in vendor_dlkm
+ok   nouveau.ko is blocklisted
+ok   nouveau.ko is not in modules.load
+ok   nouveau is not live after boot
+ok   drm_gpuvm.ko is in vendor_dlkm
+ok   drm_gpuvm.ko is blocklisted
+ok   drm_gpuvm.ko is not in modules.load
+ok   drm_gpuvm is not live after boot
+ok   openbook_sleep_diag.ko is in vendor_dlkm
+ok   openbook_sleep_diag.ko is blocklisted
+ok   openbook_sleep_diag.ko is not in modules.load
+ok   openbook_sleep_diag is not live after boot
+== nouveau: load as vendor.openbook.lab-nouveau-load does
+Loading module /vendor/lib/modules/hwmon.ko with args ''
+Loading module /vendor/lib/modules/gpu-sched.ko with args ''
+Loading module /vendor/lib/modules/drm_display_helper.ko with args ''
+Loading module /vendor/lib/modules/i2c-algo-bit.ko with args ''
+Loading module /vendor/lib/modules/drm_exec.ko with args ''
+Loading module /vendor/lib/modules/drm_ttm_helper.ko with args ''
+Loading module /vendor/lib/modules/wmi.ko with args ''
+Loading module /vendor/lib/modules/video.ko with args ''
+Loading module /vendor/lib/modules/drm_gpuvm.ko with args ''
+Loaded kernel module /vendor/lib/modules/drm_gpuvm.ko
+Loading module /vendor/lib/modules/nouveau.ko with args 'runpm=1 modeset=2'
+Loaded kernel module /vendor/lib/modules/nouveau.ko
+modprobe rc=0
+nouveau 3514368 0 - Live 0x0000000000000000 (O)
+drm_gpuvm 61440 1 nouveau, Live 0x0000000000000000
+ok   nouveau live after the lab load
+ok   drm_gpuvm live after the lab load
+== ANAL-239's nouveau-guest-check.sh, nouveau loaded by the lab command
+ok   nouveau is live
+ok   drm_gpuvm is live and used by nouveau
+ok   amdgpu is live
+ok   runpm=1 (modules.options)
+ok   modeset=2 (modules.options)
+ok   nouveau registered a PCI driver
+ok   nouveau bound nothing
+ok   no NVIDIA PCI function in this guest
+ok   no DRM node belongs to nouveau
+ok   no nouveau error or warning in the kernel log
+ok   no kernel BUG, Oops, WARNING or GPF in the kernel log
+ok   SELinux enforcing
+ok   no denial names nouveau, the GSP firmware or openbook-pc-setup
+ok   dgpu-pm reports nouveau's parameters to logd
+ok   dgpu-pm finds no NVIDIA GPU
+ok   dgpu-report says absent
+ok   fixture tests pass under the guest's sh
+ok   nouveau-guest-check passes with the lab-loaded nouveau
+== nouveau: unload as vendor.openbook.lab-nouveau-unload does
+modprobe: Failed to remove module '/vendor/lib/modules/video.ko': Try again
+modprobe: Failed to remove module '/vendor/lib/modules/wmi.ko': Try again
+modprobe: Failed to remove module '/vendor/lib/modules/drm_ttm_helper.ko': Try again
+modprobe: Failed to remove module '/vendor/lib/modules/drm_exec.ko': Try again
+modprobe: Failed to remove module '/vendor/lib/modules/i2c-algo-bit.ko': Try again
+modprobe: Failed to remove module '/vendor/lib/modules/drm_display_helper.ko': Try again
+modprobe: Failed to remove module '/vendor/lib/modules/gpu-sched.ko': Try again
+modprobe: Failed to remove module '/vendor/lib/modules/hwmon.ko': Try again
+modprobe: Failed to remove module 'nouveau': No such file or directory
+modprobe -r rc=0
+ok   nouveau gone after the lab unload
+ok   drm_gpuvm gone with it (no other user)
+== openbook_sleep_diag: load as vendor.openbook.lab-diag-snapshot does
+Loading module /vendor/lib/modules/openbook_sleep_diag.ko with args ' snapshot=2 usb4=1 cycles=8'
+Loaded kernel module /vendor/lib/modules/openbook_sleep_diag.ko
+modprobe rc=0
+ok   openbook_sleep_diag live
+ptm_off=N snapshot=2 usb4=Y cycles=8
+ok   lab parameters applied
+no S0i3 attempt yet
+ok   report readable before any suspend
+ok   report is read-only
+openbook-pc-setup: lab-report (report@qemu): switch=1
+openbook-pc-setup: dgpu-report (lab report@qemu)
+openbook-pc-setup: dgpu-report: suspend_stats success=0 fail=0
+openbook-pc-setup: dgpu-report: state=absent
+openbook-pc-setup: lab: module nouveau not loaded
+openbook-pc-setup: lab: module drm_gpuvm not loaded
+openbook-pc-setup: lab: module openbook_sleep_diag loaded state=live refcnt=0
+openbook-pc-setup: lab: openbook_sleep_diag ptm_off=N snapshot=2 usb4=Y cycles=8
+openbook-pc-setup: lab: diag no S0i3 attempt yet
+lab report rc=0
+10-24 15:44:10.946  2588  2588 I openbook-pc-setup: KVM is available (10:232): AVF can run the Linux environment
+10-24 15:44:18.976  5820  5820 I openbook-pc-setup: lab-report (report@qemu): switch=1
+10-24 15:44:18.980  5821  5821 I openbook-pc-setup: dgpu-report (lab report@qemu)
+10-24 15:44:19.044  5858  5858 I openbook-pc-setup: lab: module nouveau not loaded
+10-24 15:44:19.048  5859  5859 I openbook-pc-setup: lab: module drm_gpuvm not loaded
+10-24 15:44:19.071  5870  5870 I openbook-pc-setup: lab: module openbook_sleep_diag loaded state=live refcnt=0
+10-24 15:44:19.108  5891  5891 I openbook-pc-setup: lab: openbook_sleep_diag ptm_off=N snapshot=2 usb4=Y cycles=8
+10-24 15:44:19.111  5892  5892 I openbook-pc-setup: lab: diag no S0i3 attempt yet
+ok   lab report relays the module state
+ok   lab report relays the parameters
+ok   lab report relays the S0i3 report
+== openbook_sleep_diag: unload, then the PTM-off variant
+modprobe: Failed to remove module 'openbook_sleep_diag': No such file or directory
+modprobe -r rc=0
+ok   openbook_sleep_diag gone after the lab unload
+Loading module /vendor/lib/modules/openbook_sleep_diag.ko with args ' ptm_off=1 snapshot=1 usb4=1 cycles=8'
+Loaded kernel module /vendor/lib/modules/openbook_sleep_diag.ko
+modprobe rc=0
+ok   PTM-off variant live with ptm_off=Y
+modprobe: Failed to remove module 'openbook_sleep_diag': No such file or directory
+modprobe -r rc=0
+ok   nothing left loaded
+== kernel log
+ok   no kernel BUG, Oops, WARNING or GPF in the kernel log
+lab-guest-check: 0 failure(s)

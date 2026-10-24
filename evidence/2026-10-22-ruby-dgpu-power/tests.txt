@@ -1,0 +1,103 @@
+# ANAL-238 tests, 2026-10-22T02:08:24Z, on the build host
+## scripts/openbook-pc-setup-test.sh bash
+ok   g14-d0: exit 0
+ok   g14-d0: HDMI audio unbound from snd_hda_intel
+ok   g14-d0: dGPU runtime PM auto
+ok   g14-d0: HDMI audio runtime PM auto
+ok   g14-d0: snd_hda_intel power_save
+ok   g14-off: exit 0
+ok   g14-off: AMD audio left alone
+ok   g14-off: power_save untouched
+ok   g14-off: nothing unbound
+ok   nouveau: exit 0
+ok   nouveau: dGPU untouched
+ok   nouveau: audio still bound
+ok   perms: exit 0
+ok   perms: reports (not root: chown skipped)
+ok   kvm on: exit 0
+ok   kvm on: vendor.openbook.kvm=1
+ok   kvm off: exit 0
+ok   kvm off: vendor.openbook.kvm=0
+ok   report d3cold: exit 0
+ok   report d3cold: verdict
+ok   report d3cold: GPU line
+ok   report d3cold: bridge and PG00 off
+ok   report d3cold: asus read
+ok   report d3cold: suspend_stats
+ok   report d3cold: logd copy
+ok   report d3cold: read-only
+ok   report d0: verdict
+ok   report d0: HDA bound
+ok   report d0: default reason
+ok   report absent: verdict
+ok   ctl on: exit 0
+ok   ctl on: GPU held in D0
+ok   ctl on: HDMI audio held in D0
+ok   ctl on: reports after
+ok   ctl auto: GPU back to auto
+ok   ctl bad value: exit 2
+ok   ctl bad value: nothing written
+ok   ctl with nouveau: exit 0
+ok   ctl with nouveau: audio untouched
+openbook-pc-setup-test: 0 failure(s)
+exit 0
+## scripts/openbook-pc-setup-test.sh sh
+ok   g14-d0: exit 0
+ok   g14-d0: HDMI audio unbound from snd_hda_intel
+ok   g14-d0: dGPU runtime PM auto
+ok   g14-d0: HDMI audio runtime PM auto
+ok   g14-d0: snd_hda_intel power_save
+ok   g14-off: exit 0
+ok   g14-off: AMD audio left alone
+ok   g14-off: power_save untouched
+ok   g14-off: nothing unbound
+ok   nouveau: exit 0
+ok   nouveau: dGPU untouched
+ok   nouveau: audio still bound
+ok   perms: exit 0
+ok   perms: reports (not root: chown skipped)
+ok   kvm on: exit 0
+ok   kvm on: vendor.openbook.kvm=1
+ok   kvm off: exit 0
+ok   kvm off: vendor.openbook.kvm=0
+ok   report d3cold: exit 0
+ok   report d3cold: verdict
+ok   report d3cold: GPU line
+ok   report d3cold: bridge and PG00 off
+ok   report d3cold: asus read
+ok   report d3cold: suspend_stats
+ok   report d3cold: logd copy
+ok   report d3cold: read-only
+ok   report d0: verdict
+ok   report d0: HDA bound
+ok   report d0: default reason
+ok   report absent: verdict
+ok   ctl on: exit 0
+ok   ctl on: GPU held in D0
+ok   ctl on: HDMI audio held in D0
+ok   ctl on: reports after
+ok   ctl auto: GPU back to auto
+ok   ctl bad value: exit 2
+ok   ctl bad value: nothing written
+ok   ctl with nouveau: exit 0
+ok   ctl with nouveau: audio untouched
+openbook-pc-setup-test: 0 failure(s)
+exit 0
+## scripts/dgpu-power-check-test.sh bash (unchanged checker)
+ok   bad argument:  rc=3
+all passed (bash)
+## python3 -I scripts/googlebook/sleep-history-test.py -v
+test_parse (__main__.DgpuReportParse.test_parse) ... ok
+test_battery_span (__main__.SleepHistory.test_battery_span) ... ok
+test_boots_suspends_and_s0i3 (__main__.SleepHistory.test_boots_suspends_and_s0i3) ... ok
+test_no_history_refused (__main__.SleepHistory.test_no_history_refused) ... ok
+test_s0i3_nonzero_detected (__main__.SleepHistory.test_s0i3_nonzero_detected) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.138s
+
+OK
+## host_init_verifier: vendor and system init scripts with the new init.openbook.rc (multi-partition mode, vendor subcontext)
+exit 0
+## sh -n device/anybook/common/pc/bin/openbook-pc-setup.sh
+exit 0

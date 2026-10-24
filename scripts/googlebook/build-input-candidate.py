@@ -137,11 +137,12 @@ def verify_boot_files(tree, work, entries):
         raise ValueError("EFI manifest readback mismatch")
 
 
-def rebuild_erofs(a, w, source, expected_metadata, expected):
+def rebuild_erofs(a, w, source, expected_metadata, expected, timestamp=1230768000):
     """Build w/system.img from `source` with exactly `expected_metadata` (erofs-inventory rows), then prove it.
 
     Sets modes and mtimes, writes fs_config/file_contexts, runs mkfs.erofs, and requires the new image's
-    inventory to equal expected_metadata and its extracted files/symlinks to equal `expected`.
+    inventory to equal expected_metadata and its extracted files/symlinks to equal `expected`. mkfs.erofs gives
+    every inode `timestamp`: Google's partitions use 1230768000; OpenBook's vendor keeps its own build time.
     """
     tools = a.tools
     run = p.h.run
@@ -180,7 +181,7 @@ def rebuild_erofs(a, w, source, expected_metadata, expected):
     # rebuild the same bytes, so a rebuild can be checked byte for byte.
     digest = p.hashlib.sha256(("\n".join(expected_metadata) + "\n" + json.dumps(expected, sort_keys=True)).encode())
     fs_uuid = str(uuid.uuid5(uuid.NAMESPACE_URL, "openbook-erofs:" + digest.hexdigest()))
-    run(tools / "mkfs.erofs", "-zlz4hc,9", "-C65536", "-T", "1230768000", "-U", fs_uuid, "--preserve-mtime",
+    run(tools / "mkfs.erofs", "-zlz4hc,9", "-C65536", "-T", str(timestamp), "-U", fs_uuid, "--preserve-mtime",
         f"--fs-config-file={w / 'fs_config'}", f"--file-contexts={w / 'contexts'}", rebuilt, source)
     after = inventory(a.inventory, rebuilt)
     if expected_metadata != after:

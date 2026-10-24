@@ -1,0 +1,741 @@
+{
+ "schema": "openbook-ruby-sleep-history/1",
+ "source_sha256": "0a6c011c5bebc9724347af62cbd684ab6f8ee6af7dc23c59702e22e666c580fc",
+ "history_lines": 20251,
+ "boots": [
+  {
+   "start": "2026-10-20T16:45:17",
+   "start_in_history": false,
+   "end": "2026-10-21T06:01:04",
+   "suspends": 84,
+   "suspended_s": 41795.0,
+   "s0i3_records": {
+    "last_time_ms": 0,
+    "last_count": 105,
+    "max_time_ms": 0
+   },
+   "wake_reasons": {
+    "9 acpi": 85,
+    "Abort: Pending Wakeup Sources: mmc0": 85,
+    "Abort: Last active Wakeup Source: eventpoll": 51,
+    "Abort: Pending Wakeup Sources:": 8,
+    "Abort: Device alarmtimer.0.auto failed to suspend: error -16": 2,
+    "Abort: Pending Wakeup Sources: alarmtimer.0.auto": 1,
+    "Abort: Pending Wakeup Sources: [timerfd]": 1,
+    "9 acpi:38 PCIe PME": 1
+   }
+  },
+  {
+   "start": "2026-10-21T06:01:04",
+   "start_in_history": true,
+   "end": "2026-10-21T15:15:32",
+   "suspends": 11,
+   "suspended_s": 553.3,
+   "s0i3_records": {
+    "last_time_ms": 0,
+    "last_count": 11,
+    "max_time_ms": 0
+   },
+   "wake_reasons": {
+    "Abort: Pending Wakeup Sources: mmc0": 11,
+    "9 acpi": 10,
+    "Abort: Last active Wakeup Source: eventpoll": 2,
+    "Abort: Pending Wakeup Sources:": 1,
+    "7 pinctrl_amd:9 acpi": 1
+   }
+  },
+  {
+   "start": "2026-10-21T15:15:32",
+   "start_in_history": true,
+   "end": "2026-10-21T15:31:46",
+   "suspends": 0,
+   "suspended_s": 0.0,
+   "s0i3_records": {
+    "last_time_ms": 0,
+    "last_count": 1,
+    "max_time_ms": 0
+   },
+   "wake_reasons": {
+    "Abort: Last active Wakeup Source: eventpoll": 1,
+    "Abort: Pending Wakeup Sources: mmc0": 1,
+    "7 pinctrl_amd:9 acpi": 1
+   }
+  },
+  {
+   "start": "2026-10-21T15:31:46",
+   "start_in_history": true,
+   "end": "2026-10-21T18:24:26",
+   "suspends": 1,
+   "suspended_s": 13.4,
+   "s0i3_records": {
+    "last_time_ms": 0,
+    "last_count": 1,
+    "max_time_ms": 0
+   },
+   "wake_reasons": {
+    "Abort: Pending Wakeup Sources: mmc0": 1,
+    "9 acpi": 1
+   }
+  },
+  {
+   "start": "2026-10-21T18:24:26",
+   "start_in_history": true,
+   "end": "2026-10-21T19:55:56",
+   "suspends": 6,
+   "suspended_s": 112.4,
+   "s0i3_records": {
+    "last_time_ms": 0,
+    "last_count": 5,
+    "max_time_ms": 0
+   },
+   "wake_reasons": {
+    "Abort: Pending Wakeup Sources: mmc0": 6,
+    "9 acpi": 4,
+    "7 pinctrl_amd:9 acpi": 2,
+    "Abort: Last active Wakeup Source: eventpoll": 1,
+    "Abort: Pending Wakeup Sources:": 1
+   }
+  },
+  {
+   "start": "2026-10-21T19:55:56",
+   "start_in_history": true,
+   "end": "2026-10-21T20:16:12",
+   "suspends": 0,
+   "suspended_s": 0.0,
+   "s0i3_records": {
+    "last_time_ms": 0,
+    "last_count": 0,
+    "max_time_ms": 0
+   },
+   "wake_reasons": {}
+  },
+  {
+   "start": "2026-10-21T20:16:12",
+   "start_in_history": true,
+   "end": null,
+   "suspends": 7,
+   "suspended_s": 232.3,
+   "s0i3_records": {
+    "last_time_ms": 0,
+    "last_count": 7,
+    "max_time_ms": 0
+   },
+   "wake_reasons": {
+    "9 acpi:38 PCIe PME": 5,
+    "Abort: Pending Wakeup Sources: mmc0": 1,
+    "9 acpi": 1,
+    "7 pinctrl_amd:9 acpi": 1
+   }
+  }
+ ],
+ "battery_spans": [
+  {
+   "start": "2026-10-20T16:46:16",
+   "minutes": 10.1,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 29,
+   "mean_mv": 16832,
+   "avg_mw": 2894
+  },
+  {
+   "start": "2026-10-20T17:01:01",
+   "minutes": 10.1,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 59,
+   "mean_mv": 16752,
+   "avg_mw": 5889
+  },
+  {
+   "start": "2026-10-20T17:12:05",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.985,
+   "charge_drop_mah": 46,
+   "mean_mv": 16664,
+   "avg_mw": 4590
+  },
+  {
+   "start": "2026-10-20T17:23:06",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.985,
+   "charge_drop_mah": 46,
+   "mean_mv": 16680,
+   "avg_mw": 4586
+  },
+  {
+   "start": "2026-10-20T17:36:54",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.985,
+   "charge_drop_mah": 46,
+   "mean_mv": 16588,
+   "avg_mw": 4569
+  },
+  {
+   "start": "2026-10-20T17:47:55",
+   "minutes": 10.1,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 47,
+   "mean_mv": 16636,
+   "avg_mw": 4642
+  },
+  {
+   "start": "2026-10-20T18:01:01",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.985,
+   "charge_drop_mah": 39,
+   "mean_mv": 16588,
+   "avg_mw": 3874
+  },
+  {
+   "start": "2026-10-20T18:12:02",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 44,
+   "mean_mv": 16581,
+   "avg_mw": 4361
+  },
+  {
+   "start": "2026-10-20T18:23:04",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.985,
+   "charge_drop_mah": 47,
+   "mean_mv": 16443,
+   "avg_mw": 4628
+  },
+  {
+   "start": "2026-10-20T18:34:05",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 47,
+   "mean_mv": 16401,
+   "avg_mw": 4608
+  },
+  {
+   "start": "2026-10-20T18:45:07",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 47,
+   "mean_mv": 16359,
+   "avg_mw": 4596
+  },
+  {
+   "start": "2026-10-20T19:01:01",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 46,
+   "mean_mv": 16269,
+   "avg_mw": 4474
+  },
+  {
+   "start": "2026-10-20T19:12:03",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 48,
+   "mean_mv": 16246,
+   "avg_mw": 4662
+  },
+  {
+   "start": "2026-10-20T19:23:05",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.985,
+   "charge_drop_mah": 40,
+   "mean_mv": 16244,
+   "avg_mw": 3891
+  },
+  {
+   "start": "2026-10-20T19:37:21",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 48,
+   "mean_mv": 16107,
+   "avg_mw": 4622
+  },
+  {
+   "start": "2026-10-20T19:48:24",
+   "minutes": 10.1,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 49,
+   "mean_mv": 16059,
+   "avg_mw": 4665
+  },
+  {
+   "start": "2026-10-20T20:01:02",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.985,
+   "charge_drop_mah": 49,
+   "mean_mv": 15993,
+   "avg_mw": 4686
+  },
+  {
+   "start": "2026-10-20T20:12:03",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 48,
+   "mean_mv": 15957,
+   "avg_mw": 4579
+  },
+  {
+   "start": "2026-10-20T20:23:05",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.985,
+   "charge_drop_mah": 41,
+   "mean_mv": 15910,
+   "avg_mw": 3905
+  },
+  {
+   "start": "2026-10-20T20:34:07",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.985,
+   "charge_drop_mah": 50,
+   "mean_mv": 15854,
+   "avg_mw": 4740
+  },
+  {
+   "start": "2026-10-20T20:45:08",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 49,
+   "mean_mv": 15790,
+   "avg_mw": 4625
+  },
+  {
+   "start": "2026-10-20T21:01:01",
+   "minutes": 10.1,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 50,
+   "mean_mv": 15747,
+   "avg_mw": 4668
+  },
+  {
+   "start": "2026-10-20T21:12:08",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 49,
+   "mean_mv": 15673,
+   "avg_mw": 4591
+  },
+  {
+   "start": "2026-10-20T21:23:10",
+   "minutes": 10.1,
+   "screen": "off",
+   "suspended_share": 0.985,
+   "charge_drop_mah": 50,
+   "mean_mv": 15587,
+   "avg_mw": 4636
+  },
+  {
+   "start": "2026-10-20T21:34:15",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 50,
+   "mean_mv": 15520,
+   "avg_mw": 4639
+  },
+  {
+   "start": "2026-10-20T21:45:17",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.985,
+   "charge_drop_mah": 49,
+   "mean_mv": 15514,
+   "avg_mw": 4543
+  },
+  {
+   "start": "2026-10-20T22:01:01",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 49,
+   "mean_mv": 15399,
+   "avg_mw": 4518
+  },
+  {
+   "start": "2026-10-20T22:12:02",
+   "minutes": 10.1,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 51,
+   "mean_mv": 15359,
+   "avg_mw": 4644
+  },
+  {
+   "start": "2026-10-20T22:23:09",
+   "minutes": 10.1,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 50,
+   "mean_mv": 15308,
+   "avg_mw": 4538
+  },
+  {
+   "start": "2026-10-20T22:34:16",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 51,
+   "mean_mv": 15283,
+   "avg_mw": 4660
+  },
+  {
+   "start": "2026-10-20T22:45:18",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 49,
+   "mean_mv": 15220,
+   "avg_mw": 4458
+  },
+  {
+   "start": "2026-10-20T23:01:02",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 50,
+   "mean_mv": 15200,
+   "avg_mw": 4544
+  },
+  {
+   "start": "2026-10-20T23:12:03",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 51,
+   "mean_mv": 15175,
+   "avg_mw": 4627
+  },
+  {
+   "start": "2026-10-20T23:23:05",
+   "minutes": 10.1,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 50,
+   "mean_mv": 15122,
+   "avg_mw": 4489
+  },
+  {
+   "start": "2026-10-20T23:39:00",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.983,
+   "charge_drop_mah": 48,
+   "mean_mv": 15142,
+   "avg_mw": 4348
+  },
+  {
+   "start": "2026-10-20T23:50:01",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.985,
+   "charge_drop_mah": 51,
+   "mean_mv": 15048,
+   "avg_mw": 4602
+  },
+  {
+   "start": "2026-10-21T00:01:01",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.985,
+   "charge_drop_mah": 50,
+   "mean_mv": 15047,
+   "avg_mw": 4505
+  },
+  {
+   "start": "2026-10-21T00:12:02",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 43,
+   "mean_mv": 15095,
+   "avg_mw": 3880
+  },
+  {
+   "start": "2026-10-21T00:23:04",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 51,
+   "mean_mv": 14965,
+   "avg_mw": 4564
+  },
+  {
+   "start": "2026-10-21T00:34:06",
+   "minutes": 10.1,
+   "screen": "off",
+   "suspended_share": 0.985,
+   "charge_drop_mah": 51,
+   "mean_mv": 14971,
+   "avg_mw": 4549
+  },
+  {
+   "start": "2026-10-21T00:45:10",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 51,
+   "mean_mv": 14946,
+   "avg_mw": 4558
+  },
+  {
+   "start": "2026-10-21T01:01:01",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 52,
+   "mean_mv": 14905,
+   "avg_mw": 4634
+  },
+  {
+   "start": "2026-10-21T01:13:30",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 51,
+   "mean_mv": 14909,
+   "avg_mw": 4546
+  },
+  {
+   "start": "2026-10-21T01:24:32",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 52,
+   "mean_mv": 14874,
+   "avg_mw": 4624
+  },
+  {
+   "start": "2026-10-21T01:35:34",
+   "minutes": 10.1,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 46,
+   "mean_mv": 14937,
+   "avg_mw": 4100
+  },
+  {
+   "start": "2026-10-21T01:46:37",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 52,
+   "mean_mv": 14821,
+   "avg_mw": 4608
+  },
+  {
+   "start": "2026-10-21T02:01:01",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 52,
+   "mean_mv": 14782,
+   "avg_mw": 4595
+  },
+  {
+   "start": "2026-10-21T02:12:03",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.985,
+   "charge_drop_mah": 52,
+   "mean_mv": 14782,
+   "avg_mw": 4603
+  },
+  {
+   "start": "2026-10-21T02:23:04",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.985,
+   "charge_drop_mah": 51,
+   "mean_mv": 14764,
+   "avg_mw": 4501
+  },
+  {
+   "start": "2026-10-21T02:34:06",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.985,
+   "charge_drop_mah": 49,
+   "mean_mv": 14828,
+   "avg_mw": 4350
+  },
+  {
+   "start": "2026-10-21T02:45:07",
+   "minutes": 10.1,
+   "screen": "off",
+   "suspended_share": 0.985,
+   "charge_drop_mah": 52,
+   "mean_mv": 14675,
+   "avg_mw": 4554
+  },
+  {
+   "start": "2026-10-21T03:01:01",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.985,
+   "charge_drop_mah": 52,
+   "mean_mv": 14646,
+   "avg_mw": 4552
+  },
+  {
+   "start": "2026-10-21T03:12:03",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 53,
+   "mean_mv": 14641,
+   "avg_mw": 4640
+  },
+  {
+   "start": "2026-10-21T03:23:05",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 47,
+   "mean_mv": 14695,
+   "avg_mw": 4136
+  },
+  {
+   "start": "2026-10-21T03:34:06",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 52,
+   "mean_mv": 14561,
+   "avg_mw": 4526
+  },
+  {
+   "start": "2026-10-21T03:45:08",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.985,
+   "charge_drop_mah": 53,
+   "mean_mv": 14522,
+   "avg_mw": 4609
+  },
+  {
+   "start": "2026-10-21T04:01:01",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 53,
+   "mean_mv": 14487,
+   "avg_mw": 4591
+  },
+  {
+   "start": "2026-10-21T04:12:03",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 49,
+   "mean_mv": 14557,
+   "avg_mw": 4264
+  },
+  {
+   "start": "2026-10-21T04:23:05",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.985,
+   "charge_drop_mah": 53,
+   "mean_mv": 14422,
+   "avg_mw": 4570
+  },
+  {
+   "start": "2026-10-21T04:34:07",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 53,
+   "mean_mv": 14408,
+   "avg_mw": 4565
+  },
+  {
+   "start": "2026-10-21T04:45:09",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 50,
+   "mean_mv": 14432,
+   "avg_mw": 4321
+  },
+  {
+   "start": "2026-10-21T05:00:58",
+   "minutes": 10.1,
+   "screen": "off",
+   "suspended_share": 0.985,
+   "charge_drop_mah": 54,
+   "mean_mv": 14367,
+   "avg_mw": 4629
+  },
+  {
+   "start": "2026-10-21T05:12:01",
+   "minutes": 10.0,
+   "screen": "off",
+   "suspended_share": 0.986,
+   "charge_drop_mah": 53,
+   "mean_mv": 14314,
+   "avg_mw": 4535
+  },
+  {
+   "start": "2026-10-21T14:03:47",
+   "minutes": 10.0,
+   "screen": "on",
+   "suspended_share": 0.0,
+   "charge_drop_mah": 0,
+   "mean_mv": 17008,
+   "avg_mw": 0
+  },
+  {
+   "start": "2026-10-21T14:21:51",
+   "minutes": 53.7,
+   "screen": "on",
+   "suspended_share": 0.0,
+   "charge_drop_mah": 1245,
+   "mean_mv": 15920,
+   "avg_mw": 22157
+  },
+  {
+   "start": "2026-10-21T15:18:28",
+   "minutes": 13.2,
+   "screen": "on",
+   "suspended_share": 0.0,
+   "charge_drop_mah": 161,
+   "mean_mv": 15453,
+   "avg_mw": 11344
+  }
+ ],
+ "battery_totals": {
+  "screen_off": {
+   "spans": 63,
+   "minutes": 631.3,
+   "avg_mw": 4503
+  },
+  "screen_on": {
+   "spans": 3,
+   "minutes": 76.9,
+   "avg_mw": 17420
+  }
+ },
+ "s0i3_ever_nonzero": false,
+ "suspends_with_s0i3_record": 130
+}
