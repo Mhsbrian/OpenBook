@@ -9,6 +9,29 @@ Labels:
 
 Evidence: `evidence/2026-10-21-nvidia-googlebook/`.
 
+## Update, 2026-10-24: owner direction and refocus
+
+**Owner direction** (B Honey on ANAL-187, 2026-10-22):
+- **Top priority is deep sleep (S0i3) and battery,** through a basic, power-managed nouveau driver.
+- **project-churro code may be used.** The owner calls it fair use: a private repo, for their own laptop, never published. Each reused patch records its provenance (Churro `d88a978`, file). If the repo or an image is ever published, those parts must be replaced or licensed first. This supersedes §1.4's "no code reused".
+
+**What ANAL-238 measured on Ruby** (`evidence/2026-10-22-ruby-dgpu-power/`, PR #126):
+- Our dGPU hook runs, and its HDMI-audio unbind works. The dGPU is very likely in D3cold; root is not readable on this user build.
+- S0i3: 0 of 130 suspends.
+- Asleep without S0i3 the laptop draws about 4.5 W.
+- Most dark resumes are PCIe PME on the dGPU root port `00:03.1`.
+
+**The honest technical picture** (`docs/power-input.md` §1):
+- On the AOSP image, S0i3 also missed with the dGPU in D3cold and every endpoint in D3.
+- Linux 7.2.8 on this laptop reached S0i3 with NVIDIA's driver managing the dGPU.
+- **So a driver is not yet shown to be what unlocks S0i3.** Other suspects: PCIe PTM (`CONFIG_PCIE_PTM` is off in Google's GKI, so firmware PTM state stays during suspend), USB4 router power management, amd-pmf, MPM.
+
+**Two issues therefore run side by side:**
+- **ANAL-239: the basic driver.** nouveau as a Ruby vendor module with the r570 runtime-PM fixes. In Hybrid it is headless or pinned away from the panel path. `snd_hda_intel` must still be kept off the dGPU's HDMI-audio function: without vga_switcheroo (off in GKI) that function blocks D3cold even with nouveau bound.
+- **ANAL-257: the S0i3 root cause.** Desk analysis of the SMU and idle-mask data, test-only modules (PTM off at suspend, the PCI snapshot), and a Linux live-USB A/B: nouveau bound vs driverless vs PTM off, with an optional Eco phase only with the owner's approval.
+
+ANAL-240 (NVK), ANAL-241 (modes design) and ANAL-242 (VFIO) are parked until the deep-sleep work lands.
+
 ## Summary
 
 - **project-churro has already done Googlebook OS on our exact GPU, in discrete mode.** It is a recipe that converts the Googlebook recovery image for generic PCs, and its test laptop (an MSI) has the same GPU as the G14: RTX 5070 Ti Laptop, GB205, `10de:2f18`. In dGPU-only MUX mode it reports the panel, HDMI, Chrome and Skia-Vulkan SurfaceFlinger working on nouveau + NVK (REPORTED, 2026-10-18/19). That removes most of the "is it possible" risk for an Ultimate mode on the G14.
