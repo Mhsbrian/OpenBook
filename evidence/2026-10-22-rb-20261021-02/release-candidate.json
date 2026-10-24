@@ -1,0 +1,201 @@
+{
+  "schema": "openbook-ruby-search-fix-release-candidate/1",
+  "date": "2026-10-22",
+  "release": "RB-20261021-02 (Ruby): RB-20261021-01 + Digitalis native bridge in system (ANAL-234)",
+  "record": "ANAL-252",
+  "approval": {
+    "by": "B Honey",
+    "comments": [
+      "01a1615f-d652-7523-8195-986f431d0c8f",
+      "01a16160 (to be clear, fix it and do what I said)"
+    ],
+    "scope": "build the release and write it to the USB for Update/migration",
+    "identified_write_confirmation": "pending: final image checksum, operation and SanDisk ending 2034 named after the fresh backup"
+  },
+  "inputs": {
+    "parent_candidate_sha256": "4b110e750ec2e7874ccdaf563ca8b9c7d45cd8eccc18848478edb1f9b5382cf3",
+    "parent_usb_sha256": "f1e7410b297578af2dfe9c07b5a0eeede663e6886ddbbc134e2345db6df6fadb",
+    "pr124_commit": "17b95038baf9af63bfe384e8764758527f9a5bf9",
+    "packaging_commit": "b75b573f4be2c16c2c196a2b0afd0ffb67328f9d",
+    "digitalis_bundle_manifest": "b1e2e2f7d5883fa650510fc5faef59824b7f1d7de02a536f38b8e78cbcf88604",
+    "libberberis_arm64_sha256": "75e51d4de98bfd926996435216c19ff0d43596883b6060bcffa18198348c0f5e",
+    "installer_image": "openbook-ruby-installer:anal229-laptop-update 94d8dbe1 (scripts identical to packaging commit)"
+  },
+  "candidate": {
+    "image_sha256": "5a466ee6012ce220e964205fdd3aad7c1788b992b392debddcc9f816c485784a",
+    "changed_logical": [
+      "system"
+    ],
+    "changed_file_count": 445,
+    "vbmeta_digest": "2da606567434fcae3b53ade44b3858015652e8ec2e206caefd2b1724ac23c576",
+    "vbmeta_size": "4032",
+    "protected_ranges_identical": true,
+    "source_unchanged": true,
+    "logical_payloads_verified": true
+  },
+  "ruby_vm": "vm-candidate.json",
+  "laptop_update_rehearsal": {
+    "path": "camera25 -> RB01 -> RB-20261021-01 -> RB-20261021-02 -> restore RB-20261021-01 (synthetic disks, software TPM, no owner data)",
+    "synthetic_usb_v5_sha256": "9856948d9e78157a81916ab30e20144d738a77b03d70d6c0ba55f2d209c928f8",
+    "phases": [
+      {
+        "phase": "ui-update-0",
+        "passed": true,
+        "mode": "update",
+        "answer": "confirm",
+        "changed": [
+          "EFI",
+          "super",
+          "vbmeta_a"
+        ],
+        "rollback_state": "updated",
+        "new_system": true,
+        "data_partitions_unchanged": true,
+        "usb_partitions_unchanged": true
+      },
+      {
+        "phase": "swap-usb-1",
+        "passed": true,
+        "usb": "synth/usb-v4"
+      },
+      {
+        "phase": "ui-update-2",
+        "passed": true,
+        "mode": "update",
+        "answer": "confirm",
+        "changed": [
+          "EFI",
+          "super",
+          "vbmeta_a"
+        ],
+        "rollback_state": "updated",
+        "new_system": true,
+        "data_partitions_unchanged": true,
+        "usb_partitions_unchanged": true
+      },
+      {
+        "phase": "swap-usb-3",
+        "passed": true,
+        "usb": "synth/usb-v5"
+      },
+      {
+        "phase": "ui-update-4",
+        "passed": true,
+        "mode": "update",
+        "answer": "wrong",
+        "changed": [],
+        "rollback_state": null,
+        "data_partitions_unchanged": true,
+        "usb_partitions_unchanged": true
+      },
+      {
+        "phase": "ui-update-5",
+        "passed": true,
+        "mode": "update",
+        "answer": "confirm",
+        "changed": [
+          "EFI",
+          "super",
+          "vbmeta_a"
+        ],
+        "rollback_state": "updated",
+        "new_system": true,
+        "data_partitions_unchanged": true,
+        "usb_partitions_unchanged": true
+      },
+      {
+        "phase": "ui-restore-6",
+        "passed": true,
+        "mode": "restore",
+        "answer": "confirm",
+        "changed": [
+          "EFI",
+          "super",
+          "vbmeta_a"
+        ],
+        "rollback_state": "restored",
+        "original_system_restored": true,
+        "data_partitions_unchanged": true,
+        "usb_partitions_unchanged": true
+      },
+      {
+        "phase": "ui-restore-7",
+        "passed": true,
+        "mode": "restore",
+        "answer": "noop",
+        "changed": [],
+        "rollback_state": "restored",
+        "data_partitions_unchanged": true,
+        "usb_partitions_unchanged": true
+      },
+      {
+        "phase": "ui-update-8",
+        "passed": true,
+        "mode": "update",
+        "answer": "confirm",
+        "changed": [
+          "EFI",
+          "super",
+          "vbmeta_a"
+        ],
+        "rollback_state": "updated",
+        "new_system": true,
+        "data_partitions_unchanged": true,
+        "usb_partitions_unchanged": true
+      },
+      {
+        "phase": "android-v5",
+        "passed": true,
+        "boot_completed": true,
+        "system_verity_root_observed": true,
+        "metadata_keys_unchanged": true,
+        "vm_only_swiftshader_system_server_crashes": 3
+      },
+      {
+        "phase": "ui-restore-10",
+        "passed": true,
+        "mode": "restore",
+        "answer": "confirm",
+        "changed": [
+          "EFI",
+          "super",
+          "vbmeta_a"
+        ],
+        "rollback_state": "restored",
+        "original_system_restored": true,
+        "data_partitions_unchanged": true,
+        "usb_partitions_unchanged": true
+      },
+      {
+        "phase": "android-restored",
+        "passed": true,
+        "boot_completed": true,
+        "system_verity_root_observed": true,
+        "metadata_keys_unchanged": true,
+        "vm_only_swiftshader_system_server_crashes": 1
+      }
+    ],
+    "note": "Two earlier Android attempts aborted before QEMU started (AF_UNIX path too long from long labels); rerun with short labels."
+  },
+  "provisional_real_stick_packaging": {
+    "composed_against": "f1e7410b (last written image; superseded by the fresh backup)",
+    "stage_a_sha256": "eca8fba0d85af2918a4dd0419ca2c3bfa33ff60420e0b660ba3225c2c1e9f92a",
+    "installer_pin_build": "RB-20261021-02-usb",
+    "laptop_update_record_sha256": "3de437adcd0a7da35db12953be8743490a9b18828f114e942291fadb5cf7aef4",
+    "laptop_update_previous": "RB-20261021-01 (vbmeta 611d49f2..., equals the G14 boot digest)",
+    "final_image_sha256": "df030698ac6189030653879e34052ce1e1ab8be533cf4f912f1571531948b676",
+    "writes": [
+      "EFI",
+      "vbmeta_a",
+      "super"
+    ],
+    "protected_bytes": 8805941248,
+    "apply_validator_accepted": true,
+    "physical_device_written": false
+  },
+  "not_verified": [
+    "Full RB-20261021-02 system on G14 hardware (Settings UI, results/navigation, Voice Access, YourWidget, ARM app corpus)",
+    "PIN unlock with the new system on hardware",
+    "Final image against a fresh SanDisk backup"
+  ]
+}
