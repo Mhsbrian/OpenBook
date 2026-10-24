@@ -1,0 +1,53 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <bhoneycutt153@gmail.com>
+Date: Sat, 24 Oct 2026 12:00:00 +0000
+Subject: [PATCH] ANYBOOK: nouveau: leave Tegra-only IOMMU and regulator calls
+ out of the x86 build
+
+gk20a instmem (IOMMU-backed instance memory) and gk20a volt (the GPU rail regulator) serve the Tegra
+SoC GPUs GK20A, GM20B and GP10B, which only the platform driver (NOUVEAU_PLATFORM_DRIVER, ARCH_TEGRA)
+creates. They are still compiled on x86, and modpost then needs iommu_map(), iommu_unmap() and
+regulator_set_voltage(), which the Ruby G14 GKI does not export to vendor modules.
+
+Guard both with IS_ENABLED(CONFIG_NOUVEAU_PLATFORM_DRIVER), so the compiler drops the IOMMU instobj
+path and the regulator call where that option is off. No PCI GPU reaches either path: imem->domain is
+only set from a Tegra device's IOMMU, and gk20a/gm20b volt only exist in the Tegra chip entries.
+
+OpenBook-only (ANAL-239).
+---
+ drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c | 5 ++++-
+ drivers/gpu/drm/nouveau/nvkm/subdev/volt/gk20a.c    | 5 +++++
+ 2 files changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c b/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c
+index 201022ae9214a..175015b1b0354 100644
+--- a/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c
++++ b/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c
+@@ -527,7 +527,10 @@ gk20a_instobj_new(struct nvkm_instmem *base, u32 size, u32 align, bool zero,
+ 	size = max(roundup(size, PAGE_SIZE), PAGE_SIZE);
+ 	align = max(roundup(align, PAGE_SIZE), PAGE_SIZE);
+ 
+-	if (imem->domain)
++	/* OpenBook (ANAL-239): only Tegra (NOUVEAU_PLATFORM_DRIVER) sets imem->domain. Saying so lets the compiler drop
++	 * the IOMMU path, whose iommu_map()/iommu_unmap() the Ruby GKI does not export, from the x86 build.
++	 */
++	if (IS_ENABLED(CONFIG_NOUVEAU_PLATFORM_DRIVER) && imem->domain)
+ 		ret = gk20a_instobj_ctor_iommu(imem, size >> PAGE_SHIFT,
+ 					       align, &node);
+ 	else
+diff --git a/drivers/gpu/drm/nouveau/nvkm/subdev/volt/gk20a.c b/drivers/gpu/drm/nouveau/nvkm/subdev/volt/gk20a.c
+index ccac88da88648..114786dd61db4 100644
+--- a/drivers/gpu/drm/nouveau/nvkm/subdev/volt/gk20a.c
++++ b/drivers/gpu/drm/nouveau/nvkm/subdev/volt/gk20a.c
+@@ -111,6 +111,11 @@ gk20a_volt_vid_set(struct nvkm_volt *base, u8 vid)
+ 	struct nvkm_subdev *subdev = &volt->base.subdev;
+ 
+ 	nvkm_debug(subdev, "set voltage as %duv\n", volt->base.vid[vid].uv);
++	/* OpenBook (ANAL-239): GK20A/GM20B are Tegra SoCs (NOUVEAU_PLATFORM_DRIVER). The x86 build leaves the call
++	 * out: the Ruby GKI does not export regulator_set_voltage().
++	 */
++	if (!IS_ENABLED(CONFIG_NOUVEAU_PLATFORM_DRIVER))
++		return -ENODEV;
+ 	return regulator_set_voltage(volt->vdd, volt->base.vid[vid].uv, 1200000);
+ }
+ 

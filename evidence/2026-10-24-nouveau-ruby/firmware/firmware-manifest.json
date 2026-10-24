@@ -1,0 +1,52 @@
+{
+ "linux_firmware": "38c1a7096dfb2188f55f342b835f14c362c59409",
+ "files": [
+  {
+   "path": "vendor/firmware/nvidia/gb205/gsp/fmc-570.144.bin",
+   "size": 199820,
+   "sha256": "cb59a35c1d4bd1274d7267fd10243c29f843ff41c851b9cbd59f5af2ddd7fece",
+   "source": "linux-firmware 38c1a7096dfb:nvidia/gb202/gsp/fmc-570.144.bin (WHENCE link nvidia/gb205/gsp/fmc-570.144.bin)",
+   "source_url": "https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/tree/nvidia/gb202/gsp/fmc-570.144.bin?id=38c1a7096dfb2188f55f342b835f14c362c59409",
+   "git_blob": "ce428007bd3b172264c6cd322b552b4dbc0572d5",
+   "driver": "nouveau - NVIDIA GPU driver",
+   "licence": "Redistributable. See LICENCE.nvidia for details",
+   "licence_file": "LICENCE.nvidia",
+   "requested_by": "nouveau",
+   "ga403wr": "yes"
+  },
+  {
+   "path": "vendor/firmware/nvidia/gb205/gsp/bootloader-570.144.bin",
+   "size": 200812,
+   "sha256": "d40b48e431d1707dc77af3605db358ed7a32ebfc2830eb74de2eddb4d3025071",
+   "source": "linux-firmware 38c1a7096dfb:nvidia/gb202/gsp/bootloader-570.144.bin (WHENCE link nvidia/gb205/gsp/bootloader-570.144.bin)",
+   "source_url": "https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/tree/nvidia/gb202/gsp/bootloader-570.144.bin?id=38c1a7096dfb2188f55f342b835f14c362c59409",
+   "git_blob": "7d210fc2be5aed9807afafc56bec6841ea318bcd",
+   "driver": "nouveau - NVIDIA GPU driver",
+   "licence": "Redistributable. See LICENCE.nvidia for details",
+   "licence_file": "LICENCE.nvidia",
+   "requested_by": "nouveau",
+   "ga403wr": "yes"
+  },
+  {
+   "path": "vendor/firmware/nvidia/gb205/gsp/gsp-570.144.bin",
+   "size": 63571696,
+   "sha256": "a8c3ebeed280323aedb51c061f321e73379cce7a9ae643a33dd03915df027f7f",
+   "source": "linux-firmware 38c1a7096dfb:nvidia/ga102/gsp/gsp-570.144.bin (WHENCE link nvidia/gb205/gsp/gsp-570.144.bin)",
+   "source_url": "https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/tree/nvidia/ga102/gsp/gsp-570.144.bin?id=38c1a7096dfb2188f55f342b835f14c362c59409",
+   "git_blob": "f20f1aa1b3dd0c0d8e7cfc63b455939e5acb0219",
+   "driver": "nouveau - NVIDIA GPU driver",
+   "licence": "Redistributable. See LICENCE.nvidia for details",
+   "licence_file": "LICENCE.nvidia",
+   "requested_by": "nouveau",
+   "ga403wr": "yes"
+  }
+ ],
+ "licence_files": [
+  "LICENCE.nvidia"
+ ],
+ "missing": [],
+ "notes": [
+  "GA403WR speaker tuning is not missing. linux-firmware has no files named 10431024 in its git tree, which is what ANAL-171 and the ANAL-198 issue text went by, but WHENCE (lines 9731-9736 at 38c1a709) creates cirrus/cs35l56-b0-dsp1-misc-10431024-* as links to the 10431044 tuning and CS35L56_Rev3.11.16.wmfw. The laptop loads the spkid1 set (ANAL-175 root inventory). They are staged here as regular files."
+ ],
+ "problems": []
+}

@@ -1,0 +1,33 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Dave Airlie <airlied@redhat.com>
+Date: Wed, 30 Sep 2026 17:36:15 +1000
+Subject: [PATCH] nouveau: check gsp->rm as well as gsp pointer before gcx
+ ready
+
+In turing systems where gsp exists, but can end up not being used,
+we need to add a second check.
+
+Fixes: cb4c7603678c ("drm/nouveau/gsp/r570: Add support for INTERNAL_GCX_ENTRY_PREREQUISITE")
+Reported-by: Woody Suwalski <terraluna977@gmail.com>
+Tested-by: Woody Suwalski <terraluna977@gmail.com>
+Reviewed-by: Lyude Paul <lyude@redhat.com>
+Signed-off-by: Dave Airlie <airlied@redhat.com>
+Link: https://lore.kernel.org/nouveau/20260930212151.3926202-1-airlied@gmail.com/T/#u
+(cherry picked from commit 4d0e2704118511e37790641d591454354e7c0d6c)
+---
+ drivers/gpu/drm/nouveau/nvkm/engine/device/user.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/nouveau/nvkm/engine/device/user.c b/drivers/gpu/drm/nouveau/nvkm/engine/device/user.c
+index bf402926b3d42..d2ad0f93f11f1 100644
+--- a/drivers/gpu/drm/nouveau/nvkm/engine/device/user.c
++++ b/drivers/gpu/drm/nouveau/nvkm/engine/device/user.c
+@@ -201,7 +201,7 @@ nvkm_udevice_gcx_ready(struct nvkm_udevice *udev, void *data, u32 size)
+ 	} *args = data;
+ 	int ret = -ENOSYS;
+ 
+-	if (!gsp) {
++	if (!gsp || !gsp->rm) {
+ 		args->v0.ready = NV_DEVICE_GC6_READY | NV_DEVICE_GCOFF_READY;
+ 		return 0;
+ 	}

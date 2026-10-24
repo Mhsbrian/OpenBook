@@ -1,0 +1,10 @@
+ok   unchanged module passes
+ok   changed import CRC is reported
+ok   other vermagic is reported
+ok   protected import is reported
+ok   duplicate exports are reported
+ok   dependency loaded later is reported
+ok   unresolved import is reported
+ok   identical sets compare clean
+ok   changed export CRC fails the comparison
+kernel-nouveau-check-test: 0 failure(s)

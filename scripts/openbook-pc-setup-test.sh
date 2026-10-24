@@ -29,6 +29,7 @@ pci() {
     mkdir -p "$1/sys/bus/pci/drivers/$5"
     : > "$1/sys/bus/pci/drivers/$5/unbind"
     ln -s "../../../bus/pci/drivers/$5" "$d/driver"
+    ln -s "../../../../devices/pci0000:00/0000:00:03.1/$2" "$1/sys/bus/pci/drivers/$5/$2"   # as sysfs links it back
   fi
 }
 run() { OPENBOOK_SYSFS_ROOT=$1 "$SH" "$SCRIPT" "$2" > "$1.log" 2>&1; echo $? > "$1.rc"; }
@@ -56,15 +57,36 @@ check "g14-off: AMD audio left alone" "$r/sys/devices/pci0000:00/0000:00:03.1/00
 check "g14-off: power_save untouched" "$r/sys/module/snd_hda_intel/parameters/power_save" 0
 check "g14-off: nothing unbound" "$r/sys/bus/pci/drivers/snd_hda_intel/unbind" ""
 
-# 3. A driver owns the dGPU (nouveau, later work): leave its power to the driver.
+# 3. nouveau drives the dGPU (ANAL-239): its runtime PM is nouveau's, but snd_hda_intel must still come off the HDMI
+#    audio function, which otherwise keeps the slot powered (no vga_switcheroo in the GKI).
 r=$T/nouveau
 pci "$r" 0000:64:00.0 0x10de 0x030000 nouveau
 pci "$r" 0000:64:00.1 0x10de 0x040300 snd_hda_intel
 w "$r/sys/module/snd_hda_intel/parameters/power_save" 0
+w "$r/sys/module/nouveau/parameters/runpm" 1; w "$r/sys/module/nouveau/parameters/modeset" 2
+w "$r/sys/module/nouveau/parameters/config" "(null)"   # unset, as the kernel shows it
 run "$r" dgpu-pm
 check "nouveau: exit 0" "$r.rc" 0
-check "nouveau: dGPU untouched" "$r/sys/devices/pci0000:00/0000:00:03.1/0000:64:00.0/power/control" on
-check "nouveau: audio still bound" "$r/sys/bus/pci/drivers/snd_hda_intel/unbind" ""
+check "nouveau: dGPU control left to nouveau" "$r/sys/devices/pci0000:00/0000:00:03.1/0000:64:00.0/power/control" on
+check "nouveau: HDMI audio unbound from snd_hda_intel" "$r/sys/bus/pci/drivers/snd_hda_intel/unbind" 0000:64:00.1
+check "nouveau: HDMI audio runtime PM auto" "$r/sys/devices/pci0000:00/0000:00:03.1/0000:64:00.1/power/control" auto
+check "nouveau: snd_hda_intel power_save" "$r/sys/module/snd_hda_intel/parameters/power_save" 10
+grep -q '0000:64:00.0 is driven by nouveau; leaving its runtime PM to the driver' "$r.log" &&
+  grep -q 'nouveau: runpm=1 modeset=2 bound=0000:64:00.0$' "$r.log" && ! grep -q 'runpm is not 1' "$r.log" &&
+  echo "ok   nouveau: logs the driver and runpm=1 modeset=2" || { echo "FAIL nouveau log: $(cat "$r.log")"; fails=$((fails + 1)); }
+
+# 3b. nouveau loaded without runpm=1 (its default -1): the dGPU would stay in D0. Say so; still unbind the audio.
+r=$T/nouveau-norunpm
+pci "$r" 0000:64:00.0 0x10de 0x030000 nouveau
+pci "$r" 0000:64:00.1 0x10de 0x040300
+w "$r/sys/module/nouveau/parameters/runpm" -1; w "$r/sys/module/nouveau/parameters/modeset" -1
+w "$r/sys/module/nouveau/parameters/config" NvGspRm=1
+run "$r" dgpu-pm
+check "nouveau-norunpm: exit 0" "$r.rc" 0
+check "nouveau-norunpm: HDMI audio runtime PM auto" "$r/sys/devices/pci0000:00/0000:00:03.1/0000:64:00.1/power/control" auto
+grep -q 'nouveau: runpm is not 1' "$r.log" && grep -q 'nouveau: runpm=-1 modeset=-1 config=NvGspRm=1 bound=0000:64:00.0$' "$r.log" &&
+  echo "ok   nouveau-norunpm: warns, and shows a set config" ||
+  { echo "FAIL nouveau-norunpm: $(cat "$r.log")"; fails=$((fails + 1)); }
 
 # 4. perms: every policy's energy_performance_preference (chown needs root: on a host only the count is checked).
 r=$T/epp
@@ -145,6 +167,17 @@ has "report d0: default reason" "$r.log" 'dgpu-report \(manual\)'
 r=$T/report-absent; mkdir -p "$r/sys/bus/pci/devices"; pci "$r" 0000:65:00.1 0x1002 0x040300 snd_hda_intel
 runx "$r" dgpu-report
 has "report absent: verdict" "$r.log" 'state=absent$'
+
+r=$T/report-nouveau; g14_d3cold "$r"
+mkdir -p "$r/sys/bus/pci/drivers/nouveau"
+ln -s ../../../../bus/pci/drivers/nouveau "$r/sys/devices/pci0000:00/0000:00:03.1/0000:64:00.0/driver"
+ln -s ../../../../devices/pci0000:00/0000:00:03.1/0000:64:00.0 "$r/sys/bus/pci/drivers/nouveau/0000:64:00.0"
+w "$r/sys/module/nouveau/parameters/runpm" 1; w "$r/sys/module/nouveau/parameters/modeset" 2
+runx "$r" dgpu-report boot
+has "report nouveau: verdict" "$r.log" 'dgpu-report: state=d3cold$'
+has "report nouveau: GPU line" "$r.log" '0000:64:00.0 class=0x030000 .*driver=nouveau power_state=D3cold runtime_status=suspended'
+has "report nouveau: parameters" "$r.log" 'nouveau: runpm=1 modeset=2 bound=0000:64:00.0$'
+has "report nouveau: logd copy" "$r.logd" '^-t openbook-pc-setup -p i nouveau: runpm=1 modeset=2 bound=0000:64:00.0$'
 
 r=$T/ctl-on
 pci "$r" 0000:64:00.0 0x10de 0x030000; pci "$r" 0000:64:00.1 0x10de 0x040300

@@ -1,0 +1,5 @@
+# linux-firmware 38c1a7096dfb2188f55f342b835f14c362c59409 2026-10-16
+# file	link_target	size	sha256	requested_by	driver	licence
+nvidia/gb205/gsp/fmc-570.144.bin	nvidia/gb202/gsp/fmc-570.144.bin	199820	cb59a35c1d4bd1274d7267fd10243c29f843ff41c851b9cbd59f5af2ddd7fece	nouveau	nouveau - NVIDIA GPU driver	Redistributable. See LICENCE.nvidia for details
+nvidia/gb205/gsp/bootloader-570.144.bin	nvidia/gb202/gsp/bootloader-570.144.bin	200812	d40b48e431d1707dc77af3605db358ed7a32ebfc2830eb74de2eddb4d3025071	nouveau	nouveau - NVIDIA GPU driver	Redistributable. See LICENCE.nvidia for details
+nvidia/gb205/gsp/gsp-570.144.bin	nvidia/ga102/gsp/gsp-570.144.bin	63571696	a8c3ebeed280323aedb51c061f321e73379cce7a9ae643a33dd03915df027f7f	nouveau	nouveau - NVIDIA GPU driver	Redistributable. See LICENCE.nvidia for details
