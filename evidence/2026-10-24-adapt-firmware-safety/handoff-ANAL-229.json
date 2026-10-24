@@ -1,7 +1,7 @@
 {
   "schema": "anybook-handoff/1",
   "source_issue": "ANAL-229",
-  "commit": "f30b1017e1d61082209974309738f4a45ab365d4",
+  "commit": "4f8c2672971064a467f00b9fd383cb2b29bcf476",
   "track": "ruby-g14",
   "note": "R1 = ANAL-229 phases 3/4 + ANAL-251 (cite with evidence/2026-10-24-ruby-safety/handoff-ANAL-251.json). Supersedes evidence/2026-10-24-adapt-phase4/handoff-ANAL-229.json. Chain on the RB-20261023-02 base: build-safety-candidate.py, stage-base.py, build-update-app-candidate.py --adapter, then the release images and embed-adapter-layer.sh. Release impact: Ruby; system and vbmeta only; no boot, layout, data or installer-pin change.",
   "inputs": {
@@ -24,7 +24,7 @@
       "kind": "unit",
       "scope": "component",
       "passed": true,
-      "summary": "go vet + go test, 19 tests incl. the firmware-safety port, the EROFS/ext4 readers and no-postinstall payloads",
+      "summary": "go vet + go test, 20 tests incl. the firmware-safety port, the EROFS/ext4 readers and no-postinstall payloads",
       "evidence": "evidence/2026-10-24-adapt-firmware-safety/tests/go-test.txt",
       "inputs": {
         "adapter": "b80879f2ac4b71baa5363c868577306a91822d58cdc1356cd5c673c5e60dc126"
