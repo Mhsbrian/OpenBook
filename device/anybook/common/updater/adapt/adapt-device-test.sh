@@ -6,12 +6,18 @@
 # no partition, setting or app is touched.
 #
 # usage: adapt-device-test.sh SERIAL ADAPT_BINARY LISTING CASES OUT
-#   LISTING  a local listing file whose ruby entry names Google's real release (Google's URL and MD5)
-#   CASES    lines "name layer_dir embed(0|1) expected_system_sha256 expected_vbmeta_sha256 [payload_layer_dir]"
-#            (expected "-" to only record). With payload_layer_dir (the installed release's layer), the adapted
-#            release's update payload is also written, signed with a throwaway test key, timed and recorded;
-#            it is never applied.
+#   LISTING  a local listing file whose ruby entry names Google's real release (Google's URL and MD5); "-" with
+#            RECON set
+#   CASES    lines "name layer_dir embed(0|1) expected_system_sha256 expected_vbmeta_sha256 [payload_layer_dir
+#            [ours_tar [rules]]]" ("-" skips an optional column). Expected "-" only records; "held" (both)
+#            requires a hold (exit 8, nothing written). With payload_layer_dir (the installed release's layer), the
+#            adapted release's update payload is also written, signed with a throwaway test key, timed and
+#            recorded; it is never applied. ours_tar: a host tar of a release's OpenBook files (the layer's
+#            added and changed paths), extracted and used as --ours-root instead of the running system, for a
+#            release the laptop does not run. rules: a firmware-safety rules file passed as --firmware-safety.
 #   OUT      new host directory for the results (JSON records and the log; no Google image)
+# env: RECON  a host directory from `openbook-adapt reconstruct` (Google's partitions), pushed instead of the
+#             engine's download and the laptop's own reconstruct (both proven by the default run)
 set -euo pipefail
 SERIAL=$1 BIN=$2 LISTING=$3 CASES=$4 OUT=$5
 HERE=$(cd "$(dirname "$0")" && pwd)
@@ -34,21 +40,41 @@ log "laptop /data free: $((free_kb / 1048576)) GiB (needs about 30 GiB plus the 
 sh_ "rm -rf $T && mkdir -p $T/updater"
 "$ADB" -s "$SERIAL" push -q "$ENGINE" "$T/openbook-updater"
 "$ADB" -s "$SERIAL" push -q "$BIN" "$T/openbook-adapt"
-"$ADB" -s "$SERIAL" push -q "$LISTING" "$T/listing.json"
+[ "$LISTING" = - ] || "$ADB" -s "$SERIAL" push -q "$LISTING" "$T/listing.json"
 "$ADB" -s "$SERIAL" push -q "$AVBKEY" "$T/avb-test-key.pem"
 sh_ "chmod 755 $T/openbook-adapt"
-while read -r name layer _ _ _ playout; do
+while read -r name layer _ _ _ playout _; do
     [ -n "$name" ] || continue
     sh_ "mkdir -p $T/layer-$name"
     "$ADB" -s "$SERIAL" push -q "$layer/layer.json" "$T/layer-$name/layer.json"
-    if [ -n "${playout:-}" ]; then
+    if [ -n "${playout:-}" ] && [ "$playout" != - ]; then
         sh_ "mkdir -p $T/installed-$name"
         "$ADB" -s "$SERIAL" push -q "$playout/layer.json" "$T/installed-$name/layer.json"
     fi
 done < "$CASES"
 PAYLOAD_KEY=${PAYLOAD_KEY:-}
 [ -n "$PAYLOAD_KEY" ] && "$ADB" -s "$SERIAL" push -q "$PAYLOAD_KEY" "$T/payload-test-key.pem"
+while read -r name _ _ _ _ _ ours rules; do
+    [ -n "$name" ] || continue
+    if [ -n "${ours:-}" ] && [ "$ours" != - ]; then
+        "$ADB" -s "$SERIAL" push -q "$ours" "$T/ours-$name.tar"
+        sh_ "mkdir $T/ours-$name && tar -xf $T/ours-$name.tar -C $T/ours-$name && rm $T/ours-$name.tar"
+    fi
+    if [ -n "${rules:-}" ] && [ "$rules" != - ]; then
+        "$ADB" -s "$SERIAL" push -q "$rules" "$T/rules-$name.json"
+    fi
+done < "$CASES"
 
+if [ -n "${RECON:-}" ]; then
+    log "Google's partitions from the host (reconstructed there): $(cut -c1-12 <<< "$(sha256sum < "$RECON/system.img")")…"
+    s=$(date +%s)
+    sh_ "mkdir $T/new"
+    for f in system.img system_ext.img product.img vbmeta.img reconstruct.json; do
+        "$ADB" -s "$SERIAL" push -q "$RECON/$f" "$T/new/$f"
+    done
+    log "pushed in $(( $(date +%s) - s )) s"
+    "$ADB" -s "$SERIAL" pull -q "$T/new/reconstruct.json" "$OUT/reconstruct.json"
+else
 env_="OPENBOOK_UPDATER_DIR=$T/updater OPENBOOK_UPDATER_LISTING=$T/listing.json"
 log "engine check"
 sh_ "$env_ sh $T/openbook-updater check" | tee -a "$OUT/log.txt" || true
@@ -66,18 +92,31 @@ log "reconstruct finished in $(( $(date +%s) - s )) s"
 "$ADB" -s "$SERIAL" pull -q "$T/new/reconstruct.json" "$OUT/reconstruct.json"
 # The release zip is no longer needed: free its space before the adaptations.
 sh_ "rm -rf $T/updater/[0-9]*"
+fi
 
 pass=1 ran=0
-while read -r name _ embed want_sys want_vb playout; do
+while read -r name _ embed want_sys want_vb playout ours rules; do
     [ -n "$name" ] || continue
     ran=$((ran + 1))
-    log "adapt $name (embed layer: $embed)"
+    [ "${playout:-}" = - ] && playout=
+    root=/ extra=
+    [ -n "${ours:-}" ] && [ "$ours" != - ] && root=$T/ours-$name
+    [ -n "${rules:-}" ] && [ "$rules" != - ] && extra="--firmware-safety $T/rules-$name.json"
+    log "adapt $name (embed layer: $embed; OpenBook's files from $root${extra:+; rules given})"
     s=$(date +%s)
     rc=0
-    sh_ "$T/openbook-adapt adapt --layer $T/layer-$name --new $T/new --ours-root / --key $T/avb-test-key.pem \
+    sh_ "$T/openbook-adapt adapt --layer $T/layer-$name --new $T/new --ours-root $root --key $T/avb-test-key.pem \
         --mkfs /system/bin/mkfs.erofs --fsck /system/bin/fsck.erofs --work $T/work-$name --out $T/out-$name \
-        --embed-layer=$([ "$embed" = 1 ] && echo true || echo false)" > "$OUT/adapt-$name.txt" 2>&1 || rc=$?
+        --embed-layer=$([ "$embed" = 1 ] && echo true || echo false) $extra" > "$OUT/adapt-$name.txt" 2>&1 || rc=$?
     log "adapt $name: exit $rc in $(( $(date +%s) - s )) s"
+    if [ "$want_sys" = held ]; then
+        "$ADB" -s "$SERIAL" pull -q "$T/work-$name/adapt.json" "$OUT/adapt-$name.json" || true
+        left=$(sh_ "ls -d $T/out-$name 2>/dev/null || true" | tr -d '\r')
+        if [ "$rc" = 8 ] && [ -z "$left" ]; then log "  HELD as required: $(grep -o 'held: .*' "$OUT/adapt-$name.txt" | head -1)"
+        else log "  NOT held as required (exit $rc${left:+, output left})"; pass=0; fi
+        sh_ "rm -rf $T/work-$name $T/out-$name $T/ours-$name"
+        continue
+    fi
     "$ADB" -s "$SERIAL" pull -q "$T/out-$name/adapt.json" "$OUT/adapt-$name.json" || true
     sums=$(sh_ "cd $T/out-$name 2>/dev/null && sha256sum system.img system_ext.img product.img vbmeta.img" | tr -d '\r' || true)
     echo "$sums" > "$OUT/sha256-$name.txt"
@@ -101,7 +140,7 @@ while read -r name _ embed want_sys want_vb playout; do
         [ "$prc" = 0 ] || pass=0
         sh_ "rm -rf $T/payload-$name"
     fi
-    sh_ "rm -rf $T/work-$name $T/out-$name"
+    sh_ "rm -rf $T/work-$name $T/out-$name $T/ours-$name"
 done < "$CASES"
 want_cases=$(grep -c . "$CASES")
 [ "$ran" = "$want_cases" ] || { log "only $ran of $want_cases cases ran"; pass=0; }
