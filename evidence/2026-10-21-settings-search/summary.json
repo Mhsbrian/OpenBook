@@ -1,0 +1,110 @@
+{
+  "scope": "Historical ring-buffer observations; not a fresh test or fix verdict",
+  "settings_search_icing_architecture_crashes": [
+    {
+      "device_log_time": "10-21 07:29:17.809",
+      "pid": 5463
+    },
+    {
+      "device_log_time": "10-21 07:29:20.385",
+      "pid": 9183
+    },
+    {
+      "device_log_time": "10-21 07:34:15.424",
+      "pid": 9677
+    },
+    {
+      "device_log_time": "10-21 07:34:44.830",
+      "pid": 11462
+    },
+    {
+      "device_log_time": "10-21 07:35:28.928",
+      "pid": 12024
+    }
+  ],
+  "houdini_initialization_failures_all_processes": [
+    {
+      "device_log_time": "10-21 07:34:15.537",
+      "pid": 11462
+    },
+    {
+      "device_log_time": "10-21 07:34:51.755",
+      "pid": 12024
+    },
+    {
+      "device_log_time": "10-21 07:35:30.026",
+      "pid": 12347
+    }
+  ],
+  "diagnosis": "settings_search_arm64_load_failure_observed",
+  "fix_validated": false,
+  "date_utc": "2026-10-21",
+  "track": "Ruby",
+  "device_cpu": "AMD Ryzen AI 9 HX 370",
+  "framework_fingerprint": "Lenovo/ruby/ruby:17/CL3B.260622.271.R1/16452207:user/release-keys",
+  "live_property": "1",
+  "current_user": 10,
+  "package": "com.google.android.settings.intelligence",
+  "version_name": "1.1.0.937862210.sr",
+  "version_code": 1000299141,
+  "primary_cpu_abi": "arm64-v8a",
+  "bridge": "libhoudini.so",
+  "bridge_error": "0x00010002 (meaning unconfirmed)",
+  "apk_inventory": {
+    "scope": "Retained recovery APK; hash verified equal to device APK",
+    "apk_sha256": "ab75e8c9ab4a995f662dcf6c477a7b754016bafac2593f87fc6a185c257dfa47",
+    "native": [
+      {
+        "entry": "lib/arm64-v8a/libandroidx.graphics.path.so",
+        "bytes": 9952,
+        "elf_machine": 183,
+        "sha256": "c692406726be7d32e4ded09163b113d2f4c33cb3bd100ee86b52ba6de2e135f3"
+      },
+      {
+        "entry": "lib/arm64-v8a/libgeller_jni_lite_lib.so",
+        "bytes": 1022784,
+        "elf_machine": 183,
+        "sha256": "4cfc3d684209d2adc2faf0e512af3cc821b5a31cbc4fb5dd96ad0165cc91c75f"
+      },
+      {
+        "entry": "lib/arm64-v8a/libicing.so",
+        "bytes": 3683192,
+        "elf_machine": 183,
+        "sha256": "0bd6833d1af244d3f82502c8e6243141604ab9182ef52d8fbb4793bac51076cf"
+      }
+    ]
+  },
+  "device_apk_hash_matches_retained": true,
+  "baseline_crashes": 2,
+  "new_crashes": 3,
+  "new_crashes_by_trigger": {
+    "search_field": 2,
+    "direct_search_intent": 1
+  },
+  "settings_process_pids_unchanged": [
+    1877,
+    2909
+  ],
+  "system_server_pid_unchanged": 1182,
+  "display_control": {
+    "sample_start_utc": "2026-10-21T11:37:52Z",
+    "sample_end_utc": "2026-10-21T11:38:22Z",
+    "samples": 4,
+    "activity": "com.android.settings/.Settings$DisplaySettingsActivity",
+    "processes_stable": true,
+    "new_search_crashes": 0
+  },
+  "limitations": [
+    "No new complete Settings process crash reproduced",
+    "Exact assembled live-image checksum not attested",
+    "Proprietary initialization error has no established interpretation",
+    "Ruby bridge replacement and search fix not tested"
+  ],
+  "changes_on_device": [
+    "Opened Settings/search/Display activities",
+    "Synthetic search query display",
+    "No configuration, package, image, partition or firmware change"
+  ],
+  "diagnostic_tests_passed": 9,
+  "capture_commands_ok": 13
+}

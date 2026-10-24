@@ -1,0 +1,540 @@
+{
+  "schema": "openbook-anal234-hw-translators/1",
+  "scope": "Executable-mode comparison on the owner G14 through adb shell; no system, setting or app change. Not a full-system Settings UI test.",
+  "device": {
+    "build_fingerprint": "Lenovo/ruby/ruby:17/CL3B.260622.271.R1/16452207:user/release-keys",
+    "bootimage_fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.armfix1:userdebug/test-keys",
+    "configured_native_bridge": "libhoudini.so",
+    "cpu": "AMD Ryzen AI 9 HX 370 w/ Radeon 890M",
+    "kernel": "6.18.21-android17-5-gfbfdd65b0fd1",
+    "selinux": "Enforcing",
+    "settings_services_apk_sha256": "ab75e8c9ab4a995f662dcf6c477a7b754016bafac2593f87fc6a185c257dfa47",
+    "libicing_sha256": "0bd6833d1af244d3f82502c8e6243141604ab9182ef52d8fbb4793bac51076cf",
+    "installed_release": "RB-20261021-01 (vbmeta 611d49f2a587b8bf75b57c343e4ec4fc14347d92516dd7c6dd2a3b0a7c61e794)"
+  },
+  "translators": {
+    "houdini": "/system/bin/houdini64 (configured, libhoudini.so 17.0.0_z.39885.g)",
+    "ndk": "copy of /system/bin/ndk_translation_program_runner_binfmt_misc_arm64, guest set /system/lib64/berberis/arm64",
+    "digitalis": "source-built bundle b1e2e2f7d5883fa650510fc5faef59824b7f1d7de02a536f38b8e78cbcf88604 via dg_launch, its own linker64/vdso/guest set"
+  },
+  "probes": {
+    "icing_probe": "0c6509ae2287ed722aa6cd9e46a2bdf0af9ff351f85114de54dd6d94d961c4d4",
+    "coremark-arm64": "9461f3afef8cf3e043c5333293ae68fa2a550c5bb746303d7e5818f69cc25b43",
+    "coremark-x86_64": "fefb564ff24c5845c58b1f30b21017b71eafe761201a8dbab5ed65e36ff022da",
+    "bridge_check-arm64": "0b79c353f9c94605c4b60dbb30f97a31ad41ce0247917e14c711d4a417e94935",
+    "dg_launch": "1ac86086ac1387dbeda5087165ea7a2558f4db13646bd30c44969f4d9ca9de8f",
+    "icing-input.bin": "f8d0c5c88c36ee1dc509d2108fe3638e4b890202914695592c180a7837b6b8a0"
+  },
+  "modes": {
+    "houdini": {
+      "icing_exit_status": 133,
+      "icing_timings_ms": null,
+      "icing_result": null,
+      "icing_loaded_objects": [],
+      "bridge_check_exit_status": 133,
+      "bridge_check": []
+    },
+    "ndk": {
+      "icing_exit_status": 0,
+      "icing_timings_ms": {
+        "docs": "600",
+        "queries": "10",
+        "timed_rounds": "20",
+        "load_ms": "9.3",
+        "init_ms": "52.0",
+        "index_ms": "269.2",
+        "first_search_ms": "33.6",
+        "timed_search_ms": "115.9",
+        "persist_close_ms": "33.3",
+        "restart_ms": "144.1",
+        "total_ms": "670.3"
+      },
+      "icing_result": {
+        "puts": {
+          "total": 600,
+          "ok": 600,
+          "other": {}
+        },
+        "queries": [
+          {
+            "query": "disp",
+            "status": "OK",
+            "results": 24,
+            "expected": 24,
+            "matches_expected": true
+          },
+          {
+            "query": "display",
+            "status": "OK",
+            "results": 24,
+            "expected": 24,
+            "matches_expected": true
+          },
+          {
+            "query": "blue",
+            "status": "OK",
+            "results": 24,
+            "expected": 24,
+            "matches_expected": true
+          },
+          {
+            "query": "keyb",
+            "status": "OK",
+            "results": 48,
+            "expected": 48,
+            "matches_expected": true
+          },
+          {
+            "query": "batt",
+            "status": "OK",
+            "results": 36,
+            "expected": 36,
+            "matches_expected": true
+          },
+          {
+            "query": "touchpad",
+            "status": "OK",
+            "results": 24,
+            "expected": 24,
+            "matches_expected": true
+          },
+          {
+            "query": "sound OR vibration",
+            "status": "OK",
+            "results": 12,
+            "expected": 12,
+            "matches_expected": true
+          },
+          {
+            "query": "display brightness",
+            "status": "OK",
+            "results": 0,
+            "expected": 0,
+            "matches_expected": true
+          },
+          {
+            "query": "screen",
+            "status": "OK",
+            "results": 177,
+            "expected": 177,
+            "matches_expected": true
+          },
+          {
+            "query": "nonexistentzz",
+            "status": "OK",
+            "results": 0,
+            "expected": 0,
+            "matches_expected": true
+          }
+        ],
+        "restart_queries": [
+          {
+            "query": "disp",
+            "status": "OK",
+            "results": 24,
+            "expected": 24,
+            "matches_expected": true
+          },
+          {
+            "query": "display",
+            "status": "OK",
+            "results": 24,
+            "expected": 24,
+            "matches_expected": true
+          },
+          {
+            "query": "blue",
+            "status": "OK",
+            "results": 24,
+            "expected": 24,
+            "matches_expected": true
+          },
+          {
+            "query": "keyb",
+            "status": "OK",
+            "results": 48,
+            "expected": 48,
+            "matches_expected": true
+          },
+          {
+            "query": "batt",
+            "status": "OK",
+            "results": 36,
+            "expected": 36,
+            "matches_expected": true
+          },
+          {
+            "query": "touchpad",
+            "status": "OK",
+            "results": 24,
+            "expected": 24,
+            "matches_expected": true
+          },
+          {
+            "query": "sound OR vibration",
+            "status": "OK",
+            "results": 12,
+            "expected": 12,
+            "matches_expected": true
+          },
+          {
+            "query": "display brightness",
+            "status": "OK",
+            "results": 0,
+            "expected": 0,
+            "matches_expected": true
+          },
+          {
+            "query": "screen",
+            "status": "OK",
+            "results": 177,
+            "expected": 177,
+            "matches_expected": true
+          },
+          {
+            "query": "nonexistentzz",
+            "status": "OK",
+            "results": 0,
+            "expected": 0,
+            "matches_expected": true
+          }
+        ],
+        "initialize": {
+          "code": "OK",
+          "message": ""
+        },
+        "set_schema": {
+          "code": "OK",
+          "message": ""
+        },
+        "persist_full": {
+          "code": "OK",
+          "message": ""
+        },
+        "restart_initialize": {
+          "code": "OK",
+          "message": ""
+        },
+        "pass": true
+      },
+      "icing_loaded_objects": [
+        "$RUN/ndk/run/icing_probe",
+        "/system/bin/linker64",
+        "[vdso]",
+        "/system/lib64/berberis/arm64/libdl.so",
+        "/system/lib64/berberis/arm64/libm.so",
+        "/system/lib64/berberis/arm64/liblog.so",
+        "/system/lib64/berberis/arm64/libz.so",
+        "/system/lib64/berberis/arm64/libc++.so",
+        "/system/lib64/berberis/arm64/libc.so",
+        "/system/lib64/arm64/libnetd_client.so",
+        "$RUN/libicing.so"
+      ],
+      "bridge_check_exit_status": 139,
+      "bridge_check": []
+    },
+    "digitalis": {
+      "icing_exit_status": 0,
+      "icing_timings_ms": {
+        "docs": "600",
+        "queries": "10",
+        "timed_rounds": "20",
+        "load_ms": "2.7",
+        "init_ms": "36.0",
+        "index_ms": "269.8",
+        "first_search_ms": "29.5",
+        "timed_search_ms": "262.2",
+        "persist_close_ms": "24.1",
+        "restart_ms": "33.1",
+        "total_ms": "669.0"
+      },
+      "icing_result": {
+        "puts": {
+          "total": 600,
+          "ok": 600,
+          "other": {}
+        },
+        "queries": [
+          {
+            "query": "disp",
+            "status": "OK",
+            "results": 24,
+            "expected": 24,
+            "matches_expected": true
+          },
+          {
+            "query": "display",
+            "status": "OK",
+            "results": 24,
+            "expected": 24,
+            "matches_expected": true
+          },
+          {
+            "query": "blue",
+            "status": "OK",
+            "results": 24,
+            "expected": 24,
+            "matches_expected": true
+          },
+          {
+            "query": "keyb",
+            "status": "OK",
+            "results": 48,
+            "expected": 48,
+            "matches_expected": true
+          },
+          {
+            "query": "batt",
+            "status": "OK",
+            "results": 36,
+            "expected": 36,
+            "matches_expected": true
+          },
+          {
+            "query": "touchpad",
+            "status": "OK",
+            "results": 24,
+            "expected": 24,
+            "matches_expected": true
+          },
+          {
+            "query": "sound OR vibration",
+            "status": "OK",
+            "results": 12,
+            "expected": 12,
+            "matches_expected": true
+          },
+          {
+            "query": "display brightness",
+            "status": "OK",
+            "results": 0,
+            "expected": 0,
+            "matches_expected": true
+          },
+          {
+            "query": "screen",
+            "status": "OK",
+            "results": 177,
+            "expected": 177,
+            "matches_expected": true
+          },
+          {
+            "query": "nonexistentzz",
+            "status": "OK",
+            "results": 0,
+            "expected": 0,
+            "matches_expected": true
+          }
+        ],
+        "restart_queries": [
+          {
+            "query": "disp",
+            "status": "OK",
+            "results": 24,
+            "expected": 24,
+            "matches_expected": true
+          },
+          {
+            "query": "display",
+            "status": "OK",
+            "results": 24,
+            "expected": 24,
+            "matches_expected": true
+          },
+          {
+            "query": "blue",
+            "status": "OK",
+            "results": 24,
+            "expected": 24,
+            "matches_expected": true
+          },
+          {
+            "query": "keyb",
+            "status": "OK",
+            "results": 48,
+            "expected": 48,
+            "matches_expected": true
+          },
+          {
+            "query": "batt",
+            "status": "OK",
+            "results": 36,
+            "expected": 36,
+            "matches_expected": true
+          },
+          {
+            "query": "touchpad",
+            "status": "OK",
+            "results": 24,
+            "expected": 24,
+            "matches_expected": true
+          },
+          {
+            "query": "sound OR vibration",
+            "status": "OK",
+            "results": 12,
+            "expected": 12,
+            "matches_expected": true
+          },
+          {
+            "query": "display brightness",
+            "status": "OK",
+            "results": 0,
+            "expected": 0,
+            "matches_expected": true
+          },
+          {
+            "query": "screen",
+            "status": "OK",
+            "results": 177,
+            "expected": 177,
+            "matches_expected": true
+          },
+          {
+            "query": "nonexistentzz",
+            "status": "OK",
+            "results": 0,
+            "expected": 0,
+            "matches_expected": true
+          }
+        ],
+        "initialize": {
+          "code": "OK",
+          "message": ""
+        },
+        "set_schema": {
+          "code": "OK",
+          "message": ""
+        },
+        "persist_full": {
+          "code": "OK",
+          "message": ""
+        },
+        "restart_initialize": {
+          "code": "OK",
+          "message": ""
+        },
+        "pass": true
+      },
+      "icing_loaded_objects": [
+        "$RUN/dg/run/icing_probe",
+        "/system/bin/linker64",
+        "[vdso]",
+        "$RUN/dg/guest/libdl.so",
+        "$RUN/dg/guest/libm.so",
+        "$RUN/dg/guest/liblog.so",
+        "$RUN/dg/guest/libz.so",
+        "$RUN/dg/guest/libc++.so",
+        "$RUN/dg/guest/libc.so",
+        "/system/lib64/arm64/libnetd_client.so",
+        "$RUN/libicing.so"
+      ],
+      "bridge_check_exit_status": 0,
+      "bridge_check": [
+        {
+          "test": "bridge-exec",
+          "ok": true,
+          "abi": "arm64-v8a",
+          "uname_machine": "aarch64",
+          "hwcap": "0x9fb"
+        },
+        {
+          "test": "bridge-id-registers",
+          "ok": true,
+          "sigill": 0,
+          "first_sigill": -1,
+          "midr": "0x410fd034",
+          "isar0": "0x211120",
+          "pfr0": "0x11",
+          "hwcap_cpuid": true
+        },
+        {
+          "test": "bridge-fp-estimates",
+          "ok": true,
+          "cases": 6900,
+          "bad": 0,
+          "first_bad": ""
+        },
+        {
+          "test": "bridge-int-simd",
+          "ok": true,
+          "crc32": true,
+          "neon_fma": true
+        }
+      ]
+    }
+  },
+  "coremark_600k_iterations": {
+    "native": [
+      {
+        "exit": 0,
+        "valid": true,
+        "iterations_per_sec": 27688.047993
+      },
+      {
+        "exit": 0,
+        "valid": true,
+        "iterations_per_sec": 27633.215125
+      },
+      {
+        "exit": 0,
+        "valid": true,
+        "iterations_per_sec": 27807.387496
+      }
+    ],
+    "digitalis": [
+      {
+        "exit": 0,
+        "valid": true,
+        "iterations_per_sec": 10017.196187
+      },
+      {
+        "exit": 0,
+        "valid": true,
+        "iterations_per_sec": 9969.42709
+      },
+      {
+        "exit": 0,
+        "valid": true,
+        "iterations_per_sec": 10073.198576
+      }
+    ],
+    "ndk": [
+      {
+        "exit": 0,
+        "valid": true,
+        "iterations_per_sec": 20500.205002
+      },
+      {
+        "exit": 0,
+        "valid": true,
+        "iterations_per_sec": 20399.143236
+      },
+      {
+        "exit": 0,
+        "valid": true,
+        "iterations_per_sec": 20475.020475
+      }
+    ]
+  },
+  "coremark_ratio_to_native_best": {
+    "digitalis": 0.362,
+    "ndk": 0.737
+  },
+  "houdini_tombstone_excerpt": [
+    "10-21 21:54:41.009 16358 16358 I houdini : [16358] executing $RUN/hou/run/icing_probe",
+    "10-21 21:54:41.031 16358 16358 F libc    : Fatal signal 5 (SIGTRAP), code 0 (SI_USER) in tid 16358 (houdini64), pid 16358 (houdini64)",
+    "      #00 pc 0000000000321bec  /system/lib64/libhoudini.so (BuildId: 2747b95bd407148e139ca403d595f9f954561741)",
+    "10-21 21:54:41.101 16371 16371 I houdini : [16371] executing $RUN/hou/run/bridge_check-arm64",
+    "10-21 21:54:41.118 16371 16371 F libc    : Fatal signal 5 (SIGTRAP), code 0 (SI_USER) in tid 16371 (houdini64), pid 16371 (houdini64)",
+    "      #00 pc 0000000000321bec  /system/lib64/libhoudini.so (BuildId: 2747b95bd407148e139ca403d595f9f954561741)"
+  ],
+  "ndk_bridge_check_tombstone_excerpt": [
+    "10-21 21:54:42.115 16395 16395 F libc    : Fatal signal 11 (SIGSEGV), code 128 (SI_KERNEL), fault addr 0x0 in tid 16395 (ndk_translation), pid 16395 (ndk_translation)",
+    "      #00 pc 0000000000059f90  /memfd:exec (deleted)"
+  ],
+  "repeat": "An earlier identical run (20 rounds, 3 CoreMark rounds) gave the same pass/fail results; ratios 0.362/0.737.",
+  "device_run_directory_removed": true,
+  "data_free_kib_before": 624404,
+  "data_free_kib_after": 623524
+}

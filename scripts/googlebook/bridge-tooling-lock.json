@@ -1,0 +1,14 @@
+{
+  "commit": "ca0335c2ae06062cc6b45560b3b57a3b304e6c01",
+  "files": {
+    "scripts/googlebook/compat-audit.py": "ec23b24a5022a116ca5a9a84ecd7da621b87dfb6f6a7b39e962a60f789d6b2d3",
+    "scripts/googlebook/hybrid-probe.py": "44ab8fe53955ef1c79d9bca544145ded492131233cc64435d45396a71252957c",
+    "scripts/googlebook/live-image.py": "add4e771ad6bd49a9b86970bfad3126e9d1c27869221e9755b4ed759ddacfc6d",
+    "scripts/googlebook/preserve-update.py": "7ffb3a0bfcae49a536c1d8f59e34f9479a3a1fac2fc3a9feea547491a2e590e5",
+    "scripts/installer/bootconfig.py": "40db658b34e913112a79827cbf3002a61e3d7114bf396bbc2447067a0327c777",
+    "scripts/installer/mkproto.py": "ac5abe0849fc2e61ed89c2c23e196fbc4c47014ef169c1461abae0b2054910c3",
+    "scripts/kernel-g14-qemu.py": "e65f42796aa5f6e1156466460ac09f08d465ce6c9c71301345c884e826e912b1",
+    "scripts/installer/mklive.py": "e8c855fbea424d128336b259bef252037652e372fcfd3708ffb21d896bc7165c",
+    "scripts/googlebook/run-probe.py": "3371ff3f53c4a099859f70b28543b13fa042ee2221148c5b83c70a8ddad0e473"
+  }
+}

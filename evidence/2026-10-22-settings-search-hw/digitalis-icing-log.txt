@@ -1,0 +1,14 @@
+ICING_PROBE_ONLOAD version=0x10006 natives=35 unknown_members=0 load_ms=2.7
+ICING_PROBE_LOADED $RUN/dg/run/icing_probe
+ICING_PROBE_LOADED /system/bin/linker64
+ICING_PROBE_LOADED [vdso]
+ICING_PROBE_LOADED $RUN/dg/guest/libdl.so
+ICING_PROBE_LOADED $RUN/dg/guest/libm.so
+ICING_PROBE_LOADED $RUN/dg/guest/liblog.so
+ICING_PROBE_LOADED $RUN/dg/guest/libz.so
+ICING_PROBE_LOADED $RUN/dg/guest/libc++.so
+ICING_PROBE_LOADED $RUN/dg/guest/libc.so
+ICING_PROBE_LOADED /system/lib64/arm64/libnetd_client.so
+ICING_PROBE_LOADED $RUN/libicing.so
+ICING_PROBE_DONE docs=600 queries=10 timed_rounds=20 load_ms=2.7 init_ms=36.0 index_ms=269.8 first_search_ms=29.5 timed_search_ms=262.2 persist_close_ms=24.1 restart_ms=33.1 total_ms=669.0
+EXIT=0

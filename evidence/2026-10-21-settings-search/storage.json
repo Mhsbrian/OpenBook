@@ -1,0 +1,12 @@
+{
+  "free_bytes_at_first_evidence_capture": 57383170048,
+  "free_bytes_at_handoff": 57330712576,
+  "free_gib_at_first_evidence_capture": 53.44,
+  "free_gib_at_handoff": 53.39,
+  "reserve_gib": 40,
+  "image_or_vm_allocated": false,
+  "cleanup": "Only this task generated Python bytecode; exact private cleanup manifest retained",
+  "cleanup_observed_free_space_delta_bytes": 0,
+  "raw_evidence_retained": true,
+  "baseline_or_backup_removed": false
+}

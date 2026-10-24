@@ -1,0 +1,61 @@
+{
+  "scope": "ANAL-234 implementation experiments, not the earlier diagnosis-only storage record",
+  "reserve_gib": 40,
+  "previous_diagnosis_handoff_free_bytes": 57330712576,
+  "free_after": 47977930752,
+  "free_after_gib": 44.6829,
+  "minimum_vm_observed_free_bytes": 46849683456,
+  "cleanup_observations": [
+    {
+      "private_manifest": "cleanup-disposable-digitalis-fresh1.json",
+      "free_before": 47177539584,
+      "free_after": 47977930752,
+      "observed_delta": 800391168
+    },
+    {
+      "private_manifest": "cleanup-disposable-digitalis-retained1.json",
+      "free_before": 47023300608,
+      "free_after": 47215185920,
+      "observed_delta": 191885312
+    },
+    {
+      "private_manifest": "cleanup-disposable-vm1.json",
+      "free_before": 48151560192,
+      "free_after": 48552804352,
+      "observed_delta": 401244160
+    },
+    {
+      "private_manifest": "cleanup-disposable-vm2.json",
+      "free_before": 47727063040,
+      "free_after": 48092471296,
+      "observed_delta": 365408256
+    },
+    {
+      "private_manifest": "cleanup-disposable-vm3-6.json",
+      "free_before": 50127585280,
+      "free_after": 51906076672,
+      "observed_delta": 1778491392
+    },
+    {
+      "private_manifest": "cleanup-failed-vm-input1.json",
+      "free_before": 52015214592,
+      "free_after": 52015214592,
+      "observed_delta": 0
+    },
+    {
+      "private_manifest": "cleanup-failed-vm-input2.json",
+      "free_before": 51887300608,
+      "free_after": 51933515776,
+      "observed_delta": 46215168
+    },
+    {
+      "private_manifest": "cleanup-rejected-bridge2.json",
+      "free_before": 48134836224,
+      "free_after": 48184025088,
+      "observed_delta": 49188864
+    }
+  ],
+  "no_active_task_vm_or_build": true,
+  "candidate_installer_source_recovery_owner_backup_logs_provenance_retained": true,
+  "measurement_limit": "Observed host free-space deltas, not apparent sparse/reflink file sizes or a promise of bytes reclaimed; Btrfs reclamation and concurrent host writes affect observations."
+}

@@ -1,0 +1,17 @@
+Device log times are America/New_York (UTC-04:00), 2026-10-21.
+Selected diagnostic lines only; raw logs and screenshots retained privately.
+
+10-21 07:34:15.537 11462 11462 I houdini : [11462] Initialize library(version: 17.0.0_z.39885.g RELEASE)... failed(0x00010002).
+10-21 07:34:51.755 12024 12024 I houdini : [12024] Initialize library(version: 17.0.0_z.39885.g RELEASE)... failed(0x00010002).
+10-21 07:34:15.424  9677 11411 E AndroidRuntime: FATAL EXCEPTION: BG Thread #2
+10-21 07:34:15.424  9677 11411 E AndroidRuntime: Process: com.google.android.settings.intelligence, PID: 9677
+10-21 07:34:15.424  9677 11411 E AndroidRuntime: java.lang.UnsatisfiedLinkError: dlopen failed: "/product/priv-app/SettingsIntelligenceGooglePrebuilt/SettingsIntelligenceGooglePrebuilt.apk!/lib/arm64-v8a/libicing.so" is for EM_AARCH64 (183) instead of EM_X86_64 (62)
+10-21 07:34:15.424  9677 11411 E AndroidRuntime: 	at com.google.android.icing.IcingSearchEngineImpl.<clinit>(PG:3)
+10-21 07:34:44.830 11462 11699 E AndroidRuntime: FATAL EXCEPTION: BG Thread #3
+10-21 07:34:44.830 11462 11699 E AndroidRuntime: Process: com.google.android.settings.intelligence, PID: 11462
+10-21 07:34:44.830 11462 11699 E AndroidRuntime: java.lang.UnsatisfiedLinkError: dlopen failed: "/product/priv-app/SettingsIntelligenceGooglePrebuilt/SettingsIntelligenceGooglePrebuilt.apk!/lib/arm64-v8a/libicing.so" is for EM_AARCH64 (183) instead of EM_X86_64 (62)
+10-21 07:34:44.830 11462 11699 E AndroidRuntime: 	at com.google.android.icing.IcingSearchEngineImpl.<clinit>(PG:3)
+10-21 07:35:28.928 12024 12238 E AndroidRuntime: FATAL EXCEPTION: BG Thread #2
+10-21 07:35:28.928 12024 12238 E AndroidRuntime: Process: com.google.android.settings.intelligence, PID: 12024
+10-21 07:35:28.928 12024 12238 E AndroidRuntime: java.lang.UnsatisfiedLinkError: dlopen failed: "/product/priv-app/SettingsIntelligenceGooglePrebuilt/SettingsIntelligenceGooglePrebuilt.apk!/lib/arm64-v8a/libicing.so" is for EM_AARCH64 (183) instead of EM_X86_64 (62)
+10-21 07:35:28.928 12024 12238 E AndroidRuntime: 	at com.google.android.icing.IcingSearchEngineImpl.<clinit>(PG:3)
