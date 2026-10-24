@@ -3,7 +3,7 @@
 USB mass storage and as NVMe, and check first-stage mount and the vendor_dlkm module load (ANAL-198).
 
 usage: kernel-g14-qemu.py --dist DIST --product PRODUCT_OUT --tools DIR --key PEM --fstab FILE --work W --out OUT
-                          [--runs NAME,...] [--force] [--timeout S]
+                          [--runs NAME,...] [--force] [--timeout S] [--guest-check SCRIPT [--guest-file FILE ...]]
 
   --dist     G14 dist (scripts/kernel-g14-package.sh): bzImage, boot.img, system_dlkm.flatten.erofs.img,
              {bm,vm}/vendor_boot.img and {bm,vm}/vendor_dlkm.img, all from one Kleaf build
@@ -38,6 +38,10 @@ Runs (default: all):
             boot_a on the USB disk, so first-stage init must take every partition from the USB disk (strict mode)
   vm        VM images (vm/vendor_boot.img, vm/vendor_dlkm.img) on NVMe: asus-nb-wmi blocklisted, so dlkm_loader
             completes and sets vendor.dlkm.modules.ready
+
+--guest-check (ANAL-239) copies SCRIPT and each --guest-file into /data/local/tmp/guest-check/ over the root console
+(base64, so binary-safe) after the standard captures, runs `sh SCRIPT` there as root and keeps its output and exit
+status as NAME.guest.txt and the run's "guest_check" result. The run passes only if the script exits 0.
 
 Evidence comes from the serial console: the kernel log, and a root shell (the userdebug console service, then
 su) that lists /dev/block/by-name, mounts, dm devices and /proc/modules once Cuttlefish's dlkm_loader has
@@ -389,6 +393,32 @@ class Console:
         return "\n".join(l for l in m.group(1).replace("\r", "").split("\n") if not re.match(r"\[\s*\d+\.\d+\]", l))
 
 
+def guest_check(con, script, files):
+    """Copy script and files to the guest over the console, run the script as root; returns its output and rc.
+    Every copy command prints a word: Console.run needs at least one line of output between its markers."""
+    import base64
+    d = "/data/local/tmp/guest-check"
+    if con.run("gc_mkdir", f"rm -rf {d}; mkdir -p {d} && echo ready") != "ready":
+        return {"rc": None, "output": f"cannot create {d}"}
+    for path in [script] + list(files):
+        name = os.path.basename(path)
+        enc = base64.b64encode(open(path, "rb").read()).decode()
+        for i in range(0, len(enc), 512):
+            if con.run("gc_put", f"echo {enc[i:i + 512]} >> {d}/{name}.b64 && echo put", timeout=30) != "put":
+                return {"rc": None, "output": f"copy of {name} stalled at byte {i}"}
+        got = con.run("gc_dec", f"base64 -d {d}/{name}.b64 > {d}/{name} && rm {d}/{name}.b64 && "
+                                f"sha256sum {d}/{name}", timeout=30) or ""
+        if hashlib.sha256(open(path, "rb").read()).hexdigest() not in got:
+            return {"rc": None, "output": f"copy of {name} failed: {got}"}
+    start = con.size()
+    con.send(f"echo @@BEGIN_guest@@; (cd {d} && sh ./{os.path.basename(script)}) 2>&1; echo @@END_guest@@ rc=$?\n")
+    m = con.wait(r"(?s)@@BEGIN_guest@@\r?\n(.*?)\r?\n@@END_guest@@ rc=(\d+)", 600, start)
+    if not m:
+        return {"rc": None, "output": "no result within 600 s"}
+    out = "\n".join(l for l in m.group(1).replace("\r", "").split("\n") if not re.match(r"\[\s*\d+\.\d+\]", l))
+    return {"rc": int(m.group(2)), "output": out}
+
+
 def run_one(a, name, spec, prep, log):
     out = os.path.join(a.out, name)
     res_path = f"{out}.json"
@@ -451,7 +481,7 @@ def run_one(a, name, spec, prep, log):
             "-kernel", os.path.join(a.dist, "bzImage"), "-initrd", initrd, "-append", cmdline,
             "-display", "none", "-vga", "none", "-nic", "none", "-no-reboot",
             "-chardev", f"socket,id=ser0,path={sock},server=on,wait=on", "-serial", "chardev:ser0",
-            "-monitor", "none"] + drives + qdev
+            "-monitor", "none"] + drives + qdev + a.qemu_arg
     log(f"{name}: {' '.join(qemu)}")
     t0 = time.time()
     proc = subprocess.Popen(qemu, stdout=open(f"{out}.qemu.log", "wb"), stderr=subprocess.STDOUT)
@@ -509,6 +539,8 @@ def run_one(a, name, spec, prep, log):
             ("dma_heap", "ls -l /dev/dma_heap/; grep -w efivarfs /proc/filesystems"),
         ]:
             captures[key] = con.run(key, cmd, timeout=60)
+        if a.guest_check:
+            captures["guest_check"] = guest_check(con, a.guest_check, a.guest_file or [])
         con.send("reboot -p\n")
         proc.wait(timeout=60)
     except (RuntimeError, subprocess.TimeoutExpired) as e:
@@ -524,6 +556,9 @@ def run_one(a, name, spec, prep, log):
     for k in ("by_name", "block_dirs", "mounts", "modules", "dm", "props", "bootconfig", "sys_block", "dma_heap"):
         if captures.get(k) is not None:
             open(f"{out}.{k}.txt", "w").write(captures[k] + "\n")
+    if captures.get("guest_check") is not None:
+        g = captures["guest_check"]
+        open(f"{out}.guest.txt", "w").write(f"# rc={g['rc']}\n{g['output']}\n")
     # readable excerpts of the kernel log: how the disk appeared and what first-stage init did with it, and
     # what dlkm_loader loaded
     klines = [l for l in con.text().replace("\r", "").split("\n") if re.match(r"\[\s*\d+\.\d+\]\[\s*[TC]\d+\]", l)]
@@ -611,6 +646,8 @@ def analyse(a, name, spec, prep, cap, serial, timeline, bc, cmdline, qemu):
         checks["boot_device_found_by_uuid"] = bool(fs["boot_device_from_uuid"])
     if v == "vm":
         checks["dlkm_ready"] = "[vendor.dlkm.modules.ready]: [true]" in (cap.get("props") or "")
+    if a.guest_check:
+        checks["guest_check"] = (cap.get("guest_check") or {}).get("rc") == 0
     return {
         "run": name, "variant": v, "disks": spec["disks"], "select": spec["select"], "expected_disk": expect,
         "pass": all(checks.values()), "checks": checks, "timeline": timeline, "error": cap.get("error"),
@@ -660,6 +697,10 @@ def main():
     # command (no USB device enumerates, no xHCI error either), while the same devices work without it.
     ap.add_argument("--iommu", action=argparse.BooleanOptionalAction, default=False,
                     help="emulate the AMD IOMMU (QEMU amd-iommu,intremap=on)")
+    ap.add_argument("--qemu-arg", action="append", default=[],
+                    help="extra QEMU argument, e.g. --qemu-arg=-device --qemu-arg=virtio-gpu-pci")
+    ap.add_argument("--guest-check", help="shell script to run as root in the guest after the captures")
+    ap.add_argument("--guest-file", action="append", help="extra file to copy next to --guest-check")
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
     os.makedirs(a.work, exist_ok=True)
