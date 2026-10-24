@@ -1,0 +1,18 @@
+{
+  "schema": "openbook-adapt-parity/1",
+  "note": "openbook-adapt's ports checked against the host tools they replace, on real images (2026-10-24)",
+  "erofs_inventory": {
+    "tool": "scripts/googlebook/erofs-inventory.c (liberofs), rows sorted bytewise",
+    "identical_rows": {
+      "Google 16658739 system": 7292, "Google 16452207 system": 7292, "Google 16658739 system_ext": 458,
+      "Google 16658739 product": 1452, "RB-20261023-03 system": 6618, "RB-20261023-02 system": 6608,
+      "RB-20261023-03 vendor": 1326
+    }
+  },
+  "avbtool": {
+    "add_hashtree_footer": "RB-20261023-03 system.img: truncated to its filesystem, footer added by openbook-adapt with the host's salt and partition size: byte-identical to avbtool's (2e7b342585b7...)",
+    "make_vbmeta_image": "RB-20261023-03's ten images included in the host's order: byte-identical to its vbmeta (d19d423c0d8b...); signature and all nine descriptors verify"
+  },
+  "app_domain_statements": "Google 16658739 plat_sepolicy.cil: 31 statements, identical to build-update-app-candidate.py's",
+  "reconstruct": "Google 16658739 recovery.zip (7.8 GB) streamed once: system, system_ext, product and vbmeta identical to the host's staged stock images; Google's vbmeta signature and the three dm-verity roots verify; 26 s on the host, 41 s on the laptop"
+}
