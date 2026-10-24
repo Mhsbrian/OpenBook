@@ -1,0 +1,88 @@
+{
+  "schema": "anybook-handoff/1",
+  "source_issue": "ANAL-238",
+  "commit": "c53462c2200c77ff05b8e7a9229d0832ec791f33",
+  "track": "ruby-g14",
+  "note": "Release impact: Ruby, vendor only (three files: /bin/openbook-pc-setup, /etc/init/hw/init.openbook.rc, /etc/selinux/vendor_sepolicy.cil; vbmeta follows). No boot, layout, data or installer-pin change. Needs the boot-time split-policy compile, as RB-20261023-03 has (the builder refuses otherwise). The release builds the deployable candidate with build-dgpu-diag-candidate.py (no --vm-check) on its own parent; dgpu_vendor_cil is that output for parent 71da0228 and differs on another vendor. The VM run used the --vm-check variant (two disposable system files).",
+  "checks": [
+    {
+      "id": "pc-setup-fixture",
+      "kind": "unit",
+      "scope": "component",
+      "passed": true,
+      "summary": "openbook-pc-setup fixture tests under bash and sh: 0 failures (report, hold, logd copy, dgpu-pm)",
+      "evidence": "evidence/2026-10-24-ruby-dgpu-diag/tests/unit.txt",
+      "inputs": {
+        "dgpu_setup_script": "f48c7063eca8858920de9bd45ba18ecac111a1be0f0a60caf15dcbf78dbe3227",
+        "dgpu_fixture_test": "2f0e9df401352f3792f09f27e7aca1b8fd14d2d4e78485ba6a9dc92f0f06c604"
+      }
+    },
+    {
+      "id": "builder-unit",
+      "kind": "unit",
+      "scope": "component",
+      "passed": true,
+      "summary": "18/18: CIL derivation, fail-closed input choices, uniform vendor mtime, host_init_verifier on the vendor init script and the VM report, the VM judge on synthetic logs",
+      "evidence": "evidence/2026-10-24-ruby-dgpu-diag/tests/unit.txt",
+      "inputs": {
+        "candidate_builder": "8e940dfdb3c2f59bd9aaf01654b4324bc3e6ddc1e9921eed625d15e7a5a25707",
+        "dgpu_vm_judge": "b053dffd9631bd94b47b1cb72b348f9ebcc15e128754329ce6ffc71cdf7f8d6d",
+        "dgpu_init_rc": "50e6515384e64b3c6dab674fd8c792a3991e5280ffac6492b2d99179ef2bcbab",
+        "dgpu_setup_script": "f48c7063eca8858920de9bd45ba18ecac111a1be0f0a60caf15dcbf78dbe3227"
+      }
+    },
+    {
+      "id": "reassembler-regression",
+      "kind": "unit",
+      "scope": "component",
+      "passed": true,
+      "summary": "build-input-candidate 10/10, rebase-google-build 17/17, build-update-app-candidate 11/11 (1 skipped) with rebuild_erofs's new timestamp argument (default unchanged)",
+      "evidence": "evidence/2026-10-24-ruby-dgpu-diag/tests/unit.txt",
+      "inputs": {
+        "candidate_reassembler": "008f1fe56632806f479be1023d1125454aa92b79142df9201ad768604827ac55"
+      }
+    },
+    {
+      "id": "host-tools-unit",
+      "kind": "unit",
+      "scope": "component",
+      "passed": true,
+      "summary": "sleep-history.py and dgpu-power-adb.py's parser: 5/5 (host tools, not in the image)",
+      "evidence": "evidence/2026-10-24-ruby-dgpu-diag/tests/unit.txt",
+      "inputs": {
+        "sleep_history": "a56772e574b0640c2b9ffa3e7be04889072a43cbf3f11798d5103dec047a6a93",
+        "dgpu_power_adb": "bcd666da787b72f1f5ef7d802130420765f73986e345e696c5aca2718c7a60b8"
+      }
+    },
+    {
+      "id": "policy-compile",
+      "kind": "other",
+      "scope": "image",
+      "passed": true,
+      "summary": "on parent 71da0228: precompiled policy stale (platform 318c33bb vs vendor 344a39b0), so init compiles at boot; base and candidate compile with neverallows; only the candidate grants the suspend_stats reads; 9 probes as expected",
+      "evidence": "evidence/2026-10-24-ruby-dgpu-diag/policy-check.json",
+      "inputs": {
+        "parent_staged_candidate": "71da0228488781fa7db6bbb2b07b8559024023b606ae54cd868f780954b9cc24",
+        "candidate_builder": "8e940dfdb3c2f59bd9aaf01654b4324bc3e6ddc1e9921eed625d15e7a5a25707",
+        "dgpu_vendor_cil": "54f0dfb9fa02ca8871eae5090ef9e1068051196ba031af1c00941f4264318fd7"
+      }
+    },
+    {
+      "id": "ruby-vm-fresh-boot",
+      "kind": "fresh-boot-vm",
+      "scope": "image",
+      "passed": true,
+      "summary": "14/14 against RB-20261023-03's own fresh boot: boot and on-demand reports as root in logcat, dgpu-ctl on/auto, suspend_stats readable, all runs exit 0, no new denial, init error or crash",
+      "evidence": "evidence/2026-10-24-ruby-dgpu-diag/vm/judge.json",
+      "inputs": {
+        "parent_staged_candidate": "71da0228488781fa7db6bbb2b07b8559024023b606ae54cd868f780954b9cc24",
+        "candidate_builder": "8e940dfdb3c2f59bd9aaf01654b4324bc3e6ddc1e9921eed625d15e7a5a25707",
+        "candidate_reassembler": "008f1fe56632806f479be1023d1125454aa92b79142df9201ad768604827ac55",
+        "dgpu_setup_script": "f48c7063eca8858920de9bd45ba18ecac111a1be0f0a60caf15dcbf78dbe3227",
+        "dgpu_init_rc": "50e6515384e64b3c6dab674fd8c792a3991e5280ffac6492b2d99179ef2bcbab",
+        "dgpu_vendor_cil": "54f0dfb9fa02ca8871eae5090ef9e1068051196ba031af1c00941f4264318fd7",
+        "dgpu_vm_judge": "b053dffd9631bd94b47b1cb72b348f9ebcc15e128754329ce6ffc71cdf7f8d6d"
+      }
+    }
+  ]
+}
