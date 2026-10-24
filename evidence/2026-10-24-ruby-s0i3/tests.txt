@@ -19,37 +19,6 @@ $ OPENBOOK_INSTALLER_IMAGE=openbook-installer:anal178 scripts/installer/inst-doc
 $ kernel/devices/anybook/sleep_diag/test/check-vm-log.py <out>/serial.log result.json
 passed: True - 17 of 17 checks; kernel 6.18.21-android17-5-gfbfdd65b0fd1
 
-## Linux 7.2 build of the same source (compiled only)
-$ make -C /usr/lib/modules/7.2.8-5-omarchy-bore/build M=<dir> modules
-rc=0, no warnings, vermagic 7.2.8-5-omarchy-bore SMP preempt mod_unload
-
-## stick-entries.py (allowlist for the openbook_sleep_diag parameters)
-$ scripts/installer/inst-docker.sh python3 scripts/googlebook/stick-entries-test.py -v
-test_adds_only_the_new_entry_and_keeps_every_other_byte ... ok (after a DeprecationWarning from an existing importlib loader)
-test_refuses_existing_name_missing_base_and_duplicate_parameter ... ok
-test_refuses_parameters_outside_the_allowlist ... ok
-test_refuses_unsafe_names_titles_and_changed_system ... ok
-test_sleep_diag_module_parameters ... ok
-Ran 5 tests in 15.878s
-OK
-
-## linux-s2idle.py on a fake sysfs
-$ python3 -I scripts/power/linux-s2idle-test.py -v
-test_driverless_applies_the_hook_and_undoes_it_in_reverse ... ok
-test_finds_display_audio_and_bridge ... ok
-test_never_unbinds_the_nvidia_driver ... ok
-test_wait_reports_timeout ... ok
-test_eco_refuses_dgpu_mux_and_already_disabled ... ok
-test_eco_removes_sets_and_always_restores ... ok
-test_finds_nvme_directly_through_dm_crypt_and_swap ... ok
-test_reads_sleep_diag_and_old_snapshot_lines ... ok
-Ran 8 tests in 2.013s
-OK
-
-## linux-s2idle.py --live-usb --dry-run on the build host (not the G14; output kept private)
-phases planned: baseline,nouveau,driverless,ptm-off,no-pmf,no-ccp with amd-s2idle; the NVMe guard listed the host's
-LUKS root and /boot on NVMe (a real run would refuse); dGPU discovery found the host's NVIDIA functions and their
-root port; '--phases baseline,eco' without --allow-firmware-change is refused.
 
 ## probe-init.c (cpuidle loop fix)
 $ gcc -O2 -Wall -fsyntax-only scripts/installer/probe-init.c

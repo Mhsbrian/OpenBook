@@ -1,8 +1,8 @@
 # Deep sleep (S0i3) on the G14 under Ruby (ANAL-257)
 
 The G14 (GA403WR, Ryzen AI 9 HX 370, BIOS GA403WR.309) never reaches S0i3 under our kernel, so asleep it draws
-about 4.5 W, roughly 14 h from a full charge (ANAL-238). This page has the desk analysis, the diagnostics built for
-the Googlebook image and for a Linux live USB, the owner steps, and the fix list. Labels: **CONFIRMED** (seen in a
+about 4.5 W, roughly 14 h from a full charge (ANAL-238). This page has the desk analysis, the diagnostics module, the
+plan for testing on the installed laptop over wireless adb, and the fix list. Labels: **CONFIRMED** (seen in a
 log, a table or source cited here), **REPORTED** (someone else's measurement), **HYPOTHESIS** (not shown yet).
 Evidence: `evidence/2026-10-24-ruby-s0i3/`. Earlier work: `docs/power-input.md` §1 and §7.6 (AOSP image),
 `docs/googlebook-sleep.md` (Ruby lid and wake).
@@ -14,7 +14,7 @@ Evidence: `evidence/2026-10-24-ruby-s0i3/`. Earlier work: `docs/power-input.md` 
 | Does Ruby reach S0i3? | **No**: 0 of 130 suspends over 7 boots (ANAL-238, CONFIRMED) |
 | Can this laptop reach it? | **Yes**, under Linux 7.2.8: 4 cycles up to 15.4 h without amd_pmc's "didn't reach deepest state" (CONFIRMED, indirect: §1.1) |
 | What blocks it on our kernel? | **Unknown.** Ruled out: the dGPU driver, PTM as a difference, platform `_OSC`, the PCI `_OSC`, amd_pmc, amd-pmf's suspend notice, the PSP's D-state, the dummy function, the ASUS modules (§1). Left, ranked: the PSP/TEE/amd-pmf drivers, the USB4 complex, amdgpu's display code, the kernel generation (§2) |
-| What decides it? | The Linux live-USB run (§4 A), then the Ruby sleep-diagnostics boot (§4 B) |
+| What decides it? | Experiments on the installed G14 over wireless adb, through a root lab helper that one Ruby update installs (§4). No USB stick: the owner dropped the Linux live-USB comparison on 2026-10-24 |
 | Fix proven? | Not yet |
 
 ## 1. Desk work: what the two kernels do differently
@@ -34,7 +34,8 @@ private) is the only Linux run on this laptop. Read again for ANAL-257 (`evidenc
   `amd_pmc_validate_deepest()`, which prints the warning when the SMU's `s0i3_last_entry_status` is 0. The dmesg
   covers the whole boot (2,877 lines from 0.000000), and `amd_pmc` is loaded. What is not proven: that it bound
   `AMDI000A` (it prints nothing at probe in either kernel).
-- **Not logged** (quiet boot, no `pm_debug_messages`): idle mask, SMU table, wake IRQs. The live-USB run records them.
+- **Not logged** (quiet boot, no `pm_debug_messages`): idle mask, SMU table, wake IRQs. That Linux is gone (the
+  install took the disk), so this reference stays incomplete.
 
 ### 1.2 Ruled out from the desk
 | Candidate | Why it is out | Label |
@@ -76,20 +77,19 @@ private) is the only Linux run on this laptop. Read again for ANAL-257 (`evidenc
 
 | # | Suspect | For | Against | Decided by |
 |---|---|---|---|---|
-| 1 | **PSP driver (`ccp`), TEE (`amdtee`) and `amd_pmf`**, absent from the GKI (`CRYPTO_DEV_CCP`, `TEE` unset; amd-pmf needs both and is on the GKI symbol deny-list) | The largest set of firmware-facing drivers Linux has and we lack. Linux logs `ccp 0000:65:00.2: tee enabled / psp enabled` and `amd-pmf ... registered PMF device successfully` | The PSP's D-state alone was ruled out. Nothing public says S0i3 needs them | Live USB phases `no-pmf` and `no-ccp`: if Linux loses S0i3 there, this is it |
-| 2 | **The USB4 complex** (router `67:00.5` and its xHCIs behind `00:08.3`) | The SMU's non-zero slots name USB4 under either IP order. `tb_switch_suspend()` ignores a failed sleep handshake, so a router that never reports sleep-ready leaves no trace in our logs. 7.2 also waits longer for Configuration Ready (50 → 500 ms, `ba2cc38511012`) and checks Router Ready (`062023c4364ff`) at probe and resume | Same sleep code in both kernels. The router is in D3 at entry. Slot values look mis-decoded | Ruby `usb4=1` and the snapshot vs the same on Linux; `amd-s2idle` on Linux |
-| 3 | **amdgpu's display code** | Display Core v3.2.351 (GKI) vs v3.2.384 (7.2), DMUB firmware `0x09005700` (ours, from `/vendor`) vs `0x09005300`, eDP "PSR support 1" vs 0, no ISP block on the GKI | The SMU's DISPLAY and GFX slots read 0 in every failed cycle | A 6.18 LTS live kernel (generation bisect), or Linux with our DMUB file |
-| 4 | **Kernel generation in general** (6.18 vs 7.2) | Everything above that is not config | — | The same live USB booted with a 6.18 LTS kernel |
-| 5 | **PTM left on by the firmware** | The GKI never touches it | Linux 7.2 does not either (§1.2) | Ruby `ptm_off=1`; the module also lists what the firmware enabled |
+| 1 | **PSP driver (`ccp`), TEE (`amdtee`) and `amd_pmf`**, absent from the GKI (`CRYPTO_DEV_CCP`, `TEE` unset; amd-pmf needs both and is on the GKI symbol deny-list) | The largest set of firmware-facing drivers Linux has and we lack. Linux logs `ccp 0000:65:00.2: tee enabled / psp enabled` and `amd-pmf ... registered PMF device successfully` | The PSP's D-state alone was ruled out. Nothing public says S0i3 needs them | On the laptop: build `ccp`, `tee`/`amdtee` and `amd_pmf` as test modules (needs KMI symbols, as ANAL-239 did for nouveau) and load them through the lab helper |
+| 2 | **The USB4 complex** (router `67:00.5` and its xHCIs behind `00:08.3`) | The SMU's non-zero slots name USB4 under either IP order. `tb_switch_suspend()` ignores a failed sleep handshake, so a router that never reports sleep-ready leaves no trace in our logs. 7.2 also waits longer for Configuration Ready (50 → 500 ms, `ba2cc38511012`) and checks Router Ready (`062023c4364ff`) at probe and resume | Same sleep code in both kernels. The router is in D3 at entry. Slot values look mis-decoded | `openbook_sleep_diag usb4=1 snapshot=2` through the lab helper |
+| 3 | **amdgpu's display code** | Display Core v3.2.351 (GKI) vs v3.2.384 (7.2), DMUB firmware `0x09005700` (ours, from `/vendor`) vs `0x09005300`, eDP "PSR support 1" vs 0, no ISP block on the GKI | The SMU's DISPLAY and GFX slots read 0 in every failed cycle | Linux's DMUB file (`0x09005300`) in a vendor update; then DC fixes |
+| 4 | **Kernel generation in general** (6.18 vs 7.2) | Everything above that is not config | — | Not testable without booting another kernel; only by elimination |
+| 5 | **PTM left on by the firmware** | The GKI never touches it | Linux 7.2 does not either (§1.2) | `openbook_sleep_diag ptm_off=1`; the module also lists what the firmware enabled |
 | 6 | **MPM / firmware handshakes** | Slot 17 | No source names the IP | Nothing yet |
 
 ## 3. Tools built here
 
 ### 3.1 `openbook_sleep_diag` (test-only vendor module)
 `kernel/devices/anybook/sleep_diag/`, built as `//devices/anybook:openbook_sleep_diag` on the device
-`kernel_build`, like `openbook_lid_guard`. It loads on every boot and stays **inert** ("inactive", one line) unless
-kernel command-line parameters turn it on; libmodprobe hands `openbook_sleep_diag.<name>=<value>` to the module
-(`system/core/libmodprobe/module_config.cpp`, `ParseKernelCmdlineOptions`).
+`kernel_build`, like `openbook_lid_guard`. It is not in any load list: the lab helper (§4) loads it with
+parameters and unloads it. Loaded without parameters it logs one "inactive" line and does nothing.
 
 | Parameter | What it does |
 |---|---|
@@ -98,99 +98,61 @@ kernel command-line parameters turn it on; libmodprobe hands `openbook_sleep_dia
 | `usb4=1` | The USB4 host routers and the thunderbolt devices below them: runtime PM, D-state, wakeup, bridge state; at load, 60 s later and at every suspend |
 | `cycles=N` | Full logs for the first N suspends (default 3), one line each after that |
 
-With any parameter set it also lists every PCI function with a PTM capability once at load, with what the firmware
-enabled. The same source builds out of tree on Linux 7.2, which is what the live-USB script loads, so the two
-kernels' snapshots compare line by line.
+With any parameter set it also lists every PCI function with a PTM capability once, with what the firmware enabled.
 
-**Checked** (`evidence/.../module/`):
-- Kleaf build `b7855bc7…` (`openbook_sleep_diag.ko`), vermagic `6.18.21-android17-5-gfbfdd65b0fd1` (the G14's
-  kernel), all 32 undefined symbols in the G14 KMI list, all 33 modversion CRCs equal to the G14's `vmlinux.symvers`.
+**Checked** (`evidence/2026-10-24-ruby-s0i3/module/`), against RB-20261023-03's kernel:
+- Kleaf build `7362ffcb…`, vermagic `6.18.21-android17-5-gfbfdd65b0fd1`, all 32 undefined symbols in the G14 KMI
+  list, all 33 modversion CRCs equal to the G14's `vmlinux.symvers`.
 - Host test of the PTM order against a mock config space: 10/10 (`ptm_plan_test.c`).
 - QEMU with the G14 bzImage, the power check's LPS0 fixture and a PCIe root port with an endpoint: 17/17
-  (`run-vm-test.sh`, `check-vm-log.py`): inert load, active load, three s2idle cycles through the LPS0 hooks (woken
-  by the ACPI power button over QMP), one S3 cycle, the 60 s USB4 report, `cycles` limiting, clean unloads, no
-  kernel warnings. QEMU has no PTM-capable device and no USB4 router, so on hardware the PTM writes and the USB4
-  lines are new.
-- Builds without warnings against Linux 7.2.8's headers (compiled only, never loaded on the build host).
+  (`run-vm-test.sh`, `check-vm-log.py`): inert load, active load, three s2idle cycles through the LPS0 hooks, one
+  S3 cycle, the 60 s USB4 report, `cycles` limiting, clean unloads, no kernel warnings. QEMU has no PTM-capable
+  device and no USB4 router, so on hardware the PTM writes and the USB4 lines are new.
 
-### 3.2 Ruby sleep-diagnostics entries
-`kernel/devices/anybook/sleep_diag/stick-entries.json`, for `scripts/googlebook/stick-entries.py` (allowlist
-extended to these four parameters and their value ranges; 5/5 tests):
-- **"Googlebook - S0i3 diagnostics, save logs to USB (10 minutes)"**: the save-logs entry plus `pm_debug_messages
-  openbook_sleep_diag.snapshot=2 openbook_sleep_diag.usb4=1 openbook_sleep_diag.cycles=4`.
-- **"Googlebook - S0i3 test with PTM off, save logs to USB (10 minutes)"**: `pm_debug_messages
-  openbook_sleep_diag.ptm_off=1 openbook_sleep_diag.snapshot=1 openbook_sleep_diag.usb4=1
-  openbook_sleep_diag.cycles=4`.
+ANAL-239 (PR #131) changes the kernel (KMI +33 symbols, `6.18.21-android17-5-g206eb00bd0c4`). It reports no changed
+CRC, so this module should still load there, but the combined update rebuilds it against that kernel and checks it
+again.
 
-They ship through a Ruby release (module in `vendor_dlkm` with `build-module-candidate.py`, entries with
-`stick-entries.py`), with the owner's approvals. Neither entry changes security, verity, SELinux or init.
+## 4. Testing on the installed laptop (owner direction, 2026-10-24)
+The G14 runs Ruby from its SSD and takes OpenBook updates over Wi-Fi; adb over Wi-Fi is the non-root `shell` user
+(`ro.debuggable=0`). Shell can read logcat and bugreports, set `debug.*` properties and send key events; it cannot
+load modules, write `/sys`, read PCI power states or read dmesg. So:
 
-### 3.3 Linux live-USB comparison: `scripts/power/linux-s2idle.py --live-usb`
-Phases, in order: `baseline` (2 cycles), `nouveau` (nouveau bound, runtime PM on, waits up to 60 s for the dGPU's
-root port to runtime-suspend), `driverless` (nouveau and snd_hda_intel unbound, then exactly what
-`openbook-pc-setup dgpu-pm` does), `ptm-off` (the module reloaded with `ptm_off=1`), `no-pmf`, `no-ccp`.
-`amd-s2idle test` runs one more cycle at the end of every phase. Everything unbound or unloaded is put back after
-its phase, also on errors and Ctrl-C. It refuses to run while any partition of an internal NVMe disk is mounted or
-used as swap. An optional `eco` phase (dgpu_disable=1, as supergfxctl's Eco) needs `--allow-firmware-change` and
-puts `dgpu_disable` back to 0 with a PCI rescan, also after an error; it never touches `gpu_mux_mode`. Tests: 8/8
-on a fake sysfs (`linux-s2idle-test.py`), and a dry run on the build host.
+1. **One vendor update installs a root lab helper**, built on ANAL-238's mechanism (PR #126: a root vendor service
+   started by `setprop debug.openbook.*`, reporting to logcat), with allow-listed actions only and fixed module
+   paths: load/unload `nouveau` (ANAL-239's, shipped but not loaded at boot), load/unload `openbook_sleep_diag`
+   with the parameters above, the dGPU D0 hold and auto modes, a dGPU and S0i3 report, and timed s2idle cycles with
+   an RTC wake. It is off until a persistent switch is set once, and adb itself already needs the owner's
+   authorisation. The same update carries ANAL-238's report, this module and ANAL-239's `nouveau.ko`, so the laptop
+   takes a single update.
+2. **Then every experiment runs over wireless adb**, with nothing needed from the owner: baseline, `ptm_off=1`,
+   nouveau bound, driverless, each with the snapshot and USB4 report, and the result read from logcat.
+3. **Before each adb session:** no release operation may be using the laptop (ANAL-232, ANAL-222) and nobody else
+   may be on adb. A live module load can hang the laptop: the owner is warned first that it may reboot.
 
-## 4. Owner steps
-
-### A. Linux live USB (about 30 minutes; a spare stick, never the SanDisk ending 2034)
-1. Write a current Linux live image with kernel 7.2 or newer to a **spare** stick yourself. It needs nouveau with
-   GB20x support and `linux-firmware`'s NVIDIA GSP files (whether nouveau drives the G14's GB205 is ANAL-239's
-   question; the `nouveau` phase reports it). A current-month Arch Linux ISO is the suggestion, because its kernel
-   then matches the repository's `linux-headers` (untested on this laptop). Nothing on the laptop's SSD is
-   installed, mounted or written.
-2. Boot the G14 from it with the charger connected, connect Wi-Fi, and do not open the internal disk in a file
-   manager.
-3. In a terminal:
-   ```bash
-   pacman -Sy --needed git python make gcc linux-headers amd-debug-tools   # Arch; elsewhere the same packages
-   git clone https://github.com/Mhsbrian/OpenBook.git && cd OpenBook && git checkout <this PR's branch>
-   sudo python3 scripts/power/linux-s2idle.py --live-usb
-   ```
-   On a live ISO, `linux-headers` must match the running kernel (`uname -r`); without them the run still works but
-   loses the PCI snapshot and the `ptm-off` phase.
-4. Attach the `openbook-linux-s2idle-<time>.tar.gz` it writes to ANAL-257 (redacted: no MAC, serial, UUID, IP or
-   host name).
-5. *Optional, only after you approve it here naming the G14:* `sudo python3 scripts/power/linux-s2idle.py --phases
-   baseline,eco --allow-firmware-change` (sets the firmware's `dgpu_disable` to 1 for one cycle and back to 0).
-6. *Optional:* the same run from a live image whose kernel is 6.18 LTS, which splits "kernel generation" from
-   "kernel configuration" (suspects 3 and 4).
-
-### B. Ruby sleep diagnostics (after a Ruby release carries the module and the entries)
-Boot **"Googlebook - S0i3 diagnostics"**, close the lid for about a minute twice, let it finish its 10 minutes;
-then the same with **"S0i3 test with PTM off"**. The agent reads the stick logs on the build host
-(`scripts/googlebook/usb-log-collect.sh`) and reports with `scripts/power/s0i3-report.py`.
+The owner approves the plan for that update and its install, as for any release. Nothing else.
 
 ## 5. Reading the results
 
-| Live USB | Ruby diagnostics | Meaning | Fix |
-|---|---|---|---|
-| S0i3 in `baseline`, lost in `no-ccp` (or `no-pmf`) | — | The firmware needs the PSP/TEE (or amd-pmf) driver | Suspect 1 fix (§6) |
-| S0i3 in every phase | `ptm_off=1` reaches S0i3 | The firmware's PTM setting blocks it under our kernel | `openbook_sleep_diag`'s PTM step as a product module, then a GKI request for `CONFIG_PCIE_PTM` |
-| S0i3 in every phase | USB4 router not runtime-suspended, or its parent awake, only on Ruby | The USB4 complex | Suspect 2 fix (§6) |
-| S0i3 in every phase; a 6.18 LTS kernel loses it | — | Kernel generation | Bisect amdgpu and thunderbolt first (suspects 2–3) |
-| S0i3 nowhere on the live USB | — | Firmware state or distro config, not our kernel | Compare with the 2026-10-16 inventory; `amd-s2idle`'s report |
-| `driverless` loses S0i3 where `nouveau` keeps it | — | The dGPU needs a driver after all | ANAL-239/243 |
+| Lab result | Meaning | Fix |
+|---|---|---|
+| `ptm_off=1` reaches S0i3 | The firmware's PTM setting blocks it under our kernel | The PTM step as a product module |
+| Snapshot shows the USB4 router, its xHCIs or their bridge awake at entry | The USB4 complex | Fix that state (§6, 2) |
+| Driverless misses, nouveau bound reaches it | The dGPU needs a driver after all | ANAL-239/243 |
+| None of these reaches it | PSP/TEE/amd-pmf, amdgpu or the kernel generation | §6, 1 and 3 in that order |
 
 ## 6. Fix list (conditional, in order)
-1. **PSP/TEE/amd-pmf**, if the live USB implicates them: `ccp` + `tee` + `amdtee` (+ `amd_pmf`) as vendor modules.
-   The blocker is the GKI symbol deny-list (`docs/kernel.md`, the amd-pmf/SEV decision): an owner decision, then a
-   KMI symbol-list request, or a minimal module that performs only the init the firmware needs. Ruby image, new
-   issue.
-2. **USB4**: if Ruby's snapshot shows the router or its xHCIs awake, fix that state; if it shows them asleep but the
-   SMU still names USB4, backport v7.2's router-ready and timeout changes as a vendor `thunderbolt` (blocklisting
-   the GKI one). Ruby image, new issue.
-3. **amdgpu**: if the generation bisect implicates it, test v7.2's DMUB file first (firmware only), then DC fixes
-   for DCN 3.5. Ruby image.
-4. **PTM**: only if `ptm_off=1` reaches S0i3 on Ruby.
+1. **PSP/TEE/amd-pmf**: `ccp` + `tee` + `amdtee` (+ `amd_pmf`) as vendor modules, which needs their symbols on the
+   KMI list (a kernel change, as ANAL-239 made for nouveau). Test them through the lab helper first; ship only
+   what reaches S0i3. Ruby image, new issue.
+2. **USB4**: if the snapshot shows the router or its xHCIs awake, fix that state; if they are asleep but the SMU
+   still names USB4, backport v7.2's router-ready and timeout changes as a vendor `thunderbolt` (blocklisting the
+   GKI one). Ruby image, new issue.
+3. **amdgpu**: Linux's DMUB file first (firmware only), then DC fixes for DCN 3.5. Ruby image.
+4. **PTM**: only if `ptm_off=1` reaches S0i3.
 5. A dGPU-related fix goes to ANAL-239/243.
 
 ## 7. Release impact
-- Diagnosis (this page, `linux-s2idle.py`, the probe fix): **none** (owner-run tools; the probe only matters when an
-  AOSP check image is rebuilt).
-- `openbook_sleep_diag` and its two boot entries: **Ruby**, test-only, inert unless the entry is chosen. Handoff:
-  `evidence/2026-10-24-ruby-s0i3/handoff-ANAL-257.json`.
+- Diagnosis (this page, the probe fix): **none** (the probe only matters when an AOSP check image is rebuilt).
+- `openbook_sleep_diag` and the lab helper: **Ruby**, test-only, in the one combined vendor update (§4), handed off
+  when the helper is built and tested.

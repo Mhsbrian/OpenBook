@@ -2,9 +2,9 @@
 /*
  * openbook_sleep_diag: S0i3 diagnostics for the G14 under the Googlebook (Ruby) image (ANAL-257). Test only.
  *
- * It sits in vendor_dlkm and loads on every boot, but does nothing unless a parameter is set. Parameters come from
- * the kernel command line (libmodprobe passes openbook_sleep_diag.<name>=<value> on), so only the "sleep
- * diagnostics" boot entry turns it on; a normal boot logs one "inactive" line.
+ * It ships in vendor_dlkm but in no load list: the G14 lab helper loads it with parameters for one experiment and
+ * unloads it afterwards (docs/googlebook-s0i3.md). Loaded without parameters it logs one "inactive" line and does
+ * nothing.
  *
  *   ptm_off=1   Clear PTM Enable and Root Select on every PCI function before each suspend and restore them after
  *               (ptm_plan.h). The GKI has CONFIG_PCIE_PTM off, so whatever the firmware enabled stays enabled

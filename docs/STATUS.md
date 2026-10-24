@@ -7,11 +7,10 @@ there, the dGPU had no driver during the 15.4 h sleep (supergfx Integrated), and
 the firmware set it, as the GKI does, so neither explains the difference; platform and PCI `_OSC`, amd_pmc and
 amd-pmf's suspend notice are ruled out too. Left, ranked: the PSP/TEE/amd-pmf drivers the GKI lacks, the USB4
 complex the SMU names, amdgpu's older display code, the kernel generation. Built: `openbook_sleep_diag` (test-only
-vendor module, inert unless a boot entry sets its parameters: PTM off across suspend, PCI and USB4 power snapshots
-at the S0i3 attempt; `b7855bc7…`, KMI and CRCs checked against the G14 kernel, 17/17 in QEMU) with two Ruby
-sleep-diagnostics entries, and `linux-s2idle.py --live-usb` (nouveau, driverless, ptm-off, no-pmf, no-ccp and an
-approval-gated eco phase, amd-s2idle on each) for an owner-run live USB on a spare stick. Next: the live-USB run,
-then the diagnostics through a Ruby release. Laptop unchanged. `docs/googlebook-s0i3.md`,
+vendor module, loaded with parameters on demand: PTM off across suspend, PCI and USB4 power snapshots at the S0i3
+attempt; `7362ffcb…`, KMI and CRCs checked against the G14 kernel, 17/17 in QEMU). No USB stick and no Linux live
+USB (owner, 2026-10-24): next is a root lab helper on ANAL-238's mechanism, shipped with ANAL-238's report and
+ANAL-239's nouveau in one vendor update, then every experiment over wireless adb. Laptop unchanged. `docs/googlebook-s0i3.md`,
 `evidence/2026-10-24-ruby-s0i3/`.
 
 ## 2026-10-22: G14 on RB-20261022-01; the owner OTA path built (ANAL-229)

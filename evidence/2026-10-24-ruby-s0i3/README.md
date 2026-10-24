@@ -11,9 +11,12 @@ inventory, the kernel lane, the stick copies) stay on the build host.
 | `desk/kernel-config-diff.txt` | PM-relevant configuration: GKI vmlinux vs Linux 7.2.8 |
 | `desk/source-review.md` | PTM, thunderbolt, PCI core and amd_pmc: GKI 6.18.21 vs v7.2/v7.3 |
 | `desk/dmesg-comparison.md` | The same laptop's kernel logs under both kernels |
-| `module/build.json` | `openbook_sleep_diag.ko` `b7855bc7…`: build, vermagic, KMI and CRC checks against the G14 kernel |
+| `module/build.json` | `openbook_sleep_diag.ko` `7362ffcb…`: build, vermagic, KMI and CRC checks against the G14 kernel |
 | `module/undefined-symbols.txt`, `module/modversions.txt` | The 32 symbols it imports and their 33 CRCs |
 | `module/vm-result.json`, `module/vm-serial-excerpt.txt` | QEMU on the G14 bzImage: 17/17 |
 | `module/ptm_plan_test.txt` | The PTM clear/restore order against a mock config space: 10/10 |
 | `tests.txt` | Every check of this issue, with commands |
-| `handoff-ANAL-257.json` | `anybook-handoff/1`: the pinned module and boot-entry inputs and the checks run on them |
+
+No handoff yet. The first one (module plus two USB boot entries) was withdrawn on 2026-10-24 when the owner
+dropped USB sticks: the module ships in one combined vendor update with the root lab helper, ANAL-238's report and
+ANAL-239's nouveau, rebuilt for ANAL-239's kernel, and its `anybook-handoff/1` file comes with that update.

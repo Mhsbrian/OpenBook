@@ -110,5 +110,4 @@ Results are in `evidence/2026-10-21-ruby-sleep-fix/release-candidate.json`:
 ## S0i3 (ANAL-257)
 
 Deep sleep itself, which no Ruby suspend has reached, is in `docs/googlebook-s0i3.md`: the desk analysis, the
-`openbook_sleep_diag` module with two more sleep-diagnostics entries for this stick format, and the Linux live-USB
-comparison.
+`openbook_sleep_diag` module, and the plan to test on the installed laptop over wireless adb.

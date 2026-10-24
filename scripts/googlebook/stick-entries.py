@@ -38,11 +38,7 @@ ALLOWED = (re.compile(r"pm_debug_messages"),
            re.compile(r"acpi\.debug_level=0x[0-9a-fA-F]{1,8}"),
            re.compile(r"button\.lid_init_state=(method|open|ignore)"),
            re.compile(r"button\.lid_report_interval=[0-9]{1,5}"),
-           re.compile(r"gpiolib_acpi\.ignore_wake=[A-Z0-9]{4,8}:[0-9]{2}@[0-9]{1,3}"),
-           # openbook_sleep_diag (ANAL-257): S0i3 logs and PTM off across suspend; the module is inert without these.
-           re.compile(r"openbook_sleep_diag\.(ptm_off|usb4)=[01]"),
-           re.compile(r"openbook_sleep_diag\.snapshot=[012]"),
-           re.compile(r"openbook_sleep_diag\.cycles=[0-9]{1,2}"))
+           re.compile(r"gpiolib_acpi\.ignore_wake=[A-Z0-9]{4,8}:[0-9]{2}@[0-9]{1,3}"))
 
 
 def parse_entry(text):
