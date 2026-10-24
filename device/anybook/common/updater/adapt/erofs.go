@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
-// A read-only EROFS metadata reader: the inode/xattr inventory of an image, in exactly the rows
+// A read-only EROFS reader: the inode/xattr inventory of an image, in exactly the rows
 // scripts/googlebook/erofs-inventory.c (liberofs) prints, so the laptop checks a rebuilt system the way the
-// host does. Only metadata is read (inodes, xattrs, directories); file data stays to fsck.erofs. Anything
-// this reader does not know (an unknown incompatible feature, a compressed or chunked directory, a long
-// xattr name prefix) is refused rather than guessed.
+// host does, and uncompressed file data for the firmware-safety check (compressed data stays to
+// fsck.erofs). Anything this reader does not know (an unknown incompatible feature, a compressed or chunked
+// directory, a long xattr name prefix) is refused rather than guessed.
 package main
 
 import (
@@ -199,6 +199,57 @@ func (fs *erofsFS) dirData(in *erofsInode) ([]byte, error) {
 		return nil, fmt.Errorf("nid %d: directory layout %d is not supported", in.nid, in.layout())
 	}
 	return data, nil
+}
+
+// errNotFlat: a file whose data is compressed or chunked; fsck.erofs reads those.
+var errNotFlat = errors.New("EROFS file data is not stored flat")
+
+// fileReader reads an uncompressed file's data (flat plain or flat inline layout).
+func (fs *erofsFS) fileReader(in *erofsInode) (io.ReaderAt, error) {
+	start := int64(uint64(in.rawBlk) << fs.blkszbits)
+	switch in.layout() {
+	case layoutFlatPlain:
+		if in.size == 0 {
+			start = 0
+		}
+		return io.NewSectionReader(fs.r, start, int64(in.size)), nil
+	case layoutFlatInline:
+		full := in.size / fs.blksz() * fs.blksz()
+		tail := fs.inodeOffset(in.nid) + in.inodeSize + in.xattrSize()
+		if in.size-full > fs.blksz()-tail%fs.blksz() {
+			return nil, fmt.Errorf("nid %d: inline data crosses a block", in.nid)
+		}
+		return &inlineReader{fs.r, start, int64(full), int64(tail), int64(in.size)}, nil
+	}
+	return nil, errNotFlat
+}
+
+// inlineReader: whole blocks from the data area, the tail from beside the inode.
+type inlineReader struct {
+	r                        io.ReaderAt
+	blocks, full, tail, size int64
+}
+
+func (x *inlineReader) ReadAt(p []byte, off int64) (int, error) {
+	n := 0
+	for len(p) > 0 {
+		if off >= x.size {
+			return n, io.EOF
+		}
+		at, end := x.blocks+off, x.full
+		if off >= x.full {
+			at, end = x.tail+off-x.full, x.size
+		}
+		c := min(int64(len(p)), end-off)
+		if m, err := x.r.ReadAt(p[:c], at); int64(m) < c {
+			if err == nil || err == io.EOF {
+				err = io.ErrUnexpectedEOF
+			}
+			return n + m, err
+		}
+		n, off, p = n+int(c), off+c, p[c:]
+	}
+	return n, nil
 }
 
 type dirent struct {

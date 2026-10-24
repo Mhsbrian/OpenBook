@@ -27,6 +27,12 @@ Fail-closed checks before anything is built:
 --vm-check adds a disposable test service that reports the app's state to the serial console and opens
 it for a screenshot; such a candidate is marked not deployable.
 
+--adapter (phase 3) also adds openbook-adapt, the AOSP AVB test key it signs with, and the firmware-safety
+rules (ANAL-251) it checks every adapted release with (/system/etc/openbook/firmware-safety.json). The
+finished candidate must pass those rules itself (check-firmware-safety.py over system, system_ext, product
+and vendor, APEX init scripts included), or the laptop would hold every release: build it on a base whose
+Google security chip tools are neutralised (build-safety-candidate.py).
+
 usage: build-update-app-candidate.py --base STAGED_CANDIDATE --base-sha256 SHA --tools AOSP_HOST_BIN
                                      --inventory erofs-inventory --key AVB_KEY --apk OpenBookUpdate.apk --out DIR
 Container only (inst-docker.sh); regular image files.
@@ -38,6 +44,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import struct
 import subprocess
 import xml.etree.ElementTree as ET
@@ -49,6 +56,7 @@ spec = importlib.util.spec_from_file_location("builder", HERE / "build-input-can
 b = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(b)
 g = b.load("guard", "build-ota-guard-candidate.py")
+sb = b.load("safety_builder", "build-safety-candidate.py")
 
 PACKAGE = "org.openbook.update"
 SEINFO = "openbook"
@@ -73,6 +81,7 @@ ADAPTER = "/system/bin/openbook-adapt"
 ADAPTER_DIR = "/system/etc/openbook"
 AVB_KEY_PATH = "/system/etc/openbook/avb/testkey_rsa4096.pem"
 AOSP_AVB_TEST_KEY_SHA256 = "6a224754880a57ab9cbd308267cd157d94cf05a1c8cb851aec4090e045d24121"
+SAFETY_RULES_PATH = "/system/etc/openbook/firmware-safety.json"
 ADDED_EXEC_CONTEXT = "u:object_r:system_file:s0"
 DERIVED_HEADER = "; Every app domain's own statements, as this image's policy gives Google's app domains (derived):\n"
 SCOPE = ("OpenBook Update: a privileged app in its own domain (priv_app_all) with binder calls to update_engine; "
@@ -250,16 +259,19 @@ def adapter_pin(src_dir=SRC):
     return pin
 
 
-def adapter_additions(adapter, avb_key, pin, vm_check):
-    """The files that let the laptop adapt Google's releases: the pinned binary and the AOSP AVB test key."""
+def adapter_additions(adapter, avb_key, pin, vm_check, rules):
+    """The files that let the laptop adapt Google's releases: the pinned binary, the AOSP AVB test key and the
+    firmware-safety rules it checks each adapted release with."""
     if sha(adapter) != pin["sha256"]:
         raise ValueError("openbook-adapt differs from its pin in adapt/adapter-pins.json")
     if not vm_check and not (pin.get("worktree_clean") and pin.get("reproducible_check") and pin.get("static")):
         raise ValueError("A deployable candidate needs openbook-adapt pinned from a clean, reproducible static build")
     if sha(avb_key) != AOSP_AVB_TEST_KEY_SHA256:
         raise ValueError("Only AOSP's published AVB test key may ship in the image")
+    if rules != sb.check.POLICY.read_bytes():
+        raise ValueError("The firmware-safety rules must be device/anybook/common/safety/firmware-safety.json")
     return {ADAPTER: (adapter, 0o755, ADDED_EXEC_CONTEXT), ADAPTER_DIR: None, f"{ADAPTER_DIR}/avb": None,
-            AVB_KEY_PATH: avb_key}
+            AVB_KEY_PATH: avb_key, SAFETY_RULES_PATH: rules}
 
 
 def der(pem):
@@ -536,9 +548,11 @@ def build(a):
         adapter_record = None
         if getattr(a, "adapter", None):
             pin = adapter_pin()
-            additions.update(adapter_additions(b.p.regular(a.adapter).read_bytes(), b.p.regular(a.key).read_bytes(), pin, vm_check))
+            rules = sb.check.POLICY.read_bytes()
+            additions.update(adapter_additions(b.p.regular(a.adapter).read_bytes(), b.p.regular(a.key).read_bytes(), pin,
+                                               vm_check, rules))
             adapter_record = dict(sha256=pin["sha256"], go=pin.get("go"), built_from_commit=pin.get("commit"),
-                                  avb_test_key_sha256=AOSP_AVB_TEST_KEY_SHA256)
+                                  avb_test_key_sha256=AOSP_AVB_TEST_KEY_SHA256, firmware_safety_rules_sha256=sha(rules))
         record = dict(
             deployment_eligible=not vm_check, phase=2, hardware_validated=False,
             package=PACKAGE, version_name=apk_record["version_name"], version_code=apk_record["version_code"],
@@ -561,7 +575,14 @@ def build(a):
                                                              "/system/etc/openbook-update-vmcheck.sh")})
         return replacements, annotations, additions
 
+    if getattr(a, "adapter", None):
+        sb.check.load_policy()  # the rules and OpenBook's replacements match their pins
     b.build_system(a, transform, "openbook-ruby-update-app-candidate/1")
+    if getattr(a, "adapter", None):
+        # The adapter holds any release that fails its rules: this one must pass them.
+        old = json.loads(b.p.regular(a.base / "manifest.json").read_text())
+        sb.safety_check(a, old, sb.check.load_policy())
+        shutil.rmtree(a.out / "safety-check")
 
 
 if __name__ == "__main__":

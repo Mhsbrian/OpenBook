@@ -116,15 +116,6 @@ func subDomain(s, domain, repl string) string {
 	return b.String()
 }
 
-func pySplitLines(s string) []string {
-	// str.splitlines() for a policy file: refuse the rare boundaries rather than mis-split.
-	s = strings.TrimSuffix(s, "\n")
-	if s == "" {
-		return nil
-	}
-	return strings.Split(s, "\n")
-}
-
 func sharedAppStatements(plat string) ([]string, error) {
 	if strings.ContainsAny(plat, "\r\v\f\x1c\x1d\x1e\u0085  ") {
 		return nil, errors.New("unsupported line boundary in the platform policy")
