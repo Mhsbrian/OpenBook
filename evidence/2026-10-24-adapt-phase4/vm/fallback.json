@@ -6,7 +6,7 @@
       "booted_slot": "b",
       "boot_completed": false,
       "avb_error": true,
-      "elapsed_s": 8.4,
+      "elapsed_s": 8.3,
       "timed_out": false,
       "qmp_events": [
         "RTC_CHANGE",
@@ -18,7 +18,7 @@
       "booted_slot": "b",
       "boot_completed": false,
       "avb_error": true,
-      "elapsed_s": 9.3,
+      "elapsed_s": 9.1,
       "timed_out": false,
       "qmp_events": [
         "RTC_CHANGE",
@@ -30,7 +30,7 @@
       "booted_slot": "b",
       "boot_completed": false,
       "avb_error": true,
-      "elapsed_s": 9.3,
+      "elapsed_s": 8.8,
       "timed_out": false,
       "qmp_events": [
         "RTC_CHANGE",
@@ -42,7 +42,7 @@
       "booted_slot": "a",
       "boot_completed": true,
       "avb_error": false,
-      "elapsed_s": 1801.0,
+      "elapsed_s": 1801.1,
       "timed_out": true,
       "qmp_events": [
         "RTC_CHANGE"

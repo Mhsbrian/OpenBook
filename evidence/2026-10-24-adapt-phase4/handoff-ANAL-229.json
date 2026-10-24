@@ -1,0 +1,108 @@
+{
+  "schema": "anybook-handoff/1",
+  "source_issue": "ANAL-229",
+  "commit": "6d53373297a7826d81b1212d4f2b06fda4fb1cf5",
+  "track": "ruby-g14",
+  "note": "Phase 3 and 4 inputs for the next Ruby release (R1). The release builds the candidate with --adapter on the RB-20261023-02 base, gives it its layer (embed-adapter-layer.sh), and runs its own steps.",
+  "inputs": {
+    "parent_staged_candidate": "75fa0196090558519fbb33d079ed51e2b9fd86ee102013c089bc8e9122fe9391",
+    "apk": "cd2c896ea003717423cf75d8981bd9a4e18f5ef7088faa31646ce93490e79038",
+    "adapter": "090fe211cecfe1d061754f1e8eddecfc236ad61469c0adc1d3edcb60c0c0fcdc",
+    "avb_test_key": "6a224754880a57ab9cbd308267cd157d94cf05a1c8cb851aec4090e045d24121",
+    "candidate_builder": "e413cab34bd78f611d685f8bad41d2383eb8916c10b3680dd4db1107b92c090e",
+    "embed_recipe": "da28193054f24ef9ec81082b668bc2ef0350c241f42b8445fe0b8e35aa97b04c",
+    "updater_files": "45ca8c371694841df71173b61f402c06e71a1a1cc77e604058e292bcc450471f"
+  },
+  "checks": [
+    {
+      "id": "adapter-unit",
+      "kind": "unit",
+      "scope": "component",
+      "passed": true,
+      "summary": "go vet + go test (adapter build.sh)",
+      "evidence": "evidence/2026-10-24-adapt-phase4/adapter-build.json",
+      "inputs": {
+        "adapter": "090fe211cecfe1d061754f1e8eddecfc236ad61469c0adc1d3edcb60c0c0fcdc"
+      }
+    },
+    {
+      "id": "adapter-host-proofs",
+      "kind": "other",
+      "scope": "component",
+      "passed": true,
+      "summary": "RB-20261023-03 rebuilt byte for byte; cross build; fixed point; payload checked by delta_generator and ota_extractor",
+      "evidence": "evidence/2026-10-24-adapt-phase3/host/proofs.json",
+      "inputs": {
+        "adapter": "090fe211cecfe1d061754f1e8eddecfc236ad61469c0adc1d3edcb60c0c0fcdc",
+        "embed_recipe": "da28193054f24ef9ec81082b668bc2ef0350c241f42b8445fe0b8e35aa97b04c"
+      }
+    },
+    {
+      "id": "adapter-laptop",
+      "kind": "other",
+      "scope": "component",
+      "passed": true,
+      "summary": "on the G14 from Google's real download: three adaptations byte-identical to the host, payload written",
+      "evidence": "evidence/2026-10-24-adapt-phase4/laptop/log.txt",
+      "inputs": {
+        "adapter": "090fe211cecfe1d061754f1e8eddecfc236ad61469c0adc1d3edcb60c0c0fcdc"
+      }
+    },
+    {
+      "id": "payload-vm",
+      "kind": "other",
+      "scope": "component",
+      "passed": true,
+      "summary": "Ruby's update_engine in QEMU installs an openbook-adapt payload: apply, boot and merge, byte-identical, fallback",
+      "evidence": "evidence/2026-10-24-adapt-phase4/vm/summary.json",
+      "inputs": {
+        "adapter": "090fe211cecfe1d061754f1e8eddecfc236ad61469c0adc1d3edcb60c0c0fcdc"
+      }
+    },
+    {
+      "id": "engine-unit",
+      "kind": "unit",
+      "scope": "component",
+      "passed": true,
+      "summary": "40/40 (host shell and Android's mksh/awk/toybox)",
+      "evidence": "evidence/2026-10-24-adapt-phase4/README.md",
+      "inputs": {
+        "updater_files": "45ca8c371694841df71173b61f402c06e71a1a1cc77e604058e292bcc450471f"
+      }
+    },
+    {
+      "id": "app-jvm",
+      "kind": "unit",
+      "scope": "component",
+      "passed": true,
+      "summary": "23/23",
+      "evidence": "evidence/2026-10-24-adapt-phase4/app-build.json",
+      "inputs": {
+        "apk": "cd2c896ea003717423cf75d8981bd9a4e18f5ef7088faa31646ce93490e79038"
+      }
+    },
+    {
+      "id": "app-emulator",
+      "kind": "emulator",
+      "scope": "component",
+      "passed": true,
+      "summary": "13 instrumented tests and openbook-adapt as the app's child under app seccomp, on the pinned bytes",
+      "evidence": "evidence/2026-10-24-adapt-phase4/emulator/result.json",
+      "inputs": {
+        "apk": "cd2c896ea003717423cf75d8981bd9a4e18f5ef7088faa31646ce93490e79038",
+        "adapter": "090fe211cecfe1d061754f1e8eddecfc236ad61469c0adc1d3edcb60c0c0fcdc"
+      }
+    },
+    {
+      "id": "builder-unit",
+      "kind": "unit",
+      "scope": "component",
+      "passed": true,
+      "summary": "build-update-app-candidate-test.py, adapter additions",
+      "evidence": "evidence/2026-10-24-adapt-phase4/README.md",
+      "inputs": {
+        "candidate_builder": "e413cab34bd78f611d685f8bad41d2383eb8916c10b3680dd4db1107b92c090e"
+      }
+    }
+  ]
+}

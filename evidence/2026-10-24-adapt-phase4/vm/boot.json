@@ -1,7 +1,7 @@
 {
   "phase": "boot",
   "run": {
-    "elapsed_s": 1800.8,
+    "elapsed_s": 1800.7,
     "timed_out": true,
     "qmp_events": [
       "RTC_CHANGE"
@@ -70,18 +70,18 @@
   },
   "snapshot_state": "None",
   "merge_log": [
+    " 6], imsserviceentitlement.entitlement_server_url_string=, emergency_call_to_satellite_t911_handover_timeout_millis_int=30000",
     " binder as linkToDeath cannot be implemented. serviceName: emergency_affordance",
-    " constructed with Config: com.google.android.configupdater.emergencynumberdb.EmergencyNumberDbConfig@86f6f99, StoredState: co",
-    " constructed with Config: com.google.android.configupdater.emergencynumberdb.EmergencyNumberDbConfig@ce4b588, StoredState: co",
-    " constructed with Config: com.google.android.configupdater.emergencynumberdb.EmergencyNumberDbConfig@e31af3c, StoredState: co",
     " snapuserd: product_b: Snapshot I/O terminated. Waiting for merge thread....",
     " snapuserd: system_b: Worker threads terminated with ret: 1 Merge-thread with ret: 1 RA-thread with ret: 0",
     " snapuserd: vendor_b: Worker threads terminated with ret: 1 Merge-thread with ret: 1 RA-thread with ret: 0",
-    "/update_engine(  654): [INFO:snapshot.cpp(1537)] CheckTargetMergeState for system_b returned: MergeCompleted",
-    "129\temergency_affordance: []",
-    "133\temergency_affordance: []",
+    ", carrier_roaming_satellite_emergency_messaging_provider_per_country_bundle=PersistableBundle[",
+    "132\temergency_affordance: []",
     "134\temergency_affordance: []",
-    "4): [INFO:cleanup_previous_update_action.cc(513)] Reporting merge stats: MergeCompleted in 16264ms (resumed 0 times), using 0"
+    "135\temergency_affordance: []",
+    "80, carrier_config_applied_bool=false, carrier_roaming_ntn_emergency_call_to_satellite_handover_type_int=2, carrier_roaming_s",
+    "[    3.014198][   T81] snapuserd: Merge sequence ordered ops 0 other ops 276776",
+    "[    3.016376][   T81] snapuserd: system_b-init: Merge-ops: 0"
   ],
   "runtime_findings": {
     "setup_welcome_activity_seen": true,
