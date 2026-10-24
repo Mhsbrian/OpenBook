@@ -26,3 +26,10 @@ allow openbook_pc_setup self:capability { chown fowner };
 # kvm (ANAL-218): read whether KVM registered its misc device (sysfs, above), and say so in vendor.openbook.kvm for
 # init.openbook.rc.
 set_prop(openbook_pc_setup, vendor_openbook_prop)
+
+# lab (ANAL-257): the switch persist.vendor.openbook.lab and the module requests vendor.openbook.lab.mod are
+# vendor_openbook_prop too (set_prop above; property_contexts). One suspend through /sys/power/state, woken by the
+# RTC: /sys/class/rtc's links are sysfs_rtc; the wakealarm file itself is plain sysfs, written above. Module loads
+# and unloads are init's vendor_modprobe services, not this domain.
+r_dir_file(openbook_pc_setup, sysfs_rtc)
+allow openbook_pc_setup sysfs_power:file w_file_perms;

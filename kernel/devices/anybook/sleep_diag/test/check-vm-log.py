@@ -36,6 +36,11 @@ def main():
         "usb4_report_first_two_suspends": usb4_suspend == 2,
         "s3_cycle_resumed": "== s3 resumed" in log,
         "unloads_active": "== unloaded active" in log,
+        "report_holds_last_s0i3_entry": bool(re.search(r"^REPORT s0i3-entry 3 \(suspend 3\), PTM off:", log, re.M))
+        and bool(re.search(r"^REPORT s0i3-entry 3: \d+ PCI functions, \d+ not in D3, 0 with PTM on", log, re.M))
+        and bool(re.search(r"^REPORT   \S+ 1b36:000c D0 pcieport", log, re.M))
+        and "REPORT   no USB4 host router" in log,
+        "report_read_only": "== report read-only" in log,
         "no_kernel_warnings": "KBAD " not in log,
         "finished": "== done" in log,
     }

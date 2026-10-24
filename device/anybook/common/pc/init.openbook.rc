@@ -72,6 +72,29 @@ on property:debug.openbook.dgpu_report=*
 on property:debug.openbook.dgpu_pm=*
     start vendor.openbook.dgpu-ctl
 
+# The G14 lab helper (ANAL-257, docs/googlebook-s0i3.md): allow-listed experiments over adb. Any value of
+# debug.openbook.lab runs `openbook-pc-setup lab VALUE` as root; it refuses everything but enable/disable until
+# persist.vendor.openbook.lab=1, which only it can set. Module loads and unloads go through
+# vendor.openbook.lab.mod, which only the helper can set, to the fixed commands below. One request at a time: a
+# request made while the helper still runs is ignored. Results: `adb logcat -d -s openbook-pc-setup`.
+on property:debug.openbook.lab=*
+    start vendor.openbook.lab
+
+on property:vendor.openbook.lab.mod=nouveau-load
+    start vendor.openbook.lab-nouveau-load
+
+on property:vendor.openbook.lab.mod=nouveau-unload
+    start vendor.openbook.lab-nouveau-unload
+
+on property:vendor.openbook.lab.mod=diag-snapshot
+    start vendor.openbook.lab-diag-snapshot
+
+on property:vendor.openbook.lab.mod=diag-ptm-off
+    start vendor.openbook.lab-diag-ptm-off
+
+on property:vendor.openbook.lab.mod=diag-unload
+    start vendor.openbook.lab-diag-unload
+
 service vendor.openbook.dlkm /vendor/bin/modprobe -b -s -d /vendor/lib/modules --all=/vendor/lib/modules/modules.load
     user root
     group root system
@@ -106,6 +129,51 @@ service vendor.openbook.dgpu-report /vendor/bin/openbook-pc-setup dgpu-report ${
 service vendor.openbook.dgpu-ctl /vendor/bin/openbook-pc-setup dgpu-ctl ${debug.openbook.dgpu_pm}
     user root
     group root system
+    oneshot
+    disabled
+
+service vendor.openbook.lab /vendor/bin/openbook-pc-setup lab ${debug.openbook.lab}
+    user root
+    group root system
+    oneshot
+    disabled
+
+# The lab's module commands (ANAL-257), in the boot-time loader's domain. Without -b: nouveau, drm_gpuvm and
+# openbook_sleep_diag are on vendor_dlkm's modules.blocklist, which keeps them out of the boot (vendor.openbook.dlkm
+# uses -b) but not out of these. modules.options gives nouveau runpm=1 modeset=2. -r also removes the dependencies
+# nothing else uses (drm_gpuvm).
+service vendor.openbook.lab-nouveau-load /vendor/bin/modprobe -s -d /vendor/lib/modules nouveau
+    user root
+    group root system
+    seclabel u:r:vendor_modprobe:s0
+    oneshot
+    disabled
+
+service vendor.openbook.lab-nouveau-unload /vendor/bin/modprobe -r -s -d /vendor/lib/modules nouveau
+    user root
+    group root system
+    seclabel u:r:vendor_modprobe:s0
+    oneshot
+    disabled
+
+service vendor.openbook.lab-diag-snapshot /vendor/bin/modprobe -s -d /vendor/lib/modules openbook_sleep_diag snapshot=2 usb4=1 cycles=8
+    user root
+    group root system
+    seclabel u:r:vendor_modprobe:s0
+    oneshot
+    disabled
+
+service vendor.openbook.lab-diag-ptm-off /vendor/bin/modprobe -s -d /vendor/lib/modules openbook_sleep_diag ptm_off=1 snapshot=1 usb4=1 cycles=8
+    user root
+    group root system
+    seclabel u:r:vendor_modprobe:s0
+    oneshot
+    disabled
+
+service vendor.openbook.lab-diag-unload /vendor/bin/modprobe -r -s -d /vendor/lib/modules openbook_sleep_diag
+    user root
+    group root system
+    seclabel u:r:vendor_modprobe:s0
     oneshot
     disabled
 

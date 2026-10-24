@@ -1,3 +1,5 @@
 vendor.openbook.               u:object_r:vendor_openbook_prop:s0
 ro.vendor.openbook.            u:object_r:vendor_openbook_config_prop:s0
 vendor.audio.primary.          u:object_r:vendor_openbook_audio_prop:s0
+# The lab helper's switch (ANAL-257): only openbook_pc_setup sets it; init keeps it across reboots.
+persist.vendor.openbook.lab    u:object_r:vendor_openbook_prop:s0 exact bool
