@@ -38,13 +38,43 @@ running from slot B, user build, SDK 37, x86_64):
 | 1. Notice | `openbook-updater check`: Google's listing → newest STABLE build for `ro.product.device` → compare with `ro.build.version.incremental` | **built** (phase 1) |
 | 2. Download | `openbook-updater download`: HTTPS only (redirects too), resume, free-space check with a reserve, Google's MD5, prune older downloads | **built** (phase 1) |
 | 3. Reconstruct | `openbook-adapt reconstruct`: the recovery zip read once, straight from the zip; GPT and liblp metadata parsed; `system`, `system_ext`, `product` and `vbmeta` kept; Google's vbmeta signature checked against the pinned key and each dm-verity root recomputed | **built** (phase 3; laptop 41 s) |
-| 4. Adapt | `openbook-adapt adapt`: the **OpenBook layer** (OpenBook's exact delta against the Google build a release was made from) re-applied to Google's new `system` with the host rebase's carry rules, fail-closed; `mkfs.erofs` with the host's flags; inventory and content checks; hash tree, footer and vbmeta (AVB test key, as today) | **built** (phase 3; laptop 28 s; byte-identical to the host) |
+| 4. Adapt | `openbook-adapt adapt`: the **OpenBook layer** (OpenBook's exact delta against the Google build a release was made from) re-applied to Google's new `system` with the host rebase's carry rules, fail-closed; the **firmware-safety check** (ANAL-251's rules, below); `mkfs.erofs` with the host's flags; inventory and content checks; hash tree, footer and vbmeta (AVB test key, as today) | **built** (phase 3; laptop 32 s with the check; byte-identical to the host) |
 | 5. Payload | `openbook-adapt payload`. The changed partitions are written in full as 2 MiB REPLACE operations (all-zero chunks as ZERO). The rest are identity copies: free under Virtual A/B, and update_engine verifies them against the installed release's hashes. Every dynamic partition is listed. The new build's timestamp and security patch let update_engine refuse a downgrade | **built** (phase 4). In QEMU, Ruby's own update_engine installs it into slot B, boots and merges it, finds the slot byte-identical to the release, and falls back from a broken slot |
 | 6. Sign | **per-laptop OTA key**: RSA-4096 in Android Keystore (`LaptopKey`), created on the laptop and never exported. The app signs the payload's two hashes (PKCS#1 v1.5 over the DigestInfo, as update_engine verifies); the engine checks them against the key's certificate before inserting them. update_engine accepts them only once the certificate is in the running system's `otacerts.zip` (enrollment, one OpenBook update); until then the app builds and checks, but installs nothing | **built** (phase 4). The master OpenBook key stays on the build host |
 | 7. Install | After the owner approves in the app, `InstallWorker` serves the payload on the loopback interface (unguessable path, byte ranges) and calls `UpdateEngine.applyPayload`. update_engine checks the signature and writes the other slot. Bootsync activates it; systemd-boot falls back after three failed boots; update_engine merges once the slot is marked good | **built** (phase 4); the install path was proven from the host on 2026-10-23 |
 
 The fail-closed rules of the host rebase carry over unchanged. A Google change to a file OpenBook
 patches stops the adaptation. The laptop keeps running and reports it; it never installs a guess.
+
+### Firmware safety on the laptop (ANAL-251)
+
+Googlebook images assume Google hardware. Google's init scripts start the security chip's firmware tools,
+and Google's update postinstall flashes security chip, BIOS and EC firmware (`docs/ruby-firmware-safety.md`).
+OpenBook neutralises them, and every OpenBook image is checked with `check-firmware-safety.py` against
+`device/anybook/common/safety/firmware-safety.json`. Google's next release can bring new triggers, so the
+laptop applies the same rules to every release it adapts, before anything is built:
+
+- **What is checked.** The adapted `system`, Google's new `system_ext` and `product`, and the init scripts
+  inside every APEX. EROFS is read in place, the one ext4 APEX through a small reader, compressed files
+  through the laptop's `fsck.erofs`.
+- **What it finds.** Each finding is one of:
+  - a neutralised file that is not OpenBook's replacement;
+  - an init script with a firmware/TPM/EC trigger that is unreviewed, or reviewed at a different SHA-256;
+  - an unreviewed firmware tool by name;
+  - a forbidden flasher.
+- **Rules.** The running release's own `/system/etc/openbook/firmware-safety.json`, shipped with the
+  adapter and checked against the layer byte for byte.
+- **Outcome.** Any finding holds the release, with the reason, in the app. So do missing rules and content
+  the check cannot read. A Google change to a reviewed file holds it too, until OpenBook reviews the change
+  and ships the updated rules.
+- **Scope.** It reads everything the host check reads, and also what Android's init reads beyond it:
+  - every file in an `etc/init` directory, whatever its name;
+  - an APEX's versioned scripts (`etc/*rc`, e.g. `netbpfload.35rc`).
+
+  A compressed APEX holds instead of being skipped. On Google 16658739 and 16452207, RB-20261023-03 and the
+  test release, it gives the host check's findings and inventory exactly.
+- **Payloads.** The payload writer refuses any partition with a postinstall step, so an OpenBook payload
+  runs nothing at install.
 
 ## OpenBook Update: the app the owner sees and approves
 
@@ -183,10 +213,19 @@ Look: Material You (dynamic colour from the wallpaper), the Googlebook system ty
    - On the G14, from Google's real 7.8 GB download (fetched by the engine): RB-20261023-03's `system`
      and `vbmeta` rebuilt byte for byte from Google 16658739 and its layer. A layer made on 16452207,
      adapted to 16658739, gives the host's result byte for byte.
-   - Shipping: `build-update-app-candidate.py --adapter` adds the pinned binary and AOSP's AVB test key, whose
-     hash is pinned so no other key can ship. `embed-adapter-layer.sh` gives a release its layer with the
-     same adapter. A release built this way is a fixed point: adapting the same Google build with the layer
-     it carries reproduces it byte for byte.
+   - Shipping: `build-update-app-candidate.py --adapter` adds three things:
+     - the pinned binary;
+     - AOSP's AVB test key, whose hash is pinned so no other key can ship;
+     - the firmware-safety rules.
+
+     It rejects a candidate that fails those rules, so build it on a base with ANAL-251's change. The order
+     is `build-safety-candidate.py`, then `--adapter`. `embed-adapter-layer.sh` gives a release its layer
+     with the same adapter, and the firmware-safety check runs inside it. A release built this way is a
+     fixed point: adapting the same Google build with the layer it carries reproduces it byte for byte.
+   - Firmware safety (ANAL-251, 2026-10-24; evidence `evidence/2026-10-24-adapt-firmware-safety/`). See
+     "Firmware safety on the laptop" above. On the G14, a test release with ANAL-251's change and the adapter
+     was adapted in 32 s, byte-identical to the host, the check passing. RB-20261023-03's own layer was held:
+     it ships no rules, and under the rules Google's `gscutil` scripts would run.
 4. **Payload, per-laptop key, install** — built 2026-10-24 (evidence `evidence/2026-10-24-adapt-phase4/`).
    - `openbook-adapt payload` is checked with Google's own tools. delta_generator verifies the signature.
      `ota_extractor` applies it onto RB-20261023-02 and gives all 10 target partitions byte for byte.
@@ -197,8 +236,9 @@ Look: Material You (dynamic colour from the wallpaper), the Googlebook system ty
      - shows the real checklist, with held and failed reasons;
      - installs after the owner's review and confirmation.
    - Two OpenBook updates bring it to the laptop:
-     - **R1** ships the adapter, its layer and the app. The laptop then creates its key; the shell reads the
-       certificate with `am broadcast -a org.openbook.update.action.LAPTOP_KEY`.
+     - **R1** ships the adapter, its layer and firmware-safety rules, ANAL-251's neutralised security chip
+       scripts and the app. The laptop then creates its key; the shell reads the certificate with
+       `am broadcast -a org.openbook.update.action.LAPTOP_KEY`.
      - **R2** adds that certificate to `otacerts.zip`.
 
      From R2 on, the adapter carries the certificate to every system the laptop builds.
@@ -210,8 +250,9 @@ Look: Material You (dynamic colour from the wallpaper), the Googlebook system ty
 - Nothing writes a partition before verification:
   - Google's checksum;
   - the fail-closed adaptation;
+  - the firmware-safety check;
   - the inventory check;
-  - a signed payload, checked again by update_engine.
+  - a signed payload with no postinstall step, checked again by update_engine.
 - Installs go only to the other slot. The running slot stays bootable, and three failed boots return
   to it.
 - Reboots happen only when the owner agrees or the laptop is idle, never while it is in use.

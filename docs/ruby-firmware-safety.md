@@ -54,9 +54,21 @@ candidate and runs the check on the result; a candidate that fails has its manif
 - **Rebasing onto a new Google build** (`rebase-google-build.py`, and `openbook-adapt` on the laptop): the two
   files are changed paths of the OpenBook layer, so they are carried to every later Google build. If Google
   changes either file, the rebase stops (fail closed).
-- **Phase 3 contract (ANAL-229):** `openbook-adapt` reads the same `firmware-safety.json` (patterns are RE2)
-  and holds (exit 8) when the adapted system fails the tree check. Any payload it makes or applies must pass
-  the payload check. The same checks run on the host, so the laptop and the host reach the same verdict.
+- **On the laptop (ANAL-229, built 2026-10-24):** `openbook-adapt` ports the check (`safety.go`). It checks
+  every release it adapts, before building it: the adapted `system`, Google's new `system_ext` and `product`,
+  and every APEX's init scripts. The rules are the running release's own copy, shipped by
+  `build-update-app-candidate.py --adapter` at `/system/etc/openbook/firmware-safety.json`. Any finding, missing
+  rules, or content it cannot read holds the release (exit 8, with the reason in the app). Its payloads never
+  carry a postinstall step: the writer refuses one.
+  - On Google 16658739 and 16452207, RB-20261023-03 and a test release with this change, it gives this
+    script's findings and inventory exactly.
+  - On the G14 it held RB-20261023-03's own adaptation on Google's `gscutil` scripts.
+  - Evidence: `evidence/2026-10-24-adapt-firmware-safety/`.
+- **Init's scope is wider than `*.rc`.** Android's init parses every regular file in an `etc/init` directory,
+  whatever its name, and an APEX's `etc/*rc` (versioned scripts such as `netbpfload.35rc`). The laptop check
+  reads those too; this script does not yet.
+  - Google 16658739 has 5 versioned APEX scripts and no other such files. None matches the patterns.
+  - Widening this script is a follow-up. It changes its pinned bytes, so ANAL-251's checks would run again.
 
 ## `efi_pstore`: open
 

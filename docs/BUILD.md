@@ -20,16 +20,27 @@ openbook-adapt layer --old-system G/system.img --old-stock G --old-build N --rel
 openbook-adapt adapt --layer LAYER --new NEW --ours-root TREE --key testkey_rsa4096.pem \
     --mkfs mkfs.erofs --fsck fsck.erofs --work W2 --out ADAPTED [--embed-layer=false]
 openbook-adapt payload --adapted ADAPTED --layer LAYER --out PAYLOAD [--key RSA4096.pem]
+openbook-adapt firmware-safety --rules firmware-safety.json --fsck fsck.erofs --work W3 \
+    system=system.img system_ext=system_ext.img ...       # the laptop's check on images or trees (exit 8: findings)
 ```
+
+`adapt` runs the firmware-safety check (ANAL-251's rules) on the release it has adapted, before building.
+By default it takes the rules from the adapted system itself (`/system/etc/openbook/firmware-safety.json`);
+`--firmware-safety FILE` names another file for tests.
 
 - Pin: `pin.sh OUT` writes `adapter-pins.json`. It accepts only a static build from a clean worktree whose
   reproducible check passed.
-- Image: `build-update-app-candidate.py --adapter openbook-adapt` adds `/system/bin/openbook-adapt` and AOSP's
-  AVB test key at `/system/etc/openbook/avb/`. The key is hash-pinned; no other key is accepted.
+- Image: `build-update-app-candidate.py --adapter openbook-adapt` adds `/system/bin/openbook-adapt`, AOSP's AVB
+  test key at `/system/etc/openbook/avb/` (hash-pinned; no other key is accepted) and the firmware-safety rules.
+  It runs `check-firmware-safety.py` on the finished candidate and rejects one that fails. The chain is
+  `build-safety-candidate.py` (ANAL-251), `stage-base.py`, then `build-update-app-candidate.py --adapter` on
+  the staged result.
 - Release: `scripts/googlebook/embed-adapter-layer.sh REL_DIR GOOGLE_STOCK BUILD OUT` gives a release its layer
   with the same adapter. It writes the release images with the final `system` and `vbmeta`.
 - On the laptop: `adapt-device-test.sh` runs the engine's real download, then these steps in a
-  temporary directory over adb.
+  temporary directory over adb. With `RECON=DIR` it pushes Google's partitions reconstructed on the host
+  instead. A case can name a tar of a release's OpenBook files (`--ours-root` for a release the laptop does
+  not run), a rules file, and `held` to require a hold.
 - In QEMU: `payload-vm-test.sh` has update_engine install an `openbook-adapt` payload. It needs
   `ADAPT=<host build>`.
 - Google's images, the recovery zip and the layer (Google's file rows) stay private.

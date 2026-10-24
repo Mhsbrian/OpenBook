@@ -1,5 +1,27 @@
 # Status
 
+## 2026-10-24: the laptop's adapter checks firmware safety; R1 = phase 3/4 + ANAL-251 (ANAL-229, ANAL-251)
+
+`openbook-adapt` now applies ANAL-251's firmware-safety rules to every release it adapts, before building
+it. It checks the adapted `system`, Google's new `system_ext` and `product`, and every APEX's init scripts.
+Any finding holds the release with the reason. Its payloads never carry a postinstall step.
+
+- **Agreement.** On four image sets it gives `check-firmware-safety.py`'s findings and inventory exactly. It
+  also reads what Android's init reads beyond `*.rc` (5 versioned APEX scripts today, none with a trigger).
+- **On the G14 (pinned `325006b5…`).**
+  - A test release with ANAL-251's change, OpenBook Update 2.0 and the adapter was adapted in 32 s,
+    byte-identical to the host, the check passing.
+  - RB-20261023-03's own layer was held: it ships no rules, and under the rules Google's `gscutil` scripts
+    would run.
+- **Image.** `build-update-app-candidate.py --adapter` ships the rules and rejects a candidate that fails
+  them. The whole R1 chain was built as a test input on the R1 parent:
+  safety → stage → app and adapter → embedded layer.
+- **Next.** R1 ships the adapter, layer and rules, ANAL-251's neutralised scripts and app 2.0. Then R2
+  enrolls the laptop's key.
+- **Open.** `efi_pstore` is the owner's choice (ANAL-251).
+
+Evidence: `evidence/2026-10-24-adapt-firmware-safety/`.
+
 ## 2026-10-24: phase 3, the laptop adapts Google's release itself (ANAL-229)
 
 `openbook-adapt` (`device/anybook/common/updater/adapt/`) reconstructs Google's partitions from the
