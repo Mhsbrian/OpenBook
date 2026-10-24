@@ -1,0 +1,112 @@
+{
+  "phase": "apply",
+  "slot": "a",
+  "run": {
+    "elapsed_s": 649.2,
+    "timed_out": false,
+    "qmp_events": [
+      "RTC_CHANGE",
+      "SHUTDOWN"
+    ]
+  },
+  "payload_sha256_on_device": "d572fdbcb6fd1a0c7940ba9a968133859c5bb705aaa8ebc9ba2859655aaa5605",
+  "snapshot_state": "Unverified",
+  "slot_a_static_before": {
+    "boot_a": true,
+    "init_boot_a": true,
+    "vendor_boot_a": true,
+    "vbmeta_a": true,
+    "equal_target": {
+      "boot": true,
+      "init_boot": true,
+      "vendor_boot": true,
+      "vbmeta": false
+    }
+  },
+  "slot_a_static_equal_target": {
+    "boot": true,
+    "init_boot": true,
+    "vendor_boot": true,
+    "vbmeta": true
+  },
+  "bootsync": {
+    "schema": "openbook-bootsync/1",
+    "command": "status",
+    "current_slot": "b",
+    "slots": {
+      "a": {
+        "images_ok": true,
+        "vbmeta_digest": "91ea83b2c99b048e8db5cc73e9455e802e318838677edb1be49cef44a6e9f7d2",
+        "vbmeta_key_sha256": "7728e30f50bfa5cea165f473175a08803f6a8346642b5aa10913e9d9e6defef6",
+        "vbmeta_signed": true,
+        "vbmeta_release": "avbtool 1.4.0",
+        "entry": "openbook-a+3.conf",
+        "entry_state": "pending",
+        "esp_files": "in_sync"
+      },
+      "b": {
+        "images_ok": true,
+        "vbmeta_digest": "c89bddf4de346102f73677aa55cd3776e8f56e8942e321420cb07ddd8b6e6201",
+        "vbmeta_key_sha256": "7728e30f50bfa5cea165f473175a08803f6a8346642b5aa10913e9d9e6defef6",
+        "vbmeta_signed": true,
+        "vbmeta_release": "avbtool 1.4.0",
+        "entry": "openbook-b.conf",
+        "entry_state": "good",
+        "esp_files": "in_sync"
+      }
+    },
+    "entries": [
+      {
+        "file": "openbook-a+3.conf",
+        "id": "openbook-a.conf",
+        "slot": "a",
+        "state": "pending",
+        "tries_left": 3,
+        "tries_done": 0
+      },
+      {
+        "file": "openbook-b.conf",
+        "id": "openbook-b.conf",
+        "slot": "b",
+        "state": "good"
+      }
+    ],
+    "loader_conf": {
+      "default": "openbook-b.conf",
+      "preferred": "openbook-a.conf"
+    },
+    "next_boot_entry": "openbook-a+3.conf",
+    "next_boot_slot": "a",
+    "esp_free_bytes": 1011404800,
+    "ok": true
+  },
+  "activate_log": [
+    "bootsync activate _a: 23:50:04 step 1: check the new slot's boot images against its vbmeta",
+    "bootsync activate _a: 23:50:05 step 2: remove the slot's old entry",
+    "bootsync activate _a: 23:50:05 step 3: export the boot images",
+    "bootsync activate _a: 23:50:05 wrote openbook/a/kernel (26858496 bytes, sha256 55b86074614a9459)",
+    "bootsync activate _a: 23:50:05 wrote openbook/a/vendor_ramdisk.img (128064 bytes, sha256 33b36f34c48b7e63)",
+    "bootsync activate _a: 23:50:05 wrote openbook/a/ramdisk.img (3005952 bytes, sha256 99bb1c341f44649c)",
+    "bootsync activate _a: 23:50:05 wrote openbook/a/bootconfig.img (672 bytes, sha256 f67dfe16e114ca07)",
+    "bootsync activate _a: 23:50:06 openbook/a/ read back: in sync",
+    "bootsync activate _a: 23:50:06 step 4: write the loader entry",
+    "bootsync activate _a: 23:50:06 wrote loader/entries/openbook-a+3.conf",
+    "bootsync activate _a: 23:50:06 step 5: prefer the new slot in loader.conf",
+    "bootsync activate _a: 23:50:06 loader.conf: default openbook-b.conf, preferred openbook-a.conf"
+  ],
+  "checks": {
+    "driver_ran": true,
+    "payload_on_device_matches": true,
+    "update_engine_finished_writes": true,
+    "update_engine_set_active_slot_a": true,
+    "slot_a_static_partitions_equal_target": true,
+    "slot_a_static_changed_to_target": true,
+    "bootsync_next_boot_a": true,
+    "slot_a_entry_counted": true,
+    "slot_a_images_verified_by_bootsync": true,
+    "slot_a_esp_files_in_sync": true,
+    "orderly_reboot": true
+  },
+  "schema": "openbook-ruby-ab-ota/1",
+  "passed": true
+}

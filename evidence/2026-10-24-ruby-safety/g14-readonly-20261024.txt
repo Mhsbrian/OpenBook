@@ -1,0 +1,331 @@
+# ANAL-251 re-check: G14 on RB-20261023-03 (slot A, Google 16658739). Read-only adb as uid 2000 (shell), 2026-10-24T01:21Z. Device timestamps are EDT (20:48 EDT = 00:48 UTC, the boot after the RB-20261023-03 install).
+
+## identity
+uid=2000(shell) gid=2000(shell) groups=2000(shell),1004(input),1007(log),1011(adb),1015(sdcard_rw),1028(sdcard_r),1078(ext_data_rw),1079(ext_obb_rw),3001(net_bt_admin),3002(net_bt),3003(inet),3006(net_bw_stats),3009(readproc),3011(uhid),3012(readtracefs) context=u:r:shell:s0
+Lenovo/ruby/ruby:17/CL3B.260622.276.R4/16658739:user/release-keys
+Android/desktop_system/desktop:17/CL3B.260622.276.R4/16658739:user/release-keys
+OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys
+_a
+user
+6.18.21-android17-5-gfbfdd65b0fd1
+orange
+1972.55 45247.95
+## cmdline
+(cmdline rc=1)
+## bootconfig
+## modules of interest
+hid_asus asus_nb_wmi asus_wmi tpm_crb tpm spi_amd_pci spi_amd efivarfs 
+## pstore / efivars visibility
+ls: /sys/fs/pstore: Permission denied
+0
+## module params
+cat: /sys/module/efi_pstore/parameters/pstore_disable: Permission denied
+cat: /sys/module/efi_pstore/parameters/record_size: Permission denied
+backend
+compress
+kmsg_bytes
+update_ms
+/sys/module/pstore/parameters/backend=cat: /sys/module/pstore/parameters/backend: Permission denied
+/sys/module/pstore/parameters/compress=cat: /sys/module/pstore/parameters/compress: Permission denied
+/sys/module/pstore/parameters/kmsg_bytes=cat: /sys/module/pstore/parameters/kmsg_bytes: Permission denied
+/sys/module/pstore/parameters/update_ms=cat: /sys/module/pstore/parameters/update_ms: Permission denied
+## tools present
+/system/bin/ectool
+## dev nodes
+ls: /dev/cros_ec*: No such file or directory ls: /dev/mtd*: No such file or directory ls: /dev/spidev*: No such file or directory /dev/tpm0 /dev/tpmrm0 
+## rc files
+bert_collector.rc
+check_tpm_clear.rc
+ec_crash_collector.rc
+flags_health_check.rc
+gscd.rc
+gscutil-executor.rc
+gscutil.rc
+kcmdlinectrl.rc
+media.codeclist.generator.rc
+mtectrl.rc
+recovery-persist.rc
+recovery-refresh.rc
+timberslide.rc
+update_engine.rc
+update_verifier.rc
+android.hardware.security.keymint-service.desktop_trusty_system_vm.rc
+desktop-trusty_security_vm_launcher.rc
+## init.svc
+[init.svc.gatekeeperd]: [running]
+[init.svc.keystore2]: [running]
+[init.svc.timberslide]: [stopped]
+[init.svc.update_engine]: [running]
+[init.svc.vold]: [running]
+## pstore/efi props
+[persist.sys.boot.reason]: []
+[persist.sys.boot.reason.history]: [reboot,shell,1792802931
+[ro.boot.bootreason]: [reboot,shell]
+[sys.boot.reason]: [reboot,shell]
+[sys.boot.reason.last]: [reboot,shell]
+
+# init rc files (verbatim)
+===== /system/etc/init/bert_collector.rc
+# Copyright (C) 2024 The ChromiumOS Authors
+
+service bert_collector /system/bin/bert_collector
+    user system
+    group system
+    class late_start
+    oneshot
+===== /system/etc/init/check_tpm_clear.rc
+# Copyright (C) 2025 The Android Open Source Project
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+on early-fs
+    mkdir /metadata/hwsec_metadata 775 root root
+
+# Write to hwsec-ownership-id to /metadata/hwsec_metadata/hwsec-ownership-id
+# when we have a successful mount
+on post-fs-data
+    exec_background -- /system/bin/check_tpm_clear
+===== /system/etc/init/ec_crash_collector.rc
+# Copyright (C) 2024 The Android Open Source Project
+
+service ec_crash_collector /system/bin/ec_crash_collector
+    user system
+    group system cros_ec
+    oneshot
+
+on property:sys.boot_completed=1
+    start ec_crash_collector
+===== /system/etc/init/gscd.rc
+# Copyright (C) 2024 The Android Open Source Project
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+service android.system.desktop.security.gscd /system/bin/gscd
+    class early_hal
+    user hsm
+    group hsm
+===== /system/etc/init/gscutil-executor.rc
+service com.google.android.system.desktop.gscutil-executor /system/bin/com.google.android.system.desktop.gscutil-executor
+    class hal
+    user hsm
+    group hsm misc
+    interface aidl com.google.android.system.desktop.IGscutilExecutor/default
+    disabled
+    oneshot===== /system/etc/init/gscutil.rc
+# Copyright (C) 2025 The Android Open Source Project
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+on post-fs
+    mkdir /metadata/gscutil 775 hsm hsm
+    wait /dev/tpm0 10
+    exec - hsm hsm -- /system/bin/gscutil --direct-gsc \
+        perform-os-startup \
+        --fw-zip-mp /system/etc/security/gsc.zip \
+        --fw-zip-prepvt /system/etc/security/gsc.prepvt.zip \
+        --metadata /metadata/gscutil/gsc_update \
+        --use-memfd
+===== /system/etc/init/kcmdlinectrl.rc
+# Copyright (C) 2022 The Android Open Source Project
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# adbd gets initialized in init, so run before that. this makes sure that the
+# user does not change the value before we initialize it
+on early-boot
+  exec_background -- /system/bin/kcmdlinectrl update-props
+
+on property:kcmdline.binder=*
+  wait_for_prop kcmdline.loaded 1
+  exec -- /system/bin/kcmdlinectrl store binder ${kcmdline.binder:-c}
+===== /system/etc/init/mtectrl.rc
+# Copyright (C) 2022 The Android Open Source Project
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+on property:arm64.memtag.bootctl=*
+  trigger mtectrl_update
+
+on property:persist.device_config.runtime_native_boot.bootloader_override=*
+  trigger mtectrl_update
+
+on property:persist.vendor.mte_launcher.enable_mte=*
+  trigger mtectrl_update
+
+on mtectrl_update && property:ro.arm64.memtag.bootctl_supported=1
+  wait_for_prop arm64.memtag.bootctl_loaded 1
+  exec -- /system/bin/mtectrl \
+      ${arm64.memtag.bootctl:-none} \
+      ${persist.device_config.runtime_native_boot.bootloader_override:-default} \
+      ${persist.vendor.mte_launcher.enable_mte:-false}
+
+# adbd gets initialized in init, so run before that. this makes sure that the
+# user does not change the value before we initialize it
+on early-boot && property:ro.arm64.memtag.bootctl_supported=1
+  exec_background -- /system/bin/mtectrl -s arm64.memtag.bootctl -f arm64.memtag.bootctl_loaded
+
+on shutdown && property:ro.arm64.memtag.bootctl_supported=1 && property:arm64.memtag.bootctl_loaded=*
+  # This doesn't use wait_for_prop to not stall the shutdown.
+  exec -- /system/bin/mtectrl ${arm64.memtag.bootctl:-none} \
+      ${persist.device_config.runtime_native_boot.bootloader_override:-default} \
+      ${persist.vendor.mte_launcher.enable_mte:-false}
+
+# Enable MTE in Enforcing Mode
+on property:persist.device_config.runtime_native_boot.bootloader_override=force_on
+  setprop persist.sys.mte.permissive 0
+===== /system/etc/init/recovery-persist.rc
+on post-fs-data
+    mkdir /data/misc/recovery 0770 system log
+    exec_background - system log -- /system/bin/recovery-persist
+===== /system/etc/init/recovery-refresh.rc
+on post-fs
+    exec_background - system log -- /system/bin/recovery-refresh
+===== /system/etc/init/timberslide.rc
+# Start the timberslide daemon.
+# Timberslide shall run as user system and groups system and cros_ec.
+#
+# See system/core/init/README.md for information on the init.rc language.
+
+# Ensure /data/misc/timberslide/ folder exists
+on post-fs-data
+    mkdir /data/misc/timberslide/ 0750 system system
+
+service timberslide /system/bin/timberslide --name cros_ec --log-to-logcat --log-to-file /data/misc/timberslide/cros_ec.log --period-ms 4000
+   user system
+   group system cros_ec
+
+   class core
+===== /system/etc/init/update_engine.rc
+# LINT.IfChange
+service update_engine /system/bin/update_engine --logtostderr --logtofile --foreground
+    class late_start
+    user root
+    group root system wakelock inet cache media_rw
+    task_profiles OtaProfiles
+    disabled
+
+on property:ro.boot.slot_suffix=*
+    enable update_engine
+# LINT.ThenChange(update_engine_nostats.rc)
+===== /system/etc/init/update_verifier.rc
+service update_verifier /system/bin/update_verifier
+    user root
+    group cache system
+    priority -20
+    ioprio rt 0
+===== /system/etc/init/flags_health_check.rc
+on load_persist_props_action
+    # check server configurable flags(which is based on persistent properties) related
+    # disaster recovery
+    mkdir /data/server_configurable_flags 0775 system system encryption=Require
+    exec - system system -- /system/bin/flags_health_check BOOT_FAILURE
+
+on property:sys.boot_completed=1
+    setprop persist.device_config.attempted_boot_count 0
+
+on property:sys.init.updatable_crashing=1
+    exec - system system -- /system/bin/flags_health_check UPDATABLE_CRASHING
+===== efi_pstore sysfs
+parameters
+uevent
+cat: /sys/module/efi_pstore/initstate: No such file or directory
+
+# binaries, firmware bundles, service props, boot reasons
+## bin listing
+-?????????  ? ?    ?           ?                ? bert_collector
+-?????????  ? ?    ?           ?                ? check_tpm_clear
+-?????????  ? ?    ?           ?                ? com.google.android.system.desktop.gscutil-executor
+-?????????  ? ?    ?           ?                ? ec_crash_collector
+-rwxr-xr-x  1 root shell 1947600 2008-12-31 19:00 ectool
+-?????????  ? ?    ?           ?                ? gscd
+-rwxr-xr-x  1 root shell  117720 2008-12-31 19:00 gsctool
+-?????????  ? ?    ?           ?                ? gscutil
+-?????????  ? ?    ?           ?                ? kcmdlinectrl
+-?????????  ? ?    ?           ?                ? kcmdlinemodprobe
+-?????????  ? ?    ?           ?                ? timberslide
+## security fw zips
+-rw-r--r--  1 root root 1332498 2008-12-31 19:00 gsc.prepvt.zip
+-rw-r--r--  1 root root 1332417 2008-12-31 19:00 gsc.zip
+-rw-r--r--  1 root root    2077 2008-12-31 19:00 otacerts.zip
+## gsc svc props
+[init.svc.android.system.desktop.security.gscd]: [running]
+[init.svc.bert_collector]: [stopped]
+[init.svc.kcmdlinemodprobe]: [stopped]
+[kcmdline.binder]: [unset]
+[kcmdline.loaded]: [1]
+## boot reason history
+reboot,shell,1792802931
+reboot,shell,1792761786
+reboot,1792757007
+## metadata dirs
+
+# logcat this boot: gscutil
+-?????????  ? ?    ?           ?                ? com.google.android.system.desktop.gscutil-executor
+-?????????  ? ?    ?           ?                ? gscutil
+10-23 20:48:50.320   897   897 I auditd  : type=1400 audit(0.0:38): avc:  denied  { search } for  comm="gscutil" name="block" dev="tmpfs" ino=12 scontext=u:r:gscutil:s0 tcontext=u:object_r:block_device:s0 tclass=dir permissive=0
+10-23 20:48:50.344   897   897 I auditd  : type=1400 audit(0.0:39): avc:  denied  { write } for  comm="gscutil" path=2F6D656D66643A4753435F494D414745202864656C6574656429 dev="tmpfs" ino=2048 scontext=u:r:gscutil:s0 tcontext=u:object_r:tmpfs:s0 tclass=file permissive=0
+10-23 20:48:50.344   795   809 I auditd  : Decoded path for audit(0.0:39): /memfd:GSC_IMAGE (deleted)
+
+# security-related processes
+## ps
+  582 root               33:59 [kworker/R-tpm_dev_wq]
+  865 system             33:56 trusty_security_vm_launcher
+  866 root               33:56 vold
+  868 system             33:56 virtmgr_trusty_security_vm_launcher
+  883 system             33:56 crosvm_security_vm
+  934 hsm                33:56 gscd
+  938 nobody             33:56 android.hardware.security.keymint-service.nonsecure
+ 1093 system             33:55 android.hardware.weaver-service.openbook
+ 1096 hsm                33:55 android.hardware.authsecret-service.example
+ 1157 root               33:55 update_engine
+gscd pid=934
+
+# OpenBook payload builder: no --new_postinstall_config_file (scripts/googlebook/build-ruby-ab-ota.py @ PR #128 30c446a, lines 94-97)

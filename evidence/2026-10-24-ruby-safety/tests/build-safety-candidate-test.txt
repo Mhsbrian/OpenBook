@@ -1,0 +1,13 @@
+test_already_neutralised_refused (__main__.Replacements.test_already_neutralised_refused) ... ok
+test_changed_google_file_refused (__main__.Replacements.test_changed_google_file_refused) ... ok
+test_committed_rules_cover_both_files (__main__.Replacements.test_committed_rules_cover_both_files) ... ok
+test_google_original_is_replaced (__main__.Replacements.test_google_original_is_replaced) ... ok
+test_missing_file_refused (__main__.Replacements.test_missing_file_refused) ... ok
+test_replacement_pin_is_enforced (__main__.Replacements.test_replacement_pin_is_enforced) ... ok
+test_init_scripts_verify (__main__.VmCheck.test_init_scripts_verify) ... ok
+test_report_script_parses (__main__.VmCheck.test_report_script_parses) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.074s
+
+OK

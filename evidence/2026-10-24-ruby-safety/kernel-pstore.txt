@@ -1,0 +1,21 @@
+# Ruby kernel (boot.img of RB-20261023-03, Google 6.18.21-android17-5-gfbfdd65b0fd1): embedded config, relevant lines
+CONFIG_EFI=y
+CONFIG_EFI_VARS_PSTORE=y
+# CONFIG_EFI_VARS_PSTORE_DEFAULT_DISABLE is not set
+# CONFIG_MTD is not set
+# CONFIG_TCG_TPM is not set
+# CONFIG_SPI_AMD is not set
+# CONFIG_CHROME_PLATFORMS is not set
+# CONFIG_EFIVAR_FS is not set
+CONFIG_PSTORE=y
+CONFIG_PSTORE_DEFAULT_KMSG_BYTES=10240
+CONFIG_PSTORE_COMPRESS=y
+CONFIG_PSTORE_CONSOLE=y
+CONFIG_PSTORE_PMSG=y
+CONFIG_PSTORE_RAM=y
+CONFIG_PANIC_TIMEOUT=-1
+
+# vendor_boot (OpenBook) command line, the source of the ESP entry's options (build-ruby-ab-image.py, bootsync.c expected())
+firmware_class.path=/vendor/firmware log_buf_len=1M bootconfig
+
+# On the G14 (shell): /sys/module/efi_pstore exists without initstate (built in); /sys/fs/pstore and efivars are not readable by the shell

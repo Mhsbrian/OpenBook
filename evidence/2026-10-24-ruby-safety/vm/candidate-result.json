@@ -1,0 +1,51 @@
+{
+  "schema": "openbook-ruby-safety-candidate/1",
+  "complete": true,
+  "source_sha256": "71da0228488781fa7db6bbb2b07b8559024023b606ae54cd868f780954b9cc24",
+  "image_sha256": "ea5af0375ed807e19a8fa26980644e3bacd709a5ae7e6a3b7386ae6a3883683a",
+  "metadata_rows": 6618,
+  "all_inode_xattrs_identical": false,
+  "only_metadata_change": "replacement file sizes and added paths",
+  "file_and_symlink_count": 3125,
+  "changed_files": [
+    "/system/etc/init/gscutil-executor.rc",
+    "/system/etc/init/gscutil.rc"
+  ],
+  "only_changed_file": null,
+  "added_paths": [
+    "/system/etc/init/openbook-safety-vmcheck.rc",
+    "/system/etc/openbook-safety-vmcheck.sh"
+  ],
+  "firmware_safety": {
+    "deployment_eligible": false,
+    "issue": "ANAL-251",
+    "hardware_validated": false,
+    "scope": "Google security chip (GSC) firmware tools neutralised: no gscutil perform-os-startup at boot and no IGscutilExecutor service; gscd, check_tpm_clear and udsattestation keep running (standard TPM 2.0 commands; Trusty's secure storage uses gscd)",
+    "policy_sha256": "2b806321a068168ed052244d078b5f4ed24d1b218eecbbd6f6f8ebe5af9c7da7",
+    "neutralised": {
+      "/system/etc/init/gscutil.rc": {
+        "google_sha256": "af331819e18ea13ee5ea2cd03b6d89902100e5e15c80ee441979b3b48b9d44a2",
+        "sha256": "61149fa16b80229cc7a3df2cd8f197f8160a9f6e252bbae8df49b8fc100c96b4"
+      },
+      "/system/etc/init/gscutil-executor.rc": {
+        "google_sha256": "c7fdbc5c5a196a9ef6960b4bf14ba9756a4323b680734b076354f29abef8d2b1",
+        "sha256": "5105310de9674fb53ede1e77d60f7d021e6de870a84ac97a389da2d57f8cab0e"
+      }
+    },
+    "changed_files": [
+      "/system/etc/init/gscutil-executor.rc",
+      "/system/etc/init/gscutil.rc"
+    ]
+  },
+  "experimental_safety_vmcheck": {
+    "deployment_eligible": false,
+    "scope": "disposable VM report of the security services to the serial console",
+    "added_files": {
+      "/system/etc/init/openbook-safety-vmcheck.rc": "b1131c6a3ffff4e996c77055ad6fef5c6466bbb3570ab98a69a67acf219627e8",
+      "/system/etc/openbook-safety-vmcheck.sh": "b89ec7f33439063084618aff49a62a5bc5677a201f1df12261c32d550ea15cc2"
+    }
+  },
+  "protected_ranges_identical": true,
+  "source_unchanged": true,
+  "physical_device_written": false
+}

@@ -1,0 +1,15 @@
+{
+  "schema": "openbook-firmware-safety-result/1",
+  "mode": "payload",
+  "passed": true,
+  "policy_sha256": "2b806321a068168ed052244d078b5f4ed24d1b218eecbbd6f6f8ebe5af9c7da7",
+  "payload": "~/anybook/work/anal251/pi-control/payload-plain.bin",
+  "payload_sha256": "9106373294796c8bde68a2810ddbac0a18e7db6e9659349cf862e3f2fc86a67f",
+  "findings": [],
+  "inventory": {
+    "partitions": [
+      "system"
+    ],
+    "postinstall": []
+  }
+}

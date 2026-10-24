@@ -1,0 +1,25 @@
+.{"serving": ["/tmp/multica-task-1477092626/tmpq0p9p1iu/payload.bin", "/tmp/multica-task-1477092626/tmpq0p9p1iu/payload_properties.txt"], "bind": "127.0.0.1", "port": 45581, "idle_seconds": 3}
+{"t": "17:36:18", "client": "127.0.0.1", "request": "GET /payload.bin HTTP/1.1", "msg": "\"GET /payload.bin HTTP/1.1\" 200 -"}
+.{"t": "17:36:18", "client": "127.0.0.1", "request": "HEAD /payload.bin HTTP/1.1", "msg": "\"HEAD /payload.bin HTTP/1.1\" 200 -"}
+.{"t": "17:36:18", "client": "127.0.0.1", "request": "GET /secret.txt HTTP/1.1", "msg": "code 404, message Not Found"}
+{"t": "17:36:18", "client": "127.0.0.1", "request": "GET /secret.txt HTTP/1.1", "msg": "\"GET /secret.txt HTTP/1.1\" 404 -"}
+/usr/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 404: 'Not Found'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+{"t": "17:36:18", "client": "127.0.0.1", "request": "GET /../etc/passwd HTTP/1.1", "msg": "code 404, message Not Found"}
+{"t": "17:36:18", "client": "127.0.0.1", "request": "GET /../etc/passwd HTTP/1.1", "msg": "\"GET /../etc/passwd HTTP/1.1\" 404 -"}
+{"t": "17:36:18", "client": "127.0.0.1", "request": "GET / HTTP/1.1", "msg": "code 404, message Not Found"}
+{"t": "17:36:18", "client": "127.0.0.1", "request": "GET / HTTP/1.1", "msg": "\"GET / HTTP/1.1\" 404 -"}
+{"t": "17:36:18", "client": "127.0.0.1", "request": "GET /payload_properties.txt HTTP/1.1", "msg": "\"GET /payload_properties.txt HTTP/1.1\" 200 -"}
+.{"t": "17:36:18", "client": "127.0.0.1", "request": "GET /payload.bin HTTP/1.1", "msg": "\"GET /payload.bin HTTP/1.1\" 206 -"}
+{"t": "17:36:18", "client": "127.0.0.1", "request": "GET /payload.bin HTTP/1.1", "msg": "\"GET /payload.bin HTTP/1.1\" 206 -"}
+{"t": "17:36:18", "client": "127.0.0.1", "request": "GET /payload.bin HTTP/1.1", "msg": "\"GET /payload.bin HTTP/1.1\" 206 -"}
+{"t": "17:36:18", "client": "127.0.0.1", "request": "GET /payload.bin HTTP/1.1", "msg": "\"GET /payload.bin HTTP/1.1\" 206 -"}
+.{"t": "17:36:18", "client": "127.0.0.1", "request": "GET /payload.bin HTTP/1.1", "msg": "\"GET /payload.bin HTTP/1.1\" 416 -"}
+/usr/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 416: 'Range Not Satisfiable'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+.{"stopped": true, "bytes_sent": 600054}
+.
+----------------------------------------------------------------------
+Ran 7 tests in 4.016s
+
+OK

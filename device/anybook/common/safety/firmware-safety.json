@@ -1,0 +1,82 @@
+{
+  "schema": "openbook-firmware-safety/1",
+  "issue": "ANAL-251",
+  "about": "What a Ruby (Googlebook) image may run that reaches PC firmware, the TPM or the embedded controller. scripts/googlebook/check-firmware-safety.py applies it to partition trees, images and payloads; the on-laptop adapter (ANAL-229 phase 3) applies the same file. Any unreviewed match fails closed. Patterns are RE2-compatible (Go) and Python re.",
+  "google_build": "CL3B.260622.276.R4/16658739",
+  "rc_pattern": "(?i)(tpm|gsc|futility|flashrom|fwupd|ectool|cros_?ec|/dev/mtd|spidev|efivar|/sys/firmware/efi|\\bvpd\\b|crossystem|firmware.?updat|fw-zip|\\bhsm\\b|ap-ec-fw)",
+  "rc_scope": "Every *.rc file in every partition and APEX, comment lines (first non-blank character #) ignored. A file with a match must be neutralised or reviewed at its exact SHA-256.",
+  "binary_pattern": "(?i)(tpm|gsc|futility|flashrom|fwupd|ectool|timberslide|cros_?ec|vpd|crossystem|firmware.?updat|flash|trunks|hwsec|updater-wrapper)",
+  "binary_scope": "Every non-symlink file in a directory named bin or xbin (any depth: bin/hw included). A match must be reviewed by path.",
+  "forbidden_names": [
+    "fwupd", "fwupdmgr", "fwupdtool", "fwupd-efi", "flashrom", "futility", "vpd", "crossystem",
+    "chromeos-firmwareupdate", "updater-wrapper-vendor"
+  ],
+  "payload": {
+    "postinstall": "forbidden",
+    "why": "Google's postinstall (system/bin/updater-wrapper-system) runs google_desktop_firmware_updater: Google security chip firmware from system, AP (BIOS flash) and EC firmware (ap-ec-fw.zip) from vendor. An OpenBook payload must not run any postinstall step."
+  },
+  "neutralised": {
+    "/system/etc/init/gscutil.rc": {
+      "replacement": "gscutil.rc",
+      "sha256": "61149fa16b80229cc7a3df2cd8f197f8160a9f6e252bbae8df49b8fc100c96b4",
+      "google_sha256": "af331819e18ea13ee5ea2cd03b6d89902100e5e15c80ee441979b3b48b9d44a2",
+      "why": "Ran gscutil perform-os-startup on every boot: stages Google security chip firmware (gsc.zip) and sends it vendor commands through /dev/tpm0, the PC's firmware TPM. Seen on the G14 and in the VM: started, denied by SELinux, exited 133."
+    },
+    "/system/etc/init/gscutil-executor.rc": {
+      "replacement": "gscutil-executor.rc",
+      "sha256": "5105310de9674fb53ede1e77d60f7d021e6de870a84ac97a389da2d57f8cab0e",
+      "google_sha256": "c7fdbc5c5a196a9ef6960b4bf14ba9756a4323b680734b076354f29abef8d2b1",
+      "why": "Defines IGscutilExecutor, started on demand; google_desktop_firmware_updater (Google's postinstall) installs security chip firmware through it."
+    }
+  },
+  "reviewed_rc": {
+    "/system/etc/init/check_tpm_clear.rc": {
+      "sha256": "844e7dee248254f44324e3b2f6aacdf083bbf3a1607a3a5ea58de753c60e1796",
+      "verdict": "allowed",
+      "why": "Runs gscutil hwsec-ownership-id at post-fs-data: a transient TPM primary key, flushed, to name the TPM owner; writes /metadata/hwsec_metadata. Standard TPM 2.0 commands, no firmware or NV write in its code paths (strings). Exits 2 in the VM."
+    },
+    "/system/etc/init/gscd.rc": {
+      "sha256": "91051806f95aa24deaa404670612a39f6fde6a9179c5695d6defa8c4deea3c08",
+      "verdict": "allowed",
+      "why": "IGsc daemon (user hsm). Passes TPM commands for Trusty's secure storage, udsattestation and check_tpm_clear. Kept: Trusty depends on it. Its firmware client (gscutil at boot, gscutil-executor) is neutralised."
+    },
+    "/system/etc/init/udsattestation.rc": {
+      "sha256": "0f50867e71646e0cc5dba3aa90b1610fcc1c2d5549eefb705881e9ebdd8d806d",
+      "verdict": "allowed",
+      "why": "One-shot at boot (user hsm). On a TPM that is not a Google chip it skips provisioning ('Non-cr50: skipping UDS provisioning'); standard TPM 2.0 reads. Exits 1 in the VM."
+    },
+    "/system/etc/init/timberslide.rc": {
+      "sha256": "37f8e4fe4b90515a59d3be320c2154e5ce9e226425e93b031e22de4fe00abf64",
+      "verdict": "inert",
+      "why": "Chrome EC log reader. Google's kernel has no Chrome EC support (CONFIG_CHROME_PLATFORMS is not set), so there is no /dev/cros_ec."
+    },
+    "/system/etc/init/ec_crash_collector.rc": {
+      "sha256": "3127fe59d1bf298473d1db63f7ac17e09b6438f01a00b67a98ac2bf4af098f65",
+      "verdict": "inert",
+      "why": "Chrome EC crash reader at boot completion; no Chrome EC in the kernel."
+    },
+    "/vendor/etc/ueventd.rc": {
+      "sha256": "96e6e0f8699d4d8e4ad7e28e2eeaba50b3fa812873f00fea4341d4db33fa5fb8",
+      "verdict": "openbook",
+      "why": "OpenBook's vendor: /dev/tpm* 0660 hsm hsm, Ruby's own rule, so gscd can reach the firmware TPM for Trusty."
+    },
+    "/apex/com.android.hardware.authsecret/etc/android.hardware.authsecret-service.example.rc": {
+      "sha256": "9ef02b3fcd4be142f0fa493bcdaee623f4d0b6e7bc969c8b882227dcc3ce25d5",
+      "verdict": "openbook",
+      "why": "OpenBook's vendor APEX: AOSP's example AuthSecret HAL (keeps the secret in memory), running as user hsm. It sends no TPM commands."
+    }
+  },
+  "reviewed_binaries": {
+    "/system/bin/check_tpm_clear": "started by check_tpm_clear.rc (reviewed)",
+    "/system/bin/gscd": "started by gscd.rc (reviewed)",
+    "/system/bin/gscutil": "boot start neutralised; check_tpm_clear runs its hwsec-ownership-id subcommand",
+    "/system/bin/gsctool": "Google security chip tool; no init trigger; /dev/tpm* is hsm-only",
+    "/system/bin/com.google.android.system.desktop.gscutil-executor": "its service definition is neutralised",
+    "/system/bin/google_desktop_firmware_updater": "only Google's postinstall runs it; OpenBook payloads have none (payload check)",
+    "/system/bin/updater-wrapper-system": "Google's postinstall program; OpenBook payloads have none (payload check)",
+    "/system/bin/ectool": "Chrome EC tool; no Chrome EC in the kernel",
+    "/system/bin/timberslide": "Chrome EC log reader; inert",
+    "/system/bin/trunks_send": "TPM command tool through gscd; no init trigger",
+    "/system_ext/bin/fwupd_splash": "draws a firmware-update splash through SurfaceFlinger (bootanim_exec); no init trigger"
+  }
+}

@@ -1,0 +1,23 @@
+00:36:34 1/5 preflight
+incremental payload, 10 partitions: FITS; snapshot 0.06 GiB of 20.65 GiB free in super (the payload's source sizes)
+00:36:34 2/5 device
+00:36:34    running slot _b; OpenBook certificate yes; second slot yes
+00:36:34    will stream http://127.0.0.1:8090/payload.bin (4472248 bytes) into slot _a
+00:36:34    approval: RB-20261023-03 to the G14
+00:36:34 3/5 serve
+00:36:35    laptop 127.0.0.1:8090 -> this host's 127.0.0.1:8090 through adb
+00:36:35 4/5 apply
+[INFO:update_engine_client_android.cc(94)] onStatusUpdate(UPDATE_STATUS_IDLE (0), 0)
+[INFO:update_engine_client_android.cc(94)] onStatusUpdate(UPDATE_STATUS_DOWNLOADING (3), 0.189309)
+[INFO:update_engine_client_android.cc(94)] onStatusUpdate(UPDATE_STATUS_DOWNLOADING (3), 0.41031)
+[INFO:update_engine_client_android.cc(94)] onStatusUpdate(UPDATE_STATUS_DOWNLOADING (3), 0.630119)
+[INFO:update_engine_client_android.cc(94)] onStatusUpdate(UPDATE_STATUS_DOWNLOADING (3), 0.849928)
+[INFO:update_engine_client_android.cc(94)] onStatusUpdate(UPDATE_STATUS_VERIFYING (4), 0.0500387)
+[INFO:update_engine_client_android.cc(94)] onStatusUpdate(UPDATE_STATUS_VERIFYING (4), 0.342153)
+[INFO:update_engine_client_android.cc(94)] onStatusUpdate(UPDATE_STATUS_VERIFYING (4), 0.54234)
+[INFO:update_engine_client_android.cc(94)] onStatusUpdate(UPDATE_STATUS_VERIFYING (4), 0.742495)
+[INFO:update_engine_client_android.cc(94)] onStatusUpdate(UPDATE_STATUS_VERIFYING (4), 0.955017)
+[INFO:update_engine_client_android.cc(102)] onPayloadApplicationComplete(ErrorCode::kSuccess (0))
+00:37:25    update_engine: ErrorCode::kSuccess
+00:37:25 5/5 applied; reboot the laptop to switch to slot _a (or rerun with --reboot)
+00:37:25    server log: /tmp/multica-task-1133181715/g14-ota-serve.qL0KJT
