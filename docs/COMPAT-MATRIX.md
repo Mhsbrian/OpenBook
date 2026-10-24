@@ -33,6 +33,7 @@ Latest implementation: `docs/googlebook-ota-guard.md` and
 
 | Check | Observed result | Limit |
 |---|---|---|
+| RB-20261020-01 corrective candidate | Correct AVB size/digest and regenerated installer pin; 62 regression tests plus eight native assertions; 760 s live boot, 1 TB fresh install and 300 s USB-free restart reach Android; four encryption-key files and boot identity retained | Private synthetic candidate only; system-server crashes recur in all three observations; no physical write, installed-data update, encrypted-data growth or automatic rollback |
 | Fresh28 full-capacity option | Separate fresh-mode confirmation; 15 integrity/reset tests; 1 TB synthetic layout; actual formatter observes 949,692 MiB encrypted F2FS | No physical media written; destroys selected SSD setup; no preserving growth or automatic rollback |
 | Audio diagnostic APK | Android 17 emulator launch, foreground/background metadata capture, marker, stop, SAF export and denied Bluetooth permission pass | Public API visibility only; no physical headset/Teams call or system-log access |
 | Bluetooth call microphone | Returned report: HFP/A2DP connected, HFP audio inactive, built-in mic used, no BT communication device; SCO candidate passes 12 synthetic session/route/stream cases on exact audio APEX | Candidate remains excluded from images; USB voice transport integration and physical headset/PCM validation pending |

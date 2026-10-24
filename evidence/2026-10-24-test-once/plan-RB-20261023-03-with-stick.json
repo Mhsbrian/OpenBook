@@ -1,0 +1,15 @@
+{
+  "release": "RB-20261023-03",
+  "track": "ruby-g14",
+  "note": "image_inputs reconstructed from evidence/2026-10-23-rb-20261023-03/build.json (PR #128): parent candidate and APK as recorded; candidate_builder = SHA-256 of scripts/googlebook/build-update-app-candidate.py and updater_files = SHA-256 of `git ls-tree -r` of device/anybook/common/updater without app/, both at tooling commit d65594b. Stick target added to show the fresh-boot reuse.",
+  "targets": [
+    "laptop-update",
+    "stick"
+  ],
+  "image_inputs": {
+    "parent_staged_candidate": "75fa0196090558519fbb33d079ed51e2b9fd86ee102013c089bc8e9122fe9391",
+    "apk": "f3308832e914314ce73b0e141142101033280bf18d4bbd8c08e6d241732953c5",
+    "candidate_builder": "c3d160ce4e2a1a9e898bdcf76ea74171b96adc716451062e05b3c952f3912c43",
+    "updater_files": "6fd088b33d6810ff1cabccda6768f1faf38aa945d50d3d75180fdbee3952d388"
+  }
+}

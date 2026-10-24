@@ -1,0 +1,279 @@
+# AnyBook release control
+
+The Multica release hub is **ANAL-232**
+(`01a15aa2-77a9-76a2-9f34-db99940b0f68`). Its first release record is
+**ANAL-233**, `RB-20261020-01`
+(`01a15aa3-e12a-7210-b3cf-236c7a4f7458`). The hub is the current index; each
+release record keeps its own scope, approvals, artifacts and deployment history.
+Feature issues retain their existing parents and technical discussion.
+
+This is agent-operated build orchestration through Multica, not an unattended
+CI or deployment service. A ready-state notification updates the queue. A
+human build approval starts the approved recipe. No timer repeatedly rebuilds
+unchanged work. No PR merge, issue status or successful VM test authorizes a
+physical write.
+
+## Current release boundary
+
+The initial track is Ruby/Googlebook on the G14. Keep the existing AOSP track
+and its A/B updater separate. ANAL-192's earlier AOSP installer history is
+retained; it is not evidence of Ruby update/rollback compatibility.
+
+Fresh28 was built under ANAL-228 and was not written to the owner's stick.
+Later ANAL-229 checks found a stale AVB bootconfig size inherited from input27.
+It needs a corrected build, a new installer source pin and a new rehearsal
+before promotion. The native OTA guard in PR #121 remains a VM experiment and
+is excluded from the proposed next USB release.
+
+`config/releases/RB-20261020-01-plan-v1.json` is the first frozen plan,
+also attached to ANAL-233. Its exact-byte SHA-256 is
+`abffe5eb4afa2b40d1fd72d0668c412a874d993e1609852beff969579f296f91`.
+The plan file records inputs; authorization and results are separate records.
+Source commit `8294358eabd121c92e926768f8fdffa8894b9638` is deliberately
+pinned; use its normal input-correction/installer recipe, not its OTA-guard
+candidate builder. The source PR remains a draft; approval to build does not
+approve merging it.
+
+B Honey authorized plan v1 in comment `01a15ab6-d813-746b-89f2-4884a7af9b03`.
+The executed candidate and completed functional checks are recorded in
+`evidence/2026-10-20-release-rb01/`. Runtime crashes remain unresolved;
+physical deployment is not approved.
+
+## Work-item handoff and automatic intake
+
+The AnyBook project description supplies release instructions to every new or
+resumed task in that project. Agents, not the owner, are responsible for intake.
+Already-running tasks may still have older context. Work outside AnyBook does
+not inherit these instructions; bring it into the project or explicitly hand it
+off to the hub before considering its output for release.
+
+Every image-affecting work issue records a short release handoff:
+
+- track and intended target;
+- PR and full commit SHA, with required ancestor/dependency commits;
+- included behavior and explicitly unfinished/experimental behavior;
+- test commands, evidence and remaining hardware checks;
+- whether the work changes boot, layout, installer pins, data or recovery;
+- an `anybook-handoff/1` file listing each check and the input hashes it
+  tested, so the release can cite it (see "Test once").
+
+Read the hub and existing wakeups before registering a ready-state watch.
+Register once per source issue when it enters the queue; do not register a
+watch for the hub itself or for release records. A source reaching `in_review`
+wakes the coordinator to reconcile the queue, not to approve or deploy it.
+Conditions expire after 90 days; the hub records expiry and renews only for
+still-relevant work. Reopened/revised work needs renewed intake rather than
+reusing an earlier frozen release approval.
+
+```sh
+multica issue wakeup list 01a15aa2-77a9-76a2-9f34-db99940b0f68 --output json
+multica issue wakeup create 01a15aa2-77a9-76a2-9f34-db99940b0f68 \
+  --agent-id 517b88d9-124d-43e9-a8ca-bb617437e116 \
+  --until-issue "$SOURCE_ISSUE_ID" --until-issue-state in_review \
+  --expires-in 2160h \
+  --instruction-file ./config/releases/intake-instruction.md --output json
+```
+
+The instruction file tells the coordinator to read the source issue's bounded
+history and linked PR state, record exact heads/test limits in the hub queue,
+reuse the existing proposed release and stop before building unless the exact
+plan already has valid human approval. It must not dispatch further agents or
+add recursive comment/task-completion subscriptions.
+
+If work is already in review, ingest it during reconciliation rather than
+creating a batch of immediately satisfied watches. Readiness watches are
+one-shot notifications, not subscriptions to every PR commit. Source agents
+renew intake for revised work; the coordinator rechecks heads before freezing
+and building. Do not make the owner register or renew these watches.
+
+## Catching existing work and new images
+
+Before proposing a plan, and again before executing an approved build, the
+coordinator takes a complete project census. Include old in-review items,
+blocked work, new tasks and source revisions. A title search alone cannot
+establish image impact. Expand relevant issue threads and linked PRs, keeping
+the existing bounded comment-read workflow.
+
+```sh
+python3 scripts/releases/intake-audit.py --output ./intake-census.json
+# Later, use a fresh filename and the prior snapshot to highlight index changes:
+python3 scripts/releases/intake-audit.py \
+  --previous ./intake-census.json --output ./intake-census-next.json
+```
+
+This read-only helper follows pagination through an empty page, rejects
+repeated/incomplete pages, and reports new/changed/missing issues and readiness
+watch health. It does not read private comments, infer track/eligibility,
+subscribe agents or approve anything. Its index-change comparison cannot
+detect every PR head change; verify actual heads separately. A failed or
+partial census cannot serve as the completed release reconciliation.
+
+Keep the current census attached to the hub. The coordinator records the
+disposition of relevant work in its queue: **needs assessment, queued, blocked,
+deferred with a reason, or included in a named plan**. Unknown track or impact
+stays needs assessment. Unresolved relevant work must be explicitly deferred
+with its impact on the proposed release explained; it cannot disappear from
+the queue. A census is discovery evidence, not proof that all listed work is
+qualified. Catch changes again before building; changed approved inputs require
+a new revision, while unrelated work stays in the next batch.
+
+Every new image follows the same handoff, including a new upstream/base image:
+record its track, parent image/release, source/input hashes, source issue and
+tests. Development/VM images may stay with their feature issue, marked
+experimental. An image intended for the stick or laptop must acquire a release
+record and pass the plan, validation and device gates before promotion. A
+different track/base starts a separately qualified release; “newer” alone is
+not compatibility evidence. Historical releases remain immutable.
+
+The PR template repeats the handoff so contributors see it where code changes
+are submitted. It takes effect for default PR creation after this PR's template
+lands in the repository's default branch; project instructions are live now.
+These are agent workflow controls, not a GitHub-required check or a wrapper
+that prevents arbitrary manual image builds.
+
+For the owner, the hub is the only place to manage releases: “What's ready?”,
+“Prepare the next release”, or “Hold this release” are sufficient requests.
+The coordinator presents a short included/deferred list and a concrete plan
+for approval. The owner never has to assemble commit lists or copy handoffs
+between issues. Approval still identifies the exact plan; final device-write
+approval identifies the tested image, operation and exact device.
+
+## Test once
+
+B Honey approved this on ANAL-229 on 2026-10-24. RB-20261023-03 had built
+the same candidate twice and run the same fresh-boot VM test twice: once in
+the source issue and once in the release
+(`evidence/2026-10-24-test-once/`). Each test now runs in one place.
+
+**Source issues hand off inputs, not images.** A feature issue stops at its
+pinned inputs (an APK, a patch, a module, each with its SHA-256) and the tests
+that exercise exactly those bytes: unit, emulator, and a VM run only when the
+feature cannot be tested otherwise. It does not build a production candidate,
+a payload or a stick image, and it does not rehearse the laptop update; those
+belong to the release. It records its checks in an `anybook-handoff/1` file
+(`evidence/2026-10-24-test-once/handoff-ANAL-229.json` is an example): each
+check's kind, scope, result, evidence path and the input hashes it tested.
+
+**The release cites what matches and runs only its own steps.** When freezing
+the plan, record its targets (`laptop-update`, `stick`) and pinned image
+inputs, then run:
+
+```sh
+python3 -I scripts/releases/evidence-reuse.py --plan ./plan.json \
+  ./handoff-*.json --repo <checkout> --output ./reuse.json
+```
+
+A source check is cited when it passed and every input it names matches the
+plan's hash. A whole-image check, such as a fresh boot, is cited only when its
+inputs equal all of the plan's image inputs, so no other change reached that
+image. Anything that differs, failed or lacks evidence runs again. The plan
+lists the result: steps to run, checks cited with their evidence, checks
+skipped with the reason.
+
+These steps always run in the release, because they need the installed
+release or the release's own payload:
+
+| Target | Release steps |
+|---|---|
+| Laptop update | Candidate and signed payload; control rebuild of the installed release, byte for byte; update rehearsal into the other slot with existing data; fallback; every changed feature checked after the update |
+| Stick | Stick image and installer pin; stick install, then a boot without the stick. The fresh boot is cited when a source's matching run exists |
+
+A laptop-only release does not run a fresh-boot test: the update rehearsal
+boots the candidate, and the after-update check covers the features on the
+laptop's real path. A fresh boot is needed when the stick is rewritten.
+
+Same inputs are not a waiver for different tools: a check names the builder
+and integration files it depends on as inputs, so a changed recipe forces a
+rerun. Approval rules are unchanged: B Honey approves the plan, then the
+device write, separately.
+
+## Approval and execution
+
+1. **Reconcile.** Read the hub, active release and bounded comment history.
+   Complete the project census and dispositions above. Read actual linked PR
+   state and exact heads. Check active release runs.
+   Preserve unrelated concurrent edits; reread the issue before updating it.
+2. **Freeze.** Create a release record under the hub, or reuse its existing
+   draft. Record the preceding accepted release separately from any held
+   candidate. Pin the source tree, input hashes, recipe and required tests.
+   Never substitute a newer branch head for a pinned commit. Derive the test
+   list with `evidence-reuse.py` (see "Test once"); cite matching source
+   checks instead of planning them again.
+3. **Approve build.** Verify B Honey's actual Multica comment author, rather
+   than an agent's quotation. Record comment ID, plan revision and exact-byte
+   plan hash. A contextual go-ahead for a concrete, previously presented plan
+   is sufficient; no magic wording is required. An ambiguous comment needs
+   clarification; changed plan bytes need a new approval. Do not infer approval
+   from elapsed time or an issue status.
+4. **Build and test.** Use the pinned clean checkout and a fresh private output
+   directory. Hold the shared build lock for the whole build/rehearsal command
+   chain; never overlap two builds of the same track. Run existing scripts in
+   the foreground with durable logs. Record container/tool/package identities.
+   No owner data is a VM fixture. Verify output bytes and regenerate the
+   installer pin after any static system or boot change. Run the plan's
+   steps; do not repeat checks it cites.
+5. **Review candidate.** Record artifact/manifest/installer hashes, source
+   commits, test results and unresolved failures in the release issue. Failed
+   or incomplete runs remain visible. VM boot and unchanged encryption keys
+   do not prove stability, physical unlock or automatic rollback.
+6. **Approve deployment separately.** Review the actual output hash, exact
+   device identity, operation, current backup and recovery procedure. Confirm
+   the source and target again immediately before any authorized write.
+7. **Verify.** Record direct readback, boot/hardware acceptance and remaining
+   limitations. Only then update the hub's stick/laptop pointer. Keep prior
+   artifacts and distinguish image reversal from data-schema rollback.
+
+A retry reuses the same release record and identifies the failed attempt. It
+never overwrites an approved artifact. Resume a completed step only after
+verifying its input/output hashes; otherwise use a fresh attempt directory.
+Further feature work goes into the next proposed release. A successful build
+does not silently advance the current installed release.
+
+## Storage budget and cleanup
+
+The agent owns cleanup as part of every build/test handoff. Check actual host
+free space before work, estimate the peak additional allocated space for the
+planned build and VM copies, and retain at least **40 GiB free** after that
+estimate. This is a minimum host reserve, not an estimate for a full AOSP build.
+Stop before the next allocating phase if the reserve is threatened. Recheck
+between phases; concurrent work and Btrfs sharing make apparent file sizes
+unreliable. Sparse 1 TB test drives do not allocate 1 TB, but their written
+extents still consume space.
+
+After collecting results, remove only explicitly identified, reproducible
+scratch from this task: extracted/rebuilt trees, intermediate partitions and
+completed disposable VM disk copies. Verify that no active process uses them
+and that subsequent checks no longer depend on them. Record the exact paths in
+a private cleanup manifest, retain logs/results/screenshots and provenance,
+then measure host free space again. Report actual space recovered; summing
+file sizes overcounts shared extents. Failed tests keep their evidence even
+when their disposable disks are removed.
+
+Keep the frozen candidate and installer, required source/recovery images,
+current rollback baseline and all owner backups. Never sweep other tasks,
+delete active builds, run a blanket Docker/cache prune, or treat owner data
+as scratch. Obsolete release/recovery artifacts need a separate retention
+decision. A reproduction may require recreating a removed fixture; identify
+that explicitly in the evidence. The hub records cleanup and remaining free
+space so the owner does not have to manage temporary files.
+
+The release issue carries build/deployment progress. The hub remains the
+index/review desk; do not mark unrelated source issues done or reassign their
+owners. Stop with a concrete blocker when an input, approval, source/license
+qualification, backup or recovery gate is missing.
+
+## Record retained for each release
+
+| Record | Required contents |
+|---|---|
+| Plan | Release ID/revision, track, previous accepted release, exact source/input hashes, included/excluded work, recipe and tests |
+| Build approval | Verified member comment ID and exact plan hash |
+| Build attempt | Tool/container identities, durable logs, step outcomes, final checksums, private artifact location |
+| Validation | Exact artifact tested, evidence hashes, failures and explicit untested boundaries |
+| Storage | Estimated peak plus host reserve, measured before/after free space, removed scratch and retained recovery/evidence |
+| Deployment approval | Verified member comment, image checksum, operation, exact device and backup/recovery plan |
+| Deployment result | Readback, boot/hardware checks, owner acceptance and installed/stick pointers |
+
+Manifests and sanitized evidence belong in Git. Google images, device backups,
+credentials, raw private logs and TPM/key material remain private. GitHub holds
+code review; Multica holds the release queue, decisions and operational state.

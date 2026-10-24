@@ -1,0 +1,18 @@
+RB-20261023-03 (laptop-update, stick)
+
+Release steps:
+  run          candidate: Build the candidate and the signed laptop payload from the pinned inputs
+  run          control: Rebuild the installed release's images from its candidate with the same steps; they must match byte for byte
+  run          update-rehearsal: VM: update the installed release into the other slot with existing data, boot it and compare the slot bytes
+  run          fallback: VM: break the new slot; the old slot must boot by itself
+  run          after-update: VM: check every changed feature after the update, with existing data
+  run          stick-image: Build the stick image and its installer pin from the candidate
+  cite-source  fresh-boot: VM: first boot of the candidate with fresh data
+  run          stick-install: VM: install from the stick image, then boot without the stick
+
+Source checks:
+  reuse          ANAL-229 engine-host 32/32, also on Android's mksh/awk/toybox
+  reuse          ANAL-229 app-jvm 19/19, lint clean
+  reuse          ANAL-229 builder-unit 11/11
+  reuse          ANAL-229 emulator engine 9/9, instrumented 8/8, system app
+  reuse          ANAL-229 ruby-vm-fresh-boot 16/16

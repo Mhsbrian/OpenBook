@@ -1,0 +1,72 @@
+{
+  "schema": "openbook-release-build-plan/1",
+  "release": "RB-20261020-01",
+  "revision": 1,
+  "track": "ruby-g14",
+  "hub_issue": "01a15aa2-77a9-76a2-9f34-db99940b0f68",
+  "target_dmi_prefix": "ROG Zephyrus G14 GA403WR",
+  "source": {
+    "repository": "https://github.com/Mhsbrian/OpenBook.git",
+    "commit": "8294358eabd121c92e926768f8fdffa8894b9638",
+    "parent_anal228_commit": "cf50055bc3672c5769d48bb80c85b2aa41b1c7b9",
+    "pull_requests": [119, 121],
+    "merge_or_release_approval_implied": false
+  },
+  "base_image": {
+    "name": "camera25 fresh synthetic image",
+    "sha256": "df793f2eed3a5c901659014c2ae368d8e5eeb3d504b514d46fc8c0c1959a7af4",
+    "private_local_artifact": true,
+    "owner_data_allowed": false
+  },
+  "previous_candidate": {
+    "name": "fresh28",
+    "sha256": "a634827b21503d39884903b831fd2e7f610ec126c84be3bbf6d6f4c4fa912d96",
+    "promotion_state": "held",
+    "reason": "Inherited stale AVB bootconfig size; rebuild, repin and rehearse."
+  },
+  "include": [
+    "camera25 AMD hardware compatibility baseline",
+    "input27 timestamp correction",
+    "regenerated and verified AVB bootconfig digest and unpadded size",
+    "new offline-installer source pin and installer build",
+    "live boot and diagnostic live boot",
+    "fresh SSD installation with explicit erase confirmation",
+    "USB-state-to-SSD migration with explicit erase confirmation",
+    "exact legacy/fresh installer menu validation"
+  ],
+  "exclude": [
+    "experimental native OTA guard",
+    "VM-only shell Binder/FD policy permissions and test probe",
+    "unqualified Bluetooth SCO/USB voice transport changes",
+    "a claimed fix for internal-speaker stutter",
+    "updating the current laptop while retaining its newer data",
+    "in-place encrypted userdata expansion",
+    "automatic Ruby system/data rollback",
+    "physical USB, SSD or firmware writes"
+  ],
+  "recipe": [
+    "Use a clean checkout of the exact source commit and a new private build directory; record tool/container/source identities.",
+    "Run build-input-candidate.py against the pinned pristine camera25 input; do not build the OTA-guard target or use the guard image.",
+    "Run migration-package.py pin on the corrected candidate, then build the offline installer from tools/Dockerfile.ruby-installer; record package versions and image digest.",
+    "Run migration-package.py add on the corrected synthetic candidate with its new installer; verify all resulting hashes and menus.",
+    "Run the required regression and VM validation; record incomplete observations and runtime crashes explicitly.",
+    "Publish only a private candidate record and sanitized evidence for review. Do not apply it to any physical device."
+  ],
+  "required_validation": [
+    "input replay/native correction and input-candidate integrity",
+    "preserve-update, migration-package, migration and live-image regression suites",
+    "actual root vbmeta digest/size and EFI readback",
+    "complete metadata/content audit and exact installer source pin",
+    "760-second offline UEFI live-boot observation with synthetic data",
+    "synthetic 1-TB fresh installation and 300-second restart without USB",
+    "retention of synthetic encryption keys across restart",
+    "wrong-confirmation/cancel paths leave source, target and decoy unchanged",
+    "runtime crashes and known hardware limitations reported separately"
+  ],
+  "approval_policy": {
+    "build": "B Honey approves this exact plan revision/hash in Multica before execution.",
+    "deployment": "Separate later approval must name the final artifact checksum, operation and exact physical device after backup/recovery review.",
+    "changes_invalidate_approval": true,
+    "automatic_promotion": false
+  }
+}
