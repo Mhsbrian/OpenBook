@@ -82,7 +82,8 @@
     "ota_extractor": "applied onto RB-20261023-02: all 10 partitions byte-identical to the target release"
   },
   "vm": {
-    "payload_sha256": "fb511594620905e2a5597d3c1c103e2af482097a4d6162a30ddc7b618480da61",
+    "adapter": "090fe211 (pinned)",
+    "payload_sha256": "92defc5831b759d496d9cd997f00b0748240a0c3eb70dea85a51962b4dbcfce3",
     "signed_with": "the OpenBook OTA key on the build host (the VM trusts it); delta_generator verified the signature before the VM run"
   }
 }

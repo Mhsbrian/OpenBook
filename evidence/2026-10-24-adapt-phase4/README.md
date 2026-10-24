@@ -23,11 +23,15 @@ that build into an update the laptop installs after the owner approves it. The p
 | Check | Result |
 |---|---|
 | Google's own tools on the host (`host/payload-checks.json`) | A payload from RB-20261023-02 to RB-20261023-03 with its layer embedded: delta_generator verifies its signature. `ota_extractor` (update_engine's payload consumer) applies it onto RB-20261023-02 and gives all 10 target partitions byte for byte |
-| **Ruby's update_engine in QEMU** (`vm/`) | Slot A is the apply harness (RB-20261023-02 plus a test driver). An `openbook-adapt` payload installing RB-20261023-03 into slot B: **apply 11/11, boot B and merge 7/7, merged slot byte-identical to the release, fallback from a broken slot 7/7** (`summary.json`) |
+| **Ruby's update_engine in QEMU, the pinned adapter** (`vm/`) | Slot A is the apply harness (RB-20261023-02 plus a test driver). An `openbook-adapt` payload installing RB-20261023-03 into slot B: **apply 11/11, boot B and merge 7/7, merged slot byte-identical to the release, fallback from a broken slot 7/7** (`summary.json`) |
 | **On the G14, the pinned adapter** (`laptop/`) | The engine downloads Google's real release (7.8 GB, 522 s, MD5 verified). Reconstruct takes 40 s. RB-20261023-03 is rebuilt byte for byte; the cross build and the embedded-layer release match the host byte for byte (29–30 s each). Then the embedded release's payload against the laptop's actual installed release takes 6 s: only `system` and `vbmeta` written, eight identity copies. Signed with a throwaway test key; never applied |
 | App (JVM) | 23 tests: the checklist follows the adaptation, held and failed reasons, the build kept but not offered without an enrolled key, the engine's files parsed |
 | App on Google's Android Desktop emulator, the pinned APK `cd2c896e…` and adapter `090fe211…` (`emulator/`) | 13/13 instrumented tests, plus `openbook-adapt` as the app's child (1/1). The engine on the emulator's tools: 9/9. As a privileged system app: REBOOT granted, battery-exempt, started at boot. 54 screenshots. The tests include Keystore signing that verifies as a standard SHA256withRSA signature (what update_engine checks), the enrollment check against an otacerts.zip, and the loopback server (whole file, ranges, refusals). `openbook-adapt` ran under Android's app seccomp filter |
+| Screens (`screenshots/`) | The new states on the emulator, light and dark: checking against the adaptations, built but waiting for the key, held for an adaptation (with the reason), a failed build, and ready to install |
 | Engine | 40 tests on the host's shell and on Android's mksh R59, one-true-awk and toybox. They cover adapt, a held release that stays held for the same layer and is tried again under a new one, a fault (exit 11), space, stop, sign and pruning |
+
+A first VM run with a development build of the adapter, before the review fixes, also passed every stage.
+The run above uses the pinned bytes.
 
 ## How it reaches the laptop
 

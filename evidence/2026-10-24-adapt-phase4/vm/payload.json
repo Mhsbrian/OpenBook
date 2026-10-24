@@ -88,9 +88,9 @@
       "zero_blocks": 0
     }
   ],
-  "metadata_size": 30219,
-  "payload_signature_offset": 1028855830,
-  "metadata_hash_to_sign": "b0d9c957498b3cc857ea3e7bdf17fef261a2b3c904e70f5cca712d38347b213c",
-  "payload_hash_to_sign": "20008db969d244d2489d0e9f0267aba8c1743dbbab4f592bed281bf2679397d5",
+  "metadata_size": 30232,
+  "payload_signature_offset": 1028855843,
+  "metadata_hash_to_sign": "7d9af6b54e228cb45c0696f76d64da6c2208491585d6287f1eb7fa81eeecebfa",
+  "payload_hash_to_sign": "1b5209bf4136c3c7d54a7cdf923f01e716c6d72208c795b921b14245aeab3bbf",
   "signed": true
 }

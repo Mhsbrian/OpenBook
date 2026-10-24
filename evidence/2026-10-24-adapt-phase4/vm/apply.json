@@ -1,14 +1,14 @@
 {
   "phase": "apply",
   "run": {
-    "elapsed_s": 483.4,
+    "elapsed_s": 500.4,
     "timed_out": false,
     "qmp_events": [
       "RTC_CHANGE",
       "SHUTDOWN"
     ]
   },
-  "payload_sha256_on_device": "fb511594620905e2a5597d3c1c103e2af482097a4d6162a30ddc7b618480da61",
+  "payload_sha256_on_device": "92defc5831b759d496d9cd997f00b0748240a0c3eb70dea85a51962b4dbcfce3",
   "snapshot_state": "Unverified",
   "slot_b_static_before": {
     "boot_b": false,
@@ -74,18 +74,18 @@
     "ok": true
   },
   "activate_log": [
-    "bootsync activate _b: 02:25:48 step 1: check the new slot's boot images against its vbmeta",
-    "bootsync activate _b: 02:25:49 step 2: remove the slot's old entry",
-    "bootsync activate _b: 02:25:49 step 3: export the boot images",
-    "bootsync activate _b: 02:25:49 wrote openbook/b/kernel (26858496 bytes, sha256 55b86074614a9459)",
-    "bootsync activate _b: 02:25:49 wrote openbook/b/vendor_ramdisk.img (128064 bytes, sha256 33b36f34c48b7e63)",
-    "bootsync activate _b: 02:25:49 wrote openbook/b/ramdisk.img (3005952 bytes, sha256 99bb1c341f44649c)",
-    "bootsync activate _b: 02:25:49 wrote openbook/b/bootconfig.img (672 bytes, sha256 037f1530137b4b3e)",
-    "bootsync activate _b: 02:25:50 openbook/b/ read back: in sync",
-    "bootsync activate _b: 02:25:50 step 4: write the loader entry",
-    "bootsync activate _b: 02:25:50 wrote loader/entries/openbook-b+3.conf",
-    "bootsync activate _b: 02:25:50 step 5: prefer the new slot in loader.conf",
-    "bootsync activate _b: 02:25:50 loader.conf: default openbook-a.conf, preferred openbook-b.conf"
+    "bootsync activate _b: 03:10:13 step 1: check the new slot's boot images against its vbmeta",
+    "bootsync activate _b: 03:10:14 step 2: remove the slot's old entry",
+    "bootsync activate _b: 03:10:14 step 3: export the boot images",
+    "bootsync activate _b: 03:10:14 wrote openbook/b/kernel (26858496 bytes, sha256 55b86074614a9459)",
+    "bootsync activate _b: 03:10:14 wrote openbook/b/vendor_ramdisk.img (128064 bytes, sha256 33b36f34c48b7e63)",
+    "bootsync activate _b: 03:10:14 wrote openbook/b/ramdisk.img (3005952 bytes, sha256 99bb1c341f44649c)",
+    "bootsync activate _b: 03:10:14 wrote openbook/b/bootconfig.img (672 bytes, sha256 037f1530137b4b3e)",
+    "bootsync activate _b: 03:10:14 openbook/b/ read back: in sync",
+    "bootsync activate _b: 03:10:14 step 4: write the loader entry",
+    "bootsync activate _b: 03:10:14 wrote loader/entries/openbook-b+3.conf",
+    "bootsync activate _b: 03:10:14 step 5: prefer the new slot in loader.conf",
+    "bootsync activate _b: 03:10:14 loader.conf: default openbook-a.conf, preferred openbook-b.conf"
   ],
   "checks": {
     "driver_ran": true,

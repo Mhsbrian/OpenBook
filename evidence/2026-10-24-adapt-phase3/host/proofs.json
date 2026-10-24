@@ -15,8 +15,7 @@
         "removed": 370
       },
       "policy_mapping": "202604.cil",
-      "layer_json_sha256": "e9954c216ca4b274203368f4c446dd24a30aea8dfe728e6d393fe30669fbb64b",
-      "note": "the layer itself stays private (it holds Google's file rows and build.prop)"
+      "note": "the layer itself stays private (Google's file rows and build.prop)"
     },
     "output": {
       "system": "2e7b342585b70b4829831ec32b6ec39681a58c8cc5735c414b6139724dbdb532",
@@ -46,8 +45,7 @@
         "removed": 370
       },
       "policy_mapping": "202604.cil",
-      "layer_json_sha256": "dc7b0effb7317a0908f981ba7dc536ac73ef1aeaab2408233a393d42e7f101f5",
-      "note": "the layer itself stays private (it holds Google's file rows and build.prop)"
+      "note": "the layer itself stays private (Google's file rows and build.prop)"
     },
     "output": {
       "system": "6d5ac1018fb4616b5c4b8797d06bf47f1613b9ad5e61b7f8be585f06e6c49691",
@@ -70,11 +68,12 @@
     }
   },
   "embedded_layer": {
-    "case": "same build with the next round's layer written into system (production mode)",
+    "case": "RB-20261023-03 given its layer by embed-adapter-layer.sh (production mode)",
     "output": {
-      "system": "329138c56be7164271b46d4ab0a884505b913f5e1e998c7cea6c4da84adf38aa",
-      "vbmeta": "8d2ff0b2e1993543388e956af57ec6f7b1d84c1c5afd241857bc2af05b63afe2"
+      "system": "b83a595fb1311c899f0741a16e82b2fe31bea97ae7bb07c0cac1b958a94ce777",
+      "vbmeta": "818456d6adaae86989e83d0cce66cf995add198676f3686bd040b77b8a5f057b"
     },
-    "next_layer_equals_input_layer": true
-  }
+    "fixed_point": "adapting Google 16658739 again with the layer it carries, and its own files, gives the same system and vbmeta; its next layer equals the one it carries"
+  },
+  "adapter": "090fe211 (pinned; host run of the static binary, 2026-10-24)"
 }
