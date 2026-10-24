@@ -1,5 +1,16 @@
 # Status
 
+## 2026-10-24: The G14 lab update: one Wi-Fi update for every sleep experiment over adb (ANAL-257)
+
+The owner dropped USB sticks: deep-sleep experiments run on the installed G14 over wireless adb. Combined here on
+one branch: ANAL-238's dGPU report and hold, ANAL-239's nouveau with its kernel, and this issue's diagnostics
+module, plus a root **lab helper** (`openbook-pc-setup lab`, from `debug.openbook.lab`): allow-listed reports,
+nouveau and diagnostics loads through init's fixed `vendor_modprobe` commands, and RTC-woken suspends, behind a
+switch only the helper can set. nouveau, `drm_gpuvm` and `openbook_sleep_diag` ship blocklisted, so the boot is
+unchanged. Kernel package: 0 list problems, 5/5 QEMU boots; lab guest check 45/45 (vm, nvme); policy compiled
+with neverallows against RB-20261023-03; fixtures 87/87. Pending: the Ruby VM boot (Ruby lock busy with R1).
+`docs/googlebook-s0i3.md` §4, `evidence/2026-10-24-g14-lab/`. Laptop unchanged.
+
 ## 2026-10-24: Deep sleep on the G14: diagnostics ready, the dGPU driver and PTM ruled out as the difference (ANAL-257)
 
 Ruby still misses S0i3 in every suspend (about 4.5 W asleep). Desk work against Linux 7.2.8 on the same laptop:

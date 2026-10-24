@@ -83,7 +83,12 @@ custody: `googlebook-ota-trust.md`. Run
 `tools/bazel build --config=stamp //devices/anybook:openbook_sleep_diag` (in `scripts/kernel-docker.sh`) builds the
 test-only vendor module; it does nothing unless loaded with parameters.
 `kernel/devices/anybook/sleep_diag/test/` holds its host test (`ptm_plan_test.c`) and QEMU test
-(`run-vm-test.sh`, `check-vm-log.py`). Details: `googlebook-s0i3.md`.
+(`run-vm-test.sh`, `check-vm-log.py`). It ships in `vendor_dlkm` blocklisted (`g14/modules.tsv`), with nouveau and
+`drm_gpuvm`; the lab helper loads them. On a G14 kernel dist, `scripts/kernel-g14-qemu.sh DIST --runs vm,nvme
+--guest-check scripts/lab-guest-check.sh --guest-file scripts/nouveau-guest-check.sh --guest-file
+device/anybook/common/pc/bin/openbook-pc-setup.sh --guest-file scripts/openbook-pc-setup-test.sh` checks the
+lab's module commands. The Ruby VM check: `LAB_MODULE=<ko for the base kernel> scripts/googlebook/dgpu-vm.sh WORK`.
+Details: `googlebook-s0i3.md` §4.
 
 ## Lid guard module and USB diagnostics entries — 2026-10-21
 

@@ -1,0 +1,56 @@
+{
+ "pass": true,
+ "runs": {
+  "vm": {
+   "pass": true,
+   "checks": {
+    "switch_root": true,
+    "all_logical_mounted": true,
+    "avb_ok": true,
+    "dm_verity_for_all": true,
+    "by_name_complete": true,
+    "by_name_on_expected_disk": true,
+    "vendor_dlkm_all_live": true,
+    "expected_failures_only": true,
+    "no_symbol_crc_signature_errors": true,
+    "gki_deps_from_system_dlkm_live": true,
+    "dma_heap_system": true,
+    "efivarfs_registered": true,
+    "dlkm_ready": true,
+    "guest_check": true
+   },
+   "timeline": {
+    "first_stage_switch_root_s": 2.1,
+    "console_s": 8.3,
+    "dlkm_loader_done_s": 9.7,
+    "dlkm_loader_state": "stopped",
+    "total_s": 58.6
+   }
+  },
+  "nvme": {
+   "pass": true,
+   "checks": {
+    "switch_root": true,
+    "all_logical_mounted": true,
+    "avb_ok": true,
+    "dm_verity_for_all": true,
+    "by_name_complete": true,
+    "by_name_on_expected_disk": true,
+    "vendor_dlkm_all_live": true,
+    "expected_failures_only": true,
+    "no_symbol_crc_signature_errors": true,
+    "gki_deps_from_system_dlkm_live": true,
+    "dma_heap_system": true,
+    "efivarfs_registered": true,
+    "guest_check": true
+   },
+   "timeline": {
+    "first_stage_switch_root_s": 3.1,
+    "console_s": 9.1,
+    "dlkm_loader_done_s": 10.5,
+    "dlkm_loader_state": "stopped",
+    "total_s": 58.8
+   }
+  }
+ }
+}
