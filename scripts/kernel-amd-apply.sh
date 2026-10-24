@@ -4,6 +4,7 @@
 #      (git am with a fixed committer and date, so the resulting SHA and the -g<sha> release string are
 #      reproducible; authors, including upstream authors of backports, are kept)
 #   2. kernel/devices/anybook/       -> ~/anybook/kernel/src/devices/anybook (Kleaf package //devices/anybook)
+#   3. scripts/kernel-nouveau-apply.sh: devices/anybook/nvidia/nouveau, the external nouveau the G14 build includes
 # Idempotent: rerun after every kernel-sync.sh (repo sync resets common to the pin).
 #
 # usage: kernel-amd-apply.sh            apply (default)
@@ -12,7 +13,7 @@
 #                                       runs on the host, not in the container)
 set -euo pipefail
 R=$(cd "$(dirname "$0")/.." && pwd)
-A=${ANYBOOK_HOME:-$HOME/anybook}; K=$A/kernel; S=$K/src
+A=${ANYBOOK_HOME:-$HOME/anybook}; K=$A/kernel; S=${ANYBOOK_KERNEL_SRC:-$K/src}   # env: the kernel tree
 T=$(cat "$S/.anybook-target")
 BASE=$(sed -n 's/.*path="common" revision="\([0-9a-f]\{40\}\)".*/\1/p' "$K/pins/$T.xml")
 [ -n "$BASE" ] || { echo "no kernel/common revision in $K/pins/$T.xml" >&2; exit 1; }
@@ -44,3 +45,4 @@ git log --format='###   %h %s' "$BASE..HEAD"
 mkdir -p "$S/devices/anybook"
 rsync -a --delete "$R/kernel/devices/anybook/" "$S/devices/anybook/"
 echo "### devices/anybook: $(ls "$S/devices/anybook" | tr '\n' ' ')"
+"$R/scripts/kernel-nouveau-apply.sh" "$S"

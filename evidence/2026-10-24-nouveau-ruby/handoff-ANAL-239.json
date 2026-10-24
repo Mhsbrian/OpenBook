@@ -1,0 +1,241 @@
+{
+  "schema": "anybook-handoff/1",
+  "source_issue": "ANAL-239",
+  "commit": "35360cbd03ebac02022c3a3d5d5598d950d63b8d",
+  "track": "ruby-g14",
+  "note": "Release impact: Ruby boot (new kernel 6.18.21-android17-5-g206eb00bd0c4: 33 more KMI exports for nouveau), vendor_boot (release-named ramdisk directory), system_dlkm (re-signed GKI modules), vendor_dlkm (every module rebuilt; adds drm_gpuvm.ko, nouveau.ko and modules.options; add the rebuilt openbook_lid_guard.ko as before), vendor (GSP firmware under /vendor/firmware/nvidia/gb205/gsp plus LICENSES/LICENCE.nvidia, label openbook_vendor_fw_file; /vendor/bin/openbook-pc-setup, which includes ANAL-238's hook commit 7c22694 unchanged). No layout, data or installer-pin change of its own; the installer pin follows the new boot images. Not on the laptop: no NVIDIA GPU exists in QEMU, so GSP boot, D3cold, s2idle and battery are ANAL-243's gates. nouveau.modeset=0 on the kernel command line disables it without a rebuild.",
+  "base_release": "RB-20261023-03",
+  "artifacts": {
+    "g14_kernel_bzimage": {
+      "path": "~/anybook/kernel/g14/anybook-g14-gbos-16302624-anal239/images/bzImage",
+      "sha256": "7070b69fae0ddfbdf20e1238ced6eed699ea7737c8e0733b5d6f4ce71efd49b6",
+      "bytes": 26858496
+    },
+    "g14_boot_img": {
+      "path": "~/anybook/kernel/g14/anybook-g14-gbos-16302624-anal239/images/boot.img",
+      "sha256": "437c45a3971d5f1a3e962676dd019833a24729d9320bff9b25b106fd9d1f2920",
+      "bytes": 26951680
+    },
+    "g14_system_dlkm_img": {
+      "path": "~/anybook/kernel/g14/anybook-g14-gbos-16302624-anal239/images/system_dlkm.img",
+      "sha256": "add3260a0cda38fabdd4d9d913e80f014b8163ce75ee4af669ff2776af1109fa",
+      "bytes": 18165760
+    },
+    "g14_vendor_boot_img": {
+      "path": "~/anybook/kernel/g14/anybook-g14-gbos-16302624-anal239/images/vendor_boot.img",
+      "sha256": "b499ebf164191767760e9ad8034529e0afa11d12592d164b74ffa777153b7b2e",
+      "bytes": 133120
+    },
+    "g14_vendor_boot_ramdisk": {
+      "path": "~/anybook/kernel/g14/anybook-g14-gbos-16302624-anal239/images/vendor_boot-ramdisk.lz4",
+      "sha256": "38c4bfa1c093ddde642d3dd4d8c9e958d72b85c81e893dab71175d07a179adf6",
+      "bytes": 126705
+    },
+    "g14_vendor_dlkm_img": {
+      "path": "~/anybook/kernel/g14/anybook-g14-gbos-16302624-anal239/images/vendor_dlkm.img",
+      "sha256": "99eb64e7f58d3f68ad5bdef2655d74f5ec6f96bc94f6aeec50dad62ece4e9d37",
+      "bytes": 60391424
+    },
+    "g14_vm_vendor_boot_img": {
+      "path": "~/anybook/kernel/g14/anybook-g14-gbos-16302624-anal239/images/vm/vendor_boot.img",
+      "sha256": "33f12ff4b1803e4fa377cbb6a905ce26fc1e0bfd839830042e9558c5979a4425",
+      "bytes": 317440
+    },
+    "g14_vm_vendor_dlkm_img": {
+      "path": "~/anybook/kernel/g14/anybook-g14-gbos-16302624-anal239/images/vm/vendor_dlkm.img",
+      "sha256": "71249b48cb618f71f0bbec2265b8321b2b627b6b8e91711dff7623bacc2543ed",
+      "bytes": 60391424
+    },
+    "nouveau_ko": {
+      "path": "~/anybook/kernel/dist/anybook-g14-gbos-16302624-anal239/nouveau.ko",
+      "sha256": "5818ae6c2b2721b9b7165cfaa3a187ca27a4f0801f75f7f463b46965847ca8db",
+      "bytes": 6679840
+    },
+    "drm_gpuvm_ko": {
+      "path": "~/anybook/kernel/dist/anybook-g14-gbos-16302624-anal239/drm_gpuvm.ko",
+      "sha256": "38ab8f5c98930e4ca618a16d547fd74b2590adee5e3b536856ff66a25b7e08d1",
+      "bytes": 97360
+    },
+    "lid_guard_ko": {
+      "path": "~/anybook/kernel/dist/anybook-g14-gbos-16302624-anal239/openbook_lid_guard.ko",
+      "sha256": "f62ebe3ae5e9c943c893413ec0aee86d5125eb673d7ea64b46b4e198d8d0a6aa",
+      "bytes": 24968
+    },
+    "gsp_fmc_570_144": {
+      "path": "~/anybook/kernel/nvidia-anal239/firmware/vendor/firmware/nvidia/gb205/gsp/fmc-570.144.bin",
+      "sha256": "cb59a35c1d4bd1274d7267fd10243c29f843ff41c851b9cbd59f5af2ddd7fece",
+      "bytes": 199820
+    },
+    "gsp_bootloader_570_144": {
+      "path": "~/anybook/kernel/nvidia-anal239/firmware/vendor/firmware/nvidia/gb205/gsp/bootloader-570.144.bin",
+      "sha256": "d40b48e431d1707dc77af3605db358ed7a32ebfc2830eb74de2eddb4d3025071",
+      "bytes": 200812
+    },
+    "gsp_rm_570_144": {
+      "path": "~/anybook/kernel/nvidia-anal239/firmware/vendor/firmware/nvidia/gb205/gsp/gsp-570.144.bin",
+      "sha256": "a8c3ebeed280323aedb51c061f321e73379cce7a9ae643a33dd03915df027f7f",
+      "bytes": 63571696
+    },
+    "licence_nvidia": {
+      "path": "~/anybook/kernel/nvidia-anal239/firmware/vendor/firmware/LICENSES/LICENCE.nvidia",
+      "sha256": "bc5225a57f49c5249dcf238e4ae6437811677a2a8a7f579c3d839e058653ee44",
+      "bytes": 6212
+    }
+  },
+  "checks": [
+    {
+      "id": "kernel-pipeline",
+      "kind": "other",
+      "scope": "component",
+      "passed": true,
+      "summary": "kernel-g14-package.sh on the G14 kernel with nouveau: Kleaf build, module lists 0 problems, signatures, firmware staging, QEMU first-stage boots usb/uas/nvme/both-uuid/vm 5/5 with every vendor_dlkm module live (nouveau with runpm=1 modeset=2)",
+      "evidence": "evidence/2026-10-24-nouveau-ruby/kernel-g14/results.json",
+      "inputs": {
+        "g14_kernel_bzimage": "7070b69fae0ddfbdf20e1238ced6eed699ea7737c8e0733b5d6f4ce71efd49b6",
+        "g14_boot_img": "437c45a3971d5f1a3e962676dd019833a24729d9320bff9b25b106fd9d1f2920",
+        "g14_system_dlkm_img": "add3260a0cda38fabdd4d9d913e80f014b8163ce75ee4af669ff2776af1109fa",
+        "g14_vendor_boot_img": "b499ebf164191767760e9ad8034529e0afa11d12592d164b74ffa777153b7b2e",
+        "g14_vendor_dlkm_img": "99eb64e7f58d3f68ad5bdef2655d74f5ec6f96bc94f6aeec50dad62ece4e9d37",
+        "g14_vm_vendor_boot_img": "33f12ff4b1803e4fa377cbb6a905ce26fc1e0bfd839830042e9558c5979a4425",
+        "g14_vm_vendor_dlkm_img": "71249b48cb618f71f0bbec2265b8321b2b627b6b8e91711dff7623bacc2543ed",
+        "g14_vendor_boot_ramdisk": "38c4bfa1c093ddde642d3dd4d8c9e958d72b85c81e893dab71175d07a179adf6",
+        "nouveau_ko": "5818ae6c2b2721b9b7165cfaa3a187ca27a4f0801f75f7f463b46965847ca8db",
+        "drm_gpuvm_ko": "38ab8f5c98930e4ca618a16d547fd74b2590adee5e3b536856ff66a25b7e08d1",
+        "nouveau_modules_options": "b0f8dd72d68b5beced2dcda2f6869c0afbee24ab010e541d3117003a7c231ad1",
+        "kmi_patch_0004": "d2d6bfc4ba94db1f5707cd3adda84bc8cd81b1bfd9862eca5104e19108b5cab2",
+        "nouveau_patch_series": "179021927ad3ddeaee3d61be154281a59a3ee2c972d857667550e2545a903c68",
+        "kernel_g14_package": "fd40bb2e815463a5fc3bea56e5fa65b215eed4dc4d90a27219c2217b3f033864",
+        "kernel_g14_qemu": "079640a7abdc16e841dcb839ac8553d7db924b0675e3f4dde916b14e7511cb3c"
+      }
+    },
+    {
+      "id": "offline-load-check",
+      "kind": "other",
+      "scope": "component",
+      "passed": true,
+      "summary": "drm_gpuvm, nouveau and the rebuilt lid guard against the new kernel's vmlinux (from bzImage), vendor_dlkm and system_dlkm: 684 imports; 0 CRC mismatches, unresolved, protected imports, duplicate exports; vermagic and load order right",
+      "evidence": "evidence/2026-10-24-nouveau-ruby/load-check.json",
+      "inputs": {
+        "nouveau_ko": "5818ae6c2b2721b9b7165cfaa3a187ca27a4f0801f75f7f463b46965847ca8db",
+        "drm_gpuvm_ko": "38ab8f5c98930e4ca618a16d547fd74b2590adee5e3b536856ff66a25b7e08d1",
+        "lid_guard_ko": "f62ebe3ae5e9c943c893413ec0aee86d5125eb673d7ea64b46b4e198d8d0a6aa",
+        "g14_kernel_bzimage": "7070b69fae0ddfbdf20e1238ced6eed699ea7737c8e0733b5d6f4ce71efd49b6",
+        "g14_vendor_dlkm_img": "99eb64e7f58d3f68ad5bdef2655d74f5ec6f96bc94f6aeec50dad62ece4e9d37",
+        "g14_system_dlkm_img": "add3260a0cda38fabdd4d9d913e80f014b8163ce75ee4af669ff2776af1109fa",
+        "kernel_nouveau_check": "04f39cdeaa24f57ef015f9c95686b67a20491537225d603f08d0347fd1f27ddf"
+      }
+    },
+    {
+      "id": "rebuild-compare",
+      "kind": "other",
+      "scope": "component",
+      "passed": true,
+      "summary": "New kernel against RB-20261023-03: vmlinux 0 exports removed, 0 CRCs changed, 30 added, 3 unprotected; 241 modules keep exports, CRCs, imports and code (only release metadata, signatures and split BTF differ; amdgpu's UTS_RELEASE banner and kheaders' archive explained)",
+      "evidence": "evidence/2026-10-24-nouveau-ruby/rebuild-compare.json",
+      "inputs": {
+        "rb_20261023_03_boot_img": "f6fc1a5892cba10d24ba3c250f5abe4115ba0f7c0556a653995b41373bfbcec8",
+        "rb_20261023_03_vendor_dlkm_img": "c22672e2333f1d97833688d2554dee6e06515c425ae1674aa3e2a6b4099c5fba",
+        "rb_20261023_03_system_dlkm_img": "34185c35cb8bbccd5dfd0bb74eecb8a21e2445730411ef1583e1245628e0d617",
+        "g14_kernel_bzimage": "7070b69fae0ddfbdf20e1238ced6eed699ea7737c8e0733b5d6f4ce71efd49b6",
+        "g14_vendor_dlkm_img": "99eb64e7f58d3f68ad5bdef2655d74f5ec6f96bc94f6aeec50dad62ece4e9d37",
+        "g14_system_dlkm_img": "add3260a0cda38fabdd4d9d913e80f014b8163ce75ee4af669ff2776af1109fa",
+        "lid_guard_ko": "f62ebe3ae5e9c943c893413ec0aee86d5125eb673d7ea64b46b4e198d8d0a6aa",
+        "kernel_nouveau_check": "04f39cdeaa24f57ef015f9c95686b67a20491537225d603f08d0347fd1f27ddf"
+      }
+    },
+    {
+      "id": "qemu-guest-check",
+      "kind": "other",
+      "scope": "component",
+      "passed": true,
+      "summary": "QEMU vm and nvme runs, Android guest, SELinux enforcing: nouveau and drm_gpuvm live with modules.options' runpm=1 modeset=2, PCI driver registered, nothing bound, no DRM node, no kernel error; denials identical to the installed-kernel baseline (2 pre-existing init writes); openbook-pc-setup dgpu-pm/dgpu-report as root on real sysfs; fixtures under the guest's sh/toybox 49/49. 17/17 per run",
+      "evidence": "evidence/2026-10-24-nouveau-ruby/qemu-guest/results.json",
+      "inputs": {
+        "g14_kernel_bzimage": "7070b69fae0ddfbdf20e1238ced6eed699ea7737c8e0733b5d6f4ce71efd49b6",
+        "g14_boot_img": "437c45a3971d5f1a3e962676dd019833a24729d9320bff9b25b106fd9d1f2920",
+        "g14_system_dlkm_img": "add3260a0cda38fabdd4d9d913e80f014b8163ce75ee4af669ff2776af1109fa",
+        "g14_vendor_boot_img": "b499ebf164191767760e9ad8034529e0afa11d12592d164b74ffa777153b7b2e",
+        "g14_vendor_dlkm_img": "99eb64e7f58d3f68ad5bdef2655d74f5ec6f96bc94f6aeec50dad62ece4e9d37",
+        "g14_vm_vendor_boot_img": "33f12ff4b1803e4fa377cbb6a905ce26fc1e0bfd839830042e9558c5979a4425",
+        "g14_vm_vendor_dlkm_img": "71249b48cb618f71f0bbec2265b8321b2b627b6b8e91711dff7623bacc2543ed",
+        "openbook_pc_setup": "bf855fa4d8e626925300cc8d8487fc00c9aaed4767c0ab9756ab0b5865c74f27",
+        "openbook_pc_setup_test": "aedb9d8e9a2fe5a3bf8444ff3503297fe72e55766e6ae9749044c9fedf7cc29a",
+        "nouveau_guest_check": "d517dd7bac037fdd43f878bf6553eeada2b3406c1c542aa266509f30c60bb752",
+        "kernel_g14_qemu": "079640a7abdc16e841dcb839ac8553d7db924b0675e3f4dde916b14e7511cb3c",
+        "installed_kernel_bzimage": "55b86074614a94592ddecebd2b77b1f2ed9aa38e8ad992b73c78c64d04c516f9",
+        "installed_vendor_dlkm_img": "024774373cb9c09c634140ef9504bd5d9d81a9ee2006d5c4c3183a596ee0ce63",
+        "installed_vm_vendor_dlkm_img": "14427e5f27accbe78d3bd68365b5365cab91f8f4a7031e09d16ef5062d709521"
+      }
+    },
+    {
+      "id": "hook-fixtures",
+      "kind": "unit",
+      "scope": "component",
+      "passed": true,
+      "summary": "openbook-pc-setup fixture tests under bash and sh, 49/49 each: nouveau bound (HDMI audio unbound, GPU left to nouveau, runpm/modeset logged), runpm not 1, dgpu-report with nouveau in D3cold, plus ANAL-238's cases",
+      "evidence": "evidence/2026-10-24-nouveau-ruby/tests/openbook-pc-setup-test.txt",
+      "inputs": {
+        "openbook_pc_setup": "bf855fa4d8e626925300cc8d8487fc00c9aaed4767c0ab9756ab0b5865c74f27",
+        "openbook_pc_setup_test": "aedb9d8e9a2fe5a3bf8444ff3503297fe72e55766e6ae9749044c9fedf7cc29a"
+      }
+    },
+    {
+      "id": "checker-tests",
+      "kind": "unit",
+      "scope": "component",
+      "passed": true,
+      "summary": "kernel-nouveau-check.py: 9 planted faults caught; 141/141 RB-20261023-03 vendor modules pass as new (9,127 imports)",
+      "evidence": "evidence/2026-10-24-nouveau-ruby/tests/kernel-nouveau-check-test.txt",
+      "inputs": {
+        "kernel_nouveau_check": "04f39cdeaa24f57ef015f9c95686b67a20491537225d603f08d0347fd1f27ddf",
+        "kernel_nouveau_check_test": "8f5b8186197b71aac319876e26a55a4400600870c72db27eb317d66ce52ad512",
+        "rb_20261023_03_boot_img": "f6fc1a5892cba10d24ba3c250f5abe4115ba0f7c0556a653995b41373bfbcec8",
+        "rb_20261023_03_vendor_dlkm_img": "c22672e2333f1d97833688d2554dee6e06515c425ae1674aa3e2a6b4099c5fba",
+        "rb_20261023_03_system_dlkm_img": "34185c35cb8bbccd5dfd0bb74eecb8a21e2445730411ef1583e1245628e0d617"
+      }
+    },
+    {
+      "id": "firmware-staging",
+      "kind": "other",
+      "scope": "component",
+      "passed": true,
+      "summary": "GSP-RM 570.144 for GB205 from linux-firmware 38c1a709: 3 files (64.0 MB) and LICENCE.nvidia, sha256 and git blobs checked, WHENCE links as regular files, 0 problems",
+      "evidence": "evidence/2026-10-24-nouveau-ruby/firmware/firmware-manifest.json",
+      "inputs": {
+        "gsp_fmc_570_144": "cb59a35c1d4bd1274d7267fd10243c29f843ff41c851b9cbd59f5af2ddd7fece",
+        "gsp_bootloader_570_144": "d40b48e431d1707dc77af3605db358ed7a32ebfc2830eb74de2eddb4d3025071",
+        "gsp_rm_570_144": "a8c3ebeed280323aedb51c061f321e73379cce7a9ae643a33dd03915df027f7f",
+        "licence_nvidia": "bc5225a57f49c5249dcf238e4ae6437811677a2a8a7f579c3d839e058653ee44",
+        "nvidia_firmware_rules": "10afc9a698f5d13414e5f1db18d1b988bd927676f12a7c41cd8fd02b32adbbb8"
+      }
+    },
+    {
+      "id": "gpu-probe-host",
+      "kind": "unit",
+      "scope": "component",
+      "passed": true,
+      "summary": "anybook_gpu_probe Decide() built on the host against AOSP's libbase: all 9 fixtures as the test expects; a G14 with nouveau bound keeps hal=amdgpu, card0",
+      "evidence": "evidence/2026-10-24-nouveau-ruby/gpu-probe-host.txt",
+      "inputs": {
+        "gpu_probe_cpp": "adfb73b6b7e1cd4774b10059c861719105d200262f10f975cffe5a6fdb70f153",
+        "gpu_probe_fixture_nouveau": "e21437d4338663e3016f2fcfd70645bb88a23ceb1ea1b88fd43ba04fd28534e2"
+      }
+    },
+    {
+      "id": "reproducible-build",
+      "kind": "other",
+      "scope": "component",
+      "passed": true,
+      "summary": "Second build in a fresh tree from the repo alone: nouveau.ko, drm_gpuvm.ko, openbook_lid_guard.ko byte-identical; 107 vendor modules identical, 35 differ only in split .BTF; GKI modules and kernel differ by the per-build signing key",
+      "evidence": "evidence/2026-10-24-nouveau-ruby/repro/compare.txt",
+      "inputs": {
+        "nouveau_ko": "5818ae6c2b2721b9b7165cfaa3a187ca27a4f0801f75f7f463b46965847ca8db",
+        "drm_gpuvm_ko": "38ab8f5c98930e4ca618a16d547fd74b2590adee5e3b536856ff66a25b7e08d1",
+        "lid_guard_ko": "f62ebe3ae5e9c943c893413ec0aee86d5125eb673d7ea64b46b4e198d8d0a6aa",
+        "kernel_nouveau_apply": "cc089195e39f0adef84dfc5294329cf099e02b2aea52840b44622351aa9e1f40",
+        "nouveau_patch_series": "179021927ad3ddeaee3d61be154281a59a3ee2c972d857667550e2545a903c68",
+        "kmi_patch_0004": "d2d6bfc4ba94db1f5707cd3adda84bc8cd81b1bfd9862eca5104e19108b5cab2"
+      }
+    }
+  ]
+}

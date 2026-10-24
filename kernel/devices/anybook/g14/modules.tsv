@@ -152,3 +152,5 @@ btintel.ko	anybook	load	load	-	btusb links it
 btrtl.ko	anybook	load	load	-	btusb links it; Realtek BT in other laptops
 btmtk.ko	anybook	load	load	MT7925 BT	MediaTek BT
 btusb.ko	anybook	load	load	MT7925 BT 0489:e11e	USB Bluetooth
+drm_gpuvm.ko	anybook	load	load	RTX 5070 Ti Laptop (GB205)	dep of nouveau: GPU virtual-address space helpers (ANAL-239)
+nouveau.ko	anybook	load	load	RTX 5070 Ti Laptop 10de:2f58 (64:00.0)	NVIDIA dGPU, for runtime power management only (ANAL-239): headless, runpm=1 (modules.options), GSP-RM firmware from /vendor/firmware. Last, so amdgpu keeps card0 and renderD128 and every earlier module loads as before. External module (devices/anybook/nvidia)

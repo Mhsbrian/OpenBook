@@ -1,0 +1,31 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Lyude Paul <lyude@redhat.com>
+Date: Thu, 17 Sep 2026 14:54:29 -0400
+Subject: [PATCH] drm/nouveau/gsp/r570: Enable Gcoff in fbsr again
+
+Now that we're properly saving the compbit backing stores on fbsr init, we
+can start setting bEnteringGcOff = 1 again without things breaking, which
+brings us closer to following the exact same code-paths OpenRM does for
+fbsr.
+
+Signed-off-by: Lyude Paul <lyude@redhat.com>
+Reviewed-by: Dave Airlie <airlied@redhat.com>
+Link: https://patch.msgid.link/20260917185916.1089621-6-lyude@redhat.com
+(cherry picked from commit adb87c20081e5ed5b6eef1270fc08b28bd77e865)
+---
+ drivers/gpu/drm/nouveau/nvkm/subdev/gsp/rm/r570/fbsr.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/nouveau/nvkm/subdev/gsp/rm/r570/fbsr.c b/drivers/gpu/drm/nouveau/nvkm/subdev/gsp/rm/r570/fbsr.c
+index a93a39ef7c690..469e7eed1d6f8 100644
+--- a/drivers/gpu/drm/nouveau/nvkm/subdev/gsp/rm/r570/fbsr.c
++++ b/drivers/gpu/drm/nouveau/nvkm/subdev/gsp/rm/r570/fbsr.c
+@@ -135,7 +135,7 @@ r570_fbsr_init(struct nvkm_gsp *gsp, struct sg_table *sgt, u64 size)
+ 	ctrl->hClient = gsp->internal.client.object.handle;
+ 	ctrl->hSysMem = memlist.handle;
+ 	ctrl->sysmemAddrOfSuspendResumeData = gsp->sr.meta.addr;
+-	ctrl->bEnteringGcoffState = 0;
++	ctrl->bEnteringGcoffState = 1;
+ 
+ 	ret = nvkm_gsp_rm_ctrl_wr(&gsp->internal.device.subdevice, ctrl);
+ 	if (ret)

@@ -1,0 +1,185 @@
+# Two builds of dist anybook-g14-gbos-16302624-anal239 from the same repo commit, in two trees
+first: /home/hive/anybook/kernel/dist/anybook-g14-gbos-16302624-anal239
+second: /home/hive/anybook/kernel/dist/anybook-g14-gbos-16302624-anal239-repro (fresh reflink of the kernel lane's src + kernel-amd-apply.sh + kernel-build.sh)
+
+files compared: 295; identical: 143; different: 152; missing in second: 0
+top-level modules: 243; identical: 108
+  nouveau.ko: identical 5818ae6c2b2721b9
+  drm_gpuvm.ko: identical 38ab8f5c98930e4c
+  openbook_lid_guard.ko: identical f62ebe3ae5e9c943
+  bm/vendor_dlkm.img: DIFFERENT
+  vm/vendor_dlkm.img: DIFFERENT
+  bm/vendor_boot.img: identical b499ebf164191767
+  vm/vendor_boot.img: DIFFERENT
+  bzImage: DIFFERENT
+  boot.img: DIFFERENT
+  system_dlkm.flatten.erofs.img: DIFFERENT
+  vmlinux: DIFFERENT
+
+different files:
+  6lowpan.ko
+  8021q.ko
+  9pnet.ko
+  9pnet_fd.ko
+  amdgpu.ko
+  amdxdna.ko
+  aqc111.ko
+  asix.ko
+  ax88179_178a.ko
+  binder_alloc_kunit.ko
+  bluetooth.ko
+  bm/vendor_dlkm.img
+  boot-img.tar.gz
+  boot.img
+  bsd_comp.ko
+  btbcm.ko
+  btqca.ko
+  btsdio.ko
+  build-time.txt
+  bzImage
+  can-bcm.ko
+  can-dev.ko
+  can-gw.ko
+  can-raw.ko
+  can.ko
+  cdc-acm.ko
+  cdc_eem.ko
+  cdc_ether.ko
+  cdc_ncm.ko
+  cfg80211.ko
+  clk_kunit_helpers.ko
+  crc-ccitt.ko
+  dev_addr_lists_test.ko
+  drm_display_helper.ko
+  efivarfs.ko
+  ext4-inode-test.ko
+  fan.ko
+  fat_test.ko
+  ftdi_sio.ko
+  gnss.ko
+  hci_uart.ko
+  hid-uclogic-test.ko
+  hidp.ko
+  ieee802154.ko
+  ieee802154_6lowpan.ko
+  ieee802154_socket.ko
+  iio-test-format.ko
+  input_test.ko
+  kernel-headers.tar.gz
+  kheaders.ko
+  kunit-example-test.ko
+  kunit-test.ko
+  kunit.ko
+  l2tp_core.ko
+  l2tp_ppp.ko
+  libarc4.ko
+  linux_banner.txt
+  mac80211.ko
+  mac802154.ko
+  macsec.ko
+  mii.ko
+  mt76-connac-lib.ko
+  mt76.ko
+  mt7921-common.ko
+  mt7925e.ko
+  mt792x-lib.ko
+  netfs.ko
+  nfc.ko
+  nhc_dest.ko
+  nhc_fragment.ko
+  nhc_hop.ko
+  nhc_ipv6.ko
+  nhc_mobility.ko
+  nhc_routing.ko
+  nhc_udp.ko
+  of_kunit_helpers.ko
+  open-dice.ko
+  platform-test.ko
+  ppp_deflate.ko
+  ppp_generic.ko
+  ppp_mppe.ko
+  pppox.ko
+  pps_core.ko
+  pptp.ko
+  ptp.ko
+  pwrseq-core.ko
+  r8152.ko
+  r8153_ecm.ko
+  regmap-kunit.ko
+  regmap-ram.ko
+  regmap-raw-ram.ko
+  rfcomm.ko
+  rfkill.ko
+  rtl8150.ko
+  rtsx_pci.ko
+  rtw89_8851b.ko
+  rtw89_8852a.ko
+  rtw89_8852b.ko
+  rtw89_8852c.ko
+  rtw89_core.ko
+  rtw89_pci.ko
+  rust_binder.ko
+  sha256.txt
+  slcan.ko
+  slhc.ko
+  snd-acp-i2s.ko
+  snd-ctl-led.ko
+  snd-hda-codec-alc268.ko
+  snd-hda-codec-alc680.ko
+  snd-hda-codec-alc861.ko
+  snd-hda-codec-intelhdmi.ko
+  snd-hda-codec.ko
+  snd-hda-core.ko
+  snd-soc-rl6231.ko
+  snd-sof-amd-acp.ko
+  snd-sof-amd-acp63.ko
+  snd-sof-probes.ko
+  snd-sof.ko
+  soc-topology-test.ko
+  soc-utils-test.ko
+  system_dlkm.erofs.img
+  system_dlkm.ext4.img
+  system_dlkm.flatten.erofs.img
+  system_dlkm.flatten.ext4.img
+  system_dlkm_staging_archive.tar.gz
+  test_rtc_lib.ko
+  thunderbolt.ko
+  time_test.ko
+  tipc.ko
+  tipc_diag.ko
+  tpm.ko
+  usbmon.ko
+  usbnet.ko
+  usbserial.ko
+  vcan.ko
+  vcpu_stall_detector.ko
+  video.ko
+  virtio-gpu.ko
+  virtio_balloon.ko
+  virtio_blk.ko
+  virtio_console.ko
+  virtio_pci.ko
+  virtio_pci_legacy_dev.ko
+  virtio_pci_modern_dev.ko
+  vm/initramfs.img
+  vm/vendor_boot.img
+  vm/vendor_dlkm.img
+  vmlinux
+  vmw_vsock_virtio_transport.ko
+  wwan.ko
+  zram.ko
+  zsmalloc.ko
+
+## Why files differ (scripts/kernel-nouveau-check.py compare_module on every differing .ko)
+
+- 100 GKI modules (system_dlkm): identical except the appended signature. Every GKI build makes a new
+  module-signing key (kernel.md: "a fixed module-signing key" is an open item), so vmlinux (its .init.data
+  holds the certificate; its build ID follows), bzImage, boot.img and system_dlkm differ too.
+- 35 vendor modules: identical exports, CRCs, imports and sections except split .BTF. pahole does not
+  produce the same split BTF for them twice; the GKI has MODULE_ALLOW_BTF_MISMATCH=y, so BTF never decides
+  whether a module loads. vendor_dlkm.img (and vm/vendor_boot.img, with virtio-gpu) differ for that reason.
+- 107 vendor modules are byte-identical, among them nouveau.ko, drm_gpuvm.ko; openbook_lid_guard.ko too.
+
+So the release pins the exact files of the first build (handoff-ANAL-239.json). A rebuild reproduces
+nouveau.ko, drm_gpuvm.ko and openbook_lid_guard.ko byte for byte, and every other vendor module
+apart from BTF.

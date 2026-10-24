@@ -1,0 +1,102 @@
+# bash
+ok   g14-d0: exit 0
+ok   g14-d0: HDMI audio unbound from snd_hda_intel
+ok   g14-d0: dGPU runtime PM auto
+ok   g14-d0: HDMI audio runtime PM auto
+ok   g14-d0: snd_hda_intel power_save
+ok   g14-off: exit 0
+ok   g14-off: AMD audio left alone
+ok   g14-off: power_save untouched
+ok   g14-off: nothing unbound
+ok   nouveau: exit 0
+ok   nouveau: dGPU control left to nouveau
+ok   nouveau: HDMI audio unbound from snd_hda_intel
+ok   nouveau: HDMI audio runtime PM auto
+ok   nouveau: snd_hda_intel power_save
+ok   nouveau: logs the driver and runpm=1 modeset=2
+ok   nouveau-norunpm: exit 0
+ok   nouveau-norunpm: HDMI audio runtime PM auto
+ok   nouveau-norunpm: warns, and shows a set config
+ok   perms: exit 0
+ok   perms: reports (not root: chown skipped)
+ok   kvm on: exit 0
+ok   kvm on: vendor.openbook.kvm=1
+ok   kvm off: exit 0
+ok   kvm off: vendor.openbook.kvm=0
+ok   report d3cold: exit 0
+ok   report d3cold: verdict
+ok   report d3cold: GPU line
+ok   report d3cold: bridge and PG00 off
+ok   report d3cold: asus read
+ok   report d3cold: suspend_stats
+ok   report d3cold: logd copy
+ok   report d3cold: read-only
+ok   report d0: verdict
+ok   report d0: HDA bound
+ok   report d0: default reason
+ok   report absent: verdict
+ok   report nouveau: verdict
+ok   report nouveau: GPU line
+ok   report nouveau: parameters
+ok   report nouveau: logd copy
+ok   ctl on: exit 0
+ok   ctl on: GPU held in D0
+ok   ctl on: HDMI audio held in D0
+ok   ctl on: reports after
+ok   ctl auto: GPU back to auto
+ok   ctl bad value: exit 2
+ok   ctl bad value: nothing written
+ok   ctl with nouveau: exit 0
+ok   ctl with nouveau: audio untouched
+openbook-pc-setup-test: 0 failure(s)
+# sh (/usr/bin/bash)
+ok   g14-d0: exit 0
+ok   g14-d0: HDMI audio unbound from snd_hda_intel
+ok   g14-d0: dGPU runtime PM auto
+ok   g14-d0: HDMI audio runtime PM auto
+ok   g14-d0: snd_hda_intel power_save
+ok   g14-off: exit 0
+ok   g14-off: AMD audio left alone
+ok   g14-off: power_save untouched
+ok   g14-off: nothing unbound
+ok   nouveau: exit 0
+ok   nouveau: dGPU control left to nouveau
+ok   nouveau: HDMI audio unbound from snd_hda_intel
+ok   nouveau: HDMI audio runtime PM auto
+ok   nouveau: snd_hda_intel power_save
+ok   nouveau: logs the driver and runpm=1 modeset=2
+ok   nouveau-norunpm: exit 0
+ok   nouveau-norunpm: HDMI audio runtime PM auto
+ok   nouveau-norunpm: warns, and shows a set config
+ok   perms: exit 0
+ok   perms: reports (not root: chown skipped)
+ok   kvm on: exit 0
+ok   kvm on: vendor.openbook.kvm=1
+ok   kvm off: exit 0
+ok   kvm off: vendor.openbook.kvm=0
+ok   report d3cold: exit 0
+ok   report d3cold: verdict
+ok   report d3cold: GPU line
+ok   report d3cold: bridge and PG00 off
+ok   report d3cold: asus read
+ok   report d3cold: suspend_stats
+ok   report d3cold: logd copy
+ok   report d3cold: read-only
+ok   report d0: verdict
+ok   report d0: HDA bound
+ok   report d0: default reason
+ok   report absent: verdict
+ok   report nouveau: verdict
+ok   report nouveau: GPU line
+ok   report nouveau: parameters
+ok   report nouveau: logd copy
+ok   ctl on: exit 0
+ok   ctl on: GPU held in D0
+ok   ctl on: HDMI audio held in D0
+ok   ctl on: reports after
+ok   ctl auto: GPU back to auto
+ok   ctl bad value: exit 2
+ok   ctl bad value: nothing written
+ok   ctl with nouveau: exit 0
+ok   ctl with nouveau: audio untouched
+openbook-pc-setup-test: 0 failure(s)

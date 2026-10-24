@@ -1,5 +1,17 @@
 # Status
 
+## 2026-10-24: nouveau for the G14 dGPU built for Ruby; the kernel must change (ANAL-239)
+
+- **What:** nouveau.ko and drm_gpuvm.ko for the G14 kernel lane, plus GSP-RM 570.144 firmware for GB205 (3 files,
+  64 MB). The driver runs headless with runtime PM (`modules.options`). The dgpu-pm hook now unbinds the dGPU's
+  HDMI audio even with nouveau bound.
+- **Kernel change:** the Ruby GKI withholds 33 symbols nouveau imports, so `anybook_amd` gains them (patch 0004)
+  and the kernel, `system_dlkm` and `vendor_dlkm` are rebuilt. Every existing export, CRC and module's code is
+  unchanged (rebuild comparison).
+- **Checks:** the kernel pipeline passes, with 5 of 5 QEMU boots. The offline load check finds 0 problems. In
+  QEMU, nouveau loads with its options, binds nothing and adds no SELinux denial. No GPU was bound: QEMU has none.
+- **On the laptop (ANAL-243, through a Ruby release):** GSP boot, D3cold, s2idle and battery.
+- **Laptop unchanged.** Evidence: `evidence/2026-10-24-nouveau-ruby/`. Details: `docs/nouveau-ruby.md`.
 ## 2026-10-24: ANAL-238 dGPU diagnostics rebased onto the two-slot base and tested once
 
 - **Rebased** onto RB-20261023-03, the system the G14 runs. The change is still vendor-only: the script, its init
