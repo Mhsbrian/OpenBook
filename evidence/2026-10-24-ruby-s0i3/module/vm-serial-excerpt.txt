@@ -1,0 +1,139 @@
+QMP power-button presses: 59
+== kernel 6.18.21-android17-5-gfbfdd65b0fd1
+== mem_sleep [s2idle] deep
+== loaded without parameters
+== unloaded
+== loaded active
+PARAM ptm_off=Y
+PARAM snapshot=2
+PARAM usb4=Y
+PARAM cycles=2
+== s2idle 1
+== s2idle 1 resumed
+== s2idle 2
+== s2idle 2 resumed
+== s2idle 3[    7.264248][    T1] PM: suspend entry (s2idle)
+== s2idle 3 resumed
+== s3
+== s3 resumed
+KLOG [    1.120624][   T66] openbook_sleep_diag: loading out-of-tree module taints kernel.
+KLOG [    1.122899][   T66] openbook_sleep_diag: inactive (no openbook_sleep_diag parameter set)
+KLOG [    1.171299][   T68] openbook_sleep_diag: active: ptm_off=1 snapshot=2 usb4=1 cycles=2
+KLOG [    1.172697][   T68] openbook_sleep_diag: load: 0 function(s) with a PTM capability, 0 with PTM enabled
+KLOG [    1.174295][   T68] openbook_sleep_diag: load: no USB4 host router
+KLOG [    1.183861][    T1] openbook_sleep_diag: suspend: no USB4 host router
+KLOG [    1.184950][    T1] openbook_sleep_diag: suspend 1: PTM turned off on 0 of 0 function(s) that had it on
+KLOG [    1.198922][    T1] openbook_sleep_diag: s0i3-entry 1: 0000:00:00.0 8086:29c0 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    1.198926][    T1] openbook_sleep_diag: s0i3-entry 1: 0000:00:01.0 1234:1111 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    1.198988][    T1] openbook_sleep_diag: s0i3-entry 1: 0000:00:02.0 1b36:000c root-port kernel D0 pmcsr no-pm-cap rpm disabled driver pcieport skip_bus_pm no-d3cold aspm off l1ss 0x0 lnksta 0x0011
+KLOG [    1.198992][    T1] openbook_sleep_diag: s0i3-entry 1: 0000:00:1f.0 8086:2918 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    1.198998][    T1] openbook_sleep_diag: s0i3-entry 1: 0000:00:1f.2 8086:2922 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    1.199000][    T1] openbook_sleep_diag: s0i3-entry 1: 0000:00:1f.3 8086:2930 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    1.199066][    T1] openbook_sleep_diag: s0i3-entry 1: 0000:01:00.0 8086:10d3 endpoint kernel D0 pmcsr D0 rpm disabled driver - aspm off l1ss 0x0 lnksta 0x0011
+KLOG [    1.199069][    T1] openbook_sleep_diag: s0i3-entry 1: 7 PCI functions, 7 not in D3, 0 with PTM on
+KLOG [    1.199072][    T1] openbook_sleep_diag: s0i3-entry: no USB4 host router
+KLOG [    3.206415][    T1] openbook_sleep_diag: s0i3-exit 1: the s2idle loop checked for a wakeup 1 time(s)
+KLOG [    3.206421][    T1] openbook_sleep_diag: s0i3-exit 1: 0000:00:00.0 8086:29c0 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    3.206424][    T1] openbook_sleep_diag: s0i3-exit 1: 0000:00:01.0 1234:1111 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    3.206496][    T1] openbook_sleep_diag: s0i3-exit 1: 0000:00:02.0 1b36:000c root-port kernel D0 pmcsr no-pm-cap rpm disabled driver pcieport skip_bus_pm no-d3cold aspm off l1ss 0x0 lnksta 0x0011
+KLOG [    3.206500][    T1] openbook_sleep_diag: s0i3-exit 1: 0000:00:1f.0 8086:2918 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    3.206502][    T1] openbook_sleep_diag: s0i3-exit 1: 0000:00:1f.2 8086:2922 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    3.206504][    T1] openbook_sleep_diag: s0i3-exit 1: 0000:00:1f.3 8086:2930 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    3.206566][    T1] openbook_sleep_diag: s0i3-exit 1: 0000:01:00.0 8086:10d3 endpoint kernel D0 pmcsr D0 rpm disabled driver - aspm off l1ss 0x0 lnksta 0x0011
+KLOG [    3.206570][    T1] openbook_sleep_diag: s0i3-exit 1: 7 PCI functions, 7 not in D3, 0 with PTM on
+KLOG [    3.263400][    T1] openbook_sleep_diag: resume 1: PTM restored on 0 of 0 function(s)
+KLOG [    3.268602][    T1] openbook_sleep_diag: suspend: no USB4 host router
+KLOG [    3.269875][    T1] openbook_sleep_diag: suspend 2: PTM turned off on 0 of 0 function(s) that had it on
+KLOG [    3.284027][    T1] openbook_sleep_diag: s0i3-entry 2: 0000:00:00.0 8086:29c0 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    3.284031][    T1] openbook_sleep_diag: s0i3-entry 2: 0000:00:01.0 1234:1111 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    3.284095][    T1] openbook_sleep_diag: s0i3-entry 2: 0000:00:02.0 1b36:000c root-port kernel D0 pmcsr no-pm-cap rpm disabled driver pcieport skip_bus_pm no-d3cold aspm off l1ss 0x0 lnksta 0x0011
+KLOG [    3.284099][    T1] openbook_sleep_diag: s0i3-entry 2: 0000:00:1f.0 8086:2918 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    3.284101][    T1] openbook_sleep_diag: s0i3-entry 2: 0000:00:1f.2 8086:2922 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    3.284104][    T1] openbook_sleep_diag: s0i3-entry 2: 0000:00:1f.3 8086:2930 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    3.284164][    T1] openbook_sleep_diag: s0i3-entry 2: 0000:01:00.0 8086:10d3 endpoint kernel D0 pmcsr D0 rpm disabled driver - aspm off l1ss 0x0 lnksta 0x0011
+KLOG [    3.284168][    T1] openbook_sleep_diag: s0i3-entry 2: 7 PCI functions, 7 not in D3, 0 with PTM on
+KLOG [    3.284171][    T1] openbook_sleep_diag: s0i3-entry: no USB4 host router
+KLOG [    7.206692][    T1] openbook_sleep_diag: s0i3-exit 2: the s2idle loop checked for a wakeup 1 time(s)
+KLOG [    7.206699][    T1] openbook_sleep_diag: s0i3-exit 2: 0000:00:00.0 8086:29c0 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    7.206703][    T1] openbook_sleep_diag: s0i3-exit 2: 0000:00:01.0 1234:1111 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    7.206782][    T1] openbook_sleep_diag: s0i3-exit 2: 0000:00:02.0 1b36:000c root-port kernel D0 pmcsr no-pm-cap rpm disabled driver pcieport skip_bus_pm no-d3cold aspm off l1ss 0x0 lnksta 0x0011
+KLOG [    7.206789][    T1] openbook_sleep_diag: s0i3-exit 2: 0000:00:1f.0 8086:2918 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    7.206792][    T1] openbook_sleep_diag: s0i3-exit 2: 0000:00:1f.2 8086:2922 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    7.206795][    T1] openbook_sleep_diag: s0i3-exit 2: 0000:00:1f.3 8086:2930 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    7.206861][    T1] openbook_sleep_diag: s0i3-exit 2: 0000:01:00.0 8086:10d3 endpoint kernel D0 pmcsr D0 rpm disabled driver - aspm off l1ss 0x0 lnksta 0x0011
+KLOG [    7.206865][    T1] openbook_sleep_diag: s0i3-exit 2: 7 PCI functions, 7 not in D3, 0 with PTM on
+KLOG [    7.261987][    T1] openbook_sleep_diag: resume 2: PTM restored on 0 of 0 function(s)
+KLOG [    7.280302][    T1] openbook_sleep_diag: s0i3-entry 3: 7 PCI functions, 7 not in D3, 0 with PTM on
+KLOG [   11.206733][    T1] openbook_sleep_diag: s0i3-exit 3: the s2idle loop checked for a wakeup 1 time(s)
+KLOG [   65.588988][   T10] openbook_sleep_diag: load+60s: no USB4 host router
+== unloaded active
+== done
+== kernel 6.18.21-android17-5-gfbfdd65b0fd1
+== mem_sleep [s2idle] deep
+== loaded without parameters
+== unloaded
+== loaded active
+PARAM ptm_off=Y
+PARAM snapshot=2
+PARAM usb4=Y
+PARAM cycles=2
+== s2idle 1
+== s2idle 1 resumed
+== s2idle 2
+== s2idle 2 resumed
+== s2idle 3[    7.264248][    T1] PM: suspend entry (s2idle)
+== s2idle 3 resumed
+== s3
+== s3 resumed
+KLOG [    1.120624][   T66] openbook_sleep_diag: loading out-of-tree module taints kernel.
+KLOG [    1.122899][   T66] openbook_sleep_diag: inactive (no openbook_sleep_diag parameter set)
+KLOG [    1.171299][   T68] openbook_sleep_diag: active: ptm_off=1 snapshot=2 usb4=1 cycles=2
+KLOG [    1.172697][   T68] openbook_sleep_diag: load: 0 function(s) with a PTM capability, 0 with PTM enabled
+KLOG [    1.174295][   T68] openbook_sleep_diag: load: no USB4 host router
+KLOG [    1.183861][    T1] openbook_sleep_diag: suspend: no USB4 host router
+KLOG [    1.184950][    T1] openbook_sleep_diag: suspend 1: PTM turned off on 0 of 0 function(s) that had it on
+KLOG [    1.198922][    T1] openbook_sleep_diag: s0i3-entry 1: 0000:00:00.0 8086:29c0 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    1.198926][    T1] openbook_sleep_diag: s0i3-entry 1: 0000:00:01.0 1234:1111 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    1.198988][    T1] openbook_sleep_diag: s0i3-entry 1: 0000:00:02.0 1b36:000c root-port kernel D0 pmcsr no-pm-cap rpm disabled driver pcieport skip_bus_pm no-d3cold aspm off l1ss 0x0 lnksta 0x0011
+KLOG [    1.198992][    T1] openbook_sleep_diag: s0i3-entry 1: 0000:00:1f.0 8086:2918 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    1.198998][    T1] openbook_sleep_diag: s0i3-entry 1: 0000:00:1f.2 8086:2922 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    1.199000][    T1] openbook_sleep_diag: s0i3-entry 1: 0000:00:1f.3 8086:2930 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    1.199066][    T1] openbook_sleep_diag: s0i3-entry 1: 0000:01:00.0 8086:10d3 endpoint kernel D0 pmcsr D0 rpm disabled driver - aspm off l1ss 0x0 lnksta 0x0011
+KLOG [    1.199069][    T1] openbook_sleep_diag: s0i3-entry 1: 7 PCI functions, 7 not in D3, 0 with PTM on
+KLOG [    1.199072][    T1] openbook_sleep_diag: s0i3-entry: no USB4 host router
+KLOG [    3.206415][    T1] openbook_sleep_diag: s0i3-exit 1: the s2idle loop checked for a wakeup 1 time(s)
+KLOG [    3.206421][    T1] openbook_sleep_diag: s0i3-exit 1: 0000:00:00.0 8086:29c0 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    3.206424][    T1] openbook_sleep_diag: s0i3-exit 1: 0000:00:01.0 1234:1111 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    3.206496][    T1] openbook_sleep_diag: s0i3-exit 1: 0000:00:02.0 1b36:000c root-port kernel D0 pmcsr no-pm-cap rpm disabled driver pcieport skip_bus_pm no-d3cold aspm off l1ss 0x0 lnksta 0x0011
+KLOG [    3.206500][    T1] openbook_sleep_diag: s0i3-exit 1: 0000:00:1f.0 8086:2918 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    3.206502][    T1] openbook_sleep_diag: s0i3-exit 1: 0000:00:1f.2 8086:2922 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    3.206504][    T1] openbook_sleep_diag: s0i3-exit 1: 0000:00:1f.3 8086:2930 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    3.206566][    T1] openbook_sleep_diag: s0i3-exit 1: 0000:01:00.0 8086:10d3 endpoint kernel D0 pmcsr D0 rpm disabled driver - aspm off l1ss 0x0 lnksta 0x0011
+KLOG [    3.206570][    T1] openbook_sleep_diag: s0i3-exit 1: 7 PCI functions, 7 not in D3, 0 with PTM on
+KLOG [    3.263400][    T1] openbook_sleep_diag: resume 1: PTM restored on 0 of 0 function(s)
+KLOG [    3.268602][    T1] openbook_sleep_diag: suspend: no USB4 host router
+KLOG [    3.269875][    T1] openbook_sleep_diag: suspend 2: PTM turned off on 0 of 0 function(s) that had it on
+KLOG [    3.284027][    T1] openbook_sleep_diag: s0i3-entry 2: 0000:00:00.0 8086:29c0 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    3.284031][    T1] openbook_sleep_diag: s0i3-entry 2: 0000:00:01.0 1234:1111 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    3.284095][    T1] openbook_sleep_diag: s0i3-entry 2: 0000:00:02.0 1b36:000c root-port kernel D0 pmcsr no-pm-cap rpm disabled driver pcieport skip_bus_pm no-d3cold aspm off l1ss 0x0 lnksta 0x0011
+KLOG [    3.284099][    T1] openbook_sleep_diag: s0i3-entry 2: 0000:00:1f.0 8086:2918 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    3.284101][    T1] openbook_sleep_diag: s0i3-entry 2: 0000:00:1f.2 8086:2922 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    3.284104][    T1] openbook_sleep_diag: s0i3-entry 2: 0000:00:1f.3 8086:2930 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    3.284164][    T1] openbook_sleep_diag: s0i3-entry 2: 0000:01:00.0 8086:10d3 endpoint kernel D0 pmcsr D0 rpm disabled driver - aspm off l1ss 0x0 lnksta 0x0011
+KLOG [    3.284168][    T1] openbook_sleep_diag: s0i3-entry 2: 7 PCI functions, 7 not in D3, 0 with PTM on
+KLOG [    3.284171][    T1] openbook_sleep_diag: s0i3-entry: no USB4 host router
+KLOG [    7.206692][    T1] openbook_sleep_diag: s0i3-exit 2: the s2idle loop checked for a wakeup 1 time(s)
+KLOG [    7.206699][    T1] openbook_sleep_diag: s0i3-exit 2: 0000:00:00.0 8086:29c0 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    7.206703][    T1] openbook_sleep_diag: s0i3-exit 2: 0000:00:01.0 1234:1111 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    7.206782][    T1] openbook_sleep_diag: s0i3-exit 2: 0000:00:02.0 1b36:000c root-port kernel D0 pmcsr no-pm-cap rpm disabled driver pcieport skip_bus_pm no-d3cold aspm off l1ss 0x0 lnksta 0x0011
+KLOG [    7.206789][    T1] openbook_sleep_diag: s0i3-exit 2: 0000:00:1f.0 8086:2918 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    7.206792][    T1] openbook_sleep_diag: s0i3-exit 2: 0000:00:1f.2 8086:2922 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    7.206795][    T1] openbook_sleep_diag: s0i3-exit 2: 0000:00:1f.3 8086:2930 pci kernel D0 pmcsr no-pm-cap rpm disabled driver - no-d3cold
+KLOG [    7.206861][    T1] openbook_sleep_diag: s0i3-exit 2: 0000:01:00.0 8086:10d3 endpoint kernel D0 pmcsr D0 rpm disabled driver - aspm off l1ss 0x0 lnksta 0x0011
+KLOG [    7.206865][    T1] openbook_sleep_diag: s0i3-exit 2: 7 PCI functions, 7 not in D3, 0 with PTM on
+KLOG [    7.261987][    T1] openbook_sleep_diag: resume 2: PTM restored on 0 of 0 function(s)
+KLOG [    7.280302][    T1] openbook_sleep_diag: s0i3-entry 3: 7 PCI functions, 7 not in D3, 0 with PTM on
+KLOG [   11.206733][    T1] openbook_sleep_diag: s0i3-exit 3: the s2idle loop checked for a wakeup 1 time(s)
+KLOG [   65.588988][   T10] openbook_sleep_diag: load+60s: no USB4 host router
+== unloaded active
+== done

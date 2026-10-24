@@ -1,0 +1,30 @@
+{
+ "schema": "openbook-sleep-diag-vm/1",
+ "kernel": "6.18.21-android17-5-gfbfdd65b0fd1",
+ "passed": true,
+ "checks": {
+  "inert_without_parameters": true,
+  "unloads_inert": true,
+  "active_with_parameters": true,
+  "params_read_only_visible": true,
+  "ptm_listed_at_load": true,
+  "usb4_at_load_and_60s": true,
+  "lps0_hook_registered": true,
+  "three_s2idle_cycles_resumed": true,
+  "summary_every_s0i3_entry": true,
+  "full_snapshot_first_two_entries_only": true,
+  "root_port_and_endpoint_in_snapshot": true,
+  "ptm_path_every_suspend_verbose_first_two": true,
+  "usb4_report_first_two_suspends": true,
+  "s3_cycle_resumed": true,
+  "unloads_active": true,
+  "no_kernel_warnings": true,
+  "finished": true
+ },
+ "s0i3_entries_logged": [
+  1,
+  2,
+  3
+ ],
+ "module_log_lines": 50
+}

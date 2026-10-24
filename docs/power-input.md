@@ -23,6 +23,12 @@ How OpenBook handles suspend, CPU power, battery, lid, keyboard and touchpad on 
 - **Our kernel (runs 2–7, ANAL-189).** Every s2idle cycle completes, but the SMU reports "Last S0i3 Status: Unknown/Fail" with the OS hint received (Hint Count 0→1) and 0 µs to and in S0i3. The amd_pmc idle mask at S0i3 entry is `0xffef9afd` in runs 5, 6 and 7. Taken away one by one without effect: the driverless dGPU (bridge in D3cold, runs 4–7) and the unused `\_SB.PCI0.GPP0.SWUS` (run 7: every LPI constraint met).
 - **Linux 7.2.8 on the same laptop (C, indirect).** The owner's root inventory boot (2026-10-16) has 4 s2idle cycles, up to 15.4 h long, and **no** "Last suspend didn't reach deepest state" line (`s0i3-analysis/linux72-suspend-cycles.txt`). amd_pmc prints that line after every cycle that misses S0i3, in 6.18 and in 7.2.8 alike (`amd_pmc_validate_deepest()`). So this BIOS (GA403WR.309) can reach S0i3, and the difference is on our side. A direct Linux measurement is step A in §1.5.
 
+> **Correction (ANAL-257, 2026-10-24):** in that Linux 7.2.8 boot the dGPU had **no driver** during the sleeps
+> (supergfxctl `Integrated`; NVIDIA unloaded at 216 s, before the 15.4 h sleep at 5,539 s; pciehp re-enumerated the
+> dGPU after every resume). And PTM is not a difference: since v7.1 Linux no longer enables PTM by itself and only
+> turns off at suspend what a driver enabled, so both kernels leave the firmware's PTM settings alone.
+> `docs/googlebook-s0i3.md` has the current analysis and ranking.
+
 ### 1.2 Checked from the desk (no hardware), all the same on both kernels
 1. **amd_pmc.** The 6.18 → 7.2.8 diff (`amd_pmc-s2idle-6.18-vs-7.2.8.diff.gz`) is a refactor for this CPU (root complex `1022:1507`): same SMU message register (`0x938`), scratch register, OS hint and IP table. 7.2 adds a suspend delay for some Lenovo models only. (C)
 2. **LPS0.** The G14's `\_SB.PEP` (`AMDI000A`, SSDT "UPEP") answers the AMD UUID with functions 0–1 only (the constraint list) and the Microsoft UUID with mask `0x1F9`. Screen off sends EC command `0x97`, LPS0 entry does nothing, exit re-plugs the card reader. Our kernel makes these three calls (run 5 log), and 7.2.8's `drivers/acpi/x86/s2idle.c` makes the same ones. (C)
