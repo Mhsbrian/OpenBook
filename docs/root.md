@@ -9,15 +9,63 @@ Labels, as elsewhere in `docs/`:
 - **REPORTED** — upstream project docs, press, or user reports.
 - **HYPOTHESIS** — our reasoning, not yet tested on hardware or in QEMU.
 
-Nothing in this document has been run on the G14 or in QEMU yet. §8 and §9 are the
-plans to do exactly that; their acceptance criteria gate the recommendation. This is
+Nothing in this document has been run on the G14 or in QEMU yet. §9 and §10 are the
+plans to do exactly that; their acceptance criteria gate the recommendation. The tools exist on the
+build host (adb in `~/Android/Sdk/platform-tools`, QEMU through the project's Docker images); an earlier
+revision wrongly said they were missing. This is
 **build-time integration on the owner's own, privately built, never-published device**
 (B Honey, ANAL-187, 2026-10-24), not an exploit of someone else's security. If the repo
 or any image is ever published, this must be revisited (§11).
 
 ---
 
-## 1. Recommendation (summary)
+## 0. After approval (2026-10-24): two facts in §1 were wrong
+
+B Honey approved §1 on 2026-10-24. Checking KernelSU's upstream sources before building showed that two of
+its claims are wrong. The lab-helper floor is unaffected. The KernelSU tier is **on hold** until the owner
+chooses (§0.3).
+
+### 0.1 LKM mode loads from the boot ramdisk, not from our vendor module service (CONFIRMED)
+KernelSU's LKM mode patches the ramdisk (`init_boot`, or `boot` on older devices) so that its own
+`ksuinit` runs first and loads `kernelsu.ko`. It is not a module that `vendor.openbook.dlkm` loads later
+(kernelsu.org/guide/installation.html; tiann/KernelSU PR #3570). Upstream v3.3.1 (2026-10-12) ships
+`lkm-x86_64-android17-6.18_kernelsu.ko`, `ksuinit-x86_64` and `ksud-x86_64-linux-android` for our KMI.
+Upstream lists AVD results for other KMIs only, so it is **not reported as tested on android17-6.18**.
+So the release impact is the **boot ramdisk plus the manager app**, not vendor only. "Byte-identical GKI"
+also no longer holds once ANAL-239's rebuilt kernel ships. The accurate claim is that KernelSU adds **no
+further** kernel source change.
+
+### 0.2 On x86_64 with our kernel, KernelSU needs a weakened kernel hardening (CONFIRMED, upstream)
+Newer x86_64 kernels harden the syscall dispatcher: torvalds/linux `1e3ad78334a6`, 2024, in 6.9 and
+backported to GKI. Ours has it. KernelSU's x86_64 support page says it then works only with one of two
+measures:
+- kernel source patches plus `syscall_hardening=off`, or
+- the `KSU_X86_PATCH_SYSCALL_DISPATCHER` option, which `kernel/build-all-x64.sh` turns on for every
+  upstream x86_64 LKM.
+
+Upstream states that both mean "bypassing or weakening a mitigation designed to protect against
+speculative execution vulnerabilities". It advises against them where side-channel security matters and
+calls them intended for testing environments (kernelsu.org/guide/x86_64-support.html, tiann/KernelSU
+`kernel/Kconfig`). The kernel-integrated fallback in §1 costs the same. So **no KernelSU variant comes
+without a security cost on this laptop**. §1 did not say so, and the approval was given without that
+information.
+
+### 0.3 What this means now
+- **Proceeding (unaffected):** the lab helper (option 3) stays the root path for the agent and all bring-up
+  work (ANAL-238, 239, 257). It weakens nothing and covers every operation those issues need.
+- **On hold:** building KernelSU for the laptop. A QEMU trial is still possible, because upstream allows
+  test environments, but it would not change the cost on the daily driver.
+- **The owner's choice for interactive per-app root:**
+  1. *Recommended:* defer it. The lab helper meets the development need that prompted this issue. Revisit
+     if a concrete app or task needs interactive root.
+  2. Accept KernelSU's cost on the laptop knowingly, with QEMU first and the usual release approvals.
+  3. Evaluate Magisk instead. It is a userspace `su` daemon with a ramdisk `magiskinit` and a runtime
+     sepolicy patch, and it does not patch kernel code (REPORTED). Its x86_64 / Android 17 status is
+     unchecked, and its SELinux footprint (§5) still applies.
+
+---
+
+## 1. Recommendation (summary) — as approved; see §0 for corrections
 
 A **two-tier** root path, because the agent's needs and the owner's needs are different and
 the smallest mechanism that satisfies each is not the same one:
@@ -123,8 +171,9 @@ is no `su`/`/sbin` path for a file scan to find.
 - **LKM (loadable kernel module) — preferred here.** KernelSU is compiled as a `.ko`, signed with our
   build key, shipped in `vendor_dlkm`, and loaded early (we already run `vendor.openbook.dlkm` /
   `modprobe` at boot, `init.openbook.rc`). It uses kprobe-based hooks rather than compiled-in hooks.
-  - *Fit with our build:* excellent — the GKI kernel stays byte-identical (no source patch, no KMI
-    change), and loading one more signed module is exactly our existing pattern.
+  - *Fit with our build:* no kernel source patch and no KMI change. But see §0: the module is loaded by
+    `ksuinit` from a patched ramdisk, not by our vendor module service, and on x86_64 it needs the
+    weakened dispatcher hardening.
   - *Prerequisites:* `KPROBES`, `KALLSYMS_ALL`, `MODULES`, signing by our key — all CONFIRMED present
     (§3).
   - *Risk:* whether stock GKI 6.18's hook points are *sufficient* for a reliable KSU LKM (vs. a
@@ -228,8 +277,7 @@ agent path stays the `setprop debug.openbook.*` lab helper and needs no UI.
 ## 9. Baseline measurement (task 2) — PLAN, not yet run
 
 **Required before any root is added, to separate pre-existing unlocked-state effects from anything root
-adds.** adb and QEMU are **not available in this build runtime**, so this has not been executed; these are
-the exact steps and acceptance criteria for the next adb session (after the §Rules pre-checks: no release
+adds.** Not yet executed. These are the exact steps and acceptance criteria for the next adb session (after the §Rules pre-checks: no release
 op on the laptop, nobody else on adb, owner warned).
 
 Over wireless adb to `192.168.50.11` on the current `user` Ruby (read-only, no image write):
@@ -269,13 +317,15 @@ Acceptance (the §1 gate): all four bullets pass in QEMU on the Ruby image befor
 ## 11. Release impact and hand-off (task 5)
 
 **Release impact: Ruby.**
-- LKM path: **vendor only** — a new signed `vendor_dlkm` module + sepolicy additions + the owner control
-  app/wrapper. The GKI kernel stays byte-identical (no kernel track change).
+- LKM path: **boot ramdisk + the manager app** (corrected, §0.1). No kernel source change, but on x86_64
+  the module patches the kernel's syscall dispatcher at runtime (§0.2). On hold pending the owner's choice.
+- Lab-helper floor only (the current recommendation, §0.3): **none from this issue**. It ships with
+  ANAL-238/257.
 - Integrated fallback: **kernel + vendor** — a tracked KMI deviation (nouveau precedent) plus the vendor
   pieces.
 
-Per ANAL-257's owner direction, **fold this into the combined ANAL-238/239/257 lab-helper vendor update**
-if timing allows, so the laptop takes a single update. Hand off with the usual approvals (ANAL-232): B Honey
+**Do not hold the combined ANAL-238/239/257 lab-helper vendor update for this issue** (§0.3). If the owner
+later chooses an interactive-root option, it goes in its own Ruby release or the next combined one. Hand off with the usual approvals (ANAL-232): B Honey
 approves the specific plan before build/test; a separate approval names the final image, operation and exact
 device before any physical write; adb stays authorised; SELinux stays enforcing. The intake watch on the hub
 (ANAL-232) is registered only when a prototype produces an image-affecting hand-off ready for review — not for
