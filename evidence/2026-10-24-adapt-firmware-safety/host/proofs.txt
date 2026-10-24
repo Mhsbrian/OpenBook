@@ -1,0 +1,19 @@
+# host-proofs (private script, openbook-adapt b80879f2), 2026-10-24
+reconstruct ok
+fixed-point adapt: exit 0 in 28 s
+fixed point system: identical
+fixed point vbmeta: identical
+  safety in the adaptation: PASS 0 findings; neutralised {'/system/etc/init/gscutil-executor.rc': 'neutralised', '/system/etc/init/gscutil.rc': 'neutralised'}
+python on the final images: exit 0
+go on the final images: exit 0
+  identical findings True (0), inventory differs in nothing, passed True/True
+RB-20261023-03 layer: exit 8 (held: firmware safety: this release carries no firmware-safety rules (/system/etc/openbook/firmware-safety.json), so nothing it adapts is ch)
+RB-20261023-03 layer, rules given: exit 8 (held: firmware safety: not-neutralised /system/etc/init/gscutil.rc (still Google's original: it runs on this image) and 1 more)
+  no output left by either hold
+payload: exit 0, postinstall none
+python payload check: exit 0 (firmware safety (payload): PASS, 0 finding(s))
+payload signature verified (delta_generator)
+ota_extractor over RB-20261023-03: all 10 partitions equal the test release
+Google 16452207 under the rules: exit 8
+FINDING not-neutralised: /system/etc/init/gscutil.rc: still Google's original: it runs on this image
+FINDING not-neutralised: /system/etc/init/gscutil-executor.rc: still Google's original: it runs on this image

@@ -1,0 +1,48 @@
+# go test -v at 409def7 (go1.27.2, clean cache); then the compressed-file test with OPENBOOK_TEST_FSCK=fsck.erofs (AOSP host build, no --path: the whole image extracted once)
+=== RUN   TestPythonCompatibleEncodings
+--- PASS: TestPythonCompatibleEncodings (0.00s)
+=== RUN   TestMerge3
+--- PASS: TestMerge3 (0.00s)
+=== RUN   TestReinsert
+--- PASS: TestReinsert (0.00s)
+=== RUN   TestSubDomain
+--- PASS: TestSubDomain (0.00s)
+=== RUN   TestAppDomainStatements
+--- PASS: TestAppDomainStatements (0.00s)
+=== RUN   TestHashTree
+--- PASS: TestHashTree (0.13s)
+=== RUN   TestFooterAndVBMeta
+--- PASS: TestFooterAndVBMeta (0.69s)
+=== RUN   TestDescriptorOrderAndDedup
+--- PASS: TestDescriptorOrderAndDedup (0.90s)
+=== RUN   TestParseGPTAndLP
+--- PASS: TestParseGPTAndLP (0.00s)
+=== RUN   TestPlanDeltaHolds
+--- PASS: TestPlanDeltaHolds (0.00s)
+=== RUN   TestEditedKeysOnce
+--- PASS: TestEditedKeysOnce (0.00s)
+=== RUN   TestLayerFileRowsLinkCounts
+--- PASS: TestLayerFileRowsLinkCounts (0.00s)
+=== RUN   TestRCHitsMatchPython
+--- PASS: TestRCHitsMatchPython (0.00s)
+=== RUN   TestSafetyPolicyRefusals
+--- PASS: TestSafetyPolicyRefusals (0.00s)
+=== RUN   TestMalformedContentIsRefused
+--- PASS: TestMalformedContentIsRefused (0.00s)
+=== RUN   TestPayloadReaders
+--- PASS: TestPayloadReaders (0.01s)
+=== RUN   TestCheckTree
+--- PASS: TestCheckTree (0.01s)
+=== RUN   TestCompressedNeedsFsck
+    safety_test.go:459: set OPENBOOK_TEST_FSCK to fsck.erofs to read the compressed script
+--- SKIP: TestCompressedNeedsFsck (0.00s)
+=== RUN   TestAdaptedReleaseSafety
+--- PASS: TestAdaptedReleaseSafety (0.00s)
+=== RUN   TestPayloadHasNoPostinstall
+--- PASS: TestPayloadHasNoPostinstall (0.00s)
+PASS
+ok  	openbook/adapt	1.780s
+=== RUN   TestCompressedNeedsFsck
+--- PASS: TestCompressedNeedsFsck (0.01s)
+PASS
+ok  	openbook/adapt	0.018s

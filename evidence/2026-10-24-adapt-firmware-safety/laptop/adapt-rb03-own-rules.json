@@ -1,0 +1,27 @@
+{
+  "schema": "openbook-adapt/1",
+  "complete": false,
+  "old_google_build": "16658739",
+  "new_google_fingerprint": "Android/desktop_system/desktop:17/CL3B.260622.276.R4/16658739:user/release-keys",
+  "build_properties": null,
+  "system_delta": {
+    "added": 33,
+    "changed": 56,
+    "removed": 370
+  },
+  "merged": [
+    "/system/build.prop",
+    "/system/etc/selinux/plat_mac_permissions.xml",
+    "/system/etc/selinux/plat_seapp_contexts",
+    "/system/etc/selinux/plat_sepolicy.cil",
+    "/system/etc/selinux/plat_sepolicy_and_mapping.sha256"
+  ],
+  "policy_compiled": false,
+  "partitions_sha256": {},
+  "unchanged_partitions_sha256": null,
+  "vbmeta_key_sha256": "",
+  "metadata_rows": 0,
+  "new_layer_sha256": "",
+  "installable": false,
+  "note": ""
+}

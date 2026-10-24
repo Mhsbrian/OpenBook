@@ -1,0 +1,19 @@
+# build-update-app-candidate-test.py at 409def7
+test_adapter_additions_are_pinned_and_ship_only_the_aosp_test_key (__main__.Checks.test_adapter_additions_are_pinned_and_ship_only_the_aosp_test_key) ... ok
+test_app_context_line_is_exact (__main__.Checks.test_app_context_line_is_exact) ... ok
+test_app_domain_statements_are_those_googles_app_domains_share (__main__.Checks.test_app_domain_statements_are_those_googles_app_domains_share) ... ok
+test_app_domain_statements_on_the_real_policy (__main__.Checks.test_app_domain_statements_on_the_real_policy) ... skipped 'no extracted Ruby policy on this host'
+test_committed_sources_match_their_pins (__main__.Checks.test_committed_sources_match_their_pins) ... ok
+test_only_a_clean_reproducible_pin_is_deployable (__main__.Checks.test_only_a_clean_reproducible_pin_is_deployable) ... ok
+test_permission_levels (__main__.Checks.test_permission_levels) ... ok
+test_requested_permissions_include_sdk23_requests (__main__.Checks.test_requested_permissions_include_sdk23_requests) ... ok
+test_signer_insertion (__main__.Checks.test_signer_insertion) ... ok
+test_signers_are_read_from_v2_and_v3 (__main__.Checks.test_signers_are_read_from_v2_and_v3) ... ok
+test_strict_parsing_of_certificate_and_context (__main__.Checks.test_strict_parsing_of_certificate_and_context) ... ok
+test_tampered_config_is_refused (__main__.Checks.test_tampered_config_is_refused) ... ok
+test_the_laptops_check_rejects_a_candidate (__main__.Checks.test_the_laptops_check_rejects_a_candidate) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.016s
+
+OK (skipped=1)

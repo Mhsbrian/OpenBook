@@ -1,0 +1,137 @@
+{
+  "schema": "openbook-adapt/1",
+  "complete": true,
+  "old_google_build": "16658739",
+  "new_google_fingerprint": "Android/desktop_system/desktop:17/CL3B.260622.276.R4/16658739:user/release-keys",
+  "build_properties": {
+    "ro.build.date.utc": "1792468334",
+    "ro.build.id": "CL3B.260622.276.R4",
+    "ro.build.version.incremental": "16658739",
+    "ro.build.version.security_patch": "2026-10-01",
+    "ro.dalvik.vm.native.bridge": "libberberis_arm64.so",
+    "ro.system.build.fingerprint": "Android/desktop_system/desktop:17/CL3B.260622.276.R4/16658739:user/release-keys"
+  },
+  "system_delta": {
+    "added": 38,
+    "changed": 59,
+    "removed": 370
+  },
+  "merged": [
+    "/system/build.prop",
+    "/system/etc/selinux/plat_mac_permissions.xml",
+    "/system/etc/selinux/plat_seapp_contexts",
+    "/system/etc/selinux/plat_sepolicy.cil",
+    "/system/etc/selinux/plat_sepolicy_and_mapping.sha256"
+  ],
+  "policy_compiled": false,
+  "partitions_sha256": {
+    "product": "ddf9d7105c4424c727ed53176d89b5a9895d3f59e2699ab5854bb3d1641211c1",
+    "system": "6f2abd2dc2e5ec6a6c08c9bc0776ea0977a9fae4a0a284308f52f6481f8fa392",
+    "system_ext": "dc3f228d2479ae3d979564bd7a02956399300187a67ac19519223911b7108b34",
+    "vbmeta": "4cfa2acccd515a58d424071e03c46d4d42e01585958c17fc91426a237e399d4d"
+  },
+  "unchanged_partitions_sha256": {
+    "boot": "f6fc1a5892cba10d24ba3c250f5abe4115ba0f7c0556a653995b41373bfbcec8",
+    "init_boot": "0237a3399e093acabf63a0b036ac43b7e1b06a59dc7b665d852c0c6ec28e2dae",
+    "system_dlkm": "34185c35cb8bbccd5dfd0bb74eecb8a21e2445730411ef1583e1245628e0d617",
+    "vendor": "e072350a7df2f59aaa14cc2095a94bd4661de2dccbca1422e38abd80554332d4",
+    "vendor_boot": "b8dc14803c8a07b0ec675d9cc9d2baf7b16c8acfd1a90c63782fa7e0d95bda80",
+    "vendor_dlkm": "c22672e2333f1d97833688d2554dee6e06515c425ae1674aa3e2a6b4099c5fba"
+  },
+  "vbmeta_key_sha256": "7728e30f50bfa5cea165f473175a08803f6a8346642b5aa10913e9d9e6defef6",
+  "metadata_rows": 6632,
+  "new_layer_sha256": "e9fba30b5247db20f0f1f338b938aad524212354a706b9eaeac57e357c1027dc",
+  "firmware_safety": {
+    "schema": "openbook-firmware-safety-result/1",
+    "mode": "adapt",
+    "passed": true,
+    "policy_sha256": "2b806321a068168ed052244d078b5f4ed24d1b218eecbbd6f6f8ebe5af9c7da7",
+    "findings": [],
+    "inventory": {
+      "neutralised": {
+        "/system/etc/init/gscutil-executor.rc": "neutralised",
+        "/system/etc/init/gscutil.rc": "neutralised"
+      },
+      "reviewed_rc": {
+        "/system/etc/init/check_tpm_clear.rc": "allowed",
+        "/system/etc/init/ec_crash_collector.rc": "inert",
+        "/system/etc/init/gscd.rc": "allowed",
+        "/system/etc/init/timberslide.rc": "inert",
+        "/system/etc/init/udsattestation.rc": "allowed"
+      },
+      "absent_reviewed_rc": [],
+      "rc_matches": {
+        "/system/etc/init/check_tpm_clear.rc": {
+          "sha256": "844e7dee248254f44324e3b2f6aacdf083bbf3a1607a3a5ea58de753c60e1796",
+          "matches": [
+            "tpm"
+          ]
+        },
+        "/system/etc/init/ec_crash_collector.rc": {
+          "sha256": "3127fe59d1bf298473d1db63f7ac17e09b6438f01a00b67a98ac2bf4af098f65",
+          "matches": [
+            "cros_ec"
+          ]
+        },
+        "/system/etc/init/gscd.rc": {
+          "sha256": "91051806f95aa24deaa404670612a39f6fde6a9179c5695d6defa8c4deea3c08",
+          "matches": [
+            "gsc",
+            "hsm"
+          ]
+        },
+        "/system/etc/init/gscutil-executor.rc": {
+          "sha256": "5105310de9674fb53ede1e77d60f7d021e6de870a84ac97a389da2d57f8cab0e",
+          "matches": []
+        },
+        "/system/etc/init/gscutil.rc": {
+          "sha256": "61149fa16b80229cc7a3df2cd8f197f8160a9f6e252bbae8df49b8fc100c96b4",
+          "matches": [
+            "gsc",
+            "hsm"
+          ]
+        },
+        "/system/etc/init/timberslide.rc": {
+          "sha256": "37f8e4fe4b90515a59d3be320c2154e5ce9e226425e93b031e22de4fe00abf64",
+          "matches": [
+            "cros_ec"
+          ]
+        },
+        "/system/etc/init/udsattestation.rc": {
+          "sha256": "0f50867e71646e0cc5dba3aa90b1610fcc1c2d5549eefb705881e9ebdd8d806d",
+          "matches": [
+            "hsm"
+          ]
+        }
+      },
+      "binaries": [
+        "/system/bin/check_tpm_clear",
+        "/system/bin/com.google.android.system.desktop.gscutil-executor",
+        "/system/bin/ectool",
+        "/system/bin/google_desktop_firmware_updater",
+        "/system/bin/gscd",
+        "/system/bin/gsctool",
+        "/system/bin/gscutil",
+        "/system/bin/timberslide",
+        "/system/bin/trunks_send",
+        "/system/bin/updater-wrapper-system",
+        "/system_ext/bin/fwupd_splash"
+      ],
+      "partitions": [
+        "product",
+        "system",
+        "system_ext"
+      ],
+      "apex_rc_files": 16,
+      "init_files_beyond_host_check": [
+        "/apex/com.google.android.media.swcodec/etc/mediaswcodec.32rc",
+        "/apex/com.google.android.media/etc/mediatranscoding.32rc",
+        "/apex/com.google.android.tethering/etc/netbpfload.33rc",
+        "/apex/com.google.android.tethering/etc/netbpfload.35rc",
+        "/apex/com.google.android.tethering/etc/ot-daemon.34rc"
+      ]
+    }
+  },
+  "installable": false,
+  "note": "Adapted on this machine; installing it is a later stage (payload, signature, owner approval)."
+}

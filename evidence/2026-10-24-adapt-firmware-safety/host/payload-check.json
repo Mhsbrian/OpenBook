@@ -1,0 +1,24 @@
+{
+  "schema": "openbook-firmware-safety-result/1",
+  "mode": "payload",
+  "passed": true,
+  "policy_sha256": "2b806321a068168ed052244d078b5f4ed24d1b218eecbbd6f6f8ebe5af9c7da7",
+  "payload": "payload.bin (openbook-adapt payload: the test release over RB-20261023-03)",
+  "payload_sha256": "71e0b3ab16215ab0a9f4f71291cebb265fb696db22d7d12612390850a1e2e735",
+  "findings": [],
+  "inventory": {
+    "partitions": [
+      "system",
+      "system_ext",
+      "product",
+      "vendor",
+      "vendor_dlkm",
+      "system_dlkm",
+      "boot",
+      "init_boot",
+      "vendor_boot",
+      "vbmeta"
+    ],
+    "postinstall": []
+  }
+}

@@ -1,0 +1,12 @@
+{
+ "complete": false,
+ "delta": {
+  "added": 33,
+  "changed": 56,
+  "removed": 370
+ },
+ "note": "",
+ "partitions": {},
+ "props": null
+}
+openbook-adapt: held: firmware safety: not-neutralised /system/etc/init/gscutil.rc (still Google's original: it runs on this image) and 1 more

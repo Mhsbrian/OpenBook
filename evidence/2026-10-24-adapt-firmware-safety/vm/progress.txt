@@ -1,0 +1,4 @@
+2026-10-24T13:06:51Z free 853 GiB (budget 60 GiB plus the 40 GiB reserve)
+2026-10-24T13:09:37Z harness disk and release images ready
+2026-10-24T13:10:12Z payload 7a69286d5b0657e15df69c6e1e9d80a255fafd1795a2eba4dcf2cf359ab52216 (1030953563 bytes), signature verified
+2026-10-24T13:52:32Z suite: {  "apply": {    "passed": true,    "failed": []  },  "boot": {    "passed": true,    "failed": []  },  "verify": {    "passed": true,    "failed": []  },  "fallback": {    "passed": true,    "failed": []  },  "passed": true}

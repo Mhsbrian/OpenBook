@@ -1,0 +1,17 @@
+2026-10-24T13:09:18Z laptop: Lenovo/ruby/ruby:17/CL3B.260622.276.R4/16658739:user/release-keys slot _a
+2026-10-24T13:09:18Z laptop /data free: 886 GiB (needs about 30 GiB plus the engine's 20 GiB reserve)
+2026-10-24T13:09:22Z Google's partitions from the host (reconstructed there): c3fac5488aa2…
+2026-10-24T13:13:17Z pushed in 235 s
+2026-10-24T13:13:17Z adapt test-release (embed layer: 1; OpenBook's files from /data/local/tmp/openbook-adapt-test/ours-test-release)
+2026-10-24T13:13:49Z adapt test-release: exit 0 in 32 s
+2026-10-24T13:13:51Z   system 6f2abd2dc2e5ec6a6c08c9bc0776ea0977a9fae4a0a284308f52f6481f8fa392 IDENTICAL to the expected
+2026-10-24T13:13:51Z   vbmeta 4cfa2acccd515a58d424071e03c46d4d42e01585958c17fc91426a237e399d4d IDENTICAL to the expected
+2026-10-24T13:13:57Z payload test-release: exit 0 in 6 s
+2026-10-24T13:13:58Z adapt rb03-own-rules (embed layer: 0; OpenBook's files from /)
+2026-10-24T13:14:03Z adapt rb03-own-rules: exit 8 in 5 s
+2026-10-24T13:14:03Z   HELD as required: held: firmware safety: this release carries no firmware-safety rules (/system/etc/openbook/firmware-safety.json), so nothing it adapts is checked
+2026-10-24T13:14:04Z adapt rb03-repo-rules (embed layer: 0; OpenBook's files from /; rules given)
+2026-10-24T13:14:09Z adapt rb03-repo-rules: exit 8 in 5 s
+2026-10-24T13:14:09Z   HELD as required: held: firmware safety: not-neutralised /system/etc/init/gscutil.rc (still Google's original: it runs on this image) and 1 more
+2026-10-24T13:14:09Z result: PASS (3 cases)
+2026-10-24T13:14:09Z removed /data/local/tmp/openbook-adapt-test on the laptop
