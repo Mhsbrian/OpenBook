@@ -1,0 +1,2 @@
+apply 2026-10-24T00:36:34Z -> 2026-10-24T00:37:25Z
+reboot 2026-10-24T00:48:23Z, boot completed and adb back 2026-10-24T00:49:14Z

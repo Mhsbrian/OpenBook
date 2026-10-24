@@ -1,0 +1,13 @@
+## host_init_verifier, RB-20261023-03 as released (system, system_ext, product, vendor; image passwd files)
+host_init_verifier: ~/anybook/work/anal251/rb03-extract/system/system/etc/init/aoad.rc: 3: Unable to find UID for 'aoad': getpwnam failed: No such file or directory
+host_init_verifier: ~/anybook/work/anal251/rb03-extract/system/system/etc/init/aoad.rc: 4: Unable to decode GID for 'aoad': getpwnam failed: No such file or directory
+host_init_verifier: ~/anybook/work/anal251/rb03-extract/system/system/etc/init/aoad.rc: 1: No user specified for service 'aoad', so it would have been root.
+host_init_verifier: Failed to parse init scripts with 3 error(s).
+
+## host_init_verifier, the same with the ANAL-251 change (vm-check candidate ea5af037…)
+host_init_verifier: ~/anybook/installer/work/anal251-safety-vm/candidate/rebuilt/system/etc/init/aoad.rc: 3: Unable to find UID for 'aoad': getpwnam failed: No such file or directory
+host_init_verifier: ~/anybook/installer/work/anal251-safety-vm/candidate/rebuilt/system/etc/init/aoad.rc: 4: Unable to decode GID for 'aoad': getpwnam failed: No such file or directory
+host_init_verifier: ~/anybook/installer/work/anal251-safety-vm/candidate/rebuilt/system/etc/init/aoad.rc: 1: No user specified for service 'aoad', so it would have been root.
+host_init_verifier: Failed to parse init scripts with 3 error(s).
+
+Same three errors, all in Google's aoad.rc (a user ID newer than the host tool's table); none new.

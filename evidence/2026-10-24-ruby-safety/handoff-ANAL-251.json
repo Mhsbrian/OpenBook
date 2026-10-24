@@ -1,0 +1,108 @@
+{
+  "schema": "anybook-handoff/1",
+  "source_issue": "ANAL-251",
+  "commit": "161a50d78a64451e80b0cd669248b80169c3c530",
+  "track": "ruby-g14",
+  "note": "Release impact: Ruby, system only (two init scripts change size; vbmeta follows). No boot, layout, data or installer-pin change. The VM run used the --vm-check variant (adds a disposable report); the deployable candidate is the release's to build.",
+  "checks": [
+    {
+      "id": "checker-unit",
+      "kind": "unit",
+      "scope": "component",
+      "passed": true,
+      "summary": "15/15, including real delta_generator payloads with and without a postinstall step",
+      "evidence": "evidence/2026-10-24-ruby-safety/tests/check-firmware-safety-test.txt",
+      "inputs": {
+        "safety_checker": "37ec72b89fd10c5b038d1db9ee3a40f62bc778ff956705b60315d7ab30eccae8",
+        "safety_rules": "2b806321a068168ed052244d078b5f4ed24d1b218eecbbd6f6f8ebe5af9c7da7",
+        "safety_gscutil_rc": "61149fa16b80229cc7a3df2cd8f197f8160a9f6e252bbae8df49b8fc100c96b4",
+        "safety_gscutil_executor_rc": "5105310de9674fb53ede1e77d60f7d021e6de870a84ac97a389da2d57f8cab0e"
+      }
+    },
+    {
+      "id": "builder-unit",
+      "kind": "unit",
+      "scope": "component",
+      "passed": true,
+      "summary": "8/8: fail-closed replacement choices; host_init_verifier on each new init script",
+      "evidence": "evidence/2026-10-24-ruby-safety/tests/build-safety-candidate-test.txt",
+      "inputs": {
+        "candidate_builder": "2a68a3e81c3dbfb280a9d32004de1ecd7715f5eaf3a944dd261000afd23d9b77",
+        "safety_rules": "2b806321a068168ed052244d078b5f4ed24d1b218eecbbd6f6f8ebe5af9c7da7",
+        "safety_gscutil_rc": "61149fa16b80229cc7a3df2cd8f197f8160a9f6e252bbae8df49b8fc100c96b4",
+        "safety_gscutil_executor_rc": "5105310de9674fb53ede1e77d60f7d021e6de870a84ac97a389da2d57f8cab0e"
+      }
+    },
+    {
+      "id": "judge-unit",
+      "kind": "unit",
+      "scope": "component",
+      "passed": true,
+      "summary": "6/6",
+      "evidence": "evidence/2026-10-24-ruby-safety/tests/safety-vm-judge-test.txt",
+      "inputs": {
+        "safety_vm_judge": "4611e52f219fe1b53713c1a87200311738e504e26c961e724dfa1375a80635e6"
+      }
+    },
+    {
+      "id": "parent-audit",
+      "kind": "other",
+      "scope": "component",
+      "passed": true,
+      "summary": "RB-20261023-03 as released: exactly the two Google files flagged; every other trigger reviewed",
+      "evidence": "evidence/2026-10-24-ruby-safety/audit-rb-20261023-03.json",
+      "inputs": {
+        "parent_staged_candidate": "71da0228488781fa7db6bbb2b07b8559024023b606ae54cd868f780954b9cc24",
+        "safety_checker": "37ec72b89fd10c5b038d1db9ee3a40f62bc778ff956705b60315d7ab30eccae8",
+        "safety_rules": "2b806321a068168ed052244d078b5f4ed24d1b218eecbbd6f6f8ebe5af9c7da7",
+        "safety_gscutil_rc": "61149fa16b80229cc7a3df2cd8f197f8160a9f6e252bbae8df49b8fc100c96b4",
+        "safety_gscutil_executor_rc": "5105310de9674fb53ede1e77d60f7d021e6de870a84ac97a389da2d57f8cab0e"
+      }
+    },
+    {
+      "id": "laptop-payload-no-postinstall",
+      "kind": "other",
+      "scope": "component",
+      "passed": true,
+      "summary": "the payload the G14 took has no postinstall step (10 partitions)",
+      "evidence": "evidence/2026-10-24-ruby-safety/payload-rb-20261023-03-laptop.json",
+      "inputs": {
+        "payload": "3c3b3b38b3a889149df198cf020d8086ece4b0049f16f439545bde70eef1b354",
+        "safety_checker": "37ec72b89fd10c5b038d1db9ee3a40f62bc778ff956705b60315d7ab30eccae8",
+        "safety_rules": "2b806321a068168ed052244d078b5f4ed24d1b218eecbbd6f6f8ebe5af9c7da7"
+      }
+    },
+    {
+      "id": "init-verifier",
+      "kind": "other",
+      "scope": "image",
+      "passed": true,
+      "summary": "host_init_verifier over system, system_ext, product, vendor: the same 3 Google aoad.rc errors before and after, none new",
+      "evidence": "evidence/2026-10-24-ruby-safety/tests/host-init-verifier.txt",
+      "inputs": {
+        "parent_staged_candidate": "71da0228488781fa7db6bbb2b07b8559024023b606ae54cd868f780954b9cc24",
+        "candidate_builder": "2a68a3e81c3dbfb280a9d32004de1ecd7715f5eaf3a944dd261000afd23d9b77",
+        "safety_rules": "2b806321a068168ed052244d078b5f4ed24d1b218eecbbd6f6f8ebe5af9c7da7",
+        "safety_gscutil_rc": "61149fa16b80229cc7a3df2cd8f197f8160a9f6e252bbae8df49b8fc100c96b4",
+        "safety_gscutil_executor_rc": "5105310de9674fb53ede1e77d60f7d021e6de870a84ac97a389da2d57f8cab0e",
+        "safety_checker": "37ec72b89fd10c5b038d1db9ee3a40f62bc778ff956705b60315d7ab30eccae8"
+      }
+    },
+    {
+      "id": "ruby-vm-fresh-boot",
+      "kind": "fresh-boot-vm",
+      "scope": "image",
+      "passed": true,
+      "summary": "19/19 against RB-20261023-03's own fresh boot: gscutil not started, no denials, executor undefined; gscd, TPM tools, keystore, Weaver, KeyMint, update_engine unchanged; candidate safety check PASS",
+      "evidence": "evidence/2026-10-24-ruby-safety/vm/judge.json",
+      "inputs": {
+        "parent_staged_candidate": "71da0228488781fa7db6bbb2b07b8559024023b606ae54cd868f780954b9cc24",
+        "candidate_builder": "2a68a3e81c3dbfb280a9d32004de1ecd7715f5eaf3a944dd261000afd23d9b77",
+        "safety_checker": "37ec72b89fd10c5b038d1db9ee3a40f62bc778ff956705b60315d7ab30eccae8",
+        "safety_rules": "2b806321a068168ed052244d078b5f4ed24d1b218eecbbd6f6f8ebe5af9c7da7",
+        "safety_gscutil_rc": "61149fa16b80229cc7a3df2cd8f197f8160a9f6e252bbae8df49b8fc100c96b4",
+        "safety_gscutil_executor_rc": "5105310de9674fb53ede1e77d60f7d021e6de870a84ac97a389da2d57f8cab0e"
+      }
+    }
+  ]
+}

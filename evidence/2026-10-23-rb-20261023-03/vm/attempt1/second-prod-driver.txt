@@ -1,0 +1,16 @@
+5591:[  119.414835][    T1] init: Command 'mount ext4 /dev/block/nvme0n1 /mnt/otapayload ro context=u:object_r:ota_package_file:s0' action=sys.boot_completed=1 (/system/etc/init/update_engine.rc:29) took 2ms and failed: mount() failed: Device or resource busy
+5621:[  119.474528][    T1] init: Command 'mount ext4 /dev/block/nvme1n1 /mnt/otapayload ro context=u:object_r:ota_package_file:s0' action=sys.boot_completed=1 (/system/etc/init/update_engine.rc:30) took 57ms and succeeded
+5638:[  119.525571][    T1] init: starting service 'openbook.ota-apply'...
+5649:[  119.552373][    T1] init: ... started service 'openbook.ota-apply' has pid 1890
+5679:[  119.695036][    T1] init: Service 'openbook.ota-apply' (pid 1890) exited with status 0 oneshot service took 0.165000 seconds in background
+5680:[  119.695718][    T1] init: Sending SIGKILL to service 'openbook.ota-apply' (pid 1890) process group...
+6140:/dev/block/nvme1n1 /mnt/otapayload ext4 ro,context=u:object_r:ota_package_file:s0,relatime 0 0
+7757:/dev/block/nvme1n1 /mnt/otapayload ext4 ro,context=u:object_r:ota_package_file:s0,relatime 0 0
+10116:/dev/block/nvme1n1 /mnt/otapayload ext4 ro,context=u:object_r:ota_package_file:s0,relatime 0 0
+11978:/dev/block/nvme1n1 /mnt/otapayload ext4 ro,context=u:object_r:ota_package_file:s0,relatime 0 0
+13860:/dev/block/nvme1n1 /mnt/otapayload ext4 ro,context=u:object_r:ota_package_file:s0,relatime 0 0
+15570:/dev/block/nvme1n1 /mnt/otapayload ext4 ro,context=u:object_r:ota_package_file:s0,relatime 0 0
+17290:/dev/block/nvme1n1 /mnt/otapayload ext4 ro,context=u:object_r:ota_package_file:s0,relatime 0 0
+18999:/dev/block/nvme1n1 /mnt/otapayload ext4 ro,context=u:object_r:ota_package_file:s0,relatime 0 0
+20710:/dev/block/nvme1n1 /mnt/otapayload ext4 ro,context=u:object_r:ota_package_file:s0,relatime 0 0
+22433:/dev/block/nvme1n1 /mnt/otapayload ext4 ro,context=u:object_r:ota_package_file:s0,relatime 0 0

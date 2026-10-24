@@ -1,0 +1,11 @@
+slot=_a
+vbmeta=14e3e6c631f65f396f1427572b2210a6705ce3078554d4d95b6d2219db5f2403
+fingerprint=Lenovo/ruby/ruby:17/CL3B.260622.276.R4/16658739:user/release-keys
+users=2
+packages=303
+packages_3p=35
+accounts_per_user=0,2
+settings_system=39
+settings_secure=179
+settings_global=206
+boot_completed=1

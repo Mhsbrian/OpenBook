@@ -1,0 +1,55 @@
+{
+  "schema": "openbook-ab-slot-verify/1",
+  "slot": "a",
+  "partitions": {
+    "system": {
+      "present": true,
+      "equal": true
+    },
+    "system_ext": {
+      "present": true,
+      "equal": true
+    },
+    "product": {
+      "present": true,
+      "equal": true
+    },
+    "vendor": {
+      "present": true,
+      "equal": true
+    },
+    "vendor_dlkm": {
+      "present": true,
+      "equal": true
+    },
+    "system_dlkm": {
+      "present": true,
+      "equal": true
+    },
+    "boot": {
+      "present": true,
+      "equal": true
+    },
+    "init_boot": {
+      "present": true,
+      "equal": true
+    },
+    "vendor_boot": {
+      "present": true,
+      "equal": true
+    },
+    "vbmeta": {
+      "present": true,
+      "equal": true
+    }
+  },
+  "cow_partitions_listed": [
+    "product_a-cow",
+    "system_a-cow",
+    "system_dlkm_a-cow",
+    "system_ext_a-cow",
+    "vendor_a-cow",
+    "vendor_dlkm_a-cow"
+  ],
+  "passed": true
+}

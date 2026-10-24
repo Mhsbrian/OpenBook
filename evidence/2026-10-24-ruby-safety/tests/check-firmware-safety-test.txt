@@ -1,0 +1,20 @@
+test_postinstall_found_or_absent (__main__.Payload.test_postinstall_found_or_absent) ... ok
+test_real_payloads_from_delta_generator (__main__.Payload.test_real_payloads_from_delta_generator) ... ok
+test_rejects_non_payload (__main__.Payload.test_rejects_non_payload) ... ok
+test_committed_rules_load_and_pins_hold (__main__.Rules.test_committed_rules_load_and_pins_hold) ... ok
+test_patterns_are_re2_compatible (__main__.Rules.test_patterns_are_re2_compatible) ... ok
+test_rc_hits_ignore_comments (__main__.Rules.test_rc_hits_ignore_comments) ... ok
+test_replacements_contain_no_trigger (__main__.Rules.test_replacements_contain_no_trigger) ... ok
+test_apex_rc_is_checked (__main__.Tree.test_apex_rc_is_checked) ... ok
+test_changed_or_missing_neutralised_path_fails (__main__.Tree.test_changed_or_missing_neutralised_path_fails) ... ok
+test_changed_reviewed_rc_fails (__main__.Tree.test_changed_reviewed_rc_fails) ... ok
+test_forbidden_name_anywhere_fails (__main__.Tree.test_forbidden_name_anywhere_fails) ... ok
+test_google_original_fails (__main__.Tree.test_google_original_fails) ... ok
+test_neutralised_tree_passes (__main__.Tree.test_neutralised_tree_passes) ... ok
+test_new_trigger_in_any_partition_fails (__main__.Tree.test_new_trigger_in_any_partition_fails) ... ok
+test_partition_mounts (__main__.Tree.test_partition_mounts) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.038s
+
+OK
