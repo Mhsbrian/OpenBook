@@ -26,26 +26,37 @@
 #             downloads in DIR are removed after a newer one is verified. Only
 #             monthly releases are downloaded. TERM, INT or HUP stops it cleanly at any point: the
 #             transfer or checksum ends, and the partial file is kept for the next run to resume.
+#   adapt     build the newest verified download for this laptop (phase 3), with openbook-adapt and the
+#             running system's OpenBook layer: Google's partitions are reconstructed from the zip and
+#             checked against Google's signature, the layer is re-applied (it stops, "held", when Google
+#             changed something OpenBook adapts) and the result is rebuilt and signed. Then the update
+#             payload for it is written, unsigned: the OpenBook Update app signs it with this laptop's key
+#             (`sign`). Keeps DIR/<build>/adapted/ (payload and records); the images live in the payload.
+#             DIR/adapt-progress names the current step (reconstruct, check, build, sign, payload).
+#   sign      insert the payload signatures the app made (DIR/<build>/adapted/payload/{metadata,payload}.sig).
 #   status    print the last recorded state.
 #   watch     check FIRST_DELAY seconds after start, then every INTERVAL seconds of wall-clock time. It
 #             only notices: downloads are explicit (the OpenBook Update app starts them on unmetered
 #             networks). Each check is its own locked run; a failed check is logged, never fatal.
 #
-# It never touches a partition, the boot loader or settings: it reads the network and writes only
-# under DIR. Later phases adapt the release for the G14 and install it
+# It never touches a partition, the boot loader or settings: it reads the network and the running
+# system, and writes only under DIR. Installing is the app's, with the owner's approval
 # (docs/googlebook-on-device-updater.md). Runs on the laptop's own tools: mksh, toybox, awk, curl.
 # mksh arithmetic is 32-bit, so every byte count is computed and compared in awk.
 #
-# usage: openbook-updater [--dir DIR] [--listing URL|FILE] check|download|status|watch
+# usage: openbook-updater [--dir DIR] [--listing URL|FILE] check|download|adapt|sign|status|watch
 # env:   OPENBOOK_UPDATER_DIR (default /data/local/tmp/openbook-updater), OPENBOOK_UPDATER_LISTING,
 #        OPENBOOK_UPDATER_RESERVE_KB (free space kept after a download; default 20 GiB),
 #        OPENBOOK_UPDATER_FIRST_DELAY (default 60 s), OPENBOOK_UPDATER_INTERVAL (default 86400 s),
 #        OPENBOOK_UPDATER_STEP (watch: sleep step, default 900 s), OPENBOOK_UPDATER_CYCLES (stop after N; tests),
 #        OPENBOOK_UPDATER_TEST_BUILD_ID (tests on a device whose own build ID is not a release-train ID, such
-#        as an emulator's: classify against this instead; the OpenBook Update app never sets it)
-# exit:  0 ok/up to date, 10 update available, 2 usage, 3 network, 4 checksum mismatch, 5 space,
-#        6 busy, 7 no release listed for this device, 8 held (the release needs OpenBook support),
-#        9 listing refused (an unexpected download location or a malformed checksum), 130 stopped on request
+#        as an emulator's: classify against this instead; the OpenBook Update app never sets it),
+#        OPENBOOK_ADAPT, OPENBOOK_LAYER, OPENBOOK_AVB_KEY, OPENBOOK_OURS_ROOT (tests: the adapter, the layer,
+#        the AVB key and the root of OpenBook's files; default the running system's)
+# exit:  0 ok/up to date, 10 update available, 2 usage (or adapt/sign not possible here), 3 network,
+#        4 checksum mismatch, 5 space, 6 busy, 7 no release listed for this device, 8 held (the release
+#        needs OpenBook support), 9 listing refused (an unexpected download location or a malformed
+#        checksum), 11 adaptation failed (not held: a fault, recorded), 130 stopped on request
 
 set -u
 LISTING=${OPENBOOK_UPDATER_LISTING:-https://dl.google.com/dl/edgedl/device/recovery/production_recovery.json}
@@ -234,6 +245,7 @@ cmd_check() {
 
 # Downloads live in all-digit directories DIR/<build>/ holding only the updater's own files.
 remove_download() {
+    rm -rf "$1/adapted" "$1/adapt.tmp" "$1/adapt-held"
     rm -f "$1/recovery.zip" "$1/recovery.zip.part" "$1/recovery.zip.md5" "$1/release.info"
     rmdir "$1" 2>/dev/null && say "removed the download ${1##*/} ($2)"
 }
@@ -341,6 +353,108 @@ cmd_download() {
     return 0
 }
 
+ADAPT=${OPENBOOK_ADAPT:-/system/bin/openbook-adapt}
+LAYER=${OPENBOOK_LAYER:-/system/etc/openbook/layer}
+AVB_KEY=${OPENBOOK_AVB_KEY:-/system/etc/openbook/avb/testkey_rsa4096.pem}
+OURS_ROOT=${OPENBOOK_OURS_ROOT:-/}
+# The newest download with Google's MD5 verified (sets D, its directory, and ID, its release).
+newest_verified() {
+    D=; ID=
+    for d in "$DIR"/[0-9]*; do
+        [ -f "$d/recovery.zip" ] && [ -f "$d/recovery.zip.md5" ] || continue
+        case ${d##*/} in *[!0-9]*) continue ;; esac
+        if [ -z "$D" ] || num_gt "${d##*/}" "${D##*/}"; then D=$d; fi
+    done
+    [ -n "$D" ] && ID=$(sed -n 's/^latest=//p' "$D/release.info" 2>/dev/null)
+    [ -n "$ID" ] || ID=${D##*/}
+}
+# Runs openbook-adapt with its output (errors included) in FILE.
+adapter() { a_out=$1; shift; child "$a_out" sh -c 'exec "$0" "$@" 2>&1' "$ADAPT" "$@"; }
+
+cmd_adapt() {
+    [ -x "$ADAPT" ] && [ -f "$LAYER/layer.json" ] && [ -f "$AVB_KEY" ] \
+        || fail 2 "this system cannot build releases for the laptop (no openbook-adapt, layer or key)"
+    newest_verified
+    [ -n "$D" ] || fail 2 "no verified download to adapt"
+    # A release this system's layer cannot carry stays held until a new system (a new layer) arrives.
+    LAYER_SHA=$(sha256sum "$LAYER/layer.json" | cut -d' ' -f1)
+    if [ -f "$D/adapt-held" ] && [ "$(sed -n 's/^layer=//p' "$D/adapt-held")" = "$LAYER_SHA" ]; then
+        why=$(sed -n 's/^detail=//p' "$D/adapt-held")
+        record_new result adapt-held build "$ID" detail "$why"
+        FINAL=1 FINAL_RC=8
+        say "still held: $ID ($why)"; exit 8
+    fi
+    rm -f "$D/adapt-held"
+    if [ -f "$D/adapted/payload/payload.json" ]; then
+        record_new result adapted build "$ID" payload "$D/adapted/payload/payload.bin"
+        FINAL=1 FINAL_RC=0
+        say "already adapted: $ID"; return 0
+    fi
+    # Google's partitions, the adapted ones and the payload, plus the work tree: 16 GiB beside the reserve.
+    free_kb=$(df -k "$D" | awk 'NR == 2 { print $4 }')
+    need_kb=$(awk -v r="$RESERVE_KB" 'BEGIN { printf "%.0f", 16 * 1048576 + r }')
+    num_ge "$free_kb" "$need_kb" || fail 5 "not enough space to adapt $ID: ${free_kb} KiB free, ${need_kb} KiB needed"
+    w="$D/adapt.tmp"
+    rm -rf "$w" && mkdir -p "$w" || fail 2 "cannot create $w"
+    STOP_NOTE="the adaptation of $ID starts again on the next run"
+    rm -f "$DIR/adapt-progress"
+    step() { printf '%s\n' "$1" > "$DIR/adapt-progress.tmp" && mv "$DIR/adapt-progress.tmp" "$DIR/adapt-progress"; }
+    record_new result adapting build "$ID"
+    say "adapting $ID: reconstructing Google's partitions"
+    step reconstruct
+    adapter "$w/reconstruct.out" reconstruct --release "$D/recovery.zip" --layer "$LAYER" --out "$w/google" \
+        || adapt_failed "$?" "$w/reconstruct.out"
+    say "adapting $ID: re-applying the OpenBook layer"
+    adapter "$w/adapt.out" adapt --layer "$LAYER" --new "$w/google" --ours-root "$OURS_ROOT" --key "$AVB_KEY" \
+        --work "$w/work" --out "$w/adapted" --progress "$DIR/adapt-progress" || adapt_failed "$?" "$w/adapt.out"
+    say "adapting $ID: writing the update payload"
+    step payload
+    adapter "$w/payload.out" payload --adapted "$w/adapted" --layer "$LAYER" --out "$w/payload" \
+        || adapt_failed "$?" "$w/payload.out"
+    # Keep the payload and the records: the images live in the payload.
+    mkdir -p "$w/keep" && mv "$w/payload" "$w/keep/payload" && cp "$w/adapted/adapt.json" "$w/google/reconstruct.json" "$w/keep/" \
+        || fail 2 "cannot keep the adaptation of $ID"
+    rm -rf "$D/adapted" && mv "$w/keep" "$D/adapted" && rm -rf "$w" || fail 2 "cannot move the adaptation of $ID into place"
+    rm -f "$DIR/adapt-progress"
+    record result adapted build "$ID" payload "$D/adapted/payload/payload.bin"
+    FINAL=1 FINAL_RC=0
+    say "adapted $ID for this laptop; the update payload waits for this laptop's signature"
+    return 0
+}
+# adapt_failed RC OUTFILE: a held release (8) or a fault, recorded with the adapter's reason.
+adapt_failed() {
+    why=$(sed -n 's/^openbook-adapt: //p' "$2" 2>/dev/null | tail -1)
+    rm -rf "$w"; rm -f "$DIR/adapt-progress"
+    if [ "$1" = 8 ]; then
+        FINAL=1 FINAL_RC=8
+        pairs layer "$LAYER_SHA" detail "${why#held: }" | write_kv "$D/adapt-held"
+        record result adapt-held build "$ID" detail "${why#held: }"
+        say "not adapting $ID: ${why#held: }"
+        exit 8
+    fi
+    FINAL=1 FINAL_RC=11
+    record result error:11 build "$ID" detail "${why:-openbook-adapt exited $1}"
+    say "error: adapting $ID failed: ${why:-openbook-adapt exited $1}"
+    exit 11
+}
+
+cmd_sign() {
+    newest_verified
+    p="${D:+$D/adapted/payload}"
+    [ -n "$D" ] && [ -f "$p/payload.json" ] || fail 2 "no adapted release to sign"
+    [ -f "$p/metadata.sig" ] && [ -f "$p/payload.sig" ] || fail 2 "the app has not signed the payload of $ID"
+    # The app leaves this laptop's certificate beside the signatures: both are checked with it before use.
+    cert=; [ -f "$p/laptop.x509.pem" ] && cert="$p/laptop.x509.pem"
+    adapter "$p/sign.out" payload-sign --dir "$p" --metadata-signature "$p/metadata.sig" --payload-signature "$p/payload.sig" \
+        ${cert:+--cert} ${cert:+"$cert"} \
+        || { why=$(sed -n 's/^openbook-adapt: //p' "$p/sign.out" | tail -1); fail 2 "cannot sign the payload of $ID: $why"; }
+    rm -f "$p/sign.out"
+    record_new result ready build "$ID" payload "$p/payload.bin"
+    FINAL=1 FINAL_RC=0
+    say "the update payload of $ID is signed and ready to install"
+    return 0
+}
+
 cmd_watch() {
     interval=${OPENBOOK_UPDATER_INTERVAL:-86400}; step=${OPENBOOK_UPDATER_STEP:-900}
     cycles=${OPENBOOK_UPDATER_CYCLES:-0}; n=0
@@ -372,7 +486,7 @@ parse() {
         case $1 in
             --dir) [ $# -ge 2 ] || usage; DIR=$2; shift 2 ;;
             --listing) [ $# -ge 2 ] || usage; LISTING=$2; shift 2 ;;
-            check|download|status|watch) CMD=$1; shift ;;
+            check|download|adapt|sign|status|watch) CMD=$1; shift ;;
             *) usage ;;
         esac
     done
@@ -395,4 +509,6 @@ trap stop TERM INT HUP
 case $CMD in
     check) cmd_check ;;
     download) cmd_download ;;
+    adapt) cmd_adapt ;;
+    sign) cmd_sign ;;
 esac

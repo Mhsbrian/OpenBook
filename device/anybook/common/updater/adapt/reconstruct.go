@@ -351,6 +351,12 @@ func reconstruct(release, dir string, logical, static []string, googleKey string
 	}
 	res := &ReconstructResult{Schema: "openbook-adapt-reconstruct/1", Source: filepath.Base(release), Image: name,
 		Partitions: map[string]string{}, VerifiedRoot: map[string]bool{}}
+	return verifyReconstructed(res, dir, logical, static, googleKey)
+}
+
+// verifyReconstructed checks Google's vbmeta (signature, pinned key) and every partition's dm-verity root,
+// and records the hashes.
+func verifyReconstructed(res *ReconstructResult, dir string, logical, static []string, googleKey string) (*ReconstructResult, error) {
 	vb, _, err := readImageVBMeta(filepath.Join(dir, "vbmeta.img"))
 	if err != nil {
 		return nil, err
@@ -394,6 +400,22 @@ func reconstruct(release, dir string, logical, static []string, googleKey string
 		res.Partitions[n] = sum
 	}
 	return res, nil
+}
+
+// reconstructFromStock is reconstruct for Google's partitions already staged on the host (stage-stock-source.py:
+// DIR/system.img, system_ext.img, product.img, vbmeta.img), with the same checks.
+func reconstructFromStock(stock, dir string, logical []string, googleKey string) (*ReconstructResult, error) {
+	if err := os.MkdirAll(dir, 0o700); err != nil {
+		return nil, err
+	}
+	for _, n := range append(append([]string{}, logical...), "vbmeta") {
+		if err := copyFile(filepath.Join(stock, n+".img"), filepath.Join(dir, n+".img")); err != nil {
+			return nil, err
+		}
+	}
+	res := &ReconstructResult{Schema: "openbook-adapt-reconstruct/1", Source: filepath.Base(stock), Image: "staged",
+		Partitions: map[string]string{}, VerifiedRoot: map[string]bool{}}
+	return verifyReconstructed(res, dir, logical, []string{"vbmeta"}, googleKey)
 }
 
 func fileSHA256(path string) (string, error) {

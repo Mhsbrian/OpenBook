@@ -57,6 +57,17 @@
             </intent-filter>
         </receiver>
 
+        <!-- This laptop's update certificate for the OpenBook update that enrolls it (LaptopKeyReceiver). Only the
+             shell and the system hold DUMP. -->
+        <receiver
+            android:name=".work.LaptopKeyReceiver"
+            android:exported="true"
+            android:permission="android.permission.DUMP">
+            <intent-filter>
+                <action android:name="org.openbook.update.action.LAPTOP_KEY" />
+            </intent-filter>
+        </receiver>
+
         <!-- Protected broadcasts: only the system can send them. -->
         <receiver
             android:name=".work.BootReceiver"

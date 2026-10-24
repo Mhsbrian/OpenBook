@@ -15,8 +15,11 @@ GOROOT_DIR=$TOOLS/$GO_VERSION
 if [ ! -x "$GOROOT_DIR/bin/go" ]; then
     mkdir -p "$TOOLS"
     tarball=$TOOLS/$GO_VERSION.linux-amd64.tar.gz
-    [ -f "$tarball" ] || curl -fsSL --proto '=https' "https://go.dev/dl/$GO_VERSION.linux-amd64.tar.gz" -o "$tarball.part"
-    [ -f "$tarball" ] || mv "$tarball.part" "$tarball"
+    if [ ! -f "$tarball" ]; then
+        curl -fsSL --proto '=https' "https://go.dev/dl/$GO_VERSION.linux-amd64.tar.gz" -o "$tarball.part"
+        echo "$GO_SHA256  $tarball.part" | sha256sum -c --quiet || { rm -f "$tarball.part"; exit 1; }
+        mv "$tarball.part" "$tarball"
+    fi
     echo "$GO_SHA256  $tarball" | sha256sum -c --quiet
     rm -rf "$GOROOT_DIR.tmp" && mkdir "$GOROOT_DIR.tmp" && tar -xzf "$tarball" -C "$GOROOT_DIR.tmp" --strip-components=1
     mv "$GOROOT_DIR.tmp" "$GOROOT_DIR"

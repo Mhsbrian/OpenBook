@@ -38,6 +38,8 @@ class UpdateViewModel(app: Application) : AndroidViewModel(app) {
         Scheduler.ensurePeriodic(app)
         viewModelScope.launch(Dispatchers.IO) {
             Graph.updateEngine.refresh()
+            // A verified download not yet built for this laptop (or held under an earlier system's layer).
+            Graph.engine().verifiedDownload()?.let { Scheduler.adapt(app) }
             val downloading = WorkManager.getInstance(app).getWorkInfosForUniqueWork(Scheduler.DOWNLOAD).get()
                 .any { it.state == WorkInfo.State.RUNNING }
             if (!downloading && System.currentTimeMillis() - Graph.settings.lastAttemptMillis > STALE_MILLIS) repository.checkNow()
@@ -45,6 +47,9 @@ class UpdateViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun check() = repository.checkNow()
+
+    /** Installs this laptop's own build after the owner approved it in the review ([restartAfter]: they confirmed the restart too). */
+    fun install(restartAfter: Boolean) = Scheduler.install(getApplication(), restartAfter)
     fun download() = repository.download()
     fun pause() = repository.pauseDownload()
 

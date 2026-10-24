@@ -71,6 +71,7 @@ class DownloadWorker(context: Context, params: WorkerParameters) : CoroutineWork
                     if (settings.notifiedDownloaded != release.number && Graph.notifier.downloaded(release)) {
                         settings.notifiedDownloaded = release.number
                     }
+                    Scheduler.adapt(applicationContext) // build it for this laptop (phase 3)
                 }
                 Result.success()
             }

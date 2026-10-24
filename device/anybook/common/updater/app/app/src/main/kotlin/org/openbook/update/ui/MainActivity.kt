@@ -118,7 +118,8 @@ class MainActivity : ComponentActivity() {
             Screen.REVIEW -> when (val ready = state) {
                 is UpdateUiState.ReadyToInstall -> if (Capabilities.CURRENT.installOnLaptop) {
                     ReviewScreen(ready.release, onBack = { screen = Screen.MAIN },
-                                 onInstallAndRestart = { confirmInstall = true }, onInstallLater = { screen = Screen.MAIN })
+                                 onInstallAndRestart = { confirmInstall = true },
+                                 onInstallLater = { screen = Screen.MAIN; model.install(restartAfter = false) })
                 } else LaunchedEffect(Unit) { screen = Screen.MAIN }
                 else -> LaunchedEffect(Unit) { screen = Screen.MAIN } // the release is no longer ready
             }
@@ -129,8 +130,9 @@ class MainActivity : ComponentActivity() {
             Screen.HISTORY -> HistoryScreen(history, onBack = { screen = Screen.MAIN })
             Screen.ABOUT -> AboutUpdatesScreen(onBack = { screen = Screen.SETTINGS })
         }
-        // Installing from a review needs the laptop's own build (phase 4): the review is not offered before it.
-        if (confirmInstall) ConfirmInstallDialog(onConfirm = { confirmInstall = false }, onDismiss = { confirmInstall = false })
+        // Installing from a review needs the laptop's own signed build (phase 4): the review is not offered before it.
+        if (confirmInstall) ConfirmInstallDialog(onConfirm = { confirmInstall = false; screen = Screen.MAIN; model.install(restartAfter = true) },
+                                                 onDismiss = { confirmInstall = false })
         if (confirmRestart && state is UpdateUiState.RestartRequired) {
             ConfirmRestartDialog(onConfirm = { confirmRestart = false; restart() }, onDismiss = { confirmRestart = false })
         }

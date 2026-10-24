@@ -77,6 +77,19 @@ class Settings(context: Context) {
     var notifiedDownloaded: Long
         get() = prefs.getLong(NOTIFIED_DOWNLOADED, 0)
         set(value) = prefs.edit { putLong(NOTIFIED_DOWNLOADED, value) }
+    /** Building a release for this laptop (phase 3/4): recorded in the history once, notified once shown. */
+    var announcedAdapted: Long
+        get() = prefs.getLong("announced_adapted", 0)
+        set(value) = prefs.edit { putLong("announced_adapted", value) }
+    var notifiedAdapted: Long
+        get() = prefs.getLong("notified_adapted", 0)
+        set(value) = prefs.edit { putLong("notified_adapted", value) }
+    var announcedAdaptHeld: Long
+        get() = prefs.getLong("announced_adapt_held", 0)
+        set(value) = prefs.edit { putLong("announced_adapt_held", value) }
+    var notifiedAdaptHeld: Long
+        get() = prefs.getLong("notified_adapt_held", 0)
+        set(value) = prefs.edit { putLong("notified_adapt_held", value) }
     var restartNotified: Boolean
         get() = prefs.getBoolean(RESTART_NOTIFIED, false)
         set(value) = prefs.edit { putBoolean(RESTART_NOTIFIED, value) }

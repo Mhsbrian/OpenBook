@@ -24,7 +24,7 @@ DEVICE_ENV = os.environ.get("OPENBOOK_UPDATER_TEST_ENV")          # bin dir: sh,
 SHELL = str(Path(DEVICE_ENV) / "sh") if DEVICE_ENV else "sh"
 
 
-class Updater(unittest.TestCase):
+class Base(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name)
@@ -67,6 +67,9 @@ class Updater(unittest.TestCase):
     def release_record(self):
         return dict(l.split("=", 1) for l in (self.dir / "release").read_text().splitlines())
 
+
+
+class Updater(Base):
     def test_up_to_date(self):
         r = self.run_updater("check", listing=self.listing([self.entry(16658739), self.entry(16452207)]))
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
@@ -425,6 +428,152 @@ class Updater(unittest.TestCase):
         self.assertIn("never-run", self.run_updater("status").stdout)
         self.run_updater("check", listing=self.listing([self.entry(16658739)]))
         self.assertIn("result=up-to-date", self.run_updater("status").stdout)
+
+
+# A stand-in for openbook-adapt: each command leaves what the real one leaves, or fails as told by
+# FAKE_ADAPT_HOLD (exit 8 with a reason), FAKE_ADAPT_FAIL (exit 1) or FAKE_ADAPT_SLEEP (seconds, for a stop).
+FAKE_ADAPT = r"""#!/usr/bin/env python3
+import json, os, sys, time
+cmd, args = sys.argv[1], sys.argv[2:]
+opt = {args[i]: args[i + 1] for i in range(0, len(args) - 1) if args[i].startswith("--")}
+if os.environ.get("FAKE_ADAPT_SLEEP") and cmd == "adapt":
+    time.sleep(float(os.environ["FAKE_ADAPT_SLEEP"]))
+if os.environ.get("FAKE_ADAPT_HOLD") and cmd == "adapt":
+    print("openbook-adapt: held: " + os.environ["FAKE_ADAPT_HOLD"], file=sys.stderr); sys.exit(8)
+if os.environ.get("FAKE_ADAPT_FAIL") and cmd == "adapt":
+    print("openbook-adapt: the rebuilt system differs", file=sys.stderr); sys.exit(1)
+def mk(d): os.makedirs(d, exist_ok=False)
+if cmd == "reconstruct":
+    assert os.path.isfile(opt["--release"]) and os.path.isfile(opt["--layer"] + "/layer.json")
+    mk(opt["--out"]); open(opt["--out"] + "/reconstruct.json", "w").write("{}")
+elif cmd == "adapt":
+    assert opt["--ours-root"] and os.path.isfile(opt["--key"])
+    open(opt["--progress"], "w").write("build\n")
+    mk(opt["--work"]); mk(opt["--out"])
+    open(opt["--out"] + "/adapt.json", "w").write(json.dumps({"complete": True}))
+    open(opt["--out"] + "/system.img", "w").write("img")
+elif cmd == "payload":
+    mk(opt["--out"]); open(opt["--out"] + "/payload.bin", "w").write("payload")
+    json.dump({"signed": False, "metadata_hash_to_sign": "aa", "payload_hash_to_sign": "bb"}, open(opt["--out"] + "/payload.json", "w"))
+elif cmd == "payload-sign":
+    assert os.path.getsize(opt["--metadata-signature"]) and os.path.getsize(opt["--payload-signature"])
+    d = json.load(open(opt["--dir"] + "/payload.json")); d["signed"] = True
+    json.dump(d, open(opt["--dir"] + "/payload.json", "w"))
+else:
+    sys.exit(2)
+"""
+
+
+class Adapt(Base):
+    def setUp(self):
+        super().setUp()
+        (self.bin / "openbook-adapt").write_text(FAKE_ADAPT)
+        (self.bin / "openbook-adapt").chmod(0o755)
+        self.layer = self.root / "layer"
+        self.layer.mkdir()
+        (self.layer / "layer.json").write_text("{}")
+        self.key = self.root / "avb.pem"
+        self.key.write_text("key")
+
+    def env(self, **extra):
+        extra.setdefault("OPENBOOK_ADAPT", str(self.bin / "openbook-adapt"))
+        extra.setdefault("OPENBOOK_LAYER", str(self.layer))
+        extra.setdefault("OPENBOOK_AVB_KEY", str(self.key))
+        extra.setdefault("OPENBOOK_OURS_ROOT", str(self.root))
+        return super().env(**extra)
+
+    def downloaded(self):
+        r = self.run_updater("download", listing=self.listing([self.entry(16658740)]))
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        return self.dir / "16658740"
+
+    def test_adapt_keeps_the_payload_and_records_and_is_idempotent(self):
+        d = self.downloaded()
+        r = self.run_updater("adapt")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        s = self.state()
+        self.assertEqual((s["result"], s["build"]), ("adapted", "16658740_CL3B.260622.276.R4"))
+        self.assertTrue((d / "adapted/payload/payload.bin").is_file())
+        self.assertTrue((d / "adapted/adapt.json").is_file() and (d / "adapted/reconstruct.json").is_file())
+        self.assertFalse((d / "adapt.tmp").exists() or (d / "adapted/system.img").exists())
+        self.assertFalse((self.dir / "adapt-progress").exists())
+        r = self.run_updater("adapt")
+        self.assertEqual(r.returncode, 0)
+        self.assertIn("already adapted", r.stdout)
+
+    def test_a_held_release_records_the_reason(self):
+        d = self.downloaded()
+        why = "/system/build.prop: OpenBook changes it, but Google changed it too"
+        r = self.run_updater("adapt", FAKE_ADAPT_HOLD=why)
+        self.assertEqual(r.returncode, 8, r.stdout + r.stderr)
+        s = self.state()
+        self.assertEqual((s["result"], s["detail"]), ("adapt-held", why))
+        self.assertFalse((d / "adapted").exists() or (d / "adapt.tmp").exists())
+        # Held for this layer: no new attempt, even when the adapter would now succeed.
+        self.run_updater("check", listing=self.listing([self.entry(16658740)]))
+        r = self.run_updater("adapt")
+        self.assertEqual(r.returncode, 8, r.stdout + r.stderr)
+        self.assertIn("still held", r.stdout)
+        self.assertEqual(self.state()["detail"], why)
+        # A new system (another layer) tries again.
+        (self.layer / "layer.json").write_text('{"next": 1}')
+        self.assertEqual(self.run_updater("adapt").returncode, 0)
+        self.assertFalse((d / "adapt-held").exists())
+
+    def test_a_fault_is_error_11(self):
+        self.downloaded()
+        r = self.run_updater("adapt", FAKE_ADAPT_FAIL="1")
+        self.assertEqual(r.returncode, 11, r.stdout + r.stderr)
+        self.assertEqual(self.state()["result"], "error:11")
+        self.assertIn("rebuilt system differs", self.state()["detail"])
+
+    def test_not_possible_without_the_adapter_or_a_download(self):
+        r = self.run_updater("adapt", OPENBOOK_ADAPT=str(self.root / "missing"))
+        self.assertEqual(r.returncode, 2)
+        r = self.run_updater("adapt")
+        self.assertEqual(r.returncode, 2)
+        self.assertIn("no verified download", self.state()["detail"])
+
+    def test_space_is_checked_first(self):
+        d = self.downloaded()
+        r = self.run_updater("adapt", reserve_kb=10**15)
+        self.assertEqual(r.returncode, 5, r.stdout + r.stderr)
+        self.assertFalse((d / "adapt.tmp").exists())
+
+    def test_sign_needs_the_apps_signatures(self):
+        d = self.downloaded()
+        self.assertEqual(self.run_updater("adapt").returncode, 0)
+        self.assertEqual(self.run_updater("sign").returncode, 2)
+        p = d / "adapted/payload"
+        (p / "metadata.sig").write_bytes(b"m" * 512)
+        (p / "payload.sig").write_bytes(b"p" * 512)
+        r = self.run_updater("sign")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertEqual(self.state()["result"], "ready")
+        self.assertTrue(json.loads((p / "payload.json").read_text())["signed"])
+
+    def test_a_newer_download_removes_an_older_adaptation(self):
+        d = self.downloaded()
+        self.assertEqual(self.run_updater("adapt").returncode, 0)
+        r = self.run_updater("download", listing=self.listing([self.entry(16658741)]))
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertFalse(d.exists())
+
+    def test_stop_during_adaptation(self):
+        d = self.downloaded()
+        p = subprocess.Popen([SHELL, str(SCRIPT), "adapt"], env=self.env(FAKE_ADAPT_SLEEP="30"),
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        for _ in range(100):
+            if (d / "adapt.tmp/google").exists():
+                break
+            time.sleep(0.1)
+        time.sleep(0.5)
+        p.send_signal(signal.SIGTERM)
+        out, _ = p.communicate(timeout=30)
+        self.assertEqual(p.returncode, 130, out)
+        self.assertEqual(self.state()["result"], "stopped")
+        r = self.run_updater("adapt")                      # starts again from the beginning
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
 
 
 if __name__ == "__main__":

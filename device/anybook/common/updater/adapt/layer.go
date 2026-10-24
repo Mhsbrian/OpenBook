@@ -18,10 +18,83 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
+	"regexp"
 	"sort"
+	"strconv"
 	"strings"
+	"unicode/utf8"
 )
+
+var (
+	reMappingCil = regexp.MustCompile(`^[0-9]{6}\.cil$`)
+	rePolicyVer  = regexp.MustCompile(`^[0-9]{6}$`)
+)
+
+// validPath: a layer path is absolute, clean, without "..", and the path its own rows name.
+func validPath(p string, rows ...[]string) error {
+	if p != "" && (!strings.HasPrefix(p, "/") || path.Clean(p) != p || strings.Contains(p, "/../") || strings.HasSuffix(p, "/..")) {
+		return fmt.Errorf("layer path %q is not a clean absolute path", p)
+	}
+	want := hex.EncodeToString([]byte(p))
+	for _, rs := range rows {
+		for _, r := range rs {
+			if f := strings.SplitN(r, " ", 3); len(f) < 3 || f[1] != want {
+				return fmt.Errorf("layer path %q holds rows of another path", p)
+			}
+		}
+	}
+	return nil
+}
+
+// stripLayerDir describes a release's rows as they were before its layer was written into it (the inverse of
+// layerFileRows): without the layer directory, and without /system/etc/openbook and the links they added when
+// they exist only for the layer. A release built without a layer is returned unchanged.
+func stripLayerDir(rows map[string][]string) (map[string][]string, error) {
+	if rows[layerDir] == nil {
+		return rows, nil
+	}
+	out := map[string][]string{}
+	for p, r := range rows {
+		if !inLayerDir(p) {
+			out[p] = r
+		}
+	}
+	unlink := func(p string) error {
+		var fixed []string
+		for _, r := range out[p] {
+			f := strings.Split(r, " ")
+			if f[0] == "I" {
+				n, err := strconv.Atoi(f[5])
+				if err != nil || n < 3 {
+					return fmt.Errorf("%s: unexpected link count", p)
+				}
+				f[5] = strconv.Itoa(n - 1)
+			}
+			fixed = append(fixed, strings.Join(f, " "))
+		}
+		out[p] = fixed
+		return nil
+	}
+	parent := filepath.Dir(layerDir)
+	if err := unlink(parent); err != nil {
+		return nil, err
+	}
+	only := true
+	for p := range out {
+		if strings.HasPrefix(p, parent+"/") {
+			only = false
+		}
+	}
+	if only {
+		delete(out, parent)
+		if err := unlink(filepath.Dir(parent)); err != nil {
+			return nil, err
+		}
+	}
+	return out, nil
+}
 
 const (
 	layerSchema = "openbook-layer/1"
@@ -63,6 +136,7 @@ type Layer struct {
 		Fingerprint  string `json:"fingerprint"`
 		SystemSHA256 string `json:"system_sha256"`
 		AVBKeySHA256 string `json:"avb_key_sha256"`
+		BuildDateUTC int64  `json:"build_date_utc"` // ro.build.date.utc: an adaptation never goes back in time
 		// OLD's policy inputs outside the system image (system_ext, product): unchanged means the merged
 		// policy needs no new compile.
 		PolicySHA256 map[string]string `json:"policy_sha256"`
@@ -152,6 +226,10 @@ func inLayerDir(p string) bool { return p == layerDir || strings.HasPrefix(p, la
 // Google system it was made from, extracted at oldTree), refusing anything the carry rules cannot carry.
 func buildLayer(oldRows, oursRows map[string][]string, oldTree, oursTree string) (*Layer, error) {
 	l := &Layer{Schema: layerSchema, Paths: map[string]*LayerPath{}, Data: map[string]string{}}
+	oursRows, err := stripLayerDir(oursRows)
+	if err != nil {
+		return nil, err
+	}
 	paths := map[string]bool{}
 	for p := range oldRows {
 		paths[p] = true
@@ -170,6 +248,9 @@ func buildLayer(oldRows, oursRows map[string][]string, oldTree, oursTree string)
 		}
 		ue, err := entryOf(oursTree, p)
 		if err != nil {
+			return nil, err
+		}
+		if err := validPath(p, o, u); err != nil {
 			return nil, err
 		}
 		lp := &LayerPath{Old: o, Ours: u, OldEntry: oe, OursEntry: ue}
@@ -235,6 +316,9 @@ func classifyChange(l *Layer, lp *LayerPath, p, oldTree, oursTree string) error 
 		l.MappingCil = found[0]
 	case mergeable[p]:
 		lp.Carry = "merge3"
+		if !utf8.Valid(o) || !utf8.Valid(u) {
+			return fmt.Errorf("%s: not UTF-8 text", p)
+		}
 		if _, err := textLines(o); err != nil {
 			return fmt.Errorf("%s: %v", p, err)
 		}
@@ -247,12 +331,18 @@ func classifyChange(l *Layer, lp *LayerPath, p, oldTree, oursTree string) error 
 		if !bytes.HasPrefix(u, o) {
 			return fmt.Errorf("%s: OpenBook's change is not a pure append; cannot carry it", p)
 		}
+		if !utf8.Valid(u[len(o):]) {
+			return fmt.Errorf("%s: OpenBook's tail is not UTF-8 text", p)
+		}
 		l.Data[p+".tail"] = string(u[len(o):])
 	default:
 		lp.Carry = "insert"
 		block, err := insertedBlock(o, u, inserted[p])
 		if err != nil {
 			return fmt.Errorf("%s: %v", p, err)
+		}
+		if !utf8.Valid(block) {
+			return fmt.Errorf("%s: OpenBook's block is not UTF-8 text", p)
 		}
 		l.Data[p+".block"] = string(block)
 	}
@@ -270,6 +360,22 @@ func readLayer(dir string) (*Layer, error) {
 	}
 	if l.Schema != layerSchema {
 		return nil, fmt.Errorf("layer schema %q is not %s", l.Schema, layerSchema)
+	}
+	for p, lp := range l.Paths {
+		if err := validPath(p, lp.Old, lp.Ours); err != nil {
+			return nil, err
+		}
+		if inLayerDir(p) {
+			return nil, fmt.Errorf("%s: the layer lists its own directory", p)
+		}
+	}
+	if l.MappingCil != "" && !reMappingCil.MatchString(l.MappingCil) {
+		return nil, fmt.Errorf("unexpected policy mapping name %q", l.MappingCil)
+	}
+	for _, k := range []string{"plat_sepolicy_vers.txt", "genfs_labels_version.txt"} {
+		if v, ok := l.VendorPolicy[k]; ok && !rePolicyVer.MatchString(strings.TrimSpace(v)) {
+			return nil, fmt.Errorf("unexpected %s %q", k, v)
+		}
 	}
 	return l, nil
 }
@@ -335,6 +441,42 @@ func cmdLayer(fl *flag.FlagSet, args []string) error {
 	ks := sha256.Sum256(gv.PublicKey)
 	l.Google.AVBKeySHA256 = hex.EncodeToString(ks[:])
 	l.Google.Fingerprint = vbmetaProperty(gv, "com.android.build.system.fingerprint")
+	// The old images are Google's (each verifies against Google's signed vbmeta), and the release carries
+	// Google's system_ext and product verbatim: an adaptation replaces them with Google's new ones.
+	for _, n := range []string{"system", "system_ext", "product"} {
+		img := filepath.Join(*oldStock, n+".img")
+		if n == "system" {
+			img = *oldSystem
+		}
+		var ht *HashtreeDesc
+		for _, d := range gv.Descriptors {
+			if d.Hashtree != nil && d.Partition == n {
+				ht = d.Hashtree
+			}
+		}
+		if ht == nil {
+			return fmt.Errorf("Google's vbmeta has no hash tree for %s", n)
+		}
+		if err := verifyHashtree(img, ht); err != nil {
+			return fmt.Errorf("the old %s is not Google's: %v", n, err)
+		}
+		if n != "system" {
+			a, err := fileSHA256(img)
+			if err != nil {
+				return err
+			}
+			b, err := fileSHA256(filepath.Join(*release, n+".img"))
+			if err != nil {
+				return err
+			}
+			if a != b {
+				return fmt.Errorf("the release's %s is not Google's verbatim; an adaptation would drop its changes", n)
+			}
+		}
+	}
+	if l.Google.BuildDateUTC, err = buildDateUTC(trees["old"]); err != nil {
+		return err
+	}
 	if l.Google.PolicySHA256, err = policyInputHashes(l, *fsck, *work, *oldStock, trees["old"]); err != nil {
 		return err
 	}
@@ -389,6 +531,20 @@ func cmdLayer(fl *flag.FlagSet, args []string) error {
 	}
 	fmt.Printf("layer: %d paths (google %s)\n", len(l.Paths), l.Google.Build)
 	return os.WriteFile(filepath.Join(*out, "layer.json"), b, 0o644)
+}
+
+// buildDateUTC reads ro.build.date.utc from a system tree's /system/build.prop.
+func buildDateUTC(tree string) (int64, error) {
+	b, err := os.ReadFile(filepath.Join(tree, buildProp))
+	if err != nil {
+		return 0, err
+	}
+	for _, line := range strings.Split(string(b), "\n") {
+		if v, ok := strings.CutPrefix(line, "ro.build.date.utc="); ok {
+			return strconv.ParseInt(strings.TrimSpace(v), 10, 64)
+		}
+	}
+	return 0, errors.New("build.prop has no ro.build.date.utc")
 }
 
 func contains(list []string, s string) bool {

@@ -15,6 +15,7 @@
 # Writes OUTDIR/result.json and the evidence beside it.
 #
 # usage: emulator-test.sh OUTDIR BUILD_DIR      (BUILD_DIR: build.sh output with the three APKs)
+# env:   ADAPT_BIN  openbook-adapt (adapt/build.sh) to push into /system/bin for AdapterProcessTest
 set -uo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 O=${1:?outdir}; B=${2:?build dir}
@@ -82,6 +83,29 @@ U=$(sh_ am get-current-user)
 a exec-out run-as org.openbook.update --user "$U" tar -cf - -C files screenshots > "$O/screenshots.tar" 2> "$O/screenshots-pull.txt" \
   && tar -xf "$O/screenshots.tar" -C "$O" && rm "$O/screenshots.tar"
 a logcat -d -s OpenBookUpdate:* TestRunner:* > "$O/logcat-app-tests.txt" 2>&1
+
+# 2b. openbook-adapt as the app's child (ADAPT_BIN, an adapt/build.sh output): pushed into /system/bin, then
+#     AdapterProcessTest alone, as the owner, under Android's app seccomp filter. Skipped without ADAPT_BIN.
+adapter_ok=null
+if [ -n "${ADAPT_BIN:-}" ]; then
+  a root > /dev/null 2>&1; sleep 3; a wait-for-device
+  a remount > "$O/remount-adapter.txt" 2>&1
+  if grep -qi reboot "$O/remount-adapter.txt"; then
+    a reboot; sleep 10; a wait-for-device; boot; a root > /dev/null 2>&1; sleep 3; a wait-for-device
+    a remount >> "$O/remount-adapter.txt" 2>&1
+  fi
+  a push "$ADAPT_BIN" /system/bin/openbook-adapt > /dev/null && a shell chmod 755 /system/bin/openbook-adapt
+  sh_ ls -lZ /system/bin/openbook-adapt > "$O/adapter-file.txt" 2>&1
+  # The owner's session after a restart (Googlebook's headless system user switches to it).
+  for _ in $(seq 1 90); do
+    u=$(sh_ am get-current-user 2>/dev/null | tr -d '\r')
+    case $u in [1-9]*) break ;; esac
+    sleep 2
+  done
+  a shell am instrument -w -r --user "$u" -e class org.openbook.update.AdapterProcessTest \
+    org.openbook.update.test/androidx.test.runner.AndroidJUnitRunner > "$O/instrumentation-adapter.txt" 2>&1
+  if grep -q '^OK (1 test)' "$O/instrumentation-adapter.txt"; then adapter_ok=true; else adapter_ok=false; fi
+fi
 a uninstall org.openbook.update.test > /dev/null 2>&1; a uninstall org.openbook.update > /dev/null 2>&1
 
 # 3. The signed release as a privileged system app: its files written into /system, then a restart.
@@ -137,6 +161,7 @@ cat > "$O/result.json" <<JSON
   "fingerprint": "$(cat "$O/fingerprint.txt")",
   "engine_device_test": {"exit": $engine_rc, "summary": "$(tail -1 "$O/engine-device-test.txt")"},
   "instrumentation": {"ok": $([ "$app_ok" -ge 1 ] && echo true || echo false), "summary": "$(grep -E '^(OK|FAILURES|Tests run)' "$O/instrumentation.txt" | tr '\n' ' ')"},
+  "adapter_in_app_process": $adapter_ok,
   "screenshots": $(ls "$O/screenshots" | wc -l),
   "system_app": {"privileged": $([ "$priv" -ge 1 ] && echo true || echo false),
                  "reboot_granted": $([ "$reboot_granted" -ge 1 ] && echo true || echo false),

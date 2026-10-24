@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit
 /** openbook-updater's exit codes (see the engine's header). */
 enum class EngineExit(val code: Int) {
     OK(0), USAGE(2), NETWORK(3), CHECKSUM(4), SPACE(5), BUSY(6), NOT_LISTED(7), HELD(8), LISTING_REFUSED(9),
-    UPDATE_AVAILABLE(10), STOPPED(130), UNKNOWN(-1);
+    UPDATE_AVAILABLE(10), ADAPT_FAILED(11), STOPPED(130), UNKNOWN(-1);
 
     companion object {
         fun of(code: Int) = entries.firstOrNull { it.code == code } ?: UNKNOWN
@@ -117,6 +117,19 @@ class EngineRunner(
         .mapNotNull { dir -> Release.of(EngineState.parse(runCatching { File(dir, "release.info").readText() }.getOrDefault("")))
             ?.takeIf { it.number.toString() == dir.name } }
         .maxByOrNull { it.number }
+
+    /** Building [release] for this laptop: the engine's run, its step and the adapted payload on disk. */
+    fun adaptFacts(release: Release?): AdaptFacts {
+        if (release == null) return AdaptFacts.NONE
+        val dir = File(dataDir, release.number.toString())
+        return AdaptFacts.of(readState(), release.identifier,
+                             runCatching { File(dataDir, "adapt-progress").readText() }.getOrNull(),
+                             runCatching { File(dir, "adapted/payload/payload.json").readText() }.getOrNull(),
+                             runCatching { File(dir, "adapt-held").readText() }.getOrNull())
+    }
+
+    /** The adapted release's payload directory for [release] (payload.bin, payload.json, the signatures). */
+    fun payloadDir(release: Release): File = File(dataDir, "${release.number}/adapted/payload")
 
     /** On disk for [release]: the engine's verified download (zip + MD5 marker) or a partial one. */
     fun downloadFacts(release: Release?): DownloadFacts {

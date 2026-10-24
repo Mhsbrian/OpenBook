@@ -82,7 +82,8 @@ class Notifier(private val context: Context) {
         else builder(UPDATES, context.getString(R.string.notify_review_title), context.getString(R.string.notify_review_text, release.label())).build())
 
     fun downloaded(release: Release) = post(FOUND_ID, builder(UPDATES, context.getString(R.string.notify_downloaded_title),
-        context.getString(R.string.notify_downloaded_text, release.label())).build())
+        context.getString(if (org.openbook.update.data.Capabilities.CURRENT.adaptOnLaptop) R.string.notify_downloaded_text
+                          else R.string.notify_downloaded_text_later, release.label())).build())
 
     fun progress(label: String?, done: Long, total: Long?): Notification {
         val text = if (total != null && total > 0) context.getString(R.string.progress_of,
@@ -126,6 +127,34 @@ class Notifier(private val context: Context) {
 
     fun checksumFailed() = post(PROBLEM_ID, builder(UPDATES, context.getString(R.string.notify_verification_title),
         context.getString(R.string.notify_verification_text)).build())
+
+    /** Phase 3/4: the laptop built a release for itself, or could not. */
+    fun readyToInstall(release: Release) = post(FOUND_ID, builder(ACTION, context.getString(R.string.notify_ready_title),
+        context.getString(R.string.notify_ready_text, release.label())).build())
+
+    fun builtAwaitingKey(release: Release) = post(FOUND_ID, builder(UPDATES, context.getString(R.string.notify_built_title),
+        context.getString(R.string.notify_built_text, release.label())).build())
+
+    fun adaptationHeld(release: Release) = post(FOUND_ID, builder(UPDATES, context.getString(R.string.notify_adapt_held_title),
+        context.getString(R.string.notify_adapt_held_text, release.label())).build())
+
+    fun adaptationFailed() = post(PROBLEM_ID, builder(UPDATES, context.getString(R.string.notify_adapt_failed_title),
+        context.getString(R.string.notify_adapt_failed_text)).build())
+
+    fun installing(label: String?): Notification = NotificationCompat.Builder(context, PROGRESS)
+        .setSmallIcon(R.drawable.ic_notification)
+        .setContentTitle(context.getString(R.string.installing_title))
+        .setSubText(label)
+        .setContentText(context.getString(R.string.installing_body))
+        .setProgress(100, 0, true)
+        .setOngoing(true)
+        .setOnlyAlertOnce(true)
+        .setContentIntent(open())
+        .setCategory(NotificationCompat.CATEGORY_PROGRESS)
+        .build()
+
+    fun installFailed(code: Int?) = post(PROBLEM_ID, builder(UPDATES, context.getString(R.string.notify_install_failed_title),
+        context.getString(R.string.notify_install_failed_text, code?.toString() ?: "-")).build())
 
     fun downloadSlowed() = post(PROBLEM_ID, builder(UPDATES, context.getString(R.string.notify_slowed_title),
         context.getString(R.string.notify_slowed_text)).build())

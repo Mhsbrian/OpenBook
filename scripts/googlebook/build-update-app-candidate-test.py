@@ -140,6 +140,27 @@ class Checks(unittest.TestCase):
                 self.assertFalse(m.deployable_pin(dict(good, **change)))
         self.assertFalse(m.deployable_pin({}))                       # an old pin without the fields
 
+    def test_adapter_additions_are_pinned_and_ship_only_the_aosp_test_key(self):
+        import hashlib
+        binary = b"\x7fELF static openbook-adapt"
+        key = Path.home() / "anybook/aosp/src/external/avb/test/data/testkey_rsa4096.pem"
+        if not key.is_file():
+            self.skipTest("no AOSP tree here")
+        pin = dict(schema="openbook-adapter-pins/1", sha256=hashlib.sha256(binary).hexdigest(), worktree_clean=True,
+                   reproducible_check=True, static=True)
+        out = m.adapter_additions(binary, key.read_bytes(), pin, vm_check=False)
+        self.assertEqual(out[m.ADAPTER], (binary, 0o755, m.ADDED_EXEC_CONTEXT))
+        self.assertIsNone(out["/system/etc/openbook"])
+        self.assertIsNone(out["/system/etc/openbook/avb"])
+        self.assertEqual(out[m.AVB_KEY_PATH], key.read_bytes())
+        with self.assertRaisesRegex(ValueError, "differs from its pin"):
+            m.adapter_additions(binary + b"x", key.read_bytes(), pin, vm_check=False)
+        with self.assertRaisesRegex(ValueError, "clean, reproducible static build"):
+            m.adapter_additions(binary, key.read_bytes(), dict(pin, reproducible_check=False), vm_check=False)
+        m.adapter_additions(binary, key.read_bytes(), dict(pin, reproducible_check=False), vm_check=True)  # VM only
+        with self.assertRaisesRegex(ValueError, "Only AOSP's published AVB test key"):
+            m.adapter_additions(binary, b"-----BEGIN PRIVATE KEY-----another key", pin, vm_check=False)
+
     def test_tampered_config_is_refused(self):
         src = m.sources()
         for key, old, new in (("privapp", b"org.openbook.update", b"com.example.other"),

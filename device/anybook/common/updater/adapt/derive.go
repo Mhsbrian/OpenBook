@@ -210,6 +210,9 @@ func rederiveTail(newPlat, tail []byte) ([]byte, error) {
 	text := string(tail)
 	at := strings.Index(text, derivedHeader)
 	if at < 0 {
+		if strings.Contains(text, appDomain) {
+			return nil, errors.New("OpenBook's app domain is carried without its derived app-domain block")
+		}
 		return tail, nil
 	}
 	derived, err := appDomainStatements(string(newPlat))

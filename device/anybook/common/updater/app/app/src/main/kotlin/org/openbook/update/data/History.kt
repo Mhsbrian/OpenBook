@@ -10,7 +10,10 @@ import java.io.File
 
 /** One line of the update history. The text is rendered from [type] when shown (localizable). */
 data class HistoryEntry(val timeMillis: Long, val type: Type, val build: String = "", val detail: String = "") {
-    enum class Type { FOUND, HELD, DOWNLOADED, VERIFICATION_FAILED, INSTALLED, WENT_BACK, SYSTEM_CHANGED, RESTART_REQUESTED }
+    enum class Type {
+        FOUND, HELD, DOWNLOADED, VERIFICATION_FAILED, INSTALLED, WENT_BACK, SYSTEM_CHANGED, RESTART_REQUESTED,
+        BUILT_FOR_LAPTOP, ADAPTATION_HELD, INSTALLED_PENDING_RESTART, INSTALL_FAILED,
+    }
 }
 
 /** The update history: newest first, at most [limit] entries, in the app's private files (JSON). */
