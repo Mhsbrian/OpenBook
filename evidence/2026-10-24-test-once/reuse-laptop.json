@@ -1,0 +1,114 @@
+{
+  "schema": "anybook-evidence-reuse/1",
+  "release": "RB-20261023-03",
+  "targets": [
+    "laptop-update"
+  ],
+  "scope": "Test list for a release plan; not an approval.",
+  "release_steps": [
+    {
+      "target": "laptop-update",
+      "id": "candidate",
+      "does": "Build the candidate and the signed laptop payload from the pinned inputs",
+      "decision": "run"
+    },
+    {
+      "target": "laptop-update",
+      "id": "control",
+      "does": "Rebuild the installed release's images from its candidate with the same steps; they must match byte for byte",
+      "decision": "run"
+    },
+    {
+      "target": "laptop-update",
+      "id": "update-rehearsal",
+      "does": "VM: update the installed release into the other slot with existing data, boot it and compare the slot bytes",
+      "decision": "run"
+    },
+    {
+      "target": "laptop-update",
+      "id": "fallback",
+      "does": "VM: break the new slot; the old slot must boot by itself",
+      "decision": "run"
+    },
+    {
+      "target": "laptop-update",
+      "id": "after-update",
+      "does": "VM: check every changed feature after the update, with existing data",
+      "decision": "run"
+    }
+  ],
+  "source_checks": [
+    {
+      "source_issue": "ANAL-229",
+      "source_commit": "a05f832599afc55b3fb1441a9c186342a17fea3f",
+      "id": "engine-host",
+      "kind": "unit",
+      "scope": "component",
+      "summary": "32/32, also on Android's mksh/awk/toybox",
+      "evidence": "evidence/2026-10-23-update-app/README.md",
+      "decision": "reuse",
+      "reasons": []
+    },
+    {
+      "source_issue": "ANAL-229",
+      "source_commit": "a05f832599afc55b3fb1441a9c186342a17fea3f",
+      "id": "app-jvm",
+      "kind": "unit",
+      "scope": "component",
+      "summary": "19/19, lint clean",
+      "evidence": "evidence/2026-10-23-update-app/build.json",
+      "decision": "reuse",
+      "reasons": []
+    },
+    {
+      "source_issue": "ANAL-229",
+      "source_commit": "a05f832599afc55b3fb1441a9c186342a17fea3f",
+      "id": "builder-unit",
+      "kind": "unit",
+      "scope": "component",
+      "summary": "11/11",
+      "evidence": "evidence/2026-10-23-update-app/README.md",
+      "decision": "reuse",
+      "reasons": []
+    },
+    {
+      "source_issue": "ANAL-229",
+      "source_commit": "a05f832599afc55b3fb1441a9c186342a17fea3f",
+      "id": "emulator",
+      "kind": "emulator",
+      "scope": "component",
+      "summary": "engine 9/9, instrumented 8/8, system app",
+      "evidence": "evidence/2026-10-23-update-app/emulator/instrumentation-summary.txt",
+      "decision": "reuse",
+      "reasons": []
+    },
+    {
+      "source_issue": "ANAL-229",
+      "source_commit": "a05f832599afc55b3fb1441a9c186342a17fea3f",
+      "id": "ruby-vm-fresh-boot",
+      "kind": "fresh-boot-vm",
+      "scope": "image",
+      "summary": "16/16",
+      "evidence": "evidence/2026-10-23-update-app/vm/judge.json",
+      "decision": "reuse",
+      "reasons": []
+    }
+  ],
+  "summary": {
+    "run": [
+      "candidate",
+      "control",
+      "update-rehearsal",
+      "fallback",
+      "after-update"
+    ],
+    "cite": [
+      "engine-host",
+      "app-jvm",
+      "builder-unit",
+      "emulator",
+      "ruby-vm-fresh-boot"
+    ],
+    "skip": []
+  }
+}

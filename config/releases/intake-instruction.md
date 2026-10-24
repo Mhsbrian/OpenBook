@@ -17,6 +17,15 @@ queued, blocked, deferred and included work in the hub; no silent exclusions.
 Do not bulk-subscribe already-ready historical issues. New base images also
 need a track, parent/source identity, hashes and a release record before promotion.
 
+Test once (docs/release-control.md): the source hands off pinned inputs and
+an anybook-handoff/1 file of the checks it ran on those bytes. Record that
+file with the queue entry. When freezing a plan, derive its test list with
+scripts/releases/evidence-reuse.py: cite source checks whose inputs match,
+rerun the rest, and always run the release's own steps (candidate and payload,
+control rebuild, update rehearsal, fallback, after-update check; for the stick,
+its image and install). Do not rebuild or retest what a matching source check
+covers. A source without a handoff file is assessed by hand the same way.
+
 Update the hub's queue with exact source commits, dependencies, included and
 excluded behavior, evidence and remaining limitations. Re-read before writing
 and preserve unrelated edits. A source being in_review or a PR merging is not

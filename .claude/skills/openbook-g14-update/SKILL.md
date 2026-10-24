@@ -5,6 +5,8 @@ description: Ship a new OpenBook build to an installed OpenBook laptop (today th
 
 # Updating an installed OpenBook over adb
 
+**Ruby/G14 releases (since 2026-10-20) come first.** New work reaches the laptop only through a numbered release on hub ANAL-232: B Honey approves the plan, then approves the device write separately, naming the image, operation and device. That approval replaces the older standing go in step 0. A feature issue asked to put work "on the laptop" hands off its pinned inputs and its own tests (`docs/release-control.md`, "Test once"). It does not build an update or run this rehearsal itself: the release coordinator runs the update rehearsal once, as a release step, with `scripts/googlebook/g14-ota.sh` for Ruby. The steps below are the AOSP-track procedure.
+
 The procedure that took the G14 from `anal192e` to `openbook-ota-20261018-cand1` on 2026-10-18 (ANAL-223, PR #112): QEMU 55/55, then the laptop, with 0 data lost. The repo is https://github.com/Mhsbrian/OpenBook. Paths below are relative to a checkout of it. `<data>` is `~/anybook`.
 
 How it works: `docs/installer.md` §2.5 (bootsync, the boot HAL) and §13.13 (results). The operator's view: `docs/adb-debug.md` §7. Each step below has a command and a pass condition. **If a pass condition fails, stop and report. Do not go on to the laptop.**

@@ -1,0 +1,67 @@
+{
+  "schema": "anybook-handoff/1",
+  "source_issue": "ANAL-229",
+  "commit": "a05f832599afc55b3fb1441a9c186342a17fea3f",
+  "track": "ruby-g14",
+  "note": "Written after the fact from ANAL-229's evidence, to replay RB-20261023-03 under the test-once rule.",
+  "checks": [
+    {
+      "id": "engine-host",
+      "kind": "unit",
+      "scope": "component",
+      "passed": true,
+      "summary": "32/32, also on Android's mksh/awk/toybox",
+      "evidence": "evidence/2026-10-23-update-app/README.md",
+      "inputs": {
+        "updater_files": "6fd088b33d6810ff1cabccda6768f1faf38aa945d50d3d75180fdbee3952d388"
+      }
+    },
+    {
+      "id": "app-jvm",
+      "kind": "unit",
+      "scope": "component",
+      "passed": true,
+      "summary": "19/19, lint clean",
+      "evidence": "evidence/2026-10-23-update-app/build.json",
+      "inputs": {
+        "apk": "f3308832e914314ce73b0e141142101033280bf18d4bbd8c08e6d241732953c5"
+      }
+    },
+    {
+      "id": "builder-unit",
+      "kind": "unit",
+      "scope": "component",
+      "passed": true,
+      "summary": "11/11",
+      "evidence": "evidence/2026-10-23-update-app/README.md",
+      "inputs": {
+        "candidate_builder": "c3d160ce4e2a1a9e898bdcf76ea74171b96adc716451062e05b3c952f3912c43"
+      }
+    },
+    {
+      "id": "emulator",
+      "kind": "emulator",
+      "scope": "component",
+      "passed": true,
+      "summary": "engine 9/9, instrumented 8/8, system app",
+      "evidence": "evidence/2026-10-23-update-app/emulator/instrumentation-summary.txt",
+      "inputs": {
+        "apk": "f3308832e914314ce73b0e141142101033280bf18d4bbd8c08e6d241732953c5"
+      }
+    },
+    {
+      "id": "ruby-vm-fresh-boot",
+      "kind": "fresh-boot-vm",
+      "scope": "image",
+      "passed": true,
+      "summary": "16/16",
+      "evidence": "evidence/2026-10-23-update-app/vm/judge.json",
+      "inputs": {
+        "parent_staged_candidate": "75fa0196090558519fbb33d079ed51e2b9fd86ee102013c089bc8e9122fe9391",
+        "apk": "f3308832e914314ce73b0e141142101033280bf18d4bbd8c08e6d241732953c5",
+        "candidate_builder": "c3d160ce4e2a1a9e898bdcf76ea74171b96adc716451062e05b3c952f3912c43",
+        "updater_files": "6fd088b33d6810ff1cabccda6768f1faf38aa945d50d3d75180fdbee3952d388"
+      }
+    }
+  ]
+}
