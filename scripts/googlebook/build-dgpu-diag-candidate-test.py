@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-"""Checks for build-dgpu-diag-candidate.py and dgpu-vm-judge.py (ANAL-238): fail-closed input choices, the CIL
-derivation, the VM report's init script, and the judge on synthetic serial logs. No images or containers."""
+"""Checks for build-dgpu-diag-candidate.py and dgpu-vm-judge.py (ANAL-238, ANAL-257's lab): fail-closed input
+choices, the CIL and property derivations, the VM report's init script, and the judge on synthetic serial logs.
+No images or containers."""
 import hashlib
 import importlib.util
 import os
@@ -29,17 +30,43 @@ TEMPLATE = (
     "(allow hal_power_stats_default sysfs_suspend_stats_202604 (dir (ioctl read getattr lock open watch watch_reads search)))\n"
     "(allow hal_power_stats_default sysfs_suspend_stats_202604 (file (ioctl read getattr lock map open watch watch_reads)))\n"
     "(allow hal_power_stats_default sysfs_suspend_stats_202604 (lnk_file (ioctl read getattr lock map open watch watch_reads)))\n")
-CIL = "(type openbook_pc_setup)\n" + TEMPLATE + "(allow openbook_pc_setup sysfs_202604 (file (read)))\n"
+SYSFS = (  # openbook_pc_setup's own sysfs rules in the base: the lab's templates
+    "(allow openbook_pc_setup sysfs_202604 (dir (ioctl read getattr lock open watch watch_reads search)))\n"
+    "(allow openbook_pc_setup sysfs_202604 (file (ioctl read getattr lock map open watch watch_reads)))\n"
+    "(allow openbook_pc_setup sysfs_202604 (lnk_file (ioctl read getattr lock map open watch watch_reads)))\n"
+    "(allow openbook_pc_setup sysfs_202604 (file (write lock append map open)))\n")
+CIL = "(type openbook_pc_setup)\n" + TEMPLATE + SYSFS
+PROPS = "vendor.openbook.               u:object_r:vendor_openbook_prop:s0\n"
 
 
 class Cil(unittest.TestCase):
     def test_rule_derived_from_template(self):
         out, added = c.new_cil(CIL.encode())
-        self.assertEqual(len(added), 3)
-        self.assertTrue(all(l.startswith("(allow openbook_pc_setup sysfs_suspend_stats_202604 (") for l in added))
+        self.assertEqual(len(added), 7)
+        self.assertTrue(all(l.startswith("(allow openbook_pc_setup sysfs_suspend_stats_202604 (") for l in added[:3]))
         self.assertEqual(out.decode(), CIL + "".join(l + "\n" for l in added))
-        self.assertEqual([l.replace("openbook_pc_setup", "hal_power_stats_default", 1) for l in added],
+        self.assertEqual([l.replace("openbook_pc_setup", "hal_power_stats_default", 1) for l in added[:3]],
                          TEMPLATE.splitlines())
+
+    def test_lab_rules_from_openbook_pc_setup_sysfs(self):
+        _, added = c.new_cil(CIL.encode())
+        sysfs = SYSFS.splitlines()
+        self.assertEqual(added[3:], [sysfs[0].replace("sysfs_202604", "sysfs_rtc_202604"),
+                                     sysfs[1].replace("sysfs_202604", "sysfs_rtc_202604"),
+                                     sysfs[2].replace("sysfs_202604", "sysfs_rtc_202604"),
+                                     sysfs[3].replace("sysfs_202604", "sysfs_power_202604")])
+
+    def test_lab_refuses_missing_template_or_existing_grant(self):
+        with self.assertRaisesRegex(ValueError, "Expected one openbook_pc_setup sysfs file"):
+            c.new_cil(CIL.replace(SYSFS.splitlines()[3] + "\n", "").encode())
+        with self.assertRaisesRegex(ValueError, "already grants openbook_pc_setup sysfs_power_202604"):
+            c.new_cil((CIL + "(allow openbook_pc_setup sysfs_power_202604 (file (write)))\n").encode())
+
+    def test_lab_switch_property(self):
+        out = c.new_props(PROPS.encode()).decode()
+        self.assertEqual(out, PROPS + "persist.vendor.openbook.lab    u:object_r:vendor_openbook_prop:s0 exact bool\n")
+        with self.assertRaisesRegex(ValueError, "already names the lab switch"):
+            c.new_props(out.encode())
 
     def test_refuses_missing_template_class(self):
         broken = CIL.replace(TEMPLATE.splitlines()[2] + "\n", "")
@@ -60,7 +87,7 @@ class Inputs(unittest.TestCase):
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp)
         self.vendor = self.tmp / "vendor"
-        files = {c.SETUP: b"old setup\n", c.RC: b"old rc\n", c.CIL: CIL.encode()}
+        files = {c.SETUP: b"old setup\n", c.RC: b"old rc\n", c.CIL: CIL.encode(), c.PROPS: PROPS.encode()}
         for path, data in files.items():
             (self.vendor / path.lstrip("/")).parent.mkdir(parents=True, exist_ok=True)
             (self.vendor / path.lstrip("/")).write_bytes(data)
@@ -76,7 +103,7 @@ class Inputs(unittest.TestCase):
 
     def test_replacements(self):
         out = c.replacements_for(self.vendor)
-        self.assertEqual(set(out), {c.SETUP, c.RC, c.CIL})
+        self.assertEqual(set(out), {c.SETUP, c.RC, c.CIL, c.PROPS})
         self.assertEqual(out[c.SETUP], b"new setup\n")
         self.assertTrue(out[c.CIL].startswith(CIL.encode()))
 
@@ -136,7 +163,37 @@ def report(reason, state="absent", stats=True):
     return lines + [f"dgpu-report: state={state}"]
 
 
-def serial(boot=None, extra_denial=False, ctl_exit=0):
+def lab_lines(module=True, mod_exit=0, leftover=False):
+    """The lab session of the VM check script, as logcat lines per step (cumulative, as the script captures them)."""
+    rows, log = [], []
+    def step(name, *new):
+        log.extend(new)
+        rows.extend(f"DGR_LOG lab-{name} {l}" for l in log)
+    off = "lab: '{}' refused: the lab switch is off (setprop debug.openbook.lab enable)"
+    step("report@off", off.format("report@off"))
+    step("enable", "lab: switched on (persist.vendor.openbook.lab=1, kept across reboots); 'disable' switches it off")
+    step("report@on", "lab-report (report@on): switch=1", *report("lab report@on"),
+         "lab: module nouveau not loaded", "lab: module drm_gpuvm not loaded", "lab: module openbook_sleep_diag not loaded")
+    rows.append("DGR_LABMOD " + ("present" if module else "absent"))
+    if module:
+        step("diag-snapshot", "lab: diag-snapshot: openbook_sleep_diag present",
+             "lab: module openbook_sleep_diag loaded state=live refcnt=0")
+        step("report@diag", "lab-report (report@diag): switch=1", *report("lab report@diag"),
+             "lab: openbook_sleep_diag ptm_off=N snapshot=2 usb4=Y cycles=8", "lab: diag no S0i3 attempt yet")
+        step("diag-unload", "lab: diag-unload: openbook_sleep_diag absent")
+    step("disable", "lab: switched off (persist.vendor.openbook.lab=0)")
+    step("report@disabled", off.format("report@disabled"))
+    if leftover:
+        rows.append("DGR_PROCMOD openbook_sleep_diag 40960 0 - Live 0x0")
+    svc = [("lab", 3), ("lab", 0), ("lab", 0)] + ([("lab-diag-snapshot", mod_exit), ("lab", 0), ("lab", 0),
+                                                   ("lab-diag-unload", 0), ("lab", 0)] if module else []) + \
+          [("lab", 0), ("lab", 3)]
+    init = [f"[   90.0][ T1] init: Service 'vendor.openbook.{n}' (pid 1) exited with status {code} oneshot"
+            for n, code in svc]
+    return init, rows
+
+
+def serial(boot=None, extra_denial=False, ctl_exit=0, **lab):
     boot = report("boot") if boot is None else boot
     rows = ["[   11.4][ T44] audit: type=1400 audit(1792791906.135:7): avc:  denied  { write } for  pid=218 "
             'comm="openbook-pc-set" path="/dev/kmsg_debug" dev="tmpfs" ino=6 scontext=u:r:openbook_pc_setup:s0 '
@@ -152,6 +209,8 @@ def serial(boot=None, extra_denial=False, ctl_exit=0):
     rows += [f"DGR_LOG ctl-on {l}" for l in ["dgpu-ctl: no NVIDIA function enumerated; nothing to do"]
              + report("dgpu-ctl on")]
     rows += [f"DGR_LOG ctl-auto {l}" for l in ["no NVIDIA GPU enumerated; nothing to do"] + report("dgpu-ctl auto")]
+    init, lab_rows = lab_lines(**lab)
+    rows = init + rows + lab_rows
     rows += ["DGR_VMCHECK done"]
     return "\n".join(rows) + "\n"
 
@@ -181,6 +240,27 @@ class Judge(unittest.TestCase):
     def test_nonzero_exit_fails(self):
         r = j.judge(serial(ctl_exit=2), BOOT, BASELINE)
         self.assertFalse(r["checks"]["services_exit_0"])
+
+    def test_lab_without_module_fails(self):
+        r = j.judge(serial(module=False), BOOT, BASELINE)
+        self.assertFalse(r["checks"]["lab_module_in_vendor_dlkm"])
+        self.assertTrue(r["checks"]["lab_switched_off"])
+        self.assertFalse(r["passed"])
+
+    def test_lab_modprobe_failure_fails(self):
+        r = j.judge(serial(mod_exit=1), BOOT, BASELINE)
+        self.assertFalse(r["checks"]["lab_services_exit_as_expected"])
+
+    def test_lab_module_left_loaded_fails(self):
+        r = j.judge(serial(leftover=True), BOOT, BASELINE)
+        self.assertFalse(r["checks"]["lab_module_unloads"])
+
+    def test_new_vendor_modprobe_denial_fails(self):
+        denial = ("[   95.0][ T44] audit: type=1400 audit(1792791990.1:12): avc:  denied  { read } for  pid=950 "
+                  'comm="modprobe" name="refcnt" dev="sysfs" ino=9 scontext=u:r:vendor_modprobe:s0 '
+                  "tcontext=u:object_r:sysfs:s0 tclass=file permissive=0\n")
+        r = j.judge(denial + serial(), BOOT, BASELINE)
+        self.assertFalse(r["checks"]["no_new_vendor_modprobe_denials"])
 
     def test_missing_report_fails(self):
         r = j.judge(serial().replace("DGR_VMCHECK done\n", ""), BOOT, BASELINE)

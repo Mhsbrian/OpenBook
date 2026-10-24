@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: Apache-2.0
-# ANAL-238's vendor dGPU diagnostics on the real Ruby image, in QEMU. Regular image files only; no device.
+# ANAL-238's vendor dGPU diagnostics and ANAL-257's lab on the real Ruby image, in QEMU. Regular image files only; no device.
 #   1. stage-base.py on a reviewed candidate (default RB-20261023-03's candidate C, 71da0228…)
 #   2. build-dgpu-diag-candidate.py --check-policy-only, then --vm-check (vendor rebuilt; disposable system report)
 #   3. stage-base.py, build-ruby-ab-super.py, build-ruby-ab-image.py --vm   the two-slot disk
@@ -8,6 +8,7 @@
 #   5. dgpu-vm-judge.py against BASELINE_SERIAL, a fresh boot of the same release without the change
 # usage: dgpu-vm.sh WORK [CANDIDATE_DIR CANDIDATE_SHA256 BASELINE_SERIAL]    (WORK under ~/anybook/installer/work)
 #        DGPU_VM_BUILD_ONLY=1 stops before the QEMU boot. A rerun on the same WORK resumes finished steps.
+#        LAB_MODULE=<openbook_sleep_diag.ko built for the base's kernel> adds it to vendor_dlkm, blocklisted (ANAL-257)
 set -euo pipefail
 W=$1
 CAND=${2:-$HOME/anybook/installer/work/rb-20261023-03/cand-prod}
@@ -42,7 +43,7 @@ if step policy-check/policy-check.json; then
 fi
 if step candidate/manifest.json; then
   run python3 "$HERE/build-dgpu-diag-candidate.py" "${common[@]}" --out "$W/candidate" --vm-check \
-    > "$W/candidate.log" 2>&1
+    ${LAB_MODULE:+--lab-module "$LAB_MODULE"} > "$W/candidate.log" 2>&1
 fi
 sha=$(mshaf "$W/candidate/manifest.json")
 if step staged/manifest.json; then

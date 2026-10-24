@@ -1,14 +1,20 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-"""Add ANAL-238's dGPU diagnostics to a Ruby candidate's vendor partition.
+"""Add ANAL-238's dGPU diagnostics and ANAL-257's lab helper to a Ruby candidate's vendor partition.
 
-Three vendor files change, each from its reviewed original (BASE_PINS) to this repository's version:
+Four vendor files change, each from its reviewed original (BASE_PINS) to this repository's version:
   /bin/openbook-pc-setup              device/anybook/common/pc/bin/openbook-pc-setup.sh: logs to logd too; the
-                                      dgpu-report and dgpu-ctl subcommands
+                                      dgpu-report, dgpu-ctl and lab subcommands
   /etc/init/hw/init.openbook.rc       device/anybook/common/pc/init.openbook.rc: the dgpu-report service (at boot
-                                      completion and on debug.openbook.dgpu_report) and dgpu-ctl (debug.openbook.dgpu_pm)
+                                      completion and on debug.openbook.dgpu_report), dgpu-ctl (debug.openbook.dgpu_pm),
+                                      the lab (debug.openbook.lab) and its fixed modprobe services
   /etc/selinux/vendor_sepolicy.cil    the base file plus r_dir_file(openbook_pc_setup, sysfs_suspend_stats), written
-                                      as the base's own expansion of the same rule for hal_power_stats_default
+                                      as the base's own expansion of the same rule for hal_power_stats_default, and
+                                      the lab's r_dir_file(openbook_pc_setup, sysfs_rtc) and sysfs_power w_file_perms,
+                                      written as the base's own expansions of openbook_pc_setup's sysfs rules
+  /etc/selinux/vendor_property_contexts
+                                      the base file plus persist.vendor.openbook.lab (vendor_openbook_prop), the
+                                      lab's switch
 Every other vendor inode, xattr and file keeps its bytes (build-input-candidate.rebuild_erofs proves it), and
 the other logical images are used as they are. vbmeta, super and the boot entries are assembled by the same
 path as every OpenBook candidate (build-input-candidate.assemble).
@@ -20,8 +26,9 @@ Fail-closed checks:
   - the new policy compiles with secilc, neverallows included, against the candidate's own platform, system_ext
     and product policies; the base policy compiles too, and only the new one grants openbook_pc_setup the
     suspend_stats reads (sepolicy-analyze).
---vm-check also adds a disposable system service reporting the diagnostics to the serial console (DGR_* lines);
-such a candidate is marked not deployable.
+--vm-check also adds a disposable system service reporting the diagnostics and a lab session to the serial console
+(DGR_* lines); such a candidate is marked not deployable. With --lab-module KO it also adds that
+openbook_sleep_diag.ko to vendor_dlkm, blocklisted as the product ships it, so the lab's module commands run.
 --check-policy-only runs the policy checks on the base and writes OUT/policy-check.json; no candidate.
 
 usage: build-dgpu-diag-candidate.py --base STAGED_CANDIDATE --base-sha256 SHA --tools AOSP_HOST_BIN
@@ -34,6 +41,7 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 
@@ -55,11 +63,16 @@ p = b.p
 SETUP = "/bin/openbook-pc-setup"
 RC = "/etc/init/hw/init.openbook.rc"
 CIL = "/etc/selinux/vendor_sepolicy.cil"
+PROPS = "/etc/selinux/vendor_property_contexts"
+LAB_PROPERTY = "persist.vendor.openbook.lab    u:object_r:vendor_openbook_prop:s0 exact bool\n"
+MODDIR = "/lib/modules"
+LAB_MODULE = "openbook_sleep_diag.ko"
 # The vendor of RB-20261021-01 .. RB-20261023-03 (unchanged since RB01): the files this change replaces.
 BASE_PINS = {
     SETUP: "0e70d4a55c27388c0fb22de69151895633db17d6db49fd90404b73a2c890b31d",
     RC: "9836f8d3d3218663730f348eccf86436a905f7b1ad9da6a2b70288b0a19fe73f",
     CIL: "321e4491be38226c102ecb554517887753f8f37770237abdb129197e84035673",
+    PROPS: "f91380e8c80a72354855483d13f3ae7be11055062bab57c79f03028ede0d3065",
 }
 SOURCES = {
     SETUP: REPO / "device/anybook/common/pc/bin/openbook-pc-setup.sh",
@@ -70,8 +83,17 @@ DOMAIN = "openbook_pc_setup"
 STATS_TYPE = "sysfs_suspend_stats"
 SCOPE = ("dGPU diagnostics (ANAL-238): openbook-pc-setup logs to logd; a root-domain dgpu-report at boot completion "
          "and on debug.openbook.dgpu_report; a volatile dgpu-ctl on|auto hold from debug.openbook.dgpu_pm; "
-         "read access to /sys/power/suspend_stats for openbook_pc_setup. No firmware setting (dgpu_disable, "
-         "gpu_mux_mode) is written")
+         "read access to /sys/power/suspend_stats for openbook_pc_setup. The G14 lab (ANAL-257): allow-listed "
+         "actions from debug.openbook.lab behind persist.vendor.openbook.lab (set only by openbook_pc_setup): reports, "
+         "nouveau and openbook_sleep_diag loads and unloads through init's fixed vendor_modprobe services, and "
+         "RTC-woken suspends through /sys/power/state. No firmware setting (dgpu_disable, gpu_mux_mode) is written")
+# The lab's rules, from openbook_pc_setup's own sysfs rules in the base: (class, template permissions, new type)
+LAB_RULES = [
+    ("dir", "(ioctl read getattr lock open watch watch_reads search)", "sysfs_rtc"),
+    ("file", "(ioctl read getattr lock map open watch watch_reads)", "sysfs_rtc"),
+    ("lnk_file", "(ioctl read getattr lock map open watch watch_reads)", "sysfs_rtc"),
+    ("file", "(write lock append map open)", "sysfs_power"),
+]
 # sepolicy-analyze probes: (rule, allowed in the base?, allowed in the candidate?)
 PROBES = [
     (f"{DOMAIN} {STATS_TYPE}:dir search", False, True),
@@ -83,6 +105,17 @@ PROBES = [
     ("vendor_init debug_prop:file read", True, True),
     ("vendor_init boot_status_prop:file read", True, True),
     ("shell debug_prop:property_service set", True, True),
+    # ANAL-257's lab
+    (f"{DOMAIN} sysfs_power:file write", False, True),
+    (f"{DOMAIN} sysfs_rtc:lnk_file read", False, True),
+    (f"{DOMAIN} sysfs_rtc:dir search", False, True),
+    (f"{DOMAIN} vendor_openbook_prop:property_service set", True, True),
+    ("vendor_modprobe vendor_file:system module_load", True, True),
+    ("init vendor_modprobe:process transition", True, True),
+    (f"{DOMAIN} self:capability sys_module", False, False),
+    (f"{DOMAIN} kernel:system syslog_read", False, False),
+    ("shell vendor_openbook_prop:property_service set", False, False),
+    ("shell sysfs_power:file write", False, False),
 ]
 
 VM_CHECK_RC = b"""# Disposable VM test only (ANAL-238): report the vendor dGPU diagnostics to the serial console. Never deploy.
@@ -132,8 +165,23 @@ lines ctl-on
 setprop debug.openbook.dgpu_pm auto
 sleep 25
 lines ctl-auto
-for s in dgpu-pm dgpu-report dgpu-ctl; do echo "DGR_SVC $s $(getprop init.svc.vendor.openbook.$s)"; done
-logcat -d -b all | grep 'avc:' | grep 'denied' | grep -E 'openbook_pc_setup|openbook-pc-set' | sed 's/^/DGR_AVC /'
+lab() { setprop debug.openbook.lab "$1"; sleep "$2"; lines "lab-$1"; }
+lab report@off 10
+lab enable 8
+lab report@on 15
+if [ -e /vendor/lib/modules/openbook_sleep_diag.ko ]; then
+    echo "DGR_LABMOD present"
+    lab diag-snapshot 25
+    lab report@diag 15
+    lab diag-unload 25
+else
+    echo "DGR_LABMOD absent"
+fi
+lab disable 8
+lab report@disabled 10
+for s in dgpu-pm dgpu-report dgpu-ctl lab lab-diag-snapshot lab-diag-unload; do echo "DGR_SVC $s $(getprop init.svc.vendor.openbook.$s)"; done
+grep -E '^(openbook_sleep_diag|nouveau|drm_gpuvm) ' /proc/modules | sed 's/^/DGR_PROCMOD /'
+logcat -d -b all | grep 'avc:' | grep 'denied' | grep -E 'openbook_pc_setup|openbook-pc-set|vendor_modprobe|openbook_sleep_diag' | sed 's/^/DGR_AVC /'
 logcat -d -b crash | grep -E 'Fatal signal|FATAL EXCEPTION|Process: |>>> ' | sed 's/^/DGR_CRASH /'
 rm -f $BOOT
 echo "DGR_VMCHECK done"
@@ -157,13 +205,40 @@ def rule_lines(cil_text):
     return [l.replace(f"(allow {RULE_TEMPLATE_DOMAIN} ", f"(allow {DOMAIN} ", 1) for l in found]
 
 
+def lab_rule_lines(cil_text):
+    """ANAL-257's lab rules: openbook_pc_setup's own sysfs expansions in the base, re-targeted to sysfs_rtc (read)
+    and sysfs_power (write), with the base's own version suffix."""
+    lines = cil_text.splitlines()
+    out = []
+    for cls, perms, new_type in LAB_RULES:
+        found = [l for l in lines if l.startswith(f"(allow {DOMAIN} sysfs_") and l.endswith(f" ({cls} {perms}))")
+                 and l.split(" ")[2].rsplit("_", 1)[0] == "sysfs"]
+        if len(found) != 1:
+            raise ValueError(f"Expected one {DOMAIN} sysfs {cls} {perms} rule in the base; found {len(found)}")
+        versioned = found[0].split(" ")[2]
+        target = new_type + versioned[len("sysfs"):]
+        if any(l.startswith(f"(allow {DOMAIN} {target} ({cls} ") for l in lines):
+            raise ValueError(f"The base already grants {DOMAIN} {target} {cls}")
+        out.append(found[0].replace(f" {versioned} ", f" {target} ", 1))
+    return out
+
+
 def new_cil(base):
-    """The base vendor_sepolicy.cil with the three statements appended (CIL is order-independent)."""
+    """The base vendor_sepolicy.cil with ANAL-238's three and ANAL-257's four statements appended (CIL is
+    order-independent)."""
     text = base.decode()
     if not text.endswith("\n"):
         raise ValueError("vendor_sepolicy.cil does not end with a newline")
-    added = rule_lines(text)
+    added = rule_lines(text) + lab_rule_lines(text)
     return (text + "".join(l + "\n" for l in added)).encode(), added
+
+
+def new_props(base):
+    """The base vendor_property_contexts plus the lab's switch."""
+    text = base.decode()
+    if "persist.vendor.openbook.lab" in text or not text.endswith("\n"):
+        raise ValueError("vendor_property_contexts already names the lab switch, or lacks its final newline")
+    return (text + LAB_PROPERTY).encode()
 
 
 def replacements_for(vendor_root):
@@ -179,6 +254,7 @@ def replacements_for(vendor_root):
     for path, src in SOURCES.items():
         out[path] = src.read_bytes()
     out[CIL], _ = new_cil((vendor_root / CIL.lstrip("/")).read_bytes())
+    out[PROPS] = new_props((vendor_root / PROPS.lstrip("/")).read_bytes())
     for path, data in out.items():
         if sha(data) == BASE_PINS[path]:
             raise ValueError(f"{path}: the new bytes equal the base's")
@@ -271,6 +347,12 @@ def rebuild(a, w, old, name, replacements, additions):
     original = b.contents(source)
     additions = {n: b.added_file(v) for n, v in additions.items()}
     expected_metadata = b.addition_metadata(b.replacement_metadata(before, replacements), additions)
+    # mkfs.erofs gives every inode the partition's one time; added inodes get it too (addition_metadata uses
+    # Google's 1230768000, which only system shares).
+    mtime = uniform_mtime(before)
+    added_hex = {n.encode().hex() for n in additions}
+    expected_metadata = sorted(" ".join(r[:7] + [str(mtime), "0"]) if r[0] == "I" and r[1] in added_hex else " ".join(r)
+                               for r in (line.split(" ") for line in expected_metadata))
     for path, data in replacements.items():
         if path not in original or original[path][0] != "file":
             raise ValueError(f"Replacement is not an existing regular file: {name}{path}")
@@ -284,13 +366,42 @@ def rebuild(a, w, old, name, replacements, additions):
     expected = dict(original)
     files = {**replacements, **{n: v[0] for n, v in additions.items() if v is not None}}
     expected.update({path: ["file", sha(data)] for path, data in files.items()})
-    rebuilt, after = b.rebuild_erofs(a, sub, source, expected_metadata, expected, uniform_mtime(before))
+    rebuilt, after = b.rebuild_erofs(a, sub, source, expected_metadata, expected, mtime)
     out = w / f"{name}.img"
     rebuilt.rename(out)
-    footer(a, out, image.stat().st_size, name)
+    # Keep the base's partition size unless the new file system (plus its hash tree) needs more.
+    size = max(image.stat().st_size, -(-(out.stat().st_size * 102 // 100 + (1 << 20)) // 4096) * 4096)
+    footer(a, out, size, name)
     return out, dict(metadata_rows=len(before), all_inode_xattrs_identical=before == after,
                      changed_files=sorted(replacements), added_paths=sorted(additions),
                      file_and_symlink_count=len(original))
+
+
+def lab_dlkm(a, w, old, ko_path):
+    """vendor_dlkm plus openbook_sleep_diag.ko as the product ships it (ANAL-257): a vendor_file module with a
+    dependency-free modules.dep line and a modules.blocklist line, not in modules.load. VM check only."""
+    ko = p.regular(ko_path).read_bytes()
+    image = p.regular(a.base / "logical/vendor_dlkm_a.img")
+    peek = extract(a, image, w / "dlkm-peek")
+    moddir = peek / MODDIR.lstrip("/")
+    mods = sorted(moddir.glob("*.ko"))
+    if not mods or (moddir / LAB_MODULE).exists():
+        raise ValueError("vendor_dlkm has no modules, or already has openbook_sleep_diag.ko")
+    magic = re.search(rb"vermagic=([^\0]+)", mods[0].read_bytes()).group(1)
+    if ko[:4] != b"\x7fELF" or b"vermagic=" + magic not in ko:
+        raise ValueError("Lab module is not an ELF built for this image's kernel")
+    dep = (moddir / "modules.dep").read_text()
+    block = (moddir / "modules.blocklist").read_text()
+    prefix = dep.splitlines()[0].split(":")[0].rsplit("/", 1)[0]
+    if f"/{LAB_MODULE}:" in dep or LAB_MODULE in block:
+        raise ValueError("Lab module already listed")
+    label = next(bytes.fromhex(r.split(" ")[3]).rstrip(b"\0").decode() for r in b.inventory(a.inventory, image)
+                 if r.startswith(f"X {(MODDIR + '/' + mods[0].name).encode().hex()} {b'security.selinux'.hex()} "))
+    replacements = {f"{MODDIR}/modules.dep": (dep + f"{prefix}/{LAB_MODULE}:\n").encode(),
+                    f"{MODDIR}/modules.blocklist": (block + f"blocklist {LAB_MODULE}\n").encode()}
+    shutil.rmtree(peek)
+    out, details = rebuild(a, w, old, "vendor_dlkm", replacements, {f"{MODDIR}/{LAB_MODULE}": (ko, 0o644, label)})
+    return out, dict(details, module_sha256=sha(ko), vermagic=magic.decode(), label=label)
 
 
 def build(a):
@@ -308,7 +419,7 @@ def build(a):
     policy = policy_check(a, w, old, vendor_root, replacements[CIL])
     _, added = new_cil((vendor_root / CIL.lstrip("/")).read_bytes())
     record = dict(
-        deployment_eligible=not vm_check, issue="ANAL-238", hardware_validated=False, scope=SCOPE,
+        deployment_eligible=not vm_check, issue="ANAL-238, ANAL-257", hardware_validated=False, scope=SCOPE,
         partition="vendor",
         files={path: dict(base_sha256=BASE_PINS[path], sha256=sha(data)) for path, data in replacements.items()},
         added_policy=added, policy=policy)
@@ -333,6 +444,11 @@ def build(a):
         system, system_details = rebuild(a, w, old, "system", {}, additions)
         images["system"] = system
         details["system"] = system_details
+        if getattr(a, "lab_module", None):
+            dlkm, details["vendor_dlkm"] = lab_dlkm(a, w, old, a.lab_module)
+            images["vendor_dlkm"] = dlkm
+            annotations["experimental_dgpu_vmcheck"]["lab_module"] = {
+                k: details["vendor_dlkm"][k] for k in ("module_sha256", "vermagic", "label")}
     if set(annotations) & set(old):
         raise ValueError("Annotations would override baseline fields")
     b.assemble(a, w, base, old, a.base_sha256, images, annotations, "openbook-ruby-dgpu-diag-candidate/1",
@@ -347,7 +463,10 @@ if __name__ == "__main__":
     mode = ap.add_mutually_exclusive_group()
     mode.add_argument("--vm-check", action="store_true", help="add the disposable serial-console report (not deployable)")
     mode.add_argument("--check-policy-only", action="store_true", help="policy checks only; no candidate")
+    ap.add_argument("--lab-module", type=Path, help="with --vm-check: add this openbook_sleep_diag.ko to vendor_dlkm")
     args = ap.parse_args()
+    if args.lab_module and not args.vm_check:
+        ap.error("--lab-module is for --vm-check candidates only")
     if not Path("/.dockerenv").exists():
         ap.error("Use inst-docker.sh; regular images only")
     os.umask(0o077)

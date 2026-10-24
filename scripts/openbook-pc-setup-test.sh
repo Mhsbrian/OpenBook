@@ -202,5 +202,106 @@ runx "$r" dgpu-ctl on
 check "ctl with nouveau: exit 0" "$r.rc" 0
 check "ctl with nouveau: audio untouched" "$r/sys/devices/pci0000:00/0000:00:03.1/0000:64:00.1/power/control" auto
 
+# lab (ANAL-257): a property store in files, and a stand-in for init that loads or unloads the module named by
+# vendor.openbook.lab.mod in the fake sysfs (FAKE_INIT=0: init does nothing, so the helper must time out).
+P=$T/props; mkdir -p "$P"
+cat > "$T/getprop" <<'EOF'
+#!/bin/sh
+cat "$PROPS/$1" 2>/dev/null
+EOF
+cat > "$T/setprop" <<'EOF'
+#!/bin/sh
+printf '%s\n' "$2" > "$PROPS/$1"; echo "$1=$2" >> "$PROPS/.log"
+[ "$1" = vendor.openbook.lab.mod ] && [ "${FAKE_INIT:-1}" = 1 ] || exit 0
+m=$FAKE_SYS/sys/module
+case $2 in
+  nouveau-load) mkdir -p "$m/nouveau/parameters" "$m/drm_gpuvm"; echo live > "$m/nouveau/initstate"
+                echo 1 > "$m/nouveau/parameters/runpm"; echo 2 > "$m/nouveau/parameters/modeset" ;;
+  nouveau-unload) rm -rf "$m/nouveau" "$m/drm_gpuvm" ;;
+  diag-snapshot|diag-ptm-off)
+    d=$m/openbook_sleep_diag/parameters; mkdir -p "$d"
+    [ "$2" = diag-ptm-off ] && echo Y > "$d/ptm_off" || echo N > "$d/ptm_off"
+    echo 2 > "$d/snapshot"; echo Y > "$d/usb4"; echo 8 > "$d/cycles"
+    printf 's0i3-entry 1 (suspend 1):\n  0000:00:00.0 1022:1507 D0 -\ns0i3-entry 1: 39 PCI functions, 17 not in D3, 0 with PTM on (listed above)\n' > "$d/report" ;;
+  diag-unload) rm -rf "$m/openbook_sleep_diag" ;;
+esac
+EOF
+chmod 755 "$T/getprop" "$T/setprop"
+labrun() {  # labrun ROOT ARGS...: the lab with the stubs; the property store is shared between calls
+  r=$1; shift
+  PROPS=$P FAKE_SYS=$r OPENBOOK_GETPROP=$T/getprop OPENBOOK_SETPROP=$T/setprop OPENBOOK_LAB_WAIT_S=${WAIT:-3} \
+    OPENBOOK_SETTLE_S=0 OPENBOOK_SYSFS_ROOT=$r OPENBOOK_LOGCMD= "$SH" "$SCRIPT" "$@" > "$r.log" 2>&1
+  echo $? > "$r.rc"
+}
+lab_root() {  # a G14 with the dGPU in D3cold, an RTC and the suspend files
+  g14_d3cold "$1"
+  w "$1/sys/class/rtc/rtc0/wakealarm" ""; w "$1/sys/power/state" ""
+  w "$1/sys/power/suspend_stats/success" 7; w "$1/sys/power/suspend_stats/last_hw_sleep" 0
+}
+
+r=$T/lab-off; lab_root "$r"
+labrun "$r" lab report
+check "lab off: report refused (exit 3)" "$r.rc" 3
+has "lab off: says how to switch on" "$r.log" "refused: the lab switch is off"
+labrun "$r" lab 'rm -rf /'
+check "lab: unknown action refused (exit 2)" "$r.rc" 2
+has "lab: unknown action named" "$r.log" "'rm -rf /' is not an allowed action"
+check "lab: nothing set by refused requests" "$P/.log" ""
+
+r=$T/lab-on; lab_root "$r"
+labrun "$r" lab enable
+check "lab enable: exit 0" "$r.rc" 0
+check "lab enable: switch persisted" "$P/persist.vendor.openbook.lab" 1
+labrun "$r" lab report@1
+check "lab report: exit 0" "$r.rc" 0
+has "lab report: header with switch" "$r.log" 'lab-report \(report@1\): switch=1$'
+has "lab report: dGPU state" "$r.log" 'dgpu-report: state=d3cold$'
+has "lab report: nouveau not loaded" "$r.log" 'lab: module nouveau not loaded$'
+
+: > "$P/.log"
+labrun "$r" lab nouveau-load
+check "lab nouveau-load: exit 0" "$r.rc" 0
+check "lab nouveau-load: idle first, then the action, then idle" "$P/.log" "vendor.openbook.lab.mod=idle"
+has "lab nouveau-load: asked init" "$P/.log" '^vendor.openbook.lab.mod=nouveau-load$'
+check "lab nouveau-load: request reset" "$P/vendor.openbook.lab.mod" idle
+has "lab nouveau-load: present" "$r.log" 'lab: nouveau-load: nouveau present$'
+has "lab nouveau-load: nouveau's options reported" "$r.log" 'nouveau: runpm=1 modeset=2'
+has "lab nouveau-load: module state" "$r.log" 'lab: module nouveau loaded state=live'
+labrun "$r" lab nouveau-load@2
+check "lab nouveau-load twice: refused (exit 4)" "$r.rc" 4
+labrun "$r" lab nouveau-unload
+check "lab nouveau-unload: exit 0" "$r.rc" 0
+has "lab nouveau-unload: absent" "$r.log" 'lab: nouveau-unload: nouveau absent$'
+
+labrun "$r" lab diag-ptm-off
+check "lab diag-ptm-off: exit 0" "$r.rc" 0
+has "lab diag-ptm-off: parameters" "$r.log" 'lab: openbook_sleep_diag ptm_off=Y snapshot=2 usb4=Y cycles=8$'
+has "lab diag-ptm-off: report relayed" "$r.log" 'lab: diag s0i3-entry 1: 39 PCI functions, 17 not in D3, 0 with PTM on'
+has "lab diag-ptm-off: report lines keep their indent" "$r.log" 'lab: diag   0000:00:00.0 1022:1507 D0 -$'
+labrun "$r" lab diag-unload
+has "lab diag-unload: absent" "$r.log" 'lab: diag-unload: openbook_sleep_diag absent$'
+
+FAKE_INIT=0 WAIT=1 labrun "$r" lab diag-snapshot
+check "lab: init did nothing: exit 5" "$r.rc" 5
+has "lab: init did nothing: said so" "$r.log" 'diag-snapshot: openbook_sleep_diag not present after 1 s'
+check "lab: request reset after a timeout" "$P/vendor.openbook.lab.mod" idle
+
+labrun "$r" lab sleep-20
+check "lab sleep-20: exit 0" "$r.rc" 0
+has "lab sleep-20: alarm armed" "$r.log" 'wakealarm <- \+20$'
+check "lab sleep-20: suspended through /sys/power/state" "$r/sys/power/state" mem
+check "lab sleep-20: alarm cleared after" "$r/sys/class/rtc/rtc0/wakealarm" 0
+has "lab sleep-20: resumed and counted" "$r.log" 'lab: suspend_stats success=7 last_hw_sleep_us=0'
+labrun "$r" lab sleep-45
+check "lab: sleep length outside the list refused (exit 2)" "$r.rc" 2
+r2=$T/lab-busy; lab_root "$r2"; rm -f "$r2/sys/power/state"; mkdir -p "$r2/sys/power/state"
+labrun "$r2" lab sleep-20
+has "lab sleep refused by the kernel: said so" "$r2.log" 'the suspend was refused or aborted'
+
+labrun "$r" lab disable
+check "lab disable: switch off" "$P/persist.vendor.openbook.lab" 0
+labrun "$r" lab report
+check "lab disable: report refused again (exit 3)" "$r.rc" 3
+
 echo "openbook-pc-setup-test: $fails failure(s)"
 [ $fails = 0 ]

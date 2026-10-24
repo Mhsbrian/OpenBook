@@ -20,6 +20,8 @@ done
 echo deep > /sys/power/mem_sleep && echo "== s3"
 echo 0 > /sys/class/rtc/rtc0/wakealarm; echo +3 > /sys/class/rtc/rtc0/wakealarm
 echo mem > /sys/power/state && echo "== s3 resumed"
+sed 's/^/REPORT /' /sys/module/openbook_sleep_diag/parameters/report
+echo x > /sys/module/openbook_sleep_diag/parameters/report 2>/dev/null && echo "== report writable" || echo "== report read-only"
 while [ "$(cut -d. -f1 /proc/uptime)" -lt 70 ]; do sleep 2; done
 dmesg | grep -a "openbook_sleep_diag" | sed 's/^/KLOG /'
 rmmod openbook_sleep_diag && echo "== unloaded active"

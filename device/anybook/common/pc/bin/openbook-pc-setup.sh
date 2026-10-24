@@ -3,7 +3,7 @@
 # OpenBook PC boot-time sysfs setup, run by init as root (init.openbook.rc). Android mksh + toybox; also runs under
 # bash/dash for the fixture test (scripts/openbook-pc-setup-test.sh).
 #
-# usage: openbook-pc-setup dgpu-pm | dgpu-report [REASON] | dgpu-ctl on|auto | perms | kvm
+# usage: openbook-pc-setup dgpu-pm | dgpu-report [REASON] | dgpu-ctl on|auto | lab ACTION[@N] | perms | kvm
 #   dgpu-pm  Let an NVIDIA dGPU (10de) reach D3cold (docs/nvidia.md). snd_hda_intel holds the dGPU's HDMI-audio
 #            function awake: without vga_switcheroo (off in the GKI) it never runtime-suspends, and with it awake
 #            the root port cannot cut the slot's power, whether or not a driver drives the GPU. So:
@@ -27,6 +27,19 @@
 #            Volatile power hold for battery comparisons (ANAL-238), from debug.openbook.dgpu_pm. "on" keeps every
 #            NVIDIA function in D0 (power/control=on); "auto" is dgpu-pm again. Refused while a driver drives the
 #            GPU. Then logs a dgpu-report. A reboot returns to the boot default (dgpu-pm).
+#   lab ACTION[@N]
+#            The G14 lab helper (ANAL-257, docs/googlebook-s0i3.md), from debug.openbook.lab: allow-listed
+#            experiments for a user build's adb shell, which cannot load modules, write /sys or read the kernel log.
+#            Everything but enable/disable is refused until "enable" sets persist.vendor.openbook.lab=1, which only
+#            this root helper can set and which stays on across reboots until "disable". An @N suffix only makes a
+#            repeated request a new property value. Every result goes to logcat (logcat -s openbook-pc-setup).
+#              enable | disable     the switch
+#              report               dgpu-report, the lab modules' state, openbook_sleep_diag's last S0i3 report
+#              nouveau-load | nouveau-unload | diag-snapshot | diag-ptm-off | diag-unload
+#                                   ask init (vendor.openbook.lab.mod) to run its fixed modprobe command for the
+#                                   action in the module loader's own domain, wait for the module, then report
+#              sleep-20 | sleep-60 | sleep-300
+#                                   one suspend now, woken by the RTC after that many seconds, then report
 #   perms    Hand amd-pstate's energy_performance_preference to the power HAL (user system). cpufreq policies send
 #            no uevents, so ueventd.rc cannot do it.
 #   kvm      Set vendor.openbook.kvm to 1 if KVM registered its device, else 0 (ANAL-218). KVM_AMD is built in, so
@@ -34,7 +47,8 @@
 #            ro.boot.hypervisor.* properties AVF reads, so the Linux environment is offered only where it can run.
 #            It reads sysfs: only crosvm and ueventd may even stat /dev/kvm.
 # Testing: OPENBOOK_SYSFS_ROOT=<dir> works on <dir>/sys instead of /sys; OPENBOOK_LOGCMD=<path> replaces
-# /vendor/bin/log (empty: no logd copy).
+# /vendor/bin/log (empty: no logd copy); OPENBOOK_GETPROP/OPENBOOK_SETPROP replace getprop/setprop;
+# OPENBOOK_LAB_WAIT_S bounds the wait for a module (default 30).
 set -u
 SYS=${OPENBOOK_SYSFS_ROOT:-}/sys
 POWER_SAVE=10
@@ -206,6 +220,96 @@ dgpu_ctl() {
   return $rc
 }
 
+LAB_SWITCH=persist.vendor.openbook.lab
+LAB_ACTIONS="enable disable report nouveau-load nouveau-unload diag-snapshot diag-ptm-off diag-unload sleep-20 sleep-60 sleep-300"
+getp() { ${OPENBOOK_GETPROP:-getprop} "$@"; }
+setp() { ${OPENBOOK_SETPROP:-setprop} "$@"; }
+
+# lab_modules: the lab modules' state from sysfs, and openbook_sleep_diag's report of the last S0i3 attempt.
+lab_modules() {
+  for m in nouveau drm_gpuvm openbook_sleep_diag; do
+    if [ -d "$SYS/module/$m" ]; then
+      log "lab: module $m loaded$(kv "$SYS/module/$m/initstate" state)$(kv "$SYS/module/$m/refcnt" refcnt)"
+    else
+      log "lab: module $m not loaded"
+    fi
+  done
+  p=$SYS/module/openbook_sleep_diag/parameters
+  [ -d "$p" ] || return 0
+  log "lab: openbook_sleep_diag$(kv "$p/ptm_off" ptm_off)$(kv "$p/snapshot" snapshot)$(kv "$p/usb4" usb4)$(kv "$p/cycles" cycles)"
+  [ -r "$p/report" ] || return 0
+  while IFS= read -r line; do log "lab: diag $line"; done < "$p/report"
+  return 0
+}
+
+lab_report() {
+  log "lab-report (${1:-manual}): switch=$(getp $LAB_SWITCH)"
+  dgpu_report "lab ${1:-report}"
+  lab_modules
+}
+
+# lab_wait NAME present|absent: until /sys/module/NAME appears or goes, at most OPENBOOK_LAB_WAIT_S seconds.
+lab_wait() {
+  i=0
+  while :; do
+    if [ -d "$SYS/module/$1" ]; then [ "$2" = present ] && return 0; else [ "$2" = absent ] && return 0; fi
+    [ $i -ge "${OPENBOOK_LAB_WAIT_S:-30}" ] && return 1
+    sleep 1; i=$((i + 1))
+  done
+}
+
+# lab_sleep SECONDS: one suspend now, woken by the RTC. Writing "mem" to /sys/power/state blocks until the resume;
+# a pending wakeup source makes the kernel refuse it, as it does for Android's own suspends.
+lab_sleep() {
+  w=$SYS/class/rtc/rtc0/wakealarm; s=$SYS/power/suspend_stats
+  [ -e "$w" ] || { log "lab: no RTC wakealarm ($w): no sleep"; return 1; }
+  wr "$w" 0 || return 1
+  wr "$w" "+$1" || return 1
+  log "lab: suspending for $1 s$(kv "$s/success" success_before)$(kv "$s/fail" fail_before)"
+  if printf 'mem\n' > "$SYS/power/state" 2>/dev/null; then
+    log "lab: resumed"
+  else
+    log "lab: the suspend was refused or aborted (a wakeup source was active)"
+  fi
+  printf '0\n' > "$w" 2>/dev/null
+  log "lab: suspend_stats$(kv "$s/success" success)$(kv "$s/fail" fail)$(kv "$s/last_hw_sleep" last_hw_sleep_us)$(kv "$s/total_hw_sleep" total_hw_sleep_us)"
+  return 0
+}
+
+lab() {
+  req=${1:-}; act=${req%%@*}
+  case " $LAB_ACTIONS " in
+    *" $act "*) ;;
+    *) log "lab: '$req' is not an allowed action ($LAB_ACTIONS)"; return 2 ;;
+  esac
+  case $act in
+    enable) setp $LAB_SWITCH 1 && log "lab: switched on ($LAB_SWITCH=1, kept across reboots); 'disable' switches it off"; return 0 ;;
+    disable) setp $LAB_SWITCH 0 && log "lab: switched off ($LAB_SWITCH=0)"; return 0 ;;
+  esac
+  if [ "$(getp $LAB_SWITCH)" != 1 ]; then
+    log "lab: '$req' refused: the lab switch is off (setprop debug.openbook.lab enable)"
+    return 3
+  fi
+  rc=0
+  case $act in
+    report) lab_report "$req" ;;
+    nouveau-*|diag-*)
+      case $act in nouveau-*) m=nouveau ;; *) m=openbook_sleep_diag ;; esac
+      case $act in *-unload) want=absent ;; *) want=present ;; esac
+      if [ $want = present ] && [ -d "$SYS/module/$m" ]; then
+        log "lab: $act refused: $m is already loaded (unload it first)"; lab_report "$req"; return 4
+      fi
+      # init runs the fixed command for this value (init.openbook.rc); idle first, so a repeat is a change too.
+      setp vendor.openbook.lab.mod idle; setp vendor.openbook.lab.mod "$act"
+      if lab_wait $m $want; then log "lab: $act: $m $want"; else log "lab: $act: $m not $want after ${OPENBOOK_LAB_WAIT_S:-30} s"; rc=5; fi
+      setp vendor.openbook.lab.mod idle
+      sleep "${OPENBOOK_SETTLE_S:-5}"
+      lab_report "$req" ;;
+    sleep-*) lab_sleep "${act#sleep-}" || rc=1; lab_report "$req" ;;
+  esac
+  return $rc
+}
+
 perms() {
   n=0
   for f in "$SYS"/devices/system/cpu/cpufreq/policy*/energy_performance_preference; do
@@ -230,7 +334,8 @@ case ${1:-} in
   dgpu-pm) dgpu_pm ;;
   dgpu-report) shift; dgpu_report "$*" ;;
   dgpu-ctl) dgpu_ctl "${2:-}" ;;
+  lab) lab "${2:-}" ;;
   perms) perms ;;
   kvm) kvm ;;
-  *) echo "usage: openbook-pc-setup dgpu-pm|dgpu-report [REASON]|dgpu-ctl on|auto|perms|kvm" >&2; exit 2 ;;
+  *) echo "usage: openbook-pc-setup dgpu-pm|dgpu-report [REASON]|dgpu-ctl on|auto|lab ACTION[@N]|perms|kvm" >&2; exit 2 ;;
 esac
