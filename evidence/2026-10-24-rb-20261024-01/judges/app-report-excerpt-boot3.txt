@@ -1,0 +1,26 @@
+OBU_VMCHECK begin
+OBU_HSUM true
+OBU_PRIVAPP_ENFORCEMENT 
+OBU_USERS Users:
+OBU_USERS 	UserInfo{0:System User:811} running
+OBU_USERS 	UserInfo{10:User:412} running
+OBU_OWNER 10
+OBU_CURRENT 10
+OBU_PKG codePath=/system/priv-app/OpenBookUpdate-v2
+OBU_PKG versionName=2.0
+OBU_PKG privateFlags=[ PRIVATE_FLAG_ACTIVITIES_RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION ALLOW_AUDIO_PLAYBACK_CAPTURE PARTIALLY_DIRECT_BOOT_AWARE PRIVILEGED PRIVATE_FLAG_ALLOW_NATIVE_HEAP_POINTER_TAGGING ]
+OBU_PKG android.permission.REBOOT: granted=true
+OBU_PKG User 0: ceDataInode=0 deDataInode=1261 pccCeDataInode=0 pccDeDataInode=0 installed=false hidden=false suspended=false appLockEnabled=false distractionFlags=0 stopped=true notLaunched=false enabled=0 instant=false virtual=false quarantined=false
+OBU_PKG android.permission.POST_NOTIFICATIONS: granted=true, flags=[ GRANTED_BY_DEFAULT]
+OBU_PKG User 10: ceDataInode=6415 deDataInode=2950 pccCeDataInode=0 pccDeDataInode=0 installed=true hidden=false suspended=false appLockEnabled=false distractionFlags=0 stopped=false notLaunched=false enabled=0 instant=false virtual=false quarantined=false
+OBU_PKG android.permission.POST_NOTIFICATIONS: granted=true, flags=[ GRANTED_BY_DEFAULT|USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+OBU_IDLE system-excidle,org.openbook.update,10082
+OBU_PS pid=5241 label=u:r:openbook_update_app:s0:c82,c256,c522,c768 name=org.openbook.update
+OBU_START Starting: Intent { cmp=org.openbook.update/.ui.MainActivity }
+OBU_START Status: ok
+OBU_START LaunchState: UNKNOWN (0)
+OBU_START Activity: org.openbook.update/.ui.MainActivity
+OBU_START WaitTime: 451
+OBU_START Complete
+[  526.710769][    T1] init: Service 'openbook_update_vmcheck' (pid 5885) exited with status 0 oneshot service took 119.093002 seconds in background
+[  526.711339][    T1] init: Sending SIGKILL to service 'openbook_update_vmcheck' (pid 5885) process group...

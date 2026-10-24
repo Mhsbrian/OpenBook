@@ -1,0 +1,199 @@
+{
+ "schema": "anybook-release-plan/1",
+ "release": "RB-20261024-01",
+ "name": "R1",
+ "plan_revision": 1,
+ "track": "Ruby",
+ "status": "proposed; awaiting B Honey's approval of this exact file",
+ "proposed_at": "2026-10-24T14:11:00Z",
+ "requested_by": "B Honey, ANAL-232 comment 01a16e3d-a7d0-74e2-bd30-915394dfdd19 (\"Prepare the next release, then lets update the g14.\")",
+ "coordinator": "Googlebook AMD Porter (517b88d9-124d-43e9-a8ca-bb617437e116)",
+ "summary": "R1: the firmware-tool fix (ANAL-251) plus OpenBook Update 2.0 and openbook-adapt with the firmware-safety check (ANAL-229 phases 3-4), delivered to the G14 as an OpenBook-signed incremental update into slot B.",
+ "parent": {
+  "installed_release": "RB-20261023-03 (ANAL-256), G14 slot A since 2026-10-24 00:49 UTC",
+  "installed_release_images": {
+   "boot": "f6fc1a5892cba10d24ba3c250f5abe4115ba0f7c0556a653995b41373bfbcec8",
+   "init_boot": "0237a3399e093acabf63a0b036ac43b7e1b06a59dc7b665d852c0c6ec28e2dae",
+   "product": "ddf9d7105c4424c727ed53176d89b5a9895d3f59e2699ab5854bb3d1641211c1",
+   "system_dlkm": "34185c35cb8bbccd5dfd0bb74eecb8a21e2445730411ef1583e1245628e0d617",
+   "system_ext": "dc3f228d2479ae3d979564bd7a02956399300187a67ac19519223911b7108b34",
+   "system": "2e7b342585b70b4829831ec32b6ec39681a58c8cc5735c414b6139724dbdb532",
+   "vbmeta": "d19d423c0d8bc9036ef51cf4501e1b95128c475272eee17e37696772af74f8cc",
+   "vendor_boot": "b8dc14803c8a07b0ec675d9cc9d2baf7b16c8acfd1a90c63782fa7e0d95bda80",
+   "vendor_dlkm": "c22672e2333f1d97833688d2554dee6e06515c425ae1674aa3e2a6b4099c5fba",
+   "vendor": "e072350a7df2f59aaa14cc2095a94bd4661de2dccbca1422e38abd80554332d4"
+  },
+  "installed_candidate": "71da0228488781fa7db6bbb2b07b8559024023b606ae54cd868f780954b9cc24",
+  "build_base_staged_candidate": "75fa0196090558519fbb33d079ed51e2b9fd86ee102013c089bc8e9122fe9391 (RB-20261023-02's base, as handed off; RB-20261023-03 was built on it too)",
+  "stick": "RB-20261023-02 bfb8e276... (not changed by this plan)"
+ },
+ "included": [
+  {
+   "issue": "ANAL-251",
+   "change": "neutralise Google's gscutil boot scripts; firmware-safety rules and checker",
+   "source": {
+    "pr": 129,
+    "head": "6cc0f348f174a65bed832907d21ff4bac076518b",
+    "merged_into": "PR #121"
+   },
+   "handoff": {
+    "path": "evidence/2026-10-24-ruby-safety/handoff-ANAL-251.json",
+    "sha256": "b21465c9766a8ea40bcebfaa91e1f7818840c19b168450f8d373ff98468cc619"
+   }
+  },
+  {
+   "issue": "ANAL-229",
+   "change": "phases 3-4: OpenBook Update 2.0 + openbook-adapt (firmware-safety check, no-postinstall payloads) + the release's layer",
+   "source": {
+    "pr": 121,
+    "head": "9ee0c0cbea7f2e7fdb9cd8dea1ca4c4430d7f4f5",
+    "inputs_commit": "4f8c2672971064a467f00b9fd383cb2b29bcf476"
+   },
+   "handoff": {
+    "path": "evidence/2026-10-24-adapt-firmware-safety/handoff-ANAL-229.json",
+    "sha256": "941d44e521a0cc4e05aaa593f964beb8f7abe018ccfde1423fde1615210ee4b0"
+   }
+  }
+ ],
+ "pinned_inputs": {
+  "parent_staged_candidate": "75fa0196090558519fbb33d079ed51e2b9fd86ee102013c089bc8e9122fe9391",
+  "apk": "cd2c896ea003717423cf75d8981bd9a4e18f5ef7088faa31646ce93490e79038",
+  "adapter": "b80879f2ac4b71baa5363c868577306a91822d58cdc1356cd5c673c5e60dc126",
+  "avb_test_key": "6a224754880a57ab9cbd308267cd157d94cf05a1c8cb851aec4090e045d24121",
+  "update_app_builder": "89771289f503234503b2a10197377b6215748ce9ee1fa47ec47ebdaddb49c6bf",
+  "candidate_builder": "2a68a3e81c3dbfb280a9d32004de1ecd7715f5eaf3a944dd261000afd23d9b77",
+  "safety_checker": "37ec72b89fd10c5b038d1db9ee3a40f62bc778ff956705b60315d7ab30eccae8",
+  "safety_rules": "2b806321a068168ed052244d078b5f4ed24d1b218eecbbd6f6f8ebe5af9c7da7",
+  "safety_gscutil_rc": "61149fa16b80229cc7a3df2cd8f197f8160a9f6e252bbae8df49b8fc100c96b4",
+  "safety_gscutil_executor_rc": "5105310de9674fb53ede1e77d60f7d021e6de870a84ac97a389da2d57f8cab0e",
+  "embed_recipe": "da28193054f24ef9ec81082b668bc2ef0350c241f42b8445fe0b8e35aa97b04c",
+  "updater_files": "45ca8c371694841df71173b61f402c06e71a1a1cc77e604058e292bcc450471f"
+ },
+ "expected_release_images": {
+  "boot": "f6fc1a5892cba10d24ba3c250f5abe4115ba0f7c0556a653995b41373bfbcec8",
+  "init_boot": "0237a3399e093acabf63a0b036ac43b7e1b06a59dc7b665d852c0c6ec28e2dae",
+  "product": "ddf9d7105c4424c727ed53176d89b5a9895d3f59e2699ab5854bb3d1641211c1",
+  "system_dlkm": "34185c35cb8bbccd5dfd0bb74eecb8a21e2445730411ef1583e1245628e0d617",
+  "system_ext": "dc3f228d2479ae3d979564bd7a02956399300187a67ac19519223911b7108b34",
+  "system": "6f2abd2dc2e5ec6a6c08c9bc0776ea0977a9fae4a0a284308f52f6481f8fa392",
+  "vbmeta": "4cfa2acccd515a58d424071e03c46d4d42e01585958c17fc91426a237e399d4d",
+  "vendor_boot": "b8dc14803c8a07b0ec675d9cc9d2baf7b16c8acfd1a90c63782fa7e0d95bda80",
+  "vendor_dlkm": "c22672e2333f1d97833688d2554dee6e06515c425ae1674aa3e2a6b4099c5fba",
+  "vendor": "e072350a7df2f59aaa14cc2095a94bd4661de2dccbca1422e38abd80554332d4"
+ },
+ "expected_note": "From the source's test release of the same chain (host/test-release.json). A different build output stops the release for review; only system and vbmeta differ from the installed release.",
+ "excluded": [
+  {
+   "issue": "ANAL-238",
+   "reason": "rework in progress (owner 'Go'); vendor change not handed off"
+  },
+  {
+   "issue": "ANAL-257",
+   "reason": "held for the combined vendor update (owner direction: no USB stick)"
+  },
+  {
+   "issue": "ANAL-251 efi_pstore",
+   "reason": "owner choice pending; needs a vendor_boot builder"
+  },
+  {
+   "issue": "ANAL-229 R2",
+   "reason": "enrolls the laptop's own update key; proposed after R1 is installed and the key exists"
+  },
+  {
+   "issue": "ANAL-251 checker extra startup files",
+   "reason": "source's later item; would rerun ANAL-251's tests"
+  },
+  {
+   "issue": "stick refresh",
+   "reason": "out of scope; the stick stays RB-20261023-02"
+  },
+  {
+   "issue": "all other work items",
+   "reason": "census 2026-10-24T14:09:11Z, 96 issues, dispositions carried"
+  }
+ ],
+ "recipe": [
+  "0. Re-run the census, confirm PR #121 head 9ee0c0c and every pinned input hash, check free space; hold ~/anybook/installer/.ruby-release.lock for the whole chain.",
+  "1. build-safety-candidate.py on 75fa0196 (stage-base), then build-update-app-candidate.py --adapter (APK cd2c896e, adapter b80879f2, AOSP AVB test key, firmware-safety.json) on the staged safety candidate.",
+  "2. stage-base.py, build-ruby-ab-super.py, build-ruby-ab-image.py (hardware: the laptop's GPT ids), release directory, embed-adapter-layer.sh -> R1's ten release images. Compare with expected_release_images.",
+  "3. The same chain with both --vm-check flags -> the VM-only variant for the after-update check (never deployed).",
+  "4. check-firmware-safety.py images on R1's images (rerun: every Ruby release).",
+  "5. build-ruby-ab-ota.py --release R1 --source the installed RB-20261023-03 images -> laptop payload P, signed with the OpenBook OTA key; check-firmware-safety.py payload P (rerun); check-ota-fit.py against the G14 layout.",
+  "6. Stop for artifact review: post R1's hashes, P and the results on the release record. No device is touched."
+ ],
+ "evidence_reuse": {
+  "tool": "scripts/releases/evidence-reuse.py at PR #122 65917fe",
+  "reused": [
+   "ANAL-229 adapter-unit",
+   "ANAL-229 adapter-host-proofs",
+   "ANAL-229 firmware-safety-parity",
+   "ANAL-229 adapter-laptop",
+   "ANAL-229 payload-vm",
+   "ANAL-229 engine-unit",
+   "ANAL-229 app-jvm",
+   "ANAL-229 app-emulator",
+   "ANAL-229 update-app-builder-unit",
+   "ANAL-229 r1-chain-test-release",
+   "ANAL-251 checker-unit",
+   "ANAL-251 builder-unit"
+  ],
+  "rerun": [
+   "ANAL-251 parent-audit",
+   "ANAL-251 laptop-payload-no-postinstall"
+  ],
+  "not_required": [
+   "ANAL-251 init-verifier",
+   "ANAL-251 ruby-vm-fresh-boot"
+  ],
+  "not_applicable": [
+   "ANAL-251 judge-unit"
+  ]
+ },
+ "release_steps": [
+  {
+   "id": "candidate",
+   "gate": "Steps 1-5 complete; R1 images equal expected_release_images; both firmware-safety reruns pass; P's signature verifies and P fits the G14 layout."
+  },
+  {
+   "id": "control",
+   "gate": "stage/super/image/release directory at 9ee0c0c on RB-20261023-03's candidate 71da0228 reproduce the installed ten images byte for byte."
+  },
+  {
+   "id": "update-rehearsal",
+   "gate": "QEMU: slot A = RB-20261023-03 plus a test-only apply driver (RB-20261023-03's app 1.0 build applied onto the existing variant apply harness), initialized data; R1 into slot B (A -> B): apply, boot B, marked good, merged, slot B byte-identical to R1."
+  },
+  {
+   "id": "fallback",
+   "gate": "The post-apply copy with vbmeta_b corrupted: three slot-B boots fail, then slot A boots by itself."
+  },
+  {
+   "id": "after-update",
+   "gate": "The vm-check variant updated into B over the same harness: app 2.0 privileged in its own domain with REBOOT and no denials or crash (update-app-vm-judge.py; 1.0 -> 2.0 upgrade with existing data); gscutil not started and the security services unchanged against RB-20261023-03's fresh-boot baseline (safety-vm-judge.py); and a test-only report that /system/bin/openbook-adapt is b80879f2, the layer and the firmware-safety rules are present, and the LAPTOP_KEY receiver answers."
+  }
+ ],
+ "after_steps_separate_approval_required": {
+  "operation": "OpenBook-signed incremental two-slot update of the G14 into slot B: g14-ota.sh <P> --layout <G14 layout> --via-adb --approved \"RB-20261024-01 to the G14\", after a fresh --dry-run",
+  "device": "ASUS ROG Zephyrus G14 (installed Ruby on its internal SSD), over the paired wireless adb link",
+  "approval_must_name": [
+   "payload P SHA-256",
+   "the G14"
+  ],
+  "reboot": "only when the laptop has been idle 10 minutes by Android's own last-activity time, or on the owner's word",
+  "post_checks": "read-only adb: slot B booted with R1's vbmeta digest, merge done, users/accounts/settings unchanged, app 2.0 privileged in its domain, openbook-adapt and the layer present, gscutil not started, LAPTOP_KEY receiver answers, no new denials or crashes.",
+  "recovery": "slot A keeps RB-20261023-03; three failed slot-B boots return to it by itself. No owner data backup is taken; the data format is unchanged. Last resort: the stick's two-slot Fresh install (erases the SSD)."
+ },
+ "after_install": "Read the laptop's new update-key certificate over adb (LAPTOP_KEY broadcast) and propose R2, which enrolls it in otacerts.zip, as its own plan.",
+ "limits": [
+  "openbook-adapt has not run in the app's own SELinux domain on the laptop; its first run comes with Google's next release, and a denial stops it before install",
+  "not stated whether app 2.0 still installs, stopped, for the headless user 0 as 1.0 does; the after-update check records it",
+  "efi_pstore unchanged"
+ ],
+ "pointers": "The laptop pointer moves to RB-20261024-01 only after the post-check evidence; the stick is not written.",
+ "storage": {
+  "free_gib_at_proposal": 902,
+  "peak_additional_gib_budget": 150,
+  "reserve_gib": 40,
+  "cleanup": "after evidence, remove only this build's VM disks and extraction scratch with a private manifest; keep R1's candidate, release images, payloads, logs and provenance."
+ },
+ "rules": "Changed image contents, parent, inputs or scope need plan v2 and new approval. Test-only tooling is allowed and recorded. Failed or incomplete observations stay visible. One active Ruby build."
+}

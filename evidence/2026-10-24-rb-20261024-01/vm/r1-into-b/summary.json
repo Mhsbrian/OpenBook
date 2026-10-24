@@ -1,0 +1,19 @@
+{
+  "apply": {
+    "passed": true,
+    "failed": []
+  },
+  "boot": {
+    "passed": true,
+    "failed": []
+  },
+  "verify": {
+    "passed": true,
+    "failed": []
+  },
+  "fallback": {
+    "passed": true,
+    "failed": []
+  },
+  "passed": true
+}

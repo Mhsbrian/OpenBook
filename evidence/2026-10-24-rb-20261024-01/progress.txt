@@ -1,0 +1,30 @@
+2026-10-24T14:49:58Z build start; source 9ee0c0cbea7f2e7fdb9cd8dea1ca4c4430d7f4f5; harness tools 30c446aa2e103a6fbffe38a45ed9e1320b3449e1
+2026-10-24T14:50:19Z pinned inputs verified
+2026-10-24T14:50:19Z free 946 GiB before a step budgeted at 150 GiB
+2026-10-24T14:53:31Z chain: safety ea069689164f, app 93fa63e63dcd, system 6f2abd2dc2e5, vbmeta 4cfa2acccd51
+2026-10-24T14:53:32Z R1 release images equal the plan's expected hashes (10/10)
+2026-10-24T15:00:13Z attempt 1 stopped in the coordinator's static-check script (ls exit 2 under pipefail); R1 outputs kept; resuming
+2026-10-24T15:00:17Z build start; source 9ee0c0cbea7f2e7fdb9cd8dea1ca4c4430d7f4f5; harness tools 30c446aa2e103a6fbffe38a45ed9e1320b3449e1
+2026-10-24T15:00:38Z pinned inputs verified
+2026-10-24T15:00:38Z free 914 GiB before a step budgeted at 150 GiB
+2026-10-24T15:00:39Z chain: safety ea069689164f, app 93fa63e63dcd, system 6f2abd2dc2e5, vbmeta 4cfa2acccd51
+2026-10-24T15:00:41Z R1 release images equal the plan's expected hashes (10/10)
+2026-10-24T15:00:42Z R1 static: adapter ;layer files 1;etc/openbook/firmware-safety.json 2b806321a068168ed052244d078b5f4ed24d1b218eecbbd6f6f8ebe5af9c7da7;etc/init/gscutil.rc 61149fa16b80229cc7a3df2cd8f197f8160a9f6e252bbae8df49b8fc100c96b4;etc/init/gscutil-executor.rc 5105310de9674fb53ede1e77d60f7d021e6de870a84ac97a389da2d57f8cab0e;priv-app/OpenBookUpdate-v2/OpenBookUpdate.apk cd2c896ea003717423cf75d8981bd9a4e18f5ef7088faa31646ce93490e79038;app 1.0 dir removed;
+2026-10-24T15:00:49Z firmware-safety on R1's images: PASS
+2026-10-24T15:01:19Z P (laptop) 15779f0297ac6508a2ce54bd8d4382bcacdc2698cab0469f4818f9c981c57ad6 3363107 bytes; no postinstall: PASS; fit: incremental payload, 10 partitions: FITS; snapshot 0.06 GiB of 20.65 GiB free in super (the payload's source sizes)
+2026-10-24T15:02:31Z control passed: RB-20261023-03's ten images reproduced byte for byte
+2026-10-24T15:06:18Z vm-check variant: app candidate ff181c5139f4, system fbbc2daea35b
+2026-10-24T15:10:29Z harness H3 4d58cd8a0d53: RB-20261023-03 system differs (driver added)
+2026-10-24T15:11:31Z VM payloads: release 62ac928c188d, vm-check 0485961f914b
+2026-10-24T15:11:31Z build done
+2026-10-24T15:11:37Z vm start
+2026-10-24T15:11:37Z free 826 GiB before a step budgeted at 100 GiB
+2026-10-24T15:55:21Z R1 into B: {"apply":{"passed":true,"failed":[]},"boot":{"passed":true,"failed":[]},"verify":{"passed":true,"failed":[]},"fallback":{"passed":true,"failed":[]},"passed":true}
+2026-10-24T16:04:46Z vm-check into B: {"apply":{"passed":true,"failed":[]},"boot":{"passed":true,"failed":[]},"verify":{"passed":true,"failed":[]},"passed":true}
+2026-10-24T16:04:46Z app after update: FAIL 11 / 16 recorded {'notifications_granted_on_first_boot': True, 'installed_for_owner_only': True}
+2026-10-24T16:04:46Z safety after update: FAIL 18 / 19 ['check_tpm_clear_as_baseline']
+2026-10-24T16:04:46Z vm done
+2026-10-24T16:07:19Z safety re-judged against RB-20261023-03's later boot in the same VM (fallback boot4): 
+2026-10-24T16:07:29Z safety re-judged against RB-20261023-03's later boot in the same VM (fallback boot4): PASS 19/19
+2026-10-24T16:07:29Z app report recapture: third boot of the updated vm-check disk (slot B)
+2026-10-24T16:28:28Z app after-update report recapture (3rd boot): incomplete again (no OBU output after the app's screen opened; service exited 0). STOP: not installing.
