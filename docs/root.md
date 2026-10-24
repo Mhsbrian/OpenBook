@@ -22,8 +22,8 @@ or any image is ever published, this must be revisited (§11).
 ## 0. After approval (2026-10-24): two facts in §1 were wrong
 
 B Honey approved §1 on 2026-10-24. Checking KernelSU's upstream sources before building showed that two of
-its claims are wrong. The lab-helper floor is unaffected. The KernelSU tier is **on hold** until the owner
-chooses (§0.3).
+its claims are wrong. The lab-helper floor is unaffected. **Decision (B Honey, 2026-10-24): interactive
+per-app root is deferred, and the lab helper is the root path** (§0.3).
 
 ### 0.1 LKM mode loads from the boot ramdisk, not from our vendor module service (CONFIRMED)
 KernelSU's LKM mode patches the ramdisk (`init_boot`, or `boot` on older devices) so that its own
@@ -50,18 +50,20 @@ calls them intended for testing environments (kernelsu.org/guide/x86_64-support.
 without a security cost on this laptop**. §1 did not say so, and the approval was given without that
 information.
 
-### 0.3 What this means now
-- **Proceeding (unaffected):** the lab helper (option 3) stays the root path for the agent and all bring-up
-  work (ANAL-238, 239, 257). It weakens nothing and covers every operation those issues need.
-- **On hold:** building KernelSU for the laptop. A QEMU trial is still possible, because upstream allows
-  test environments, but it would not change the cost on the daily driver.
-- **The owner's choice for interactive per-app root:**
-  1. *Recommended:* defer it. The lab helper meets the development need that prompted this issue. Revisit
-     if a concrete app or task needs interactive root.
-  2. Accept KernelSU's cost on the laptop knowingly, with QEMU first and the usual release approvals.
-  3. Evaluate Magisk instead. It is a userspace `su` daemon with a ramdisk `magiskinit` and a runtime
-     sepolicy patch, and it does not patch kernel code (REPORTED). Its x86_64 / Android 17 status is
-     unchecked, and its SELinux footprint (§5) still applies.
+### 0.3 Decision (B Honey, 2026-10-24): defer interactive root
+B Honey chose the recommended option on 2026-10-24.
+- **The lab helper (option 3) is the root path** for the agent and all bring-up work (ANAL-238, 239, 257).
+  It weakens nothing and covers every operation those issues need. It stays allow-listed, with no general
+  `su`, and SELinux enforcing.
+- **Interactive per-app root is deferred.** No KernelSU, Magisk or `su` is built for the laptop, and nothing
+  from this issue enters a release. The §9 baseline and §10 prototype are not run, because they only matter
+  if root for apps goes ahead.
+- **When to revisit:** if a concrete app or task needs interactive root, open a new issue that starts from
+  this section. The options at that point were:
+  1. KernelSU, accepting the §0.2 cost knowingly, with QEMU first and the usual release approvals.
+  2. Magisk. It is a userspace `su` daemon with a ramdisk `magiskinit` and a runtime sepolicy patch, and it
+     does not patch kernel code (REPORTED). Its x86_64 / Android 17 status is unchecked, and its SELinux
+     footprint (§5) still applies.
 
 ---
 
@@ -316,11 +318,10 @@ Acceptance (the §1 gate): all four bullets pass in QEMU on the Ruby image befor
 
 ## 11. Release impact and hand-off (task 5)
 
-**Release impact: Ruby.**
-- LKM path: **boot ramdisk + the manager app** (corrected, §0.1). No kernel source change, but on x86_64
-  the module patches the kernel's syscall dispatcher at runtime (§0.2). On hold pending the owner's choice.
-- Lab-helper floor only (the current recommendation, §0.3): **none from this issue**. It ships with
-  ANAL-238/257.
+**Release impact: none** (decision, §0.3). The lab helper ships with ANAL-238/257, and this issue adds
+nothing to any image. For a future revisit only:
+- LKM path: **boot ramdisk + the manager app** (§0.1). No kernel source change, but on x86_64 the module
+  patches the kernel's syscall dispatcher at runtime (§0.2).
 - Integrated fallback: **kernel + vendor** — a tracked KMI deviation (nouveau precedent) plus the vendor
   pieces.
 
