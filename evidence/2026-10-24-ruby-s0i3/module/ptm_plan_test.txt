@@ -1,0 +1,11 @@
+ok   clear: endpoint first, root ports last, granularity kept
+ok   clear: Enable and Root Select off everywhere
+ok   restore: root ports first, endpoint last, exact old values
+ok   restore: every function back to its saved value
+ok   clear: D3cold skipped, refused write not counted
+ok   clear: skipped functions are not marked cleared
+ok   clear: skipped functions are not marked cleared
+ok   restore: only the four cleared functions are written
+ok   restore: unreachable and already-enabled functions untouched
+ok   empty list
+PASSED: 0 failure(s)

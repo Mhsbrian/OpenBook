@@ -233,6 +233,20 @@ ddk_module(
     deps = ["//common:all_headers_x86_64"],
 )
 
+# ANAL-257: S0i3 diagnostics (PTM off across suspend, PCI and USB4 power snapshots). Test only: inert unless
+# openbook_sleep_diag.* parameters are on the kernel command line. Not in the G14 load lists.
+#   tools/bazel build --config=stamp //devices/anybook:openbook_sleep_diag
+ddk_module(
+    name = "openbook_sleep_diag",
+    srcs = [
+        "sleep_diag/openbook_sleep_diag.c",
+        "sleep_diag/ptm_plan.h",
+    ],
+    out = "openbook_sleep_diag.ko",
+    kernel_build = ":anybook_amd_x86_64",
+    deps = ["//common:all_headers_x86_64"],
+)
+
 # ANAL-198: images for the ASUS ROG Zephyrus G14 2025 (GA403WR), in two variants:
 #   bm  bare metal, the laptop itself
 #   vm  QEMU/Cuttlefish guests, which boot from virtio-blk and lack the ASUS WMI GUID

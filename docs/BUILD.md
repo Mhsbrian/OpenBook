@@ -59,6 +59,15 @@ key (`--self-test` checks the key and certificate). Commands, results and key
 custody: `googlebook-ota-trust.md`. Run
 `python3 scripts/googlebook/ota-trust-candidate-test.py` for the unit checks.
 
+## S0i3 diagnostics module — 2026-10-24
+
+`tools/bazel build --config=stamp //devices/anybook:openbook_sleep_diag` (in `scripts/kernel-docker.sh`) builds the
+test-only vendor module; it is inert unless `openbook_sleep_diag.*` parameters are on the kernel command line.
+`kernel/devices/anybook/sleep_diag/test/` holds its host test (`ptm_plan_test.c`) and QEMU test
+(`run-vm-test.sh`, `check-vm-log.py`); `sleep_diag/stick-entries.json` is the entry spec for `stick-entries.py`.
+On a Linux live USB, `scripts/power/linux-s2idle.py --live-usb` builds the same source for the running kernel.
+Details: `googlebook-s0i3.md`.
+
 ## Lid guard module and USB diagnostics entries — 2026-10-21
 
 `tools/bazel build --config=stamp //devices/anybook:openbook_lid_guard` builds the

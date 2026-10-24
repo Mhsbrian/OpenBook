@@ -106,3 +106,9 @@ Results are in `evidence/2026-10-21-ruby-sleep-fix/release-candidate.json`:
 - The synthetic laptop takes camera25 → RB01 → RB01 + guard, boots with the module
   loaded and encryption keys unchanged, and restores to RB01 byte for byte.
 - The real stick plan passes the read-only physical preflight.
+
+## S0i3 (ANAL-257)
+
+Deep sleep itself, which no Ruby suspend has reached, is in `docs/googlebook-s0i3.md`: the desk analysis, the
+`openbook_sleep_diag` module with two more sleep-diagnostics entries for this stick format, and the Linux live-USB
+comparison.

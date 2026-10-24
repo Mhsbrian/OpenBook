@@ -1,0 +1,36 @@
+# PM-relevant kernel configuration: the G14's Ruby kernel (GKI vmlinux, anybook-g14-gbos-16302624 dot_config)
+# vs Linux 7.2.8-5-omarchy-bore (the package the laptop's Linux ran; the same package is on the build host).
+# Vendor modules add more via kernel/devices/anybook/anybook_amd.fragment (amd-pmc, ucsi_acpi, asus-wmi, ...):
+# those are listed as 'GKI vmlinux: not set' here but exist as modules on the G14.
+PCIE_PTM                     GKI vmlinux: # CONFIG_PCIE_PTM is not set                  Linux 7.2.8: CONFIG_PCIE_PTM=y
+PCIEASPM_DEFAULT             GKI vmlinux: CONFIG_PCIEASPM_DEFAULT=y                     Linux 7.2.8: CONFIG_PCIEASPM_DEFAULT=y
+PCIE_DPC                     GKI vmlinux: # CONFIG_PCIE_DPC is not set                  Linux 7.2.8: CONFIG_PCIE_DPC=y
+PCIE_EDR                     GKI vmlinux: (absent)                                              Linux 7.2.8: CONFIG_PCIE_EDR=y
+ACPI_APEI                    GKI vmlinux: # CONFIG_ACPI_APEI is not set                 Linux 7.2.8: CONFIG_ACPI_APEI=y
+ACPI_APEI_GHES               GKI vmlinux: (absent)                                              Linux 7.2.8: CONFIG_ACPI_APEI_GHES=y
+ACPI_PROCESSOR_AGGREGATOR    GKI vmlinux: # CONFIG_ACPI_PROCESSOR_AGGREGATOR is not set Linux 7.2.8: CONFIG_ACPI_PROCESSOR_AGGREGATOR=m
+ACPI_FFH                     GKI vmlinux: # CONFIG_ACPI_FFH is not set                  Linux 7.2.8: CONFIG_ACPI_FFH=y
+ACPI_THERMAL                 GKI vmlinux: # CONFIG_ACPI_THERMAL is not set              Linux 7.2.8: CONFIG_ACPI_THERMAL=y
+ACPI_BATTERY                 GKI vmlinux: # CONFIG_ACPI_BATTERY is not set              Linux 7.2.8: CONFIG_ACPI_BATTERY=y
+USB4                         GKI vmlinux: CONFIG_USB4=m                                 Linux 7.2.8: CONFIG_USB4=m
+USB4_NET                     GKI vmlinux: # CONFIG_USB4_NET is not set                  Linux 7.2.8: CONFIG_USB4_NET=m
+TYPEC                        GKI vmlinux: CONFIG_TYPEC=y                                Linux 7.2.8: CONFIG_TYPEC=m
+TYPEC_UCSI                   GKI vmlinux: CONFIG_TYPEC_UCSI=y                           Linux 7.2.8: CONFIG_TYPEC_UCSI=m
+UCSI_ACPI                    GKI vmlinux: # CONFIG_UCSI_ACPI is not set                 Linux 7.2.8: CONFIG_UCSI_ACPI=m
+AMD_PMF                      GKI vmlinux: (absent)                                              Linux 7.2.8: CONFIG_AMD_PMF=m
+AMD_PMC                      GKI vmlinux: # CONFIG_AMD_PMC is not set                   Linux 7.2.8: CONFIG_AMD_PMC=m
+CRYPTO_DEV_CCP               GKI vmlinux: # CONFIG_CRYPTO_DEV_CCP is not set            Linux 7.2.8: CONFIG_CRYPTO_DEV_CCP=y
+CRYPTO_DEV_SP_PSP            GKI vmlinux: (absent)                                              Linux 7.2.8: CONFIG_CRYPTO_DEV_SP_PSP=y
+TEE                          GKI vmlinux: # CONFIG_TEE is not set                       Linux 7.2.8: CONFIG_TEE=m
+AMDTEE                       GKI vmlinux: (absent)                                              Linux 7.2.8: CONFIG_AMDTEE=m
+CPU_IDLE_GOV_TEO             GKI vmlinux: # CONFIG_CPU_IDLE_GOV_TEO is not set          Linux 7.2.8: CONFIG_CPU_IDLE_GOV_TEO=y
+HALTPOLL_CPUIDLE             GKI vmlinux: CONFIG_HALTPOLL_CPUIDLE=y                     Linux 7.2.8: CONFIG_HALTPOLL_CPUIDLE=m
+NO_HZ_IDLE                   GKI vmlinux: CONFIG_NO_HZ_IDLE=y                           Linux 7.2.8: # CONFIG_NO_HZ_IDLE is not set
+NO_HZ_FULL                   GKI vmlinux: # CONFIG_NO_HZ_FULL is not set                Linux 7.2.8: CONFIG_NO_HZ_FULL=y
+HZ                           GKI vmlinux: CONFIG_HZ=250                                 Linux 7.2.8: CONFIG_HZ=1000
+PM_WAKELOCKS                 GKI vmlinux: CONFIG_PM_WAKELOCKS=y                         Linux 7.2.8: # CONFIG_PM_WAKELOCKS is not set
+ACPI_TAD                     GKI vmlinux: # CONFIG_ACPI_TAD is not set                  Linux 7.2.8: CONFIG_ACPI_TAD=m
+X86_PM_TIMER                 GKI vmlinux: # CONFIG_X86_PM_TIMER is not set              Linux 7.2.8: CONFIG_X86_PM_TIMER=y
+HSA_AMD                      GKI vmlinux: (absent)                                              Linux 7.2.8: CONFIG_HSA_AMD=y
+DRM_AMD_ISP                  GKI vmlinux: (absent)                                              Linux 7.2.8: CONFIG_DRM_AMD_ISP=y
+AMD_ISP_PLATFORM             GKI vmlinux: # CONFIG_AMD_ISP_PLATFORM is not set          Linux 7.2.8: CONFIG_AMD_ISP_PLATFORM=m
