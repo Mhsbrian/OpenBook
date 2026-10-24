@@ -152,5 +152,6 @@ btintel.ko	anybook	load	load	-	btusb links it
 btrtl.ko	anybook	load	load	-	btusb links it; Realtek BT in other laptops
 btmtk.ko	anybook	load	load	MT7925 BT	MediaTek BT
 btusb.ko	anybook	load	load	MT7925 BT 0489:e11e	USB Bluetooth
-drm_gpuvm.ko	anybook	load	load	RTX 5070 Ti Laptop (GB205)	dep of nouveau: GPU virtual-address space helpers (ANAL-239)
-nouveau.ko	anybook	load	load	RTX 5070 Ti Laptop 10de:2f58 (64:00.0)	NVIDIA dGPU, for runtime power management only (ANAL-239): headless, runpm=1 (modules.options), GSP-RM firmware from /vendor/firmware. Last, so amdgpu keeps card0 and renderD128 and every earlier module loads as before. External module (devices/anybook/nvidia)
+drm_gpuvm.ko	anybook	block	block	RTX 5070 Ti Laptop (GB205)	dep of nouveau: GPU virtual-address space helpers (ANAL-239)
+nouveau.ko	anybook	block	block	RTX 5070 Ti Laptop 10de:2f58 (64:00.0)	NVIDIA dGPU, for runtime power management only (ANAL-239): headless, runpm=1 (modules.options), GSP-RM firmware from /vendor/firmware. Last, so amdgpu keeps card0 and renderD128 and every earlier module loads as before. External module (devices/anybook/nvidia). Blocklisted at boot (ANAL-257, owner direction 2026-10-24): the lab helper loads it on demand (vendor.openbook.lab-nouveau-load, modprobe without -b)
+openbook_sleep_diag.ko	anybook	block	block	-	S0i3 diagnostics, test only (ANAL-257): loaded with parameters on demand by the lab helper. External module (ddk_module)

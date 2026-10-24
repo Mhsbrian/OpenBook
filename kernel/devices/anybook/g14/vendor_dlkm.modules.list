@@ -141,3 +141,4 @@ btmtk.ko
 btusb.ko
 drm_gpuvm.ko
 nouveau.ko
+openbook_sleep_diag.ko
