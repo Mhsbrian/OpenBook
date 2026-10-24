@@ -233,8 +233,8 @@ ddk_module(
     deps = ["//common:all_headers_x86_64"],
 )
 
-# ANAL-257: S0i3 diagnostics (PTM off across suspend, PCI and USB4 power snapshots). Test only: inert unless
-# openbook_sleep_diag.* parameters are on the kernel command line. Not in the G14 load lists.
+# ANAL-257: S0i3 diagnostics (PTM off across suspend, PCI and USB4 power snapshots). Test only: the G14 lab helper
+# loads it with parameters and unloads it; inert without them. Not in the G14 load lists.
 #   tools/bazel build --config=stamp //devices/anybook:openbook_sleep_diag
 ddk_module(
     name = "openbook_sleep_diag",

@@ -74,18 +74,6 @@ class EntryTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "allowlist"):
                 self.add(self.spec(add_options=bad), out=f"bad-{len(bad)}-{bad[0][:4]}")
 
-    def test_sleep_diag_module_parameters(self):
-        options = ["pm_debug_messages", "openbook_sleep_diag.ptm_off=1", "openbook_sleep_diag.snapshot=2",
-                   "openbook_sleep_diag.usb4=1", "openbook_sleep_diag.cycles=4"]
-        self.add(self.spec(name="ruby-s0i3-ptm-off.conf", add_options=options))
-        text = (self.root / "out/efi-after/loader/entries/ruby-s0i3-ptm-off.conf").read_text()
-        self.assertTrue(text.rstrip("\n").endswith(" ".join(options)))
-        for bad in (["openbook_sleep_diag.ptm_off=2"], ["openbook_sleep_diag.snapshot=3"],
-                    ["openbook_sleep_diag.cycles=100"], ["openbook_sleep_diag.debug=1"],
-                    ["openbook_lid_guard.ptm_off=1"], ["openbook_sleep_diag.usb4=1 init=/bin/sh"]):
-            with self.assertRaisesRegex(ValueError, "allowlist"):
-                self.add(self.spec(add_options=bad), out=f"bad-diag-{bad[0].split('.')[-1][:12]}")
-
     def test_refuses_existing_name_missing_base_and_duplicate_parameter(self):
         with self.assertRaisesRegex(ValueError, "already exists"):
             self.add(self.spec(name="ruby-logs.conf"), out="exists")

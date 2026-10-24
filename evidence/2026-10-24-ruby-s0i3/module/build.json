@@ -2,9 +2,9 @@
  "schema": "openbook-sleep-diag-build/1",
  "date": "2026-10-24",
  "module": "openbook_sleep_diag.ko",
- "module_sha256": "b7855bc75b5c87906e1d08f85366e6292ce610df928a38a49531455974f1b227",
+ "module_sha256": "7362ffcba7206cce27b41ad4ecf55f742c15d7c8e25fc8919d7a6ba38aad416c",
  "sources_sha256": {
-  "openbook_sleep_diag.c": "eda06013258d619589d6c5efbccd49accc9ef9237a6646917c0c4295ad9dc0ca",
+  "openbook_sleep_diag.c": "8e2eca296c55e19feab68a1d17bff794a00bdde390c8edf8a1536c29ed600aaf",
   "ptm_plan.h": "8a51a301a10a0f3a9ec0bf6d3266a4aaa15cc972d4fe7b2c6c11cd4e27a62fa0"
  },
  "build": "scripts/kernel-docker.sh: tools/bazel build --jobs=8 --config=stamp //devices/anybook:openbook_sleep_diag (Kleaf ddk_module on :anybook_amd_x86_64, kernel lane ~/anybook/kernel/src, common at fbfdd65b0fd1)",
@@ -26,5 +26,5 @@
   "usb4": "bool, 0444",
   "cycles": "uint, default 3, 0444"
  },
- "linux_72_compile": "builds without warnings against /usr/lib/modules/7.2.8-5-omarchy-bore/build (compiled only, not loaded)"
+ "linux_72_compile": "an earlier revision (same code, older header comment) built without warnings against Linux 7.2.8 headers; no longer needed since the Linux live USB was dropped"
 }
