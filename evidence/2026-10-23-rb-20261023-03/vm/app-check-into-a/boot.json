@@ -1,0 +1,116 @@
+{
+  "phase": "boot",
+  "slot": "a",
+  "run": {
+    "elapsed_s": 2401.2,
+    "timed_out": true,
+    "qmp_events": [
+      "RTC_CHANGE"
+    ]
+  },
+  "booted_slot": "a",
+  "boot_control": {
+    "suffix": "_a",
+    "magic_ok": true,
+    "nb_slot": 2,
+    "slots": [
+      {
+        "priority": 15,
+        "tries": 1,
+        "successful": true
+      },
+      {
+        "priority": 14,
+        "tries": 0,
+        "successful": false
+      }
+    ]
+  },
+  "bootsync": {
+    "schema": "openbook-bootsync/1",
+    "command": "status",
+    "current_slot": "a",
+    "slots": {
+      "a": {
+        "images_ok": true,
+        "vbmeta_digest": "91ea83b2c99b048e8db5cc73e9455e802e318838677edb1be49cef44a6e9f7d2",
+        "vbmeta_key_sha256": "7728e30f50bfa5cea165f473175a08803f6a8346642b5aa10913e9d9e6defef6",
+        "vbmeta_signed": true,
+        "vbmeta_release": "avbtool 1.4.0",
+        "entry": "openbook-a.conf",
+        "entry_state": "good",
+        "esp_files": "in_sync"
+      },
+      "b": {
+        "images_ok": true,
+        "vbmeta_digest": "c89bddf4de346102f73677aa55cd3776e8f56e8942e321420cb07ddd8b6e6201",
+        "vbmeta_key_sha256": "7728e30f50bfa5cea165f473175a08803f6a8346642b5aa10913e9d9e6defef6",
+        "vbmeta_signed": true,
+        "vbmeta_release": "avbtool 1.4.0",
+        "entry": null,
+        "entry_state": "none",
+        "esp_files": "in_sync"
+      }
+    },
+    "entries": [
+      {
+        "file": "openbook-a.conf",
+        "id": "openbook-a.conf",
+        "slot": "a",
+        "state": "good"
+      }
+    ],
+    "loader_conf": {
+      "default": "openbook-a.conf",
+      "preferred": null
+    },
+    "next_boot_entry": "openbook-a.conf",
+    "next_boot_slot": "a",
+    "esp_free_bytes": 1011408896,
+    "ok": true
+  },
+  "snapshot_state": "None",
+  "merge_log": [
+    "                 [  127.188201][ T1996] snapuserd: Starting merge for partition: system_a",
+    "      0 S credstore[  127.182531][ T1996] snapuserd: MonitorMerge: active-merge-threads: 0",
+    "  0 R update_engine[  127.219654][ T1996] snapuserd: MonitorMerge: active-merge-threads: 2",
+    " binder as linkToDeath cannot be implemented. serviceName: emergency_affordance",
+    " constructed with Config: com.google.android.configupdater.emergencynumberdb.EmergencyNumberDbConfig@4a24ad2, StoredState: co",
+    " snapuserd: product_a: Snapshot I/O terminated. Waiting for merge thread....",
+    " snapuserd: system_a: Worker threads terminated with ret: 1 Merge-thread with ret: 1 RA-thread with ret: 1",
+    " snapuserd: vendor_a: Worker threads terminated with ret: 1 Merge-thread with ret: 1 RA-thread with ret: 1",
+    "/update_engine(  662): [INFO:snapshot.cpp(1537)] CheckTargetMergeState for product_a returned: Merging",
+    "/update_engine(  662): [INFO:snapshot.cpp(1537)] CheckTargetMergeState for system_a returned: Merging",
+    "/update_engine(  662): [INFO:snapshot.cpp(1537)] CheckTargetMergeState for system_dlkm_a returned: Merging",
+    "/update_engine(  662): [INFO:snapshot.cpp(1537)] CheckTargetMergeState for system_ext_a returned: Merging"
+  ],
+  "runtime_findings": {
+    "setup_welcome_activity_seen": true,
+    "system_server_fatal_signals": [],
+    "zygote_exit_events": 0,
+    "system_server_execmem_denial_seen": false,
+    "mmd_setup_abort_seen": false,
+    "camera_provider_running_reported": false,
+    "camera_provider_registered_reported": true,
+    "camera_device_counts_reported": [
+      0
+    ],
+    "camera_provider_abort_seen": false,
+    "camera_fmq_test_exit_statuses": [],
+    "camera_buffer_test_exit_statuses": [],
+    "camera_buffer_test_abort_seen": false,
+    "camera_fmq_tmpfs_denial_seen": false,
+    "camera_provider_default_label_denial_seen": false
+  },
+  "checks": {
+    "booted_slot_a": true,
+    "boot_completed": true,
+    "slot_a_marked_successful": true,
+    "bootsync_a_entry_good": true,
+    "bootsync_next_boot_a": true,
+    "snapshot_merged": true,
+    "no_avb_error": true
+  },
+  "schema": "openbook-ruby-ab-ota/1",
+  "passed": true
+}

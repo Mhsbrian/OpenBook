@@ -1,0 +1,116 @@
+{
+  "phase": "boot",
+  "slot": "b",
+  "run": {
+    "elapsed_s": 1800.6,
+    "timed_out": true,
+    "qmp_events": [
+      "RTC_CHANGE"
+    ]
+  },
+  "booted_slot": "b",
+  "boot_control": {
+    "suffix": "_a",
+    "magic_ok": true,
+    "nb_slot": 2,
+    "slots": [
+      {
+        "priority": 7,
+        "tries": 0,
+        "successful": false
+      },
+      {
+        "priority": 15,
+        "tries": 1,
+        "successful": true
+      }
+    ]
+  },
+  "bootsync": {
+    "schema": "openbook-bootsync/1",
+    "command": "status",
+    "current_slot": "b",
+    "slots": {
+      "a": {
+        "images_ok": true,
+        "vbmeta_digest": "6e034954d4c277c94d009c41879e948e0c04f32cde92282a50551a9cc6417d10",
+        "vbmeta_key_sha256": "7728e30f50bfa5cea165f473175a08803f6a8346642b5aa10913e9d9e6defef6",
+        "vbmeta_signed": true,
+        "vbmeta_release": "avbtool 1.4.0",
+        "entry": null,
+        "entry_state": "none",
+        "esp_files": "in_sync"
+      },
+      "b": {
+        "images_ok": true,
+        "vbmeta_digest": "c89bddf4de346102f73677aa55cd3776e8f56e8942e321420cb07ddd8b6e6201",
+        "vbmeta_key_sha256": "7728e30f50bfa5cea165f473175a08803f6a8346642b5aa10913e9d9e6defef6",
+        "vbmeta_signed": true,
+        "vbmeta_release": "avbtool 1.4.0",
+        "entry": "openbook-b.conf",
+        "entry_state": "good",
+        "esp_files": "in_sync"
+      }
+    },
+    "entries": [
+      {
+        "file": "openbook-b.conf",
+        "id": "openbook-b.conf",
+        "slot": "b",
+        "state": "good"
+      }
+    ],
+    "loader_conf": {
+      "default": "openbook-b.conf",
+      "preferred": null
+    },
+    "next_boot_entry": "openbook-b.conf",
+    "next_boot_slot": "b",
+    "esp_free_bytes": 1011408896,
+    "ok": true
+  },
+  "snapshot_state": "None",
+  "merge_log": [
+    " 6], imsserviceentitlement.entitlement_server_url_string=, emergency_call_to_satellite_t911_handover_timeout_millis_int=30000",
+    " binder as linkToDeath cannot be implemented. serviceName: emergency_affordance",
+    " snapuserd: product_b: Snapshot I/O terminated. Waiting for merge thread....",
+    " snapuserd: system_b: Worker threads terminated with ret: 1 Merge-thread with ret: 1 RA-thread with ret: 1",
+    " snapuserd: vendor_b: Worker threads terminated with ret: 1 Merge-thread with ret: 1 RA-thread with ret: 1",
+    ", carrier_roaming_satellite_emergency_messaging_provider_per_country_bundle=PersistableBundle[",
+    "/update_engine(  660): [INFO:snapshot.cpp(1537)] CheckTargetMergeState for system_dlkm_b returned: MergeCompleted",
+    "0): [INFO:cleanup_previous_update_action.cc(513)] Reporting merge stats: MergeCompleted in 9188ms (resumed 0 times), using 0 ",
+    "133\temergency_affordance: []",
+    "134\temergency_affordance: []",
+    "135\temergency_affordance: []",
+    "80, carrier_config_applied_bool=false, carrier_roaming_ntn_emergency_call_to_satellite_handover_type_int=2, carrier_roaming_s"
+  ],
+  "runtime_findings": {
+    "setup_welcome_activity_seen": true,
+    "system_server_fatal_signals": [],
+    "zygote_exit_events": 0,
+    "system_server_execmem_denial_seen": false,
+    "mmd_setup_abort_seen": false,
+    "camera_provider_running_reported": false,
+    "camera_provider_registered_reported": true,
+    "camera_device_counts_reported": [
+      0
+    ],
+    "camera_provider_abort_seen": false,
+    "camera_fmq_test_exit_statuses": [],
+    "camera_buffer_test_exit_statuses": [],
+    "camera_buffer_test_abort_seen": false,
+    "camera_fmq_tmpfs_denial_seen": false,
+    "camera_provider_default_label_denial_seen": false
+  },
+  "checks": {
+    "booted_slot_b": true,
+    "boot_completed": true,
+    "slot_b_marked_successful": true,
+    "bootsync_b_entry_good": true,
+    "bootsync_next_boot_b": true,
+    "snapshot_merged": true,
+    "no_avb_error": true
+  },
+  "schema": "openbook-ruby-ab-ota/1",
+  "passed": true
+}

@@ -1,0 +1,19 @@
+{
+  "apply": {
+    "passed": true,
+    "missing": false,
+    "failed": []
+  },
+  "boot": {
+    "passed": true,
+    "missing": false,
+    "failed": []
+  },
+  "verify": {
+    "passed": true,
+    "missing": false,
+    "failed": []
+  },
+  "direction": "slot B -> slot A",
+  "passed": true
+}
