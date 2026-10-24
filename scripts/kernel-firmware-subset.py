@@ -13,7 +13,8 @@ usage: kernel-firmware-subset.py --fw LINUX_FIRMWARE_GIT --modules DIR --rules R
   --out      copy the selected files (and the licence files they cite) here, with linux-firmware's layout
 
 Licences come from linux-firmware's WHENCE: the block that lists a file gives its Driver and Licence lines.
-Names that are a WHENCE "Link:" are resolved to their target and staged as a symlink.
+Names that are a WHENCE "Link:" are resolved to their target and staged as a symlink; so are names under a linked
+directory (nvidia/gb205 -> gb202), however many links deep.
 """
 import argparse
 import collections
@@ -57,6 +58,30 @@ def parse_whence(text):
         for f, target in pending:
             info[f] = (driver, licence, target)
     return info
+
+
+def resolve(f, whence, tree):
+    """(file in the tree that name f ends up at, WHENCE entry that first describes f), following file links and
+    directory links (a Link: whose name is a directory prefix of f); (None, None) when f leads nowhere."""
+    entry, seen = None, set()
+    while f not in tree:
+        if f in seen:
+            return None, None
+        seen.add(f)
+        if f in whence and whence[f][2]:
+            entry = entry or whence[f]
+            f = whence[f][2]
+            continue
+        parts = f.split("/")
+        for i in range(len(parts) - 1, 0, -1):
+            d = "/".join(parts[:i])
+            if d in whence and whence[d][2]:
+                entry = entry or whence[d]
+                f = "/".join([whence[d][2]] + parts[i:])
+                break
+        else:
+            return None, None
+    return f, entry or whence.get(f)
 
 
 def licence_files(licence):
@@ -105,14 +130,13 @@ def main():
 
     rows, missing, lic_needed, missing_lic = [], [], set(), []
     for f, who in want.items():
-        driver, licence, link = whence.get(f, ("?", "?", None))
-        src = link or f
-        if src not in tree:
+        src, entry = resolve(f, whence, tree)
+        if src is None:
             missing.append((f, who))
             continue
+        driver, licence, _ = entry or ("?", "?", None)
+        link = src if src != f else None
         blob = git(a.fw, "show", f"HEAD:{src}", binary=True)
-        if link is None and src in whence:
-            driver, licence, _ = whence[src]
         rows.append(dict(file=f, link=link or "", size=len(blob), sha256=hashlib.sha256(blob).hexdigest(),
                          driver=driver, licence=licence, by=who))
         lic_needed.update(licence_files(licence))

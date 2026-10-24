@@ -13,8 +13,10 @@ usage: kernel-g14-modlists.py gen   [--tsv TSV] [--out DIR]
            modules.{bm,vm}.blocklist          "blocklist <name>.ko" lines, as Android's libmodprobe reads them
   check  regenerates into a temporary directory and fails if DIR differs, then checks the plan against DIST
          (a dist from scripts/kernel-build.sh: the .ko files and system_dlkm.modules.load):
-           - each AnyBook vendor module (the module_outs list _ANYBOOK_AMD_MODULES in --build, default
-             kernel/devices/anybook/BUILD.bazel) has exactly one row, and every row names a module in the dist
+           - each AnyBook vendor module (the module_outs lists _ANYBOOK_*_MODULES in --build, default
+             kernel/devices/anybook/BUILD.bazel) has exactly one row, and every row names a module in the dist;
+             an external vendor module (kernel_module/ddk_module: no intree flag in its modinfo) needs no
+             module_outs entry
            - gki rows are GKI modules (system_dlkm.modules.load)
            - first stage is closed under dependencies: nothing there may need vendor_dlkm or system_dlkm,
              which are not mounted yet
@@ -94,10 +96,16 @@ def modinfo_depends(path):
 
 
 def vendor_modules(build):
-    """Basenames of the .ko files in _ANYBOOK_AMD_MODULES, the vendor modules' module_outs."""
+    """Basenames of the .ko files in the _ANYBOOK_*_MODULES lists, the vendor modules' module_outs."""
     text = open(build).read()
-    block = re.search(r"^_ANYBOOK_AMD_MODULES = \[(.*?)^\]", text, re.S | re.M).group(1)
-    return {os.path.basename(m) for m in re.findall(r'"([^"]+\.ko)"', block)}
+    blocks = re.findall(r"^_ANYBOOK_\w+_MODULES = \[(.*?)^\]", text, re.S | re.M)
+    return {os.path.basename(m) for b in blocks for m in re.findall(r'"([^"]+\.ko)"', b)}
+
+
+def external(path):
+    """An external module (kernel_module/ddk_module) is built outside the kernel tree: no intree flag."""
+    out = subprocess.run(["modinfo", "-F", "intree", path], capture_output=True, text=True, check=True).stdout
+    return out.strip() != "Y"
 
 
 def check(rows, dist, build):
@@ -119,8 +127,9 @@ def check(rows, dist, build):
     for f in sorted(vendor - set(by_file)):
         problems.append(f"{f}: vendor module with no row in modules.tsv")
     for r in rows:
-        if r["source"] == "anybook" and r["module"] not in vendor:
-            problems.append(f"{r['module']}: marked anybook but not in _ANYBOOK_AMD_MODULES")
+        if r["source"] == "anybook" and r["module"] not in vendor and not (
+                r["module"] in on_disk and external(os.path.join(dist, r["module"]))):
+            problems.append(f"{r['module']}: marked anybook but neither in _ANYBOOK_*_MODULES nor external")
 
     deps = {r["module"]: modinfo_depends(os.path.join(dist, r["module"])) for r in rows if r["module"] in on_disk}
     gki_needed = {}

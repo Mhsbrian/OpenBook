@@ -15,5 +15,5 @@ docker image inspect "$IMG" >/dev/null 2>&1 || docker build -t "$IMG" -f "$R/too
 RUN=(--rm -i); [ -n "${KERNEL_DETACH:-}" ] && RUN=(-d --name "$KERNEL_DETACH")
 exec docker run "${RUN[@]}" -u "$(id -u):$(id -g)" \
   -e HOME="$K/home" -e USER="$(id -un)" -e ANYBOOK_HOME="$A" -e ANYBOOK_IN_KERNEL_CONTAINER=1 \
-  -e ANYBOOK_KERNEL_JOBS="${ANYBOOK_KERNEL_JOBS:-}" -e BUILD_NUMBER="${BUILD_NUMBER:-}" -e KERNEL_TARGET="${KERNEL_TARGET:-}" -e BAZEL_ARGS="${BAZEL_ARGS:-}" -e BUILD_TIMEOUT="${BUILD_TIMEOUT:-}" \
+  -e ANYBOOK_KERNEL_JOBS="${ANYBOOK_KERNEL_JOBS:-}" -e ANYBOOK_KERNEL_SRC="${ANYBOOK_KERNEL_SRC:-}" -e BUILD_NUMBER="${BUILD_NUMBER:-}" -e KERNEL_TARGET="${KERNEL_TARGET:-}" -e BAZEL_ARGS="${BAZEL_ARGS:-}" -e BUILD_TIMEOUT="${BUILD_TIMEOUT:-}" \
   -v "$K:$K" -v "$L:$L" -v "$R:$R:ro" -w "$K" "$IMG" "$@"

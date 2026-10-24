@@ -1,0 +1,9 @@
+# OpenBook (ANAL-239): the in-tree helper of the external nouveau (devices/anybook/nvidia), after anybook_amd.fragment.
+# The same rule as there: modules only, nothing vmlinux or a GKI module is built from (no built-in code reads these
+# symbols). ANYBOOK_NOUVEAU comes from nvidia/Kconfig.ext and selects DRM_GPUVM; DRM_NOUVEAU stays off, so common's own
+# copy of nouveau is never built. DRM_GPUVM has no prompt: its line only checks that it was selected. MXM_WMI stays
+# off: nouveau uses it only from vga_switcheroo code, which the GKI does not build.
+CONFIG_ANYBOOK_NOUVEAU=m
+CONFIG_DRM_GPUVM=m
+# CONFIG_MXM_WMI is not set
+# CONFIG_DRM_NOUVEAU is not set
