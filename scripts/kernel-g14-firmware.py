@@ -3,7 +3,7 @@
 
 usage: kernel-g14-firmware.py --subset TSV --src DIR --fw LINUX_FIRMWARE_GIT --out DIR
 
-  --subset  the subset list from scripts/kernel-firmware-subset.py (evidence/2026-10-16-kernel-amd/firmware-subset.tsv,
+  --subset  the subset list from scripts/kernel-firmware-subset.py (kernel/firmware/anybook-amd-subset.tsv,
             137 files since ANAL-175 added the GA403WR speaker tuning):
             file, WHENCE link target, size, sha256, requesting module, WHENCE driver and licence
   --src     that script's staging dir (~/anybook/kernel/firmware/anybook-amd): the files, LICENSES/ and WHENCE
