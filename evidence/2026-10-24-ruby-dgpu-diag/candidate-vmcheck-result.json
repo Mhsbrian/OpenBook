@@ -1,0 +1,112 @@
+{
+  "schema": "openbook-ruby-dgpu-diag-candidate/1",
+  "complete": true,
+  "source_sha256": "71da0228488781fa7db6bbb2b07b8559024023b606ae54cd868f780954b9cc24",
+  "image_sha256": "76ed6959e22b2e0dbe313f1c4354158f796b4be8e884d52c383ad2c80d898ad0",
+  "partitions": {
+    "vendor": {
+      "metadata_rows": 1326,
+      "all_inode_xattrs_identical": false,
+      "changed_files": [
+        "/bin/openbook-pc-setup",
+        "/etc/init/hw/init.openbook.rc",
+        "/etc/selinux/vendor_sepolicy.cil"
+      ],
+      "added_paths": [],
+      "file_and_symlink_count": 616
+    },
+    "system": {
+      "metadata_rows": 6618,
+      "all_inode_xattrs_identical": false,
+      "changed_files": [],
+      "added_paths": [
+        "/system/etc/init/openbook-dgpu-vmcheck.rc",
+        "/system/etc/openbook-dgpu-vmcheck.sh"
+      ],
+      "file_and_symlink_count": 3125
+    }
+  },
+  "dgpu_diagnostics": {
+    "deployment_eligible": false,
+    "issue": "ANAL-238",
+    "hardware_validated": false,
+    "scope": "dGPU diagnostics (ANAL-238): openbook-pc-setup logs to logd; a root-domain dgpu-report at boot completion and on debug.openbook.dgpu_report; a volatile dgpu-ctl on|auto hold from debug.openbook.dgpu_pm; read access to /sys/power/suspend_stats for openbook_pc_setup. No firmware setting (dgpu_disable, gpu_mux_mode) is written",
+    "partition": "vendor",
+    "files": {
+      "/bin/openbook-pc-setup": {
+        "base_sha256": "0e70d4a55c27388c0fb22de69151895633db17d6db49fd90404b73a2c890b31d",
+        "sha256": "f48c7063eca8858920de9bd45ba18ecac111a1be0f0a60caf15dcbf78dbe3227"
+      },
+      "/etc/init/hw/init.openbook.rc": {
+        "base_sha256": "9836f8d3d3218663730f348eccf86436a905f7b1ad9da6a2b70288b0a19fe73f",
+        "sha256": "50e6515384e64b3c6dab674fd8c792a3991e5280ffac6492b2d99179ef2bcbab"
+      },
+      "/etc/selinux/vendor_sepolicy.cil": {
+        "base_sha256": "321e4491be38226c102ecb554517887753f8f37770237abdb129197e84035673",
+        "sha256": "54f0dfb9fa02ca8871eae5090ef9e1068051196ba031af1c00941f4264318fd7"
+      }
+    },
+    "added_policy": [
+      "(allow openbook_pc_setup sysfs_suspend_stats_202604 (dir (ioctl read getattr lock open watch watch_reads search)))",
+      "(allow openbook_pc_setup sysfs_suspend_stats_202604 (file (ioctl read getattr lock map open watch watch_reads)))",
+      "(allow openbook_pc_setup sysfs_suspend_stats_202604 (lnk_file (ioctl read getattr lock map open watch watch_reads)))"
+    ],
+    "policy": {
+      "neverallow_checked": true,
+      "runtime_recompilation_required": true,
+      "platform_policy_hash": "318c33bb5ebd0ebd73d91a22c9102283b8305fcf0606a204f87927574ad5e227",
+      "vendor_precompiled_hash": "344a39b0d602939129d9b1b84e466a8d988de084082f623b932b5058a47566ab",
+      "base_policy_sha256": "529b1ebe48c6316605ebe42033b0a4fa2a2b8002d64e0e7e845f2f06bc4b22e1",
+      "candidate_policy_sha256": "248485f811c7887e4f47df2e97c1a8a51ac77c69bd384cbd28058c95e7084cab",
+      "probes": {
+        "openbook_pc_setup sysfs_suspend_stats:dir search": {
+          "base": false,
+          "candidate": true
+        },
+        "openbook_pc_setup sysfs_suspend_stats:file read": {
+          "base": false,
+          "candidate": true
+        },
+        "openbook_pc_setup sysfs_suspend_stats:lnk_file read": {
+          "base": false,
+          "candidate": true
+        },
+        "hal_power_stats_default sysfs_suspend_stats:file read": {
+          "base": true,
+          "candidate": true
+        },
+        "openbook_pc_setup sysfs:file write": {
+          "base": true,
+          "candidate": true
+        },
+        "openbook_pc_setup tmpfs:chr_file write": {
+          "base": false,
+          "candidate": false
+        },
+        "vendor_init debug_prop:file read": {
+          "base": true,
+          "candidate": true
+        },
+        "vendor_init boot_status_prop:file read": {
+          "base": true,
+          "candidate": true
+        },
+        "shell debug_prop:property_service set": {
+          "base": true,
+          "candidate": true
+        }
+      }
+    }
+  },
+  "experimental_dgpu_vmcheck": {
+    "deployment_eligible": false,
+    "scope": "disposable VM report of the dGPU diagnostics to the serial console",
+    "added_files": {
+      "/system/etc/init/openbook-dgpu-vmcheck.rc": "64701cc2e96c24b394110765280f2156d6a2bf049157d275c1c0ab89551f0340",
+      "/system/etc/openbook-dgpu-vmcheck.sh": "5fd51db17460a110a5c0874d9880f0789e7ed9fdbbded2ed69707546ee680b40"
+    }
+  },
+  "protected_ranges_identical": true,
+  "source_unchanged": true,
+  "physical_device_written": false
+}

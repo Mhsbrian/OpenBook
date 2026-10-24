@@ -1,0 +1,98 @@
+# ANAL-238 tests on the rebased branch, 2026-10-24T13:26:37Z, build host
+## python3 -I scripts/googlebook/build-dgpu-diag-candidate-test.py -v
+test_refuses_existing_grant (__main__.Cil.test_refuses_existing_grant) ... ok
+test_refuses_missing_final_newline (__main__.Cil.test_refuses_missing_final_newline) ... ok
+test_refuses_missing_template_class (__main__.Cil.test_refuses_missing_template_class) ... ok
+test_rule_derived_from_template (__main__.Cil.test_rule_derived_from_template) ... ok
+test_vendor_rc (__main__.InitScripts.test_vendor_rc) ... ok
+test_vm_check_rc (__main__.InitScripts.test_vm_check_rc) ... ok
+test_refuses_missing_file (__main__.Inputs.test_refuses_missing_file) ... ok
+test_refuses_unchanged_replacement (__main__.Inputs.test_refuses_unchanged_replacement) ... ok
+test_refuses_unreviewed_base (__main__.Inputs.test_refuses_unreviewed_base) ... ok
+test_replacements (__main__.Inputs.test_replacements) ... ok
+test_missing_report_fails (__main__.Judge.test_missing_report_fails) ... ok
+test_new_denial_fails (__main__.Judge.test_new_denial_fails) ... ok
+test_nonzero_exit_fails (__main__.Judge.test_nonzero_exit_fails) ... ok
+test_pass (__main__.Judge.test_pass) ... ok
+test_stats_unreadable_fails (__main__.Judge.test_stats_unreadable_fails) ... ok
+test_wrong_state_fails (__main__.Judge.test_wrong_state_fails) ... ok
+test_sources_are_the_repository_files (__main__.Pins.test_sources_are_the_repository_files) ... ok
+test_uniform_mtime (__main__.Pins.test_uniform_mtime) ... ok
+
+----------------------------------------------------------------------
+Ran 18 tests in 0.083s
+
+OK
+## python3 -I scripts/googlebook/sleep-history-test.py -v
+test_parse (__main__.DgpuReportParse.test_parse) ... ok
+test_battery_span (__main__.SleepHistory.test_battery_span) ... ok
+test_boots_suspends_and_s0i3 (__main__.SleepHistory.test_boots_suspends_and_s0i3) ... ok
+test_no_history_refused (__main__.SleepHistory.test_no_history_refused) ... ok
+test_s0i3_nonzero_detected (__main__.SleepHistory.test_s0i3_nonzero_detected) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.215s
+
+OK
+## python3 -I scripts/googlebook/build-input-candidate-test.py -v
+test_executable_with_its_own_label (__main__.AddedFiles.test_executable_with_its_own_label) ... ok
+test_plain_bytes_are_a_0644_system_file (__main__.AddedFiles.test_plain_bytes_are_a_0644_system_file) ... ok
+test_unsafe_modes_and_labels_are_refused (__main__.AddedFiles.test_unsafe_modes_and_labels_are_refused) ... ok
+test_parent_must_exist (__main__.Metadata.test_parent_must_exist) ... ok
+test_rows_carry_mode_size_and_label (__main__.Metadata.test_rows_carry_mode_size_and_label) ... ok
+test_directories_are_listed_as_dir (__main__.Review.test_directories_are_listed_as_dir) ... ok
+test_disposable_experiment (__main__.Review.test_disposable_experiment) ... ok
+test_no_additions_need_no_review (__main__.Review.test_no_additions_need_no_review) ... ok
+test_production_record_listing_every_file (__main__.Review.test_production_record_listing_every_file) ... ok
+test_unreviewed_additions_are_refused (__main__.Review.test_unreviewed_additions_are_refused) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.001s
+
+OK
+## python3 -I scripts/googlebook/rebase-google-build-test.py -v
+test_the_app_domain_block_follows_googles_app_domains (__main__.AppDomain.test_the_app_domain_block_follows_googles_app_domains) ... ok
+test_an_edit_that_is_not_an_append_is_refused (__main__.AppendMerge.test_an_edit_that_is_not_an_append_is_refused) ... ok
+test_openbook_tail_is_reappended_and_hash_recomputed (__main__.AppendMerge.test_openbook_tail_is_reappended_and_hash_recomputed) ... ok
+test_google_adding_an_openbook_path_is_refused (__main__.Delta.test_google_adding_an_openbook_path_is_refused) ... ok
+test_google_changing_a_patched_file_is_refused (__main__.Delta.test_google_changing_a_patched_file_is_refused) ... ok
+test_google_changing_a_removed_file_is_refused (__main__.Delta.test_google_changing_a_removed_file_is_refused) ... ok
+test_rebased_rows (__main__.Delta.test_rebased_rows) ... ok
+test_relabelled_mergeable_file_is_refused (__main__.Delta.test_relabelled_mergeable_file_is_refused) ... ok
+test_google_shipping_the_block_or_dropping_the_marker_is_refused (__main__.InsertMerge.test_google_shipping_the_block_or_dropping_the_marker_is_refused) ... ok
+test_other_edits_are_refused (__main__.InsertMerge.test_other_edits_are_refused) ... ok
+test_plan_delta_carries_signer_and_app_context (__main__.InsertMerge.test_plan_delta_carries_signer_and_app_context) ... ok
+test_the_block_lands_before_the_new_marker (__main__.InsertMerge.test_the_block_lands_before_the_new_marker) ... ok
+test_the_merged_signer_must_be_the_openbook_certificate (__main__.InsertMerge.test_the_merged_signer_must_be_the_openbook_certificate) ... ok
+test_append_at_end (__main__.Merge.test_append_at_end) ... ok
+test_edit_next_to_a_google_change_is_refused (__main__.Merge.test_edit_next_to_a_google_change_is_refused) ... ok
+test_edit_of_a_line_google_changed_is_refused (__main__.Merge.test_edit_of_a_line_google_changed_is_refused) ... ok
+test_openbook_edits_land_on_the_new_build (__main__.Merge.test_openbook_edits_land_on_the_new_build) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 0.017s
+
+OK
+## python3 -I scripts/googlebook/build-update-app-candidate-test.py -v
+test_app_context_line_is_exact (__main__.Checks.test_app_context_line_is_exact) ... ok
+test_app_domain_statements_are_those_googles_app_domains_share (__main__.Checks.test_app_domain_statements_are_those_googles_app_domains_share) ... ok
+test_app_domain_statements_on_the_real_policy (__main__.Checks.test_app_domain_statements_on_the_real_policy) ... skipped 'no extracted Ruby policy on this host'
+test_committed_sources_match_their_pins (__main__.Checks.test_committed_sources_match_their_pins) ... ok
+test_only_a_clean_reproducible_pin_is_deployable (__main__.Checks.test_only_a_clean_reproducible_pin_is_deployable) ... ok
+test_permission_levels (__main__.Checks.test_permission_levels) ... ok
+test_requested_permissions_include_sdk23_requests (__main__.Checks.test_requested_permissions_include_sdk23_requests) ... ok
+test_signer_insertion (__main__.Checks.test_signer_insertion) ... ok
+test_signers_are_read_from_v2_and_v3 (__main__.Checks.test_signers_are_read_from_v2_and_v3) ... ok
+test_strict_parsing_of_certificate_and_context (__main__.Checks.test_strict_parsing_of_certificate_and_context) ... ok
+test_tampered_config_is_refused (__main__.Checks.test_tampered_config_is_refused) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.004s
+
+OK (skipped=1)
+## scripts/openbook-pc-setup-test.sh bash
+ok   ctl with nouveau: exit 0
+ok   ctl with nouveau: audio untouched
+openbook-pc-setup-test: 0 failure(s)
+## scripts/dgpu-power-check-test.sh bash
+all passed (bash)
