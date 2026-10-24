@@ -1,5 +1,17 @@
 # Status
 
+## 2026-10-24: Deep sleep on the G14: diagnostics ready, the dGPU driver and PTM ruled out as the difference (ANAL-257)
+
+Ruby still misses S0i3 in every suspend (about 4.5 W asleep). Desk work against Linux 7.2.8 on the same laptop:
+there, the dGPU had no driver during the 15.4 h sleep (supergfx Integrated), and since v7.1 Linux leaves PTM as
+the firmware set it, as the GKI does, so neither explains the difference; platform and PCI `_OSC`, amd_pmc and
+amd-pmf's suspend notice are ruled out too. Left, ranked: the PSP/TEE/amd-pmf drivers the GKI lacks, the USB4
+complex the SMU names, amdgpu's older display code, the kernel generation. Built: `openbook_sleep_diag` (test-only
+vendor module, loaded with parameters on demand: PTM off across suspend, PCI and USB4 power snapshots at the S0i3
+attempt; `7362ffcb…`, KMI and CRCs checked against the G14 kernel, 17/17 in QEMU). No USB stick and no Linux live
+USB (owner, 2026-10-24): next is a root lab helper on ANAL-238's mechanism, shipped with ANAL-238's report and
+ANAL-239's nouveau in one vendor update, then every experiment over wireless adb. Laptop unchanged. `docs/googlebook-s0i3.md`,
+`evidence/2026-10-24-ruby-s0i3/`.
 ## 2026-10-24: nouveau for the G14 dGPU built for Ruby; the kernel must change (ANAL-239)
 
 - **What:** nouveau.ko and drm_gpuvm.ko for the G14 kernel lane, plus GSP-RM 570.144 firmware for GB205 (3 files,

@@ -906,8 +906,11 @@ static void cpuidle_read(int k) {
         if (!exists(p)) { if (c > 0) break; else continue; }
         ci_cpus = c + 1;
         for (int s = 0; s < MAXST; s++) {
-            snprintf(p, sizeof p, "/sys/devices/system/cpu/cpu%d/cpuidle/state%d/s2idle/usage", c, s);
+            snprintf(p, sizeof p, "/sys/devices/system/cpu/cpu%d/cpuidle/state%d", c, s);
             if (!exists(p)) break;
+            // POLL (state0) has no s2idle statistics; the states after it do (ANAL-257: this used to stop here).
+            snprintf(p, sizeof p, "/sys/devices/system/cpu/cpu%d/cpuidle/state%d/s2idle/usage", c, s);
+            if (!exists(p)) continue;
             if (s + 1 > ci_states) ci_states = s + 1;
             ci_use[k][c][s] = read_long(p);
             snprintf(p, sizeof p, "/sys/devices/system/cpu/cpu%d/cpuidle/state%d/s2idle/time", c, s);

@@ -1,0 +1,30 @@
+{
+ "schema": "openbook-sleep-diag-build/1",
+ "date": "2026-10-24",
+ "module": "openbook_sleep_diag.ko",
+ "module_sha256": "7362ffcba7206cce27b41ad4ecf55f742c15d7c8e25fc8919d7a6ba38aad416c",
+ "sources_sha256": {
+  "openbook_sleep_diag.c": "8e2eca296c55e19feab68a1d17bff794a00bdde390c8edf8a1536c29ed600aaf",
+  "ptm_plan.h": "8a51a301a10a0f3a9ec0bf6d3266a4aaa15cc972d4fe7b2c6c11cd4e27a62fa0"
+ },
+ "build": "scripts/kernel-docker.sh: tools/bazel build --jobs=8 --config=stamp //devices/anybook:openbook_sleep_diag (Kleaf ddk_module on :anybook_amd_x86_64, kernel lane ~/anybook/kernel/src, common at fbfdd65b0fd1)",
+ "build_log": "~/anybook/logs/kernel/anal257-sleep-diag-build.log (no compiler warnings)",
+ "vermagic": "6.18.21-android17-5-gfbfdd65b0fd1 SMP preempt mod_unload modversions",
+ "target_kernel": "anybook-g14-gbos-16302624 (6.18.21-android17-5-gfbfdd65b0fd1), the kernel the G14 runs",
+ "target_bzImage_sha256": "55b86074614a94592ddecebd2b77b1f2ed9aa38e8ad992b73c78c64d04c516f9",
+ "target_vmlinux_symvers_sha256": "83eaabf0c7cc2147142f4a7b042317adca861ba25e2740fcb3a38086aad9ac67",
+ "target_abi_symbollist_sha256": "d5f85aca4e1f9a3451429e9f82a23a8f69f5ea7512e44031ff2be81149b755e9",
+ "undefined_symbols": 32,
+ "undefined_symbols_not_in_kmi": 0,
+ "modversions_entries": 33,
+ "modversions_crc_mismatches": 0,
+ "signed": false,
+ "in_g14_load_lists": false,
+ "parameters": {
+  "ptm_off": "bool, 0444",
+  "snapshot": "uint 0-2, 0444",
+  "usb4": "bool, 0444",
+  "cycles": "uint, default 3, 0444"
+ },
+ "linux_72_compile": "an earlier revision (same code, older header comment) built without warnings against Linux 7.2.8 headers; no longer needed since the Linux live USB was dropped"
+}

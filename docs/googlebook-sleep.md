@@ -195,3 +195,8 @@ assembly.
 `scripts/googlebook/dgpu-vm.sh` boots the VM-check variant on the real Ruby image in QEMU, and `dgpu-vm-judge.py`
 compares the result with a fresh boot of the same release without the change. Results are in
 `evidence/2026-10-24-ruby-dgpu-diag/`.
+
+## S0i3 (ANAL-257)
+
+Deep sleep itself, which no Ruby suspend has reached, is in `docs/googlebook-s0i3.md`: the desk analysis, the
+`openbook_sleep_diag` module, and the plan to test on the installed laptop over wireless adb.
