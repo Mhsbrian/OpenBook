@@ -53,7 +53,9 @@ Every image-affecting work issue records a short release handoff:
 - PR and full commit SHA, with required ancestor/dependency commits;
 - included behavior and explicitly unfinished/experimental behavior;
 - test commands, evidence and remaining hardware checks;
-- whether the work changes boot, layout, installer pins, data or recovery.
+- whether the work changes boot, layout, installer pins, data or recovery;
+- an `anybook-handoff/1` file listing each check and the input hashes it
+  tested, so the release can cite it (see "Test once").
 
 Read the hub and existing wakeups before registering a ready-state watch.
 Register once per source issue when it enters the queue; do not register a
@@ -136,6 +138,55 @@ for approval. The owner never has to assemble commit lists or copy handoffs
 between issues. Approval still identifies the exact plan; final device-write
 approval identifies the tested image, operation and exact device.
 
+## Test once
+
+B Honey approved this on ANAL-229 on 2026-10-24. RB-20261023-03 had built
+the same candidate twice and run the same fresh-boot VM test twice: once in
+the source issue and once in the release
+(`evidence/2026-10-24-test-once/`). Each test now runs in one place.
+
+**Source issues hand off inputs, not images.** A feature issue stops at its
+pinned inputs (an APK, a patch, a module, each with its SHA-256) and the tests
+that exercise exactly those bytes: unit, emulator, and a VM run only when the
+feature cannot be tested otherwise. It does not build a production candidate,
+a payload or a stick image, and it does not rehearse the laptop update; those
+belong to the release. It records its checks in an `anybook-handoff/1` file
+(`evidence/2026-10-24-test-once/handoff-ANAL-229.json` is an example): each
+check's kind, scope, result, evidence path and the input hashes it tested.
+
+**The release cites what matches and runs only its own steps.** When freezing
+the plan, record its targets (`laptop-update`, `stick`) and pinned image
+inputs, then run:
+
+```sh
+python3 -I scripts/releases/evidence-reuse.py --plan ./plan.json \
+  ./handoff-*.json --repo <checkout> --output ./reuse.json
+```
+
+A source check is cited when it passed and every input it names matches the
+plan's hash. A whole-image check, such as a fresh boot, is cited only when its
+inputs equal all of the plan's image inputs, so no other change reached that
+image. Anything that differs, failed or lacks evidence runs again. The plan
+lists the result: steps to run, checks cited with their evidence, checks
+skipped with the reason.
+
+These steps always run in the release, because they need the installed
+release or the release's own payload:
+
+| Target | Release steps |
+|---|---|
+| Laptop update | Candidate and signed payload; control rebuild of the installed release, byte for byte; update rehearsal into the other slot with existing data; fallback; every changed feature checked after the update |
+| Stick | Stick image and installer pin; stick install, then a boot without the stick. The fresh boot is cited when a source's matching run exists |
+
+A laptop-only release does not run a fresh-boot test: the update rehearsal
+boots the candidate, and the after-update check covers the features on the
+laptop's real path. A fresh boot is needed when the stick is rewritten.
+
+Same inputs are not a waiver for different tools: a check names the builder
+and integration files it depends on as inputs, so a changed recipe forces a
+rerun. Approval rules are unchanged: B Honey approves the plan, then the
+device write, separately.
+
 ## Approval and execution
 
 1. **Reconcile.** Read the hub, active release and bounded comment history.
@@ -145,7 +196,9 @@ approval identifies the tested image, operation and exact device.
 2. **Freeze.** Create a release record under the hub, or reuse its existing
    draft. Record the preceding accepted release separately from any held
    candidate. Pin the source tree, input hashes, recipe and required tests.
-   Never substitute a newer branch head for a pinned commit.
+   Never substitute a newer branch head for a pinned commit. Derive the test
+   list with `evidence-reuse.py` (see "Test once"); cite matching source
+   checks instead of planning them again.
 3. **Approve build.** Verify B Honey's actual Multica comment author, rather
    than an agent's quotation. Record comment ID, plan revision and exact-byte
    plan hash. A contextual go-ahead for a concrete, previously presented plan
@@ -157,7 +210,8 @@ approval identifies the tested image, operation and exact device.
    chain; never overlap two builds of the same track. Run existing scripts in
    the foreground with durable logs. Record container/tool/package identities.
    No owner data is a VM fixture. Verify output bytes and regenerate the
-   installer pin after any static system or boot change.
+   installer pin after any static system or boot change. Run the plan's
+   steps; do not repeat checks it cites.
 5. **Review candidate.** Record artifact/manifest/installer hashes, source
    commits, test results and unresolved failures in the release issue. Failed
    or incomplete runs remain visible. VM boot and unchanged encryption keys

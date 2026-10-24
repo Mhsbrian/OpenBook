@@ -1,5 +1,15 @@
 # Status
 
+## Release coordination: test once — 2026-10-24
+
+B Honey approved "test once" on ANAL-229. RB-20261023-03 had built the same
+candidate twice (identical logical images) and run the same fresh-boot VM test
+twice, once in the source issue and once in the release. Now source issues
+hand off pinned inputs and the checks run on them. The release cites matching
+checks (`scripts/releases/evidence-reuse.py`, 9/9 tests) and runs only its own
+steps. Replay of RB-20261023-03: `evidence/2026-10-24-test-once/`. Rule:
+`release-control.md`, "Test once". Approval gates are unchanged.
+
 ## Release coordination — 2026-10-20
 
 Multica **ANAL-232** is the release hub; **ANAL-233 / RB-20261020-01** is the
