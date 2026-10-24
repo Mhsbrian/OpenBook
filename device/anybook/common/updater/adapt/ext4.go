@@ -96,7 +96,8 @@ func (fs *ext4FS) inode(ino uint64) (*ext4Inode, error) {
 		flags: le.Uint32(b[32:]), block: b[40:100]}, nil
 }
 
-// extents returns a file's extents, in logical order.
+// extents returns a file's extents, in logical order. Each level of the tree must be one less deep than
+// its parent, and the tree is bounded, so a malformed one cannot loop or grow without end.
 func (fs *ext4FS) extents(in *ext4Inode) ([]ext4Extent, error) {
 	if in.flags&ext4Inline != 0 {
 		return nil, errFormat("ext4 inline data is not supported")
@@ -105,13 +106,14 @@ func (fs *ext4FS) extents(in *ext4Inode) ([]ext4Extent, error) {
 		return nil, errFormat("ext4 block-mapped files are not supported")
 	}
 	var out []ext4Extent
-	var walk func(node []byte, level int) error
-	walk = func(node []byte, level int) error {
+	nodes := 0
+	var walk func(node []byte, want int) error
+	walk = func(node []byte, want int) error {
 		if len(node) < 12 || le.Uint16(node) != 0xF30A {
 			return errFormat("bad ext4 extent header")
 		}
-		n, depth := int(le.Uint16(node[2:])), le.Uint16(node[6:])
-		if 12+n*12 > len(node) || level > 5 {
+		n, depth := int(le.Uint16(node[2:])), int(le.Uint16(node[6:]))
+		if 12+n*12 > len(node) || depth > 5 || (want >= 0 && depth != want) {
 			return errFormat("malformed ext4 extent tree")
 		}
 		for i := 0; i < n; i++ {
@@ -123,21 +125,26 @@ func (fs *ext4FS) extents(in *ext4Inode) ([]ext4Extent, error) {
 				if length > 32768 { // an unwritten extent reads as zeros
 					x.length, x.unwritten = length-32768, true
 				}
-				out = append(out, x)
+				if out = append(out, x); len(out) > 1<<20 {
+					return errFormat("too many ext4 extents")
+				}
 				continue
+			}
+			if nodes++; nodes > 1<<14 {
+				return errFormat("too many ext4 extent tree nodes")
 			}
 			child := make([]byte, fs.bs)
 			leaf := uint64(le.Uint32(e[4:])) | uint64(le.Uint16(e[8:]))<<32
 			if _, err := fs.r.ReadAt(child, int64(leaf*fs.bs)); err != nil {
 				return err
 			}
-			if err := walk(child, level+1); err != nil {
+			if err := walk(child, depth-1); err != nil {
 				return err
 			}
 		}
 		return nil
 	}
-	if err := walk(in.block, 0); err != nil {
+	if err := walk(in.block, -1); err != nil {
 		return nil, err
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].logical < out[j].logical })

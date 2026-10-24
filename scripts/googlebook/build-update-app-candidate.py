@@ -29,9 +29,10 @@ it for a screenshot; such a candidate is marked not deployable.
 
 --adapter (phase 3) also adds openbook-adapt, the AOSP AVB test key it signs with, and the firmware-safety
 rules (ANAL-251) it checks every adapted release with (/system/etc/openbook/firmware-safety.json). The
-finished candidate must pass those rules itself (check-firmware-safety.py over system, system_ext, product
-and vendor, APEX init scripts included), or the laptop would hold every release: build it on a base whose
-Google security chip tools are neutralised (build-safety-candidate.py).
+finished candidate must pass those rules itself, or the laptop would hold every release: build it on a base
+whose Google security chip tools are neutralised (build-safety-candidate.py). Both checks run over system,
+system_ext, product and vendor, APEX init scripts included: check-firmware-safety.py, and the adapter's own
+`openbook-adapt firmware-safety`, which also reads what init reads beyond *.rc.
 
 usage: build-update-app-candidate.py --base STAGED_CANDIDATE --base-sha256 SHA --tools AOSP_HOST_BIN
                                      --inventory erofs-inventory --key AVB_KEY --apk OpenBookUpdate.apk --out DIR
@@ -583,6 +584,23 @@ def build(a):
         old = json.loads(b.p.regular(a.base / "manifest.json").read_text())
         sb.safety_check(a, old, sb.check.load_policy())
         shutil.rmtree(a.out / "safety-check")
+        laptop_safety_check(a, old)
+
+
+def laptop_safety_check(a, old):
+    """The adapter's own check on the candidate (openbook-adapt firmware-safety, exit 8 on findings): what the
+    laptop applies to every release it adapts."""
+    parts = [f"system={a.out / 'rebuilt'}"] + [f"{n}={a.base / f'logical/{n}_a.img'}" for n in sb.CHECKED
+                                              if n in old["logical_sha256"]]
+    work = a.out / "safety-check-laptop"
+    r = subprocess.run([str(b.p.regular(a.adapter)), "firmware-safety", "--rules", str(sb.check.POLICY),
+                        "--fsck", str(a.tools / "fsck.erofs"), "--work", str(work),
+                        "--output", str(a.out / "firmware-safety-laptop.json"), *parts],
+                       env=dict(os.environ, LD_LIBRARY_PATH=str(a.tools.parent / "lib64")), capture_output=True, text=True)
+    shutil.rmtree(work, ignore_errors=True)
+    if r.returncode != 0:
+        (a.out / "manifest.json").rename(a.out / "manifest.rejected.json")
+        raise ValueError(f"The laptop's firmware-safety check failed (exit {r.returncode}): {(r.stdout + r.stderr)[-1500:]}")
 
 
 if __name__ == "__main__":
