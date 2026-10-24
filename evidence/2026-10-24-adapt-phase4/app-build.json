@@ -1,0 +1,19 @@
+{
+  "schema": "openbook-update-app-build/1",
+  "commit": "5fc1a877b9a0e4d439fdb4735f6d597a2873881c",
+  "worktree_clean": true,
+  "toolchain": {"jdk": "temurin-17.0.20+8", "gradle": "9.8.2", "agp": "9.4.1", "kotlin": "2.4.21",
+                "compile_sdk": "android-37.0 r2", "build_tools": "37.0.0",
+                "jdk_release": "Temurin-17.0.20+8",
+                "jdk_modules_sha256": "302ba4569f846f0cab52a9fe0ebd428ab3325fe60efbf7d5112b274c33dc9f8c"},
+  "gradle_sandboxed_without_keys": true,
+  "reproducible_check": true,
+  "version_code": 2,
+  "version_name": "2.0",
+  "engine_sha256": "8348e0fce146183803f9a4f195c110ffcc1a6595ea60e680ea88f9beed00e15d",
+  "release_unsigned_sha256": "235b20e2296d785b1b3f9c2f0097c9742e88f4598f597a0790b882e644a7a615",
+  "release_signed_sha256": "cd2c896ea003717423cf75d8981bd9a4e18f5ef7088faa31646ce93490e79038",
+  "debug_sha256": "afaded28671c29ea01ea8322911884e5eda98778cd8e9af34044ad2e2af9892e",
+  "android_test_sha256": "6fc39a786eae94bb87588dba77efa06163e617d1db8b4f66a12878406d490d5d",
+  "signing_certificate_sha256": "7a56266544934fb4e6a4dc165d01c0bdf1ccbbdcbe2ce8743c77dd81513eb159"
+}

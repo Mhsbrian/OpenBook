@@ -41,7 +41,9 @@ into the adapted system (`--embed-layer`).
 | Updater engine: Google's real release, full size | laptop | **7.8 GB downloaded in 513–560 s and MD5-verified** (phase 1's open item) |
 | Reproducible build (`build.sh --reproducible-check`) | host | two clean builds byte-identical (`adapter-build.json`, pinned official Go 1.27.2) |
 
-The laptop runs (`laptop/`) used `adapt-device-test.sh`. Everything ran as adb's shell user in one
+The laptop runs (`laptop/`) used `adapt-device-test.sh` with the first build. The review fixes came after
+that run. The pinned adapter (`090fe211…`) was run again on the laptop, with the same results:
+`../2026-10-24-adapt-phase4/laptop/`. The laptop runs Everything ran as adb's shell user in one
 temporary directory, removed at the end (`log.txt`). OpenBook's files came from the running system.
 No partition, setting or app was touched.
 

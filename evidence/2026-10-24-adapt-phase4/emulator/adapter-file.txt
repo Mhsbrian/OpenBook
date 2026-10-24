@@ -1,0 +1,1 @@
+-rwxr-xr-x 1 root shell u:object_r:system_file:s0  5156988 2026-10-23 22:57 /system/bin/openbook-adapt

@@ -1,0 +1,22 @@
+class=org.openbook.update.AdapterProcessTest
+class=org.openbook.update.EngineOnDeviceTest
+class=org.openbook.update.LaptopKeyTest
+class=org.openbook.update.MainScreenTest
+class=org.openbook.update.PayloadServerTest
+class=org.openbook.update.ScreenshotTest
+class=org.openbook.update.WorkerTest
+test=answersNothingElse
+test=cancellingStopsTheTransferAndKeepsThePartial
+test=checkAnnouncesOnceAndQueuesTheWifiDownload
+test=checkDownloadVerifyThenTheChecklist
+test=enrolledOnlyWhenTheRunningSystemTrustsTheKey
+test=everyStateLightAndDark
+test=liveGoogleListingFromTheAppDomain
+test=openingTheAppChecksAndShowsTheResult
+test=runsInTheAppSandbox
+test=servesTheFileWholeAndInRanges
+test=signsHashesTheWayUpdateEngineVerifies
+test=theNextQuartersReleaseIsAnnouncedAsHeldAndNotDownloaded
+test=theNextQuartersReleaseIsHeld
+OK (13 tests)
+OK (1 test)

@@ -74,7 +74,17 @@ class ScreenshotTest {
             Step(Step.Id.DOWNLOADED, Step.Status.DONE), Step(Step.Id.VERIFIED, Step.Status.DONE),
             Step(Step.Id.CHECKED_ADAPTATIONS, Step.Status.DONE), Step(Step.Id.BUILT_FOR_LAPTOP, Step.Status.ACTIVE),
             Step(Step.Id.READY, Step.Status.PENDING)))) },
+        "10b-preparing-checking" to { Main(UpdateUiState.Preparing(system, monthly, listOf(
+            Step(Step.Id.DOWNLOADED, Step.Status.DONE), Step(Step.Id.VERIFIED, Step.Status.DONE),
+            Step(Step.Id.CHECKED_ADAPTATIONS, Step.Status.ACTIVE), Step(Step.Id.BUILT_FOR_LAPTOP, Step.Status.PENDING),
+            Step(Step.Id.READY, Step.Status.PENDING)))) },
+        "10c-built-awaiting-key" to { Main(UpdateUiState.Preparing(system, monthly, listOf(
+            Step(Step.Id.DOWNLOADED, Step.Status.DONE), Step(Step.Id.VERIFIED, Step.Status.DONE),
+            Step(Step.Id.CHECKED_ADAPTATIONS, Step.Status.DONE), Step(Step.Id.BUILT_FOR_LAPTOP, Step.Status.DONE),
+            Step(Step.Id.READY, Step.Status.NOT_YET_AVAILABLE)), awaitingKey = true)) },
         "11-held-quarterly" to { Main(UpdateUiState.Held(system, quarterly, HoldReason.NEW_RELEASE_TRAIN)) },
+        "11b-held-adaptation" to { Main(UpdateUiState.Held(system, monthly, HoldReason.ADAPTATION,
+            "/system/build.prop: OpenBook changes it, but Google changed it too")) },
         "12-ready-to-install-design" to { Main(UpdateUiState.ReadyToInstall(system, monthly)) },
         "13-review-design" to { OpenBookUpdateTheme(dark) { ReviewScreen(monthly, {}, {}, {}) } },
         "14-installing" to { Main(UpdateUiState.Installing(system, InstallerStatus.Stage.DOWNLOADING, 42)) },
@@ -82,6 +92,7 @@ class ScreenshotTest {
         "16-failed-network" to { Main(UpdateUiState.Failed(system, Problem.NETWORK, null, null)) },
         "16b-failed-listing" to { Main(UpdateUiState.Failed(system, Problem.LISTING_REFUSED, null, "unexpected download location https://example.com/x.zip")) },
         "17-failed-storage" to { Main(UpdateUiState.Failed(system, Problem.STORAGE, monthly, null)) },
+        "18-failed-adapt" to { Main(UpdateUiState.Failed(system, Problem.ADAPT, monthly, "not enough space to adapt")) },
         "18-settings" to { OpenBookUpdateTheme(dark) { SettingsScreen(Preferences(), {}, {}, {}, {}, {}) } },
         "19-history" to { OpenBookUpdateTheme(dark) { HistoryScreen(listOf(
             HistoryEntry(now - 60_000, HistoryEntry.Type.INSTALLED, "CL3B.260722.140 (16999999)"),
