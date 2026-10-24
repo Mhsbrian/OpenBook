@@ -1,0 +1,119 @@
+{
+  "schema": "openbook-dgpu-vm/1",
+  "passed": true,
+  "checks": {
+    "boot_passed": true,
+    "report_complete": true,
+    "boot_completed": true,
+    "boot_report_in_logcat": true,
+    "suspend_stats_readable": true,
+    "on_demand_report": true,
+    "ctl_on_runs": true,
+    "ctl_auto_runs": true,
+    "services_exit_0": true,
+    "no_new_init_script_errors": true,
+    "no_new_openbook_pc_setup_denials": true,
+    "no_system_server_fatal_signal": true,
+    "no_zygote_exit": true,
+    "no_new_app_crash": true
+  },
+  "baseline": {
+    "denials": [
+      "avc: denied { write } for comm=\"openbook-pc-set\" path=\"/dev/kmsg_debug\" dev=\"tmpfs\" scontext=u:r:openbook_pc_setup:s0 tcontext=u:object_r:tmpfs:s0 tclass=chr_file permissive=0"
+    ],
+    "crashed_apps": [
+      "com.google.android.desktop.repairmode",
+      "com.google.android.gms"
+    ],
+    "init_errors": [
+      "init: Unable to read config file '/init.openbook.rc': open() failed: No such file or directory"
+    ],
+    "report_exits": [],
+    "ctl_exits": []
+  },
+  "now": {
+    "denials": [
+      "avc: denied { write } for comm=\"openbook-pc-set\" path=\"/dev/kmsg_debug\" dev=\"tmpfs\" scontext=u:r:openbook_pc_setup:s0 tcontext=u:object_r:tmpfs:s0 tclass=chr_file permissive=0"
+    ],
+    "crashed_apps": [],
+    "init_errors": [
+      "init: Unable to read config file '/init.openbook.rc': open() failed: No such file or directory"
+    ],
+    "report_exits": [
+      0,
+      0
+    ],
+    "ctl_exits": [
+      0,
+      0
+    ]
+  },
+  "reports": {
+    "boot": [
+      "dgpu-report (boot)",
+      "dgpu-report: suspend_stats success=0 fail=0",
+      "dgpu-report: state=absent"
+    ],
+    "on_demand": [
+      "dgpu-report (vm-1)",
+      "dgpu-report: suspend_stats success=0 fail=0",
+      "dgpu-report: state=absent"
+    ],
+    "ctl_on": [
+      "--------- beginning of main",
+      "dgpu-report (vm-1)",
+      "dgpu-report: suspend_stats success=0 fail=0",
+      "dgpu-report: state=absent",
+      "dgpu-ctl: no NVIDIA function enumerated; nothing to do",
+      "dgpu-report (dgpu-ctl on)",
+      "dgpu-report: suspend_stats success=0 fail=0",
+      "dgpu-report: state=absent"
+    ],
+    "ctl_auto": [
+      "--------- beginning of main",
+      "dgpu-report (vm-1)",
+      "dgpu-report: suspend_stats success=0 fail=0",
+      "dgpu-report: state=absent",
+      "dgpu-ctl: no NVIDIA function enumerated; nothing to do",
+      "dgpu-report (dgpu-ctl on)",
+      "dgpu-report: suspend_stats success=0 fail=0",
+      "dgpu-report: state=absent",
+      "no NVIDIA GPU enumerated; nothing to do",
+      "dgpu-report (dgpu-ctl auto)",
+      "dgpu-report: suspend_stats success=0 fail=0",
+      "dgpu-report: state=absent"
+    ]
+  },
+  "services": [
+    "dgpu-pm ",
+    "dgpu-report ",
+    "dgpu-ctl "
+  ],
+  "security_denials": [
+    "10-24 13:52:55.745   219   219 I auditd  : type=1400 audit(0.0:7): avc:  denied  { write } for  comm=\"openbook-pc-set\" path=\"/dev/kmsg_debug\" dev=\"tmpfs\" ino=6 scontext=u:r:openbook_pc_setup:s0 tcontext=u:object_r:tmpfs:s0 tclass=chr_file permissive=0",
+    "10-24 13:52:55.745   219   219 I auditd  : type=1400 audit(0.0:8): avc:  denied  { write } for  comm=\"openbook-pc-set\" path=\"/dev/kmsg_debug\" dev=\"tmpfs\" ino=6 scontext=u:r:openbook_pc_setup:s0 tcontext=u:object_r:tmpfs:s0 tclass=chr_file permissive=0",
+    "10-24 13:52:58.477   249   249 I auditd  : type=1400 audit(0.0:18): avc:  denied  { write } for  comm=\"openbook-pc-set\" path=\"/dev/kmsg_debug\" dev=\"tmpfs\" ino=6 scontext=u:r:openbook_pc_setup:s0 tcontext=u:object_r:tmpfs:s0 tclass=chr_file permissive=0",
+    "10-24 13:52:59.609   296   296 I auditd  : type=1400 audit(0.0:28): avc:  denied  { write } for  comm=\"openbook-pc-set\" path=\"/dev/kmsg_debug\" dev=\"tmpfs\" ino=6 scontext=u:r:openbook_pc_setup:s0 tcontext=u:object_r:tmpfs:s0 tclass=chr_file permissive=0",
+    "10-24 13:52:59.609   296   296 I auditd  : type=1400 audit(0.0:29): avc:  denied  { write } for  comm=\"openbook-pc-set\" path=\"/dev/kmsg_debug\" dev=\"tmpfs\" ino=6 scontext=u:r:openbook_pc_setup:s0 tcontext=u:object_r:tmpfs:s0 tclass=chr_file permissive=0"
+  ],
+  "crash_lines": [
+    "10-24 14:00:20.491  6065  6065 E AndroidRuntime: FATAL EXCEPTION: main",
+    "10-24 14:00:20.491  6065  6065 E AndroidRuntime: Process: com.google.android.desktop.repairmode, PID: 6065",
+    "10-24 14:01:14.482  5627  5627 E AndroidRuntime: FATAL EXCEPTION: main",
+    "10-24 14:01:14.482  5627  5627 E AndroidRuntime: Process: com.google.android.desktop.repairmode, PID: 5627"
+  ],
+  "deployment_eligible": false,
+  "hardware_tested": false,
+  "boot_checks": {
+    "boot_completed": true,
+    "booted_slot_a": true,
+    "boot_hal_sees_two_slots": true,
+    "slot_a_marked_successful": true,
+    "bootsync_slot_a_in_sync": true,
+    "bootsync_entry_good": true,
+    "userdata_formatted_full_size_and_mounted": true,
+    "metadata_formatted_ext4": true,
+    "no_avb_handoff_error": true
+  },
+  "baseline_serial": "/home/hive/anybook/installer/work/rb-20261023-03/appvm/vm/serial.log"
+}

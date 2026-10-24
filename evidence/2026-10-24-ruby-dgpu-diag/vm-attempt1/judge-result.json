@@ -1,0 +1,98 @@
+{
+  "schema": "openbook-dgpu-vm/1",
+  "checks": {
+    "boot_passed": false,
+    "report_complete": true,
+    "boot_completed": true,
+    "boot_report_in_logcat": false,
+    "suspend_stats_readable": false,
+    "on_demand_report": true,
+    "ctl_on_runs": true,
+    "ctl_auto_runs": true,
+    "services_exit_0": true,
+    "no_new_init_script_errors": false,
+    "no_new_openbook_pc_setup_denials": true,
+    "no_system_server_fatal_signal": true,
+    "no_zygote_exit": false,
+    "no_new_app_crash": true
+  },
+  "reports": {
+    "boot": [],
+    "on_demand": [
+      "dgpu-report (vm-1)",
+      "dgpu-report: suspend_stats success=0 fail=0",
+      "dgpu-report: state=absent"
+    ],
+    "ctl_on": [
+      "--------- beginning of main",
+      "dgpu-report (vm-1)",
+      "dgpu-report: suspend_stats success=0 fail=0",
+      "dgpu-report: state=absent",
+      "dgpu-ctl: no NVIDIA function enumerated; nothing to do",
+      "dgpu-report (dgpu-ctl on)",
+      "dgpu-report: suspend_stats success=0 fail=0",
+      "dgpu-report: state=absent"
+    ],
+    "ctl_auto": [
+      "--------- beginning of main",
+      "dgpu-ctl: no NVIDIA function enumerated; nothing to do",
+      "dgpu-report (dgpu-ctl on)",
+      "dgpu-report: suspend_stats success=0 fail=0",
+      "dgpu-report: state=absent",
+      "no NVIDIA GPU enumerated; nothing to do",
+      "dgpu-report (dgpu-ctl auto)",
+      "dgpu-report: suspend_stats success=0 fail=0",
+      "dgpu-report: state=absent"
+    ]
+  },
+  "services": [
+    "dgpu-pm ",
+    "dgpu-report ",
+    "dgpu-ctl "
+  ],
+  "security_denials": [
+    "10-24 12:59:18.245   219   219 I auditd  : type=1400 audit(0.0:7): avc:  denied  { write } for  comm=\"openbook-pc-set\" path=\"/dev/kmsg_debug\" dev=\"tmpfs\" ino=6 scontext=u:r:openbook_pc_setup:s0 tcontext=u:object_r:tmpfs:s0 tclass=chr_file permissive=0",
+    "10-24 12:59:18.245   219   219 I auditd  : type=1400 audit(0.0:8): avc:  denied  { write } for  comm=\"openbook-pc-set\" path=\"/dev/kmsg_debug\" dev=\"tmpfs\" ino=6 scontext=u:r:openbook_pc_setup:s0 tcontext=u:object_r:tmpfs:s0 tclass=chr_file permissive=0",
+    "10-24 12:59:21.765   249   249 I auditd  : type=1400 audit(0.0:18): avc:  denied  { write } for  comm=\"openbook-pc-set\" path=\"/dev/kmsg_debug\" dev=\"tmpfs\" ino=6 scontext=u:r:openbook_pc_setup:s0 tcontext=u:object_r:tmpfs:s0 tclass=chr_file permissive=0",
+    "10-24 12:59:22.853   299   299 I auditd  : type=1400 audit(0.0:28): avc:  denied  { write } for  comm=\"openbook-pc-set\" path=\"/dev/kmsg_debug\" dev=\"tmpfs\" ino=6 scontext=u:r:openbook_pc_setup:s0 tcontext=u:object_r:tmpfs:s0 tclass=chr_file permissive=0",
+    "10-24 12:59:22.853   299   299 I auditd  : type=1400 audit(0.0:29): avc:  denied  { write } for  comm=\"openbook-pc-set\" path=\"/dev/kmsg_debug\" dev=\"tmpfs\" ino=6 scontext=u:r:openbook_pc_setup:s0 tcontext=u:object_r:tmpfs:s0 tclass=chr_file permissive=0"
+  ],
+  "crash_lines": [
+    "10-24 13:06:33.033  5849  5849 E AndroidRuntime: FATAL EXCEPTION: main",
+    "10-24 13:08:39.223  5715  5715 E AndroidRuntime: FATAL EXCEPTION: main"
+  ],
+  "now": {
+    "denials": [
+      "avc: denied { write } for comm=\"openbook-pc-set\" path=\"/dev/kmsg_debug\" dev=\"tmpfs\" scontext=u:r:openbook_pc_setup:s0 tcontext=u:object_r:tmpfs:s0 tclass=chr_file permissive=0"
+    ],
+    "crashed_apps": [
+      "com.google.android.desktop.repairmode"
+    ],
+    "init_errors": [
+      "[    7.998950][    T1] init: Unable to read config file '/init.openbook.rc': open() failed: No such file or directory"
+    ],
+    "report_exits": [
+      0,
+      0
+    ],
+    "ctl_exits": [
+      0,
+      0
+    ]
+  },
+  "baseline": {
+    "denials": [
+      "avc: denied { write } for comm=\"openbook-pc-set\" path=\"/dev/kmsg_debug\" dev=\"tmpfs\" scontext=u:r:openbook_pc_setup:s0 tcontext=u:object_r:tmpfs:s0 tclass=chr_file permissive=0"
+    ],
+    "crashed_apps": [
+      "com.google.android.desktop.repairmode",
+      "com.google.android.gms"
+    ],
+    "init_errors": [
+      "[    7.342575][    T1] init: Unable to read config file '/init.openbook.rc': open() failed: No such file or directory"
+    ],
+    "report_exits": [],
+    "ctl_exits": []
+  },
+  "note": "Attempt 1 on candidate 7eb7ac8b (same vendor bytes, earlier VM-check script). Stopped by hand after the DGR report, so ab-qemu wrote no boot result (boot_passed, no_zygote_exit unknown). The boot-time report had rotated out of logcat when the check read it 150 s later; attempt 2's check reads it 10 s after boot."
+}

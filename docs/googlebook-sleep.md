@@ -138,7 +138,7 @@ boot from `openbook_pc_setup`). The same applies to every `stdio_to_kmsg` vendor
 hotplug vector of `00:03.1`, the dGPU's root port (`/proc/interrupts`). Whether the dGPU itself raises them is a
 HYPOTHESIS.
 
-### Root-domain report and D0 hold (vendor change, not yet on the laptop)
+### Root-domain report and D0 hold (vendor change, not yet in a release)
 
 - `openbook-pc-setup` logs every line to logd as well, through vendor toybox's `log`.
 - `dgpu-report` runs at `sys.boot_completed=1`, and again whenever `debug.openbook.dgpu_report` changes. It logs, as
@@ -166,3 +166,32 @@ python3 -I scripts/googlebook/dgpu-power-adb.py --serial <adb serial> battery --
 
 The battery run flags any state in which the screen went off, someone used the laptop or the charger was connected.
 Such a comparison is not valid. The run always ends with `auto`.
+
+The boot-time report is a convenience. On a busy boot, logcat's ring can drop its lines within minutes (the QEMU
+check lost them about 150 s after boot), so `report` always asks for a fresh one.
+
+### Release path on the two-slot system
+
+The change touches only `vendor`. A release adds it with `scripts/googlebook/build-dgpu-diag-candidate.py`, on the
+release's own parent candidate (RB-20261023-03 or later), through the shared exact-inventory reassembler and AVB
+assembly.
+
+- **Three vendor files change:**
+  - `/bin/openbook-pc-setup` and `/etc/init/hw/init.openbook.rc`, from this repository;
+  - `/etc/selinux/vendor_sepolicy.cil`, which gains three statements. They are the base's own expansion of the same
+    rule for `hal_power_stats_default`, re-targeted to `openbook_pc_setup`.
+
+  Every other vendor inode keeps its bytes and labels. The vendor keeps its own file time, through the new
+  `timestamp` argument of `build-input-candidate.rebuild_erofs`; its default, 1230768000, is unchanged for
+  Google's partitions.
+- **It fails closed:**
+  - unless each replaced file is the reviewed original;
+  - if the vendor's precompiled policy matches the platform hash. RB-20261023-03's do not match (`318c33bb…` against
+    `344a39b0…`), so init compiles the split policy at boot and the new rule takes effect;
+  - unless both policies compile with neverallows, and only the new one grants the `suspend_stats` reads.
+- **On-laptop updates (ANAL-229's adapter)** keep OpenBook's vendor and recompile the policy from it. Once a release
+  carries the change, later on-laptop updates carry it forward.
+
+`scripts/googlebook/dgpu-vm.sh` boots the VM-check variant on the real Ruby image in QEMU, and `dgpu-vm-judge.py`
+compares the result with a fresh boot of the same release without the change. Results are in
+`evidence/2026-10-24-ruby-dgpu-diag/`.

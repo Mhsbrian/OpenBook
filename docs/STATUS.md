@@ -1,5 +1,20 @@
 # Status
 
+## 2026-10-24: ANAL-238 dGPU diagnostics rebased onto the two-slot base and tested once
+
+- **Rebased** onto RB-20261023-03, the system the G14 runs. The change is still vendor-only: the script, its init
+  file and one SELinux rule.
+- **Release builder:** `scripts/googlebook/build-dgpu-diag-candidate.py` adds it to a release's parent through the
+  shared reassembler. `rebuild_erofs` gains a `timestamp` argument, so OpenBook's vendor keeps its file time; the
+  default is unchanged.
+- **The policy takes effect:** RB-20261023-03 compiles its split policy at boot, and the new rule compiles with
+  neverallows against its own platform policy.
+- **QEMU fresh boot of the VM-check variant: 14/14.** The boot-time and on-demand reports run as root and reach
+  logcat, `dgpu-ctl` runs, and there are no new denials or crashes.
+- Handed off as `anybook-handoff/1`. The release builds the deployable candidate.
+
+Evidence: `evidence/2026-10-24-ruby-dgpu-diag/`.
+
 ## 2026-10-22: Ruby dGPU power state, sleep cost and S0i3 attribution (ANAL-238)
 
 - **S0i3:** not reached on Ruby. In batterystats, the PowerStats HAL's S0i3 time is 0 in all 130 suspends recorded
