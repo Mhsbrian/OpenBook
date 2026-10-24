@@ -1,0 +1,56 @@
+{
+  "schema": "openbook-ruby-ab-ota/1",
+  "payload_sha256": "3c3b3b38b3a889149df198cf020d8086ece4b0049f16f439545bde70eef1b354",
+  "payload_bytes": 4472248,
+  "metadata_size": 3400915,
+  "metadata_signature_size": 523,
+  "kind": "incremental",
+  "vabc_compression": "lz4",
+  "replace_zstd": true,
+  "dynamic": [
+    "system",
+    "system_ext",
+    "product",
+    "vendor",
+    "vendor_dlkm",
+    "system_dlkm"
+  ],
+  "static": [
+    "boot",
+    "init_boot",
+    "vendor_boot",
+    "vbmeta"
+  ],
+  "release_image_sha256": {
+    "system": "2e7b342585b70b4829831ec32b6ec39681a58c8cc5735c414b6139724dbdb532",
+    "system_ext": "dc3f228d2479ae3d979564bd7a02956399300187a67ac19519223911b7108b34",
+    "product": "ddf9d7105c4424c727ed53176d89b5a9895d3f59e2699ab5854bb3d1641211c1",
+    "vendor": "e072350a7df2f59aaa14cc2095a94bd4661de2dccbca1422e38abd80554332d4",
+    "vendor_dlkm": "c22672e2333f1d97833688d2554dee6e06515c425ae1674aa3e2a6b4099c5fba",
+    "system_dlkm": "34185c35cb8bbccd5dfd0bb74eecb8a21e2445730411ef1583e1245628e0d617",
+    "boot": "f6fc1a5892cba10d24ba3c250f5abe4115ba0f7c0556a653995b41373bfbcec8",
+    "init_boot": "0237a3399e093acabf63a0b036ac43b7e1b06a59dc7b665d852c0c6ec28e2dae",
+    "vendor_boot": "b8dc14803c8a07b0ec675d9cc9d2baf7b16c8acfd1a90c63782fa7e0d95bda80",
+    "vbmeta": "d19d423c0d8bc9036ef51cf4501e1b95128c475272eee17e37696772af74f8cc"
+  },
+  "source_image_sha256": {
+    "system": "f18aefbec3272c1711cf2d28165182ce277a8b5ce1199eca6c4cb60b489cb4db",
+    "system_ext": "dc3f228d2479ae3d979564bd7a02956399300187a67ac19519223911b7108b34",
+    "product": "ddf9d7105c4424c727ed53176d89b5a9895d3f59e2699ab5854bb3d1641211c1",
+    "vendor": "e072350a7df2f59aaa14cc2095a94bd4661de2dccbca1422e38abd80554332d4",
+    "vendor_dlkm": "c22672e2333f1d97833688d2554dee6e06515c425ae1674aa3e2a6b4099c5fba",
+    "system_dlkm": "34185c35cb8bbccd5dfd0bb74eecb8a21e2445730411ef1583e1245628e0d617",
+    "boot": "f6fc1a5892cba10d24ba3c250f5abe4115ba0f7c0556a653995b41373bfbcec8",
+    "init_boot": "0237a3399e093acabf63a0b036ac43b7e1b06a59dc7b665d852c0c6ec28e2dae",
+    "vendor_boot": "b8dc14803c8a07b0ec675d9cc9d2baf7b16c8acfd1a90c63782fa7e0d95bda80",
+    "vbmeta": "cb346fc2a2c8c6de670251a169b89cc2268a8aa29b25e761c557ab5a5384f260"
+  },
+  "certificate_sha256": "c755c4a3313c6d597538e19c2ad4af77334acb1681dff044c0c92aea3f6410bb",
+  "checks": {
+    "crau_v2": true,
+    "all_partitions_present": true,
+    "metadata_signature_verifies_against_cert": true,
+    "properties_match_payload": true
+  },
+  "passed": true
+}

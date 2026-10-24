@@ -1,0 +1,16 @@
+5790:[  119.292103][    T1] init: Command 'mount ext4 /dev/block/nvme1n1 /mnt/otapayload ro context=u:object_r:ota_package_file:s0' action=sys.boot_completed=1 (/system/etc/init/update_engine.rc:30) took 0ms and failed: mount() failed: Permission denied
+5791:[  119.294252][    T1] init: starting service 'openbook.ota-apply'...
+5793:[  119.302643][  T274] type=1400 audit(1792794438.762:295): avc:  denied  { mounton } for  comm="init" path="/mnt/otapayload" dev="nvme0n1" ino=2 scontext=u:r:init:s0 tcontext=u:object_r:ota_package_file:s0 tclass=dir permissive=0
+5794:[  119.305478][    T1] init: ... started service 'openbook.ota-apply' has pid 1921
+5802:[  119.458193][    T1] init: Service 'openbook.ota-apply' (pid 1921) exited with status 0 oneshot service took 0.160000 seconds in background
+5803:[  119.458724][    T1] init: Sending SIGKILL to service 'openbook.ota-apply' (pid 1921) process group...
+6385:/dev/block/nvme0n1 /mnt/otapayload ext4 ro,context=u:object_r:ota_package_file:s0,relatime 0 0
+8185:/dev/block/nvme0n1 /mnt/otapayload ext4 ro,context=u:object_r:ota_package_file:s0,relatime 0 0
+10766:/dev/block/nvme0n1 /mnt/otapayload ext4 ro,context=u:object_r:ota_package_file:s0,relatime 0 0
+12532:/dev/block/nvme0n1 /mnt/otapayload ext4 ro,context=u:object_r:ota_package_file:s0,relatime 0 0
+14312:/dev/block/nvme0n1 /mnt/otapayload ext4 ro,context=u:object_r:ota_package_file:s0,relatime 0 0
+16000:/dev/block/nvme0n1 /mnt/otapayload ext4 ro,context=u:object_r:ota_package_file:s0,relatime 0 0
+17680:/dev/block/nvme0n1 /mnt/otapayload ext4 ro,context=u:object_r:ota_package_file:s0,relatime 0 0
+19377:/dev/block/nvme0n1 /mnt/otapayload ext4 ro,context=u:object_r:ota_package_file:s0,relatime 0 0
+21053:/dev/block/nvme0n1 /mnt/otapayload ext4 ro,context=u:object_r:ota_package_file:s0,relatime 0 0
+22725:/dev/block/nvme0n1 /mnt/otapayload ext4 ro,context=u:object_r:ota_package_file:s0,relatime 0 0

@@ -1,0 +1,27 @@
+2026-10-23T21:36:00Z build start; repo d65594b6ffac716d852051a858d73cb0497e7a15
+2026-10-23T21:36:21Z pinned inputs verified (base, APK, delta_generator, harness, RB-20261023-02 release images)
+2026-10-23T21:36:21Z free 973 GiB before a step budgeted at 120 GiB
+2026-10-23T21:37:29Z C built: 71da0228488781fa7db6bbb2b07b8559024023b606ae54cd868f780954b9cc24
+2026-10-23T21:38:24Z control passed: rebuilt RB-20261023-02 release images equal the installed ones (10/10)
+2026-10-23T21:39:38Z C release images: 2e7b342585b70b4829831ec32b6ec39681a58c8cc5735c414b6139724dbdb532  system.img d19d423c0d8bc9036ef51cf4501e1b95128c475272eee17e37696772af74f8cc  vbmeta.img 
+2026-10-23T21:40:50Z harness disk and release images ready
+2026-10-23T21:42:10Z P (laptop) 3c3b3b38b3a889149df198cf020d8086ece4b0049f16f439545bde70eef1b354; P1 9799e9b67848e242ba92bb2772a0feb4e6dc920cffd61c526d9e456d6e25cb0e; P2 ce1670365cf77c9f8adf7767be2ad9ea888834ae981a83e5cab94e940072f1b4
+2026-10-23T21:42:10Z fit: incremental payload, 10 partitions: FITS; snapshot 0.06 GiB of 20.65 GiB free in super (the payload's source sizes)
+2026-10-23T21:42:10Z build done
+2026-10-23T21:42:23Z vm start
+2026-10-23T21:42:23Z free 933 GiB before a step budgeted at 80 GiB
+2026-10-23T22:24:44Z first (into B): {"apply":{"passed":true,"failed":[]},"boot":{"passed":true,"failed":[]},"verify":{"passed":true,"failed":[]},"passed":true}
+2026-10-23T22:24:52Z T2 fresh-boot app VM finished: passed 16 / 16
+2026-10-23T22:25:14Z P2' 719151e023e44d3f6929f55097a3e2c61515c44c733cc8bb9a40140b6772149c
+2026-10-23T22:52:15Z second-prod (B -> A, release): 
+2026-10-23T22:52:15Z second-vmc (B -> A, vm-check): 
+2026-10-23T22:52:15Z vm done
+2026-10-23T22:52:45Z attempt 1 slot-A stage not run: the harness apply driver exits on its once-per-/data done marker (/data/local/tmp/openbook-ota-apply.done) left by the first apply; VMs stopped; driver lines kept in attempt1-harness-marker/
+2026-10-23T22:53:52Z vm2 start (attempt 2: variant harness in slot B)
+2026-10-23T22:53:52Z free 909 GiB before a step budgeted at 80 GiB
+2026-10-23T22:57:32Z harness variant 8f676d11be707ab91183fa5a4392aae419c1f85958f081ee8f8418d9ca63c9be; P1v 22009bed2f66a24c5faafa5813b75655eba94632fb36328e192e92a3fb299620; P2v 1107ba68fdd85cffd533a9b263ac2ef459b776f460038d49638c97636213cb3a; P2v' d572fdbcb6fd1a0c7940ba9a968133859c5bb705aaa8ebc9ba2859655aaa5605
+2026-10-23T23:39:31Z first2 (into B): {"apply":{"passed":true,"failed":[]},"boot":{"passed":true,"failed":[]},"verify":{"passed":true,"failed":[]},"passed":true}
+2026-10-24T00:20:56Z second2-prod (B -> A, release): {"apply":{"passed":true,"missing":false,"failed":[]},"boot":{"passed":true,"missing":false,"failed":[]},"verify":{"passed":true,"missing":false,"failed":[]},"fallback":{"passed":true,"missing":false,"failed":[]},"direction":"slotB->slotA","passed":true}
+2026-10-24T00:30:38Z second2-vmc (B -> A, vm-check): {"apply":{"passed":true,"missing":false,"failed":[]},"boot":{"passed":true,"missing":false,"failed":[]},"verify":{"passed":true,"missing":false,"failed":[]},"direction":"slotB->slotA","passed":true}
+2026-10-24T00:30:38Z app after update: FAILED 14 / 16 notifications False
+2026-10-24T00:30:38Z vm2 done
