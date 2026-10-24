@@ -1,0 +1,82 @@
+{
+  "schema": "anybook-handoff/1",
+  "source_issue": "ANAL-257",
+  "commit": "67d948e439ad69d0552ae466f571f6387c861eaf",
+  "track": "ruby-g14",
+  "note": "Test-only S0i3 diagnostics. openbook_sleep_diag.ko goes into vendor_dlkm and modules.load (it logs one 'inactive' line unless openbook_sleep_diag.* parameters are on the kernel command line); the two entries in stick-entries.json go onto the Ruby USB with stick-entries.py. No boot, layout, data, SELinux, init or installer-pin change. Not a fix: it measures. Release targets: stick (entries + module); the laptop needs the module only if entries are later added to its ESP, which is not designed here.",
+  "inputs": {
+    "module": "b7855bc75b5c87906e1d08f85366e6292ce610df928a38a49531455974f1b227",
+    "module_source": "eda06013258d619589d6c5efbccd49accc9ef9237a6646917c0c4295ad9dc0ca",
+    "ptm_plan_h": "8a51a301a10a0f3a9ec0bf6d3266a4aaa15cc972d4fe7b2c6c11cd4e27a62fa0",
+    "stick_entries_py": "51a47daa0b3efbe4914bbc05a84cf4b3a147c825713847e580771a3409104d28",
+    "entry_spec": "df3521d4e42cf85d8c9c0c988828df653cd5706befa8e9a39af1385b7909e8f2",
+    "target_kernel_bzimage": "55b86074614a94592ddecebd2b77b1f2ed9aa38e8ad992b73c78c64d04c516f9",
+    "target_vmlinux_symvers": "83eaabf0c7cc2147142f4a7b042317adca861ba25e2740fcb3a38086aad9ac67"
+  },
+  "checks": [
+    {
+      "id": "module-build-kmi",
+      "kind": "other",
+      "scope": "component",
+      "passed": true,
+      "summary": "Kleaf ddk_module on :anybook_amd_x86_64; vermagic 6.18.21-android17-5-gfbfdd65b0fd1; 32/32 undefined symbols in the G14 KMI list; 33/33 modversion CRCs equal to the G14 vmlinux.symvers; no compiler warnings",
+      "evidence": "evidence/2026-10-24-ruby-s0i3/module/build.json",
+      "inputs": {
+        "module": "b7855bc75b5c87906e1d08f85366e6292ce610df928a38a49531455974f1b227",
+        "module_source": "eda06013258d619589d6c5efbccd49accc9ef9237a6646917c0c4295ad9dc0ca",
+        "ptm_plan_h": "8a51a301a10a0f3a9ec0bf6d3266a4aaa15cc972d4fe7b2c6c11cd4e27a62fa0",
+        "target_vmlinux_symvers": "83eaabf0c7cc2147142f4a7b042317adca861ba25e2740fcb3a38086aad9ac67"
+      }
+    },
+    {
+      "id": "ptm-plan-unit",
+      "kind": "unit",
+      "scope": "component",
+      "passed": true,
+      "summary": "10/10: PTM cleared deepest first, restored parents first, D3cold and refused writes skipped",
+      "evidence": "evidence/2026-10-24-ruby-s0i3/module/ptm_plan_test.txt",
+      "inputs": {
+        "ptm_plan_h": "8a51a301a10a0f3a9ec0bf6d3266a4aaa15cc972d4fe7b2c6c11cd4e27a62fa0"
+      }
+    },
+    {
+      "id": "module-vm",
+      "kind": "other",
+      "scope": "component",
+      "passed": true,
+      "summary": "17/17 in QEMU on the G14 bzImage with the LPS0 fixture: inert and active loads, 3 s2idle cycles through the LPS0 hooks, 1 S3 cycle, 60 s USB4 report, cycles limit, clean unloads, no kernel warnings. No PTM device or USB4 router in QEMU",
+      "evidence": "evidence/2026-10-24-ruby-s0i3/module/vm-result.json",
+      "inputs": {
+        "module": "b7855bc75b5c87906e1d08f85366e6292ce610df928a38a49531455974f1b227",
+        "target_kernel_bzimage": "55b86074614a94592ddecebd2b77b1f2ed9aa38e8ad992b73c78c64d04c516f9"
+      }
+    },
+    {
+      "id": "stick-entries-unit",
+      "kind": "unit",
+      "scope": "component",
+      "passed": true,
+      "summary": "5/5 on synthetic FAT/GPT images, including the openbook_sleep_diag parameter allowlist",
+      "evidence": "evidence/2026-10-24-ruby-s0i3/tests.txt",
+      "inputs": {
+        "stick_entries_py": "51a47daa0b3efbe4914bbc05a84cf4b3a147c825713847e580771a3409104d28",
+        "entry_spec": "df3521d4e42cf85d8c9c0c988828df653cd5706befa8e9a39af1385b7909e8f2"
+      }
+    },
+    {
+      "id": "linux-s2idle-unit",
+      "kind": "unit",
+      "scope": "component",
+      "passed": true,
+      "summary": "8/8 on a fake sysfs (owner-run live-USB tool; not part of any image)",
+      "evidence": "evidence/2026-10-24-ruby-s0i3/tests.txt",
+      "inputs": {
+        "linux_s2idle_py": "3d842b45664d621e573bd8586f05ff0467a7951219c96e9ab20bd6ae6672a4e8"
+      }
+    }
+  ],
+  "not_tested": [
+    "a Ruby VM boot with the module in vendor_dlkm and the entry's parameters reaching it through libmodprobe (the release's own boot test covers the image; the parameter path is ModuleConfig::ParseKernelCmdlineOptions in our vendor modprobe)",
+    "the G14 itself: PTM writes and the USB4 lines only exist on hardware"
+  ]
+}
