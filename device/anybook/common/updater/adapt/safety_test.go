@@ -36,9 +36,18 @@ func TestRCHitsMatchPython(t *testing.T) {
 		{"firmware\xff\xfeupdat\n", []string{}},
 		{"x\u2028tpm\u2029 # \u0085gsc", []string{"gsc", "tpm"}},
 		{"on boot\n\u00a0# hsm after nbsp\n", []string{}},
+		// Python's (?i) matches i with \u0131 and \u0130; lower() turns \u0130 into i + U+0307.
+		{"write /sys/firmware/ef\u0131vars/x 1\n", []string{"/sys/firmware/ef\u0131"}},
+		{"exec EF\u0130VAR \u0130\u0130 g\u0131c\n", []string{"efi\u0307var"}},
+		{"spidev SP\u0130DEV fw-z\u0130p\n", []string{"fw-zi\u0307p", "spidev", "spi\u0307dev"}},
 	} {
 		if got := rcHits([]byte(c.in), p.rc); !reflect.DeepEqual(got, c.want) {
 			t.Errorf("rcHits(%q) = %q, want %q", c.in, got, c.want)
+		}
+	}
+	for name, want := range map[string]bool{"f\u0131rmware_updater": true, "FIRMWARE-UPDAT\u0130": true, "plain": false} {
+		if got := p.bin.MatchString(foldIReplacer.Replace(name)); got != want {
+			t.Errorf("binary %q: %v", name, got)
 		}
 	}
 	for _, c := range []struct {
@@ -81,6 +90,10 @@ func TestSafetyPolicyRefusals(t *testing.T) {
 		"overlap":   strings.Replace(s, `"/system/etc/init/gscd.rc"`, `"/system/etc/init/gscutil.rc"`, 1),
 		"twice": strings.Replace(s, `"/system/etc/init/gscutil-executor.rc": {`,
 			`"/system/etc/init/gscutil.rc": {"sha256": "`+gscd+`", "google_sha256": "`+gscd+`"}, "/system/etc/init/gscutil-executor.rc": {`, 1),
+		"null names":      strings.Replace(s, `"forbidden_names": [`, `"forbidden_names": null, "x": [`, 1),
+		"top-level twice": strings.Replace(s, `"reviewed_binaries": {`, `"reviewed_rc": {}, "reviewed_binaries": {`, 1),
+		"key case":        strings.Replace(s, `"sha256": "`+gscd, `"SHA256": "`+gscd, 1),
+		"trailing":        s + "{}",
 	} {
 		if bad == s {
 			t.Fatalf("%s: the test did not change the rules", name)
@@ -88,6 +101,56 @@ func TestSafetyPolicyRefusals(t *testing.T) {
 		if _, err := loadSafetyPolicy([]byte(bad)); err == nil {
 			t.Errorf("%s: accepted", name)
 		}
+	}
+	// A key in another case is not the key: Python ignores it, and so does this.
+	q, err := loadSafetyPolicy([]byte(strings.Replace(s, `"reviewed_binaries": {`, `"Reviewed_Binaries": {"/system/bin/flashrom": "x"}, "reviewed_binaries": {`, 1)))
+	if err != nil || q.ReviewedBinaries["/system/bin/flashrom"] || !q.ReviewedBinaries["/system/bin/gscd"] {
+		t.Fatalf("case-variant key: %v %v", err, q.ReviewedBinaries)
+	}
+}
+
+func TestMalformedContentIsRefused(t *testing.T) {
+	// A flat-inline file whose tail would be a whole block (the kernel and liberofs refuse it).
+	fs := &erofsFS{r: bytes.NewReader(make([]byte, 1<<16)), blkszbits: 12}
+	if _, err := fs.fileReader(&erofsInode{format: layoutFlatInline << 1, size: 4096, inodeSize: 32}); err == nil {
+		t.Error("inline whole block accepted")
+	}
+	if _, err := fs.dirData(&erofsInode{format: layoutFlatInline << 1, size: 8192, inodeSize: 32}); err == nil {
+		t.Error("inline whole-block directory accepted")
+	}
+	// An extent tree whose child is as deep as its parent (it could repeat without end).
+	img := make([]byte, 3*4096)
+	node := func(b []byte, entries, depth int) {
+		le.PutUint16(b, 0xF30A)
+		le.PutUint16(b[2:], uint16(entries))
+		le.PutUint16(b[4:], 4)
+		le.PutUint16(b[6:], uint16(depth))
+	}
+	root := make([]byte, 60)
+	node(root, 1, 1)
+	le.PutUint32(root[12+4:], 1) // index entry -> block 1
+	node(img[4096:], 1, 1)
+	le.PutUint32(img[4096+12+4:], 1) // block 1 points to itself, at the same depth
+	x := &ext4FS{r: bytes.NewReader(img), bs: 4096}
+	if _, err := x.extents(&ext4Inode{flags: ext4Extents, block: root}); err == nil {
+		t.Error("a self-referencing extent tree was accepted")
+	}
+	node(img[4096:], 1, 0)
+	le.PutUint32(img[4096+12:], 0)
+	le.PutUint16(img[4096+12+4:], 1)
+	le.PutUint32(img[4096+12+8:], 2)
+	if ext, err := x.extents(&ext4Inode{flags: ext4Extents, block: root}); err != nil || len(ext) != 1 || ext[0].physical != 2 {
+		t.Errorf("a well-formed two-level tree: %v %v", ext, err)
+	}
+	// An extraction that could fill the disk is refused before it starts (not as a format problem).
+	c := &safetyCheck{work: t.TempDir()}
+	huge := filepath.Join(t.TempDir(), "huge.img")
+	f, _ := os.Create(huge)
+	f.Truncate(1 << 50)
+	f.Close()
+	var fe errFormatT
+	if err := c.room(huge); err == nil || errors.As(err, &fe) {
+		t.Errorf("room for a 1 PiB image: %v", err)
 	}
 }
 
@@ -202,6 +265,22 @@ func apexZip(t *testing.T, payload []byte, method uint16) []byte {
 	return buf.Bytes()
 }
 
+// apexZipNamed: an APEX whose payload entry has the given name (Python's zipfile cuts a name at NUL).
+func apexZipNamed(t *testing.T, payload []byte, name string) []byte {
+	t.Helper()
+	var buf bytes.Buffer
+	z := zip.NewWriter(&buf)
+	w, err := z.CreateHeader(&zip.FileHeader{Name: name, Method: zip.Store})
+	if err != nil {
+		t.Fatal(err)
+	}
+	w.Write(payload)
+	if err := z.Close(); err != nil {
+		t.Fatal(err)
+	}
+	return buf.Bytes()
+}
+
 func writeTree(t *testing.T, root string, files map[string]string) {
 	t.Helper()
 	for rel, data := range files {
@@ -227,7 +306,7 @@ const (
 
 func testRules(extra string) string {
 	return fmt.Sprintf(`{"schema": "openbook-firmware-safety/1",
- "rc_pattern": "(?i)(tpm|gsc|hsm|/sys/firmware/efi)", "binary_pattern": "(?i)(tpm|gsc|flash)",
+ "rc_pattern": "(?i)(tpm|gsc|hsm|/sys/firmware/efi)", "binary_pattern": "(?i)(tpm|gsc|flash|fwi)",
  "forbidden_names": ["fwupd", "flashrom"], "payload": {"postinstall": "forbidden"},
  "neutralised": {
   "/system/etc/init/gscutil.rc": {"replacement": "gscutil.rc", "sha256": "%s", "google_sha256": "%s"}%s},
@@ -267,6 +346,8 @@ func TestCheckTree(t *testing.T) {
 		"system/apex/com.ext.apex":      string(apexZip(t, ext, zip.Deflate)),
 		"system/apex/com.packed.capex":  "zip",
 		"system/apex/com.link.apex":     "->com.test.apex",
+		"system/apex/com.nul.apex":      string(apexZipNamed(t, ero, "apex_payload.img\x00x")),
+		"system/bin/FW\u0130tool":       "elf",
 		"system/etc/init/other/note.rc": "# only comments\n",
 	})
 	data := testRules(`,
@@ -287,6 +368,7 @@ func TestCheckTree(t *testing.T) {
 	}
 	want := []string{
 		"unchecked-apex /system/apex/com.packed.capex: a compressed APEX: the laptop does not read its init scripts",
+		"unreviewed-binary /system/bin/FW\u0130tool: a firmware/TPM/EC tool by name; review it and list it in reviewed_binaries",
 		"forbidden /system/bin/flashrom: flashrom must not be in an OpenBook image",
 		"forbidden /system/bin/fwupd: fwupd must not be in an OpenBook image",
 		"unreviewed-binary /system/bin/tpm_helper: a firmware/TPM/EC tool by name; review it and list it in reviewed_binaries",
@@ -295,6 +377,9 @@ func TestCheckTree(t *testing.T) {
 		"unreviewed-rc /apex/com.ext/etc/blocktail.rc: matches ['hsm']",
 		"unreviewed-rc /apex/com.ext/etc/foo.34rc: matches ['/sys/firmware/efi']",
 		"unreviewed-rc /apex/com.ext/lib/many/nested.rc: matches ['hsm']",
+		"unreviewed-rc /apex/com.nul/etc/blocktail.rc: matches ['hsm']",
+		"unreviewed-rc /apex/com.nul/etc/foo.34rc: matches ['/sys/firmware/efi']",
+		"unreviewed-rc /apex/com.nul/lib/many/nested.rc: matches ['hsm']",
 		"unreviewed-rc /apex/com.test/etc/blocktail.rc: matches ['hsm']",
 		"unreviewed-rc /apex/com.test/etc/foo.34rc: matches ['/sys/firmware/efi']",
 		"unreviewed-rc /apex/com.test/lib/many/nested.rc: matches ['hsm']",
@@ -308,7 +393,7 @@ func TestCheckTree(t *testing.T) {
 		t.Fatalf("findings:\n%s\nwant:\n%s", strings.Join(got, "\n"), strings.Join(want, "\n"))
 	}
 	inv := res.Inventory
-	if res.Passed || inv.APEXRCFiles != 8 || !reflect.DeepEqual(inv.Partitions, []string{"system", "system_ext"}) {
+	if res.Passed || inv.APEXRCFiles != 12 || !reflect.DeepEqual(inv.Partitions, []string{"system", "system_ext"}) {
 		t.Fatalf("passed %v, apex rc %d, partitions %q", res.Passed, inv.APEXRCFiles, inv.Partitions)
 	}
 	if !reflect.DeepEqual(inv.Neutralised, map[string]string{"/system/etc/init/gscutil.rc": "neutralised", "/system/etc/init/zzz.rc": "missing"}) {
@@ -320,10 +405,10 @@ func TestCheckTree(t *testing.T) {
 	if !reflect.DeepEqual(inv.AbsentReviewedRC, []string{"/system_ext/etc/init/gone.rc"}) {
 		t.Fatalf("absent %q", inv.AbsentReviewedRC)
 	}
-	if !reflect.DeepEqual(inv.Binaries, []string{"/system/bin/gscd", "/system/bin/tpm_helper", "/system/xbin/sub/flash_it"}) {
+	if !reflect.DeepEqual(inv.Binaries, []string{"/system/bin/FW\u0130tool", "/system/bin/gscd", "/system/bin/tpm_helper", "/system/xbin/sub/flash_it"}) {
 		t.Fatalf("binaries %q", inv.Binaries)
 	}
-	if !reflect.DeepEqual(inv.BeyondHost, []string{"/apex/com.ext/etc/foo.34rc", "/apex/com.test/etc/foo.34rc", "/system/etc/init/README"}) {
+	if !reflect.DeepEqual(inv.BeyondHost, []string{"/apex/com.ext/etc/foo.34rc", "/apex/com.nul/etc/foo.34rc", "/apex/com.test/etc/foo.34rc", "/system/etc/init/README"}) {
 		t.Fatalf("beyond host %q", inv.BeyondHost)
 	}
 	// The same APEX payloads as partition images: read in place.
@@ -379,6 +464,15 @@ func TestCompressedNeedsFsck(t *testing.T) {
 	seen := res.Inventory.RCMatches["/product/etc/init/big.rc"]
 	if seen.SHA256 != "9a3f5cdd1ff322cf390e14cb7bb5f2950279542f24d77b58dd7f97c1599d1177" || !reflect.DeepEqual(seen.Matches, []string{"tpm"}) {
 		t.Fatalf("big.rc %+v", seen)
+	}
+	seen = res.Inventory.RCMatches["/product/etc/other/big2.rc"]
+	if seen.SHA256 != "02af0f77b80efb6ac8ad4015abf3571313e9bc9486e8eb8bedc95ca668df1709" || !reflect.DeepEqual(seen.Matches, []string{"gsc"}) {
+		t.Fatalf("big2.rc %+v", seen)
+	}
+	// One extraction per directory with --path; one of the whole image without it.
+	ents, _ := os.ReadDir(c.work)
+	if want := map[bool]int{true: 1, false: 2}[e.full != ""]; len(ents) != want {
+		t.Fatalf("%d extractions (whole image: %v)", len(ents), e.full != "")
 	}
 }
 

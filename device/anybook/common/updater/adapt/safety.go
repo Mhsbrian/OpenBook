@@ -15,7 +15,9 @@
 // only hold more, never less: every regular file in an etc/init directory whatever its name, an APEX's
 // versioned init scripts (etc/*rc, e.g. foo.34rc), and a compressed APEX (.capex), which it holds rather
 // than skips. A symlink is checked for a forbidden name wherever it points. Its \b is ASCII (RE2), where
-// Python's is Unicode: on non-ASCII text it can only match more.
+// Python's is Unicode: on non-ASCII text it can only match more. Python's (?i) also matches i with ı and İ,
+// which RE2 does not: the text is matched with those folded to i, so nothing Python matches is missed.
+// The rules file is read strictly: a duplicate key anywhere, a null, or a key in another case is refused.
 package main
 
 import (
@@ -33,6 +35,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"syscall"
 	"unicode"
 	"unicode/utf8"
 )
@@ -63,75 +66,171 @@ func (e errFormatT) Error() string { return e.msg }
 
 func errFormat(format string, args ...any) error { return errFormatT{fmt.Sprintf(format, args...)} }
 
-type neutralRule struct {
-	Replacement  string `json:"replacement"`
-	SHA256       string `json:"sha256"`
-	GoogleSHA256 string `json:"google_sha256"`
-}
+type neutralRule struct{ Replacement, SHA256, GoogleSHA256 string }
 
-type reviewedRule struct {
-	SHA256  string `json:"sha256"`
-	Verdict string `json:"verdict"`
-}
+type reviewedRule struct{ SHA256, Verdict string }
 
 type safetyPolicy struct {
-	Schema           string                  `json:"schema"`
-	RCPattern        string                  `json:"rc_pattern"`
-	BinaryPattern    string                  `json:"binary_pattern"`
-	ForbiddenNames   []string                `json:"forbidden_names"`
-	Neutralised      map[string]neutralRule  `json:"neutralised"`
-	ReviewedRC       map[string]reviewedRule `json:"reviewed_rc"`
-	ReviewedBinaries map[string]string       `json:"reviewed_binaries"`
-	neutralOrder     []string
-	rc, bin          *regexp.Regexp
-	sha256           string
+	Schema, RCPattern, BinaryPattern string
+	ForbiddenNames                   []string
+	Neutralised                      map[string]neutralRule
+	ReviewedRC                       map[string]reviewedRule
+	ReviewedBinaries                 map[string]bool
+	neutralOrder                     []string
+	rc, bin                          *regexp.Regexp
+	sha256                           string
 }
 
-// loadSafetyPolicy reads and checks the rules as check-firmware-safety.py's load_policy does. (OpenBook's
-// replacement files are not beside the rules on the laptop: the check finds them at their paths instead.)
+// loadSafetyPolicy reads and checks the rules as check-firmware-safety.py's load_policy does, strictly.
+// (OpenBook's replacement files are not beside the rules on the laptop: the check finds them at their paths.)
 func loadSafetyPolicy(data []byte) (*safetyPolicy, error) {
-	var top map[string]json.RawMessage
-	if err := json.Unmarshal(data, &top); err != nil {
-		return nil, fmt.Errorf("firmware-safety rules: %v", err)
+	bad := func(format string, args ...any) error {
+		return fmt.Errorf("firmware-safety rules: "+format, args...)
 	}
-	for _, k := range []string{"schema", "rc_pattern", "binary_pattern", "forbidden_names", "neutralised", "reviewed_rc", "reviewed_binaries"} {
-		if top[k] == nil {
-			return nil, fmt.Errorf("firmware-safety rules: no %s", k)
+	if err := strictJSON(data); err != nil {
+		return nil, bad("%v", err)
+	}
+	top, err := exactObject(data, "schema", "rc_pattern", "binary_pattern", "forbidden_names", "neutralised", "reviewed_rc", "reviewed_binaries")
+	if err != nil {
+		return nil, bad("%v", err)
+	}
+	p := &safetyPolicy{Neutralised: map[string]neutralRule{}, ReviewedRC: map[string]reviewedRule{}, ReviewedBinaries: map[string]bool{}}
+	for k, dst := range map[string]*string{"schema": &p.Schema, "rc_pattern": &p.RCPattern, "binary_pattern": &p.BinaryPattern} {
+		if err := json.Unmarshal(top[k], dst); err != nil {
+			return nil, bad("%s: %v", k, err)
 		}
 	}
-	p := &safetyPolicy{}
-	if err := json.Unmarshal(data, p); err != nil {
-		return nil, fmt.Errorf("firmware-safety rules: %v", err)
+	if err := json.Unmarshal(top["forbidden_names"], &p.ForbiddenNames); err != nil {
+		return nil, bad("forbidden_names: %v", err)
 	}
 	if p.Schema != safetySchema {
-		return nil, fmt.Errorf("firmware-safety rules: not a %s file", safetySchema)
+		return nil, bad("not a %s file", safetySchema)
 	}
-	var err error
 	if p.rc, err = regexp.Compile(p.RCPattern); err != nil {
-		return nil, fmt.Errorf("firmware-safety rules: rc_pattern: %v", err)
+		return nil, bad("rc_pattern: %v", err)
 	}
 	if p.bin, err = regexp.Compile(p.BinaryPattern); err != nil {
-		return nil, fmt.Errorf("firmware-safety rules: binary_pattern: %v", err)
+		return nil, bad("binary_pattern: %v", err)
+	}
+	neutral, err := exactObject(top["neutralised"])
+	if err != nil {
+		return nil, bad("neutralised: %v", err)
 	}
 	if p.neutralOrder, err = objectKeys(top["neutralised"]); err != nil {
-		return nil, fmt.Errorf("firmware-safety rules: neutralised: %v", err)
+		return nil, bad("neutralised: %v", err)
 	}
 	for _, k := range p.neutralOrder {
-		if r := p.Neutralised[k]; !hex64.MatchString(r.SHA256) || !hex64.MatchString(r.GoogleSHA256) {
-			return nil, fmt.Errorf("%s: neutralised rule needs sha256 and google_sha256", k)
+		var r neutralRule
+		if err := exactStrings(neutral[k], map[string]*string{"replacement": &r.Replacement, "sha256": &r.SHA256, "google_sha256": &r.GoogleSHA256}); err != nil ||
+			!hex64.MatchString(r.SHA256) || !hex64.MatchString(r.GoogleSHA256) {
+			return nil, bad("%s: neutralised rule needs sha256 and google_sha256", k)
 		}
+		p.Neutralised[k] = r
 	}
-	for k, r := range p.ReviewedRC {
-		if !hex64.MatchString(r.SHA256) || (r.Verdict != "allowed" && r.Verdict != "inert" && r.Verdict != "openbook") {
-			return nil, fmt.Errorf("%s: reviewed rc rule needs sha256 and a verdict", k)
+	reviewed, err := exactObject(top["reviewed_rc"])
+	if err != nil {
+		return nil, bad("reviewed_rc: %v", err)
+	}
+	for k, raw := range reviewed {
+		var r reviewedRule
+		if err := exactStrings(raw, map[string]*string{"sha256": &r.SHA256, "verdict": &r.Verdict}); err != nil ||
+			!hex64.MatchString(r.SHA256) || (r.Verdict != "allowed" && r.Verdict != "inert" && r.Verdict != "openbook") {
+			return nil, bad("%s: reviewed rc rule needs sha256 and a verdict", k)
 		}
 		if _, ok := p.Neutralised[k]; ok {
-			return nil, fmt.Errorf("%s is both neutralised and reviewed", k)
+			return nil, bad("%s is both neutralised and reviewed", k)
 		}
+		p.ReviewedRC[k] = r
+	}
+	binaries, err := exactObject(top["reviewed_binaries"])
+	if err != nil {
+		return nil, bad("reviewed_binaries: %v", err)
+	}
+	for k := range binaries {
+		p.ReviewedBinaries[k] = true
 	}
 	sum := sha256.Sum256(data)
 	p.sha256 = hex.EncodeToString(sum[:])
 	return p, nil
+}
+
+// strictJSON refuses a duplicate key in any object (Python keeps the last; Go's decoder would merge them).
+func strictJSON(data []byte) error {
+	d := json.NewDecoder(bytes.NewReader(data))
+	var value func() error
+	value = func() error {
+		t, err := d.Token()
+		if err != nil {
+			return err
+		}
+		switch t {
+		case json.Delim('{'):
+			seen := map[string]bool{}
+			for d.More() {
+				k, err := d.Token()
+				if err != nil {
+					return err
+				}
+				if seen[k.(string)] {
+					return fmt.Errorf("%q twice", k)
+				}
+				seen[k.(string)] = true
+				if err := value(); err != nil {
+					return err
+				}
+			}
+			_, err = d.Token()
+			return err
+		case json.Delim('['):
+			for d.More() {
+				if err := value(); err != nil {
+					return err
+				}
+			}
+			_, err = d.Token()
+			return err
+		}
+		return nil
+	}
+	if err := value(); err != nil {
+		return err
+	}
+	if _, err := d.Token(); err != io.EOF {
+		return errors.New("data after the rules")
+	}
+	return nil
+}
+
+// exactObject decodes an object by exact key (encoding/json would match keys in any case), requiring keys
+// that are present and not null.
+func exactObject(raw []byte, required ...string) (map[string]json.RawMessage, error) {
+	var m map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &m); err != nil || m == nil {
+		return nil, errors.New("not an object")
+	}
+	for _, k := range required {
+		if v, ok := m[k]; !ok || string(v) == "null" {
+			return nil, fmt.Errorf("no %s", k)
+		}
+	}
+	return m, nil
+}
+
+func exactStrings(raw []byte, fields map[string]*string) error {
+	var keys []string
+	for k := range fields {
+		keys = append(keys, k)
+	}
+	m, err := exactObject(raw, keys...)
+	if err != nil {
+		return err
+	}
+	for k, dst := range fields {
+		if err := json.Unmarshal(m[k], dst); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // objectKeys returns a JSON object's keys in file order (Python keeps it; the findings follow it).
@@ -288,13 +387,15 @@ func (t treeFiles) open(rel string) (io.ReaderAt, int64, error) {
 }
 
 // erofsFiles: an EROFS image read in place. A compressed file is read through fsck.erofs, extracting its
-// directory (Google's system_ext and product store init scripts and APEXes uncompressed).
+// directory (--path), or the whole image once where fsck.erofs cannot extract one directory (Google's
+// system_ext and product store init scripts and APEXes uncompressed).
 type erofsFiles struct {
 	c         *safetyCheck
 	fs        *erofsFS
 	image     func() (string, error) // the image as a file, for fsck.erofs
 	nids      map[string]uint64
 	extracted map[string]string
+	full      string
 }
 
 func newErofsFiles(c *safetyCheck, r io.ReaderAt, image func() (string, error)) (*erofsFiles, error) {
@@ -315,7 +416,7 @@ func (e *erofsFiles) walk(fn func(string, byte) error) error {
 		seen[nid] = true
 		in, err := e.fs.readInode(nid)
 		if err != nil {
-			return err
+			return asFormat(err)
 		}
 		ents, err := e.fs.readDir(in)
 		if err != nil {
@@ -329,7 +430,7 @@ func (e *erofsFiles) walk(fn func(string, byte) error) error {
 			}
 			child, err := e.fs.readInode(d.nid)
 			if err != nil {
-				return err
+				return asFormat(err)
 			}
 			p := path.Join(rel, d.name)
 			switch uint32(child.mode) & sIFMT {
@@ -365,7 +466,7 @@ func (e *erofsFiles) open(rel string) (io.ReaderAt, int64, error) {
 	}
 	in, err := e.fs.readInode(nid)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, asFormat(err)
 	}
 	r, err := e.fs.fileReader(in)
 	if err == nil {
@@ -373,6 +474,9 @@ func (e *erofsFiles) open(rel string) (io.ReaderAt, int64, error) {
 	}
 	if !errors.Is(err, errNotFlat) {
 		return nil, 0, errFormat("/%s: %v", rel, err)
+	}
+	if e.full != "" {
+		return treeFiles{e.c, e.full}.open(rel)
 	}
 	dir := path.Dir(rel)
 	if dir == "." {
@@ -384,17 +488,59 @@ func (e *erofsFiles) open(rel string) (io.ReaderAt, int64, error) {
 		if err != nil {
 			return nil, 0, err
 		}
+		if err := e.c.room(img); err != nil {
+			return nil, 0, err
+		}
 		dest, err := e.c.scratch("extract")
 		if err != nil {
 			return nil, 0, err
 		}
-		if loc, err = extractSubtree(e.c.fsck, img, dir, dest); err != nil {
-			return nil, 0, errFormat("/%s: %v", rel, err)
+		if err := run(e.c.fsck, "--extract="+dest, "--path=/"+dir, img); err != nil {
+			// This fsck.erofs cannot extract one directory: the whole image, once.
+			os.RemoveAll(dest)
+			if err := run(e.c.fsck, "--extract="+dest, img); err != nil {
+				return nil, 0, errFormat("/%s: %v", rel, err)
+			}
+			e.full = dest
+			return treeFiles{e.c, dest}.open(rel)
+		}
+		loc = dest
+		if st, err := os.Stat(filepath.Join(dest, dir)); dir != "" && err == nil && st.IsDir() {
+			loc = filepath.Join(dest, dir)
 		}
 		e.extracted[dir] = loc
 	}
-	t := treeFiles{e.c, loc}
-	return t.open(path.Base(rel))
+	return treeFiles{e.c, loc}.open(path.Base(rel))
+}
+
+// room refuses an extraction that could fill the disk: an extracted image can be larger than the image.
+func (c *safetyCheck) room(image string) error {
+	st, err := os.Stat(image)
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(c.work, 0o700); err != nil {
+		return err
+	}
+	var fs syscall.Statfs_t
+	if err := syscall.Statfs(c.work, &fs); err != nil {
+		return err
+	}
+	if free, need := fs.Bavail*uint64(fs.Bsize), 3*uint64(st.Size())+1<<30; free < need {
+		return fmt.Errorf("not enough space to check %s: %d MiB free, %d MiB needed", filepath.Base(image), free>>20, need>>20)
+	}
+	return nil
+}
+
+// asFormat: an error reading verified content is a format this check cannot read, except the system's own
+// I/O errors.
+func asFormat(err error) error {
+	var fe errFormatT
+	var pe *os.PathError
+	if err == nil || errors.As(err, &fe) || errors.As(err, &pe) {
+		return err
+	}
+	return errFormat("%v", err)
 }
 
 // ext4Files: an ext4 APEX payload.
@@ -471,7 +617,8 @@ func readFile(files partFiles, rel string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return readAllAt(r, size)
+	b, err := readAllAt(r, size)
+	return b, asFormat(err)
 }
 
 type rcFile struct {
@@ -489,7 +636,7 @@ func (c *safetyCheck) apexInitScripts(name string, r io.ReaderAt, size int64) ([
 	}
 	var pf *zip.File
 	for _, f := range z.File {
-		if f.Name == "apex_payload.img" {
+		if name, _, _ := strings.Cut(f.Name, "\x00"); name == "apex_payload.img" { // zipfile cuts a name at NUL
 			pf = f
 		}
 	}
@@ -622,7 +769,7 @@ func (c *safetyCheck) check(parts []safetyPart) (*SafetyResult, error) {
 			elems := strings.Split(runtime, "/")
 			for _, d := range elems[:len(elems)-1] {
 				if d == "bin" || d == "xbin" {
-					if p.bin.MatchString(base) {
+					if p.bin.MatchString(foldIReplacer.Replace(base)) {
 						inv.Binaries = append(inv.Binaries, runtime)
 						if _, ok := p.ReviewedBinaries[runtime]; !ok {
 							find("unreviewed-binary", runtime, "a firmware/TPM/EC tool by name; review it and list it in reviewed_binaries")
@@ -637,7 +784,7 @@ func (c *safetyCheck) check(parts []safetyPart) (*SafetyResult, error) {
 				}
 				data, err := readFile(part.files, rel)
 				if err != nil {
-					return fmt.Errorf("%s: %w", runtime, err)
+					return fmt.Errorf("%s: %w", runtime, asFormat(err))
 				}
 				_, neutral := p.Neutralised[runtime]
 				_, reviewed := p.ReviewedRC[runtime]
@@ -653,7 +800,7 @@ func (c *safetyCheck) check(parts []safetyPart) (*SafetyResult, error) {
 				}
 				files, err := c.apexInitScripts(strings.TrimSuffix(base, ".apex"), r, size)
 				if err != nil {
-					return fmt.Errorf("%s: %w", runtime, err)
+					return fmt.Errorf("%s: %w", runtime, asFormat(err))
 				}
 				apexRC = append(apexRC, files...)
 			case strings.HasSuffix(base, ".capex"):
@@ -662,7 +809,7 @@ func (c *safetyCheck) check(parts []safetyPart) (*SafetyResult, error) {
 			return nil
 		})
 		if err != nil {
-			return nil, err
+			return nil, asFormat(err)
 		}
 	}
 	for _, f := range apexRC {
@@ -755,8 +902,12 @@ func rcHits(data []byte, re *regexp.Regexp) []string {
 		if s == "" || s[0] == '#' {
 			continue
 		}
-		for _, m := range re.FindAllString(s, -1) {
-			set[strings.ToLower(m)] = true
+		folded, at := foldI(s)
+		for _, m := range re.FindAllStringIndex(folded, -1) {
+			if at != nil {
+				m[0], m[1] = at[m[0]], at[m[1]]
+			}
+			set[pyLower(s[m[0]:m[1]])] = true
 		}
 	}
 	out := make([]string, 0, len(set))
@@ -765,6 +916,49 @@ func rcHits(data []byte, re *regexp.Regexp) []string {
 	}
 	sort.Strings(out)
 	return out
+}
+
+// foldI maps ı (U+0131) and İ (U+0130) to i, which Python's (?i) matches with i and RE2 does not. For valid
+// UTF-8 it also returns, for each byte offset of the folded text (and its end), the offset in s; nil when
+// nothing changed.
+func foldI(s string) (string, []int) {
+	if !strings.ContainsAny(s, "\u0130\u0131") {
+		return s, nil
+	}
+	var b strings.Builder
+	at := make([]int, 0, len(s)+1)
+	for i := 0; i < len(s); {
+		r, n := utf8.DecodeRuneInString(s[i:])
+		if r == 0x130 || r == 0x131 {
+			b.WriteByte('i')
+			at = append(at, i)
+		} else {
+			b.WriteString(s[i : i+n])
+			for k := 0; k < n; k++ {
+				at = append(at, i+k)
+			}
+		}
+		i += n
+	}
+	return b.String(), append(at, len(s))
+}
+
+var foldIReplacer = strings.NewReplacer("\u0130", "i", "\u0131", "i")
+
+// pyLower is str.lower(): Go's per-character mapping, except İ, which Python lowers to i + U+0307.
+func pyLower(s string) string {
+	if !strings.ContainsRune(s, 0x130) {
+		return strings.ToLower(s)
+	}
+	var out strings.Builder
+	for _, r := range s {
+		if r == 0x130 {
+			out.WriteString("i\u0307")
+		} else {
+			out.WriteString(strings.ToLower(string(r)))
+		}
+	}
+	return out.String()
 }
 
 // pyDecode decodes like bytes.decode("utf-8", "replace"): each maximal ill-formed subpart is one U+FFFD.

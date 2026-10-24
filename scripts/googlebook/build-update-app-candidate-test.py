@@ -165,6 +165,29 @@ class Checks(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Only AOSP's published AVB test key"):
             m.adapter_additions(binary, b"-----BEGIN PRIVATE KEY-----another key", pin, vm_check=False, rules=rules)
 
+    def test_the_laptops_check_rejects_a_candidate(self):
+        import argparse, os, tempfile
+        with tempfile.TemporaryDirectory() as d:
+            d = Path(d)
+            (d / "out").mkdir()
+            (d / "out" / "manifest.json").write_text("{}")
+            for code, verdict in ((0, "PASS"), (8, "FAIL")):
+                fake = d / f"adapt-{code}"
+                fake.write_text(f"#!/bin/sh\necho \"$@\" > {d}/args\necho 'firmware safety: {verdict}'\nexit {code}\n")
+                fake.chmod(0o755)
+                a = argparse.Namespace(out=d / "out", base=d / "base", adapter=fake, tools=d / "bin")
+                if code == 0:
+                    m.laptop_safety_check(a, {"logical_sha256": {"system_ext": "x", "product": "y"}})
+                    args = (d / "args").read_text().split()
+                    self.assertEqual(args[0], "firmware-safety")
+                    self.assertIn(f"system={d / 'out' / 'rebuilt'}", args)
+                    self.assertIn(f"product={d / 'base' / 'logical' / 'product_a.img'}", args)
+                    self.assertFalse(any(x.startswith("vendor=") for x in args))  # not in this base
+                else:
+                    with self.assertRaisesRegex(ValueError, "laptop's firmware-safety check failed .exit 8.*FAIL"):
+                        m.laptop_safety_check(a, {"logical_sha256": {}})
+                    self.assertTrue((d / "out" / "manifest.rejected.json").exists())
+
     def test_tampered_config_is_refused(self):
         src = m.sources()
         for key, old, new in (("privapp", b"org.openbook.update", b"com.example.other"),

@@ -175,6 +175,12 @@ func (fs *erofsFS) xattrs(in *erofsInode) ([]xattr, error) {
 
 // dirData returns a directory's bytes (flat plain or flat inline layout only).
 func (fs *erofsFS) dirData(in *erofsInode) ([]byte, error) {
+	if in.size > maxCheckedFile {
+		return nil, fmt.Errorf("nid %d: a %d-byte directory", in.nid, in.size)
+	}
+	if in.layout() == layoutFlatInline && in.size > 0 && in.size%fs.blksz() == 0 {
+		return nil, fmt.Errorf("nid %d: inline data across blocks", in.nid) // as the kernel and liberofs refuse it
+	}
 	data := make([]byte, in.size)
 	bs := fs.blksz()
 	switch in.layout() {
@@ -216,8 +222,9 @@ func (fs *erofsFS) fileReader(in *erofsInode) (io.ReaderAt, error) {
 	case layoutFlatInline:
 		full := in.size / fs.blksz() * fs.blksz()
 		tail := fs.inodeOffset(in.nid) + in.inodeSize + in.xattrSize()
-		if in.size-full > fs.blksz()-tail%fs.blksz() {
-			return nil, fmt.Errorf("nid %d: inline data crosses a block", in.nid)
+		// The kernel and liberofs take ceil(size/block)-1 whole blocks: a tail of a whole block cannot be inline.
+		if (in.size > 0 && in.size == full) || in.size-full > fs.blksz()-tail%fs.blksz() {
+			return nil, fmt.Errorf("nid %d: inline data across blocks", in.nid)
 		}
 		return &inlineReader{fs.r, start, int64(full), int64(tail), int64(in.size)}, nil
 	}
