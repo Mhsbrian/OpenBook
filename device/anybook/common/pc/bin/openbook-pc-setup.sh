@@ -4,14 +4,17 @@
 # bash/dash for the fixture test (scripts/openbook-pc-setup-test.sh).
 #
 # usage: openbook-pc-setup dgpu-pm | dgpu-report [REASON] | dgpu-ctl on|auto | perms | kvm
-#   dgpu-pm  An NVIDIA dGPU (10de) is enumerated but no driver drives its display function, which is the
-#            OpenBook default (docs/nvidia.md). The PCI core keeps an unbound device in D0, and snd_hda_intel
-#            holds the HDMI-audio function awake: without vga_switcheroo it never runtime-suspends. So:
+#   dgpu-pm  Let an NVIDIA dGPU (10de) reach D3cold (docs/nvidia.md). snd_hda_intel holds the dGPU's HDMI-audio
+#            function awake: without vga_switcheroo (off in the GKI) it never runtime-suspends, and with it awake
+#            the root port cannot cut the slot's power, whether or not a driver drives the GPU. So:
 #              - unbind snd_hda_intel from the dGPU's HDMI-audio function (that HDMI port is on the dGPU and dark);
-#              - set power/control=auto on every function of the dGPU, so the root port can take it to D3cold;
+#              - set power/control=auto on the dGPU's other functions, and on its display function when no driver
+#                drives it (the PCI core keeps an unbound device in D0 until the root port powers the slot off);
 #              - give snd_hda_intel a non-zero power_save (10 s, as desktop Linux does).
+#            When a driver drives the display function (nouveau, ANAL-239) its runtime PM is the driver's: nouveau
+#            allows it itself with nouveau.runpm=1 (modules.options); its state is logged, nothing is written.
 #            Volatile: a reboot undoes it. Never touches asus-wmi (dgpu_disable, gpu_mux_mode), which persist in
-#            firmware. Does nothing without an NVIDIA function, or when a driver (nouveau, later) binds the GPU.
+#            firmware. Does nothing without an NVIDIA function.
 #   dgpu-report [REASON]
 #            Log the dGPU's power state as root (ANAL-238): each NVIDIA function's driver, power_state,
 #            runtime_status, control and runtime-PM times; the root port above it and its ACPI power resources;
@@ -52,7 +55,6 @@ driver_of() { d=$(readlink "$1/driver" 2>/dev/null) && basename "$d"; }
 
 dgpu_pm() {
   rc=0
-  # The display functions decide: a bound driver means someone owns the GPU's power.
   gpus=; others=
   for d in "$SYS"/bus/pci/devices/*; do
     [ "$(rd "$d/vendor")" = 0x10de ] || continue
@@ -61,17 +63,22 @@ dgpu_pm() {
       *) others="$others ${d##*/}" ;;
     esac
   done
+  nouveau_facts
   if [ -z "$gpus" ]; then
     log "no NVIDIA GPU enumerated; nothing to do"
     return 0
   fi
+  # The display functions: a bound driver owns its runtime PM; an unbound one only needs auto.
+  free=
   for g in $gpus; do
     drv=$(driver_of "$SYS/bus/pci/devices/$g")
     if [ -n "$drv" ]; then
-      log "$g is driven by $drv; leaving its power to the driver"
-      return 0
+      log "$g is driven by $drv; leaving its runtime PM to the driver"
+    else
+      free="$free $g"
     fi
   done
+  # HDMI audio and any other function: off snd_hda_intel and auto in every case (ANAL-239: with nouveau bound too).
   hda=0
   for f in $others; do
     case $(rd "$SYS/bus/pci/devices/$f/class") in 0x0403*) hda=1 ;; esac
@@ -79,7 +86,7 @@ dgpu_pm() {
       wr "$SYS/bus/pci/drivers/snd_hda_intel/unbind" "$f" || rc=1
     fi
   done
-  for f in $gpus $others; do
+  for f in $free $others; do
     wr "$SYS/bus/pci/devices/$f/power/control" auto || rc=1
   done
   if [ $hda = 1 ] && [ -e "$SYS/module/snd_hda_intel/parameters/power_save" ] &&
@@ -87,9 +94,24 @@ dgpu_pm() {
     wr "$SYS/module/snd_hda_intel/parameters/power_save" $POWER_SAVE || rc=1
   fi
   for f in $gpus; do
-    log "$f: power_state=$(rd "$SYS/bus/pci/devices/$f/power_state") runtime_status=$(rd "$SYS/bus/pci/devices/$f/power/runtime_status")"
+    p=$SYS/bus/pci/devices/$f
+    log "$f: driver=$(driver_of "$p" || echo -) power_state=$(rd "$p/power_state") runtime_status=$(rd "$p/power/runtime_status") control=$(rd "$p/power/control")"
   done
   return $rc
+}
+
+# nouveau_facts: the module parameters that decide nouveau's runtime PM and display, when it is loaded (ANAL-239).
+# runpm must be 1: nouveau's own Optimus detection needs vga_switcheroo, which the GKI lacks, so its default (-1)
+# leaves runtime PM off and the dGPU in D0.
+nouveau_facts() {
+  n=$SYS/module/nouveau/parameters
+  [ -d "$n" ] || return 0
+  bound=
+  for d in "$SYS"/bus/pci/drivers/nouveau/????:??:??.?; do [ -e "$d" ] && bound="$bound,${d##*/}"; done
+  cfg=$(rd "$n/config"); [ "$cfg" = "(null)" ] && cfg=   # an unset string parameter reads "(null)"
+  log "nouveau:$(kv "$n/runpm" runpm)$(kv "$n/modeset" modeset)${cfg:+ config=$cfg} bound=${bound#,}"
+  [ "$(rd "$n/runpm")" = 1 ] || log "nouveau: runpm is not 1, so a bound dGPU stays in D0 (modules.options)"
+  return 0
 }
 
 kv() { v=$(rd "$1"); [ -n "$v" ] && printf ' %s=%s' "$2" "$v"; return 0; }  # kv FILE KEY: " KEY=value"
@@ -144,6 +166,7 @@ dgpu_report() {
   fi
   a=$SYS/devices/platform/asus-nb-wmi   # read only: writing these changes the firmware
   [ -e "$a/dgpu_disable" ] && log "dgpu-report: asus-nb-wmi$(kv "$a/dgpu_disable" dgpu_disable)$(kv "$a/gpu_mux_mode" gpu_mux_mode)"
+  nouveau_facts
   s=$SYS/power/suspend_stats
   [ -d "$s" ] && log "dgpu-report: suspend_stats$(kv "$s/success" success)$(kv "$s/fail" fail)$(kv "$s/last_hw_sleep" last_hw_sleep_us)$(kv "$s/total_hw_sleep" total_hw_sleep_us)$(kv "$s/max_hw_sleep" max_hw_sleep_us)"
   if [ -z "$funcs" ]; then state=absent
