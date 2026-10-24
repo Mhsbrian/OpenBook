@@ -318,6 +318,7 @@ type AdaptResult struct {
 	VBMetaKey      string            `json:"vbmeta_key_sha256"`
 	MetadataRows   int               `json:"metadata_rows"`
 	NewLayerSHA256 string            `json:"new_layer_sha256"`
+	FirmwareSafety *SafetyResult     `json:"firmware_safety,omitempty"`
 	Installable    bool              `json:"installable"`
 	Note           string            `json:"note"`
 }
@@ -334,6 +335,7 @@ func cmdAdapt(fl *flag.FlagSet, args []string) error {
 	work := fl.String("work", "", "new scratch directory")
 	out := fl.String("out", "", "new directory for the adapted release")
 	embed := fl.Bool("embed-layer", true, "write the next round's layer into the adapted system (off: reproduce a release built without one)")
+	rules := fl.String("firmware-safety", "", "the firmware-safety rules (default: the adapted system's own "+safetyRulesPath+", carried from the running release)")
 	fl.StringVar(&progressPath, "progress", "", "file to record the current step in (check, build, verify, sign)")
 	fl.Parse(args)
 	if *layerPath == "" || *newDir == "" || *keyPath == "" || *work == "" || *out == "" {
@@ -342,7 +344,7 @@ func cmdAdapt(fl *flag.FlagSet, args []string) error {
 	if _, err := os.Lstat(*out); err == nil {
 		return fmt.Errorf("%s exists: an adaptation writes a new directory", *out)
 	}
-	res, err := adapt(*layerPath, *newDir, *oursRoot, *keyPath, *mkfs, *fsck, *secilc, *work, *out, *embed)
+	res, err := adapt(*layerPath, *newDir, *oursRoot, *keyPath, *mkfs, *fsck, *secilc, *work, *out, *rules, *embed)
 	if res != nil {
 		// A complete adaptation's record goes with it; a stopped one's stays in the work directory, and no
 		// partial output is left that could be taken for a result.
@@ -386,7 +388,7 @@ func mustEncode(l *Layer) []byte {
 	return b
 }
 
-func adapt(layerIn, newDir, oursRoot, keyPath, mkfs, fsck, secilc, work, out string, embed bool) (*AdaptResult, error) {
+func adapt(layerIn, newDir, oursRoot, keyPath, mkfs, fsck, secilc, work, out, rules string, embed bool) (*AdaptResult, error) {
 	res := &AdaptResult{Schema: "openbook-adapt/1", Delta: map[string]int{}, Partitions: map[string]string{}}
 	l, err := readLayer(layerIn)
 	if err != nil {
@@ -508,6 +510,13 @@ func adapt(layerIn, newDir, oursRoot, keyPath, mkfs, fsck, secilc, work, out str
 		res.PolicyCompiled = true
 	}
 	if err := checkSeapp(l, source, work); err != nil {
+		return res, err
+	}
+	// Firmware safety (ANAL-251): what this release would run that reaches PC firmware, the TPM or the EC,
+	// under the running release's rules. Nothing is built from a release that fails it.
+	safety, err := checkFirmwareSafety(rules, source, newDir, fsck, filepath.Join(work, "firmware-safety"))
+	res.FirmwareSafety = safety
+	if err != nil {
 		return res, err
 	}
 	// Expected rows and contents, from the inputs independently of the tree just assembled.

@@ -148,18 +148,22 @@ class Checks(unittest.TestCase):
             self.skipTest("no AOSP tree here")
         pin = dict(schema="openbook-adapter-pins/1", sha256=hashlib.sha256(binary).hexdigest(), worktree_clean=True,
                    reproducible_check=True, static=True)
-        out = m.adapter_additions(binary, key.read_bytes(), pin, vm_check=False)
+        rules = m.sb.check.POLICY.read_bytes()
+        out = m.adapter_additions(binary, key.read_bytes(), pin, vm_check=False, rules=rules)
         self.assertEqual(out[m.ADAPTER], (binary, 0o755, m.ADDED_EXEC_CONTEXT))
+        self.assertEqual(out["/system/etc/openbook/firmware-safety.json"], rules)
+        with self.assertRaisesRegex(ValueError, "must be device/anybook/common/safety/firmware-safety.json"):
+            m.adapter_additions(binary, key.read_bytes(), pin, vm_check=False, rules=rules.replace(b"tpm|", b""))
         self.assertIsNone(out["/system/etc/openbook"])
         self.assertIsNone(out["/system/etc/openbook/avb"])
         self.assertEqual(out[m.AVB_KEY_PATH], key.read_bytes())
         with self.assertRaisesRegex(ValueError, "differs from its pin"):
-            m.adapter_additions(binary + b"x", key.read_bytes(), pin, vm_check=False)
+            m.adapter_additions(binary + b"x", key.read_bytes(), pin, vm_check=False, rules=rules)
         with self.assertRaisesRegex(ValueError, "clean, reproducible static build"):
-            m.adapter_additions(binary, key.read_bytes(), dict(pin, reproducible_check=False), vm_check=False)
-        m.adapter_additions(binary, key.read_bytes(), dict(pin, reproducible_check=False), vm_check=True)  # VM only
+            m.adapter_additions(binary, key.read_bytes(), dict(pin, reproducible_check=False), vm_check=False, rules=rules)
+        m.adapter_additions(binary, key.read_bytes(), dict(pin, reproducible_check=False), vm_check=True, rules=rules)  # VM only
         with self.assertRaisesRegex(ValueError, "Only AOSP's published AVB test key"):
-            m.adapter_additions(binary, b"-----BEGIN PRIVATE KEY-----another key", pin, vm_check=False)
+            m.adapter_additions(binary, b"-----BEGIN PRIVATE KEY-----another key", pin, vm_check=False, rules=rules)
 
     def test_tampered_config_is_refused(self):
         src = m.sources()

@@ -12,6 +12,7 @@
 //	openbook-adapt reconstruct --release recovery.zip --out DIR [--google-key SHA256]
 //	openbook-adapt layer --old-system OLD.img --ours-system OURS.img --old-build ID --release-dir DIR --out DIR
 //	openbook-adapt adapt --layer DIR --new DIR --ours-root / --release-dir DIR --key AVB_KEY.pem --work DIR --out DIR
+//	openbook-adapt firmware-safety --rules firmware-safety.json [--fsck fsck.erofs --work DIR] [--output R.json] NAME=DIR|IMAGE...
 //	openbook-adapt payload --adapted DIR --layer DIR --out DIR [--key RSA_KEY.pem]
 //	openbook-adapt payload-sign --dir DIR --metadata-signature FILE --payload-signature FILE
 //	openbook-adapt inventory IMAGE
@@ -20,7 +21,8 @@
 //	openbook-adapt verify-vbmeta --image vbmeta.img [--images DIR]
 //
 // Exit status: 0 done, 1 failed (nothing usable written), 2 usage, 8 held: Google changed something OpenBook
-// adapts, so this release needs an OpenBook update (the result says what).
+// adapts, or the release fails the firmware-safety check, so it needs an OpenBook update (the result says
+// what).
 package main
 
 import (
@@ -44,7 +46,7 @@ func (e errHeld) Error() string { return "held: " + e.reason }
 func held(format string, args ...any) error { return errHeld{fmt.Sprintf(format, args...)} }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, "usage: openbook-adapt reconstruct|layer|adapt|inventory|hashtree-footer|vbmeta|verify-vbmeta ...")
+	fmt.Fprintln(os.Stderr, "usage: openbook-adapt reconstruct|layer|adapt|payload|payload-sign|firmware-safety|inventory|hashtree-footer|vbmeta|verify-vbmeta ...")
 	os.Exit(2)
 }
 
@@ -137,6 +139,16 @@ func main() {
 		err = cmdPayloadSign(fl, args)
 	case "adapt":
 		err = cmdAdapt(fl, args)
+	case "firmware-safety":
+		rules := fl.String("rules", "", "firmware-safety.json")
+		fsck := fl.String("fsck", "fsck.erofs", "")
+		work := fl.String("work", "", "new scratch directory (only for compressed files)")
+		output := fl.String("output", "", "result JSON")
+		fl.Parse(args)
+		if *rules == "" || fl.NArg() == 0 {
+			usage()
+		}
+		err = cmdFirmwareSafety(*rules, *fsck, *work, *output, fl.Args())
 	default:
 		usage()
 	}

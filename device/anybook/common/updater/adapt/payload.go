@@ -87,6 +87,7 @@ type PayloadResult struct {
 	MetadataHash string        `json:"metadata_hash_to_sign"`
 	PayloadHash  string        `json:"payload_hash_to_sign"`
 	Signed       bool          `json:"signed"`
+	Postinstall  string        `json:"postinstall"`
 	Properties   []string      `json:"properties,omitempty"`
 }
 
@@ -214,6 +215,12 @@ func writePayload(path string, parts []PayloadPart, maxTimestamp int64, spl stri
 		man.s(18, spl)
 	}
 	manifest := man.Bytes()
+	// No postinstall step, ever (ANAL-251): Google's postinstall flashes security chip, BIOS and EC firmware,
+	// and an OpenBook payload runs nothing at install.
+	if err := checkNoPostinstall(manifest); err != nil {
+		return nil, err
+	}
+	res.Postinstall = "none"
 
 	out, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
 	if err != nil {
@@ -278,6 +285,81 @@ func writePayload(path string, parts []PayloadPart, maxTimestamp int64, spl stri
 	res.MetadataHash = hex.EncodeToString(mh[:])
 	res.PayloadHash = hex.EncodeToString(ph.Sum(nil))
 	return res, nil
+}
+
+// pbFields decodes one protobuf message level: (field, wire type, varint value or bytes).
+func pbFields(b []byte, fn func(field, wire int, v uint64, data []byte) error) error {
+	for i := 0; i < len(b); {
+		key, n := binary.Uvarint(b[i:])
+		if n <= 0 {
+			return errors.New("malformed protobuf key")
+		}
+		i += n
+		field, wire := int(key>>3), int(key&7)
+		var v uint64
+		var data []byte
+		switch wire {
+		case 0:
+			if v, n = binary.Uvarint(b[i:]); n <= 0 {
+				return errors.New("malformed protobuf varint")
+			}
+			i += n
+		case 1, 5:
+			w := map[int]int{1: 8, 5: 4}[wire]
+			if i+w > len(b) {
+				return errors.New("truncated protobuf field")
+			}
+			data, i = b[i:i+w], i+w
+		case 2:
+			l, n := binary.Uvarint(b[i:])
+			if n <= 0 || l > uint64(len(b)-i-n) {
+				return errors.New("malformed protobuf length")
+			}
+			i += n
+			data, i = b[i:i+int(l)], i+int(l)
+		default:
+			return fmt.Errorf("protobuf wire type %d is not supported", wire)
+		}
+		if err := fn(field, wire, v, data); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// checkNoPostinstall refuses a manifest any of whose partitions runs a postinstall step (PartitionUpdate
+// run_postinstall, field 2, or postinstall_path, field 3), as check-firmware-safety.py's payload check does.
+func checkNoPostinstall(manifest []byte) error {
+	parts := 0
+	err := pbFields(manifest, func(field, wire int, _ uint64, data []byte) error {
+		if field != 13 || wire != 2 {
+			return nil
+		}
+		parts++
+		var name string
+		run, pathSet := false, false
+		if err := pbFields(data, func(f, w int, v uint64, d []byte) error {
+			switch {
+			case f == 1 && w == 2:
+				name = string(d)
+			case f == 2 && w == 0:
+				run = v != 0
+			case f == 3 && w == 2:
+				pathSet = len(d) > 0
+			}
+			return nil
+		}); err != nil {
+			return err
+		}
+		if run || pathSet {
+			return fmt.Errorf("partition %s runs a postinstall step; an OpenBook payload must not", name)
+		}
+		return nil
+	})
+	if err == nil && parts == 0 {
+		err = errors.New("the payload manifest lists no partitions")
+	}
+	return err
 }
 
 // insertSignatures writes the two signatures into a payload's reserved space and returns the properties
