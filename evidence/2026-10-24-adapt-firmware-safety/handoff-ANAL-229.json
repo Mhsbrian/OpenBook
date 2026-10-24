@@ -1,0 +1,150 @@
+{
+  "schema": "anybook-handoff/1",
+  "source_issue": "ANAL-229",
+  "commit": "f30b1017e1d61082209974309738f4a45ab365d4",
+  "track": "ruby-g14",
+  "note": "R1 = ANAL-229 phases 3/4 + ANAL-251 (cite with evidence/2026-10-24-ruby-safety/handoff-ANAL-251.json). Supersedes evidence/2026-10-24-adapt-phase4/handoff-ANAL-229.json. Chain on the RB-20261023-02 base: build-safety-candidate.py, stage-base.py, build-update-app-candidate.py --adapter, then the release images and embed-adapter-layer.sh. Release impact: Ruby; system and vbmeta only; no boot, layout, data or installer-pin change.",
+  "inputs": {
+    "parent_staged_candidate": "75fa0196090558519fbb33d079ed51e2b9fd86ee102013c089bc8e9122fe9391",
+    "apk": "cd2c896ea003717423cf75d8981bd9a4e18f5ef7088faa31646ce93490e79038",
+    "adapter": "b80879f2ac4b71baa5363c868577306a91822d58cdc1356cd5c673c5e60dc126",
+    "avb_test_key": "6a224754880a57ab9cbd308267cd157d94cf05a1c8cb851aec4090e045d24121",
+    "update_app_builder": "89771289f503234503b2a10197377b6215748ce9ee1fa47ec47ebdaddb49c6bf",
+    "candidate_builder": "2a68a3e81c3dbfb280a9d32004de1ecd7715f5eaf3a944dd261000afd23d9b77",
+    "safety_checker": "37ec72b89fd10c5b038d1db9ee3a40f62bc778ff956705b60315d7ab30eccae8",
+    "safety_rules": "2b806321a068168ed052244d078b5f4ed24d1b218eecbbd6f6f8ebe5af9c7da7",
+    "safety_gscutil_rc": "61149fa16b80229cc7a3df2cd8f197f8160a9f6e252bbae8df49b8fc100c96b4",
+    "safety_gscutil_executor_rc": "5105310de9674fb53ede1e77d60f7d021e6de870a84ac97a389da2d57f8cab0e",
+    "embed_recipe": "da28193054f24ef9ec81082b668bc2ef0350c241f42b8445fe0b8e35aa97b04c",
+    "updater_files": "45ca8c371694841df71173b61f402c06e71a1a1cc77e604058e292bcc450471f"
+  },
+  "checks": [
+    {
+      "id": "adapter-unit",
+      "kind": "unit",
+      "scope": "component",
+      "passed": true,
+      "summary": "go vet + go test, 19 tests incl. the firmware-safety port, the EROFS/ext4 readers and no-postinstall payloads",
+      "evidence": "evidence/2026-10-24-adapt-firmware-safety/tests/go-test.txt",
+      "inputs": {
+        "adapter": "b80879f2ac4b71baa5363c868577306a91822d58cdc1356cd5c673c5e60dc126"
+      }
+    },
+    {
+      "id": "adapter-host-proofs",
+      "kind": "other",
+      "scope": "component",
+      "passed": true,
+      "summary": "fixed point with the check passing; RB-20261023-03's layer held twice (no rules; Google's gscutil); payload with no postinstall, verified by delta_generator, applied by ota_extractor",
+      "evidence": "evidence/2026-10-24-adapt-firmware-safety/host/proofs.txt",
+      "inputs": {
+        "adapter": "b80879f2ac4b71baa5363c868577306a91822d58cdc1356cd5c673c5e60dc126",
+        "embed_recipe": "da28193054f24ef9ec81082b668bc2ef0350c241f42b8445fe0b8e35aa97b04c",
+        "safety_rules": "2b806321a068168ed052244d078b5f4ed24d1b218eecbbd6f6f8ebe5af9c7da7"
+      }
+    },
+    {
+      "id": "firmware-safety-parity",
+      "kind": "other",
+      "scope": "component",
+      "passed": true,
+      "summary": "openbook-adapt firmware-safety equals check-firmware-safety.py (findings in order, inventory) on Google 16658739, 16452207, RB-20261023-03 and the test release",
+      "evidence": "evidence/2026-10-24-adapt-firmware-safety/host/parity.json",
+      "inputs": {
+        "adapter": "b80879f2ac4b71baa5363c868577306a91822d58cdc1356cd5c673c5e60dc126",
+        "safety_rules": "2b806321a068168ed052244d078b5f4ed24d1b218eecbbd6f6f8ebe5af9c7da7",
+        "safety_checker": "37ec72b89fd10c5b038d1db9ee3a40f62bc778ff956705b60315d7ab30eccae8"
+      }
+    },
+    {
+      "id": "adapter-laptop",
+      "kind": "other",
+      "scope": "component",
+      "passed": true,
+      "summary": "on the G14: the test release adapted in 32 s byte-identical to the host with the check passing, payload 6 s; RB-20261023-03's layer held (no rules; Google's gscutil)",
+      "evidence": "evidence/2026-10-24-adapt-firmware-safety/laptop/log.txt",
+      "inputs": {
+        "adapter": "b80879f2ac4b71baa5363c868577306a91822d58cdc1356cd5c673c5e60dc126",
+        "safety_rules": "2b806321a068168ed052244d078b5f4ed24d1b218eecbbd6f6f8ebe5af9c7da7"
+      }
+    },
+    {
+      "id": "payload-vm",
+      "kind": "other",
+      "scope": "component",
+      "passed": true,
+      "summary": "Ruby's update_engine in QEMU installs an openbook-adapt payload of the test release: apply, boot and merge, byte-identical, fallback",
+      "evidence": "evidence/2026-10-24-adapt-firmware-safety/vm/summary.json",
+      "inputs": {
+        "adapter": "b80879f2ac4b71baa5363c868577306a91822d58cdc1356cd5c673c5e60dc126"
+      }
+    },
+    {
+      "id": "engine-unit",
+      "kind": "unit",
+      "scope": "component",
+      "passed": true,
+      "summary": "40/40 (host shell and Android's mksh/awk/toybox)",
+      "evidence": "evidence/2026-10-24-adapt-phase4/README.md",
+      "inputs": {
+        "updater_files": "45ca8c371694841df71173b61f402c06e71a1a1cc77e604058e292bcc450471f"
+      }
+    },
+    {
+      "id": "app-jvm",
+      "kind": "unit",
+      "scope": "component",
+      "passed": true,
+      "summary": "23/23",
+      "evidence": "evidence/2026-10-24-adapt-phase4/app-build.json",
+      "inputs": {
+        "apk": "cd2c896ea003717423cf75d8981bd9a4e18f5ef7088faa31646ce93490e79038"
+      }
+    },
+    {
+      "id": "app-emulator",
+      "kind": "emulator",
+      "scope": "component",
+      "passed": true,
+      "summary": "13 instrumented tests, engine 9/9, openbook-adapt as the app's child under app seccomp, privileged system app checks",
+      "evidence": "evidence/2026-10-24-adapt-firmware-safety/emulator/result.json",
+      "inputs": {
+        "apk": "cd2c896ea003717423cf75d8981bd9a4e18f5ef7088faa31646ce93490e79038",
+        "adapter": "b80879f2ac4b71baa5363c868577306a91822d58cdc1356cd5c673c5e60dc126"
+      }
+    },
+    {
+      "id": "update-app-builder-unit",
+      "kind": "unit",
+      "scope": "component",
+      "passed": true,
+      "summary": "build-update-app-candidate-test.py: the adapter, the AVB test key and the firmware-safety rules ship exactly as pinned",
+      "evidence": "evidence/2026-10-24-adapt-firmware-safety/tests/build-update-app-candidate-test.txt",
+      "inputs": {
+        "update_app_builder": "89771289f503234503b2a10197377b6215748ce9ee1fa47ec47ebdaddb49c6bf",
+        "safety_rules": "2b806321a068168ed052244d078b5f4ed24d1b218eecbbd6f6f8ebe5af9c7da7"
+      }
+    },
+    {
+      "id": "r1-chain-test-release",
+      "kind": "other",
+      "scope": "component",
+      "passed": true,
+      "summary": "the R1 chain on 75fa0196: safety candidate and app candidate each pass the firmware-safety check; the embed step's adaptation passes it",
+      "evidence": "evidence/2026-10-24-adapt-firmware-safety/host/test-release.json",
+      "inputs": {
+        "parent_staged_candidate": "75fa0196090558519fbb33d079ed51e2b9fd86ee102013c089bc8e9122fe9391",
+        "candidate_builder": "2a68a3e81c3dbfb280a9d32004de1ecd7715f5eaf3a944dd261000afd23d9b77",
+        "update_app_builder": "89771289f503234503b2a10197377b6215748ce9ee1fa47ec47ebdaddb49c6bf",
+        "apk": "cd2c896ea003717423cf75d8981bd9a4e18f5ef7088faa31646ce93490e79038",
+        "adapter": "b80879f2ac4b71baa5363c868577306a91822d58cdc1356cd5c673c5e60dc126",
+        "avb_test_key": "6a224754880a57ab9cbd308267cd157d94cf05a1c8cb851aec4090e045d24121",
+        "safety_checker": "37ec72b89fd10c5b038d1db9ee3a40f62bc778ff956705b60315d7ab30eccae8",
+        "safety_rules": "2b806321a068168ed052244d078b5f4ed24d1b218eecbbd6f6f8ebe5af9c7da7",
+        "safety_gscutil_rc": "61149fa16b80229cc7a3df2cd8f197f8160a9f6e252bbae8df49b8fc100c96b4",
+        "safety_gscutil_executor_rc": "5105310de9674fb53ede1e77d60f7d021e6de870a84ac97a389da2d57f8cab0e",
+        "embed_recipe": "da28193054f24ef9ec81082b668bc2ef0350c241f42b8445fe0b8e35aa97b04c"
+      }
+    }
+  ]
+}
