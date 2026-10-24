@@ -1,0 +1,122 @@
+{
+  "schema": "openbook-firmware-safety-result/1",
+  "mode": "tree",
+  "passed": false,
+  "policy_sha256": "2b806321a068168ed052244d078b5f4ed24d1b218eecbbd6f6f8ebe5af9c7da7",
+  "trees": {
+    "system": "~/anybook/work/anal251/rb03-extract/system",
+    "system_ext": "~/anybook/work/anal251/rb03-extract/system_ext",
+    "product": "~/anybook/work/anal251/rb03-extract/product",
+    "vendor": "~/anybook/work/anal251/rb03-extract/vendor"
+  },
+  "findings": [
+    {
+      "kind": "not-neutralised",
+      "path": "/system/etc/init/gscutil.rc",
+      "detail": "still Google's original: it runs on this image"
+    },
+    {
+      "kind": "not-neutralised",
+      "path": "/system/etc/init/gscutil-executor.rc",
+      "detail": "still Google's original: it runs on this image"
+    }
+  ],
+  "inventory": {
+    "neutralised": {
+      "/system/etc/init/gscutil.rc": "google",
+      "/system/etc/init/gscutil-executor.rc": "google"
+    },
+    "reviewed_rc": {
+      "/apex/com.android.hardware.authsecret/etc/android.hardware.authsecret-service.example.rc": "openbook",
+      "/system/etc/init/check_tpm_clear.rc": "allowed",
+      "/system/etc/init/ec_crash_collector.rc": "inert",
+      "/system/etc/init/gscd.rc": "allowed",
+      "/system/etc/init/timberslide.rc": "inert",
+      "/system/etc/init/udsattestation.rc": "allowed",
+      "/vendor/etc/ueventd.rc": "openbook"
+    },
+    "absent_reviewed_rc": [],
+    "rc_matches": {
+      "/apex/com.android.hardware.authsecret/etc/android.hardware.authsecret-service.example.rc": {
+        "sha256": "9ef02b3fcd4be142f0fa493bcdaee623f4d0b6e7bc969c8b882227dcc3ce25d5",
+        "matches": [
+          "hsm"
+        ]
+      },
+      "/system/etc/init/check_tpm_clear.rc": {
+        "sha256": "844e7dee248254f44324e3b2f6aacdf083bbf3a1607a3a5ea58de753c60e1796",
+        "matches": [
+          "tpm"
+        ]
+      },
+      "/system/etc/init/ec_crash_collector.rc": {
+        "sha256": "3127fe59d1bf298473d1db63f7ac17e09b6438f01a00b67a98ac2bf4af098f65",
+        "matches": [
+          "cros_ec"
+        ]
+      },
+      "/system/etc/init/gscd.rc": {
+        "sha256": "91051806f95aa24deaa404670612a39f6fde6a9179c5695d6defa8c4deea3c08",
+        "matches": [
+          "gsc",
+          "hsm"
+        ]
+      },
+      "/system/etc/init/gscutil-executor.rc": {
+        "sha256": "c7fdbc5c5a196a9ef6960b4bf14ba9756a4323b680734b076354f29abef8d2b1",
+        "matches": [
+          "gsc",
+          "hsm"
+        ]
+      },
+      "/system/etc/init/gscutil.rc": {
+        "sha256": "af331819e18ea13ee5ea2cd03b6d89902100e5e15c80ee441979b3b48b9d44a2",
+        "matches": [
+          "fw-zip",
+          "gsc",
+          "hsm",
+          "tpm"
+        ]
+      },
+      "/system/etc/init/timberslide.rc": {
+        "sha256": "37f8e4fe4b90515a59d3be320c2154e5ce9e226425e93b031e22de4fe00abf64",
+        "matches": [
+          "cros_ec"
+        ]
+      },
+      "/system/etc/init/udsattestation.rc": {
+        "sha256": "0f50867e71646e0cc5dba3aa90b1610fcc1c2d5549eefb705881e9ebdd8d806d",
+        "matches": [
+          "hsm"
+        ]
+      },
+      "/vendor/etc/ueventd.rc": {
+        "sha256": "96e6e0f8699d4d8e4ad7e28e2eeaba50b3fa812873f00fea4341d4db33fa5fb8",
+        "matches": [
+          "hsm",
+          "tpm"
+        ]
+      }
+    },
+    "binaries": [
+      "/system/bin/check_tpm_clear",
+      "/system/bin/com.google.android.system.desktop.gscutil-executor",
+      "/system/bin/ectool",
+      "/system/bin/google_desktop_firmware_updater",
+      "/system/bin/gscd",
+      "/system/bin/gsctool",
+      "/system/bin/gscutil",
+      "/system/bin/timberslide",
+      "/system/bin/trunks_send",
+      "/system/bin/updater-wrapper-system",
+      "/system_ext/bin/fwupd_splash"
+    ],
+    "partitions": [
+      "product",
+      "system",
+      "system_ext",
+      "vendor"
+    ],
+    "apex_rc_files": 23
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "schema": "openbook-safety-vm/1",
+  "passed": true,
+  "checks": {
+    "boot_passed": true,
+    "report_complete": true,
+    "boot_completed": true,
+    "baseline_started_gscutil_at_boot": true,
+    "gscutil_not_started_at_boot": true,
+    "no_gscutil_denials": true,
+    "gscutil_executor_not_defined": true,
+    "metadata_gscutil_step_runs": true,
+    "gscd_running": true,
+    "igsc_served": true,
+    "check_tpm_clear_as_baseline": true,
+    "udsattestation_as_baseline": true,
+    "keystore_and_gatekeeper_running": true,
+    "weaver_served": true,
+    "keymint_registered": true,
+    "update_engine_running": true,
+    "no_system_server_fatal_signal": true,
+    "no_zygote_exit": true,
+    "no_new_app_crash": true
+  },
+  "baseline": {
+    "gscutil_boot_started": true,
+    "gscutil_denials": [
+      "avc:  denied  { search } for  comm=\"gscutil\" name=\"block\" dev=\"tmpfs\" scontext=u:r:gscutil:s0 tcontext=u:object_r:block_device:s0 tclass=dir permissive=0",
+      "avc:  denied  { write } for  comm=\"gscutil\" path=2F6D656D66643A4753435F494D414745202864656C6574656429 dev=\"tmpfs\" scontext=u:r:gscutil:s0 tcontext=u:object_r:tmpfs:s0 tclass=file permissive=0"
+    ],
+    "gscutil_rc_post_fs": true,
+    "metadata_dir_failed": false,
+    "check_tpm_clear_exits": [
+      2
+    ],
+    "udsattestation_exits": [
+      1
+    ],
+    "gscd_started": true,
+    "keymint_registered": true,
+    "crashed_apps": [
+      "com.google.android.desktop.repairmode",
+      "com.google.android.gms"
+    ]
+  },
+  "now": {
+    "gscutil_boot_started": false,
+    "gscutil_denials": [],
+    "gscutil_rc_post_fs": true,
+    "metadata_dir_failed": false,
+    "check_tpm_clear_exits": [
+      2
+    ],
+    "udsattestation_exits": [
+      1
+    ],
+    "gscd_started": true,
+    "keymint_registered": true,
+    "crashed_apps": [
+      "com.google.android.desktop.repairmode",
+      "com.google.android.gms"
+    ]
+  },
+  "properties": {
+    "init.svc.android.system.desktop.security.gscd": "running",
+    "init.svc.android.system.desktop.security.udsattestation": "stopped",
+    "init.svc.bert_collector": "stopped",
+    "init.svc.gatekeeperd": "running",
+    "init.svc.keystore2": "running",
+    "init.svc.trusty_security_vm_launcher": "running",
+    "init.svc.update_engine": "running",
+    "init.svc.vold": "running"
+  },
+  "services": {
+    "com.google.android.system.desktop.IGscutilExecutor/default": "not found",
+    "android.system.desktop.security.gsc.IGsc/default": "found",
+    "android.hardware.weaver.IWeaver/default": "found",
+    "android.hardware.security.keymint.IKeyMintDevice/default": "not found",
+    "android.hardware.gatekeeper.IGatekeeper/default": "found"
+  },
+  "processes": [
+    "gscutil none",
+    "gscd 312",
+    "check_tpm_clear none",
+    "udsattestation none",
+    "com.google.android.system.desktop.gscutil-executor none"
+  ],
+  "devices": [
+    "crw-rw---- 1 hsm hsm  10, 224 2026-10-24 01:52 /dev/tpm0",
+    "crw-rw---- 1 hsm hsm 506, 65536 2026-10-24 01:52 /dev/tpmrm0"
+  ],
+  "security_denials": [],
+  "crash_lines": [
+    "10-24 01:58:13.864  5703  5703 E AndroidRuntime: FATAL EXCEPTION: main",
+    "10-24 01:58:14.753  4880  5676 E AndroidRuntime: FATAL EXCEPTION: [com.google.android.gms.chimera.container.intentoperation.GmsIntentOperationChimeraService-Executor] idle",
+    "10-24 01:59:26.847  4657  4657 E AndroidRuntime: FATAL EXCEPTION: main"
+  ],
+  "deployment_eligible": false,
+  "hardware_tested": false,
+  "boot_checks": {
+    "boot_completed": true,
+    "booted_slot_a": true,
+    "boot_hal_sees_two_slots": true,
+    "slot_a_marked_successful": true,
+    "bootsync_slot_a_in_sync": true,
+    "bootsync_entry_good": true,
+    "userdata_formatted_full_size_and_mounted": true,
+    "metadata_formatted_ext4": true,
+    "no_avb_handoff_error": true
+  },
+  "baseline_serial": "~/anybook/installer/work/rb-20261023-03/appvm/vm/serial.log"
+}

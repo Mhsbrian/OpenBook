@@ -1,5 +1,15 @@
 # Status
 
+## 2026-10-24: Google security chip firmware tools neutralised on Ruby; every image now checked (ANAL-251)
+
+On the G14 (RB-20261023-03), Google's `gscutil` ran at every boot, staging security chip firmware and
+sending it commands through the PC's firmware TPM; the earlier "never started" reading was wrong. OpenBook
+now replaces `gscutil.rc` and `gscutil-executor.rc` (`system` only). `check-firmware-safety.py` fails any
+image with an unreviewed firmware/TPM/EC trigger or forbidden flasher, and any payload with a postinstall
+step (Google's postinstall flashes GSC, BIOS and EC firmware). The fresh-boot VM test passes 19/19 against
+RB-20261023-03's own boot. Not on the laptop yet; `efi_pstore` stays open (needs a `vendor_boot` builder).
+Docs: `docs/ruby-firmware-safety.md`. Evidence: `evidence/2026-10-24-ruby-safety/`.
+
 ## 2026-10-22: G14 on RB-20261022-01; the owner OTA path built (ANAL-229)
 
 The SanDisk got RB-20261022-01 (verified readback `8834cd89…`). B Honey checked its live entry and ran
