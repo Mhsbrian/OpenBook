@@ -7,7 +7,10 @@
 #
 # usage: adapt-device-test.sh SERIAL ADAPT_BINARY LISTING CASES OUT
 #   LISTING  a local listing file whose ruby entry names Google's real release (Google's URL and MD5)
-#   CASES    lines "name layer_dir embed(0|1) expected_system_sha256 expected_vbmeta_sha256" (expected "-" to only record)
+#   CASES    lines "name layer_dir embed(0|1) expected_system_sha256 expected_vbmeta_sha256 [payload_layer_dir]"
+#            (expected "-" to only record). With payload_layer_dir (the installed release's layer), the adapted
+#            release's update payload is also written, signed with a throwaway test key, timed and recorded;
+#            it is never applied.
 #   OUT      new host directory for the results (JSON records and the log; no Google image)
 set -euo pipefail
 SERIAL=$1 BIN=$2 LISTING=$3 CASES=$4 OUT=$5
@@ -34,11 +37,17 @@ sh_ "rm -rf $T && mkdir -p $T/updater"
 "$ADB" -s "$SERIAL" push -q "$LISTING" "$T/listing.json"
 "$ADB" -s "$SERIAL" push -q "$AVBKEY" "$T/avb-test-key.pem"
 sh_ "chmod 755 $T/openbook-adapt"
-while read -r name layer _; do
+while read -r name layer _ _ _ playout; do
     [ -n "$name" ] || continue
     sh_ "mkdir -p $T/layer-$name"
     "$ADB" -s "$SERIAL" push -q "$layer/layer.json" "$T/layer-$name/layer.json"
+    if [ -n "${playout:-}" ]; then
+        sh_ "mkdir -p $T/installed-$name"
+        "$ADB" -s "$SERIAL" push -q "$playout/layer.json" "$T/installed-$name/layer.json"
+    fi
 done < "$CASES"
+PAYLOAD_KEY=${PAYLOAD_KEY:-}
+[ -n "$PAYLOAD_KEY" ] && "$ADB" -s "$SERIAL" push -q "$PAYLOAD_KEY" "$T/payload-test-key.pem"
 
 env_="OPENBOOK_UPDATER_DIR=$T/updater OPENBOOK_UPDATER_LISTING=$T/listing.json"
 log "engine check"
@@ -59,7 +68,7 @@ log "reconstruct finished in $(( $(date +%s) - s )) s"
 sh_ "rm -rf $T/updater/[0-9]*"
 
 pass=1 ran=0
-while read -r name _ embed want_sys want_vb; do
+while read -r name _ embed want_sys want_vb playout; do
     [ -n "$name" ] || continue
     ran=$((ran + 1))
     log "adapt $name (embed layer: $embed)"
@@ -81,6 +90,17 @@ while read -r name _ embed want_sys want_vb; do
         else log "  $1 ${3:-none} DIFFERS from the expected $2"; pass=0; fi
     done
     [ "$rc" = 0 ] || pass=0
+    if [ -n "${playout:-}" ] && [ "$rc" = 0 ] && [ -n "$PAYLOAD_KEY" ]; then
+        s=$(date +%s)
+        prc=0
+        sh_ "$T/openbook-adapt payload --adapted $T/out-$name --layer $T/installed-$name --out $T/payload-$name \
+            --key $T/payload-test-key.pem" > "$OUT/payload-$name.txt" 2>&1 || prc=$?
+        log "payload $name: exit $prc in $(( $(date +%s) - s )) s"
+        "$ADB" -s "$SERIAL" pull -q "$T/payload-$name/payload.json" "$OUT/payload-$name.json" || prc=1
+        sh_ "sha256sum $T/payload-$name/payload.bin; ls -l $T/payload-$name/payload.bin" | tr -d '\r' >> "$OUT/payload-$name.txt"
+        [ "$prc" = 0 ] || pass=0
+        sh_ "rm -rf $T/payload-$name"
+    fi
     sh_ "rm -rf $T/work-$name $T/out-$name"
 done < "$CASES"
 want_cases=$(grep -c . "$CASES")
