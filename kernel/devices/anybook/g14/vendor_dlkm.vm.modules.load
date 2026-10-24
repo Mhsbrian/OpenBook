@@ -134,5 +134,3 @@ btintel.ko
 btrtl.ko
 btmtk.ko
 btusb.ko
-drm_gpuvm.ko
-nouveau.ko

@@ -22,11 +22,16 @@
  *
  * With any of them set, every function with a PTM capability is also listed once at load, with what the firmware
  * left enabled. Nothing is written to any device except PTM Control, and only with ptm_off=1.
+ *
+ * report (read only) holds the last S0i3 attempt in a few lines: the counts, every PCI function not in D3 and the
+ * USB4 routers' state. A user build's adb shell cannot read the kernel log, so the lab helper (openbook-pc-setup
+ * lab report) reads /sys/module/openbook_sleep_diag/parameters/report and copies it to logcat.
  */
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
 #include <linux/acpi.h>
 #include <linux/module.h>
+#include <linux/spinlock.h>
 #include <linux/pci.h>
 #include <linux/pm_runtime.h>
 #include <linux/suspend.h>
@@ -52,6 +57,50 @@ MODULE_PARM_DESC(usb4, "log the USB4 host routers' runtime PM state");
 static unsigned int cycles = 3;
 module_param(cycles, uint, 0444);
 MODULE_PARM_DESC(cycles, "full logs for the first N suspends, one line each after that");
+
+#define OB_REPORT_LEN 3072
+static char report_buf[OB_REPORT_LEN] = "no S0i3 attempt yet\n";
+static size_t report_len;
+static DEFINE_SPINLOCK(report_lock);
+
+static __printf(1, 2) void report_add(const char *fmt, ...)
+{
+	unsigned long flags;
+	va_list args;
+
+	spin_lock_irqsave(&report_lock, flags);
+	va_start(args, fmt);
+	report_len += vscnprintf(report_buf + report_len, sizeof(report_buf) - report_len, fmt, args);
+	va_end(args);
+	spin_unlock_irqrestore(&report_lock, flags);
+}
+
+static void report_reset(void)
+{
+	unsigned long flags;
+
+	spin_lock_irqsave(&report_lock, flags);
+	report_len = 0;
+	report_buf[0] = 0;
+	spin_unlock_irqrestore(&report_lock, flags);
+}
+
+static int report_get(char *buf, const struct kernel_param *kp)
+{
+	unsigned long flags;
+	int n;
+
+	spin_lock_irqsave(&report_lock, flags);
+	n = scnprintf(buf, PAGE_SIZE, "%s", report_buf);
+	spin_unlock_irqrestore(&report_lock, flags);
+	return n;
+}
+
+static const struct kernel_param_ops report_ops = {
+	.get = report_get,
+};
+module_param_cb(report, &report_ops, NULL, 0444);
+MODULE_PARM_DESC(report, "the last S0i3 attempt: counts, PCI functions not in D3, USB4 routers (read only)");
 
 static unsigned int attempts;	/* PM_SUSPEND_PREPARE notifications */
 static unsigned int entries;	/* LPS0 prepare calls: the s2idle path reached the S0i3 attempt */
@@ -295,7 +344,7 @@ static void hw_state(struct pci_dev *pdev, char *buf, size_t len)
 }
 
 /* One line per function (all, or those not in D3) when verbose, and always a summary line with the counts. */
-static void pci_snapshot(const char *when, unsigned int n_when, bool verbose)
+static void pci_snapshot(const char *when, unsigned int n_when, bool verbose, bool to_report)
 {
 	struct pci_dev *pdev = NULL;
 	int n = 0, awake = 0, ptm_on = 0;
@@ -309,6 +358,10 @@ static void pci_snapshot(const char *when, unsigned int n_when, bool verbose)
 		awake += !in_d3;
 		link_state(pdev, link, sizeof(link), &on);
 		ptm_on += on;
+		if (to_report && (!in_d3 || on))
+			report_add("  %s %04x:%04x %s %s%s\n", pci_name(pdev), pdev->vendor, pdev->device,
+				   pci_state(pdev->current_state), pdev->dev.driver ? pdev->dev.driver->name : "-",
+				   on ? " ptm-on" : "");
 		if (!verbose || (snapshot < 2 && in_d3))
 			continue;
 		hw_state(pdev, hw, sizeof(hw));
@@ -321,6 +374,9 @@ static void pci_snapshot(const char *when, unsigned int n_when, bool verbose)
 			" no-d3cold" : "", link, acpi);
 	}
 	pr_info("%s %u: %d PCI functions, %d not in D3, %d with PTM on\n", when, n_when, n, awake, ptm_on);
+	if (to_report)
+		report_add("s0i3-entry %u: %d PCI functions, %d not in D3, %d with PTM on (listed above)\n", n_when, n,
+			   awake, ptm_on);
 }
 
 struct usb4_ctx {
@@ -340,7 +396,7 @@ static int usb4_child(struct device *dev, void *data)
 	return 0;
 }
 
-static void usb4_report(const char *when)
+static void usb4_report(const char *when, bool to_log, bool to_report)
 {
 	struct pci_dev *pdev = NULL;
 	int n = 0;
@@ -352,6 +408,11 @@ static void usb4_report(const char *when)
 		char hw[16];
 
 		n++;
+		if (to_report)
+			report_add("  usb4 %s %s rpm %s; bridge %s %s\n", pci_name(pdev), pci_state(pdev->current_state),
+				   rpm_state(&pdev->dev), up ? pci_name(up) : "-", up ? pci_state(up->current_state) : "-");
+		if (!to_log)
+			continue;
 		hw_state(pdev, hw, sizeof(hw));
 		pr_info("%s: usb4 %s %04x:%04x driver %s kernel %s pmcsr %s rpm %s usage %d%s%s%s autosuspend %d ms%s; "
 			"bridge %s kernel %s rpm %s%s%s\n", when, pci_name(pdev), pdev->vendor, pdev->device,
@@ -366,13 +427,15 @@ static void usb4_report(const char *when)
 			up && up->bridge_d3 ? " bridge-d3" : "", up && up->dev.power.runtime_auto ? "" : " control-on");
 		device_for_each_child(&pdev->dev, &ctx, usb4_child);
 	}
-	if (!n)
+	if (!n && to_log)
 		pr_info("%s: no USB4 host router\n", when);
+	if (!n && to_report)
+		report_add("  no USB4 host router\n");
 }
 
 static void usb4_later(struct work_struct *work)
 {
-	usb4_report("load+60s");
+	usb4_report("load+60s", true, false);
 }
 
 static DECLARE_DELAYED_WORK(usb4_work, usb4_later);
@@ -386,7 +449,7 @@ static int ob_pm(struct notifier_block *nb, unsigned long action, void *data)
 		attempts++;
 		verbose = attempts <= cycles;
 		if (usb4 && verbose)
-			usb4_report("suspend");
+			usb4_report("suspend", true, false);
 		if (ptm_off)
 			ptm_suspend(verbose);
 		break;
@@ -406,9 +469,11 @@ static void ob_prepare(void)
 {
 	entries++;
 	checks = 0;
-	pci_snapshot("s0i3-entry", entries, snapshot && entries <= cycles);
-	if (usb4 && entries <= cycles)
-		usb4_report("s0i3-entry");
+	report_reset();
+	report_add("s0i3-entry %u (suspend %u)%s:\n", entries, attempts, ptm_off ? ", PTM off" : "");
+	pci_snapshot("s0i3-entry", entries, snapshot && entries <= cycles, true);
+	if (usb4)
+		usb4_report("s0i3-entry", entries <= cycles, true);
 }
 
 static void ob_check(void)
@@ -422,7 +487,7 @@ static void ob_restore(void)
 
 	pr_info("s0i3-exit %u: the s2idle loop checked for a wakeup %u time(s)\n", entries, checks);
 	if (verbose)
-		pci_snapshot("s0i3-exit", entries, true);
+		pci_snapshot("s0i3-exit", entries, true, false);
 }
 
 static struct acpi_s2idle_dev_ops ob_ops = {
@@ -442,7 +507,7 @@ static int __init openbook_sleep_diag_init(void)
 	pr_info("active: ptm_off=%d snapshot=%u usb4=%d cycles=%u\n", ptm_off, snapshot, usb4, cycles);
 	ptm_list("load", true);
 	if (usb4) {
-		usb4_report("load");
+		usb4_report("load", true, false);
 		queue_delayed_work(system_wq, &usb4_work, 60 * HZ);
 	}
 	ret = register_pm_notifier(&ob_nb);

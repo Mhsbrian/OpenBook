@@ -207,14 +207,20 @@ kernel_build(
 kernel_abi(
     name = "anybook_amd_x86_64_abi",
     kernel_build = ":anybook_amd_x86_64",
-    kernel_modules = ["//devices/anybook/nvidia:nouveau"],
+    kernel_modules = [
+        ":openbook_sleep_diag",
+        "//devices/anybook/nvidia:nouveau",
+    ],
     kmi_symbol_list_add_only = True,
 )
 
 kernel_modules_install(
     name = "anybook_amd_x86_64_modules_install",
     kernel_build = ":anybook_amd_x86_64",
-    kernel_modules = ["//devices/anybook/nvidia:nouveau"],
+    kernel_modules = [
+        ":openbook_sleep_diag",
+        "//devices/anybook/nvidia:nouveau",
+    ],
 )
 
 pkg_files(
@@ -248,8 +254,8 @@ ddk_module(
     deps = ["//common:all_headers_x86_64"],
 )
 
-# ANAL-257: S0i3 diagnostics (PTM off across suspend, PCI and USB4 power snapshots). Test only: the G14 lab helper
-# loads it with parameters and unloads it; inert without them. Not in the G14 load lists.
+# ANAL-257: S0i3 diagnostics (PTM off across suspend, PCI and USB4 power snapshots). Test only: in vendor_dlkm but
+# blocklisted (g14/modules.tsv); the G14 lab helper loads it with parameters and unloads it; inert without them.
 #   tools/bazel build --config=stamp //devices/anybook:openbook_sleep_diag
 ddk_module(
     name = "openbook_sleep_diag",
@@ -361,6 +367,7 @@ pkg_files(
     srcs = [
         ":anybook_amd_x86_64",
         ":openbook_lid_guard",
+        ":openbook_sleep_diag",
         "//devices/anybook/nvidia:nouveau",
         "//common:kernel_x86_64",
         "//common:kernel_x86_64_additional_artifacts",
