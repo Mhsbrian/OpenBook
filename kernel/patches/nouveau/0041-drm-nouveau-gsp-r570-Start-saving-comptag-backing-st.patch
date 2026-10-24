@@ -1,0 +1,121 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Lyude Paul <lyude@redhat.com>
+Date: Thu, 17 Sep 2026 14:54:28 -0400
+Subject: [PATCH] drm/nouveau/gsp/r570: Start saving comptag backing stores
+
+One of the portions of OpenRM's fbsr process that we never implemented is
+the saving and restoring of comptag backing stores. This isn't strictly
+necessary for fbsr to work (as long as we don't specify bEnteringGcOff =
+1), but implementing it brings us much closer to matching OpenRM's fbsr
+process - which means we can rely on things being well tested on Nvidia's
+side.
+
+Now that we have the required driver workarounds in place and fetch the
+required information from GSP's memsys on driver load, let's implement
+support for this by fetching the required space for the compbit backing
+stores and adding it to the amount of memory that we allocate for fbsr.
+
+With this, we should be able to safely enable bEnteringGcOff in fbsr.
+
+Signed-off-by: Lyude Paul <lyude@redhat.com>
+Reviewed-by: Dave Airlie <airlied@redhat.com>
+Link: https://patch.msgid.link/20260917185916.1089621-5-lyude@redhat.com
+(cherry picked from commit 82f4394bbe223fda560153257e5cf21bdb12b6a3)
+---
+ .../nouveau/nvkm/subdev/gsp/rm/r570/fbsr.c    | 27 ++++++++++++++++++-
+ .../nvkm/subdev/gsp/rm/r570/nvrm/fbsr.h       | 23 ++++++++++++++++
+ 2 files changed, 49 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/nouveau/nvkm/subdev/gsp/rm/r570/fbsr.c b/drivers/gpu/drm/nouveau/nvkm/subdev/gsp/rm/r570/fbsr.c
+index f73d9b29e891d..a93a39ef7c690 100644
+--- a/drivers/gpu/drm/nouveau/nvkm/subdev/gsp/rm/r570/fbsr.c
++++ b/drivers/gpu/drm/nouveau/nvkm/subdev/gsp/rm/r570/fbsr.c
+@@ -26,6 +26,23 @@ r570_fbsr_suspend_channels(struct nvkm_gsp *gsp, bool suspend)
+ 	return nvkm_gsp_rm_ctrl_wr(&gsp->internal.device.subdevice, ctrl);
+ }
+ 
++static int
++r570_fb_get_compbit_store_size(struct nvkm_gsp *gsp, u64 *size)
++{
++	NV0080_CTRL_FB_GET_COMPBIT_STORE_INFO_PARAMS *ctrl;
++
++	ctrl = nvkm_gsp_rm_ctrl_rd(&gsp->internal.device.object,
++				   NV0080_CTRL_CMD_FB_GET_COMPBIT_STORE_INFO,
++				   sizeof(*ctrl));
++	if (IS_ERR(ctrl))
++		return PTR_ERR(ctrl);
++
++	*size = ctrl->Size;
++
++	nvkm_gsp_rm_ctrl_done(&gsp->internal.device.object, ctrl);
++	return 0;
++}
++
+ static int
+ r570_memsys_enable_raw_comp_mode(struct nvkm_gsp *gsp, bool enable)
+ {
+@@ -135,7 +152,7 @@ r570_fbsr_suspend(struct nvkm_gsp *gsp)
+ 	struct nvkm_device *device = subdev->device;
+ 	struct nvkm_instmem *imem = device->imem;
+ 	struct nvkm_instobj *iobj;
+-	u64 size;
++	u64 size, compbit_store_size;
+ 	int ret;
+ 
+ 	/* Stop channel scheduling. */
+@@ -152,6 +169,12 @@ r570_fbsr_suspend(struct nvkm_gsp *gsp)
+ 			return ret;
+ 	}
+ 
++	ret = r570_fb_get_compbit_store_size(gsp, &compbit_store_size);
++	if (ret < 0)
++		return ret;
++	nvkm_debug(&gsp->subdev, "fbsr: Compbit backing store size: 0x%llx bytes\n",
++		   compbit_store_size);
++
+ 	/* Save BAR2 allocations to system memory. */
+ 	list_for_each_entry(iobj, &imem->list, head) {
+ 		if (iobj->preserve) {
+@@ -174,6 +197,8 @@ r570_fbsr_suspend(struct nvkm_gsp *gsp)
+ 	size  = gsp->fb.heap.size;
+ 	size += gsp->fb.rsvd_size;
+ 	size += gsp->fb.bios.vga_workspace.size;
++	size += compbit_store_size;
++
+ 	nvkm_debug(subdev, "fbsr: size: 0x%llx bytes\n", size);
+ 
+ 	ret = nvkm_gsp_sg(device, size, &gsp->sr.fbsr);
+diff --git a/drivers/gpu/drm/nouveau/nvkm/subdev/gsp/rm/r570/nvrm/fbsr.h b/drivers/gpu/drm/nouveau/nvkm/subdev/gsp/rm/r570/nvrm/fbsr.h
+index 9050a8274b273..cb3e448415b42 100644
+--- a/drivers/gpu/drm/nouveau/nvkm/subdev/gsp/rm/r570/nvrm/fbsr.h
++++ b/drivers/gpu/drm/nouveau/nvkm/subdev/gsp/rm/r570/nvrm/fbsr.h
+@@ -16,6 +16,29 @@ typedef struct NV2080_CTRL_INTERNAL_FBSR_INIT_PARAMS {
+     NV_DECLARE_ALIGNED(NvU64 sysmemAddrOfSuspendResumeData, 8);
+ } NV2080_CTRL_INTERNAL_FBSR_INIT_PARAMS;
+ 
++#define NV0080_CTRL_CMD_FB_GET_COMPBIT_STORE_INFO (0x801306) /* finn: Evaluated from "(FINN_NV01_DEVICE_0_FB_INTERFACE_ID << 8) | NV0080_CTRL_FB_GET_COMPBIT_STORE_INFO_PARAMS_MESSAGE_ID" */
++
++typedef struct NV0080_CTRL_FB_GET_COMPBIT_STORE_INFO_PARAMS {
++    NV_DECLARE_ALIGNED(NvU64 Size, 8);
++    NV_DECLARE_ALIGNED(NvU64 Address, 8);
++    NvU32 AddressSpace;
++    NvU32 MaxCompbitLine;
++    NvU32 comptagsPerCacheLine;
++    NvU32 cacheLineSize;
++    NvU32 cacheLineSizePerSlice;
++    NvU32 cacheLineFetchAlignment;
++    NV_DECLARE_ALIGNED(NvU64 backingStoreBase, 8);
++    NvU32 gobsPerComptagPerSlice;
++    NvU32 backingStoreCbcBase;
++    NvU32 comptaglineAllocationPolicy;
++    NV_DECLARE_ALIGNED(NvU64 privRegionStartOffset, 8);
++    NvU32 cbcCoveragePerSlice;
++} NV0080_CTRL_FB_GET_COMPBIT_STORE_INFO_PARAMS;
++
++#define NV0080_CTRL_CMD_FB_GET_COMPBIT_STORE_INFO_ADDRESS_SPACE_UNKNOWN 0 // ADDR_UNKNOWN
++#define NV0080_CTRL_CMD_FB_GET_COMPBIT_STORE_INFO_ADDRESS_SPACE_SYSMEM  1 // ADDR_SYSMEM
++#define NV0080_CTRL_CMD_FB_GET_COMPBIT_STORE_INFO_ADDRESS_SPACE_FBMEM   2 // ADDR_FBMEM
++
+ #define NV2080_CTRL_CMD_INTERNAL_MEMSYS_PROGRAM_RAW_COMPRESSION_MODE (0x20800a6f) /* finn: Evaluated from "(FINN_NV20_SUBDEVICE_0_INTERNAL_INTERFACE_ID << 8) | NV2080_CTRL_INTERNAL_MEMSYS_PROGRAM_RAW_COMPRESSION_MODE_PARAMS_MESSAGE_ID" */
+ 
+ typedef struct NV2080_CTRL_INTERNAL_MEMSYS_PROGRAM_RAW_COMPRESSION_MODE_PARAMS {
