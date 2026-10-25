@@ -10,8 +10,19 @@
 #               (Cuttlefish: androidboot.hardware.* from the launcher, init_graphics.vendor.rc).
 #   hal=none    no supported GPU: nothing here.
 # Gralloc needs no switch: minigbm picks its backend from the DRM driver name (amdgpu, virtio_gpu).
+# On a laptop with an ASUS MUX the probe follows the panel (ANAL-246): the GPU whose card drives the connected
+# internal panel. After each HAL event, `anybook_gpu_probe --pin` pins drm_hwcomposer (vendor.hwc.drm.device) and
+# minigbm (vendor.minigbm.render_node) to that GPU, so neither can move to another, such as the dGPU in Hybrid.
 
 service vendor.anybook-gpu-probe /vendor/bin/anybook_gpu_probe
+    user system
+    group system
+    oneshot
+    disabled
+    stdio_to_kmsg
+
+# Waits up to 5 s for the chosen GPU's card and render node, then sets the pins it found.
+service vendor.anybook-gpu-pin /vendor/bin/anybook_gpu_probe --pin
     user system
     group system
     oneshot
@@ -37,3 +48,4 @@ on vendor-anybook-gpu-amdgpu
     setprop ro.hardware.gralloc ${ro.boot.hardware.gralloc:-minigbm}
     setprop ro.hardware.hwcomposer ${ro.boot.hardware.hwcomposer:-drm}
     setprop ro.opengles.version ${ro.boot.opengles.version:-196610}
+    exec_start vendor.anybook-gpu-pin

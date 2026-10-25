@@ -5,3 +5,7 @@ vendor.anybook.gpu.                    u:object_r:vendor_anybook_gpu_prop:s0 pre
 # vendor_default_prop, which platform processes may not read.
 vendor.mesa.                           u:object_r:vendor_graphics_option_prop:s0 prefix string
 vendor.minigbm.                        u:object_r:vendor_graphics_option_prop:s0 prefix string
+# ANAL-246: the selector's pins (anybook_gpu_probe --pin) and the composer's first-frame report.
+vendor.hwc.drm.device                  u:object_r:vendor_anybook_gpu_pin_prop:s0 exact string
+vendor.minigbm.render_node             u:object_r:vendor_anybook_gpu_pin_prop:s0 exact string
+vendor.hwc.openbook.first_present      u:object_r:vendor_anybook_hwc_report_prop:s0 exact string
