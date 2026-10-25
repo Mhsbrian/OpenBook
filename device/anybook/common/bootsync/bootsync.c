@@ -20,6 +20,12 @@
 //   disable SLOT    SLOT's entry goes (setSlotAsUnbootable); never the running slot's.
 //   status          read-only: both slots, the ESP, and the slot systemd-boot will start next.
 //
+// Graphics modes (ANAL-246, docs/nvidia-graphics-modes.md §5.4 and §6): on a laptop whose MUX openbook-gfx-mode
+// switches, `activate` refuses to switch slots while the panel is on the dGPU or a mode switch is under way (the
+// update interlock: an older image in the other slot may have no switcher), and `mark-good` keeps a "Restore Hybrid
+// graphics" entry (openbook-gfx-restore.conf): the running slot's entry with openbook.gfx=restore-hybrid, shown only
+// in systemd-boot's menu.
+//
 // The boot control HAL (android.hardware.boot-service.openbook) runs it for setActiveBootSlot, markBootSuccessful and
 // setSlotAsUnbootable. On a system without it (the first update onto an older OpenBook), scripts/g14-adb.sh runs the
 // new image's copy once as root after update_engine finished.
@@ -30,8 +36,11 @@
 // ueventd links for the boot disk only (androidboot.boot_part_uuid).
 //
 //   openbook-bootsync [--current SLOT] [--by-name DIR | --disk IMAGE] [--tries N] [--allow-new-key] [--json]
-//                     [--test-stop-after files|entry|loader] status | activate SLOT | mark-good | disable SLOT
-// --disk: host tests, a whole-disk image file whose partitions are found by GPT name. --current: the running slot
+//                     [--gfx-fw DIR] [--test-stop-after files|entry|loader]
+//                     status | activate SLOT | mark-good | disable SLOT
+// --gfx-fw: where asus-wmi's gpu_mux_mode is (host tests; the switcher's summary property is
+// OPENBOOK_PROP_vendor_openbook_gfx_summary there). --disk: host tests, a whole-disk image file whose partitions are
+// found by GPT name. --current: the running slot
 // (default ro.boot.slot_suffix). --json: the result as JSON on stdout; the log is on stderr. Exit 0 on success, 1 when
 // refused or failed (nothing changed unless the log says which step ran), 2 on usage errors, 75 after a test stop.
 #include "common.h"
@@ -51,6 +60,8 @@ static const char *g_byname = "/dev/block/by-name";
 static const char *g_disk;
 static int g_disk_fd = -1, g_rw, g_tries = 3, g_allow_new_key, g_json;
 static const char *g_stop_after = "";
+static const char *g_gfx_fw = "/sys/devices/platform/asus-nb-wmi";
+#define GFX_RESTORE_ENTRY "openbook-gfx-restore.conf"
 static struct gpt g_gpt;
 static char g_cur;  // 'a' or 'b'
 
@@ -666,6 +677,132 @@ static char *loader_with(const char *cur, const char *def, const char *pref) {
     return o.p;
 }
 
+// ------------------------------------------------------------------ graphics modes (ANAL-246)
+static char *read_entry(struct esp *x, const struct entry *e);
+
+// What boot control needs from openbook-gfx-mode: the MUX itself (asus-wmi's gpu_mux_mode) and the switcher's
+// summary, vendor.openbook.gfx.summary = "1 MODE PHASE TARGET LOCK WRITES ULTIMATE RESULT".
+struct gfx {
+    int mux;  // -1: no MUX, 0: the panel is on the dGPU, 1: Optimus
+    char mode[16], phase[16], ultimate[16];
+};
+
+static void gfx_read(struct gfx *g) {
+    memset(g, 0, sizeof *g);
+    g->mux = -1;
+    char path[300], buf[8] = "";
+    snprintf(path, sizeof path, "%s/gpu_mux_mode", g_gfx_fw);
+    int fd = open(path, O_RDONLY | O_CLOEXEC);
+    if (fd >= 0) {
+        ssize_t n = read(fd, buf, sizeof buf - 1);
+        if (n > 0 && (buf[0] == '0' || buf[0] == '1') && (n == 1 || buf[1] == '\n')) g->mux = buf[0] - '0';
+        close(fd);
+    }
+    char s[100], v[4], target[16], lock[16], writes[8];
+    prop_get("vendor.openbook.gfx.summary", s, sizeof s);
+    if (sscanf(s, "%3s %15s %15s %15s %15s %7s %15s", v, g->mode, g->phase, target, lock, writes, g->ultimate) != 7 ||
+        strcmp(v, "1")) {
+        g->mode[0] = g->phase[0] = g->ultimate[0] = 0;
+    }
+}
+
+// The update interlock (§5.4): NULL when an update may switch slots, otherwise why not. Without a MUX and without
+// the switcher, nothing is in the way.
+static const char *gfx_blocks_update(const struct gfx *g) {
+    static char why[120];
+    if (g->mux == 0 || !strcmp(g->mode, "ultimate") || !strcmp(g->mode, "invalid"))
+        return "the panel is on the NVIDIA GPU (Ultimate graphics): switch to Hybrid or Eco first";
+    if (g->phase[0] && strcmp(g->phase, "idle")) {
+        snprintf(why, sizeof why, "a graphics-mode switch is under way (%s): restart and let it finish first", g->phase);
+        return why;
+    }
+    return NULL;
+}
+
+// The "Restore Hybrid graphics" entry only where openbook-gfx-mode switches the MUX.
+static int gfx_restore_wanted(const struct gfx *g) {
+    return g->mux >= 0 && g->ultimate[0] && strcmp(g->ultimate, "unsupported");
+}
+
+// The running slot's entry, as the recovery entry: another title, sorted after the slots, and
+// openbook.gfx=restore-hybrid, which openbook-gfx-mode honours at early init (gpu_mux_mode=1, then a restart). It
+// has no boot counter and is never the default.
+static char *gfx_restore_text(const char *slot_text) {
+    struct sb e = {0};
+    int sort = 0;
+    for (const char *l = slot_text; *l;) {
+        size_t n = strcspn(l, "\n");
+        if (!strncmp(l, "title ", 6)) {
+            sb_puts(&e, "title Restore Hybrid graphics\n");
+        } else if (!strncmp(l, "sort-key ", 9)) {
+            sb_puts(&e, "sort-key openbook-9\n");
+            sort = 1;
+        } else if (!strncmp(l, "options ", 8)) {
+            sb_add(&e, l, n);
+            sb_puts(&e, " openbook.gfx=restore-hybrid\n");
+        } else if (n) {
+            sb_add(&e, l, n);
+            sb_add(&e, "\n", 1);
+        }
+        l += n;
+        if (*l == '\n') l++;
+    }
+    if (!sort) sb_puts(&e, "sort-key openbook-9\n");
+    sb_add(&e, "\0", 1);
+    return e.p;
+}
+
+// "written", "kept", "removed", "none" or NULL (a write failed).
+static const char *gfx_sync_restore(struct esp *x, const struct gfx *g, char s) {
+    const char *path = "loader/entries/" GFX_RESTORE_ENTRY;
+    uint32_t n;
+    char *cur = (char *)fat_read(&x->f, path, &n);
+    if (cur) {
+        cur = realloc(cur, n + 1);
+        cur[n] = 0;
+    }
+    const char *out = "none";
+    struct entry *se = slot_entry(x, s);
+    if (!gfx_restore_wanted(g) || !se) {
+        if (cur) {
+            out = fat_unlink(&x->f, path) ? NULL : "removed";
+            if (out) LOG("removed %s (%s)", path, se ? "no MUX the switcher handles" : "no entry for the slot");
+        }
+        free(cur);
+        return out;
+    }
+    char *text = read_entry(x, se);
+    char *want = text ? gfx_restore_text(text) : NULL;
+    if (!want) out = NULL;
+    else if (cur && !strcmp(cur, want)) out = "kept";
+    else if (fat_replace(&x->f, path, want, strlen(want))) out = NULL;
+    else {
+        out = "written";
+        LOG("wrote %s for slot %c", path, s);
+    }
+    free(text), free(want), free(cur);
+    return out;
+}
+
+// Before slot t's ESP files are replaced or its entry goes: a recovery entry that boots t goes first.
+static int gfx_drop_restore_for(struct esp *x, char t) {
+    const char *path = "loader/entries/" GFX_RESTORE_ENTRY;
+    uint32_t n;
+    char *cur = (char *)fat_read(&x->f, path, &n);
+    if (!cur) return 0;
+    cur = realloc(cur, n + 1);
+    cur[n] = 0;
+    char needle[24];
+    snprintf(needle, sizeof needle, "/openbook/%c/", t);
+    int rc = 0;
+    if (strstr(cur, needle)) {
+        rc = fat_unlink(&x->f, path);
+        if (!rc) LOG("removed %s (it boots slot %c)", path, t);
+    }
+    free(cur);
+    return rc;
+}
+
 // ------------------------------------------------------------------ results
 static struct jw W;
 static int g_steps;
@@ -983,6 +1120,15 @@ static int cmd_activate(char t) {
         rc = 0;
         goto out;
     }
+    // ---- 0. the update interlock (ANAL-246): never switch slots while the panel is on the dGPU or a graphics-mode
+    // switch is under way
+    struct gfx g;
+    gfx_read(&g);
+    const char *gfx_why = gfx_blocks_update(&g);
+    if (gfx_why) {
+        rc = fail("graphics_mode", "%s", gfx_why);
+        goto out;
+    }
     // ---- 1. check: everything is read and verified before anything is written
     step("check the new slot's boot images against its vbmeta");
     if (slot_load(g_cur, 0, &cur)) {
@@ -1019,7 +1165,7 @@ static int cmd_activate(char t) {
     }
     // ---- 2. the slot's old entry goes first: from here on no entry points at files that are being replaced
     step("remove the slot's old entry");
-    if (remove_entries(&x, t, "replaced by this update")) {
+    if (gfx_drop_restore_for(&x, t) || remove_entries(&x, t, "replaced by this update")) {
         rc = fail("write_failed", "ESP: %s", strerror(errno));
         free(o.bc.p);
         goto out;
@@ -1149,6 +1295,20 @@ static int cmd_mark_good(void) {
     char pref[128];
     snprintf(pref, sizeof pref, "%s", x.pref);
     int pref_live = pref[0] && strcmp(pref, cid) && oe && !strcmp(pref, oe->id) && !(oe->counted && oe->left == 0);
+    // The recovery entry boots the running slot, so it is written before the other slot's entry goes (ANAL-246).
+    struct gfx g;
+    gfx_read(&g);
+    const char *restore = gfx_sync_restore(&x, &g, g_cur);
+    if (!restore) {
+        rc = fail("write_failed", "loader/entries/%s: %s", GFX_RESTORE_ENTRY, strerror(errno));
+        goto out;
+    }
+    jw_str(&W, "gfx_restore_entry", restore);
+    if (strcmp(restore, "kept") && strcmp(restore, "none") && reopen_esp(&x, why, sizeof why)) {
+        rc = fail("write_failed", "%s", why);
+        goto out;
+    }
+    oe = slot_entry(&x, other);
     if (after_update) {
         step("remove the other slot's entry (the merge overwrites that slot)");
         if (remove_entries(&x, other, "the update to this slot booted")) {
@@ -1191,7 +1351,7 @@ static int cmd_disable(char t) {
     if (esp_load(&x, 1, why, sizeof why)) return fail("no_esp", "%s", why);
     int rc = 1;
     step("remove the slot's entry");
-    if (remove_entries(&x, t, "slot set unbootable") ||
+    if (gfx_drop_restore_for(&x, t) || remove_entries(&x, t, "slot set unbootable") ||
         (!strcmp(x.pref, tid) && write_loader(&x, x.def[0] ? x.def : cid, NULL)) || reopen_esp(&x, why, sizeof why)) {
         rc = fail("write_failed", "ESP: %s", strerror(errno));
         goto out;
@@ -1214,7 +1374,7 @@ static char parse_slot(const char *s) {
 static int usage(void) {
     fprintf(stderr,
             "usage: openbook-bootsync [--current SLOT] [--by-name DIR | --disk IMAGE] [--tries N] [--allow-new-key]\n"
-            "                         [--json] [--test-stop-after files|entry|loader]\n"
+            "                         [--json] [--gfx-fw DIR] [--test-stop-after files|entry|loader]\n"
             "                         status | activate SLOT | mark-good | disable SLOT\n");
     return 2;
 }
@@ -1229,6 +1389,7 @@ int main(int argc, char **argv) {
         else if (!strcmp(a, "--disk") && i + 1 < argc) g_disk = argv[++i];
         else if (!strcmp(a, "--tries") && i + 1 < argc) g_tries = atoi(argv[++i]);
         else if (!strcmp(a, "--test-stop-after") && i + 1 < argc) g_stop_after = argv[++i];
+        else if (!strcmp(a, "--gfx-fw") && i + 1 < argc) g_gfx_fw = argv[++i];
         else if (!strcmp(a, "--allow-new-key")) g_allow_new_key = 1;
         else if (!strcmp(a, "--json")) g_json = 1;
         else return usage();
