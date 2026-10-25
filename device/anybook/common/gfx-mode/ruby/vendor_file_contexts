@@ -1,0 +1,2 @@
+/metadata/openbook(/.*)?                          u:object_r:openbook_gfx_metadata_file:s0
+/vendor/bin/openbook-gfx-mode                     u:object_r:openbook_gfx_mode_exec:s0
