@@ -1,0 +1,102 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Sun, 25 Oct 2026 21:00:00 +0000
+Subject: [PATCH] OPENBOOK: hwc: report the first frame on an internal display
+
+openbook-gfx-mode (AnyBook ANAL-246) counts a boot in a new graphics
+mode as healthy only once the panel showed a composed frame on the GPU
+the mode expects; otherwise it restarts and, after two tries, switches
+the laptop's MUX back. The composer is the one component that knows a
+frame was presented.
+
+After the first successful composition commit of an internal display
+(eDP, LVDS, DSI, virtual, ...), HwcDisplay sets
+vendor.hwc.openbook.first_present to CARD:CONNECTOR, e.g. card1:eDP-1.
+The card is the node of the display's DRM device
+(drmGetDeviceNameFromFd2), the connector DrmConnector::GetName(). Each
+display reports once. init hands the value to openbook-gfx-mode, which
+checks the card's driver and the connector's status itself.
+
+Nothing else changes; a failed property write is logged and ignored.
+---
+ hwc/HwcDisplay.cpp | 30 ++++++++++++++++++++++++++++++
+ hwc/HwcDisplay.h   |  5 +++++
+ 2 files changed, 35 insertions(+)
+
+diff --git a/hwc/HwcDisplay.cpp b/hwc/HwcDisplay.cpp
+index 7f3b7ee..0ea9c53 100644
+--- a/hwc/HwcDisplay.cpp
++++ b/hwc/HwcDisplay.cpp
+@@ -22,9 +22,11 @@
+ #include <cstdint>
+ #include <sstream>
+ 
++#include <android-base/properties.h>
+ #include <ui/ColorSpace.h>
+ #include <ui/GraphicTypes.h>
+ #include <utils/Trace.h>
++#include <xf86drm.h>
+ 
+ #include "backend/BackendManager.h"
+ #include "compositor/CompositionPlanner.h"
+@@ -1221,9 +1223,37 @@ bool HwcDisplay::CommitStagedComposition(SharedFd &out_present_fence) {
+   }
+   out_present_fence = result->present_fence;
+   ApplyCommitChanges(*a_args, *result);
++  if (!reported_first_frame_) {
++    ReportFirstFrame();
++  }
+   return true;
+ }
+ 
++// AnyBook (ANAL-246): the first composed frame this display presented, as CARD:CONNECTOR (card1:eDP-1) in
++// vendor.hwc.openbook.first_present. openbook-gfx-mode's health check for a graphics-mode switch takes it from
++// there (init hands it on): a frame on the panel of the GPU the mode expects. Internal displays only, once each.
++void HwcDisplay::ReportFirstFrame() {
++  reported_first_frame_ = true;
++  auto *connector = GetPipe().connector->Get();
++  if (!connector->IsInternal()) {
++    return;
++  }
++  char *path = drmGetDeviceNameFromFd2(*GetPipe().device->GetFd());
++  if (path == nullptr) {
++    ALOGW("First frame on %s: no device node", connector->GetName().c_str());
++    return;
++  }
++  std::string node = path;
++  free(path);
++  node = node.substr(node.find_last_of('/') + 1);
++  const std::string value = node + ":" + connector->GetName();
++  if (android::base::SetProperty("vendor.hwc.openbook.first_present", value)) {
++    ALOGI("First frame on %s", value.c_str());
++  } else {
++    ALOGW("First frame on %s: cannot set vendor.hwc.openbook.first_present", value.c_str());
++  }
++}
++
+ void HwcDisplay::ApplyCommitChanges(const AtomicCommitArgs &a_args,
+                                     const AtomicCommitResult &result) {
+   writeback_complete_fence_ = result.writeback_complete_fence;
+diff --git a/hwc/HwcDisplay.h b/hwc/HwcDisplay.h
+index efbeb49..377f6f1 100644
+--- a/hwc/HwcDisplay.h
++++ b/hwc/HwcDisplay.h
+@@ -306,6 +306,9 @@ class HwcDisplay : public ICompositorDisplay {
+ 
+   bool CommitStagedComposition(SharedFd &out_present_fence);
+ 
++  // AnyBook (ANAL-246): vendor.hwc.openbook.first_present after the first frame on an internal display.
++  void ReportFirstFrame();
++
+   // Update HwcDisplay state tracking to reflect what was committed in |a_args|.
+   // This should be called after a successful commit.
+   void ApplyCommitChanges(const AtomicCommitArgs &a_args,
+@@ -389,6 +392,8 @@ class HwcDisplay : public ICompositorDisplay {
+   SharedFd writeback_complete_fence_;
+ 
+   uint32_t frame_no_ = 0;
++  // AnyBook (ANAL-246): the first frame on an internal display was reported.
++  bool reported_first_frame_ = false;
+   std::map<CompositionAttributes, CompositionStats> comp_stats_{};
+ 
+   std::shared_ptr<FrontendDisplayBase> frontend_private_data_;

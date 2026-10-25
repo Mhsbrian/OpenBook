@@ -57,6 +57,8 @@ on vendor-anybook-gpu-virtio
     setprop ro.hardware.gralloc ${ro.boot.hardware.gralloc:-minigbm}
     setprop ro.hardware.hwcomposer ${ro.boot.hardware.hwcomposer:-drm}
     setprop ro.opengles.version ${ro.boot.opengles.version:-196609}
+    # The virtio card exists now: pin the composer and gralloc to it (ANAL-246).
+    exec_start vendor.anybook-gpu-pin
 
 on post-fs-data
     mkdir /data/vendor/weaver 0700 system system

@@ -3,63 +3,22 @@
 
 #include "gpu_probe.h"
 
-#include <dirent.h>
-#include <limits.h>
-#include <stdlib.h>
-#include <unistd.h>
+#include <sys/stat.h>
 
-#include <algorithm>
+#include <chrono>
 #include <cstdio>
-#include <regex>
-#include <set>
 #include <sstream>
+#include <thread>
 
-#include <android-base/file.h>
 #include <android-base/parseint.h>
 #include <android-base/strings.h>
 
 namespace anybook::gpu_probe {
 namespace {
 
-constexpr uint32_t kVendorAmd = 0x1002;
-constexpr uint32_t kVendorRedHat = 0x1af4;  // virtio
-constexpr uint32_t kDeviceVirtioGpu = 0x1050;
+namespace gfx = openbook::gfx;
+
 constexpr uint32_t kClassDisplay = 0x03;  // PCI base class: display controller
-
-std::vector<std::string> ListDir(const std::string& dir) {
-    std::vector<std::string> names;
-    if (DIR* d = opendir(dir.c_str())) {
-        while (dirent* e = readdir(d)) {
-            if (e->d_name[0] != '.') names.emplace_back(e->d_name);
-        }
-        closedir(d);
-    }
-    std::sort(names.begin(), names.end());
-    return names;
-}
-
-uint32_t ReadHex(const std::string& path) {
-    std::string s;
-    uint32_t v = 0;
-    if (!android::base::ReadFileToString(path, &s)) return 0;
-    return android::base::ParseUint(android::base::Trim(s), &v) ? v : 0;
-}
-
-std::string LinkTarget(const std::string& path) {
-    std::string target;
-    return android::base::Readlink(path, &target) ? android::base::Basename(target) : "";
-}
-
-bool IsPciSlot(const std::string& name) {
-    static const std::regex re("[0-9a-f]{4}:[0-9a-f]{2}:[0-9a-f]{2}\\.[0-7]");
-    return std::regex_match(name, re);
-}
-
-void ReadPciIds(const std::string& dir, Device* d) {
-    d->vendor = ReadHex(dir + "/vendor");
-    d->device = ReadHex(dir + "/device");
-    d->pci_class = ReadHex(dir + "/class");
-}
 
 std::string Hex(uint32_t v, int width) {
     char buf[16];
@@ -67,62 +26,39 @@ std::string Hex(uint32_t v, int width) {
     return buf;
 }
 
-std::string VendorName(uint32_t vendor) {
-    switch (vendor) {
-        case kVendorAmd: return "amd";
-        case 0x10de: return "nvidia";
-        case 0x8086: return "intel";
-        case kVendorRedHat: return "virtio";
-        default: return Hex(vendor, 4);
-    }
+Device FromCard(const gfx::Card& c, const std::string& source) {
+    Device d{.source = source, .node = c.node, .driver = c.driver, .pci_slot = c.pci};
+    d.vendor = c.vendor;
+    d.device = c.device;
+    d.pci_class = c.pci_class;
+    d.connectors = c.connectors;
+    return d;
 }
 
-bool IsAmd(const Device& d) {
-    // A display controller still unbound (amdgpu not loaded yet) or bound to amdgpu; not one
-    // claimed by radeon or vfio-pci.
-    return d.vendor == kVendorAmd && (d.driver.empty() || d.driver == "amdgpu");
-}
-
-bool IsVirtioGpu(const Device& d) {
-    return d.driver == "virtio_gpu" || (d.vendor == kVendorRedHat && d.device == kDeviceVirtioGpu);
-}
-
-Result Pick(const Device& d, const std::string& hal) {
-    char id[16];
-    snprintf(id, sizeof(id), "%04x:%04x", d.vendor, d.device);
-    return {hal, d.vendor ? id : "", d.driver.empty() ? "unbound" : d.driver, d.source, ""};
+gfx::Card ToCard(const Device& d) {
+    gfx::Card c;
+    c.node = d.node;
+    c.driver = d.driver;
+    c.pci = d.pci_slot;
+    c.vendor = d.vendor;
+    c.device = d.device;
+    c.pci_class = d.pci_class;
+    c.connectors = d.connectors;
+    return c;
 }
 
 }  // namespace
 
 std::vector<Device> Collect(const std::string& sysfs) {
     std::vector<Device> out;
-    static const std::regex card_re("card[0-9]+");
-    const std::string drm = sysfs + "/class/drm";
-    for (const auto& name : ListDir(drm)) {
-        if (!std::regex_match(name, card_re)) continue;  // skip connectors (card0-eDP-1) and renderD*
-        Device d{.source = "drm", .node = name};
-        const std::string dev = drm + "/" + name + "/device";
-        d.driver = LinkTarget(dev + "/driver");
-        // Walk up from the device (e.g. virtio1 under 0000:00:02.0) to its PCI function.
-        char real[PATH_MAX];
-        if (realpath(dev.c_str(), real)) {
-            for (std::string p = real; p.size() > sysfs.size() && p != "/"; p = android::base::Dirname(p)) {
-                if (IsPciSlot(android::base::Basename(p))) {
-                    d.pci_slot = android::base::Basename(p);
-                    ReadPciIds(p, &d);
-                    break;
-                }
-            }
-        }
-        out.push_back(d);
-    }
-    const std::string pci = sysfs + "/bus/pci/devices";
-    for (const auto& slot : ListDir(pci)) {
-        Device d{.source = "pci", .node = slot, .pci_slot = slot};
-        ReadPciIds(pci + "/" + slot, &d);
-        if ((d.pci_class >> 16) != kClassDisplay) continue;
-        d.driver = LinkTarget(pci + "/" + slot + "/driver");
+    for (const auto& c : gfx::ReadCards(sysfs, false)) out.push_back(FromCard(c, "drm"));
+    for (const auto& c : gfx::ReadCards(sysfs, true)) out.push_back(FromCard(c, "render"));
+    for (const auto& f : gfx::ReadPci(sysfs)) {
+        if ((f.pci_class >> 16) != kClassDisplay) continue;
+        Device d{.source = "pci", .node = f.slot, .driver = f.driver, .pci_slot = f.slot};
+        d.vendor = f.vendor;
+        d.device = f.device;
+        d.pci_class = f.pci_class;
         out.push_back(d);
     }
     return out;
@@ -131,14 +67,22 @@ std::vector<Device> Collect(const std::string& sysfs) {
 std::string Format(const Device& d) {
     // A PCI device's node already is its slot.
     const std::string pci = d.source == "pci" ? "" : " pci=" + (d.pci_slot.empty() ? "-" : d.pci_slot);
-    return d.source + " " + d.node + " driver=" + (d.driver.empty() ? "-" : d.driver) + pci +
-           " vendor=" + Hex(d.vendor, 4) + " device=" + Hex(d.device, 4) + " class=" + Hex(d.pci_class, 6);
+    std::string line = d.source + " " + d.node + " driver=" + (d.driver.empty() ? "-" : d.driver) + pci +
+                       " vendor=" + Hex(d.vendor, 4) + " device=" + Hex(d.device, 4) + " class=" + Hex(d.pci_class, 6);
+    if (!d.connectors.empty()) {
+        std::vector<std::string> conns;
+        for (const auto& c : d.connectors) conns.push_back(c.name + ":" + (c.status.empty() ? "-" : c.status));
+        line += " conn=" + android::base::Join(conns, ",");
+    }
+    return line;
 }
 
 std::optional<Device> Parse(const std::string& line) {
     std::istringstream in(line);
     Device d;
-    if (!(in >> d.source >> d.node) || (d.source != "drm" && d.source != "pci")) return std::nullopt;
+    if (!(in >> d.source >> d.node) || (d.source != "drm" && d.source != "render" && d.source != "pci")) {
+        return std::nullopt;
+    }
     if (d.source == "pci") d.pci_slot = d.node;
     for (std::string kv; in >> kv;) {
         auto eq = kv.find('=');
@@ -153,6 +97,13 @@ std::optional<Device> Parse(const std::string& line) {
             uint32_t n = 0;
             if (!android::base::ParseUint(v, &n)) return std::nullopt;
             (k == "vendor" ? d.vendor : k == "device" ? d.device : d.pci_class) = n;
+        } else if (k == "conn" && d.source == "drm" && !v.empty()) {
+            for (const auto& c : android::base::Split(v, ",")) {
+                auto colon = c.find(':');
+                if (colon == std::string::npos || colon == 0) return std::nullopt;
+                std::string status = c.substr(colon + 1);
+                d.connectors.push_back({c.substr(0, colon), status == "-" ? "" : status});
+            }
         } else {
             return std::nullopt;
         }
@@ -160,34 +111,65 @@ std::optional<Device> Parse(const std::string& line) {
     return d;
 }
 
-Result Decide(const std::vector<Device>& devices) {
-    auto find = [&](const std::string& source, bool (*match)(const Device&)) -> const Device* {
-        for (const auto& d : devices) {
-            if (d.source != source || !match(d)) continue;
-            // A DRM card must have its driver bound: that is what renders.
-            if (source == "drm" && d.driver.empty()) continue;
-            return &d;
-        }
-        return nullptr;
+std::string FormatFirmware(const gfx::Firmware& fw) {
+    return fw.present ? "fw mux=" + std::to_string(fw.mux) + " dgpu=" + std::to_string(fw.dgpu) : "fw absent";
+}
+
+std::optional<gfx::Firmware> ParseFirmware(const std::string& line) {
+    if (line == "fw absent") return gfx::Firmware{};
+    int mux = -1, dgpu = -1;
+    char tail = 0;
+    if (sscanf(line.c_str(), "fw mux=%d dgpu=%d%c", &mux, &dgpu, &tail) != 2 || (mux != 0 && mux != 1) ||
+        (dgpu != 0 && dgpu != 1)) {
+        return std::nullopt;
+    }
+    return gfx::Firmware{.present = true, .mux = mux, .dgpu = dgpu};
+}
+
+Pins FindPins(const std::string& sysfs, const std::string& dev, const std::string& slot, int wait_ms) {
+    auto exists = [&](const std::string& node) {
+        struct stat st;
+        return stat((dev + "/" + node).c_str(), &st) == 0;
     };
-    Result r{.hal = "none"};
-    const Device* chosen = nullptr;
-    if ((chosen = find("drm", IsAmd))) {
-        r = Pick(*chosen, "amdgpu");
-    } else if ((chosen = find("drm", IsVirtioGpu))) {
-        r = Pick(*chosen, "virtio");
-    } else if ((chosen = find("pci", IsAmd))) {
-        r = Pick(*chosen, "amdgpu");
-    } else if ((chosen = find("pci", IsVirtioGpu))) {
-        r = Pick(*chosen, "virtio");
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(wait_ms);
+    for (;;) {
+        Pins p;
+        for (const auto& c : gfx::ReadCards(sysfs, false)) {
+            if (c.pci == slot && exists(c.node)) {
+                p.card = c.node;
+                p.kms = !c.connectors.empty();
+                break;
+            }
+        }
+        for (const auto& r : gfx::ReadCards(sysfs, true)) {
+            if (r.pci == slot && exists(r.node)) {
+                p.render = r.node;
+                break;
+            }
+        }
+        if ((!p.card.empty() && !p.render.empty()) || std::chrono::steady_clock::now() >= deadline) return p;
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
-    std::set<std::string> others;
+}
+
+Result Decide(const std::vector<Device>& devices, const gfx::Firmware& fw) {
+    std::vector<gfx::Card> cards, renders;
+    std::vector<gfx::PciFn> pci;
     for (const auto& d : devices) {
-        if (d.source != "pci" || (chosen && d.pci_slot == chosen->pci_slot)) continue;
-        others.insert(VendorName(d.vendor));
+        if (d.source == "drm") cards.push_back(ToCard(d));
+        if (d.source == "render") renders.push_back(ToCard(d));
+        if (d.source == "pci") {
+            pci.push_back({.slot = d.pci_slot, .vendor = d.vendor, .device = d.device, .pci_class = d.pci_class,
+                           .driver = d.driver});
+        }
     }
-    r.others = android::base::Join(others, ",");
-    return r;
+    const gfx::Mode mode = gfx::ModeOf(fw);
+    const gfx::Selection s = gfx::Select(mode, cards, renders, pci);
+    char id[16] = "";
+    if (s.vendor) snprintf(id, sizeof(id), "%04x:%04x", s.vendor, s.device);
+    return {.hal = s.hal, .pci_id = id, .driver = s.driver, .source = s.source, .others = s.others,
+            .pci_slot = s.pci, .display_card = s.display_card, .render_node = s.render_node,
+            .mode = gfx::ModeName(mode), .dgpu = s.dgpu, .note = s.note};
 }
 
 }  // namespace anybook::gpu_probe

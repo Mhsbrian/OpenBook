@@ -1,2 +1,8 @@
 vendor_restricted_prop(vendor_anybook_gpu_prop)
 vendor_restricted_prop(vendor_graphics_option_prop)
+# The pins (ANAL-246): the composer's KMS card (vendor.hwc.drm.device) and gralloc's render node
+# (vendor.minigbm.render_node), set by anybook_gpu_probe --pin so neither moves to another GPU.
+vendor_restricted_prop(vendor_anybook_gpu_pin_prop)
+# drm_hwcomposer's first frame on an internal display (vendor.hwc.openbook.first_present), for openbook-gfx-mode's
+# health check (init passes it on).
+vendor_restricted_prop(vendor_anybook_hwc_report_prop)

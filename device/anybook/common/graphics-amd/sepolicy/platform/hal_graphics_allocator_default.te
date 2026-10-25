@@ -16,3 +16,5 @@ r_dir_file(hal_graphics_allocator_default, sysfs_gpu)
 allow hal_graphics_allocator_default graphics_device:chr_file getattr;
 # Mesa (radeonsi through GBM) also looks for options as mesa.*, which is default_prop: an unset option.
 dontaudit hal_graphics_allocator_default default_prop:file { getattr open read map };
+# minigbm's render-node pin (vendor.minigbm.render_node, ANAL-246).
+get_prop(hal_graphics_allocator_default, vendor_anybook_gpu_pin_prop)
