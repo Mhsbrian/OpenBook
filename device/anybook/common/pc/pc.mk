@@ -33,6 +33,8 @@ $(call inherit-product, device/anybook/common/addons/addons.mk)
 # A/B updates with systemd-boot: the boot control HAL keeps the ESP's loader entries in step with the slots
 # (openbook-bootsync, ANAL-223). It replaces AOSP's com.android.hardware.boot.
 $(call inherit-product, device/anybook/common/bootsync/bootsync.mk)
+# Graphics modes on ASUS laptops with a MUX (ANAL-246): inert without the product's stack manifest.
+$(call inherit-product, device/anybook/common/gfx-mode/gfx-mode.mk)
 
 PRODUCT_SHIPPING_API_LEVEL := 37
 PRODUCT_USE_DYNAMIC_PARTITIONS := true

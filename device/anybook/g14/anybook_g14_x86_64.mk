@@ -49,6 +49,10 @@ PRODUCT_COPY_FILES += \
     device/anybook/g14/input/Vendor_04f3_Product_3315.idc:$(TARGET_COPY_OUT_VENDOR)/usr/idc/Vendor_04f3_Product_3315.idc \
     device/anybook/g14/input/Asus_WMI_hotkeys.kl:$(TARGET_COPY_OUT_VENDOR)/usr/keylayout/Asus_WMI_hotkeys.kl
 
+# Graphics modes (ANAL-246): the G14's MUX may be switched between Eco and Hybrid; Ultimate is not available yet.
+# Firmware writes stay off (no ro.vendor.openbook.gfx.fw_writes) until a release the owner approved turns them on.
+PRODUCT_COPY_FILES += device/anybook/g14/gfx-stacks.conf:$(TARGET_COPY_OUT_VENDOR)/etc/openbook/gfx-stacks.conf
+
 # 14" 2880x1800 OLED (Samsung ATNA40CU05-0): 243 ppi. 240 dpi gives a 1920x1200 dp desktop, as on Googlebook.
 PRODUCT_VENDOR_PROPERTIES += ro.vendor.openbook.lcd_density=240
 

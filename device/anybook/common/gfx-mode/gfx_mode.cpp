@@ -3,21 +3,22 @@
 
 #include "gfx_mode.h"
 
-#include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/file.h>
 #include <sys/stat.h>
+#include <time.h>
 #include <unistd.h>
 
 #include <algorithm>
 #include <map>
 #include <set>
 #include <sstream>
+
+#include "gfx_util.h"
 
 #ifdef __ANDROID__
 #include <android/log.h>
@@ -27,79 +28,18 @@
 namespace openbook::gfx {
 namespace {
 
+using namespace util;
+
 constexpr char kSchema[] = "openbook-gfx-state/1";
 constexpr char kStacksSchema[] = "# openbook-gfx-stacks/1";
 constexpr int kMaxRollbacks = 3;
 constexpr unsigned kVendorNvidia = 0x10de;
 constexpr size_t kPropValueMax = 91;  // PROP_VALUE_MAX - 1
-
-std::string Trim(const std::string& s) {
-    size_t b = s.find_first_not_of(" \t\r\n"), e = s.find_last_not_of(" \t\r\n");
-    return b == std::string::npos ? "" : s.substr(b, e - b + 1);
-}
-
-bool ReadFile(const std::string& path, std::string* out) {
-    int fd = open(path.c_str(), O_RDONLY | O_CLOEXEC);
-    if (fd < 0) return false;
-    out->clear();
-    char buf[4096];
-    ssize_t n;
-    while ((n = read(fd, buf, sizeof(buf))) > 0) out->append(buf, n);
-    int saved = errno;
-    close(fd);
-    errno = saved;
-    return n == 0;
-}
-
-std::vector<std::string> ListDir(const std::string& dir) {
-    std::vector<std::string> names;
-    if (DIR* d = opendir(dir.c_str())) {
-        while (dirent* e = readdir(d)) {
-            if (e->d_name[0] != '.') names.emplace_back(e->d_name);
-        }
-        closedir(d);
-    }
-    std::sort(names.begin(), names.end());
-    return names;
-}
-
-std::string Basename(const std::string& p) {
-    size_t s = p.find_last_of('/');
-    return s == std::string::npos ? p : p.substr(s + 1);
-}
-
-std::string LinkBasename(const std::string& path) {
-    char buf[PATH_MAX];
-    ssize_t n = readlink(path.c_str(), buf, sizeof(buf) - 1);
-    if (n <= 0) return "";
-    buf[n] = '\0';
-    return Basename(buf);
-}
-
-bool IsPciSlot(const std::string& s) {
-    // 0000:65:00.0
-    if (s.size() != 12 || s[4] != ':' || s[7] != ':' || s[10] != '.') return false;
-    for (size_t i : {0, 1, 2, 3, 5, 6, 8, 9}) {
-        if (!isxdigit(static_cast<unsigned char>(s[i]))) return false;
-    }
-    return s[11] >= '0' && s[11] <= '7';
-}
-
-bool ParseInt(const std::string& s, int* out) {
-    std::string t = Trim(s);
-    if (t.empty() || t.size() > 9) return false;
-    char* end = nullptr;
-    long v = strtol(t.c_str(), &end, 10);
-    if (*end != '\0') return false;
-    *out = static_cast<int>(v);
-    return true;
-}
-
-unsigned ReadHex(const std::string& path) {
-    std::string s;
-    if (!ReadFile(path, &s)) return 0;
-    return static_cast<unsigned>(strtoul(Trim(s).c_str(), nullptr, 16));
-}
+// The Ultimate watchdog's deadlines (docs/nvidia-graphics-modes.md §5), overridable for VMs by
+// ro.vendor.openbook.gfx.{frame,boot,keep}_deadline_s.
+constexpr int kFrameDeadlineS = 120;   // a composed frame on the panel, from early init
+constexpr int kBootDeadlineS = 1200;   // boot completion; the first boot after an update compiles apps
+constexpr int kKeepDeadlineS = 30;     // the owner's answer, from when the app showed the dialog
 
 bool MkdirP(const std::string& dir) {
     std::string cur;
@@ -170,6 +110,12 @@ const std::set<std::string>& Phases() {
     return p;
 }
 
+double Uptime() {
+    timespec ts{};
+    clock_gettime(CLOCK_BOOTTIME, &ts);
+    return ts.tv_sec + ts.tv_nsec / 1e9;
+}
+
 // flock() on the state directory: one command at a time (init's boot steps, the switch service, the watchdog).
 class FileLock {
   public:
@@ -185,10 +131,15 @@ class FileLock {
     int fd_ = -1;
 };
 
+// /vendor/etc/openbook/gfx-stacks.conf: the boards OpenBook may switch, each stack's state and its files, and
+// whether the app may offer Ultimate. The release builder writes "stack nouveau verified" only with ANAL-244's
+// evidence for exactly these files, and "offer ultimate" only once both slots and the stick carry this switcher
+// (the update interlock, §5.4). "development" lets a dev image boot Ultimate through the lab's adb channel.
 struct Stacks {
     std::set<std::string> boards;
-    std::map<std::string, std::string> state;  // stack -> verified | unverified
+    std::map<std::string, std::string> state;  // stack -> unverified | development | verified
     std::map<std::string, std::vector<std::string>> files;
+    std::set<std::string> offered;              // modes the app may offer beyond Eco and Hybrid
 };
 
 std::optional<Stacks> LoadStacks(const std::string& path, std::string* why) {
@@ -211,10 +162,12 @@ std::optional<Stacks> LoadStacks(const std::string& path, std::string* why) {
         words >> a >> b;
         if (kind == "board" && !a.empty()) {
             s.boards.insert(a);
-        } else if (kind == "stack" && (b == "verified" || b == "unverified")) {
+        } else if (kind == "stack" && (b == "verified" || b == "unverified" || b == "development")) {
             s.state[a] = b;
         } else if (kind == "file" && !b.empty() && b[0] == '/') {
             s.files[a].push_back(b);
+        } else if (kind == "offer" && a == "ultimate" && b.empty()) {
+            s.offered.insert(a);
         } else {
             *why = "stack manifest: unreadable line '" + line + "'";
             return std::nullopt;
@@ -223,35 +176,38 @@ std::optional<Stacks> LoadStacks(const std::string& path, std::string* why) {
     return s;
 }
 
-}  // namespace
-
-const char* ModeName(Mode m) {
-    switch (m) {
-        case Mode::kEco: return "eco";
-        case Mode::kHybrid: return "hybrid";
-        case Mode::kUltimate: return "ultimate";
-        case Mode::kInvalid: return "invalid";
-        default: return "unknown";
+// The app's and adb's request values: VERB[:ARG][@SEQ], lower-case letters and digits only.
+struct Parsed {
+    std::string verb, arg, seq;
+};
+std::optional<Parsed> ParseRequest(const std::string& value, bool need_seq) {
+    if (value.empty() || value.size() > kPropValueMax) return std::nullopt;
+    Parsed p;
+    std::string rest = value;
+    size_t at = rest.find('@');
+    if (at != std::string::npos) {
+        p.seq = rest.substr(at + 1);
+        rest = rest.substr(0, at);
+        if (p.seq.empty() || p.seq.size() > 9 || !std::all_of(p.seq.begin(), p.seq.end(), ::isdigit)) {
+            return std::nullopt;
+        }
+    } else if (need_seq) {
+        return std::nullopt;
     }
+    size_t colon = rest.find(':');
+    p.verb = rest.substr(0, colon);
+    if (colon != std::string::npos) {
+        p.arg = rest.substr(colon + 1);
+        if (p.arg.empty()) return std::nullopt;
+    }
+    auto word = [](const std::string& w) {
+        return !w.empty() && std::all_of(w.begin(), w.end(), [](char c) { return islower(c) || c == '-'; });
+    };
+    if (!word(p.verb) || (!p.arg.empty() && !word(p.arg))) return std::nullopt;
+    return p;
 }
 
-std::optional<Mode> ParseMode(const std::string& s) {
-    if (s == "eco") return Mode::kEco;
-    if (s == "hybrid") return Mode::kHybrid;
-    if (s == "ultimate") return Mode::kUltimate;
-    return std::nullopt;
-}
-
-Mode ModeOf(const Firmware& fw) {
-    if (!fw.present) return Mode::kUnknown;
-    if (fw.mux == 1) return fw.dgpu == 1 ? Mode::kEco : Mode::kHybrid;
-    return fw.dgpu == 1 ? Mode::kInvalid : Mode::kUltimate;  // the kernel refuses to make mux=0 dgpu=1
-}
-
-std::string FwString(const Firmware& fw) {
-    if (!fw.present) return "absent";
-    return "mux=" + std::to_string(fw.mux) + ",dgpu=" + std::to_string(fw.dgpu);
-}
+}  // namespace
 
 std::string Serialize(const State& s) {
     std::ostringstream o;
@@ -259,8 +215,10 @@ std::string Serialize(const State& s) {
       << "committed=" << s.committed << "\ntarget=" << s.target << "\nphase=" << s.phase << "\n"
       << "tries=" << s.tries << "\nmax_tries=" << s.max_tries << "\nrollbacks=" << s.rollbacks << "\n"
       << "seq=" << s.seq << "\nboots=" << s.boots << "\nframe=" << (s.frame ? 1 : 0) << "\n"
+      << "shown=" << (s.shown ? 1 : 0) << "\n"
       << "locked=" << s.locked << "\ndeferred=" << s.deferred << "\nlast_failure=" << s.last_failure << "\n"
-      << "event=" << s.event << "\nfw_before=" << s.fw_before << "\nfw_after=" << s.fw_after << "\n";
+      << "event=" << s.event << "\nfw_before=" << s.fw_before << "\nfw_after=" << s.fw_after << "\n"
+      << "result=" << s.result << "\n";
     return o.str();
 }
 
@@ -283,7 +241,7 @@ std::optional<State> Parse(const std::string& text) {
             if (!Phases().count(v)) return std::nullopt;
             s.phase = v;
         } else if (k == "tries" || k == "max_tries" || k == "rollbacks" || k == "seq" || k == "boots" ||
-                   k == "frame") {
+                   k == "frame" || k == "shown") {
             if (!ParseInt(v, &n) || n < 0) return std::nullopt;
             if (k == "tries") s.tries = n;
             if (k == "max_tries") s.max_tries = std::clamp(n, 1, 5);
@@ -291,6 +249,7 @@ std::optional<State> Parse(const std::string& text) {
             if (k == "seq") s.seq = n;
             if (k == "boots") s.boots = n;
             if (k == "frame") s.frame = n != 0;
+            if (k == "shown") s.shown = n != 0;
         } else if (k == "locked") {
             if (!v.empty() && !ValidMode(v)) return std::nullopt;
             s.locked = v;
@@ -305,68 +264,10 @@ std::optional<State> Parse(const std::string& text) {
             s.fw_before = v;
         } else if (k == "fw_after") {
             s.fw_after = v;
+        } else if (k == "result") {
+            s.result = v;
         }  // unknown keys from a newer version are ignored
     }
-    return s;
-}
-
-bool IsPanel(const std::string& c) {
-    return c.rfind("eDP-", 0) == 0 || c.rfind("LVDS-", 0) == 0 || c.rfind("DSI-", 0) == 0;
-}
-
-Selection Select(Mode mode, const std::vector<Card>& cards, const std::vector<Card>& render_nodes,
-                 const std::vector<PciFn>& pci) {
-    auto panel = [](const Card& c) {
-        return std::any_of(c.connectors.begin(), c.connectors.end(),
-                           [](const Connector& k) { return IsPanel(k.name) && k.status == "connected"; });
-    };
-    auto find = [&](const std::string& driver, bool need_panel) -> const Card* {
-        for (const auto& c : cards) {
-            if (c.driver == driver && (!need_panel || panel(c))) return &c;
-        }
-        return nullptr;
-    };
-    Selection s;
-    const Card* chosen = nullptr;
-    if (mode == Mode::kUltimate) {
-        if ((chosen = find("nouveau", true))) {
-            s.hal = "nouveau";
-        } else if ((chosen = find("amdgpu", true))) {
-            s.hal = "amdgpu";
-            s.note = "ultimate-but-panel-on-amdgpu";
-        } else if ((chosen = find("nouveau", false))) {
-            s.hal = "nouveau";
-            s.note = "no-connected-panel";
-        } else {
-            s.note = "no-display-gpu";
-        }
-    } else {
-        if ((chosen = find("amdgpu", true))) {
-            s.hal = "amdgpu";
-        } else if ((chosen = find("nouveau", true))) {
-            s.hal = "nouveau";
-            s.note = "panel-on-nouveau-in-optimus";
-        } else if ((chosen = find("amdgpu", false))) {
-            s.hal = "amdgpu";
-            s.note = "no-connected-panel";
-        } else if ((chosen = find("virtio_gpu", false))) {
-            s.hal = "virtio";
-        } else {
-            s.note = "no-display-gpu";
-        }
-    }
-    if (chosen) {
-        s.display_card = chosen->node;
-        for (const auto& r : render_nodes) {
-            if (!chosen->pci.empty() && r.pci == chosen->pci) {
-                s.render_node = r.node;
-                break;
-            }
-        }
-    }
-    bool dgpu = std::any_of(pci.begin(), pci.end(),
-                            [](const PciFn& f) { return f.vendor == kVendorNvidia && (f.pci_class >> 16) == 0x03; });
-    s.dgpu = !dgpu ? "absent" : mode == Mode::kUltimate ? "display" : "off";
     return s;
 }
 
@@ -392,19 +293,6 @@ void Controller::Crash(const char* point) {
 #endif
 }
 
-Firmware Controller::ReadFirmware() {
-    Firmware fw;
-    std::string mux, dgpu;
-    if (ReadFile(paths_.fw + "/gpu_mux_mode", &mux) && ReadFile(paths_.fw + "/dgpu_disable", &dgpu) &&
-        ParseInt(mux, &fw.mux) && ParseInt(dgpu, &fw.dgpu) && (fw.mux == 0 || fw.mux == 1) &&
-        (fw.dgpu == 0 || fw.dgpu == 1)) {
-        fw.present = true;
-    } else {
-        fw = Firmware{};
-    }
-    return fw;
-}
-
 bool Controller::WriteFw(const std::string& attr, int value, std::string* error) {
     const std::string path = attr == "rescan" ? paths_.sysfs + "/bus/pci/rescan" : paths_.fw + "/" + attr;
     if (dry_run_) {
@@ -425,63 +313,14 @@ bool Controller::WriteFw(const std::string& attr, int value, std::string* error)
 // second store before the firmware saves it. Read back after each step.
 bool Controller::EnableDgpu(std::string* error) {
     if (!WriteFw("dgpu_disable", 0, error)) return false;
-    if (ReadFirmware().dgpu == 0) return true;
+    if (ReadFirmware(paths_.fw).dgpu == 0) return true;
     Log("dgpu_disable still reads 1: rescanning PCI and writing again");
     std::string ignored;
     WriteFw("rescan", 1, &ignored);
     if (!WriteFw("dgpu_disable", 0, error)) return false;
-    if (ReadFirmware().dgpu == 0) return true;
+    if (ReadFirmware(paths_.fw).dgpu == 0) return true;
     *error = "dgpu_disable still reads 1 after two writes and a PCI rescan";
     return false;
-}
-
-std::vector<Card> Controller::Cards(bool render) {
-    std::vector<Card> out;
-    const std::string drm = paths_.sysfs + "/class/drm";
-    const std::vector<std::string> names = ListDir(drm);
-    const std::string prefix = render ? "renderD" : "card";
-    for (const auto& name : names) {
-        if (name.rfind(prefix, 0) != 0 || name.find('-') != std::string::npos) continue;
-        if (!std::all_of(name.begin() + prefix.size(), name.end(), ::isdigit) || name.size() == prefix.size()) continue;
-        Card c;
-        c.node = name;
-        const std::string dev = drm + "/" + name + "/device";
-        c.driver = LinkBasename(dev + "/driver");
-        char real[PATH_MAX];
-        if (realpath(dev.c_str(), real)) {
-            for (std::string p = real; p.size() > 1; p = p.substr(0, p.find_last_of('/'))) {
-                if (IsPciSlot(Basename(p))) {
-                    c.pci = Basename(p);
-                    break;
-                }
-                if (p.find('/') == std::string::npos) break;
-            }
-        }
-        if (!render) {
-            for (const auto& conn : names) {
-                if (conn.rfind(name + "-", 0) != 0) continue;
-                std::string status;
-                ReadFile(drm + "/" + conn + "/status", &status);
-                c.connectors.push_back({conn.substr(name.size() + 1), Trim(status)});
-            }
-        }
-        out.push_back(c);
-    }
-    return out;
-}
-
-std::vector<PciFn> Controller::Pci() {
-    std::vector<PciFn> out;
-    const std::string dir = paths_.sysfs + "/bus/pci/devices";
-    for (const auto& slot : ListDir(dir)) {
-        PciFn f;
-        f.slot = slot;
-        f.vendor = ReadHex(dir + "/" + slot + "/vendor");
-        f.pci_class = ReadHex(dir + "/" + slot + "/class");
-        f.driver = LinkBasename(dir + "/" + slot + "/driver");
-        out.push_back(f);
-    }
-    return out;
 }
 
 std::string Controller::Board() {
@@ -496,33 +335,78 @@ bool Controller::BoardAllowed() {
     return stacks && stacks->boards.count(Board());
 }
 
-bool Controller::StackVerified(const std::string& stack, std::string* why) {
+std::string Controller::StackState(const std::string& stack, std::string* why) {
     auto stacks = LoadStacks(paths_.stacks, why);
-    if (!stacks) return false;
+    if (!stacks) return "unverified";
     auto it = stacks->state.find(stack);
-    if (it == stacks->state.end() || it->second != "verified") {
+    if (it == stacks->state.end() || it->second == "unverified") {
         *why = stack + " stack is not verified in this image";
-        return false;
+        return "unverified";
     }
     if (stacks->files[stack].empty()) {
         *why = stack + " stack lists no files";
-        return false;
+        return "unverified";
     }
     for (const auto& f : stacks->files[stack]) {
         struct stat st;
         if (stat(f.c_str(), &st) != 0 || !S_ISREG(st.st_mode) || st.st_size == 0) {
             *why = stack + " stack: missing " + f;
-            return false;
+            return "unverified";
         }
     }
-    return true;
+    return it->second;
+}
+
+bool Controller::StackUsable(const std::string& stack, std::string* why) {
+    const std::string state = StackState(stack, why);
+    return state == "verified" || state == "development";
+}
+
+bool Controller::UltimateOffered() {
+    std::string why;
+    auto stacks = LoadStacks(paths_.stacks, &why);
+    return stacks && stacks->offered.count("ultimate") && StackState("nouveau", &why) == "verified";
+}
+
+// What the app may say about Ultimate: unsupported (no MUX, or a board OpenBook does not switch), unverified,
+// development, verified (this image can drive it, but the interlock does not allow offering it yet), offered.
+std::string Controller::UltimateAvailability(const Firmware& fw) {
+    if (!fw.present || !BoardAllowed()) return "unsupported";
+    std::string why;
+    if (UltimateOffered()) return "offered";
+    return StackState("nouveau", &why);
 }
 
 bool Controller::DgpuDriverBusy() {
-    for (const auto& f : Pci()) {
+    for (const auto& f : ReadPci(paths_.sysfs)) {
         if (f.vendor == kVendorNvidia && (f.pci_class >> 16) == 0x03 && !f.driver.empty()) return true;
     }
     return false;
+}
+
+std::string Controller::GetProp(const std::string& name) {
+    if (!paths_.props.empty()) {
+        std::string v;
+        ReadFile(paths_.props + "/" + name, &v);
+        return Trim(v);
+    }
+#ifdef __ANDROID__
+    char value[PROP_VALUE_MAX] = "";
+    __system_property_get(name.c_str(), value);
+    return value;
+#else
+    return "";
+#endif
+}
+
+// The lab switch (ANAL-257's persist.vendor.openbook.lab, set only by the lab helper) opens the adb channel's
+// development requests.
+bool Controller::LabOn() { return GetProp("persist.vendor.openbook.lab") == "1"; }
+
+int Controller::ConfigSeconds(const char* name, int fallback) {
+    int v = 0;
+    const std::string s = GetProp(std::string("ro.vendor.openbook.gfx.") + name);
+    return ParseInt(s, &v) && v > 0 && v <= 24 * 3600 ? v : fallback;
 }
 
 State Controller::Load() {
@@ -563,6 +447,18 @@ void Controller::SetProp(const std::string& name, const std::string& value) {
 #endif
 }
 
+// A request's answer: the text for people (vendor.openbook.gfx.request_result), and a code with the request's
+// sequence number for the app (vendor.openbook.gfx.result and the summary). Codes: done restart already dry-run
+// refused-{unsupported,busy,locked,invalid-firmware,unverified,not-offered,lab-off,nothing-to-keep,not-ultimate}
+// failed-{firmware,state} bad-request.
+void Controller::SetResult(State& s, const std::string& code, const std::string& text) {
+    s.result = tag_.empty() ? code : tag_ + ":" + code;
+    SetProp("vendor.openbook.gfx.request_result", text);
+    SetProp("vendor.openbook.gfx.result", s.result);
+}
+
+// The app reads one summary, so it never sees half of an update: "1 MODE PHASE TARGET LOCK WRITES ULTIMATE
+// RESULT" (docs/nvidia-graphics-modes.md §7). At most 91 characters.
 void Controller::Publish(const State& s, const Firmware& fw) {
     SetProp("vendor.openbook.gfx.mode", ModeName(ModeOf(fw)));
     SetProp("vendor.openbook.gfx.fw", FwString(fw));
@@ -573,6 +469,12 @@ void Controller::Publish(const State& s, const Firmware& fw) {
     SetProp("vendor.openbook.gfx.locked", s.locked.empty() ? "none" : s.locked);
     SetProp("vendor.openbook.gfx.last_failure", s.last_failure.empty() ? "none" : s.last_failure);
     SetProp("vendor.openbook.gfx.event", s.event);
+    const std::string ultimate = UltimateAvailability(fw);
+    SetProp("vendor.openbook.gfx.ultimate", ultimate);
+    SetProp("vendor.openbook.gfx.summary", "1 " + std::string(ModeName(ModeOf(fw))) + " " + s.phase + " " +
+                                                s.target + " " + (s.locked.empty() ? "none" : s.locked) + " " +
+                                                (dry_run_ ? "off" : "on") + " " + ultimate + " " +
+                                                (s.result.empty() ? "-" : s.result));
 }
 
 void Controller::RequestReboot(const std::string& reason) {
@@ -597,26 +499,27 @@ void Controller::Rollback(State& s, const Firmware& fw, const std::string& reaso
     Crash("rollback-before-write");
     std::string err;
     if (WriteFw("gpu_mux_mode", 1, &err)) {
-        s.fw_after = FwString(ReadFirmware());
+        s.fw_after = FwString(ReadFirmware(paths_.fw));
         Save(s, "rollback: gpu_mux_mode=1 written, restarting");
     } else {
         Save(s, "rollback: write failed (" + err + "), the next boot retries");
     }
-    Publish(s, ReadFirmware());
+    Publish(s, ReadFirmware(paths_.fw));
     RequestReboot("openbook-gfx-rollback");
 }
 
 int Controller::Boot() {
     FileLock lock(paths_.state_dir);
-    Firmware fw = ReadFirmware();
+    Firmware fw = ReadFirmware(paths_.fw);
     State s = Load();
     const bool fresh = !loaded_;
     s.boots++;
     s.frame = false;
+    s.shown = false;
     Mode mode = ModeOf(fw);
     std::vector<std::string> events;
     Log("boot " + std::to_string(s.boots) + ": firmware " + FwString(fw) + " (" + ModeName(mode) + "), phase " +
-        s.phase + ", committed " + s.committed + (dry_run_ ? ", dry run" : ""));
+        s.phase + ", committed " + s.committed + (dry_run_ ? ", firmware writes off" : ""));
     if (fresh) {
         s.committed = s.target = (mode == Mode::kEco || mode == Mode::kHybrid) ? ModeName(mode) : "hybrid";
         events.push_back(s.last_failure == "state-corrupt" ? "state was unreadable, rebuilt" : "state created");
@@ -637,9 +540,9 @@ int Controller::Boot() {
             s.committed = s.target = fw.dgpu == 1 ? "eco" : "hybrid";
             s.tries = s.rollbacks = 0;
             s.last_failure = "restored by the recovery entry";
-            s.fw_after = FwString(ReadFirmware());
+            s.fw_after = FwString(ReadFirmware(paths_.fw));
             Save(s, "recovery entry: gpu_mux_mode=1 written, restarting");
-            Publish(s, ReadFirmware());
+            Publish(s, ReadFirmware(paths_.fw));
             RequestReboot("openbook-gfx-restore");
             return 0;
         }
@@ -697,7 +600,7 @@ int Controller::Boot() {
                 std::string err;
                 bool ok = WriteFw("gpu_mux_mode", 1, &err);
                 Save(s, "rollback retry " + std::to_string(s.rollbacks) + (ok ? ": written, restarting" : ": " + err));
-                Publish(s, ReadFirmware());
+                Publish(s, ReadFirmware(paths_.fw));
                 RequestReboot("openbook-gfx-rollback");
                 return 0;
             }
@@ -727,7 +630,7 @@ int Controller::Boot() {
         }
         if (mode == Mode::kUltimate && s.committed != "ultimate") {
             std::string why;
-            if (!StackVerified("nouveau", &why)) {
+            if (!StackUsable("nouveau", &why)) {
                 Rollback(s, fw, "ultimate set outside OpenBook: " + why);
                 return 0;
             }
@@ -745,7 +648,7 @@ int Controller::Boot() {
         std::string err;
         if (s.deferred == "dgpu-off" && mode == Mode::kHybrid) {
             if (WriteFw("dgpu_disable", 1, &err)) {
-                fw = ReadFirmware();
+                fw = ReadFirmware(paths_.fw);
                 mode = ModeOf(fw);
                 s.committed = s.target = ModeName(mode);
                 events.push_back("eco: dgpu_disable=1 written before the GPU drivers bind");
@@ -756,12 +659,12 @@ int Controller::Boot() {
         s.deferred.clear();
         if (!s.locked.empty() && s.locked != ModeName(mode)) {
             if (s.locked == "eco" && mode == Mode::kHybrid && WriteFw("dgpu_disable", 1, &err)) {
-                fw = ReadFirmware();
+                fw = ReadFirmware(paths_.fw);
                 mode = ModeOf(fw);
                 s.committed = s.target = ModeName(mode);
                 events.push_back("lock: back to eco");
             } else if (s.locked == "hybrid" && mode == Mode::kEco && EnableDgpu(&err)) {
-                fw = ReadFirmware();
+                fw = ReadFirmware(paths_.fw);
                 mode = ModeOf(fw);
                 s.committed = s.target = ModeName(mode);
                 events.push_back("lock: back to hybrid (the dGPU appears after a restart)");
@@ -778,7 +681,7 @@ int Controller::Boot() {
     // Every Ultimate boot is guarded: it counts until the panel shows a frame and boot completes.
     if (mode == Mode::kUltimate && (s.phase == "trial" || s.phase == "booted" || s.phase == "idle")) {
         std::string why;
-        if (!StackVerified("nouveau", &why)) {
+        if (!StackUsable("nouveau", &why)) {
             Rollback(s, fw, "this image cannot drive ultimate: " + why);
             return 0;
         }
@@ -801,10 +704,12 @@ int Controller::Boot() {
     return 0;
 }
 
+// The selector's decision for this boot. anybook_gpu_probe makes it at early-init with the same code (gfx_select);
+// this command is for the fixture tests and for a look on a running system.
 int Controller::SelectStack() {
-    Firmware fw = ReadFirmware();
+    Firmware fw = ReadFirmware(paths_.fw);
     Mode mode = ModeOf(fw);
-    Selection sel = Select(mode, Cards(false), Cards(true), Pci());
+    Selection sel = Select(mode, ReadCards(paths_.sysfs, false), ReadCards(paths_.sysfs, true), ReadPci(paths_.sysfs));
     Log(std::string("select: mode ") + ModeName(mode) + " -> hal " + sel.hal + " card " +
         (sel.display_card.empty() ? "-" : sel.display_card) + " render " +
         (sel.render_node.empty() ? "-" : sel.render_node) + " dgpu " + sel.dgpu +
@@ -812,20 +717,20 @@ int Controller::SelectStack() {
     SetProp("vendor.anybook.gpu.hal", sel.hal);
     SetProp("vendor.anybook.gpu.display_card", sel.display_card.empty() ? "none" : sel.display_card);
     SetProp("vendor.anybook.gpu.render_node", sel.render_node.empty() ? "none" : sel.render_node);
-    SetProp("vendor.openbook.gfx.dgpu", sel.dgpu);
-    SetProp("vendor.openbook.gfx.select_note", sel.note.empty() ? "none" : sel.note);
+    SetProp("vendor.anybook.gpu.dgpu", sel.dgpu);
+    SetProp("vendor.anybook.gpu.note", sel.note.empty() ? "none" : sel.note);
     return sel.hal == "none" ? 1 : 0;
 }
 
 int Controller::Frame(const std::string& card_connector) {
     FileLock lock(paths_.state_dir);
     State s = Load();
-    Firmware fw = ReadFirmware();
+    Firmware fw = ReadFirmware(paths_.fw);
     const size_t colon = card_connector.find(':');
     const std::string card = card_connector.substr(0, colon);
     const std::string conn = colon == std::string::npos ? "" : card_connector.substr(colon + 1);
     const std::string want = ModeOf(fw) == Mode::kUltimate ? "nouveau" : "amdgpu";
-    for (const auto& c : Cards(false)) {
+    for (const auto& c : ReadCards(paths_.sysfs, false)) {
         if (c.node != card) continue;
         for (const auto& k : c.connectors) {
             if (k.name == conn && IsPanel(conn) && k.status == "connected" && c.driver == want) {
@@ -843,7 +748,7 @@ int Controller::Frame(const std::string& card_connector) {
 int Controller::Booted() {
     FileLock lock(paths_.state_dir);
     State s = Load();
-    Firmware fw = ReadFirmware();
+    Firmware fw = ReadFirmware(paths_.fw);
     if (ModeOf(fw) != Mode::kUltimate) return 0;
     if (!s.frame) {
         Save(s, "boot completed without a frame on the panel");
@@ -861,29 +766,52 @@ int Controller::Booted() {
     return 0;
 }
 
-int Controller::Keep() {
+int Controller::Keep(Channel ch) {
     FileLock lock(paths_.state_dir);
     State s = Load();
     if (s.phase != "booted") {
         Log("keep refused: phase " + s.phase + " (nothing healthy to keep)");
+        if (ch != Channel::kCli) {
+            SetResult(s, "refused-nothing-to-keep", "refused: nothing to keep (phase " + s.phase + ")");
+            Save(s, "keep refused");
+            Publish(s, ReadFirmware(paths_.fw));
+        }
         return 1;
     }
     s.phase = "idle";
     s.committed = s.target = "ultimate";
     s.last_failure.clear();
+    SetResult(s, "done", "done");
     Save(s, "owner kept ultimate");
-    Publish(s, ReadFirmware());
+    Publish(s, ReadFirmware(paths_.fw));
     return 0;
 }
 
-int Controller::Revert() {
+int Controller::Shown() {
     FileLock lock(paths_.state_dir);
     State s = Load();
-    Firmware fw = ReadFirmware();
+    if (s.phase != "booted" || s.shown) return 0;
+    s.shown = true;
+    SetResult(s, "done", "done");
+    Save(s, "the owner was asked to keep ultimate");
+    Publish(s, ReadFirmware(paths_.fw));
+    return 0;
+}
+
+int Controller::Revert(Channel ch) {
+    FileLock lock(paths_.state_dir);
+    State s = Load();
+    Firmware fw = ReadFirmware(paths_.fw);
     if (ModeOf(fw) != Mode::kUltimate) {
         Log("revert refused: not in ultimate");
+        if (ch != Channel::kCli) {
+            SetResult(s, "refused-not-ultimate", "refused: not in ultimate");
+            Save(s, "revert refused");
+            Publish(s, fw);
+        }
         return 1;
     }
+    SetResult(s, "restart", "restart");
     Rollback(s, fw, "owner asked to go back");
     return 0;
 }
@@ -891,7 +819,7 @@ int Controller::Revert() {
 int Controller::Deadline() {
     FileLock lock(paths_.state_dir);
     State s = Load();
-    Firmware fw = ReadFirmware();
+    Firmware fw = ReadFirmware(paths_.fw);
     if (s.phase == "booted") {
         Rollback(s, fw, "the owner did not keep ultimate");
         return 0;
@@ -911,39 +839,114 @@ int Controller::Deadline() {
     return 0;
 }
 
-int Controller::Request(const std::string& mode_name) {
+// Started by init in every Ultimate boot (vendor.openbook.gfx.kms=nouveau). One look a second at the record that
+// `frame`, `booted`, `shown` and `keep` keep: a frame on the panel by the frame deadline, boot completion (a
+// healthy boot resets the count) by the boot deadline, and for a new Ultimate the owner's answer within the keep
+// deadline of the dialog. A missed deadline is Deadline(): a restart while tries are left, else the rollback.
+int Controller::Watchdog() {
+    const int frame_s = ConfigSeconds("frame_deadline_s", kFrameDeadlineS);
+    const int boot_s = ConfigSeconds("boot_deadline_s", kBootDeadlineS);
+    const int keep_s = ConfigSeconds("keep_deadline_s", kKeepDeadlineS);
+    const double start = Uptime();
+    double shown_at = -1;
+    Log("watchdog: frame within " + std::to_string(frame_s) + " s, boot completion within " +
+        std::to_string(boot_s) + " s, the owner's answer within " + std::to_string(keep_s) + " s of the dialog");
+    for (;;) {
+        State s;
+        Firmware fw;
+        {
+            FileLock lock(paths_.state_dir);
+            s = Load();
+            fw = ReadFirmware(paths_.fw);
+        }
+        const double t = Uptime() - start;
+        if (ModeOf(fw) != Mode::kUltimate || s.phase == "rollback" || s.phase == "failed") {
+            Log("watchdog: not an ultimate boot any more (phase " + s.phase + ")");
+            return 0;
+        }
+        const bool healthy = s.frame && s.tries == 0;  // Booted() resets the count after a frame
+        if (!s.frame && t > frame_s) {
+            Log("watchdog: no frame on the panel after " + std::to_string(frame_s) + " s");
+            return Deadline();
+        }
+        if (!healthy && t > boot_s) {
+            Log("watchdog: boot did not complete in " + std::to_string(boot_s) + " s");
+            return Deadline();
+        }
+        if (healthy && s.phase != "booted") {
+            Log("watchdog: healthy " + s.phase + " ultimate boot");
+            return 0;
+        }
+        if (healthy && s.phase == "booted") {
+            if (s.shown && shown_at < 0) shown_at = t;
+            if (shown_at >= 0 && t - shown_at > keep_s) {
+                Log("watchdog: no answer " + std::to_string(keep_s) + " s after the dialog");
+                return Deadline();
+            }
+            if (shown_at < 0 && t > boot_s) {
+                Log("watchdog: the keep dialog was not shown in " + std::to_string(boot_s) + " s");
+                return Deadline();
+            }
+        }
+        usleep(1000 * 1000);
+    }
+}
+
+int Controller::Request(const std::string& mode_name, Channel ch) {
     auto mode = ParseMode(mode_name);
     if (!mode) {
         Log("request refused: '" + mode_name + "' is not eco, hybrid or ultimate");
         return 2;
     }
     FileLock lock(paths_.state_dir);
-    Firmware fw = ReadFirmware();
+    Firmware fw = ReadFirmware(paths_.fw);
     State s = Load();
-    auto refuse = [&](const std::string& why) {
-        SetProp("vendor.openbook.gfx.request_result", "refused: " + why);
+    auto refuse = [&](const std::string& code, const std::string& why) {
+        SetResult(s, code, "refused: " + why);
         Log("request " + mode_name + " refused: " + why);
+        if (ch != Channel::kCli) {
+            Save(s, "request " + mode_name + " refused");
+            Publish(s, fw);
+        }
         return 1;
     };
-    if (!fw.present) return refuse("no asus-wmi MUX interface");
-    if (!BoardAllowed()) return refuse("board " + Board() + " is not in the stack manifest");
+    if (!fw.present) return refuse("refused-unsupported", "no asus-wmi MUX interface");
+    if (!BoardAllowed()) return refuse("refused-unsupported", "board " + Board() + " is not in the stack manifest");
     // After failed rollbacks, asking for an iGPU mode is one more attempt at the safe direction.
     if (s.phase != "idle" && !(s.phase == "failed" && *mode != Mode::kUltimate)) {
-        return refuse("busy (phase " + s.phase + ")");
+        return refuse("refused-busy", "busy (phase " + s.phase + ")");
     }
-    if (!s.locked.empty() && s.locked != mode_name) return refuse("locked to " + s.locked);
+    if (!s.locked.empty() && s.locked != mode_name) return refuse("refused-locked", "locked to " + s.locked);
     const Mode cur = ModeOf(fw);
-    if (cur == Mode::kInvalid) return refuse("firmware state " + FwString(fw) + " is invalid; restart to repair");
+    if (cur == Mode::kInvalid) {
+        return refuse("refused-invalid-firmware", "firmware state " + FwString(fw) + " is invalid; restart to repair");
+    }
     if (cur == *mode && s.deferred.empty()) {
-        SetProp("vendor.openbook.gfx.request_result", "already " + mode_name);
+        SetResult(s, "already", "already " + mode_name);
         Log("request " + mode_name + ": already there");
+        if (ch != Channel::kCli) {
+            Save(s, "request " + mode_name + ": already there");
+            Publish(s, fw);
+        }
         return 0;
     }
     std::string why, err;
-    if (*mode == Mode::kUltimate && !StackVerified("nouveau", &why)) return refuse(why);
+    if (*mode == Mode::kUltimate) {
+        // The app offers Ultimate only on a release that says so; adb (with the lab switch) and the command line
+        // also take a development stack, for ANAL-244's bring-up on a dev image.
+        if (ch == Channel::kApp && !UltimateOffered()) {
+            return refuse(StackState("nouveau", &why) == "verified" ? "refused-not-offered" : "refused-unverified",
+                          "ultimate is not offered on this version");
+        }
+        if (!StackUsable("nouveau", &why)) return refuse("refused-unverified", why);
+    }
     if (dry_run_) {
         Log("dry-run: would switch " + std::string(ModeName(cur)) + " -> " + mode_name);
-        SetProp("vendor.openbook.gfx.request_result", "dry-run");
+        SetResult(s, "dry-run", "dry-run");
+        if (ch != Channel::kCli) {
+            Save(s, "request " + mode_name + ": firmware writes are off in this image");
+            Publish(s, fw);
+        }
         return 0;
     }
     s.fw_before = FwString(fw);
@@ -967,7 +970,7 @@ int Controller::Request(const std::string& mode_name) {
             s.target = s.committed;
             s.deferred.clear();
             Save(s, "request " + mode_name + ": gpu_mux_mode write refused (" + err + ")");
-            Publish(s, ReadFirmware());
+            Publish(s, ReadFirmware(paths_.fw));
             return false;
         }
         Crash("after-mux-write");
@@ -975,13 +978,13 @@ int Controller::Request(const std::string& mode_name) {
     };
 
     if (*mode == Mode::kUltimate) {
-        if (fw.dgpu == 1 && !EnableDgpu(&err)) return refuse("could not enable the dGPU: " + err);
-        if (!mux_switch(0, "ultimate")) return refuse("gpu_mux_mode=0 refused: " + err);
+        if (fw.dgpu == 1 && !EnableDgpu(&err)) return refuse("failed-firmware", "could not enable the dGPU: " + err);
+        if (!mux_switch(0, "ultimate")) return refuse("failed-firmware", "gpu_mux_mode=0 refused: " + err);
     } else if (*mode == Mode::kHybrid) {
         if (cur == Mode::kUltimate) {
-            if (!mux_switch(1, "hybrid")) return refuse("gpu_mux_mode=1 refused: " + err);
+            if (!mux_switch(1, "hybrid")) return refuse("failed-firmware", "gpu_mux_mode=1 refused: " + err);
         } else if (cur == Mode::kEco) {
-            if (!EnableDgpu(&err)) return refuse("could not enable the dGPU: " + err);
+            if (!EnableDgpu(&err)) return refuse("failed-firmware", "could not enable the dGPU: " + err);
             s.committed = s.target = "hybrid";
         } else {  // hybrid with eco still pending
             reboot = false;
@@ -991,69 +994,158 @@ int Controller::Request(const std::string& mode_name) {
     } else {  // eco
         if (cur == Mode::kUltimate) {
             s.deferred = "dgpu-off";  // the guard refuses dgpu_disable=1 while the MUX is on the dGPU
-            if (!mux_switch(1, "eco")) return refuse("gpu_mux_mode=1 refused: " + err);
+            if (!mux_switch(1, "eco")) return refuse("failed-firmware", "gpu_mux_mode=1 refused: " + err);
         } else if (DgpuDriverBusy()) {
             s.deferred = "dgpu-off";  // a GPU driver drives the dGPU: switch before it binds, at the next boot
             s.target = "eco";
         } else {
-            if (!WriteFw("dgpu_disable", 1, &err)) return refuse("dgpu_disable=1 refused: " + err);
+            if (!WriteFw("dgpu_disable", 1, &err)) return refuse("failed-firmware", "dgpu_disable=1 refused: " + err);
             s.committed = s.target = "eco";
             reboot = false;
         }
     }
-    s.fw_after = FwString(ReadFirmware());
+    s.fw_after = FwString(ReadFirmware(paths_.fw));
+    SetResult(s, reboot ? "restart" : "done", reboot ? "restart" : "done");
     Save(s, "request " + mode_name + ": " + s.fw_before + " -> " + s.fw_after +
                 (reboot ? ", restart to finish" : ", done"));
-    Publish(s, ReadFirmware());
-    SetProp("vendor.openbook.gfx.request_result", reboot ? "restart" : "done");
+    Publish(s, ReadFirmware(paths_.fw));
     return 0;
 }
 
-int Controller::Lock(const std::string& mode_name) {
+int Controller::Lock(const std::string& mode_name, Channel ch) {
     FileLock lock(paths_.state_dir);
     State s = Load();
-    const std::string current = ModeName(ModeOf(ReadFirmware()));
+    Firmware fw = ReadFirmware(paths_.fw);
+    const std::string current = ModeName(ModeOf(fw));
     const std::string m = mode_name.empty() ? current : mode_name;
     if (!ValidMode(m) || m != current || s.phase != "idle") {
         Log("lock refused: lock the current mode (" + current + ") while no switch is under way");
+        if (ch != Channel::kCli) {
+            SetResult(s, "refused-busy", "refused: lock the current mode while no switch is under way");
+            Save(s, "lock refused");
+            Publish(s, fw);
+        }
         return 1;
     }
     s.locked = m;
+    SetResult(s, "done", "done");
     Save(s, "locked to " + m);
-    Publish(s, ReadFirmware());
+    Publish(s, fw);
     return 0;
 }
 
-int Controller::Unlock() {
+int Controller::Unlock(Channel) {
     FileLock lock(paths_.state_dir);
     State s = Load();
     s.locked.clear();
+    SetResult(s, "done", "done");
     Save(s, "unlocked");
-    Publish(s, ReadFirmware());
+    Publish(s, ReadFirmware(paths_.fw));
     return 0;
 }
 
 int Controller::Restore() {
     FileLock lock(paths_.state_dir);
     State s = Load();
-    Firmware fw = ReadFirmware();
+    Firmware fw = ReadFirmware(paths_.fw);
     if (!fw.present || fw.mux != 0) {
         Log("restore: nothing to do (firmware " + FwString(fw) + ")");
+        SetResult(s, "already", "already on the iGPU");
+        Publish(s, fw);
         return 0;
     }
+    SetResult(s, "restart", "restart");
     Rollback(s, fw, "restore requested");
     return 0;
 }
 
 int Controller::Status() {
-    Firmware fw = ReadFirmware();
+    Firmware fw = ReadFirmware(paths_.fw);
     State s = Load();
     std::string why = "ok";
-    bool verified = StackVerified("nouveau", &why);
-    printf("firmware=%s\nmode=%s\nboard=%s\nboard_allowed=%d\nnouveau_stack=%s\n%s", FwString(fw).c_str(),
-           ModeName(ModeOf(fw)), Board().c_str(), BoardAllowed() ? 1 : 0, verified ? "verified" : why.c_str(),
-           Serialize(s).c_str());
+    const std::string stack = StackState("nouveau", &why);
+    std::ostringstream o;
+    o << "firmware=" << FwString(fw) << "\nmode=" << ModeName(ModeOf(fw)) << "\nboard=" << Board()
+      << "\nboard_allowed=" << (BoardAllowed() ? 1 : 0) << "\nnouveau_stack=" << stack
+      << (stack == "unverified" ? " (" + why + ")" : "") << "\nultimate=" << UltimateAvailability(fw)
+      << "\nfirmware_writes=" << (dry_run_ ? "off" : "on") << "\n"
+      << Serialize(s);
+    fputs(o.str().c_str(), stdout);
+#ifdef __ANDROID__
+    std::stringstream lines(o.str());
+    for (std::string l; std::getline(lines, l);) __android_log_write(ANDROID_LOG_INFO, "openbook-gfx-mode", l.c_str());
+#endif
     return 0;
+}
+
+// The OpenBook Graphics app's channel: openbook.gfx.request, a platform property only the app's domain may set
+// (init passes its value here). VERB[:MODE]@SEQ, where VERB is switch (with a mode), lock (optionally with a
+// mode), unlock, keep, revert or shown. Every answer carries SEQ, so the app matches it to its request.
+int Controller::App(const std::string& value) {
+    auto p = ParseRequest(value, true);
+    if (!p) {
+        Log("app request refused: '" + value + "' is not VERB[:MODE]@SEQ");
+        SetProp("vendor.openbook.gfx.request_result", "bad-request");
+        return 2;
+    }
+    tag_ = p->seq;
+    Log("app request " + p->verb + (p->arg.empty() ? "" : " " + p->arg) + " (" + p->seq + ")");
+    if (p->verb == "switch" && ParseMode(p->arg)) return Request(p->arg, Channel::kApp);
+    if (p->verb == "lock" && (p->arg.empty() || ParseMode(p->arg))) return Lock(p->arg, Channel::kApp);
+    if (p->verb == "unlock" && p->arg.empty()) return Unlock(Channel::kApp);
+    if (p->verb == "keep" && p->arg.empty()) return Keep(Channel::kApp);
+    if (p->verb == "revert" && p->arg.empty()) return Revert(Channel::kApp);
+    if (p->verb == "shown" && p->arg.empty()) return Shown();
+    FileLock lock(paths_.state_dir);
+    State s = Load();
+    SetResult(s, "bad-request", "bad request");
+    Save(s, "app request refused: " + value);
+    Publish(s, ReadFirmware(paths_.fw));
+    return 2;
+}
+
+// The adb channel: debug.openbook.gfx, which the shell may set. Always: hybrid, restore, revert, status (the safe
+// direction and a look). With the lab switch on (ANAL-257): eco, ultimate, keep, lock[:MODE], unlock. An optional
+// @N lets the same command run again.
+int Controller::Adb(const std::string& value) {
+    auto p = ParseRequest(value, false);
+    tag_ = "adb";
+    if (!p) {
+        Log("adb request refused: '" + value + "'");
+        return 2;
+    }
+    const std::string& v = p->verb;
+    Log("adb request " + v + (p->arg.empty() ? "" : " " + p->arg));
+    if (v == "status" && p->arg.empty()) {
+        {
+            FileLock lock(paths_.state_dir);
+            State s = Load();
+            Publish(s, ReadFirmware(paths_.fw));
+        }
+        return Status();
+    }
+    if (v == "hybrid" && p->arg.empty()) return Request("hybrid", Channel::kAdb);
+    if (v == "restore" && p->arg.empty()) return Restore();
+    if (v == "revert" && p->arg.empty()) return Revert(Channel::kAdb);
+    const bool lab_verb = (v == "eco" || v == "ultimate" || v == "keep" || v == "unlock") ? p->arg.empty()
+                          : v == "lock" ? (p->arg.empty() || ParseMode(p->arg).has_value())
+                                        : false;
+    if (!lab_verb) {
+        Log("adb request refused: unknown command '" + value + "'");
+        return 2;
+    }
+    if (!LabOn()) {
+        FileLock lock(paths_.state_dir);
+        State s = Load();
+        SetResult(s, "refused-lab-off", "refused: " + v + " over adb needs the lab switch (debug.openbook.lab)");
+        Save(s, "adb request " + v + " refused: lab switch off");
+        Publish(s, ReadFirmware(paths_.fw));
+        return 1;
+    }
+    if (v == "eco" || v == "ultimate") return Request(v, Channel::kAdb);
+    if (v == "keep") return Keep(Channel::kAdb);
+    if (v == "lock") return Lock(p->arg, Channel::kAdb);
+    return Unlock(Channel::kAdb);
 }
 
 }  // namespace openbook::gfx
