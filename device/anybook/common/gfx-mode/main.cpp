@@ -1,8 +1,8 @@
 // Copyright (C) 2026 The AnyBook Authors
 // SPDX-License-Identifier: Apache-2.0
 //
-// openbook-gfx-mode: graphics modes (eco, hybrid, ultimate) with automatic MUX rollback (ANAL-241).
-// Prototype; docs/nvidia-graphics-modes.md has the design, the init sequence and the SELinux domain it needs.
+// openbook-gfx-mode: graphics modes (eco, hybrid, ultimate) with automatic MUX rollback (ANAL-241, ANAL-246).
+// docs/nvidia-graphics-modes.md has the design; openbook-gfx-mode.rc runs each command at its point of the boot.
 
 #include <stdio.h>
 #include <string.h>
@@ -20,14 +20,17 @@ namespace {
 constexpr char kUsage[] =
     "usage: openbook-gfx-mode [options] COMMAND\n"
     "  boot              early init: reconcile with the firmware, guard ultimate boots, roll back\n"
-    "  select            early init, after the mode's KMS driver loaded: pick the display GPU and its stack\n"
+    "  select            the stack selector's decision (anybook_gpu_probe makes it at boot)\n"
     "  frame CARD:CONN   the composer presented a frame on this panel connector (card1:eDP-1)\n"
     "  booted            boot completed\n"
+    "  watchdog          ultimate boots: the frame, boot completion and keep deadlines\n"
     "  keep | revert     the owner's answer after switching to ultimate\n"
     "  deadline          the health watchdog expired\n"
     "  request MODE      eco | hybrid | ultimate\n"
     "  lock [MODE] | unlock\n"
     "  restore           gpu_mux_mode=1 now, then restart\n"
+    "  app VALUE         the OpenBook Graphics app's request (openbook.gfx.request): VERB[:MODE]@SEQ\n"
+    "  adb VALUE         an adb request (debug.openbook.gfx): hybrid restore revert status, more with the lab\n"
     "  status\n"
     "options: --sysfs DIR --fw DIR --state DIR --stacks FILE --cmdline FILE --props DIR --dry-run\n";
 
@@ -37,7 +40,8 @@ int main(int argc, char** argv) {
     openbook::gfx::Paths paths;
     bool dry_run = false;
 #ifdef __ANDROID__
-    // Firmware writes stay off until the image says otherwise (the owner approves the first real switch).
+    // Firmware writes stay off until the image says otherwise: a release turns them on only after the owner
+    // approved the first real switch (epic ANAL-237).
     char value[PROP_VALUE_MAX] = "";
     __system_property_get("ro.vendor.openbook.gfx.fw_writes", value);
     dry_run = strcmp(value, "1") != 0;
@@ -80,6 +84,7 @@ int main(int argc, char** argv) {
     if (cmd == "select") return c.SelectStack();
     if (cmd == "frame" && !arg.empty()) return c.Frame(arg);
     if (cmd == "booted") return c.Booted();
+    if (cmd == "watchdog") return c.Watchdog();
     if (cmd == "keep") return c.Keep();
     if (cmd == "revert") return c.Revert();
     if (cmd == "deadline") return c.Deadline();
@@ -87,6 +92,8 @@ int main(int argc, char** argv) {
     if (cmd == "lock") return c.Lock(arg);
     if (cmd == "unlock") return c.Unlock();
     if (cmd == "restore") return c.Restore();
+    if (cmd == "app" && !arg.empty()) return c.App(arg);
+    if (cmd == "adb" && !arg.empty()) return c.Adb(arg);
     if (cmd == "status") return c.Status();
     fputs(kUsage, stderr);
     return 2;

@@ -10,6 +10,13 @@ on early-init
     # /system/lib/modules through vendor_dlkm's modules.dep. -b applies modules.blocklist, which keeps the
     # VM-only virtio modules out on real hardware.
     exec_start vendor.openbook.dlkm
+    # Graphics modes (ANAL-246, device/anybook/common/gfx-mode): with asus-wmi loaded, finish, count or roll back a
+    # MUX switch, then load the KMS driver of the mode the firmware is in (none outside Ultimate). Both run before
+    # the stack selector (anybook_gpu_probe, init.anybook.graphics-amd.rc) and before dgpu-pm, so the selector sees
+    # nouveau's card in Ultimate and dgpu-pm leaves a bound dGPU to its driver.
+    exec_start vendor.openbook.gfx-boot
+    exec_start vendor.openbook.gfx-kms
+    trigger vendor-openbook-gfx-kms-${vendor.openbook.gfx.kms:-none}
     # A dGPU that no driver binds: let it reach D3cold (docs/nvidia.md). No-op without an NVIDIA function.
     exec_start vendor.openbook.dgpu-pm
     # Display density: the device's default, unless the loader passes androidboot.lcd_density.

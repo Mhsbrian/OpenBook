@@ -1,0 +1,6 @@
+# The firmware's GPU switches (asus-nb-wmi on 6.18; docs/nvidia-graphics-modes.md §1) and the PCI rescan: only
+# openbook_gfx_mode writes them.
+genfscon sysfs /devices/platform/asus-nb-wmi/gpu_mux_mode    u:object_r:sysfs_openbook_gfx_fw:s0
+genfscon sysfs /devices/platform/asus-nb-wmi/dgpu_disable    u:object_r:sysfs_openbook_gfx_fw:s0
+genfscon sysfs /devices/platform/asus-nb-wmi/egpu_enable     u:object_r:sysfs_openbook_gfx_fw:s0
+genfscon sysfs /bus/pci/rescan                               u:object_r:sysfs_openbook_gfx_fw:s0
