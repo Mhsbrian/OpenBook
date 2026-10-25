@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0. OpenBook Graphics (ANAL-246): restarts after the owner confirms a switch. -->
+<permissions>
+    <privapp-permissions package="org.openbook.graphics">
+        <permission name="android.permission.REBOOT"/>
+    </privapp-permissions>
+</permissions>
