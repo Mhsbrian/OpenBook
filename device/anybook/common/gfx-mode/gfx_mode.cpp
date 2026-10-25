@@ -274,10 +274,13 @@ std::optional<State> Parse(const std::string& text) {
 Controller::Controller(Paths paths, bool dry_run) : paths_(std::move(paths)), dry_run_(dry_run) {}
 
 void Controller::Log(const std::string& line) {
+#ifdef __ANDROID__
+    // The kernel log has it from early init on; logcat once logd runs.
+    KernelLog("openbook-gfx-mode", line);
+    __android_log_write(ANDROID_LOG_INFO, "openbook-gfx-mode", line.c_str());
+#else
     printf("openbook-gfx-mode: %s\n", line.c_str());
     fflush(stdout);
-#ifdef __ANDROID__
-    __android_log_write(ANDROID_LOG_INFO, "openbook-gfx-mode", line.c_str());
 #endif
 }
 
@@ -866,7 +869,9 @@ int Controller::Watchdog() {
         }
         const bool healthy = s.frame && s.tries == 0;  // Booted() resets the count after a frame
         if (!s.frame && t > frame_s) {
-            Log("watchdog: no frame on the panel after " + std::to_string(frame_s) + " s");
+            Log("watchdog: no frame on the panel after " + std::to_string(frame_s) + " s (the selector chose hal " +
+                GetProp("vendor.anybook.gpu.hal") + ", card " + GetProp("vendor.anybook.gpu.display_card") +
+                ", note " + GetProp("vendor.anybook.gpu.note") + ")");
             return Deadline();
         }
         if (!healthy && t > boot_s) {

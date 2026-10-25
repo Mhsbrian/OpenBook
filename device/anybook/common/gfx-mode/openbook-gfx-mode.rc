@@ -9,14 +9,13 @@
 # Every Ultimate boot then runs the watchdog. Requests come from the OpenBook Graphics app (openbook.gfx.request,
 # a platform property only its domain may set) and from adb (debug.openbook.gfx). Firmware writes stay off unless
 # the image sets ro.vendor.openbook.gfx.fw_writes=1. Logs: `adb logcat -s openbook-gfx-mode`, and the kernel log at
-# early init.
+# early init (the binary writes /dev/kmsg itself: a userdebug vendor's stdio_to_kmsg output is lost on Ruby).
 
 service vendor.openbook.gfx-boot /vendor/bin/openbook-gfx-mode boot
     user root
     group root system
     oneshot
     disabled
-    stdio_to_kmsg
 
 service vendor.openbook.gfx-kms /vendor/bin/modprobe -s -d /vendor/lib/modules --all=/vendor/etc/openbook/gfx-kms.${vendor.openbook.gfx.kms:-none}.load
     user root
@@ -32,7 +31,6 @@ service vendor.openbook.gfx-watchdog /vendor/bin/openbook-gfx-mode watchdog
     group root system
     oneshot
     disabled
-    stdio_to_kmsg
 
 on vendor-openbook-gfx-kms-nouveau
     start vendor.openbook.gfx-watchdog

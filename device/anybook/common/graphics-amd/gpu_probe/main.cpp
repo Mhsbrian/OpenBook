@@ -34,14 +34,28 @@
 #include <android-base/strings.h>
 #ifdef __ANDROID__
 #include <android-base/properties.h>
+#include <android/log.h>
 #endif
 
+#include "gfx_util.h"
 #include "gpu_probe.h"
 
 using namespace anybook::gpu_probe;
 namespace gfx = openbook::gfx;
 
 namespace {
+
+// A line for the record: the kernel log and logcat on Android (gfx_util.h's KernelLog), stdout elsewhere. As user
+// system the probe may not open /dev/kmsg itself, and at early init logd is not up yet, so --pin, which runs once it
+// is, repeats the early decision.
+void Note(const std::string& line) {
+#ifdef __ANDROID__
+    openbook::gfx::util::KernelLog("anybook_gpu_probe", line);
+    __android_log_write(ANDROID_LOG_INFO, "anybook_gpu_probe", line.c_str());
+#else
+    printf("anybook_gpu_probe: %s\n", line.c_str());
+#endif
+}
 
 bool Set(bool dry_run, const char* name, const std::string& value) {
     if (dry_run) {
@@ -60,8 +74,8 @@ bool Set(bool dry_run, const char* name, const std::string& value) {
 // The composer and gralloc pins for the GPU the early-init decision chose (its PCI function).
 int Pin(const std::string& sysfs, const std::string& dev, const std::string& slot, int wait_ms, bool dry_run) {
     const Pins p = FindPins(sysfs, dev, slot, wait_ms);
-    printf("anybook_gpu_probe: pin %s: card %s%s render %s\n", slot.c_str(), p.card.empty() ? "-" : p.card.c_str(),
-           p.card.empty() || p.kms ? "" : " (no connectors: not pinned)", p.render.empty() ? "-" : p.render.c_str());
+    Note("pin " + slot + ": card " + (p.card.empty() ? "-" : p.card) +
+         (p.card.empty() || p.kms ? "" : " (no connectors: not pinned)") + " render " + (p.render.empty() ? "-" : p.render));
     bool ok = true;
     if (!p.card.empty() && p.kms) ok &= Set(dry_run, "vendor.hwc.drm.device", dev + "/" + p.card);
     if (!p.render.empty()) ok &= Set(dry_run, "vendor.minigbm.render_node", p.render);
@@ -109,10 +123,13 @@ int main(int argc, char** argv) {
     if (pin) {
         std::string slot;
 #ifdef __ANDROID__
-        slot = android::base::GetProperty("vendor.anybook.gpu.pci_slot", "");
+        auto prop = [](const char* name) { return android::base::GetProperty(name, ""); };
+        slot = prop("vendor.anybook.gpu.pci_slot");
+        Note("early init chose hal=" + prop("vendor.anybook.gpu.hal") + " mode=" + prop("vendor.anybook.gpu.mode") +
+             " source=" + prop("vendor.anybook.gpu.source") + " note=" + prop("vendor.anybook.gpu.note"));
 #endif
         if (slot.empty()) {
-            printf("anybook_gpu_probe: pin: no GPU was chosen at early-init; nothing pinned\n");
+            Note("pin: no GPU was chosen at early-init; nothing pinned");
             return 0;
         }
         return Pin(sysfs, dev, slot, wait_ms, dry_run);
@@ -163,10 +180,10 @@ int main(int argc, char** argv) {
             {"vendor.anybook.gpu.pci_slot", &r.pci_slot}, {"vendor.anybook.gpu.mode", &r.mode},
             {"vendor.anybook.gpu.dgpu", &r.dgpu},         {"vendor.anybook.gpu.hal", &r.hal},
     };
-    // stdout goes to the kernel log at boot (stdio_to_kmsg), so the GPUs seen are on record.
+    // The GPUs seen go to the kernel log at boot, so they are on record.
     if (!dry_run) {
-        if (fw.present) printf("anybook_gpu_probe: %s\n", FormatFirmware(fw).c_str());
-        for (const auto& d : devices) printf("anybook_gpu_probe: %s\n", Format(d).c_str());
+        if (fw.present) Note(FormatFirmware(fw));
+        for (const auto& d : devices) Note(Format(d));
     }
     if (!Set(dry_run, "vendor.anybook.gpu.note", r.note.empty() ? "none" : r.note)) return 1;
     for (const auto& [name, value] : props) {
@@ -175,12 +192,9 @@ int main(int argc, char** argv) {
     if (dry_run) {
         printf("display_card=%s\nrender_node=%s\n", r.display_card.c_str(), r.render_node.c_str());
     } else {
-        printf("anybook_gpu_probe: hal=%s pci_id=%s driver=%s source=%s others=%s mode=%s card=%s render=%s "
-               "dgpu=%s%s%s\n",
-               r.hal.c_str(), r.pci_id.c_str(), r.driver.c_str(), r.source.c_str(), r.others.c_str(), r.mode.c_str(),
-               r.display_card.empty() ? "-" : r.display_card.c_str(),
-               r.render_node.empty() ? "-" : r.render_node.c_str(), r.dgpu.c_str(), r.note.empty() ? "" : " note=",
-               r.note.c_str());
+        Note("hal=" + r.hal + " pci_id=" + r.pci_id + " driver=" + r.driver + " source=" + r.source + " others=" +
+             r.others + " mode=" + r.mode + " card=" + (r.display_card.empty() ? "-" : r.display_card) + " render=" +
+             (r.render_node.empty() ? "-" : r.render_node) + " dgpu=" + r.dgpu + (r.note.empty() ? "" : " note=" + r.note));
     }
     return 0;
 }

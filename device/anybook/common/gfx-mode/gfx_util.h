@@ -19,6 +19,19 @@
 
 namespace openbook::gfx::util {
 
+#ifdef __ANDROID__
+// The kernel log, written directly. init's stdio_to_kmsg goes through /dev/kmsg_debug on a userdebug vendor, which
+// Ruby's user system leaves unlabelled, so the early-init output was lost (ANAL-246, the first Ruby VM run).
+inline void KernelLog(const std::string& tag, const std::string& line) {
+    int fd = open("/dev/kmsg", O_WRONLY | O_CLOEXEC);
+    if (fd < 0) return;
+    const std::string msg = "<6>" + tag + ": " + line + "\n";
+    ssize_t n = write(fd, msg.data(), msg.size());
+    (void)n;
+    close(fd);
+}
+#endif
+
 inline std::string Trim(const std::string& s) {
     size_t b = s.find_first_not_of(" \t\r\n"), e = s.find_last_not_of(" \t\r\n");
     return b == std::string::npos ? "" : s.substr(b, e - b + 1);

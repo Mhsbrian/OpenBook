@@ -196,15 +196,17 @@ std::vector<Card> ReadCards(const std::string& sysfs, bool render) {
         c.node = name;
         const std::string dev = drm + "/" + name + "/device";
         c.driver = LinkBasename(dev + "/driver");
-        // Walk up from the device (virtio1 under 0000:00:02.0, for instance) to its PCI function.
+        // Walk up from the device (virtio1 under 0000:00:02.0, for instance) to its PCI function; without a
+        // device link, from the node's own directory, which sits below that function too.
         char real[PATH_MAX];
-        if (realpath(dev.c_str(), real)) {
+        if (realpath(dev.c_str(), real) || realpath((drm + "/" + name).c_str(), real)) {
             for (std::string p = real; p.size() > 1; p = p.substr(0, p.find_last_of('/'))) {
                 if (IsPciSlot(Basename(p))) {
                     c.pci = Basename(p);
                     c.vendor = ReadHex(p + "/vendor");
                     c.device = ReadHex(p + "/device");
                     c.pci_class = ReadHex(p + "/class");
+                    if (c.driver.empty()) c.driver = LinkBasename(p + "/driver");
                     break;
                 }
                 if (p.find('/') == std::string::npos) break;
