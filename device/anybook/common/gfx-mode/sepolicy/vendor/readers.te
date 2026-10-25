@@ -6,9 +6,10 @@ get_prop(vendor_init, vendor_openbook_gfx_prop)
 set_prop(vendor_init, vendor_openbook_gfx_config_prop)
 # `adb shell getprop vendor.openbook.gfx.summary`, and g14-ota.sh's check before an update.
 get_prop(shell, vendor_openbook_gfx_prop)
-# The OpenBook Graphics app shows the mode; OpenBook Update installs only in Eco or Hybrid (§5.4). Both run as
-# privileged apps in their own domains, which carry priv_app_all.
-get_prop(priv_app_all, vendor_openbook_gfx_prop)
+# The OpenBook Graphics app shows the mode; OpenBook Update installs only in Eco or Hybrid (§5.4). Both run in
+# their own platform app domains, which this vendor policy cannot name: system apps may read the state, untrusted,
+# ephemeral and isolated apps may not.
+get_prop({ appdomain -isolated_app_all -untrusted_app_all -ephemeral_app }, vendor_openbook_gfx_prop)
 # The lab helper's dGPU report shows both switches (read only).
 allow openbook_pc_setup sysfs_openbook_gfx_fw:file r_file_perms;
 # The stack selector (anybook_gpu_probe) follows the MUX.
@@ -18,3 +19,5 @@ allow anybook_gpu_probe sysfs_openbook_gfx_fw:file r_file_perms;
 allow openbook_bootsync sysfs_openbook_gfx_fw:file r_file_perms;
 get_prop(openbook_bootsync, vendor_openbook_gfx_prop)
 allow openbook_bootsync sysfs:dir search;
+# The watchdog says what the selector chose when an Ultimate boot shows no frame.
+get_prop(openbook_gfx_mode, vendor_anybook_gpu_prop)

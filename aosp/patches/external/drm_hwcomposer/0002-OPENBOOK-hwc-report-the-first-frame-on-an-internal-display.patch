@@ -12,34 +12,34 @@ frame was presented.
 After the first successful composition commit of an internal display
 (eDP, LVDS, DSI, virtual, ...), HwcDisplay sets
 vendor.hwc.openbook.first_present to CARD:CONNECTOR, e.g. card1:eDP-1.
-The card is the node of the display's DRM device
-(drmGetDeviceNameFromFd2), the connector DrmConnector::GetName(). Each
-display reports once. init hands the value to openbook-gfx-mode, which
-checks the card's driver and the connector's status itself.
+The card is the display's DRM primary node, from the minor number of
+its fd (no sysfs lookup); the connector is DrmConnector::GetName().
+Each display reports once. init hands the value to openbook-gfx-mode,
+which checks the card's driver and the connector's status itself.
 
 Nothing else changes; a failed property write is logged and ignored.
 ---
- hwc/HwcDisplay.cpp | 30 ++++++++++++++++++++++++++++++
+ hwc/HwcDisplay.cpp | 29 +++++++++++++++++++++++++++++
  hwc/HwcDisplay.h   |  5 +++++
- 2 files changed, 35 insertions(+)
+ 2 files changed, 34 insertions(+)
 
 diff --git a/hwc/HwcDisplay.cpp b/hwc/HwcDisplay.cpp
-index 7f3b7ee..0ea9c53 100644
+index 7f3b7ee..dc231b1 100644
 --- a/hwc/HwcDisplay.cpp
 +++ b/hwc/HwcDisplay.cpp
-@@ -22,9 +22,11 @@
+@@ -22,8 +22,11 @@
  #include <cstdint>
  #include <sstream>
  
 +#include <android-base/properties.h>
  #include <ui/ColorSpace.h>
  #include <ui/GraphicTypes.h>
++#include <sys/stat.h>
++#include <sys/sysmacros.h>
  #include <utils/Trace.h>
-+#include <xf86drm.h>
  
  #include "backend/BackendManager.h"
- #include "compositor/CompositionPlanner.h"
-@@ -1221,9 +1223,37 @@ bool HwcDisplay::CommitStagedComposition(SharedFd &out_present_fence) {
+@@ -1221,9 +1224,35 @@ bool HwcDisplay::CommitStagedComposition(SharedFd &out_present_fence) {
    }
    out_present_fence = result->present_fence;
    ApplyCommitChanges(*a_args, *result);
@@ -58,15 +58,13 @@ index 7f3b7ee..0ea9c53 100644
 +  if (!connector->IsInternal()) {
 +    return;
 +  }
-+  char *path = drmGetDeviceNameFromFd2(*GetPipe().device->GetFd());
-+  if (path == nullptr) {
-+    ALOGW("First frame on %s: no device node", connector->GetName().c_str());
++  // The primary node's minor is N in /dev/dri/cardN; no sysfs lookup (the composer may not read sysfs files).
++  struct stat st {};
++  if (fstat(*GetPipe().device->GetFd(), &st) != 0 || !S_ISCHR(st.st_mode) || minor(st.st_rdev) >= 64) {
++    ALOGW("First frame on %s: the device is not a DRM primary node", connector->GetName().c_str());
 +    return;
 +  }
-+  std::string node = path;
-+  free(path);
-+  node = node.substr(node.find_last_of('/') + 1);
-+  const std::string value = node + ":" + connector->GetName();
++  const std::string value = "card" + std::to_string(minor(st.st_rdev)) + ":" + connector->GetName();
 +  if (android::base::SetProperty("vendor.hwc.openbook.first_present", value)) {
 +    ALOGI("First frame on %s", value.c_str());
 +  } else {
