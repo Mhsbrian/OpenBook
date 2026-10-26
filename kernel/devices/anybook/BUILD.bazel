@@ -7,6 +7,7 @@
 #   tools/bazel run //devices/anybook:anybook_amd_x86_64_abi_update_symbol_list   # -> common/gki/x86_64/symbols/anybook_amd
 #   tools/bazel run --config=stamp //devices/anybook:anybook_g14_dist -- --destdir=DIR   # G14 images (ANAL-198)
 #   nouveau (ANAL-239) is an external module in nvidia/, prepared by kernel-amd-apply.sh (kernel-nouveau-apply.sh)
+#   NVIDIA's open modules (ANAL-297) are external modules in nvidia_open/ (kernel-nvidia-open-apply.sh)
 
 load("@rules_pkg//pkg:install.bzl", "pkg_install")
 load("//build/kernel/kleaf:hermetic_tools.bzl", "hermetic_genrule")
@@ -200,16 +201,21 @@ kernel_build(
         "anybook_nvidia.fragment",
     ],
     strip_modules = True,
-    visibility = ["//devices/anybook/nvidia:__pkg__"],
+    visibility = [
+        "//devices/anybook/nvidia:__pkg__",
+        "//devices/anybook/nvidia_open:__pkg__",
+    ],
 )
 
-# kernel_modules: the external modules whose imports the symbol list must cover (nouveau, ANAL-239).
+# kernel_modules: the external modules whose imports the symbol list must cover (nouveau, ANAL-239; NVIDIA's open
+# modules, ANAL-297).
 kernel_abi(
     name = "anybook_amd_x86_64_abi",
     kernel_build = ":anybook_amd_x86_64",
     kernel_modules = [
         ":openbook_sleep_diag",
         "//devices/anybook/nvidia:nouveau",
+        "//devices/anybook/nvidia_open:nvidia_open",
     ],
     kmi_symbol_list_add_only = True,
 )
@@ -220,6 +226,7 @@ kernel_modules_install(
     kernel_modules = [
         ":openbook_sleep_diag",
         "//devices/anybook/nvidia:nouveau",
+        "//devices/anybook/nvidia_open:nvidia_open",
     ],
 )
 
@@ -369,6 +376,7 @@ pkg_files(
         ":openbook_lid_guard",
         ":openbook_sleep_diag",
         "//devices/anybook/nvidia:nouveau",
+        "//devices/anybook/nvidia_open:nvidia_open_ko",
         "//common:kernel_x86_64",
         "//common:kernel_x86_64_additional_artifacts",
         "//common:kernel_x86_64_modules",

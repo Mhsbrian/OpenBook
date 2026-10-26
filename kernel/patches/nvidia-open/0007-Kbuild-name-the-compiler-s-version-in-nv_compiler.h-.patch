@@ -1,0 +1,28 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: "AnyBook (ANAL-297)" <noreply@anybook.invalid>
+Date: Mon, 26 Oct 2026 00:00:00 +0000
+Subject: [PATCH 7/7] Kbuild: name the compiler's version in nv_compiler.h, not
+ its install directory
+
+NV_COMPILER (shown in /proc/driver/nvidia/version) is the last line of
+"$(CC) -v". For GCC that is the version line, but for Clang it is
+"InstalledDir: <path>", so nvidia.ko came out different for every build
+directory, and the procfs file named a path instead of a compiler. Use the
+first line of "$(CC) --version", which is the version for both.
+---
+ kernel-open/nvidia/nvidia.Kbuild | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/kernel-open/nvidia/nvidia.Kbuild b/kernel-open/nvidia/nvidia.Kbuild
+index bfef671..5430169 100644
+--- a/kernel-open/nvidia/nvidia.Kbuild
++++ b/kernel-open/nvidia/nvidia.Kbuild
+@@ -102,7 +102,7 @@ endif
+ NV_COMPILER_VERSION_HEADER = nv_compiler.h
+ 
+ $(obj)/$(NV_COMPILER_VERSION_HEADER):
+-	@echo \#define NV_COMPILER \"`$(CC) -v 2>&1 | tail -n 1`\" > $@
++	@echo \#define NV_COMPILER \"`$(CC) --version 2>&1 | head -n 1`\" > $@
+ 
+ $(obj)/nvidia/nv-procfs.o: $(obj)/$(NV_COMPILER_VERSION_HEADER)
+ 

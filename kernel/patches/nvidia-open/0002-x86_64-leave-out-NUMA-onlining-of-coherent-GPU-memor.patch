@@ -1,0 +1,36 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: "AnyBook (ANAL-297)" <noreply@anybook.invalid>
+Date: Mon, 26 Oct 2026 00:00:00 +0000
+Subject: [PATCH 2/7] x86_64: leave out NUMA onlining of coherent GPU memory
+
+os_numa_add_gpu_memory() and os_numa_remove_gpu_memory() hot-add GPU memory
+to the kernel as a NUMA node on systems where the GPU's memory is
+cache-coherent with the CPU (NVLink-C2C on Grace). No x86_64 PCIe system has
+that, and the code made the module import add_memory_driver_managed(),
+offline_and_remove_memory() and the memory notifier. Report it unsupported
+on x86_64, as on kernels without memory hotplug.
+---
+ kernel-open/nvidia/os-interface.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/kernel-open/nvidia/os-interface.c b/kernel-open/nvidia/os-interface.c
+index 9fa7a1a..0e7a238 100644
+--- a/kernel-open/nvidia/os-interface.c
++++ b/kernel-open/nvidia/os-interface.c
+@@ -54,6 +54,16 @@
+ #include <linux/vmalloc.h>
+ #include <linux/pci_regs.h>
+ 
++/*
++ * Onlining GPU memory as a NUMA node (os_numa_add_gpu_memory) is for coherent
++ * GPU memory, which x86_64 PCIe GPUs do not have (Grace and other C2C hosts
++ * are Arm64). Leave memory hotplug out there.
++ */
++#if defined(NVCPU_X86_64)
++#undef NV_ADD_MEMORY_DRIVER_MANAGED_PRESENT
++#undef NV_OFFLINE_AND_REMOVE_MEMORY_PRESENT
++#endif
++
+ extern char *NVreg_TemporaryFilePath;
+ 
+ #define MAX_ERROR_STRING 528

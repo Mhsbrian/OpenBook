@@ -44,7 +44,7 @@ echo "### kernel-g14-package label=$LABEL $(date -Is) log=$LOG"
 hash_of() { { cat "$@" 2>/dev/null || true; } | sha256sum | cut -c1-16; }  # missing inputs hash as absent
 inputs() {  # what each step depends on; a change reruns it
   case $1 in
-    apply) hash_of "$R"/kernel/patches/{common,nouveau}/* <(find "$R/kernel/devices/anybook" -type f -exec sha256sum {} + | sort) ;;
+    apply) hash_of "$R"/kernel/patches/{common,build-kernel,nouveau,nvidia-open}/* <(find "$R/kernel/devices/anybook" -type f -exec sha256sum {} + | sort) ;;
     build) echo "$(hash_of "$ST/apply")-$(git -C "$S/common" rev-parse HEAD)" ;;
     lists) hash_of "$D/sha256.txt" "$D"/{bm,vm}/*.img $(find "$R/kernel/devices/anybook/g14" -type f | sort) "$R/scripts/kernel-g14-modlists.py" ;;
     sigcheck) hash_of "$D/sha256.txt" "$D"/{bm,vm}/*.img "$R/scripts/kernel-g14-sigcheck.py" ;;

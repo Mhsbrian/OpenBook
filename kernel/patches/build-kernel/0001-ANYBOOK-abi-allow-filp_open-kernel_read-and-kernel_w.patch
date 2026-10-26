@@ -1,0 +1,51 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Mon, 26 Oct 2026 12:00:00 +0000
+Subject: [PATCH] ANYBOOK: abi: allow filp_open, kernel_read and kernel_write
+ on partner lists
+
+NVIDIA's open kernel modules (ANAL-297) are built as AnyBook vendor modules
+for the G14's RTX 5070 Ti Laptop GPU. Their runtime D3 (RTD3) keeps the GPU's
+PCI sysfs config file open with filp_open() and reads it to drop the device's
+runtime PM reference; with suspend notifiers they save video memory to an
+unlinked shmem file with kernel_write() and restore it with kernel_read().
+NVIDIA's Android build mode (PLATFORM_IS_ANDROID=1) avoids all three, but then
+the dGPU never runtime-suspends and only some video memory survives suspend,
+which defeats the battery work the driver is for.
+
+So the AnyBook kernel takes an explicit exception to the GKI denylist for
+these three symbols, for the AnyBook partner list. kernel_read_file and
+kernel_read_file_from_path stay denied. The modules import filp_open from the
+ANDROID_GKI_VFS namespace explicitly.
+
+This changes which symbols a list may name, not how any symbol is exported:
+the kernel still exports exactly what its lists name.
+
+Change-Id: Icaab34d594554d11f591d14223fb72bd85e142b4
+---
+ abi/symbols.deny | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/abi/symbols.deny b/abi/symbols.deny
+index bd4a881d..8a0cc92c 100644
+--- a/abi/symbols.deny
++++ b/abi/symbols.deny
+@@ -17,11 +17,15 @@
+ # File access symbols that are forbidden because drivers should never
+ # try to access files directly.  Instead proper user/kernel apis should
+ # always be used.
+-filp_open					Drivers should not open files directly
+-kernel_read					Drivers should never read from a file
++#
++# AnyBook (ANAL-297): filp_open, kernel_read and kernel_write are allowed on
++# the AnyBook partner list (gki/x86_64/symbols/anybook_amd) for NVIDIA's open
++# kernel modules alone. Their runtime D3 keeps the GPU's PCI sysfs config file
++# open (filp_open), and they save and restore video memory across suspend in an
++# unlinked shmem file (kernel_write, kernel_read). NVIDIA's Android build mode
++# (PLATFORM_IS_ANDROID=1) avoids these calls, but also loses both features.
+ kernel_read_file			Drivers should never read from a file
+ kernel_read_file_from_path	Drivers should never read from a file
+-kernel_write				Drivers should never write to a file
+ 
+ # Kprobe needs to be left alone
+ disable_kprobe		kprobe should not be touched by any driver

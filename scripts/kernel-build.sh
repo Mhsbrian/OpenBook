@@ -25,8 +25,10 @@ echo "### kernel-build target=$T label=$LABEL kleaf=$TGT BUILD_NUMBER=${BUILD_NU
 echo "### host: $(nproc) CPUs, $(free -g | awk '/Mem:/{print $2}') GB RAM; common HEAD $(git -C "$S/common" rev-parse HEAD)"
 cd "$S"
 T0=$(date +%s)
-# nouveau (ANAL-239) is an external module with its own git repository; Kleaf stamps its HEAD as scmversion.
-[ -d devices/anybook/nvidia/.git ] && export KLEAF_EXTRA_GIT_PROJECTS=devices/anybook/nvidia
+# nouveau (ANAL-239) and NVIDIA's open modules (ANAL-297) are external modules with git repositories of their own;
+# Kleaf stamps their HEADs as scmversion.
+X=; for p in devices/anybook/nvidia devices/anybook/nvidia_open; do [ -d "$p/.git" ] && X=${X:+$X:}$p; done
+[ -n "$X" ] && export KLEAF_EXTRA_GIT_PROJECTS=$X
 /usr/bin/time -v -o "$L/time-$LABEL.txt" timeout "${BUILD_TIMEOUT:-7200}" \
   tools/bazel run "${JOBS[@]}" --config=stamp ${BAZEL_ARGS:-} "$TGT" -- --destdir="$D"
 echo "### build done in $(( $(date +%s) - T0 ))s"
