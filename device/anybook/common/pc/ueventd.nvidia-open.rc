@@ -1,0 +1,11 @@
+# NVIDIA's open driver (ANAL-297), installed as /odm/etc/ueventd.rc: Android's /system/etc/ueventd.rc imports
+# /vendor/etc/ueventd.rc and then this file. These rules have a file of their own because the Googlebook vendor's
+# ueventd.rc keeps Ruby's /dev/tpm* rule for gscd, so the firmware-safety rules review that file at its exact SHA-256
+# (device/anybook/common/safety/firmware-safety.json); nothing here reaches PC firmware, the TPM or the EC.
+#
+# The control node, one node per GPU and the modeset node, which kernel/patches/nvidia-open/0004 announces through
+# the driver core. Every process that renders through NVK on NVIDIA's driver opens them, as it opens
+# /dev/dri/renderD*; file_contexts labels them gpu_device.
+/dev/nvidiactl       0666  system  graphics
+/dev/nvidia[0-9]*    0666  system  graphics
+/dev/nvidia-modeset  0666  system  graphics
