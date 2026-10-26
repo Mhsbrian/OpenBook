@@ -12,3 +12,8 @@ userdebug_or_eng(`allow vendor_modprobe kmsg_debug_device:chr_file { getattr ioc
 # loader's context, and keeps it open to drive runtime D3 (docs/nvidia-open-ruby.md §7). The config file is
 # sysfs_gpu (file_contexts); every domain may already search sysfs and read its links.
 allow vendor_modprobe sysfs_gpu:file r_file_perms;
+# NVIDIA's resource manager asks whether the task that allocates an RM client may use performance monitoring
+# (os_check_access(RS_ACCESS_PERFMON): capable(CAP_PERFMON)); at module init and GPU probe that task is modprobe.
+# The answer only decides whether that internal client also gets profiling rights, which the loader does not need,
+# so the probe is not audited rather than granted (seen in the Ruby VM, docs/nvidia-open-ruby.md §8.1).
+dontaudit vendor_modprobe self:capability2 perfmon;
