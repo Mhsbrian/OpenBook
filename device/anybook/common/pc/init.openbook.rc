@@ -95,6 +95,12 @@ on property:vendor.openbook.lab.mod=nouveau-load
 on property:vendor.openbook.lab.mod=nouveau-unload
     start vendor.openbook.lab-nouveau-unload
 
+on property:vendor.openbook.lab.mod=nvidia-load
+    start vendor.openbook.lab-nvidia-load
+
+on property:vendor.openbook.lab.mod=nvidia-unload
+    start vendor.openbook.lab-nvidia-unload
+
 on property:vendor.openbook.lab.mod=diag-snapshot
     start vendor.openbook.lab-diag-snapshot
 
@@ -159,6 +165,23 @@ service vendor.openbook.lab-nouveau-load /vendor/bin/modprobe -s -d /vendor/lib/
     disabled
 
 service vendor.openbook.lab-nouveau-unload /vendor/bin/modprobe -r -s -d /vendor/lib/modules nouveau
+    user root
+    group root system
+    seclabel u:r:vendor_modprobe:s0
+    oneshot
+    disabled
+
+# NVIDIA's open driver (ANAL-297), the alternative to nouveau: nvidia-drm pulls in nvidia-modeset and nvidia through
+# modules.dep; modules.options gives nvidia-drm modeset=1. -r removes all three. The helper refuses either
+# driver's load while the other one is loaded.
+service vendor.openbook.lab-nvidia-load /vendor/bin/modprobe -s -d /vendor/lib/modules nvidia-drm
+    user root
+    group root system
+    seclabel u:r:vendor_modprobe:s0
+    oneshot
+    disabled
+
+service vendor.openbook.lab-nvidia-unload /vendor/bin/modprobe -r -s -d /vendor/lib/modules nvidia-drm
     user root
     group root system
     seclabel u:r:vendor_modprobe:s0

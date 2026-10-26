@@ -35,9 +35,13 @@
 #            repeated request a new property value. Every result goes to logcat (logcat -s openbook-pc-setup).
 #              enable | disable     the switch
 #              report               dgpu-report, the lab modules' state, openbook_sleep_diag's last S0i3 report
-#              nouveau-load | nouveau-unload | diag-snapshot | diag-ptm-off | diag-unload
+#              nouveau-load | nouveau-unload | nvidia-load | nvidia-unload | diag-snapshot | diag-ptm-off |
+#              diag-unload
 #                                   ask init (vendor.openbook.lab.mod) to run its fixed modprobe command for the
-#                                   action in the module loader's own domain, wait for the module, then report
+#                                   action in the module loader's own domain, wait for the module, then report.
+#                                   nouveau and NVIDIA's driver (nvidia-load: nvidia-drm, which pulls in
+#                                   nvidia-modeset and nvidia, ANAL-297) claim the same GPU, so each load is
+#                                   refused while the other driver is loaded
 #              sleep-20 | sleep-60 | sleep-300
 #                                   one suspend now, woken by the RTC after that many seconds, then report
 #   perms    Hand amd-pstate's energy_performance_preference to the power HAL (user system). cpufreq policies send
@@ -78,6 +82,7 @@ dgpu_pm() {
     esac
   done
   nouveau_facts
+  nvidia_facts
   if [ -z "$gpus" ]; then
     log "no NVIDIA GPU enumerated; nothing to do"
     return 0
@@ -125,6 +130,24 @@ nouveau_facts() {
   cfg=$(rd "$n/config"); [ "$cfg" = "(null)" ] && cfg=   # an unset string parameter reads "(null)"
   log "nouveau:$(kv "$n/runpm" runpm)$(kv "$n/modeset" modeset)${cfg:+ config=$cfg} bound=${bound#,}"
   [ "$(rd "$n/runpm")" = 1 ] || log "nouveau: runpm is not 1, so a bound dGPU stays in D0 (modules.options)"
+  return 0
+}
+
+# nvidia_facts: NVIDIA's open driver (ANAL-297), when it is loaded: the parameters that decide its runtime D3 and
+# display, and, per bound GPU, the driver's own runtime-D3 report (/proc/driver/nvidia/gpus/<bdf>/power: "Runtime
+# D3 status", "Video Memory", what the hardware supports).
+nvidia_facts() {
+  n=$SYS/module/nvidia/parameters
+  [ -d "$n" ] || return 0
+  d=$SYS/module/nvidia_drm/parameters
+  bound=
+  for g in "$SYS"/bus/pci/drivers/nvidia/????:??:??.?; do [ -e "$g" ] && bound="$bound,${g##*/}"; done
+  log "nvidia:$(kv "$n/NVreg_DynamicPowerManagement" DynamicPowerManagement)$(kv "$d/modeset" drm.modeset) bound=${bound#,}"
+  for g in $(echo "${bound#,}" | tr , ' '); do
+    p=${OPENBOOK_SYSFS_ROOT:-}/proc/driver/nvidia/gpus/$g/power
+    [ -r "$p" ] || continue
+    while IFS= read -r line; do [ -n "$line" ] && log "nvidia: $g $line"; done < "$p"
+  done
   return 0
 }
 
@@ -181,6 +204,7 @@ dgpu_report() {
   a=$SYS/devices/platform/asus-nb-wmi   # read only: writing these changes the firmware
   [ -e "$a/dgpu_disable" ] && log "dgpu-report: asus-nb-wmi$(kv "$a/dgpu_disable" dgpu_disable)$(kv "$a/gpu_mux_mode" gpu_mux_mode)"
   nouveau_facts
+  nvidia_facts
   s=$SYS/power/suspend_stats
   [ -d "$s" ] && log "dgpu-report: suspend_stats$(kv "$s/success" success)$(kv "$s/fail" fail)$(kv "$s/last_hw_sleep" last_hw_sleep_us)$(kv "$s/total_hw_sleep" total_hw_sleep_us)$(kv "$s/max_hw_sleep" max_hw_sleep_us)"
   if [ -z "$funcs" ]; then state=absent
@@ -221,13 +245,13 @@ dgpu_ctl() {
 }
 
 LAB_SWITCH=persist.vendor.openbook.lab
-LAB_ACTIONS="enable disable report nouveau-load nouveau-unload diag-snapshot diag-ptm-off diag-unload sleep-20 sleep-60 sleep-300"
+LAB_ACTIONS="enable disable report nouveau-load nouveau-unload nvidia-load nvidia-unload diag-snapshot diag-ptm-off diag-unload sleep-20 sleep-60 sleep-300"
 getp() { ${OPENBOOK_GETPROP:-getprop} "$@"; }
 setp() { ${OPENBOOK_SETPROP:-setprop} "$@"; }
 
 # lab_modules: the lab modules' state from sysfs, and openbook_sleep_diag's report of the last S0i3 attempt.
 lab_modules() {
-  for m in nouveau drm_gpuvm openbook_sleep_diag; do
+  for m in nouveau drm_gpuvm nvidia nvidia_modeset nvidia_drm openbook_sleep_diag; do
     if [ -d "$SYS/module/$m" ]; then
       log "lab: module $m loaded$(kv "$SYS/module/$m/initstate" state)$(kv "$SYS/module/$m/refcnt" refcnt)"
     else
@@ -293,11 +317,22 @@ lab() {
   rc=0
   case $act in
     report) lab_report "$req" ;;
-    nouveau-*|diag-*)
-      case $act in nouveau-*) m=nouveau ;; *) m=openbook_sleep_diag ;; esac
+    nouveau-*|nvidia-*|diag-*)
+      # m: the module whose /sys/module entry shows the result (nvidia-load waits for nvidia_drm, the last of the
+      # three; nvidia-unload for nvidia, the first loaded and the last removed). other: the rival dGPU driver.
+      other=
+      case $act in
+        nouveau-*) m=nouveau; other=nvidia ;;
+        nvidia-load) m=nvidia_drm; other=nouveau ;;
+        nvidia-unload) m=nvidia ;;
+        *) m=openbook_sleep_diag ;;
+      esac
       case $act in *-unload) want=absent ;; *) want=present ;; esac
       if [ $want = present ] && [ -d "$SYS/module/$m" ]; then
         log "lab: $act refused: $m is already loaded (unload it first)"; lab_report "$req"; return 4
+      fi
+      if [ $want = present ] && [ -n "$other" ] && [ -d "$SYS/module/$other" ]; then
+        log "lab: $act refused: $other is loaded and drives the same GPU (unload it first)"; lab_report "$req"; return 4
       fi
       # init runs the fixed command for this value (init.openbook.rc); idle first, so a repeat is a change too.
       setp vendor.openbook.lab.mod idle; setp vendor.openbook.lab.mod "$act"
