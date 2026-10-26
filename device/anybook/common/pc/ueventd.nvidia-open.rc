@@ -7,5 +7,9 @@
 # the driver core. Every process that renders through NVK on NVIDIA's driver opens them, as it opens
 # /dev/dri/renderD*; file_contexts labels them gpu_device.
 /dev/nvidiactl       0666  system  graphics
-/dev/nvidia[0-9]*    0666  system  graphics
 /dev/nvidia-modeset  0666  system  graphics
+# One node per GPU (nvidia0, ...). ueventd takes a "*" at the end of a name as a prefix match and uses fnmatch only
+# for a "*" elsewhere, so the earlier "/dev/nvidia[0-9]*" meant the literal prefix "/dev/nvidia[0-9]", matched
+# nothing, and left the G14's /dev/nvidia0 root:root 0600 (ANAL-299, 2026-10-26). This prefix rule also covers the
+# two nodes above, with the same owner and mode.
+/dev/nvidia*         0666  system  graphics

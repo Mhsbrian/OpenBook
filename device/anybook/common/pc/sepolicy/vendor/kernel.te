@@ -9,3 +9,10 @@ allow kernel openbook_vendor_fw_file:file r_file_perms;
 allow kernel openbook_vendor_fw_file:system firmware_load;
 allow ueventd openbook_vendor_fw_file:dir r_dir_perms;
 allow ueventd openbook_vendor_fw_file:file r_file_perms;
+# NVIDIA's open driver (ANAL-297) probes the GPU in a kernel thread (nv-probe-<bdf>), which opens the GPU's PCI config
+# file in sysfs (sysfs_gpu, file_contexts) and keeps it open to drive runtime D3. Denied, the open fails quietly,
+# nv_dynamic_power_available() is false and the dGPU never leaves D0 (seen on the G14, ANAL-299, 2026-10-26).
+allow kernel sysfs_gpu:file r_file_perms;
+# The same thread allocates RM's internal client, and RM asks capable(CAP_PERFMON) only to decide whether that client
+# also gets profiling rights, which it does not need: not audited rather than granted, as for vendor_modprobe.
+dontaudit kernel self:capability2 perfmon;
