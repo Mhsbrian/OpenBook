@@ -65,7 +65,8 @@ PRODUCT_COPY_FILES += \
     device/anybook/common/pc/fstab.openbook:$(TARGET_COPY_OUT_VENDOR)/etc/fstab.openbook \
     device/anybook/common/pc/init.openbook.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/hw/init.openbook.rc \
     device/anybook/common/pc/init.openbook.zram.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/init.openbook.zram.rc \
-    device/anybook/common/pc/ueventd.openbook.rc:$(TARGET_COPY_OUT_VENDOR)/etc/ueventd.rc
+    device/anybook/common/pc/ueventd.openbook.rc:$(TARGET_COPY_OUT_VENDOR)/etc/ueventd.rc \
+    device/anybook/common/pc/ueventd.nvidia-open.rc:$(TARGET_COPY_OUT_ODM)/etc/ueventd.rc
 
 # Boot-time sysfs setup (the runtime-PM fallback for a dGPU nobody drives, EPP files for the power HAL), and on
 # userdebug ANAL-187's dGPU check (scripts/dgpu-power-check.sh).
