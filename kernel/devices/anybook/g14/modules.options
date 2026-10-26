@@ -10,3 +10,14 @@
 # Fallback without a rebuild: nouveau.modeset=0 on the kernel command line loads the module but binds nothing,
 # which leaves the dGPU to vendor.openbook.dgpu-pm as before.
 options nouveau runpm=1 modeset=2
+
+# NVIDIA's open driver (ANAL-297, docs/nvidia-open-ruby.md §7), loaded on demand by the lab helper only, never with
+# nouveau:
+#   NVreg_DynamicPowerManagement=0x02  fine-grained runtime D3: the dGPU powers off when idle. 615's default (3) does
+#              the same only on Ampere-or-newer GPUs it recognises as a notebook's; this does not depend on that.
+#   modeset=1  (nvidia-drm) atomic KMS and the DRM device NVK on NVIDIA's driver opens; also 615's default.
+#              nvidia-drm has no fbdev parameter here: the GKI has DRM_FBDEV_EMULATION off, so it never makes one.
+# The suspend defaults stay: kernel suspend notifiers, and all video memory preserved, in an unlinked shmem file
+# because NVreg_TemporaryFilePath is unset (Android has no /tmp).
+options nvidia NVreg_DynamicPowerManagement=0x02
+options nvidia-drm modeset=1

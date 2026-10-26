@@ -40,3 +40,15 @@
 # Unchanged neighbours
 /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C0A:00/power_supply/BAT1/capacity          sysfs_batteryinfo
 /sys/devices/platform/USBC000:00/typec/port0/data_role                              sysfs_typec
+
+# NVIDIA's open driver (ANAL-297): its device nodes (created through the driver core, kernel/patches/nvidia-open/0004),
+# and the dGPU's PCI identity and config file, which the driver opens at probe for runtime D3 (vendor_modprobe)
+/dev/nvidiactl                                                   gpu_device  -c
+/dev/nvidia0                                                     gpu_device  -c
+/dev/nvidia-modeset                                              gpu_device  -c
+/sys/devices/pci0000:00/0000:00:03.1/0000:64:00.0/config         sysfs_gpu
+/sys/devices/pci0000:00/0000:00:03.1/0000:64:00.0/vendor         sysfs_gpu
+/sys/devices/pci0000:00/0000:00:03.1/0000:64:00.0/device         sysfs_gpu
+# ...but not the dGPU's HDMI audio function, nor nvidia-caps or other nodes that merely start with nvidia
+/sys/devices/pci0000:00/0000:00:03.1/0000:64:00.1/config         (genfs_contexts)
+/dev/nvidia-caps/nvidia-cap1                                     device  -c

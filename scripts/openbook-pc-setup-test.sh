@@ -179,6 +179,24 @@ has "report nouveau: GPU line" "$r.log" '0000:64:00.0 class=0x030000 .*driver=no
 has "report nouveau: parameters" "$r.log" 'nouveau: runpm=1 modeset=2 bound=0000:64:00.0$'
 has "report nouveau: logd copy" "$r.logd" '^-t openbook-pc-setup -p i nouveau: runpm=1 modeset=2 bound=0000:64:00.0$'
 
+# ANAL-297: NVIDIA's driver bound; its parameters and its own runtime-D3 report are logged.
+r=$T/report-nvidia; g14_d3cold "$r"
+mkdir -p "$r/sys/bus/pci/drivers/nvidia"
+ln -s ../../../../bus/pci/drivers/nvidia "$r/sys/devices/pci0000:00/0000:00:03.1/0000:64:00.0/driver"
+ln -s ../../../../devices/pci0000:00/0000:00:03.1/0000:64:00.0 "$r/sys/bus/pci/drivers/nvidia/0000:64:00.0"
+w "$r/sys/module/nvidia/parameters/NVreg_DynamicPowerManagement" 2
+w "$r/sys/module/nvidia_drm/parameters/modeset" Y
+mkdir -p "$r/proc/driver/nvidia/gpus/0000:64:00.0"
+printf 'Runtime D3 status:          Enabled (fine-grained)\nVideo Memory:               Off\n\nGPU Hardware Support:\n Video Memory Self Refresh: Supported\n' \
+  > "$r/proc/driver/nvidia/gpus/0000:64:00.0/power"
+runx "$r" dgpu-report boot
+has "report nvidia: verdict" "$r.log" 'dgpu-report: state=d3cold$'
+has "report nvidia: GPU line" "$r.log" '0000:64:00.0 class=0x030000 .*driver=nvidia power_state=D3cold'
+has "report nvidia: parameters" "$r.log" 'nvidia: DynamicPowerManagement=2 drm.modeset=Y bound=0000:64:00.0$'
+has "report nvidia: runtime D3 status" "$r.log" 'nvidia: 0000:64:00.0 Runtime D3 status: +Enabled \(fine-grained\)$'
+has "report nvidia: video memory" "$r.log" 'nvidia: 0000:64:00.0 Video Memory: +Off$'
+has "report nvidia: logd copy" "$r.logd" '^-t openbook-pc-setup -p i nvidia: DynamicPowerManagement=2'
+
 r=$T/ctl-on
 pci "$r" 0000:64:00.0 0x10de 0x030000; pci "$r" 0000:64:00.1 0x10de 0x040300
 for f in 0 1; do w "$r/sys/devices/pci0000:00/0000:00:03.1/0000:64:00.$f/power/control" auto; done
@@ -218,6 +236,8 @@ case $2 in
   nouveau-load) mkdir -p "$m/nouveau/parameters" "$m/drm_gpuvm"; echo live > "$m/nouveau/initstate"
                 echo 1 > "$m/nouveau/parameters/runpm"; echo 2 > "$m/nouveau/parameters/modeset" ;;
   nouveau-unload) rm -rf "$m/nouveau" "$m/drm_gpuvm" ;;
+  nvidia-load) for x in nvidia nvidia_modeset nvidia_drm; do mkdir -p "$m/$x"; echo live > "$m/$x/initstate"; done ;;
+  nvidia-unload) rm -rf "$m/nvidia" "$m/nvidia_modeset" "$m/nvidia_drm" ;;
   diag-snapshot|diag-ptm-off)
     d=$m/openbook_sleep_diag/parameters; mkdir -p "$d"
     [ "$2" = diag-ptm-off ] && echo Y > "$d/ptm_off" || echo N > "$d/ptm_off"
@@ -269,9 +289,30 @@ has "lab nouveau-load: nouveau's options reported" "$r.log" 'nouveau: runpm=1 mo
 has "lab nouveau-load: module state" "$r.log" 'lab: module nouveau loaded state=live'
 labrun "$r" lab nouveau-load@2
 check "lab nouveau-load twice: refused (exit 4)" "$r.rc" 4
+# ANAL-297: NVIDIA's driver and nouveau exclude each other.
+labrun "$r" lab nvidia-load
+check "lab nvidia-load while nouveau is loaded: refused (exit 4)" "$r.rc" 4
+has "lab nvidia-load while nouveau is loaded: said why" "$r.log" 'nvidia-load refused: nouveau is loaded and drives the same GPU'
+grep -q '=nvidia-load$' "$P/.log" && { echo "FAIL lab nvidia-load refused: init was asked"; fails=$((fails + 1)); } ||
+  echo "ok   lab nvidia-load refused: init not asked"
 labrun "$r" lab nouveau-unload
 check "lab nouveau-unload: exit 0" "$r.rc" 0
 has "lab nouveau-unload: absent" "$r.log" 'lab: nouveau-unload: nouveau absent$'
+: > "$P/.log"
+labrun "$r" lab nvidia-load
+check "lab nvidia-load: exit 0" "$r.rc" 0
+has "lab nvidia-load: asked init" "$P/.log" '^vendor.openbook.lab.mod=nvidia-load$'
+has "lab nvidia-load: nvidia_drm present" "$r.log" 'lab: nvidia-load: nvidia_drm present$'
+has "lab nvidia-load: all three reported" "$r.log" 'lab: module nvidia_modeset loaded state=live'
+labrun "$r" lab nouveau-load@3
+check "lab nouveau-load while nvidia is loaded: refused (exit 4)" "$r.rc" 4
+has "lab nouveau-load while nvidia is loaded: said why" "$r.log" 'nouveau-load refused: nvidia is loaded and drives the same GPU'
+labrun "$r" lab nvidia-load@2
+check "lab nvidia-load twice: refused (exit 4)" "$r.rc" 4
+labrun "$r" lab nvidia-unload
+check "lab nvidia-unload: exit 0" "$r.rc" 0
+has "lab nvidia-unload: nvidia absent" "$r.log" 'lab: nvidia-unload: nvidia absent$'
+has "lab nvidia-unload: nvidia_drm gone too" "$r.log" 'lab: module nvidia_drm not loaded$'
 
 labrun "$r" lab diag-ptm-off
 check "lab diag-ptm-off: exit 0" "$r.rc" 0
