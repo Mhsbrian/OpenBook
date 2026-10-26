@@ -1,0 +1,270 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: "AnyBook (ANAL-297)" <noreply@anybook.invalid>
+Date: Mon, 26 Oct 2026 00:00:00 +0000
+Subject: [PATCH 4/7] Create the device nodes through the driver core
+
+nvidia.ko and nvidia-modeset.ko register their character devices without a
+struct device, so no uevent announces /dev/nvidiactl, /dev/nvidia<minor> or
+/dev/nvidia-modeset; nvidia-modprobe or udev rules that call mknod make them.
+Android has neither: its ueventd creates only nodes it gets uevents for, and
+applies the system's modes and SELinux labels as it does.
+
+Create them with device_create(): /dev/nvidiactl and one node per PCI GPU in
+class "nvidia" (the GPU's node has the GPU as its parent, and goes away with
+it), and /dev/nvidia-modeset in class "nvidia-modeset". The major and minor
+numbers are unchanged. A failure is logged and is not fatal, which keeps the
+old behaviour.
+---
+ kernel-open/common/inc/nv-linux.h             |   3 +
+ kernel-open/common/inc/nv-proto.h             |   2 +
+ .../nvidia-modeset/nvidia-modeset-linux.c     |  40 +++++++
+ kernel-open/nvidia/nv-pci.c                   |   3 +
+ kernel-open/nvidia/nv.c                       | 103 ++++++++++++++++++
+ 5 files changed, 151 insertions(+)
+
+diff --git a/kernel-open/common/inc/nv-linux.h b/kernel-open/common/inc/nv-linux.h
+index f377db1..ab883ee 100644
+--- a/kernel-open/common/inc/nv-linux.h
++++ b/kernel-open/common/inc/nv-linux.h
+@@ -1471,6 +1471,9 @@ typedef struct nv_linux_state_s {
+ 
+     /* Per-device GPU init on probe setting, initialized from global NVreg_GpuInitOnProbe */
+     NvBool init_on_probe;
++
++    /* /dev/nvidia<minor> through the driver core (nv_linux_add_device_node_locked) */
++    struct device *devnode;
+ } nv_linux_state_t;
+ 
+ extern nv_linux_state_t *nv_linux_devices;
+diff --git a/kernel-open/common/inc/nv-proto.h b/kernel-open/common/inc/nv-proto.h
+index f5fc883..5dce7a9 100644
+--- a/kernel-open/common/inc/nv-proto.h
++++ b/kernel-open/common/inc/nv-proto.h
+@@ -99,6 +99,8 @@ void          nv_dev_free_stacks(nv_linux_state_t *);
+ NvBool        nv_lock_init_locks(nvidia_stack_t *, nv_state_t *);
+ void          nv_lock_destroy_locks(nvidia_stack_t *, nv_state_t *);
+ void          nv_linux_add_device_locked(nv_linux_state_t *);
++void          nv_linux_add_device_node_locked(nv_linux_state_t *);
++void          nv_linux_remove_device_node_locked(nv_linux_state_t *);
+ int           nv_linux_assign_minor_locked(nv_linux_state_t *);
+ void          nv_linux_remove_minor_locked(nv_linux_state_t *);
+ void          nv_linux_remove_device_locked(nv_linux_state_t *);
+diff --git a/kernel-open/nvidia-modeset/nvidia-modeset-linux.c b/kernel-open/nvidia-modeset/nvidia-modeset-linux.c
+index 469a728..aa33c58 100644
+--- a/kernel-open/nvidia-modeset/nvidia-modeset-linux.c
++++ b/kernel-open/nvidia-modeset/nvidia-modeset-linux.c
+@@ -2099,6 +2099,39 @@ static struct file_operations nvkms_fops = {
+ 
+ static struct cdev nvkms_device_cdev;
+ 
++/*
++ * /dev/nvidia-modeset through the driver core, so that a system without
++ * nvidia-modprobe (Android's ueventd) gets a uevent for it; see
++ * nv_device_nodes_init() in nvidia.ko. Failure is not fatal.
++ */
++static struct class *nvkms_device_class;
++
++static void __init nvkms_create_device_node(void)
++{
++    struct device *dev;
++
++#if defined(NV_CLASS_CREATE_HAS_NO_OWNER_ARG)
++    nvkms_device_class = class_create("nvidia-modeset");
++#else
++    nvkms_device_class = class_create(THIS_MODULE, "nvidia-modeset");
++#endif
++    if (IS_ERR(nvkms_device_class)) {
++        nvkms_log(NVKMS_LOG_LEVEL_ERROR, NVKMS_LOG_PREFIX,
++                  "Failed to register the nvidia-modeset device class");
++        nvkms_device_class = NULL;
++        return;
++    }
++
++    dev = device_create(nvkms_device_class, NULL, NVKMS_RDEV, NULL,
++                        "nvidia-modeset");
++    if (IS_ERR(dev)) {
++        nvkms_log(NVKMS_LOG_LEVEL_ERROR, NVKMS_LOG_PREFIX,
++                  "Failed to create /dev/nvidia-modeset");
++        class_destroy(nvkms_device_class);
++        nvkms_device_class = NULL;
++    }
++}
++
+ static int __init nvkms_register_chrdev(void)
+ {
+     int ret;
+@@ -2115,11 +2148,18 @@ static int __init nvkms_register_chrdev(void)
+         return ret;
+     }
+ 
++    nvkms_create_device_node();
++
+     return ret;
+ }
+ 
+ static void nvkms_unregister_chrdev(void)
+ {
++    if (nvkms_device_class != NULL) {
++        device_destroy(nvkms_device_class, NVKMS_RDEV);
++        class_destroy(nvkms_device_class);
++        nvkms_device_class = NULL;
++    }
+     cdev_del(&nvkms_device_cdev);
+     unregister_chrdev_region(NVKMS_RDEV, 1);
+ }
+diff --git a/kernel-open/nvidia/nv-pci.c b/kernel-open/nvidia/nv-pci.c
+index 760b08c..0a7aba7 100644
+--- a/kernel-open/nvidia/nv-pci.c
++++ b/kernel-open/nvidia/nv-pci.c
+@@ -2575,6 +2575,7 @@ nv_pci_probe_body
+      */
+     LOCK_NV_LINUX_DEVICES();
+     nv_linux_add_device_locked(nvl);
++    nv_linux_add_device_node_locked(nvl);
+     UNLOCK_NV_LINUX_DEVICES();
+ 
+     /*
+@@ -2628,6 +2629,7 @@ err_free_all:
+ #endif
+     nv_procfs_remove_gpu(nvl);
+     LOCK_NV_LINUX_DEVICES();
++    nv_linux_remove_device_node_locked(nvl);
+     nv_linux_remove_device_locked(nvl);
+     UNLOCK_NV_LINUX_DEVICES();
+     nv_stop_device(nv, sp);
+@@ -2810,6 +2812,7 @@ static void nv_pci_remove_helper(struct pci_dev *pci_dev, bool block_if_gpu_in_u
+         return;
+     }
+ 
++    nv_linux_remove_device_node_locked(nvl);
+     nv_linux_remove_device_locked(nvl);
+ 
+     rm_notify_gpu_removal(sp, nv);
+diff --git a/kernel-open/nvidia/nv.c b/kernel-open/nvidia/nv.c
+index 7ae724c..850be3c 100644
+--- a/kernel-open/nvidia/nv.c
++++ b/kernel-open/nvidia/nv.c
+@@ -871,6 +871,105 @@ static int nv_register_chrdev(
+     return rc;
+ }
+ 
++/*
++ * Device nodes through the driver core. Registering the character devices
++ * alone sends no uevent, so the nodes are normally made by nvidia-modprobe or
++ * by udev rules that call mknod. On a system with neither (Android, whose
++ * ueventd only creates nodes it receives uevents for), /dev/nvidiactl and
++ * /dev/nvidia<minor> are created here instead, and the system applies its own
++ * modes and security labels to them. The nodes go away with their GPU, or
++ * with the module.
++ */
++static struct class *nv_device_class;
++
++/* caller should hold nv_linux_devices_lock using LOCK_NV_LINUX_DEVICES */
++void nv_linux_add_device_node_locked(nv_linux_state_t *nvl)
++{
++    struct device *dev;
++
++    if ((nv_device_class == NULL) || (nvl->devnode != NULL) ||
++        (nvl->pci_dev == NULL))
++    {
++        return;
++    }
++
++    dev = device_create(nv_device_class, nvl->dev,
++                        MKDEV(NV_MAJOR_DEVICE_NUMBER, nvl->minor_num), NULL,
++                        "nvidia%u", nvl->minor_num);
++    if (IS_ERR(dev))
++    {
++        nv_printf(NV_DBG_ERRORS, "NVRM: failed to create /dev/nvidia%u: %ld\n",
++                  nvl->minor_num, PTR_ERR(dev));
++        return;
++    }
++
++    nvl->devnode = dev;
++}
++
++/* caller should hold nv_linux_devices_lock using LOCK_NV_LINUX_DEVICES */
++void nv_linux_remove_device_node_locked(nv_linux_state_t *nvl)
++{
++    if (nvl->devnode != NULL)
++    {
++        device_unregister(nvl->devnode);
++        nvl->devnode = NULL;
++    }
++}
++
++static void nv_device_nodes_init(void)
++{
++    nv_linux_state_t *nvl;
++    struct class *cls;
++    struct device *dev;
++
++#if defined(NV_CLASS_CREATE_HAS_NO_OWNER_ARG)
++    cls = class_create("nvidia");
++#else
++    cls = class_create(THIS_MODULE, "nvidia");
++#endif
++    if (IS_ERR(cls))
++    {
++        nv_printf(NV_DBG_ERRORS, "NVRM: failed to register the nvidia device class: %ld\n",
++                  PTR_ERR(cls));
++        return;
++    }
++
++    dev = device_create(cls, NULL,
++                        MKDEV(NV_MAJOR_DEVICE_NUMBER, NV_MINOR_DEVICE_NUMBER_CONTROL_DEVICE),
++                        NULL, "nvidiactl");
++    if (IS_ERR(dev))
++    {
++        nv_printf(NV_DBG_ERRORS, "NVRM: failed to create /dev/nvidiactl: %ld\n", PTR_ERR(dev));
++        class_destroy(cls);
++        return;
++    }
++
++    LOCK_NV_LINUX_DEVICES();
++    nv_device_class = cls;
++    for (nvl = nv_linux_devices; nvl != NULL; nvl = nvl->next)
++    {
++        nv_linux_add_device_node_locked(nvl);
++    }
++    UNLOCK_NV_LINUX_DEVICES();
++}
++
++/* After nv_drivers_exit(): every GPU's node is gone with its GPU by then. */
++static void nv_device_nodes_exit(void)
++{
++    struct class *cls;
++
++    LOCK_NV_LINUX_DEVICES();
++    cls = nv_device_class;
++    nv_device_class = NULL;
++    UNLOCK_NV_LINUX_DEVICES();
++
++    if (cls != NULL)
++    {
++        device_destroy(cls, MKDEV(NV_MAJOR_DEVICE_NUMBER, NV_MINOR_DEVICE_NUMBER_CONTROL_DEVICE));
++        class_destroy(cls);
++    }
++}
++
+ static void nv_unregister_chrdev(
+     unsigned int minor,
+     unsigned int count,
+@@ -1090,6 +1189,8 @@ static int __init nvidia_init_module(void)
+         goto partial_chrdev_exit;
+     }
+ 
++    nv_device_nodes_init();
++
+     __nv_init_sp = sp;
+ 
+     return 0;
+@@ -1144,6 +1245,8 @@ static void __exit nvidia_exit_module(void)
+ 
+     nv_drivers_exit();
+ 
++    nv_device_nodes_exit();
++
+     nv_module_exit(sp);
+ 
+     nv_caps_imex_exit();

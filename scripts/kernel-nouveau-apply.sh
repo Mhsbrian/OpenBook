@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Prepare the external nouveau build (ANAL-239) in a kernel tree that kernel-sync.sh and kernel-amd-apply.sh made:
-#   1. check that common is exactly kernel/patches/nouveau/BASE (kernel/patches/common applied), and clean;
+#   1. check that common is kernel/patches/nouveau/BASE (kernel/patches/common applied), or a descendant whose
+#      drivers/gpu/drm/nouveau is the same (later common patches, e.g. ANAL-297's KMI list), and clean;
 #   2. kernel/devices/anybook/ -> <tree>/devices/anybook, as kernel-amd-apply.sh does;
 #   3. <tree>/devices/anybook/nvidia becomes a git repository of its own: the package files from the repo plus
 #      common's drivers/gpu/drm/nouveau (at BASE) as nouveau/, then kernel/patches/nouveau/*.patch as commits
@@ -19,7 +20,12 @@ BASE=$(cat "$P/BASE"); TREE=$(cat "$P/TREE")
 V=$S/devices/anybook/nvidia
 
 head=$(git -C "$S/common" rev-parse HEAD)
-[ "$head" = "$BASE" ] || { echo "common is at $head, not $BASE (run kernel-amd-apply.sh)" >&2; exit 1; }
+if [ "$head" != "$BASE" ]; then
+  git -C "$S/common" merge-base --is-ancestor "$BASE" HEAD &&
+    git -C "$S/common" diff --quiet "$BASE" HEAD -- drivers/gpu/drm/nouveau ||
+    { echo "common is at $head: neither $BASE nor a descendant with its drivers/gpu/drm/nouveau (run kernel-amd-apply.sh)" >&2
+      exit 1; }
+fi
 git -C "$S/common" diff --quiet HEAD -- || { echo "common has uncommitted changes" >&2; exit 1; }
 
 mkdir -p "$S/devices/anybook"

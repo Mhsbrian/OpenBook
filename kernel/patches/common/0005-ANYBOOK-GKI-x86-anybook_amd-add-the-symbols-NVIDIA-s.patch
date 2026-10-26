@@ -1,0 +1,138 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <bhoneycutt153@gmail.com>
+Date: Mon, 26 Oct 2026 12:00:00 +0000
+Subject: [PATCH] ANYBOOK: GKI: x86: anybook_amd: add the symbols NVIDIA's open
+ modules need
+
+NVIDIA's open kernel modules (open-gpu-kernel-modules 615.78.08: nvidia.ko, nvidia-modeset.ko and
+nvidia-drm.ko) are built as AnyBook vendor modules for the G14's RTX 5070 Ti Laptop GPU (GB205), as the
+alternative to nouveau that NVK on NVIDIA's driver runs on (ANAL-297). Vendor modules are unsigned, so
+under MODULE_SIG_PROTECT they may only use symbols on the KMI list, and the trimmed GKI exports nothing
+else. With their Tegra SoC and coherent-memory (NUMA hotplug) code compiled out on x86_64, the three
+modules need 61 symbols that are on none of the x86_64 lists yet:
+
+  address_space_init_once close_fd console_lock console_unlock cpufreq_get dev_printk_emit dma_iova_free dma_iova_try_alloc drm_atomic_get_colorop_state drm_atomic_set_colorop_for_plane drm_atomic_set_crtc_for_connector drm_atomic_set_crtc_for_plane drm_atomic_set_mode_prop_for_crtc drm_colorop_cleanup drm_edid_override_connector_update drm_file_get_master drm_gem_mmap_obj drm_gem_prime_fd_to_handle drm_master_put drm_mode_create drm_property_create_bool drm_property_lookup_blob drm_property_replace_global_blob drm_vma_node_is_allowed drm_vma_offset_lookup_locked fget filp_close filp_open follow_pfnmap_end follow_pfnmap_start get_task_pid init_pid_ns iterate_fd jiffies_to_timespec64 kernel_read kernel_write mod_node_page_state pcibios_resource_to_bus pcie_reset_flr pci_find_host_bridge percpu_counter_add_batch percpu_counter_batch pid_vnr pin_user_pages proc_create_data proc_mkdir_mode proc_remove put_pid screen_info seq_read_iter set_page_dirty_lock shmem_kernel_file_setup strncat task_active_pid_ns vfs_fallocate vga_set_legacy_decoding __vmalloc_noprof vmf_insert_mixed vprintk wait_for_device_probe wait_for_random_bytes
+
+Eight of them (fget filp_close kernel_read kernel_write pid_vnr proc_remove put_pid __vmalloc_noprof)
+were already exported for GKI modules but protected from unsigned ones. filp_open and close_fd stay in
+the ANDROID_GKI_VFS namespace, which the modules import explicitly: NVIDIA's runtime D3 keeps the GPU's
+PCI sysfs config file open.
+
+No existing entry is removed or moved, so every existing export keeps its CRC.
+
+Change-Id: I6d5819774cd41e2f72202918235d67d135604fd7
+---
+ gki/x86_64/symbols/anybook_amd | 65 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 65 insertions(+)
+
+diff --git a/gki/x86_64/symbols/anybook_amd b/gki/x86_64/symbols/anybook_amd
+index ff87e358e072..b235c93dac17 100644
+--- a/gki/x86_64/symbols/anybook_amd
++++ b/gki/x86_64/symbols/anybook_amd
+@@ -458,6 +458,9 @@
+   enable_irq
+   eth_type_trans
+   fd_install
++  fget
++  filp_close
++  filp_open
+   _find_first_bit
+   _find_first_zero_bit
+   _find_next_bit
+@@ -553,6 +556,7 @@
+   jiffies_to_msecs
+   jiffies_to_usecs
+   kasprintf
++  kernel_read
+   kfree
+   kfree_sensitive
+   __kmalloc_cache_noprof
+@@ -703,6 +707,7 @@
+   perf_trace_run_bpf_submit
+   pgprot_writecombine
+   phys_base
++  pin_user_pages
+   platform_device_register_full
+   platform_device_unregister
+   __platform_driver_register
+@@ -736,6 +741,9 @@
+   print_hex_dump
+   _printk
+   __printk_ratelimit
++  proc_create_data
++  proc_mkdir_mode
++  proc_remove
+   pskb_expand_head
+   __pskb_pull_tail
+   put_device
+@@ -816,6 +824,7 @@
+   seq_putc
+   seq_read
+   seq_write
++  set_page_dirty_lock
+   set_primary_fwnode
+   sg_alloc_table
+   sg_alloc_table_from_pages_segment
+@@ -1800,6 +1809,62 @@
+   __sg_page_iter_dma_next
+   strcspn
+ 
++# required by nvidia-drm.ko
++  drm_atomic_get_colorop_state
++  drm_atomic_set_colorop_for_plane
++  drm_atomic_set_crtc_for_connector
++  drm_atomic_set_crtc_for_plane
++  drm_atomic_set_mode_prop_for_crtc
++  drm_colorop_cleanup
++  drm_edid_override_connector_update
++  drm_file_get_master
++  drm_gem_mmap_obj
++  drm_gem_prime_fd_to_handle
++  drm_master_put
++  drm_mode_create
++  drm_property_create_bool
++  drm_property_lookup_blob
++  drm_property_replace_global_blob
++  drm_vma_node_is_allowed
++  drm_vma_offset_lookup_locked
++  vmf_insert_mixed
++
++# required by nvidia.ko
++  address_space_init_once
++  close_fd
++  console_lock
++  console_unlock
++  cpufreq_get
++  dev_printk_emit
++  dma_iova_free
++  dma_iova_try_alloc
++  follow_pfnmap_end
++  follow_pfnmap_start
++  get_task_pid
++  init_pid_ns
++  iterate_fd
++  jiffies_to_timespec64
++  kernel_write
++  mod_node_page_state
++  pcibios_resource_to_bus
++  pcie_reset_flr
++  pci_find_host_bridge
++  percpu_counter_add_batch
++  percpu_counter_batch
++  pid_vnr
++  put_pid
++  screen_info
++  seq_read_iter
++  shmem_kernel_file_setup
++  strncat
++  task_active_pid_ns
++  vfs_fallocate
++  vga_set_legacy_decoding
++  __vmalloc_noprof
++  vprintk
++  wait_for_device_probe
++  wait_for_random_bytes
++
+ # required by platform_profile.ko
+   acpi_kobj
+   class_find_device
