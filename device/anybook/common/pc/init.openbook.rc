@@ -110,6 +110,20 @@ on property:vendor.openbook.lab.mod=diag-ptm-off
 on property:vendor.openbook.lab.mod=diag-unload
     start vendor.openbook.lab-diag-unload
 
+# NVIDIA's driver for apps (ANAL-247, docs/nvidia-offload-ruby.md): in Hybrid, once the system is up, load NVIDIA's
+# driver with the lab's fixed nvidia-load command (openbook-pc-setup dgpu-driver boot: never with nouveau, and no
+# longer after a boot whose load never finished). Only then is the OpenBook NVK driver package offered to apps, so an
+# app opted in to it keeps the system driver whenever the dGPU has no driver (Eco, the boot load off or failed).
+# `setprop debug.openbook.dgpu_driver off` (or on) switches the boot load, kept across reboots.
+on property:sys.boot_completed=1 && property:vendor.openbook.gfx.mode=hybrid
+    start vendor.openbook.dgpu-driver
+
+on property:debug.openbook.dgpu_driver=*
+    start vendor.openbook.dgpu-driver-set
+
+on property:vendor.openbook.dgpu.ready=nvidia
+    setprop ro.gfx.driver.0 org.openbook.nvk
+
 service vendor.openbook.dlkm /vendor/bin/modprobe -b -s -d /vendor/lib/modules --all=/vendor/lib/modules/modules.load
     user root
     group root system
@@ -148,6 +162,18 @@ service vendor.openbook.dgpu-ctl /vendor/bin/openbook-pc-setup dgpu-ctl ${debug.
     disabled
 
 service vendor.openbook.lab /vendor/bin/openbook-pc-setup lab ${debug.openbook.lab}
+    user root
+    group root system
+    oneshot
+    disabled
+
+service vendor.openbook.dgpu-driver /vendor/bin/openbook-pc-setup dgpu-driver boot
+    user root
+    group root system
+    oneshot
+    disabled
+
+service vendor.openbook.dgpu-driver-set /vendor/bin/openbook-pc-setup dgpu-driver ${debug.openbook.dgpu_driver}
     user root
     group root system
     oneshot

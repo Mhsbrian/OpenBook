@@ -236,8 +236,14 @@ case $2 in
   nouveau-load) mkdir -p "$m/nouveau/parameters" "$m/drm_gpuvm"; echo live > "$m/nouveau/initstate"
                 echo 1 > "$m/nouveau/parameters/runpm"; echo 2 > "$m/nouveau/parameters/modeset" ;;
   nouveau-unload) rm -rf "$m/nouveau" "$m/drm_gpuvm" ;;
-  nvidia-load) for x in nvidia nvidia_modeset nvidia_drm; do mkdir -p "$m/$x"; echo live > "$m/$x/initstate"; done ;;
-  nvidia-unload) rm -rf "$m/nvidia" "$m/nvidia_modeset" "$m/nvidia_drm" ;;
+  nvidia-load) for x in nvidia nvidia_modeset nvidia_drm; do mkdir -p "$m/$x"; echo live > "$m/$x/initstate"; done
+               # FAKE_BIND=0: the driver loads but does not take the GPU.
+               g=$FAKE_SYS/sys/devices/pci0000:00/0000:00:03.1/0000:64:00.0
+               if [ "${FAKE_BIND:-1}" = 1 ] && [ -d "$g" ] && [ ! -e "$g/driver" ]; then
+                 mkdir -p "$FAKE_SYS/sys/bus/pci/drivers/nvidia"; ln -s ../../../../bus/pci/drivers/nvidia "$g/driver"
+               fi ;;
+  nvidia-unload) rm -rf "$m/nvidia" "$m/nvidia_modeset" "$m/nvidia_drm"
+                 rm -f "$FAKE_SYS/sys/devices/pci0000:00/0000:00:03.1/0000:64:00.0/driver" ;;
   diag-snapshot|diag-ptm-off)
     d=$m/openbook_sleep_diag/parameters; mkdir -p "$d"
     [ "$2" = diag-ptm-off ] && echo Y > "$d/ptm_off" || echo N > "$d/ptm_off"
@@ -343,6 +349,99 @@ labrun "$r" lab disable
 check "lab disable: switch off" "$P/persist.vendor.openbook.lab" 0
 labrun "$r" lab report
 check "lab disable: report refused again (exit 3)" "$r.rc" 3
+
+# dgpu-driver (ANAL-247): NVIDIA's driver at boot in Hybrid, through the lab's fixed nvidia-load command, and the
+# guard in persist.vendor.openbook.dgpu_driver. Each case starts from an empty property store.
+drv() {  # drv ROOT ARGS...: dgpu-driver with the stubs and no settle delay
+  r=$1; shift
+  PROPS=$P FAKE_SYS=$r OPENBOOK_GETPROP=$T/getprop OPENBOOK_SETPROP=$T/setprop OPENBOOK_LAB_WAIT_S=${WAIT:-3} \
+    OPENBOOK_SETTLE_S=0 OPENBOOK_DRIVER_SETTLE_S=0 OPENBOOK_SYSFS_ROOT=$r OPENBOOK_LOGCMD= "$SH" "$SCRIPT" dgpu-driver "$@" \
+    > "$r.log" 2>&1
+  echo $? > "$r.rc"
+}
+fresh() { rm -f "$P"/* "$P/.log"; : > "$P/.log"; }
+nothing_asked() {  # nothing_asked NAME: init was never asked to load, and the package never offered
+  if grep -Eq 'lab.mod=nvidia-load|dgpu.ready' "$P/.log"; then echo "FAIL $1: $(cat "$P/.log")"; fails=$((fails + 1))
+  else echo "ok   $1"; fi
+}
+
+fresh; r=$T/drv-none; mkdir -p "$r/sys/bus/pci/devices"; pci "$r" 0000:65:00.0 0x1002 0x030000 amdgpu
+drv "$r" boot
+check "dgpu-driver no NVIDIA GPU: exit 0" "$r.rc" 0
+has "dgpu-driver no NVIDIA GPU: said so" "$r.log" 'no NVIDIA GPU enumerated; nothing to load'
+nothing_asked "dgpu-driver no NVIDIA GPU: nothing asked"
+
+fresh; r=$T/drv-load; lab_root "$r"
+drv "$r" boot
+check "dgpu-driver boot: exit 0" "$r.rc" 0
+check "dgpu-driver boot: guard, load, offer in order" "$P/.log" "persist.vendor.openbook.dgpu_driver=loading"
+has "dgpu-driver boot: asked init for the lab's nvidia-load" "$P/.log" '^vendor.openbook.lab.mod=nvidia-load$'
+check "dgpu-driver boot: request reset" "$P/vendor.openbook.lab.mod" idle
+check "dgpu-driver boot: guard cleared" "$P/persist.vendor.openbook.dgpu_driver" on
+check "dgpu-driver boot: package offered" "$P/vendor.openbook.dgpu.ready" nvidia
+if [ "$(tail -n 1 "$P/.log")" = vendor.openbook.dgpu.ready=nvidia ]; then echo "ok   dgpu-driver boot: offered last"
+else echo "FAIL dgpu-driver boot: offered last: $(cat "$P/.log")"; fails=$((fails + 1)); fi
+has "dgpu-driver boot: said so" "$r.log" 'dgpu-driver: NVIDIA.s driver drives 0000:64:00.0; OpenBook NVK is offered'
+has "dgpu-driver boot: report after" "$r.log" 'dgpu-report: '
+# Already loaded (the lab, or a second start): no second load, offered.
+: > "$P/.log"
+drv "$r" boot
+check "dgpu-driver already loaded: exit 0" "$r.rc" 0
+grep -q 'lab.mod=nvidia-load' "$P/.log" && { echo "FAIL dgpu-driver already loaded: asked init again"; fails=$((fails + 1)); } ||
+  echo "ok   dgpu-driver already loaded: init not asked again"
+has "dgpu-driver already loaded: offered" "$P/.log" '^vendor.openbook.dgpu.ready=nvidia$'
+# The lab's nvidia-unload warns once the package is offered.
+w "$P/persist.vendor.openbook.lab" 1
+labrun "$r" lab nvidia-unload
+has "lab nvidia-unload while offered: warns" "$r.log" 'apps opted in to it fail to start until'
+
+fresh; r=$T/drv-off; lab_root "$r"
+drv "$r" off
+check "dgpu-driver off: exit 0" "$r.rc" 0
+check "dgpu-driver off: persisted" "$P/persist.vendor.openbook.dgpu_driver" off
+drv "$r" boot
+check "dgpu-driver boot while off: exit 0" "$r.rc" 0
+has "dgpu-driver boot while off: said how to turn on" "$r.log" "boot load off .*debug.openbook.dgpu_driver on"
+nothing_asked "dgpu-driver boot while off: nothing asked"
+drv "$r" maybe
+check "dgpu-driver bad value: exit 2" "$r.rc" 2
+check "dgpu-driver bad value: choice kept" "$P/persist.vendor.openbook.dgpu_driver" off
+
+fresh; r=$T/drv-crash; lab_root "$r"; w "$P/persist.vendor.openbook.dgpu_driver" loading
+drv "$r" boot
+check "dgpu-driver after an unfinished load: exit 0" "$r.rc" 0
+check "dgpu-driver after an unfinished load: failed" "$P/persist.vendor.openbook.dgpu_driver" failed
+has "dgpu-driver after an unfinished load: said why" "$r.log" "never finished"
+nothing_asked "dgpu-driver after an unfinished load: nothing asked"
+drv "$r" boot
+nothing_asked "dgpu-driver while failed: nothing asked"
+has "dgpu-driver while failed: said how to retry" "$r.log" "earlier boot load failed .*debug.openbook.dgpu_driver on"
+drv "$r" on
+check "dgpu-driver on: clears failed" "$P/persist.vendor.openbook.dgpu_driver" on
+drv "$r" boot
+check "dgpu-driver on, then boot: offered" "$P/vendor.openbook.dgpu.ready" nvidia
+
+fresh; r=$T/drv-noinit; lab_root "$r"
+FAKE_INIT=0 WAIT=1 drv "$r" boot
+check "dgpu-driver module never came: exit 5" "$r.rc" 5
+check "dgpu-driver module never came: failed" "$P/persist.vendor.openbook.dgpu_driver" failed
+check "dgpu-driver module never came: request reset" "$P/vendor.openbook.lab.mod" idle
+[ -e "$P/vendor.openbook.dgpu.ready" ] && { echo "FAIL dgpu-driver module never came: offered"; fails=$((fails + 1)); } ||
+  echo "ok   dgpu-driver module never came: not offered"
+
+fresh; r=$T/drv-nobind; lab_root "$r"
+FAKE_BIND=0 WAIT=1 drv "$r" boot
+check "dgpu-driver loaded but not bound: exit 5" "$r.rc" 5
+check "dgpu-driver loaded but not bound: failed" "$P/persist.vendor.openbook.dgpu_driver" failed
+has "dgpu-driver loaded but not bound: said so" "$r.log" "did not bind 0000:64:00.0"
+[ -e "$P/vendor.openbook.dgpu.ready" ] && { echo "FAIL dgpu-driver not bound: offered"; fails=$((fails + 1)); } ||
+  echo "ok   dgpu-driver not bound: not offered"
+
+fresh; r=$T/drv-nouveau; lab_root "$r"; mkdir -p "$r/sys/module/nouveau"
+drv "$r" boot
+check "dgpu-driver with nouveau: exit 0" "$r.rc" 0
+has "dgpu-driver with nouveau: said so" "$r.log" "nouveau is loaded and drives the same GPU"
+nothing_asked "dgpu-driver with nouveau: nothing asked"
 
 echo "openbook-pc-setup-test: $fails failure(s)"
 [ $fails = 0 ]
