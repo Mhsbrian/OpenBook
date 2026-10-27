@@ -54,7 +54,8 @@ static void log_maps(void) {
         path[strcspn(path, "\n")] = 0;
         if (!strstr(path, "vulkan.") && !strstr(path, "_angle") && !strstr(path, "libEGL_") &&
             !strstr(path, "libGLES") && !strstr(path, ".apk")) continue;
-        if (strstr(path, ".apk") && !strstr(path, "OpenBookNvk")) continue;   // this app's own APK
+        // A driver package's APK: the image's copy (OpenBookNvk.apk) or an update (/data/app/.../org.openbook.nvk-...).
+        if (strstr(path, ".apk") && !strstr(path, "OpenBookNvk") && !strstr(path, "org.openbook.nvk")) continue;
         int dup = 0;
         for (int i = 0; i < n; i++) dup |= !strcmp(seen[i], path);
         if (dup) continue;
@@ -226,6 +227,7 @@ static void *worker(void *arg) {
     LOG("start mode=%s seconds=%d", g_mode, g_seconds);
     if (!strcmp(g_mode, "info") || !strcmp(g_mode, "all")) {
         vk_info();
+        log_maps();   // before EGL too: a failing GLES driver may take the process down
         egl_info();
     }
     if (!strcmp(g_mode, "gl") || !strcmp(g_mode, "all")) gl_present();
