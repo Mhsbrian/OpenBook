@@ -3,7 +3,8 @@
 # OpenBook PC boot-time sysfs setup, run by init as root (init.openbook.rc). Android mksh + toybox; also runs under
 # bash/dash for the fixture test (scripts/openbook-pc-setup-test.sh).
 #
-# usage: openbook-pc-setup dgpu-pm | dgpu-report [REASON] | dgpu-ctl on|auto | lab ACTION[@N] | perms | kvm
+# usage: openbook-pc-setup dgpu-pm | dgpu-report [REASON] | dgpu-ctl on|auto | dgpu-driver boot|on|off |
+#                          lab ACTION[@N] | perms | kvm
 #   dgpu-pm  Let an NVIDIA dGPU (10de) reach D3cold (docs/nvidia.md). snd_hda_intel holds the dGPU's HDMI-audio
 #            function awake: without vga_switcheroo (off in the GKI) it never runtime-suspends, and with it awake
 #            the root port cannot cut the slot's power, whether or not a driver drives the GPU. So:
@@ -27,6 +28,17 @@
 #            Volatile power hold for battery comparisons (ANAL-238), from debug.openbook.dgpu_pm. "on" keeps every
 #            NVIDIA function in D0 (power/control=on); "auto" is dgpu-pm again. Refused while a driver drives the
 #            GPU. Then logs a dgpu-report. A reboot returns to the boot default (dgpu-pm).
+#   dgpu-driver boot|on|off
+#            NVIDIA's driver for apps (ANAL-247, docs/nvidia-offload-ruby.md). "boot" runs once the system is up in
+#            Hybrid (init.openbook.rc): it asks init for the lab's fixed nvidia-load command (nvidia-drm, which pulls
+#            in nvidia-modeset and nvidia), waits for nvidia_drm and for the GPU to bind, then sets
+#            vendor.openbook.dgpu.ready=nvidia, on which init offers the OpenBook NVK driver package to apps
+#            (ro.gfx.driver.0). Without an NVIDIA GPU, with nouveau loaded, or with the boot load off it does
+#            nothing, and apps opted in to the package keep the system driver. persist.vendor.openbook.dgpu_driver
+#            keeps the choice and a guard: "loading" while a load runs, cleared OPENBOOK_DRIVER_SETTLE_S (30) seconds
+#            after the GPU bound; a boot that finds "loading" (that load never finished: a crash or a power cut)
+#            or a load that fails leaves "failed", and no further boot loads it. "on" and "off", from
+#            debug.openbook.dgpu_driver, set the choice ("on" also clears "failed"); unset means on.
 #   lab ACTION[@N]
 #            The G14 lab helper (ANAL-257, docs/googlebook-s0i3.md), from debug.openbook.lab: allow-listed
 #            experiments for a user build's adb shell, which cannot load modules, write /sys or read the kernel log.
@@ -52,7 +64,7 @@
 #            It reads sysfs: only crosvm and ueventd may even stat /dev/kvm.
 # Testing: OPENBOOK_SYSFS_ROOT=<dir> works on <dir>/sys instead of /sys; OPENBOOK_LOGCMD=<path> replaces
 # /vendor/bin/log (empty: no logd copy); OPENBOOK_GETPROP/OPENBOOK_SETPROP replace getprop/setprop;
-# OPENBOOK_LAB_WAIT_S bounds the wait for a module (default 30).
+# OPENBOOK_LAB_WAIT_S bounds the wait for a module (default 30); OPENBOOK_DRIVER_SETTLE_S the dgpu-driver guard.
 set -u
 SYS=${OPENBOOK_SYSFS_ROOT:-}/sys
 POWER_SAVE=10
@@ -335,6 +347,9 @@ lab() {
         log "lab: $act refused: $other is loaded and drives the same GPU (unload it first)"; lab_report "$req"; return 4
       fi
       # init runs the fixed command for this value (init.openbook.rc); idle first, so a repeat is a change too.
+      if [ "$act" = nvidia-unload ] && [ "$(getp vendor.openbook.dgpu.ready)" = nvidia ]; then
+        log "lab: note: OpenBook NVK is offered to apps this boot; apps opted in to it fail to start until NVIDIA's driver is loaded again or the laptop restarts"
+      fi
       setp vendor.openbook.lab.mod idle; setp vendor.openbook.lab.mod "$act"
       if lab_wait $m $want; then log "lab: $act: $m $want"; else log "lab: $act: $m not $want after ${OPENBOOK_LAB_WAIT_S:-30} s"; rc=5; fi
       setp vendor.openbook.lab.mod idle
@@ -343,6 +358,62 @@ lab() {
     sleep-*) lab_sleep "${act#sleep-}" || rc=1; lab_report "$req" ;;
   esac
   return $rc
+}
+
+DRIVER_STATE=persist.vendor.openbook.dgpu_driver
+
+dgpu_driver() {
+  case ${1:-} in
+    on|off) setp $DRIVER_STATE "$1" && log "dgpu-driver: boot load $1 ($DRIVER_STATE=$1, kept across reboots)"; return 0 ;;
+    boot) ;;
+    *) log "dgpu-driver: '${1:-}' is not boot, on or off"; return 2 ;;
+  esac
+  state=$(getp $DRIVER_STATE)
+  case $state in
+    ''|on) ;;
+    off) log "dgpu-driver: boot load off ($DRIVER_STATE=off); 'setprop debug.openbook.dgpu_driver on' turns it on"; return 0 ;;
+    loading)
+      setp $DRIVER_STATE failed
+      log "dgpu-driver: the last boot's load never finished (a crash or a power cut); boot load off until 'setprop debug.openbook.dgpu_driver on'"
+      return 0 ;;
+    failed) log "dgpu-driver: an earlier boot load failed ($DRIVER_STATE=failed); 'setprop debug.openbook.dgpu_driver on' retries at the next boot"; return 0 ;;
+    *) log "dgpu-driver: unknown $DRIVER_STATE '$state'; not loading"; return 2 ;;
+  esac
+  gpu=
+  for d in "$SYS"/bus/pci/devices/*; do
+    [ "$(rd "$d/vendor")" = 0x10de ] || continue
+    case $(rd "$d/class") in 0x03*) gpu=${d##*/}; break ;; esac
+  done
+  [ -n "$gpu" ] || { log "dgpu-driver: no NVIDIA GPU enumerated; nothing to load"; return 0; }
+  if [ -d "$SYS/module/nouveau" ]; then
+    log "dgpu-driver: nouveau is loaded and drives the same GPU; NVIDIA's driver not loaded"; return 0
+  fi
+  if [ ! -d "$SYS/module/nvidia_drm" ]; then
+    setp $DRIVER_STATE loading
+    setp vendor.openbook.lab.mod idle; setp vendor.openbook.lab.mod nvidia-load
+    if lab_wait nvidia_drm present; then up=1; else up=0; fi
+    setp vendor.openbook.lab.mod idle
+    if [ $up = 0 ]; then
+      setp $DRIVER_STATE failed
+      log "dgpu-driver: nvidia_drm not present after ${OPENBOOK_LAB_WAIT_S:-30} s; boot load off until 'setprop debug.openbook.dgpu_driver on'"
+      dgpu_report "dgpu-driver boot"; return 5
+    fi
+  fi
+  i=0
+  while [ "$(driver_of "$SYS/bus/pci/devices/$gpu")" != nvidia ] && [ $i -lt "${OPENBOOK_LAB_WAIT_S:-30}" ]; do
+    sleep 1; i=$((i + 1))
+  done
+  if [ "$(driver_of "$SYS/bus/pci/devices/$gpu")" != nvidia ]; then
+    setp $DRIVER_STATE failed
+    log "dgpu-driver: NVIDIA's driver loaded but did not bind $gpu; boot load off until 'setprop debug.openbook.dgpu_driver on'"
+    dgpu_report "dgpu-driver boot"; return 5
+  fi
+  sleep "${OPENBOOK_DRIVER_SETTLE_S:-30}"   # a crash this soon after the load leaves "loading" for the next boot
+  [ "$(getp $DRIVER_STATE)" = loading ] && setp $DRIVER_STATE on
+  setp vendor.openbook.dgpu.ready nvidia
+  log "dgpu-driver: NVIDIA's driver drives $gpu; OpenBook NVK is offered to apps that opt in"
+  dgpu_report "dgpu-driver boot"
+  return 0
 }
 
 perms() {
@@ -369,8 +440,9 @@ case ${1:-} in
   dgpu-pm) dgpu_pm ;;
   dgpu-report) shift; dgpu_report "$*" ;;
   dgpu-ctl) dgpu_ctl "${2:-}" ;;
+  dgpu-driver) dgpu_driver "${2:-}" ;;
   lab) lab "${2:-}" ;;
   perms) perms ;;
   kvm) kvm ;;
-  *) echo "usage: openbook-pc-setup dgpu-pm|dgpu-report [REASON]|dgpu-ctl on|auto|lab ACTION[@N]|perms|kvm" >&2; exit 2 ;;
+  *) echo "usage: openbook-pc-setup dgpu-pm|dgpu-report [REASON]|dgpu-ctl on|auto|dgpu-driver boot|on|off|lab ACTION[@N]|perms|kvm" >&2; exit 2 ;;
 esac
