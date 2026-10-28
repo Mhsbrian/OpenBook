@@ -116,9 +116,10 @@ done
 
 # 6-9. dgpu-report and dgpu-ctl (ANAL-238). The logd copy goes through a stub log command.
 stub=$T/log-stub; printf '#!/bin/sh\necho "$*" >> "$LOGD_OUT"\n' > "$stub"; chmod +x "$stub"
-runx() {  # runx ROOT ARGS...: run with the logd stub and no settle delay
+runx() {  # runx ROOT ARGS...: run with the logd stub, no settle delay and an empty kernel log (or DMESG_STUB's)
   r=$1; shift
-  LOGD_OUT=$r.logd OPENBOOK_LOGCMD=$stub OPENBOOK_SETTLE_S=0 OPENBOOK_SYSFS_ROOT=$r "$SH" "$SCRIPT" "$@" > "$r.log" 2>&1
+  LOGD_OUT=$r.logd OPENBOOK_LOGCMD=$stub OPENBOOK_SETTLE_S=0 OPENBOOK_DMESG=${DMESG_STUB:-true} OPENBOOK_SYSFS_ROOT=$r \
+    "$SH" "$SCRIPT" "$@" > "$r.log" 2>&1
   echo $? > "$r.rc"
 }
 has() {  # has NAME FILE PATTERN: FILE has a line matching the grep -E PATTERN
@@ -196,6 +197,25 @@ has "report nvidia: parameters" "$r.log" 'nvidia: DynamicPowerManagement=2 drm.m
 has "report nvidia: runtime D3 status" "$r.log" 'nvidia: 0000:64:00.0 Runtime D3 status: +Enabled \(fine-grained\)$'
 has "report nvidia: video memory" "$r.log" 'nvidia: 0000:64:00.0 Video Memory: +Off$'
 has "report nvidia: logd copy" "$r.logd" '^-t openbook-pc-setup -p i nvidia: DynamicPowerManagement=2'
+has "report nvidia: health line, kernel log unreadable" "$r.log" \
+  'dgpu-report: health state=d3cold driver=nvidia refs=- runtime_d3=enabled-fine-grained vram=off klog=unreadable$'
+
+# ANAL-308: the health line counts NVIDIA's kernel messages and Xid kinds in the kernel log ring, and its span.
+w "$r/sys/module/nvidia/refcnt" 3
+cat > "$r.dmesg" <<'KLOG'
+[38120.031524][ T4187] servicemanager: Caller(pid=1228,uid=1000) Tried to start aidl service
+[38200.100000][ T8503] NVRM: GPU at PCI:0000:64:00: GPU-00000000-0000-0000-0000-000000000000
+[38201.200000][ T8503] NVRM: Xid (PCI:0000:64:00): 13, pid=9001, name=deqp-vk, Graphics Exception: ESR 0x404600=0x80000002
+[38201.300000][ T8503] NVRM: Xid (PCI:0000:64:00): 13, pid=9001, name=deqp-vk, Graphics Exception: ESR 0x405840=0x80000000
+[38202.400000][ T8503] NVRM: Xid (PCI:0000:64:00): 31, pid=9002, name=deqp-vk, channel 0x00000010, intr 00000000. MMU Fault
+[39133.101403][ T8503] nvidia 0000:64:00.0: Enabling HDA controller
+KLOG
+DMESG_STUB="cat $r.dmesg" runx "$r" dgpu-report app-session
+has "report nvidia: health line counts NVRM lines and Xid kinds" "$r.log" \
+  'dgpu-report: health state=d3cold driver=nvidia refs=3 runtime_d3=enabled-fine-grained vram=off nvrm=4 xid=3 xid_kinds=13:2,31:1 klog_s=38120-39133$'
+printf '[    5.000000] NVRM: loading NVIDIA UNIX Open Kernel Module\n[  700.250000][ T1] init: ok\n' > "$r.dmesg.clean"
+DMESG_STUB="cat $r.dmesg.clean" runx "$r" dgpu-report clean
+has "report nvidia: health line without Xid has no kinds" "$r.log" 'nvrm=1 xid=0 klog_s=5-700$'
 
 r=$T/ctl-on
 pci "$r" 0000:64:00.0 0x10de 0x030000; pci "$r" 0000:64:00.1 0x10de 0x040300
