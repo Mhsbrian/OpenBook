@@ -2,7 +2,7 @@
 // GPU Check (ANAL-247): a small Android app that reports which graphics driver its own process loaded and how fast
 // it presents, so a per-app driver choice can be checked without a game. Pure NDK (NativeActivity, no Java).
 //
-//   am start -n org.openbook.gpucheck/android.app.NativeActivity [--es mode info|gl|vk|all] [--ei seconds N]
+//   am start -n org.openbook.gpucheck/android.app.NativeActivity [--es mode info|gl|vk|pipe|all] [--ei seconds N]
 //
 // Every result is one logcat line, tag "gpucheck", "GPUCHECK key=value ...":
 //   maps       the driver libraries mapped into this process (an updatable driver shows its APK's path)
@@ -13,6 +13,10 @@
 //              each N seconds (default 5), as frames per second
 //   vk.*       (mode vk) Vulkan straight to the window: the driver's own messages (debug utils), every failing call
 //              with its VkResult, and the frames presented per second (FIFO)
+//   pipe.*     (mode pipe) what GLES-on-Vulkan pays for new pipelines and queries (ANAL-311, ANGLE's feature A/B):
+//              48 programs never seen before (random constants, so no shader cache can hold them), each with its own
+//              blend/colour-mask state: link time, first draw (pipeline creation) and a second draw, each to glFinish;
+//              occlusion queries read back at once (blocking) and polled two frames later while presenting
 //   done       the end; the activity then finishes itself
 // Launched from the launcher (no extra), it runs "all".
 #include <EGL/egl.h>
@@ -183,6 +187,96 @@ static double gl_phase(EGLDisplay d, EGLSurface s, GLuint prog, int heavy, int s
     return frames / (now() - start);
 }
 
+// Mode pipe: new-pipeline and query costs in the window's context. Draws cover 64x64 pixels, so the GPU's own work
+// is negligible and the times are the driver stack's.
+static int cmp_double(const void *a, const void *b) {
+    double x = *(const double *)a, y = *(const double *)b;
+    return x < y ? -1 : x > y;
+}
+
+static void gl_pipe(EGLDisplay d, EGLSurface s, int width, int height) {
+    enum { N = 48 };
+    unsigned seed = (unsigned)(now() * 1000.0);
+    GLuint vs = shader(GL_VERTEX_SHADER, VS), progs[N];
+    double link = 0, first[N], second = 0;
+    glViewport(0, 0, 64, 64);
+    for (int i = 0; i < N; i++) {
+        char fs[640];
+        seed = seed * 1103515245u + 12345u;
+        float k = 0.5f + (seed % 100000) / 200000.0f;
+        snprintf(fs, sizeof fs,
+                 "#version 300 es\nprecision highp float;\nuniform float t;\nout vec4 o;\n"
+                 "void main() { float a = gl_FragCoord.x * %.7f + t;\n"
+                 " for (int i = 0; i < %d; i++) a = fract(a * %.7f + %.7f);\n"
+                 " o = vec4(a, %.7f, fract(t), 0.5); }\n",
+                 k * 0.001f, 4 + i % 8, 1.0f + k * 0.0001f, k * 0.37f, k);
+        double t0 = now();
+        progs[i] = glCreateProgram();
+        glAttachShader(progs[i], vs);
+        GLuint f = shader(GL_FRAGMENT_SHADER, fs);
+        glAttachShader(progs[i], f);
+        glLinkProgram(progs[i]);
+        glUseProgram(progs[i]);
+        glDeleteShader(f);
+        link += now() - t0;
+        if (i & 1) { glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); } else glDisable(GL_BLEND);
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, (i & 2) ? GL_FALSE : GL_TRUE);
+        double t1 = now();
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glFinish();
+        first[i] = now() - t1;
+        double t2 = now();
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glFinish();
+        second += now() - t2;
+    }
+    glDisable(GL_BLEND);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    double first_total = 0;
+    for (int i = 0; i < N; i++) first_total += first[i];
+    qsort(first, N, sizeof first[0], cmp_double);
+    LOG("pipe.compile programs=%d link_ms=%.1f first_draw_ms=%.1f first_p50_ms=%.2f first_max_ms=%.2f "
+        "second_draw_ms=%.1f", N, link * 1e3, first_total * 1e3, first[N / 2] * 1e3, first[N - 1] * 1e3,
+        second * 1e3);
+
+    // Occlusion queries with one of the programs above.
+    GLuint q[4];
+    glGenQueries(4, q);
+    glUseProgram(progs[0]);
+    int blocking = 200;
+    double t0 = now();
+    for (int i = 0; i < blocking; i++) {
+        GLuint r = 0;
+        glBeginQuery(GL_ANY_SAMPLES_PASSED, q[0]);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glEndQuery(GL_ANY_SAMPLES_PASSED);
+        glGetQueryObjectuiv(q[0], GL_QUERY_RESULT, &r);
+    }
+    double per = (now() - t0) / blocking;
+    int frames = 0, issued = 0, ready = 0;
+    t0 = now();
+    while (now() - t0 < g_seconds && !g_stop) {
+        glClear(GL_COLOR_BUFFER_BIT);
+        glBeginQuery(GL_ANY_SAMPLES_PASSED, q[frames & 3]);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glEndQuery(GL_ANY_SAMPLES_PASSED);
+        issued++;
+        if (frames >= 2) {
+            GLuint avail = 0, r = 0;
+            glGetQueryObjectuiv(q[(frames - 2) & 3], GL_QUERY_RESULT_AVAILABLE, &avail);
+            if (avail) { glGetQueryObjectuiv(q[(frames - 2) & 3], GL_QUERY_RESULT, &r); ready++; }
+        }
+        if (!eglSwapBuffers(d, s)) { LOG("pipe.swap ok=0 error=0x%x", eglGetError()); break; }
+        frames++;
+    }
+    LOG("pipe.query blocking_ms=%.3f poll_fps=%.1f ready=%d/%d seconds=%d", per * 1e3, frames / (now() - t0),
+        ready, issued > 2 ? issued - 2 : 0, g_seconds);
+    glDeleteQueries(4, q);
+    for (int i = 0; i < N; i++) glDeleteProgram(progs[i]);
+    glDeleteShader(vs);
+    glViewport(0, 0, width, height);
+}
+
 // The activity's window, acquired (NULL after 10 s without one).
 static ANativeWindow *wait_window(void) {
     pthread_mutex_lock(&g_lock);
@@ -221,10 +315,15 @@ static void gl_present(void) {
         glUseProgram(prog);
         glViewport(0, 0, width, height);
         LOG("gl.window width=%d height=%d renderer=\"%s\"", width, height, glGetString(GL_RENDERER));
-        gl_phase(d, s, prog, 0, 1);   // warm-up
-        double light = gl_phase(d, s, prog, 0, g_seconds);
-        double heavy = gl_phase(d, s, prog, 1, g_seconds);
-        LOG("gl.fps light=%.1f heavy=%.1f seconds=%d width=%d height=%d", light, heavy, g_seconds, width, height);
+        if (!strcmp(g_mode, "pipe")) {
+            gl_pipe(d, s, width, height);
+        } else {
+            gl_phase(d, s, prog, 0, 1);   // warm-up
+            double light = gl_phase(d, s, prog, 0, g_seconds);
+            double heavy = gl_phase(d, s, prog, 1, g_seconds);
+            LOG("gl.fps light=%.1f heavy=%.1f seconds=%d width=%d height=%d", light, heavy, g_seconds, width,
+                height);
+        }
         eglMakeCurrent(d, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     }
     if (x != EGL_NO_CONTEXT) eglDestroyContext(d, x);
@@ -416,7 +515,7 @@ static void *worker(void *arg) {
         egl_info();
     }
     if (!strcmp(g_mode, "vk")) vk_present();
-    if (!strcmp(g_mode, "gl") || !strcmp(g_mode, "all")) gl_present();
+    if (!strcmp(g_mode, "gl") || !strcmp(g_mode, "all") || !strcmp(g_mode, "pipe")) gl_present();
     log_maps();
     LOG("done");
     ANativeActivity_finish(g_activity);
@@ -483,7 +582,7 @@ static void read_extras(ANativeActivity *a) {
         (*env)->NewStringUTF(env, "mode"));
     if (mode) {
         const char *m = (*env)->GetStringUTFChars(env, mode, NULL);
-        if (!strcmp(m, "info") || !strcmp(m, "gl") || !strcmp(m, "vk") || !strcmp(m, "all"))
+        if (!strcmp(m, "info") || !strcmp(m, "gl") || !strcmp(m, "vk") || !strcmp(m, "pipe") || !strcmp(m, "all"))
             snprintf(g_mode, sizeof g_mode, "%s", m);
         (*env)->ReleaseStringUTFChars(env, mode, m);
     }
