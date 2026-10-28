@@ -133,6 +133,11 @@ static void egl_info(void) {
     } else {
         LOG("egl.gles vendor=\"%s\" renderer=\"%s\" version=\"%s\"", glGetString(GL_VENDOR),
             glGetString(GL_RENDERER), glGetString(GL_VERSION));
+        // Limits that ANGLE features change, so a debug.angle.feature_overrides_* run can show it took effect.
+        GLint ubo = 0, exts = 0;
+        glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &ubo);
+        glGetIntegerv(GL_NUM_EXTENSIONS, &exts);
+        LOG("egl.limits max_uniform_block_size=%d extensions=%d", ubo, exts);
         eglMakeCurrent(d, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     }
     if (x != EGL_NO_CONTEXT) eglDestroyContext(d, x);
