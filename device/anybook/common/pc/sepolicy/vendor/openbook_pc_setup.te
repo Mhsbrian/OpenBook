@@ -33,3 +33,12 @@ set_prop(openbook_pc_setup, vendor_openbook_prop)
 # and unloads are init's vendor_modprobe services, not this domain.
 r_dir_file(openbook_pc_setup, sysfs_rtc)
 allow openbook_pc_setup sysfs_power:file w_file_perms;
+
+# dgpu-report's health line (ANAL-308): NVIDIA's own runtime-D3 and video-memory status in /proc/driver/nvidia
+# (genfs_contexts: its own label, read by no other domain), and NVIDIA's NVRM and Xid messages in the kernel log ring
+# (toybox dmesg: syslog(2) needs CAP_SYSLOG and the kernel's syslog_read). The Ruby image gets the same rules from
+# scripts/googlebook/build-nvidia-open-candidate.py.
+type proc_openbook_nvidia, fs_type, proc_type;
+r_dir_file(openbook_pc_setup, proc_openbook_nvidia)
+allow openbook_pc_setup self:capability2 syslog;
+allow openbook_pc_setup kernel:system syslog_read;

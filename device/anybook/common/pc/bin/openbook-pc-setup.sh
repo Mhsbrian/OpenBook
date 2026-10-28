@@ -23,7 +23,13 @@
 #            scripts/dgpu-power-check.sh names it (d3cold, d3hot, d0-no-driver, d0-driver, absent). Read-only, and
 #            it never reads PCI config space, which would wake a suspended dGPU. A user build's shell can read
 #            none of this, so init runs it at boot completion and whenever debug.openbook.dgpu_report changes;
-#            read it with `logcat -d -s openbook-pc-setup`.
+#            read it with `logcat -d -s openbook-pc-setup`. Its last line is the one-line health check (ANAL-308):
+#              dgpu-report: health state=S driver=D refs=N runtime_d3=X vram=Y nvrm=N xid=N[ xid_kinds=K:N,...]
+#                           klog_s=FIRST-LAST
+#            refs is nvidia.ko's reference count (one per open handle to NVIDIA's driver); runtime_d3 and vram are
+#            NVIDIA's own runtime-D3 and video-memory status (/proc/driver/nvidia/gpus/*/power); nvrm and xid
+#            count NVIDIA's kernel messages (every "NVRM:" line, and its Xid error reports by Xid number) in the
+#            kernel log ring, which spans klog_s seconds since boot: older lines are gone.
 #   dgpu-ctl on|auto
 #            Volatile power hold for battery comparisons (ANAL-238), from debug.openbook.dgpu_pm. "on" keeps every
 #            NVIDIA function in D0 (power/control=on); "auto" is dgpu-pm again. Refused while a driver drives the
@@ -64,7 +70,8 @@
 #            It reads sysfs: only crosvm and ueventd may even stat /dev/kvm.
 # Testing: OPENBOOK_SYSFS_ROOT=<dir> works on <dir>/sys instead of /sys; OPENBOOK_LOGCMD=<path> replaces
 # /vendor/bin/log (empty: no logd copy); OPENBOOK_GETPROP/OPENBOOK_SETPROP replace getprop/setprop;
-# OPENBOOK_LAB_WAIT_S bounds the wait for a module (default 30); OPENBOOK_DRIVER_SETTLE_S the dgpu-driver guard.
+# OPENBOOK_LAB_WAIT_S bounds the wait for a module (default 30); OPENBOOK_DRIVER_SETTLE_S the dgpu-driver guard;
+# OPENBOOK_DMESG replaces dmesg.
 set -u
 SYS=${OPENBOOK_SYSFS_ROOT:-}/sys
 POWER_SAVE=10
@@ -188,6 +195,30 @@ acpi_facts() {
   return 0
 }
 
+# dgpu_health STATE DRIVER: the one-line health check that ends a dgpu-report (ANAL-308; usage above).
+dgpu_health() {
+  refs=$(rd "$SYS/module/nvidia/refcnt"); d3=; vram=
+  for g in "$SYS"/bus/pci/drivers/nvidia/????:??:??.?; do
+    p=${OPENBOOK_SYSFS_ROOT:-}/proc/driver/nvidia/gpus/${g##*/}/power
+    [ -r "$p" ] || continue
+    d3=$(sed -n 's/^Runtime D3 status: *//p' "$p" | head -n 1 | tr -d '()' | tr 'A-Z ' 'a-z-')
+    vram=$(sed -n 's/^Video Memory: *//p' "$p" | head -n 1 | tr -d '()' | tr 'A-Z ' 'a-z-')
+    break
+  done
+  k=$(${OPENBOOK_DMESG:-dmesg} 2>/dev/null)
+  if [ -n "$k" ]; then
+    nvrm=$(printf '%s\n' "$k" | grep -c 'NVRM: ')
+    xid=$(printf '%s\n' "$k" | grep -c 'NVRM: Xid ')
+    kinds=$(printf '%s\n' "$k" | sed -n 's/.*NVRM: Xid ([^)]*): \([0-9][0-9]*\),.*/\1/p' | sort -n | uniq -c |
+            while read -r c n; do printf '%s:%s,' "$n" "$c"; done)
+    span=$(printf '%s\n' "$k" | sed -n 's/^[^[]*\[ *\([0-9][0-9]*\)\.[0-9]*\].*/\1/p' | sed -n '1p;$p' | tr '\n' - )
+    klog="nvrm=$nvrm xid=$xid${kinds:+ xid_kinds=${kinds%,}} klog_s=${span%-}"
+  else
+    klog="klog=unreadable"
+  fi
+  log "dgpu-report: health state=$1 driver=${2:--} refs=${refs:--} runtime_d3=${d3:--} vram=${vram:--} $klog"
+}
+
 dgpu_report() {
   log "dgpu-report (${1:-manual})"
   funcs=; gpus=; bridge=
@@ -225,6 +256,7 @@ dgpu_report() {
   elif [ $unknown = 1 ]; then state=unknown
   else state=d3hot; fi
   log "dgpu-report: state=$state"
+  dgpu_health "$state" "$gpu_drv"
   return 0
 }
 
