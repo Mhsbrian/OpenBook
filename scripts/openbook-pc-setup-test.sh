@@ -216,6 +216,23 @@ has "report nvidia: health line counts NVRM lines and Xid kinds" "$r.log" \
 printf '[    5.000000] NVRM: loading NVIDIA UNIX Open Kernel Module\n[  700.250000][ T1] init: ok\n' > "$r.dmesg.clean"
 DMESG_STUB="cat $r.dmesg.clean" runx "$r" dgpu-report clean
 has "report nvidia: health line without Xid has no kinds" "$r.log" 'nvrm=1 xid=0 klog_s=5-700$'
+# ANAL-308 rev 2: a ring the G14's size (~250 KiB). R8 passed it to an external printf, which takes at most 128 KiB
+# per argument (Android's mksh has no printf builtin), so every count read 0 and the span was empty on the laptop.
+{ echo '[    4.000000][    T1] NVRM: loading NVIDIA UNIX Open Kernel Module for x86_64  615.78.08'
+  i=0; while [ $i -lt 2200 ]; do
+    echo "[  $((100 + i)).000000][  T812] avc:  denied  { find } for pid=1228 uid=1000 name=vendor.google.desktop.x/default"
+    i=$((i + 1)); done
+  echo '[ 2400.500000][ T8503] NVRM: Xid (PCI:0000:64:00): 13, pid=9001, name=deqp-vk, Graphics Exception'; } > "$r.dmesg.big"
+DMESG_STUB="cat $r.dmesg.big" runx "$r" dgpu-report big
+has "report nvidia: health line counts a ring over 128 KiB" "$r.log" 'nvrm=2 xid=1 xid_kinds=13:1 klog_s=4-2400$'
+# The default read is syslog(2), never /dev/kmsg: the helper may not read /dev/kmsg, and toybox's dmesg tries it first.
+mkdir -p "$T/fakebin"
+printf '#!/bin/sh\necho "$*" > "%s"\ncat "%s"\n' "$r.dmesg-args" "$r.dmesg.clean" > "$T/fakebin/dmesg"
+chmod +x "$T/fakebin/dmesg"
+PATH=$T/fakebin:$PATH LOGD_OUT=$r.logd OPENBOOK_LOGCMD=$stub OPENBOOK_SETTLE_S=0 OPENBOOK_SYSFS_ROOT=$r \
+  "$SH" "$SCRIPT" dgpu-report default > "$r.log" 2>&1
+check "report nvidia: kernel log read with dmesg -S" "$r.dmesg-args" "-S"
+has "report nvidia: health line from the default read" "$r.log" 'nvrm=1 xid=0 klog_s=5-700$'
 
 r=$T/ctl-on
 pci "$r" 0000:64:00.0 0x10de 0x030000; pci "$r" 0000:64:00.1 0x10de 0x040300

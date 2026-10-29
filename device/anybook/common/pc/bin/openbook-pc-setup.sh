@@ -29,7 +29,8 @@
 #            refs is nvidia.ko's reference count (one per open handle to NVIDIA's driver); runtime_d3 and vram are
 #            NVIDIA's own runtime-D3 and video-memory status (/proc/driver/nvidia/gpus/*/power); nvrm and xid
 #            count NVIDIA's kernel messages (every "NVRM:" line, and its Xid error reports by Xid number) in the
-#            kernel log ring, which spans klog_s seconds since boot: older lines are gone.
+#            kernel log ring, which spans klog_s seconds since boot: older lines are gone. The ring is read with
+#            syslog(2) (dmesg -S): the helper may not read /dev/kmsg, which toybox's dmesg would try first.
 #   dgpu-ctl on|auto
 #            Volatile power hold for battery comparisons (ANAL-238), from debug.openbook.dgpu_pm. "on" keeps every
 #            NVIDIA function in D0 (power/control=on); "auto" is dgpu-pm again. Refused while a driver drives the
@@ -71,7 +72,7 @@
 # Testing: OPENBOOK_SYSFS_ROOT=<dir> works on <dir>/sys instead of /sys; OPENBOOK_LOGCMD=<path> replaces
 # /vendor/bin/log (empty: no logd copy); OPENBOOK_GETPROP/OPENBOOK_SETPROP replace getprop/setprop;
 # OPENBOOK_LAB_WAIT_S bounds the wait for a module (default 30); OPENBOOK_DRIVER_SETTLE_S the dgpu-driver guard;
-# OPENBOOK_DMESG replaces dmesg.
+# OPENBOOK_DMESG replaces dmesg -S.
 set -u
 SYS=${OPENBOOK_SYSFS_ROOT:-}/sys
 POWER_SAVE=10
@@ -84,6 +85,14 @@ log() {
   [ -n "$LOGCMD" ] && [ -x "$LOGCMD" ] && "$LOGCMD" -t openbook-pc-setup -p i "$*" 2>/dev/null
   return 0
 }
+# say TEXT: TEXT and a newline, at any size, through a shell builtin: mksh's print (Android's mksh has no printf
+# builtin, and an external printf takes at most 128 KiB per argument; the G14's kernel log ring is ~250 KiB), else
+# printf (a builtin in sh and bash).
+if [ "$(command -v print 2>/dev/null)" = print ]; then
+  say() { print -r -- "$1"; }
+else
+  say() { printf '%s\n' "$1"; }
+fi
 rd() { [ -r "$1" ] && head -n 1 "$1" 2>/dev/null | tr -d '\n\r'; }
 wr() {  # wr FILE VALUE: write and report
   if printf '%s\n' "$2" > "$1" 2>/dev/null; then log "$1 <- $2"; else log "FAILED $1 <- $2"; return 1; fi
@@ -205,13 +214,13 @@ dgpu_health() {
     vram=$(sed -n 's/^Video Memory: *//p' "$p" | head -n 1 | tr -d '()' | tr 'A-Z ' 'a-z-')
     break
   done
-  k=$(${OPENBOOK_DMESG:-dmesg} 2>/dev/null)
+  k=$(${OPENBOOK_DMESG:-dmesg -S} 2>/dev/null)
   if [ -n "$k" ]; then
-    nvrm=$(printf '%s\n' "$k" | grep -c 'NVRM: ')
-    xid=$(printf '%s\n' "$k" | grep -c 'NVRM: Xid ')
-    kinds=$(printf '%s\n' "$k" | sed -n 's/.*NVRM: Xid ([^)]*): \([0-9][0-9]*\),.*/\1/p' | sort -n | uniq -c |
+    nvrm=$(say "$k" | grep -c 'NVRM: ')
+    xid=$(say "$k" | grep -c 'NVRM: Xid ')
+    kinds=$(say "$k" | sed -n 's/.*NVRM: Xid ([^)]*): \([0-9][0-9]*\),.*/\1/p' | sort -n | uniq -c |
             while read -r c n; do printf '%s:%s,' "$n" "$c"; done)
-    span=$(printf '%s\n' "$k" | sed -n 's/^[^[]*\[ *\([0-9][0-9]*\)\.[0-9]*\].*/\1/p' | sed -n '1p;$p' | tr '\n' - )
+    span=$(say "$k" | sed -n 's/^[^[]*\[ *\([0-9][0-9]*\)\.[0-9]*\].*/\1/p' | sed -n '1p;$p' | tr '\n' - )
     klog="nvrm=$nvrm xid=$xid${kinds:+ xid_kinds=${kinds%,}} klog_s=${span%-}"
   else
     klog="klog=unreadable"
