@@ -1,3 +1,5 @@
 # Thermal zones and cooling devices are virtual devices with the same path on every machine.
 genfscon sysfs /devices/virtual/thermal  u:object_r:sysfs_thermal:s0
 genfscon sysfs /class/thermal            u:object_r:sysfs_thermal:s0
+# NVIDIA's driver files under /proc (ANAL-308): dgpu-report reads its runtime-D3 status there.
+genfscon proc /driver/nvidia             u:object_r:proc_openbook_nvidia:s0

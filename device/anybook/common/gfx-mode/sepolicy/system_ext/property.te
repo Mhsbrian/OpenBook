@@ -1,0 +1,7 @@
+# openbook.gfx.request: the graphics-mode request that OpenBook Graphics sets and init hands to openbook-gfx-mode
+# (ANAL-246). init accepts a property trigger in a vendor .rc file only on a property vendor_init can read, so the
+# platform side defines it on both tracks: a restricted platform property, readable by vendor_init. The same type and
+# grant as gfx-mode/ruby/app-sepolicy.cil, which the Googlebook image's composer appends with the app's own domain.
+# Without it the AOSP product logged a vendor_init read of default_prop at every boot (ANAL-319, QEMU).
+system_restricted_prop(openbook_gfx_request_prop)
+get_prop(vendor_init, openbook_gfx_request_prop)

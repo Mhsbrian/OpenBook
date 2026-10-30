@@ -12,3 +12,7 @@
 
 # rfkill's control device: the Bluetooth HAL (user bluetooth) unblocks the controller with it.
 /dev/rfkill  0660  root  bluetooth
+
+# UVC capture nodes: the camera HAL runs in group camera. Applications still
+# access cameras through cameraserver and Android's permission/privacy checks.
+/dev/video*  0660  root  camera

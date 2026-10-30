@@ -8,3 +8,11 @@ allow vendor_modprobe proc_bootconfig:file r_file_perms;
 # Loading modules can create keyrings (as Cuttlefish's dlkm_loader sees); stdio_to_kmsg on userdebug.
 allow vendor_modprobe self:key write;
 userdebug_or_eng(`allow vendor_modprobe kmsg_debug_device:chr_file { getattr ioctl w_file_perms };')
+# NVIDIA's open driver (ANAL-297) reads its GPU's PCI identity in sysfs (sysfs_gpu, file_contexts) while modprobe
+# loads it. Its probe, which opens the config file for runtime D3, runs in a kernel thread instead: kernel.te.
+allow vendor_modprobe sysfs_gpu:file r_file_perms;
+# NVIDIA's resource manager asks whether the task that allocates an RM client may use performance monitoring
+# (os_check_access(RS_ACCESS_PERFMON): capable(CAP_PERFMON)); at module init and GPU probe that task is modprobe.
+# The answer only decides whether that internal client also gets profiling rights, which the loader does not need,
+# so the probe is not audited rather than granted (seen in the Ruby VM, docs/nvidia-open-ruby.md §8.1).
+dontaudit vendor_modprobe self:capability2 perfmon;

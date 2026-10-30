@@ -1,0 +1,1 @@
+console=ttynull stack_depot_disable=on cgroup_disable=pressure bootconfig initrd=\openbook\a\vendor_ramdisk.img initrd=\openbook\a\ramdisk.img initrd=\openbook\a\bootconfig-console.img firmware_class.path=/vendor/firmware log_buf_len=1M bootconfig console=ttyS0,115200 8250.nr_uarts=1 printk.devkmsg=on

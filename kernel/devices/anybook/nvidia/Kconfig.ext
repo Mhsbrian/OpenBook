@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: GPL-2.0
+# OpenBook (ANAL-239): sourced by common/Kconfig through KCONFIG_EXT_PREFIX, for the G14 device build only
+# (//devices/anybook:anybook_amd_x86_64, kernel_build.kconfig_ext). The GKI build never reads it.
+#
+# nouveau is built as an external module from ./nouveau (common's drivers/gpu/drm/nouveau plus kernel/patches/nouveau):
+# its Kconfig never enters the device config, and nouveau.ko records its own source revision as scmversion. So
+# DRM_NOUVEAU stays off, and this symbol selects the one in-tree helper nouveau needs that amdgpu does not build:
+# DRM_GPUVM (no prompt). Everything else nouveau's Kconfig selects is already built for amdgpu; the modpost step of the
+# nouveau build fails if that ever stops being true. MXM_WMI is not selected: nouveau calls it only from its
+# vga_switcheroo code, which the GKI does not build.
+config ANYBOOK_NOUVEAU
+	tristate "OpenBook: nouveau as an external vendor module (ANAL-239)"
+	depends on DRM && PCI && ACPI && X86
+	select DRM_GPUVM
+	help
+	  Builds drm_gpuvm.ko in-tree for the external nouveau.ko in
+	  devices/anybook/nvidia.

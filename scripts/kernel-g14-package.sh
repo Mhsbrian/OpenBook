@@ -8,7 +8,8 @@
 #   Resumable: each finished step leaves OUT/.stamps/<step>; a rerun skips those whose inputs did not change
 #   (the stamp holds a hash of them). --from STEP reruns STEP and everything after it.
 #   --evidence DIR  also copy the reports (no images, no firmware blobs) into DIR, e.g. evidence/<date>-kernel-g14
-# env: G14_LABEL (default anybook-g14-<synced target>), ANYBOOK_KERNEL_JOBS / BAZEL_ARGS as for kernel-build.sh.
+# env: G14_LABEL (default anybook-g14-<synced target>), ANYBOOK_KERNEL_JOBS / BAZEL_ARGS as for kernel-build.sh,
+#      ANYBOOK_KERNEL_SRC the kernel tree (default ~/anybook/kernel/src).
 #      While an anybook-aosp-build container runs, the build step caps Bazel at 16 jobs and 16 GiB unless
 #      ANYBOOK_KERNEL_JOBS is set.
 #
@@ -21,7 +22,7 @@
 #   images.{md,json}, modlists.{md,json}, sigcheck.{md,json}, results.json (all steps, machine-readable)
 set -euo pipefail
 R=$(cd "$(dirname "$0")/.." && pwd)
-A=${ANYBOOK_HOME:-$HOME/anybook}; K=$A/kernel; S=$K/src
+A=${ANYBOOK_HOME:-$HOME/anybook}; K=$A/kernel; S=${ANYBOOK_KERNEL_SRC:-$K/src}
 STEPS=(apply build lists sigcheck firmware qemu collect)
 FROM=; ONLY=; EVIDENCE=
 while [ $# -gt 0 ]; do
@@ -43,12 +44,12 @@ echo "### kernel-g14-package label=$LABEL $(date -Is) log=$LOG"
 hash_of() { { cat "$@" 2>/dev/null || true; } | sha256sum | cut -c1-16; }  # missing inputs hash as absent
 inputs() {  # what each step depends on; a change reruns it
   case $1 in
-    apply) hash_of "$R"/kernel/patches/common/*.patch <(find "$R/kernel/devices/anybook" -type f -exec sha256sum {} + | sort) ;;
+    apply) hash_of "$R"/kernel/patches/{common,build-kernel,nouveau,nvidia-open}/* <(find "$R/kernel/devices/anybook" -type f -exec sha256sum {} + | sort) ;;
     build) echo "$(hash_of "$ST/apply")-$(git -C "$S/common" rev-parse HEAD)" ;;
     lists) hash_of "$D/sha256.txt" "$D"/{bm,vm}/*.img $(find "$R/kernel/devices/anybook/g14" -type f | sort) "$R/scripts/kernel-g14-modlists.py" ;;
     sigcheck) hash_of "$D/sha256.txt" "$D"/{bm,vm}/*.img "$R/scripts/kernel-g14-sigcheck.py" ;;
     qemu) hash_of "$D/sha256.txt" "$D"/{bm,vm}/*.img "$R"/scripts/kernel-g14-qemu.{py,sh} "$R/kernel/devices/anybook/g14/test/fstab.qemu" ;;
-    firmware) hash_of "$R/evidence/2026-10-16-kernel-amd/firmware-subset.tsv" "$R/scripts/kernel-g14-firmware.py" ;;
+    firmware) hash_of "$R/kernel/firmware/anybook-amd-subset.tsv" "$R/scripts/kernel-g14-firmware.py" ;;
     collect) hash_of "$ST"/{build,lists,sigcheck,firmware,qemu} ;;
   esac
 }
@@ -61,7 +62,7 @@ want() {  # should step $1 run?
 done_step() { inputs "$1" > "$ST/$1"; echo "### step $1 done $(date -Is)"; }
 
 if want apply; then
-  "$R/scripts/kernel-amd-apply.sh"
+  "$R/scripts/kernel-amd-apply.sh"   # also prepares devices/anybook/nvidia/nouveau (ANAL-239)
   done_step apply
 fi
 
@@ -89,7 +90,7 @@ if want sigcheck; then
 fi
 
 if want firmware; then
-  python3 "$R/scripts/kernel-g14-firmware.py" --subset "$R/evidence/2026-10-16-kernel-amd/firmware-subset.tsv" \
+  python3 "$R/scripts/kernel-g14-firmware.py" --subset "$R/kernel/firmware/anybook-amd-subset.tsv" \
     --src "$K/firmware/anybook-amd" --fw "$K/firmware/linux-firmware" --out "$O/firmware"
   done_step firmware
 fi

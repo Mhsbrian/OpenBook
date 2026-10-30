@@ -1,0 +1,54 @@
+# AnyBook (ANAL-297): NVIDIA's open kernel modules (open-gpu-kernel-modules, Dual MIT/GPL) as external vendor modules
+# for the G14: nvidia.ko, nvidia-modeset.ko and nvidia-drm.ko, next to nouveau (../nvidia, ANAL-239).
+#
+# ./open-gpu-kernel-modules is not in the repo: scripts/kernel-nvidia-open-apply.sh puts NVIDIA's release at
+# kernel/patches/nvidia-open/PIN here with kernel/patches/nvidia-open applied, as commits in a git repository of its
+# own, which Kleaf stamps into the modules as scmversion (KLEAF_EXTRA_GIT_PROJECTS). ./Makefile builds NVIDIA's two
+# OS-independent core objects and then kernel-open with Kbuild. Built on //devices/anybook:anybook_amd_x86_64, whose
+# KMI list carries what these modules import (kernel/patches/common/0005).
+#   tools/bazel build --config=stamp //devices/anybook/nvidia_open:nvidia_open
+# nvidia-uvm (CUDA unified memory) and nvidia-peermem (RDMA) are not built: NVK on NVIDIA's driver uses neither.
+
+load("//build/kernel/kleaf:hermetic_tools.bzl", "hermetic_genrule")
+load("//build/kernel/kleaf:kernel.bzl", "kernel_module")
+
+kernel_module(
+    name = "nvidia_open",
+    srcs = glob(
+        [
+            "kcfi-hash-only.txt",
+            "open-gpu-kernel-modules/COPYING",
+            "open-gpu-kernel-modules/nv-compiler.sh",
+            "open-gpu-kernel-modules/utils.mk",
+            "open-gpu-kernel-modules/version.mk",
+            "open-gpu-kernel-modules/kernel-open/**",
+            "open-gpu-kernel-modules/src/**",
+        ],
+        exclude = [
+            "open-gpu-kernel-modules/kernel-open/nvidia-uvm/**",
+            "open-gpu-kernel-modules/kernel-open/nvidia-peermem/**",
+        ],
+    ),
+    outs = [
+        "nvidia.ko",
+        "nvidia-drm.ko",
+        "nvidia-modeset.ko",
+    ],
+    kernel_build = "//devices/anybook:anybook_amd_x86_64",
+    makefile = ["Makefile"],
+    visibility = ["//devices/anybook:__pkg__"],
+)
+
+# The three .ko files alone, for the G14 dist, which is flat: the module's Module.symvers would collide with
+# nouveau's there.
+hermetic_genrule(
+    name = "nvidia_open_ko",
+    srcs = [":nvidia_open"],
+    outs = [
+        "ko/nvidia.ko",
+        "ko/nvidia-drm.ko",
+        "ko/nvidia-modeset.ko",
+    ],
+    cmd = "for f in $(SRCS); do case $$f in *.ko) cp $$f $(RULEDIR)/ko/ ;; esac; done",
+    visibility = ["//devices/anybook:__pkg__"],
+)

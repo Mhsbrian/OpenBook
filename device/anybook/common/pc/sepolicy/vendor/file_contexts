@@ -25,6 +25,12 @@
 
 /dev/rfkill                                   u:object_r:openbook_rfkill_device:s0
 
+# NVIDIA's open driver (ANAL-297): GPU device nodes, opened by every process that renders through NVK on NVIDIA's
+# driver, like /dev/dri/*.
+/dev/nvidiactl                                u:object_r:gpu_device:s0
+/dev/nvidia[0-9]+                             u:object_r:gpu_device:s0
+/dev/nvidia-modeset                           u:object_r:gpu_device:s0
+
 # sysfs nodes the HALs read or write. Their ACPI and PCI paths differ from laptop to laptop, so they are matched by
 # class directory name; ueventd restorecons a device's sysfs directory when the device is added.
 /sys/devices/.*/power_supply(/.*)?            u:object_r:sysfs_batteryinfo:s0
@@ -46,6 +52,9 @@
 # The same GPU's drm directory, which libdrm and Mesa list to find its card and render nodes (G14 live-001:
 # bootanim, surfaceflinger, the allocator and the composer).
 /sys/devices/pci0000:00/0000:00:08\.1/0000:[0-9a-f]{2}:00\.0/drm  u:object_r:sysfs_gpu:s0
+# The G14's dGPU, function 0 behind the GPP bridge 00:03.1 (64:00.0), likewise: libdrm in NVK reads its identity, and
+# NVIDIA's driver opens its config file at probe for runtime D3 (vendor_modprobe.te).
+/sys/devices/pci0000:00/0000:00:03\.1/0000:[0-9a-f]{2}:00\.0/(vendor|device|subsystem_vendor|subsystem_device|revision|class|uevent|config|irq|resource)  u:object_r:sysfs_gpu:s0
 # hwmon chips: under a hwmon/ class directory (amdgpu) or straight under their device (NVMe: .../nvme/nvme0/hwmon1).
 /sys/devices/.*/hwmon[0-9]+(/.*)?             u:object_r:sysfs_openbook_hwmon:s0
 /sys/devices/.*/typec(/.*)?                   u:object_r:sysfs_typec:s0

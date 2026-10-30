@@ -14,6 +14,9 @@ r_dir_file(openbook_pc_setup, sysfs)
 allow openbook_pc_setup sysfs:file w_file_perms;
 # It reads every PCI function's vendor ID, the iGPU's included (sysfs_gpu, file_contexts).
 r_dir_file(openbook_pc_setup, sysfs_gpu)
+# dgpu-report (ANAL-238): the s2idle hardware-sleep counters next to the dGPU's state. Its lines go to logd
+# (write_logd, for every domain) through vendor toybox's log.
+r_dir_file(openbook_pc_setup, sysfs_suspend_stats)
 
 # perms: hand cpufreq's energy_performance_preference to the power HAL.
 r_dir_file(openbook_pc_setup, sysfs_devices_system_cpu)
@@ -23,3 +26,19 @@ allow openbook_pc_setup self:capability { chown fowner };
 # kvm (ANAL-218): read whether KVM registered its misc device (sysfs, above), and say so in vendor.openbook.kvm for
 # init.openbook.rc.
 set_prop(openbook_pc_setup, vendor_openbook_prop)
+
+# lab (ANAL-257): the switch persist.vendor.openbook.lab and the module requests vendor.openbook.lab.mod are
+# vendor_openbook_prop too (set_prop above; property_contexts). One suspend through /sys/power/state, woken by the
+# RTC: /sys/class/rtc's links are sysfs_rtc; the wakealarm file itself is plain sysfs, written above. Module loads
+# and unloads are init's vendor_modprobe services, not this domain.
+r_dir_file(openbook_pc_setup, sysfs_rtc)
+allow openbook_pc_setup sysfs_power:file w_file_perms;
+
+# dgpu-report's health line (ANAL-308): NVIDIA's own runtime-D3 and video-memory status in /proc/driver/nvidia
+# (genfs_contexts: its own label, read by no other domain), and NVIDIA's NVRM and Xid messages in the kernel log ring
+# (toybox dmesg: syslog(2) needs CAP_SYSLOG and the kernel's syslog_read). The Ruby image gets the same rules from
+# scripts/googlebook/build-nvidia-open-candidate.py.
+type proc_openbook_nvidia, fs_type, proc_type;
+r_dir_file(openbook_pc_setup, proc_openbook_nvidia)
+allow openbook_pc_setup self:capability2 syslog;
+allow openbook_pc_setup kernel:system syslog_read;

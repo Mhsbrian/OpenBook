@@ -1,3 +1,9 @@
 blocklist virtio_dma_buf.ko
 blocklist virtio-gpu.ko
 blocklist virtio_input.ko
+blocklist drm_gpuvm.ko
+blocklist nouveau.ko
+blocklist nvidia.ko
+blocklist nvidia-modeset.ko
+blocklist nvidia-drm.ko
+blocklist openbook_sleep_diag.ko

@@ -14,3 +14,7 @@ allow hal_graphics_composer_default sysfs:dir r_dir_perms;
 allow hal_graphics_composer_default sysfs:lnk_file read;
 allow hal_graphics_composer_default sysfs_leds:dir r_dir_perms;
 allow hal_graphics_composer_default sysfs_leds:file rw_file_perms;
+# The pin to the display GPU's KMS card (vendor.hwc.drm.device, ANAL-246), and the first frame on an internal
+# display (vendor.hwc.openbook.first_present), which init hands to openbook-gfx-mode.
+get_prop(hal_graphics_composer_default, vendor_anybook_gpu_pin_prop)
+set_prop(hal_graphics_composer_default, vendor_anybook_hwc_report_prop)

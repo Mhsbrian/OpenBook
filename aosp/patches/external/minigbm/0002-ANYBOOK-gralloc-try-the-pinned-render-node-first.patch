@@ -1,0 +1,51 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <bhoneycutt153@gmail.com>
+Date: Sun, 25 Oct 2026 21:00:00 +0000
+Subject: [PATCH] ANYBOOK: gralloc: try the pinned render node first
+
+anybook_gpu_probe (device/anybook/common/graphics-amd) publishes the
+render node of the GPU that drives the panel as
+vendor.minigbm.render_node at boot (ANAL-246). On a laptop with a
+second GPU, such as the NVIDIA dGPU of a hybrid G14, the scan from
+renderD128 upwards could otherwise settle on whichever node opens
+first with a backend minigbm knows (nouveau is one), and gralloc would
+move to the dGPU without a word.
+
+init_try_nodes() now tries that node first. A value that is not
+renderD128..renderD190 is ignored with a log line; a pinned node that
+does not open falls back to the scan as before, also with a log line.
+Without the property nothing changes.
+---
+ cros_gralloc/cros_gralloc_driver.cc | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+
+diff --git a/cros_gralloc/cros_gralloc_driver.cc b/cros_gralloc/cros_gralloc_driver.cc
+index 706dee9..26120e2 100644
+--- a/cros_gralloc/cros_gralloc_driver.cc
++++ b/cros_gralloc/cros_gralloc_driver.cc
+@@ -134,6 +134,25 @@ static struct driver *init_try_nodes()
+ 	uint32_t min_card_node = DRM_CARD_NODE_START;
+ 	uint32_t max_card_node = (min_card_node + num_nodes);
+ 
++	/*
++	 * AnyBook: the render node of the GPU that drives the panel, which anybook_gpu_probe publishes at boot. It
++	 * is tried first, so gralloc never moves to another GPU (a dGPU in a hybrid laptop) whose node happens to
++	 * open first. Without the property, or if that node does not open, the scan below runs as before.
++	 */
++	const char *pin = drv_get_os_option("vendor.minigbm.render_node");
++	int pinned = -1;
++	char tail = 0;
++	if (pin && sscanf(pin, "renderD%d%c", &pinned, &tail) == 1 && pinned >= (int)min_render_node &&
++	    pinned < (int)max_render_node) {
++		drv = init_try_node(pinned, render_nodes_fmt);
++		if (drv)
++			return drv;
++		ALOGE("Pinned render node renderD%d (vendor.minigbm.render_node) did not open; scanning", pinned);
++	} else if (pin) {
++		ALOGE("Ignoring vendor.minigbm.render_node=%s: not renderD%u..%u", pin, min_render_node,
++		      max_render_node - 1);
++	}
++
+ 	// Try render nodes...
+ 	for (uint32_t i = min_render_node; i < max_render_node; i++) {
+ 		drv = init_try_node(i, render_nodes_fmt);

@@ -54,3 +54,23 @@ cc_test_host {
         unit_test: true,
     },
 }
+
+// Explicit test target only. Never install a synthetic Bluetooth stack on a laptop.
+cc_test {
+    name: "openbook-hfp-hal-test",
+    vendor: true,
+    gtest: false,
+    defaults: [
+        "latest_android_hardware_audio_common_ndk_static",
+        "latest_android_hardware_audio_core_ndk_static",
+        "latest_android_hardware_audio_core_sounddose_ndk_static",
+        "latest_android_hardware_audio_effect_ndk_static",
+        "latest_android_hardware_bluetooth_audio_ndk_static",
+        "latest_android_media_audio_common_types_ndk_static",
+        "latest_android_media_audio_eraser_types_ndk_static",
+    ],
+    srcs: ["hfp-hal-test.cpp"],
+    static_libs: ["android.hardware.common-V2-ndk", "android.hardware.common.fmq-V1-ndk"],
+    shared_libs: ["libbinder_ndk", "libbase"],
+    cflags: ["-Wall", "-Wextra", "-Werror"],
+}

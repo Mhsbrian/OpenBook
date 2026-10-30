@@ -1,0 +1,5 @@
+5
+      2 { read } platform_app bluetooth_lea_prop file
+      1 { read } vendor_init default_prop file
+      1 { read } shell proc file
+      1 { find } keystore hal_gatekeeper_service service_manager
