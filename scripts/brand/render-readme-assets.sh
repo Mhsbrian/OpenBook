@@ -36,7 +36,7 @@ shot "$TMP/social2x.png" "?art=social&theme=light" 1280 640 2 \
   && magick "$TMP/social2x.png" -filter Lanczos -resize 1280x640 "$TMP/social.png" && jpg "$TMP/social.png" "$O/social-preview.jpg" 92
 # App icon (transparent PNG) and the feature icons used in the README highlights grid.
 shot "$R/assets/brand/openbook-icon-512.png" "?art=appicon" 512 512 1
-for g in desktop_windows memory apps usb verified_user science; do
+for g in desktop_windows memory apps usb verified_user science developer_board system_update palette auto_awesome; do
   shot "$O/icons/$g.png" "?art=icon&glyph=$g" 96 96 2
 done
 magick mogrify -strip "$R/assets/brand/openbook-icon-512.png" "$O"/icons/*.png
