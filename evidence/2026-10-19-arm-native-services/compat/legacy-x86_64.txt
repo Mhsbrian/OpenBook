@@ -1,0 +1,42 @@
+--------- beginning of main
+10-19 17:33:49.497  2886  2913 I AnyBookProbe: PROBE_START pkg=dev.anybook.probe.x86_64 mode=tests abis=x86_64,arm64-v8a cpu_abi=x86_64 os.arch=x86_64 sdk=37
+10-19 17:33:49.498  2886  2913 I AnyBookProbe: PROBE_RESULT load PASS abi=x86_64 compiler=[clang 21.0.0 (https://android.googlesource.com/toolchain/llvm-project 9f872551d3c681d06fd303b36f16ed5c274735eb)]
+10-19 17:33:49.498  2886  2913 I AnyBookProbe: PROBE_BEGIN java_jni_args
+10-19 17:33:49.498  2886  2913 I AnyBookProbe: PROBE_RESULT java_jni_args PASS checks=1 ms=0
+10-19 17:33:49.498  2886  2913 I AnyBookProbe: PROBE_BEGIN java_jni_exception
+10-19 17:33:49.498  2886  2913 I AnyBookProbe: PROBE_RESULT java_jni_exception PASS checks=1 ms=0
+10-19 17:33:49.498  2886  2913 I AnyBookProbe: PROBE_BEGIN java_jni_register_natives
+10-19 17:33:49.498  2886  2913 I AnyBookProbe: PROBE_RESULT java_jni_register_natives PASS checks=1 ms=0
+10-19 17:33:49.498  2886  2913 I AnyBookProbe: PROBE_BEGIN java_jni_callbacks
+10-19 17:33:49.499  2886  2913 I AnyBookProbe: PROBE_RESULT java_jni_callbacks PASS checks=12 ms=1
+10-19 17:33:49.499  2886  2913 I AnyBookProbe: PROBE_BEGIN abi
+10-19 17:33:49.502  2886  2913 I AnyBookProbe: PROBE_RESULT abi PASS checks=1 abi=x86_64 uname.machine=x86_64 at_platform=x86_64 exe=/system/bin/app_process64 pagesz=4096 hwcap=0x178bfbff/0x2 cpuinfo=[model name : AMD Ryzen 9 7950X 16-Core Processor / flags  : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm rep_good nopl xtopology cpuid extd_apicid tsc] proc_auxv=unreadable ms=2
+10-19 17:33:49.502  2886  2913 I AnyBookProbe: PROBE_BEGIN neon
+10-19 17:33:49.502  2886  2913 I AnyBookProbe: PROBE_RESULT neon SKIP not an ARM build ms=0
+10-19 17:33:49.502  2886  2913 I AnyBookProbe: PROBE_BEGIN crypto
+10-19 17:33:49.502  2886  2913 I AnyBookProbe: PROBE_RESULT crypto PASS checks=5 ms=0
+10-19 17:33:49.502  2886  2913 I AnyBookProbe: PROBE_BEGIN isa
+10-19 17:33:49.502  2886  2913 I AnyBookProbe: PROBE_RESULT isa SKIP AArch64-only semantics (x86_64 is the native control) ms=0
+10-19 17:33:49.502  2886  2913 I AnyBookProbe: PROBE_BEGIN atomics
+10-19 17:33:49.796  2886  2913 I AnyBookProbe: PROBE_RESULT atomics PASS checks=5 wide_cas_bits=128 sb_seqcst_violations=0/200000 sb_relaxed_reorders=7270/200000 ms=293
+10-19 17:33:49.796  2886  2913 I AnyBookProbe: PROBE_BEGIN tls
+10-19 17:33:49.820  2886  2913 I AnyBookProbe: PROBE_RESULT tls PASS checks=3 ms=24
+10-19 17:33:49.820  2886  2913 I AnyBookProbe: PROBE_BEGIN threads
+10-19 17:33:49.907  2886  2913 I AnyBookProbe: PROBE_RESULT threads PASS checks=6 affinity=8 online=8 hwconc=8 ms=86
+10-19 17:33:49.907  2886  2913 I AnyBookProbe: PROBE_BEGIN syscalls
+10-19 17:33:49.926  2886  2913 I AnyBookProbe: PROBE_RESULT syscalls PASS checks=7 uname=Linux/x86_64 personality=0x0 ms=20
+10-19 17:33:49.927  2886  2913 I AnyBookProbe: PROBE_BEGIN dlopen
+10-19 17:33:49.963  2886  2913 I AnyBookProbe: PROBE_RESULT dlopen PASS checks=13 rtld_default_JNI_GetCreatedJavaVMs=absent dlopen(libart.so)=fail loaded_objects=389 dlopen(/system/lib64/libc.so)=ok ms=36
+10-19 17:33:49.963  2886  2913 I AnyBookProbe: PROBE_BEGIN cxx_exceptions
+10-19 17:33:49.977  2886  2913 I AnyBookProbe: PROBE_RESULT cxx_exceptions PASS checks=10 backtrace_frames=11 ms=15
+10-19 17:33:49.977  2886  2913 I AnyBookProbe: PROBE_BEGIN jit
+10-19 17:33:49.978  2886  2913 I AnyBookProbe: PROBE_RESULT jit PASS checks=4 dual_map_no_flush_sees=23 ms=0
+10-19 17:33:49.978  2886  2913 I AnyBookProbe: PROBE_BEGIN signals
+10-19 17:33:50.242  2886  2913 I AnyBookProbe: PROBE_RESULT signals PASS checks=13 sigill_signo=4 sigill_code=2 alarm_on_this_thread=0 ms=265
+10-19 17:33:50.243  2886  2913 I AnyBookProbe: PROBE_BEGIN gles
+10-19 17:33:50.329  2886  2913 I AnyBookProbe: PROBE_RESULT gles PASS checks=7 egl=1.5 renderer=[ANGLE (Google  Vulkan 1.3.0 (SwiftShader Device (LLVM 16.0.0] version=[OpenGL ES 3.1 (ANGLE 2.1 git hash: 8d8796935e4faeaf19e67ac0a] pixel=255,128,0,255 ms=86
+10-19 17:33:50.329  2886  2913 I AnyBookProbe: PROBE_BEGIN vulkan
+10-19 17:33:50.331  2886  2913 I AnyBookProbe: PROBE_RESULT vulkan PASS checks=8 loader=1.4 device=[SwiftShader Device (LLVM 16.0.0)] api=1.3.0 ms=3
+10-19 17:33:50.331  2886  2913 I AnyBookProbe: PROBE_BEGIN regress
+10-19 17:33:50.331  2886  2913 I AnyBookProbe: PROBE_RESULT regress PASS checks=1 Build.CPU_ABI=x86_64 ms=0
+10-19 17:33:50.331  2886  2913 I AnyBookProbe: PROBE_DONE pass=18 fail=0 skip=2

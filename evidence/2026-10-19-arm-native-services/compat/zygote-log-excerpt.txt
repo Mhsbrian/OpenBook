@@ -1,0 +1,6 @@
+10-19 17:34:10.497   677  1155 I ActivityManager: Native bridge service fallback: org.chromium.chrome/org.chromium.content.app.NativeOnlySandboxedProcessService0 -> org.chromium.content.app.SandboxedProcessService0
+10-19 17:34:12.295   677  1259 I ActivityManager: Native bridge service fallback: org.chromium.chrome/org.chromium.content.app.NativeOnlySandboxedProcessService0 -> org.chromium.content.app.SandboxedProcessService0
+10-19 17:34:13.897   677  1155 I ActivityManager: Native bridge service fallback: org.chromium.chrome/org.chromium.content.app.NativeOnlySandboxedProcessService0 -> org.chromium.content.app.SandboxedProcessService0
+10-19 17:34:13.959   677  1259 I ActivityManager: Native bridge service fallback: org.chromium.chrome/org.chromium.content.app.NativeOnlySandboxedProcessService0 -> org.chromium.content.app.SandboxedProcessService0
+10-19 17:34:16.789   677  1114 I ActivityManager: Native bridge service fallback: org.chromium.chrome/org.chromium.content.app.NativeOnlySandboxedProcessService0 -> org.chromium.content.app.SandboxedProcessService0
+10-19 17:34:18.248   677  1259 I ActivityManager: Native bridge service fallback: org.chromium.chrome/org.chromium.content.app.NativeOnlySandboxedProcessService0 -> org.chromium.content.app.SandboxedProcessService0

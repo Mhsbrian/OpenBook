@@ -1,0 +1,5 @@
+20261019.photos1
+f1f7f5143cb4504d8b6fe32077f3520eae6c6e51f140a7d95dbef303d20e9273
+x86_64,arm64-v8a
+libberberis_arm64.so
+Enforcing

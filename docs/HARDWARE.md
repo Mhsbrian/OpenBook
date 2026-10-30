@@ -22,6 +22,14 @@ See `docs/touchpad-behavior.md` and `evidence/2026-10-19-touchpad-behavior/`.
 
 ## Target device: ASUS ROG Zephyrus G14 (2025)
 
+**2026-10-19 update preparation (ANAL-224):** read-only checks found the installed
+`20261019.photos1` image on slot A, enforcing, with `x86_64,arm64-v8a` and
+`libberberis_arm64.so`. The prepared `20261019.armfix1` candidate keeps that
+image's kernel, RADV, compositor and ARM bridge byte-identical. The native-service
+fix is in Android's framework. Its tests use the G14 product in QEMU on the
+Ryzen 9 7950X; they do not establish the fix on the physical G14. No laptop
+update was staged in this task. See `docs/arm-native-services.md`.
+
 The owner named this laptop on 2026-10-15 and described it as a "2025 G14 with the AMD 370 and an RTX 5070". The owner confirmed the Ryzen AI 9 HX 370 (Zen 5) on 2026-10-16.
 
 **The inventory from the laptop (2026-10-16) shows board `GA403WR`, not GA403WP** (BIOS `GA403WR.309`). Evidence and a component-by-component table are in `evidence/2026-10-16-ga403wr-inventory/SUMMARY.md`. ASUS sells the GA403WR with an RTX 5070 Ti Laptop GPU (12 GB, 110 W; ASUS G14 2025 spec page, checked 2026-10-16 in ANAL-187), which is GB205 (R). The RTX 5070 Laptop (GB206) is the GA403WP/GA403UP. The dGPU was absent from the PCI list during the inventory, so its exact ID is unconfirmed.

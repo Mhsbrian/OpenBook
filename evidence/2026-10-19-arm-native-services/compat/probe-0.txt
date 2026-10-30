@@ -1,0 +1,5 @@
+--------- beginning of main
+10-19 17:33:41.489  2150  2150 I NativeFallbackProbe: intent=intent:#Intent;launchFlags=0x10000000;extendedLaunchFlags=0x4;component=dev.openbook.nativefallback/.ProbeActivity;end
+10-19 17:33:41.490  2150  2150 I NativeFallbackProbe: declared_service_flags=0x22
+10-19 17:33:41.495  2150  2150 I NativeFallbackProbe: native_bind=false elapsed_ms=5
+10-19 17:33:41.799  2150  2150 I NativeFallbackProbe: PASS translated isolated JNI returned 42

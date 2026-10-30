@@ -1,0 +1,261 @@
+[
+  {
+    "name": "user unlocked",
+    "ok": true,
+    "detail": "Lock credential verified successfully"
+  },
+  {
+    "name": "ARM bridge and enforcing",
+    "ok": true,
+    "detail": "20261019.armfix1\n1a8a2bd1aef13e738230988a1e17fb32b8c56e36732b9882da76789bb5a94930\nx86_64,arm64-v8a\nlibberberis_arm64.so\nEnforcing"
+  },
+  {
+    "name": "ARM64 executable and ISA regressions",
+    "ok": true,
+    "detail": [
+      {
+        "test": "bridge-exec",
+        "ok": true,
+        "abi": "arm64-v8a",
+        "uname_machine": "aarch64",
+        "hwcap": "0x9fb"
+      },
+      {
+        "test": "bridge-id-registers",
+        "ok": true,
+        "sigill": 0,
+        "first_sigill": -1,
+        "midr": "0x410fd034",
+        "isar0": "0x211120",
+        "pfr0": "0x11",
+        "hwcap_cpuid": true
+      },
+      {
+        "test": "bridge-fp-estimates",
+        "ok": true,
+        "cases": 6900,
+        "bad": 0,
+        "first_bad": ""
+      },
+      {
+        "test": "bridge-int-simd",
+        "ok": true,
+        "crc32": true,
+        "neon_fma": true
+      }
+    ]
+  },
+  {
+    "name": "real framework policy and direct API guards",
+    "ok": true,
+    "detail": "PASS matching declared contract\nPASS missing source\nPASS missing target\nPASS cross-package service\nPASS cross-package application\nPASS different UID\nPASS different process\nPASS dropped permission\nPASS different permission\nPASS different export\nPASS different direct-boot visibility\nPASS disabled service\nPASS disabled application\nPASS missing isolation\nPASS different zygote policy\nPASS native-only target\nPASS different external-service policy\nPASS wrong fallback component\nPASS unknown source component\nPASS different ABI\nPASS native x86_64 eligible\nPASS ARM64 rejected\nPASS ARMv7 rejected\nPASS secondary x86 rejected\nPASS null ABI uses native default\nPASS start rejects before connecting/using null app data\nPASS startChildZygote rejects before connecting/using null app data\nPOLICY_PASS checks=27"
+  },
+  {
+    "name": "install ARM-only probe",
+    "ok": true,
+    "detail": "Performing Streamed Install\nSuccess\n"
+  },
+  {
+    "name": "probe attempt 1",
+    "ok": true,
+    "detail": "--------- beginning of main\n10-19 17:33:41.489  2150  2150 I NativeFallbackProbe: intent=intent:#Intent;launchFlags=0x10000000;extendedLaunchFlags=0x4;component=dev.openbook.nativefallback/.ProbeActivity;end\n10-19 17:33:41.490  2150  2150 I NativeFallbackProbe: declared_service_flags=0x22\n10-19 17:33:41.495  2150  2150 I NativeFallbackProbe: native_bind=false elapsed_ms=5\n10-19 17:33:41.799  2150  2150 I NativeFallbackProbe: PASS translated isolated JNI returned 42"
+  },
+  {
+    "name": "probe attempt 2",
+    "ok": true,
+    "detail": "--------- beginning of main\n10-19 17:33:42.599  2244  2244 I NativeFallbackProbe: intent=intent:#Intent;launchFlags=0x10000000;extendedLaunchFlags=0x4;component=dev.openbook.nativefallback/.ProbeActivity;end\n10-19 17:33:42.600  2244  2244 I NativeFallbackProbe: declared_service_flags=0x22\n10-19 17:33:42.600  2244  2244 I NativeFallbackProbe: native_bind=false elapsed_ms=1\n10-19 17:33:42.878  2244  2244 I NativeFallbackProbe: PASS translated isolated JNI returned 42"
+  },
+  {
+    "name": "probe attempt 3",
+    "ok": true,
+    "detail": "--------- beginning of main\n10-19 17:33:43.520  2323  2323 I NativeFallbackProbe: intent=intent:#Intent;launchFlags=0x10000000;extendedLaunchFlags=0x4;component=dev.openbook.nativefallback/.ProbeActivity;end\n10-19 17:33:43.526  2323  2323 I NativeFallbackProbe: declared_service_flags=0x22\n10-19 17:33:43.527  2323  2323 I NativeFallbackProbe: native_bind=false elapsed_ms=1\n10-19 17:33:44.290  2323  2323 I NativeFallbackProbe: PASS translated isolated JNI returned 42"
+  },
+  {
+    "name": "guest requests do not prewarm native zygote",
+    "ok": true,
+    "detail": {
+      "before": "",
+      "after": ""
+    }
+  },
+  {
+    "name": "rejected service records do not accumulate",
+    "ok": true,
+    "detail": "ACTIVITY MANAGER SERVICES (dumpsys activity services)\n  (nothing)"
+  },
+  {
+    "name": "service alias positive",
+    "ok": true,
+    "detail": "--------- beginning of main\n10-19 17:33:45.286  2423  2423 I NativeFallbackProbe: intent=intent:#Intent;launchFlags=0x10000000;extendedLaunchFlags=0x4;component=dev.openbook.nativefallback/.ProbeActivity;S.alias_control=positive;end\n10-19 17:33:45.286  2423  2423 I NativeFallbackProbe: declared_service_flags=0x22\n10-19 17:33:45.291  2423  2423 I NativeFallbackProbe: native_bind=true elapsed_ms=4\n10-19 17:33:45.498  2423  2423 I NativeFallbackProbe: PASS compatible alias translated JNI returned 42"
+  },
+  {
+    "name": "service alias permission",
+    "ok": true,
+    "detail": "--------- beginning of main\n10-19 17:33:46.059  2503  2503 I NativeFallbackProbe: intent=intent:#Intent;launchFlags=0x10000000;extendedLaunchFlags=0x4;component=dev.openbook.nativefallback/.ProbeActivity;S.alias_control=permission;end\n10-19 17:33:46.059  2503  2503 I NativeFallbackProbe: declared_service_flags=0x2a\n10-19 17:33:46.068  2503  2503 I NativeFallbackProbe: native_bind=false elapsed_ms=9\n10-19 17:33:46.068  2503  2503 I NativeFallbackProbe: PASS permission mismatch rejected"
+  },
+  {
+    "name": "install native host control",
+    "ok": true,
+    "detail": "Performing Streamed Install\nSuccess\n"
+  },
+  {
+    "name": "host control uses x86_64",
+    "ok": true,
+    "detail": "primaryCpuAbi=x86_64"
+  },
+  {
+    "name": "host control activity started",
+    "ok": true,
+    "detail": "Starting: Intent { flg=0x8000 cmp=dev.openbook.nativefallback/.ProbeActivity (has extras) }\nStatus: ok\nLaunchState: UNKNOWN (0)\nActivity: dev.openbook.nativefallback/.ProbeActivity\nWaitTime: 130\nComplete"
+  },
+  {
+    "name": "host native service lookup preserved",
+    "ok": true,
+    "detail": "--------- beginning of main\n10-19 17:33:47.002  2585  2585 I NativeFallbackProbe: intent=intent:#Intent;launchFlags=0x10008000;extendedLaunchFlags=0x4;component=dev.openbook.nativefallback/.ProbeActivity;S.alias_control=host;end\n10-19 17:33:47.002  2585  2585 I NativeFallbackProbe: declared_service_flags=0x22\n10-19 17:33:47.011  2585  2585 I NativeFallbackProbe: native_bind=true elapsed_ms=9\n10-19 17:33:47.012  2585  2585 I NativeFallbackProbe: PASS host native-only bind accepted"
+  },
+  {
+    "name": "install existing probe arm64",
+    "ok": true,
+    "detail": "Performing Streamed Install\nSuccess\n"
+  },
+  {
+    "name": "no additional legacy probe failures arm64",
+    "ok": true,
+    "detail": {
+      "summary": "PROBE_DONE pass=18 fail=2 skip=0",
+      "failed": [
+        "isa",
+        "signals"
+      ]
+    }
+  },
+  {
+    "name": "install existing probe x86_64",
+    "ok": true,
+    "detail": "Performing Streamed Install\nSuccess\n"
+  },
+  {
+    "name": "no additional legacy probe failures x86_64",
+    "ok": true,
+    "detail": {
+      "summary": "PROBE_DONE pass=18 fail=0 skip=2",
+      "failed": []
+    }
+  },
+  {
+    "name": "install Chromium ARM64",
+    "ok": true,
+    "detail": "Performing Streamed Install\nSuccess\n"
+  },
+  {
+    "name": "Chromium uses ARM64",
+    "ok": true,
+    "detail": "primaryCpuAbi=arm64-v8a"
+  },
+  {
+    "name": "Chromium exposes a page",
+    "ok": true,
+    "detail": [
+      "OpenBook ARM renderer 0"
+    ]
+  },
+  {
+    "name": "ARM renderer navigation 0",
+    "ok": true,
+    "detail": {
+      "result": {
+        "type": "object",
+        "value": {
+          "answer": 42,
+          "round": 0,
+          "pixel": [
+            0,
+            170,
+            68,
+            255
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "unrelated app starts during round 0",
+    "ok": true,
+    "detail": {
+      "seconds": 0.841,
+      "am": "Starting: Intent { act=android.settings.SETTINGS }\nStatus: ok\nLaunchState: COLD\nActivity: com.android.settings/.Settings$NetworkDashboardActivity\nTotalTime: 804\nWaitTime: 807\nComplete\n"
+    }
+  },
+  {
+    "name": "ARM renderer navigation 1",
+    "ok": true,
+    "detail": {
+      "result": {
+        "type": "object",
+        "value": {
+          "answer": 42,
+          "round": 1,
+          "pixel": [
+            0,
+            170,
+            68,
+            255
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "unrelated app starts during round 1",
+    "ok": true,
+    "detail": {
+      "seconds": 0.954,
+      "am": "Starting: Intent { act=android.settings.SETTINGS }\nStatus: ok\nLaunchState: COLD\nActivity: com.android.settings/.Settings$NetworkDashboardActivity\nTotalTime: 875\nWaitTime: 881\nComplete\n"
+    }
+  },
+  {
+    "name": "ARM renderer navigation 2",
+    "ok": true,
+    "detail": {
+      "result": {
+        "type": "object",
+        "value": {
+          "answer": 42,
+          "round": 2,
+          "pixel": [
+            0,
+            170,
+            68,
+            255
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "unrelated app starts during round 2",
+    "ok": true,
+    "detail": {
+      "seconds": 0.885,
+      "am": "Starting: Intent { act=android.settings.SETTINGS }\nStatus: ok\nLaunchState: COLD\nActivity: com.android.settings/.Settings$NetworkDashboardActivity\nTotalTime: 814\nWaitTime: 817\nComplete\n"
+    }
+  },
+  {
+    "name": "Chromium managed service alias exercised",
+    "ok": true,
+    "detail": 6
+  },
+  {
+    "name": "no ELF mismatch or exhausted zygote wait",
+    "ok": true,
+    "detail": {
+      "retries": 0,
+      "max_retries": 99
+    }
+  },
+  {
+    "name": "managed isolated renderer exists",
+    "ok": true,
+    "detail": "u:r:untrusted_app_34:s0:c126,c256,c512,c768 3152 org.chromium.chrome org.chromium.chrome\nu:r:app_zygote:s0:c512,c768     3208 org.chromium.chrome_zygote  org.chromium.chrome_zygote\nu:r:isolated_app:s0:c512,c768   3231 org.chromium.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0 org.chromium.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0\nu:r:untrusted_app_34:s0:c126,c256,c512,c768 3254 org.chromium.chrome:privileged_process0 org.chromium.chrome:privileged_process0\nu:r:isolated_app:s0:c512,c768   3314 org.chromium.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:1 org.chromium.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:1\nu:r:isolated_app:s0:c512,c768   3363 org.chromium.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:3 org.chromium.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:3\nu:r:su:s0                       3749 sh                          sh -c ps -A -o LABEL,PID,NAME,ARGS | grep chromium\nu:r:su:s0                       3752 grep                        grep chromium"
+  }
+]

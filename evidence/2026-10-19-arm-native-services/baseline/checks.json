@@ -1,0 +1,22 @@
+[
+  {
+    "name": "user unlocked",
+    "ok": true,
+    "detail": "Lock credential verified successfully"
+  },
+  {
+    "name": "ARM bridge and enforcing",
+    "ok": true,
+    "detail": "20261019.photos1\nf1f7f5143cb4504d8b6fe32077f3520eae6c6e51f140a7d95dbef303d20e9273\nx86_64,arm64-v8a\nlibberberis_arm64.so\nEnforcing"
+  },
+  {
+    "name": "install ARM-only probe",
+    "ok": true,
+    "detail": "Performing Streamed Install\nSuccess\n"
+  },
+  {
+    "name": "probe attempt 1",
+    "ok": true,
+    "detail": "--------- beginning of main\n10-19 17:31:18.260  2072  2072 I NativeFallbackProbe: declared_service_flags=0x22\n10-19 17:31:18.272  2072  2072 I NativeFallbackProbe: native_bind=true elapsed_ms=12\n10-19 17:31:18.272  2072  2072 I NativeFallbackProbe: FAIL guest native-only bind accepted"
+  }
+]
