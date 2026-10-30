@@ -1,0 +1,5 @@
+vendor.openbook.gfx.           u:object_r:vendor_openbook_gfx_prop:s0 prefix string
+ro.vendor.openbook.gfx.        u:object_r:vendor_openbook_gfx_config_prop:s0 prefix string
+vendor.hwc.drm.device                  u:object_r:vendor_anybook_gpu_pin_prop:s0 exact string
+vendor.minigbm.render_node             u:object_r:vendor_anybook_gpu_pin_prop:s0 exact string
+vendor.hwc.openbook.first_present      u:object_r:vendor_anybook_hwc_report_prop:s0 exact string

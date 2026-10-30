@@ -1,0 +1,41 @@
+{
+  "schema": "openbook-gfx-mode-pins/1",
+  "note": "Reviewed SHA-256 of the graphics-mode switcher's inputs for build-gfx-mode-candidate.py (ANAL-246): the integration files here, the repository sources it copies, the AOSP-built vendor files (pin-gfx-mode.py stage) and the signed APK (device/anybook/common/gfx-mode/app/build.sh).",
+  "integration": {
+    "vendor-sepolicy.cil": "895229e8b6c5c7b5707faf56bb484cc47b4f90b8979f5523eac1927a91f5e5f7",
+    "vendor_file_contexts": "fcc9a44630d015c4939af091543b35a6d32137a9ee5eb7cb34b0eb43088a12fc",
+    "vendor_property_contexts": "47251aea445482f7e59f9e9ca01c2f13f25c76d305165a22c6728d4fef05194d",
+    "app-sepolicy.cil": "1d7c0b91b21b6c5a2aac1616d16671446cba1be65442ca4eead159ddf1a612e6",
+    "app-seapp_contexts": "e21b3db56979c3784e95805e2d7102cc3ae53c10d951dc4d58ec94a6b19830a1",
+    "app-property_contexts": "2ac88b79300e0341148f1938773cab3f868488495e42167226655ac91ba26d6a",
+    "privapp-permissions-org.openbook.graphics.xml": "76879fc88f7d2e38366497e7d1f615ada075cd2b549cfc67ba1fdfbb0415f831",
+    "default-permissions-org.openbook.graphics.xml": "50b86918abe41c3c2140c06e5aaa49ec46d75c5df443f0606df91dc5b1f083e1"
+  },
+  "repo": {
+    "device/anybook/common/pc/init.openbook.rc": "e9aac8d8541b76225917cb4101dbfca7ce9d5cf470a029c0b8bffc0f67514392",
+    "device/anybook/common/gfx-mode/openbook-gfx-mode.rc": "ed5819ad4c338dee57227ce933c97f73b3b989cab363c1b216f934b1bfc0ea41",
+    "device/anybook/common/graphics-amd/init.anybook.graphics-amd.rc": "92e69ac06f0e864561c6f4d1f56838517327c9140cd0cc47decace49ca68e229",
+    "device/anybook/g14/gfx-stacks.conf": "ed5ff27686b814fe7148c59f8f2155a3c1733e75d684060f81001a1c8f2c8563",
+    "device/anybook/common/gfx-mode/gfx-kms.none.load": "d68586caeed028558a6bb47bfc20ba3e135ee3f108f219192d1e659b74058f4f",
+    "device/anybook/common/gfx-mode/gfx-kms.nouveau.load": "0c56464bb0a19493c097b292fe6f10ef22c636c097f8240d4f2a835a681f2df9"
+  },
+  "artifacts": {
+    "/bin/openbook-gfx-mode": "f24b5f9d645d125215a294f69f78f7ca837da89b00d44f8d61a1c66328bfaf83",
+    "/bin/anybook_gpu_probe": "26c6c39592763e55cd0460d1006ce853ea0b9fc97ac8b61ce1625d94fa773e10",
+    "/lib64/libminigbm_gralloc.so": "4d3c09f7a83229ec8aece078ff3a02887dbc0245fda9439d90bec4163adc1470",
+    "/bin/hw/android.hardware.composer.hwc3-service.drm": "393250f127c96416c87caf40e4b25fda17657f9d23be0cb66db4a8b403835719",
+    "/bin/openbook-bootsync": "78e890f5e867e9a8cf4912b9fc4b9d1121a44a1215c92052307d342dce9384ce"
+  },
+  "artifacts_vendor_fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
+  "apk": {
+    "sha256": "485b1b1c080be9d6d15070043f53b138e42230ab7cb66884fa25db94de2cd8d7",
+    "unsigned_sha256": "792164c2c3fc2fc97dfe4e0d5f603a995c69411b32d14736fa1462f7c699687b",
+    "version_code": 1,
+    "version_name": "1.0",
+    "signing_certificate_sha256": "7a56266544934fb4e6a4dc165d01c0bdf1ccbbdcbe2ce8743c77dd81513eb159",
+    "worktree_clean": true,
+    "reproducible_check": true,
+    "development_build": false,
+    "built_from_commit": "f53b1319db11f70265454d1984f31e13a325540d"
+  }
+}

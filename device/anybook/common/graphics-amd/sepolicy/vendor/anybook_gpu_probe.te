@@ -13,3 +13,8 @@ set_prop(anybook_gpu_probe, vendor_anybook_gpu_prop)
 # stdio_to_kmsg: what it found goes to the kernel log (/dev/kmsg_debug on debuggable builds).
 allow anybook_gpu_probe kmsg_device:chr_file w_file_perms;
 allow anybook_gpu_probe kmsg_debug_device:chr_file { w_file_perms getattr ioctl };
+
+# --pin (ANAL-246): the chosen GPU's nodes in /dev/dri (stat only), then the composer's and gralloc's pins.
+allow anybook_gpu_probe gpu_device:dir r_dir_perms;
+allow anybook_gpu_probe { graphics_device gpu_device }:chr_file getattr;
+set_prop(anybook_gpu_probe, vendor_anybook_gpu_pin_prop)

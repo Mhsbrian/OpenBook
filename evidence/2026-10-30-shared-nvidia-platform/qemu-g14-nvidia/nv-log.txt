@@ -1,0 +1,23 @@
+10-30 14:56:54.536     1     1 I init    : Parsing file /vendor/etc/init/openbook-gfx-mode.rc...
+10-30 14:56:55.589   346   346 I openbook-gfx-mode: boot 1: firmware absent (unknown), phase idle, committed hybrid, firmware writes off
+10-30 14:56:55.590   346   346 I openbook-gfx-mode: state created; no asus-wmi MUX interface (STATE NOT SAVED)
+10-30 14:56:55.640   348   348 W openbook-pc-setup: no NVIDIA GPU enumerated; nothing to do
+10-30 14:56:55.830   388   388 W openbook-pc-setup: energy_performance_preference: 0 policies handed to the power HAL
+10-30 14:56:56.027   414   414 W openbook-pc-setup: KVM is available (10:232): AVF can run the Linux environment
+10-30 14:56:57.489     1     1 I init    : processing action (vendor.hwc.openbook.first_present=*) from (/vendor/etc/init/openbook-gfx-mode.rc:45)
+10-30 14:56:57.507   750   750 I openbook-gfx-mode: frame report ignored: card0:Virtual-1 is not a connected panel on amdgpu
+10-30 14:57:02.554  3156  3156 I openbook-pc-setup: dgpu-report (boot)
+10-30 14:57:02.760     1     1 I init    : processing action (sys.boot_completed=1) from (/vendor/etc/init/openbook-gfx-mode.rc:54)
+10-30 14:57:02.627  3226  3226 I openbook-pc-setup: dgpu-report: suspend_stats success=0 fail=0
+10-30 14:57:02.632  3235  3235 I openbook-pc-setup: dgpu-report: state=absent
+10-30 14:57:02.840  3442  3442 I openbook-pc-setup: dgpu-report: health state=absent driver=- refs=- runtime_d3=- vram=- nvrm=0 xid=0 klog_s=0-10
+10-30 14:58:03.057  3911  3911 W libc    : Access denied finding property "init.svc.vendor.openbook.dgpu-driver"
+[    2.852106] modprobe: multiple options lines present for module nouveau
+[    2.852826] modprobe: multiple options lines present for module nouveau
+[    2.853538] modprobe: multiple options lines present for module nvidia
+[    2.854307] modprobe: multiple options lines present for module nvidia
+[    2.855091] modprobe: multiple options lines present for module nvidia-drm
+[    2.855823] modprobe: multiple options lines present for module nvidia-drm
+[    3.010581] modprobe: Loading module /vendor/lib/modules/nvidia-wmi-ec-backlight.ko with args ''
+[    3.012696] modprobe: Loaded kernel module /vendor/lib/modules/nvidia-wmi-ec-backlight.ko
+[    3.585331] openbook-pc-setup: no NVIDIA GPU enumerated; nothing to do

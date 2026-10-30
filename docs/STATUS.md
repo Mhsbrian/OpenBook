@@ -1,5 +1,35 @@
 # Status
 
+## 2026-10-30: one kernel and one vendor layer with the Googlebook track; NVIDIA's open driver (ANAL-319)
+
+OpenBook's `kernel/` is now byte-identical to GoodBook's, and `device/` matches it apart from GoodBook's Ruby-only
+updater, firmware-safety and NVK-package folders and the installer's Googlebook image-base choice. The port came from
+OpenBook's own integration commit `d7a170fa`, plus GoodBook's 26 later commits applied with `git format-patch` /
+`git am`, each marked "Ported from GoodBook". New in the AOSP G14 product:
+
+- **NVIDIA's open kernel driver** 615.78.08 for the RTX 5070 Ti Laptop GPU. It sits in `vendor_dlkm`, blocklisted,
+  and loads after boot in Hybrid, behind a crash guard. Its GSP firmware (85.3 MB) is in `/vendor/firmware`. Runtime
+  D3 lets the GPU power off when idle. Apps cannot use the RTX on OpenBook: NVK on NVIDIA's driver stays private to
+  GoodBook. nouveau ships blocklisted (owner, 2026-10-27).
+- The graphics-mode switcher, its recovery entries in `openbook-bootsync`, and the GPU selection pinned to the panel
+  (minigbm, drm_hwcomposer).
+- The lid guard and S0i3 diagnostics modules (built, not in the load list yet), the UVC camera provider, zram, and
+  touchpad timing fixes.
+- New and shared with GoodBook: `g14-stage-kernel.sh` stages NVIDIA's firmware with the kernel, checked against its
+  pin, and refuses `nvidia.ko` without it. The platform policy defines `openbook.gfx.request`.
+
+**Checks:**
+- **Build:** the kernel was reused, not rebuilt; its images equal R5's hand-off pins. The `anybook_g14_x86_64` build
+  passes.
+- **QEMU, standard G14 check:** 58/58, `boot_completed` at 15.3 s, fixtures 154/0. Four SELinux denials, none new
+  against `anal192e`.
+- **QEMU, new NVIDIA check:** 23/23. The modules are present, blocklisted and not loaded. Firmware hashes, the
+  device-node rules and the switcher state are as designed.
+
+Not installed on the laptop, which runs the Googlebook image. Owner decisions carried over: the GKI denylist exception
+and NVIDIA's firmware are for own use, so images with them stay private. Docs: `docs/nvidia-open.md` and
+`docs/nvidia-graphics-modes.md`. Evidence: `evidence/2026-10-30-shared-nvidia-platform/`.
+
 ## 2026-10-19: ARM renderer fix installed on the G14 (ANAL-224)
 
 The G14 now runs `20261019.armfix1` in **slot B**: its `photos1` base plus

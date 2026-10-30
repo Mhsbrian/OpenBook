@@ -1,0 +1,38 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: "AnyBook (ANAL-297)" <noreply@anybook.invalid>
+Date: Mon, 26 Oct 2026 00:00:00 +0000
+Subject: [PATCH 6/7] Kbuild: let conftest find its generated headers in a
+ separate object tree
+
+conftest.sh changes to its own directory, the source tree, compiles each
+test there, and the tests include "conftest/headers.h". Kbuild generates that
+header under $(obj)/conftest. When the objects are built in a separate tree
+(Android's MO=, which Kleaf uses for external modules), every test that needs
+the header fails to compile, and conftest silently reports the kernel
+interfaces it checks as absent: the build then takes fallbacks for ancient
+kernels (mmap_sem, int vm_fault_t) and fails.
+
+Add $(obj), made absolute, to the conftest include path. With in-tree objects
+$(obj) is the source directory, which changes nothing.
+---
+ kernel-open/Kbuild | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/kernel-open/Kbuild b/kernel-open/Kbuild
+index 3c8872e..7107ace 100644
+--- a/kernel-open/Kbuild
++++ b/kernel-open/Kbuild
+@@ -215,7 +215,12 @@ NV_CONFTEST_CMD := /bin/sh $(NV_CONFTEST_SCRIPT) \
+ 
+ NV_CFLAGS_FROM_CONFTEST := $(shell $(NV_CONFTEST_CMD) build_cflags)
+ 
+-NV_CONFTEST_CFLAGS = $(NV_CFLAGS_FROM_CONFTEST) $(ccflags-y) -fno-pie
++# conftest.sh compiles its tests in the source directory and includes
++# conftest/headers.h, which is generated in $(obj): the same directory unless
++# the objects go to a separate tree (MO=, as Android's Kleaf builds external
++# modules). Absolute, because $(obj) is relative to Kbuild's working directory,
++# not conftest.sh's (since Linux 6.13 it is ".").
++NV_CONFTEST_CFLAGS = $(NV_CFLAGS_FROM_CONFTEST) $(ccflags-y) -I$(abspath $(obj)) -fno-pie
+ NV_CONFTEST_CFLAGS += $(filter -std=%,$(KBUILD_CFLAGS))
+ NV_CONFTEST_CFLAGS += $(call cc-disable-warning,pointer-sign)
+ NV_CONFTEST_CFLAGS += $(call cc-option,-fshort-wchar,)

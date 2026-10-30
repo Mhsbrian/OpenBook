@@ -1,0 +1,10 @@
+// SPDX-License-Identifier: Apache-2.0
+cc_test {
+    name: "openbook-camera-buffer-test",
+    vendor: true,
+    gtest: false,
+    srcs: ["camera-buffer-test.cpp"],
+    shared_libs: ["libui", "libutils"],
+    cflags: ["-Wall", "-Wextra", "-Werror"],
+    // Explicit build/test target, never a PRODUCT_PACKAGES entry.
+}

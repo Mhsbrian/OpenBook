@@ -1,0 +1,7 @@
+# AnyBook (ANAL-297): sanitizer ignore list for NVIDIA's core objects (nv-kernel.o, nv-modeset-kernel.o), passed
+# with -fsanitize=kcfi by ./Makefile. Clang still gives every function its kCFI type hash, which the kernel's and
+# kernel-open's checked indirect calls into the cores need, but emits no check at the cores' own indirect calls:
+# NVIDIA's NVOC dispatch and resserv call methods through generic function pointer types (NVOC exported-method
+# tables, CONTROL_EXPORT_FNPTR), and a check there would trap on every RM control call. docs/nvidia-open-ruby.md §5.
+[kcfi]
+fun:*

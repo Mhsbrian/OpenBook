@@ -139,3 +139,9 @@ btintel.ko
 btrtl.ko
 btmtk.ko
 btusb.ko
+drm_gpuvm.ko
+nouveau.ko
+nvidia.ko
+nvidia-modeset.ko
+nvidia-drm.ko
+openbook_sleep_diag.ko

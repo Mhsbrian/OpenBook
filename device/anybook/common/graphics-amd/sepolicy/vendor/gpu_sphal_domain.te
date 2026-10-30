@@ -8,3 +8,8 @@ dontaudit isolated_app_all vendor_graphics_option_prop:file { getattr open read 
 
 # libdrm's device enumeration stats every /dev/dri node; only the render node is opened.
 dontaudit gpu_sphal_domain graphics_device:chr_file getattr;
+
+# minigbm's render-node pin (vendor.minigbm.render_node, ANAL-246) is read in every process that maps buffers.
+# Isolated apps may not read vendor properties; minigbm then scans the nodes as before.
+get_prop({ gpu_sphal_domain -isolated_app_all }, vendor_anybook_gpu_pin_prop)
+dontaudit isolated_app_all vendor_anybook_gpu_pin_prop:file { getattr open read map };

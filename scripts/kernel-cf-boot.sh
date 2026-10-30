@@ -10,7 +10,7 @@
 # env: KCF_DIST        AnyBook dist (default ~/anybook/kernel/dist/anybook-amd-gbos-16302624)
 #      KCF_BOARD       //common-modules/virtual-device:virtual_device_x86_64_dist built on the same GKI
 #                      (default ~/anybook/kernel/dist/anybook-vdev-gbos-16302624)
-#      KCF_VENDOR_LIST AnyBook vendor modules (default evidence/2026-10-16-kernel-amd/vendor-modules.txt)
+#      KCF_VENDOR_LIST AnyBook vendor modules (default kernel/cuttlefish/vendor-modules.txt)
 #      KCF_AOSP_OUT    AOSP out/ to snapshot (default ~/anybook/aosp/src/out); KCF_RESNAP=1 takes a new snapshot
 #      KCF_LOGS        log dir (default ~/anybook/logs/kernel/cf-<mode>-<ts>)
 #      KCF_BLOCK       AnyBook modules to blocklist in this VM image, probed by hand after boot instead
@@ -24,7 +24,7 @@ MODE=${1:-anybook}; case $MODE in anybook|board) ;; *) sed -n '2,20p' "$0"; exit
 A=$HOME/anybook; KCF=$A/kernel/cf; DEV=vsoc_x86_64_only
 DIST=${KCF_DIST:-$A/kernel/dist/anybook-amd-gbos-16302624}
 BOARD=${KCF_BOARD:-$A/kernel/dist/anybook-vdev-gbos-16302624}
-VLIST=${KCF_VENDOR_LIST:-$R/evidence/2026-10-16-kernel-amd/vendor-modules.txt}
+VLIST=${KCF_VENDOR_LIST:-$R/kernel/cuttlefish/vendor-modules.txt}
 AOUT=${KCF_AOSP_OUT:-$A/aosp/src/out}
 SNAP=$KCF/snapshot; SOUT=$SNAP/out; SPROD=$SOUT/target/product/$DEV
 L=${KCF_LOGS:-$A/logs/kernel/cf-$MODE-$(date -u +%Y%m%dT%H%M%SZ)}; mkdir -p "$L" "$KCF/logs/aosp"

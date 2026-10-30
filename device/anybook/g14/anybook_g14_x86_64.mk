@@ -16,6 +16,14 @@ endif
 # the 5 licence files WHENCE cites, into /vendor/firmware.
 ANYBOOK_G14_FIRMWARE_DIR := $(OPENBOOK_G14_KERNEL_DIR)/firmware/vendor/firmware
 include $(OPENBOOK_G14_KERNEL_DIR)/firmware/firmware.mk
+# GSP firmware for NVIDIA's open kernel modules in vendor_dlkm (ANAL-297): 85.3 MB under
+# /vendor/firmware/nvidia/<version>/ with NVIDIA's licence, used under its own-use terms (images stay private).
+# g14-stage-kernel.sh stages it whenever the kernel carries nvidia.ko, checked against
+# kernel/firmware/anybook-nvidia-open.tsv; older kernels have neither.
+ifneq ($(wildcard $(OPENBOOK_G14_KERNEL_DIR)/firmware-nvidia-open/firmware-nvidia-open.mk),)
+ANYBOOK_G14_NVIDIA_FIRMWARE_DIR := $(OPENBOOK_G14_KERNEL_DIR)/firmware-nvidia-open/vendor/firmware
+include $(OPENBOOK_G14_KERNEL_DIR)/firmware-nvidia-open/firmware-nvidia-open.mk
+endif
 # AOSP 17 imports the MediaTek MT7921/MT7922/MT7925 Wi-Fi and Bluetooth files itself (external/linux-firmware, at
 # linux-firmware 0d347a3f, 2026-04-23), and Soong owns their /vendor/firmware paths. Those 9 come from AOSP's
 # modules; ANAL-198's copies (38c1a709, 2026-10) of the same names differ and are dropped. ANAL-179 keeps AOSP's
@@ -48,6 +56,10 @@ PRODUCT_COPY_FILES += \
     device/anybook/g14/input/Vendor_0b05_Product_19b6.kl:$(TARGET_COPY_OUT_VENDOR)/usr/keylayout/Vendor_0b05_Product_19b6.kl \
     device/anybook/g14/input/Vendor_04f3_Product_3315.idc:$(TARGET_COPY_OUT_VENDOR)/usr/idc/Vendor_04f3_Product_3315.idc \
     device/anybook/g14/input/Asus_WMI_hotkeys.kl:$(TARGET_COPY_OUT_VENDOR)/usr/keylayout/Asus_WMI_hotkeys.kl
+
+# Graphics modes (ANAL-246): the G14's MUX may be switched between Eco and Hybrid; Ultimate is not available yet.
+# Firmware writes stay off (no ro.vendor.openbook.gfx.fw_writes) until a release the owner approved turns them on.
+PRODUCT_COPY_FILES += device/anybook/g14/gfx-stacks.conf:$(TARGET_COPY_OUT_VENDOR)/etc/openbook/gfx-stacks.conf
 
 # 14" 2880x1800 OLED (Samsung ATNA40CU05-0): 243 ppi. 240 dpi gives a 1920x1200 dp desktop, as on Googlebook.
 PRODUCT_VENDOR_PROPERTIES += ro.vendor.openbook.lcd_density=240

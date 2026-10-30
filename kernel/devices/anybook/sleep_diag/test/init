@@ -1,0 +1,30 @@
+#!/bin/busybox sh
+# Throwaway QEMU guest for openbook_sleep_diag (ANAL-257): inert load, active load, three s2idle cycles through the
+# LPS0 hooks (woken by the host pressing the ACPI power button), one S3 cycle (RTC), the 60 s USB4 report, unload.
+/bin/busybox --install -s /bin
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+mount -t tmpfs tmpfs /dev
+mdev -s
+echo "== kernel $(uname -r)"
+echo "== mem_sleep $(cat /sys/power/mem_sleep)"
+insmod /openbook_sleep_diag.ko && echo "== loaded without parameters"
+rmmod openbook_sleep_diag && echo "== unloaded"
+insmod /openbook_sleep_diag.ko ptm_off=1 snapshot=2 usb4=1 cycles=2 && echo "== loaded active"
+for p in ptm_off snapshot usb4 cycles; do echo "PARAM $p=$(cat /sys/module/openbook_sleep_diag/parameters/$p)"; done
+for i in 1 2 3; do
+	echo s2idle > /sys/power/mem_sleep
+	echo "== s2idle $i"
+	echo mem > /sys/power/state && echo "== s2idle $i resumed"
+done
+echo deep > /sys/power/mem_sleep && echo "== s3"
+echo 0 > /sys/class/rtc/rtc0/wakealarm; echo +3 > /sys/class/rtc/rtc0/wakealarm
+echo mem > /sys/power/state && echo "== s3 resumed"
+sed 's/^/REPORT /' /sys/module/openbook_sleep_diag/parameters/report
+echo x > /sys/module/openbook_sleep_diag/parameters/report 2>/dev/null && echo "== report writable" || echo "== report read-only"
+while [ "$(cut -d. -f1 /proc/uptime)" -lt 70 ]; do sleep 2; done
+dmesg | grep -a "openbook_sleep_diag" | sed 's/^/KLOG /'
+rmmod openbook_sleep_diag && echo "== unloaded active"
+dmesg | grep -aE "BUG:|WARNING: CPU|Oops|Call Trace|general protection|refcount_t" | sed 's/^/KBAD /'
+echo "== done"
+poweroff -f

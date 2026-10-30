@@ -1,0 +1,10 @@
+310190080 out/target/product/anybook_g14/product.img
+1541336200 out/target/product/anybook_g14/super.img
+18165760 out/target/product/anybook_g14/system_dlkm.img
+764133376 out/target/product/anybook_g14/system.img
+94674944 out/target/product/anybook_g14/vendor_dlkm.img
+222867456 out/target/product/anybook_g14/vendor.img
+e008193f33cb3fde5984da91390f0821a71be4f9e18b9d40aa42191bee6d557a  out/target/product/anybook_g14/vendor_dlkm.img
+62b1bb961049a07e822bf97bb74a6ab5aa663b19aa819fca83475f180bdd15e3  out/target/product/anybook_g14/system_dlkm.img
+577b232f419c15cae8dba653279d0d34b8a9bafa665c2c37bbe3ff383833772f  out/target/product/anybook_g14/vendor_boot.img
+7e38b9e9d4a1ccec09ec60c26a8ecd79a7007ff5efe5f71b4fc7a0420a2ea90d  out/target/product/anybook_g14/boot.img

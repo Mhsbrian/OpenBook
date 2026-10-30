@@ -3,7 +3,7 @@
 
 usage: kernel-g14-firmware.py --subset TSV --src DIR --fw LINUX_FIRMWARE_GIT --out DIR
 
-  --subset  the subset list from scripts/kernel-firmware-subset.py (evidence/2026-10-16-kernel-amd/firmware-subset.tsv,
+  --subset  the subset list from scripts/kernel-firmware-subset.py (kernel/firmware/anybook-amd-subset.tsv,
             137 files since ANAL-175 added the GA403WR speaker tuning):
             file, WHENCE link target, size, sha256, requesting module, WHENCE driver and licence
   --src     that script's staging dir (~/anybook/kernel/firmware/anybook-amd): the files, LICENSES/ and WHENCE
@@ -29,9 +29,11 @@ URL = "https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.g
 
 # What the GA403WR loads (evidence/2026-10-16-ga403wr-inventory): Strix Point GPU (GC 11.5.0, PSP 14.0.0,
 # DCN 3.5, SDMA 6.1.0, VCN 4.0.5, VPE 6.1.0, UMSCH 4.0.0), NPU 1022:17f0 rev 10, MT7925 Wi-Fi and Bluetooth, and
-# the CS35L56 tuning for codec SSID 1043:1024 with speaker ID 1 (the root inventory run saw it load).
+# the CS35L56 tuning for codec SSID 1043:1024 with speaker ID 1 (the root inventory run saw it load), and, when
+# nouveau drives the dGPU (ANAL-239), the RTX 5070 Ti Laptop's GSP-RM firmware (GB205).
 GA403WR = re.compile(r"amdgpu/(gc_11_5_0|psp_14_0_0|dcn_3_5_dmcub|sdma_6_1_0|vcn_4_0_5|vpe_6_1_0|umsch_mm_4_0_0)[_.]"
-                     r"|amdnpu/17f0_10/|mediatek/mt7925/|cirrus/cs35l56-b0-dsp1-misc-10431024-spkid1")
+                     r"|amdnpu/17f0_10/|mediatek/mt7925/|cirrus/cs35l56-b0-dsp1-misc-10431024-spkid1"
+                     r"|nvidia/gb205/gsp/")
 
 # Corrections to earlier notes, kept in the manifest so nobody goes looking for these again.
 NOTES = [

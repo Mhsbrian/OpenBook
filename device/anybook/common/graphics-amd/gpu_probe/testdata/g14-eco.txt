@@ -1,0 +1,5 @@
+# GA403WR in Eco (synthetic, ANAL-246): dgpu_disable=1, so the dGPU is not enumerated at all.
+fw mux=1 dgpu=1
+drm card1 driver=amdgpu pci=0000:65:00.0 vendor=0x1002 device=0x150e class=0x038000 conn=DP-1:disconnected,eDP-1:connected
+render renderD128 driver=amdgpu pci=0000:65:00.0 vendor=0x1002 device=0x150e class=0x038000
+pci 0000:65:00.0 driver=amdgpu vendor=0x1002 device=0x150e class=0x038000

@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: GPL-2.0
+# OpenBook (ANAL-239): nouveau.ko as an external vendor module. nouveau/ is common's drivers/gpu/drm/nouveau at the
+# Ruby kernel's revision with kernel/patches/nouveau applied (scripts/kernel-nouveau-apply.sh); its own Kbuild is
+# unchanged. The device config has DRM_NOUVEAU off (see Kconfig.ext), so autoconf.h lacks the values nouveau's
+# Kconfig would give it; these are its defaults. Off, as by default: NOUVEAU_DEBUG_MMU, NOUVEAU_DEBUG_PUSH,
+# DRM_NOUVEAU_SVM (needs DEVICE_PRIVATE), NOUVEAU_PLATFORM_DRIVER (Tegra) and the pre-NV50 TV encoders
+# DRM_NOUVEAU_CH7006/SIL164.
+obj-$(CONFIG_ANYBOOK_NOUVEAU) += nouveau/
+subdir-ccflags-y += -DCONFIG_DRM_NOUVEAU_MODULE=1 -DCONFIG_NOUVEAU_DEBUG=5 -DCONFIG_NOUVEAU_DEBUG_DEFAULT=3 \
+                    -DCONFIG_DRM_NOUVEAU_BACKLIGHT=1

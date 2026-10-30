@@ -111,6 +111,8 @@ include device/anybook/common/installer/BoardConfig.mk
 include device/anybook/common/addons/BoardConfig.mk
 # The boot control HAL's openbook-bootsync and the ESP's label (ANAL-223).
 include device/anybook/common/bootsync/BoardConfig.mk
+# openbook-gfx-mode's domain and the GPU switches' label (ANAL-246).
+include device/anybook/common/gfx-mode/BoardConfig.mk
 
 # Wi-Fi: AOSP's wpa_supplicant over nl80211, with its own init service (WIFI_HIDL_UNIFIED_...) and OpenBook's
 # DRIVER-command hook (wifi/driver_cmd_openbook.c: COUNTRY through nl80211). No BOARD_WLAN_DEVICE: there is no

@@ -1,0 +1,32 @@
+; SPDX-License-Identifier: Apache-2.0
+; OpenBook Graphics (org.openbook.graphics), the graphics-mode switcher's app (ANAL-246): a privileged app in its
+; own domain. plat_seapp_contexts selects it only for this package signed with the OpenBook app key (seinfo
+; "openbook" in plat_mac_permissions.xml). Appended to the platform policy by build-gfx-mode-candidate.py and
+; compiled with the image's exact policy inputs, neverallows included.
+;
+; An app domain, not a privileged one: Android forbids every privileged app (priv_app_all) and every untrusted app
+; to set any property (system/sepolicy private/priv_app_all.te, app_neverallows.te), and the request is a property.
+; It is built as Google's own traceur_app is: a core app domain with the app API services and one property to set.
+; The property is openbook.gfx.request, which init hands to openbook-gfx-mode (a vendor service) as an argument. A
+; platform app may set no vendor property (private/property.te, compatible_property_only), so the request is the
+; platform's own property, restricted: only platform domains set it, and vendor_init may read it, because init
+; accepts a property trigger in a vendor .rc file only on a property vendor_init can read ("unexported property
+; trigger", found in the first Ruby VM run). The switcher's state (vendor.openbook.gfx.*) the app reads through the
+; vendor policy's grant to system apps. The app is still a privileged app for Android's
+; permissions (REBOOT, /system/priv-app). As for openbook_update_app, the builder derives the type and the
+; statements every app domain gets from this image's policy.
+(typeattributeset domain (openbook_graphics_app))
+(typeattributeset coredomain (openbook_graphics_app))
+(typeattributeset appdomain (openbook_graphics_app))
+; ActivityManager, NotificationManager, PowerManager (the restart after the owner confirms), UserManager.
+(allow openbook_graphics_app app_api_service (service_manager (find)))
+(type openbook_gfx_request_prop)
+(roletype object_r openbook_gfx_request_prop)
+(typeattributeset property_type (openbook_gfx_request_prop))
+(typeattributeset system_property_type (openbook_gfx_request_prop))
+(typeattributeset system_restricted_property_type (openbook_gfx_request_prop))
+(allow vendor_init openbook_gfx_request_prop (file (read getattr map open)))
+(allow openbook_graphics_app property_socket (sock_file (write)))
+(allow openbook_graphics_app init (unix_stream_socket (connectto)))
+(allow openbook_graphics_app openbook_gfx_request_prop (property_service (set)))
+(allow openbook_graphics_app openbook_gfx_request_prop (file (read getattr map open)))

@@ -10,6 +10,13 @@ on early-init
     # /system/lib/modules through vendor_dlkm's modules.dep. -b applies modules.blocklist, which keeps the
     # VM-only virtio modules out on real hardware.
     exec_start vendor.openbook.dlkm
+    # Graphics modes (ANAL-246, device/anybook/common/gfx-mode): with asus-wmi loaded, finish, count or roll back a
+    # MUX switch, then load the KMS driver of the mode the firmware is in (none outside Ultimate). Both run before
+    # the stack selector (anybook_gpu_probe, init.anybook.graphics-amd.rc) and before dgpu-pm, so the selector sees
+    # nouveau's card in Ultimate and dgpu-pm leaves a bound dGPU to its driver.
+    exec_start vendor.openbook.gfx-boot
+    exec_start vendor.openbook.gfx-kms
+    trigger vendor-openbook-gfx-kms-${vendor.openbook.gfx.kms:-none}
     # A dGPU that no driver binds: let it reach D3cold (docs/nvidia.md). No-op without an NVIDIA function.
     exec_start vendor.openbook.dgpu-pm
     # Display density: the device's default, unless the loader passes androidboot.lcd_density.
@@ -50,6 +57,8 @@ on vendor-anybook-gpu-virtio
     setprop ro.hardware.gralloc ${ro.boot.hardware.gralloc:-minigbm}
     setprop ro.hardware.hwcomposer ${ro.boot.hardware.hwcomposer:-drm}
     setprop ro.opengles.version ${ro.boot.opengles.version:-196609}
+    # The virtio card exists now: pin the composer and gralloc to it (ANAL-246).
+    exec_start vendor.anybook-gpu-pin
 
 on post-fs-data
     mkdir /data/vendor/weaver 0700 system system
@@ -57,6 +66,63 @@ on post-fs-data
     mkdir /data/vendor/wifi 0771 wifi wifi
     mkdir /data/vendor/wifi/wpa 0770 wifi wifi
     mkdir /data/vendor/wifi/wpa/sockets 0770 wifi wifi
+
+# The dGPU's power state, logged as root to logcat (ANAL-238): a user build's adb shell cannot read PCI power state
+# or the kernel log, and dgpu-pm's own early-init lines reach neither there. Read with
+# `adb logcat -d -s openbook-pc-setup`. Again on demand: `adb shell setprop debug.openbook.dgpu_report <new value>`.
+on property:sys.boot_completed=1
+    start vendor.openbook.dgpu-report
+
+on property:debug.openbook.dgpu_report=*
+    start vendor.openbook.dgpu-report
+
+# Volatile dGPU power hold for battery comparisons (ANAL-238): `setprop debug.openbook.dgpu_pm on` keeps the dGPU in
+# D0, `auto` lets it reach D3cold again. A reboot returns to dgpu-pm's default.
+on property:debug.openbook.dgpu_pm=*
+    start vendor.openbook.dgpu-ctl
+
+# The G14 lab helper (ANAL-257, docs/googlebook-s0i3.md): allow-listed experiments over adb. Any value of
+# debug.openbook.lab runs `openbook-pc-setup lab VALUE` as root; it refuses everything but enable/disable until
+# persist.vendor.openbook.lab=1, which only it can set. Module loads and unloads go through
+# vendor.openbook.lab.mod, which only the helper can set, to the fixed commands below. One request at a time: a
+# request made while the helper still runs is ignored. Results: `adb logcat -d -s openbook-pc-setup`.
+on property:debug.openbook.lab=*
+    start vendor.openbook.lab
+
+on property:vendor.openbook.lab.mod=nouveau-load
+    start vendor.openbook.lab-nouveau-load
+
+on property:vendor.openbook.lab.mod=nouveau-unload
+    start vendor.openbook.lab-nouveau-unload
+
+on property:vendor.openbook.lab.mod=nvidia-load
+    start vendor.openbook.lab-nvidia-load
+
+on property:vendor.openbook.lab.mod=nvidia-unload
+    start vendor.openbook.lab-nvidia-unload
+
+on property:vendor.openbook.lab.mod=diag-snapshot
+    start vendor.openbook.lab-diag-snapshot
+
+on property:vendor.openbook.lab.mod=diag-ptm-off
+    start vendor.openbook.lab-diag-ptm-off
+
+on property:vendor.openbook.lab.mod=diag-unload
+    start vendor.openbook.lab-diag-unload
+
+# NVIDIA's driver for apps (ANAL-247, docs/nvidia-offload-ruby.md): in Hybrid, once the system is up, load NVIDIA's
+# driver with the lab's fixed nvidia-load command (openbook-pc-setup dgpu-driver boot: never with nouveau, and no
+# longer after a boot whose load never finished). Only then is the OpenBook NVK driver package offered to apps, so an
+# app opted in to it keeps the system driver whenever the dGPU has no driver (Eco, the boot load off or failed).
+# `setprop debug.openbook.dgpu_driver off` (or on) switches the boot load, kept across reboots.
+on property:sys.boot_completed=1 && property:vendor.openbook.gfx.mode=hybrid
+    start vendor.openbook.dgpu-driver
+
+on property:debug.openbook.dgpu_driver=*
+    start vendor.openbook.dgpu-driver-set
+
+on property:vendor.openbook.dgpu.ready=nvidia
+    setprop ro.gfx.driver.0 org.openbook.nvk
 
 service vendor.openbook.dlkm /vendor/bin/modprobe -b -s -d /vendor/lib/modules --all=/vendor/lib/modules/modules.load
     user root
@@ -81,6 +147,93 @@ service vendor.openbook.dgpu-pm /vendor/bin/openbook-pc-setup dgpu-pm
     oneshot
     disabled
     stdio_to_kmsg
+
+# These two run after logd is up and log there (openbook-pc-setup's log()), so they need no kmsg.
+service vendor.openbook.dgpu-report /vendor/bin/openbook-pc-setup dgpu-report ${debug.openbook.dgpu_report:-boot}
+    user root
+    group root system
+    oneshot
+    disabled
+
+service vendor.openbook.dgpu-ctl /vendor/bin/openbook-pc-setup dgpu-ctl ${debug.openbook.dgpu_pm}
+    user root
+    group root system
+    oneshot
+    disabled
+
+service vendor.openbook.lab /vendor/bin/openbook-pc-setup lab ${debug.openbook.lab}
+    user root
+    group root system
+    oneshot
+    disabled
+
+service vendor.openbook.dgpu-driver /vendor/bin/openbook-pc-setup dgpu-driver boot
+    user root
+    group root system
+    oneshot
+    disabled
+
+service vendor.openbook.dgpu-driver-set /vendor/bin/openbook-pc-setup dgpu-driver ${debug.openbook.dgpu_driver}
+    user root
+    group root system
+    oneshot
+    disabled
+
+# The lab's module commands (ANAL-257), in the boot-time loader's domain. Without -b: nouveau, drm_gpuvm and
+# openbook_sleep_diag are on vendor_dlkm's modules.blocklist, which keeps them out of the boot (vendor.openbook.dlkm
+# uses -b) but not out of these. modules.options gives nouveau runpm=1 modeset=2. -r also removes the dependencies
+# nothing else uses (drm_gpuvm).
+service vendor.openbook.lab-nouveau-load /vendor/bin/modprobe -s -d /vendor/lib/modules nouveau
+    user root
+    group root system
+    seclabel u:r:vendor_modprobe:s0
+    oneshot
+    disabled
+
+service vendor.openbook.lab-nouveau-unload /vendor/bin/modprobe -r -s -d /vendor/lib/modules nouveau
+    user root
+    group root system
+    seclabel u:r:vendor_modprobe:s0
+    oneshot
+    disabled
+
+# NVIDIA's open driver (ANAL-297), the alternative to nouveau: nvidia-drm pulls in nvidia-modeset and nvidia through
+# modules.dep; modules.options gives nvidia-drm modeset=1. -r removes all three. The helper refuses either
+# driver's load while the other one is loaded.
+service vendor.openbook.lab-nvidia-load /vendor/bin/modprobe -s -d /vendor/lib/modules nvidia-drm
+    user root
+    group root system
+    seclabel u:r:vendor_modprobe:s0
+    oneshot
+    disabled
+
+service vendor.openbook.lab-nvidia-unload /vendor/bin/modprobe -r -s -d /vendor/lib/modules nvidia-drm
+    user root
+    group root system
+    seclabel u:r:vendor_modprobe:s0
+    oneshot
+    disabled
+
+service vendor.openbook.lab-diag-snapshot /vendor/bin/modprobe -s -d /vendor/lib/modules openbook_sleep_diag snapshot=2 usb4=1 cycles=8
+    user root
+    group root system
+    seclabel u:r:vendor_modprobe:s0
+    oneshot
+    disabled
+
+service vendor.openbook.lab-diag-ptm-off /vendor/bin/modprobe -s -d /vendor/lib/modules openbook_sleep_diag ptm_off=1 snapshot=1 usb4=1 cycles=8
+    user root
+    group root system
+    seclabel u:r:vendor_modprobe:s0
+    oneshot
+    disabled
+
+service vendor.openbook.lab-diag-unload /vendor/bin/modprobe -r -s -d /vendor/lib/modules openbook_sleep_diag
+    user root
+    group root system
+    seclabel u:r:vendor_modprobe:s0
+    oneshot
+    disabled
 
 service vendor.openbook.audio-setup /vendor/bin/openbook-audio-setup boot
     user root

@@ -1,0 +1,11 @@
+# first build: build-20261030T142816Z.log
+=== 2026-10-30T14:28:16Z target anybook_g14_x86_64-cp2a-userdebug goals droid -j32 on 32 CPUs
+               total        used        free      shared  buff/cache   available
+Mem:              61          29           7           0          28          32
+#### build completed successfully (12:05 (mm:ss)) ####
+
+# rebuild after the policy fix: build-20261030T144526Z.log
+=== 2026-10-30T14:45:26Z target anybook_g14_x86_64-cp2a-userdebug goals droid -j32 on 32 CPUs
+               total        used        free      shared  buff/cache   available
+Mem:              61          15           9           0          40          46
+#### build completed successfully (05:22 (mm:ss)) ####
