@@ -7,6 +7,7 @@ the owner's complaint or certify the physical device. Usage: replay-test.py BIN
 """
 import importlib.util
 import json
+import math
 from pathlib import Path
 import subprocess
 import sys
@@ -46,6 +47,42 @@ class Motion:
 
 
 class ReplayTests(unittest.TestCase):
+    def test_long_drag_with_kernel_repeat_timestamp_gap(self):
+        """A synthetic held contact must survive six seconds and release on lift.
+
+        The reset control deliberately demonstrates the retained Ruby converter's
+        early release. This is not a labeled recording from the physical G14.
+        """
+        for policy in ("clean", "reset-on-sync", "preserve"):
+            with self.subTest(policy=policy), tempfile.TemporaryDirectory() as tmp:
+                m = Motion(); m.add([], 10)
+                m.add([(1, 1800, 1000, False)], 20); m.add([], 20)
+                m.add([(2, 1800, 1000, False)], 70)
+                for i in range(1500):
+                    m.add([(2, 1800 + 300 * math.sin(i / 150), 1000, False)])
+                    if i > 150 and i % 10 == 0 and policy != "clean":
+                        prior = m.frames[-1]
+                        m.frames.append(dict(prior, time=prior["time"] + .002,
+                            msc=0 if policy == "reset-on-sync" else prior["msc"]))
+                lift = m.time + .0041
+                m.add([], 100)
+                path = Path(tmp) / "frames.json"
+                path.write_text(json.dumps(dict(hardware=HARDWARE,
+                    properties={"Tap Enable": True, "Tap Drag Enable": True,
+                                "Tap Drag Lock Enable": False}, frames=m.frames)))
+                result = subprocess.run([REPLAY, str(path)], check=True,
+                                        capture_output=True, text=True)
+                buttons = [e for e in json.loads(result.stdout) if "down" in e]
+                self.assertEqual([(e["down"], e["up"]) for e in buttons], [(1, 0), (0, 1)])
+                if policy == "reset-on-sync":
+                    self.assertLess(buttons[-1]["delivered_at"] - buttons[0]["delivered_at"], 1)
+                    self.assertLess(buttons[-1]["delivered_at"], lift - 5)
+                    self.assertIn("Clock changed backwards", result.stderr)
+                else:
+                    self.assertAlmostEqual(buttons[-1]["delivered_at"], lift, places=6)
+                    self.assertGreater(buttons[-1]["delivered_at"] - buttons[0]["delivered_at"], 6)
+                    self.assertEqual(result.stderr, "")
+
     def test_converter_palm_and_missing_msc(self):
         text = """[ 10.000000] EV_KEY BTN_TOUCH UP
 [ 10.000000] EV_SYN SYN_REPORT 00000000
@@ -70,6 +107,52 @@ class ReplayTests(unittest.TestCase):
     def test_converter_rejects_lost_events(self):
         with self.assertRaisesRegex(ValueError, "SYN_DROPPED"):
             converter.convert("[ 1.000000] EV_SYN SYN_DROPPED 00000000")
+
+    def test_converter_runtime_timestamp_and_tap_settings(self):
+        trace = """[ 10.000000] EV_KEY BTN_TOUCH UP
+[ 10.000000] EV_SYN SYN_REPORT 00000000
+[ 10.100000] EV_MSC MSC_TIMESTAMP 00001004
+[ 10.100000] EV_SYN SYN_REPORT 00000000
+[ 10.102000] EV_KEY BTN_TOOL_FINGER REPEAT
+[ 10.102000] EV_SYN SYN_REPORT 00000001
+[ 10.104000] EV_MSC MSC_TIMESTAMP 00000000
+[ 10.104000] EV_SYN SYN_REPORT 00000000
+"""
+        patched = converter.convert(trace)
+        ruby = converter.convert(trace, msc_policy="reset-on-sync",
+                                 tap_to_click=False, tap_dragging=False)
+        self.assertEqual([f["msc"] for f in patched["frames"]], [0, .0041, .0041, 0])
+        self.assertEqual([f["msc"] for f in ruby["frames"]], [0, .0041, 0, 0])
+        self.assertEqual([f["time"] for f in patched["frames"]],
+                         [f["time"] for f in ruby["frames"]])
+        self.assertFalse(ruby["properties"]["Tap Enable"])
+        self.assertFalse(ruby["properties"]["Tap Drag Enable"])
+        self.assertEqual(ruby["conversion"]["msc_policy"], "reset-on-sync")
+
+    def test_repeat_frame_timestamp_reset_reproduces_clock_warning_not_click(self):
+        # SYNTHETIC two-finger motion plus MSC-less frames every ~41 ms.
+        # Model the known converter gap, without claiming a physical Ruby repro.
+        for policy in ("preserve", "reset-on-sync"):
+            with self.subTest(policy=policy), tempfile.TemporaryDirectory() as tmp:
+                m = Motion(); m.add([], 1)
+                for i in range(200):
+                    m.add([(1, 1500, 1000 + i * 3, False), (2, 2200, 1000 + i * 3, False)])
+                    if i > 60 and i % 10 == 0:
+                        prior = m.frames[-1]
+                        m.frames.append(dict(prior, time=prior["time"] + .002,
+                                             msc=prior["msc"] if policy == "preserve" else 0))
+                m.add([])
+                if policy == "reset-on-sync":
+                    m.frames[-1]["msc"] = 0
+                p = Path(tmp) / "frames.json"
+                p.write_text(json.dumps(dict(hardware=HARDWARE,
+                    properties={"Tap Enable": False, "Tap Drag Enable": False}, frames=m.frames)))
+                result = subprocess.run([REPLAY, str(p)], check=True, capture_output=True, text=True)
+                events = json.loads(result.stdout)
+                warnings = result.stderr.count("Clock changed backwards")
+                self.assertEqual(warnings, 13 if policy == "reset-on-sync" else 0)
+                self.assertTrue(any("type: scroll" in e["description"] for e in events))
+                self.assertFalse(any("down" in e for e in events))
 
     def test_converter_rejects_incomplete_contact(self):
         with self.assertRaisesRegex(ValueError, "all-fingers-up"):
@@ -107,6 +190,20 @@ class ReplayTests(unittest.TestCase):
     def test_palm_does_not_tap(self):
         m = Motion(); m.add([], 10); m.add([(1, 1800, 1000, True)], 20); m.add([])
         self.assertFalse(any("down" in x for x in m.run()))
+
+    def test_tapping_off_suppresses_taps_and_scroll_clicks(self):
+        for stagger in (0, 12, 24):
+            with self.subTest(stagger=stagger):
+                m = Motion(); m.add([], 10)
+                m.add([(1, 1800, 1000, False)], 20); m.add([], 80)
+                m.add([(2, 1500, 1000, False)], stagger)
+                for i in range(80):
+                    m.add([(2, 1500, 1000 + i * 5, False), (3, 2200, 1000 + i * 5, False)])
+                # Fingers lift separately, as they often do during real scrolling.
+                m.add([(3, 2200, 1395, False)], 10); m.add([])
+                events = m.run(**{"Tap Enable": False})
+                self.assertTrue(any("type: scroll" in x["description"] for x in events))
+                self.assertFalse(any("down" in x for x in events))
 
     def test_three_finger_swipe(self):
         m = Motion(); m.add([], 10)

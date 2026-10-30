@@ -1,1 +1,4 @@
 blocklist asus-nb-wmi.ko
+blocklist drm_gpuvm.ko
+blocklist nouveau.ko
+blocklist openbook_sleep_diag.ko
