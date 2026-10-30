@@ -69,6 +69,20 @@ The owner's `anal192d` session of 2026-10-18 (`main` `81578c1` + #83). It had a 
 
 ## ARM-only APKs
 
+**2026-10-19, ANAL-224:** the G14 product's `20261019.armfix1` image in QEMU
+(Ryzen 9 7950X, enforcing) passes 32/32 native-service compatibility checks.
+ARM64 Chromium 158.0.8111.0 renders three local JavaScript/canvas pages with
+`--javaless-renderers=enabled`, through validated aliases to its declared
+managed services. Zero zygote retries; concurrent Settings cold starts
+0.84–0.95 s. Isolated ARM64 JNI returns 42, incompatible permission aliases
+are refused, and x86_64 native services remain eligible. The existing ARM64
+probe remains 18 pass / 2 known failures (`isa`, `signals`); the x86_64 control
+is 18 pass / 0 fail / 2 skip. All 6,900 bridge FP-estimate cases pass.
+This fixes the observed renderer path, not all native-only ARM services;
+ARMv7 is still not advertised. Physical G14 verification is pending.
+Evidence: `evidence/2026-10-19-arm-native-services/`; design and reproduction:
+`docs/arm-native-services.md`.
+
 The first baseline is libndk_translation in the AOSP Desktop (Preview) 37.0 emulator, from 2026-10-15 (ANAL-180). Each verdict means the app is alive 15 s after launch, with crash, ANR and tombstone counts and a screenshot. Two wiped-emulator runs gave identical results. Method, probe details and findings are in `docs/compat-harness.md`; evidence is in `evidence/2026-10-15-compat/`. The Digitalis column (2026-10-16, ANAL-181) uses the same image, corpus and harness, with Digitalis built from source and installed as the native bridge on a separate AVD. It also had two identical wiped-emulator runs; details are in `docs/digitalis.md` and evidence in `evidence/2026-10-16-digitalis/`. The houdini column comes next. "—" means not tested yet.
 
 | App | ABI | houdini | ndk_translation | Digitalis | Notes |

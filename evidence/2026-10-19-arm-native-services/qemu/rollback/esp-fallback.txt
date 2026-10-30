@@ -1,0 +1,9 @@
+UPDATE_STATUS_IDLE
+10-19 17:37:06.474   585   585 I update_engine: [INFO:dynamic_partition_control_android.cc(339)] SnapshotManager released
+10-19 17:37:11.565  1128  1128 D PermissionStorageTimeChangeReceiver: systemTimeSnapshot set to 1792431431564
+10-19 17:37:11.565  1128  1128 D PermissionStorageTimeChangeReceiver: realtimeSnapshot set to 11693
+10-19 17:37:19.584  1128  1128 D PermissionStorageTimeChangeReceiver: systemTimeSnapshot set to 1792431439584
+10-19 17:37:19.585  1128  1128 D PermissionStorageTimeChangeReceiver: realtimeSnapshot set to 19713
+10-19 17:37:16.009  1472  1472 I apexd   : destroyCeSnapshotsNotSpecified() received by ApexService user_id : 0 retain_rollback_ids : []
+10-19 17:37:20.010  1221  1241 D QuickstepModelDelegate: Successfully registered for launcher snapshot logging!
+10-19 17:37:23.684  1411  1411 I adbd    : adbd service requested 'shell,v2,TERM=dumb,raw:timeout 10 update_engine_client --follow 2>&1 | grep -o 'UPDATE_STATUS_[A-Z_]*' | tail -n 1; logcat -d -b all | grep -iE 'rollback|Cancel|snapshot|fell back' | grep -iE 'update_engine|snapshot|init|boot-service' | tail -n 8'

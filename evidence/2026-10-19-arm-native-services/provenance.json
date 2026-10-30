@@ -1,0 +1,17 @@
+{
+  "patch_file": "aosp/patches/frameworks/base/0010-OPENBOOK-native-services-require-host-ABI.patch",
+  "patch_sha256": "56af240d7787b2063bcc9ca14f20359dfde90d38491ae2c469a1f1ca87ae9529",
+  "frameworks_base_pinned": "94b4c163b7df",
+  "frameworks_base_patched": "a55456682cad",
+  "image_tree": "f72c1753ced270a3a7ad41a07e70ecd1d516030f",
+  "source_branch": "anal-224/g14-armfix1",
+  "base_image": "20261019.photos1",
+  "base_tree": "d3e04fd",
+  "candidate": "20261019.armfix1",
+  "physical_g14_updated": false,
+  "test_host": "AMD Ryzen 9 7950X, QEMU/KVM q35 + OVMF",
+  "test_inputs": "compat/inputs.json",
+  "candidate_run": "compat-after3",
+  "baseline_run": "compat-before-corrected",
+  "baseline_probe_sha256": "6c87657d98c6c6d25c7ea883da1e8fc94c1bb36e980d9524373f6c9635203052"
+}

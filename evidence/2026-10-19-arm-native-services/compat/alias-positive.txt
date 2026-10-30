@@ -1,0 +1,5 @@
+--------- beginning of main
+10-19 17:33:45.286  2423  2423 I NativeFallbackProbe: intent=intent:#Intent;launchFlags=0x10000000;extendedLaunchFlags=0x4;component=dev.openbook.nativefallback/.ProbeActivity;S.alias_control=positive;end
+10-19 17:33:45.286  2423  2423 I NativeFallbackProbe: declared_service_flags=0x22
+10-19 17:33:45.291  2423  2423 I NativeFallbackProbe: native_bind=true elapsed_ms=4
+10-19 17:33:45.498  2423  2423 I NativeFallbackProbe: PASS compatible alias translated JNI returned 42

@@ -1,0 +1,5 @@
+--------- beginning of main
+10-19 17:33:47.002  2585  2585 I NativeFallbackProbe: intent=intent:#Intent;launchFlags=0x10008000;extendedLaunchFlags=0x4;component=dev.openbook.nativefallback/.ProbeActivity;S.alias_control=host;end
+10-19 17:33:47.002  2585  2585 I NativeFallbackProbe: declared_service_flags=0x22
+10-19 17:33:47.011  2585  2585 I NativeFallbackProbe: native_bind=true elapsed_ms=9
+10-19 17:33:47.012  2585  2585 I NativeFallbackProbe: PASS host native-only bind accepted

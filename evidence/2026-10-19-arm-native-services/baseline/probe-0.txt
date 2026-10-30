@@ -1,0 +1,4 @@
+--------- beginning of main
+10-19 17:31:18.260  2072  2072 I NativeFallbackProbe: declared_service_flags=0x22
+10-19 17:31:18.272  2072  2072 I NativeFallbackProbe: native_bind=true elapsed_ms=12
+10-19 17:31:18.272  2072  2072 I NativeFallbackProbe: FAIL guest native-only bind accepted
