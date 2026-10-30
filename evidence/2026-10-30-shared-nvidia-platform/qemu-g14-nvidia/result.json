@@ -1,0 +1,72 @@
+{
+ "reason": "QEMU exited (0)",
+ "seconds": 79.8,
+ "steps_done": 23,
+ "steps": 23,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "init: init second stage started",
+   "t": 5.2
+  },
+  {
+   "step": 2,
+   "wait": "console:/ \\$ ",
+   "t": 6.6
+  },
+  {
+   "step": 4,
+   "wait": "console:/ \\$ ",
+   "t": 6.8
+  },
+  {
+   "step": 6,
+   "wait": "BOOTDONE=\\S*",
+   "t": 8.4
+  },
+  {
+   "step": 7,
+   "wait": "console:/ \\$ ",
+   "t": 59.4
+  },
+  {
+   "step": 9,
+   "wait": "console:/ \\$ ",
+   "t": 61.9
+  },
+  {
+   "step": 11,
+   "wait": "console:/ \\$ ",
+   "t": 65.8
+  },
+  {
+   "step": 13,
+   "wait": "console:/ \\$ ",
+   "t": 69.3
+  },
+  {
+   "step": 15,
+   "wait": "console:/ \\$ ",
+   "t": 70.7
+  },
+  {
+   "step": 17,
+   "wait": "console:/ \\$ ",
+   "t": 74.0
+  },
+  {
+   "step": 19,
+   "wait": "console:/ \\$ ",
+   "t": 76.4
+  },
+  {
+   "step": 21,
+   "wait": "console:/ \\$ ",
+   "t": 78.4
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "~/anybook/installer/qemu/anal319b-g14-nvidia/disk.img",
+ "nvme": null,
+ "nvme2": null
+}

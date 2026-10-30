@@ -1,0 +1,17 @@
+Display 4632256312697818880 (HWC display 0): port=0 pnpId=RHT screenPartStatus=UNSUPPORTED displayName="QEMU Monitor"
+Display 4632256312697818880 color modes:
+Pacesetter Display 4632256312697818880
+ ├─ Display 0 name="Built-in Screen"#29 pid=742 uid=1000 cookie=7933ce879500
+Display 4632256312697818880 HWC layers (top to bottom):
+Display 4632256312697818880
+Display 4632256312697818880 (physical, "QEMU Monitor")
+EGL_ANDROID_front_buffer_auto_refresh EGL_ANDROID_get_native_client_buffer EGL_ANDROID_presentation_time EGL_EXT_surface_CTA861_3_metadata EGL_EXT_surface_SMPTE2086_metadata EGL_KHR_get_all_proc_addresses EGL_KHR_swap_buffers_with_damage EGL_EXT_gl_colorspace_scrgb EGL_EXT_gl_colorspace_scrgb_linear EGL_EXT_gl_colorspace_display_p3_linear EGL_EXT_gl_colorspace_display_p3 EGL_EXT_gl_colorspace_display_p3_passthrough EGL_EXT_gl_colorspace_bt2020_hlg EGL_EXT_gl_colorspace_bt2020_linear EGL_EXT_gl_colorspace_bt2020_pq EGL_ANDROID_image_native_buffer EGL_ANDROID_recordable EGL_EXT_buffer_age EGL_EXT_create_context_robustness EGL_EXT_image_gl_colorspace EGL_EXT_pixel_format_float EGL_IMG_context_priority EGL_KHR_create_context EGL_KHR_fence_sync EGL_KHR_gl_colorspace EGL_KHR_gl_renderbuffer_image EGL_KHR_gl_texture_2D_image EGL_KHR_gl_texture_cubemap_image EGL_KHR_image EGL_KHR_image_base EGL_KHR_no_config_context EGL_KHR_partial_update EGL_KHR_reusable_sync EGL_KHR_surfaceless_context EGL_KHR_wait_sync 
+GLES: Google Inc. (Google), ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 16.0.0) (0x0000C0DE)), SwiftShader driver-5.0.0), OpenGL ES 3.1 (ANGLE 2.1 git hash: 8d8796935e4faeaf19e67ac0a5949e71a5252e7f)
+h/w composer state:
+  h/w composer enabled
+android.hardware.graphics.composer3.IComposer version:5 hash:07c2ff93a65553c0f274ab0f688fd55f42402fachwc3-drm
+-- drm_hwcomposer --
+debug.sf.disable_sched_fifo_composer: false
+debug.sf.disable_sched_fifo_composer_callback: false
+debug_gpu_present_times: false
+Display 4632256312697818880 (HWC display 0): port=0 pnpId=RHT screenPartStatus=UNSUPPORTED displayName="QEMU Monitor"
