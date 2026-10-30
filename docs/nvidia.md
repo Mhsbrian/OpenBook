@@ -1,5 +1,11 @@
 # NVIDIA dGPU on OpenBook: nouveau, NVK and PRIME offload for the G14's RTX 50 Laptop GPU (ANAL-187)
 
+> **Update, 2026-10-30 (ANAL-319):** the direction below was overtaken. OpenBook now carries **NVIDIA's open kernel
+> driver** (615.78.08) with its GSP firmware, loaded after boot in Hybrid so the RTX powers itself off when idle,
+> and nouveau ships blocklisted (owner decision 2026-10-27). Apps cannot use the RTX on OpenBook yet: the only Vulkan
+> driver for NVIDIA's kernel driver stays private to the Googlebook track. Current state:
+> [`nvidia-open.md`](nvidia-open.md). This page stays as the 2026-10-16 research record.
+
 Status as of 2026-10-16. Labels:
 - **CONFIRMED**: we read it in source code we have locally, in a primary source (kernel.org, freedesktop.org, android.googlesource.com, linux-firmware), or in our own test output.
 - **REPORTED**: press, vendor marketing or user reports.

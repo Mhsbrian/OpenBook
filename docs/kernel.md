@@ -287,6 +287,36 @@ scripts/kernel-firmware-subset.py --fw ~/anybook/kernel/firmware/linux-firmware 
 - **Packaging** (`vendor_dlkm`/`vendor_boot` images, module load order and blocklists, firmware placement) is done: see [Bare-metal packaging for the G14](#bare-metal-packaging-for-the-g14-anal-198).
 - **Unsigned vendor modules leave the taint flag at 0 on this kernel.** Upstream would set `E`. **HYPOTHESIS:** Android's `MODULE_SIG_PROTECT` change skips that taint. The same holds inside Android: in ANAL-172's Cuttlefish boot, no OpenBook module sets a taint flag.
 
+### nouveau and the 33 KMI symbols it needs (ANAL-239, 2026-10-24)
+
+- **Patch 0004** adds 33 symbols to `anybook_amd` for the external `nouveau.ko` (`kernel/devices/anybook/nvidia/`).
+  - They are on no x86_64 list yet: DRM GEM core, maple tree, KMS property/plane helpers, LED suspend, three
+    exports that were protected from unsigned modules, and a few more.
+  - `common` becomes `206eb00bd0c4`. The kernel, `system_dlkm` and all vendor modules are rebuilt.
+- **Proof that nothing else changed** (GoodBook's evidence store, `2026-10-24-nouveau-ruby/rebuild-compare.md`):
+  - every existing export keeps its CRC;
+  - every module keeps its exports, imports and code.
+- **The fragment** (`anybook_nvidia.fragment`, through `nvidia/Kconfig.ext`) adds only `drm_gpuvm.ko`.
+- **Module lists:** nouveau is in `vendor_dlkm` with `g14/modules.options` (`runpm=1 modeset=2`), **blocklisted
+  since 2026-10-27**: the owner chose NVIDIA's open driver only, so nothing loads nouveau. Its symbols stay, so the
+  OpenBook and Googlebook tracks build the same kernel.
+- Details: GoodBook `docs/nouveau-ruby.md`.
+
+### NVIDIA's open kernel modules and the 61 KMI symbols they need (ANAL-297, in OpenBook since ANAL-319)
+
+- **What:** `nvidia.ko`, `nvidia-modeset.ko` and `nvidia-drm.ko` from NVIDIA's open-gpu-kernel-modules 615.78.08
+  (`kernel/patches/nvidia-open/PIN`, seven patches), built by Kleaf as external vendor modules
+  (`kernel/devices/anybook/nvidia_open/`). `scripts/kernel-amd-apply.sh` prepares the tree through
+  `scripts/kernel-nvidia-open-apply.sh`.
+- **Patch 0005** adds the 61 symbols to `anybook_amd`: 53 new exports, and 8 that were protected from unsigned
+  modules. No existing export or CRC changes. Release string `6.18.21-android17-5-g2461ae8277e6`.
+- **`kernel/patches/build-kernel/0001`** keeps `filp_open`, `kernel_read` and `kernel_write` on the AnyBook list
+  despite Google's denylist: NVIDIA's runtime D3 and video-memory saving need them. The owner approved it for own use
+  (2026-10-26).
+- **Firmware:** `kernel/firmware/anybook-nvidia-open.tsv` pins the GSP firmware (85.3 MB), which
+  `scripts/g14-stage-kernel.sh` stages next to the kernel.
+- Details, hardening and the G14 results: [`nvidia-open.md`](nvidia-open.md).
+
 ## Booting in Cuttlefish with our AOSP 17 userspace (ANAL-172)
 
 Status as of 2026-10-16. Evidence is in `evidence/2026-10-16-kernel-cf/`, starting with `SUMMARY.md`. Guesses are labelled **HYPOTHESIS**. This is a VM: no AMD driver probed real hardware.

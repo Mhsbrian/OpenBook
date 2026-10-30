@@ -1,0 +1,80 @@
+[    2.187065] init: Boot device pci0000:00/0000:00:01.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0 found via partition UUID
+[    2.456765] init: Parsing file /system/etc/init/kcmdlinemodprobe.rc...
+[    2.540931] ueventd: Boot device pci0000:00/0000:00:01.0/usb2/2-1/2-1:1.0/host0/target0:0:0/0:0:0:0 found via partition UUID
+[    2.858516] init: SVC_EXEC service 'vendor.openbook.dlkm' pid 343 (uid 0 gid 0+1 context u:r:vendor_modprobe:s0) started; waiting...
+[    2.869550] modprobe: multiple options lines present for module nouveau
+[    2.870264] modprobe: multiple options lines present for module nouveau
+[    2.870994] modprobe: multiple options lines present for module nvidia
+[    2.871685] modprobe: multiple options lines present for module nvidia
+[    2.872385] modprobe: multiple options lines present for module nvidia-drm
+[    2.873105] modprobe: multiple options lines present for module nvidia-drm
+[    2.874124] modprobe: Loading module /vendor/lib/modules/system_heap.ko with args ''
+[    2.876524] modprobe: Loaded kernel module /vendor/lib/modules/system_heap.ko
+[    2.877559] modprobe: Loading module /vendor/lib/modules/efivarfs.ko with args ''
+[    2.879643] modprobe: Loaded kernel module /vendor/lib/modules/efivarfs.ko
+[    2.880652] modprobe: Loading module /vendor/lib/modules/wmi.ko with args ''
+[    2.882546] modprobe: Loaded kernel module /vendor/lib/modules/wmi.ko
+[    2.883343] modprobe: Loading module /vendor/lib/modules/wmi-bmof.ko with args ''
+[    2.884777] modprobe: Loaded kernel module /vendor/lib/modules/wmi-bmof.ko
+[    2.885790] modprobe: Loading module /vendor/lib/modules/video.ko with args ''
+[    2.887584] modprobe: Loaded kernel module /vendor/lib/modules/video.ko
+[    2.888549] modprobe: Loading module /vendor/lib/modules/platform_profile.ko with args ''
+[    2.890549] modprobe: Loaded kernel module /vendor/lib/modules/platform_profile.ko
+[    2.891372] modprobe: Loading module /vendor/lib/modules/sparse-keymap.ko with args ''
+[    2.892916] modprobe: Loaded kernel module /vendor/lib/modules/sparse-keymap.ko
+[    2.894027] modprobe: Loading module /vendor/lib/modules/hwmon.ko with args ''
+[    2.896326] modprobe: Loaded kernel module /vendor/lib/modules/hwmon.ko
+[    2.897393] modprobe: Loading module /vendor/lib/modules/ac.ko with args ''
+[    2.898777] modprobe: Loaded kernel module /vendor/lib/modules/ac.ko
+[    2.899505] modprobe: Loading module /vendor/lib/modules/battery.ko with args ''
+[    2.901739] modprobe: Loaded kernel module /vendor/lib/modules/battery.ko
+[    2.902506] modprobe: Loading module /vendor/lib/modules/fan.ko with args ''
+[    2.904046] modprobe: Loaded kernel module /vendor/lib/modules/fan.ko
+[    2.904980] modprobe: Loading module /vendor/lib/modules/thermal.ko with args ''
+[    2.906508] modprobe: Loaded kernel module /vendor/lib/modules/thermal.ko
+[    2.907824] modprobe: Loading module /vendor/lib/modules/k10temp.ko with args ''
+[    2.909384] modprobe: Loaded kernel module /vendor/lib/modules/k10temp.ko
+[    2.910428] modprobe: Loading module /vendor/lib/modules/i2c-smbus.ko with args ''
+[    2.912012] modprobe: Loaded kernel module /vendor/lib/modules/i2c-smbus.ko
+[    2.912769] modprobe: Loading module /vendor/lib/modules/i2c-piix4.ko with args ''
+[    2.914724] modprobe: Loaded kernel module /vendor/lib/modules/i2c-piix4.ko
+[    2.915748] modprobe: Loading module /vendor/lib/modules/spi-amd.ko with args ''
+[    2.917245] modprobe: Loaded kernel module /vendor/lib/modules/spi-amd.ko
+[    2.919046] modprobe: Loading module /vendor/lib/modules/spi-amd-pci.ko with args ''
+[    2.920426] modprobe: Loaded kernel module /vendor/lib/modules/spi-amd-pci.ko
+[    2.921272] modprobe: Loading module /vendor/lib/modules/mfd-core.ko with args ''
+[    2.922749] modprobe: Loaded kernel module /vendor/lib/modules/mfd-core.ko
+[    2.923706] modprobe: Loading module /vendor/lib/modules/serial-multi-instantiate.ko with args ''
+[    2.925537] modprobe: Loaded kernel module /vendor/lib/modules/serial-multi-instantiate.ko
+[    2.926496] modprobe: Loading module /vendor/lib/modules/amd-pmc.ko with args ''
+[    2.928093] modprobe: Loaded kernel module /vendor/lib/modules/amd-pmc.ko
+[    2.929117] modprobe: Loading module /vendor/lib/modules/tpm.ko with args ''
+[    2.931353] modprobe: Loaded kernel module /vendor/lib/modules/tpm.ko
+[    2.932337] modprobe: Loading module /vendor/lib/modules/tpm_crb.ko with args ''
+[    2.939164] modprobe: Loaded kernel module /vendor/lib/modules/tpm_crb.ko
+[    2.940222] modprobe: Loading module /vendor/lib/modules/ucsi_acpi.ko with args ''
+[    2.941749] modprobe: Loaded kernel module /vendor/lib/modules/ucsi_acpi.ko
+[    2.942592] modprobe: Loading module /vendor/lib/modules/i2c-designware-core.ko with args ''
+[    2.944347] modprobe: Loaded kernel module /vendor/lib/modules/i2c-designware-core.ko
+[    2.945426] modprobe: Loading module /vendor/lib/modules/i2c-designware-platform.ko with args ''
+[    2.946958] modprobe: Loaded kernel module /vendor/lib/modules/i2c-designware-platform.ko
+[    2.947901] modprobe: Loading module /vendor/lib/modules/i2c-hid.ko with args ''
+[    2.949302] modprobe: Loaded kernel module /vendor/lib/modules/i2c-hid.ko
+[    2.950265] modprobe: Loading module /vendor/lib/modules/i2c-hid-acpi.ko with args ''
+[    2.951737] modprobe: Loaded kernel module /vendor/lib/modules/i2c-hid-acpi.ko
+[    2.952799] modprobe: Loading module /vendor/lib/modules/amd_sfh.ko with args ''
+[    2.954673] modprobe: Loaded kernel module /vendor/lib/modules/amd_sfh.ko
+[    2.956831] modprobe: Loading module /system/lib/modules/rfkill.ko with args ''
+[    2.958988] modprobe: Loaded kernel module /system/lib/modules/rfkill.ko
+[    2.959743] modprobe: Loading module /vendor/lib/modules/asus-wmi.ko with args ''
+[    2.962682] modprobe: Loaded kernel module /vendor/lib/modules/asus-wmi.ko
+[    2.963485] modprobe: Loading module /vendor/lib/modules/asus-nb-wmi.ko with args ''
+[    3.023025] modprobe: Failed to insmod '/vendor/lib/modules/asus-nb-wmi.ko' with args '': No such device
+[    3.024026] modprobe: Failed to insmod '/vendor/lib/modules/asus-nb-wmi.ko' with args '': No such device
+[    3.025052] modprobe: LoadWithAliases was unable to load asus_nb_wmi, tried: asus_nb_wmi
+[    3.025883] modprobe: LoadWithAliases was unable to load asus_nb_wmi, tried: asus_nb_wmi
+[    3.027077] modprobe: Loading module /vendor/lib/modules/hid-asus.ko with args ''
+[    3.029051] modprobe: Loaded kernel module /vendor/lib/modules/hid-asus.ko
+[    3.029862] modprobe: Loading module /vendor/lib/modules/nvidia-wmi-ec-backlight.ko with args ''
+[    3.031689] modprobe: Loaded kernel module /vendor/lib/modules/nvidia-wmi-ec-backlight.ko
+[    3.032574] modprobe: Loading module /vendor/lib/modules/drm_buddy.ko with args ''

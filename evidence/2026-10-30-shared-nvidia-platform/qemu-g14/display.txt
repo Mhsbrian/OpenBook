@@ -1,0 +1,7 @@
+stopped
+
+      topResumedActivity=ActivityRecord{54616775 u0 org.openbook.setup/.SetupActivity t2}
+  ResumedActivity: ActivityRecord{54616775 u0 org.openbook.setup/.SetupActivity t2}
+  mFocusedApp=ActivityRecord{54616775 u0 org.openbook.setup/.SetupActivity t2}
+  mCurrentFocus=Window{737a73d u0 org.openbook.setup/org.openbook.setup.SetupActivity}
+  mFocusedApp=ActivityRecord{54616775 u0 org.openbook.setup/.SetupActivity t2}

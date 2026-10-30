@@ -1,0 +1,162 @@
+{
+ "reason": "QEMU exited (0)",
+ "seconds": 101.3,
+ "steps_done": 58,
+ "steps": 58,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "init: init first stage started",
+   "t": 3.6
+  },
+  {
+   "step": 1,
+   "wait": "init: init second stage started",
+   "t": 5.3
+  },
+  {
+   "step": 2,
+   "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+   "t": 7.2
+  },
+  {
+   "step": 4,
+   "wait": "console:/ \\$ ",
+   "t": 7.2
+  },
+  {
+   "step": 6,
+   "wait": "console:/ \\$ ",
+   "t": 7.3
+  },
+  {
+   "step": 8,
+   "wait": "BOOTDONE=\\S* uptime=[0-9.]+",
+   "t": 15.2
+  },
+  {
+   "step": 9,
+   "wait": "console:/ \\$ ",
+   "t": 15.2
+  },
+  {
+   "step": 11,
+   "wait": "console:/ \\$ ",
+   "t": 35.3
+  },
+  {
+   "step": 14,
+   "wait": "console:/ \\$ ",
+   "t": 40.4
+  },
+  {
+   "step": 16,
+   "wait": "console:/ \\$ ",
+   "t": 41.3
+  },
+  {
+   "step": 18,
+   "wait": "console:/ \\$ ",
+   "t": 42.0
+  },
+  {
+   "step": 20,
+   "wait": "console:/ \\$ ",
+   "t": 42.8
+  },
+  {
+   "step": 22,
+   "wait": "console:/ \\$ ",
+   "t": 44.6
+  },
+  {
+   "step": 24,
+   "wait": "console:/ \\$ ",
+   "t": 46.4
+  },
+  {
+   "step": 26,
+   "wait": "console:/ \\$ ",
+   "t": 48.3
+  },
+  {
+   "step": 28,
+   "wait": "console:/ \\$ ",
+   "t": 51.3
+  },
+  {
+   "step": 30,
+   "wait": "console:/ \\$ ",
+   "t": 53.4
+  },
+  {
+   "step": 32,
+   "wait": "console:/ \\$ ",
+   "t": 55.4
+  },
+  {
+   "step": 34,
+   "wait": "console:/ \\$ ",
+   "t": 57.1
+  },
+  {
+   "step": 36,
+   "wait": "console:/ \\$ ",
+   "t": 59.2
+  },
+  {
+   "step": 38,
+   "wait": "console:/ \\$ ",
+   "t": 60.8
+  },
+  {
+   "step": 40,
+   "wait": "console:/ \\$ ",
+   "t": 62.2
+  },
+  {
+   "step": 42,
+   "wait": "console:/ \\$ ",
+   "t": 63.9
+  },
+  {
+   "step": 44,
+   "wait": "console:/ \\$ ",
+   "t": 65.7
+  },
+  {
+   "step": 46,
+   "wait": "console:/ \\$ ",
+   "t": 88.9
+  },
+  {
+   "step": 48,
+   "wait": "console:/ \\$ ",
+   "t": 90.5
+  },
+  {
+   "step": 50,
+   "wait": "console:/ \\$ ",
+   "t": 90.6
+  },
+  {
+   "step": 52,
+   "wait": "console:/ \\$ ",
+   "t": 93.2
+  },
+  {
+   "step": 54,
+   "wait": "console:/ \\$ ",
+   "t": 98.4
+  },
+  {
+   "step": 56,
+   "wait": "console:/ \\$ ",
+   "t": 99.9
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "~/anybook/installer/qemu/anal319b-g14/disk.img",
+ "nvme": null,
+ "nvme2": null
+}

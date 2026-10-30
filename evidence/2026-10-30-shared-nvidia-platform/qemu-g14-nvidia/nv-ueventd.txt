@@ -1,0 +1,8 @@
+# The control node, one node per GPU and the modeset node, which kernel/patches/nvidia-open/0004 announces through
+/dev/nvidiactl       0666  system  graphics
+/dev/nvidia-modeset  0666  system  graphics
+# One node per GPU (nvidia0, ...). ueventd takes a "*" at the end of a name as a prefix match and uses fnmatch only
+# for a "*" elsewhere, so the earlier "/dev/nvidia[0-9]*" meant the literal prefix "/dev/nvidia[0-9]", matched
+# nothing, and left the G14's /dev/nvidia0 root:root 0600 (ANAL-299, 2026-10-26). This prefix rule also covers the
+/dev/nvidia*         0666  system  graphics
+ls: /dev/nvidia*: No such file or directory

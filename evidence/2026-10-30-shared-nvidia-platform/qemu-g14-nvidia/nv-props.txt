@@ -1,0 +1,8 @@
+vendor.openbook.gfx.mode=unknown
+vendor.openbook.gfx-kms=
+persist.vendor.openbook.dgpu_driver=
+vendor.openbook.dgpu.ready=
+ro.gfx.driver.0=
+init.svc.vendor.openbook.dgpu-driver=
+init.svc.vendor.openbook.gfx-boot=
+init.svc.vendor.openbook.gfx-booted=

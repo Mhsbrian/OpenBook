@@ -1,0 +1,18 @@
+blocklist nouveau.ko
+blocklist nvidia.ko
+blocklist nvidia-modeset.ko
+blocklist nvidia-drm.ko
+load:1
+live:0
+# Module options for vendor_dlkm (libmodprobe reads them; a kernel command-line nouveau.<param>=<value> is appended
+# after these, so it wins). ANAL-239, docs/nvidia-googlebook.md:
+#   runpm=1    nouveau's own default (-1) enables runtime PM only for Optimus laptops it detects through ACPI _DSM,
+#              890M and the dGPU's only output is HDMI; nouveau stays off the display path, and drm_hwcomposer,
+# Fallback without a rebuild: nouveau.modeset=0 on the kernel command line loads the module but binds nothing,
+options nouveau runpm=1 modeset=2
+# NVIDIA's open driver (ANAL-297, docs/nvidia-open-ruby.md §7), loaded on demand by the lab helper only, never with
+# nouveau:
+#   modeset=1  (nvidia-drm) atomic KMS and the DRM device NVK on NVIDIA's driver opens; also 615's default.
+#              nvidia-drm has no fbdev parameter here: the GKI has DRM_FBDEV_EMULATION off, so it never makes one.
+options nvidia NVreg_DynamicPowerManagement=0x02
+options nvidia-drm modeset=1
