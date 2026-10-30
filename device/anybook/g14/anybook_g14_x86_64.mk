@@ -16,6 +16,14 @@ endif
 # the 5 licence files WHENCE cites, into /vendor/firmware.
 ANYBOOK_G14_FIRMWARE_DIR := $(OPENBOOK_G14_KERNEL_DIR)/firmware/vendor/firmware
 include $(OPENBOOK_G14_KERNEL_DIR)/firmware/firmware.mk
+# GSP firmware for NVIDIA's open kernel modules in vendor_dlkm (ANAL-297): 85.3 MB under
+# /vendor/firmware/nvidia/<version>/ with NVIDIA's licence, used under its own-use terms (images stay private).
+# g14-stage-kernel.sh stages it whenever the kernel carries nvidia.ko, checked against
+# kernel/firmware/anybook-nvidia-open.tsv; older kernels have neither.
+ifneq ($(wildcard $(OPENBOOK_G14_KERNEL_DIR)/firmware-nvidia-open/firmware-nvidia-open.mk),)
+ANYBOOK_G14_NVIDIA_FIRMWARE_DIR := $(OPENBOOK_G14_KERNEL_DIR)/firmware-nvidia-open/vendor/firmware
+include $(OPENBOOK_G14_KERNEL_DIR)/firmware-nvidia-open/firmware-nvidia-open.mk
+endif
 # AOSP 17 imports the MediaTek MT7921/MT7922/MT7925 Wi-Fi and Bluetooth files itself (external/linux-firmware, at
 # linux-firmware 0d347a3f, 2026-04-23), and Soong owns their /vendor/firmware paths. Those 9 come from AOSP's
 # modules; ANAL-198's copies (38c1a709, 2026-10) of the same names differ and are dropped. ANAL-179 keeps AOSP's
