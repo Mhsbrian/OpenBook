@@ -1,0 +1,8 @@
+{
+  "package": "openbook-ota-20261019-armfix1.zip",
+  "package_sha256": "fb95dcc49c2af455d2f847bba4814e823f5cf35a6e41953dcb60542ec52ab944",
+  "tree": "f72c1753ced270a3a7ad41a07e70ecd1d516030f: photos1 d3e04fd + ANAL-224 native-service ABI guards and validated Chromium managed aliases",
+  "fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.armfix1:userdebug/test-keys",
+  "vbmeta_digest": "1a8a2bd1aef13e738230988a1e17fb32b8c56e36732b9882da76789bb5a94930",
+  "test_only_broken_boot": false
+}

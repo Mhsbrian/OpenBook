@@ -1,0 +1,131 @@
+[
+  {
+    "name": "one unchanged user",
+    "ok": true,
+    "detail": {
+      "before": 1,
+      "after": 1
+    }
+  },
+  {
+    "name": "installed packages and versions unchanged",
+    "ok": true,
+    "detail": {
+      "before": 167,
+      "after": 167
+    }
+  },
+  {
+    "name": "global settings preserved apart from expected boot counters",
+    "ok": true,
+    "detail": {
+      "before_count": 156,
+      "after_count": 156,
+      "changed_keys": [
+        "boot_count",
+        "global_color_palette_version"
+      ]
+    }
+  },
+  {
+    "name": "secure settings preserved apart from expected boot counters",
+    "ok": true,
+    "detail": {
+      "before_count": 116,
+      "after_count": 116,
+      "changed_keys": []
+    }
+  },
+  {
+    "name": "system settings preserved apart from expected boot counters",
+    "ok": true,
+    "detail": {
+      "before_count": 45,
+      "after_count": 45,
+      "changed_keys": []
+    }
+  },
+  {
+    "name": "wifi_networks unchanged",
+    "ok": true,
+    "detail": {
+      "same": true
+    }
+  },
+  {
+    "name": "accounts unchanged",
+    "ok": true,
+    "detail": {
+      "same": true
+    }
+  },
+  {
+    "name": "lock_disabled unchanged",
+    "ok": true,
+    "detail": {
+      "same": true
+    }
+  },
+  {
+    "name": "media_files_user unchanged",
+    "ok": true,
+    "detail": {
+      "same": true
+    }
+  },
+  {
+    "name": "media_list_sha256 unchanged",
+    "ok": true,
+    "detail": {
+      "same": true
+    }
+  },
+  {
+    "name": "slot expected",
+    "ok": true,
+    "detail": {
+      "actual": "_b",
+      "expected": "_b"
+    }
+  },
+  {
+    "name": "fingerprint expected",
+    "ok": true,
+    "detail": {
+      "actual": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.armfix1:userdebug/test-keys",
+      "expected": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.armfix1:userdebug/test-keys"
+    }
+  },
+  {
+    "name": "vbmeta expected",
+    "ok": true,
+    "detail": {
+      "actual": "1a8a2bd1aef13e738230988a1e17fb32b8c56e36732b9882da76789bb5a94930",
+      "expected": "1a8a2bd1aef13e738230988a1e17fb32b8c56e36732b9882da76789bb5a94930"
+    }
+  },
+  {
+    "name": "boot_completed expected",
+    "ok": true,
+    "detail": {
+      "actual": "1",
+      "expected": "1"
+    }
+  },
+  {
+    "name": "selinux expected",
+    "ok": true,
+    "detail": {
+      "actual": "Enforcing",
+      "expected": "Enforcing"
+    }
+  },
+  {
+    "name": "user_state expected",
+    "ok": true,
+    "detail": {
+      "actual": "RUNNING_UNLOCKED",
+      "expected": "RUNNING_UNLOCKED"
+    }
+  }
+]

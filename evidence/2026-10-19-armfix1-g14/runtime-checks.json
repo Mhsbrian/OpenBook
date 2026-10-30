@@ -1,0 +1,21 @@
+{
+  "mode": "passive observation while owner was using Chromium; no automated UI interaction",
+  "observed_until_utc": "2026-10-19T17:56:10Z",
+  "chromium_version": "158.0.8111.0",
+  "chromium_primary_abi": "arm64-v8a",
+  "managed_fallback_resolutions": 58,
+  "managed_isolated_renderer_processes": 18,
+  "native_zygote_pid_unchanged": true,
+  "surfaceflinger_pid_unchanged": true,
+  "failure_signatures": {
+    "EM_AARCH64": 0,
+    "Got error connecting to zygote, retrying": 0,
+    "Failed to connect to Zygote through socket": 0,
+    "Fatal signal": 0,
+    "FATAL EXCEPTION": 0,
+    "am_anr:": 0
+  },
+  "controlled_js_canvas_and_settings_timing_test": "not run on G14 while owner was active; candidate QEMU results remain separate",
+  "historical_crash_artifact_files": 22,
+  "historical_crash_artifacts_unchanged": true
+}

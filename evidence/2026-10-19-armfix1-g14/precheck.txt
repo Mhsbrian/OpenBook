@@ -1,0 +1,10 @@
+OTA of <g14> with <build-host-path>, 2026-10-19T17:49:57Z; log: <build-host-path>
+
+device    <g14>: OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.photos1:userdebug/test-keys
+          slot a, vbmeta f1f7f5143cb4504d8b6fe32077f3520eae6c6e51f140a7d95dbef303d20e9273, installed=whole, virtual A/B true
+package   openbook-ota-20261019-armfix1 (994 MB): OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.armfix1:userdebug/test-keys
+          tree f72c1753ced270a3a7ad41a07e70ecd1d516030f: photos1 d3e04fd + ANAL-224 native-service ABI guards and validated Chromium managed aliases, vbmeta 1a8a2bd1aef13e738230988a1e17fb32b8c56e36732b9882da76789bb5a94930
+update    slot a -> slot b; /data and slot a are kept; slot a stays the fallback until slot b boots
+bootsync  on the device: the boot HAL moves the loader entry
+checks    passed
+dry run: nothing written
