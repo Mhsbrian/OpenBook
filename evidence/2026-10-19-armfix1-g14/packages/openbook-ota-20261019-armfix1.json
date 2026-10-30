@@ -1,0 +1,47 @@
+{
+ "schema": "openbook-ota/1",
+ "label": "openbook-ota-20261019-armfix1",
+ "tree": "f72c1753ced270a3a7ad41a07e70ecd1d516030f: photos1 d3e04fd + ANAL-224 native-service ABI guards and validated Chromium managed aliases",
+ "test_only_broken_boot": false,
+ "fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.armfix1:userdebug/test-keys",
+ "build_date_utc": 1792429641,
+ "device": "anybook_g14",
+ "bytes": 994547625,
+ "sha256": "fb95dcc49c2af455d2f847bba4814e823f5cf35a6e41953dcb60542ec52ab944",
+ "vbmeta_digest": "1a8a2bd1aef13e738230988a1e17fb32b8c56e36732b9882da76789bb5a94930",
+ "vbmeta_size": 6144,
+ "payload_properties": [
+  "FILE_HASH=zVZqcichvZDgEYKPYrvsTH+1nGSRhN3KdeginHcAbrk=",
+  "FILE_SIZE=994539961",
+  "METADATA_HASH=hLNe796axrgjl3MIomf26lGLe2IG5r5Ac06XtqSw5oQ=",
+  "METADATA_SIZE=44740"
+ ],
+ "partitions": [
+  "boot",
+  "init_boot",
+  "product",
+  "super_empty",
+  "system",
+  "system_dlkm",
+  "system_ext",
+  "system_other",
+  "userdata",
+  "vbmeta",
+  "vendor",
+  "vendor_boot",
+  "vendor_dlkm"
+ ],
+ "bootsync_sha256": "e3019926318877e95798de0b81343109e93c08daf1ba83d2aac9b4e4bb5bd656",
+ "metadata": {
+  "ota-property-files": "payload_metadata.bin:4172:45007,payload.bin:4172:994539961,payload_properties.txt:994544191:154,apex_info.pb:1999:1491,care_map.pb:3537:588,metadata:69:700,metadata.pb:837:1114                      ",
+  "ota-required-cache": "0",
+  "ota-streaming-property-files": "payload.bin:4172:994539961,payload_properties.txt:994544191:154,apex_info.pb:1999:1491,care_map.pb:3537:588,metadata:69:700,metadata.pb:837:1114                        ",
+  "ota-type": "AB",
+  "post-build": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/20261019.armfix1:userdebug/test-keys",
+  "post-build-incremental": "20261019.armfix1",
+  "post-sdk-level": "37",
+  "post-security-patch-level": "2026-06-05",
+  "post-timestamp": "1792429641",
+  "pre-device": "anybook_g14"
+ }
+}

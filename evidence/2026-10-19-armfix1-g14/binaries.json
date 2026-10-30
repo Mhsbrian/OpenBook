@@ -1,0 +1,12 @@
+{
+  "/system/framework/framework.jar": {
+    "target_files_sha256": "a91b6d7918d62fb43df4b9d5809d26371ae1a612588f69c460b273324e9e9c6e",
+    "device_sha256": "a91b6d7918d62fb43df4b9d5809d26371ae1a612588f69c460b273324e9e9c6e",
+    "match": true
+  },
+  "/system/framework/services.jar": {
+    "target_files_sha256": "48b80b79802b78b561f037b8b37d5610b864d047d78df225bcc9bbbdc88ac8da",
+    "device_sha256": "48b80b79802b78b561f037b8b37d5610b864d047d78df225bcc9bbbdc88ac8da",
+    "match": true
+  }
+}
