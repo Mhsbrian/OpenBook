@@ -9,7 +9,7 @@
 
 [![Status: pre-alpha](https://img.shields.io/badge/status-pre--alpha-8A5CF0?style=flat-square)](docs/STATUS.md) [![Android 17 desktop](https://img.shields.io/badge/Android_17-desktop-3DDC84?style=flat-square&logo=android&logoColor=white)](docs/aosp-desktop.md) [![Kernel: GKI 6.18](https://img.shields.io/badge/kernel-GKI_6.18-4355B9?style=flat-square&logo=linux&logoColor=white)](docs/kernel.md) [![Graphics: Mesa 26 radeonsi + RADV](https://img.shields.io/badge/graphics-Mesa_26_·_RADV-ED1C24?style=flat-square&logo=amd&logoColor=white)](docs/graphics-amd.md) [![dGPU: NVIDIA open driver](https://img.shields.io/badge/dGPU-NVIDIA_open_driver-76B900?style=flat-square&logo=nvidia&logoColor=white)](docs/nvidia-open.md) [![First target: ASUS ROG Zephyrus G14](https://img.shields.io/badge/first_target-ROG_Zephyrus_G14_(2025)-1B1B21?style=flat-square&logo=asus&logoColor=white)](docs/HARDWARE.md) [![License: pending](https://img.shields.io/badge/license-pending-lightgrey?style=flat-square)](#license-and-legal)
 
-**[Status](#status)** · **[Screenshots](#screenshots)** · **[Hardware](#hardware)** · **[How it works](#how-it-works)** · **[Build it](#build-it)** · **[Docs](#documentation)**
+**[Status](#status)** · **[Screenshots](#screenshots)** · **[Quire](#quire)** · **[Hardware](#hardware)** · **[How it works](#how-it-works)** · **[Build it](#build-it)** · **[Docs](#documentation)**
 
 </div>
 
@@ -70,7 +70,7 @@
 </td>
 <td width="33%" valign="top">
 <img src="assets/readme/icons/auto_awesome.png" width="44" alt=""><br>
-<b>Quire, your agents in the OS</b><br>
+<b><a href="#quire">Quire</a>, your agents in the OS</b><br>
 <sub>Summon a note from anywhere and talk to your own coding agents, running in the laptop's Linux environment. They know they are OpenBook's assistant and can operate the laptop, asking first before anything destructive.</sub>
 </td>
 <td width="33%" valign="top">
@@ -118,6 +118,31 @@
 </tr>
 </table>
 
+## Quire
+
+**Quire is OpenBook's agent layer: the AI agents you already use, built into the OS.** Call it from anywhere, ask in plain words, and the agent does the work on your laptop where you can watch it. Googlebook's agent features run on Gemini through Google's own apps. Quire works with any agent, over open protocols.
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="assets/readme/quire-ask.jpg" alt="Quire's note in dark glass: opencode, running in the laptop's Linux environment, was asked to turn on dark theme; the note shows one step done, the setting changed from Off to On with an undo button, and the answer 'Dark theme is on.'"><br><sub><b>Ask in plain words.</b> Shake the pointer or press Meta+Space, and the note opens beside the pointer. Here opencode, running on the laptop, turns on dark theme.</sub></td>
+<td width="50%" valign="top"><img src="assets/readme/quire-mirror.jpg" alt="Quire's note expanded into a live mirror of Settings, with the agent's steps ticking below (Opened Settings, Opened Display, Tapping Dark theme) and Stop, Pause and Take over buttons"><br><sub><b>It works in plain sight.</b> To use an app, the agent opens it on a separate display that the note mirrors live, ticking off each step. Pause, take over or stop at any time.</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="assets/readme/quire-confirm.jpg" alt="Quire asking 'Delete notes-old.txt?' with the file's details, the warning that deleted files can't be brought back, and Keep it and Delete buttons"><br><sub><b>It asks before anything destructive.</b> Deleting, uninstalling, sending, paying, and developer or adb settings wait for you. Don't allow means nothing happens.</sub></td>
+<td width="50%" valign="top"><img src="assets/readme/quire-undo.jpg" alt="Quire's list of three changed settings, Battery Saver, Dark theme and Text size, each with its old and new value and an undo button"><br><sub><b>Every change has an Undo.</b> Each setting the agent changes is listed with its old and new value. Undo it with one click, or say "undo that".</sub></td>
+</tr>
+</table>
+
+<sub>Real screenshots of the G14 image in QEMU on 2026-10-19, cropped to the note: the live mirror from the update that put Quire on the laptop (<a href="evidence/2026-10-19-quire-g14/"><code>evidence/2026-10-19-quire-g14/</code></a>), the other three from Quire Q6 with the glass-and-ink note (<a href="evidence/2026-10-19-quire-q6/"><code>evidence/2026-10-19-quire-q6/</code></a>).</sub>
+
+- **Any agent you have.** Claude Code, Codex CLI, GitHub Copilot CLI, Cursor Agent, Gemini CLI, Grok CLI, Kimi Code, opencode and more: any agent that speaks the open Agent Client Protocol (ACP). opencode comes installed and uses its free model, with no account. Each agent runs its own sign-in, and Quire never sees your password.
+- **Running on your laptop.** Agents live in OpenBook's Linux environment, Android's own virtual machine with the Terminal app. `quired`, Quire's harness host, finds them there and connects them to the note.
+- **It can operate the laptop.** Every agent knows it is OpenBook's assistant and gets 37 OS tools over MCP: "open Files and show my Downloads", "make the text bigger", "what's on my screen?", "move this window to the left".
+- **Private by default.** Nothing is sent to an agent until you connect it, and Quire never reads a window marked secure. The first time an agent reads your screen or works in an app, Android asks you.
+- **Glass and ink.** The note is a pane of the system's own blur that a pen draws out: your words in ink, the agent's arriving word by word, each step a tick. With blur off, it becomes plain paper.
+
+**Shipped to the G14 on 2026-10-19. Next: voice,** with hold-to-talk and on-device speech to text. Try it: [`docs/quire-howto.md`](docs/quire-howto.md). How it works: [`docs/quire.md`](docs/quire.md). The design: [`docs/quire-design.md`](docs/quire-design.md).
+
 ## Status
 
 | | Milestone | State |
@@ -132,7 +157,7 @@
 | 🚧 | **M6** ARM app compatibility | The open Digitalis bridge, built from source: 14 of 16 ARM-only test apps run, and **ARM64 Chromium renders on the G14** without stalling app starts ([evidence](evidence/2026-10-19-armfix1-g14/)) |
 | 🚧 | **M7** Performance and parity | **The Googlebook look on the G14:** Google Sans, circular icons, blur, Googlebook's desktop flags, OpenBook's wallpapers, boot animation and sounds, and the first-run setup. Google apps: the microG option ([installed on the G14](evidence/2026-10-19-microg-g14/)) or your own package at install time. Benchmarks later |
 | 🚧 | **NVIDIA** dGPU | **NVIDIA's open kernel driver and GSP firmware are in the image** (2026-10-30). On the G14 the driver loads, binds the RTX, and powers it off when idle and through sleep. Graphics modes (Eco/Hybrid) are designed and in the vendor layer, with firmware writes off. Next: apps on the RTX ([`docs/nvidia-open.md`](docs/nvidia-open.md)) |
-| 🚧 | **Quire** Agents in the OS | **On the G14 since 2026-10-19:** the note, consent, a live mirror of what an agent does, agents in the Linux environment, and agents that can drive the whole laptop and confirm only destructive actions ([evidence](evidence/2026-10-19-quire-g14/)). Next: voice |
+| 🚧 | **Quire** Agents in the OS | **On the G14 from 2026-10-19:** the note, consent, a live mirror of what an agent does, agents in the Linux environment, and agents that can drive the whole laptop and confirm only destructive actions ([evidence](evidence/2026-10-19-quire-g14/)). Next: voice ([more](#quire)) |
 
 > [!TIP]
 > **2026-10-30: NVIDIA joins OpenBook.** OpenBook and its sibling Googlebook-based image now build **one kernel and one vendor layer**. NVIDIA's open driver, its GSP firmware and the graphics-mode switcher come to OpenBook from the work done there. On the G14, NVIDIA's driver holds the RTX in its deepest power state whenever no app needs it. [Read how it works →](docs/nvidia-open.md)

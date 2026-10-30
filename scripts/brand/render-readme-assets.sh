@@ -40,4 +40,10 @@ for g in desktop_windows memory apps usb verified_user science developer_board s
   shot "$O/icons/$g.png" "?art=icon&glyph=$g" 96 96 2
 done
 magick mogrify -strip "$R/assets/brand/openbook-icon-512.png" "$O"/icons/*.png
+# Quire in the README: real captures from evidence/ (QEMU runs of the G14 image, 2026-10-19), cropped to the note.
+quire(){ magick "$R/$1" -crop "$2" +repage -resize "$3" -strip -interlace JPEG -sampling-factor 4:2:0 -quality 86 "$O/$4"; }
+quire evidence/2026-10-19-quire-q6/vm/prompt-dark.png                 600x600+98+300   720x720 quire-ask.jpg
+quire evidence/2026-10-19-quire-g14/quire-vm/quire/control-mirror.png 1160x1160+220+30 720x720 quire-mirror.jpg
+quire evidence/2026-10-19-quire-q6/vm/glass-destructive-question.png  700x510+0+40     960x700 quire-confirm.jpg
+quire evidence/2026-10-19-quire-q6/vm/settings-changes-undo.png       800x583+0+240    960x700 quire-undo.jpg
 ls -l "$O" "$O/icons" "$R/assets/brand"
