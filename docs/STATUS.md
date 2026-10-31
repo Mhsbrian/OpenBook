@@ -12,7 +12,7 @@ A G14 build meant for publishing, its GPL/LGPL source and its release folder. No
   the HAL now marks misc only. No stick was built in between, as updates went over Wi-Fi.
 - **Source offer:** `scripts/release/make-sources.sh` packs the kernel exactly as built, the 14 AOSP projects whose
   binaries carry a GPL/LGPL text (`notice-scan.py`, from the image's NOTICE files), Mesa's libelf and Mesa, and
-  systemd-boot 262-1. 297 MB in 3 tarballs.
+  systemd-boot 262-1. 296 MB in 3 tarballs.
 
 **Checks:** standard G14 QEMU check 58/58; the live stick in QEMU 32/32 (first boot, second boot, start fresh, save
 logs), against a boot loop before the fix; the release folder's download test 9/9. Evidence:

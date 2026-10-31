@@ -198,7 +198,7 @@ unpublished on purpose (§7), and its signature is from a throwaway test key, no
 | `scripts/release/swarm-test.sh [RELEASE_DIR]` | on an isolated Docker network: the seeder refuses an unpublished release. A libtorrent client gets the whole 885 MB image from the web seed alone, through a 302 like GitHub's (2.0 s), and then from the Transmission seeder alone (8.8 s, 101 MB/s; local network, so the times say little about the internet). Both match the sha256. `swarm.json` counts the upload, the health check passes, and the seeder can write neither the releases nor its own root | 9/9 |
 | `scripts/release/tracker-probe.py` | the default trackers answer a BEP 15 connect request | 3/3 |
 | `make-release.sh` on the NVIDIA image | refuses it, exits 1, and writes nothing | refused |
-| `scripts/release/make-sources.sh` on `0.1.0-preview.1` | the kernel exactly as built, 14 AOSP projects found by `notice-scan.py`, Mesa's libelf and Mesa, systemd-boot 262-1 | 3 tarballs, 297 MB (`evidence/2026-10-31-public-preview/sources/`) |
+| `scripts/release/make-sources.sh` on `0.1.0-preview.1` | the kernel exactly as built, 14 AOSP projects found by `notice-scan.py`, Mesa's libelf and Mesa, systemd-boot 262-1 | 3 tarballs, 296 MB (`evidence/2026-10-31-public-preview/sources/`) |
 | `openbook-seeder` on the site's flat folder | seeds a release `releases.json` lists; seeds nothing once the entry is `hidden` | as designed |
 | openbook.page `publish-release.sh --from` | refuses the unpublished test release; places a public test copy, and the downloads page renders it with the mirror link (headless Chromium) | as designed |
 
