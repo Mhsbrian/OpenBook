@@ -79,8 +79,8 @@ What has been shown, and what hasn't:
 
 | | Result | Evidence |
 |---|---|---|
-| The firmware is not in the public build | `/vendor/firmware` has no `nvidia` folder and `LICENSES` has no NVIDIA licence (`dump.erofs` on the vendor image inside the live image, same sha256) | `evidence/2026-10-31-public-preview/` |
-| The public build boots | standard G14 QEMU check 58/58; the image's own `openbook-pc-setup-test` 0 failures, with the no-firmware cases | same |
+| The firmware is not in that build | `/vendor/firmware` has no `nvidia` folder and `LICENSES` has no NVIDIA licence (`dump.erofs` on the vendor image inside the live image, same sha256) | `evidence/2026-10-31-public-preview/without-nvidia/` |
+| That build boots | standard G14 QEMU check 58/58; the image's own `openbook-pc-setup-test` 0 failures, with the no-firmware cases | same |
 | The unbound RTX reaches D3cold on the G14 | **2026-10-16, older build, same `dgpu-pm` hook:** both functions `D3cold`/`suspended` with no driver bound | `evidence/2026-10-16-installer/g14-live/SUMMARY.md` |
 | The same on this build's kernel | **not measured yet.** QEMU has no NVIDIA GPU, and the laptop's adb was off on 2026-10-31. Next: the stick's "save logs" entry on the G14 records it | |
 
