@@ -1,0 +1,26 @@
+xz (XZ Utils) 5.8.4
+*** Zstandard CLI (64-bit) v1.5.7, by Yann Collet ***
+img.xz6                         928998704 bytes     0.0 s
+img.xz9                         885136268 bytes     0.0 s
+img.zst19                       921911918 bytes     0.0 s
+img.zst10                       992348196 bytes     0.0 s
+decompress img.xz6       0.0 s
+decompress img.xz9       0.0 s
+decompress img.zst19     0.0 s
+decompress img.zst10     0.0 s
+expected sha256 prefix: abfddfca2038a629
+== timings (ms), 32 threads, 2026-10-31T11:08:44Z
+compress xz6 928998704 bytes 22367 ms
+compress xz9 885136268 bytes 92912 ms
+compress xz9e 885241264 bytes 94763 ms
+compress zst19 921911918 bytes 56708 ms
+decompress-T0 xz6 1192 ms
+decompress-T1 xz6 18519 ms
+decompress-T0 xz9 3444 ms
+decompress-T1 xz9 18653 ms
+decompress-T0 xz9e 3377 ms
+decompress-T1 xz9e 18222 ms
+decompress zst19 1516 ms
+  Streams:           1
+  Blocks:            15
+  Streams:

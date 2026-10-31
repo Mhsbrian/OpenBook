@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: Apache-2.0
+# Test toolbox for scripts/release/: libtorrent 2 (the engine of qBittorrent and Deluge) as an independent
+# reference for our torrents and as the downloader in scripts/release/swarm-test.sh. Not part of any release.
+FROM debian:trixie-slim
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends python3 python3-libtorrent ca-certificates xz-utils \
+ && rm -rf /var/lib/apt/lists/*
+RUN useradd -m -u 10001 tester
+USER tester
+WORKDIR /home/tester

@@ -1,0 +1,46 @@
+{
+  "version": "0.0.0-test.anal191i",
+  "file": "openbook-0.0.0-test.anal191i-x86_64-live.img.xz",
+  "fails": 0,
+  "web_seed_only": {
+    "complete": true,
+    "seconds": 2.0,
+    "bytes": 885136268,
+    "MBps": 442.2,
+    "sources": [
+      "web_seed"
+    ],
+    "sha256_ok": true,
+    "progress": 1.0
+  },
+  "peer_only": {
+    "complete": true,
+    "seconds": 8.0,
+    "bytes": 885136268,
+    "MBps": 110.4,
+    "sources": [
+      "peer"
+    ],
+    "sha256_ok": true,
+    "progress": 1.0
+  },
+  "swarm": {
+    "schema": "openbook-swarm/1",
+    "updated": "2026-10-31T11:44:00Z",
+    "peer_port": 51413,
+    "torrents": [
+      {
+        "version": "0.0.0-test.anal191i",
+        "name": "openbook-0.0.0-test.anal191i-x86_64-live.img.xz",
+        "infohash": "03273397c53c45dafc73496638623adc398b9a20",
+        "state": "seeding",
+        "error": null,
+        "peers": 0,
+        "uploading_to": 0,
+        "upload_bps": 0,
+        "uploaded_bytes": 885838593,
+        "size_bytes": 885136268
+      }
+    ]
+  }
+}

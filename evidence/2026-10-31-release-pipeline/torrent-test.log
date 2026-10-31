@@ -1,0 +1,80 @@
+libtorrent 2.0.11.0
+PASS one-byte (1 B, 16 KiB pieces): libtorrent loads it; info hashes agree (2a49ca58265b…, fb058f47ad65…)
+PASS one-byte (1 B, 16 KiB pieces): pieces and size agree
+PASS one-byte (1 B, 16 KiB pieces): same info hashes as libtorrent's own hybrid torrent
+PASS one-byte (1 B, 16 KiB pieces): recheck finds 1/1 pieces
+PASS one-byte (1 B, 16 KiB pieces): one flipped byte fails exactly one piece (0/1)
+PASS one-byte (1 B, 16 KiB pieces): the changed file gives a different torrent
+PASS one-byte (1 B, 16 KiB pieces): bdecode/bencode round trip
+PASS one-block (16384 B, 16 KiB pieces): libtorrent loads it; info hashes agree (93f836423819…, 63a84a0de77b…)
+PASS one-block (16384 B, 16 KiB pieces): pieces and size agree
+PASS one-block (16384 B, 16 KiB pieces): same info hashes as libtorrent's own hybrid torrent
+PASS one-block (16384 B, 16 KiB pieces): recheck finds 1/1 pieces
+PASS one-block (16384 B, 16 KiB pieces): one flipped byte fails exactly one piece (0/1)
+PASS one-block (16384 B, 16 KiB pieces): the changed file gives a different torrent
+PASS one-block (16384 B, 16 KiB pieces): bdecode/bencode round trip
+PASS block-plus-one (16385 B, 16 KiB pieces): libtorrent loads it; info hashes agree (1dbaa4a185d9…, 5da41bf35397…)
+PASS block-plus-one (16385 B, 16 KiB pieces): pieces and size agree
+PASS block-plus-one (16385 B, 16 KiB pieces): same info hashes as libtorrent's own hybrid torrent
+PASS block-plus-one (16385 B, 16 KiB pieces): recheck finds 2/2 pieces
+PASS block-plus-one (16385 B, 16 KiB pieces): one flipped byte fails exactly one piece (1/2)
+PASS block-plus-one (16385 B, 16 KiB pieces): the changed file gives a different torrent
+PASS block-plus-one (16385 B, 16 KiB pieces): bdecode/bencode round trip
+PASS under-one-piece (204807 B, 256 KiB pieces): libtorrent loads it; info hashes agree (d7479d794669…, 635ecf06bb3c…)
+PASS under-one-piece (204807 B, 256 KiB pieces): pieces and size agree
+PASS under-one-piece (204807 B, 256 KiB pieces): same info hashes as libtorrent's own hybrid torrent
+PASS under-one-piece (204807 B, 256 KiB pieces): recheck finds 1/1 pieces
+PASS under-one-piece (204807 B, 256 KiB pieces): one flipped byte fails exactly one piece (0/1)
+PASS under-one-piece (204807 B, 256 KiB pieces): the changed file gives a different torrent
+PASS under-one-piece (204807 B, 256 KiB pieces): bdecode/bencode round trip
+PASS exact-piece (262144 B, 256 KiB pieces): libtorrent loads it; info hashes agree (99e5a0c12c8f…, 726944341402…)
+PASS exact-piece (262144 B, 256 KiB pieces): pieces and size agree
+PASS exact-piece (262144 B, 256 KiB pieces): same info hashes as libtorrent's own hybrid torrent
+PASS exact-piece (262144 B, 256 KiB pieces): recheck finds 1/1 pieces
+PASS exact-piece (262144 B, 256 KiB pieces): one flipped byte fails exactly one piece (0/1)
+PASS exact-piece (262144 B, 256 KiB pieces): the changed file gives a different torrent
+PASS exact-piece (262144 B, 256 KiB pieces): bdecode/bencode round trip
+PASS piece-plus-one (262145 B, 256 KiB pieces): libtorrent loads it; info hashes agree (33b17d4e5d75…, 11000224c307…)
+PASS piece-plus-one (262145 B, 256 KiB pieces): pieces and size agree
+PASS piece-plus-one (262145 B, 256 KiB pieces): same info hashes as libtorrent's own hybrid torrent
+PASS piece-plus-one (262145 B, 256 KiB pieces): recheck finds 2/2 pieces
+PASS piece-plus-one (262145 B, 256 KiB pieces): one flipped byte fails exactly one piece (1/2)
+PASS piece-plus-one (262145 B, 256 KiB pieces): the changed file gives a different torrent
+PASS piece-plus-one (262145 B, 256 KiB pieces): bdecode/bencode round trip
+PASS three-pieces-odd (786427 B, 256 KiB pieces): libtorrent loads it; info hashes agree (48b638a079aa…, 38c25462dc6e…)
+PASS three-pieces-odd (786427 B, 256 KiB pieces): pieces and size agree
+PASS three-pieces-odd (786427 B, 256 KiB pieces): same info hashes as libtorrent's own hybrid torrent
+PASS three-pieces-odd (786427 B, 256 KiB pieces): recheck finds 3/3 pieces
+PASS three-pieces-odd (786427 B, 256 KiB pieces): one flipped byte fails exactly one piece (2/3)
+PASS three-pieces-odd (786427 B, 256 KiB pieces): the changed file gives a different torrent
+PASS three-pieces-odd (786427 B, 256 KiB pieces): bdecode/bencode round trip
+PASS five-pieces-1m (5255225 B, 1024 KiB pieces): libtorrent loads it; info hashes agree (71694677cc1a…, 12055cd9860d…)
+PASS five-pieces-1m (5255225 B, 1024 KiB pieces): pieces and size agree
+PASS five-pieces-1m (5255225 B, 1024 KiB pieces): same info hashes as libtorrent's own hybrid torrent
+PASS five-pieces-1m (5255225 B, 1024 KiB pieces): recheck finds 6/6 pieces
+PASS five-pieces-1m (5255225 B, 1024 KiB pieces): one flipped byte fails exactly one piece (5/6)
+PASS five-pieces-1m (5255225 B, 1024 KiB pieces): the changed file gives a different torrent
+PASS five-pieces-1m (5255225 B, 1024 KiB pieces): bdecode/bencode round trip
+PASS pow2-pieces (524288 B, 64 KiB pieces): libtorrent loads it; info hashes agree (6f442a6d489d…, 3ce0a81d1fe1…)
+PASS pow2-pieces (524288 B, 64 KiB pieces): pieces and size agree
+PASS pow2-pieces (524288 B, 64 KiB pieces): same info hashes as libtorrent's own hybrid torrent
+PASS pow2-pieces (524288 B, 64 KiB pieces): recheck finds 8/8 pieces
+PASS pow2-pieces (524288 B, 64 KiB pieces): one flipped byte fails exactly one piece (7/8)
+PASS pow2-pieces (524288 B, 64 KiB pieces): the changed file gives a different torrent
+PASS pow2-pieces (524288 B, 64 KiB pieces): bdecode/bencode round trip
+PASS seventeen-pieces-plus-one (557057 B, 32 KiB pieces): libtorrent loads it; info hashes agree (bc9ac36d9701…, 14716c862cc8…)
+PASS seventeen-pieces-plus-one (557057 B, 32 KiB pieces): pieces and size agree
+PASS seventeen-pieces-plus-one (557057 B, 32 KiB pieces): same info hashes as libtorrent's own hybrid torrent
+PASS seventeen-pieces-plus-one (557057 B, 32 KiB pieces): recheck finds 18/18 pieces
+PASS seventeen-pieces-plus-one (557057 B, 32 KiB pieces): one flipped byte fails exactly one piece (17/18)
+PASS seventeen-pieces-plus-one (557057 B, 32 KiB pieces): the changed file gives a different torrent
+PASS seventeen-pieces-plus-one (557057 B, 32 KiB pieces): bdecode/bencode round trip
+PASS real-openbook-0.0.0-test.anal191i-x86_64-live.img.xz (885136268 B, 1024 KiB pieces): libtorrent loads it; info hashes agree (03273397c53c…, 07c8338650da…)
+PASS real-openbook-0.0.0-test.anal191i-x86_64-live.img.xz (885136268 B, 1024 KiB pieces): pieces and size agree
+PASS real-openbook-0.0.0-test.anal191i-x86_64-live.img.xz (885136268 B, 1024 KiB pieces): same info hashes as libtorrent's own hybrid torrent
+PASS real-openbook-0.0.0-test.anal191i-x86_64-live.img.xz (885136268 B, 1024 KiB pieces): recheck finds 845/845 pieces
+PASS real-openbook-0.0.0-test.anal191i-x86_64-live.img.xz (885136268 B, 1024 KiB pieces): deterministic (same bytes twice)
+PASS real-openbook-0.0.0-test.anal191i-x86_64-live.img.xz (885136268 B, 1024 KiB pieces): bdecode/bencode round trip
+PASS piece_size: the 0.9 GB live image gets 1 MiB pieces
+PASS piece_size: clamped to 256 KiB .. 16 MiB
+ALL PASS

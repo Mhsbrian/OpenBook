@@ -1,0 +1,95 @@
+{
+ "schema": "openbook-release/1",
+ "version": "0.0.0-test.anal191i",
+ "channel": "preview",
+ "date": "2026-10-18",
+ "audience": "unpublished",
+ "public": false,
+ "gates": {
+  "no_nvidia_firmware": true,
+  "firmware_licences": true,
+  "release_keys": false,
+  "user_build": false,
+  "checksums_signed": true,
+  "source_offer": false,
+  "owner_approved": false
+ },
+ "waived": [],
+ "blocking": [
+  "release_keys",
+  "user_build",
+  "source_offer",
+  "owner_approved"
+ ],
+ "artifacts": [
+  {
+   "kind": "live-usb",
+   "arch": "x86_64",
+   "file": "openbook-0.0.0-test.anal191i-x86_64-live.img.xz",
+   "bytes": 885136268,
+   "sha256": "e6e75209c0838178917febc1cfc7e986ed688594a5e82a449cff67d665f9f9b6",
+   "compression": {
+    "format": "xz",
+    "level": 9,
+    "blocks": 15,
+    "ratio": 0.2961
+   },
+   "image": {
+    "file": "openbook-0.0.0-test.anal191i-x86_64-live.img",
+    "bytes": 2989490176,
+    "sha256": "abfddfca2038a629ba4edf560a86ce09a70d9c5b17caafe663d0e1346e1d8779"
+   },
+   "stick_min_gb": 4,
+   "install_min_gb": 64,
+   "urls": [
+    "https://github.com/Mhsbrian/OpenBook/releases/download/v0.0.0-test.anal191i/openbook-0.0.0-test.anal191i-x86_64-live.img.xz"
+   ],
+   "torrent": {
+    "file": "openbook-0.0.0-test.anal191i-x86_64-live.img.xz.torrent",
+    "url": "https://openbook.page/releases/0.0.0-test.anal191i/openbook-0.0.0-test.anal191i-x86_64-live.img.xz.torrent",
+    "bytes": 44795,
+    "sha256": "66f95cee0a47a4176f8488f13043543615e0abb2ceb357cd65e6519f7bc1987c",
+    "infohash_v1": "03273397c53c45dafc73496638623adc398b9a20",
+    "infohash_v2": "07c8338650da00e23378659d67f5547cec78fd7c05831af81efae002f06b1b6e",
+    "magnet": "magnet:?xt=urn:btih:03273397c53c45dafc73496638623adc398b9a20&xt=urn:btmh:122007c8338650da00e23378659d67f5547cec78fd7c05831af81efae002f06b1b6e&dn=openbook-0.0.0-test.anal191i-x86_64-live.img.xz&xl=885136268&tr=udp:%2F%2Ftracker.opentrackr.org:1337%2Fannounce&tr=udp:%2F%2Fopen.stealth.si:80%2Fannounce&tr=udp:%2F%2Ftracker.torrent.eu.org:451%2Fannounce&ws=https:%2F%2Fgithub.com%2FMhsbrian%2FOpenBook%2Freleases%2Fdownload%2Fv0.0.0-test.anal191i%2Fopenbook-0.0.0-test.anal191i-x86_64-live.img.xz",
+    "piece_bytes": 1048576,
+    "pieces": 845,
+    "trackers": [
+     "udp://tracker.opentrackr.org:1337/announce",
+     "udp://open.stealth.si:80/announce",
+     "udp://tracker.torrent.eu.org:451/announce"
+    ],
+    "webseeds": [
+     "https://github.com/Mhsbrian/OpenBook/releases/download/v0.0.0-test.anal191i/openbook-0.0.0-test.anal191i-x86_64-live.img.xz"
+    ]
+   }
+  }
+ ],
+ "checksums": {
+  "file": "SHA256SUMS",
+  "url": "https://openbook.page/releases/0.0.0-test.anal191i/SHA256SUMS",
+  "signature": {
+   "file": "SHA256SUMS.sig",
+   "url": "https://openbook.page/releases/0.0.0-test.anal191i/SHA256SUMS.sig",
+   "public_key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL0gafre3nRbzcCzZDy9ODMOvUbaiZOVOmDlZaRq4RAB OpenBook TEST-ONLY release key (never published)",
+   "method": "ssh-keygen -Y verify",
+   "namespace": "openbook-release",
+   "identity": "release@openbook.page"
+  }
+ },
+ "source": null,
+ "build": {
+  "label": "openbook-live-20261018-anal191i",
+  "fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
+  "kernel": "6.18.21-android17-5-gfbfdd65b0fd1",
+  "loader": "systemd-boot 262-1",
+  "image_repo_commit": "b25f91a73cc8df70925524f1d0259827bb2bc46d",
+  "release_repo_commit": "c75832dd43840aa8bf5d396d3224f5cd459a30c5",
+  "firmware_files": 139
+ },
+ "hardware": {
+  "first_target": "ASUS ROG Zephyrus G14 (2025, GA403WR)",
+  "status": "pre-alpha",
+  "docs": "https://github.com/Mhsbrian/OpenBook/blob/main/docs/HARDWARE.md"
+ }
+}

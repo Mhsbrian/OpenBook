@@ -1,0 +1,10 @@
+# make-release.sh on the 2026-10-30 G14 image (anal319b, carries NVIDIA's GSP firmware), reflinked, with a
+# stand-in build record whose sha256 is the image's own (193d237cbc20ccc1d852b309ef318a985cfe2047b14a40420c897697b506ef78). Expected: refusal, exit 1, no files.
+== make-release.sh 0.0.0-nvneg from g14-anal319b.img (2026-10-31T11:40:23Z), repo c75832dd
+-- checking the image against g14-anal319b.build.json
+   found NVIDIA firmware: gsp_ga10x.bin
+   found NVIDIA firmware: gsp_tu10x.bin
+   found NVIDIA firmware: ucodes_ga10x.bin
+make-release: this image carries NVIDIA's GSP firmware, which the owner uses under its own-use terms (docs/nvidia-open.md). Build a public image without it, or use --private
+exit: 1
+files in --out: 0

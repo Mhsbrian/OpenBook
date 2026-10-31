@@ -1,5 +1,23 @@
 # Status
 
+## 2026-10-31: the release pipeline for openbook.page (ANAL-320)
+
+New `scripts/release/` and `tools/release/seeder/` ([`docs/RELEASE.md`](RELEASE.md)). They turn a live image into a
+release folder for openbook.page. The image is compressed with xz -9 (885 MB from 2.99 GB, measured against xz -6
+and zstd). Alongside it go a hybrid v1 + v2 torrent with web seeds, a signed `SHA256SUMS`, and `release.json`, the
+record the website reads. A hardened Transmission container seeds from the NAS, and only releases whose
+`release.json` is public. `release.json` carries the publish gates. The script refuses an image that carries
+NVIDIA's own-use GSP firmware.
+
+**Checks:** torrents identical to libtorrent's own, 78/78. Swarm test on Docker, 9/9: the whole image from the web
+seed alone (through a 302) and from the seeder alone, both matching the sha256, and the gate refusing an unpublished
+release. Trackers 3/3. Refusal of the 2026-10-30 NVIDIA image shown. Evidence:
+`evidence/2026-10-31-release-pipeline/`.
+
+Nothing is published. Today's images fail `release_keys`, `user_build`, `source_offer` and `owner_approved`.
+Images from 2026-10-30 on also carry NVIDIA's firmware. The owner decides the mirror (GitHub Releases or R2), the
+release key and the router port forward.
+
 ## 2026-10-30: one kernel and one vendor layer with the Googlebook track; NVIDIA's open driver (ANAL-319)
 
 OpenBook's `kernel/` is now byte-identical to GoodBook's, and `device/` matches it apart from GoodBook's Ruby-only

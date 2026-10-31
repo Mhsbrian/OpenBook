@@ -1,0 +1,48 @@
+# SPDX-License-Identifier: Apache-2.0
+# The seeder's half of the openbook.page stack on the Synology (Portainer > Stacks), docs/RELEASE.md §4.
+# The website service comes from the site's own repository; it needs only the two read-only mounts shown under
+# "web". If Portainer can't build from a git URL, copy this folder into the site repo and use `build: ./seeder`.
+name: openbook-page
+services:
+  seeder:
+    build:
+      context: https://github.com/Mhsbrian/OpenBook.git#main:tools/release/seeder
+    image: openbook-seeder:local
+    restart: unless-stopped
+    ports:
+      # The only port the stack opens to the internet. Forward 51413 TCP and UDP on the router to the NAS:
+      # cloudflared carries HTTP(S) only, so peers can't reach the seeder through the tunnel.
+      - "51413:51413/tcp"
+      - "51413:51413/udp"
+    environment:
+      PEER_PORT: "51413"
+      SEED_UP_KBPS: "0"      # upload cap in KB/s (e.g. 5000 is 40 Mbit/s); 0 = no cap
+      PEER_LIMIT: "200"
+      SYNC_SECONDS: "60"     # how often it looks for new releases and refreshes swarm.json
+    volumes:
+      - /volume1/docker/openbook-page/releases:/releases:ro
+      - seeder-state:/state
+      - seeder-status:/status
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 64
+    mem_limit: 256m
+    cpus: 1.0
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  # web:                     # from the site repository
+  #   volumes:
+  #     - /volume1/docker/openbook-page/releases:/srv/releases:ro   # index.json, release.json, .torrent, SHA256SUMS(.sig)
+  #     - seeder-status:/srv/status:ro                              # swarm.json: a live "seeding" line
+  #   Serve only *.json, *.torrent, SHA256SUMS, SHA256SUMS.sig and *.pub from /srv/releases. The .img.xz stays off
+  #   the tunnel; the download button points at the release's "urls" (GitHub Releases or R2).
+
+volumes:
+  seeder-state:
+  seeder-status:
