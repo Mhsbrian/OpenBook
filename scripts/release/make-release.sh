@@ -19,7 +19,7 @@
 #                        [--nvidia-licence FILE [--vendor-img IMG]]
 #   --mirror      a folder URL that will hold the .img.xz (e.g. a GitHub release's download/<tag>/); becomes a web
 #                 seed and a direct-download link. Repeatable.
-#   --site        where the site serves this release's small files (default https://openbook.page/releases/<V>/)
+#   --site        where the site serves this release's small files (default https://openbook.page/releases/, flat)
 #   --source-url  where the release's GPL/LGPL source is published (scripts/release/make-sources.sh writes it to
 #                 <out>/sources/; its files and hashes go into release.json). Required for the source_offer gate.
 #   --sign-key    an ssh private key (ed25519). It is read by ssh-keygen only; never copied or logged.
@@ -77,7 +77,9 @@ BASE=${IMG%.img}; BJ=$BASE.build.json
 [ -f "$BJ" ] || die "$BJ missing: build the image with scripts/installer-image.sh"
 [ $DEFTR = 1 ] && TRACKERS=("${DEFAULT_TRACKERS[@]}" "${TRACKERS[@]}")
 [ $PRIVATE = 1 ] && [ ${#MIRRORS[@]} -gt 0 ] && die "--private images get no mirrors"
-OUT=${OUT:-$A/release/out/$VER}; SITE=${SITE:-https://openbook.page/releases/$VER/}
+# openbook.page publishes into one flat folder (its tools/publish-release.sh --from): SHA256SUMS as <id>.sha256,
+# its signature as <id>.sha256.sig, a third-party licence as <id>.<file>.txt, where <id> is the image's name.
+OUT=${OUT:-$A/release/out/$VER}; SITE=${SITE:-https://openbook.page/releases/}
 NAME=openbook-$VER-x86_64-live
 mkdir -p "$OUT" "$A/logs/release"
 LOG=$A/logs/release/release-$VER-$(date -u +%Y%m%dT%H%M%SZ).log
@@ -232,8 +234,8 @@ rel = {
     "public": public,
     "gates": gates, "waived": waived, "blocking": blocking,
     "artifacts": [img],
-    "checksums": {"file": "SHA256SUMS", "url": site + "SHA256SUMS",
-                  "signature": ({"file": "SHA256SUMS.sig", "url": site + "SHA256SUMS.sig",
+    "checksums": {"file": "SHA256SUMS", "url": site + f"{name}.sha256",
+                  "signature": ({"file": "SHA256SUMS.sig", "url": site + f"{name}.sha256.sig",
                                  "public_key": open(f"{out}/openbook-release.pub").read().strip(),
                                  "method": "ssh-keygen -Y verify", "namespace": "openbook-release",
                                  "identity": "release@openbook.page"} if signed == "1" else None)},
@@ -243,7 +245,7 @@ rel = {
     "third_party": ([{
         "name": "NVIDIA GSP firmware " + nvlic.rsplit("-", 1)[-1],
         "files": ["/vendor/firmware/" + r.split("\t")[2] for r in open(nvpin) if r.startswith(("file\t", "licence\t"))],
-        "licence": {"file": nvlic, "url": site + nvlic},
+        "licence": {"file": nvlic, "url": site + f"{name}.{nvlic}.txt"},
         "terms": "NVIDIA Driver License Agreement 1.1(d): distributed unmodified, for use with operating system "
                  "kernels under an OSI-approved licence, with the Agreement provided to each recipient",
         "decision": "owner, 2026-10-31 (ANAL-320)",
