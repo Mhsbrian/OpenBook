@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  Launcher3 starts contextual search for the pointer shake, Meta+A and Meta+G
+  (aosp/patches/packages/apps/Launcher3/0002). ACCESS_CONTEXTUAL_SEARCH is signature|privileged and Launcher3QuickStep is
+  not platform-signed, so this entry grants it. Merged with AOSP's own com.android.launcher3.xml.
+-->
+<permissions>
+    <privapp-permissions package="com.android.launcher3">
+        <permission name="android.permission.ACCESS_CONTEXTUAL_SEARCH" />
+    </privapp-permissions>
+</permissions>

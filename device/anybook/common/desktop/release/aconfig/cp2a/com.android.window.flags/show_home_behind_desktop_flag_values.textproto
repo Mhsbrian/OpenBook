@@ -1,0 +1,7 @@
+# Declared in frameworks/base/core/java/android/window/flags/lse_desktop_experience.aconfig
+flag_value {
+  package: "com.android.window.flags"
+  name: "show_home_behind_desktop"
+  state: ENABLED
+  permission: READ_ONLY
+}

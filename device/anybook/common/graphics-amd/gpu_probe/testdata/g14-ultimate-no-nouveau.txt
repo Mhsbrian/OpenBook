@@ -1,0 +1,7 @@
+# GA403WR in Ultimate with no nouveau card (it failed to load or bind; synthetic): no stack at all, so the boot
+# fails its health check and the switcher rolls back.
+fw mux=0 dgpu=0
+drm card0 driver=amdgpu pci=0000:65:00.0 vendor=0x1002 device=0x150e class=0x038000 conn=DP-1:disconnected,eDP-1:disconnected
+render renderD128 driver=amdgpu pci=0000:65:00.0 vendor=0x1002 device=0x150e class=0x038000
+pci 0000:64:00.0 driver=- vendor=0x10de device=0x2f58 class=0x030000
+pci 0000:65:00.0 driver=amdgpu vendor=0x1002 device=0x150e class=0x038000

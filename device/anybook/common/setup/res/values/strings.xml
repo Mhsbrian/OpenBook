@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  OpenBook setup (ANAL-209). English only so far, as in the installer. "Google" appears only where the text is about
+  Google's own products, never as OpenBook branding.
+-->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name">OpenBook setup</string>
+    <string name="window_title">OpenBook setup</string>
+    <string name="brand_name" translatable="false">OpenBook</string>
+    <string name="brand_setup">Setup</string>
+    <string name="unknown">unknown</string>
+
+    <!-- Frame -->
+    <string name="overline">Step <xliff:g id="number">%1$d</xliff:g> of <xliff:g id="total">%2$d</xliff:g> · <xliff:g id="step">%3$s</xliff:g></string>
+    <string name="rail_welcome">Welcome</string>
+    <string name="rail_language">Language and region</string>
+    <string name="rail_keyboard">Keyboard</string>
+    <string name="rail_network">Internet</string>
+    <string name="rail_time">Date and time</string>
+    <string name="rail_account">About you</string>
+    <string name="rail_notice">This device</string>
+    <string name="rail_extras">Extras</string>
+    <string name="rail_register">Register</string>
+    <string name="rail_done">Done</string>
+    <string name="rail_state_current">current step</string>
+    <string name="rail_state_done">done</string>
+    <string name="rail_state_upcoming">not started</string>
+    <string name="rail_step_description">Step <xliff:g id="number">%1$d</xliff:g> of <xliff:g id="total">%2$d</xliff:g>, <xliff:g id="label">%3$s</xliff:g>: <xliff:g id="state">%4$s</xliff:g></string>
+    <string name="rail_note">No account needed. You can change all of this later in Settings.</string>
+    <string name="action_continue">Continue</string>
+    <string name="action_back">Back</string>
+    <string name="action_skip">Skip</string>
+    <string name="action_get_started">Get started</string>
+    <string name="action_skip_setup">Skip setup</string>
+    <string name="action_finish">Start using OpenBook</string>
+
+    <!-- 1. Welcome -->
+    <string name="hero_hello">Welcome to\nOpenBook.</string>
+    <string name="hero_tag">A laptop OS built on open Android. A few steps and it\'s yours.</string>
+    <string name="welcome_title">Let\'s set up your laptop</string>
+    <string name="welcome_lede">It takes a few minutes, and you won\'t need an account. Here\'s what comes next:</string>
+    <string name="welcome_item_region">Your language, keyboard layout and time zone</string>
+    <string name="welcome_item_network">Wi-Fi, if you want to connect now</string>
+    <string name="welcome_item_account">Your name and a screen lock</string>
+    <string name="welcome_item_extras">Optional extras for apps that need Google services</string>
+    <string name="welcome_skip_note">Skip setup keeps the current settings and takes you straight to the desktop. You can change everything later in Settings.</string>
+
+    <!-- 2. Language and region -->
+    <string name="language_title">Language and region</string>
+    <string name="language_lede">Choose the language OpenBook speaks, and your region for dates, numbers, units and the first day of the week.</string>
+    <string name="language_label">Language</string>
+    <string name="region_label">Region</string>
+    <string name="region_search">Search regions</string>
+
+    <!-- 3. Keyboard -->
+    <string name="keyboard_title">Keyboard layout</string>
+    <string name="keyboard_lede">Pick the layout printed on your keys. It applies to every keyboard connected now.</string>
+    <string name="keyboard_layout_label">Layout</string>
+    <string name="keyboard_search">Search layouts</string>
+    <string name="keyboard_suggested">Suggested</string>
+    <string name="keyboard_all">All layouts</string>
+    <string name="keyboard_devices_label">Keyboards</string>
+    <string name="keyboard_in_use">In use: <xliff:g id="layout">%1$s</xliff:g></string>
+    <string name="keyboard_default">Default</string>
+    <string name="keyboard_none">No physical keyboard found. You can choose a layout later in Settings › System › Keyboard.</string>
+    <string name="keyboard_try">Try it</string>
+    <string name="keyboard_try_hint">Type here to check the layout</string>
+    <string name="keyboard_keys_note">Your laptop\'s special keys keep their functions with every layout.</string>
+
+    <!-- 4. Internet -->
+    <string name="network_title">Connect to the internet</string>
+    <string name="network_lede">Being online lets OpenBook set the clock and get apps and updates. You can skip this and connect later.</string>
+    <string name="network_online">You\'re online</string>
+    <string name="network_online_body">Connected over <xliff:g id="link">%1$s</xliff:g>. You can choose another network if you like.</string>
+    <string name="network_offline">Not connected</string>
+    <string name="network_offline_body">Choose a Wi-Fi network, or plug in a network cable.</string>
+    <string name="network_choose">Choose a network</string>
+    <string name="network_note">OpenBook doesn\'t need an account or the internet to work.</string>
+    <string name="link_wifi">Wi-Fi</string>
+    <string name="link_ethernet">Ethernet</string>
+    <string name="link_other">a network</string>
+    <string name="link_none">Not connected</string>
+
+    <!-- 5. Date and time -->
+    <string name="time_title">Date and time</string>
+    <string name="time_lede">Check your time zone. When OpenBook is online it sets the clock by itself.</string>
+    <string name="time_auto">Set time automatically</string>
+    <string name="time_auto_detail">Uses network time while you\'re online</string>
+    <string name="time_zone_auto">Set time zone automatically</string>
+    <string name="time_24h">Use 24-hour format</string>
+    <string name="time_24h_detail">13:00 instead of 1:00 PM</string>
+    <string name="time_manual">Set date and time by hand</string>
+    <string name="time_zone_label">Time zone</string>
+    <string name="time_zone_region">In <xliff:g id="region">%1$s</xliff:g></string>
+    <string name="time_zone_all">All time zones</string>
+    <string name="time_zone_search">Search cities and time zones</string>
+    <string name="time_zone_detected">The time zone is set automatically. Turn that off to choose one.</string>
+
+    <!-- 6. About you -->
+    <string name="account_title">About you</string>
+    <string name="account_lede">Your name appears on the lock screen and in Quick Settings. A screen lock keeps your files private if someone else opens the lid.</string>
+    <string name="account_name_label">Your name</string>
+    <string name="account_name_hint">Name</string>
+    <string name="account_name_note">It stays on this laptop. No account is created.</string>
+    <string name="lock_label">Screen lock</string>
+    <string name="lock_pin">PIN</string>
+    <string name="lock_password">Password</string>
+    <string name="lock_none">No screen lock</string>
+    <string name="lock_pin_hint">PIN (at least 4 digits)</string>
+    <string name="lock_password_hint">Password (at least 4 characters)</string>
+    <string name="lock_again_hint">Enter it again</string>
+    <string name="lock_none_note">Anyone who opens your laptop can use it and see your files. You can add a lock later in Settings › Security.</string>
+    <string name="lock_unsupported">This device has no secure lock screen.</string>
+    <string name="lock_error_pin">Use at least 4 digits, numbers only.</string>
+    <string name="lock_error_password">Use at least 4 characters.</string>
+    <string name="lock_error_mismatch">The two entries don\'t match.</string>
+    <string name="lock_error_failed">The screen lock couldn\'t be set. Try again, or set it later in Settings › Security.</string>
+    <string name="lock_set">Screen lock set: <xliff:g id="kind">%1$s</xliff:g></string>
+
+    <!-- 7. This device (the orange-state notice, docs/installer.md §2) -->
+    <string name="notice_title">OpenBook isn\'t a Google-certified device</string>
+    <string name="notice_lede">OpenBook is built from open-source Android. It doesn\'t come from Google, and Google hasn\'t tested or certified it. Certified Android devices show a warning about this at every start; OpenBook tells you here instead.</string>
+    <string name="notice_boot_title">Verified boot is in the orange state</string>
+    <string name="notice_boot_body">This laptop starts OpenBook in Android\'s unlocked state, because OpenBook isn\'t signed with a key the laptop trusts. OpenBook still checks its own system files every time it starts.</string>
+    <string name="notice_boot_state">Verified boot state: <xliff:g id="state">%1$s</xliff:g></string>
+    <string name="notice_apps_title">Some apps may not work</string>
+    <string name="notice_apps_body">Apps that require a certified device or Play Integrity, such as some banking, payment and streaming apps, may refuse to run.</string>
+    <string name="notice_google_title">No Google apps included</string>
+    <string name="notice_google_body">OpenBook doesn\'t include Google Play, Google apps or Google Play services, and doesn\'t download them.</string>
+
+    <!-- 8. Extras -->
+    <string name="extras_title">Optional extras</string>
+    <string name="extras_lede">OpenBook works without Google. If some of your apps need Google services, these are your options.</string>
+    <string name="microg_title">Google services compatibility (microG)</string>
+    <string name="microg_body">microG is an open-source stand-in for Google Play services. Some apps that need Google services, for push messages or maps, work with it. It isn\'t Google software, and apps that check Play Integrity still won\'t work.</string>
+    <string name="microg_installed">Installed, version <xliff:g id="version">%1$s</xliff:g></string>
+    <string name="microg_not_installed">Not installed</string>
+    <string name="microg_how">The OpenBook installer offers it as an add-on, off unless you choose it. It installs on the first start, as apps you can uninstall.</string>
+    <string name="microg_open">Open microG settings</string>
+    <string name="gapps_title">Google apps you provide</string>
+    <string name="gapps_body">OpenBook never downloads Google apps or the Play Store. If you are licensed to use a Google apps package for Android 17 on x86_64, the "Google apps" guide in the OpenBook documentation explains what works and what doesn\'t.</string>
+    <string name="gapps_installed">Installed: <xliff:g id="name">%1$s</xliff:g></string>
+    <string name="gapps_register_next">The next page shows how to register this computer with Google.</string>
+    <string name="extras_note">Nothing here is needed to use OpenBook.</string>
+
+    <!-- Only with a Google apps package the user provided (ANAL-211): the same text as the installer's Settings entry. -->
+    <string name="register_title">Register this computer with Google</string>
+    <string name="register_lede">You installed <xliff:g id="name">%1$s</xliff:g>. Google Play only works on devices Google knows about, so register this computer. It takes a minute.</string>
+    <string name="register_id_label">GSF Android ID</string>
+    <string name="register_id_hex">Hexadecimal: <xliff:g id="hex">%1$s</xliff:g></string>
+    <string name="register_no_id">No ID yet. Connect to the internet and wait a minute: Google Services Framework creates the ID the first time it goes online. Then check again here, or later in Settings › About.</string>
+    <string name="register_no_gsf">The installed package has no Google Services Framework, so there is nothing to register.</string>
+    <string name="register_retry">Check again</string>
+    <string name="register_copy">Copy the ID</string>
+    <string name="register_steps">1. On any device, open google.com/android/uncertified and sign in with your Google account.\n2. Enter the GSF Android ID shown here and submit it.\n3. After a few minutes, restart this computer. Google Play then treats it as registered.</string>
+    <string name="register_note">Registering doesn\'t make this computer certified, and Play Integrity device checks still fail. OpenBook doesn\'t work around them.</string>
+
+    <!-- 9. Done -->
+    <string name="done_title">You\'re all set</string>
+    <string name="done_lede">OpenBook is ready. This is what you chose; you can change any of it in Settings.</string>
+    <string name="summary_language">Language and region</string>
+    <string name="summary_keyboard">Keyboard</string>
+    <string name="summary_keyboard_none">No keyboard connected</string>
+    <string name="summary_network">Internet</string>
+    <string name="summary_time">Time zone</string>
+    <string name="summary_name">Name</string>
+    <string name="summary_lock">Screen lock</string>
+</resources>

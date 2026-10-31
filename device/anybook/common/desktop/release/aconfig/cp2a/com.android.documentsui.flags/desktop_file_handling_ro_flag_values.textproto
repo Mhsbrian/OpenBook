@@ -1,0 +1,7 @@
+# Declared in packages/apps/DocumentsUI/flags.aconfig
+flag_value {
+  package: "com.android.documentsui.flags"
+  name: "desktop_file_handling_ro"
+  state: ENABLED
+  permission: READ_ONLY
+}

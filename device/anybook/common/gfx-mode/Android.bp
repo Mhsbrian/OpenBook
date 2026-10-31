@@ -1,0 +1,64 @@
+// Copyright (C) 2026 The AnyBook Authors
+// SPDX-License-Identifier: Apache-2.0
+//
+// Graphics modes (ANAL-241/246, docs/nvidia-graphics-modes.md): openbook-gfx-mode, the switcher with automatic
+// MUX rollback, and the stack selector it shares with anybook_gpu_probe. The sources build without Android
+// libraries for the host and QEMU tests (scripts/googlebook/gfx-mode-test.py, gfx-mode-qemu.sh).
+
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+// The selector: which GPU drives the panel, from the MUX and the DRM connectors. anybook_gpu_probe links it.
+cc_library_static {
+    name: "libopenbook_gfx_select",
+    vendor_available: true,
+    host_supported: true,
+    srcs: ["gfx_select.cpp"],
+    export_include_dirs: ["."],
+    cflags: [
+        "-Wall",
+        "-Werror",
+    ],
+}
+
+// The switcher. init runs each command at its point of the boot (openbook-gfx-mode.rc) in the openbook_gfx_mode
+// domain. Firmware writes stay off unless the image sets ro.vendor.openbook.gfx.fw_writes=1.
+cc_binary {
+    name: "openbook-gfx-mode",
+    vendor: true,
+    srcs: [
+        "gfx_mode.cpp",
+        "main.cpp",
+    ],
+    static_libs: ["libopenbook_gfx_select"],
+    shared_libs: ["liblog"],
+    stl: "c++_static",
+    cflags: [
+        "-Wall",
+        "-Werror",
+    ],
+    init_rc: ["openbook-gfx-mode.rc"],
+    required: [
+        "openbook-gfx-kms.none.load",
+        "openbook-gfx-kms.nouveau.load",
+    ],
+}
+
+// The KMS driver each mode loads at early init, before the selector runs (init.openbook.rc): none outside
+// Ultimate. modprobe -d /vendor/lib/modules --all=<this file> takes the modules' paths from vendor_dlkm.
+prebuilt_etc {
+    name: "openbook-gfx-kms.none.load",
+    src: "gfx-kms.none.load",
+    filename: "gfx-kms.none.load",
+    sub_dir: "openbook",
+    vendor: true,
+}
+
+prebuilt_etc {
+    name: "openbook-gfx-kms.nouveau.load",
+    src: "gfx-kms.nouveau.load",
+    filename: "gfx-kms.nouveau.load",
+    sub_dir: "openbook",
+    vendor: true,
+}

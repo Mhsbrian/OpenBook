@@ -1,0 +1,80 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Sat, 17 Oct 2026 12:00:00 +0000
+Subject: [PATCH] OPENBOOK: android17: libberberis_runtime_library_headers
+
+Android 17's native_bridge_support (libc and libEGL proxies) includes
+berberis/runtime_library/runtime_library.h from libberberis_runtime_library_headers,
+the android17-release location of the runtime library header. Provide that name and
+path on top of this tree's runtime_primitives header, which declares the same API.
+---
+ android_api/Android.bp                        |  2 ++
+ runtime_primitives/Android.bp                 | 10 ++++++++
+ .../runtime_library/runtime_library.h         | 24 +++++++++++++++++++
+ 3 files changed, 36 insertions(+)
+ create mode 100644 runtime_primitives/runtime_library_include/berberis/runtime_library/runtime_library.h
+
+diff --git a/android_api/Android.bp b/android_api/Android.bp
+index 4602c04c..2ed66af6 100644
+--- a/android_api/Android.bp
++++ b/android_api/Android.bp
+@@ -29,6 +29,8 @@ berberis_cc_defaults {
+     header_libs: [
+         "libberberis_guest_abi_headers",
+         "libberberis_proxy_loader_headers",
++        // Android 17's proxy sources (native_bridge_support) include berberis/runtime_library/runtime_library.h.
++        "libberberis_runtime_library_headers",
+     ],
+     shared_libs: [
+         "liblog",
+diff --git a/runtime_primitives/Android.bp b/runtime_primitives/Android.bp
+index 3ae0963c..d57440a2 100644
+--- a/runtime_primitives/Android.bp
++++ b/runtime_primitives/Android.bp
+@@ -34,6 +34,16 @@ cc_library_headers {
+     ],
+ }
+ 
++// android17-release name and path of the runtime library header, which Android 17's native_bridge_support uses.
++cc_library_headers {
++    name: "libberberis_runtime_library_headers",
++    defaults: ["berberis_all_hosts_defaults"],
++    host_supported: true,
++    export_include_dirs: ["runtime_library_include"],
++    header_libs: ["libberberis_runtime_primitives_headers"],
++    export_header_lib_headers: ["libberberis_runtime_primitives_headers"],
++}
++
+ cc_library_static {
+     name: "libberberis_runtime_primitives",
+     defaults: ["berberis_all_hosts_defaults"],
+diff --git a/runtime_primitives/runtime_library_include/berberis/runtime_library/runtime_library.h b/runtime_primitives/runtime_library_include/berberis/runtime_library/runtime_library.h
+new file mode 100644
+index 00000000..d6dcfd89
+--- /dev/null
++++ b/runtime_primitives/runtime_library_include/berberis/runtime_library/runtime_library.h
+@@ -0,0 +1,24 @@
++/*
++ * Copyright (C) 2026 The OpenBook Authors
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef BERBERIS_RUNTIME_LIBRARY_RUNTIME_LIBRARY_H_
++#define BERBERIS_RUNTIME_LIBRARY_RUNTIME_LIBRARY_H_
++
++// Android 17's native_bridge_support includes the runtime library under its android17-release path
++// (runtime/runtime_library in AOSP). This tree keeps it in runtime_primitives, with the same declarations.
++#include "berberis/runtime_primitives/runtime_library.h"
++
++#endif  // BERBERIS_RUNTIME_LIBRARY_RUNTIME_LIBRARY_H_

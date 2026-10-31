@@ -1,0 +1,7 @@
+# Declared in frameworks/native/services/surfaceflinger/surfaceflinger_flags_new.aconfig
+flag_value {
+  package: "com.android.graphics.surfaceflinger.flags"
+  name: "enable_color_correction_bugfix"
+  state: ENABLED
+  permission: READ_ONLY
+}

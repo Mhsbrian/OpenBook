@@ -1,0 +1,27 @@
+# OpenBook (ANAL-239): nouveau for the NVIDIA dGPU (GB205 on the G14) as an external vendor module.
+#
+# ./nouveau is not in the repo: scripts/kernel-nouveau-apply.sh copies common's drivers/gpu/drm/nouveau (the Ruby
+# kernel's revision) here and applies kernel/patches/nouveau as commits in a git repository of its own, which Kleaf
+# stamps into nouveau.ko as scmversion (KLEAF_EXTRA_GIT_PROJECTS). Built on //devices/anybook:anybook_amd_x86_64, the
+# G14 device build, whose KMI list carries what nouveau imports (kernel/patches/common/0004).
+#   tools/bazel build --config=stamp //devices/anybook/nvidia:nouveau
+
+load("//build/kernel/kleaf:kernel.bzl", "kernel_module")
+
+exports_files(["Kconfig.ext"])
+
+kernel_module(
+    name = "nouveau",
+    srcs = glob(
+        [
+            "Kbuild",
+            "nouveau/**/*.c",
+            "nouveau/**/*.h",
+            "nouveau/**/Kbuild",
+        ],
+    ),
+    outs = ["nouveau.ko"],
+    kernel_build = "//devices/anybook:anybook_amd_x86_64",
+    makefile = ["Makefile"],
+    visibility = ["//devices/anybook:__pkg__"],
+)

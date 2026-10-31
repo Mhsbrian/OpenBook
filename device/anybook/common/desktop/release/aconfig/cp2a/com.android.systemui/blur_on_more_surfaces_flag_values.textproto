@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 2: blur behind the power menu and volume dialog (needs config_enableBlurExpansion, default true)
+flag_value {
+  package: "com.android.systemui"
+  name: "blur_on_more_surfaces"
+  state: ENABLED
+  permission: READ_ONLY
+}

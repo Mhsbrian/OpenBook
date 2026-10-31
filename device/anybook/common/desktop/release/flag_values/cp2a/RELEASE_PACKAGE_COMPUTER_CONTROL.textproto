@@ -1,0 +1,10 @@
+# Copyright (C) 2026 The OpenBook Authors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Installs VirtualDeviceManager (frameworks/base/packages/VirtualDeviceManager), the platform's computer-control consent
+# dialog (RequestComputerControlAccessActivity) and the warning shown when an automated app is opened (ANAL-216). True
+# in trunk_staging; cp2a leaves it out, and without it every computer-control request that needs consent fails.
+name: "RELEASE_PACKAGE_COMPUTER_CONTROL"
+value {
+  bool_value: true
+}

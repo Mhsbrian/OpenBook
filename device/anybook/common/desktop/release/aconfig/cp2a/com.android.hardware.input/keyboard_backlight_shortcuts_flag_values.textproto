@@ -1,0 +1,7 @@
+# Declared in frameworks/base/core/java/android/hardware/input/input_framework.aconfig
+flag_value {
+  package: "com.android.hardware.input"
+  name: "keyboard_backlight_shortcuts"
+  state: ENABLED
+  permission: READ_ONLY
+}

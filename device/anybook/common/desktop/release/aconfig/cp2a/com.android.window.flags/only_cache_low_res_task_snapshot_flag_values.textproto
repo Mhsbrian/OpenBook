@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 6: task snapshots: only low-res cached in system_server (memory)
+flag_value {
+  package: "com.android.window.flags"
+  name: "only_cache_low_res_task_snapshot"
+  state: ENABLED
+  permission: READ_ONLY
+}

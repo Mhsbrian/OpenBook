@@ -1,0 +1,11 @@
+# Kleaf (Bazel) kernel builder for android17-6.18 GKI (no host sudo needed).
+# Kleaf is hermetic: clang, rust, bazel and the build tools come from the repo-synced prebuilts.
+# The image only needs repo, git, python3 and a few tools for evidence collection.
+# Run it with -u $(id -u):$(id -g); scripts/kernel-docker.sh does this for you.
+FROM ubuntu:24.04
+ENV DEBIAN_FRONTEND=noninteractive LANG=C.UTF-8 LC_ALL=C.UTF-8
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates curl git python3 python-is-python3 repo rsync procps file time \
+      xz-utils zstd lz4 gzip cpio kmod binutils diffutils openssl unzip \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /w

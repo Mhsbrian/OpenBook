@@ -1,0 +1,269 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: "AnyBook (ANAL-297)" <noreply@anybook.invalid>
+Date: Mon, 26 Oct 2026 00:00:00 +0000
+Subject: [PATCH 1/7] x86_64: leave out the Tegra SoC code
+
+Tegra platform devices (the iGPU, display, DSI panels) and the Tegra PCI
+iGPU's devfreq, interconnect, clock and GenPD code serve Arm64 Tegra SoCs only.
+On x86_64 that code was still compiled because its guards test kernel options
+(CONFIG_OF, CONFIG_PM_DEVFREQ, CONFIG_INTERCONNECT, CONFIG_COMMON_CLK) that a
+generic x86 kernel enables too, and it imported about 25 Device Tree, GPIO,
+clock, interconnect, devfreq and OPP functions that no x86 code path reaches.
+
+Compile it out on x86_64. Behaviour on PCI GPUs is unchanged: the platform
+driver was never registered there, and the Tegra paths are reached only
+through Tegra platform data or Device Tree nodes that x86 does not have.
+nv_dsi_is_panel_connected() reports no panel.
+
+AnyBook (ANAL-297) keeps the Ruby kernel's export list small: an Android GKI
+kernel exports only what its partner lists name.
+---
+ kernel-open/common/inc/nv-platform.h          | 10 ++++++++++
+ kernel-open/nvidia/nv-clk.c                   |  2 +-
+ kernel-open/nvidia/nv-dsi-parse-panel-props.c |  4 ++++
+ kernel-open/nvidia/nv-pci.c                   | 18 ++++++++---------
+ kernel-open/nvidia/nv-platform.c              |  4 +++-
+ kernel-open/nvidia/nv.c                       | 20 +++++++++++++------
+ 6 files changed, 41 insertions(+), 17 deletions(-)
+
+diff --git a/kernel-open/common/inc/nv-platform.h b/kernel-open/common/inc/nv-platform.h
+index 4bb286a..8ffc277 100644
+--- a/kernel-open/common/inc/nv-platform.h
++++ b/kernel-open/common/inc/nv-platform.h
+@@ -35,7 +35,17 @@ int       nv_platform_count_devices(void);
+ int       nv_soc_register_irqs(nv_state_t *nv);
+ void      nv_soc_free_irqs(nv_state_t *nv);
+ 
++/*
++ * NVIDIA platform devices (the Tegra iGPU and Tegra display) exist only on
++ * Arm64 Tegra SoCs; an x86_64 system has PCI GPUs only. Compile the platform
++ * device code out there: it would otherwise import Device Tree, GPIO, clock,
++ * interconnect and devfreq APIs that no x86 code path reaches.
++ */
++#if defined(NVCPU_X86_64)
++#define NV_SUPPORTS_PLATFORM_DEVICE 0
++#else
+ #define NV_SUPPORTS_PLATFORM_DEVICE NV_IS_EXPORT_SYMBOL_PRESENT___platform_driver_register
++#endif
+ 
+ #if defined(NV_LINUX_PLATFORM_TEGRA_DCE_DCE_CLIENT_IPC_H_PRESENT)
+ #define NV_SUPPORTS_DCE_CLIENT_IPC 1
+diff --git a/kernel-open/nvidia/nv-clk.c b/kernel-open/nvidia/nv-clk.c
+index 1b60b69..2e45d4c 100644
+--- a/kernel-open/nvidia/nv-clk.c
++++ b/kernel-open/nvidia/nv-clk.c
+@@ -32,7 +32,7 @@
+ 
+ // Use the CCF APIs if enabled in Kernel config and RM build
+ // has Dual license define enabled.
+-#if defined(CONFIG_COMMON_CLK)
++#if defined(CONFIG_COMMON_CLK) && !defined(NVCPU_X86_64)
+ #define HAS_COMMON_CLOCK_FRAMEWORK 1
+ #else
+ #define HAS_COMMON_CLOCK_FRAMEWORK 0
+diff --git a/kernel-open/nvidia/nv-dsi-parse-panel-props.c b/kernel-open/nvidia/nv-dsi-parse-panel-props.c
+index ed5c108..5b7cfd7 100644
+--- a/kernel-open/nvidia/nv-dsi-parse-panel-props.c
++++ b/kernel-open/nvidia/nv-dsi-parse-panel-props.c
+@@ -795,6 +795,7 @@ nv_dsi_is_panel_connected
+     nv_state_t      *nv
+ )
+ {
++#if NV_SUPPORTS_PLATFORM_DEVICE
+     nv_linux_state_t *nvl            = NV_GET_NVL_FROM_NV_STATE(nv);
+     struct device_node *np_dsi       = NULL;
+     struct device_node *np_dsi_panel = NULL;
+@@ -817,6 +818,9 @@ fail:
+     of_node_put(np_dsi_panel);
+     of_node_put(np_dsi);
+     return ret;
++#else
++    return NV_FALSE;
++#endif
+ }
+ 
+ NV_STATUS
+diff --git a/kernel-open/nvidia/nv-pci.c b/kernel-open/nvidia/nv-pci.c
+index 48d8b78..760b08c 100644
+--- a/kernel-open/nvidia/nv-pci.c
++++ b/kernel-open/nvidia/nv-pci.c
+@@ -47,7 +47,7 @@
+ #include <linux/pm_qos.h>
+ #endif
+ 
+-#if defined(CONFIG_PM_DEVFREQ)
++#if defined(CONFIG_PM_DEVFREQ) && !defined(NVCPU_X86_64)
+ #include <linux/devfreq.h>
+ 
+ #if defined(CONFIG_DEVFREQ_THERMAL) \
+@@ -63,7 +63,7 @@
+ 
+ #endif
+ 
+-#if defined(CONFIG_INTERCONNECT) \
++#if defined(CONFIG_INTERCONNECT) && !defined(NVCPU_X86_64) \
+     && defined(NV_ICC_SET_BW_PRESENT) \
+     && defined(NV_DEVM_ICC_GET_PRESENT)
+ #include <linux/interconnect.h>
+@@ -883,7 +883,7 @@ failed:
+     return;
+ }
+ 
+-#if defined(CONFIG_PM_DEVFREQ)
++#if defined(CONFIG_PM_DEVFREQ) && !defined(NVCPU_X86_64)
+ 
+ #define to_tegra_devfreq_dev(x) \
+     container_of(x, struct nv_pci_tegra_devfreq_dev, dev)
+@@ -1001,7 +1001,7 @@ static unsigned long nv_pci_gb10b_devfreq_get_locked_freq(struct nv_pci_tegra_de
+     }
+ #endif // defined(NV_PM_QOS_READ_VALUE_SUPPORTED)
+ 
+-#if defined(CONFIG_PM_DEVFREQ)
++#if defined(CONFIG_PM_DEVFREQ) && !defined(NVCPU_X86_64)
+     return tdev->devfreq->scaling_max_freq;
+ #endif // defined(CONFIG_PM_DEVFREQ)
+ 
+@@ -1958,7 +1958,7 @@ nv_pci_get_tegra_igpu_data(struct pci_dev *pdev)
+ 
+ void nv_pci_tegra_boost_clocks(struct device *dev)
+ {
+-#if defined(CONFIG_PM_DEVFREQ)
++#if defined(CONFIG_PM_DEVFREQ) && !defined(NVCPU_X86_64)
+     nv_linux_state_t *nvl = pci_get_drvdata(to_pci_dev(dev));
+     const struct nv_pci_tegra_devfreq_data *tdata;
+     struct clk *clk = NULL;
+@@ -2482,7 +2482,7 @@ nv_pci_probe_body
+ 
+     pm_vt_switch_required(nvl->dev, NV_TRUE);
+ 
+-#if defined(CONFIG_PM_DEVFREQ)
++#if defined(CONFIG_PM_DEVFREQ) && !defined(NVCPU_X86_64)
+     // Support dynamic power management if device is a tegra PCI iGPU
+     rm_init_tegra_dynamic_power_management(sp, nv);
+ #endif
+@@ -2516,7 +2516,7 @@ nv_pci_probe_body
+     dev_pm_set_driver_flags(nvl->dev, DPM_FLAG_NEVER_SKIP);
+ #endif
+ 
+-#if defined(CONFIG_PM_DEVFREQ)
++#if defined(CONFIG_PM_DEVFREQ) && !defined(NVCPU_X86_64)
+     /*
+      * Expose clock control interface via devfreq framework for Tegra iGPU and
+      * let the linux kernel itself to support all the clock scaling logic for
+@@ -2869,7 +2869,7 @@ static void nv_pci_remove_helper(struct pci_dev *pci_dev, bool block_if_gpu_in_u
+     /* Remove proc entry for this GPU */
+     nv_procfs_remove_gpu(nvl);
+ 
+-#if defined(CONFIG_PM_DEVFREQ)
++#if defined(CONFIG_PM_DEVFREQ) && !defined(NVCPU_X86_64)
+     nv_pci_tegra_unregister_devfreq(pci_dev);
+ #endif
+ 
+@@ -2978,7 +2978,7 @@ nv_pci_shutdown(struct pci_dev *pci_dev)
+         return;
+     }
+ 
+-#if defined(CONFIG_PM_DEVFREQ)
++#if defined(CONFIG_PM_DEVFREQ) && !defined(NVCPU_X86_64)
+     nv_pci_tegra_unregister_devfreq(pci_dev);
+ #endif
+ 
+diff --git a/kernel-open/nvidia/nv-platform.c b/kernel-open/nvidia/nv-platform.c
+index 8f5fd19..e4f5029 100644
+--- a/kernel-open/nvidia/nv-platform.c
++++ b/kernel-open/nvidia/nv-platform.c
+@@ -1424,10 +1424,12 @@ int nv_platform_count_devices(void)
+         return 0;
+     }
+ 
++#if NV_SUPPORTS_PLATFORM_DEVICE
+     while ((np = of_find_matching_node(np, nv_platform_device_table)))
+     {
+         count++;
+     }
++#endif
+ 
+     return count;
+ }
+@@ -1593,7 +1595,7 @@ NvBool nv_get_hdcp_enabled(nv_state_t *nv)
+     return NV_FALSE;
+ }
+ 
+-#if defined(CONFIG_OF)
++#if defined(CONFIG_OF) && NV_SUPPORTS_PLATFORM_DEVICE
+ 
+ // Global framebuffer cache structure
+ typedef struct {
+diff --git a/kernel-open/nvidia/nv.c b/kernel-open/nvidia/nv.c
+index df5a5e0..e038b6c 100644
+--- a/kernel-open/nvidia/nv.c
++++ b/kernel-open/nvidia/nv.c
+@@ -91,6 +91,14 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/pm_domain.h>
+ 
++/*
++ * GenPD power domains serve only the Tegra PCI iGPU (Arm64); an x86_64 PCI GPU
++ * never has a Device Tree power-domains node.
++ */
++#if defined(NVCPU_X86_64)
++#undef NV_PM_DOMAIN_AVAILABLE
++#endif
++
+ #if defined(NV_LINUX_CC_PLATFORM_H_PRESENT)
+ #include <linux/cc_platform.h>
+ #endif
+@@ -5283,7 +5291,7 @@ int nv_pmops_runtime_suspend(
+     nv_linux_state_t *nvl = pci_get_drvdata(pci_dev);
+     nv_state_t *nv = NV_STATE_PTR(nvl);
+ 
+-#if defined(CONFIG_PM_DEVFREQ)
++#if defined(CONFIG_PM_DEVFREQ) && !defined(NVCPU_X86_64)
+     if (nvl->devfreq_suspend != NULL)
+     {
+         err = nvl->devfreq_suspend(dev);
+@@ -5313,7 +5321,7 @@ int nv_pmops_runtime_suspend(
+     return err;
+ 
+ nv_pmops_runtime_suspend_exit:
+-#if defined(CONFIG_PM_DEVFREQ)
++#if defined(CONFIG_PM_DEVFREQ) && !defined(NVCPU_X86_64)
+     if (nvl->devfreq_resume != NULL)
+     {
+         nvl->devfreq_resume(dev);
+@@ -5327,7 +5335,7 @@ int nv_pmops_runtime_resume(
+ )
+ {
+     int err = 0;
+-#if defined(CONFIG_PM_DEVFREQ)
++#if defined(CONFIG_PM_DEVFREQ) && !defined(NVCPU_X86_64)
+     struct pci_dev *pci_dev = to_pci_dev(dev);
+     nv_linux_state_t *nvl = pci_get_drvdata(pci_dev);
+ 
+@@ -5340,7 +5348,7 @@ int nv_pmops_runtime_resume(
+         return err;
+     }
+ 
+-#if defined(CONFIG_PM_DEVFREQ)
++#if defined(CONFIG_PM_DEVFREQ) && !defined(NVCPU_X86_64)
+     if (nvl->devfreq_resume != NULL)
+     {
+         err = nvl->devfreq_resume(dev);
+@@ -5353,7 +5361,7 @@ int nv_pmops_runtime_resume(
+ 
+     return err;
+ 
+-#if defined(CONFIG_PM_DEVFREQ)
++#if defined(CONFIG_PM_DEVFREQ) && !defined(NVCPU_X86_64)
+ nv_pmops_runtime_resume_exit:
+     nvidia_transition_dynamic_power(dev, NV_TRUE);
+     return err;
+@@ -6501,7 +6509,7 @@ void NV_API_CALL nv_get_screen_info(
+     *pPhysicalAddress = 0;
+     *pFbWidth = *pFbHeight = *pFbDepth = *pFbPitch = *pFbSize = 0;
+ 
+-#if defined(CONFIG_OF)
++#if defined(CONFIG_OF) && NV_SUPPORTS_PLATFORM_DEVICE
+     //
+     // Try to get the framebuffer information from device tree simple-framebuffer node.
+     // This is particularly useful for Tegra platforms where the bootloader

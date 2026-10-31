@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 1: no visible effect in AOSP 17 (C): DragPositioningCallbackUtility reports the size-constraint violation, but ResizeTaskPositioner discards it and the cursor stays a resize arrow (type 1017 on both builds); harmless, kept for when the cursor code lands
+flag_value {
+  package: "com.android.window.flags"
+  name: "enable_no_resize_cursor"
+  state: ENABLED
+  permission: READ_ONLY
+}

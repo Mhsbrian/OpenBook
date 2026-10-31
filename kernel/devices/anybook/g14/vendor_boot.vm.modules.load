@@ -1,0 +1,7 @@
+virtio_pci_legacy_dev.ko
+virtio_pci_modern_dev.ko
+virtio_pci.ko
+virtio_blk.ko
+virtio_dma_buf.ko
+virtio-gpu.ko
+virtio_input.ko

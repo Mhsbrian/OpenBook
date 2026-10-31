@@ -1,0 +1,6 @@
+# Build container for the ARM-compat probe APKs and benchmarks (no Gradle). The NDK, build-tools and
+# platform jar are mounted from ~/anybook/compat/sdk (scripts/compat/setup-toolchain.sh fetches them).
+FROM ubuntu:24.04
+RUN apt-get update && apt-get install -y --no-install-recommends openjdk-21-jdk-headless unzip zip python3 make file \
+      ca-certificates && rm -rf /var/lib/apt/lists/*
+WORKDIR /w

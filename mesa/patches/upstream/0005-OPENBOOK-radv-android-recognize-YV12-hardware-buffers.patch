@@ -1,0 +1,34 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Mon, 19 Oct 2026 12:00:00 -0400
+Subject: [PATCH] OPENBOOK: radv/android: recognize YV12 hardware buffers
+
+YV12 is used by Android software video decoders. RADV returned an
+undefined format and zero externalFormat for it, so ANGLE rejected the
+EGLImage with EGL_BAD_PARAMETER. SurfaceFlinger then aborted while
+mapping the frame in GaneshBackendTexture, restarting the Android UI.
+
+Map YV12 to the three-plane Vulkan 4:2:0 format. The existing shared
+vk_android_get_ahb_layout helper swaps the gralloc V/U offsets into
+Vulkan U/V order and preserves each plane's stride.
+
+Tested on the G14 Radeon 890M with CPU-written colour quadrants imported
+through the system ANGLE driver: RGB, YV12 and flexible YUV420 all render
+the expected pixels. The unpatched driver fails only the YV12 import.
+---
+diff --git i/src/amd/vulkan/radv_android.c w/src/amd/vulkan/radv_android.c
+index 83bebec7b..a22379899 100644
+--- i/src/amd/vulkan/radv_android.c
++++ w/src/amd/vulkan/radv_android.c
+@@ -285,6 +285,11 @@ static inline VkFormat
+ vk_format_from_android(unsigned android_format, unsigned android_usage)
+ {
+    switch (android_format) {
++   case AHARDWAREBUFFER_FORMAT_YV12:
++      /* vk_android_get_ahb_layout swaps the gralloc V/U plane layouts to
++       * Vulkan's U/V order, including the allocator's strides and offsets.
++       */
++      return VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM;
+    case AHARDWAREBUFFER_FORMAT_Y8Cb8Cr8_420:
+       return VK_FORMAT_G8_B8R8_2PLANE_420_UNORM;
+    case AHARDWAREBUFFER_FORMAT_IMPLEMENTATION_DEFINED:

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2026 The OpenBook Authors; SPDX-License-Identifier: Apache-2.0 -->
+<ExternalCamera>
+    <Provider>
+        <CameraIdOffset>100</CameraIdOffset>
+        <!-- Video node numbers are assigned at boot. Do not exclude video0:
+             it can be the built-in USB webcam. The provider checks capture
+             capabilities and formats, rejecting metadata/non-camera nodes. -->
+        <ignore />
+    </Provider>
+    <Device>
+        <MaxJpegBufferSize bytes="3145728" />
+        <NumVideoBuffers count="4" />
+        <NumStillBuffers count="2" />
+        <!-- Upper bounds, intersected with the modes actually enumerated by
+             V4L2. These do not assert measured G14 frame rates. -->
+        <FpsList>
+            <Limit width="640" height="480" fpsBound="30.0" />
+            <Limit width="1280" height="720" fpsBound="30.0" />
+            <Limit width="1920" height="1080" fpsBound="30.0" />
+        </FpsList>
+        <Depth16Supported enabled="false" />
+        <Orientation degree="0" />
+    </Device>
+</ExternalCamera>

@@ -1,0 +1,9 @@
+# Declared in frameworks/base/core/java/android/hardware/input/input_framework.aconfig
+# The pointer shake (SystemUI's contextual cursor) and Meta+G, both of which start contextual search, which Quire
+# handles (ANAL-216, docs/quire.md §2.2). Enabled on Googlebook; in neither cp2a nor trunk_staging.
+flag_value {
+  package: "com.android.hardware.input"
+  name: "enable_contextual_cursor_desktop_entrypoints"
+  state: ENABLED
+  permission: READ_ONLY
+}

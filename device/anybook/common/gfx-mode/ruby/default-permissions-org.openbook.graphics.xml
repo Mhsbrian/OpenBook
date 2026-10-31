@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0. OpenBook Graphics may notify from its first boot (a rolled-back Ultimate). -->
+<exceptions>
+    <exception package="org.openbook.graphics">
+        <permission name="android.permission.POST_NOTIFICATIONS" fixed="false"/>
+    </exception>
+</exceptions>

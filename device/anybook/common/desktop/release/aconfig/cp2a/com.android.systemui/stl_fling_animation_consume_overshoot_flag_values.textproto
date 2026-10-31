@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 5: shade fling animation handles overshoot
+flag_value {
+  package: "com.android.systemui"
+  name: "stl_fling_animation_consume_overshoot"
+  state: ENABLED
+  permission: READ_ONLY
+}

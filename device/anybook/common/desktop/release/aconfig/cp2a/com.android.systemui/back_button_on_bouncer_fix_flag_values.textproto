@@ -1,0 +1,7 @@
+# Declared in frameworks/base/packages/SystemUI/aconfig/desktop_users_and_accounts.aconfig
+flag_value {
+  package: "com.android.systemui"
+  name: "back_button_on_bouncer_fix"
+  state: ENABLED
+  permission: READ_ONLY
+}

@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 5: clipboard overlay uses the current user's context
+flag_value {
+  package: "com.android.systemui"
+  name: "clipboard_overlay_multiuser"
+  state: ENABLED
+  permission: READ_ONLY
+}

@@ -1,0 +1,57 @@
+[
+{
+"wait": "openbook-live: live boot: boot_part_uuid=",
+"timeout": 120
+},
+{
+"wait": "openbook-live: grow: nothing to do",
+"timeout": 60
+},
+{
+"wait": "openbook-live: exec /init",
+"timeout": 120
+},
+{
+"wait": "init: init first stage started",
+"timeout": 60
+},
+{
+"wait": "init: init second stage started",
+"timeout": 120
+},
+{
+"wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+"timeout": 300
+},
+{
+"send": "\n"
+},
+{
+"wait": "console:/ \\$ ",
+"timeout": 120
+},
+{
+"send": "su 0 dmesg -n 1\n"
+},
+{
+"wait": "console:/ \\$ ",
+"timeout": 60
+},
+{
+"send": "echo ===LIVE-BEGIN===; su 0 dmesg | grep -E 'openbook-live|fs_mgr.*(wiped|ormat)|vold.*(ormat|encrypt)' | head -n 60; echo ===LIVE-END===\n"
+},
+{
+"wait": "console:/ \\$ ",
+"timeout": 120
+},
+{
+"send": "echo ===STORAGE-BEGIN===; cat /proc/partitions; su 0 ls -l /dev/block/by-name; df -k /data /metadata; getprop | grep -E 'ro.boot.(openbook|slot_suffix|boot_part_uuid|verifiedbootstate|selinux)|ro.crypto'; echo ===STORAGE-END===\n"
+},
+{
+"wait": "console:/ \\$ ",
+"timeout": 120
+},
+{
+"send": "su 0 sync; su 0 reboot -p\n"
+}
+]

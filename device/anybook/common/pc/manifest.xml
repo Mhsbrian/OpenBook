@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  OpenBook PC device manifest: only the FCM target level. Every HAL declares itself with a VINTF fragment.
+-->
+<manifest version="1.0" type="device" target-level="202604">
+</manifest>

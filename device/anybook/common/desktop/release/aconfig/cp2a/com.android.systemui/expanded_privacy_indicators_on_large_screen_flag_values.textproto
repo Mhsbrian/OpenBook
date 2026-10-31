@@ -1,0 +1,7 @@
+# Declared in frameworks/base/packages/SystemUI/aconfig/systemui.aconfig
+flag_value {
+  package: "com.android.systemui"
+  name: "expanded_privacy_indicators_on_large_screen"
+  state: ENABLED
+  permission: READ_ONLY
+}

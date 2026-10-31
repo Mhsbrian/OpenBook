@@ -1,0 +1,7 @@
+# Declared in packages/apps/DocumentsUI/flags.aconfig
+flag_value {
+  package: "com.android.documentsui.flags"
+  name: "drags_from_other_apps"
+  state: ENABLED
+  permission: READ_ONLY
+}

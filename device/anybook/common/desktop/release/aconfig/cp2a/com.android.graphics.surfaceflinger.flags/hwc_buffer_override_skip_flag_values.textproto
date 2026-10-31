@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 5: SurfaceFlinger buffer-override check includes non-client layers
+flag_value {
+  package: "com.android.graphics.surfaceflinger.flags"
+  name: "hwc_buffer_override_skip"
+  state: ENABLED
+  permission: READ_ONLY
+}

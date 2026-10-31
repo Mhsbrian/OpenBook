@@ -1,0 +1,6 @@
+# QEMU/KVM runner for kernel module load tests (scripts/kernel-modload-test.sh).
+# busybox-static is the initramfs userspace; kmod's depmod writes modules.dep for it.
+FROM alpine:3.20
+RUN apk add --no-cache qemu-system-x86_64 qemu-hw-display-virtio-gpu qemu-hw-display-virtio-gpu-pci \
+      busybox-static kmod cpio gzip
+WORKDIR /w

@@ -1,0 +1,37 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: OpenBook <noreply@anybook.invalid>
+Date: Mon, 19 Oct 2026 12:00:00 +0000
+Subject: [PATCH] OPENBOOK: new app icons go on the first desktop page
+
+AddWorkspaceItemsTask always skipped the first screen, which phones keep
+for the search bar. OpenBook's desktop has no search bar on it, and the
+launcher shows the first page by default, so every app installed from a
+store put its icon on the second page, where the person did not see it:
+their icons seemed to disappear whenever the launcher went back to its
+first page (ANAL-220, on the G14).
+
+Search for space from the first page.
+
+Change-Id: I51cf6bd1abc457278ce1dad8850d982f6da7da31
+---
+ .../android/launcher3/model/tasks/AddWorkspaceItemsTask.java  | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/com/android/launcher3/model/tasks/AddWorkspaceItemsTask.java b/src/com/android/launcher3/model/tasks/AddWorkspaceItemsTask.java
+index 1d511852d1..fe5b217272 100644
+--- a/src/com/android/launcher3/model/tasks/AddWorkspaceItemsTask.java
++++ b/src/com/android/launcher3/model/tasks/AddWorkspaceItemsTask.java
+@@ -78,7 +78,9 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
+         }
+ 
+         final ArrayList<ItemInfo> addedItemsFinal = new ArrayList<>();
+-        final IntSet excludedScreens = IntSet.wrap(FIRST_SCREEN_ID);
++        // OPENBOOK: the first page holds no search bar on OpenBook's desktop, and it is the page the launcher shows by
++        // default. Skipping it put every installed app's icon on the second page, where the person never saw it.
++        final IntSet excludedScreens = new IntSet();
+         final Context context = taskController.getContext();
+ 
+         synchronized (dataModel) {
+-- 
+2.56.0
+

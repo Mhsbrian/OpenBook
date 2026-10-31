@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2026 The OpenBook Authors. SPDX-License-Identifier: Apache-2.0
+     ANAL-211 negative test: an app that claims the system's shared user ID. The installer must refuse it. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="org.openbook.test.gapps.platformuid"
+    android:sharedUserId="android.uid.system">
+    <application android:label="OpenBook platform-UID app (negative test)" android:hasCode="false" />
+</manifest>

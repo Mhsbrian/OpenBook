@@ -1,0 +1,6 @@
+# linux-firmware subset for nouveau (scripts/kernel-firmware-subset.py), ANAL-239.
+# Only the G14's dGPU: RTX 5070 Ti Laptop, GB205 (chipset 0x1b5). nouveau boots it with NVIDIA's GSP-RM 570.144:
+# the FMC, its bootloader, and the GSP-RM image itself (61 MB; WHENCE links gb205 -> gb202 -> ga102's image).
+# Licence: LICENCE.nvidia (redistributable unmodified, with the licence; docs/nvidia.md §3). Every other GPU nouveau
+# supports is left out; add a line when a laptop with one becomes a target.
+module nouveau nvidia/gb205/gsp/(fmc|bootloader|gsp)-570\.144\.bin

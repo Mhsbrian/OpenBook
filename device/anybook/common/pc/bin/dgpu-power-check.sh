@@ -1,0 +1,1 @@
+../../../../../scripts/dgpu-power-check.sh

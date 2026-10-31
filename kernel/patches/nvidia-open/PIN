@@ -1,0 +1,5 @@
+# NVIDIA open-gpu-kernel-modules, the release the Ruby G14 builds nvidia.ko, nvidia-modeset.ko and nvidia-drm.ko from
+# (ANAL-297). One pin for the kernel modules, the GSP firmware (kernel/firmware/anybook-nvidia-open.rules) and the
+# userspace RM ABI (ANAL-298): RM refuses clients of another version. scripts/kernel-nvidia-open-apply.sh reads it.
+# tag       commit                                     tree (pristine)
+615.78.08	1a82fbfda8f321b056eb3568850f9316c5e465c5	e121e9c407c996e4aaca25a801232a53f7dc1b5b

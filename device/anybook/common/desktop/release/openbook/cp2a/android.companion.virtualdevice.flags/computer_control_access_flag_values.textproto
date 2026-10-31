@@ -1,0 +1,12 @@
+# Declared in frameworks/base/core/java/android/companion/virtual/flags/flags.aconfig
+# Computer control for Quire (ANAL-216, docs/quire.md §2.4): VirtualDeviceManager's requestComputerControlSession, the
+# ACCESS_COMPUTER_CONTROL permission, and the platform's safety paths for it (launch warnings for automated apps, the
+# undismissable session notification, Settings' "Screen automation" page). Enabled in trunk_staging, not in cp2a.
+# cp2a already enables computer_control_role_assistant_requirement and _managed_profiles. Its values for _consent,
+# _activity_policy_strict, _user_restriction and _config_change_override name flags AOSP 17 does not declare.
+flag_value {
+  package: "android.companion.virtualdevice.flags"
+  name: "computer_control_access"
+  state: ENABLED
+  permission: READ_ONLY
+}

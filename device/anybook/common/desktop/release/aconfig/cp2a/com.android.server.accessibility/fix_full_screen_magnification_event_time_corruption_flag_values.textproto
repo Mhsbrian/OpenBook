@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 5: full-screen magnification event times
+flag_value {
+  package: "com.android.server.accessibility"
+  name: "fix_full_screen_magnification_event_time_corruption"
+  state: ENABLED
+  permission: READ_ONLY
+}

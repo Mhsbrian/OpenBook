@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 5: orphaned starting windows are cleaned up
+flag_value {
+  package: "com.android.window.flags"
+  name: "remove_starting_window_when_commit_invisible"
+  state: ENABLED
+  permission: READ_ONLY
+}

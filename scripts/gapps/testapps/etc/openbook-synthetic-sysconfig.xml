@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2026 The OpenBook Authors. SPDX-License-Identifier: Apache-2.0
+     ANAL-211 synthetic test package, not Google software. -->
+<config>
+    <allow-in-power-save package="org.openbook.test.gapps.priv" />
+</config>

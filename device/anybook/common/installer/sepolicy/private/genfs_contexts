@@ -1,0 +1,2 @@
+# efivarfs: the firmware's variables (openbook_installd.te).
+genfscon efivarfs / u:object_r:openbook_efivarfs:s0

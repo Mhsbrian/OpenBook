@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="dev.openbook.nativefallback">
+    <uses-sdk android:minSdkVersion="30" android:targetSdkVersion="37" />
+    <permission android:name="dev.openbook.nativefallback.CHILD" android:protectionLevel="signature" />
+    <application android:label="Native service fallback probe" android:debuggable="true">
+        <activity android:name=".ProbeActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <!-- Deliberately no Java class: native-only services cannot be converted to Java services. -->
+        <service android:name=".NativeOnly" android:process=":native"
+            android:isolatedProcess="true" android:nativeService="true" android:exported="false" />
+        <service android:name=".ManagedService" android:process=":managed"
+            android:isolatedProcess="true" android:exported="false" />
+        <!-- Positive alias fixture: identical access, process and isolation. -->
+        <service android:name="org.chromium.content.app.NativeOnlySandboxedProcessService1"
+            android:process=":alias1" android:isolatedProcess="true"
+            android:nativeService="true" android:exported="false" />
+        <service android:name="org.chromium.content.app.SandboxedProcessService1"
+            android:process=":alias1" android:isolatedProcess="true" android:exported="false" />
+        <!-- Negative fixture: falling back would drop the original signature permission. -->
+        <service android:name="org.chromium.content.app.NativeOnlySandboxedProcessService0"
+            android:process=":alias0" android:isolatedProcess="true" android:useAppZygote="true"
+            android:permission="dev.openbook.nativefallback.CHILD"
+            android:nativeService="true" android:exported="false" />
+        <service android:name="org.chromium.content.app.SandboxedProcessService0"
+            android:process=":alias0" android:isolatedProcess="true" android:useAppZygote="true"
+            android:exported="false" />
+    </application>
+</manifest>

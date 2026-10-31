@@ -1,0 +1,3 @@
+# The minigbm stable-C mapper (mapper.minigbm.so) is declared in VINTF as the native HAL "mapper/minigbm"; libui
+# asks servicemanager about it before loading the library (Cuttlefish labels it the same way).
+mapper/minigbm      u:object_r:hal_graphics_mapper_service:s0

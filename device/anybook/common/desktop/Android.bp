@@ -1,0 +1,64 @@
+// Copyright (C) 2026 The AnyBook Authors
+// SPDX-License-Identifier: Apache-2.0
+//
+// Desktop (laptop) configuration shared by AnyBook products: the Cuttlefish VM product and, later, the
+// bare-metal ones. Pulled in by desktop.mk.
+
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+runtime_resource_overlay {
+    name: "AnyBookDesktopFrameworkOverlay",
+    manifest: "overlays/framework/AndroidManifest.xml",
+    resource_dirs: ["overlays/framework/res"],
+    product_specific: true,
+    sdk_version: "current",
+}
+
+runtime_resource_overlay {
+    name: "AnyBookDesktopSettingsProviderOverlay",
+    manifest: "overlays/settingsprovider/AndroidManifest.xml",
+    resource_dirs: ["overlays/settingsprovider/res"],
+    product_specific: true,
+    sdk_version: "current",
+}
+
+runtime_resource_overlay {
+    name: "AnyBookDesktopSystemUIOverlay",
+    manifest: "overlays/systemui/AndroidManifest.xml",
+    resource_dirs: ["overlays/systemui/res"],
+    product_specific: true,
+    sdk_version: "current",
+}
+
+// No search box on the desktop (ANAL-206): Launcher3's hotseat search slot is empty, and AOSP's QuickSearchBox
+// app (its widget, global search and web search) is not installed. Nothing else needs it: Settings searches
+// through SettingsIntelligence, and SearchManager and the search key log and do nothing without a global search
+// activity. docs/googlebook-ui.md §2.6.
+runtime_resource_overlay {
+    name: "AnyBookDesktopLauncherOverlay",
+    manifest: "overlays/launcher/AndroidManifest.xml",
+    resource_dirs: ["overlays/launcher/res"],
+    product_specific: true,
+    sdk_version: "current",
+    overrides: ["QuickSearchBox"],
+}
+
+// No keypress sound in the on-screen keyboard (ANAL-206).
+runtime_resource_overlay {
+    name: "AnyBookDesktopLatinIMEOverlay",
+    manifest: "overlays/latinime/AndroidManifest.xml",
+    resource_dirs: ["overlays/latinime/res"],
+    product_specific: true,
+    sdk_version: "current",
+}
+
+// Launcher3's partner customization: the first home screen and taskbar pins (ANAL-206). No code.
+android_app {
+    name: "AnyBookDesktopPartnerCustomization",
+    manifest: "partner/AndroidManifest.xml",
+    resource_dirs: ["partner/res"],
+    product_specific: true,
+    sdk_version: "current",
+}

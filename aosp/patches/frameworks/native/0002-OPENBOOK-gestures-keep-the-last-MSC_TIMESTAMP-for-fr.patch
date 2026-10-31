@@ -1,0 +1,70 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: "AnyBook aosp-patches.sh" <noreply@anybook.invalid>
+Date: Sun, 18 Oct 2026 09:18:12 -0400
+Subject: [PATCH] OPENBOOK: gestures: keep the last MSC_TIMESTAMP for frames
+ without one
+
+HardwareStateConverter set the timestamp to 0 after every SYN_REPORT, so a
+frame the kernel sends without MSC_TIMESTAMP reaches the gestures library as
+msc_timestamp 0. hid-multitouch sends such frames itself: a palm's separate
+lift-off (mt_release_pending_palms), the release of sticky fingers
+(mt_release_contacts), and key autorepeat on touchpads with EV_REP. The
+TimestampFilterInterpreter then re-bases its clock on the event time, the next
+real frame lands ahead by the time since touch-down, and
+LookaheadFilterInterpreter logs "Clock changed backwards. Flushing queue."
+when its queue is not empty (a palm's lift-off follows its palm frame at once).
+
+Keep the last value instead. A device that restarts its clock reports
+MSC_TIMESTAMP 0 itself (hid-multitouch does after a second without reports),
+and reset() still clears it (ANAL-178).
+---
+ .../gestures/HardwareStateConverter.cpp       |  6 +++++-
+ .../tests/HardwareStateConverter_test.cpp     | 20 +++++++++++++++++++
+ 2 files changed, 25 insertions(+), 1 deletion(-)
+
+diff --git a/services/inputflinger/reader/mapper/gestures/HardwareStateConverter.cpp b/services/inputflinger/reader/mapper/gestures/HardwareStateConverter.cpp
+index 3e62f368a4..c4083331ba 100644
+--- a/services/inputflinger/reader/mapper/gestures/HardwareStateConverter.cpp
++++ b/services/inputflinger/reader/mapper/gestures/HardwareStateConverter.cpp
+@@ -41,7 +41,11 @@ std::optional<SelfContainedHardwareState> HardwareStateConverter::processRawEven
+     if (rawEvent.type == EV_SYN && rawEvent.code == SYN_REPORT) {
+         out = produceHardwareState(rawEvent.when);
+         mMotionAccumulator.finishSync();
+-        mMscTimestamp = 0;
++        // Keep the last MSC_TIMESTAMP for frames that carry none. The kernel sends some frames of its own: a palm's
++        // separate lift-off and the release of "sticky" fingers in hid-multitouch, key autorepeat. A timestamp of 0
++        // makes the gestures library re-base its clock on such a frame, and the device's next frame then lands ahead
++        // by the time since touch-down ("Clock changed backwards" when the lookahead queue is not empty). A device
++        // that restarts its clock sends MSC_TIMESTAMP 0 itself, and reset() clears it.
+     }
+     if (rawEvent.type == EV_MSC && rawEvent.code == MSC_TIMESTAMP) {
+         mMscTimestamp = rawEvent.value;
+diff --git a/services/inputflinger/tests/HardwareStateConverter_test.cpp b/services/inputflinger/tests/HardwareStateConverter_test.cpp
+index 5213640865..b1009ae246 100644
+--- a/services/inputflinger/tests/HardwareStateConverter_test.cpp
++++ b/services/inputflinger/tests/HardwareStateConverter_test.cpp
+@@ -276,4 +276,24 @@ TEST_F(HardwareStateConverterTest, MscTimestamp) {
+     EXPECT_NEAR(1.2, schs->state.msc_timestamp, EPSILON);
+ }
+ 
++TEST_F(HardwareStateConverterTest, MscTimestampKeptForFramesWithoutOne) {
++    processAxis(ARBITRARY_TIME, EV_MSC, MSC_TIMESTAMP, 1200000);
++    std::optional<SelfContainedHardwareState> schs = processSync(ARBITRARY_TIME);
++    ASSERT_TRUE(schs.has_value());
++    EXPECT_NEAR(1.2, schs->state.msc_timestamp, EPSILON);
++
++    // A frame the kernel makes itself (e.g. a palm's separate lift-off) has no MSC_TIMESTAMP.
++    processAxis(ARBITRARY_TIME + 1000, EV_ABS, ABS_MT_SLOT, 0);
++    processAxis(ARBITRARY_TIME + 1000, EV_ABS, ABS_MT_TRACKING_ID, -1);
++    schs = processSync(ARBITRARY_TIME + 1000);
++    ASSERT_TRUE(schs.has_value());
++    EXPECT_NEAR(1.2, schs->state.msc_timestamp, EPSILON);
++
++    // The device restarting its clock is reported as 0.
++    processAxis(ARBITRARY_TIME + 2000, EV_MSC, MSC_TIMESTAMP, 0);
++    schs = processSync(ARBITRARY_TIME + 2000);
++    ASSERT_TRUE(schs.has_value());
++    EXPECT_NEAR(0.0, schs->state.msc_timestamp, EPSILON);
++}
++
+ } // namespace android

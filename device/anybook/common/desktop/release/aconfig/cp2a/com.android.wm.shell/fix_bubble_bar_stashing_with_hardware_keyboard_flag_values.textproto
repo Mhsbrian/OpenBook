@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 5: bubble bar stashes correctly with a hardware keyboard
+flag_value {
+  package: "com.android.wm.shell"
+  name: "fix_bubble_bar_stashing_with_hardware_keyboard"
+  state: ENABLED
+  permission: READ_ONLY
+}

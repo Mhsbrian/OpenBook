@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 5: ResourcesManager frees expired resource impls (memory leak)
+flag_value {
+  package: "android.content.res"
+  name: "resources_manager_cache_leak_cleanup"
+  state: ENABLED
+  permission: READ_ONLY
+}

@@ -1,0 +1,58 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivaylo Spasov <Ivaylo.Spasov@amd.com>
+Date: Mon, 14 Sep 2026 10:06:41 +0300
+Subject: [PATCH] radv/android: fix fd leak on gralloc memory import failure
+
+Check the return value of os_dupfd_cloexec() and close the duplicated fd
+when radv_AllocateMemory() fails to import gralloc memory.
+
+Signed-off-by: Ivaylo Spasov <Ivaylo.Spasov@amd.com>
+Assisted-by: Cursor
+Part-of: <https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/44426>
+(cherry picked from commit 90b5425e81ee0c56f0683a3102e66174208f07ff)
+---
+ src/amd/vulkan/radv_android.c | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/src/amd/vulkan/radv_android.c b/src/amd/vulkan/radv_android.c
+index c7ad7187c..070e68d20 100644
+--- a/src/amd/vulkan/radv_android.c
++++ b/src/amd/vulkan/radv_android.c
+@@ -14,6 +14,9 @@
+ 
+ #if DETECT_OS_ANDROID
+ #include <vulkan/vk_android_native_buffer.h>
++
++#include <errno.h>
++#include <unistd.h>
+ #endif /* DETECT_OS_ANDROID */
+ 
+ #include "util/os_file.h"
+@@ -52,10 +55,14 @@ radv_image_from_gralloc(VkDevice device_h, const VkImageCreateInfo *base_info,
+ 
+    VkDeviceMemory memory_h;
+ 
++   int dup_fd = os_dupfd_cloexec(dma_buf);
++   if (dup_fd < 0)
++      return (errno == EMFILE) ? VK_ERROR_TOO_MANY_OBJECTS : VK_ERROR_OUT_OF_HOST_MEMORY;
++
+    const VkImportMemoryFdInfoKHR import_info = {
+       .sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR,
+       .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
+-      .fd = os_dupfd_cloexec(dma_buf),
++      .fd = dup_fd,
+    };
+ 
+    /* Find the first VRAM memory type, or GART for PRIME images. */
+@@ -82,8 +89,10 @@ radv_image_from_gralloc(VkDevice device_h, const VkImageCreateInfo *base_info,
+                                    .memoryTypeIndex = memory_type_index,
+                                 },
+                                 alloc, &memory_h);
+-   if (result != VK_SUCCESS)
++   if (result != VK_SUCCESS) {
++      close(dup_fd);
+       return result;
++   }
+ 
+    struct radeon_bo_metadata md;
+    device->ws->buffer_get_metadata(device->ws, radv_device_memory_from_handle(memory_h)->bo, &md);

@@ -1,0 +1,14 @@
+# Codec2 over AIDL (media.c2.hal.selection=aidl, pc.mk) moves input and output through fast message queues, which are
+# memfds. AOSP grants them as memfd_file objects (private/mediaswcodec.te: appdomain:memfd_file), which needs the
+# memfd_class policy capability; AOSP 17 does not turn it on, so on the android17-6.18 kernel each memfd is a tmpfs
+# file with its creator's tmpfs type (as for the audio HAL's queues, vendor/hal_audio_net.te). mediaswcodec had no
+# such type and could not write its own queues (tmpfs), nor map those of mediaserver, system_server or the shell.
+# Every decode then failed with "Codec2Client: queue -- bad input" (ANAL-198 follow-up, QEMU on the G14 product).
+type mediaswcodec_tmpfs, file_type;
+tmpfs_domain(mediaswcodec)
+# (Isolated apps are Codec2 clients too, but AOSP forbids them new file access.)
+allow { hal_codec2_client -isolated_app_all } mediaswcodec_tmpfs:file { getattr map read write };
+allow mediaswcodec { appdomain_tmpfs mediaserver_tmpfs system_server_tmpfs }:file { getattr map read write };
+# Apps run with MLS categories (s0:cX,cY) and may only write s0 objects whose type is an mlstrustedobject: SystemUI's
+# writes to mediaswcodec's queues were denied (platform_app:s0:c512,c768), as for audioserver_tmpfs and the allocator.
+typeattribute mediaswcodec_tmpfs mlstrustedobject;

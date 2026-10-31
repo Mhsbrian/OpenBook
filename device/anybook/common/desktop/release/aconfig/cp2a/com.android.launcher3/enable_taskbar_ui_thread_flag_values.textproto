@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 6: taskbar runs on its own UI thread
+flag_value {
+  package: "com.android.launcher3"
+  name: "enable_taskbar_ui_thread"
+  state: ENABLED
+  permission: READ_ONLY
+}

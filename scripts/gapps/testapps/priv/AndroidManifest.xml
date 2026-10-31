@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2026 The OpenBook Authors. SPDX-License-Identifier: Apache-2.0
+     ANAL-211 synthetic test package: a privileged app (priv-app/OpenBookTestPriv) with x86_64 native code in its
+     APK. It asks for one privileged permission (allowlisted by the package's etc/permissions XML) and two runtime
+     ones (granted by default by its etc/default-permissions XML); its etc/sysconfig XML puts it on the power-save
+     allowlist. No code. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="org.openbook.test.gapps.priv">
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <application android:label="OpenBook synthetic privileged app (test)" android:hasCode="false"
+        android:extractNativeLibs="false" />
+</manifest>

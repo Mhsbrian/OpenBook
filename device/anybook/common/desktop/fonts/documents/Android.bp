@@ -1,0 +1,179 @@
+// Copyright (C) 2026 The AnyBook Authors
+// SPDX-License-Identifier: Apache-2.0
+//
+// Metric-compatible document fonts (ANAL-208, docs/googlebook-ui.md §2.1): Arimo, Tinos, Cousine, Gelasio,
+// Comic Relief, Archivo Black and Archivo Narrow, unmodified from github.com/google/fonts (SIL OFL 1.1; README.md
+// has the commit, the upstream projects and the checksums), in /product/fonts. ../fonts_customization.xml defines
+// their families and aliases for the framework, and aosp/patches/frameworks/base declares them in
+// /system/etc/fonts.xml for WebView. The customization XML's module requires these.
+
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+// Each family's OFL.txt carries its own copyright line, so each gets its own license. The text goes into the image's
+// notices (NOTICE.xml.gz).
+
+license {
+    name: "openbook_fonts_arimo_license",
+    license_kinds: ["SPDX-license-identifier-OFL-1.1"],
+    license_text: ["arimo/OFL.txt"],
+}
+
+license {
+    name: "openbook_fonts_tinos_license",
+    license_kinds: ["SPDX-license-identifier-OFL-1.1"],
+    license_text: ["tinos/OFL.txt"],
+}
+
+license {
+    name: "openbook_fonts_cousine_license",
+    license_kinds: ["SPDX-license-identifier-OFL-1.1"],
+    license_text: ["cousine/OFL.txt"],
+}
+
+license {
+    name: "openbook_fonts_gelasio_license",
+    license_kinds: ["SPDX-license-identifier-OFL-1.1"],
+    license_text: ["gelasio/OFL.txt"],
+}
+
+license {
+    name: "openbook_fonts_comicrelief_license",
+    license_kinds: ["SPDX-license-identifier-OFL-1.1"],
+    license_text: ["comicrelief/OFL.txt"],
+}
+
+license {
+    name: "openbook_fonts_archivoblack_license",
+    license_kinds: ["SPDX-license-identifier-OFL-1.1"],
+    license_text: ["archivoblack/OFL.txt"],
+}
+
+license {
+    name: "openbook_fonts_archivonarrow_license",
+    license_kinds: ["SPDX-license-identifier-OFL-1.1"],
+    license_text: ["archivonarrow/OFL.txt"],
+}
+
+// Upstream's variable fonts have the axis in brackets (Arimo[wght].ttf); Soong reads "[" as a glob, so they are kept
+// as <Name>-VF.ttf, the names the font configs use. The contents are byte for byte upstream's.
+
+prebuilt_font {
+    name: "Arimo-Italic-VF.ttf",
+    src: "arimo/Arimo-Italic-VF.ttf",
+    licenses: ["openbook_fonts_arimo_license"],
+    product_specific: true,
+}
+
+prebuilt_font {
+    name: "Arimo-VF.ttf",
+    src: "arimo/Arimo-VF.ttf",
+    licenses: ["openbook_fonts_arimo_license"],
+    product_specific: true,
+}
+
+prebuilt_font {
+    name: "Tinos-Bold.ttf",
+    src: "tinos/Tinos-Bold.ttf",
+    licenses: ["openbook_fonts_tinos_license"],
+    product_specific: true,
+}
+
+prebuilt_font {
+    name: "Tinos-BoldItalic.ttf",
+    src: "tinos/Tinos-BoldItalic.ttf",
+    licenses: ["openbook_fonts_tinos_license"],
+    product_specific: true,
+}
+
+prebuilt_font {
+    name: "Tinos-Italic.ttf",
+    src: "tinos/Tinos-Italic.ttf",
+    licenses: ["openbook_fonts_tinos_license"],
+    product_specific: true,
+}
+
+prebuilt_font {
+    name: "Tinos-Regular.ttf",
+    src: "tinos/Tinos-Regular.ttf",
+    licenses: ["openbook_fonts_tinos_license"],
+    product_specific: true,
+}
+
+prebuilt_font {
+    name: "Cousine-Bold.ttf",
+    src: "cousine/Cousine-Bold.ttf",
+    licenses: ["openbook_fonts_cousine_license"],
+    product_specific: true,
+}
+
+prebuilt_font {
+    name: "Cousine-BoldItalic.ttf",
+    src: "cousine/Cousine-BoldItalic.ttf",
+    licenses: ["openbook_fonts_cousine_license"],
+    product_specific: true,
+}
+
+prebuilt_font {
+    name: "Cousine-Italic.ttf",
+    src: "cousine/Cousine-Italic.ttf",
+    licenses: ["openbook_fonts_cousine_license"],
+    product_specific: true,
+}
+
+prebuilt_font {
+    name: "Cousine-Regular.ttf",
+    src: "cousine/Cousine-Regular.ttf",
+    licenses: ["openbook_fonts_cousine_license"],
+    product_specific: true,
+}
+
+prebuilt_font {
+    name: "Gelasio-Italic-VF.ttf",
+    src: "gelasio/Gelasio-Italic-VF.ttf",
+    licenses: ["openbook_fonts_gelasio_license"],
+    product_specific: true,
+}
+
+prebuilt_font {
+    name: "Gelasio-VF.ttf",
+    src: "gelasio/Gelasio-VF.ttf",
+    licenses: ["openbook_fonts_gelasio_license"],
+    product_specific: true,
+}
+
+prebuilt_font {
+    name: "ComicRelief-Bold.ttf",
+    src: "comicrelief/ComicRelief-Bold.ttf",
+    licenses: ["openbook_fonts_comicrelief_license"],
+    product_specific: true,
+}
+
+prebuilt_font {
+    name: "ComicRelief-Regular.ttf",
+    src: "comicrelief/ComicRelief-Regular.ttf",
+    licenses: ["openbook_fonts_comicrelief_license"],
+    product_specific: true,
+}
+
+prebuilt_font {
+    name: "ArchivoBlack-Regular.ttf",
+    src: "archivoblack/ArchivoBlack-Regular.ttf",
+    licenses: ["openbook_fonts_archivoblack_license"],
+    product_specific: true,
+}
+
+prebuilt_font {
+    name: "ArchivoNarrow-Italic-VF.ttf",
+    src: "archivonarrow/ArchivoNarrow-Italic-VF.ttf",
+    licenses: ["openbook_fonts_archivonarrow_license"],
+    product_specific: true,
+}
+
+prebuilt_font {
+    name: "ArchivoNarrow-VF.ttf",
+    src: "archivonarrow/ArchivoNarrow-VF.ttf",
+    licenses: ["openbook_fonts_archivonarrow_license"],
+    product_specific: true,
+}

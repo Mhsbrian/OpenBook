@@ -1,0 +1,7 @@
+# Declared in packages/providers/MediaProvider/mediaprovider_flags.aconfig
+flag_value {
+  package: "com.android.providers.media.flags"
+  name: "enable_photopicker_desktop"
+  state: ENABLED
+  permission: READ_ONLY
+}

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<resources>
+    <string name="app_name">OpenBook Graphics</string>
+    <string name="settings_summary">Eco, Hybrid or Ultimate graphics</string>
+    <string name="tile_label">Graphics</string>
+    <string name="now">Now: %1$s</string>
+
+    <string name="mode_eco">Eco</string>
+    <string name="mode_hybrid">Hybrid</string>
+    <string name="mode_ultimate">Ultimate</string>
+    <string name="mode_invalid">An unusual firmware state</string>
+    <string name="mode_unknown">Unknown</string>
+    <string name="badge_current">Current</string>
+
+    <string name="eco_summary">Only the Radeon graphics. The NVIDIA GPU is switched off.</string>
+    <string name="eco_cost">Longest battery life. HDMI stays dark. Games and apps cannot use the NVIDIA GPU.</string>
+    <string name="hybrid_summary">The Radeon drives the screen. The NVIDIA GPU sleeps until it is needed.</string>
+    <string name="hybrid_cost">Everyday use. HDMI stays dark for now.</string>
+    <string name="ultimate_summary">The NVIDIA GPU drives the screen and HDMI.</string>
+    <string name="ultimate_cost">Best for plugged-in, GPU-heavy work and HDMI. Uses more power. Needs a restart. If the picture does not come back, the laptop returns to Hybrid by itself after two tries.</string>
+
+    <string name="action_switch">Switch to %1$s</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_restart">Restart now</string>
+    <string name="action_later">Later</string>
+    <string name="action_ok">OK</string>
+    <string name="action_keep">Keep</string>
+    <string name="action_go_back">Go back</string>
+
+    <string name="reason_not_owner">Only the laptop\'s owner can switch graphics.</string>
+    <string name="reason_locked">Turn off \"Keep this mode\" to switch.</string>
+    <string name="reason_busy">Available once the current change has finished.</string>
+    <string name="reason_writes_off">Switching is not turned on in this version of OpenBook.</string>
+    <string name="reason_not_available">Not available on this version.</string>
+    <string name="reason_unsupported">Not available on this laptop.</string>
+
+    <string name="lock_title">Keep this mode</string>
+    <string name="lock_on">Graphics stay in %1$s, even if the firmware is changed from another system.</string>
+    <string name="lock_off">Turn on to keep %1$s.</string>
+
+    <string name="note_no_switcher">This version of OpenBook cannot switch graphics.</string>
+    <string name="note_unsupported">This laptop has no graphics switch that OpenBook can use.</string>
+    <string name="note_writes_off">Switching is not turned on in this version of OpenBook yet. You can see the current mode, but nothing will be changed.</string>
+    <string name="note_not_owner">Only the laptop\'s owner can change the graphics mode.</string>
+    <string name="note_rolled_back">Ultimate graphics didn\'t start, so the laptop went back to Hybrid. Nothing was lost.</string>
+
+    <string name="phase_pending">Restart to finish switching to %1$s.</string>
+    <string name="phase_trial">Checking that Ultimate graphics work. If they don\'t, the laptop goes back to Hybrid by itself.</string>
+    <string name="phase_rollback">Going back to Hybrid graphics. The laptop restarts by itself.</string>
+    <string name="phase_failed">The laptop could not go back to Hybrid by itself. Hold a key at power-on and choose \"Restore Hybrid graphics\", or use the same entry on the OpenBook USB stick.</string>
+
+    <string name="confirm_title">Switch to %1$s?</string>
+    <string name="confirm_eco">The NVIDIA GPU turns off, and HDMI stays dark. If an app is using the NVIDIA GPU, the switch finishes after a restart.</string>
+    <string name="confirm_hybrid">The NVIDIA GPU is available again.</string>
+    <string name="confirm_hybrid_restart">The NVIDIA GPU comes back after a restart.</string>
+    <string name="confirm_ultimate">The laptop restarts into Ultimate graphics. Save your work first. If the picture does not come back, the laptop returns to Hybrid by itself after two tries.</string>
+
+    <string name="restart_title">Restart now to finish?</string>
+    <string name="restart_body">The new graphics mode starts after a restart. Save your work first.</string>
+
+    <string name="keep_title">Keep Ultimate graphics?</string>
+    <plurals name="keep_body">
+        <item quantity="one">If the picture looks wrong, choose Go back. Without an answer, the laptop goes back to Hybrid in %1$d second.</item>
+        <item quantity="other">If the picture looks wrong, choose Go back. Without an answer, the laptop goes back to Hybrid in %1$d seconds.</item>
+    </plurals>
+
+    <string name="message_switched">Done.</string>
+    <string name="message_kept">Ultimate graphics kept.</string>
+    <string name="message_going_back">Going back to Hybrid. The laptop restarts by itself.</string>
+    <string name="message_restart_to_finish">Restart to finish.</string>
+    <string name="message_writes_off">Switching is not turned on in this version of OpenBook. Nothing was changed.</string>
+    <string name="message_refused_busy">A graphics change is still under way. Restart first.</string>
+    <string name="message_refused_locked">\"Keep this mode\" is on. Turn it off to switch.</string>
+    <string name="message_unsupported">This laptop\'s graphics cannot be switched.</string>
+    <string name="message_ultimate_not_available">Ultimate is not available on this version.</string>
+    <string name="message_refused_invalid">The firmware is in an unusual state. Restart, and OpenBook repairs it.</string>
+    <string name="message_refused">That change is not possible right now.</string>
+    <string name="message_failed_firmware">The firmware refused the change. Nothing was switched.</string>
+    <string name="message_failed">The change could not be made. Nothing was switched.</string>
+    <string name="message_no_answer">The graphics service did not answer. Nothing was switched.</string>
+    <string name="message_restart_refused">This app may not restart the laptop. Restart it yourself to finish.</string>
+
+    <string name="channel_name">Graphics mode</string>
+    <string name="notify_keep">Ultimate graphics started. Open to keep them, or the laptop goes back to Hybrid.</string>
+    <string name="notify_rolled_back">Ultimate graphics didn\'t start, so the laptop went back to Hybrid. Nothing was lost.</string>
+</resources>

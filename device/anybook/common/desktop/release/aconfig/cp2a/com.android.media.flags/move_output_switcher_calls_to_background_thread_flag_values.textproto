@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 5: media output switcher off the main thread
+flag_value {
+  package: "com.android.media.flags"
+  name: "move_output_switcher_calls_to_background_thread"
+  state: ENABLED
+  permission: READ_ONLY
+}

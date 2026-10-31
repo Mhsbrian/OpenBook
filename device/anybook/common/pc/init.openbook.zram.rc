@@ -1,0 +1,15 @@
+# Copyright (C) 2026 The OpenBook Authors
+# SPDX-License-Identifier: Apache-2.0
+# zram is a GKI module, not a dependency of the vendor drivers. Create zram0
+# before framework memory management starts; modprobe resolves zsmalloc from
+# the matching system_dlkm. The framework retains ownership of swap setup.
+on early-init
+    exec_start vendor.openbook.zram
+
+service vendor.openbook.zram /vendor/bin/modprobe -s -d /system/lib/modules -a zram
+    user root
+    group root system
+    seclabel u:r:vendor_modprobe:s0
+    oneshot
+    disabled
+    stdio_to_kmsg

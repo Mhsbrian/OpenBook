@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 3: new windows cascade in steps instead of all opening at one spot
+flag_value {
+  package: "com.android.window.flags"
+  name: "enable_stepped_cascading"
+  state: ENABLED
+  permission: READ_ONLY
+}

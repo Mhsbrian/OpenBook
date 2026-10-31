@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 3: rename files on the home screen
+flag_value {
+  package: "com.android.launcher3"
+  name: "enable_home_screen_files_renaming"
+  state: ENABLED
+  permission: READ_ONLY
+}

@@ -1,0 +1,5 @@
+# The switcher's state (vendor.openbook.gfx.*): set by openbook_gfx_mode, read by the selector, init's triggers,
+# boot control (the update interlock), the adb shell and the privileged apps (OpenBook Graphics, OpenBook Update).
+vendor_restricted_prop(vendor_openbook_gfx_prop)
+# ro.vendor.openbook.gfx.*: whether this image writes the firmware at all, and the watchdog's deadlines.
+vendor_internal_prop(vendor_openbook_gfx_config_prop)

@@ -1,0 +1,39 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: OpenBook <noreply@anybook.invalid>
+Date: Sat, 17 Oct 2026 12:00:00 +0000
+Subject: [PATCH] OPENBOOK: microG signature spoofing in user builds too
+
+LineageOS's "Allow signature spoofing for microG Companion/Services" only
+spoofs on debuggable (userdebug/eng) builds. OpenBook ships microG as an
+optional add-on on user builds as well (ANAL-210), so drop that one
+condition, as lineageos4microg does for its user builds. Every other
+condition stays:
+* the package is com.google.android.gms or com.android.vending;
+* it is signed with microG's release certificate (SHA-256
+  9bd06727e62796c0130eb6dab39b73157451582cbd138e86c468acc395d14165) and
+  nothing else;
+* the fake signature it asks for is exactly Google's platform-services
+  certificate.
+
+The isDebuggable() JNI method stays declared, so the LineageOS commit
+underneath applies unchanged.
+---
+ services/core/java/com/android/server/pm/ComputerEngine.java | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/services/core/java/com/android/server/pm/ComputerEngine.java b/services/core/java/com/android/server/pm/ComputerEngine.java
+index f84f36cb90af..084b8835d0c6 100644
+--- a/services/core/java/com/android/server/pm/ComputerEngine.java
++++ b/services/core/java/com/android/server/pm/ComputerEngine.java
+@@ -1492,9 +1492,8 @@ public class ComputerEngine implements Computer {
+     private static native boolean isDebuggable();
+ 
+     public static boolean isMicrogSigned(AndroidPackage p) {
+-        if (!isDebuggable()) {
+-            return false;
+-        }
++        // OpenBook: no isDebuggable() condition, so that user builds behave like userdebug ones. The package names,
++        // microG's release certificate and the one fake signature below still have to match.
+ 
+         // Allowlist the following apps:
+         // * com.android.vending - microG Companion

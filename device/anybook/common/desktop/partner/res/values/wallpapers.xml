@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2026 The OpenBook Authors. SPDX-License-Identifier: Apache-2.0 -->
+<!-- Names for the wallpaper set in res/xml/wallpapers.xml (ANAL-207). -->
+<resources>
+    <string name="openbook_wallpapers">OpenBook</string>
+    <string name="openbook_wallpaper_folio">Folio</string>
+    <string name="openbook_wallpaper_bloom">Bloom</string>
+    <string name="openbook_wallpaper_strata">Strata</string>
+    <string name="openbook_wallpaper_tide">Tide</string>
+    <string name="openbook_wallpaper_light">Light</string>
+    <string name="openbook_wallpaper_dark">Dark</string>
+    <string name="openbook_wallpaper_credit" translatable="false">The OpenBook Authors, CC BY 4.0</string>
+</resources>

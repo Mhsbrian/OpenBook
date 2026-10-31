@@ -1,0 +1,97 @@
+// Copyright (C) 2026 The AnyBook Authors
+// SPDX-License-Identifier: Apache-2.0
+//
+// The desktop typography (ANAL-202, docs/googlebook-ui.md §2.1): Google Sans and Google Sans Flex, unmodified
+// from github.com/google/fonts (SIL OFL 1.1; README.md has the commit and the checksums), in /product/fonts, and
+// /product/etc/fonts_customization.xml, which defines the 40 font families AOSP 17's SystemUI, Launcher3 and
+// SettingsLib ask for. AnyBookDesktopFrameworkOverlay points config_headlineFontFamily and config_bodyFontFamily
+// at them. desktop.mk installs these modules.
+
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+// Each font family's OFL.txt carries its own copyright line, so each gets its own license. The text goes into the
+// image's notices (NOTICE.xml.gz).
+license {
+    name: "openbook_fonts_googlesans_license",
+    license_kinds: ["SPDX-license-identifier-OFL-1.1"],
+    license_text: ["googlesans/OFL.txt"],
+}
+
+license {
+    name: "openbook_fonts_googlesansflex_license",
+    license_kinds: ["SPDX-license-identifier-OFL-1.1"],
+    license_text: ["googlesansflex/OFL.txt"],
+}
+
+// Upstream's file names have the axis list in brackets (GoogleSans[GRAD,opsz,wght].ttf). Soong reads "[" in a
+// path as a glob, so the files are kept under the names fonts_customization.xml uses; the contents are byte for
+// byte upstream's.
+prebuilt_font {
+    name: "GoogleSans-VF.ttf",
+    src: "googlesans/GoogleSans-VF.ttf",
+    licenses: ["openbook_fonts_googlesans_license"],
+    product_specific: true,
+}
+
+prebuilt_font {
+    name: "GoogleSans-Italic-VF.ttf",
+    src: "googlesans/GoogleSans-Italic-VF.ttf",
+    licenses: ["openbook_fonts_googlesans_license"],
+    product_specific: true,
+}
+
+prebuilt_font {
+    name: "GoogleSansFlex-VF.ttf",
+    src: "googlesansflex/GoogleSansFlex-VF.ttf",
+    licenses: ["openbook_fonts_googlesansflex_license"],
+    product_specific: true,
+}
+
+// fonts-customization.py links to scripts/ui/fonts-customization.py (aosp-build.sh copies it in).
+python_binary_host {
+    name: "openbook-fonts-customization",
+    main: "fonts-customization.py",
+    srcs: ["fonts-customization.py"],
+}
+
+// The committed fonts_customization.xml, installed only if it is exactly what the generator writes: the build
+// fails when the two drift apart.
+genrule {
+    name: "openbook_fonts_customization_checked",
+    tools: ["openbook-fonts-customization"],
+    srcs: ["fonts_customization.xml"],
+    out: ["fonts_customization_checked.xml"],
+    cmd: "$(location openbook-fonts-customization) --check $(in) && cp $(in) $(out)",
+}
+
+prebuilt_etc {
+    name: "openbook_fonts_customization.xml",
+    src: ":openbook_fonts_customization_checked",
+    filename: "fonts_customization.xml",
+    product_specific: true,
+    required: [
+        "GoogleSans-VF.ttf",
+        "GoogleSans-Italic-VF.ttf",
+        "GoogleSansFlex-VF.ttf",
+        // The metric-compatible document fonts (documents/, ANAL-208).
+        "Arimo-VF.ttf",
+        "Arimo-Italic-VF.ttf",
+        "Tinos-Regular.ttf",
+        "Tinos-Italic.ttf",
+        "Tinos-Bold.ttf",
+        "Tinos-BoldItalic.ttf",
+        "Cousine-Regular.ttf",
+        "Cousine-Italic.ttf",
+        "Cousine-Bold.ttf",
+        "Cousine-BoldItalic.ttf",
+        "Gelasio-VF.ttf",
+        "Gelasio-Italic-VF.ttf",
+        "ComicRelief-Regular.ttf",
+        "ComicRelief-Bold.ttf",
+        "ArchivoBlack-Regular.ttf",
+        "ArchivoNarrow-VF.ttf",
+        "ArchivoNarrow-Italic-VF.ttf",
+    ],
+}

@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 5: Compose dialog for connecting an external display
+flag_value {
+  package: "com.android.systemui"
+  name: "enable_compose_external_display_dialog"
+  state: ENABLED
+  permission: READ_ONLY
+}

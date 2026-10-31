@@ -1,0 +1,22 @@
+# First-stage fstab for the ANAL-198 QEMU check (scripts/kernel-g14-qemu.py). Test glue, not product: the G14
+# product build owns the real fstab. Modeled on Googlebook's fstab.android-desktop (ruby vendor_boot): one
+# top-level vbmeta verifies every logical partition, and boot, init_boot, vendor_boot and vbmeta are listed
+# with first_stage_mount so first-stage init waits for their by-name links too.
+# The check installs it as /first_stage_ramdisk/fstab.cf.f2fs.hctr2 because it reuses the Cuttlefish userspace,
+# whose second stage reads /vendor/etc/fstab.<androidboot.fstab_suffix> for /data.
+system       /system       erofs ro wait,logical,first_stage_mount,slotselect,avb=vbmeta
+system_ext   /system_ext   erofs ro wait,logical,first_stage_mount,slotselect,avb=vbmeta
+product      /product      erofs ro wait,logical,first_stage_mount,slotselect,avb=vbmeta
+vendor       /vendor       erofs ro wait,logical,first_stage_mount,slotselect,avb=vbmeta
+odm          /odm          erofs ro wait,logical,first_stage_mount,slotselect,avb=vbmeta
+vendor_dlkm  /vendor_dlkm  erofs ro wait,logical,first_stage_mount,slotselect,avb=vbmeta
+odm_dlkm     /odm_dlkm     erofs ro wait,logical,first_stage_mount,slotselect,avb=vbmeta
+system_dlkm  /system_dlkm  erofs ro wait,logical,first_stage_mount,slotselect,avb=vbmeta
+
+/dev/block/by-name/boot        /boot        emmc defaults slotselect,first_stage_mount
+/dev/block/by-name/init_boot   /init_boot   emmc defaults slotselect,first_stage_mount
+/dev/block/by-name/vendor_boot /vendor_boot emmc defaults slotselect,first_stage_mount
+/dev/block/by-name/vbmeta      /vbmeta      emmc defaults slotselect,first_stage_mount
+/dev/block/by-name/metadata    /metadata    ext4 noatime,nosuid,nodev wait,check,formattable,first_stage_mount
+/dev/block/by-name/misc        /misc        emmc defaults defaults
+/dev/block/by-name/userdata    /data        f2fs nodev,noatime,nosuid,inlinecrypt,reserve_root=32768 latemount,wait,check,quota,formattable,keydirectory=/metadata/vold/metadata_encryption,fileencryption=aes-256-xts:aes-256-hctr2:inlinecrypt_optimized,fscompress,checkpoint=fs

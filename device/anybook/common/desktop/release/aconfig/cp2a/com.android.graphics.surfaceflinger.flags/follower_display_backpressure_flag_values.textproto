@@ -1,0 +1,7 @@
+# Declared in frameworks/native/services/surfaceflinger/surfaceflinger_flags_new.aconfig
+flag_value {
+  package: "com.android.graphics.surfaceflinger.flags"
+  name: "follower_display_backpressure"
+  state: ENABLED
+  permission: READ_ONLY
+}

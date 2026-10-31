@@ -1,0 +1,23 @@
+# Who reads the switcher's state (property.te).
+# init.openbook.rc expands ${vendor.openbook.gfx.kms} in an early-init trigger, which init does for vendor .rc
+# files in the vendor_init context.
+get_prop(vendor_init, vendor_openbook_gfx_prop)
+# /vendor/build.prop's ro.vendor.openbook.gfx.*.
+set_prop(vendor_init, vendor_openbook_gfx_config_prop)
+# `adb shell getprop vendor.openbook.gfx.summary`, and g14-ota.sh's check before an update.
+get_prop(shell, vendor_openbook_gfx_prop)
+# The OpenBook Graphics app shows the mode; OpenBook Update installs only in Eco or Hybrid (§5.4). Both run in
+# their own platform app domains, which this vendor policy cannot name: system apps may read the state, untrusted,
+# ephemeral and isolated apps may not.
+get_prop({ appdomain -isolated_app_all -untrusted_app_all -ephemeral_app }, vendor_openbook_gfx_prop)
+# The lab helper's dGPU report shows both switches (read only).
+allow openbook_pc_setup sysfs_openbook_gfx_fw:file r_file_perms;
+# The stack selector (anybook_gpu_probe) follows the MUX.
+allow anybook_gpu_probe sysfs_openbook_gfx_fw:file r_file_perms;
+# Boot control's update interlock (openbook-bootsync): no slot switch while the MUX is on the dGPU or a switch is
+# under way. It also writes the "Restore Hybrid graphics" loader entry only on a laptop with the MUX.
+allow openbook_bootsync sysfs_openbook_gfx_fw:file r_file_perms;
+get_prop(openbook_bootsync, vendor_openbook_gfx_prop)
+allow openbook_bootsync sysfs:dir search;
+# The watchdog says what the selector chose when an Ultimate boot shows no frame.
+get_prop(openbook_gfx_mode, vendor_anybook_gpu_prop)

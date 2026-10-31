@@ -1,0 +1,29 @@
+# openbook-addons (device/anybook/common/addons, ANAL-210): installs the optional app add-ons from the boot disk's EFI
+# partition as normal apps, through PackageManager. Modelled on AOSP's aflags, which also runs /system/bin/cmd.
+type openbook_addons, domain, coredomain;
+type openbook_addons_exec, system_file_type, exec_type, file_type;
+init_daemon_domain(openbook_addons)
+
+# The boot disk's EFI partition, read (never written) through the whole-disk node at the partition's offset, as the
+# installer reads the stick (openbook_disk_block_device is the installer's whole-disk label).
+allow openbook_addons block_device:dir r_dir_perms;
+allow openbook_addons openbook_disk_block_device:blk_file r_file_perms;
+allowxperm openbook_addons openbook_disk_block_device:blk_file ioctl { BLKGETSIZE64 BLKSSZGET };
+
+# The image's catalogue: /system_ext/etc/openbook/addons/*.json (the files themselves: domain's system_file rules).
+allow openbook_addons system_file:dir r_dir_perms;
+
+# Its log, last result and per-add-on state.
+type openbook_addons_data_file, file_type, data_file_type, core_data_file_type;
+allow openbook_addons openbook_addons_data_file:dir rw_dir_perms;
+allow openbook_addons openbook_addons_data_file:file create_file_perms;
+
+# /system/bin/cmd in this domain: PackageManager (install sessions, grants), app-ops and deviceidle over binder.
+allow openbook_addons system_file:file execute_no_trans;
+binder_use(openbook_addons)
+binder_call(openbook_addons, system_server)
+binder_call(system_server, openbook_addons)
+allow openbook_addons { package_service appops_service deviceidle_service }:service_manager find;
+# system_server reads the APK from cmd's stdin pipe and answers on its stdout.
+allow system_server openbook_addons:fd use;
+allow system_server openbook_addons:fifo_file rw_file_perms;

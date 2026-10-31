@@ -1,0 +1,7 @@
+# Declared in frameworks/base/core/java/android/view/inputmethod/flags.aconfig
+flag_value {
+  package: "android.view.inputmethod"
+  name: "ime_switcher_menu_systemui_style_update_desktop"
+  state: ENABLED
+  permission: READ_ONLY
+}

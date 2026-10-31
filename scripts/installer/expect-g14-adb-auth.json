@@ -1,0 +1,45 @@
+[
+ {
+  "wait": "init: init second stage started",
+  "timeout": 120
+ },
+ {
+  "send": "\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 300
+ },
+ {
+  "send": "su 0 dmesg -n 1\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "i=0; while [ \"$(getprop sys.boot_completed)\" != 1 ] && [ $i -lt 900 ]; do sleep 3; i=$((i+3)); done; echo BOOTDONE=$(getprop sys.boot_completed); sleep 20\n"
+ },
+ {
+  "wait": "BOOTDONE=\\S*",
+  "timeout": 960
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 90
+ },
+ {
+  "send": "echo ===ADB-BEGIN===; echo secure=$(getprop ro.adb.secure) debuggable=$(getprop ro.debuggable) adbd=$(getprop init.svc.adbd); echo len=$(printf 'CNXN\\001\\000\\000\\001\\000\\000\\004\\000\\007\\000\\000\\000\\000\\000\\000\\000\\274\\261\\247\\261host::\\000' | toybox wc -c); for a in 127.0.0.1 ::1; do echo try-$a; printf 'CNXN\\001\\000\\000\\001\\000\\000\\004\\000\\007\\000\\000\\000\\000\\000\\000\\000\\274\\261\\247\\261host::\\000' > /data/local/tmp/cnxn.bin 2>/dev/null; (sleep 2) | su 0 sh -c \"(cat /data/local/tmp/cnxn.bin; sleep 2) | toybox nc $a 5555\" 2>&1 | toybox od -A n -t x1 -N 32 | head -2; done; echo :ADB-REPLY; echo ===ADB-END===\n"
+ },
+ {
+  "wait": "\\S*:ADB-REPLY",
+  "timeout": 60
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "su 0 sync; su 0 reboot -p\n"
+ }
+]

@@ -1,0 +1,4 @@
+# QEMU/KVM runner for boot experiments (host has no qemu and no sudo; pass /dev/kvm in).
+FROM archlinux:latest
+RUN pacman -Syu --noconfirm --needed qemu-base qemu-system-x86 edk2-ovmf python lz4 cpio && pacman -Scc --noconfirm
+WORKDIR /w
