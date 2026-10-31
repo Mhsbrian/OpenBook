@@ -1,0 +1,6 @@
+1622:[    4.102046][  T417] android.hardware.boot-service.openbook: Invalid boot control found, expected CRC-32 0x807077e9 but found 0x0. Re-initializing.
+1624:[    4.103585][  T417] android.hardware.boot-service.openbook: Found slot: _a
+1626:[    4.105486][  T417] android.hardware.boot-service.openbook: Found a system with 1 slots.
+1637:[    4.121465][  T417] android.hardware.boot-service.openbook: IBootControl AIDL service (OpenBook: misc + openbook-bootsync) running...
+1942:[   15.238152][    T1] sysrq: Terminate All Tasks
+1982:[   15.507096][    T1] reboot: Restarting system with command 'Checkpoint commit failed'

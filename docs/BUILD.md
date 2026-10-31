@@ -320,6 +320,22 @@ scripts/g14-qemu.sh <img> <run> && scripts/g14-qemu.sh --again <run>   # two boo
 ```
 Details: `docs/g14-product.md`.
 
+## Release: a public G14 image, its source, and the release folder (ANAL-320)
+
+```bash
+G14_NVIDIA_FIRMWARE=none scripts/g14-stage-kernel.sh anybook-g14-gbos-16302624-anal297   # no GSP firmware (own use)
+scripts/aosp-docker.sh -d anybook-aosp-build /repo/scripts/aosp-build.sh anybook_g14_x86_64-cp2a-userdebug && docker wait anybook-aosp-build
+scripts/installer-image.sh --label <label> --no-xz             # the live USB image people download
+scripts/installer/live-qemu.sh <data dir>/installer/out/<label>.img <run>        # all live cases in QEMU
+scripts/release/make-sources.sh --version <V> --image <data dir>/installer/out/<label>.img   # GPL/LGPL source, ~300 MB
+scripts/release/make-release.sh --image <data dir>/installer/out/<label>.img --version <V> \
+  --mirror https://github.com/Mhsbrian/OpenBook/releases/download/v<V>/ --source-url https://github.com/Mhsbrian/OpenBook/releases/tag/v<V>
+scripts/release/swarm-test.sh <data dir>/release/out/<V>       # the download, from the web seed and from the seeder
+G14_NVIDIA_FIRMWARE=<firmware dir> scripts/g14-stage-kernel.sh anybook-g14-gbos-16302624-anal297   # back to the own-use staging
+```
+Run `make-sources.sh` before the next AOSP build: it reads that build's NOTICE files. Details, gates and the
+publish steps: `docs/RELEASE.md`. The NVIDIA side: `docs/nvidia-open.md`.
+
 ## Bare metal: debugging the installed G14 over adb (ANAL-222)
 
 ```bash

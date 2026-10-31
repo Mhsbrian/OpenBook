@@ -1,0 +1,16 @@
+== make-release.sh 0.1.0-preview.1 from openbook-live-20261031-anal320pub.img (2026-10-31T13:24:40Z), repo be4ac675
+-- checking the image against openbook-live-20261031-anal320pub.build.json
+-- xz -9, multi-threaded, independent blocks
+   944840824 bytes; decompresses to the image's sha256
+-- torrent
+-- SHA256SUMS
+-- release.json
+   audience: unpublished; blocking: release_keys, user_build, checksums_signed, owner_approved
+-- done in 99 s: /home/hive/anybook/release/out/0.1.0-preview.1
+total 922756
+-rw-r--r-- 1 hive hive 944840824 Oct 31 09:26 openbook-0.1.0-preview.1-x86_64-live.img.xz
+-rw-r--r-- 1 hive hive     47739 Oct 31 09:26 openbook-0.1.0-preview.1-x86_64-live.img.xz.torrent
+-rw-r--r-- 1 hive hive      4040 Oct 31 09:26 release.json
+-rw-r--r-- 1 hive hive       335 Oct 31 09:26 SHA256SUMS
+drwxr-xr-x 1 hive hive       362 Oct 31 09:24 sources
+log: /home/hive/anybook/logs/release/release-0.1.0-preview.1-20261031T132440Z.log

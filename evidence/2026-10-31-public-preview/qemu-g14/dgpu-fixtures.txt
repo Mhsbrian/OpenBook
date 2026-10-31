@@ -1,0 +1,160 @@
+ok   g14-d0: exit 0
+ok   g14-d0: HDMI audio unbound from snd_hda_intel
+ok   g14-d0: dGPU runtime PM auto
+ok   g14-d0: HDMI audio runtime PM auto
+ok   g14-d0: snd_hda_intel power_save
+ok   g14-off: exit 0
+ok   g14-off: AMD audio left alone
+ok   g14-off: power_save untouched
+ok   g14-off: nothing unbound
+ok   nouveau: exit 0
+ok   nouveau: dGPU control left to nouveau
+ok   nouveau: HDMI audio unbound from snd_hda_intel
+ok   nouveau: HDMI audio runtime PM auto
+ok   nouveau: snd_hda_intel power_save
+ok   nouveau: logs the driver and runpm=1 modeset=2
+ok   nouveau-norunpm: exit 0
+ok   nouveau-norunpm: HDMI audio runtime PM auto
+ok   nouveau-norunpm: warns, and shows a set config
+ok   perms: exit 0
+ok   perms: 4 policies
+ok   kvm on: exit 0
+ok   kvm on: vendor.openbook.kvm=1
+ok   kvm off: exit 0
+ok   kvm off: vendor.openbook.kvm=0
+ok   report d3cold: exit 0
+ok   report d3cold: verdict
+ok   report d3cold: GPU line
+ok   report d3cold: bridge and PG00 off
+ok   report d3cold: asus read
+ok   report d3cold: suspend_stats
+ok   report d3cold: logd copy
+ok   report d3cold: read-only
+ok   report d0: verdict
+ok   report d0: HDA bound
+ok   report d0: default reason
+ok   report absent: verdict
+ok   report nouveau: verdict
+ok   report nouveau: GPU line
+ok   report nouveau: parameters
+ok   report nouveau: logd copy
+ok   report nvidia: verdict
+ok   report nvidia: GPU line
+ok   report nvidia: parameters
+ok   report nvidia: runtime D3 status
+ok   report nvidia: video memory
+ok   report nvidia: logd copy
+ok   report nvidia: health line, kernel log unreadable
+ok   report nvidia: health line counts NVRM lines and Xid kinds
+ok   report nvidia: health line without Xid has no kinds
+ok   report nvidia: health line counts a ring over 128 KiB
+ok   report nvidia: kernel log read with dmesg -S
+ok   report nvidia: health line from the default read
+ok   ctl on: exit 0
+ok   ctl on: GPU held in D0
+ok   ctl on: HDMI audio held in D0
+ok   ctl on: reports after
+ok   ctl auto: GPU back to auto
+ok   ctl bad value: exit 2
+ok   ctl bad value: nothing written
+ok   ctl with nouveau: exit 0
+ok   ctl with nouveau: audio untouched
+ok   lab off: report refused (exit 3)
+ok   lab off: says how to switch on
+ok   lab: unknown action refused (exit 2)
+ok   lab: unknown action named
+ok   lab: nothing set by refused requests
+ok   lab enable: exit 0
+ok   lab enable: switch persisted
+ok   lab report: exit 0
+ok   lab report: header with switch
+ok   lab report: dGPU state
+ok   lab report: nouveau not loaded
+ok   lab nouveau-load: exit 0
+ok   lab nouveau-load: idle first, then the action, then idle
+ok   lab nouveau-load: asked init
+ok   lab nouveau-load: request reset
+ok   lab nouveau-load: present
+ok   lab nouveau-load: nouveau's options reported
+ok   lab nouveau-load: module state
+ok   lab nouveau-load twice: refused (exit 4)
+ok   lab nvidia-load while nouveau is loaded: refused (exit 4)
+ok   lab nvidia-load while nouveau is loaded: said why
+ok   lab nvidia-load refused: init not asked
+ok   lab nouveau-unload: exit 0
+ok   lab nouveau-unload: absent
+ok   lab nvidia-load: exit 0
+ok   lab nvidia-load: asked init
+ok   lab nvidia-load: nvidia_drm present
+ok   lab nvidia-load: all three reported
+ok   lab nouveau-load while nvidia is loaded: refused (exit 4)
+ok   lab nouveau-load while nvidia is loaded: said why
+ok   lab nvidia-load twice: refused (exit 4)
+ok   lab nvidia-unload: exit 0
+ok   lab nvidia-unload: nvidia absent
+ok   lab nvidia-unload: nvidia_drm gone too
+ok   lab diag-ptm-off: exit 0
+ok   lab diag-ptm-off: parameters
+ok   lab diag-ptm-off: report relayed
+ok   lab diag-ptm-off: report lines keep their indent
+ok   lab diag-unload: absent
+ok   lab: init did nothing: exit 5
+ok   lab: init did nothing: said so
+ok   lab: request reset after a timeout
+ok   lab sleep-20: exit 0
+ok   lab sleep-20: alarm armed
+ok   lab sleep-20: suspended through /sys/power/state
+ok   lab sleep-20: alarm cleared after
+ok   lab sleep-20: resumed and counted
+ok   lab: sleep length outside the list refused (exit 2)
+ok   lab sleep refused by the kernel: said so
+ok   lab disable: switch off
+ok   lab disable: report refused again (exit 3)
+ok   dgpu-driver no NVIDIA GPU: exit 0
+ok   dgpu-driver no NVIDIA GPU: said so
+ok   dgpu-driver no NVIDIA GPU: nothing asked
+ok   dgpu-driver boot: exit 0
+ok   dgpu-driver boot: guard, load, offer in order
+ok   dgpu-driver boot: asked init for the lab's nvidia-load
+ok   dgpu-driver boot: request reset
+ok   dgpu-driver boot: guard cleared
+ok   dgpu-driver boot: package offered
+ok   dgpu-driver boot: offered last
+ok   dgpu-driver boot: said so
+ok   dgpu-driver boot: report after
+ok   dgpu-driver already loaded: exit 0
+ok   dgpu-driver already loaded: init not asked again
+ok   dgpu-driver already loaded: offered
+ok   lab nvidia-unload while offered: warns
+ok   dgpu-driver off: exit 0
+ok   dgpu-driver off: persisted
+ok   dgpu-driver boot while off: exit 0
+ok   dgpu-driver boot while off: said how to turn on
+ok   dgpu-driver boot while off: nothing asked
+ok   dgpu-driver bad value: exit 2
+ok   dgpu-driver bad value: choice kept
+ok   dgpu-driver after an unfinished load: exit 0
+ok   dgpu-driver after an unfinished load: failed
+ok   dgpu-driver after an unfinished load: said why
+ok   dgpu-driver after an unfinished load: nothing asked
+ok   dgpu-driver while failed: nothing asked
+ok   dgpu-driver while failed: said how to retry
+ok   dgpu-driver on: clears failed
+ok   dgpu-driver on, then boot: offered
+ok   dgpu-driver module never came: exit 5
+ok   dgpu-driver module never came: failed
+ok   dgpu-driver module never came: request reset
+ok   dgpu-driver module never came: not offered
+ok   dgpu-driver loaded but not bound: exit 5
+ok   dgpu-driver loaded but not bound: failed
+ok   dgpu-driver loaded but not bound: said so
+ok   dgpu-driver not bound: not offered
+ok   dgpu-driver with nouveau: exit 0
+ok   dgpu-driver with nouveau: said so
+ok   dgpu-driver with nouveau: nothing asked
+ok   dgpu-driver without GSP firmware: exit 0
+ok   dgpu-driver without GSP firmware: said why
+ok   dgpu-driver without GSP firmware: nothing asked
+ok   dgpu-driver without GSP firmware: guard untouched
+openbook-pc-setup-test: 0 failure(s)
+exit=0

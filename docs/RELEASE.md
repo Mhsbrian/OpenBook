@@ -59,8 +59,11 @@ for size, and would need measuring first. Neither has been measured.
 | `release.json` | the record the website reads (§5), including the gates (§7) |
 
 The script first checks the image against its build record (`<label>.build.json`). It refuses an image that carries
-NVIDIA's GSP firmware: its file names are visible in the raw image, and the 2026-10-30 G14 image is caught this way
-(`evidence/…/nvidia-refusal.txt`). `--private` is for the owner's own-use images. It writes the `.img.xz` and the
+NVIDIA's GSP firmware. A firmware file's name, or its licence's name, shows in the raw image as a directory entry.
+`nvidia.ko` names its firmware too, as a path (`nvidia/615.78.08/gsp_ga10x.bin`), and public images ship
+`nvidia.ko`, so only a name not preceded by `/` counts. The 2026-10-30 G14 image matches; the public build and the
+2026-10-18 image don't (`evidence/…/nvidia-refusal.txt`, `evidence/2026-10-31-public-preview/`). Building a public
+image is described in [`nvidia-open.md`](nvidia-open.md#public-images-the-modules-without-the-firmware-anal-320). `--private` is for the owner's own-use images. It writes the `.img.xz` and the
 checksums only: no torrent and no mirrors.
 
 **Checking a download** (this goes on the site's verify page):
@@ -195,6 +198,7 @@ unpublished on purpose (§7), and its signature is from a throwaway test key, no
 | `scripts/release/swarm-test.sh [RELEASE_DIR]` | on an isolated Docker network: the seeder refuses an unpublished release. A libtorrent client gets the whole 885 MB image from the web seed alone, through a 302 like GitHub's (2.0 s), and then from the Transmission seeder alone (8.8 s, 101 MB/s; local network, so the times say little about the internet). Both match the sha256. `swarm.json` counts the upload, the health check passes, and the seeder can write neither the releases nor its own root | 9/9 |
 | `scripts/release/tracker-probe.py` | the default trackers answer a BEP 15 connect request | 3/3 |
 | `make-release.sh` on the NVIDIA image | refuses it, exits 1, and writes nothing | refused |
+| `scripts/release/make-sources.sh` on `0.1.0-preview.1` | the kernel exactly as built, 14 AOSP projects found by `notice-scan.py`, Mesa's libelf and Mesa, systemd-boot 262-1 | 3 tarballs, 297 MB (`evidence/2026-10-31-public-preview/sources/`) |
 | `openbook-seeder` on the site's flat folder | seeds a release `releases.json` lists; seeds nothing once the entry is `hidden` | as designed |
 | openbook.page `publish-release.sh --from` | refuses the unpublished test release; places a public test copy, and the downloads page renders it with the mirror link (headless Chromium) | as designed |
 
@@ -210,30 +214,38 @@ Both need the deployed stack. A client behind NAT reaching the NAS is also untes
 | `release_keys` | the build is not signed with AOSP's public test keys | `--waive release_keys`, recorded in the release, for an openly labelled developer preview |
 | `user_build` | a `user` build, not `userdebug` | `--waive user_build`, recorded the same way |
 | `checksums_signed` | `SHA256SUMS.sig` exists, signed with the OpenBook release key | no |
-| `source_offer` | `--source-url` points to the GPL/LGPL source for this exact build (INSTALL.md §9, item 7) | **no** |
+| `source_offer` | `--source-url` points to the GPL/LGPL source for this exact build (INSTALL.md §9, item 7), made by `scripts/release/make-sources.sh` and listed in `release.json` | **no** |
 | `owner_approved` | `--owner-approved`: the owner signed off the checklist | no |
 
 `public` is true only when every gate passes or is waived. openbook.page's `publish-release.sh --from` refuses a
 release that isn't public, so an unready image never reaches `releases.json`, the seed's watch folder or the
 downloads page. `openbook-seeder` checks the same thing again before it seeds.
 
-Today's images, `anal191i` and later, fail `release_keys`, `user_build`, `source_offer` and `owner_approved`.
-Images from 2026-10-30 on also fail `no_nvidia_firmware`. A public image needs a G14 product variant without
-NVIDIA's firmware. With the modules but not the firmware, the RTX would stay unbound, and the open question is
-whether runtime D3 still powers it off. That has to be designed and measured before the variant exists.
+**`0.1.0-preview.1` (2026-10-31)** is the first public build: no NVIDIA firmware, with its source bundle. It passes
+`no_nvidia_firmware`, `firmware_licences` and `source_offer`. It is blocked on `release_keys` and `user_build` (it is
+a `userdebug` build on AOSP's test keys: waive both on the record for a labelled developer preview, or build with
+release keys), `checksums_signed` (the owner's key) and `owner_approved`
+(`evidence/2026-10-31-public-preview/SUMMARY.md`). Images from 2026-10-30 on with NVIDIA's firmware still fail
+`no_nvidia_firmware`; they stay private.
 
 ## 8. Publishing, once the gates pass (the owner's steps)
 
 ```bash
-# 1. the release folder (the mirror URL is baked into the torrent as its web seed)
+# 0. a public build: the G14 product staged without NVIDIA's firmware (nvidia-open.md), then its live image
+G14_NVIDIA_FIRMWARE=none scripts/g14-stage-kernel.sh <dist>      # then build anybook_g14_x86_64 (BUILD.md)
+scripts/installer-image.sh --label <label> --no-xz
+# 1. the source offer, then the release folder (the mirror URL is baked into the torrent as its web seed)
+scripts/release/make-sources.sh --version <V> --image ~/anybook/installer/out/<label>.img
 scripts/release/make-release.sh --image ~/anybook/installer/out/<label>.img --version <V> --channel preview \
   --mirror https://github.com/Mhsbrian/OpenBook/releases/download/v<V>/ \
-  --sign-key ~/.ssh/openbook-release --source-url <source bundle URL> --owner-approved
+  --source-url https://github.com/Mhsbrian/OpenBook/releases/tag/v<V> \
+  --sign-key ~/.ssh/openbook-release --owner-approved [--waive release_keys,user_build]
 scripts/release/tracker-probe.py
 scripts/release/swarm-test.sh ~/anybook/release/out/<V>
 # 2. the mirror
 gh release create v<V> --repo Mhsbrian/OpenBook --prerelease --title "OpenBook <V>" --notes-file <notes> \
-  ~/anybook/release/out/<V>/{openbook-<V>-x86_64-live.img.xz,openbook-<V>-x86_64-live.img.xz.torrent,SHA256SUMS,SHA256SUMS.sig,openbook-release.pub}
+  ~/anybook/release/out/<V>/{openbook-<V>-x86_64-live.img.xz,openbook-<V>-x86_64-live.img.xz.torrent,SHA256SUMS,SHA256SUMS.sig,openbook-release.pub} \
+  ~/anybook/release/out/<V>/sources/{openbook-<V>-source-kernel.tar.xz,openbook-<V>-source-userspace.tar.xz,openbook-<V>-source-systemd-boot.tar.xz,aosp-manifest.xml,SOURCES.md}
 # 3. the site: from a clone of openbook.page, with the NAS releases folder mounted (or on the NAS itself);
 #    it places the files, writes releases.json and hands the torrent to the seed
 RELEASES_DIR=/volume1/docker/openbook/releases tools/publish-release.sh --from ~/anybook/release/out/<V> \

@@ -1,0 +1,23 @@
+10-31 13:16:56.189   321   321 I modprobe: Loading module /vendor/lib/modules/amdgpu.ko with args ''
+10-31 13:16:56.292   321   321 I modprobe: Loaded kernel module /vendor/lib/modules/amdgpu.ko
+10-31 13:16:56.744     1     1 I init    : starting service 'vendor.openbook.dgpu-pm'...
+10-31 13:16:56.747     1     1 I init    : ... started service 'vendor.openbook.dgpu-pm' has pid 329
+10-31 13:16:56.748     1     1 I init    : SVC_EXEC service 'vendor.openbook.dgpu-pm' pid 329 (uid 0 gid 0+1 context default) started; waiting...
+10-31 13:16:56.787   329   329 W openbook-pc-setup: no NVIDIA GPU enumerated; nothing to do
+10-31 13:16:56.791     1     1 I init    : Service 'vendor.openbook.dgpu-pm' (pid 329) exited with status 0 waiting took 0.045000 seconds
+10-31 13:16:56.792     1     1 I init    : Sending SIGKILL to service 'vendor.openbook.dgpu-pm' (pid 329) process group...
+10-31 13:16:56.993   371   371 W openbook-pc-setup: energy_performance_preference: 0 policies handed to the power HAL
+10-31 13:16:57.225   394   394 W openbook-pc-setup: KVM is available (10:232): AVF can run the Linux environment
+10-31 13:16:59.540   699   699 I openbook-gfx-mode: frame report ignored: card0:Virtual-1 is not a connected panel on amdgpu
+10-31 13:17:05.589   707   774 I ActivityManager: About to commit checkpoint
+10-31 13:17:05.589   378   378 I Checkpoint: cp_commitChanges called
+10-31 13:17:05.763   408   408 I android.hardware.boot-service.openbook: live USB stick: boot marked successful in misc; the stick's loader entries are left as they are
+10-31 13:17:05.802     1     1 I init    : starting service 'vendor.openbook.dgpu-report'...
+10-31 13:17:05.805     1     1 I init    : ... started service 'vendor.openbook.dgpu-report' has pid 3044
+10-31 13:17:05.644  3048  3048 I openbook-pc-setup: dgpu-report (boot)
+10-31 13:17:05.754  3116  3116 I openbook-pc-setup: dgpu-report: suspend_stats success=0 fail=0
+10-31 13:17:05.759  3129  3129 I openbook-pc-setup: dgpu-report: state=absent
+10-31 13:17:06.071  3286  3286 I openbook-pc-setup: dgpu-report: health state=absent driver=- refs=- runtime_d3=- vram=- nvrm=0 xid=0 klog_s=0-12
+10-31 13:17:06.241     1     1 I init    : Service 'vendor.openbook.dgpu-report' (pid 3044) exited with status 0 oneshot service took 0.437000 seconds in background
+10-31 13:17:06.243     1     1 I init    : Sending SIGKILL to service 'vendor.openbook.dgpu-report' (pid 3044) process group...
+10-31 13:17:07.063   610   610 I update_engine: [INFO:cleanup_previous_update_action.cc(189)] Boot completed, waiting on markBootSuccessful()
